@@ -16,15 +16,21 @@
 
 package grondag.canvas;
 
+import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.function.Consumer;
 
 import net.fabricmc.fabric.api.client.model.fabric.MaterialFinder;
 import net.fabricmc.fabric.api.client.model.fabric.MeshBuilder;
 import net.fabricmc.fabric.api.client.model.fabric.RenderMaterial;
 import grondag.canvas.RenderMaterialImpl.Value;
+import grondag.canvas.api.CanvasListener;
 import grondag.canvas.api.CanvasRenderer;
 import grondag.canvas.api.ShaderManager;
 import grondag.canvas.mesh.MeshBuilderImpl;
+import net.minecraft.client.resource.language.I18n;
 import net.minecraft.util.Identifier;
 
 public class RendererImpl implements CanvasRenderer {
@@ -37,6 +43,8 @@ public class RendererImpl implements CanvasRenderer {
     }
     
     private final HashMap<Identifier, RenderMaterial> materialMap = new HashMap<>();
+    
+    private final ArrayList<WeakReference<CanvasListener>> listeners = new ArrayList<WeakReference<CanvasListener>>();
     
     private RendererImpl() { };
 
@@ -68,5 +76,37 @@ public class RendererImpl implements CanvasRenderer {
     public ShaderManager shaderManager() {
         // TODO Auto-generated method stub
         return null;
+    }
+
+    public void forceReload() {
+        Canvas.INSTANCE.getLog().info(I18n.translate("misc.info_reloading"));
+        PipelineShaderManager.INSTANCE.forceReload();
+        PipelineManager.INSTANCE.forceReload();
+        PipelineHooks.forceReload();
+        MappedBufferStore.forceReload();
+        forEachListener(c -> c.onRenderReload());
+    }
+
+    public void forEachListener(Consumer<CanvasListener> c) {
+        Iterator<WeakReference<CanvasListener>> it = this.listeners.iterator();
+        while(it.hasNext())
+        {
+            WeakReference<CanvasListener> ref = it.next();
+            CanvasListener listener = ref.get();
+            if(listener == null)
+                it.remove();
+            else
+                c.accept(listener);
+        }        
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return Canvas.isModEnabled();
+    }
+
+    @Override
+    public void registerListener(CanvasListener listener) {
+        this.listeners.add(new WeakReference<CanvasListener>(listener));
     }
 }

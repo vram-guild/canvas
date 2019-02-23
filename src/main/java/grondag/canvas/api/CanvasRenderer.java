@@ -8,4 +8,15 @@ public interface CanvasRenderer extends Renderer {
      * Will return null if this renderer does not support that feature.
      */
     ShaderManager shaderManager();
+    
+    /**
+     * Will be false if user has disabled Canvas in configuration.
+     */
+    boolean isEnabled();
+    
+    /**
+     * Use if you need callbacks for status changes.
+     * Holds a weak reference, so no need to remove listeners that fall out of scope.
+     */
+    void registerListener(CanvasListener lister);
 }
