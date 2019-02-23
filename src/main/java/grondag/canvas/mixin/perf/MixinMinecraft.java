@@ -20,13 +20,13 @@
  * SOFTWARE.
  ******************************************************************************/
 
-package grondag.acuity.mixin.perf;
+package grondag.canvas.mixin.perf;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
-import grondag.acuity.LoadingConfig;
+import grondag.canvas.LoadingConfig;
 import net.minecraft.client.MinecraftClient;
 
 @Mixin(MinecraftClient.class)

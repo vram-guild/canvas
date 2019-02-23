@@ -20,17 +20,18 @@
  * SOFTWARE.
  ******************************************************************************/
 
-package grondag.acuity.mixin;
+package grondag.canvas.mixin;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import grondag.acuity.api.AcuityRuntimeImpl;
-import grondag.acuity.api.pipeline.PipelineManagerImpl;
+
+import grondag.canvas.RendererImpl;
+import grondag.canvas.core.PipelineManager;
+import net.minecraft.client.render.VisibleRegion;
 import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.entity.Entity;
-import net.minecraft.util.math.BoundingBoxTest;
 
 // PERF: restore visibility hooks if profiling shows worthwhile
 // Computation is in class_852
@@ -39,15 +40,15 @@ import net.minecraft.util.math.BoundingBoxTest;
 @Mixin(WorldRenderer.class)
 public abstract class MixinWorldRenderer
 {
-    @Inject(method = "prepareTerrain", at = @At("HEAD"), cancellable = false, require = 1)
-    void onPrepareTerrain(Entity cameraEntity, float fractionalTicks, BoundingBoxTest class_856_1, int int_1, boolean boolean_1)
+    @Inject(method = "setUpTerrain", at = @At("HEAD"), cancellable = false, require = 1)
+    void onPrepareTerrain(Entity cameraEntity, float fractionalTicks, VisibleRegion class_856_1, int int_1, boolean boolean_1)
     {
-        PipelineManagerImpl.INSTANCE.prepareForFrame(cameraEntity, fractionalTicks);
+        PipelineManager.INSTANCE.prepareForFrame(cameraEntity, fractionalTicks);
     }
     
     @Inject(method = "reload", at = @At("HEAD"), cancellable = false, require = 1)
     void onReload(CallbackInfo ci)
     {
-        AcuityRuntimeImpl.INSTANCE.forceReload();
+        RendererImpl.INSTANCE.forceReload();
     }
 }

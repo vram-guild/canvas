@@ -20,13 +20,13 @@
  * SOFTWARE.
  ******************************************************************************/
 
-package grondag.acuity.mixin;
+package grondag.canvas.mixin;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
-import grondag.acuity.broken.PipelineHooks;
+import grondag.canvas.Canvas;
 import net.minecraft.block.BlockRenderLayer;
 import net.minecraft.client.render.chunk.ChunkRenderData;
 import net.minecraft.client.render.chunk.ChunkRenderWorker;
@@ -34,10 +34,17 @@ import net.minecraft.client.render.chunk.ChunkRenderWorker;
 @Mixin(ChunkRenderWorker.class)
 public abstract class MixinChunkRenderWorker
 {
-    @Redirect(method = "processTask", require = 1,
-            at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/chunk/CompiledChunk;isLayerStarted(Lnet/minecraft/util/BlockRenderLayer;)Z"))
-    private boolean isLayerStarted(ChunkRenderData compiledChunk, BlockRenderLayer layer)
+    @Redirect(method = "runTask", require = 1,
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/chunk/ChunkRenderData;isBufferInitialized(Lnet/minecraft/block/BlockRenderLayer;)Z"))
+    private boolean isLayerStarted(ChunkRenderData chunkData, BlockRenderLayer layer)
     {
-        return PipelineHooks.shouldUploadLayer(compiledChunk, layer);
+        return shouldUploadLayer(chunkData, layer);
+    }
+    
+    private static boolean shouldUploadLayer(ChunkRenderData chunkData, BlockRenderLayer blockrenderlayer)
+    {
+        return Canvas.isModEnabled()
+            ? chunkData.isBufferInitialized(blockrenderlayer) && !chunkData.method_3641(blockrenderlayer) // skip if empty
+            : chunkData.isBufferInitialized(blockrenderlayer);
     }
 }

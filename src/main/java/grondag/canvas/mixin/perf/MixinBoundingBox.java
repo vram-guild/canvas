@@ -20,14 +20,14 @@
  * SOFTWARE.
  ******************************************************************************/
 
-package grondag.acuity.mixin.perf;
+package grondag.canvas.mixin.perf;
 
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Mutable;
 import org.spongepowered.asm.mixin.Shadow;
 
-import grondag.acuity.mixin.extension.MutableBoundingBox;
+import grondag.canvas.mixin.extension.MutableBoundingBox;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BoundingBox;
 

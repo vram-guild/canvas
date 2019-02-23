@@ -28,8 +28,12 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import grondag.canvas.Canvas;
 import grondag.canvas.accessor.AccessChunkRenderer;
 import grondag.canvas.accessor.AccessSafeWorldView;
+import grondag.canvas.buffering.DrawableChunk.Solid;
+import grondag.canvas.buffering.DrawableChunk.Translucent;
+import grondag.canvas.mixin.extension.ChunkRendererExt;
 import grondag.canvas.render.TerrainRenderContext;
 import net.minecraft.block.BlockRenderLayer;
 import net.minecraft.block.BlockRenderType;
@@ -62,7 +66,7 @@ import net.minecraft.world.World;
  * (Though they can use these as a example if they wish.)
  */
 @Mixin(ChunkRenderer.class)
-public abstract class MixinChunkRenderer implements AccessChunkRenderer{
+public abstract class MixinChunkRenderer implements AccessChunkRenderer, ChunkRendererExt {
     @Shadow private volatile World world;
     @Shadow private WorldRenderer renderer;
     @Shadow public static int chunkUpdateCount;
@@ -73,7 +77,10 @@ public abstract class MixinChunkRenderer implements AccessChunkRenderer{
 
     @Shadow abstract void beginBufferBuilding(BufferBuilder bufferBuilder_1, BlockPos blockPos_1);
     @Shadow abstract void endBufferBuilding(BlockRenderLayer blockRenderLayer_1, float float_1, float float_2, float float_3, BufferBuilder bufferBuilder_1, ChunkRenderData chunkRenderData_1);
-
+    @Shadow abstract void updateTransformationMatrix();
+    
+    Solid solidDrawable;
+    Translucent translucentDrawable;
     
     // TODO: substitute our visibility graph
     
@@ -160,5 +167,55 @@ public abstract class MixinChunkRenderer implements AccessChunkRenderer{
     @Inject(at = @At("RETURN"), method = "rebuildChunk")
     private void hookRebuildChunkReturn(float float_1, float float_2, float float_3, ChunkRenderTask chunkRenderTask_1, CallbackInfo info) {
         TerrainRenderContext.POOL.get().release();
+    }
+    
+    /**
+     * When Canvas is enabled the per-chunk matrix is never used, so is wasteful to update when frustum moves.
+     * Matters more when lots of block updates or other high-throughput because adds to contention.
+     */
+    @Inject(at = @At("HEAD"), method = "updateTransformationMatrix", cancellable = true)
+    private void hookUpdateTransformationMatrix(CallbackInfo ci) {
+        if(Canvas.isModEnabled())
+        {
+            // this is called right after setting chunk position because it was moved in the frustum
+            // let buffers in the chunk know they are no longer valid and can be released.
+            ((ChunkRendererExt)this).releaseDrawables();
+            ci.cancel();
+        }
+    }
+    
+    @Override
+    public void setSolidDrawable(Solid drawable) {
+        solidDrawable = drawable;
+    }
+    
+    @Override
+    public void setTranslucentDrawable(Translucent drawable) {
+        translucentDrawable = drawable;
+    }
+    
+    @Override
+    public Solid getSolidDrawable() {
+        return solidDrawable;
+    }
+    
+    @Override
+    public Translucent getTranslucentDrawable() {
+        return translucentDrawable;
+    }
+    
+    @Override
+    public void releaseDrawables() {
+        if(solidDrawable != null)
+        {
+            solidDrawable.clear();
+            solidDrawable = null;
+        }
+
+        if(translucentDrawable != null)
+        {
+            translucentDrawable.clear();
+            translucentDrawable = null;
+        }        
     }
 }

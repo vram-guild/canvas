@@ -1,13 +1,11 @@
-package grondag.acuity.opengl;
+package grondag.canvas.opengl;
 
 import java.nio.IntBuffer;
 
-import org.lwjgl.opengl.ARBVertexBufferObject;
-import org.lwjgl.opengl.GL15;
+import com.mojang.blaze3d.platform.GLX;
 
 import it.unimi.dsi.fastutil.ints.IntArrayFIFOQueue;
-import net.minecraft.client.renderer.GLAllocation;
-import net.minecraft.client.renderer.OpenGlHelper;
+import net.minecraft.client.util.GlAllocationUtils;
 
 /**
  * Buffer gen is incredibly slow on some Windows/NVidia systems and default MC behavior
@@ -15,16 +13,13 @@ import net.minecraft.client.renderer.OpenGlHelper;
 public class GLBufferStore
 {
     private static final IntArrayFIFOQueue queue = new IntArrayFIFOQueue();
-    private static final IntBuffer buff = GLAllocation.createDirectIntBuffer(128);
+    private static final IntBuffer buff = GlAllocationUtils.allocateByteBuffer(128 * 4).asIntBuffer();
     
     public static int claimBuffer()
     {
         if(queue.isEmpty())
         {
-            if(OpenGlHelper.arbVbo)
-                ARBVertexBufferObject.glGenBuffersARB(buff);
-            else
-                GL15.glGenBuffers(buff);
+            GLX.glGenBuffers(buff);
             
             for(int i = 0; i < 128; i++)
                 queue.enqueue(buff.get(i));

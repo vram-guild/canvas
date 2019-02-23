@@ -27,8 +27,9 @@ import java.util.List;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
-import grondag.canvas.hooks.ISetVisibility;
+import grondag.canvas.Canvas;
 import grondag.canvas.hooks.ChunkRebuildHelper;
+import grondag.canvas.hooks.ISetVisibility;
 import grondag.canvas.mixin.extension.ChunkRenderDataExt;
 import net.minecraft.class_854;
 import net.minecraft.block.BlockRenderLayer;
@@ -59,5 +60,32 @@ public abstract class MixinChunkRenderData implements ChunkRenderDataExt
         ((ISetVisibility)field_4455).setVisibilityData(null);
         bufferState = null;
         blockEntities.clear();
+    }
+    
+    /**
+     * When mod is enabled, cutout layers are packed into solid layer, but the
+     * chunk render dispatcher doesn't know this and sets flags in the compiled chunk
+     * as if the cutout buffers were populated.  We use this hook to correct that
+     * so that uploader and rendering work in subsequent operations.<p>
+     * 
+     * Called from the rebuildChunk method in ChunkRenderer, via a redirect on the call to
+     * {@link CompiledChunk#setVisibility(net.minecraft.client.renderer.chunk.SetVisibility)}
+     * which is reliably called after the chunks are built in render chunk.<p>
+     */
+    @Override
+    public void mergeRenderLayers()
+    {
+        if(Canvas.isModEnabled())
+        {
+            mergeLayerFlags(isInitialized);
+            mergeLayerFlags(hasContent);
+        }
+    }
+    
+    private static void mergeLayerFlags(boolean[] layerFlags)
+    {
+        layerFlags[0]  = layerFlags[0] || layerFlags[1] || layerFlags[2];
+        layerFlags[1] = false;
+        layerFlags[2] = false;
     }
 }

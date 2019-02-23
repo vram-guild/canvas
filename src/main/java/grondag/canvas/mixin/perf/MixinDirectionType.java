@@ -20,7 +20,7 @@
  * SOFTWARE.
  ******************************************************************************/
 
-package grondag.acuity.mixin.perf;
+package grondag.canvas.mixin.perf;
 
 import java.util.Iterator;
 
@@ -29,12 +29,11 @@ import org.spongepowered.asm.mixin.Overwrite;
 
 import com.google.common.collect.Iterators;
 
-import grondag.acuity.broken.PipelineHooks;
+import grondag.canvas.hooks.PipelineHooks;
 import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.Direction.class_2353;
 
-@Mixin(class_2353.class)
-public abstract class MixinPlane
+@Mixin(Direction.Type.class)
+public abstract class MixinDirectionType
 {
     /**
      * @reason Use static array instance for iterator to avoid making garbage.
@@ -43,7 +42,7 @@ public abstract class MixinPlane
     @Overwrite
     public Iterator<Direction> iterator()
     {
-        switch ((class_2353)(Object)this)
+        switch ((Direction.Type)(Object)this)
         {
             case HORIZONTAL:
                 return Iterators.<Direction>forArray(PipelineHooks.HORIZONTAL_FACES);

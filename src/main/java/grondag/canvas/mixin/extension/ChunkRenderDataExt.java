@@ -31,4 +31,6 @@ public interface ChunkRenderDataExt
     void setNonEmpty(BlockRenderLayer blockRenderLayer);
     
     Object getVisibilityData();
+
+    void mergeRenderLayers();
 }

@@ -125,9 +125,9 @@ public class CanvasGlHelper {
             {
                 Method handlerMethod;
                 if(nioFloatNeedsFlip)
-                    handlerMethod = OpenGlHelperExt.class.getDeclaredMethod("fastMatrix4fBufferCopyFlipped", float[].class, long.class);
+                    handlerMethod = CanvasGlHelper.class.getDeclaredMethod("fastMatrix4fBufferCopyFlipped", float[].class, long.class);
                 else
-                    handlerMethod = OpenGlHelperExt.class.getDeclaredMethod("fastMatrix4fBufferCopyStraight", float[].class, long.class);
+                    handlerMethod = CanvasGlHelper.class.getDeclaredMethod("fastMatrix4fBufferCopyStraight", float[].class, long.class);
                 
                 fastMatrixBufferCopyHandler = lookup.unreflect(handlerMethod);
             }

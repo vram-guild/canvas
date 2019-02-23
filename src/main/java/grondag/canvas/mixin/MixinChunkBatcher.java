@@ -20,32 +20,52 @@
  * SOFTWARE.
  ******************************************************************************/
 
-package grondag.acuity.mixin;
+package grondag.canvas.mixin;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 
-import grondag.acuity.Acuity;
-import grondag.acuity.broken.PipelineHooks;
+import grondag.canvas.Canvas;
+import grondag.canvas.buffering.DrawableChunk.Solid;
+import grondag.canvas.buffering.DrawableChunk.Translucent;
+import grondag.canvas.core.CompoundBufferBuilder;
+import grondag.canvas.hooks.IRenderChunk;
 import net.minecraft.block.BlockRenderLayer;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.BufferBuilder;
-import net.minecraft.client.render.ChunkRenderDispatcher;
+import net.minecraft.client.render.chunk.ChunkBatcher;
 import net.minecraft.client.render.chunk.ChunkRenderData;
 import net.minecraft.client.render.chunk.ChunkRenderer;
 
-@Mixin(ChunkRenderDispatcher.class)
-public abstract class MixinChunkRenderDispatcher
+@Mixin(ChunkBatcher.class)
+public abstract class MixinChunkBatcher
 {
-    @Inject(method = "uploadChunk", at = @At("HEAD"), cancellable = true, require = 1)
+    @Inject(method = "method_3635", at = @At("HEAD"), cancellable = true, require = 1)
     public void onUploadChunk(final BlockRenderLayer blockRenderLayer, final BufferBuilder bufferBuilder, final ChunkRenderer renderChunk, 
-            final ChunkRenderData compiledChunk, final double distanceSq, CallbackInfoReturnable<ListenableFuture<Object>> ci)
+            final ChunkRenderData chunkData, final double distanceSq, CallbackInfoReturnable<ListenableFuture<Object>> ci)
     {
-        if(Acuity.isModEnabled())
-            ci.setReturnValue(PipelineHooks.uploadChunk((ChunkRenderDispatcher)(Object)this, blockRenderLayer, bufferBuilder, renderChunk,
-                    compiledChunk, distanceSq));
+        if(Canvas.isModEnabled() && MinecraftClient.getInstance().isMainThread())
+            ci.setReturnValue(uploadChunk(blockRenderLayer, bufferBuilder, renderChunk,
+                    chunkData, distanceSq));
+    }
+    
+    private static ListenableFuture<Object> uploadChunk(BlockRenderLayer blockRenderLayer,
+            BufferBuilder bufferBuilder, ChunkRenderer renderChunk, ChunkRenderData compiledChunk, double distanceSq)
+    {
+        assert blockRenderLayer == BlockRenderLayer.SOLID || blockRenderLayer == BlockRenderLayer.TRANSLUCENT;
+        
+        if(blockRenderLayer == BlockRenderLayer.SOLID)
+            ((IRenderChunk)renderChunk).setSolidDrawable((Solid) ((CompoundBufferBuilder)bufferBuilder).produceDrawable());
+        else
+            ((IRenderChunk)renderChunk).setTranslucentDrawable((Translucent) ((CompoundBufferBuilder)bufferBuilder).produceDrawable());
+        
+        bufferBuilder.setOffset(0.0D, 0.0D, 0.0D);
+        return Futures.<Object>immediateFuture((Object)null);
+
     }
 }
