@@ -1,0 +1,16 @@
+{
+  "required": true,
+  "package": "grondag.canvas.mixin",
+  "compatibilityLevel": "JAVA_8",
+  "mixins": [
+  	"MixinBlockModelRenderer",
+    "MixinBufferBuilder",
+	"MixinChunkRenderer",
+	"MixinChunkRenderTask",
+	"MixinItemRenderer",
+	"MixinSafeWorldView"
+      ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
