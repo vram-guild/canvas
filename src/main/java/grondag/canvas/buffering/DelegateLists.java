@@ -1,4 +1,4 @@
-package grondag.acuity.buffering;
+package grondag.canvas.buffering;
 
 import java.util.concurrent.ArrayBlockingQueue;
 

@@ -3,8 +3,7 @@ package grondag.canvas.buffering;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.function.Consumer;
 
-import grondag.canvas.RenderMaterialImpl;
-
+import grondag.canvas.core.RenderPipeline;
 
 //PERF: provide diff buffers by vertex format and handle VAO binding 1X per buffer bind in buffers
 public class AllocationManager

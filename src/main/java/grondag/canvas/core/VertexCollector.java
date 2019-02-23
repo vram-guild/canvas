@@ -1,28 +1,23 @@
-package grondag.acuity.core;
-
-import javax.annotation.Nullable;
+package grondag.canvas.core;
 
 import com.google.common.primitives.Doubles;
 
-import grondag.acuity.api.RenderPipeline;
+import grondag.canvas.core.RenderPipeline;
 import it.unimi.dsi.fastutil.Swapper;
 import it.unimi.dsi.fastutil.ints.AbstractIntComparator;
 import net.minecraft.util.math.BlockPos;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
 
-@SideOnly(Side.CLIENT)
 public class VertexCollector
 {
     private int[] data;
     private int integerSize = 0;
     private final RenderPipeline pipeline;
-    private final @Nullable VertexCollectorList parent; 
+    private final VertexCollectorList parent; 
     
     /**
      * Holds per-quad distance after {@link #sortQuads(double, double, double)} is called
      */
-    @Nullable private double[] perQuadDistance;
+    private double[] perQuadDistance;
     
     /**
      * Pointer to next sorted quad in sort iteration methods.<br>
@@ -145,7 +140,6 @@ public class VertexCollector
             }
         };
         
-        @SuppressWarnings("null")
         private void doSort(VertexCollector caller, double x, double y, double z)
         {
          // works because 4 bytes per int
@@ -218,7 +212,6 @@ public class VertexCollector
         return dx * dx + dy * dy + dz * dz;
     }
     
-    @SuppressWarnings("null")
     public boolean hasUnpackedSortedQuads()
     {
         return this.perQuadDistance != null && this.sortReadIndex < this.perQuadDistance.length;
@@ -227,7 +220,6 @@ public class VertexCollector
     /**
      * Will return {@link Double#MIN_VALUE} if no unpacked quads remaining.
      */
-    @SuppressWarnings("null")
     public double firstUnpackedDistance()
     {
         return hasUnpackedSortedQuads() ? this.perQuadDistance[this.sortReadIndex] : Double.MIN_VALUE;
@@ -240,7 +232,6 @@ public class VertexCollector
      * 
      * (All distances are actually squared distances, to be clear.)
      */
-    @SuppressWarnings("null")
     public int unpackUntilDistance(double minDistanceSquared)
     {
         if(!hasUnpackedSortedQuads())
@@ -255,7 +246,7 @@ public class VertexCollector
         return result;
     }
 
-    public int[] saveState(@Nullable int[] priorState)
+    public int[] saveState(int[] priorState)
     {
         int[] result = priorState;
         if(result == null || result.length != integerSize)

@@ -1,18 +1,17 @@
-package grondag.acuity.buffering;
+package grondag.canvas.buffering;
 
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-import javax.annotation.Nullable;
 
 import org.apache.commons.lang3.tuple.Pair;
 
-import grondag.acuity.Acuity;
-import grondag.acuity.opengl.OpenGlHelperExt;
+import com.mojang.blaze3d.platform.GLX;
+
+import grondag.canvas.Canvas;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.OpenGlHelper;
-import net.minecraft.crash.CrashReport;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.util.crash.CrashReport;
 
 public class MappedBufferStore
 {
@@ -64,7 +63,7 @@ public class MappedBufferStore
                 }
                 catch (Exception e)
                 {
-                    Acuity.INSTANCE.getLog().error("Unexpected error detected during vertex buffer defrag.", e);;
+                    Canvas.INSTANCE.getLog().error("Unexpected error detected during vertex buffer defrag.", e);;
                 }
             }
         }
@@ -77,7 +76,7 @@ public class MappedBufferStore
         DEFRAG_THREAD.start();
     }
     
-    static @Nullable MappedBuffer getEmptyMapped()
+    static MappedBuffer getEmptyMapped()
     {
         try
         {
@@ -85,7 +84,7 @@ public class MappedBufferStore
         }
         catch (Exception e)
         {
-            Minecraft.getMinecraft().crashed(new CrashReport("Unable to allocate empty GL buffer", e));
+            MinecraftClient.getInstance().printCrashReport(new CrashReport("Unable to allocate empty GL buffer", e));
             return null;
         }
     }
@@ -119,7 +118,7 @@ public class MappedBufferStore
                     releaseRebufferQueue.offer(buff);
                 }
             }
-            OpenGlHelperExt.glBindBufferFast(OpenGlHelper.GL_ARRAY_BUFFER, 0);
+            GLX.glBindBuffer(GLX.GL_ARRAY_BUFFER, 0);
         }
     }
     
@@ -157,7 +156,7 @@ public class MappedBufferStore
                 
                 pair = releaseResetQueue.poll();
             }
-            OpenGlHelperExt.glBindBufferFast(OpenGlHelper.GL_ARRAY_BUFFER, 0);
+            GLX.glBindBuffer(GLX.GL_ARRAY_BUFFER, 0);
         }
     }
     
@@ -167,7 +166,7 @@ public class MappedBufferStore
      */
     public static void prepareEmpties()
     {
-        assert Minecraft.getMinecraft().isCallingFromMinecraftThread();
+        assert MinecraftClient.getInstance().isMainThread();
         
         processReleaseRemapQueue();
        

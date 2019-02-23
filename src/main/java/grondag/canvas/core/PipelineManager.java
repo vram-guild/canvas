@@ -1,33 +1,22 @@
-package grondag.acuity.api;
+package grondag.canvas.core;
 
 import java.nio.FloatBuffer;
 
-import javax.annotation.Nullable;
-
 import org.lwjgl.BufferUtils;
-import org.lwjgl.MemoryUtil;
+import org.lwjgl.system.MemoryUtil;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
-import org.lwjgl.util.vector.Matrix4f;
 
-import grondag.acuity.Configurator;
-import grondag.acuity.buffering.MappedBufferStore;
-import grondag.acuity.core.PipelineShaderManager;
-import grondag.acuity.opengl.OpenGlHelperExt;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.EntityRenderer;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.OpenGlHelper;
+import grondag.boson.org.joml.Matrix4f;
+import grondag.canvas.Configurator;
+import grondag.canvas.RenderMaterialImpl;
+import grondag.canvas.api.UniformRefreshFrequency;
+import grondag.canvas.buffering.MappedBufferStore;
+import grondag.canvas.core.PipelineShaderManager;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.math.Vec3d;
-import net.minecraftforge.client.model.animation.Animation;
-import net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent;
-import net.minecraftforge.fml.common.gameevent.TickEvent.RenderTickEvent;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
 
-@SideOnly(Side.CLIENT)
-public final class PipelineManager implements IPipelineManager
+public final class PipelineManager
 {
     /**
      * Will always be 1, defined to clarify intent in code.
@@ -60,14 +49,14 @@ public final class PipelineManager implements IPipelineManager
      */
     public static final FloatBuffer modelViewMatrixBuffer = BufferUtils.createFloatBuffer(16);
     
-    private static final long modelViewMatrixBufferAddress = MemoryUtil.getAddress(modelViewMatrixBuffer);
+    private static final long modelViewMatrixBufferAddress = MemoryUtil.memAddress(modelViewMatrixBuffer);
     
     /**
      * Current mvp matrix - set at program activation
      */
     public static final FloatBuffer modelViewProjectionMatrixBuffer = BufferUtils.createFloatBuffer(16);
     
-    private static final long modelViewProjectionMatrixBufferAddress = MemoryUtil.getAddress(modelViewProjectionMatrixBuffer);
+    private static final long modelViewProjectionMatrixBufferAddress = MemoryUtil.memAddress(modelViewProjectionMatrixBuffer);
     
     public static final PipelineManager INSTANCE = new PipelineManager();
     
@@ -80,7 +69,7 @@ public final class PipelineManager implements IPipelineManager
     
     private int pipelineCount = 0;
     
-    private final RenderPipeline[] defaultPipelines = new RenderPipeline[TextureFormat.values().length];
+    private final RenderPipeline[] defaultPipelines = new RenderPipeline[RenderMaterialImpl.MAX_SPRITE_DEPTH];
     private final RenderPipeline waterPipeline;
     private final RenderPipeline lavaPipeline;
     public final RenderPipeline defaultSinglePipeline;
@@ -100,15 +89,15 @@ public final class PipelineManager implements IPipelineManager
         super();
         
         // add default pipelines
-        for(TextureFormat textureFormat : TextureFormat.values())
+        for(int i = 0; i < RenderMaterialImpl.MAX_SPRITE_DEPTH; i++)
         {
-            defaultPipelines[textureFormat.ordinal()] = (RenderPipeline) this.createPipeline(
-                    textureFormat, 
+            defaultPipelines[i] = (RenderPipeline) this.createPipeline(
+                    i + 1, 
                     PipelineShaderManager.INSTANCE.DEFAULT_VERTEX_SOURCE,
                     PipelineShaderManager.INSTANCE.DEFAULT_FRAGMENT_SOURCE).finish();
         }
-        this.waterPipeline = this.createPipeline(TextureFormat.SINGLE, "/assets/acuity/shader/water.vert", "/assets/acuity/shader/water.frag");
-        this.lavaPipeline = this.createPipeline(TextureFormat.SINGLE, "/assets/acuity/shader/lava.vert", "/assets/acuity/shader/lava.frag");
+        this.waterPipeline = this.createPipeline(1, "/assets/acuity/shader/water.vert", "/assets/acuity/shader/water.frag");
+        this.lavaPipeline = this.createPipeline(1, "/assets/acuity/shader/lava.vert", "/assets/acuity/shader/lava.frag");
         this.defaultSinglePipeline = defaultPipelines[0];
     }
     
@@ -121,10 +110,8 @@ public final class PipelineManager implements IPipelineManager
     }
     
     
-    @Nullable
-    @Override
     public final synchronized RenderPipeline createPipeline(
-            TextureFormat textureFormat, 
+            int spriteDepth, 
             String vertexShader, 
             String fragmentShader)
     {
@@ -134,7 +121,7 @@ public final class PipelineManager implements IPipelineManager
         
         if(this.pipelineCount >= PipelineManager.MAX_PIPELINES)
             return null;
-        RenderPipeline result = new RenderPipeline(this.pipelineCount++, vertexShader, fragmentShader, textureFormat);
+        RenderPipeline result = new RenderPipeline(this.pipelineCount++, vertexShader, fragmentShader, spriteDepth);
         this.pipelines[result.getIndex()] = result;
         
         addStandardUniforms(result);
@@ -147,26 +134,22 @@ public final class PipelineManager implements IPipelineManager
         return pipelines[pipelineIndex];
     }
 
-    @Override
-    public final IRenderPipeline getDefaultPipeline(TextureFormat textureFormat)
+    public final RenderPipeline getDefaultPipeline(int spriteDepth)
     {
-        return pipelines[textureFormat.ordinal()];
+        return pipelines[spriteDepth - 1];
     }
     
-    @Override
     public final RenderPipeline getWaterPipeline()
     {
         return Configurator.fancyFluids ? this.waterPipeline : this.defaultSinglePipeline;
     }
     
-    @Override
     public final RenderPipeline getLavaPipeline()
     {
         return Configurator.fancyFluids ? this.lavaPipeline : this.defaultSinglePipeline;
     }
 
-    @Override
-    public IRenderPipeline getPipelineByIndex(int index)
+    public RenderPipeline getPipelineByIndex(int index)
     {
         return this.pipelines[index];
     }
@@ -181,19 +164,19 @@ public final class PipelineManager implements IPipelineManager
     
     private void addStandardUniforms(RenderPipeline pipeline)
     {
-        pipeline.uniform1f("u_time", UniformUpdateFrequency.PER_FRAME, u -> u.set(this.worldTime));
+        pipeline.uniform1f("u_time", UniformRefreshFrequency.PER_FRAME, u -> u.set(this.worldTime));
         
-        pipeline.uniformSampler2d("u_textures", UniformUpdateFrequency.ON_LOAD, u -> u.set(OpenGlHelper.defaultTexUnit - GL13.GL_TEXTURE0));
+        pipeline.uniformSampler2d("u_textures", UniformRefreshFrequency.ON_LOAD, u -> u.set(OpenGlHelper.defaultTexUnit - GL13.GL_TEXTURE0));
         
-        pipeline.uniformSampler2d("u_lightmap", UniformUpdateFrequency.ON_LOAD, u -> u.set(OpenGlHelper.lightmapTexUnit - GL13.GL_TEXTURE0));
+        pipeline.uniformSampler2d("u_lightmap", UniformRefreshFrequency.ON_LOAD, u -> u.set(OpenGlHelper.lightmapTexUnit - GL13.GL_TEXTURE0));
         
-        pipeline.uniform3f("u_eye_position", UniformUpdateFrequency.PER_FRAME, u -> 
+        pipeline.uniform3f("u_eye_position", UniformRefreshFrequency.PER_FRAME, u -> 
         {
             Vec3d eyePos = Minecraft.getMinecraft().player.getPositionEyes(partialTicks);
             u.set((float)eyePos.x, (float)eyePos.y, (float)eyePos.z);
         });
         
-        pipeline.uniform3f("u_fogAttributes", UniformUpdateFrequency.PER_TICK, u -> 
+        pipeline.uniform3f("u_fogAttributes", UniformRefreshFrequency.PER_TICK, u -> 
         {
             GlStateManager.FogState fogState = GlStateManager.fogState;
             u.set(fogState.end, fogState.end - fogState.start, 
@@ -201,7 +184,7 @@ public final class PipelineManager implements IPipelineManager
                     fogState.mode == GlStateManager.FogMode.LINEAR.capabilityId ? 0f : fogState.density);
         });
         
-        pipeline.uniform3f("u_fogColor", UniformUpdateFrequency.PER_TICK, u -> 
+        pipeline.uniform3f("u_fogColor", UniformRefreshFrequency.PER_TICK, u -> 
         {
             EntityRenderer er = Minecraft.getMinecraft().entityRenderer;
             u.set(er.fogColorRed, er.fogColorGreen, er.fogColorBlue);

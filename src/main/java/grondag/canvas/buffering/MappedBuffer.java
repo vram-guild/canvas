@@ -1,4 +1,4 @@
-package grondag.acuity.buffering;
+package grondag.canvas.buffering;
 
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
@@ -8,20 +8,19 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import javax.annotation.Nullable;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.lwjgl.opengl.GL15;
-import org.lwjgl.util.glu.GLU;
 
-import grondag.acuity.Acuity;
-import grondag.acuity.api.RenderPipeline;
-import grondag.acuity.opengl.GLBufferStore;
-import grondag.acuity.opengl.OpenGlHelperExt;
+import com.mojang.blaze3d.platform.GLX;
+import com.mojang.blaze3d.platform.GlStateManager;
+
+import grondag.canvas.Canvas;
+import grondag.canvas.core.RenderPipeline;
+import grondag.canvas.opengl.CanvasGlHelper;
+import grondag.canvas.opengl.GLBufferStore;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.OpenGlHelper;
+import net.minecraft.client.MinecraftClient;
 
 /**
  * Concurrency Notes<br>
@@ -66,7 +65,7 @@ public class MappedBuffer
      * 
      * MAY BE NON-NULL IF NOT MAPPED.  Reuse of buffer instance is an optimization feature of GL.
      */
-    private @Nullable ByteBuffer mapped = null;
+    private ByteBuffer mapped = null;
     
     /**
      * True if buffer is actually mapped. If false, and {@link #mapped} is non-null,
@@ -123,8 +122,8 @@ public class MappedBuffer
     
     MappedBuffer()
     {
-        assert Minecraft.getMinecraft().isCallingFromMinecraftThread();
-        this.glBufferId = OpenGlHelper.glGenBuffers();
+        assert MinecraftClient.getInstance().isMainThread();
+        this.glBufferId = GLX.glGenBuffers();
         bind();
         orphan();
         map(true);
@@ -150,14 +149,14 @@ public class MappedBuffer
         
         assert !isMapped;
         
-        mapped = OpenGlHelperExt.mapBufferAsynch(mapped, CAPACITY_BYTES, writeFlag);
+        mapped = CanvasGlHelper.mapBufferAsynch(mapped, CAPACITY_BYTES, writeFlag);
         if(mapped == null)
         {
-            int i = GlStateManager.glGetError();
+            int i = GlStateManager.getError();
             if (i != 0)
             {
-                Acuity.INSTANCE.getLog().error("########## GL ERROR ON BUFFER REMAP ##########");
-                Acuity.INSTANCE.getLog().error(GLU.gluErrorString(i) + " (" + i + ")");
+                Canvas.INSTANCE.getLog().error("########## GL ERROR ON BUFFER REMAP ##########");
+                Canvas.INSTANCE.getLog().error(GLX.getErrorString(i) + " (" + i + ")");
             }
             assert false;
         }
@@ -173,7 +172,7 @@ public class MappedBuffer
     /**
      * Won't break stride.
      */
-    public @Nullable MappedBufferDelegate requestBytes(int byteCount, int stride)
+    public MappedBufferDelegate requestBytes(int byteCount, int stride)
     {
 //        traceLog.add(String.format("requestBytes(%d, %d)", byteCount, stride));
         assert !isDisposed;
@@ -201,22 +200,21 @@ public class MappedBuffer
 
     void bind()
     {
-        OpenGlHelperExt.glBindBufferFast(OpenGlHelper.GL_ARRAY_BUFFER, this.glBufferId);
+        GLX.glBindBuffer(GLX.GL_ARRAY_BUFFER, this.glBufferId);
     }
     
     void unbind()
     {
-        OpenGlHelperExt.glBindBufferFast(OpenGlHelper.GL_ARRAY_BUFFER, 0);
+        GLX.glBindBuffer(GLX.GL_ARRAY_BUFFER, 0);
     }
 
     /** assumes buffer is bound */
     private void orphan()
     {
 //        traceLog.add("orphan()");
-        assert Minecraft.getMinecraft().isCallingFromMinecraftThread();
+        assert MinecraftClient.getInstance().isMainThread();
         mapped = null;
-        OpenGlHelperExt.glBufferData(OpenGlHelper.GL_ARRAY_BUFFER, CAPACITY_BYTES, GL15.GL_STATIC_DRAW);
-        OpenGlHelperExt.handleAppleMappedBuffer();
+        CanvasGlHelper.glBufferData(GLX.GL_ARRAY_BUFFER, CAPACITY_BYTES, GL15.GL_STATIC_DRAW);
     }
     
     public boolean isFlushPending()
@@ -236,7 +234,7 @@ public class MappedBuffer
         if(isDisposed)
             return;
         
-        assert Minecraft.getMinecraft().isCallingFromMinecraftThread();
+        assert MinecraftClient.getInstance().isMainThread();
         
         assert isMapped;
         
@@ -246,7 +244,7 @@ public class MappedBuffer
             lastFlushedOffset = currentMaxOffset.get();
             isMapped = false;
             bind();
-            OpenGlHelperExt.unmapBuffer();
+            CanvasGlHelper.unmapBuffer();
             unbind();
         }
     }
@@ -259,7 +257,7 @@ public class MappedBuffer
         if(isDisposed)
             return;
         
-        assert Minecraft.getMinecraft().isCallingFromMinecraftThread();
+        assert MinecraftClient.getInstance().isMainThread();
         
         final int currentMax = currentMaxOffset.get();
         final int bytes = currentMax - lastFlushedOffset;
@@ -270,7 +268,7 @@ public class MappedBuffer
         // TODO: remove this once fixed
         if(!isMapped)
         {
-            Acuity.INSTANCE.getLog().warn("Skipped buffer flush due to unmapped buffer.");
+            Canvas.INSTANCE.getLog().warn("Skipped buffer flush due to unmapped buffer.");
             return;
         }
         
@@ -283,8 +281,8 @@ public class MappedBuffer
         
 //        flushAndMapLock.lock();
         
-        OpenGlHelperExt.flushBuffer(lastFlushedOffset, bytes);
-        OpenGlHelperExt.unmapBuffer();
+        CanvasGlHelper.flushBuffer(lastFlushedOffset, bytes);
+        CanvasGlHelper.unmapBuffer();
         lastFlushedOffset = currentMax;
         isMapped = false;
         
@@ -338,7 +336,7 @@ public class MappedBuffer
     public void reportStats()
     {
         String status = "" + (this.isFinal ? "FINAL" : "OPEN") + (this.isMapped ? "-MAPPED" : "") + (this.isReleaseRequested.get() ? "-RELEASING" : "");
-        Acuity.INSTANCE.getLog().info(String.format("Buffer %d: Count=%d  Bytes=%d (%d) Status=%s",
+        Canvas.INSTANCE.getLog().info(String.format("Buffer %d: Count=%d  Bytes=%d (%d) Status=%s",
                 this.id, 
                 this.retainers.size(), 
                 this.retainedBytes.get(),
@@ -353,7 +351,7 @@ public class MappedBuffer
         if(isMapped)
         {
             bind();
-            OpenGlHelperExt.unmapBuffer();
+            CanvasGlHelper.unmapBuffer();
             unbind();
             isMapped = false;
             mapped = null;
@@ -381,7 +379,7 @@ public class MappedBuffer
         
         bind();
         if(isMapped)
-            OpenGlHelperExt.unmapBuffer();
+            CanvasGlHelper.unmapBuffer();
         
         isMapped = false;
         mapped = null;

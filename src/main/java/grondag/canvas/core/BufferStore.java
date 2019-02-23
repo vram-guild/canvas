@@ -1,18 +1,15 @@
-package grondag.acuity.core;
+package grondag.canvas.core;
 
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.util.concurrent.ArrayBlockingQueue;
 
-import net.minecraft.client.renderer.GLAllocation;
+import net.minecraft.client.util.GlAllocationUtils;
 import net.minecraft.util.math.MathHelper;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
 
 /**
  * Holds a thread-safe cache of buffer builders to be used for VBO uploads
  */
-@SideOnly(Side.CLIENT)
 public class BufferStore
 {
     private static final ArrayBlockingQueue<ExpandableByteBuffer> store = new ArrayBlockingQueue<ExpandableByteBuffer>(4096);
@@ -25,7 +22,7 @@ public class BufferStore
         
         private ExpandableByteBuffer()
         {
-            byteBuffer = GLAllocation.createDirectByteBuffer(BUFFER_SIZE_INCREMENT);
+            byteBuffer = GlAllocationUtils.allocateByteBuffer(BUFFER_SIZE_INCREMENT);
             intBuffer = byteBuffer.asIntBuffer();
         }
         
@@ -43,7 +40,7 @@ public class BufferStore
         {
             if (minByteSize > this.byteBuffer.capacity())
             {
-                ByteBuffer newBuffer = GLAllocation.createDirectByteBuffer(MathHelper.roundUp(minByteSize, BUFFER_SIZE_INCREMENT));
+                ByteBuffer newBuffer = GlAllocationUtils.allocateByteBuffer(MathHelper.roundUp(minByteSize, BUFFER_SIZE_INCREMENT));
                 int oldIntPos = this.intBuffer.position();
                 int oldBytePos = this.byteBuffer.position();
                 this.byteBuffer.position(0);

@@ -1,13 +1,15 @@
-package grondag.acuity.buffering;
+package grondag.canvas.buffering;
 
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL30;
 
-import grondag.acuity.api.RenderPipeline;
-import grondag.acuity.core.PipelineVertexFormat;
-import grondag.acuity.opengl.OpenGlHelperExt;
-import grondag.acuity.opengl.VaoStore;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.vertex.VertexFormatElement;
+import com.mojang.blaze3d.platform.GlStateManager;
+
+import grondag.canvas.core.PipelineVertexFormat;
+import grondag.canvas.core.RenderPipeline;
+import grondag.canvas.opengl.CanvasGlHelper;
+import grondag.canvas.opengl.VaoStore;
+import net.minecraft.client.render.VertexFormatElement;
 
 public class DrawableChunkDelegate
 {
@@ -83,13 +85,13 @@ public class DrawableChunkDelegate
         if(vaoNeedsRefresh)
         {
             final PipelineVertexFormat format = pipeline.piplineVertexFormat();
-            if(OpenGlHelperExt.isVaoEnabled())
+            if(CanvasGlHelper.isVaoEnabled())
             {
                 if(vaoBufferId == -1)
                     vaoBufferId = VaoStore.claimVertexArray();
-                OpenGlHelperExt.glBindVertexArray(vaoBufferId);
-                GlStateManager.glEnableClientState(GL11.GL_VERTEX_ARRAY);
-                OpenGlHelperExt.enableAttributesVao(format.attributeCount);
+                GL30.glBindVertexArray(vaoBufferId);
+                GlStateManager.enableClientState(GL11.GL_VERTEX_ARRAY);
+                CanvasGlHelper.enableAttributesVao(format.attributeCount);
                 bindVertexAttributes(format);
                 return lastBufferId;
             }
@@ -97,7 +99,7 @@ public class DrawableChunkDelegate
         }
         
         if(vaoBufferId > 0)
-            OpenGlHelperExt.glBindVertexArray(vaoBufferId);
+            GL30.glBindVertexArray(vaoBufferId);
         else
             bindVertexAttributes(pipeline.piplineVertexFormat());
         
@@ -107,7 +109,7 @@ public class DrawableChunkDelegate
     
     private void bindVertexAttributes(PipelineVertexFormat format)
     {
-        OpenGlHelperExt.glVertexPointerFast(3, VertexFormatElement.EnumType.FLOAT.getGlConstant(), format.stride, bufferDelegate.byteOffset());
+        GlStateManager.vertexPointer(3, VertexFormatElement.Format.FLOAT.getGlId(), format.stride, bufferDelegate.byteOffset());
         format.bindAttributeLocations(bufferDelegate.byteOffset());
     }
     
@@ -120,7 +122,7 @@ public class DrawableChunkDelegate
         
         if(this.bufferDelegate.isDisposed())
             return;
-        OpenGlHelperExt.glDrawArraysFast(GL11.GL_QUADS, 0, vertexCount);
+        GlStateManager.drawArrays(GL11.GL_QUADS, 0, vertexCount);
     }
     
     public void release()

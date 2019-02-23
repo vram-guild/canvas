@@ -1,14 +1,12 @@
-package grondag.acuity.core;
+package grondag.canvas.core;
 
 import java.util.Comparator;
 import java.util.PriorityQueue;
 import java.util.function.Consumer;
 
-import javax.annotation.Nullable;
-
-import grondag.acuity.api.PipelineManager;
-import grondag.acuity.api.RenderPipeline;
-import grondag.acuity.buffering.UploadableChunk;
+import grondag.canvas.core.PipelineManager;
+import grondag.canvas.core.RenderPipeline;
+import grondag.canvas.buffering.UploadableChunk;
 import net.minecraft.util.math.MathHelper;
 
 public class VertexCollectorList
@@ -164,7 +162,7 @@ public class VertexCollectorList
         }
     }
 
-    public final @Nullable UploadableChunk.Solid packUploadSolid()
+    public final UploadableChunk.Solid packUploadSolid()
     {
         VertexPackingList packing = new VertexPackingList();
 
@@ -232,7 +230,7 @@ public class VertexCollectorList
         return packing.size() == 0 ? null : new UploadableChunk.Translucent(packing, this);
     }
 
-    public int[][] getCollectorState(@Nullable int[][] priorState)
+    public int[][] getCollectorState(int[][] priorState)
     {
         int[][] result = priorState;
         

@@ -1,14 +1,16 @@
-package grondag.acuity.opengl;
+package grondag.canvas.opengl;
 
 import java.nio.IntBuffer;
 
+import org.lwjgl.opengl.GL30;
+
 import it.unimi.dsi.fastutil.ints.IntArrayFIFOQueue;
-import net.minecraft.client.renderer.GLAllocation;
+import net.minecraft.client.util.GlAllocationUtils;
 
 public class VaoStore
 {
     private static final IntArrayFIFOQueue queue = new IntArrayFIFOQueue();
-    private static final IntBuffer buff = GLAllocation.createDirectIntBuffer(128);
+    private static final IntBuffer buff = GlAllocationUtils.allocateByteBuffer(128 * 4).asIntBuffer();
     
     public static int[] claimVertexArrays(int howMany)
     {
@@ -24,7 +26,7 @@ public class VaoStore
     {
         if(queue.isEmpty())
         {
-            OpenGlHelperExt.glGenVertexArrays(buff);
+            GL30.glGenVertexArrays(buff);
             
             for(int i = 0; i < 128; i++)
                 queue.enqueue(buff.get(i));
