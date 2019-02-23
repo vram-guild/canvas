@@ -20,13 +20,13 @@
  * SOFTWARE.
  ******************************************************************************/
 
-package grondag.acuity.mixin;
+package grondag.canvas.mixin;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 
-import net.minecraft.Profiler;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.util.profiler.Profiler;
 
 @Mixin(MinecraftClient.class)
 public interface AccessMinecraftClient

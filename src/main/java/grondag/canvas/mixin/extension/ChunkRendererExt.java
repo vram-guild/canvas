@@ -20,9 +20,9 @@
  * SOFTWARE.
  ******************************************************************************/
 
-package grondag.acuity.mixin.extension;
+package grondag.canvas.mixin.extension;
 
-import grondag.acuity.buffer.DrawableChunk;
+import grondag.canvas.buffering.DrawableChunk;
 
 public interface ChunkRendererExt
 {

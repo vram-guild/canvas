@@ -1,21 +1,21 @@
-package grondag.acuity.hooks;
+package grondag.canvas.hooks;
 
-import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.math.BoundingBox;
 import net.minecraft.util.math.BlockPos;
 
 public interface IMutableAxisAlignedBB
 {
-    IMutableAxisAlignedBB set(AxisAlignedBB box);
+    IMutableAxisAlignedBB set(BoundingBox box);
 
     IMutableAxisAlignedBB growMutable(double value);
 
     IMutableAxisAlignedBB growMutable(double x, double y, double z);
     
-    AxisAlignedBB toImmutable();
+    BoundingBox toImmutable();
 
     IMutableAxisAlignedBB offsetMutable(BlockPos pos);
 
-    AxisAlignedBB cast();
+    BoundingBox cast();
 
     IMutableAxisAlignedBB expandMutable(double x, double y, double z);
 

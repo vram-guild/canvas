@@ -20,7 +20,7 @@
  * SOFTWARE.
  ******************************************************************************/
 
-package grondag.acuity.mixin.extension;
+package grondag.canvas.mixin.extension;
 
 import net.minecraft.block.BlockRenderLayer;
 

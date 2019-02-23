@@ -1,10 +1,10 @@
-package grondag.acuity.hooks;
+package grondag.canvas.hooks;
 
 import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 
 import it.unimi.dsi.fastutil.shorts.Short2ByteOpenHashMap;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.math.Direction;
 
 @SuppressWarnings("serial")
 public class VisibilityMap extends Short2ByteOpenHashMap
@@ -26,9 +26,9 @@ public class VisibilityMap extends Short2ByteOpenHashMap
         visibilityMaps.offer(map);
     }
 
-    public Set<EnumFacing> getFaceSet(int index)
+    public Set<Direction> getFaceSet(int index)
     {
-        return EnumFacingSet.sharedInstance(this.get((short)index));
+        return DirectionSet.sharedInstance(this.get((short)index));
     }
     
     public void setIndex(int positionIndex, int setIndex)

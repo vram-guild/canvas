@@ -20,7 +20,7 @@
  * SOFTWARE.
  ******************************************************************************/
 
-package grondag.acuity.mixin.extension;
+package grondag.canvas.mixin.extension;
 
 import net.minecraft.client.render.chunk.ChunkRenderer;
 import net.minecraft.util.math.BlockPos;

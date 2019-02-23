@@ -1,25 +1,26 @@
-package grondag.acuity.hooks;
+package grondag.canvas.hooks;
 
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Set;
 
-import net.minecraft.util.EnumFacing;
-import static net.minecraft.util.EnumFacing.*;
+import net.minecraft.util.math.Direction;
 
-public class EnumFacingSet
+import static net.minecraft.util.math.Direction.*;
+
+public class DirectionSet
 {
     @SuppressWarnings("unchecked")
-    private static Set<EnumFacing>[] ALL_SETS = new Set[64];
+    private static Set<Direction>[] ALL_SETS = new Set[64];
     
-    public static final Set<EnumFacing> ALL;
-    public static final Set<EnumFacing> NONE;
+    public static final Set<Direction> ALL;
+    public static final Set<Direction> NONE;
   
     static
     {
         for(int i = 0; i < 64; i++)
         {
-            EnumSet<EnumFacing> set = EnumSet.noneOf(EnumFacing.class);
+            EnumSet<Direction> set = EnumSet.noneOf(Direction.class);
             if((i & (1 << DOWN.ordinal())) != 0)  set.add(DOWN);
             if((i & (1 << UP.ordinal())) != 0)  set.add(UP);
             if((i & (1 << EAST.ordinal())) != 0)  set.add(EAST);
@@ -33,12 +34,12 @@ public class EnumFacingSet
         NONE = ALL_SETS[0];
     }
     
-    public static int addFaceToBit(int bits, EnumFacing face)
+    public static int addFaceToBit(int bits, Direction face)
     {
         return bits | (1 << face.ordinal());
     }
     
-    public static int sharedIndex(Set<EnumFacing> fromSet)
+    public static int sharedIndex(Set<Direction> fromSet)
     {
         if(fromSet.isEmpty())
             return 0;
@@ -47,23 +48,23 @@ public class EnumFacingSet
         else
         {
             int bits = 0;
-            if(fromSet.contains(EnumFacing.DOWN)) bits |= (1 << DOWN.ordinal());
-            if(fromSet.contains(EnumFacing.UP)) bits |= (1 << UP.ordinal());
-            if(fromSet.contains(EnumFacing.EAST)) bits |= (1 << EAST.ordinal());
-            if(fromSet.contains(EnumFacing.WEST)) bits |= (1 << WEST.ordinal());
-            if(fromSet.contains(EnumFacing.NORTH)) bits |= (1 << NORTH.ordinal());
-            if(fromSet.contains(EnumFacing.SOUTH)) bits |= (1 << SOUTH.ordinal());
+            if(fromSet.contains(Direction.DOWN)) bits |= (1 << DOWN.ordinal());
+            if(fromSet.contains(Direction.UP)) bits |= (1 << UP.ordinal());
+            if(fromSet.contains(Direction.EAST)) bits |= (1 << EAST.ordinal());
+            if(fromSet.contains(Direction.WEST)) bits |= (1 << WEST.ordinal());
+            if(fromSet.contains(Direction.NORTH)) bits |= (1 << NORTH.ordinal());
+            if(fromSet.contains(Direction.SOUTH)) bits |= (1 << SOUTH.ordinal());
             
             return bits;
         }    
     }
     
-    public static Set<EnumFacing> sharedInstance(Set<EnumFacing> fromSet)
+    public static Set<Direction> sharedInstance(Set<Direction> fromSet)
     {
         return sharedInstance(sharedIndex(fromSet));
     }
     
-    public static Set<EnumFacing> sharedInstance(int fromIndex)
+    public static Set<Direction> sharedInstance(int fromIndex)
     {
         return ALL_SETS[fromIndex];
     }

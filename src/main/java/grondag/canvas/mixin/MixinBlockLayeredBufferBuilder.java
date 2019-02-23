@@ -20,7 +20,7 @@
  * SOFTWARE.
  ******************************************************************************/
 
-package grondag.acuity.mixin;
+package grondag.canvas.mixin;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -28,8 +28,8 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import grondag.acuity.broken.PipelineHooks;
-import grondag.acuity.buffer.CompoundBufferBuilder;
+import grondag.canvas.core.CompoundBufferBuilder;
+import net.minecraft.block.BlockRenderLayer;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.chunk.BlockLayeredBufferBuilder;
 
@@ -46,6 +46,20 @@ public abstract class MixinBlockLayeredBufferBuilder
     @Inject(method = "<init>*", require = 1, at = @At("RETURN"))
     private void onConstructed(CallbackInfo ci)
     {
-        PipelineHooks.linkBuilders((BlockLayeredBufferBuilder)(Object)this);
+        linkBuilders((BlockLayeredBufferBuilder)(Object)this);
+    }
+    
+    private static void linkBuilders(BlockLayeredBufferBuilder cache)
+    {
+        linkBuildersInner(cache, BlockRenderLayer.SOLID);
+        linkBuildersInner(cache, BlockRenderLayer.CUTOUT);
+        linkBuildersInner(cache, BlockRenderLayer.MIPPED_CUTOUT);
+        linkBuildersInner(cache, BlockRenderLayer.TRANSLUCENT);
+    }
+    
+    private static void linkBuildersInner(BlockLayeredBufferBuilder cache, BlockRenderLayer layer)
+    {
+        CompoundBufferBuilder builder = (CompoundBufferBuilder) cache.get(layer);
+        builder.setupLinks(cache, layer);
     }
 }

@@ -1,10 +1,9 @@
-package grondag.acuity.hooks;
+package grondag.canvas.hooks;
 
-import javax.annotation.Nullable;
 
 public interface ISetVisibility
 {
-    public @Nullable Object getVisibilityData();
+    public Object getVisibilityData();
     
     public void setVisibilityData( Object data);
 

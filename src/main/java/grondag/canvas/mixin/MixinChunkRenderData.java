@@ -20,20 +20,21 @@
  * SOFTWARE.
  ******************************************************************************/
 
-package grondag.acuity.mixin;
+package grondag.canvas.mixin;
 
 import java.util.List;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
-import grondag.acuity.chunkbuild.ChunkRebuildHelper;
-import grondag.acuity.mixin.extension.ChunkRenderDataExt;
+import grondag.canvas.hooks.ISetVisibility;
+import grondag.canvas.hooks.ChunkRebuildHelper;
+import grondag.canvas.mixin.extension.ChunkRenderDataExt;
+import net.minecraft.class_854;
 import net.minecraft.block.BlockRenderLayer;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.chunk.ChunkRenderData;
-import net.minecraft.client.render.chunk.ChunkVisibility;
 
 @Mixin(ChunkRenderData.class)
 public abstract class MixinChunkRenderData implements ChunkRenderDataExt
@@ -42,7 +43,7 @@ public abstract class MixinChunkRenderData implements ChunkRenderDataExt
     @Shadow private boolean[] isInitialized;
     @Shadow private boolean empty;
     @Shadow private List<BlockEntity> blockEntities;
-    @Shadow private ChunkVisibility chunkVisibility;
+    @Shadow private class_854 field_4455;
     @Shadow private BufferBuilder.State bufferState;
     
     @Override
@@ -54,9 +55,9 @@ public abstract class MixinChunkRenderData implements ChunkRenderDataExt
         empty = true;
         System.arraycopy(ChunkRebuildHelper.EMPTY_RENDER_LAYER_FLAGS, 0, hasContent, 0, ChunkRebuildHelper.BLOCK_RENDER_LAYER_COUNT);
         System.arraycopy(ChunkRebuildHelper.EMPTY_RENDER_LAYER_FLAGS, 0, isInitialized, 0, ChunkRebuildHelper.BLOCK_RENDER_LAYER_COUNT);
-        chunkVisibility.setAll(false);
+        field_4455.method_3694(false); // set all false
+        ((ISetVisibility)field_4455).setVisibilityData(null);
         bufferState = null;
         blockEntities.clear();
     }
-    
 }

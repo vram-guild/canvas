@@ -74,6 +74,10 @@ public abstract class MixinChunkRenderer implements AccessChunkRenderer{
     @Shadow abstract void beginBufferBuilding(BufferBuilder bufferBuilder_1, BlockPos blockPos_1);
     @Shadow abstract void endBufferBuilding(BlockRenderLayer blockRenderLayer_1, float float_1, float float_2, float float_3, BufferBuilder bufferBuilder_1, ChunkRenderData chunkRenderData_1);
 
+    
+    // TODO: substitute our visibility graph
+    
+    
     /** 
      * Access method for renderer.
      */

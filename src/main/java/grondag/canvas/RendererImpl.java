@@ -86,7 +86,6 @@ public class RendererImpl implements CanvasRenderer {
         Canvas.INSTANCE.getLog().info(I18n.translate("misc.info_reloading"));
         PipelineShaderManager.INSTANCE.forceReload();
         PipelineManager.INSTANCE.forceReload();
-        PipelineHooks.forceReload();
         MappedBufferStore.forceReload();
         forEachListener(c -> c.onRenderReload());
     }
