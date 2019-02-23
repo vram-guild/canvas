@@ -1,16 +1,12 @@
-package grondag.acuity.core;
+package grondag.canvas.core;
 
-import grondag.acuity.api.TextureFormat;
-import net.minecraft.client.renderer.OpenGlHelper;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import com.mojang.blaze3d.platform.GLX;
 
-@SideOnly(Side.CLIENT)
 public final class PipelineFragmentShader extends AbstractPipelineShader
 {
-    PipelineFragmentShader(String fileName, TextureFormat textureFormat, boolean isSolidLayer)
+    PipelineFragmentShader(String fileName, int spriteDepth, boolean isSolidLayer)
     {
-        super(fileName, OpenGlHelper.GL_FRAGMENT_SHADER, textureFormat, isSolidLayer);
+        super(fileName, GLX.GL_FRAGMENT_SHADER, spriteDepth, isSolidLayer);
     }
     
     @Override

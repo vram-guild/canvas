@@ -496,16 +496,6 @@ public class OpenGlHelperExt
         }
     }
 
-    public static String getProgramInfoLog(int obj)
-    {
-        return OpenGlHelper.glGetProgramInfoLog(obj, OpenGlHelper.glGetProgrami(obj, GL20.GL_INFO_LOG_LENGTH));
-    }
-
-    public static String getShaderInfoLog(int obj)
-    {
-        return OpenGlHelper.glGetProgramInfoLog(obj, OpenGlHelper.glGetShaderi(obj, GL20.GL_INFO_LOG_LENGTH));
-    }
-    
     public static @Nullable ByteBuffer readFileAsString(String filename) throws Exception
     {
         InputStream in = PipelineManager.class.getResourceAsStream(filename);

@@ -1,43 +1,36 @@
-package grondag.acuity.core;
+package grondag.canvas.core;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.nio.ByteBuffer;
 
-import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 
 import com.google.common.io.CharStreams;
+import com.mojang.blaze3d.platform.GLX;
 
-import grondag.acuity.Acuity;
-import grondag.acuity.api.PipelineManager;
-import grondag.acuity.api.TextureFormat;
-import grondag.acuity.opengl.OpenGlHelperExt;
-import net.minecraft.client.renderer.OpenGlHelper;
-import net.minecraft.util.text.translation.I18n;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import grondag.canvas.Canvas;
+import grondag.canvas.opengl.CanvasGlHelper;
+import net.minecraft.client.resource.language.I18n;
 
-@SideOnly(Side.CLIENT)
 abstract class AbstractPipelineShader
 {
     public final String fileName;
     
     private final int shaderType;
-    public final TextureFormat textureFormat;
+    public final int spriteDepth;
     public final boolean isSolidLayer;
 
     private int glId = -1;
     private boolean needsLoad = true;
     private boolean isErrored = false;
     
-    AbstractPipelineShader(String fileName, int shaderType, TextureFormat textureFormat, boolean isSolidLayer)
+    AbstractPipelineShader(String fileName, int shaderType, int spriteDepth, boolean isSolidLayer)
     {
         this.fileName = fileName;
         this.shaderType = shaderType;
-        this.textureFormat = textureFormat;
+        this.spriteDepth = spriteDepth;
         this.isSolidLayer = isSolidLayer;
     }
     
@@ -63,16 +56,9 @@ abstract class AbstractPipelineShader
         this.isErrored = false;
         try
         {
-            String source = this.getSource();
-            
-            byte[] abyte = source.getBytes();
-            ByteBuffer bytebuffer = BufferUtils.createByteBuffer(abyte.length);
-            bytebuffer.put(abyte);
-            bytebuffer.position(0);
-            
             if(this.glId <= 0)
             {
-                this.glId = OpenGlHelper.glCreateShader(shaderType);
+                this.glId = GLX.glCreateShader(shaderType);
                 if(this.glId == 0) 
                 {
                     this.glId = -1;
@@ -81,11 +67,11 @@ abstract class AbstractPipelineShader
                 }
             }
             
-            OpenGlHelper.glShaderSource(this.glId, bytebuffer);
-            OpenGlHelper.glCompileShader(this.glId);
+            GLX.glShaderSource(this.glId, this.getSource());
+            GLX.glCompileShader(this.glId);
     
-            if (OpenGlHelper.glGetShaderi(this.glId, OpenGlHelper.GL_COMPILE_STATUS) == GL11.GL_FALSE)
-                throw new RuntimeException(OpenGlHelperExt.getShaderInfoLog(this.glId));
+            if (GLX.glGetShaderi(this.glId, GLX.GL_COMPILE_STATUS) == GL11.GL_FALSE)
+                throw new RuntimeException(CanvasGlHelper.getShaderInfoLog(this.glId));
     
         }
         catch(Exception e)
@@ -93,10 +79,10 @@ abstract class AbstractPipelineShader
             this.isErrored = true;
             if(this.glId > 0)
             {
-                OpenGlHelper.glDeleteShader(glId);
+                GLX.glDeleteShader(glId);
                 this.glId = -1;
             }
-            Acuity.INSTANCE.getLog().error(I18n.translateToLocalFormatted("misc.fail_create_shader", this.fileName, this.textureFormat.toString(), e.getMessage()));
+            Canvas.INSTANCE.getLog().error(I18n.translate("misc.fail_create_shader", this.fileName, Integer.toString(this.spriteDepth), e.getMessage()));
         }
     }
     
@@ -106,9 +92,8 @@ abstract class AbstractPipelineShader
         result = result.replaceAll("#version\\s+120", "");
         result = librarySource + result;
         
-        final int layerCount = this.textureFormat.layerCount();
-        if(layerCount > 1)
-            result = result.replaceAll("#define LAYER_COUNT 1", String.format("#define LAYER_COUNT %d", layerCount));
+        if(spriteDepth > 1)
+            result = result.replaceAll("#define LAYER_COUNT 1", String.format("#define LAYER_COUNT %d", spriteDepth));
         
         if(!isSolidLayer)
             result = result.replaceAll("#define SOLID", "#define TRANSLUCENT");

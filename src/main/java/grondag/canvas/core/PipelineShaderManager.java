@@ -1,11 +1,7 @@
-package grondag.acuity.core;
+package grondag.canvas.core;
 
-import grondag.acuity.api.TextureFormat;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
 
-@SideOnly(Side.CLIENT)
 public final class PipelineShaderManager
 {
     public final static PipelineShaderManager INSTANCE = new PipelineShaderManager();
@@ -15,8 +11,8 @@ public final class PipelineShaderManager
     String vertexLibrarySource;
     String fragmentLibrarySource;
     
-    public final String DEFAULT_VERTEX_SOURCE = "/assets/acuity/shader/default.vert";
-    public final String DEFAULT_FRAGMENT_SOURCE = "/assets/acuity/shader/default.frag";
+    public final String DEFAULT_VERTEX_SOURCE = "/assets/canvas/shader/default.vert";
+    public final String DEFAULT_FRAGMENT_SOURCE = "/assets/canvas/shader/default.frag";
     
     PipelineShaderManager()
     {
@@ -25,42 +21,42 @@ public final class PipelineShaderManager
     
     private void loadLibrarySources()
     {
-        String commonSource = AbstractPipelineShader.getShaderSource("/assets/acuity/shader/common_lib.glsl");
-        this.vertexLibrarySource = commonSource + AbstractPipelineShader.getShaderSource("/assets/acuity/shader/vertex_lib.glsl");
-        this.fragmentLibrarySource = commonSource + AbstractPipelineShader.getShaderSource("/assets/acuity/shader/fragment_lib.glsl");
+        String commonSource = AbstractPipelineShader.getShaderSource("/assets/canvas/shader/common_lib.glsl");
+        this.vertexLibrarySource = commonSource + AbstractPipelineShader.getShaderSource("/assets/canvas/shader/vertex_lib.glsl");
+        this.fragmentLibrarySource = commonSource + AbstractPipelineShader.getShaderSource("/assets/canvas/shader/fragment_lib.glsl");
     }
     
-    private String shaderKey(String shaderFileName, TextureFormat textureFormat, boolean isSolidLayer)
+    private String shaderKey(String shaderFileName, int spriteDepth, boolean isSolidLayer)
     {
-        return String.format("%s.%s.%s", shaderFileName, textureFormat, isSolidLayer);
+        return String.format("%s.%s.%s", shaderFileName, spriteDepth, isSolidLayer);
     }
     
-    public PipelineVertexShader getOrCreateVertexShader(String shaderFileName, TextureFormat textureFormat, boolean isSolidLayer)
+    public PipelineVertexShader getOrCreateVertexShader(String shaderFileName, int spriteDepth, boolean isSolidLayer)
     {
-        final String shaderKey = shaderKey(shaderFileName, textureFormat, isSolidLayer);
+        final String shaderKey = shaderKey(shaderFileName, spriteDepth, isSolidLayer);
         
         synchronized(vertexShaders)
         {
             PipelineVertexShader result = vertexShaders.get(shaderKey);
             if(result == null)
             {
-                result = new PipelineVertexShader(shaderFileName, textureFormat, isSolidLayer);
+                result = new PipelineVertexShader(shaderFileName, spriteDepth, isSolidLayer);
                 vertexShaders.put(shaderKey, result);
             }
             return result;
         }
     }
 
-    public PipelineFragmentShader getOrCreateFragmentShader(String shaderFileName, TextureFormat textureFormat, boolean isSolidLayer)
+    public PipelineFragmentShader getOrCreateFragmentShader(String shaderFileName, int spriteDepth, boolean isSolidLayer)
     {
-        final String shaderKey = shaderKey(shaderFileName, textureFormat, isSolidLayer);
+        final String shaderKey = shaderKey(shaderFileName, spriteDepth, isSolidLayer);
         
         synchronized(fragmentShaders)
         {
             PipelineFragmentShader result = fragmentShaders.get(shaderKey);
             if(result == null)
             {
-                result = new PipelineFragmentShader(shaderFileName, textureFormat, isSolidLayer);
+                result = new PipelineFragmentShader(shaderFileName, spriteDepth, isSolidLayer);
                 fragmentShaders.put(shaderKey, result);
             }
             return result;

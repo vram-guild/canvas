@@ -3,35 +3,48 @@ package grondag.canvas.core;
 import java.util.function.Consumer;
 
 import grondag.canvas.Configurator;
+import grondag.canvas.api.Uniform.Uniform1i;
+import grondag.canvas.api.Uniform.Uniform2i;
+import grondag.canvas.api.Uniform.Uniform3i;
+import grondag.canvas.api.Uniform.Uniform4i;
+import grondag.canvas.api.Uniform.UniformMatrix4f;
+import grondag.canvas.api.Uniform.Uniform1f;
+import grondag.canvas.api.Uniform.Uniform2f;
+import grondag.canvas.api.Uniform.Uniform3f;
+import grondag.canvas.api.Uniform.Uniform4f;
+
+import grondag.canvas.api.UniformRefreshFrequency;
 import grondag.canvas.core.PipelineFragmentShader;
 import grondag.canvas.core.PipelineShaderManager;
 import grondag.canvas.core.PipelineVertexFormat;
 import grondag.canvas.core.PipelineVertexShader;
 import grondag.canvas.core.Program;
+import net.minecraft.client.render.VertexFormat;
+import net.minecraft.client.resource.language.I18n;
 
 public final class RenderPipeline
 {
     private final int index;
     private final Program solidProgram;
     private final Program translucentProgram;
-    public final TextureFormat textureFormat;
+    public final int spriteDepth;
     private boolean isFinal = false;
     private PipelineVertexFormat pipelineVertexFormat;
     private VertexFormat vertexFormat;
     
     
-    RenderPipeline(int index, String vertexShader, String fragmentShader, TextureFormat textureFormat)
+    RenderPipeline(int index, String vertexShader, String fragmentShader, int spriteDepth)
     {
-        PipelineVertexShader  vs = PipelineShaderManager.INSTANCE.getOrCreateVertexShader(vertexShader, textureFormat, true);
-        PipelineFragmentShader  fs = PipelineShaderManager.INSTANCE.getOrCreateFragmentShader(fragmentShader, textureFormat, true);
-        this.solidProgram = new Program(vs, fs, textureFormat, true);
+        PipelineVertexShader  vs = PipelineShaderManager.INSTANCE.getOrCreateVertexShader(vertexShader, spriteDepth, true);
+        PipelineFragmentShader  fs = PipelineShaderManager.INSTANCE.getOrCreateFragmentShader(fragmentShader, spriteDepth, true);
+        this.solidProgram = new Program(vs, fs, spriteDepth, true);
         
-        vs = PipelineShaderManager.INSTANCE.getOrCreateVertexShader(vertexShader, textureFormat, false);
-        fs = PipelineShaderManager.INSTANCE.getOrCreateFragmentShader(fragmentShader, textureFormat, false);
-        this.translucentProgram = new Program(vs, fs, textureFormat, false);
+        vs = PipelineShaderManager.INSTANCE.getOrCreateVertexShader(vertexShader, spriteDepth, false);
+        fs = PipelineShaderManager.INSTANCE.getOrCreateFragmentShader(fragmentShader, spriteDepth, false);
+        this.translucentProgram = new Program(vs, fs, spriteDepth, false);
         
         this.index = index;
-        this.textureFormat = textureFormat;
+        this.spriteDepth = spriteDepth;
         this.refreshVertexFormats();
     }
     
@@ -52,18 +65,16 @@ public final class RenderPipeline
     
     public void refreshVertexFormats()
     {
-        this.pipelineVertexFormat = Configurator.lightingModel.vertexFormat(this.textureFormat);
+        this.pipelineVertexFormat = Configurator.lightingModel.vertexFormat(this.spriteDepth);
         this.vertexFormat = this.pipelineVertexFormat.vertexFormat;
     }
     
-    @Override
-    public TextureFormat textureFormat()
+    public int spriteDepth()
     {
-        return this.textureFormat;
+        return this.spriteDepth;
     }
     
-    @Override
-    public IRenderPipeline finish()
+    public RenderPipeline finish()
     {
         this.isFinal = true;
         this.forceReload();
@@ -83,7 +94,6 @@ public final class RenderPipeline
         return this.vertexFormat;
     }
     
-    @Override
     public int getIndex()
     {
         return this.index;
@@ -92,10 +102,10 @@ public final class RenderPipeline
     private void checkFinal()
     {
         if(this.isFinal)
-            throw new UnsupportedOperationException(I18n.translateToLocal("misc.warn_uniform_program_immutable_exception"));    
+            throw new UnsupportedOperationException(I18n.translate("misc.warn_uniform_program_immutable_exception"));    
     }
     
-    public void uniformSampler2d(String name, UniformUpdateFrequency frequency, Consumer<IUniform1i> initializer)
+    public void uniformSampler2d(String name, UniformRefreshFrequency frequency, Consumer<Uniform1i> initializer)
     {
         if(solidProgram.containsUniformSpec("sampler2D", name))
             solidProgram.uniform1i(name, frequency, initializer);
@@ -103,8 +113,7 @@ public final class RenderPipeline
             translucentProgram.uniform1i(name, frequency, initializer);
     }
     
-    @Override
-    public void uniform1f(String name, UniformUpdateFrequency frequency, Consumer<IUniform1f> initializer)
+    public void uniform1f(String name, UniformRefreshFrequency frequency, Consumer<Uniform1f> initializer)
     {
         checkFinal();
         if(solidProgram.containsUniformSpec("float", name))
@@ -113,8 +122,7 @@ public final class RenderPipeline
             translucentProgram.uniform1f(name, frequency, initializer);
     }
 
-    @Override
-    public void uniform2f(String name, UniformUpdateFrequency frequency, Consumer<IUniform2f> initializer)
+    public void uniform2f(String name, UniformRefreshFrequency frequency, Consumer<Uniform2f> initializer)
     {
         checkFinal();    
         if(solidProgram.containsUniformSpec("vec2", name))
@@ -123,8 +131,7 @@ public final class RenderPipeline
             translucentProgram.uniform2f(name, frequency, initializer);
     }
 
-    @Override
-    public void uniform3f(String name, UniformUpdateFrequency frequency, Consumer<IUniform3f> initializer)
+    public void uniform3f(String name, UniformRefreshFrequency frequency, Consumer<Uniform3f> initializer)
     {
         checkFinal();
         if(solidProgram.containsUniformSpec("vec3", name))
@@ -133,8 +140,7 @@ public final class RenderPipeline
             translucentProgram.uniform3f(name, frequency, initializer);        
     }
 
-    @Override
-    public void uniform4f(String name, UniformUpdateFrequency frequency, Consumer<IUniform4f> initializer)
+    public void uniform4f(String name, UniformRefreshFrequency frequency, Consumer<Uniform4f> initializer)
     {
         checkFinal();
         if(solidProgram.containsUniformSpec("vec4", name))
@@ -143,8 +149,7 @@ public final class RenderPipeline
             translucentProgram.uniform4f(name, frequency, initializer);        
     }
 
-    @Override
-    public void uniform1i(String name, UniformUpdateFrequency frequency, Consumer<IUniform1i> initializer)
+    public void uniform1i(String name, UniformRefreshFrequency frequency, Consumer<Uniform1i> initializer)
     {
         checkFinal();
         if(solidProgram.containsUniformSpec("int", name))
@@ -153,8 +158,7 @@ public final class RenderPipeline
             translucentProgram.uniform1i(name, frequency, initializer);        
     }
 
-    @Override
-    public void uniform2i(String name, UniformUpdateFrequency frequency, Consumer<IUniform2i> initializer)
+    public void uniform2i(String name, UniformRefreshFrequency frequency, Consumer<Uniform2i> initializer)
     {
         checkFinal();
         if(solidProgram.containsUniformSpec("ivec2", name))
@@ -163,8 +167,7 @@ public final class RenderPipeline
             translucentProgram.uniform2i(name, frequency, initializer);         
     }
 
-    @Override
-    public void uniform3i(String name, UniformUpdateFrequency frequency, Consumer<IUniform3i> initializer)
+    public void uniform3i(String name, UniformRefreshFrequency frequency, Consumer<Uniform3i> initializer)
     {
         checkFinal();
         if(solidProgram.containsUniformSpec("ivec3", name))
@@ -173,8 +176,7 @@ public final class RenderPipeline
             translucentProgram.uniform3i(name, frequency, initializer);           
     }
 
-    @Override
-    public void uniform4i(String name, UniformUpdateFrequency frequency, Consumer<IUniform4i> initializer)
+    public void uniform4i(String name, UniformRefreshFrequency frequency, Consumer<Uniform4i> initializer)
     {
         checkFinal();
         if(solidProgram.containsUniformSpec("ivec4", name))
@@ -183,8 +185,7 @@ public final class RenderPipeline
             translucentProgram.uniform4i(name, frequency, initializer);         
     }
 
-    @Override
-    public void uniformMatrix4f(String name, UniformUpdateFrequency frequency, Consumer<IUniformMatrix4f> initializer)
+    public void uniformMatrix4f(String name, UniformRefreshFrequency frequency, Consumer<UniformMatrix4f> initializer)
     {
         checkFinal();
         if(solidProgram.containsUniformSpec("mat4", name))

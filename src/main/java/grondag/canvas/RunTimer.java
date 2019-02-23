@@ -1,4 +1,4 @@
-package grondag.acuity;
+package grondag.canvas;
 
 import it.unimi.dsi.fastutil.longs.LongArrays;
 
@@ -39,7 +39,7 @@ public class RunTimer
         
         long total = buckets[0] + buckets[1] + buckets[2] + buckets[3] + buckets[4];
         
-        System.out.println("Acuity Enabled = " + Acuity.isModEnabled());
+        System.out.println("Canvas Enabled = " + Canvas.isModEnabled());
         System.out.println(String.format("Total: %,d  Min: %,d  Max: %,d  Mean: %,d", total, data[0], data[count - 1], total / count));
         System.out.println(String.format("Bucket Percent: %,d   %,d   %,d   %,d   %,d", 
                 buckets[0] * 100 / total, buckets[1] * 100 / total, buckets[2] * 100 / total, 

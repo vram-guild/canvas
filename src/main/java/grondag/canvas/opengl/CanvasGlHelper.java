@@ -71,6 +71,11 @@ public class CanvasGlHelper {
         return GLX.glGetProgramInfoLog(obj, GLX.glGetProgrami(obj, GL20.GL_INFO_LOG_LENGTH));
     }
     
+    public static String getShaderInfoLog(int obj)
+    {
+        return GLX.glGetProgramInfoLog(obj, GLX.glGetShaderi(obj, GL20.GL_INFO_LOG_LENGTH));
+    }
+    
     static private MethodHandle nioCopyFromArray = null;
     static private MethodHandle nioCopyFromIntArray = null;
     static private boolean fastNioCopy = true;
