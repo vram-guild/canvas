@@ -1,14 +1,11 @@
-package grondag.acuity.core;
+package grondag.canvas.core;
 
-import grondag.acuity.Acuity;
-import grondag.acuity.buffering.DrawableChunk;
-import grondag.acuity.hooks.IRenderChunk;
-import net.minecraft.client.renderer.chunk.RenderChunk;
-import net.minecraft.util.BlockRenderLayer;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import grondag.canvas.Canvas;
+import grondag.canvas.buffering.DrawableChunk;
+import grondag.canvas.hooks.IRenderChunk;
+import net.minecraft.block.BlockRenderLayer;
+import net.minecraft.client.render.chunk.ChunkRenderer;
 
-@SideOnly(Side.CLIENT)
 public class PipelinedRenderListDebug extends AbstractPipelinedRenderList
 {
     public PipelinedRenderListDebug()
@@ -26,7 +23,7 @@ public class PipelinedRenderListDebug extends AbstractPipelinedRenderList
     protected long maxNanos = 0;
     
     @Override
-    public final void addRenderChunk(RenderChunk renderChunkIn, BlockRenderLayer layer)
+    public final void addChunkRenderer(ChunkRenderer renderChunkIn, BlockRenderLayer layer)
     {
         chunkCounter++;
         DrawableChunk vertexbuffer = layer == BlockRenderLayer.SOLID
@@ -36,7 +33,7 @@ public class PipelinedRenderListDebug extends AbstractPipelinedRenderList
             return;
         drawCounter += vertexbuffer.drawCount();
         quadCounter += vertexbuffer.quadCount();
-        super.addRenderChunk(renderChunkIn, layer);
+        super.addChunkRenderer(renderChunkIn, layer);
     }
 
     @Override
@@ -57,9 +54,9 @@ public class PipelinedRenderListDebug extends AbstractPipelinedRenderList
         {
             final double ms = totalNanos / 1000000.0;
             String msg = this.isAcuityEnabled ? "ENABLED" : "Disabled";
-            Acuity.INSTANCE.getLog().info(String.format("renderChunkLayer %d frames / %d chunks / %d draws / %d quads (Acuity API %s)", frameCounter, chunkCounter, drawCounter, quadCounter, msg));
-            Acuity.INSTANCE.getLog().info(String.format("renderChunkLayer %f ms / %f ms / %f ms / %f ns", ms / frameCounter, ms / chunkCounter, ms / drawCounter, (double)totalNanos / quadCounter));
-            Acuity.INSTANCE.getLog().info(String.format("renderChunkLayer min = %f ms, max = %f ms", minNanos / 1000000.0, maxNanos / 1000000.0));
+            Canvas.INSTANCE.getLog().info(String.format("renderChunkLayer %d frames / %d chunks / %d draws / %d quads (Acuity API %s)", frameCounter, chunkCounter, drawCounter, quadCounter, msg));
+            Canvas.INSTANCE.getLog().info(String.format("renderChunkLayer %f ms / %f ms / %f ms / %f ns", ms / frameCounter, ms / chunkCounter, ms / drawCounter, (double)totalNanos / quadCounter));
+            Canvas.INSTANCE.getLog().info(String.format("renderChunkLayer min = %f ms, max = %f ms", minNanos / 1000000.0, maxNanos / 1000000.0));
             
             totalNanos = 0;
             frameCounter = 0;

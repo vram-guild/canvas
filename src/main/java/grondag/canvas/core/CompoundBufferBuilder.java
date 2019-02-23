@@ -5,6 +5,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.lang3.tuple.Pair;
 
+import grondag.canvas.mixin.AccessBufferBuilder;
 import grondag.canvas.Canvas;
 import grondag.canvas.buffering.DrawableChunk;
 import grondag.canvas.buffering.UploadableChunk;
@@ -40,6 +41,8 @@ public class CompoundBufferBuilder extends BufferBuilder
      * Could also be handy for other purposes.
      */
     private BlockRenderLayer layer;
+    
+    private AccessBufferBuilder accessor;
 
     private CompoundBufferBuilder proxy;
     
@@ -164,7 +167,7 @@ public class CompoundBufferBuilder extends BufferBuilder
     
     public void beginIfNotAlreadyDrawing(int glMode, VertexFormat format)
     {
-        if(!this.isDrawing)
+        if(!accessor.isBuilding())
         {
             assert this.layer == BlockRenderLayer.SOLID || this.layer == BlockRenderLayer.TRANSLUCENT || !Canvas.isModEnabled();
             
@@ -182,12 +185,11 @@ public class CompoundBufferBuilder extends BufferBuilder
             beginIfNotAlreadyDrawing(glMode, format);
     }
     
-    @SuppressWarnings("null")
     public void finishDrawingIfNotAlreadyFinished()
     {
-        if(this.isDrawing)
+        if(accessor.isBuilding())
         {
-            super.finishDrawing();
+            super.end();
             
             if(Canvas.isModEnabled())
             {

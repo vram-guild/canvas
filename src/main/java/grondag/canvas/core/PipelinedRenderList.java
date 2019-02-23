@@ -1,11 +1,8 @@
-package grondag.acuity.core;
+package grondag.canvas.core;
 
-import net.minecraft.client.renderer.chunk.RenderChunk;
-import net.minecraft.util.BlockRenderLayer;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraft.block.BlockRenderLayer;
+import net.minecraft.client.render.chunk.ChunkRenderer;
 
-@SideOnly(Side.CLIENT)
 public class PipelinedRenderList extends AbstractPipelinedRenderList
 {
     public PipelinedRenderList()
@@ -14,9 +11,9 @@ public class PipelinedRenderList extends AbstractPipelinedRenderList
     }
 
     @Override
-    public final void addRenderChunk(RenderChunk renderChunkIn, BlockRenderLayer layer)
+    public final void addChunkRenderer(ChunkRenderer renderChunkIn, BlockRenderLayer layer)
     {
-        super.addRenderChunk(renderChunkIn, layer);
+        super.addChunkRenderer(renderChunkIn, layer);
     }
 
     @Override

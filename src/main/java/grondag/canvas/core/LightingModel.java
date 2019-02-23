@@ -27,9 +27,4 @@ public enum LightingModel
     {
         return formatMap[spriteDepth - 1];
     }
-
-    public CompoundVertexLighter createLighter()
-    {
-        return new VanillaVertexLighter();
-    }
 }

@@ -1,20 +1,23 @@
-package grondag.acuity.core;
+package grondag.canvas.core;
 
 import java.nio.FloatBuffer;
 import java.util.ArrayDeque;
 
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.util.vector.Matrix4f;
+import org.lwjgl.opengl.GL30;
 
-import grondag.acuity.Acuity;
-import grondag.acuity.api.AcuityRuntime;
-import grondag.acuity.api.IAcuityListener;
-import grondag.acuity.api.PipelineManager;
-import grondag.acuity.buffering.DrawableChunk;
-import grondag.acuity.buffering.DrawableChunkDelegate;
-import grondag.acuity.hooks.IRenderChunk;
-import grondag.acuity.opengl.OpenGlHelperExt;
+import com.mojang.blaze3d.platform.GLX;
+import com.mojang.blaze3d.platform.GlStateManager;
+
+import grondag.boson.org.joml.Matrix4f;
+import grondag.canvas.Canvas;
+import grondag.canvas.RendererImpl;
+import grondag.canvas.api.CanvasListener;
+import grondag.canvas.buffering.DrawableChunk;
+import grondag.canvas.buffering.DrawableChunkDelegate;
+import grondag.canvas.hooks.IRenderChunk;
+import grondag.canvas.opengl.CanvasGlHelper;
 import it.unimi.dsi.fastutil.Arrays;
 import it.unimi.dsi.fastutil.Swapper;
 import it.unimi.dsi.fastutil.ints.AbstractIntComparator;
@@ -22,20 +25,15 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectMap.Entry;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.OpenGlHelper;
-import net.minecraft.client.renderer.chunk.RenderChunk;
-import net.minecraft.util.BlockRenderLayer;
+import net.minecraft.block.BlockRenderLayer;
+import net.minecraft.client.render.chunk.ChunkRenderer;
 import net.minecraft.util.math.BlockPos;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
 
-@SideOnly(Side.CLIENT)
-public class AbstractPipelinedRenderList implements IAcuityListener
+public class AbstractPipelinedRenderList implements CanvasListener
 {
-    public boolean isAcuityEnabled = Acuity.isModEnabled();
+    public boolean isAcuityEnabled = Canvas.isModEnabled();
     
-    protected final ObjectArrayList<RenderChunk> chunks = new ObjectArrayList<RenderChunk>();
+    protected final ObjectArrayList<ChunkRenderer> chunks = new ObjectArrayList<ChunkRenderer>();
     
     /**
      * Each entry is for a single 256^3 render cube.<br>
@@ -70,8 +68,8 @@ public class AbstractPipelinedRenderList implements IAcuityListener
     
     public AbstractPipelinedRenderList()
     {
-        xlatMatrix.setIdentity();
-        AcuityRuntime.INSTANCE.registerListener(this);
+        xlatMatrix.identity();
+        RendererImpl.INSTANCE.registerListener(this);
     }
 
     public void initialize(double viewEntityXIn, double viewEntityYIn, double viewEntityZIn)
@@ -81,7 +79,7 @@ public class AbstractPipelinedRenderList implements IAcuityListener
         this.viewEntityZ = viewEntityZIn;
     }
     
-    public void addRenderChunk(RenderChunk renderChunkIn, BlockRenderLayer layer)
+    public void addChunkRenderer(ChunkRenderer renderChunkIn, BlockRenderLayer layer)
     {
         if(layer == BlockRenderLayer.TRANSLUCENT)
             this.chunks.add(renderChunkIn);
@@ -97,9 +95,9 @@ public class AbstractPipelinedRenderList implements IAcuityListener
         return result;
     }
     
-    private void addSolidChunk(RenderChunk renderChunkIn)
+    private void addSolidChunk(ChunkRenderer renderChunkIn)
     {
-        final long cubeKey = RenderCube.getPackedOrigin(renderChunkIn.getPosition());
+        final long cubeKey = RenderCube.getPackedOrigin(renderChunkIn.getOrigin());
         
         SolidRenderCube buffers = solidCubes.get(cubeKey);
         if(buffers == null)
@@ -110,7 +108,7 @@ public class AbstractPipelinedRenderList implements IAcuityListener
         addSolidChunkToBufferArray(renderChunkIn, buffers);
     }
     
-    private void addSolidChunkToBufferArray(RenderChunk renderChunkIn, SolidRenderCube buffers)
+    private void addSolidChunkToBufferArray(ChunkRenderer renderChunkIn, SolidRenderCube buffers)
     {
         final DrawableChunk.Solid vertexbuffer = ((IRenderChunk)renderChunkIn).getSolidDrawable();
         if(vertexbuffer != null)
@@ -157,11 +155,11 @@ public class AbstractPipelinedRenderList implements IAcuityListener
         final Matrix4f mvPos = this.mvPos;
         
         // note row-major order in the matrix library we are using
-        xlatMatrix.m03 = (float)(ox - viewEntityX);
-        xlatMatrix.m13 = (float)(oy - viewEntityY);
-        xlatMatrix.m23 = (float)(oz - viewEntityZ);
+        xlatMatrix._m03((float)(ox - viewEntityX));
+        xlatMatrix._m13((float)(oy - viewEntityY));
+        xlatMatrix._m23((float)(oz - viewEntityZ));
 
-        Matrix4f.mul(xlatMatrix, mvMatrix, mvPos);
+        xlatMatrix.mul(mvMatrix, mvPos);
         
         // vanilla applies a per-chunk scaling matrix, but does not seem to be essential - probably a hack to prevent seams/holes due to FP error
         // If really is necessary, would want to handle some other way.  Per-chunk matrix not initialized when Acuity enabled.
@@ -180,32 +178,32 @@ public class AbstractPipelinedRenderList implements IAcuityListener
         // We don't use these except for GL_VERTEX so disable them now unless we
         // are using VAOs, which will cause them to be ignored.
         // Not a problem to disable them because MC disables the when we return.
-        if(!OpenGlHelperExt.isVaoEnabled())
+        if(!CanvasGlHelper.isVaoEnabled())
             disableUnusedAttributes();
     }
     
     private final void disableUnusedAttributes()
     {
-        GlStateManager.glDisableClientState(GL11.GL_COLOR_ARRAY);
-        OpenGlHelperExt.setClientActiveTextureFast(OpenGlHelper.defaultTexUnit);
-        GlStateManager.glDisableClientState(GL11.GL_TEXTURE_COORD_ARRAY);
-        OpenGlHelperExt.setClientActiveTextureFast(OpenGlHelper.lightmapTexUnit);
-        GlStateManager.glDisableClientState(GL11.GL_TEXTURE_COORD_ARRAY);
-        OpenGlHelperExt.setClientActiveTextureFast(OpenGlHelper.defaultTexUnit);
+        GlStateManager.disableClientState(GL11.GL_COLOR_ARRAY);
+        GlStateManager.activeTexture(GLX.GL_TEXTURE0);
+        GlStateManager.disableClientState(GL11.GL_TEXTURE_COORD_ARRAY);
+        GlStateManager.activeTexture(GLX.GL_TEXTURE1);
+        GlStateManager.disableClientState(GL11.GL_TEXTURE_COORD_ARRAY);
+        GlStateManager.activeTexture(GLX.GL_TEXTURE0);
     }
 
     private final void downloadModelViewMatrix()
     {
         final FloatBuffer modelViewMatrixBuffer = this.modelViewMatrixBuffer;
         modelViewMatrixBuffer.position(0);
-        GlStateManager.getFloat(GL11.GL_MODELVIEW_MATRIX, modelViewMatrixBuffer);
-        OpenGlHelperExt.loadTransposeQuickly(modelViewMatrixBuffer, mvMatrix);
+        GlStateManager.getMatrix(GL11.GL_MODELVIEW_MATRIX, modelViewMatrixBuffer);
+        mvMatrix.set(modelViewMatrixBuffer);
     }
     
     protected final void renderChunkLayerSolid()
     {
         // UGLY: add hook for this
-        // Forge doesn't give us a hook in the render loop that comes
+        // Forge didn't give us a hook in the render loop that comes
         // after camera transform is set up - so call out event handler
         // here as a workaround. Our event handler will only act 1x/frame.
         // Do this even if solid is empty, in case translucent layer needs it.
@@ -291,7 +289,7 @@ public class AbstractPipelinedRenderList implements IAcuityListener
     
     protected final void renderChunkLayerTranslucent()
     {
-        final ObjectArrayList<RenderChunk> chunks = this.chunks;
+        final ObjectArrayList<ChunkRenderer> chunks = this.chunks;
         final int chunkCount = chunks.size();
 
         if (chunkCount == 0) 
@@ -301,11 +299,11 @@ public class AbstractPipelinedRenderList implements IAcuityListener
         
         for (int i = 0; i < chunkCount; i++)
         {
-            final RenderChunk renderchunk =  chunks.get(i);
+            final ChunkRenderer renderchunk =  chunks.get(i);
             final DrawableChunk.Translucent drawable = ((IRenderChunk)renderchunk).getTranslucentDrawable();
             if(drawable == null)
                 continue;
-            updateViewMatrix(renderchunk.getPosition());
+            updateViewMatrix(renderchunk.getOrigin());
             drawable.renderChunkTranslucent();
         }
 
@@ -313,21 +311,19 @@ public class AbstractPipelinedRenderList implements IAcuityListener
         postRenderCleanup();
     }
     
-    
-    
     private final void postRenderCleanup()
     {
-        if(OpenGlHelperExt.isVaoEnabled())
-            OpenGlHelperExt.glBindVertexArray(0);
+        if(CanvasGlHelper.isVaoEnabled())
+            GL30.glBindVertexArray(0);
         
-        OpenGlHelperExt.resetAttributes();
-        OpenGlHelperExt.glBindBufferFast(OpenGlHelper.GL_ARRAY_BUFFER, 0);
+        CanvasGlHelper.resetAttributes();
+        GLX.glBindBuffer(GLX.GL_ARRAY_BUFFER, 0);
         Program.deactivate();
-        GlStateManager.resetColor();
+        GlStateManager.clearCurrentColor();
     }
 
     @Override
-    public final void onAcuityStatusChange(boolean newEnabledStatus)
+    public final void onStatusChange(boolean newEnabledStatus)
     {
         this.isAcuityEnabled = newEnabledStatus;
     }

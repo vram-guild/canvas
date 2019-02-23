@@ -1,15 +1,10 @@
-package grondag.acuity.core;
+package grondag.canvas.core;
 
 import java.util.function.Consumer;
-
-import grondag.acuity.api.RenderPipeline;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
 
 /**
  * Tracks number of vertices, pipeline and sequence thereof within a buffer.
  */
-@SideOnly(Side.CLIENT)
 public class VertexPackingList
 {
     private int[] counts = new int[16];

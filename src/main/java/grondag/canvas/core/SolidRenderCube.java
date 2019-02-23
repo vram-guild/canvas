@@ -1,9 +1,8 @@
-package grondag.acuity.core;
+package grondag.canvas.core;
 
 import java.util.function.Consumer;
 
-import grondag.acuity.api.PipelineManager;
-import grondag.acuity.buffering.DrawableChunkDelegate;
+import grondag.canvas.buffering.DrawableChunkDelegate;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 public class SolidRenderCube implements Consumer<DrawableChunkDelegate>
@@ -23,7 +22,7 @@ public class SolidRenderCube implements Consumer<DrawableChunkDelegate>
     }
 
     @Override
-    public void accept(@SuppressWarnings("null") DrawableChunkDelegate d)
+    public void accept(DrawableChunkDelegate d)
     {
         pipelineLists[d.getPipeline().getIndex()].add(d);   
     }

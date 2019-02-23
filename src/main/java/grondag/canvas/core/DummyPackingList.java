@@ -1,6 +1,4 @@
-package grondag.acuity.core;
-
-import grondag.acuity.api.RenderPipeline;
+package grondag.canvas.core;
 
 public class DummyPackingList extends VertexPackingList
 {

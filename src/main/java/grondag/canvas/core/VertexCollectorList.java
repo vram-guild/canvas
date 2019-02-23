@@ -4,8 +4,6 @@ import java.util.Comparator;
 import java.util.PriorityQueue;
 import java.util.function.Consumer;
 
-import grondag.canvas.core.PipelineManager;
-import grondag.canvas.core.RenderPipeline;
 import grondag.canvas.buffering.UploadableChunk;
 import net.minecraft.util.math.MathHelper;
 
@@ -13,7 +11,6 @@ public class VertexCollectorList
 {
     private static final Comparator<VertexCollector> vertexCollectionComparator = new Comparator<VertexCollector>() 
     {
-        @SuppressWarnings("null")
         @Override
         public int compare(VertexCollector o1, VertexCollector o2)
         {
@@ -181,7 +178,7 @@ public class VertexCollectorList
         return new UploadableChunk.Solid(packing, this);
     }
 
-    public final @Nullable UploadableChunk.Translucent packUploadTranslucent()
+    public final UploadableChunk.Translucent packUploadTranslucent()
     {
         final VertexPackingList packing = new VertexPackingList();
 

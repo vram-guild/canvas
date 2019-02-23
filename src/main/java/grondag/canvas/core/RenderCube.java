@@ -1,4 +1,4 @@
-package grondag.acuity.core;
+package grondag.canvas.core;
 
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
