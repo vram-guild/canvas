@@ -1,0 +1,13 @@
+{
+  "id": "canvas",
+  "name": "Canvas Renderer",
+  "description": "Minecraft Renderer for Fabric",
+  "version": "1.0.0",
+  "side": "client",
+  "initializer": "grondag.canvas.Canvas",
+  "requires": {
+    "fabric": "*"
+  },
+  "mixins": {
+  }
+}
