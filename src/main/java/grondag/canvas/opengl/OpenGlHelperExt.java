@@ -85,13 +85,6 @@ public class OpenGlHelperExt
     static private long glUniformMatrix4fvFunctionPointer = -1;
     static private MethodHandle nglUniformMatrix4fv = null;
     
-    static private MethodHandle nioCopyFromArray = null;
-    static private MethodHandle nioCopyFromIntArray = null;
-    static private boolean fastNioCopy = true;
-    static private long nioFloatArrayBaseOffset;
-    static private boolean nioFloatNeedsFlip;
-    static private MethodHandle fastMatrixBufferCopyHandler;
-    
     static private final MethodHandles.Lookup lookup = MethodHandles.lookup();
     
     /**
@@ -437,44 +430,6 @@ public class OpenGlHelperExt
             Acuity.INSTANCE.getLog().error(I18n.translateToLocalFormatted("misc.warn_slow_gl_call", "glUniformMatrix4fv"), e);
         }
         
-        try
-        {
-            Class<?> clazz = Class.forName("java.nio.Bits");
-            Method nioCopyFromArray = clazz.getDeclaredMethod("copyFromArray", Object.class, long.class, long.class, long.class, long.class);
-            nioCopyFromArray.setAccessible(true);
-            OpenGlHelperExt.nioCopyFromArray = lookup.unreflect(nioCopyFromArray);
-            
-            Method nioCopyFromIntArray = clazz.getDeclaredMethod("copyFromIntArray", Object.class, long.class, long.class, long.class);
-            nioCopyFromIntArray.setAccessible(true);
-            OpenGlHelperExt.nioCopyFromIntArray = lookup.unreflect(nioCopyFromIntArray);
-            
-            clazz = Class.forName("java.nio.DirectFloatBufferU");
-            Field f = clazz.getDeclaredField("arrayBaseOffset");
-            f.setAccessible(true);
-            nioFloatArrayBaseOffset = f.getLong(null);
-            
-            FloatBuffer testBuffer = BufferUtils.createFloatBuffer(16);
-            nioFloatNeedsFlip = testBuffer.order() != ByteOrder.nativeOrder();
-            
-            fastNioCopy = true;
-            
-            if(fastNioCopy)
-            {
-                Method handlerMethod;
-                if(nioFloatNeedsFlip)
-                    handlerMethod = OpenGlHelperExt.class.getDeclaredMethod("fastMatrix4fBufferCopyFlipped", float[].class, long.class);
-                else
-                    handlerMethod = OpenGlHelperExt.class.getDeclaredMethod("fastMatrix4fBufferCopyStraight", float[].class, long.class);
-                
-                fastMatrixBufferCopyHandler = lookup.unreflect(handlerMethod);
-            }
-        }
-        catch(Exception e)
-        {
-            fastNioCopy = false;
-            Acuity.INSTANCE.getLog().error(I18n.translateToLocalFormatted("misc.warn_slow_gl_call", "fastNioCopy"), e);
-        }
-        
         glBufferDataFunctionPointer = functionPointer(OpenGlHelper.arbVbo ? "glBufferDataARB" : "glBufferData");
         nglBufferData = OpenGlHelper.arbVbo
                 ? nativeMethod(ARBVertexBufferObject.class, "nglBufferDataARB", 
@@ -806,33 +761,6 @@ public class OpenGlHelperExt
         dest.m13 = load[13];
         dest.m23 = load[14];
         dest.m33 = load[15];
-    }
-    
-    public static final boolean isFastNioCopyEnabled()
-    {
-        return fastNioCopy;
-    }
-    
-    public static final void fastMatrix4fBufferCopy(float[] elements, long bufferAddress)
-    {
-        try
-        {
-            fastMatrixBufferCopyHandler.invokeExact(elements, bufferAddress);
-        }
-        catch (Throwable e)
-        {
-            throw new UnsupportedOperationException(e); 
-        }
-    }
-    
-    public static final void fastMatrix4fBufferCopyFlipped(float[] elements, long bufferAddress) throws Throwable
-    {
-        nioCopyFromIntArray.invokeExact((Object)elements, 0l, bufferAddress, 64l);
-    }
-    
-    public static final void fastMatrix4fBufferCopyStraight(float[] elements, long bufferAddress) throws Throwable
-    {
-        nioCopyFromArray.invokeExact((Object)elements, nioFloatArrayBaseOffset, 0l, bufferAddress, 64l);
     }
     
     private static boolean appleMapping = false;

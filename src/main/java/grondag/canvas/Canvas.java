@@ -25,6 +25,7 @@ package grondag.canvas;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import grondag.canvas.opengl.CanvasGlHelper;
 import grondag.fermion.IGrondagMod;
 import net.fabricmc.api.ModInitializer;
 import net.minecraft.client.MinecraftClient;
@@ -35,6 +36,7 @@ public class Canvas implements ModInitializer, IGrondagMod {
     
     @Override
     public void onInitialize() {
+        CanvasGlHelper.init();
     }
 
     private static Logger log;

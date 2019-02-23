@@ -1,12 +1,8 @@
-package grondag.acuity.core;
+package grondag.canvas.core;
 
-import static grondag.acuity.core.PipelineVertexFormat.*;
+import static grondag.canvas.core.PipelineVertexFormat.*;
 
-import grondag.acuity.api.TextureFormat;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
 
-@SideOnly(Side.CLIENT)
 public enum LightingModel
 {
     CLASSIC(VANILLA_SINGLE, VANILLA_DOUBLE, VANILLA_TRIPLE);
@@ -27,9 +23,9 @@ public enum LightingModel
     
     private final PipelineVertexFormat[] formatMap;
     
-    public PipelineVertexFormat vertexFormat(TextureFormat textureFormat)
+    public PipelineVertexFormat vertexFormat(int spriteDepth)
     {
-        return formatMap[textureFormat.ordinal()];
+        return formatMap[spriteDepth - 1];
     }
 
     public CompoundVertexLighter createLighter()

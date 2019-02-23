@@ -1,10 +1,28 @@
 package grondag.canvas.opengl;
 
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.nio.ByteOrder;
+import java.nio.FloatBuffer;
+
+import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL20;
 
+import com.mojang.blaze3d.platform.GLX;
+
+import grondag.canvas.Canvas;
+import net.minecraft.client.resource.language.I18n;
+
 public class CanvasGlHelper {
-    static int attributeEnabledCount = 0;
+    static private final MethodHandles.Lookup lookup = MethodHandles.lookup();
     
+    public static void init() {
+        initFastNioCopy();
+    }
+    
+    static private int attributeEnabledCount = 0;
     /**
      * Disables all generic vertex attributes and resets tracking state.
      * Use after calling {@link #enableAttributesVao(int)}
@@ -46,5 +64,84 @@ public class CanvasGlHelper {
             while(enabledCount < attributeEnabledCount)
                 GL20.glDisableVertexAttribArray(--attributeEnabledCount + 1);
         }
+    }
+    
+    public static String getProgramInfoLog(int obj)
+    {
+        return GLX.glGetProgramInfoLog(obj, GLX.glGetProgrami(obj, GL20.GL_INFO_LOG_LENGTH));
+    }
+    
+    static private MethodHandle nioCopyFromArray = null;
+    static private MethodHandle nioCopyFromIntArray = null;
+    static private boolean fastNioCopy = true;
+    static private long nioFloatArrayBaseOffset;
+    static private boolean nioFloatNeedsFlip;
+    static private MethodHandle fastMatrixBufferCopyHandler;
+    
+    private static void initFastNioCopy() {
+        try
+        {
+            Class<?> clazz = Class.forName("java.nio.Bits");
+            Method nioCopyFromArray = clazz.getDeclaredMethod("copyFromArray", Object.class, long.class, long.class, long.class, long.class);
+            nioCopyFromArray.setAccessible(true);
+            CanvasGlHelper.nioCopyFromArray = lookup.unreflect(nioCopyFromArray);
+            
+            Method nioCopyFromIntArray = clazz.getDeclaredMethod("copyFromIntArray", Object.class, long.class, long.class, long.class);
+            nioCopyFromIntArray.setAccessible(true);
+            CanvasGlHelper.nioCopyFromIntArray = lookup.unreflect(nioCopyFromIntArray);
+            
+            clazz = Class.forName("java.nio.DirectFloatBufferU");
+            Field f = clazz.getDeclaredField("arrayBaseOffset");
+            f.setAccessible(true);
+            nioFloatArrayBaseOffset = f.getLong(null);
+            
+            FloatBuffer testBuffer = BufferUtils.createFloatBuffer(16);
+            nioFloatNeedsFlip = testBuffer.order() != ByteOrder.nativeOrder();
+            
+            fastNioCopy = true;
+            
+            if(fastNioCopy)
+            {
+                Method handlerMethod;
+                if(nioFloatNeedsFlip)
+                    handlerMethod = OpenGlHelperExt.class.getDeclaredMethod("fastMatrix4fBufferCopyFlipped", float[].class, long.class);
+                else
+                    handlerMethod = OpenGlHelperExt.class.getDeclaredMethod("fastMatrix4fBufferCopyStraight", float[].class, long.class);
+                
+                fastMatrixBufferCopyHandler = lookup.unreflect(handlerMethod);
+            }
+        }
+        catch(Exception e)
+        {
+            fastNioCopy = false;
+            Canvas.INSTANCE.getLog().error(I18n.translate("misc.warn_slow_gl_call", "fastNioCopy"), e);
+        }
+    }
+    
+    public static final boolean isFastNioCopyEnabled()
+    {
+        return fastNioCopy;
+    }
+    
+    public static final void fastMatrix4fBufferCopy(float[] elements, long bufferAddress)
+    {
+        try
+        {
+            fastMatrixBufferCopyHandler.invokeExact(elements, bufferAddress);
+        }
+        catch (Throwable e)
+        {
+            throw new UnsupportedOperationException(e); 
+        }
+    }
+    
+    public static final void fastMatrix4fBufferCopyFlipped(float[] elements, long bufferAddress) throws Throwable
+    {
+        nioCopyFromIntArray.invokeExact((Object)elements, 0l, bufferAddress, 64l);
+    }
+    
+    public static final void fastMatrix4fBufferCopyStraight(float[] elements, long bufferAddress) throws Throwable
+    {
+        nioCopyFromArray.invokeExact((Object)elements, nioFloatArrayBaseOffset, 0l, bufferAddress, 64l);
     }
 }

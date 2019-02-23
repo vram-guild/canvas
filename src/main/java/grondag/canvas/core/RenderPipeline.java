@@ -1,29 +1,15 @@
-package grondag.acuity.api;
+package grondag.canvas.core;
 
 import java.util.function.Consumer;
 
-import grondag.acuity.Configurator;
-import grondag.acuity.api.IUniform.IUniform1f;
-import grondag.acuity.api.IUniform.IUniform1i;
-import grondag.acuity.api.IUniform.IUniform2f;
-import grondag.acuity.api.IUniform.IUniform2i;
-import grondag.acuity.api.IUniform.IUniform3f;
-import grondag.acuity.api.IUniform.IUniform3i;
-import grondag.acuity.api.IUniform.IUniform4f;
-import grondag.acuity.api.IUniform.IUniform4i;
-import grondag.acuity.api.IUniform.IUniformMatrix4f;
-import grondag.acuity.core.PipelineFragmentShader;
-import grondag.acuity.core.PipelineShaderManager;
-import grondag.acuity.core.PipelineVertexFormat;
-import grondag.acuity.core.PipelineVertexShader;
-import grondag.acuity.core.Program;
-import net.minecraft.client.renderer.vertex.VertexFormat;
-import net.minecraft.util.text.translation.I18n;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import grondag.canvas.Configurator;
+import grondag.canvas.core.PipelineFragmentShader;
+import grondag.canvas.core.PipelineShaderManager;
+import grondag.canvas.core.PipelineVertexFormat;
+import grondag.canvas.core.PipelineVertexShader;
+import grondag.canvas.core.Program;
 
-@SideOnly(Side.CLIENT)
-public final class RenderPipeline implements IRenderPipeline
+public final class RenderPipeline
 {
     private final int index;
     private final Program solidProgram;
