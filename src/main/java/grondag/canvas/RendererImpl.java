@@ -21,16 +21,13 @@ import java.util.HashMap;
 import net.fabricmc.fabric.api.client.model.fabric.MaterialFinder;
 import net.fabricmc.fabric.api.client.model.fabric.MeshBuilder;
 import net.fabricmc.fabric.api.client.model.fabric.RenderMaterial;
-import net.fabricmc.fabric.api.client.model.fabric.Renderer;
 import grondag.canvas.RenderMaterialImpl.Value;
+import grondag.canvas.api.CanvasRenderer;
+import grondag.canvas.api.ShaderManager;
 import grondag.canvas.mesh.MeshBuilderImpl;
 import net.minecraft.util.Identifier;
 
-/**
- * The Fabric default renderer implementation. Supports all
- * features defined in the API except shaders and offers no special materials.
- */
-public class RendererImpl implements Renderer {
+public class RendererImpl implements CanvasRenderer {
     public static final RendererImpl INSTANCE = new RendererImpl();
     
     public static final RenderMaterialImpl.Value MATERIAL_STANDARD = (Value) INSTANCE.materialFinder().find();
@@ -65,5 +62,11 @@ public class RendererImpl implements Renderer {
         // cast to prevent acceptance of impostor implementations
         materialMap.put(id, material);
         return true;
+    }
+
+    @Override
+    public ShaderManager shaderManager() {
+        // TODO Auto-generated method stub
+        return null;
     }
 }
