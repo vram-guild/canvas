@@ -6,13 +6,13 @@ import java.util.Set;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
-import grondag.canvas.mixinext.VisiblityDataExt;
+import grondag.canvas.mixinext.VisibilityDataExt;
 import net.minecraft.class_852;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 
 @Mixin(class_852.class)
-public class MixinVisibilityData implements VisiblityDataExt {
+public class MixinVisibilityData implements VisibilityDataExt {
     @Shadow
     private static int method_3683(BlockPos blockPos_1) {
         return 0;

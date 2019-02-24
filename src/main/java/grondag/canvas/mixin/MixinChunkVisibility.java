@@ -2,12 +2,12 @@ package grondag.canvas.mixin;
 
 import org.spongepowered.asm.mixin.Mixin;
 
-import grondag.canvas.hooks.ISetVisibility;
 import grondag.canvas.hooks.VisibilityMap;
+import grondag.canvas.mixinext.ChunkVisibility;
 import net.minecraft.class_854;
 
 @Mixin(class_854.class)
-public abstract class MixinChunkVisibility implements ISetVisibility {
+public abstract class MixinChunkVisibility implements ChunkVisibility {
     private Object visibilityData = null;
 
     @Override

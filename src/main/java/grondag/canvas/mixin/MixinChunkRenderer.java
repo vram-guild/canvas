@@ -16,10 +16,13 @@
 
 package grondag.canvas.mixin;
 
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.spongepowered.asm.lib.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -28,26 +31,41 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import com.google.common.collect.Sets;
+
 import grondag.canvas.Canvas;
 import grondag.canvas.accessor.AccessChunkRenderer;
 import grondag.canvas.accessor.AccessSafeWorldView;
 import grondag.canvas.buffering.DrawableChunk.Solid;
 import grondag.canvas.buffering.DrawableChunk.Translucent;
+import grondag.canvas.hooks.ChunkRebuildHelper;
+import grondag.canvas.hooks.ChunkRenderDataStore;
 import grondag.canvas.mixinext.ChunkRendererExt;
+import grondag.canvas.mixinext.ChunkRenderDataExt;
 import grondag.canvas.render.TerrainRenderContext;
+import net.minecraft.class_852;
+import net.minecraft.class_854;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockRenderLayer;
 import net.minecraft.block.BlockRenderType;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.WorldRenderer;
+import net.minecraft.client.render.block.BlockModelRenderer;
 import net.minecraft.client.render.block.BlockRenderManager;
+import net.minecraft.client.render.block.entity.BlockEntityRenderDispatcher;
+import net.minecraft.client.render.block.entity.BlockEntityRenderer;
 import net.minecraft.client.render.chunk.ChunkRenderData;
 import net.minecraft.client.render.chunk.ChunkRenderTask;
 import net.minecraft.client.render.chunk.ChunkRenderer;
+import net.minecraft.client.world.SafeWorldView;
+import net.minecraft.fluid.FluidState;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.ExtendedBlockView;
 import net.minecraft.world.World;
+import net.minecraft.world.chunk.WorldChunk;
 
 /**
  * Implements the main hooks for terrain rendering. Attempts to tread lightly.
@@ -98,14 +116,219 @@ public abstract class MixinChunkRenderer implements AccessChunkRenderer, ChunkRe
 
     // TODO: substitute our visibility graph
 
-    /**
-     * Access method for renderer.
-     */
     @Override
-    public void fabric_beginBufferBuilding(BufferBuilder bufferBuilder_1, BlockPos blockPos_1) {
-        beginBufferBuilding(bufferBuilder_1, blockPos_1);
+    public Solid getSolidDrawable() {
+        return solidDrawable;
     }
 
+    @Override
+    public Translucent getTranslucentDrawable() {
+        return translucentDrawable;
+    }
+    
+    /**
+     * When Canvas is enabled the per-chunk matrix is never used, so is wasteful to
+     * update when frustum moves. Matters more when lots of block updates or other
+     * high-throughput because adds to contention.
+     */
+    @Inject(at = @At("HEAD"), method = "updateTransformationMatrix", cancellable = true)
+    private void hookUpdateTransformationMatrix(CallbackInfo ci) {
+        if (Canvas.isModEnabled()) {
+            // this is called right after setting chunk position because it was moved in the
+            // frustum
+            // let buffers in the chunk know they are no longer valid and can be released.
+            ((ChunkRendererExt) this).releaseDrawables();
+            ci.cancel();
+        }
+    }
+    
+    @Inject(method = "delete", at = @At("RETURN"), require = 1)
+    private void onDeleteGlResources(CallbackInfo ci) {
+        releaseDrawables();
+    }
+
+    @Inject(method = "method_3665", require = 1, 
+            at = @At(value = "FIELD", opcode = Opcodes.PUTFIELD,
+            target = "Lnet/minecraft/client/render/chunk/RenderChunk;chunkRenderData:Lnet/minecraft/client/render/chunk/ChunkRenderData;"))
+    private void onSetChunkData(ChunkRenderData chunkDataIn, CallbackInfo ci) {
+        if(chunkRenderData == null || chunkRenderData == ChunkRenderData.EMPTY || chunkDataIn == chunkRenderData)
+            return;
+
+        ((ChunkRenderDataExt)chunkRenderData).getVisibilityData().releaseVisibilityData();
+        ChunkRenderDataStore.release(chunkRenderData);
+    }
+    
+    // shouldn't be necessary if rebuild chunk hook works, but insurance if not
+    @Redirect(method = "rebuildChunk", require = 1,       
+            at = @At(value = "INVOKE",
+            target = "Lnet/minecraft/client/render/chunk/ChunkRenderData;method_3640(Lnet/minecraft/class_854;)V"))       
+    private void onSetVisibility(ChunkRenderData compiledChunk, class_854 chunkVisibility) {        
+        compiledChunk.method_3640(chunkVisibility);      
+        ((ChunkRenderDataExt)compiledChunk).mergeRenderLayers();
+    }
+    
+    @Inject(method = "clear", require = 1, 
+            at = @At(value = "FIELD", opcode = Opcodes.PUTFIELD,
+            target = "Lnet/minecraft/client/render/chunk/ChunkRenderer;chunkRenderData:Lnet/minecraft/client/render/chunk/ChunkRenderData;"))
+    private void onClear(CallbackInfo ci)
+    {
+        if(chunkRenderData == null || chunkRenderData == ChunkRenderData.EMPTY)
+            return;
+
+        ((ChunkRenderDataExt)chunkRenderData).getVisibilityData().releaseVisibilityData();
+        ChunkRenderDataStore.release(chunkRenderData);
+    }
+    
+    @Override
+    public void setSolidDrawable(Solid drawable) {
+        solidDrawable = drawable;
+    }
+
+    @Override
+    public void setTranslucentDrawable(Translucent drawable) {
+        translucentDrawable = drawable;
+    }
+
+    @Override
+    public void releaseDrawables() {
+        if (solidDrawable != null) {
+            solidDrawable.clear();
+            solidDrawable = null;
+        }
+
+        if (translucentDrawable != null) {
+            translucentDrawable.clear();
+            translucentDrawable = null;
+        }
+    }
+    
+    @Inject(method = "rebuildChunk", at = @At("HEAD"), cancellable = true, require = 1)
+    private void onRebuildChunk(final float x, final float y, final float z, final ChunkRenderTask chunkRenderTask, final CallbackInfo ci) {
+        if(!Canvas.isModEnabled())
+            return;
+        
+        final ChunkRebuildHelper help = ChunkRebuildHelper.get();
+        help.clear();
+        
+        ChunkRenderData chunkRenderData = ChunkRenderDataStore.claim();
+        final BlockPos.Mutable origin = this.origin;
+        
+        BlockPos blockPos_1 = this.origin.toImmutable();
+        BlockPos blockPos_2 = blockPos_1.add(15, 15, 15);
+        World world_1 = this.world;
+        
+        if (world_1 != null) {
+            
+           chunkRenderTask.getLock().lock();
+
+           try {
+              if (chunkRenderTask.getStage() != ChunkRenderTask.Stage.COMPILING) {
+                 return;
+              }
+
+              chunkRenderTask.setRenderData(chunkRenderData);
+           } finally {
+              chunkRenderTask.getLock().unlock();
+           }
+
+           class_852 class_852_1 = new class_852();
+           HashSet set_1 = Sets.newHashSet();
+           SafeWorldView safeWorldView_1 = chunkRenderTask.getAndInvalidateWorldView();
+           if (safeWorldView_1 != null) {
+              ++chunkUpdateCount;
+              boolean[] booleans_1 = new boolean[BlockRenderLayer.values().length];
+              BlockModelRenderer.enableBrightnessCache();
+              Random random_1 = new Random();
+              BlockRenderManager blockRenderManager_1 = MinecraftClient.getInstance().getBlockRenderManager();
+              Iterator var16 = BlockPos.iterateBoxPositions(blockPos_1, blockPos_2).iterator();
+
+              while(var16.hasNext()) {
+                 BlockPos blockPos_3 = (BlockPos)var16.next();
+                 BlockState blockState_1 = safeWorldView_1.getBlockState(blockPos_3);
+                 Block block_1 = blockState_1.getBlock();
+                 if (blockState_1.isFullOpaque(safeWorldView_1, blockPos_3)) {
+                    class_852_1.method_3682(blockPos_3);
+                 }
+
+                 if (block_1.hasBlockEntity()) {
+                    BlockEntity blockEntity_1 = safeWorldView_1.getBlockEntity(blockPos_3, WorldChunk.CreationType.CHECK);
+                    if (blockEntity_1 != null) {
+                       BlockEntityRenderer<BlockEntity> blockEntityRenderer_1 = BlockEntityRenderDispatcher.INSTANCE.get(blockEntity_1);
+                       if (blockEntityRenderer_1 != null) {
+                          chunkRenderData.addBlockEntity(blockEntity_1);
+                          if (blockEntityRenderer_1.method_3563(blockEntity_1)) {
+                             set_1.add(blockEntity_1);
+                          }
+                       }
+                    }
+                 }
+
+                 FluidState fluidState_1 = safeWorldView_1.getFluidState(blockPos_3);
+                 int int_3;
+                 BufferBuilder bufferBuilder_2;
+                 BlockRenderLayer blockRenderLayer_2;
+                 if (!fluidState_1.isEmpty()) {
+                    blockRenderLayer_2 = fluidState_1.getRenderLayer();
+                    int_3 = blockRenderLayer_2.ordinal();
+                    bufferBuilder_2 = chunkRenderTask.getBufferBuilders().get(int_3);
+                    if (!chunkRenderData.isBufferInitialized(blockRenderLayer_2)) {
+                       chunkRenderData.markBufferInitialized(blockRenderLayer_2);
+                       this.beginBufferBuilding(bufferBuilder_2, blockPos_1);
+                    }
+
+                    booleans_1[int_3] |= blockRenderManager_1.tesselateFluid(blockPos_3, safeWorldView_1, bufferBuilder_2, fluidState_1);
+                 }
+
+                 if (blockState_1.getRenderType() != BlockRenderType.INVISIBLE) {
+                    blockRenderLayer_2 = block_1.getRenderLayer();
+                    int_3 = blockRenderLayer_2.ordinal();
+                    bufferBuilder_2 = chunkRenderTask.getBufferBuilders().get(int_3);
+                    if (!chunkRenderData.isBufferInitialized(blockRenderLayer_2)) {
+                       chunkRenderData.markBufferInitialized(blockRenderLayer_2);
+                       this.beginBufferBuilding(bufferBuilder_2, blockPos_1);
+                    }
+
+                    booleans_1[int_3] |= blockRenderManager_1.tesselateBlock(blockState_1, blockPos_3, safeWorldView_1, bufferBuilder_2, random_1);
+                 }
+              }
+
+              BlockRenderLayer[] var33 = BlockRenderLayer.values();
+              int var34 = var33.length;
+
+              for(int var35 = 0; var35 < var34; ++var35) {
+                 BlockRenderLayer blockRenderLayer_3 = var33[var35];
+                 if (booleans_1[blockRenderLayer_3.ordinal()]) {
+                    ((ChunkRenderDataExt)chunkRenderData).setNonEmpty(blockRenderLayer_3);
+                 }
+
+                 if (chunkRenderData.isBufferInitialized(blockRenderLayer_3)) {
+                    this.endBufferBuilding(blockRenderLayer_3, x, y, z, chunkRenderTask.getBufferBuilders().get(blockRenderLayer_3), chunkRenderData);
+                 }
+              }
+
+              BlockModelRenderer.disableBrightnessCache();
+           }
+
+           chunkRenderData.method_3640(class_852_1.method_3679());
+           this.chunkRenderLock.lock();
+
+           try {
+              Set<BlockEntity> set_2 = Sets.newHashSet(set_1);
+              Set<BlockEntity> set_3 = Sets.newHashSet(this.blockEntities);
+              set_2.removeAll(this.blockEntities);
+              set_3.removeAll(set_1);
+              this.blockEntities.clear();
+              this.blockEntities.addAll(set_1);
+              this.renderer.method_3245(set_3, set_2);
+           } finally {
+              this.chunkRenderLock.unlock();
+           }
+
+        }
+    }
+    
+    /////
+    
     /**
      * Save task to renderer, this is the easiest place to capture it.
      */
@@ -194,51 +417,10 @@ public abstract class MixinChunkRenderer implements AccessChunkRenderer, ChunkRe
     }
 
     /**
-     * When Canvas is enabled the per-chunk matrix is never used, so is wasteful to
-     * update when frustum moves. Matters more when lots of block updates or other
-     * high-throughput because adds to contention.
+     * Access method for renderer.
      */
-    @Inject(at = @At("HEAD"), method = "updateTransformationMatrix", cancellable = true)
-    private void hookUpdateTransformationMatrix(CallbackInfo ci) {
-        if (Canvas.isModEnabled()) {
-            // this is called right after setting chunk position because it was moved in the
-            // frustum
-            // let buffers in the chunk know they are no longer valid and can be released.
-            ((ChunkRendererExt) this).releaseDrawables();
-            ci.cancel();
-        }
-    }
-
     @Override
-    public void setSolidDrawable(Solid drawable) {
-        solidDrawable = drawable;
-    }
-
-    @Override
-    public void setTranslucentDrawable(Translucent drawable) {
-        translucentDrawable = drawable;
-    }
-
-    @Override
-    public Solid getSolidDrawable() {
-        return solidDrawable;
-    }
-
-    @Override
-    public Translucent getTranslucentDrawable() {
-        return translucentDrawable;
-    }
-
-    @Override
-    public void releaseDrawables() {
-        if (solidDrawable != null) {
-            solidDrawable.clear();
-            solidDrawable = null;
-        }
-
-        if (translucentDrawable != null) {
-            translucentDrawable.clear();
-            translucentDrawable = null;
-        }
+    public void fabric_beginBufferBuilding(BufferBuilder bufferBuilder_1, BlockPos blockPos_1) {
+        beginBufferBuilding(bufferBuilder_1, blockPos_1);
     }
 }

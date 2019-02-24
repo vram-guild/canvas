@@ -5,7 +5,7 @@ import java.util.Set;
 
 import net.minecraft.util.math.Direction;
 
-public interface VisiblityDataExt {
+public interface VisibilityDataExt {
     BitSet bitSet();
 
     int getEmptyCount();

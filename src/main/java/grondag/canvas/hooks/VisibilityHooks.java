@@ -7,7 +7,8 @@ import java.util.Set;
 import org.apache.commons.lang3.tuple.Pair;
 
 import grondag.canvas.mixin.MixinVisibilityData;
-import grondag.canvas.mixinext.VisiblityDataExt;
+import grondag.canvas.mixinext.ChunkVisibility;
+import grondag.canvas.mixinext.VisibilityDataExt;
 import it.unimi.dsi.fastutil.ints.IntArrayFIFOQueue;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import net.fabricmc.fabric.api.client.model.fabric.ModelHelper;
@@ -27,15 +28,15 @@ public class VisibilityHooks {
     }
 
     public static class_854 computeVisiblityExt(class_852 visDataIn) {
-        VisiblityDataExt visData = (VisiblityDataExt) visDataIn;
+        VisibilityDataExt visData = (VisibilityDataExt) visDataIn;
         class_854 setvisibility = new class_854();
 
         if (4096 - visData.getEmptyCount() < 256) {
             setvisibility.method_3694(true); // set all visible
-            ((ISetVisibility) setvisibility).setVisibilityData(DirectionSet.ALL);
+            ((ChunkVisibility) setvisibility).setVisibilityData(DirectionSet.ALL);
         } else if (visData.getEmptyCount() == 0) {
             setvisibility.method_3694(false);
-            ((ISetVisibility) setvisibility).setVisibilityData(DirectionSet.NONE);
+            ((ChunkVisibility) setvisibility).setVisibilityData(DirectionSet.NONE);
         } else {
             final BitSet bitSet = visData.bitSet();
             VisibilityMap facingMap = VisibilityMap.claim();
@@ -52,7 +53,7 @@ public class VisibilityHooks {
                         facingMap.setIndex(list.getInt(j), setIndex);
                 }
             }
-            ((ISetVisibility) setvisibility).setVisibilityData(facingMap);
+            ((ChunkVisibility) setvisibility).setVisibilityData(facingMap);
         }
 
         return setvisibility;
@@ -71,7 +72,7 @@ public class VisibilityHooks {
         }
     };
 
-    private static Pair<Set<Direction>, IntArrayList> floodFill(VisiblityDataExt visData, int pos) {
+    private static Pair<Set<Direction>, IntArrayList> floodFill(VisibilityDataExt visData, int pos) {
         final BitSet bitSet = visData.bitSet();
         final Helpers help = helpers.get();
         Set<Direction> set = help.faces;

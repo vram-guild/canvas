@@ -1,6 +1,6 @@
-package grondag.canvas.hooks;
+package grondag.canvas.mixinext;
 
-public interface ISetVisibility {
+public interface ChunkVisibility {
     public Object getVisibilityData();
 
     public void setVisibilityData(Object data);

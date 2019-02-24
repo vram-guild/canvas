@@ -29,8 +29,8 @@ import org.spongepowered.asm.mixin.Shadow;
 
 import grondag.canvas.Canvas;
 import grondag.canvas.hooks.ChunkRebuildHelper;
-import grondag.canvas.hooks.ISetVisibility;
 import grondag.canvas.mixinext.ChunkRenderDataExt;
+import grondag.canvas.mixinext.ChunkVisibility;
 import net.minecraft.class_854;
 import net.minecraft.block.BlockRenderLayer;
 import net.minecraft.block.entity.BlockEntity;
@@ -64,7 +64,7 @@ public abstract class MixinChunkRenderData implements ChunkRenderDataExt {
         System.arraycopy(ChunkRebuildHelper.EMPTY_RENDER_LAYER_FLAGS, 0, isInitialized, 0,
                 ChunkRebuildHelper.BLOCK_RENDER_LAYER_COUNT);
         field_4455.method_3694(false); // set all false
-        ((ISetVisibility) field_4455).setVisibilityData(null);
+        ((ChunkVisibility) field_4455).setVisibilityData(null);
         bufferState = null;
         blockEntities.clear();
     }
