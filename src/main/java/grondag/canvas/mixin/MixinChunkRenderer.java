@@ -57,7 +57,6 @@ import net.minecraft.client.render.chunk.ChunkRenderData;
 import net.minecraft.client.render.chunk.ChunkRenderTask;
 import net.minecraft.client.render.chunk.ChunkRenderer;
 import net.minecraft.client.world.SafeWorldView;
-import net.minecraft.fluid.FluidState;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.WorldChunk;
@@ -261,22 +260,23 @@ public abstract class MixinChunkRenderer implements AccessChunkRenderer, ChunkRe
                                 }
                             }
 
-                            FluidState fluidState = safeWorldView.getFluidState(searchPos);
                             BlockRenderLayer renderLayer;
                             int renderLayerIndex;
                             BufferBuilder bufferBuilder;
-                            if (!fluidState.isEmpty()) {
-                                renderLayer = fluidState.getRenderLayer();
-                                renderLayerIndex = renderLayer.ordinal();
-                                bufferBuilder = chunkRenderTask.getBufferBuilders().get(renderLayerIndex);
-                                if (!chunkRenderData.isBufferInitialized(renderLayer)) {
-                                    chunkRenderData.markBufferInitialized(renderLayer);
-                                    this.beginBufferBuilding(bufferBuilder, origin);
-                                }
-
-                                layerFlags[renderLayerIndex] |= blockRenderManager.tesselateFluid(searchPos,
-                                        safeWorldView, bufferBuilder, fluidState);
-                            }
+                            //TODO: implement fluid render
+//                            FluidState fluidState = safeWorldView.getFluidState(searchPos);
+//                            if (!fluidState.isEmpty()) {
+//                                renderLayer = fluidState.getRenderLayer();
+//                                renderLayerIndex = renderLayer.ordinal();
+//                                bufferBuilder = chunkRenderTask.getBufferBuilders().get(renderLayerIndex);
+//                                if (!chunkRenderData.isBufferInitialized(renderLayer)) {
+//                                    chunkRenderData.markBufferInitialized(renderLayer);
+//                                    this.beginBufferBuilding(bufferBuilder, origin);
+//                                }
+//
+//                                layerFlags[renderLayerIndex] |= blockRenderManager.tesselateFluid(searchPos,
+//                                        safeWorldView, bufferBuilder, fluidState);
+//                            }
 
                             if (blockState.getRenderType() == BlockRenderType.MODEL) {
                                 //TODO: confirm main layer always updated, stop returning a value

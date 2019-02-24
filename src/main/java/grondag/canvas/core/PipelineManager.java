@@ -114,10 +114,10 @@ public final class PipelineManager {
                             PipelineShaderManager.INSTANCE.DEFAULT_FRAGMENT_SOURCE)
                     .finish();
         }
-        this.waterPipeline = this.createPipeline(1, "/assets/acuity/shader/water.vert",
-                "/assets/acuity/shader/water.frag");
-        this.lavaPipeline = this.createPipeline(1, "/assets/acuity/shader/lava.vert",
-                "/assets/acuity/shader/lava.frag");
+        this.waterPipeline = this.createPipeline(1, "/assets/canvas/shader/water.vert",
+                "/assets/canvas/shader/water.frag");
+        this.lavaPipeline = this.createPipeline(1, "/assets/canvas/shader/lava.vert",
+                "/assets/canvas/shader/lava.frag");
         this.defaultSinglePipeline = defaultPipelines[0];
     }
 
