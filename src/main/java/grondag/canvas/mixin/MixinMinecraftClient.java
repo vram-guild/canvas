@@ -35,15 +35,15 @@ import net.minecraft.util.profiler.DisableableProfiler;
 import net.minecraft.util.profiler.Profiler;
 
 @Mixin(MinecraftClient.class)
-public abstract class MixinMinecraftClient implements MinecraftClientExt
-{
-    @Shadow DisableableProfiler profiler;
-    
+public abstract class MixinMinecraftClient implements MinecraftClientExt {
+    @Shadow
+    DisableableProfiler profiler;
+
     @Override
     public Profiler getProfiler() {
         return profiler;
     }
-    
+
     @Inject(at = @At("RETURN"), method = "init")
     private void hookInit(CallbackInfo info) {
         CanvasGlHelper.init();

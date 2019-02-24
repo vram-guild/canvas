@@ -24,25 +24,24 @@ import net.minecraft.util.math.Direction;
 public class TerrainBlockRenderInfo extends BlockRenderInfo {
     private int cullCompletionFlags;
     private int cullResultFlags;
-    
-    
+
     @Override
     public void prepareForBlock(BlockState blockState, BlockPos blockPos, boolean modelAO) {
         super.prepareForBlock(blockState, blockPos, modelAO);
         cullCompletionFlags = 0;
         cullResultFlags = 0;
     }
-    
+
     @Override
     boolean shouldDrawFace(Direction face) {
-        if(face == null) {
+        if (face == null) {
             return true;
         }
         final int mask = 1 << face.getId();
-        
-        if((cullCompletionFlags & mask) == 0) {
+
+        if ((cullCompletionFlags & mask) == 0) {
             cullCompletionFlags |= mask;
-            if(Block.shouldDrawSide(blockState, blockView, blockPos, face)) {
+            if (Block.shouldDrawSide(blockState, blockView, blockPos, face)) {
                 cullResultFlags |= mask;
                 return true;
             } else {

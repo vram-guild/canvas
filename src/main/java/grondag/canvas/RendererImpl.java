@@ -26,7 +26,6 @@ import net.fabricmc.fabric.api.client.model.fabric.MaterialFinder;
 import net.fabricmc.fabric.api.client.model.fabric.MeshBuilder;
 import net.fabricmc.fabric.api.client.model.fabric.RenderMaterial;
 import grondag.canvas.core.PipelineManager;
-import grondag.canvas.hooks.PipelineHooks;
 import grondag.canvas.RenderMaterialImpl.Value;
 import grondag.canvas.api.CanvasListener;
 import grondag.canvas.api.CanvasRenderer;
@@ -39,24 +38,25 @@ import net.minecraft.util.Identifier;
 
 public class RendererImpl implements CanvasRenderer {
     public static final RendererImpl INSTANCE = new RendererImpl();
-    
+
     public static final RenderMaterialImpl.Value MATERIAL_STANDARD = (Value) INSTANCE.materialFinder().find();
-    
+
     static {
         INSTANCE.registerMaterial(RenderMaterial.MATERIAL_STANDARD, MATERIAL_STANDARD);
     }
-    
+
     private final HashMap<Identifier, RenderMaterial> materialMap = new HashMap<>();
-    
+
     private final ArrayList<WeakReference<CanvasListener>> listeners = new ArrayList<WeakReference<CanvasListener>>();
-    
-    private RendererImpl() { };
+
+    private RendererImpl() {
+    };
 
     @Override
     public MeshBuilder meshBuilder() {
         return new MeshBuilderImpl();
     }
-  
+
     @Override
     public MaterialFinder materialFinder() {
         return new RenderMaterialImpl.Finder();
@@ -69,7 +69,7 @@ public class RendererImpl implements CanvasRenderer {
 
     @Override
     public boolean registerMaterial(Identifier id, RenderMaterial material) {
-        if(materialMap.containsKey(id))
+        if (materialMap.containsKey(id))
             return false;
         // cast to prevent acceptance of impostor implementations
         materialMap.put(id, material);
@@ -92,15 +92,14 @@ public class RendererImpl implements CanvasRenderer {
 
     public void forEachListener(Consumer<CanvasListener> c) {
         Iterator<WeakReference<CanvasListener>> it = this.listeners.iterator();
-        while(it.hasNext())
-        {
+        while (it.hasNext()) {
             WeakReference<CanvasListener> ref = it.next();
             CanvasListener listener = ref.get();
-            if(listener == null)
+            if (listener == null)
                 it.remove();
             else
                 c.accept(listener);
-        }        
+        }
     }
 
     @Override

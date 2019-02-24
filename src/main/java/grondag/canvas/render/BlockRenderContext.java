@@ -42,24 +42,25 @@ import net.minecraft.world.ExtendedBlockView;
 public class BlockRenderContext extends AbstractRenderContext implements RenderContext {
     private final BlockRenderInfo blockInfo = new BlockRenderInfo();
     private final AoCalculator aoCalc = new AoCalculator(blockInfo, this::brightness, this::aoLevel);
-    private final MeshConsumer meshConsumer = new MeshConsumer(blockInfo, this::brightness, this::outputBuffer, aoCalc, this::transform);
+    private final MeshConsumer meshConsumer = new MeshConsumer(blockInfo, this::brightness, this::outputBuffer, aoCalc,
+            this::transform);
     private final Random random = new Random();
     private BlockModelRenderer vanillaRenderer;
     private AccessBufferBuilder fabricBuffer;
     private long seed;
     private boolean isCallingVanilla = false;
     private boolean didOutput = false;
-    
+
     private double offsetX;
     private double offsetY;
     private double offsetZ;
-    
+
     public boolean isCallingVanilla() {
         return isCallingVanilla;
     }
-    
+
     private int brightness(BlockState blockState, BlockPos pos) {
-        if(blockInfo.blockView == null) {
+        if (blockInfo.blockView == null) {
             return 15 << 20 | 15 << 4;
         }
         return blockState.getBlockBrightness(blockInfo.blockView, pos);
@@ -67,18 +68,19 @@ public class BlockRenderContext extends AbstractRenderContext implements RenderC
 
     private float aoLevel(BlockPos pos) {
         final ExtendedBlockView blockView = blockInfo.blockView;
-        if(blockView == null) {
+        if (blockView == null) {
             return 1f;
         }
         return blockView.getBlockState(pos).getAmbientOcclusionLightLevel(blockView, pos);
     }
-    
+
     private AccessBufferBuilder outputBuffer(int renderLayer) {
         didOutput = true;
         return fabricBuffer;
     }
-    
-    public boolean tesselate(BlockModelRenderer vanillaRenderer, TerrainBlockView blockView, BakedModel model, BlockState state, BlockPos pos, BufferBuilder buffer, long seed) {
+
+    public boolean tesselate(BlockModelRenderer vanillaRenderer, TerrainBlockView blockView, BakedModel model,
+            BlockState state, BlockPos pos, BufferBuilder buffer, long seed) {
         this.vanillaRenderer = vanillaRenderer;
         this.fabricBuffer = (AccessBufferBuilder) buffer;
         this.seed = seed;
@@ -87,9 +89,9 @@ public class BlockRenderContext extends AbstractRenderContext implements RenderC
         blockInfo.setBlockView(blockView);
         blockInfo.prepareForBlock(state, pos, model.useAmbientOcclusion());
         setupOffsets();
-        
-        ((FabricBakedModel)model).emitBlockQuads(blockView, state, pos, blockInfo.randomSupplier, this);
-        
+
+        ((FabricBakedModel) model).emitBlockQuads(blockView, state, pos, blockInfo.randomSupplier, this);
+
         this.vanillaRenderer = null;
         blockInfo.release();
         this.fabricBuffer = null;
@@ -98,10 +100,11 @@ public class BlockRenderContext extends AbstractRenderContext implements RenderC
 
     protected void acceptVanillaModel(BakedModel model) {
         isCallingVanilla = true;
-        didOutput = didOutput && vanillaRenderer.tesselate(blockInfo.blockView, model, blockInfo.blockState, blockInfo.blockPos, (BufferBuilder) fabricBuffer, false, random, seed);
+        didOutput = didOutput && vanillaRenderer.tesselate(blockInfo.blockView, model, blockInfo.blockState,
+                blockInfo.blockPos, (BufferBuilder) fabricBuffer, false, random, seed);
         isCallingVanilla = false;
     }
-    
+
     private void setupOffsets() {
         final AccessBufferBuilder buffer = fabricBuffer;
         final BlockPos pos = blockInfo.blockPos;
@@ -109,9 +112,10 @@ public class BlockRenderContext extends AbstractRenderContext implements RenderC
         offsetY = buffer.fabric_offsetY() + pos.getY();
         offsetZ = buffer.fabric_offsetZ() + pos.getZ();
     }
-    
+
     private class MeshConsumer extends AbstractMeshConsumer {
-        MeshConsumer(BlockRenderInfo blockInfo, ToIntBiFunction<BlockState, BlockPos> brightnessFunc, Int2ObjectFunction<AccessBufferBuilder> bufferFunc, AoCalculator aoCalc, QuadTransform transform) {
+        MeshConsumer(BlockRenderInfo blockInfo, ToIntBiFunction<BlockState, BlockPos> brightnessFunc,
+                Int2ObjectFunction<AccessBufferBuilder> bufferFunc, AoCalculator aoCalc, QuadTransform transform) {
             super(blockInfo, brightnessFunc, bufferFunc, aoCalc, transform);
         }
 
@@ -120,8 +124,8 @@ public class BlockRenderContext extends AbstractRenderContext implements RenderC
             final double x = offsetX;
             final double y = offsetY;
             final double z = offsetZ;
-            for(int i = 0; i < 4; i++) {
-                q.pos(i, (float)(q.x(i) + x), (float)(q.y(i) + y), (float)(q.z(i) + z));
+            for (int i = 0; i < 4; i++) {
+                q.pos(i, (float) (q.x(i) + x), (float) (q.y(i) + y), (float) (q.z(i) + z));
             }
         }
     }

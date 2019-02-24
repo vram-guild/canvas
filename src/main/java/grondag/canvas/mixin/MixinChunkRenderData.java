@@ -38,53 +38,60 @@ import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.chunk.ChunkRenderData;
 
 @Mixin(ChunkRenderData.class)
-public abstract class MixinChunkRenderData implements ChunkRenderDataExt
-{
-    @Shadow private boolean[] hasContent;
-    @Shadow private boolean[] isInitialized;
-    @Shadow private boolean empty;
-    @Shadow private List<BlockEntity> blockEntities;
-    @Shadow private class_854 field_4455;
-    @Shadow private BufferBuilder.State bufferState;
-    
+public abstract class MixinChunkRenderData implements ChunkRenderDataExt {
+    @Shadow
+    private boolean[] hasContent;
+    @Shadow
+    private boolean[] isInitialized;
+    @Shadow
+    private boolean empty;
+    @Shadow
+    private List<BlockEntity> blockEntities;
+    @Shadow
+    private class_854 field_4455;
+    @Shadow
+    private BufferBuilder.State bufferState;
+
     @Override
-    @Shadow public abstract void setNonEmpty(BlockRenderLayer blockRenderLayer);
-    
+    @Shadow
+    public abstract void setNonEmpty(BlockRenderLayer blockRenderLayer);
+
     @Override
-    public void clear()
-    {
+    public void clear() {
         empty = true;
-        System.arraycopy(ChunkRebuildHelper.EMPTY_RENDER_LAYER_FLAGS, 0, hasContent, 0, ChunkRebuildHelper.BLOCK_RENDER_LAYER_COUNT);
-        System.arraycopy(ChunkRebuildHelper.EMPTY_RENDER_LAYER_FLAGS, 0, isInitialized, 0, ChunkRebuildHelper.BLOCK_RENDER_LAYER_COUNT);
+        System.arraycopy(ChunkRebuildHelper.EMPTY_RENDER_LAYER_FLAGS, 0, hasContent, 0,
+                ChunkRebuildHelper.BLOCK_RENDER_LAYER_COUNT);
+        System.arraycopy(ChunkRebuildHelper.EMPTY_RENDER_LAYER_FLAGS, 0, isInitialized, 0,
+                ChunkRebuildHelper.BLOCK_RENDER_LAYER_COUNT);
         field_4455.method_3694(false); // set all false
-        ((ISetVisibility)field_4455).setVisibilityData(null);
+        ((ISetVisibility) field_4455).setVisibilityData(null);
         bufferState = null;
         blockEntities.clear();
     }
-    
+
     /**
-     * When mod is enabled, cutout layers are packed into solid layer, but the
-     * chunk render dispatcher doesn't know this and sets flags in the compiled chunk
-     * as if the cutout buffers were populated.  We use this hook to correct that
-     * so that uploader and rendering work in subsequent operations.<p>
+     * When mod is enabled, cutout layers are packed into solid layer, but the chunk
+     * render dispatcher doesn't know this and sets flags in the compiled chunk as
+     * if the cutout buffers were populated. We use this hook to correct that so
+     * that uploader and rendering work in subsequent operations.
+     * <p>
      * 
-     * Called from the rebuildChunk method in ChunkRenderer, via a redirect on the call to
+     * Called from the rebuildChunk method in ChunkRenderer, via a redirect on the
+     * call to
      * {@link CompiledChunk#setVisibility(net.minecraft.client.renderer.chunk.SetVisibility)}
-     * which is reliably called after the chunks are built in render chunk.<p>
+     * which is reliably called after the chunks are built in render chunk.
+     * <p>
      */
     @Override
-    public void mergeRenderLayers()
-    {
-        if(Canvas.isModEnabled())
-        {
+    public void mergeRenderLayers() {
+        if (Canvas.isModEnabled()) {
             mergeLayerFlags(isInitialized);
             mergeLayerFlags(hasContent);
         }
     }
-    
-    private static void mergeLayerFlags(boolean[] layerFlags)
-    {
-        layerFlags[0]  = layerFlags[0] || layerFlags[1] || layerFlags[2];
+
+    private static void mergeLayerFlags(boolean[] layerFlags) {
+        layerFlags[0] = layerFlags[0] || layerFlags[1] || layerFlags[2];
         layerFlags[1] = false;
         layerFlags[2] = false;
     }

@@ -22,11 +22,13 @@ import grondag.canvas.mesh.MutableQuadViewImpl;
 
 public class TerrainMeshConsumer extends AbstractMeshConsumer {
     private final ChunkRenderInfo chunkInfo;
-    TerrainMeshConsumer(TerrainBlockRenderInfo blockInfo,  ChunkRenderInfo chunkInfo, AoCalculator aoCalc, QuadTransform transform) {
+
+    TerrainMeshConsumer(TerrainBlockRenderInfo blockInfo, ChunkRenderInfo chunkInfo, AoCalculator aoCalc,
+            QuadTransform transform) {
         super(blockInfo, chunkInfo::cachedBrightness, chunkInfo::getInitializedBuffer, aoCalc, transform);
         this.chunkInfo = chunkInfo;
     }
-    
+
     @Override
     protected void applyOffsets(MutableQuadViewImpl quad) {
         chunkInfo.applyOffsets(quad);

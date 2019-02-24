@@ -28,9 +28,13 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 import net.minecraft.client.render.BackgroundRenderer;
 
 @Mixin(BackgroundRenderer.class)
-public interface AccessBackgroundRenderer
-{
-    @Accessor public float getRed();
-    @Accessor public float getGreen();
-    @Accessor public float getBlue();
+public interface AccessBackgroundRenderer {
+    @Accessor
+    public float getRed();
+
+    @Accessor
+    public float getGreen();
+
+    @Accessor
+    public float getBlue();
 }

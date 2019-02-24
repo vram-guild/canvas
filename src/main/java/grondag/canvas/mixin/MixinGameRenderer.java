@@ -30,13 +30,12 @@ import net.minecraft.client.render.BackgroundRenderer;
 import net.minecraft.client.render.GameRenderer;
 
 @Mixin(GameRenderer.class)
-public abstract class MixinGameRenderer implements GameRendererExt
-{
-    @Shadow private BackgroundRenderer backgroundRenderer;
-    
+public abstract class MixinGameRenderer implements GameRendererExt {
+    @Shadow
+    private BackgroundRenderer backgroundRenderer;
+
     @Override
-    public BackgroundRenderer fogHelper()
-    {
+    public BackgroundRenderer fogHelper() {
         return backgroundRenderer;
     }
 }

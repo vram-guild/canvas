@@ -32,19 +32,16 @@ import net.minecraft.client.render.chunk.ChunkRenderData;
 import net.minecraft.client.render.chunk.ChunkRenderWorker;
 
 @Mixin(ChunkRenderWorker.class)
-public abstract class MixinChunkRenderWorker
-{
-    @Redirect(method = "runTask", require = 1,
-            at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/chunk/ChunkRenderData;isBufferInitialized(Lnet/minecraft/block/BlockRenderLayer;)Z"))
-    private boolean isLayerStarted(ChunkRenderData chunkData, BlockRenderLayer layer)
-    {
+public abstract class MixinChunkRenderWorker {
+    @Redirect(method = "runTask", require = 1, at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/chunk/ChunkRenderData;isBufferInitialized(Lnet/minecraft/block/BlockRenderLayer;)Z"))
+    private boolean isLayerStarted(ChunkRenderData chunkData, BlockRenderLayer layer) {
         return shouldUploadLayer(chunkData, layer);
     }
-    
-    private static boolean shouldUploadLayer(ChunkRenderData chunkData, BlockRenderLayer blockrenderlayer)
-    {
+
+    private static boolean shouldUploadLayer(ChunkRenderData chunkData, BlockRenderLayer blockrenderlayer) {
         return Canvas.isModEnabled()
-            ? chunkData.isBufferInitialized(blockrenderlayer) && !chunkData.method_3641(blockrenderlayer) // skip if empty
-            : chunkData.isBufferInitialized(blockrenderlayer);
+                ? chunkData.isBufferInitialized(blockrenderlayer) && !chunkData.method_3641(blockrenderlayer) // skip if
+                                                                                                              // empty
+                : chunkData.isBufferInitialized(blockrenderlayer);
     }
 }

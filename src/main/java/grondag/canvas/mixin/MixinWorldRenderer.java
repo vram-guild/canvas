@@ -38,17 +38,15 @@ import net.minecraft.entity.Entity;
 // See forge branch MixinVisGraph.onComputeVisibility for details
 
 @Mixin(WorldRenderer.class)
-public abstract class MixinWorldRenderer
-{
+public abstract class MixinWorldRenderer {
     @Inject(method = "setUpTerrain", at = @At("HEAD"), cancellable = false, require = 1)
-    void onPrepareTerrain(Entity cameraEntity, float fractionalTicks, VisibleRegion class_856_1, int int_1, boolean boolean_1)
-    {
+    void onPrepareTerrain(Entity cameraEntity, float fractionalTicks, VisibleRegion class_856_1, int int_1,
+            boolean boolean_1) {
         PipelineManager.INSTANCE.prepareForFrame(cameraEntity, fractionalTicks);
     }
-    
+
     @Inject(method = "reload", at = @At("HEAD"), cancellable = false, require = 1)
-    void onReload(CallbackInfo ci)
-    {
+    void onReload(CallbackInfo ci) {
         RendererImpl.INSTANCE.forceReload();
     }
 }

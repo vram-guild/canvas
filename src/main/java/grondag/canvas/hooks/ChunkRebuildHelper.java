@@ -12,26 +12,21 @@ import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.chunk.BlockLayeredBufferBuilder;
 import net.minecraft.util.math.BlockPos;
 
-
-public class ChunkRebuildHelper
-{
+public class ChunkRebuildHelper {
     public static final int BLOCK_RENDER_LAYER_COUNT = BlockRenderLayer.values().length;
     public static final boolean[] EMPTY_RENDER_LAYER_FLAGS = new boolean[BLOCK_RENDER_LAYER_COUNT];
-    
-    private static final ThreadLocal<ChunkRebuildHelper> HELPERS = new ThreadLocal<ChunkRebuildHelper>()
-    {
+
+    private static final ThreadLocal<ChunkRebuildHelper> HELPERS = new ThreadLocal<ChunkRebuildHelper>() {
         @Override
-        protected ChunkRebuildHelper initialValue()
-        {
+        protected ChunkRebuildHelper initialValue() {
             return new ChunkRebuildHelper();
         }
     };
-    
-    public static ChunkRebuildHelper get()
-    {
+
+    public static ChunkRebuildHelper get() {
         return HELPERS.get();
     }
-    
+
     public final BlockRenderLayer[] layers = BlockRenderLayer.values().clone();
     public final boolean[] layerFlags = new boolean[BLOCK_RENDER_LAYER_COUNT];
     public final BlockPos.Mutable searchPos = new BlockPos.Mutable();
@@ -40,9 +35,8 @@ public class ChunkRebuildHelper
     public final Set<BlockEntity> tileEntitiesToRemove = Sets.newHashSet();
     public final class_852 visGraph = new class_852();
     private final BufferBuilder[] builders = new BufferBuilder[BLOCK_RENDER_LAYER_COUNT];
-    
-    public BufferBuilder[] builders(BlockLayeredBufferBuilder regionCache)
-    {
+
+    public BufferBuilder[] builders(BlockLayeredBufferBuilder regionCache) {
         builders[BlockRenderLayer.SOLID.ordinal()] = regionCache.get(BlockRenderLayer.SOLID);
         builders[BlockRenderLayer.CUTOUT.ordinal()] = regionCache.get(BlockRenderLayer.CUTOUT);
         builders[BlockRenderLayer.MIPPED_CUTOUT.ordinal()] = regionCache.get(BlockRenderLayer.MIPPED_CUTOUT);
@@ -50,13 +44,12 @@ public class ChunkRebuildHelper
         return builders;
     }
 
-    public void clear()
-    {
+    public void clear() {
         System.arraycopy(EMPTY_RENDER_LAYER_FLAGS, 0, layerFlags, 0, BLOCK_RENDER_LAYER_COUNT);
         tileEntities.clear();
         tileEntitiesToAdd.clear();
         tileEntitiesToRemove.clear();
-        
+
         // TODO: put these back when re-enable faster visibility
 //        visGraph..bitSet.clear();
 //        visGraph.empty = 4096;

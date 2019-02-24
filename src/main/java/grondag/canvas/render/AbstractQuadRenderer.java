@@ -30,8 +30,8 @@ import net.minecraft.block.BlockState;
 import net.minecraft.util.math.BlockPos;
 
 /**
- * Base quad-rendering class for fallback and mesh consumers.
- * Has most of the actual buffer-time lighting and coloring logic.
+ * Base quad-rendering class for fallback and mesh consumers. Has most of the
+ * actual buffer-time lighting and coloring logic.
  */
 public abstract class AbstractQuadRenderer {
     protected final ToIntBiFunction<BlockState, BlockPos> brightnessFunc;
@@ -39,85 +39,90 @@ public abstract class AbstractQuadRenderer {
     protected final BlockRenderInfo blockInfo;
     protected final AoCalculator aoCalc;
     protected final QuadTransform transform;
-    
-    AbstractQuadRenderer(BlockRenderInfo blockInfo, ToIntBiFunction<BlockState, BlockPos> brightnessFunc, Int2ObjectFunction<AccessBufferBuilder> bufferFunc, AoCalculator aoCalc, QuadTransform transform) {
+
+    AbstractQuadRenderer(BlockRenderInfo blockInfo, ToIntBiFunction<BlockState, BlockPos> brightnessFunc,
+            Int2ObjectFunction<AccessBufferBuilder> bufferFunc, AoCalculator aoCalc, QuadTransform transform) {
         this.blockInfo = blockInfo;
         this.brightnessFunc = brightnessFunc;
         this.bufferFunc = bufferFunc;
         this.aoCalc = aoCalc;
         this.transform = transform;
     }
-    
-    
+
     /** handles block color and red-blue swizzle, common to all renders */
     private void colorizeQuad(MutableQuadViewImpl q, int blockColorIndex) {
-        if(blockColorIndex == -1) {
-            for(int i = 0; i < 4; i++) {
+        if (blockColorIndex == -1) {
+            for (int i = 0; i < 4; i++) {
                 q.spriteColor(i, 0, ColorHelper.swapRedBlueIfNeeded(q.spriteColor(i, 0)));
             }
         } else {
             final int blockColor = blockInfo.blockColor(blockColorIndex);
-            for(int i = 0; i < 4; i++) {
-                q.spriteColor(i, 0, ColorHelper.swapRedBlueIfNeeded(ColorHelper.multiplyColor(blockColor, q.spriteColor(i, 0))));
+            for (int i = 0; i < 4; i++) {
+                q.spriteColor(i, 0,
+                        ColorHelper.swapRedBlueIfNeeded(ColorHelper.multiplyColor(blockColor, q.spriteColor(i, 0))));
             }
         }
     }
-    
+
     /** final output step, common to all renders */
     private void bufferQuad(MutableQuadViewImpl quad, int renderLayer) {
         bufferFunc.get(renderLayer).fabric_putVanillaData(quad.data(), quad.vertexStart());
     }
 
-    // routines below have a bit of copy-paste code reuse to avoid conditional execution inside a hot loop
-    
-    /** for non-emissive mesh quads and all fallback quads with smooth lighting*/
+    // routines below have a bit of copy-paste code reuse to avoid conditional
+    // execution inside a hot loop
+
+    /** for non-emissive mesh quads and all fallback quads with smooth lighting */
     protected void tesselateSmooth(MutableQuadViewImpl q, int renderLayer, int blockColorIndex) {
         colorizeQuad(q, blockColorIndex);
-        for(int i = 0; i < 4; i++) {
+        for (int i = 0; i < 4; i++) {
             q.spriteColor(i, 0, ColorHelper.multiplyRGB(q.spriteColor(i, 0), aoCalc.ao[i]));
             q.lightmap(i, aoCalc.light[i]);
         }
         bufferQuad(q, renderLayer);
     }
-    
-    /** for emissive mesh quads with smooth lighting*/
-    protected void tesselateSmoothEmissive(MutableQuadViewImpl q, int renderLayer, int blockColorIndex, int[] lightmaps) {
+
+    /** for emissive mesh quads with smooth lighting */
+    protected void tesselateSmoothEmissive(MutableQuadViewImpl q, int renderLayer, int blockColorIndex,
+            int[] lightmaps) {
         colorizeQuad(q, blockColorIndex);
-        for(int i = 0; i < 4; i++) {
+        for (int i = 0; i < 4; i++) {
             q.spriteColor(i, 0, ColorHelper.multiplyRGB(q.spriteColor(i, 0), aoCalc.ao[i]));
             q.lightmap(i, ColorHelper.maxBrightness(lightmaps[i], aoCalc.light[i]));
         }
         bufferQuad(q, renderLayer);
     }
-    
-    /** for non-emissive mesh quads and all fallback quads with flat lighting*/
+
+    /** for non-emissive mesh quads and all fallback quads with flat lighting */
     protected void tesselateFlat(MutableQuadViewImpl quad, int renderLayer, int blockColorIndex) {
         colorizeQuad(quad, blockColorIndex);
         final int brightness = flatBrightness(quad, blockInfo.blockState, blockInfo.blockPos);
-        for(int i = 0; i < 4; i++) {
+        for (int i = 0; i < 4; i++) {
             quad.lightmap(i, brightness);
         }
         bufferQuad(quad, renderLayer);
     }
-    
-    /** for emissive mesh quads with flat lighting*/
-    protected void tesselateFlatEmissive(MutableQuadViewImpl quad, int renderLayer, int blockColorIndex, int[] lightmaps) {
+
+    /** for emissive mesh quads with flat lighting */
+    protected void tesselateFlatEmissive(MutableQuadViewImpl quad, int renderLayer, int blockColorIndex,
+            int[] lightmaps) {
         colorizeQuad(quad, blockColorIndex);
         final int brightness = flatBrightness(quad, blockInfo.blockState, blockInfo.blockPos);
-        for(int i = 0; i < 4; i++) {
+        for (int i = 0; i < 4; i++) {
             quad.lightmap(i, ColorHelper.maxBrightness(lightmaps[i], brightness));
         }
         bufferQuad(quad, renderLayer);
     }
-    
+
     private final BlockPos.Mutable mpos = new BlockPos.Mutable();
-    /** 
-     * Handles geometry-based check for using self brightness or neighbor brightness.
-     * That logic only applies in flat lighting.
+
+    /**
+     * Handles geometry-based check for using self brightness or neighbor
+     * brightness. That logic only applies in flat lighting.
      */
     int flatBrightness(MutableQuadViewImpl quad, BlockState blockState, BlockPos pos) {
         mpos.set(pos);
-        if((quad.geometryFlags() & LIGHT_FACE_FLAG) != 0) {
+        if ((quad.geometryFlags() & LIGHT_FACE_FLAG) != 0) {
             mpos.setOffset(quad.lightFace());
         }
         return brightnessFunc.applyAsInt(blockState, mpos);

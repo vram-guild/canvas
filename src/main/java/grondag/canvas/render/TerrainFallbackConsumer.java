@@ -36,33 +36,38 @@ import net.minecraft.client.render.model.BakedQuad;
 import net.minecraft.util.math.Direction;
 
 /**
- * Consumer for vanilla baked models. Generally intended to give visual results matching a vanilla render, 
- * however there could be subtle (and desirable) lighting variations so is good to be able to render 
- * everything consistently.<p>
+ * Consumer for vanilla baked models. Generally intended to give visual results
+ * matching a vanilla render, however there could be subtle (and desirable)
+ * lighting variations so is good to be able to render everything consistently.
+ * <p>
  * 
- * Also, the API allows multi-part models that hold multiple vanilla models to render them without 
- * combining quad lists, but the vanilla logic only handles one model per block. To route all of 
- * them through vanilla logic would require additional hooks.<p>
+ * Also, the API allows multi-part models that hold multiple vanilla models to
+ * render them without combining quad lists, but the vanilla logic only handles
+ * one model per block. To route all of them through vanilla logic would require
+ * additional hooks.
+ * <p>
  * 
- *  Works by copying the quad data to an "editor" quad held in the instance, 
- *  where all transformations are applied before buffering. Transformations should be
- *  the same as they would be in a vanilla render - the editor is serving mainly 
- *  as a way to access vertex data without magical numbers. It also allows a consistent interface
- *  for downstream tesselation routines.<p>
- *  
- *  Another difference from vanilla render is that all transformation happens before the
- *  vertex data is sent to the byte buffer.  Generally POJO array access will be faster than
- *  manipulating the data via NIO.
+ * Works by copying the quad data to an "editor" quad held in the instance,
+ * where all transformations are applied before buffering. Transformations
+ * should be the same as they would be in a vanilla render - the editor is
+ * serving mainly as a way to access vertex data without magical numbers. It
+ * also allows a consistent interface for downstream tesselation routines.
+ * <p>
+ * 
+ * Another difference from vanilla render is that all transformation happens
+ * before the vertex data is sent to the byte buffer. Generally POJO array
+ * access will be faster than manipulating the data via NIO.
  */
 public class TerrainFallbackConsumer extends AbstractQuadRenderer implements Consumer<BakedModel> {
     private final int[] editorBuffer = new int[28];
     private final ChunkRenderInfo chunkInfo;
-    
-    TerrainFallbackConsumer(BlockRenderInfo blockInfo, ChunkRenderInfo chunkInfo, AoCalculator aoCalc, QuadTransform transform) {
+
+    TerrainFallbackConsumer(BlockRenderInfo blockInfo, ChunkRenderInfo chunkInfo, AoCalculator aoCalc,
+            QuadTransform transform) {
         super(blockInfo, chunkInfo::cachedBrightness, chunkInfo::getInitializedBuffer, aoCalc, transform);
         this.chunkInfo = chunkInfo;
     }
-    
+
     private final MutableQuadViewImpl editorQuad = new MutableQuadViewImpl() {
         {
             data = editorBuffer;
@@ -76,18 +81,18 @@ public class TerrainFallbackConsumer extends AbstractQuadRenderer implements Con
             throw new UnsupportedOperationException("Fallback consumer does not support .emit()");
         }
     };
-    
+
     @Override
     public void accept(BakedModel model) {
         final Supplier<Random> random = blockInfo.randomSupplier;
         final boolean useAo = blockInfo.defaultAo && model.useAmbientOcclusion();
         final BlockState blockState = blockInfo.blockState;
-        for(int i = 0; i < 6; i++) {
+        for (int i = 0; i < 6; i++) {
             Direction face = ModelHelper.faceFromIndex(i);
             List<BakedQuad> quads = model.getQuads(blockState, face, random.get());
             final int count = quads.size();
-            if(count != 0 && blockInfo.shouldDrawFace(face)) {
-                for(int j = 0; j < count; j++) {
+            if (count != 0 && blockInfo.shouldDrawFace(face)) {
+                for (int j = 0; j < count; j++) {
                     BakedQuad q = quads.get(j);
                     renderQuad(q, face, useAo);
                 }
@@ -96,14 +101,14 @@ public class TerrainFallbackConsumer extends AbstractQuadRenderer implements Con
 
         List<BakedQuad> quads = model.getQuads(blockState, null, random.get());
         final int count = quads.size();
-        if(count != 0) {
-            for(int j = 0; j < count; j++) {
+        if (count != 0) {
+            for (int j = 0; j < count; j++) {
                 BakedQuad q = quads.get(j);
                 renderQuad(q, null, useAo);
             }
         }
     }
-    
+
     private void renderQuad(BakedQuad quad, Direction cullFace, boolean useAo) {
         System.arraycopy(quad.getVertexData(), 0, editorBuffer, 0, 28);
         editorQuad.cullFace(cullFace);
@@ -111,12 +116,12 @@ public class TerrainFallbackConsumer extends AbstractQuadRenderer implements Con
         editorQuad.lightFace(lightFace);
         editorQuad.nominalFace(lightFace);
         editorQuad.colorIndex(quad.getColorIndex());
-       
-        if(!transform.transform(editorQuad)) {
+
+        if (!transform.transform(editorQuad)) {
             return;
         }
-        
-        if(useAo) {
+
+        if (useAo) {
             // needs to happen before offsets are applied
             editorQuad.invalidateShape();
             aoCalc.compute(editorQuad, true);
@@ -126,7 +131,7 @@ public class TerrainFallbackConsumer extends AbstractQuadRenderer implements Con
             // vanilla compatibility hack
             // For flat lighting, if cull face is set always use neighbor light.
             // Otherwise still need to ensure geometry is updated before offsets are applied
-            if(cullFace == null) {
+            if (cullFace == null) {
                 editorQuad.invalidateShape();
                 editorQuad.geometryFlags();
             } else {

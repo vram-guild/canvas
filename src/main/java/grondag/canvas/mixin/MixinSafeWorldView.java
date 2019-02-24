@@ -25,12 +25,12 @@ import net.minecraft.client.world.SafeWorldView;
 @Mixin(SafeWorldView.class)
 public abstract class MixinSafeWorldView implements AccessSafeWorldView {
     private TerrainRenderContext fabric_renderer;
-    
+
     @Override
     public TerrainRenderContext fabric_getRenderer() {
         return fabric_renderer;
     }
-    
+
     @Override
     public void fabric_setRenderer(TerrainRenderContext renderer) {
         fabric_renderer = renderer;

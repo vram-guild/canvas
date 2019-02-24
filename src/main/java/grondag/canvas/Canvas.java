@@ -25,7 +25,6 @@ package grondag.canvas;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import grondag.canvas.opengl.CanvasGlHelper;
 import grondag.fermion.IGrondagMod;
 import net.fabricmc.api.ModInitializer;
 import net.minecraft.client.MinecraftClient;
@@ -33,10 +32,10 @@ import net.minecraft.client.MinecraftClient;
 public class Canvas implements ModInitializer, IGrondagMod {
     public static Canvas INSTANCE = new Canvas();
     private static boolean isEnabled = true;
-    
+
     @Override
     public void onInitialize() {
-        
+
     }
 
     private static Logger log;
@@ -59,18 +58,18 @@ public class Canvas implements ModInitializer, IGrondagMod {
     public static boolean isModEnabled() {
         return isEnabled;
     }
-    
+
     public static void enable(boolean enable) {
-        if(enable != isEnabled) {
+        if (enable != isEnabled) {
             isEnabled = enable;
-            // important to reload renderers immediately in case 
-            // this results in change of vbo to/from  displaylists
+            // important to reload renderers immediately in case
+            // this results in change of vbo to/from displaylists
             // or changes rendering pipline logic path
             MinecraftClient.getInstance().worldRenderer.reload();
-            
+
             final boolean isEnabled = Canvas.isModEnabled();
             RendererImpl.INSTANCE.forEachListener(c -> c.onStatusChange(isEnabled));
-            
+
             // Don't think this is needed because different interface for pipelined models
             // Minecraft.getMinecraft().refreshResources();
         }

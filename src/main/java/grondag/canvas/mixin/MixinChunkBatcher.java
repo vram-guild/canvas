@@ -43,29 +43,28 @@ import net.minecraft.client.render.chunk.ChunkRenderData;
 import net.minecraft.client.render.chunk.ChunkRenderer;
 
 @Mixin(ChunkBatcher.class)
-public abstract class MixinChunkBatcher
-{
+public abstract class MixinChunkBatcher {
     @Inject(method = "method_3635", at = @At("HEAD"), cancellable = true, require = 1)
-    public void onUploadChunk(final BlockRenderLayer blockRenderLayer, final BufferBuilder bufferBuilder, final ChunkRenderer renderChunk, 
-            final ChunkRenderData chunkData, final double distanceSq, CallbackInfoReturnable<ListenableFuture<Object>> ci)
-    {
-        if(Canvas.isModEnabled() && MinecraftClient.getInstance().isMainThread())
-            ci.setReturnValue(uploadChunk(blockRenderLayer, bufferBuilder, renderChunk,
-                    chunkData, distanceSq));
+    public void onUploadChunk(final BlockRenderLayer blockRenderLayer, final BufferBuilder bufferBuilder,
+            final ChunkRenderer renderChunk, final ChunkRenderData chunkData, final double distanceSq,
+            CallbackInfoReturnable<ListenableFuture<Object>> ci) {
+        if (Canvas.isModEnabled() && MinecraftClient.getInstance().isMainThread())
+            ci.setReturnValue(uploadChunk(blockRenderLayer, bufferBuilder, renderChunk, chunkData, distanceSq));
     }
-    
-    private static ListenableFuture<Object> uploadChunk(BlockRenderLayer blockRenderLayer,
-            BufferBuilder bufferBuilder, ChunkRenderer renderChunk, ChunkRenderData compiledChunk, double distanceSq)
-    {
+
+    private static ListenableFuture<Object> uploadChunk(BlockRenderLayer blockRenderLayer, BufferBuilder bufferBuilder,
+            ChunkRenderer renderChunk, ChunkRenderData compiledChunk, double distanceSq) {
         assert blockRenderLayer == BlockRenderLayer.SOLID || blockRenderLayer == BlockRenderLayer.TRANSLUCENT;
-        
-        if(blockRenderLayer == BlockRenderLayer.SOLID)
-            ((IRenderChunk)renderChunk).setSolidDrawable((Solid) ((CompoundBufferBuilder)bufferBuilder).produceDrawable());
+
+        if (blockRenderLayer == BlockRenderLayer.SOLID)
+            ((IRenderChunk) renderChunk)
+                    .setSolidDrawable((Solid) ((CompoundBufferBuilder) bufferBuilder).produceDrawable());
         else
-            ((IRenderChunk)renderChunk).setTranslucentDrawable((Translucent) ((CompoundBufferBuilder)bufferBuilder).produceDrawable());
-        
+            ((IRenderChunk) renderChunk)
+                    .setTranslucentDrawable((Translucent) ((CompoundBufferBuilder) bufferBuilder).produceDrawable());
+
         bufferBuilder.setOffset(0.0D, 0.0D, 0.0D);
-        return Futures.<Object>immediateFuture((Object)null);
+        return Futures.<Object>immediateFuture((Object) null);
 
     }
 }

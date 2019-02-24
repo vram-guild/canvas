@@ -17,8 +17,8 @@
 package grondag.canvas.aocalc;
 
 /**
- * Holds per-corner results for a single block face.
- * Handles caching and provides various utility methods to simplify code elsewhere.
+ * Holds per-corner results for a single block face. Handles caching and
+ * provides various utility methods to simplify code elsewhere.
  */
 class AoFaceData {
     float a0;
@@ -33,62 +33,62 @@ class AoFaceData {
     int s1;
     int s2;
     int s3;
-    
+
     void l0(int l0) {
         this.b0 = l0 & 0xFFFF;
         this.s0 = (l0 >>> 16) & 0xFFFF;
     }
-    
+
     void l1(int l1) {
         this.b1 = l1 & 0xFFFF;
         this.s1 = (l1 >>> 16) & 0xFFFF;
     }
-    
+
     void l2(int l2) {
         this.b2 = l2 & 0xFFFF;
         this.s2 = (l2 >>> 16) & 0xFFFF;
     }
-    
+
     void l3(int l3) {
         this.b3 = l3 & 0xFFFF;
         this.s3 = (l3 >>> 16) & 0xFFFF;
     }
-    
+
     int weigtedBlockLight(float[] w) {
         return (int) (b0 * w[0] + b1 * w[1] + b2 * w[2] + b3 * w[3]) & 0xFF;
     }
-    
+
     int maxBlockLight(int oldMax) {
         final int i = b0 > b1 ? b0 : b1;
         final int j = b2 > b3 ? b2 : b3;
         return Math.max(oldMax, i > j ? i : j);
     }
-    
+
     int weigtedSkyLight(float[] w) {
         return (int) (s0 * w[0] + s1 * w[1] + s2 * w[2] + s3 * w[3]) & 0xFF;
     }
-    
+
     int maxSkyLight(int oldMax) {
         final int i = s0 > s1 ? s0 : s1;
         final int j = s2 > s3 ? s2 : s3;
         return Math.max(oldMax, i > j ? i : j);
     }
-    
+
     int weightedCombinedLight(float[] w) {
         return weigtedSkyLight(w) << 16 | weigtedBlockLight(w);
     }
-    
+
     float weigtedAo(float[] w) {
         return a0 * w[0] + a1 * w[1] + a2 * w[2] + a3 * w[3];
     }
-    
+
     float maxAo(float oldMax) {
         final float x = a0 > a1 ? a0 : a1;
         final float y = a2 > a3 ? a2 : a3;
-        final float z =  x > y ? x : y;
+        final float z = x > y ? x : y;
         return oldMax > z ? oldMax : z;
     }
-    
+
     void toArray(float[] aOut, int[] bOut, int[] vertexMap) {
         aOut[vertexMap[0]] = a0;
         aOut[vertexMap[1]] = a1;
@@ -99,23 +99,23 @@ class AoFaceData {
         bOut[vertexMap[2]] = s2 << 16 | b2;
         bOut[vertexMap[3]] = s3 << 16 | b3;
     }
-    
+
     static AoFaceData weightedMean(AoFaceData in0, float w0, AoFaceData in1, float w1, AoFaceData out) {
         out.a0 = in0.a0 * w0 + in1.a0 * w1;
         out.a1 = in0.a1 * w0 + in1.a1 * w1;
         out.a2 = in0.a2 * w0 + in1.a2 * w1;
         out.a3 = in0.a3 * w0 + in1.a3 * w1;
-        
+
         out.b0 = (int) (in0.b0 * w0 + in1.b0 * w1);
         out.b1 = (int) (in0.b1 * w0 + in1.b1 * w1);
         out.b2 = (int) (in0.b2 * w0 + in1.b2 * w1);
         out.b3 = (int) (in0.b3 * w0 + in1.b3 * w1);
-        
+
         out.s0 = (int) (in0.s0 * w0 + in1.s0 * w1);
         out.s1 = (int) (in0.s1 * w0 + in1.s1 * w1);
         out.s2 = (int) (in0.s2 * w0 + in1.s2 * w1);
         out.s3 = (int) (in0.s3 * w0 + in1.s3 * w1);
-        
+
         return out;
     }
 }

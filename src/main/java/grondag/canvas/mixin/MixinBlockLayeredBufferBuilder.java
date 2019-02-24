@@ -34,31 +34,25 @@ import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.chunk.BlockLayeredBufferBuilder;
 
 @Mixin(BlockLayeredBufferBuilder.class)
-public abstract class MixinBlockLayeredBufferBuilder
-{
-    @Redirect(method = "<init>*", require = 4, 
-            at = @At(value = "NEW", args = "class=net/minecraft/client/render/BufferBuilder") )
-    private BufferBuilder newBuferBuilder(int bufferSizeIn)
-    {
+public abstract class MixinBlockLayeredBufferBuilder {
+    @Redirect(method = "<init>*", require = 4, at = @At(value = "NEW", args = "class=net/minecraft/client/render/BufferBuilder"))
+    private BufferBuilder newBuferBuilder(int bufferSizeIn) {
         return new CompoundBufferBuilder(bufferSizeIn);
     }
-    
+
     @Inject(method = "<init>*", require = 1, at = @At("RETURN"))
-    private void onConstructed(CallbackInfo ci)
-    {
-        linkBuilders((BlockLayeredBufferBuilder)(Object)this);
+    private void onConstructed(CallbackInfo ci) {
+        linkBuilders((BlockLayeredBufferBuilder) (Object) this);
     }
-    
-    private static void linkBuilders(BlockLayeredBufferBuilder cache)
-    {
+
+    private static void linkBuilders(BlockLayeredBufferBuilder cache) {
         linkBuildersInner(cache, BlockRenderLayer.SOLID);
         linkBuildersInner(cache, BlockRenderLayer.CUTOUT);
         linkBuildersInner(cache, BlockRenderLayer.MIPPED_CUTOUT);
         linkBuildersInner(cache, BlockRenderLayer.TRANSLUCENT);
     }
-    
-    private static void linkBuildersInner(BlockLayeredBufferBuilder cache, BlockRenderLayer layer)
-    {
+
+    private static void linkBuildersInner(BlockLayeredBufferBuilder cache, BlockRenderLayer layer) {
         CompoundBufferBuilder builder = (CompoundBufferBuilder) cache.get(layer);
         builder.setupLinks(cache, layer);
     }

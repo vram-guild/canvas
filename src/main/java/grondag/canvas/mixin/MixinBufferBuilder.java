@@ -26,21 +26,30 @@ import net.minecraft.client.render.BufferBuilder;
 
 @Mixin(BufferBuilder.class)
 public abstract class MixinBufferBuilder implements AccessBufferBuilder {
-    @Shadow private IntBuffer bufInt;
-    @Shadow private int vertexes;
-    @Shadow private double offsetX;
-    @Shadow private double offsetY;
-    @Shadow private double offsetZ;
-    @Shadow abstract void grow(int size);
-    @Shadow abstract int getCurrentSize();
-    
+    @Shadow
+    private IntBuffer bufInt;
+    @Shadow
+    private int vertexes;
+    @Shadow
+    private double offsetX;
+    @Shadow
+    private double offsetY;
+    @Shadow
+    private double offsetZ;
+
+    @Shadow
+    abstract void grow(int size);
+
+    @Shadow
+    abstract int getCurrentSize();
+
     private static final int QUAD_STRIDE_INTS = 28;
     private static final int QUAD_STRIDE_BYTES = QUAD_STRIDE_INTS * 4;
-    
+
     /**
-     * Similar to {@link BufferBuilder#putVertexData(int[])} but
-     * accepts an array index so that arrays containing more than one
-     * quad don't have to be copied to a transfer array before the call.
+     * Similar to {@link BufferBuilder#putVertexData(int[])} but accepts an array
+     * index so that arrays containing more than one quad don't have to be copied to
+     * a transfer array before the call.
      */
     @Override
     public void fabric_putVanillaData(int[] data, int start) {
@@ -49,14 +58,17 @@ public abstract class MixinBufferBuilder implements AccessBufferBuilder {
         this.bufInt.put(data, start, QUAD_STRIDE_INTS);
         this.vertexes += 4;
     }
+
     @Override
     public double fabric_offsetX() {
         return offsetX;
     }
+
     @Override
     public double fabric_offsetY() {
         return offsetY;
     }
+
     @Override
     public double fabric_offsetZ() {
         return offsetZ;

@@ -29,22 +29,27 @@ import net.minecraft.client.world.SafeWorldView;
 
 @Mixin(ChunkRenderTask.class)
 public abstract class MixinChunkRenderTask {
-    @Shadow private SafeWorldView worldView;
-    
+    @Shadow
+    private SafeWorldView worldView;
+
     /**
-     * The block view reference is voided when {@link ChunkRenderTask#getAndInvalidateWorldView()} is called during
-     * chunk rebuild, but we need it and it is harder to make reliable, non-invasive changes there.
-     * So we capture the block view before the reference is voided and send it to the renderer. <p>
+     * The block view reference is voided when
+     * {@link ChunkRenderTask#getAndInvalidateWorldView()} is called during chunk
+     * rebuild, but we need it and it is harder to make reliable, non-invasive
+     * changes there. So we capture the block view before the reference is voided
+     * and send it to the renderer.
+     * <p>
      * 
-     * We also store a reference to the renderer in the view to avoid doing thread-local lookups for each block.
+     * We also store a reference to the renderer in the view to avoid doing
+     * thread-local lookups for each block.
      */
     @Inject(at = @At("HEAD"), method = "getAndInvalidateWorldView")
     private void chunkDataHook(CallbackInfoReturnable<SafeWorldView> info) {
         final SafeWorldView blockView = worldView;
-        if(blockView != null) {
-            final TerrainRenderContext renderer  = TerrainRenderContext.POOL.get();
+        if (blockView != null) {
+            final TerrainRenderContext renderer = TerrainRenderContext.POOL.get();
             renderer.setBlockView(blockView);
-            ((AccessSafeWorldView)blockView).fabric_setRenderer(renderer);
+            ((AccessSafeWorldView) blockView).fabric_setRenderer(renderer);
         }
     }
 }

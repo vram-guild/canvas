@@ -38,37 +38,41 @@ import net.minecraft.util.math.BlockPos;
 
 /**
  * Implementation of {@link RenderContext} used during terrain rendering.
- * Dispatches calls from models during chunk rebuild to the appropriate consumer,
- * and holds/manages all of the state needed by them.
+ * Dispatches calls from models during chunk rebuild to the appropriate
+ * consumer, and holds/manages all of the state needed by them.
  */
 public class TerrainRenderContext extends AbstractRenderContext implements RenderContext {
     public static final ThreadLocal<TerrainRenderContext> POOL = ThreadLocal.withInitial(TerrainRenderContext::new);
     private final TerrainBlockRenderInfo blockInfo = new TerrainBlockRenderInfo();
     private final ChunkRenderInfo chunkInfo = new ChunkRenderInfo(blockInfo);
-    private final AoCalculator aoCalc = new AoCalculator(blockInfo, chunkInfo::cachedBrightness, chunkInfo::cachedAoLevel);
-    private final TerrainMeshConsumer meshConsumer = new TerrainMeshConsumer(blockInfo, chunkInfo, aoCalc, this::transform);
-    private final TerrainFallbackConsumer fallbackConsumer = new TerrainFallbackConsumer(blockInfo, chunkInfo, aoCalc, this::transform);
+    private final AoCalculator aoCalc = new AoCalculator(blockInfo, chunkInfo::cachedBrightness,
+            chunkInfo::cachedAoLevel);
+    private final TerrainMeshConsumer meshConsumer = new TerrainMeshConsumer(blockInfo, chunkInfo, aoCalc,
+            this::transform);
+    private final TerrainFallbackConsumer fallbackConsumer = new TerrainFallbackConsumer(blockInfo, chunkInfo, aoCalc,
+            this::transform);
     private final BlockRenderManager blockRenderManager = MinecraftClient.getInstance().getBlockRenderManager();
-    
+
     public void setBlockView(SafeWorldView blockView) {
         blockInfo.setBlockView((TerrainBlockView) blockView);
         chunkInfo.setBlockView(blockView);
     }
-    
+
     public void setChunkTask(ChunkRenderTask chunkTask) {
         chunkInfo.setChunkTask(chunkTask);
     }
-    
-    public TerrainRenderContext prepare(ChunkRenderer chunkRenderer, BlockPos.Mutable chunkOrigin, boolean [] resultFlags) {
+
+    public TerrainRenderContext prepare(ChunkRenderer chunkRenderer, BlockPos.Mutable chunkOrigin,
+            boolean[] resultFlags) {
         chunkInfo.prepare(chunkRenderer, chunkOrigin, resultFlags);
         return this;
     }
-    
+
     public void release() {
         chunkInfo.release();
         blockInfo.release();
     }
-    
+
     /** Called from chunk renderer hook. */
     public boolean tesselateBlock(BlockState blockState, BlockPos blockPos) {
         try {
@@ -76,15 +80,16 @@ public class TerrainRenderContext extends AbstractRenderContext implements Rende
             aoCalc.clear();
             blockInfo.prepareForBlock(blockState, blockPos, model.useAmbientOcclusion());
             chunkInfo.beginBlock();
-            ((FabricBakedModel)model).emitBlockQuads(blockInfo.blockView, blockInfo.blockState, blockInfo.blockPos, blockInfo.randomSupplier, this);
+            ((FabricBakedModel) model).emitBlockQuads(blockInfo.blockView, blockInfo.blockState, blockInfo.blockPos,
+                    blockInfo.randomSupplier, this);
         } catch (Throwable var9) {
-           CrashReport crashReport_1 = CrashReport.create(var9, "Tesselating block in world - Indigo Renderer");
-           CrashReportSection crashReportElement_1 = crashReport_1.addElement("Block being tesselated");
-           CrashReportSection.addBlockInfo(crashReportElement_1, blockPos, blockState);
-           throw new CrashException(crashReport_1);
+            CrashReport crashReport_1 = CrashReport.create(var9, "Tesselating block in world - Indigo Renderer");
+            CrashReportSection crashReportElement_1 = crashReport_1.addElement("Block being tesselated");
+            CrashReportSection.addBlockInfo(crashReportElement_1, blockPos, blockState);
+            throw new CrashException(crashReport_1);
         }
         return chunkInfo.resultFlags[blockInfo.defaultLayerIndex];
-     }
+    }
 
     @Override
     public Consumer<Mesh> meshConsumer() {

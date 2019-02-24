@@ -32,7 +32,7 @@ import net.minecraft.util.math.BlockPos;
 //TODO: remove if not used
 
 @Mixin(ChunkRenderDispatcher.class)
-public interface AccessChunkRenderDispatcher
-{
-    @Accessor public ChunkRenderer getChunk(BlockPos blockPos);
+public interface AccessChunkRenderDispatcher {
+    @Accessor
+    public ChunkRenderer getChunk(BlockPos blockPos);
 }

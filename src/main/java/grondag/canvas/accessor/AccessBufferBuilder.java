@@ -18,7 +18,10 @@ package grondag.canvas.accessor;
 
 public interface AccessBufferBuilder {
     void fabric_putVanillaData(int[] data, int start);
+
     double fabric_offsetX();
+
     double fabric_offsetY();
+
     double fabric_offsetZ();
 }

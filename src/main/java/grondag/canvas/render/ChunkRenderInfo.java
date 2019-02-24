@@ -34,57 +34,62 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.ExtendedBlockView;
 
 /**
- * Holds, manages and provides access to the chunk-related state
- * needed by fallback and mesh consumers during terrain rendering.<p>
+ * Holds, manages and provides access to the chunk-related state needed by
+ * fallback and mesh consumers during terrain rendering.
+ * <p>
  * 
- * Exception: per-block position offsets are tracked here so they can
- * be applied together with chunk offsets.
+ * Exception: per-block position offsets are tracked here so they can be applied
+ * together with chunk offsets.
  */
 public class ChunkRenderInfo {
     /**
-     * Serves same function as brightness cache in Mojang's AO calculator,
-     * with some differences as follows...<p>
+     * Serves same function as brightness cache in Mojang's AO calculator, with some
+     * differences as follows...
+     * <p>
      * 
-     * 1) Mojang uses Object2Int.  This uses Long2Int for performance and to avoid
-     * creating new immutable BlockPos references.  But will break if someone
-     * wants to expand Y limit or world borders.  If we want to support that may
-     * need to switch or make configurable.<p>
+     * 1) Mojang uses Object2Int. This uses Long2Int for performance and to avoid
+     * creating new immutable BlockPos references. But will break if someone wants
+     * to expand Y limit or world borders. If we want to support that may need to
+     * switch or make configurable.
+     * <p>
      * 
-     * 2) Mojang overrides the map methods to limit the cache to 50 values.
-     * However, a render chunk only has 18^3 blocks in it, and the cache is cleared every chunk.
-     * For performance and simplicity, we just let map grow to the size of the render chunk.
+     * 2) Mojang overrides the map methods to limit the cache to 50 values. However,
+     * a render chunk only has 18^3 blocks in it, and the cache is cleared every
+     * chunk. For performance and simplicity, we just let map grow to the size of
+     * the render chunk.
      * 
-     * 3) Mojang only uses the cache for Ao.  Here it is used for all brightness
+     * 3) Mojang only uses the cache for Ao. Here it is used for all brightness
      * lookups, including flat lighting.
      * 
-     * 4) The Mojang cache is a separate threadlocal with a threadlocal boolean to 
-     * enable disable. Cache clearing happens with the disable. There's no use case for 
-     * us when the cache needs to be disabled (and no apparent case in Mojang's code either)
-     * so we simply clear the cache at the start of each new chunk. It is also
-     * not a threadlocal because it's held within a threadlocal BlockRenderer.
+     * 4) The Mojang cache is a separate threadlocal with a threadlocal boolean to
+     * enable disable. Cache clearing happens with the disable. There's no use case
+     * for us when the cache needs to be disabled (and no apparent case in Mojang's
+     * code either) so we simply clear the cache at the start of each new chunk. It
+     * is also not a threadlocal because it's held within a threadlocal
+     * BlockRenderer.
      */
     private final Long2IntOpenHashMap brightnessCache;
     private final Long2FloatOpenHashMap aoLevelCache;
-    
+
     private final BlockRenderInfo blockInfo;
-    ChunkRenderTask chunkTask; 
+    ChunkRenderTask chunkTask;
     ChunkRenderData chunkData;
     ChunkRenderer chunkRenderer;
     ExtendedBlockView blockView;
-    boolean [] resultFlags;
-    
+    boolean[] resultFlags;
+
     private final AccessBufferBuilder[] buffers = new AccessBufferBuilder[4];
     private final BlockRenderLayer[] LAYERS = BlockRenderLayer.values();
-    
+
     private double chunkOffsetX;
     private double chunkOffsetY;
     private double chunkOffsetZ;
-    
+
     // chunk offset + block pos offset + model offsets for plants, etc.
     private float offsetX = 0;
     private float offsetY = 0;
     private float offsetZ = 0;
-    
+
     ChunkRenderInfo(BlockRenderInfo blockInfo) {
         this.blockInfo = blockInfo;
         brightnessCache = new Long2IntOpenHashMap();
@@ -92,16 +97,16 @@ public class ChunkRenderInfo {
         aoLevelCache = new Long2FloatOpenHashMap();
         aoLevelCache.defaultReturnValue(Float.MAX_VALUE);
     }
-    
+
     void setBlockView(SafeWorldView blockView) {
         this.blockView = blockView;
     }
-    
+
     void setChunkTask(ChunkRenderTask chunkTask) {
         this.chunkTask = chunkTask;
     }
-    
-    void prepare(ChunkRenderer chunkRenderer, BlockPos.Mutable chunkOrigin, boolean [] resultFlags) {
+
+    void prepare(ChunkRenderer chunkRenderer, BlockPos.Mutable chunkOrigin, boolean[] resultFlags) {
         this.chunkData = chunkTask.getRenderData();
         this.chunkRenderer = chunkRenderer;
         this.resultFlags = resultFlags;
@@ -115,7 +120,7 @@ public class ChunkRenderInfo {
         brightnessCache.clear();
         aoLevelCache.clear();
     }
-    
+
     void release() {
         chunkData = null;
         chunkTask = null;
@@ -125,7 +130,7 @@ public class ChunkRenderInfo {
         buffers[2] = null;
         buffers[3] = null;
     }
-    
+
     void beginBlock() {
         final BlockState blockState = blockInfo.blockState;
         final BlockPos blockPos = blockInfo.blockPos;
@@ -133,19 +138,19 @@ public class ChunkRenderInfo {
         offsetY = (float) (chunkOffsetY + blockPos.getY());
         offsetZ = (float) (chunkOffsetZ + blockPos.getZ());
 
-        if(blockState.getBlock().getOffsetType() != OffsetType.NONE) {
+        if (blockState.getBlock().getOffsetType() != OffsetType.NONE) {
             Vec3d offset = blockState.getOffsetPos(blockInfo.blockView, blockPos);
-            offsetX += (float)offset.x;
-            offsetY += (float)offset.y;
-            offsetZ += (float)offset.z;
+            offsetX += (float) offset.x;
+            offsetY += (float) offset.y;
+            offsetZ += (float) offset.z;
         }
     }
-    
+
     /** Lazily retrieves output buffer for given layer, initializing as needed. */
     public AccessBufferBuilder getInitializedBuffer(int layerIndex) {
         // redundant for first layer, but probably not faster to check
         resultFlags[layerIndex] = true;
-        
+
         AccessBufferBuilder result = buffers[layerIndex];
         if (result == null) {
             BufferBuilder builder = chunkTask.getBufferBuilders().get(layerIndex);
@@ -159,19 +164,20 @@ public class ChunkRenderInfo {
         }
         return result;
     }
-    
+
     /**
      * Applies position offset for chunk and, if present, block random offset.
      */
     void applyOffsets(MutableQuadViewImpl q) {
-        for(int i = 0; i < 4; i++) {
+        for (int i = 0; i < 4; i++) {
             q.pos(i, q.x(i) + offsetX, q.y(i) + offsetY, q.z(i) + offsetZ);
         }
     }
-    
+
     /**
-     * Cached values for {@link BlockState#getBlockBrightness(ExtendedBlockView, BlockPos)}.
-     * See also the comments for {@link #brightnessCache}.
+     * Cached values for
+     * {@link BlockState#getBlockBrightness(ExtendedBlockView, BlockPos)}. See also
+     * the comments for {@link #brightnessCache}.
      */
     int cachedBrightness(BlockState blockState, BlockPos pos) {
         long key = pos.asLong();
@@ -182,9 +188,8 @@ public class ChunkRenderInfo {
         }
         return result;
     }
-    
-    float cachedAoLevel(BlockPos pos)
-    {
+
+    float cachedAoLevel(BlockPos pos) {
         long key = pos.asLong();
         float result = aoLevelCache.get(key);
         if (result == Float.MAX_VALUE) {

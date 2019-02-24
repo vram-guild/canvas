@@ -23,32 +23,32 @@ import net.fabricmc.fabric.api.client.model.fabric.RenderContext;
 abstract class AbstractRenderContext implements RenderContext {
     private final ObjectArrayList<QuadTransform> transformStack = new ObjectArrayList<>();
     private static final QuadTransform NO_TRANSFORM = (q) -> true;
-    
+
     private final QuadTransform stackTransform = (q) -> {
-        int i= transformStack.size() - 1;
-        while(i >= 0) {
-            if(!transformStack.get(i--).transform(q)) {
+        int i = transformStack.size() - 1;
+        while (i >= 0) {
+            if (!transformStack.get(i--).transform(q)) {
                 return false;
             }
         }
         return true;
     };
-    
+
     private QuadTransform activeTransform = NO_TRANSFORM;
-    
+
     protected final boolean transform(MutableQuadView q) {
         return activeTransform.transform(q);
     }
-    
+
     @Override
     public void pushTransform(QuadTransform transform) {
-        if(transform == null) {
+        if (transform == null) {
             throw new NullPointerException("Renderer received null QuadTransform.");
         }
         transformStack.push(transform);
-        if(transformStack.size() == 1) {
+        if (transformStack.size() == 1) {
             activeTransform = transform;
-        } else if(transformStack.size() == 2) {
+        } else if (transformStack.size() == 2) {
             activeTransform = stackTransform;
         }
     }
@@ -56,10 +56,10 @@ abstract class AbstractRenderContext implements RenderContext {
     @Override
     public void popTransform() {
         transformStack.pop();
-        if(transformStack.size() == 0) {
+        if (transformStack.size() == 0) {
             activeTransform = NO_TRANSFORM;
         } else if (transformStack.size() == 1) {
             activeTransform = transformStack.get(0);
-        } 
+        }
     }
 }

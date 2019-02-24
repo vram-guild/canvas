@@ -5,22 +5,19 @@ import java.util.concurrent.ArrayBlockingQueue;
 import grondag.canvas.mixinext.ChunkRenderDataExt;
 import net.minecraft.client.render.chunk.ChunkRenderData;
 
-public class ChunkRenderDataStore
-{
+public class ChunkRenderDataStore {
     private static final ArrayBlockingQueue<ChunkRenderData> chunks = new ArrayBlockingQueue<>(4096);
- 
-    public static ChunkRenderData claim()
-    {
+
+    public static ChunkRenderData claim() {
         ChunkRenderData result = chunks.poll();
-        if(result == null)
+        if (result == null)
             result = new ChunkRenderData();
-        
+
         return result;
     }
-    
-    public static void release(ChunkRenderData chunk)
-    {
-        ((ChunkRenderDataExt)chunk).clear();
+
+    public static void release(ChunkRenderData chunk) {
+        ((ChunkRenderDataExt) chunk).clear();
         chunks.offer(chunk);
     }
 }

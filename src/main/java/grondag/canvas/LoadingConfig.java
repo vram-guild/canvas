@@ -2,10 +2,9 @@ package grondag.canvas;
 
 //import java.io.File;
 
-public class LoadingConfig
-{
-    public static LoadingConfig INSTANCE = new LoadingConfig(); //new File(Launch.minecraftHome, "config/canvas.cfg"));
-            
+public class LoadingConfig {
+    public static LoadingConfig INSTANCE = new LoadingConfig(); // new File(Launch.minecraftHome, "config/canvas.cfg"));
+
     public final boolean disableYieldInGameLoop = true;
     public final boolean enableRenderStats = true;
     public final boolean enableFluidStats = true;

@@ -24,11 +24,14 @@ package grondag.canvas.mixinext;
 
 import grondag.canvas.buffering.DrawableChunk;
 
-public interface ChunkRendererExt
-{
+public interface ChunkRendererExt {
     void setSolidDrawable(DrawableChunk.Solid drawable);
+
     void setTranslucentDrawable(DrawableChunk.Translucent drawable);
+
     DrawableChunk.Solid getSolidDrawable();
+
     DrawableChunk.Translucent getTranslucentDrawable();
+
     void releaseDrawables();
 }

@@ -24,22 +24,22 @@ import net.minecraft.block.BlockRenderLayer;
 
 public abstract class RenderMaterialImpl {
     private static final BlockRenderLayer[] BLEND_MODES = BlockRenderLayer.values();
-    
+
     public static final int MAX_SPRITE_DEPTH = 3;
-    
+
     private static final int TEXTURE_DEPTH_MASK = 3;
     private static final int TEXTURE_DEPTH_SHIFT = 0;
-    
+
     private static final int BLEND_MODE_MASK = 3;
     private static final int[] BLEND_MODE_SHIFT = new int[3];
     private static final int[] COLOR_DISABLE_FLAGS = new int[3];
     private static final int[] EMISSIVE_FLAGS = new int[3];
     private static final int[] DIFFUSE_FLAGS = new int[3];
     private static final int[] AO_FLAGS = new int[3];
-    
+
     static {
         int shift = Integer.bitCount(TEXTURE_DEPTH_MASK);
-        for(int i = 0; i < 3; i++) {
+        for (int i = 0; i < 3; i++) {
             BLEND_MODE_SHIFT[i] = shift;
             shift += Integer.bitCount(BLEND_MODE_MASK);
             COLOR_DISABLE_FLAGS[i] = 1 << shift++;
@@ -48,32 +48,32 @@ public abstract class RenderMaterialImpl {
             AO_FLAGS[i] = 1 << shift++;
         }
     }
-    
+
     static private final ObjectArrayList<Value> LIST = new ObjectArrayList<>();
     static private final Int2ObjectOpenHashMap<Value> MAP = new Int2ObjectOpenHashMap<>();
-    
+
     public static RenderMaterialImpl.Value byIndex(int index) {
         return LIST.get(index);
     }
-    
+
     protected int bits;
-    
+
     public BlockRenderLayer blendMode(int textureIndex) {
         return BLEND_MODES[(bits >> BLEND_MODE_SHIFT[textureIndex]) & BLEND_MODE_MASK];
     }
-    
+
     public boolean disableColorIndex(int textureIndex) {
         return (bits & COLOR_DISABLE_FLAGS[textureIndex]) != 0;
     }
-    
+
     public int spriteDepth() {
         return 1 + ((bits >> TEXTURE_DEPTH_SHIFT) & TEXTURE_DEPTH_MASK);
     }
-    
+
     public boolean emissive(int textureIndex) {
         return (bits & EMISSIVE_FLAGS[textureIndex]) != 0;
     }
-    
+
     public boolean disableDiffuse(int textureIndex) {
         return (bits & DIFFUSE_FLAGS[textureIndex]) != 0;
     }
@@ -81,35 +81,39 @@ public abstract class RenderMaterialImpl {
     public boolean disableAo(int textureIndex) {
         return (bits & AO_FLAGS[textureIndex]) != 0;
     }
-    
+
     public static class Value extends RenderMaterialImpl implements RenderMaterial {
         private final int index;
-        
-        /** True if any texture wants AO shading.  Simplifies check made by renderer at buffer-time. */
+
+        /**
+         * True if any texture wants AO shading. Simplifies check made by renderer at
+         * buffer-time.
+         */
         public final boolean hasAo;
-        
-        /** True if any texture wants emissive lighting.  Simplifies check made by renderer at buffer-time. */
+
+        /**
+         * True if any texture wants emissive lighting. Simplifies check made by
+         * renderer at buffer-time.
+         */
         public final boolean hasEmissive;
-        
+
         private Value(int index, int bits) {
             this.index = index;
             this.bits = bits;
-            hasAo = !disableAo(0) 
-                    || (spriteDepth() > 1 && !disableAo(1))
-                    || (spriteDepth() == 3 && !disableAo(2));
+            hasAo = !disableAo(0) || (spriteDepth() > 1 && !disableAo(1)) || (spriteDepth() == 3 && !disableAo(2));
             hasEmissive = emissive(0) || emissive(1) || emissive(2);
-        }   
-        
+        }
+
         public int index() {
             return index;
         }
     }
-    
+
     public static class Finder extends RenderMaterialImpl implements MaterialFinder {
         @Override
         public synchronized RenderMaterial find() {
             Value result = MAP.get(bits);
-            if(result == null) {
+            if (result == null) {
                 result = new Value(LIST.size(), bits);
                 LIST.add(result);
                 MAP.put(bits, result);
@@ -133,7 +137,7 @@ public abstract class RenderMaterialImpl {
 
         @Override
         public MaterialFinder spriteDepth(int depth) {
-            if(depth < 1 || depth > MAX_SPRITE_DEPTH) {
+            if (depth < 1 || depth > MAX_SPRITE_DEPTH) {
                 throw new IndexOutOfBoundsException("Invalid sprite depth: " + depth);
             }
             bits = (bits & ~(TEXTURE_DEPTH_MASK << TEXTURE_DEPTH_SHIFT)) | (--depth << TEXTURE_DEPTH_SHIFT);

@@ -30,13 +30,10 @@ import grondag.canvas.LoadingConfig;
 import net.minecraft.client.MinecraftClient;
 
 @Mixin(MinecraftClient.class)
-public abstract class MixinMinecraft
-{
-    @Redirect(method = "runGameLoop", expect = 1,
-            at = @At(value = "INVOKE", target = "Ljava/lang/Thread;yield()V"))
-    private void onYield()
-    {
-        if(!LoadingConfig.INSTANCE.disableYieldInGameLoop)
+public abstract class MixinMinecraft {
+    @Redirect(method = "runGameLoop", expect = 1, at = @At(value = "INVOKE", target = "Ljava/lang/Thread;yield()V"))
+    private void onYield() {
+        if (!LoadingConfig.INSTANCE.disableYieldInGameLoop)
             Thread.yield();
     }
 }

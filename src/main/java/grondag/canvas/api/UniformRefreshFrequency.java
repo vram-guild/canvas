@@ -1,10 +1,11 @@
 package grondag.canvas.api;
 
 /**
- * Governs how often shader uniform initializers are called.<p>
+ * Governs how often shader uniform initializers are called.
+ * <p>
  * 
- * In all cases, initializers will only be called if a shader 
- * using the uniform is activated and values are only uploaded if they have changed.
+ * In all cases, initializers will only be called if a shader using the uniform
+ * is activated and values are only uploaded if they have changed.
  */
 public enum UniformRefreshFrequency {
     /**
@@ -16,7 +17,7 @@ public enum UniformRefreshFrequency {
      * Uniform initializer called 1X per game tick. (20X per second)
      */
     PER_TICK,
-    
+
     /**
      * Uniform initializer called 1X per render frame. (Variable frequency.)
      */

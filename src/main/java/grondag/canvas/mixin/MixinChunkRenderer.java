@@ -50,105 +50,127 @@ import net.minecraft.world.ExtendedBlockView;
 import net.minecraft.world.World;
 
 /**
- * Implements the main hooks for terrain rendering. Attempts to tread
- * lightly. This means we are deliberately stepping over some minor
- * optimization opportunities.<p>
+ * Implements the main hooks for terrain rendering. Attempts to tread lightly.
+ * This means we are deliberately stepping over some minor optimization
+ * opportunities.
+ * <p>
  * 
- * Non-Fabric renderer implementations that are looking to maximize 
- * performance will likely take a much more aggressive approach. 
- * For that reason, mod authors who want compatibility with advanced
- * renderers will do well to steer clear of chunk rebuild hooks unless 
- * they are creating a renderer.<p>
+ * Non-Fabric renderer implementations that are looking to maximize performance
+ * will likely take a much more aggressive approach. For that reason, mod
+ * authors who want compatibility with advanced renderers will do well to steer
+ * clear of chunk rebuild hooks unless they are creating a renderer.
+ * <p>
  * 
- * These hooks are intended only for the Fabric default renderer and
- * aren't expected to be present when a different renderer is being used.
- * Renderer authors are responsible for creating the hooks they need.
- * (Though they can use these as a example if they wish.)
+ * These hooks are intended only for the Fabric default renderer and aren't
+ * expected to be present when a different renderer is being used. Renderer
+ * authors are responsible for creating the hooks they need. (Though they can
+ * use these as a example if they wish.)
  */
 @Mixin(ChunkRenderer.class)
 public abstract class MixinChunkRenderer implements AccessChunkRenderer, ChunkRendererExt {
-    @Shadow private volatile World world;
-    @Shadow private WorldRenderer renderer;
-    @Shadow public static int chunkUpdateCount;
-    @Shadow public ChunkRenderData chunkRenderData;
-    @Shadow private ReentrantLock chunkRenderLock;
-    @Shadow private BlockPos.Mutable origin;
-    @Shadow private Set<BlockEntity> blockEntities;
+    @Shadow
+    private volatile World world;
+    @Shadow
+    private WorldRenderer renderer;
+    @Shadow
+    public static int chunkUpdateCount;
+    @Shadow
+    public ChunkRenderData chunkRenderData;
+    @Shadow
+    private ReentrantLock chunkRenderLock;
+    @Shadow
+    private BlockPos.Mutable origin;
+    @Shadow
+    private Set<BlockEntity> blockEntities;
 
-    @Shadow abstract void beginBufferBuilding(BufferBuilder bufferBuilder_1, BlockPos blockPos_1);
-    @Shadow abstract void endBufferBuilding(BlockRenderLayer blockRenderLayer_1, float float_1, float float_2, float float_3, BufferBuilder bufferBuilder_1, ChunkRenderData chunkRenderData_1);
-    @Shadow abstract void updateTransformationMatrix();
-    
+    @Shadow
+    abstract void beginBufferBuilding(BufferBuilder bufferBuilder_1, BlockPos blockPos_1);
+
+    @Shadow
+    abstract void endBufferBuilding(BlockRenderLayer blockRenderLayer_1, float float_1, float float_2, float float_3,
+            BufferBuilder bufferBuilder_1, ChunkRenderData chunkRenderData_1);
+
+    @Shadow
+    abstract void updateTransformationMatrix();
+
     Solid solidDrawable;
     Translucent translucentDrawable;
-    
+
     // TODO: substitute our visibility graph
-    
-    
-    /** 
+
+    /**
      * Access method for renderer.
      */
     @Override
     public void fabric_beginBufferBuilding(BufferBuilder bufferBuilder_1, BlockPos blockPos_1) {
         beginBufferBuilding(bufferBuilder_1, blockPos_1);
     }
-    
+
     /**
      * Save task to renderer, this is the easiest place to capture it.
      */
     @Inject(at = @At("HEAD"), method = "rebuildChunk")
-    private void hookRebuildChunkHead(float float_1, float float_2, float float_3, ChunkRenderTask chunkRenderTask_1, CallbackInfo info) {
-        if(chunkRenderTask_1 != null) {
+    private void hookRebuildChunkHead(float float_1, float float_2, float float_3, ChunkRenderTask chunkRenderTask_1,
+            CallbackInfo info) {
+        if (chunkRenderTask_1 != null) {
             TerrainRenderContext renderer = TerrainRenderContext.POOL.get();
             renderer.setChunkTask(chunkRenderTask_1);
         }
     }
-    
+
     /**
-     * Capture the block layer result flags when they are first created so our renderer
-     * can update then when more than one layer is renderer for a single model.
-     * This is also where we signal the renderer to prepare for a new chunk using
-     * the data we've accumulated up to this point.
+     * Capture the block layer result flags when they are first created so our
+     * renderer can update then when more than one layer is renderer for a single
+     * model. This is also where we signal the renderer to prepare for a new chunk
+     * using the data we've accumulated up to this point.
      */
     @ModifyVariable(method = "rebuildChunk", at = @At(value = "STORE", ordinal = 0), allow = 1, require = 1)
     private boolean[] hookResultFlagsAndPrepare(boolean[] flagsIn) {
-        TerrainRenderContext.POOL.get().prepare((ChunkRenderer)(Object)this, origin, flagsIn);
+        TerrainRenderContext.POOL.get().prepare((ChunkRenderer) (Object) this, origin, flagsIn);
         return flagsIn;
     }
-    
-    //TODO: remove at release
+
+    // TODO: remove at release
 //    private static final AtomicLong nanos = new AtomicLong();
 //    private static final AtomicInteger count = new AtomicInteger();
-    
+
     /**
-     * This is the hook that actually implements the rendering API for terrain rendering.<p>
+     * This is the hook that actually implements the rendering API for terrain
+     * rendering.
+     * <p>
      * 
-     * It's unusual to have a @Redirect in a Fabric library, but in this case
-     * it is our explicit intention that {@link BlockRenderManager#tesselateBlock(BlockState, BlockPos, ExtendedBlockView, BufferBuilder, Random)}
-     * does not execute for models that will be rendered by our renderer.<p>
+     * It's unusual to have a @Redirect in a Fabric library, but in this case it is
+     * our explicit intention that
+     * {@link BlockRenderManager#tesselateBlock(BlockState, BlockPos, ExtendedBlockView, BufferBuilder, Random)}
+     * does not execute for models that will be rendered by our renderer.
+     * <p>
      * 
-     * Any mod that wants to redirect this specific call is likely also a renderer, in which case this
-     * renderer should not be present, or the mod should probably instead be relying on the renderer API
-     * which was specifically created to provide for enhanced terrain rendering.<p>
+     * Any mod that wants to redirect this specific call is likely also a renderer,
+     * in which case this renderer should not be present, or the mod should probably
+     * instead be relying on the renderer API which was specifically created to
+     * provide for enhanced terrain rendering.
+     * <p>
      * 
-     * Note also that {@link BlockRenderManager#tesselateBlock(BlockState, BlockPos, ExtendedBlockView, BufferBuilder, Random)}
-     * IS called if the block render type is something other than {@link BlockRenderType#MODEL}.
-     * Normally this does nothing but will allow mods to create rendering hooks that are
-     * driven off of render type. (Not recommended or encouraged, but also not prevented.)
+     * Note also that
+     * {@link BlockRenderManager#tesselateBlock(BlockState, BlockPos, ExtendedBlockView, BufferBuilder, Random)}
+     * IS called if the block render type is something other than
+     * {@link BlockRenderType#MODEL}. Normally this does nothing but will allow mods
+     * to create rendering hooks that are driven off of render type. (Not
+     * recommended or encouraged, but also not prevented.)
      */
-    @Redirect(method = "rebuildChunk", require = 1,
-            at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/block/BlockRenderManager;tesselateBlock(Lnet/minecraft/block/BlockState;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/world/ExtendedBlockView;Lnet/minecraft/client/render/BufferBuilder;Ljava/util/Random;)Z"))
-    private boolean hookChunkBuildTesselate(BlockRenderManager renderManager, BlockState blockState, BlockPos blockPos, ExtendedBlockView blockView, BufferBuilder bufferBuilder, Random random) {
-        //TODO: remove at release
+    @Redirect(method = "rebuildChunk", require = 1, at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/block/BlockRenderManager;tesselateBlock(Lnet/minecraft/block/BlockState;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/world/ExtendedBlockView;Lnet/minecraft/client/render/BufferBuilder;Ljava/util/Random;)Z"))
+    private boolean hookChunkBuildTesselate(BlockRenderManager renderManager, BlockState blockState, BlockPos blockPos,
+            ExtendedBlockView blockView, BufferBuilder bufferBuilder, Random random) {
+        // TODO: remove at release
 //        long start = System.nanoTime();
 //        boolean result;
-        if(blockState.getRenderType() == BlockRenderType.MODEL) {
-            return ((AccessSafeWorldView)blockView).fabric_getRenderer().tesselateBlock(blockState, blockPos);
+        if (blockState.getRenderType() == BlockRenderType.MODEL) {
+            return ((AccessSafeWorldView) blockView).fabric_getRenderer().tesselateBlock(blockState, blockPos);
         } else {
             return renderManager.tesselateBlock(blockState, blockPos, blockView, bufferBuilder, random);
         }
-          
-        //TODO: remove at release
+
+        // TODO: remove at release
 //        long finish = System.nanoTime();
 //        if(blockState.getRenderType() == BlockRenderType.MODEL) {
 //            long n = nanos.addAndGet(finish - start);
@@ -160,62 +182,63 @@ public abstract class MixinChunkRenderer implements AccessChunkRenderer, ChunkRe
 //        }
 //        return result;
     }
-    
+
     /**
-     * Release all references. Probably not necessary but would be $#%! to debug if it is.
+     * Release all references. Probably not necessary but would be $#%! to debug if
+     * it is.
      */
     @Inject(at = @At("RETURN"), method = "rebuildChunk")
-    private void hookRebuildChunkReturn(float float_1, float float_2, float float_3, ChunkRenderTask chunkRenderTask_1, CallbackInfo info) {
+    private void hookRebuildChunkReturn(float float_1, float float_2, float float_3, ChunkRenderTask chunkRenderTask_1,
+            CallbackInfo info) {
         TerrainRenderContext.POOL.get().release();
     }
-    
+
     /**
-     * When Canvas is enabled the per-chunk matrix is never used, so is wasteful to update when frustum moves.
-     * Matters more when lots of block updates or other high-throughput because adds to contention.
+     * When Canvas is enabled the per-chunk matrix is never used, so is wasteful to
+     * update when frustum moves. Matters more when lots of block updates or other
+     * high-throughput because adds to contention.
      */
     @Inject(at = @At("HEAD"), method = "updateTransformationMatrix", cancellable = true)
     private void hookUpdateTransformationMatrix(CallbackInfo ci) {
-        if(Canvas.isModEnabled())
-        {
-            // this is called right after setting chunk position because it was moved in the frustum
+        if (Canvas.isModEnabled()) {
+            // this is called right after setting chunk position because it was moved in the
+            // frustum
             // let buffers in the chunk know they are no longer valid and can be released.
-            ((ChunkRendererExt)this).releaseDrawables();
+            ((ChunkRendererExt) this).releaseDrawables();
             ci.cancel();
         }
     }
-    
+
     @Override
     public void setSolidDrawable(Solid drawable) {
         solidDrawable = drawable;
     }
-    
+
     @Override
     public void setTranslucentDrawable(Translucent drawable) {
         translucentDrawable = drawable;
     }
-    
+
     @Override
     public Solid getSolidDrawable() {
         return solidDrawable;
     }
-    
+
     @Override
     public Translucent getTranslucentDrawable() {
         return translucentDrawable;
     }
-    
+
     @Override
     public void releaseDrawables() {
-        if(solidDrawable != null)
-        {
+        if (solidDrawable != null) {
             solidDrawable.clear();
             solidDrawable = null;
         }
 
-        if(translucentDrawable != null)
-        {
+        if (translucentDrawable != null) {
             translucentDrawable.clear();
             translucentDrawable = null;
-        }        
+        }
     }
 }

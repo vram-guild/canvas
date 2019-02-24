@@ -33,26 +33,23 @@ import grondag.canvas.hooks.PipelineHooks;
 import net.minecraft.util.math.Direction;
 
 @Mixin(Direction.Type.class)
-public abstract class MixinDirectionType
-{
+public abstract class MixinDirectionType {
     /**
      * @reason Use static array instance for iterator to avoid making garbage.
      * @author grondag
      */
     @Overwrite
-    public Iterator<Direction> iterator()
-    {
-        switch ((Direction.Type)(Object)this)
-        {
-            case HORIZONTAL:
-                return Iterators.<Direction>forArray(PipelineHooks.HORIZONTAL_FACES);
-                
-            case VERTICAL:
-                return Iterators.<Direction>forArray(PipelineHooks.VERTICAL_FACES);
-                
-            default:
-                throw new Error("Someone's been tampering with the universe!");
+    public Iterator<Direction> iterator() {
+        switch ((Direction.Type) (Object) this) {
+        case HORIZONTAL:
+            return Iterators.<Direction>forArray(PipelineHooks.HORIZONTAL_FACES);
+
+        case VERTICAL:
+            return Iterators.<Direction>forArray(PipelineHooks.VERTICAL_FACES);
+
+        default:
+            throw new Error("Someone's been tampering with the universe!");
         }
-        
+
     }
 }

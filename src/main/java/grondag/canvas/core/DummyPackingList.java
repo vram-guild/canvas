@@ -1,36 +1,30 @@
 package grondag.canvas.core;
 
-public class DummyPackingList extends VertexPackingList
-{
+public class DummyPackingList extends VertexPackingList {
     public static final DummyPackingList INSTANCE = new DummyPackingList();
-    
+
     @Override
-    public void clear()
-    {
+    public void clear() {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public int size()
-    {
+    public int size() {
         return 0;
     }
 
     @Override
-    public int quadCount()
-    {
+    public int quadCount() {
         return 0;
     }
 
     @Override
-    public int totalBytes()
-    {
+    public int totalBytes() {
         return 0;
     }
 
     @Override
-    public void addPacking(RenderPipeline pipeline, int vertexCount)
-    {
+    public void addPacking(RenderPipeline pipeline, int vertexCount) {
         throw new UnsupportedOperationException();
     }
 }

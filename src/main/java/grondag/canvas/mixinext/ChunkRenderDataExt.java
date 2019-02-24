@@ -24,12 +24,11 @@ package grondag.canvas.mixinext;
 
 import net.minecraft.block.BlockRenderLayer;
 
-public interface ChunkRenderDataExt
-{
+public interface ChunkRenderDataExt {
     void clear();
 
     void setNonEmpty(BlockRenderLayer blockRenderLayer);
-    
+
     Object getVisibilityData();
 
     void mergeRenderLayers();

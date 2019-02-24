@@ -33,8 +33,9 @@ import net.minecraft.client.texture.Sprite;
 import net.minecraft.util.math.Direction;
 
 /**
- * Almost-concrete implementation of a mutable quad. The only missing part is {@link #emit()},
- * because that depends on where/how it is used. (Mesh encoding vs. render-time transformation).
+ * Almost-concrete implementation of a mutable quad. The only missing part is
+ * {@link #emit()}, because that depends on where/how it is used. (Mesh encoding
+ * vs. render-time transformation).
  */
 public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEmitter, ShadeableQuad {
     public final void begin(int[] data, int baseIndex) {
@@ -55,13 +56,14 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
         nominalFace = null;
         material = RendererImpl.MATERIAL_STANDARD;
     }
-    
+
     @Override
     public final MutableQuadViewImpl material(RenderMaterial material) {
-        if(material == null || material.spriteDepth() > this.material.spriteDepth()) {
-            throw new UnsupportedOperationException("Material texture depth must be the same or less than original material.");
+        if (material == null || material.spriteDepth() > this.material.spriteDepth()) {
+            throw new UnsupportedOperationException(
+                    "Material texture depth must be the same or less than original material.");
         }
-        this.material = (Value)material;
+        this.material = (Value) material;
         return this;
     }
 
@@ -71,7 +73,7 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
         nominalFace = face;
         return this;
     }
-    
+
     public final MutableQuadViewImpl lightFace(Direction face) {
         lightFace = face;
         return this;
@@ -82,7 +84,7 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
         nominalFace = face;
         return this;
     }
-    
+
     @Override
     public final MutableQuadViewImpl colorIndex(int colorIndex) {
         this.colorIndex = colorIndex;
@@ -94,11 +96,11 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
         this.tag = tag;
         return this;
     }
-    
+
     @Override
     public final MutableQuadViewImpl fromVanilla(int[] quadData, int startIndex, boolean isItem) {
         final int vertexStart = vertexStart();
-        if(isItem) {
+        if (isItem) {
             System.arraycopy(quadData, startIndex, data, vertexStart, 6);
             System.arraycopy(quadData, startIndex + 7, data, vertexStart + 7, 6);
             System.arraycopy(quadData, startIndex + 14, data, vertexStart + 14, 6);
@@ -114,17 +116,17 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
         this.invalidateShape();
         return this;
     }
-    
+
     @Override
     public boolean isFaceAligned() {
         return (geometryFlags() & GeometryHelper.AXIS_ALIGNED_FLAG) != 0;
     }
-    
+
     @Override
     public boolean needsDiffuseShading(int textureIndex) {
         return textureIndex < material.spriteDepth() && !material.disableDiffuse(textureIndex);
     }
-    
+
     @Override
     public MutableQuadViewImpl pos(int vertexIndex, float x, float y, float z) {
         final int index = vertexStart() + vertexIndex * 7;
@@ -161,7 +163,7 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
         data[i + 1] = Float.floatToRawIntBits(v);
         return this;
     }
-    
+
     @Override
     public MutableQuadViewImpl sprite(int spriteIndex, Sprite sprite, int bakeFlags) {
         TextureHelper.bakeSprite(this, spriteIndex, sprite, bakeFlags);
