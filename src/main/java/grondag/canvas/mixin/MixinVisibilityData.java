@@ -12,7 +12,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 
 @Mixin(class_852.class)
-public class MixinVisiblityData implements VisiblityDataExt {
+public class MixinVisibilityData implements VisiblityDataExt {
     @Shadow
     private static int method_3683(BlockPos blockPos_1) {
         return 0;

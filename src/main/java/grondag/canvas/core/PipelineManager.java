@@ -15,8 +15,8 @@ import grondag.canvas.RenderMaterialImpl;
 import grondag.canvas.api.UniformRefreshFrequency;
 import grondag.canvas.buffering.MappedBufferStore;
 import grondag.canvas.mixin.AccessBackgroundRenderer;
-import grondag.canvas.mixin.AccessFogState;
-import grondag.canvas.mixin.MixinGlStateManager;
+import grondag.canvas.mixinext.AccessFogState;
+import grondag.canvas.mixinext.FogStateHolder;
 import grondag.canvas.mixinext.GameRendererExt;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.Entity;
@@ -185,7 +185,7 @@ public final class PipelineManager {
         });
 
         pipeline.uniform3f("u_fogAttributes", UniformRefreshFrequency.PER_TICK, u -> {
-            AccessFogState fogState = MixinGlStateManager.FOG;
+            AccessFogState fogState = FogStateHolder.INSTANCE;
             u.set(fogState.getEnd(), fogState.getEnd() - fogState.getStart(),
                     // zero signals shader to use linear fog
                     fogState.getMode() == GlStateManager.FogMode.LINEAR.glValue ? 0f : fogState.getDensity());

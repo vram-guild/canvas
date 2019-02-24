@@ -3,13 +3,25 @@
   "package": "grondag.canvas.mixin",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
+    "AccessBackgroundRenderer",
+    "AccessBufferBuilder",
+    "AccessChunkRenderDispatcher",
+    "MixinBlockLayeredBufferBuilder",
   	"MixinBlockModelRenderer",
     "MixinBufferBuilder",
+    "MixinChunkBatcher",
+    "MixinChunkRenderData",
 	"MixinChunkRenderer",
 	"MixinChunkRenderTask",
+	"MixinChunkRenderWorker",
+	"MixinChunkVisibility",
+    "MixinFogState",
+	"MixinGameRenderer",
 	"MixinItemRenderer",
 	"MixinMinecraftClient",
-	"MixinSafeWorldView"
+	"MixinSafeWorldView",
+	"MixinVisibilityData",
+	"MixinWorldRenderer"
       ],
   "injectors": {
     "defaultRequire": 1

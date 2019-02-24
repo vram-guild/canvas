@@ -6,7 +6,7 @@ import java.util.Set;
 
 import org.apache.commons.lang3.tuple.Pair;
 
-import grondag.canvas.mixin.MixinVisiblityData;
+import grondag.canvas.mixin.MixinVisibilityData;
 import grondag.canvas.mixinext.VisiblityDataExt;
 import it.unimi.dsi.fastutil.ints.IntArrayFIFOQueue;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
@@ -22,7 +22,7 @@ public class VisibilityHooks {
         if (visData instanceof Set)
             return (Set<Direction>) visData;
         else {
-            return ((VisibilityMap) visData).getFaceSet(MixinVisiblityData.getIndex(eyePos));
+            return ((VisibilityMap) visData).getFaceSet(MixinVisibilityData.getIndex(eyePos));
         }
     }
 
@@ -40,7 +40,7 @@ public class VisibilityHooks {
             final BitSet bitSet = visData.bitSet();
             VisibilityMap facingMap = VisibilityMap.claim();
 
-            for (int i : MixinVisiblityData.exteriorIndices()) {
+            for (int i : MixinVisibilityData.exteriorIndices()) {
                 if (!bitSet.get(i)) {
                     final Pair<Set<Direction>, IntArrayList> floodResult = floodFill(visData, i);
                     final Set<Direction> fillSet = floodResult.getLeft();

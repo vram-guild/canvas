@@ -24,18 +24,33 @@ package grondag.canvas.mixin;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+import grondag.canvas.mixinext.AccessFogState;
+import grondag.canvas.mixinext.FogStateHolder;
 
 @Mixin(targets = "com.mojang.blaze3d.platform.GlStateManager$FogState")
-public interface AccessFogState {
+public abstract class MixinFogState implements AccessFogState {
+    @Override
     @Accessor
-    public int getMode();
+    public abstract int getMode();
 
+    @Override
     @Accessor
-    public float getDensity();
+    public abstract float getDensity();
 
+    @Override
     @Accessor
-    public float getStart();
+    public abstract float getStart();
 
+    @Override
     @Accessor
-    public float getEnd();
+    public abstract float getEnd();
+    
+    @Inject(method = "<init>*", require = 1, at = @At("RETURN"))
+    private void onConstructed(CallbackInfo ci) {
+        FogStateHolder.INSTANCE = ((AccessFogState) (Object) this);
+    }
 }
