@@ -20,7 +20,7 @@
  * SOFTWARE.
  ******************************************************************************/
 
-package grondag.canvas.mixin.extension;
+package grondag.canvas.mixinext;
 
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BoundingBox;

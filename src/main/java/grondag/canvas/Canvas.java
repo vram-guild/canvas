@@ -36,7 +36,7 @@ public class Canvas implements ModInitializer, IGrondagMod {
     
     @Override
     public void onInitialize() {
-        CanvasGlHelper.init();
+        
     }
 
     private static Logger log;

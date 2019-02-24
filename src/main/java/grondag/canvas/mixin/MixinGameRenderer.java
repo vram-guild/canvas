@@ -25,7 +25,7 @@ package grondag.canvas.mixin;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
-import grondag.canvas.mixin.extension.GameRendererExt;
+import grondag.canvas.mixinext.GameRendererExt;
 import net.minecraft.client.render.BackgroundRenderer;
 import net.minecraft.client.render.GameRenderer;
 

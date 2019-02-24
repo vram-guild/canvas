@@ -20,17 +20,17 @@
  * SOFTWARE.
  ******************************************************************************/
 
-package grondag.canvas.mixin;
+package grondag.canvas.mixinext;
 
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.gen.Accessor;
+import net.minecraft.block.BlockRenderLayer;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.util.profiler.Profiler;
-
-@Mixin(MinecraftClient.class)
-public interface AccessMinecraftClient
+public interface ChunkRenderDataExt
 {
-    @Accessor
-    public Profiler getProfiler();
+    void clear();
+
+    void setNonEmpty(BlockRenderLayer blockRenderLayer);
+    
+    Object getVisibilityData();
+
+    void mergeRenderLayers();
 }

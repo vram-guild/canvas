@@ -33,7 +33,7 @@ import grondag.canvas.accessor.AccessChunkRenderer;
 import grondag.canvas.accessor.AccessSafeWorldView;
 import grondag.canvas.buffering.DrawableChunk.Solid;
 import grondag.canvas.buffering.DrawableChunk.Translucent;
-import grondag.canvas.mixin.extension.ChunkRendererExt;
+import grondag.canvas.mixinext.ChunkRendererExt;
 import grondag.canvas.render.TerrainRenderContext;
 import net.minecraft.block.BlockRenderLayer;
 import net.minecraft.block.BlockRenderType;

@@ -20,15 +20,32 @@
  * SOFTWARE.
  ******************************************************************************/
 
-package grondag.canvas.mixin.extension;
+package grondag.canvas.mixin;
 
-import grondag.canvas.buffering.DrawableChunk;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-public interface ChunkRendererExt
+import grondag.canvas.mixinext.MinecraftClientExt;
+import grondag.canvas.opengl.CanvasGlHelper;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.util.profiler.DisableableProfiler;
+import net.minecraft.util.profiler.Profiler;
+
+@Mixin(MinecraftClient.class)
+public abstract class MixinMinecraftClient implements MinecraftClientExt
 {
-    void setSolidDrawable(DrawableChunk.Solid drawable);
-    void setTranslucentDrawable(DrawableChunk.Translucent drawable);
-    DrawableChunk.Solid getSolidDrawable();
-    DrawableChunk.Translucent getTranslucentDrawable();
-    void releaseDrawables();
+    @Shadow DisableableProfiler profiler;
+    
+    @Override
+    public Profiler getProfiler() {
+        return profiler;
+    }
+    
+    @Inject(at = @At("RETURN"), method = "init")
+    private void hookInit(CallbackInfo info) {
+        CanvasGlHelper.init();
+    }
 }

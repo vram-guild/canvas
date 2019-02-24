@@ -20,14 +20,12 @@
  * SOFTWARE.
  ******************************************************************************/
 
-package grondag.canvas.mixin.extension;
+package grondag.canvas.mixinext;
 
-import net.minecraft.client.render.chunk.ChunkRenderer;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.client.render.BackgroundRenderer;
 
-public interface ChunkRenderDispatcherExt
+public interface GameRendererExt
 {
-
-    ChunkRenderer getChunk(BlockPos blockPos);
-
+    //TODO: rename
+    public BackgroundRenderer fogHelper();
 }

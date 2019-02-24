@@ -17,7 +17,7 @@ import grondag.canvas.buffering.MappedBufferStore;
 import grondag.canvas.mixin.AccessBackgroundRenderer;
 import grondag.canvas.mixin.AccessFogState;
 import grondag.canvas.mixin.MixinGlStateManager;
-import grondag.canvas.mixin.extension.GameRendererExt;
+import grondag.canvas.mixinext.GameRendererExt;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.math.Vec3d;

@@ -7,7 +7,7 @@ import java.util.Set;
 import org.apache.commons.lang3.tuple.Pair;
 
 import grondag.canvas.mixin.MixinVisiblityData;
-import grondag.canvas.mixin.extension.VisiblityDataExt;
+import grondag.canvas.mixinext.VisiblityDataExt;
 import it.unimi.dsi.fastutil.ints.IntArrayFIFOQueue;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import net.fabricmc.fabric.api.client.model.fabric.ModelHelper;

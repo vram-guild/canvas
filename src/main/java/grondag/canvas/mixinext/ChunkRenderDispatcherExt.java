@@ -20,17 +20,14 @@
  * SOFTWARE.
  ******************************************************************************/
 
-package grondag.canvas.mixin.extension;
+package grondag.canvas.mixinext;
 
-import net.minecraft.block.BlockRenderLayer;
+import net.minecraft.client.render.chunk.ChunkRenderer;
+import net.minecraft.util.math.BlockPos;
 
-public interface ChunkRenderDataExt
+public interface ChunkRenderDispatcherExt
 {
-    void clear();
 
-    void setNonEmpty(BlockRenderLayer blockRenderLayer);
-    
-    Object getVisibilityData();
+    ChunkRenderer getChunk(BlockPos blockPos);
 
-    void mergeRenderLayers();
 }

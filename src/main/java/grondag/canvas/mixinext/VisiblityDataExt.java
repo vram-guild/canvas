@@ -1,4 +1,4 @@
-package grondag.canvas.mixin.extension;
+package grondag.canvas.mixinext;
 
 import java.util.BitSet;
 import java.util.Set;

@@ -2,7 +2,7 @@ package grondag.canvas.hooks;
 
 import java.util.concurrent.ArrayBlockingQueue;
 
-import grondag.canvas.mixin.extension.ChunkRenderDataExt;
+import grondag.canvas.mixinext.ChunkRenderDataExt;
 import net.minecraft.client.render.chunk.ChunkRenderData;
 
 public class ChunkRenderDataStore

@@ -6,7 +6,7 @@ import java.util.Set;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
-import grondag.canvas.mixin.extension.VisiblityDataExt;
+import grondag.canvas.mixinext.VisiblityDataExt;
 import net.minecraft.class_852;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;

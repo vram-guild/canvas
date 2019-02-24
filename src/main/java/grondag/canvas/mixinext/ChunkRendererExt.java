@@ -20,12 +20,15 @@
  * SOFTWARE.
  ******************************************************************************/
 
-package grondag.canvas.mixin.extension;
+package grondag.canvas.mixinext;
 
-import net.minecraft.client.render.BackgroundRenderer;
+import grondag.canvas.buffering.DrawableChunk;
 
-public interface GameRendererExt
+public interface ChunkRendererExt
 {
-    //TODO: rename
-    public BackgroundRenderer fogHelper();
+    void setSolidDrawable(DrawableChunk.Solid drawable);
+    void setTranslucentDrawable(DrawableChunk.Translucent drawable);
+    DrawableChunk.Solid getSolidDrawable();
+    DrawableChunk.Translucent getTranslucentDrawable();
+    void releaseDrawables();
 }

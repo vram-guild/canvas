@@ -30,7 +30,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import grondag.canvas.Canvas;
 import grondag.canvas.hooks.ChunkRebuildHelper;
 import grondag.canvas.hooks.ISetVisibility;
-import grondag.canvas.mixin.extension.ChunkRenderDataExt;
+import grondag.canvas.mixinext.ChunkRenderDataExt;
 import net.minecraft.class_854;
 import net.minecraft.block.BlockRenderLayer;
 import net.minecraft.block.entity.BlockEntity;

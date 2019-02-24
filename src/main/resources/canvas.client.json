@@ -8,6 +8,7 @@
 	"MixinChunkRenderer",
 	"MixinChunkRenderTask",
 	"MixinItemRenderer",
+	"MixinMinecraftClient",
 	"MixinSafeWorldView"
       ],
   "injectors": {
