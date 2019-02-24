@@ -20,6 +20,7 @@
 	"MixinItemRenderer",
 	"MixinMinecraftClient",
 	"MixinSafeWorldView",
+	"MixinVertexFormatElement",
 	"MixinVisibilityData",
 	"MixinWorldRenderer"
       ],

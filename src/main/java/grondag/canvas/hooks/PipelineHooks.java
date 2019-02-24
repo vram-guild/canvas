@@ -3,7 +3,6 @@ package grondag.canvas.hooks;
 import grondag.canvas.Canvas;
 import net.minecraft.block.BlockRenderLayer;
 import net.minecraft.client.render.BufferBuilder;
-import net.minecraft.client.render.VertexFormatElement;
 import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.math.BlockPos;
@@ -72,12 +71,6 @@ public class PipelineHooks {
 //        else
 //            return fluidRenderer.renderFluid(blockAccess, blockStateIn, blockPosIn, bufferBuilderIn);
 //    }
-
-    public static boolean isFirstOrUV(int index, VertexFormatElement.Type usage) {
-        // has to apply even when mod is disabled so that our formats can be
-        // instantiated
-        return index == 0 || usage == VertexFormatElement.Type.UV || usage == VertexFormatElement.Type.PADDING;
-    }
 
     public static int renderBlockLayer(WorldRenderer worldRenderer, BlockRenderLayer blockLayerIn, double partialTicks,
             int pass, Entity entityIn) {

@@ -6,9 +6,9 @@ import java.util.Set;
 
 import org.apache.commons.lang3.tuple.Pair;
 
-import grondag.canvas.mixin.MixinVisibilityData;
 import grondag.canvas.mixinext.ChunkVisibility;
 import grondag.canvas.mixinext.VisibilityDataExt;
+import grondag.fermion.functions.PrimitiveFunctions.ObjToIntFunction;
 import it.unimi.dsi.fastutil.ints.IntArrayFIFOQueue;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import net.fabricmc.fabric.api.client.model.fabric.ModelHelper;
@@ -18,12 +18,21 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 
 public class VisibilityHooks {
+    public static final ObjToIntFunction<BlockPos> INDEX_FUNCTION;
+    public static final int[] EXTERIOR_INDICES;
+    static
+    {
+        VisibilityDataExt visData = (VisibilityDataExt) new class_852();
+        INDEX_FUNCTION = visData.indexFunction();
+        EXTERIOR_INDICES = visData.exteriorIndices();
+    }
+    
     @SuppressWarnings("unchecked")
     public static Set<Direction> getVisibleFacingsExt(Object visData, BlockPos eyePos) {
         if (visData instanceof Set)
             return (Set<Direction>) visData;
         else {
-            return ((VisibilityMap) visData).getFaceSet(MixinVisibilityData.getIndex(eyePos));
+            return ((VisibilityMap) visData).getFaceSet(INDEX_FUNCTION.apply(eyePos));
         }
     }
 
@@ -41,7 +50,7 @@ public class VisibilityHooks {
             final BitSet bitSet = visData.bitSet();
             VisibilityMap facingMap = VisibilityMap.claim();
 
-            for (int i : MixinVisibilityData.exteriorIndices()) {
+            for (int i : EXTERIOR_INDICES) {
                 if (!bitSet.get(i)) {
                     final Pair<Set<Direction>, IntArrayList> floodResult = floodFill(visData, i);
                     final Set<Direction> fillSet = floodResult.getLeft();

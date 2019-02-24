@@ -7,6 +7,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
 import grondag.canvas.mixinext.VisibilityDataExt;
+import grondag.fermion.functions.PrimitiveFunctions.ObjToIntFunction;
 import net.minecraft.class_852;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
@@ -34,11 +35,13 @@ public class MixinVisibilityData implements VisibilityDataExt {
         return 0;
     };
 
-    public static int getIndex(BlockPos pos) {
-        return method_3683(pos);
+    @Override
+    public ObjToIntFunction<BlockPos> indexFunction() {
+        return b -> method_3683(b);
     }
 
-    public static int[] exteriorIndices() {
+    @Override
+    public int[] exteriorIndices() {
         return field_4474;
     }
 

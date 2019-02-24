@@ -17,7 +17,7 @@ public class ChunkRenderDataStore {
     }
 
     public static void release(ChunkRenderData chunk) {
-        ((ChunkRenderDataExt) chunk).clear();
+        ((ChunkRenderDataExt) chunk).canvas_clear();
         chunks.offer(chunk);
     }
 }

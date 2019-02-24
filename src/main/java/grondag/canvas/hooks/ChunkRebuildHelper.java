@@ -1,6 +1,7 @@
 package grondag.canvas.hooks;
 
 import java.util.HashSet;
+import java.util.Random;
 import java.util.Set;
 
 import com.google.common.collect.Sets;
@@ -34,6 +35,7 @@ public class ChunkRebuildHelper {
     public final Set<BlockEntity> tileEntitiesToAdd = Sets.newHashSet();
     public final Set<BlockEntity> tileEntitiesToRemove = Sets.newHashSet();
     public final class_852 visGraph = new class_852();
+    public final Random random = new Random();
     private final BufferBuilder[] builders = new BufferBuilder[BLOCK_RENDER_LAYER_COUNT];
 
     public BufferBuilder[] builders(BlockLayeredBufferBuilder regionCache) {

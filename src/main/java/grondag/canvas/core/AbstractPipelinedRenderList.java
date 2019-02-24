@@ -255,8 +255,6 @@ public class AbstractPipelinedRenderList implements CanvasListener {
 
         int lastBufferId = -1;
 
-        // using conventional loop here to prevent iterator garbage in hot loop
-        // profiling shows it matters
         for (int i = 0; i < limit; i++) {
             final DrawableChunkDelegate b = (DrawableChunkDelegate) delegates[i];
             lastBufferId = b.bind(lastBufferId);

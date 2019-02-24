@@ -23,16 +23,16 @@
 package grondag.canvas.mixin;
 
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.gen.Accessor;
+import org.spongepowered.asm.mixin.Shadow;
 
 import net.minecraft.client.render.ChunkRenderDispatcher;
 import net.minecraft.client.render.chunk.ChunkRenderer;
 import net.minecraft.util.math.BlockPos;
 
-//TODO: remove if not used
+//TODO: remove if not used, alias if it is;
 
 @Mixin(ChunkRenderDispatcher.class)
-public interface AccessChunkRenderDispatcher {
-    @Accessor
-    public ChunkRenderer getChunk(BlockPos blockPos);
+public abstract class AccessChunkRenderDispatcher {
+    @Shadow
+    public abstract ChunkRenderer getChunk(BlockPos blockPos);
 }

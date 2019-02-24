@@ -40,9 +40,9 @@ import net.minecraft.client.render.chunk.ChunkRenderData;
 @Mixin(ChunkRenderData.class)
 public abstract class MixinChunkRenderData implements ChunkRenderDataExt {
     @Shadow
-    private boolean[] hasContent;
+    private boolean[] field_4450; // has content
     @Shadow
-    private boolean[] isInitialized;
+    private boolean[] initialized;
     @Shadow
     private boolean empty;
     @Shadow
@@ -52,16 +52,20 @@ public abstract class MixinChunkRenderData implements ChunkRenderDataExt {
     @Shadow
     private BufferBuilder.State bufferState;
 
-    @Override
     @Shadow
-    public abstract void setNonEmpty(BlockRenderLayer blockRenderLayer);
+    protected abstract void method_3643(BlockRenderLayer blockRenderLayer);
+    
+    @Override
+    public void canvas_setNonEmpty(BlockRenderLayer blockRenderLayer) {
+        method_3643(blockRenderLayer);
+    }
 
     @Override
-    public void clear() {
+    public void canvas_clear() {
         empty = true;
-        System.arraycopy(ChunkRebuildHelper.EMPTY_RENDER_LAYER_FLAGS, 0, hasContent, 0,
+        System.arraycopy(ChunkRebuildHelper.EMPTY_RENDER_LAYER_FLAGS, 0, field_4450, 0,
                 ChunkRebuildHelper.BLOCK_RENDER_LAYER_COUNT);
-        System.arraycopy(ChunkRebuildHelper.EMPTY_RENDER_LAYER_FLAGS, 0, isInitialized, 0,
+        System.arraycopy(ChunkRebuildHelper.EMPTY_RENDER_LAYER_FLAGS, 0, initialized, 0,
                 ChunkRebuildHelper.BLOCK_RENDER_LAYER_COUNT);
         field_4455.method_3694(false); // set all false
         ((ChunkVisibility) field_4455).setVisibilityData(null);
@@ -83,10 +87,10 @@ public abstract class MixinChunkRenderData implements ChunkRenderDataExt {
      * <p>
      */
     @Override
-    public void mergeRenderLayers() {
+    public void canvas_mergeRenderLayers() {
         if (Canvas.isModEnabled()) {
-            mergeLayerFlags(isInitialized);
-            mergeLayerFlags(hasContent);
+            mergeLayerFlags(initialized);
+            mergeLayerFlags(field_4450);
         }
     }
 
