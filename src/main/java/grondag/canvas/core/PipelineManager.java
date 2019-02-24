@@ -13,7 +13,7 @@ import grondag.boson.org.joml.Matrix4f;
 import grondag.canvas.Configurator;
 import grondag.canvas.RenderMaterialImpl;
 import grondag.canvas.api.UniformRefreshFrequency;
-import grondag.canvas.buffering.MappedBufferStore;
+import grondag.canvas.buffering.BufferManager;
 import grondag.canvas.mixin.AccessBackgroundRenderer;
 import grondag.canvas.mixinext.AccessFogState;
 import grondag.canvas.mixinext.FogStateHolder;
@@ -207,7 +207,7 @@ public final class PipelineManager {
     public void prepareForFrame(Entity cameraEntity, float fractionalTicks) {
         this.fractionalTicks = fractionalTicks;
 
-        MappedBufferStore.prepareEmpties();
+        BufferManager.prepareForFrame();
 
         projectionMatrixBuffer.position(0);
         GlStateManager.getMatrix(GL11.GL_PROJECTION_MATRIX, projectionMatrixBuffer);

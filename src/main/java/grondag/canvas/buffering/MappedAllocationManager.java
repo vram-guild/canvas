@@ -6,21 +6,19 @@ import java.util.function.Consumer;
 import grondag.canvas.core.RenderPipeline;
 
 //PERF: provide diff buffers by vertex format and handle VAO binding 1X per buffer bind in buffers
-public class AllocationManager {
+public class MappedAllocationManager extends AbstractAllocationManager implements AllocationProvider {
     private static final ConcurrentSkipListMap<Long, MappedBuffer> BUFFERS = new ConcurrentSkipListMap<>();
 
     private static final int KEY_SHIFT_BITS = 16;
-
-    /**
-     * If byteCount is larger than a single buffer will give consumer more than one
-     * buffer w/ offsets able to contain the given byte count. Otherwise will always
-     * call consumer 1X with an allocation that contains the entire byte count. If
-     * more than one buffer is needed, break(s) will be at a boundary compatible
-     * with all vertex formats. All vertices in the buffer(s) will share the same
-     * pipeline (and thus vertex format).
-     */
-    public static void claimAllocation(RenderPipeline pipeline, int byteCount,
-            Consumer<MappedBufferDelegate> consumer) {
+   
+    @Override 
+    protected void prepareForFrame() {
+        MappedBufferStore.prepareEmpties();
+    };
+    
+    @Override
+    public void claimAllocation(RenderPipeline pipeline, int byteCount,
+            Consumer<AbstractBufferDelegate<?>> consumer) {
         while (byteCount >= MappedBuffer.CAPACITY_BYTES) {
             MappedBuffer target = MappedBufferStore.getEmptyMapped();
             if (target == null)
@@ -38,7 +36,7 @@ public class AllocationManager {
             claimPartialAllocation(byteCount, consumer);
     }
 
-    private static void claimPartialAllocation(final int byteCount, Consumer<MappedBufferDelegate> consumer) {
+    private static void claimPartialAllocation(final int byteCount, Consumer<AbstractBufferDelegate<?>> consumer) {
         final long byteKey = ((long) byteCount) << KEY_SHIFT_BITS;
 
         Long candidateKey = BUFFERS.ceilingKey(byteKey);
@@ -83,7 +81,14 @@ public class AllocationManager {
         }
     }
 
-    public static void forceReload() {
+    @Override
+    protected void forceReload() {
+        MappedBufferStore.forceReload();
         BUFFERS.clear();
+    }
+
+    @Override
+    protected AllocationProvider getAllocator(int totalBytes) {
+        return this;
     }
 }

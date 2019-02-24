@@ -30,7 +30,7 @@ import grondag.canvas.RenderMaterialImpl.Value;
 import grondag.canvas.api.CanvasListener;
 import grondag.canvas.api.CanvasRenderer;
 import grondag.canvas.api.ShaderManager;
-import grondag.canvas.buffering.MappedBufferStore;
+import grondag.canvas.buffering.BufferManager;
 import grondag.canvas.core.PipelineShaderManager;
 import grondag.canvas.mesh.MeshBuilderImpl;
 import net.minecraft.client.resource.language.I18n;
@@ -86,7 +86,7 @@ public class RendererImpl implements CanvasRenderer {
         Canvas.INSTANCE.getLog().info(I18n.translate("misc.info_reloading"));
         PipelineShaderManager.INSTANCE.forceReload();
         PipelineManager.INSTANCE.forceReload();
-        MappedBufferStore.forceReload();
+        BufferManager.forceReload();
         forEachListener(c -> c.onRenderReload());
     }
 

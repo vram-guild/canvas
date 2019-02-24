@@ -16,10 +16,12 @@ public abstract class UploadableChunk<V extends DrawableChunk> {
         ObjectArrayList<DrawableChunkDelegate> delegates;
         VertexCollectorList collectorList;
         int intOffset = 0;
-
-        void prepare(ObjectArrayList<DrawableChunkDelegate> delegates, VertexCollectorList collectorList) {
+        AllocationProvider allocator;
+        
+        void prepare(ObjectArrayList<DrawableChunkDelegate> delegates, VertexPackingList packingList, VertexCollectorList collectorList) {
             this.delegates = delegates;
             this.collectorList = collectorList;
+            allocator = BufferManager.ALLOCATION_MANAGER.getAllocator(packingList.totalBytes());
         }
 
         @Override
@@ -27,7 +29,7 @@ public abstract class UploadableChunk<V extends DrawableChunk> {
             final int stride = pipeline.piplineVertexFormat().stride;
             // array offset will be zero unless multiple buffers are needed
             intOffset = 0;
-            AllocationManager.claimAllocation(pipeline, vertexCount * stride, ref -> {
+            allocator.claimAllocation(pipeline, vertexCount * stride, ref -> {
                 final int byteOffset = ref.byteOffset();
                 final int byteCount = ref.byteCount();
                 final int intLength = byteCount / 4;
@@ -45,17 +47,12 @@ public abstract class UploadableChunk<V extends DrawableChunk> {
         }
     }
 
-    ThreadLocal<UploadConsumer> uploadConsumer = new ThreadLocal<UploadConsumer>() {
-        @Override
-        protected UploadConsumer initialValue() {
-            return new UploadConsumer();
-        }
-    };
+    ThreadLocal<UploadConsumer> uploadConsumer = ThreadLocal.withInitial(UploadConsumer::new);
 
     protected UploadableChunk(VertexPackingList packingList, VertexCollectorList collectorList) {
         this.packingList = packingList;
         UploadConsumer uc = uploadConsumer.get();
-        uc.prepare(delegates, collectorList);
+        uc.prepare(delegates, packingList, collectorList);
         packingList.forEach(uc);
     }
 

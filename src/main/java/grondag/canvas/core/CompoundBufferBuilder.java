@@ -37,7 +37,7 @@ public class CompoundBufferBuilder extends BufferBuilder {
      */
     private BlockRenderLayer layer;
 
-    private AccessBufferBuilder accessor;
+    private AccessBufferBuilder accessor = (AccessBufferBuilder) this;
 
     private CompoundBufferBuilder proxy;
 

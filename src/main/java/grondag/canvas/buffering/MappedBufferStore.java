@@ -36,7 +36,7 @@ public class MappedBufferStore {
      * Buffers that have been defragged and thus need to be unmapped and reset. New
      * buffers also need to be flushed and swapped for old.
      */
-    private static final ArrayBlockingQueue<Pair<MappedBuffer, ObjectArrayList<Pair<DrawableChunkDelegate, MappedBufferDelegate>>>> releaseResetQueue = new ArrayBlockingQueue<>(
+    private static final ArrayBlockingQueue<Pair<MappedBuffer, ObjectArrayList<Pair<DrawableChunkDelegate, AbstractBufferDelegate<?>>>>> releaseResetQueue = new ArrayBlockingQueue<>(
             4096);
 
     private static final Thread DEFRAG_THREAD;
@@ -50,7 +50,7 @@ public class MappedBufferStore {
                     if (buff.isDisposed())
                         continue;
 
-                    ObjectArrayList<Pair<DrawableChunkDelegate, MappedBufferDelegate>> swaps = buff.rebufferRetainers();
+                    ObjectArrayList<Pair<DrawableChunkDelegate, AbstractBufferDelegate<?>>> swaps = buff.rebufferRetainers();
                     if (swaps != null)
                         releaseResetQueue.offer(Pair.of(buff, swaps));
                 } catch (InterruptedException e) {
@@ -64,9 +64,13 @@ public class MappedBufferStore {
     };
 
     static {
-        DEFRAG_THREAD = new Thread(DEFRAGGER, "Acuity Vertex Buffer Defrag Thread");
-        DEFRAG_THREAD.setDaemon(true);
-        DEFRAG_THREAD.start();
+        if(BufferManager.ALLOCATION_MANAGER instanceof MappedAllocationManager) {
+            DEFRAG_THREAD = new Thread(DEFRAGGER, "Acuity Vertex Buffer Defrag Thread");
+            DEFRAG_THREAD.setDaemon(true);
+            DEFRAG_THREAD.start();
+        } else {
+            DEFRAG_THREAD = null;
+        }
     }
 
     static MappedBuffer getEmptyMapped() {
@@ -107,7 +111,7 @@ public class MappedBufferStore {
 
     private static void processReleaseResetQueue() {
         if (!releaseResetQueue.isEmpty()) {
-            Pair<MappedBuffer, ObjectArrayList<Pair<DrawableChunkDelegate, MappedBufferDelegate>>> pair = releaseResetQueue
+            Pair<MappedBuffer, ObjectArrayList<Pair<DrawableChunkDelegate, AbstractBufferDelegate<?>>>> pair = releaseResetQueue
                     .poll();
 
             while (pair != null) {
@@ -118,12 +122,12 @@ public class MappedBufferStore {
 
                 assert !buff.isMapped() || buff.isMappedReadOnly();
 
-                ObjectArrayList<Pair<DrawableChunkDelegate, MappedBufferDelegate>> list = pair.getRight();
+                ObjectArrayList<Pair<DrawableChunkDelegate, AbstractBufferDelegate<?>>> list = pair.getRight();
                 if (list != null && !list.isEmpty()) {
                     final int limit = list.size();
                     for (int i = 0; i < limit; i++) {
-                        Pair<DrawableChunkDelegate, MappedBufferDelegate> swap = list.get(i);
-                        MappedBufferDelegate bufferDelegate = swap.getRight();
+                        Pair<DrawableChunkDelegate, AbstractBufferDelegate<?>> swap = list.get(i);
+                        AbstractBufferDelegate<?> bufferDelegate = swap.getRight();
                         bufferDelegate.flush();
                         swap.getLeft().replaceBufferDelegate(bufferDelegate);
                     }
@@ -169,9 +173,7 @@ public class MappedBufferStore {
         // doStats();
     }
 
-    // TODO: disable
-
-    static int statCounter = 0;
+    //static int statCounter = 0;
 
 //    private static void doStats()
 //    {
@@ -196,16 +198,15 @@ public class MappedBufferStore {
         releaseRemapQueue.offer(mappedBuffer);
     }
 
-    public static void forceReload() {
+    static void forceReload() {
         emptyMapped.clear();
-        AllocationManager.forceReload();
         emptyUnmapped.clear();
         releaseRebufferQueue.clear();
         releaseRemapQueue.clear();
         releaseResetQueue.clear();
         MappedBuffer.inUse.forEach(b -> b.dispose());
         MappedBuffer.inUse.clear();
-        statCounter = 0;
+//        statCounter = 0;
     }
 
 }

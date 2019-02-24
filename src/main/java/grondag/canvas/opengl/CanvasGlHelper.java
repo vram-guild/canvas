@@ -172,6 +172,7 @@ public class CanvasGlHelper {
         ByteBuffer result;
 
         if (!writeFlag)
+            // TODO: not right and probably never used
             result = GL30.glMapBufferRange(GLX.GL_ARRAY_BUFFER, 0L, (long) bufferSize,
                     writeFlag ? GL15.GL_WRITE_ONLY : GL15.GL_READ_ONLY, priorMapped);
         else

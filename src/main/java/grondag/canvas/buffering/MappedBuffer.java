@@ -2,9 +2,6 @@ package grondag.canvas.buffering;
 
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
-import java.util.Collections;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -17,7 +14,6 @@ import com.mojang.blaze3d.platform.GlStateManager;
 import grondag.canvas.Canvas;
 import grondag.canvas.core.RenderPipeline;
 import grondag.canvas.opengl.CanvasGlHelper;
-import grondag.canvas.opengl.GLBufferStore;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.client.MinecraftClient;
 
@@ -36,17 +32,11 @@ import net.minecraft.client.MinecraftClient;
  * client thread. For these, Atomic variable are preferred over synchronization.
  *
  */
-public class MappedBuffer {
-    private static int nextID = 0;
-
+public class MappedBuffer extends AbstractBuffer {
     public static final int CAPACITY_BYTES = 512 * 1024;
     private static final int HALF_CAPACITY = CAPACITY_BYTES / 2;
 
     public static final ObjectArrayList<MappedBuffer> inUse = new ObjectArrayList<>();
-
-    public final int glBufferId;
-
-    public final int id = nextID++;
 
     /**
      * Max byte used for buffer flush. Incremented by allocation on chunk build
@@ -98,11 +88,7 @@ public class MappedBuffer {
      */
     private final AtomicBoolean isReleaseRequested = new AtomicBoolean(false);
 
-    /**
-     * DrawableChunkDelegates currently using the buffer for rendering.
-     */
-    final Set<DrawableChunkDelegate> retainers = Collections
-            .newSetFromMap(new ConcurrentHashMap<DrawableChunkDelegate, Boolean>());
+
 
     /**
      * Buffering threads hold a read lock on this while they are uploading. Client
@@ -124,8 +110,7 @@ public class MappedBuffer {
 //    final ArrayList<String> traceLog = new ArrayList<>();
 
     MappedBuffer() {
-        assert MinecraftClient.getInstance().isMainThread();
-        this.glBufferId = GLX.glGenBuffers();
+        super();
         bind();
         orphan();
         map(true);
@@ -133,6 +118,7 @@ public class MappedBuffer {
         inUse.add(this);
     }
 
+    @Override
     public ByteBuffer byteBuffer() {
         assert mapped != null;
         return mapped;
@@ -193,20 +179,17 @@ public class MappedBuffer {
         }
     }
 
-    void bind() {
-        GLX.glBindBuffer(GLX.GL_ARRAY_BUFFER, this.glBufferId);
-    }
-
-    void unbind() {
-        GLX.glBindBuffer(GLX.GL_ARRAY_BUFFER, 0);
-    }
-
     /** assumes buffer is bound */
     private void orphan() {
 //        traceLog.add("orphan()");
         assert MinecraftClient.getInstance().isMainThread();
         mapped = null;
         CanvasGlHelper.glBufferData(GLX.GL_ARRAY_BUFFER, CAPACITY_BYTES, GL15.GL_STATIC_DRAW);
+        int i = GlStateManager.getError();
+        if (i != 0) {
+            Canvas.INSTANCE.getLog().error("########## GL ERROR ON BUFFER REMAP ##########");
+            Canvas.INSTANCE.getLog().error(GLX.getErrorString(i) + " (" + i + ")");
+        }
     }
 
     public boolean isFlushPending() {
@@ -241,7 +224,8 @@ public class MappedBuffer {
     /**
      * Called each tick to send updates to GPU.
      */
-    public void flush() {
+    @Override
+    protected void flush() {
         if (isDisposed)
             return;
 
@@ -292,13 +276,18 @@ public class MappedBuffer {
      * Called implicitly when bytes are allocated. Store calls explicitly to retain
      * while this buffer is being filled.
      */
+    @Override
     public void retain(DrawableChunkDelegate drawable) {
+        super.retain(drawable);
 //        traceLog.add(String.format("retain(%s)", drawable.toString()));
         retainedBytes.addAndGet(drawable.bufferDelegate().byteCount());
-        retainers.add(drawable);
     }
 
+    @Override
     public void release(DrawableChunkDelegate drawable) {
+        
+        // UGLY: doesn't call super - fix up if decide to keep mapped
+        
 //        traceLog.add(String.format("release(%s)", drawable.toString()));
         // retainer won't be found if release was already scheduled and collection has
         // been cleared
@@ -313,7 +302,6 @@ public class MappedBuffer {
             assert isReleaseRequested.get();
             assert retainers.isEmpty();
         }
-
     }
 
     public void reportStats() {
@@ -324,8 +312,8 @@ public class MappedBuffer {
                         this.retainedBytes.get(), this.retainedBytes.get() * 100 / CAPACITY_BYTES, status));
     }
 
-    /** called by store on render reload to recycle GL buffer */
-    void dispose() {
+    @Override
+    protected void dispose() {
 //        traceLog.add("dispose()");
         if (isMapped) {
             bind();
@@ -334,17 +322,7 @@ public class MappedBuffer {
             isMapped = false;
             mapped = null;
         }
-
-        if (!isDisposed) {
-            isDisposed = true;
-            GLBufferStore.releaseBuffer(glBufferId);
-        }
-    }
-
-    private boolean isDisposed = false;
-
-    public boolean isDisposed() {
-        return isDisposed;
+        super.dispose();
     }
 
     public void reset() {
@@ -373,7 +351,7 @@ public class MappedBuffer {
         }
     };
 
-    public ObjectArrayList<Pair<DrawableChunkDelegate, MappedBufferDelegate>> rebufferRetainers() {
+    public ObjectArrayList<Pair<DrawableChunkDelegate, AbstractBufferDelegate<?>>> rebufferRetainers() {
 //        traceLog.add("rebufferRetainers()");
         if (isDisposed)
             return null;
@@ -387,8 +365,10 @@ public class MappedBuffer {
 
         final IntBuffer fromBuffer = mapped.asIntBuffer();
         final int[] transfer = transferArray.get();
-        ObjectArrayList<Pair<DrawableChunkDelegate, MappedBufferDelegate>> swaps = new ObjectArrayList<>();
+        ObjectArrayList<Pair<DrawableChunkDelegate, AbstractBufferDelegate<?>>> swaps = new ObjectArrayList<>();
 
+        final MappedAllocationManager allocator = (MappedAllocationManager) BufferManager.ALLOCATION_MANAGER;
+        
         retainers.forEach(delegate -> {
             final RenderPipeline pipeline = delegate.getPipeline();
             final int fromByteCount = delegate.bufferDelegate().byteCount();
@@ -398,7 +378,7 @@ public class MappedBuffer {
             fromBuffer.position(fromIntOffset);
             fromBuffer.get(transfer, 0, fromIntCount);
 
-            AllocationManager.claimAllocation(pipeline, fromByteCount, ref -> {
+            allocator.claimAllocation(pipeline, fromByteCount, ref -> {
                 final int byteOffset = ref.byteOffset();
                 final int byteCount = ref.byteCount();
                 final int intLength = byteCount / 4;

@@ -12,7 +12,7 @@ import grondag.canvas.opengl.VaoStore;
 import net.minecraft.client.render.VertexFormatElement;
 
 public class DrawableChunkDelegate {
-    private MappedBufferDelegate bufferDelegate;
+    private AbstractBufferDelegate<?> bufferDelegate;
     private final RenderPipeline pipeline;
     final int vertexCount;
     /**
@@ -23,18 +23,18 @@ public class DrawableChunkDelegate {
 
     private boolean isReleased = false;
 
-    public DrawableChunkDelegate(MappedBufferDelegate bufferDelegate, RenderPipeline pipeline, int vertexCount) {
+    public DrawableChunkDelegate(AbstractBufferDelegate<?> bufferDelegate, RenderPipeline pipeline, int vertexCount) {
         this.bufferDelegate = bufferDelegate;
         this.pipeline = pipeline;
         this.vertexCount = vertexCount;
         bufferDelegate.retain(this);
     }
 
-    public MappedBufferDelegate bufferDelegate() {
+    public AbstractBufferDelegate<?> bufferDelegate() {
         return this.bufferDelegate;
     }
 
-    public void replaceBufferDelegate(MappedBufferDelegate newDelegate) {
+    public void replaceBufferDelegate(AbstractBufferDelegate<?> newDelegate) {
         // possible we have been released after rebuffer happened
         if (isReleased)
             newDelegate.release(this);
