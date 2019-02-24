@@ -2,7 +2,7 @@ package grondag.canvas.core;
 
 import grondag.canvas.Canvas;
 import grondag.canvas.buffering.DrawableChunk;
-import grondag.canvas.hooks.IRenderChunk;
+import grondag.canvas.mixinext.ChunkRendererExt;
 import net.minecraft.block.BlockRenderLayer;
 import net.minecraft.client.render.chunk.ChunkRenderer;
 
@@ -23,8 +23,8 @@ public class PipelinedRenderListDebug extends AbstractPipelinedRenderList {
     @Override
     public final void addChunkRenderer(ChunkRenderer renderChunkIn, BlockRenderLayer layer) {
         chunkCounter++;
-        DrawableChunk vertexbuffer = layer == BlockRenderLayer.SOLID ? ((IRenderChunk) renderChunkIn).getSolidDrawable()
-                : ((IRenderChunk) renderChunkIn).getTranslucentDrawable();
+        DrawableChunk vertexbuffer = layer == BlockRenderLayer.SOLID ? ((ChunkRendererExt) renderChunkIn).getSolidDrawable()
+                : ((ChunkRendererExt) renderChunkIn).getTranslucentDrawable();
         if (vertexbuffer == null)
             return;
         drawCounter += vertexbuffer.drawCount();

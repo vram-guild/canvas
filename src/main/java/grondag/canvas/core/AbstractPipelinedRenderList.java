@@ -16,7 +16,7 @@ import grondag.canvas.RendererImpl;
 import grondag.canvas.api.CanvasListener;
 import grondag.canvas.buffering.DrawableChunk;
 import grondag.canvas.buffering.DrawableChunkDelegate;
-import grondag.canvas.hooks.IRenderChunk;
+import grondag.canvas.mixinext.ChunkRendererExt;
 import grondag.canvas.opengl.CanvasGlHelper;
 import it.unimi.dsi.fastutil.Arrays;
 import it.unimi.dsi.fastutil.Swapper;
@@ -103,7 +103,7 @@ public class AbstractPipelinedRenderList implements CanvasListener {
     }
 
     private void addSolidChunkToBufferArray(ChunkRenderer renderChunkIn, SolidRenderCube buffers) {
-        final DrawableChunk.Solid vertexbuffer = ((IRenderChunk) renderChunkIn).getSolidDrawable();
+        final DrawableChunk.Solid vertexbuffer = ((ChunkRendererExt) renderChunkIn).getSolidDrawable();
         if (vertexbuffer != null)
             vertexbuffer.prepareSolidRender(buffers);
     }
@@ -274,7 +274,7 @@ public class AbstractPipelinedRenderList implements CanvasListener {
 
         for (int i = 0; i < chunkCount; i++) {
             final ChunkRenderer renderchunk = chunks.get(i);
-            final DrawableChunk.Translucent drawable = ((IRenderChunk) renderchunk).getTranslucentDrawable();
+            final DrawableChunk.Translucent drawable = ((ChunkRendererExt) renderchunk).getTranslucentDrawable();
             if (drawable == null)
                 continue;
             updateViewMatrix(renderchunk.getOrigin());

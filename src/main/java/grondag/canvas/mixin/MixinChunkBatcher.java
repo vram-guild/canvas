@@ -34,7 +34,7 @@ import grondag.canvas.Canvas;
 import grondag.canvas.buffering.DrawableChunk.Solid;
 import grondag.canvas.buffering.DrawableChunk.Translucent;
 import grondag.canvas.core.CompoundBufferBuilder;
-import grondag.canvas.hooks.IRenderChunk;
+import grondag.canvas.mixinext.ChunkRendererExt;
 import net.minecraft.block.BlockRenderLayer;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.BufferBuilder;
@@ -57,10 +57,10 @@ public abstract class MixinChunkBatcher {
         assert blockRenderLayer == BlockRenderLayer.SOLID || blockRenderLayer == BlockRenderLayer.TRANSLUCENT;
 
         if (blockRenderLayer == BlockRenderLayer.SOLID)
-            ((IRenderChunk) renderChunk)
+            ((ChunkRendererExt) renderChunk)
                     .setSolidDrawable((Solid) ((CompoundBufferBuilder) bufferBuilder).produceDrawable());
         else
-            ((IRenderChunk) renderChunk)
+            ((ChunkRendererExt) renderChunk)
                     .setTranslucentDrawable((Translucent) ((CompoundBufferBuilder) bufferBuilder).produceDrawable());
 
         bufferBuilder.setOffset(0.0D, 0.0D, 0.0D);

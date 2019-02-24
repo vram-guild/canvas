@@ -8,12 +8,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import com.mojang.blaze3d.platform.GLX;
 
 import grondag.canvas.opengl.GLBufferStore;
-import net.minecraft.client.MinecraftClient;
 
 public abstract class AbstractBuffer {
     protected static int nextID = 0;
 
-    public final int glBufferId;
+    private int glBufferId = -1;
 
     public final int id = nextID++;
 
@@ -23,11 +22,15 @@ public abstract class AbstractBuffer {
     protected final Set<DrawableChunkDelegate> retainers = Collections
             .newSetFromMap(new ConcurrentHashMap<DrawableChunkDelegate, Boolean>());
 
-    protected AbstractBuffer() {
-        assert MinecraftClient.getInstance().isMainThread();
-        this.glBufferId = GLX.glGenBuffers();
+    public int glBufferId() {
+        int result = glBufferId;
+        if(result == -1) {
+            result = GLBufferStore.claimBuffer();
+            glBufferId = result;
+        }
+        return result;
     }
-
+    
     protected void bind() {
         GLX.glBindBuffer(GLX.GL_ARRAY_BUFFER, this.glBufferId);
     }
@@ -61,7 +64,10 @@ public abstract class AbstractBuffer {
     protected void dispose() {
         if (!isDisposed) {
             isDisposed = true;
+        }
+        if(glBufferId != -1) {
             GLBufferStore.releaseBuffer(glBufferId);
+            glBufferId = -1;
         }
     }
 

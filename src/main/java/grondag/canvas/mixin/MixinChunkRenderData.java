@@ -99,4 +99,9 @@ public abstract class MixinChunkRenderData implements ChunkRenderDataExt {
         layerFlags[1] = false;
         layerFlags[2] = false;
     }
+
+    @Override
+    public ChunkVisibility getVisibilityData() {
+        return (ChunkVisibility) field_4455;
+    }
 }

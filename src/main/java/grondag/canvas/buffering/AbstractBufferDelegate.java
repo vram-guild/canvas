@@ -28,7 +28,7 @@ abstract class AbstractBufferDelegate<T extends AbstractBuffer> {
     }
 
     public final int glBufferId() {
-        return buffer.glBufferId;
+        return buffer.glBufferId();
     }
 
     /** chunk will populate this buffer with vertex data. Will be used off thread. */
