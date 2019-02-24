@@ -20,6 +20,7 @@ import it.unimi.dsi.fastutil.longs.Long2FloatOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 import grondag.canvas.accessor.AccessBufferBuilder;
 import grondag.canvas.accessor.AccessChunkRenderer;
+import grondag.canvas.core.CompoundBufferBuilder;
 import grondag.canvas.mesh.MutableQuadViewImpl;
 import net.minecraft.block.Block.OffsetType;
 import net.minecraft.block.BlockRenderLayer;
@@ -147,7 +148,7 @@ public class ChunkRenderInfo {
     }
 
     /** Lazily retrieves output buffer for given layer, initializing as needed. */
-    public AccessBufferBuilder getInitializedBuffer(int layerIndex) {
+    public CompoundBufferBuilder getInitializedBuffer(int layerIndex) {
         // redundant for first layer, but probably not faster to check
         resultFlags[layerIndex] = true;
 
@@ -162,7 +163,7 @@ public class ChunkRenderInfo {
             }
             result = (AccessBufferBuilder) builder;
         }
-        return result;
+        return (CompoundBufferBuilder) result;
     }
 
     /**

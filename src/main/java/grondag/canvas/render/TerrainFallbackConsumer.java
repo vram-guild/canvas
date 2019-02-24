@@ -35,29 +35,6 @@ import net.minecraft.client.render.model.BakedModel;
 import net.minecraft.client.render.model.BakedQuad;
 import net.minecraft.util.math.Direction;
 
-/**
- * Consumer for vanilla baked models. Generally intended to give visual results
- * matching a vanilla render, however there could be subtle (and desirable)
- * lighting variations so is good to be able to render everything consistently.
- * <p>
- * 
- * Also, the API allows multi-part models that hold multiple vanilla models to
- * render them without combining quad lists, but the vanilla logic only handles
- * one model per block. To route all of them through vanilla logic would require
- * additional hooks.
- * <p>
- * 
- * Works by copying the quad data to an "editor" quad held in the instance,
- * where all transformations are applied before buffering. Transformations
- * should be the same as they would be in a vanilla render - the editor is
- * serving mainly as a way to access vertex data without magical numbers. It
- * also allows a consistent interface for downstream tesselation routines.
- * <p>
- * 
- * Another difference from vanilla render is that all transformation happens
- * before the vertex data is sent to the byte buffer. Generally POJO array
- * access will be faster than manipulating the data via NIO.
- */
 public class TerrainFallbackConsumer extends AbstractQuadRenderer implements Consumer<BakedModel> {
     private final int[] editorBuffer = new int[28];
     private final ChunkRenderInfo chunkInfo;

@@ -26,8 +26,8 @@ import net.fabricmc.fabric.api.client.model.fabric.RenderContext.QuadTransform;
 import grondag.canvas.RenderMaterialImpl;
 import grondag.canvas.RenderMaterialImpl.Value;
 import grondag.canvas.RendererImpl;
-import grondag.canvas.accessor.AccessBufferBuilder;
 import grondag.canvas.aocalc.AoCalculator;
+import grondag.canvas.core.CompoundBufferBuilder;
 import grondag.canvas.mesh.EncodingFormat;
 import grondag.canvas.mesh.MeshImpl;
 import grondag.canvas.mesh.MutableQuadViewImpl;
@@ -42,7 +42,7 @@ import net.minecraft.util.math.BlockPos;
  */
 public abstract class AbstractMeshConsumer extends AbstractQuadRenderer implements Consumer<Mesh> {
     protected AbstractMeshConsumer(BlockRenderInfo blockInfo, ToIntBiFunction<BlockState, BlockPos> brightnessFunc,
-            Int2ObjectFunction<AccessBufferBuilder> bufferFunc, AoCalculator aoCalc, QuadTransform transform) {
+            Int2ObjectFunction<CompoundBufferBuilder> bufferFunc, AoCalculator aoCalc, QuadTransform transform) {
         super(blockInfo, brightnessFunc, bufferFunc, aoCalc, transform);
     }
 

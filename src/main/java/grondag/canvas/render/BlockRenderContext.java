@@ -28,6 +28,7 @@ import net.fabricmc.fabric.api.client.model.fabric.RenderContext;
 import net.fabricmc.fabric.api.client.model.fabric.TerrainBlockView;
 import grondag.canvas.accessor.AccessBufferBuilder;
 import grondag.canvas.aocalc.AoCalculator;
+import grondag.canvas.core.CompoundBufferBuilder;
 import grondag.canvas.mesh.MutableQuadViewImpl;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.render.BufferBuilder;
@@ -46,7 +47,7 @@ public class BlockRenderContext extends AbstractRenderContext implements RenderC
             this::transform);
     private final Random random = new Random();
     private BlockModelRenderer vanillaRenderer;
-    private AccessBufferBuilder fabricBuffer;
+    private CompoundBufferBuilder bufferBuilder;
     private long seed;
     private boolean isCallingVanilla = false;
     private boolean didOutput = false;
@@ -74,15 +75,15 @@ public class BlockRenderContext extends AbstractRenderContext implements RenderC
         return blockView.getBlockState(pos).getAmbientOcclusionLightLevel(blockView, pos);
     }
 
-    private AccessBufferBuilder outputBuffer(int renderLayer) {
+    private CompoundBufferBuilder outputBuffer(int renderLayer) {
         didOutput = true;
-        return fabricBuffer;
+        return bufferBuilder;
     }
 
     public boolean tesselate(BlockModelRenderer vanillaRenderer, TerrainBlockView blockView, BakedModel model,
             BlockState state, BlockPos pos, BufferBuilder buffer, long seed) {
         this.vanillaRenderer = vanillaRenderer;
-        this.fabricBuffer = (AccessBufferBuilder) buffer;
+        this.bufferBuilder = (CompoundBufferBuilder) buffer;
         this.seed = seed;
         this.didOutput = false;
         aoCalc.clear();
@@ -94,19 +95,19 @@ public class BlockRenderContext extends AbstractRenderContext implements RenderC
 
         this.vanillaRenderer = null;
         blockInfo.release();
-        this.fabricBuffer = null;
+        this.bufferBuilder = null;
         return didOutput;
     }
 
     protected void acceptVanillaModel(BakedModel model) {
         isCallingVanilla = true;
         didOutput = didOutput && vanillaRenderer.tesselate(blockInfo.blockView, model, blockInfo.blockState,
-                blockInfo.blockPos, (BufferBuilder) fabricBuffer, false, random, seed);
+                blockInfo.blockPos, (BufferBuilder) bufferBuilder, false, random, seed);
         isCallingVanilla = false;
     }
 
     private void setupOffsets() {
-        final AccessBufferBuilder buffer = fabricBuffer;
+        final AccessBufferBuilder buffer = (AccessBufferBuilder) bufferBuilder;
         final BlockPos pos = blockInfo.blockPos;
         offsetX = buffer.fabric_offsetX() + pos.getX();
         offsetY = buffer.fabric_offsetY() + pos.getY();
@@ -115,7 +116,7 @@ public class BlockRenderContext extends AbstractRenderContext implements RenderC
 
     private class MeshConsumer extends AbstractMeshConsumer {
         MeshConsumer(BlockRenderInfo blockInfo, ToIntBiFunction<BlockState, BlockPos> brightnessFunc,
-                Int2ObjectFunction<AccessBufferBuilder> bufferFunc, AoCalculator aoCalc, QuadTransform transform) {
+                Int2ObjectFunction<CompoundBufferBuilder> bufferFunc, AoCalculator aoCalc, QuadTransform transform) {
             super(blockInfo, brightnessFunc, bufferFunc, aoCalc, transform);
         }
 

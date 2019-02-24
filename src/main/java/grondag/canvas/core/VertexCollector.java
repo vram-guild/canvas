@@ -83,6 +83,8 @@ public class VertexCollector {
         this.add(Float.floatToRawIntBits(f));
     }
 
+    // TODO: should make cube offset this an explicit step at start of quad vs. checking for every vertex
+    
     public final void pos(final BlockPos pos, float modelX, float modelY, float modelZ) {
         // assumes first addition will always be position
         if (integerSize == 0 && parent != null)
