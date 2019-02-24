@@ -2,9 +2,6 @@ package grondag.canvas.api;
 
 /**
  * Implements and register
- * 
- * @author grondag
- *
  */
 public interface CanvasListener {
     /**
