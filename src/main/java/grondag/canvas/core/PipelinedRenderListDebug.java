@@ -49,7 +49,7 @@ public class PipelinedRenderListDebug extends AbstractPipelinedRenderList {
             final double ms = totalNanos / 1000000.0;
             String msg = this.isCanvasEnabled ? "ENABLED" : "Disabled";
             Canvas.INSTANCE.getLog()
-                    .info(String.format("renderChunkLayer %d frames / %d chunks / %d draws / %d quads (Acuity API %s)",
+                    .info(String.format("renderChunkLayer %d frames / %d chunks / %d draws / %d quads (Canvas Renderer %s)",
                             frameCounter, chunkCounter, drawCounter, quadCounter, msg));
             Canvas.INSTANCE.getLog().info(String.format("renderChunkLayer %f ms / %f ms / %f ms / %f ns",
                     ms / frameCounter, ms / chunkCounter, ms / drawCounter, (double) totalNanos / quadCounter));
