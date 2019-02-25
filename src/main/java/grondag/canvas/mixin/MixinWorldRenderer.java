@@ -26,9 +26,12 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import grondag.canvas.Canvas;
 import grondag.canvas.RendererImpl;
 import grondag.canvas.core.PipelineManager;
+import net.minecraft.block.BlockRenderLayer;
 import net.minecraft.client.render.VisibleRegion;
 import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.entity.Entity;
@@ -42,12 +45,29 @@ import net.minecraft.entity.Entity;
 @Mixin(WorldRenderer.class)
 public abstract class MixinWorldRenderer {
     @Inject(method = "setUpTerrain", at = @At("HEAD"), cancellable = false, require = 1)
-    void onPrepareTerrain(Entity cameraEntity, float fractionalTicks, VisibleRegion region, int int_1, boolean boolean_1, CallbackInfo ci) {
+    private void onPrepareTerrain(Entity cameraEntity, float fractionalTicks, VisibleRegion region, int int_1, boolean boolean_1, CallbackInfo ci) {
         PipelineManager.INSTANCE.prepareForFrame(cameraEntity, fractionalTicks);
     }
 
     @Inject(method = "reload", at = @At("HEAD"), cancellable = false, require = 1)
-    void onReload(CallbackInfo ci) {
+    private void onReload(CallbackInfo ci) {
         RendererImpl.INSTANCE.forceReload();
+    }
+    
+    @Inject(method = "renderLayer", at = @At("HEAD"), cancellable = false, require = 1)
+    private void onRenderLayer(BlockRenderLayer layer, double fractionalTick, Entity viewEntity, CallbackInfoReturnable<Integer> ci) {
+        if (Canvas.isModEnabled()) {
+            switch (layer) {
+
+            case CUTOUT:
+            case MIPPED_CUTOUT:
+                ci.setReturnValue(0);
+                
+            case SOLID:
+            case TRANSLUCENT:
+            default:
+                // nothing
+            }
+        }
     }
 }

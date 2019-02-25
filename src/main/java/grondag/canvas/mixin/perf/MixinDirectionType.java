@@ -29,7 +29,7 @@ import org.spongepowered.asm.mixin.Overwrite;
 
 import com.google.common.collect.Iterators;
 
-import grondag.canvas.hooks.PipelineHooks;
+import grondag.canvas.helper.DirectionHelper;
 import net.minecraft.util.math.Direction;
 
 @Mixin(Direction.Type.class)
@@ -42,10 +42,10 @@ public abstract class MixinDirectionType {
     public Iterator<Direction> iterator() {
         switch ((Direction.Type) (Object) this) {
         case HORIZONTAL:
-            return Iterators.<Direction>forArray(PipelineHooks.HORIZONTAL_FACES);
+            return Iterators.<Direction>forArray(DirectionHelper.HORIZONTAL_FACES);
 
         case VERTICAL:
-            return Iterators.<Direction>forArray(PipelineHooks.VERTICAL_FACES);
+            return Iterators.<Direction>forArray(DirectionHelper.VERTICAL_FACES);
 
         default:
             throw new Error("Someone's been tampering with the universe!");
