@@ -193,7 +193,7 @@ public final class PipelineManager {
 
         pipeline.uniform3f("u_fogColor", UniformRefreshFrequency.PER_TICK, u -> {
             AccessBackgroundRenderer fh = (AccessBackgroundRenderer) ((GameRendererExt) MinecraftClient
-                    .getInstance().worldRenderer).fogHelper();
+                    .getInstance().gameRenderer).fogHelper();
             u.set(fh.getRed(), fh.getGreen(), fh.getBlue());
         });
 

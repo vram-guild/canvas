@@ -32,7 +32,7 @@ public abstract class AbstractBuffer {
     }
     
     protected void bind() {
-        GLX.glBindBuffer(GLX.GL_ARRAY_BUFFER, this.glBufferId);
+        GLX.glBindBuffer(GLX.GL_ARRAY_BUFFER, this.glBufferId());
     }
 
     protected void unbind() {

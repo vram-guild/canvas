@@ -111,6 +111,7 @@ public class DrawableChunkDelegate {
 
         if (this.bufferDelegate.isDisposed())
             return;
+
         GlStateManager.drawArrays(GL11.GL_QUADS, 0, vertexCount);
     }
 

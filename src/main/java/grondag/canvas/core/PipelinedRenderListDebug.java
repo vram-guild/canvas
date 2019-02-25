@@ -47,7 +47,7 @@ public class PipelinedRenderListDebug extends AbstractPipelinedRenderList {
         totalNanos += duration;
         if (frameCounter >= 600) {
             final double ms = totalNanos / 1000000.0;
-            String msg = this.isAcuityEnabled ? "ENABLED" : "Disabled";
+            String msg = this.isCanvasEnabled ? "ENABLED" : "Disabled";
             Canvas.INSTANCE.getLog()
                     .info(String.format("renderChunkLayer %d frames / %d chunks / %d draws / %d quads (Acuity API %s)",
                             frameCounter, chunkCounter, drawCounter, quadCounter, msg));

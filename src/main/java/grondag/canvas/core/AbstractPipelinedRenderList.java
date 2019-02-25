@@ -30,7 +30,7 @@ import net.minecraft.client.render.chunk.ChunkRenderer;
 import net.minecraft.util.math.BlockPos;
 
 public class AbstractPipelinedRenderList implements CanvasListener {
-    public boolean isAcuityEnabled = Canvas.isModEnabled();
+    public boolean isCanvasEnabled = Canvas.isModEnabled();
 
     protected final ObjectArrayList<ChunkRenderer> chunks = new ObjectArrayList<ChunkRenderer>();
 
@@ -297,6 +297,6 @@ public class AbstractPipelinedRenderList implements CanvasListener {
 
     @Override
     public final void onStatusChange(boolean newEnabledStatus) {
-        this.isAcuityEnabled = newEnabledStatus;
+        this.isCanvasEnabled = newEnabledStatus;
     }
 }

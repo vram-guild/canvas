@@ -37,6 +37,8 @@ import net.minecraft.entity.Entity;
 // Computation is in class_852
 // See forge branch MixinVisGraph.onComputeVisibility for details
 
+// PERF: also set setupTerrain vs setupTerrainFast in Acuity
+
 @Mixin(WorldRenderer.class)
 public abstract class MixinWorldRenderer {
     @Inject(method = "setUpTerrain", at = @At("HEAD"), cancellable = false, require = 1)
