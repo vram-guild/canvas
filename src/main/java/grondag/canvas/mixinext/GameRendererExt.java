@@ -25,6 +25,5 @@ package grondag.canvas.mixinext;
 import net.minecraft.client.render.BackgroundRenderer;
 
 public interface GameRendererExt {
-    // TODO: rename
-    public BackgroundRenderer fogHelper();
+    public BackgroundRenderer canvas_fogHelper();
 }

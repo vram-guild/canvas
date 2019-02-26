@@ -35,7 +35,7 @@ public abstract class MixinGameRenderer implements GameRendererExt {
     private BackgroundRenderer backgroundRenderer;
 
     @Override
-    public BackgroundRenderer fogHelper() {
+    public BackgroundRenderer canvas_fogHelper() {
         return backgroundRenderer;
     }
 }
