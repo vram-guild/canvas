@@ -181,7 +181,7 @@ public class AbstractPipelinedRenderList implements CanvasListener {
         final FloatBuffer modelViewMatrixBuffer = this.modelViewMatrixBuffer;
         modelViewMatrixBuffer.position(0);
         GlStateManager.getMatrix(GL11.GL_MODELVIEW_MATRIX, modelViewMatrixBuffer);
-        mvMatrix.set(modelViewMatrixBuffer);
+        CanvasGlHelper.loadTransposeQuickly(modelViewMatrixBuffer, mvMatrix);
     }
 
     protected final void renderChunkLayerSolid() {

@@ -18,6 +18,7 @@ import grondag.canvas.mixin.AccessBackgroundRenderer;
 import grondag.canvas.mixinext.AccessFogState;
 import grondag.canvas.mixinext.FogStateHolder;
 import grondag.canvas.mixinext.GameRendererExt;
+import grondag.canvas.opengl.CanvasGlHelper;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.math.Vec3d;
@@ -211,7 +212,7 @@ public final class PipelineManager {
 
         projectionMatrixBuffer.position(0);
         GlStateManager.getMatrix(GL11.GL_PROJECTION_MATRIX, projectionMatrixBuffer);
-        projMatrix.set(projectionMatrixBuffer);
+        CanvasGlHelper.loadTransposeQuickly(projectionMatrixBuffer, projMatrix);
 
         assert cameraEntity != null;
         assert cameraEntity.getEntityWorld() != null;

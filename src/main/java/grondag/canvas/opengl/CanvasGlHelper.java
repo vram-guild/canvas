@@ -20,6 +20,7 @@ import org.lwjgl.opengl.GLCapabilities;
 
 import com.mojang.blaze3d.platform.GLX;
 
+import grondag.boson.org.joml.Matrix4f;
 import grondag.canvas.Canvas;
 import grondag.canvas.Configurator;
 import net.minecraft.client.resource.language.I18n;
@@ -217,5 +218,32 @@ public class CanvasGlHelper {
             ARBVertexArrayObject.glBindVertexArray(vaoBufferId);
         else
             GL30.glBindVertexArray(vaoBufferId);
+    }
+    
+    private static final float[] LOAD_ARRAY = new float[16];
+    
+    /**
+     * NOT THREAD SAFE
+     */
+    public static void loadTransposeQuickly(FloatBuffer source, Matrix4f dest)
+    {
+        final float[] load = LOAD_ARRAY;
+        source.get(load, 0, 16);
+        dest._m00(load[0]);
+        dest._m10(load[1]);
+        dest._m20(load[2]);
+        dest._m30(load[3]);
+        dest._m01(load[4]);
+        dest._m11(load[5]);
+        dest._m21(load[6]);
+        dest._m31(load[7]);
+        dest._m02(load[8]);
+        dest._m12(load[9]);
+        dest._m22(load[10]);
+        dest._m32(load[11]);
+        dest._m03(load[12]);
+        dest._m13(load[13]);
+        dest._m23(load[14]);
+        dest._m33(load[15]);
     }
 }
