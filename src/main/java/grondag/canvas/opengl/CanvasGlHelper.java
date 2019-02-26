@@ -7,8 +7,10 @@ import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
 
 import org.lwjgl.BufferUtils;
+import org.lwjgl.opengl.ARBVertexArrayObject;
 import org.lwjgl.opengl.ARBVertexBufferObject;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL15;
@@ -28,13 +30,15 @@ public class CanvasGlHelper {
     static boolean useVboArb;
     static private boolean asynchBufferMapEnabled;
     static private boolean vaoEnabled = false;
+    static private boolean useVaoArb = false;
 
     public static void init() {
         initFastNioCopy();
 
         GLCapabilities caps = GL.getCapabilities();
         useVboArb = !caps.OpenGL15 && caps.GL_ARB_vertex_buffer_object;
-        vaoEnabled = caps.glGenVertexArrays != 0 && caps.glBindVertexArray != 0 && caps.glDeleteVertexArrays != 0;
+        vaoEnabled = caps.GL_ARB_vertex_array_object || caps.OpenGL30;
+        useVaoArb = !caps.OpenGL30 && caps.GL_ARB_vertex_array_object;
         asynchBufferMapEnabled = caps.glFlushMappedBufferRange != 0 && caps.glMapBufferRange != 0;
     }
 
@@ -199,5 +203,19 @@ public class CanvasGlHelper {
             ARBVertexBufferObject.glBufferDataARB(target, size, usage);
         else
             GL15.glBufferData(target, size, usage);
+    }
+    
+    public static void glGenVertexArrays(IntBuffer arrays) {
+        if(useVaoArb)
+            ARBVertexArrayObject.glGenVertexArrays(arrays);
+        else
+            GL30.glGenVertexArrays(arrays);
+    }
+
+    public static void glBindVertexArray(int vaoBufferId) {
+        if(useVaoArb)
+            ARBVertexArrayObject.glBindVertexArray(vaoBufferId);
+        else
+            GL30.glBindVertexArray(vaoBufferId);
     }
 }

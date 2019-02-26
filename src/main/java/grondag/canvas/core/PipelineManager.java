@@ -232,23 +232,6 @@ public final class PipelineManager {
         }
     }
 
-    /**
-     * Called by our chunk render list before each round of chunk renders. Can be
-     * called multiple times per frame but we only update once per frame. Necessary
-     * because Forge doesn't provide a hook that happens after camera setup but
-     * before block rendering.
-     * <p>
-     * 
-     * Returns true if this was first pass so caller can handle 1x actions.
-     */
-    public boolean beforeRenderChunks() {
-
-        // TODO: Moved these to onRenderTick, still need a way to handle 1X detection
-        // better yet, get rid of this entirely
-
-        return true;
-    }
-
     public float renderSeconds() {
         return this.renderSeconds;
     }

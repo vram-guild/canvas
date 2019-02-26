@@ -2,8 +2,6 @@ package grondag.canvas.opengl;
 
 import java.nio.IntBuffer;
 
-import org.lwjgl.opengl.GL30;
-
 import it.unimi.dsi.fastutil.ints.IntArrayFIFOQueue;
 import net.minecraft.client.util.GlAllocationUtils;
 
@@ -21,7 +19,8 @@ public class VaoStore {
 
     public static int claimVertexArray() {
         if (queue.isEmpty()) {
-            GL30.glGenVertexArrays(buff);
+            
+            CanvasGlHelper.glGenVertexArrays(buff);
 
             for (int i = 0; i < 128; i++)
                 queue.enqueue(buff.get(i));

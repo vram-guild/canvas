@@ -9,13 +9,14 @@ import grondag.canvas.LoadingConfig;
 import grondag.canvas.core.AbstractPipelinedRenderList;
 import grondag.canvas.core.PipelinedRenderList;
 import grondag.canvas.core.PipelinedRenderListDebug;
+import grondag.canvas.mixinext.ChunkRendererListExt;
 import net.minecraft.block.BlockRenderLayer;
 import net.minecraft.client.render.chunk.ChunkRenderer;
 import net.minecraft.client.render.chunk.ChunkRendererList;
 import net.minecraft.client.render.chunk.VboChunkRendererList;
 
 @Mixin(VboChunkRendererList.class)
-public abstract class MixinVboChunkRendererList extends ChunkRendererList {
+public abstract class MixinVboChunkRendererList extends ChunkRendererList implements ChunkRendererListExt {
     private AbstractPipelinedRenderList ext;
     
     @Inject(method = "<init>*", at = @At("RETURN"), require = 1)
@@ -52,5 +53,10 @@ public abstract class MixinVboChunkRendererList extends ChunkRendererList {
             ext.renderChunkLayer(layer);
             ci.cancel();
         }
+    }
+    
+    @Override
+    public void canvas_prepareForFrame() {
+        ext.downloadModelViewMatrix();
     }
 }

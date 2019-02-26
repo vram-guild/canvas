@@ -5,7 +5,6 @@ import java.util.ArrayDeque;
 
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL30;
 
 import com.mojang.blaze3d.platform.GLX;
 import com.mojang.blaze3d.platform.GlStateManager;
@@ -178,7 +177,7 @@ public class AbstractPipelinedRenderList implements CanvasListener {
         GlStateManager.activeTexture(GLX.GL_TEXTURE0);
     }
 
-    private final void downloadModelViewMatrix() {
+    public final void downloadModelViewMatrix() {
         final FloatBuffer modelViewMatrixBuffer = this.modelViewMatrixBuffer;
         modelViewMatrixBuffer.position(0);
         GlStateManager.getMatrix(GL11.GL_MODELVIEW_MATRIX, modelViewMatrixBuffer);
@@ -186,14 +185,6 @@ public class AbstractPipelinedRenderList implements CanvasListener {
     }
 
     protected final void renderChunkLayerSolid() {
-        // UGLY: add hook for this
-        // Forge didn't give us a hook in the render loop that comes
-        // after camera transform is set up - so call out event handler
-        // here as a workaround. Our event handler will only act 1x/frame.
-        // Do this even if solid is empty, in case translucent layer needs it.
-        if (PipelineManager.INSTANCE.beforeRenderChunks())
-            downloadModelViewMatrix();
-
         if (this.solidCubes.isEmpty())
             return;
 
@@ -287,7 +278,7 @@ public class AbstractPipelinedRenderList implements CanvasListener {
 
     private final void postRenderCleanup() {
         if (CanvasGlHelper.isVaoEnabled())
-            GL30.glBindVertexArray(0);
+            CanvasGlHelper.glBindVertexArray(0);
 
         CanvasGlHelper.resetAttributes();
         GLX.glBindBuffer(GLX.GL_ARRAY_BUFFER, 0);

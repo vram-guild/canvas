@@ -23,6 +23,7 @@
 package grondag.canvas.mixin;
 
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -31,9 +32,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import grondag.canvas.Canvas;
 import grondag.canvas.RendererImpl;
 import grondag.canvas.core.PipelineManager;
+import grondag.canvas.mixinext.ChunkRendererListExt;
 import net.minecraft.block.BlockRenderLayer;
 import net.minecraft.client.render.VisibleRegion;
 import net.minecraft.client.render.WorldRenderer;
+import net.minecraft.client.render.chunk.ChunkRendererList;
 import net.minecraft.entity.Entity;
 
 // PERF: restore visibility hooks if profiling shows worthwhile
@@ -44,6 +47,8 @@ import net.minecraft.entity.Entity;
 
 @Mixin(WorldRenderer.class)
 public abstract class MixinWorldRenderer {
+    @Shadow private ChunkRendererList chunkRendererList;
+    
     @Inject(method = "setUpTerrain", at = @At("HEAD"), cancellable = false, require = 1)
     private void onPrepareTerrain(Entity cameraEntity, float fractionalTicks, VisibleRegion region, int int_1, boolean boolean_1, CallbackInfo ci) {
         PipelineManager.INSTANCE.prepareForFrame(cameraEntity, fractionalTicks);
@@ -54,7 +59,7 @@ public abstract class MixinWorldRenderer {
         RendererImpl.INSTANCE.forceReload();
     }
     
-    @Inject(method = "renderLayer", at = @At("HEAD"), cancellable = false, require = 1)
+    @Inject(method = "renderLayer", at = @At("HEAD"), cancellable = true, require = 1)
     private void onRenderLayer(BlockRenderLayer layer, double fractionalTick, Entity viewEntity, CallbackInfoReturnable<Integer> ci) {
         if (Canvas.isModEnabled()) {
             switch (layer) {
@@ -62,11 +67,17 @@ public abstract class MixinWorldRenderer {
             case CUTOUT:
             case MIPPED_CUTOUT:
                 ci.setReturnValue(0);
+                break;
                 
             case SOLID:
+                // Must happen after camera transform is set up and before chunk render
+                ((ChunkRendererListExt)chunkRendererList).canvas_prepareForFrame();
+                break;
+                
             case TRANSLUCENT:
             default:
                 // nothing
+                break;
             }
         }
     }

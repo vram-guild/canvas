@@ -1,7 +1,6 @@
 package grondag.canvas.buffering;
 
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL30;
 
 import com.mojang.blaze3d.platform.GlStateManager;
 
@@ -78,7 +77,7 @@ public class DrawableChunkDelegate {
             if (CanvasGlHelper.isVaoEnabled()) {
                 if (vaoBufferId == -1)
                     vaoBufferId = VaoStore.claimVertexArray();
-                GL30.glBindVertexArray(vaoBufferId);
+                CanvasGlHelper.glBindVertexArray(vaoBufferId);
                 GlStateManager.enableClientState(GL11.GL_VERTEX_ARRAY);
                 CanvasGlHelper.enableAttributesVao(format.attributeCount);
                 bindVertexAttributes(format);
@@ -88,7 +87,7 @@ public class DrawableChunkDelegate {
         }
 
         if (vaoBufferId > 0)
-            GL30.glBindVertexArray(vaoBufferId);
+            CanvasGlHelper.glBindVertexArray(vaoBufferId);
         else
             bindVertexAttributes(pipeline.piplineVertexFormat());
 
