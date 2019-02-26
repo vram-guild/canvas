@@ -26,7 +26,7 @@ public abstract class UploadableChunk<V extends DrawableChunk> {
 
         @Override
         public void accept(RenderPipeline pipeline, int vertexCount) {
-            final int stride = pipeline.piplineVertexFormat().stride;
+            final int stride = pipeline.piplineVertexFormat().vertexStrideBytes;
             // array offset will be zero unless multiple buffers are needed
             intOffset = 0;
             allocator.claimAllocation(pipeline, vertexCount * stride, ref -> {

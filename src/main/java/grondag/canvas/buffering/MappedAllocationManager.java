@@ -23,7 +23,7 @@ public class MappedAllocationManager extends AbstractAllocationManager implement
             MappedBuffer target = MappedBufferStore.getEmptyMapped();
             if (target == null)
                 return;
-            MappedBufferDelegate result = target.requestBytes(byteCount, pipeline.piplineVertexFormat().stride * 4);
+            MappedBufferDelegate result = target.requestBytes(byteCount, pipeline.piplineVertexFormat().vertexStrideBytes * 4);
             assert result != null;
             if (result == null)
                 return;

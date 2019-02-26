@@ -96,7 +96,7 @@ public class DrawableChunkDelegate {
     }
 
     private void bindVertexAttributes(PipelineVertexFormat format) {
-        GlStateManager.vertexPointer(3, VertexFormatElement.Format.FLOAT.getGlId(), format.stride,
+        GlStateManager.vertexPointer(3, VertexFormatElement.Format.FLOAT.getGlId(), format.vertexStrideBytes,
                 bufferDelegate.byteOffset());
         format.bindAttributeLocations(bufferDelegate.byteOffset());
     }

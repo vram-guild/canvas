@@ -52,7 +52,7 @@ public class VertexPackingList {
         }
         this.pipelines[size] = pipeline;
         this.counts[size] = vertexCount;
-        this.totalBytes += pipeline.piplineVertexFormat().stride * vertexCount;
+        this.totalBytes += pipeline.piplineVertexFormat().vertexStrideBytes * vertexCount;
         this.size++;
     }
 

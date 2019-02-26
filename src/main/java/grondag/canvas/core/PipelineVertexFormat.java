@@ -53,14 +53,16 @@ public enum PipelineVertexFormat {
     public final int layerIndex;
 
     public final int attributeCount;
-    public final int stride;
+    
+    /** vertex stride in bytes */
+    public final int vertexStrideBytes;
 
     private final PipelineVertextFormatElement[] elements;
 
     private PipelineVertexFormat(int layerIndex, VertexFormat vertexFormat) {
         this.layerIndex = layerIndex;
         this.vertexFormat = vertexFormat;
-        this.stride = vertexFormat.getVertexSize();
+        this.vertexStrideBytes = vertexFormat.getVertexSize();
         this.elements = vertexFormat.getElements()
                 .toArray(new PipelineVertextFormatElement[vertexFormat.getElementCount()]);
         int count = 0;
@@ -88,7 +90,7 @@ public enum PipelineVertexFormat {
         int index = 1;
         for (PipelineVertextFormatElement e : elements) {
             if (e.attributeName != null)
-                GL20.glVertexAttribPointer(index++, e.elementCount, e.glConstant, e.isNormalized, stride,
+                GL20.glVertexAttribPointer(index++, e.elementCount, e.glConstant, e.isNormalized, vertexStrideBytes,
                         bufferOffset + offset);
             offset += e.byteSize;
         }

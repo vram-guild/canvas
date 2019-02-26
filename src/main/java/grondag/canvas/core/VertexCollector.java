@@ -48,7 +48,7 @@ public class VertexCollector {
     }
 
     public int vertexCount() {
-        return this.integerSize * 4 / this.pipeline.piplineVertexFormat().stride;
+        return this.integerSize * 4 / this.pipeline.piplineVertexFormat().vertexStrideBytes;
     }
 
     public int[] rawData() {
@@ -90,7 +90,7 @@ public class VertexCollector {
         if (integerSize == 0 && parent != null)
             parent.setRenderOrigin(pos.getX(), pos.getY(), pos.getZ());
 
-        this.checkForSize(this.pipeline.piplineVertexFormat().stride);
+        this.checkForSize(this.pipeline.piplineVertexFormat().vertexStrideBytes);
         this.add(RenderCube.renderCubeRelative(pos.getX()) + modelX);
         this.add(RenderCube.renderCubeRelative(pos.getY()) + modelY);
         this.add(RenderCube.renderCubeRelative(pos.getZ()) + modelZ);
@@ -127,7 +127,7 @@ public class VertexCollector {
         private void doSort(VertexCollector caller, double x, double y, double z) {
             // works because 4 bytes per int
             data = caller.data;
-            quadIntStride = caller.pipeline.piplineVertexFormat().stride;
+            quadIntStride = caller.pipeline.piplineVertexFormat().vertexStrideBytes;
             final int vertexIntStride = quadIntStride / 4;
             final int quadCount = caller.vertexCount() / 4;
             if (perQuadDistance.length < quadCount)

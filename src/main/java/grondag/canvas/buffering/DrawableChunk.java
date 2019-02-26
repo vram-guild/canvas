@@ -31,6 +31,8 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
  */
 public abstract class DrawableChunk {
     protected boolean isCleared = false;
+    
+    private int quadCount = -1;
 
     protected ObjectArrayList<DrawableChunkDelegate> delegates;
 
@@ -39,13 +41,21 @@ public abstract class DrawableChunk {
     }
 
     public int drawCount() {
-        // TODO Auto-generated method stub
-        return 0;
+        return delegates.size();
     }
 
     public int quadCount() {
-        // TODO Auto-generated method stub
-        return 0;
+        int result = quadCount;
+        if(result == -1) {
+            result = 0;
+            final int limit = delegates.size();
+            for(int i = 0; i < limit; i++) {
+                DrawableChunkDelegate d = delegates.get(i);
+                result += d.bufferDelegate().byteCount() / d.getPipeline().piplineVertexFormat().vertexStrideBytes / 4;
+            }
+            quadCount = result;
+        }
+        return result;
     }
 
     /**
