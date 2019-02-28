@@ -1,6 +1,6 @@
 package grondag.canvas.api;
 
-import grondag.boson.org.joml.Matrix4f;
+import org.joml.Matrix4f;
 
 /**
  * Interfaces for uniform initialization. Called by renderer when uniform should
@@ -50,9 +50,8 @@ public interface Uniform {
         void set(int v0, int v1, int v2, int v3);
     }
 
+    @FunctionalInterface
     public interface UniformMatrix4f extends Uniform {
-        void set(float... elements);
-
         void set(Matrix4f matrix);
     }
 }
