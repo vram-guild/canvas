@@ -9,6 +9,7 @@ import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
+import org.joml.Matrix4f;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.ARBVertexArrayObject;
 import org.lwjgl.opengl.ARBVertexBufferObject;
@@ -20,7 +21,6 @@ import org.lwjgl.opengl.GLCapabilities;
 
 import com.mojang.blaze3d.platform.GLX;
 
-import grondag.boson.org.joml.Matrix4f;
 import grondag.canvas.Canvas;
 import grondag.canvas.Configurator;
 import net.minecraft.client.resource.language.I18n;
