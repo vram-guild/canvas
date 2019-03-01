@@ -9,7 +9,7 @@ import org.lwjgl.opengl.GL13;
 import com.mojang.blaze3d.platform.GLX;
 import com.mojang.blaze3d.platform.GlStateManager;
 
-import grondag.boson.org.joml.Matrix4f;
+import org.joml.Matrix4f;
 import grondag.canvas.Configurator;
 import grondag.canvas.RenderMaterialImpl;
 import grondag.canvas.api.UniformRefreshFrequency;
@@ -18,7 +18,6 @@ import grondag.canvas.mixin.AccessBackgroundRenderer;
 import grondag.canvas.mixinext.AccessFogState;
 import grondag.canvas.mixinext.FogStateHolder;
 import grondag.canvas.mixinext.GameRendererExt;
-import grondag.canvas.opengl.CanvasGlHelper;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.math.Vec3d;
@@ -56,7 +55,7 @@ public final class PipelineManager {
      * Current mv matrix - set at program activation
      */
     public static final FloatBuffer modelViewMatrixBuffer = BufferUtils.createFloatBuffer(16);
-
+    
     /**
      * Current mvp matrix - set at program activation
      */
@@ -174,11 +173,9 @@ public final class PipelineManager {
     private void addStandardUniforms(RenderPipeline pipeline) {
         pipeline.uniform1f("u_time", UniformRefreshFrequency.PER_FRAME, u -> u.set(renderSeconds));
 
-        pipeline.uniformSampler2d("u_textures", UniformRefreshFrequency.ON_LOAD,
-                u -> u.set(GLX.GL_TEXTURE0 - GL13.GL_TEXTURE0));
+        pipeline.uniformSampler2d("u_textures", UniformRefreshFrequency.ON_LOAD, u -> u.set(GLX.GL_TEXTURE0 - GL13.GL_TEXTURE0));
 
-        pipeline.uniformSampler2d("u_lightmap", UniformRefreshFrequency.ON_LOAD,
-                u -> u.set(GLX.GL_TEXTURE1 - GL13.GL_TEXTURE0));
+        pipeline.uniformSampler2d("u_lightmap", UniformRefreshFrequency.ON_LOAD, u -> u.set(GLX.GL_TEXTURE1 - GL13.GL_TEXTURE0));
 
         pipeline.uniform3f("u_eye_position", UniformRefreshFrequency.PER_FRAME, u -> {
             Vec3d eyePos = MinecraftClient.getInstance().player.getCameraPosVec(fractionalTicks);
@@ -212,7 +209,8 @@ public final class PipelineManager {
 
         projectionMatrixBuffer.position(0);
         GlStateManager.getMatrix(GL11.GL_PROJECTION_MATRIX, projectionMatrixBuffer);
-        CanvasGlHelper.loadTransposeQuickly(projectionMatrixBuffer, projMatrix);
+        projMatrix.set(projectionMatrixBuffer);
+        //CanvasGlHelper.loadTransposeQuickly(projectionMatrixBuffer, projMatrix);
 
         assert cameraEntity != null;
         assert cameraEntity.getEntityWorld() != null;
@@ -237,55 +235,6 @@ public final class PipelineManager {
         return this.renderSeconds;
     }
 
-//    private static final float[] transferArray = new float[16];
-//    
-//    private static void loadTransferArray(Matrix4f m)
-//    {
-//        final float[] transferArray = PipelineManager.transferArray;
-//        
-//        transferArray[0] = m.m00;
-//        transferArray[1] = m.m01;
-//        transferArray[2] = m.m02;
-//        transferArray[3] = m.m03;
-//        transferArray[4] = m.m10;
-//        transferArray[5] = m.m11;
-//        transferArray[6] = m.m12;
-//        transferArray[7] = m.m13;
-//        transferArray[8] = m.m20;
-//        transferArray[9] = m.m21;
-//        transferArray[10] = m.m22;
-//        transferArray[11] = m.m23;
-//        transferArray[12] = m.m30;
-//        transferArray[13] = m.m31;
-//        transferArray[14] = m.m32;
-//        transferArray[15] = m.m33;
-//    }
-
-//    private static final void loadMVPMatrix(final Matrix4f mvMatrix)
-//    {
-//        final Matrix4f p = PipelineManager.projMatrix;
-//        
-//        transferArray[0] = mvMatrix.m00 * p.m00 + mvMatrix.m10 * p.m01 + mvMatrix.m20 * p.m02 + mvMatrix.m30 * p.m03;
-//        transferArray[1] = mvMatrix.m01 * p.m00 + mvMatrix.m11 * p.m01 + mvMatrix.m21 * p.m02 + mvMatrix.m31 * p.m03;
-//        transferArray[2] = mvMatrix.m02 * p.m00 + mvMatrix.m12 * p.m01 + mvMatrix.m22 * p.m02 + mvMatrix.m32 * p.m03;
-//        transferArray[3] = mvMatrix.m03 * p.m00 + mvMatrix.m13 * p.m01 + mvMatrix.m23 * p.m02 + mvMatrix.m33 * p.m03;
-//        
-//        transferArray[4] = mvMatrix.m00 * p.m10 + mvMatrix.m10 * p.m11 + mvMatrix.m20 * p.m12 + mvMatrix.m30 * p.m13;
-//        transferArray[5] = mvMatrix.m01 * p.m10 + mvMatrix.m11 * p.m11 + mvMatrix.m21 * p.m12 + mvMatrix.m31 * p.m13;
-//        transferArray[6] = mvMatrix.m02 * p.m10 + mvMatrix.m12 * p.m11 + mvMatrix.m22 * p.m12 + mvMatrix.m32 * p.m13;
-//        transferArray[7] = mvMatrix.m03 * p.m10 + mvMatrix.m13 * p.m11 + mvMatrix.m23 * p.m12 + mvMatrix.m33 * p.m13;
-//        
-//        transferArray[8] = mvMatrix.m00 * p.m20 + mvMatrix.m10 * p.m21 + mvMatrix.m20 * p.m22 + mvMatrix.m30 * p.m23;
-//        transferArray[9] = mvMatrix.m01 * p.m20 + mvMatrix.m11 * p.m21 + mvMatrix.m21 * p.m22 + mvMatrix.m31 * p.m23;
-//        transferArray[10] = mvMatrix.m02 * p.m20 + mvMatrix.m12 * p.m21 + mvMatrix.m22 * p.m22 + mvMatrix.m32 * p.m23;
-//        transferArray[11] = mvMatrix.m03 * p.m20 + mvMatrix.m13 * p.m21 + mvMatrix.m23 * p.m22 + mvMatrix.m33 * p.m23;
-//        
-//        transferArray[12] = mvMatrix.m00 * p.m30 + mvMatrix.m10 * p.m31 + mvMatrix.m20 * p.m32 + mvMatrix.m30 * p.m33;
-//        transferArray[13] = mvMatrix.m01 * p.m30 + mvMatrix.m11 * p.m31 + mvMatrix.m21 * p.m32 + mvMatrix.m31 * p.m33;
-//        transferArray[14] = mvMatrix.m02 * p.m30 + mvMatrix.m12 * p.m31 + mvMatrix.m22 * p.m32 + mvMatrix.m32 * p.m33;
-//        transferArray[15] = mvMatrix.m03 * p.m30 + mvMatrix.m13 * p.m31 + mvMatrix.m23 * p.m32 + mvMatrix.m33 * p.m33;
-//    }
-
     public static final void setModelViewMatrix(Matrix4f mvMatrix) {
         updateModelViewMatrix(mvMatrix);
 
@@ -295,15 +244,11 @@ public final class PipelineManager {
     }
 
     private static final void updateModelViewMatrix(Matrix4f mvMatrix) {
-//        loadTransferArray(mvMatrix);
-//        
-//        // avoid NIO overhead
-//        OpenGlHelperExt.fastMatrix4fBufferCopy(transferArray, PipelineManager.modelViewMatrixBufferAddress);
         mvMatrix.get(modelViewMatrixBuffer);
     }
 
     private static final void updateModelViewProjectionMatrix(Matrix4f mvMatrix) {
-        mvMatrix.mul(projMatrix, mvpMatrix);
+        projMatrix.mul(mvMatrix, mvpMatrix);
         mvpMatrix.get(modelViewProjectionMatrixBuffer);
     }
 }

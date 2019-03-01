@@ -135,9 +135,11 @@ public class ChunkRenderInfo {
     void beginBlock() {
         final BlockState blockState = blockInfo.blockState;
         final BlockPos blockPos = blockInfo.blockPos;
-        offsetX = (float) (chunkOffsetX + blockPos.getX());
-        offsetY = (float) (chunkOffsetY + blockPos.getY());
-        offsetZ = (float) (chunkOffsetZ + blockPos.getZ());
+        // TODO: move rendercube offsets here - so can always be a 1-step process
+        // currently they are handled in VertexColor.pos()
+        offsetX = 0f; //(float) (chunkOffsetX + blockPos.getX());
+        offsetY = 0f; //(float) (chunkOffsetY + blockPos.getY());
+        offsetZ = 0f; //(float) (chunkOffsetZ + blockPos.getZ());
 
         if (blockState.getBlock().getOffsetType() != OffsetType.NONE) {
             Vec3d offset = blockState.getOffsetPos(blockInfo.blockView, blockPos);

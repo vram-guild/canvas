@@ -76,9 +76,9 @@ public abstract class AbstractQuadRenderer {
             output.add(q.spriteColor(i, 0));
             output.add(q.spriteU(i, 0));
             output.add(q.spriteV(i, 0));
-            int brightness = q.lightmap(0) >> 4;
-            int blockLight = brightness & 0xF;
-            int skyLight = (brightness >> 16) & 0xF;
+            int packedLight = q.lightmap(0);
+            int blockLight = ((packedLight >> 4) & 0xF) * 17;
+            int skyLight = ((packedLight >> 20) & 0xF) * 17;
             output.add(blockLight | (skyLight << 8) | (encodeFlags(q, renderLayer) << 16));
         }
     }

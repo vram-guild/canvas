@@ -72,8 +72,9 @@ public class DrawableChunkDelegate {
             lastBufferId = this.bufferDelegate.glBufferId();
         }
 
+        final PipelineVertexFormat format = pipeline.piplineVertexFormat();
+        
         if (vaoNeedsRefresh) {
-            final PipelineVertexFormat format = pipeline.piplineVertexFormat();
             if (CanvasGlHelper.isVaoEnabled()) {
                 if (vaoBufferId == -1)
                     vaoBufferId = VaoStore.claimVertexArray();
@@ -88,8 +89,11 @@ public class DrawableChunkDelegate {
 
         if (vaoBufferId > 0)
             CanvasGlHelper.glBindVertexArray(vaoBufferId);
-        else
-            bindVertexAttributes(pipeline.piplineVertexFormat());
+        else {
+            GlStateManager.vertexPointer(3, VertexFormatElement.Format.FLOAT.getGlId(), format.vertexStrideBytes,
+                    bufferDelegate.byteOffset());
+            format.enableAndBindAttributes(bufferDelegate.byteOffset());
+        }
 
         return lastBufferId;
 

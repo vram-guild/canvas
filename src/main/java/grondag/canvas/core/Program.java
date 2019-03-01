@@ -12,7 +12,7 @@ import com.mojang.blaze3d.platform.GLX;
 
 import org.lwjgl.opengl.GL11;
 
-import grondag.boson.org.joml.Matrix4f;
+import org.joml.Matrix4f;
 import grondag.canvas.Canvas;
 import grondag.canvas.Configurator;
 import grondag.canvas.core.PipelineManager;
@@ -428,13 +428,13 @@ public class Program {
     }
 
     private final void updateModelUniformsInner() {
-        if (this.modelViewUniform != null)
-            ;
-        this.modelViewUniform.uploadInner();
-
-        if (this.modelViewProjectionUniform != null)
-            ;
-        this.modelViewProjectionUniform.uploadInner();
+        if (this.modelViewUniform != null) {
+            this.modelViewUniform.uploadInner();
+        }
+        
+        if (this.modelViewProjectionUniform != null) {
+            this.modelViewProjectionUniform.uploadInner();
+        }
     }
 
     public final void activate() {
@@ -460,8 +460,7 @@ public class Program {
     public class UniformMatrix4fImpl extends UniformImpl<UniformMatrix4f> implements UniformMatrix4f {
         protected final FloatBuffer uniformFloatBuffer;
         protected final long bufferAddress;
-
-        protected final float[] lastValue = new float[16];
+        protected final Matrix4f lastValue = new Matrix4f();
 
         protected UniformMatrix4fImpl(String name, Consumer<UniformMatrix4f> initializer,
                 UniformRefreshFrequency frequency) {
@@ -480,40 +479,22 @@ public class Program {
 
         @Override
         public final void set(Matrix4f matrix) {
-            this.set(matrix.m00(), matrix.m01(), matrix.m02(), matrix.m03(), matrix.m10(), matrix.m11(), matrix.m12(),
-                    matrix.m13(), matrix.m20(), matrix.m21(), matrix.m22(), matrix.m23(), matrix.m30(), matrix.m31(),
-                    matrix.m32(), matrix.m33());
-        }
-
-        @Override
-        public final void set(float... elements) {
             if (this.unifID == -1)
                 return;
-            if (elements.length != 16)
-                throw new ArrayIndexOutOfBoundsException("Matrix arrays must have 16 elements");
-
-            if (lastValue[0] == elements[0] && lastValue[1] == elements[1] && lastValue[2] == elements[2]
-                    && lastValue[3] == elements[3] && lastValue[4] == elements[4] && lastValue[5] == elements[5]
-                    && lastValue[6] == elements[6] && lastValue[7] == elements[7] && lastValue[8] == elements[8]
-                    && lastValue[9] == elements[9] && lastValue[10] == elements[10] && lastValue[11] == elements[11]
-                    && lastValue[12] == elements[12] && lastValue[13] == elements[13] && lastValue[14] == elements[14]
-                    && lastValue[15] == elements[15])
+            
+            if(matrix == null || matrix.equals(lastValue))
                 return;
-
-            // avoid NIO overhead
-            if (CanvasGlHelper.isFastNioCopyEnabled())
-                CanvasGlHelper.fastMatrix4fBufferCopy(elements, bufferAddress);
-            else {
-                this.uniformFloatBuffer.put(elements, 0, 16);
-                this.uniformFloatBuffer.position(0);
-            }
-
+            
+            lastValue.set(matrix);
+            
+            matrix.get(this.uniformFloatBuffer);
+            
             this.setDirty();
         }
 
         @Override
         protected void uploadInner() {
-            GLX.glUniformMatrix4(this.unifID, true, this.uniformFloatBuffer);
+            GLX.glUniformMatrix4(this.unifID, false, this.uniformFloatBuffer);
         }
     }
 

@@ -3,13 +3,13 @@ package grondag.canvas.core;
 import java.nio.FloatBuffer;
 import java.util.ArrayDeque;
 
+import org.joml.Matrix4f;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 
 import com.mojang.blaze3d.platform.GLX;
 import com.mojang.blaze3d.platform.GlStateManager;
 
-import grondag.boson.org.joml.Matrix4f;
 import grondag.canvas.Canvas;
 import grondag.canvas.RendererImpl;
 import grondag.canvas.api.CanvasListener;
@@ -140,18 +140,17 @@ public class AbstractPipelinedRenderList implements CanvasListener {
         final Matrix4f mvPos = this.mvPos;
 
         // note row-major order in the matrix library we are using
-        xlatMatrix._m03((float) (ox - viewEntityX));
-        xlatMatrix._m13((float) (oy - viewEntityY));
-        xlatMatrix._m23((float) (oz - viewEntityZ));
-
-        xlatMatrix.mul(mvMatrix, mvPos);
+        xlatMatrix.m30((float) (ox - viewEntityX));
+        xlatMatrix.m31((float) (oy - viewEntityY));
+        xlatMatrix.m32((float) (oz - viewEntityZ));
+        mvMatrix.mul(xlatMatrix, mvPos);
 
         // vanilla applies a per-chunk scaling matrix, but does not seem to be essential
         // - probably a hack to prevent seams/holes due to FP error
         // If really is necessary, would want to handle some other way. Per-chunk matrix
         // not initialized when Acuity enabled.
 //        Matrix4f.mul(mvChunk, mvPos, mvPos);
-
+        
         PipelineManager.setModelViewMatrix(mvPos);
     }
 
@@ -181,7 +180,7 @@ public class AbstractPipelinedRenderList implements CanvasListener {
         final FloatBuffer modelViewMatrixBuffer = this.modelViewMatrixBuffer;
         modelViewMatrixBuffer.position(0);
         GlStateManager.getMatrix(GL11.GL_MODELVIEW_MATRIX, modelViewMatrixBuffer);
-        CanvasGlHelper.loadTransposeQuickly(modelViewMatrixBuffer, mvMatrix);
+        mvMatrix.set(modelViewMatrixBuffer);
     }
 
     protected final void renderChunkLayerSolid() {
