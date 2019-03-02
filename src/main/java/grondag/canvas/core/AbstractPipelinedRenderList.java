@@ -169,11 +169,11 @@ public class AbstractPipelinedRenderList implements CanvasListener {
 
     private final void disableUnusedAttributes() {
         GlStateManager.disableClientState(GL11.GL_COLOR_ARRAY);
-        GlStateManager.activeTexture(GLX.GL_TEXTURE0);
+        GLX.glClientActiveTexture(GLX.GL_TEXTURE0);
         GlStateManager.disableClientState(GL11.GL_TEXTURE_COORD_ARRAY);
-        GlStateManager.activeTexture(GLX.GL_TEXTURE1);
+        GLX.glClientActiveTexture(GLX.GL_TEXTURE1);
         GlStateManager.disableClientState(GL11.GL_TEXTURE_COORD_ARRAY);
-        GlStateManager.activeTexture(GLX.GL_TEXTURE0);
+        GLX.glClientActiveTexture(GLX.GL_TEXTURE0);
     }
 
     public final void downloadModelViewMatrix() {
