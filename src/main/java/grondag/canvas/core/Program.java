@@ -5,17 +5,14 @@ import java.nio.IntBuffer;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
+import org.joml.Matrix4f;
 import org.lwjgl.BufferUtils;
+import org.lwjgl.opengl.GL11;
 import org.lwjgl.system.MemoryUtil;
 
 import com.mojang.blaze3d.platform.GLX;
 
-import org.lwjgl.opengl.GL11;
-
-import org.joml.Matrix4f;
 import grondag.canvas.Canvas;
-import grondag.canvas.Configurator;
-import grondag.canvas.core.PipelineManager;
 import grondag.canvas.opengl.CanvasGlHelper;
 import grondag.frex.api.Uniform;
 import grondag.frex.api.Uniform.Uniform1f;
@@ -33,7 +30,7 @@ import net.minecraft.client.resource.language.I18n;
 
 public class Program {
     private static Program activeProgram;
-
+    
     public static void deactivate() {
         activeProgram = null;
         GLX.glUseProgram(0);
@@ -46,6 +43,7 @@ public class Program {
     public final PipelineFragmentShader fragmentShader;
     public final int spriteDepth;
     public final boolean isSolidLayer;
+    public final PipelineVertexFormat pipelineVertexFormat;
 
     private final ObjectArrayList<UniformImpl<?>> uniforms = new ObjectArrayList<>();
     private final ObjectArrayList<UniformImpl<?>> renderTickUpdates = new ObjectArrayList<>();
@@ -407,6 +405,7 @@ public class Program {
         this.vertexShader = vertexShader;
         this.fragmentShader = fragmentShader;
         this.spriteDepth = spriteDepth;
+        this.pipelineVertexFormat = PipelineManager.FORMATS[spriteDepth - 1];
         this.isSolidLayer = isSolidLayer;
     }
 
@@ -556,7 +555,7 @@ public class Program {
         GLX.glAttachShader(programID, vertId);
         GLX.glAttachShader(programID, fragId);
 
-        Configurator.lightingModel.vertexFormat(this.spriteDepth).bindProgramAttributes(programID);
+        pipelineVertexFormat.bindProgramAttributes(programID);
 
         GLX.glLinkProgram(programID);
         if (GLX.glGetProgrami(programID, GLX.GL_LINK_STATUS) == GL11.GL_FALSE) {

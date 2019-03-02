@@ -23,6 +23,8 @@ import net.minecraft.entity.Entity;
 import net.minecraft.util.math.Vec3d;
 
 public final class PipelineManager {
+    static final PipelineVertexFormat[] FORMATS = PipelineVertexFormat.values();
+    
     /**
      * Will always be 1, defined to clarify intent in code.
      */

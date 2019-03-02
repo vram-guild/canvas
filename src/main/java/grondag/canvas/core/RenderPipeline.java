@@ -2,23 +2,16 @@ package grondag.canvas.core;
 
 import java.util.function.Consumer;
 
-import grondag.canvas.Configurator;
+import grondag.frex.api.Uniform.Uniform1f;
 import grondag.frex.api.Uniform.Uniform1i;
+import grondag.frex.api.Uniform.Uniform2f;
 import grondag.frex.api.Uniform.Uniform2i;
+import grondag.frex.api.Uniform.Uniform3f;
 import grondag.frex.api.Uniform.Uniform3i;
+import grondag.frex.api.Uniform.Uniform4f;
 import grondag.frex.api.Uniform.Uniform4i;
 import grondag.frex.api.Uniform.UniformMatrix4f;
-import grondag.frex.api.Uniform.Uniform1f;
-import grondag.frex.api.Uniform.Uniform2f;
-import grondag.frex.api.Uniform.Uniform3f;
-import grondag.frex.api.Uniform.Uniform4f;
-
 import grondag.frex.api.UniformRefreshFrequency;
-import grondag.canvas.core.PipelineFragmentShader;
-import grondag.canvas.core.PipelineShaderManager;
-import grondag.canvas.core.PipelineVertexFormat;
-import grondag.canvas.core.PipelineVertexShader;
-import grondag.canvas.core.Program;
 import net.minecraft.client.render.VertexFormat;
 import net.minecraft.client.resource.language.I18n;
 
@@ -44,7 +37,8 @@ public final class RenderPipeline {
 
         this.index = index;
         this.spriteDepth = spriteDepth;
-        this.refreshVertexFormats();
+        pipelineVertexFormat = PipelineManager.FORMATS[spriteDepth - 1];
+        vertexFormat = pipelineVertexFormat.vertexFormat;
     }
 
     public void activate(boolean isSolidLayer) {
@@ -57,12 +51,6 @@ public final class RenderPipeline {
     public void forceReload() {
         this.solidProgram.forceReload();
         this.translucentProgram.forceReload();
-        this.refreshVertexFormats();
-    }
-
-    public void refreshVertexFormats() {
-        this.pipelineVertexFormat = Configurator.lightingModel.vertexFormat(this.spriteDepth);
-        this.vertexFormat = this.pipelineVertexFormat.vertexFormat;
     }
 
     public int spriteDepth() {

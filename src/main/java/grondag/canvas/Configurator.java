@@ -1,6 +1,5 @@
 package grondag.canvas;
 
-import grondag.canvas.core.LightingModel;
 import net.minecraft.client.MinecraftClient;
 
 //@LangKey("config.general")
@@ -24,13 +23,6 @@ public class Configurator {
 //    @Comment({"Enable fancy water and lava rendering.",
 //        " This feature is currently work in progress and has no visible effect if enabled."})
     public static boolean fancyFluids = false;
-
-//    @LangKey("config.lighting_model")
-//    @Comment({"Lighting model used for rendering. (Currently only one is available.)",
-//        " Changing will reload all renderers and models.",
-//        " Has no effect if Acuity is disabled because of ASM failures."})
-//    
-    public static LightingModel lightingModel = LightingModel.CLASSIC;
 
 //    @LangKey("config.enable_render_stats")
 //    @RequiresMcRestart
@@ -63,12 +55,11 @@ public class Configurator {
 
     public static void handleChange() // PostConfigChangedEvent event)
     {
-        LightingModel oldModel = lightingModel;
         boolean oldFancyFluids = fancyFluids;
         boolean oldVAO = enable_vao;
 
 //        ConfigManager.sync(Acuity.MODID, Config.Type.INSTANCE);
-        if (oldModel != Configurator.lightingModel || oldFancyFluids != fancyFluids || oldVAO != enable_vao) {
+        if (oldFancyFluids != fancyFluids || oldVAO != enable_vao) {
             RendererImpl.INSTANCE.forceReload();
 
             // refresh appearances
