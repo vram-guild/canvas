@@ -1,4 +1,4 @@
-//attribute vec4 in_normal_ao;
+attribute vec4 in_normal_ao;
 attribute vec4 in_color_0;
 attribute vec2 in_uv_0;
 attribute vec4 in_lightmap;

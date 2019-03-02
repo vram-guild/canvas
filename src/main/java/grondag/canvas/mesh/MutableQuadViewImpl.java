@@ -46,8 +46,7 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 
     public void clear() {
         System.arraycopy(EMPTY, 0, data, baseIndex, EncodingFormat.MAX_STRIDE);
-        isFaceNormalInvalid = true;
-        isGeometryInvalid = true;
+        invalidateShape();
         normalFlags = 0;
         tag = 0;
         colorIndex = -1;
@@ -133,7 +132,7 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
         data[index] = Float.floatToRawIntBits(x);
         data[index + 1] = Float.floatToRawIntBits(y);
         data[index + 2] = Float.floatToRawIntBits(z);
-        isFaceNormalInvalid = true;
+        invalidateShape();
         return this;
     }
 

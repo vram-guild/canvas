@@ -53,6 +53,7 @@ public class QuadViewImpl implements QuadView {
     protected int geometryFlags;
     protected boolean isGeometryInvalid = true;
     protected final Vector3f faceNormal = new Vector3f();
+    protected int packedFaceNormal = -1;
     protected boolean isFaceNormalInvalid = true;
 
     /**
@@ -81,6 +82,7 @@ public class QuadViewImpl implements QuadView {
     public final void invalidateShape() {
         isFaceNormalInvalid = true;
         isGeometryInvalid = true;
+        packedFaceNormal = -1;
     }
 
     /**
@@ -90,6 +92,7 @@ public class QuadViewImpl implements QuadView {
     public final void load() {
         // face normal isn't encoded but geometry flags are
         isFaceNormalInvalid = true;
+        packedFaceNormal = -1;
         isGeometryInvalid = false;
         decodeHeader();
     }
@@ -252,6 +255,15 @@ public class QuadViewImpl implements QuadView {
         return faceNormal;
     }
 
+    public int packedFaceNormal() {
+        int result = packedFaceNormal;
+        if(result == -1) {
+            result = NormalHelper.packNormal(this.faceNormal(), 0);
+            packedFaceNormal = result;
+        }
+        return result;
+    }
+    
     @Override
     public void copyTo(MutableQuadView target) {
         MutableQuadViewImpl quad = (MutableQuadViewImpl) target;
@@ -263,6 +275,7 @@ public class QuadViewImpl implements QuadView {
         quad.isFaceNormalInvalid = this.isFaceNormalInvalid;
         if (!this.isFaceNormalInvalid) {
             quad.faceNormal.set(this.faceNormal.x(), this.faceNormal.y(), this.faceNormal.z());
+            quad.packedFaceNormal = this.packedFaceNormal;
         }
         quad.lightFace = this.lightFace;
         quad.colorIndex = this.colorIndex;
@@ -323,6 +336,10 @@ public class QuadViewImpl implements QuadView {
         }
     }
 
+    public int packedNormal(int vertexIndex) {
+        return hasNormal(vertexIndex) ? data[baseIndex + VERTEX_START_OFFSET + VANILLA_STRIDE + vertexIndex] : packedFaceNormal();
+    }
+    
     @Override
     public float normalX(int vertexIndex) {
         return hasNormal(vertexIndex)

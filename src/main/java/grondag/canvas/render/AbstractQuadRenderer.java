@@ -80,6 +80,7 @@ public abstract class AbstractQuadRenderer {
             int blockLight = ((packedLight >> 4) & 0xF) * 17;
             int skyLight = ((packedLight >> 20) & 0xF) * 17;
             output.add(blockLight | (skyLight << 8) | (encodeFlags(q, renderLayer) << 16));
+            output.add(q.packedNormal(i));
         }
     }
 

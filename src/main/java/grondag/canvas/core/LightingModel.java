@@ -3,7 +3,7 @@ package grondag.canvas.core;
 import static grondag.canvas.core.PipelineVertexFormat.*;
 
 public enum LightingModel {
-    CLASSIC(VANILLA_SINGLE, VANILLA_DOUBLE, VANILLA_TRIPLE);
+    CLASSIC(SINGLE, DOUBLE, TRIPLE);
 
 //    EHNANCED(ENHANCED_SINGLE, ENHANCED_DOUBLE, ENHANCED_TRIPLE)
 //    {
