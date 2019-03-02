@@ -27,16 +27,16 @@ import net.fabricmc.fabric.api.client.model.fabric.MeshBuilder;
 import net.fabricmc.fabric.api.client.model.fabric.RenderMaterial;
 import grondag.canvas.core.PipelineManager;
 import grondag.canvas.RenderMaterialImpl.Value;
-import grondag.canvas.api.CanvasListener;
-import grondag.canvas.api.CanvasRenderer;
-import grondag.canvas.api.ShaderManager;
 import grondag.canvas.buffering.BufferManager;
 import grondag.canvas.core.PipelineShaderManager;
 import grondag.canvas.mesh.MeshBuilderImpl;
+import grondag.frex.api.ExtendedRenderer;
+import grondag.frex.api.RenderListener;
+import grondag.frex.api.ShaderManager;
 import net.minecraft.client.resource.language.I18n;
 import net.minecraft.util.Identifier;
 
-public class RendererImpl implements CanvasRenderer {
+public class RendererImpl implements ExtendedRenderer {
     public static final RendererImpl INSTANCE = new RendererImpl();
 
     public static final RenderMaterialImpl.Value MATERIAL_STANDARD = (Value) INSTANCE.materialFinder().find();
@@ -47,7 +47,7 @@ public class RendererImpl implements CanvasRenderer {
 
     private final HashMap<Identifier, RenderMaterial> materialMap = new HashMap<>();
 
-    private final ArrayList<WeakReference<CanvasListener>> listeners = new ArrayList<WeakReference<CanvasListener>>();
+    private final ArrayList<WeakReference<RenderListener>> listeners = new ArrayList<WeakReference<RenderListener>>();
 
     private RendererImpl() {
     };
@@ -90,11 +90,11 @@ public class RendererImpl implements CanvasRenderer {
         forEachListener(c -> c.onRenderReload());
     }
 
-    public void forEachListener(Consumer<CanvasListener> c) {
-        Iterator<WeakReference<CanvasListener>> it = this.listeners.iterator();
+    public void forEachListener(Consumer<RenderListener> c) {
+        Iterator<WeakReference<RenderListener>> it = this.listeners.iterator();
         while (it.hasNext()) {
-            WeakReference<CanvasListener> ref = it.next();
-            CanvasListener listener = ref.get();
+            WeakReference<RenderListener> ref = it.next();
+            RenderListener listener = ref.get();
             if (listener == null)
                 it.remove();
             else
@@ -108,7 +108,7 @@ public class RendererImpl implements CanvasRenderer {
     }
 
     @Override
-    public void registerListener(CanvasListener listener) {
-        this.listeners.add(new WeakReference<CanvasListener>(listener));
+    public void registerListener(RenderListener listener) {
+        this.listeners.add(new WeakReference<RenderListener>(listener));
     }
 }

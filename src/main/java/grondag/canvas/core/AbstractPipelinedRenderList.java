@@ -12,11 +12,11 @@ import com.mojang.blaze3d.platform.GlStateManager;
 
 import grondag.canvas.Canvas;
 import grondag.canvas.RendererImpl;
-import grondag.canvas.api.CanvasListener;
 import grondag.canvas.buffering.DrawableChunk;
 import grondag.canvas.buffering.DrawableChunkDelegate;
 import grondag.canvas.mixinext.ChunkRendererExt;
 import grondag.canvas.opengl.CanvasGlHelper;
+import grondag.frex.api.RenderListener;
 import it.unimi.dsi.fastutil.Arrays;
 import it.unimi.dsi.fastutil.Swapper;
 import it.unimi.dsi.fastutil.ints.AbstractIntComparator;
@@ -28,7 +28,7 @@ import net.minecraft.block.BlockRenderLayer;
 import net.minecraft.client.render.chunk.ChunkRenderer;
 import net.minecraft.util.math.BlockPos;
 
-public class AbstractPipelinedRenderList implements CanvasListener {
+public class AbstractPipelinedRenderList implements RenderListener {
     public boolean isCanvasEnabled = Canvas.isModEnabled();
 
     protected final ObjectArrayList<ChunkRenderer> chunks = new ObjectArrayList<ChunkRenderer>();

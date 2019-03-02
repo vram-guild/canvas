@@ -113,7 +113,7 @@ public abstract class ColorHelper {
      * See {@link diffuseShade}
      */
     public static float vertexShade(ShadeableQuad q, int vertexIndex, float faceShade) {
-        return q.hasNormal(vertexIndex) ? normalShade(q.normX(vertexIndex), q.normY(vertexIndex), q.normZ(vertexIndex))
+        return q.hasNormal(vertexIndex) ? normalShade(q.normalX(vertexIndex), q.normalY(vertexIndex), q.normalZ(vertexIndex))
                 : faceShade;
     }
 

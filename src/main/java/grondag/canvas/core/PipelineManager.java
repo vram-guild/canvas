@@ -12,7 +12,7 @@ import com.mojang.blaze3d.platform.GlStateManager;
 import org.joml.Matrix4f;
 import grondag.canvas.Configurator;
 import grondag.canvas.RenderMaterialImpl;
-import grondag.canvas.api.UniformRefreshFrequency;
+import grondag.frex.api.UniformRefreshFrequency;
 import grondag.canvas.buffering.BufferManager;
 import grondag.canvas.mixin.AccessBackgroundRenderer;
 import grondag.canvas.mixinext.AccessFogState;

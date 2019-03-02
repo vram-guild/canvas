@@ -138,9 +138,9 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
     }
 
     @Override
-    public MutableQuadViewImpl normal(int vertexIndex, float x, float y, float z, float extra) {
+    public MutableQuadViewImpl normal(int vertexIndex, float x, float y, float z) {
         normalFlags |= (1 << vertexIndex);
-        data[baseIndex + VERTEX_START_OFFSET + VANILLA_STRIDE + vertexIndex] = NormalHelper.packNormal(x, y, z, extra);
+        data[baseIndex + VERTEX_START_OFFSET + VANILLA_STRIDE + vertexIndex] = NormalHelper.packNormal(x, y, z, 0);
         return this;
     }
 

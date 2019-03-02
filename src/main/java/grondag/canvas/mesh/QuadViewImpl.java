@@ -27,13 +27,12 @@ import static grondag.canvas.mesh.EncodingFormat.THIRD_TEXTURE_OFFSET;
 import static grondag.canvas.mesh.EncodingFormat.VANILLA_STRIDE;
 import static grondag.canvas.mesh.EncodingFormat.VERTEX_START_OFFSET;
 
-import net.fabricmc.fabric.api.client.model.fabric.QuadView;
-import net.fabricmc.fabric.api.client.model.fabric.MutableQuadView;
 import grondag.canvas.RenderMaterialImpl;
 import grondag.canvas.helper.GeometryHelper;
 import grondag.canvas.helper.NormalHelper;
+import net.fabricmc.fabric.api.client.model.fabric.MutableQuadView;
+import net.fabricmc.fabric.api.client.model.fabric.QuadView;
 import net.minecraft.client.util.math.Vector3f;
-import net.minecraft.client.util.math.Vector4f;
 import net.minecraft.util.math.Direction;
 
 /**
@@ -325,23 +324,7 @@ public class QuadViewImpl implements QuadView {
     }
 
     @Override
-    public Vector4f copyNormal(int vertexIndex, Vector4f target) {
-        if (hasNormal(vertexIndex)) {
-            if (target == null) {
-                target = new Vector4f();
-            }
-            final int normal = data[vertexStart() + VANILLA_STRIDE + vertexIndex];
-            target.set(NormalHelper.getPackedNormalComponent(normal, 0),
-                    NormalHelper.getPackedNormalComponent(normal, 1), NormalHelper.getPackedNormalComponent(normal, 2),
-                    NormalHelper.getPackedNormalComponent(normal, 3));
-            return target;
-        } else {
-            return null;
-        }
-    }
-
-    @Override
-    public float normX(int vertexIndex) {
+    public float normalX(int vertexIndex) {
         return hasNormal(vertexIndex)
                 ? NormalHelper.getPackedNormalComponent(
                         data[baseIndex + VERTEX_START_OFFSET + VANILLA_STRIDE + vertexIndex], 0)
@@ -349,7 +332,7 @@ public class QuadViewImpl implements QuadView {
     }
 
     @Override
-    public float normY(int vertexIndex) {
+    public float normalY(int vertexIndex) {
         return hasNormal(vertexIndex)
                 ? NormalHelper.getPackedNormalComponent(
                         data[baseIndex + VERTEX_START_OFFSET + VANILLA_STRIDE + vertexIndex], 1)
@@ -357,18 +340,10 @@ public class QuadViewImpl implements QuadView {
     }
 
     @Override
-    public float normZ(int vertexIndex) {
+    public float normalZ(int vertexIndex) {
         return hasNormal(vertexIndex)
                 ? NormalHelper.getPackedNormalComponent(
                         data[baseIndex + VERTEX_START_OFFSET + VANILLA_STRIDE + vertexIndex], 2)
-                : Float.NaN;
-    }
-
-    @Override
-    public float normExtra(int vertexIndex) {
-        return hasNormal(vertexIndex)
-                ? NormalHelper.getPackedNormalComponent(
-                        data[baseIndex + VERTEX_START_OFFSET + VANILLA_STRIDE + vertexIndex], 3)
                 : Float.NaN;
     }
 
