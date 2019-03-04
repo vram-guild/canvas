@@ -105,7 +105,7 @@ public abstract class AbstractQuadRenderer {
         // mipped indicator
         // all are mipped except the one that isn't
         // TODO: handle multiple layers?
-        if(renderLayer != BlockRenderLayer.MIPPED_CUTOUT.ordinal())
+        if(renderLayer == BlockRenderLayer.CUTOUT.ordinal())
             result |= 0b00001000;
         
         // cutout indicator
