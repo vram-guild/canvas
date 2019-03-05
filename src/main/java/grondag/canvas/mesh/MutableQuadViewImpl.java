@@ -164,7 +164,7 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
     }
 
     @Override
-    public MutableQuadViewImpl sprite(int spriteIndex, Sprite sprite, int bakeFlags) {
+    public MutableQuadViewImpl spriteBake(int spriteIndex, Sprite sprite, int bakeFlags) {
         TextureHelper.bakeSprite(this, spriteIndex, sprite, bakeFlags);
         return this;
     }

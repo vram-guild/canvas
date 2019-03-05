@@ -22,17 +22,17 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.function.Consumer;
 
-import net.fabricmc.fabric.api.client.model.fabric.MaterialFinder;
-import net.fabricmc.fabric.api.client.model.fabric.MeshBuilder;
-import net.fabricmc.fabric.api.client.model.fabric.RenderMaterial;
-import grondag.canvas.core.PipelineManager;
 import grondag.canvas.RenderMaterialImpl.Value;
 import grondag.canvas.buffering.BufferManager;
+import grondag.canvas.core.PipelineManager;
 import grondag.canvas.core.PipelineShaderManager;
 import grondag.canvas.mesh.MeshBuilderImpl;
 import grondag.frex.api.ExtendedRenderer;
 import grondag.frex.api.RenderListener;
 import grondag.frex.api.ShaderManager;
+import net.fabricmc.fabric.api.client.model.fabric.MaterialFinder;
+import net.fabricmc.fabric.api.client.model.fabric.MeshBuilder;
+import net.fabricmc.fabric.api.client.model.fabric.RenderMaterial;
 import net.minecraft.client.resource.language.I18n;
 import net.minecraft.util.Identifier;
 
@@ -40,11 +40,22 @@ public class RendererImpl implements ExtendedRenderer {
     public static final RendererImpl INSTANCE = new RendererImpl();
 
     public static final RenderMaterialImpl.Value MATERIAL_STANDARD = (Value) INSTANCE.materialFinder().find();
+//    private static final Value[] VANILLA_MATERIALS = new Value[4];
+
 
     static {
         INSTANCE.registerMaterial(RenderMaterial.MATERIAL_STANDARD, MATERIAL_STANDARD);
+        
+//        Finder finder = new Finder();
+//        for(BlockRenderLayer layer : RenderMaterialImpl.BLEND_MODES) {
+//            VANILLA_MATERIALS[layer.ordinal()] = finder.clear().blendMode(0, layer).find();
+//        }
     }
 
+//    public static Value vanillaMaterial(BlockRenderLayer layer) {
+//        return VANILLA_MATERIALS[layer.ordinal()];
+//    }
+    
     private final HashMap<Identifier, RenderMaterial> materialMap = new HashMap<>();
 
     private final ArrayList<WeakReference<RenderListener>> listeners = new ArrayList<WeakReference<RenderListener>>();

@@ -4,8 +4,7 @@ plugins {
 
 repositories {
     flatDir {
-        dirs '../localdeps'
-        dirs '../boson/build/libs'
+        dirs '../fabric/build/libs'
         dirs '../fermion/build/libs'
         dirs '../frex/build/libs'
     }

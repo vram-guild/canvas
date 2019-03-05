@@ -6,6 +6,7 @@ import java.util.Set;
 
 import com.google.common.collect.Sets;
 
+import grondag.canvas.core.FluidBufferBuilder;
 import net.minecraft.class_852;
 import net.minecraft.block.BlockRenderLayer;
 import net.minecraft.block.entity.BlockEntity;
@@ -37,7 +38,8 @@ public class ChunkRebuildHelper {
     public final class_852 visGraph = new class_852();
     public final Random random = new Random();
     private final BufferBuilder[] builders = new BufferBuilder[BLOCK_RENDER_LAYER_COUNT];
-
+    public final FluidBufferBuilder fluidBuilder = new FluidBufferBuilder();
+    
     public BufferBuilder[] builders(BlockLayeredBufferBuilder regionCache) {
         builders[BlockRenderLayer.SOLID.ordinal()] = regionCache.get(BlockRenderLayer.SOLID);
         builders[BlockRenderLayer.CUTOUT.ordinal()] = regionCache.get(BlockRenderLayer.CUTOUT);

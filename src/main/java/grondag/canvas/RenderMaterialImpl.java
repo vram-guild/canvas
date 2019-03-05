@@ -23,8 +23,8 @@ import net.fabricmc.fabric.api.client.model.fabric.RenderMaterial;
 import net.minecraft.block.BlockRenderLayer;
 
 public abstract class RenderMaterialImpl {
-    private static final BlockRenderLayer[] BLEND_MODES = BlockRenderLayer.values();
-
+    static final BlockRenderLayer[] BLEND_MODES = BlockRenderLayer.values();
+    
     public static final int MAX_SPRITE_DEPTH = 3;
 
     private static final int TEXTURE_DEPTH_MASK = 3;
@@ -51,7 +51,7 @@ public abstract class RenderMaterialImpl {
 
     static private final ObjectArrayList<Value> LIST = new ObjectArrayList<>();
     static private final Int2ObjectOpenHashMap<Value> MAP = new Int2ObjectOpenHashMap<>();
-
+    
     public static RenderMaterialImpl.Value byIndex(int index) {
         return LIST.get(index);
     }
@@ -111,7 +111,7 @@ public abstract class RenderMaterialImpl {
 
     public static class Finder extends RenderMaterialImpl implements MaterialFinder {
         @Override
-        public synchronized RenderMaterial find() {
+        public synchronized Value find() {
             Value result = MAP.get(bits);
             if (result == null) {
                 result = new Value(LIST.size(), bits);
@@ -122,21 +122,27 @@ public abstract class RenderMaterialImpl {
         }
 
         @Override
-        public MaterialFinder blendMode(int textureIndex, BlockRenderLayer blendMode) {
+        public Finder clear() {
+            bits = 0;
+            return this;
+        }
+        
+        @Override
+        public Finder blendMode(int textureIndex, BlockRenderLayer blendMode) {
             final int shift = BLEND_MODE_SHIFT[textureIndex];
             bits = (bits & ~(BLEND_MODE_MASK << shift)) | (blendMode.ordinal() << shift);
             return this;
         }
 
         @Override
-        public MaterialFinder disableColorIndex(int textureIndex, boolean disable) {
+        public Finder disableColorIndex(int textureIndex, boolean disable) {
             final int flag = COLOR_DISABLE_FLAGS[textureIndex];
             bits = disable ? (bits | flag) : (bits & ~flag);
             return this;
         }
 
         @Override
-        public MaterialFinder spriteDepth(int depth) {
+        public Finder spriteDepth(int depth) {
             if (depth < 1 || depth > MAX_SPRITE_DEPTH) {
                 throw new IndexOutOfBoundsException("Invalid sprite depth: " + depth);
             }
@@ -145,21 +151,21 @@ public abstract class RenderMaterialImpl {
         }
 
         @Override
-        public MaterialFinder emissive(int textureIndex, boolean isEmissive) {
+        public Finder emissive(int textureIndex, boolean isEmissive) {
             final int flag = EMISSIVE_FLAGS[textureIndex];
             bits = isEmissive ? (bits | flag) : (bits & ~flag);
             return this;
         }
 
         @Override
-        public MaterialFinder disableDiffuse(int textureIndex, boolean disable) {
+        public Finder disableDiffuse(int textureIndex, boolean disable) {
             final int flag = DIFFUSE_FLAGS[textureIndex];
             bits = disable ? (bits | flag) : (bits & ~flag);
             return this;
         }
 
         @Override
-        public MaterialFinder disableAo(int textureIndex, boolean disable) {
+        public Finder disableAo(int textureIndex, boolean disable) {
             final int flag = AO_FLAGS[textureIndex];
             bits = disable ? (bits | flag) : (bits & ~flag);
             return this;

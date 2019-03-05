@@ -6,9 +6,9 @@ public class LoadingConfig {
     public static LoadingConfig INSTANCE = new LoadingConfig(); // new File(Launch.minecraftHome, "config/canvas.cfg"));
 
     public final boolean disableYieldInGameLoop = true;
-    public final boolean enableRenderStats = true;
-    public final boolean enableFluidStats = true;
-    public final boolean enableBlockStats = true;
+    public final boolean enableRenderStats = false;
+    public final boolean enableFluidStats = false;
+    public final boolean enableBlockStats = false;
 
 //    private LoadingConfig(File file)
 //    {

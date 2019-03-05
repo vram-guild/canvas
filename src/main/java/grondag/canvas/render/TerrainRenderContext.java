@@ -44,7 +44,7 @@ import net.minecraft.util.math.BlockPos;
 public class TerrainRenderContext extends AbstractRenderContext implements RenderContext {
     public static final ThreadLocal<TerrainRenderContext> POOL = ThreadLocal.withInitial(TerrainRenderContext::new);
     private final TerrainBlockRenderInfo blockInfo = new TerrainBlockRenderInfo();
-    private final ChunkRenderInfo chunkInfo = new ChunkRenderInfo(blockInfo);
+    public final ChunkRenderInfo chunkInfo = new ChunkRenderInfo(blockInfo);
     private final AoCalculator aoCalc = new AoCalculator(blockInfo, chunkInfo::cachedBrightness,
             chunkInfo::cachedAoLevel);
     private final TerrainMeshConsumer meshConsumer = new TerrainMeshConsumer(blockInfo, chunkInfo, aoCalc,

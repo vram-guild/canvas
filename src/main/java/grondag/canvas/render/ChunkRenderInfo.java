@@ -149,8 +149,12 @@ public class ChunkRenderInfo {
         }
     }
 
-    /** Lazily retrieves output buffer for given layer, initializing as needed. */
     public CompoundBufferBuilder getInitializedBuffer(int layerIndex) {
+        return getInitializedBuffer(layerIndex, blockInfo.blockPos);
+    }
+    
+    /** Lazily retrieves output buffer for given layer, initializing as needed. */
+    public CompoundBufferBuilder getInitializedBuffer(int layerIndex, BlockPos pos) {
         // redundant for first layer, but probably not faster to check
         resultFlags[layerIndex] = true;
 
@@ -161,7 +165,7 @@ public class ChunkRenderInfo {
             BlockRenderLayer layer = LAYERS[layerIndex];
             if (!chunkData.isBufferInitialized(layer)) {
                 chunkData.markBufferInitialized(layer); // start buffer
-                ((AccessChunkRenderer) chunkRenderer).fabric_beginBufferBuilding(builder, blockInfo.blockPos);
+                ((AccessChunkRenderer) chunkRenderer).fabric_beginBufferBuilding(builder, pos);
             }
             result = (AccessBufferBuilder) builder;
         }

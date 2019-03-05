@@ -34,6 +34,9 @@ import grondag.canvas.Canvas;
 import grondag.canvas.accessor.AccessChunkRenderer;
 import grondag.canvas.buffering.DrawableChunk.Solid;
 import grondag.canvas.buffering.DrawableChunk.Translucent;
+import grondag.canvas.core.CompoundBufferBuilder;
+import grondag.canvas.core.FluidBufferBuilder;
+import grondag.canvas.core.PipelineManager;
 import grondag.canvas.hooks.ChunkRebuildHelper;
 import grondag.canvas.hooks.ChunkRenderDataStore;
 import grondag.canvas.mixinext.ChunkRenderDataExt;
@@ -57,6 +60,7 @@ import net.minecraft.client.render.chunk.ChunkRenderData;
 import net.minecraft.client.render.chunk.ChunkRenderTask;
 import net.minecraft.client.render.chunk.ChunkRenderer;
 import net.minecraft.client.world.SafeWorldView;
+import net.minecraft.fluid.FluidState;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.WorldChunk;
@@ -175,11 +179,11 @@ public abstract class MixinChunkRenderer implements AccessChunkRenderer, ChunkRe
     }
 
     @Inject(method = "rebuildChunk", at = @At("HEAD"), cancellable = true, require = 1)
-    private void onRebuildChunk(final float x, final float y, final float z, final ChunkRenderTask chunkRenderTask,
-            final CallbackInfo ci) {
+    private void onRebuildChunk(final float x, final float y, final float z, final ChunkRenderTask chunkRenderTask, final CallbackInfo ci) {
         if (!Canvas.isModEnabled())
             return;
 
+        // PERF: combine with render context to have 1 threadlocal lookup
         final ChunkRebuildHelper help = ChunkRebuildHelper.get();
         help.clear();
 
@@ -219,7 +223,7 @@ public abstract class MixinChunkRenderer implements AccessChunkRenderer, ChunkRe
                  * than one layer is renderer for a single model. This is also where we signal the 
                  * renderer to prepare for a new chunk using the data we've accumulated up to this point.
                  */
-                TerrainRenderContext.POOL.get().prepare((ChunkRenderer) (Object) this, origin, layerFlags);
+                renderContext.prepare((ChunkRenderer) (Object) this, origin, layerFlags);
                 
                 // TODO: can remove these?
                 BlockModelRenderer.enableBrightnessCache();
@@ -263,20 +267,14 @@ public abstract class MixinChunkRenderer implements AccessChunkRenderer, ChunkRe
                             BlockRenderLayer renderLayer;
                             int renderLayerIndex;
                             BufferBuilder bufferBuilder;
-                            //TODO: implement fluid render
-//                            FluidState fluidState = safeWorldView.getFluidState(searchPos);
-//                            if (!fluidState.isEmpty()) {
-//                                renderLayer = fluidState.getRenderLayer();
-//                                renderLayerIndex = renderLayer.ordinal();
-//                                bufferBuilder = chunkRenderTask.getBufferBuilders().get(renderLayerIndex);
-//                                if (!chunkRenderData.isBufferInitialized(renderLayer)) {
-//                                    chunkRenderData.markBufferInitialized(renderLayer);
-//                                    this.beginBufferBuilding(bufferBuilder, origin);
-//                                }
-//
-//                                layerFlags[renderLayerIndex] |= blockRenderManager.tesselateFluid(searchPos,
-//                                        safeWorldView, bufferBuilder, fluidState);
-//                            }
+                            FluidState fluidState = safeWorldView.getFluidState(searchPos);
+                            if (!fluidState.isEmpty()) {
+                                renderLayer = fluidState.getRenderLayer();
+                                renderLayerIndex = renderLayer.ordinal();
+                                CompoundBufferBuilder cbb = renderContext.chunkInfo.getInitializedBuffer(renderLayerIndex, searchPos);
+                                FluidBufferBuilder fluidBuilder = help.fluidBuilder.prepare(cbb.getVertexCollector(PipelineManager.INSTANCE.defaultSinglePipeline), searchPos, renderLayer);
+                                blockRenderManager.tesselateFluid(searchPos, safeWorldView, fluidBuilder, fluidState);
+                            }
 
                             if (blockState.getRenderType() == BlockRenderType.MODEL) {
                                 //TODO: confirm main layer always updated, stop returning a value
@@ -359,7 +357,7 @@ public abstract class MixinChunkRenderer implements AccessChunkRenderer, ChunkRe
      * Access method for renderer.
      */
     @Override
-    public void fabric_beginBufferBuilding(BufferBuilder bufferBuilder_1, BlockPos blockPos_1) {
-        beginBufferBuilding(bufferBuilder_1, blockPos_1);
+    public void fabric_beginBufferBuilding(BufferBuilder bufferBuilder, BlockPos blockPos) {
+        beginBufferBuilding(bufferBuilder, blockPos);
     }
 }
