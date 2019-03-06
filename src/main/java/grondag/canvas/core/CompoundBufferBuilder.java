@@ -4,10 +4,9 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.lang3.tuple.Pair;
 
-import grondag.canvas.mixin.AccessBufferBuilder;
-import grondag.canvas.Canvas;
 import grondag.canvas.buffering.DrawableChunk;
 import grondag.canvas.buffering.UploadableChunk;
+import grondag.canvas.mixin.AccessBufferBuilder;
 import net.minecraft.block.BlockRenderLayer;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.VertexFormat;
@@ -71,10 +70,8 @@ public class CompoundBufferBuilder extends BufferBuilder {
      * honor these when mod is enabled to reduce memory footprint.
      */
     static final int limitBufferSize(int bufferSizeIn) {
-        if (Canvas.isModEnabled()) {
-            if (bufferSizeIn == 2097152 || bufferSizeIn == 131072 || bufferSizeIn == 262144) {
-                return 2048;
-            }
+        if (bufferSizeIn == 2097152 || bufferSizeIn == 131072 || bufferSizeIn == 262144) {
+            return 2048;
         }
         return bufferSizeIn;
     }
@@ -92,51 +89,44 @@ public class CompoundBufferBuilder extends BufferBuilder {
      */
     @Override
     public State toBufferState() {
-        if (Canvas.isModEnabled()) {
-            assert this.proxy == null;
-            assert this.layer == BlockRenderLayer.TRANSLUCENT;
+        assert this.proxy == null;
+        assert this.layer == BlockRenderLayer.TRANSLUCENT;
 
-            State inner = super.toBufferState();
-            CompoundState result = loadedState;
-            if (result == null) {
-                result = new CompoundState(inner.getRawBuffer(), inner.getFormat(),
-                        collectors.get().getRight().getCollectorState(null));
-            } else {
-                result.collectorState = collectors.get().getRight().getCollectorState(result.collectorState);
-                loadedState = null;
-            }
-            return result;
-        } else
-            return super.toBufferState();
+        State inner = super.toBufferState();
+        CompoundState result = loadedState;
+        if (result == null) {
+            result = new CompoundState(inner.getRawBuffer(), inner.getFormat(),
+                    collectors.get().getRight().getCollectorState(null));
+        } else {
+            result.collectorState = collectors.get().getRight().getCollectorState(result.collectorState);
+            loadedState = null;
+        }
+        return result;
     }
 
     @Override
     public void restoreState(State state) {
         super.restoreState(state);
-        if (Canvas.isModEnabled()) {
-            assert this.proxy == null;
-            assert this.layer == BlockRenderLayer.TRANSLUCENT;
-            assert loadedState == null;
-            loadedState = (CompoundState) state;
-            collectors.get().getRight().loadCollectorState(loadedState.collectorState);
-        }
+        assert this.proxy == null;
+        assert this.layer == BlockRenderLayer.TRANSLUCENT;
+        assert loadedState == null;
+        loadedState = (CompoundState) state;
+        collectors.get().getRight().loadCollectorState(loadedState.collectorState);
     }
 
     @Override
     public void clear() {
         super.clear();
-        if (Canvas.isModEnabled()) {
-            assert this.layer == BlockRenderLayer.SOLID || this.layer == BlockRenderLayer.TRANSLUCENT;
+        assert this.layer == BlockRenderLayer.SOLID || this.layer == BlockRenderLayer.TRANSLUCENT;
 
-            if (this.layer == BlockRenderLayer.SOLID)
-                collectors.get().getLeft().clear();
-            else
-                collectors.get().getRight().clear();
-        }
+        if (this.layer == BlockRenderLayer.SOLID)
+            collectors.get().getLeft().clear();
+        else
+            collectors.get().getRight().clear();
     }
 
     public VertexCollector getVertexCollector(RenderPipeline pipeline) {
-        if (Canvas.isModEnabled() && this.proxy != null)
+        if (this.proxy != null)
             return this.proxy.getVertexCollector(pipeline);
 
         return this.layer == BlockRenderLayer.SOLID ? collectors.get().getLeft().get(pipeline)
@@ -145,8 +135,7 @@ public class CompoundBufferBuilder extends BufferBuilder {
 
     public void beginIfNotAlreadyDrawing(int glMode, VertexFormat format) {
         if (!accessor.isBuilding()) {
-            assert this.layer == BlockRenderLayer.SOLID || this.layer == BlockRenderLayer.TRANSLUCENT
-                    || !Canvas.isModEnabled();
+            assert this.layer == BlockRenderLayer.SOLID || this.layer == BlockRenderLayer.TRANSLUCENT;
 
             // NB: this calls reset which initializes collector list
             super.begin(glMode, format);
@@ -155,7 +144,7 @@ public class CompoundBufferBuilder extends BufferBuilder {
 
     @Override
     public void begin(int glMode, VertexFormat format) {
-        if (Canvas.isModEnabled() && proxy != null)
+        if (proxy != null)
             proxy.beginIfNotAlreadyDrawing(glMode, format);
         else
             beginIfNotAlreadyDrawing(glMode, format);
@@ -165,38 +154,36 @@ public class CompoundBufferBuilder extends BufferBuilder {
         if (accessor.isBuilding()) {
             super.end();
 
-            if (Canvas.isModEnabled()) {
-                switch (this.layer) {
-                case SOLID: {
-                    UploadableChunk<?> abandoned = this.uploadState
-                            .getAndSet(collectors.get().getLeft().packUploadSolid());
-                    if (abandoned != null)
-                        abandoned.cancel();
-                    return;
-                }
+            switch (this.layer) {
+            case SOLID: {
+                UploadableChunk<?> abandoned = this.uploadState
+                        .getAndSet(collectors.get().getLeft().packUploadSolid());
+                if (abandoned != null)
+                    abandoned.cancel();
+                return;
+            }
 
-                case TRANSLUCENT: {
-                    UploadableChunk<?> abandoned = this.uploadState
-                            .getAndSet(collectors.get().getRight().packUploadTranslucent());
-                    if (abandoned != null)
-                        abandoned.cancel();
-                    return;
-                }
+            case TRANSLUCENT: {
+                UploadableChunk<?> abandoned = this.uploadState
+                        .getAndSet(collectors.get().getRight().packUploadTranslucent());
+                if (abandoned != null)
+                    abandoned.cancel();
+                return;
+            }
 
-                case CUTOUT:
-                case MIPPED_CUTOUT:
-                default:
-                    assert false : "Bad render layer in compound buffer builder finish";
-                    break;
+            case CUTOUT:
+            case MIPPED_CUTOUT:
+            default:
+                assert false : "Bad render layer in compound buffer builder finish";
+                break;
 
-                }
             }
         }
     }
 
     @Override
     public void end() {
-        if (Canvas.isModEnabled() && proxy != null) {
+        if (proxy != null) {
             proxy.finishDrawingIfNotAlreadyFinished();
             return;
         } else
@@ -234,11 +221,8 @@ public class CompoundBufferBuilder extends BufferBuilder {
     public void sortQuads(float x, float y, float z) {
 //        SORTS.put(chunkOriginPos, System.nanoTime());
 
-        if (Canvas.isModEnabled())
-            // save sort perspective coordinate for use during packing. Actual sort occurs
-            // then.
-            collectors.get().getRight().setViewCoordinates(x, y, z);
-        else
-            super.sortQuads(x, y, z);
+        // save sort perspective coordinate for use during packing. Actual sort occurs
+        // then.
+        collectors.get().getRight().setViewCoordinates(x, y, z);
     }
 }

@@ -10,7 +10,6 @@ import org.lwjgl.opengl.GL11;
 import com.mojang.blaze3d.platform.GLX;
 import com.mojang.blaze3d.platform.GlStateManager;
 
-import grondag.canvas.Canvas;
 import grondag.canvas.RendererImpl;
 import grondag.canvas.buffering.DrawableChunk;
 import grondag.canvas.buffering.DrawableChunkDelegate;
@@ -29,8 +28,6 @@ import net.minecraft.client.render.chunk.ChunkRenderer;
 import net.minecraft.util.math.BlockPos;
 
 public class AbstractPipelinedRenderList implements RenderListener {
-    public boolean isCanvasEnabled = Canvas.isModEnabled();
-
     protected final ObjectArrayList<ChunkRenderer> chunks = new ObjectArrayList<ChunkRenderer>();
 
     /**
@@ -283,10 +280,5 @@ public class AbstractPipelinedRenderList implements RenderListener {
         GLX.glBindBuffer(GLX.GL_ARRAY_BUFFER, 0);
         Program.deactivate();
         GlStateManager.clearCurrentColor();
-    }
-
-    @Override
-    public final void onStatusChange(boolean newEnabledStatus) {
-        this.isCanvasEnabled = newEnabledStatus;
     }
 }

@@ -47,10 +47,9 @@ public class PipelinedRenderListDebug extends AbstractPipelinedRenderList {
         totalNanos += duration;
         if (frameCounter >= 600) {
             final double ms = totalNanos / 1000000.0;
-            String msg = this.isCanvasEnabled ? "ENABLED" : "Disabled";
             Canvas.INSTANCE.getLog()
-                    .info(String.format("renderChunkLayer %d frames / %d chunks / %d draws / %d quads (Canvas Renderer %s)",
-                            frameCounter, chunkCounter, drawCounter, quadCounter, msg));
+                    .info(String.format("renderChunkLayer %d frames / %d chunks / %d draws / %d quads (Canvas Renderer)",
+                            frameCounter, chunkCounter, drawCounter, quadCounter));
             Canvas.INSTANCE.getLog().info(String.format("renderChunkLayer %f ms / %f ms / %f ms / %f ns",
                     ms / frameCounter, ms / chunkCounter, ms / drawCounter, (double) totalNanos / quadCounter));
             Canvas.INSTANCE.getLog().info(String.format("renderChunkLayer min = %f ms, max = %f ms",

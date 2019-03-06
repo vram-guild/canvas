@@ -26,7 +26,6 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
-import grondag.canvas.Canvas;
 import net.minecraft.block.BlockRenderLayer;
 import net.minecraft.client.render.chunk.ChunkRenderData;
 import net.minecraft.client.render.chunk.ChunkRenderWorker;
@@ -39,9 +38,7 @@ public abstract class MixinChunkRenderWorker {
     }
 
     private static boolean shouldUploadLayer(ChunkRenderData chunkData, BlockRenderLayer blockrenderlayer) {
-        return Canvas.isModEnabled()
-                ? chunkData.isBufferInitialized(blockrenderlayer) && !chunkData.method_3641(blockrenderlayer) // skip if
-                                                                                                              // empty
-                : chunkData.isBufferInitialized(blockrenderlayer);
+        // skip if empty
+        return chunkData.isBufferInitialized(blockrenderlayer) && !chunkData.method_3641(blockrenderlayer);
     }
 }

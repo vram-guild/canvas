@@ -28,31 +28,19 @@ public abstract class MixinVboChunkRendererList extends ChunkRendererList implem
     }
     
     @Override
-    public void add(ChunkRenderer renderChunkIn, BlockRenderLayer layer)
-    {
-        if(ext.isCanvasEnabled)
-            ext.addChunkRenderer(renderChunkIn, layer);
-        else
-            super.add(renderChunkIn, layer);
+    public void add(ChunkRenderer renderChunkIn, BlockRenderLayer layer) {
+        ext.addChunkRenderer(renderChunkIn, layer);
     }
     
     @Override
-    public void setCameraPosition(double viewEntityXIn, double viewEntityYIn, double viewEntityZIn)
-    {
-        if(ext.isCanvasEnabled)
-            ext.initialize(viewEntityXIn, viewEntityYIn, viewEntityZIn);
-        else
-            super.setCameraPosition(viewEntityXIn, viewEntityYIn, viewEntityZIn);
+    public void setCameraPosition(double viewEntityXIn, double viewEntityYIn, double viewEntityZIn) {
+        ext.initialize(viewEntityXIn, viewEntityYIn, viewEntityZIn);
     }
 
     @Inject(method = "render", at = @At("HEAD"), cancellable = true, require = 1)
-    private void onRender(BlockRenderLayer layer, CallbackInfo ci)
-    {
-        if(ext.isCanvasEnabled)
-        {
+    private void onRender(BlockRenderLayer layer, CallbackInfo ci) {
             ext.renderChunkLayer(layer);
             ci.cancel();
-        }
     }
     
     @Override

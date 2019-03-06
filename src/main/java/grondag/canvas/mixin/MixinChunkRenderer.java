@@ -30,7 +30,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import com.google.common.collect.Sets;
 
-import grondag.canvas.Canvas;
 import grondag.canvas.accessor.AccessChunkRenderer;
 import grondag.canvas.buffering.DrawableChunk.Solid;
 import grondag.canvas.buffering.DrawableChunk.Translucent;
@@ -114,12 +113,10 @@ public abstract class MixinChunkRenderer implements AccessChunkRenderer, ChunkRe
      */
     @Inject(at = @At("HEAD"), method = "updateTransformationMatrix", cancellable = true)
     private void hookUpdateTransformationMatrix(CallbackInfo ci) {
-        if (Canvas.isModEnabled()) {
-            // this is called right after setting chunk position because it was moved in the frustum
-            // let buffers in the chunk know they are no longer valid and can be released.
-            ((ChunkRendererExt) this).releaseDrawables();
-            ci.cancel();
-        }
+        // this is called right after setting chunk position because it was moved in the frustum
+        // let buffers in the chunk know they are no longer valid and can be released.
+        ((ChunkRendererExt) this).releaseDrawables();
+        ci.cancel();
     }
 
     @Inject(method = "delete", at = @At("RETURN"), require = 1)
@@ -177,9 +174,6 @@ public abstract class MixinChunkRenderer implements AccessChunkRenderer, ChunkRe
 
     @Inject(method = "rebuildChunk", at = @At("HEAD"), cancellable = true, require = 1)
     private void onRebuildChunk(final float x, final float y, final float z, final ChunkRenderTask chunkRenderTask, final CallbackInfo ci) {
-        if (!Canvas.isModEnabled())
-            return;
-
         // PERF: combine with render context to have 1 threadlocal lookup
         final ChunkRebuildHelper help = ChunkRebuildHelper.get();
         help.clear();

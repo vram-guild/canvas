@@ -114,11 +114,6 @@ public class RendererImpl implements ExtendedRenderer {
     }
 
     @Override
-    public boolean isEnabled() {
-        return Canvas.isModEnabled();
-    }
-
-    @Override
     public void registerListener(RenderListener listener) {
         this.listeners.add(new WeakReference<RenderListener>(listener));
     }

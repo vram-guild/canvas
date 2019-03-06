@@ -30,7 +30,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 
-import grondag.canvas.Canvas;
 import grondag.canvas.buffering.DrawableChunk.Solid;
 import grondag.canvas.buffering.DrawableChunk.Translucent;
 import grondag.canvas.core.CompoundBufferBuilder;
@@ -48,7 +47,7 @@ public abstract class MixinChunkBatcher {
     public void onUploadChunk(final BlockRenderLayer blockRenderLayer, final BufferBuilder bufferBuilder,
             final ChunkRenderer renderChunk, final ChunkRenderData chunkData, final double distanceSq,
             CallbackInfoReturnable<ListenableFuture<Object>> ci) {
-        if (Canvas.isModEnabled() && MinecraftClient.getInstance().isMainThread())
+        if (MinecraftClient.getInstance().isMainThread())
             ci.setReturnValue(uploadChunk(blockRenderLayer, bufferBuilder, renderChunk, chunkData, distanceSq));
     }
 

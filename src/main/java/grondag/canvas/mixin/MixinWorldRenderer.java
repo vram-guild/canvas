@@ -29,7 +29,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import grondag.canvas.Canvas;
 import grondag.canvas.RendererImpl;
 import grondag.canvas.core.PipelineManager;
 import grondag.canvas.mixinext.ChunkRendererListExt;
@@ -61,24 +60,22 @@ public abstract class MixinWorldRenderer {
     
     @Inject(method = "renderLayer", at = @At("HEAD"), cancellable = true, require = 1)
     private void onRenderLayer(BlockRenderLayer layer, double fractionalTick, Entity viewEntity, CallbackInfoReturnable<Integer> ci) {
-        if (Canvas.isModEnabled()) {
-            switch (layer) {
+        switch (layer) {
 
-            case CUTOUT:
-            case MIPPED_CUTOUT:
-                ci.setReturnValue(0);
-                break;
-                
-            case SOLID:
-                // Must happen after camera transform is set up and before chunk render
-                ((ChunkRendererListExt)chunkRendererList).canvas_prepareForFrame();
-                break;
-                
-            case TRANSLUCENT:
-            default:
-                // nothing
-                break;
-            }
+        case CUTOUT:
+        case MIPPED_CUTOUT:
+            ci.setReturnValue(0);
+            break;
+            
+        case SOLID:
+            // Must happen after camera transform is set up and before chunk render
+            ((ChunkRendererListExt)chunkRendererList).canvas_prepareForFrame();
+            break;
+            
+        case TRANSLUCENT:
+        default:
+            // nothing
+            break;
         }
     }
 }
