@@ -115,13 +115,10 @@ public abstract class MixinChunkRenderer implements AccessChunkRenderer, ChunkRe
     @Inject(at = @At("HEAD"), method = "updateTransformationMatrix", cancellable = true)
     private void hookUpdateTransformationMatrix(CallbackInfo ci) {
         if (Canvas.isModEnabled()) {
-            // this is called right after setting chunk position because it was moved in the
-            // frustum
+            // this is called right after setting chunk position because it was moved in the frustum
             // let buffers in the chunk know they are no longer valid and can be released.
             ((ChunkRendererExt) this).releaseDrawables();
-            
-            //TODO: put back - disabled for testing
-//            ci.cancel();
+            ci.cancel();
         }
     }
 
