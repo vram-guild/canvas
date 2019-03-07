@@ -16,6 +16,8 @@
 
 package grondag.canvas;
 
+import grondag.canvas.core.PipelineManager;
+import grondag.canvas.core.RenderPipeline;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.fabricmc.fabric.api.client.model.fabric.MaterialFinder;
@@ -92,16 +94,27 @@ public abstract class RenderMaterialImpl {
         public final boolean hasAo;
 
         /**
-         * True if any texture wants emissive lighting. Simplifies check made by
-         * renderer at buffer-time.
+         * Sprite index ordinal flags indicating texture wants emissive lighting. 
          */
-        public final boolean hasEmissive;
+        public final int emissiveFlags;
 
+        /** 
+         * Determine which buffer we use - derived from base layer.
+         * If base layer is solid, then any additional sprites are handled
+         * as decals and render in solid pass.  If base layer is trasnlucent
+         * then all sprite layers render as translucent.
+         */
+        public final int renderLayerIndex;
+        
+        public final RenderPipeline pipeline;
+        
         private Value(int index, int bits) {
             this.index = index;
             this.bits = bits;
             hasAo = !disableAo(0) || (spriteDepth() > 1 && !disableAo(1)) || (spriteDepth() == 3 && !disableAo(2));
-            hasEmissive = emissive(0) || emissive(1) || emissive(2);
+            emissiveFlags = (emissive(0) ? 1 : 0) | (emissive(1) ? 2 : 0) | (emissive(2) ? 4 : 0);
+            this.renderLayerIndex = this.blendMode(0) == BlockRenderLayer.TRANSLUCENT ? BlockRenderLayer.TRANSLUCENT.ordinal() : BlockRenderLayer.SOLID.ordinal();
+            this.pipeline = PipelineManager.INSTANCE.getDefaultPipeline(this.spriteDepth());
         }
 
         public int index() {

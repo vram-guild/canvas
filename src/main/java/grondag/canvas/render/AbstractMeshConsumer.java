@@ -101,7 +101,7 @@ public abstract class AbstractMeshConsumer extends AbstractQuadRenderer implemen
 
         final RenderMaterialImpl.Value mat = q.material();
 
-        if (mat.hasEmissive) {
+        if (mat.emissiveFlags != 0) {
             captureLightmaps(q);
         }
 

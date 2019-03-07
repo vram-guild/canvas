@@ -22,12 +22,14 @@ import java.util.function.ToIntBiFunction;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectFunction;
 import net.fabricmc.fabric.api.client.model.fabric.RenderContext.QuadTransform;
+import grondag.canvas.RenderMaterialImpl;
 import grondag.canvas.aocalc.AoCalculator;
 import grondag.canvas.core.CompoundBufferBuilder;
 import grondag.canvas.core.PipelineManager;
 import grondag.canvas.core.VertexCollector;
 import grondag.canvas.helper.ColorHelper;
 import grondag.canvas.mesh.MutableQuadViewImpl;
+import grondag.fermion.functions.PrimitiveFunctions.IntToIntFunction;
 import net.minecraft.block.BlockRenderLayer;
 import net.minecraft.block.BlockState;
 import net.minecraft.util.math.BlockPos;
@@ -68,6 +70,7 @@ public abstract class AbstractQuadRenderer {
     }
 
     /** final output step, common to all renders */
+    @Deprecated
     private void bufferQuad(MutableQuadViewImpl q, int renderLayer) {
         // TODO: handle additional pipelines
         VertexCollector output = bufferFunc.get(renderLayer).getVertexCollector(PipelineManager.INSTANCE.defaultSinglePipeline);
@@ -77,13 +80,54 @@ public abstract class AbstractQuadRenderer {
             output.add(q.spriteU(i, 0));
             output.add(q.spriteV(i, 0));
             int packedLight = q.lightmap(i);
-            int blockLight = ((packedLight >> 4) & 0xF) * 17;
-            int skyLight = ((packedLight >> 20) & 0xF) * 17;
+            int blockLight = (packedLight & 0xFF);
+            int skyLight = ((packedLight >> 16) & 0xFF);
             output.add(blockLight | (skyLight << 8) | (encodeFlags(q, renderLayer) << 16));
             output.add(q.packedNormal(i));
         }
     }
 
+    private void bufferQuad(MutableQuadViewImpl q, IntToIntFunction lightmapFunction) {
+        final RenderMaterialImpl.Value mat = q.material();
+        final VertexCollector output = bufferFunc.get(mat.renderLayerIndex).getVertexCollector(mat.pipeline);
+        
+        // colorize quad
+        // light quad
+        
+        for(int i = 0; i < 4; i++) {
+            output.pos(blockInfo.blockPos, q.x(i), q.y(i), q.z(i));
+            output.add(q.spriteColor(i, 0));
+            output.add(q.spriteU(i, 0));
+            output.add(q.spriteV(i, 0));
+            output.add(encodeLighting(q, mat, lightmapFunction, i));
+            output.add(q.packedNormal(i));
+            
+            // output layers 2-3
+        }
+    }
+    
+    private int encodeLighting(MutableQuadViewImpl q, RenderMaterialImpl.Value mat, IntToIntFunction lightmapFunction, int vertexIndex) {
+        final int lightmap = lightmapFunction.apply(vertexIndex);
+        final int blockLight = (lightmap >> 4) & 0xF;
+        final int skyLight = (lightmap >> 20) & 0xF;
+        if(mat.emissiveFlags == 0) {
+            return packLightmap(blockLight, skyLight);
+        } else {
+            final int quadLightMap = q.lightmap(vertexIndex);
+            final int quadBlocklight = (quadLightMap >> 4) & 0xF;
+            final int quadSkylight = (quadLightMap >> 20) & 0xF;
+            final int emissiveLight = packLightmap(Math.max(quadBlocklight, blockLight), Math.max(quadSkylight, skyLight));
+            return (blockLight * 17) | ((skyLight * 17) << 8) | (emissiveLight << 16) | (mat.emissiveFlags << 24);
+        }
+    }
+    
+    /** 
+     * Packs a two-component light map into a single byte. 
+     */
+    private int packLightmap(int blockLight, int skyLight) {
+        return (skyLight << 4) | blockLight;
+    }
+    
     /**
      * Encode flags for emissive rendering, cutout and mipped handling.
      * This allows MC CUTOUT and CUTOUT_MIPPED quads to be backed into a single buffer
@@ -97,6 +141,7 @@ public abstract class AbstractQuadRenderer {
      * fully opaque.  (This could change in the future.)
      * 
      */
+    @Deprecated
     private int encodeFlags(MutableQuadViewImpl q, int renderLayer)
     {
         // TODO: handle layers 1-2
