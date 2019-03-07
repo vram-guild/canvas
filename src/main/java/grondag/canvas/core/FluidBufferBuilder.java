@@ -48,10 +48,8 @@ public class FluidBufferBuilder extends BufferBuilder {
     }
 
     @Override
-    public BufferBuilder texture(int blockLight, int skyLight) {
-        blockLight = ((blockLight >> 4) & 0xF) * 17;
-        skyLight = ((skyLight >> 4) & 0xF)  * 17;
-        vc.add(blockLight | (skyLight << 8));
+    public BufferBuilder texture(int skyLight, int blockLight) {
+        vc.add((blockLight & 0xFF) | ((skyLight & 0xFF) << 8));
         return this;
     }
 
