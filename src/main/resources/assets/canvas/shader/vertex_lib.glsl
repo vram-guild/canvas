@@ -28,7 +28,7 @@ void setupVertex()
     // Fixes Acuity #5
     // Adding +0.5 prevents striping or other strangeness in flag-dependent rendering
     // due to FP error on some cards/drivers.  Also made varying attribute invariant (rolls eyes at OpenGL)
-    v_flags =  in_lightmap.b + 0.5;
+    v_flags =  in_lightmap.ba + 0.5;
 
     v_color_0 = in_color_0;
 

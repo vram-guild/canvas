@@ -1,16 +1,16 @@
 
 vec4 shadeColor(vec4 fragmentColor,  int layerIndex)
 {
-	return bitValue(v_flags, layerIndex) == 0 ? v_light * fragmentColor : fragmentColor;
+	return bitValue(v_flags.x, layerIndex) == 0 ? v_light * fragmentColor : fragmentColor;
 }
 
 vec4 diffuseColor()
 {
 #ifdef SOLID
-		float non_mipped = bitValue(v_flags, 3) * -4.0;
+		float non_mipped = bitValue(v_flags.x, 3) * -4.0;
 		vec4 a = texture2D(u_textures, v_texcoord_0, non_mipped);
 
-		float cutout = bitValue(v_flags, 4);
+		float cutout = bitValue(v_flags.x, 4);
 		if(cutout == 1.0 && a.a < 0.5)
 			discard;
 #else
