@@ -16,7 +16,7 @@ uniform mat4 u_modelViewProjection;
 varying vec4 v_color_0;
 varying vec2 v_texcoord_0;
 varying vec4 v_light;
-invariant varying vec2 v_flags;
+flat varying vec2 v_flags;
 
 #if LAYER_COUNT > 1
 varying vec4 v_color_1;

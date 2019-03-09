@@ -20,16 +20,15 @@ import static grondag.canvas.helper.GeometryHelper.LIGHT_FACE_FLAG;
 
 import java.util.function.ToIntBiFunction;
 
-import it.unimi.dsi.fastutil.ints.Int2ObjectFunction;
-import net.fabricmc.fabric.api.client.model.fabric.RenderContext.QuadTransform;
 import grondag.canvas.RenderMaterialImpl;
 import grondag.canvas.aocalc.AoCalculator;
 import grondag.canvas.core.CompoundBufferBuilder;
-import grondag.canvas.core.PipelineManager;
 import grondag.canvas.core.VertexCollector;
 import grondag.canvas.helper.ColorHelper;
 import grondag.canvas.mesh.MutableQuadViewImpl;
 import grondag.fermion.functions.PrimitiveFunctions.IntToIntFunction;
+import it.unimi.dsi.fastutil.ints.Int2ObjectFunction;
+import net.fabricmc.fabric.api.client.model.fabric.RenderContext.QuadTransform;
 import net.minecraft.block.BlockRenderLayer;
 import net.minecraft.block.BlockState;
 import net.minecraft.util.math.BlockPos;
@@ -73,7 +72,8 @@ public abstract class AbstractQuadRenderer {
     @Deprecated
     private void bufferQuad(MutableQuadViewImpl q, int renderLayer) {
         // TODO: handle additional pipelines
-        VertexCollector output = bufferFunc.get(renderLayer).getVertexCollector(PipelineManager.INSTANCE.defaultSinglePipeline);
+        final RenderMaterialImpl.Value mat = q.material().forRenderLayer(renderLayer);
+        final VertexCollector output = bufferFunc.get(mat.renderLayerIndex).getVertexCollector(mat.pipeline);
         for(int i = 0; i < 4; i++) {
             output.pos(blockInfo.blockPos, q.x(i), q.y(i), q.z(i));
             output.add(q.spriteColor(i, 0));
@@ -82,7 +82,7 @@ public abstract class AbstractQuadRenderer {
             int packedLight = q.lightmap(i);
             int blockLight = (packedLight & 0xFF);
             int skyLight = ((packedLight >> 16) & 0xFF);
-            output.add(blockLight | (skyLight << 8) | (encodeFlags(q, renderLayer) << 16));
+            output.add(blockLight | (skyLight << 8) | (mat.shaderFlags() << 16));
             output.add(q.packedNormal(i));
         }
     }
