@@ -18,70 +18,117 @@ package grondag.canvas;
 
 import grondag.canvas.core.PipelineManager;
 import grondag.canvas.core.RenderPipeline;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import grondag.fermion.varia.BitPacker64;
+import grondag.fermion.varia.BitPacker64.BooleanElement;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.fabricmc.fabric.api.client.model.fabric.MaterialFinder;
 import net.fabricmc.fabric.api.client.model.fabric.RenderMaterial;
 import net.minecraft.block.BlockRenderLayer;
 
 public abstract class RenderMaterialImpl {
-    static final BlockRenderLayer[] BLEND_MODES = BlockRenderLayer.values();
-    
+    private static final BitPacker64<RenderMaterialImpl> BITPACKER = new BitPacker64<RenderMaterialImpl>(RenderMaterialImpl::getBits, RenderMaterialImpl::setBits);
     public static final int MAX_SPRITE_DEPTH = 3;
 
-    private static final int TEXTURE_DEPTH_MASK = 3;
-    private static final int TEXTURE_DEPTH_SHIFT = 0;
-
-    private static final int BLEND_MODE_MASK = 3;
-    private static final int[] BLEND_MODE_SHIFT = new int[3];
-    private static final int[] COLOR_DISABLE_FLAGS = new int[3];
-    private static final int[] EMISSIVE_FLAGS = new int[3];
-    private static final int[] DIFFUSE_FLAGS = new int[3];
-    private static final int[] AO_FLAGS = new int[3];
-
+    // Following are indexes into the array of boolean elements.
+    // They are NOT the index of the bits themselves.  Used to
+    // efficiently access flags based on sprite layer. "_START"
+    // index is the flag for sprite layer 0, with additional layers
+    // offset additively by sprite index.
+    private static final int EMISSIVE_INDEX_START = 0;
+    private static final int DIFFUSE_INDEX_START = EMISSIVE_INDEX_START + MAX_SPRITE_DEPTH;
+    private static final int AO_INDEX_START = DIFFUSE_INDEX_START + MAX_SPRITE_DEPTH;
+    private static final int CUTOUT_INDEX_START = AO_INDEX_START + MAX_SPRITE_DEPTH;
+    private static final int MIPPED_INDEX_START = CUTOUT_INDEX_START + MAX_SPRITE_DEPTH;
+    private static final int COLOR_DISABLE_INDEX_START = MIPPED_INDEX_START + MAX_SPRITE_DEPTH;
+    
+    @SuppressWarnings("unchecked")
+    private static final BitPacker64<RenderMaterialImpl>.BooleanElement[] FLAGS = new BooleanElement[COLOR_DISABLE_INDEX_START + MAX_SPRITE_DEPTH];
+    
+    @SuppressWarnings("unchecked")
+    private static final BitPacker64<RenderMaterialImpl>.NullableEnumElement<BlockRenderLayer> BLEND_MODES[] = new BitPacker64.NullableEnumElement[MAX_SPRITE_DEPTH];
+    
+    private static final BitPacker64<RenderMaterialImpl>.IntElement SPRITE_DEPTH;
     static {
-        int shift = Integer.bitCount(TEXTURE_DEPTH_MASK);
-        for (int i = 0; i < 3; i++) {
-            BLEND_MODE_SHIFT[i] = shift;
-            shift += Integer.bitCount(BLEND_MODE_MASK);
-            COLOR_DISABLE_FLAGS[i] = 1 << shift++;
-            EMISSIVE_FLAGS[i] = 1 << shift++;
-            DIFFUSE_FLAGS[i] = 1 << shift++;
-            AO_FLAGS[i] = 1 << shift++;
-        }
+        // First 16 bits of material bits are sent directly to the shader as control flags.
+        // Bit order is optimized for shader usage. In particular, representation
+        // of cutout and mipped handling is redundant of blend mode but is easier
+        // to consume in the shader as simple on/off flags.
+        FLAGS[EMISSIVE_INDEX_START + 0] = BITPACKER.createBooleanElement();
+        FLAGS[EMISSIVE_INDEX_START + 1] = BITPACKER.createBooleanElement();
+        FLAGS[EMISSIVE_INDEX_START + 2] = BITPACKER.createBooleanElement();
+        
+        // this one is padding, reserved for future use
+        // needed to ensure other flags align to convenient boundaries
+        FLAGS[EMISSIVE_INDEX_START + 3] = BITPACKER.createBooleanElement();
+        
+        FLAGS[DIFFUSE_INDEX_START + 0] = BITPACKER.createBooleanElement();
+        FLAGS[AO_INDEX_START + 0] = BITPACKER.createBooleanElement();
+        FLAGS[CUTOUT_INDEX_START + 0] = BITPACKER.createBooleanElement();
+        FLAGS[MIPPED_INDEX_START + 0] = BITPACKER.createBooleanElement();
+        
+        FLAGS[DIFFUSE_INDEX_START + 1] = BITPACKER.createBooleanElement();
+        FLAGS[AO_INDEX_START + 1] = BITPACKER.createBooleanElement();
+        FLAGS[CUTOUT_INDEX_START + 1] = BITPACKER.createBooleanElement();
+        FLAGS[MIPPED_INDEX_START + 1] = BITPACKER.createBooleanElement();
+        
+        FLAGS[DIFFUSE_INDEX_START + 2] = BITPACKER.createBooleanElement();
+        FLAGS[AO_INDEX_START + 2] = BITPACKER.createBooleanElement();
+        FLAGS[CUTOUT_INDEX_START + 2] = BITPACKER.createBooleanElement();
+        FLAGS[MIPPED_INDEX_START + 2] = BITPACKER.createBooleanElement();
+        
+        // remaining elements are not part of shader control flags...
+        
+        FLAGS[COLOR_DISABLE_INDEX_START + 0] = BITPACKER.createBooleanElement();
+        FLAGS[COLOR_DISABLE_INDEX_START + 1] = BITPACKER.createBooleanElement();
+        FLAGS[COLOR_DISABLE_INDEX_START + 2] = BITPACKER.createBooleanElement();
+        
+        BLEND_MODES[0] = BITPACKER.createNullableEnumElement(BlockRenderLayer.class);
+        BLEND_MODES[1] = BITPACKER.createNullableEnumElement(BlockRenderLayer.class);
+        BLEND_MODES[2] = BITPACKER.createNullableEnumElement(BlockRenderLayer.class);
+        
+        SPRITE_DEPTH = BITPACKER.createIntElement(1, MAX_SPRITE_DEPTH);
     }
 
     static private final ObjectArrayList<Value> LIST = new ObjectArrayList<>();
-    static private final Int2ObjectOpenHashMap<Value> MAP = new Int2ObjectOpenHashMap<>();
+    static private final Long2ObjectOpenHashMap<Value> MAP = new Long2ObjectOpenHashMap<>();
     
     public static RenderMaterialImpl.Value byIndex(int index) {
         return LIST.get(index);
     }
 
-    protected int bits;
+    protected long bits;
 
-    public BlockRenderLayer blendMode(int textureIndex) {
-        return BLEND_MODES[(bits >> BLEND_MODE_SHIFT[textureIndex]) & BLEND_MODE_MASK];
+    private long getBits() {
+        return bits;
+    }
+    
+    private void setBits(long bits) {
+        this.bits = bits;
+    }
+    
+    public BlockRenderLayer blendMode(int spriteIndex) {
+        return BLEND_MODES[spriteIndex].getValue(this);
     }
 
-    public boolean disableColorIndex(int textureIndex) {
-        return (bits & COLOR_DISABLE_FLAGS[textureIndex]) != 0;
+    public boolean disableColorIndex(int spriteIndex) {
+        return FLAGS[COLOR_DISABLE_INDEX_START + spriteIndex].getValue(this);
     }
 
     public int spriteDepth() {
-        return 1 + ((bits >> TEXTURE_DEPTH_SHIFT) & TEXTURE_DEPTH_MASK);
+        return SPRITE_DEPTH.getValue(this);
     }
 
-    public boolean emissive(int textureIndex) {
-        return (bits & EMISSIVE_FLAGS[textureIndex]) != 0;
+    public boolean emissive(int spriteIndex) {
+        return FLAGS[EMISSIVE_INDEX_START + spriteIndex].getValue(this);
     }
 
-    public boolean disableDiffuse(int textureIndex) {
-        return (bits & DIFFUSE_FLAGS[textureIndex]) != 0;
+    public boolean disableDiffuse(int spriteIndex) {
+        return FLAGS[DIFFUSE_INDEX_START + spriteIndex].getValue(this);
     }
 
-    public boolean disableAo(int textureIndex) {
-        return (bits & AO_FLAGS[textureIndex]) != 0;
+    public boolean disableAo(int spriteIndex) {
+        return FLAGS[AO_INDEX_START + spriteIndex].getValue(this);
     }
 
     public static class Value extends RenderMaterialImpl implements RenderMaterial {
@@ -108,7 +155,7 @@ public abstract class RenderMaterialImpl {
         
         public final RenderPipeline pipeline;
         
-        private Value(int index, int bits) {
+        private Value(int index, long bits) {
             this.index = index;
             this.bits = bits;
             hasAo = !disableAo(0) || (spriteDepth() > 1 && !disableAo(1)) || (spriteDepth() == 3 && !disableAo(2));
@@ -141,16 +188,14 @@ public abstract class RenderMaterialImpl {
         }
         
         @Override
-        public Finder blendMode(int textureIndex, BlockRenderLayer blendMode) {
-            final int shift = BLEND_MODE_SHIFT[textureIndex];
-            bits = (bits & ~(BLEND_MODE_MASK << shift)) | (blendMode.ordinal() << shift);
+        public Finder blendMode(int spriteIndex, BlockRenderLayer blendMode) {
+            BLEND_MODES[spriteIndex].setValue(blendMode, this);
             return this;
         }
 
         @Override
-        public Finder disableColorIndex(int textureIndex, boolean disable) {
-            final int flag = COLOR_DISABLE_FLAGS[textureIndex];
-            bits = disable ? (bits | flag) : (bits & ~flag);
+        public Finder disableColorIndex(int spriteIndex, boolean disable) {
+            FLAGS[COLOR_DISABLE_INDEX_START + spriteIndex].setValue(disable, this);
             return this;
         }
 
@@ -159,28 +204,25 @@ public abstract class RenderMaterialImpl {
             if (depth < 1 || depth > MAX_SPRITE_DEPTH) {
                 throw new IndexOutOfBoundsException("Invalid sprite depth: " + depth);
             }
-            bits = (bits & ~(TEXTURE_DEPTH_MASK << TEXTURE_DEPTH_SHIFT)) | (--depth << TEXTURE_DEPTH_SHIFT);
+            SPRITE_DEPTH.setValue(depth, this);
             return this;
         }
 
         @Override
-        public Finder emissive(int textureIndex, boolean isEmissive) {
-            final int flag = EMISSIVE_FLAGS[textureIndex];
-            bits = isEmissive ? (bits | flag) : (bits & ~flag);
+        public Finder emissive(int spriteIndex, boolean isEmissive) {
+            FLAGS[EMISSIVE_INDEX_START + spriteIndex].setValue(isEmissive, this);
             return this;
         }
 
         @Override
-        public Finder disableDiffuse(int textureIndex, boolean disable) {
-            final int flag = DIFFUSE_FLAGS[textureIndex];
-            bits = disable ? (bits | flag) : (bits & ~flag);
+        public Finder disableDiffuse(int spriteIndex, boolean disable) {
+            FLAGS[DIFFUSE_INDEX_START + spriteIndex].setValue(disable, this);
             return this;
         }
 
         @Override
-        public Finder disableAo(int textureIndex, boolean disable) {
-            final int flag = AO_FLAGS[textureIndex];
-            bits = disable ? (bits | flag) : (bits & ~flag);
+        public Finder disableAo(int spriteIndex, boolean disable) {
+            FLAGS[AO_INDEX_START + spriteIndex].setValue(disable, this);
             return this;
         }
     }
