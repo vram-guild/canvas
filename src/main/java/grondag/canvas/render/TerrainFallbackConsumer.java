@@ -36,9 +36,12 @@ import net.minecraft.client.render.model.BakedQuad;
 import net.minecraft.util.math.Direction;
 
 public class TerrainFallbackConsumer extends AbstractQuadRenderer implements Consumer<BakedModel> {
+    private static Value MATERIAL_FLAT = (Value) RendererImpl.INSTANCE.materialFinder().disableAo(0, true).find();
+    private static Value MATERIAL_SHADED = (Value) RendererImpl.INSTANCE.materialFinder().find();
+    
     private final int[] editorBuffer = new int[28];
     private final ChunkRenderInfo chunkInfo;
-
+    
     TerrainFallbackConsumer(BlockRenderInfo blockInfo, ChunkRenderInfo chunkInfo, AoCalculator aoCalc,
             QuadTransform transform) {
         super(blockInfo, chunkInfo::cachedBrightness, chunkInfo::getInitializedBuffer, aoCalc, transform);
@@ -48,7 +51,7 @@ public class TerrainFallbackConsumer extends AbstractQuadRenderer implements Con
     private final MutableQuadViewImpl editorQuad = new MutableQuadViewImpl() {
         {
             data = editorBuffer;
-            material = (Value) RendererImpl.INSTANCE.materialFinder().find();
+            material = MATERIAL_SHADED;
             baseIndex = -EncodingFormat.HEADER_STRIDE;
         }
 
@@ -62,7 +65,8 @@ public class TerrainFallbackConsumer extends AbstractQuadRenderer implements Con
     @Override
     public void accept(BakedModel model) {
         final Supplier<Random> random = blockInfo.randomSupplier;
-        final boolean useAo = blockInfo.defaultAo && model.useAmbientOcclusion();
+        final Value defaultMaterial = blockInfo.defaultAo && model.useAmbientOcclusion()
+            ? MATERIAL_SHADED : MATERIAL_FLAT;
         final BlockState blockState = blockInfo.blockState;
         for (int i = 0; i < 6; i++) {
             Direction face = ModelHelper.faceFromIndex(i);
@@ -71,7 +75,7 @@ public class TerrainFallbackConsumer extends AbstractQuadRenderer implements Con
             if (count != 0 && blockInfo.shouldDrawFace(face)) {
                 for (int j = 0; j < count; j++) {
                     BakedQuad q = quads.get(j);
-                    renderQuad(q, face, useAo);
+                    renderQuad(q, face, defaultMaterial);
                 }
             }
         }
@@ -81,24 +85,25 @@ public class TerrainFallbackConsumer extends AbstractQuadRenderer implements Con
         if (count != 0) {
             for (int j = 0; j < count; j++) {
                 BakedQuad q = quads.get(j);
-                renderQuad(q, null, useAo);
+                renderQuad(q, null, defaultMaterial);
             }
         }
     }
 
-    private void renderQuad(BakedQuad quad, Direction cullFace, boolean useAo) {
+    private void renderQuad(BakedQuad quad, Direction cullFace, Value defaultMaterial) {
         System.arraycopy(quad.getVertexData(), 0, editorBuffer, 0, 28);
         editorQuad.cullFace(cullFace);
         final Direction lightFace = quad.getFace();
         editorQuad.lightFace(lightFace);
         editorQuad.nominalFace(lightFace);
         editorQuad.colorIndex(quad.getColorIndex());
-
+        editorQuad.material(defaultMaterial);
+        
         if (!transform.transform(editorQuad)) {
             return;
         }
 
-        if (useAo) {
+        if (editorQuad.material().hasAo) {
             // needs to happen before offsets are applied
             editorQuad.invalidateShape();
             aoCalc.compute(editorQuad, true);

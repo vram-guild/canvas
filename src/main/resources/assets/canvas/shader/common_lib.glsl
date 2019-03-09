@@ -13,6 +13,7 @@ uniform mat4 u_modelView;
 uniform mat4 u_projection;
 uniform mat4 u_modelViewProjection;
 
+varying float v_ao;
 varying vec4 v_color_0;
 varying vec2 v_texcoord_0;
 varying vec4 v_light;
@@ -27,6 +28,10 @@ varying vec2 v_texcoord_1;
 varying vec4 v_color_2;
 varying vec2 v_texcoord_2;
 #endif
+
+const int FLAG_DISABLE_AO_0 = 5;
+const int FLAG_UNMIPPED_0 = 7;
+const int FLAG_CUTOUT_0 = 6;
 
 vec3 diffuse (vec3 normal)
 {

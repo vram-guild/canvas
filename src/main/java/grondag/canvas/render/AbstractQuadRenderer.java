@@ -51,6 +51,8 @@ public abstract class AbstractQuadRenderer {
         this.transform = transform;
     }
 
+    // PERF pre-swap red & blue
+    
     /** handles block color and red-blue swizzle, common to all renders */
     private void colorizeQuad(MutableQuadViewImpl q, int blockColorIndex) {
         if (blockColorIndex == -1) {
@@ -81,7 +83,7 @@ public abstract class AbstractQuadRenderer {
             int blockLight = (packedLight & 0xFF);
             int skyLight = ((packedLight >> 16) & 0xFF);
             output.add(blockLight | (skyLight << 8) | shaderFlags);
-            int ao = mat.hasAo ? ((Math.round(aoCalc.ao[i] * 255) - 127) << 24) : 0xFF000000;
+            int ao = mat.hasAo ? ((Math.round(aoCalc.ao[i] * 254) - 127) << 24) : 0xFF000000;
             output.add(q.packedNormal(i) | ao);
             
             //TODO: output layers 2-3
