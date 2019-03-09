@@ -25,20 +25,19 @@ package grondag.canvas;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import grondag.fermion.IGrondagMod;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.client.model.fabric.RendererAccess;
 
-public class Canvas implements ModInitializer, IGrondagMod {
+public class Canvas implements ModInitializer {
     public static Canvas INSTANCE = new Canvas();
 
     @Override
     public void onInitialize() {
-
+        RendererAccess.INSTANCE.registerRenderer(RendererImpl.INSTANCE);
     }
 
     private static Logger log;
 
-    @Override
     public Logger getLog() {
         Logger result = log;
         if (result == null) {
@@ -46,10 +45,5 @@ public class Canvas implements ModInitializer, IGrondagMod {
             log = result;
         }
         return result;
-    }
-
-    @Override
-    public String modID() {
-        return "canvas";
     }
 }

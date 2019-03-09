@@ -7,6 +7,7 @@ repositories {
         dirs '../fabric/build/libs'
         dirs '../fermion/build/libs'
         dirs '../frex/build/libs'
+        dirs '../renderbender/build/libs'
     }
 }
 
@@ -15,7 +16,7 @@ targetCompatibility = 1.8
 
 archivesBaseName = "canvas"
 group = "grondag"
-version = "1.0.0"
+version = "0.0.1"
 
 minecraft {
 }
@@ -47,8 +48,11 @@ dependencies {
 	// Fabric API. This is technically optional, but you probably want it anyway.
 	modCompile "net.fabricmc:fabric:0.2.3.local"
 	
-	modCompile "grondag:fermion-1.0.0"
-	modCompile "grondag:frex-1.0.0"
+	modCompile "grondag:fermion-0.0.1"
+	modCompile "grondag:frex-0.0.1"
+	
+	// should be removed before release
+	modCompile "grondag:renderbender-0.0.1-dev"
 }
 
 // Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task

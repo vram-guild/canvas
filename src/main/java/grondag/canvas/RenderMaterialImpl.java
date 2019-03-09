@@ -168,7 +168,7 @@ public abstract class RenderMaterialImpl {
          */
         public final int renderLayerIndex;
         
-        public final RenderPipeline pipeline;
+        public RenderPipeline pipeline;
         
         private final Value[] blockLayerVariants = new Value[4];
         

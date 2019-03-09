@@ -113,8 +113,7 @@ public final class PipelineManager {
         for (int i = 0; i < RenderMaterialImpl.MAX_SPRITE_DEPTH; i++) {
             defaultPipelines[i] = (RenderPipeline) this
                     .createPipeline(i + 1, PipelineShaderManager.INSTANCE.DEFAULT_VERTEX_SOURCE,
-                            PipelineShaderManager.INSTANCE.DEFAULT_FRAGMENT_SOURCE)
-                    .finish();
+                            PipelineShaderManager.INSTANCE.DEFAULT_FRAGMENT_SOURCE);
         }
         this.waterPipeline = this.createPipeline(1, "/assets/canvas/shader/water.vert",
                 "/assets/canvas/shader/water.frag");
@@ -175,9 +174,9 @@ public final class PipelineManager {
     private void addStandardUniforms(RenderPipeline pipeline) {
         pipeline.uniform1f("u_time", UniformRefreshFrequency.PER_FRAME, u -> u.set(renderSeconds));
 
-        pipeline.uniformSampler2d("u_textures", UniformRefreshFrequency.ON_LOAD, u -> u.set(GLX.GL_TEXTURE0 - GL13.GL_TEXTURE0));
+        pipeline.uniformSampler2d("u_textures", UniformRefreshFrequency.ON_LOAD, u -> u.set(0));
 
-        pipeline.uniformSampler2d("u_lightmap", UniformRefreshFrequency.ON_LOAD, u -> u.set(GLX.GL_TEXTURE1 - GL13.GL_TEXTURE0));
+        pipeline.uniformSampler2d("u_lightmap", UniformRefreshFrequency.ON_LOAD, u -> u.set(1));
 
         pipeline.uniform3f("u_eye_position", UniformRefreshFrequency.PER_FRAME, u -> {
             Vec3d eyePos = MinecraftClient.getInstance().player.getCameraPosVec(fractionalTicks);

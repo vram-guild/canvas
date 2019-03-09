@@ -13,14 +13,12 @@ import grondag.frex.api.Uniform.Uniform4i;
 import grondag.frex.api.Uniform.UniformMatrix4f;
 import grondag.frex.api.UniformRefreshFrequency;
 import net.minecraft.client.render.VertexFormat;
-import net.minecraft.client.resource.language.I18n;
 
 public final class RenderPipeline {
     private final int index;
     private final Program solidProgram;
     private final Program translucentProgram;
     public final int spriteDepth;
-    private boolean isFinal = false;
     private PipelineVertexFormat pipelineVertexFormat;
     private VertexFormat vertexFormat;
 
@@ -57,12 +55,6 @@ public final class RenderPipeline {
         return this.spriteDepth;
     }
 
-    public RenderPipeline finish() {
-        this.isFinal = true;
-        this.forceReload();
-        return this;
-    }
-
     public PipelineVertexFormat piplineVertexFormat() {
         return this.pipelineVertexFormat;
     }
@@ -78,11 +70,6 @@ public final class RenderPipeline {
         return this.index;
     }
 
-    private void checkFinal() {
-        if (this.isFinal)
-            throw new UnsupportedOperationException(I18n.translate("misc.warn_uniform_program_immutable_exception"));
-    }
-
     public void uniformSampler2d(String name, UniformRefreshFrequency frequency, Consumer<Uniform1i> initializer) {
         if (solidProgram.containsUniformSpec("sampler2D", name))
             solidProgram.uniform1i(name, frequency, initializer);
@@ -91,7 +78,6 @@ public final class RenderPipeline {
     }
 
     public void uniform1f(String name, UniformRefreshFrequency frequency, Consumer<Uniform1f> initializer) {
-        checkFinal();
         if (solidProgram.containsUniformSpec("float", name))
             solidProgram.uniform1f(name, frequency, initializer);
         if (translucentProgram.containsUniformSpec("float", name))
@@ -99,7 +85,6 @@ public final class RenderPipeline {
     }
 
     public void uniform2f(String name, UniformRefreshFrequency frequency, Consumer<Uniform2f> initializer) {
-        checkFinal();
         if (solidProgram.containsUniformSpec("vec2", name))
             solidProgram.uniform2f(name, frequency, initializer);
         if (translucentProgram.containsUniformSpec("vec2", name))
@@ -107,7 +92,6 @@ public final class RenderPipeline {
     }
 
     public void uniform3f(String name, UniformRefreshFrequency frequency, Consumer<Uniform3f> initializer) {
-        checkFinal();
         if (solidProgram.containsUniformSpec("vec3", name))
             solidProgram.uniform3f(name, frequency, initializer);
         if (translucentProgram.containsUniformSpec("vec3", name))
@@ -115,7 +99,6 @@ public final class RenderPipeline {
     }
 
     public void uniform4f(String name, UniformRefreshFrequency frequency, Consumer<Uniform4f> initializer) {
-        checkFinal();
         if (solidProgram.containsUniformSpec("vec4", name))
             solidProgram.uniform4f(name, frequency, initializer);
         if (translucentProgram.containsUniformSpec("vec4", name))
@@ -123,7 +106,6 @@ public final class RenderPipeline {
     }
 
     public void uniform1i(String name, UniformRefreshFrequency frequency, Consumer<Uniform1i> initializer) {
-        checkFinal();
         if (solidProgram.containsUniformSpec("int", name))
             solidProgram.uniform1i(name, frequency, initializer);
         if (translucentProgram.containsUniformSpec("int", name))
@@ -131,7 +113,6 @@ public final class RenderPipeline {
     }
 
     public void uniform2i(String name, UniformRefreshFrequency frequency, Consumer<Uniform2i> initializer) {
-        checkFinal();
         if (solidProgram.containsUniformSpec("ivec2", name))
             solidProgram.uniform2i(name, frequency, initializer);
         if (translucentProgram.containsUniformSpec("ivec2", name))
@@ -139,7 +120,6 @@ public final class RenderPipeline {
     }
 
     public void uniform3i(String name, UniformRefreshFrequency frequency, Consumer<Uniform3i> initializer) {
-        checkFinal();
         if (solidProgram.containsUniformSpec("ivec3", name))
             solidProgram.uniform3i(name, frequency, initializer);
         if (translucentProgram.containsUniformSpec("ivec3", name))
@@ -147,7 +127,6 @@ public final class RenderPipeline {
     }
 
     public void uniform4i(String name, UniformRefreshFrequency frequency, Consumer<Uniform4i> initializer) {
-        checkFinal();
         if (solidProgram.containsUniformSpec("ivec4", name))
             solidProgram.uniform4i(name, frequency, initializer);
         if (translucentProgram.containsUniformSpec("ivec4", name))
@@ -155,7 +134,6 @@ public final class RenderPipeline {
     }
 
     public void uniformMatrix4f(String name, UniformRefreshFrequency frequency, Consumer<UniformMatrix4f> initializer) {
-        checkFinal();
         if (solidProgram.containsUniformSpec("mat4", name))
             solidProgram.uniformMatrix4f(name, frequency, initializer);
         if (translucentProgram.containsUniformSpec("mat4", name))
