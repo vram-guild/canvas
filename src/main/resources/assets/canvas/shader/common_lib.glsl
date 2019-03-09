@@ -14,6 +14,7 @@ uniform mat4 u_projection;
 uniform mat4 u_modelViewProjection;
 
 varying float v_ao;
+varying float v_diffuse;
 varying vec4 v_color_0;
 varying vec2 v_texcoord_0;
 varying vec4 v_light;
@@ -29,20 +30,21 @@ varying vec4 v_color_2;
 varying vec2 v_texcoord_2;
 #endif
 
+const int FLAG_DISABLE_DIFFUSE = 4;
 const int FLAG_DISABLE_AO_0 = 5;
-const int FLAG_UNMIPPED_0 = 7;
 const int FLAG_CUTOUT_0 = 6;
+const int FLAG_UNMIPPED_0 = 7;
 
-vec3 diffuse (vec3 normal)
-{
-	// same as Forge LightUtil.diffuse()
-	float d = min(normal.x * normal.x * 0.6 + normal.y * normal.y * ((3.0 + normal.y) / 4.0) + normal.z * normal.z * 0.8, 1.0);
-	return vec3(d, d, d);
+/**
+ * Formula mimics vanilla lighting for plane-aligned quads and is vaguely
+ * consistent with Phong lighting ambient + diffuse for others.
+ */
+float diffuse (vec3 normal) {
+	return min(0.5 + abs(normal.x) * 0.1 + (normal.y > 0 ? 0.5 * normal.y : 0.0) + abs(normal.z) * 0.3, 1.0);
 }
 
 // from somewhere on the Internet...
-float random (vec2 st)
-{
+float random (vec2 st) {
     return fract(sin(dot(st.xy,
                          vec2(12.9898,78.233)))*
         43758.5453123);

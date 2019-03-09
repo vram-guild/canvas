@@ -25,6 +25,10 @@ vec4 diffuseColor()
     	a *= vec4(v_ao, v_ao, v_ao, 1.0);
     }
 
+    if(bitValue(v_flags.x, FLAG_DISABLE_DIFFUSE) == 0.0) {
+    	a *= vec4(v_diffuse, v_diffuse, v_diffuse, 1.0);
+    }
+
 #if LAYER_COUNT > 1
 	vec4 b = texture2D(u_textures, v_texcoord_1) * shadeColor(v_color_1, 1);
 	a = mix(a, b, b.a);

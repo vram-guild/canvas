@@ -10,7 +10,8 @@ import net.minecraft.client.render.VertexFormat;
 import net.minecraft.util.math.BlockPos;
 
 public class FluidBufferBuilder extends BufferBuilder {
-    private static final int DEFAULT_SHADER_FLAGS = RendererImpl.INSTANCE.materialFinder().disableAo(0, true).find().shaderFlags() << 16;
+    private static final int DEFAULT_SHADER_FLAGS = RendererImpl.INSTANCE.materialFinder()
+            .disableDiffuse(0, true).disableAo(0, true).find().shaderFlags() << 16;
     public FluidBufferBuilder() {
         super(256);
     }

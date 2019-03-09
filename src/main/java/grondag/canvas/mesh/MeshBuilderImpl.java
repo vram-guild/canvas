@@ -16,12 +16,11 @@
 
 package grondag.canvas.mesh;
 
+import grondag.canvas.helper.GeometryHelper;
 import net.fabricmc.fabric.api.client.model.fabric.Mesh;
 import net.fabricmc.fabric.api.client.model.fabric.MeshBuilder;
 import net.fabricmc.fabric.api.client.model.fabric.MutableQuadView;
 import net.fabricmc.fabric.api.client.model.fabric.QuadEmitter;
-import grondag.canvas.helper.ColorHelper;
-import grondag.canvas.helper.GeometryHelper;
 
 /**
  * Our implementation of {@link MeshBuilder}, used for static mesh creation and
@@ -71,7 +70,6 @@ public class MeshBuilderImpl implements MeshBuilder {
         public Maker emit() {
             lightFace = GeometryHelper.lightFace(this);
             geometryFlags = GeometryHelper.computeShapeFlags(this);
-            ColorHelper.applyDiffuseShading(this, false);
             encodeHeader();
             index += maker.stride();
             ensureCapacity(EncodingFormat.MAX_STRIDE);

@@ -30,14 +30,17 @@ import grondag.canvas.aocalc.AoCalculator;
 import grondag.canvas.helper.GeometryHelper;
 import grondag.canvas.mesh.EncodingFormat;
 import grondag.canvas.mesh.MutableQuadViewImpl;
+import grondag.canvas.mixinext.BakedQuadExt;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.render.model.BakedModel;
 import net.minecraft.client.render.model.BakedQuad;
 import net.minecraft.util.math.Direction;
 
 public class TerrainFallbackConsumer extends AbstractQuadRenderer implements Consumer<BakedModel> {
-    private static Value MATERIAL_FLAT = (Value) RendererImpl.INSTANCE.materialFinder().disableAo(0, true).find();
-    private static Value MATERIAL_SHADED = (Value) RendererImpl.INSTANCE.materialFinder().find();
+    private static Value MATERIAL_FLAT = (Value) RendererImpl.INSTANCE.materialFinder().disableDiffuse(0, true).disableAo(0, true).find();
+    private static Value MATERIAL_SHADED = (Value) RendererImpl.INSTANCE.materialFinder().disableAo(0, true).find();
+    private static Value MATERIAL_AO_FLAT = (Value) RendererImpl.INSTANCE.materialFinder().disableDiffuse(0, true).find();
+    private static Value MATERIAL_AO_SHADED = (Value) RendererImpl.INSTANCE.materialFinder().find();
     
     private final int[] editorBuffer = new int[28];
     private final ChunkRenderInfo chunkInfo;
@@ -65,8 +68,8 @@ public class TerrainFallbackConsumer extends AbstractQuadRenderer implements Con
     @Override
     public void accept(BakedModel model) {
         final Supplier<Random> random = blockInfo.randomSupplier;
-        final Value defaultMaterial = blockInfo.defaultAo && model.useAmbientOcclusion()
-            ? MATERIAL_SHADED : MATERIAL_FLAT;
+        final boolean useAo = blockInfo.defaultAo && model.useAmbientOcclusion();
+        
         final BlockState blockState = blockInfo.blockState;
         for (int i = 0; i < 6; i++) {
             Direction face = ModelHelper.faceFromIndex(i);
@@ -75,6 +78,9 @@ public class TerrainFallbackConsumer extends AbstractQuadRenderer implements Con
             if (count != 0 && blockInfo.shouldDrawFace(face)) {
                 for (int j = 0; j < count; j++) {
                     BakedQuad q = quads.get(j);
+                    final Value defaultMaterial = ((BakedQuadExt)q).canvas_disableDiffuse()
+                            ?  (useAo ? MATERIAL_AO_FLAT : MATERIAL_FLAT)
+                            :  (useAo ? MATERIAL_AO_SHADED : MATERIAL_SHADED);
                     renderQuad(q, face, defaultMaterial);
                 }
             }
@@ -85,6 +91,9 @@ public class TerrainFallbackConsumer extends AbstractQuadRenderer implements Con
         if (count != 0) {
             for (int j = 0; j < count; j++) {
                 BakedQuad q = quads.get(j);
+                final Value defaultMaterial = ((BakedQuadExt)q).canvas_disableDiffuse()
+                        ?  (useAo ? MATERIAL_AO_FLAT : MATERIAL_FLAT)
+                        :  (useAo ? MATERIAL_AO_SHADED : MATERIAL_SHADED);
                 renderQuad(q, null, defaultMaterial);
             }
         }

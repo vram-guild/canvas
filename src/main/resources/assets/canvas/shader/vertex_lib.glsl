@@ -21,6 +21,7 @@ void setupVertex()
     gl_FogFragCoord = length(viewCoord.xyz);
     v_texcoord_0 = in_uv_0;
     v_ao = (in_normal_ao.w + 1.0) * 0.5;
+    v_diffuse = diffuse(in_normal_ao.xyz);
 
     // the lightmap texture matrix is scaled to 1/256 and then offset + 8
     // it is also clamped to repeat and has linear min/mag

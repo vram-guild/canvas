@@ -5,6 +5,8 @@
   "mixins": [
     "AccessBackgroundRenderer",
     "AccessBufferBuilder",
+    "MixinBakedQuad",
+    "MixinBakedQuadFactory",
     "MixinBlockLayeredBufferBuilder",
   	"MixinBlockModelRenderer",
     "MixinBufferBuilder",
