@@ -26,10 +26,8 @@ import grondag.canvas.core.CompoundBufferBuilder;
 import grondag.canvas.core.VertexCollector;
 import grondag.canvas.helper.ColorHelper;
 import grondag.canvas.mesh.MutableQuadViewImpl;
-import grondag.fermion.functions.PrimitiveFunctions.IntToIntFunction;
 import it.unimi.dsi.fastutil.ints.Int2ObjectFunction;
 import net.fabricmc.fabric.api.client.model.fabric.RenderContext.QuadTransform;
-import net.minecraft.block.BlockRenderLayer;
 import net.minecraft.block.BlockState;
 import net.minecraft.util.math.BlockPos;
 
@@ -69,11 +67,11 @@ public abstract class AbstractQuadRenderer {
     }
 
     /** final output step, common to all renders */
-    @Deprecated
     private void bufferQuad(MutableQuadViewImpl q, int renderLayer) {
-        // TODO: handle additional pipelines
         final RenderMaterialImpl.Value mat = q.material().forRenderLayer(renderLayer);
         final VertexCollector output = bufferFunc.get(mat.renderLayerIndex).getVertexCollector(mat.pipeline);
+        final int shaderFlags = mat.shaderFlags() << 16;
+        
         for(int i = 0; i < 4; i++) {
             output.pos(blockInfo.blockPos, q.x(i), q.y(i), q.z(i));
             output.add(q.spriteColor(i, 0));
@@ -82,83 +80,12 @@ public abstract class AbstractQuadRenderer {
             int packedLight = q.lightmap(i);
             int blockLight = (packedLight & 0xFF);
             int skyLight = ((packedLight >> 16) & 0xFF);
-            output.add(blockLight | (skyLight << 8) | (mat.shaderFlags() << 16));
-            output.add(q.packedNormal(i));
-        }
-    }
-
-    private void bufferQuad(MutableQuadViewImpl q, IntToIntFunction lightmapFunction) {
-        final RenderMaterialImpl.Value mat = q.material();
-        final VertexCollector output = bufferFunc.get(mat.renderLayerIndex).getVertexCollector(mat.pipeline);
-        
-        // colorize quad
-        // light quad
-        
-        for(int i = 0; i < 4; i++) {
-            output.pos(blockInfo.blockPos, q.x(i), q.y(i), q.z(i));
-            output.add(q.spriteColor(i, 0));
-            output.add(q.spriteU(i, 0));
-            output.add(q.spriteV(i, 0));
-            output.add(encodeLighting(q, mat, lightmapFunction, i));
+            output.add(blockLight | (skyLight << 8) | shaderFlags);
+            // TODO: output AO
             output.add(q.packedNormal(i));
             
-            // output layers 2-3
+            //TODO: output layers 2-3
         }
-    }
-    
-    private int encodeLighting(MutableQuadViewImpl q, RenderMaterialImpl.Value mat, IntToIntFunction lightmapFunction, int vertexIndex) {
-        final int lightmap = lightmapFunction.apply(vertexIndex);
-        final int blockLight = (lightmap >> 4) & 0xF;
-        final int skyLight = (lightmap >> 20) & 0xF;
-        if(mat.emissiveFlags == 0) {
-            return packLightmap(blockLight, skyLight);
-        } else {
-            final int quadLightMap = q.lightmap(vertexIndex);
-            final int quadBlocklight = (quadLightMap >> 4) & 0xF;
-            final int quadSkylight = (quadLightMap >> 20) & 0xF;
-            final int emissiveLight = packLightmap(Math.max(quadBlocklight, blockLight), Math.max(quadSkylight, skyLight));
-            return (blockLight * 17) | ((skyLight * 17) << 8) | (emissiveLight << 16) | (mat.emissiveFlags << 24);
-        }
-    }
-    
-    /** 
-     * Packs a two-component light map into a single byte. 
-     */
-    private int packLightmap(int blockLight, int skyLight) {
-        return (skyLight << 4) | blockLight;
-    }
-    
-    /**
-     * Encode flags for emissive rendering, cutout and mipped handling.
-     * This allows MC CUTOUT and CUTOUT_MIPPED quads to be backed into a single buffer
-     * and rendered in the same draw command.  If cutout is on, then any fragment in
-     * the base layer with a (base) texture alpha value less than 0.5 will be discarded.<p>
-     * 
-     * Layered quads don't generally use cutout textures, but if a model does supply
-     * a base texture with holes and the quad is set to use a cutout layer, then the
-     * discard will also affect overlay textures.  In other words, if the base texture has 
-     * a hole,  the hole will not be covered by an overlay texture, even if the overlay is 
-     * fully opaque.  (This could change in the future.)
-     * 
-     */
-    @Deprecated
-    private int encodeFlags(MutableQuadViewImpl q, int renderLayer)
-    {
-        // TODO: handle layers 1-2
-        int result = q.material().emissive(0) ? 1 : 0;
-                
-        // mipped indicator
-        // all are mipped except the one that isn't
-        // TODO: handle multiple layers?
-        if(renderLayer == BlockRenderLayer.CUTOUT.ordinal())
-            result |= 0b00001000;
-        
-        // cutout indicator
-        // PERF: sucks
-        if(renderLayer == BlockRenderLayer.MIPPED_CUTOUT.ordinal() || renderLayer == BlockRenderLayer.CUTOUT.ordinal())
-            result |= 0b00010000;
-        
-        return result;
     }
     
     // routines below have a bit of copy-paste code reuse to avoid conditional
