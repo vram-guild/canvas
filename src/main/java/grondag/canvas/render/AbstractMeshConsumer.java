@@ -144,17 +144,9 @@ public abstract class AbstractMeshConsumer extends AbstractQuadRenderer implemen
         final int renderLayer = blockInfo.layerIndexOrDefault(mat.blendMode(textureIndex));
 
         if (blockInfo.defaultAo && !mat.disableAo(textureIndex)) {
-            if (mat.emissive(textureIndex)) {
-                tesselateSmoothEmissive(quad, renderLayer, colorIndex, lightmaps);
-            } else {
-                tesselateSmooth(quad, renderLayer, colorIndex);
-            }
+            tesselateSmooth(quad, renderLayer, colorIndex);
         } else {
-            if (mat.emissive(textureIndex)) {
-                tesselateFlatEmissive(quad, renderLayer, colorIndex, lightmaps);
-            } else {
-                tesselateFlat(quad, renderLayer, colorIndex);
-            }
+            tesselateFlat(quad, renderLayer, colorIndex);
         }
     }
 }

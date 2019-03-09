@@ -81,8 +81,8 @@ public abstract class AbstractQuadRenderer {
             int blockLight = (packedLight & 0xFF);
             int skyLight = ((packedLight >> 16) & 0xFF);
             output.add(blockLight | (skyLight << 8) | shaderFlags);
-            // TODO: output AO
-            output.add(q.packedNormal(i));
+            int ao = mat.hasAo ? ((Math.round(aoCalc.ao[i] * 255) - 127) << 24) : 0xFF000000;
+            output.add(q.packedNormal(i) | ao);
             
             //TODO: output layers 2-3
         }
@@ -95,19 +95,7 @@ public abstract class AbstractQuadRenderer {
     protected void tesselateSmooth(MutableQuadViewImpl q, int renderLayer, int blockColorIndex) {
         colorizeQuad(q, blockColorIndex);
         for (int i = 0; i < 4; i++) {
-            q.spriteColor(i, 0, ColorHelper.multiplyRGB(q.spriteColor(i, 0), aoCalc.ao[i]));
-            q.lightmap(i, aoCalc.light[i]);
-        }
-        bufferQuad(q, renderLayer);
-    }
-
-    /** for emissive mesh quads with smooth lighting */
-    protected void tesselateSmoothEmissive(MutableQuadViewImpl q, int renderLayer, int blockColorIndex,
-            int[] lightmaps) {
-        colorizeQuad(q, blockColorIndex);
-        for (int i = 0; i < 4; i++) {
-            q.spriteColor(i, 0, ColorHelper.multiplyRGB(q.spriteColor(i, 0), aoCalc.ao[i]));
-            q.lightmap(i, ColorHelper.maxBrightness(lightmaps[i], aoCalc.light[i]));
+            q.lightmap(i, ColorHelper.maxBrightness(q.lightmap(i), aoCalc.light[i]));
         }
         bufferQuad(q, renderLayer);
     }
@@ -117,18 +105,7 @@ public abstract class AbstractQuadRenderer {
         colorizeQuad(quad, blockColorIndex);
         final int brightness = flatBrightness(quad, blockInfo.blockState, blockInfo.blockPos);
         for (int i = 0; i < 4; i++) {
-            quad.lightmap(i, brightness);
-        }
-        bufferQuad(quad, renderLayer);
-    }
-
-    /** for emissive mesh quads with flat lighting */
-    protected void tesselateFlatEmissive(MutableQuadViewImpl quad, int renderLayer, int blockColorIndex,
-            int[] lightmaps) {
-        colorizeQuad(quad, blockColorIndex);
-        final int brightness = flatBrightness(quad, blockInfo.blockState, blockInfo.blockPos);
-        for (int i = 0; i < 4; i++) {
-            quad.lightmap(i, ColorHelper.maxBrightness(lightmaps[i], brightness));
+            quad.lightmap(i, ColorHelper.maxBrightness(quad.lightmap(i), brightness));
         }
         bufferQuad(quad, renderLayer);
     }

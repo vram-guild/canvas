@@ -23,7 +23,7 @@ public class PipelineVertextFormatElement extends VertexFormatElement {
             VertexFormatElement.Format.UNSIGNED_BYTE, VertexFormatElement.Type.PADDING, 4, "in_lightmap", false);
 
     public static final PipelineVertextFormatElement NORMAL_AO_4UB = new PipelineVertextFormatElement(3,
-            VertexFormatElement.Format.UNSIGNED_BYTE, VertexFormatElement.Type.PADDING, 4, "in_normal_ao", false);
+            VertexFormatElement.Format.BYTE, VertexFormatElement.Type.PADDING, 4, "in_normal_ao", true);
 
     public static final PipelineVertextFormatElement SECONDARY_RGBA_4UB = new PipelineVertextFormatElement(4,
             VertexFormatElement.Format.UNSIGNED_BYTE, VertexFormatElement.Type.PADDING, 4, "in_color_1");
