@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.function.Consumer;
 
+import grondag.canvas.RenderMaterialImpl.Finder;
 import grondag.canvas.RenderMaterialImpl.Value;
 import grondag.canvas.buffering.BufferManager;
 import grondag.canvas.core.PipelineManager;
@@ -30,7 +31,6 @@ import grondag.canvas.mesh.MeshBuilderImpl;
 import grondag.frex.api.ExtendedRenderer;
 import grondag.frex.api.RenderListener;
 import grondag.frex.api.ShaderManager;
-import net.fabricmc.fabric.api.client.model.fabric.MaterialFinder;
 import net.fabricmc.fabric.api.client.model.fabric.MeshBuilder;
 import net.fabricmc.fabric.api.client.model.fabric.RenderMaterial;
 import net.minecraft.client.resource.language.I18n;
@@ -56,7 +56,7 @@ public class RendererImpl implements ExtendedRenderer {
 //        return VANILLA_MATERIALS[layer.ordinal()];
 //    }
     
-    private final HashMap<Identifier, RenderMaterial> materialMap = new HashMap<>();
+    private final HashMap<Identifier, Value> materialMap = new HashMap<>();
 
     private final ArrayList<WeakReference<RenderListener>> listeners = new ArrayList<WeakReference<RenderListener>>();
 
@@ -69,12 +69,12 @@ public class RendererImpl implements ExtendedRenderer {
     }
 
     @Override
-    public MaterialFinder materialFinder() {
+    public Finder materialFinder() {
         return new RenderMaterialImpl.Finder();
     }
 
     @Override
-    public RenderMaterial materialById(Identifier id) {
+    public Value materialById(Identifier id) {
         return materialMap.get(id);
     }
 
@@ -83,7 +83,7 @@ public class RendererImpl implements ExtendedRenderer {
         if (materialMap.containsKey(id))
             return false;
         // cast to prevent acceptance of impostor implementations
-        materialMap.put(id, material);
+        materialMap.put(id, (Value) material);
         return true;
     }
 

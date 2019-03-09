@@ -2,6 +2,7 @@ package grondag.canvas.core;
 
 import java.nio.ByteBuffer;
 
+import grondag.canvas.RendererImpl;
 import grondag.canvas.helper.ColorHelper;
 import net.minecraft.block.BlockRenderLayer;
 import net.minecraft.client.render.BufferBuilder;
@@ -9,6 +10,7 @@ import net.minecraft.client.render.VertexFormat;
 import net.minecraft.util.math.BlockPos;
 
 public class FluidBufferBuilder extends BufferBuilder {
+    private static final int DEFAULT_SHADER_FLAGS = RendererImpl.INSTANCE.materialFinder().disableAo(0, true).find().shaderFlags() << 16;
     public FluidBufferBuilder() {
         super(256);
     }
@@ -49,13 +51,14 @@ public class FluidBufferBuilder extends BufferBuilder {
 
     @Override
     public BufferBuilder texture(int skyLight, int blockLight) {
-        vc.add((blockLight & 0xFF) | ((skyLight & 0xFF) << 8));
+        vc.add((blockLight & 0xFF) | ((skyLight & 0xFF) << 8) | DEFAULT_SHADER_FLAGS);
         return this;
     }
 
     @Override
     public void next() {
         // FIXME compute legit normal - for now is padding
+        // FIXME move Ao to shader - for now is disabled and happens CPU-side
         vc.add(0);
     }
 
