@@ -41,7 +41,8 @@ public abstract class AbstractQuadRenderer {
     protected final BlockRenderInfo blockInfo;
     protected final AoCalculator aoCalc;
     protected final QuadTransform transform;
-
+    protected MutableQuadViewImpl editorQuad;
+    
     AbstractQuadRenderer(BlockRenderInfo blockInfo, ToIntBiFunction<BlockState, BlockPos> brightnessFunc,
             Int2ObjectFunction<CompoundBufferBuilder> bufferFunc, AoCalculator aoCalc, QuadTransform transform) {
         this.blockInfo = blockInfo;
@@ -52,15 +53,40 @@ public abstract class AbstractQuadRenderer {
     }
 
     /** handles block color and red-blue swizzle, common to all renders */
-    private void colorizeQuad(MutableQuadViewImpl q, int blockColorIndex) {
+    private void colorizeQuad(MutableQuadViewImpl q) {
+        final int blockColorIndex = q.colorIndex();
         ColorHelper.colorizeQuad(q, blockColorIndex == -1 ? -1 : (blockInfo.blockColor(blockColorIndex) | 0xFF000000));
     }
 
+    protected abstract void applyOffsets();
+    
     /** final output step, common to all renders */
-    private void bufferQuad(MutableQuadViewImpl q, int renderLayer) {
-        final RenderMaterialImpl.Value mat = q.material().forRenderLayer(renderLayer);
+    protected final void renderQuad() {
+        final MutableQuadViewImpl q = editorQuad;
+        
+        if (!transform.transform(q)) {
+            return;
+        }
+
+        final RenderMaterialImpl.Value mat = q.material().forRenderLayer(blockInfo.defaultLayerIndex);
         final VertexCollector output = bufferFunc.get(mat.renderLayerIndex).getVertexCollector(mat.pipeline);
         final int shaderFlags = mat.shaderFlags() << 16;
+        
+        final boolean isAo = blockInfo.defaultAo && mat.hasAo;
+        if (isAo) {
+            // needs to happen before offsets are applied
+            aoCalc.compute(q, false);
+        }
+
+        applyOffsets();
+        
+        colorizeQuad(q);
+        
+        if(isAo) {
+            lightSmooth(q);
+        } else {
+            lightFlat(q);
+        }
         
         for(int i = 0; i < 4; i++) {
             output.pos(blockInfo.blockPos, q.x(i), q.y(i), q.z(i));
@@ -71,7 +97,7 @@ public abstract class AbstractQuadRenderer {
             int blockLight = (packedLight & 0xFF);
             int skyLight = ((packedLight >> 16) & 0xFF);
             output.add(blockLight | (skyLight << 8) | shaderFlags);
-            int ao = mat.hasAo ? ((Math.round(aoCalc.ao[i] * 254) - 127) << 24) : 0xFF000000;
+            int ao = isAo ? ((Math.round(aoCalc.ao[i] * 254) - 127) << 24) : 0xFF000000;
             output.add(q.packedNormal(i) | ao);
             
             //TODO: output layers 2-3
@@ -79,22 +105,18 @@ public abstract class AbstractQuadRenderer {
     }
     
     /** for non-emissive mesh quads and all fallback quads with smooth lighting */
-    protected void tesselateSmooth(MutableQuadViewImpl q, int renderLayer, int blockColorIndex) {
-        colorizeQuad(q, blockColorIndex);
+    private void lightSmooth(MutableQuadViewImpl q) {
         for (int i = 0; i < 4; i++) {
             q.lightmap(i, ColorHelper.maxBrightness(q.lightmap(i), aoCalc.light[i]));
         }
-        bufferQuad(q, renderLayer);
     }
 
     /** for non-emissive mesh quads and all fallback quads with flat lighting */
-    protected void tesselateFlat(MutableQuadViewImpl quad, int renderLayer, int blockColorIndex) {
-        colorizeQuad(quad, blockColorIndex);
+    private void lightFlat(MutableQuadViewImpl quad) {
         final int brightness = flatBrightness(quad, blockInfo.blockState, blockInfo.blockPos);
         for (int i = 0; i < 4; i++) {
             quad.lightmap(i, ColorHelper.maxBrightness(quad.lightmap(i), brightness));
         }
-        bufferQuad(quad, renderLayer);
     }
 
     private final BlockPos.Mutable mpos = new BlockPos.Mutable();
@@ -103,7 +125,7 @@ public abstract class AbstractQuadRenderer {
      * Handles geometry-based check for using self brightness or neighbor
      * brightness. That logic only applies in flat lighting.
      */
-    int flatBrightness(MutableQuadViewImpl quad, BlockState blockState, BlockPos pos) {
+    private int flatBrightness(MutableQuadViewImpl quad, BlockState blockState, BlockPos pos) {
         mpos.set(pos);
         if ((quad.geometryFlags() & LIGHT_FACE_FLAG) != 0) {
             mpos.setOffset(quad.lightFace());

@@ -121,7 +121,8 @@ public class BlockRenderContext extends AbstractRenderContext implements RenderC
         }
 
         @Override
-        protected void applyOffsets(MutableQuadViewImpl q) {
+        protected void applyOffsets() {
+            final MutableQuadViewImpl q = editorQuad;
             final double x = offsetX;
             final double y = offsetY;
             final double z = offsetZ;

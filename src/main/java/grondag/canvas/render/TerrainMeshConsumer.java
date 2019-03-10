@@ -16,9 +16,8 @@
 
 package grondag.canvas.render;
 
-import net.fabricmc.fabric.api.client.model.fabric.RenderContext.QuadTransform;
 import grondag.canvas.aocalc.AoCalculator;
-import grondag.canvas.mesh.MutableQuadViewImpl;
+import net.fabricmc.fabric.api.client.model.fabric.RenderContext.QuadTransform;
 
 public class TerrainMeshConsumer extends AbstractMeshConsumer {
     private final ChunkRenderInfo chunkInfo;
@@ -30,7 +29,7 @@ public class TerrainMeshConsumer extends AbstractMeshConsumer {
     }
 
     @Override
-    protected void applyOffsets(MutableQuadViewImpl quad) {
-        chunkInfo.applyOffsets(quad);
+    protected void applyOffsets() {
+        chunkInfo.applyOffsets(editorQuad);
     }
 }

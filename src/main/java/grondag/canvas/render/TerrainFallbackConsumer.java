@@ -21,16 +21,16 @@ import java.util.Random;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-import grondag.canvas.RendererImpl;
-import net.fabricmc.fabric.api.client.model.fabric.ModelHelper;
-import net.fabricmc.fabric.api.client.model.fabric.QuadEmitter;
-import net.fabricmc.fabric.api.client.model.fabric.RenderContext.QuadTransform;
 import grondag.canvas.RenderMaterialImpl.Value;
+import grondag.canvas.RendererImpl;
 import grondag.canvas.aocalc.AoCalculator;
 import grondag.canvas.helper.GeometryHelper;
 import grondag.canvas.mesh.EncodingFormat;
 import grondag.canvas.mesh.MutableQuadViewImpl;
 import grondag.canvas.mixinext.BakedQuadExt;
+import net.fabricmc.fabric.api.client.model.fabric.ModelHelper;
+import net.fabricmc.fabric.api.client.model.fabric.QuadEmitter;
+import net.fabricmc.fabric.api.client.model.fabric.RenderContext.QuadTransform;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.render.model.BakedModel;
 import net.minecraft.client.render.model.BakedQuad;
@@ -49,9 +49,10 @@ public class TerrainFallbackConsumer extends AbstractQuadRenderer implements Con
             QuadTransform transform) {
         super(blockInfo, chunkInfo::cachedBrightness, chunkInfo::getInitializedBuffer, aoCalc, transform);
         this.chunkInfo = chunkInfo;
+        this.editorQuad = new Maker();
     }
 
-    private final MutableQuadViewImpl editorQuad = new MutableQuadViewImpl() {
+    private class Maker extends MutableQuadViewImpl {
         {
             data = editorBuffer;
             material = MATERIAL_SHADED;
@@ -108,16 +109,8 @@ public class TerrainFallbackConsumer extends AbstractQuadRenderer implements Con
         editorQuad.colorIndex(quad.getColorIndex());
         editorQuad.material(defaultMaterial);
         
-        if (!transform.transform(editorQuad)) {
-            return;
-        }
-
         if (editorQuad.material().hasAo) {
-            // needs to happen before offsets are applied
             editorQuad.invalidateShape();
-            aoCalc.compute(editorQuad, true);
-            chunkInfo.applyOffsets(editorQuad);
-            tesselateSmooth(editorQuad, blockInfo.defaultLayerIndex, editorQuad.colorIndex());
         } else {
             // vanilla compatibility hack
             // For flat lighting, if cull face is set always use neighbor light.
@@ -128,8 +121,13 @@ public class TerrainFallbackConsumer extends AbstractQuadRenderer implements Con
             } else {
                 editorQuad.geometryFlags(GeometryHelper.AXIS_ALIGNED_FLAG | GeometryHelper.LIGHT_FACE_FLAG);
             }
-            chunkInfo.applyOffsets(editorQuad);
-            tesselateFlat(editorQuad, blockInfo.defaultLayerIndex, editorQuad.colorIndex());
         }
+        
+        super.renderQuad();
+    }
+
+    @Override
+    protected void applyOffsets() {
+        chunkInfo.applyOffsets(editorQuad);
     }
 }

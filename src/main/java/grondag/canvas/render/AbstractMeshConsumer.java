@@ -19,10 +19,6 @@ package grondag.canvas.render;
 import java.util.function.Consumer;
 import java.util.function.ToIntBiFunction;
 
-import it.unimi.dsi.fastutil.ints.Int2ObjectFunction;
-import net.fabricmc.fabric.api.client.model.fabric.Mesh;
-import net.fabricmc.fabric.api.client.model.fabric.QuadEmitter;
-import net.fabricmc.fabric.api.client.model.fabric.RenderContext.QuadTransform;
 import grondag.canvas.RenderMaterialImpl;
 import grondag.canvas.RenderMaterialImpl.Value;
 import grondag.canvas.RendererImpl;
@@ -31,8 +27,11 @@ import grondag.canvas.core.CompoundBufferBuilder;
 import grondag.canvas.mesh.EncodingFormat;
 import grondag.canvas.mesh.MeshImpl;
 import grondag.canvas.mesh.MutableQuadViewImpl;
+import it.unimi.dsi.fastutil.ints.Int2ObjectFunction;
+import net.fabricmc.fabric.api.client.model.fabric.Mesh;
+import net.fabricmc.fabric.api.client.model.fabric.QuadEmitter;
+import net.fabricmc.fabric.api.client.model.fabric.RenderContext.QuadTransform;
 import net.minecraft.block.BlockState;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.util.math.BlockPos;
 
 /**
@@ -44,6 +43,7 @@ public abstract class AbstractMeshConsumer extends AbstractQuadRenderer implemen
     protected AbstractMeshConsumer(BlockRenderInfo blockInfo, ToIntBiFunction<BlockState, BlockPos> brightnessFunc,
             Int2ObjectFunction<CompoundBufferBuilder> bufferFunc, AoCalculator aoCalc, QuadTransform transform) {
         super(blockInfo, brightnessFunc, bufferFunc, aoCalc, transform);
+        editorQuad = new Maker();
     }
 
     /**
@@ -62,16 +62,12 @@ public abstract class AbstractMeshConsumer extends AbstractQuadRenderer implemen
         @Override
         public Maker emit() {
             if (blockInfo.shouldDrawFace(this.cullFace())) {
-                renderQuad(this);
+                renderQuad();
             }
             clear();
             return this;
         }
     };
-
-    private final Maker editorQuad = new Maker();
-
-    protected int[] lightmaps = new int[4];
 
     @Override
     public void accept(Mesh mesh) {
@@ -85,68 +81,12 @@ public abstract class AbstractMeshConsumer extends AbstractQuadRenderer implemen
             System.arraycopy(data, index, editorQuad.data(), 0, stride);
             editorQuad.load();
             index += stride;
-            renderQuad(editorQuad);
+            renderQuad();
         }
     }
 
     public QuadEmitter getEmitter() {
         editorQuad.clear();
         return editorQuad;
-    }
-
-    private void renderQuad(MutableQuadViewImpl q) {
-        if (!transform.transform(editorQuad)) {
-            return;
-        }
-
-        final RenderMaterialImpl.Value mat = q.material();
-
-        if (mat.emissiveFlags != 0) {
-            captureLightmaps(q);
-        }
-
-        if (mat.hasAo && MinecraftClient.isAmbientOcclusionEnabled()) {
-            // needs to happen before offsets are applied
-            aoCalc.compute(q, false);
-        }
-
-        applyOffsets(q);
-
-        tesselateQuad(q, mat, 0);
-
-        final int textureCount = mat.spriteDepth();
-        for (int t = 1; t < textureCount; t++) {
-            for (int i = 0; i < 4; i++) {
-                q.spriteColor(i, 0, q.spriteColor(i, t));
-                q.sprite(i, 0, q.spriteU(i, t), q.spriteV(i, t));
-            }
-            tesselateQuad(q, mat, t);
-        }
-    }
-
-    private void captureLightmaps(MutableQuadViewImpl q) {
-        final int[] data = q.data();
-        final int[] lightmaps = this.lightmaps;
-        lightmaps[0] = data[EncodingFormat.VERTEX_START_OFFSET + 6];
-        lightmaps[1] = data[EncodingFormat.VERTEX_START_OFFSET + 6 + 7];
-        lightmaps[2] = data[EncodingFormat.VERTEX_START_OFFSET + 6 + 14];
-        lightmaps[3] = data[EncodingFormat.VERTEX_START_OFFSET + 6 + 21];
-    }
-
-    protected abstract void applyOffsets(MutableQuadViewImpl quad);
-
-    /**
-     * Determines color index and render layer, then routes to appropriate tesselate
-     * routine based on material properties.
-     */
-    private void tesselateQuad(MutableQuadViewImpl quad, RenderMaterialImpl.Value mat, int textureIndex) {
-        final int colorIndex = mat.disableColorIndex(textureIndex) ? -1 : quad.colorIndex();
-        final int renderLayer = blockInfo.layerIndexOrDefault(mat.blendMode(textureIndex));
-
-        if (blockInfo.defaultAo && !mat.disableAo(textureIndex)) {
-            tesselateSmooth(quad, renderLayer, colorIndex);
-        } else {
-            tesselateFlat(quad, renderLayer, colorIndex);
-        }
     }
 }
