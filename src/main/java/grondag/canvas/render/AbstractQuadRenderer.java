@@ -51,8 +51,6 @@ public abstract class AbstractQuadRenderer {
         this.transform = transform;
     }
 
-    // PERF pre-swap red & blue
-    
     /** handles block color and red-blue swizzle, common to all renders */
     private void colorizeQuad(MutableQuadViewImpl q, int blockColorIndex) {
         ColorHelper.colorizeQuad(q, blockColorIndex == -1 ? -1 : (blockInfo.blockColor(blockColorIndex) | 0xFF000000));

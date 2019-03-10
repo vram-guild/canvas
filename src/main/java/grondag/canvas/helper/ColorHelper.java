@@ -61,19 +61,6 @@ public abstract class ColorHelper {
         return (alpha << 24) | (red << 16) | (green << 8) | blue;
     }
 
-    /**
-     * Multiplies three lowest components by shade. High byte (usually alpha)
-     * unchanged.
-     */
-    public static int multiplyRGB(int color, float shade) {
-        int alpha = ((color >> 24) & 0xFF);
-        int red = (int) (((color >> 16) & 0xFF) * shade);
-        int green = (int) (((color >> 8) & 0xFF) * shade);
-        int blue = (int) ((color & 0xFF) * shade);
-
-        return (alpha << 24) | (red << 16) | (green << 8) | blue;
-    }
-
     @FunctionalInterface
     private static interface Colorizer {
         void shade(MutableQuadViewImpl quad, int vertexIndex, int color);
@@ -83,7 +70,7 @@ public abstract class ColorHelper {
 
     static {
         COLORIZERS[0][0b000] = (q, i, s) -> q.spriteColor(i, 0, swapRedBlueIfNeeded(q.spriteColor(i, 0)));
-        
+  
         COLORIZERS[0][0b001] = (q, i, s) -> q.spriteColor(i, 0, swapRedBlueIfNeeded(multiplyColor(q.spriteColor(i, 0), s)));
         
         COLORIZERS[1][0b000] = (q, i, s) -> 
