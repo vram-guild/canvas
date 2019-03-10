@@ -19,6 +19,7 @@
     "MixinFogState",
 	"MixinGameRenderer",
 	"MixinItemRenderer",
+	"MixinLightmapTextureManager",
 	"MixinMinecraftClient",
 	"MixinSafeWorldView",
 	"MixinVboChunkRendererList",

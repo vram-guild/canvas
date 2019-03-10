@@ -6,6 +6,7 @@
 uniform float u_time;
 uniform sampler2D u_textures;
 uniform sampler2D u_lightmap;
+uniform vec4 u_emissiveColor;
 uniform vec3 u_eye_position;
 uniform vec3 u_fogColor;
 uniform vec3 u_fogAttributes;

@@ -7,6 +7,8 @@ import org.lwjgl.opengl.GL11;
 import com.mojang.blaze3d.platform.GlStateManager;
 
 import org.joml.Matrix4f;
+import org.joml.Vector3f;
+
 import grondag.canvas.Configurator;
 import grondag.canvas.RenderMaterialImpl;
 import grondag.frex.api.UniformRefreshFrequency;
@@ -103,6 +105,12 @@ public final class PipelineManager {
      */
     private float fractionalTicks;
 
+    /**
+     * Gamma-corrected max light from lightmap texture.  
+     * Updated whenever lightmap texture is updated.
+     */
+    private Vector3f emissiveColor = new Vector3f(1f, 1f, 1f);
+    
     private PipelineManager() {
         super();
 
@@ -119,6 +127,10 @@ public final class PipelineManager {
         this.defaultSinglePipeline = defaultPipelines[0];
     }
 
+    public void updateEmissiveColor(int color) {
+        emissiveColor.set((color & 0xFF) / 255f, ((color >> 8) & 0xFF) / 255f, ((color >> 16) & 0xFF) / 255f);
+    }
+    
     public void forceReload() {
         for (int i = 0; i < this.pipelineCount; i++) {
             this.pipelines[i].forceReload();
@@ -175,6 +187,10 @@ public final class PipelineManager {
 
         pipeline.uniformSampler2d("u_lightmap", UniformRefreshFrequency.ON_LOAD, u -> u.set(1));
 
+        pipeline.uniform4f("u_emissiveColor", UniformRefreshFrequency.PER_FRAME, u -> {
+            u.set(emissiveColor.x, emissiveColor.y, emissiveColor.z, 1f);
+        });
+        
         pipeline.uniform3f("u_eye_position", UniformRefreshFrequency.PER_FRAME, u -> {
             Vec3d eyePos = MinecraftClient.getInstance().player.getCameraPosVec(fractionalTicks);
             u.set((float) eyePos.x, (float) eyePos.y, (float) eyePos.z);

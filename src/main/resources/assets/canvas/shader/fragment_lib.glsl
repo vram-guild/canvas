@@ -1,7 +1,6 @@
 
-vec4 shadeColor(vec4 fragmentColor,  int layerIndex)
-{
-	return bitValue(v_flags.x, layerIndex) == 0 ? v_light * fragmentColor : fragmentColor;
+vec4 shadeColor(vec4 fragmentColor,  int layerIndex) {
+	return bitValue(v_flags.x, layerIndex) == 0 ? v_light * fragmentColor : u_emissiveColor * fragmentColor;
 }
 
 vec4 diffuseColor()
