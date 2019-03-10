@@ -25,8 +25,6 @@ import net.fabricmc.fabric.api.client.model.fabric.QuadEmitter;
 import net.fabricmc.fabric.api.client.model.fabric.RenderMaterial;
 import grondag.canvas.RenderMaterialImpl.Value;
 import grondag.canvas.RendererImpl;
-import grondag.canvas.helper.ColorHelper.ShadeableQuad;
-import grondag.canvas.helper.GeometryHelper;
 import grondag.canvas.helper.NormalHelper;
 import grondag.canvas.helper.TextureHelper;
 import net.minecraft.client.texture.Sprite;
@@ -37,7 +35,7 @@ import net.minecraft.util.math.Direction;
  * {@link #emit()}, because that depends on where/how it is used. (Mesh encoding
  * vs. render-time transformation).
  */
-public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEmitter, ShadeableQuad {
+public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEmitter {
     public final void begin(int[] data, int baseIndex) {
         this.data = data;
         this.baseIndex = baseIndex;
@@ -114,16 +112,6 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
         }
         this.invalidateShape();
         return this;
-    }
-
-    @Override
-    public boolean isFaceAligned() {
-        return (geometryFlags() & GeometryHelper.AXIS_ALIGNED_FLAG) != 0;
-    }
-
-    @Override
-    public boolean needsDiffuseShading(int textureIndex) {
-        return textureIndex < material.spriteDepth() && !material.disableDiffuse(textureIndex);
     }
 
     @Override

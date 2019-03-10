@@ -55,17 +55,7 @@ public abstract class AbstractQuadRenderer {
     
     /** handles block color and red-blue swizzle, common to all renders */
     private void colorizeQuad(MutableQuadViewImpl q, int blockColorIndex) {
-        if (blockColorIndex == -1) {
-            for (int i = 0; i < 4; i++) {
-                q.spriteColor(i, 0, ColorHelper.swapRedBlueIfNeeded(q.spriteColor(i, 0)));
-            }
-        } else {
-            final int blockColor = blockInfo.blockColor(blockColorIndex);
-            for (int i = 0; i < 4; i++) {
-                q.spriteColor(i, 0,
-                        ColorHelper.swapRedBlueIfNeeded(ColorHelper.multiplyColor(blockColor, q.spriteColor(i, 0))));
-            }
-        }
+        ColorHelper.colorizeQuad(q, blockColorIndex == -1 ? -1 : (blockInfo.blockColor(blockColorIndex) | 0xFF000000));
     }
 
     /** final output step, common to all renders */
@@ -90,9 +80,6 @@ public abstract class AbstractQuadRenderer {
         }
     }
     
-    // routines below have a bit of copy-paste code reuse to avoid conditional
-    // execution inside a hot loop
-
     /** for non-emissive mesh quads and all fallback quads with smooth lighting */
     protected void tesselateSmooth(MutableQuadViewImpl q, int renderLayer, int blockColorIndex) {
         colorizeQuad(q, blockColorIndex);

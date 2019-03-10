@@ -18,11 +18,9 @@ package grondag.canvas.helper;
 
 import java.nio.ByteOrder;
 
+import grondag.canvas.RenderMaterialImpl;
+import grondag.canvas.mesh.MutableQuadViewImpl;
 import it.unimi.dsi.fastutil.ints.Int2IntFunction;
-import net.fabricmc.fabric.api.client.model.fabric.MutableQuadView;
-import net.minecraft.client.render.model.BakedQuadFactory;
-import net.minecraft.client.util.math.Vector3f;
-import net.minecraft.util.math.Direction;
 
 /**
  * Static routines of general utility for renderer implementations. Renderers
@@ -30,21 +28,8 @@ import net.minecraft.util.math.Direction;
  * without the default renderer.
  */
 public abstract class ColorHelper {
-    /**
-     * Implement on quads to use methods that require it. Allows for much cleaner
-     * method signatures.
-     */
-    public static interface ShadeableQuad extends MutableQuadView {
-        boolean isFaceAligned();
-
-        boolean needsDiffuseShading(int textureIndex);
-    }
-
     private ColorHelper() {
     }
-
-    /** Same as vanilla values */
-    private static final float[] FACE_SHADE_FACTORS = { 0.5F, 1.0F, 0.8F, 0.8F, 0.6F, 0.6F };
 
     private static final Int2IntFunction colorSwapper = ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN
             ? color -> ((color & 0xFF00FF00) | ((color & 0x00FF0000) >> 16) | ((color & 0xFF) << 16))
@@ -89,93 +74,97 @@ public abstract class ColorHelper {
         return (alpha << 24) | (red << 16) | (green << 8) | blue;
     }
 
-    /**
-     * Same results as {@link BakedQuadFactory#method_3456()}
-     */
-    public static float diffuseShade(Direction direction) {
-        return FACE_SHADE_FACTORS[direction.getId()];
-    }
-
-    /**
-     * Formula mimics vanilla lighting for plane-aligned quads and is vaguely
-     * consistent with Phong lighting ambient + diffuse for others.
-     */
-    public static float normalShade(float normalX, float normalY, float normalZ) {
-        return Math.min(0.5f + Math.abs(normalX) * 0.1f + (normalY > 0 ? 0.5f * normalY : 0) + Math.abs(normalZ) * 0.3f,
-                1f);
-    }
-
-    public static float normalShade(Vector3f normal) {
-        return normalShade(normal.x(), normal.y(), normal.z());
-    }
-
-    /**
-     * See {@link diffuseShade}
-     */
-    public static float vertexShade(ShadeableQuad q, int vertexIndex, float faceShade) {
-        return q.hasNormal(vertexIndex) ? normalShade(q.normalX(vertexIndex), q.normalY(vertexIndex), q.normalZ(vertexIndex))
-                : faceShade;
-    }
-
-    /**
-     * Returns {@link #diffuseShade(Direction)} if quad is aligned to light face,
-     * otherwise uses face normal and {@link #normalShade()}
-     */
-    public static float faceShade(ShadeableQuad quad) {
-        return quad.isFaceAligned() ? diffuseShade(quad.lightFace()) : normalShade(quad.faceNormal());
-    }
-
     @FunctionalInterface
-    private static interface VertexLighter {
-        void shade(ShadeableQuad quad, int vertexIndex, float shade);
+    private static interface Colorizer {
+        void shade(MutableQuadViewImpl quad, int vertexIndex, int color);
     }
 
-    private static VertexLighter[] VERTEX_LIGHTERS = new VertexLighter[8];
+    private static Colorizer[][] COLORIZERS = new Colorizer[3][8];
 
     static {
-        VERTEX_LIGHTERS[0b000] = (q, i, s) -> {
-        };
-        VERTEX_LIGHTERS[0b001] = (q, i, s) -> q.spriteColor(i, 0, multiplyRGB(q.spriteColor(i, 0), s));
-        VERTEX_LIGHTERS[0b010] = (q, i, s) -> q.spriteColor(i, 1, multiplyRGB(q.spriteColor(i, 1), s));
-        VERTEX_LIGHTERS[0b011] = (q, i, s) -> q.spriteColor(i, 0, multiplyRGB(q.spriteColor(i, 0), s)).spriteColor(i, 1,
-                multiplyRGB(q.spriteColor(i, 1), s));
-        VERTEX_LIGHTERS[0b100] = (q, i, s) -> q.spriteColor(i, 2, multiplyRGB(q.spriteColor(i, 2), s));
-        VERTEX_LIGHTERS[0b101] = (q, i, s) -> q.spriteColor(i, 0, multiplyRGB(q.spriteColor(i, 0), s)).spriteColor(i, 2,
-                multiplyRGB(q.spriteColor(i, 2), s));
-        VERTEX_LIGHTERS[0b110] = (q, i, s) -> q.spriteColor(i, 1, multiplyRGB(q.spriteColor(i, 1), s)).spriteColor(i, 2,
-                multiplyRGB(q.spriteColor(i, 2), s));
-        VERTEX_LIGHTERS[0b111] = (q, i, s) -> q.spriteColor(i, 0, multiplyRGB(q.spriteColor(i, 0), s))
-                .spriteColor(i, 1, multiplyRGB(q.spriteColor(i, 1), s))
-                .spriteColor(i, 2, multiplyRGB(q.spriteColor(i, 2), s));
+        COLORIZERS[0][0b000] = (q, i, s) -> q.spriteColor(i, 0, swapRedBlueIfNeeded(q.spriteColor(i, 0)));
+        
+        COLORIZERS[0][0b001] = (q, i, s) -> q.spriteColor(i, 0, swapRedBlueIfNeeded(multiplyColor(q.spriteColor(i, 0), s)));
+        
+        COLORIZERS[1][0b000] = (q, i, s) -> 
+            q.spriteColor(i, 0, swapRedBlueIfNeeded(q.spriteColor(i, 0)))
+             .spriteColor(i, 1, swapRedBlueIfNeeded(q.spriteColor(i, 1)));
+        
+        COLORIZERS[1][0b001] = (q, i, s) -> 
+            q.spriteColor(i, 0, swapRedBlueIfNeeded(multiplyColor(q.spriteColor(i, 0), s)))
+             .spriteColor(i, 1, swapRedBlueIfNeeded(q.spriteColor(i, 1)));
+        
+        COLORIZERS[1][0b010] = (q, i, s) -> 
+            q.spriteColor(i, 0, swapRedBlueIfNeeded(q.spriteColor(i, 0)))
+             .spriteColor(i, 1, swapRedBlueIfNeeded(multiplyColor(q.spriteColor(i, 1), s)));
+        COLORIZERS[1][0b011] = (q, i, s) -> 
+            q.spriteColor(i, 0, swapRedBlueIfNeeded(multiplyColor(q.spriteColor(i, 0), s)))
+             .spriteColor(i, 1, swapRedBlueIfNeeded(multiplyColor(q.spriteColor(i, 1), s)));
+        
+        COLORIZERS[2][0b000] = (q, i, s) -> 
+            q.spriteColor(i, 0, swapRedBlueIfNeeded(q.spriteColor(i, 0)))
+             .spriteColor(i, 1, swapRedBlueIfNeeded(q.spriteColor(i, 1)))
+             .spriteColor(i, 2, swapRedBlueIfNeeded(q.spriteColor(i, 2)));
+        
+        COLORIZERS[2][0b001] = (q, i, s) -> 
+            q.spriteColor(i, 0, swapRedBlueIfNeeded(multiplyColor(q.spriteColor(i, 0), s)))
+             .spriteColor(i, 1, swapRedBlueIfNeeded(q.spriteColor(i, 1)))
+             .spriteColor(i, 2, swapRedBlueIfNeeded(q.spriteColor(i, 2)));
+        
+        COLORIZERS[2][0b010] = (q, i, s) -> 
+            q.spriteColor(i, 0, swapRedBlueIfNeeded(q.spriteColor(i, 0)))
+             .spriteColor(i, 1, swapRedBlueIfNeeded(multiplyColor(q.spriteColor(i, 1), s)))
+             .spriteColor(i, 2, swapRedBlueIfNeeded(q.spriteColor(i, 2)));
+        
+        COLORIZERS[2][0b011] = (q, i, s) -> 
+            q.spriteColor(i, 0, swapRedBlueIfNeeded(multiplyColor(q.spriteColor(i, 0), s)))
+             .spriteColor(i, 1, swapRedBlueIfNeeded(multiplyColor(q.spriteColor(i, 1), s)))
+             .spriteColor(i, 2, swapRedBlueIfNeeded(q.spriteColor(i, 2)));
+        
+        COLORIZERS[2][0b100] = (q, i, s) -> 
+            q.spriteColor(i, 0, swapRedBlueIfNeeded(q.spriteColor(i, 0)))
+             .spriteColor(i, 1, swapRedBlueIfNeeded(q.spriteColor(i, 1)))
+             .spriteColor(i, 2, swapRedBlueIfNeeded(multiplyColor(q.spriteColor(i, 2), s)));
+        
+        COLORIZERS[2][0b101] = (q, i, s) -> 
+            q.spriteColor(i, 0, swapRedBlueIfNeeded(multiplyColor(q.spriteColor(i, 0), s)))
+             .spriteColor(i, 1, swapRedBlueIfNeeded(q.spriteColor(i, 1)))
+             .spriteColor(i, 2, swapRedBlueIfNeeded(multiplyColor(q.spriteColor(i, 2), s)));
+        
+        COLORIZERS[2][0b110] = (q, i, s) -> 
+            q.spriteColor(i, 0, swapRedBlueIfNeeded(q.spriteColor(i, 0)))
+             .spriteColor(i, 1, swapRedBlueIfNeeded(multiplyColor(q.spriteColor(i, 1), s)))
+             .spriteColor(i, 2, swapRedBlueIfNeeded(multiplyColor(q.spriteColor(i, 2), s)));
+            
+        COLORIZERS[2][0b111] = (q, i, s) -> 
+            q.spriteColor(i, 0, swapRedBlueIfNeeded(multiplyColor(q.spriteColor(i, 0), s)))
+             .spriteColor(i, 1, swapRedBlueIfNeeded(multiplyColor(q.spriteColor(i, 1), s)))
+             .spriteColor(i, 2, swapRedBlueIfNeeded(multiplyColor(q.spriteColor(i, 2), s)));
     }
 
-    /**
-     * Honors vertex normals and uses non-cubic face normals for non-cubic quads.
-     * 
-     * @param quad Quad to be shaded/unshaded.
-     *             <p>
-     * 
-     * @param undo If true, will reverse prior application. Does not check that
-     *             prior application actually happened. Use to "unbake" a quad. Some
-     *             drift of colors may occur due to floating-point precision error.
-     */
-    public static void applyDiffuseShading(ShadeableQuad quad, boolean undo) {
-        final float faceShade = faceShade(quad);
-        int i = quad.needsDiffuseShading(0) ? 1 : 0;
-        if (quad.needsDiffuseShading(1)) {
-            i |= 2;
+    public static void colorizeQuad(MutableQuadViewImpl quad, int color) {
+        final RenderMaterialImpl mat = quad.material();
+        final int depth = mat.spriteDepth();
+        
+        int flags = 0;
+        if(color != -1) {
+            if(!mat.disableColorIndex(0)) {
+                flags = 1;
+            }
+            
+            if(depth > 1) {
+                if(!mat.disableColorIndex(1)) {
+                    flags |= 2;
+                }
+                if(depth == 3 && !mat.disableColorIndex(2)) {
+                    flags |= 4;
+                }
+            }
         }
-        if (quad.needsDiffuseShading(2)) {
-            i |= 4;
-        }
-        if (i == 0) {
-            return;
-        }
-
-        final VertexLighter shader = VERTEX_LIGHTERS[i];
-        for (int j = 0; j < 4; j++) {
-            final float vertexShade = vertexShade(quad, j, faceShade);
-            shader.shade(quad, j, undo ? 1f / vertexShade : vertexShade);
+        
+        final Colorizer colorizer = COLORIZERS[depth - 1][flags];
+        for (int i = 0; i < 4; i++) {
+            colorizer.shade(quad, i, color);
         }
     }
 
