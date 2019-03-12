@@ -56,10 +56,6 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 
     @Override
     public final MutableQuadViewImpl material(RenderMaterial material) {
-        if (material == null || material.spriteDepth() > this.material.spriteDepth()) {
-            throw new UnsupportedOperationException(
-                    "Material texture depth must be the same or less than original material.");
-        }
         this.material = (Value) material;
         return this;
     }

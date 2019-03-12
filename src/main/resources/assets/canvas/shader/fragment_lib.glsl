@@ -29,12 +29,18 @@ vec4 diffuseColor()
     }
 
 #if LAYER_COUNT > 1
+    // TODO: honor non-mipped and cutout flags
+	// TODO: honor shading flags
 	vec4 b = texture2D(u_textures, v_texcoord_1) * shadeColor(v_color_1, 1);
+
 	a = mix(a, b, b.a);
 #endif
 
 #if LAYER_COUNT > 2
+	// TODO: honor non-mipped and cutout flags
+	// TODO: honor shading flags
 	vec4 c = texture2D(u_textures, v_texcoord_2) * shadeColor(v_color_2, 2);
+
 	a = mix(a, c, c.a);
 #endif
 

@@ -88,6 +88,8 @@ public abstract class AbstractQuadRenderer {
             lightFlat(q);
         }
         
+        final int depth = mat.spriteDepth();
+        
         for(int i = 0; i < 4; i++) {
             output.pos(blockInfo.blockPos, q.x(i), q.y(i), q.z(i));
             output.add(q.spriteColor(i, 0));
@@ -100,7 +102,17 @@ public abstract class AbstractQuadRenderer {
             int ao = isAo ? ((Math.round(aoCalc.ao[i] * 254) - 127) << 24) : 0xFF000000;
             output.add(q.packedNormal(i) | ao);
             
-            //TODO: output layers 2-3
+            if(depth > 1) {
+                output.add(q.spriteColor(i, 1));
+                output.add(q.spriteU(i, 1));
+                output.add(q.spriteV(i, 1));
+                
+                if(depth == 3) {
+                    output.add(q.spriteColor(i, 2));
+                    output.add(q.spriteU(i, 2));
+                    output.add(q.spriteV(i, 2));
+                }
+            }
         }
     }
     
