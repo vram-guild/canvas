@@ -82,11 +82,8 @@ public class ChunkRenderInfo {
     private final AccessBufferBuilder[] buffers = new AccessBufferBuilder[4];
     private final BlockRenderLayer[] LAYERS = BlockRenderLayer.values();
 
-    private double chunkOffsetX;
-    private double chunkOffsetY;
-    private double chunkOffsetZ;
-
-    // chunk offset + block pos offset + model offsets for plants, etc.
+    // model offsets for plants, etc.
+    private boolean hasOffsets = false;
     private float offsetX = 0;
     private float offsetY = 0;
     private float offsetZ = 0;
@@ -115,9 +112,6 @@ public class ChunkRenderInfo {
         buffers[1] = null;
         buffers[2] = null;
         buffers[3] = null;
-        chunkOffsetX = -chunkOrigin.getX();
-        chunkOffsetY = -chunkOrigin.getY();
-        chunkOffsetZ = -chunkOrigin.getZ();
         brightnessCache.clear();
         aoLevelCache.clear();
     }
@@ -135,17 +129,15 @@ public class ChunkRenderInfo {
     void beginBlock() {
         final BlockState blockState = blockInfo.blockState;
         final BlockPos blockPos = blockInfo.blockPos;
-        // TODO: move rendercube offsets here - so can always be a 1-step process
-        // currently they are handled in VertexColor.pos()
-        offsetX = 0f; //(float) (chunkOffsetX + blockPos.getX());
-        offsetY = 0f; //(float) (chunkOffsetY + blockPos.getY());
-        offsetZ = 0f; //(float) (chunkOffsetZ + blockPos.getZ());
 
-        if (blockState.getBlock().getOffsetType() != OffsetType.NONE) {
+        if (blockState.getBlock().getOffsetType() == OffsetType.NONE) {
+            hasOffsets = false;
+        } else {
+            hasOffsets = true;
             Vec3d offset = blockState.getOffsetPos(blockInfo.blockView, blockPos);
-            offsetX += (float) offset.x;
-            offsetY += (float) offset.y;
-            offsetZ += (float) offset.z;
+            offsetX = (float) offset.x;
+            offsetY = (float) offset.y;
+            offsetZ = (float) offset.z;
         }
     }
 
@@ -176,8 +168,10 @@ public class ChunkRenderInfo {
      * Applies position offset for chunk and, if present, block random offset.
      */
     void applyOffsets(MutableQuadViewImpl q) {
-        for (int i = 0; i < 4; i++) {
-            q.pos(i, q.x(i) + offsetX, q.y(i) + offsetY, q.z(i) + offsetZ);
+        if(hasOffsets) {
+            for (int i = 0; i < 4; i++) {
+                q.pos(i, q.x(i) + offsetX, q.y(i) + offsetY, q.z(i) + offsetZ);
+            }
         }
     }
 

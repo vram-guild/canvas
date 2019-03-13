@@ -11,7 +11,7 @@ public class VertexCollector {
     private int[] data;
     private int integerSize = 0;
     private final RenderPipeline pipeline;
-    private final VertexCollectorList parent;
+    final VertexCollectorList parent;
 
     /**
      * Holds per-quad distance after {@link #sortQuads(double, double, double)} is
@@ -83,17 +83,11 @@ public class VertexCollector {
         this.add(Float.floatToRawIntBits(f));
     }
 
-    // TODO: should make cube offset this an explicit step at start of quad vs. checking for every vertex
-    
     public final void pos(final BlockPos pos, float modelX, float modelY, float modelZ) {
-        // assumes first addition will always be position
-        if (integerSize == 0 && parent != null)
-            parent.setRenderOrigin(pos.getX(), pos.getY(), pos.getZ());
-
         this.checkForSize(this.pipeline.piplineVertexFormat().vertexStrideBytes);
-        this.add(RenderCube.renderCubeRelative(pos.getX()) + modelX);
-        this.add(RenderCube.renderCubeRelative(pos.getY()) + modelY);
-        this.add(RenderCube.renderCubeRelative(pos.getZ()) + modelZ);
+        this.add(pos.getX() - parent.renderOriginX + modelX);
+        this.add(pos.getY() - parent.renderOriginY + modelY);
+        this.add(pos.getZ() - parent.renderOriginZ + modelZ);
     }
 
     private static class QuadSorter {

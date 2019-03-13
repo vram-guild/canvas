@@ -206,6 +206,7 @@ public abstract class MixinChunkRenderer implements AccessChunkRenderer, ChunkRe
                 ++chunkUpdateCount;
                 
                 boolean[] layerFlags = help.layerFlags;
+                
                 TerrainRenderContext renderContext = TerrainRenderContext.POOL.get();
                 renderContext.setChunkTask(chunkRenderTask);
                 

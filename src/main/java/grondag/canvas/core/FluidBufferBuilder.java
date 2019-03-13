@@ -34,6 +34,12 @@ public class FluidBufferBuilder extends BufferBuilder {
     }
 
     @Override
+    public void setOffset(double x, double y, double z) {
+        vc.parent.setRenderOrigin(-x, -y, -z);
+        super.setOffset(x, y, z);
+    }
+    
+    @Override
     public BufferBuilder color(float r, float g, float b, float a) {
         int color = (int)(b * 255f);
         color |= (int)(g * 255f) << 8;
@@ -130,11 +136,6 @@ public class FluidBufferBuilder extends BufferBuilder {
 
     @Override
     public BufferBuilder normal(float float_1, float float_2, float float_3) {
-        throw new UnsupportedOperationException("Fluid buffer builder got unexpected method call.");
-    }
-
-    @Override
-    public void setOffset(double double_1, double double_2, double double_3) {
         throw new UnsupportedOperationException("Fluid buffer builder got unexpected method call.");
     }
 

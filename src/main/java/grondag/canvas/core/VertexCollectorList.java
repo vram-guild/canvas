@@ -45,11 +45,11 @@ public class VertexCollectorList {
     private double viewZ;
 
     /** used in transparency layer sorting - updated with origin of render cube */
-    private int renderOriginX = Integer.MIN_VALUE;
+    int renderOriginX = Integer.MIN_VALUE;
     /** used in transparency layer sorting - updated with origin of render cube */
-    private int renderOriginY = Integer.MIN_VALUE;
+    int renderOriginY = Integer.MIN_VALUE;
     /** used in transparency layer sorting - updated with origin of render cube */
-    private int renderOriginZ = Integer.MIN_VALUE;
+    int renderOriginZ = Integer.MIN_VALUE;
 
     VertexCollectorList() {
         for (int i = 0; i < vertexCollectors.length; i++)
@@ -96,23 +96,12 @@ public class VertexCollectorList {
     }
 
     /**
-     * Called by child collectors the first time they get a vertex. All collectors
-     * in the list should share the same render origin.
+     * Called when a render chunk initializes buffer builders with offset.
      */
-    public void setRenderOrigin(float x, float y, float z) {
-        final int rX = RenderCube.renderCubeOrigin(MathHelper.fastFloor(x));
-        final int rY = RenderCube.renderCubeOrigin(MathHelper.fastFloor(y));
-        final int rZ = RenderCube.renderCubeOrigin(MathHelper.fastFloor(z));
-
-        if (renderOriginX == Integer.MIN_VALUE) {
-            renderOriginX = rX;
-            renderOriginY = rY;
-            renderOriginZ = rZ;
-        } else {
-            assert renderOriginX == rX;
-            assert renderOriginY == rY;
-            assert renderOriginZ == rZ;
-        }
+    public void setRenderOrigin(double x, double y, double z) {
+        renderOriginX = RenderCube.renderCubeOrigin(MathHelper.fastFloor(x));
+        renderOriginY = RenderCube.renderCubeOrigin(MathHelper.fastFloor(y));
+        renderOriginZ = RenderCube.renderCubeOrigin(MathHelper.fastFloor(z));
     }
 
     public final VertexCollector getIfExists(final int pipelineIndex) {

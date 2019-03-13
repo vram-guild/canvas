@@ -115,16 +115,27 @@ public class CompoundBufferBuilder extends BufferBuilder {
     }
 
     @Override
+    public void setOffset(double x, double y, double z) {
+        // collectors expect positive values, but buffer builder gets negatives
+        if (this.layer == BlockRenderLayer.SOLID)
+            collectors.get().getLeft().setRenderOrigin(-x, -y, -z);
+        else
+            collectors.get().getRight().setRenderOrigin(-x, -y, -z);
+        super.setOffset(x, y, z);
+    }
+
+    @Override
     public void clear() {
         super.clear();
         assert this.layer == BlockRenderLayer.SOLID || this.layer == BlockRenderLayer.TRANSLUCENT;
-
+        
         if (this.layer == BlockRenderLayer.SOLID)
             collectors.get().getLeft().clear();
         else
             collectors.get().getRight().clear();
     }
 
+    // PERF: avoid doing a threadlocal lookup per quad
     public VertexCollector getVertexCollector(RenderPipeline pipeline) {
         if (this.proxy != null)
             return this.proxy.getVertexCollector(pipeline);
