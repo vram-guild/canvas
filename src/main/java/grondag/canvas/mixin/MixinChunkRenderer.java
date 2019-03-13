@@ -211,15 +211,14 @@ public abstract class MixinChunkRenderer implements AccessChunkRenderer, ChunkRe
                 renderContext.setChunkTask(chunkRenderTask);
                 
                 /**
-                 * Capture the block layer result flags so our renderer can update then when more 
-                 * than one layer is renderer for a single model. This is also where we signal the 
+                 * Capture the block layer result flags so our renderer can update them when more 
+                 * than one layer is rendered for a single model. This is also where we signal the 
                  * renderer to prepare for a new chunk using the data we've accumulated up to this point.
                  */
                 renderContext.prepare((ChunkRenderer) (Object) this, origin, layerFlags);
                 
-                // TODO: can remove these?
                 BlockModelRenderer.enableBrightnessCache();
-                BlockRenderManager blockRenderManager = MinecraftClient.getInstance().getBlockRenderManager();
+                final BlockRenderManager blockRenderManager = MinecraftClient.getInstance().getBlockRenderManager();
 
                 final BlockPos.Mutable searchPos = help.searchPos;
                 final int xMin = origin.getX();
@@ -269,7 +268,6 @@ public abstract class MixinChunkRenderer implements AccessChunkRenderer, ChunkRe
                             }
 
                             if (blockState.getRenderType() == BlockRenderType.MODEL) {
-                                //TODO: confirm main layer always updated, stop returning a value
                                 renderContext.tesselateBlock(blockState, searchPos);
                             } else if (blockState.getRenderType() != BlockRenderType.INVISIBLE) {
                                 renderLayer = block.getRenderLayer();

@@ -74,7 +74,7 @@ public class TerrainRenderContext extends AbstractRenderContext implements Rende
     }
 
     /** Called from chunk renderer hook. */
-    public boolean tesselateBlock(BlockState blockState, BlockPos blockPos) {
+    public void tesselateBlock(BlockState blockState, BlockPos blockPos) {
         try {
             final BakedModel model = blockRenderManager.getModel(blockState);
             aoCalc.clear();
@@ -88,7 +88,6 @@ public class TerrainRenderContext extends AbstractRenderContext implements Rende
             CrashReportSection.addBlockInfo(crashReportElement_1, blockPos, blockState);
             throw new CrashException(crashReport_1);
         }
-        return chunkInfo.resultFlags[blockInfo.defaultLayerIndex];
     }
 
     @Override
