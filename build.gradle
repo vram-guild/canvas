@@ -48,7 +48,7 @@ dependencies {
 	// Fabric API. This is technically optional, but you probably want it anyway.
 	modCompile "net.fabricmc:fabric:0.2.3.local"
 	
-	modCompile "grondag:fermion-0.0.1"
+	modCompile "grondag:fermion-0.0.1-dev"
 	modCompile "grondag:frex-0.0.1"
 	
 	// should be removed before release
