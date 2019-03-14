@@ -94,7 +94,7 @@ public abstract class MixinChunkRenderer implements AccessChunkRenderer, ChunkRe
     Solid solidDrawable;
     Translucent translucentDrawable;
 
-    // TODO: substitute our visibility graph
+    // PERF: substitute our visibility graph
 
     @Override
     public Solid getSolidDrawable() {
