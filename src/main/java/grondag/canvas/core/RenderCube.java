@@ -1,22 +1,16 @@
 package grondag.canvas.core;
 
+import static grondag.fermion.world.PackedBlockPos.WORLD_BOUNDARY;
+import static grondag.fermion.world.PackedBlockPos.X_MASK;
+import static grondag.fermion.world.PackedBlockPos.X_SHIFT;
+import static grondag.fermion.world.PackedBlockPos.Y_MASK;
+import static grondag.fermion.world.PackedBlockPos.Y_SHIFT;
+import static grondag.fermion.world.PackedBlockPos.Z_MASK;
+
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 
 public class RenderCube {
-    // UGLY: Copypasta from Exotic Matter
-    private static final int WORLD_BOUNDARY = 30000000;
-    private static final int NUM_X_BITS = 1
-            + MathHelper.log2(MathHelper.smallestEncompassingPowerOfTwo(WORLD_BOUNDARY));
-    private static final int NUM_Z_BITS = NUM_X_BITS;
-    private static final int NUM_Y_BITS = 8;
-
-    private static final int Y_SHIFT = 0 + NUM_Z_BITS;
-    private static final int X_SHIFT = Y_SHIFT + NUM_Y_BITS;
-    private static final long X_MASK = (1L << NUM_X_BITS) - 1L;
-    private static final long Y_MASK = (1L << NUM_Y_BITS) - 1L;
-    private static final long Z_MASK = (1L << NUM_Z_BITS) - 1L;
-
     //TODO: Configurable
     private static final int CUBE_MASK = 0xFFFFFF00;
     
