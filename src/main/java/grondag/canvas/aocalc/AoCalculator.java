@@ -28,15 +28,12 @@ import static net.minecraft.util.math.Direction.WEST;
 
 import java.util.function.ToIntBiFunction;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-import grondag.canvas.mesh.QuadViewImpl;
 import grondag.canvas.aocalc.AoFace.WeightFunction;
 import grondag.canvas.mesh.MutableQuadViewImpl;
+import grondag.canvas.mesh.QuadViewImpl;
 import grondag.canvas.render.BlockRenderInfo;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.util.math.Vector3f;
 import net.minecraft.util.math.BlockPos;
@@ -72,8 +69,6 @@ public class AoCalculator {
         VERTEX_MAP[EAST.getId()] = new int[] { 1, 2, 3, 0 };
     }
 
-    private static final Logger LOGGER = LogManager.getLogger();
-    private final VanillaAoCalc vanillaCalc;
     private final BlockPos.Mutable lightPos = new BlockPos.Mutable();
     private final BlockPos.Mutable searchPos = new BlockPos.Mutable();
     private final BlockRenderInfo blockInfo;
@@ -104,7 +99,6 @@ public class AoCalculator {
         this.blockInfo = blockInfo;
         this.brightnessFunc = brightnessFunc;
         this.aoFunc = aoFunc;
-        this.vanillaCalc = new VanillaAoCalc(brightnessFunc, aoFunc);
         for (int i = 0; i < 12; i++) {
             faceData[i] = new AoFaceData();
         }
@@ -115,119 +109,28 @@ public class AoCalculator {
         completionFlags = 0;
     }
 
-    /** Set true in dev env to confirm results match vanilla when they should */
-    private static final boolean DEBUG = Boolean.valueOf(System.getProperty("fabric.debugAoLighting", "false"));
-
-    public void compute(MutableQuadViewImpl quad, boolean isVanilla) {
-        // TODO: make this actually configurable
-        final AoConfig config = AoConfig.ENHANCED;
-
-        boolean shouldMatch = false;
-
-        switch (config) {
-        case VANILLA:
-            calcVanilla(quad);
-            break;
-
-        case EMULATE:
-            calcFastVanilla(quad);
-            shouldMatch = DEBUG && isVanilla;
-            break;
-
-        case HYBRID:
-            if (isVanilla) {
-                calcFastVanilla(quad);
-                break;
-            }
-            // else fall through to enhanced
-
-        default:
-        case ENHANCED:
-            shouldMatch = calcEnhanced(quad);
-        }
-
-        if (shouldMatch) {
-            float[] vanillaAo = new float[4];
-            int[] vanillaLight = new int[4];
-
-            vanillaCalc.compute(blockInfo, quad, vanillaAo, vanillaLight);
-            for (int i = 0; i < 4; i++) {
-                if (light[i] != vanillaLight[i] || !MathHelper.equalsApproximate(ao[i], vanillaAo[i])) {
-                    LOGGER.info(String.format("Mismatch for %s @ %s", blockInfo.blockState.toString(),
-                            blockInfo.blockPos.toString()));
-                    LOGGER.info(String.format("Flags = %d, LightFace = %s", quad.geometryFlags(),
-                            quad.lightFace().toString()));
-                    LOGGER.info(String.format("    Old Multiplier: %.2f, %.2f, %.2f, %.2f", vanillaAo[0], vanillaAo[1],
-                            vanillaAo[2], vanillaAo[3]));
-                    LOGGER.info(
-                            String.format("    New Multiplier: %.2f, %.2f, %.2f, %.2f", ao[0], ao[1], ao[2], ao[3]));
-                    LOGGER.info(String.format("    Old Brightness: %s, %s, %s, %s",
-                            Integer.toHexString(vanillaLight[0]), Integer.toHexString(vanillaLight[1]),
-                            Integer.toHexString(vanillaLight[2]), Integer.toHexString(vanillaLight[3])));
-                    LOGGER.info(String.format("    New Brightness: %s, %s, %s, %s", Integer.toHexString(light[0]),
-                            Integer.toHexString(light[1]), Integer.toHexString(light[2]),
-                            Integer.toHexString(light[3])));
-                    break;
-                }
-            }
-        }
-    }
-
-    private void calcVanilla(MutableQuadViewImpl quad) {
-        vanillaCalc.compute(blockInfo, quad, ao, light);
-    }
-
-    private void calcFastVanilla(MutableQuadViewImpl quad) {
-        int flags = quad.geometryFlags();
-
-        // force to block face if shape is full cube - matches vanilla logic
-        if (((flags & LIGHT_FACE_FLAG) == 0)
-                && blockInfo.blockState.method_11604(blockInfo.blockView, blockInfo.blockPos)) {
-            flags |= LIGHT_FACE_FLAG;
-        }
-
-        switch (flags) {
-        case AXIS_ALIGNED_FLAG | CUBIC_FLAG | LIGHT_FACE_FLAG:
-            vanillaFullFace(quad, true);
-            break;
-
-        case AXIS_ALIGNED_FLAG | LIGHT_FACE_FLAG:
-            vanillaPartialFace(quad, true);
-            break;
-
-        case AXIS_ALIGNED_FLAG | CUBIC_FLAG:
-            vanillaFullFace(quad, false);
-            break;
-
-        default:
-        case AXIS_ALIGNED_FLAG:
-            vanillaPartialFace(quad, false);
-            break;
-        }
-    }
-
     /** returns true if should match vanilla results */
-    private boolean calcEnhanced(MutableQuadViewImpl quad) {
+    public void compute(MutableQuadViewImpl quad) {
         switch (quad.geometryFlags()) {
         case AXIS_ALIGNED_FLAG | CUBIC_FLAG | LIGHT_FACE_FLAG:
             vanillaFullFace(quad, true);
-            return DEBUG;
+            break;
 
         case AXIS_ALIGNED_FLAG | LIGHT_FACE_FLAG:
             vanillaPartialFace(quad, true);
-            return DEBUG;
+            break;
 
         case AXIS_ALIGNED_FLAG | CUBIC_FLAG:
             blendedFullFace(quad);
-            return false;
+            break;
 
         case AXIS_ALIGNED_FLAG:
             blendedPartialFace(quad);
-            return false;
+            break;
 
         default:
             irregularFace(quad);
-            return false;
+            break;
         }
     }
 

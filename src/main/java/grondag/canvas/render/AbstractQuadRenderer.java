@@ -75,7 +75,7 @@ public abstract class AbstractQuadRenderer {
         final boolean isAo = blockInfo.defaultAo && mat.hasAo;
         if (isAo) {
             // needs to happen before offsets are applied
-            aoCalc.compute(q, false);
+            aoCalc.compute(q);
         }
 
         applyOffsets();
