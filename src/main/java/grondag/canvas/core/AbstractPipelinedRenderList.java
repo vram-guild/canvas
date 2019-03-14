@@ -10,12 +10,10 @@ import org.lwjgl.opengl.GL11;
 import com.mojang.blaze3d.platform.GLX;
 import com.mojang.blaze3d.platform.GlStateManager;
 
-import grondag.canvas.RendererImpl;
 import grondag.canvas.buffering.DrawableChunk;
 import grondag.canvas.buffering.DrawableChunkDelegate;
 import grondag.canvas.mixinext.ChunkRendererExt;
 import grondag.canvas.opengl.CanvasGlHelper;
-import grondag.frex.api.RenderListener;
 import it.unimi.dsi.fastutil.Arrays;
 import it.unimi.dsi.fastutil.Swapper;
 import it.unimi.dsi.fastutil.ints.AbstractIntComparator;
@@ -27,7 +25,7 @@ import net.minecraft.block.BlockRenderLayer;
 import net.minecraft.client.render.chunk.ChunkRenderer;
 import net.minecraft.util.math.BlockPos;
 
-public class AbstractPipelinedRenderList implements RenderListener {
+public abstract class AbstractPipelinedRenderList {
     protected final ObjectArrayList<ChunkRenderer> chunks = new ObjectArrayList<ChunkRenderer>();
 
     /**
@@ -64,7 +62,6 @@ public class AbstractPipelinedRenderList implements RenderListener {
 
     public AbstractPipelinedRenderList() {
         xlatMatrix.identity();
-        RendererImpl.INSTANCE.registerListener(this);
     }
 
     public void initialize(double viewEntityXIn, double viewEntityYIn, double viewEntityZIn) {

@@ -29,7 +29,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import grondag.canvas.RendererImpl;
 import grondag.canvas.core.PipelineManager;
 import grondag.canvas.mixinext.ChunkRendererListExt;
 import net.minecraft.block.BlockRenderLayer;
@@ -51,11 +50,6 @@ public abstract class MixinWorldRenderer {
     @Inject(method = "setUpTerrain", at = @At("HEAD"), cancellable = false, require = 1)
     private void onPrepareTerrain(Entity cameraEntity, float fractionalTicks, VisibleRegion region, int int_1, boolean boolean_1, CallbackInfo ci) {
         PipelineManager.INSTANCE.prepareForFrame(cameraEntity, fractionalTicks);
-    }
-
-    @Inject(method = "reload", at = @At("HEAD"), cancellable = false, require = 1)
-    private void onReload(CallbackInfo ci) {
-        RendererImpl.INSTANCE.forceReload();
     }
     
     @Inject(method = "renderLayer", at = @At("HEAD"), cancellable = true, require = 1)

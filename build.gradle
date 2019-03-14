@@ -49,7 +49,7 @@ dependencies {
 	modCompile "net.fabricmc:fabric:0.2.3.local"
 	
 	modCompile "grondag:fermion-0.0.1-dev"
-	modCompile "grondag:frex-0.0.1"
+	modCompile "grondag:frex-0.0.1-dev"
 	
 	// should be removed before release
 	modCompile "grondag:renderbender-0.0.1-dev"

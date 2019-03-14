@@ -60,7 +60,7 @@ public class Configurator {
 
 //        ConfigManager.sync(Acuity.MODID, Config.Type.INSTANCE);
         if (oldFancyFluids != fancyFluids || oldVAO != enable_vao) {
-            RendererImpl.INSTANCE.forceReload();
+            RendererImpl.INSTANCE.reload();
 
             // refresh appearances
             MinecraftClient.getInstance().worldRenderer.reload();

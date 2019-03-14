@@ -16,11 +16,7 @@
 
 package grondag.canvas;
 
-import java.lang.ref.WeakReference;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.function.Consumer;
 
 import grondag.canvas.RenderMaterialImpl.Finder;
 import grondag.canvas.RenderMaterialImpl.Value;
@@ -29,14 +25,14 @@ import grondag.canvas.core.PipelineManager;
 import grondag.canvas.core.PipelineShaderManager;
 import grondag.canvas.mesh.MeshBuilderImpl;
 import grondag.frex.api.ExtendedRenderer;
-import grondag.frex.api.RenderListener;
+import grondag.frex.api.RenderReloadCallback;
 import grondag.frex.api.ShaderManager;
 import net.fabricmc.fabric.api.client.model.fabric.MeshBuilder;
 import net.fabricmc.fabric.api.client.model.fabric.RenderMaterial;
 import net.minecraft.client.resource.language.I18n;
 import net.minecraft.util.Identifier;
 
-public class RendererImpl implements ExtendedRenderer {
+public class RendererImpl implements ExtendedRenderer, RenderReloadCallback {
     public static final RendererImpl INSTANCE = new RendererImpl();
 
     public static final RenderMaterialImpl.Value MATERIAL_STANDARD = (Value) INSTANCE.materialFinder().find();
@@ -58,9 +54,8 @@ public class RendererImpl implements ExtendedRenderer {
     
     private final HashMap<Identifier, Value> materialMap = new HashMap<>();
 
-    private final ArrayList<WeakReference<RenderListener>> listeners = new ArrayList<WeakReference<RenderListener>>();
-
     private RendererImpl() {
+        RenderReloadCallback.EVENT.register(this);
     };
 
     @Override
@@ -89,32 +84,14 @@ public class RendererImpl implements ExtendedRenderer {
 
     @Override
     public ShaderManager shaderManager() {
-        // TODO Auto-generated method stub
-        return null;
+        return ShaderManagerImpl.INSTANCE;
     }
 
-    public void forceReload() {
+    @Override
+    public void reload() {
         Canvas.INSTANCE.getLog().info(I18n.translate("misc.info_reloading"));
         PipelineShaderManager.INSTANCE.forceReload();
         PipelineManager.INSTANCE.forceReload();
         BufferManager.forceReload();
-        forEachListener(c -> c.onRenderReload());
-    }
-
-    public void forEachListener(Consumer<RenderListener> c) {
-        Iterator<WeakReference<RenderListener>> it = this.listeners.iterator();
-        while (it.hasNext()) {
-            WeakReference<RenderListener> ref = it.next();
-            RenderListener listener = ref.get();
-            if (listener == null)
-                it.remove();
-            else
-                c.accept(listener);
-        }
-    }
-
-    @Override
-    public void registerListener(RenderListener listener) {
-        this.listeners.add(new WeakReference<RenderListener>(listener));
     }
 }
