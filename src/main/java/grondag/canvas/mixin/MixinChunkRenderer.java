@@ -327,7 +327,6 @@ public abstract class MixinChunkRenderer implements AccessChunkRenderer, ChunkRe
 
     /////
 
-    // TODO: remove at release
 //    private static final AtomicLong nanos = new AtomicLong();
 //    private static final AtomicInteger count = new AtomicInteger();
 //        long start = System.nanoTime();

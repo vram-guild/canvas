@@ -43,6 +43,16 @@ public abstract class ColorHelper {
         return colorSwapper.applyAsInt(color);
     }
 
+    /** arguments are assumed to be ARGB - does not modify alpha */
+    public static int multiplyRGB(int color, float shade) {
+        int red = (int) (((color >> 16) & 0xFF) * shade);
+        int green = (int) (((color >> 8) & 0xFF) * shade);
+        int blue = (int) ((color & 0xFF) * shade);
+        int alpha = ((color >> 24) & 0xFF);
+
+        return (alpha << 24) | (red << 16) | (green << 8) | blue;
+    }
+    
     /**
      * Component-wise multiply. Components need to be in same order in both inputs!
      */

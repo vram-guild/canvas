@@ -54,7 +54,7 @@ public class ChunkRebuildHelper {
         tileEntitiesToAdd.clear();
         tileEntitiesToRemove.clear();
 
-        // TODO: put these back when re-enable faster visibility
+        // PERF: put these back when re-enable faster visibility
 //        visGraph..bitSet.clear();
 //        visGraph.empty = 4096;
     }
