@@ -17,12 +17,15 @@ public class RenderCube {
     private static final long Y_MASK = (1L << NUM_Y_BITS) - 1L;
     private static final long Z_MASK = (1L << NUM_Z_BITS) - 1L;
 
+    //TODO: Configurable
+    private static final int CUBE_MASK = 0xFFFFFF00;
+    
     /**
      * Finds the origin of the 256x256x256 render cube for the given coordinate.
      * Works for X, Y, and Z.
      */
     public static final int renderCubeOrigin(int worldCoord) {
-        return worldCoord & 0xFFFFFF00;
+        return worldCoord & CUBE_MASK;
     }
 
     /**

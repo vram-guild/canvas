@@ -120,6 +120,27 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
         return this;
     }
 
+    public MutableQuadViewImpl x(int vertexIndex, float x) {
+        final int index = vertexStart() + vertexIndex * 7;
+        data[index] = Float.floatToRawIntBits(x);
+        invalidateShape();
+        return this;
+    }
+    
+    public MutableQuadViewImpl y(int vertexIndex, float y) {
+        final int index = vertexStart() + vertexIndex * 7;
+        data[index + 1] = Float.floatToRawIntBits(y);
+        invalidateShape();
+        return this;
+    }
+    
+    public MutableQuadViewImpl z(int vertexIndex, float z) {
+        final int index = vertexStart() + vertexIndex * 7;
+        data[index + 2] = Float.floatToRawIntBits(z);
+        invalidateShape();
+        return this;
+    }
+    
     @Override
     public MutableQuadViewImpl normal(int vertexIndex, float x, float y, float z) {
         normalFlags |= (1 << vertexIndex);

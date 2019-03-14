@@ -123,9 +123,75 @@ public class TerrainFallbackConsumer extends AbstractQuadRenderer implements Con
             }
         }
         
+        //TODO: Configurable
+        preventDepthFighting();
+        
         super.renderQuad();
     }
 
+    //TODO: Configurable
+    private static final float MIN_Z_LOW = 0.002f;
+    private static final float MIN_Z_HIGH = 1 - MIN_Z_LOW;
+    
+    private void preventDepthFighting() {
+        if(editorQuad.cullFace() == null) {
+            switch(editorQuad.lightFace()) {
+            
+            case DOWN:
+                for(int i = 0; i < 4; i++) {
+                    if(editorQuad.y(i) > MIN_Z_HIGH) {
+                        editorQuad.y(i,MIN_Z_HIGH);
+                    }
+                }
+                break;
+                
+            case UP:
+                for(int i = 0; i < 4; i++) {
+                    if(editorQuad.y(i) < MIN_Z_LOW) {
+                        editorQuad.y(i, MIN_Z_LOW);
+                    }
+                }
+                break;
+                
+            case NORTH:
+                for(int i = 0; i < 4; i++) {
+                    if(editorQuad.z(i) > MIN_Z_HIGH) {
+                        editorQuad.z(i, MIN_Z_HIGH);
+                    }
+                }
+                break;
+                
+            case SOUTH:
+                for(int i = 0; i < 4; i++) {
+                    if(editorQuad.z(i) < MIN_Z_LOW) {
+                        editorQuad.z(i, MIN_Z_LOW);
+                    }
+                }
+                break;
+                
+            case EAST:
+                for(int i = 0; i < 4; i++) {
+                    if(editorQuad.x(i) < MIN_Z_LOW) {
+                        editorQuad.x(i, MIN_Z_LOW);
+                    }
+                }
+                break;
+                
+            case WEST:
+                for(int i = 0; i < 4; i++) {
+                    if(editorQuad.x(i) > MIN_Z_HIGH) {
+                        editorQuad.x(i, MIN_Z_HIGH);
+                    }
+                }
+                break;
+                
+            default:
+                break;
+            
+            }
+        }
+    }
+    
     @Override
     protected void applyOffsets() {
         chunkInfo.applyOffsets(editorQuad);
