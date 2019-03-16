@@ -108,7 +108,7 @@ public class VertexCollectorList {
         return vertexCollectors[pipelineIndex];
     }
 
-    public final VertexCollector get(RenderPipeline pipeline) {
+    public final VertexCollector get(RenderPipelineImpl pipeline) {
         final int index = pipeline.getIndex();
         if (index > maxIndex)
             maxIndex = index;

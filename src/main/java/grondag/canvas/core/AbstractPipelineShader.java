@@ -12,10 +12,13 @@ import com.mojang.blaze3d.platform.GLX;
 
 import grondag.canvas.Canvas;
 import grondag.canvas.opengl.CanvasGlHelper;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.resource.language.I18n;
+import net.minecraft.resource.ResourceManager;
+import net.minecraft.util.Identifier;
 
 abstract class AbstractPipelineShader {
-    public final String fileName;
+    public final Identifier shaderSource;
 
     private final int shaderType;
     public final int spriteDepth;
@@ -25,8 +28,8 @@ abstract class AbstractPipelineShader {
     private boolean needsLoad = true;
     private boolean isErrored = false;
 
-    AbstractPipelineShader(String fileName, int shaderType, int spriteDepth, boolean isSolidLayer) {
-        this.fileName = fileName;
+    AbstractPipelineShader(Identifier shaderSource, int shaderType, int spriteDepth, boolean isSolidLayer) {
+        this.shaderSource = shaderSource;
         this.shaderType = shaderType;
         this.spriteDepth = spriteDepth;
         this.isSolidLayer = isSolidLayer;
@@ -71,13 +74,13 @@ abstract class AbstractPipelineShader {
                 GLX.glDeleteShader(glId);
                 this.glId = -1;
             }
-            Canvas.INSTANCE.getLog().error(I18n.translate("misc.fail_create_shader", this.fileName,
+            Canvas.INSTANCE.getLog().error(I18n.translate("misc.fail_create_shader", this.shaderSource.toString(),
                     Integer.toString(this.spriteDepth), e.getMessage()));
         }
     }
 
     public String buildSource(String librarySource) {
-        String result = getShaderSource(this.fileName);
+        String result = getShaderSource(this.shaderSource);
         result = result.replaceAll("#version\\s+120", "");
         result = librarySource + result;
 
@@ -92,13 +95,13 @@ abstract class AbstractPipelineShader {
 
     abstract String getSource();
 
-    public static String getShaderSource(String fileName) {
-        InputStream in = PipelineManager.class.getResourceAsStream(fileName);
-
-        if (in == null)
-            return "";
-
-        try (final Reader reader = new InputStreamReader(in)) {
+    public static String getShaderSource(Identifier shaderSource) {
+        try {
+            ResourceManager rm = MinecraftClient.getInstance().getResourceManager();
+            InputStream in = rm.getResource(shaderSource).getInputStream();
+            if (in == null)
+                return "";
+            final Reader reader = new InputStreamReader(in);
             return CharStreams.toString(reader);
         } catch (IOException e) {
             return "";

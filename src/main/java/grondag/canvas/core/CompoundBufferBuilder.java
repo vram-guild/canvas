@@ -136,7 +136,7 @@ public class CompoundBufferBuilder extends BufferBuilder {
     }
 
     // PERF: avoid doing a threadlocal lookup per quad
-    public VertexCollector getVertexCollector(RenderPipeline pipeline) {
+    public VertexCollector getVertexCollector(RenderPipelineImpl pipeline) {
         if (this.proxy != null)
             return this.proxy.getVertexCollector(pipeline);
 

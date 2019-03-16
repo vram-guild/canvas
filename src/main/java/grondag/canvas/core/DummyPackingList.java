@@ -24,7 +24,7 @@ public class DummyPackingList extends VertexPackingList {
     }
 
     @Override
-    public void addPacking(RenderPipeline pipeline, int vertexCount) {
+    public void addPacking(RenderPipelineImpl pipeline, int vertexCount) {
         throw new UnsupportedOperationException();
     }
 }

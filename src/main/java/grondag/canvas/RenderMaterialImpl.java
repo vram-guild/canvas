@@ -17,12 +17,13 @@
 package grondag.canvas;
 
 import grondag.canvas.core.PipelineManager;
-import grondag.canvas.core.RenderPipeline;
+import grondag.canvas.core.RenderPipelineImpl;
 import grondag.fermion.varia.BitPacker64;
 import grondag.fermion.varia.BitPacker64.BooleanElement;
+import grondag.frex.api.ExtendedMaterialFinder;
+import grondag.frex.api.Pipeline;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import net.fabricmc.fabric.api.client.model.fabric.MaterialFinder;
 import net.fabricmc.fabric.api.client.model.fabric.RenderMaterial;
 import net.minecraft.block.BlockRenderLayer;
 
@@ -50,6 +51,8 @@ public abstract class RenderMaterialImpl {
     private static final BitPacker64<RenderMaterialImpl>.NullableEnumElement<BlockRenderLayer> BLEND_MODES[] = new BitPacker64.NullableEnumElement[MAX_SPRITE_DEPTH];
     
     private static final BitPacker64<RenderMaterialImpl>.IntElement SPRITE_DEPTH;
+    
+    private static final BitPacker64<RenderMaterialImpl>.IntElement PIPELINE;
     
     private static final long DEFAULT_BITS;
     
@@ -96,6 +99,7 @@ public abstract class RenderMaterialImpl {
         BLEND_MODES[2] = BITPACKER.createNullableEnumElement(BlockRenderLayer.class);
         
         SPRITE_DEPTH = BITPACKER.createIntElement(1, MAX_SPRITE_DEPTH);
+        PIPELINE = BITPACKER.createIntElement(PipelineManager.MAX_PIPELINES);
         
         long defaultBits = 0;
         defaultBits = BLEND_MODES[0].setValue(null, defaultBits);
@@ -168,18 +172,18 @@ public abstract class RenderMaterialImpl {
          */
         public final int renderLayerIndex;
         
-        public RenderPipeline pipeline;
+        public RenderPipelineImpl pipeline;
         
         private final Value[] blockLayerVariants = new Value[4];
         
-        private Value(int index, long bits) {
+        protected Value(int index, long bits, RenderPipelineImpl pipeline) {
             this.index = index;
             this.bits = bits;
             setupBlockLayerVariants();
             hasAo = !disableAo(0) || (spriteDepth() > 1 && !disableAo(1)) || (spriteDepth() == 3 && !disableAo(2));
             emissiveFlags = (emissive(0) ? 1 : 0) | (emissive(1) ? 2 : 0) | (emissive(2) ? 4 : 0);
             this.renderLayerIndex = this.blendMode(0) == BlockRenderLayer.TRANSLUCENT ? BlockRenderLayer.TRANSLUCENT.ordinal() : BlockRenderLayer.SOLID.ordinal();
-            this.pipeline = PipelineManager.INSTANCE.getDefaultPipeline(this.spriteDepth());
+            this.pipeline = pipeline;
         }
 
         /**
@@ -283,14 +287,21 @@ public abstract class RenderMaterialImpl {
         }
     }
 
-    public static class Finder extends RenderMaterialImpl implements MaterialFinder {
+    public static class Finder extends RenderMaterialImpl implements ExtendedMaterialFinder {
+        private RenderPipelineImpl pipeline = null;
+        
         @Override
         public synchronized Value find() {
+            RenderPipelineImpl p = pipeline == null ? PipelineManager.INSTANCE.getDefaultPipeline(this.spriteDepth()) : pipeline;
+            if(p.spriteDepth != this.spriteDepth()) {
+                throw new UnsupportedOperationException("Material sprite depth must match pipeline sprite depth.");
+            }
+            PIPELINE.setValue(p.getIndex(), this);
             Value result = MAP.get(bits);
             if (result == null) {
-                result = new Value(LIST.size(), bits);
+                result = new Value(LIST.size(), bits, p);
                 LIST.add(result);
-                MAP.put(bits, result);
+                MAP.put(result.bits, result);
             }
             return result;
         }
@@ -298,6 +309,7 @@ public abstract class RenderMaterialImpl {
         @Override
         public Finder clear() {
             bits = 0;
+            pipeline = null;
             return this;
         }
         
@@ -337,6 +349,12 @@ public abstract class RenderMaterialImpl {
         @Override
         public Finder disableAo(int spriteIndex, boolean disable) {
             FLAGS[AO_INDEX_START + spriteIndex].setValue(disable, this);
+            return this;
+        }
+
+        @Override
+        public Finder pipeline(Pipeline pipeline) {
+            this.pipeline = (RenderPipelineImpl) pipeline;
             return this;
         }
     }

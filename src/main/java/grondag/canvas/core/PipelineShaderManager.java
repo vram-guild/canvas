@@ -1,6 +1,7 @@
 package grondag.canvas.core;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import net.minecraft.util.Identifier;
 
 public final class PipelineShaderManager {
     public final static PipelineShaderManager INSTANCE = new PipelineShaderManager();
@@ -10,46 +11,48 @@ public final class PipelineShaderManager {
     String vertexLibrarySource;
     String fragmentLibrarySource;
 
-    public final String DEFAULT_VERTEX_SOURCE = "/assets/canvas/shader/default.vert";
-    public final String DEFAULT_FRAGMENT_SOURCE = "/assets/canvas/shader/default.frag";
-
-    PipelineShaderManager() {
-        this.loadLibrarySources();
-    }
-
+    public static final Identifier DEFAULT_VERTEX_SOURCE = new Identifier("canvas", "shader/default.vert");
+    public static final Identifier DEFAULT_FRAGMENT_SOURCE = new Identifier("canvas", "shader/default.frag");
+    public static final Identifier WATER_VERTEX_SOURCE = new Identifier("canvas", "shader/water.vert");
+    public static final Identifier WATER_FRAGMENT_SOURCE = new Identifier("canvas", "shader/water.frag");
+    public static final Identifier LAVA_VERTEX_SOURCE = new Identifier("canvas", "shader/lava.vert");
+    public static final Identifier LAVA_FRAGMENT_SOURCE = new Identifier("canvas", "shader/lava.frag");
+    
+    public static final Identifier COMMON_SOURCE = new Identifier("canvas", "shader/common_lib.glsl");
+    public static final Identifier COMMON_VERTEX_SOURCE = new Identifier("canvas", "shader/vertex_lib.glsl");
+    public static final Identifier COMMON_FRAGMENT_SOURCE = new Identifier("canvas", "shader/fragment_lib.glsl");
+    
     private void loadLibrarySources() {
-        String commonSource = AbstractPipelineShader.getShaderSource("/assets/canvas/shader/common_lib.glsl");
-        this.vertexLibrarySource = commonSource
-                + AbstractPipelineShader.getShaderSource("/assets/canvas/shader/vertex_lib.glsl");
-        this.fragmentLibrarySource = commonSource
-                + AbstractPipelineShader.getShaderSource("/assets/canvas/shader/fragment_lib.glsl");
+        String commonSource = AbstractPipelineShader.getShaderSource(COMMON_SOURCE);
+        this.vertexLibrarySource = commonSource + AbstractPipelineShader.getShaderSource(COMMON_VERTEX_SOURCE);
+        this.fragmentLibrarySource = commonSource + AbstractPipelineShader.getShaderSource(COMMON_FRAGMENT_SOURCE);
     }
 
-    private String shaderKey(String shaderFileName, int spriteDepth, boolean isSolidLayer) {
-        return String.format("%s.%s.%s", shaderFileName, spriteDepth, isSolidLayer);
+    private String shaderKey(Identifier shaderSource, int spriteDepth, boolean isSolidLayer) {
+        return String.format("%s.%s.%s", shaderSource.toString(), spriteDepth, isSolidLayer);
     }
 
-    public PipelineVertexShader getOrCreateVertexShader(String shaderFileName, int spriteDepth, boolean isSolidLayer) {
-        final String shaderKey = shaderKey(shaderFileName, spriteDepth, isSolidLayer);
+    public PipelineVertexShader getOrCreateVertexShader(Identifier shaderSource, int spriteDepth, boolean isSolidLayer) {
+        final String shaderKey = shaderKey(shaderSource, spriteDepth, isSolidLayer);
 
         synchronized (vertexShaders) {
             PipelineVertexShader result = vertexShaders.get(shaderKey);
             if (result == null) {
-                result = new PipelineVertexShader(shaderFileName, spriteDepth, isSolidLayer);
+                result = new PipelineVertexShader(shaderSource, spriteDepth, isSolidLayer);
                 vertexShaders.put(shaderKey, result);
             }
             return result;
         }
     }
 
-    public PipelineFragmentShader getOrCreateFragmentShader(String shaderFileName, int spriteDepth,
+    public PipelineFragmentShader getOrCreateFragmentShader(Identifier shaderSourceId, int spriteDepth,
             boolean isSolidLayer) {
-        final String shaderKey = shaderKey(shaderFileName, spriteDepth, isSolidLayer);
+        final String shaderKey = shaderKey(shaderSourceId, spriteDepth, isSolidLayer);
 
         synchronized (fragmentShaders) {
             PipelineFragmentShader result = fragmentShaders.get(shaderKey);
             if (result == null) {
-                result = new PipelineFragmentShader(shaderFileName, spriteDepth, isSolidLayer);
+                result = new PipelineFragmentShader(shaderSourceId, spriteDepth, isSolidLayer);
                 fragmentShaders.put(shaderKey, result);
             }
             return result;

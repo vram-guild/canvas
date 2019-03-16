@@ -2,9 +2,11 @@ package grondag.canvas.core;
 
 import org.lwjgl.opengl.GL21;
 
+import net.minecraft.util.Identifier;
+
 public final class PipelineVertexShader extends AbstractPipelineShader {
-    PipelineVertexShader(String fileName, int spriteDepth, boolean isSolidLayer) {
-        super(fileName, GL21.GL_VERTEX_SHADER, spriteDepth, isSolidLayer);
+    PipelineVertexShader(Identifier shaderSource, int spriteDepth, boolean isSolidLayer) {
+        super(shaderSource, GL21.GL_VERTEX_SHADER, spriteDepth, isSolidLayer);
     }
 
     @Override

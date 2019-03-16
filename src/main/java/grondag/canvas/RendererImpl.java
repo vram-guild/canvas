@@ -23,10 +23,12 @@ import grondag.canvas.RenderMaterialImpl.Value;
 import grondag.canvas.buffering.BufferManager;
 import grondag.canvas.core.PipelineManager;
 import grondag.canvas.core.PipelineShaderManager;
+import grondag.canvas.core.RenderPipelineImpl;
 import grondag.canvas.mesh.MeshBuilderImpl;
 import grondag.frex.api.ExtendedRenderer;
+import grondag.frex.api.Pipeline;
+import grondag.frex.api.PipelineBuilder;
 import grondag.frex.api.RenderReloadCallback;
-import grondag.frex.api.ShaderManager;
 import net.fabricmc.fabric.api.client.model.fabric.MeshBuilder;
 import net.fabricmc.fabric.api.client.model.fabric.RenderMaterial;
 import net.minecraft.client.resource.language.I18n;
@@ -54,6 +56,8 @@ public class RendererImpl implements ExtendedRenderer, RenderReloadCallback {
     
     private final HashMap<Identifier, Value> materialMap = new HashMap<>();
 
+    private final HashMap<Identifier, RenderPipelineImpl> pipelineMap = new HashMap<>();
+    
     private RendererImpl() {
         RenderReloadCallback.EVENT.register(this);
     };
@@ -83,15 +87,28 @@ public class RendererImpl implements ExtendedRenderer, RenderReloadCallback {
     }
 
     @Override
-    public ShaderManager shaderManager() {
-        return ShaderManagerImpl.INSTANCE;
+    public void reload() {
+        Canvas.INSTANCE.getLog().info(I18n.translate("misc.info_reloading"));
+        PipelineManager.INSTANCE.forceReload();
+        BufferManager.forceReload();
     }
 
     @Override
-    public void reload() {
-        Canvas.INSTANCE.getLog().info(I18n.translate("misc.info_reloading"));
-        PipelineShaderManager.INSTANCE.forceReload();
-        PipelineManager.INSTANCE.forceReload();
-        BufferManager.forceReload();
+    public PipelineBuilder pipelineBuilder() {
+        return new PipelineBuilderImpl();
+    }
+
+    @Override
+    public RenderPipelineImpl pipelineById(Identifier id) {
+        return pipelineMap.get(id);
+    }
+
+    @Override
+    public boolean registerPipeline(Identifier id, Pipeline pipeline) {
+        if (pipelineMap.containsKey(id))
+            return false;
+        // cast to prevent acceptance of impostor implementations
+        pipelineMap.put(id, (RenderPipelineImpl) pipeline);
+        return true;
     }
 }

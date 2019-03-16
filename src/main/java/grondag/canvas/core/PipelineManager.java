@@ -20,6 +20,7 @@ import grondag.canvas.mixinext.GameRendererExt;
 import net.minecraft.class_4184;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.Entity;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec3d;
 
 public final class PipelineManager {
@@ -76,14 +77,14 @@ public final class PipelineManager {
      */
     public static int viewMatrixVersionCounter = Integer.MIN_VALUE;
 
-    private final RenderPipeline[] pipelines = new RenderPipeline[PipelineManager.MAX_PIPELINES];
+    private final RenderPipelineImpl[] pipelines = new RenderPipelineImpl[PipelineManager.MAX_PIPELINES];
 
     private int pipelineCount = 0;
 
-    private final RenderPipeline[] defaultPipelines = new RenderPipeline[RenderMaterialImpl.MAX_SPRITE_DEPTH];
-    private final RenderPipeline waterPipeline;
-    private final RenderPipeline lavaPipeline;
-    public final RenderPipeline defaultSinglePipeline;
+    private final RenderPipelineImpl[] defaultPipelines = new RenderPipelineImpl[RenderMaterialImpl.MAX_SPRITE_DEPTH];
+    private final RenderPipelineImpl waterPipeline;
+    private final RenderPipelineImpl lavaPipeline;
+    public final RenderPipelineImpl defaultSinglePipeline;
 
     /**
      * The number of seconds this world has been rendering since the last render
@@ -117,14 +118,12 @@ public final class PipelineManager {
 
         // add default pipelines
         for (int i = 0; i < RenderMaterialImpl.MAX_SPRITE_DEPTH; i++) {
-            defaultPipelines[i] = (RenderPipeline) this
-                    .createPipeline(i + 1, PipelineShaderManager.INSTANCE.DEFAULT_VERTEX_SOURCE,
-                            PipelineShaderManager.INSTANCE.DEFAULT_FRAGMENT_SOURCE);
+            defaultPipelines[i] = (RenderPipelineImpl) this
+                    .createPipeline(i + 1, PipelineShaderManager.DEFAULT_VERTEX_SOURCE,
+                            PipelineShaderManager.DEFAULT_FRAGMENT_SOURCE);
         }
-        this.waterPipeline = this.createPipeline(1, "/assets/canvas/shader/water.vert",
-                "/assets/canvas/shader/water.frag");
-        this.lavaPipeline = this.createPipeline(1, "/assets/canvas/shader/lava.vert",
-                "/assets/canvas/shader/lava.frag");
+        this.waterPipeline = this.createPipeline(1, PipelineShaderManager.WATER_VERTEX_SOURCE, PipelineShaderManager.WATER_FRAGMENT_SOURCE);
+        this.lavaPipeline = this.createPipeline(1, PipelineShaderManager.LAVA_VERTEX_SOURCE, PipelineShaderManager.LAVA_FRAGMENT_SOURCE);
         this.defaultSinglePipeline = defaultPipelines[0];
     }
 
@@ -133,20 +132,21 @@ public final class PipelineManager {
     }
     
     public void forceReload() {
+        PipelineShaderManager.INSTANCE.forceReload();
         for (int i = 0; i < this.pipelineCount; i++) {
             this.pipelines[i].forceReload();
         }
     }
 
-    public final synchronized RenderPipeline createPipeline(int spriteDepth, String vertexShader,
-            String fragmentShader) {
+    public final synchronized RenderPipelineImpl createPipeline(int spriteDepth, Identifier vertexShaderSource,
+            Identifier fragmentShaderSource) {
 
         if (this.pipelineCount >= PipelineManager.MAX_PIPELINES)
             return null;
 
         if (this.pipelineCount >= PipelineManager.MAX_PIPELINES)
             return null;
-        RenderPipeline result = new RenderPipeline(this.pipelineCount++, vertexShader, fragmentShader, spriteDepth);
+        RenderPipelineImpl result = new RenderPipelineImpl(this.pipelineCount++, vertexShaderSource, fragmentShaderSource, spriteDepth);
         this.pipelines[result.getIndex()] = result;
 
         addStandardUniforms(result);
@@ -154,23 +154,23 @@ public final class PipelineManager {
         return result;
     }
 
-    public final RenderPipeline getPipeline(int pipelineIndex) {
+    public final RenderPipelineImpl getPipeline(int pipelineIndex) {
         return pipelines[pipelineIndex];
     }
 
-    public final RenderPipeline getDefaultPipeline(int spriteDepth) {
+    public final RenderPipelineImpl getDefaultPipeline(int spriteDepth) {
         return pipelines[spriteDepth - 1];
     }
 
-    public final RenderPipeline getWaterPipeline() {
+    public final RenderPipelineImpl getWaterPipeline() {
         return Configurator.fancyFluids ? this.waterPipeline : this.defaultSinglePipeline;
     }
 
-    public final RenderPipeline getLavaPipeline() {
+    public final RenderPipelineImpl getLavaPipeline() {
         return Configurator.fancyFluids ? this.lavaPipeline : this.defaultSinglePipeline;
     }
 
-    public RenderPipeline getPipelineByIndex(int index) {
+    public RenderPipelineImpl getPipelineByIndex(int index) {
         return this.pipelines[index];
     }
 
@@ -181,7 +181,7 @@ public final class PipelineManager {
         return this.pipelineCount;
     }
 
-    private void addStandardUniforms(RenderPipeline pipeline) {
+    private void addStandardUniforms(RenderPipelineImpl pipeline) {
         pipeline.uniform1f("u_time", UniformRefreshFrequency.PER_FRAME, u -> u.set(renderSeconds));
 
         pipeline.uniformSampler2d("u_textures", UniformRefreshFrequency.ON_LOAD, u -> u.set(0));
@@ -209,8 +209,6 @@ public final class PipelineManager {
                     .getInstance().gameRenderer).canvas_fogHelper();
             u.set(fh.getRed(), fh.getGreen(), fh.getBlue());
         });
-
-        pipeline.setupModelViewUniforms();
     }
 
     /**

@@ -7,7 +7,7 @@ import java.util.function.Consumer;
  */
 public class VertexPackingList {
     private int[] counts = new int[16];
-    private RenderPipeline[] pipelines = new RenderPipeline[16];
+    private RenderPipelineImpl[] pipelines = new RenderPipelineImpl[16];
 
     private int size = 0;
     private int totalBytes = 0;
@@ -40,13 +40,13 @@ public class VertexPackingList {
         return this.totalBytes;
     }
 
-    public void addPacking(RenderPipeline pipeline, int vertexCount) {
+    public void addPacking(RenderPipelineImpl pipeline, int vertexCount) {
         if (size == this.pipelines.length) {
             final int iCopy[] = new int[size * 2];
             System.arraycopy(this.counts, 0, iCopy, 0, size);
             this.counts = iCopy;
 
-            final RenderPipeline pCopy[] = new RenderPipeline[size * 2];
+            final RenderPipelineImpl pCopy[] = new RenderPipelineImpl[size * 2];
             System.arraycopy(this.pipelines, 0, pCopy, 0, size);
             this.pipelines = pCopy;
         }
@@ -57,7 +57,7 @@ public class VertexPackingList {
     }
 
     public static interface VertexPackingConsumer {
-        void accept(RenderPipeline pipeline, int vertexCount);
+        void accept(RenderPipelineImpl pipeline, int vertexCount);
     }
 
     public final void forEach(VertexPackingConsumer consumer) {
@@ -67,13 +67,13 @@ public class VertexPackingList {
         }
     }
 
-    public final void forEachPipeline(Consumer<RenderPipeline> consumer) {
+    public final void forEachPipeline(Consumer<RenderPipelineImpl> consumer) {
         final int size = this.size;
         for (int i = 0; i < size; i++)
             consumer.accept(this.pipelines[i]);
     }
 
-    public final RenderPipeline getPipeline(int index) {
+    public final RenderPipelineImpl getPipeline(int index) {
         return this.pipelines[index];
     }
 

@@ -7,7 +7,7 @@ import org.lwjgl.system.MemoryUtil;
 
 import com.mojang.blaze3d.platform.GLX;
 
-import grondag.canvas.core.RenderPipeline;
+import grondag.canvas.core.RenderPipelineImpl;
 
 public class SimpleBuffer extends AbstractBuffer implements AllocationProvider {
     ByteBuffer uploadBuffer;
@@ -45,7 +45,7 @@ public class SimpleBuffer extends AbstractBuffer implements AllocationProvider {
     }
     
     @Override
-    public void claimAllocation(RenderPipeline pipeline, int byteCount, Consumer<AbstractBufferDelegate<?>> consumer) {
+    public void claimAllocation(RenderPipelineImpl pipeline, int byteCount, Consumer<AbstractBufferDelegate<?>> consumer) {
         consumer.accept(new SimpleBufferDelegate(this, byteOffset, byteCount));
         byteOffset += byteCount;
     }

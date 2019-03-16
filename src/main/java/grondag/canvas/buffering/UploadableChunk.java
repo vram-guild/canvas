@@ -2,7 +2,7 @@ package grondag.canvas.buffering;
 
 import java.nio.IntBuffer;
 
-import grondag.canvas.core.RenderPipeline;
+import grondag.canvas.core.RenderPipelineImpl;
 import grondag.canvas.core.VertexCollectorList;
 import grondag.canvas.core.VertexPackingList;
 import grondag.canvas.core.VertexPackingList.VertexPackingConsumer;
@@ -25,7 +25,7 @@ public abstract class UploadableChunk<V extends DrawableChunk> {
         }
 
         @Override
-        public void accept(RenderPipeline pipeline, int vertexCount) {
+        public void accept(RenderPipelineImpl pipeline, int vertexCount) {
             final int stride = pipeline.piplineVertexFormat().vertexStrideBytes;
             // array offset will be zero unless multiple buffers are needed
             intOffset = 0;

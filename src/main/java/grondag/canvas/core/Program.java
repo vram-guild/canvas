@@ -94,7 +94,7 @@ public class Program {
             this.unifID = GLX.glGetUniformLocation(programID, name);
             if (this.unifID == -1) {
                 Canvas.INSTANCE.getLog().debug(I18n.translate("misc.debug_missing_uniform", name,
-                        Program.this.vertexShader.fileName, Program.this.fragmentShader.fileName));
+                        Program.this.vertexShader.shaderSource.toString(), Program.this.fragmentShader.shaderSource.toString()));
                 this.flags = 0;
             } else {
                 // never add view uniforms to dirty list - have special handling
@@ -410,13 +410,6 @@ public class Program {
     }
 
     /**
-     * Call after render / resource refresh to force shader reload.
-     */
-    public final void forceReload() {
-        this.load();
-    }
-
-    /**
      * Handle these directly because may update each activation.
      */
     private final void updateModelUniforms() {
@@ -507,7 +500,7 @@ public class Program {
         return addUniform(new UniformMatrix4fImpl(name, initializer, frequency, floatBuffer));
     }
 
-    private final void load() {
+    final void load() {
         this.isErrored = true;
 
         // prevent accumulation of uniforms in programs that aren't activated after
