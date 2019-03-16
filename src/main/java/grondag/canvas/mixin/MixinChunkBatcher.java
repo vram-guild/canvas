@@ -47,7 +47,7 @@ public abstract class MixinChunkBatcher {
     public void onUploadChunk(final BlockRenderLayer blockRenderLayer, final BufferBuilder bufferBuilder,
             final ChunkRenderer renderChunk, final ChunkRenderData chunkData, final double distanceSq,
             CallbackInfoReturnable<ListenableFuture<Object>> ci) {
-        if (MinecraftClient.getInstance().isMainThread())
+        if (MinecraftClient.getInstance().method_18854()) // main thread check
             ci.setReturnValue(uploadChunk(blockRenderLayer, bufferBuilder, renderChunk, chunkData, distanceSq));
     }
 

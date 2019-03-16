@@ -29,7 +29,7 @@ public abstract class MixinBufferBuilder implements AccessBufferBuilder {
     @Shadow
     private IntBuffer bufInt;
     @Shadow
-    private int vertexes;
+    private int vertexCount;
     @Shadow
     private double offsetX;
     @Shadow
@@ -56,7 +56,7 @@ public abstract class MixinBufferBuilder implements AccessBufferBuilder {
         this.grow(QUAD_STRIDE_BYTES);
         this.bufInt.position(this.getCurrentSize());
         this.bufInt.put(data, start, QUAD_STRIDE_INTS);
-        this.vertexes += 4;
+        this.vertexCount += 4;
     }
 
     @Override

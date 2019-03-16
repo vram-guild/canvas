@@ -17,6 +17,7 @@ import grondag.canvas.mixin.AccessBackgroundRenderer;
 import grondag.canvas.mixinext.AccessFogState;
 import grondag.canvas.mixinext.FogStateHolder;
 import grondag.canvas.mixinext.GameRendererExt;
+import net.minecraft.class_4184;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.math.Vec3d;
@@ -216,8 +217,8 @@ public final class PipelineManager {
      * Called just before terrain setup each frame after camera, fog and projection
      * matrix are set up,
      */
-    public void prepareForFrame(Entity cameraEntity, float fractionalTicks) {
-        this.fractionalTicks = fractionalTicks;
+    public void prepareForFrame(class_4184 camera) {
+        this.fractionalTicks = MinecraftClient.getInstance().getTickDelta();
 
         BufferManager.prepareForFrame();
 
@@ -226,6 +227,7 @@ public final class PipelineManager {
         projMatrix.set(projectionMatrixBuffer);
         //CanvasGlHelper.loadTransposeQuickly(projectionMatrixBuffer, projMatrix);
 
+        Entity cameraEntity = camera.method_19331();
         assert cameraEntity != null;
         assert cameraEntity.getEntityWorld() != null;
 

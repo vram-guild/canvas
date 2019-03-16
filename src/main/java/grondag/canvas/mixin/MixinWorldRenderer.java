@@ -31,11 +31,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import grondag.canvas.core.PipelineManager;
 import grondag.canvas.mixinext.ChunkRendererListExt;
+import net.minecraft.class_4184;
 import net.minecraft.block.BlockRenderLayer;
 import net.minecraft.client.render.VisibleRegion;
 import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.client.render.chunk.ChunkRendererList;
-import net.minecraft.entity.Entity;
 
 // PERF: restore visibility hooks if profiling shows worthwhile
 // Computation is in class_852
@@ -48,12 +48,12 @@ public abstract class MixinWorldRenderer {
     @Shadow private ChunkRendererList chunkRendererList;
     
     @Inject(method = "setUpTerrain", at = @At("HEAD"), cancellable = false, require = 1)
-    private void onPrepareTerrain(Entity cameraEntity, float fractionalTicks, VisibleRegion region, int int_1, boolean boolean_1, CallbackInfo ci) {
-        PipelineManager.INSTANCE.prepareForFrame(cameraEntity, fractionalTicks);
+    private void onPrepareTerrain(class_4184 camera, VisibleRegion region, int int_1, boolean boolean_1, CallbackInfo ci) {
+        PipelineManager.INSTANCE.prepareForFrame(camera);
     }
     
     @Inject(method = "renderLayer", at = @At("HEAD"), cancellable = true, require = 1)
-    private void onRenderLayer(BlockRenderLayer layer, double fractionalTick, Entity viewEntity, CallbackInfoReturnable<Integer> ci) {
+    private void onRenderLayer(BlockRenderLayer layer, class_4184 camera, CallbackInfoReturnable<Integer> ci) {
         switch (layer) {
 
         case CUTOUT:
