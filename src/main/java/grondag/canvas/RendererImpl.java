@@ -22,7 +22,6 @@ import grondag.canvas.RenderMaterialImpl.Finder;
 import grondag.canvas.RenderMaterialImpl.Value;
 import grondag.canvas.buffering.BufferManager;
 import grondag.canvas.core.PipelineManager;
-import grondag.canvas.core.PipelineShaderManager;
 import grondag.canvas.core.RenderPipelineImpl;
 import grondag.canvas.mesh.MeshBuilderImpl;
 import grondag.frex.api.ExtendedRenderer;

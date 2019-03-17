@@ -159,7 +159,10 @@ public final class RenderPipelineImpl implements Pipeline {
     }
 
     public void onGameTick() {
-        this.solidProgram.onGameTick();
-        this.translucentProgram.onGameTick();
+        // can be called before programs are initialized
+        if(this.solidProgram != null) {
+            this.solidProgram.onGameTick();
+            this.translucentProgram.onGameTick();
+        }
     }
 }

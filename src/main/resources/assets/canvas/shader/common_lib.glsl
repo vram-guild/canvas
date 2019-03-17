@@ -31,10 +31,44 @@ varying vec4 v_color_2;
 varying vec2 v_texcoord_2;
 #endif
 
+#define PI 3.1415926535897932384626433832795
+#define PI_2 1.57079632679489661923
+
 const int FLAG_DISABLE_DIFFUSE = 4;
 const int FLAG_DISABLE_AO_0 = 5;
 const int FLAG_CUTOUT_0 = 6;
 const int FLAG_UNMIPPED_0 = 7;
+
+const int FACE_DOWN = 0;
+const int FACE_UP = 1;
+const int FACE_NORTH = 2;
+const int FACE_SOUTH = 3;
+const int FACE_WEST = 4;
+const int FACE_EAST = 5;
+
+const mat3[6] UV_MATRIX = mat3[6](
+	mat3(1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0),
+	mat3(1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0),
+	mat3(1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0),
+	mat3(1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0),
+	mat3(0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0),
+	mat3(0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0)
+);
+
+int face(vec3 normal) {
+	vec3 a = abs(normal);
+	float m = max(max(a.x, a.y), a.z);
+
+	return a.x == m ? (normal.x > 0 ? FACE_EAST : FACE_WEST)
+			: a.y == m ? (normal.y > 0 ? FACE_UP : FACE_DOWN)
+				: (normal.z > 0 ? FACE_SOUTH : FACE_NORTH);
+}
+
+vec2 uv(vec3 pos, vec3 normal) {
+	mat3 m = UV_MATRIX[face(normal)];
+	vec3 result = m * pos;
+	return result.xy;
+}
 
 /**
  * Formula mimics vanilla lighting for plane-aligned quads and is vaguely

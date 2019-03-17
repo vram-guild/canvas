@@ -17,13 +17,14 @@ import grondag.canvas.mixin.AccessBackgroundRenderer;
 import grondag.canvas.mixinext.AccessFogState;
 import grondag.canvas.mixinext.FogStateHolder;
 import grondag.canvas.mixinext.GameRendererExt;
+import net.fabricmc.fabric.api.event.client.ClientTickCallback;
 import net.minecraft.class_4184;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec3d;
 
-public final class PipelineManager {
+public final class PipelineManager implements ClientTickCallback {
     static final PipelineVertexFormat[] FORMATS = PipelineVertexFormat.values();
     
     /**
@@ -116,6 +117,8 @@ public final class PipelineManager {
     private PipelineManager() {
         super();
 
+        ClientTickCallback.EVENT.register(this);
+        
         // add default pipelines
         for (int i = 0; i < RenderMaterialImpl.MAX_SPRITE_DEPTH; i++) {
             defaultPipelines[i] = (RenderPipelineImpl) this
@@ -141,6 +144,14 @@ public final class PipelineManager {
     public final synchronized RenderPipelineImpl createPipeline(int spriteDepth, Identifier vertexShaderSource,
             Identifier fragmentShaderSource) {
 
+        if(vertexShaderSource == null) {
+            vertexShaderSource = PipelineShaderManager.DEFAULT_VERTEX_SOURCE;
+        }
+        
+        if(fragmentShaderSource == null) {
+            fragmentShaderSource = PipelineShaderManager.DEFAULT_FRAGMENT_SOURCE;
+        }
+        
         if (this.pipelineCount >= PipelineManager.MAX_PIPELINES)
             return null;
 
@@ -233,15 +244,24 @@ public final class PipelineManager {
             return;
 
         computeRenderSeconds(cameraEntity);
+        
+        onRenderTick();
     }
 
     private void computeRenderSeconds(Entity cameraEntity) {
         renderSeconds = (float) ((cameraEntity.getEntityWorld().getTime() - baseWorldTime + fractionalTicks) / 20);
     }
 
-    public void onGameTick(MinecraftClient mc) {
+    @Override
+    public void tick(MinecraftClient client) {
         for (int i = 0; i < this.pipelineCount; i++) {
             pipelines[i].onGameTick();
+        }
+    }
+    
+    public void onRenderTick() {
+        for (int i = 0; i < this.pipelineCount; i++) {
+            pipelines[i].onRenderTick();
         }
     }
 

@@ -15,6 +15,7 @@ attribute vec2 in_uv_2;
 
 void setupVertex()
 {
+	// TODO: try ftransform()?
     gl_Position = u_modelViewProjection * gl_Vertex;
     vec4 viewCoord = u_modelView * gl_Vertex;
     gl_ClipVertex = viewCoord;

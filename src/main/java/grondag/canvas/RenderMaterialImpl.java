@@ -179,11 +179,11 @@ public abstract class RenderMaterialImpl {
         protected Value(int index, long bits, RenderPipelineImpl pipeline) {
             this.index = index;
             this.bits = bits;
+            this.pipeline = pipeline;
             setupBlockLayerVariants();
             hasAo = !disableAo(0) || (spriteDepth() > 1 && !disableAo(1)) || (spriteDepth() == 3 && !disableAo(2));
             emissiveFlags = (emissive(0) ? 1 : 0) | (emissive(1) ? 2 : 0) | (emissive(2) ? 4 : 0);
             this.renderLayerIndex = this.blendMode(0) == BlockRenderLayer.TRANSLUCENT ? BlockRenderLayer.TRANSLUCENT.ordinal() : BlockRenderLayer.SOLID.ordinal();
-            this.pipeline = pipeline;
         }
 
         /**
@@ -242,6 +242,7 @@ public abstract class RenderMaterialImpl {
                 for(int i = 0; i < 4; i++) {
                     BlockRenderLayer layer = LAYERS[i];
                     finder.bits = this.bits;
+                    finder.pipeline = this.pipeline;
                     if(finder.blendMode(0) == null) {
                         finder.blendMode(0, layer);
                     }

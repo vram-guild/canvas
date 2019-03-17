@@ -1,5 +1,6 @@
 package grondag.canvas;
 
+import java.util.ArrayList;
 import java.util.function.Consumer;
 
 import grondag.canvas.core.PipelineManager;
@@ -21,11 +22,17 @@ import net.minecraft.util.Identifier;
 public class PipelineBuilderImpl implements PipelineBuilder {
     private Identifier vertexSource;
     private Identifier fragmentSource;
+    private final ArrayList<Consumer<RenderPipelineImpl>> uniforms = new ArrayList<>();
+    
     private int spriteDepth = 1;
     
     @Override
     public Pipeline build() {
         RenderPipelineImpl result = PipelineManager.INSTANCE.createPipeline(spriteDepth, vertexSource, fragmentSource);
+        uniforms.forEach(u -> u.accept(result));
+        vertexSource = null;
+        fragmentSource = null;
+        uniforms.clear();
         return result;
     }
 
@@ -48,56 +55,56 @@ public class PipelineBuilderImpl implements PipelineBuilder {
     }
     
     @Override
-    public PipelineBuilderImpl uniform1f(String arg0, UniformRefreshFrequency arg1, Consumer<Uniform1f> arg2) {
-        // TODO Auto-generated method stub
+    public PipelineBuilderImpl uniform1f(String name, UniformRefreshFrequency frequency, Consumer<Uniform1f> initializer) {
+        uniforms.add(p -> p.uniform1f(name, frequency, initializer));
         return this;
     }
 
     @Override
-    public PipelineBuilderImpl uniform1i(String arg0, UniformRefreshFrequency arg1, Consumer<Uniform1i> arg2) {
-        // TODO Auto-generated method stub
+    public PipelineBuilderImpl uniform1i(String name, UniformRefreshFrequency frequency, Consumer<Uniform1i> initializer) {
+        uniforms.add(p -> p.uniform1i(name, frequency, initializer));
         return this;
     }
 
     @Override
-    public PipelineBuilderImpl uniform2f(String arg0, UniformRefreshFrequency arg1, Consumer<Uniform2f> arg2) {
-        // TODO Auto-generated method stub
+    public PipelineBuilderImpl uniform2f(String name, UniformRefreshFrequency frequency, Consumer<Uniform2f> initializer) {
+        uniforms.add(p -> p.uniform2f(name, frequency, initializer));
         return this;
     }
 
     @Override
-    public PipelineBuilderImpl uniform2i(String arg0, UniformRefreshFrequency arg1, Consumer<Uniform2i> arg2) {
-        // TODO Auto-generated method stub
+    public PipelineBuilderImpl uniform2i(String name, UniformRefreshFrequency frequency, Consumer<Uniform2i> initializer) {
+        uniforms.add(p -> p.uniform2i(name, frequency, initializer));
         return this;
     }
 
     @Override
-    public PipelineBuilderImpl uniform3f(String arg0, UniformRefreshFrequency arg1, Consumer<Uniform3f> arg2) {
-        // TODO Auto-generated method stub
+    public PipelineBuilderImpl uniform3f(String name, UniformRefreshFrequency frequency, Consumer<Uniform3f> initializer) {
+        uniforms.add(p -> p.uniform3f(name, frequency, initializer));
         return this;
     }
 
     @Override
-    public PipelineBuilderImpl uniform3i(String arg0, UniformRefreshFrequency arg1, Consumer<Uniform3i> arg2) {
-        // TODO Auto-generated method stub
+    public PipelineBuilderImpl uniform3i(String name, UniformRefreshFrequency frequency, Consumer<Uniform3i> initializer) {
+        uniforms.add(p -> p.uniform3i(name, frequency, initializer));
         return this;
     }
 
     @Override
-    public PipelineBuilderImpl uniform4f(String arg0, UniformRefreshFrequency arg1, Consumer<Uniform4f> arg2) {
-        // TODO Auto-generated method stub
+    public PipelineBuilderImpl uniform4f(String name, UniformRefreshFrequency frequency, Consumer<Uniform4f> initializer) {
+        uniforms.add(p -> p.uniform4f(name, frequency, initializer));
         return this;
     }
 
     @Override
-    public PipelineBuilderImpl uniform4i(String arg0, UniformRefreshFrequency arg1, Consumer<Uniform4i> arg2) {
-        // TODO Auto-generated method stub
+    public PipelineBuilderImpl uniform4i(String name, UniformRefreshFrequency frequency, Consumer<Uniform4i> initializer) {
+        uniforms.add(p -> p.uniform4i(name, frequency, initializer));
         return this;
     }
 
     @Override
-    public PipelineBuilderImpl uniformMatrix4f(String arg0, UniformRefreshFrequency arg1, Consumer<UniformMatrix4f> arg2) {
-        // TODO Auto-generated method stub
+    public PipelineBuilderImpl uniformMatrix4f(String name, UniformRefreshFrequency frequency, Consumer<UniformMatrix4f> initializer) {
+        uniforms.add(p -> p.uniformMatrix4f(name, frequency, initializer));
         return this;
     }
 }
