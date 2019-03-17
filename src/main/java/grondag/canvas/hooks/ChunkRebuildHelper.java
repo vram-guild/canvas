@@ -18,17 +18,6 @@ public class ChunkRebuildHelper {
     public static final int BLOCK_RENDER_LAYER_COUNT = BlockRenderLayer.values().length;
     public static final boolean[] EMPTY_RENDER_LAYER_FLAGS = new boolean[BLOCK_RENDER_LAYER_COUNT];
 
-    private static final ThreadLocal<ChunkRebuildHelper> HELPERS = new ThreadLocal<ChunkRebuildHelper>() {
-        @Override
-        protected ChunkRebuildHelper initialValue() {
-            return new ChunkRebuildHelper();
-        }
-    };
-
-    public static ChunkRebuildHelper get() {
-        return HELPERS.get();
-    }
-
     public final BlockRenderLayer[] layers = BlockRenderLayer.values().clone();
     public final boolean[] layerFlags = new boolean[BLOCK_RENDER_LAYER_COUNT];
     public final BlockPos.Mutable searchPos = new BlockPos.Mutable();

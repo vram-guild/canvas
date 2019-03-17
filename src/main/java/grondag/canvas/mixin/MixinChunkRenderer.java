@@ -174,8 +174,8 @@ public abstract class MixinChunkRenderer implements AccessChunkRenderer, ChunkRe
 
     @Inject(method = "rebuildChunk", at = @At("HEAD"), cancellable = true, require = 1)
     private void onRebuildChunk(final float x, final float y, final float z, final ChunkRenderTask chunkRenderTask, final CallbackInfo ci) {
-        // PERF: combine with render context to have 1 threadlocal lookup
-        final ChunkRebuildHelper help = ChunkRebuildHelper.get();
+        final TerrainRenderContext renderContext = TerrainRenderContext.POOL.get();
+        final ChunkRebuildHelper help = renderContext.chunkRebuildHelper;
         help.clear();
 
         ChunkRenderData chunkRenderData = ChunkRenderDataStore.claim();
@@ -207,7 +207,6 @@ public abstract class MixinChunkRenderer implements AccessChunkRenderer, ChunkRe
                 
                 boolean[] layerFlags = help.layerFlags;
                 
-                TerrainRenderContext renderContext = TerrainRenderContext.POOL.get();
                 renderContext.setChunkTask(chunkRenderTask);
                 
                 /**

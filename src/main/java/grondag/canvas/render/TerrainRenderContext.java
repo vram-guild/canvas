@@ -24,6 +24,7 @@ import net.fabricmc.fabric.api.client.model.fabric.QuadEmitter;
 import net.fabricmc.fabric.api.client.model.fabric.RenderContext;
 import net.fabricmc.fabric.api.client.model.fabric.TerrainBlockView;
 import grondag.canvas.aocalc.AoCalculator;
+import grondag.canvas.hooks.ChunkRebuildHelper;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.block.BlockRenderManager;
@@ -45,6 +46,8 @@ public class TerrainRenderContext extends AbstractRenderContext implements Rende
     public static final ThreadLocal<TerrainRenderContext> POOL = ThreadLocal.withInitial(TerrainRenderContext::new);
     private final TerrainBlockRenderInfo blockInfo = new TerrainBlockRenderInfo();
     public final ChunkRenderInfo chunkInfo = new ChunkRenderInfo(blockInfo);
+    public final ChunkRebuildHelper chunkRebuildHelper = new ChunkRebuildHelper();
+    
     private final AoCalculator aoCalc = new AoCalculator(blockInfo, chunkInfo::cachedBrightness,
             chunkInfo::cachedAoLevel);
     private final TerrainMeshConsumer meshConsumer = new TerrainMeshConsumer(blockInfo, chunkInfo, aoCalc,
