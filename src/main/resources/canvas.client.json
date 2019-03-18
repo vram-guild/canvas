@@ -22,6 +22,7 @@
 	"MixinLightmapTextureManager",
 	"MixinMinecraftClient",
 	"MixinSafeWorldView",
+	"MixinTessellator",
 	"MixinVboChunkRendererList",
 	"MixinVertexFormatElement",
 	"MixinVisibilityData",

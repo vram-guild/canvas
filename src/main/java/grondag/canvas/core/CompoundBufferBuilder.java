@@ -199,7 +199,6 @@ public class CompoundBufferBuilder extends BufferBuilder {
             return;
         } else
             this.finishDrawingIfNotAlreadyFinished();
-
     }
 
     /**
@@ -211,29 +210,16 @@ public class CompoundBufferBuilder extends BufferBuilder {
 
         UploadableChunk<?> uploadBuffer = this.uploadState.getAndSet(null);
         if (uploadBuffer == null) {
-//            System.out.println(Integer.toHexString(CompoundBufferBuilder.this.hashCode()) + " Ignoring upload request due to missing upload state in Compound Vertex Buffer (" + layer.toString() + ") - must have been loaded earlier");
             return null;
         }
 
         return uploadBuffer.produceDrawable();
     }
 
-//    public static final ConcurrentHashMap<BlockPos, Long> SORTS = new ConcurrentHashMap<>();
-//    private BlockPos chunkOriginPos;
-
-//    @Override
-//    public void setTranslation(double x, double y, double z)
-//    {
-//        super.setTranslation(x, y, z);
-//        chunkOriginPos = new BlockPos((MathHelper.fastFloor(-x) >> 4) << 4, (MathHelper.fastFloor(-y) >> 4) << 4, (MathHelper.fastFloor(-z) >> 4) << 4);
-//    }
 
     @Override
     public void sortQuads(float x, float y, float z) {
-//        SORTS.put(chunkOriginPos, System.nanoTime());
-
-        // save sort perspective coordinate for use during packing. Actual sort occurs
-        // then.
+        // save sort perspective coordinate for use during packing. Actual sort occurs then.
         collectors.get().getRight().setViewCoordinates(x, y, z);
     }
 }
