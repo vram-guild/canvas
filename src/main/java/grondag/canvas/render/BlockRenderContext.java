@@ -18,18 +18,20 @@ package grondag.canvas.render;
 
 import java.util.Random;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.ToIntBiFunction;
 
-import it.unimi.dsi.fastutil.ints.Int2ObjectFunction;
+import grondag.canvas.RenderMaterialImpl;
+import grondag.canvas.accessor.AccessBufferBuilder;
+import grondag.canvas.aocalc.AoCalculator;
+import grondag.canvas.core.CanvasBufferBuilder;
+import grondag.canvas.core.VertexCollector;
+import grondag.canvas.mesh.MutableQuadViewImpl;
 import net.fabricmc.fabric.api.client.model.fabric.FabricBakedModel;
 import net.fabricmc.fabric.api.client.model.fabric.Mesh;
 import net.fabricmc.fabric.api.client.model.fabric.QuadEmitter;
 import net.fabricmc.fabric.api.client.model.fabric.RenderContext;
 import net.fabricmc.fabric.api.client.model.fabric.TerrainBlockView;
-import grondag.canvas.accessor.AccessBufferBuilder;
-import grondag.canvas.aocalc.AoCalculator;
-import grondag.canvas.core.CompoundBufferBuilder;
-import grondag.canvas.mesh.MutableQuadViewImpl;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.block.BlockModelRenderer;
@@ -43,11 +45,11 @@ import net.minecraft.world.ExtendedBlockView;
 public class BlockRenderContext extends AbstractRenderContext implements RenderContext {
     private final BlockRenderInfo blockInfo = new BlockRenderInfo();
     private final AoCalculator aoCalc = new AoCalculator(blockInfo, this::brightness, this::aoLevel);
-    private final MeshConsumer meshConsumer = new MeshConsumer(blockInfo, this::brightness, this::outputBuffer, aoCalc,
+    private final MeshConsumer meshConsumer = new MeshConsumer(blockInfo, this::brightness, this::getCollector, aoCalc,
             this::transform);
     private final Random random = new Random();
+    private CanvasBufferBuilder canvasBuilder;
     private BlockModelRenderer vanillaRenderer;
-    private CompoundBufferBuilder bufferBuilder;
     private long seed;
     private boolean isCallingVanilla = false;
     private boolean didOutput = false;
@@ -75,15 +77,15 @@ public class BlockRenderContext extends AbstractRenderContext implements RenderC
         return blockView.getBlockState(pos).getAmbientOcclusionLightLevel(blockView, pos);
     }
 
-    private CompoundBufferBuilder outputBuffer(int renderLayer) {
+    private VertexCollector getCollector(RenderMaterialImpl.Value mat) {
         didOutput = true;
-        return bufferBuilder;
+        return canvasBuilder.vcList.get(mat.pipeline);
     }
 
     public boolean tesselate(BlockModelRenderer vanillaRenderer, TerrainBlockView blockView, BakedModel model,
             BlockState state, BlockPos pos, BufferBuilder buffer, long seed) {
         this.vanillaRenderer = vanillaRenderer;
-        this.bufferBuilder = (CompoundBufferBuilder) buffer;
+        this.canvasBuilder = (CanvasBufferBuilder) buffer;
         this.seed = seed;
         this.didOutput = false;
         aoCalc.clear();
@@ -95,19 +97,19 @@ public class BlockRenderContext extends AbstractRenderContext implements RenderC
 
         this.vanillaRenderer = null;
         blockInfo.release();
-        this.bufferBuilder = null;
+        this.canvasBuilder = null;
         return didOutput;
     }
 
     protected void acceptVanillaModel(BakedModel model) {
         isCallingVanilla = true;
         didOutput = didOutput && vanillaRenderer.tesselate(blockInfo.blockView, model, blockInfo.blockState,
-                blockInfo.blockPos, (BufferBuilder) bufferBuilder, false, random, seed);
+                blockInfo.blockPos, canvasBuilder, false, random, seed);
         isCallingVanilla = false;
     }
 
     private void setupOffsets() {
-        final AccessBufferBuilder buffer = (AccessBufferBuilder) bufferBuilder;
+        final AccessBufferBuilder buffer = (AccessBufferBuilder) canvasBuilder;
         final BlockPos pos = blockInfo.blockPos;
         offsetX = buffer.fabric_offsetX() + pos.getX();
         offsetY = buffer.fabric_offsetY() + pos.getY();
@@ -116,8 +118,8 @@ public class BlockRenderContext extends AbstractRenderContext implements RenderC
 
     private class MeshConsumer extends AbstractMeshConsumer {
         MeshConsumer(BlockRenderInfo blockInfo, ToIntBiFunction<BlockState, BlockPos> brightnessFunc,
-                Int2ObjectFunction<CompoundBufferBuilder> bufferFunc, AoCalculator aoCalc, QuadTransform transform) {
-            super(blockInfo, brightnessFunc, bufferFunc, aoCalc, transform);
+                Function<RenderMaterialImpl.Value, VertexCollector> collectorFunc, AoCalculator aoCalc, QuadTransform transform) {
+            super(blockInfo, brightnessFunc, collectorFunc, aoCalc, transform);
         }
 
         @Override

@@ -18,9 +18,11 @@ package grondag.canvas.render;
 
 import it.unimi.dsi.fastutil.longs.Long2FloatOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
+import grondag.canvas.RenderMaterialImpl;
 import grondag.canvas.accessor.AccessBufferBuilder;
 import grondag.canvas.accessor.AccessChunkRenderer;
 import grondag.canvas.core.CompoundBufferBuilder;
+import grondag.canvas.core.VertexCollector;
 import grondag.canvas.mesh.MutableQuadViewImpl;
 import net.minecraft.block.Block.OffsetType;
 import net.minecraft.block.BlockRenderLayer;
@@ -141,8 +143,8 @@ public class ChunkRenderInfo {
         }
     }
 
-    public CompoundBufferBuilder getInitializedBuffer(int layerIndex) {
-        return getInitializedBuffer(layerIndex, blockInfo.blockPos);
+    public VertexCollector getCollector(RenderMaterialImpl.Value mat) {
+        return getInitializedBuffer(mat.renderLayerIndex, blockInfo.blockPos).getVertexCollector(mat.pipeline);
     }
     
     /** Lazily retrieves output buffer for given layer, initializing as needed. */

@@ -8,7 +8,7 @@ public class CanvasBufferBuilder extends BufferBuilder {
         super(size);
     }
 
-    VertexCollectorList vcList = new VertexCollectorList();
+    public final VertexCollectorList vcList = new VertexCollectorList();
 
     @Override
     public void setOffset(double x, double y, double z) {

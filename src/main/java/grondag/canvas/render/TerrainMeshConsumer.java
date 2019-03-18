@@ -24,7 +24,7 @@ public class TerrainMeshConsumer extends AbstractMeshConsumer {
 
     TerrainMeshConsumer(TerrainBlockRenderInfo blockInfo, ChunkRenderInfo chunkInfo, AoCalculator aoCalc,
             QuadTransform transform) {
-        super(blockInfo, chunkInfo::cachedBrightness, chunkInfo::getInitializedBuffer, aoCalc, transform);
+        super(blockInfo, chunkInfo::cachedBrightness, chunkInfo::getCollector, aoCalc, transform);
         this.chunkInfo = chunkInfo;
     }
 

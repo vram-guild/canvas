@@ -18,15 +18,14 @@ package grondag.canvas.render;
 
 import static grondag.canvas.helper.GeometryHelper.LIGHT_FACE_FLAG;
 
+import java.util.function.Function;
 import java.util.function.ToIntBiFunction;
 
 import grondag.canvas.RenderMaterialImpl;
 import grondag.canvas.aocalc.AoCalculator;
-import grondag.canvas.core.CompoundBufferBuilder;
 import grondag.canvas.core.VertexCollector;
 import grondag.canvas.helper.ColorHelper;
 import grondag.canvas.mesh.MutableQuadViewImpl;
-import it.unimi.dsi.fastutil.ints.Int2ObjectFunction;
 import net.fabricmc.fabric.api.client.model.fabric.RenderContext.QuadTransform;
 import net.minecraft.block.BlockState;
 import net.minecraft.util.math.BlockPos;
@@ -37,17 +36,17 @@ import net.minecraft.util.math.BlockPos;
  */
 public abstract class AbstractQuadRenderer {
     protected final ToIntBiFunction<BlockState, BlockPos> brightnessFunc;
-    protected final Int2ObjectFunction<CompoundBufferBuilder> bufferFunc;
+    protected final Function<RenderMaterialImpl.Value, VertexCollector> collectorFunc;
     protected final BlockRenderInfo blockInfo;
     protected final AoCalculator aoCalc;
     protected final QuadTransform transform;
     protected MutableQuadViewImpl editorQuad;
     
     AbstractQuadRenderer(BlockRenderInfo blockInfo, ToIntBiFunction<BlockState, BlockPos> brightnessFunc,
-            Int2ObjectFunction<CompoundBufferBuilder> bufferFunc, AoCalculator aoCalc, QuadTransform transform) {
+            Function<RenderMaterialImpl.Value, VertexCollector> collectorFunc, AoCalculator aoCalc, QuadTransform transform) {
         this.blockInfo = blockInfo;
         this.brightnessFunc = brightnessFunc;
-        this.bufferFunc = bufferFunc;
+        this.collectorFunc = collectorFunc;
         this.aoCalc = aoCalc;
         this.transform = transform;
     }
@@ -69,7 +68,7 @@ public abstract class AbstractQuadRenderer {
         }
 
         final RenderMaterialImpl.Value mat = q.material().forRenderLayer(blockInfo.defaultLayerIndex);
-        final VertexCollector output = bufferFunc.get(mat.renderLayerIndex).getVertexCollector(mat.pipeline);
+        final VertexCollector output = collectorFunc.apply(mat);
         final int shaderFlags = mat.shaderFlags() << 16;
         
         final boolean isAo = blockInfo.defaultAo && mat.hasAo;
