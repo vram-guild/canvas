@@ -1,13 +1,15 @@
 # Canvas
 Canvas is a shader-based Renderer for the [Fabric](https://fabricmc.net) modding toolchain.  It supports all features of the proposed [Fabric Rendering API](https://github.com/FabricMC/fabric/pull/65) plus extensions defined in [FREX](https://github.com/grondag/frex).
 
+
+
 ## Limitations
 Canvas is in EARLY ALPHA.  Expect it to break.  Currently terrain rendering works with shaders but item rendering does not. (It will.). Rendering for blocks in movement (falling blocks, blocks being moved by pistons, etc.) is WIP and *will* crash.  
 
 The FREX extensions, shader library, vertex formats, attribute bindings, and lighting options are subject to change - causing your code to break.  Sorry.  When there is a stable release (sometime after 1.14 is released) I will avoid breaking changes in shipping versions.  Until then, experimentation is the norm.
 
 ## Why
-People new to Canvas usually ask if it is a performance mod or a replacement for Optifine / shader packs.  The answer is "no, but..."
+When people first hear about Canvas they often ask if it is a performance mod or a replacement for Optifine / shader packs.  The answer is "no, but..."
 
 Optifine and shader packs primarily target vanilla Minecraft.  They work with modded, often well, but they aren't designed as tools for *mod authors*.
 
@@ -22,11 +24,13 @@ Additional optimizations will wait until 1.14 is released and stable.
 ## Using Canvas
 Before using Canvas, you should first understand RenderMaterials, Meshes, RenderContexts and other features defined by the Fabric Rendering API.  For that information, consult the [rendering article on the Fabric Wiki](https://fabricmc.net/wiki/rendering).
 
+You can also see [RenderBender](https://github.com/grondag/renderbender) for some (not very good) examples of usage.  Avoid duplicating those examples directly - they aren't especially performant or suitable for use at scale.  As soon as someone releases a model loader / library for Fabric Rendering API / FREX, that will almost certainly be a better approach.  
+
 ### Overlay Sprites
-Canvas supports a max sprite depth of three - meaning you can add one or two overlap sprites to each quad.  For example, to add one overlay texture, choose a material with a sprite depth of two:
+Canvas supports a max sprite depth of three - meaning you can add one or two overlay sprites to each quad.  For example, to add one overlay texture, choose a material with a sprite depth of two:
 
 ```java
-RendderMaterial mat = RendererAccess.INSTANCE.getRenderer().finder().spriteDepth(2)
+RenderMaterial mat = RendererAccess.INSTANCE.getRenderer().finder().spriteDepth(2)
 //select other material properties...
 .find();
 ```
@@ -41,5 +45,25 @@ Specify UV coordinates, blend mode and colors for your overlay sprites like so:
 
 Note that is doesn't make sense to use `BlockRenderLayer.SOLID` as the blend mode for overlay textures - it would cover up the texture beneath it.  Use `TRANSLUCENT` or one of the `CUTOUT` modes instead.
 
+It's likely Canvas will also support "decal" quads in the future, but overlay sprites will be more performant when model and texture geometry make them feasible. (Overlays can be rendered together in a single primitive and avoid the need to project the decal onto existing geometry.)
 
 ### Custom Shaders
+
+## Attaching Shaders to Materials
+Shaders and their uniforms are bundled into a "pipeline" which can then be associated with a material, like so:
+
+```java
+  ExtendedRenderer er = (ExtendedRenderer) RendererAccess.INSTANCE.getRenderer();
+  Pipeline p = er.pipelineBuilder()
+      .vertexSource(new Identifier("renderbender", "shader/test.vert"))
+      .fragmentSource(new Identifier("renderbender", "shader/test.frag"))
+      .build();
+  RenderMaterial mat = er.materialFinder().pipeline(p).find();
+```
+
+Note the renderer must be cast to `ExtendedRenderer` to access these features.  If you need custom uniforms, you can add them via `PipelineBuilder`.
+
+The identifiers passed to `vertexSource` and `fragmentSource` should point to GLSL files in your resource pack.  The relative path and file extension must be included, and `shader/` is the suggested location.
+
+## Vertex Shader
+Your vertex shader must set glPosition
