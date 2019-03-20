@@ -12,3 +12,13 @@ RendderMaterial mat = RendererAccess.INSTANCE.getRenderer().finder().spriteDepth
 //select other material properties...
 .find();
 ```
+
+Specify UV coordinates, blend mode and colors for your overlay sprites like so:
+```java
+  .blendMode(1, TRANSLUCENT)
+  .disableColorIndex(1, true)
+  .spriteBake(1, sprite, MutableQuadView.BAKE_LOCK_UV | MutableQuadView.BAKE_NORMALIZED)
+  .spriteColor(1, -1, -1, -1, -1)
+```
+
+Note that is doesn't make sense to use `BlockRenderLayer.SOLID` as the blend mode for overlay textures - it would cover up the texture beneath it.  Use `TRANSLUCENT` or one of the `CUTOUT` modes instead.
