@@ -15,7 +15,7 @@ Canvas' entire purpose is to give mod authors more control and options for rende
 
 Performance-wise, Canvas does try to be reasonably fast and has/will have optimizations - but the intent of these changes is to make better rendering practical, not to be a general-purpose performance mod. It isn't meant to run on low-end hardware and  may or may not make your game run faster overall.
 
-Currently, there are two main optimizations.  1) Canvas doesn't upload and render CUTOUT passes as separate passes.  The cutout passes are renderered along with SOLID - with cutout and mip mapping variation handled in the fragment shader.  2) Canvas buffers and renders multiple chunks using the same matrix transform to reduce the number of GL state changes.
+Currently, there are two main optimizations.  1) Canvas buffers and renders SOLID and CUTOUT layers in a single pass with cutout and mip mapping variation handled in the fragment shader.  2) Canvas buffers and renders multiple chunks using the same matrix transform to reduce the number of GL state changes.
 
 Additional optimizations will wait until 1.14 is released and stable.
 
