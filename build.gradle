@@ -93,7 +93,7 @@ dependencies {
 	modCompile "grondag:fermion:0.1.254-alpha"
 	
 	// should be removed before release
-	modCompile "grondag:renderbender:0.1.73-alpha"
+	//modCompile "grondag:renderbender:0.1.73-alpha"
 }
 
 // Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
