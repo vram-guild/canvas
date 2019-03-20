@@ -47,9 +47,7 @@ Note that is doesn't make sense to use `BlockRenderLayer.SOLID` as the blend mod
 
 It's likely Canvas will also support "decal" quads in the future, but overlay sprites will be more performant when model and texture geometry make them feasible. (Overlays can be rendered together in a single primitive and avoid the need to project the decal onto existing geometry.)
 
-### Custom Shaders
-
-## Attaching Shaders to Materials
+### Attaching Shaders to Materials
 Shaders and their uniforms are bundled into a "pipeline" which can then be associated with a material, like so:
 
 ```java
@@ -65,5 +63,20 @@ Note the renderer must be cast to `ExtendedRenderer` to access these features.  
 
 The identifiers passed to `vertexSource` and `fragmentSource` should point to GLSL files in your resource pack.  The relative path and file extension must be included, and `shader/` is the suggested location.
 
-## Vertex Shader
-Your vertex shader must set glPosition
+Your vertex and fragment shaders must have a `main` procedure. To ensure compatibility, shaders are limited to `#version 120` features, plus `GL_EXT_gpu_shader4`.
+
+## Vertex Shaders
+Your vertex shader will automatically include all the definitions and library routines in `common_lib.glsl` and `vertex_lib.glsl`, which both live in `assets/canvas/shader`.
+
+Your vertex shader must set `gl_Position`, `gl_ClipVertex`, and `gl_FogFragCoord` along with any `varying` variables needed in your fragment shader.  Canvas also needs to do its own prep for standard texturing and lighting here, assuming you need them. 
+
+The easiest way to do this is to call the setupVertex() library function that Canvas provides, and then add your own logic as needed, like so:
+
+```glsl
+void main() {
+    // do your custom stuff here!
+    setupVertex();
+    // or do it here!
+}
+```
+  
