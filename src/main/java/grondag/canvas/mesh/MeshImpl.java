@@ -18,8 +18,8 @@ package grondag.canvas.mesh;
 
 import java.util.function.Consumer;
 
-import net.fabricmc.fabric.api.client.model.fabric.QuadView;
-import net.fabricmc.fabric.api.client.model.fabric.Mesh;
+import grondag.frex.api.core.QuadView;
+import grondag.frex.api.core.Mesh;
 
 /**
  * Implementation of {@link Mesh}. The way we encode meshes makes it very

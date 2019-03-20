@@ -1,13 +1,58 @@
-plugins {
-	id 'fabric-loom' version '0.2.0-SNAPSHOT'
+buildscript {
+	repositories {
+		mavenCentral()
+		jcenter()
+		maven {
+			name = "Fabric"
+			url = "http://maven.modmuss50.me/"
+		}
+		maven {
+			url "https://plugins.gradle.org/m2/"
+		}
+	}
+	dependencies {
+		classpath "net.fabricmc:fabric-loom:0.2.0-SNAPSHOT" //Don't backdate before 0.2.0; features in this version prevent messy workarounds!
+		classpath 'org.ajoberstar:gradle-git:0.10.1'
+	}
 }
+
+// see https://github.com/passsy/gradle-GitVersioner
+ext.gitVersioner = [
+        defaultBranch           : "frex",  // default "master"
+        stableBranches          : ["frex"], // default [], the feature branch postfix (-dm4(6)) will not be appended on stable branches, all commits are included into the version number calculation
+        yearFactor              : 1200, 	  // default "1000", increasing every 8.57h
+        snapshotEnabled         : true,      // default false, the "-SNAPSHOT" postfix
+        localChangesCountEnabled: false,       // default false, the (<commitCount>) before -SNAPSHOT
+        shortName: { gitVersion ->            // optional closure to build a short name
+          // allows you to add your own short name logic
+          // All properties from gitVersion are available
+          // can be used for CI `System.getenv("BUILD_NUMBER")`
+
+          // i.e. use short sha1
+          return gitVersion.commit.subSequence(0, 7)
+        }
+]
+
+// import the script which runs the version generation
+apply from: 'https://raw.githubusercontent.com/passsy/gradle-GitVersioner/master/git-versioner.gradle'
+
+apply plugin: 'java'
+apply plugin: 'maven'
+apply plugin: "maven-publish"
+apply plugin: net.fabricmc.loom.LoomGradlePlugin
 
 repositories {
     flatDir {
-        dirs '../fabric/build/libs'
         dirs '../fermion/build/libs'
-        dirs '../frex/build/libs'
         dirs '../renderbender/build/libs'
+    }
+ 	maven {
+    	name = "grondag"
+    	url = "https://grondag-repo.appspot.com"
+    	credentials {
+            username "guest"
+            password ""
+		}
     }
 }
 
@@ -16,7 +61,7 @@ targetCompatibility = 1.8
 
 archivesBaseName = "canvas"
 group = "grondag"
-version = "0.0.1"
+version = "${mod_version}.${gitVersionName}-${release_type}"
 
 minecraft {
 }
@@ -42,14 +87,12 @@ sourceSets {
 
 dependencies {
 	minecraft "com.mojang:minecraft:19w11b"
-	mappings "net.fabricmc:yarn:19w11b.3"
+	mappings "net.fabricmc:yarn:19w11b.12"
 	modCompile "net.fabricmc:fabric-loader:0.3.7.109"
-
-	// Fabric API. This is technically optional, but you probably want it anyway.
-	modCompile "net.fabricmc:fabric:0.2.3.local"
+	modCompile "net.fabricmc:fabric:0.2.3.111"
+	modCompile "grondag:frex:0.1.72-alpha"
 	
 	modCompile "grondag:fermion-0.0.1-dev"
-	modCompile "grondag:frex-0.0.1-dev"
 	
 	// should be removed before release
 	modCompile "grondag:renderbender-0.0.1-dev"
@@ -61,4 +104,17 @@ dependencies {
 task sourcesJar(type: Jar, dependsOn: classes) {
 	classifier = 'sources'
 	from sourceSets.main.allSource
+}
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository(url: "https://grondag-repo.appspot.com") {
+                authentication(userName: "admin", password: "${maven_password}")
+            }
+            pom.version = project.version
+            pom.artifactId = project.archivesBaseName
+            pom.groupId = project.group
+        }
+    }
 }

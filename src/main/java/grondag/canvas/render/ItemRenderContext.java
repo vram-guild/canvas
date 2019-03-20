@@ -25,11 +25,11 @@ import org.lwjgl.opengl.GL11;
 
 import com.mojang.blaze3d.platform.GlStateManager;
 
-import net.fabricmc.fabric.api.client.model.fabric.FabricBakedModel;
-import net.fabricmc.fabric.api.client.model.fabric.Mesh;
-import net.fabricmc.fabric.api.client.model.fabric.ModelHelper;
-import net.fabricmc.fabric.api.client.model.fabric.QuadEmitter;
-import net.fabricmc.fabric.api.client.model.fabric.RenderContext;
+import grondag.frex.api.core.FabricBakedModel;
+import grondag.frex.api.core.Mesh;
+import grondag.frex.api.core.ModelHelper;
+import grondag.frex.api.core.QuadEmitter;
+import grondag.frex.api.core.RenderContext;
 import grondag.canvas.RenderMaterialImpl;
 import grondag.canvas.accessor.AccessBufferBuilder;
 import grondag.canvas.helper.ColorHelper;

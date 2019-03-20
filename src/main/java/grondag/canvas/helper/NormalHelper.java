@@ -16,7 +16,7 @@
 
 package grondag.canvas.helper;
 
-import net.fabricmc.fabric.api.client.model.fabric.QuadView;
+import grondag.frex.api.core.QuadView;
 import net.minecraft.client.util.math.Vector3f;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.MathHelper;

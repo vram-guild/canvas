@@ -18,7 +18,7 @@ package grondag.canvas.helper;
 
 import static net.minecraft.util.math.MathHelper.equalsApproximate;
 
-import net.fabricmc.fabric.api.client.model.fabric.QuadView;
+import grondag.frex.api.core.QuadView;
 import net.minecraft.client.render.model.BakedQuad;
 import net.minecraft.client.util.math.Vector3f;
 import net.minecraft.util.math.Direction;

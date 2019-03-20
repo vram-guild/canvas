@@ -21,8 +21,8 @@ import static grondag.canvas.mesh.EncodingFormat.NORMALS_OFFSET;
 import static grondag.canvas.mesh.EncodingFormat.VANILLA_STRIDE;
 import static grondag.canvas.mesh.EncodingFormat.VERTEX_START_OFFSET;
 
-import net.fabricmc.fabric.api.client.model.fabric.QuadEmitter;
-import net.fabricmc.fabric.api.client.model.fabric.RenderMaterial;
+import grondag.frex.api.core.QuadEmitter;
+import grondag.frex.api.core.RenderMaterial;
 import grondag.canvas.RenderMaterialImpl.Value;
 import grondag.canvas.RendererImpl;
 import grondag.canvas.helper.NormalHelper;

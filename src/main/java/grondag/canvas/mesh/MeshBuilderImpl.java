@@ -17,10 +17,10 @@
 package grondag.canvas.mesh;
 
 import grondag.canvas.helper.GeometryHelper;
-import net.fabricmc.fabric.api.client.model.fabric.Mesh;
-import net.fabricmc.fabric.api.client.model.fabric.MeshBuilder;
-import net.fabricmc.fabric.api.client.model.fabric.MutableQuadView;
-import net.fabricmc.fabric.api.client.model.fabric.QuadEmitter;
+import grondag.frex.api.core.Mesh;
+import grondag.frex.api.core.MeshBuilder;
+import grondag.frex.api.core.MutableQuadView;
+import grondag.frex.api.core.QuadEmitter;
 
 /**
  * Our implementation of {@link MeshBuilder}, used for static mesh creation and

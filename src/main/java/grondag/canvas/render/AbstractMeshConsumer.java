@@ -28,9 +28,9 @@ import grondag.canvas.core.VertexCollector;
 import grondag.canvas.mesh.EncodingFormat;
 import grondag.canvas.mesh.MeshImpl;
 import grondag.canvas.mesh.MutableQuadViewImpl;
-import net.fabricmc.fabric.api.client.model.fabric.Mesh;
-import net.fabricmc.fabric.api.client.model.fabric.QuadEmitter;
-import net.fabricmc.fabric.api.client.model.fabric.RenderContext.QuadTransform;
+import grondag.frex.api.core.Mesh;
+import grondag.frex.api.core.QuadEmitter;
+import grondag.frex.api.core.RenderContext.QuadTransform;
 import net.minecraft.block.BlockState;
 import net.minecraft.util.math.BlockPos;
 

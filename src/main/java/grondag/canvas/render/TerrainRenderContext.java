@@ -18,11 +18,11 @@ package grondag.canvas.render;
 
 import java.util.function.Consumer;
 
-import net.fabricmc.fabric.api.client.model.fabric.FabricBakedModel;
-import net.fabricmc.fabric.api.client.model.fabric.Mesh;
-import net.fabricmc.fabric.api.client.model.fabric.QuadEmitter;
-import net.fabricmc.fabric.api.client.model.fabric.RenderContext;
-import net.fabricmc.fabric.api.client.model.fabric.TerrainBlockView;
+import grondag.frex.api.core.FabricBakedModel;
+import grondag.frex.api.core.Mesh;
+import grondag.frex.api.core.QuadEmitter;
+import grondag.frex.api.core.RenderContext;
+import grondag.frex.api.core.TerrainBlockView;
 import grondag.canvas.aocalc.AoCalculator;
 import grondag.canvas.hooks.ChunkRebuildHelper;
 import net.minecraft.block.BlockState;

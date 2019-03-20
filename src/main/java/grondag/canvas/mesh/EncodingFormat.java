@@ -16,7 +16,7 @@
 
 package grondag.canvas.mesh;
 
-import net.fabricmc.fabric.api.client.model.fabric.ModelHelper;
+import grondag.frex.api.core.ModelHelper;
 import grondag.canvas.RenderMaterialImpl;
 import net.minecraft.util.math.Direction;
 

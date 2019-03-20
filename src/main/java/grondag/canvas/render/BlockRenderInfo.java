@@ -19,7 +19,7 @@ package grondag.canvas.render;
 import java.util.Random;
 import java.util.function.Supplier;
 
-import net.fabricmc.fabric.api.client.model.fabric.TerrainBlockView;
+import grondag.frex.api.core.TerrainBlockView;
 import net.minecraft.block.BlockRenderLayer;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;

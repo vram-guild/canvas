@@ -31,8 +31,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import grondag.canvas.core.PipelineManager;
 import grondag.canvas.mixinext.ChunkRendererListExt;
-import net.minecraft.class_4184;
 import net.minecraft.block.BlockRenderLayer;
+import net.minecraft.client.render.Camera;
 import net.minecraft.client.render.VisibleRegion;
 import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.client.render.chunk.ChunkRendererList;
@@ -48,12 +48,12 @@ public abstract class MixinWorldRenderer {
     @Shadow private ChunkRendererList chunkRendererList;
     
     @Inject(method = "setUpTerrain", at = @At("HEAD"), cancellable = false, require = 1)
-    private void onPrepareTerrain(class_4184 camera, VisibleRegion region, int int_1, boolean boolean_1, CallbackInfo ci) {
+    private void onPrepareTerrain(Camera camera, VisibleRegion region, int int_1, boolean boolean_1, CallbackInfo ci) {
         PipelineManager.INSTANCE.prepareForFrame(camera);
     }
     
     @Inject(method = "renderLayer", at = @At("HEAD"), cancellable = true, require = 1)
-    private void onRenderLayer(BlockRenderLayer layer, class_4184 camera, CallbackInfoReturnable<Integer> ci) {
+    private void onRenderLayer(BlockRenderLayer layer, Camera camera, CallbackInfoReturnable<Integer> ci) {
         switch (layer) {
 
         case CUTOUT:

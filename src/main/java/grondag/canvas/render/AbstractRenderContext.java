@@ -17,8 +17,8 @@
 package grondag.canvas.render;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import net.fabricmc.fabric.api.client.model.fabric.MutableQuadView;
-import net.fabricmc.fabric.api.client.model.fabric.RenderContext;
+import grondag.frex.api.core.MutableQuadView;
+import grondag.frex.api.core.RenderContext;
 
 abstract class AbstractRenderContext implements RenderContext {
     private final ObjectArrayList<QuadTransform> transformStack = new ObjectArrayList<>();

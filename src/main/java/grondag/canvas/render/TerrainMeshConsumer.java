@@ -17,7 +17,7 @@
 package grondag.canvas.render;
 
 import grondag.canvas.aocalc.AoCalculator;
-import net.fabricmc.fabric.api.client.model.fabric.RenderContext.QuadTransform;
+import grondag.frex.api.core.RenderContext.QuadTransform;
 
 public class TerrainMeshConsumer extends AbstractMeshConsumer {
     private final ChunkRenderInfo chunkInfo;

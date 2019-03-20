@@ -30,8 +30,8 @@ import static grondag.canvas.mesh.EncodingFormat.VERTEX_START_OFFSET;
 import grondag.canvas.RenderMaterialImpl;
 import grondag.canvas.helper.GeometryHelper;
 import grondag.canvas.helper.NormalHelper;
-import net.fabricmc.fabric.api.client.model.fabric.MutableQuadView;
-import net.fabricmc.fabric.api.client.model.fabric.QuadView;
+import grondag.frex.api.core.MutableQuadView;
+import grondag.frex.api.core.QuadView;
 import net.minecraft.client.util.math.Vector3f;
 import net.minecraft.util.math.Direction;
 

@@ -24,12 +24,12 @@ import grondag.canvas.buffering.BufferManager;
 import grondag.canvas.core.PipelineManager;
 import grondag.canvas.core.RenderPipelineImpl;
 import grondag.canvas.mesh.MeshBuilderImpl;
-import grondag.frex.api.ExtendedRenderer;
-import grondag.frex.api.Pipeline;
-import grondag.frex.api.PipelineBuilder;
-import grondag.frex.api.RenderReloadCallback;
-import net.fabricmc.fabric.api.client.model.fabric.MeshBuilder;
-import net.fabricmc.fabric.api.client.model.fabric.RenderMaterial;
+import grondag.frex.api.extended.ExtendedRenderer;
+import grondag.frex.api.extended.Pipeline;
+import grondag.frex.api.extended.PipelineBuilder;
+import grondag.frex.api.extended.RenderReloadCallback;
+import grondag.frex.api.core.MeshBuilder;
+import grondag.frex.api.core.RenderMaterial;
 import net.minecraft.client.resource.language.I18n;
 import net.minecraft.util.Identifier;
 

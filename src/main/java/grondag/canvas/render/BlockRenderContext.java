@@ -27,11 +27,11 @@ import grondag.canvas.aocalc.AoCalculator;
 import grondag.canvas.core.CanvasBufferBuilder;
 import grondag.canvas.core.VertexCollector;
 import grondag.canvas.mesh.MutableQuadViewImpl;
-import net.fabricmc.fabric.api.client.model.fabric.FabricBakedModel;
-import net.fabricmc.fabric.api.client.model.fabric.Mesh;
-import net.fabricmc.fabric.api.client.model.fabric.QuadEmitter;
-import net.fabricmc.fabric.api.client.model.fabric.RenderContext;
-import net.fabricmc.fabric.api.client.model.fabric.TerrainBlockView;
+import grondag.frex.api.core.FabricBakedModel;
+import grondag.frex.api.core.Mesh;
+import grondag.frex.api.core.QuadEmitter;
+import grondag.frex.api.core.RenderContext;
+import grondag.frex.api.core.TerrainBlockView;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.block.BlockModelRenderer;
@@ -101,6 +101,7 @@ public class BlockRenderContext extends AbstractRenderContext implements RenderC
         return didOutput;
     }
 
+    // TODO: implement fallback consumer
     protected void acceptVanillaModel(BakedModel model) {
         isCallingVanilla = true;
         didOutput = didOutput && vanillaRenderer.tesselate(blockInfo.blockView, model, blockInfo.blockState,

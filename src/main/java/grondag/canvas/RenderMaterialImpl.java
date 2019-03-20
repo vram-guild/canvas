@@ -20,11 +20,11 @@ import grondag.canvas.core.PipelineManager;
 import grondag.canvas.core.RenderPipelineImpl;
 import grondag.fermion.varia.BitPacker64;
 import grondag.fermion.varia.BitPacker64.BooleanElement;
-import grondag.frex.api.ExtendedMaterialFinder;
-import grondag.frex.api.Pipeline;
+import grondag.frex.api.extended.ExtendedMaterialFinder;
+import grondag.frex.api.extended.Pipeline;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import net.fabricmc.fabric.api.client.model.fabric.RenderMaterial;
+import grondag.frex.api.core.RenderMaterial;
 import net.minecraft.block.BlockRenderLayer;
 
 public abstract class RenderMaterialImpl {

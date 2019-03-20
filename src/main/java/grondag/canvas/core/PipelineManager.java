@@ -11,15 +11,15 @@ import org.joml.Vector3f;
 
 import grondag.canvas.Configurator;
 import grondag.canvas.RenderMaterialImpl;
-import grondag.frex.api.UniformRefreshFrequency;
+import grondag.frex.api.extended.UniformRefreshFrequency;
 import grondag.canvas.buffering.BufferManager;
 import grondag.canvas.mixin.AccessBackgroundRenderer;
 import grondag.canvas.mixinext.AccessFogState;
 import grondag.canvas.mixinext.FogStateHolder;
 import grondag.canvas.mixinext.GameRendererExt;
 import net.fabricmc.fabric.api.event.client.ClientTickCallback;
-import net.minecraft.class_4184;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.render.Camera;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec3d;
@@ -226,7 +226,7 @@ public final class PipelineManager implements ClientTickCallback {
      * Called just before terrain setup each frame after camera, fog and projection
      * matrix are set up,
      */
-    public void prepareForFrame(class_4184 camera) {
+    public void prepareForFrame(Camera camera) {
         this.fractionalTicks = MinecraftClient.getInstance().getTickDelta();
 
         BufferManager.prepareForFrame();
@@ -236,7 +236,7 @@ public final class PipelineManager implements ClientTickCallback {
         projMatrix.set(projectionMatrixBuffer);
         //CanvasGlHelper.loadTransposeQuickly(projectionMatrixBuffer, projMatrix);
 
-        Entity cameraEntity = camera.method_19331();
+        Entity cameraEntity = camera.getFocusedEntity();
         assert cameraEntity != null;
         assert cameraEntity.getEntityWorld() != null;
 

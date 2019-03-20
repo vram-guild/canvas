@@ -5,18 +5,18 @@ import java.util.function.Consumer;
 
 import grondag.canvas.core.PipelineManager;
 import grondag.canvas.core.RenderPipelineImpl;
-import grondag.frex.api.Pipeline;
-import grondag.frex.api.PipelineBuilder;
-import grondag.frex.api.Uniform.Uniform1f;
-import grondag.frex.api.Uniform.Uniform1i;
-import grondag.frex.api.Uniform.Uniform2f;
-import grondag.frex.api.Uniform.Uniform2i;
-import grondag.frex.api.Uniform.Uniform3f;
-import grondag.frex.api.Uniform.Uniform3i;
-import grondag.frex.api.Uniform.Uniform4f;
-import grondag.frex.api.Uniform.Uniform4i;
-import grondag.frex.api.Uniform.UniformMatrix4f;
-import grondag.frex.api.UniformRefreshFrequency;
+import grondag.frex.api.extended.Pipeline;
+import grondag.frex.api.extended.PipelineBuilder;
+import grondag.frex.api.extended.Uniform.Uniform1f;
+import grondag.frex.api.extended.Uniform.Uniform1i;
+import grondag.frex.api.extended.Uniform.Uniform2f;
+import grondag.frex.api.extended.Uniform.Uniform2i;
+import grondag.frex.api.extended.Uniform.Uniform3f;
+import grondag.frex.api.extended.Uniform.Uniform3i;
+import grondag.frex.api.extended.Uniform.Uniform4f;
+import grondag.frex.api.extended.Uniform.Uniform4i;
+import grondag.frex.api.extended.Uniform.UniformMatrix4f;
+import grondag.frex.api.extended.UniformRefreshFrequency;
 import net.minecraft.util.Identifier;
 
 public class PipelineBuilderImpl implements PipelineBuilder {

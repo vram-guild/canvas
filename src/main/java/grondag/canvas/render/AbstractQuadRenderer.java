@@ -26,7 +26,7 @@ import grondag.canvas.aocalc.AoCalculator;
 import grondag.canvas.core.VertexCollector;
 import grondag.canvas.helper.ColorHelper;
 import grondag.canvas.mesh.MutableQuadViewImpl;
-import net.fabricmc.fabric.api.client.model.fabric.RenderContext.QuadTransform;
+import grondag.frex.api.core.RenderContext.QuadTransform;
 import net.minecraft.block.BlockState;
 import net.minecraft.util.math.BlockPos;
 

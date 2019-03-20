@@ -11,7 +11,7 @@ import grondag.canvas.mixinext.VisibilityDataExt;
 import grondag.fermion.functions.PrimitiveFunctions.ObjToIntFunction;
 import it.unimi.dsi.fastutil.ints.IntArrayFIFOQueue;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
-import net.fabricmc.fabric.api.client.model.fabric.ModelHelper;
+import grondag.frex.api.core.ModelHelper;
 import net.minecraft.class_852;
 import net.minecraft.class_854;
 import net.minecraft.util.math.BlockPos;

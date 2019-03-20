@@ -24,8 +24,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import net.fabricmc.fabric.api.client.model.fabric.FabricBakedModel;
-import net.fabricmc.fabric.api.client.model.fabric.TerrainBlockView;
+import grondag.frex.api.core.FabricBakedModel;
+import grondag.frex.api.core.TerrainBlockView;
 import grondag.canvas.render.BlockRenderContext;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.render.BufferBuilder;
