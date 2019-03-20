@@ -22,7 +22,7 @@ Currently, there are two main optimizations.  1) Canvas buffers and renders SOLI
 Additional optimizations will wait until 1.14 is released and stable.
 
 ## Using Canvas
-Before using Canvas, you should first understand RenderMaterials, Meshes, RenderContexts and other features defined by the Fabric Rendering API.  For that information, consult the [rendering article on the Fabric Wiki](https://fabricmc.net/wiki/rendering).
+Before using Canvas, you should first understand RenderMaterials, Meshes, RenderContexts and other features defined by the Fabric Rendering API.  For that information, consult the [rendering article on the Fabric Wiki](https://fabricmc.net/wiki/rendering). Note: Fabric wiki is still WIP as of this writing but should be more complete "soon."
 
 You can also see [RenderBender](https://github.com/grondag/renderbender) for some (not very good) examples of usage.  Avoid duplicating those examples directly - they aren't especially performant or suitable for use at scale.  As soon as someone releases a model loader / library for Fabric Rendering API / FREX, that will almost certainly be a better approach.  
 
@@ -79,4 +79,15 @@ void main() {
     // or do it here!
 }
 ```
+
+## Fragment Shaders
+Your fragment shader will automatically include all the definitions and library routines in `common_lib.glsl` and `fragment_lib.glsl`, which both live in `assets/canvas/shader`.
+
+Canvas handles all lighting - diffuse and ambient occlusion - in the fragment shader.  This means your colors will always be unmodified at the start of the fragment routine.
+
+Your fragment shader should set `gl_FragColor` or, in rare cases, call discard.  To get the lit and shaded color that would normally be output, call `diffuseColor()` and to apply the current distance fog use `fog()`.
+
+Future versions of the fragment library will give more granular options for getting lit or unlit colors and for modifying colors before or after lighting.
+
+
   
