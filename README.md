@@ -90,4 +90,29 @@ Your fragment shader should set `gl_FragColor` or, in rare cases, call discard. 
 Future versions of the fragment library will give more granular options for getting lit or unlit colors and for modifying colors before or after lighting.
 
 
-  
+## Adding Canvas to your project
+Add my maven repo to your build.gradle
+
+```gradle
+repositories {
+    maven {
+    	name = "grondag"
+    	url = "https://grondag-repo.appspot.com"
+    	credentials {
+            username "guest"
+            password ""
+		}
+    }
+}
+```
+
+And add FREX and Indigo to your dependencies
+
+```gradle
+dependencies {
+	modCompile "grondag:frex:0.1.72-alpha"
+	modCompile "grondag:canvas:0.1.158-alpha"
+}
+```
+
+Note that versions are subject to change - look at the repo to find latest.
