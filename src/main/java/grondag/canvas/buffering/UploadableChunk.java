@@ -37,7 +37,7 @@ public abstract class UploadableChunk<V extends DrawableChunk> {
                 ref.lockForUpload();
                 final IntBuffer intBuffer = ref.intBuffer();
                 intBuffer.position(byteOffset / 4);
-                intBuffer.put(collectorList.getIfExists(pipeline.getIndex()).rawData(), intOffset, intLength);
+                intBuffer.put(collectorList.get(pipeline).rawData(), intOffset, intLength);
                 ref.unlockForUpload();
 
                 intOffset += intLength;

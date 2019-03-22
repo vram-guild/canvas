@@ -89,11 +89,11 @@ dependencies {
 	mappings "net.fabricmc:yarn:19w11b.12"
 	modCompile "net.fabricmc:fabric-loader:0.3.7.109"
 	modCompile "net.fabricmc:fabric:0.2.3.111"
-	modCompile "grondag:frex:0.1.72-alpha"
+	modCompile "grondag:frex:0.1.83-alpha"
 	modCompile "grondag:fermion:0.1.254-alpha"
 	
 	// should be removed before release
-	//modCompile "grondag:renderbender:0.1.73-alpha"
+	modCompile "grondag:renderbender:0.1.73-alpha"
 }
 
 // Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task

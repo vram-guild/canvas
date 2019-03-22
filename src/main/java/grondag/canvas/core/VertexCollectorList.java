@@ -33,7 +33,7 @@ public class VertexCollectorList {
     /**
      * Fast lookup of buffers by pipeline index. Null in CUTOUT layer buffers.
      */
-    private VertexCollector[] vertexCollectors = new VertexCollector[PipelineManager.INSTANCE.pipelineCount()];
+    private VertexCollector[] vertexCollectors = new VertexCollector[PipelineManager.MAX_PIPELINES];
 
     private int maxIndex = -1;
 
@@ -51,11 +51,6 @@ public class VertexCollectorList {
     /** used in transparency layer sorting - updated with origin of render cube */
     int renderOriginZ = Integer.MIN_VALUE;
 
-    VertexCollectorList() {
-        for (int i = 0; i < vertexCollectors.length; i++)
-            vertexCollectors[i] = new VertexCollector(PipelineManager.INSTANCE.getPipeline(i), this);
-    }
-
     /**
      * Releases any held vertex collectors and resets state
      */
@@ -69,8 +64,12 @@ public class VertexCollectorList {
             return;
 
         maxIndex = -1;
-        for (int i = 0; i <= limit; i++)
-            vertexCollectors[i].clear();
+        for (int i = 0; i <= limit; i++) {
+            VertexCollector vc = vertexCollectors[i];
+            if(vc != null) {
+                vc.clear();
+            }
+        }
     }
 
     @Override
@@ -104,15 +103,18 @@ public class VertexCollectorList {
         renderOriginZ = RenderCube.renderCubeOrigin(MathHelper.fastFloor(z));
     }
 
-    public final VertexCollector getIfExists(final int pipelineIndex) {
-        return vertexCollectors[pipelineIndex];
-    }
-
     public final VertexCollector get(RenderPipelineImpl pipeline) {
         final int index = pipeline.getIndex();
-        if (index > maxIndex)
+        if (index > maxIndex) {
             maxIndex = index;
-        return vertexCollectors[index];
+        }
+        
+        VertexCollector result = vertexCollectors[index];
+        if(result == null) {
+            result = new VertexCollector(PipelineManager.INSTANCE.getPipelineByIndex(index), this);
+            vertexCollectors[index] = result;
+        }
+        return result;
     }
 
     public final void forEachExisting(Consumer<VertexCollector> consumer) {
