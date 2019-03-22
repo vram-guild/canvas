@@ -2,15 +2,10 @@ package grondag.canvas.core;
 
 import org.joml.Vector3f;
 
-import com.mojang.blaze3d.platform.GlStateManager;
-
 import grondag.canvas.Configurator;
 import grondag.canvas.RenderMaterialImpl;
 import grondag.canvas.buffering.BufferManager;
-import grondag.canvas.mixin.AccessBackgroundRenderer;
-import grondag.canvas.mixinext.AccessFogState;
 import grondag.canvas.mixinext.FogStateHolder;
-import grondag.canvas.mixinext.GameRendererExt;
 import grondag.frex.api.extended.UniformRefreshFrequency;
 import net.fabricmc.fabric.api.event.client.ClientTickCallback;
 import net.minecraft.client.MinecraftClient;
@@ -165,18 +160,9 @@ public final class PipelineManager implements ClientTickCallback {
             Vec3d eyePos = MinecraftClient.getInstance().player.getCameraPosVec(fractionalTicks);
             u.set((float) eyePos.x, (float) eyePos.y, (float) eyePos.z);
         });
-
-        pipeline.uniform3f("u_fogAttributes", UniformRefreshFrequency.PER_TICK, u -> {
-            AccessFogState fogState = FogStateHolder.INSTANCE;
-            u.set(fogState.getEnd(), fogState.getEnd() - fogState.getStart(),
-                    // zero signals shader to use linear fog
-                    fogState.getMode() == GlStateManager.FogMode.LINEAR.glValue ? 0f : fogState.getDensity());
-        });
-
-        pipeline.uniform3f("u_fogColor", UniformRefreshFrequency.PER_TICK, u -> {
-            AccessBackgroundRenderer fh = (AccessBackgroundRenderer) ((GameRendererExt) MinecraftClient
-                    .getInstance().gameRenderer).canvas_fogHelper();
-            u.set(fh.getRed(), fh.getGreen(), fh.getBlue());
+        
+        pipeline.uniform1i("u_fogMode", UniformRefreshFrequency.PER_FRAME, u -> {
+            u.set(FogStateHolder.INSTANCE.getMode());
         });
     }
 

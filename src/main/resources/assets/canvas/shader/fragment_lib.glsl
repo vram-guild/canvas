@@ -50,30 +50,27 @@ vec4 diffuseColor()
 /**
  * Linear fog.  Is an inverse factor - 0 means full fog.
  */
-float linearFogFactor()
-{
-	float fogFactor = (u_fogAttributes.x - gl_FogFragCoord)/u_fogAttributes.y;
+float linearFogFactor() {
+	float fogFactor = (gl_Fog.end - gl_FogFragCoord) * gl_Fog.scale;
 	return clamp( fogFactor, 0.0, 1.0 );
 }
 
 /**
  * Exponential fog.  Is really an inverse factor - 0 means full fog.
  */
-float expFogFactor()
-{
-    float fogFactor = 1.0 / exp(gl_FogFragCoord * u_fogAttributes.z);
-    return clamp( fogFactor, 0.0, 1.0 );
+float expFogFactor() {
+	float f = gl_FogFragCoord * gl_Fog.density;
+    float fogFactor = u_fogMode == FOG_EXP ? exp(f) : exp(f * f);
+    return clamp( 1.0 / fogFactor, 0.0, 1.0 );
 }
 
 /**
  * Returns either linear or exponential fog depending on current uniform value.
  */
-float fogFactor()
-{
-	return u_fogAttributes.z == 0.0 ? linearFogFactor() : expFogFactor();
+float fogFactor() {
+	return u_fogMode == FOG_LINEAR ? linearFogFactor() : expFogFactor();
 }
 
-vec4 fog(vec4 diffuseColor)
-{
-	return mix(vec4(u_fogColor, diffuseColor.a), diffuseColor, fogFactor());
+vec4 fog(vec4 diffuseColor) {
+	return mix(vec4(gl_Fog.color.rgb, diffuseColor.a), diffuseColor, fogFactor());
 }

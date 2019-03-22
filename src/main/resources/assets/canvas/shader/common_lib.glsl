@@ -8,8 +8,7 @@ uniform sampler2D u_textures;
 uniform sampler2D u_lightmap;
 uniform vec4 u_emissiveColor;
 uniform vec3 u_eye_position;
-uniform vec3 u_fogColor;
-uniform vec3 u_fogAttributes;
+uniform int u_fogMode;
 
 varying float v_ao;
 varying float v_diffuse;
@@ -42,6 +41,10 @@ const int FACE_NORTH = 2;
 const int FACE_SOUTH = 3;
 const int FACE_WEST = 4;
 const int FACE_EAST = 5;
+
+const int FOG_LINEAR = 9729;
+const int FOG_EXP = 2048;
+const int FOG_EXP2 = 2049;
 
 const mat3[6] UV_MATRIX = mat3[6](
 	mat3(1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0),
