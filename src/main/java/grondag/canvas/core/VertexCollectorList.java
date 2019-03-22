@@ -35,6 +35,8 @@ public class VertexCollectorList {
      */
     private VertexCollector[] vertexCollectors = new VertexCollector[PipelineManager.MAX_PIPELINES];
 
+    private final VertexPackingList packingList = new VertexPackingList();
+    
     private int maxIndex = -1;
 
     /** used in transparency layer sorting - updated with player eye coordinates */
@@ -133,8 +135,13 @@ public class VertexCollectorList {
         }
     }
 
-    public final UploadableChunk.Solid packUploadSolid() {
-        VertexPackingList packing = new VertexPackingList();
+    /** 
+     * Sorts pipelines by pipeline index numerical order.
+     * DO NOT RETAIN A REFERENCE
+     */
+    public final VertexPackingList packingListSolid() {
+        final VertexPackingList packing = this.packingList;
+        packing.clear();
 
         // NB: for solid render, relying on pipelines being added to packing in
         // numerical order so that
@@ -145,16 +152,26 @@ public class VertexCollectorList {
             if (vertexCount != 0)
                 packing.addPacking(vertexCollector.pipeline(), vertexCount);
         });
+        return packing;
+    }
+    
+    public final UploadableChunk.Solid packUploadSolid() {
+        final VertexPackingList packing = packingListSolid();
 
-        if (packing.size() == 0)
-            return null;
-
-        return new UploadableChunk.Solid(packing, this);
+        // NB: for solid render, relying on pipelines being added to packing in
+        // numerical order so that
+        // all chunks can iterate pipelines independently while maintaining same
+        // pipeline order within chunk
+        return packing.size() == 0 ? null : new UploadableChunk.Solid(packing, this);
     }
 
-    public final UploadableChunk.Translucent packUploadTranslucent() {
-        final VertexPackingList packing = new VertexPackingList();
-
+    /** 
+     * Sorts pipelines from camera - more costly to produce and render.
+     * DO NOT RETAIN A REFERENCE
+     */
+    public final VertexPackingList packingListTranslucent() {
+        final VertexPackingList packing = this.packingList;
+        packing.clear();
         final PriorityQueue<VertexCollector> sorter = sorters.get();
 
         final double x = viewX - renderOriginX;
@@ -190,7 +207,11 @@ public class VertexCollectorList {
 
             packing.addPacking(first.pipeline(), 4 * first.unpackUntilDistance(Double.MIN_VALUE));
         }
-
+        return packing;
+    }
+    
+    public final UploadableChunk.Translucent packUploadTranslucent() {
+        final VertexPackingList packing = packingListTranslucent();
         return packing.size() == 0 ? null : new UploadableChunk.Translucent(packing, this);
     }
 

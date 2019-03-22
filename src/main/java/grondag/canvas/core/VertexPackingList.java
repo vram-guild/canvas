@@ -12,7 +12,7 @@ public class VertexPackingList {
     private int size = 0;
     private int totalBytes = 0;
 
-    public void clear() {
+    void clear() {
         this.size = 0;
         this.totalBytes = 0;
     }
