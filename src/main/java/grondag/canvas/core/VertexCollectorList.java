@@ -104,15 +104,18 @@ public class VertexCollectorList {
     }
 
     public final VertexCollector get(RenderPipelineImpl pipeline) {
-        final int index = pipeline.getIndex();
-        if (index > maxIndex) {
-            maxIndex = index;
+        return get(pipeline.getIndex());
+    }
+    
+    public final VertexCollector get(int pipelineIndex) {
+        if (pipelineIndex > maxIndex) {
+            maxIndex = pipelineIndex;
         }
         
-        VertexCollector result = vertexCollectors[index];
+        VertexCollector result = vertexCollectors[pipelineIndex];
         if(result == null) {
-            result = new VertexCollector(PipelineManager.INSTANCE.getPipelineByIndex(index), this);
-            vertexCollectors[index] = result;
+            result = new VertexCollector(PipelineManager.INSTANCE.getPipelineByIndex(pipelineIndex), this);
+            vertexCollectors[pipelineIndex] = result;
         }
         return result;
     }
@@ -205,7 +208,8 @@ public class VertexCollectorList {
 
     public void loadCollectorState(int[][] stateData) {
         maxIndex = stateData.length - 1;
-        for (int i = 0; i <= maxIndex; i++)
-            this.vertexCollectors[i].loadState(stateData[i]);
+        for (int i = 0; i <= maxIndex; i++) {
+            get(i).loadState(stateData[i]);
+        }
     }
 }

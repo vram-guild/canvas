@@ -1,22 +1,17 @@
 package grondag.canvas.core;
 
-import java.nio.FloatBuffer;
-
-import org.lwjgl.BufferUtils;
-import org.lwjgl.opengl.GL11;
-import com.mojang.blaze3d.platform.GlStateManager;
-
-import org.joml.Matrix4f;
 import org.joml.Vector3f;
+
+import com.mojang.blaze3d.platform.GlStateManager;
 
 import grondag.canvas.Configurator;
 import grondag.canvas.RenderMaterialImpl;
-import grondag.frex.api.extended.UniformRefreshFrequency;
 import grondag.canvas.buffering.BufferManager;
 import grondag.canvas.mixin.AccessBackgroundRenderer;
 import grondag.canvas.mixinext.AccessFogState;
 import grondag.canvas.mixinext.FogStateHolder;
 import grondag.canvas.mixinext.GameRendererExt;
+import grondag.frex.api.extended.UniformRefreshFrequency;
 import net.fabricmc.fabric.api.event.client.ClientTickCallback;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.Camera;
@@ -39,44 +34,7 @@ public final class PipelineManager implements ClientTickCallback {
 
     public static final int MAX_PIPELINES = Configurator.maxPipelines;
 
-    // NB: initialization sequence works better if these are static (may also
-    // prevent a pointer chase)
-
-    /**
-     * Current projection matrix. Refreshed from GL state each frame after camera
-     * setup in {@link #beforeRenderChunks()}. Unfortunately not immutable so use
-     * caution.
-     */
-    public static final Matrix4f projMatrix = new Matrix4f();
-
-    /**
-     * Used to retrieve and store project matrix from GLState. Avoids
-     * re-instantiating each frame.
-     */
-    public static final FloatBuffer projectionMatrixBuffer = BufferUtils.createFloatBuffer(16);
-
-    /**
-     * Current mv matrix - set at program activation
-     */
-    public static final FloatBuffer modelViewMatrixBuffer = BufferUtils.createFloatBuffer(16);
-    
-    /**
-     * Current mvp matrix - set at program activation
-     */
-    public static final Matrix4f mvpMatrix = new Matrix4f();
-
-    /**
-     * Current mvp matrix - set at program activation
-     */
-    public static final FloatBuffer modelViewProjectionMatrixBuffer = BufferUtils.createFloatBuffer(16);
-
     public static final PipelineManager INSTANCE = new PipelineManager();
-
-    /**
-     * Incremented whenever view matrix changes. Used by programs to know if they
-     * must update.
-     */
-    public static int viewMatrixVersionCounter = Integer.MIN_VALUE;
 
     private final RenderPipelineImpl[] pipelines = new RenderPipelineImpl[PipelineManager.MAX_PIPELINES];
 
@@ -231,11 +189,6 @@ public final class PipelineManager implements ClientTickCallback {
 
         BufferManager.prepareForFrame();
 
-        projectionMatrixBuffer.position(0);
-        GlStateManager.getMatrix(GL11.GL_PROJECTION_MATRIX, projectionMatrixBuffer);
-        projMatrix.set(projectionMatrixBuffer);
-        //CanvasGlHelper.loadTransposeQuickly(projectionMatrixBuffer, projMatrix);
-
         Entity cameraEntity = camera.getFocusedEntity();
         assert cameraEntity != null;
         assert cameraEntity.getEntityWorld() != null;
@@ -267,22 +220,5 @@ public final class PipelineManager implements ClientTickCallback {
 
     public float renderSeconds() {
         return this.renderSeconds;
-    }
-
-    public static final void setModelViewMatrix(Matrix4f mvMatrix) {
-        updateModelViewMatrix(mvMatrix);
-
-        updateModelViewProjectionMatrix(mvMatrix);
-
-        viewMatrixVersionCounter++;
-    }
-
-    private static final void updateModelViewMatrix(Matrix4f mvMatrix) {
-        mvMatrix.get(modelViewMatrixBuffer);
-    }
-
-    private static final void updateModelViewProjectionMatrix(Matrix4f mvMatrix) {
-        projMatrix.mul(mvMatrix, mvpMatrix);
-        mvpMatrix.get(modelViewProjectionMatrixBuffer);
     }
 }

@@ -55,7 +55,8 @@ public abstract class AbstractPipelinedRenderList {
     private int originX = Integer.MIN_VALUE;
     private int originY = Integer.MIN_VALUE;
     private int originZ = Integer.MIN_VALUE;
-
+    private boolean didUpdateTransform = false;
+    
     private double viewEntityX;
     private double viewEntityY;
     private double viewEntityZ;
@@ -121,9 +122,17 @@ public abstract class AbstractPipelinedRenderList {
     }
 
     private final void updateViewMatrix(final int ox, final int oy, final int oz) {
-        if (ox == originX && oz == originZ && oy == originY)
-            return;
-
+        if (ox == originX && oz == originZ && oy == originY && didUpdateTransform) {
+           return;
+        };
+        
+        if(didUpdateTransform ) {
+            GlStateManager.popMatrix();
+        } else {
+            didUpdateTransform = true;
+        }
+        
+        GlStateManager.pushMatrix();
         originX = ox;
         originY = oy;
         originZ = oz;
@@ -131,21 +140,13 @@ public abstract class AbstractPipelinedRenderList {
     }
 
     private final void updateViewMatrixInner(final int ox, final int oy, final int oz) {
-        final Matrix4f mvPos = this.mvPos;
-
-        // note row-major order in the matrix library we are using
-        xlatMatrix.m30((float) (ox - viewEntityX));
-        xlatMatrix.m31((float) (oy - viewEntityY));
-        xlatMatrix.m32((float) (oz - viewEntityZ));
-        mvMatrix.mul(xlatMatrix, mvPos);
+        GlStateManager.translatef((float) (ox - viewEntityX), (float) (oy - viewEntityY), (float) (oz - viewEntityZ));
 
         // vanilla applies a per-chunk scaling matrix, but does not seem to be essential
         // - probably a hack to prevent seams/holes due to FP error
         // If really is necessary, would want to handle some other way. Per-chunk matrix
         // not initialized when Acuity enabled.
 //        Matrix4f.mul(mvChunk, mvPos, mvPos);
-        
-        PipelineManager.setModelViewMatrix(mvPos);
     }
 
     private final void preRenderSetup() {
@@ -270,6 +271,10 @@ public abstract class AbstractPipelinedRenderList {
     }
 
     private final void postRenderCleanup() {
+        if(didUpdateTransform ) {
+            GlStateManager.popMatrix();
+            didUpdateTransform = false;
+        }
         if (CanvasGlHelper.isVaoEnabled())
             CanvasGlHelper.glBindVertexArray(0);
 

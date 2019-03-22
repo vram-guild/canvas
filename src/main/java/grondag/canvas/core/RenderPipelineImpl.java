@@ -51,14 +51,12 @@ public final class RenderPipelineImpl implements Pipeline {
         PipelineFragmentShader fs = PipelineShaderManager.INSTANCE.getOrCreateFragmentShader(fragmentShader,
                 spriteDepth, true);
         solidProgram = new Program(vs, fs, spriteDepth, true);
-        solidProgram.setupModelViewUniforms();
         uniforms.forEach(u -> u.accept(solidProgram));
         solidProgram.load();
         
         vs = PipelineShaderManager.INSTANCE.getOrCreateVertexShader(vertexShader, spriteDepth, false);
         fs = PipelineShaderManager.INSTANCE.getOrCreateFragmentShader(fragmentShader, spriteDepth, false);
         translucentProgram = new Program(vs, fs, spriteDepth, false);
-        translucentProgram.setupModelViewUniforms();
         uniforms.forEach(u -> u.accept(translucentProgram));
         translucentProgram.load();
     }

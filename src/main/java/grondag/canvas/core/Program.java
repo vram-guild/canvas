@@ -52,11 +52,6 @@ public class Program {
     protected int dirtyCount = 0;
     protected final UniformImpl<?>[] dirtyUniforms = new UniformImpl[32];
 
-    /**
-     * Tracks last matrix version to avoid unnecessary uploads.
-     */
-    private int lastViewMatrixVersion = 0;
-
     public abstract class UniformImpl<T extends Uniform> {
         protected static final int FLAG_NEEDS_UPLOAD = 1;
         protected static final int FLAG_NEEDS_INITIALIZATION = 2;
@@ -97,14 +92,9 @@ public class Program {
                         Program.this.vertexShader.shaderSource.toString(), Program.this.fragmentShader.shaderSource.toString()));
                 this.flags = 0;
             } else {
-                // never add view uniforms to dirty list - have special handling
-                if (this == modelViewUniform || this == modelViewProjectionUniform)
-                    this.flags = 0;
-                else {
-                    // dirty count will be reset to 0 before uniforms are loaded
-                    dirtyUniforms[dirtyCount++] = this;
-                    this.flags = FLAG_NEEDS_INITIALIZATION | FLAG_NEEDS_UPLOAD;
-                }
+                // dirty count will be reset to 0 before uniforms are loaded
+                dirtyUniforms[dirtyCount++] = this;
+                this.flags = FLAG_NEEDS_INITIALIZATION | FLAG_NEEDS_UPLOAD;
             }
         }
 
@@ -409,26 +399,6 @@ public class Program {
         this.isSolidLayer = isSolidLayer;
     }
 
-    /**
-     * Handle these directly because may update each activation.
-     */
-    private final void updateModelUniforms() {
-        if (lastViewMatrixVersion != PipelineManager.viewMatrixVersionCounter) {
-            updateModelUniformsInner();
-            lastViewMatrixVersion = PipelineManager.viewMatrixVersionCounter;
-        }
-    }
-
-    private final void updateModelUniformsInner() {
-        if (this.modelViewUniform != null) {
-            this.modelViewUniform.uploadInner();
-        }
-        
-        if (this.modelViewProjectionUniform != null) {
-            this.modelViewProjectionUniform.uploadInner();
-        }
-    }
-
     public final void activate() {
         if (this.isErrored)
             return;
@@ -445,8 +415,6 @@ public class Program {
                 this.dirtyCount = 0;
             }
         }
-
-        this.updateModelUniforms();
     }
 
     public class UniformMatrix4fImpl extends UniformImpl<UniformMatrix4f> implements UniformMatrix4f {
@@ -571,35 +539,6 @@ public class Program {
         for (int i = 0; i < limit; i++) {
             gameTickUpdates.get(i).markForInitialization();
         }
-    }
-
-    public UniformMatrix4fImpl modelViewUniform;
-    public UniformMatrix4fImpl modelViewProjectionUniform;
-    public UniformMatrix4fImpl projectionMatrixUniform;
-
-    public final void setupModelViewUniforms() {
-        if (containsUniformSpec("mat4", "u_modelView")) {
-            this.modelViewUniform = this.uniformMatrix4f("u_modelView", UniformRefreshFrequency.ON_LOAD,
-                    PipelineManager.modelViewMatrixBuffer, u -> {
-                        this.modelViewUniform.setDirty();
-                    });
-        }
-
-        if (containsUniformSpec("mat4", "u_modelViewProjection")) {
-            this.modelViewProjectionUniform = this.uniformMatrix4f("u_modelViewProjection",
-                    UniformRefreshFrequency.ON_LOAD, PipelineManager.modelViewProjectionMatrixBuffer, u -> {
-                        this.modelViewProjectionUniform.setDirty();
-                    });
-        }
-
-        if (containsUniformSpec("mat4", "u_projection")) {
-            // on load because handled directly
-            this.projectionMatrixUniform = this.uniformMatrix4f("u_projection", UniformRefreshFrequency.ON_LOAD,
-                    PipelineManager.projectionMatrixBuffer, u -> {
-                        this.projectionMatrixUniform.setDirty();
-                    });
-        }
-
     }
 
     public boolean containsUniformSpec(String type, String name) {
