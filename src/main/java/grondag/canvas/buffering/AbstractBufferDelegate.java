@@ -13,6 +13,8 @@ abstract class AbstractBufferDelegate<T extends AbstractBuffer> {
         this.byteOffset = byteOffset;
     }
     
+    public abstract boolean isVbo();
+    
     /**
      * How many bytes consumed by this delegate in the buffer.
      */

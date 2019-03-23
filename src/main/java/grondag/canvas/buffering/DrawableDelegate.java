@@ -1,6 +1,7 @@
 package grondag.canvas.buffering;
 
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.function.Consumer;
 
 import org.lwjgl.opengl.GL11;
 
@@ -8,7 +9,6 @@ import com.mojang.blaze3d.platform.GlStateManager;
 
 import grondag.canvas.core.PipelineVertexFormat;
 import grondag.canvas.core.RenderPipelineImpl;
-import grondag.canvas.core.BufferStore.ExpandableByteBuffer;
 import grondag.canvas.opengl.CanvasGlHelper;
 import grondag.canvas.opengl.VaoStore;
 import net.minecraft.client.render.VertexFormatElement;
@@ -25,6 +25,9 @@ public class DrawableDelegate {
         result.pipeline = pipeline;
         result.vertexCount = vertexCount;
         result.isReleased = false;
+        result.vertexBinder = bufferDelegate.isVbo() 
+                ? (CanvasGlHelper.isVaoEnabled() ? result::bindVao : result::bindVbo)
+                : result::bindBuffer;
         bufferDelegate.retain(result);
         return result;
     }
@@ -33,12 +36,12 @@ public class DrawableDelegate {
     private RenderPipelineImpl pipeline;
     private int vertexCount;
     private boolean isReleased = false;
+    private Consumer<PipelineVertexFormat> vertexBinder;
     
     /**
      * VAO Buffer name if enabled and initialized.
      */
-    int vaoBufferId = -1;
-    boolean vaoNeedsRefresh = true;
+    private int vaoBufferId = -1;
 
     private DrawableDelegate() {
         super();
@@ -77,37 +80,9 @@ public class DrawableDelegate {
             lastBufferId = this.bufferDelegate.glBufferId();
         }
 
-        final PipelineVertexFormat format = pipeline.piplineVertexFormat();
+        this.vertexBinder.accept(pipeline.piplineVertexFormat());
         
-        if (vaoNeedsRefresh) {
-            if (CanvasGlHelper.isVaoEnabled()) {
-                if (vaoBufferId == -1)
-                    vaoBufferId = VaoStore.claimVertexArray();
-                CanvasGlHelper.glBindVertexArray(vaoBufferId);
-                GlStateManager.enableClientState(GL11.GL_VERTEX_ARRAY);
-                CanvasGlHelper.enableAttributesVao(format.attributeCount);
-                bindVertexAttributes(format);
-                return lastBufferId;
-            }
-            vaoNeedsRefresh = false;
-        }
-
-        if (vaoBufferId > 0)
-            CanvasGlHelper.glBindVertexArray(vaoBufferId);
-        else {
-            GlStateManager.vertexPointer(3, VertexFormatElement.Format.FLOAT.getGlId(), format.vertexStrideBytes,
-                    bufferDelegate.byteOffset());
-            format.enableAndBindAttributes(bufferDelegate.byteOffset());
-        }
-
         return lastBufferId;
-
-    }
-
-    private void bindVertexAttributes(PipelineVertexFormat format) {
-        GlStateManager.vertexPointer(3, VertexFormatElement.Format.FLOAT.getGlId(), format.vertexStrideBytes,
-                bufferDelegate.byteOffset());
-        format.bindAttributeLocations(bufferDelegate.byteOffset());
     }
 
     /**
@@ -140,5 +115,27 @@ public class DrawableDelegate {
     public void flush() {
         assert !isReleased;
         this.bufferDelegate.flush();
+    }
+    
+    void bindVao(PipelineVertexFormat format) {
+        if (vaoBufferId == -1) {
+            vaoBufferId = VaoStore.claimVertexArray();
+            CanvasGlHelper.glBindVertexArray(vaoBufferId);
+            GlStateManager.enableClientState(GL11.GL_VERTEX_ARRAY);
+            CanvasGlHelper.enableAttributesVao(format.attributeCount);
+            GlStateManager.vertexPointer(3, VertexFormatElement.Format.FLOAT.getGlId(), format.vertexStrideBytes, bufferDelegate.byteOffset());
+            format.bindAttributeLocations(bufferDelegate.byteOffset());
+        } else {
+            CanvasGlHelper.glBindVertexArray(vaoBufferId);
+        }
+    }
+    
+    void bindVbo(PipelineVertexFormat format) {
+        GlStateManager.vertexPointer(3, VertexFormatElement.Format.FLOAT.getGlId(), format.vertexStrideBytes, bufferDelegate.byteOffset());
+        format.enableAndBindAttributes(bufferDelegate.byteOffset());
+    }
+
+    void bindBuffer(PipelineVertexFormat format) {
+        
     }
 }
