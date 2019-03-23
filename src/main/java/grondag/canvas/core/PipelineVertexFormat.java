@@ -10,6 +10,8 @@ import static grondag.canvas.core.PipelineVertextFormatElement.SECONDARY_TEX_2F;
 import static grondag.canvas.core.PipelineVertextFormatElement.TERTIARY_RGBA_4UB;
 import static grondag.canvas.core.PipelineVertextFormatElement.TERTIARY_TEX_2F;
 
+import java.nio.ByteBuffer;
+
 import org.lwjgl.opengl.GL20;
 import grondag.canvas.opengl.CanvasGlHelper;
 import net.minecraft.client.render.VertexFormat;
@@ -62,12 +64,30 @@ public enum PipelineVertexFormat {
 
     /**
      * Enables generic vertex attributes and binds their location.
+     * For use with non-VAO VBOs
      */
     public void enableAndBindAttributes(int bufferOffset) {
         CanvasGlHelper.enableAttributes(this.attributeCount);
         bindAttributeLocations(bufferOffset);
     }
 
+    /**
+     * Enables generic vertex attributes and binds their location.
+     * For use with non-VBO buffers.
+     */
+    public void enableAndBindAttributes(ByteBuffer buffer, int bufferOffset) {
+        CanvasGlHelper.enableAttributes(this.attributeCount);
+        int offset = 0;
+        int index = 1;
+        for (PipelineVertextFormatElement e : elements) {
+            if (e.attributeName != null) {
+                buffer.position(bufferOffset + offset);
+                GL20.glVertexAttribPointer(index++, e.elementCount, e.glConstant, e.isNormalized, vertexStrideBytes, buffer);
+            }
+            offset += e.byteSize;
+        }
+    }
+    
     /**
      * Binds attribute locations without enabling them. For use with VAOs. In other
      * cases just call {@link #enableAndBindAttributes(int)}

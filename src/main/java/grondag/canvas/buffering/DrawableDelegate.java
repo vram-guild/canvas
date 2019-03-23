@@ -1,5 +1,6 @@
 package grondag.canvas.buffering;
 
+import java.nio.ByteBuffer;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.function.Consumer;
 
@@ -136,6 +137,10 @@ public class DrawableDelegate {
     }
 
     void bindBuffer(PipelineVertexFormat format) {
-        
+        ByteBuffer buffer = bufferDelegate.buffer.byteBuffer();
+        final int baseOffset = bufferDelegate.byteOffset();
+        buffer.position(baseOffset);
+        GlStateManager.vertexPointer(3, VertexFormatElement.Format.FLOAT.getGlId(), format.vertexStrideBytes, buffer);
+        format.enableAndBindAttributes(buffer, baseOffset);
     }
 }
