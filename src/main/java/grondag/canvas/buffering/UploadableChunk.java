@@ -9,16 +9,16 @@ import grondag.canvas.core.VertexPackingList.VertexPackingConsumer;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 public abstract class UploadableChunk<V extends DrawableChunk> {
-    protected final ObjectArrayList<DrawableChunkDelegate> delegates = DelegateLists.getReadyDelegateList();
+    protected final ObjectArrayList<DrawableDelegate> delegates = DelegateLists.getReadyDelegateList();
 
-    private static class UploadConsumer implements VertexPackingConsumer {
-        ObjectArrayList<DrawableChunkDelegate> delegates;
+    public static class UploadConsumer implements VertexPackingConsumer {
+        ObjectArrayList<DrawableDelegate> delegates;
         VertexCollectorList collectorList;
         int intOffset = 0;
         AllocationProvider allocator;
         
         /** Does not retain packing list reference */
-        void prepare(ObjectArrayList<DrawableChunkDelegate> delegates, VertexPackingList packingList, VertexCollectorList collectorList) {
+        void prepare(ObjectArrayList<DrawableDelegate> delegates, VertexPackingList packingList, VertexCollectorList collectorList) {
             this.delegates = delegates;
             this.collectorList = collectorList;
             allocator = BufferManager.ALLOCATION_MANAGER.getAllocator(packingList.totalBytes());
@@ -41,7 +41,7 @@ public abstract class UploadableChunk<V extends DrawableChunk> {
                 ref.unlockForUpload();
 
                 intOffset += intLength;
-                final DrawableChunkDelegate delegate = new DrawableChunkDelegate(ref, pipeline, byteCount / stride);
+                final DrawableDelegate delegate = new DrawableDelegate(ref, pipeline, byteCount / stride);
                 delegates.add(delegate);
             });
         }

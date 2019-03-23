@@ -19,8 +19,8 @@ public abstract class AbstractBuffer {
     /**
      * DrawableChunkDelegates currently using the buffer for rendering.
      */
-    protected final Set<DrawableChunkDelegate> retainers = Collections
-            .newSetFromMap(new ConcurrentHashMap<DrawableChunkDelegate, Boolean>());
+    protected final Set<DrawableDelegate> retainers = Collections
+            .newSetFromMap(new ConcurrentHashMap<DrawableDelegate, Boolean>());
 
     public int glBufferId() {
         int result = glBufferId;
@@ -45,12 +45,12 @@ public abstract class AbstractBuffer {
      * Called implicitly when bytes are allocated. Store calls explicitly to retain
      * while this buffer is being filled.
      */
-    protected void retain(DrawableChunkDelegate drawable) {
+    protected void retain(DrawableDelegate drawable) {
 //        traceLog.add(String.format("retain(%s)", drawable.toString()));
         retainers.add(drawable);
     }
 
-    protected void release(DrawableChunkDelegate drawable) {
+    protected void release(DrawableDelegate drawable) {
         retainers.remove(drawable);
     }
 

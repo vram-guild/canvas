@@ -11,7 +11,7 @@ import com.mojang.blaze3d.platform.GLX;
 import com.mojang.blaze3d.platform.GlStateManager;
 
 import grondag.canvas.buffering.DrawableChunk;
-import grondag.canvas.buffering.DrawableChunkDelegate;
+import grondag.canvas.buffering.DrawableDelegate;
 import grondag.canvas.mixinext.ChunkRendererExt;
 import grondag.canvas.opengl.CanvasGlHelper;
 import it.unimi.dsi.fastutil.Arrays;
@@ -196,7 +196,7 @@ public abstract class AbstractPipelinedRenderList {
     }
 
     private void renderSolidArray(SolidRenderCube rendercube) {
-        for (ObjectArrayList<DrawableChunkDelegate> list : rendercube.pipelineLists)
+        for (ObjectArrayList<DrawableDelegate> list : rendercube.pipelineLists)
             renderSolidList(list);
         cubeStore.offer(rendercube);
     }
@@ -207,8 +207,8 @@ public abstract class AbstractPipelinedRenderList {
 
         @Override
         public int compare(int a, int b) {
-            return Integer.compare(((DrawableChunkDelegate) delegates[a]).bufferId(),
-                    ((DrawableChunkDelegate) delegates[b]).bufferId());
+            return Integer.compare(((DrawableDelegate) delegates[a]).bufferId(),
+                    ((DrawableDelegate) delegates[b]).bufferId());
         }
 
         @Override
@@ -225,7 +225,7 @@ public abstract class AbstractPipelinedRenderList {
      * Renders solid chunks in vertex buffer order to minimize bind calls. Assumes
      * all chunks in the list share the same pipeline.
      */
-    private void renderSolidList(ObjectArrayList<DrawableChunkDelegate> list) {
+    private void renderSolidList(ObjectArrayList<DrawableDelegate> list) {
         final int limit = list.size();
 
         if (limit == 0)
@@ -236,12 +236,12 @@ public abstract class AbstractPipelinedRenderList {
         SORT_THINGY.delegates = delegates;
         Arrays.quickSort(0, limit, SORT_THINGY, SORT_THINGY);
 
-        ((DrawableChunkDelegate) delegates[0]).getPipeline().activate(true);
+        ((DrawableDelegate) delegates[0]).getPipeline().activate(true);
 
         int lastBufferId = -1;
 
         for (int i = 0; i < limit; i++) {
-            final DrawableChunkDelegate b = (DrawableChunkDelegate) delegates[i];
+            final DrawableDelegate b = (DrawableDelegate) delegates[i];
             lastBufferId = b.bind(lastBufferId);
             b.draw();
         }

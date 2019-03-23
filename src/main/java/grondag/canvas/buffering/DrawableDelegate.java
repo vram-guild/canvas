@@ -10,19 +10,19 @@ import grondag.canvas.opengl.CanvasGlHelper;
 import grondag.canvas.opengl.VaoStore;
 import net.minecraft.client.render.VertexFormatElement;
 
-public class DrawableChunkDelegate {
+public class DrawableDelegate {
     private AbstractBufferDelegate<?> bufferDelegate;
-    private final RenderPipelineImpl pipeline;
-    final int vertexCount;
+    private RenderPipelineImpl pipeline;
+    private int vertexCount;
+    private boolean isReleased = false;
+    
     /**
      * VAO Buffer name if enabled and initialized.
      */
     int vaoBufferId = -1;
     boolean vaoNeedsRefresh = true;
 
-    private boolean isReleased = false;
-
-    public DrawableChunkDelegate(AbstractBufferDelegate<?> bufferDelegate, RenderPipelineImpl pipeline, int vertexCount) {
+    public DrawableDelegate(AbstractBufferDelegate<?> bufferDelegate, RenderPipelineImpl pipeline, int vertexCount) {
         this.bufferDelegate = bufferDelegate;
         this.pipeline = pipeline;
         this.vertexCount = vertexCount;
@@ -31,16 +31,6 @@ public class DrawableChunkDelegate {
 
     public AbstractBufferDelegate<?> bufferDelegate() {
         return this.bufferDelegate;
-    }
-
-    public void replaceBufferDelegate(AbstractBufferDelegate<?> newDelegate) {
-        // possible we have been released after rebuffer happened
-        if (isReleased)
-            newDelegate.release(this);
-        else {
-            this.bufferDelegate = newDelegate;
-            vaoNeedsRefresh = true;
-        }
     }
 
     /**

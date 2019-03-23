@@ -34,9 +34,9 @@ public abstract class DrawableChunk {
     
     private int quadCount = -1;
 
-    protected ObjectArrayList<DrawableChunkDelegate> delegates;
+    protected ObjectArrayList<DrawableDelegate> delegates;
 
-    public DrawableChunk(ObjectArrayList<DrawableChunkDelegate> delegates) {
+    public DrawableChunk(ObjectArrayList<DrawableDelegate> delegates) {
         this.delegates = delegates;
     }
 
@@ -50,7 +50,7 @@ public abstract class DrawableChunk {
             result = 0;
             final int limit = delegates.size();
             for(int i = 0; i < limit; i++) {
-                DrawableChunkDelegate d = delegates.get(i);
+                DrawableDelegate d = delegates.get(i);
                 result += d.bufferDelegate().byteCount() / d.getPipeline().piplineVertexFormat().vertexStrideBytes / 4;
             }
             quadCount = result;
@@ -82,7 +82,7 @@ public abstract class DrawableChunk {
     }
 
     public static class Solid extends DrawableChunk {
-        public Solid(ObjectArrayList<DrawableChunkDelegate> delegates) {
+        public Solid(ObjectArrayList<DrawableDelegate> delegates) {
             super(delegates);
         }
 
@@ -90,7 +90,7 @@ public abstract class DrawableChunk {
          * Prepares for iteration and handles any internal housekeeping. Called each
          * frame from client thread before any call to {@link #renderSolidNext()}.
          */
-        public void prepareSolidRender(Consumer<DrawableChunkDelegate> consumer) {
+        public void prepareSolidRender(Consumer<DrawableDelegate> consumer) {
             if (isCleared)
                 return;
 
@@ -101,7 +101,7 @@ public abstract class DrawableChunk {
     }
 
     public static class Translucent extends DrawableChunk {
-        public Translucent(ObjectArrayList<DrawableChunkDelegate> delegates) {
+        public Translucent(ObjectArrayList<DrawableDelegate> delegates) {
             super(delegates);
         }
 
@@ -121,7 +121,7 @@ public abstract class DrawableChunk {
             // using conventional loop here to prevent iterator garbage in hot loop
             // profiling shows it matters
             for (int i = 0; i < limit; i++) {
-                final DrawableChunkDelegate b = (DrawableChunkDelegate) draws[i];
+                final DrawableDelegate b = (DrawableDelegate) draws[i];
                 b.getPipeline().activate(false);
                 lastBufferId = b.bind(lastBufferId);
                 b.draw();

@@ -2,24 +2,24 @@ package grondag.canvas.core;
 
 import java.util.function.Consumer;
 
-import grondag.canvas.buffering.DrawableChunkDelegate;
+import grondag.canvas.buffering.DrawableDelegate;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
-public class SolidRenderCube implements Consumer<DrawableChunkDelegate> {
-    public final ObjectArrayList<DrawableChunkDelegate>[] pipelineLists;
+public class SolidRenderCube implements Consumer<DrawableDelegate> {
+    public final ObjectArrayList<DrawableDelegate>[] pipelineLists;
 
     public SolidRenderCube() {
         final int size = PipelineManager.INSTANCE.pipelineCount();
         @SuppressWarnings("unchecked")
-        ObjectArrayList<DrawableChunkDelegate>[] buffers = new ObjectArrayList[size];
+        ObjectArrayList<DrawableDelegate>[] buffers = new ObjectArrayList[size];
         for (int i = 0; i < size; i++) {
-            buffers[i] = new ObjectArrayList<DrawableChunkDelegate>();
+            buffers[i] = new ObjectArrayList<DrawableDelegate>();
         }
         this.pipelineLists = buffers;
     }
 
     @Override
-    public void accept(DrawableChunkDelegate d) {
+    public void accept(DrawableDelegate d) {
         pipelineLists[d.getPipeline().getIndex()].add(d);
     }
 }

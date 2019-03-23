@@ -57,23 +57,23 @@ abstract class AbstractBufferDelegate<T extends AbstractBuffer> {
     /**
      * Signals the buffer is in use. May be called off-thread.
      */
-    public final void retain(DrawableChunkDelegate drawableChunkDelegate) {
+    public final void retain(DrawableDelegate drawableChunkDelegate) {
         buffer.retain(drawableChunkDelegate);
     }
 
     /**
      * Signals the buffer will no longer be used. May be called off-thread.
      */
-    public final void release(DrawableChunkDelegate drawableChunkDelegate) {
+    public final void release(DrawableDelegate drawableChunkDelegate) {
         buffer.release(drawableChunkDelegate);
     }
 
-    /** called before chunk populates int buffer(). Will be called off thread */
+    /** called before chunk populates int buffer(). May be called off thread */
     public final void lockForUpload() {
 //        buffer.bufferLock.lock();
     }
 
-    /** called after chunk populates int buffer(). Will be called off thread */
+    /** called after chunk populates int buffer(). May be called off thread */
     public final void unlockForUpload() {
 //        buffer.bufferLock.unlock();
     }
