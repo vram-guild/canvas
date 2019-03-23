@@ -1,16 +1,34 @@
 package grondag.canvas.buffering;
 
+import java.util.concurrent.ArrayBlockingQueue;
+
 import org.lwjgl.opengl.GL11;
 
 import com.mojang.blaze3d.platform.GlStateManager;
 
 import grondag.canvas.core.PipelineVertexFormat;
 import grondag.canvas.core.RenderPipelineImpl;
+import grondag.canvas.core.BufferStore.ExpandableByteBuffer;
 import grondag.canvas.opengl.CanvasGlHelper;
 import grondag.canvas.opengl.VaoStore;
 import net.minecraft.client.render.VertexFormatElement;
 
 public class DrawableDelegate {
+    private static final ArrayBlockingQueue<DrawableDelegate> store = new ArrayBlockingQueue<DrawableDelegate>(4096);
+    
+    public static DrawableDelegate claim(AbstractBufferDelegate<?> bufferDelegate, RenderPipelineImpl pipeline, int vertexCount) {
+        DrawableDelegate result = store.poll();
+        if(result == null) {
+            result = new DrawableDelegate();
+        }
+        result.bufferDelegate = bufferDelegate;
+        result.pipeline = pipeline;
+        result.vertexCount = vertexCount;
+        result.isReleased = false;
+        bufferDelegate.retain(result);
+        return result;
+    }
+
     private AbstractBufferDelegate<?> bufferDelegate;
     private RenderPipelineImpl pipeline;
     private int vertexCount;
@@ -22,11 +40,8 @@ public class DrawableDelegate {
     int vaoBufferId = -1;
     boolean vaoNeedsRefresh = true;
 
-    public DrawableDelegate(AbstractBufferDelegate<?> bufferDelegate, RenderPipelineImpl pipeline, int vertexCount) {
-        this.bufferDelegate = bufferDelegate;
-        this.pipeline = pipeline;
-        this.vertexCount = vertexCount;
-        bufferDelegate.retain(this);
+    private DrawableDelegate() {
+        super();
     }
 
     public AbstractBufferDelegate<?> bufferDelegate() {
@@ -116,6 +131,9 @@ public class DrawableDelegate {
                 VaoStore.releaseVertexArray(vaoBufferId);
                 vaoBufferId = -1;
             }
+            bufferDelegate = null;
+            pipeline =  null;
+            store.offer(this);
         }
     }
 

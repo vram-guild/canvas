@@ -41,8 +41,7 @@ public abstract class UploadableChunk<V extends DrawableChunk> {
                 ref.unlockForUpload();
 
                 intOffset += intLength;
-                final DrawableDelegate delegate = new DrawableDelegate(ref, pipeline, byteCount / stride);
-                delegates.add(delegate);
+                delegates.add(DrawableDelegate.claim(ref, pipeline, byteCount / stride));
             });
         }
     }
