@@ -1,15 +1,14 @@
 package grondag.canvas.buffering;
 
 import grondag.canvas.core.VertexCollectorList;
-import grondag.canvas.core.VertexPackingList;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 public abstract class UploadableChunk<V extends DrawableChunk> {
     protected final ObjectArrayList<DrawableDelegate> delegates;
 
     /** Does not retain packing list reference */
-    protected UploadableChunk(VertexPackingList packingList, VertexCollectorList collectorList) {
-        delegates = VertexPacker.pack(packingList, collectorList, BufferManager.ALLOCATION_MANAGER.getAllocator(packingList.totalBytes()));
+    protected UploadableChunk(BufferPackingList packingList, VertexCollectorList collectorList) {
+        delegates = BufferPacker.pack(packingList, collectorList, BufferManager.ALLOCATION_MANAGER.getAllocator(packingList.totalBytes()));
     }
 
     /**
@@ -30,7 +29,7 @@ public abstract class UploadableChunk<V extends DrawableChunk> {
     }
 
     public static class Solid extends UploadableChunk<DrawableChunk.Solid> {
-        public Solid(VertexPackingList packing, VertexCollectorList collectorList) {
+        public Solid(BufferPackingList packing, VertexCollectorList collectorList) {
             super(packing, collectorList);
         }
 
@@ -44,7 +43,7 @@ public abstract class UploadableChunk<V extends DrawableChunk> {
     }
 
     public static class Translucent extends UploadableChunk<DrawableChunk.Translucent> {
-        public Translucent(VertexPackingList packing, VertexCollectorList collectorList) {
+        public Translucent(BufferPackingList packing, VertexCollectorList collectorList) {
             super(packing, collectorList);
         }
 

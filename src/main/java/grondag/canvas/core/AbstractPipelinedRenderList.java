@@ -30,7 +30,7 @@ public abstract class AbstractPipelinedRenderList {
      * Null values mean that pipeline isn't part of the render cube.<br>
      * Non-null values are lists of buffer in that cube with the given pipeline.<br>
      */
-    private final Long2ObjectOpenHashMap<SolidRenderList> solidCubes = new Long2ObjectOpenHashMap<>();
+    private final Long2ObjectOpenHashMap<SolidRenderList> solidLists = new Long2ObjectOpenHashMap<>();
 
     /**
      * Will hold the modelViewMatrix that was in GL context before first call to
@@ -71,18 +71,18 @@ public abstract class AbstractPipelinedRenderList {
     private void addSolidChunk(ChunkRenderer renderChunkIn) {
         final long cubeKey = RenderCube.getPackedOrigin(renderChunkIn.getOrigin());
 
-        SolidRenderList buffers = solidCubes.get(cubeKey);
-        if (buffers == null) {
-            buffers = SolidRenderList.claim();
-            solidCubes.put(cubeKey, buffers);
+        SolidRenderList solidList = solidLists.get(cubeKey);
+        if (solidList == null) {
+            solidList = SolidRenderList.claim();
+            solidLists.put(cubeKey, solidList);
         }
-        addSolidChunkToBufferArray(renderChunkIn, buffers);
+        addSolidChunkInner(renderChunkIn, solidList);
     }
 
-    private void addSolidChunkToBufferArray(ChunkRenderer renderChunkIn, SolidRenderList buffers) {
-        final DrawableChunk.Solid vertexbuffer = ((ChunkRendererExt) renderChunkIn).getSolidDrawable();
-        if (vertexbuffer != null)
-            vertexbuffer.prepareSolidRender(buffers);
+    private void addSolidChunkInner(ChunkRenderer renderChunkIn, SolidRenderList solidList) {
+        final DrawableChunk.Solid solidDrawable = ((ChunkRendererExt) renderChunkIn).getSolidDrawable();
+        if (solidDrawable != null)
+            solidDrawable.prepareSolidRender(solidList);
     }
 
     public void renderChunkLayer(BlockRenderLayer layer) {
@@ -162,19 +162,19 @@ public abstract class AbstractPipelinedRenderList {
     }
 
     protected final void renderChunkLayerSolid() {
-        if (this.solidCubes.isEmpty())
+        if (this.solidLists.isEmpty())
             return;
 
         preRenderSetup();
 
-        ObjectIterator<Entry<SolidRenderList>> it = solidCubes.long2ObjectEntrySet().fastIterator();
+        ObjectIterator<Entry<SolidRenderList>> it = solidLists.long2ObjectEntrySet().fastIterator();
         while (it.hasNext()) {
             Entry<SolidRenderList> e = it.next();
             updateViewMatrix(e.getLongKey());
             e.getValue().drawAndRelease();
         }
 
-        solidCubes.clear();
+        solidLists.clear();
         postRenderCleanup();
     }
 

@@ -1,20 +1,20 @@
-package grondag.canvas.core;
+package grondag.canvas.buffering;
 
 import java.util.function.Consumer;
 
-import grondag.canvas.buffering.VertexPacker;
+import grondag.canvas.core.RenderPipelineImpl;
 
 /**
  * Tracks number of vertices, pipeline and sequence thereof within a buffer.
  */
-public class VertexPackingList {
+public class BufferPackingList {
     private int[] counts = new int[16];
     private RenderPipelineImpl[] pipelines = new RenderPipelineImpl[16];
 
     private int size = 0;
     private int totalBytes = 0;
 
-    void clear() {
+    public void clear() {
         this.size = 0;
         this.totalBytes = 0;
     }
@@ -58,7 +58,7 @@ public class VertexPackingList {
         this.size++;
     }
 
-    public final void forEach(VertexPacker consumer) {
+    public final void forEach(BufferPacker consumer) {
         final int size = this.size;
         for (int i = 0; i < size; i++) {
             consumer.accept(this.pipelines[i], this.counts[i]);

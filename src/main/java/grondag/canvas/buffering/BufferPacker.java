@@ -4,24 +4,23 @@ import java.nio.IntBuffer;
 
 import grondag.canvas.core.RenderPipelineImpl;
 import grondag.canvas.core.VertexCollectorList;
-import grondag.canvas.core.VertexPackingList;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
-public class VertexPacker {
-    private static final ThreadLocal<VertexPacker> THREADLOCAL = ThreadLocal.withInitial(VertexPacker::new);
+public class BufferPacker {
+    private static final ThreadLocal<BufferPacker> THREADLOCAL = ThreadLocal.withInitial(BufferPacker::new);
     
     ObjectArrayList<DrawableDelegate> delegates;
     VertexCollectorList collectorList;
     int intOffset = 0;
     AllocationProvider allocator;
     
-    private VertexPacker() {
+    private BufferPacker() {
         //private
     }
     
     /** Does not retain packing list reference */
-    public static ObjectArrayList<DrawableDelegate> pack(VertexPackingList packingList, VertexCollectorList collectorList, AllocationProvider allocator) {
-        final VertexPacker packer = THREADLOCAL.get();
+    public static ObjectArrayList<DrawableDelegate> pack(BufferPackingList packingList, VertexCollectorList collectorList, AllocationProvider allocator) {
+        final BufferPacker packer = THREADLOCAL.get();
         final ObjectArrayList<DrawableDelegate> result = DelegateLists.getReadyDelegateList();
         packer.delegates = result;
         packer.collectorList = collectorList;

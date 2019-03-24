@@ -12,7 +12,7 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 /**
  * Accumulates and renders delegates in pipeline, buffer order.
  */
-public class SolidRenderList implements Consumer<DrawableDelegate> {
+public class SolidRenderList implements Consumer<ObjectArrayList<DrawableDelegate>> {
     private static final ArrayDeque<SolidRenderList> POOL = new ArrayDeque<>();
     
     public static SolidRenderList claim() {
@@ -98,7 +98,11 @@ public class SolidRenderList implements Consumer<DrawableDelegate> {
     }
     
     @Override
-    public void accept(DrawableDelegate d) {
-        pipelineLists[d.getPipeline().getIndex()].add(d);
+    public void accept(ObjectArrayList<DrawableDelegate> delegates) {
+        final int limit = delegates.size();
+        for (int i = 0; i < limit; i++) {
+            DrawableDelegate d =  delegates.get(i);
+            pipelineLists[d.getPipeline().getIndex()].add(d);
+        }
     }
 }

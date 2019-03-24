@@ -4,6 +4,7 @@ import java.util.Comparator;
 import java.util.PriorityQueue;
 import java.util.function.Consumer;
 
+import grondag.canvas.buffering.BufferPackingList;
 import grondag.canvas.buffering.UploadableChunk;
 import net.minecraft.util.math.MathHelper;
 
@@ -35,7 +36,7 @@ public class VertexCollectorList {
      */
     private VertexCollector[] vertexCollectors = new VertexCollector[PipelineManager.MAX_PIPELINES];
 
-    private final VertexPackingList packingList = new VertexPackingList();
+    private final BufferPackingList packingList = new BufferPackingList();
     
     private int maxIndex = -1;
 
@@ -139,8 +140,8 @@ public class VertexCollectorList {
      * Sorts pipelines by pipeline index numerical order.
      * DO NOT RETAIN A REFERENCE
      */
-    public final VertexPackingList packingListSolid() {
-        final VertexPackingList packing = this.packingList;
+    public final BufferPackingList packingListSolid() {
+        final BufferPackingList packing = this.packingList;
         packing.clear();
 
         // NB: for solid render, relying on pipelines being added to packing in
@@ -156,7 +157,7 @@ public class VertexCollectorList {
     }
     
     public final UploadableChunk.Solid packUploadSolid() {
-        final VertexPackingList packing = packingListSolid();
+        final BufferPackingList packing = packingListSolid();
 
         // NB: for solid render, relying on pipelines being added to packing in
         // numerical order so that
@@ -169,8 +170,8 @@ public class VertexCollectorList {
      * Sorts pipelines from camera - more costly to produce and render.
      * DO NOT RETAIN A REFERENCE
      */
-    public final VertexPackingList packingListTranslucent() {
-        final VertexPackingList packing = this.packingList;
+    public final BufferPackingList packingListTranslucent() {
+        final BufferPackingList packing = this.packingList;
         packing.clear();
         final PriorityQueue<VertexCollector> sorter = sorters.get();
 
@@ -211,7 +212,7 @@ public class VertexCollectorList {
     }
     
     public final UploadableChunk.Translucent packUploadTranslucent() {
-        final VertexPackingList packing = packingListTranslucent();
+        final BufferPackingList packing = packingListTranslucent();
         return packing.size() == 0 ? null : new UploadableChunk.Translucent(packing, this);
     }
 

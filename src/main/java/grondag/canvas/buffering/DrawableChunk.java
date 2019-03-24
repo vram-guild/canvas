@@ -90,13 +90,10 @@ public abstract class DrawableChunk {
          * Prepares for iteration and handles any internal housekeeping. Called each
          * frame from client thread before any call to {@link #renderSolidNext()}.
          */
-        public void prepareSolidRender(Consumer<DrawableDelegate> consumer) {
+        public void prepareSolidRender(Consumer<ObjectArrayList<DrawableDelegate>> consumer) {
             if (isCleared)
                 return;
-
-            final int limit = delegates.size();
-            for (int i = 0; i < limit; i++)
-                consumer.accept(delegates.get(i));
+            consumer.accept(delegates);
         }
     }
 
