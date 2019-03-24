@@ -20,12 +20,14 @@ public class VertexPacker {
     }
     
     /** Does not retain packing list reference */
-    public static void pack(ObjectArrayList<DrawableDelegate> delegates, VertexPackingList packingList, VertexCollectorList collectorList, AllocationProvider allocator) {
-        VertexPacker packer = THREADLOCAL.get();
-        packer.delegates = delegates;
+    public static ObjectArrayList<DrawableDelegate> pack(VertexPackingList packingList, VertexCollectorList collectorList, AllocationProvider allocator) {
+        final VertexPacker packer = THREADLOCAL.get();
+        final ObjectArrayList<DrawableDelegate> result = DelegateLists.getReadyDelegateList();
+        packer.delegates = result;
         packer.collectorList = collectorList;
         packer.allocator = allocator;
         packingList.forEach(packer);
+        return result;
     }
 
     public void accept(RenderPipelineImpl pipeline, int vertexCount) {

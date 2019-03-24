@@ -1,7 +1,6 @@
 package grondag.canvas.core;
 
 import java.nio.FloatBuffer;
-import java.util.ArrayDeque;
 
 import org.joml.Matrix4f;
 import org.lwjgl.BufferUtils;
@@ -11,12 +10,8 @@ import com.mojang.blaze3d.platform.GLX;
 import com.mojang.blaze3d.platform.GlStateManager;
 
 import grondag.canvas.buffering.DrawableChunk;
-import grondag.canvas.buffering.DrawableDelegate;
 import grondag.canvas.mixinext.ChunkRendererExt;
 import grondag.canvas.opengl.CanvasGlHelper;
-import it.unimi.dsi.fastutil.Arrays;
-import it.unimi.dsi.fastutil.Swapper;
-import it.unimi.dsi.fastutil.ints.AbstractIntComparator;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap.Entry;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
@@ -35,12 +30,7 @@ public abstract class AbstractPipelinedRenderList {
      * Null values mean that pipeline isn't part of the render cube.<br>
      * Non-null values are lists of buffer in that cube with the given pipeline.<br>
      */
-    private final Long2ObjectOpenHashMap<SolidRenderCube> solidCubes = new Long2ObjectOpenHashMap<>();
-
-    /**
-     * Cache and reuse cube data stuctures.
-     */
-    private final ArrayDeque<SolidRenderCube> cubeStore = new ArrayDeque<>();
+    private final Long2ObjectOpenHashMap<SolidRenderList> solidCubes = new Long2ObjectOpenHashMap<>();
 
     /**
      * Will hold the modelViewMatrix that was in GL context before first call to
@@ -78,25 +68,18 @@ public abstract class AbstractPipelinedRenderList {
             this.addSolidChunk(renderChunkIn);
     }
 
-    private SolidRenderCube getSolidRenderCube() {
-        SolidRenderCube result = cubeStore.poll();
-        if (result == null)
-            result = new SolidRenderCube();
-        return result;
-    }
-
     private void addSolidChunk(ChunkRenderer renderChunkIn) {
         final long cubeKey = RenderCube.getPackedOrigin(renderChunkIn.getOrigin());
 
-        SolidRenderCube buffers = solidCubes.get(cubeKey);
+        SolidRenderList buffers = solidCubes.get(cubeKey);
         if (buffers == null) {
-            buffers = getSolidRenderCube();
+            buffers = SolidRenderList.claim();
             solidCubes.put(cubeKey, buffers);
         }
         addSolidChunkToBufferArray(renderChunkIn, buffers);
     }
 
-    private void addSolidChunkToBufferArray(ChunkRenderer renderChunkIn, SolidRenderCube buffers) {
+    private void addSolidChunkToBufferArray(ChunkRenderer renderChunkIn, SolidRenderList buffers) {
         final DrawableChunk.Solid vertexbuffer = ((ChunkRendererExt) renderChunkIn).getSolidDrawable();
         if (vertexbuffer != null)
             vertexbuffer.prepareSolidRender(buffers);
@@ -184,68 +167,15 @@ public abstract class AbstractPipelinedRenderList {
 
         preRenderSetup();
 
-        ObjectIterator<Entry<SolidRenderCube>> it = solidCubes.long2ObjectEntrySet().fastIterator();
+        ObjectIterator<Entry<SolidRenderList>> it = solidCubes.long2ObjectEntrySet().fastIterator();
         while (it.hasNext()) {
-            Entry<SolidRenderCube> e = it.next();
+            Entry<SolidRenderList> e = it.next();
             updateViewMatrix(e.getLongKey());
-            renderSolidArray(e.getValue());
+            e.getValue().drawAndRelease();
         }
 
         solidCubes.clear();
         postRenderCleanup();
-    }
-
-    private void renderSolidArray(SolidRenderCube rendercube) {
-        for (ObjectArrayList<DrawableDelegate> list : rendercube.pipelineLists)
-            renderSolidList(list);
-        cubeStore.offer(rendercube);
-    }
-
-    @SuppressWarnings("serial")
-    private static class SortThingy extends AbstractIntComparator implements Swapper {
-        Object[] delegates;
-
-        @Override
-        public int compare(int a, int b) {
-            return Integer.compare(((DrawableDelegate) delegates[a]).bufferId(),
-                    ((DrawableDelegate) delegates[b]).bufferId());
-        }
-
-        @Override
-        public void swap(int a, int b) {
-            Object swap = delegates[a];
-            delegates[a] = delegates[b];
-            delegates[b] = swap;
-        }
-    };
-
-    private static final SortThingy SORT_THINGY = new SortThingy();
-
-    /**
-     * Renders solid chunks in vertex buffer order to minimize bind calls. Assumes
-     * all chunks in the list share the same pipeline.
-     */
-    private void renderSolidList(ObjectArrayList<DrawableDelegate> list) {
-        final int limit = list.size();
-
-        if (limit == 0)
-            return;
-
-        Object[] delegates = list.elements();
-
-        SORT_THINGY.delegates = delegates;
-        Arrays.quickSort(0, limit, SORT_THINGY, SORT_THINGY);
-
-        ((DrawableDelegate) delegates[0]).getPipeline().activate(true);
-
-        int lastBufferId = -1;
-
-        for (int i = 0; i < limit; i++) {
-            final DrawableDelegate b = (DrawableDelegate) delegates[i];
-            lastBufferId = b.bind(lastBufferId);
-            b.draw();
-        }
-        list.clear();
     }
 
     protected final void renderChunkLayerTranslucent() {

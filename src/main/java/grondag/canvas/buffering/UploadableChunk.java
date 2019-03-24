@@ -5,11 +5,11 @@ import grondag.canvas.core.VertexPackingList;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 public abstract class UploadableChunk<V extends DrawableChunk> {
-    protected final ObjectArrayList<DrawableDelegate> delegates = DelegateLists.getReadyDelegateList();
+    protected final ObjectArrayList<DrawableDelegate> delegates;
 
     /** Does not retain packing list reference */
     protected UploadableChunk(VertexPackingList packingList, VertexCollectorList collectorList) {
-        VertexPacker.pack(delegates, packingList, collectorList, BufferManager.ALLOCATION_MANAGER.getAllocator(packingList.totalBytes()));
+        delegates = VertexPacker.pack(packingList, collectorList, BufferManager.ALLOCATION_MANAGER.getAllocator(packingList.totalBytes()));
     }
 
     /**
