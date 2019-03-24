@@ -48,19 +48,19 @@ public class VertexCollectorList {
     private double viewZ;
 
     /** used in transparency layer sorting - updated with origin of render cube */
-    int renderOriginX = Integer.MIN_VALUE;
+    double renderOriginX = 0;
     /** used in transparency layer sorting - updated with origin of render cube */
-    int renderOriginY = Integer.MIN_VALUE;
+    double renderOriginY = 0;
     /** used in transparency layer sorting - updated with origin of render cube */
-    int renderOriginZ = Integer.MIN_VALUE;
+    double renderOriginZ = 0;
 
     /**
      * Releases any held vertex collectors and resets state
      */
-    void clear() {
-        renderOriginX = Integer.MIN_VALUE;
-        renderOriginY = Integer.MIN_VALUE;
-        renderOriginZ = Integer.MIN_VALUE;
+    public void clear() {
+        renderOriginX = 0;
+        renderOriginY = 0;
+        renderOriginZ = 0;
 
         final int limit = maxIndex;
         if (limit == -1)
@@ -100,10 +100,16 @@ public class VertexCollectorList {
     /**
      * Called when a render chunk initializes buffer builders with offset.
      */
-    public void setRenderOrigin(double x, double y, double z) {
+    public void setRelativeRenderOrigin(double x, double y, double z) {
         renderOriginX = RenderCube.renderCubeOrigin(MathHelper.fastFloor(x));
         renderOriginY = RenderCube.renderCubeOrigin(MathHelper.fastFloor(y));
         renderOriginZ = RenderCube.renderCubeOrigin(MathHelper.fastFloor(z));
+    }
+    
+    public void setAbsoluteRenderOrigin(double x, double y, double z) {
+        renderOriginX = x;
+        renderOriginY = y;
+        renderOriginZ = z;
     }
 
     public final VertexCollector get(RenderPipelineImpl pipeline) {

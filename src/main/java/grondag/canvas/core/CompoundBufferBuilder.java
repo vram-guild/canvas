@@ -118,9 +118,9 @@ public class CompoundBufferBuilder extends BufferBuilder {
     public void setOffset(double x, double y, double z) {
         // collectors expect positive values, but buffer builder gets negatives
         if (this.layer == BlockRenderLayer.SOLID)
-            collectors.get().getLeft().setRenderOrigin(-x, -y, -z);
+            collectors.get().getLeft().setRelativeRenderOrigin(-x, -y, -z);
         else
-            collectors.get().getRight().setRenderOrigin(-x, -y, -z);
+            collectors.get().getRight().setRelativeRenderOrigin(-x, -y, -z);
         super.setOffset(x, y, z);
     }
 

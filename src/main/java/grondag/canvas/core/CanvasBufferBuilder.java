@@ -12,7 +12,7 @@ public class CanvasBufferBuilder extends BufferBuilder {
 
     @Override
     public void setOffset(double x, double y, double z) {
-        vcList.setRenderOrigin(-x, -y, -z);
+        vcList.setAbsoluteRenderOrigin(-x, -y, -z);
         super.setOffset(x, y, z);
     }
     

@@ -44,7 +44,7 @@ public class FluidBufferBuilder extends BufferBuilder {
 
     @Override
     public void setOffset(double x, double y, double z) {
-        vc.parent.setRenderOrigin(-x, -y, -z);
+        vc.parent.setRelativeRenderOrigin(-x, -y, -z);
         super.setOffset(x, y, z);
     }
     

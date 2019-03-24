@@ -85,9 +85,9 @@ public class VertexCollector {
 
     public final void pos(final BlockPos pos, float modelX, float modelY, float modelZ) {
         this.checkForSize(this.pipeline.piplineVertexFormat().vertexStrideBytes);
-        this.add(pos.getX() - parent.renderOriginX + modelX);
-        this.add(pos.getY() - parent.renderOriginY + modelY);
-        this.add(pos.getZ() - parent.renderOriginZ + modelZ);
+        this.add((float)(pos.getX() - parent.renderOriginX + modelX));
+        this.add((float)(pos.getY() - parent.renderOriginY + modelY));
+        this.add((float)(pos.getZ() - parent.renderOriginZ + modelZ));
     }
 
     private static class QuadSorter {
