@@ -15,7 +15,7 @@
 	"MixinChunkRenderer",
 	"MixinChunkRenderTask",
 	"MixinChunkRenderWorker",
-	"MixinChunkVisibility",
+	"MixinChunkOcclusionGraph",
     "MixinFogState",
 	"MixinGameRenderer",
 	"MixinItemRenderer",

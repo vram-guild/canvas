@@ -1,14 +1,26 @@
 package grondag.canvas.core;
 
+import java.nio.ByteBuffer;
+import java.util.function.Consumer;
+
+import grondag.canvas.buffering.AbstractBufferDelegate;
+import grondag.canvas.buffering.AllocableBuffer;
+import grondag.canvas.buffering.AllocationProvider;
+import grondag.canvas.buffering.DrawableDelegate;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.VertexFormat;
+import net.minecraft.client.util.GlAllocationUtils;
 
-public class CanvasBufferBuilder extends BufferBuilder {
+public class CanvasBufferBuilder extends BufferBuilder implements AllocationProvider {
+    private final CanvasBuffer canvasBuffer = new CanvasBuffer();
+    
     public CanvasBufferBuilder(int size) {
         super(size);
     }
 
     public final VertexCollectorList vcList = new VertexCollectorList();
+    
+    int byteOffset = 0;
 
     @Override
     public void setOffset(double x, double y, double z) {
@@ -29,5 +41,102 @@ public class CanvasBufferBuilder extends BufferBuilder {
     @Override
     public void end() {
         super.end();
+    }
+    
+    public void clearAllocations() {
+        canvasBuffer.clear();
+        byteOffset = 0;
+    }
+
+    public void ensureCapacity(int totalBytes) {
+        canvasBuffer.ensureByteCapacity(totalBytes);
+    }
+    
+    @Override
+    public void claimAllocation(RenderPipelineImpl pipeline, int byteCount, Consumer<AbstractBufferDelegate<?>> consumer) {
+        final int newOffset = byteOffset + byteCount;
+        
+        consumer.accept(new CanvasBufferDelegate(canvasBuffer, byteOffset, byteCount));
+        byteOffset = newOffset;        
+    }
+    
+    private class CanvasBufferDelegate extends AbstractBufferDelegate<CanvasBuffer> {
+        protected CanvasBufferDelegate(CanvasBuffer buffer, int byteOffset, int byteCount) {
+            super(buffer, byteOffset, byteCount);
+        }
+
+        @Override
+        public boolean isVbo() {
+            return false;
+        }
+
+        @Override
+        protected void lockForUpload() {
+            // NOOP
+        }
+
+        @Override
+        protected void unlockForUpload() {
+            // NOOP
+        }
+
+        @Override
+        protected void retain(DrawableDelegate result) {
+            // NOOP
+        }
+
+        @Override
+        protected int glBufferId() {
+            return -1;
+        }
+
+        @Override
+        protected void bind() {
+            // NOOP
+        }
+
+        @Override
+        protected boolean isDisposed() {
+            return false;
+        }
+
+        @Override
+        protected void release(DrawableDelegate drawableDelegate) {
+            // NOOP
+        }
+
+        @Override
+        protected void flush() {
+            // NOOP
+        }
+    }
+    
+    private class CanvasBuffer extends AllocableBuffer {
+        private static final int BUFFER_SIZE_INCREMENT = 2097152;
+        private ByteBuffer byteBuffer = GlAllocationUtils.allocateByteBuffer(BUFFER_SIZE_INCREMENT);
+        
+        @Override
+        protected ByteBuffer byteBuffer() {
+            return byteBuffer;
+        }
+        
+        private void clear() {
+            byteBuffer.clear();
+        }
+        
+        private void ensureByteCapacity(int byteCount) {
+            final ByteBuffer byteBuffer = this.byteBuffer;
+            if (byteCount > byteBuffer.capacity()) {
+                int newSize = byteBuffer.capacity() + BUFFER_SIZE_INCREMENT;
+                while(newSize < byteCount) {
+                    newSize += BUFFER_SIZE_INCREMENT;
+                }
+                ByteBuffer newBuffer = GlAllocationUtils.allocateByteBuffer(newSize);
+                byteBuffer.position(0);
+                newBuffer.put(byteBuffer);
+                newBuffer.rewind();
+                this.byteBuffer = newBuffer;
+             }
+        }
     }
 }

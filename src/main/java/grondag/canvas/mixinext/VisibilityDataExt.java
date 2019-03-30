@@ -8,19 +8,19 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 
 public interface VisibilityDataExt {
-    BitSet bitSet();
+    BitSet canvas_closed();
 
-    int getEmptyCount();
+    int canvas_openCount();
 
-    void setEmptyCount(int count);
+    void canvas_openCount(int count);
 
-    void addExteriorToSet(int i, Set<Direction> set);
+    void canvas_addEdgeFaces(int i, Set<Direction> set);
 
-    int getNeighborIndex(int i, Direction face);
+    int canvas_offset(int i, Direction face);
 
     /** Actually static - use to get and hold lambda */
-    ObjToIntFunction<BlockPos> indexFunction();
+    ObjToIntFunction<BlockPos> canvas_pack();
 
     /** Actually static - use to get and hold ref */
-    int[] exteriorIndices();
+    int[] canvas_edgePoints();
 }

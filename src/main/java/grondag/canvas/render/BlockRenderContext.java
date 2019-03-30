@@ -22,11 +22,9 @@ import java.util.function.Function;
 import java.util.function.ToIntBiFunction;
 
 import grondag.canvas.RenderMaterialImpl;
-import grondag.canvas.accessor.AccessBufferBuilder;
 import grondag.canvas.aocalc.AoCalculator;
 import grondag.canvas.core.CanvasBufferBuilder;
 import grondag.canvas.core.VertexCollector;
-import grondag.canvas.mesh.MutableQuadViewImpl;
 import grondag.frex.api.core.FabricBakedModel;
 import grondag.frex.api.core.Mesh;
 import grondag.frex.api.core.QuadEmitter;
@@ -53,10 +51,6 @@ public class BlockRenderContext extends AbstractRenderContext implements RenderC
     private long seed;
     private boolean isCallingVanilla = false;
     private boolean didOutput = false;
-
-    private double offsetX;
-    private double offsetY;
-    private double offsetZ;
 
     public boolean isCallingVanilla() {
         return isCallingVanilla;
@@ -91,7 +85,6 @@ public class BlockRenderContext extends AbstractRenderContext implements RenderC
         aoCalc.clear();
         blockInfo.setBlockView(blockView);
         blockInfo.prepareForBlock(state, pos, model.useAmbientOcclusion());
-        setupOffsets();
 
         ((FabricBakedModel) model).emitBlockQuads(blockView, state, pos, blockInfo.randomSupplier, this);
 
@@ -109,13 +102,13 @@ public class BlockRenderContext extends AbstractRenderContext implements RenderC
         isCallingVanilla = false;
     }
 
-    private void setupOffsets() {
-        final AccessBufferBuilder buffer = (AccessBufferBuilder) canvasBuilder;
-        final BlockPos pos = blockInfo.blockPos;
-        offsetX = buffer.fabric_offsetX() + pos.getX();
-        offsetY = buffer.fabric_offsetY() + pos.getY();
-        offsetZ = buffer.fabric_offsetZ() + pos.getZ();
-    }
+//    private void setupOffsets() {
+//        final AccessBufferBuilder buffer = (AccessBufferBuilder) canvasBuilder;
+//        final BlockPos pos = blockInfo.blockPos;
+//        offsetX = buffer.fabric_offsetX() + pos.getX();
+//        offsetY = buffer.fabric_offsetY() + pos.getY();
+//        offsetZ = buffer.fabric_offsetZ() + pos.getZ();
+//    }
 
     private class MeshConsumer extends AbstractMeshConsumer {
         MeshConsumer(BlockRenderInfo blockInfo, ToIntBiFunction<BlockState, BlockPos> brightnessFunc,
@@ -125,13 +118,7 @@ public class BlockRenderContext extends AbstractRenderContext implements RenderC
 
         @Override
         protected void applyOffsets() {
-            final MutableQuadViewImpl q = editorQuad;
-            final double x = offsetX;
-            final double y = offsetY;
-            final double z = offsetZ;
-            for (int i = 0; i < 4; i++) {
-                q.pos(i, (float) (q.x(i) + x), (float) (q.y(i) + y), (float) (q.z(i) + z));
-            }
+            // NOOP: Nothing to do in block render context - offsets handled in CanvasBuilder / VertexCollectorList
         }
     }
 

@@ -9,12 +9,12 @@ import com.mojang.blaze3d.platform.GLX;
 
 import grondag.canvas.core.RenderPipelineImpl;
 
-public class SimpleBuffer extends AbstractBuffer implements AllocationProvider {
+public class VboBuffer extends BindableBuffer implements AllocationProvider {
     ByteBuffer uploadBuffer;
     
     int byteOffset = 0;
     
-    SimpleBuffer(int bytes) {
+    VboBuffer(int bytes) {
         uploadBuffer = MemoryUtil.memAlloc(bytes);
     }
     
@@ -46,7 +46,8 @@ public class SimpleBuffer extends AbstractBuffer implements AllocationProvider {
     
     @Override
     public void claimAllocation(RenderPipelineImpl pipeline, int byteCount, Consumer<AbstractBufferDelegate<?>> consumer) {
-        consumer.accept(new SimpleBufferDelegate(this, byteOffset, byteCount));
+        // PERF: reuse delegates
+        consumer.accept(new VboBufferDelegate(this, byteOffset, byteCount));
         byteOffset += byteCount;
     }
 }

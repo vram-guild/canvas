@@ -20,7 +20,7 @@ import java.util.HashMap;
 
 import grondag.canvas.RenderMaterialImpl.Finder;
 import grondag.canvas.RenderMaterialImpl.Value;
-import grondag.canvas.buffering.BufferManager;
+import grondag.canvas.buffering.VboBufferManager;
 import grondag.canvas.core.PipelineManager;
 import grondag.canvas.core.RenderPipelineImpl;
 import grondag.canvas.mesh.MeshBuilderImpl;
@@ -89,7 +89,7 @@ public class RendererImpl implements ExtendedRenderer, RenderReloadCallback {
     public void reload() {
         Canvas.INSTANCE.getLog().info(I18n.translate("misc.info_reloading"));
         PipelineManager.INSTANCE.forceReload();
-        BufferManager.forceReload();
+        VboBufferManager.forceReload();
     }
 
     @Override

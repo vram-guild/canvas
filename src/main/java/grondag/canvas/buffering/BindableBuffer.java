@@ -1,6 +1,5 @@
 package grondag.canvas.buffering;
 
-import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -9,7 +8,7 @@ import com.mojang.blaze3d.platform.GLX;
 
 import grondag.canvas.opengl.GLBufferStore;
 
-public abstract class AbstractBuffer {
+public abstract class BindableBuffer extends AllocableBuffer {
     protected static int nextID = 0;
 
     private int glBufferId = -1;
@@ -70,6 +69,4 @@ public abstract class AbstractBuffer {
             glBufferId = -1;
         }
     }
-
-    protected abstract ByteBuffer byteBuffer();
 }

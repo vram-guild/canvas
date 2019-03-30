@@ -140,6 +140,7 @@ public class DrawableDelegate {
         ByteBuffer buffer = bufferDelegate.buffer.byteBuffer();
         final int baseOffset = bufferDelegate.byteOffset();
         buffer.position(baseOffset);
+        GlStateManager.enableClientState(GL11.GL_VERTEX_ARRAY);
         GlStateManager.vertexPointer(3, VertexFormatElement.Format.FLOAT.getGlId(), format.vertexStrideBytes, buffer);
         format.enableAndBindAttributes(buffer, baseOffset);
     }

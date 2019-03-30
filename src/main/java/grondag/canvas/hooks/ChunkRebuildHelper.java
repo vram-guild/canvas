@@ -7,11 +7,11 @@ import java.util.Set;
 import com.google.common.collect.Sets;
 
 import grondag.canvas.core.FluidBufferBuilder;
-import net.minecraft.class_852;
 import net.minecraft.block.BlockRenderLayer;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.chunk.BlockLayeredBufferBuilder;
+import net.minecraft.client.render.chunk.ChunkOcclusionGraphBuilder;
 import net.minecraft.util.math.BlockPos;
 
 public class ChunkRebuildHelper {
@@ -24,7 +24,7 @@ public class ChunkRebuildHelper {
     public final HashSet<BlockEntity> tileEntities = Sets.newHashSet();
     public final Set<BlockEntity> tileEntitiesToAdd = Sets.newHashSet();
     public final Set<BlockEntity> tileEntitiesToRemove = Sets.newHashSet();
-    public final class_852 visGraph = new class_852();
+    public final ChunkOcclusionGraphBuilder visGraph = new ChunkOcclusionGraphBuilder();
     public final Random random = new Random();
     private final BufferBuilder[] builders = new BufferBuilder[BLOCK_RENDER_LAYER_COUNT];
     public final FluidBufferBuilder fluidBuilder = new FluidBufferBuilder();

@@ -8,7 +8,7 @@ public abstract class UploadableChunk<V extends DrawableChunk> {
 
     /** Does not retain packing list reference */
     protected UploadableChunk(BufferPackingList packingList, VertexCollectorList collectorList) {
-        delegates = BufferPacker.pack(packingList, collectorList, BufferManager.ALLOCATION_MANAGER.getAllocator(packingList.totalBytes()));
+        delegates = BufferPacker.pack(packingList, collectorList, VboBufferManager.ALLOCATION_MANAGER.getAllocator(packingList.totalBytes()));
     }
 
     /**

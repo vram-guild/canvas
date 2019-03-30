@@ -4,10 +4,10 @@ import org.spongepowered.asm.mixin.Mixin;
 
 import grondag.canvas.hooks.VisibilityMap;
 import grondag.canvas.mixinext.ChunkVisibility;
-import net.minecraft.class_854;
+import net.minecraft.client.render.chunk.ChunkOcclusionGraph;
 
-@Mixin(class_854.class)
-public abstract class MixinChunkVisibility implements ChunkVisibility {
+@Mixin(ChunkOcclusionGraph.class)
+public abstract class MixinChunkOcclusionGraph implements ChunkVisibility {
     private Object visibilityData = null;
 
     @Override

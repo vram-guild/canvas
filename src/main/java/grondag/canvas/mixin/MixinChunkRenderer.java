@@ -41,8 +41,6 @@ import grondag.canvas.hooks.ChunkRenderDataStore;
 import grondag.canvas.mixinext.ChunkRenderDataExt;
 import grondag.canvas.mixinext.ChunkRendererExt;
 import grondag.canvas.render.TerrainRenderContext;
-import net.minecraft.class_852;
-import net.minecraft.class_854;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockRenderLayer;
 import net.minecraft.block.BlockRenderType;
@@ -55,6 +53,8 @@ import net.minecraft.client.render.block.BlockModelRenderer;
 import net.minecraft.client.render.block.BlockRenderManager;
 import net.minecraft.client.render.block.entity.BlockEntityRenderDispatcher;
 import net.minecraft.client.render.block.entity.BlockEntityRenderer;
+import net.minecraft.client.render.chunk.ChunkOcclusionGraph;
+import net.minecraft.client.render.chunk.ChunkOcclusionGraphBuilder;
 import net.minecraft.client.render.chunk.ChunkRenderData;
 import net.minecraft.client.render.chunk.ChunkRenderTask;
 import net.minecraft.client.render.chunk.ChunkRenderer;
@@ -134,8 +134,8 @@ public abstract class MixinChunkRenderer implements AccessChunkRenderer, ChunkRe
     }
 
     // shouldn't be necessary if rebuild chunk hook works, but insurance if not
-    @Redirect(method = "rebuildChunk", require = 1, at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/chunk/ChunkRenderData;method_3640(Lnet/minecraft/class_854;)V"))
-    private void onSetVisibility(ChunkRenderData compiledChunk, class_854 chunkVisibility) {
+    @Redirect(method = "rebuildChunk", require = 1, at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/chunk/ChunkRenderData;method_3640(Lnet/minecraft/client/render/chunk/ChunkOcclusionGraph;)V"))
+    private void onSetVisibility(ChunkRenderData compiledChunk, ChunkOcclusionGraph chunkVisibility) {
         compiledChunk.method_3640(chunkVisibility);
         ((ChunkRenderDataExt) compiledChunk).canvas_mergeRenderLayers();
     }
@@ -197,7 +197,7 @@ public abstract class MixinChunkRenderer implements AccessChunkRenderer, ChunkRe
                 chunkRenderTask.getLock().unlock();
             }
 
-            class_852 visibilityData = new class_852();
+            ChunkOcclusionGraphBuilder visibilityData = new ChunkOcclusionGraphBuilder();
             HashSet<BlockEntity> blockEntities = Sets.newHashSet();
 
             
@@ -232,7 +232,7 @@ public abstract class MixinChunkRenderer implements AccessChunkRenderer, ChunkRe
                             BlockState blockState = safeWorldView.getBlockState(searchPos);
                             Block block = blockState.getBlock();
                             if (blockState.isFullOpaque(safeWorldView, searchPos)) {
-                                visibilityData.method_3682(searchPos);
+                                visibilityData.markClosed(searchPos);
                             }
 
                             if (block.hasBlockEntity()) {
@@ -303,7 +303,7 @@ public abstract class MixinChunkRenderer implements AccessChunkRenderer, ChunkRe
                 BlockModelRenderer.disableBrightnessCache();
             }
 
-            chunkRenderData.method_3640(visibilityData.method_3679());
+            chunkRenderData.method_3640(visibilityData.build());
             ((ChunkRenderDataExt)chunkRenderData).canvas_mergeRenderLayers();
             this.chunkRenderLock.lock();
 

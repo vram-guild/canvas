@@ -10,7 +10,11 @@ import it.unimi.dsi.fastutil.ints.AbstractIntComparator;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 /**
- * Accumulates and renders delegates in pipeline, buffer order.
+ * Accumulates and renders delegates in pipeline, buffer order.<p>
+ * 
+ * Note there is no translucent version of this, because translucent
+ * must always be rendered in quad-sort order and thus we don't accumulate
+ * multiple chunks or models into a single collection.
  */
 public class SolidRenderList implements Consumer<ObjectArrayList<DrawableDelegate>> {
     private static final ArrayDeque<SolidRenderList> POOL = new ArrayDeque<>();
@@ -84,6 +88,8 @@ public class SolidRenderList implements Consumer<ObjectArrayList<DrawableDelegat
             final DrawableDelegate b = (DrawableDelegate) delegates[i];
             lastBufferId = b.bind(lastBufferId);
             b.draw();
+            
+            //PERF: release delegates
         }
         list.clear();
     }

@@ -12,8 +12,8 @@ import grondag.fermion.functions.PrimitiveFunctions.ObjToIntFunction;
 import it.unimi.dsi.fastutil.ints.IntArrayFIFOQueue;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import grondag.frex.api.core.ModelHelper;
-import net.minecraft.class_852;
-import net.minecraft.class_854;
+import net.minecraft.client.render.chunk.ChunkOcclusionGraph;
+import net.minecraft.client.render.chunk.ChunkOcclusionGraphBuilder;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 
@@ -22,9 +22,9 @@ public class VisibilityHooks {
     public static final int[] EXTERIOR_INDICES;
     static
     {
-        VisibilityDataExt visData = (VisibilityDataExt) new class_852();
-        INDEX_FUNCTION = visData.indexFunction();
-        EXTERIOR_INDICES = visData.exteriorIndices();
+        VisibilityDataExt visData = (VisibilityDataExt) new ChunkOcclusionGraphBuilder();
+        INDEX_FUNCTION = visData.canvas_pack();
+        EXTERIOR_INDICES = visData.canvas_edgePoints();
     }
     
     @SuppressWarnings("unchecked")
@@ -36,25 +36,25 @@ public class VisibilityHooks {
         }
     }
 
-    public static class_854 computeVisiblityExt(class_852 visDataIn) {
+    public static ChunkOcclusionGraph computeVisiblityExt(ChunkOcclusionGraphBuilder visDataIn) {
         VisibilityDataExt visData = (VisibilityDataExt) visDataIn;
-        class_854 setvisibility = new class_854();
+        ChunkOcclusionGraph setvisibility = new ChunkOcclusionGraph();
 
-        if (4096 - visData.getEmptyCount() < 256) {
-            setvisibility.method_3694(true); // set all visible
+        if (4096 - visData.canvas_openCount() < 256) {
+            setvisibility.fill(true); // set all visible
             ((ChunkVisibility) setvisibility).setVisibilityData(DirectionSet.ALL);
-        } else if (visData.getEmptyCount() == 0) {
-            setvisibility.method_3694(false);
+        } else if (visData.canvas_openCount() == 0) {
+            setvisibility.fill(false);
             ((ChunkVisibility) setvisibility).setVisibilityData(DirectionSet.NONE);
         } else {
-            final BitSet bitSet = visData.bitSet();
+            final BitSet bitSet = visData.canvas_closed();
             VisibilityMap facingMap = VisibilityMap.claim();
 
             for (int i : EXTERIOR_INDICES) {
                 if (!bitSet.get(i)) {
                     final Pair<Set<Direction>, IntArrayList> floodResult = floodFill(visData, i);
                     final Set<Direction> fillSet = floodResult.getLeft();
-                    setvisibility.method_3693(fillSet); // set multiple visible
+                    setvisibility.addOpenEdgeFaces(fillSet); // set multiple visible
                     byte setIndex = (byte) DirectionSet.sharedIndex(fillSet);
                     final IntArrayList list = floodResult.getRight();
                     final int limit = list.size();
@@ -82,7 +82,7 @@ public class VisibilityHooks {
     };
 
     private static Pair<Set<Direction>, IntArrayList> floodFill(VisibilityDataExt visData, int pos) {
-        final BitSet bitSet = visData.bitSet();
+        final BitSet bitSet = visData.canvas_closed();
         final Helpers help = helpers.get();
         Set<Direction> set = help.faces;
         set.clear();
@@ -100,12 +100,12 @@ public class VisibilityHooks {
 
         while (!queue.isEmpty()) {
             int i = queue.dequeueInt();
-            visData.addExteriorToSet(i, set);
+            visData.canvas_addEdgeFaces(i, set);
 
             for (int f = 0; f < 6; f++) {
                 final Direction enumfacing = ModelHelper.faceFromIndex(f);
 
-                int j = visData.getNeighborIndex(i, enumfacing);
+                int j = visData.canvas_offset(i, enumfacing);
 
                 if (j >= 0 && !bitSet.get(j)) {
                     bitSet.set(j, true);

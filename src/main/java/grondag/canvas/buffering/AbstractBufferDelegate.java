@@ -2,7 +2,7 @@ package grondag.canvas.buffering;
 
 import java.nio.IntBuffer;
 
-abstract class AbstractBufferDelegate<T extends AbstractBuffer> {
+public abstract class AbstractBufferDelegate<T extends AllocableBuffer> {
     protected final int byteCount;
     protected final int byteOffset;
     protected final T buffer;
@@ -29,54 +29,24 @@ abstract class AbstractBufferDelegate<T extends AbstractBuffer> {
         return this.byteOffset;
     }
 
-    public final int glBufferId() {
-        return buffer.glBufferId();
-    }
-
     /** chunk will populate this buffer with vertex data. Will be used off thread. */
     public final IntBuffer intBuffer() {
         return buffer.byteBuffer().asIntBuffer();
     }
 
-    /**
-     * True if buffer has been fully released and recycled.  Disposed buffers cannot be used.
-     */
-    public final boolean isDisposed() {
-        return buffer.isDisposed();
-    }
+    protected abstract void lockForUpload();
 
-    public final void bind() {
-        buffer.bind();
-    }
+    protected abstract void unlockForUpload();
 
-    /**
-     * Uploads or flushes to GPU, depending on the type of buffer. Always called from main thread.
-     */
-    public final void flush() {
-        buffer.flush();
-    }
-    
-    /**
-     * Signals the buffer is in use. May be called off-thread.
-     */
-    public final void retain(DrawableDelegate drawableChunkDelegate) {
-        buffer.retain(drawableChunkDelegate);
-    }
+    protected abstract void retain(DrawableDelegate result);
 
-    /**
-     * Signals the buffer will no longer be used. May be called off-thread.
-     */
-    public final void release(DrawableDelegate drawableChunkDelegate) {
-        buffer.release(drawableChunkDelegate);
-    }
+    protected abstract int glBufferId();
 
-    /** called before chunk populates int buffer(). May be called off thread */
-    public final void lockForUpload() {
-//        buffer.bufferLock.lock();
-    }
+    protected abstract void bind();
 
-    /** called after chunk populates int buffer(). May be called off thread */
-    public final void unlockForUpload() {
-//        buffer.bufferLock.unlock();
-    }
+    protected abstract boolean isDisposed();
+
+    protected abstract void release(DrawableDelegate drawableDelegate);
+
+    protected abstract void flush();
 }

@@ -18,10 +18,10 @@ buildscript {
 
 // see https://github.com/passsy/gradle-GitVersioner
 ext.gitVersioner = [
-        defaultBranch           : "frex",  // default "master"
-        stableBranches          : ["frex"], // default [], the feature branch postfix (-dm4(6)) will not be appended on stable branches, all commits are included into the version number calculation
+        defaultBranch           : "master",  // default "master"
+        stableBranches          : ["master"], // default [], the feature branch postfix (-dm4(6)) will not be appended on stable branches, all commits are included into the version number calculation
         yearFactor              : 1200, 	  // default "1000", increasing every 8.57h
-        snapshotEnabled         : true,      // default false, the "-SNAPSHOT" postfix
+        snapshotEnabled         : false,      // default false, the "-SNAPSHOT" postfix
         localChangesCountEnabled: false,       // default false, the (<commitCount>) before -SNAPSHOT
         shortName: { gitVersion ->            // optional closure to build a short name
           // allows you to add your own short name logic
@@ -85,15 +85,15 @@ sourceSets {
 }
 
 dependencies {
-	minecraft "com.mojang:minecraft:19w11b"
-	mappings "net.fabricmc:yarn:19w11b.12"
+	minecraft "com.mojang:minecraft:19w13b"
+	mappings "net.fabricmc:yarn:19w13b.1"
 	modCompile "net.fabricmc:fabric-loader:0.3.7.109"
-	modCompile "net.fabricmc:fabric:0.2.3.111"
-	modCompile "grondag:frex:0.1.83-alpha"
-	modCompile "grondag:fermion:0.1.254-alpha"
+	modCompile "net.fabricmc:fabric:0.2.6.117"
+	modCompile "grondag:frex:0.1.112-alpha"
+	modCompile "grondag:fermion:0.1.288-alpha"
 	
 	// should be removed before release
-	modCompile "grondag:renderbender:0.1.73-alpha"
+	modCompile "grondag:renderbender:0.1.107-alpha"
 }
 
 // Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
