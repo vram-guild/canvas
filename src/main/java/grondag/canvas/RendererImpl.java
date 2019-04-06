@@ -17,6 +17,7 @@
 package grondag.canvas;
 
 import java.util.HashMap;
+import java.util.function.BooleanSupplier;
 
 import grondag.canvas.RenderMaterialImpl.Finder;
 import grondag.canvas.RenderMaterialImpl.Value;
@@ -27,6 +28,7 @@ import grondag.canvas.mesh.MeshBuilderImpl;
 import grondag.frex.api.extended.ExtendedRenderer;
 import grondag.frex.api.extended.Pipeline;
 import grondag.frex.api.extended.PipelineBuilder;
+import grondag.frex.api.extended.RenderCondition;
 import grondag.frex.api.extended.RenderReloadCallback;
 import grondag.frex.api.core.MeshBuilder;
 import grondag.frex.api.core.RenderMaterial;
@@ -56,6 +58,8 @@ public class RendererImpl implements ExtendedRenderer, RenderReloadCallback {
     private final HashMap<Identifier, Value> materialMap = new HashMap<>();
 
     private final HashMap<Identifier, RenderPipelineImpl> pipelineMap = new HashMap<>();
+    
+    private final HashMap<Identifier, RenderConditionImpl> conditionMap = new HashMap<>();
     
     private RendererImpl() {
         RenderReloadCallback.EVENT.register(this);
@@ -109,5 +113,24 @@ public class RendererImpl implements ExtendedRenderer, RenderReloadCallback {
         // cast to prevent acceptance of impostor implementations
         pipelineMap.put(id, (RenderPipelineImpl) pipeline);
         return true;
+    }
+
+    @Override
+    public RenderCondition createCondition(BooleanSupplier supplier, boolean affectBlocks, boolean affectItems) {
+        return new RenderConditionImpl(supplier, affectBlocks, affectItems);
+    }
+    
+    @Override
+    public boolean registerCondition(Identifier id, RenderCondition condition) {
+        if (conditionMap.containsKey(id))
+            return false;
+        // cast to prevent acceptance of impostor implementations
+        conditionMap.put(id, (RenderConditionImpl) condition);
+        return true;
+    }
+    
+    @Override
+    public RenderCondition conditionById(Identifier id) {
+        return conditionMap.get(id);
     }
 }

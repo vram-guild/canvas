@@ -20,11 +20,12 @@ import grondag.canvas.core.PipelineManager;
 import grondag.canvas.core.RenderPipelineImpl;
 import grondag.fermion.varia.BitPacker64;
 import grondag.fermion.varia.BitPacker64.BooleanElement;
+import grondag.frex.api.core.RenderMaterial;
 import grondag.frex.api.extended.ExtendedMaterialFinder;
 import grondag.frex.api.extended.Pipeline;
+import grondag.frex.api.extended.RenderCondition;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import grondag.frex.api.core.RenderMaterial;
 import net.minecraft.block.BlockRenderLayer;
 
 public abstract class RenderMaterialImpl {
@@ -53,6 +54,8 @@ public abstract class RenderMaterialImpl {
     private static final BitPacker64<RenderMaterialImpl>.IntElement SPRITE_DEPTH;
     
     private static final BitPacker64<RenderMaterialImpl>.IntElement PIPELINE;
+    
+    private static final BitPacker64<RenderMaterialImpl>.IntElement CONDITION;
     
     private static final long DEFAULT_BITS;
     
@@ -100,6 +103,7 @@ public abstract class RenderMaterialImpl {
         
         SPRITE_DEPTH = BITPACKER.createIntElement(1, MAX_SPRITE_DEPTH);
         PIPELINE = BITPACKER.createIntElement(PipelineManager.MAX_PIPELINES);
+        CONDITION = BITPACKER.createIntElement(RenderConditionImpl.MAX_CONDITIONS);
         
         long defaultBits = 0;
         defaultBits = BLEND_MODES[0].setValue(null, defaultBits);
@@ -172,6 +176,8 @@ public abstract class RenderMaterialImpl {
          */
         public final int renderLayerIndex;
         
+        public final RenderConditionImpl condition;
+        
         public RenderPipelineImpl pipeline;
         
         private final Value[] blockLayerVariants = new Value[4];
@@ -180,6 +186,7 @@ public abstract class RenderMaterialImpl {
             this.index = index;
             this.bits = bits;
             this.pipeline = pipeline;
+            this.condition = RenderConditionImpl.fromIndex(CONDITION.getValue(bits));
             setupBlockLayerVariants();
             hasAo = !disableAo(0) || (spriteDepth() > 1 && !disableAo(1)) || (spriteDepth() == 3 && !disableAo(2));
             emissiveFlags = (emissive(0) ? 1 : 0) | (emissive(1) ? 2 : 0) | (emissive(2) ? 4 : 0);
@@ -356,6 +363,12 @@ public abstract class RenderMaterialImpl {
         @Override
         public Finder pipeline(Pipeline pipeline) {
             this.pipeline = (RenderPipelineImpl) pipeline;
+            return this;
+        }
+
+        @Override
+        public ExtendedMaterialFinder condition(RenderCondition condition) {
+            CONDITION.setValue(((RenderConditionImpl)condition).index, this);
             return this;
         }
     }

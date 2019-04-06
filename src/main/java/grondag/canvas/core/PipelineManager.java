@@ -62,6 +62,16 @@ public final class PipelineManager implements ClientTickCallback {
     private float fractionalTicks;
 
     /**
+     * Count of client ticks observed by renderer since last restart.
+     */
+    private int tickIndex = 0;
+    
+    /**
+     * Count of frames observed by renderer since last restart.
+     */
+    private int frameIndex = 0;
+    
+    /**
      * Gamma-corrected max light from lightmap texture.  
      * Updated whenever lightmap texture is updated.
      */
@@ -145,6 +155,14 @@ public final class PipelineManager implements ClientTickCallback {
         return this.pipelineCount;
     }
 
+    public final int tickIndex() {
+        return tickIndex;
+    }
+    
+    public final int frameIndex() {
+        return frameIndex;
+    }
+    
     private void addStandardUniforms(RenderPipelineImpl pipeline) {
         pipeline.uniform1f("u_time", UniformRefreshFrequency.PER_FRAME, u -> u.set(renderSeconds));
 
@@ -193,12 +211,14 @@ public final class PipelineManager implements ClientTickCallback {
 
     @Override
     public void tick(MinecraftClient client) {
+        tickIndex++;
         for (int i = 0; i < this.pipelineCount; i++) {
             pipelines[i].onGameTick();
         }
     }
     
     public void onRenderTick() {
+        frameIndex++;
         for (int i = 0; i < this.pipelineCount; i++) {
             pipelines[i].onRenderTick();
         }
