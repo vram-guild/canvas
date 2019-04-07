@@ -14,10 +14,8 @@
  * the License.
  ******************************************************************************/
 
-//TODO: remove?
-
 package grondag.canvas.mixinext;
 
-public class FogStateHolder {
-    public static AccessFogState INSTANCE;
+public class FogStateExtHolder {
+    public static FogStateExt INSTANCE;
 }

@@ -14,8 +14,6 @@
  * the License.
  ******************************************************************************/
 
-//TODO: remove?
-
 package grondag.canvas.mixin;
 
 import org.spongepowered.asm.mixin.Mixin;
@@ -24,29 +22,17 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import grondag.canvas.mixinext.AccessFogState;
-import grondag.canvas.mixinext.FogStateHolder;
+import grondag.canvas.mixinext.FogStateExt;
+import grondag.canvas.mixinext.FogStateExtHolder;
 
 @Mixin(targets = "com.mojang.blaze3d.platform.GlStateManager$FogState")
-public abstract class MixinFogState implements AccessFogState {
+public abstract class MixinFogState implements FogStateExt {
     @Override
     @Accessor
     public abstract int getMode();
-
-    @Override
-    @Accessor
-    public abstract float getDensity();
-
-    @Override
-    @Accessor
-    public abstract float getStart();
-
-    @Override
-    @Accessor
-    public abstract float getEnd();
     
     @Inject(method = "<init>*", require = 1, at = @At("RETURN"))
     private void onConstructed(CallbackInfo ci) {
-        FogStateHolder.INSTANCE = ((AccessFogState) (Object) this);
+        FogStateExtHolder.INSTANCE = ((FogStateExt) (Object) this);
     }
 }

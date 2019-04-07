@@ -21,7 +21,7 @@ import org.joml.Vector3f;
 import grondag.canvas.Configurator;
 import grondag.canvas.RenderMaterialImpl;
 import grondag.canvas.buffering.VboBufferManager;
-import grondag.canvas.mixinext.FogStateHolder;
+import grondag.canvas.mixinext.FogStateExtHolder;
 import grondag.frex.api.extended.UniformRefreshFrequency;
 import net.fabricmc.fabric.api.event.client.ClientTickCallback;
 import net.minecraft.client.MinecraftClient;
@@ -196,7 +196,7 @@ public final class PipelineManager implements ClientTickCallback {
         });
         
         pipeline.uniform1i("u_fogMode", UniformRefreshFrequency.PER_FRAME, u -> {
-            u.set(FogStateHolder.INSTANCE.getMode());
+            u.set(FogStateExtHolder.INSTANCE.getMode());
         });
     }
 
