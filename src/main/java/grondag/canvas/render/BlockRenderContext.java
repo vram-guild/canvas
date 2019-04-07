@@ -23,8 +23,8 @@ import java.util.function.ToIntBiFunction;
 
 import grondag.canvas.RenderMaterialImpl;
 import grondag.canvas.aocalc.AoCalculator;
+import grondag.canvas.buffering.VertexCollector;
 import grondag.canvas.core.CanvasBufferBuilder;
-import grondag.canvas.core.VertexCollector;
 import grondag.frex.api.core.FabricBakedModel;
 import grondag.frex.api.core.Mesh;
 import grondag.frex.api.core.QuadEmitter;
@@ -73,7 +73,7 @@ public class BlockRenderContext extends AbstractRenderContext implements RenderC
 
     private VertexCollector getCollector(RenderMaterialImpl.Value mat) {
         didOutput = true;
-        return canvasBuilder.vcList.get(mat.pipeline);
+        return canvasBuilder.vcList.get(mat);
     }
 
     public boolean tesselate(BlockModelRenderer vanillaRenderer, TerrainBlockView blockView, BakedModel model,

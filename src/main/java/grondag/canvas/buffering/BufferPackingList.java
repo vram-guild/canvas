@@ -1,22 +1,32 @@
 package grondag.canvas.buffering;
 
+import java.util.Arrays;
 import java.util.function.Consumer;
 
-import grondag.canvas.core.RenderPipelineImpl;
+import grondag.canvas.core.ConditionalPipeline;
 
 /**
  * Tracks number of vertices, pipeline and sequence thereof within a buffer.
  */
 public class BufferPackingList {
+    private int[] starts = new int[16];
     private int[] counts = new int[16];
-    private RenderPipelineImpl[] pipelines = new RenderPipelineImpl[16];
-
+    private ConditionalPipeline[] pipelines = new ConditionalPipeline[16];
+    
     private int size = 0;
     private int totalBytes = 0;
-
+    
+    BufferPackingList() {
+        
+    }
+    
     public void clear() {
         this.size = 0;
         this.totalBytes = 0;
+        //PERF: remove
+        Arrays.fill(starts, 0);
+        Arrays.fill(counts, 0);
+        Arrays.fill(pipelines, null);
     }
 
     public int size() {
@@ -42,40 +52,49 @@ public class BufferPackingList {
         return this.totalBytes;
     }
 
-    public void addPacking(RenderPipelineImpl pipeline, int vertexCount) {
+    public void addPacking(ConditionalPipeline conditionalPipeline, int startVertex, int vertexCount) {
         if (size == this.pipelines.length) {
-            final int iCopy[] = new int[size * 2];
-            System.arraycopy(this.counts, 0, iCopy, 0, size);
-            this.counts = iCopy;
+            final int cCopy[] = new int[size * 2];
+            System.arraycopy(this.counts, 0, cCopy, 0, size);
+            this.counts = cCopy;
 
-            final RenderPipelineImpl pCopy[] = new RenderPipelineImpl[size * 2];
+            final int sCopy[] = new int[size * 2];
+            System.arraycopy(this.starts, 0, sCopy, 0, size);
+            this.starts = sCopy;
+            
+            final ConditionalPipeline pCopy[] = new ConditionalPipeline[size * 2];
             System.arraycopy(this.pipelines, 0, pCopy, 0, size);
             this.pipelines = pCopy;
         }
-        this.pipelines[size] = pipeline;
+        this.pipelines[size] = conditionalPipeline;
+        this.starts[size] = startVertex;
         this.counts[size] = vertexCount;
-        this.totalBytes += pipeline.piplineVertexFormat().vertexStrideBytes * vertexCount;
+        this.totalBytes += conditionalPipeline.pipeline.piplineVertexFormat().vertexStrideBytes * vertexCount;
         this.size++;
     }
 
     public final void forEach(BufferPacker consumer) {
         final int size = this.size;
         for (int i = 0; i < size; i++) {
-            consumer.accept(this.pipelines[i], this.counts[i]);
+            consumer.accept(this.pipelines[i], this.starts[i], this.counts[i]);
         }
     }
 
-    public final void forEachPipeline(Consumer<RenderPipelineImpl> consumer) {
+    public final void forEachPipeline(Consumer<ConditionalPipeline> consumer) {
         final int size = this.size;
         for (int i = 0; i < size; i++)
             consumer.accept(this.pipelines[i]);
     }
 
-    public final RenderPipelineImpl getPipeline(int index) {
+    public final ConditionalPipeline getPipeline(int index) {
         return this.pipelines[index];
     }
 
     public final int getCount(int index) {
         return this.counts[index];
+    }
+    
+    public final int getStart(int index) {
+        return this.starts[index];
     }
 }

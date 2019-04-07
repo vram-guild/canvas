@@ -96,9 +96,9 @@ public enum PipelineVertexFormat {
         int offset = 0;
         int index = 1;
         for (PipelineVertextFormatElement e : elements) {
-            if (e.attributeName != null)
-                GL20.glVertexAttribPointer(index++, e.elementCount, e.glConstant, e.isNormalized, vertexStrideBytes,
-                        bufferOffset + offset);
+            if (e.attributeName != null) {
+                GL20.glVertexAttribPointer(index++, e.elementCount, e.glConstant, e.isNormalized, vertexStrideBytes, bufferOffset + offset);
+            }
             offset += e.byteSize;
         }
     }
@@ -106,8 +106,9 @@ public enum PipelineVertexFormat {
     public void bindProgramAttributes(int programID) {
         int index = 1;
         for (PipelineVertextFormatElement e : elements) {
-            if (e.attributeName != null)
+            if (e.attributeName != null) {
                 GL20.glBindAttribLocation(programID, index++, e.attributeName);
+            }
         }
     }
 }

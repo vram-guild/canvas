@@ -24,7 +24,7 @@ import grondag.canvas.RenderMaterialImpl;
 import grondag.canvas.RenderMaterialImpl.Value;
 import grondag.canvas.RendererImpl;
 import grondag.canvas.aocalc.AoCalculator;
-import grondag.canvas.core.VertexCollector;
+import grondag.canvas.buffering.VertexCollector;
 import grondag.canvas.mesh.EncodingFormat;
 import grondag.canvas.mesh.MeshImpl;
 import grondag.canvas.mesh.MutableQuadViewImpl;
@@ -61,9 +61,7 @@ public abstract class AbstractMeshConsumer extends AbstractQuadRenderer implemen
         // only used via RenderContext.getEmitter()
         @Override
         public Maker emit() {
-            if (blockInfo.shouldDrawFace(this.cullFace())) {
-                renderQuad();
-            }
+            renderQuad();
             clear();
             return this;
         }

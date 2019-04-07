@@ -12,10 +12,10 @@ import com.mojang.blaze3d.platform.GlStateManager;
 
 import grondag.canvas.buffering.BufferPacker;
 import grondag.canvas.buffering.BufferPackingList;
+import grondag.canvas.buffering.VertexCollectorList;
 import grondag.canvas.core.CanvasBufferBuilder;
 import grondag.canvas.core.Program;
 import grondag.canvas.core.SolidRenderList;
-import grondag.canvas.core.VertexCollectorList;
 import grondag.canvas.opengl.CanvasGlHelper;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.Tessellator;

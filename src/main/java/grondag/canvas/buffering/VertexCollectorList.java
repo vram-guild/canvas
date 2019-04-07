@@ -1,26 +1,35 @@
-package grondag.canvas.core;
+package grondag.canvas.buffering;
 
 import java.util.Comparator;
 import java.util.PriorityQueue;
 import java.util.function.Consumer;
 
-import grondag.canvas.buffering.BufferPackingList;
-import grondag.canvas.buffering.UploadableChunk;
+import grondag.canvas.RenderMaterialImpl;
+import grondag.canvas.core.ConditionalPipeline;
+import grondag.canvas.core.RenderCube;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.util.math.MathHelper;
 
 public class VertexCollectorList {
-    private static final Comparator<VertexCollector> vertexCollectionComparator = new Comparator<VertexCollector>() {
+    private static final Comparator<VertexCollector> translucentComparator = new Comparator<VertexCollector>() {
         @Override
         public int compare(VertexCollector o1, VertexCollector o2) {
             // note reverse order - take most distant first
             return Double.compare(o2.firstUnpackedDistance(), o1.firstUnpackedDistance());
         }
     };
+    
+    private static final Comparator<VertexCollector> solidComparator = new Comparator<VertexCollector>() {
+        @Override
+        public int compare(VertexCollector o1, VertexCollector o2) {
+            return Integer.compare(o1.pipeline().index, o2.pipeline().index);
+        }
+    };
 
     private static final ThreadLocal<PriorityQueue<VertexCollector>> sorters = new ThreadLocal<PriorityQueue<VertexCollector>>() {
         @Override
         protected PriorityQueue<VertexCollector> initialValue() {
-            return new PriorityQueue<VertexCollector>(vertexCollectionComparator);
+            return new PriorityQueue<VertexCollector>(translucentComparator);
         }
 
         @Override
@@ -34,12 +43,13 @@ public class VertexCollectorList {
     /**
      * Fast lookup of buffers by pipeline index. Null in CUTOUT layer buffers.
      */
-    private VertexCollector[] vertexCollectors = new VertexCollector[PipelineManager.MAX_PIPELINES];
+    private VertexCollector[] vertexCollectors = new VertexCollector[ConditionalPipeline.MAX_CONDITIONAL_PIPELINES];
 
     private final BufferPackingList packingList = new BufferPackingList();
     
-    private int maxIndex = -1;
-
+    private final ObjectArrayList<VertexCollector> emptyCollectors = new ObjectArrayList<>();
+    private final ObjectArrayList<VertexCollector> usedCollectors = new ObjectArrayList<>();
+    
     /** used in transparency layer sorting - updated with player eye coordinates */
     private double viewX;
     /** used in transparency layer sorting - updated with player eye coordinates */
@@ -62,16 +72,16 @@ public class VertexCollectorList {
         renderOriginY = 0;
         renderOriginZ = 0;
 
-        final int limit = maxIndex;
-        if (limit == -1)
-            return;
-
-        maxIndex = -1;
-        for (int i = 0; i <= limit; i++) {
-            VertexCollector vc = vertexCollectors[i];
-            if(vc != null) {
-                vc.clear();
-            }
+        // PERF: track used conditional pipelines and only iterate those
+        
+        while(!usedCollectors.isEmpty()) {
+            VertexCollector vc = usedCollectors.pop();
+            if(vc != vertexCollectors[vc.pipeline().index]) {
+                System.out.println("boop");
+            } 
+            vertexCollectors[vc.pipeline().index] = null;
+            vc.clear();
+            emptyCollectors.push(vc);
         }
     }
 
@@ -82,7 +92,7 @@ public class VertexCollectorList {
     }
 
     public final boolean isEmpty() {
-        return this.maxIndex == -1;
+        return usedCollectors.isEmpty();
     }
 
     /**
@@ -112,33 +122,32 @@ public class VertexCollectorList {
         renderOriginZ = z;
     }
 
-    public final VertexCollector get(RenderPipelineImpl pipeline) {
-        return get(pipeline.getIndex());
+    public final VertexCollector get(RenderMaterialImpl.Value material) {
+        return get(ConditionalPipeline.get(material.pipeline, material.condition));
     }
     
-    public final VertexCollector get(int pipelineIndex) {
-        if (pipelineIndex > maxIndex) {
-            maxIndex = pipelineIndex;
-        }
-        
-        VertexCollector result = vertexCollectors[pipelineIndex];
+    public final VertexCollector get(ConditionalPipeline conditionalPipeline) {
+        final int conditionalIndex = conditionalPipeline.index;
+        VertexCollector result = vertexCollectors[conditionalIndex];
         if(result == null) {
-            result = new VertexCollector(PipelineManager.INSTANCE.getPipelineByIndex(pipelineIndex), this);
-            vertexCollectors[pipelineIndex] = result;
+            result = emptyCollector().prepare(conditionalPipeline);
+            vertexCollectors[conditionalIndex] = result;
+            usedCollectors.add(result);
         }
         return result;
     }
-
+    
+    private VertexCollector emptyCollector() {
+        return emptyCollectors.isEmpty() ? new VertexCollector(this) : emptyCollectors.pop();
+    }
+    
     public final void forEachExisting(Consumer<VertexCollector> consumer) {
-        final int limit = maxIndex;
-        if (limit == -1)
+        final int limit = usedCollectors.size();
+        if (limit == 0)
             return;
 
-        for (int i = 0; i <= limit; i++) {
-            VertexCollector vc = vertexCollectors[i];
-            if (vc == null)
-                continue;
-            consumer.accept(vc);
+        for (int i = 0; i < limit; i++) {
+            consumer.accept(usedCollectors.get(i));
         }
     }
 
@@ -149,15 +158,17 @@ public class VertexCollectorList {
     public final BufferPackingList packingListSolid() {
         final BufferPackingList packing = this.packingList;
         packing.clear();
-
+        
         // NB: for solid render, relying on pipelines being added to packing in
         // numerical order so that
         // all chunks can iterate pipelines independently while maintaining same
         // pipeline order within chunk
+        this.usedCollectors.sort(solidComparator);
+        
         forEachExisting(vertexCollector -> {
             final int vertexCount = vertexCollector.vertexCount();
             if (vertexCount != 0)
-                packing.addPacking(vertexCollector.pipeline(), vertexCount);
+                packing.addPacking(vertexCollector.pipeline(), 0, vertexCount);
         });
         return packing;
     }
@@ -196,13 +207,14 @@ public class VertexCollectorList {
         // exploit special case when only one transparent pipeline in this render chunk
         if (sorter.size() == 1) {
             VertexCollector only = sorter.poll();
-            packing.addPacking(only.pipeline(), only.vertexCount());
+            packing.addPacking(only.pipeline(), 0, only.vertexCount());
         } else if (sorter.size() != 0) {
             VertexCollector first = sorter.poll();
             VertexCollector second = sorter.poll();
             do {
                 // x4 because packing is vertices vs quads
-                packing.addPacking(first.pipeline(), 4 * first.unpackUntilDistance(second.firstUnpackedDistance()));
+                final int startVertex = first.sortReadIndex() * 4;
+                packing.addPacking(first.pipeline(), startVertex, 4 * first.unpackUntilDistance(second.firstUnpackedDistance()));
 
                 if (first.hasUnpackedSortedQuads())
                     sorter.add(first);
@@ -212,7 +224,8 @@ public class VertexCollectorList {
 
             } while (second != null);
 
-            packing.addPacking(first.pipeline(), 4 * first.unpackUntilDistance(Double.MIN_VALUE));
+            final int startVertex = first.sortReadIndex() * 4;
+            packing.addPacking(first.pipeline(), startVertex, 4 * first.unpackUntilDistance(Double.MIN_VALUE));
         }
         return packing;
     }
@@ -225,19 +238,24 @@ public class VertexCollectorList {
     public int[][] getCollectorState(int[][] priorState) {
         int[][] result = priorState;
 
-        if (result == null || result.length != maxIndex + 1)
-            result = new int[maxIndex + 1][0];
-
-        for (int i = 0; i <= maxIndex; i++)
-            result[i] = this.vertexCollectors[i].saveState(result[i]);
-
+        final int limit = usedCollectors.size();
+        if (result == null || result.length != limit) {
+            result = new int[limit][0];
+        }
+        
+        for (int i = 0; i < limit; i++) {
+            VertexCollector vc = this.usedCollectors.get(i);
+            result[i] = vc == null ? null : vc.saveState(result[i]);
+        }
+        
         return result;
     }
 
     public void loadCollectorState(int[][] stateData) {
-        maxIndex = stateData.length - 1;
-        for (int i = 0; i <= maxIndex; i++) {
-            get(i).loadState(stateData[i]);
+        for (int[] data : stateData) {
+            VertexCollector vc = emptyCollector().loadState(data);
+            usedCollectors.add(vc);
+            vertexCollectors[vc.pipeline().index] = vc;
         }
     }
 }

@@ -2,6 +2,8 @@ package grondag.canvas.buffering;
 
 import java.util.function.Consumer;
 
+import grondag.canvas.core.ConditionalPipeline;
+import grondag.canvas.core.PipelineManager;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 /**
@@ -51,7 +53,7 @@ public abstract class DrawableChunk {
             final int limit = delegates.size();
             for(int i = 0; i < limit; i++) {
                 DrawableDelegate d = delegates.get(i);
-                result += d.bufferDelegate().byteCount() / d.getPipeline().piplineVertexFormat().vertexStrideBytes / 4;
+                result += d.bufferDelegate().byteCount() / d.getPipeline().pipeline.piplineVertexFormat().vertexStrideBytes / 4;
             }
             quadCount = result;
         }
@@ -101,27 +103,31 @@ public abstract class DrawableChunk {
         public Translucent(ObjectArrayList<DrawableDelegate> delegates) {
             super(delegates);
         }
-
+        //PERF: don't rebind attributes if sharing format - just advance the vertex index
         public void renderChunkTranslucent() {
             if (isCleared)
                 return;
 
             final int limit = delegates.size();
-
+            
             if (limit == 0)
                 return;
 
             final Object[] draws = delegates.elements();
 
             int lastBufferId = -1;
-
+            final int frameIndex = PipelineManager.INSTANCE.frameIndex();
+            
             // using conventional loop here to prevent iterator garbage in hot loop
             // profiling shows it matters
             for (int i = 0; i < limit; i++) {
                 final DrawableDelegate b = (DrawableDelegate) draws[i];
-                b.getPipeline().activate(false);
-                lastBufferId = b.bind(lastBufferId);
-                b.draw();
+                ConditionalPipeline p = b.getPipeline();
+                if(!p.condition.affectBlocks || p.condition.compute(frameIndex)) {
+                    p.pipeline.activate(false);
+                    lastBufferId = b.bind(lastBufferId);
+                    b.draw();
+                }
             }
         }
     }

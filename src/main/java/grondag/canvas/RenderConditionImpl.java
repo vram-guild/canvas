@@ -8,7 +8,7 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 public class RenderConditionImpl implements RenderCondition {
     public static final int MAX_CONDITIONS = 64;
     private static final ObjectArrayList<RenderConditionImpl> ALL_BY_INDEX = new ObjectArrayList<RenderConditionImpl>();
-    public static final RenderConditionImpl ALWAYS = new RenderConditionImpl(() -> true, true, true);
+    public static final RenderConditionImpl ALWAYS = new RenderConditionImpl(() -> true, false, false);
     
     public static RenderConditionImpl fromIndex(int index) {
         return ALL_BY_INDEX.get(index);

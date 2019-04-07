@@ -1,6 +1,5 @@
 package grondag.canvas.buffering;
 
-import grondag.canvas.core.VertexCollectorList;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 public abstract class UploadableChunk<V extends DrawableChunk> {
@@ -50,8 +49,9 @@ public abstract class UploadableChunk<V extends DrawableChunk> {
         @Override
         public DrawableChunk.Translucent produceDrawable() {
             final int limit = delegates.size();
-            for (int i = 0; i < limit; i++)
+            for (int i = 0; i < limit; i++) {
                 delegates.get(i).flush();
+            }
             return new DrawableChunk.Translucent(delegates);
         }
     }

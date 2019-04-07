@@ -4,8 +4,11 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.lang3.tuple.Pair;
 
+import grondag.canvas.RenderMaterialImpl;
 import grondag.canvas.buffering.DrawableChunk;
 import grondag.canvas.buffering.UploadableChunk;
+import grondag.canvas.buffering.VertexCollector;
+import grondag.canvas.buffering.VertexCollectorList;
 import grondag.canvas.mixin.AccessBufferBuilder;
 import net.minecraft.block.BlockRenderLayer;
 import net.minecraft.client.render.BufferBuilder;
@@ -131,17 +134,18 @@ public class CompoundBufferBuilder extends BufferBuilder {
         
         if (this.layer == BlockRenderLayer.SOLID)
             collectors.get().getLeft().clear();
-        else
+        else {
             collectors.get().getRight().clear();
+        }
     }
 
     // PERF: avoid doing a threadlocal lookup per quad
-    public VertexCollector getVertexCollector(RenderPipelineImpl pipeline) {
+    public VertexCollector getVertexCollector(RenderMaterialImpl.Value material) {
         if (this.proxy != null)
-            return this.proxy.getVertexCollector(pipeline);
+            return this.proxy.getVertexCollector(material);
 
-        return this.layer == BlockRenderLayer.SOLID ? collectors.get().getLeft().get(pipeline)
-                : collectors.get().getRight().get(pipeline);
+        return this.layer == BlockRenderLayer.SOLID ? collectors.get().getLeft().get(material)
+                : collectors.get().getRight().get(material);
     }
 
     public void beginIfNotAlreadyDrawing(int glMode, VertexFormat format) {

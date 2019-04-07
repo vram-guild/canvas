@@ -7,6 +7,7 @@ import grondag.canvas.buffering.AbstractBufferDelegate;
 import grondag.canvas.buffering.AllocableBuffer;
 import grondag.canvas.buffering.AllocationProvider;
 import grondag.canvas.buffering.DrawableDelegate;
+import grondag.canvas.buffering.VertexCollectorList;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.VertexFormat;
 import net.minecraft.client.util.GlAllocationUtils;
@@ -53,7 +54,7 @@ public class CanvasBufferBuilder extends BufferBuilder implements AllocationProv
     }
     
     @Override
-    public void claimAllocation(RenderPipelineImpl pipeline, int byteCount, Consumer<AbstractBufferDelegate<?>> consumer) {
+    public void claimAllocation(ConditionalPipeline pipeline, int byteCount, Consumer<AbstractBufferDelegate<?>> consumer) {
         final int newOffset = byteOffset + byteCount;
         
         consumer.accept(new CanvasBufferDelegate(canvasBuffer, byteOffset, byteCount));

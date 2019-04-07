@@ -30,12 +30,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import com.google.common.collect.Sets;
 
+import grondag.canvas.RendererImpl;
 import grondag.canvas.accessor.AccessChunkRenderer;
 import grondag.canvas.buffering.DrawableChunk.Solid;
 import grondag.canvas.buffering.DrawableChunk.Translucent;
 import grondag.canvas.core.CompoundBufferBuilder;
 import grondag.canvas.core.FluidBufferBuilder;
-import grondag.canvas.core.PipelineManager;
 import grondag.canvas.hooks.ChunkRebuildHelper;
 import grondag.canvas.hooks.ChunkRenderDataStore;
 import grondag.canvas.mixinext.ChunkRenderDataExt;
@@ -262,7 +262,7 @@ public abstract class MixinChunkRenderer implements AccessChunkRenderer, ChunkRe
                                 renderLayer = fluidState.getRenderLayer();
                                 renderLayerIndex = renderLayer.ordinal();
                                 CompoundBufferBuilder cbb = renderContext.chunkInfo.getInitializedBuffer(renderLayerIndex, searchPos);
-                                FluidBufferBuilder fluidBuilder = help.fluidBuilder.prepare(cbb.getVertexCollector(PipelineManager.INSTANCE.defaultSinglePipeline), searchPos, renderLayer);
+                                FluidBufferBuilder fluidBuilder = help.fluidBuilder.prepare(cbb.getVertexCollector(RendererImpl.MATERIAL_STANDARD), searchPos, renderLayer);
                                 blockRenderManager.tesselateFluid(searchPos, safeWorldView, fluidBuilder, fluidState);
                             }
 

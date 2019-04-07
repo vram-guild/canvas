@@ -3,6 +3,7 @@ package grondag.canvas.core;
 import java.nio.ByteBuffer;
 
 import grondag.canvas.RendererImpl;
+import grondag.canvas.buffering.VertexCollector;
 import grondag.canvas.helper.ColorHelper;
 import grondag.canvas.helper.NormalHelper;
 import net.minecraft.block.BlockRenderLayer;

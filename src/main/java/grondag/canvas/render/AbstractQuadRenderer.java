@@ -23,7 +23,7 @@ import java.util.function.ToIntBiFunction;
 
 import grondag.canvas.RenderMaterialImpl;
 import grondag.canvas.aocalc.AoCalculator;
-import grondag.canvas.core.VertexCollector;
+import grondag.canvas.buffering.VertexCollector;
 import grondag.canvas.helper.ColorHelper;
 import grondag.canvas.mesh.MutableQuadViewImpl;
 import grondag.frex.api.core.RenderContext.QuadTransform;
@@ -64,6 +64,10 @@ public abstract class AbstractQuadRenderer {
         final MutableQuadViewImpl q = editorQuad;
         
         if (!transform.transform(q)) {
+            return;
+        }
+        
+        if (!blockInfo.shouldDrawFace(q.cullFace())) {
             return;
         }
 

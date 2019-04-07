@@ -184,7 +184,7 @@ public abstract class AbstractPipelinedRenderList {
 
         if (chunkCount == 0)
             return;
-
+        
         preRenderSetup();
 
         for (int i = 0; i < chunkCount; i++) {

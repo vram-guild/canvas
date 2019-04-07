@@ -1,8 +1,8 @@
-package grondag.canvas.core;
+package grondag.canvas.buffering;
 
 import com.google.common.primitives.Doubles;
 
-import grondag.canvas.core.RenderPipelineImpl;
+import grondag.canvas.core.ConditionalPipeline;
 import it.unimi.dsi.fastutil.Swapper;
 import it.unimi.dsi.fastutil.ints.AbstractIntComparator;
 import net.minecraft.util.math.BlockPos;
@@ -10,8 +10,8 @@ import net.minecraft.util.math.BlockPos;
 public class VertexCollector {
     private int[] data;
     private int integerSize = 0;
-    private final RenderPipelineImpl pipeline;
-    final VertexCollectorList parent;
+    private ConditionalPipeline conditionalPipeline;
+    public final VertexCollectorList parent;
 
     /**
      * Holds per-quad distance after {@link #sortQuads(double, double, double)} is
@@ -24,19 +24,29 @@ public class VertexCollector {
      * After {@link #sortQuads(float, float, float)} is called this will be zero.
      */
     private int sortReadIndex = 0;
+    
+    /**
+     * Cached value of {@link #quadCount()}, set when quads are sorted by distance.
+     */
+    private int sortMaxIndex = 0;
 
-    public VertexCollector(RenderPipelineImpl pipeline, VertexCollectorList parent) {
+    public VertexCollector(VertexCollectorList parent) {
         data = new int[0x10000];
         this.parent = parent;
-        this.pipeline = pipeline;
+    }
+    
+    public VertexCollector prepare(ConditionalPipeline pipeline) {
+        this.conditionalPipeline = pipeline;
+        return this;
     }
 
     public void clear() {
         this.integerSize = 0;
+        this.conditionalPipeline = null;
     }
 
-    public RenderPipelineImpl pipeline() {
-        return this.pipeline;
+    public ConditionalPipeline pipeline() {
+        return this.conditionalPipeline;
     }
 
     public int byteSize() {
@@ -48,7 +58,11 @@ public class VertexCollector {
     }
 
     public int vertexCount() {
-        return this.integerSize * 4 / this.pipeline.piplineVertexFormat().vertexStrideBytes;
+        return this.integerSize * 4 / this.conditionalPipeline.pipeline.piplineVertexFormat().vertexStrideBytes;
+    }
+    
+    public int quadCount() {
+        return vertexCount() / 4;
     }
 
     public int[] rawData() {
@@ -84,7 +98,7 @@ public class VertexCollector {
     }
 
     public final void pos(final BlockPos pos, float modelX, float modelY, float modelZ) {
-        this.checkForSize(this.pipeline.piplineVertexFormat().vertexStrideBytes);
+        this.checkForSize(this.conditionalPipeline.pipeline.piplineVertexFormat().vertexStrideBytes);
         this.add((float)(pos.getX() - parent.renderOriginX + modelX));
         this.add((float)(pos.getY() - parent.renderOriginY + modelY));
         this.add((float)(pos.getZ() - parent.renderOriginZ + modelZ));
@@ -121,7 +135,7 @@ public class VertexCollector {
         private void doSort(VertexCollector caller, double x, double y, double z) {
             // works because 4 bytes per int
             data = caller.data;
-            quadIntStride = caller.pipeline.piplineVertexFormat().vertexStrideBytes;
+            quadIntStride = caller.conditionalPipeline.pipeline.piplineVertexFormat().vertexStrideBytes;
             final int vertexIntStride = quadIntStride / 4;
             final int quadCount = caller.vertexCount() / 4;
             if (perQuadDistance.length < quadCount)
@@ -152,6 +166,7 @@ public class VertexCollector {
     public void sortQuads(double x, double y, double z) {
         quadSorter.get().doSort(this, x, y, z);
         this.sortReadIndex = 0;
+        this.sortMaxIndex = this.quadCount();
     }
 
     private double getDistanceSq(double x, double y, double z, int integerStride, int vertexIndex) {
@@ -184,8 +199,15 @@ public class VertexCollector {
         return dx * dx + dy * dy + dz * dz;
     }
 
+    /**
+     * Index of first quad that will be referenced by {@link #unpackUntilDistance(double)}
+     */
+    public int sortReadIndex() {
+        return this.sortReadIndex;
+    }
+    
     public boolean hasUnpackedSortedQuads() {
-        return this.perQuadDistance != null && this.sortReadIndex < this.perQuadDistance.length;
+        return this.perQuadDistance != null && this.sortReadIndex < this.sortMaxIndex;
     }
 
     /**
@@ -209,7 +231,8 @@ public class VertexCollector {
             return 0;
 
         int result = 0;
-        while (sortReadIndex < perQuadDistance.length && minDistanceSquared <= perQuadDistance[sortReadIndex]) {
+        final int limit = this.sortMaxIndex;
+        while (sortReadIndex < limit && minDistanceSquared <= perQuadDistance[sortReadIndex]) {
             result++;
             sortReadIndex++;
         }
@@ -217,22 +240,26 @@ public class VertexCollector {
     }
 
     public int[] saveState(int[] priorState) {
+        final int outputSize = integerSize + 1;
         int[] result = priorState;
-        if (result == null || result.length != integerSize)
-            result = new int[integerSize];
+        if (result == null || result.length != outputSize)
+            result = new int[outputSize];
 
+        result[0] = conditionalPipeline.index;
         if (integerSize > 0)
-            System.arraycopy(data, 0, result, 0, integerSize);
+            System.arraycopy(data, 0, result, 1, integerSize);
         return result;
     }
 
-    public void loadState(int[] stateData) {
-        final int newSize = stateData.length;
+    public VertexCollector loadState(int[] stateData) {
+        this.conditionalPipeline = ConditionalPipeline.get(stateData[0]);
+        final int newSize = stateData.length - 1;
         integerSize = 0;
         if (newSize > 0) {
             checkForSize(newSize);
             integerSize = newSize;
-            System.arraycopy(stateData, 0, data, 0, newSize);
+            System.arraycopy(stateData, 1, data, 0, newSize);
         }
+        return this;
     }
 }

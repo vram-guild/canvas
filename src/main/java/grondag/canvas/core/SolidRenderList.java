@@ -3,6 +3,7 @@ package grondag.canvas.core;
 import java.util.ArrayDeque;
 import java.util.function.Consumer;
 
+import grondag.canvas.RenderConditionImpl;
 import grondag.canvas.buffering.DrawableDelegate;
 import it.unimi.dsi.fastutil.Arrays;
 import it.unimi.dsi.fastutil.Swapper;
@@ -29,7 +30,8 @@ public class SolidRenderList implements Consumer<ObjectArrayList<DrawableDelegat
     private final ObjectArrayList<DrawableDelegate>[] pipelineLists;
 
     private SolidRenderList() {
-        final int size = PipelineManager.INSTANCE.pipelineCount();
+        final int size = PipelineManager.INSTANCE.pipelineCount() * ConditionalPipeline.MAX_CONDITIONAL_PIPELINES;
+        // PERF: probably need something more compact now with conditional pipelines
         @SuppressWarnings("unchecked")
         ObjectArrayList<DrawableDelegate>[] buffers = new ObjectArrayList[size];
         for (int i = 0; i < size; i++) {
@@ -80,15 +82,18 @@ public class SolidRenderList implements Consumer<ObjectArrayList<DrawableDelegat
         sorter.delegates = delegates;
         Arrays.quickSort(0, limit, sorter, sorter);
 
-        ((DrawableDelegate) delegates[0]).getPipeline().activate(true);
+        ((DrawableDelegate) delegates[0]).getPipeline().pipeline.activate(true);
 
         int lastBufferId = -1;
+        final int frameIndex = PipelineManager.INSTANCE.frameIndex();
 
         for (int i = 0; i < limit; i++) {
             final DrawableDelegate b = (DrawableDelegate) delegates[i];
-            lastBufferId = b.bind(lastBufferId);
-            b.draw();
-            
+            final RenderConditionImpl condition = b.getPipeline().condition;
+            if(!condition.affectBlocks || condition.compute(frameIndex)) {
+                lastBufferId = b.bind(lastBufferId);
+                b.draw();
+            }
             //PERF: release delegates
         }
         list.clear();
@@ -108,7 +113,7 @@ public class SolidRenderList implements Consumer<ObjectArrayList<DrawableDelegat
         final int limit = delegates.size();
         for (int i = 0; i < limit; i++) {
             DrawableDelegate d =  delegates.get(i);
-            pipelineLists[d.getPipeline().getIndex()].add(d);
+            pipelineLists[d.getPipeline().index].add(d);
         }
     }
 }

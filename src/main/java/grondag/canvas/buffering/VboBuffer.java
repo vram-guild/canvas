@@ -7,7 +7,7 @@ import org.lwjgl.system.MemoryUtil;
 
 import com.mojang.blaze3d.platform.GLX;
 
-import grondag.canvas.core.RenderPipelineImpl;
+import grondag.canvas.core.ConditionalPipeline;
 
 public class VboBuffer extends BindableBuffer implements AllocationProvider {
     ByteBuffer uploadBuffer;
@@ -45,7 +45,7 @@ public class VboBuffer extends BindableBuffer implements AllocationProvider {
     }
     
     @Override
-    public void claimAllocation(RenderPipelineImpl pipeline, int byteCount, Consumer<AbstractBufferDelegate<?>> consumer) {
+    public void claimAllocation(ConditionalPipeline pipeline, int byteCount, Consumer<AbstractBufferDelegate<?>> consumer) {
         // PERF: reuse delegates
         consumer.accept(new VboBufferDelegate(this, byteOffset, byteCount));
         byteOffset += byteCount;

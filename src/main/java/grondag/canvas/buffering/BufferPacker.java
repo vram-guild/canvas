@@ -2,8 +2,7 @@ package grondag.canvas.buffering;
 
 import java.nio.IntBuffer;
 
-import grondag.canvas.core.RenderPipelineImpl;
-import grondag.canvas.core.VertexCollectorList;
+import grondag.canvas.core.ConditionalPipeline;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 public class BufferPacker {
@@ -11,7 +10,6 @@ public class BufferPacker {
     
     ObjectArrayList<DrawableDelegate> delegates;
     VertexCollectorList collectorList;
-    int intOffset = 0;
     AllocationProvider allocator;
     
     private BufferPacker() {
@@ -26,14 +24,15 @@ public class BufferPacker {
         packer.collectorList = collectorList;
         packer.allocator = allocator;
         packingList.forEach(packer);
+        packer.delegates = null;
+        packer.collectorList = null;
+        packer.allocator = null;
         return result;
     }
 
-    public void accept(RenderPipelineImpl pipeline, int vertexCount) {
-        final int stride = pipeline.piplineVertexFormat().vertexStrideBytes;
-        // array offset will be zero unless multiple buffers are needed
-        intOffset = 0;
-        allocator.claimAllocation(pipeline, vertexCount * stride, ref -> {
+    public void accept(ConditionalPipeline conditionalPipeline, int vertexStart, int vertexCount) {
+        final int stride = conditionalPipeline.pipeline.piplineVertexFormat().vertexStrideBytes;
+        allocator.claimAllocation(conditionalPipeline, vertexCount * stride, ref -> {
             final int byteOffset = ref.byteOffset();
             final int byteCount = ref.byteCount();
             final int intLength = byteCount / 4;
@@ -41,11 +40,10 @@ public class BufferPacker {
             ref.lockForUpload();
             final IntBuffer intBuffer = ref.intBuffer();
             intBuffer.position(byteOffset / 4);
-            intBuffer.put(collectorList.get(pipeline).rawData(), intOffset, intLength);
+            intBuffer.put(collectorList.get(conditionalPipeline).rawData(), vertexStart * stride / 4, intLength);
             ref.unlockForUpload();
 
-            intOffset += intLength;
-            delegates.add(DrawableDelegate.claim(ref, pipeline, byteCount / stride));
+            delegates.add(DrawableDelegate.claim(ref, conditionalPipeline, byteCount / stride));
         });
     }
 }

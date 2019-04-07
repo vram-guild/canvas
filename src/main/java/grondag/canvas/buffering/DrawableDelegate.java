@@ -8,8 +8,8 @@ import org.lwjgl.opengl.GL11;
 
 import com.mojang.blaze3d.platform.GlStateManager;
 
+import grondag.canvas.core.ConditionalPipeline;
 import grondag.canvas.core.PipelineVertexFormat;
-import grondag.canvas.core.RenderPipelineImpl;
 import grondag.canvas.opengl.CanvasGlHelper;
 import grondag.canvas.opengl.VaoStore;
 import net.minecraft.client.render.VertexFormatElement;
@@ -17,13 +17,13 @@ import net.minecraft.client.render.VertexFormatElement;
 public class DrawableDelegate {
     private static final ArrayBlockingQueue<DrawableDelegate> store = new ArrayBlockingQueue<DrawableDelegate>(4096);
     
-    public static DrawableDelegate claim(AbstractBufferDelegate<?> bufferDelegate, RenderPipelineImpl pipeline, int vertexCount) {
+    public static DrawableDelegate claim(AbstractBufferDelegate<?> bufferDelegate, ConditionalPipeline pipeline, int vertexCount) {
         DrawableDelegate result = store.poll();
         if(result == null) {
             result = new DrawableDelegate();
         }
         result.bufferDelegate = bufferDelegate;
-        result.pipeline = pipeline;
+        result.conditionalPipeline = pipeline;
         result.vertexCount = vertexCount;
         result.isReleased = false;
         result.vertexBinder = bufferDelegate.isVbo() 
@@ -34,7 +34,7 @@ public class DrawableDelegate {
     }
 
     private AbstractBufferDelegate<?> bufferDelegate;
-    private RenderPipelineImpl pipeline;
+    private ConditionalPipeline conditionalPipeline;
     private int vertexCount;
     private boolean isReleased = false;
     private Consumer<PipelineVertexFormat> vertexBinder;
@@ -64,8 +64,8 @@ public class DrawableDelegate {
     /**
      * The pipeline (and vertex format) associated with this delegate.
      */
-    public RenderPipelineImpl getPipeline() {
-        return this.pipeline;
+    public ConditionalPipeline getPipeline() {
+        return this.conditionalPipeline;
     }
 
     /**
@@ -81,7 +81,7 @@ public class DrawableDelegate {
             lastBufferId = this.bufferDelegate.glBufferId();
         }
 
-        this.vertexBinder.accept(pipeline.piplineVertexFormat());
+        this.vertexBinder.accept(conditionalPipeline.pipeline.piplineVertexFormat());
         
         return lastBufferId;
     }
@@ -108,7 +108,7 @@ public class DrawableDelegate {
                 vaoBufferId = -1;
             }
             bufferDelegate = null;
-            pipeline =  null;
+            conditionalPipeline =  null;
             store.offer(this);
         }
     }
