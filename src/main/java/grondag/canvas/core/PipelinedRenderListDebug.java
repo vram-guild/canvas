@@ -39,8 +39,8 @@ public class PipelinedRenderListDebug extends AbstractPipelinedRenderList {
     @Override
     public final void addChunkRenderer(ChunkRenderer renderChunkIn, BlockRenderLayer layer) {
         chunkCounter++;
-        DrawableChunk vertexbuffer = layer == BlockRenderLayer.SOLID ? ((ChunkRendererExt) renderChunkIn).getSolidDrawable()
-                : ((ChunkRendererExt) renderChunkIn).getTranslucentDrawable();
+        DrawableChunk vertexbuffer = layer == BlockRenderLayer.SOLID ? ((ChunkRendererExt) renderChunkIn).canvas_solidDrawable()
+                : ((ChunkRendererExt) renderChunkIn).canvas_translucentDrawable();
         if (vertexbuffer == null)
             return;
         drawCounter += vertexbuffer.drawCount();

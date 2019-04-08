@@ -51,10 +51,10 @@ public abstract class MixinChunkBatcher {
 
         if (blockRenderLayer == BlockRenderLayer.SOLID)
             ((ChunkRendererExt) renderChunk)
-                    .setSolidDrawable((Solid) ((CompoundBufferBuilder) bufferBuilder).produceDrawable());
+                    .canvas_solidDrawable((Solid) ((CompoundBufferBuilder) bufferBuilder).produceDrawable());
         else
             ((ChunkRendererExt) renderChunk)
-                    .setTranslucentDrawable((Translucent) ((CompoundBufferBuilder) bufferBuilder).produceDrawable());
+                    .canvas_translucentDrawable((Translucent) ((CompoundBufferBuilder) bufferBuilder).produceDrawable());
 
         bufferBuilder.setOffset(0.0D, 0.0D, 0.0D);
         return Futures.<Object>immediateFuture((Object) null);

@@ -96,7 +96,7 @@ public abstract class AbstractPipelinedRenderList {
     }
 
     private void addSolidChunkInner(ChunkRenderer renderChunkIn, SolidRenderList solidList) {
-        final DrawableChunk.Solid solidDrawable = ((ChunkRendererExt) renderChunkIn).getSolidDrawable();
+        final DrawableChunk.Solid solidDrawable = ((ChunkRendererExt) renderChunkIn).canvas_solidDrawable();
         if (solidDrawable != null)
             solidDrawable.prepareSolidRender(solidList);
     }
@@ -205,7 +205,7 @@ public abstract class AbstractPipelinedRenderList {
 
         for (int i = 0; i < chunkCount; i++) {
             final ChunkRenderer renderchunk = chunks.get(i);
-            final DrawableChunk.Translucent drawable = ((ChunkRendererExt) renderchunk).getTranslucentDrawable();
+            final DrawableChunk.Translucent drawable = ((ChunkRendererExt) renderchunk).canvas_translucentDrawable();
             if (drawable == null)
                 continue;
             updateViewMatrix(renderchunk.getOrigin());

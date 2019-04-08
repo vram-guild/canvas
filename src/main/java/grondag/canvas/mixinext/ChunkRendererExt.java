@@ -17,15 +17,19 @@
 package grondag.canvas.mixinext;
 
 import grondag.canvas.buffering.DrawableChunk;
+import net.minecraft.client.render.BufferBuilder;
+import net.minecraft.util.math.BlockPos;
 
 public interface ChunkRendererExt {
-    void setSolidDrawable(DrawableChunk.Solid drawable);
+    void canvas_solidDrawable(DrawableChunk.Solid drawable);
 
-    void setTranslucentDrawable(DrawableChunk.Translucent drawable);
+    void canvas_translucentDrawable(DrawableChunk.Translucent drawable);
 
-    DrawableChunk.Solid getSolidDrawable();
+    DrawableChunk.Solid canvas_solidDrawable();
 
-    DrawableChunk.Translucent getTranslucentDrawable();
+    DrawableChunk.Translucent canvas_translucentDrawable();
 
-    void releaseDrawables();
+    void canvas_releaseDrawables();
+    
+    void canvas_beginBufferBuilding(BufferBuilder bufferBuilder_1, BlockPos blockPos_1);
 }

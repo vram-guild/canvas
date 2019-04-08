@@ -39,7 +39,7 @@ import grondag.canvas.buffering.VertexCollector;
 import grondag.canvas.core.CompoundBufferBuilder;
 import grondag.canvas.mesh.MutableQuadViewImpl;
 import grondag.canvas.mixinext.BufferBuilderExt;
-import grondag.canvas.mixinext.AccessChunkRenderer;
+import grondag.canvas.mixinext.ChunkRendererExt;
 import net.minecraft.block.Block.OffsetType;
 import net.minecraft.block.BlockRenderLayer;
 import net.minecraft.block.BlockState;
@@ -175,7 +175,7 @@ public class ChunkRenderInfo {
             BlockRenderLayer layer = LAYERS[layerIndex];
             if (!chunkData.isBufferInitialized(layer)) {
                 chunkData.markBufferInitialized(layer); // start buffer
-                ((AccessChunkRenderer) chunkRenderer).fabric_beginBufferBuilding(builder, pos);
+                ((ChunkRendererExt) chunkRenderer).canvas_beginBufferBuilding(builder, pos);
             }
             result = (BufferBuilderExt) builder;
         }

@@ -37,7 +37,6 @@ import grondag.canvas.core.CompoundBufferBuilder;
 import grondag.canvas.core.FluidBufferBuilder;
 import grondag.canvas.hooks.ChunkRebuildHelper;
 import grondag.canvas.hooks.ChunkRenderDataStore;
-import grondag.canvas.mixinext.AccessChunkRenderer;
 import grondag.canvas.mixinext.ChunkRenderDataExt;
 import grondag.canvas.mixinext.ChunkRendererExt;
 import grondag.canvas.render.TerrainRenderContext;
@@ -65,7 +64,7 @@ import net.minecraft.world.World;
 import net.minecraft.world.chunk.WorldChunk;
 
 @Mixin(ChunkRenderer.class)
-public abstract class MixinChunkRenderer implements AccessChunkRenderer, ChunkRendererExt {
+public abstract class MixinChunkRenderer implements ChunkRendererExt {
     @Shadow
     private volatile World world;
     @Shadow
@@ -97,12 +96,12 @@ public abstract class MixinChunkRenderer implements AccessChunkRenderer, ChunkRe
     // PERF: substitute our visibility graph
 
     @Override
-    public Solid getSolidDrawable() {
+    public Solid canvas_solidDrawable() {
         return solidDrawable;
     }
 
     @Override
-    public Translucent getTranslucentDrawable() {
+    public Translucent canvas_translucentDrawable() {
         return translucentDrawable;
     }
 
@@ -115,13 +114,13 @@ public abstract class MixinChunkRenderer implements AccessChunkRenderer, ChunkRe
     private void hookUpdateTransformationMatrix(CallbackInfo ci) {
         // this is called right after setting chunk position because it was moved in the frustum
         // let buffers in the chunk know they are no longer valid and can be released.
-        ((ChunkRendererExt) this).releaseDrawables();
+        ((ChunkRendererExt) this).canvas_releaseDrawables();
         ci.cancel();
     }
 
     @Inject(method = "delete", at = @At("RETURN"), require = 1)
     private void onDeleteGlResources(CallbackInfo ci) {
-        releaseDrawables();
+        canvas_releaseDrawables();
     }
 
     @Inject(method = "method_3665", require = 1, at = @At(value = "FIELD", opcode = Opcodes.PUTFIELD, target = "Lnet/minecraft/client/render/chunk/ChunkRenderer;chunkRenderData:Lnet/minecraft/client/render/chunk/ChunkRenderData;"))
@@ -150,17 +149,17 @@ public abstract class MixinChunkRenderer implements AccessChunkRenderer, ChunkRe
     }
 
     @Override
-    public void setSolidDrawable(Solid drawable) {
+    public void canvas_solidDrawable(Solid drawable) {
         solidDrawable = drawable;
     }
 
     @Override
-    public void setTranslucentDrawable(Translucent drawable) {
+    public void canvas_translucentDrawable(Translucent drawable) {
         translucentDrawable = drawable;
     }
 
     @Override
-    public void releaseDrawables() {
+    public void canvas_releaseDrawables() {
         if (solidDrawable != null) {
             solidDrawable.clear();
             solidDrawable = null;
@@ -345,7 +344,7 @@ public abstract class MixinChunkRenderer implements AccessChunkRenderer, ChunkRe
      * Access method for renderer.
      */
     @Override
-    public void fabric_beginBufferBuilding(BufferBuilder bufferBuilder, BlockPos blockPos) {
+    public void canvas_beginBufferBuilding(BufferBuilder bufferBuilder, BlockPos blockPos) {
         beginBufferBuilding(bufferBuilder, blockPos);
     }
 }
