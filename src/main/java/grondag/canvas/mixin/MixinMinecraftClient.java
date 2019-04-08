@@ -35,7 +35,7 @@ public abstract class MixinMinecraftClient implements MinecraftClientExt {
     DisableableProfiler profiler;
 
     @Override
-    public Profiler getProfiler() {
+    public Profiler canvas_profiler() {
         return profiler;
     }
 

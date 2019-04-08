@@ -61,7 +61,7 @@ public abstract class MixinChunkRenderData implements ChunkRenderDataExt {
         System.arraycopy(ChunkRebuildHelper.EMPTY_RENDER_LAYER_FLAGS, 0, initialized, 0,
                 ChunkRebuildHelper.BLOCK_RENDER_LAYER_COUNT);
         field_4455.fill(false); // set all false
-        ((ChunkVisibility) field_4455).setVisibilityData(null);
+        ((ChunkVisibility) field_4455).canvas_visibilityData(null);
         bufferState = null;
         blockEntities.clear();
     }
@@ -92,7 +92,7 @@ public abstract class MixinChunkRenderData implements ChunkRenderDataExt {
     }
 
     @Override
-    public ChunkVisibility getVisibilityData() {
+    public ChunkVisibility canvas_chunkVisibility() {
         return (ChunkVisibility) field_4455;
     }
 }

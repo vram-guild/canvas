@@ -27,19 +27,19 @@ public abstract class MixinChunkOcclusionGraph implements ChunkVisibility {
     private Object visibilityData = null;
 
     @Override
-    public Object getVisibilityData() {
+    public Object canvas_visibilityData() {
         return visibilityData;
     }
 
     @Override
-    public void setVisibilityData(Object data) {
-        releaseVisibilityData();
+    public void canvas_visibilityData(Object data) {
+        canvas_releaseVisibilityData();
         visibilityData = data;
     }
 
     /** reuse arrays to prevent garbage build up */
     @Override
-    public void releaseVisibilityData() {
+    public void canvas_releaseVisibilityData() {
         Object prior = visibilityData;
         if (prior != null && prior instanceof VisibilityMap) {
             VisibilityMap.release((VisibilityMap) prior);
@@ -49,6 +49,6 @@ public abstract class MixinChunkOcclusionGraph implements ChunkVisibility {
 
     @Override
     protected void finalize() {
-        releaseVisibilityData();
+        canvas_releaseVisibilityData();
     }
 }

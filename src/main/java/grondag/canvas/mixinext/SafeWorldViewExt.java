@@ -14,22 +14,16 @@
  * the License.
  ******************************************************************************/
 
-package grondag.canvas.mixin;
+package grondag.canvas.mixinext;
 
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
+import grondag.canvas.render.TerrainRenderContext;
 
-import grondag.canvas.mixinext.GameRendererExt;
-import net.minecraft.client.render.BackgroundRenderer;
-import net.minecraft.client.render.GameRenderer;
+/**
+ * Used to stash block renderer reference in local scope during chunk rebuild,
+ * thus avoiding repeated thread-local lookups.
+ */
+public interface SafeWorldViewExt {
+    TerrainRenderContext canvas_renderer();
 
-@Mixin(GameRenderer.class)
-public abstract class MixinGameRenderer implements GameRendererExt {
-    @Shadow
-    private BackgroundRenderer backgroundRenderer;
-
-    @Override
-    public BackgroundRenderer canvas_fogHelper() {
-        return backgroundRenderer;
-    }
+    void canvas_renderer(TerrainRenderContext renderer);
 }

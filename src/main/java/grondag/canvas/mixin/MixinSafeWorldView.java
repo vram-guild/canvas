@@ -18,21 +18,21 @@ package grondag.canvas.mixin;
 
 import org.spongepowered.asm.mixin.Mixin;
 
-import grondag.canvas.mixinext.AccessSafeWorldView;
+import grondag.canvas.mixinext.SafeWorldViewExt;
 import grondag.canvas.render.TerrainRenderContext;
 import net.minecraft.client.world.SafeWorldView;
 
 @Mixin(SafeWorldView.class)
-public abstract class MixinSafeWorldView implements AccessSafeWorldView {
+public abstract class MixinSafeWorldView implements SafeWorldViewExt {
     private TerrainRenderContext fabric_renderer;
 
     @Override
-    public TerrainRenderContext fabric_getRenderer() {
+    public TerrainRenderContext canvas_renderer() {
         return fabric_renderer;
     }
 
     @Override
-    public void fabric_setRenderer(TerrainRenderContext renderer) {
+    public void canvas_renderer(TerrainRenderContext renderer) {
         fabric_renderer = renderer;
     }
 }

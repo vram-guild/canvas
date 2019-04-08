@@ -58,10 +58,10 @@ public class VisibilityHooks {
 
         if (4096 - visData.canvas_openCount() < 256) {
             setvisibility.fill(true); // set all visible
-            ((ChunkVisibility) setvisibility).setVisibilityData(DirectionSet.ALL);
+            ((ChunkVisibility) setvisibility).canvas_visibilityData(DirectionSet.ALL);
         } else if (visData.canvas_openCount() == 0) {
             setvisibility.fill(false);
-            ((ChunkVisibility) setvisibility).setVisibilityData(DirectionSet.NONE);
+            ((ChunkVisibility) setvisibility).canvas_visibilityData(DirectionSet.NONE);
         } else {
             final BitSet bitSet = visData.canvas_closed();
             VisibilityMap facingMap = VisibilityMap.claim();
@@ -78,7 +78,7 @@ public class VisibilityHooks {
                         facingMap.setIndex(list.getInt(j), setIndex);
                 }
             }
-            ((ChunkVisibility) setvisibility).setVisibilityData(facingMap);
+            ((ChunkVisibility) setvisibility).canvas_visibilityData(facingMap);
         }
 
         return setvisibility;

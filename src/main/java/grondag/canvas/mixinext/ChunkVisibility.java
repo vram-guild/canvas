@@ -17,9 +17,9 @@
 package grondag.canvas.mixinext;
 
 public interface ChunkVisibility {
-    public Object getVisibilityData();
+    public Object canvas_visibilityData();
 
-    public void setVisibilityData(Object data);
+    public void canvas_visibilityData(Object data);
 
-    public void releaseVisibilityData();
+    public void canvas_releaseVisibilityData();
 }

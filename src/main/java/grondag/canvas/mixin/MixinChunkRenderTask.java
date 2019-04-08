@@ -22,7 +22,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import grondag.canvas.mixinext.AccessSafeWorldView;
+import grondag.canvas.mixinext.SafeWorldViewExt;
 import grondag.canvas.render.TerrainRenderContext;
 import net.minecraft.client.render.chunk.ChunkRenderTask;
 import net.minecraft.client.world.SafeWorldView;
@@ -49,7 +49,7 @@ public abstract class MixinChunkRenderTask {
         if (blockView != null) {
             final TerrainRenderContext renderer = TerrainRenderContext.POOL.get();
             renderer.setBlockView(blockView);
-            ((AccessSafeWorldView) blockView).fabric_setRenderer(renderer);
+            ((SafeWorldViewExt) blockView).canvas_renderer(renderer);
         }
     }
 }

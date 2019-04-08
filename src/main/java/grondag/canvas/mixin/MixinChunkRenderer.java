@@ -128,7 +128,7 @@ public abstract class MixinChunkRenderer implements ChunkRendererExt {
         if (chunkRenderData == null || chunkRenderData == ChunkRenderData.EMPTY || chunkDataIn == chunkRenderData)
             return;
 
-        ((ChunkRenderDataExt) chunkRenderData).getVisibilityData().releaseVisibilityData();
+        ((ChunkRenderDataExt) chunkRenderData).canvas_chunkVisibility().canvas_releaseVisibilityData();
         ChunkRenderDataStore.release(chunkRenderData);
     }
 
@@ -144,7 +144,7 @@ public abstract class MixinChunkRenderer implements ChunkRendererExt {
         if (chunkRenderData == null || chunkRenderData == ChunkRenderData.EMPTY)
             return;
 
-        ((ChunkRenderDataExt) chunkRenderData).getVisibilityData().releaseVisibilityData();
+        ((ChunkRenderDataExt) chunkRenderData).canvas_chunkVisibility().canvas_releaseVisibilityData();
         ChunkRenderDataStore.release(chunkRenderData);
     }
 

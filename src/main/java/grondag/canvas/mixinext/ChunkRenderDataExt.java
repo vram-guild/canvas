@@ -23,7 +23,7 @@ public interface ChunkRenderDataExt {
 
     void canvas_setNonEmpty(BlockRenderLayer blockRenderLayer);
 
-    ChunkVisibility getVisibilityData();
+    ChunkVisibility canvas_chunkVisibility();
 
     void canvas_mergeRenderLayers();
 }
