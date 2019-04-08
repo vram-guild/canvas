@@ -16,6 +16,7 @@
 
 package grondag.canvas.mixinext;
 
+import grondag.canvas.chunk.occlusion.ChunkOcclusionGraphExt;
 import net.minecraft.block.BlockRenderLayer;
 
 public interface ChunkRenderDataExt {
@@ -23,7 +24,7 @@ public interface ChunkRenderDataExt {
 
     void canvas_setNonEmpty(BlockRenderLayer blockRenderLayer);
 
-    ChunkVisibility canvas_chunkVisibility();
+    ChunkOcclusionGraphExt canvas_chunkVisibility();
 
     void canvas_mergeRenderLayers();
 }

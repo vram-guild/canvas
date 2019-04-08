@@ -14,7 +14,7 @@
  * the License.
  ******************************************************************************/
 
-package grondag.canvas.aocalc;
+package grondag.canvas.helper;
 
 import static net.minecraft.util.math.Direction.*;
 

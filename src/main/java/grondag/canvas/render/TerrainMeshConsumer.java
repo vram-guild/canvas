@@ -32,7 +32,7 @@
 
 package grondag.canvas.render;
 
-import grondag.canvas.aocalc.AoCalculator;
+import grondag.canvas.helper.AoCalculator;
 import grondag.frex.api.core.RenderContext.QuadTransform;
 
 public class TerrainMeshConsumer extends AbstractMeshConsumer {

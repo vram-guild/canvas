@@ -14,12 +14,26 @@
  * the License.
  ******************************************************************************/
 
-package grondag.canvas.mixinext;
+package grondag.canvas.chunk;
 
-public interface ChunkVisibility {
-    public Object canvas_visibilityData();
+import java.util.concurrent.ArrayBlockingQueue;
 
-    public void canvas_visibilityData(Object data);
+import grondag.canvas.mixinext.ChunkRenderDataExt;
+import net.minecraft.client.render.chunk.ChunkRenderData;
 
-    public void canvas_releaseVisibilityData();
+public class ChunkRenderDataStore {
+    private static final ArrayBlockingQueue<ChunkRenderData> chunks = new ArrayBlockingQueue<>(4096);
+
+    public static ChunkRenderData claim() {
+        ChunkRenderData result = chunks.poll();
+        if (result == null)
+            result = new ChunkRenderData();
+
+        return result;
+    }
+
+    public static void release(ChunkRenderData chunk) {
+        ((ChunkRenderDataExt) chunk).canvas_clear();
+        chunks.offer(chunk);
+    }
 }

@@ -39,7 +39,7 @@ import java.util.function.Supplier;
 
 import grondag.canvas.RenderMaterialImpl.Value;
 import grondag.canvas.RendererImpl;
-import grondag.canvas.aocalc.AoCalculator;
+import grondag.canvas.helper.AoCalculator;
 import grondag.canvas.helper.GeometryHelper;
 import grondag.canvas.mesh.EncodingFormat;
 import grondag.canvas.mesh.MutableQuadViewImpl;

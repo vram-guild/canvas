@@ -18,12 +18,12 @@ package grondag.canvas.mixin;
 
 import org.spongepowered.asm.mixin.Mixin;
 
-import grondag.canvas.hooks.VisibilityMap;
-import grondag.canvas.mixinext.ChunkVisibility;
+import grondag.canvas.chunk.occlusion.ChunkOcclusionGraphExt;
+import grondag.canvas.chunk.occlusion.ChunkOcclusionMap;
 import net.minecraft.client.render.chunk.ChunkOcclusionGraph;
 
 @Mixin(ChunkOcclusionGraph.class)
-public abstract class MixinChunkOcclusionGraph implements ChunkVisibility {
+public abstract class MixinChunkOcclusionGraph implements ChunkOcclusionGraphExt {
     private Object visibilityData = null;
 
     @Override
@@ -41,8 +41,8 @@ public abstract class MixinChunkOcclusionGraph implements ChunkVisibility {
     @Override
     public void canvas_releaseVisibilityData() {
         Object prior = visibilityData;
-        if (prior != null && prior instanceof VisibilityMap) {
-            VisibilityMap.release((VisibilityMap) prior);
+        if (prior != null && prior instanceof ChunkOcclusionMap) {
+            ChunkOcclusionMap.release((ChunkOcclusionMap) prior);
             visibilityData = null;
         }
     }

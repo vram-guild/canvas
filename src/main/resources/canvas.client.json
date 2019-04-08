@@ -10,6 +10,7 @@
     "MixinBufferBuilder",
     "MixinChunkBatcher",
 	"MixinChunkOcclusionGraph",
+	"MixinChunkOcclusionGraphBuilder",
     "MixinChunkRenderData",
 	"MixinChunkRenderer",
 	"MixinChunkRenderTask",
@@ -22,7 +23,6 @@
 	"MixinTessellator",
 	"MixinVboChunkRendererList",
 	"MixinVertexFormatElement",
-	"MixinVisibilityData",
 	"MixinWorldRenderer"
       ],
   "injectors": {

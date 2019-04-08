@@ -14,7 +14,7 @@
  * the License.
  ******************************************************************************/
 
-package grondag.canvas.hooks;
+package grondag.canvas.chunk.occlusion;
 
 import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -23,20 +23,20 @@ import it.unimi.dsi.fastutil.shorts.Short2ByteOpenHashMap;
 import net.minecraft.util.math.Direction;
 
 @SuppressWarnings("serial")
-public class VisibilityMap extends Short2ByteOpenHashMap {
-    private static ArrayBlockingQueue<VisibilityMap> visibilityMaps = new ArrayBlockingQueue<>(4096);
+public class ChunkOcclusionMap extends Short2ByteOpenHashMap {
+    private static ArrayBlockingQueue<ChunkOcclusionMap> occlusionMaps = new ArrayBlockingQueue<>(4096);
 
-    public static VisibilityMap claim() {
-        VisibilityMap result = visibilityMaps.poll();
+    public static ChunkOcclusionMap claim() {
+        ChunkOcclusionMap result = occlusionMaps.poll();
         if (result == null)
-            result = new VisibilityMap();
+            result = new ChunkOcclusionMap();
         else
             result.clear();
         return result;
     }
 
-    public static void release(VisibilityMap map) {
-        visibilityMaps.offer(map);
+    public static void release(ChunkOcclusionMap map) {
+        occlusionMaps.offer(map);
     }
 
     public Set<Direction> getFaceSet(int index) {

@@ -14,7 +14,7 @@
  * the License.
  ******************************************************************************/
 
-package grondag.canvas.aocalc;
+package grondag.canvas.helper;
 
 import static grondag.canvas.helper.GeometryHelper.AXIS_ALIGNED_FLAG;
 import static grondag.canvas.helper.GeometryHelper.CUBIC_FLAG;
@@ -28,7 +28,7 @@ import static net.minecraft.util.math.Direction.WEST;
 
 import java.util.function.ToIntBiFunction;
 
-import grondag.canvas.aocalc.AoFace.WeightFunction;
+import grondag.canvas.helper.AoFace.WeightFunction;
 import grondag.canvas.mesh.MutableQuadViewImpl;
 import grondag.canvas.mesh.QuadViewImpl;
 import grondag.canvas.render.BlockRenderInfo;

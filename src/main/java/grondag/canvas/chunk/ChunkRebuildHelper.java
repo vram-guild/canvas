@@ -14,7 +14,7 @@
  * the License.
  ******************************************************************************/
 
-package grondag.canvas.hooks;
+package grondag.canvas.chunk;
 
 import java.util.HashSet;
 import java.util.Random;

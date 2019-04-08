@@ -31,10 +31,6 @@ import net.minecraft.client.render.VisibleRegion;
 import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.client.render.chunk.ChunkRendererList;
 
-// PERF: restore visibility hooks if profiling shows worthwhile
-// Computation is in class_852
-// See forge branch MixinVisGraph.onComputeVisibility for details
-
 // PERF: also see setupTerrain vs setupTerrainFast in Acuity
 
 @Mixin(WorldRenderer.class)

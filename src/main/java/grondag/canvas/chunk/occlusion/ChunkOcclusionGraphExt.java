@@ -14,26 +14,12 @@
  * the License.
  ******************************************************************************/
 
-package grondag.canvas.hooks;
+package grondag.canvas.chunk.occlusion;
 
-import java.util.concurrent.ArrayBlockingQueue;
+public interface ChunkOcclusionGraphExt {
+    public Object canvas_visibilityData();
 
-import grondag.canvas.mixinext.ChunkRenderDataExt;
-import net.minecraft.client.render.chunk.ChunkRenderData;
+    public void canvas_visibilityData(Object data);
 
-public class ChunkRenderDataStore {
-    private static final ArrayBlockingQueue<ChunkRenderData> chunks = new ArrayBlockingQueue<>(4096);
-
-    public static ChunkRenderData claim() {
-        ChunkRenderData result = chunks.poll();
-        if (result == null)
-            result = new ChunkRenderData();
-
-        return result;
-    }
-
-    public static void release(ChunkRenderData chunk) {
-        ((ChunkRenderDataExt) chunk).canvas_clear();
-        chunks.offer(chunk);
-    }
+    public void canvas_releaseVisibilityData();
 }

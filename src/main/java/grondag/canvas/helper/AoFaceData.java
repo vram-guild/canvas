@@ -14,7 +14,7 @@
  * the License.
  ******************************************************************************/
 
-package grondag.canvas.aocalc;
+package grondag.canvas.helper;
 
 /**
  * Holds per-corner results for a single block face. Handles caching and

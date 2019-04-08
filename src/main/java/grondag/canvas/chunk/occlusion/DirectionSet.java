@@ -14,7 +14,7 @@
  * the License.
  ******************************************************************************/
 
-package grondag.canvas.hooks;
+package grondag.canvas.chunk.occlusion;
 
 import java.util.Collections;
 import java.util.EnumSet;
