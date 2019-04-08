@@ -14,16 +14,11 @@
  * the License.
  ******************************************************************************/
 
-package grondag.canvas.buffering;
+package grondag.canvas.buffer.allocation;
 
-public class VboBufferManager {
-    public static final AbstractAllocationManager ALLOCATION_MANAGER = new VboAllocationManager();
-
-    public static void prepareForFrame() {
-        ALLOCATION_MANAGER.prepareForFrame();
-    }
-    
-    public static void forceReload() {
-        ALLOCATION_MANAGER.forceReload();
+public class VboAllocationManager extends AbstractAllocationManager {
+    @Override
+    public AllocationProvider getAllocator(int totalBytes) {
+        return new VboBuffer(totalBytes);
     }
 }

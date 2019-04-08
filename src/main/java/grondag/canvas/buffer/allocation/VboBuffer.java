@@ -14,7 +14,7 @@
  * the License.
  ******************************************************************************/
 
-package grondag.canvas.buffering;
+package grondag.canvas.buffer.allocation;
 
 import java.nio.ByteBuffer;
 import java.util.function.Consumer;
@@ -23,6 +23,7 @@ import org.lwjgl.system.MemoryUtil;
 
 import com.mojang.blaze3d.platform.GLX;
 
+import grondag.canvas.buffer.BindableBuffer;
 import grondag.canvas.core.ConditionalPipeline;
 
 public class VboBuffer extends BindableBuffer implements AllocationProvider {
@@ -56,7 +57,7 @@ public class VboBuffer extends BindableBuffer implements AllocationProvider {
     }
     
     @Override
-    protected ByteBuffer byteBuffer() {
+    public ByteBuffer byteBuffer() {
         return uploadBuffer;
     }
     

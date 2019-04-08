@@ -14,7 +14,7 @@
  * the License.
  ******************************************************************************/
 
-package grondag.canvas.buffering;
+package grondag.canvas.buffer;
 
 import com.google.common.primitives.Doubles;
 

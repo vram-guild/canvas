@@ -14,7 +14,9 @@
  * the License.
  ******************************************************************************/
 
-package grondag.canvas.buffering;
+package grondag.canvas.buffer;
+
+import grondag.canvas.buffer.allocation.AbstractBufferDelegate;
 
 public abstract class BindableBufferDelegate<T extends BindableBuffer> extends AbstractBufferDelegate<T>{
     protected BindableBufferDelegate(T buffer, int byteOffset, int byteCount) {

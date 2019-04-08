@@ -14,10 +14,12 @@
  * the License.
  ******************************************************************************/
 
-package grondag.canvas.buffering;
+package grondag.canvas.chunk;
 
 import java.util.function.Consumer;
 
+import grondag.canvas.buffer.DelegateLists;
+import grondag.canvas.buffer.DrawableDelegate;
 import grondag.canvas.core.ConditionalPipeline;
 import grondag.canvas.core.PipelineManager;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;

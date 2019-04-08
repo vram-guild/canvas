@@ -14,14 +14,16 @@
  * the License.
  ******************************************************************************/
 
-package grondag.canvas.buffering;
+package grondag.canvas.buffer.allocation;
 
 import java.nio.IntBuffer;
+
+import grondag.canvas.buffer.DrawableDelegate;
 
 public abstract class AbstractBufferDelegate<T extends AllocableBuffer> {
     protected final int byteCount;
     protected final int byteOffset;
-    protected final T buffer;
+    public final T buffer;
 
     protected AbstractBufferDelegate(T buffer, int byteOffset, int byteCount) {
         this.buffer = buffer;
@@ -50,19 +52,19 @@ public abstract class AbstractBufferDelegate<T extends AllocableBuffer> {
         return buffer.byteBuffer().asIntBuffer();
     }
 
-    protected abstract void lockForUpload();
+    public abstract void lockForUpload();
 
-    protected abstract void unlockForUpload();
+    public abstract void unlockForUpload();
 
-    protected abstract void retain(DrawableDelegate result);
+    public abstract void retain(DrawableDelegate result);
 
-    protected abstract int glBufferId();
+    public abstract int glBufferId();
 
-    protected abstract void bind();
+    public abstract void bind();
 
-    protected abstract boolean isDisposed();
+    public abstract boolean isDisposed();
 
-    protected abstract void release(DrawableDelegate drawableDelegate);
+    public abstract void release(DrawableDelegate drawableDelegate);
 
-    protected abstract void flush();
+    public abstract void flush();
 }

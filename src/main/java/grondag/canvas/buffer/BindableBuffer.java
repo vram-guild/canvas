@@ -14,7 +14,7 @@
  * the License.
  ******************************************************************************/
 
-package grondag.canvas.buffering;
+package grondag.canvas.buffer;
 
 import java.util.Collections;
 import java.util.Set;
@@ -22,6 +22,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import com.mojang.blaze3d.platform.GLX;
 
+import grondag.canvas.buffer.allocation.AllocableBuffer;
 import grondag.canvas.opengl.GLBufferStore;
 
 public abstract class BindableBuffer extends AllocableBuffer {

@@ -38,9 +38,9 @@ import java.util.function.ToIntBiFunction;
 
 import grondag.canvas.RenderMaterialImpl;
 import grondag.canvas.RenderMaterialImpl.Value;
+import grondag.canvas.buffer.VertexCollector;
 import grondag.canvas.RendererImpl;
 import grondag.canvas.helper.AoCalculator;
-import grondag.canvas.buffering.VertexCollector;
 import grondag.canvas.mesh.EncodingFormat;
 import grondag.canvas.mesh.MeshImpl;
 import grondag.canvas.mesh.MutableQuadViewImpl;

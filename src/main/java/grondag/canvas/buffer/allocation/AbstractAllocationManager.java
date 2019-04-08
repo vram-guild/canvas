@@ -14,7 +14,7 @@
  * the License.
  ******************************************************************************/
 
-package grondag.canvas.buffering;
+package grondag.canvas.buffer.allocation;
 
 public abstract class AbstractAllocationManager {
 
@@ -22,7 +22,7 @@ public abstract class AbstractAllocationManager {
      * Consumer must not exceed total bytes initially requested.
      * This allows for fixed-size buffer allocation and may allow optimization of other allocation schemes.
      */
-    protected abstract AllocationProvider getAllocator(int totalBytes);
+    public abstract AllocationProvider getAllocator(int totalBytes);
     
     /**
      * Override if allocation type has per-frame upkeep

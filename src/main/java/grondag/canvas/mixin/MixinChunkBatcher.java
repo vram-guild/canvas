@@ -24,8 +24,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 
-import grondag.canvas.buffering.DrawableChunk.Solid;
-import grondag.canvas.buffering.DrawableChunk.Translucent;
+import grondag.canvas.chunk.DrawableChunk.Solid;
+import grondag.canvas.chunk.DrawableChunk.Translucent;
 import grondag.canvas.core.CompoundBufferBuilder;
 import grondag.canvas.mixinext.ChunkRendererExt;
 import net.minecraft.block.BlockRenderLayer;

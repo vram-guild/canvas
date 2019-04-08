@@ -20,7 +20,7 @@ import org.joml.Vector3f;
 
 import grondag.canvas.Configurator;
 import grondag.canvas.RenderMaterialImpl;
-import grondag.canvas.buffering.VboBufferManager;
+import grondag.canvas.buffer.allocation.VboBufferManager;
 import grondag.canvas.mixinext.FogStateExtHolder;
 import grondag.frex.api.extended.UniformRefreshFrequency;
 import net.fabricmc.fabric.api.event.client.ClientTickCallback;

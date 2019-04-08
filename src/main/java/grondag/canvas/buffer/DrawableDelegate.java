@@ -14,7 +14,7 @@
  * the License.
  ******************************************************************************/
 
-package grondag.canvas.buffering;
+package grondag.canvas.buffer;
 
 import java.nio.ByteBuffer;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -24,6 +24,7 @@ import org.lwjgl.opengl.GL11;
 
 import com.mojang.blaze3d.platform.GlStateManager;
 
+import grondag.canvas.buffer.allocation.AbstractBufferDelegate;
 import grondag.canvas.core.ConditionalPipeline;
 import grondag.canvas.core.PipelineVertexFormat;
 import grondag.canvas.opengl.CanvasGlHelper;

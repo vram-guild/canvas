@@ -19,11 +19,11 @@ package grondag.canvas.core;
 import java.nio.ByteBuffer;
 import java.util.function.Consumer;
 
-import grondag.canvas.buffering.AbstractBufferDelegate;
-import grondag.canvas.buffering.AllocableBuffer;
-import grondag.canvas.buffering.AllocationProvider;
-import grondag.canvas.buffering.DrawableDelegate;
-import grondag.canvas.buffering.VertexCollectorList;
+import grondag.canvas.buffer.DrawableDelegate;
+import grondag.canvas.buffer.VertexCollectorList;
+import grondag.canvas.buffer.allocation.AbstractBufferDelegate;
+import grondag.canvas.buffer.allocation.AllocableBuffer;
+import grondag.canvas.buffer.allocation.AllocationProvider;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.VertexFormat;
 import net.minecraft.client.util.GlAllocationUtils;
@@ -88,42 +88,42 @@ public class CanvasBufferBuilder extends BufferBuilder implements AllocationProv
         }
 
         @Override
-        protected void lockForUpload() {
+        public void lockForUpload() {
             // NOOP
         }
 
         @Override
-        protected void unlockForUpload() {
+        public void unlockForUpload() {
             // NOOP
         }
 
         @Override
-        protected void retain(DrawableDelegate result) {
+        public void retain(DrawableDelegate result) {
             // NOOP
         }
 
         @Override
-        protected int glBufferId() {
+        public int glBufferId() {
             return -1;
         }
 
         @Override
-        protected void bind() {
+        public void bind() {
             // NOOP
         }
 
         @Override
-        protected boolean isDisposed() {
+        public boolean isDisposed() {
             return false;
         }
 
         @Override
-        protected void release(DrawableDelegate drawableDelegate) {
+        public void release(DrawableDelegate drawableDelegate) {
             // NOOP
         }
 
         @Override
-        protected void flush() {
+        public void flush() {
             // NOOP
         }
     }
@@ -133,7 +133,7 @@ public class CanvasBufferBuilder extends BufferBuilder implements AllocationProv
         private ByteBuffer byteBuffer = GlAllocationUtils.allocateByteBuffer(BUFFER_SIZE_INCREMENT);
         
         @Override
-        protected ByteBuffer byteBuffer() {
+        public ByteBuffer byteBuffer() {
             return byteBuffer;
         }
         

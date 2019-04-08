@@ -21,7 +21,7 @@ import java.util.function.BooleanSupplier;
 
 import grondag.canvas.RenderMaterialImpl.Finder;
 import grondag.canvas.RenderMaterialImpl.Value;
-import grondag.canvas.buffering.VboBufferManager;
+import grondag.canvas.buffer.allocation.VboBufferManager;
 import grondag.canvas.core.PipelineManager;
 import grondag.canvas.core.RenderPipelineImpl;
 import grondag.canvas.mesh.MeshBuilderImpl;

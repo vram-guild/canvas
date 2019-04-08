@@ -14,7 +14,7 @@
  * the License.
  ******************************************************************************/
 
-package grondag.canvas.buffering;
+package grondag.canvas.buffer;
 
 import java.util.concurrent.ArrayBlockingQueue;
 
@@ -31,7 +31,7 @@ public class DelegateLists {
         return result;
     }
 
-    static void releaseDelegateList(ObjectArrayList<DrawableDelegate> list) {
+    public static void releaseDelegateList(ObjectArrayList<DrawableDelegate> list) {
         if (!list.isEmpty())
             list.clear();
         delegateLists.offer(list);

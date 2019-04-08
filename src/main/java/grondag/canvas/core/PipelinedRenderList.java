@@ -25,7 +25,7 @@ import org.lwjgl.opengl.GL11;
 import com.mojang.blaze3d.platform.GLX;
 import com.mojang.blaze3d.platform.GlStateManager;
 
-import grondag.canvas.buffering.DrawableChunk;
+import grondag.canvas.chunk.DrawableChunk;
 import grondag.canvas.mixinext.ChunkRendererExt;
 import grondag.canvas.opengl.CanvasGlHelper;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap.Entry;

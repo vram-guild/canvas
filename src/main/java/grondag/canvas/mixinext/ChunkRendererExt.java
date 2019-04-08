@@ -16,7 +16,7 @@
 
 package grondag.canvas.mixinext;
 
-import grondag.canvas.buffering.DrawableChunk;
+import grondag.canvas.chunk.DrawableChunk;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.util.math.BlockPos;
 

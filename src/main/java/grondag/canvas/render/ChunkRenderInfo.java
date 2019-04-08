@@ -35,7 +35,7 @@ package grondag.canvas.render;
 import it.unimi.dsi.fastutil.longs.Long2FloatOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 import grondag.canvas.RenderMaterialImpl;
-import grondag.canvas.buffering.VertexCollector;
+import grondag.canvas.buffer.VertexCollector;
 import grondag.canvas.core.CompoundBufferBuilder;
 import grondag.canvas.mesh.MutableQuadViewImpl;
 import grondag.canvas.mixinext.BufferBuilderExt;

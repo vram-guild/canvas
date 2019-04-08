@@ -14,7 +14,9 @@
  * the License.
  ******************************************************************************/
 
-package grondag.canvas.buffering;
+package grondag.canvas.buffer.allocation;
+
+import grondag.canvas.buffer.BindableBufferDelegate;
 
 public class VboBufferDelegate extends BindableBufferDelegate<VboBuffer> {
     protected VboBufferDelegate(VboBuffer buffer, int byteOffset, int byteCount) {

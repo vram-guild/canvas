@@ -21,10 +21,10 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.apache.commons.lang3.tuple.Pair;
 
 import grondag.canvas.RenderMaterialImpl;
-import grondag.canvas.buffering.DrawableChunk;
-import grondag.canvas.buffering.UploadableChunk;
-import grondag.canvas.buffering.VertexCollector;
-import grondag.canvas.buffering.VertexCollectorList;
+import grondag.canvas.buffer.VertexCollector;
+import grondag.canvas.buffer.VertexCollectorList;
+import grondag.canvas.chunk.DrawableChunk;
+import grondag.canvas.chunk.UploadableChunk;
 import grondag.canvas.mixinext.BufferBuilderExt;
 import net.minecraft.block.BlockRenderLayer;
 import net.minecraft.client.render.BufferBuilder;

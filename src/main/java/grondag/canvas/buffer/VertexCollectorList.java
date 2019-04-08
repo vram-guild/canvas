@@ -14,13 +14,14 @@
  * the License.
  ******************************************************************************/
 
-package grondag.canvas.buffering;
+package grondag.canvas.buffer;
 
 import java.util.Comparator;
 import java.util.PriorityQueue;
 import java.util.function.Consumer;
 
 import grondag.canvas.RenderMaterialImpl;
+import grondag.canvas.chunk.UploadableChunk;
 import grondag.canvas.core.ConditionalPipeline;
 import grondag.canvas.core.RenderCube;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;

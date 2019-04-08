@@ -14,10 +14,11 @@
  * the License.
  ******************************************************************************/
 
-package grondag.canvas.buffering;
+package grondag.canvas.buffer;
 
 import java.nio.IntBuffer;
 
+import grondag.canvas.buffer.allocation.AllocationProvider;
 import grondag.canvas.core.ConditionalPipeline;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 

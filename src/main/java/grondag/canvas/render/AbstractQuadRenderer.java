@@ -38,8 +38,8 @@ import java.util.function.Function;
 import java.util.function.ToIntBiFunction;
 
 import grondag.canvas.RenderMaterialImpl;
+import grondag.canvas.buffer.VertexCollector;
 import grondag.canvas.helper.AoCalculator;
-import grondag.canvas.buffering.VertexCollector;
 import grondag.canvas.helper.ColorHelper;
 import grondag.canvas.mesh.MutableQuadViewImpl;
 import grondag.frex.api.core.RenderContext.QuadTransform;

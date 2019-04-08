@@ -14,11 +14,11 @@
  * the License.
  ******************************************************************************/
 
-package grondag.canvas.buffering;
+package grondag.canvas.buffer.allocation;
 
-public class VboAllocationManager extends AbstractAllocationManager {
-    @Override
-    protected AllocationProvider getAllocator(int totalBytes) {
-        return new VboBuffer(totalBytes);
-    }
+import java.nio.ByteBuffer;
+
+// UGLY: this type hierarchy and usages are nuts, same for delegates - needs major refactor
+public abstract class AllocableBuffer {
+    public abstract ByteBuffer byteBuffer();
 }

@@ -31,12 +31,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import com.google.common.collect.Sets;
 
 import grondag.canvas.RendererImpl;
-import grondag.canvas.buffering.DrawableChunk.Solid;
-import grondag.canvas.buffering.DrawableChunk.Translucent;
 import grondag.canvas.core.CompoundBufferBuilder;
 import grondag.canvas.core.FluidBufferBuilder;
 import grondag.canvas.chunk.ChunkRebuildHelper;
 import grondag.canvas.chunk.ChunkRenderDataStore;
+import grondag.canvas.chunk.DrawableChunk.Solid;
+import grondag.canvas.chunk.DrawableChunk.Translucent;
 import grondag.canvas.mixinext.ChunkRenderDataExt;
 import grondag.canvas.mixinext.ChunkRendererExt;
 import grondag.canvas.render.TerrainRenderContext;

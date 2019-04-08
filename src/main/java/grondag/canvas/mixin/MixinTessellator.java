@@ -26,9 +26,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import com.mojang.blaze3d.platform.GlStateManager;
 
-import grondag.canvas.buffering.BufferPacker;
-import grondag.canvas.buffering.BufferPackingList;
-import grondag.canvas.buffering.VertexCollectorList;
+import grondag.canvas.buffer.BufferPacker;
+import grondag.canvas.buffer.BufferPackingList;
+import grondag.canvas.buffer.VertexCollectorList;
 import grondag.canvas.core.CanvasBufferBuilder;
 import grondag.canvas.core.Program;
 import grondag.canvas.core.SolidRenderList;

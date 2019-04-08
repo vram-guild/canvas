@@ -20,7 +20,7 @@ import java.util.ArrayDeque;
 import java.util.function.Consumer;
 
 import grondag.canvas.RenderConditionImpl;
-import grondag.canvas.buffering.DrawableDelegate;
+import grondag.canvas.buffer.DrawableDelegate;
 import it.unimi.dsi.fastutil.Arrays;
 import it.unimi.dsi.fastutil.Swapper;
 import it.unimi.dsi.fastutil.ints.AbstractIntComparator;
