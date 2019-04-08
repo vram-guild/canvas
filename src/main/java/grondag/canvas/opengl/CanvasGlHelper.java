@@ -144,7 +144,7 @@ public class CanvasGlHelper {
             }
         } catch (Exception e) {
             fastNioCopy = false;
-            Canvas.INSTANCE.getLog().error(I18n.translate("misc.warn_slow_gl_call", "fastNioCopy"), e);
+            Canvas.INSTANCE.log().error(I18n.translate("misc.warn_slow_gl_call", "fastNioCopy"), e);
         }
     }
 

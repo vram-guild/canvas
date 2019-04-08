@@ -90,7 +90,7 @@ abstract class AbstractPipelineShader {
                 GLX.glDeleteShader(glId);
                 this.glId = -1;
             }
-            Canvas.INSTANCE.getLog().error(I18n.translate("misc.fail_create_shader", this.shaderSource.toString(),
+            Canvas.INSTANCE.log().error(I18n.translate("misc.fail_create_shader", this.shaderSource.toString(),
                     Integer.toString(this.spriteDepth), e.getMessage()));
         }
     }

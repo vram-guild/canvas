@@ -21,10 +21,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import grondag.canvas.LoadingConfig;
-import grondag.canvas.core.AbstractPipelinedRenderList;
 import grondag.canvas.core.PipelinedRenderList;
-import grondag.canvas.core.PipelinedRenderListDebug;
 import grondag.canvas.mixinext.ChunkRendererListExt;
 import net.minecraft.block.BlockRenderLayer;
 import net.minecraft.client.render.chunk.ChunkRenderer;
@@ -33,14 +30,11 @@ import net.minecraft.client.render.chunk.VboChunkRendererList;
 
 @Mixin(VboChunkRendererList.class)
 public abstract class MixinVboChunkRendererList extends ChunkRendererList implements ChunkRendererListExt {
-    private AbstractPipelinedRenderList ext;
+    private PipelinedRenderList ext;
     
     @Inject(method = "<init>*", at = @At("RETURN"), require = 1)
-    private void onConstructed(CallbackInfo ci)
-    {
-        ext = LoadingConfig.INSTANCE.enableRenderStats 
-                ? new PipelinedRenderListDebug()
-                : new PipelinedRenderList();
+    private void onConstructed(CallbackInfo ci) {
+        ext = new PipelinedRenderList();
     }
     
     @Override

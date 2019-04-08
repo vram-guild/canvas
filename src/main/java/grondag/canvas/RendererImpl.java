@@ -91,7 +91,7 @@ public class RendererImpl implements ExtendedRenderer, RenderReloadCallback {
 
     @Override
     public void reload() {
-        Canvas.INSTANCE.getLog().info(I18n.translate("misc.info_reloading"));
+        Canvas.INSTANCE.log().info(I18n.translate("misc.info_reloading"));
         PipelineManager.INSTANCE.forceReload();
         VboBufferManager.forceReload();
     }

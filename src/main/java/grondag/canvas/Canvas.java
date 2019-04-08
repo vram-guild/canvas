@@ -32,7 +32,7 @@ public class Canvas implements ModInitializer {
 
     private static Logger log;
 
-    public Logger getLog() {
+    public Logger log() {
         Logger result = log;
         if (result == null) {
             result = LogManager.getLogger("Canvas");

@@ -104,7 +104,7 @@ public class Program {
         private final void load(int programID) {
             this.unifID = GLX.glGetUniformLocation(programID, name);
             if (this.unifID == -1) {
-                Canvas.INSTANCE.getLog().debug(I18n.translate("misc.debug_missing_uniform", name,
+                Canvas.INSTANCE.log().debug(I18n.translate("misc.debug_missing_uniform", name,
                         Program.this.vertexShader.shaderSource.toString(), Program.this.fragmentShader.shaderSource.toString()));
                 this.flags = 0;
             } else {
@@ -501,7 +501,7 @@ public class Program {
             if (this.progID > 0)
                 GLX.glDeleteProgram(progID);
 
-            Canvas.INSTANCE.getLog().error(I18n.translate("misc.error_program_link_failure"), e);
+            Canvas.INSTANCE.log().error(I18n.translate("misc.error_program_link_failure"), e);
             this.progID = -1;
         }
 
@@ -536,7 +536,7 @@ public class Program {
 
         GLX.glLinkProgram(programID);
         if (GLX.glGetProgrami(programID, GLX.GL_LINK_STATUS) == GL11.GL_FALSE) {
-            Canvas.INSTANCE.getLog().error(CanvasGlHelper.getProgramInfoLog(programID));
+            Canvas.INSTANCE.log().error(CanvasGlHelper.getProgramInfoLog(programID));
             return false;
         }
 
