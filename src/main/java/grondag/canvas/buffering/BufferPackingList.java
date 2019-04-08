@@ -16,7 +16,6 @@
 
 package grondag.canvas.buffering;
 
-import java.util.Arrays;
 import java.util.function.Consumer;
 
 import grondag.canvas.core.ConditionalPipeline;
@@ -39,10 +38,6 @@ public class BufferPackingList {
     public void clear() {
         this.size = 0;
         this.totalBytes = 0;
-        //PERF: remove
-        Arrays.fill(starts, 0);
-        Arrays.fill(counts, 0);
-        Arrays.fill(pipelines, null);
     }
 
     public int size() {

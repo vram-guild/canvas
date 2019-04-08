@@ -22,6 +22,7 @@ import java.util.Set;
 
 import com.google.common.collect.Sets;
 
+import grondag.canvas.chunk.occlusion.ChunkOcclusionBuilderAccessHelper.ChunkOcclusionGraphBuilderExt;
 import grondag.canvas.core.FluidBufferBuilder;
 import net.minecraft.block.BlockRenderLayer;
 import net.minecraft.block.entity.BlockEntity;
@@ -58,9 +59,6 @@ public class ChunkRebuildHelper {
         tileEntities.clear();
         tileEntitiesToAdd.clear();
         tileEntitiesToRemove.clear();
-
-        // PERF: put these back when re-enable faster visibility
-//        visGraph..bitSet.clear();
-//        visGraph.empty = 4096;
+        ((ChunkOcclusionGraphBuilderExt)visGraph).canvas_clear();
     }
 }

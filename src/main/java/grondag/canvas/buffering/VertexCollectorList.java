@@ -88,8 +88,6 @@ public class VertexCollectorList {
         renderOriginY = 0;
         renderOriginZ = 0;
 
-        // PERF: track used conditional pipelines and only iterate those
-        
         while(!usedCollectors.isEmpty()) {
             VertexCollector vc = usedCollectors.pop();
             if(vc != vertexCollectors[vc.pipeline().index]) {

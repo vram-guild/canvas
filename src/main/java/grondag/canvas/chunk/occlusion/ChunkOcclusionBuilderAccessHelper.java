@@ -14,11 +14,29 @@
  * the License.
  ******************************************************************************/
 
-package grondag.canvas.mixinext;
+package grondag.canvas.chunk.occlusion;
 
-import net.minecraft.client.render.chunk.ChunkRenderer;
+import grondag.fermion.functions.PrimitiveFunctions.ObjToIntFunction;
+import net.minecraft.client.render.chunk.ChunkOcclusionGraphBuilder;
 import net.minecraft.util.math.BlockPos;
 
-public interface ChunkRenderDispatcherExt {
-    ChunkRenderer canvas_chunkRenderer(BlockPos blockPos);
+/**
+ * Used to get static access to private static block pos hash function.
+ */
+public abstract class ChunkOcclusionBuilderAccessHelper {
+    public static final ObjToIntFunction<BlockPos> PACK_FUNCTION;
+    static
+    {
+        ChunkOcclusionGraphBuilderExt visData = (ChunkOcclusionGraphBuilderExt) new ChunkOcclusionGraphBuilder();
+        PACK_FUNCTION = visData.canvas_pack();
+    }
+    
+    public interface ChunkOcclusionGraphBuilderExt {
+        /** Actually static - use to get and hold lambda */
+        ObjToIntFunction<BlockPos> canvas_pack();
+        
+        void canvas_clear();
+    }
 }
+
+

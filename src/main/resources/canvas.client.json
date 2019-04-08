@@ -13,6 +13,7 @@
 	"MixinChunkOcclusionGraphBuilder",
     "MixinChunkRenderData",
 	"MixinChunkRenderer",
+	"MixinChunkRendererDispatcher",
 	"MixinChunkRenderTask",
 	"MixinChunkRenderWorker",
     "MixinFogState",

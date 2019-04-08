@@ -16,6 +16,9 @@
 
 package grondag.canvas.mixin;
 
+import java.util.EnumSet;
+import java.util.Set;
+
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -23,23 +26,55 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import grondag.canvas.chunk.occlusion.ChunkOcclusionBuilderAccessHelper;
+import grondag.canvas.chunk.occlusion.ChunkOcclusionMap;
 import grondag.canvas.core.PipelineManager;
+import grondag.canvas.mixinext.ChunkRenderDataExt;
+import grondag.canvas.mixinext.ChunkRendererDispatcherExt;
 import grondag.canvas.mixinext.ChunkRendererListExt;
 import net.minecraft.block.BlockRenderLayer;
 import net.minecraft.client.render.Camera;
+import net.minecraft.client.render.ChunkRenderDispatcher;
 import net.minecraft.client.render.VisibleRegion;
 import net.minecraft.client.render.WorldRenderer;
+import net.minecraft.client.render.chunk.ChunkRenderer;
 import net.minecraft.client.render.chunk.ChunkRendererList;
-
-// PERF: also see setupTerrain vs setupTerrainFast in Acuity
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
 
 @Mixin(WorldRenderer.class)
 public abstract class MixinWorldRenderer {
     @Shadow private ChunkRendererList chunkRendererList;
+    @Shadow private ChunkRenderDispatcher chunkRenderDispatcher;
+    
     
     @Inject(method = "setUpTerrain", at = @At("HEAD"), cancellable = false, require = 1)
     private void onPrepareTerrain(Camera camera, VisibleRegion region, int int_1, boolean boolean_1, CallbackInfo ci) {
         PipelineManager.INSTANCE.prepareForFrame(camera);
+    }
+    
+    /**
+     * Use pre-computed visibility stored during render chunk rebuild vs computing on fly each time.
+     */
+    @SuppressWarnings("unchecked")
+    @Inject(method = "method_3285", at = @At("HEAD"), cancellable = true, require = 1)
+    private void hookViewChunkVisibility(BlockPos pos, CallbackInfoReturnable<Set<Direction>> ci) {
+        ChunkRenderer renderChunk = ((ChunkRendererDispatcherExt)chunkRenderDispatcher).canvas_chunkRenderer(pos);
+        if(renderChunk != null)
+        {
+            Object visData = ((ChunkRenderDataExt)renderChunk.chunkRenderData).canvas_chunkVisibility().canvas_visibilityData();
+            // unbuilt chunks won't have extended info
+            if(visData != null) {
+                // note we return copies because result may be modified
+                EnumSet<Direction> result = EnumSet.noneOf(Direction.class);
+                if (visData instanceof Set) {
+                    result.addAll((Set<Direction>)visData);
+                } else {
+                    result.addAll(((ChunkOcclusionMap) visData).getFaceSet(ChunkOcclusionBuilderAccessHelper.PACK_FUNCTION.apply(pos)));
+                }
+                ci.setReturnValue(result);
+            }
+        }
     }
     
     @Inject(method = "renderLayer", at = @At("HEAD"), cancellable = true, require = 1)

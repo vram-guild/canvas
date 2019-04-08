@@ -93,8 +93,6 @@ public abstract class MixinChunkRenderer implements ChunkRendererExt {
     Solid solidDrawable;
     Translucent translucentDrawable;
 
-    // PERF: substitute our visibility graph
-
     @Override
     public Solid canvas_solidDrawable() {
         return solidDrawable;

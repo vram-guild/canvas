@@ -26,10 +26,12 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import grondag.canvas.chunk.occlusion.ChunkOcclusionBuilderAccessHelper.ChunkOcclusionGraphBuilderExt;
 import grondag.canvas.chunk.occlusion.ChunkOcclusionGraphExt;
 import grondag.canvas.chunk.occlusion.ChunkOcclusionMap;
 import grondag.canvas.chunk.occlusion.DirectionSet;
 import grondag.canvas.chunk.occlusion.OcclusionHelper;
+import grondag.fermion.functions.PrimitiveFunctions.ObjToIntFunction;
 import grondag.frex.api.core.ModelHelper;
 import it.unimi.dsi.fastutil.ints.IntArrayFIFOQueue;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
@@ -39,7 +41,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 
 @Mixin(ChunkOcclusionGraphBuilder.class)
-public abstract class MixinChunkOcclusionGraphBuilder {
+public abstract class MixinChunkOcclusionGraphBuilder implements ChunkOcclusionGraphBuilderExt {
     @Shadow private static int[] EDGE_POINTS;
     @Shadow private BitSet closed;
     @Shadow private int openCount = 4096;
@@ -119,5 +121,16 @@ public abstract class MixinChunkOcclusionGraphBuilder {
         }
 
         return Pair.of(DirectionSet.sharedInstance(set), list);
+    }
+    
+    @Override
+    public ObjToIntFunction<BlockPos> canvas_pack() {
+        return b -> pack(b);
+    }
+    
+    @Override
+    public void canvas_clear() {
+        closed.clear();
+        openCount = 4096;
     }
 }
