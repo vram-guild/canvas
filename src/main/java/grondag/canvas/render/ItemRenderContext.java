@@ -47,11 +47,11 @@ import grondag.frex.api.core.ModelHelper;
 import grondag.frex.api.core.QuadEmitter;
 import grondag.frex.api.core.RenderContext;
 import grondag.canvas.RenderMaterialImpl;
-import grondag.canvas.accessor.AccessBufferBuilder;
 import grondag.canvas.helper.ColorHelper;
 import grondag.canvas.mesh.EncodingFormat;
 import grondag.canvas.mesh.MeshImpl;
 import grondag.canvas.mesh.MutableQuadViewImpl;
+import grondag.canvas.mixinext.BufferBuilderExt;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.Tessellator;
@@ -75,7 +75,7 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
     private final ItemColorMap colorMap;
     private final Random random = new Random();
     BufferBuilder bufferBuilder;
-    AccessBufferBuilder fabricBuffer;
+    BufferBuilderExt fabricBuffer;
     private int color;
     private ItemStack itemStack;
     private VanillaQuadHandler vanillaHandler;
@@ -116,7 +116,7 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
         this.vanillaHandler = vanillaHandler;
         Tessellator tessellator = Tessellator.getInstance();
         bufferBuilder = tessellator.getBufferBuilder();
-        fabricBuffer = (AccessBufferBuilder) this.bufferBuilder;
+        fabricBuffer = (BufferBuilderExt) this.bufferBuilder;
 
         bufferBuilder.begin(7, VertexFormats.POSITION_COLOR_UV_NORMAL);
         model.emitItemQuads(stack, randomSupplier, this);
@@ -196,7 +196,7 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
             c = ColorHelper.multiplyColor(quadColor, c);
             q.spriteColor(i, 0, ColorHelper.swapRedBlueIfNeeded(c));
         }
-        fabricBuffer.fabric_putVanillaData(quadData, EncodingFormat.VERTEX_START_OFFSET);
+        fabricBuffer.canvas_putVanillaData(quadData, EncodingFormat.VERTEX_START_OFFSET);
     }
 
     private void renderQuad() {

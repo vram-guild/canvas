@@ -14,14 +14,16 @@
  * the License.
  ******************************************************************************/
 
-package grondag.canvas.accessor;
+package grondag.canvas.mixinext;
 
-public interface AccessBufferBuilder {
-    void fabric_putVanillaData(int[] data, int start);
+public interface BufferBuilderExt {
+    void canvas_putVanillaData(int[] data, int start);
 
-    double fabric_offsetX();
+    double canvas_offsetX();
 
-    double fabric_offsetY();
+    double canvas_offsetY();
 
-    double fabric_offsetZ();
+    double canvas_offsetZ();
+    
+    boolean canvas_isBuilding();
 }

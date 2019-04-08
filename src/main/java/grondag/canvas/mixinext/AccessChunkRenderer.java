@@ -14,7 +14,7 @@
  * the License.
  ******************************************************************************/
 
-package grondag.canvas.accessor;
+package grondag.canvas.mixinext;
 
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.util.math.BlockPos;

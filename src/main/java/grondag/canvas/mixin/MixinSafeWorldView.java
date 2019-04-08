@@ -18,7 +18,7 @@ package grondag.canvas.mixin;
 
 import org.spongepowered.asm.mixin.Mixin;
 
-import grondag.canvas.accessor.AccessSafeWorldView;
+import grondag.canvas.mixinext.AccessSafeWorldView;
 import grondag.canvas.render.TerrainRenderContext;
 import net.minecraft.client.world.SafeWorldView;
 

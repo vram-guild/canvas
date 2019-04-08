@@ -25,7 +25,7 @@ import grondag.canvas.buffering.DrawableChunk;
 import grondag.canvas.buffering.UploadableChunk;
 import grondag.canvas.buffering.VertexCollector;
 import grondag.canvas.buffering.VertexCollectorList;
-import grondag.canvas.mixin.AccessBufferBuilder;
+import grondag.canvas.mixinext.BufferBuilderExt;
 import net.minecraft.block.BlockRenderLayer;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.VertexFormat;
@@ -55,7 +55,7 @@ public class CompoundBufferBuilder extends BufferBuilder {
      */
     private BlockRenderLayer layer;
 
-    private AccessBufferBuilder accessor = (AccessBufferBuilder) this;
+    private BufferBuilderExt accessor = (BufferBuilderExt) this;
 
     private CompoundBufferBuilder proxy;
 
@@ -165,7 +165,7 @@ public class CompoundBufferBuilder extends BufferBuilder {
     }
 
     public void beginIfNotAlreadyDrawing(int glMode, VertexFormat format) {
-        if (!accessor.isBuilding()) {
+        if (!accessor.canvas_isBuilding()) {
             assert this.layer == BlockRenderLayer.SOLID || this.layer == BlockRenderLayer.TRANSLUCENT;
 
             // NB: this calls reset which initializes collector list
@@ -182,7 +182,7 @@ public class CompoundBufferBuilder extends BufferBuilder {
     }
 
     public void finishDrawingIfNotAlreadyFinished() {
-        if (accessor.isBuilding()) {
+        if (accessor.canvas_isBuilding()) {
             super.end();
 
             switch (this.layer) {

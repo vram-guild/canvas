@@ -21,22 +21,18 @@ import java.nio.IntBuffer;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
-import grondag.canvas.accessor.AccessBufferBuilder;
+import grondag.canvas.mixinext.BufferBuilderExt;
 import net.minecraft.client.render.BufferBuilder;
 
 @Mixin(BufferBuilder.class)
-public abstract class MixinBufferBuilder implements AccessBufferBuilder {
-    @Shadow
-    private IntBuffer bufInt;
-    @Shadow
-    private int vertexCount;
-    @Shadow
-    private double offsetX;
-    @Shadow
-    private double offsetY;
-    @Shadow
-    private double offsetZ;
-
+public abstract class MixinBufferBuilder implements BufferBuilderExt {
+    @Shadow private IntBuffer bufInt;
+    @Shadow private int vertexCount;
+    @Shadow private double offsetX;
+    @Shadow private double offsetY;
+    @Shadow private double offsetZ;
+    @Shadow private boolean building;
+    
     @Shadow
     abstract void grow(int size);
 
@@ -52,7 +48,7 @@ public abstract class MixinBufferBuilder implements AccessBufferBuilder {
      * a transfer array before the call.
      */
     @Override
-    public void fabric_putVanillaData(int[] data, int start) {
+    public void canvas_putVanillaData(int[] data, int start) {
         this.grow(QUAD_STRIDE_BYTES);
         this.bufInt.position(this.getCurrentSize());
         this.bufInt.put(data, start, QUAD_STRIDE_INTS);
@@ -60,17 +56,22 @@ public abstract class MixinBufferBuilder implements AccessBufferBuilder {
     }
 
     @Override
-    public double fabric_offsetX() {
+    public double canvas_offsetX() {
         return offsetX;
     }
 
     @Override
-    public double fabric_offsetY() {
+    public double canvas_offsetY() {
         return offsetY;
     }
 
     @Override
-    public double fabric_offsetZ() {
+    public double canvas_offsetZ() {
         return offsetZ;
+    }
+    
+    @Override
+    public boolean canvas_isBuilding() {
+        return building;
     }
 }

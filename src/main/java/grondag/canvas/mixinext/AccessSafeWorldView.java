@@ -14,7 +14,7 @@
  * the License.
  ******************************************************************************/
 
-package grondag.canvas.accessor;
+package grondag.canvas.mixinext;
 
 import grondag.canvas.render.TerrainRenderContext;
 

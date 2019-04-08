@@ -35,11 +35,11 @@ package grondag.canvas.render;
 import it.unimi.dsi.fastutil.longs.Long2FloatOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 import grondag.canvas.RenderMaterialImpl;
-import grondag.canvas.accessor.AccessBufferBuilder;
-import grondag.canvas.accessor.AccessChunkRenderer;
 import grondag.canvas.buffering.VertexCollector;
 import grondag.canvas.core.CompoundBufferBuilder;
 import grondag.canvas.mesh.MutableQuadViewImpl;
+import grondag.canvas.mixinext.BufferBuilderExt;
+import grondag.canvas.mixinext.AccessChunkRenderer;
 import net.minecraft.block.Block.OffsetType;
 import net.minecraft.block.BlockRenderLayer;
 import net.minecraft.block.BlockState;
@@ -97,7 +97,7 @@ public class ChunkRenderInfo {
     ExtendedBlockView blockView;
     boolean[] resultFlags;
 
-    private final AccessBufferBuilder[] buffers = new AccessBufferBuilder[4];
+    private final BufferBuilderExt[] buffers = new BufferBuilderExt[4];
     private final BlockRenderLayer[] LAYERS = BlockRenderLayer.values();
 
     // model offsets for plants, etc.
@@ -168,16 +168,16 @@ public class ChunkRenderInfo {
         // redundant for first layer, but probably not faster to check
         resultFlags[layerIndex] = true;
 
-        AccessBufferBuilder result = buffers[layerIndex];
+        BufferBuilderExt result = buffers[layerIndex];
         if (result == null) {
             BufferBuilder builder = chunkTask.getBufferBuilders().get(layerIndex);
-            buffers[layerIndex] = (AccessBufferBuilder) builder;
+            buffers[layerIndex] = (BufferBuilderExt) builder;
             BlockRenderLayer layer = LAYERS[layerIndex];
             if (!chunkData.isBufferInitialized(layer)) {
                 chunkData.markBufferInitialized(layer); // start buffer
                 ((AccessChunkRenderer) chunkRenderer).fabric_beginBufferBuilding(builder, pos);
             }
-            result = (AccessBufferBuilder) builder;
+            result = (BufferBuilderExt) builder;
         }
         return (CompoundBufferBuilder) result;
     }
