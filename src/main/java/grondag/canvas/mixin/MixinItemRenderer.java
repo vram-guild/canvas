@@ -24,8 +24,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import grondag.canvas.apiimpl.rendercontext.ItemRenderContext;
 import grondag.frex.api.core.FabricBakedModel;
-import grondag.canvas.render.ItemRenderContext;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.item.ItemColorMap;
 import net.minecraft.client.render.item.ItemRenderer;

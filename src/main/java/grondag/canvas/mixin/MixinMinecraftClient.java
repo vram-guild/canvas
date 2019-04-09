@@ -22,9 +22,9 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import grondag.canvas.core.PipelineManager;
-import grondag.canvas.mixinext.MinecraftClientExt;
-import grondag.canvas.opengl.CanvasGlHelper;
+import grondag.canvas.pipeline.PipelineManager;
+import grondag.canvas.varia.CanvasGlHelper;
+import grondag.canvas.varia.MinecraftClientExt;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.util.profiler.DisableableProfiler;
 import net.minecraft.util.profiler.Profiler;

@@ -18,7 +18,6 @@ package grondag.canvas.chunk;
 
 import java.util.concurrent.ArrayBlockingQueue;
 
-import grondag.canvas.mixinext.ChunkRenderDataExt;
 import net.minecraft.client.render.chunk.ChunkRenderData;
 
 public class ChunkRenderDataStore {

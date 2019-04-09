@@ -18,7 +18,7 @@ package grondag.canvas.buffer.allocation;
 
 import java.util.function.Consumer;
 
-import grondag.canvas.core.ConditionalPipeline;
+import grondag.canvas.pipeline.ConditionalPipeline;
 
 @FunctionalInterface
 public interface AllocationProvider {

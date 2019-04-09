@@ -21,8 +21,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import grondag.canvas.core.PipelinedRenderList;
-import grondag.canvas.mixinext.ChunkRendererListExt;
+import grondag.canvas.chunk.ChunkRendererListExt;
+import grondag.canvas.draw.PipelinedRenderList;
 import net.minecraft.block.BlockRenderLayer;
 import net.minecraft.client.render.chunk.ChunkRenderer;
 import net.minecraft.client.render.chunk.ChunkRendererList;

@@ -30,16 +30,16 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import com.google.common.collect.Sets;
 
-import grondag.canvas.RendererImpl;
-import grondag.canvas.core.CompoundBufferBuilder;
-import grondag.canvas.core.FluidBufferBuilder;
+import grondag.canvas.apiimpl.RendererImpl;
+import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
+import grondag.canvas.buffer.packing.CompoundBufferBuilder;
+import grondag.canvas.buffer.packing.FluidBufferBuilder;
 import grondag.canvas.chunk.ChunkRebuildHelper;
+import grondag.canvas.chunk.ChunkRenderDataExt;
 import grondag.canvas.chunk.ChunkRenderDataStore;
+import grondag.canvas.chunk.ChunkRendererExt;
 import grondag.canvas.chunk.DrawableChunk.Solid;
 import grondag.canvas.chunk.DrawableChunk.Translucent;
-import grondag.canvas.mixinext.ChunkRenderDataExt;
-import grondag.canvas.mixinext.ChunkRendererExt;
-import grondag.canvas.render.TerrainRenderContext;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockRenderLayer;
 import net.minecraft.block.BlockRenderType;

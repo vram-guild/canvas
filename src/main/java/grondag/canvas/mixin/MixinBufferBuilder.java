@@ -21,7 +21,7 @@ import java.nio.IntBuffer;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
-import grondag.canvas.mixinext.BufferBuilderExt;
+import grondag.canvas.varia.BufferBuilderExt;
 import net.minecraft.client.render.BufferBuilder;
 
 @Mixin(BufferBuilder.class)

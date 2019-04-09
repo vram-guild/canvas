@@ -18,7 +18,7 @@ package grondag.canvas.buffer.allocation;
 
 import java.nio.ByteBuffer;
 
-import grondag.canvas.buffer.DrawableDelegate;
+import grondag.canvas.draw.DrawableDelegate;
 
 // UGLY: this type hierarchy and usages are nuts, same for delegates - needs major refactor
 public abstract class AbstractBuffer {

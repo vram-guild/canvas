@@ -22,7 +22,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import grondag.canvas.mixinext.BakedQuadExt;
+import grondag.canvas.varia.BakedQuadExt;
 import net.minecraft.client.render.model.BakedQuad;
 import net.minecraft.client.render.model.BakedQuadFactory;
 import net.minecraft.client.render.model.ModelRotationContainer;

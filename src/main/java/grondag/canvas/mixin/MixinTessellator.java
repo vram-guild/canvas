@@ -26,13 +26,13 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import com.mojang.blaze3d.platform.GlStateManager;
 
-import grondag.canvas.buffer.BufferPacker;
-import grondag.canvas.buffer.BufferPackingList;
-import grondag.canvas.buffer.VertexCollectorList;
-import grondag.canvas.core.CanvasBufferBuilder;
-import grondag.canvas.core.Program;
-import grondag.canvas.core.SolidRenderList;
-import grondag.canvas.opengl.CanvasGlHelper;
+import grondag.canvas.buffer.packing.BufferPacker;
+import grondag.canvas.buffer.packing.BufferPackingList;
+import grondag.canvas.buffer.packing.CanvasBufferBuilder;
+import grondag.canvas.buffer.packing.VertexCollectorList;
+import grondag.canvas.draw.SolidRenderList;
+import grondag.canvas.pipeline.Program;
+import grondag.canvas.varia.CanvasGlHelper;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.Tessellator;
 

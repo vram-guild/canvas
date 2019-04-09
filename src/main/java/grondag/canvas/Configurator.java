@@ -16,6 +16,7 @@
 
 package grondag.canvas;
 
+import grondag.canvas.apiimpl.RendererImpl;
 import net.minecraft.client.MinecraftClient;
 
 //@LangKey("config.general")

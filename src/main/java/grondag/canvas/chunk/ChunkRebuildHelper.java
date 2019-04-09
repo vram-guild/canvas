@@ -22,8 +22,8 @@ import java.util.Set;
 
 import com.google.common.collect.Sets;
 
+import grondag.canvas.buffer.packing.FluidBufferBuilder;
 import grondag.canvas.chunk.occlusion.ChunkOcclusionBuilderAccessHelper.ChunkOcclusionGraphBuilderExt;
-import grondag.canvas.core.FluidBufferBuilder;
 import net.minecraft.block.BlockRenderLayer;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.render.BufferBuilder;

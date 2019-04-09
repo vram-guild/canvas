@@ -18,8 +18,8 @@ package grondag.canvas.mixin;
 
 import org.spongepowered.asm.mixin.Mixin;
 
-import grondag.canvas.mixinext.SafeWorldViewExt;
-import grondag.canvas.render.TerrainRenderContext;
+import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
+import grondag.canvas.apiimpl.util.SafeWorldViewExt;
 import net.minecraft.client.world.SafeWorldView;
 
 @Mixin(SafeWorldView.class)

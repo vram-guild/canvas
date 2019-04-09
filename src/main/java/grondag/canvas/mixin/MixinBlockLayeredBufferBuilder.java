@@ -22,7 +22,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import grondag.canvas.core.CompoundBufferBuilder;
+import grondag.canvas.buffer.packing.CompoundBufferBuilder;
 import net.minecraft.block.BlockRenderLayer;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.chunk.BlockLayeredBufferBuilder;

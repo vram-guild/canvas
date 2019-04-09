@@ -22,8 +22,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import com.mojang.blaze3d.platform.GLX;
 
-import grondag.canvas.buffer.DrawableDelegate;
-import grondag.canvas.opengl.GLBufferStore;
+import grondag.canvas.draw.DrawableDelegate;
+import grondag.canvas.varia.GLBufferStore;
 
 public abstract class UploadableBuffer extends AbstractBuffer implements BindableBuffer {
     protected static int nextID = 0;

@@ -20,7 +20,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
 
-import grondag.canvas.core.PipelineManager;
+import grondag.canvas.pipeline.PipelineManager;
 import net.minecraft.client.render.LightmapTextureManager;
 
 @Mixin(LightmapTextureManager.class)

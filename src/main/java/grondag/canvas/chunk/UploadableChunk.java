@@ -16,11 +16,11 @@
 
 package grondag.canvas.chunk;
 
-import grondag.canvas.buffer.BufferPacker;
-import grondag.canvas.buffer.BufferPackingList;
-import grondag.canvas.buffer.DrawableDelegate;
-import grondag.canvas.buffer.VertexCollectorList;
 import grondag.canvas.buffer.allocation.VboBuffer;
+import grondag.canvas.buffer.packing.BufferPacker;
+import grondag.canvas.buffer.packing.BufferPackingList;
+import grondag.canvas.buffer.packing.VertexCollectorList;
+import grondag.canvas.draw.DrawableDelegate;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 public abstract class UploadableChunk<V extends DrawableChunk> {

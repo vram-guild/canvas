@@ -22,8 +22,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import grondag.canvas.mixinext.SafeWorldViewExt;
-import grondag.canvas.render.TerrainRenderContext;
+import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
+import grondag.canvas.apiimpl.util.SafeWorldViewExt;
 import net.minecraft.client.render.chunk.ChunkRenderTask;
 import net.minecraft.client.world.SafeWorldView;
 

@@ -23,7 +23,7 @@ import org.lwjgl.system.MemoryUtil;
 
 import com.mojang.blaze3d.platform.GLX;
 
-import grondag.canvas.core.ConditionalPipeline;
+import grondag.canvas.pipeline.ConditionalPipeline;
 
 public class VboBuffer extends UploadableBuffer implements AllocationProvider {
     ByteBuffer uploadBuffer;

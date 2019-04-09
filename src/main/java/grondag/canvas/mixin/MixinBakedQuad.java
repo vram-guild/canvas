@@ -18,7 +18,7 @@ package grondag.canvas.mixin;
 
 import org.spongepowered.asm.mixin.Mixin;
 
-import grondag.canvas.mixinext.BakedQuadExt;
+import grondag.canvas.varia.BakedQuadExt;
 import net.minecraft.client.render.model.BakedQuad;
 
 /**

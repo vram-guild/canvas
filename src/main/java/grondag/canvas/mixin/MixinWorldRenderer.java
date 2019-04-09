@@ -26,12 +26,12 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import grondag.canvas.chunk.ChunkRenderDataExt;
+import grondag.canvas.chunk.ChunkRendererDispatcherExt;
+import grondag.canvas.chunk.ChunkRendererListExt;
 import grondag.canvas.chunk.occlusion.ChunkOcclusionBuilderAccessHelper;
 import grondag.canvas.chunk.occlusion.ChunkOcclusionMap;
-import grondag.canvas.core.PipelineManager;
-import grondag.canvas.mixinext.ChunkRenderDataExt;
-import grondag.canvas.mixinext.ChunkRendererDispatcherExt;
-import grondag.canvas.mixinext.ChunkRendererListExt;
+import grondag.canvas.pipeline.PipelineManager;
 import net.minecraft.block.BlockRenderLayer;
 import net.minecraft.client.render.Camera;
 import net.minecraft.client.render.ChunkRenderDispatcher;

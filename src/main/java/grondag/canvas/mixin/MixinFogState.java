@@ -22,8 +22,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import grondag.canvas.mixinext.FogStateExt;
-import grondag.canvas.mixinext.FogStateExtHolder;
+import grondag.canvas.varia.FogStateExt;
+import grondag.canvas.varia.FogStateExtHolder;
 
 @Mixin(targets = "com.mojang.blaze3d.platform.GlStateManager$FogState")
 public abstract class MixinFogState implements FogStateExt {

@@ -22,8 +22,8 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
 import grondag.canvas.chunk.ChunkRebuildHelper;
+import grondag.canvas.chunk.ChunkRenderDataExt;
 import grondag.canvas.chunk.occlusion.ChunkOcclusionGraphExt;
-import grondag.canvas.mixinext.ChunkRenderDataExt;
 import net.minecraft.block.BlockRenderLayer;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.render.BufferBuilder;
