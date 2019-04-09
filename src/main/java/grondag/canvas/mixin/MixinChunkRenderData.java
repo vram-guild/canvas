@@ -26,7 +26,6 @@ import grondag.canvas.chunk.ChunkRenderDataExt;
 import grondag.canvas.chunk.occlusion.ChunkOcclusionGraphExt;
 import net.minecraft.block.BlockRenderLayer;
 import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.chunk.ChunkOcclusionGraph;
 import net.minecraft.client.render.chunk.ChunkRenderData;
 
@@ -42,11 +41,11 @@ public abstract class MixinChunkRenderData implements ChunkRenderDataExt {
     private List<BlockEntity> blockEntities;
     @Shadow
     private ChunkOcclusionGraph field_4455;
-    @Shadow
-    private BufferBuilder.State bufferState;
 
     @Shadow
     protected abstract void method_3643(BlockRenderLayer blockRenderLayer);
+    
+    private int[][] collectorState;
     
     @Override
     public void canvas_setNonEmpty(BlockRenderLayer blockRenderLayer) {
@@ -62,37 +61,22 @@ public abstract class MixinChunkRenderData implements ChunkRenderDataExt {
                 ChunkRebuildHelper.BLOCK_RENDER_LAYER_COUNT);
         field_4455.fill(false); // set all false
         ((ChunkOcclusionGraphExt) field_4455).canvas_visibilityData(null);
-        bufferState = null;
+        collectorState = null;
         blockEntities.clear();
-    }
-
-    /**
-     * When mod is enabled, cutout layers are packed into solid layer, but the chunk
-     * render dispatcher doesn't know this and sets flags in the compiled chunk as
-     * if the cutout buffers were populated. We use this hook to correct that so
-     * that uploader and rendering work in subsequent operations.
-     * <p>
-     * 
-     * Called from the rebuildChunk method in ChunkRenderer, via a redirect on the
-     * call to
-     * {@link CompiledChunk#setVisibility(net.minecraft.client.renderer.chunk.SetVisibility)}
-     * which is reliably called after the chunks are built in render chunk.
-     * <p>
-     */
-    @Override
-    public void canvas_mergeRenderLayers() {
-        mergeLayerFlags(initialized);
-        mergeLayerFlags(field_4450);
-    }
-
-    private static void mergeLayerFlags(boolean[] layerFlags) {
-        layerFlags[0] = layerFlags[0] || layerFlags[1] || layerFlags[2];
-        layerFlags[1] = false;
-        layerFlags[2] = false;
     }
 
     @Override
     public ChunkOcclusionGraphExt canvas_chunkVisibility() {
         return (ChunkOcclusionGraphExt) field_4455;
+    }
+    
+    @Override
+    public int[][] canvas_collectorState() {
+        return collectorState;
+    }
+    
+    @Override
+    public void canvas_collectorState(int[][] state) {
+        collectorState = state;
     }
 }

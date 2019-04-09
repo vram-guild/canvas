@@ -32,18 +32,12 @@
 
 package grondag.canvas.chunk;
 
+import grondag.canvas.apiimpl.MutableQuadViewImpl;
+import grondag.canvas.apiimpl.rendercontext.BlockRenderInfo;
 import it.unimi.dsi.fastutil.longs.Long2FloatOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
-import grondag.canvas.apiimpl.MutableQuadViewImpl;
-import grondag.canvas.apiimpl.RenderMaterialImpl;
-import grondag.canvas.apiimpl.rendercontext.BlockRenderInfo;
-import grondag.canvas.buffer.packing.CompoundBufferBuilder;
-import grondag.canvas.buffer.packing.VertexCollector;
-import grondag.canvas.varia.BufferBuilderExt;
 import net.minecraft.block.Block.OffsetType;
-import net.minecraft.block.BlockRenderLayer;
 import net.minecraft.block.BlockState;
-import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.chunk.ChunkRenderData;
 import net.minecraft.client.render.chunk.ChunkRenderTask;
 import net.minecraft.client.render.chunk.ChunkRenderer;
@@ -95,10 +89,6 @@ public class ChunkRenderInfo {
     ChunkRenderData chunkData;
     ChunkRenderer chunkRenderer;
     ExtendedBlockView blockView;
-    boolean[] resultFlags;
-
-    private final BufferBuilderExt[] buffers = new BufferBuilderExt[4];
-    private final BlockRenderLayer[] LAYERS = BlockRenderLayer.values();
 
     // model offsets for plants, etc.
     private boolean hasOffsets = false;
@@ -122,14 +112,9 @@ public class ChunkRenderInfo {
         this.chunkTask = chunkTask;
     }
 
-    public void prepare(ChunkRenderer chunkRenderer, BlockPos.Mutable chunkOrigin, boolean[] resultFlags) {
+    public void prepare(ChunkRenderer chunkRenderer, BlockPos.Mutable chunkOrigin) {
         this.chunkData = chunkTask.getRenderData();
         this.chunkRenderer = chunkRenderer;
-        this.resultFlags = resultFlags;
-        buffers[0] = null;
-        buffers[1] = null;
-        buffers[2] = null;
-        buffers[3] = null;
         brightnessCache.clear();
         aoLevelCache.clear();
     }
@@ -138,10 +123,6 @@ public class ChunkRenderInfo {
         chunkData = null;
         chunkTask = null;
         chunkRenderer = null;
-        buffers[0] = null;
-        buffers[1] = null;
-        buffers[2] = null;
-        buffers[3] = null;
     }
 
     public void beginBlock() {
@@ -157,29 +138,6 @@ public class ChunkRenderInfo {
             offsetY = (float) offset.y;
             offsetZ = (float) offset.z;
         }
-    }
-
-    public VertexCollector getCollector(RenderMaterialImpl.Value mat) {
-        return getInitializedBuffer(mat.renderLayerIndex, blockInfo.blockPos).getVertexCollector(mat);
-    }
-    
-    /** Lazily retrieves output buffer for given layer, initializing as needed. */
-    public CompoundBufferBuilder getInitializedBuffer(int layerIndex, BlockPos pos) {
-        // redundant for first layer, but probably not faster to check
-        resultFlags[layerIndex] = true;
-
-        BufferBuilderExt result = buffers[layerIndex];
-        if (result == null) {
-            BufferBuilder builder = chunkTask.getBufferBuilders().get(layerIndex);
-            buffers[layerIndex] = (BufferBuilderExt) builder;
-            BlockRenderLayer layer = LAYERS[layerIndex];
-            if (!chunkData.isBufferInitialized(layer)) {
-                chunkData.markBufferInitialized(layer); // start buffer
-                ((ChunkRendererExt) chunkRenderer).canvas_beginBufferBuilding(builder, pos);
-            }
-            result = (BufferBuilderExt) builder;
-        }
-        return (CompoundBufferBuilder) result;
     }
 
     /**

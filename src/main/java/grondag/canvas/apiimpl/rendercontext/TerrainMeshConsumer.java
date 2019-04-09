@@ -32,16 +32,20 @@
 
 package grondag.canvas.apiimpl.rendercontext;
 
+import java.util.function.Function;
+
+import grondag.canvas.apiimpl.RenderMaterialImpl;
 import grondag.canvas.apiimpl.util.AoCalculator;
+import grondag.canvas.buffer.packing.VertexCollector;
 import grondag.canvas.chunk.ChunkRenderInfo;
 import grondag.frex.api.core.RenderContext.QuadTransform;
 
 public class TerrainMeshConsumer extends AbstractMeshConsumer {
     private final ChunkRenderInfo chunkInfo;
 
-    TerrainMeshConsumer(TerrainBlockRenderInfo blockInfo, ChunkRenderInfo chunkInfo, AoCalculator aoCalc,
-            QuadTransform transform) {
-        super(blockInfo, chunkInfo::cachedBrightness, chunkInfo::getCollector, aoCalc, transform);
+    TerrainMeshConsumer(TerrainBlockRenderInfo blockInfo, ChunkRenderInfo chunkInfo, Function<RenderMaterialImpl.Value, VertexCollector> collectorFunc, 
+            AoCalculator aoCalc, QuadTransform transform) {
+        super(blockInfo, chunkInfo::cachedBrightness, collectorFunc, aoCalc, transform);
         this.chunkInfo = chunkInfo;
     }
 

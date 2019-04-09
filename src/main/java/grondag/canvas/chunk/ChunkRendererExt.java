@@ -20,9 +20,9 @@ import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.util.math.BlockPos;
 
 public interface ChunkRendererExt {
-    void canvas_solidDrawable(DrawableChunk.Solid drawable);
+    void canvas_solidUpload();
 
-    void canvas_translucentDrawable(DrawableChunk.Translucent drawable);
+    void canvas_translucentUpload();
 
     DrawableChunk.Solid canvas_solidDrawable();
 

@@ -26,5 +26,7 @@ public interface ChunkRenderDataExt {
 
     ChunkOcclusionGraphExt canvas_chunkVisibility();
 
-    void canvas_mergeRenderLayers();
+    int[][] canvas_collectorState();
+    
+    void canvas_collectorState(int[][] state);
 }

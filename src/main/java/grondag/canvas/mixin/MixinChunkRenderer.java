@@ -18,6 +18,7 @@ package grondag.canvas.mixin;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.spongepowered.asm.lib.Opcodes;
@@ -25,34 +26,32 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import com.google.common.collect.Sets;
 
 import grondag.canvas.apiimpl.RendererImpl;
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
-import grondag.canvas.buffer.packing.CompoundBufferBuilder;
 import grondag.canvas.buffer.packing.FluidBufferBuilder;
+import grondag.canvas.buffer.packing.VertexCollectorList;
 import grondag.canvas.chunk.ChunkRebuildHelper;
 import grondag.canvas.chunk.ChunkRenderDataExt;
 import grondag.canvas.chunk.ChunkRenderDataStore;
 import grondag.canvas.chunk.ChunkRendererExt;
 import grondag.canvas.chunk.DrawableChunk.Solid;
 import grondag.canvas.chunk.DrawableChunk.Translucent;
+import grondag.canvas.chunk.UploadableChunk;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockRenderLayer;
 import net.minecraft.block.BlockRenderType;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.client.render.block.BlockModelRenderer;
 import net.minecraft.client.render.block.BlockRenderManager;
 import net.minecraft.client.render.block.entity.BlockEntityRenderDispatcher;
 import net.minecraft.client.render.block.entity.BlockEntityRenderer;
-import net.minecraft.client.render.chunk.ChunkOcclusionGraph;
 import net.minecraft.client.render.chunk.ChunkOcclusionGraphBuilder;
 import net.minecraft.client.render.chunk.ChunkRenderData;
 import net.minecraft.client.render.chunk.ChunkRenderTask;
@@ -80,13 +79,13 @@ public abstract class MixinChunkRenderer implements ChunkRendererExt {
     @Shadow
     private Set<BlockEntity> blockEntities;
 
-    @Shadow
-    abstract void beginBufferBuilding(BufferBuilder bufferBuilder_1, BlockPos blockPos_1);
-
-    @Shadow
-    abstract void endBufferBuilding(BlockRenderLayer blockRenderLayer_1, float float_1, float float_2, float float_3,
-            BufferBuilder bufferBuilder_1, ChunkRenderData chunkRenderData_1);
-
+    /**
+     * Holds vertex data and packing data for next upload if we have it. Buffer is
+     * obtained from BufferStore and will be released back to store by upload.
+     */
+    private final AtomicReference<UploadableChunk.Solid> uploadSolid = new AtomicReference<>();
+    private final AtomicReference<UploadableChunk.Translucent> uploadTranslucent = new AtomicReference<>();
+    
     @Shadow
     abstract void updateTransformationMatrix();
 
@@ -130,13 +129,6 @@ public abstract class MixinChunkRenderer implements ChunkRendererExt {
         ChunkRenderDataStore.release(chunkRenderData);
     }
 
-    // shouldn't be necessary if rebuild chunk hook works, but insurance if not
-    @Redirect(method = "rebuildChunk", require = 1, at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/chunk/ChunkRenderData;method_3640(Lnet/minecraft/client/render/chunk/ChunkOcclusionGraph;)V"))
-    private void onSetVisibility(ChunkRenderData compiledChunk, ChunkOcclusionGraph chunkVisibility) {
-        compiledChunk.method_3640(chunkVisibility);
-        ((ChunkRenderDataExt) compiledChunk).canvas_mergeRenderLayers();
-    }
-
     @Inject(method = "clear", require = 1, at = @At(value = "FIELD", opcode = Opcodes.PUTFIELD, target = "Lnet/minecraft/client/render/chunk/ChunkRenderer;chunkRenderData:Lnet/minecraft/client/render/chunk/ChunkRenderData;"))
     private void onClear(CallbackInfo ci) {
         if (chunkRenderData == null || chunkRenderData == ChunkRenderData.EMPTY)
@@ -147,13 +139,15 @@ public abstract class MixinChunkRenderer implements ChunkRendererExt {
     }
 
     @Override
-    public void canvas_solidDrawable(Solid drawable) {
-        solidDrawable = drawable;
+    public void canvas_solidUpload() {
+        final UploadableChunk.Solid uploadBuffer = uploadSolid.getAndSet(null);
+        solidDrawable = uploadBuffer == null ? null : uploadBuffer.produceDrawable();
     }
 
     @Override
-    public void canvas_translucentDrawable(Translucent drawable) {
-        translucentDrawable = drawable;
+    public void canvas_translucentUpload() {
+        final UploadableChunk.Translucent uploadBuffer = uploadTranslucent.getAndSet(null);
+        translucentDrawable = uploadBuffer == null ? null : uploadBuffer.produceDrawable();
     }
 
     @Override
@@ -175,13 +169,13 @@ public abstract class MixinChunkRenderer implements ChunkRendererExt {
         final ChunkRebuildHelper help = renderContext.chunkRebuildHelper;
         help.clear();
 
-        ChunkRenderData chunkRenderData = ChunkRenderDataStore.claim();
-        BlockPos.Mutable origin = this.origin;
+        final ChunkRenderData chunkRenderData = ChunkRenderDataStore.claim();
+        final ChunkRenderDataExt chunkDataExt = (ChunkRenderDataExt) chunkRenderData;
+        final BlockPos.Mutable origin = this.origin;
 
-        World world = this.world;
+        final World world = this.world;
 
         if (world != null) {
-
             chunkRenderTask.getLock().lock();
 
             try {
@@ -201,8 +195,7 @@ public abstract class MixinChunkRenderer implements ChunkRendererExt {
             SafeWorldView safeWorldView = chunkRenderTask.getAndInvalidateWorldView();
             if (safeWorldView != null) {
                 ++chunkUpdateCount;
-                
-                boolean[] layerFlags = help.layerFlags;
+                help.prepareCollectors(origin.getX(), origin.getY(), origin.getZ());
                 
                 renderContext.setChunkTask(chunkRenderTask);
                 
@@ -211,7 +204,7 @@ public abstract class MixinChunkRenderer implements ChunkRendererExt {
                  * than one layer is rendered for a single model. This is also where we signal the 
                  * renderer to prepare for a new chunk using the data we've accumulated up to this point.
                  */
-                renderContext.prepare((ChunkRenderer) (Object) this, origin, layerFlags);
+                renderContext.prepare((ChunkRenderer) (Object) this, origin);
                 
                 BlockModelRenderer.enableBrightnessCache();
                 final BlockRenderManager blockRenderManager = MinecraftClient.getInstance().getBlockRenderManager();
@@ -220,7 +213,6 @@ public abstract class MixinChunkRenderer implements ChunkRendererExt {
                 final int xMin = origin.getX();
                 final int yMin = origin.getY();
                 final int zMin = origin.getZ();
-                final BufferBuilder[] builders = help.builders(chunkRenderTask.getBufferBuilders());
 
                 for (int xPos = 0; xPos < 16; xPos++) {
                     for (int yPos = 0; yPos < 16; yPos++) {
@@ -252,45 +244,41 @@ public abstract class MixinChunkRenderer implements ChunkRendererExt {
                             }
 
                             BlockRenderLayer renderLayer;
-                            int renderLayerIndex;
-                            BufferBuilder bufferBuilder;
                             FluidState fluidState = safeWorldView.getFluidState(searchPos);
                             if (!fluidState.isEmpty()) {
                                 renderLayer = fluidState.getRenderLayer();
-                                renderLayerIndex = renderLayer.ordinal();
-                                CompoundBufferBuilder cbb = renderContext.chunkInfo.getInitializedBuffer(renderLayerIndex, searchPos);
-                                FluidBufferBuilder fluidBuilder = help.fluidBuilder.prepare(cbb.getVertexCollector(RendererImpl.MATERIAL_STANDARD), searchPos, renderLayer);
+                                FluidBufferBuilder fluidBuilder = help.fluidBuilder.prepare(help.getCollector(renderLayer).get(RendererImpl.MATERIAL_STANDARD), searchPos, renderLayer);
                                 blockRenderManager.tesselateFluid(searchPos, safeWorldView, fluidBuilder, fluidState);
                             }
 
                             if (blockState.getRenderType() == BlockRenderType.MODEL) {
                                 renderContext.tesselateBlock(blockState, searchPos);
-                            } else if (blockState.getRenderType() != BlockRenderType.INVISIBLE) {
-                                renderLayer = block.getRenderLayer();
-                                renderLayerIndex = renderLayer.ordinal();
-                                bufferBuilder = chunkRenderTask.getBufferBuilders().get(renderLayerIndex);
-                                if (!chunkRenderData.isBufferInitialized(renderLayer)) {
-                                    chunkRenderData.markBufferInitialized(renderLayer);
-                                    this.beginBufferBuilding(bufferBuilder, origin);
-                                }
-
-                                layerFlags[renderLayerIndex] |= blockRenderManager.tesselateBlock(blockState,
-                                        searchPos, safeWorldView, bufferBuilder, help.random);
                             }
                         }
                     }
                 }
 
-                for (int i = 0; i < ChunkRebuildHelper.BLOCK_RENDER_LAYER_COUNT; i++) {
-                    final BlockRenderLayer layer = help.layers[i];
-                    if (layerFlags[layer.ordinal()]) {
-                        ((ChunkRenderDataExt) chunkRenderData).canvas_setNonEmpty(layer);
-                    }
-
-                    if (chunkRenderData.isBufferInitialized(layer)) {
-                        this.endBufferBuilding(layer, x, y, z, builders[i], chunkRenderData);
+                if(!help.solidCollector.isEmpty()) {
+                    chunkRenderData.markBufferInitialized(BlockRenderLayer.SOLID);
+                    chunkDataExt.canvas_setNonEmpty(BlockRenderLayer.SOLID);
+                    UploadableChunk.Solid abandoned = uploadSolid.getAndSet(help.solidCollector.packUploadSolid());
+                    if(abandoned != null) {
+                        abandoned.cancel();
                     }
                 }
+                
+                if(!help.translucentCollector.isEmpty()) {
+                    final VertexCollectorList vcl = help.translucentCollector;
+                    chunkRenderData.markBufferInitialized(BlockRenderLayer.TRANSLUCENT);
+                    chunkDataExt.canvas_setNonEmpty(BlockRenderLayer.TRANSLUCENT);
+                    vcl.setViewCoordinates(x, y, z);
+                    chunkDataExt.canvas_collectorState(vcl.getCollectorState(null));
+                    UploadableChunk.Translucent abandoned = uploadTranslucent.getAndSet(vcl.packUploadTranslucent());
+                    if(abandoned != null) {
+                        abandoned.cancel();
+                    }
+                }
+                
 
                 /**
                  * Release all references. Probably not necessary but would be $#%! to debug if
@@ -301,9 +289,8 @@ public abstract class MixinChunkRenderer implements ChunkRendererExt {
             }
 
             chunkRenderData.method_3640(visibilityData.build());
-            ((ChunkRenderDataExt)chunkRenderData).canvas_mergeRenderLayers();
+            
             this.chunkRenderLock.lock();
-
             try {
                 help.tileEntitiesToAdd.addAll(blockEntities);
                 help.tileEntitiesToRemove.addAll(this.blockEntities);
@@ -320,29 +307,22 @@ public abstract class MixinChunkRenderer implements ChunkRendererExt {
         }
         ci.cancel();
     }
-
-    /////
-
-//    private static final AtomicLong nanos = new AtomicLong();
-//    private static final AtomicInteger count = new AtomicInteger();
-//        long start = System.nanoTime();
-//        boolean result;
-//        long finish = System.nanoTime();
-//        if(blockState.getRenderType() == BlockRenderType.MODEL) {
-//            long n = nanos.addAndGet(finish - start);
-//            if(count.incrementAndGet() == 1000000) {
-//                System.out.println(String.format("Avg block tesselate ns last 1000000 blocks = %d", n / 1000000));
-//                nanos.set(0);
-//                count.set(0);
-//            }
-//        }
-//        return result;
-
-    /**
-     * Access method for renderer.
-     */
-    @Override
-    public void canvas_beginBufferBuilding(BufferBuilder bufferBuilder, BlockPos blockPos) {
-        beginBufferBuilding(bufferBuilder, blockPos);
-    }
+    
+    @Inject(method = "resortTransparency", at = @At("HEAD"), cancellable = true, require = 1)
+    public void onResortTransparency(float x, float y, float z, ChunkRenderTask chunkRenderTask, CallbackInfo ci) {
+        final ChunkRenderData chunkRenderData = chunkRenderTask.getRenderData();
+        final ChunkRenderDataExt chunkDataExt = (ChunkRenderDataExt) chunkRenderData;
+        int[][] collectorState = chunkDataExt.canvas_collectorState();
+        if (collectorState != null && !chunkRenderData.method_3641(BlockRenderLayer.TRANSLUCENT)) {
+            VertexCollectorList translucentCollector = TerrainRenderContext.POOL.get().chunkRebuildHelper.translucentCollector;
+            translucentCollector.loadCollectorState(collectorState);
+            translucentCollector.setViewCoordinates(x, y, z);
+            translucentCollector.setRelativeRenderOrigin(origin.getX(), origin.getY(), origin.getZ());
+            UploadableChunk.Translucent abandoned = uploadTranslucent.getAndSet(translucentCollector.packUploadTranslucent());
+            if(abandoned != null) {
+                abandoned.cancel();
+            }
+        }
+        ci.cancel();
+     }
 }

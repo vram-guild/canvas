@@ -20,6 +20,7 @@ import java.util.Comparator;
 import java.util.PriorityQueue;
 import java.util.function.Consumer;
 
+import grondag.canvas.RunTimer.ThreadSafeRunTimer;
 import grondag.canvas.apiimpl.RenderMaterialImpl;
 import grondag.canvas.chunk.UploadableChunk;
 import grondag.canvas.pipeline.ConditionalPipeline;
@@ -90,9 +91,7 @@ public class VertexCollectorList {
 
         while(!usedCollectors.isEmpty()) {
             VertexCollector vc = usedCollectors.pop();
-            if(vc != vertexCollectors[vc.pipeline().index]) {
-                System.out.println("boop");
-            } 
+            assert vc == vertexCollectors[vc.pipeline().index] : "Mismatch between VCL used list and lookup array";
             vertexCollectors[vc.pipeline().index] = null;
             vc.clear();
             emptyCollectors.push(vc);
@@ -266,6 +265,7 @@ public class VertexCollectorList {
     }
 
     public void loadCollectorState(int[][] stateData) {
+        clear();
         for (int[] data : stateData) {
             VertexCollector vc = emptyCollector().loadState(data);
             usedCollectors.add(vc);

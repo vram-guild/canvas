@@ -35,14 +35,17 @@ package grondag.canvas.apiimpl.rendercontext;
 import java.util.List;
 import java.util.Random;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import grondag.canvas.apiimpl.MutableQuadViewImpl;
+import grondag.canvas.apiimpl.RenderMaterialImpl;
 import grondag.canvas.apiimpl.RendererImpl;
 import grondag.canvas.apiimpl.RenderMaterialImpl.Value;
 import grondag.canvas.apiimpl.util.AoCalculator;
 import grondag.canvas.apiimpl.util.GeometryHelper;
 import grondag.canvas.apiimpl.util.MeshEncodingHelper;
+import grondag.canvas.buffer.packing.VertexCollector;
 import grondag.canvas.chunk.ChunkRenderInfo;
 import grondag.canvas.varia.BakedQuadExt;
 import grondag.frex.api.core.ModelHelper;
@@ -62,9 +65,9 @@ public class TerrainFallbackConsumer extends AbstractQuadRenderer implements Con
     private final int[] editorBuffer = new int[28];
     private final ChunkRenderInfo chunkInfo;
     
-    TerrainFallbackConsumer(BlockRenderInfo blockInfo, ChunkRenderInfo chunkInfo, AoCalculator aoCalc,
-            QuadTransform transform) {
-        super(blockInfo, chunkInfo::cachedBrightness, chunkInfo::getCollector, aoCalc, transform);
+    TerrainFallbackConsumer(BlockRenderInfo blockInfo, ChunkRenderInfo chunkInfo, Function<RenderMaterialImpl.Value, VertexCollector> collectorFunc, 
+            AoCalculator aoCalc, QuadTransform transform) {
+        super(blockInfo, chunkInfo::cachedBrightness, collectorFunc, aoCalc, transform);
         this.chunkInfo = chunkInfo;
         this.editorQuad = new Maker();
     }

@@ -24,10 +24,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 
-import grondag.canvas.buffer.packing.CompoundBufferBuilder;
 import grondag.canvas.chunk.ChunkRendererExt;
-import grondag.canvas.chunk.DrawableChunk.Solid;
-import grondag.canvas.chunk.DrawableChunk.Translucent;
 import net.minecraft.block.BlockRenderLayer;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.BufferBuilder;
@@ -50,11 +47,9 @@ public abstract class MixinChunkBatcher {
         assert blockRenderLayer == BlockRenderLayer.SOLID || blockRenderLayer == BlockRenderLayer.TRANSLUCENT;
 
         if (blockRenderLayer == BlockRenderLayer.SOLID)
-            ((ChunkRendererExt) renderChunk)
-                    .canvas_solidDrawable((Solid) ((CompoundBufferBuilder) bufferBuilder).produceDrawable());
+            ((ChunkRendererExt) renderChunk).canvas_solidUpload();
         else
-            ((ChunkRendererExt) renderChunk)
-                    .canvas_translucentDrawable((Translucent) ((CompoundBufferBuilder) bufferBuilder).produceDrawable());
+            ((ChunkRendererExt) renderChunk).canvas_translucentUpload();
 
         bufferBuilder.setOffset(0.0D, 0.0D, 0.0D);
         return Futures.<Object>immediateFuture((Object) null);

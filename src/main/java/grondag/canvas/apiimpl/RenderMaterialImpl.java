@@ -173,7 +173,7 @@ public abstract class RenderMaterialImpl {
          * as decals and render in solid pass.  If base layer is translucent
          * then all sprite layers render as translucent.
          */
-        public final int renderLayerIndex;
+        public final BlockRenderLayer renderLayer;
         
         public final RenderConditionImpl condition;
         
@@ -189,7 +189,7 @@ public abstract class RenderMaterialImpl {
             setupBlockLayerVariants();
             hasAo = !disableAo(0) || (spriteDepth() > 1 && !disableAo(1)) || (spriteDepth() == 3 && !disableAo(2));
             emissiveFlags = (emissive(0) ? 1 : 0) | (emissive(1) ? 2 : 0) | (emissive(2) ? 4 : 0);
-            this.renderLayerIndex = this.blendMode(0) == BlockRenderLayer.TRANSLUCENT ? BlockRenderLayer.TRANSLUCENT.ordinal() : BlockRenderLayer.SOLID.ordinal();
+            this.renderLayer = this.blendMode(0) == BlockRenderLayer.TRANSLUCENT ? BlockRenderLayer.TRANSLUCENT : BlockRenderLayer.SOLID;
         }
 
         /**

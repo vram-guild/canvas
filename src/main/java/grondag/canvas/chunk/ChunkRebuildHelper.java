@@ -22,12 +22,13 @@ import java.util.Set;
 
 import com.google.common.collect.Sets;
 
+import grondag.canvas.apiimpl.RenderMaterialImpl;
 import grondag.canvas.buffer.packing.FluidBufferBuilder;
+import grondag.canvas.buffer.packing.VertexCollector;
+import grondag.canvas.buffer.packing.VertexCollectorList;
 import grondag.canvas.chunk.occlusion.ChunkOcclusionBuilderAccessHelper.ChunkOcclusionGraphBuilderExt;
 import net.minecraft.block.BlockRenderLayer;
 import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.client.render.BufferBuilder;
-import net.minecraft.client.render.chunk.BlockLayeredBufferBuilder;
 import net.minecraft.client.render.chunk.ChunkOcclusionGraphBuilder;
 import net.minecraft.util.math.BlockPos;
 
@@ -35,30 +36,35 @@ public class ChunkRebuildHelper {
     public static final int BLOCK_RENDER_LAYER_COUNT = BlockRenderLayer.values().length;
     public static final boolean[] EMPTY_RENDER_LAYER_FLAGS = new boolean[BLOCK_RENDER_LAYER_COUNT];
 
-    public final BlockRenderLayer[] layers = BlockRenderLayer.values().clone();
-    public final boolean[] layerFlags = new boolean[BLOCK_RENDER_LAYER_COUNT];
     public final BlockPos.Mutable searchPos = new BlockPos.Mutable();
     public final HashSet<BlockEntity> tileEntities = Sets.newHashSet();
     public final Set<BlockEntity> tileEntitiesToAdd = Sets.newHashSet();
     public final Set<BlockEntity> tileEntitiesToRemove = Sets.newHashSet();
     public final ChunkOcclusionGraphBuilder visGraph = new ChunkOcclusionGraphBuilder();
     public final Random random = new Random();
-    private final BufferBuilder[] builders = new BufferBuilder[BLOCK_RENDER_LAYER_COUNT];
     public final FluidBufferBuilder fluidBuilder = new FluidBufferBuilder();
+    public final VertexCollectorList solidCollector = new VertexCollectorList();
+    public final VertexCollectorList translucentCollector = new VertexCollectorList();
     
-    public BufferBuilder[] builders(BlockLayeredBufferBuilder regionCache) {
-        builders[BlockRenderLayer.SOLID.ordinal()] = regionCache.get(BlockRenderLayer.SOLID);
-        builders[BlockRenderLayer.CUTOUT.ordinal()] = regionCache.get(BlockRenderLayer.CUTOUT);
-        builders[BlockRenderLayer.MIPPED_CUTOUT.ordinal()] = regionCache.get(BlockRenderLayer.MIPPED_CUTOUT);
-        builders[BlockRenderLayer.TRANSLUCENT.ordinal()] = regionCache.get(BlockRenderLayer.TRANSLUCENT);
-        return builders;
+    public VertexCollectorList getCollector(BlockRenderLayer layer) {
+        return layer == BlockRenderLayer.TRANSLUCENT ? translucentCollector : solidCollector;
+    }
+    
+    public VertexCollector collectorForMaterial(RenderMaterialImpl.Value mat) {
+        return getCollector(mat.renderLayer).get(mat);
     }
 
     public void clear() {
-        System.arraycopy(EMPTY_RENDER_LAYER_FLAGS, 0, layerFlags, 0, BLOCK_RENDER_LAYER_COUNT);
         tileEntities.clear();
         tileEntitiesToAdd.clear();
         tileEntitiesToRemove.clear();
         ((ChunkOcclusionGraphBuilderExt)visGraph).canvas_clear();
+    }
+
+    public void prepareCollectors(int x, int y, int z) {
+        solidCollector.clear();
+        solidCollector.setRelativeRenderOrigin(x, y, z);  
+        translucentCollector.clear();
+        translucentCollector.setRelativeRenderOrigin(x, y, z); 
     }
 }

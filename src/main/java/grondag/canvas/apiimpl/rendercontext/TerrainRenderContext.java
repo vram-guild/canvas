@@ -34,14 +34,14 @@ package grondag.canvas.apiimpl.rendercontext;
 
 import java.util.function.Consumer;
 
+import grondag.canvas.apiimpl.util.AoCalculator;
+import grondag.canvas.chunk.ChunkRebuildHelper;
+import grondag.canvas.chunk.ChunkRenderInfo;
 import grondag.frex.api.core.FabricBakedModel;
 import grondag.frex.api.core.Mesh;
 import grondag.frex.api.core.QuadEmitter;
 import grondag.frex.api.core.RenderContext;
 import grondag.frex.api.core.TerrainBlockView;
-import grondag.canvas.apiimpl.util.AoCalculator;
-import grondag.canvas.chunk.ChunkRebuildHelper;
-import grondag.canvas.chunk.ChunkRenderInfo;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.block.BlockRenderManager;
@@ -65,12 +65,9 @@ public class TerrainRenderContext extends AbstractRenderContext implements Rende
     public final ChunkRenderInfo chunkInfo = new ChunkRenderInfo(blockInfo);
     public final ChunkRebuildHelper chunkRebuildHelper = new ChunkRebuildHelper();
     
-    private final AoCalculator aoCalc = new AoCalculator(blockInfo, chunkInfo::cachedBrightness,
-            chunkInfo::cachedAoLevel);
-    private final TerrainMeshConsumer meshConsumer = new TerrainMeshConsumer(blockInfo, chunkInfo, aoCalc,
-            this::transform);
-    private final TerrainFallbackConsumer fallbackConsumer = new TerrainFallbackConsumer(blockInfo, chunkInfo, aoCalc,
-            this::transform);
+    private final AoCalculator aoCalc = new AoCalculator(blockInfo, chunkInfo::cachedBrightness, chunkInfo::cachedAoLevel);
+    private final TerrainMeshConsumer meshConsumer = new TerrainMeshConsumer(blockInfo, chunkInfo, chunkRebuildHelper::collectorForMaterial, aoCalc, this::transform);
+    private final TerrainFallbackConsumer fallbackConsumer = new TerrainFallbackConsumer(blockInfo, chunkInfo, chunkRebuildHelper::collectorForMaterial, aoCalc, this::transform);
     private final BlockRenderManager blockRenderManager = MinecraftClient.getInstance().getBlockRenderManager();
 
     public void setBlockView(SafeWorldView blockView) {
@@ -82,9 +79,8 @@ public class TerrainRenderContext extends AbstractRenderContext implements Rende
         chunkInfo.setChunkTask(chunkTask);
     }
 
-    public TerrainRenderContext prepare(ChunkRenderer chunkRenderer, BlockPos.Mutable chunkOrigin,
-            boolean[] resultFlags) {
-        chunkInfo.prepare(chunkRenderer, chunkOrigin, resultFlags);
+    public TerrainRenderContext prepare(ChunkRenderer chunkRenderer, BlockPos.Mutable chunkOrigin) {
+        chunkInfo.prepare(chunkRenderer, chunkOrigin);
         return this;
     }
 
