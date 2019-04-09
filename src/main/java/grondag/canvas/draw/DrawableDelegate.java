@@ -25,7 +25,7 @@ import org.lwjgl.opengl.GL11;
 import com.mojang.blaze3d.platform.GlStateManager;
 
 import grondag.canvas.buffer.allocation.AbstractBuffer;
-import grondag.canvas.buffer.allocation.AbstractBufferDelegate;
+import grondag.canvas.buffer.allocation.BufferDelegate;
 import grondag.canvas.buffer.allocation.BindableBuffer;
 import grondag.canvas.pipeline.ConditionalPipeline;
 import grondag.canvas.pipeline.PipelineVertexFormat;
@@ -42,7 +42,7 @@ public class DrawableDelegate {
      */
     private static final int BUFFER_UNKNOWN = -1000;
     
-    public static DrawableDelegate claim(AbstractBufferDelegate<?> bufferDelegate, ConditionalPipeline pipeline, int vertexCount) {
+    public static DrawableDelegate claim(BufferDelegate bufferDelegate, ConditionalPipeline pipeline, int vertexCount) {
         DrawableDelegate result = store.poll();
         if(result == null) {
             result = new DrawableDelegate();
@@ -51,16 +51,16 @@ public class DrawableDelegate {
         result.conditionalPipeline = pipeline;
         result.vertexCount = vertexCount;
         result.isReleased = false;
-        result.vertexBinder = bufferDelegate.buffer.isVbo() 
+        result.vertexBinder = bufferDelegate.buffer().isVbo() 
                 ? (CanvasGlHelper.isVaoEnabled() ? result::bindVao : result::bindVbo)
                 : result::bindBuffer;
-        bufferDelegate.buffer.retain(result);
+        bufferDelegate.buffer().retain(result);
         result.bufferId = BUFFER_UNKNOWN;
         
         return result;
     }
 
-    private AbstractBufferDelegate<?> bufferDelegate;
+    private BufferDelegate bufferDelegate;
     private ConditionalPipeline conditionalPipeline;
     private int vertexCount;
     private boolean isReleased = false;
@@ -76,7 +76,7 @@ public class DrawableDelegate {
         super();
     }
 
-    public AbstractBufferDelegate<?> bufferDelegate() {
+    public BufferDelegate bufferDelegate() {
         return this.bufferDelegate;
     }
 
@@ -88,7 +88,7 @@ public class DrawableDelegate {
     public int bufferId() {
         int result = bufferId;
         if(bufferId == BUFFER_UNKNOWN) {
-            final BindableBuffer binder = bufferDelegate.buffer.bindable();
+            final BindableBuffer binder = bufferDelegate.buffer().bindable();
             result = binder == null ? -1 : binder.glBufferId();
             bufferId = result;
         }
@@ -107,7 +107,7 @@ public class DrawableDelegate {
      * attributes. Returns the buffer Id that is bound, or input if unchanged.
      */
     public int bind(int lastBufferId) {
-        final AbstractBuffer buffer = this.bufferDelegate.buffer;
+        final AbstractBuffer buffer = this.bufferDelegate.buffer();
         if (buffer.isDisposed())
             return lastBufferId;
 
@@ -130,7 +130,7 @@ public class DrawableDelegate {
     public void draw() {
         assert !isReleased;
 
-        if (this.bufferDelegate.buffer.isDisposed())
+        if (this.bufferDelegate.buffer().isDisposed())
             return;
 
         GlStateManager.drawArrays(GL11.GL_QUADS, 0, vertexCount);
@@ -139,20 +139,21 @@ public class DrawableDelegate {
     public void release() {
         if (!isReleased) {
             isReleased = true;
-            bufferDelegate.buffer.release(this);
+            bufferDelegate.buffer().release(this);
+            bufferDelegate.release();
+            bufferDelegate = null;
             if (vaoBufferId != -1) {
                 VaoStore.releaseVertexArray(vaoBufferId);
                 vaoBufferId = -1;
             }
-            bufferDelegate = null;
             conditionalPipeline =  null;
             store.offer(this);
         }
     }
-
+    
     public void flush() {
         assert !isReleased;
-        this.bufferDelegate.buffer.upload();
+        this.bufferDelegate.buffer().upload();
     }
     
     void bindVao(PipelineVertexFormat format) {
@@ -174,7 +175,7 @@ public class DrawableDelegate {
     }
 
     void bindBuffer(PipelineVertexFormat format) {
-        ByteBuffer buffer = bufferDelegate.buffer.byteBuffer();
+        ByteBuffer buffer = bufferDelegate.buffer().byteBuffer();
         final int baseOffset = bufferDelegate.byteOffset();
         buffer.position(baseOffset);
         GlStateManager.enableClientState(GL11.GL_VERTEX_ARRAY);

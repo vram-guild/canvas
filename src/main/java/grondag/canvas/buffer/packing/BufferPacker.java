@@ -56,11 +56,11 @@ public class BufferPacker {
             final int byteCount = ref.byteCount();
             final int intLength = byteCount / 4;
 
-            ref.buffer.lockForWrite();
+            ref.buffer().lockForWrite();
             final IntBuffer intBuffer = ref.intBuffer();
             intBuffer.position(byteOffset / 4);
             intBuffer.put(collectorList.get(conditionalPipeline).rawData(), vertexStart * stride / 4, intLength);
-            ref.buffer.unlockForWrite();
+            ref.buffer().unlockForWrite();
 
             delegates.add(DrawableDelegate.claim(ref, conditionalPipeline, byteCount / stride));
         });

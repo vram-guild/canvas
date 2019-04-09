@@ -20,7 +20,6 @@ import java.nio.ByteBuffer;
 
 import grondag.canvas.draw.DrawableDelegate;
 
-// UGLY: this type hierarchy and usages are nuts, same for delegates - needs major refactor
 public abstract class AbstractBuffer {
     public abstract ByteBuffer byteBuffer();
     

@@ -30,9 +30,11 @@ import grondag.canvas.buffer.packing.BufferPacker;
 import grondag.canvas.buffer.packing.BufferPackingList;
 import grondag.canvas.buffer.packing.CanvasBufferBuilder;
 import grondag.canvas.buffer.packing.VertexCollectorList;
+import grondag.canvas.draw.DrawableDelegate;
 import grondag.canvas.draw.SolidRenderList;
 import grondag.canvas.pipeline.Program;
 import grondag.canvas.varia.CanvasGlHelper;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.Tessellator;
 
@@ -53,8 +55,14 @@ public class MixinTessellator {
             final BufferPackingList packingList = vcList.packingListSolid();
             final SolidRenderList renderList = SolidRenderList.claim();
             buffer.ensureCapacity(packingList.totalBytes());
-            renderList.accept(BufferPacker.pack(packingList, vcList, buffer));
-            renderList.drawAndRelease();
+            ObjectArrayList<DrawableDelegate> delegates = BufferPacker.pack(packingList, vcList, buffer);
+            renderList.accept(delegates);
+            renderList.draw();
+            final int limit = delegates.size();
+            for(int i = 0; i < limit; i++) {
+                delegates.get(i).release();
+            }
+            renderList.release();
             
             // UGLY - really should be part of render list draw but for chunks don't want to do this until end
             GlStateManager.disableClientState(GL11.GL_VERTEX_ARRAY);

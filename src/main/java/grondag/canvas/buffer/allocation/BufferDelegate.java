@@ -17,16 +17,35 @@
 package grondag.canvas.buffer.allocation;
 
 import java.nio.IntBuffer;
+import java.util.concurrent.ArrayBlockingQueue;
 
-public abstract class AbstractBufferDelegate<T extends AbstractBuffer> {
-    protected final int byteCount;
-    protected final int byteOffset;
-    public final T buffer;
+public class BufferDelegate {
+    private static final ArrayBlockingQueue<BufferDelegate> POOL = new ArrayBlockingQueue<>(4096);
+    
+    public static BufferDelegate claim(AbstractBuffer buffer, int byteOffset, int byteCount) {
+        BufferDelegate result = POOL.poll();
+        if (result == null) {
+            result = new BufferDelegate();
+        }
+        return result.prepare(buffer, byteOffset, byteCount);
+    }
+    
+    private int byteCount;
+    private int byteOffset;
+    private AbstractBuffer buffer;
 
-    protected AbstractBufferDelegate(T buffer, int byteOffset, int byteCount) {
+    private BufferDelegate() {
+    }
+    
+    private BufferDelegate prepare(AbstractBuffer buffer, int byteOffset, int byteCount) {
         this.buffer = buffer;
         this.byteCount = byteCount;
         this.byteOffset = byteOffset;
+        return this;
+    }
+    
+    public void release() {
+        POOL.offer(this);
     }
     
     /**
@@ -46,5 +65,9 @@ public abstract class AbstractBufferDelegate<T extends AbstractBuffer> {
     /** chunk will populate this buffer with vertex data. Will be used off thread. */
     public final IntBuffer intBuffer() {
         return buffer.byteBuffer().asIntBuffer();
+    }
+
+    public AbstractBuffer buffer() {
+        return buffer;
     }
 }

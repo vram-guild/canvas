@@ -61,20 +61,13 @@ public class VboBuffer extends UploadableBuffer implements AllocationProvider {
     }
     
     @Override
-    public void claimAllocation(ConditionalPipeline pipeline, int byteCount, Consumer<AbstractBufferDelegate<?>> consumer) {
-        // PERF: reuse delegates
-        consumer.accept(new VboBufferDelegate(this, byteOffset, byteCount));
+    public void claimAllocation(ConditionalPipeline pipeline, int byteCount, Consumer<BufferDelegate> consumer) {
+        consumer.accept(BufferDelegate.claim(this, byteOffset, byteCount));
         byteOffset += byteCount;
     }
 
     @Override
     public boolean isVbo() {
         return true;
-    }
-    
-    private static class VboBufferDelegate extends AbstractBufferDelegate<VboBuffer> {
-        protected VboBufferDelegate(VboBuffer buffer, int byteOffset, int byteCount) {
-            super(buffer, byteOffset, byteCount);
-        }
     }
 }

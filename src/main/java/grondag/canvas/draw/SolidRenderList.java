@@ -111,7 +111,6 @@ public class SolidRenderList implements Consumer<ObjectArrayList<DrawableDelegat
                 lastBufferId = b.bind(lastBufferId);
                 b.draw();
             }
-            //PERF: release delegates
         }
         list.clear();
     }

@@ -20,7 +20,7 @@ import java.nio.ByteBuffer;
 import java.util.function.Consumer;
 
 import grondag.canvas.buffer.allocation.AbstractBuffer;
-import grondag.canvas.buffer.allocation.AbstractBufferDelegate;
+import grondag.canvas.buffer.allocation.BufferDelegate;
 import grondag.canvas.buffer.allocation.AllocationProvider;
 import grondag.canvas.pipeline.ConditionalPipeline;
 import net.minecraft.client.render.BufferBuilder;
@@ -69,17 +69,11 @@ public class CanvasBufferBuilder extends BufferBuilder implements AllocationProv
     }
     
     @Override
-    public void claimAllocation(ConditionalPipeline pipeline, int byteCount, Consumer<AbstractBufferDelegate<?>> consumer) {
+    public void claimAllocation(ConditionalPipeline pipeline, int byteCount, Consumer<BufferDelegate> consumer) {
         final int newOffset = byteOffset + byteCount;
         
-        consumer.accept(new CanvasBufferDelegate(canvasBuffer, byteOffset, byteCount));
+        consumer.accept(BufferDelegate.claim(canvasBuffer, byteOffset, byteCount));
         byteOffset = newOffset;        
-    }
-    
-    private class CanvasBufferDelegate extends AbstractBufferDelegate<CanvasBuffer> {
-        protected CanvasBufferDelegate(CanvasBuffer buffer, int byteOffset, int byteCount) {
-            super(buffer, byteOffset, byteCount);
-        }
     }
     
     private class CanvasBuffer extends AbstractBuffer {
