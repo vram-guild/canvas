@@ -18,9 +18,7 @@ package grondag.canvas.buffer.allocation;
 
 import java.nio.IntBuffer;
 
-import grondag.canvas.buffer.DrawableDelegate;
-
-public abstract class AbstractBufferDelegate<T extends AllocableBuffer> {
+public abstract class AbstractBufferDelegate<T extends AbstractBuffer> {
     protected final int byteCount;
     protected final int byteOffset;
     public final T buffer;
@@ -30,8 +28,6 @@ public abstract class AbstractBufferDelegate<T extends AllocableBuffer> {
         this.byteCount = byteCount;
         this.byteOffset = byteOffset;
     }
-    
-    public abstract boolean isVbo();
     
     /**
      * How many bytes consumed by this delegate in the buffer.
@@ -51,20 +47,4 @@ public abstract class AbstractBufferDelegate<T extends AllocableBuffer> {
     public final IntBuffer intBuffer() {
         return buffer.byteBuffer().asIntBuffer();
     }
-
-    public abstract void lockForUpload();
-
-    public abstract void unlockForUpload();
-
-    public abstract void retain(DrawableDelegate result);
-
-    public abstract int glBufferId();
-
-    public abstract void bind();
-
-    public abstract boolean isDisposed();
-
-    public abstract void release(DrawableDelegate drawableDelegate);
-
-    public abstract void flush();
 }

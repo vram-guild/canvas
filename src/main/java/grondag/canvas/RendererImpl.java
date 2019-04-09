@@ -21,17 +21,16 @@ import java.util.function.BooleanSupplier;
 
 import grondag.canvas.RenderMaterialImpl.Finder;
 import grondag.canvas.RenderMaterialImpl.Value;
-import grondag.canvas.buffer.allocation.VboBufferManager;
 import grondag.canvas.core.PipelineManager;
 import grondag.canvas.core.RenderPipelineImpl;
 import grondag.canvas.mesh.MeshBuilderImpl;
+import grondag.frex.api.core.MeshBuilder;
+import grondag.frex.api.core.RenderMaterial;
 import grondag.frex.api.extended.ExtendedRenderer;
 import grondag.frex.api.extended.Pipeline;
 import grondag.frex.api.extended.PipelineBuilder;
 import grondag.frex.api.extended.RenderCondition;
 import grondag.frex.api.extended.RenderReloadCallback;
-import grondag.frex.api.core.MeshBuilder;
-import grondag.frex.api.core.RenderMaterial;
 import net.minecraft.client.resource.language.I18n;
 import net.minecraft.util.Identifier;
 
@@ -93,7 +92,6 @@ public class RendererImpl implements ExtendedRenderer, RenderReloadCallback {
     public void reload() {
         Canvas.INSTANCE.log().info(I18n.translate("misc.info_reloading"));
         PipelineManager.INSTANCE.forceReload();
-        VboBufferManager.forceReload();
     }
 
     @Override

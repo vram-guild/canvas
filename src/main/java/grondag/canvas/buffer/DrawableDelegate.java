@@ -24,7 +24,9 @@ import org.lwjgl.opengl.GL11;
 
 import com.mojang.blaze3d.platform.GlStateManager;
 
+import grondag.canvas.buffer.allocation.AbstractBuffer;
 import grondag.canvas.buffer.allocation.AbstractBufferDelegate;
+import grondag.canvas.buffer.allocation.BindableBuffer;
 import grondag.canvas.core.ConditionalPipeline;
 import grondag.canvas.core.PipelineVertexFormat;
 import grondag.canvas.opengl.CanvasGlHelper;
@@ -33,6 +35,12 @@ import net.minecraft.client.render.VertexFormatElement;
 
 public class DrawableDelegate {
     private static final ArrayBlockingQueue<DrawableDelegate> store = new ArrayBlockingQueue<DrawableDelegate>(4096);
+    
+    /**
+     * Signals the gl buffer not determined.  
+     * Can't be populated at construction because that can happen off thread.
+     */
+    private static final int BUFFER_UNKNOWN = -1000;
     
     public static DrawableDelegate claim(AbstractBufferDelegate<?> bufferDelegate, ConditionalPipeline pipeline, int vertexCount) {
         DrawableDelegate result = store.poll();
@@ -43,10 +51,12 @@ public class DrawableDelegate {
         result.conditionalPipeline = pipeline;
         result.vertexCount = vertexCount;
         result.isReleased = false;
-        result.vertexBinder = bufferDelegate.isVbo() 
+        result.vertexBinder = bufferDelegate.buffer.isVbo() 
                 ? (CanvasGlHelper.isVaoEnabled() ? result::bindVao : result::bindVbo)
                 : result::bindBuffer;
-        bufferDelegate.retain(result);
+        bufferDelegate.buffer.retain(result);
+        result.bufferId = BUFFER_UNKNOWN;
+        
         return result;
     }
 
@@ -55,6 +65,7 @@ public class DrawableDelegate {
     private int vertexCount;
     private boolean isReleased = false;
     private Consumer<PipelineVertexFormat> vertexBinder;
+    private int bufferId = BUFFER_UNKNOWN;
     
     /**
      * VAO Buffer name if enabled and initialized.
@@ -75,7 +86,13 @@ public class DrawableDelegate {
      * vertex buffer and pipeline/format.
      */
     public int bufferId() {
-        return this.bufferDelegate.glBufferId();
+        int result = bufferId;
+        if(bufferId == BUFFER_UNKNOWN) {
+            final BindableBuffer binder = bufferDelegate.buffer.bindable();
+            result = binder == null ? -1 : binder.glBufferId();
+            bufferId = result;
+        }
+        return result;
     }
 
     /**
@@ -90,12 +107,15 @@ public class DrawableDelegate {
      * attributes. Returns the buffer Id that is bound, or input if unchanged.
      */
     public int bind(int lastBufferId) {
-        if (this.bufferDelegate.isDisposed())
+        final AbstractBuffer buffer = this.bufferDelegate.buffer;
+        if (buffer.isDisposed())
             return lastBufferId;
 
-        if (this.bufferDelegate.glBufferId() != lastBufferId) {
-            this.bufferDelegate.bind();
-            lastBufferId = this.bufferDelegate.glBufferId();
+        final BindableBuffer binder = buffer.bindable();
+        
+        if (binder != null && binder.glBufferId() != lastBufferId) {
+            binder.bind();
+            lastBufferId = binder.glBufferId();
         }
 
         this.vertexBinder.accept(conditionalPipeline.pipeline.piplineVertexFormat());
@@ -110,7 +130,7 @@ public class DrawableDelegate {
     public void draw() {
         assert !isReleased;
 
-        if (this.bufferDelegate.isDisposed())
+        if (this.bufferDelegate.buffer.isDisposed())
             return;
 
         GlStateManager.drawArrays(GL11.GL_QUADS, 0, vertexCount);
@@ -119,7 +139,7 @@ public class DrawableDelegate {
     public void release() {
         if (!isReleased) {
             isReleased = true;
-            bufferDelegate.release(this);
+            bufferDelegate.buffer.release(this);
             if (vaoBufferId != -1) {
                 VaoStore.releaseVertexArray(vaoBufferId);
                 vaoBufferId = -1;
@@ -132,7 +152,7 @@ public class DrawableDelegate {
 
     public void flush() {
         assert !isReleased;
-        this.bufferDelegate.flush();
+        this.bufferDelegate.buffer.upload();
     }
     
     void bindVao(PipelineVertexFormat format) {

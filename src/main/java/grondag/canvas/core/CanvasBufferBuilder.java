@@ -19,10 +19,9 @@ package grondag.canvas.core;
 import java.nio.ByteBuffer;
 import java.util.function.Consumer;
 
-import grondag.canvas.buffer.DrawableDelegate;
 import grondag.canvas.buffer.VertexCollectorList;
+import grondag.canvas.buffer.allocation.AbstractBuffer;
 import grondag.canvas.buffer.allocation.AbstractBufferDelegate;
-import grondag.canvas.buffer.allocation.AllocableBuffer;
 import grondag.canvas.buffer.allocation.AllocationProvider;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.VertexFormat;
@@ -81,54 +80,9 @@ public class CanvasBufferBuilder extends BufferBuilder implements AllocationProv
         protected CanvasBufferDelegate(CanvasBuffer buffer, int byteOffset, int byteCount) {
             super(buffer, byteOffset, byteCount);
         }
-
-        @Override
-        public boolean isVbo() {
-            return false;
-        }
-
-        @Override
-        public void lockForUpload() {
-            // NOOP
-        }
-
-        @Override
-        public void unlockForUpload() {
-            // NOOP
-        }
-
-        @Override
-        public void retain(DrawableDelegate result) {
-            // NOOP
-        }
-
-        @Override
-        public int glBufferId() {
-            return -1;
-        }
-
-        @Override
-        public void bind() {
-            // NOOP
-        }
-
-        @Override
-        public boolean isDisposed() {
-            return false;
-        }
-
-        @Override
-        public void release(DrawableDelegate drawableDelegate) {
-            // NOOP
-        }
-
-        @Override
-        public void flush() {
-            // NOOP
-        }
     }
     
-    private class CanvasBuffer extends AllocableBuffer {
+    private class CanvasBuffer extends AbstractBuffer {
         private static final int BUFFER_SIZE_INCREMENT = 2097152;
         private ByteBuffer byteBuffer = GlAllocationUtils.allocateByteBuffer(BUFFER_SIZE_INCREMENT);
         
@@ -154,6 +108,11 @@ public class CanvasBufferBuilder extends BufferBuilder implements AllocationProv
                 newBuffer.rewind();
                 this.byteBuffer = newBuffer;
              }
+        }
+
+        @Override
+        public boolean isVbo() {
+            return false;
         }
     }
 }

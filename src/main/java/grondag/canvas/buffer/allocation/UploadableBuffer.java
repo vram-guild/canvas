@@ -14,7 +14,7 @@
  * the License.
  ******************************************************************************/
 
-package grondag.canvas.buffer;
+package grondag.canvas.buffer.allocation;
 
 import java.util.Collections;
 import java.util.Set;
@@ -22,10 +22,10 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import com.mojang.blaze3d.platform.GLX;
 
-import grondag.canvas.buffer.allocation.AllocableBuffer;
+import grondag.canvas.buffer.DrawableDelegate;
 import grondag.canvas.opengl.GLBufferStore;
 
-public abstract class BindableBuffer extends AllocableBuffer {
+public abstract class UploadableBuffer extends AbstractBuffer implements BindableBuffer {
     protected static int nextID = 0;
 
     private int glBufferId = -1;
@@ -38,6 +38,12 @@ public abstract class BindableBuffer extends AllocableBuffer {
     protected final Set<DrawableDelegate> retainers = Collections
             .newSetFromMap(new ConcurrentHashMap<DrawableDelegate, Boolean>());
 
+    @Override
+    public BindableBuffer bindable() {
+        return this;
+    }
+    
+    @Override
     public int glBufferId() {
         int result = glBufferId;
         if(result == -1) {
@@ -47,32 +53,45 @@ public abstract class BindableBuffer extends AllocableBuffer {
         return result;
     }
     
-    protected void bind() {
+    @Override
+    public void bind() {
         GLX.glBindBuffer(GLX.GL_ARRAY_BUFFER, this.glBufferId());
     }
 
-    protected void unbind() {
+    @Override
+    public void unbind() {
         GLX.glBindBuffer(GLX.GL_ARRAY_BUFFER, 0);
     }
 
-    protected abstract void flush();
+    /** called before chunk populates int buffer(). May be called off thread */
+    @Override
+    public final void lockForWrite() {
+//        buffer.bufferLock.lock();
+    }
 
-    /**
-     * Called implicitly when bytes are allocated. Store calls explicitly to retain
-     * while this buffer is being filled.
-     */
-    protected void retain(DrawableDelegate drawable) {
-//        traceLog.add(String.format("retain(%s)", drawable.toString()));
+    /** called after chunk populates int buffer(). May be called off thread */
+    @Override
+    public final void unlockForWrite() {
+//        buffer.bufferLock.unlock();
+    }
+    
+    @Override
+    public void retain(DrawableDelegate drawable) {
         retainers.add(drawable);
     }
 
-    protected void release(DrawableDelegate drawable) {
+    /**
+     * Signals the buffer will no longer be used. May be called off-thread.
+     */
+    @Override
+    public void release(DrawableDelegate drawable) {
         retainers.remove(drawable);
     }
 
     protected boolean isDisposed = false;
 
-    protected boolean isDisposed() {
+    @Override
+    public boolean isDisposed() {
         return isDisposed;
     }
 

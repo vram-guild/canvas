@@ -20,7 +20,6 @@ import org.joml.Vector3f;
 
 import grondag.canvas.Configurator;
 import grondag.canvas.RenderMaterialImpl;
-import grondag.canvas.buffer.allocation.VboBufferManager;
 import grondag.canvas.mixinext.FogStateExtHolder;
 import grondag.frex.api.extended.UniformRefreshFrequency;
 import net.fabricmc.fabric.api.event.client.ClientTickCallback;
@@ -206,8 +205,6 @@ public final class PipelineManager implements ClientTickCallback {
      */
     public void prepareForFrame(Camera camera) {
         this.fractionalTicks = MinecraftClient.getInstance().getTickDelta();
-
-        VboBufferManager.prepareForFrame();
 
         Entity cameraEntity = camera.getFocusedEntity();
         assert cameraEntity != null;

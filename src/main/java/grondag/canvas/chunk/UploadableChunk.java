@@ -20,7 +20,7 @@ import grondag.canvas.buffer.BufferPacker;
 import grondag.canvas.buffer.BufferPackingList;
 import grondag.canvas.buffer.DrawableDelegate;
 import grondag.canvas.buffer.VertexCollectorList;
-import grondag.canvas.buffer.allocation.VboBufferManager;
+import grondag.canvas.buffer.allocation.VboBuffer;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 public abstract class UploadableChunk<V extends DrawableChunk> {
@@ -28,7 +28,7 @@ public abstract class UploadableChunk<V extends DrawableChunk> {
 
     /** Does not retain packing list reference */
     protected UploadableChunk(BufferPackingList packingList, VertexCollectorList collectorList) {
-        delegates = BufferPacker.pack(packingList, collectorList, VboBufferManager.ALLOCATION_MANAGER.getAllocator(packingList.totalBytes()));
+        delegates = BufferPacker.pack(packingList, collectorList, new VboBuffer(packingList.totalBytes()));
     }
 
     /**

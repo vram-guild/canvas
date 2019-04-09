@@ -23,20 +23,19 @@ import org.lwjgl.system.MemoryUtil;
 
 import com.mojang.blaze3d.platform.GLX;
 
-import grondag.canvas.buffer.BindableBuffer;
 import grondag.canvas.core.ConditionalPipeline;
 
-public class VboBuffer extends BindableBuffer implements AllocationProvider {
+public class VboBuffer extends UploadableBuffer implements AllocationProvider {
     ByteBuffer uploadBuffer;
     
     int byteOffset = 0;
     
-    VboBuffer(int bytes) {
+    public VboBuffer(int bytes) {
         uploadBuffer = MemoryUtil.memAlloc(bytes);
     }
     
     @Override
-    protected void flush() {
+    public void upload() {
         if(uploadBuffer != null) {
             bind();
             uploadBuffer.rewind();
@@ -66,5 +65,16 @@ public class VboBuffer extends BindableBuffer implements AllocationProvider {
         // PERF: reuse delegates
         consumer.accept(new VboBufferDelegate(this, byteOffset, byteCount));
         byteOffset += byteCount;
+    }
+
+    @Override
+    public boolean isVbo() {
+        return true;
+    }
+    
+    private static class VboBufferDelegate extends AbstractBufferDelegate<VboBuffer> {
+        protected VboBufferDelegate(VboBuffer buffer, int byteOffset, int byteCount) {
+            super(buffer, byteOffset, byteCount);
+        }
     }
 }
