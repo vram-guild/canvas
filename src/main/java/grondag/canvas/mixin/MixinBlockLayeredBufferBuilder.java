@@ -28,7 +28,6 @@ public abstract class MixinBlockLayeredBufferBuilder {
     @Redirect(method = "<init>*", require = 4, at = @At(value = "NEW", args = "class=net/minecraft/client/render/BufferBuilder"))
     private BufferBuilder newBuferBuilder(int bufferSizeIn) {
         // avoid RAM waste - we never use the buffers
-        // PERF: can they be null?  Can the whole thing be null?
         return new BufferBuilder(64);
     }
 }

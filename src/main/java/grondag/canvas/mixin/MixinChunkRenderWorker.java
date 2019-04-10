@@ -17,15 +17,20 @@
 package grondag.canvas.mixin;
 
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
 import net.minecraft.block.BlockRenderLayer;
+import net.minecraft.client.render.chunk.BlockLayeredBufferBuilder;
 import net.minecraft.client.render.chunk.ChunkRenderData;
+import net.minecraft.client.render.chunk.ChunkRenderTask;
 import net.minecraft.client.render.chunk.ChunkRenderWorker;
 
 @Mixin(ChunkRenderWorker.class)
 public abstract class MixinChunkRenderWorker {
+    private static final BlockLayeredBufferBuilder DUMMY_LAYERS = new BlockLayeredBufferBuilder();
+    
     @Redirect(method = "runTask", require = 1, at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/chunk/ChunkRenderData;isBufferInitialized(Lnet/minecraft/block/BlockRenderLayer;)Z"))
     private boolean isLayerStarted(ChunkRenderData chunkData, BlockRenderLayer layer) {
         return shouldUploadLayer(chunkData, layer);
@@ -34,5 +39,21 @@ public abstract class MixinChunkRenderWorker {
     private static boolean shouldUploadLayer(ChunkRenderData chunkData, BlockRenderLayer blockrenderlayer) {
         // skip if empty
         return chunkData.isBufferInitialized(blockrenderlayer) && !chunkData.method_3641(blockrenderlayer);
+    }
+    
+    /** 
+     * Should never be called/used by canvas - avoids memory use and overhead of BlockLayeredBufferBuilders
+     */
+    @Overwrite
+    private BlockLayeredBufferBuilder getBufferBuilders() throws InterruptedException {
+        return DUMMY_LAYERS;
+    }
+    
+    /** 
+     * Should never be needed with canvas - avoids memory use and overhead of BlockLayeredBufferBuilders
+     */
+    @Overwrite
+    private void freeRenderTask(ChunkRenderTask chunkRenderTask_1) {
+        //NOOP
     }
 }

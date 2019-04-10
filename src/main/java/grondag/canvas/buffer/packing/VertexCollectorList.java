@@ -20,7 +20,6 @@ import java.util.Comparator;
 import java.util.PriorityQueue;
 import java.util.function.Consumer;
 
-import grondag.canvas.RunTimer.ThreadSafeRunTimer;
 import grondag.canvas.apiimpl.RenderMaterialImpl;
 import grondag.canvas.chunk.UploadableChunk;
 import grondag.canvas.pipeline.ConditionalPipeline;
