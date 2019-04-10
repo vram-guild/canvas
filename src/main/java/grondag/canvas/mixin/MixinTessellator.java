@@ -16,7 +16,6 @@
 
 package grondag.canvas.mixin;
 
-import org.lwjgl.opengl.GL11;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -24,16 +23,12 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import com.mojang.blaze3d.platform.GlStateManager;
-
 import grondag.canvas.buffer.packing.BufferPacker;
 import grondag.canvas.buffer.packing.BufferPackingList;
 import grondag.canvas.buffer.packing.CanvasBufferBuilder;
 import grondag.canvas.buffer.packing.VertexCollectorList;
 import grondag.canvas.draw.DrawableDelegate;
 import grondag.canvas.draw.SolidRenderList;
-import grondag.canvas.pipeline.Program;
-import grondag.canvas.varia.CanvasGlHelper;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.Tessellator;
@@ -62,13 +57,8 @@ public class MixinTessellator {
             for(int i = 0; i < limit; i++) {
                 delegates.get(i).release();
             }
+            SolidRenderList.postDrawCleanup();
             renderList.release();
-            
-            // UGLY - really should be part of render list draw but for chunks don't want to do this until end
-            GlStateManager.disableClientState(GL11.GL_VERTEX_ARRAY);
-            CanvasGlHelper.resetAttributes();
-            Program.deactivate();
-            
             vcList.clear();
             buffer.clearAllocations();
         }

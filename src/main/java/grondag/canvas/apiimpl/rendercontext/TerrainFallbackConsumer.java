@@ -143,13 +143,11 @@ public class TerrainFallbackConsumer extends AbstractQuadRenderer implements Con
             }
         }
         
-        //TODO: Configurable
         preventDepthFighting();
         
         super.renderQuad();
     }
 
-    //TODO: Configurable
     private static final float MIN_Z_LOW = 0.002f;
     private static final float MIN_Z_HIGH = 1 - MIN_Z_LOW;
     

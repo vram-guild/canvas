@@ -27,7 +27,6 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 
 public class RenderCube {
-    //TODO: Configurable
     private static final int CUBE_MASK = 0xFFFFFF00;
     
     /**

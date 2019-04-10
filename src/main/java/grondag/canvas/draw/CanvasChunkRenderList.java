@@ -28,7 +28,6 @@ import com.mojang.blaze3d.platform.GlStateManager;
 import grondag.canvas.buffer.packing.RenderCube;
 import grondag.canvas.chunk.ChunkRendererExt;
 import grondag.canvas.chunk.DrawableChunk;
-import grondag.canvas.pipeline.Program;
 import grondag.canvas.varia.CanvasGlHelper;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap.Entry;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
@@ -38,7 +37,7 @@ import net.minecraft.block.BlockRenderLayer;
 import net.minecraft.client.render.chunk.ChunkRenderer;
 import net.minecraft.util.math.BlockPos;
 
-public class PipelinedRenderList {
+public class CanvasChunkRenderList {
     protected final ObjectArrayList<ChunkRenderer> chunks = new ObjectArrayList<ChunkRenderer>();
 
     /**
@@ -69,7 +68,7 @@ public class PipelinedRenderList {
     private double viewEntityY;
     private double viewEntityZ;
 
-    public PipelinedRenderList() {
+    public CanvasChunkRenderList() {
         xlatMatrix.identity();
     }
 
@@ -159,8 +158,9 @@ public class PipelinedRenderList {
         // We don't use these except for GL_VERTEX so disable them now unless we
         // are using VAOs, which will cause them to be ignored.
         // Not a problem to disable them because MC disables the when we return.
-        if (!CanvasGlHelper.isVaoEnabled())
+        if (!CanvasGlHelper.isVaoEnabled()) {
             disableUnusedAttributes();
+        }
     }
 
     private final void disableUnusedAttributes() {
@@ -223,12 +223,7 @@ public class PipelinedRenderList {
             GlStateManager.popMatrix();
             didUpdateTransform = false;
         }
-        if (CanvasGlHelper.isVaoEnabled())
-            CanvasGlHelper.glBindVertexArray(0);
-
-        CanvasGlHelper.resetAttributes();
-        GLX.glBindBuffer(GLX.GL_ARRAY_BUFFER, 0);
-        Program.deactivate();
+        SolidRenderList.postDrawCleanup();
         GlStateManager.clearCurrentColor();
     }
 }

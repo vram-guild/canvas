@@ -22,7 +22,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import grondag.canvas.chunk.ChunkRendererListExt;
-import grondag.canvas.draw.PipelinedRenderList;
+import grondag.canvas.draw.CanvasChunkRenderList;
 import net.minecraft.block.BlockRenderLayer;
 import net.minecraft.client.render.chunk.ChunkRenderer;
 import net.minecraft.client.render.chunk.ChunkRendererList;
@@ -30,11 +30,11 @@ import net.minecraft.client.render.chunk.VboChunkRendererList;
 
 @Mixin(VboChunkRendererList.class)
 public abstract class MixinVboChunkRendererList extends ChunkRendererList implements ChunkRendererListExt {
-    private PipelinedRenderList ext;
+    private CanvasChunkRenderList ext;
     
     @Inject(method = "<init>*", at = @At("RETURN"), require = 1)
     private void onConstructed(CallbackInfo ci) {
-        ext = new PipelinedRenderList();
+        ext = new CanvasChunkRenderList();
     }
     
     @Override

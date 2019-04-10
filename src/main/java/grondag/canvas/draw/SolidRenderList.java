@@ -19,11 +19,17 @@ package grondag.canvas.draw;
 import java.util.ArrayDeque;
 import java.util.function.Consumer;
 
+import org.lwjgl.opengl.GL11;
+
 import com.google.common.collect.ComparisonChain;
+import com.mojang.blaze3d.platform.GLX;
+import com.mojang.blaze3d.platform.GlStateManager;
 
 import grondag.canvas.apiimpl.RenderConditionImpl;
 import grondag.canvas.apiimpl.RenderPipelineImpl;
 import grondag.canvas.pipeline.PipelineManager;
+import grondag.canvas.pipeline.Program;
+import grondag.canvas.varia.CanvasGlHelper;
 import it.unimi.dsi.fastutil.Arrays;
 import it.unimi.dsi.fastutil.Swapper;
 import it.unimi.dsi.fastutil.ints.AbstractIntComparator;
@@ -120,6 +126,20 @@ public class SolidRenderList implements Consumer<ObjectArrayList<DrawableDelegat
             }
         }
         delegates.clear();
+    }
+    
+    /**
+     * Cleans up buffer and vertex bindings. Use after non-terrain calls to {@link #draw()}.
+     * Not needed by chunk draw because vanilla already handles.
+     */
+    public static void postDrawCleanup() {
+        if (CanvasGlHelper.isVaoEnabled()) {
+            CanvasGlHelper.glBindVertexArray(0);
+        }
+        GlStateManager.disableClientState(GL11.GL_VERTEX_ARRAY);
+        CanvasGlHelper.resetAttributes();
+        GLX.glBindBuffer(GLX.GL_ARRAY_BUFFER, 0);
+        Program.deactivate();
     }
     
     public void release() {

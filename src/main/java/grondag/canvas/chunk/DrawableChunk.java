@@ -111,8 +111,9 @@ public abstract class DrawableChunk {
          * frame from client thread before any call to {@link #renderSolidNext()}.
          */
         public void prepareSolidRender(Consumer<ObjectArrayList<DrawableDelegate>> consumer) {
-            if (isCleared)
+            if (isCleared) {
                 return;
+            }
             consumer.accept(delegates);
         }
     }
@@ -121,16 +122,19 @@ public abstract class DrawableChunk {
         public Translucent(ObjectArrayList<DrawableDelegate> delegates) {
             super(delegates);
         }
-        //PERF: don't rebind attributes if sharing format - just advance the vertex index
+        
+        // PERF: don't rebind attributes if sharing format - just advance the vertex index
         public void renderChunkTranslucent() {
-            if (isCleared)
+            if (isCleared) {
                 return;
-
+            }
+            
             final int limit = delegates.size();
             
-            if (limit == 0)
+            if (limit == 0) {
                 return;
-
+            }
+            
             final Object[] draws = delegates.elements();
 
             int lastBufferId = -1;
