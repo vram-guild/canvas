@@ -55,10 +55,15 @@ import net.minecraft.util.math.BlockPos;
  * quad held in the instance, where all transformations are applied before
  * buffering.
  */
-public abstract class AbstractMeshConsumer extends AbstractQuadRenderer implements Consumer<Mesh> {
-    protected AbstractMeshConsumer(BlockRenderInfo blockInfo, ToIntBiFunction<BlockState, BlockPos> brightnessFunc,
-            Function<RenderMaterialImpl.Value, VertexCollector> collectorFunc, AoCalculator aoCalc, QuadTransform transform) {
-        super(blockInfo, brightnessFunc, collectorFunc, aoCalc, transform);
+public class MeshConsumer extends QuadRenderer implements Consumer<Mesh> {
+    protected MeshConsumer(
+            BlockRenderInfo blockInfo, 
+            ToIntBiFunction<BlockState, BlockPos> brightnessFunc,
+            Function<RenderMaterialImpl.Value, VertexCollector> collectorFunc, 
+            AoCalculator aoCalc, 
+            QuadTransform transform,
+            Consumer<MutableQuadViewImpl> offsetFunc) {
+        super(blockInfo, brightnessFunc, collectorFunc, aoCalc, transform, offsetFunc);
         editorQuad = new Maker();
     }
 

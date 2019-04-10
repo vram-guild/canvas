@@ -34,6 +34,7 @@ package grondag.canvas.apiimpl.rendercontext;
 
 import static grondag.canvas.apiimpl.util.GeometryHelper.LIGHT_FACE_FLAG;
 
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.ToIntBiFunction;
 
@@ -50,21 +51,30 @@ import net.minecraft.util.math.BlockPos;
  * Base quad-rendering class for fallback and mesh consumers. Has most of the
  * actual buffer-time lighting and coloring logic.
  */
-public abstract class AbstractQuadRenderer {
+public class QuadRenderer {
+    public static final Consumer<MutableQuadViewImpl> NO_OFFSET = (q) -> {};
+    
     protected final ToIntBiFunction<BlockState, BlockPos> brightnessFunc;
     protected final Function<RenderMaterialImpl.Value, VertexCollector> collectorFunc;
     protected final BlockRenderInfo blockInfo;
     protected final AoCalculator aoCalc;
     protected final QuadTransform transform;
     protected MutableQuadViewImpl editorQuad;
+    protected final Consumer<MutableQuadViewImpl> offsetFunc;
     
-    AbstractQuadRenderer(BlockRenderInfo blockInfo, ToIntBiFunction<BlockState, BlockPos> brightnessFunc,
-            Function<RenderMaterialImpl.Value, VertexCollector> collectorFunc, AoCalculator aoCalc, QuadTransform transform) {
+    QuadRenderer(
+            BlockRenderInfo blockInfo, 
+            ToIntBiFunction<BlockState, BlockPos> brightnessFunc,
+            Function<RenderMaterialImpl.Value, VertexCollector> collectorFunc, 
+            AoCalculator aoCalc, 
+            QuadTransform transform,
+            Consumer<MutableQuadViewImpl> offsetFunc) {
         this.blockInfo = blockInfo;
         this.brightnessFunc = brightnessFunc;
         this.collectorFunc = collectorFunc;
         this.aoCalc = aoCalc;
         this.transform = transform;
+        this.offsetFunc = offsetFunc;
     }
 
     /** handles block color and red-blue swizzle, common to all renders */
@@ -73,8 +83,6 @@ public abstract class AbstractQuadRenderer {
         ColorHelper.colorizeQuad(q, blockColorIndex == -1 ? -1 : (blockInfo.blockColor(blockColorIndex) | 0xFF000000));
     }
 
-    protected abstract void applyOffsets();
-    
     /** final output step, common to all renders */
     protected final void renderQuad() {
         final MutableQuadViewImpl q = editorQuad;
@@ -97,7 +105,7 @@ public abstract class AbstractQuadRenderer {
             aoCalc.compute(q);
         }
 
-        applyOffsets();
+        offsetFunc.accept(q);
         
         colorizeQuad(q);
         

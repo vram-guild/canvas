@@ -1,35 +1,3 @@
-/*******************************************************************************
- * Copyright 2019 grondag
- * 
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License.  You may obtain a copy
- * of the License at
- * 
- *   http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
- * License for the specific language governing permissions and limitations under
- * the License.
- ******************************************************************************/
-
-/*
- * Copyright (c) 2016, 2017, 2018 FabricMC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package grondag.canvas.apiimpl.rendercontext;
 
 import java.util.List;
@@ -37,16 +5,15 @@ import java.util.Random;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.function.ToIntBiFunction;
 
 import grondag.canvas.apiimpl.MutableQuadViewImpl;
-import grondag.canvas.apiimpl.RenderMaterialImpl;
 import grondag.canvas.apiimpl.RendererImpl;
 import grondag.canvas.apiimpl.RenderMaterialImpl.Value;
 import grondag.canvas.apiimpl.util.AoCalculator;
 import grondag.canvas.apiimpl.util.GeometryHelper;
 import grondag.canvas.apiimpl.util.MeshEncodingHelper;
 import grondag.canvas.buffer.packing.VertexCollector;
-import grondag.canvas.chunk.ChunkRenderInfo;
 import grondag.canvas.varia.BakedQuadExt;
 import grondag.frex.api.core.ModelHelper;
 import grondag.frex.api.core.QuadEmitter;
@@ -54,25 +21,18 @@ import grondag.frex.api.core.RenderContext.QuadTransform;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.render.model.BakedModel;
 import net.minecraft.client.render.model.BakedQuad;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 
-public class TerrainFallbackConsumer extends AbstractQuadRenderer implements Consumer<BakedModel> {
-    private static Value MATERIAL_FLAT = (Value) RendererImpl.INSTANCE.materialFinder().disableDiffuse(0, true).disableAo(0, true).find();
-    private static Value MATERIAL_SHADED = (Value) RendererImpl.INSTANCE.materialFinder().disableAo(0, true).find();
-    private static Value MATERIAL_AO_FLAT = (Value) RendererImpl.INSTANCE.materialFinder().disableDiffuse(0, true).find();
-    private static Value MATERIAL_AO_SHADED = (Value) RendererImpl.INSTANCE.materialFinder().find();
+public class FallbackConsumer extends QuadRenderer implements Consumer<BakedModel> {
+    protected static Value MATERIAL_FLAT = (Value) RendererImpl.INSTANCE.materialFinder().disableDiffuse(0, true).disableAo(0, true).find();
+    protected static Value MATERIAL_SHADED = (Value) RendererImpl.INSTANCE.materialFinder().disableAo(0, true).find();
+    protected static Value MATERIAL_AO_FLAT = (Value) RendererImpl.INSTANCE.materialFinder().disableDiffuse(0, true).find();
+    protected static Value MATERIAL_AO_SHADED = (Value) RendererImpl.INSTANCE.materialFinder().find();
     
-    private final int[] editorBuffer = new int[28];
-    private final ChunkRenderInfo chunkInfo;
-    
-    TerrainFallbackConsumer(BlockRenderInfo blockInfo, ChunkRenderInfo chunkInfo, Function<RenderMaterialImpl.Value, VertexCollector> collectorFunc, 
-            AoCalculator aoCalc, QuadTransform transform) {
-        super(blockInfo, chunkInfo::cachedBrightness, collectorFunc, aoCalc, transform);
-        this.chunkInfo = chunkInfo;
-        this.editorQuad = new Maker();
-    }
+    protected final int[] editorBuffer = new int[28];
 
-    private class Maker extends MutableQuadViewImpl {
+    protected class Maker extends MutableQuadViewImpl {
         {
             data = editorBuffer;
             material = MATERIAL_SHADED;
@@ -85,7 +45,18 @@ public class TerrainFallbackConsumer extends AbstractQuadRenderer implements Con
             throw new UnsupportedOperationException("Fallback consumer does not support .emit()");
         }
     };
-
+    
+    FallbackConsumer(
+            BlockRenderInfo blockInfo, 
+            ToIntBiFunction<BlockState, BlockPos> brightnessFunc, 
+            Function<Value, VertexCollector> collectorFunc, 
+            AoCalculator aoCalc, 
+            QuadTransform transform, 
+            Consumer<MutableQuadViewImpl> offsetFunc) {
+        super(blockInfo, brightnessFunc, collectorFunc, aoCalc, transform, offsetFunc);
+        this.editorQuad = new Maker();
+    }
+    
     @Override
     public void accept(BakedModel model) {
         final Supplier<Random> random = blockInfo.randomSupplier;
@@ -119,7 +90,7 @@ public class TerrainFallbackConsumer extends AbstractQuadRenderer implements Con
             }
         }
     }
-
+    
     private void renderQuad(BakedQuad quad, Direction cullFace, Value defaultMaterial) {
         System.arraycopy(quad.getVertexData(), 0, editorBuffer, 0, 28);
         editorQuad.cullFace(cullFace);
@@ -147,7 +118,7 @@ public class TerrainFallbackConsumer extends AbstractQuadRenderer implements Con
         
         super.renderQuad();
     }
-
+    
     private static final float MIN_Z_LOW = 0.002f;
     private static final float MIN_Z_HIGH = 1 - MIN_Z_LOW;
     
@@ -208,10 +179,5 @@ public class TerrainFallbackConsumer extends AbstractQuadRenderer implements Con
             
             }
         }
-    }
-    
-    @Override
-    protected void applyOffsets() {
-        chunkInfo.applyOffsets(editorQuad);
     }
 }

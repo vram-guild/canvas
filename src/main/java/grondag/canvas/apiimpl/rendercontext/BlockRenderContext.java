@@ -32,10 +32,7 @@
 
 package grondag.canvas.apiimpl.rendercontext;
 
-import java.util.Random;
 import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.ToIntBiFunction;
 
 import grondag.canvas.apiimpl.RenderMaterialImpl;
 import grondag.canvas.apiimpl.util.AoCalculator;
@@ -60,17 +57,11 @@ public class BlockRenderContext extends AbstractRenderContext implements RenderC
     private final BlockRenderInfo blockInfo = new BlockRenderInfo();
     private final AoCalculator aoCalc = new AoCalculator(blockInfo, this::brightness, this::aoLevel);
     private final MeshConsumer meshConsumer = new MeshConsumer(blockInfo, this::brightness, this::getCollector, aoCalc,
-            this::transform);
-    private final Random random = new Random();
+            this::transform, QuadRenderer.NO_OFFSET);
+    private final FallbackConsumer fallbackConsumer = new FallbackConsumer(blockInfo, this::brightness, this::getCollector, aoCalc,
+            this::transform, QuadRenderer.NO_OFFSET);
     private CanvasBufferBuilder canvasBuilder;
-    private BlockModelRenderer vanillaRenderer;
-    private long seed;
-    private boolean isCallingVanilla = false;
     private boolean didOutput = false;
-
-    public boolean isCallingVanilla() {
-        return isCallingVanilla;
-    }
 
     private int brightness(BlockState blockState, BlockPos pos) {
         if (blockInfo.blockView == null) {
@@ -94,9 +85,7 @@ public class BlockRenderContext extends AbstractRenderContext implements RenderC
 
     public boolean tesselate(BlockModelRenderer vanillaRenderer, TerrainBlockView blockView, BakedModel model,
             BlockState state, BlockPos pos, BufferBuilder buffer, long seed) {
-        this.vanillaRenderer = vanillaRenderer;
         this.canvasBuilder = (CanvasBufferBuilder) buffer;
-        this.seed = seed;
         this.didOutput = false;
         aoCalc.clear();
         blockInfo.setBlockView(blockView);
@@ -104,18 +93,9 @@ public class BlockRenderContext extends AbstractRenderContext implements RenderC
 
         ((FabricBakedModel) model).emitBlockQuads(blockView, state, pos, blockInfo.randomSupplier, this);
 
-        this.vanillaRenderer = null;
         blockInfo.release();
         this.canvasBuilder = null;
         return didOutput;
-    }
-
-    // TODO: implement fallback consumer
-    protected void acceptVanillaModel(BakedModel model) {
-        isCallingVanilla = true;
-        didOutput = didOutput && vanillaRenderer.tesselate(blockInfo.blockView, model, blockInfo.blockState,
-                blockInfo.blockPos, canvasBuilder, false, random, seed);
-        isCallingVanilla = false;
     }
 
 //    private void setupOffsets() {
@@ -126,18 +106,6 @@ public class BlockRenderContext extends AbstractRenderContext implements RenderC
 //        offsetZ = buffer.fabric_offsetZ() + pos.getZ();
 //    }
 
-    private class MeshConsumer extends AbstractMeshConsumer {
-        MeshConsumer(BlockRenderInfo blockInfo, ToIntBiFunction<BlockState, BlockPos> brightnessFunc,
-                Function<RenderMaterialImpl.Value, VertexCollector> collectorFunc, AoCalculator aoCalc, QuadTransform transform) {
-            super(blockInfo, brightnessFunc, collectorFunc, aoCalc, transform);
-        }
-
-        @Override
-        protected void applyOffsets() {
-            // NOOP: Nothing to do in block render context - offsets handled in CanvasBuilder / VertexCollectorList
-        }
-    }
-
     @Override
     public Consumer<Mesh> meshConsumer() {
         return meshConsumer;
@@ -145,7 +113,7 @@ public class BlockRenderContext extends AbstractRenderContext implements RenderC
 
     @Override
     public Consumer<BakedModel> fallbackConsumer() {
-        return this::acceptVanillaModel;
+        return fallbackConsumer;
     }
 
     @Override
