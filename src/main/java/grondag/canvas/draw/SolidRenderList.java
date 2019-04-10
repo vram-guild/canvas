@@ -19,8 +19,10 @@ package grondag.canvas.draw;
 import java.util.ArrayDeque;
 import java.util.function.Consumer;
 
+import com.google.common.collect.ComparisonChain;
+
 import grondag.canvas.apiimpl.RenderConditionImpl;
-import grondag.canvas.pipeline.ConditionalPipeline;
+import grondag.canvas.apiimpl.RenderPipelineImpl;
 import grondag.canvas.pipeline.PipelineManager;
 import it.unimi.dsi.fastutil.Arrays;
 import it.unimi.dsi.fastutil.Swapper;
@@ -44,33 +46,18 @@ public class SolidRenderList implements Consumer<ObjectArrayList<DrawableDelegat
         return result;
     }
     
-    private final ObjectArrayList<DrawableDelegate>[] pipelineLists;
-
-    private SolidRenderList() {
-        final int size = PipelineManager.INSTANCE.pipelineCount() * ConditionalPipeline.MAX_CONDITIONAL_PIPELINES;
-        // PERF: probably need something more compact now with conditional pipelines
-        @SuppressWarnings("unchecked")
-        ObjectArrayList<DrawableDelegate>[] buffers = new ObjectArrayList[size];
-        for (int i = 0; i < size; i++) {
-            buffers[i] = new ObjectArrayList<DrawableDelegate>();
-        }
-        this.pipelineLists = buffers;
-    }
-
-    public void draw() {
-        for (ObjectArrayList<DrawableDelegate> list : this.pipelineLists) {
-            renderListInBufferOrder(list);
-        }
-    }
-    
     @SuppressWarnings("serial")
     private static class BufferSorter extends AbstractIntComparator implements Swapper {
         Object[] delegates;
 
         @Override
-        public int compare(int a, int b) {
-            return Integer.compare(((DrawableDelegate) delegates[a]).bufferId(),
-                    ((DrawableDelegate) delegates[b]).bufferId());
+        public int compare(int aIndex, int bIndex) {
+            DrawableDelegate a = (DrawableDelegate) delegates[aIndex];
+            DrawableDelegate b = (DrawableDelegate) delegates[bIndex];
+            return ComparisonChain.start()
+                    .compare(a.getPipeline().index, b.getPipeline().index)
+                    .compare(a.bufferId(), b.bufferId())
+                    .result();
         }
 
         @Override
@@ -80,39 +67,59 @@ public class SolidRenderList implements Consumer<ObjectArrayList<DrawableDelegat
             delegates[b] = swap;
         }
     };
-
+    
     private static final ThreadLocal<BufferSorter> SORTERS = ThreadLocal.withInitial(BufferSorter::new);
+
+    private final ObjectArrayList<DrawableDelegate> delegates = new ObjectArrayList<>();
+
+    private SolidRenderList() {
+    }
+
+    @Override
+    public void accept(ObjectArrayList<DrawableDelegate> delegatesIn) {
+        final int limit = delegatesIn.size();
+        for (int i = 0; i < limit; i++) {
+            delegates.add(delegatesIn.get(i));
+        }
+    }
 
     /**
      * Renders delegates in buffer order to minimize bind calls. 
      * Assumes all delegates in the list share the same pipeline.
      */
-    private void renderListInBufferOrder(ObjectArrayList<DrawableDelegate> list) {
-        final int limit = list.size();
+    public void draw() {
+        final int limit = delegates.size();
 
         if (limit == 0)
             return;
 
-        final Object[] delegates = list.elements();
+        final Object[] draws = delegates.elements();
 
         final BufferSorter sorter = SORTERS.get();
-        sorter.delegates = delegates;
+        sorter.delegates = draws;
         Arrays.quickSort(0, limit, sorter, sorter);
 
-        ((DrawableDelegate) delegates[0]).getPipeline().pipeline.activate(true);
-
+        ((DrawableDelegate) draws[0]).getPipeline().pipeline.activate(true);
+        
+        RenderPipelineImpl lastPipeline = null;
         int lastBufferId = -1;
         final int frameIndex = PipelineManager.INSTANCE.frameIndex();
 
         for (int i = 0; i < limit; i++) {
-            final DrawableDelegate b = (DrawableDelegate) delegates[i];
+            final DrawableDelegate b = (DrawableDelegate) draws[i];
             final RenderConditionImpl condition = b.getPipeline().condition;
+            
             if(!condition.affectBlocks || condition.compute(frameIndex)) {
+                final RenderPipelineImpl thisPipeline = b.getPipeline().pipeline;
+                if(thisPipeline != lastPipeline) {
+                    thisPipeline.activate(true);
+                    lastPipeline = thisPipeline;
+                }
                 lastBufferId = b.bind(lastBufferId);
                 b.draw();
             }
         }
-        list.clear();
+        delegates.clear();
     }
     
     public void release() {
@@ -122,14 +129,5 @@ public class SolidRenderList implements Consumer<ObjectArrayList<DrawableDelegat
     public void drawAndRelease() {
         draw();
         release();
-    }
-    
-    @Override
-    public void accept(ObjectArrayList<DrawableDelegate> delegates) {
-        final int limit = delegates.size();
-        for (int i = 0; i < limit; i++) {
-            DrawableDelegate d =  delegates.get(i);
-            pipelineLists[d.getPipeline().index].add(d);
-        }
     }
 }
