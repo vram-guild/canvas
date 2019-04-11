@@ -20,8 +20,6 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.mojang.blaze3d.platform.GLX;
-
 import grondag.canvas.draw.DrawableDelegate;
 import grondag.canvas.varia.GLBufferStore;
 
