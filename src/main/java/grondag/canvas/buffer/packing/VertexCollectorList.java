@@ -22,7 +22,7 @@ import java.util.function.Consumer;
 
 import grondag.canvas.apiimpl.RenderMaterialImpl;
 import grondag.canvas.chunk.UploadableChunk;
-import grondag.canvas.pipeline.ConditionalPipeline;
+import grondag.canvas.pipeline.RenderState;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.util.math.MathHelper;
 
@@ -59,7 +59,7 @@ public class VertexCollectorList {
     /**
      * Fast lookup of buffers by pipeline index. Null in CUTOUT layer buffers.
      */
-    private VertexCollector[] vertexCollectors = new VertexCollector[ConditionalPipeline.MAX_CONDITIONAL_PIPELINES];
+    private VertexCollector[] vertexCollectors = new VertexCollector[RenderState.MAX_RENDER_STATES];
 
     private final BufferPackingList packingList = new BufferPackingList();
     
@@ -135,15 +135,15 @@ public class VertexCollectorList {
     }
 
     public final VertexCollector get(RenderMaterialImpl.Value material) {
-        return get(ConditionalPipeline.get(material.pipeline, material.condition));
+        return get(RenderState.get(material.pipeline, material.condition));
     }
     
-    public final VertexCollector get(ConditionalPipeline conditionalPipeline) {
-        final int conditionalIndex = conditionalPipeline.index;
-        VertexCollector result = vertexCollectors[conditionalIndex];
+    public final VertexCollector get(RenderState renderState) {
+        final int renderIndex = renderState.index;
+        VertexCollector result = vertexCollectors[renderIndex];
         if(result == null) {
-            result = emptyCollector().prepare(conditionalPipeline);
-            vertexCollectors[conditionalIndex] = result;
+            result = emptyCollector().prepare(renderState);
+            vertexCollectors[renderIndex] = result;
             usedCollectors.add(result);
         }
         return result;

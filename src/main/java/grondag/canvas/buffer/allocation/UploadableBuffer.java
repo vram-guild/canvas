@@ -54,13 +54,13 @@ public abstract class UploadableBuffer extends AbstractBuffer implements Bindabl
     }
     
     @Override
-    public void bind() {
-        GLX.glBindBuffer(GLX.GL_ARRAY_BUFFER, this.glBufferId());
+    public boolean bind() {
+        return BindStateManager.bind(this.glBufferId());
     }
 
     @Override
     public void unbind() {
-        GLX.glBindBuffer(GLX.GL_ARRAY_BUFFER, 0);
+        BindStateManager.unbind();
     }
 
     /** called before chunk populates int buffer(). May be called off thread */

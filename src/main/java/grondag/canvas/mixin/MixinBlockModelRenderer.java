@@ -25,7 +25,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import grondag.canvas.apiimpl.rendercontext.BlockRenderContext;
-import grondag.frex.api.core.FabricBakedModel;
 import grondag.frex.api.core.TerrainBlockView;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.render.BufferBuilder;
@@ -36,7 +35,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.ExtendedBlockView;
 
 @Mixin(BlockModelRenderer.class)
-public abstract class MixinBlockModelRenderer {
+public abstract class MixinBlockModelRenderer { 
     @Shadow
     protected BlockColorMap colorMap;
     private final ThreadLocal<BlockRenderContext> CONTEXTS = ThreadLocal.withInitial(BlockRenderContext::new);

@@ -18,7 +18,7 @@ package grondag.canvas.buffer.allocation;
 
 import java.util.function.Consumer;
 
-import grondag.canvas.pipeline.ConditionalPipeline;
+import grondag.canvas.pipeline.RenderState;
 
 @FunctionalInterface
 public interface AllocationProvider {
@@ -30,5 +30,5 @@ public interface AllocationProvider {
      * with all vertex formats. All vertices in the buffer(s) will share the same
      * pipeline (and thus vertex format).
      */
-    void claimAllocation(ConditionalPipeline pipeline, int byteCount, Consumer<BufferDelegate> consumer);
+    void claimAllocation(RenderState pipeline, int byteCount, Consumer<BufferDelegate> consumer);
 }

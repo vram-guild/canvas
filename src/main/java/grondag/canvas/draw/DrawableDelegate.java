@@ -18,7 +18,6 @@ package grondag.canvas.draw;
 
 import java.nio.ByteBuffer;
 import java.util.concurrent.ArrayBlockingQueue;
-import java.util.function.Consumer;
 
 import org.lwjgl.opengl.GL11;
 
@@ -26,8 +25,7 @@ import com.mojang.blaze3d.platform.GlStateManager;
 
 import grondag.canvas.buffer.allocation.AbstractBuffer;
 import grondag.canvas.buffer.allocation.BufferDelegate;
-import grondag.canvas.buffer.allocation.BindableBuffer;
-import grondag.canvas.pipeline.ConditionalPipeline;
+import grondag.canvas.pipeline.RenderState;
 import grondag.canvas.pipeline.PipelineVertexFormat;
 import grondag.canvas.varia.CanvasGlHelper;
 import grondag.canvas.varia.VaoStore;
@@ -42,13 +40,32 @@ public class DrawableDelegate {
      */
     private static final int BUFFER_UNKNOWN = -1000;
     
-    public static DrawableDelegate claim(BufferDelegate bufferDelegate, ConditionalPipeline pipeline, int vertexCount) {
+    /**
+     * Pointer to start of vertex data for current vertex binding.
+     * Set to zero when new vertex bindings applied.
+     * When vertex binding is updated, if buffer and format are the same and 
+     * byte offset can be expressed as a multiple of current stride, then this
+     * is updated to a vertex offset to avoid rebinding vertex attributes.
+     */
+    private static int vertexOffset = 0;
+    
+    /**
+     * Byte offset used for last vertex binding. 
+     */
+    private static int boundByteOffset = 0;
+    
+    @FunctionalInterface
+    private static interface VertexBinder {
+        void bind(PipelineVertexFormat format, boolean isNewBuffer);
+    }
+    
+    public static DrawableDelegate claim(BufferDelegate bufferDelegate, RenderState renderState, int vertexCount) {
         DrawableDelegate result = store.poll();
         if(result == null) {
             result = new DrawableDelegate();
         }
         result.bufferDelegate = bufferDelegate;
-        result.conditionalPipeline = pipeline;
+        result.renderState = renderState;
         result.vertexCount = vertexCount;
         result.isReleased = false;
         result.vertexBinder = bufferDelegate.buffer().isVbo() 
@@ -61,10 +78,10 @@ public class DrawableDelegate {
     }
 
     private BufferDelegate bufferDelegate;
-    private ConditionalPipeline conditionalPipeline;
+    private RenderState renderState;
     private int vertexCount;
     private boolean isReleased = false;
-    private Consumer<PipelineVertexFormat> vertexBinder;
+    private VertexBinder vertexBinder;
     private int bufferId = BUFFER_UNKNOWN;
     
     /**
@@ -88,8 +105,7 @@ public class DrawableDelegate {
     public int bufferId() {
         int result = bufferId;
         if(bufferId == BUFFER_UNKNOWN) {
-            final BindableBuffer binder = bufferDelegate.buffer().bindable();
-            result = binder == null ? -1 : binder.glBufferId();
+            bufferDelegate.buffer().bindable().glBufferId();
             bufferId = result;
         }
         return result;
@@ -98,29 +114,21 @@ public class DrawableDelegate {
     /**
      * The pipeline (and vertex format) associated with this delegate.
      */
-    public ConditionalPipeline getPipeline() {
-        return this.conditionalPipeline;
+    public RenderState renderState() {
+        return this.renderState;
     }
 
     /**
      * Won't bind buffer if this buffer same as last - will only do vertex
      * attributes. Returns the buffer Id that is bound, or input if unchanged.
      */
-    public int bind(int lastBufferId) {
+    public void bind() {
         final AbstractBuffer buffer = this.bufferDelegate.buffer();
         if (buffer.isDisposed())
-            return lastBufferId;
+            return;
 
-        final BindableBuffer binder = buffer.bindable();
-        
-        if (binder != null && binder.glBufferId() != lastBufferId) {
-            binder.bind();
-            lastBufferId = binder.glBufferId();
-        }
-
-        this.vertexBinder.accept(conditionalPipeline.pipeline.piplineVertexFormat());
-        
-        return lastBufferId;
+        final boolean isNewBuffer = buffer.bindable().bind();
+        vertexBinder.bind(renderState.pipeline.piplineVertexFormat(), isNewBuffer);
     }
 
     /**
@@ -133,7 +141,7 @@ public class DrawableDelegate {
         if (this.bufferDelegate.buffer().isDisposed())
             return;
 
-        GlStateManager.drawArrays(GL11.GL_QUADS, 0, vertexCount);
+        GlStateManager.drawArrays(GL11.GL_QUADS, vertexOffset, vertexCount);
     }
 
     public void release() {
@@ -146,7 +154,7 @@ public class DrawableDelegate {
                 VaoStore.releaseVertexArray(vaoBufferId);
                 vaoBufferId = -1;
             }
-            conditionalPipeline =  null;
+            renderState =  null;
             store.offer(this);
         }
     }
@@ -156,7 +164,7 @@ public class DrawableDelegate {
         this.bufferDelegate.buffer().upload();
     }
     
-    void bindVao(PipelineVertexFormat format) {
+    void bindVao(PipelineVertexFormat format, boolean isNewBuffer) {
         if (vaoBufferId == -1) {
             vaoBufferId = VaoStore.claimVertexArray();
             CanvasGlHelper.glBindVertexArray(vaoBufferId);
@@ -169,17 +177,42 @@ public class DrawableDelegate {
         }
     }
     
-    void bindVbo(PipelineVertexFormat format) {
-        GlStateManager.vertexPointer(3, VertexFormatElement.Format.FLOAT.getGlId(), format.vertexStrideBytes, bufferDelegate.byteOffset());
-        format.enableAndBindAttributes(bufferDelegate.byteOffset());
+    private boolean needsRebind(PipelineVertexFormat format) {
+        final int byteOffset = bufferDelegate.byteOffset();
+        final int vertexStrideBytes = format.vertexStrideBytes;
+        final int gap = byteOffset - boundByteOffset;
+        if(gap > 0) {
+            final int offset = gap / vertexStrideBytes;
+            if(offset * vertexStrideBytes == gap) {
+                // reuse vertex binding with offset
+                vertexOffset = offset;
+                return false;
+            }
+        }
+        return true;
+    }
+    
+    void bindVbo(PipelineVertexFormat format, boolean isNewBuffer) {
+        // don't check for bind reuse if not possible due to new buffer
+        if(isNewBuffer || needsRebind(format)) {
+            final int byteOffset = bufferDelegate.byteOffset();
+            vertexOffset = 0;
+            boundByteOffset = byteOffset;
+            GlStateManager.vertexPointer(3, VertexFormatElement.Format.FLOAT.getGlId(), format.vertexStrideBytes, byteOffset);
+            format.enableAndBindAttributes(byteOffset);
+        }
     }
 
-    void bindBuffer(PipelineVertexFormat format) {
-        ByteBuffer buffer = bufferDelegate.buffer().byteBuffer();
-        final int baseOffset = bufferDelegate.byteOffset();
-        buffer.position(baseOffset);
-        GlStateManager.enableClientState(GL11.GL_VERTEX_ARRAY);
-        GlStateManager.vertexPointer(3, VertexFormatElement.Format.FLOAT.getGlId(), format.vertexStrideBytes, buffer);
-        format.enableAndBindAttributes(buffer, baseOffset);
+    void bindBuffer(PipelineVertexFormat format, boolean isNewBuffer) {
+        if(isNewBuffer || needsRebind(format)) {
+            final ByteBuffer buffer = bufferDelegate.buffer().byteBuffer();
+            final int byteOffset = bufferDelegate.byteOffset();
+            vertexOffset = 0;
+            boundByteOffset = byteOffset;
+            buffer.position(byteOffset);
+            GlStateManager.enableClientState(GL11.GL_VERTEX_ARRAY);
+            GlStateManager.vertexPointer(3, VertexFormatElement.Format.FLOAT.getGlId(), format.vertexStrideBytes, buffer);
+            format.enableAndBindAttributes(buffer, byteOffset);
+        }
     }
 }

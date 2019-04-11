@@ -20,28 +20,28 @@ import grondag.canvas.apiimpl.RenderConditionImpl;
 import grondag.canvas.apiimpl.RenderPipelineImpl;
 import grondag.fermion.varia.Useful;
 
-public class ConditionalPipeline {
+public class RenderState {
     private static final int PIPELINE_SHIFT = Useful.bitLength(RenderConditionImpl.MAX_CONDITIONS);
-    public static final int MAX_CONDITIONAL_PIPELINES = RenderConditionImpl.MAX_CONDITIONS * PipelineManager.MAX_PIPELINES;
+    public static final int MAX_RENDER_STATES = RenderConditionImpl.MAX_CONDITIONS * PipelineManager.MAX_PIPELINES;
 
     private static int computeIndex(RenderPipelineImpl pipeline, RenderConditionImpl condition) {
         return (pipeline.getIndex() << PIPELINE_SHIFT) | condition.index;
     }
     
-    private static final ConditionalPipeline[] VALUES = new ConditionalPipeline[MAX_CONDITIONAL_PIPELINES];
+    private static final RenderState[] VALUES = new RenderState[MAX_RENDER_STATES];
     
-    public static ConditionalPipeline get(int index) {
+    public static RenderState get(int index) {
         return VALUES[index];
     }
     
-    public static ConditionalPipeline get(RenderPipelineImpl pipeline, RenderConditionImpl condition) {
+    public static RenderState get(RenderPipelineImpl pipeline, RenderConditionImpl condition) {
         final int index = computeIndex(pipeline, condition);
-        ConditionalPipeline result = VALUES[index];
+        RenderState result = VALUES[index];
         if(result == null) {
             synchronized(VALUES) {
                 result = VALUES[index];
                 if(result == null) {
-                    result = new ConditionalPipeline(pipeline, condition, index);
+                    result = new RenderState(pipeline, condition, index);
                     VALUES[index] = result;
                 }
             }
@@ -53,7 +53,7 @@ public class ConditionalPipeline {
     public final RenderConditionImpl condition;
     public final int index;
     
-    private ConditionalPipeline(RenderPipelineImpl pipeline, RenderConditionImpl condition, int index) {
+    private RenderState(RenderPipelineImpl pipeline, RenderConditionImpl condition, int index) {
         this.pipeline = pipeline;
         this.condition = condition;
         this.index = index;

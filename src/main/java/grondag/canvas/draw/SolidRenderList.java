@@ -22,11 +22,11 @@ import java.util.function.Consumer;
 import org.lwjgl.opengl.GL11;
 
 import com.google.common.collect.ComparisonChain;
-import com.mojang.blaze3d.platform.GLX;
 import com.mojang.blaze3d.platform.GlStateManager;
 
 import grondag.canvas.apiimpl.RenderConditionImpl;
 import grondag.canvas.apiimpl.RenderPipelineImpl;
+import grondag.canvas.buffer.allocation.BindStateManager;
 import grondag.canvas.pipeline.PipelineManager;
 import grondag.canvas.pipeline.Program;
 import grondag.canvas.varia.CanvasGlHelper;
@@ -61,7 +61,7 @@ public class SolidRenderList implements Consumer<ObjectArrayList<DrawableDelegat
             DrawableDelegate a = (DrawableDelegate) delegates[aIndex];
             DrawableDelegate b = (DrawableDelegate) delegates[bIndex];
             return ComparisonChain.start()
-                    .compare(a.getPipeline().index, b.getPipeline().index)
+                    .compare(a.renderState().index, b.renderState().index)
                     .compare(a.bufferId(), b.bufferId())
                     .result();
         }
@@ -105,23 +105,22 @@ public class SolidRenderList implements Consumer<ObjectArrayList<DrawableDelegat
         sorter.delegates = draws;
         Arrays.quickSort(0, limit, sorter, sorter);
 
-        ((DrawableDelegate) draws[0]).getPipeline().pipeline.activate(true);
+        ((DrawableDelegate) draws[0]).renderState().pipeline.activate(true);
         
         RenderPipelineImpl lastPipeline = null;
-        int lastBufferId = -1;
         final int frameIndex = PipelineManager.INSTANCE.frameIndex();
 
         for (int i = 0; i < limit; i++) {
             final DrawableDelegate b = (DrawableDelegate) draws[i];
-            final RenderConditionImpl condition = b.getPipeline().condition;
+            final RenderConditionImpl condition = b.renderState().condition;
             
             if(!condition.affectBlocks || condition.compute(frameIndex)) {
-                final RenderPipelineImpl thisPipeline = b.getPipeline().pipeline;
+                final RenderPipelineImpl thisPipeline = b.renderState().pipeline;
                 if(thisPipeline != lastPipeline) {
                     thisPipeline.activate(true);
                     lastPipeline = thisPipeline;
                 }
-                lastBufferId = b.bind(lastBufferId);
+                b.bind();
                 b.draw();
             }
         }
@@ -138,7 +137,7 @@ public class SolidRenderList implements Consumer<ObjectArrayList<DrawableDelegat
         }
         GlStateManager.disableClientState(GL11.GL_VERTEX_ARRAY);
         CanvasGlHelper.resetAttributes();
-        GLX.glBindBuffer(GLX.GL_ARRAY_BUFFER, 0);
+        BindStateManager.unbind();
         Program.deactivate();
     }
     

@@ -21,7 +21,7 @@ import java.nio.IntBuffer;
 import grondag.canvas.buffer.allocation.AllocationProvider;
 import grondag.canvas.draw.DelegateLists;
 import grondag.canvas.draw.DrawableDelegate;
-import grondag.canvas.pipeline.ConditionalPipeline;
+import grondag.canvas.pipeline.RenderState;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 public class BufferPacker {
@@ -49,9 +49,9 @@ public class BufferPacker {
         return result;
     }
 
-    public void accept(ConditionalPipeline conditionalPipeline, int vertexStart, int vertexCount) {
-        final int stride = conditionalPipeline.pipeline.piplineVertexFormat().vertexStrideBytes;
-        allocator.claimAllocation(conditionalPipeline, vertexCount * stride, ref -> {
+    public void accept(RenderState renderState, int vertexStart, int vertexCount) {
+        final int stride = renderState.pipeline.piplineVertexFormat().vertexStrideBytes;
+        allocator.claimAllocation(renderState, vertexCount * stride, ref -> {
             final int byteOffset = ref.byteOffset();
             final int byteCount = ref.byteCount();
             final int intLength = byteCount / 4;
@@ -59,10 +59,10 @@ public class BufferPacker {
             ref.buffer().lockForWrite();
             final IntBuffer intBuffer = ref.intBuffer();
             intBuffer.position(byteOffset / 4);
-            intBuffer.put(collectorList.get(conditionalPipeline).rawData(), vertexStart * stride / 4, intLength);
+            intBuffer.put(collectorList.get(renderState).rawData(), vertexStart * stride / 4, intLength);
             ref.buffer().unlockForWrite();
 
-            delegates.add(DrawableDelegate.claim(ref, conditionalPipeline, byteCount / stride));
+            delegates.add(DrawableDelegate.claim(ref, renderState, byteCount / stride));
         });
     }
 }

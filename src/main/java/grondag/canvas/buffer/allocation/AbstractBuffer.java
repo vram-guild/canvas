@@ -25,11 +25,8 @@ public abstract class AbstractBuffer {
     
     public abstract boolean isVbo();
     
-    /** 
-     * Will return null if this buffer isn't bindable.
-     */
     public BindableBuffer bindable() {
-        return null;
+        return DummyBindableBuffer.INSTANCE;
     }
     
     /**

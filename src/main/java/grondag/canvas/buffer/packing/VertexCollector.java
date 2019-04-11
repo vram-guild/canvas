@@ -18,7 +18,7 @@ package grondag.canvas.buffer.packing;
 
 import com.google.common.primitives.Doubles;
 
-import grondag.canvas.pipeline.ConditionalPipeline;
+import grondag.canvas.pipeline.RenderState;
 import it.unimi.dsi.fastutil.Swapper;
 import it.unimi.dsi.fastutil.ints.AbstractIntComparator;
 import net.minecraft.util.math.BlockPos;
@@ -26,7 +26,7 @@ import net.minecraft.util.math.BlockPos;
 public class VertexCollector {
     private int[] data;
     private int integerSize = 0;
-    private ConditionalPipeline conditionalPipeline;
+    private RenderState renderState;
     public final VertexCollectorList parent;
 
     /**
@@ -51,18 +51,18 @@ public class VertexCollector {
         this.parent = parent;
     }
     
-    public VertexCollector prepare(ConditionalPipeline pipeline) {
-        this.conditionalPipeline = pipeline;
+    public VertexCollector prepare(RenderState pipeline) {
+        this.renderState = pipeline;
         return this;
     }
 
     public void clear() {
         this.integerSize = 0;
-        this.conditionalPipeline = null;
+        this.renderState = null;
     }
 
-    public ConditionalPipeline pipeline() {
-        return this.conditionalPipeline;
+    public RenderState pipeline() {
+        return this.renderState;
     }
 
     public int byteSize() {
@@ -74,7 +74,7 @@ public class VertexCollector {
     }
 
     public int vertexCount() {
-        return this.integerSize * 4 / this.conditionalPipeline.pipeline.piplineVertexFormat().vertexStrideBytes;
+        return this.integerSize * 4 / this.renderState.pipeline.piplineVertexFormat().vertexStrideBytes;
     }
     
     public int quadCount() {
@@ -114,7 +114,7 @@ public class VertexCollector {
     }
 
     public final void pos(final BlockPos pos, float modelX, float modelY, float modelZ) {
-        this.checkForSize(this.conditionalPipeline.pipeline.piplineVertexFormat().vertexStrideBytes);
+        this.checkForSize(this.renderState.pipeline.piplineVertexFormat().vertexStrideBytes);
         this.add((float)(pos.getX() - parent.renderOriginX + modelX));
         this.add((float)(pos.getY() - parent.renderOriginY + modelY));
         this.add((float)(pos.getZ() - parent.renderOriginZ + modelZ));
@@ -151,7 +151,7 @@ public class VertexCollector {
         private void doSort(VertexCollector caller, double x, double y, double z) {
             // works because 4 bytes per int
             data = caller.data;
-            quadIntStride = caller.conditionalPipeline.pipeline.piplineVertexFormat().vertexStrideBytes;
+            quadIntStride = caller.renderState.pipeline.piplineVertexFormat().vertexStrideBytes;
             final int vertexIntStride = quadIntStride / 4;
             final int quadCount = caller.vertexCount() / 4;
             if (perQuadDistance.length < quadCount)
@@ -261,14 +261,14 @@ public class VertexCollector {
         if (result == null || result.length != outputSize)
             result = new int[outputSize];
 
-        result[0] = conditionalPipeline.index;
+        result[0] = renderState.index;
         if (integerSize > 0)
             System.arraycopy(data, 0, result, 1, integerSize);
         return result;
     }
 
     public VertexCollector loadState(int[] stateData) {
-        this.conditionalPipeline = ConditionalPipeline.get(stateData[0]);
+        this.renderState = RenderState.get(stateData[0]);
         final int newSize = stateData.length - 1;
         integerSize = 0;
         if (newSize > 0) {
