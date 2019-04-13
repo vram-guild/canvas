@@ -14,22 +14,6 @@
  * the License.
  ******************************************************************************/
 
-/*
- * Copyright (c) 2016, 2017, 2018 FabricMC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package grondag.canvas.apiimpl.rendercontext;
 
 import java.util.List;
@@ -41,67 +25,63 @@ import org.lwjgl.opengl.GL11;
 
 import com.mojang.blaze3d.platform.GlStateManager;
 
-import grondag.frex.api.model.DynamicBakedModel;
-import grondag.frex.api.mesh.Mesh;
-import grondag.frex.api.model.ModelHelper;
-import grondag.frex.api.mesh.QuadEmitter;
-import grondag.frex.api.render.RenderContext;
 import grondag.canvas.apiimpl.MeshImpl;
 import grondag.canvas.apiimpl.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.RenderMaterialImpl;
+import grondag.canvas.apiimpl.RenderMaterialImpl.Value;
 import grondag.canvas.apiimpl.util.ColorHelper;
 import grondag.canvas.apiimpl.util.MeshEncodingHelper;
-import grondag.canvas.varia.BufferBuilderExt;
+import grondag.canvas.buffer.packing.CanvasBufferBuilder;
+import grondag.canvas.buffer.packing.VertexCollector;
+import grondag.canvas.draw.TessellatorExt;
+import grondag.canvas.material.ShaderContext;
+import grondag.canvas.varia.BakedQuadExt;
+import grondag.frex.api.model.DynamicBakedModel;
+import grondag.frex.api.model.ModelHelper;
+import grondag.frex.api.mesh.Mesh;
+import grondag.frex.api.mesh.QuadEmitter;
+import grondag.frex.api.render.RenderContext;
 import net.minecraft.block.BlockState;
-import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.Tessellator;
-import net.minecraft.client.render.VertexFormats;
 import net.minecraft.client.render.item.ItemColorMap;
 import net.minecraft.client.render.model.BakedModel;
 import net.minecraft.client.render.model.BakedQuad;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.math.Direction;
 
 /**
- * The render context used for item rendering. Does not implement emissive
- * lighting for sake of simplicity in the default renderer.
+ * Context for non-terrain block rendering.
  */
 public class ItemRenderContext extends AbstractRenderContext implements RenderContext {
-    /** used to accept a method reference from the ItemRenderer */
-    @FunctionalInterface
-    public static interface VanillaQuadHandler {
-        void accept(BufferBuilder bufferBuilder, List<BakedQuad> quads, int color, ItemStack stack);
-    }
-
     private final ItemColorMap colorMap;
     private final Random random = new Random();
-    BufferBuilder bufferBuilder;
-    BufferBuilderExt fabricBuffer;
+    private Tessellator tessellator = Tessellator.getInstance();
+    private TessellatorExt tessellatorExt = (TessellatorExt)tessellator;
+    private CanvasBufferBuilder canvasBuilder = (CanvasBufferBuilder) tessellator.getBufferBuilder();
     private int color;
     private ItemStack itemStack;
-    private VanillaQuadHandler vanillaHandler;
     private boolean smoothShading = false;
     private boolean enchantment = false;
-
+    private final int[] quadData = new int[MeshEncodingHelper.MAX_STRIDE];
+    
     private final Supplier<Random> randomSupplier = () -> {
         Random result = random;
         result.setSeed(42L);
         return random;
     };
-
+    
     /**
      * When rendering an enchanted item, input stack will be empty. This value is
      * populated earlier in the call tree when this is the case so that we can
      * render correct geometry and only a single texture.
      */
     public ItemStack enchantmentStack;
-
-    private final int[] quadData = new int[MeshEncodingHelper.MAX_STRIDE];;
-
+    
     public ItemRenderContext(ItemColorMap colorMap) {
         this.colorMap = colorMap;
     }
-
-    public void renderModel(DynamicBakedModel model, int color, ItemStack stack, VanillaQuadHandler vanillaHandler) {
+    
+    public void renderModel(DynamicBakedModel model, int color, ItemStack stack) {
         this.color = color;
 
         if (stack.isEmpty() && enchantmentStack != null) {
@@ -112,26 +92,10 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
             enchantment = false;
             this.itemStack = stack;
         }
-
-        this.vanillaHandler = vanillaHandler;
-        Tessellator tessellator = Tessellator.getInstance();
-        bufferBuilder = tessellator.getBufferBuilder();
-        fabricBuffer = (BufferBuilderExt) this.bufferBuilder;
-
-        bufferBuilder.begin(7, VertexFormats.POSITION_COLOR_UV_NORMAL);
-        model.emitItemQuads(stack, randomSupplier, this);
-        tessellator.draw();
-
-        if (smoothShading) {
-            GlStateManager.shadeModel(GL11.GL_FLAT);
-            smoothShading = false;
-        }
-
-        bufferBuilder = null;
-        fabricBuffer = null;
-        tessellator = null;
-        this.itemStack = null;
-        this.vanillaHandler = null;
+        
+        ((DynamicBakedModel) model).emitItemQuads(stack, randomSupplier, this);
+        tessellatorExt.canvas_context(ShaderContext.ITEM);
+        tessellatorExt.canvas_draw();
     }
 
     private class Maker extends MutableQuadViewImpl implements QuadEmitter {
@@ -147,7 +111,7 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
             return this;
         }
     }
-
+    
     private final Maker editorQuad = new Maker();
 
     private final Consumer<Mesh> meshConsumer = (mesh) -> {
@@ -158,13 +122,13 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
         while (index < limit) {
             RenderMaterialImpl.Value mat = RenderMaterialImpl.byIndex(data[index]);
             final int stride = MeshEncodingHelper.stride(mat.spriteDepth());
-            System.arraycopy(data, index, editorQuad.data(), 0, stride);
+            System.arraycopy(data, index, this.quadData, 0, stride);
             editorQuad.load();
             index += stride;
             renderQuad();
         }
     };
-
+    
     /**
      * Vanilla normally renders items with flat shading - meaning only the last
      * vertex normal is applied for lighting purposes. We support non-cube vertex
@@ -189,16 +153,6 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
         return quadColor;
     }
 
-    private void colorizeAndOutput(int quadColor) {
-        final MutableQuadViewImpl q = editorQuad;
-        for (int i = 0; i < 4; i++) {
-            int c = q.spriteColor(i, 0);
-            c = ColorHelper.multiplyColor(quadColor, c);
-            q.spriteColor(i, 0, ColorHelper.swapRedBlueIfNeeded(c));
-        }
-        fabricBuffer.canvas_putVanillaData(quadData, MeshEncodingHelper.VERTEX_START_OFFSET);
-    }
-
     private void renderQuad() {
         final MutableQuadViewImpl quad = editorQuad;
         if (!transform(editorQuad)) {
@@ -206,26 +160,36 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
         }
 
         RenderMaterialImpl.Value mat = quad.material();
-        final int quadColor = quadColor();
-        final int textureCount = mat.spriteDepth();
+        final VertexCollector output = canvasBuilder.vcList.get(mat);
+        final int shaderFlags = mat.shaderFlags() << 16;
 
         handleShading();
-
-        // A bit of a hack - copy packed normals on top of lightmaps.
-        // Violates normal encoding format but the editor content will be discarded
-        // and this avoids the step of copying to a separate array.
-        quad.copyNormals(quadData, MeshEncodingHelper.VERTEX_START_OFFSET);
-
-        colorizeAndOutput(!enchantment && mat.disableColorIndex(0) ? -1 : quadColor);
-
-        // no need to render additional textures for enchantment overlay
-        if (!enchantment && textureCount > 1) {
-            quad.copyColorUV(1, quadData, MeshEncodingHelper.VERTEX_START_OFFSET);
-            colorizeAndOutput(mat.disableColorIndex(1) ? -1 : quadColor);
-
-            if (textureCount == 3) {
-                quad.copyColorUV(2, quadData, MeshEncodingHelper.VERTEX_START_OFFSET);
-                colorizeAndOutput(mat.disableColorIndex(2) ? -1 : quadColor);
+        
+        ColorHelper.colorizeQuad(quad, quadColor());
+        
+        final int depth = mat.spriteDepth();
+        
+        for(int i = 0; i < 4; i++) {
+            output.pos(quad.x(i), quad.y(i), quad.z(i));
+            output.add(quad.spriteColor(i, 0));
+            output.add(quad.spriteU(i, 0));
+            output.add(quad.spriteV(i, 0));
+            int packedLight = quad.lightmap(i);
+            int blockLight = (packedLight & 0xFF);
+            int skyLight = ((packedLight >> 16) & 0xFF);
+            output.add(blockLight | (skyLight << 8) | shaderFlags);
+            output.add(quad.packedNormal(i) | 0xFF000000);
+            
+            if(depth > 1) {
+                output.add(quad.spriteColor(i, 1));
+                output.add(quad.spriteU(i, 1));
+                output.add(quad.spriteV(i, 1));
+                
+                if(depth == 3) {
+                    output.add(quad.spriteColor(i, 2));
+                    output.add(quad.spriteU(i, 2));
+                    output.add(quad.spriteV(i, 2));
+                }
             }
         }
     }
@@ -235,14 +199,39 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
         return meshConsumer;
     }
 
+    private static final BlockState NULL_BLOCK_STATE = (BlockState) null;
+    
     private final Consumer<BakedModel> fallbackConsumer = model -> {
         for (int i = 0; i < 7; i++) {
             random.setSeed(42L);
-            vanillaHandler.accept(bufferBuilder,
-                    model.getQuads((BlockState) null, ModelHelper.faceFromIndex(i), random), color, itemStack);
+            Direction face = ModelHelper.faceFromIndex(i);
+            List<BakedQuad> quads = model.getQuads(NULL_BLOCK_STATE, face, random);
+            final int count = quads.size();
+            for (int j = 0; j < count; j++) {
+                BakedQuad q = quads.get(j);
+                final Value defaultMaterial = ((BakedQuadExt)q).canvas_disableDiffuse()
+                        ?  FallbackConsumer.MATERIAL_FLAT
+                        :  FallbackConsumer.MATERIAL_SHADED;
+                renderQuad(q, face, defaultMaterial);
+            }
         }
     };
 
+    private void renderQuad(BakedQuad quad, Direction cullFace, Value defaultMaterial) {
+        System.arraycopy(quad.getVertexData(), 0, quadData, MeshEncodingHelper.VERTEX_START_OFFSET, 28);
+        editorQuad.cullFace(cullFace);
+        final Direction lightFace = quad.getFace();
+        editorQuad.lightFace(lightFace);
+        editorQuad.nominalFace(lightFace);
+        editorQuad.colorIndex(quad.getColorIndex());
+        editorQuad.material(defaultMaterial);
+        
+        editorQuad.invalidateShape();
+        editorQuad.geometryFlags();
+            
+        renderQuad();
+    }
+    
     @Override
     public Consumer<BakedModel> fallbackConsumer() {
         return fallbackConsumer;

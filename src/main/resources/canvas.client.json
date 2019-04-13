@@ -17,6 +17,7 @@
 	"MixinChunkRenderTask",
 	"MixinChunkRenderWorker",
     "MixinFogState",
+    "MixinGuiLighting",
 	"MixinItemRenderer",
 	"MixinLightmapTextureManager",
 	"MixinMinecraftClient",

@@ -38,17 +38,17 @@ abstract class AbstractGlShader {
 
     private final int shaderType;
     public final int spriteDepth;
-    public final boolean isSolidLayer;
+    public final ShaderContext context;
 
     private int glId = -1;
     private boolean needsLoad = true;
     private boolean isErrored = false;
 
-    AbstractGlShader(Identifier shaderSource, int shaderType, int spriteDepth, boolean isSolidLayer) {
+    AbstractGlShader(Identifier shaderSource, int shaderType, int spriteDepth, ShaderContext context) {
         this.shaderSource = shaderSource;
         this.shaderType = shaderType;
         this.spriteDepth = spriteDepth;
-        this.isSolidLayer = isSolidLayer;
+        this.context = context;
     }
 
     /**
@@ -103,8 +103,8 @@ abstract class AbstractGlShader {
         if (spriteDepth > 1)
             result = result.replaceAll("#define LAYER_COUNT 1", String.format("#define LAYER_COUNT %d", spriteDepth));
 
-        if (!isSolidLayer)
-            result = result.replaceAll("#define SOLID", "#define TRANSLUCENT");
+        
+        result = result.replaceAll("#define CONTEXT 0", "#define CONTEXT " + context.ordinal());
 
         return result;
     }

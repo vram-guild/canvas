@@ -44,17 +44,17 @@ public final class GlShaderManager {
         this.fragmentLibrarySource = commonSource + AbstractGlShader.getShaderSource(COMMON_FRAGMENT_SOURCE);
     }
 
-    private String shaderKey(Identifier shaderSource, int spriteDepth, boolean isSolidLayer) {
-        return String.format("%s.%s.%s", shaderSource.toString(), spriteDepth, isSolidLayer);
+    private String shaderKey(Identifier shaderSource, int spriteDepth, ShaderContext context) {
+        return String.format("%s.%s.%s", shaderSource.toString(), spriteDepth, context.ordinal());
     }
 
-    public GlVertexShader getOrCreateVertexShader(Identifier shaderSource, int spriteDepth, boolean isSolidLayer) {
-        final String shaderKey = shaderKey(shaderSource, spriteDepth, isSolidLayer);
+    public GlVertexShader getOrCreateVertexShader(Identifier shaderSource, int spriteDepth, ShaderContext context) {
+        final String shaderKey = shaderKey(shaderSource, spriteDepth, context);
 
         synchronized (vertexShaders) {
             GlVertexShader result = vertexShaders.get(shaderKey);
             if (result == null) {
-                result = new GlVertexShader(shaderSource, spriteDepth, isSolidLayer);
+                result = new GlVertexShader(shaderSource, spriteDepth, context);
                 vertexShaders.put(shaderKey, result);
             }
             return result;
@@ -62,13 +62,13 @@ public final class GlShaderManager {
     }
 
     public GlFragmentShader getOrCreateFragmentShader(Identifier shaderSourceId, int spriteDepth,
-            boolean isSolidLayer) {
-        final String shaderKey = shaderKey(shaderSourceId, spriteDepth, isSolidLayer);
+            ShaderContext context) {
+        final String shaderKey = shaderKey(shaderSourceId, spriteDepth, context);
 
         synchronized (fragmentShaders) {
             GlFragmentShader result = fragmentShaders.get(shaderKey);
             if (result == null) {
-                result = new GlFragmentShader(shaderSourceId, spriteDepth, isSolidLayer);
+                result = new GlFragmentShader(shaderSourceId, spriteDepth, context);
                 fragmentShaders.put(shaderKey, result);
             }
             return result;

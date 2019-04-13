@@ -29,12 +29,14 @@ import grondag.canvas.buffer.packing.CanvasBufferBuilder;
 import grondag.canvas.buffer.packing.VertexCollectorList;
 import grondag.canvas.draw.DrawableDelegate;
 import grondag.canvas.draw.SolidRenderList;
+import grondag.canvas.draw.TessellatorExt;
+import grondag.canvas.material.ShaderContext;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.Tessellator;
 
 @Mixin(Tessellator.class)
-public class MixinTessellator {
+public class MixinTessellator implements TessellatorExt {
     @Shadow private BufferBuilder buffer;
     
     @Redirect(method = "<init>*", require = 1, at = @At(value = "NEW", args = "class=net/minecraft/client/render/BufferBuilder"))
@@ -44,6 +46,13 @@ public class MixinTessellator {
 
     @Inject(method = "draw", at = @At("RETURN"), require = 1)
     private void afterDraw(CallbackInfo ci) {
+        canvas_draw();
+    }
+
+    private ShaderContext context = ShaderContext.BLOCK_SOLID;
+    
+    @Override
+    public void canvas_draw() {
         final CanvasBufferBuilder buffer = (CanvasBufferBuilder)this.buffer;
         final VertexCollectorList vcList = buffer.vcList;
         if(!vcList.isEmpty()) {
@@ -52,7 +61,7 @@ public class MixinTessellator {
             buffer.ensureCapacity(packingList.totalBytes());
             ObjectArrayList<DrawableDelegate> delegates = BufferPacker.pack(packingList, vcList, buffer);
             renderList.accept(delegates);
-            renderList.draw();
+            renderList.draw(context);
             final int limit = delegates.size();
             for(int i = 0; i < limit; i++) {
                 delegates.get(i).release();
@@ -61,6 +70,11 @@ public class MixinTessellator {
             renderList.release();
             vcList.clear();
             buffer.clearAllocations();
-        }
+        }        
+    }
+
+    @Override
+    public void canvas_context(ShaderContext context) {
+        this.context = context;
     }
 }

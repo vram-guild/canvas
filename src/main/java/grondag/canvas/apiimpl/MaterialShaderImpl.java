@@ -24,6 +24,7 @@ import grondag.canvas.material.GlShaderManager;
 import grondag.canvas.material.GlVertexShader;
 import grondag.canvas.material.MaterialShaderManager;
 import grondag.canvas.material.MaterialVertexFormat;
+import grondag.canvas.material.ShaderContext;
 import grondag.canvas.material.GlProgram;
 import grondag.frex.api.material.MaterialShader;
 import grondag.frex.api.material.Uniform.Uniform1f;
@@ -43,6 +44,7 @@ public final class MaterialShaderImpl implements MaterialShader {
     private final int index;
     private GlProgram solidProgram;
     private GlProgram translucentProgram;
+    private GlProgram itemProgram;
     private final Identifier vertexShader;
     private final Identifier fragmentShader;
     private final ArrayList<Consumer<GlProgram>> uniforms = new ArrayList<>();
@@ -60,27 +62,43 @@ public final class MaterialShaderImpl implements MaterialShader {
         vertexFormat = pipelineVertexFormat.vertexFormat;
     }
 
-    public void activate(boolean isSolidLayer) {
-        if (isSolidLayer)
-            this.solidProgram.activate();
-        else
-            this.translucentProgram.activate();
+    //PERF - could be better
+    public void activate(ShaderContext context) {
+        switch(context) {
+        case BLOCK_SOLID:
+            solidProgram.activate();
+            break;
+            
+        case BLOCK_TRANSLUCENT:
+            translucentProgram.activate();
+            break;
+            
+        case ITEM:
+            itemProgram.activate();
+            break;
+        default:
+            break;
+        }
     }
 
     public void forceReload() {
-        GlVertexShader vs = GlShaderManager.INSTANCE.getOrCreateVertexShader(vertexShader, spriteDepth,
-                true);
-        GlFragmentShader fs = GlShaderManager.INSTANCE.getOrCreateFragmentShader(fragmentShader,
-                spriteDepth, true);
+        GlVertexShader vs = GlShaderManager.INSTANCE.getOrCreateVertexShader(vertexShader, spriteDepth, ShaderContext.BLOCK_SOLID);
+        GlFragmentShader fs = GlShaderManager.INSTANCE.getOrCreateFragmentShader(fragmentShader, spriteDepth, ShaderContext.BLOCK_SOLID);
         solidProgram = new GlProgram(vs, fs, spriteDepth, true);
         uniforms.forEach(u -> u.accept(solidProgram));
         solidProgram.load();
         
-        vs = GlShaderManager.INSTANCE.getOrCreateVertexShader(vertexShader, spriteDepth, false);
-        fs = GlShaderManager.INSTANCE.getOrCreateFragmentShader(fragmentShader, spriteDepth, false);
+        vs = GlShaderManager.INSTANCE.getOrCreateVertexShader(vertexShader, spriteDepth, ShaderContext.BLOCK_TRANSLUCENT);
+        fs = GlShaderManager.INSTANCE.getOrCreateFragmentShader(fragmentShader, spriteDepth, ShaderContext.BLOCK_TRANSLUCENT);
         translucentProgram = new GlProgram(vs, fs, spriteDepth, false);
         uniforms.forEach(u -> u.accept(translucentProgram));
         translucentProgram.load();
+        
+        vs = GlShaderManager.INSTANCE.getOrCreateVertexShader(vertexShader, spriteDepth, ShaderContext.ITEM);
+        fs = GlShaderManager.INSTANCE.getOrCreateFragmentShader(fragmentShader, spriteDepth, ShaderContext.ITEM);
+        itemProgram = new GlProgram(vs, fs, spriteDepth, false);
+        uniforms.forEach(u -> u.accept(itemProgram));
+        itemProgram.load();
     }
 
     @Override
@@ -173,16 +191,20 @@ public final class MaterialShaderImpl implements MaterialShader {
         });
     }
 
+    //PERF: hmmm....
     public void onRenderTick() {
         this.solidProgram.onRenderTick();
         this.translucentProgram.onRenderTick();
+        this.itemProgram.onRenderTick();
     }
 
+    //PERF: hmmm....
     public void onGameTick() {
         // can be called before programs are initialized
         if(this.solidProgram != null) {
             this.solidProgram.onGameTick();
             this.translucentProgram.onGameTick();
+            this.itemProgram.onGameTick();
         }
     }
 }

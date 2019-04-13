@@ -40,9 +40,13 @@ public abstract class MixinItemRenderer {
 
     @Shadow
     protected ItemColorMap colorMap;
-    private final ThreadLocal<ItemRenderContext> CONTEXTS = ThreadLocal
-            .withInitial(() -> new ItemRenderContext(colorMap));
+    private ItemRenderContext context;
 
+    @Inject(method = "<init>*", at = @At("RETURN"), require = 1)
+    private void afterInit(CallbackInfo ci) {
+        context = new ItemRenderContext(colorMap);
+    }
+    
     /**
      * Save stack for enchantment glint renders - we won't otherwise have access to
      * it during the glint render because it receives an empty stack.
@@ -50,16 +54,15 @@ public abstract class MixinItemRenderer {
     @Inject(at = @At("HEAD"), method = "renderItemAndGlow")
     private void hookRenderItemAndGlow(ItemStack stack, BakedModel model, CallbackInfo ci) {
         if (stack.hasEnchantmentGlint() && !((DynamicBakedModel) model).isVanillaAdapter()) {
-            CONTEXTS.get().enchantmentStack = stack;
+            context.enchantmentStack = stack;
         }
     }
 
     @Inject(at = @At("HEAD"), method = "renderModel", cancellable = true)
     private void hookRenderModel(BakedModel model, int color, ItemStack stack, CallbackInfo ci) {
         DynamicBakedModel dynamicModel = (DynamicBakedModel) model;
-        if (!dynamicModel.isVanillaAdapter()) {
-            CONTEXTS.get().renderModel(dynamicModel, color, stack, this::renderQuads);
-            ci.cancel();
-        }
+        context.renderModel(dynamicModel, color, stack);
+        ci.cancel();
     }
+    
 }

@@ -120,6 +120,14 @@ public class VertexCollector {
         this.add((float)(pos.getZ() - parent.renderOriginZ + modelZ));
     }
 
+    /** for items */
+    public final void pos(float modelX, float modelY, float modelZ) {
+        this.checkForSize(this.renderState.pipeline.piplineVertexFormat().vertexStrideBytes);
+        this.add((float)(modelX));
+        this.add((float)(modelY));
+        this.add((float)(modelZ));
+    }
+    
     private static class QuadSorter {
         double[] perQuadDistance = new double[512];
         int[] quadSwap = new int[64];

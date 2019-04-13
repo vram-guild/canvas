@@ -1,7 +1,11 @@
 #version 120
 #extension GL_EXT_gpu_shader4 : enable
 #define LAYER_COUNT 1
-#define SOLID // will be TRANSLUCENT when rendering translucent layer
+
+#define CONTEXT_BLOCK_SOLID 0
+#define CONTEXT_BLOCK_TRANSLUCENT 1
+#define CONTEXT_ITEM 2
+#define CONTEXT 0
 
 uniform float u_time;
 uniform sampler2D u_textures;

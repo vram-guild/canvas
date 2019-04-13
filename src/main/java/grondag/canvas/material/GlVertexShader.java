@@ -21,8 +21,8 @@ import org.lwjgl.opengl.GL21;
 import net.minecraft.util.Identifier;
 
 public final class GlVertexShader extends AbstractGlShader {
-    GlVertexShader(Identifier shaderSource, int spriteDepth, boolean isSolidLayer) {
-        super(shaderSource, GL21.GL_VERTEX_SHADER, spriteDepth, isSolidLayer);
+    GlVertexShader(Identifier shaderSource, int spriteDepth, ShaderContext context) {
+        super(shaderSource, GL21.GL_VERTEX_SHADER, spriteDepth, context);
     }
 
     @Override

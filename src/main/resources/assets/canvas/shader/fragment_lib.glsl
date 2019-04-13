@@ -5,13 +5,13 @@ vec4 shadeColor(vec4 fragmentColor,  int layerIndex) {
 
 vec4 diffuseColor()
 {
-#ifdef SOLID
-		float non_mipped = bitValue(v_flags.x, FLAG_UNMIPPED_0) * -4.0;
-		vec4 a = texture2D(u_textures, v_texcoord_0, non_mipped);
+#if CONTEXT == CONTEXT_BLOCK_SOLID
+	float non_mipped = bitValue(v_flags.x, FLAG_UNMIPPED_0) * -4.0;
+	vec4 a = texture2D(u_textures, v_texcoord_0, non_mipped);
 
-		float cutout = bitValue(v_flags.x, FLAG_CUTOUT_0);
-		if(cutout == 1.0 && a.a < 0.5)
-			discard;
+	float cutout = bitValue(v_flags.x, FLAG_CUTOUT_0);
+	if(cutout == 1.0 && a.a < 0.5)
+		discard;
 #else
 		vec4 a = texture2D(u_textures, v_texcoord_0);
 #endif
@@ -72,5 +72,9 @@ float fogFactor() {
 }
 
 vec4 fog(vec4 diffuseColor) {
+#if CONTEXT == CONTEXT_ITEM
+	return diffuseColor;
+#else
 	return mix(vec4(gl_Fog.color.rgb, diffuseColor.a), diffuseColor, fogFactor());
+#endif
 }

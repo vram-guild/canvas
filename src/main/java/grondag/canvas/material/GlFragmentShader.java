@@ -21,8 +21,8 @@ import org.lwjgl.opengl.GL21;
 import net.minecraft.util.Identifier;
 
 public final class GlFragmentShader extends AbstractGlShader {
-    GlFragmentShader(Identifier shaderSource, int spriteDepth, boolean isSolidLayer) {
-        super(shaderSource, GL21.GL_FRAGMENT_SHADER, spriteDepth, isSolidLayer);
+    GlFragmentShader(Identifier shaderSource, int spriteDepth, ShaderContext context) {
+        super(shaderSource, GL21.GL_FRAGMENT_SHADER, spriteDepth, context);
     }
 
     @Override

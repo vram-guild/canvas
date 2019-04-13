@@ -22,6 +22,7 @@ import grondag.canvas.draw.DelegateLists;
 import grondag.canvas.draw.DrawableDelegate;
 import grondag.canvas.material.MaterialShaderManager;
 import grondag.canvas.material.MaterialState;
+import grondag.canvas.material.ShaderContext;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 /**
@@ -144,7 +145,7 @@ public abstract class DrawableChunk {
                 final DrawableDelegate b = (DrawableDelegate) draws[i];
                 MaterialState p = b.renderState();
                 if(!p.condition.affectBlocks || p.condition.compute(frameIndex)) {
-                    p.pipeline.activate(false);
+                    p.pipeline.activate(ShaderContext.BLOCK_TRANSLUCENT);
                     b.bind();
                     b.draw();
                 }

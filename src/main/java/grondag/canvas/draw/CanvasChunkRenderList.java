@@ -28,6 +28,7 @@ import com.mojang.blaze3d.platform.GlStateManager;
 import grondag.canvas.buffer.packing.RenderCube;
 import grondag.canvas.chunk.ChunkRendererExt;
 import grondag.canvas.chunk.DrawableChunk;
+import grondag.canvas.material.ShaderContext;
 import grondag.canvas.varia.CanvasGlHelper;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap.Entry;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
@@ -189,7 +190,7 @@ public class CanvasChunkRenderList {
         while (it.hasNext()) {
             Entry<SolidRenderList> e = it.next();
             updateViewMatrix(e.getLongKey());
-            e.getValue().drawAndRelease();
+            e.getValue().drawAndRelease(ShaderContext.BLOCK_SOLID);
         }
 
         solidLists.clear();

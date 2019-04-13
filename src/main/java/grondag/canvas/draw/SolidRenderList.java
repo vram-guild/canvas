@@ -28,6 +28,7 @@ import grondag.canvas.apiimpl.MaterialConditionImpl;
 import grondag.canvas.apiimpl.MaterialShaderImpl;
 import grondag.canvas.buffer.allocation.BindStateManager;
 import grondag.canvas.material.MaterialShaderManager;
+import grondag.canvas.material.ShaderContext;
 import grondag.canvas.material.GlProgram;
 import grondag.canvas.varia.CanvasGlHelper;
 import it.unimi.dsi.fastutil.Arrays;
@@ -93,7 +94,7 @@ public class SolidRenderList implements Consumer<ObjectArrayList<DrawableDelegat
      * Renders delegates in buffer order to minimize bind calls. 
      * Assumes all delegates in the list share the same pipeline.
      */
-    public void draw() {
+    public void draw(ShaderContext context) {
         final int limit = delegates.size();
 
         if (limit == 0)
@@ -105,7 +106,7 @@ public class SolidRenderList implements Consumer<ObjectArrayList<DrawableDelegat
         sorter.delegates = draws;
         Arrays.quickSort(0, limit, sorter, sorter);
 
-        ((DrawableDelegate) draws[0]).renderState().pipeline.activate(true);
+        ((DrawableDelegate) draws[0]).renderState().pipeline.activate(context);
         
         MaterialShaderImpl lastPipeline = null;
         final int frameIndex = MaterialShaderManager.INSTANCE.frameIndex();
@@ -117,7 +118,7 @@ public class SolidRenderList implements Consumer<ObjectArrayList<DrawableDelegat
             if(!condition.affectBlocks || condition.compute(frameIndex)) {
                 final MaterialShaderImpl thisPipeline = b.renderState().pipeline;
                 if(thisPipeline != lastPipeline) {
-                    thisPipeline.activate(true);
+                    thisPipeline.activate(context);
                     lastPipeline = thisPipeline;
                 }
                 b.bind();
@@ -145,8 +146,8 @@ public class SolidRenderList implements Consumer<ObjectArrayList<DrawableDelegat
         POOL.offer(this);
     }
     
-    public void drawAndRelease() {
-        draw();
+    public void drawAndRelease(ShaderContext context) {
+        draw(context);
         release();
     }
 }

@@ -24,9 +24,14 @@ void setupVertex()
     v_ao = (in_normal_ao.w + 1.0) * 0.5;
     v_diffuse = diffuse(in_normal_ao.xyz);
 
+#if CONTEXT == CONTEXT_ITEM
+    v_light = vec4(1.0, 1.0, 1.0, 1.0);
+#else
     // the lightmap texture matrix is scaled to 1/256 and then offset + 8
     // it is also clamped to repeat and has linear min/mag
     v_light = texture2D(u_lightmap, (in_lightmap.rg * 0.00367647) + 0.03125);
+#endif
+
 
     // Fixes Acuity #5
     // Adding +0.5 prevents striping or other strangeness in flag-dependent rendering

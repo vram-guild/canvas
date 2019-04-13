@@ -14,22 +14,6 @@
  * the License.
  ******************************************************************************/
 
-/*
- * Copyright (c) 2016, 2017, 2018 FabricMC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package grondag.canvas.apiimpl.rendercontext;
 
 import java.util.function.Consumer;
@@ -38,6 +22,8 @@ import grondag.canvas.apiimpl.RenderMaterialImpl;
 import grondag.canvas.apiimpl.util.AoCalculator;
 import grondag.canvas.buffer.packing.CanvasBufferBuilder;
 import grondag.canvas.buffer.packing.VertexCollector;
+import grondag.canvas.draw.TessellatorExt;
+import grondag.canvas.material.ShaderContext;
 import grondag.frex.api.model.DynamicBakedModel;
 import grondag.frex.api.mesh.Mesh;
 import grondag.frex.api.mesh.QuadEmitter;
@@ -45,6 +31,7 @@ import grondag.frex.api.render.RenderContext;
 import grondag.frex.api.render.TerrainBlockView;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.render.BufferBuilder;
+import net.minecraft.client.render.Tessellator;
 import net.minecraft.client.render.block.BlockModelRenderer;
 import net.minecraft.client.render.model.BakedModel;
 import net.minecraft.util.math.BlockPos;
@@ -60,6 +47,7 @@ public class BlockRenderContext extends AbstractRenderContext implements RenderC
             this::transform, QuadRenderer.NO_OFFSET);
     private final FallbackConsumer fallbackConsumer = new FallbackConsumer(blockInfo, this::brightness, this::getCollector, aoCalc,
             this::transform, QuadRenderer.NO_OFFSET);
+    private final TessellatorExt tesselatorExt = (TessellatorExt) Tessellator.getInstance();
     private CanvasBufferBuilder canvasBuilder;
     private boolean didOutput = false;
 
@@ -90,7 +78,7 @@ public class BlockRenderContext extends AbstractRenderContext implements RenderC
         aoCalc.clear();
         blockInfo.setBlockView(blockView);
         blockInfo.prepareForBlock(state, pos, model.useAmbientOcclusion());
-
+        tesselatorExt.canvas_context(ShaderContext.BLOCK_SOLID);
         ((DynamicBakedModel) model).emitBlockQuads(blockView, state, pos, blockInfo.randomSupplier, this);
 
         blockInfo.release();

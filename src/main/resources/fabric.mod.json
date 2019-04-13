@@ -8,8 +8,8 @@
     "Grondag"
   ],
   "contact": {
-    "homepage": "https://minecraft.curseforge.com/projects/frex",
-    "sources": "https://github.com/grondag/frex"
+    "homepage": "https://minecraft.curseforge.com/projects/canvas-renderer",
+    "sources": "https://github.com/grondag/canvas"
   },
   
   "license": "Apache-2.0",
