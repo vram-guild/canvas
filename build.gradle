@@ -92,6 +92,8 @@ dependencies {
 	compile "com.google.code.findbugs:jsr305:${findbugs_version}"
 	compile "org.joml:joml:1.9.9"
 	
+	include "grondag:fermion:${project.fermion_version}"
+	
 	// should be removed before release
 	//modCompile "grondag:renderbender:0.1.107-alpha"
 }
