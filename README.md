@@ -106,12 +106,12 @@ repositories {
 }
 ```
 
-And add FREX and Indigo to your dependencies
+And add FREX and Canvas to your dependencies
 
 ```gradle
 dependencies {
-	modCompile "grondag:frex:0.1.72-alpha"
-	modCompile "grondag:canvas:0.1.158-alpha"
+	modCompile "grondag:frex:0.3.+"
+	modCompile "grondag:canvas:0.3.+"
 }
 ```
 
