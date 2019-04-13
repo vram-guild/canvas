@@ -86,9 +86,6 @@ public abstract class MixinChunkRenderer implements ChunkRendererExt {
     private final AtomicReference<UploadableChunk.Solid> uploadSolid = new AtomicReference<>();
     private final AtomicReference<UploadableChunk.Translucent> uploadTranslucent = new AtomicReference<>();
     
-    @Shadow
-    abstract void updateTransformationMatrix();
-
     Solid solidDrawable;
     Translucent translucentDrawable;
 
@@ -102,26 +99,13 @@ public abstract class MixinChunkRenderer implements ChunkRendererExt {
         return translucentDrawable;
     }
 
-    /**
-     * When Canvas is enabled the per-chunk matrix is never used, so is wasteful to
-     * update when frustum moves. Matters more when lots of block updates or other
-     * high-throughput because adds to contention.
-     */
-    @Inject(at = @At("HEAD"), method = "updateTransformationMatrix", cancellable = true)
-    private void hookUpdateTransformationMatrix(CallbackInfo ci) {
-        // this is called right after setting chunk position because it was moved in the frustum
-        // let buffers in the chunk know they are no longer valid and can be released.
-        ((ChunkRendererExt) this).canvas_releaseDrawables();
-        ci.cancel();
-    }
-
     @Inject(method = "delete", at = @At("RETURN"), require = 1)
     private void onDeleteGlResources(CallbackInfo ci) {
         canvas_releaseDrawables();
     }
 
-    @Inject(method = "method_3665", require = 1, at = @At(value = "FIELD", opcode = Opcodes.PUTFIELD, target = "Lnet/minecraft/client/render/chunk/ChunkRenderer;chunkRenderData:Lnet/minecraft/client/render/chunk/ChunkRenderData;"))
-    private void onSetChunkData(ChunkRenderData chunkDataIn, CallbackInfo ci) {
+    @Inject(method = "setChunkRenderData", require = 1, at = @At(value = "FIELD", opcode = Opcodes.PUTFIELD, target = "Lnet/minecraft/client/render/chunk/ChunkRenderer;chunkRenderData:Lnet/minecraft/client/render/chunk/ChunkRenderData;"))
+    private void onsetChunkRenderData(ChunkRenderData chunkDataIn, CallbackInfo ci) {
         if (chunkRenderData == null || chunkRenderData == ChunkRenderData.EMPTY || chunkDataIn == chunkRenderData)
             return;
 
@@ -131,6 +115,8 @@ public abstract class MixinChunkRenderer implements ChunkRendererExt {
 
     @Inject(method = "clear", require = 1, at = @At(value = "FIELD", opcode = Opcodes.PUTFIELD, target = "Lnet/minecraft/client/render/chunk/ChunkRenderer;chunkRenderData:Lnet/minecraft/client/render/chunk/ChunkRenderData;"))
     private void onClear(CallbackInfo ci) {
+        canvas_releaseDrawables();
+        
         if (chunkRenderData == null || chunkRenderData == ChunkRenderData.EMPTY)
             return;
 
@@ -300,7 +286,7 @@ public abstract class MixinChunkRenderer implements ChunkRendererExt {
                 
                 this.blockEntities.clear();
                 this.blockEntities.addAll(blockEntities);
-                this.renderer.method_3245(help.tileEntitiesToRemove, help.tileEntitiesToAdd);
+                this.renderer.updateBlockEntities(help.tileEntitiesToRemove, help.tileEntitiesToAdd);
             } finally {
                 this.chunkRenderLock.unlock();
             }

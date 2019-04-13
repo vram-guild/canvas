@@ -32,7 +32,7 @@ import grondag.canvas.chunk.occlusion.ChunkOcclusionMap;
 import grondag.canvas.chunk.occlusion.DirectionSet;
 import grondag.canvas.chunk.occlusion.OcclusionHelper;
 import grondag.fermion.functions.PrimitiveFunctions.ObjToIntFunction;
-import grondag.frex.api.core.ModelHelper;
+import grondag.frex.api.model.ModelHelper;
 import it.unimi.dsi.fastutil.ints.IntArrayFIFOQueue;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import net.minecraft.client.render.chunk.ChunkOcclusionGraph;

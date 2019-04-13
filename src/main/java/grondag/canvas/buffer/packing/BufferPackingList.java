@@ -18,7 +18,7 @@ package grondag.canvas.buffer.packing;
 
 import java.util.function.Consumer;
 
-import grondag.canvas.pipeline.RenderState;
+import grondag.canvas.material.MaterialState;
 
 /**
  * Tracks number of vertices, pipeline and sequence thereof within a buffer.
@@ -26,7 +26,7 @@ import grondag.canvas.pipeline.RenderState;
 public class BufferPackingList {
     private int[] starts = new int[16];
     private int[] counts = new int[16];
-    private RenderState[] pipelines = new RenderState[16];
+    private MaterialState[] pipelines = new MaterialState[16];
     
     private int size = 0;
     private int totalBytes = 0;
@@ -63,7 +63,7 @@ public class BufferPackingList {
         return this.totalBytes;
     }
 
-    public void addPacking(RenderState renderState, int startVertex, int vertexCount) {
+    public void addPacking(MaterialState renderState, int startVertex, int vertexCount) {
         if (size == this.pipelines.length) {
             final int cCopy[] = new int[size * 2];
             System.arraycopy(this.counts, 0, cCopy, 0, size);
@@ -73,7 +73,7 @@ public class BufferPackingList {
             System.arraycopy(this.starts, 0, sCopy, 0, size);
             this.starts = sCopy;
             
-            final RenderState pCopy[] = new RenderState[size * 2];
+            final MaterialState pCopy[] = new MaterialState[size * 2];
             System.arraycopy(this.pipelines, 0, pCopy, 0, size);
             this.pipelines = pCopy;
         }
@@ -91,13 +91,13 @@ public class BufferPackingList {
         }
     }
 
-    public final void forEachPipeline(Consumer<RenderState> consumer) {
+    public final void forEachPipeline(Consumer<MaterialState> consumer) {
         final int size = this.size;
         for (int i = 0; i < size; i++)
             consumer.accept(this.pipelines[i]);
     }
 
-    public final RenderState getPipeline(int index) {
+    public final MaterialState getPipeline(int index) {
         return this.pipelines[index];
     }
 

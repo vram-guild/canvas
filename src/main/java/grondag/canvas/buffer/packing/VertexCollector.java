@@ -18,7 +18,7 @@ package grondag.canvas.buffer.packing;
 
 import com.google.common.primitives.Doubles;
 
-import grondag.canvas.pipeline.RenderState;
+import grondag.canvas.material.MaterialState;
 import it.unimi.dsi.fastutil.Swapper;
 import it.unimi.dsi.fastutil.ints.AbstractIntComparator;
 import net.minecraft.util.math.BlockPos;
@@ -26,7 +26,7 @@ import net.minecraft.util.math.BlockPos;
 public class VertexCollector {
     private int[] data;
     private int integerSize = 0;
-    private RenderState renderState;
+    private MaterialState renderState;
     public final VertexCollectorList parent;
 
     /**
@@ -51,7 +51,7 @@ public class VertexCollector {
         this.parent = parent;
     }
     
-    public VertexCollector prepare(RenderState pipeline) {
+    public VertexCollector prepare(MaterialState pipeline) {
         this.renderState = pipeline;
         return this;
     }
@@ -61,7 +61,7 @@ public class VertexCollector {
         this.renderState = null;
     }
 
-    public RenderState pipeline() {
+    public MaterialState pipeline() {
         return this.renderState;
     }
 
@@ -268,7 +268,7 @@ public class VertexCollector {
     }
 
     public VertexCollector loadState(int[] stateData) {
-        this.renderState = RenderState.get(stateData[0]);
+        this.renderState = MaterialState.get(stateData[0]);
         final int newSize = stateData.length - 1;
         integerSize = 0;
         if (newSize > 0) {

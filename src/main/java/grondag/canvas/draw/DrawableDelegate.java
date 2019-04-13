@@ -25,8 +25,8 @@ import com.mojang.blaze3d.platform.GlStateManager;
 
 import grondag.canvas.buffer.allocation.AbstractBuffer;
 import grondag.canvas.buffer.allocation.BufferDelegate;
-import grondag.canvas.pipeline.RenderState;
-import grondag.canvas.pipeline.PipelineVertexFormat;
+import grondag.canvas.material.MaterialVertexFormat;
+import grondag.canvas.material.MaterialState;
 import grondag.canvas.varia.CanvasGlHelper;
 import grondag.canvas.varia.VaoStore;
 import net.minecraft.client.render.VertexFormatElement;
@@ -56,10 +56,10 @@ public class DrawableDelegate {
     
     @FunctionalInterface
     private static interface VertexBinder {
-        void bind(PipelineVertexFormat format, boolean isNewBuffer);
+        void bind(MaterialVertexFormat format, boolean isNewBuffer);
     }
     
-    public static DrawableDelegate claim(BufferDelegate bufferDelegate, RenderState renderState, int vertexCount) {
+    public static DrawableDelegate claim(BufferDelegate bufferDelegate, MaterialState renderState, int vertexCount) {
         DrawableDelegate result = store.poll();
         if(result == null) {
             result = new DrawableDelegate();
@@ -78,7 +78,7 @@ public class DrawableDelegate {
     }
 
     private BufferDelegate bufferDelegate;
-    private RenderState renderState;
+    private MaterialState renderState;
     private int vertexCount;
     private boolean isReleased = false;
     private VertexBinder vertexBinder;
@@ -114,7 +114,7 @@ public class DrawableDelegate {
     /**
      * The pipeline (and vertex format) associated with this delegate.
      */
-    public RenderState renderState() {
+    public MaterialState renderState() {
         return this.renderState;
     }
 
@@ -164,7 +164,7 @@ public class DrawableDelegate {
         this.bufferDelegate.buffer().upload();
     }
     
-    void bindVao(PipelineVertexFormat format, boolean isNewBuffer) {
+    void bindVao(MaterialVertexFormat format, boolean isNewBuffer) {
         if (vaoBufferId == -1) {
             vaoBufferId = VaoStore.claimVertexArray();
             CanvasGlHelper.glBindVertexArray(vaoBufferId);
@@ -177,7 +177,7 @@ public class DrawableDelegate {
         }
     }
     
-    private boolean needsRebind(PipelineVertexFormat format) {
+    private boolean needsRebind(MaterialVertexFormat format) {
         final int byteOffset = bufferDelegate.byteOffset();
         final int vertexStrideBytes = format.vertexStrideBytes;
         final int gap = byteOffset - boundByteOffset;
@@ -192,7 +192,7 @@ public class DrawableDelegate {
         return true;
     }
     
-    void bindVbo(PipelineVertexFormat format, boolean isNewBuffer) {
+    void bindVbo(MaterialVertexFormat format, boolean isNewBuffer) {
         // don't check for bind reuse if not possible due to new buffer
         if(isNewBuffer || needsRebind(format)) {
             final int byteOffset = bufferDelegate.byteOffset();
@@ -203,7 +203,7 @@ public class DrawableDelegate {
         }
     }
 
-    void bindBuffer(PipelineVertexFormat format, boolean isNewBuffer) {
+    void bindBuffer(MaterialVertexFormat format, boolean isNewBuffer) {
         if(isNewBuffer || needsRebind(format)) {
             final ByteBuffer buffer = bufferDelegate.buffer().byteBuffer();
             final int byteOffset = bufferDelegate.byteOffset();

@@ -23,7 +23,7 @@ import org.lwjgl.system.MemoryUtil;
 
 import com.mojang.blaze3d.platform.GLX;
 
-import grondag.canvas.pipeline.RenderState;
+import grondag.canvas.material.MaterialState;
 
 public class VboBuffer extends UploadableBuffer implements AllocationProvider {
     ByteBuffer uploadBuffer;
@@ -61,7 +61,7 @@ public class VboBuffer extends UploadableBuffer implements AllocationProvider {
     }
     
     @Override
-    public void claimAllocation(RenderState pipeline, int byteCount, Consumer<BufferDelegate> consumer) {
+    public void claimAllocation(MaterialState pipeline, int byteCount, Consumer<BufferDelegate> consumer) {
         consumer.accept(BufferDelegate.claim(this, byteOffset, byteCount));
         byteOffset += byteCount;
     }

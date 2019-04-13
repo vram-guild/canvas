@@ -14,7 +14,7 @@
  * the License.
  ******************************************************************************/
 
-package grondag.canvas.pipeline;
+package grondag.canvas.material;
 
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
@@ -30,22 +30,22 @@ import com.mojang.blaze3d.platform.GLX;
 
 import grondag.canvas.Canvas;
 import grondag.canvas.varia.CanvasGlHelper;
-import grondag.frex.api.extended.Uniform;
-import grondag.frex.api.extended.Uniform.Uniform1f;
-import grondag.frex.api.extended.Uniform.Uniform1i;
-import grondag.frex.api.extended.Uniform.Uniform2f;
-import grondag.frex.api.extended.Uniform.Uniform2i;
-import grondag.frex.api.extended.Uniform.Uniform3f;
-import grondag.frex.api.extended.Uniform.Uniform3i;
-import grondag.frex.api.extended.Uniform.Uniform4f;
-import grondag.frex.api.extended.Uniform.Uniform4i;
-import grondag.frex.api.extended.Uniform.UniformMatrix4f;
-import grondag.frex.api.extended.UniformRefreshFrequency;
+import grondag.frex.api.material.Uniform;
+import grondag.frex.api.material.Uniform.Uniform1f;
+import grondag.frex.api.material.Uniform.Uniform1i;
+import grondag.frex.api.material.Uniform.Uniform2f;
+import grondag.frex.api.material.Uniform.Uniform2i;
+import grondag.frex.api.material.Uniform.Uniform3f;
+import grondag.frex.api.material.Uniform.Uniform3i;
+import grondag.frex.api.material.Uniform.Uniform4f;
+import grondag.frex.api.material.Uniform.Uniform4i;
+import grondag.frex.api.material.Uniform.UniformMatrix4f;
+import grondag.frex.api.material.UniformRefreshFrequency;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.client.resource.language.I18n;
 
-public class Program {
-    private static Program activeProgram;
+public class GlProgram {
+    private static GlProgram activeProgram;
     
     public static void deactivate() {
         activeProgram = null;
@@ -55,11 +55,11 @@ public class Program {
     private int progID = -1;
     private boolean isErrored = false;
 
-    public final PipelineVertexShader vertexShader;
-    public final PipelineFragmentShader fragmentShader;
+    public final GlVertexShader vertexShader;
+    public final GlFragmentShader fragmentShader;
     public final int spriteDepth;
     public final boolean isSolidLayer;
-    public final PipelineVertexFormat pipelineVertexFormat;
+    public final MaterialVertexFormat pipelineVertexFormat;
 
     private final ObjectArrayList<UniformImpl<?>> uniforms = new ObjectArrayList<>();
     private final ObjectArrayList<UniformImpl<?>> renderTickUpdates = new ObjectArrayList<>();
@@ -105,7 +105,7 @@ public class Program {
             this.unifID = GLX.glGetUniformLocation(programID, name);
             if (this.unifID == -1) {
                 Canvas.INSTANCE.log().debug(I18n.translate("misc.debug_missing_uniform", name,
-                        Program.this.vertexShader.shaderSource.toString(), Program.this.fragmentShader.shaderSource.toString()));
+                        GlProgram.this.vertexShader.shaderSource.toString(), GlProgram.this.fragmentShader.shaderSource.toString()));
                 this.flags = 0;
             } else {
                 // dirty count will be reset to 0 before uniforms are loaded
@@ -406,12 +406,12 @@ public class Program {
         return addUniform(new Uniform4iImpl(name, initializer, frequency));
     }
 
-    public Program(PipelineVertexShader vertexShader, PipelineFragmentShader fragmentShader, int spriteDepth,
+    public GlProgram(GlVertexShader vertexShader, GlFragmentShader fragmentShader, int spriteDepth,
             boolean isSolidLayer) {
         this.vertexShader = vertexShader;
         this.fragmentShader = fragmentShader;
         this.spriteDepth = spriteDepth;
-        this.pipelineVertexFormat = PipelineManager.FORMATS[spriteDepth - 1];
+        this.pipelineVertexFormat = MaterialShaderManager.FORMATS[spriteDepth - 1];
         this.isSolidLayer = isSolidLayer;
     }
 

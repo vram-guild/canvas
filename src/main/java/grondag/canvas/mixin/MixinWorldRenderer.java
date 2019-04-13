@@ -31,7 +31,7 @@ import grondag.canvas.chunk.ChunkRendererDispatcherExt;
 import grondag.canvas.chunk.ChunkRendererListExt;
 import grondag.canvas.chunk.occlusion.ChunkOcclusionBuilderAccessHelper;
 import grondag.canvas.chunk.occlusion.ChunkOcclusionMap;
-import grondag.canvas.pipeline.PipelineManager;
+import grondag.canvas.material.MaterialShaderManager;
 import net.minecraft.block.BlockRenderLayer;
 import net.minecraft.client.render.Camera;
 import net.minecraft.client.render.ChunkRenderDispatcher;
@@ -50,15 +50,15 @@ public abstract class MixinWorldRenderer {
     
     @Inject(method = "setUpTerrain", at = @At("HEAD"), cancellable = false, require = 1)
     private void onPrepareTerrain(Camera camera, VisibleRegion region, int int_1, boolean boolean_1, CallbackInfo ci) {
-        PipelineManager.INSTANCE.prepareForFrame(camera);
+        MaterialShaderManager.INSTANCE.prepareForFrame(camera);
     }
     
     /**
      * Use pre-computed visibility stored during render chunk rebuild vs computing on fly each time.
      */
     @SuppressWarnings("unchecked")
-    @Inject(method = "method_3285", at = @At("HEAD"), cancellable = true, require = 1)
-    private void hookViewChunkVisibility(BlockPos pos, CallbackInfoReturnable<Set<Direction>> ci) {
+    @Inject(method = "getOpenChunkFaces", at = @At("HEAD"), cancellable = true, require = 1)
+    private void onGetOpenChunkFaces(BlockPos pos, CallbackInfoReturnable<Set<Direction>> ci) {
         ChunkRenderer renderChunk = ((ChunkRendererDispatcherExt)chunkRenderDispatcher).canvas_chunkRenderer(pos);
         if(renderChunk != null)
         {

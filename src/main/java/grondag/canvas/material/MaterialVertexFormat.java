@@ -14,17 +14,17 @@
  * the License.
  ******************************************************************************/
 
-package grondag.canvas.pipeline;
+package grondag.canvas.material;
 
-import static grondag.canvas.pipeline.PipelineVertextFormatElement.BASE_RGBA_4UB;
-import static grondag.canvas.pipeline.PipelineVertextFormatElement.BASE_TEX_2F;
-import static grondag.canvas.pipeline.PipelineVertextFormatElement.LIGHTMAPS_4UB;
-import static grondag.canvas.pipeline.PipelineVertextFormatElement.NORMAL_AO_4UB;
-import static grondag.canvas.pipeline.PipelineVertextFormatElement.POSITION_3F;
-import static grondag.canvas.pipeline.PipelineVertextFormatElement.SECONDARY_RGBA_4UB;
-import static grondag.canvas.pipeline.PipelineVertextFormatElement.SECONDARY_TEX_2F;
-import static grondag.canvas.pipeline.PipelineVertextFormatElement.TERTIARY_RGBA_4UB;
-import static grondag.canvas.pipeline.PipelineVertextFormatElement.TERTIARY_TEX_2F;
+import static grondag.canvas.material.MaterialVertextFormatElement.BASE_RGBA_4UB;
+import static grondag.canvas.material.MaterialVertextFormatElement.BASE_TEX_2F;
+import static grondag.canvas.material.MaterialVertextFormatElement.LIGHTMAPS_4UB;
+import static grondag.canvas.material.MaterialVertextFormatElement.NORMAL_AO_4UB;
+import static grondag.canvas.material.MaterialVertextFormatElement.POSITION_3F;
+import static grondag.canvas.material.MaterialVertextFormatElement.SECONDARY_RGBA_4UB;
+import static grondag.canvas.material.MaterialVertextFormatElement.SECONDARY_TEX_2F;
+import static grondag.canvas.material.MaterialVertextFormatElement.TERTIARY_RGBA_4UB;
+import static grondag.canvas.material.MaterialVertextFormatElement.TERTIARY_TEX_2F;
 
 import java.nio.ByteBuffer;
 
@@ -33,7 +33,7 @@ import org.lwjgl.opengl.GL20;
 import grondag.canvas.varia.CanvasGlHelper;
 import net.minecraft.client.render.VertexFormat;
 
-public enum PipelineVertexFormat {
+public enum MaterialVertexFormat {
     SINGLE(0,
             new VertexFormat().add(POSITION_3F).add(BASE_RGBA_4UB).add(BASE_TEX_2F).add(LIGHTMAPS_4UB).add(NORMAL_AO_4UB)),
     /**
@@ -63,16 +63,16 @@ public enum PipelineVertexFormat {
     /** vertex stride in bytes */
     public final int vertexStrideBytes;
 
-    private final PipelineVertextFormatElement[] elements;
+    private final MaterialVertextFormatElement[] elements;
 
-    private PipelineVertexFormat(int layerIndex, VertexFormat vertexFormat) {
+    private MaterialVertexFormat(int layerIndex, VertexFormat vertexFormat) {
         this.layerIndex = layerIndex;
         this.vertexFormat = vertexFormat;
         this.vertexStrideBytes = vertexFormat.getVertexSize();
         this.elements = vertexFormat.getElements()
-                .toArray(new PipelineVertextFormatElement[vertexFormat.getElementCount()]);
+                .toArray(new MaterialVertextFormatElement[vertexFormat.getElementCount()]);
         int count = 0;
-        for (PipelineVertextFormatElement e : elements) {
+        for (MaterialVertextFormatElement e : elements) {
             if (e.attributeName != null)
                 count++;
         }
@@ -96,7 +96,7 @@ public enum PipelineVertexFormat {
         CanvasGlHelper.enableAttributes(this.attributeCount);
         int offset = 0;
         int index = 1;
-        for (PipelineVertextFormatElement e : elements) {
+        for (MaterialVertextFormatElement e : elements) {
             if (e.attributeName != null) {
                 buffer.position(bufferOffset + offset);
                 GL20.glVertexAttribPointer(index++, e.elementCount, e.glConstant, e.isNormalized, vertexStrideBytes, buffer);
@@ -112,7 +112,7 @@ public enum PipelineVertexFormat {
     public void bindAttributeLocations(int bufferOffset) {
         int offset = 0;
         int index = 1;
-        for (PipelineVertextFormatElement e : elements) {
+        for (MaterialVertextFormatElement e : elements) {
             if (e.attributeName != null) {
                 GL20.glVertexAttribPointer(index++, e.elementCount, e.glConstant, e.isNormalized, vertexStrideBytes, bufferOffset + offset);
             }
@@ -122,7 +122,7 @@ public enum PipelineVertexFormat {
 
     public void bindProgramAttributes(int programID) {
         int index = 1;
-        for (PipelineVertextFormatElement e : elements) {
+        for (MaterialVertextFormatElement e : elements) {
             if (e.attributeName != null) {
                 GL20.glBindAttribLocation(programID, index++, e.attributeName);
             }

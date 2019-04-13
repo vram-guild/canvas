@@ -14,15 +14,15 @@
  * the License.
  ******************************************************************************/
 
-package grondag.canvas.pipeline;
+package grondag.canvas.material;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.util.Identifier;
 
-public final class PipelineShaderManager {
-    public final static PipelineShaderManager INSTANCE = new PipelineShaderManager();
-    private Object2ObjectOpenHashMap<String, PipelineVertexShader> vertexShaders = new Object2ObjectOpenHashMap<>();
-    private Object2ObjectOpenHashMap<String, PipelineFragmentShader> fragmentShaders = new Object2ObjectOpenHashMap<>();
+public final class GlShaderManager {
+    public final static GlShaderManager INSTANCE = new GlShaderManager();
+    private Object2ObjectOpenHashMap<String, GlVertexShader> vertexShaders = new Object2ObjectOpenHashMap<>();
+    private Object2ObjectOpenHashMap<String, GlFragmentShader> fragmentShaders = new Object2ObjectOpenHashMap<>();
 
     String vertexLibrarySource;
     String fragmentLibrarySource;
@@ -39,36 +39,36 @@ public final class PipelineShaderManager {
     public static final Identifier COMMON_FRAGMENT_SOURCE = new Identifier("canvas", "shader/fragment_lib.glsl");
     
     private void loadLibrarySources() {
-        String commonSource = AbstractPipelineShader.getShaderSource(COMMON_SOURCE);
-        this.vertexLibrarySource = commonSource + AbstractPipelineShader.getShaderSource(COMMON_VERTEX_SOURCE);
-        this.fragmentLibrarySource = commonSource + AbstractPipelineShader.getShaderSource(COMMON_FRAGMENT_SOURCE);
+        String commonSource = AbstractGlShader.getShaderSource(COMMON_SOURCE);
+        this.vertexLibrarySource = commonSource + AbstractGlShader.getShaderSource(COMMON_VERTEX_SOURCE);
+        this.fragmentLibrarySource = commonSource + AbstractGlShader.getShaderSource(COMMON_FRAGMENT_SOURCE);
     }
 
     private String shaderKey(Identifier shaderSource, int spriteDepth, boolean isSolidLayer) {
         return String.format("%s.%s.%s", shaderSource.toString(), spriteDepth, isSolidLayer);
     }
 
-    public PipelineVertexShader getOrCreateVertexShader(Identifier shaderSource, int spriteDepth, boolean isSolidLayer) {
+    public GlVertexShader getOrCreateVertexShader(Identifier shaderSource, int spriteDepth, boolean isSolidLayer) {
         final String shaderKey = shaderKey(shaderSource, spriteDepth, isSolidLayer);
 
         synchronized (vertexShaders) {
-            PipelineVertexShader result = vertexShaders.get(shaderKey);
+            GlVertexShader result = vertexShaders.get(shaderKey);
             if (result == null) {
-                result = new PipelineVertexShader(shaderSource, spriteDepth, isSolidLayer);
+                result = new GlVertexShader(shaderSource, spriteDepth, isSolidLayer);
                 vertexShaders.put(shaderKey, result);
             }
             return result;
         }
     }
 
-    public PipelineFragmentShader getOrCreateFragmentShader(Identifier shaderSourceId, int spriteDepth,
+    public GlFragmentShader getOrCreateFragmentShader(Identifier shaderSourceId, int spriteDepth,
             boolean isSolidLayer) {
         final String shaderKey = shaderKey(shaderSourceId, spriteDepth, isSolidLayer);
 
         synchronized (fragmentShaders) {
-            PipelineFragmentShader result = fragmentShaders.get(shaderKey);
+            GlFragmentShader result = fragmentShaders.get(shaderKey);
             if (result == null) {
-                result = new PipelineFragmentShader(shaderSourceId, spriteDepth, isSolidLayer);
+                result = new GlFragmentShader(shaderSourceId, spriteDepth, isSolidLayer);
                 fragmentShaders.put(shaderKey, result);
             }
             return result;

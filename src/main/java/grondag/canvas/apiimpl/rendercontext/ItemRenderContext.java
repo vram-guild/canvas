@@ -41,11 +41,11 @@ import org.lwjgl.opengl.GL11;
 
 import com.mojang.blaze3d.platform.GlStateManager;
 
-import grondag.frex.api.core.FabricBakedModel;
-import grondag.frex.api.core.Mesh;
-import grondag.frex.api.core.ModelHelper;
-import grondag.frex.api.core.QuadEmitter;
-import grondag.frex.api.core.RenderContext;
+import grondag.frex.api.model.DynamicBakedModel;
+import grondag.frex.api.mesh.Mesh;
+import grondag.frex.api.model.ModelHelper;
+import grondag.frex.api.mesh.QuadEmitter;
+import grondag.frex.api.render.RenderContext;
 import grondag.canvas.apiimpl.MeshImpl;
 import grondag.canvas.apiimpl.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.RenderMaterialImpl;
@@ -101,7 +101,7 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
         this.colorMap = colorMap;
     }
 
-    public void renderModel(FabricBakedModel model, int color, ItemStack stack, VanillaQuadHandler vanillaHandler) {
+    public void renderModel(DynamicBakedModel model, int color, ItemStack stack, VanillaQuadHandler vanillaHandler) {
         this.color = color;
 
         if (stack.isEmpty() && enchantmentStack != null) {

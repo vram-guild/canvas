@@ -18,10 +18,10 @@ package grondag.canvas.apiimpl;
 
 import grondag.canvas.apiimpl.util.GeometryHelper;
 import grondag.canvas.apiimpl.util.MeshEncodingHelper;
-import grondag.frex.api.core.Mesh;
-import grondag.frex.api.core.MeshBuilder;
-import grondag.frex.api.core.MutableQuadView;
-import grondag.frex.api.core.QuadEmitter;
+import grondag.frex.api.mesh.Mesh;
+import grondag.frex.api.mesh.MeshBuilder;
+import grondag.frex.api.mesh.MutableQuadView;
+import grondag.frex.api.mesh.QuadEmitter;
 
 /**
  * Our implementation of {@link MeshBuilder}, used for static mesh creation and

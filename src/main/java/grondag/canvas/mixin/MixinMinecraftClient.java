@@ -22,7 +22,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import grondag.canvas.pipeline.PipelineManager;
+import grondag.canvas.material.MaterialShaderManager;
 import grondag.canvas.varia.CanvasGlHelper;
 import grondag.canvas.varia.MinecraftClientExt;
 import net.minecraft.client.MinecraftClient;
@@ -42,6 +42,6 @@ public abstract class MixinMinecraftClient implements MinecraftClientExt {
     @Inject(at = @At("RETURN"), method = "init")
     private void hookInit(CallbackInfo info) {
         CanvasGlHelper.init();
-        PipelineManager.INSTANCE.forceReload();
+        MaterialShaderManager.INSTANCE.forceReload();
     }
 }

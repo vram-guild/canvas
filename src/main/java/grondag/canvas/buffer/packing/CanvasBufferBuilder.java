@@ -21,8 +21,8 @@ import java.util.function.Consumer;
 
 import grondag.canvas.buffer.allocation.AbstractBuffer;
 import grondag.canvas.buffer.allocation.BufferDelegate;
+import grondag.canvas.material.MaterialState;
 import grondag.canvas.buffer.allocation.AllocationProvider;
-import grondag.canvas.pipeline.RenderState;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.VertexFormat;
 import net.minecraft.client.util.GlAllocationUtils;
@@ -69,7 +69,7 @@ public class CanvasBufferBuilder extends BufferBuilder implements AllocationProv
     }
     
     @Override
-    public void claimAllocation(RenderState pipeline, int byteCount, Consumer<BufferDelegate> consumer) {
+    public void claimAllocation(MaterialState pipeline, int byteCount, Consumer<BufferDelegate> consumer) {
         final int newOffset = byteOffset + byteCount;
         
         consumer.accept(BufferDelegate.claim(canvasBuffer, byteOffset, byteCount));

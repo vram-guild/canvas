@@ -20,7 +20,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
 
-import grondag.canvas.pipeline.PipelineManager;
+import grondag.canvas.material.MaterialShaderManager;
 import net.minecraft.client.render.LightmapTextureManager;
 
 @Mixin(LightmapTextureManager.class)
@@ -29,7 +29,7 @@ public abstract class MixinLightmapTextureManager {
             target = "Lnet/minecraft/client/texture/NativeImage;setPixelRGBA(III)V"))
     private int onSetPixelRGBA(int i, int j, int color) {
         if(i == 15 && j == 15) {
-            PipelineManager.INSTANCE.updateEmissiveColor(color);
+            MaterialShaderManager.INSTANCE.updateEmissiveColor(color);
         }
         return color;
     }

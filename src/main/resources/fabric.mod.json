@@ -1,16 +1,37 @@
 {
+  "schemaVersion": 1,
   "id": "canvas",
+  "version": "${version}",
   "name": "Canvas Renderer",
-  "description": "Minecraft Renderer for Fabric",
-  "version": "0.0.1",
-  "side": "client",
-  "initializer": "grondag.canvas.Canvas",
-  "requires": {
-    "fabric": "*"
+  "description": "Minecraft Renderer for Fabric supporting the FREX API",
+  "authors": [
+    "Grondag"
+  ],
+  "contact": {
+    "homepage": "https://minecraft.curseforge.com/projects/frex",
+    "sources": "https://github.com/grondag/frex"
   },
-  "mixins": {
-    "client": [
-      "canvas.client.json"
+  
+  "license": "Apache-2.0",
+  "icon": "assets/canvas/canvas_icon.png",
+  
+  "environment": "client",
+  "entrypoints": {
+    "main": [
+      "grondag.canvas.Canvas"
     ]
+  },
+  "mixins": [
+    "canvas.client.json"
+  ],
+  "requires": {
+    "fabricloader": ">=0.4.0",
+    "fabric": "*",
+    "frex": ">=0.3.2",
+    "fermion": ">=0.3.2"
+  },
+  "custom": {
+    "modmenu:api": true,
+    "modmenu:clientsideOnly": true
   }
 }

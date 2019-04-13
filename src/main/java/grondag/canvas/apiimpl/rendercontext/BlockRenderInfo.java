@@ -36,7 +36,7 @@ import java.util.Random;
 import java.util.function.Supplier;
 
 import grondag.canvas.chunk.ChunkRenderInfo;
-import grondag.frex.api.core.TerrainBlockView;
+import grondag.frex.api.render.TerrainBlockView;
 import net.minecraft.block.BlockRenderLayer;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;

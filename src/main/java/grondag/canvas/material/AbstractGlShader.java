@@ -14,7 +14,7 @@
  * the License.
  ******************************************************************************/
 
-package grondag.canvas.pipeline;
+package grondag.canvas.material;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -33,7 +33,7 @@ import net.minecraft.client.resource.language.I18n;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.Identifier;
 
-abstract class AbstractPipelineShader {
+abstract class AbstractGlShader {
     public final Identifier shaderSource;
 
     private final int shaderType;
@@ -44,7 +44,7 @@ abstract class AbstractPipelineShader {
     private boolean needsLoad = true;
     private boolean isErrored = false;
 
-    AbstractPipelineShader(Identifier shaderSource, int shaderType, int spriteDepth, boolean isSolidLayer) {
+    AbstractGlShader(Identifier shaderSource, int shaderType, int spriteDepth, boolean isSolidLayer) {
         this.shaderSource = shaderSource;
         this.shaderType = shaderType;
         this.spriteDepth = spriteDepth;

@@ -21,7 +21,7 @@ import java.nio.IntBuffer;
 import grondag.canvas.buffer.allocation.AllocationProvider;
 import grondag.canvas.draw.DelegateLists;
 import grondag.canvas.draw.DrawableDelegate;
-import grondag.canvas.pipeline.RenderState;
+import grondag.canvas.material.MaterialState;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 public class BufferPacker {
@@ -49,7 +49,7 @@ public class BufferPacker {
         return result;
     }
 
-    public void accept(RenderState renderState, int vertexStart, int vertexCount) {
+    public void accept(MaterialState renderState, int vertexStart, int vertexCount) {
         final int stride = renderState.pipeline.piplineVertexFormat().vertexStrideBytes;
         allocator.claimAllocation(renderState, vertexCount * stride, ref -> {
             final int byteOffset = ref.byteOffset();

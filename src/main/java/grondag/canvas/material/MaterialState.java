@@ -14,34 +14,34 @@
  * the License.
  ******************************************************************************/
 
-package grondag.canvas.pipeline;
+package grondag.canvas.material;
 
-import grondag.canvas.apiimpl.RenderConditionImpl;
-import grondag.canvas.apiimpl.RenderPipelineImpl;
+import grondag.canvas.apiimpl.MaterialConditionImpl;
+import grondag.canvas.apiimpl.MaterialShaderImpl;
 import grondag.fermion.varia.Useful;
 
-public class RenderState {
-    private static final int PIPELINE_SHIFT = Useful.bitLength(RenderConditionImpl.MAX_CONDITIONS);
-    public static final int MAX_RENDER_STATES = RenderConditionImpl.MAX_CONDITIONS * PipelineManager.MAX_PIPELINES;
+public class MaterialState {
+    private static final int PIPELINE_SHIFT = Useful.bitLength(MaterialConditionImpl.MAX_CONDITIONS);
+    public static final int MAX_RENDER_STATES = MaterialConditionImpl.MAX_CONDITIONS * MaterialShaderManager.MAX_PIPELINES;
 
-    private static int computeIndex(RenderPipelineImpl pipeline, RenderConditionImpl condition) {
+    private static int computeIndex(MaterialShaderImpl pipeline, MaterialConditionImpl condition) {
         return (pipeline.getIndex() << PIPELINE_SHIFT) | condition.index;
     }
     
-    private static final RenderState[] VALUES = new RenderState[MAX_RENDER_STATES];
+    private static final MaterialState[] VALUES = new MaterialState[MAX_RENDER_STATES];
     
-    public static RenderState get(int index) {
+    public static MaterialState get(int index) {
         return VALUES[index];
     }
     
-    public static RenderState get(RenderPipelineImpl pipeline, RenderConditionImpl condition) {
+    public static MaterialState get(MaterialShaderImpl pipeline, MaterialConditionImpl condition) {
         final int index = computeIndex(pipeline, condition);
-        RenderState result = VALUES[index];
+        MaterialState result = VALUES[index];
         if(result == null) {
             synchronized(VALUES) {
                 result = VALUES[index];
                 if(result == null) {
-                    result = new RenderState(pipeline, condition, index);
+                    result = new MaterialState(pipeline, condition, index);
                     VALUES[index] = result;
                 }
             }
@@ -49,11 +49,11 @@ public class RenderState {
         return result;
     }
     
-    public final RenderPipelineImpl pipeline;
-    public final RenderConditionImpl condition;
+    public final MaterialShaderImpl pipeline;
+    public final MaterialConditionImpl condition;
     public final int index;
     
-    private RenderState(RenderPipelineImpl pipeline, RenderConditionImpl condition, int index) {
+    private MaterialState(MaterialShaderImpl pipeline, MaterialConditionImpl condition, int index) {
         this.pipeline = pipeline;
         this.condition = condition;
         this.index = index;

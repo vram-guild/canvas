@@ -22,18 +22,18 @@ import java.util.function.BooleanSupplier;
 import grondag.canvas.Canvas;
 import grondag.canvas.apiimpl.RenderMaterialImpl.Finder;
 import grondag.canvas.apiimpl.RenderMaterialImpl.Value;
-import grondag.canvas.pipeline.PipelineManager;
-import grondag.frex.api.core.MeshBuilder;
-import grondag.frex.api.core.RenderMaterial;
-import grondag.frex.api.extended.ExtendedRenderer;
-import grondag.frex.api.extended.Pipeline;
-import grondag.frex.api.extended.PipelineBuilder;
-import grondag.frex.api.extended.RenderCondition;
-import grondag.frex.api.extended.RenderReloadCallback;
+import grondag.canvas.material.MaterialShaderManager;
+import grondag.frex.api.mesh.MeshBuilder;
+import grondag.frex.api.material.RenderMaterial;
+import grondag.frex.api.Renderer;
+import grondag.frex.api.material.MaterialShader;
+import grondag.frex.api.material.ShaderBuilder;
+import grondag.frex.api.material.MaterialCondition;
+import grondag.frex.api.RenderReloadCallback;
 import net.minecraft.client.resource.language.I18n;
 import net.minecraft.util.Identifier;
 
-public class RendererImpl implements ExtendedRenderer, RenderReloadCallback {
+public class RendererImpl implements Renderer, RenderReloadCallback {
     public static final RendererImpl INSTANCE = new RendererImpl();
 
     public static final RenderMaterialImpl.Value MATERIAL_STANDARD = (Value) INSTANCE.materialFinder().find();
@@ -55,9 +55,9 @@ public class RendererImpl implements ExtendedRenderer, RenderReloadCallback {
     
     private final HashMap<Identifier, Value> materialMap = new HashMap<>();
 
-    private final HashMap<Identifier, RenderPipelineImpl> pipelineMap = new HashMap<>();
+    private final HashMap<Identifier, MaterialShaderImpl> pipelineMap = new HashMap<>();
     
-    private final HashMap<Identifier, RenderConditionImpl> conditionMap = new HashMap<>();
+    private final HashMap<Identifier, MaterialConditionImpl> conditionMap = new HashMap<>();
     
     private RendererImpl() {
         RenderReloadCallback.EVENT.register(this);
@@ -90,44 +90,44 @@ public class RendererImpl implements ExtendedRenderer, RenderReloadCallback {
     @Override
     public void reload() {
         Canvas.INSTANCE.log().info(I18n.translate("misc.info_reloading"));
-        PipelineManager.INSTANCE.forceReload();
+        MaterialShaderManager.INSTANCE.forceReload();
     }
 
     @Override
-    public PipelineBuilder pipelineBuilder() {
-        return new PipelineBuilderImpl();
+    public ShaderBuilder shaderBuilder() {
+        return new ShaderBuilderImpl();
     }
 
     @Override
-    public RenderPipelineImpl pipelineById(Identifier id) {
+    public MaterialShaderImpl shaderById(Identifier id) {
         return pipelineMap.get(id);
     }
 
     @Override
-    public boolean registerPipeline(Identifier id, Pipeline pipeline) {
+    public boolean registerShader(Identifier id, MaterialShader shader) {
         if (pipelineMap.containsKey(id))
             return false;
         // cast to prevent acceptance of impostor implementations
-        pipelineMap.put(id, (RenderPipelineImpl) pipeline);
+        pipelineMap.put(id, (MaterialShaderImpl) shader);
         return true;
     }
 
     @Override
-    public RenderCondition createCondition(BooleanSupplier supplier, boolean affectBlocks, boolean affectItems) {
-        return new RenderConditionImpl(supplier, affectBlocks, affectItems);
+    public MaterialCondition createCondition(BooleanSupplier supplier, boolean affectBlocks, boolean affectItems) {
+        return new MaterialConditionImpl(supplier, affectBlocks, affectItems);
     }
     
     @Override
-    public boolean registerCondition(Identifier id, RenderCondition condition) {
+    public boolean registerCondition(Identifier id, MaterialCondition condition) {
         if (conditionMap.containsKey(id))
             return false;
         // cast to prevent acceptance of impostor implementations
-        conditionMap.put(id, (RenderConditionImpl) condition);
+        conditionMap.put(id, (MaterialConditionImpl) condition);
         return true;
     }
     
     @Override
-    public RenderCondition conditionById(Identifier id) {
+    public MaterialCondition conditionById(Identifier id) {
         return conditionMap.get(id);
     }
 }

@@ -43,7 +43,7 @@ import grondag.canvas.apiimpl.RenderMaterialImpl;
 import grondag.canvas.apiimpl.util.AoCalculator;
 import grondag.canvas.apiimpl.util.ColorHelper;
 import grondag.canvas.buffer.packing.VertexCollector;
-import grondag.frex.api.core.RenderContext.QuadTransform;
+import grondag.frex.api.render.RenderContext.QuadTransform;
 import net.minecraft.block.BlockState;
 import net.minecraft.util.math.BlockPos;
 

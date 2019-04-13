@@ -16,8 +16,8 @@
 
 package grondag.canvas.apiimpl;
 
-import grondag.frex.api.core.QuadEmitter;
-import grondag.frex.api.core.RenderMaterial;
+import grondag.frex.api.mesh.QuadEmitter;
+import grondag.frex.api.material.RenderMaterial;
 
 import static grondag.canvas.apiimpl.util.MeshEncodingHelper.EMPTY;
 import static grondag.canvas.apiimpl.util.MeshEncodingHelper.NORMALS_OFFSET;

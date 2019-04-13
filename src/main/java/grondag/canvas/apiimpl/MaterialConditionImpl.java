@@ -18,15 +18,15 @@ package grondag.canvas.apiimpl;
 
 import java.util.function.BooleanSupplier;
 
-import grondag.frex.api.extended.RenderCondition;
+import grondag.frex.api.material.MaterialCondition;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
-public class RenderConditionImpl implements RenderCondition {
+public class MaterialConditionImpl implements MaterialCondition {
     public static final int MAX_CONDITIONS = 64;
-    private static final ObjectArrayList<RenderConditionImpl> ALL_BY_INDEX = new ObjectArrayList<RenderConditionImpl>();
-    public static final RenderConditionImpl ALWAYS = new RenderConditionImpl(() -> true, false, false);
+    private static final ObjectArrayList<MaterialConditionImpl> ALL_BY_INDEX = new ObjectArrayList<MaterialConditionImpl>();
+    public static final MaterialConditionImpl ALWAYS = new MaterialConditionImpl(() -> true, false, false);
     
-    public static RenderConditionImpl fromIndex(int index) {
+    public static MaterialConditionImpl fromIndex(int index) {
         return ALL_BY_INDEX.get(index);
     }
     
@@ -38,7 +38,7 @@ public class RenderConditionImpl implements RenderCondition {
     private int frameIndex;
     private boolean result;
     
-    RenderConditionImpl(BooleanSupplier supplier, boolean affectBlocks, boolean affectItems) {
+    MaterialConditionImpl(BooleanSupplier supplier, boolean affectBlocks, boolean affectItems) {
         this.supplier = supplier;
         this.affectBlocks = affectBlocks;
         this.affectItems = affectItems;

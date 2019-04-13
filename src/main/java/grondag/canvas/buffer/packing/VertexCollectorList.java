@@ -22,7 +22,7 @@ import java.util.function.Consumer;
 
 import grondag.canvas.apiimpl.RenderMaterialImpl;
 import grondag.canvas.chunk.UploadableChunk;
-import grondag.canvas.pipeline.RenderState;
+import grondag.canvas.material.MaterialState;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.util.math.MathHelper;
 
@@ -59,7 +59,7 @@ public class VertexCollectorList {
     /**
      * Fast lookup of buffers by pipeline index. Null in CUTOUT layer buffers.
      */
-    private VertexCollector[] vertexCollectors = new VertexCollector[RenderState.MAX_RENDER_STATES];
+    private VertexCollector[] vertexCollectors = new VertexCollector[MaterialState.MAX_RENDER_STATES];
 
     private final BufferPackingList packingList = new BufferPackingList();
     
@@ -135,10 +135,10 @@ public class VertexCollectorList {
     }
 
     public final VertexCollector get(RenderMaterialImpl.Value material) {
-        return get(RenderState.get(material.pipeline, material.condition));
+        return get(MaterialState.get(material.shader, material.condition));
     }
     
-    public final VertexCollector get(RenderState renderState) {
+    public final VertexCollector get(MaterialState renderState) {
         final int renderIndex = renderState.index;
         VertexCollector result = vertexCollectors[renderIndex];
         if(result == null) {

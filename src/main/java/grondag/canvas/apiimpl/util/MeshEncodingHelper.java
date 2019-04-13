@@ -17,7 +17,7 @@
 package grondag.canvas.apiimpl.util;
 
 import grondag.canvas.apiimpl.RenderMaterialImpl;
-import grondag.frex.api.core.ModelHelper;
+import grondag.frex.api.model.ModelHelper;
 import net.minecraft.util.math.Direction;
 
 /**

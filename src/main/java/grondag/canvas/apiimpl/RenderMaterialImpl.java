@@ -16,13 +16,13 @@
 
 package grondag.canvas.apiimpl;
 
-import grondag.canvas.pipeline.PipelineManager;
+import grondag.canvas.material.MaterialShaderManager;
 import grondag.fermion.varia.BitPacker64;
 import grondag.fermion.varia.BitPacker64.BooleanElement;
-import grondag.frex.api.core.RenderMaterial;
-import grondag.frex.api.extended.ExtendedMaterialFinder;
-import grondag.frex.api.extended.Pipeline;
-import grondag.frex.api.extended.RenderCondition;
+import grondag.frex.api.material.RenderMaterial;
+import grondag.frex.api.material.MaterialFinder;
+import grondag.frex.api.material.MaterialShader;
+import grondag.frex.api.material.MaterialCondition;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.block.BlockRenderLayer;
@@ -52,7 +52,7 @@ public abstract class RenderMaterialImpl {
     
     private static final BitPacker64<RenderMaterialImpl>.IntElement SPRITE_DEPTH;
     
-    private static final BitPacker64<RenderMaterialImpl>.IntElement PIPELINE;
+    private static final BitPacker64<RenderMaterialImpl>.IntElement SHADER;
     
     private static final BitPacker64<RenderMaterialImpl>.IntElement CONDITION;
     
@@ -101,8 +101,8 @@ public abstract class RenderMaterialImpl {
         BLEND_MODES[2] = BITPACKER.createNullableEnumElement(BlockRenderLayer.class);
         
         SPRITE_DEPTH = BITPACKER.createIntElement(1, MAX_SPRITE_DEPTH);
-        PIPELINE = BITPACKER.createIntElement(PipelineManager.MAX_PIPELINES);
-        CONDITION = BITPACKER.createIntElement(RenderConditionImpl.MAX_CONDITIONS);
+        SHADER = BITPACKER.createIntElement(MaterialShaderManager.MAX_PIPELINES);
+        CONDITION = BITPACKER.createIntElement(MaterialConditionImpl.MAX_CONDITIONS);
         
         long defaultBits = 0;
         defaultBits = BLEND_MODES[0].setValue(null, defaultBits);
@@ -175,17 +175,17 @@ public abstract class RenderMaterialImpl {
          */
         public final BlockRenderLayer renderLayer;
         
-        public final RenderConditionImpl condition;
+        public final MaterialConditionImpl condition;
         
-        public RenderPipelineImpl pipeline;
+        public MaterialShaderImpl shader;
         
         private final Value[] blockLayerVariants = new Value[4];
         
-        protected Value(int index, long bits, RenderPipelineImpl pipeline) {
+        protected Value(int index, long bits, MaterialShaderImpl shader) {
             this.index = index;
             this.bits = bits;
-            this.pipeline = pipeline;
-            this.condition = RenderConditionImpl.fromIndex(CONDITION.getValue(bits));
+            this.shader = shader;
+            this.condition = MaterialConditionImpl.fromIndex(CONDITION.getValue(bits));
             setupBlockLayerVariants();
             hasAo = !disableAo(0) || (spriteDepth() > 1 && !disableAo(1)) || (spriteDepth() == 3 && !disableAo(2));
             emissiveFlags = (emissive(0) ? 1 : 0) | (emissive(1) ? 2 : 0) | (emissive(2) ? 4 : 0);
@@ -248,7 +248,7 @@ public abstract class RenderMaterialImpl {
                 for(int i = 0; i < 4; i++) {
                     BlockRenderLayer layer = LAYERS[i];
                     finder.bits = this.bits;
-                    finder.pipeline = this.pipeline;
+                    finder.shader = this.shader;
                     if(finder.blendMode(0) == null) {
                         finder.blendMode(0, layer);
                     }
@@ -294,16 +294,16 @@ public abstract class RenderMaterialImpl {
         }
     }
 
-    public static class Finder extends RenderMaterialImpl implements ExtendedMaterialFinder {
-        private RenderPipelineImpl pipeline = null;
+    public static class Finder extends RenderMaterialImpl implements MaterialFinder {
+        private MaterialShaderImpl shader = null;
         
         @Override
         public synchronized Value find() {
-            RenderPipelineImpl p = pipeline == null ? PipelineManager.INSTANCE.getDefaultPipeline(this.spriteDepth()) : pipeline;
+            MaterialShaderImpl p = shader == null ? MaterialShaderManager.INSTANCE.getDefaultPipeline(this.spriteDepth()) : shader;
             if(p.spriteDepth != this.spriteDepth()) {
                 throw new UnsupportedOperationException("Material sprite depth must match pipeline sprite depth.");
             }
-            PIPELINE.setValue(p.getIndex(), this);
+            SHADER.setValue(p.getIndex(), this);
             Value result = MAP.get(bits);
             if (result == null) {
                 result = new Value(LIST.size(), bits, p);
@@ -316,7 +316,7 @@ public abstract class RenderMaterialImpl {
         @Override
         public Finder clear() {
             bits = 0;
-            pipeline = null;
+            shader = null;
             return this;
         }
         
@@ -360,14 +360,14 @@ public abstract class RenderMaterialImpl {
         }
 
         @Override
-        public Finder pipeline(Pipeline pipeline) {
-            this.pipeline = (RenderPipelineImpl) pipeline;
+        public Finder shader(MaterialShader shader) {
+            this.shader = (MaterialShaderImpl) shader;
             return this;
         }
 
         @Override
-        public ExtendedMaterialFinder condition(RenderCondition condition) {
-            CONDITION.setValue(((RenderConditionImpl)condition).index, this);
+        public MaterialFinder condition(MaterialCondition condition) {
+            CONDITION.setValue(((MaterialConditionImpl)condition).index, this);
             return this;
         }
     }

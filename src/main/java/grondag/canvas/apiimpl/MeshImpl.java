@@ -18,8 +18,8 @@ package grondag.canvas.apiimpl;
 
 import java.util.function.Consumer;
 
-import grondag.frex.api.core.QuadView;
-import grondag.frex.api.core.Mesh;
+import grondag.frex.api.mesh.QuadView;
+import grondag.frex.api.mesh.Mesh;
 
 /**
  * Implementation of {@link Mesh}. The way we encode meshes makes it very

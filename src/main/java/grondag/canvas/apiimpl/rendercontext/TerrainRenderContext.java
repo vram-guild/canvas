@@ -37,11 +37,11 @@ import java.util.function.Consumer;
 import grondag.canvas.apiimpl.util.AoCalculator;
 import grondag.canvas.chunk.ChunkRebuildHelper;
 import grondag.canvas.chunk.ChunkRenderInfo;
-import grondag.frex.api.core.FabricBakedModel;
-import grondag.frex.api.core.Mesh;
-import grondag.frex.api.core.QuadEmitter;
-import grondag.frex.api.core.RenderContext;
-import grondag.frex.api.core.TerrainBlockView;
+import grondag.frex.api.model.DynamicBakedModel;
+import grondag.frex.api.mesh.Mesh;
+import grondag.frex.api.mesh.QuadEmitter;
+import grondag.frex.api.render.RenderContext;
+import grondag.frex.api.render.TerrainBlockView;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.block.BlockRenderManager;
@@ -96,7 +96,7 @@ public class TerrainRenderContext extends AbstractRenderContext implements Rende
             aoCalc.clear();
             blockInfo.prepareForBlock(blockState, blockPos, model.useAmbientOcclusion());
             chunkInfo.beginBlock();
-            ((FabricBakedModel) model).emitBlockQuads(blockInfo.blockView, blockInfo.blockState, blockInfo.blockPos,
+            ((DynamicBakedModel) model).emitBlockQuads(blockInfo.blockView, blockInfo.blockState, blockInfo.blockPos,
                     blockInfo.randomSupplier, this);
         } catch (Throwable var9) {
             CrashReport crashReport_1 = CrashReport.create(var9, "Tesselating block in world - Canvas Renderer");

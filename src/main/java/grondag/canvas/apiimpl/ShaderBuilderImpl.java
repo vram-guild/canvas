@@ -19,31 +19,31 @@ package grondag.canvas.apiimpl;
 import java.util.ArrayList;
 import java.util.function.Consumer;
 
-import grondag.canvas.pipeline.PipelineManager;
-import grondag.frex.api.extended.Pipeline;
-import grondag.frex.api.extended.PipelineBuilder;
-import grondag.frex.api.extended.Uniform.Uniform1f;
-import grondag.frex.api.extended.Uniform.Uniform1i;
-import grondag.frex.api.extended.Uniform.Uniform2f;
-import grondag.frex.api.extended.Uniform.Uniform2i;
-import grondag.frex.api.extended.Uniform.Uniform3f;
-import grondag.frex.api.extended.Uniform.Uniform3i;
-import grondag.frex.api.extended.Uniform.Uniform4f;
-import grondag.frex.api.extended.Uniform.Uniform4i;
-import grondag.frex.api.extended.Uniform.UniformMatrix4f;
-import grondag.frex.api.extended.UniformRefreshFrequency;
+import grondag.canvas.material.MaterialShaderManager;
+import grondag.frex.api.material.MaterialShader;
+import grondag.frex.api.material.ShaderBuilder;
+import grondag.frex.api.material.Uniform.Uniform1f;
+import grondag.frex.api.material.Uniform.Uniform1i;
+import grondag.frex.api.material.Uniform.Uniform2f;
+import grondag.frex.api.material.Uniform.Uniform2i;
+import grondag.frex.api.material.Uniform.Uniform3f;
+import grondag.frex.api.material.Uniform.Uniform3i;
+import grondag.frex.api.material.Uniform.Uniform4f;
+import grondag.frex.api.material.Uniform.Uniform4i;
+import grondag.frex.api.material.Uniform.UniformMatrix4f;
+import grondag.frex.api.material.UniformRefreshFrequency;
 import net.minecraft.util.Identifier;
 
-public class PipelineBuilderImpl implements PipelineBuilder {
+public class ShaderBuilderImpl implements ShaderBuilder {
     private Identifier vertexSource;
     private Identifier fragmentSource;
-    private final ArrayList<Consumer<RenderPipelineImpl>> uniforms = new ArrayList<>();
+    private final ArrayList<Consumer<MaterialShaderImpl>> uniforms = new ArrayList<>();
     
     private int spriteDepth = 1;
     
     @Override
-    public Pipeline build() {
-        RenderPipelineImpl result = PipelineManager.INSTANCE.createPipeline(spriteDepth, vertexSource, fragmentSource);
+    public MaterialShader build() {
+        MaterialShaderImpl result = MaterialShaderManager.INSTANCE.create(spriteDepth, vertexSource, fragmentSource);
         uniforms.forEach(u -> u.accept(result));
         vertexSource = null;
         fragmentSource = null;
@@ -52,73 +52,73 @@ public class PipelineBuilderImpl implements PipelineBuilder {
     }
 
     @Override
-    public PipelineBuilderImpl fragmentSource(Identifier fragmentSource) {
+    public ShaderBuilderImpl fragmentSource(Identifier fragmentSource) {
         this.fragmentSource = fragmentSource;
         return this;
     }
 
     @Override
-    public PipelineBuilderImpl vertexSource(Identifier vertexSource) {
+    public ShaderBuilderImpl vertexSource(Identifier vertexSource) {
         this.vertexSource = vertexSource;
         return this;
     }
 
     @Override
-    public PipelineBuilderImpl spriteDepth(int depth) {
+    public ShaderBuilderImpl spriteDepth(int depth) {
         this.spriteDepth = depth;
         return this;
     }
     
     @Override
-    public PipelineBuilderImpl uniform1f(String name, UniformRefreshFrequency frequency, Consumer<Uniform1f> initializer) {
+    public ShaderBuilderImpl uniform1f(String name, UniformRefreshFrequency frequency, Consumer<Uniform1f> initializer) {
         uniforms.add(p -> p.uniform1f(name, frequency, initializer));
         return this;
     }
 
     @Override
-    public PipelineBuilderImpl uniform1i(String name, UniformRefreshFrequency frequency, Consumer<Uniform1i> initializer) {
+    public ShaderBuilderImpl uniform1i(String name, UniformRefreshFrequency frequency, Consumer<Uniform1i> initializer) {
         uniforms.add(p -> p.uniform1i(name, frequency, initializer));
         return this;
     }
 
     @Override
-    public PipelineBuilderImpl uniform2f(String name, UniformRefreshFrequency frequency, Consumer<Uniform2f> initializer) {
+    public ShaderBuilderImpl uniform2f(String name, UniformRefreshFrequency frequency, Consumer<Uniform2f> initializer) {
         uniforms.add(p -> p.uniform2f(name, frequency, initializer));
         return this;
     }
 
     @Override
-    public PipelineBuilderImpl uniform2i(String name, UniformRefreshFrequency frequency, Consumer<Uniform2i> initializer) {
+    public ShaderBuilderImpl uniform2i(String name, UniformRefreshFrequency frequency, Consumer<Uniform2i> initializer) {
         uniforms.add(p -> p.uniform2i(name, frequency, initializer));
         return this;
     }
 
     @Override
-    public PipelineBuilderImpl uniform3f(String name, UniformRefreshFrequency frequency, Consumer<Uniform3f> initializer) {
+    public ShaderBuilderImpl uniform3f(String name, UniformRefreshFrequency frequency, Consumer<Uniform3f> initializer) {
         uniforms.add(p -> p.uniform3f(name, frequency, initializer));
         return this;
     }
 
     @Override
-    public PipelineBuilderImpl uniform3i(String name, UniformRefreshFrequency frequency, Consumer<Uniform3i> initializer) {
+    public ShaderBuilderImpl uniform3i(String name, UniformRefreshFrequency frequency, Consumer<Uniform3i> initializer) {
         uniforms.add(p -> p.uniform3i(name, frequency, initializer));
         return this;
     }
 
     @Override
-    public PipelineBuilderImpl uniform4f(String name, UniformRefreshFrequency frequency, Consumer<Uniform4f> initializer) {
+    public ShaderBuilderImpl uniform4f(String name, UniformRefreshFrequency frequency, Consumer<Uniform4f> initializer) {
         uniforms.add(p -> p.uniform4f(name, frequency, initializer));
         return this;
     }
 
     @Override
-    public PipelineBuilderImpl uniform4i(String name, UniformRefreshFrequency frequency, Consumer<Uniform4i> initializer) {
+    public ShaderBuilderImpl uniform4i(String name, UniformRefreshFrequency frequency, Consumer<Uniform4i> initializer) {
         uniforms.add(p -> p.uniform4i(name, frequency, initializer));
         return this;
     }
 
     @Override
-    public PipelineBuilderImpl uniformMatrix4f(String name, UniformRefreshFrequency frequency, Consumer<UniformMatrix4f> initializer) {
+    public ShaderBuilderImpl uniformMatrix4f(String name, UniformRefreshFrequency frequency, Consumer<UniformMatrix4f> initializer) {
         uniforms.add(p -> p.uniformMatrix4f(name, frequency, initializer));
         return this;
     }

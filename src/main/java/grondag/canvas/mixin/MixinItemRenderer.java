@@ -25,7 +25,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import grondag.canvas.apiimpl.rendercontext.ItemRenderContext;
-import grondag.frex.api.core.FabricBakedModel;
+import grondag.frex.api.model.DynamicBakedModel;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.item.ItemColorMap;
 import net.minecraft.client.render.item.ItemRenderer;
@@ -49,16 +49,16 @@ public abstract class MixinItemRenderer {
      */
     @Inject(at = @At("HEAD"), method = "renderItemAndGlow")
     private void hookRenderItemAndGlow(ItemStack stack, BakedModel model, CallbackInfo ci) {
-        if (stack.hasEnchantmentGlint() && !((FabricBakedModel) model).isVanillaAdapter()) {
+        if (stack.hasEnchantmentGlint() && !((DynamicBakedModel) model).isVanillaAdapter()) {
             CONTEXTS.get().enchantmentStack = stack;
         }
     }
 
     @Inject(at = @At("HEAD"), method = "renderModel", cancellable = true)
     private void hookRenderModel(BakedModel model, int color, ItemStack stack, CallbackInfo ci) {
-        FabricBakedModel fabricModel = (FabricBakedModel) model;
-        if (!fabricModel.isVanillaAdapter()) {
-            CONTEXTS.get().renderModel(fabricModel, color, stack, this::renderQuads);
+        DynamicBakedModel dynamicModel = (DynamicBakedModel) model;
+        if (!dynamicModel.isVanillaAdapter()) {
+            CONTEXTS.get().renderModel(dynamicModel, color, stack, this::renderQuads);
             ci.cancel();
         }
     }

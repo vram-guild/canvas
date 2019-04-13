@@ -19,44 +19,44 @@ package grondag.canvas.apiimpl;
 import java.util.ArrayList;
 import java.util.function.Consumer;
 
-import grondag.canvas.pipeline.PipelineFragmentShader;
-import grondag.canvas.pipeline.PipelineManager;
-import grondag.canvas.pipeline.PipelineShaderManager;
-import grondag.canvas.pipeline.PipelineVertexFormat;
-import grondag.canvas.pipeline.PipelineVertexShader;
-import grondag.canvas.pipeline.Program;
-import grondag.frex.api.extended.Pipeline;
-import grondag.frex.api.extended.Uniform.Uniform1f;
-import grondag.frex.api.extended.Uniform.Uniform1i;
-import grondag.frex.api.extended.Uniform.Uniform2f;
-import grondag.frex.api.extended.Uniform.Uniform2i;
-import grondag.frex.api.extended.Uniform.Uniform3f;
-import grondag.frex.api.extended.Uniform.Uniform3i;
-import grondag.frex.api.extended.Uniform.Uniform4f;
-import grondag.frex.api.extended.Uniform.Uniform4i;
-import grondag.frex.api.extended.Uniform.UniformMatrix4f;
-import grondag.frex.api.extended.UniformRefreshFrequency;
+import grondag.canvas.material.GlFragmentShader;
+import grondag.canvas.material.GlShaderManager;
+import grondag.canvas.material.GlVertexShader;
+import grondag.canvas.material.MaterialShaderManager;
+import grondag.canvas.material.MaterialVertexFormat;
+import grondag.canvas.material.GlProgram;
+import grondag.frex.api.material.MaterialShader;
+import grondag.frex.api.material.Uniform.Uniform1f;
+import grondag.frex.api.material.Uniform.Uniform1i;
+import grondag.frex.api.material.Uniform.Uniform2f;
+import grondag.frex.api.material.Uniform.Uniform2i;
+import grondag.frex.api.material.Uniform.Uniform3f;
+import grondag.frex.api.material.Uniform.Uniform3i;
+import grondag.frex.api.material.Uniform.Uniform4f;
+import grondag.frex.api.material.Uniform.Uniform4i;
+import grondag.frex.api.material.Uniform.UniformMatrix4f;
+import grondag.frex.api.material.UniformRefreshFrequency;
 import net.minecraft.client.render.VertexFormat;
 import net.minecraft.util.Identifier;
 
-public final class RenderPipelineImpl implements Pipeline {
+public final class MaterialShaderImpl implements MaterialShader {
     private final int index;
-    private Program solidProgram;
-    private Program translucentProgram;
+    private GlProgram solidProgram;
+    private GlProgram translucentProgram;
     private final Identifier vertexShader;
     private final Identifier fragmentShader;
-    private final ArrayList<Consumer<Program>> uniforms = new ArrayList<>();
+    private final ArrayList<Consumer<GlProgram>> uniforms = new ArrayList<>();
     
     public final int spriteDepth;
-    private PipelineVertexFormat pipelineVertexFormat;
+    private MaterialVertexFormat pipelineVertexFormat;
     private VertexFormat vertexFormat;
 
-    public RenderPipelineImpl(int index, Identifier vertexShader, Identifier fragmentShader, int spriteDepth) {
+    public MaterialShaderImpl(int index, Identifier vertexShader, Identifier fragmentShader, int spriteDepth) {
         this.vertexShader = vertexShader;
         this.fragmentShader = fragmentShader;
         this.index = index;
         this.spriteDepth = spriteDepth;
-        pipelineVertexFormat = PipelineManager.FORMATS[spriteDepth - 1];
+        pipelineVertexFormat = MaterialShaderManager.FORMATS[spriteDepth - 1];
         vertexFormat = pipelineVertexFormat.vertexFormat;
     }
 
@@ -68,17 +68,17 @@ public final class RenderPipelineImpl implements Pipeline {
     }
 
     public void forceReload() {
-        PipelineVertexShader vs = PipelineShaderManager.INSTANCE.getOrCreateVertexShader(vertexShader, spriteDepth,
+        GlVertexShader vs = GlShaderManager.INSTANCE.getOrCreateVertexShader(vertexShader, spriteDepth,
                 true);
-        PipelineFragmentShader fs = PipelineShaderManager.INSTANCE.getOrCreateFragmentShader(fragmentShader,
+        GlFragmentShader fs = GlShaderManager.INSTANCE.getOrCreateFragmentShader(fragmentShader,
                 spriteDepth, true);
-        solidProgram = new Program(vs, fs, spriteDepth, true);
+        solidProgram = new GlProgram(vs, fs, spriteDepth, true);
         uniforms.forEach(u -> u.accept(solidProgram));
         solidProgram.load();
         
-        vs = PipelineShaderManager.INSTANCE.getOrCreateVertexShader(vertexShader, spriteDepth, false);
-        fs = PipelineShaderManager.INSTANCE.getOrCreateFragmentShader(fragmentShader, spriteDepth, false);
-        translucentProgram = new Program(vs, fs, spriteDepth, false);
+        vs = GlShaderManager.INSTANCE.getOrCreateVertexShader(vertexShader, spriteDepth, false);
+        fs = GlShaderManager.INSTANCE.getOrCreateFragmentShader(fragmentShader, spriteDepth, false);
+        translucentProgram = new GlProgram(vs, fs, spriteDepth, false);
         uniforms.forEach(u -> u.accept(translucentProgram));
         translucentProgram.load();
     }
@@ -88,7 +88,7 @@ public final class RenderPipelineImpl implements Pipeline {
         return this.spriteDepth;
     }
 
-    public PipelineVertexFormat piplineVertexFormat() {
+    public MaterialVertexFormat piplineVertexFormat() {
         return this.pipelineVertexFormat;
     }
 

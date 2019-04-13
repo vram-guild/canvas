@@ -38,11 +38,11 @@ import grondag.canvas.apiimpl.RenderMaterialImpl;
 import grondag.canvas.apiimpl.util.AoCalculator;
 import grondag.canvas.buffer.packing.CanvasBufferBuilder;
 import grondag.canvas.buffer.packing.VertexCollector;
-import grondag.frex.api.core.FabricBakedModel;
-import grondag.frex.api.core.Mesh;
-import grondag.frex.api.core.QuadEmitter;
-import grondag.frex.api.core.RenderContext;
-import grondag.frex.api.core.TerrainBlockView;
+import grondag.frex.api.model.DynamicBakedModel;
+import grondag.frex.api.mesh.Mesh;
+import grondag.frex.api.mesh.QuadEmitter;
+import grondag.frex.api.render.RenderContext;
+import grondag.frex.api.render.TerrainBlockView;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.block.BlockModelRenderer;
@@ -91,7 +91,7 @@ public class BlockRenderContext extends AbstractRenderContext implements RenderC
         blockInfo.setBlockView(blockView);
         blockInfo.prepareForBlock(state, pos, model.useAmbientOcclusion());
 
-        ((FabricBakedModel) model).emitBlockQuads(blockView, state, pos, blockInfo.randomSupplier, this);
+        ((DynamicBakedModel) model).emitBlockQuads(blockView, state, pos, blockInfo.randomSupplier, this);
 
         blockInfo.release();
         this.canvasBuilder = null;

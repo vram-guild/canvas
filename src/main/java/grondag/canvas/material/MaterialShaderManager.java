@@ -14,15 +14,15 @@
  * the License.
  ******************************************************************************/
 
-package grondag.canvas.pipeline;
+package grondag.canvas.material;
 
 import org.joml.Vector3f;
 
 import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.RenderMaterialImpl;
-import grondag.canvas.apiimpl.RenderPipelineImpl;
+import grondag.canvas.apiimpl.MaterialShaderImpl;
 import grondag.canvas.varia.FogStateExtHolder;
-import grondag.frex.api.extended.UniformRefreshFrequency;
+import grondag.frex.api.material.UniformRefreshFrequency;
 import net.fabricmc.fabric.api.event.client.ClientTickCallback;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.Camera;
@@ -30,8 +30,8 @@ import net.minecraft.entity.Entity;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec3d;
 
-public final class PipelineManager implements ClientTickCallback {
-    public static final PipelineVertexFormat[] FORMATS = PipelineVertexFormat.values();
+public final class MaterialShaderManager implements ClientTickCallback {
+    public static final MaterialVertexFormat[] FORMATS = MaterialVertexFormat.values();
     
     /**
      * Will always be 1, defined to clarify intent in code.
@@ -45,16 +45,16 @@ public final class PipelineManager implements ClientTickCallback {
 
     public static final int MAX_PIPELINES = Configurator.maxPipelines;
 
-    public static final PipelineManager INSTANCE = new PipelineManager();
+    public static final MaterialShaderManager INSTANCE = new MaterialShaderManager();
 
-    private final RenderPipelineImpl[] pipelines = new RenderPipelineImpl[PipelineManager.MAX_PIPELINES];
+    private final MaterialShaderImpl[] pipelines = new MaterialShaderImpl[MaterialShaderManager.MAX_PIPELINES];
 
     private int pipelineCount = 0;
 
-    private final RenderPipelineImpl[] defaultPipelines = new RenderPipelineImpl[RenderMaterialImpl.MAX_SPRITE_DEPTH];
-    private final RenderPipelineImpl waterPipeline;
-    private final RenderPipelineImpl lavaPipeline;
-    public final RenderPipelineImpl defaultSinglePipeline;
+    private final MaterialShaderImpl[] defaultPipelines = new MaterialShaderImpl[RenderMaterialImpl.MAX_SPRITE_DEPTH];
+    private final MaterialShaderImpl waterPipeline;
+    private final MaterialShaderImpl lavaPipeline;
+    public final MaterialShaderImpl defaultSinglePipeline;
 
     /**
      * The number of seconds this world has been rendering since the last render
@@ -93,19 +93,19 @@ public final class PipelineManager implements ClientTickCallback {
      */
     private Vector3f emissiveColor = new Vector3f(1f, 1f, 1f);
     
-    private PipelineManager() {
+    private MaterialShaderManager() {
         super();
 
         ClientTickCallback.EVENT.register(this);
         
         // add default pipelines
         for (int i = 0; i < RenderMaterialImpl.MAX_SPRITE_DEPTH; i++) {
-            defaultPipelines[i] = (RenderPipelineImpl) this
-                    .createPipeline(i + 1, PipelineShaderManager.DEFAULT_VERTEX_SOURCE,
-                            PipelineShaderManager.DEFAULT_FRAGMENT_SOURCE);
+            defaultPipelines[i] = (MaterialShaderImpl) this
+                    .create(i + 1, GlShaderManager.DEFAULT_VERTEX_SOURCE,
+                            GlShaderManager.DEFAULT_FRAGMENT_SOURCE);
         }
-        this.waterPipeline = this.createPipeline(1, PipelineShaderManager.WATER_VERTEX_SOURCE, PipelineShaderManager.WATER_FRAGMENT_SOURCE);
-        this.lavaPipeline = this.createPipeline(1, PipelineShaderManager.LAVA_VERTEX_SOURCE, PipelineShaderManager.LAVA_FRAGMENT_SOURCE);
+        this.waterPipeline = this.create(1, GlShaderManager.WATER_VERTEX_SOURCE, GlShaderManager.WATER_FRAGMENT_SOURCE);
+        this.lavaPipeline = this.create(1, GlShaderManager.LAVA_VERTEX_SOURCE, GlShaderManager.LAVA_FRAGMENT_SOURCE);
         this.defaultSinglePipeline = defaultPipelines[0];
     }
 
@@ -114,29 +114,29 @@ public final class PipelineManager implements ClientTickCallback {
     }
     
     public void forceReload() {
-        PipelineShaderManager.INSTANCE.forceReload();
+        GlShaderManager.INSTANCE.forceReload();
         for (int i = 0; i < this.pipelineCount; i++) {
             this.pipelines[i].forceReload();
         }
     }
 
-    public final synchronized RenderPipelineImpl createPipeline(int spriteDepth, Identifier vertexShaderSource,
+    public final synchronized MaterialShaderImpl create(int spriteDepth, Identifier vertexShaderSource,
             Identifier fragmentShaderSource) {
 
         if(vertexShaderSource == null) {
-            vertexShaderSource = PipelineShaderManager.DEFAULT_VERTEX_SOURCE;
+            vertexShaderSource = GlShaderManager.DEFAULT_VERTEX_SOURCE;
         }
         
         if(fragmentShaderSource == null) {
-            fragmentShaderSource = PipelineShaderManager.DEFAULT_FRAGMENT_SOURCE;
+            fragmentShaderSource = GlShaderManager.DEFAULT_FRAGMENT_SOURCE;
         }
         
-        if (this.pipelineCount >= PipelineManager.MAX_PIPELINES)
+        if (this.pipelineCount >= MaterialShaderManager.MAX_PIPELINES)
             return null;
 
-        if (this.pipelineCount >= PipelineManager.MAX_PIPELINES)
+        if (this.pipelineCount >= MaterialShaderManager.MAX_PIPELINES)
             return null;
-        RenderPipelineImpl result = new RenderPipelineImpl(this.pipelineCount++, vertexShaderSource, fragmentShaderSource, spriteDepth);
+        MaterialShaderImpl result = new MaterialShaderImpl(this.pipelineCount++, vertexShaderSource, fragmentShaderSource, spriteDepth);
         this.pipelines[result.getIndex()] = result;
 
         addStandardUniforms(result);
@@ -144,23 +144,23 @@ public final class PipelineManager implements ClientTickCallback {
         return result;
     }
 
-    public final RenderPipelineImpl getPipeline(int pipelineIndex) {
+    public final MaterialShaderImpl getPipeline(int pipelineIndex) {
         return pipelines[pipelineIndex];
     }
 
-    public final RenderPipelineImpl getDefaultPipeline(int spriteDepth) {
+    public final MaterialShaderImpl getDefaultPipeline(int spriteDepth) {
         return pipelines[spriteDepth - 1];
     }
 
-    public final RenderPipelineImpl getWaterPipeline() {
+    public final MaterialShaderImpl getWaterPipeline() {
         return Configurator.fancyFluids ? this.waterPipeline : this.defaultSinglePipeline;
     }
 
-    public final RenderPipelineImpl getLavaPipeline() {
+    public final MaterialShaderImpl getLavaPipeline() {
         return Configurator.fancyFluids ? this.lavaPipeline : this.defaultSinglePipeline;
     }
 
-    public RenderPipelineImpl getPipelineByIndex(int index) {
+    public MaterialShaderImpl getPipelineByIndex(int index) {
         return this.pipelines[index];
     }
 
@@ -179,7 +179,7 @@ public final class PipelineManager implements ClientTickCallback {
         return frameIndex;
     }
     
-    private void addStandardUniforms(RenderPipelineImpl pipeline) {
+    private void addStandardUniforms(MaterialShaderImpl pipeline) {
         pipeline.uniform1f("u_time", UniformRefreshFrequency.PER_FRAME, u -> u.set(renderSeconds));
 
         pipeline.uniformSampler2d("u_textures", UniformRefreshFrequency.ON_LOAD, u -> u.set(0));

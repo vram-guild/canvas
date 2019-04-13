@@ -24,11 +24,11 @@ import org.lwjgl.opengl.GL11;
 import com.google.common.collect.ComparisonChain;
 import com.mojang.blaze3d.platform.GlStateManager;
 
-import grondag.canvas.apiimpl.RenderConditionImpl;
-import grondag.canvas.apiimpl.RenderPipelineImpl;
+import grondag.canvas.apiimpl.MaterialConditionImpl;
+import grondag.canvas.apiimpl.MaterialShaderImpl;
 import grondag.canvas.buffer.allocation.BindStateManager;
-import grondag.canvas.pipeline.PipelineManager;
-import grondag.canvas.pipeline.Program;
+import grondag.canvas.material.MaterialShaderManager;
+import grondag.canvas.material.GlProgram;
 import grondag.canvas.varia.CanvasGlHelper;
 import it.unimi.dsi.fastutil.Arrays;
 import it.unimi.dsi.fastutil.Swapper;
@@ -107,15 +107,15 @@ public class SolidRenderList implements Consumer<ObjectArrayList<DrawableDelegat
 
         ((DrawableDelegate) draws[0]).renderState().pipeline.activate(true);
         
-        RenderPipelineImpl lastPipeline = null;
-        final int frameIndex = PipelineManager.INSTANCE.frameIndex();
+        MaterialShaderImpl lastPipeline = null;
+        final int frameIndex = MaterialShaderManager.INSTANCE.frameIndex();
 
         for (int i = 0; i < limit; i++) {
             final DrawableDelegate b = (DrawableDelegate) draws[i];
-            final RenderConditionImpl condition = b.renderState().condition;
+            final MaterialConditionImpl condition = b.renderState().condition;
             
             if(!condition.affectBlocks || condition.compute(frameIndex)) {
-                final RenderPipelineImpl thisPipeline = b.renderState().pipeline;
+                final MaterialShaderImpl thisPipeline = b.renderState().pipeline;
                 if(thisPipeline != lastPipeline) {
                     thisPipeline.activate(true);
                     lastPipeline = thisPipeline;
@@ -138,7 +138,7 @@ public class SolidRenderList implements Consumer<ObjectArrayList<DrawableDelegat
         GlStateManager.disableClientState(GL11.GL_VERTEX_ARRAY);
         CanvasGlHelper.resetAttributes();
         BindStateManager.unbind();
-        Program.deactivate();
+        GlProgram.deactivate();
     }
     
     public void release() {

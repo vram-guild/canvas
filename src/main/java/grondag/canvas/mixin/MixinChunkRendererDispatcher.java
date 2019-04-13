@@ -10,10 +10,10 @@ import net.minecraft.util.math.BlockPos;
 
 @Mixin(ChunkRenderDispatcher.class)
 public abstract class MixinChunkRendererDispatcher implements ChunkRendererDispatcherExt {
-    @Shadow protected abstract ChunkRenderer getChunk(BlockPos blockPos);
+    @Shadow protected abstract ChunkRenderer getChunkRenderer(BlockPos blockPos);
     
     @Override
     public ChunkRenderer canvas_chunkRenderer(BlockPos blockPos) {
-        return getChunk(blockPos);
+        return getChunkRenderer(blockPos);
     }
 }
