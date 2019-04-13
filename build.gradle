@@ -87,6 +87,7 @@ dependencies {
 	
 	modCompile "grondag:frex:${project.frex_version}"
 	modCompile "grondag:fermion:${project.fermion_version}"
+	modCompile "grondag:renderbender:${project.fermion_version}"
 	
 	compile "org.apiguardian:apiguardian-api:${apiguardian_version}"
 	compile "com.google.code.findbugs:jsr305:${findbugs_version}"
@@ -94,8 +95,6 @@ dependencies {
 	
 	include "grondag:fermion:${project.fermion_version}"
 	
-	// should be removed before release
-	//modCompile "grondag:renderbender:0.1.107-alpha"
 }
 
 publishing {
