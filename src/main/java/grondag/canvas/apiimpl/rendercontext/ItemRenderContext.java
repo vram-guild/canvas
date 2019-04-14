@@ -36,10 +36,10 @@ import grondag.canvas.buffer.packing.VertexCollector;
 import grondag.canvas.draw.TessellatorExt;
 import grondag.canvas.material.ShaderContext;
 import grondag.canvas.varia.BakedQuadExt;
-import grondag.frex.api.model.DynamicBakedModel;
-import grondag.frex.api.model.ModelHelper;
 import grondag.frex.api.mesh.Mesh;
 import grondag.frex.api.mesh.QuadEmitter;
+import grondag.frex.api.model.DynamicBakedModel;
+import grondag.frex.api.model.ModelHelper;
 import grondag.frex.api.render.RenderContext;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.render.Tessellator;
@@ -53,6 +53,12 @@ import net.minecraft.util.math.Direction;
  * Context for non-terrain block rendering.
  */
 public class ItemRenderContext extends AbstractRenderContext implements RenderContext {
+    private static int playerLightIndex;
+    
+    public static void playerLightMapIndex(int index) {
+        playerLightIndex = index;
+    }
+    
     private final ItemColorMap colorMap;
     private final Random random = new Random();
     private Tessellator tessellator = Tessellator.getInstance();
@@ -94,7 +100,6 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
         }
         
         ((DynamicBakedModel) model).emitItemQuads(stack, randomSupplier, this);
-        tessellatorExt.canvas_context(ShaderContext.ITEM);
         tessellatorExt.canvas_draw();
     }
 
@@ -175,6 +180,9 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
             output.add(quad.spriteU(i, 0));
             output.add(quad.spriteV(i, 0));
             int packedLight = quad.lightmap(i);
+            if(tessellatorExt.canvas_context() == ShaderContext.ITEM_WORLD) {
+                packedLight = ColorHelper.maxBrightness(packedLight, playerLightIndex);
+            }
             int blockLight = (packedLight & 0xFF);
             int skyLight = ((packedLight >> 16) & 0xFF);
             output.add(blockLight | (skyLight << 8) | shaderFlags);

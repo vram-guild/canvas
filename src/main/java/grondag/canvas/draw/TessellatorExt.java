@@ -6,4 +6,6 @@ public interface TessellatorExt {
     public void canvas_draw();
     
     public void canvas_context(ShaderContext context);
+    
+    public ShaderContext canvas_context();
 }

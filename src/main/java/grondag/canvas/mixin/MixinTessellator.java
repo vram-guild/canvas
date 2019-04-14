@@ -77,4 +77,9 @@ public class MixinTessellator implements TessellatorExt {
     public void canvas_context(ShaderContext context) {
         this.context = context;
     }
+
+    @Override
+    public ShaderContext canvas_context() {
+        return context;
+    }
 }

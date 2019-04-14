@@ -25,12 +25,16 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import grondag.canvas.apiimpl.rendercontext.ItemRenderContext;
+import grondag.canvas.draw.TessellatorExt;
+import grondag.canvas.material.ShaderContext;
 import grondag.frex.api.model.DynamicBakedModel;
 import net.minecraft.client.render.BufferBuilder;
+import net.minecraft.client.render.Tessellator;
 import net.minecraft.client.render.item.ItemColorMap;
 import net.minecraft.client.render.item.ItemRenderer;
 import net.minecraft.client.render.model.BakedModel;
 import net.minecraft.client.render.model.BakedQuad;
+import net.minecraft.client.render.model.json.ModelTransformation;
 import net.minecraft.item.ItemStack;
 
 @Mixin(ItemRenderer.class)
@@ -40,7 +44,9 @@ public abstract class MixinItemRenderer {
 
     @Shadow
     protected ItemColorMap colorMap;
+    
     private ItemRenderContext context;
+    private final TessellatorExt tessellatorExt = (TessellatorExt) Tessellator.getInstance();
 
     @Inject(method = "<init>*", at = @At("RETURN"), require = 1)
     private void afterInit(CallbackInfo ci) {
@@ -65,4 +71,13 @@ public abstract class MixinItemRenderer {
         ci.cancel();
     }
     
+    @Inject(at = @At("HEAD"), method = "renderItem(Lnet/minecraft/item/ItemStack;Lnet/minecraft/client/render/model/BakedModel;Lnet/minecraft/client/render/model/json/ModelTransformation$Type;Z)V")
+    private void onRenderItem(ItemStack itemStack, BakedModel bakedModel, ModelTransformation.Type type, boolean flag, CallbackInfo ci) {
+        tessellatorExt.canvas_context(ShaderContext.ITEM_WORLD);
+    }
+    
+    @Inject(at = @At("HEAD"), method = "renderGuiItemModel")
+    private void onRenderGuiItemModel(ItemStack itemStack, int int_1, int int_2, BakedModel bakedModel, CallbackInfo ci) {
+        tessellatorExt.canvas_context(ShaderContext.ITEM_GUI);
+    }
 }

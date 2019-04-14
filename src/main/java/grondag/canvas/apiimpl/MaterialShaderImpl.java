@@ -45,6 +45,7 @@ public final class MaterialShaderImpl implements MaterialShader {
     private GlProgram solidProgram;
     private GlProgram translucentProgram;
     private GlProgram itemProgram;
+    private GlProgram guiProgram;
     private final Identifier vertexShader;
     private final Identifier fragmentShader;
     private final ArrayList<Consumer<GlProgram>> uniforms = new ArrayList<>();
@@ -73,9 +74,14 @@ public final class MaterialShaderImpl implements MaterialShader {
             translucentProgram.activate();
             break;
             
-        case ITEM:
+        case ITEM_WORLD:
             itemProgram.activate();
             break;
+            
+        case ITEM_GUI:
+            guiProgram.activate();
+            break;
+            
         default:
             break;
         }
@@ -94,11 +100,17 @@ public final class MaterialShaderImpl implements MaterialShader {
         uniforms.forEach(u -> u.accept(translucentProgram));
         translucentProgram.load();
         
-        vs = GlShaderManager.INSTANCE.getOrCreateVertexShader(vertexShader, spriteDepth, ShaderContext.ITEM);
-        fs = GlShaderManager.INSTANCE.getOrCreateFragmentShader(fragmentShader, spriteDepth, ShaderContext.ITEM);
+        vs = GlShaderManager.INSTANCE.getOrCreateVertexShader(vertexShader, spriteDepth, ShaderContext.ITEM_WORLD);
+        fs = GlShaderManager.INSTANCE.getOrCreateFragmentShader(fragmentShader, spriteDepth, ShaderContext.ITEM_WORLD);
         itemProgram = new GlProgram(vs, fs, spriteDepth, false);
         uniforms.forEach(u -> u.accept(itemProgram));
         itemProgram.load();
+        
+        vs = GlShaderManager.INSTANCE.getOrCreateVertexShader(vertexShader, spriteDepth, ShaderContext.ITEM_GUI);
+        fs = GlShaderManager.INSTANCE.getOrCreateFragmentShader(fragmentShader, spriteDepth, ShaderContext.ITEM_GUI);
+        guiProgram = new GlProgram(vs, fs, spriteDepth, false);
+        uniforms.forEach(u -> u.accept(guiProgram));
+        guiProgram.load();
     }
 
     @Override
@@ -196,6 +208,7 @@ public final class MaterialShaderImpl implements MaterialShader {
         this.solidProgram.onRenderTick();
         this.translucentProgram.onRenderTick();
         this.itemProgram.onRenderTick();
+        this.guiProgram.onRenderTick();
     }
 
     //PERF: hmmm....
@@ -205,6 +218,7 @@ public final class MaterialShaderImpl implements MaterialShader {
             this.solidProgram.onGameTick();
             this.translucentProgram.onGameTick();
             this.itemProgram.onGameTick();
+            this.guiProgram.onGameTick();
         }
     }
 }

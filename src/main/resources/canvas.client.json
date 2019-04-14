@@ -16,6 +16,7 @@
 	"MixinChunkRendererDispatcher",
 	"MixinChunkRenderTask",
 	"MixinChunkRenderWorker",
+	"MixinFirstPersonRenderer",
     "MixinFogState",
     "MixinGuiLighting",
 	"MixinItemRenderer",

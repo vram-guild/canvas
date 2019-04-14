@@ -24,7 +24,7 @@ void setupVertex()
     v_ao = (in_normal_ao.w + 1.0) * 0.5;
     v_diffuse = diffuse(in_normal_ao.xyz);
 
-#if CONTEXT == CONTEXT_ITEM
+#if CONTEXT == CONTEXT_ITEM_GUI
     v_light = vec4(1.0, 1.0, 1.0, 1.0);
 #else
     // the lightmap texture matrix is scaled to 1/256 and then offset + 8

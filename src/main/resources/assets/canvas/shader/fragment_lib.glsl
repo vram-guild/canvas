@@ -72,7 +72,7 @@ float fogFactor() {
 }
 
 vec4 fog(vec4 diffuseColor) {
-#if CONTEXT == CONTEXT_ITEM
+#if CONTEXT == CONTEXT_ITEM_GUI
 	return diffuseColor;
 #else
 	return mix(vec4(gl_Fog.color.rgb, diffuseColor.a), diffuseColor, fogFactor());

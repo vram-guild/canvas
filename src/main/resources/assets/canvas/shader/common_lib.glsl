@@ -4,7 +4,8 @@
 
 #define CONTEXT_BLOCK_SOLID 0
 #define CONTEXT_BLOCK_TRANSLUCENT 1
-#define CONTEXT_ITEM 2
+#define CONTEXT_ITEM_WORLD 2
+#define CONTEXT_ITEM_GUI 3
 #define CONTEXT 0
 
 uniform float u_time;
