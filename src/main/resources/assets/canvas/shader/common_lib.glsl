@@ -79,9 +79,33 @@ vec2 uv(vec3 pos, vec3 normal) {
  * Formula mimics vanilla lighting for plane-aligned quads and is vaguely
  * consistent with Phong lighting ambient + diffuse for others.
  */
-float diffuse (vec3 normal) {
-	return min(0.5 + abs(normal.x) * 0.1 + (normal.y > 0 ? 0.5 * normal.y : 0.0) + abs(normal.z) * 0.3, 1.0);
+float diffuseBaked(vec3 normal) {
+	return 0.5 + clamp(abs(normal.x) * 0.1 + (normal.y > 0 ? 0.5 * normal.y : 0.0) + abs(normal.z) * 0.3, 0.0, 0.5);
 }
+
+/**
+ * Results simular to vanilla, except a little lighter on the dark face.
+ * Not yet sure why - lack of gamma correction?
+ */
+float diffuseGui(vec3 normal) {
+	// Note that vanilla rendering normally sends item models with raw colors and
+	// canvas sends colors unmodified, so we do not need to compensate for any pre-buffer shading
+	float light = 0.4
+			+ 0.6 * clamp(dot(normal.xyz, vec3(-0.309, 0.927, -0.211)), 0.0, 1.0)
+			+ 0.6 * clamp(dot(normal.xyz, vec3(0.518, 0.634, 0.574)), 0.0, 1.0);
+
+	return min(light, 1.0);
+}
+
+float diffuse (vec3 normal) {
+
+#if CONTEXT == CONTEXT_ITEM_GUI
+	return diffuseGui(normal);
+#else
+	return diffuseBaked(normal);
+#endif
+}
+
 
 // from somewhere on the Internet...
 float random (vec2 st) {

@@ -210,6 +210,7 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
     private static final BlockState NULL_BLOCK_STATE = (BlockState) null;
     
     private final Consumer<BakedModel> fallbackConsumer = model -> {
+        final boolean disableGuiLighting = !model.hasDepthInGui();
         for (int i = 0; i < 7; i++) {
             random.setSeed(42L);
             Direction face = ModelHelper.faceFromIndex(i);
@@ -217,7 +218,7 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
             final int count = quads.size();
             for (int j = 0; j < count; j++) {
                 BakedQuad q = quads.get(j);
-                final Value defaultMaterial = ((BakedQuadExt)q).canvas_disableDiffuse()
+                final Value defaultMaterial = disableGuiLighting || ((BakedQuadExt)q).canvas_disableDiffuse()
                         ?  FallbackConsumer.MATERIAL_FLAT
                         :  FallbackConsumer.MATERIAL_SHADED;
                 renderQuad(q, face, defaultMaterial);
