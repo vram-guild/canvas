@@ -1,7 +1,9 @@
 package grondag.canvas.mixin;
 
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Overwrite;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import com.mojang.blaze3d.platform.GlStateManager;
 
@@ -12,8 +14,8 @@ public class MixinGuiLighting {
 
     private static boolean skip = false;
     
-    @Overwrite
-    public static void disable() {
+    @Inject(method = "disable", at = @At("HEAD"), cancellable = true, require = 1)
+    private static void onDisable(CallbackInfo ci) {
         if(skip) {
             skip = false;
         } else {
@@ -22,10 +24,12 @@ public class MixinGuiLighting {
             GlStateManager.disableLight(1);
             GlStateManager.disableColorMaterial();
         }
+        ci.cancel();
     }
     
-    @Overwrite
-    public static void enableForItems() {
+    @Inject(method = "enableForItems", at = @At("HEAD"), cancellable = true, require = 1)
+    private static void enableForItems(CallbackInfo ci) {
         skip = true;
+        ci.cancel();
      }
 }
