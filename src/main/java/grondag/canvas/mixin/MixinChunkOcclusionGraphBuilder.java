@@ -125,7 +125,14 @@ public abstract class MixinChunkOcclusionGraphBuilder implements ChunkOcclusionG
     
     @Override
     public ObjToIntFunction<BlockPos> canvas_pack() {
-        return b -> pack(b);
+        return b -> packHack(b);
+    }
+    
+    /**
+     * Fix for pack not getting remapped in dev when occurs in a lambda
+     */
+    private int packHack(BlockPos pos) {
+        return pack(pos);
     }
     
     @Override
