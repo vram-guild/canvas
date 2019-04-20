@@ -17,9 +17,11 @@
 package grondag.canvas.mixin;
 
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import net.minecraft.block.BlockRenderLayer;
 import net.minecraft.client.render.chunk.BlockLayeredBufferBuilder;
@@ -44,16 +46,16 @@ public abstract class MixinChunkRenderWorker {
     /** 
      * Should never be called/used by canvas - avoids memory use and overhead of BlockLayeredBufferBuilders
      */
-    @Overwrite
-    private BlockLayeredBufferBuilder getBufferBuilders() throws InterruptedException {
-        return DUMMY_LAYERS;
+    @Inject(method = "getBufferBuilders", at = @At("HEAD"), cancellable = true, require = 1)
+    private void onGetBufferBuilders(CallbackInfoReturnable<BlockLayeredBufferBuilder> ci) throws InterruptedException {
+        ci.setReturnValue(DUMMY_LAYERS);
     }
     
     /** 
      * Should never be needed with canvas - avoids memory use and overhead of BlockLayeredBufferBuilders
      */
-    @Overwrite
-    private void freeRenderTask(ChunkRenderTask chunkRenderTask_1) {
-        //NOOP
+    @Inject(method = "freeRenderTask", at = @At("HEAD"), cancellable = true, require = 1)
+    private void onFreeRenderTask(ChunkRenderTask chunkRenderTask_1, CallbackInfo ci) {
+        ci.cancel();
     }
 }
