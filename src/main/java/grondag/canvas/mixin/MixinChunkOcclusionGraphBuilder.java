@@ -46,11 +46,21 @@ public abstract class MixinChunkOcclusionGraphBuilder implements ChunkOcclusionG
     @Shadow private BitSet closed;
     @Shadow private int openCount = 4096;
     
-    @Shadow
-    private static int pack(BlockPos blockPos_1) {
-        return 0;
-    };
+    // shadow of private func not getting remmaped in dev - duplicating method for now
+//    @Shadow
+//    private static int pack(BlockPos blockPos_1) {
+//        return 0;
+//    };
 
+    // UGLY: duplicated from vanilla due to static shadow remap not working in dev
+    private static int pack(BlockPos blockPos_1) {
+        return pack(blockPos_1.getX() & 15, blockPos_1.getY() & 15, blockPos_1.getZ() & 15);
+    }
+
+    private static int pack(int int_1, int int_2, int int_3) {
+        return int_1 << 0 | int_2 << 8 | int_3 << 4;
+    }
+    
     @Shadow
     private void addEdgeFaces(int i, Set<Direction> set) {
     };
