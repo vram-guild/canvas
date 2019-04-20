@@ -90,7 +90,7 @@ abstract class AbstractGlShader {
                 GLX.glDeleteShader(glId);
                 this.glId = -1;
             }
-            Canvas.INSTANCE.log().error(I18n.translate("misc.fail_create_shader", this.shaderSource.toString(),
+            Canvas.LOG.error(I18n.translate("misc.fail_create_shader", this.shaderSource.toString(),
                     Integer.toString(this.spriteDepth), e.getMessage()));
         }
     }

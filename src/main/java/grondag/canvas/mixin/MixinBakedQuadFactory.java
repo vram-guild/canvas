@@ -25,7 +25,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import grondag.canvas.varia.BakedQuadExt;
 import net.minecraft.client.render.model.BakedQuad;
 import net.minecraft.client.render.model.BakedQuadFactory;
-import net.minecraft.client.render.model.ModelRotationContainer;
+import net.minecraft.client.render.model.ModelBakeSettings;
 import net.minecraft.client.render.model.json.ModelElementFace;
 import net.minecraft.client.render.model.json.ModelRotation;
 import net.minecraft.client.texture.Sprite;
@@ -44,7 +44,7 @@ public abstract class MixinBakedQuadFactory {
     @Inject(method = "bake", at = @At(value = "RETURN"))
     private void hookBake(
             Vector3f vec1, Vector3f vec2, ModelElementFace modelElementFace, 
-            Sprite sprite, Direction direction, ModelRotationContainer modelRotationContainer, 
+            Sprite sprite, Direction direction, ModelBakeSettings bakeSettings, 
             ModelRotation modelRotation, boolean shade,
             CallbackInfoReturnable<BakedQuad> ci) {
         if(!shade) {

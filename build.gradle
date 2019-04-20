@@ -12,8 +12,8 @@ targetCompatibility = 1.8
 def versionInfo = ZoltuGitVersioning.versionInfo
 def autoVersion = "${versionInfo.major}.${versionInfo.minor}.${versionInfo.commitCount}"
 
-archivesBaseName = project.archives_base_name
-group = project.maven_group
+archivesBaseName = "canvas"
+group = "grondag"
 version = autoVersion;
 
 minecraft {
@@ -79,22 +79,23 @@ sourceSets {
     }
 }
 
+def mcVersion = "1.14 Pre-Release 5"
+
 dependencies {
-    minecraft "com.mojang:minecraft:${project.minecraft_version}"
-	mappings "net.fabricmc:yarn:${project.yarn_mappings}"
-	modCompile "net.fabricmc:fabric-loader:${project.loader_version}"
-	modCompile "net.fabricmc:fabric:${project.fabric_version}"
+	minecraft "com.mojang:minecraft:$mcVersion"
+	mappings "net.fabricmc:yarn:$mcVersion+build.3"
+	modCompile "net.fabricmc:fabric-loader:0.4.1+build.128"
+	modCompile "net.fabricmc:fabric:0.2.7+build.126"
 	
-	modCompile "grondag:frex:${project.frex_version}"
-	modCompile "grondag:fermion:${project.fermion_version}"
-	modCompile "grondag:renderbender:${project.fermion_version}"
+	modCompile "grondag:frex:0.4.+"
+	modCompile "grondag:fermion:0.4.+"
+	modCompile "grondag:renderbender:0.4.+"
 	
-	compile "org.apiguardian:apiguardian-api:${apiguardian_version}"
-	compile "com.google.code.findbugs:jsr305:${findbugs_version}"
-	compile "org.joml:joml:1.9.9"
+	compile "org.apiguardian:apiguardian-api:1.0.0"
+	compile "com.google.code.findbugs:jsr305:3.0.2"
+	compile "org.joml:joml:1.9.14"
 	
-	include "grondag:fermion:${project.fermion_version}"
-	
+	include "grondag:fermion:0.4.+"
 }
 
 publishing {

@@ -24,21 +24,10 @@ import grondag.frex.api.RendererAccess;
 import net.fabricmc.api.ModInitializer;
 
 public class Canvas implements ModInitializer {
-    public static Canvas INSTANCE = new Canvas();
-
     @Override
     public void onInitialize() {
         RendererAccess.INSTANCE.registerRenderer(RendererImpl.INSTANCE);
     }
 
-    private static Logger log;
-
-    public Logger log() {
-        Logger result = log;
-        if (result == null) {
-            result = LogManager.getLogger("Canvas");
-            log = result;
-        }
-        return result;
-    }
+    public static Logger LOG = LogManager.getLogger("Canvas");
 }
