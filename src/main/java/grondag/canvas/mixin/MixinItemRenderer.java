@@ -27,6 +27,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import grondag.canvas.apiimpl.rendercontext.ItemRenderContext;
 import grondag.canvas.draw.TessellatorExt;
 import grondag.canvas.material.ShaderContext;
+import grondag.canvas.varia.GuiLightingHelper;
 import grondag.frex.api.model.DynamicBakedModel;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.Tessellator;
@@ -59,7 +60,7 @@ public abstract class MixinItemRenderer {
      */
     @Inject(at = @At("HEAD"), method = "renderItemAndGlow")
     private void hookRenderItemAndGlow(ItemStack stack, BakedModel model, CallbackInfo ci) {
-        if (stack.hasEnchantmentGlint() && !((DynamicBakedModel) model).isVanillaAdapter()) {
+        if (!model.isBuiltin() && stack.hasEnchantmentGlint()) {
             context.enchantmentStack = stack;
         }
     }
@@ -67,7 +68,10 @@ public abstract class MixinItemRenderer {
     @Inject(at = @At("HEAD"), method = "renderModel", cancellable = true)
     private void hookRenderModel(BakedModel model, int color, ItemStack stack, CallbackInfo ci) {
         DynamicBakedModel dynamicModel = (DynamicBakedModel) model;
+        // PERF: redirect most of the enables so we don't have to change state here each time
+        GuiLightingHelper.suspend();
         context.renderModel(dynamicModel, color, stack);
+        GuiLightingHelper.resume();
         ci.cancel();
     }
     
