@@ -54,16 +54,17 @@ public class CanvasGlHelper {
     }
 
     static private int attributeEnabledCount = 0;
-
+    static private int vaoEnabledCount = 0;
+    
     /**
      * Disables all generic vertex attributes and resets tracking state. Use after
      * calling {@link #enableAttributesVao(int)}
      */
-    public static void resetAttributes() {
-        for (int i = 0; i < 6; i++) {
+    public static void disableAttributesVao() {
+        for (int i = 1; i <= vaoEnabledCount; i++) {
             GL20.glDisableVertexAttribArray(i);
         }
-        attributeEnabledCount = 0;
+        vaoEnabledCount = 0;
     }
 
     /**
@@ -76,6 +77,7 @@ public class CanvasGlHelper {
         for (int i = 1; i <= enabledCount; i++) {
             GL20.glEnableVertexAttribArray(i);
         }
+        vaoEnabledCount = enabledCount;
     }
 
     /**
@@ -86,10 +88,10 @@ public class CanvasGlHelper {
     public static void enableAttributes(int enabledCount) {
         if (enabledCount > attributeEnabledCount) {
             while (enabledCount > attributeEnabledCount)
-                GL20.glEnableVertexAttribArray(1 + attributeEnabledCount++);
+                GL20.glEnableVertexAttribArray(++attributeEnabledCount);
         } else if (enabledCount < attributeEnabledCount) {
             while (enabledCount < attributeEnabledCount)
-                GL20.glDisableVertexAttribArray(--attributeEnabledCount + 1);
+                GL20.glDisableVertexAttribArray(attributeEnabledCount--);
         }
     }
 

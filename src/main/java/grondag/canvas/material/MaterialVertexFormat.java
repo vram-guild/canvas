@@ -120,6 +120,9 @@ public enum MaterialVertexFormat {
         }
     }
 
+    /**
+     * Used by shader to bind attribute names.
+     */
     public void bindProgramAttributes(int programID) {
         int index = 1;
         for (MaterialVertextFormatElement e : elements) {
