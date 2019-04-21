@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.nio.file.Path;
 
 import org.lwjgl.opengl.GL11;
 
@@ -87,7 +86,7 @@ abstract class AbstractGlShader {
             //TODO: make configurable
             final String key = shaderSource.toString().replace("/", "-") + "."  + context.toString() +  "." + spriteDepth;
             File gameDir = FabricLoader.getInstance().getGameDirectory();
-            File shaderDir = new File(gameDir.getAbsolutePath().replace(".", "shaders"));
+            File shaderDir = new File(gameDir.getAbsolutePath().replace(".", "canvas_shader_debug"));
             if(!shaderDir.exists()) {
                 shaderDir.mkdir();
             }
