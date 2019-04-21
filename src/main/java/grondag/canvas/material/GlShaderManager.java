@@ -44,7 +44,7 @@ public final class GlShaderManager {
         this.fragmentLibrarySource = commonSource + AbstractGlShader.getShaderSource(COMMON_FRAGMENT_SOURCE);
     }
 
-    private String shaderKey(Identifier shaderSource, int spriteDepth, ShaderContext context) {
+    public static String shaderKey(Identifier shaderSource, int spriteDepth, ShaderContext context) {
         return String.format("%s.%s.%s", shaderSource.toString(), spriteDepth, context.ordinal());
     }
 

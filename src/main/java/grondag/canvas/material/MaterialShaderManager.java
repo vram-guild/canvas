@@ -131,11 +131,10 @@ public final class MaterialShaderManager implements ClientTickCallback {
             fragmentShaderSource = GlShaderManager.DEFAULT_FRAGMENT_SOURCE;
         }
         
-        if (this.pipelineCount >= MaterialShaderManager.MAX_PIPELINES)
-            return null;
+        if (this.pipelineCount >= MaterialShaderManager.MAX_PIPELINES) {
+            throw new IndexOutOfBoundsException("Max pipelines exceeded. Increase max pipelines in Canvas configuration.");
+        }
 
-        if (this.pipelineCount >= MaterialShaderManager.MAX_PIPELINES)
-            return null;
         MaterialShaderImpl result = new MaterialShaderImpl(this.pipelineCount++, vertexShaderSource, fragmentShaderSource, spriteDepth);
         this.pipelines[result.getIndex()] = result;
 

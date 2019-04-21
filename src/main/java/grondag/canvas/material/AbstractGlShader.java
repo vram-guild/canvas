@@ -16,10 +16,13 @@
 
 package grondag.canvas.material;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.nio.file.Path;
 
 import org.lwjgl.opengl.GL11;
 
@@ -28,6 +31,7 @@ import com.mojang.blaze3d.platform.GLX;
 
 import grondag.canvas.Canvas;
 import grondag.canvas.varia.CanvasGlHelper;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.resource.language.I18n;
 import net.minecraft.resource.ResourceManager;
@@ -77,8 +81,23 @@ abstract class AbstractGlShader {
                     return;
                 }
             }
-
-            GLX.glShaderSource(this.glId, this.getSource());
+            
+            final String source = this.getSource();
+            
+            //TODO: make configurable
+            final String key = shaderSource.toString().replace("/", "-") + "."  + context.toString() +  "." + spriteDepth;
+            File gameDir = FabricLoader.getInstance().getGameDirectory();
+            File shaderDir = new File(gameDir.getAbsolutePath().replace(".", "shaders"));
+            if(!shaderDir.exists()) {
+                shaderDir.mkdir();
+            }
+            if(shaderDir.exists()) {
+                FileWriter writer = new FileWriter(shaderDir.getAbsolutePath() + File.separator + key + ".glsl", false);
+                writer.write(source);
+                writer.close();
+            }
+            
+            GLX.glShaderSource(this.glId, source);
             GLX.glCompileShader(this.glId);
 
             if (GLX.glGetShaderi(this.glId, GLX.GL_COMPILE_STATUS) == GL11.GL_FALSE)
