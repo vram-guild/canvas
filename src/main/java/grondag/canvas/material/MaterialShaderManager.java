@@ -26,6 +26,7 @@ import grondag.frex.api.material.UniformRefreshFrequency;
 import net.fabricmc.fabric.api.event.client.ClientTickCallback;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.Camera;
+import net.minecraft.client.resource.language.I18n;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec3d;
@@ -132,7 +133,7 @@ public final class MaterialShaderManager implements ClientTickCallback {
         }
         
         if (this.pipelineCount >= MaterialShaderManager.MAX_PIPELINES) {
-            throw new IndexOutOfBoundsException("Max pipelines exceeded. Increase max pipelines in Canvas configuration.");
+            throw new IndexOutOfBoundsException(I18n.translate("error.canvas.max_materials_exceeded"));
         }
 
         MaterialShaderImpl result = new MaterialShaderImpl(this.pipelineCount++, vertexShaderSource, fragmentShaderSource, spriteDepth);

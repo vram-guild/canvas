@@ -89,7 +89,7 @@ public class RendererImpl implements Renderer, RenderReloadCallback {
 
     @Override
     public void reload() {
-        Canvas.LOG.info(I18n.translate("misc.info_reloading"));
+        Canvas.LOG.info(I18n.translate("info.canvas.reloading"));
         MaterialShaderManager.INSTANCE.forceReload();
     }
 

@@ -16,8 +16,6 @@
 
 package grondag.canvas.material;
 
-import org.lwjgl.opengl.GL21;
-
 import com.mojang.blaze3d.platform.GLX;
 
 import net.minecraft.util.Identifier;

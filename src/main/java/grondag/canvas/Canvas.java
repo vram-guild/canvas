@@ -26,6 +26,7 @@ import net.fabricmc.api.ModInitializer;
 public class Canvas implements ModInitializer {
     @Override
     public void onInitialize() {
+        Configurator.init();
         RendererAccess.INSTANCE.registerRenderer(RendererImpl.INSTANCE);
     }
 

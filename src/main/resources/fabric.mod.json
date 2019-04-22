@@ -18,9 +18,8 @@
   
   "environment": "client",
   "entrypoints": {
-    "main": [
-      "grondag.canvas.Canvas"
-    ]
+    "main": [ "grondag.canvas.Canvas" ],
+    "modmenu": [ "grondag.canvas.Configurator" ]
   },
   "mixins": [
     "canvas.client.json"

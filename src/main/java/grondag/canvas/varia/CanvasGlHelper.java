@@ -54,30 +54,26 @@ public class CanvasGlHelper {
     }
 
     static private int attributeEnabledCount = 0;
-    static private int vaoEnabledCount = 0;
     
     /**
-     * Disables all generic vertex attributes and resets tracking state. Use after
-     * calling {@link #enableAttributesVao(int)}
+     * Disables generic vertex attributes. 
+     * Use after calling {@link #enableAttributesVao(int)}
      */
-    public static void disableAttributesVao() {
-        for (int i = 1; i <= vaoEnabledCount; i++) {
+    public static void disableAttributesVao(int enabledCount) {
+        for (int i = 1; i <= enabledCount; i++) {
             GL20.glDisableVertexAttribArray(i);
         }
-        vaoEnabledCount = 0;
     }
 
     /**
      * Like {@link CanvasGlHelper#enableAttributes(int)} but enables all attributes
-     * regardless of prior state. Tracking state for
-     * {@link CanvasGlHelper#enableAttributes(int)} remains unchanged. Used to
-     * initialize VAO state
+     * regardless of prior state. Tracking state for {@link CanvasGlHelper#enableAttributes(int)} 
+     * remains unchanged. Used to initialize VAO state
      */
     public static void enableAttributesVao(int enabledCount) {
         for (int i = 1; i <= enabledCount; i++) {
             GL20.glEnableVertexAttribArray(i);
         }
-        vaoEnabledCount = enabledCount;
     }
 
     /**
@@ -146,7 +142,7 @@ public class CanvasGlHelper {
             }
         } catch (Exception e) {
             fastNioCopy = false;
-            Canvas.LOG.error(I18n.translate("misc.warn_slow_gl_call", "fastNioCopy"), e);
+            Canvas.LOG.error(I18n.translate("warn.canvas.slow_gl_call", "fastNioCopy"), e);
         }
     }
 
