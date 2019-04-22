@@ -20,9 +20,11 @@ vec4 diffuseColor()
 
 	a *= shade;
 
+#if CONTEXT != CONTEXT_ITEM_GUI && CONTEXT != CONTEXT_ITEM_WORLD
     if(bitValue(v_flags.x, FLAG_DISABLE_AO_0) == 0.0) {
     	a *= vec4(v_ao, v_ao, v_ao, 1.0);
     }
+#endif
 
     if(bitValue(v_flags.x, FLAG_DISABLE_DIFFUSE) == 0.0) {
     	a *= vec4(v_diffuse, v_diffuse, v_diffuse, 1.0);

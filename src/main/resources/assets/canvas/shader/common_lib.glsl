@@ -15,7 +15,10 @@ uniform vec4 u_emissiveColor;
 uniform vec3 u_eye_position;
 uniform int u_fogMode;
 
+#if CONTEXT != CONTEXT_ITEM_GUI && CONTEXT != CONTEXT_ITEM_WORLD
 varying float v_ao;
+#endif
+
 varying float v_diffuse;
 varying vec4 v_color_0;
 varying vec2 v_texcoord_0;

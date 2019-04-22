@@ -29,6 +29,7 @@ import grondag.canvas.apiimpl.MeshImpl;
 import grondag.canvas.apiimpl.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.RenderMaterialImpl;
 import grondag.canvas.apiimpl.RenderMaterialImpl.Value;
+import grondag.canvas.apiimpl.RendererImpl;
 import grondag.canvas.apiimpl.util.ColorHelper;
 import grondag.canvas.apiimpl.util.MeshEncodingHelper;
 import grondag.canvas.buffer.packing.CanvasBufferBuilder;
@@ -41,6 +42,7 @@ import grondag.frex.api.mesh.QuadEmitter;
 import grondag.frex.api.model.DynamicBakedModel;
 import grondag.frex.api.model.ModelHelper;
 import grondag.frex.api.render.RenderContext;
+import net.minecraft.block.BlockRenderLayer;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.render.Tessellator;
 import net.minecraft.client.render.item.ItemColorMap;
@@ -69,6 +71,11 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
     private boolean smoothShading = false;
     private boolean enchantment = false;
     private final int[] quadData = new int[MeshEncodingHelper.MAX_STRIDE];
+    private final RenderMaterialImpl.Value glintMaterial = RendererImpl.INSTANCE.materialFinder()
+            .blendMode(0, BlockRenderLayer.TRANSLUCENT)
+            .disableAo(0, true)
+            .disableDiffuse(0, true)
+            .emissive(0, true).find();
     
     private final Supplier<Random> randomSupplier = () -> {
         Random result = random;
@@ -164,7 +171,7 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
             return;
         }
 
-        RenderMaterialImpl.Value mat = quad.material();
+        RenderMaterialImpl.Value mat = enchantment ? glintMaterial : quad.material();
         final VertexCollector output = canvasBuilder.vcList.get(mat);
         final int shaderFlags = mat.shaderFlags() << 16;
 
@@ -186,7 +193,7 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
             int blockLight = (packedLight & 0xFF);
             int skyLight = ((packedLight >> 16) & 0xFF);
             output.add(blockLight | (skyLight << 8) | shaderFlags);
-            output.add(quad.packedNormal(i) | 0xFF000000);
+            output.add(quad.packedNormal(i) | 0x7F000000);
             
             if(depth > 1) {
                 output.add(quad.spriteColor(i, 1));

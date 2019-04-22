@@ -13,6 +13,11 @@ attribute vec4 in_color_2;
 attribute vec2 in_uv_2;
 #endif
 
+vec2 textureCoord(vec2 coordIn, int matrixIndex) {
+	vec4 temp = gl_TextureMatrix[matrixIndex] * coordIn.xyxy;
+	return temp.xy;
+}
+
 void setupVertex()
 {
     gl_Position = ftransform();
@@ -20,8 +25,12 @@ void setupVertex()
     vec4 viewCoord = gl_ModelViewMatrix * gl_Vertex;
     gl_ClipVertex = viewCoord;
     gl_FogFragCoord = length(viewCoord.xyz);
-    v_texcoord_0 = in_uv_0;
+    v_texcoord_0 = textureCoord(in_uv_0, 0);
+
+#if CONTEXT != CONTEXT_ITEM_GUI && CONTEXT != CONTEXT_ITEM_WORLD
     v_ao = (in_normal_ao.w + 1.0) * 0.5;
+#endif
+
     v_diffuse = diffuse(in_normal_ao.xyz);
 
 #if CONTEXT == CONTEXT_ITEM_GUI
@@ -41,13 +50,13 @@ void setupVertex()
     v_color_0 = in_color_0;
 
 #if LAYER_COUNT > 1
-    v_color_1 = in_color_1; //vec4(in_color_1.rgb * shade, in_color_1.a);
-    v_texcoord_1 = in_uv_1;
+    v_color_1 = in_color_1;
+    v_texcoord_1 = textureCoord(in_uv_1, 0);
 #endif
 
 #if LAYER_COUNT > 2
-    v_color_2 = in_color_2; //vec4(in_color_2.rgb * shade, in_color_2.a);
-    v_texcoord_2 = in_uv_2;
+    v_color_2 = in_color_2;
+    v_texcoord_2 = textureCoord(in_uv_2, 0);
 #endif
 }
 
