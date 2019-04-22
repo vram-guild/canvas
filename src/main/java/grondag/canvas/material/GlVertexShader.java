@@ -18,11 +18,13 @@ package grondag.canvas.material;
 
 import org.lwjgl.opengl.GL21;
 
+import com.mojang.blaze3d.platform.GLX;
+
 import net.minecraft.util.Identifier;
 
 public final class GlVertexShader extends AbstractGlShader {
     GlVertexShader(Identifier shaderSource, int spriteDepth, ShaderContext context) {
-        super(shaderSource, GL21.GL_VERTEX_SHADER, spriteDepth, context);
+        super(shaderSource, GLX.GL_VERTEX_SHADER, spriteDepth, context);
     }
 
     @Override
