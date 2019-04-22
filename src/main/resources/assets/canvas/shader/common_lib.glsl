@@ -38,10 +38,25 @@ varying vec2 v_texcoord_2;
 #define PI 3.1415926535897932384626433832795
 #define PI_2 1.57079632679489661923
 
-const int FLAG_DISABLE_DIFFUSE = 4;
-const int FLAG_DISABLE_AO_0 = 5;
-const int FLAG_CUTOUT_0 = 6;
-const int FLAG_UNMIPPED_0 = 7;
+// packed in first flag octet
+#define FLAG_EMISSIVE_0 0
+#define FLAG_EMISSIVE_1 1
+#define FLAG_EMISSIVE_2 2
+#define FLAG_PADDING 3
+#define FLAG_DISABLE_DIFFUSE_0 4
+#define FLAG_DISABLE_AO_0 5
+#define FLAG_CUTOUT_0 6
+#define FLAG_UNMIPPED_0 7
+
+// packed in second flag octet
+#define FLAG_DISABLE_DIFFUSE_1 0
+#define FLAG_DISABLE_AO_1 1
+#define FLAG_CUTOUT_1  2
+#define FLAG_UNMIPPED_1 3
+#define FLAG_DISABLE_DIFFUSE_2 4
+#define FLAG_DISABLE_AO_2 5
+#define FLAG_CUTOUT_2 6
+#define FLAG_UNMIPPED_2 7
 
 const int FACE_DOWN = 0;
 const int FACE_UP = 1;

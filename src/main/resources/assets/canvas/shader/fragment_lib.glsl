@@ -1,49 +1,71 @@
 
-vec4 shadeColor(vec4 fragmentColor,  int layerIndex) {
+vec4 colorAndLightmap(vec4 fragmentColor,  int layerIndex) {
 	return bitValue(v_flags.x, layerIndex) == 0 ? v_light * fragmentColor : u_emissiveColor * fragmentColor;
 }
 
-vec4 diffuseColor()
-{
+vec4 applyAo(vec4 baseColor) {
+// Don't apply AO for item renders
+#if CONTEXT != CONTEXT_ITEM_GUI && CONTEXT != CONTEXT_ITEM_WORLD
+	return baseColor * vec4(v_ao, v_ao, v_ao, 1.0);
+#else
+	return baseColor;
+#endif
+}
+
+vec4 diffuseColor() {
+
 #if CONTEXT == CONTEXT_BLOCK_SOLID
-	float non_mipped = bitValue(v_flags.x, FLAG_UNMIPPED_0) * -4.0;
-	vec4 a = texture2D(u_textures, v_texcoord_0, non_mipped);
+	float non_mipped_0 = bitValue(v_flags.x, FLAG_UNMIPPED_0) * -4.0;
+	vec4 a = texture2D(u_textures, v_texcoord_0, non_mipped_0);
 
 	float cutout = bitValue(v_flags.x, FLAG_CUTOUT_0);
-	if(cutout == 1.0 && a.a < 0.5)
+	if(cutout == 1.0 && a.a < 0.5) {
 		discard;
-#else
-		vec4 a = texture2D(u_textures, v_texcoord_0);
+	}
+#else // alpha
+	vec4 a = texture2D(u_textures, v_texcoord_0);
 #endif
 
-	vec4 shade = shadeColor(v_color_0, 0);
+	a *= colorAndLightmap(v_color_0, 0);
 
-	a *= shade;
-
-#if CONTEXT != CONTEXT_ITEM_GUI && CONTEXT != CONTEXT_ITEM_WORLD
     if(bitValue(v_flags.x, FLAG_DISABLE_AO_0) == 0.0) {
-    	a *= vec4(v_ao, v_ao, v_ao, 1.0);
+    	a = applyAo(a);
     }
-#endif
 
-    if(bitValue(v_flags.x, FLAG_DISABLE_DIFFUSE) == 0.0) {
+    if(bitValue(v_flags.x, FLAG_DISABLE_DIFFUSE_0) == 0.0) {
     	a *= vec4(v_diffuse, v_diffuse, v_diffuse, 1.0);
     }
 
 #if LAYER_COUNT > 1
-    // TODO: honor non-mipped and cutout flags
-	// TODO: honor shading flags
-	vec4 b = texture2D(u_textures, v_texcoord_1) * shadeColor(v_color_1, 1);
-
-	a = mix(a, b, b.a);
+	float non_mipped_1 = bitValue(v_flags.y, FLAG_UNMIPPED_1) * -4.0;
+	vec4 b = texture2D(u_textures, v_texcoord_1, non_mipped_1);
+	float cutout_1 = bitValue(v_flags.y, FLAG_CUTOUT_1);
+	if(cutout_1 != 1.0 || b.a >= 0.5) {
+		b *= colorAndLightmap(v_color_1, 1);
+		if(bitValue(v_flags.y, FLAG_DISABLE_AO_1) == 0.0) {
+		    b = applyAo(b);
+		}
+		if(bitValue(v_flags.y, FLAG_DISABLE_DIFFUSE_1) == 0.0) {
+			b *= vec4(v_diffuse, v_diffuse, v_diffuse, 1.0);
+		}
+		a = vec4(mix(a.rgb, b.rgb, b.a), a.a);
+	}
 #endif
 
 #if LAYER_COUNT > 2
-	// TODO: honor non-mipped and cutout flags
-	// TODO: honor shading flags
-	vec4 c = texture2D(u_textures, v_texcoord_2) * shadeColor(v_color_2, 2);
-
-	a = mix(a, c, c.a);
+	float non_mipped_2 = bitValue(v_flags.y, FLAG_UNMIPPED_2) * -4.0;
+	vec4 c = texture2D(u_textures, v_texcoord_2, non_mipped_2);
+	float cutout_2 = bitValue(v_flags.y, FLAG_CUTOUT_2);
+	if(cutout_2 != 1.0 || c.a >= 0.5) {
+		c *= colorAndLightmap(v_color_2, 2);
+		if(bitValue(v_flags.y, FLAG_DISABLE_AO_2) == 0.0) {
+		    c = applyAo(c);
+		}
+		if(bitValue(v_flags.y, FLAG_DISABLE_DIFFUSE_2) == 0.0) {
+			c *= vec4(v_diffuse, v_diffuse, v_diffuse, 1.0);
+		}
+		a = vec4(mix(a.rgb, c.rgb, c.a), a.a);
+	}
 #endif
 
 	return a;

@@ -29,6 +29,7 @@ import com.google.common.io.CharStreams;
 import com.mojang.blaze3d.platform.GLX;
 
 import grondag.canvas.Canvas;
+import grondag.canvas.Configurator;
 import grondag.canvas.varia.CanvasGlHelper;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
@@ -83,17 +84,18 @@ abstract class AbstractGlShader {
             
             final String source = this.getSource();
             
-            //TODO: make configurable
-            final String key = shaderSource.toString().replace("/", "-") + "."  + context.toString() +  "." + spriteDepth;
-            File gameDir = FabricLoader.getInstance().getGameDirectory();
-            File shaderDir = new File(gameDir.getAbsolutePath().replace(".", "canvas_shader_debug"));
-            if(!shaderDir.exists()) {
-                shaderDir.mkdir();
-            }
-            if(shaderDir.exists()) {
-                FileWriter writer = new FileWriter(shaderDir.getAbsolutePath() + File.separator + key + ".glsl", false);
-                writer.write(source);
-                writer.close();
+            if(Configurator.enableShaderDebug) {
+                final String key = shaderSource.toString().replace("/", "-") + "."  + context.toString() +  "." + spriteDepth;
+                File gameDir = FabricLoader.getInstance().getGameDirectory();
+                File shaderDir = new File(gameDir.getAbsolutePath().replace(".", "canvas_shader_debug"));
+                if(!shaderDir.exists()) {
+                    shaderDir.mkdir();
+                }
+                if(shaderDir.exists()) {
+                    FileWriter writer = new FileWriter(shaderDir.getAbsolutePath() + File.separator + key + ".glsl", false);
+                    writer.write(source);
+                    writer.close();
+                }
             }
             
             GLX.glShaderSource(this.glId, source);
