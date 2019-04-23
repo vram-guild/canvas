@@ -28,7 +28,8 @@
     "fabricloader": ">=0.4.0",
     "fabric": "*",
     "frex": ">=0.4.0",
-    "fermion": ">=0.4.0"
+    "fermion": ">=0.4.0",
+    "cloth-config": ">=0.2.0"
   },
   "custom": {
     "modmenu:api": true,
