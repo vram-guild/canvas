@@ -35,62 +35,62 @@ varying vec4 v_color_2;
 varying vec2 v_texcoord_2;
 #endif
 
-#define PI 3.1415926535897932384626433832795
-#define PI_2 1.57079632679489661923
+#define PI    3.1415926535897932384626433832795
+#define PI_2  1.57079632679489661923
 
 // packed in first flag octet
-#define FLAG_EMISSIVE_0 0
-#define FLAG_EMISSIVE_1 1
-#define FLAG_EMISSIVE_2 2
-#define FLAG_PADDING 3
-#define FLAG_DISABLE_DIFFUSE_0 4
-#define FLAG_DISABLE_AO_0 5
-#define FLAG_CUTOUT_0 6
-#define FLAG_UNMIPPED_0 7
+#define FLAG_EMISSIVE_0         0
+#define FLAG_EMISSIVE_1         1
+#define FLAG_EMISSIVE_2         2
+#define FLAG_PADDING            3
+#define FLAG_DISABLE_DIFFUSE_0  4
+#define FLAG_DISABLE_AO_0       5
+#define FLAG_CUTOUT_0           6
+#define FLAG_UNMIPPED_0         7
 
 // packed in second flag octet
-#define FLAG_DISABLE_DIFFUSE_1 0
-#define FLAG_DISABLE_AO_1 1
-#define FLAG_CUTOUT_1  2
-#define FLAG_UNMIPPED_1 3
-#define FLAG_DISABLE_DIFFUSE_2 4
-#define FLAG_DISABLE_AO_2 5
-#define FLAG_CUTOUT_2 6
-#define FLAG_UNMIPPED_2 7
+#define FLAG_DISABLE_DIFFUSE_1  0
+#define FLAG_DISABLE_AO_1       1
+#define FLAG_CUTOUT_1           2
+#define FLAG_UNMIPPED_1         3
+#define FLAG_DISABLE_DIFFUSE_2  4
+#define FLAG_DISABLE_AO_2       5
+#define FLAG_CUTOUT_2           6
+#define FLAG_UNMIPPED_2         7
 
-const int FACE_DOWN = 0;
-const int FACE_UP = 1;
-const int FACE_NORTH = 2;
-const int FACE_SOUTH = 3;
-const int FACE_WEST = 4;
-const int FACE_EAST = 5;
+#define  FACE_DOWN  0
+#define  FACE_UP    1
+#define  FACE_NORTH 2
+#define  FACE_SOUTH 3
+#define  FACE_WEST  4
+#define  FACE_EAST  5
 
-const int FOG_LINEAR = 9729;
-const int FOG_EXP = 2048;
-const int FOG_EXP2 = 2049;
+#define  FOG_LINEAR 9729
+#define  FOG_EXP    2048
+#define  FOG_EXP2   2049
 
 const mat3[6] UV_MATRIX = mat3[6](
-	mat3(1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0),
-	mat3(1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0),
-	mat3(1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0),
-	mat3(1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0),
-	mat3(0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0),
-	mat3(0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0)
+        mat3(1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0),
+        mat3(1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0),
+        mat3(1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0),
+        mat3(1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0),
+        mat3(0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0),
+        mat3(0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0)
 );
 
 int face(vec3 normal) {
-	vec3 a = abs(normal);
-	float m = max(max(a.x, a.y), a.z);
+    vec3 a = abs(normal);
+    float m = max(max(a.x, a.y), a.z);
 
-	return a.x == m ? (normal.x > 0 ? FACE_EAST : FACE_WEST)
-			: a.y == m ? (normal.y > 0 ? FACE_UP : FACE_DOWN)
-				: (normal.z > 0 ? FACE_SOUTH : FACE_NORTH);
+    return a.x == m ? (normal.x > 0 ? FACE_EAST : FACE_WEST)
+            : a.y == m ? (normal.y > 0 ? FACE_UP : FACE_DOWN)
+                    : (normal.z > 0 ? FACE_SOUTH : FACE_NORTH);
 }
 
 vec2 uv(vec3 pos, vec3 normal) {
-	mat3 m = UV_MATRIX[face(normal)];
-	vec3 result = m * pos;
-	return result.xy;
+    mat3 m = UV_MATRIX[face(normal)];
+    vec3 result = m * pos;
+    return result.xy;
 }
 
 /**
@@ -98,29 +98,42 @@ vec2 uv(vec3 pos, vec3 normal) {
  * consistent with Phong lighting ambient + diffuse for others.
  */
 float diffuseBaked(vec3 normal) {
-	return 0.5 + clamp(abs(normal.x) * 0.1 + (normal.y > 0 ? 0.5 * normal.y : 0.0) + abs(normal.z) * 0.3, 0.0, 0.5);
+    return 0.5 + clamp(abs(normal.x) * 0.1 + (normal.y > 0 ? 0.5 * normal.y : 0.0) + abs(normal.z) * 0.3, 0.0, 0.5);
 }
 
 /**
- * Results simular to vanilla, except a little lighter on the dark face.
- * Not yet sure why - lack of gamma correction?
+ * Offers results simular to vanilla in Gui, assumes a fixed transform.
  */
 float diffuseGui(vec3 normal) {
-	// Note that vanilla rendering normally sends item models with raw colors and
-	// canvas sends colors unmodified, so we do not need to compensate for any pre-buffer shading
-	float light = 0.4
-			+ 0.6 * clamp(dot(normal.xyz, vec3(-0.309, 0.927, -0.211)), 0.0, 1.0)
-			+ 0.6 * clamp(dot(normal.xyz, vec3(0.518, 0.634, 0.574)), 0.0, 1.0);
+    // Note that vanilla rendering normally sends item models with raw colors and
+    // canvas sends colors unmodified, so we do not need to compensate for any pre-buffer shading
+    float light = 0.4
+            + 0.6 * clamp(dot(normal.xyz, vec3(-0.309, 0.927, -0.211)), 0.0, 1.0)
+            + 0.6 * clamp(dot(normal.xyz, vec3(0.518, 0.634, 0.574)), 0.0, 1.0);
 
-	return min(light, 1.0);
+    return min(light, 1.0);
+}
+
+/**
+ * Unrotated, non-gui lights.  But not transformed into eye space.
+ * Not sure how I want to do that yet.
+ */
+float diffuseWorld(vec3 normal) {
+    float light = 0.4
+            + 0.6 * clamp(dot(normal.xyz, vec3(0.16169, 0.808452, -0.565916)), 0.0, 1.0)
+            + 0.6 * clamp(dot(normal.xyz, vec3(-0.16169, 0.808452, 0.565916)), 0.0, 1.0);
+
+    return min(light, 1.0);
 }
 
 float diffuse (vec3 normal) {
-
 #if CONTEXT == CONTEXT_ITEM_GUI
-	return diffuseGui(normal);
+    return diffuseGui(normal);
+#elif CONTEXT == CONTEXT_ITEM_WORLD
+    return diffuseGui(normal);
+//    return diffuseWorld(normal);
 #else
-	return diffuseBaked(normal);
+    return diffuseBaked(normal);
 #endif
 }
 
@@ -128,23 +141,21 @@ float diffuse (vec3 normal) {
 // from somewhere on the Internet...
 float random (vec2 st) {
     return fract(sin(dot(st.xy,
-                         vec2(12.9898,78.233)))*
-        43758.5453123);
+            vec2(12.9898,78.233)))*
+            43758.5453123);
 }
 
 // Ken Perlin's improved smoothstep
-float smootherstep(float edge0, float edge1, float x)
-{
-  // Scale, and clamp x to 0..1 range
-  x = clamp((x - edge0) / (edge1 - edge0), 0.0, 1.0);
-  // Evaluate polynomial
-  return x * x * x * (x * (x * 6 - 15) + 10);
+float smootherstep(float edge0, float edge1, float x) {
+    // Scale, and clamp x to 0..1 range
+    x = clamp((x - edge0) / (edge1 - edge0), 0.0, 1.0);
+    // Evaluate polynomial
+    return x * x * x * (x * (x * 6 - 15) + 10);
 }
 
 // Based in part on 2D Noise by Morgan McGuire @morgan3d
 // https://www.shadertoy.com/view/4dS3Wd
-float tnoise (in vec2 st, float t)
-{
+float tnoise (in vec2 st, float t) {
     vec2 i = floor(st);
     vec2 f = fract(st);
 
@@ -176,5 +187,5 @@ const float[8] BITWISE_DIVISORS = float[8](0.5, 0.25, 0.125, 0.0625, 0.03125, 0.
  */
 float bitValue(float byteValue, int bitIndex)
 {
-	return floor(fract(byteValue * BITWISE_DIVISORS[bitIndex]) * 2.0);
+    return floor(fract(byteValue * BITWISE_DIVISORS[bitIndex]) * 2.0);
 }
