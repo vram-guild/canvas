@@ -84,11 +84,11 @@ sourceSets {
     }
 }
 
-def mcVersion = "1.14 Pre-Release 5"
+def mcVersion = "1.14"
 
 dependencies {
 	minecraft "com.mojang:minecraft:$mcVersion"
-	mappings "net.fabricmc:yarn:$mcVersion+build.6"
+	mappings "net.fabricmc:yarn:$mcVersion+build.1"
 	modCompile "net.fabricmc:fabric-loader:0.4.2+build.132"
 	modCompile "net.fabricmc:fabric:0.2.7+build.127"
 	
