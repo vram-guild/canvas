@@ -43,7 +43,7 @@ import net.minecraft.item.ItemStack;
 @Mixin(ItemRenderer.class)
 public abstract class MixinItemRenderer {
     @Shadow
-    protected abstract void renderQuads(BufferBuilder bufferBuilder, List<BakedQuad> quads, int color, ItemStack stack);
+    private void renderQuads(BufferBuilder bufferBuilder, List<BakedQuad> quads, int color, ItemStack stack) {}
 
     @Shadow protected ItemColorMap colorMap;
     
@@ -86,10 +86,15 @@ public abstract class MixinItemRenderer {
             ci.cancel();
         } else {
             if (!dynamicModel.isVanillaAdapter()) {
-                oldContext.renderModel(dynamicModel, color, stack, this::renderQuads);
+                oldContext.renderModel(dynamicModel, color, stack, (b, q, c, s) -> renderQuadsInner(b, q, c, s));
                 ci.cancel();
             }
         }
+    }
+    
+    // avoid remap failure in dev env
+    private void renderQuadsInner(BufferBuilder bufferBuilder, List<BakedQuad> quads, int color, ItemStack stack) {
+        renderQuads(bufferBuilder, quads, color, stack);
     }
     
     @Inject(at = @At("HEAD"), method = "renderItem(Lnet/minecraft/item/ItemStack;Lnet/minecraft/client/render/model/BakedModel;Lnet/minecraft/client/render/model/json/ModelTransformation$Type;Z)V")
