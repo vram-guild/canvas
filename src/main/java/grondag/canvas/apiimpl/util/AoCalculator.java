@@ -25,6 +25,7 @@ import static net.minecraft.util.math.Direction.NORTH;
 import static net.minecraft.util.math.Direction.SOUTH;
 import static net.minecraft.util.math.Direction.UP;
 import static net.minecraft.util.math.Direction.WEST;
+import static java.lang.Math.max;
 
 import java.util.function.ToIntBiFunction;
 
@@ -383,15 +384,6 @@ public class AoCalculator {
         }
         return result;
     }
-
-    private static int nonZeroMin(int a, int b) {
-        if(a == 0) return b;
-        if(b == 0) return a;
-        return Math.min(a, b);
-    }
-    
-    // TODO: take another pass at this and clean it up - any way to do it in one pass?
-    // also some unresolved propagation issues when blocks are placed at one-block spaces 
     
     /** 
      * Vanilla code excluded missing light values from mean but was not isotropic.
@@ -399,18 +391,22 @@ public class AoCalculator {
      * value from all four samples.
      */
     private static int meanBrightness(int a, int b, int c, int d) {
-        int min = nonZeroMin(nonZeroMin(a, b), nonZeroMin(c, d));
-        
-        if (a == 0)
-            a = min;
-        if (b == 0)
-            b = min;
-        if (c == 0)
-            c = min;
-        if (d == 0)
-            d = min;
-        
+        return a == 0 || b == 0 || c == 0 || d == 0 ? meanEdgeBrightness(a, b, c, d) : meanInnerBrightness(a, b, c, d);
+    }
+    
+    private static int meanInnerBrightness(int a, int b, int c, int d) {
         // bitwise divide by 4, clamp to expected (positive) range
         return a + b + c + d >> 2 & 16711935;
+    }
+
+    private static int nonZeroMin(int a, int b) {
+        if(a == 0) return b;
+        if(b == 0) return a;
+        return Math.min(a, b);
+    }
+    
+    private static int meanEdgeBrightness(int a, int b, int c, int d) {
+        final int min = nonZeroMin(nonZeroMin(a, b), nonZeroMin(c, d));
+        return meanInnerBrightness(max(a, min), max(b, min), max(c, min), max(d, min));
     }
 }
