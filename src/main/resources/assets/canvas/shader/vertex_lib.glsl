@@ -48,7 +48,7 @@ void setupVertex() {
 #else
     // the lightmap texture matrix is scaled to 1/256 and then offset + 8
     // it is also clamped to repeat and has linear min/mag
-    v_light = texture2D(u_lightmap, (in_lightmap.rg * 0.00367647) + 0.03125);
+    v_light = texture2D(u_lightmap, (in_lightmap.rg * 0.00390625) + 0.03125);
 #endif
 
 
