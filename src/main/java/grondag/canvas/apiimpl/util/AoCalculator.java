@@ -384,14 +384,32 @@ public class AoCalculator {
         return result;
     }
 
-    /** vanilla code - excludes missing light values from mean */
+    private static int nonZeroMin(int a, int b) {
+        if(a == 0) return b;
+        if(b == 0) return a;
+        return Math.min(a, b);
+    }
+    
+    // TODO: take another pass at this and clean it up - any way to do it in one pass?
+    // also some unresolved propagation issues when blocks are placed at one-block spaces 
+    
+    /** 
+     * Vanilla code excluded missing light values from mean but was not isotropic.
+     * Still need to substitute or edges are too dark but consistently use the min 
+     * value from all four samples.
+     */
     private static int meanBrightness(int a, int b, int c, int d) {
+        int min = nonZeroMin(nonZeroMin(a, b), nonZeroMin(c, d));
+        
         if (a == 0)
-            a = d;
+            a = min;
         if (b == 0)
-            b = d;
+            b = min;
         if (c == 0)
-            c = d;
+            c = min;
+        if (d == 0)
+            d = min;
+        
         // bitwise divide by 4, clamp to expected (positive) range
         return a + b + c + d >> 2 & 16711935;
     }
