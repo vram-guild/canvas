@@ -30,5 +30,5 @@ public interface AllocationProvider {
      * with all vertex formats. All vertices in the buffer(s) will share the same
      * pipeline (and thus vertex format).
      */
-    void claimAllocation(MaterialState pipeline, int byteCount, Consumer<BufferDelegate> consumer);
+    void claimAllocation(MaterialState materialState, int byteCount, Consumer<BufferDelegate> consumer);
 }

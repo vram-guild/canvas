@@ -26,7 +26,7 @@ import grondag.canvas.material.MaterialState;
 public class BufferPackingList {
     private int[] starts = new int[16];
     private int[] counts = new int[16];
-    private MaterialState[] pipelines = new MaterialState[16];
+    private MaterialState[] materialStates = new MaterialState[16];
     
     private int size = 0;
     private int totalBytes = 0;
@@ -63,8 +63,8 @@ public class BufferPackingList {
         return this.totalBytes;
     }
 
-    public void addPacking(MaterialState renderState, int startVertex, int vertexCount) {
-        if (size == this.pipelines.length) {
+    public void addPacking(MaterialState materialState, int startVertex, int vertexCount) {
+        if (size == this.materialStates.length) {
             final int cCopy[] = new int[size * 2];
             System.arraycopy(this.counts, 0, cCopy, 0, size);
             this.counts = cCopy;
@@ -74,31 +74,32 @@ public class BufferPackingList {
             this.starts = sCopy;
             
             final MaterialState pCopy[] = new MaterialState[size * 2];
-            System.arraycopy(this.pipelines, 0, pCopy, 0, size);
-            this.pipelines = pCopy;
+            System.arraycopy(this.materialStates, 0, pCopy, 0, size);
+            this.materialStates = pCopy;
         }
-        this.pipelines[size] = renderState;
+        
+        this.materialStates[size] = materialState;
         this.starts[size] = startVertex;
         this.counts[size] = vertexCount;
-        this.totalBytes += renderState.pipeline.piplineVertexFormat().vertexStrideBytes * vertexCount;
+        this.totalBytes += materialState.shader.piplineVertexFormat().vertexStrideBytes * vertexCount;
         this.size++;
     }
 
     public final void forEach(BufferPacker consumer) {
         final int size = this.size;
         for (int i = 0; i < size; i++) {
-            consumer.accept(this.pipelines[i], this.starts[i], this.counts[i]);
+            consumer.accept(this.materialStates[i], this.starts[i], this.counts[i]);
         }
     }
 
-    public final void forEachPipeline(Consumer<MaterialState> consumer) {
+    public final void forEachMaterialState(Consumer<MaterialState> consumer) {
         final int size = this.size;
         for (int i = 0; i < size; i++)
-            consumer.accept(this.pipelines[i]);
+            consumer.accept(this.materialStates[i]);
     }
 
-    public final MaterialState getPipeline(int index) {
-        return this.pipelines[index];
+    public final MaterialState getMaterialState(int index) {
+        return this.materialStates[index];
     }
 
     public final int getCount(int index) {

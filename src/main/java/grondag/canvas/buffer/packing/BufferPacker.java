@@ -49,9 +49,9 @@ public class BufferPacker {
         return result;
     }
 
-    public void accept(MaterialState renderState, int vertexStart, int vertexCount) {
-        final int stride = renderState.pipeline.piplineVertexFormat().vertexStrideBytes;
-        allocator.claimAllocation(renderState, vertexCount * stride, ref -> {
+    public void accept(MaterialState materialState, int vertexStart, int vertexCount) {
+        final int stride = materialState.shader.piplineVertexFormat().vertexStrideBytes;
+        allocator.claimAllocation(materialState, vertexCount * stride, ref -> {
             final int byteOffset = ref.byteOffset();
             final int byteCount = ref.byteCount();
             final int intLength = byteCount / 4;
@@ -59,10 +59,10 @@ public class BufferPacker {
             ref.buffer().lockForWrite();
             final IntBuffer intBuffer = ref.intBuffer();
             intBuffer.position(byteOffset / 4);
-            intBuffer.put(collectorList.get(renderState).rawData(), vertexStart * stride / 4, intLength);
+            intBuffer.put(collectorList.get(materialState).rawData(), vertexStart * stride / 4, intLength);
             ref.buffer().unlockForWrite();
 
-            delegates.add(DrawableDelegate.claim(ref, renderState, byteCount / stride));
+            delegates.add(DrawableDelegate.claim(ref, materialState, byteCount / stride));
         });
     }
 }

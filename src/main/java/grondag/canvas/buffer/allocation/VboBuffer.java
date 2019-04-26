@@ -61,7 +61,7 @@ public class VboBuffer extends UploadableBuffer implements AllocationProvider {
     }
     
     @Override
-    public void claimAllocation(MaterialState pipeline, int byteCount, Consumer<BufferDelegate> consumer) {
+    public void claimAllocation(MaterialState materialState, int byteCount, Consumer<BufferDelegate> consumer) {
         consumer.accept(BufferDelegate.claim(this, byteOffset, byteCount));
         byteOffset += byteCount;
     }

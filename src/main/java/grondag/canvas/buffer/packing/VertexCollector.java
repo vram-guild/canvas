@@ -74,7 +74,7 @@ public class VertexCollector {
     }
 
     public int vertexCount() {
-        return this.integerSize * 4 / this.renderState.pipeline.piplineVertexFormat().vertexStrideBytes;
+        return this.integerSize * 4 / this.renderState.shader.piplineVertexFormat().vertexStrideBytes;
     }
     
     public int quadCount() {
@@ -114,7 +114,7 @@ public class VertexCollector {
     }
 
     public final void pos(final BlockPos pos, float modelX, float modelY, float modelZ) {
-        this.checkForSize(this.renderState.pipeline.piplineVertexFormat().vertexStrideBytes);
+        this.checkForSize(this.renderState.shader.piplineVertexFormat().vertexStrideBytes);
         this.add((float)(pos.getX() - parent.renderOriginX + modelX));
         this.add((float)(pos.getY() - parent.renderOriginY + modelY));
         this.add((float)(pos.getZ() - parent.renderOriginZ + modelZ));
@@ -122,7 +122,7 @@ public class VertexCollector {
 
     /** for items */
     public final void pos(float modelX, float modelY, float modelZ) {
-        this.checkForSize(this.renderState.pipeline.piplineVertexFormat().vertexStrideBytes);
+        this.checkForSize(this.renderState.shader.piplineVertexFormat().vertexStrideBytes);
         this.add((float)(modelX));
         this.add((float)(modelY));
         this.add((float)(modelZ));
@@ -159,7 +159,7 @@ public class VertexCollector {
         private void doSort(VertexCollector caller, double x, double y, double z) {
             // works because 4 bytes per int
             data = caller.data;
-            quadIntStride = caller.renderState.pipeline.piplineVertexFormat().vertexStrideBytes;
+            quadIntStride = caller.renderState.shader.piplineVertexFormat().vertexStrideBytes;
             final int vertexIntStride = quadIntStride / 4;
             final int quadCount = caller.vertexCount() / 4;
             if (perQuadDistance.length < quadCount)

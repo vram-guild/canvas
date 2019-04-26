@@ -55,7 +55,7 @@ public class RendererImpl implements Renderer, RenderReloadCallback {
     
     private final HashMap<Identifier, Value> materialMap = new HashMap<>();
 
-    private final HashMap<Identifier, MaterialShaderImpl> pipelineMap = new HashMap<>();
+    private final HashMap<Identifier, MaterialShaderImpl> shaderMap = new HashMap<>();
     
     private final HashMap<Identifier, MaterialConditionImpl> conditionMap = new HashMap<>();
     
@@ -100,15 +100,15 @@ public class RendererImpl implements Renderer, RenderReloadCallback {
 
     @Override
     public MaterialShaderImpl shaderById(Identifier id) {
-        return pipelineMap.get(id);
+        return shaderMap.get(id);
     }
 
     @Override
     public boolean registerShader(Identifier id, MaterialShader shader) {
-        if (pipelineMap.containsKey(id))
+        if (shaderMap.containsKey(id))
             return false;
         // cast to prevent acceptance of impostor implementations
-        pipelineMap.put(id, (MaterialShaderImpl) shader);
+        shaderMap.put(id, (MaterialShaderImpl) shader);
         return true;
     }
 

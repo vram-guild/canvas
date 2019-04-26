@@ -10,7 +10,7 @@ public class DummyBindableBuffer implements BindableBuffer {
     
     @Override
     public boolean bind() {
-        return false;
+        return true;
     }
 
     @Override

@@ -59,7 +59,7 @@ public class VertexCollectorList {
     /**
      * Fast lookup of buffers by pipeline index. Null in CUTOUT layer buffers.
      */
-    private VertexCollector[] vertexCollectors = new VertexCollector[MaterialState.MAX_RENDER_STATES];
+    private VertexCollector[] vertexCollectors = new VertexCollector[MaterialState.MAX_MATERIAL_STATES];
 
     private final BufferPackingList packingList = new BufferPackingList();
     

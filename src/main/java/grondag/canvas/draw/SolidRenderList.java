@@ -106,9 +106,10 @@ public class SolidRenderList implements Consumer<ObjectArrayList<DrawableDelegat
         sorter.delegates = draws;
         Arrays.quickSort(0, limit, sorter, sorter);
 
-        ((DrawableDelegate) draws[0]).renderState().pipeline.activate(context);
+        //TODO: needed?
+        ((DrawableDelegate) draws[0]).renderState().shader.activate(context);
         
-        MaterialShaderImpl lastPipeline = null;
+        MaterialShaderImpl lastShader = null;
         final int frameIndex = MaterialShaderManager.INSTANCE.frameIndex();
 
         for (int i = 0; i < limit; i++) {
@@ -116,10 +117,10 @@ public class SolidRenderList implements Consumer<ObjectArrayList<DrawableDelegat
             final MaterialConditionImpl condition = b.renderState().condition;
             
             if(!condition.affectBlocks || condition.compute(frameIndex)) {
-                final MaterialShaderImpl thisPipeline = b.renderState().pipeline;
-                if(thisPipeline != lastPipeline) {
-                    thisPipeline.activate(context);
-                    lastPipeline = thisPipeline;
+                final MaterialShaderImpl thisShader = b.renderState().shader;
+                if(thisShader != lastShader) {
+                    thisShader.activate(context);
+                    lastShader = thisShader;
                 }
                 b.bind();
                 b.draw();

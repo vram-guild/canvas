@@ -21,27 +21,27 @@ import grondag.canvas.apiimpl.MaterialShaderImpl;
 import grondag.fermion.varia.Useful;
 
 public class MaterialState {
-    private static final int PIPELINE_SHIFT = Useful.bitLength(MaterialConditionImpl.MAX_CONDITIONS);
-    public static final int MAX_RENDER_STATES = MaterialConditionImpl.MAX_CONDITIONS * MaterialShaderManager.MAX_PIPELINES;
+    private static final int SHADER_SHIFT = Useful.bitLength(MaterialConditionImpl.MAX_CONDITIONS);
+    public static final int MAX_MATERIAL_STATES = MaterialConditionImpl.MAX_CONDITIONS * MaterialShaderManager.MAX_SHADERS;
 
-    private static int computeIndex(MaterialShaderImpl pipeline, MaterialConditionImpl condition) {
-        return (pipeline.getIndex() << PIPELINE_SHIFT) | condition.index;
+    private static int computeIndex(MaterialShaderImpl shader, MaterialConditionImpl condition) {
+        return (shader.getIndex() << SHADER_SHIFT) | condition.index;
     }
     
-    private static final MaterialState[] VALUES = new MaterialState[MAX_RENDER_STATES];
+    private static final MaterialState[] VALUES = new MaterialState[MAX_MATERIAL_STATES];
     
     public static MaterialState get(int index) {
         return VALUES[index];
     }
     
-    public static MaterialState get(MaterialShaderImpl pipeline, MaterialConditionImpl condition) {
-        final int index = computeIndex(pipeline, condition);
+    public static MaterialState get(MaterialShaderImpl shader, MaterialConditionImpl condition) {
+        final int index = computeIndex(shader, condition);
         MaterialState result = VALUES[index];
         if(result == null) {
             synchronized(VALUES) {
                 result = VALUES[index];
                 if(result == null) {
-                    result = new MaterialState(pipeline, condition, index);
+                    result = new MaterialState(shader, condition, index);
                     VALUES[index] = result;
                 }
             }
@@ -49,12 +49,12 @@ public class MaterialState {
         return result;
     }
     
-    public final MaterialShaderImpl pipeline;
+    public final MaterialShaderImpl shader;
     public final MaterialConditionImpl condition;
     public final int index;
     
-    private MaterialState(MaterialShaderImpl pipeline, MaterialConditionImpl condition, int index) {
-        this.pipeline = pipeline;
+    private MaterialState(MaterialShaderImpl shader, MaterialConditionImpl condition, int index) {
+        this.shader = shader;
         this.condition = condition;
         this.index = index;
     }

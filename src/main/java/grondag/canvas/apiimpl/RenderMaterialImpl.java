@@ -101,7 +101,7 @@ public abstract class RenderMaterialImpl {
         BLEND_MODES[2] = BITPACKER.createNullableEnumElement(BlockRenderLayer.class);
         
         SPRITE_DEPTH = BITPACKER.createIntElement(1, MAX_SPRITE_DEPTH);
-        SHADER = BITPACKER.createIntElement(MaterialShaderManager.MAX_PIPELINES);
+        SHADER = BITPACKER.createIntElement(MaterialShaderManager.MAX_SHADERS);
         CONDITION = BITPACKER.createIntElement(MaterialConditionImpl.MAX_CONDITIONS);
         
         long defaultBits = 0;
@@ -299,14 +299,14 @@ public abstract class RenderMaterialImpl {
         
         @Override
         public synchronized Value find() {
-            MaterialShaderImpl p = shader == null ? MaterialShaderManager.INSTANCE.getDefaultPipeline(this.spriteDepth()) : shader;
-            if(p.spriteDepth != this.spriteDepth()) {
-                throw new UnsupportedOperationException("Material sprite depth must match pipeline sprite depth.");
+            MaterialShaderImpl s = shader == null ? MaterialShaderManager.INSTANCE.getDefault(this.spriteDepth()) : shader;
+            if(s.spriteDepth != this.spriteDepth()) {
+                throw new UnsupportedOperationException("Material sprite depth must match shader sprite depth.");
             }
-            SHADER.setValue(p.getIndex(), this);
+            SHADER.setValue(s.getIndex(), this);
             Value result = MAP.get(bits);
             if (result == null) {
-                result = new Value(LIST.size(), bits, p);
+                result = new Value(LIST.size(), bits, s);
                 LIST.add(result);
                 MAP.put(result.bits, result);
             }
