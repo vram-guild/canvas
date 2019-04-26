@@ -291,6 +291,7 @@ public class AoCalculator {
             lightPos.set(isOnBlockFace ? pos.offset(lightFace) : pos);
             AoFace aoFace = AoFace.get(lightFace);
 
+            // PERF: make these lookups lazy - they may not get used if neighbor is obscured
             searchPos.set(lightPos).setOffset(aoFace.neighbors[0]);
             final int light0 = brightnessFunc.applyAsInt(blockState, searchPos);
             final float ao0 = aoFunc.apply(searchPos);
@@ -304,13 +305,15 @@ public class AoCalculator {
             final int light3 = brightnessFunc.applyAsInt(blockState, searchPos);
             final float ao3 = aoFunc.apply(searchPos);
 
-            searchPos.set(lightPos).setOffset(aoFace.neighbors[0]).setOffset(lightFace);
+            // vanilla was further offsetting these in the direction of the light face
+            // but it was actually mis-sampling and causing visible artifacts in certain situation
+            searchPos.set(lightPos).setOffset(aoFace.neighbors[0]);//.setOffset(lightFace);
             final boolean isClear0 = world.getBlockState(searchPos).getLightSubtracted(world, searchPos) == 0;
-            searchPos.set(lightPos).setOffset(aoFace.neighbors[1]).setOffset(lightFace);
+            searchPos.set(lightPos).setOffset(aoFace.neighbors[1]);//.setOffset(lightFace);
             final boolean isClear1 = world.getBlockState(searchPos).getLightSubtracted(world, searchPos) == 0;
-            searchPos.set(lightPos).setOffset(aoFace.neighbors[2]).setOffset(lightFace);
+            searchPos.set(lightPos).setOffset(aoFace.neighbors[2]);//.setOffset(lightFace);
             final boolean isClear2 = world.getBlockState(searchPos).getLightSubtracted(world, searchPos) == 0;
-            searchPos.set(lightPos).setOffset(aoFace.neighbors[3]).setOffset(lightFace);
+            searchPos.set(lightPos).setOffset(aoFace.neighbors[3]);//.setOffset(lightFace);
             final boolean isClear3 = world.getBlockState(searchPos).getLightSubtracted(world, searchPos) == 0;
 
             // c = corner - values at corners of face
