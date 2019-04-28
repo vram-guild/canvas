@@ -43,7 +43,8 @@ public class CanvasGlHelper {
     static boolean useVboArb;
     static private boolean vaoEnabled = false;
     static private boolean useVaoArb = false;
-
+    static private boolean useGpuShader4 = false;
+    
     public static void init() {
         initFastNioCopy();
 
@@ -51,9 +52,14 @@ public class CanvasGlHelper {
         useVboArb = !caps.OpenGL15 && caps.GL_ARB_vertex_buffer_object;
         vaoEnabled = caps.GL_ARB_vertex_array_object || caps.OpenGL30;
         useVaoArb = !caps.OpenGL30 && caps.GL_ARB_vertex_array_object;
+        useGpuShader4 = caps.GL_EXT_gpu_shader4;
     }
 
     static private int attributeEnabledCount = 0;
+    
+    public static boolean useGpuShader4() {
+        return useGpuShader4;
+    }
     
     /**
      * Disables generic vertex attributes. 

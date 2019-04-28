@@ -23,7 +23,15 @@ varying float v_diffuse;
 varying vec4 v_color_0;
 varying vec2 v_texcoord_0;
 varying vec4 v_light;
-flat varying vec2 v_flags;
+
+#ifdef GL_EXT_gpu_shader4
+    // may be faster when available
+    flat varying vec2 v_flags;
+#else
+    // flat no available on mesa drivers and
+    // plain varying caused some issues in past with NVidia drivers
+    invariant varying vec2 v_flags;
+#endif
 
 #if LAYER_COUNT > 1
 varying vec4 v_color_1;

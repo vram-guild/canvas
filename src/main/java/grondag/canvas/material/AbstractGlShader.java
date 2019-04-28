@@ -126,6 +126,9 @@ abstract class AbstractGlShader {
         
         result = result.replaceAll("#define CONTEXT 0", "#define CONTEXT " + context.ordinal());
 
+        if(!CanvasGlHelper.useGpuShader4() ) {
+            result = result.replaceAll("#extension GL_EXT_gpu_shader4 : enable", "");
+        }
         return result;
     }
 
