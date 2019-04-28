@@ -23,7 +23,7 @@ varying float v_diffuse;
 varying vec4 v_color_0;
 varying vec2 v_texcoord_0;
 varying vec4 v_light;
-flat varying vec2 v_flags;
+varying vec2 v_flags;
 
 #if LAYER_COUNT > 1
 varying vec4 v_color_1;
