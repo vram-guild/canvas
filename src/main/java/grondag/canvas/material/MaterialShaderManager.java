@@ -31,6 +31,10 @@ import net.minecraft.entity.Entity;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec3d;
 
+//TODO: compact format/logic, white and colorized
+//TODO: option to draw cutout in separate pass -> may give early cull in solid
+//TODO: detect normal and other feature usage and drop back to smaller formats if unneeded
+
 public final class MaterialShaderManager implements ClientTickCallback {
     public static final MaterialVertexFormat[] FORMATS = MaterialVertexFormat.values();
     
