@@ -30,5 +30,7 @@ public class Canvas implements ModInitializer {
         RendererAccess.INSTANCE.registerRenderer(RendererImpl.INSTANCE);
     }
 
-    public static Logger LOG = LogManager.getLogger("Canvas");
+    public static final String MODID = "canvas";
+    
+    public static final Logger LOG = LogManager.getLogger("Canvas");
 }
