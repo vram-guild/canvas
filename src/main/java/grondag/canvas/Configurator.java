@@ -59,7 +59,7 @@ public class Configurator implements ModMenuApi {
     private static final Gson GSON = new GsonBuilder().create();
     private static final Jankson JANKSON = Jankson.builder().build();
     
-    public static int maxPipelines = DEFAULTS.maxPipelines;
+    public static int maxShaders = DEFAULTS.maxPipelines;
     public static boolean enableItemRender = DEFAULTS.enableItemRender;
     public static boolean enableShaderDebug = DEFAULTS.enableShaderDebug;
     
@@ -89,14 +89,14 @@ public class Configurator implements ModMenuApi {
         }
         enableItemRender = config.enableItemRender;
         enableShaderDebug = config.enableShaderDebug;
-        maxPipelines = config.maxPipelines;
+        maxShaders = config.maxPipelines;
     }
 
     private static void saveConfig() {
         ConfigData config = new ConfigData();
         config.enableItemRender = enableItemRender;
         config.enableShaderDebug = enableShaderDebug;
-        config.maxPipelines = maxPipelines;
+        config.maxPipelines = maxShaders;
         
         try {
             String result = JANKSON.toJson(config).toJson(true, true, 0);
@@ -124,8 +124,8 @@ public class Configurator implements ModMenuApi {
                 () -> DEFAULTS.enableItemRender, b -> enableItemRender = b, 
                 () -> Optional.of(I18n.translate("config.canvas.help.item_render").split(";"))));
         
-        rendering.addOption(new IntegerSliderEntry("config.canvas.value.max_materials", 128, 4096, maxPipelines, "config.canvas.reset", 
-                () -> DEFAULTS.maxPipelines, i -> maxPipelines = i, 
+        rendering.addOption(new IntegerSliderEntry("config.canvas.value.max_materials", 128, 4096, maxShaders, "config.canvas.reset", 
+                () -> DEFAULTS.maxPipelines, i -> maxShaders = i, 
                 () -> Optional.of(I18n.translate("config.canvas.help.max_materials").split(";"))));
         
         // DEBUG
@@ -143,7 +143,7 @@ public class Configurator implements ModMenuApi {
     }
     
     private static void saveUserInput(SavedConfig config) {
-        maxPipelines = MathHelper.smallestEncompassingPowerOfTwo(maxPipelines);
+        maxShaders = MathHelper.smallestEncompassingPowerOfTwo(maxShaders);
         saveConfig();
     }
     

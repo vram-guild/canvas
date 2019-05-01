@@ -32,9 +32,6 @@ import net.minecraft.entity.Entity;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec3d;
 
-//TODO: compact format/logic, white and colorized
-//TODO: option to draw cutout in separate pass -> may give early cull in solid
-//TODO: detect normal and other feature usage and drop back to smaller formats if unneeded
 
 public final class MaterialShaderManager implements ClientTickCallback {
     public static final MaterialVertexFormat[] FORMATS = MaterialVertexFormat.values();
@@ -42,14 +39,14 @@ public final class MaterialShaderManager implements ClientTickCallback {
     /**
      * Will always be 1, defined to clarify intent in code.
      */
-    public static final int FIRST_CUSTOM_PIPELINE_INDEX = 1;
+    public static final int FIRST_CUSTOM_SHADER_INDEX = 1;
 
     /**
      * Will always be 0, defined to clarify intent in code.
      */
-    public static final int VANILLA_MC_PIPELINE_INDEX = 0;
+    public static final int VANILLA_MC_SHADER_INDEX = 0;
 
-    public static final int MAX_SHADERS = Configurator.maxPipelines;
+    public static final int MAX_SHADERS = Configurator.maxShaders;
 
     public static final MaterialShaderManager INSTANCE = new MaterialShaderManager();
 
