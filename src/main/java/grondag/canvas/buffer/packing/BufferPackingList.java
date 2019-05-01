@@ -81,7 +81,7 @@ public class BufferPackingList {
         this.materialStates[size] = materialState;
         this.starts[size] = startVertex;
         this.counts[size] = vertexCount;
-        this.totalBytes += materialState.shader.piplineVertexFormat().vertexStrideBytes * vertexCount;
+        this.totalBytes += materialState.materialVertexFormat().vertexStrideBytes * vertexCount;
         this.size++;
     }
 

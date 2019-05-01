@@ -70,7 +70,7 @@ public class DrawableDelegate {
             result = new DrawableDelegate();
         }
         result.bufferDelegate = bufferDelegate;
-        result.renderState = renderState;
+        result.materialState = renderState;
         result.vertexCount = vertexCount;
         result.isReleased = false;
         result.vertexBinder = bufferDelegate.buffer().isVbo() 
@@ -83,7 +83,7 @@ public class DrawableDelegate {
     }
 
     private BufferDelegate bufferDelegate;
-    private MaterialState renderState;
+    private MaterialState materialState;
     private int vertexCount;
     private boolean isReleased = false;
     private VertexBinder vertexBinder;
@@ -120,7 +120,7 @@ public class DrawableDelegate {
      * The pipeline (and vertex format) associated with this delegate.
      */
     public MaterialState materialState() {
-        return this.renderState;
+        return this.materialState;
     }
 
     /**
@@ -133,7 +133,7 @@ public class DrawableDelegate {
             return;
 
         final boolean isNewBuffer = buffer.bindable().bind();
-        vertexBinder.bind(renderState.shader.piplineVertexFormat(), isNewBuffer);
+        vertexBinder.bind(materialState.materialVertexFormat(), isNewBuffer);
     }
 
     /**
@@ -159,7 +159,7 @@ public class DrawableDelegate {
                 VaoStore.releaseVertexArray(vaoBufferId);
                 vaoBufferId = -1;
             }
-            renderState =  null;
+            materialState =  null;
             store.offer(this);
         }
     }

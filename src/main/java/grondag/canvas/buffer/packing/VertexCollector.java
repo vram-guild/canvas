@@ -26,7 +26,7 @@ import net.minecraft.util.math.BlockPos;
 public class VertexCollector {
     private int[] data;
     private int integerSize = 0;
-    private MaterialState renderState;
+    private MaterialState materialState;
     public final VertexCollectorList parent;
 
     /**
@@ -52,17 +52,17 @@ public class VertexCollector {
     }
     
     public VertexCollector prepare(MaterialState pipeline) {
-        this.renderState = pipeline;
+        this.materialState = pipeline;
         return this;
     }
 
     public void clear() {
         this.integerSize = 0;
-        this.renderState = null;
+        this.materialState = null;
     }
 
     public MaterialState materialState() {
-        return this.renderState;
+        return this.materialState;
     }
 
     public int byteSize() {
@@ -74,7 +74,7 @@ public class VertexCollector {
     }
 
     public int vertexCount() {
-        return this.integerSize * 4 / this.renderState.shader.piplineVertexFormat().vertexStrideBytes;
+        return this.integerSize * 4 / this.materialState.materialVertexFormat().vertexStrideBytes;
     }
     
     public int quadCount() {
@@ -114,7 +114,7 @@ public class VertexCollector {
     }
 
     public final void pos(final BlockPos pos, float modelX, float modelY, float modelZ) {
-        this.checkForSize(this.renderState.shader.piplineVertexFormat().vertexStrideBytes);
+        this.checkForSize(this.materialState.materialVertexFormat().vertexStrideBytes);
         this.add((float)(pos.getX() - parent.renderOriginX + modelX));
         this.add((float)(pos.getY() - parent.renderOriginY + modelY));
         this.add((float)(pos.getZ() - parent.renderOriginZ + modelZ));
@@ -122,7 +122,7 @@ public class VertexCollector {
 
     /** for items */
     public final void pos(float modelX, float modelY, float modelZ) {
-        this.checkForSize(this.renderState.shader.piplineVertexFormat().vertexStrideBytes);
+        this.checkForSize(this.materialState.materialVertexFormat().vertexStrideBytes);
         this.add((float)(modelX));
         this.add((float)(modelY));
         this.add((float)(modelZ));
@@ -159,7 +159,7 @@ public class VertexCollector {
         private void doSort(VertexCollector caller, double x, double y, double z) {
             // works because 4 bytes per int
             data = caller.data;
-            quadIntStride = caller.renderState.shader.piplineVertexFormat().vertexStrideBytes;
+            quadIntStride = caller.materialState.materialVertexFormat().vertexStrideBytes;
             final int vertexIntStride = quadIntStride / 4;
             final int quadCount = caller.vertexCount() / 4;
             if (perQuadDistance.length < quadCount)
@@ -269,14 +269,14 @@ public class VertexCollector {
         if (result == null || result.length != outputSize)
             result = new int[outputSize];
 
-        result[0] = renderState.index;
+        result[0] = materialState.index;
         if (integerSize > 0)
             System.arraycopy(data, 0, result, 1, integerSize);
         return result;
     }
 
     public VertexCollector loadState(int[] stateData) {
-        this.renderState = MaterialState.get(stateData[0]);
+        this.materialState = MaterialState.get(stateData[0]);
         final int newSize = stateData.length - 1;
         integerSize = 0;
         if (newSize > 0) {

@@ -72,7 +72,7 @@ public abstract class DrawableChunk {
             final int limit = delegates.size();
             for(int i = 0; i < limit; i++) {
                 DrawableDelegate d = delegates.get(i);
-                result += d.bufferDelegate().byteCount() / d.materialState().shader.piplineVertexFormat().vertexStrideBytes / 4;
+                result += d.bufferDelegate().byteCount() / d.materialState().materialVertexFormat().vertexStrideBytes / 4;
             }
             quadCount = result;
         }

@@ -50,7 +50,7 @@ public class BufferPacker {
     }
 
     public void accept(MaterialState materialState, int vertexStart, int vertexCount) {
-        final int stride = materialState.shader.piplineVertexFormat().vertexStrideBytes;
+        final int stride = materialState.materialVertexFormat().vertexStrideBytes;
         allocator.claimAllocation(materialState, vertexCount * stride, ref -> {
             final int byteOffset = ref.byteOffset();
             final int byteCount = ref.byteCount();

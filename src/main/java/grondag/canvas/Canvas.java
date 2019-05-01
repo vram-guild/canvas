@@ -23,6 +23,7 @@ import grondag.canvas.apiimpl.RendererImpl;
 import grondag.frex.api.RendererAccess;
 import net.fabricmc.api.ModInitializer;
 
+//TODO: move sprite depth to shader props
 //TODO: dynamic vertex formats
 //TODO: configurable occlusion hook
 //TODO: configurable render region

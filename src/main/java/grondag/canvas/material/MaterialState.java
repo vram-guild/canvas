@@ -50,10 +50,12 @@ public class MaterialState {
         return result;
     }
     
+    //UGLY: encapsulate
     public final MaterialShaderImpl shader;
     public final MaterialConditionImpl condition;
     public final int index;
     public final int sortIndex;
+    //UGLY: encapsulate
     public final int shaderProps;
     
     private MaterialState(MaterialShaderImpl shader, MaterialConditionImpl condition, int index, int shaderProps) {
@@ -61,10 +63,14 @@ public class MaterialState {
         this.condition = condition;
         this.index = index;
         this.shaderProps = shaderProps;
-        this.sortIndex = (shader.piplineVertexFormat().ordinal() << 24) | index;
+        this.sortIndex = (shader.piplineVertexFormat(shaderProps).ordinal() << 24) | index;
     }
 
     public void activate(ShaderContext context) {
        shader.activate(context, shaderProps);
+    }
+    
+    public MaterialVertexFormat materialVertexFormat() {
+        return shader.piplineVertexFormat(shaderProps);
     }
 }

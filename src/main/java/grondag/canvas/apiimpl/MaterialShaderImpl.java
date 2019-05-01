@@ -20,12 +20,12 @@ import java.util.ArrayList;
 import java.util.function.Consumer;
 
 import grondag.canvas.material.GlFragmentShader;
+import grondag.canvas.material.GlProgram;
 import grondag.canvas.material.GlShaderManager;
 import grondag.canvas.material.GlVertexShader;
 import grondag.canvas.material.MaterialShaderManager;
 import grondag.canvas.material.MaterialVertexFormat;
 import grondag.canvas.material.ShaderContext;
-import grondag.canvas.material.GlProgram;
 import grondag.frex.api.material.MaterialShader;
 import grondag.frex.api.material.Uniform.Uniform1f;
 import grondag.frex.api.material.Uniform.Uniform1i;
@@ -37,7 +37,6 @@ import grondag.frex.api.material.Uniform.Uniform4f;
 import grondag.frex.api.material.Uniform.Uniform4i;
 import grondag.frex.api.material.Uniform.UniformMatrix4f;
 import grondag.frex.api.material.UniformRefreshFrequency;
-import net.minecraft.client.render.VertexFormat;
 import net.minecraft.util.Identifier;
 
 public final class MaterialShaderImpl implements MaterialShader {
@@ -51,16 +50,14 @@ public final class MaterialShaderImpl implements MaterialShader {
     private final ArrayList<Consumer<GlProgram>> uniforms = new ArrayList<>();
     
     public final int spriteDepth;
-    private MaterialVertexFormat pipelineVertexFormat;
-    private VertexFormat vertexFormat;
+    private MaterialVertexFormat vertexFormat;
 
     public MaterialShaderImpl(int index, Identifier vertexShader, Identifier fragmentShader, int spriteDepth) {
         this.vertexShader = vertexShader;
         this.fragmentShader = fragmentShader;
         this.index = index;
         this.spriteDepth = spriteDepth;
-        pipelineVertexFormat = MaterialShaderManager.FORMATS[spriteDepth - 1];
-        vertexFormat = pipelineVertexFormat.vertexFormat;
+        vertexFormat = MaterialShaderManager.FORMATS[spriteDepth - 1];
     }
 
     //PERF - could be better
@@ -118,14 +115,7 @@ public final class MaterialShaderImpl implements MaterialShader {
         return this.spriteDepth;
     }
 
-    public MaterialVertexFormat piplineVertexFormat() {
-        return this.pipelineVertexFormat;
-    }
-
-    /**
-     * Avoids a pointer chase, more concise code.
-     */
-    public VertexFormat vertexFormat() {
+    public MaterialVertexFormat piplineVertexFormat(int shaderProps) {
         return this.vertexFormat;
     }
 
