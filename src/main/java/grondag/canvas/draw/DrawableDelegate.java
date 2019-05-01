@@ -119,7 +119,7 @@ public class DrawableDelegate {
     /**
      * The pipeline (and vertex format) associated with this delegate.
      */
-    public MaterialState renderState() {
+    public MaterialState materialState() {
         return this.renderState;
     }
 

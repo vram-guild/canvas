@@ -233,7 +233,8 @@ public abstract class MixinChunkRenderer implements ChunkRendererExt {
                             FluidState fluidState = safeWorldView.getFluidState(searchPos);
                             if (!fluidState.isEmpty()) {
                                 renderLayer = fluidState.getRenderLayer();
-                                FluidBufferBuilder fluidBuilder = help.fluidBuilder.prepare(help.getCollector(renderLayer).get(RendererImpl.MATERIAL_STANDARD), searchPos, renderLayer);
+                                //TODO: apply appropriate shader props for fluids
+                                FluidBufferBuilder fluidBuilder = help.fluidBuilder.prepare(help.getCollector(renderLayer).get(RendererImpl.MATERIAL_STANDARD, 0), searchPos, renderLayer);
                                 blockRenderManager.tesselateFluid(searchPos, safeWorldView, fluidBuilder, fluidState);
                             }
 

@@ -19,30 +19,31 @@ package grondag.canvas.material;
 import grondag.canvas.apiimpl.MaterialConditionImpl;
 import grondag.canvas.apiimpl.MaterialShaderImpl;
 import grondag.fermion.varia.Useful;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 
 public class MaterialState {
-    private static final int SHADER_SHIFT = Useful.bitLength(MaterialConditionImpl.MAX_CONDITIONS);
+    private static final int SHADER_SHIFT = Useful.bitLength(MaterialConditionImpl.MAX_CONDITIONS) + ShaderProps.BITLENGTH;
     public static final int MAX_MATERIAL_STATES = MaterialConditionImpl.MAX_CONDITIONS * MaterialShaderManager.MAX_SHADERS;
 
-    private static int computeIndex(MaterialShaderImpl shader, MaterialConditionImpl condition) {
-        return (shader.getIndex() << SHADER_SHIFT) | condition.index;
+    private static int computeIndex(MaterialShaderImpl shader, MaterialConditionImpl condition, int shaderProps) {
+        return (shader.getIndex() << SHADER_SHIFT) | (shaderProps << ShaderProps.BITLENGTH) | condition.index;
     }
     
-    private static final MaterialState[] VALUES = new MaterialState[MAX_MATERIAL_STATES];
+    private static final Int2ObjectOpenHashMap<MaterialState> VALUES = new Int2ObjectOpenHashMap<>();
     
     public static MaterialState get(int index) {
-        return VALUES[index];
+        return VALUES.get(index);
     }
     
-    public static MaterialState get(MaterialShaderImpl shader, MaterialConditionImpl condition) {
-        final int index = computeIndex(shader, condition);
-        MaterialState result = VALUES[index];
+    public static MaterialState get(MaterialShaderImpl shader, MaterialConditionImpl condition, int shaderProps) {
+        final int index = computeIndex(shader, condition, shaderProps);
+        MaterialState result = VALUES.get(index);
         if(result == null) {
             synchronized(VALUES) {
-                result = VALUES[index];
+                result = VALUES.get(index);
                 if(result == null) {
                     result = new MaterialState(shader, condition, index);
-                    VALUES[index] = result;
+                    VALUES.put(index, result);
                 }
             }
         }
@@ -52,10 +53,12 @@ public class MaterialState {
     public final MaterialShaderImpl shader;
     public final MaterialConditionImpl condition;
     public final int index;
+    public final int sortIndex;
     
     private MaterialState(MaterialShaderImpl shader, MaterialConditionImpl condition, int index) {
         this.shader = shader;
         this.condition = condition;
         this.index = index;
+        this.sortIndex = (shader.piplineVertexFormat().ordinal() << 24) | index;
     }
 }

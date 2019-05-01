@@ -35,6 +35,12 @@ import net.fabricmc.api.ModInitializer;
 //TODO: configurable super smooth lighting
 //TODO: per chunk occlusion mesh - for sky shadow mask
 //TODO: per chunk depth mesh - addendum to occlusion mesh to render for depth pass - includes translucent cutout
+//TODO: first person dynamic light
+//FIX: block breaking?
+//FIX: lighting problems on nvidia cards?
+//FIX: try with resources
+//FIX: concise log messages for resource/shader failures
+
 
 public class Canvas implements ModInitializer {
     @Override

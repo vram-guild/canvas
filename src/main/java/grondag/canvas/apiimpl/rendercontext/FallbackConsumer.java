@@ -18,21 +18,23 @@ package grondag.canvas.apiimpl.rendercontext;
 
 import java.util.List;
 import java.util.Random;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.function.ToIntBiFunction;
 
 import grondag.canvas.apiimpl.MutableQuadViewImpl;
-import grondag.canvas.apiimpl.RendererImpl;
+import grondag.canvas.apiimpl.QuadViewImpl;
+import grondag.canvas.apiimpl.RenderMaterialImpl;
 import grondag.canvas.apiimpl.RenderMaterialImpl.Value;
+import grondag.canvas.apiimpl.RendererImpl;
 import grondag.canvas.apiimpl.util.AoCalculator;
 import grondag.canvas.apiimpl.util.GeometryHelper;
 import grondag.canvas.apiimpl.util.MeshEncodingHelper;
 import grondag.canvas.buffer.packing.VertexCollector;
 import grondag.canvas.varia.BakedQuadExt;
-import grondag.frex.api.model.ModelHelper;
 import grondag.frex.api.mesh.QuadEmitter;
+import grondag.frex.api.model.ModelHelper;
 import grondag.frex.api.render.RenderContext.QuadTransform;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.render.model.BakedModel;
@@ -65,7 +67,7 @@ public class FallbackConsumer extends QuadRenderer implements Consumer<BakedMode
     FallbackConsumer(
             BlockRenderInfo blockInfo, 
             ToIntBiFunction<BlockState, BlockPos> brightnessFunc, 
-            Function<Value, VertexCollector> collectorFunc, 
+            BiFunction<RenderMaterialImpl.Value, QuadViewImpl, VertexCollector> collectorFunc, 
             AoCalculator aoCalc, 
             QuadTransform transform, 
             Consumer<MutableQuadViewImpl> offsetFunc) {

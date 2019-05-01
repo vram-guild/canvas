@@ -16,13 +16,17 @@
 
 package grondag.canvas.buffer.packing;
 
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.PriorityQueue;
 import java.util.function.Consumer;
 
+import grondag.canvas.apiimpl.QuadViewImpl;
 import grondag.canvas.apiimpl.RenderMaterialImpl;
 import grondag.canvas.chunk.UploadableChunk;
 import grondag.canvas.material.MaterialState;
+import grondag.canvas.material.ShaderProps;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.util.math.MathHelper;
 
@@ -35,10 +39,10 @@ public class VertexCollectorList {
         }
     };
     
-    private static final Comparator<VertexCollector> solidComparator = new Comparator<VertexCollector>() {
+    private static final Comparator<Object> solidComparator = new Comparator<Object>() {
         @Override
-        public int compare(VertexCollector o1, VertexCollector o2) {
-            return Integer.compare(o1.pipeline().index, o2.pipeline().index);
+        public int compare(Object o1, Object o2) {
+            return Integer.compare(((VertexCollector)o1).materialState().sortIndex, ((VertexCollector)o2).materialState().sortIndex);
         }
     };
 
@@ -56,15 +60,13 @@ public class VertexCollectorList {
         }
     };
 
-    /**
-     * Fast lookup of buffers by pipeline index. Null in CUTOUT layer buffers.
-     */
-    private VertexCollector[] vertexCollectors = new VertexCollector[MaterialState.MAX_MATERIAL_STATES];
-
+    private final Int2ObjectOpenHashMap<VertexCollector> usedCollectors = new Int2ObjectOpenHashMap<>();
+    
     private final BufferPackingList packingList = new BufferPackingList();
     
-    private final ObjectArrayList<VertexCollector> emptyCollectors = new ObjectArrayList<>();
-    private final ObjectArrayList<VertexCollector> usedCollectors = new ObjectArrayList<>();
+    private int usedCount = 0;
+    
+    private final ObjectArrayList<VertexCollector> allCollectors = new ObjectArrayList<>();
     
     /** used in transparency layer sorting - updated with player eye coordinates */
     private double viewX;
@@ -87,14 +89,8 @@ public class VertexCollectorList {
         renderOriginX = 0;
         renderOriginY = 0;
         renderOriginZ = 0;
-
-        while(!usedCollectors.isEmpty()) {
-            VertexCollector vc = usedCollectors.pop();
-            assert vc == vertexCollectors[vc.pipeline().index] : "Mismatch between VCL used list and lookup array";
-            vertexCollectors[vc.pipeline().index] = null;
-            vc.clear();
-            emptyCollectors.push(vc);
-        }
+        usedCount = 0;
+        usedCollectors.clear();
     }
 
     @Override
@@ -104,7 +100,7 @@ public class VertexCollectorList {
     }
 
     public final boolean isEmpty() {
-        return usedCollectors.isEmpty();
+        return usedCount == 0;
     }
 
     /**
@@ -133,33 +129,42 @@ public class VertexCollectorList {
         renderOriginY = y;
         renderOriginZ = z;
     }
-
-    public final VertexCollector get(RenderMaterialImpl.Value material) {
-        return get(MaterialState.get(material.shader, material.condition));
+    
+    public final VertexCollector get(RenderMaterialImpl.Value material, QuadViewImpl quad) {
+        return get(material, ShaderProps.classify(material, quad));
+    }
+    
+    public final VertexCollector get(RenderMaterialImpl.Value material, int shaderProps) {
+        return get(MaterialState.get(material.shader, material.condition, shaderProps));
     }
     
     public final VertexCollector get(MaterialState renderState) {
         final int renderIndex = renderState.index;
-        VertexCollector result = vertexCollectors[renderIndex];
+        VertexCollector result = usedCollectors.get(renderIndex);
         if(result == null) {
             result = emptyCollector().prepare(renderState);
-            vertexCollectors[renderIndex] = result;
-            usedCollectors.add(result);
+            usedCollectors.put(renderIndex, result);
         }
         return result;
     }
     
     private VertexCollector emptyCollector() {
-        return emptyCollectors.isEmpty() ? new VertexCollector(this) : emptyCollectors.pop();
+        VertexCollector result;
+        if(usedCount == allCollectors.size()) {
+            result = new VertexCollector(this);
+            allCollectors.add(result);
+        } else {
+            result = allCollectors.get(usedCount);
+            result.clear();
+        }
+        usedCount++;
+        return result;
     }
     
     public final void forEachExisting(Consumer<VertexCollector> consumer) {
-        final int limit = usedCollectors.size();
-        if (limit == 0)
-            return;
-
-        for (int i = 0; i < limit; i++) {
-            consumer.accept(usedCollectors.get(i));
+        final int usedCount = this.usedCount;
+        for(int i = 0; i < usedCount; i++) {
+            consumer.accept(allCollectors.get(i));
         }
     }
 
@@ -171,17 +176,17 @@ public class VertexCollectorList {
         final BufferPackingList packing = this.packingList;
         packing.clear();
         
-        // NB: for solid render, relying on pipelines being added to packing in
-        // numerical order so that
-        // all chunks can iterate pipelines independently while maintaining same
-        // pipeline order within chunk
-        this.usedCollectors.sort(solidComparator);
+        final int usedCount = this.usedCount;
+        final Object[] collectors = this.allCollectors.elements();
         
-        forEachExisting(vertexCollector -> {
+        Arrays.sort(collectors, 0, usedCount, solidComparator);
+        
+        for(int i = 0; i < usedCount; i++) {
+            final VertexCollector vertexCollector = (VertexCollector) collectors[i];
             final int vertexCount = vertexCollector.vertexCount();
             if (vertexCount != 0)
-                packing.addPacking(vertexCollector.pipeline(), 0, vertexCount);
-        });
+                packing.addPacking(vertexCollector.materialState(), 0, vertexCount);
+        }
         return packing;
     }
     
@@ -209,24 +214,26 @@ public class VertexCollectorList {
         final double z = viewZ - renderOriginZ;
 
         // Sort quads within each pipeline, while accumulating in priority queue
-        forEachExisting(vertexCollector -> {
+        final int usedCount = this.usedCount;
+        for(int i = 0; i < usedCount; i++) {
+            final VertexCollector vertexCollector = allCollectors.get(i);
             if (vertexCollector.vertexCount() != 0) {
                 vertexCollector.sortQuads(x, y, z);
                 sorter.add(vertexCollector);
             }
-        });
+        }
 
         // exploit special case when only one transparent pipeline in this render chunk
         if (sorter.size() == 1) {
             VertexCollector only = sorter.poll();
-            packing.addPacking(only.pipeline(), 0, only.vertexCount());
+            packing.addPacking(only.materialState(), 0, only.vertexCount());
         } else if (sorter.size() != 0) {
             VertexCollector first = sorter.poll();
             VertexCollector second = sorter.poll();
             do {
                 // x4 because packing is vertices vs quads
                 final int startVertex = first.sortReadIndex() * 4;
-                packing.addPacking(first.pipeline(), startVertex, 4 * first.unpackUntilDistance(second.firstUnpackedDistance()));
+                packing.addPacking(first.materialState(), startVertex, 4 * first.unpackUntilDistance(second.firstUnpackedDistance()));
 
                 if (first.hasUnpackedSortedQuads())
                     sorter.add(first);
@@ -237,7 +244,7 @@ public class VertexCollectorList {
             } while (second != null);
 
             final int startVertex = first.sortReadIndex() * 4;
-            packing.addPacking(first.pipeline(), startVertex, 4 * first.unpackUntilDistance(Double.MIN_VALUE));
+            packing.addPacking(first.materialState(), startVertex, 4 * first.unpackUntilDistance(Double.MIN_VALUE));
         }
         return packing;
     }
@@ -250,14 +257,14 @@ public class VertexCollectorList {
     public int[][] getCollectorState(int[][] priorState) {
         int[][] result = priorState;
 
-        final int limit = usedCollectors.size();
-        if (result == null || result.length != limit) {
-            result = new int[limit][0];
+        final int usedCount = this.usedCount;
+            
+        if (result == null || result.length != usedCount) {
+            result = new int[usedCount][0];
         }
         
-        for (int i = 0; i < limit; i++) {
-            VertexCollector vc = this.usedCollectors.get(i);
-            result[i] = vc == null ? null : vc.saveState(result[i]);
+        for(int i = 0; i < usedCount; i++) {
+            result[i] = allCollectors.get(i).saveState(result[i]); 
         }
         
         return result;
@@ -267,8 +274,7 @@ public class VertexCollectorList {
         clear();
         for (int[] data : stateData) {
             VertexCollector vc = emptyCollector().loadState(data);
-            usedCollectors.add(vc);
-            vertexCollectors[vc.pipeline().index] = vc;
+            usedCollectors.put(vc.materialState().index, vc);
         }
     }
 }

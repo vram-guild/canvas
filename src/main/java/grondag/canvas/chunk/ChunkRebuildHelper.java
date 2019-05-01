@@ -22,6 +22,7 @@ import java.util.Set;
 
 import com.google.common.collect.Sets;
 
+import grondag.canvas.apiimpl.QuadViewImpl;
 import grondag.canvas.apiimpl.RenderMaterialImpl;
 import grondag.canvas.buffer.packing.FluidBufferBuilder;
 import grondag.canvas.buffer.packing.VertexCollector;
@@ -50,8 +51,8 @@ public class ChunkRebuildHelper {
         return layer == BlockRenderLayer.TRANSLUCENT ? translucentCollector : solidCollector;
     }
     
-    public VertexCollector collectorForMaterial(RenderMaterialImpl.Value mat) {
-        return getCollector(mat.renderLayer).get(mat);
+    public VertexCollector collectorForMaterial(RenderMaterialImpl.Value mat, QuadViewImpl quad) {
+        return getCollector(mat.renderLayer).get(mat, quad);
     }
 
     public void clear() {

@@ -18,11 +18,12 @@ package grondag.canvas.apiimpl.rendercontext;
 
 import static grondag.canvas.apiimpl.util.GeometryHelper.LIGHT_FACE_FLAG;
 
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.ToIntBiFunction;
 
 import grondag.canvas.apiimpl.MutableQuadViewImpl;
+import grondag.canvas.apiimpl.QuadViewImpl;
 import grondag.canvas.apiimpl.RenderMaterialImpl;
 import grondag.canvas.apiimpl.util.AoCalculator;
 import grondag.canvas.apiimpl.util.ColorHelper;
@@ -41,7 +42,7 @@ public class QuadRenderer {
     public static final Consumer<MutableQuadViewImpl> NO_OFFSET = (q) -> {};
     
     protected final ToIntBiFunction<BlockState, BlockPos> brightnessFunc;
-    protected final Function<RenderMaterialImpl.Value, VertexCollector> collectorFunc;
+    protected final BiFunction<RenderMaterialImpl.Value, QuadViewImpl, VertexCollector> collectorFunc;
     protected final BlockRenderInfo blockInfo;
     protected final AoCalculator aoCalc;
     protected final QuadTransform transform;
@@ -51,7 +52,7 @@ public class QuadRenderer {
     QuadRenderer(
             BlockRenderInfo blockInfo, 
             ToIntBiFunction<BlockState, BlockPos> brightnessFunc,
-            Function<RenderMaterialImpl.Value, VertexCollector> collectorFunc, 
+            BiFunction<RenderMaterialImpl.Value, QuadViewImpl, VertexCollector> collectorFunc, 
             AoCalculator aoCalc, 
             QuadTransform transform,
             Consumer<MutableQuadViewImpl> offsetFunc) {
@@ -82,7 +83,7 @@ public class QuadRenderer {
         }
 
         final RenderMaterialImpl.Value mat = q.material().forRenderLayer(blockInfo.defaultLayerIndex);
-        final VertexCollector output = collectorFunc.apply(mat);
+        final VertexCollector output = collectorFunc.apply(mat, q);
         
         final boolean isAo = blockInfo.defaultAo && mat.hasAo;
         if (isAo) {

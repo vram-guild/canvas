@@ -61,7 +61,7 @@ public class VertexCollector {
         this.renderState = null;
     }
 
-    public MaterialState pipeline() {
+    public MaterialState materialState() {
         return this.renderState;
     }
 

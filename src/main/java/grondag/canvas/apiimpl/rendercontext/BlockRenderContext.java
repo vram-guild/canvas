@@ -18,6 +18,7 @@ package grondag.canvas.apiimpl.rendercontext;
 
 import java.util.function.Consumer;
 
+import grondag.canvas.apiimpl.QuadViewImpl;
 import grondag.canvas.apiimpl.RenderMaterialImpl;
 import grondag.canvas.apiimpl.util.AoCalculator;
 import grondag.canvas.buffer.packing.CanvasBufferBuilder;
@@ -66,9 +67,9 @@ public class BlockRenderContext extends AbstractRenderContext implements RenderC
         return blockView.getBlockState(pos).getAmbientOcclusionLightLevel(blockView, pos);
     }
 
-    private VertexCollector getCollector(RenderMaterialImpl.Value mat) {
+    private VertexCollector getCollector(RenderMaterialImpl.Value mat, QuadViewImpl quad) {
         didOutput = true;
-        return canvasBuilder.vcList.get(mat);
+        return canvasBuilder.vcList.get(mat, quad);
     }
 
     public boolean tesselate(BlockModelRenderer vanillaRenderer, TerrainBlockView blockView, BakedModel model,

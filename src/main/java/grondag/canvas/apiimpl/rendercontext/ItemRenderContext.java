@@ -172,7 +172,7 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
         }
 
         RenderMaterialImpl.Value mat = enchantment ? glintMaterial : quad.material();
-        final VertexCollector output = canvasBuilder.vcList.get(mat);
+        final VertexCollector output = canvasBuilder.vcList.get(mat, quad);
         final int shaderFlags = mat.shaderFlags() << 16;
 
         handleShading();

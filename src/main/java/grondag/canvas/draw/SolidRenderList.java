@@ -37,7 +37,7 @@ import it.unimi.dsi.fastutil.ints.AbstractIntComparator;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 /**
- * Accumulates and renders delegates in pipeline, buffer order.<p>
+ * Accumulates and renders delegates in material-state, buffer order.<p>
  * 
  * Note there is no translucent version of this, because translucent
  * must always be rendered in quad-sort order and thus we don't accumulate
@@ -62,7 +62,7 @@ public class SolidRenderList implements Consumer<ObjectArrayList<DrawableDelegat
             DrawableDelegate a = (DrawableDelegate) delegates[aIndex];
             DrawableDelegate b = (DrawableDelegate) delegates[bIndex];
             return ComparisonChain.start()
-                    .compare(a.renderState().index, b.renderState().index)
+                    .compare(a.materialState().sortIndex, b.materialState().sortIndex)
                     .compare(a.bufferId(), b.bufferId())
                     .result();
         }
@@ -106,18 +106,15 @@ public class SolidRenderList implements Consumer<ObjectArrayList<DrawableDelegat
         sorter.delegates = draws;
         Arrays.quickSort(0, limit, sorter, sorter);
 
-        //TODO: needed?
-        ((DrawableDelegate) draws[0]).renderState().shader.activate(context);
-        
         MaterialShaderImpl lastShader = null;
         final int frameIndex = MaterialShaderManager.INSTANCE.frameIndex();
 
         for (int i = 0; i < limit; i++) {
             final DrawableDelegate b = (DrawableDelegate) draws[i];
-            final MaterialConditionImpl condition = b.renderState().condition;
+            final MaterialConditionImpl condition = b.materialState().condition;
             
             if(!condition.affectBlocks || condition.compute(frameIndex)) {
-                final MaterialShaderImpl thisShader = b.renderState().shader;
+                final MaterialShaderImpl thisShader = b.materialState().shader;
                 if(thisShader != lastShader) {
                     thisShader.activate(context);
                     lastShader = thisShader;
