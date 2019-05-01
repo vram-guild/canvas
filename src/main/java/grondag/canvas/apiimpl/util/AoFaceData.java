@@ -21,6 +21,14 @@ package grondag.canvas.apiimpl.util;
  * provides various utility methods to simplify code elsewhere.
  */
 class AoFaceData {
+    
+    //TODO: remove - was a mock to test shade map texture
+//    void countAo() {
+//        UtilityTexture.instance().shadeMap(a0, a1, a2, a3);
+//        UtilityTexture.instance().shadeMap((float)b0 / 0xFFFF, (float)b1 / 0xFFFF, (float)b2 / 0xFFFF, (float)b3 / 0xFFFF);
+//        UtilityTexture.instance().shadeMap((float)s0 / 0xFFFF, (float)s1 / 0xFFFF, (float)s2 / 0xFFFF, (float)s3 / 0xFFFF);
+//    }
+    
     float a0;
     float a1;
     float a2;

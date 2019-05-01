@@ -22,6 +22,7 @@ import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.RenderMaterialImpl;
 import grondag.canvas.apiimpl.MaterialShaderImpl;
 import grondag.canvas.varia.FogStateExtHolder;
+import grondag.canvas.varia.UtilityTexture;
 import grondag.frex.api.material.UniformRefreshFrequency;
 import net.fabricmc.fabric.api.event.client.ClientTickCallback;
 import net.minecraft.client.MinecraftClient;
@@ -229,6 +230,9 @@ public final class MaterialShaderManager implements ClientTickCallback {
         for (int i = 0; i < this.shaderCount; i++) {
             shaders[i].onGameTick();
         }
+        
+        //UGLY: put this somwhere else? Central tick handler?
+        UtilityTexture.instance().tick();
     }
     
     public void onRenderTick() {

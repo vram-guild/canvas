@@ -95,8 +95,7 @@ public class AoCalculator {
     public final float[] ao = new float[4];
     public final int[] light = new int[4];
 
-    public AoCalculator(BlockRenderInfo blockInfo, ToIntBiFunction<BlockState, BlockPos> brightnessFunc,
-            AoFunc aoFunc) {
+    public AoCalculator(BlockRenderInfo blockInfo, ToIntBiFunction<BlockState, BlockPos> brightnessFunc, AoFunc aoFunc) {
         this.blockInfo = blockInfo;
         this.brightnessFunc = brightnessFunc;
         this.aoFunc = aoFunc;
@@ -326,6 +325,10 @@ public class AoCalculator {
             // light subtraction)
             // then we use values from the outwardly diagonal corner. (outwardly = position
             // is one more away from light face)
+            
+            // FIXME: probably an anisotropy problem here because we choose an arbitrary side
+            // when both side are not clear and they do not have to have the same ao valuw.
+            // Probably doesn't matter in vanilla where the only ao values are apparently 0.2 and 1.0.
             if (!isClear2 && !isClear0) {
                 cAo0 = ao0;
                 cLight0 = light0;
@@ -384,6 +387,9 @@ public class AoCalculator {
             result.l1(meanBrightness(light2, light0, cLight0, lightCenter));
             result.l2(meanBrightness(light2, light1, cLight2, lightCenter));
             result.l3(meanBrightness(light3, light1, cLight3, lightCenter));
+            
+            //TODO: replace with call to ShadeMap
+//            result.countAo();
         }
         return result;
     }
