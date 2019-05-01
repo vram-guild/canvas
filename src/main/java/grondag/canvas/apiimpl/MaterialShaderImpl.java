@@ -64,7 +64,7 @@ public final class MaterialShaderImpl implements MaterialShader {
     }
 
     //PERF - could be better
-    public void activate(ShaderContext context) {
+    public void activate(ShaderContext context, int shaderProps) {
         switch(context) {
         case BLOCK_SOLID:
             solidProgram.activate();

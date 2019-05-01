@@ -42,7 +42,7 @@ public class MaterialState {
             synchronized(VALUES) {
                 result = VALUES.get(index);
                 if(result == null) {
-                    result = new MaterialState(shader, condition, index);
+                    result = new MaterialState(shader, condition, index, shaderProps);
                     VALUES.put(index, result);
                 }
             }
@@ -54,11 +54,17 @@ public class MaterialState {
     public final MaterialConditionImpl condition;
     public final int index;
     public final int sortIndex;
+    public final int shaderProps;
     
-    private MaterialState(MaterialShaderImpl shader, MaterialConditionImpl condition, int index) {
+    private MaterialState(MaterialShaderImpl shader, MaterialConditionImpl condition, int index, int shaderProps) {
         this.shader = shader;
         this.condition = condition;
         this.index = index;
+        this.shaderProps = shaderProps;
         this.sortIndex = (shader.piplineVertexFormat().ordinal() << 24) | index;
+    }
+
+    public void activate(ShaderContext context) {
+       shader.activate(context, shaderProps);
     }
 }

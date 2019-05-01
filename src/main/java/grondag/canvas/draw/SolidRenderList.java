@@ -28,6 +28,7 @@ import grondag.canvas.apiimpl.MaterialConditionImpl;
 import grondag.canvas.apiimpl.MaterialShaderImpl;
 import grondag.canvas.buffer.allocation.BindStateManager;
 import grondag.canvas.material.MaterialShaderManager;
+import grondag.canvas.material.MaterialState;
 import grondag.canvas.material.ShaderContext;
 import grondag.canvas.material.GlProgram;
 import grondag.canvas.varia.CanvasGlHelper;
@@ -107,17 +108,20 @@ public class SolidRenderList implements Consumer<ObjectArrayList<DrawableDelegat
         Arrays.quickSort(0, limit, sorter, sorter);
 
         MaterialShaderImpl lastShader = null;
+        int lastProps = -1;
+        
         final int frameIndex = MaterialShaderManager.INSTANCE.frameIndex();
 
         for (int i = 0; i < limit; i++) {
             final DrawableDelegate b = (DrawableDelegate) draws[i];
-            final MaterialConditionImpl condition = b.materialState().condition;
+            final MaterialState state = b.materialState();
+            final MaterialConditionImpl condition = state.condition;
             
             if(!condition.affectBlocks || condition.compute(frameIndex)) {
-                final MaterialShaderImpl thisShader = b.materialState().shader;
-                if(thisShader != lastShader) {
-                    thisShader.activate(context);
-                    lastShader = thisShader;
+                if(state.shader != lastShader || state.shaderProps != lastProps) {
+                    state.activate(context);
+                    lastShader = state.shader;
+                    lastProps = state.shaderProps;
                 }
                 b.bind();
                 b.draw();

@@ -145,7 +145,7 @@ public abstract class DrawableChunk {
                 final DrawableDelegate b = (DrawableDelegate) draws[i];
                 MaterialState p = b.materialState();
                 if(!p.condition.affectBlocks || p.condition.compute(frameIndex)) {
-                    p.shader.activate(ShaderContext.BLOCK_TRANSLUCENT);
+                    p.activate(ShaderContext.BLOCK_TRANSLUCENT);
                     b.bind();
                     b.draw();
                 }
