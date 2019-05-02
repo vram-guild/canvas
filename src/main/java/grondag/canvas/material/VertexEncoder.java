@@ -1,17 +1,64 @@
 package grondag.canvas.material;
 
+import static grondag.canvas.material.MaterialVertextFormatElement.BASE_RGBA_4UB;
+import static grondag.canvas.material.MaterialVertextFormatElement.BASE_TEX_2F;
+import static grondag.canvas.material.MaterialVertextFormatElement.LIGHTMAPS_4UB;
+import static grondag.canvas.material.MaterialVertextFormatElement.NORMAL_AO_4UB;
+import static grondag.canvas.material.MaterialVertextFormatElement.POSITION_3F;
+import static grondag.canvas.material.MaterialVertextFormatElement.SECONDARY_RGBA_4UB;
+import static grondag.canvas.material.MaterialVertextFormatElement.SECONDARY_TEX_2F;
+import static grondag.canvas.material.MaterialVertextFormatElement.TERTIARY_RGBA_4UB;
+import static grondag.canvas.material.MaterialVertextFormatElement.TERTIARY_TEX_2F;
+
 import grondag.canvas.apiimpl.QuadViewImpl;
 import grondag.canvas.apiimpl.RenderMaterialImpl;
 import grondag.canvas.apiimpl.rendercontext.ItemRenderContext;
 import grondag.canvas.apiimpl.util.ColorHelper;
 import grondag.canvas.buffer.packing.VertexCollector;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import net.minecraft.client.render.VertexFormat;
 import net.minecraft.util.math.BlockPos;
 
 public class VertexEncoder {
-    private static final MaterialVertexFormat[] FORMATS = MaterialVertexFormat.values();
+    private static final Int2ObjectOpenHashMap<MaterialVertexFormat> formats = new Int2ObjectOpenHashMap<>();
+
+    // Note that all logic for what is in or out is in ShaderProps
+    // so that if compact is disabled we'll never see those options here
+    // This keeps the key space compact.
     
     public static MaterialVertexFormat format(int shaderProps) {
-        return FORMATS[ShaderProps.spriteDepth(shaderProps) - 1];
+        MaterialVertexFormat result = formats.get(shaderProps);
+        if(result == null) {
+            synchronized(formats) {
+                result = formats.get(shaderProps);
+                if(result == null) {
+                    result = buildFormat(shaderProps);
+                    formats.put(shaderProps, result);
+                }
+            }
+        }
+        return result;
+    }
+    
+    public static void forceReload() {
+        synchronized(formats) {
+            formats.clear();
+        }
+    }
+    
+    private static MaterialVertexFormat buildFormat(int shaderProps) {
+        final int spriteDepth = ShaderProps.spriteDepth(shaderProps);
+        
+        VertexFormat inner = new VertexFormat().add(POSITION_3F).add(BASE_RGBA_4UB).add(BASE_TEX_2F).add(LIGHTMAPS_4UB).add(NORMAL_AO_4UB);
+        
+        if(spriteDepth > 1) {
+            inner.add(SECONDARY_RGBA_4UB).add(SECONDARY_TEX_2F);
+            if(spriteDepth == 3) {
+                inner.add(TERTIARY_RGBA_4UB).add(TERTIARY_TEX_2F);
+            }
+        }
+        
+        return new MaterialVertexFormat(inner);
     }
     
     public static void encodeBlock(QuadViewImpl q, RenderMaterialImpl.Value mat, ShaderContext context, VertexCollector output, BlockPos pos, float[] aoData) {

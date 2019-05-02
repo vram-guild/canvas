@@ -99,6 +99,7 @@ public final class ShaderManager implements ClientTickCallback {
     
     public void forceReload() {
         GlShaderManager.INSTANCE.forceReload();
+        VertexEncoder.forceReload();
         for (int i = 0; i < this.shaderCount; i++) {
             this.shaders[i].forceReload();
         }

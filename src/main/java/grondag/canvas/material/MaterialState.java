@@ -64,7 +64,7 @@ public class MaterialState {
         this.index = index;
         this.shaderProps = shaderProps;
         assert ShaderProps.spriteDepth(shaderProps) > 0;
-        this.sortIndex = (shader.piplineVertexFormat(shaderProps).ordinal() << 24) | index;
+        this.sortIndex = (shader.piplineVertexFormat(shaderProps).vertexStrideBytes << 24) | index;
     }
 
     public void activate(ShaderContext context) {

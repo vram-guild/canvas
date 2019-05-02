@@ -16,16 +16,6 @@
 
 package grondag.canvas.material;
 
-import static grondag.canvas.material.MaterialVertextFormatElement.BASE_RGBA_4UB;
-import static grondag.canvas.material.MaterialVertextFormatElement.BASE_TEX_2F;
-import static grondag.canvas.material.MaterialVertextFormatElement.LIGHTMAPS_4UB;
-import static grondag.canvas.material.MaterialVertextFormatElement.NORMAL_AO_4UB;
-import static grondag.canvas.material.MaterialVertextFormatElement.POSITION_3F;
-import static grondag.canvas.material.MaterialVertextFormatElement.SECONDARY_RGBA_4UB;
-import static grondag.canvas.material.MaterialVertextFormatElement.SECONDARY_TEX_2F;
-import static grondag.canvas.material.MaterialVertextFormatElement.TERTIARY_RGBA_4UB;
-import static grondag.canvas.material.MaterialVertextFormatElement.TERTIARY_TEX_2F;
-
 import java.nio.ByteBuffer;
 
 import org.lwjgl.opengl.GL20;
@@ -33,30 +23,9 @@ import org.lwjgl.opengl.GL20;
 import grondag.canvas.varia.CanvasGlHelper;
 import net.minecraft.client.render.VertexFormat;
 
-public enum MaterialVertexFormat {
-    SINGLE(0,
-            new VertexFormat().add(POSITION_3F).add(BASE_RGBA_4UB).add(BASE_TEX_2F).add(LIGHTMAPS_4UB).add(NORMAL_AO_4UB)),
-    /**
-     * Adds one extra color and texture coordinate. Use for two-layered textures.
-     */
-    DOUBLE(1,
-            new VertexFormat().add(POSITION_3F).add(BASE_RGBA_4UB).add(BASE_TEX_2F).add(LIGHTMAPS_4UB).add(NORMAL_AO_4UB)
-                    .add(SECONDARY_RGBA_4UB).add(SECONDARY_TEX_2F)),
-    /**
-     * Adds two extra colors and texture coordinates. Use for three-layered
-     * materials.
-     */
-    TRIPLE(2,
-            new VertexFormat().add(POSITION_3F).add(BASE_RGBA_4UB).add(BASE_TEX_2F).add(LIGHTMAPS_4UB).add(NORMAL_AO_4UB)
-                    .add(SECONDARY_RGBA_4UB).add(SECONDARY_TEX_2F)
-                    .add(TERTIARY_RGBA_4UB).add(TERTIARY_TEX_2F));
+public class MaterialVertexFormat {
 
     public final VertexFormat vertexFormat;
-
-    /**
-     * Will be a unique, 0-based ordinal within the current lighting model.
-     */
-    public final int layerIndex;
 
     public final int attributeCount;
     
@@ -65,8 +34,7 @@ public enum MaterialVertexFormat {
 
     private final MaterialVertextFormatElement[] elements;
 
-    private MaterialVertexFormat(int layerIndex, VertexFormat vertexFormat) {
-        this.layerIndex = layerIndex;
+    public MaterialVertexFormat(VertexFormat vertexFormat) {
         this.vertexFormat = vertexFormat;
         this.vertexStrideBytes = vertexFormat.getVertexSize();
         this.elements = vertexFormat.getElements()
