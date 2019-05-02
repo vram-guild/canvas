@@ -41,17 +41,17 @@ abstract class AbstractGlShader {
     public final Identifier shaderSource;
 
     private final int shaderType;
-    public final int spriteDepth;
-    public final ShaderContext context;
+    private final int shaderProps;
+    private final ShaderContext context;
 
     private int glId = -1;
     private boolean needsLoad = true;
     private boolean isErrored = false;
 
-    AbstractGlShader(Identifier shaderSource, int shaderType, int spriteDepth, ShaderContext context) {
+    AbstractGlShader(Identifier shaderSource, int shaderType, int shaderProps, ShaderContext context) {
         this.shaderSource = shaderSource;
         this.shaderType = shaderType;
-        this.spriteDepth = spriteDepth;
+        this.shaderProps = shaderProps;
         this.context = context;
     }
 
@@ -85,7 +85,7 @@ abstract class AbstractGlShader {
             final String source = this.getSource();
             
             if(Configurator.enableShaderDebug) {
-                final String key = shaderSource.toString().replace("/", "-") + "."  + context.toString() +  "." + spriteDepth;
+                final String key = shaderSource.toString().replace("/", "-") + "."  + context.toString() +  "." + shaderProps;
                 File gameDir = FabricLoader.getInstance().getGameDirectory();
                 File shaderDir = new File(gameDir.getAbsolutePath().replace(".", "canvas_shader_debug"));
                 if(!shaderDir.exists()) {
@@ -111,7 +111,7 @@ abstract class AbstractGlShader {
                 this.glId = -1;
             }
             Canvas.LOG.error(I18n.translate("misc.fail_create_shader", this.shaderSource.toString(),
-                    Integer.toString(this.spriteDepth), e.getMessage()));
+                    Integer.toString(this.shaderProps), e.getMessage()));
         }
     }
 
@@ -120,9 +120,10 @@ abstract class AbstractGlShader {
         result = result.replaceAll("#version\\s+120", "");
         result = librarySource + result;
 
+        final int spriteDepth = ShaderProps.spriteDepth(shaderProps);
+        
         if (spriteDepth > 1)
             result = result.replaceAll("#define LAYER_COUNT 1", String.format("#define LAYER_COUNT %d", spriteDepth));
-
         
         result = result.replaceAll("#define CONTEXT 0", "#define CONTEXT " + context.ordinal());
 

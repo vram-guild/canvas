@@ -20,7 +20,7 @@ import java.util.function.Consumer;
 
 import grondag.canvas.draw.DelegateLists;
 import grondag.canvas.draw.DrawableDelegate;
-import grondag.canvas.material.MaterialShaderManager;
+import grondag.canvas.material.ShaderManager;
 import grondag.canvas.material.MaterialState;
 import grondag.canvas.material.ShaderContext;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
@@ -137,7 +137,7 @@ public abstract class DrawableChunk {
             
             final Object[] draws = delegates.elements();
 
-            final int frameIndex = MaterialShaderManager.INSTANCE.frameIndex();
+            final int frameIndex = ShaderManager.INSTANCE.frameIndex();
             
             // using conventional loop here to prevent iterator garbage in hot loop
             // profiling shows it matters

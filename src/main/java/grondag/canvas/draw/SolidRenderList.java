@@ -27,7 +27,7 @@ import com.mojang.blaze3d.platform.GlStateManager;
 import grondag.canvas.apiimpl.MaterialConditionImpl;
 import grondag.canvas.apiimpl.MaterialShaderImpl;
 import grondag.canvas.buffer.allocation.BindStateManager;
-import grondag.canvas.material.MaterialShaderManager;
+import grondag.canvas.material.ShaderManager;
 import grondag.canvas.material.MaterialState;
 import grondag.canvas.material.ShaderContext;
 import grondag.canvas.material.GlProgram;
@@ -110,7 +110,7 @@ public class SolidRenderList implements Consumer<ObjectArrayList<DrawableDelegat
         MaterialShaderImpl lastShader = null;
         int lastProps = -1;
         
-        final int frameIndex = MaterialShaderManager.INSTANCE.frameIndex();
+        final int frameIndex = ShaderManager.INSTANCE.frameIndex();
 
         for (int i = 0; i < limit; i++) {
             final DrawableDelegate b = (DrawableDelegate) draws[i];

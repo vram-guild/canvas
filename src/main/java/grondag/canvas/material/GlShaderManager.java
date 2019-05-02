@@ -48,27 +48,26 @@ public final class GlShaderManager {
         return String.format("%s.%s.%s", shaderSource.toString(), spriteDepth, context.ordinal());
     }
 
-    public GlVertexShader getOrCreateVertexShader(Identifier shaderSource, int spriteDepth, ShaderContext context) {
-        final String shaderKey = shaderKey(shaderSource, spriteDepth, context);
+    public GlVertexShader getOrCreateVertexShader(Identifier shaderSource, int shaderProps, ShaderContext context) {
+        final String shaderKey = shaderKey(shaderSource, shaderProps, context);
 
         synchronized (vertexShaders) {
             GlVertexShader result = vertexShaders.get(shaderKey);
             if (result == null) {
-                result = new GlVertexShader(shaderSource, spriteDepth, context);
+                result = new GlVertexShader(shaderSource, shaderProps, context);
                 vertexShaders.put(shaderKey, result);
             }
             return result;
         }
     }
 
-    public GlFragmentShader getOrCreateFragmentShader(Identifier shaderSourceId, int spriteDepth,
-            ShaderContext context) {
-        final String shaderKey = shaderKey(shaderSourceId, spriteDepth, context);
+    public GlFragmentShader getOrCreateFragmentShader(Identifier shaderSourceId, int shaderProps, ShaderContext context) {
+        final String shaderKey = shaderKey(shaderSourceId, shaderProps, context);
 
         synchronized (fragmentShaders) {
             GlFragmentShader result = fragmentShaders.get(shaderKey);
             if (result == null) {
-                result = new GlFragmentShader(shaderSourceId, spriteDepth, context);
+                result = new GlFragmentShader(shaderSourceId, shaderProps, context);
                 fragmentShaders.put(shaderKey, result);
             }
             return result;

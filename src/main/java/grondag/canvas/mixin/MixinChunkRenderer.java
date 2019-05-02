@@ -41,6 +41,7 @@ import grondag.canvas.chunk.ChunkRendererExt;
 import grondag.canvas.chunk.DrawableChunk.Solid;
 import grondag.canvas.chunk.DrawableChunk.Translucent;
 import grondag.canvas.chunk.UploadableChunk;
+import grondag.canvas.material.ShaderProps;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockRenderLayer;
 import net.minecraft.block.BlockRenderType;
@@ -234,7 +235,7 @@ public abstract class MixinChunkRenderer implements ChunkRendererExt {
                             if (!fluidState.isEmpty()) {
                                 renderLayer = fluidState.getRenderLayer();
                                 //TODO: apply appropriate shader props for fluids
-                                FluidBufferBuilder fluidBuilder = help.fluidBuilder.prepare(help.getCollector(renderLayer).get(RendererImpl.MATERIAL_STANDARD, 0), searchPos, renderLayer);
+                                FluidBufferBuilder fluidBuilder = help.fluidBuilder.prepare(help.getCollector(renderLayer).get(RendererImpl.MATERIAL_STANDARD, ShaderProps.waterProps()), searchPos, renderLayer);
                                 blockRenderManager.tesselateFluid(searchPos, safeWorldView, fluidBuilder, fluidState);
                             }
 
@@ -265,11 +266,9 @@ public abstract class MixinChunkRenderer implements ChunkRendererExt {
                         abandoned.cancel();
                     }
                 }
-                
 
                 /**
-                 * Release all references. Probably not necessary but would be $#%! to debug if
-                 * it is.
+                 * Release all references. Probably not necessary but would be $#%! to debug if it is.
                  */
                 renderContext.release();
                 BlockModelRenderer.disableBrightnessCache();

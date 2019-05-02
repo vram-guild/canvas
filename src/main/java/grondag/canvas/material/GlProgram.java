@@ -406,12 +406,11 @@ public class GlProgram {
         return addUniform(new Uniform4iImpl(name, initializer, frequency));
     }
 
-    public GlProgram(GlVertexShader vertexShader, GlFragmentShader fragmentShader, int spriteDepth,
-            boolean isSolidLayer) {
+    public GlProgram(GlVertexShader vertexShader, GlFragmentShader fragmentShader, int shaderProps, boolean isSolidLayer) {
         this.vertexShader = vertexShader;
         this.fragmentShader = fragmentShader;
-        this.spriteDepth = spriteDepth;
-        this.pipelineVertexFormat = MaterialShaderManager.FORMATS[spriteDepth - 1];
+        this.spriteDepth = ShaderProps.spriteDepth(shaderProps);
+        this.pipelineVertexFormat = VertexEncoder.format(shaderProps);
         this.isSolidLayer = isSolidLayer;
     }
 

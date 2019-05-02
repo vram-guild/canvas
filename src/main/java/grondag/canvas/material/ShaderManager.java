@@ -19,7 +19,6 @@ package grondag.canvas.material;
 import org.joml.Vector3f;
 
 import grondag.canvas.Configurator;
-import grondag.canvas.apiimpl.RenderMaterialImpl;
 import grondag.canvas.apiimpl.MaterialShaderImpl;
 import grondag.canvas.varia.FogStateExtHolder;
 import grondag.canvas.varia.UtilityTexture;
@@ -33,31 +32,18 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec3d;
 
 
-public final class MaterialShaderManager implements ClientTickCallback {
-    public static final MaterialVertexFormat[] FORMATS = MaterialVertexFormat.values();
-    
-    /**
-     * Will always be 1, defined to clarify intent in code.
-     */
-    public static final int FIRST_CUSTOM_SHADER_INDEX = 1;
-
-    /**
-     * Will always be 0, defined to clarify intent in code.
-     */
-    public static final int VANILLA_MC_SHADER_INDEX = 0;
-
+public final class ShaderManager implements ClientTickCallback {
     public static final int MAX_SHADERS = Configurator.maxShaders;
 
-    public static final MaterialShaderManager INSTANCE = new MaterialShaderManager();
+    public static final ShaderManager INSTANCE = new ShaderManager();
 
-    private final MaterialShaderImpl[] shaders = new MaterialShaderImpl[MaterialShaderManager.MAX_SHADERS];
+    private final MaterialShaderImpl[] shaders = new MaterialShaderImpl[ShaderManager.MAX_SHADERS];
 
     private int shaderCount = 0;
 
-    private final MaterialShaderImpl[] defaultShaders = new MaterialShaderImpl[RenderMaterialImpl.MAX_SPRITE_DEPTH];
+    private final MaterialShaderImpl defaultShader;
     private final MaterialShaderImpl waterShader;
     private final MaterialShaderImpl lavaShader;
-    public final MaterialShaderImpl defaultSingleShader;
 
     /**
      * The number of seconds this world has been rendering since the last render
@@ -96,20 +82,15 @@ public final class MaterialShaderManager implements ClientTickCallback {
      */
     private Vector3f emissiveColor = new Vector3f(1f, 1f, 1f);
     
-    private MaterialShaderManager() {
+    private ShaderManager() {
         super();
 
         ClientTickCallback.EVENT.register(this);
         
-        // add default pipelines
-        for (int i = 0; i < RenderMaterialImpl.MAX_SPRITE_DEPTH; i++) {
-            defaultShaders[i] = (MaterialShaderImpl) this
-                    .create(i + 1, GlShaderManager.DEFAULT_VERTEX_SOURCE,
-                            GlShaderManager.DEFAULT_FRAGMENT_SOURCE);
-        }
-        this.waterShader = this.create(1, GlShaderManager.WATER_VERTEX_SOURCE, GlShaderManager.WATER_FRAGMENT_SOURCE);
-        this.lavaShader = this.create(1, GlShaderManager.LAVA_VERTEX_SOURCE, GlShaderManager.LAVA_FRAGMENT_SOURCE);
-        this.defaultSingleShader = defaultShaders[0];
+        // add default shaders
+        defaultShader= this.create(GlShaderManager.DEFAULT_VERTEX_SOURCE, GlShaderManager.DEFAULT_FRAGMENT_SOURCE);
+        waterShader = this.create(GlShaderManager.WATER_VERTEX_SOURCE, GlShaderManager.WATER_FRAGMENT_SOURCE);
+        lavaShader = this.create(GlShaderManager.LAVA_VERTEX_SOURCE, GlShaderManager.LAVA_FRAGMENT_SOURCE);
     }
 
     public void updateEmissiveColor(int color) {
@@ -123,8 +104,7 @@ public final class MaterialShaderManager implements ClientTickCallback {
         }
     }
 
-    public final synchronized MaterialShaderImpl create(int spriteDepth, Identifier vertexShaderSource,
-            Identifier fragmentShaderSource) {
+    public final synchronized MaterialShaderImpl create(Identifier vertexShaderSource, Identifier fragmentShaderSource) {
 
         if(vertexShaderSource == null) {
             vertexShaderSource = GlShaderManager.DEFAULT_VERTEX_SOURCE;
@@ -134,11 +114,11 @@ public final class MaterialShaderManager implements ClientTickCallback {
             fragmentShaderSource = GlShaderManager.DEFAULT_FRAGMENT_SOURCE;
         }
         
-        if (this.shaderCount >= MaterialShaderManager.MAX_SHADERS) {
+        if (this.shaderCount >= ShaderManager.MAX_SHADERS) {
             throw new IndexOutOfBoundsException(I18n.translate("error.canvas.max_materials_exceeded"));
         }
 
-        MaterialShaderImpl result = new MaterialShaderImpl(this.shaderCount++, vertexShaderSource, fragmentShaderSource, spriteDepth);
+        MaterialShaderImpl result = new MaterialShaderImpl(this.shaderCount++, vertexShaderSource, fragmentShaderSource);
         this.shaders[result.getIndex()] = result;
 
         addStandardUniforms(result);
@@ -150,16 +130,16 @@ public final class MaterialShaderManager implements ClientTickCallback {
         return shaders[index];
     }
 
-    public final MaterialShaderImpl getDefault(int spriteDepth) {
-        return shaders[spriteDepth - 1];
+    public final MaterialShaderImpl getDefault() {
+        return defaultShader;
     }
 
     public final MaterialShaderImpl getWater() {
-        return Configurator.fancyFluids ? this.waterShader : this.defaultSingleShader;
+        return Configurator.fancyFluids ? this.waterShader : this.defaultShader;
     }
 
     public final MaterialShaderImpl getLava() {
-        return Configurator.fancyFluids ? this.lavaShader : this.defaultSingleShader;
+        return Configurator.fancyFluids ? this.lavaShader : this.defaultShader;
     }
 
     /**

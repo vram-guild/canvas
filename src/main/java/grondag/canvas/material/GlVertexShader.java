@@ -21,8 +21,8 @@ import com.mojang.blaze3d.platform.GLX;
 import net.minecraft.util.Identifier;
 
 public final class GlVertexShader extends AbstractGlShader {
-    GlVertexShader(Identifier shaderSource, int spriteDepth, ShaderContext context) {
-        super(shaderSource, GLX.GL_VERTEX_SHADER, spriteDepth, context);
+    GlVertexShader(Identifier shaderSource, int shaderProps, ShaderContext context) {
+        super(shaderSource, GLX.GL_VERTEX_SHADER, shaderProps, context);
     }
 
     @Override

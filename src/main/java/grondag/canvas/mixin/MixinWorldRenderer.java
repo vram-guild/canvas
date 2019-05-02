@@ -31,7 +31,7 @@ import grondag.canvas.chunk.ChunkRendererDispatcherExt;
 import grondag.canvas.chunk.ChunkRendererListExt;
 import grondag.canvas.chunk.occlusion.ChunkOcclusionBuilderAccessHelper;
 import grondag.canvas.chunk.occlusion.ChunkOcclusionMap;
-import grondag.canvas.material.MaterialShaderManager;
+import grondag.canvas.material.ShaderManager;
 import net.minecraft.block.BlockRenderLayer;
 import net.minecraft.client.render.Camera;
 import net.minecraft.client.render.ChunkRenderDispatcher;
@@ -50,7 +50,7 @@ public abstract class MixinWorldRenderer {
     
     @Inject(method = "setUpTerrain", at = @At("HEAD"), cancellable = false, require = 1)
     private void onPrepareTerrain(Camera camera, VisibleRegion region, int int_1, boolean boolean_1, CallbackInfo ci) {
-        MaterialShaderManager.INSTANCE.prepareForFrame(camera);
+        ShaderManager.INSTANCE.prepareForFrame(camera);
     }
     
     /**

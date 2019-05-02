@@ -16,7 +16,7 @@
 
 package grondag.canvas.apiimpl;
 
-import grondag.canvas.material.MaterialShaderManager;
+import grondag.canvas.material.ShaderManager;
 import grondag.fermion.varia.BitPacker64;
 import grondag.fermion.varia.BitPacker64.BooleanElement;
 import grondag.frex.api.material.RenderMaterial;
@@ -101,7 +101,7 @@ public abstract class RenderMaterialImpl {
         BLEND_MODES[2] = BITPACKER.createNullableEnumElement(BlockRenderLayer.class);
         
         SPRITE_DEPTH = BITPACKER.createIntElement(1, MAX_SPRITE_DEPTH);
-        SHADER = BITPACKER.createIntElement(MaterialShaderManager.MAX_SHADERS);
+        SHADER = BITPACKER.createIntElement(ShaderManager.MAX_SHADERS);
         CONDITION = BITPACKER.createIntElement(MaterialConditionImpl.MAX_CONDITIONS);
         
         long defaultBits = 0;
@@ -299,10 +299,7 @@ public abstract class RenderMaterialImpl {
         
         @Override
         public synchronized Value find() {
-            MaterialShaderImpl s = shader == null ? MaterialShaderManager.INSTANCE.getDefault(this.spriteDepth()) : shader;
-            if(s.spriteDepth != this.spriteDepth()) {
-                throw new UnsupportedOperationException("Material sprite depth must match shader sprite depth.");
-            }
+            MaterialShaderImpl s = shader == null ? ShaderManager.INSTANCE.getDefault() : shader;
             SHADER.setValue(s.getIndex(), this);
             Value result = MAP.get(bits);
             if (result == null) {

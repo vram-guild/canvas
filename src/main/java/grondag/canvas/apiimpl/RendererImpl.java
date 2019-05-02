@@ -22,7 +22,7 @@ import java.util.function.BooleanSupplier;
 import grondag.canvas.Canvas;
 import grondag.canvas.apiimpl.RenderMaterialImpl.Finder;
 import grondag.canvas.apiimpl.RenderMaterialImpl.Value;
-import grondag.canvas.material.MaterialShaderManager;
+import grondag.canvas.material.ShaderManager;
 import grondag.frex.api.mesh.MeshBuilder;
 import grondag.frex.api.material.RenderMaterial;
 import grondag.frex.api.Renderer;
@@ -90,7 +90,7 @@ public class RendererImpl implements Renderer, RenderReloadCallback {
     @Override
     public void reload() {
         Canvas.LOG.info(I18n.translate("info.canvas.reloading"));
-        MaterialShaderManager.INSTANCE.forceReload();
+        ShaderManager.INSTANCE.forceReload();
     }
 
     @Override

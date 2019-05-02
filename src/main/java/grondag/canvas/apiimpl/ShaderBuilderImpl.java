@@ -19,7 +19,7 @@ package grondag.canvas.apiimpl;
 import java.util.ArrayList;
 import java.util.function.Consumer;
 
-import grondag.canvas.material.MaterialShaderManager;
+import grondag.canvas.material.ShaderManager;
 import grondag.frex.api.material.MaterialShader;
 import grondag.frex.api.material.ShaderBuilder;
 import grondag.frex.api.material.Uniform.Uniform1f;
@@ -39,11 +39,9 @@ public class ShaderBuilderImpl implements ShaderBuilder {
     private Identifier fragmentSource;
     private final ArrayList<Consumer<MaterialShaderImpl>> uniforms = new ArrayList<>();
     
-    private int spriteDepth = 1;
-    
     @Override
     public MaterialShader build() {
-        MaterialShaderImpl result = MaterialShaderManager.INSTANCE.create(spriteDepth, vertexSource, fragmentSource);
+        MaterialShaderImpl result = ShaderManager.INSTANCE.create(vertexSource, fragmentSource);
         uniforms.forEach(u -> u.accept(result));
         vertexSource = null;
         fragmentSource = null;
@@ -63,9 +61,10 @@ public class ShaderBuilderImpl implements ShaderBuilder {
         return this;
     }
 
+    
     @Override
+    @Deprecated // will have no effect
     public ShaderBuilderImpl spriteDepth(int depth) {
-        this.spriteDepth = depth;
         return this;
     }
     

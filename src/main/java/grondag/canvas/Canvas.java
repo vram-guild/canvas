@@ -24,6 +24,7 @@ import grondag.frex.api.RendererAccess;
 import net.fabricmc.api.ModInitializer;
 
 //TODO: move sprite depth to shader props
+//TODO: GlVertexShader needs to accept props instead of depth
 //TODO: dynamic vertex formats
 //TODO: configurable occlusion hook
 //TODO: configurable render region
@@ -39,6 +40,7 @@ import net.fabricmc.api.ModInitializer;
 //TODO: per chunk occlusion mesh - for sky shadow mask
 //TODO: per chunk depth mesh - addendum to occlusion mesh to render for depth pass - includes translucent cutout
 //TODO: first person dynamic light
+//TODO: deprecate sprite depth on FREX shader builder
 //FIX: block breaking?
 //FIX: lighting problems on nvidia cards?
 //FIX: try with resources
