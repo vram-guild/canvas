@@ -35,7 +35,7 @@ import grondag.canvas.apiimpl.util.MeshEncodingHelper;
 import grondag.canvas.buffer.packing.CanvasBufferBuilder;
 import grondag.canvas.buffer.packing.VertexCollector;
 import grondag.canvas.draw.TessellatorExt;
-import grondag.canvas.material.ShaderContext;
+import grondag.canvas.material.VertexEncoder;
 import grondag.canvas.varia.BakedQuadExt;
 import grondag.frex.api.mesh.Mesh;
 import grondag.frex.api.mesh.QuadEmitter;
@@ -55,10 +55,14 @@ import net.minecraft.util.math.Direction;
  * Context for non-terrain block rendering.
  */
 public class ItemRenderContext extends AbstractRenderContext implements RenderContext {
-    private static int playerLightIndex;
+    private static int playerLightmap;
     
-    public static void playerLightMapIndex(int index) {
-        playerLightIndex = index;
+    public static void playerLightmap(int lightmap) {
+        playerLightmap = lightmap;
+    }
+    
+    public static int playerLightmap() {
+        return playerLightmap;
     }
     
     private final ItemColorMap colorMap;
@@ -173,40 +177,12 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 
         RenderMaterialImpl.Value mat = enchantment ? glintMaterial : quad.material();
         final VertexCollector output = canvasBuilder.vcList.get(mat, quad);
-        final int shaderFlags = mat.shaderFlags() << 16;
 
         handleShading();
         
         ColorHelper.colorizeQuad(quad, quadColor());
         
-        final int depth = mat.spriteDepth();
-        
-        for(int i = 0; i < 4; i++) {
-            output.pos(quad.x(i), quad.y(i), quad.z(i));
-            output.add(quad.spriteColor(i, 0));
-            output.add(quad.spriteU(i, 0));
-            output.add(quad.spriteV(i, 0));
-            int packedLight = quad.lightmap(i);
-            if(tessellatorExt.canvas_context() == ShaderContext.ITEM_WORLD) {
-                packedLight = ColorHelper.maxBrightness(packedLight, playerLightIndex);
-            }
-            int blockLight = (packedLight & 0xFF);
-            int skyLight = ((packedLight >> 16) & 0xFF);
-            output.add(blockLight | (skyLight << 8) | shaderFlags);
-            output.add(quad.packedNormal(i) | 0x7F000000);
-            
-            if(depth > 1) {
-                output.add(quad.spriteColor(i, 1));
-                output.add(quad.spriteU(i, 1));
-                output.add(quad.spriteV(i, 1));
-                
-                if(depth == 3) {
-                    output.add(quad.spriteColor(i, 2));
-                    output.add(quad.spriteU(i, 2));
-                    output.add(quad.spriteV(i, 2));
-                }
-            }
-        }
+        VertexEncoder.encodeItem(quad, mat, tessellatorExt.canvas_context(), output);
     }
 
     @Override

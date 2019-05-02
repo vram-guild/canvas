@@ -35,6 +35,6 @@ public class MixinFirstPersonRenderer {
     @Inject(at = @At("HEAD"), method = "applyLightmap")
     private void onApplyLightmap(CallbackInfo ci) {
         AbstractClientPlayerEntity player = this.client.player;
-        ItemRenderContext.playerLightMapIndex(this.client.world.getLightmapIndex(new BlockPos(player.x, player.y + (double)player.getStandingEyeHeight(), player.z), 0));
+        ItemRenderContext.playerLightmap(this.client.world.getLightmapIndex(new BlockPos(player.x, player.y + (double)player.getStandingEyeHeight(), player.z), 0));
     }
 }

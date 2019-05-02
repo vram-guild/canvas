@@ -24,7 +24,6 @@ import grondag.frex.api.RendererAccess;
 import net.fabricmc.api.ModInitializer;
 
 //TODO: move sprite depth to shader props
-//TODO: GlVertexShader needs to accept props instead of depth
 //TODO: dynamic vertex formats
 //TODO: configurable occlusion hook
 //TODO: configurable render region

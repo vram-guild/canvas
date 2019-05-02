@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.function.ToIntBiFunction;
 
@@ -32,6 +33,7 @@ import grondag.canvas.apiimpl.util.AoCalculator;
 import grondag.canvas.apiimpl.util.GeometryHelper;
 import grondag.canvas.apiimpl.util.MeshEncodingHelper;
 import grondag.canvas.buffer.packing.VertexCollector;
+import grondag.canvas.material.ShaderContext;
 import grondag.canvas.varia.BakedQuadExt;
 import grondag.frex.api.mesh.QuadEmitter;
 import grondag.frex.api.model.ModelHelper;
@@ -70,8 +72,9 @@ public class FallbackConsumer extends QuadRenderer implements Consumer<BakedMode
             BiFunction<RenderMaterialImpl.Value, QuadViewImpl, VertexCollector> collectorFunc, 
             AoCalculator aoCalc, 
             QuadTransform transform, 
-            Consumer<MutableQuadViewImpl> offsetFunc) {
-        super(blockInfo, brightnessFunc, collectorFunc, aoCalc, transform, offsetFunc);
+            Consumer<MutableQuadViewImpl> offsetFunc,
+            Function<RenderMaterialImpl.Value, ShaderContext> contextFunc) {
+        super(blockInfo, brightnessFunc, collectorFunc, aoCalc, transform, offsetFunc, contextFunc);
         this.editorQuad = new Maker();
     }
     

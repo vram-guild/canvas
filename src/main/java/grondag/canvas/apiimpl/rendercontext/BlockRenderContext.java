@@ -42,12 +42,16 @@ import net.minecraft.world.ExtendedBlockView;
  * Context for non-terrain block rendering.
  */
 public class BlockRenderContext extends AbstractRenderContext implements RenderContext {
+    private static ShaderContext contextFunc(RenderMaterialImpl.Value mat) {
+        return ShaderContext.BLOCK_SOLID;
+    }
+    
     private final BlockRenderInfo blockInfo = new BlockRenderInfo();
     private final AoCalculator aoCalc = new AoCalculator(blockInfo, this::brightness, this::aoLevel);
     private final MeshConsumer meshConsumer = new MeshConsumer(blockInfo, this::brightness, this::getCollector, aoCalc,
-            this::transform, QuadRenderer.NO_OFFSET);
+            this::transform, QuadRenderer.NO_OFFSET, BlockRenderContext::contextFunc);
     private final FallbackConsumer fallbackConsumer = new FallbackConsumer(blockInfo, this::brightness, this::getCollector, aoCalc,
-            this::transform, QuadRenderer.NO_OFFSET);
+            this::transform, QuadRenderer.NO_OFFSET, BlockRenderContext::contextFunc);
     private final TessellatorExt tesselatorExt = (TessellatorExt) Tessellator.getInstance();
     private CanvasBufferBuilder canvasBuilder;
     private boolean didOutput = false;

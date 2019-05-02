@@ -51,8 +51,8 @@ public class VertexCollector {
         this.parent = parent;
     }
     
-    public VertexCollector prepare(MaterialState pipeline) {
-        this.materialState = pipeline;
+    public VertexCollector prepare(MaterialState materialState) {
+        this.materialState = materialState;
         return this;
     }
 

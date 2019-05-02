@@ -18,6 +18,7 @@ package grondag.canvas.apiimpl.rendercontext;
 
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.ToIntBiFunction;
 
 import grondag.canvas.apiimpl.MeshImpl;
@@ -29,6 +30,7 @@ import grondag.canvas.apiimpl.RendererImpl;
 import grondag.canvas.apiimpl.util.AoCalculator;
 import grondag.canvas.apiimpl.util.MeshEncodingHelper;
 import grondag.canvas.buffer.packing.VertexCollector;
+import grondag.canvas.material.ShaderContext;
 import grondag.frex.api.mesh.Mesh;
 import grondag.frex.api.mesh.QuadEmitter;
 import grondag.frex.api.render.RenderContext.QuadTransform;
@@ -47,8 +49,9 @@ public class MeshConsumer extends QuadRenderer implements Consumer<Mesh> {
             BiFunction<RenderMaterialImpl.Value, QuadViewImpl, VertexCollector> collectorFunc, 
             AoCalculator aoCalc, 
             QuadTransform transform,
-            Consumer<MutableQuadViewImpl> offsetFunc) {
-        super(blockInfo, brightnessFunc, collectorFunc, aoCalc, transform, offsetFunc);
+            Consumer<MutableQuadViewImpl> offsetFunc,
+            Function<RenderMaterialImpl.Value, ShaderContext> contextFunction) {
+        super(blockInfo, brightnessFunc, collectorFunc, aoCalc, transform, offsetFunc, contextFunction);
         editorQuad = new Maker();
     }
 

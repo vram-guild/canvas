@@ -20,6 +20,7 @@ import static grondag.canvas.apiimpl.util.GeometryHelper.LIGHT_FACE_FLAG;
 
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.ToIntBiFunction;
 
 import grondag.canvas.apiimpl.MutableQuadViewImpl;
@@ -30,6 +31,8 @@ import grondag.canvas.apiimpl.util.ColorHelper;
 import grondag.canvas.apiimpl.util.GeometryHelper;
 import grondag.canvas.apiimpl.util.MeshEncodingHelper;
 import grondag.canvas.buffer.packing.VertexCollector;
+import grondag.canvas.material.ShaderContext;
+import grondag.canvas.material.VertexEncoder;
 import grondag.frex.api.render.RenderContext.QuadTransform;
 import net.minecraft.block.BlockState;
 import net.minecraft.util.math.BlockPos;
@@ -48,20 +51,22 @@ public class QuadRenderer {
     protected final QuadTransform transform;
     protected MutableQuadViewImpl editorQuad;
     protected final Consumer<MutableQuadViewImpl> offsetFunc;
-    
+    protected final Function<RenderMaterialImpl.Value, ShaderContext> contextFunc;
     QuadRenderer(
             BlockRenderInfo blockInfo, 
             ToIntBiFunction<BlockState, BlockPos> brightnessFunc,
             BiFunction<RenderMaterialImpl.Value, QuadViewImpl, VertexCollector> collectorFunc, 
             AoCalculator aoCalc, 
             QuadTransform transform,
-            Consumer<MutableQuadViewImpl> offsetFunc) {
+            Consumer<MutableQuadViewImpl> offsetFunc,
+            Function<RenderMaterialImpl.Value, ShaderContext> contextFunc) {
         this.blockInfo = blockInfo;
         this.brightnessFunc = brightnessFunc;
         this.collectorFunc = collectorFunc;
         this.aoCalc = aoCalc;
         this.transform = transform;
         this.offsetFunc = offsetFunc;
+        this.contextFunc = contextFunc;
     }
 
     /** handles block color and red-blue swizzle, common to all renders */
@@ -110,33 +115,7 @@ public class QuadRenderer {
     }
     
     private void encodeQuad(MutableQuadViewImpl q, VertexCollector output, RenderMaterialImpl.Value mat, boolean isAo) {
-        final int shaderFlags = mat.shaderFlags() << 16;
-        final int depth = mat.spriteDepth();
-        
-        for(int i = 0; i < 4; i++) {
-            output.pos(blockInfo.blockPos, q.x(i), q.y(i), q.z(i));
-            output.add(q.spriteColor(i, 0));
-            output.add(q.spriteU(i, 0));
-            output.add(q.spriteV(i, 0));
-            int packedLight = q.lightmap(i);
-            int blockLight = (packedLight & 0xFF);
-            int skyLight = ((packedLight >> 16) & 0xFF);
-            output.add(blockLight | (skyLight << 8) | shaderFlags);
-            int ao = isAo ? ((Math.round(aoCalc.ao[i] * 254) - 127) << 24) : 0xFF000000;
-            output.add(q.packedNormal(i) | ao);
-            
-            if(depth > 1) {
-                output.add(q.spriteColor(i, 1));
-                output.add(q.spriteU(i, 1));
-                output.add(q.spriteV(i, 1));
-                
-                if(depth == 3) {
-                    output.add(q.spriteColor(i, 2));
-                    output.add(q.spriteU(i, 2));
-                    output.add(q.spriteV(i, 2));
-                }
-            }
-        }
+        VertexEncoder.encodeBlock(q, mat, contextFunc.apply(mat), output, blockInfo.blockPos, isAo ? aoCalc.ao : null);
     }
     
     //UGLY: ugly hack is ugly
