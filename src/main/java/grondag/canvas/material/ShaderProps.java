@@ -34,11 +34,16 @@ public abstract class ShaderProps {
     public static final int SIMPLE_BLOCKLIGHT = 128;
     public static final int CUTOUT_SPLIT = 256;
     
-    public static final int BITMASK = 511;
-    public static final int BITLENGTH = 9;
+    private static final int FLAGS_LENGTH = 9;
+    
+    public static final int BITLENGTH = FLAGS_LENGTH + 2;
     
     public static int classify(RenderMaterialImpl.Value material, QuadViewImpl quad) {
-        return 0;
+        return material.spriteDepth() << FLAGS_LENGTH;
+    }
+    
+    public static int spriteDepth(int props) {
+        return (props >> FLAGS_LENGTH) & 3;
     }
     
 }

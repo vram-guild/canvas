@@ -32,9 +32,10 @@ import net.fabricmc.api.ModInitializer;
 //TODO: configurable vanilla model vertex adjustment
 //TODO: configurable compact vertex formats - GPU side  white, face, unlit, pixel-aligned, etc.
 //TODO: configurable compressed vertex formats - CPU side (maybe wait for Brocade Mesh)
-//TODO: remove configurable shader/condition limits
+//TODO: remove configurable shader/condition limits?
 //TODO: capture & log more GL capability info - allow disable, enabled by default
 //TODO: configurable super smooth lighting
+//TODO: remove quad splitting smooth lighting
 //TODO: per chunk occlusion mesh - for sky shadow mask
 //TODO: per chunk depth mesh - addendum to occlusion mesh to render for depth pass - includes translucent cutout
 //TODO: first person dynamic light
