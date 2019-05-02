@@ -53,6 +53,14 @@ public class Configurator implements ModMenuApi {
         
         @Comment("Applies material properties and shaders to items. (WIP)")
         boolean enableItemRender = false;
+
+        //TODO: docs
+        @Comment("TODO")
+        boolean preventTerrainShadingAnisotropy = false;
+        
+        //TODO: docs
+        @Comment("TODO")
+        boolean enableCompactGPUFormats = true;
     }
     
     static final ConfigData DEFAULTS = new ConfigData();
@@ -62,6 +70,8 @@ public class Configurator implements ModMenuApi {
     public static int maxShaders = DEFAULTS.maxPipelines;
     public static boolean enableItemRender = DEFAULTS.enableItemRender;
     public static boolean enableShaderDebug = DEFAULTS.enableShaderDebug;
+    public static boolean preventTerrainShadingAnisotropy = DEFAULTS.preventTerrainShadingAnisotropy;
+    public static boolean enableCompactGPUFormats = DEFAULTS.enableCompactGPUFormats;
     
     /** use to stash parent screen during display */
     private static Screen screenIn;
@@ -90,6 +100,8 @@ public class Configurator implements ModMenuApi {
         enableItemRender = config.enableItemRender;
         enableShaderDebug = config.enableShaderDebug;
         maxShaders = config.maxPipelines;
+        preventTerrainShadingAnisotropy = config.preventTerrainShadingAnisotropy;
+        enableCompactGPUFormats = config.enableCompactGPUFormats;
     }
 
     private static void saveConfig() {
@@ -97,6 +109,8 @@ public class Configurator implements ModMenuApi {
         config.enableItemRender = enableItemRender;
         config.enableShaderDebug = enableShaderDebug;
         config.maxPipelines = maxShaders;
+        config.preventTerrainShadingAnisotropy = preventTerrainShadingAnisotropy;
+        config.enableCompactGPUFormats = enableCompactGPUFormats;
         
         try {
             String result = JANKSON.toJson(config).toJson(true, true, 0);
@@ -119,6 +133,14 @@ public class Configurator implements ModMenuApi {
         
         // RENDERING
         ConfigScreenBuilder.CategoryBuilder rendering = builder.addCategory("config.canvas.category.rendering");
+        
+        rendering.addOption(new BooleanListEntry("config.canvas.value.prevent_anisotropy", preventTerrainShadingAnisotropy, "config.canvas.reset", 
+                () -> DEFAULTS.preventTerrainShadingAnisotropy, b -> preventTerrainShadingAnisotropy = b, 
+                () -> Optional.of(I18n.translate("config.canvas.help.prevent_anisotropy").split(";"))));
+        
+        rendering.addOption(new BooleanListEntry("config.canvas.value.compact_gpu_formats", enableCompactGPUFormats, "config.canvas.reset", 
+                () -> DEFAULTS.enableCompactGPUFormats, b -> enableCompactGPUFormats = b, 
+                () -> Optional.of(I18n.translate("config.canvas.help.compact_gpu_formats").split(";"))));
         
         rendering.addOption(new BooleanListEntry("config.canvas.value.item_render", enableItemRender, "config.canvas.reset", 
                 () -> DEFAULTS.enableItemRender, b -> enableItemRender = b, 
@@ -145,6 +167,8 @@ public class Configurator implements ModMenuApi {
     private static void saveUserInput(SavedConfig config) {
         maxShaders = MathHelper.smallestEncompassingPowerOfTwo(maxShaders);
         saveConfig();
+        
+        //TODO: detect and force chunk rebuild if needed
     }
     
     

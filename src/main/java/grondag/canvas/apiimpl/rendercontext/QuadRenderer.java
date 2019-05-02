@@ -23,6 +23,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.ToIntBiFunction;
 
+import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.QuadViewImpl;
 import grondag.canvas.apiimpl.RenderMaterialImpl;
@@ -106,8 +107,7 @@ public class QuadRenderer {
             lightFlat(q);
         }
         
-//        //TODO: move vertex encoding to formats
-        if((q.geometryFlags() & GeometryHelper.CUBIC_FLAG) == GeometryHelper.CUBIC_FLAG) {
+        if(Configurator.preventTerrainShadingAnisotropy && (q.geometryFlags() & GeometryHelper.CUBIC_FLAG) == GeometryHelper.CUBIC_FLAG) {
             encodeSmoothQuad(q, output, mat, isAo);
         } else {
             encodeQuad(q, output, mat, isAo);
