@@ -165,6 +165,8 @@ public final class ShaderManager implements ClientTickCallback {
 
         shader.uniformSampler2d("u_lightmap", UniformRefreshFrequency.ON_LOAD, u -> u.set(1));
 
+        shader.uniformSampler2d("u_utility", UniformRefreshFrequency.ON_LOAD, u -> u.set(2));
+        
         shader.uniform4f("u_emissiveColor", UniformRefreshFrequency.PER_FRAME, u -> {
             u.set(emissiveColor.x, emissiveColor.y, emissiveColor.z, 1f);
         });

@@ -1,6 +1,7 @@
+vec4 light;
 
 vec4 colorAndLightmap(vec4 fragmentColor,  int layerIndex) {
-	return bitValue(v_flags.x, layerIndex) == 0 ? v_light * fragmentColor : u_emissiveColor * fragmentColor;
+    return bitValue(v_flags.x, layerIndex) == 0 ? light * fragmentColor : u_emissiveColor * fragmentColor;
 }
 
 vec4 applyAo(vec4 baseColor) {
@@ -24,6 +25,15 @@ vec4 diffuseColor() {
 	}
 #else // alpha
 	vec4 a = texture2D(u_textures, v_texcoord_0);
+#endif
+
+#if CONTEXT == CONTEXT_BLOCK_SOLID || CONTEXT == CONTEXT_BLOCK_TRANSLUCENT
+	vec4 n = texture2D(u_utility, v_noisecoord);
+	light = texture2D(u_lightmap, v_lightcoord + ((n.g - 0.5) * 0.015));
+#elif CONTEXT == CONTEXT_ITEM_GUI
+	light = vec4(1.0, 1.0, 1.0, 1.0);
+#else
+	light = texture2D(u_lightmap, v_lightcoord);
 #endif
 
 	a *= colorAndLightmap(v_color_0, 0);

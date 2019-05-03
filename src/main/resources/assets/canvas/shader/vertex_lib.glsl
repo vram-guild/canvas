@@ -43,16 +43,17 @@ void setupVertex() {
 
 #if CONTEXT != CONTEXT_ITEM_GUI && CONTEXT != CONTEXT_ITEM_WORLD
     v_ao = (in_normal_ao.w + 1.0) * 0.5;
+
+    //TODO: make depend on props
+    v_noisecoord = uv(gl_Vertex.xyz, in_normal_ao.xyz);
 #endif
 
     v_diffuse = diffuse(diffuseNormal(viewCoord, in_normal_ao.xyz));
 
-#if CONTEXT == CONTEXT_ITEM_GUI
-    v_light = vec4(1.0, 1.0, 1.0, 1.0);
-#else
+#if CONTEXT != CONTEXT_ITEM_GUI
     // the lightmap texture matrix is scaled to 1/256 and then offset + 8
     // it is also clamped to repeat and has linear min/mag
-    v_light = texture2D(u_lightmap, (in_lightmap.rg * 0.00390625) + 0.03125);
+    v_lightcoord = in_lightmap.rg * 0.00390625 + 0.03125;
 #endif
 
 

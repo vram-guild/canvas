@@ -30,6 +30,7 @@ import grondag.canvas.chunk.ChunkRendererExt;
 import grondag.canvas.chunk.DrawableChunk;
 import grondag.canvas.material.ShaderContext;
 import grondag.canvas.varia.CanvasGlHelper;
+import grondag.canvas.varia.UtilityTexture;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap.Entry;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
@@ -104,10 +105,12 @@ public class CanvasChunkRenderList {
     }
 
     public void renderChunkLayer(BlockRenderLayer layer) {
+        UtilityTexture.instance().enable();
         if (layer == BlockRenderLayer.SOLID)
             renderChunkLayerSolid();
         else
             renderChunkLayerTranslucent();
+        UtilityTexture.instance().disable();
     }
 
     private final void updateViewMatrix(long packedRenderCubeKey) {

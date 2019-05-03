@@ -31,6 +31,7 @@ import grondag.canvas.draw.DrawableDelegate;
 import grondag.canvas.draw.SolidRenderList;
 import grondag.canvas.draw.TessellatorExt;
 import grondag.canvas.material.ShaderContext;
+import grondag.canvas.varia.UtilityTexture;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.Tessellator;
@@ -61,7 +62,11 @@ public class MixinTessellator implements TessellatorExt {
             buffer.ensureCapacity(packingList.totalBytes());
             ObjectArrayList<DrawableDelegate> delegates = BufferPacker.pack(packingList, vcList, buffer);
             renderList.accept(delegates);
+            
+            UtilityTexture.instance().enable();
             renderList.draw(context);
+            UtilityTexture.instance().disable();
+            
             final int limit = delegates.size();
             for(int i = 0; i < limit; i++) {
                 delegates.get(i).release();

@@ -1,11 +1,14 @@
 package grondag.canvas.varia;
 
+import java.util.Random;
+
 import org.lwjgl.opengl.GL11;
 
 import com.mojang.blaze3d.platform.GLX;
 import com.mojang.blaze3d.platform.GlStateManager;
 
 import grondag.canvas.Canvas;
+import io.netty.util.internal.ThreadLocalRandom;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.fabricmc.api.EnvType;
@@ -17,15 +20,6 @@ import net.minecraft.util.Identifier;
 
 @Environment(EnvType.CLIENT)
 public class UtilityTexture implements AutoCloseable {
-    private final NativeImageBackedTexture texture;
-    private final NativeImage image;
-    private final Identifier textureIdentifier;
-    private final MinecraftClient client;
-
-    private final Int2ObjectOpenHashMap<ShadeMap> maps = new Int2ObjectOpenHashMap<> ();
-    
-    private final ObjectArrayList<ShadeMap> loadlist = new ObjectArrayList<ShadeMap>();
-    
     private static UtilityTexture instance;
     
     public static UtilityTexture instance() {
@@ -36,7 +30,20 @@ public class UtilityTexture implements AutoCloseable {
         }
         return result;
     }
-        
+    
+    private final NativeImageBackedTexture texture;
+    private final NativeImage image;
+    private final Identifier textureIdentifier;
+    private final MinecraftClient client;
+
+    private final Int2ObjectOpenHashMap<ShadeMap> maps = new Int2ObjectOpenHashMap<> ();
+    
+    private final ObjectArrayList<ShadeMap> loadlist = new ObjectArrayList<ShadeMap>();
+    
+    private final int[][] randomBits = new int[512][512];
+    
+    private boolean needsInitialized = true;
+    
     private UtilityTexture() {
         this.client = MinecraftClient.getInstance();
         this.texture = new NativeImageBackedTexture(512, 512, false);
@@ -75,16 +82,35 @@ public class UtilityTexture implements AutoCloseable {
     }
 
     public void tick() {
-        if (!loadlist.isEmpty()) {
+        final boolean hasLoad = !loadlist.isEmpty();
+        
+        if (hasLoad || needsInitialized) {
             final NativeImage image = this.image;
             
-            do {
-                ShadeMap map = loadlist.pop();
-                image.setPixelRGBA(map.u, map.v, map.key & 0xFF);
-                image.setPixelRGBA(map.u + 1, map.v, (map.key >>> 8) & 0xFF);
-                image.setPixelRGBA(map.u, map.v + 1, (map.key >>> 16) & 0xFF);
-                image.setPixelRGBA(map.u + 1, map.v + 1, (map.key >>> 24) & 0xFF);
-            } while(!loadlist.isEmpty());
+            if(needsInitialized) {
+                final Random r = ThreadLocalRandom.current();
+                for(int u = 0; u < 512; u++) {
+                    for(int v = 0; v < 512; v++) {
+                        final int p = r.nextInt(256) << 8;
+                        randomBits[u][v] = p;
+                        image.setPixelRGBA(u, v, p);
+                    }
+                }
+                needsInitialized = false;
+            }
+            
+            if(hasLoad) {
+                do {
+                    ShadeMap map = loadlist.pop();
+                    final int u = map.u;
+                    final int v = map.v;
+                    final int key = map.key;
+                    image.setPixelRGBA(u, v, randomBits[u][v] | (key & 0xFF));
+                    image.setPixelRGBA(u + 1, v, randomBits[u + 1][v] | ((key >>> 8) & 0xFF));
+                    image.setPixelRGBA(u, v + 1, randomBits[u][v + 1] | ((key >>> 16) & 0xFF));
+                    image.setPixelRGBA(u + 1, v + 1, randomBits[u + 1][v + 1] | ((key >>> 24) & 0xFF));
+                } while(!loadlist.isEmpty());
+            }
 
             this.texture.upload();
         }

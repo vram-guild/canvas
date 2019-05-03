@@ -17,18 +17,26 @@
 uniform float u_time;
 uniform sampler2D u_textures;
 uniform sampler2D u_lightmap;
+
+#if CONTEXT == CONTEXT_BLOCK_SOLID || CONTEXT == CONTEXT_BLOCK_TRANSLUCENT
+uniform sampler2D u_utility;
+#endif
+
 uniform vec4 u_emissiveColor;
 uniform vec3 u_eye_position;
 uniform int u_fogMode;
 
 #if CONTEXT != CONTEXT_ITEM_GUI && CONTEXT != CONTEXT_ITEM_WORLD
 varying float v_ao;
+
+//TODO: make this depend on shader props
+varying vec2 v_noisecoord;
 #endif
 
 varying float v_diffuse;
 varying vec4 v_color_0;
 varying vec2 v_texcoord_0;
-varying vec4 v_light;
+varying vec2 v_lightcoord;
 
 #ifdef GL_EXT_gpu_shader4
     // may be faster when available
