@@ -23,11 +23,11 @@ public class MaterialVertextFormatElement {
     // via standard (GL 2.1) binding
     // slows to a crawl otherwise
     public static final MaterialVertextFormatElement POSITION_3F = new MaterialVertextFormatElement(
-            VertexFormatElement.Format.FLOAT, VertexFormatElement.Type.POSITION, 3, null);
+            VertexFormatElement.Format.FLOAT, 3, null);
     public static final MaterialVertextFormatElement BASE_RGBA_4UB = new MaterialVertextFormatElement(
-            VertexFormatElement.Format.UNSIGNED_BYTE, VertexFormatElement.Type.PADDING, 4, "in_color_0");
+            VertexFormatElement.Format.UNSIGNED_BYTE, 4, "in_color_0");
     public static final MaterialVertextFormatElement BASE_TEX_2F = new MaterialVertextFormatElement(
-            VertexFormatElement.Format.FLOAT, VertexFormatElement.Type.PADDING, 2, "in_uv_0");
+            VertexFormatElement.Format.FLOAT, 2, "in_uv_0");
 
     /**
      * Format varies by model.<p>
@@ -36,20 +36,25 @@ public class MaterialVertextFormatElement {
      * coordinates. 3rd and 4th bytes are control flags. <p>
      */
     public static final MaterialVertextFormatElement LIGHTMAPS_4UB = new MaterialVertextFormatElement(
-            VertexFormatElement.Format.UNSIGNED_BYTE, VertexFormatElement.Type.PADDING, 4, "in_lightmap", false);
+            VertexFormatElement.Format.UNSIGNED_BYTE, 4, "in_lightmap", false);
 
+    public static final MaterialVertextFormatElement HD_LIGHTMAPS_2US = new MaterialVertextFormatElement(
+            VertexFormatElement.Format.UNSIGNED_SHORT, 2, "in_hd_lightmap", false);
+    
     public static final MaterialVertextFormatElement NORMAL_AO_4UB = new MaterialVertextFormatElement(
-            VertexFormatElement.Format.BYTE, VertexFormatElement.Type.PADDING, 4, "in_normal_ao", true);
+            VertexFormatElement.Format.BYTE, 4, "in_normal_ao", true);
 
     public static final MaterialVertextFormatElement SECONDARY_RGBA_4UB = new MaterialVertextFormatElement(
-            VertexFormatElement.Format.UNSIGNED_BYTE, VertexFormatElement.Type.PADDING, 4, "in_color_1");
+            VertexFormatElement.Format.UNSIGNED_BYTE, 4, "in_color_1");
+    
     public static final MaterialVertextFormatElement SECONDARY_TEX_2F = new MaterialVertextFormatElement(
-            VertexFormatElement.Format.FLOAT, VertexFormatElement.Type.PADDING, 2, "in_uv_1");
+            VertexFormatElement.Format.FLOAT, 2, "in_uv_1");
 
     public static final MaterialVertextFormatElement TERTIARY_RGBA_4UB = new MaterialVertextFormatElement(
-            VertexFormatElement.Format.UNSIGNED_BYTE, VertexFormatElement.Type.PADDING, 4, "in_color_2");
+            VertexFormatElement.Format.UNSIGNED_BYTE, 4, "in_color_2");
+    
     public static final MaterialVertextFormatElement TERTIARY_TEX_2F = new MaterialVertextFormatElement(
-            VertexFormatElement.Format.FLOAT, VertexFormatElement.Type.PADDING, 2, "in_uv_2");
+            VertexFormatElement.Format.FLOAT, 2, "in_uv_2");
 
     public final String attributeName;
     public final int elementCount;
@@ -57,13 +62,11 @@ public class MaterialVertextFormatElement {
     public final boolean isNormalized;
     public final int byteSize;
 
-    private MaterialVertextFormatElement(VertexFormatElement.Format formatIn,
-            VertexFormatElement.Type usageIn, int count, String attributeName) {
-        this(formatIn, usageIn, count, attributeName, true);
+    private MaterialVertextFormatElement(VertexFormatElement.Format formatIn, int count, String attributeName) {
+        this(formatIn, count, attributeName, true);
     }
 
-    private MaterialVertextFormatElement(VertexFormatElement.Format formatIn,
-            VertexFormatElement.Type usageIn, int count, String attributeName, boolean isNormalized) {
+    private MaterialVertextFormatElement(VertexFormatElement.Format formatIn, int count, String attributeName, boolean isNormalized) {
         this.attributeName = attributeName;
         this.elementCount = count;
         this.glConstant = formatIn.getGlId();
