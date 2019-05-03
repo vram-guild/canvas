@@ -8,6 +8,7 @@ import com.mojang.blaze3d.platform.GLX;
 import com.mojang.blaze3d.platform.GlStateManager;
 
 import grondag.canvas.Canvas;
+import grondag.canvas.Configurator;
 import io.netty.util.internal.ThreadLocalRandom;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
@@ -57,12 +58,20 @@ public class UtilityTexture implements AutoCloseable {
     }
 
     public void disable() {
+        if(!Configurator.enableSmoothLightmaps) {
+            return;
+        }
+        
         GlStateManager.activeTexture(GLX.GL_TEXTURE2);
         GlStateManager.disableTexture();
         GlStateManager.activeTexture(GLX.GL_TEXTURE0);
     }
 
     public void enable() {
+        if(!Configurator.enableSmoothLightmaps) {
+            return;
+        }
+        
         GlStateManager.activeTexture(GLX.GL_TEXTURE2);
 //        GlStateManager.matrixMode(5890);
 //        GlStateManager.loadIdentity();
@@ -82,6 +91,10 @@ public class UtilityTexture implements AutoCloseable {
     }
 
     public void tick() {
+        if(!Configurator.enableSmoothLightmaps) {
+            return;
+        }
+        
         final boolean hasLoad = !loadlist.isEmpty();
         
         if (hasLoad || needsInitialized) {

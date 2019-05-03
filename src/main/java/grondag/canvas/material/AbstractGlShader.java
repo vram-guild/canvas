@@ -135,7 +135,11 @@ abstract class AbstractGlShader {
             result = result.replaceAll("#define CONTEXT_IS_ITEM", "#define CONTEXT_IS_NOT_ITEM");
         }
 
-        if(!Configurator.enableLightmapNoise) {
+        if(!Configurator.enableSmoothLightmaps) {
+            result = result.replaceAll("#define ENABLE_SMOOTH_LIGHT", "#define DISABLE_SMOOTH_LIGHT");
+        }
+        
+        if(!Configurator.enableLightmapNoise || !Configurator.enableSmoothLightmaps) {
             result = result.replaceAll("#define ENABLE_LIGHT_NOISE", "#define DISABLE_LIGHT_NOISE");
         }
         

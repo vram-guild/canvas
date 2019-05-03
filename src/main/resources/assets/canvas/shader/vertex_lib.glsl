@@ -43,8 +43,9 @@ void setupVertex() {
 
 #ifdef CONTEXT_IS_BLOCK
     v_ao = (in_normal_ao.w + 1.0) * 0.5;
+#endif
 
-    //TODO: make depend on props
+#ifdef CONTEXT_IS_BLOCK && (ENABLE_SMOOTH_LIGHT || ENABLE_LIGHT_NOISE)
     v_noisecoord = uv(gl_Vertex.xyz, in_normal_ao.xyz);
 #endif
 

@@ -28,8 +28,13 @@ vec4 diffuseColor() {
 #endif
 
 #ifdef CONTEXT_IS_BLOCK
-	vec4 n = texture2D(u_utility, v_noisecoord);
-	light = texture2D(u_lightmap, v_lightcoord + ((n.g - 0.5) * 0.015));
+    #ifdef ENABLE_LIGHT_NOISE
+        vec4 n = texture2D(u_utility, v_noisecoord);
+        light = texture2D(u_lightmap, v_lightcoord + ((n.g - 0.5) * 0.015));
+    #else
+        light = texture2D(u_lightmap, v_lightcoord);
+    #endif
+
 #elif CONTEXT == CONTEXT_ITEM_GUI
 	light = vec4(1.0, 1.0, 1.0, 1.0);
 #else

@@ -202,6 +202,35 @@ public class Configurator implements ModMenuApi {
                 () -> DEFAULTS.maxPipelines, i -> maxShaders = i, 
                 () -> Optional.of(I18n.translate("config.canvas.help.max_materials").split(";"))));
         
+        ///
+        rendering.addOption(new BooleanListEntry("config.canvas.value.smooth_lightmaps", enableSmoothLightmaps, "config.canvas.reset", 
+                () -> DEFAULTS.enableSmoothLightmaps, b -> enableSmoothLightmaps = b, 
+                () -> Optional.of(I18n.translate("config.canvas.help.smooth_lightmaps").split(";"))));
+        
+        rendering.addOption(new BooleanListEntry("config.canvas.value.lightmap_noise", enableLightmapNoise, "config.canvas.reset", 
+                () -> DEFAULTS.enableLightmapNoise, b -> enableLightmapNoise = b, 
+                () -> Optional.of(I18n.translate("config.canvas.help.lightmap_noise").split(";"))));
+        
+        rendering.addOption(new BooleanListEntry("config.canvas.value.single_pass_cutout", enableSinglePassCutout, "config.canvas.reset", 
+                () -> DEFAULTS.enableSinglePassCutout, b -> enableSinglePassCutout = b, 
+                () -> Optional.of(I18n.translate("config.canvas.help.single_pass_cutout").split(";"))));
+        
+        rendering.addOption(new BooleanListEntry("config.canvas.value.chunk_occlusion", enableImprovedChunkOcclusion, "config.canvas.reset", 
+                () -> DEFAULTS.enableImprovedChunkOcclusion, b -> enableImprovedChunkOcclusion = b, 
+                () -> Optional.of(I18n.translate("config.canvas.help.chunk_occlusion").split(";"))));
+        
+        rendering.addOption(new BooleanListEntry("config.canvas.value.batch_chunk_render", enableBatchedChunkRender, "config.canvas.reset", 
+                () -> DEFAULTS.enableBatchedChunkRender, b -> enableBatchedChunkRender = b, 
+                () -> Optional.of(I18n.translate("config.canvas.help.batch_chunk_render").split(";"))));
+        
+        rendering.addOption(new BooleanListEntry("config.canvas.value.vanilla_chunk_matrix", disableVanillaChunkMatrix, "config.canvas.reset", 
+                () -> DEFAULTS.disableVanillaChunkMatrix, b -> disableVanillaChunkMatrix = b, 
+                () -> Optional.of(I18n.translate("config.canvas.help.vanilla_chunk_matrix").split(";"))));
+        
+        rendering.addOption(new BooleanListEntry("config.canvas.value.adjust_vanilla_geometry", adjustVanillaModelGeometry, "config.canvas.reset", 
+                () -> DEFAULTS.adjustVanillaModelGeometry, b -> adjustVanillaModelGeometry = b, 
+                () -> Optional.of(I18n.translate("config.canvas.help.adjust_vanilla_geometry").split(";"))));
+        
         // DEBUG
         ConfigScreenBuilder.CategoryBuilder debug = builder.addCategory("config.canvas.category.debug");
         

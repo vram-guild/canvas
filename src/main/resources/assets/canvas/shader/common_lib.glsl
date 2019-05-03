@@ -8,6 +8,9 @@
 // definition prefixed with NOT_ if first sprite is colorized or compact formats are disabled
 #define WHITE_0
 
+// defined if using smooth lightmaps
+#define ENABLE_SMOOTH_LIGHT
+
 // defined if lighting should be noised to prevent mach banding
 #define ENABLE_LIGHT_NOISE
 
@@ -36,7 +39,7 @@ uniform int u_fogMode;
 varying float v_ao;
 #endif
 
-#ifdef CONTEXT_IS_BLOCK
+#ifdef CONTEXT_IS_BLOCK && (ENABLE_SMOOTH_LIGHT || ENABLE_LIGHT_NOISE)
 uniform sampler2D u_utility;
 //TODO: make this depend on shader props
 varying vec2 v_noisecoord;
@@ -216,7 +219,6 @@ const float[8] BITWISE_DIVISORS = float[8](0.5, 0.25, 0.125, 0.0625, 0.03125, 0.
  * GLSL 120 unfortunately lacks bitwise operations
  * so we need to emulate them unless the extension is active.
  */
-float bitValue(float byteValue, int bitIndex)
-{
+float bitValue(float byteValue, int bitIndex) {
     return floor(fract(byteValue * BITWISE_DIVISORS[bitIndex]) * 2.0);
 }
