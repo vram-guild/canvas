@@ -6,7 +6,7 @@ vec4 colorAndLightmap(vec4 fragmentColor,  int layerIndex) {
 
 vec4 applyAo(vec4 baseColor) {
 // Don't apply AO for item renders
-#if CONTEXT != CONTEXT_ITEM_GUI && CONTEXT != CONTEXT_ITEM_WORLD
+#ifdef CONTEXT_IS_BLOCK
 	return baseColor * vec4(v_ao, v_ao, v_ao, 1.0);
 #else
 	return baseColor;
@@ -27,7 +27,7 @@ vec4 diffuseColor() {
 	vec4 a = texture2D(u_textures, v_texcoord_0);
 #endif
 
-#if CONTEXT == CONTEXT_BLOCK_SOLID || CONTEXT == CONTEXT_BLOCK_TRANSLUCENT
+#ifdef CONTEXT_IS_BLOCK
 	vec4 n = texture2D(u_utility, v_noisecoord);
 	light = texture2D(u_lightmap, v_lightcoord + ((n.g - 0.5) * 0.015));
 #elif CONTEXT == CONTEXT_ITEM_GUI

@@ -127,6 +127,18 @@ abstract class AbstractGlShader {
         
         result = result.replaceAll("#define CONTEXT 0", "#define CONTEXT " + context.ordinal());
 
+        if(!context.isBlock) {
+            result = result.replaceAll("#define CONTEXT_IS_BLOCK", "#define CONTEXT_IS_NOT_BLOCK");
+        }
+        
+        if(!context.isItem) {
+            result = result.replaceAll("#define CONTEXT_IS_ITEM", "#define CONTEXT_IS_NOT_ITEM");
+        }
+
+        if(!Configurator.enableLightmapNoise) {
+            result = result.replaceAll("#define ENABLE_LIGHT_NOISE", "#define DISABLE_LIGHT_NOISE");
+        }
+        
         if(!CanvasGlHelper.useGpuShader4() ) {
             result = result.replaceAll("#extension GL_EXT_gpu_shader4 : enable", "");
         }

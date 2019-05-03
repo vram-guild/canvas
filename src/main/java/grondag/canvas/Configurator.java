@@ -61,6 +61,34 @@ public class Configurator implements ModMenuApi {
         //TODO: docs
         @Comment("TODO")
         boolean enableCompactGPUFormats = true;
+        
+        //TODO: docs
+        @Comment("TODO")
+        boolean enableSmoothLightmaps = true;
+        
+        //TODO: docs
+        @Comment("TODO")
+        boolean enableLightmapNoise= false;
+        
+        //TODO: docs
+        @Comment("TODO")
+        boolean enableSinglePassCutout = true;
+        
+        //TODO: docs
+        @Comment("TODO")
+        boolean enableImprovedChunkOcclusion = true;
+        
+        //TODO: docs
+        @Comment("TODO")
+        boolean enableBatchedChunkRender = true;
+        
+        //TODO: docs
+        @Comment("TODO")
+        boolean disableVanillaChunkMatrix = true;
+        
+        //TODO: docs
+        @Comment("TODO")
+        boolean adjustVanillaModelGeometry = true;
     }
     
     static final ConfigData DEFAULTS = new ConfigData();
@@ -72,6 +100,14 @@ public class Configurator implements ModMenuApi {
     public static boolean enableShaderDebug = DEFAULTS.enableShaderDebug;
     public static boolean preventTerrainShadingAnisotropy = DEFAULTS.preventTerrainShadingAnisotropy;
     public static boolean enableCompactGPUFormats = DEFAULTS.enableCompactGPUFormats;
+    
+    public static boolean enableSmoothLightmaps = DEFAULTS.enableSmoothLightmaps;
+    public static boolean enableLightmapNoise = DEFAULTS.enableLightmapNoise;
+    public static boolean enableSinglePassCutout = DEFAULTS.enableSinglePassCutout;
+    public static boolean enableImprovedChunkOcclusion = DEFAULTS.enableImprovedChunkOcclusion;
+    public static boolean enableBatchedChunkRender = DEFAULTS.enableBatchedChunkRender;
+    public static boolean disableVanillaChunkMatrix = DEFAULTS.disableVanillaChunkMatrix;
+    public static boolean adjustVanillaModelGeometry = DEFAULTS.adjustVanillaModelGeometry;
     
     /** use to stash parent screen during display */
     private static Screen screenIn;
@@ -102,6 +138,14 @@ public class Configurator implements ModMenuApi {
         maxShaders = config.maxPipelines;
         preventTerrainShadingAnisotropy = config.preventTerrainShadingAnisotropy;
         enableCompactGPUFormats = config.enableCompactGPUFormats;
+        
+        enableSmoothLightmaps = config.enableSmoothLightmaps;
+        enableLightmapNoise = config.enableLightmapNoise;
+        enableSinglePassCutout = config.enableSinglePassCutout;
+        enableImprovedChunkOcclusion = config.enableImprovedChunkOcclusion;
+        enableBatchedChunkRender = config.enableBatchedChunkRender;
+        disableVanillaChunkMatrix = config.disableVanillaChunkMatrix;
+        adjustVanillaModelGeometry = config.adjustVanillaModelGeometry;
     }
 
     private static void saveConfig() {
@@ -111,6 +155,14 @@ public class Configurator implements ModMenuApi {
         config.maxPipelines = maxShaders;
         config.preventTerrainShadingAnisotropy = preventTerrainShadingAnisotropy;
         config.enableCompactGPUFormats = enableCompactGPUFormats;
+        
+        config.enableSmoothLightmaps = enableSmoothLightmaps;
+        config.enableLightmapNoise = enableLightmapNoise;
+        config.enableSinglePassCutout = enableSinglePassCutout;
+        config.enableImprovedChunkOcclusion = enableImprovedChunkOcclusion;
+        config.enableBatchedChunkRender = enableBatchedChunkRender;
+        config.disableVanillaChunkMatrix = disableVanillaChunkMatrix;
+        config.adjustVanillaModelGeometry = adjustVanillaModelGeometry;
         
         try {
             String result = JANKSON.toJson(config).toJson(true, true, 0);

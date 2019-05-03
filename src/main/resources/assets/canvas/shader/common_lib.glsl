@@ -8,27 +8,36 @@
 // definition prefixed with NOT_ if first sprite is colorized or compact formats are disabled
 #define WHITE_0
 
+// defined if lighting should be noised to prevent mach banding
+#define ENABLE_LIGHT_NOISE
+
+// will be changed to _IS_NOT_ unless this is a block context
+#define CONTEXT_IS_BLOCK
+
+// will be changed to _IS_NOT_ unless this is an item context
+#define CONTEXT_IS_ITEM
+
 #define CONTEXT_BLOCK_SOLID 0
 #define CONTEXT_BLOCK_TRANSLUCENT 1
 #define CONTEXT_ITEM_WORLD 2
 #define CONTEXT_ITEM_GUI 3
+
+// will be changed to one of the context values defined above
 #define CONTEXT 0
 
 uniform float u_time;
 uniform sampler2D u_textures;
 uniform sampler2D u_lightmap;
-
-#if CONTEXT == CONTEXT_BLOCK_SOLID || CONTEXT == CONTEXT_BLOCK_TRANSLUCENT
-uniform sampler2D u_utility;
-#endif
-
 uniform vec4 u_emissiveColor;
 uniform vec3 u_eye_position;
 uniform int u_fogMode;
 
-#if CONTEXT != CONTEXT_ITEM_GUI && CONTEXT != CONTEXT_ITEM_WORLD
+#ifdef CONTEXT_IS_BLOCK
 varying float v_ao;
+#endif
 
+#ifdef CONTEXT_IS_BLOCK
+uniform sampler2D u_utility;
 //TODO: make this depend on shader props
 varying vec2 v_noisecoord;
 #endif

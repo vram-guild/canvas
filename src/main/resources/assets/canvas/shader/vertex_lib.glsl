@@ -41,7 +41,7 @@ void setupVertex() {
     gl_FogFragCoord = length(viewCoord.xyz);
     v_texcoord_0 = textureCoord(in_uv_0, 0);
 
-#if CONTEXT != CONTEXT_ITEM_GUI && CONTEXT != CONTEXT_ITEM_WORLD
+#ifdef CONTEXT_IS_BLOCK
     v_ao = (in_normal_ao.w + 1.0) * 0.5;
 
     //TODO: make depend on props
