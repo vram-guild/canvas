@@ -1,6 +1,12 @@
 #version 120
 #extension GL_EXT_gpu_shader4 : enable
+
+// will be changed to sprite depth (1, 2 or 3) before compile
 #define LAYER_COUNT 1
+
+// defined if first sprite color is all white and will not be sent
+// definition prefixed with NOT_ if first sprite is colorized or compact formats are disabled
+#define WHITE_0
 
 #define CONTEXT_BLOCK_SOLID 0
 #define CONTEXT_BLOCK_TRANSLUCENT 1

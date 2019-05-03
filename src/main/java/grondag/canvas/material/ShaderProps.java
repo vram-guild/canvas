@@ -15,6 +15,7 @@
  ******************************************************************************/
 package grondag.canvas.material;
 
+import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.QuadViewImpl;
 import grondag.canvas.apiimpl.RenderMaterialImpl;
 
@@ -38,9 +39,20 @@ public abstract class ShaderProps {
     
     public static final int BITLENGTH = FLAGS_LENGTH + 2;
     
-    public static int classify(RenderMaterialImpl.Value material, QuadViewImpl quad) {
-        assert material.spriteDepth() > 0;
-        return material.spriteDepth() << FLAGS_LENGTH;
+    public static int classify(RenderMaterialImpl.Value material, QuadViewImpl quad, ShaderContext context) {
+        int flags = 0;
+        if(Configurator.enableCompactGPUFormats && context.isBlock) {
+            boolean white0 = true;
+            for(int i = 0; i < 4; i++) {
+                if(white0 && quad.spriteColor(i, 0) != -1) {
+                    white0 = false;
+                }
+            }
+            if(white0) {
+                flags |= WHITE_0;
+            }
+        }
+        return (material.spriteDepth() << FLAGS_LENGTH) | flags;
     }
     
     public static int spriteDepth(int props) {

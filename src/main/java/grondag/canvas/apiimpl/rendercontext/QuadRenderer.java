@@ -89,7 +89,6 @@ public class QuadRenderer {
         }
 
         final RenderMaterialImpl.Value mat = q.material().forRenderLayer(blockInfo.defaultLayerIndex);
-        final VertexCollector output = collectorFunc.apply(mat, q);
         
         final boolean isAo = blockInfo.defaultAo && mat.hasAo;
         if (isAo) {
@@ -107,6 +106,7 @@ public class QuadRenderer {
             lightFlat(q);
         }
         
+        final VertexCollector output = collectorFunc.apply(mat, q);
         if(Configurator.preventTerrainShadingAnisotropy && (q.geometryFlags() & GeometryHelper.CUBIC_FLAG) == GeometryHelper.CUBIC_FLAG) {
             encodeSmoothQuad(q, output, mat, isAo);
         } else {

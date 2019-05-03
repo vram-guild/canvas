@@ -24,6 +24,7 @@ import com.google.common.collect.Sets;
 
 import grondag.canvas.apiimpl.QuadViewImpl;
 import grondag.canvas.apiimpl.RenderMaterialImpl;
+import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
 import grondag.canvas.buffer.packing.FluidBufferBuilder;
 import grondag.canvas.buffer.packing.VertexCollector;
 import grondag.canvas.buffer.packing.VertexCollectorList;
@@ -52,7 +53,7 @@ public class ChunkRebuildHelper {
     }
     
     public VertexCollector collectorForMaterial(RenderMaterialImpl.Value mat, QuadViewImpl quad) {
-        return getCollector(mat.renderLayer).get(mat, quad);
+        return getCollector(mat.renderLayer).get(mat, quad, TerrainRenderContext.contextFunc(mat));
     }
 
     public void clear() {

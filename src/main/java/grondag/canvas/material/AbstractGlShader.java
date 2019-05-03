@@ -130,6 +130,11 @@ abstract class AbstractGlShader {
         if(!CanvasGlHelper.useGpuShader4() ) {
             result = result.replaceAll("#extension GL_EXT_gpu_shader4 : enable", "");
         }
+        
+        if((shaderProps & ShaderProps.WHITE_0) == 0) {
+            result = result.replaceAll("#define WHITE_0", "#define NOT_WHITE_0");
+        }
+        
         return result;
     }
 

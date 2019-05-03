@@ -16,7 +16,7 @@ import grondag.canvas.apiimpl.rendercontext.ItemRenderContext;
 import grondag.canvas.apiimpl.util.ColorHelper;
 import grondag.canvas.buffer.packing.VertexCollector;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import net.minecraft.client.render.VertexFormat;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.util.math.BlockPos;
 
 public class VertexEncoder {
@@ -49,16 +49,27 @@ public class VertexEncoder {
     private static MaterialVertexFormat buildFormat(int shaderProps) {
         final int spriteDepth = ShaderProps.spriteDepth(shaderProps);
         
-        VertexFormat inner = new VertexFormat().add(POSITION_3F).add(BASE_RGBA_4UB).add(BASE_TEX_2F).add(LIGHTMAPS_4UB).add(NORMAL_AO_4UB);
+        ObjectArrayList<MaterialVertextFormatElement> elements = new ObjectArrayList<>();
+        elements.add(POSITION_3F);
+        
+        if((shaderProps & ShaderProps.WHITE_0) == 0) {
+            elements.add(BASE_RGBA_4UB);
+        }
+        
+        elements.add(BASE_TEX_2F);
+        elements.add(LIGHTMAPS_4UB);
+        elements.add(NORMAL_AO_4UB);
         
         if(spriteDepth > 1) {
-            inner.add(SECONDARY_RGBA_4UB).add(SECONDARY_TEX_2F);
+            elements.add(SECONDARY_RGBA_4UB);
+            elements.add(SECONDARY_TEX_2F);
             if(spriteDepth == 3) {
-                inner.add(TERTIARY_RGBA_4UB).add(TERTIARY_TEX_2F);
+                elements.add(TERTIARY_RGBA_4UB);
+                elements.add(TERTIARY_TEX_2F);
             }
         }
         
-        return new MaterialVertexFormat(inner);
+        return new MaterialVertexFormat(elements);
     }
     
     public static void encodeBlock(QuadViewImpl q, RenderMaterialImpl.Value mat, ShaderContext context, VertexCollector output, BlockPos pos, float[] aoData) {
@@ -69,7 +80,9 @@ public class VertexEncoder {
         
         for(int i = 0; i < 4; i++) {
             output.pos(pos, q.x(i), q.y(i), q.z(i));
-            output.add(q.spriteColor(i, 0));
+            if((shaderProps & ShaderProps.WHITE_0) == 0) {
+                output.add(q.spriteColor(i, 0));
+            }
             output.add(q.spriteU(i, 0));
             output.add(q.spriteV(i, 0));
             int packedLight = q.lightmap(i);

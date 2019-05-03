@@ -35,6 +35,7 @@ import grondag.canvas.apiimpl.util.MeshEncodingHelper;
 import grondag.canvas.buffer.packing.CanvasBufferBuilder;
 import grondag.canvas.buffer.packing.VertexCollector;
 import grondag.canvas.draw.TessellatorExt;
+import grondag.canvas.material.ShaderContext;
 import grondag.canvas.material.VertexEncoder;
 import grondag.canvas.varia.BakedQuadExt;
 import grondag.frex.api.mesh.Mesh;
@@ -175,14 +176,15 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
             return;
         }
 
+        final ShaderContext context = tessellatorExt.canvas_context();
         RenderMaterialImpl.Value mat = enchantment ? glintMaterial : quad.material();
-        final VertexCollector output = canvasBuilder.vcList.get(mat, quad);
+        final VertexCollector output = canvasBuilder.vcList.get(mat, quad, context);
 
         handleShading();
         
         ColorHelper.colorizeQuad(quad, quadColor());
         
-        VertexEncoder.encodeItem(quad, mat, tessellatorExt.canvas_context(), output);
+        VertexEncoder.encodeItem(quad, mat, context, output);
     }
 
     @Override

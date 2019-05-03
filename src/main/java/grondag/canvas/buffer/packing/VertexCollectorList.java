@@ -25,6 +25,7 @@ import grondag.canvas.apiimpl.QuadViewImpl;
 import grondag.canvas.apiimpl.RenderMaterialImpl;
 import grondag.canvas.chunk.UploadableChunk;
 import grondag.canvas.material.MaterialState;
+import grondag.canvas.material.ShaderContext;
 import grondag.canvas.material.ShaderProps;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
@@ -130,8 +131,8 @@ public class VertexCollectorList {
         renderOriginZ = z;
     }
     
-    public final VertexCollector get(RenderMaterialImpl.Value material, QuadViewImpl quad) {
-        return get(material, ShaderProps.classify(material, quad));
+    public final VertexCollector get(RenderMaterialImpl.Value material, QuadViewImpl quad, ShaderContext context) {
+        return get(material, ShaderProps.classify(material, quad, context));
     }
     
     public final VertexCollector get(RenderMaterialImpl.Value material, int shaderProps) {

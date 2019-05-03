@@ -17,15 +17,13 @@
 package grondag.canvas.material;
 
 import java.nio.ByteBuffer;
+import java.util.Collection;
 
 import org.lwjgl.opengl.GL20;
 
 import grondag.canvas.varia.CanvasGlHelper;
-import net.minecraft.client.render.VertexFormat;
 
 public class MaterialVertexFormat {
-
-    public final VertexFormat vertexFormat;
 
     public final int attributeCount;
     
@@ -34,17 +32,19 @@ public class MaterialVertexFormat {
 
     private final MaterialVertextFormatElement[] elements;
 
-    public MaterialVertexFormat(VertexFormat vertexFormat) {
-        this.vertexFormat = vertexFormat;
-        this.vertexStrideBytes = vertexFormat.getVertexSize();
-        this.elements = vertexFormat.getElements()
-                .toArray(new MaterialVertextFormatElement[vertexFormat.getElementCount()]);
+    public MaterialVertexFormat(Collection<MaterialVertextFormatElement> elementsIn) {
+        elements = new MaterialVertextFormatElement[elementsIn.size()];
+        elementsIn.toArray(elements);
+        
+        int bytes = 0;
         int count = 0;
         for (MaterialVertextFormatElement e : elements) {
+            bytes += e.byteSize;
             if (e.attributeName != null)
                 count++;
         }
         this.attributeCount = count;
+        this.vertexStrideBytes = bytes;
     }
 
     /**

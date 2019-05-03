@@ -1,5 +1,9 @@
 attribute vec4 in_normal_ao;
-attribute vec4 in_color_0;
+
+#ifndef WHITE_0
+    attribute vec4 in_color_0;
+#endif
+
 attribute vec2 in_uv_0;
 attribute vec4 in_lightmap;
 
@@ -57,7 +61,11 @@ void setupVertex() {
     // due to FP error on some cards/drivers.  Also made varying attribute invariant (rolls eyes at OpenGL)
     v_flags =  in_lightmap.ba + 0.5;
 
+#ifdef WHITE_0
+    v_color_0 = vec4(1.0, 1.0, 1.0, 1.0);
+#else
     v_color_0 = in_color_0;
+#endif
 
 #if LAYER_COUNT > 1
     v_color_1 = in_color_1;

@@ -73,7 +73,7 @@ public class BlockRenderContext extends AbstractRenderContext implements RenderC
 
     private VertexCollector getCollector(RenderMaterialImpl.Value mat, QuadViewImpl quad) {
         didOutput = true;
-        return canvasBuilder.vcList.get(mat, quad);
+        return canvasBuilder.vcList.get(mat, quad, ShaderContext.BLOCK_SOLID);
     }
 
     public boolean tesselate(BlockModelRenderer vanillaRenderer, TerrainBlockView blockView, BakedModel model,
