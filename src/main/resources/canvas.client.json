@@ -25,7 +25,6 @@
 	"MixinSafeWorldView",
 	"MixinTessellator",
 	"MixinVboChunkRendererList",
-	"MixinVertexFormatElement",
 	"MixinWorldRenderer"
       ],
   "injectors": {

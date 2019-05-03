@@ -23,18 +23,17 @@ import grondag.canvas.apiimpl.RendererImpl;
 import grondag.frex.api.RendererAccess;
 import net.fabricmc.api.ModInitializer;
 
-//TODO: move sprite depth to shader props
 //TODO: dynamic vertex formats
+//TODO: configurable compact vertex formats - GPU side  white, face, unlit, pixel-aligned, etc.
+//TODO: configurable super smooth lighting
+//TODO: configurable cutout single pass, separate pass may give early cull in solid
 //TODO: configurable occlusion hook
 //TODO: configurable render region
 //TODO: configurable disable chunk matrix
-//TODO: configurable cutout single pass, separate pass may give early cull in solid
 //TODO: configurable vanilla model vertex adjustment
-//TODO: configurable compact vertex formats - GPU side  white, face, unlit, pixel-aligned, etc.
 //TODO: configurable compressed vertex formats - CPU side (maybe wait for Brocade Mesh)
 //TODO: remove configurable shader/condition limits?
 //TODO: capture & log more GL capability info - allow disable, enabled by default
-//TODO: configurable super smooth lighting
 //TODO: remove quad splitting smooth lighting
 //TODO: per chunk occlusion mesh - for sky shadow mask
 //TODO: per chunk depth mesh - addendum to occlusion mesh to render for depth pass - includes translucent cutout
