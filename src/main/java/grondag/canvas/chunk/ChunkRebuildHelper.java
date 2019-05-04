@@ -29,6 +29,7 @@ import grondag.canvas.buffer.packing.FluidBufferBuilder;
 import grondag.canvas.buffer.packing.VertexCollector;
 import grondag.canvas.buffer.packing.VertexCollectorList;
 import grondag.canvas.chunk.occlusion.ChunkOcclusionBuilderAccessHelper.ChunkOcclusionGraphBuilderExt;
+import grondag.canvas.material.ShaderProps;
 import net.minecraft.block.BlockRenderLayer;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.render.chunk.ChunkOcclusionGraphBuilder;
@@ -53,7 +54,8 @@ public class ChunkRebuildHelper {
     }
     
     public VertexCollector collectorForMaterial(RenderMaterialImpl.Value mat, QuadViewImpl quad) {
-        return getCollector(mat.renderLayer).get(mat, quad, TerrainRenderContext.contextFunc(mat));
+        final int props = ShaderProps.classify(mat, quad, TerrainRenderContext.contextFunc(mat));
+        return getCollector(mat.renderLayer).get(mat, props);
     }
 
     public void clear() {

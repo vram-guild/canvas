@@ -28,9 +28,14 @@ vec4 diffuseColor() {
 #endif
 
 #ifdef CONTEXT_IS_BLOCK
-    #ifdef ENABLE_LIGHT_NOISE
-        vec4 n = texture2D(u_utility, v_noisecoord);
-        light = texture2D(u_lightmap, v_lightcoord + ((n.g - 0.5) * 0.015));
+	#ifdef ENABLE_SMOOTH_LIGHT
+//    #ifdef ENABLE_LIGHT_NOISE
+//        vec4 n = texture2D(u_utility, v_noisecoord);
+//        light = texture2D(u_lightmap, v_lightcoord + ((n.g - 0.5) * 0.015));
+//	    vec4 smooth = texture2D(u_utility, v_hd_lightmap);
+	    vec4 smooth = texture2D(u_utility, v_hd_lightmap / 512.0);
+	    light = texture2D(u_lightmap, smooth.rg + 0.03125);
+//	    light = texture2D(u_lightmap, v_lightcoord);
     #else
         light = texture2D(u_lightmap, v_lightcoord);
     #endif

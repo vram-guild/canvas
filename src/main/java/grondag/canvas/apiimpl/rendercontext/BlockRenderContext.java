@@ -25,6 +25,7 @@ import grondag.canvas.buffer.packing.CanvasBufferBuilder;
 import grondag.canvas.buffer.packing.VertexCollector;
 import grondag.canvas.draw.TessellatorExt;
 import grondag.canvas.material.ShaderContext;
+import grondag.canvas.material.ShaderProps;
 import grondag.frex.api.model.DynamicBakedModel;
 import grondag.frex.api.mesh.Mesh;
 import grondag.frex.api.mesh.QuadEmitter;
@@ -73,7 +74,8 @@ public class BlockRenderContext extends AbstractRenderContext implements RenderC
 
     private VertexCollector getCollector(RenderMaterialImpl.Value mat, QuadViewImpl quad) {
         didOutput = true;
-        return canvasBuilder.vcList.get(mat, quad, ShaderContext.BLOCK_SOLID);
+        int props = ShaderProps.classify(mat, quad, ShaderContext.BLOCK_SOLID);
+        return canvasBuilder.vcList.get(mat, props);
     }
 
     public boolean tesselate(BlockModelRenderer vanillaRenderer, TerrainBlockView blockView, BakedModel model,
