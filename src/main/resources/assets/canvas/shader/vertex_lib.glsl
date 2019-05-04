@@ -7,6 +7,10 @@ attribute vec4 in_normal_ao;
 attribute vec2 in_uv_0;
 attribute vec4 in_lightmap;
 
+#ifdef ENABLE_SMOOTH_LIGHT
+attribute vec2 in_hd_lightmap;
+#endif
+
 #if LAYER_COUNT > 1
 attribute vec4 in_color_1;
 attribute vec2 in_uv_1;
@@ -45,8 +49,10 @@ void setupVertex() {
     v_ao = (in_normal_ao.w + 1.0) * 0.5;
 #endif
 
-#ifdef CONTEXT_IS_BLOCK && (ENABLE_SMOOTH_LIGHT || ENABLE_LIGHT_NOISE)
-    v_noisecoord = uv(gl_Vertex.xyz, in_normal_ao.xyz);
+#ifdef ENABLE_SMOOTH_LIGHT
+    v_hd_lightmap = in_hd_lightmap + 0.5;
+//#ifdef ENABLE_LIGHT_NOISE
+    //v_noisecoord = uv(gl_Vertex.xyz, in_normal_ao.xyz);
 #endif
 
     v_diffuse = diffuse(diffuseNormal(viewCoord, in_normal_ao.xyz));

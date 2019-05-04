@@ -9,9 +9,10 @@ import com.mojang.blaze3d.platform.GlStateManager;
 
 import grondag.canvas.Canvas;
 import grondag.canvas.Configurator;
+import grondag.canvas.apiimpl.QuadViewImpl;
+import grondag.fermion.structures.SimpleUnorderedArrayList;
 import io.netty.util.internal.ThreadLocalRandom;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
@@ -20,13 +21,13 @@ import net.minecraft.client.texture.NativeImageBackedTexture;
 import net.minecraft.util.Identifier;
 
 @Environment(EnvType.CLIENT)
-public class UtilityTexture implements AutoCloseable {
-    private static UtilityTexture instance;
+public class SmoothLightmapTexture implements AutoCloseable {
+    private static SmoothLightmapTexture instance;
     
-    public static UtilityTexture instance() {
-        UtilityTexture result = instance;
+    public static SmoothLightmapTexture instance() {
+        SmoothLightmapTexture result = instance;
         if(result == null) {
-            result = new UtilityTexture();
+            result = new SmoothLightmapTexture();
             instance = result;
         }
         return result;
@@ -37,21 +38,27 @@ public class UtilityTexture implements AutoCloseable {
     private final Identifier textureIdentifier;
     private final MinecraftClient client;
 
-    private final Int2ObjectOpenHashMap<ShadeMap> maps = new Int2ObjectOpenHashMap<> ();
+    private final Long2ObjectOpenHashMap<ShadeMap> maps = new Long2ObjectOpenHashMap<>();
     
-    private final ObjectArrayList<ShadeMap> loadlist = new ObjectArrayList<ShadeMap>();
+    private final SimpleUnorderedArrayList<ShadeMap> loadlist = new SimpleUnorderedArrayList<ShadeMap>();
     
     private final int[][] randomBits = new int[512][512];
     
     private boolean needsInitialized = true;
     
-    private UtilityTexture() {
+    private SmoothLightmapTexture() {
         this.client = MinecraftClient.getInstance();
         this.texture = new NativeImageBackedTexture(512, 512, false);
         this.textureIdentifier = this.client.getTextureManager().registerDynamicTexture("light_map", this.texture);
         this.image = this.texture.getImage();
     }
 
+    public void forceReload() {
+        maps.clear();
+        loadlist.clear();
+        
+    }
+    
     @Override
     public void close() {
         this.texture.close();
@@ -104,7 +111,7 @@ public class UtilityTexture implements AutoCloseable {
                 final Random r = ThreadLocalRandom.current();
                 for(int u = 0; u < 512; u++) {
                     for(int v = 0; v < 512; v++) {
-                        final int p = r.nextInt(256) << 8;
+                        final int p = r.nextInt(256) << 24;
                         randomBits[u][v] = p;
                         image.setPixelRGBA(u, v, p);
                     }
@@ -112,19 +119,22 @@ public class UtilityTexture implements AutoCloseable {
                 needsInitialized = false;
             }
             
-            if(hasLoad) {
-                do {
-                    ShadeMap map = loadlist.pop();
-                    final int u = map.u;
-                    final int v = map.v;
-                    final int key = map.key;
-                    image.setPixelRGBA(u, v, randomBits[u][v] | (key & 0xFF));
-                    image.setPixelRGBA(u + 1, v, randomBits[u + 1][v] | ((key >>> 8) & 0xFF));
-                    image.setPixelRGBA(u, v + 1, randomBits[u][v + 1] | ((key >>> 16) & 0xFF));
-                    image.setPixelRGBA(u + 1, v + 1, randomBits[u + 1][v + 1] | ((key >>> 24) & 0xFF));
-                } while(!loadlist.isEmpty());
+            if(!loadlist.isEmpty()) {
+                synchronized(this) {
+                    final int limit = loadlist.size();
+                    for(int i = 0; i < limit; i++) {
+                        ShadeMap map = loadlist.get(i);
+                        assert map != null;
+                        final int u = map.u;
+                        final int v = map.v;
+                        image.setPixelRGBA(u, v, randomBits[u][v] | map.b0 | (map.s0 << 8));
+                        image.setPixelRGBA(u + 1, v, randomBits[u + 1][v] | map.b1 | (map.s1 << 8));
+                        image.setPixelRGBA(u + 1, v + 1, randomBits[u + 1][v + 1] | map.b2 | (map.s2 << 8));
+                        image.setPixelRGBA(u, v + 1, randomBits[u][v + 1] | map.b3 | (map.s3 << 8));
+                    }
+                    loadlist.clear();
+                }
             }
-
             this.texture.upload();
         }
     }
@@ -258,38 +268,145 @@ public class UtilityTexture implements AutoCloseable {
 //     }
 //  }
     
+    static long lightKey(QuadViewImpl q) {
+        int l = q.lightmap(0);
+        long b0 = l & 0xFF;
+        long s0 = ((l >> 16) & 0xFF);
+        
+        l = q.lightmap(1);
+        long b1 = (l & 0xFF);
+        long s1 = ((l >> 16) & 0xFF);
+        
+        l = q.lightmap(2);
+        long b2 = (l & 0xFF);
+        long s2 = ((l >> 16) & 0xFF);
+        
+        l = q.lightmap(3);
+        long b3 = (l & 0xFF);
+        long s3 = ((l >> 16) & 0xFF);
+        
+        long result = b0 | (b1 << 8) | (b2 << 16) | (b3 << 24) | (s0 << 32) | (s1 << 40) | (s2 << 48) | (s3 << 56);
+//        Canvas.LOG.info(String.format("lightKey key = %d", result));
+//        Canvas.LOG.info(String.format("lightKey %d, %d, %d, %d    %d, %d, %d, %d", b0, b1, b2, b3, s0, s1, s2, s3));
+        return result;
+    }
+    
     public class ShadeMap {
-        final int key;
+        final int b0;
+        final int b1;
+        final int b2;
+        final int b3;
+        final int s0;
+        final int s1;
+        final int s2;
+        final int s3;
+        
         final int u;
         final int v;
         
-        ShadeMap(int key) {
-            this.key = key;
+        ShadeMap(long lightKey, QuadViewImpl q, float[] ao) {
             final int index = maps.size();
+//            b0 = (int) (lightKey & 0xFFL);
+//            b1 = (int) ((lightKey >>> 8) & 0xFFL);
+//            b2 = (int) ((lightKey >>> 16) & 0xFFL);
+//            b3 = (int) ((lightKey >>> 24) & 0xFFL);
+//            s0 = (int) ((lightKey >>> 32) & 0xFFL);
+//            s1 = (int) ((lightKey >>> 40) & 0xFFL);
+//            s2 = (int) ((lightKey >>> 48) & 0xFFL);
+//            s3 = (int) ((lightKey >>> 56) & 0xFFL);
+//            b0 = 0xFF;
+//            b1 = 0XFF;
+//            b2 = 0;
+//            b3 = 0;
+//            s0 = 0;
+//            s1 = 0;
+//            s2 = 0;
+//            s3 = 0xFF;
+            
+            int l = q.lightmap(0);
+            b0 = l & 0xFF;
+            s0 = (l >> 16) & 0xFF;
+            
+            l = q.lightmap(1);
+            b1 = l & 0xFF;
+            s1 = (l >> 16) & 0xFF;
+            
+            l = q.lightmap(2);
+            b2 = l & 0xFF;
+            s2 = (l >> 16) & 0xFF;
+            
+            l = q.lightmap(3);
+            b3 = l & 0xFF;
+            s3 = (l >> 16) & 0xFF;
+            
             this.u = (index & 0xFF) * 2;
             this.v = (index >> 8) * 2;
+            
+//            Canvas.LOG.info(String.format("shadeMap key = %d", lightKey));
+//            Canvas.LOG.info(String.format("shadeMap %d, %d, %d, %d    %d, %d, %d, %d", b0, b1, b2, b3, s0, s1, s2, s3));
+        }
+
+        public int lightCoord(int vertexIndex) {
+            switch(vertexIndex) {
+                case 0:
+                    return u | (v << 16);
+                case 1:
+                    return (u + 1) | (v << 16);
+                case 2:
+                    return (u + 1) | ((v + 1)  << 16);
+                case 3:
+                    return u | ((v + 1)<< 16);
+            }
+            return 0;
         }
     }
     
     // PERF use primitive instead?
-    public ShadeMap shadeMap(float a, float b, float c, float d) {
-        int key = Math.round(a * 255) & 0xFF; 
-        key |= (Math.round(b * 255) & 0xFF) << 8;
-        key |= (Math.round(c * 255) & 0xFF) << 16;
-        key |= (Math.round(d * 255) & 0xFF) << 24;
+    public ShadeMap shadeMap(QuadViewImpl q, float[] ao) {
+        long key = lightKey(q);
+//        int key = Math.round(a * 255) & 0xFF; 
+//        key |= (Math.round(b * 255) & 0xFF) << 8;
+//        key |= (Math.round(c * 255) & 0xFF) << 16;
+//        key |= (Math.round(d * 255) & 0xFF) << 24;
         
         ShadeMap result = maps.get(key);
         if(result == null) {
-            synchronized(maps) {
+            synchronized(this) {
                 result = maps.get(key);
                 if(result == null) {
-                    result = new ShadeMap(key);
+                    result = new ShadeMap(key, q, ao);
                     maps.put(key, result);
+                    assert result != null;
                     loadlist.add(result);
-                    Canvas.LOG.info(String.format("Added %f, %f, %f, %f  count = %d", a, b, c, d, maps.size()));
+                    //TODO: remove
+//                    Canvas.LOG.info(String.format("Added %f, %f, %f, %f  count = %d", a, b, c, d, maps.size()));
                 }
             }
+        } else {
+//            Canvas.LOG.info(String.format("GET key = %d", key));
+//            Canvas.LOG.info(String.format("GET %d, %d, %d, %d    %d, %d, %d, %d", result.b0, result.b1, result.b2, result.b3, result.s0, result.s1, result.s2, result.s3));
+
+            int l = q.lightmap(0);
+            assert result.b0 == (l & 0xFF);
+            assert result.s0 == ((l >> 16) & 0xFF);
+            
+            l = q.lightmap(1);
+            assert result.b1 == (l & 0xFF);
+            assert result.s1 == ((l >> 16) & 0xFF);
+            
+            l = q.lightmap(2);
+            assert result.b2 == (l & 0xFF);
+            assert result.s2 == ((l >> 16) & 0xFF);
+            
+            l = q.lightmap(3);
+            assert result.b3 == (l & 0xFF);
+            assert result.s3 == ((l >> 16) & 0xFF);
         }
+
         return result;
+    }
+
+    public ShadeMap shadeMap(QuadViewImpl q) {
+        return shadeMap(q, null);
     }
 }

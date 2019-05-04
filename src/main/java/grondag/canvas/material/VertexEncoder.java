@@ -2,6 +2,7 @@ package grondag.canvas.material;
 
 import static grondag.canvas.material.MaterialVertextFormatElement.BASE_RGBA_4UB;
 import static grondag.canvas.material.MaterialVertextFormatElement.BASE_TEX_2F;
+import static grondag.canvas.material.MaterialVertextFormatElement.HD_LIGHTMAPS_2US;
 import static grondag.canvas.material.MaterialVertextFormatElement.LIGHTMAPS_4UB;
 import static grondag.canvas.material.MaterialVertextFormatElement.NORMAL_AO_4UB;
 import static grondag.canvas.material.MaterialVertextFormatElement.POSITION_3F;
@@ -15,6 +16,8 @@ import grondag.canvas.apiimpl.RenderMaterialImpl;
 import grondag.canvas.apiimpl.rendercontext.ItemRenderContext;
 import grondag.canvas.apiimpl.util.ColorHelper;
 import grondag.canvas.buffer.packing.VertexCollector;
+import grondag.canvas.varia.SmoothLightmapTexture;
+import grondag.canvas.varia.SmoothLightmapTexture.ShadeMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.util.math.BlockPos;
@@ -58,6 +61,11 @@ public class VertexEncoder {
         
         elements.add(BASE_TEX_2F);
         elements.add(LIGHTMAPS_4UB);
+        
+        if((shaderProps & ShaderProps.SMOOTH_LIGHTMAPS) == ShaderProps.SMOOTH_LIGHTMAPS) {
+            elements.add(HD_LIGHTMAPS_2US);
+        }
+        
         elements.add(NORMAL_AO_4UB);
         
         if(spriteDepth > 1) {
@@ -78,6 +86,8 @@ public class VertexEncoder {
         final int depth = mat.spriteDepth();
         assert depth == ShaderProps.spriteDepth(shaderProps);
         
+        ShadeMap shadeMap = (shaderProps & ShaderProps.SMOOTH_LIGHTMAPS) == 0 ? null : SmoothLightmapTexture.instance().shadeMap(q);
+            
         for(int i = 0; i < 4; i++) {
             output.pos(pos, q.x(i), q.y(i), q.z(i));
             if((shaderProps & ShaderProps.WHITE_0) == 0) {
@@ -89,6 +99,11 @@ public class VertexEncoder {
             int blockLight = (packedLight & 0xFF);
             int skyLight = ((packedLight >> 16) & 0xFF);
             output.add(blockLight | (skyLight << 8) | shaderFlags);
+            
+            if(shadeMap != null) {
+                output.add(shadeMap.lightCoord(i));
+            }
+            
             int ao = aoData == null ? 0xFF000000 : ((Math.round(aoData[i] * 254) - 127) << 24);
             output.add(q.packedNormal(i) | ao);
             

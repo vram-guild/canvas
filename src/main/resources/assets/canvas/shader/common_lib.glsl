@@ -9,9 +9,11 @@
 #define WHITE_0
 
 // defined if using smooth lightmaps
+// currently only enabled in block contexts
 #define ENABLE_SMOOTH_LIGHT
 
 // defined if lighting should be noised to prevent mach banding
+// will only be enabled if smooth light is also enabled
 #define ENABLE_LIGHT_NOISE
 
 // will be changed to _IS_NOT_ unless this is a block context
@@ -39,10 +41,15 @@ uniform int u_fogMode;
 varying float v_ao;
 #endif
 
-#ifdef CONTEXT_IS_BLOCK && (ENABLE_SMOOTH_LIGHT || ENABLE_LIGHT_NOISE)
+#ifdef ENABLE_SMOOTH_LIGHT
+
 uniform sampler2D u_utility;
+varying vec2 v_hd_lightmap;
+
 //TODO: make this depend on shader props
-varying vec2 v_noisecoord;
+    #ifdef ENABLE_LIGHT_NOISE
+    varying vec2 v_noisecoord;
+    #endif
 #endif
 
 varying float v_diffuse;

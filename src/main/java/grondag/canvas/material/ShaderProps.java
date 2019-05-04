@@ -34,13 +34,15 @@ public abstract class ShaderProps {
     public static final int SIMPLE_SKYLIGHT = 64;
     public static final int SIMPLE_BLOCKLIGHT = 128;
     public static final int CUTOUT_SPLIT = 256;
+    public static final int SMOOTH_LIGHTMAPS = 512;
     
-    private static final int FLAGS_LENGTH = 9;
+    private static final int FLAGS_LENGTH = 10;
     
     public static final int BITLENGTH = FLAGS_LENGTH + 2;
     
     public static int classify(RenderMaterialImpl.Value material, QuadViewImpl quad, ShaderContext context) {
         int flags = 0;
+        
         if(Configurator.enableCompactGPUFormats && context.isBlock) {
             boolean white0 = true;
             for(int i = 0; i < 4; i++) {
@@ -52,6 +54,11 @@ public abstract class ShaderProps {
                 flags |= WHITE_0;
             }
         }
+        
+        if(context.isBlock) {
+            flags |= SMOOTH_LIGHTMAPS;
+        }
+        
         return (material.spriteDepth() << FLAGS_LENGTH) | flags;
     }
     

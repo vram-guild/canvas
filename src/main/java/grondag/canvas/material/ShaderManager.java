@@ -21,7 +21,7 @@ import org.joml.Vector3f;
 import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.MaterialShaderImpl;
 import grondag.canvas.varia.FogStateExtHolder;
-import grondag.canvas.varia.UtilityTexture;
+import grondag.canvas.varia.SmoothLightmapTexture;
 import grondag.frex.api.material.UniformRefreshFrequency;
 import net.fabricmc.fabric.api.event.client.ClientTickCallback;
 import net.minecraft.client.MinecraftClient;
@@ -100,6 +100,7 @@ public final class ShaderManager implements ClientTickCallback {
     public void forceReload() {
         GlShaderManager.INSTANCE.forceReload();
         VertexEncoder.forceReload();
+        SmoothLightmapTexture.instance().forceReload();
         for (int i = 0; i < this.shaderCount; i++) {
             this.shaders[i].forceReload();
         }
@@ -165,6 +166,7 @@ public final class ShaderManager implements ClientTickCallback {
 
         shader.uniformSampler2d("u_lightmap", UniformRefreshFrequency.ON_LOAD, u -> u.set(1));
 
+        //UGLY: needs a better GLSL name
         shader.uniformSampler2d("u_utility", UniformRefreshFrequency.ON_LOAD, u -> u.set(2));
         
         shader.uniform4f("u_emissiveColor", UniformRefreshFrequency.PER_FRAME, u -> {
@@ -212,7 +214,7 @@ public final class ShaderManager implements ClientTickCallback {
         }
         
         //UGLY: put this somwhere else? Central tick handler?
-        UtilityTexture.instance().tick();
+        SmoothLightmapTexture.instance().tick();
     }
     
     public void onRenderTick() {
