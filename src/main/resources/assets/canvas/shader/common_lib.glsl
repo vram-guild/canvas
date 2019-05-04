@@ -30,6 +30,16 @@
 // will be changed to one of the context values defined above
 #define CONTEXT 0
 
+#define WORLD_DIM_LIGHT_0 0
+#define WORLD_DIM_LIGHT_LEN 16
+#define WORLD_GAMMA 16
+#define WORLD_SKY_DARKNESS 17
+#define WORLD_EFFECT_MODIFIER 18
+#define WORLD_FLICKER 19
+#define WORLD_AMBIENT 20
+
+
+uniform float[32] u_world;
 uniform float u_time;
 uniform sampler2D u_textures;
 uniform sampler2D u_lightmap;
@@ -48,7 +58,8 @@ varying vec2 v_hd_lightmap;
 
 //TODO: make this depend on shader props
     #ifdef ENABLE_LIGHT_NOISE
-    varying vec2 v_noisecoord;
+        varying vec2 v_noisecoord;
+        uniform sampler2D u_dither;
     #endif
 #endif
 

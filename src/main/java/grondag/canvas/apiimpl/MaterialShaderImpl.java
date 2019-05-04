@@ -36,6 +36,8 @@ import grondag.frex.api.material.Uniform.Uniform3f;
 import grondag.frex.api.material.Uniform.Uniform3i;
 import grondag.frex.api.material.Uniform.Uniform4f;
 import grondag.frex.api.material.Uniform.Uniform4i;
+import grondag.frex.api.material.Uniform.UniformArrayf;
+import grondag.frex.api.material.Uniform.UniformArrayi;
 import grondag.frex.api.material.Uniform.UniformMatrix4f;
 import grondag.frex.api.material.UniformRefreshFrequency;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
@@ -164,6 +166,20 @@ public final class MaterialShaderImpl implements MaterialShader {
         uniforms.add(p -> {
             if (p.containsUniformSpec("ivec4", name))
                 p.uniform4i(name, frequency, initializer);
+        });
+    }
+    
+    public void uniformArrayf(String name, UniformRefreshFrequency frequency, Consumer<UniformArrayf> initializer, int size) {
+        uniforms.add(p -> {
+            if (p.containsUniformSpec("float\\s*\\[\\s*[0-9]+\\s*]", name))
+                p.uniformArrayf(name, frequency, initializer, size);
+        });
+    }
+    
+    public void uniformArrayi(String name, UniformRefreshFrequency frequency, Consumer<UniformArrayi> initializer, int size) {
+        uniforms.add(p -> {
+            if (p.containsUniformSpec("int\\s*\\[\\s*[0-9]+\\s*]", name))
+                p.uniformArrayi(name, frequency, initializer, size);
         });
     }
 

@@ -50,9 +50,10 @@ void setupVertex() {
 #endif
 
 #ifdef ENABLE_SMOOTH_LIGHT
-    v_hd_lightmap = in_hd_lightmap + 0.5;
-//#ifdef ENABLE_LIGHT_NOISE
-    //v_noisecoord = uv(gl_Vertex.xyz, in_normal_ao.xyz);
+    v_hd_lightmap = in_hd_lightmap;
+    #ifdef ENABLE_LIGHT_NOISE
+        v_noisecoord = uv(gl_Vertex.xyz / 8.0, in_normal_ao.xyz);
+    #endif
 #endif
 
     v_diffuse = diffuse(diffuseNormal(viewCoord, in_normal_ao.xyz));

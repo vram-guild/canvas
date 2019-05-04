@@ -30,6 +30,8 @@ import grondag.frex.api.material.Uniform.Uniform3f;
 import grondag.frex.api.material.Uniform.Uniform3i;
 import grondag.frex.api.material.Uniform.Uniform4f;
 import grondag.frex.api.material.Uniform.Uniform4i;
+import grondag.frex.api.material.Uniform.UniformArrayf;
+import grondag.frex.api.material.Uniform.UniformArrayi;
 import grondag.frex.api.material.Uniform.UniformMatrix4f;
 import grondag.frex.api.material.UniformRefreshFrequency;
 import net.minecraft.util.Identifier;
@@ -113,6 +115,19 @@ public class ShaderBuilderImpl implements ShaderBuilder {
     @Override
     public ShaderBuilderImpl uniform4i(String name, UniformRefreshFrequency frequency, Consumer<Uniform4i> initializer) {
         uniforms.add(p -> p.uniform4i(name, frequency, initializer));
+        return this;
+    }
+    
+    
+    @Override
+    public ShaderBuilderImpl uniformArrayf(String name, UniformRefreshFrequency frequency, Consumer<UniformArrayf> initializer, int size) {
+        uniforms.add(p -> p.uniformArrayf(name, frequency, initializer, size));
+        return this;
+    }
+    
+    @Override
+    public ShaderBuilderImpl uniformArrayi(String name, UniformRefreshFrequency frequency, Consumer<UniformArrayi> initializer, int size) {
+        uniforms.add(p -> p.uniformArrayi(name, frequency, initializer, size));
         return this;
     }
 

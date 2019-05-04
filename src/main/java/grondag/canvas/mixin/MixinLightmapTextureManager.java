@@ -17,14 +17,23 @@
 package grondag.canvas.mixin;
 
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import grondag.canvas.material.ShaderManager;
+import grondag.canvas.varia.SmoothLightmapTexture;
+import grondag.canvas.varia.WorldDataManager;
 import net.minecraft.client.render.LightmapTextureManager;
 
 @Mixin(LightmapTextureManager.class)
 public abstract class MixinLightmapTextureManager {
+    
+    @Shadow
+    private float prevFlicker;
+    
     @ModifyArg(method = "update", index = 2, at = @At(value = "INVOKE", 
             target = "Lnet/minecraft/client/texture/NativeImage;setPixelRGBA(III)V"))
     private int onSetPixelRGBA(int i, int j, int color) {
@@ -32,5 +41,11 @@ public abstract class MixinLightmapTextureManager {
             ShaderManager.INSTANCE.updateEmissiveColor(color);
         }
         return color;
+    }
+    
+    @Inject(at = @At("RETURN"), method = "update")
+    private void afterUpdate(float tick, CallbackInfo info) {
+        WorldDataManager.updateLight(tick, prevFlicker);
+        SmoothLightmapTexture.instance().update(tick, prevFlicker);
     }
 }

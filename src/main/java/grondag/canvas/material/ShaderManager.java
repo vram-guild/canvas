@@ -22,6 +22,7 @@ import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.MaterialShaderImpl;
 import grondag.canvas.varia.FogStateExtHolder;
 import grondag.canvas.varia.SmoothLightmapTexture;
+import grondag.canvas.varia.WorldDataManager;
 import grondag.frex.api.material.UniformRefreshFrequency;
 import net.fabricmc.fabric.api.event.client.ClientTickCallback;
 import net.minecraft.client.MinecraftClient;
@@ -160,11 +161,15 @@ public final class ShaderManager implements ClientTickCallback {
     }
     
     private void addStandardUniforms(MaterialShaderImpl shader) {
+        shader.uniformArrayf("u_world", UniformRefreshFrequency.PER_TICK, u -> u.set(WorldDataManager.uniformData()), WorldDataManager.LENGTH);
+        
         shader.uniform1f("u_time", UniformRefreshFrequency.PER_FRAME, u -> u.set(renderSeconds));
 
         shader.uniformSampler2d("u_textures", UniformRefreshFrequency.ON_LOAD, u -> u.set(0));
 
         shader.uniformSampler2d("u_lightmap", UniformRefreshFrequency.ON_LOAD, u -> u.set(1));
+        
+        shader.uniformSampler2d("u_dither", UniformRefreshFrequency.ON_LOAD, u -> u.set(2));
 
         //UGLY: needs a better GLSL name
         shader.uniformSampler2d("u_utility", UniformRefreshFrequency.ON_LOAD, u -> u.set(2));

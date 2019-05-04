@@ -39,6 +39,8 @@ import grondag.frex.api.material.Uniform.Uniform3f;
 import grondag.frex.api.material.Uniform.Uniform3i;
 import grondag.frex.api.material.Uniform.Uniform4f;
 import grondag.frex.api.material.Uniform.Uniform4i;
+import grondag.frex.api.material.Uniform.UniformArrayf;
+import grondag.frex.api.material.Uniform.UniformArrayi;
 import grondag.frex.api.material.Uniform.UniformMatrix4f;
 import grondag.frex.api.material.UniformRefreshFrequency;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
@@ -248,6 +250,31 @@ public class GlProgram {
         }
     }
 
+    public class UniformArrayfImpl extends UniformFloat<UniformArrayf> implements UniformArrayf {
+        protected UniformArrayfImpl(String name, Consumer<UniformArrayf> initializer, UniformRefreshFrequency frequency, int size) {
+            super(name, initializer, frequency, size);
+        }
+
+        @Override
+        public final void set(float[] data) {
+            if (this.unifID == -1)
+                return;
+            
+            final int limit = data.length;
+            for(int i = 0; i < limit; i++) {
+                if (this.uniformFloatBuffer.get(i) != data[i]) {
+                    this.uniformFloatBuffer.put(i, data[i]);
+                    this.setDirty();
+                }
+            }
+        }
+
+        @Override
+        protected void uploadInner() {
+            GLX.glUniform1(this.unifID, this.uniformFloatBuffer);
+        }
+    }
+    
     private <T extends UniformImpl<?>> T addUniform(T toAdd) {
         this.uniforms.add(toAdd);
         if (toAdd.frequency == UniformRefreshFrequency.PER_FRAME)
@@ -273,6 +300,10 @@ public class GlProgram {
         return addUniform(new Uniform4fImpl(name, initializer, frequency));
     }
 
+    public UniformArrayf uniformArrayf(String name, UniformRefreshFrequency frequency, Consumer<UniformArrayf> initializer, int size) {
+        return addUniform(new UniformArrayfImpl(name, initializer, frequency, size));
+    }
+    
     protected abstract class UniformInt<T extends Uniform> extends UniformImpl<T> {
         protected final IntBuffer uniformIntBuffer;
 
@@ -390,6 +421,31 @@ public class GlProgram {
         }
     }
 
+    public class UniformArrayiImpl extends UniformInt<UniformArrayi> implements UniformArrayi {
+        protected UniformArrayiImpl(String name, Consumer<UniformArrayi> initializer, UniformRefreshFrequency frequency, int size) {
+            super(name, initializer, frequency, size);
+        }
+
+        @Override
+        public final void set(int[] data) {
+            if (this.unifID == -1)
+                return;
+            
+            final int limit = data.length;
+            for(int i = 0; i < limit; i++) {
+                if (this.uniformIntBuffer.get(i) != data[i]) {
+                    this.uniformIntBuffer.put(i, data[i]);
+                    this.setDirty();
+                }
+            }
+        }
+
+        @Override
+        protected void uploadInner() {
+            GLX.glUniform1(this.unifID, this.uniformIntBuffer);
+        }
+    }
+    
     public Uniform1i uniform1i(String name, UniformRefreshFrequency frequency, Consumer<Uniform1i> initializer) {
         return addUniform(new Uniform1iImpl(name, initializer, frequency));
     }
@@ -406,6 +462,11 @@ public class GlProgram {
         return addUniform(new Uniform4iImpl(name, initializer, frequency));
     }
 
+    public UniformArrayi uniformArrayi(String name, UniformRefreshFrequency frequency, Consumer<UniformArrayi> initializer, int size) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+    
     public GlProgram(GlVertexShader vertexShader, GlFragmentShader fragmentShader, int shaderProps, boolean isSolidLayer) {
         this.vertexShader = vertexShader;
         this.fragmentShader = fragmentShader;
