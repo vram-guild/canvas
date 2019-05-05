@@ -191,7 +191,8 @@ class AoFaceData {
     
     private static int meanEdgeBrightness(int a, int b, int c, int d) {
         final int min = nonZeroMin(nonZeroMin(a, b), nonZeroMin(c, d));
-        return meanInnerBrightness(max(a, min), max(b, min), max(c, min), max(d, min));
+//        return meanInnerBrightness(max(a, min), max(b, min), max(c, min), max(d, min));
+        return meanInnerBrightness(a == 0 ? min : a, b == 0 ? min : b, c == 0 ? min : c, d == 0 ? min : d);
     }
     
     private static int meanInnerBrightness(int a, int b, int c, int d) {

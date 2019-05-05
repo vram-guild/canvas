@@ -1,7 +1,5 @@
 package grondag.canvas.apiimpl.util;
 
-import static java.lang.Math.max;
-
 import java.util.concurrent.ConcurrentHashMap;
 
 import grondag.canvas.varia.Lightmap3;
@@ -114,52 +112,6 @@ public class LightFaceData {
                 && this.kc3 == d.kc3;
     }
     
-    void simplify() {
-        int nbs0 = Math.max(bs0, nonZeroMin(bs0, bCenter, bc0, bc1));
-        int nbs1 = Math.max(bs1, nonZeroMin(bs1, bCenter, bc2, bc3));
-        int nbs2 = Math.max(bs2, nonZeroMin(bs2, bCenter, bc0, bc2));
-        int nbs3 = Math.max(bs3, nonZeroMin(bs3, bCenter, bc1, bc3));
-        
-        // note the grouping here is different than in computing
-        // because computing maps to vertex order. Here we just want 
-        // to eliminate too-dark samples
-        int nbc0 = Math.max(bc0, nonZeroMin(bs2, bs0, bc0, bCenter));
-        int nbc1 = Math.max(bc1, nonZeroMin(bs3, bs0, bc1, bCenter));
-        int nbc2 = Math.max(bc2, nonZeroMin(bs2, bs1, bc2, bCenter));
-        int nbc3 = Math.max(bc3, nonZeroMin(bs3, bs1, bc3, bCenter));
-        
-        int nks0 = Math.max(ks0, nonZeroMin(ks0, kCenter, kc0, kc1));
-        int nks1 = Math.max(ks1, nonZeroMin(ks1, kCenter, kc2, kc3));
-        int nks2 = Math.max(ks2, nonZeroMin(ks2, kCenter, kc0, kc2));
-        int nks3 = Math.max(ks3, nonZeroMin(ks3, kCenter, kc1, kc3));
-        
-        // note the grouping here is different than in computing
-        // because computing maps to vertex order. Here we just want 
-        // to eliminate too-dark samples
-        int nkc0 = Math.max(kc0, nonZeroMin(ks2, ks0, kc0, kCenter));
-        int nkc1 = Math.max(kc1, nonZeroMin(ks3, ks0, kc1, kCenter));
-        int nkc2 = Math.max(kc2, nonZeroMin(ks2, ks1, kc2, kCenter));
-        int nkc3 = Math.max(kc3, nonZeroMin(ks3, ks1, kc3, kCenter));
-        
-        bs0 = nbs0;
-        bs1 = nbs1;
-        bs2 = nbs2;
-        bs3 = nbs3;
-        bc0 = nbc0;
-        bc1 = nbc1;
-        bc2 = nbc2;
-        bc3 = nbc3;
-        
-        ks0 = nks0;
-        ks1 = nks1;
-        ks2 = nks2;
-        ks3 = nks3;
-        kc0 = nkc0;
-        kc1 = nkc1;
-        kc2 = nkc2;
-        kc3 = nkc3;
-    }
-    
     LightFaceData compute() {
         b0 = meanBrightness(bs3, bs0, bc1, bCenter);
         b1 = meanBrightness(bs2, bs0, bc0, bCenter);
@@ -240,8 +192,8 @@ public class LightFaceData {
     static final ConcurrentHashMap<LightFaceData, LightFaceData> MAP = new ConcurrentHashMap<>();
     
     public static LightFaceData intern(LightFaceData searchFace) {
-//        searchFace.simplify();
-        return MAP.computeIfAbsent(searchFace, s -> s.clone().compute().upload());
+        searchFace.compute();
+        return MAP.computeIfAbsent(searchFace, s -> s.clone().upload());
     }
     
     public static LightFaceData find(AoFaceData faceData) {
@@ -280,7 +232,17 @@ public class LightFaceData {
         search.s2 = faceData.s2;
         search.s3 = faceData.s3;
         
-        return intern(search);
+        LightFaceData result = intern(search);
+        
+//        if(result.b0 == faceData.b0 && result.b1 == faceData.b1 && result.b2 == faceData.b2 && result.b3 == faceData.b3) {
+////            if(result.b0 != 0 || result.b1 != 0 || result.b2 != 0 || result.b3 != 0) {
+////                Canvas.LOG.info(String.format("MATCH %d, %d, %d, %d", faceData.b0, faceData.b1, faceData.b2, faceData.b3));
+////            }
+//        } else {
+//            Canvas.LOG.info(String.format("OLD %d, %d, %d, %d", faceData.b0, faceData.b1, faceData.b2, faceData.b3));
+//            Canvas.LOG.info(String.format("NEW %d, %d, %d, %d", result.b0, result.b1, result.b2, result.b3));
+//        }
+        return result;
     }
     
     /** 
@@ -293,13 +255,12 @@ public class LightFaceData {
     }
     
     private static int meanEdgeBrightness(int a, int b, int c, int d) {
-        final int min = nonZeroMin(nonZeroMin(a, b), nonZeroMin(c, d));
-        return meanInnerBrightness(max(a, min), max(b, min), max(c, min), max(d, min));
+        final int min = nonZeroMin(a, b, c, d);
+        return meanInnerBrightness(a == 0 ? min : a, b == 0 ? min : b, c == 0 ? min : c, d == 0 ? min : d);
     }
     
     private static int meanInnerBrightness(int a, int b, int c, int d) {
-        // bitwise divide by 4, clamp to expected (positive) range
-        return a + b + c + d >> 2 & 16711935;
+        return Math.round((a + b + c + d) * 0.25f);
     }
 
     private static int nonZeroMin(int a, int b) {

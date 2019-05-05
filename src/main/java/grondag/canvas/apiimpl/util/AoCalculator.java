@@ -348,12 +348,14 @@ public class AoCalculator {
             // then we use values from the outwardly diagonal corner. (outwardly = position
             // is one more away from light face)
             
-            // FIXME: probably an anisotropy problem here because we choose an arbitrary side
+            // Was probably an anisotropy problem here because we choose an arbitrary side
             // when both side are not clear and they do not have to have the same ao valuw.
             // Probably doesn't matter in vanilla where the only ao values are apparently 0.2 and 1.0.
             if (!isClear2 && !isClear0) {
                 fd.cAo0 = (fd.ao0 + fd.ao2) * 0.5f;
-                fd.cLight0 = Math.max(fd.light0, fd.light2);
+                // vanilla picks one but we set to zero to force the "use min non-zero" behavior
+                // and this give more consistent results
+                fd.cLight0 = 0;
             } else {
                 searchPos.set(lightPos).setOffset(aoFace.neighbors[0]).setOffset(aoFace.neighbors[2]);
                 fd.cAo0 = aoFunc.apply(searchPos);
@@ -362,7 +364,7 @@ public class AoCalculator {
 
             if (!isClear3 && !isClear0) {
                 fd.cAo1 = (fd.ao0 + fd.ao3) * 0.5f;
-                fd.cLight1 = Math.max(fd.light0, fd.light3);
+                fd.cLight1 = 0;
             } else {
                 searchPos.set(lightPos).setOffset(aoFace.neighbors[0]).setOffset(aoFace.neighbors[3]);
                 fd.cAo1 = aoFunc.apply(searchPos);
@@ -371,7 +373,7 @@ public class AoCalculator {
 
             if (!isClear2 && !isClear1) {
                 fd.cAo2 = (fd.ao1 + fd.ao2) * 0.5f;
-                fd.cLight2 = Math.max(fd.light1, fd.light2);
+                fd.cLight2 = 0;
             } else {
                 searchPos.set(lightPos).setOffset(aoFace.neighbors[1]).setOffset(aoFace.neighbors[2]);
                 fd.cAo2 = aoFunc.apply(searchPos);
@@ -380,7 +382,7 @@ public class AoCalculator {
 
             if (!isClear3 && !isClear1) {
                 fd.cAo3 = (fd.ao1 + fd.ao3) * 0.5f;
-                fd.cLight3 = Math.max(fd.light1, fd.light3);
+                fd.cLight3 = 0;
             } else {
                 searchPos.set(lightPos).setOffset(aoFace.neighbors[1]).setOffset(aoFace.neighbors[3]);
                 fd.cAo3 = aoFunc.apply(searchPos);
