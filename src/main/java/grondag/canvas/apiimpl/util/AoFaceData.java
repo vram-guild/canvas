@@ -16,13 +16,11 @@
 
 package grondag.canvas.apiimpl.util;
 
-import static java.lang.Math.max;
-
 /**
  * Holds per-corner results for a single block face. Handles caching and
  * provides various utility methods to simplify code elsewhere.
  */
-class AoFaceData {
+public class AoFaceData {
     // interpolated corner results
     float a0;
     float a1;
@@ -185,24 +183,32 @@ class AoFaceData {
      * Still need to substitute or edges are too dark but consistently use the min 
      * value from all four samples.
      */
-    private static int meanBrightness(int a, int b, int c, int d) {
+    public static int meanBrightness(int a, int b, int c, int d) {
         return a == 0 || b == 0 || c == 0 || d == 0 ? meanEdgeBrightness(a, b, c, d) : meanInnerBrightness(a, b, c, d);
     }
     
-    private static int meanEdgeBrightness(int a, int b, int c, int d) {
-        final int min = nonZeroMin(nonZeroMin(a, b), nonZeroMin(c, d));
+    public static int meanEdgeBrightness(int a, int b, int c, int d) {
+        final int min = nonZeroMin(a, b, c, d);
 //        return meanInnerBrightness(max(a, min), max(b, min), max(c, min), max(d, min));
         return meanInnerBrightness(a == 0 ? min : a, b == 0 ? min : b, c == 0 ? min : c, d == 0 ? min : d);
     }
     
-    private static int meanInnerBrightness(int a, int b, int c, int d) {
+    public static int meanInnerBrightness(int a, int b, int c, int d) {
         // bitwise divide by 4, clamp to expected (positive) range
         return a + b + c + d >> 2 & 16711935;
     }
+    
+    public static int nonZeroMin(int a, int b, int c, int d) {
+        return nonZeroMin(nonZeroMin(a, b), nonZeroMin(c, d));
+    }
 
-    private static int nonZeroMin(int a, int b) {
+    public static int nonZeroMin(int a, int b) {
         if(a == 0) return b;
         if(b == 0) return a;
         return Math.min(a, b);
+    }
+    
+    public static int zif(int val, int valIfZero) {
+        return val == 0 ? valIfZero : val;
     }
 }

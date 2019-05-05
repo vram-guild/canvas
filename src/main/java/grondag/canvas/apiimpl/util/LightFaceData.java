@@ -1,8 +1,10 @@
 package grondag.canvas.apiimpl.util;
 
+import static grondag.canvas.apiimpl.util.AoFaceData.meanBrightness;
+
 import java.util.concurrent.ConcurrentHashMap;
 
-import grondag.canvas.varia.Lightmap3;
+import grondag.canvas.varia.LightmapHD;
 import grondag.fermion.varia.Useful;
 
 public class LightFaceData {
@@ -36,7 +38,7 @@ public class LightFaceData {
     public int kc3;
     public int kCenter;
     
-    public Lightmap3 lightmap = null;
+    public LightmapHD lightmap = null;
     
     @Override
     public LightFaceData clone() {
@@ -127,7 +129,7 @@ public class LightFaceData {
     }
     
     LightFaceData upload() {
-        this.lightmap = new Lightmap3(this);
+        this.lightmap = new LightmapHD(this);
         return this;
     }
 
@@ -243,33 +245,5 @@ public class LightFaceData {
 //            Canvas.LOG.info(String.format("NEW %d, %d, %d, %d", result.b0, result.b1, result.b2, result.b3));
 //        }
         return result;
-    }
-    
-    /** 
-     * Vanilla code excluded missing light values from mean but was not isotropic.
-     * Still need to substitute or edges are too dark but consistently use the min 
-     * value from all four samples.
-     */
-    private static int meanBrightness(int a, int b, int c, int d) {
-        return a == 0 || b == 0 || c == 0 || d == 0 ? meanEdgeBrightness(a, b, c, d) : meanInnerBrightness(a, b, c, d);
-    }
-    
-    private static int meanEdgeBrightness(int a, int b, int c, int d) {
-        final int min = nonZeroMin(a, b, c, d);
-        return meanInnerBrightness(a == 0 ? min : a, b == 0 ? min : b, c == 0 ? min : c, d == 0 ? min : d);
-    }
-    
-    private static int meanInnerBrightness(int a, int b, int c, int d) {
-        return Math.round((a + b + c + d) * 0.25f);
-    }
-
-    private static int nonZeroMin(int a, int b) {
-        if(a == 0) return b;
-        if(b == 0) return a;
-        return Math.min(a, b);
-    }
-    
-    private static int nonZeroMin(int a, int b, int c, int d) {
-        return nonZeroMin(nonZeroMin(a, b), nonZeroMin(c, d));
     }
 }

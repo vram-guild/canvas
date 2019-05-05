@@ -16,7 +16,7 @@ import grondag.canvas.apiimpl.RenderMaterialImpl;
 import grondag.canvas.apiimpl.rendercontext.ItemRenderContext;
 import grondag.canvas.apiimpl.util.ColorHelper;
 import grondag.canvas.buffer.packing.VertexCollector;
-import grondag.canvas.varia.Lightmap3;
+import grondag.canvas.varia.LightmapHD;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.util.math.BlockPos;
@@ -85,7 +85,7 @@ public class VertexEncoder {
         final int depth = mat.spriteDepth();
         assert depth == ShaderProps.spriteDepth(shaderProps);
         
-        Lightmap3 lightMap = (shaderProps & ShaderProps.SMOOTH_LIGHTMAPS) == 0 || q.lightFaceData == null ? null : q.lightFaceData.lightmap;
+        LightmapHD lightMap = (shaderProps & ShaderProps.SMOOTH_LIGHTMAPS) == 0 || q.lightFaceData == null ? null : q.lightFaceData.lightmap;
             
         for(int i = 0; i < 4; i++) {
             output.pos(pos, q.x(i), q.y(i), q.z(i));

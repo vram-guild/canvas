@@ -50,7 +50,7 @@ public class SmoothLightmapTexture implements AutoCloseable {
     public void forceReload() {
 //        maps.clear();
 //        loadlist.clear();
-        Lightmap3.forceReload();
+        LightmapHD.forceReload();
     }
 
     @Override
@@ -129,12 +129,12 @@ public class SmoothLightmapTexture implements AutoCloseable {
         isDirty = false;
         
         final NativeImage image = this.image;
-        Lightmap3.forEach( map -> {
+        LightmapHD.forEach( map -> {
             //PERF - update a pallette vs every pixel
             final int uMin = map.uMinImg;
             final int vMin = map.vMinImg;
-            for(int u = 0; u < 3; u++) {
-                for(int v = 0; v < 3; v++) {
+            for(int u = 0; u < 4; u++) {
+                for(int v = 0; v < 4; v++) {
                     image.setPixelRGBA(uMin + u, vMin + v, update(map.sky[u][v], map.block[u][v], flickerIn));
                 }
             }
