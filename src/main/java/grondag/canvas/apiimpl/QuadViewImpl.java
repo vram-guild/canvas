@@ -71,7 +71,7 @@ public class QuadViewImpl implements QuadView {
     //UGLY
     public LightFaceData lightFaceData = null;
     public ShadeFaceData shadeFaceData = null;
-    public float[] w = new float[4];
+    public float[][] w = new float[4][4];
 
     /**
      * Use when subtype is "attached" to a pre-existing array. Sets data reference

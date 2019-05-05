@@ -20,6 +20,8 @@ import org.joml.Vector3f;
 
 import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.MaterialShaderImpl;
+import grondag.canvas.apiimpl.util.LightFaceData;
+import grondag.canvas.apiimpl.util.ShadeFaceData;
 import grondag.canvas.varia.FogStateExtHolder;
 import grondag.canvas.varia.SmoothLightmapTexture;
 import grondag.canvas.varia.WorldDataManager;
@@ -102,6 +104,8 @@ public final class ShaderManager implements ClientTickCallback {
         GlShaderManager.INSTANCE.forceReload();
         VertexEncoder.forceReload();
         SmoothLightmapTexture.instance().forceReload();
+        ShadeFaceData.forceReload();
+        LightFaceData.forceReload();
         for (int i = 0; i < this.shaderCount; i++) {
             this.shaders[i].forceReload();
         }

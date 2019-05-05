@@ -155,8 +155,8 @@ public class AoCalculator {
         final Direction lightFace = quad.lightFace();
         AoFaceData faceData = computeFace(lightFace, isOnLightFace);
         final WeightFunction wFunc = AoFace.get(lightFace).weightFunc;
-        final float[] w = quad.w;
         for (int i = 0; i < 4; i++) {
+            final float[] w = quad.w[i];
             wFunc.apply(quad, i, w);
             light[i] = faceData.weightedCombinedLight(w);
             ao[i] = faceData.weigtedAo(w);
@@ -211,8 +211,8 @@ public class AoCalculator {
         final Direction lightFace = quad.lightFace();
         AoFaceData faceData = blendedInsetData(quad, 0, lightFace);
         final WeightFunction wFunc = AoFace.get(lightFace).weightFunc;
-        final float[] w = quad.w;
         for (int i = 0; i < 4; i++) {
+            final float[] w = quad.w[i];
             wFunc.apply(quad, i, w);
             light[i] = faceData.weightedCombinedLight(w);
             ao[i] = faceData.weigtedAo(w);
@@ -226,10 +226,12 @@ public class AoCalculator {
      */
     private final Vector3f vertexNormal = new Vector3f();
 
+    private final float[] w = new float[4];
+    
     private void irregularFace(MutableQuadViewImpl quad) {
         final Vector3f faceNorm = quad.faceNormal();
         Vector3f normal;
-        final float[] w = quad.w;
+        final float[] w = this.w;
         final float aoResult[] = this.ao;
         final int[] lightResult = this.light;
 

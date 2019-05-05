@@ -180,11 +180,6 @@ class AoFaceData {
         return out;
     }
 
-    public static AoFaceData intern(AoFaceData searchFace) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-    
     /** 
      * Vanilla code excluded missing light values from mean but was not isotropic.
      * Still need to substitute or edges are too dark but consistently use the min 

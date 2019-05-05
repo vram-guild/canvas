@@ -7,8 +7,6 @@ import com.mojang.blaze3d.platform.GlStateManager;
 
 import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.QuadViewImpl;
-import grondag.fermion.structures.SimpleUnorderedArrayList;
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
@@ -38,9 +36,9 @@ public class SmoothLightmapTexture implements AutoCloseable {
     private final Identifier textureIdentifier;
     private final MinecraftClient client;
 
-    private final Long2ObjectOpenHashMap<LightMap> maps = new Long2ObjectOpenHashMap<>();
-
-    private final SimpleUnorderedArrayList<LightMap> loadlist = new SimpleUnorderedArrayList<LightMap>();
+//    private final Long2ObjectOpenHashMap<LightMap> maps = new Long2ObjectOpenHashMap<>();
+//
+//    private final SimpleUnorderedArrayList<LightMap> loadlist = new SimpleUnorderedArrayList<LightMap>();
 
     private SmoothLightmapTexture() {
         this.client = MinecraftClient.getInstance();
@@ -50,9 +48,9 @@ public class SmoothLightmapTexture implements AutoCloseable {
     }
 
     public void forceReload() {
-        maps.clear();
-        loadlist.clear();
-
+//        maps.clear();
+//        loadlist.clear();
+        Lightmap3.forceReload();
     }
 
     @Override
@@ -131,27 +129,16 @@ public class SmoothLightmapTexture implements AutoCloseable {
         isDirty = false;
         
         final NativeImage image = this.image;
-        final int limit = loadlist.size();
-        for(int i = 0; i < limit; i++) {
-                LightMap map = loadlist.get(i);
-                if(map == null) {
-                    assert false : "Encountered null smoot lightmap instance.";
-                    break;
+        Lightmap3.forEach( map -> {
+            //PERF - update a pallette vs every pixel
+            final int uMin = map.uMinImg;
+            final int vMin = map.vMinImg;
+            for(int u = 0; u < 3; u++) {
+                for(int v = 0; v < 3; v++) {
+                    image.setPixelRGBA(uMin + u, vMin + v, update(map.sky[u][v], map.block[u][v], flickerIn));
                 }
-                final int u = map.u;
-                final int v = map.v;
-                //PERF - update a pallette vs every pixel
-                
-                image.setPixelRGBA(u, v, update(map.s0, map.b0, flickerIn));
-                image.setPixelRGBA(u + 1, v, update(map.s1, map.b1, flickerIn));
-                image.setPixelRGBA(u + 1, v + 1, update(map.s2, map.b2, flickerIn));
-                image.setPixelRGBA(u, v + 1, update(map.s3, map.b3, flickerIn));
-                
-//                image.setPixelRGBA(u, v, randomBits[u][v] | map.b0 | (map.s0 << 8));
-//                image.setPixelRGBA(u + 1, v, randomBits[u + 1][v] | map.b1 | (map.s1 << 8));
-//                image.setPixelRGBA(u + 1, v + 1, randomBits[u + 1][v + 1] | map.b2 | (map.s2 << 8));
-//                image.setPixelRGBA(u, v + 1, randomBits[u][v + 1] | map.b3 | (map.s3 << 8));
-        }
+            }
+        });
         this.texture.upload();
     }
 
@@ -379,79 +366,115 @@ public class SmoothLightmapTexture implements AutoCloseable {
         return 0xFF000000 | (blue << 16) | (green << 8) | red;
     }
 
-    public class LightMap {
-        final int b0;
-        final int b1;
-        final int b2;
-        final int b3;
-        final int s0;
-        final int s1;
-        final int s2;
-        final int s3;
-
-        final int u;
-        final int v;
-
-        LightMap(long lightKey, QuadViewImpl q) {
-            final int index = maps.size();
-
-            int l = q.lightmap(0);
-            b0 = l & 0xFF;
-            s0 = (l >> 16) & 0xFF;
-
-            l = q.lightmap(1);
-            b1 = l & 0xFF;
-            s1 = (l >> 16) & 0xFF;
-
-            l = q.lightmap(2);
-            b2 = l & 0xFF;
-            s2 = (l >> 16) & 0xFF;
-
-            l = q.lightmap(3);
-            b3 = l & 0xFF;
-            s3 = (l >> 16) & 0xFF;
-
-            this.u = (index & 0xFF) * 2;
-            this.v = (index >> 8) * 2;
-        }
-
-        
-        public int lightCoord(int vertexIndex) {
-            final int m = 32;
-            
-            switch(vertexIndex) {
-            case 0:
-                return (u * m + 16) | ((v * m + 16) << 16);
-            case 1:
-                return ((u + 1) * m + 16) | ((v * m + 16) << 16);
-            case 2:
-                return ((u + 1) * m + 16) | (((v + 1) * m + 16) << 16);
-            case 3:
-                return (u * m + 16) | (((v + 1) * m + 16) << 16);
-            }
-            return 0;
-        }
-    }
-
-    public LightMap lightMap(QuadViewImpl q, float[] ao) {
-        long key = lightKey(q);
-
-        LightMap result = maps.get(key);
-        if(result == null) {
-            synchronized(this) {
-                result = maps.get(key);
-                if(result == null) {
-                    result = new LightMap(key, q);
-                    maps.put(key, result);
-                    assert result != null;
-                    loadlist.add(result);
-                }
-            }
-        }
-        return result;
-    }
-
-    public LightMap shadeMap(QuadViewImpl q) {
-        return lightMap(q, null);
-    }
+//    public class LightMap {
+//        final int b0;
+//        final int b1;
+//        final int b2;
+//        final int b3;
+//        final int s0;
+//        final int s1;
+//        final int s2;
+//        final int s3;
+//
+//        final int u;
+//        final int v;
+//
+//        LightMap(long lightKey, QuadViewImpl q) {
+//            final int index = maps.size();
+//
+//            int l = q.lightmap(0);
+//            b0 = l & 0xFF;
+//            s0 = (l >> 16) & 0xFF;
+//
+//            l = q.lightmap(1);
+//            b1 = l & 0xFF;
+//            s1 = (l >> 16) & 0xFF;
+//
+//            l = q.lightmap(2);
+//            b2 = l & 0xFF;
+//            s2 = (l >> 16) & 0xFF;
+//
+//            l = q.lightmap(3);
+//            b3 = l & 0xFF;
+//            s3 = (l >> 16) & 0xFF;
+//
+//            this.u = (index & 0xFF) * 2;
+//            this.v = (index >> 8) * 2;
+//        }
+//
+//        //TODO: remove
+////        public int lightCoord(int vertexIndex) {
+////            final int m = 32;
+////            
+////            switch(vertexIndex) {
+////            case 0:
+////                return (u * m + 16) | ((v * m + 16) << 16);
+////            case 1:
+////                return ((u + 1) * m + 16) | ((v * m + 16) << 16);
+////            case 2:
+////                return ((u + 1) * m + 16) | (((v + 1) * m + 16) << 16);
+////            case 3:
+////                return (u * m + 16) | (((v + 1) * m + 16) << 16);
+////            }
+////            return 0;
+////        }
+//    }
+//
+//    public LightMap lightMap(QuadViewImpl q, float[] ao) {
+//        long key = lightKey(q);
+//
+//        LightFaceData lfd = q.lightFaceData;
+//        assert lfd != null;
+////        final int b0 = (q.lightmap(0) & 0xFFFF);
+////        final int b1 = (q.lightmap(1) & 0xFFFF);
+////        final int b2 = (q.lightmap(2) & 0xFFFF);
+////        final int b3 = (q.lightmap(3) & 0xFFFF);
+////        
+////        final int tb0 = lfd.weigtedBlockLight(q.w[0]);
+////        final int tb1 = lfd.weigtedBlockLight(q.w[1]);
+////        final int tb2 = lfd.weigtedBlockLight(q.w[2]);
+////        final int tb3 = lfd.weigtedBlockLight(q.w[3]);
+//        
+////        assert tb0 == b0;
+////        assert tb1 == b1;
+////        assert tb2 == b2;
+////        assert tb3 == b3;
+//        
+////        final int s0 = ((q.lightmap(0) >>> 16) & 0xFFFF);
+////        final int s1 = ((q.lightmap(1) >>> 16) & 0xFFFF);
+////        final int s2 = ((q.lightmap(2) >>> 16) & 0xFFFF);
+////        final int s3 = ((q.lightmap(3) >>> 16) & 0xFFFF);
+//        
+////        assert lfd.s0 == s0;
+////        assert lfd.s1 == s1;
+////        assert lfd.s2 == s2;
+////        assert lfd.s3 == s3;
+//        
+//        if(ao != null) {
+//            ShadeFaceData sfd = q.shadeFaceData;
+//            assert sfd != null;
+//            assert ao[0] == sfd.ao0;
+//            assert ao[1] == sfd.ao1;
+//            assert ao[2] == sfd.ao2;
+//            assert ao[3] == sfd.ao3;
+//        }
+//        
+//        LightMap result = maps.get(key);
+//        if(result == null) {
+//            synchronized(this) {
+//                result = maps.get(key);
+//                if(result == null) {
+//                    result = new LightMap(key, q);
+//                    maps.put(key, result);
+//                    assert result != null;
+//                    loadlist.add(result);
+//                }
+//            }
+//        }
+//        return result;
+//    }
+//
+//    public LightMap shadeMap(QuadViewImpl q) {
+//        return lightMap(q, null);
+//    }
 }

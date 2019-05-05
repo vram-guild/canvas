@@ -4,18 +4,19 @@ import static java.lang.Math.max;
 
 import java.util.concurrent.ConcurrentHashMap;
 
+import grondag.canvas.varia.Lightmap3;
 import grondag.fermion.varia.Useful;
 
 public class LightFaceData {
     // interpolated corner results
-    int b0;
-    int b1;
-    int b2;
-    int b3;
-    int s0;
-    int s1;
-    int s2;
-    int s3;
+    public int b0;
+    public int b1;
+    public int b2;
+    public int b3;
+    public int s0;
+    public int s1;
+    public int s2;
+    public int s3;
     
     public int bs0;
     public int bs1;
@@ -36,6 +37,8 @@ public class LightFaceData {
     public int kc2;
     public int kc3;
     public int kCenter;
+    
+    public Lightmap3 lightmap = null;
     
     @Override
     public LightFaceData clone() {
@@ -112,25 +115,49 @@ public class LightFaceData {
     }
     
     void simplify() {
-        bs0 = nonZeroMin(bs0, bCenter);
-        bs1 = nonZeroMin(bs1, bCenter);
-        bs2 = nonZeroMin(bs2, bCenter);
-        bs3 = nonZeroMin(bs3, bCenter);
+        int nbs0 = Math.max(bs0, nonZeroMin(bs0, bCenter, bc0, bc1));
+        int nbs1 = Math.max(bs1, nonZeroMin(bs1, bCenter, bc2, bc3));
+        int nbs2 = Math.max(bs2, nonZeroMin(bs2, bCenter, bc0, bc2));
+        int nbs3 = Math.max(bs3, nonZeroMin(bs3, bCenter, bc1, bc3));
         
-        bc0 = nonZeroMin(bs3, bs0, bc1, bCenter);
-        bc1 = nonZeroMin(bs2, bs0, bc0, bCenter);
-        bc2 = nonZeroMin(bs2, bs1, bc2, bCenter);
-        bc3 = nonZeroMin(bs3, bs1, bc3, bCenter);
+        // note the grouping here is different than in computing
+        // because computing maps to vertex order. Here we just want 
+        // to eliminate too-dark samples
+        int nbc0 = Math.max(bc0, nonZeroMin(bs2, bs0, bc0, bCenter));
+        int nbc1 = Math.max(bc1, nonZeroMin(bs3, bs0, bc1, bCenter));
+        int nbc2 = Math.max(bc2, nonZeroMin(bs2, bs1, bc2, bCenter));
+        int nbc3 = Math.max(bc3, nonZeroMin(bs3, bs1, bc3, bCenter));
         
-        ks0 = nonZeroMin(ks0, kCenter);
-        ks1 = nonZeroMin(ks1, kCenter);
-        ks2 = nonZeroMin(ks2, kCenter);
-        ks3 = nonZeroMin(ks3, kCenter);
+        int nks0 = Math.max(ks0, nonZeroMin(ks0, kCenter, kc0, kc1));
+        int nks1 = Math.max(ks1, nonZeroMin(ks1, kCenter, kc2, kc3));
+        int nks2 = Math.max(ks2, nonZeroMin(ks2, kCenter, kc0, kc2));
+        int nks3 = Math.max(ks3, nonZeroMin(ks3, kCenter, kc1, kc3));
         
-        kc0 = nonZeroMin(ks3, ks0, kc1, kCenter);
-        kc1 = nonZeroMin(ks2, ks0, kc0, kCenter);
-        kc2 = nonZeroMin(ks2, ks1, kc2, kCenter);
-        kc3 = nonZeroMin(ks3, ks1, kc3, kCenter);
+        // note the grouping here is different than in computing
+        // because computing maps to vertex order. Here we just want 
+        // to eliminate too-dark samples
+        int nkc0 = Math.max(kc0, nonZeroMin(ks2, ks0, kc0, kCenter));
+        int nkc1 = Math.max(kc1, nonZeroMin(ks3, ks0, kc1, kCenter));
+        int nkc2 = Math.max(kc2, nonZeroMin(ks2, ks1, kc2, kCenter));
+        int nkc3 = Math.max(kc3, nonZeroMin(ks3, ks1, kc3, kCenter));
+        
+        bs0 = nbs0;
+        bs1 = nbs1;
+        bs2 = nbs2;
+        bs3 = nbs3;
+        bc0 = nbc0;
+        bc1 = nbc1;
+        bc2 = nbc2;
+        bc3 = nbc3;
+        
+        ks0 = nks0;
+        ks1 = nks1;
+        ks2 = nks2;
+        ks3 = nks3;
+        kc0 = nkc0;
+        kc1 = nkc1;
+        kc2 = nkc2;
+        kc3 = nkc3;
     }
     
     LightFaceData compute() {
@@ -146,12 +173,17 @@ public class LightFaceData {
         
         return this;
     }
+    
+    LightFaceData upload() {
+        this.lightmap = new Lightmap3(this);
+        return this;
+    }
 
-    int weigtedBlockLight(float[] w) {
+    public int weigtedBlockLight(float[] w) {
         return (int) (b0 * w[0] + b1 * w[1] + b2 * w[2] + b3 * w[3]) & 0xFF;
     }
 
-    int weigtedSkyLight(float[] w) {
+    public int weigtedSkyLight(float[] w) {
         return (int) (s0 * w[0] + s1 * w[1] + s2 * w[2] + s3 * w[3]) & 0xFF;
     }
 
@@ -201,11 +233,15 @@ public class LightFaceData {
         return out;
     }
 
+    public static void forceReload() {
+        MAP.clear();
+    }
+    
     static final ConcurrentHashMap<LightFaceData, LightFaceData> MAP = new ConcurrentHashMap<>();
     
     public static LightFaceData intern(LightFaceData searchFace) {
-        searchFace.simplify();
-        return MAP.computeIfAbsent(searchFace, s -> s.clone().compute());
+//        searchFace.simplify();
+        return MAP.computeIfAbsent(searchFace, s -> s.clone().compute().upload());
     }
     
     public static LightFaceData find(AoFaceData faceData) {

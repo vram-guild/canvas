@@ -109,7 +109,7 @@ vec4 diffuseColor() {
 #ifdef CONTEXT_IS_BLOCK
 	#ifdef ENABLE_SMOOTH_LIGHT
 
-	    light = texture2D(u_utility, v_hd_lightmap / 16384.0);
+	    light = texture2D(u_utility, v_hd_lightmap / 32768.0);
 //	    light = lightColor(smooth.rg);
 
         #ifdef ENABLE_LIGHT_NOISE

@@ -63,7 +63,7 @@ public class ShadeFaceData {
                 && this.aoCenter == d.aoCenter;
     }
     
-    void compute() {
+    public void compute() {
         a0 = (ao3 + ao0 + cAo1 + aoCenter) * 0.25F;
         a1 = (ao2 + ao0 + cAo0 + aoCenter) * 0.25F;
         a2 = (ao2 + ao1 + cAo2 + aoCenter) * 0.25F;
@@ -104,6 +104,10 @@ public class ShadeFaceData {
         out.aoCenter = in0.aoCenter * w0 + in1.aoCenter * w1;
         
         return out;
+    }
+    
+    public static void forceReload() {
+        MAP.clear();
     }
     
     static final ConcurrentHashMap<ShadeFaceData, ShadeFaceData> MAP = new ConcurrentHashMap<>();

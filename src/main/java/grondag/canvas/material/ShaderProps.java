@@ -55,7 +55,7 @@ public abstract class ShaderProps {
             }
         }
         
-        if(context.isBlock) {
+        if(context.isBlock && quad.lightFaceData != null && quad.shadeFaceData != null) {
             flags |= SMOOTH_LIGHTMAPS;
         }
         
