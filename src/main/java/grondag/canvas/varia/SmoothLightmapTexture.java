@@ -160,6 +160,7 @@ public class SmoothLightmapTexture implements AutoCloseable {
     float prevFlicker;
     
     // commented lightmap texture manager code
+    @SuppressWarnings("unused")
     private void updateWorldlight(float tick) {
         final MinecraftClient client = MinecraftClient.getInstance();
         final World world = client.world;
