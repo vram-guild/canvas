@@ -6,6 +6,7 @@ import static grondag.canvas.apiimpl.util.AoFaceData.zif;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
+import grondag.canvas.apiimpl.QuadViewImpl;
 import grondag.canvas.apiimpl.util.LightFaceData;
 
 public class LightmapHD {
@@ -139,6 +140,12 @@ public class LightmapHD {
     public final int coord(float[] w) {
         float u = u0 * w[0] + u1 * w[1] + u2 * w[2] + u3 * w[3];
         float v = v0 * w[0] + v1 * w[1] + v2 * w[2] + v3 * w[3];
+        return Math.round(u * TEXTURE_TO_BUFFER) | (Math.round(v * TEXTURE_TO_BUFFER) << 16);
+    }
+
+    public int coord(QuadViewImpl q, int i) {
+        float u = u0 + q.u[i] * 2f;
+        float v = v0 + q.v[i] * 2f;
         return Math.round(u * TEXTURE_TO_BUFFER) | (Math.round(v * TEXTURE_TO_BUFFER) << 16);
     }
 }

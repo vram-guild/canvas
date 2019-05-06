@@ -32,6 +32,7 @@ import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.QuadViewImpl;
 import grondag.canvas.apiimpl.rendercontext.BlockRenderInfo;
+import grondag.canvas.apiimpl.util.AoFace.Vertex2Float;
 import grondag.canvas.apiimpl.util.AoFace.WeightFunction;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -154,10 +155,15 @@ public class AoCalculator {
     private void vanillaPartialFace(MutableQuadViewImpl quad, boolean isOnLightFace) {
         final Direction lightFace = quad.lightFace();
         AoFaceData faceData = computeFace(lightFace, isOnLightFace);
-        final WeightFunction wFunc = AoFace.get(lightFace).weightFunc;
+        AoFace face = AoFace.get(lightFace);
+        final WeightFunction wFunc = face.weightFunc;
+        final Vertex2Float uFunc = face.uFunc;
+        final Vertex2Float vFunc = face.vFunc;
         for (int i = 0; i < 4; i++) {
             final float[] w = quad.w[i];
             wFunc.apply(quad, i, w);
+            quad.u[i] = uFunc.apply(quad, i);
+            quad.v[i] = vFunc.apply(quad, i);
             light[i] = faceData.weightedCombinedLight(w);
             ao[i] = faceData.weigtedAo(w);
         }
@@ -210,10 +216,15 @@ public class AoCalculator {
     private void blendedPartialFace(MutableQuadViewImpl quad) {
         final Direction lightFace = quad.lightFace();
         AoFaceData faceData = blendedInsetData(quad, 0, lightFace);
-        final WeightFunction wFunc = AoFace.get(lightFace).weightFunc;
+        AoFace face = AoFace.get(lightFace);
+        final WeightFunction wFunc = face.weightFunc;
+        final Vertex2Float uFunc = face.uFunc;
+        final Vertex2Float vFunc = face.vFunc;
         for (int i = 0; i < 4; i++) {
             final float[] w = quad.w[i];
             wFunc.apply(quad, i, w);
+            quad.u[i] = uFunc.apply(quad, i);
+            quad.v[i] = vFunc.apply(quad, i);
             light[i] = faceData.weightedCombinedLight(w);
             ao[i] = faceData.weigtedAo(w);
         }

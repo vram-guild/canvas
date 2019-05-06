@@ -100,7 +100,7 @@ public class VertexEncoder {
             output.add(blockLight | (skyLight << 8) | shaderFlags);
             
             if(lightMap != null) {
-                output.add(lightMap.coord(q.w[i]));
+                output.add(lightMap.coord(q, i));
             }
             
             int ao = aoData == null ? 0xFF000000 : ((Math.round(aoData[i] * 254) - 127) << 24);

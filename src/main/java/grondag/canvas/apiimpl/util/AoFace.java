@@ -29,58 +29,86 @@ import net.minecraft.util.math.Direction;
  */
 @Environment(EnvType.CLIENT)
 enum AoFace {
-    AOF_DOWN(new Direction[] { WEST, EAST, NORTH, SOUTH }, (q, i) -> q.y(i), (q, i, w) -> {
-        final float u = q.x(i);
-        final float v = q.z(i);
-        w[0] = (1 - u) * v;
-        w[1] = (1 - u) * (1 - v);
-        w[2] = u * (1 - v);
-        w[3] = u * v;
-    }), AOF_UP(new Direction[] { EAST, WEST, NORTH, SOUTH }, (q, i) -> 1 - q.y(i), (q, i, w) -> {
-        final float u = q.x(i);
-        final float v = q.z(i);
-        w[0] = u * v;
-        w[1] = u * (1 - v);
-        w[2] = (1 - u) * (1 - v);
-        w[3] = (1 - u) * v;
-    }), AOF_NORTH(new Direction[] { UP, DOWN, EAST, WEST }, (q, i) -> q.z(i), (q, i, w) -> {
-        final float u = q.y(i);
-        final float v = q.x(i);
-        w[0] = u * (1 - v);
-        w[1] = u * v;
-        w[2] = (1 - u) * v;
-        w[3] = (1 - u) * (1 - v);
-    }), AOF_SOUTH(new Direction[] { WEST, EAST, DOWN, UP }, (q, i) -> 1 - q.z(i), (q, i, w) -> {
-        final float u = q.y(i);
-        final float v = q.x(i);
-        w[0] = u * (1 - v);
-        w[1] = (1 - u) * (1 - v);
-        w[2] = (1 - u) * v;
-        w[3] = u * v;
-    }), AOF_WEST(new Direction[] { UP, DOWN, NORTH, SOUTH }, (q, i) -> q.x(i), (q, i, w) -> {
-        final float u = q.y(i);
-        final float v = q.z(i);
-        w[0] = u * v;
-        w[1] = u * (1 - v);
-        w[2] = (1 - u) * (1 - v);
-        w[3] = (1 - u) * v;
-    }), AOF_EAST(new Direction[] { DOWN, UP, NORTH, SOUTH }, (q, i) -> 1 - q.x(i), (q, i, w) -> {
-        final float u = q.y(i);
-        final float v = q.z(i);
-        w[0] = (1 - u) * v;
-        w[1] = (1 - u) * (1 - v);
-        w[2] = u * (1 - v);
-        w[3] = u * v;
+    AOF_DOWN(new Direction[] { WEST, EAST, NORTH, SOUTH }, (q, i) -> q.y(i), 
+        (q, i) -> 1 - q.x(i), 
+        (q, i) -> 1 - q.z(i),
+        (q, i, w) -> {
+            final float u = q.x(i);
+            final float v = q.z(i);
+            w[0] = (1 - u) * v;
+            w[1] = (1 - u) * (1 - v);
+            w[2] = u * (1 - v);
+            w[3] = u * v;
+        }), 
+    AOF_UP(new Direction[] { EAST, WEST, NORTH, SOUTH }, (q, i) -> 1 - q.y(i), 
+        (q, i) -> q.x(i), 
+        (q, i) -> 1 - q.z(i),
+        (q, i, w) -> {
+            final float u = q.x(i);
+            final float v = q.z(i);
+            w[0] = u * v;
+            w[1] = u * (1 - v);
+            w[2] = (1 - u) * (1 - v);
+            w[3] = (1 - u) * v;
+    }), 
+    AOF_NORTH(new Direction[] { UP, DOWN, EAST, WEST }, (q, i) -> q.z(i),
+        (q, i) -> q.y(i), 
+        (q, i) -> 1 - q.x(i),
+        (q, i, w) -> {
+            final float u = q.y(i);
+            final float v = q.x(i);
+            w[0] = u * (1 - v);
+            w[1] = u * v;
+            w[2] = (1 - u) * v;
+            w[3] = (1 - u) * (1 - v);
+    }), 
+    AOF_SOUTH(new Direction[] { WEST, EAST, DOWN, UP }, (q, i) -> 1 - q.z(i),
+        (q, i) -> q.y(i), 
+        (q, i) -> 1 - q.x(i),
+        (q, i, w) -> {
+            final float u = q.y(i);
+            final float v = q.x(i);
+            w[0] = u * (1 - v);
+            w[1] = (1 - u) * (1 - v);
+            w[2] = (1 - u) * v;
+            w[3] = u * v;
+    }), 
+    AOF_WEST(new Direction[] { UP, DOWN, NORTH, SOUTH }, (q, i) -> q.x(i),
+        (q, i) -> q.y(i),
+        (q, i) -> q.z(i),
+        (q, i, w) -> {
+            final float u = q.y(i);
+            final float v = q.z(i);
+            w[0] = u * v;
+            w[1] = u * (1 - v);
+            w[2] = (1 - u) * (1 - v);
+            w[3] = (1 - u) * v;
+    }), 
+    AOF_EAST(new Direction[] { DOWN, UP, NORTH, SOUTH }, (q, i) -> 1 - q.x(i),
+        (q, i) -> 1 - q.z(i),
+        (q, i) -> q.y(i),
+        (q, i, w) -> {
+            final float u = q.y(i);
+            final float v = q.z(i);
+            w[0] = (1 - u) * v;
+            w[1] = (1 - u) * (1 - v);
+            w[2] = u * (1 - v);
+            w[3] = u * v;
     });
 
     final Direction[] neighbors;
     final WeightFunction weightFunc;
     final Vertex2Float depthFunc;
+    final Vertex2Float uFunc;
+    final Vertex2Float vFunc;
 
-    private AoFace(Direction[] faces, Vertex2Float depthFunc, WeightFunction weightFunc) {
+    private AoFace(Direction[] faces, Vertex2Float depthFunc, 
+            Vertex2Float uFunc, Vertex2Float vFunc, WeightFunction weightFunc) {
         this.neighbors = faces;
         this.depthFunc = depthFunc;
         this.weightFunc = weightFunc;
+        this.vFunc = vFunc;
+        this.uFunc = uFunc;
     }
 
     private static final AoFace[] values = (AoFace[]) SystemUtil.consume(new AoFace[6], (neighborData) -> {
