@@ -189,31 +189,35 @@ public class LightmapHD {
          * c1 s0 c0 s2 c2 s1 c3 s3
          * w0    w1    w2    w3
          * u0v0  u1v0  u1v1  u0v1
+         * 
+         * c1  s0  c0
+         * s3  mm  s2
+         * c3  s1  c3
          */
         
         // quadrant 0, 0
         light[index(1, 1)] = output(inside(center, s0, s3, c1));
         light[index(0, 0)] = output(corner(center, s0, s3, c1));
-        light[index(0, 1)] = output(side(center, s0, s3, c1 ));
-        light[index(1, 0)] = output(side(center, s3, s0, c1 ));
+        light[index(0, 1)] = output(side(center, s0, s3, c1, 0, 1));
+        light[index(1, 0)] = output(side(center, s3, s0, c1, 1, 0 ));
         
         // quadrant 1, 0
         light[index(2, 1)] = output(inside(center, s0, s2, c0));
         light[index(3, 0)] = output(corner(center, s0, s2, c0));
-        light[index(2, 0)] = output(side(center, s2, s0, c0 ));
-        light[index(3, 1)] = output(side(center, s0, s2, c0 ));
+        light[index(2, 0)] = output(side(center, s2, s0, c0, 2, 0 ));
+        light[index(3, 1)] = output(side(center, s0, s2, c0, 3, 1 ));
         
         // quadrant 1, 1
         light[index(2, 2)] = output(inside(center, s1, s2, c2));
         light[index(3, 3)] = output(corner(center, s1, s2, c2));
-        light[index(3, 2)] = output(side(center, s1, s2, c2 ));
-        light[index(2, 3)] = output(side(center, s2, s1, c2 ));
+        light[index(3, 2)] = output(side(center, s1, s2, c2, 3, 2));
+        light[index(2, 3)] = output(side(center, s2, s1, c2, 2, 3));
         
         // quadrant 0, 1
         light[index(1, 2)] = output(inside(center, s1, s3, c3));
         light[index(0, 3)] = output(corner(center, s1, s3, c3));
-        light[index(1, 3)] = output(side(center, s3, s1, c3 ));
-        light[index(0, 2)] = output(side(center, s1, s3, c3 ));
+        light[index(1, 3)] = output(side(center, s3, s1, c3, 1, 3));
+        light[index(0, 2)] = output(side(center, s1, s3, c3, 0, 2));
         
         //TODO: remove
 //      if(center == 0 && s0 == 0 && s1 == 0 && s2 == 0 && s3 == 0 && c0 == 0 && c1 == 0 && c2 == 0 && c3 == 0) {
@@ -272,45 +276,49 @@ public class LightmapHD {
         return max(self, pclamp(a - 1f), pclamp(b - 1f), pclamp(corner - 1.41f));
     }
     
-    private static float sideInner(float self, float far, float near, float corner) {
-        //UGLY: find symmetrical derivation
-        if(self == far && self == near && self == corner) {
-            return self;
-        }
-        return max(pclamp(self - .33f), pclamp(far - 1.05f), pclamp(near - .67f), pclamp(corner - 1.2f));
-    }
-    
-    private static float side(float self, float far, float near, float corner) {
-        //UGLY: find symmetrical derivation
-        if(self == far && self == near && self == corner) {
-            return self;
-        }
-        float s = sideInner(self, far, near, corner);
-        float t = sideInner(near, corner, self, far);
-        return (s + t) * 0.5f;
-    }
-    
-    static final float CELL_DISTANCE = RADIUS * 2 - 1;
+    static final int CELL_DISTANCE = RADIUS * 2 - 1;
     static final float INVERSE_CELL_DISTANCE = 1f / CELL_DISTANCE;
     
     private static int pixelDist(int c) {
         return c >= RADIUS ? c - RADIUS : RADIUS - 1 - c;
     }
     
-    private static float dist(int u, int v) {
-        float a = pixelDist(u);
-        float b = pixelDist(v);
-        return MathHelper.sqrt((a * a + b * b)) * INVERSE_CELL_DISTANCE;
+    private static float distUV(int u, int v) {
+        return distRadius(pixelDist(u), pixelDist(v));
     }
     
-    static final float SELF_CORNER_LOSS = dist(0, 0);
-    static final float DIAG_CORNER_LOSS = dist(-1, -1);
-    static final float SIDE_CORNER_LOSS = dist(-1, 0);
+    private static float distRadius(int uRadius, int vRadius) {
+        return MathHelper.sqrt((uRadius * uRadius + vRadius * vRadius)) * INVERSE_CELL_DISTANCE;
+    }
     
-
+    static final float SELF_CORNER_LOSS = distUV(0, 0);
+    static final float DIAG_CORNER_LOSS = distUV(-1, -1);
+    static final float SIDE_CORNER_LOSS = distUV(-1, 0);
     
     private static int side(int c) {
         return c >= RADIUS ? 1 : -1;
+    }
+    
+    private static float sideInner(float self, float uVal, float vVal, float cornerVal, int u, int v) {
+        //UGLY: find symmetrical derivation
+        if(self == uVal && self == vVal && self == cornerVal) {
+            return self;
+        }
+        float selfFact = distUV(u, v);
+        float uFact = distRadius(CELL_DISTANCE - pixelDist(u), pixelDist(v));
+        float vFact = distRadius(pixelDist(u), CELL_DISTANCE - pixelDist(v));
+        float cornerFact = distRadius(CELL_DISTANCE - pixelDist(u), CELL_DISTANCE - pixelDist(v));
+        return max(pclamp(self - selfFact), pclamp(uVal - uFact), pclamp(vVal - vFact), pclamp(cornerVal - cornerFact));
+    }
+    
+    private static float side(float self, float uVal, float vVal, float cornerVal, int u, int v) {
+        //UGLY: find symmetrical derivation
+        if(self == uVal && self == vVal && self == cornerVal) {
+            return self;
+        }
+        float s = sideInner(self, uVal, vVal, cornerVal, u, v);
+        float t = sideInner(vVal, cornerVal, self, uVal, u, v);
+        return (s + t) * 0.5f;
     }
     
     private static float cornerInner(float self, float corner, float uVal, float vVal) {
@@ -328,6 +336,4 @@ public class LightmapHD {
     private static float mean(float a, float b, float c, float d) {
         return (a + b + c + d) * 0.25f;
     }
-    
-
 }
