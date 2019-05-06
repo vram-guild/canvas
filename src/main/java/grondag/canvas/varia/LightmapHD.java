@@ -9,10 +9,12 @@ import java.util.function.Consumer;
 import grondag.canvas.Canvas;
 import grondag.canvas.apiimpl.QuadViewImpl;
 import grondag.canvas.apiimpl.util.AoFaceData;
+import net.minecraft.util.math.MathHelper;
 
 public class LightmapHD {
     static final int TEX_SIZE = 512;
     static final int LIGHTMAP_SIZE = 4;
+    static final int RADIUS = LIGHTMAP_SIZE / 2;
     static final int LIGHTMAP_PIXELS = LIGHTMAP_SIZE * LIGHTMAP_SIZE;
     static final int IDX_SIZE = 512 / LIGHTMAP_SIZE;
     static final int MAX_COUNT = IDX_SIZE * IDX_SIZE;
@@ -288,21 +290,44 @@ public class LightmapHD {
         return (s + t) * 0.5f;
     }
     
+    static final float CELL_DISTANCE = RADIUS * 2 - 1;
+    static final float INVERSE_CELL_DISTANCE = 1f / CELL_DISTANCE;
     
-    private static float cornerInner(float self, float corner, float a, float b) {
-        return max(pclamp(self - .47f), pclamp(a - .75f), pclamp(b - .75f), pclamp(corner - .94f));
+    private static int pixelDist(int c) {
+        return c >= RADIUS ? c - RADIUS : RADIUS - 1 - c;
     }
     
-    private static float corner(float self, float a, float b, float corner) {
-        float s = cornerInner(self, corner, a, b);
-        float t = cornerInner(corner, self, a, b);
-        float u = cornerInner(a, b, corner, self);
-        float v = cornerInner(b, a, corner, self);
-        return mean(s, t, u, v);
+    private static float dist(int u, int v) {
+        float a = pixelDist(u);
+        float b = pixelDist(v);
+        return MathHelper.sqrt((a * a + b * b)) * INVERSE_CELL_DISTANCE;
+    }
+    
+    static final float SELF_CORNER_LOSS = dist(0, 0);
+    static final float DIAG_CORNER_LOSS = dist(-1, -1);
+    static final float SIDE_CORNER_LOSS = dist(-1, 0);
+    
+
+    
+    private static int side(int c) {
+        return c >= RADIUS ? 1 : -1;
+    }
+    
+    private static float cornerInner(float self, float corner, float uVal, float vVal) {
+        return max(pclamp(self - SELF_CORNER_LOSS), pclamp(uVal - SIDE_CORNER_LOSS), pclamp(vVal - SIDE_CORNER_LOSS), pclamp(corner - DIAG_CORNER_LOSS));
+    }
+    
+    private static float corner(float self, float uVal, float vVal, float corner) {
+        float a = cornerInner(self, corner, uVal, vVal);
+        float b = cornerInner(corner, self, uVal, vVal);
+        float c = cornerInner(uVal, vVal, corner, self);
+        float d = cornerInner(vVal, uVal, corner, self);
+        return mean(a, b, c, d);
     }
     
     private static float mean(float a, float b, float c, float d) {
         return (a + b + c + d) * 0.25f;
     }
     
+
 }
