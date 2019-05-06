@@ -36,15 +36,15 @@ public class AoFaceData {
     int s3;
     
     // packed values gathered during compute
-    int light0;
-    int light1;
-    int light2;
-    int light3;
-    int cLight0;
-    int cLight1;
-    int cLight2;
-    int cLight3;
-    int lightCenter;
+    public int light0;
+    public int light1;
+    public int light2;
+    public int light3;
+    public int cLight0;
+    public int cLight1;
+    public int cLight2;
+    public int cLight3;
+    public int lightCenter;
 
     float ao0;
     float ao1;

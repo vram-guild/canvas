@@ -108,18 +108,16 @@ vec4 diffuseColor() {
 
 #ifdef CONTEXT_IS_BLOCK
 	#ifdef ENABLE_SMOOTH_LIGHT
-
-	    light = texture2D(u_utility, v_hd_lightmap / 32768.0);
-//	    light = lightColor(smooth.rg);
-
+	    // PERF: move scaling to vertex shader
+	    vec4 block = texture2D(u_utility, v_hd_blocklight / 32768.0);
+	    vec4 sky = texture2D(u_utility, v_hd_skylight / 32768.0);
+	    vec2 lightCoord = vec2(block.r, sky.r);
         #ifdef ENABLE_LIGHT_NOISE
-	        light += vec4(texture2D(u_dither, gl_FragCoord.xy / 8.0).r / 64.0 - (1.0 / 128.0));
-	    //        light = texture2D(u_lightmap, v_lightcoord + ((n.g - 0.5) * 0.015));
-	    //      vec4 smooth = texture2D(u_utility, v_hd_lightmap);
+            vec4 dither = texture2D(u_dither, gl_FragCoord.xy / 8.0);
+            lightCoord += dither.r / 64.0 - (1.0 / 128.0);
         #endif
 
-	    //light = texture2D(u_lightmap, smooth.rg + 0.03125);
-//	    light = texture2D(u_lightmap, v_lightcoord);
+	    light = texture2D(u_lightmap, lightCoord);
     #else
         light = texture2D(u_lightmap, v_lightcoord);
     #endif

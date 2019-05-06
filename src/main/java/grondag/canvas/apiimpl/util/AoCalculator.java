@@ -34,6 +34,7 @@ import grondag.canvas.apiimpl.QuadViewImpl;
 import grondag.canvas.apiimpl.rendercontext.BlockRenderInfo;
 import grondag.canvas.apiimpl.util.AoFace.Vertex2Float;
 import grondag.canvas.apiimpl.util.AoFace.WeightFunction;
+import grondag.canvas.varia.LightmapHD;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.block.BlockState;
@@ -167,8 +168,11 @@ public class AoCalculator {
             light[i] = faceData.weightedCombinedLight(w);
             ao[i] = faceData.weigtedAo(w);
         }
+        
+        //PERF: only add these if extra smooth lighting enabled
         quad.shadeFaceData = ShadeFaceData.find(faceData);
-        quad.lightFaceData = LightFaceData.find(faceData);
+        quad.blockLight = LightmapHD.findBlock(faceData);
+        quad.skyLight = LightmapHD.findSky(faceData);
     }
 
     /**
@@ -228,8 +232,10 @@ public class AoCalculator {
             light[i] = faceData.weightedCombinedLight(w);
             ao[i] = faceData.weigtedAo(w);
         }
+        //PERF: only add these if extra smooth lighting enabled
         quad.shadeFaceData = ShadeFaceData.find(faceData);
-        quad.lightFaceData = LightFaceData.find(faceData);
+        quad.skyLight = LightmapHD.findSky(faceData);
+        quad.blockLight = LightmapHD.findBlock(faceData);
     }
 
     /**
@@ -247,7 +253,8 @@ public class AoCalculator {
         final int[] lightResult = this.light;
 
         //TODO: currently no way to handle 3d interpolation shader-side
-        quad.lightFaceData = null;
+        quad.blockLight = null;
+        quad.skyLight = null;
         quad.shadeFaceData = null;
         
         for (int i = 0; i < 4; i++) {

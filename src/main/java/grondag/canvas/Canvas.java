@@ -31,6 +31,7 @@ import net.fabricmc.api.ModInitializer;
 //TODO: configurable render region
 //TODO: configurable disable chunk matrix
 //TODO: configurable vanilla model vertex adjustment
+//TODO: configurable hardcore darkness
 //TODO: configurable compressed vertex formats - CPU side (maybe wait for Brocade Mesh)
 //TODO: remove configurable shader/condition limits?
 //TODO: capture & log more GL capability info - allow disable, enabled by default

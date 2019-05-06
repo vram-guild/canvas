@@ -1,17 +1,20 @@
 package grondag.canvas.varia;
 
-import static grondag.canvas.apiimpl.util.AoFaceData.nonZeroMin;
-import static grondag.canvas.apiimpl.util.AoFaceData.zif;
-
+import java.util.Arrays;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
+import grondag.canvas.Canvas;
 import grondag.canvas.apiimpl.QuadViewImpl;
-import grondag.canvas.apiimpl.util.LightFaceData;
+import grondag.canvas.apiimpl.util.AoFaceData;
 
 public class LightmapHD {
     static final int TEX_SIZE = 512;
-    static final int IDX_SIZE = 512 / 4;
+    static final int LIGHTMAP_SIZE = 4;
+    static final int LIGHTMAP_PIXELS = LIGHTMAP_SIZE * LIGHTMAP_SIZE;
+    static final int IDX_SIZE = 512 / LIGHTMAP_SIZE;
     static final int MAX_COUNT = IDX_SIZE * IDX_SIZE;
     // UGLY - consider making this a full unsigned short
     // for initial pass didn't want to worry about signed value mistakes
@@ -20,12 +23,13 @@ public class LightmapHD {
     static final int UNITS_PER_PIXEL = BUFFER_SCALE / TEX_SIZE;
     static final float TEXTURE_TO_BUFFER = (float) BUFFER_SCALE / TEX_SIZE;
     
-    private static final LightmapHD[] maps = new LightmapHD[IDX_SIZE * IDX_SIZE];
+    private static final LightmapHD[] maps = new LightmapHD[MAX_COUNT];
     
     private static final AtomicInteger nextIndex = new AtomicInteger();
     
     public static void forceReload() {
         nextIndex.set(0);
+        MAP.clear();
     }
     
     public static void forEach(Consumer<LightmapHD> consumer) {
@@ -35,38 +39,143 @@ public class LightmapHD {
         }
     }
     
+    private static class Key {
+        private int[] light = new int[LIGHTMAP_PIXELS];
+        private int hashCode;
+        
+        Key() {
+        }
+
+        Key(int[] light) {
+            System.arraycopy(light, 0, this.light, 0, LIGHTMAP_PIXELS);
+            computeHash();
+        }
+        
+        /**
+         * Call after mutating {@link #light}
+         */
+        void computeHash() {
+            this.hashCode = Arrays.hashCode(light);
+        }
+        
+        @Override
+        public boolean equals(Object other) {
+            if(other == null || !(other instanceof Key)) {
+                return false;
+            }
+            int[] otherLight = ((Key)other).light;
+            return Arrays.equals(light, otherLight);
+        }
+        
+        @Override
+        public int hashCode() {
+            return hashCode;
+        }
+    }
+    
+    static final ThreadLocal<Key> TEMPLATES = ThreadLocal.withInitial(Key::new);
+    
+    static final ConcurrentHashMap<Key, LightmapHD> MAP = new ConcurrentHashMap<>();
+    
+    public static LightmapHD findBlock(AoFaceData faceData) {
+        return find(faceData, LightmapHD::mapBlock);
+    }
+    
+    public static LightmapHD findSky(AoFaceData faceData) {
+        return find(faceData, LightmapHD::mapSky);
+    }
+    
+    private static void mapBlock(AoFaceData faceData, int[] search) {
+        final float s0 = input(faceData.light0);
+        final float s1 = input(faceData.light1);
+        final float s2 = input(faceData.light2);
+        final float s3 = input(faceData.light3);
+        
+        final float c0 = input(faceData.cLight0);
+        final float c1 = input(faceData.cLight1);
+        final float c2 = input(faceData.cLight2);
+        final float c3 = input(faceData.cLight3);
+        
+        final float center = input(faceData.lightCenter);
+        compute(search, center, s0, s1, s2, s3, c0, c1, c2, c3);
+    }
+    
+    private static LightmapHD find(AoFaceData faceData, BiConsumer<AoFaceData, int[]> mapper) {
+        Key key = TEMPLATES.get();
+        int[] search = key.light;
+        
+        mapper.accept(faceData, search);
+
+        key.computeHash();
+        
+        LightmapHD result = MAP.get(key);
+        
+        if(result == null) {
+            // create new key object to avoid putting threadlocal into map
+            key = new Key(search);
+            result = MAP.computeIfAbsent(key, k -> new LightmapHD(k.light));
+        }
+        
+        return result;
+    }
+    
+    private static float input(int b) {
+        b &= 0xFF;
+        if(b > 240) {
+            b = 240;
+        }
+        return b / 16f;
+    }
+    
+    private static void mapSky(AoFaceData faceData, int[] search) {
+        final float s0 = input(faceData.light0 >>> 16);
+        final float s1 = input(faceData.light1 >>> 16);
+        final float s2 = input(faceData.light2 >>> 16);
+        final float s3 = input(faceData.light3 >>> 16);
+        
+        final float c0 = input(faceData.cLight0 >>> 16);
+        final float c1 = input(faceData.cLight1 >>> 16);
+        final float c2 = input(faceData.cLight2 >>> 16);
+        final float c3 = input(faceData.cLight3 >>> 16);
+        
+        final float center = input(faceData.lightCenter >>> 16);
+        
+        //TODO: remove
+//        if(center == 15 && s0 == 15 && s1 == 15 && s2 == 15 && s3 == 15 && c0 == 15 && c1 == 15 && c2 == 15 && c3 == 15) {
+//            System.out.println("boop");
+//        }
+        
+        compute(search, center, s0, s1, s2, s3, c0, c1, c2, c3);
+    }
+    
     public final int uMinImg;
     public final int vMinImg;
+    public final int[] light;
     
-    // PERF: too heavy
-    public final float[][] sky = new float[4][4];
-    public final float[][] block = new float[4][4];
-    final float u0, u1, u2, u3, v0, v1, v2, v3;
-
-    public LightmapHD(LightFaceData data) {
+    private LightmapHD(int[] light) {
         final int index = nextIndex.getAndIncrement();
         final int s = index % IDX_SIZE;
         final int t = index / IDX_SIZE;
-        uMinImg = s * 4;
-        vMinImg = t * 4;
-        
-        u0 = (uMinImg + 1f);
-        v0 = (vMinImg + 1f);
-        u1 = (uMinImg + 3f);
-        v1 = (vMinImg + 1f);
-        u2 = (uMinImg + 3f);
-        v2 = (vMinImg + 3f);
-        u3 = (uMinImg + 1f);
-        v3 = (vMinImg + 3f);
+        uMinImg = s * LIGHTMAP_SIZE;
+        vMinImg = t * LIGHTMAP_SIZE;
+        this.light = new int[LIGHTMAP_PIXELS];
+        System.arraycopy(light, 0, this.light, 0, LIGHTMAP_PIXELS);
         
         if(index >= MAX_COUNT) {
             //TODO: put back
             //assert false : "Out of lightmap space.";
+            Canvas.LOG.info("Out of lightmap space for index = " + index);
             return;
         }
         
         maps[index] = this;
         
+        SmoothLightmapTexture.instance().setDirty();
+    }
+    
+    private static void compute(int[] light, float center, 
+            float s0, float s1, float s2, float s3,
+            float c0, float c1, float c2, float c3) {
         /**
          * Note that Ao data order is different from vertex order.
          * We will need to remap that here unless/until Ao data is simplified.
@@ -79,140 +188,121 @@ public class LightmapHD {
          * w0    w1    w2    w3
          * u0v0  u1v0  u1v1  u0v1
          */
-        // quadrant 0, 0
-        sky[1][1] = max(data.kCenter(), data.ks0() - 1f, data.ks3() - 1f, data.kc1() - 1.41f);
-        sky[0][0] = corner(data.kCenter(), data.ks0(), data.ks3(), data.kc1());
-        sky[0][1] = max(data.kCenter(), data.ks0(), data.ks3(), data.kc1() );
-        sky[1][0] = max(data.kCenter(), data.ks3(), data.ks0(), data.kc1() );
-        
-        // quadrant 1, 0
-//        min = nonZeroMin(data.kCenter, data.kc0, data.ks0, data.ks2);
-        sky[2][1] = max(data.kCenter(), data.ks0() - 1f, data.ks2() - 1f, data.kc0() - 1.41f);
-        sky[3][0] = corner(data.kCenter(), data.ks0(), data.ks2(), data.kc0());
-        sky[2][0] = side(data.kCenter(), data.ks2(), data.ks0(), data.kc0() );
-        sky[3][1] = side(data.kCenter(), data.ks0(), data.ks2(), data.kc0() );
-        
-//        sky[2][1] = zif(data.kCenter, min);
-//        sky[3][0] = zif(data.kc0, min);
-//        sky[2][0] = zif(data.ks0, min);
-//        sky[3][1] = zif(data.ks2, min);
-        
-        // quadrant 1, 1
-//        min = nonZeroMin(data.kCenter, data.kc2, data.ks1, data.ks2);
-        
-        sky[2][2] = max(data.kCenter(), data.ks1() - 1f, data.ks2() - 1f, data.kc2() - 1.41f);
-        sky[3][3] = corner(data.kCenter(), data.ks1(), data.ks2(), data.kc2());
-        sky[3][2] = side(data.kCenter(), data.ks1(), data.ks2(), data.kc2() );
-        sky[2][3] = side(data.kCenter(), data.ks2(), data.ks1(), data.kc2() );
-        
-//        sky[2][2] = zif(data.kCenter, min);
-//        sky[3][3] = zif(data.kc2, min);
-//        sky[3][2] = zif(data.ks2, min);
-//        sky[2][3] = zif(data.ks1, min);
-        
-        // quadrant 0, 1
-//        min = nonZeroMin(data.kCenter, data.kc3, data.ks1, data.ks3);
-        
-        sky[1][2] = max(data.kCenter(), data.ks1() - 1f, data.ks3() - 1f, data.kc3() - 1.41f);
-        sky[0][3] = corner(data.kCenter(), data.ks1(), data.ks3(), data.kc3());
-        sky[1][3] = side(data.kCenter(), data.ks3(), data.ks1(), data.kc3() );
-        sky[0][2] = side(data.kCenter(), data.ks1(), data.ks3(), data.kc3() );
-        
-//        sky[1][2] = zif(data.kCenter, min);
-//        sky[0][3] = zif(data.kc3, min);
-//        sky[1][3] = zif(data.ks1, min);
-//        sky[0][2] = zif(data.ks3, min);
         
         // quadrant 0, 0
-//        min = nonZeroMin(data.bCenter, data.bc1, data.bs0, data.bs3);
-//        block[1][1] = zif(data.bCenter, min);
-//        block[0][1] = zif(data.bs3, min);
-//        block[0][0] = zif(data.bc1, min);
-//        block[1][0] = zif(data.bs0, min);
-        
-        block[1][1] = max(data.bCenter(), data.bs0() - 1f, data.bs3() - 1f, data.bc1() - 1.41f);
-        block[0][0] = corner(data.bCenter(), data.bs0(), data.bs3(), data.bc1());
-        block[0][1] = side(data.bCenter(), data.bs0(), data.bs3(), data.bc1() );
-        block[1][0] = side(data.bCenter(), data.bs3(), data.bs0(), data.bc1() );
+        light[index(1, 1)] = output(inside(center, s0, s3, c1));
+        light[index(0, 0)] = output(corner(center, s0, s3, c1));
+        light[index(0, 1)] = output(side(center, s0, s3, c1 ));
+        light[index(1, 0)] = output(side(center, s3, s0, c1 ));
         
         // quadrant 1, 0
-//        min = nonZeroMin(data.bCenter, data.bc0, data.bs0, data.bs2);
-//        block[2][1] = zif(data.bCenter, min);
-//        block[2][0] = zif(data.bs0, min);
-//        block[3][0] = zif(data.bc0, min);
-//        block[3][1] = zif(data.bs2, min);
-        
-        block[2][1] = max(data.bCenter(), data.bs0() - 1f, data.bs2() - 1f, data.bc0() - 1.41f);
-        block[3][0] = corner(data.bCenter(), data.bs0(), data.bs2(), data.bc0());
-        block[2][0] = side(data.bCenter(), data.bs2(), data.bs0(), data.bc0() );
-        block[3][1] = side(data.bCenter(), data.bs0(), data.bs2(), data.bc0() );
+        light[index(2, 1)] = output(inside(center, s0, s2, c0));
+        light[index(3, 0)] = output(corner(center, s0, s2, c0));
+        light[index(2, 0)] = output(side(center, s2, s0, c0 ));
+        light[index(3, 1)] = output(side(center, s0, s2, c0 ));
         
         // quadrant 1, 1
-//        min = nonZeroMin(data.bCenter, data.bc2, data.bs1, data.bs2);
-//        block[2][2] = zif(data.bCenter, min);
-//        block[3][2] = zif(data.bs2, min);
-//        block[3][3] = zif(data.bc2, min);
-//        block[2][3] = zif(data.bs1, min);
-        
-        block[2][2] = max(data.bCenter(), data.bs1() - 1f, data.bs2() - 1f, data.bc2() - 1.41f);
-        block[3][3] = corner(data.bCenter(), data.bs1(), data.bs2(), data.bc2());
-        block[3][2] = side(data.bCenter(), data.bs1(), data.bs2(), data.bc2() );
-        block[2][3] = side(data.bCenter(), data.bs2(), data.bs1(), data.bc2() );
+        light[index(2, 2)] = output(inside(center, s1, s2, c2));
+        light[index(3, 3)] = output(corner(center, s1, s2, c2));
+        light[index(3, 2)] = output(side(center, s1, s2, c2 ));
+        light[index(2, 3)] = output(side(center, s2, s1, c2 ));
         
         // quadrant 0, 1
-//        min = nonZeroMin(data.bCenter, data.bc3, data.bs1, data.bs3);
-//        block[1][2] = zif(data.bCenter, min);
-//        block[0][3] = zif(data.bc3, min);
-//        block[1][3] = zif(data.bs1, min);
-//        block[0][2] = zif(data.bs3, min);
+        light[index(1, 2)] = output(inside(center, s1, s3, c3));
+        light[index(0, 3)] = output(corner(center, s1, s3, c3));
+        light[index(1, 3)] = output(side(center, s3, s1, c3 ));
+        light[index(0, 2)] = output(side(center, s1, s3, c3 ));
         
-        block[1][2] = max(data.bCenter(), data.bs1() - 1f, data.bs3() - 1f, data.bc3() - 1.41f);
-        block[0][3] = corner(data.bCenter(), data.bs1(), data.bs3(), data.bc3());
-        block[1][3] = side(data.bCenter(), data.bs3(), data.bs1(), data.bc3() );
-        block[0][2] = side(data.bCenter(), data.bs1(), data.bs3(), data.bc3() );
+        //TODO: remove
+//      if(center == 0 && s0 == 0 && s1 == 0 && s2 == 0 && s3 == 0 && c0 == 0 && c1 == 0 && c2 == 0 && c3 == 0) {
+//          for(int i : light) {
+//              if(i != 8)
+//              System.out.println("boop");
+//          }
+//      }
+//        for(int i = 0; i < LIGHTMAP_PIXELS; i++) {
+//            light[i] = 25;
+//        }
     }
     
-    
-    public final int coord(float[] w) {
-        float u = u0 * w[0] + u1 * w[1] + u2 * w[2] + u3 * w[3];
-        float v = v0 * w[0] + v1 * w[1] + v2 * w[2] + v3 * w[3];
-        return Math.round(u * TEXTURE_TO_BUFFER) | (Math.round(v * TEXTURE_TO_BUFFER) << 16);
+    private static float pclamp(float in) {
+        return in < 0f ? 0f : in;
     }
-
+    
+    public static int index(int u, int v) {
+        return v * LIGHTMAP_SIZE + u;
+    }
+    
+    //FIX: is 1 right?
+    private static int output(float in) {
+        if(in < 1) {
+            in = 1;
+        } else if(in > 15) {
+            in = 15;
+        }
+        int result = Math.round(in * 16f);
+        
+        return 8 + result;
+    }
+    
     public int coord(QuadViewImpl q, int i) {
-        float u = uMinImg + 0.5f + q.u[i] * 3f;
-        float v = vMinImg + 0.5f + q.v[i] * 3f;
-        return Math.round(u * TEXTURE_TO_BUFFER) | (Math.round(v * TEXTURE_TO_BUFFER) << 16);
+        //PERF could compress coordinates sent to shader by 
+        // sending lightmap/shademap index with same uv for each
+        // would probably save 2 bytes - send 2 + 3 shorts instead of 6
+        // or put each block/sky/ao combination in a texture and send 4 shorts...
+        // 2 for uv and 2 to lookup the combinations
+//        float u = uMinImg + 0.5f + q.u[i] * (LIGHTMAP_SIZE - 1);
+//        float v = vMinImg + 0.5f + q.v[i] * (LIGHTMAP_SIZE - 1);
+        int u = Math.round(uMinImg * TEXTURE_TO_BUFFER + 1 + q.u[i] * (LIGHTMAP_SIZE * TEXTURE_TO_BUFFER - 2));
+        int v = Math.round(vMinImg * TEXTURE_TO_BUFFER + 1 + q.v[i] * (LIGHTMAP_SIZE * TEXTURE_TO_BUFFER - 2));
+        return u | (v << 16);
     }
     
     private static float max(float a, float b, float c, float d) {
         return Math.max(Math.max(a, b), Math.max(c, d));
     }
     
+    private static float inside(float self, float a, float b, float corner) {
+        //UGLY: find symmetrical derivation
+        if(self == a && self == b && self == corner) {
+            return corner;
+        }
+        return max(self, pclamp(a - 1f), pclamp(b - 1f), pclamp(corner - 1.41f));
+    }
+    
     private static float sideInner(float self, float far, float near, float corner) {
-        return max(self - .33f, far - 1.05f, near - .67f, corner - 1.2f);
+        //UGLY: find symmetrical derivation
+        if(self == far && self == near && self == corner) {
+            return self;
+        }
+        return max(pclamp(self - .33f), pclamp(far - 1.05f), pclamp(near - .67f), pclamp(corner - 1.2f));
     }
     
     private static float side(float self, float far, float near, float corner) {
+        //UGLY: find symmetrical derivation
+        if(self == far && self == near && self == corner) {
+            return self;
+        }
         float s = sideInner(self, far, near, corner);
         float t = sideInner(near, corner, self, far);
         return (s + t) * 0.5f;
     }
     
     
-    private static float cornerInner(float near, float far, float a, float b) {
-        return max(near - .47f, a - .75f, b - .75f, far - .94f);
+    private static float cornerInner(float self, float corner, float a, float b) {
+        return max(pclamp(self - .47f), pclamp(a - .75f), pclamp(b - .75f), pclamp(corner - .94f));
     }
     
-    private static float corner(float near, float far, float a, float b) {
-        float s = cornerInner(near, far, a, b);
-        float t = cornerInner(far, near, a, b);
-        float u = cornerInner(a, b, near, far);
-        float v = cornerInner(b, a, near, far);
-        return mean (s, t, u, v);
+    private static float corner(float self, float a, float b, float corner) {
+        float s = cornerInner(self, corner, a, b);
+        float t = cornerInner(corner, self, a, b);
+        float u = cornerInner(a, b, corner, self);
+        float v = cornerInner(b, a, corner, self);
+        return mean(s, t, u, v);
     }
     
     private static float mean(float a, float b, float c, float d) {
         return (a + b + c + d) * 0.25f;
     }
+    
 }

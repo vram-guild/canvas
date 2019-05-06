@@ -42,7 +42,7 @@ enum AoFace {
         }), 
     AOF_UP(new Direction[] { EAST, WEST, NORTH, SOUTH }, (q, i) -> 1 - q.y(i), 
         (q, i) -> 1 - q.z(i),
-        (q, i) -> q.x(i), 
+        (q, i) -> 1 - q.x(i), 
         (q, i, w) -> {
             final float u = q.x(i);
             final float v = q.z(i);
@@ -74,8 +74,8 @@ enum AoFace {
             w[3] = u * v;
     }), 
     AOF_WEST(new Direction[] { UP, DOWN, NORTH, SOUTH }, (q, i) -> q.x(i),
-        (q, i) -> q.y(i),
-        (q, i) -> q.z(i),
+        (q, i) -> 1 - q.z(i),
+        (q, i) -> 1 - q.y(i),
         (q, i, w) -> {
             final float u = q.y(i);
             final float v = q.z(i);

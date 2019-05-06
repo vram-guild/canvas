@@ -53,6 +53,10 @@ public class SmoothLightmapTexture implements AutoCloseable {
         LightmapHD.forceReload();
     }
 
+    public void setDirty() {
+        this.isDirty = true;
+    }
+    
     @Override
     public void close() {
         this.texture.close();
@@ -96,35 +100,35 @@ public class SmoothLightmapTexture implements AutoCloseable {
     float effectModifier;
     float skyDarkness;
     
-    private boolean prepareForRefresh(float tick) {
-        world = client.world;
-        if (world == null) {
-            return false;
-        }
-        gameRenderer = client.gameRenderer;
-        skyDarkness = gameRenderer.getSkyDarkness(tick);
-        worldAmbient = world.getAmbientLight(1.0F);
-        fluidModifier = this.client.player.method_3140();
-        if (this.client.player.hasStatusEffect(StatusEffects.NIGHT_VISION)) {
-            effectModifier = gameRenderer.getNightVisionStrength(client.player, tick);
-        } else if (fluidModifier > 0.0F && this.client.player.hasStatusEffect(StatusEffects.CONDUIT_POWER)) {
-            effectModifier = fluidModifier;
-        } else {
-            effectModifier = 0.0F;
-        }
-        return true;
-    }
+//    private boolean prepareForRefresh(float tick) {
+//        world = client.world;
+//        if (world == null) {
+//            return false;
+//        }
+//        gameRenderer = client.gameRenderer;
+//        skyDarkness = gameRenderer.getSkyDarkness(tick);
+//        worldAmbient = world.getAmbientLight(1.0F);
+//        fluidModifier = this.client.player.method_3140();
+//        if (this.client.player.hasStatusEffect(StatusEffects.NIGHT_VISION)) {
+//            effectModifier = gameRenderer.getNightVisionStrength(client.player, tick);
+//        } else if (fluidModifier > 0.0F && this.client.player.hasStatusEffect(StatusEffects.CONDUIT_POWER)) {
+//            effectModifier = fluidModifier;
+//        } else {
+//            effectModifier = 0.0F;
+//        }
+//        return true;
+//    }
     
     boolean isDirty = false;
     public void tick() {
-        isDirty = true;
+        //isDirty = true;
     }
     
     public void update(float tick, float flickerIn) {
         //UGLY doesn't belong here
         DitherTexture.instance().tick();
         
-        if(!isDirty || !Configurator.enableSmoothLightmaps || !prepareForRefresh(tick)) {
+        if(!isDirty || !Configurator.enableSmoothLightmaps) { // || !prepareForRefresh(tick)) {
             return;
         }
 
@@ -132,12 +136,15 @@ public class SmoothLightmapTexture implements AutoCloseable {
         
         final NativeImage image = this.image;
         LightmapHD.forEach( map -> {
-            //PERF - update a pallette vs every pixel
+            //PERF - only update dirty pixels
             final int uMin = map.uMinImg;
             final int vMin = map.vMinImg;
+            final int[] light = map.light;
             for(int u = 0; u < 4; u++) {
                 for(int v = 0; v < 4; v++) {
-                    image.setPixelRGBA(uMin + u, vMin + v, update(hack(map.sky[u][v]), hack(map.block[u][v]), flickerIn));
+//                    image.setPixelRGBA(uMin + u, vMin + v, update(hack(map.sky[u][v]), hack(map.block[u][v]), flickerIn));
+//                    System.out.println(map.light[u][v]);
+                    image.setPixelRGBA(uMin + u, vMin + v, light[LightmapHD.index(u,v)]);
                 }
             }
         });
@@ -287,90 +294,90 @@ public class SmoothLightmapTexture implements AutoCloseable {
         return result;
     }
     
-    private float interpolatedLight(float[] light, int b255) {
-        final int lowbits = b255 & 0xF;
-        final int floor = b255 >> 4;
-        if(lowbits == 0) {
-            return light[floor];
-        } else {
-            float frac = (b255 & 0xF) / 15f;
-            return light[floor] * (1f - frac) + light[floor + 1] * frac;
-        }
-    }
+//    private float interpolatedLight(float[] light, int b255) {
+//        final int lowbits = b255 & 0xF;
+//        final int floor = b255 >> 4;
+//        if(lowbits == 0) {
+//            return light[floor];
+//        } else {
+//            float frac = (b255 & 0xF) / 15f;
+//            return light[floor] * (1f - frac) + light[floor + 1] * frac;
+//        }
+//    }
     
-    private int update(int sky255, int block255, float flicker) {
-        
-        final float lightning = world.getTicksSinceLightning() > 0 ? 1.0f : (worldAmbient * 0.95F + 0.05F);
-        final float dimSky = lightning * interpolatedLight(world.dimension.getLightLevelToBrightness(), sky255);
-
-        final float dimBlock = interpolatedLight(world.dimension.getLightLevelToBrightness(), block255);
-
-        final float blockRed = dimBlock * (flicker * 0.1F + 1.5F);
-        final float blockGreen = blockRed * ((blockRed * 0.6F + 0.4F) * 0.6F + 0.4F);
-        final float blockBlue = blockRed * (blockRed * blockRed * 0.6F + 0.4F);
-        
-        float r = dimSky * (worldAmbient * 0.65F + 0.35F) + blockRed;
-        float g = dimSky * (worldAmbient * 0.65F + 0.35F) + blockGreen;
-        float b = dimSky + blockBlue;
-        
-        // all stuff after this operates on combined light
-        
-        r = r * 0.96F + 0.03F;
-        g = g * 0.96F + 0.03F;
-        b = b * 0.96F + 0.03F;
-        
-        if (skyDarkness > 0.0F) {
-            final float sd = skyDarkness;
-            r = r * (1.0F - sd) + r * 0.7F * sd;
-            g = g * (1.0F - sd) + g * 0.6F * sd;
-            b = b * (1.0F - sd) + b * 0.6F * sd;
-        }
-
-        // OVERRIDES COMPLETELY
-        if (world.dimension.getType() == DimensionType.THE_END) {
-            r = 0.22F + blockRed * 0.75F;
-            g = 0.28F + blockGreen * 0.75F;
-            b = 0.25F + blockBlue * 0.75F;
-        }
-
-        if (effectModifier > 0.0F) {
-            float gamma = 1.0F / r;
-            if (gamma > 1.0F / g) {
-                gamma = 1.0F / g;
-            }
-
-            if (gamma > 1.0F / b) {
-                gamma = 1.0F / b;
-            }
-
-            r = r * (1.0F - effectModifier) + r * gamma * effectModifier;
-            g = g * (1.0F - effectModifier) + g * gamma * effectModifier;
-            b = b * (1.0F - effectModifier) + b * gamma * effectModifier;
-        }
-
-        if (r > 1.0F) {
-            r = 1.0F;
-        }
-
-        if (g > 1.0F) {
-            g = 1.0F;
-        }
-
-        if (b > 1.0F) {
-            b = 1.0F;
-        }
-
-        // gamma correction - colors already blended
-        final float gconf = (float)client.options.gamma;
-        r = gammaCorrect(gconf, r);
-        g = gammaCorrect(gconf, g);
-        b = gammaCorrect(gconf, b);
-
-        int red = (int)(r * 255.0F);
-        int green = (int)(g * 255.0F);
-        int blue = (int)(b * 255.0F);
-        return 0xFF000000 | (blue << 16) | (green << 8) | red;
-    }
+//    private int update(int sky255, int block255, float flicker) {
+//        
+//        final float lightning = world.getTicksSinceLightning() > 0 ? 1.0f : (worldAmbient * 0.95F + 0.05F);
+//        final float dimSky = lightning * interpolatedLight(world.dimension.getLightLevelToBrightness(), sky255);
+//
+//        final float dimBlock = interpolatedLight(world.dimension.getLightLevelToBrightness(), block255);
+//
+//        final float blockRed = dimBlock * (flicker * 0.1F + 1.5F);
+//        final float blockGreen = blockRed * ((blockRed * 0.6F + 0.4F) * 0.6F + 0.4F);
+//        final float blockBlue = blockRed * (blockRed * blockRed * 0.6F + 0.4F);
+//        
+//        float r = dimSky * (worldAmbient * 0.65F + 0.35F) + blockRed;
+//        float g = dimSky * (worldAmbient * 0.65F + 0.35F) + blockGreen;
+//        float b = dimSky + blockBlue;
+//        
+//        // all stuff after this operates on combined light
+//        
+//        r = r * 0.96F + 0.03F;
+//        g = g * 0.96F + 0.03F;
+//        b = b * 0.96F + 0.03F;
+//        
+//        if (skyDarkness > 0.0F) {
+//            final float sd = skyDarkness;
+//            r = r * (1.0F - sd) + r * 0.7F * sd;
+//            g = g * (1.0F - sd) + g * 0.6F * sd;
+//            b = b * (1.0F - sd) + b * 0.6F * sd;
+//        }
+//
+//        // OVERRIDES COMPLETELY
+//        if (world.dimension.getType() == DimensionType.THE_END) {
+//            r = 0.22F + blockRed * 0.75F;
+//            g = 0.28F + blockGreen * 0.75F;
+//            b = 0.25F + blockBlue * 0.75F;
+//        }
+//
+//        if (effectModifier > 0.0F) {
+//            float gamma = 1.0F / r;
+//            if (gamma > 1.0F / g) {
+//                gamma = 1.0F / g;
+//            }
+//
+//            if (gamma > 1.0F / b) {
+//                gamma = 1.0F / b;
+//            }
+//
+//            r = r * (1.0F - effectModifier) + r * gamma * effectModifier;
+//            g = g * (1.0F - effectModifier) + g * gamma * effectModifier;
+//            b = b * (1.0F - effectModifier) + b * gamma * effectModifier;
+//        }
+//
+//        if (r > 1.0F) {
+//            r = 1.0F;
+//        }
+//
+//        if (g > 1.0F) {
+//            g = 1.0F;
+//        }
+//
+//        if (b > 1.0F) {
+//            b = 1.0F;
+//        }
+//
+//        // gamma correction - colors already blended
+//        final float gconf = (float)client.options.gamma;
+//        r = gammaCorrect(gconf, r);
+//        g = gammaCorrect(gconf, g);
+//        b = gammaCorrect(gconf, b);
+//
+//        int red = (int)(r * 255.0F);
+//        int green = (int)(g * 255.0F);
+//        int blue = (int)(b * 255.0F);
+//        return 0xFF000000 | (blue << 16) | (green << 8) | red;
+//    }
 
 //    public class LightMap {
 //        final int b0;

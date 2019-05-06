@@ -8,7 +8,9 @@ attribute vec2 in_uv_0;
 attribute vec4 in_lightmap;
 
 #ifdef ENABLE_SMOOTH_LIGHT
-attribute vec2 in_hd_lightmap;
+attribute vec2 in_hd_blocklight;
+attribute vec2 in_hd_skylight;
+attribute vec2 in_hd_ao;
 #endif
 
 #if LAYER_COUNT > 1
@@ -50,10 +52,9 @@ void setupVertex() {
 #endif
 
 #ifdef ENABLE_SMOOTH_LIGHT
-    v_hd_lightmap = in_hd_lightmap;
-    #ifdef ENABLE_LIGHT_NOISE
-        v_noisecoord = uv(gl_Vertex.xyz / 8.0, in_normal_ao.xyz);
-    #endif
+    v_hd_blocklight = in_hd_blocklight;
+    v_hd_skylight = in_hd_skylight;
+    v_hd_ao = in_hd_ao;
 #endif
 
     v_diffuse = diffuse(diffuseNormal(viewCoord, in_normal_ao.xyz));

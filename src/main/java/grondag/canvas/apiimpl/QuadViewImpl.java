@@ -29,10 +29,10 @@ import static grondag.canvas.apiimpl.util.MeshEncodingHelper.VANILLA_STRIDE;
 import static grondag.canvas.apiimpl.util.MeshEncodingHelper.VERTEX_START_OFFSET;
 
 import grondag.canvas.apiimpl.util.GeometryHelper;
-import grondag.canvas.apiimpl.util.LightFaceData;
 import grondag.canvas.apiimpl.util.MeshEncodingHelper;
 import grondag.canvas.apiimpl.util.NormalHelper;
 import grondag.canvas.apiimpl.util.ShadeFaceData;
+import grondag.canvas.varia.LightmapHD;
 import grondag.frex.api.mesh.MutableQuadView;
 import grondag.frex.api.mesh.QuadView;
 import net.minecraft.client.util.math.Vector3f;
@@ -69,7 +69,8 @@ public class QuadViewImpl implements QuadView {
     protected int baseIndex = 0;
     
     //UGLY
-    public LightFaceData lightFaceData = null;
+    public LightmapHD blockLight = null;
+    public LightmapHD skyLight = null;
     public ShadeFaceData shadeFaceData = null;
     public float[][] w = new float[4][4];
     public float[] u = new float[4];

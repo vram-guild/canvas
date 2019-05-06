@@ -38,8 +38,14 @@ public class MaterialVertextFormatElement {
     public static final MaterialVertextFormatElement LIGHTMAPS_4UB = new MaterialVertextFormatElement(
             VertexFormatElement.Format.UNSIGNED_BYTE, 4, "in_lightmap", false);
 
-    public static final MaterialVertextFormatElement HD_LIGHTMAPS_2US = new MaterialVertextFormatElement(
-            VertexFormatElement.Format.UNSIGNED_SHORT, 2, "in_hd_lightmap", false);
+    public static final MaterialVertextFormatElement HD_BLOCK_LIGHTMAP_2US = new MaterialVertextFormatElement(
+            VertexFormatElement.Format.UNSIGNED_SHORT, 2, "in_hd_blocklight", false);
+    
+    public static final MaterialVertextFormatElement HD_SKY_LIGHTMAP_2US = new MaterialVertextFormatElement(
+            VertexFormatElement.Format.UNSIGNED_SHORT, 2, "in_hd_skylight", false);
+    
+    public static final MaterialVertextFormatElement HD_AO_SHADEMAP_2US = new MaterialVertextFormatElement(
+            VertexFormatElement.Format.UNSIGNED_SHORT, 2, "in_hd_ao", false);
     
     public static final MaterialVertextFormatElement NORMAL_AO_4UB = new MaterialVertextFormatElement(
             VertexFormatElement.Format.BYTE, 4, "in_normal_ao", true);

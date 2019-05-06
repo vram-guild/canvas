@@ -2,7 +2,9 @@ package grondag.canvas.material;
 
 import static grondag.canvas.material.MaterialVertextFormatElement.BASE_RGBA_4UB;
 import static grondag.canvas.material.MaterialVertextFormatElement.BASE_TEX_2F;
-import static grondag.canvas.material.MaterialVertextFormatElement.HD_LIGHTMAPS_2US;
+import static grondag.canvas.material.MaterialVertextFormatElement.HD_SKY_LIGHTMAP_2US;
+import static grondag.canvas.material.MaterialVertextFormatElement.HD_BLOCK_LIGHTMAP_2US;
+import static grondag.canvas.material.MaterialVertextFormatElement.HD_AO_SHADEMAP_2US;
 import static grondag.canvas.material.MaterialVertextFormatElement.LIGHTMAPS_4UB;
 import static grondag.canvas.material.MaterialVertextFormatElement.NORMAL_AO_4UB;
 import static grondag.canvas.material.MaterialVertextFormatElement.POSITION_3F;
@@ -62,7 +64,9 @@ public class VertexEncoder {
         elements.add(LIGHTMAPS_4UB);
         
         if((shaderProps & ShaderProps.SMOOTH_LIGHTMAPS) == ShaderProps.SMOOTH_LIGHTMAPS) {
-            elements.add(HD_LIGHTMAPS_2US);
+            elements.add(HD_BLOCK_LIGHTMAP_2US);
+            elements.add(HD_SKY_LIGHTMAP_2US);
+            elements.add(HD_AO_SHADEMAP_2US);
         }
         
         elements.add(NORMAL_AO_4UB);
@@ -79,13 +83,17 @@ public class VertexEncoder {
         return new MaterialVertexFormat(elements);
     }
     
+    @SuppressWarnings("null")
     public static void encodeBlock(QuadViewImpl q, RenderMaterialImpl.Value mat, ShaderContext context, VertexCollector output, BlockPos pos, float[] aoData) {
         final int shaderFlags = mat.shaderFlags() << 16;
         final int shaderProps = output.materialState().shaderProps;
         final int depth = mat.spriteDepth();
         assert depth == ShaderProps.spriteDepth(shaderProps);
         
-        LightmapHD lightMap = (shaderProps & ShaderProps.SMOOTH_LIGHTMAPS) == 0 || q.lightFaceData == null ? null : q.lightFaceData.lightmap;
+        final boolean fatMaps = (shaderProps & ShaderProps.SMOOTH_LIGHTMAPS) != 0;
+        
+        LightmapHD blockMap = fatMaps ? q.blockLight : null;
+        LightmapHD skyMap = fatMaps ? q.skyLight : null;;
             
         for(int i = 0; i < 4; i++) {
             output.pos(pos, q.x(i), q.y(i), q.z(i));
@@ -99,8 +107,10 @@ public class VertexEncoder {
             int skyLight = ((packedLight >> 16) & 0xFF);
             output.add(blockLight | (skyLight << 8) | shaderFlags);
             
-            if(lightMap != null) {
-                output.add(lightMap.coord(q, i));
+            if(fatMaps) {
+                output.add(blockMap.coord(q, i));
+                output.add(skyMap.coord(q, i));
+                output.add(0);
             }
             
             int ao = aoData == null ? 0xFF000000 : ((Math.round(aoData[i] * 254) - 127) << 24);

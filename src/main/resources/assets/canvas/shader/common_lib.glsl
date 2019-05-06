@@ -54,11 +54,12 @@ varying float v_ao;
 #ifdef ENABLE_SMOOTH_LIGHT
 
 uniform sampler2D u_utility;
-varying vec2 v_hd_lightmap;
+varying vec2 v_hd_blocklight;
+varying vec2 v_hd_skylight;
+varying vec2 v_hd_ao;
 
 //TODO: make this depend on shader props
     #ifdef ENABLE_LIGHT_NOISE
-        varying vec2 v_noisecoord;
         uniform sampler2D u_dither;
     #endif
 #endif
