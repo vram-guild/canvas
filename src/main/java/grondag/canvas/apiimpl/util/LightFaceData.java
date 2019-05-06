@@ -38,6 +38,26 @@ public class LightFaceData {
     public int kc3;
     public int kCenter;
     
+    public float bs0() {return bs0 / 17f; }
+    public float bs1() {return bs1 / 17f; }
+    public float bs2() {return bs2 / 17f; }
+    public float bs3() {return bs3 / 17f; }
+    public float bc0() {return bc0 / 17f; }
+    public float bc1() {return bc1 / 17f; }
+    public float bc2() {return bc2 / 17f; }
+    public float bc3() {return bc3 / 17f; }
+    public float bCenter() {return bCenter / 17f; }
+    
+    public float ks0() {return ks0 / 17f; }
+    public float ks1() {return ks1 / 17f; }
+    public float ks2() {return ks2 / 17f; }
+    public float ks3() {return ks3 / 17f; }
+    public float kc0() {return kc0 / 17f; }
+    public float kc1() {return kc1 / 17f; }
+    public float kc2() {return kc2 / 17f; }
+    public float kc3() {return kc3 / 17f; }
+    public float kCenter() {return kCenter / 17f; }
+    
     public LightmapHD lightmap = null;
     
     @Override

@@ -30,8 +30,8 @@ import net.minecraft.util.math.Direction;
 @Environment(EnvType.CLIENT)
 enum AoFace {
     AOF_DOWN(new Direction[] { WEST, EAST, NORTH, SOUTH }, (q, i) -> q.y(i), 
-        (q, i) -> 1 - q.x(i), 
         (q, i) -> 1 - q.z(i),
+        (q, i) -> 1 - q.x(i), 
         (q, i, w) -> {
             final float u = q.x(i);
             final float v = q.z(i);
@@ -41,8 +41,8 @@ enum AoFace {
             w[3] = u * v;
         }), 
     AOF_UP(new Direction[] { EAST, WEST, NORTH, SOUTH }, (q, i) -> 1 - q.y(i), 
-        (q, i) -> q.x(i), 
         (q, i) -> 1 - q.z(i),
+        (q, i) -> q.x(i), 
         (q, i, w) -> {
             final float u = q.x(i);
             final float v = q.z(i);
@@ -52,8 +52,8 @@ enum AoFace {
             w[3] = (1 - u) * v;
     }), 
     AOF_NORTH(new Direction[] { UP, DOWN, EAST, WEST }, (q, i) -> q.z(i),
-        (q, i) -> q.y(i), 
         (q, i) -> 1 - q.x(i),
+        (q, i) -> 1 - q.y(i), 
         (q, i, w) -> {
             final float u = q.y(i);
             final float v = q.x(i);
@@ -63,8 +63,8 @@ enum AoFace {
             w[3] = (1 - u) * (1 - v);
     }), 
     AOF_SOUTH(new Direction[] { WEST, EAST, DOWN, UP }, (q, i) -> 1 - q.z(i),
-        (q, i) -> q.y(i), 
-        (q, i) -> 1 - q.x(i),
+            (q, i) -> 1 - q.y(i), 
+        (q, i) -> q.x(i),
         (q, i, w) -> {
             final float u = q.y(i);
             final float v = q.x(i);
