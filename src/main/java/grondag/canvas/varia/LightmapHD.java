@@ -82,15 +82,15 @@ public class LightmapHD {
         // quadrant 0, 0
         sky[1][1] = max(data.kCenter(), data.ks0() - 1f, data.ks3() - 1f, data.kc1() - 1.41f);
         sky[0][0] = corner(data.kCenter(), data.ks0(), data.ks3(), data.kc1());
-        sky[0][1] = max(data.kCenter() - .33f, data.ks0() - 1.05f, data.ks3() - .67f, data.kc1() - 1.2f);
-        sky[1][0] = max(data.kCenter() - .33f, data.ks3() - 1.05f, data.ks0() - .67f, data.kc1() - 1.2f);
+        sky[0][1] = max(data.kCenter(), data.ks0(), data.ks3(), data.kc1() );
+        sky[1][0] = max(data.kCenter(), data.ks3(), data.ks0(), data.kc1() );
         
         // quadrant 1, 0
 //        min = nonZeroMin(data.kCenter, data.kc0, data.ks0, data.ks2);
         sky[2][1] = max(data.kCenter(), data.ks0() - 1f, data.ks2() - 1f, data.kc0() - 1.41f);
         sky[3][0] = corner(data.kCenter(), data.ks0(), data.ks2(), data.kc0());
-        sky[2][0] = max(data.kCenter() - .33f, data.ks2() - 1.05f, data.ks0() - .67f, data.kc0() - 1.2f);
-        sky[3][1] = max(data.kCenter() - .33f, data.ks0() - 1.05f, data.ks2() - .67f, data.kc0() - 1.2f);
+        sky[2][0] = side(data.kCenter(), data.ks2(), data.ks0(), data.kc0() );
+        sky[3][1] = side(data.kCenter(), data.ks0(), data.ks2(), data.kc0() );
         
 //        sky[2][1] = zif(data.kCenter, min);
 //        sky[3][0] = zif(data.kc0, min);
@@ -102,8 +102,8 @@ public class LightmapHD {
         
         sky[2][2] = max(data.kCenter(), data.ks1() - 1f, data.ks2() - 1f, data.kc2() - 1.41f);
         sky[3][3] = corner(data.kCenter(), data.ks1(), data.ks2(), data.kc2());
-        sky[3][2] = max(data.kCenter() - .33f, data.ks1() - 1.05f, data.ks2() - .67f, data.kc2() - 1.2f);
-        sky[2][3] = max(data.kCenter() - .33f, data.ks2() - 1.05f, data.ks1() - .67f, data.kc2() - 1.2f);
+        sky[3][2] = side(data.kCenter(), data.ks1(), data.ks2(), data.kc2() );
+        sky[2][3] = side(data.kCenter(), data.ks2(), data.ks1(), data.kc2() );
         
 //        sky[2][2] = zif(data.kCenter, min);
 //        sky[3][3] = zif(data.kc2, min);
@@ -115,8 +115,8 @@ public class LightmapHD {
         
         sky[1][2] = max(data.kCenter(), data.ks1() - 1f, data.ks3() - 1f, data.kc3() - 1.41f);
         sky[0][3] = corner(data.kCenter(), data.ks1(), data.ks3(), data.kc3());
-        sky[1][3] = max(data.kCenter() - .33f, data.ks3() - 1.05f, data.ks1() - .67f, data.kc3() - 1.2f);
-        sky[0][2] = max(data.kCenter() - .33f, data.ks1() - 1.05f, data.ks3() - .67f, data.kc3() - 1.2f);
+        sky[1][3] = side(data.kCenter(), data.ks3(), data.ks1(), data.kc3() );
+        sky[0][2] = side(data.kCenter(), data.ks1(), data.ks3(), data.kc3() );
         
 //        sky[1][2] = zif(data.kCenter, min);
 //        sky[0][3] = zif(data.kc3, min);
@@ -132,8 +132,8 @@ public class LightmapHD {
         
         block[1][1] = max(data.bCenter(), data.bs0() - 1f, data.bs3() - 1f, data.bc1() - 1.41f);
         block[0][0] = corner(data.bCenter(), data.bs0(), data.bs3(), data.bc1());
-        block[0][1] = max(data.bCenter() - .33f, data.bs0() - 1.05f, data.bs3() - .67f, data.bc1() - 1.2f);
-        block[1][0] = max(data.bCenter() - .33f, data.bs3() - 1.05f, data.bs0() - .67f, data.bc1() - 1.2f);
+        block[0][1] = side(data.bCenter(), data.bs0(), data.bs3(), data.bc1() );
+        block[1][0] = side(data.bCenter(), data.bs3(), data.bs0(), data.bc1() );
         
         // quadrant 1, 0
 //        min = nonZeroMin(data.bCenter, data.bc0, data.bs0, data.bs2);
@@ -144,8 +144,8 @@ public class LightmapHD {
         
         block[2][1] = max(data.bCenter(), data.bs0() - 1f, data.bs2() - 1f, data.bc0() - 1.41f);
         block[3][0] = corner(data.bCenter(), data.bs0(), data.bs2(), data.bc0());
-        block[2][0] = max(data.bCenter() - .33f, data.bs2() - 1.05f, data.bs0() - .67f, data.bc0() - 1.2f);
-        block[3][1] = max(data.bCenter() - .33f, data.bs0() - 1.05f, data.bs2() - .67f, data.bc0() - 1.2f);
+        block[2][0] = side(data.bCenter(), data.bs2(), data.bs0(), data.bc0() );
+        block[3][1] = side(data.bCenter(), data.bs0(), data.bs2(), data.bc0() );
         
         // quadrant 1, 1
 //        min = nonZeroMin(data.bCenter, data.bc2, data.bs1, data.bs2);
@@ -156,8 +156,8 @@ public class LightmapHD {
         
         block[2][2] = max(data.bCenter(), data.bs1() - 1f, data.bs2() - 1f, data.bc2() - 1.41f);
         block[3][3] = corner(data.bCenter(), data.bs1(), data.bs2(), data.bc2());
-        block[3][2] = max(data.bCenter() - .33f, data.bs1() - 1.05f, data.bs2() - .67f, data.bc2() - 1.2f);
-        block[2][3] = max(data.bCenter() - .33f, data.bs2() - 1.05f, data.bs1() - .67f, data.bc2() - 1.2f);
+        block[3][2] = side(data.bCenter(), data.bs1(), data.bs2(), data.bc2() );
+        block[2][3] = side(data.bCenter(), data.bs2(), data.bs1(), data.bc2() );
         
         // quadrant 0, 1
 //        min = nonZeroMin(data.bCenter, data.bc3, data.bs1, data.bs3);
@@ -168,8 +168,8 @@ public class LightmapHD {
         
         block[1][2] = max(data.bCenter(), data.bs1() - 1f, data.bs3() - 1f, data.bc3() - 1.41f);
         block[0][3] = corner(data.bCenter(), data.bs1(), data.bs3(), data.bc3());
-        block[1][3] = max(data.bCenter() - .33f, data.bs3() - 1.05f, data.bs1() - .67f, data.bc3() - 1.2f);
-        block[0][2] = max(data.bCenter() - .33f, data.bs1() - 1.05f, data.bs3() - .67f, data.bc3() - 1.2f);
+        block[1][3] = side(data.bCenter(), data.bs3(), data.bs1(), data.bc3() );
+        block[0][2] = side(data.bCenter(), data.bs1(), data.bs3(), data.bc3() );
     }
     
     
@@ -195,10 +195,8 @@ public class LightmapHD {
     
     private static float side(float self, float far, float near, float corner) {
         float s = sideInner(self, far, near, corner);
-        float t = sideInner(self, far, near, corner);
-        float u = sideInner(self, far, near, corner);
-        float v = sideInner(self, far, near, corner);
-        return mean (s, t, u, v);
+        float t = sideInner(near, corner, self, far);
+        return (s + t) * 0.5f;
     }
     
     

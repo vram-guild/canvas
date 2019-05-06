@@ -89,6 +89,10 @@ public class Configurator implements ModMenuApi {
         //TODO: docs
         @Comment("TODO")
         boolean adjustVanillaModelGeometry = true;
+        
+        //TODO: docs
+        @Comment("TODO")        
+        boolean enableLightmapDebug = false;
     }
     
     static final ConfigData DEFAULTS = new ConfigData();
@@ -108,6 +112,7 @@ public class Configurator implements ModMenuApi {
     public static boolean enableBatchedChunkRender = DEFAULTS.enableBatchedChunkRender;
     public static boolean disableVanillaChunkMatrix = DEFAULTS.disableVanillaChunkMatrix;
     public static boolean adjustVanillaModelGeometry = DEFAULTS.adjustVanillaModelGeometry;
+    public static boolean enableLightmapDebug = DEFAULTS.enableLightmapDebug;
     
     /** use to stash parent screen during display */
     private static Screen screenIn;
@@ -146,6 +151,8 @@ public class Configurator implements ModMenuApi {
         enableBatchedChunkRender = config.enableBatchedChunkRender;
         disableVanillaChunkMatrix = config.disableVanillaChunkMatrix;
         adjustVanillaModelGeometry = config.adjustVanillaModelGeometry;
+        
+        enableLightmapDebug = config.enableLightmapDebug;
     }
 
     private static void saveConfig() {
@@ -163,6 +170,8 @@ public class Configurator implements ModMenuApi {
         config.enableBatchedChunkRender = enableBatchedChunkRender;
         config.disableVanillaChunkMatrix = disableVanillaChunkMatrix;
         config.adjustVanillaModelGeometry = adjustVanillaModelGeometry;
+        
+        config.enableLightmapDebug = enableLightmapDebug;
         
         try {
             String result = JANKSON.toJson(config).toJson(true, true, 0);
@@ -237,6 +246,10 @@ public class Configurator implements ModMenuApi {
         debug.addOption(new BooleanListEntry("config.canvas.value.shader_debug", enableShaderDebug, "config.canvas.reset", 
                 () -> DEFAULTS.enableShaderDebug, b -> enableShaderDebug = b, 
                 () -> Optional.of(I18n.translate("config.canvas.help.shader_debug").split(";"))));
+        
+        debug.addOption(new BooleanListEntry("config.canvas.value.shader_debug_lightmap", enableLightmapDebug, "config.canvas.reset", 
+                () -> DEFAULTS.enableLightmapDebug, b -> enableLightmapDebug = b, 
+                () -> Optional.of(I18n.translate("config.canvas.help.shader_debug_lightmap").split(";"))));
         
         builder.setDoesConfirmSave(false);
         

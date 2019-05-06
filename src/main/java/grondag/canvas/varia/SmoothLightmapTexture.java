@@ -79,8 +79,10 @@ public class SmoothLightmapTexture implements AutoCloseable {
 
         GlStateManager.activeTexture(GLX.GL_TEXTURE2);
         this.client.getTextureManager().bindTexture(this.textureIdentifier);
-        GlStateManager.texParameter(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_NEAREST);
-        GlStateManager.texParameter(GL11.GL_TEXTURE_2D,  GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_NEAREST);
+        
+        final int mode = Configurator.enableLightmapDebug ? GL11.GL_NEAREST : GL11.GL_LINEAR;
+        GlStateManager.texParameter(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, mode);
+        GlStateManager.texParameter(GL11.GL_TEXTURE_2D,  GL11.GL_TEXTURE_MAG_FILTER, mode);
         GlStateManager.color4f(1.0F, 1.0F, 1.0F, 1.0F);
         GlStateManager.enableTexture();
         GlStateManager.activeTexture(GLX.GL_TEXTURE0);
