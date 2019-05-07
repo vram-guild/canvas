@@ -34,6 +34,7 @@ package grondag.canvas.chunk;
 
 import grondag.canvas.apiimpl.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.rendercontext.BlockRenderInfo;
+import grondag.fermion.world.PackedBlockPos;
 import it.unimi.dsi.fastutil.longs.Long2FloatOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 import net.minecraft.block.Block.OffsetType;
@@ -157,7 +158,7 @@ public class ChunkRenderInfo {
      * the comments for {@link #brightnessCache}.
      */
     public int cachedBrightness(BlockState blockState, BlockPos pos) {
-        long key = pos.asLong();
+        long key = PackedBlockPos.pack(pos);
         int result = brightnessCache.get(key);
         if (result == Integer.MAX_VALUE) {
             result = blockState.getBlockBrightness(blockView, pos);
@@ -167,7 +168,7 @@ public class ChunkRenderInfo {
     }
 
     public float cachedAoLevel(BlockPos pos) {
-        long key = pos.asLong();
+        long key = PackedBlockPos.pack(pos);
         float result = aoLevelCache.get(key);
         if (result == Float.MAX_VALUE) {
             result = blockView.getBlockState(pos).getAmbientOcclusionLightLevel(blockView, pos);

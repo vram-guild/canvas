@@ -88,18 +88,23 @@ public class LightmapHD {
     }
     
     private static void mapBlock(AoFaceData faceData, int[] search) {
-        final float s0 = input(faceData.light0);
-        final float s1 = input(faceData.light1);
-        final float s2 = input(faceData.light2);
-        final float s3 = input(faceData.light3);
+        /** v - 1 */
+        final float top = input(faceData.light1);
+        /** v + 1 */
+        final float bottom = input(faceData.light0);
+        /** u + 1 */
+        final float right = input(faceData.light3);
+        /** u - 1 */
+        final float left = input(faceData.light2);
         
-        final float c0 = input(faceData.cLight0);
-        final float c1 = input(faceData.cLight1);
-        final float c2 = input(faceData.cLight2);
-        final float c3 = input(faceData.cLight3);
+        final float topLeft = input(faceData.cLight2);
+        final float topRight = input(faceData.cLight3);
+        final float bottomRight = input(faceData.cLight1);
+        final float bottomLeft = input(faceData.cLight0);
         
         final float center = input(faceData.lightCenter);
-        compute(search, center, s0, s1, s2, s3, c0, c1, c2, c3);
+
+        compute(search, center, top, bottom, right, left, topLeft, topRight, bottomRight, bottomLeft);
     }
     
     private static LightmapHD find(AoFaceData faceData, BiConsumer<AoFaceData, int[]> mapper) {
@@ -130,24 +135,29 @@ public class LightmapHD {
     }
     
     private static void mapSky(AoFaceData faceData, int[] search) {
-        final float s0 = input(faceData.light0 >>> 16);
-        final float s1 = input(faceData.light1 >>> 16);
-        final float s2 = input(faceData.light2 >>> 16);
-        final float s3 = input(faceData.light3 >>> 16);
+        /** v - 1 */
+        final float top = input(faceData.light1 >>> 16);
+        /** v + 1 */
+        final float bottom = input(faceData.light0 >>> 16);
+        /** u + 1 */
+        final float right = input(faceData.light3 >>> 16);
+        /** u - 1 */
+        final float left = input(faceData.light2 >>> 16);
         
-        final float c0 = input(faceData.cLight0 >>> 16);
-        final float c1 = input(faceData.cLight1 >>> 16);
-        final float c2 = input(faceData.cLight2 >>> 16);
-        final float c3 = input(faceData.cLight3 >>> 16);
+        final float topLeft = input(faceData.cLight2 >>> 16);
+        final float topRight = input(faceData.cLight3 >>> 16);
+        final float bottomRight = input(faceData.cLight1 >>> 16);
+        final float bottomLeft = input(faceData.cLight0 >>> 16);
         
         final float center = input(faceData.lightCenter >>> 16);
         
         //TODO: remove
-//        if(center == 15 && s0 == 15 && s1 == 15 && s2 == 15 && s3 == 15 && c0 == 15 && c1 == 15 && c2 == 15 && c3 == 15) {
-//            System.out.println("boop");
-//        }
-        
-        compute(search, center, s0, s1, s2, s3, c0, c1, c2, c3);
+//      if(center == 15 && top == 15 && bottom == 15 && left == 15 && right == 15 && topLeft == 15 && topRight == 15 
+//              && bottomLeft == 15 && bottomRight == 15) {
+//          System.out.println("boop");
+//      }
+      
+        compute(search, center, top, bottom, right, left, topLeft, topRight, bottomRight, bottomLeft);
     }
     
     public final int uMinImg;
@@ -176,8 +186,8 @@ public class LightmapHD {
     }
     
     private static void compute(int[] light, float center, 
-            float s0, float s1, float s2, float s3,
-            float c0, float c1, float c2, float c3) {
+            float top, float bottom, float right, float left,
+            float topLeft, float topRight, float bottomRight, float bottomLeft) {
         /**
          * Note that Ao data order is different from vertex order.
          * We will need to remap that here unless/until Ao data is simplified.
@@ -192,32 +202,32 @@ public class LightmapHD {
          * 
          * c1  s0  c0
          * s3  mm  s2
-         * c3  s1  c3
+         * c3  s1  c2
          */
         
         // quadrant 0, 0
-        light[index(1, 1)] = output(inside(center, s0, s3, c1));
-        light[index(0, 0)] = output(corner(center, s0, s3, c1));
-        light[index(0, 1)] = output(side(center, s0, s3, c1, 0, 1));
-        light[index(1, 0)] = output(side(center, s3, s0, c1, 1, 0 ));
+        light[index(1, 1)] = output(inside(center, left, top, topLeft, 1, 1));
+        light[index(0, 0)] = output(corner(center, left, top, topLeft));
+        light[index(0, 1)] = output(side(center, left, top, topLeft, 0, 1));
+        light[index(1, 0)] = output(side(center, left, top, topLeft, 1, 0 ));
         
         // quadrant 1, 0
-        light[index(2, 1)] = output(inside(center, s0, s2, c0));
-        light[index(3, 0)] = output(corner(center, s0, s2, c0));
-        light[index(2, 0)] = output(side(center, s2, s0, c0, 2, 0 ));
-        light[index(3, 1)] = output(side(center, s0, s2, c0, 3, 1 ));
+        light[index(2, 1)] = output(inside(center, right, top, topRight, 2, 1));
+        light[index(3, 0)] = output(corner(center, right, top, topRight));
+        light[index(2, 0)] = output(side(center, right, top, topRight, 2, 0 ));
+        light[index(3, 1)] = output(side(center, right, top, topRight, 3, 1 ));
         
         // quadrant 1, 1
-        light[index(2, 2)] = output(inside(center, s1, s2, c2));
-        light[index(3, 3)] = output(corner(center, s1, s2, c2));
-        light[index(3, 2)] = output(side(center, s1, s2, c2, 3, 2));
-        light[index(2, 3)] = output(side(center, s2, s1, c2, 2, 3));
+        light[index(2, 2)] = output(inside(center, right, bottom, bottomRight, 2, 2));
+        light[index(3, 3)] = output(corner(center, right, bottom, bottomRight));
+        light[index(3, 2)] = output(side(center, right, bottom, bottomRight, 3, 2));
+        light[index(2, 3)] = output(side(center, right, bottom, bottomRight, 2, 3));
         
         // quadrant 0, 1
-        light[index(1, 2)] = output(inside(center, s1, s3, c3));
-        light[index(0, 3)] = output(corner(center, s1, s3, c3));
-        light[index(1, 3)] = output(side(center, s3, s1, c3, 1, 3));
-        light[index(0, 2)] = output(side(center, s1, s3, c3, 0, 2));
+        light[index(1, 2)] = output(inside(center, left, bottom, bottomLeft, 1, 2));
+        light[index(0, 3)] = output(corner(center, left, bottom, bottomLeft));
+        light[index(1, 3)] = output(side(center, left, bottom, bottomLeft, 1, 3));
+        light[index(0, 2)] = output(side(center, left, bottom, bottomLeft, 0, 2));
         
         //TODO: remove
 //      if(center == 0 && s0 == 0 && s1 == 0 && s2 == 0 && s3 == 0 && c0 == 0 && c1 == 0 && c2 == 0 && c3 == 0) {
@@ -268,12 +278,16 @@ public class LightmapHD {
         return Math.max(Math.max(a, b), Math.max(c, d));
     }
     
-    private static float inside(float self, float a, float b, float corner) {
+    private static float inside(float self, float uVal, float vVal, float cornerVal, int u, int v) {
         //UGLY: find symmetrical derivation
-        if(self == a && self == b && self == corner) {
-            return corner;
+        if(self == uVal && self == vVal && self == cornerVal) {
+            return cornerVal;
         }
-        return max(self, pclamp(a - 1f), pclamp(b - 1f), pclamp(corner - 1.41f));
+        float selfFact = distUV(u, v);
+        float uFact = distRadius(CELL_DISTANCE - pixelDist(u), pixelDist(v));
+        float vFact = distRadius(pixelDist(u), CELL_DISTANCE - pixelDist(v));
+        float cornerFact = distRadius(CELL_DISTANCE - pixelDist(u), CELL_DISTANCE - pixelDist(v));
+        return max(self - selfFact, pclamp(uVal - uFact), pclamp(vVal - vFact), pclamp(cornerVal - cornerFact));
     }
     
     static final int CELL_DISTANCE = RADIUS * 2 - 1;
@@ -317,7 +331,11 @@ public class LightmapHD {
             return self;
         }
         float s = sideInner(self, uVal, vVal, cornerVal, u, v);
-        float t = sideInner(vVal, cornerVal, self, uVal, u, v);
+        final int uDist = pixelDist(u);
+        final int vDist = pixelDist(v);
+        
+        assert (uDist == RADIUS - 1 && vDist != RADIUS -1) || (uDist != RADIUS - 1 && vDist == RADIUS -1);
+        float t = uDist == RADIUS - 1 ? sideInner(uVal, self, cornerVal, vVal, u, v) : sideInner(vVal, cornerVal, self, uVal, u, v);
         return (s + t) * 0.5f;
     }
     
@@ -327,10 +345,11 @@ public class LightmapHD {
     
     private static float corner(float self, float uVal, float vVal, float corner) {
         float a = cornerInner(self, corner, uVal, vVal);
-        float b = cornerInner(corner, self, uVal, vVal);
-        float c = cornerInner(uVal, vVal, corner, self);
+        float b = cornerInner(corner, self, vVal, uVal);
+        float c = cornerInner(uVal, vVal, self, corner);
         float d = cornerInner(vVal, uVal, corner, self);
-        return mean(a, b, c, d);
+        // don't return anything less than normal lerp
+        return Math.max(mean(a, b, c, d), mean(self, uVal, vVal, corner));
     }
     
     private static float mean(float a, float b, float c, float d) {

@@ -331,6 +331,7 @@ public class AoCalculator {
             final BlockPos.Mutable lightPos = this.lightPos;
             final BlockPos.Mutable searchPos = this.searchPos;
 
+            // PERF: don't generate instance here
             lightPos.set(isOnBlockFace ? pos.offset(lightFace) : pos);
             AoFace aoFace = AoFace.get(lightFace);
 
