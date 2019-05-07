@@ -92,6 +92,19 @@ vec4 applyAo(vec4 baseColor) {
 #endif
 }
 
+//v_hd_blocklight
+//v_hd_skylight
+#ifdef ENABLE_SMOOTH_LIGHT
+vec4 combinedLight(float offsetU, float offsetV) {
+    vec2 offset = vec2(offsetU * LIGHTMAP_PIXEL_SIZE, offsetV * LIGHTMAP_PIXEL_SIZE);
+    vec4 block = texture2D(u_utility, v_hd_blocklight + offset);
+    vec4 sky = texture2D(u_utility, v_hd_blocklight + offset);
+    vec2 lightCoord = vec2(block.r, sky.r);
+    return texture2D(u_lightmap, lightCoord);
+//    return vec4(1.0, 1.0, 1.0, 1.0);
+}
+#endif
+
 vec4 diffuseColor() {
 
 #if CONTEXT == CONTEXT_BLOCK_SOLID
@@ -108,16 +121,22 @@ vec4 diffuseColor() {
 
 #ifdef CONTEXT_IS_BLOCK
 	#ifdef ENABLE_SMOOTH_LIGHT
-	    // PERF: move scaling to vertex shader
-	    vec4 block = texture2D(u_utility, v_hd_blocklight / 32768.0);
-	    vec4 sky = texture2D(u_utility, v_hd_skylight / 32768.0);
-	    vec2 lightCoord = vec2(block.r, sky.r);
+	    light = combinedLight(0.0, 0.0);
+//	    light += combinedLight(-0.7, -0.7);
+//	    light =  combinedLight(-1.0,  0.0);
+//	    light += combinedLight(-0.7,  0.7);
+//	    light += combinedLight( 0.0, -1.0);
+//	    light += combinedLight( 0.0,  1.0);
+//        light += combinedLight( 0.7, -0.7);
+//        light += combinedLight( 1.0,  0.0);
+//        light += combinedLight( 0.7,  0.7);
+//        light /= 9.0;
+
         #ifdef ENABLE_LIGHT_NOISE
             vec4 dither = texture2D(u_dither, gl_FragCoord.xy / 8.0);
             lightCoord += dither.r / 64.0 - (1.0 / 128.0);
         #endif
 
-	    light = texture2D(u_lightmap, lightCoord);
     #else
         light = texture2D(u_lightmap, v_lightcoord);
     #endif

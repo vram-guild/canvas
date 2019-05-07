@@ -122,6 +122,9 @@ varying vec2 v_texcoord_2;
 #define  FOG_EXP    2048
 #define  FOG_EXP2   2049
 
+#define LIGHTMAP_ADDRESS_SIZE 32768
+#define LIGHTMAP_PIXEL_SIZE 8.0 / 32768.0
+
 const mat3[6] UV_MATRIX = mat3[6](
         mat3(1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0),
         mat3(1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0),

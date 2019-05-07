@@ -290,11 +290,28 @@ public class LightmapHD {
         if(self == uVal && self == vVal && self == cornerVal) {
             return cornerVal;
         }
+        int du = pixelDist(u);
+        int dv = pixelDist(v);
         float selfFact = distUV(u, v);
-        float uFact = distRadius(CELL_DISTANCE - pixelDist(u), pixelDist(v));
-        float vFact = distRadius(pixelDist(u), CELL_DISTANCE - pixelDist(v));
-        float cornerFact = distRadius(CELL_DISTANCE - pixelDist(u), CELL_DISTANCE - pixelDist(v));
-        return max(self - selfFact, pclamp(uVal - uFact), pclamp(vVal - vFact), pclamp(cornerVal - cornerFact));
+        float uFact = distRadius(CELL_DISTANCE - du, dv);
+        float vFact = distRadius(du, CELL_DISTANCE - dv);
+        float cornerFact = distRadius(CELL_DISTANCE - du, CELL_DISTANCE - dv);
+        float radial = max(self - selfFact, pclamp(uVal - uFact), pclamp(vVal - vFact), pclamp(cornerVal - cornerFact));
+        
+        float uLinear = 1f - (du + 1f) / LIGHTMAP_SIZE;
+        float vLinear = 1f - (dv + 1f) / LIGHTMAP_SIZE;
+        
+        float nz = nonZeroMin(self, uVal, vVal, cornerVal);
+        if(self == 0) self = nz;
+        if(cornerVal == 0) cornerVal = nz;
+        if(uVal == 0) uVal = nz;
+        if(vVal == 0) vVal = nz;
+        
+        float linear = self * (uLinear * vLinear) + cornerVal * ((1 - uLinear) * (1 - vLinear))
+                + uVal * ((1 - uLinear) * (vLinear))
+                + vVal * ((uLinear) * (1 - vLinear));
+//        return Math.max(radial, linear);
+        return linear;
     }
     
     static final int CELL_DISTANCE = RADIUS * 2 - 1;
@@ -334,12 +351,26 @@ public class LightmapHD {
             return self;
         }
         float s = sideInner(self, uVal, vVal, cornerVal, u, v);
-        final int uDist = pixelDist(u);
-        final int vDist = pixelDist(v);
+        final int du = pixelDist(u);
+        final int dv = pixelDist(v);
         
-        assert (uDist == RADIUS - 1 && vDist != RADIUS -1) || (uDist != RADIUS - 1 && vDist == RADIUS -1);
-        float t = uDist == RADIUS - 1 ? sideInner(uVal, self, cornerVal, vVal, u, v) : sideInner(vVal, cornerVal, self, uVal, u, v);
-        return (s + t) * 0.5f;
+        assert (du == RADIUS - 1 && dv != RADIUS -1) || (du != RADIUS - 1 && dv == RADIUS -1);
+        float t = du == RADIUS - 1 ? sideInner(uVal, self, cornerVal, vVal, u, v) : sideInner(vVal, cornerVal, self, uVal, u, v);
+        float radial = (s + t) * 0.5f;
+        
+        float uLinear = 1f - (du + 1f) / LIGHTMAP_SIZE;
+        float vLinear = 1f - (dv + 1f) / LIGHTMAP_SIZE;
+        float nz = nonZeroMin(self, uVal, vVal, cornerVal);
+        if(self == 0) self = nz;
+        if(cornerVal == 0) cornerVal = nz;
+        if(uVal == 0) uVal = nz;
+        if(vVal == 0) vVal = nz;
+        float linear = self * (uLinear * vLinear)
+                + cornerVal * ((1 - uLinear) * (1 - vLinear))
+                + uVal * ((1 - uLinear) * (vLinear))
+                + vVal * ((uLinear) * (1 - vLinear));
+        return linear;
+        //return Math.max(radial, linear);
     }
     
     private static float cornerInner(float self, float corner, float uVal, float vVal) {
@@ -352,10 +383,30 @@ public class LightmapHD {
         float c = cornerInner(uVal, vVal, self, corner);
         float d = cornerInner(vVal, uVal, corner, self);
         // don't return anything less than normal lerp
-        return Math.max(mean(a, b, c, d), mean(self, uVal, vVal, corner));
+        float radial = mean(a, b, c, d);
+        
+        float nz = nonZeroMin(self, uVal, vVal, corner);
+        if(self == 0) self = nz;
+        if(corner == 0) corner = nz;
+        if(uVal == 0) uVal = nz;
+        if(vVal == 0) vVal = nz;
+        float linear = mean(self, corner, uVal, vVal);
+        
+//        return Math.max(radial, linear);
+        return linear;
     }
     
     private static float mean(float a, float b, float c, float d) {
         return (a + b + c + d) * 0.25f;
+    }
+    
+    private static float nonZeroMin(float a, float b) {
+        if(a == 0) return b;
+        if(b == 0) return a;
+        return Math.min(a, b);
+    }
+    
+    private static float nonZeroMin(float a, float b, float c, float d) {
+        return nonZeroMin(nonZeroMin(a, b), nonZeroMin(c, d));
     }
 }

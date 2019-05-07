@@ -52,8 +52,8 @@ void setupVertex() {
 #endif
 
 #ifdef ENABLE_SMOOTH_LIGHT
-    v_hd_blocklight = in_hd_blocklight;
-    v_hd_skylight = in_hd_skylight;
+    v_hd_blocklight = in_hd_blocklight / 32768.0;
+    v_hd_skylight = in_hd_skylight / 32768.0;
     v_hd_ao = in_hd_ao;
 #endif
 
