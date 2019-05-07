@@ -42,7 +42,7 @@ public class SmoothLightmapTexture implements AutoCloseable {
 
     private SmoothLightmapTexture() {
         this.client = MinecraftClient.getInstance();
-        this.texture = new NativeImageBackedTexture(512, 512, false);
+        this.texture = new NativeImageBackedTexture(LightmapHD.TEX_SIZE, LightmapHD.TEX_SIZE, false);
         this.textureIdentifier = this.client.getTextureManager().registerDynamicTexture("light_map", this.texture);
         this.image = this.texture.getImage();
     }
@@ -139,12 +139,11 @@ public class SmoothLightmapTexture implements AutoCloseable {
             //PERF - only update dirty pixels
             final int uMin = map.uMinImg;
             final int vMin = map.vMinImg;
-            final int[] light = map.light;
-            for(int u = 0; u < LightmapHD.LIGHTMAP_SIZE; u++) {
-                for(int v = 0; v < LightmapHD.LIGHTMAP_SIZE; v++) {
+            for(int u = 0; u < LightmapHD.PADDED_SIZE; u++) {
+                for(int v = 0; v < LightmapHD.PADDED_SIZE; v++) {
 //                    image.setPixelRGBA(uMin + u, vMin + v, update(hack(map.sky[u][v]), hack(map.block[u][v]), flickerIn));
 //                    System.out.println(map.light[u][v]);
-                    image.setPixelRGBA(uMin + u, vMin + v, light[LightmapHD.index(u,v)]);
+                    image.setPixelRGBA(uMin + u, vMin + v, map.pixel(u,v));
                 }
             }
         });

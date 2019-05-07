@@ -12,19 +12,19 @@ import grondag.canvas.apiimpl.util.AoFaceData;
 import net.minecraft.util.math.MathHelper;
 
 public class LightmapHD {
-    static final int TEX_SIZE = 512;
-    static final int LIGHTMAP_SIZE = 6;
-    static final int LIMIT_INCLUSIVE = LIGHTMAP_SIZE - 1;
-    static final int RADIUS = LIGHTMAP_SIZE / 2;
-    static final int LIGHTMAP_PIXELS = LIGHTMAP_SIZE * LIGHTMAP_SIZE;
-    static final int IDX_SIZE = 512 / LIGHTMAP_SIZE;
-    static final int MAX_COUNT = IDX_SIZE * IDX_SIZE;
+    public static final int TEX_SIZE = 2048;
+    private static final int LIGHTMAP_SIZE = 4;
+    public static final int PADDED_SIZE = LIGHTMAP_SIZE + 2;
+    private static final int LIMIT_INCLUSIVE = LIGHTMAP_SIZE - 1;
+    private static final int RADIUS = LIGHTMAP_SIZE / 2;
+    private static final int LIGHTMAP_PIXELS = LIGHTMAP_SIZE * LIGHTMAP_SIZE;
+    private static final int IDX_SIZE = TEX_SIZE / PADDED_SIZE;
+    private static final int MAX_COUNT = IDX_SIZE * IDX_SIZE;
     // UGLY - consider making this a full unsigned short
     // for initial pass didn't want to worry about signed value mistakes
     /** Scale of texture units sent to shader. Shader should divide by this. */
-    static final int BUFFER_SCALE = 0x8000;
-    static final int UNITS_PER_PIXEL = BUFFER_SCALE / TEX_SIZE;
-    static final float TEXTURE_TO_BUFFER = (float) BUFFER_SCALE / TEX_SIZE;
+    private static final int BUFFER_SCALE = 0x8000;
+    private static final float TEXTURE_TO_BUFFER = (float) BUFFER_SCALE / TEX_SIZE;
     
     private static final LightmapHD[] maps = new LightmapHD[MAX_COUNT];
     
@@ -163,14 +163,14 @@ public class LightmapHD {
     
     public final int uMinImg;
     public final int vMinImg;
-    public final int[] light;
+    private final int[] light;
     
     private LightmapHD(int[] light) {
         final int index = nextIndex.getAndIncrement();
         final int s = index % IDX_SIZE;
         final int t = index / IDX_SIZE;
-        uMinImg = s * LIGHTMAP_SIZE;
-        vMinImg = t * LIGHTMAP_SIZE;
+        uMinImg = s * PADDED_SIZE;
+        vMinImg = t * PADDED_SIZE;
         this.light = new int[LIGHTMAP_PIXELS];
         System.arraycopy(light, 0, this.light, 0, LIGHTMAP_PIXELS);
         
@@ -255,6 +255,18 @@ public class LightmapHD {
         
         return 8 + result;
     }
+    /**
+     * Handles padding
+     */
+    public int pixel(int u, int v) {
+        if(u > 0) {
+            u -= (u == PADDED_SIZE - 1) ? 2 : 1;
+        }
+        if(v > 0) {
+            v -= (v == PADDED_SIZE - 1) ? 2 : 1;
+        }
+        return light[index(u, v)];
+    }
     
     public int coord(QuadViewImpl q, int i) {
         //PERF could compress coordinates sent to shader by 
@@ -264,8 +276,8 @@ public class LightmapHD {
         // 2 for uv and 2 to lookup the combinations
 //        float u = uMinImg + 0.5f + q.u[i] * (LIGHTMAP_SIZE - 1);
 //        float v = vMinImg + 0.5f + q.v[i] * (LIGHTMAP_SIZE - 1);
-        int u = Math.round(uMinImg * TEXTURE_TO_BUFFER + 1 + q.u[i] * (LIGHTMAP_SIZE * TEXTURE_TO_BUFFER - 2));
-        int v = Math.round(vMinImg * TEXTURE_TO_BUFFER + 1 + q.v[i] * (LIGHTMAP_SIZE * TEXTURE_TO_BUFFER - 2));
+        int u = Math.round((uMinImg + 1) * TEXTURE_TO_BUFFER  + q.u[i] * (LIGHTMAP_SIZE * TEXTURE_TO_BUFFER));
+        int v = Math.round((vMinImg + 1) * TEXTURE_TO_BUFFER  + q.v[i] * (LIGHTMAP_SIZE * TEXTURE_TO_BUFFER));
         return u | (v << 16);
     }
     
