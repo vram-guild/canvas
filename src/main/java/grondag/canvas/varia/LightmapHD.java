@@ -13,7 +13,8 @@ import net.minecraft.util.math.MathHelper;
 
 public class LightmapHD {
     static final int TEX_SIZE = 512;
-    static final int LIGHTMAP_SIZE = 4;
+    static final int LIGHTMAP_SIZE = 6;
+    static final int LIMIT_INCLUSIVE = LIGHTMAP_SIZE - 1;
     static final int RADIUS = LIGHTMAP_SIZE / 2;
     static final int LIGHTMAP_PIXELS = LIGHTMAP_SIZE * LIGHTMAP_SIZE;
     static final int IDX_SIZE = 512 / LIGHTMAP_SIZE;
@@ -188,46 +189,40 @@ public class LightmapHD {
     private static void compute(int[] light, float center, 
             float top, float bottom, float right, float left,
             float topLeft, float topRight, float bottomRight, float bottomLeft) {
-        /**
-         * Note that Ao data order is different from vertex order.
-         * We will need to remap that here unless/until Ao data is simplified.
-         * wc0 = s0 s3 c1
-         * wc1 = s0 s2 c0
-         * wc2 = s1 s2 c2
-         * wc3 = s1 s3 c3
-         * 
-         * c1 s0 c0 s2 c2 s1 c3 s3
-         * w0    w1    w2    w3
-         * u0v0  u1v0  u1v1  u0v1
-         * 
-         * c1  s0  c0
-         * s3  mm  s2
-         * c3  s1  c2
-         */
-        
-        // quadrant 0, 0
-        light[index(1, 1)] = output(inside(center, left, top, topLeft, 1, 1));
+
+        // corners
         light[index(0, 0)] = output(corner(center, left, top, topLeft));
-        light[index(0, 1)] = output(side(center, left, top, topLeft, 0, 1));
-        light[index(1, 0)] = output(side(center, left, top, topLeft, 1, 0 ));
+        light[index(LIMIT_INCLUSIVE, 0)] = output(corner(center, right, top, topRight));
+        light[index(LIMIT_INCLUSIVE, LIMIT_INCLUSIVE)] = output(corner(center, right, bottom, bottomRight));
+        light[index(0, LIMIT_INCLUSIVE)] = output(corner(center, left, bottom, bottomLeft));
         
-        // quadrant 1, 0
-        light[index(2, 1)] = output(inside(center, right, top, topRight, 2, 1));
-        light[index(3, 0)] = output(corner(center, right, top, topRight));
-        light[index(2, 0)] = output(side(center, right, top, topRight, 2, 0 ));
-        light[index(3, 1)] = output(side(center, right, top, topRight, 3, 1 ));
+        // edges
+        for(int i = 0; i < RADIUS - 1; i++) {
+            light[index(0, i + 1)] = output(side(center, left, top, topLeft, 0, i + 1));
+            light[index(i + 1, 0)] = output(side(center, left, top, topLeft, i + 1, 0 ));
+            
+            light[index(RADIUS + i, 0)] = output(side(center, right, top, topRight, RADIUS + i, 0 ));
+            light[index(LIMIT_INCLUSIVE, i + 1)] = output(side(center, right, top, topRight, LIMIT_INCLUSIVE, i + 1));
+            
+            light[index(LIMIT_INCLUSIVE, RADIUS + i)] = output(side(center, right, bottom, bottomRight, LIMIT_INCLUSIVE, RADIUS + i));
+            light[index(RADIUS + i, LIMIT_INCLUSIVE)] = output(side(center, right, bottom, bottomRight, RADIUS + i, LIMIT_INCLUSIVE));
+            
+            light[index(i + 1, LIMIT_INCLUSIVE)] = output(side(center, left, bottom, bottomLeft, i + 1, LIMIT_INCLUSIVE));
+            light[index(0, RADIUS + i)] = output(side(center, left, bottom, bottomLeft, 0, RADIUS + i));
+            
+        }
         
-        // quadrant 1, 1
-        light[index(2, 2)] = output(inside(center, right, bottom, bottomRight, 2, 2));
-        light[index(3, 3)] = output(corner(center, right, bottom, bottomRight));
-        light[index(3, 2)] = output(side(center, right, bottom, bottomRight, 3, 2));
-        light[index(2, 3)] = output(side(center, right, bottom, bottomRight, 2, 3));
+        // INTERIOR
         
-        // quadrant 0, 1
-        light[index(1, 2)] = output(inside(center, left, bottom, bottomLeft, 1, 2));
-        light[index(0, 3)] = output(corner(center, left, bottom, bottomLeft));
-        light[index(1, 3)] = output(side(center, left, bottom, bottomLeft, 1, 3));
-        light[index(0, 2)] = output(side(center, left, bottom, bottomLeft, 0, 2));
+        for(int i = 0; i < RADIUS - 1; i++) {
+            for(int j = 0; j < RADIUS - 1; j++) {
+                //PERF save calcs
+                light[index(i + 1, j + 1)] = output(inside(center, left, top, topLeft, i + 1, j + 1));
+                light[index(RADIUS + i, j + 1)] = output(inside(center, right, top, topRight, RADIUS + i, j + 1));
+                light[index(RADIUS + i, RADIUS + j)] = output(inside(center, right, bottom, bottomRight, RADIUS + i, RADIUS + j));
+                light[index(i + 1, RADIUS + j)] = output(inside(center, left, bottom, bottomLeft, i + 1, RADIUS + j));
+            }
+        }
         
         //TODO: remove
 //      if(center == 0 && s0 == 0 && s1 == 0 && s2 == 0 && s3 == 0 && c0 == 0 && c1 == 0 && c2 == 0 && c3 == 0) {
@@ -308,10 +303,6 @@ public class LightmapHD {
     static final float SELF_CORNER_LOSS = distUV(0, 0);
     static final float DIAG_CORNER_LOSS = distUV(-1, -1);
     static final float SIDE_CORNER_LOSS = distUV(-1, 0);
-    
-    private static int side(int c) {
-        return c >= RADIUS ? 1 : -1;
-    }
     
     private static float sideInner(float self, float uVal, float vVal, float cornerVal, int u, int v) {
         //UGLY: find symmetrical derivation

@@ -109,10 +109,8 @@ vec4 diffuseColor() {
 #ifdef CONTEXT_IS_BLOCK
 	#ifdef ENABLE_SMOOTH_LIGHT
 	    // PERF: move scaling to vertex shader
-	    //v_hd_blocklight
-	    //v_hd_skylight
 	    vec4 block = texture2D(u_utility, v_hd_blocklight / 32768.0);
-	    vec4 sky = texture2D(u_utility, v_hd_blocklight / 32768.0);
+	    vec4 sky = texture2D(u_utility, v_hd_skylight / 32768.0);
 	    vec2 lightCoord = vec2(block.r, sky.r);
         #ifdef ENABLE_LIGHT_NOISE
             vec4 dither = texture2D(u_dither, gl_FragCoord.xy / 8.0);

@@ -140,8 +140,8 @@ public class SmoothLightmapTexture implements AutoCloseable {
             final int uMin = map.uMinImg;
             final int vMin = map.vMinImg;
             final int[] light = map.light;
-            for(int u = 0; u < 4; u++) {
-                for(int v = 0; v < 4; v++) {
+            for(int u = 0; u < LightmapHD.LIGHTMAP_SIZE; u++) {
+                for(int v = 0; v < LightmapHD.LIGHTMAP_SIZE; v++) {
 //                    image.setPixelRGBA(uMin + u, vMin + v, update(hack(map.sky[u][v]), hack(map.block[u][v]), flickerIn));
 //                    System.out.println(map.light[u][v]);
                     image.setPixelRGBA(uMin + u, vMin + v, light[LightmapHD.index(u,v)]);
