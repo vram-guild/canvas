@@ -17,7 +17,8 @@ public class LightmapHD {
     public static final int PADDED_SIZE = LIGHTMAP_SIZE + 2;
     private static final int LIMIT_INCLUSIVE = LIGHTMAP_SIZE - 1;
     private static final int RADIUS = LIGHTMAP_SIZE / 2;
-    private static final int LIGHTMAP_PIXELS = LIGHTMAP_SIZE * LIGHTMAP_SIZE;
+    private static final int PADDED_RADIUS = PADDED_SIZE / 2;
+    private static final int LIGHTMAP_PIXELS = PADDED_SIZE * PADDED_SIZE;
     private static final int IDX_SIZE = TEX_SIZE / PADDED_SIZE;
     private static final int MAX_COUNT = IDX_SIZE * IDX_SIZE;
     // UGLY - consider making this a full unsigned short
@@ -191,36 +192,36 @@ public class LightmapHD {
             float topLeft, float topRight, float bottomRight, float bottomLeft) {
 
         // corners
-        light[index(0, 0)] = output(corner(center, left, top, topLeft));
-        light[index(LIMIT_INCLUSIVE, 0)] = output(corner(center, right, top, topRight));
-        light[index(LIMIT_INCLUSIVE, LIMIT_INCLUSIVE)] = output(corner(center, right, bottom, bottomRight));
-        light[index(0, LIMIT_INCLUSIVE)] = output(corner(center, left, bottom, bottomLeft));
+//        light[index(0, 0)] = output(corner(center, left, top, topLeft));
+//        light[index(LIMIT_INCLUSIVE, 0)] = output(corner(center, right, top, topRight));
+//        light[index(LIMIT_INCLUSIVE, LIMIT_INCLUSIVE)] = output(corner(center, right, bottom, bottomRight));
+//        light[index(0, LIMIT_INCLUSIVE)] = output(corner(center, left, bottom, bottomLeft));
         
-        // edges
-        for(int i = 0; i < RADIUS - 1; i++) {
-            light[index(0, i + 1)] = output(side(center, left, top, topLeft, 0, i + 1));
-            light[index(i + 1, 0)] = output(side(center, left, top, topLeft, i + 1, 0 ));
-            
-            light[index(RADIUS + i, 0)] = output(side(center, right, top, topRight, RADIUS + i, 0 ));
-            light[index(LIMIT_INCLUSIVE, i + 1)] = output(side(center, right, top, topRight, LIMIT_INCLUSIVE, i + 1));
-            
-            light[index(LIMIT_INCLUSIVE, RADIUS + i)] = output(side(center, right, bottom, bottomRight, LIMIT_INCLUSIVE, RADIUS + i));
-            light[index(RADIUS + i, LIMIT_INCLUSIVE)] = output(side(center, right, bottom, bottomRight, RADIUS + i, LIMIT_INCLUSIVE));
-            
-            light[index(i + 1, LIMIT_INCLUSIVE)] = output(side(center, left, bottom, bottomLeft, i + 1, LIMIT_INCLUSIVE));
-            light[index(0, RADIUS + i)] = output(side(center, left, bottom, bottomLeft, 0, RADIUS + i));
-            
-        }
+//        // edges
+//        for(int i = 0; i < RADIUS - 1; i++) {
+//            light[index(0, i + 1)] = output(side(center, left, top, topLeft, 0, i + 1));
+//            light[index(i + 1, 0)] = output(side(center, left, top, topLeft, i + 1, 0 ));
+//            
+//            light[index(RADIUS + i, 0)] = output(side(center, right, top, topRight, RADIUS + i, 0 ));
+//            light[index(LIMIT_INCLUSIVE, i + 1)] = output(side(center, right, top, topRight, LIMIT_INCLUSIVE, i + 1));
+//            
+//            light[index(LIMIT_INCLUSIVE, RADIUS + i)] = output(side(center, right, bottom, bottomRight, LIMIT_INCLUSIVE, RADIUS + i));
+//            light[index(RADIUS + i, LIMIT_INCLUSIVE)] = output(side(center, right, bottom, bottomRight, RADIUS + i, LIMIT_INCLUSIVE));
+//            
+//            light[index(i + 1, LIMIT_INCLUSIVE)] = output(side(center, left, bottom, bottomLeft, i + 1, LIMIT_INCLUSIVE));
+//            light[index(0, RADIUS + i)] = output(side(center, left, bottom, bottomLeft, 0, RADIUS + i));
+//            
+//        }
         
         // INTERIOR
         
-        for(int i = 0; i < RADIUS - 1; i++) {
-            for(int j = 0; j < RADIUS - 1; j++) {
+        for(int i = -1; i < RADIUS; i++) {
+            for(int j = -1; j < RADIUS; j++) {
                 //PERF save calcs
-                light[index(i + 1, j + 1)] = output(inside(center, left, top, topLeft, i + 1, j + 1));
-                light[index(RADIUS + i, j + 1)] = output(inside(center, right, top, topRight, RADIUS + i, j + 1));
-                light[index(RADIUS + i, RADIUS + j)] = output(inside(center, right, bottom, bottomRight, RADIUS + i, RADIUS + j));
-                light[index(i + 1, RADIUS + j)] = output(inside(center, left, bottom, bottomLeft, i + 1, RADIUS + j));
+                light[index(i, j)] = output(inside(center, left, top, topLeft, i, j));
+                light[index(RADIUS + 1 + i, j)] = output(inside(center, right, top, topRight, RADIUS + 1 + i, j));
+                light[index(RADIUS + 1 + i, RADIUS + 1 + j)] = output(inside(center, right, bottom, bottomRight, RADIUS + 1 + i, RADIUS + 1 + j));
+                light[index(i, RADIUS + 1 + j)] = output(inside(center, left, bottom, bottomLeft, i, RADIUS + 1 + j));
             }
         }
         
@@ -241,13 +242,13 @@ public class LightmapHD {
     }
     
     public static int index(int u, int v) {
-        return v * LIGHTMAP_SIZE + u;
+        return (v + 1) * PADDED_SIZE + u + 1;
     }
     
     //FIX: is 1 right?
     private static int output(float in) {
-        if(in < 1) {
-            in = 1;
+        if(in < 0) {
+            in = 0;
         } else if(in > 15) {
             in = 15;
         }
@@ -259,13 +260,7 @@ public class LightmapHD {
      * Handles padding
      */
     public int pixel(int u, int v) {
-        if(u > 0) {
-            u -= (u == PADDED_SIZE - 1) ? 2 : 1;
-        }
-        if(v > 0) {
-            v -= (v == PADDED_SIZE - 1) ? 2 : 1;
-        }
-        return light[index(u, v)];
+        return light[v * PADDED_SIZE + u];
     }
     
     public int coord(QuadViewImpl q, int i) {
@@ -278,6 +273,12 @@ public class LightmapHD {
 //        float v = vMinImg + 0.5f + q.v[i] * (LIGHTMAP_SIZE - 1);
         int u = Math.round((uMinImg + 1) * TEXTURE_TO_BUFFER  + q.u[i] * (LIGHTMAP_SIZE * TEXTURE_TO_BUFFER));
         int v = Math.round((vMinImg + 1) * TEXTURE_TO_BUFFER  + q.v[i] * (LIGHTMAP_SIZE * TEXTURE_TO_BUFFER));
+        
+        
+        //TODO: config option to show whole texture
+//        int u = Math.round((uMinImg) * TEXTURE_TO_BUFFER  + q.u[i] * (PADDED_SIZE * TEXTURE_TO_BUFFER));
+//        int v = Math.round((vMinImg) * TEXTURE_TO_BUFFER  + q.v[i] * (PADDED_SIZE * TEXTURE_TO_BUFFER));
+        
         return u | (v << 16);
     }
     
@@ -286,7 +287,6 @@ public class LightmapHD {
     }
     
     private static float inside(float self, float uVal, float vVal, float cornerVal, int u, int v) {
-        //UGLY: find symmetrical derivation
         if(self == uVal && self == vVal && self == cornerVal) {
             return cornerVal;
         }
@@ -298,8 +298,6 @@ public class LightmapHD {
         float cornerFact = distRadius(CELL_DISTANCE - du, CELL_DISTANCE - dv);
         float radial = max(self - selfFact, pclamp(uVal - uFact), pclamp(vVal - vFact), pclamp(cornerVal - cornerFact));
         
-        float uLinear = 1f - (du + 1f) / LIGHTMAP_SIZE;
-        float vLinear = 1f - (dv + 1f) / LIGHTMAP_SIZE;
         
         float nz = nonZeroMin(self, uVal, vVal, cornerVal);
         if(self == 0) self = nz;
@@ -307,6 +305,8 @@ public class LightmapHD {
         if(uVal == 0) uVal = nz;
         if(vVal == 0) vVal = nz;
         
+        float uLinear = 1f - (du + 0.5f) / LIGHTMAP_SIZE;
+        float vLinear = 1f - (dv + 0.5f) / LIGHTMAP_SIZE;
         float linear = self * (uLinear * vLinear) + cornerVal * ((1 - uLinear) * (1 - vLinear))
                 + uVal * ((1 - uLinear) * (vLinear))
                 + vVal * ((uLinear) * (1 - vLinear));
@@ -334,7 +334,6 @@ public class LightmapHD {
     static final float SIDE_CORNER_LOSS = distUV(-1, 0);
     
     private static float sideInner(float self, float uVal, float vVal, float cornerVal, int u, int v) {
-        //UGLY: find symmetrical derivation
         if(self == uVal && self == vVal && self == cornerVal) {
             return self;
         }
@@ -346,7 +345,6 @@ public class LightmapHD {
     }
     
     private static float side(float self, float uVal, float vVal, float cornerVal, int u, int v) {
-        //UGLY: find symmetrical derivation
         if(self == uVal && self == vVal && self == cornerVal) {
             return self;
         }
