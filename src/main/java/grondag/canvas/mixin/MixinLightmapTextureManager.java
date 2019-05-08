@@ -43,6 +43,7 @@ public abstract class MixinLightmapTextureManager {
         return color;
     }
     
+    //UGLY: still needed?
     @Inject(at = @At("RETURN"), method = "update")
     private void afterUpdate(float tick, CallbackInfo info) {
         WorldDataManager.updateLight(tick, prevFlicker);

@@ -63,7 +63,7 @@ public class DitherTexture implements AutoCloseable {
         GlStateManager.activeTexture(GL13.GL_TEXTURE3);
         this.client.getTextureManager().bindTexture(this.textureIdentifier);
         GlStateManager.texParameter(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, GL11.GL_REPEAT);
-        GlStateManager.texParameter(GL11.GL_TEXTURE_2D,  GL11.GL_TEXTURE_WRAP_T, GL11.GL_NEAREST);
+        GlStateManager.texParameter(GL11.GL_TEXTURE_2D,  GL11.GL_TEXTURE_WRAP_T, GL11.GL_REPEAT);
         GlStateManager.texParameter(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_NEAREST);
         GlStateManager.texParameter(GL11.GL_TEXTURE_2D,  GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_NEAREST);
         GlStateManager.enableTexture();

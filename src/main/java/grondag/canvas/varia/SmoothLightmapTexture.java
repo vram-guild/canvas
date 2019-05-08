@@ -7,12 +7,12 @@ import com.mojang.blaze3d.platform.GlStateManager;
 
 import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.QuadViewImpl;
+import grondag.canvas.apiimpl.util.ReliableImage;
+import grondag.canvas.apiimpl.util.ReliableTexture;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.GameRenderer;
-import net.minecraft.client.texture.NativeImage;
-import net.minecraft.client.texture.NativeImageBackedTexture;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.util.Identifier;
 import net.minecraft.world.World;
@@ -31,9 +31,9 @@ public class SmoothLightmapTexture implements AutoCloseable {
         return result;
     }
 
-    private final NativeImageBackedTexture texture;
-    private final NativeImage image;
-    private final Identifier textureIdentifier;
+    private final ReliableTexture texture;
+    private final ReliableImage image;
+    private final Identifier textureIdentifier = new Identifier("canvas", "light_map");
     private final MinecraftClient client;
 
 //    private final Long2ObjectOpenHashMap<LightMap> maps = new Long2ObjectOpenHashMap<>();
@@ -42,8 +42,8 @@ public class SmoothLightmapTexture implements AutoCloseable {
 
     private SmoothLightmapTexture() {
         this.client = MinecraftClient.getInstance();
-        this.texture = new NativeImageBackedTexture(LightmapHD.TEX_SIZE, LightmapHD.TEX_SIZE, false);
-        this.textureIdentifier = this.client.getTextureManager().registerDynamicTexture("light_map", this.texture);
+        this.texture = new ReliableTexture(new ReliableImage(ReliableImage.Format.LUMINANCE, LightmapHD.TEX_SIZE, LightmapHD.TEX_SIZE, false));
+        this.client.getTextureManager().registerTexture(textureIdentifier, this.texture);
         this.image = this.texture.getImage();
     }
 
@@ -84,12 +84,28 @@ public class SmoothLightmapTexture implements AutoCloseable {
         GlStateManager.activeTexture(GLX.GL_TEXTURE2);
         this.client.getTextureManager().bindTexture(this.textureIdentifier);
         
+        //UGLY: clean up and use ReliableImage methods instead
+        
         final int mode = Configurator.enableLightmapDebug ? GL11.GL_NEAREST : GL11.GL_LINEAR;
         GlStateManager.texParameter(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, mode);
         GlStateManager.texParameter(GL11.GL_TEXTURE_2D,  GL11.GL_TEXTURE_MAG_FILTER, mode);
         GlStateManager.color4f(1.0F, 1.0F, 1.0F, 1.0F);
         GlStateManager.enableTexture();
         GlStateManager.activeTexture(GLX.GL_TEXTURE0);
+        
+        
+//        //TODO: remove
+//        GlStateManager.activeTexture(GLX.GL_TEXTURE1);
+////        this.client.getTextureManager().bindTexture("light_map");
+//        
+//        //UGLY: clean up and use ReliableImage methods instead
+//        
+////        final int mode = Configurator.enableLightmapDebug ? GL11.GL_NEAREST : GL11.GL_LINEAR;
+//        GlStateManager.texParameter(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR);
+//        GlStateManager.texParameter(GL11.GL_TEXTURE_2D,  GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_LINEAR);
+////        GlStateManager.color4f(1.0F, 1.0F, 1.0F, 1.0F);
+////        GlStateManager.enableTexture();
+//        GlStateManager.activeTexture(GLX.GL_TEXTURE0);
     }
 
     
@@ -100,24 +116,24 @@ public class SmoothLightmapTexture implements AutoCloseable {
     float effectModifier;
     float skyDarkness;
     
-//    private boolean prepareForRefresh(float tick) {
-//        world = client.world;
-//        if (world == null) {
-//            return false;
-//        }
-//        gameRenderer = client.gameRenderer;
-//        skyDarkness = gameRenderer.getSkyDarkness(tick);
-//        worldAmbient = world.getAmbientLight(1.0F);
-//        fluidModifier = this.client.player.method_3140();
-//        if (this.client.player.hasStatusEffect(StatusEffects.NIGHT_VISION)) {
-//            effectModifier = gameRenderer.getNightVisionStrength(client.player, tick);
-//        } else if (fluidModifier > 0.0F && this.client.player.hasStatusEffect(StatusEffects.CONDUIT_POWER)) {
-//            effectModifier = fluidModifier;
-//        } else {
-//            effectModifier = 0.0F;
-//        }
-//        return true;
-//    }
+    private boolean prepareForRefresh(float tick) {
+        world = client.world;
+        if (world == null) {
+            return false;
+        }
+        gameRenderer = client.gameRenderer;
+        skyDarkness = gameRenderer.getSkyDarkness(tick);
+        worldAmbient = world.getAmbientLight(1.0F);
+        fluidModifier = this.client.player.method_3140();
+        if (this.client.player.hasStatusEffect(StatusEffects.NIGHT_VISION)) {
+            effectModifier = gameRenderer.getNightVisionStrength(client.player, tick);
+        } else if (fluidModifier > 0.0F && this.client.player.hasStatusEffect(StatusEffects.CONDUIT_POWER)) {
+            effectModifier = fluidModifier;
+        } else {
+            effectModifier = 0.0F;
+        }
+        return true;
+    }
     
     boolean isDirty = false;
     public void tick() {
@@ -128,13 +144,13 @@ public class SmoothLightmapTexture implements AutoCloseable {
         //UGLY doesn't belong here
         DitherTexture.instance().tick();
         
-        if(!isDirty || !Configurator.enableSmoothLightmaps) { // || !prepareForRefresh(tick)) {
+        if(!Configurator.enableSmoothLightmaps || !prepareForRefresh(tick) || !isDirty) {
             return;
         }
 
         isDirty = false;
         
-        final NativeImage image = this.image;
+        final ReliableImage image = this.image;
         LightmapHD.forEach( map -> {
             //PERF - only update dirty pixels
             final int uMin = map.uMinImg;
@@ -143,7 +159,7 @@ public class SmoothLightmapTexture implements AutoCloseable {
                 for(int v = 0; v < LightmapHD.PADDED_SIZE; v++) {
 //                    image.setPixelRGBA(uMin + u, vMin + v, update(hack(map.sky[u][v]), hack(map.block[u][v]), flickerIn));
 //                    System.out.println(map.light[u][v]);
-                    image.setPixelRGBA(uMin + u, vMin + v, map.pixel(u,v));
+                    image.setLuminance(uMin + u, vMin + v, (byte)map.pixel(u,v));
                 }
             }
         });
@@ -154,7 +170,6 @@ public class SmoothLightmapTexture implements AutoCloseable {
         int result = Math.round(b * 17);
         return Math.max(0, Math.min(255, result));
     }
-    //TODO: remove all of this below
     
     float prevFlicker;
     

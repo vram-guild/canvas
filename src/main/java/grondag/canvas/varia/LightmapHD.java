@@ -6,6 +6,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
+import org.lwjgl.opengl.GL21;
+
 import grondag.canvas.Canvas;
 import grondag.canvas.apiimpl.QuadViewImpl;
 import grondag.canvas.apiimpl.util.AoFaceData;
@@ -191,30 +193,6 @@ public class LightmapHD {
             float top, float bottom, float right, float left,
             float topLeft, float topRight, float bottomRight, float bottomLeft) {
 
-        // corners
-//        light[index(0, 0)] = output(corner(center, left, top, topLeft));
-//        light[index(LIMIT_INCLUSIVE, 0)] = output(corner(center, right, top, topRight));
-//        light[index(LIMIT_INCLUSIVE, LIMIT_INCLUSIVE)] = output(corner(center, right, bottom, bottomRight));
-//        light[index(0, LIMIT_INCLUSIVE)] = output(corner(center, left, bottom, bottomLeft));
-        
-//        // edges
-//        for(int i = 0; i < RADIUS - 1; i++) {
-//            light[index(0, i + 1)] = output(side(center, left, top, topLeft, 0, i + 1));
-//            light[index(i + 1, 0)] = output(side(center, left, top, topLeft, i + 1, 0 ));
-//            
-//            light[index(RADIUS + i, 0)] = output(side(center, right, top, topRight, RADIUS + i, 0 ));
-//            light[index(LIMIT_INCLUSIVE, i + 1)] = output(side(center, right, top, topRight, LIMIT_INCLUSIVE, i + 1));
-//            
-//            light[index(LIMIT_INCLUSIVE, RADIUS + i)] = output(side(center, right, bottom, bottomRight, LIMIT_INCLUSIVE, RADIUS + i));
-//            light[index(RADIUS + i, LIMIT_INCLUSIVE)] = output(side(center, right, bottom, bottomRight, RADIUS + i, LIMIT_INCLUSIVE));
-//            
-//            light[index(i + 1, LIMIT_INCLUSIVE)] = output(side(center, left, bottom, bottomLeft, i + 1, LIMIT_INCLUSIVE));
-//            light[index(0, RADIUS + i)] = output(side(center, left, bottom, bottomLeft, 0, RADIUS + i));
-//            
-//        }
-        
-        // INTERIOR
-        
         for(int i = -1; i < RADIUS; i++) {
             for(int j = -1; j < RADIUS; j++) {
                 //PERF save calcs
@@ -226,15 +204,13 @@ public class LightmapHD {
         }
         
         //TODO: remove
-//      if(center == 0 && s0 == 0 && s1 == 0 && s2 == 0 && s3 == 0 && c0 == 0 && c1 == 0 && c2 == 0 && c3 == 0) {
+//      if(center == 15 && bottom == 15 && top == 15 && left == 15 && right == 15 
+//              && topLeft == 15 && topRight == 15 && bottomLeft == 15 && bottomRight == 15) {
 //          for(int i : light) {
-//              if(i != 8)
+//              if(i != 248)
 //              System.out.println("boop");
 //          }
 //      }
-//        for(int i = 0; i < LIGHTMAP_PIXELS; i++) {
-//            light[i] = 25;
-//        }
     }
     
     private static float pclamp(float in) {
@@ -245,17 +221,17 @@ public class LightmapHD {
         return (v + 1) * PADDED_SIZE + u + 1;
     }
     
-    //FIX: is 1 right?
     private static int output(float in) {
-        if(in < 0) {
-            in = 0;
-        } else if(in > 15) {
-            in = 15;
-        }
-        int result = Math.round(in * 16f);
+        int result = Math.round(in * 17f);
         
-        return 8 + result;
+        if(result < 0) {
+            result = 0;
+        } else if(result > 255) {
+            result = 255;
+        }
+        return result;
     }
+    
     /**
      * Handles padding
      */
@@ -280,6 +256,8 @@ public class LightmapHD {
 //        int v = Math.round((vMinImg) * TEXTURE_TO_BUFFER  + q.v[i] * (PADDED_SIZE * TEXTURE_TO_BUFFER));
         
         return u | (v << 16);
+        //TODO: remove
+//        return Math.round(q.u[i] * 32768) | ((Math.round(q.v[i] * 32768) << 16));
     }
     
     private static float max(float a, float b, float c, float d) {
@@ -307,11 +285,24 @@ public class LightmapHD {
         
         float uLinear = 1f - (du + 0.5f) / LIGHTMAP_SIZE;
         float vLinear = 1f - (dv + 0.5f) / LIGHTMAP_SIZE;
-        float linear = self * (uLinear * vLinear) + cornerVal * ((1 - uLinear) * (1 - vLinear))
+        assert uLinear >= 0 && uLinear <= 1f;
+        assert vLinear >= 0 && vLinear <= 1f;
+        float linear = self * (uLinear * vLinear) 
+                + cornerVal * (1 - uLinear) * (1 - vLinear)
                 + uVal * ((1 - uLinear) * (vLinear))
                 + vVal * ((uLinear) * (1 - vLinear));
-//        return Math.max(radial, linear);
-        return linear;
+//        float vol = (uLinear * vLinear) 
+//                + (1 - uLinear) * (1 - vLinear)
+//                + ((1 - uLinear) * (vLinear))
+//                + ((uLinear) * (1 - vLinear));
+
+        //TODO: remove
+//        if(self == 15 && uVal == 15 && vVal == 15 && cornerVal == 15) {
+//        if(self == 15 && (uVal == 14 || vVal == 14)) {
+//            System.out.println("boop");
+//        }
+        return Math.max(radial, linear);
+//        return linear;
     }
     
     static final int CELL_DISTANCE = RADIUS * 2 - 1;
@@ -327,75 +318,6 @@ public class LightmapHD {
     
     private static float distRadius(int uRadius, int vRadius) {
         return MathHelper.sqrt((uRadius * uRadius + vRadius * vRadius)) * INVERSE_CELL_DISTANCE;
-    }
-    
-    static final float SELF_CORNER_LOSS = distUV(0, 0);
-    static final float DIAG_CORNER_LOSS = distUV(-1, -1);
-    static final float SIDE_CORNER_LOSS = distUV(-1, 0);
-    
-    private static float sideInner(float self, float uVal, float vVal, float cornerVal, int u, int v) {
-        if(self == uVal && self == vVal && self == cornerVal) {
-            return self;
-        }
-        float selfFact = distUV(u, v);
-        float uFact = distRadius(CELL_DISTANCE - pixelDist(u), pixelDist(v));
-        float vFact = distRadius(pixelDist(u), CELL_DISTANCE - pixelDist(v));
-        float cornerFact = distRadius(CELL_DISTANCE - pixelDist(u), CELL_DISTANCE - pixelDist(v));
-        return max(pclamp(self - selfFact), pclamp(uVal - uFact), pclamp(vVal - vFact), pclamp(cornerVal - cornerFact));
-    }
-    
-    private static float side(float self, float uVal, float vVal, float cornerVal, int u, int v) {
-        if(self == uVal && self == vVal && self == cornerVal) {
-            return self;
-        }
-        float s = sideInner(self, uVal, vVal, cornerVal, u, v);
-        final int du = pixelDist(u);
-        final int dv = pixelDist(v);
-        
-        assert (du == RADIUS - 1 && dv != RADIUS -1) || (du != RADIUS - 1 && dv == RADIUS -1);
-        float t = du == RADIUS - 1 ? sideInner(uVal, self, cornerVal, vVal, u, v) : sideInner(vVal, cornerVal, self, uVal, u, v);
-        float radial = (s + t) * 0.5f;
-        
-        float uLinear = 1f - (du + 1f) / LIGHTMAP_SIZE;
-        float vLinear = 1f - (dv + 1f) / LIGHTMAP_SIZE;
-        float nz = nonZeroMin(self, uVal, vVal, cornerVal);
-        if(self == 0) self = nz;
-        if(cornerVal == 0) cornerVal = nz;
-        if(uVal == 0) uVal = nz;
-        if(vVal == 0) vVal = nz;
-        float linear = self * (uLinear * vLinear)
-                + cornerVal * ((1 - uLinear) * (1 - vLinear))
-                + uVal * ((1 - uLinear) * (vLinear))
-                + vVal * ((uLinear) * (1 - vLinear));
-        return linear;
-        //return Math.max(radial, linear);
-    }
-    
-    private static float cornerInner(float self, float corner, float uVal, float vVal) {
-        return max(pclamp(self - SELF_CORNER_LOSS), pclamp(uVal - SIDE_CORNER_LOSS), pclamp(vVal - SIDE_CORNER_LOSS), pclamp(corner - DIAG_CORNER_LOSS));
-    }
-    
-    private static float corner(float self, float uVal, float vVal, float corner) {
-        float a = cornerInner(self, corner, uVal, vVal);
-        float b = cornerInner(corner, self, vVal, uVal);
-        float c = cornerInner(uVal, vVal, self, corner);
-        float d = cornerInner(vVal, uVal, corner, self);
-        // don't return anything less than normal lerp
-        float radial = mean(a, b, c, d);
-        
-        float nz = nonZeroMin(self, uVal, vVal, corner);
-        if(self == 0) self = nz;
-        if(corner == 0) corner = nz;
-        if(uVal == 0) uVal = nz;
-        if(vVal == 0) vVal = nz;
-        float linear = mean(self, corner, uVal, vVal);
-        
-//        return Math.max(radial, linear);
-        return linear;
-    }
-    
-    private static float mean(float a, float b, float c, float d) {
-        return (a + b + c + d) * 0.25f;
     }
     
     private static float nonZeroMin(float a, float b) {
