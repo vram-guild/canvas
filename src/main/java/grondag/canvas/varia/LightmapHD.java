@@ -1,16 +1,14 @@
 package grondag.canvas.varia;
 
-import java.util.Arrays;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
-import org.lwjgl.opengl.GL21;
-
 import grondag.canvas.Canvas;
 import grondag.canvas.apiimpl.QuadViewImpl;
 import grondag.canvas.apiimpl.util.AoFaceData;
+import grondag.fermion.varia.Useful;
 import net.minecraft.util.math.MathHelper;
 
 public class LightmapHD {
@@ -46,14 +44,31 @@ public class LightmapHD {
     }
     
     private static class Key {
-        private int[] light = new int[LIGHTMAP_PIXELS];
+        private int top;
+        private int bottom;
+        private int right;
+        private int left;
+        private int topLeft;
+        private int topRight;
+        private int bottomRight;
+        private int bottomLeft;
+        private int center;
+        
         private int hashCode;
         
         Key() {
         }
 
-        Key(int[] light) {
-            System.arraycopy(light, 0, this.light, 0, LIGHTMAP_PIXELS);
+        Key(Key k) {
+            this.center = k.center;
+            this.top = k.top;
+            this.left = k.left;
+            this.right = k.right;
+            this.bottom = k.bottom;
+            this.topLeft = k.topLeft;
+            this.topRight = k.topRight;
+            this.bottomLeft = k.bottomLeft;
+            this.bottomRight = k.bottomRight;
             computeHash();
         }
         
@@ -61,7 +76,9 @@ public class LightmapHD {
          * Call after mutating {@link #light}
          */
         void computeHash() {
-            this.hashCode = Arrays.hashCode(light);
+            long l0 = center | (top << 8) | (left << 16) | (right << 24) | (bottom << 32);
+            long l1 = topLeft | (topRight << 8) | (bottomLeft << 16) | (bottomRight << 24);
+            this.hashCode = Long.hashCode(Useful.longHash(l0) ^ Useful.longHash(l1));
         }
         
         @Override
@@ -69,8 +86,16 @@ public class LightmapHD {
             if(other == null || !(other instanceof Key)) {
                 return false;
             }
-            int[] otherLight = ((Key)other).light;
-            return Arrays.equals(light, otherLight);
+            Key k = (Key)other;
+            return this.center == k.center
+                    && this.top == k.top
+                    && this.left == k.left
+                    && this.right == k.right
+                    && this.bottom == k.bottom
+                    && this.topLeft == k.topLeft
+                    && this.topRight == k.topRight
+                    && this.bottomLeft == k.bottomLeft
+                    && this.bottomRight == k.bottomRight;
         }
         
         @Override
@@ -91,31 +116,34 @@ public class LightmapHD {
         return find(faceData, LightmapHD::mapSky);
     }
     
-    private static void mapBlock(AoFaceData faceData, int[] search) {
-        /** v - 1 */
-        final float top = input(faceData.light1);
-        /** v + 1 */
-        final float bottom = input(faceData.light0);
-        /** u + 1 */
-        final float right = input(faceData.light3);
-        /** u - 1 */
-        final float left = input(faceData.light2);
-        
-        final float topLeft = input(faceData.cLight2);
-        final float topRight = input(faceData.cLight3);
-        final float bottomRight = input(faceData.cLight1);
-        final float bottomLeft = input(faceData.cLight0);
-        
-        final float center = input(faceData.lightCenter);
-
-        compute(search, center, top, bottom, right, left, topLeft, topRight, bottomRight, bottomLeft);
+    private static void mapBlock(AoFaceData faceData, Key key) {
+        key.top = faceData.light1 & 0xFF;
+        key.bottom = faceData.light0 & 0xFF;
+        key.right = faceData.light3 & 0xFF;
+        key.left = faceData.light2 & 0xFF;
+        key.topLeft = faceData.cLight2 & 0xFF;
+        key.topRight = faceData.cLight3 & 0xFF;
+        key.bottomRight = faceData.cLight1 & 0xFF;
+        key.bottomLeft = faceData.cLight0 & 0xFF;
+        key.center = faceData.lightCenter & 0xFF;
     }
     
-    private static LightmapHD find(AoFaceData faceData, BiConsumer<AoFaceData, int[]> mapper) {
+    private static void mapSky(AoFaceData faceData, Key key) {
+        key.top = (faceData.light1 >>> 16) & 0xFF;
+        key.bottom = (faceData.light0 >>> 16) & 0xFF;
+        key.right = (faceData.light3 >>> 16) & 0xFF;
+        key.left = (faceData.light2 >>> 16) & 0xFF;
+        key.topLeft = (faceData.cLight2 >>> 16) & 0xFF;
+        key.topRight = (faceData.cLight3 >>> 16) & 0xFF;
+        key.bottomRight = (faceData.cLight1 >>> 16) & 0xFF;
+        key.bottomLeft = (faceData.cLight0 >>> 16) & 0xFF;
+        key.center = (faceData.lightCenter >>> 16) & 0xFF;
+    }
+    
+    private static LightmapHD find(AoFaceData faceData, BiConsumer<AoFaceData, Key> mapper) {
         Key key = TEMPLATES.get();
-        int[] search = key.light;
         
-        mapper.accept(faceData, search);
+        mapper.accept(faceData, key);
 
         key.computeHash();
         
@@ -123,8 +151,8 @@ public class LightmapHD {
         
         if(result == null) {
             // create new key object to avoid putting threadlocal into map
-            key = new Key(search);
-            result = MAP.computeIfAbsent(key, k -> new LightmapHD(k.light));
+            key = new Key(key);
+            result = MAP.computeIfAbsent(key, k -> new LightmapHD(k));
         }
         
         return result;
@@ -138,44 +166,19 @@ public class LightmapHD {
         return b / 16f;
     }
     
-    private static void mapSky(AoFaceData faceData, int[] search) {
-        /** v - 1 */
-        final float top = input(faceData.light1 >>> 16);
-        /** v + 1 */
-        final float bottom = input(faceData.light0 >>> 16);
-        /** u + 1 */
-        final float right = input(faceData.light3 >>> 16);
-        /** u - 1 */
-        final float left = input(faceData.light2 >>> 16);
-        
-        final float topLeft = input(faceData.cLight2 >>> 16);
-        final float topRight = input(faceData.cLight3 >>> 16);
-        final float bottomRight = input(faceData.cLight1 >>> 16);
-        final float bottomLeft = input(faceData.cLight0 >>> 16);
-        
-        final float center = input(faceData.lightCenter >>> 16);
-        
-        //TODO: remove
-//      if(center == 15 && top == 15 && bottom == 15 && left == 15 && right == 15 && topLeft == 15 && topRight == 15 
-//              && bottomLeft == 15 && bottomRight == 15) {
-//          System.out.println("boop");
-//      }
-      
-        compute(search, center, top, bottom, right, left, topLeft, topRight, bottomRight, bottomLeft);
-    }
+
     
     public final int uMinImg;
     public final int vMinImg;
     private final int[] light;
     
-    private LightmapHD(int[] light) {
+    private LightmapHD(Key key) {
         final int index = nextIndex.getAndIncrement();
         final int s = index % IDX_SIZE;
         final int t = index / IDX_SIZE;
         uMinImg = s * PADDED_SIZE;
         vMinImg = t * PADDED_SIZE;
         this.light = new int[LIGHTMAP_PIXELS];
-        System.arraycopy(light, 0, this.light, 0, LIGHTMAP_PIXELS);
         
         if(index >= MAX_COUNT) {
             //TODO: put back
@@ -186,12 +189,21 @@ public class LightmapHD {
         
         maps[index] = this;
         
+        compute(light, key);
+        
         SmoothLightmapTexture.instance().setDirty();
     }
     
-    private static void compute(int[] light, float center, 
-            float top, float bottom, float right, float left,
-            float topLeft, float topRight, float bottomRight, float bottomLeft) {
+    private static void compute(int[] light, Key key) {
+        final float center = input(key.center);
+        final float top = input(key.top);
+        final float bottom = input(key.bottom);
+        final float right = input(key.right);
+        final float left = input(key.left);
+        final float topLeft = input(key.topLeft);
+        final float topRight = input(key.topRight);
+        final float bottomRight = input(key.bottomRight);
+        final float bottomLeft = input(key.bottomLeft);
 
         for(int i = -1; i < RADIUS; i++) {
             for(int j = -1; j < RADIUS; j++) {
