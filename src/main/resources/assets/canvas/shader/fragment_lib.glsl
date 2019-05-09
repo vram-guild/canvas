@@ -103,7 +103,10 @@ vec4 combinedLight(float offsetU, float offsetV) {
     vec2 lightCoord = vec2(block.r, sky.r) * 15.0;// * 255.0 - 8.0;
 //    vec2 low = floor(lightCoord);
 //    vec2 high = ceil(lightCoord);
-
+#ifdef ENABLE_LIGHT_NOISE
+    vec4 dither = texture2D(u_dither, gl_FragCoord.xy / 8.0);
+    lightCoord += dither.r / 64.0 - (1.0 / 128.0);
+#endif
 
 //    return lightColor(lightCoord);
 //    return lightColor(vec2(1.0, 1.0));
@@ -129,20 +132,15 @@ vec4 diffuseColor() {
 #ifdef CONTEXT_IS_BLOCK
 	#ifdef ENABLE_SMOOTH_LIGHT
 	    light = combinedLight(0.0, 0.0);
-	    light += combinedLight(-0.7, -0.7);
-	    light +=  combinedLight(-1.0,  0.0);
-	    light += combinedLight(-0.7,  0.7);
-	    light += combinedLight( 0.0, -1.0);
-	    light += combinedLight( 0.0,  1.0);
-        light += combinedLight( 0.7, -0.7);
-        light += combinedLight( 1.0,  0.0);
-        light += combinedLight( 0.7,  0.7);
-        light /= 9.0;
-
-        #ifdef ENABLE_LIGHT_NOISE
-            vec4 dither = texture2D(u_dither, gl_FragCoord.xy / 8.0);
-            lightCoord += dither.r / 64.0 - (1.0 / 128.0);
-        #endif
+//	    light += combinedLight(-0.7, -0.7);
+//	    light +=  combinedLight(-1.0,  0.0);
+//	    light += combinedLight(-0.7,  0.7);
+//	    light += combinedLight( 0.0, -1.0);
+//	    light += combinedLight( 0.0,  1.0);
+//        light += combinedLight( 0.7, -0.7);
+//        light += combinedLight( 1.0,  0.0);
+//        light += combinedLight( 0.7,  0.7);
+//        light /= 9.0;
 
     #else
         light = texture2D(u_lightmap, v_lightcoord);

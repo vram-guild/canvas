@@ -32,6 +32,7 @@
 
 package grondag.canvas.chunk;
 
+import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.rendercontext.BlockRenderInfo;
 import grondag.fermion.world.PackedBlockPos;
@@ -118,6 +119,9 @@ public class ChunkRenderInfo {
         this.chunkRenderer = chunkRenderer;
         brightnessCache.clear();
         aoLevelCache.clear();
+        if(Configurator.enableSmoothLightmaps) {
+            computeSmoothedBrightness(chunkOrigin);
+        }
     }
 
     public void release() {
@@ -167,6 +171,16 @@ public class ChunkRenderInfo {
         return result;
     }
 
+    public int cachedBrightness(BlockPos pos) {
+        long key = PackedBlockPos.pack(pos);
+        int result = brightnessCache.get(key);
+        if (result == Integer.MAX_VALUE) {
+            result = blockView.getBlockState(pos).getBlockBrightness(blockView, pos);
+            brightnessCache.put(key, result);
+        }
+        return result;
+    }
+    
     public float cachedAoLevel(BlockPos pos) {
         long key = PackedBlockPos.pack(pos);
         float result = aoLevelCache.get(key);
@@ -175,5 +189,36 @@ public class ChunkRenderInfo {
             aoLevelCache.put(key, result);
         }
         return result;
+    }
+    
+    private final BlockPos.Mutable smoothPos = new BlockPos.Mutable();
+    
+    private void computeSmoothedBrightness(BlockPos chunkOrigin) {
+        final Long2IntOpenHashMap smoothedLight = this.brightnessCache;
+        final BlockPos.Mutable smoothPos = this.smoothPos;
+        
+        final int minX = chunkOrigin.getX() - 1;
+        final int minY = chunkOrigin.getY() - 1;
+        final int minZ = chunkOrigin.getZ() - 1;
+        
+        final int maxX = chunkOrigin.getX() + 16;
+        final int maxY = chunkOrigin.getY() + 16;
+        final int maxZ = chunkOrigin.getZ() + 16;
+        
+        for(int x = minX; x <= maxX; x++) {
+            for(int y = minY; y <= maxY; y++) {
+                for(int z = minZ; z <= maxZ; z++) {
+                    smoothPos.set(x, y, z);
+                    int b = cachedBrightness(smoothPos);
+                    if(b != 0) {
+                        smoothedLight.put(PackedBlockPos.pack(smoothPos), smoothedLight(b, smoothPos));
+                    }
+                }
+            }
+        }
+    }
+    
+    private int smoothedLight(int center, BlockPos.Mutable mutablePos) {
+        return center;
     }
 }

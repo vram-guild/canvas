@@ -15,9 +15,9 @@ public class LightmapHD {
     public static final int TEX_SIZE = 2048;
     private static final int LIGHTMAP_SIZE = 4;
     public static final int PADDED_SIZE = LIGHTMAP_SIZE + 2;
-    private static final int LIMIT_INCLUSIVE = LIGHTMAP_SIZE - 1;
+    public static final int PADDED_MARGIN = LIGHTMAP_SIZE / 2;
     private static final int RADIUS = LIGHTMAP_SIZE / 2;
-    private static final int PADDED_RADIUS = PADDED_SIZE / 2;
+    private static final int WORKING_PIXELS = LIGHTMAP_SIZE * LIGHTMAP_SIZE * 4;
     private static final int LIGHTMAP_PIXELS = PADDED_SIZE * PADDED_SIZE;
     private static final int IDX_SIZE = TEX_SIZE / PADDED_SIZE;
     private static final int MAX_COUNT = IDX_SIZE * IDX_SIZE;
@@ -194,6 +194,8 @@ public class LightmapHD {
         SmoothLightmapTexture.instance().setDirty();
     }
     
+    private static final ThreadLocal<float[]> workLight = ThreadLocal.withInitial(() -> new float[WORKING_PIXELS]);
+    
     private static void compute(int[] light, Key key) {
         final float center = input(key.center);
         final float top = input(key.top);
@@ -204,14 +206,23 @@ public class LightmapHD {
         final float topRight = input(key.topRight);
         final float bottomRight = input(key.bottomRight);
         final float bottomLeft = input(key.bottomLeft);
+        final float[] work = workLight.get();
 
+        for(int i = -RADIUS; i < RADIUS; i++) {
+            for(int j = -1; j < RADIUS; j++) {
+                work[workIndex(i, j)] = inside(center, left, top, topLeft, i, j);
+                work[workIndex(RADIUS + 1 + i, j)] = inside(center, right, top, topRight, RADIUS + 1 + i, j);
+                work[workIndex(RADIUS + 1 + i, RADIUS + 1 + j)] = inside(center, right, bottom, bottomRight, RADIUS + 1 + i, RADIUS + 1 + j);
+                work[workIndex(i, RADIUS + 1 + j)] = inside(center, left, bottom, bottomLeft, i, RADIUS + 1 + j);
+            }
+        }
+        
         for(int i = -1; i < RADIUS; i++) {
             for(int j = -1; j < RADIUS; j++) {
-                //PERF save calcs
-                light[index(i, j)] = output(inside(center, left, top, topLeft, i, j));
-                light[index(RADIUS + 1 + i, j)] = output(inside(center, right, top, topRight, RADIUS + 1 + i, j));
-                light[index(RADIUS + 1 + i, RADIUS + 1 + j)] = output(inside(center, right, bottom, bottomRight, RADIUS + 1 + i, RADIUS + 1 + j));
-                light[index(i, RADIUS + 1 + j)] = output(inside(center, left, bottom, bottomLeft, i, RADIUS + 1 + j));
+                light[lightIndex(i, j)] = output(work[workIndex(i, j)]);
+                light[lightIndex(RADIUS + 1 + i, j)] = output(work[workIndex(RADIUS + 1 + i, j)]);
+                light[lightIndex(RADIUS + 1 + i, RADIUS + 1 + j)] = output(work[workIndex(RADIUS + 1 + i, RADIUS + 1 + j)]);
+                light[lightIndex(i, RADIUS + 1 + j)] = output(work[workIndex(i, RADIUS + 1 + j)]);
             }
         }
         
@@ -229,8 +240,12 @@ public class LightmapHD {
         return in < 0f ? 0f : in;
     }
     
-    public static int index(int u, int v) {
+    private static int lightIndex(int u, int v) {
         return (v + 1) * PADDED_SIZE + u + 1;
+    }
+    
+    private static int workIndex(int u, int v) {
+        return (v + RADIUS) * LIGHTMAP_SIZE * 2 + u + RADIUS;
     }
     
     private static int output(float in) {
@@ -313,8 +328,8 @@ public class LightmapHD {
 //        if(self == 15 && (uVal == 14 || vVal == 14)) {
 //            System.out.println("boop");
 //        }
-        return Math.max(radial, linear);
-//        return linear;
+//        return Math.max(radial, linear);
+        return linear;
     }
     
     static final int CELL_DISTANCE = RADIUS * 2 - 1;
