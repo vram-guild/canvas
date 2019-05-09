@@ -17,6 +17,7 @@
 package grondag.canvas.apiimpl.util;
 
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
+import net.minecraft.world.BlockView;
 
 /**
  * Used to stash block renderer reference in local scope during chunk rebuild,
@@ -26,4 +27,6 @@ public interface SafeWorldViewExt {
     TerrainRenderContext canvas_renderer();
 
     void canvas_renderer(TerrainRenderContext renderer);
+    
+    BlockView canvas_worldHack();
 }

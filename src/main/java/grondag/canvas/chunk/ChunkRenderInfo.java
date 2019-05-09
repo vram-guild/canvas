@@ -35,6 +35,7 @@ package grondag.canvas.chunk;
 import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.rendercontext.BlockRenderInfo;
+import grondag.canvas.apiimpl.util.SafeWorldViewExt;
 import grondag.fermion.world.PackedBlockPos;
 import it.unimi.dsi.fastutil.longs.Long2FloatOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
@@ -46,7 +47,10 @@ import net.minecraft.client.render.chunk.ChunkRenderer;
 import net.minecraft.client.world.SafeWorldView;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.BlockView;
 import net.minecraft.world.ExtendedBlockView;
+
+//PERF: many opportunities here
 
 /**
  * Holds, manages and provides access to the chunk-related state needed by
@@ -84,8 +88,10 @@ public class ChunkRenderInfo {
      * BlockRenderer.
      */
     private final Long2IntOpenHashMap brightnessCache;
+    // currently not used
+//    private final Long2ShortOpenHashMap subtractedCache;
     private final Long2FloatOpenHashMap aoLevelCache;
-
+    
     private final BlockRenderInfo blockInfo;
     ChunkRenderTask chunkTask;
     ChunkRenderData chunkData;
@@ -104,6 +110,8 @@ public class ChunkRenderInfo {
         brightnessCache.defaultReturnValue(Integer.MAX_VALUE);
         aoLevelCache = new Long2FloatOpenHashMap();
         aoLevelCache.defaultReturnValue(Float.MAX_VALUE);
+//        subtractedCache = new Long2ShortOpenHashMap();
+//        subtractedCache.defaultReturnValue(Short.MIN_VALUE);
     }
 
     public void setBlockView(SafeWorldView blockView) {
@@ -181,6 +189,16 @@ public class ChunkRenderInfo {
         return result;
     }
     
+//    public boolean cachedClearness(BlockPos pos) {
+//        long key = PackedBlockPos.pack(pos);
+//        short result = subtractedCache.get(key);
+//        if (result == Short.MIN_VALUE) {
+//            result = (short) blockView.getBlockState(pos).getLightSubtracted(blockView, pos);
+//            subtractedCache.put(key, result);
+//        }
+//        return result == 0;
+//    }
+    
     public float cachedAoLevel(BlockPos pos) {
         long key = PackedBlockPos.pack(pos);
         float result = aoLevelCache.get(key);
@@ -191,34 +209,345 @@ public class ChunkRenderInfo {
         return result;
     }
     
-    private final BlockPos.Mutable smoothPos = new BlockPos.Mutable();
+    private static final int POS_COUNT = 16 * 16 * 16 * 27;
+    private static final int OPAQUE = -1;
+    
+    private static class Helper {
+        private final BlockPos.Mutable smoothPos = new BlockPos.Mutable();
+        private final float a[] = new float[POS_COUNT];
+        private final float b[] = new float[POS_COUNT];
+        private final float c[] = new float[POS_COUNT];
+    }
+    
+    private static final ThreadLocal<Helper> helpers = ThreadLocal.withInitial(Helper::new);
     
     private void computeSmoothedBrightness(BlockPos chunkOrigin) {
-        final Long2IntOpenHashMap smoothedLight = this.brightnessCache;
-        final BlockPos.Mutable smoothPos = this.smoothPos;
+        final Helper help = helpers.get();
+        final BlockPos.Mutable smoothPos = help.smoothPos;
+        float[] sky = help.a;
+        float[] block = help.b;
         
-        final int minX = chunkOrigin.getX() - 1;
-        final int minY = chunkOrigin.getY() - 1;
-        final int minZ = chunkOrigin.getZ() - 1;
+        final int minX = chunkOrigin.getX() - 16;
+        final int minY = chunkOrigin.getY() - 16;
+        final int minZ = chunkOrigin.getZ() - 16;
         
-        final int maxX = chunkOrigin.getX() + 16;
-        final int maxY = chunkOrigin.getY() + 16;
-        final int maxZ = chunkOrigin.getZ() + 16;
+        BlockView view = ((SafeWorldViewExt)blockView).canvas_worldHack();
         
-        for(int x = minX; x <= maxX; x++) {
-            for(int y = minY; y <= maxY; y++) {
-                for(int z = minZ; z <= maxZ; z++) {
-                    smoothPos.set(x, y, z);
-                    int b = cachedBrightness(smoothPos);
-                    if(b != 0) {
-                        smoothedLight.put(PackedBlockPos.pack(smoothPos), smoothedLight(b, smoothPos));
+        for(int x = 0; x < 48; x++) {
+            for(int y = 0; y < 48; y++) {
+                for(int z = 0; z < 48; z++) {
+                    smoothPos.set(x + minX, y + minY, z + minZ);
+//                    final long packedPos = PackedBlockPos.pack(smoothPos);
+                    final int i = index(x, y, z);
+                    BlockState state = view.getBlockState(smoothPos);
+                    final int packedLight = state.getBlockBrightness(blockView, smoothPos);
+                    
+                    //PERF: still needed for Ao calc?
+//                    brightnessCache.put(packedPos, packedLight);
+                    
+                    final int subtracted = (short) state.getLightSubtracted(blockView, smoothPos);
+//                    subtractedCache.put(packedPos, (short) subtracted);
+                    
+                    if(subtracted > 0) {
+                        block[i] = OPAQUE;
+                        sky[i] = OPAQUE;
+                    } else if(packedLight == 0) {
+                        block[i] = 0;
+                        sky[i] = 0;
+                    } else {
+                        block[i] = (packedLight & 0xFF) / 16f;
+                        sky[i] = ((packedLight >>> 16) & 0xFF) / 16f;
                     }
+                }
+            }
+        }
+        
+        float[] work = help.c;
+//        smooth(4, block, work);
+//        smooth(3, work, block);
+        smooth(2, block, work);
+        smooth(1, work, block);
+        
+//        float[] swap = block;
+//        block = work;
+//        work = swap;
+        
+//        smooth(4, sky, work);
+//        smooth(3, work, sky);
+        smooth(2, sky, work);
+        smooth(1, work, sky);
+        
+        final Long2IntOpenHashMap cache = this.brightnessCache;
+        for(int x = 15; x < 33; x++) {
+            for(int y = 15; y < 33; y++) {
+                for(int z = 15; z < 33; z++) {
+                    final long packedPos = PackedBlockPos.pack(x + minX, y + minY, z + minZ);
+                    final int i = index(x, y, z);
+                    
+                    final int b = Math.round(Math.max(0, block[i]) * 16 * 1.2f);
+                    final int k = Math.round(Math.max(0, sky[i]) * 16 * 1.2f);
+                    cache.put(packedPos, (Math.min(b, 240) & 0b11111100) | ((Math.min(k, 240) & 0b11111100)  << 16));
                 }
             }
         }
     }
     
-    private int smoothedLight(int center, BlockPos.Mutable mutablePos) {
-        return center;
+    private static int index(int x, int y, int z) {
+        return x + y * 48 + z * 2304;
+    }
+    
+    private static final float INNER_DIST = 0.44198f;
+    private static final float OUTER_DIST = (1.0f - INNER_DIST) / 2f;
+    private static final float CENTER = INNER_DIST * INNER_DIST * INNER_DIST;
+    private static final float SIDE = INNER_DIST * INNER_DIST * OUTER_DIST;
+    private static final float NEAR_CORNER = INNER_DIST * OUTER_DIST * OUTER_DIST;
+    private static final float FAR_CORNER = OUTER_DIST * OUTER_DIST * OUTER_DIST;
+    
+    private void smooth(int margin, float[] src, float[] dest) {
+        final int base = 16 - margin;
+        final int limit = 32 + margin;
+        for(int x = base; x < limit; x++) {
+            for(int y = base; y < limit; y++) {
+                for(int z = base; z < limit; z++) {
+                    int i = index(x, y, z);
+                    
+                    float b = src[i];
+                    if(b == OPAQUE) {
+                        dest[i] = OPAQUE;
+                        continue;
+                    }
+                    
+                    float minWeight = 0;
+                    float min = b;
+                    float l = b * CENTER;
+                    
+                    // SIDES
+                    
+                    b = src[index(x + 1, y, z)];
+                    if(b == OPAQUE) {
+                        minWeight += SIDE;
+                    } else {
+                        min = nzMin(min, b);
+                        l += b * SIDE;
+                    }
+                    
+                    b = src[index(x - 1, y, z)];
+                    if(b == OPAQUE) {
+                        minWeight += SIDE;
+                    } else {
+                        min = nzMin(min, b);
+                        l += b * SIDE;
+                    }
+                    
+                    b = src[index(x, y + 1, z)];
+                    if(b == OPAQUE) {
+                        minWeight += SIDE;
+                    } else {
+                        min = nzMin(min, b);
+                        l += b * SIDE;
+                    }
+                    
+                    b = src[index(x, y - 1, z)];
+                    if(b == OPAQUE) {
+                        minWeight += SIDE;
+                    } else {
+                        min = nzMin(min, b);
+                        l += b * SIDE;
+                    }
+                    
+                    b = src[index(x, y, z + 1)];
+                    if(b == OPAQUE) {
+                        minWeight += SIDE;
+                    } else {
+                        min = nzMin(min, b);
+                        l += b * SIDE;
+                    }
+                    
+                    b = src[index(x, y, z - 1)];
+                    if(b == OPAQUE) {
+                        minWeight += SIDE;
+                    } else {
+                        min = nzMin(min, b);
+                        l += b * SIDE;
+                    }
+                    
+                    // NEAR CORNERS - X
+                    
+                    b = src[index(x, y - 1, z - 1)];
+                    if(b == OPAQUE) {
+                        minWeight += NEAR_CORNER;
+                    } else {
+                        min = nzMin(min, b);
+                        l += b * NEAR_CORNER;
+                    }
+                    
+                    b = src[index(x, y - 1, z + 1)];
+                    if(b == OPAQUE) {
+                        minWeight += NEAR_CORNER;
+                    } else {
+                        min = nzMin(min, b);
+                        l += b * NEAR_CORNER;
+                    }
+                    
+                    b = src[index(x, y + 1, z - 1)];
+                    if(b == OPAQUE) {
+                        minWeight += NEAR_CORNER;
+                    } else {
+                        min = nzMin(min, b);
+                        l += b * NEAR_CORNER;
+                    }
+                    
+                    b = src[index(x, y + 1, z + 1)];
+                    if(b == OPAQUE) {
+                        minWeight += NEAR_CORNER;
+                    } else {
+                        min = nzMin(min, b);
+                        l += b * NEAR_CORNER;
+                    }
+                    
+                    // NEAR CORNERS - Y
+                    
+                    b = src[index(x - 1, y, z - 1)];
+                    if(b == OPAQUE) {
+                        minWeight += NEAR_CORNER;
+                    } else {
+                        min = nzMin(min, b);
+                        l += b * NEAR_CORNER;
+                    }
+                    
+                    b = src[index(x - 1, y, z + 1)];
+                    if(b == OPAQUE) {
+                        minWeight += NEAR_CORNER;
+                    } else {
+                        min = nzMin(min, b);
+                        l += b * NEAR_CORNER;
+                    }
+                    
+                    b = src[index(x + 1, y, z - 1)];
+                    if(b == OPAQUE) {
+                        minWeight += NEAR_CORNER;
+                    } else {
+                        min = nzMin(min, b);
+                        l += b * NEAR_CORNER;
+                    }
+                    
+                    b = src[index(x + 1, y, z + 1)];
+                    if(b == OPAQUE) {
+                        minWeight += NEAR_CORNER;
+                    } else {
+                        min = nzMin(min, b);
+                        l += b * NEAR_CORNER;
+                    }
+                    
+                    // NEAR CORNERS - Z
+                    
+                    b = src[index(x - 1, y - 1, z)];
+                    if(b == OPAQUE) {
+                        minWeight += NEAR_CORNER;
+                    } else {
+                        min = nzMin(min, b);
+                        l += b * NEAR_CORNER;
+                    }
+                    
+                    b = src[index(x + 1, y - 1, z)];
+                    if(b == OPAQUE) {
+                        minWeight += NEAR_CORNER;
+                    } else {
+                        min = nzMin(min, b);
+                        l += b * NEAR_CORNER;
+                    }
+                    
+                    b = src[index(x - 1, y + 1, z)];
+                    if(b == OPAQUE) {
+                        minWeight += NEAR_CORNER;
+                    } else {
+                        min = nzMin(min, b);
+                        l += b * NEAR_CORNER;
+                    }
+                    
+                    b = src[index(x + 1, y + 1, z)];
+                    if(b == OPAQUE) {
+                        minWeight += NEAR_CORNER;
+                    } else {
+                        min = nzMin(min, b);
+                        l += b * NEAR_CORNER;
+                    }
+                    
+                    // FAR CORNERS
+                    
+                    b = src[index(x - 1, y - 1, z - 1)];
+                    if(b == OPAQUE) {
+                        minWeight += FAR_CORNER;
+                    } else {
+                        min = nzMin(min, b);
+                        l += b * FAR_CORNER;
+                    }
+                    
+                    b = src[index(x - 1, y - 1, z + 1)];
+                    if(b == OPAQUE) {
+                        minWeight += FAR_CORNER;
+                    } else {
+                        min = nzMin(min, b);
+                        l += b * FAR_CORNER;
+                    }
+                    
+                    b = src[index(x - 1, y + 1, z - 1)];
+                    if(b == OPAQUE) {
+                        minWeight += FAR_CORNER;
+                    } else {
+                        min = nzMin(min, b);
+                        l += b * FAR_CORNER;
+                    }
+                    
+                    b = src[index(x - 1, y + 1, z + 1)];
+                    if(b == OPAQUE) {
+                        minWeight += FAR_CORNER;
+                    } else {
+                        min = nzMin(min, b);
+                        l += b * FAR_CORNER;
+                    }
+                    
+                    b = src[index(x + 1, y - 1, z - 1)];
+                    if(b == OPAQUE) {
+                        minWeight += FAR_CORNER;
+                    } else {
+                        min = nzMin(min, b);
+                        l += b * FAR_CORNER;
+                    }
+                    
+                    b = src[index(x + 1, y - 1, z + 1)];
+                    if(b == OPAQUE) {
+                        minWeight += FAR_CORNER;
+                    } else {
+                        min = nzMin(min, b);
+                        l += b * FAR_CORNER;
+                    }
+                    
+                    b = src[index(x + 1, y + 1, z - 1)];
+                    if(b == OPAQUE) {
+                        minWeight += FAR_CORNER;
+                    } else {
+                        min = nzMin(min, b);
+                        l += b * FAR_CORNER;
+                    }
+                    
+                    b = src[index(x + 1, y + 1, z + 1)];
+                    if(b == OPAQUE) {
+                        minWeight += FAR_CORNER;
+                    } else {
+                        min = nzMin(min, b);
+                        l += b * FAR_CORNER;
+                    }
+                    
+                    dest[i] = l + minWeight * min;
+                }
+            }
+        }
+    }
+    
+    static float nzMin(float a, float b) {
+        if(a == 0) return b;
+        if(b == 0) return a;
+        return a < b ? a : b;
     }
 }

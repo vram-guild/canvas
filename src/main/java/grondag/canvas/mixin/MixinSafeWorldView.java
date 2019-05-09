@@ -17,13 +17,19 @@
 package grondag.canvas.mixin;
 
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
 import grondag.canvas.apiimpl.util.SafeWorldViewExt;
 import net.minecraft.client.world.SafeWorldView;
+import net.minecraft.world.BlockView;
+import net.minecraft.world.World;
 
 @Mixin(SafeWorldView.class)
 public abstract class MixinSafeWorldView implements SafeWorldViewExt {
+    
+    @Shadow protected World world;
+    
     private TerrainRenderContext fabric_renderer;
 
     @Override
@@ -34,5 +40,10 @@ public abstract class MixinSafeWorldView implements SafeWorldViewExt {
     @Override
     public void canvas_renderer(TerrainRenderContext renderer) {
         fabric_renderer = renderer;
+    }
+
+    @Override
+    public BlockView canvas_worldHack() {
+        return world;
     }
 }

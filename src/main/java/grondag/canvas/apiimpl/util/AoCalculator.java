@@ -352,6 +352,7 @@ public class AoCalculator {
             // vanilla was further offsetting these in the direction of the light face
             // but it was actually mis-sampling and causing visible artifacts in certain situation
             searchPos.set(lightPos).setOffset(aoFace.neighbors[0]);//.setOffset(lightFace);
+            // PERF: use clearness cache in chunk info
             final boolean isClear0 = world.getBlockState(searchPos).getLightSubtracted(world, searchPos) == 0;
             searchPos.set(lightPos).setOffset(aoFace.neighbors[1]);//.setOffset(lightFace);
             final boolean isClear1 = world.getBlockState(searchPos).getLightSubtracted(world, searchPos) == 0;
