@@ -208,7 +208,7 @@ public class LightmapHD {
         final float bottomLeft = input(key.bottomLeft);
         final float[] work = workLight.get();
 
-        for(int i = -RADIUS; i < RADIUS; i++) {
+        for(int i = -1; i < RADIUS; i++) {
             for(int j = -1; j < RADIUS; j++) {
                 work[workIndex(i, j)] = inside(center, left, top, topLeft, i, j);
                 work[workIndex(RADIUS + 1 + i, j)] = inside(center, right, top, topRight, RADIUS + 1 + i, j);
@@ -297,11 +297,11 @@ public class LightmapHD {
         }
         int du = pixelDist(u);
         int dv = pixelDist(v);
-        float selfFact = distUV(u, v);
-        float uFact = distRadius(CELL_DISTANCE - du, dv);
-        float vFact = distRadius(du, CELL_DISTANCE - dv);
-        float cornerFact = distRadius(CELL_DISTANCE - du, CELL_DISTANCE - dv);
-        float radial = max(self - selfFact, pclamp(uVal - uFact), pclamp(vVal - vFact), pclamp(cornerVal - cornerFact));
+//        float selfFact = distUV(u, v);
+//        float uFact = distRadius(CELL_DISTANCE - du, dv);
+//        float vFact = distRadius(du, CELL_DISTANCE - dv);
+//        float cornerFact = distRadius(CELL_DISTANCE - du, CELL_DISTANCE - dv);
+//        float radial = max(self - selfFact, pclamp(uVal - uFact), pclamp(vVal - vFact), pclamp(cornerVal - cornerFact));
         
         
         float nz = nonZeroMin(self, uVal, vVal, cornerVal);
