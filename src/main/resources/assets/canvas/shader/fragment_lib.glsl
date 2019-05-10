@@ -155,7 +155,7 @@ vec4 diffuseColor() {
 	a *= colorAndLightmap(v_color_0, 0);
 
     if(bitValue(v_flags.x, FLAG_DISABLE_AO_0) == 0.0) {
-//    	a = applyAo(a);
+    	a = applyAo(a);
     }
 
     if(bitValue(v_flags.x, FLAG_DISABLE_DIFFUSE_0) == 0.0) {

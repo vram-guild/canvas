@@ -118,20 +118,20 @@ public class ShadeFaceData {
 
     public static ShadeFaceData find(AoFaceData faceData) {
         ShadeFaceData search = THREADLOCAL.get();
-        search.a0 = faceData.a0;
-        search.a1 = faceData.a1;
-        search.a2 = faceData.a2;
-        search.a3 = faceData.a3;
+        search.a0 = faceData.outAoBottomRight;
+        search.a1 = faceData.outAoBottomLeft;
+        search.a2 = faceData.outAoTopLeft;
+        search.a3 = faceData.outAoTopRight;
         
-        search.ao0 = faceData.ao0;
-        search.ao1 = faceData.ao1;
-        search.ao2 = faceData.ao2;
-        search.ao3 = faceData.ao3;
+        search.ao0 = faceData.aoBottom;
+        search.ao1 = faceData.aoTop;
+        search.ao2 = faceData.aoLeft;
+        search.ao3 = faceData.aoRight;
         
-        search.cAo0 = faceData.cAo0;
-        search.cAo1 = faceData.cAo1;
-        search.cAo2 = faceData.cAo2;
-        search.cAo3 = faceData.cAo3;
+        search.cAo0 = faceData.aoBottomLeft;
+        search.cAo1 = faceData.aoBottomRight;
+        search.cAo2 = faceData.aoTopLeft;
+        search.cAo3 = faceData.aoTopRight;
         
         search.aoCenter = faceData.aoCenter;
         

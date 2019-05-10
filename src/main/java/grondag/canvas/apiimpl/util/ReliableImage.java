@@ -578,14 +578,8 @@ public void close() {
 
       private final int bytesPerPixel;
       private final int pixelDataFormat;
-      private final boolean field_5005;
-      private final boolean field_5004;
-      private final boolean field_5003;
       private final boolean field_5000;
       private final boolean field_4999;
-      private final int field_5010;
-      private final int field_5009;
-      private final int field_5008;
       private final int field_5007;
       private final int field_5006;
       private final boolean field_4996;
@@ -593,14 +587,8 @@ public void close() {
       private Format(int int_1, int int_2, boolean boolean_1, boolean boolean_2, boolean boolean_3, boolean boolean_4, boolean boolean_5, int int_3, int int_4, int int_5, int int_6, int int_7, boolean boolean_6) {
          this.bytesPerPixel = int_1;
          this.pixelDataFormat = int_2;
-         this.field_5005 = boolean_1;
-         this.field_5004 = boolean_2;
-         this.field_5003 = boolean_3;
          this.field_5000 = boolean_4;
          this.field_4999 = boolean_5;
-         this.field_5010 = int_3;
-         this.field_5009 = int_4;
-         this.field_5008 = int_5;
          this.field_5007 = int_6;
          this.field_5006 = int_7;
          this.field_4996 = boolean_6;

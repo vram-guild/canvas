@@ -9,7 +9,6 @@ import grondag.canvas.Canvas;
 import grondag.canvas.apiimpl.QuadViewImpl;
 import grondag.canvas.apiimpl.util.AoFaceData;
 import grondag.fermion.varia.Useful;
-import net.minecraft.util.math.MathHelper;
 
 public class LightmapHD {
     public static final int TEX_SIZE = 2048;
@@ -17,7 +16,6 @@ public class LightmapHD {
     public static final int PADDED_SIZE = LIGHTMAP_SIZE + 2;
     public static final int PADDED_MARGIN = LIGHTMAP_SIZE / 2;
     private static final int RADIUS = LIGHTMAP_SIZE / 2;
-    private static final int WORKING_PIXELS = LIGHTMAP_SIZE * LIGHTMAP_SIZE * 4;
     private static final int LIGHTMAP_PIXELS = PADDED_SIZE * PADDED_SIZE;
     private static final int IDX_SIZE = TEX_SIZE / PADDED_SIZE;
     private static final int MAX_COUNT = IDX_SIZE * IDX_SIZE;
@@ -71,6 +69,9 @@ public class LightmapHD {
             this.bottomRight = k.bottomRight;
             computeHash();
         }
+
+        // PERF - if last bit always zero for light values can fit this in a single long
+        // and use a long hash table directly
         
         /**
          * Call after mutating {@link #light}
@@ -117,27 +118,27 @@ public class LightmapHD {
     }
     
     private static void mapBlock(AoFaceData faceData, Key key) {
-        key.top = faceData.light1 & 0xFF;
-        key.bottom = faceData.light0 & 0xFF;
-        key.right = faceData.light3 & 0xFF;
-        key.left = faceData.light2 & 0xFF;
-        key.topLeft = faceData.cLight2 & 0xFF;
-        key.topRight = faceData.cLight3 & 0xFF;
-        key.bottomRight = faceData.cLight1 & 0xFF;
-        key.bottomLeft = faceData.cLight0 & 0xFF;
-        key.center = faceData.lightCenter & 0xFF;
+        key.top = faceData.top & 0xFF;
+        key.bottom = faceData.bottom & 0xFF;
+        key.right = faceData.right & 0xFF;
+        key.left = faceData.left & 0xFF;
+        key.topLeft = faceData.topLeft & 0xFF;
+        key.topRight = faceData.topRight & 0xFF;
+        key.bottomRight = faceData.bottomRight & 0xFF;
+        key.bottomLeft = faceData.bottomLeft & 0xFF;
+        key.center = faceData.center & 0xFF;
     }
     
     private static void mapSky(AoFaceData faceData, Key key) {
-        key.top = (faceData.light1 >>> 16) & 0xFF;
-        key.bottom = (faceData.light0 >>> 16) & 0xFF;
-        key.right = (faceData.light3 >>> 16) & 0xFF;
-        key.left = (faceData.light2 >>> 16) & 0xFF;
-        key.topLeft = (faceData.cLight2 >>> 16) & 0xFF;
-        key.topRight = (faceData.cLight3 >>> 16) & 0xFF;
-        key.bottomRight = (faceData.cLight1 >>> 16) & 0xFF;
-        key.bottomLeft = (faceData.cLight0 >>> 16) & 0xFF;
-        key.center = (faceData.lightCenter >>> 16) & 0xFF;
+        key.top = (faceData.top >>> 16) & 0xFF;
+        key.bottom = (faceData.bottom >>> 16) & 0xFF;
+        key.right = (faceData.right >>> 16) & 0xFF;
+        key.left = (faceData.left >>> 16) & 0xFF;
+        key.topLeft = (faceData.topLeft >>> 16) & 0xFF;
+        key.topRight = (faceData.topRight >>> 16) & 0xFF;
+        key.bottomRight = (faceData.bottomRight >>> 16) & 0xFF;
+        key.bottomLeft = (faceData.bottomLeft >>> 16) & 0xFF;
+        key.center = (faceData.center >>> 16) & 0xFF;
     }
     
     private static LightmapHD find(AoFaceData faceData, BiConsumer<AoFaceData, Key> mapper) {
@@ -194,8 +195,6 @@ public class LightmapHD {
         SmoothLightmapTexture.instance().setDirty();
     }
     
-    private static final ThreadLocal<float[]> workLight = ThreadLocal.withInitial(() -> new float[WORKING_PIXELS]);
-    
     private static void compute(int[] light, Key key) {
         final float center = input(key.center);
         final float top = input(key.top);
@@ -206,46 +205,20 @@ public class LightmapHD {
         final float topRight = input(key.topRight);
         final float bottomRight = input(key.bottomRight);
         final float bottomLeft = input(key.bottomLeft);
-        final float[] work = workLight.get();
 
         for(int i = -1; i < RADIUS; i++) {
             for(int j = -1; j < RADIUS; j++) {
-                work[workIndex(i, j)] = inside(center, left, top, topLeft, i, j);
-                work[workIndex(RADIUS + 1 + i, j)] = inside(center, right, top, topRight, RADIUS + 1 + i, j);
-                work[workIndex(RADIUS + 1 + i, RADIUS + 1 + j)] = inside(center, right, bottom, bottomRight, RADIUS + 1 + i, RADIUS + 1 + j);
-                work[workIndex(i, RADIUS + 1 + j)] = inside(center, left, bottom, bottomLeft, i, RADIUS + 1 + j);
+                light[lightIndex(i, j)] = output(inside(center, left, top, topLeft, i, j));
+                light[lightIndex(RADIUS + 1 + i, j)] = output(inside(center, right, top, topRight, RADIUS + 1 + i, j));
+                light[lightIndex(RADIUS + 1 + i, RADIUS + 1 + j)] = output(inside(center, right, bottom, bottomRight, RADIUS + 1 + i, RADIUS + 1 + j));
+                light[lightIndex(i, RADIUS + 1 + j)] = output(inside(center, left, bottom, bottomLeft, i, RADIUS + 1 + j));
             }
         }
-        
-        for(int i = -1; i < RADIUS; i++) {
-            for(int j = -1; j < RADIUS; j++) {
-                light[lightIndex(i, j)] = output(work[workIndex(i, j)]);
-                light[lightIndex(RADIUS + 1 + i, j)] = output(work[workIndex(RADIUS + 1 + i, j)]);
-                light[lightIndex(RADIUS + 1 + i, RADIUS + 1 + j)] = output(work[workIndex(RADIUS + 1 + i, RADIUS + 1 + j)]);
-                light[lightIndex(i, RADIUS + 1 + j)] = output(work[workIndex(i, RADIUS + 1 + j)]);
-            }
-        }
-        
-        //TODO: remove
-//      if(center == 15 && bottom == 15 && top == 15 && left == 15 && right == 15 
-//              && topLeft == 15 && topRight == 15 && bottomLeft == 15 && bottomRight == 15) {
-//          for(int i : light) {
-//              if(i != 248)
-//              System.out.println("boop");
-//          }
-//      }
-    }
+    }        
     
-    private static float pclamp(float in) {
-        return in < 0f ? 0f : in;
-    }
     
     private static int lightIndex(int u, int v) {
         return (v + 1) * PADDED_SIZE + u + 1;
-    }
-    
-    private static int workIndex(int u, int v) {
-        return (v + RADIUS) * LIGHTMAP_SIZE * 2 + u + RADIUS;
     }
     
     private static int output(float in) {
@@ -278,18 +251,9 @@ public class LightmapHD {
         int v = Math.round((vMinImg + 1) * TEXTURE_TO_BUFFER  + q.v[i] * (LIGHTMAP_SIZE * TEXTURE_TO_BUFFER));
         
         
-        //TODO: config option to show whole texture
-//        int u = Math.round((uMinImg) * TEXTURE_TO_BUFFER  + q.u[i] * (PADDED_SIZE * TEXTURE_TO_BUFFER));
-//        int v = Math.round((vMinImg) * TEXTURE_TO_BUFFER  + q.v[i] * (PADDED_SIZE * TEXTURE_TO_BUFFER));
-        
         return u | (v << 16);
-        //TODO: remove
-//        return Math.round(q.u[i] * 32768) | ((Math.round(q.v[i] * 32768) << 16));
     }
     
-    private static float max(float a, float b, float c, float d) {
-        return Math.max(Math.max(a, b), Math.max(c, d));
-    }
     
     private static float inside(float self, float uVal, float vVal, float cornerVal, int u, int v) {
         if(self == uVal && self == vVal && self == cornerVal) {
@@ -297,12 +261,6 @@ public class LightmapHD {
         }
         int du = pixelDist(u);
         int dv = pixelDist(v);
-//        float selfFact = distUV(u, v);
-//        float uFact = distRadius(CELL_DISTANCE - du, dv);
-//        float vFact = distRadius(du, CELL_DISTANCE - dv);
-//        float cornerFact = distRadius(CELL_DISTANCE - du, CELL_DISTANCE - dv);
-//        float radial = max(self - selfFact, pclamp(uVal - uFact), pclamp(vVal - vFact), pclamp(cornerVal - cornerFact));
-        
         
         float nz = nonZeroMin(self, uVal, vVal, cornerVal);
         if(self == 0) self = nz;
@@ -318,17 +276,7 @@ public class LightmapHD {
                 + cornerVal * (1 - uLinear) * (1 - vLinear)
                 + uVal * ((1 - uLinear) * (vLinear))
                 + vVal * ((uLinear) * (1 - vLinear));
-//        float vol = (uLinear * vLinear) 
-//                + (1 - uLinear) * (1 - vLinear)
-//                + ((1 - uLinear) * (vLinear))
-//                + ((uLinear) * (1 - vLinear));
-
-        //TODO: remove
-//        if(self == 15 && uVal == 15 && vVal == 15 && cornerVal == 15) {
-//        if(self == 15 && (uVal == 14 || vVal == 14)) {
-//            System.out.println("boop");
-//        }
-//        return Math.max(radial, linear);
+        
         return linear;
     }
     
@@ -337,14 +285,6 @@ public class LightmapHD {
     
     private static int pixelDist(int c) {
         return c >= RADIUS ? c - RADIUS : RADIUS - 1 - c;
-    }
-    
-    private static float distUV(int u, int v) {
-        return distRadius(pixelDist(u), pixelDist(v));
-    }
-    
-    private static float distRadius(int uRadius, int vRadius) {
-        return MathHelper.sqrt((uRadius * uRadius + vRadius * vRadius)) * INVERSE_CELL_DISTANCE;
     }
     
     private static float nonZeroMin(float a, float b) {

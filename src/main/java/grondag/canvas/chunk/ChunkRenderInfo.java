@@ -164,19 +164,15 @@ public class ChunkRenderInfo {
         }
     }
 
+    // TODO: remove and use pos-only version
     /**
      * Cached values for
      * {@link BlockState#getBlockBrightness(ExtendedBlockView, BlockPos)}. See also
      * the comments for {@link #brightnessCache}.
      */
+    @Deprecated 
     public int cachedBrightness(BlockState blockState, BlockPos pos) {
-        long key = PackedBlockPos.pack(pos);
-        int result = brightnessCache.get(key);
-        if (result == Integer.MAX_VALUE) {
-            result = blockState.getBlockBrightness(blockView, pos);
-            brightnessCache.put(key, result);
-        }
-        return result;
+        return cachedBrightness(pos);
     }
 
     public int cachedBrightness(BlockPos pos) {
@@ -256,6 +252,7 @@ public class ChunkRenderInfo {
                         sky[i] = 0;
                     } else {
                         // PERF try integer math?
+                        // if pack both into same long could probably do addition concurrently
                         block[i] = (packedLight & 0xFF) * 0.0625f;
                         sky[i] = ((packedLight >>> 16) & 0xFF) * 0.0625f;
                     }

@@ -16,95 +16,92 @@
 
 package grondag.canvas.apiimpl.util;
 
+import java.util.function.IntBinaryOperator;
+import java.util.function.IntFunction;
+
 /**
  * Holds per-corner results for a single block face. Handles caching and
  * provides various utility methods to simplify code elsewhere.
  */
 public class AoFaceData {
+    public static int OPAQUE = -1;
+    
     // interpolated corner results
-    float a0;
-    float a1;
-    float a2;
-    float a3;
-    int b0;
-    int b1;
-    int b2;
-    int b3;
-    int s0;
-    int s1;
-    int s2;
-    int s3;
+    float outAoBottomRight;
+    float outAoBottomLeft;
+    float outAoTopLeft;
+    float outAoTopRight;
+    int outBlockBottomRight;
+    int outBlockBottomLeft;
+    int outBlockTopLeft;
+    int outBlockTopRight;
+    int outSkyBottomRight;
+    int outSkyBottomLeft;
+    int outSkyTopLeft;
+    int outSkyTopRight;
     
     // packed values gathered during compute
-    public int light0;
-    public int light1;
-    public int light2;
-    public int light3;
-    public int cLight0;
-    public int cLight1;
-    public int cLight2;
-    public int cLight3;
-    public int lightCenter;
+    public int bottom;
+    public int top;
+    public int left;
+    public int right;
+    public int bottomLeft;
+    public int bottomRight;
+    public int topLeft;
+    public int topRight;
+    public int center;
 
-    float ao0;
-    float ao1;
-    float ao2;
-    float ao3;
-    float cAo0;
-    float cAo1;
-    float cAo2;
-    float cAo3;
+    float aoBottom;
+    float aoTop;
+    float aoLeft;
+    float aoRight;
+    float aoBottomLeft;
+    float aoBottomRight;
+    float aoTopLeft;
+    float aoTopRight;
     float aoCenter;
     
+    // PERF - need to call if extra smooth enabled?  Maybe only the AO part?
     void compute() {
-        a0 = (ao3 + ao0 + cAo1 + aoCenter) * 0.25F;
-        a1 = (ao2 + ao0 + cAo0 + aoCenter) * 0.25F;
-        a2 = (ao2 + ao1 + cAo2 + aoCenter) * 0.25F;
-        a3 = (ao3 + ao1 + cAo3 + aoCenter) * 0.25F;
+        outAoBottomRight = (aoRight + aoBottom + aoBottomRight + aoCenter) * 0.25F;
+        outAoBottomLeft = (aoLeft + aoBottom + aoBottomLeft + aoCenter) * 0.25F;
+        outAoTopLeft = (aoLeft + aoTop + aoTopLeft + aoCenter) * 0.25F;
+        outAoTopRight = (aoRight + aoTop + aoTopRight + aoCenter) * 0.25F;
 
-        l0(meanBrightness(light3, light0, cLight1, lightCenter));
-        l1(meanBrightness(light2, light0, cLight0, lightCenter));
-        l2(meanBrightness(light2, light1, cLight2, lightCenter));
-        l3(meanBrightness(light3, light1, cLight3, lightCenter));
-    }
-    
-    void l0(int l0) {
-        this.b0 = l0 & 0xFFFF;
-        this.s0 = (l0 >>> 16) & 0xFFFF;
-    }
-
-    void l1(int l1) {
-        this.b1 = l1 & 0xFFFF;
-        this.s1 = (l1 >>> 16) & 0xFFFF;
-    }
-
-    void l2(int l2) {
-        this.b2 = l2 & 0xFFFF;
-        this.s2 = (l2 >>> 16) & 0xFFFF;
-    }
-
-    void l3(int l3) {
-        this.b3 = l3 & 0xFFFF;
-        this.s3 = (l3 >>> 16) & 0xFFFF;
+        int l = meanBrightness(right, bottom, bottomRight, center);
+        outBlockBottomRight = l & 0xFFFF;
+        outSkyBottomRight = (l >>> 16) & 0xFFFF;
+        
+        l = meanBrightness(left, bottom, bottomLeft, center);
+        this.outBlockBottomLeft = l & 0xFFFF;
+        this.outSkyBottomLeft = (l >>> 16) & 0xFFFF;
+        
+        l = meanBrightness(left, top, topLeft, center);
+        this.outBlockTopLeft = l & 0xFFFF;
+        this.outSkyTopLeft = (l >>> 16) & 0xFFFF;
+        
+        l = meanBrightness(right, top, topRight, center);
+        this.outBlockTopRight = l & 0xFFFF;
+        this.outSkyTopRight = (l >>> 16) & 0xFFFF;
     }
 
     int weigtedBlockLight(float[] w) {
-        return (int) (b0 * w[0] + b1 * w[1] + b2 * w[2] + b3 * w[3]) & 0xFF;
+        return (int) (outBlockBottomRight * w[0] + outBlockBottomLeft * w[1] + outBlockTopLeft * w[2] + outBlockTopRight * w[3]) & 0xFF;
     }
 
     int maxBlockLight(int oldMax) {
-        final int i = b0 > b1 ? b0 : b1;
-        final int j = b2 > b3 ? b2 : b3;
+        final int i = outBlockBottomRight > outBlockBottomLeft ? outBlockBottomRight : outBlockBottomLeft;
+        final int j = outBlockTopLeft > outBlockTopRight ? outBlockTopLeft : outBlockTopRight;
         return Math.max(oldMax, i > j ? i : j);
     }
 
     int weigtedSkyLight(float[] w) {
-        return (int) (s0 * w[0] + s1 * w[1] + s2 * w[2] + s3 * w[3]) & 0xFF;
+        return (int) (outSkyBottomRight * w[0] + outSkyBottomLeft * w[1] + outSkyTopLeft * w[2] + outSkyTopRight * w[3]) & 0xFF;
     }
 
     int maxSkyLight(int oldMax) {
-        final int i = s0 > s1 ? s0 : s1;
-        final int j = s2 > s3 ? s2 : s3;
+        final int i = outSkyBottomRight > outSkyBottomLeft ? outSkyBottomRight : outSkyBottomLeft;
+        final int j = outSkyTopLeft > outSkyTopRight ? outSkyTopLeft : outSkyTopRight;
         return Math.max(oldMax, i > j ? i : j);
     }
 
@@ -113,102 +110,133 @@ public class AoFaceData {
     }
 
     float weigtedAo(float[] w) {
-        return a0 * w[0] + a1 * w[1] + a2 * w[2] + a3 * w[3];
+        return outAoBottomRight * w[0] + outAoBottomLeft * w[1] + outAoTopLeft * w[2] + outAoTopRight * w[3];
     }
 
     float maxAo(float oldMax) {
-        final float x = a0 > a1 ? a0 : a1;
-        final float y = a2 > a3 ? a2 : a3;
+        final float x = outAoBottomRight > outAoBottomLeft ? outAoBottomRight : outAoBottomLeft;
+        final float y = outAoTopLeft > outAoTopRight ? outAoTopLeft : outAoTopRight;
         final float z = x > y ? x : y;
         return oldMax > z ? oldMax : z;
     }
 
-    void toArray(float[] aOut, int[] bOut, int[] vertexMap) {
-        aOut[vertexMap[0]] = a0;
-        aOut[vertexMap[1]] = a1;
-        aOut[vertexMap[2]] = a2;
-        aOut[vertexMap[3]] = a3;
-        bOut[vertexMap[0]] = s0 << 16 | b0;
-        bOut[vertexMap[1]] = s1 << 16 | b1;
-        bOut[vertexMap[2]] = s2 << 16 | b2;
-        bOut[vertexMap[3]] = s3 << 16 | b3;
+    void toArray(float[] aoOut, int[] lightOut, int[] vertexMap) {
+        aoOut[vertexMap[0]] = outAoBottomRight;
+        aoOut[vertexMap[1]] = outAoBottomLeft;
+        aoOut[vertexMap[2]] = outAoTopLeft;
+        aoOut[vertexMap[3]] = outAoTopRight;
+        lightOut[vertexMap[0]] = outSkyBottomRight << 16 | outBlockBottomRight;
+        lightOut[vertexMap[1]] = outSkyBottomLeft << 16 | outBlockBottomLeft;
+        lightOut[vertexMap[2]] = outSkyTopLeft << 16 | outBlockTopLeft;
+        lightOut[vertexMap[3]] = outSkyTopRight << 16 | outBlockTopRight;
     }
 
     // PERF - given that we need the out samples
     // should average those and then derive the block corner values if needed
     static AoFaceData weightedMean(AoFaceData in0, float w0, AoFaceData in1, float w1, AoFaceData out) {
-        out.a0 = in0.a0 * w0 + in1.a0 * w1;
-        out.a1 = in0.a1 * w0 + in1.a1 * w1;
-        out.a2 = in0.a2 * w0 + in1.a2 * w1;
-        out.a3 = in0.a3 * w0 + in1.a3 * w1;
+        out.outAoBottomRight = in0.outAoBottomRight * w0 + in1.outAoBottomRight * w1;
+        out.outAoBottomLeft = in0.outAoBottomLeft * w0 + in1.outAoBottomLeft * w1;
+        out.outAoTopLeft = in0.outAoTopLeft * w0 + in1.outAoTopLeft * w1;
+        out.outAoTopRight = in0.outAoTopRight * w0 + in1.outAoTopRight * w1;
 
-        out.ao0 = in0.ao0 * w0 + in1.ao0 * w1;
-        out.ao1 = in0.ao1 * w0 + in1.ao1 * w1;
-        out.ao2 = in0.ao2 * w0 + in1.ao2 * w1;
-        out.ao3 = in0.ao3 * w0 + in1.ao3 * w1;
+        out.aoBottom = in0.aoBottom * w0 + in1.aoBottom * w1;
+        out.aoTop = in0.aoTop * w0 + in1.aoTop * w1;
+        out.aoLeft = in0.aoLeft * w0 + in1.aoLeft * w1;
+        out.aoRight = in0.aoRight * w0 + in1.aoRight * w1;
         
-        out.cAo0 = in0.cAo0 * w0 + in1.cAo0 * w1;
-        out.cAo1 = in0.cAo1 * w0 + in1.cAo1 * w1;
-        out.cAo2 = in0.cAo2 * w0 + in1.cAo2 * w1;
-        out.cAo3 = in0.cAo3 * w0 + in1.cAo3 * w1;
+        out.aoBottomLeft = in0.aoBottomLeft * w0 + in1.aoBottomLeft * w1;
+        out.aoBottomRight = in0.aoBottomRight * w0 + in1.aoBottomRight * w1;
+        out.aoTopLeft = in0.aoTopLeft * w0 + in1.aoTopLeft * w1;
+        out.aoTopRight = in0.aoTopRight * w0 + in1.aoTopRight * w1;
         
         out.aoCenter = in0.aoCenter * w0 + in1.aoCenter * w1;
         
-        out.b0 = (int) (in0.b0 * w0 + in1.b0 * w1);
-        out.b1 = (int) (in0.b1 * w0 + in1.b1 * w1);
-        out.b2 = (int) (in0.b2 * w0 + in1.b2 * w1);
-        out.b3 = (int) (in0.b3 * w0 + in1.b3 * w1);
+        out.outBlockBottomRight = (int) (in0.outBlockBottomRight * w0 + in1.outBlockBottomRight * w1);
+        out.outBlockBottomLeft = (int) (in0.outBlockBottomLeft * w0 + in1.outBlockBottomLeft * w1);
+        out.outBlockTopLeft = (int) (in0.outBlockTopLeft * w0 + in1.outBlockTopLeft * w1);
+        out.outBlockTopRight = (int) (in0.outBlockTopRight * w0 + in1.outBlockTopRight * w1);
 
-        out.s0 = (int) (in0.s0 * w0 + in1.s0 * w1);
-        out.s1 = (int) (in0.s1 * w0 + in1.s1 * w1);
-        out.s2 = (int) (in0.s2 * w0 + in1.s2 * w1);
-        out.s3 = (int) (in0.s3 * w0 + in1.s3 * w1);
+        out.outSkyBottomRight = (int) (in0.outSkyBottomRight * w0 + in1.outSkyBottomRight * w1);
+        out.outSkyBottomLeft = (int) (in0.outSkyBottomLeft * w0 + in1.outSkyBottomLeft * w1);
+        out.outSkyTopLeft = (int) (in0.outSkyTopLeft * w0 + in1.outSkyTopLeft * w1);
+        out.outSkyTopRight = (int) (in0.outSkyTopRight * w0 + in1.outSkyTopRight * w1);
 
         // TODO - need for light
-        out.b0 = (int) (in0.b0 * w0 + in1.b0 * w1);
-        out.b1 = (int) (in0.b1 * w0 + in1.b1 * w1);
-        out.b2 = (int) (in0.b2 * w0 + in1.b2 * w1);
-        out.b3 = (int) (in0.b3 * w0 + in1.b3 * w1);
+        out.outBlockBottomRight = (int) (in0.outBlockBottomRight * w0 + in1.outBlockBottomRight * w1);
+        out.outBlockBottomLeft = (int) (in0.outBlockBottomLeft * w0 + in1.outBlockBottomLeft * w1);
+        out.outBlockTopLeft = (int) (in0.outBlockTopLeft * w0 + in1.outBlockTopLeft * w1);
+        out.outBlockTopRight = (int) (in0.outBlockTopRight * w0 + in1.outBlockTopRight * w1);
 
-        out.s0 = (int) (in0.s0 * w0 + in1.s0 * w1);
-        out.s1 = (int) (in0.s1 * w0 + in1.s1 * w1);
-        out.s2 = (int) (in0.s2 * w0 + in1.s2 * w1);
-        out.s3 = (int) (in0.s3 * w0 + in1.s3 * w1);
+        out.outSkyBottomRight = (int) (in0.outSkyBottomRight * w0 + in1.outSkyBottomRight * w1);
+        out.outSkyBottomLeft = (int) (in0.outSkyBottomLeft * w0 + in1.outSkyBottomLeft * w1);
+        out.outSkyTopLeft = (int) (in0.outSkyTopLeft * w0 + in1.outSkyTopLeft * w1);
+        out.outSkyTopRight = (int) (in0.outSkyTopRight * w0 + in1.outSkyTopRight * w1);
         
         return out;
     }
 
+    /**
+     * Independent minimum of packed components
+     */
+    private static int min(int x, int y) {
+        final int s = Math.min(x & 0x00FF0000, y & 0x00FF0000);
+        final int b = Math.min(x & 0xFF, y & 0xFF);
+        return s | b;
+    }
+    
+    private static int max(int x, int y) {
+        final int s = Math.max(x & 0x00FF0000, y & 0x00FF0000);
+        final int b = Math.max(x & 0xFF, y & 0xFF);
+        return s | b;
+    }
+
+    
     /** 
      * Vanilla code excluded missing light values from mean but was not isotropic.
      * Still need to substitute or edges are too dark but consistently use the min 
      * value from all four samples.
      */
-    public static int meanBrightness(int a, int b, int c, int d) {
-        return a == 0 || b == 0 || c == 0 || d == 0 ? meanEdgeBrightness(a, b, c, d) : meanInnerBrightness(a, b, c, d);
-    }
-    
-    public static int meanEdgeBrightness(int a, int b, int c, int d) {
-        final int min = nonZeroMin(a, b, c, d);
-//        return meanInnerBrightness(max(a, min), max(b, min), max(c, min), max(d, min));
-        return meanInnerBrightness(a == 0 ? min : a, b == 0 ? min : b, c == 0 ? min : c, d == 0 ? min : d);
-    }
-    
-    public static int meanInnerBrightness(int a, int b, int c, int d) {
+    private static int meanBrightness(int a, int b, int c, int d) {
+        
+        //TODO: configure min vs max - vanilla is min
+        final boolean useMax = false;
+        int missingVal = useMax ? 0 : 0x0FFFFFFF;
+        IntBinaryOperator func = useMax ? AoFaceData::max : AoFaceData::min;
+        int missingCount = 0;
+        int total = 0;
+        
+        if(a == OPAQUE) {
+            missingCount++;
+        } else {
+            total += a;
+            
+            missingVal = func.applyAsInt(missingVal, a);
+        }
+        
+        if(b == OPAQUE) {
+            missingCount++;
+        } else {
+            total += b;
+            missingVal = func.applyAsInt(missingVal, b);
+        }
+        
+        if(c == OPAQUE) {
+            missingCount++;
+        } else {
+            total += c;
+            missingVal = func.applyAsInt(missingVal, c);
+        }
+        
+        if(d == OPAQUE) {
+            missingCount++;
+        } else {
+            total += d;
+            missingVal = func.applyAsInt(missingVal, d);
+        }
+        
+        assert missingCount < 4 : "Computing light for four occluding neighbors?";
+        
         // bitwise divide by 4, clamp to expected (positive) range
-        return a + b + c + d >> 2 & 16711935;
-    }
-    
-    public static int nonZeroMin(int a, int b, int c, int d) {
-        return nonZeroMin(nonZeroMin(a, b), nonZeroMin(c, d));
-    }
-
-    public static int nonZeroMin(int a, int b) {
-        if(a == 0) return b;
-        if(b == 0) return a;
-        return Math.min(a, b);
-    }
-    
-    public static int zif(int val, int valIfZero) {
-        return val == 0 ? valIfZero : val;
+        return (total + missingVal * missingCount) >> 2 & 16711935;
     }
 }
