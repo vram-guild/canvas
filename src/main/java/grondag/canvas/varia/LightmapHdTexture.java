@@ -102,8 +102,8 @@ public class LightmapHdTexture implements AutoCloseable {
         int uMax = Integer.MIN_VALUE;
         int vMax = Integer.MIN_VALUE;
 
-        LightmapHD map = updates.poll();
-        while(map != null) {
+        LightmapHD map;
+        while((map = updates.poll()) != null) {
             final int uMap = map.uMinImg;
             final int vMap = map.vMinImg;
             
@@ -117,8 +117,6 @@ public class LightmapHdTexture implements AutoCloseable {
             vMin = Math.min(vMin, vMap);
             uMax = Math.max(uMax, uMap + LightmapHD.PADDED_SIZE);
             vMax = Math.max(vMax, vMap + LightmapHD.PADDED_SIZE);
-            
-            map = updates.poll();
         }
         
         

@@ -223,9 +223,6 @@ public final class ShaderManager implements ClientTickCallback {
             shaders[i].onGameTick();
         }
         
-        //TODO: move to render tick
-        LightmapHdTexture.instance().onRenderTick();
-        
         //UGLY: need central tick handler
         DitherTexture.instance().tick();
     }

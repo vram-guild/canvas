@@ -24,13 +24,21 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import grondag.canvas.material.ShaderManager;
 import grondag.canvas.varia.CanvasGlHelper;
+import grondag.canvas.varia.LightmapHdTexture;
 import grondag.canvas.varia.MinecraftClientExt;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.util.Actor;
+import net.minecraft.util.ThreadExecutor;
 import net.minecraft.util.profiler.DisableableProfiler;
 import net.minecraft.util.profiler.Profiler;
 
+@SuppressWarnings("rawtypes")
 @Mixin(MinecraftClient.class)
-public abstract class MixinMinecraftClient implements MinecraftClientExt {
+public abstract class MixinMinecraftClient extends ThreadExecutor implements MinecraftClientExt {
+    protected MixinMinecraftClient(String dummy) {
+        super(dummy);
+    }
+
     @Shadow
     DisableableProfiler profiler;
 
@@ -43,5 +51,14 @@ public abstract class MixinMinecraftClient implements MinecraftClientExt {
     private void hookInit(CallbackInfo info) {
         CanvasGlHelper.init();
         ShaderManager.INSTANCE.forceReload();
+    }
+    
+    /**
+     * Per-frame tick outside of render state setup
+     */
+    @Override
+    protected void executeTaskQueue() {
+        LightmapHdTexture.instance().onRenderTick();
+        super.executeTaskQueue();
     }
 }

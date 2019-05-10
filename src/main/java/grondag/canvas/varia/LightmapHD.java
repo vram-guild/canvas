@@ -132,7 +132,8 @@ public class LightmapHD {
     }
     
     private static LightmapHD find(AoFaceData faceData, BiConsumer<AoFaceData, Key> mapper) {
-        Key key = TEMPLATES.get();
+//        Key key = TEMPLATES.get();
+        Key key = new Key();
         
         mapper.accept(faceData, key);
 
@@ -172,7 +173,7 @@ public class LightmapHD {
         this.light = new int[LIGHTMAP_PIXELS];
         
         if(index >= MAX_COUNT) {
-            //TODO: put back
+            //TODO: put back and/or handle better
             //assert false : "Out of lightmap space.";
             Canvas.LOG.info("Out of lightmap space for index = " + index);
             return;
