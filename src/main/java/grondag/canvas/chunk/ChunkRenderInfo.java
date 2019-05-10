@@ -127,7 +127,7 @@ public class ChunkRenderInfo {
         this.chunkRenderer = chunkRenderer;
         brightnessCache.clear();
         aoLevelCache.clear();
-        if(Configurator.enableSmoothLightmaps) {
+        if(Configurator.enableHdLightmaps) {
             computeSmoothedBrightness(chunkOrigin);
         }
     }
@@ -261,19 +261,19 @@ public class ChunkRenderInfo {
         }
         
         float[] work = help.c;
-//        smooth(2, block, work);
-//        smooth(1, work, block);
-        smooth(1, block, work);
-        float[] swap = block;
-        block = work;
-        work = swap;
+        smooth(2, block, work);
+        smooth(1, work, block);
+//        smooth(1, block, work);
+//        float[] swap = block;
+//        block = work;
+//        work = swap;
         
-//        smooth(2, sky, work);
-//        smooth(1, work, sky);
-        smooth(1, sky, work);
-        swap = sky;
-        sky = work;
-        work = swap;
+        smooth(2, sky, work);
+        smooth(1, work, sky);
+//        smooth(1, sky, work);
+//        swap = sky;
+//        sky = work;
+//        work = swap;
         
         final Long2IntOpenHashMap cache = this.brightnessCache;
         for(int x = 15; x < 33; x++) {
@@ -282,8 +282,8 @@ public class ChunkRenderInfo {
                     final long packedPos = PackedBlockPos.pack(x + minX, y + minY, z + minZ);
                     final int i = index(x, y, z);
                     
-                    final int b = Math.round(Math.max(0, block[i]) * 16);
-                    final int k = Math.round(Math.max(0, sky[i]) * 16);
+                    final int b = Math.round(Math.max(0, block[i]) * 16 * 1.04f);
+                    final int k = Math.round(Math.max(0, sky[i]) * 16 * 1.04f);
                     cache.put(packedPos, (Math.min(b, 240) & 0b11111100) | ((Math.min(k, 240) & 0b11111100)  << 16));
                 }
             }

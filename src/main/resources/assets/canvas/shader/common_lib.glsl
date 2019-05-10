@@ -8,6 +8,12 @@
 // definition prefixed with NOT_ if first sprite is colorized or compact formats are disabled
 #define WHITE_0
 
+// defined if AO shading should be applied
+#define ENABLE_AO_SHADING
+
+// defined if diffuse shading should be applied
+#define ENABLE_DIFFUSE_SHADING
+
 // defined if using smooth lightmaps
 // currently only enabled in block contexts
 #define ENABLE_SMOOTH_LIGHT

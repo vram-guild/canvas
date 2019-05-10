@@ -65,7 +65,7 @@ public class SmoothLightmapTexture implements AutoCloseable {
     public void disable() {
         //UGLY doesn't belong here
         DitherTexture.instance().disable();
-        if(!Configurator.enableSmoothLightmaps) {
+        if(!Configurator.enableHdLightmaps) {
             return;
         }
 
@@ -77,7 +77,7 @@ public class SmoothLightmapTexture implements AutoCloseable {
     public void enable() {
         //UGLY doesn't belong here
         DitherTexture.instance().enable();
-        if(!Configurator.enableSmoothLightmaps) {
+        if(!Configurator.enableHdLightmaps) {
             return;
         }
 
@@ -144,7 +144,7 @@ public class SmoothLightmapTexture implements AutoCloseable {
         //UGLY doesn't belong here
         DitherTexture.instance().tick();
         
-        if(!Configurator.enableSmoothLightmaps || !prepareForRefresh(tick) || !isDirty) {
+        if(!Configurator.enableHdLightmaps || !prepareForRefresh(tick) || !isDirty) {
             return;
         }
 

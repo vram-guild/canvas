@@ -27,6 +27,7 @@ import com.google.gson.GsonBuilder;
 import blue.endless.jankson.Comment;
 import blue.endless.jankson.Jankson;
 import blue.endless.jankson.JsonObject;
+import grondag.canvas.material.ShaderManager;
 import io.github.prospector.modmenu.api.ModMenuApi;
 import me.shedaniel.cloth.api.ConfigScreenBuilder;
 import me.shedaniel.cloth.api.ConfigScreenBuilder.SavedConfig;
@@ -35,6 +36,7 @@ import me.shedaniel.cloth.gui.entries.IntegerSliderEntry;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.Screen;
 import net.minecraft.client.resource.language.I18n;
 import net.minecraft.util.math.MathHelper;
@@ -53,44 +55,45 @@ public class Configurator implements ModMenuApi {
         
         @Comment("Applies material properties and shaders to items. (WIP)")
         boolean enableItemRender = false;
-
-        //TODO: docs
-        @Comment("TODO")
-        boolean preventTerrainShadingAnisotropy = false;
         
         //TODO: docs
         @Comment("TODO")
         boolean enableCompactGPUFormats = true;
         
-        //TODO: docs
-        @Comment("TODO")
-        boolean enableSmoothLightmaps = true;
         
-        //TODO: docs
         @Comment("TODO")
-        boolean enableLightmapNoise= false;
+        boolean enableHdAo = false;
         
-        //TODO: docs
+        @Comment("TODO")
+        boolean enableHdLightmaps = false;
+        
+        @Comment("TODO")
+        boolean enableLightmapNoise = false;
+        
+        @Comment("TODO")
+        boolean enableDiffuseShading = true;
+        
+        @Comment("TODO")
+        boolean enableLightSmoothing = false;
+        
+        @Comment("TODO")
+        boolean enableAoShading = true;
+        
         @Comment("TODO")
         boolean enableSinglePassCutout = true;
         
-        //TODO: docs
         @Comment("TODO")
         boolean enableImprovedChunkOcclusion = true;
         
-        //TODO: docs
         @Comment("TODO")
         boolean enableBatchedChunkRender = true;
         
-        //TODO: docs
         @Comment("TODO")
         boolean disableVanillaChunkMatrix = true;
         
-        //TODO: docs
         @Comment("TODO")
         boolean adjustVanillaModelGeometry = true;
         
-        //TODO: docs
         @Comment("TODO")        
         boolean enableLightmapDebug = false;
     }
@@ -102,17 +105,24 @@ public class Configurator implements ModMenuApi {
     public static int maxShaders = DEFAULTS.maxPipelines;
     public static boolean enableItemRender = DEFAULTS.enableItemRender;
     public static boolean enableShaderDebug = DEFAULTS.enableShaderDebug;
-    public static boolean preventTerrainShadingAnisotropy = DEFAULTS.preventTerrainShadingAnisotropy;
+    
+    public static boolean enableHdAo = DEFAULTS.enableHdAo;
+    public static boolean enableHdLightmaps = DEFAULTS.enableHdLightmaps;
+    public static boolean enableLightmapNoise = DEFAULTS.enableLightmapNoise;
+    public static boolean enableDiffuseShading = DEFAULTS.enableDiffuseShading;
+    public static boolean enableLightSmoothing = DEFAULTS.enableLightSmoothing;
+    public static boolean enableAoShading = DEFAULTS.enableAoShading;
+    
     public static boolean enableCompactGPUFormats = DEFAULTS.enableCompactGPUFormats;
     
-    public static boolean enableSmoothLightmaps = DEFAULTS.enableSmoothLightmaps;
-    public static boolean enableLightmapNoise = DEFAULTS.enableLightmapNoise;
     public static boolean enableSinglePassCutout = DEFAULTS.enableSinglePassCutout;
     public static boolean enableImprovedChunkOcclusion = DEFAULTS.enableImprovedChunkOcclusion;
     public static boolean enableBatchedChunkRender = DEFAULTS.enableBatchedChunkRender;
     public static boolean disableVanillaChunkMatrix = DEFAULTS.disableVanillaChunkMatrix;
     public static boolean adjustVanillaModelGeometry = DEFAULTS.adjustVanillaModelGeometry;
     public static boolean enableLightmapDebug = DEFAULTS.enableLightmapDebug;
+    
+
     
     /** use to stash parent screen during display */
     private static Screen screenIn;
@@ -141,11 +151,15 @@ public class Configurator implements ModMenuApi {
         enableItemRender = config.enableItemRender;
         enableShaderDebug = config.enableShaderDebug;
         maxShaders = config.maxPipelines;
-        preventTerrainShadingAnisotropy = config.preventTerrainShadingAnisotropy;
         enableCompactGPUFormats = config.enableCompactGPUFormats;
         
-        enableSmoothLightmaps = config.enableSmoothLightmaps;
+        enableHdAo = config.enableHdAo;
+        enableHdLightmaps = config.enableHdLightmaps;
         enableLightmapNoise = config.enableLightmapNoise;
+        enableDiffuseShading = config.enableDiffuseShading;
+        enableLightSmoothing = config.enableLightSmoothing;
+        enableAoShading = config.enableAoShading;
+        
         enableSinglePassCutout = config.enableSinglePassCutout;
         enableImprovedChunkOcclusion = config.enableImprovedChunkOcclusion;
         enableBatchedChunkRender = config.enableBatchedChunkRender;
@@ -160,11 +174,15 @@ public class Configurator implements ModMenuApi {
         config.enableItemRender = enableItemRender;
         config.enableShaderDebug = enableShaderDebug;
         config.maxPipelines = maxShaders;
-        config.preventTerrainShadingAnisotropy = preventTerrainShadingAnisotropy;
         config.enableCompactGPUFormats = enableCompactGPUFormats;
         
-        config.enableSmoothLightmaps = enableSmoothLightmaps;
+        config.enableHdAo = enableHdAo;
+        config.enableHdLightmaps = enableHdLightmaps;
         config.enableLightmapNoise = enableLightmapNoise;
+        config.enableDiffuseShading = enableDiffuseShading;
+        config.enableLightSmoothing = enableLightSmoothing;
+        config.enableAoShading = enableAoShading;      
+        
         config.enableSinglePassCutout = enableSinglePassCutout;
         config.enableImprovedChunkOcclusion = enableImprovedChunkOcclusion;
         config.enableBatchedChunkRender = enableBatchedChunkRender;
@@ -189,15 +207,18 @@ public class Configurator implements ModMenuApi {
         }
     }
     
+    static boolean reloadTerrain = false;
+    static boolean reloadShaders = false;
+    
     private static Screen display() {
+        reloadTerrain = false;
+        reloadShaders = false;
+        
         ConfigScreenBuilder builder = ConfigScreenBuilder.create(screenIn, "config.canvas.title", null);
         
         // RENDERING
         ConfigScreenBuilder.CategoryBuilder rendering = builder.addCategory("config.canvas.category.rendering");
         
-        rendering.addOption(new BooleanListEntry("config.canvas.value.prevent_anisotropy", preventTerrainShadingAnisotropy, "config.canvas.reset", 
-                () -> DEFAULTS.preventTerrainShadingAnisotropy, b -> preventTerrainShadingAnisotropy = b, 
-                () -> Optional.of(I18n.translate("config.canvas.help.prevent_anisotropy").split(";"))));
         
         rendering.addOption(new BooleanListEntry("config.canvas.value.compact_gpu_formats", enableCompactGPUFormats, "config.canvas.reset", 
                 () -> DEFAULTS.enableCompactGPUFormats, b -> enableCompactGPUFormats = b, 
@@ -212,13 +233,7 @@ public class Configurator implements ModMenuApi {
                 () -> Optional.of(I18n.translate("config.canvas.help.max_materials").split(";"))));
         
         ///
-        rendering.addOption(new BooleanListEntry("config.canvas.value.smooth_lightmaps", enableSmoothLightmaps, "config.canvas.reset", 
-                () -> DEFAULTS.enableSmoothLightmaps, b -> enableSmoothLightmaps = b, 
-                () -> Optional.of(I18n.translate("config.canvas.help.smooth_lightmaps").split(";"))));
-        
-        rendering.addOption(new BooleanListEntry("config.canvas.value.lightmap_noise", enableLightmapNoise, "config.canvas.reset", 
-                () -> DEFAULTS.enableLightmapNoise, b -> enableLightmapNoise = b, 
-                () -> Optional.of(I18n.translate("config.canvas.help.lightmap_noise").split(";"))));
+
         
         rendering.addOption(new BooleanListEntry("config.canvas.value.single_pass_cutout", enableSinglePassCutout, "config.canvas.reset", 
                 () -> DEFAULTS.enableSinglePassCutout, b -> enableSinglePassCutout = b, 
@@ -239,6 +254,34 @@ public class Configurator implements ModMenuApi {
         rendering.addOption(new BooleanListEntry("config.canvas.value.adjust_vanilla_geometry", adjustVanillaModelGeometry, "config.canvas.reset", 
                 () -> DEFAULTS.adjustVanillaModelGeometry, b -> adjustVanillaModelGeometry = b, 
                 () -> Optional.of(I18n.translate("config.canvas.help.adjust_vanilla_geometry").split(";"))));
+        
+        ConfigScreenBuilder.CategoryBuilder lighting = builder.addCategory("config.canvas.category.lighting");
+        
+        // LIGHTING
+        lighting.addOption(new BooleanListEntry("config.canvas.value.prevent_anisotropy", enableHdAo, "config.canvas.reset", 
+                () -> DEFAULTS.enableHdAo, b -> {enableHdAo = b; reloadTerrain = true;}, 
+                () -> Optional.of(I18n.translate("config.canvas.help.prevent_anisotropy").split(";"))));
+        
+        lighting.addOption(new BooleanListEntry("config.canvas.value.smooth_lightmaps", enableHdLightmaps, "config.canvas.reset", 
+                () -> DEFAULTS.enableHdLightmaps, b -> {enableHdLightmaps = b; reloadTerrain = true;}, 
+                () -> Optional.of(I18n.translate("config.canvas.help.smooth_lightmaps").split(";"))));
+        
+        lighting.addOption(new BooleanListEntry("config.canvas.value.lightmap_noise", enableLightmapNoise, "config.canvas.reset", 
+                () -> DEFAULTS.enableLightmapNoise, b -> {enableLightmapNoise = b; reloadShaders = true;}, 
+                () -> Optional.of(I18n.translate("config.canvas.help.lightmap_noise").split(";"))));
+        
+        lighting.addOption(new BooleanListEntry("config.canvas.value.diffuse_shading", enableDiffuseShading, "config.canvas.reset", 
+                () -> DEFAULTS.enableDiffuseShading, b -> {enableDiffuseShading = b; reloadShaders = true;}, 
+                () -> Optional.of(I18n.translate("config.canvas.help.diffuse_shading").split(";"))));
+        
+        lighting.addOption(new BooleanListEntry("config.canvas.value.light_smoothing", enableLightSmoothing, "config.canvas.reset", 
+                () -> DEFAULTS.enableLightSmoothing, b -> {enableLightSmoothing = b; reloadTerrain = true;}, 
+                () -> Optional.of(I18n.translate("config.canvas.help.light_smoothing").split(";"))));
+        
+        lighting.addOption(new BooleanListEntry("config.canvas.value.ao_shading", enableAoShading, "config.canvas.reset", 
+                () -> DEFAULTS.enableAoShading, b -> {enableAoShading = b; reloadShaders = true;}, 
+                () -> Optional.of(I18n.translate("config.canvas.help.ao_shading").split(";"))));
+        
         
         // DEBUG
         ConfigScreenBuilder.CategoryBuilder debug = builder.addCategory("config.canvas.category.debug");
@@ -262,7 +305,11 @@ public class Configurator implements ModMenuApi {
         maxShaders = MathHelper.smallestEncompassingPowerOfTwo(maxShaders);
         saveConfig();
         
-        //TODO: detect and force chunk rebuild if needed
+        if(reloadTerrain) {
+            MinecraftClient.getInstance().worldRenderer.reload();
+        } else if(reloadShaders) {
+            ShaderManager.INSTANCE.forceReload();
+        }
     }
     
     

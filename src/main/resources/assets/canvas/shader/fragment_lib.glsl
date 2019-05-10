@@ -132,16 +132,6 @@ vec4 diffuseColor() {
 #ifdef CONTEXT_IS_BLOCK
 	#ifdef ENABLE_SMOOTH_LIGHT
 	    light = combinedLight(0.0, 0.0);
-//	    light += combinedLight(-0.7, -0.7);
-//	    light +=  combinedLight(-1.0,  0.0);
-//	    light += combinedLight(-0.7,  0.7);
-//	    light += combinedLight( 0.0, -1.0);
-//	    light += combinedLight( 0.0,  1.0);
-//        light += combinedLight( 0.7, -0.7);
-//        light += combinedLight( 1.0,  0.0);
-//        light += combinedLight( 0.7,  0.7);
-//        light /= 9.0;
-
     #else
         light = texture2D(u_lightmap, v_lightcoord);
     #endif
@@ -154,13 +144,17 @@ vec4 diffuseColor() {
 
 	a *= colorAndLightmap(v_color_0, 0);
 
+#ifdef ENABLE_AO_SHADING
     if(bitValue(v_flags.x, FLAG_DISABLE_AO_0) == 0.0) {
     	a = applyAo(a);
     }
+#endif
 
+#ifdef ENABLE_DIFFUSE_SHADING
     if(bitValue(v_flags.x, FLAG_DISABLE_DIFFUSE_0) == 0.0) {
     	a *= vec4(v_diffuse, v_diffuse, v_diffuse, 1.0);
     }
+#endif
 
 #if LAYER_COUNT > 1
 	float non_mipped_1 = bitValue(v_flags.y, FLAG_UNMIPPED_1) * -4.0;
@@ -168,12 +162,18 @@ vec4 diffuseColor() {
 	float cutout_1 = bitValue(v_flags.y, FLAG_CUTOUT_1);
 	if(cutout_1 != 1.0 || b.a >= 0.5) {
 		b *= colorAndLightmap(v_color_1, 1);
+
+#ifdef ENABLE_AO_SHADING
 		if(bitValue(v_flags.y, FLAG_DISABLE_AO_1) == 0.0) {
 		    b = applyAo(b);
 		}
+#endif
+
+#ifdef ENABLE_DIFFUSE_SHADING
 		if(bitValue(v_flags.y, FLAG_DISABLE_DIFFUSE_1) == 0.0) {
 			b *= vec4(v_diffuse, v_diffuse, v_diffuse, 1.0);
 		}
+#endif
 		a = vec4(mix(a.rgb, b.rgb, b.a), a.a);
 	}
 #endif
@@ -184,12 +184,19 @@ vec4 diffuseColor() {
 	float cutout_2 = bitValue(v_flags.y, FLAG_CUTOUT_2);
 	if(cutout_2 != 1.0 || c.a >= 0.5) {
 		c *= colorAndLightmap(v_color_2, 2);
+
+#ifdef ENABLE_AO_SHADING
 		if(bitValue(v_flags.y, FLAG_DISABLE_AO_2) == 0.0) {
 		    c = applyAo(c);
 		}
+#endif
+
+#ifdef ENABLE_DIFFUSE_SHADING
 		if(bitValue(v_flags.y, FLAG_DISABLE_DIFFUSE_2) == 0.0) {
 			c *= vec4(v_diffuse, v_diffuse, v_diffuse, 1.0);
 		}
+#endif
+
 		a = vec4(mix(a.rgb, c.rgb, c.a), a.a);
 	}
 #endif

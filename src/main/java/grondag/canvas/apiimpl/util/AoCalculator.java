@@ -112,7 +112,7 @@ public class AoCalculator {
     /** returns true if should match vanilla results */
     public void compute(MutableQuadViewImpl quad) {
         final int flags = quad.geometryFlags();
-        if(Configurator.enableSmoothLightmaps) {
+        if(Configurator.enableHdLightmaps) {
             if((flags & AXIS_ALIGNED_FLAG) == AXIS_ALIGNED_FLAG) {
                 if((flags & LIGHT_FACE_FLAG) == LIGHT_FACE_FLAG) {
                     vanillaPartialFace(quad, true);

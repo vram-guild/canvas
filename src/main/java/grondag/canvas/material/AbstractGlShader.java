@@ -135,12 +135,20 @@ abstract class AbstractGlShader {
             result = result.replaceAll("#define CONTEXT_IS_ITEM", "#define CONTEXT_IS_NOT_ITEM");
         }
 
-        if(!Configurator.enableSmoothLightmaps) {
+        if(!Configurator.enableHdLightmaps) {
             result = result.replaceAll("#define ENABLE_SMOOTH_LIGHT", "#define DISABLE_SMOOTH_LIGHT");
         }
         
-        if(!Configurator.enableLightmapNoise || !Configurator.enableSmoothLightmaps) {
+        if(!Configurator.enableLightmapNoise || !Configurator.enableHdLightmaps) {
             result = result.replaceAll("#define ENABLE_LIGHT_NOISE", "#define DISABLE_LIGHT_NOISE");
+        }
+        
+        if(!Configurator.enableAoShading) {
+            result = result.replaceAll("#define ENABLE_AO_SHADING", "#define DISABLE_AO_SHADING");
+        }
+        
+        if(!Configurator.enableDiffuseShading) {
+            result = result.replaceAll("#define ENABLE_DIFFUSE_SHADING", "#define DISABLE_DIFFUSE_SHADING");
         }
         
         if(!CanvasGlHelper.useGpuShader4() ) {
