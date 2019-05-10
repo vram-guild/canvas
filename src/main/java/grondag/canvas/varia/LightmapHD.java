@@ -3,7 +3,6 @@ package grondag.canvas.varia;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 
 import grondag.canvas.Canvas;
 import grondag.canvas.apiimpl.QuadViewImpl;
@@ -11,8 +10,8 @@ import grondag.canvas.apiimpl.util.AoFaceData;
 import grondag.fermion.varia.Useful;
 
 public class LightmapHD {
-    public static final int TEX_SIZE = 2048;
-    private static final int LIGHTMAP_SIZE = 4;
+    public static final int TEX_SIZE = 4096;
+    private static final int LIGHTMAP_SIZE = 6;
     public static final int PADDED_SIZE = LIGHTMAP_SIZE + 2;
     public static final int PADDED_MARGIN = LIGHTMAP_SIZE / 2;
     private static final int RADIUS = LIGHTMAP_SIZE / 2;
@@ -25,20 +24,11 @@ public class LightmapHD {
     private static final int BUFFER_SCALE = 0x8000;
     private static final float TEXTURE_TO_BUFFER = (float) BUFFER_SCALE / TEX_SIZE;
     
-    private static final LightmapHD[] maps = new LightmapHD[MAX_COUNT];
-    
     private static final AtomicInteger nextIndex = new AtomicInteger();
     
     public static void forceReload() {
         nextIndex.set(0);
         MAP.clear();
-    }
-    
-    public static void forEach(Consumer<LightmapHD> consumer) {
-        final int limit = Math.min(MAX_COUNT, nextIndex.get());
-        for(int i = 0; i < limit; i++) {
-            consumer.accept(maps[i]);
-        }
     }
     
     private static class Key {
@@ -188,11 +178,9 @@ public class LightmapHD {
             return;
         }
         
-        maps[index] = this;
-        
         compute(light, key);
         
-        SmoothLightmapTexture.instance().setDirty();
+        LightmapHdTexture.instance().setDirty(this);
     }
     
     private static void compute(int[] light, Key key) {

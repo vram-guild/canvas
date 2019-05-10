@@ -16,6 +16,9 @@
 
 package grondag.canvas.apiimpl.util;
 
+import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
+
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.system.MemoryUtil;
 
@@ -30,13 +33,15 @@ import net.minecraft.client.util.UntrackMemoryUtil;
  */
 @Environment(EnvType.CLIENT)
 public final class SimpleImage implements AutoCloseable {
-    private final int width;
-    private final int height;
+    public final int width;
+    public final int height;
     private long pointer;
     private final int sizeBytes;
-    private final int bytesPerPixel;
-    private final int pixelDataFormat;
-
+    public final int bytesPerPixel;
+    public final int pixelDataFormat;
+    public final int pixelDataType = GL11.GL_UNSIGNED_BYTE;
+    private ByteBuffer byteBuffer;
+    private IntBuffer intBuffer;
 
     public SimpleImage(int bytesPerPixel, int pixelDataFormat, int width, int height, boolean calloc) {
         this.bytesPerPixel = bytesPerPixel;
@@ -49,7 +54,8 @@ public final class SimpleImage implements AutoCloseable {
         } else {
             this.pointer = MemoryUtil.nmemAlloc((long)this.sizeBytes);
         }
-
+        this.byteBuffer = MemoryUtil.memByteBuffer(this.pointer, this.sizeBytes);
+        this.intBuffer = MemoryUtil.memIntBuffer(this.pointer, this.sizeBytes / 4);
     }
 
     private static void setTextureClamp(boolean clamp) {
@@ -72,38 +78,32 @@ public final class SimpleImage implements AutoCloseable {
     @Override
     public void close() {
         if (this.pointer != 0L) {
+            this.byteBuffer = null;
+            this.intBuffer = null;
             MemoryUtil.nmemFree(this.pointer);
         }
         this.pointer = 0L;
-    }
-
-    public int width() {
-        return this.width;
-    }
-
-    public int height() {
-        return this.height;
     }
 
     public int getPixelRGBA(int x, int y) {
         assert this.bytesPerPixel == 4;
         assert x <= this.width && y <= this.height;
         assert pointer != 0L : "Image not allocated.";
-        return MemoryUtil.memIntBuffer(this.pointer, this.sizeBytes).get(x + y * this.width);
+        return intBuffer.get(x + y * this.width);
     }
 
     public void setPixelRGBA(int x, int y, int rgba) {
         assert this.bytesPerPixel == 4;
         assert x <= this.width && y <= this.height;
         assert pointer != 0L : "Image not allocated.";
-        MemoryUtil.memIntBuffer(this.pointer, this.sizeBytes).put(x + y * this.width, rgba);
+        intBuffer.put(x + y * this.width, rgba);
     }
 
     public void setLuminance(int u, int v, byte value) {
         assert this.bytesPerPixel == 1;
         assert u <= this.width && v <= this.height;
         assert pointer != 0L : "Image not allocated.";
-        MemoryUtil.memByteBuffer(this.pointer, this.sizeBytes).put(u + v * this.width, value);
+        byteBuffer.put(u + v * this.width, value);
     }
 
     public void upload(int lod, int x, int y, boolean clamp) {
@@ -127,7 +127,7 @@ public final class SimpleImage implements AutoCloseable {
         GlStateManager.pixelStore(GL11.GL_UNPACK_SKIP_PIXELS, skipPixels);
         GlStateManager.pixelStore(GL11.GL_UNPACK_SKIP_ROWS, skipRows);
         setUnpackAlignment();
-        GlStateManager.texSubImage2D(GL11.GL_TEXTURE_2D, lod, x, y, width, height, pixelDataFormat, GL11.GL_UNSIGNED_BYTE, pointer);
+        GlStateManager.texSubImage2D(GL11.GL_TEXTURE_2D, lod, x, y, width, height, pixelDataFormat, pixelDataType, pointer);
     }
 
     public void untrack() {

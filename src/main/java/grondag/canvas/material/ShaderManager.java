@@ -21,9 +21,10 @@ import org.joml.Vector3f;
 import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.MaterialShaderImpl;
 import grondag.canvas.apiimpl.util.ShadeFaceData;
+import grondag.canvas.varia.DitherTexture;
 import grondag.canvas.varia.FogStateExtHolder;
 import grondag.canvas.varia.LightmapHD;
-import grondag.canvas.varia.SmoothLightmapTexture;
+import grondag.canvas.varia.LightmapHdTexture;
 import grondag.canvas.varia.WorldDataManager;
 import grondag.frex.api.material.UniformRefreshFrequency;
 import net.fabricmc.fabric.api.event.client.ClientTickCallback;
@@ -103,7 +104,7 @@ public final class ShaderManager implements ClientTickCallback {
     public void forceReload() {
         GlShaderManager.INSTANCE.forceReload();
         VertexEncoder.forceReload();
-        SmoothLightmapTexture.instance().forceReload();
+        LightmapHdTexture.instance().forceReload();
         ShadeFaceData.forceReload();
         LightmapHD.forceReload();
         for (int i = 0; i < this.shaderCount; i++) {
@@ -207,7 +208,7 @@ public final class ShaderManager implements ClientTickCallback {
             return;
 
         computeRenderSeconds(cameraEntity);
-        SmoothLightmapTexture.instance().onRenderTick();
+        
         onRenderTick();
     }
 
@@ -222,8 +223,11 @@ public final class ShaderManager implements ClientTickCallback {
             shaders[i].onGameTick();
         }
         
-        //UGLY: put this somwhere else? Central tick handler?
-        SmoothLightmapTexture.instance().tick();
+        //TODO: move to render tick
+        LightmapHdTexture.instance().onRenderTick();
+        
+        //UGLY: need central tick handler
+        DitherTexture.instance().tick();
     }
     
     public void onRenderTick() {

@@ -31,7 +31,7 @@ import grondag.canvas.draw.DrawableDelegate;
 import grondag.canvas.draw.SolidRenderList;
 import grondag.canvas.draw.TessellatorExt;
 import grondag.canvas.material.ShaderContext;
-import grondag.canvas.varia.SmoothLightmapTexture;
+import grondag.canvas.varia.LightmapHdTexture;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.Tessellator;
@@ -64,9 +64,9 @@ public class MixinTessellator implements TessellatorExt {
             renderList.accept(delegates);
             
             //PERF: lightmap tex probably not needed here, or at least make context-dependent
-            SmoothLightmapTexture.instance().enable();
+            LightmapHdTexture.instance().enable();
             renderList.draw(context);
-            SmoothLightmapTexture.instance().disable();
+            LightmapHdTexture.instance().disable();
             
             final int limit = delegates.size();
             for(int i = 0; i < limit; i++) {
