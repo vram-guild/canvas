@@ -24,7 +24,6 @@ import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import grondag.canvas.material.ShaderManager;
-import grondag.canvas.varia.SmoothLightmapTexture;
 import grondag.canvas.varia.WorldDataManager;
 import net.minecraft.client.render.LightmapTextureManager;
 
@@ -47,6 +46,5 @@ public abstract class MixinLightmapTextureManager {
     @Inject(at = @At("RETURN"), method = "update")
     private void afterUpdate(float tick, CallbackInfo info) {
         WorldDataManager.updateLight(tick, prevFlicker);
-        SmoothLightmapTexture.instance().update(tick, prevFlicker);
     }
 }

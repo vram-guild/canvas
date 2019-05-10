@@ -27,25 +27,19 @@ import net.minecraft.client.texture.Texture;
 import net.minecraft.resource.ResourceManager;
 
 /**
- * Adapted from Minecraft NativeImage but suitable for our needs.
- * "Reliable" because won't change and I know exactly what it does.
+ * Leaner adaptation of Minecraft NativeImageBackedTexture suitable for our needs.
  */
-public class ReliableTexture extends AbstractTexture implements AutoCloseable, Texture {
-    private ReliableImage image;
+public class SimpleTexture extends AbstractTexture implements AutoCloseable, Texture {
+    private SimpleImage image;
 
-    public ReliableTexture(ReliableImage nativeImage_1) {
-       this.image = nativeImage_1;
-       TextureUtil.prepareImage(this.getGlId(), this.image.getWidth(), this.image.getHeight());
+    public SimpleTexture(SimpleImage image) {
+       this.image = image;
+       TextureUtil.prepareImage(this.getGlId(), this.image.width(), this.image.height());
        this.upload();
     }
 
-    public ReliableTexture(int int_1, int int_2, boolean boolean_1) {
-       this.image = new ReliableImage(int_1, int_2, boolean_1);
-       TextureUtil.prepareImage(this.getGlId(), this.image.getWidth(), this.image.getHeight());
-    }
-
     @Override
-    public void load(ResourceManager resourceManager_1) throws IOException {
+    public void load(ResourceManager resourceManager) throws IOException {
     }
 
     public void upload() {
@@ -53,14 +47,19 @@ public class ReliableTexture extends AbstractTexture implements AutoCloseable, T
        this.image.upload(0, 0, 0, false);
     }
 
+    public void uploadPartial(int x, int y, int width, int height) {
+        this.bindTexture();
+        this.image.upload(0, x, y, 0, 0, width, height, false);
+     }
+    
     @Nullable
-    public ReliableImage getImage() {
+    public SimpleImage getImage() {
        return this.image;
     }
 
-    public void setImage(ReliableImage nativeImage_1) throws Exception {
+    public void setImage(SimpleImage image) throws Exception {
        this.image.close();
-       this.image = nativeImage_1;
+       this.image = image;
     }
 
     @Override

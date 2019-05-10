@@ -17,7 +17,6 @@
 package grondag.canvas.apiimpl.util;
 
 import java.util.function.IntBinaryOperator;
-import java.util.function.IntFunction;
 
 /**
  * Holds per-corner results for a single block face. Handles caching and
@@ -197,7 +196,6 @@ public class AoFaceData {
      * value from all four samples.
      */
     private static int meanBrightness(int a, int b, int c, int d) {
-        
         //TODO: configure min vs max - vanilla is min
         final boolean useMax = false;
         int missingVal = useMax ? 0 : 0x0FFFFFFF;

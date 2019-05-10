@@ -207,7 +207,7 @@ public final class ShaderManager implements ClientTickCallback {
             return;
 
         computeRenderSeconds(cameraEntity);
-        
+        SmoothLightmapTexture.instance().onRenderTick();
         onRenderTick();
     }
 

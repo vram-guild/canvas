@@ -7,8 +7,8 @@ import com.mojang.blaze3d.platform.GlStateManager;
 
 import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.QuadViewImpl;
-import grondag.canvas.apiimpl.util.ReliableImage;
-import grondag.canvas.apiimpl.util.ReliableTexture;
+import grondag.canvas.apiimpl.util.SimpleImage;
+import grondag.canvas.apiimpl.util.SimpleTexture;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
@@ -31,8 +31,8 @@ public class SmoothLightmapTexture implements AutoCloseable {
         return result;
     }
 
-    private final ReliableTexture texture;
-    private final ReliableImage image;
+    private final SimpleTexture texture;
+    private final SimpleImage image;
     private final Identifier textureIdentifier = new Identifier("canvas", "light_map");
     private final MinecraftClient client;
 
@@ -42,7 +42,7 @@ public class SmoothLightmapTexture implements AutoCloseable {
 
     private SmoothLightmapTexture() {
         this.client = MinecraftClient.getInstance();
-        this.texture = new ReliableTexture(new ReliableImage(ReliableImage.Format.LUMINANCE, LightmapHD.TEX_SIZE, LightmapHD.TEX_SIZE, false));
+        this.texture = new SimpleTexture(new SimpleImage(1, GL11.GL_LUMINANCE, LightmapHD.TEX_SIZE, LightmapHD.TEX_SIZE, false));
         this.client.getTextureManager().registerTexture(textureIdentifier, this.texture);
         this.image = this.texture.getImage();
     }
@@ -116,41 +116,22 @@ public class SmoothLightmapTexture implements AutoCloseable {
     float effectModifier;
     float skyDarkness;
     
-    private boolean prepareForRefresh(float tick) {
-        world = client.world;
-        if (world == null) {
-            return false;
-        }
-        gameRenderer = client.gameRenderer;
-        skyDarkness = gameRenderer.getSkyDarkness(tick);
-        worldAmbient = world.getAmbientLight(1.0F);
-        fluidModifier = this.client.player.method_3140();
-        if (this.client.player.hasStatusEffect(StatusEffects.NIGHT_VISION)) {
-            effectModifier = gameRenderer.getNightVisionStrength(client.player, tick);
-        } else if (fluidModifier > 0.0F && this.client.player.hasStatusEffect(StatusEffects.CONDUIT_POWER)) {
-            effectModifier = fluidModifier;
-        } else {
-            effectModifier = 0.0F;
-        }
-        return true;
-    }
-    
     boolean isDirty = false;
     public void tick() {
         //isDirty = true;
     }
     
-    public void update(float tick, float flickerIn) {
+    public void onRenderTick() {
         //UGLY doesn't belong here
         DitherTexture.instance().tick();
         
-        if(!Configurator.enableHdLightmaps || !prepareForRefresh(tick) || !isDirty) {
+        if(!Configurator.enableHdLightmaps || !isDirty) {
             return;
         }
 
         isDirty = false;
         
-        final ReliableImage image = this.image;
+        final SimpleImage image = this.image;
         LightmapHD.forEach( map -> {
             //PERF - only update dirty pixels
             final int uMin = map.uMinImg;
