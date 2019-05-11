@@ -1,10 +1,8 @@
 package grondag.canvas.varia;
 
-import java.util.Arrays;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
-import java.util.function.IntFunction;
 
 import grondag.canvas.Canvas;
 import grondag.canvas.apiimpl.QuadViewImpl;
@@ -271,134 +269,81 @@ public class LightmapHD {
                         + uSide * ((1 - uLinear) * (vLinear))
                         + vSide * ((uLinear) * (1 - vLinear));
                 
-                //TODO remove
-                int i = lightIndex(uFunc.applyAsInt(u), vFunc.applyAsInt(v));
-                assert i < 36;
-                
                 light[lightIndex(uFunc.applyAsInt(u), vFunc.applyAsInt(v))] = output(linear);
             }
         }
     }
     
-   private static void computeOpenU(float center, float uSide, int light[], Int2IntFunction uFunc, Int2IntFunction vFunc) {
-        
-    }
-  
     private static void computeOpaqueU(float center, float vSide, float corner, int light[], Int2IntFunction uFunc, Int2IntFunction vFunc) {
         //  Layout  S = self, C = corner
-        //  S x
-        //  V C
+        //  V C V
+        //  S x S
+        //  V C V
         
-        //  a - -
-        //  x - -
-        //  x - -
-        final float a = center * 0.75f + vSide * 0.25f;
-        light[lightIndex(uFunc.applyAsInt(0), vFunc.applyAsInt(0))] = output(a);
-        light[lightIndex(uFunc.applyAsInt(0), vFunc.applyAsInt(1))] = output(center * 0.5f + vSide * 0.5f);
-        light[lightIndex(uFunc.applyAsInt(0), vFunc.applyAsInt(2))] = output(center * 0.25f + vSide * 0.75f);
+        LightmapCornerHelper help = LightmapCornerHelper.prepareThreadlocal(corner, center, vSide);
         
-        //  - - -
-        //  - - x
-        //  - x -
-        final float centerCornerMean = (center + corner) * 0.5f;
-        light[lightIndex(uFunc.applyAsInt(1), vFunc.applyAsInt(2))] = output((centerCornerMean + vSide) * 0.5f);
-        light[lightIndex(uFunc.applyAsInt(2), vFunc.applyAsInt(1))] = output(centerCornerMean);
+        //  F G H
+        //  J K L
+        //  M N O
+        light[lightIndex(uFunc.applyAsInt(0), vFunc.applyAsInt(0))] = output(help.o());
+        light[lightIndex(uFunc.applyAsInt(1), vFunc.applyAsInt(0))] = output(help.n());
+        light[lightIndex(uFunc.applyAsInt(2), vFunc.applyAsInt(0))] = output(help.m());
         
-        //  - - -
-        //  - b -
-        //  - - x
-        final float b = center * 0.666f + corner * 0.334f;
-        light[lightIndex(uFunc.applyAsInt(1), vFunc.applyAsInt(1))] = output(b);
-        light[lightIndex(uFunc.applyAsInt(2), vFunc.applyAsInt(2))] = output(center * 0.334f + corner * 0.666f);
+        light[lightIndex(uFunc.applyAsInt(0), vFunc.applyAsInt(1))] = output(help.l());
+        light[lightIndex(uFunc.applyAsInt(1), vFunc.applyAsInt(1))] = output(help.k());
+        light[lightIndex(uFunc.applyAsInt(2), vFunc.applyAsInt(1))] = output(help.j());
         
-        //  - x c
-        //  - - -
-        //  - - -
-        final float c = center - 0.3125f;
-        light[lightIndex(uFunc.applyAsInt(1), vFunc.applyAsInt(0))] = output((a + b + c) / 3f);
-        light[lightIndex(uFunc.applyAsInt(2), vFunc.applyAsInt(0))] = output(c);
-    }
-    
-    private static void computeOpenV(float center, float vSide, int light[], Int2IntFunction uFunc, Int2IntFunction vFunc) {
+        light[lightIndex(uFunc.applyAsInt(0), vFunc.applyAsInt(2))] = output(help.h());
+        light[lightIndex(uFunc.applyAsInt(1), vFunc.applyAsInt(2))] = output(help.g());
+        light[lightIndex(uFunc.applyAsInt(2), vFunc.applyAsInt(2))] = output(help.f());
         
     }
     
     private static void computeOpaqueV(float center, float uSide, float corner, int light[], Int2IntFunction uFunc, Int2IntFunction vFunc) {
         //  Layout  S = self, C = corner
-        //  S U
-        //  x C
+        //  U S U
+        //  C x C
+        //  U S U
+        //  
+        LightmapCornerHelper help = LightmapCornerHelper.prepareThreadlocal(center, corner, uSide);
         
-        //  a x x
-        //  - - -
-        //  - - -
-        final float a = center * 0.75f + uSide * 0.25f;
-        light[lightIndex(uFunc.applyAsInt(0), vFunc.applyAsInt(0))] = output(center * 0.75f + uSide * 0.25f);
-        light[lightIndex(uFunc.applyAsInt(1), vFunc.applyAsInt(0))] = output(center * 0.5f + uSide * 0.5f);
-        light[lightIndex(uFunc.applyAsInt(2), vFunc.applyAsInt(0))] = output(center * 0.25f + uSide * 0.75f);
+        //  A B C
+        //  E F G
+        //  I J K
+        light[lightIndex(uFunc.applyAsInt(0), vFunc.applyAsInt(0))] = output(help.a());
+        light[lightIndex(uFunc.applyAsInt(1), vFunc.applyAsInt(0))] = output(help.b());
+        light[lightIndex(uFunc.applyAsInt(2), vFunc.applyAsInt(0))] = output(help.c());
         
-        //  - - -
-        //  - - x
-        //  - x -
-        final float centerCornerMean = (center + corner) * 0.5f;
-        light[lightIndex(uFunc.applyAsInt(2), vFunc.applyAsInt(1))] = output((centerCornerMean + uSide) * 0.5f);
-        light[lightIndex(uFunc.applyAsInt(1), vFunc.applyAsInt(2))] = output(centerCornerMean);
+        light[lightIndex(uFunc.applyAsInt(0), vFunc.applyAsInt(1))] = output(help.e());
+        light[lightIndex(uFunc.applyAsInt(1), vFunc.applyAsInt(1))] = output(help.f());
+        light[lightIndex(uFunc.applyAsInt(2), vFunc.applyAsInt(1))] = output(help.g());
         
-        //  - - -
-        //  - b -
-        //  - - x
-        final float b = center * 0.666f + corner * 0.334f;
-        light[lightIndex(uFunc.applyAsInt(1), vFunc.applyAsInt(1))] = output(b);
-        light[lightIndex(uFunc.applyAsInt(2), vFunc.applyAsInt(2))] = output(center * 0.334f + corner * 0.666f);
-        
-        //  - - -
-        //  x - -
-        //  c - -
-        final float c = center - 0.3125f;
-        light[lightIndex(uFunc.applyAsInt(0), vFunc.applyAsInt(1))] = output((a + b + c) / 3f);
-        light[lightIndex(uFunc.applyAsInt(0), vFunc.applyAsInt(2))] = output(c);
-    }
-    
-    private static void computeOpaqueAll(float center, int light[], Int2IntFunction uFunc, Int2IntFunction vFunc) {
-        int out = output(center);
-        for(int u = 0; u <= RADIUS; u++) {
-            for(int v = 0; v <= RADIUS; v++) {
-                light[lightIndex(uFunc.applyAsInt(u), vFunc.applyAsInt(v))] = out;
-            }
-        }
+        light[lightIndex(uFunc.applyAsInt(0), vFunc.applyAsInt(2))] = output(help.i());
+        light[lightIndex(uFunc.applyAsInt(1), vFunc.applyAsInt(2))] = output(help.j());
+        light[lightIndex(uFunc.applyAsInt(2), vFunc.applyAsInt(2))] = output(help.k());
     }
     
     private static void computeOpaqueCorner(float center, float uSide, float vSide, int light[], Int2IntFunction uFunc, Int2IntFunction vFunc) {
-        final float uvMean = (uSide + vSide) * 0.5f;
+        LightmapCornerHelper help = LightmapCornerHelper.prepareThreadlocal(uSide, vSide, center);
         
         //  Layout
         //  U C
         //  x V
         
-        //  - - x
-        //  - x -
-        //  a - -
-        final float a = uvMean * 0.666f + center * 0.333f - 0.15625f;
-        light[lightIndex(uFunc.applyAsInt(0), vFunc.applyAsInt(0))] = output(center);
-        light[lightIndex(uFunc.applyAsInt(1), vFunc.applyAsInt(1))] = output((a + center) * 0.5f);
-        light[lightIndex(uFunc.applyAsInt(2), vFunc.applyAsInt(2))] = output(a);
+        //  B C D
+        //  F G H
+        //  J K L
+        light[lightIndex(uFunc.applyAsInt(0), vFunc.applyAsInt(0))] = output(help.d());
+        light[lightIndex(uFunc.applyAsInt(1), vFunc.applyAsInt(0))] = output(help.c());
+        light[lightIndex(uFunc.applyAsInt(2), vFunc.applyAsInt(0))] = output(help.b());
         
-        //  x x -
-        //  - - -
-        //  - - -
-        light[lightIndex(uFunc.applyAsInt(1), vFunc.applyAsInt(0))] = output(center * 0.75f + uSide * 0.25f);
-        light[lightIndex(uFunc.applyAsInt(2), vFunc.applyAsInt(0))] = output(center * 0.5f + uSide * 0.5f);
+        light[lightIndex(uFunc.applyAsInt(0), vFunc.applyAsInt(1))] = output(help.h());
+        light[lightIndex(uFunc.applyAsInt(1), vFunc.applyAsInt(1))] = output(help.g());
+        light[lightIndex(uFunc.applyAsInt(2), vFunc.applyAsInt(1))] = output(help.f());
         
-        //  - - -
-        //  - - x
-        //  - - x
-        light[lightIndex(uFunc.applyAsInt(0), vFunc.applyAsInt(1))] = output(center * 0.75f + vSide * 0.25f);
-        light[lightIndex(uFunc.applyAsInt(0), vFunc.applyAsInt(2))] = output(center * 0.5f + vSide * 0.5f);
-        
-        //  - - -
-        //  x - -
-        //  - x -
-        light[lightIndex(uFunc.applyAsInt(1), vFunc.applyAsInt(2))] = output(uSide * 0.334f + vSide * 0.666f);
-        light[lightIndex(uFunc.applyAsInt(2), vFunc.applyAsInt(1))] = output(uSide * 0.666f + vSide * 0.334f);
+        light[lightIndex(uFunc.applyAsInt(0), vFunc.applyAsInt(2))] = output(help.l());
+        light[lightIndex(uFunc.applyAsInt(1), vFunc.applyAsInt(2))] = output(help.k());
+        light[lightIndex(uFunc.applyAsInt(2), vFunc.applyAsInt(2))] = output(help.j());
     }
     
     
@@ -437,48 +382,5 @@ public class LightmapHD {
         
         
         return u | (v << 16);
-    }
-    
-    
-    private static float inside(float self, float uVal, float vVal, float cornerVal, int u, int v) {
-        if(self == uVal && self == vVal && self == cornerVal) {
-            return cornerVal;
-        }
-        int du = pixelDist(u);
-        int dv = pixelDist(v);
-        
-        float nz = nonZeroMin(self, uVal, vVal, cornerVal);
-        if(self == 0) self = nz;
-        if(cornerVal == 0) cornerVal = nz;
-        if(uVal == 0) uVal = nz;
-        if(vVal == 0) vVal = nz;
-        
-        float uLinear = 1f - (du + 0.5f) / LIGHTMAP_SIZE;
-        float vLinear = 1f - (dv + 0.5f) / LIGHTMAP_SIZE;
-        assert uLinear >= 0 && uLinear <= 1f;
-        assert vLinear >= 0 && vLinear <= 1f;
-        float linear = self * (uLinear * vLinear) 
-                + cornerVal * (1 - uLinear) * (1 - vLinear)
-                + uVal * ((1 - uLinear) * (vLinear))
-                + vVal * ((uLinear) * (1 - vLinear));
-        
-        return linear;
-    }
-    
-    static final int CELL_DISTANCE = RADIUS * 2 - 1;
-    static final float INVERSE_CELL_DISTANCE = 1f / CELL_DISTANCE;
-    
-    private static int pixelDist(int c) {
-        return c >= RADIUS ? c - RADIUS : RADIUS - 1 - c;
-    }
-    
-    private static float nonZeroMin(float a, float b) {
-        if(a == 0) return b;
-        if(b == 0) return a;
-        return Math.min(a, b);
-    }
-    
-    private static float nonZeroMin(float a, float b, float c, float d) {
-        return nonZeroMin(nonZeroMin(a, b), nonZeroMin(c, d));
     }
 }
