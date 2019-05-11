@@ -36,6 +36,7 @@ import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.rendercontext.BlockRenderInfo;
 import grondag.canvas.apiimpl.util.SafeWorldViewExt;
+import grondag.canvas.light.LightSmoother;
 import grondag.fermion.world.PackedBlockPos;
 import it.unimi.dsi.fastutil.longs.Long2FloatOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
@@ -49,6 +50,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.ExtendedBlockView;
+import net.minecraft.world.World;
 
 //PERF: many opportunities here
 
@@ -127,8 +129,8 @@ public class ChunkRenderInfo {
         this.chunkRenderer = chunkRenderer;
         brightnessCache.clear();
         aoLevelCache.clear();
-        if(Configurator.enableHdLightmaps) {
-            computeSmoothedBrightness(chunkOrigin);
+        if(Configurator.enableLightSmoothing) {
+            computeSmoothedBrightness(chunkOrigin, blockView, brightnessCache);
         }
     }
 
@@ -205,19 +207,16 @@ public class ChunkRenderInfo {
         return result;
     }
     
-    private static final int POS_COUNT = 16 * 16 * 16 * 27;
-    private static final int OPAQUE = -1;
-    
-    private static class Helper {
+    public static class Helper {
         private final BlockPos.Mutable smoothPos = new BlockPos.Mutable();
-        private final float a[] = new float[POS_COUNT];
-        private final float b[] = new float[POS_COUNT];
-        private final float c[] = new float[POS_COUNT];
+        private final float a[] = new float[LightSmoother.POS_COUNT];
+        private final float b[] = new float[LightSmoother.POS_COUNT];
+        private final float c[] = new float[LightSmoother.POS_COUNT];
     }
     
     private static final ThreadLocal<Helper> helpers = ThreadLocal.withInitial(Helper::new);
     
-    private void computeSmoothedBrightness(BlockPos chunkOrigin) {
+    private static void computeSmoothedBrightness(BlockPos chunkOrigin, ExtendedBlockView blockViewIn, Long2IntOpenHashMap output) {
         final Helper help = helpers.get();
         final BlockPos.Mutable smoothPos = help.smoothPos;
         float[] sky = help.a;
@@ -227,7 +226,7 @@ public class ChunkRenderInfo {
         final int minY = chunkOrigin.getY() - 16;
         final int minZ = chunkOrigin.getZ() - 16;
         
-        BlockView view = ((SafeWorldViewExt)blockView).canvas_worldHack();
+        ExtendedBlockView view = (ExtendedBlockView) ((SafeWorldViewExt)blockViewIn).canvas_worldHack();
         
         for(int x = 14; x < 34; x++) {
             for(int y = 14; y < 34; y++) {
@@ -236,17 +235,17 @@ public class ChunkRenderInfo {
 //                    final long packedPos = PackedBlockPos.pack(smoothPos);
                     final int i = index(x, y, z);
                     BlockState state = view.getBlockState(smoothPos);
-                    final int packedLight = state.getBlockBrightness(blockView, smoothPos);
+                    final int packedLight = state.getBlockBrightness(view, smoothPos);
                     
                     //PERF: still needed for Ao calc?
 //                    brightnessCache.put(packedPos, packedLight);
                     
-                    final int subtracted = (short) state.getLightSubtracted(blockView, smoothPos);
+                    final int subtracted = (short) state.getLightSubtracted(view, smoothPos);
 //                    subtractedCache.put(packedPos, (short) subtracted);
                     
                     if(subtracted > 0) {
-                        block[i] = OPAQUE;
-                        sky[i] = OPAQUE;
+                        block[i] = LightSmoother.OPAQUE;
+                        sky[i] = LightSmoother.OPAQUE;
                     } else if(packedLight == 0) {
                         block[i] = 0;
                         sky[i] = 0;
@@ -275,7 +274,6 @@ public class ChunkRenderInfo {
 //        sky = work;
 //        work = swap;
         
-        final Long2IntOpenHashMap cache = this.brightnessCache;
         for(int x = 15; x < 33; x++) {
             for(int y = 15; y < 33; y++) {
                 for(int z = 15; z < 33; z++) {
@@ -284,7 +282,7 @@ public class ChunkRenderInfo {
                     
                     final int b = Math.round(Math.max(0, block[i]) * 16 * 1.04f);
                     final int k = Math.round(Math.max(0, sky[i]) * 16 * 1.04f);
-                    cache.put(packedPos, (Math.min(b, 240) & 0b11111100) | ((Math.min(k, 240) & 0b11111100)  << 16));
+                    output.put(packedPos, (Math.min(b, 240) & 0b11111100) | ((Math.min(k, 240) & 0b11111100)  << 16));
                 }
             }
         }
@@ -302,7 +300,7 @@ public class ChunkRenderInfo {
 //    private static final float NEAR_CORNER = INNER_DIST * OUTER_DIST * OUTER_DIST;
 //    private static final float FAR_CORNER = OUTER_DIST * OUTER_DIST * OUTER_DIST;
     
-    private void smooth(int margin, float[] src, float[] dest) {
+    private static void smooth(int margin, float[] src, float[] dest) {
         final int base = 16 - margin;
         final int limit = 32 + margin;
         
@@ -315,21 +313,21 @@ public class ChunkRenderInfo {
                     int i = index(x, y, z);
                     
                     float c = src[i];
-                    if(c == OPAQUE) {
-                        dest[i] = OPAQUE;
+                    if(c == LightSmoother.OPAQUE) {
+                        dest[i] = LightSmoother.OPAQUE;
                         continue;
                     }
                     
                     float a = src[index(x + 1, y, z)];
                     float b = src[index(x - 1, y, z)];
                     
-                    if(a == OPAQUE) {
-                        if(b == OPAQUE) {
+                    if(a == LightSmoother.OPAQUE) {
+                        if(b == LightSmoother.OPAQUE) {
                             dest[i] = c;
                         } else {
                             dest[i] = b * OUTER_DIST + c * INNER_PLUS;
                         }
-                    } else if(b == OPAQUE) {
+                    } else if(b == LightSmoother.OPAQUE) {
                         dest[i] = a * OUTER_DIST + c * INNER_PLUS;
                     } else {
                         dest[i] = a * OUTER_DIST + b * OUTER_DIST + c * INNER_DIST;
@@ -346,21 +344,21 @@ public class ChunkRenderInfo {
                     
                     // Note arrays are swapped here
                     float c = dest[i];
-                    if(c == OPAQUE) {
-                        src[i] = OPAQUE;
+                    if(c == LightSmoother.OPAQUE) {
+                        src[i] = LightSmoother.OPAQUE;
                         continue;
                     }
                     
                     float a = dest[index(x, y - 1, z)];
                     float b = dest[index(x, y + 1, z)];
                     
-                    if(a == OPAQUE) {
-                        if(b == OPAQUE) {
+                    if(a == LightSmoother.OPAQUE) {
+                        if(b == LightSmoother.OPAQUE) {
                             src[i] = c;
                         } else {
                             src[i] = b * OUTER_DIST + c * INNER_PLUS;
                         }
-                    } else if(b == OPAQUE) {
+                    } else if(b == LightSmoother.OPAQUE) {
                         src[i] = a * OUTER_DIST + c * INNER_PLUS;
                     } else {
                         src[i] = a * OUTER_DIST + b * OUTER_DIST + c * INNER_DIST;
@@ -376,21 +374,21 @@ public class ChunkRenderInfo {
                     
                     // Arrays are swapped back to original roles here
                     float c = src[i];
-                    if(c == OPAQUE) {
-                        dest[i] = OPAQUE;
+                    if(c == LightSmoother.OPAQUE) {
+                        dest[i] = LightSmoother.OPAQUE;
                         continue;
                     }
                     
                     float a = src[index(x, y, z - 1)];
                     float b = src[index(x, y, z + 1)];
                     
-                    if(a == OPAQUE) {
-                        if(b == OPAQUE) {
+                    if(a == LightSmoother.OPAQUE) {
+                        if(b == LightSmoother.OPAQUE) {
                             dest[i] = c;
                         } else {
                             dest[i] = b * OUTER_DIST + c * INNER_PLUS;
                         }
-                    } else if(b == OPAQUE) {
+                    } else if(b == LightSmoother.OPAQUE) {
                         dest[i] = a * OUTER_DIST + c * INNER_PLUS;
                     } else {
                         dest[i] = a * OUTER_DIST + b * OUTER_DIST + c * INNER_DIST;

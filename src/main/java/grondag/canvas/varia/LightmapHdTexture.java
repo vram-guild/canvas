@@ -88,13 +88,7 @@ public class LightmapHdTexture implements AutoCloseable {
         GlStateManager.activeTexture(GLX.GL_TEXTURE0);
     }
 
-    int tickCounter = 0;
     public void onRenderTick() {
-        if(tickCounter++ < 10 || !Configurator.enableHdLightmaps || updates.isEmpty()) {
-            return;
-        }
-        
-        tickCounter = 0;
         
         final SimpleImage image = this.image;
         int uMin = Integer.MAX_VALUE;

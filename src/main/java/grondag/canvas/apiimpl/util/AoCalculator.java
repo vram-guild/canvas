@@ -115,16 +115,23 @@ public class AoCalculator {
         if(Configurator.enableHdLightmaps) {
             if((flags & AXIS_ALIGNED_FLAG) == AXIS_ALIGNED_FLAG) {
                 if((flags & LIGHT_FACE_FLAG) == LIGHT_FACE_FLAG) {
-                    vanillaPartialFace(quad, true);
+                    vanillaPartialFaceSmooth(quad, true);
                 } else {
-                    blendedPartialFace(quad);
+                    blendedPartialFaceSmooth(quad);
                 }
             } else {
                 // currently can't handle these
                 irregularFace(quad);
+                quad.shadeFaceData = null;
+                quad.blockLight = null;
+                quad.skyLight = null;
             }
             return;
         }
+        
+        quad.shadeFaceData = null;
+        quad.blockLight = null;
+        quad.skyLight = null;
         
         switch (flags) {
         case AXIS_ALIGNED_FLAG | CUBIC_FLAG | LIGHT_FACE_FLAG:
@@ -159,15 +166,23 @@ public class AoCalculator {
         AoFaceData faceData = computeFace(lightFace, isOnLightFace);
         AoFace face = AoFace.get(lightFace);
         final WeightFunction wFunc = face.weightFunc;
-        final Vertex2Float uFunc = face.uFunc;
-        final Vertex2Float vFunc = face.vFunc;
         for (int i = 0; i < 4; i++) {
             final float[] w = quad.w[i];
             wFunc.apply(quad, i, w);
-            quad.u[i] = uFunc.apply(quad, i);
-            quad.v[i] = vFunc.apply(quad, i);
             light[i] = faceData.weightedCombinedLight(w);
             ao[i] = faceData.weigtedAo(w);
+        }
+    }
+    
+    private void vanillaPartialFaceSmooth(MutableQuadViewImpl quad, boolean isOnLightFace) {
+        final Direction lightFace = quad.lightFace();
+        AoFaceData faceData = computeFace(lightFace, isOnLightFace);
+        AoFace face = AoFace.get(lightFace);
+        final Vertex2Float uFunc = face.uFunc;
+        final Vertex2Float vFunc = face.vFunc;
+        for (int i = 0; i < 4; i++) {
+            quad.u[i] = uFunc.apply(quad, i);
+            quad.v[i] = vFunc.apply(quad, i);
         }
         
         //PERF: only add these if extra smooth lighting enabled
@@ -175,6 +190,7 @@ public class AoCalculator {
         quad.blockLight = LightmapHD.findBlock(faceData);
         quad.skyLight = LightmapHD.findSky(faceData);
     }
+    
 
     /**
      * used in {@link #blendedInsetFace(VertexEditorImpl, Direction)} as return
@@ -223,22 +239,30 @@ public class AoCalculator {
         AoFaceData faceData = blendedInsetData(quad, 0, lightFace);
         AoFace face = AoFace.get(lightFace);
         final WeightFunction wFunc = face.weightFunc;
-        final Vertex2Float uFunc = face.uFunc;
-        final Vertex2Float vFunc = face.vFunc;
         for (int i = 0; i < 4; i++) {
             final float[] w = quad.w[i];
             wFunc.apply(quad, i, w);
-            quad.u[i] = uFunc.apply(quad, i);
-            quad.v[i] = vFunc.apply(quad, i);
             light[i] = faceData.weightedCombinedLight(w);
             ao[i] = faceData.weigtedAo(w);
         }
-        //PERF: only add these if extra smooth lighting enabled
+    }
+
+    private void blendedPartialFaceSmooth(MutableQuadViewImpl quad) {
+        final Direction lightFace = quad.lightFace();
+        AoFaceData faceData = blendedInsetData(quad, 0, lightFace);
+        AoFace face = AoFace.get(lightFace);
+        final Vertex2Float uFunc = face.uFunc;
+        final Vertex2Float vFunc = face.vFunc;
+        for (int i = 0; i < 4; i++) {
+            quad.u[i] = uFunc.apply(quad, i);
+            quad.v[i] = vFunc.apply(quad, i);
+        }
+        
         quad.shadeFaceData = ShadeFaceData.find(faceData);
         quad.skyLight = LightmapHD.findSky(faceData);
         quad.blockLight = LightmapHD.findBlock(faceData);
     }
-
+    
     /**
      * used exclusively in irregular face to avoid new heap allocations each call.
      */

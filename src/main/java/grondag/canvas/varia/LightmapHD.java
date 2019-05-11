@@ -1,5 +1,6 @@
 package grondag.canvas.varia;
 
+import java.util.Arrays;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
@@ -11,9 +12,8 @@ import grondag.fermion.varia.Useful;
 
 public class LightmapHD {
     public static final int TEX_SIZE = 4096;
-    private static final int LIGHTMAP_SIZE = 6;
+    private static final int LIGHTMAP_SIZE = 4;
     public static final int PADDED_SIZE = LIGHTMAP_SIZE + 2;
-    public static final int PADDED_MARGIN = LIGHTMAP_SIZE / 2;
     private static final int RADIUS = LIGHTMAP_SIZE / 2;
     private static final int LIGHTMAP_PIXELS = PADDED_SIZE * PADDED_SIZE;
     private static final int IDX_SIZE = TEX_SIZE / PADDED_SIZE;
@@ -131,9 +131,9 @@ public class LightmapHD {
         key.center = (faceData.center >>> 16) & 0xFF;
     }
     
+    // PERF: can reduce texture consumption 8X by reusing rotations/inversions 
     private static LightmapHD find(AoFaceData faceData, BiConsumer<AoFaceData, Key> mapper) {
-//        Key key = TEMPLATES.get();
-        Key key = new Key();
+        Key key = TEMPLATES.get();
         
         mapper.accept(faceData, key);
 
@@ -143,8 +143,8 @@ public class LightmapHD {
         
         if(result == null) {
             // create new key object to avoid putting threadlocal into map
-            key = new Key(key);
-            result = MAP.computeIfAbsent(key, k -> new LightmapHD(k));
+            Key key2 = new Key(key);
+            result = MAP.computeIfAbsent(key2, k -> new LightmapHD(k));
         }
         
         return result;
@@ -158,8 +158,6 @@ public class LightmapHD {
         return b / 16f;
     }
     
-
-    
     public final int uMinImg;
     public final int vMinImg;
     private final int[] light;
@@ -170,6 +168,8 @@ public class LightmapHD {
         final int t = index / IDX_SIZE;
         uMinImg = s * PADDED_SIZE;
         vMinImg = t * PADDED_SIZE;
+        // PERF: light data could be repooled once uploaded - not needed after
+        // or simply output to the texture directly
         this.light = new int[LIGHTMAP_PIXELS];
         
         if(index >= MAX_COUNT) {
@@ -207,6 +207,7 @@ public class LightmapHD {
     
     
     private static int lightIndex(int u, int v) {
+        // +1 because index input starts at -1
         return (v + 1) * PADDED_SIZE + u + 1;
     }
     

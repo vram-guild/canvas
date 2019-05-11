@@ -48,6 +48,7 @@ import net.minecraft.util.math.BlockPos;
  */
 public class TerrainRenderContext extends AbstractRenderContext implements RenderContext {
     public static final ThreadLocal<TerrainRenderContext> POOL = ThreadLocal.withInitial(TerrainRenderContext::new);
+    
     public static ShaderContext contextFunc(RenderMaterialImpl.Value mat) {
         return mat.renderLayer == BlockRenderLayer.TRANSLUCENT ? ShaderContext.BLOCK_TRANSLUCENT : ShaderContext.BLOCK_SOLID;
     }

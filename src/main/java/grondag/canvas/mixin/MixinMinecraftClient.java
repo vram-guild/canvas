@@ -27,7 +27,6 @@ import grondag.canvas.varia.CanvasGlHelper;
 import grondag.canvas.varia.LightmapHdTexture;
 import grondag.canvas.varia.MinecraftClientExt;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.util.Actor;
 import net.minecraft.util.ThreadExecutor;
 import net.minecraft.util.profiler.DisableableProfiler;
 import net.minecraft.util.profiler.Profiler;
