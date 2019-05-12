@@ -1,13 +1,12 @@
 package grondag.canvas.light;
 
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.BiConsumer;
+import java.util.function.ToLongFunction;
 
 import grondag.canvas.Canvas;
 import grondag.canvas.apiimpl.QuadViewImpl;
-import grondag.fermion.varia.Useful;
 import it.unimi.dsi.fastutil.ints.Int2IntFunction;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 
 public class LightmapHd {
     public static final int TEX_SIZE = 4096;
@@ -30,73 +29,7 @@ public class LightmapHd {
         MAP.clear();
     }
     
-    private static class Key {
-        private int top;
-        private int bottom;
-        private int right;
-        private int left;
-        private int topLeft;
-        private int topRight;
-        private int bottomRight;
-        private int bottomLeft;
-        private int center;
-        
-        private int hashCode;
-        
-        Key() {
-        }
-
-        Key(Key k) {
-            this.center = k.center;
-            this.top = k.top;
-            this.left = k.left;
-            this.right = k.right;
-            this.bottom = k.bottom;
-            this.topLeft = k.topLeft;
-            this.topRight = k.topRight;
-            this.bottomLeft = k.bottomLeft;
-            this.bottomRight = k.bottomRight;
-            computeHash();
-        }
-
-        // PERF - if last bit always zero for light values can fit this in a single long
-        // and use a long hash table directly
-        
-        /**
-         * Call after mutating {@link #light}
-         */
-        void computeHash() {
-            long l0 = center | (top << 8) | (left << 16) | (right << 24) | ((long)bottom << 32);
-            long l1 = topLeft | (topRight << 8) | (bottomLeft << 16) | (bottomRight << 24);
-            this.hashCode = Long.hashCode(Useful.longHash(l0) ^ Useful.longHash(l1));
-        }
-        
-        @Override
-        public boolean equals(Object other) {
-            if(other == null || !(other instanceof Key)) {
-                return false;
-            }
-            Key k = (Key)other;
-            return this.center == k.center
-                    && this.top == k.top
-                    && this.left == k.left
-                    && this.right == k.right
-                    && this.bottom == k.bottom
-                    && this.topLeft == k.topLeft
-                    && this.topRight == k.topRight
-                    && this.bottomLeft == k.bottomLeft
-                    && this.bottomRight == k.bottomRight;
-        }
-        
-        @Override
-        public int hashCode() {
-            return hashCode;
-        }
-    }
-    
-    static final ThreadLocal<Key> TEMPLATES = ThreadLocal.withInitial(Key::new);
-    
-    static final ConcurrentHashMap<Key, LightmapHd> MAP = new ConcurrentHashMap<>();
+    static final Long2ObjectOpenHashMap<LightmapHd> MAP = new Long2ObjectOpenHashMap<>();
     
     public static LightmapHd findBlock(AoFaceData faceData) {
         return find(faceData, LightmapHd::mapBlock);
@@ -106,45 +39,48 @@ public class LightmapHd {
         return find(faceData, LightmapHd::mapSky);
     }
     
-    //PERF: quantize values to reduce consumption
-    private static void mapBlock(AoFaceData faceData, Key key) {
-        key.top = faceData.top & 0xFF;
-        key.bottom = faceData.bottom & 0xFF;
-        key.right = faceData.right & 0xFF;
-        key.left = faceData.left & 0xFF;
-        key.topLeft = faceData.topLeft & 0xFF;
-        key.topRight = faceData.topRight & 0xFF;
-        key.bottomRight = faceData.bottomRight & 0xFF;
-        key.bottomLeft = faceData.bottomLeft & 0xFF;
-        key.center = faceData.center & 0xFF;
+    private static long mapBlock(AoFaceData faceData) {
+        return LightKey.toKey(
+            faceData.top & 0xFF,
+            faceData.left & 0xFF,
+            faceData.right & 0xFF,
+            faceData.bottom & 0xFF,
+            faceData.topLeft & 0xFF,
+            faceData.topRight & 0xFF,
+            faceData.bottomLeft & 0xFF,
+            faceData.bottomRight & 0xFF,
+            faceData.center & 0xFF
+        );
     }
     
-  //PERF: quantize values to reduce consumption
-    private static void mapSky(AoFaceData faceData, Key key) {
-        key.top = (faceData.top >>> 16) & 0xFF;
-        key.bottom = (faceData.bottom >>> 16) & 0xFF;
-        key.right = (faceData.right >>> 16) & 0xFF;
-        key.left = (faceData.left >>> 16) & 0xFF;
-        key.topLeft = (faceData.topLeft >>> 16) & 0xFF;
-        key.topRight = (faceData.topRight >>> 16) & 0xFF;
-        key.bottomRight = (faceData.bottomRight >>> 16) & 0xFF;
-        key.bottomLeft = (faceData.bottomLeft >>> 16) & 0xFF;
-        key.center = (faceData.center >>> 16) & 0xFF;
+    private static long mapSky(AoFaceData faceData) {
+        return LightKey.toKey(
+            (faceData.top >>> 16) & 0xFF,
+            (faceData.left >>> 16) & 0xFF,
+            (faceData.right >>> 16) & 0xFF,
+            (faceData.bottom >>> 16) & 0xFF,
+            (faceData.topLeft >>> 16) & 0xFF,
+            (faceData.topRight >>> 16) & 0xFF,
+            (faceData.bottomLeft >>> 16) & 0xFF,
+            (faceData.bottomRight >>> 16) & 0xFF,
+            (faceData.center >>> 16) & 0xFF
+        );
     }
     
     // PERF: can reduce texture consumption 8X by reusing rotations/inversions 
-    private static LightmapHd find(AoFaceData faceData, BiConsumer<AoFaceData, Key> mapper) {
-        Key key = TEMPLATES.get();
-        mapper.accept(faceData, key);
-
-        key.computeHash();
+    private static LightmapHd find(AoFaceData faceData, ToLongFunction<AoFaceData> mapper) {
+        long key = mapper.applyAsLong(faceData);
         
         LightmapHd result = MAP.get(key);
         
         if(result == null) {
-            // create new key object to avoid putting threadlocal into map
-            Key key2 = new Key(key);
-            result = MAP.computeIfAbsent(key2, k -> new LightmapHd(k));
+            synchronized(MAP) {
+                result = MAP.get(key);
+                if(result == null) {
+                    result = new LightmapHd(key);
+                    MAP.put(key, result);
+                }
+            }
         }
         
         return result;
@@ -165,7 +101,7 @@ public class LightmapHd {
     public final int vMinImg;
     private final int[] light;
     
-    private LightmapHd(Key key) {
+    private LightmapHd(long key) {
         final int index = nextIndex.getAndIncrement();
         final int s = index % MAPS_PER_AXIS;
         final int t = index / MAPS_PER_AXIS;
@@ -192,17 +128,17 @@ public class LightmapHd {
     /** converts zero-based distance from center to u/v index - use for bottom/right */
     private static final Int2IntFunction POS = i -> RADIUS + 1 + i;
     
-    private static void compute(int[] light, Key key, int index) {
+    private static void compute(int[] light, long key, int index) {
         // PERF: use integer math
-        final float center = input(key.center);
-        final float top = input(key.top);
-        final float bottom = input(key.bottom);
-        final float right = input(key.right);
-        final float left = input(key.left);
-        final float topLeft = input(key.topLeft);
-        final float topRight = input(key.topRight);
-        final float bottomRight = input(key.bottomRight);
-        final float bottomLeft = input(key.bottomLeft);
+        final float center = input(LightKey.center(key));
+        final float top = input(LightKey.top(key));
+        final float bottom = input(LightKey.bottom(key));
+        final float right = input(LightKey.right(key));
+        final float left = input(LightKey.left(key));
+        final float topLeft = input(LightKey.topLeft(key));
+        final float topRight = input(LightKey.topRight(key));
+        final float bottomRight = input(LightKey.bottomRight(key));
+        final float bottomLeft = input(LightKey.bottomLeft(key));
 
         // Note: won't work for other than 4x4 interior, 6x6 padded
         computeQuadrant(center, left, top, topLeft, light, NEG, NEG);
@@ -217,10 +153,8 @@ public class LightmapHd {
             if(vSide == AoFaceData.OPAQUE) {
                 // fully enclosed
                 computeOpen(center, center - 0.5f, center - 0.5f, center - 0.5f, light, uFunc, vFunc);
-//                computeOpaqueAll(center, light, uFunc, vFunc);
             } else if (corner == AoFaceData.OPAQUE) {
                 // U + corner enclosing
-//                computeOpenV(center, vSide, light, uFunc, vFunc);
                 computeOpen(center, center - 0.5f, vSide, vSide - 0.5f, light, uFunc, vFunc);
             } else {
                 // U side enclosing
@@ -229,7 +163,6 @@ public class LightmapHd {
         } else if(vSide == AoFaceData.OPAQUE) {
             if(corner == AoFaceData.OPAQUE) {
                 // V + corner enclosing
-//                computeOpenU(center, uSide, light, uFunc, vFunc);
                 computeOpen(center, uSide, center - 0.5f, uSide - 0.5f, light, uFunc, vFunc);
             } else {
                 // V side enclosing
@@ -361,13 +294,6 @@ public class LightmapHd {
     }
     
     public int coord(QuadViewImpl q, int i) {
-        //PERF could compress coordinates sent to shader by 
-        // sending lightmap/shademap index with same uv for each
-        // would probably save 2 bytes - send 2 + 3 shorts instead of 6
-        // or put each block/sky/ao combination in a texture and send 4 shorts...
-        // 2 for uv and 2 to lookup the combinations
-//        float u = uMinImg + 0.5f + q.u[i] * (LIGHTMAP_SIZE - 1);
-//        float v = vMinImg + 0.5f + q.v[i] * (LIGHTMAP_SIZE - 1);
         int u = Math.round((uMinImg + 1  + q.u[i] * LIGHTMAP_SIZE) * TEXTURE_TO_BUFFER);
         int v = Math.round((vMinImg + 1  + q.v[i] * LIGHTMAP_SIZE) * TEXTURE_TO_BUFFER);
         
