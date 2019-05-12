@@ -140,11 +140,15 @@ public abstract class ColorHelper {
     }
 
     public static void colorizeQuad(MutableQuadViewImpl quad, int color) {
+        if(color == -1 && quad.colorIndex() == -1) {
+            return;
+        }
+        
         final RenderMaterialImpl mat = quad.material();
         final int depth = mat.spriteDepth();
-        
         int flags = 0;
-        if(color != -1) {
+
+        if(quad.colorIndex() != -1) {
             if(!mat.disableColorIndex(0)) {
                 flags = 1;
             }
