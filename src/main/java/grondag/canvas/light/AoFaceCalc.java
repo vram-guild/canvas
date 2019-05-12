@@ -1,11 +1,29 @@
 package grondag.canvas.light;
 
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.function.IntBinaryOperator;
+
 
 /**
  * Handles vanilla-style calculations for ao and light blending.
  */
 public class AoFaceCalc {
+    private static final ArrayBlockingQueue<AoFaceCalc> POOL = new ArrayBlockingQueue<>(512);
+    
+    public static AoFaceCalc claim() {
+        AoFaceCalc result = POOL.poll();
+        if (result == null) {
+            result = new AoFaceCalc();
+        }
+        return result;
+    }
+    
+    private AoFaceCalc() {}
+    
+    public void release() {
+        POOL.offer(this);
+    }
+    
     float aoBottomRight;
     float aoBottomLeft;
     float aoTopLeft;
@@ -81,7 +99,7 @@ public class AoFaceCalc {
         return oldMax > z ? oldMax : z;
     }
 
-    void toArray(float[] aoOut, int[] lightOut, int[] vertexMap) {
+    AoFaceCalc toArray(float[] aoOut, int[] lightOut, int[] vertexMap) {
         aoOut[vertexMap[0]] = aoBottomRight;
         aoOut[vertexMap[1]] = aoBottomLeft;
         aoOut[vertexMap[2]] = aoTopLeft;
@@ -90,11 +108,13 @@ public class AoFaceCalc {
         lightOut[vertexMap[1]] = skyBottomLeft << 16 | blockBottomLeft;
         lightOut[vertexMap[2]] = skyTopLeft << 16 | blockTopLeft;
         lightOut[vertexMap[3]] = skyTopRight << 16 | blockTopRight;
+        return this;
     }
 
     // PERF - given that we need the out samples
     // should average those and then derive the block corner values if needed
-    static AoFaceCalc weightedMean(AoFaceCalc in0, float w0, AoFaceCalc in1, float w1, AoFaceCalc out) {
+    static AoFaceCalc weightedMean(AoFaceCalc in0, float w0, AoFaceCalc in1, float w1) {
+        AoFaceCalc out = claim();
         out.aoBottomRight = in0.aoBottomRight * w0 + in1.aoBottomRight * w1;
         out.aoBottomLeft = in0.aoBottomLeft * w0 + in1.aoBottomLeft * w1;
         out.aoTopLeft = in0.aoTopLeft * w0 + in1.aoTopLeft * w1;

@@ -48,14 +48,15 @@ public class LightSmoother {
                     final int packedLight = state.getBlockBrightness(view, smoothPos);
 
                     //PERF: still needed for Ao calc?
-                    final int subtracted = (short) state.getLightSubtracted(view, smoothPos);
-                    //                    subtractedCache.put(packedPos, (short) subtracted);
+                    final boolean opaque = state.isFullOpaque(view, smoothPos);
+//                    //                    subtractedCache.put(packedPos, (short) subtracted);
 
                     final int i = index(x, y , z);
-                    if(subtracted > 0) {
+                    if(opaque) {
                         block[i] = OPAQUE;
                         sky[i] = OPAQUE;
-                    } else if(packedLight == 0) {
+                    } else 
+                    if(packedLight == 0) {
                         block[i] = 0;
                         sky[i] = 0;
                     } else {
