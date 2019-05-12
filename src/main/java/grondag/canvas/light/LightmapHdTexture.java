@@ -3,7 +3,6 @@ package grondag.canvas.light;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL21;
 
 import com.mojang.blaze3d.platform.GLX;
 import com.mojang.blaze3d.platform.GlStateManager;
