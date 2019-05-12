@@ -1,4 +1,4 @@
-package grondag.canvas.varia;
+package grondag.canvas.light;
 
 import com.mojang.blaze3d.platform.GlStateManager;
 

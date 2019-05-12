@@ -1,4 +1,4 @@
-package grondag.canvas.varia;
+package grondag.canvas.light;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -9,8 +9,9 @@ import com.mojang.blaze3d.platform.GLX;
 import com.mojang.blaze3d.platform.GlStateManager;
 
 import grondag.canvas.Configurator;
-import grondag.canvas.apiimpl.util.SimpleImage;
-import grondag.canvas.apiimpl.util.SimpleTexture;
+import grondag.canvas.varia.DitherTexture;
+import grondag.canvas.varia.SimpleImage;
+import grondag.canvas.varia.SimpleTexture;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;

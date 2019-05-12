@@ -35,7 +35,7 @@ import grondag.canvas.apiimpl.QuadViewImpl;
 import grondag.canvas.apiimpl.rendercontext.BlockRenderInfo;
 import grondag.canvas.apiimpl.util.AoFace.Vertex2Float;
 import grondag.canvas.apiimpl.util.AoFace.WeightFunction;
-import grondag.canvas.varia.LightmapHD;
+import grondag.canvas.light.LightmapHD;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.util.math.Vector3f;

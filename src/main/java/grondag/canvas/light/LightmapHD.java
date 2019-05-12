@@ -1,4 +1,4 @@
-package grondag.canvas.varia;
+package grondag.canvas.light;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;

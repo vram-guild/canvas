@@ -22,9 +22,9 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import grondag.canvas.light.LightmapHdTexture;
 import grondag.canvas.material.ShaderManager;
 import grondag.canvas.varia.CanvasGlHelper;
-import grondag.canvas.varia.LightmapHdTexture;
 import grondag.canvas.varia.MinecraftClientExt;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.util.ThreadExecutor;

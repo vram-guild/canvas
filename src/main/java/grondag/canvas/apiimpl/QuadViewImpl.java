@@ -32,7 +32,7 @@ import grondag.canvas.apiimpl.util.GeometryHelper;
 import grondag.canvas.apiimpl.util.MeshEncodingHelper;
 import grondag.canvas.apiimpl.util.NormalHelper;
 import grondag.canvas.apiimpl.util.ShadeFaceData;
-import grondag.canvas.varia.LightmapHD;
+import grondag.canvas.light.LightmapHD;
 import grondag.frex.api.mesh.MutableQuadView;
 import grondag.frex.api.mesh.QuadView;
 import net.minecraft.client.util.math.Vector3f;

@@ -1,4 +1,4 @@
-package grondag.canvas.varia;
+package grondag.canvas.light;
 
 public class LightmapCornerHelper {
     private static final ThreadLocal<LightmapCornerHelper> THREADLOCAL = ThreadLocal.withInitial(LightmapCornerHelper::new);

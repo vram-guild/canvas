@@ -14,7 +14,7 @@
  * the License.
  ******************************************************************************/
 
-package grondag.canvas.apiimpl.util;
+package grondag.canvas.varia;
 
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;

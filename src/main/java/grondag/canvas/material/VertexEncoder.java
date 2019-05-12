@@ -15,11 +15,10 @@ import static grondag.canvas.material.MaterialVertextFormatElement.TERTIARY_TEX_
 
 import grondag.canvas.apiimpl.QuadViewImpl;
 import grondag.canvas.apiimpl.RenderMaterialImpl;
-import grondag.canvas.apiimpl.RendererImpl;
 import grondag.canvas.apiimpl.rendercontext.ItemRenderContext;
 import grondag.canvas.apiimpl.util.ColorHelper;
 import grondag.canvas.buffer.packing.VertexCollector;
-import grondag.canvas.varia.LightmapHD;
+import grondag.canvas.light.LightmapHD;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.util.math.BlockPos;
