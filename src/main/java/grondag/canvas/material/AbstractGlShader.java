@@ -135,7 +135,7 @@ abstract class AbstractGlShader {
             result = result.replaceAll("#define CONTEXT_IS_ITEM", "#define CONTEXT_IS_NOT_ITEM");
         }
 
-        if(!Configurator.enableHdLightmaps) {
+        if(!Configurator.enableHdLightmaps || ((shaderProps & ShaderProps.SMOOTH_LIGHTMAPS) == 0)) {
             result = result.replaceAll("#define ENABLE_SMOOTH_LIGHT", "#define DISABLE_SMOOTH_LIGHT");
         }
         
