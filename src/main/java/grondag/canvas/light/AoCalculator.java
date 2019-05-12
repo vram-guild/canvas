@@ -331,8 +331,8 @@ public class AoCalculator {
             }
 
             aoResult[i] = (ao + maxAo) * 0.5f;
-            lightResult[i] = (((int) ((sky + maxSky) * 0.5f) & 0xF0) << 16)
-                    | ((int) ((block + maxBlock) * 0.5f) & 0xF0);
+            lightResult[i] = (((int) ((sky + maxSky) * 0.5f) & 0xFF) << 16)
+                    | ((int) ((block + maxBlock) * 0.5f) & 0xFF);
         }
     }
     
