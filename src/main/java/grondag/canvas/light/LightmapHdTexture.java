@@ -37,18 +37,18 @@ public class LightmapHdTexture implements AutoCloseable {
 
     private LightmapHdTexture() {
         this.client = MinecraftClient.getInstance();
-        this.texture = new SimpleTexture(new SimpleImage(1, GL11.GL_LUMINANCE, LightmapHD.TEX_SIZE, LightmapHD.TEX_SIZE, false), GL21.GL_LUMINANCE8);
+        this.texture = new SimpleTexture(new SimpleImage(1, GL11.GL_RED, LightmapHd.TEX_SIZE, LightmapHd.TEX_SIZE, false), GL11.GL_RED);
         this.client.getTextureManager().registerTexture(textureIdentifier, this.texture);
         this.image = this.texture.getImage();
     }
 
     public void forceReload() {
-        LightmapHD.forceReload();
+        LightmapHd.forceReload();
     }
 
-    private static final ConcurrentLinkedQueue<LightmapHD> updates = new ConcurrentLinkedQueue<>();
+    private static final ConcurrentLinkedQueue<LightmapHd> updates = new ConcurrentLinkedQueue<>();
     
-    public synchronized void setDirty(LightmapHD lightmap) {
+    public synchronized void setDirty(LightmapHd lightmap) {
         updates.add(lightmap);
     }
     
@@ -76,10 +76,10 @@ public class LightmapHdTexture implements AutoCloseable {
             return;
         }
 
+        //UGLY: clean up and use ReliableImage methods instead
         GlStateManager.activeTexture(GLX.GL_TEXTURE2);
         this.client.getTextureManager().bindTexture(this.textureIdentifier);
         
-        //UGLY: clean up and use ReliableImage methods instead
         
         final int mode = Configurator.enableLightmapDebug ? GL11.GL_NEAREST : GL11.GL_LINEAR;
         GlStateManager.texParameter(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, mode);
@@ -97,21 +97,21 @@ public class LightmapHdTexture implements AutoCloseable {
         int uMax = Integer.MIN_VALUE;
         int vMax = Integer.MIN_VALUE;
 
-        LightmapHD map;
+        LightmapHd map;
         while((map = updates.poll()) != null) {
             final int uMap = map.uMinImg;
             final int vMap = map.vMinImg;
             
-            for(int u = 0; u < LightmapHD.PADDED_SIZE; u++) {
-                for(int v = 0; v < LightmapHD.PADDED_SIZE; v++) {
+            for(int u = 0; u < LightmapHd.PADDED_SIZE; u++) {
+                for(int v = 0; v < LightmapHd.PADDED_SIZE; v++) {
                     image.setLuminance(uMap + u, vMap + v, (byte)map.pixel(u,v));
                 }
             }
             
             uMin = Math.min(uMin, uMap);
             vMin = Math.min(vMin, vMap);
-            uMax = Math.max(uMax, uMap + LightmapHD.PADDED_SIZE);
-            vMax = Math.max(vMax, vMap + LightmapHD.PADDED_SIZE);
+            uMax = Math.max(uMax, uMap + LightmapHd.PADDED_SIZE);
+            vMax = Math.max(vMax, vMap + LightmapHd.PADDED_SIZE);
         }
         
         
@@ -119,8 +119,9 @@ public class LightmapHdTexture implements AutoCloseable {
             return;
         }
         
-        //FIX: make partial work
-        this.texture.upload();
-//        this.texture.uploadPartial(uMin, vMin, w, vMax - vMin);
+        uMin = (uMin / 4) * 4;
+        final int w = ((uMax - uMin + 3) / 4) * 4;
+        
+        this.texture.uploadPartial(uMin, vMin, w, vMax - vMin);
     }
 }

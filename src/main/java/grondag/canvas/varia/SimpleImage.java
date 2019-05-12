@@ -72,7 +72,6 @@ public final class SimpleImage implements AutoCloseable {
             GlStateManager.texParameter(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, mipmap ? GL11.GL_NEAREST_MIPMAP_LINEAR : GL11.GL_NEAREST);
             GlStateManager.texParameter(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_NEAREST);
         }
-
     }
 
     @Override
@@ -118,23 +117,16 @@ public final class SimpleImage implements AutoCloseable {
         assert pointer != 0L : "Image not allocated.";
         setTextureFilter(interpolate, mipmap);
         setTextureClamp(clamp);
-        if (width == this.width) {
-            GlStateManager.pixelStore(GL11.GL_UNPACK_ROW_LENGTH, 0);
-        } else {
-            GlStateManager.pixelStore(GL11.GL_UNPACK_ROW_LENGTH, this.width);
-        }
-
+        GlStateManager.pixelStore(GL11.GL_UNPACK_ALIGNMENT, this.bytesPerPixel);
+        GlStateManager.pixelStore(GL11.GL_UNPACK_ROW_LENGTH, this.width);
         GlStateManager.pixelStore(GL11.GL_UNPACK_SKIP_PIXELS, skipPixels);
         GlStateManager.pixelStore(GL11.GL_UNPACK_SKIP_ROWS, skipRows);
-        setUnpackAlignment();
-        GlStateManager.texSubImage2D(GL11.GL_TEXTURE_2D, lod, x, y, width, height, pixelDataFormat, pixelDataType, pointer);
+        //FIX: why? why? why?
+//        GlStateManager.texSubImage2D(GL11.GL_TEXTURE_2D, lod, x, y, width, height, pixelDataFormat, pixelDataType, pointer);
+        GlStateManager.texSubImage2D(GL11.GL_TEXTURE_2D, lod, 0, 0, this.width, this.height, pixelDataFormat, pixelDataType, pointer);
     }
 
     public void untrack() {
         UntrackMemoryUtil.untrack(this.pointer);
-    }
-
-    private void setUnpackAlignment() {
-        GlStateManager.pixelStore(3317, this.bytesPerPixel);
     }
 }

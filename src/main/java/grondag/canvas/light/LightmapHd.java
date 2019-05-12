@@ -10,7 +10,7 @@ import grondag.canvas.apiimpl.util.AoFaceData;
 import grondag.fermion.varia.Useful;
 import it.unimi.dsi.fastutil.ints.Int2IntFunction;
 
-public class LightmapHD {
+public class LightmapHd {
     public static final int TEX_SIZE = 4096;
     private static final int LIGHTMAP_SIZE = 4;
     public static final int PADDED_SIZE = LIGHTMAP_SIZE + 2;
@@ -97,14 +97,14 @@ public class LightmapHD {
     
     static final ThreadLocal<Key> TEMPLATES = ThreadLocal.withInitial(Key::new);
     
-    static final ConcurrentHashMap<Key, LightmapHD> MAP = new ConcurrentHashMap<>();
+    static final ConcurrentHashMap<Key, LightmapHd> MAP = new ConcurrentHashMap<>();
     
-    public static LightmapHD findBlock(AoFaceData faceData) {
-        return find(faceData, LightmapHD::mapBlock);
+    public static LightmapHd findBlock(AoFaceData faceData) {
+        return find(faceData, LightmapHd::mapBlock);
     }
     
-    public static LightmapHD findSky(AoFaceData faceData) {
-        return find(faceData, LightmapHD::mapSky);
+    public static LightmapHd findSky(AoFaceData faceData) {
+        return find(faceData, LightmapHd::mapSky);
     }
     
     //PERF: quantize values to reduce consumption
@@ -134,18 +134,18 @@ public class LightmapHD {
     }
     
     // PERF: can reduce texture consumption 8X by reusing rotations/inversions 
-    private static LightmapHD find(AoFaceData faceData, BiConsumer<AoFaceData, Key> mapper) {
+    private static LightmapHd find(AoFaceData faceData, BiConsumer<AoFaceData, Key> mapper) {
         Key key = TEMPLATES.get();
         mapper.accept(faceData, key);
 
         key.computeHash();
         
-        LightmapHD result = MAP.get(key);
+        LightmapHd result = MAP.get(key);
         
         if(result == null) {
             // create new key object to avoid putting threadlocal into map
             Key key2 = new Key(key);
-            result = MAP.computeIfAbsent(key2, k -> new LightmapHD(k));
+            result = MAP.computeIfAbsent(key2, k -> new LightmapHd(k));
         }
         
         return result;
@@ -166,7 +166,7 @@ public class LightmapHD {
     public final int vMinImg;
     private final int[] light;
     
-    private LightmapHD(Key key) {
+    private LightmapHd(Key key) {
         final int index = nextIndex.getAndIncrement();
         final int s = index % MAPS_PER_AXIS;
         final int t = index / MAPS_PER_AXIS;

@@ -18,7 +18,7 @@ import grondag.canvas.apiimpl.RenderMaterialImpl;
 import grondag.canvas.apiimpl.rendercontext.ItemRenderContext;
 import grondag.canvas.apiimpl.util.ColorHelper;
 import grondag.canvas.buffer.packing.VertexCollector;
-import grondag.canvas.light.LightmapHD;
+import grondag.canvas.light.LightmapHd;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.util.math.BlockPos;
@@ -92,8 +92,8 @@ public class VertexEncoder {
         
         final boolean fatMaps = (shaderProps & ShaderProps.SMOOTH_LIGHTMAPS) != 0;
         
-        LightmapHD blockMap = fatMaps ? q.blockLight : null;
-        LightmapHD skyMap = fatMaps ? q.skyLight : null;;
+        LightmapHd blockMap = fatMaps ? q.blockLight : null;
+        LightmapHd skyMap = fatMaps ? q.skyLight : null;;
             
         for(int i = 0; i < 4; i++) {
             output.pos(pos, q.x(i), q.y(i), q.z(i));

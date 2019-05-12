@@ -35,7 +35,7 @@ import grondag.canvas.apiimpl.QuadViewImpl;
 import grondag.canvas.apiimpl.rendercontext.BlockRenderInfo;
 import grondag.canvas.apiimpl.util.AoFace.Vertex2Float;
 import grondag.canvas.apiimpl.util.AoFace.WeightFunction;
-import grondag.canvas.light.LightmapHD;
+import grondag.canvas.light.LightmapHd;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.util.math.Vector3f;
@@ -186,8 +186,8 @@ public class AoCalculator {
         }
         
         quad.shadeFaceData = ShadeFaceData.find(faceData);
-        quad.blockLight = LightmapHD.findBlock(faceData);
-        quad.skyLight = LightmapHD.findSky(faceData);
+        quad.blockLight = LightmapHd.findBlock(faceData);
+        quad.skyLight = LightmapHd.findSky(faceData);
     }
     
 
@@ -258,8 +258,8 @@ public class AoCalculator {
         }
         
         quad.shadeFaceData = ShadeFaceData.find(faceData);
-        quad.skyLight = LightmapHD.findSky(faceData);
-        quad.blockLight = LightmapHD.findBlock(faceData);
+        quad.skyLight = LightmapHd.findSky(faceData);
+        quad.blockLight = LightmapHd.findBlock(faceData);
     }
     
     /**
