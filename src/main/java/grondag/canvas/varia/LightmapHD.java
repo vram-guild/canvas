@@ -44,9 +44,6 @@ public class LightmapHD {
         
         private int hashCode;
         
-        //TODO: remove
-        public boolean boop = false;
-        
         Key() {
         }
 
@@ -121,12 +118,6 @@ public class LightmapHD {
         key.bottomRight = faceData.bottomRight & 0xFF;
         key.bottomLeft = faceData.bottomLeft & 0xFF;
         key.center = faceData.center & 0xFF;
-        
-        key.boop = faceData.boop;
-        
-        if(key.boop)
-            System.out.println(String.format("mapBlock c = %d tbrl = %d, %d, %d, %d, tlr-blr = %d, %d, %d, %d", 
-                    key.center, key.top, key.bottom, key.left, key.right, key.topLeft, key.topRight, key.bottomLeft, key.bottomRight));
     }
     
   //PERF: quantize values to reduce consumption
@@ -140,12 +131,6 @@ public class LightmapHD {
         key.bottomRight = (faceData.bottomRight >>> 16) & 0xFF;
         key.bottomLeft = (faceData.bottomLeft >>> 16) & 0xFF;
         key.center = (faceData.center >>> 16) & 0xFF;
-        
-        key.boop = faceData.boop;
-        
-        if(key.boop)
-            System.out.println(String.format("mapSky c = %d tbrl = %d, %d, %d, %d, tlr-blr = %d, %d, %d, %d", 
-                    key.center, key.top, key.bottom, key.left, key.right, key.topLeft, key.topRight, key.bottomLeft, key.bottomRight));
     }
     
     // PERF: can reduce texture consumption 8X by reusing rotations/inversions 
@@ -160,7 +145,6 @@ public class LightmapHD {
         if(result == null) {
             // create new key object to avoid putting threadlocal into map
             Key key2 = new Key(key);
-            key2.boop = key.boop;
             result = MAP.computeIfAbsent(key2, k -> new LightmapHD(k));
         }
         
@@ -181,23 +165,16 @@ public class LightmapHD {
     public final int uMinImg;
     public final int vMinImg;
     private final int[] light;
-    //TODO: remove
-    public final boolean boop;
     
     private LightmapHD(Key key) {
         final int index = nextIndex.getAndIncrement();
         final int s = index % MAPS_PER_AXIS;
         final int t = index / MAPS_PER_AXIS;
-        boop = key.boop;
         uMinImg = s * PADDED_SIZE;
         vMinImg = t * PADDED_SIZE;
         // PERF: light data could be repooled once uploaded - not needed after
         // or simply output to the texture directly
         this.light = new int[LIGHTMAP_PIXELS];
-        
-        if(boop)
-            System.out.println(String.format("LightmapHD index = %d, s = %d, t = %d, uMin = %d, vMin = %d", 
-                    index, s, t, uMinImg, vMinImg));
         
         if(index >= MAX_COUNT) {
             //TODO: put back and/or handle better
@@ -227,10 +204,6 @@ public class LightmapHD {
         final float topRight = input(key.topRight);
         final float bottomRight = input(key.bottomRight);
         final float bottomLeft = input(key.bottomLeft);
-
-        if(key.boop)
-            System.out.println(String.format("compute inputs c = %f tbrl = %f, %f, %f, %f, tlr-blr = %f, %f, %f, %f", 
-                    center, top, bottom, left, right, topLeft, topRight, bottomLeft, bottomRight));
 
         // Note: won't work for other than 4x4 interior, 6x6 padded
         computeQuadrant(center, left, top, topLeft, light, NEG, NEG);
@@ -385,11 +358,6 @@ public class LightmapHD {
      * Handles padding
      */
     public int pixel(int u, int v) {
-        //TODO: remove
-        if(boop) {
-            System.out.println(String.format("pixel u=%d v=%d c=%s", u, v, Integer.toHexString(light[v * PADDED_SIZE + u])));
-//            return (u & 1) == 1 ? 248 : 8;
-        }
         return light[v * PADDED_SIZE + u];
     }
     
@@ -403,10 +371,6 @@ public class LightmapHD {
 //        float v = vMinImg + 0.5f + q.v[i] * (LIGHTMAP_SIZE - 1);
         int u = Math.round((uMinImg + 1  + q.u[i] * LIGHTMAP_SIZE) * TEXTURE_TO_BUFFER);
         int v = Math.round((vMinImg + 1  + q.v[i] * LIGHTMAP_SIZE) * TEXTURE_TO_BUFFER);
-        
-        if(boop) 
-            System.out.println(String.format("coord u=%d v=%d c=%s", u, v, Integer.toHexString(u | (v << 16))));
-
         
         return u | (v << 16);
     }

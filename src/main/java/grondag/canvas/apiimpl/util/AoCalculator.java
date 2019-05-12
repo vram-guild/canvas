@@ -32,7 +32,6 @@ import java.util.function.ToIntFunction;
 import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.QuadViewImpl;
-import grondag.canvas.apiimpl.RendererImpl;
 import grondag.canvas.apiimpl.rendercontext.BlockRenderInfo;
 import grondag.canvas.apiimpl.util.AoFace.Vertex2Float;
 import grondag.canvas.apiimpl.util.AoFace.WeightFunction;
@@ -178,10 +177,6 @@ public class AoCalculator {
         
         final Direction lightFace = quad.lightFace();
         AoFaceData faceData = computeFace(lightFace, isOnLightFace);
-        if(quad.material() != RendererImpl.MATERIAL_STANDARD) {
-            System.out.println("boop");
-            faceData.boop = true;
-        }
         AoFace face = AoFace.get(lightFace);
         final Vertex2Float uFunc = face.uFunc;
         final Vertex2Float vFunc = face.vFunc;
@@ -193,7 +188,6 @@ public class AoCalculator {
         quad.shadeFaceData = ShadeFaceData.find(faceData);
         quad.blockLight = LightmapHD.findBlock(faceData);
         quad.skyLight = LightmapHD.findSky(faceData);
-        faceData.boop = false;
     }
     
 

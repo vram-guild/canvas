@@ -60,9 +60,6 @@ public class AoFaceData {
     float aoTopRight;
     float aoCenter;
 
-    //TODO: remove
-    public boolean boop;
-    
     // PERF - need to call if extra smooth enabled?  Maybe only the AO part?
     void compute() {
         outAoBottomRight = (aoRight + aoBottom + aoBottomRight + aoCenter) * 0.25F;

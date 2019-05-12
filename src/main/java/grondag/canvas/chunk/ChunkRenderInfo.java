@@ -168,8 +168,6 @@ public class ChunkRenderInfo {
         long key = PackedBlockPos.pack(pos);
         int result = brightnessCache.get(key);
         if (result == Integer.MAX_VALUE) {
-            //TODO: remove
-            pos = pos.toImmutable();
             result = blockView.getBlockState(pos).getBlockBrightness(blockView, pos);
             brightnessCache.put(key, result);
         }
@@ -190,8 +188,6 @@ public class ChunkRenderInfo {
         long key = PackedBlockPos.pack(pos);
         float result = aoLevelCache.get(key);
         if (result == Float.MAX_VALUE) {
-          //TODO: remove
-            pos = pos.toImmutable();
             result = blockView.getBlockState(pos).getAmbientOcclusionLightLevel(blockView, pos);
             aoLevelCache.put(key, result);
         }
