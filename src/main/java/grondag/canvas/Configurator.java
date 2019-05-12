@@ -60,10 +60,6 @@ public class Configurator implements ModMenuApi {
         @Comment("TODO")
         boolean enableCompactGPUFormats = true;
         
-        
-        @Comment("TODO")
-        boolean enableHdAo = false;
-        
         @Comment("TODO")
         boolean enableHdLightmaps = false;
         
@@ -106,7 +102,6 @@ public class Configurator implements ModMenuApi {
     public static boolean enableItemRender = DEFAULTS.enableItemRender;
     public static boolean enableShaderDebug = DEFAULTS.enableShaderDebug;
     
-    public static boolean enableHdAo = DEFAULTS.enableHdAo;
     public static boolean enableHdLightmaps = DEFAULTS.enableHdLightmaps;
     public static boolean enableLightmapNoise = DEFAULTS.enableLightmapNoise;
     public static boolean enableDiffuseShading = DEFAULTS.enableDiffuseShading;
@@ -153,7 +148,6 @@ public class Configurator implements ModMenuApi {
         maxShaders = config.maxPipelines;
         enableCompactGPUFormats = config.enableCompactGPUFormats;
         
-        enableHdAo = config.enableHdAo;
         enableHdLightmaps = config.enableHdLightmaps;
         enableLightmapNoise = config.enableLightmapNoise;
         enableDiffuseShading = config.enableDiffuseShading;
@@ -176,7 +170,6 @@ public class Configurator implements ModMenuApi {
         config.maxPipelines = maxShaders;
         config.enableCompactGPUFormats = enableCompactGPUFormats;
         
-        config.enableHdAo = enableHdAo;
         config.enableHdLightmaps = enableHdLightmaps;
         config.enableLightmapNoise = enableLightmapNoise;
         config.enableDiffuseShading = enableDiffuseShading;
@@ -258,9 +251,9 @@ public class Configurator implements ModMenuApi {
         ConfigScreenBuilder.CategoryBuilder lighting = builder.addCategory("config.canvas.category.lighting");
         
         // LIGHTING
-        lighting.addOption(new BooleanListEntry("config.canvas.value.prevent_anisotropy", enableHdAo, "config.canvas.reset", 
-                () -> DEFAULTS.enableHdAo, b -> {enableHdAo = b; reloadTerrain = true;}, 
-                () -> Optional.of(I18n.translate("config.canvas.help.prevent_anisotropy").split(";"))));
+        lighting.addOption(new BooleanListEntry("config.canvas.value.light_smoothing", enableLightSmoothing, "config.canvas.reset", 
+                () -> DEFAULTS.enableLightSmoothing, b -> {enableLightSmoothing = b; reloadTerrain = true;}, 
+                () -> Optional.of(I18n.translate("config.canvas.help.light_smoothing").split(";"))));
         
         lighting.addOption(new BooleanListEntry("config.canvas.value.smooth_lightmaps", enableHdLightmaps, "config.canvas.reset", 
                 () -> DEFAULTS.enableHdLightmaps, b -> {enableHdLightmaps = b; reloadTerrain = true;}, 
@@ -273,10 +266,6 @@ public class Configurator implements ModMenuApi {
         lighting.addOption(new BooleanListEntry("config.canvas.value.diffuse_shading", enableDiffuseShading, "config.canvas.reset", 
                 () -> DEFAULTS.enableDiffuseShading, b -> {enableDiffuseShading = b; reloadShaders = true;}, 
                 () -> Optional.of(I18n.translate("config.canvas.help.diffuse_shading").split(";"))));
-        
-        lighting.addOption(new BooleanListEntry("config.canvas.value.light_smoothing", enableLightSmoothing, "config.canvas.reset", 
-                () -> DEFAULTS.enableLightSmoothing, b -> {enableLightSmoothing = b; reloadTerrain = true;}, 
-                () -> Optional.of(I18n.translate("config.canvas.help.light_smoothing").split(";"))));
         
         lighting.addOption(new BooleanListEntry("config.canvas.value.ao_shading", enableAoShading, "config.canvas.reset", 
                 () -> DEFAULTS.enableAoShading, b -> {enableAoShading = b; reloadShaders = true;}, 
