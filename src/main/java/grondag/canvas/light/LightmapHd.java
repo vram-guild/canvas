@@ -39,6 +39,10 @@ public class LightmapHd {
         return find(faceData, LightmapHd::mapSky);
     }
     
+    public static LightmapHd findAo(AoFaceData faceData) {
+        return find(faceData, LightmapHd::mapAo);
+    }
+    
     private static long mapBlock(AoFaceData faceData) {
         return LightKey.toKey(
             faceData.top & 0xFF,
@@ -49,7 +53,8 @@ public class LightmapHd {
             faceData.topRight & 0xFF,
             faceData.bottomLeft & 0xFF,
             faceData.bottomRight & 0xFF,
-            faceData.center & 0xFF
+            faceData.center & 0xFF,
+            false
         );
     }
     
@@ -63,7 +68,23 @@ public class LightmapHd {
             (faceData.topRight >>> 16) & 0xFF,
             (faceData.bottomLeft >>> 16) & 0xFF,
             (faceData.bottomRight >>> 16) & 0xFF,
-            (faceData.center >>> 16) & 0xFF
+            (faceData.center >>> 16) & 0xFF,
+            false
+        );
+    }
+    
+    private static long mapAo(AoFaceData faceData) {
+        return LightKey.toKey(
+            faceData.top & 0xFF,
+            faceData.left & 0xFF,
+            faceData.right & 0xFF,
+            faceData.bottom & 0xFF,
+            faceData.topLeft & 0xFF,
+            faceData.topRight & 0xFF,
+            faceData.bottomLeft & 0xFF,
+            faceData.bottomRight & 0xFF,
+            faceData.center & 0xFF,
+            true
         );
     }
     

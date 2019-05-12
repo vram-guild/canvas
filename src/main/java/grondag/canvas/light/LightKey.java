@@ -1,6 +1,7 @@
 package grondag.canvas.light;
 
 import grondag.fermion.varia.BitPacker64;
+import grondag.fermion.varia.BitPacker64.BooleanElement;
 import grondag.fermion.varia.BitPacker64.IntElement;
 
 @SuppressWarnings("rawtypes")
@@ -19,6 +20,8 @@ public final class LightKey {
     private static final IntElement BOTTOM_LEFT = PACKER.createIntElement(-1, 60);
     private static final IntElement BOTTOM_RIGHT = PACKER.createIntElement(-1, 60);
     
+    private static final BooleanElement IS_AO = PACKER.createBooleanElement();
+    
     static long toKey(
             int top,
             int left,
@@ -28,7 +31,8 @@ public final class LightKey {
             int topRight,
             int bottomLeft,
             int bottomRight,
-            int center)
+            int center, 
+            boolean isAo)
     {
         long result = CENTER.setValue(clamp(center), 0);
         
@@ -41,6 +45,8 @@ public final class LightKey {
         result = TOP_RIGHT.setValue(clamp(topRight), result);
         result = BOTTOM_LEFT.setValue(clamp(bottomLeft), result);
         result = BOTTOM_RIGHT.setValue(clamp(bottomRight), result);
+        
+        result = IS_AO.setValue(isAo, result);
         
         return result;
     }
@@ -92,5 +98,9 @@ public final class LightKey {
     
     public static int bottomRight(long key) {
         return unclamp(BOTTOM_RIGHT.getValue(key));
+    }
+    
+    public static boolean isAo(long key) {
+        return IS_AO.getValue(key);
     }
 }
