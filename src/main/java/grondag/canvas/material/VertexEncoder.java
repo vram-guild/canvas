@@ -15,12 +15,14 @@ import static grondag.canvas.material.MaterialVertextFormatElement.TERTIARY_TEX_
 
 import grondag.canvas.apiimpl.QuadViewImpl;
 import grondag.canvas.apiimpl.RenderMaterialImpl;
+import grondag.canvas.apiimpl.RendererImpl;
 import grondag.canvas.apiimpl.rendercontext.ItemRenderContext;
 import grondag.canvas.apiimpl.util.ColorHelper;
 import grondag.canvas.buffer.packing.VertexCollector;
 import grondag.canvas.varia.LightmapHD;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.util.math.BlockPos;
 
 public class VertexEncoder {
@@ -95,6 +97,11 @@ public class VertexEncoder {
         LightmapHD blockMap = fatMaps ? q.blockLight : null;
         LightmapHD skyMap = fatMaps ? q.skyLight : null;;
             
+        //TODO: remove
+        if(q.material() != RendererImpl.MATERIAL_STANDARD) {
+            System.out.println("encodeBlock fatMaps = " + fatMaps);
+        }
+
         for(int i = 0; i < 4; i++) {
             output.pos(pos, q.x(i), q.y(i), q.z(i));
             if((shaderProps & ShaderProps.WHITE_0) == 0) {
@@ -104,7 +111,7 @@ public class VertexEncoder {
             output.add(q.spriteV(i, 0));
             int packedLight = q.lightmap(i);
             int blockLight = (packedLight & 0xFF);
-            int skyLight = ((packedLight >> 16) & 0xFF);
+            int skyLight = ((packedLight >>> 16) & 0xFF);
             output.add(blockLight | (skyLight << 8) | shaderFlags);
             
             if(fatMaps) {

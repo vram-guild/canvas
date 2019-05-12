@@ -193,6 +193,7 @@ public abstract class MixinChunkRenderer implements ChunkRendererExt {
                  */
                 renderContext.prepare((ChunkRenderer) (Object) this, origin);
                 
+                // PERF: should still happen?  Replace with ours?
                 BlockModelRenderer.enableBrightnessCache();
                 final BlockRenderManager blockRenderManager = MinecraftClient.getInstance().getBlockRenderManager();
 

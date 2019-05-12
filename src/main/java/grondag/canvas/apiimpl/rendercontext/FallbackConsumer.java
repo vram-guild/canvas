@@ -22,7 +22,7 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.function.ToIntBiFunction;
+import java.util.function.ToIntFunction;
 
 import grondag.canvas.apiimpl.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.QuadViewImpl;
@@ -68,7 +68,7 @@ public class FallbackConsumer extends QuadRenderer implements Consumer<BakedMode
     
     FallbackConsumer(
             BlockRenderInfo blockInfo, 
-            ToIntBiFunction<BlockState, BlockPos> brightnessFunc, 
+            ToIntFunction<BlockPos> brightnessFunc, 
             BiFunction<RenderMaterialImpl.Value, QuadViewImpl, VertexCollector> collectorFunc, 
             AoCalculator aoCalc, 
             QuadTransform transform, 

@@ -27,18 +27,18 @@ import static net.minecraft.util.math.Direction.SOUTH;
 import static net.minecraft.util.math.Direction.UP;
 import static net.minecraft.util.math.Direction.WEST;
 
-import java.util.function.ToIntBiFunction;
+import java.util.function.ToIntFunction;
 
 import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.QuadViewImpl;
+import grondag.canvas.apiimpl.RendererImpl;
 import grondag.canvas.apiimpl.rendercontext.BlockRenderInfo;
 import grondag.canvas.apiimpl.util.AoFace.Vertex2Float;
 import grondag.canvas.apiimpl.util.AoFace.WeightFunction;
 import grondag.canvas.varia.LightmapHD;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.block.BlockState;
 import net.minecraft.client.util.math.Vector3f;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
@@ -76,7 +76,7 @@ public class AoCalculator {
     private final BlockPos.Mutable lightPos = new BlockPos.Mutable();
     private final BlockPos.Mutable searchPos = new BlockPos.Mutable();
     private final BlockRenderInfo blockInfo;
-    private final ToIntBiFunction<BlockState, BlockPos> brightnessFunc;
+    private final ToIntFunction<BlockPos> brightnessFunc;
     private final AoFunc aoFunc;
 
     /**
@@ -95,7 +95,7 @@ public class AoCalculator {
     public final float[] ao = new float[4];
     public final int[] light = new int[4];
 
-    public AoCalculator(BlockRenderInfo blockInfo, ToIntBiFunction<BlockState, BlockPos> brightnessFunc, AoFunc aoFunc) {
+    public AoCalculator(BlockRenderInfo blockInfo, ToIntFunction<BlockPos> brightnessFunc, AoFunc aoFunc) {
         this.blockInfo = blockInfo;
         this.brightnessFunc = brightnessFunc;
         this.aoFunc = aoFunc;
@@ -175,8 +175,13 @@ public class AoCalculator {
     }
     
     private void vanillaPartialFaceSmooth(MutableQuadViewImpl quad, boolean isOnLightFace) {
+        
         final Direction lightFace = quad.lightFace();
         AoFaceData faceData = computeFace(lightFace, isOnLightFace);
+        if(quad.material() != RendererImpl.MATERIAL_STANDARD) {
+            System.out.println("boop");
+            faceData.boop = true;
+        }
         AoFace face = AoFace.get(lightFace);
         final Vertex2Float uFunc = face.uFunc;
         final Vertex2Float vFunc = face.vFunc;
@@ -185,10 +190,10 @@ public class AoCalculator {
             quad.v[i] = vFunc.apply(quad, i);
         }
         
-        //PERF: only add these if extra smooth lighting enabled
         quad.shadeFaceData = ShadeFaceData.find(faceData);
         quad.blockLight = LightmapHD.findBlock(faceData);
         quad.skyLight = LightmapHD.findSky(faceData);
+        faceData.boop = false;
     }
     
 
@@ -356,7 +361,6 @@ public class AoCalculator {
             completionFlags |= mask;
 
             final ExtendedBlockView world = blockInfo.blockView;
-            final BlockState blockState = blockInfo.blockState;
             final BlockPos pos = blockInfo.blockPos;
             final BlockPos.Mutable lightPos = this.lightPos;
             final BlockPos.Mutable searchPos = this.searchPos;
@@ -370,9 +374,9 @@ public class AoCalculator {
             // Doesn't use light pos because logic not based solely on this block's geometry
             searchPos.set((Vec3i) pos).setOffset(lightFace);
             if (isOnBlockFace || !world.getBlockState(searchPos).isFullOpaque(world, searchPos)) {
-                fd.center = brightnessFunc.applyAsInt(blockState, searchPos);
+                fd.center = brightnessFunc.applyAsInt(searchPos);
             } else {
-                fd.center = brightnessFunc.applyAsInt(blockState, pos);
+                fd.center = brightnessFunc.applyAsInt(pos);
             }
 
             fd.aoCenter = aoFunc.apply(isOnBlockFace ? lightPos : pos);
@@ -382,22 +386,22 @@ public class AoCalculator {
             // PERF: use clearness cache in chunk info
             searchPos.set(lightPos).setOffset(aoFace.neighbors[BOTTOM]);
             final boolean bottomClear = world.getBlockState(searchPos).getLightSubtracted(world, searchPos) == 0;
-            fd.bottom = bottomClear ? brightnessFunc.applyAsInt(blockState, searchPos) : OPAQUE;
+            fd.bottom = bottomClear ? brightnessFunc.applyAsInt(searchPos) : OPAQUE;
             fd.aoBottom = aoFunc.apply(searchPos);
             
             searchPos.set(lightPos).setOffset(aoFace.neighbors[TOP]);
             final boolean topClear = world.getBlockState(searchPos).getLightSubtracted(world, searchPos) == 0;
-            fd.top = topClear ? brightnessFunc.applyAsInt(blockState, searchPos) : OPAQUE;
+            fd.top = topClear ? brightnessFunc.applyAsInt(searchPos) : OPAQUE;
             fd.aoTop = aoFunc.apply(searchPos);
             
             searchPos.set(lightPos).setOffset(aoFace.neighbors[LEFT]);
             final boolean leftClear = world.getBlockState(searchPos).getLightSubtracted(world, searchPos) == 0;
-            fd.left = leftClear ? brightnessFunc.applyAsInt(blockState, searchPos) : OPAQUE;
+            fd.left = leftClear ? brightnessFunc.applyAsInt(searchPos) : OPAQUE;
             fd.aoLeft = aoFunc.apply(searchPos);
             
             searchPos.set(lightPos).setOffset(aoFace.neighbors[RIGHT]);
             final boolean rightClear = world.getBlockState(searchPos).getLightSubtracted(world, searchPos) == 0;
-            fd.right = rightClear ? brightnessFunc.applyAsInt(blockState, searchPos) : OPAQUE;
+            fd.right = rightClear ? brightnessFunc.applyAsInt(searchPos) : OPAQUE;
             fd.aoRight = aoFunc.apply(searchPos);
 
 
@@ -420,9 +424,7 @@ public class AoCalculator {
                 searchPos.set(lightPos).setOffset(aoFace.neighbors[BOTTOM]).setOffset(aoFace.neighbors[LEFT]);
                 fd.aoBottomLeft = aoFunc.apply(searchPos);
                 boolean cornerClear = world.getBlockState(searchPos).getLightSubtracted(world, searchPos) == 0;
-                //FIX: why applying own blockstate here?
-                //PERF: send position only
-                fd.bottomLeft = cornerClear ? brightnessFunc.applyAsInt(blockState, searchPos) : OPAQUE;
+                fd.bottomLeft = cornerClear ? brightnessFunc.applyAsInt(searchPos) : OPAQUE;
             }
 
             
@@ -434,9 +436,7 @@ public class AoCalculator {
                 searchPos.set(lightPos).setOffset(aoFace.neighbors[BOTTOM]).setOffset(aoFace.neighbors[RIGHT]);
                 fd.aoBottomRight = aoFunc.apply(searchPos);
                 boolean cornerClear = world.getBlockState(searchPos).getLightSubtracted(world, searchPos) == 0;
-                //FIX: why applying own blockstate here?
-                //PERF: send position only
-                fd.bottomRight = cornerClear ? brightnessFunc.applyAsInt(blockState, searchPos) : OPAQUE;
+                fd.bottomRight = cornerClear ? brightnessFunc.applyAsInt(searchPos) : OPAQUE;
             }
             
             if (!(leftClear || topClear)) { 
@@ -447,9 +447,7 @@ public class AoCalculator {
                 searchPos.set(lightPos).setOffset(aoFace.neighbors[TOP]).setOffset(aoFace.neighbors[LEFT]);
                 fd.aoTopLeft = aoFunc.apply(searchPos);
                 boolean cornerClear = world.getBlockState(searchPos).getLightSubtracted(world, searchPos) == 0;
-                //FIX: why applying own blockstate here?
-                //PERF: send position only
-                fd.topLeft = cornerClear ? brightnessFunc.applyAsInt(blockState, searchPos) : OPAQUE;
+                fd.topLeft = cornerClear ? brightnessFunc.applyAsInt(searchPos) : OPAQUE;
             }
             
             if (!(rightClear || topClear)) { 
@@ -460,9 +458,7 @@ public class AoCalculator {
                 searchPos.set(lightPos).setOffset(aoFace.neighbors[TOP]).setOffset(aoFace.neighbors[RIGHT]);
                 fd.aoTopRight = aoFunc.apply(searchPos);
                 boolean cornerClear = world.getBlockState(searchPos).getLightSubtracted(world, searchPos) == 0;
-                //FIX: why applying own blockstate here?
-                //PERF: send position only
-                fd.topRight = cornerClear ? brightnessFunc.applyAsInt(blockState, searchPos) : OPAQUE;
+                fd.topRight = cornerClear ? brightnessFunc.applyAsInt(searchPos) : OPAQUE;
             }
 
             fd.compute();

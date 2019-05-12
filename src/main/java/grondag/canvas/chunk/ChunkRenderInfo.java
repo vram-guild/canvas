@@ -48,9 +48,7 @@ import net.minecraft.client.render.chunk.ChunkRenderer;
 import net.minecraft.client.world.SafeWorldView;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.BlockView;
 import net.minecraft.world.ExtendedBlockView;
-import net.minecraft.world.World;
 
 //PERF: many opportunities here
 
@@ -166,21 +164,12 @@ public class ChunkRenderInfo {
         }
     }
 
-    // TODO: remove and use pos-only version
-    /**
-     * Cached values for
-     * {@link BlockState#getBlockBrightness(ExtendedBlockView, BlockPos)}. See also
-     * the comments for {@link #brightnessCache}.
-     */
-    @Deprecated 
-    public int cachedBrightness(BlockState blockState, BlockPos pos) {
-        return cachedBrightness(pos);
-    }
-
     public int cachedBrightness(BlockPos pos) {
         long key = PackedBlockPos.pack(pos);
         int result = brightnessCache.get(key);
         if (result == Integer.MAX_VALUE) {
+            //TODO: remove
+            pos = pos.toImmutable();
             result = blockView.getBlockState(pos).getBlockBrightness(blockView, pos);
             brightnessCache.put(key, result);
         }
@@ -201,6 +190,8 @@ public class ChunkRenderInfo {
         long key = PackedBlockPos.pack(pos);
         float result = aoLevelCache.get(key);
         if (result == Float.MAX_VALUE) {
+          //TODO: remove
+            pos = pos.toImmutable();
             result = blockView.getBlockState(pos).getAmbientOcclusionLightLevel(blockView, pos);
             aoLevelCache.put(key, result);
         }
@@ -282,6 +273,7 @@ public class ChunkRenderInfo {
                     
                     final int b = Math.round(Math.max(0, block[i]) * 16 * 1.04f);
                     final int k = Math.round(Math.max(0, sky[i]) * 16 * 1.04f);
+                    //(240 <<16) | 240); //
                     output.put(packedPos, (Math.min(b, 240) & 0b11111100) | ((Math.min(k, 240) & 0b11111100)  << 16));
                 }
             }
@@ -299,6 +291,8 @@ public class ChunkRenderInfo {
 //    private static final float SIDE = INNER_DIST * INNER_DIST * OUTER_DIST;
 //    private static final float NEAR_CORNER = INNER_DIST * OUTER_DIST * OUTER_DIST;
 //    private static final float FAR_CORNER = OUTER_DIST * OUTER_DIST * OUTER_DIST;
+    
+    //UGLY - move to LightSmoother class
     
     private static void smooth(int margin, float[] src, float[] dest) {
         final int base = 16 - margin;

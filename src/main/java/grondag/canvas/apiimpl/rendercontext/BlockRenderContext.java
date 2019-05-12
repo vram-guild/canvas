@@ -57,11 +57,12 @@ public class BlockRenderContext extends AbstractRenderContext implements RenderC
     private CanvasBufferBuilder canvasBuilder;
     private boolean didOutput = false;
 
-    private int brightness(BlockState blockState, BlockPos pos) {
-        if (blockInfo.blockView == null) {
+    private int brightness(BlockPos pos) {
+        final ExtendedBlockView blockView = blockInfo.blockView;
+        if (blockView == null) {
             return 15 << 20 | 15 << 4;
         }
-        return blockState.getBlockBrightness(blockInfo.blockView, pos);
+        return blockView.getBlockState(pos).getBlockBrightness(blockView, pos);
     }
 
     private float aoLevel(BlockPos pos) {

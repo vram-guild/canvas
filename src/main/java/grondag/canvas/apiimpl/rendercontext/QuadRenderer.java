@@ -21,7 +21,7 @@ import static grondag.canvas.apiimpl.util.GeometryHelper.LIGHT_FACE_FLAG;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.ToIntBiFunction;
+import java.util.function.ToIntFunction;
 
 import grondag.canvas.apiimpl.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.QuadViewImpl;
@@ -42,7 +42,7 @@ import net.minecraft.util.math.BlockPos;
 public class QuadRenderer {
     public static final Consumer<MutableQuadViewImpl> NO_OFFSET = (q) -> {};
     
-    protected final ToIntBiFunction<BlockState, BlockPos> brightnessFunc;
+    protected final ToIntFunction<BlockPos> brightnessFunc;
     protected final BiFunction<RenderMaterialImpl.Value, QuadViewImpl, VertexCollector> collectorFunc;
     protected final BlockRenderInfo blockInfo;
     protected final AoCalculator aoCalc;
@@ -52,7 +52,7 @@ public class QuadRenderer {
     protected final Function<RenderMaterialImpl.Value, ShaderContext> contextFunc;
     QuadRenderer(
             BlockRenderInfo blockInfo, 
-            ToIntBiFunction<BlockState, BlockPos> brightnessFunc,
+            ToIntFunction<BlockPos> brightnessFunc,
             BiFunction<RenderMaterialImpl.Value, QuadViewImpl, VertexCollector> collectorFunc, 
             AoCalculator aoCalc, 
             QuadTransform transform,
@@ -139,6 +139,6 @@ public class QuadRenderer {
         if ((quad.geometryFlags() & LIGHT_FACE_FLAG) != 0) {
             mpos.setOffset(quad.lightFace());
         }
-        return brightnessFunc.applyAsInt(blockState, mpos);
+        return brightnessFunc.applyAsInt(mpos);
     }
 }

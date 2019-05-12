@@ -118,6 +118,12 @@ public class LightmapHdTexture implements AutoCloseable {
             return;
         }
         
-        this.texture.uploadPartial(uMin, vMin, uMax - uMin, vMax - vMin);
+        
+        //TODO: remove
+        uMin = (uMin / 4) * 4;
+        int w = ((uMax - uMin + 3) / 4) * 4;
+        System.out.println(String.format("Upload u = %d, v = %d, width = %d, height = %d", uMin, vMin, w, vMax - vMin));
+        
+        this.texture.uploadPartial(uMin, vMin, w, vMax - vMin);
     }
 }

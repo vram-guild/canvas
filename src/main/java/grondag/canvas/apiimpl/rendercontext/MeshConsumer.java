@@ -19,7 +19,7 @@ package grondag.canvas.apiimpl.rendercontext;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.ToIntBiFunction;
+import java.util.function.ToIntFunction;
 
 import grondag.canvas.apiimpl.MeshImpl;
 import grondag.canvas.apiimpl.MutableQuadViewImpl;
@@ -34,7 +34,6 @@ import grondag.canvas.material.ShaderContext;
 import grondag.frex.api.mesh.Mesh;
 import grondag.frex.api.mesh.QuadEmitter;
 import grondag.frex.api.render.RenderContext.QuadTransform;
-import net.minecraft.block.BlockState;
 import net.minecraft.util.math.BlockPos;
 
 /**
@@ -45,7 +44,7 @@ import net.minecraft.util.math.BlockPos;
 public class MeshConsumer extends QuadRenderer implements Consumer<Mesh> {
     protected MeshConsumer(
             BlockRenderInfo blockInfo, 
-            ToIntBiFunction<BlockState, BlockPos> brightnessFunc,
+            ToIntFunction<BlockPos> brightnessFunc,
             BiFunction<RenderMaterialImpl.Value, QuadViewImpl, VertexCollector> collectorFunc, 
             AoCalculator aoCalc, 
             QuadTransform transform,

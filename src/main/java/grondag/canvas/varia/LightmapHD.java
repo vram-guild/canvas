@@ -16,8 +16,8 @@ public class LightmapHD {
     public static final int PADDED_SIZE = LIGHTMAP_SIZE + 2;
     private static final int RADIUS = LIGHTMAP_SIZE / 2;
     private static final int LIGHTMAP_PIXELS = PADDED_SIZE * PADDED_SIZE;
-    private static final int IDX_SIZE = TEX_SIZE / PADDED_SIZE;
-    private static final int MAX_COUNT = IDX_SIZE * IDX_SIZE;
+    private static final int MAPS_PER_AXIS = TEX_SIZE / PADDED_SIZE;
+    private static final int MAX_COUNT = MAPS_PER_AXIS * MAPS_PER_AXIS;
     // UGLY - consider making this a full unsigned short
     // for initial pass didn't want to worry about signed value mistakes
     /** Scale of texture units sent to shader. Shader should divide by this. */
@@ -44,6 +44,9 @@ public class LightmapHD {
         
         private int hashCode;
         
+        //TODO: remove
+        public boolean boop = false;
+        
         Key() {
         }
 
@@ -67,7 +70,7 @@ public class LightmapHD {
          * Call after mutating {@link #light}
          */
         void computeHash() {
-            long l0 = center | (top << 8) | (left << 16) | (right << 24) | (bottom << 32);
+            long l0 = center | (top << 8) | (left << 16) | (right << 24) | ((long)bottom << 32);
             long l1 = topLeft | (topRight << 8) | (bottomLeft << 16) | (bottomRight << 24);
             this.hashCode = Long.hashCode(Useful.longHash(l0) ^ Useful.longHash(l1));
         }
@@ -107,6 +110,7 @@ public class LightmapHD {
         return find(faceData, LightmapHD::mapSky);
     }
     
+    //PERF: quantize values to reduce consumption
     private static void mapBlock(AoFaceData faceData, Key key) {
         key.top = faceData.top & 0xFF;
         key.bottom = faceData.bottom & 0xFF;
@@ -117,8 +121,15 @@ public class LightmapHD {
         key.bottomRight = faceData.bottomRight & 0xFF;
         key.bottomLeft = faceData.bottomLeft & 0xFF;
         key.center = faceData.center & 0xFF;
+        
+        key.boop = faceData.boop;
+        
+        if(key.boop)
+            System.out.println(String.format("mapBlock c = %d tbrl = %d, %d, %d, %d, tlr-blr = %d, %d, %d, %d", 
+                    key.center, key.top, key.bottom, key.left, key.right, key.topLeft, key.topRight, key.bottomLeft, key.bottomRight));
     }
     
+  //PERF: quantize values to reduce consumption
     private static void mapSky(AoFaceData faceData, Key key) {
         key.top = (faceData.top >>> 16) & 0xFF;
         key.bottom = (faceData.bottom >>> 16) & 0xFF;
@@ -129,12 +140,17 @@ public class LightmapHD {
         key.bottomRight = (faceData.bottomRight >>> 16) & 0xFF;
         key.bottomLeft = (faceData.bottomLeft >>> 16) & 0xFF;
         key.center = (faceData.center >>> 16) & 0xFF;
+        
+        key.boop = faceData.boop;
+        
+        if(key.boop)
+            System.out.println(String.format("mapSky c = %d tbrl = %d, %d, %d, %d, tlr-blr = %d, %d, %d, %d", 
+                    key.center, key.top, key.bottom, key.left, key.right, key.topLeft, key.topRight, key.bottomLeft, key.bottomRight));
     }
     
     // PERF: can reduce texture consumption 8X by reusing rotations/inversions 
     private static LightmapHD find(AoFaceData faceData, BiConsumer<AoFaceData, Key> mapper) {
         Key key = TEMPLATES.get();
-        
         mapper.accept(faceData, key);
 
         key.computeHash();
@@ -144,6 +160,7 @@ public class LightmapHD {
         if(result == null) {
             // create new key object to avoid putting threadlocal into map
             Key key2 = new Key(key);
+            key2.boop = key.boop;
             result = MAP.computeIfAbsent(key2, k -> new LightmapHD(k));
         }
         
@@ -151,10 +168,10 @@ public class LightmapHD {
     }
     
     private static float input(int b) {
+        b &= 0xFF;
         if(b == 0xFF) {
             return AoFaceData.OPAQUE;
         }
-        b &= 0xFF;
         if(b > 240) {
             b = 240;
         }
@@ -164,16 +181,23 @@ public class LightmapHD {
     public final int uMinImg;
     public final int vMinImg;
     private final int[] light;
+    //TODO: remove
+    public final boolean boop;
     
     private LightmapHD(Key key) {
         final int index = nextIndex.getAndIncrement();
-        final int s = index % IDX_SIZE;
-        final int t = index / IDX_SIZE;
+        final int s = index % MAPS_PER_AXIS;
+        final int t = index / MAPS_PER_AXIS;
+        boop = key.boop;
         uMinImg = s * PADDED_SIZE;
         vMinImg = t * PADDED_SIZE;
         // PERF: light data could be repooled once uploaded - not needed after
         // or simply output to the texture directly
         this.light = new int[LIGHTMAP_PIXELS];
+        
+        if(boop)
+            System.out.println(String.format("LightmapHD index = %d, s = %d, t = %d, uMin = %d, vMin = %d", 
+                    index, s, t, uMinImg, vMinImg));
         
         if(index >= MAX_COUNT) {
             //TODO: put back and/or handle better
@@ -182,7 +206,7 @@ public class LightmapHD {
             return;
         }
         
-        compute(light, key);
+        compute(light, key, index);
         
         LightmapHdTexture.instance().setDirty(this);
     }
@@ -192,7 +216,7 @@ public class LightmapHD {
     /** converts zero-based distance from center to u/v index - use for bottom/right */
     private static final Int2IntFunction POS = i -> RADIUS + 1 + i;
     
-    private static void compute(int[] light, Key key) {
+    private static void compute(int[] light, Key key, int index) {
         // PERF: use integer math
         final float center = input(key.center);
         final float top = input(key.top);
@@ -204,15 +228,10 @@ public class LightmapHD {
         final float bottomRight = input(key.bottomRight);
         final float bottomLeft = input(key.bottomLeft);
 
-//        for(int i = -1; i < RADIUS; i++) {
-//            for(int j = -1; j < RADIUS; j++) {
-//                light[lightIndex(i, j)] = output(inside(center, left, top, topLeft, i, j));
-//                light[lightIndex(RADIUS + 1 + i, j)] = output(inside(center, right, top, topRight, RADIUS + 1 + i, j));
-//                light[lightIndex(RADIUS + 1 + i, RADIUS + 1 + j)] = output(inside(center, right, bottom, bottomRight, RADIUS + 1 + i, RADIUS + 1 + j));
-//                light[lightIndex(i, RADIUS + 1 + j)] = output(inside(center, left, bottom, bottomLeft, i, RADIUS + 1 + j));
-//            }
-//        }
-        
+        if(key.boop)
+            System.out.println(String.format("compute inputs c = %f tbrl = %f, %f, %f, %f, tlr-blr = %f, %f, %f, %f", 
+                    center, top, bottom, left, right, topLeft, topRight, bottomLeft, bottomRight));
+
         // Note: won't work for other than 4x4 interior, 6x6 padded
         computeQuadrant(center, left, top, topLeft, light, NEG, NEG);
         computeQuadrant(center, right, top, topRight, light, POS, NEG);
@@ -221,7 +240,7 @@ public class LightmapHD {
     }
     
     private static void computeQuadrant(float center, float uSide, float vSide, float corner, int light[], Int2IntFunction uFunc, Int2IntFunction vFunc) {
-        //FIX: handle error case when center is NaN
+        //FIX: handle error case when center is missing
         if(uSide == AoFaceData.OPAQUE) {
             if(vSide == AoFaceData.OPAQUE) {
                 // fully enclosed
@@ -366,6 +385,11 @@ public class LightmapHD {
      * Handles padding
      */
     public int pixel(int u, int v) {
+        //TODO: remove
+        if(boop) {
+            System.out.println(String.format("pixel u=%d v=%d c=%s", u, v, Integer.toHexString(light[v * PADDED_SIZE + u])));
+//            return (u & 1) == 1 ? 248 : 8;
+        }
         return light[v * PADDED_SIZE + u];
     }
     
@@ -377,9 +401,12 @@ public class LightmapHD {
         // 2 for uv and 2 to lookup the combinations
 //        float u = uMinImg + 0.5f + q.u[i] * (LIGHTMAP_SIZE - 1);
 //        float v = vMinImg + 0.5f + q.v[i] * (LIGHTMAP_SIZE - 1);
-        int u = Math.round((uMinImg + 1) * TEXTURE_TO_BUFFER  + q.u[i] * (LIGHTMAP_SIZE * TEXTURE_TO_BUFFER));
-        int v = Math.round((vMinImg + 1) * TEXTURE_TO_BUFFER  + q.v[i] * (LIGHTMAP_SIZE * TEXTURE_TO_BUFFER));
+        int u = Math.round((uMinImg + 1  + q.u[i] * LIGHTMAP_SIZE) * TEXTURE_TO_BUFFER);
+        int v = Math.round((vMinImg + 1  + q.v[i] * LIGHTMAP_SIZE) * TEXTURE_TO_BUFFER);
         
+        if(boop) 
+            System.out.println(String.format("coord u=%d v=%d c=%s", u, v, Integer.toHexString(u | (v << 16))));
+
         
         return u | (v << 16);
     }

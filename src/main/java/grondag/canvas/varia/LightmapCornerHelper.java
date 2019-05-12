@@ -16,7 +16,6 @@ public class LightmapCornerHelper {
     private float k = 0;
     private float l = 0;
     private float m = 0;
-    private float n = 0;
     private float o = 0;
     
     private float x;
