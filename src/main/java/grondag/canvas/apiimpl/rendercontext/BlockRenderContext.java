@@ -20,10 +20,10 @@ import java.util.function.Consumer;
 
 import grondag.canvas.apiimpl.QuadViewImpl;
 import grondag.canvas.apiimpl.RenderMaterialImpl;
-import grondag.canvas.apiimpl.util.AoCalculator;
 import grondag.canvas.buffer.packing.CanvasBufferBuilder;
 import grondag.canvas.buffer.packing.VertexCollector;
 import grondag.canvas.draw.TessellatorExt;
+import grondag.canvas.light.AoCalculator;
 import grondag.canvas.material.ShaderContext;
 import grondag.canvas.material.ShaderProps;
 import grondag.frex.api.model.DynamicBakedModel;

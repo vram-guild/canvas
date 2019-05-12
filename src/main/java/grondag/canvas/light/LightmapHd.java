@@ -6,7 +6,6 @@ import java.util.function.BiConsumer;
 
 import grondag.canvas.Canvas;
 import grondag.canvas.apiimpl.QuadViewImpl;
-import grondag.canvas.apiimpl.util.AoFaceData;
 import grondag.fermion.varia.Useful;
 import it.unimi.dsi.fastutil.ints.Int2IntFunction;
 

@@ -15,6 +15,7 @@ public class LightSmoother {
     private static final int POS_COUNT = POS_DIAMETER * POS_DIAMETER * POS_DIAMETER;
     private static final int Y_INC = POS_DIAMETER;
     private static final int Z_INC = POS_DIAMETER * POS_DIAMETER;
+//    private static final float BOOST = 1.02f;
 
     private static class Helper {
         private final BlockPos.Mutable smoothPos = new BlockPos.Mutable();

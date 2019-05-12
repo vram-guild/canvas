@@ -14,12 +14,12 @@
  * the License.
  ******************************************************************************/
 
-package grondag.canvas.apiimpl.util;
+package grondag.canvas.light;
 
-import static grondag.canvas.apiimpl.util.AoFaceData.OPAQUE;
 import static grondag.canvas.apiimpl.util.GeometryHelper.AXIS_ALIGNED_FLAG;
 import static grondag.canvas.apiimpl.util.GeometryHelper.CUBIC_FLAG;
 import static grondag.canvas.apiimpl.util.GeometryHelper.LIGHT_FACE_FLAG;
+import static grondag.canvas.light.AoFaceData.OPAQUE;
 import static net.minecraft.util.math.Direction.DOWN;
 import static net.minecraft.util.math.Direction.EAST;
 import static net.minecraft.util.math.Direction.NORTH;
@@ -33,9 +33,8 @@ import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.QuadViewImpl;
 import grondag.canvas.apiimpl.rendercontext.BlockRenderInfo;
-import grondag.canvas.apiimpl.util.AoFace.Vertex2Float;
-import grondag.canvas.apiimpl.util.AoFace.WeightFunction;
-import grondag.canvas.light.LightmapHd;
+import grondag.canvas.light.AoFace.Vertex2Float;
+import grondag.canvas.light.AoFace.WeightFunction;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.util.math.Vector3f;

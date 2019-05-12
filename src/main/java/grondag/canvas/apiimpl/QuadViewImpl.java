@@ -31,8 +31,8 @@ import static grondag.canvas.apiimpl.util.MeshEncodingHelper.VERTEX_START_OFFSET
 import grondag.canvas.apiimpl.util.GeometryHelper;
 import grondag.canvas.apiimpl.util.MeshEncodingHelper;
 import grondag.canvas.apiimpl.util.NormalHelper;
-import grondag.canvas.apiimpl.util.ShadeFaceData;
 import grondag.canvas.light.LightmapHd;
+import grondag.canvas.light.ShadeFaceData;
 import grondag.frex.api.mesh.MutableQuadView;
 import grondag.frex.api.mesh.QuadView;
 import net.minecraft.client.util.math.Vector3f;

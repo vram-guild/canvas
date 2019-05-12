@@ -19,9 +19,9 @@ package grondag.canvas.apiimpl.rendercontext;
 import java.util.function.Consumer;
 
 import grondag.canvas.apiimpl.RenderMaterialImpl;
-import grondag.canvas.apiimpl.util.AoCalculator;
 import grondag.canvas.chunk.ChunkRebuildHelper;
 import grondag.canvas.chunk.ChunkRenderInfo;
+import grondag.canvas.light.AoCalculator;
 import grondag.canvas.material.ShaderContext;
 import grondag.frex.api.model.DynamicBakedModel;
 import grondag.frex.api.mesh.Mesh;

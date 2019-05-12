@@ -20,9 +20,9 @@ import org.joml.Vector3f;
 
 import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.MaterialShaderImpl;
-import grondag.canvas.apiimpl.util.ShadeFaceData;
 import grondag.canvas.light.LightmapHd;
 import grondag.canvas.light.LightmapHdTexture;
+import grondag.canvas.light.ShadeFaceData;
 import grondag.canvas.varia.DitherTexture;
 import grondag.canvas.varia.FogStateExtHolder;
 import grondag.canvas.varia.WorldDataManager;

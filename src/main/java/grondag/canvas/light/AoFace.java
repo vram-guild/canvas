@@ -14,7 +14,7 @@
  * the License.
  ******************************************************************************/
 
-package grondag.canvas.apiimpl.util;
+package grondag.canvas.light;
 
 import static net.minecraft.util.math.Direction.*;
 
