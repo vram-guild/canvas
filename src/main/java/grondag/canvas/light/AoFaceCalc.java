@@ -40,10 +40,20 @@ public class AoFaceCalc {
     int skyTopRight;
     
     public AoFaceCalc compute(AoFaceData input) {
-        aoBottomRight = (input.aoRight + input.aoBottom + input.aoBottomRight + input.aoCenter) * 0.25F;
-        aoBottomLeft = (input.aoLeft + input.aoBottom + input.aoBottomLeft + input.aoCenter) * 0.25F;
-        aoTopLeft = (input.aoLeft + input.aoTop + input.aoTopLeft + input.aoCenter) * 0.25F;
-        aoTopRight = (input.aoRight + input.aoTop + input.aoTopRight + input.aoCenter) * 0.25F;
+        final float aoCenter = inputAoData(input.aoCenter);
+        final float aoTop = inputAoData(input.aoTop);
+        final float aoLeft = inputAoData(input.aoLeft);
+        final float aoRight = inputAoData(input.aoRight);
+        final float aoBottom = inputAoData(input.aoBottom);
+        final float aoTopLeft = inputAoData(input.aoTopLeft);
+        final float aoTopRight = inputAoData(input.aoTopRight);
+        final float aoBottomLeft = inputAoData(input.aoBottomLeft);
+        final float aoBottomRight = inputAoData(input.aoBottomRight);
+        
+        this.aoBottomRight = (aoRight + aoBottom + aoBottomRight + aoCenter) * 0.25F;
+        this.aoBottomLeft = (aoLeft + aoBottom + aoBottomLeft + aoCenter) * 0.25F;
+        this.aoTopLeft = (aoLeft + aoTop + aoTopLeft + aoCenter) * 0.25F;
+        this.aoTopRight = (aoRight + aoTop + aoTopRight + aoCenter) * 0.25F;
 
         int l = meanBrightness(input.right, input.bottom, input.bottomRight, input.center);
         blockBottomRight = l & 0xFFFF;
@@ -64,6 +74,10 @@ public class AoFaceCalc {
         return this;
     }
 
+    static float inputAoData(float aoDataVal) {
+        return aoDataVal == AoFaceData.OPAQUE ? .2f : aoDataVal;
+    }
+    
     int weigtedBlockLight(float[] w) {
         return (int) (blockBottomRight * w[0] + blockBottomLeft * w[1] + blockTopLeft * w[2] + blockTopRight * w[3]) & 0xFF;
     }

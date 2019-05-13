@@ -395,68 +395,94 @@ public class AoCalculator {
             searchPos.set(lightPos).setOffset(aoFace.neighbors[BOTTOM]);
             final boolean bottomClear = !world.getBlockState(searchPos).isFullOpaque(world, searchPos);
             fd.bottom = bottomClear ? brightnessFunc.applyAsInt(searchPos) : OPAQUE;
-            fd.aoBottom = aoFunc.apply(searchPos);
+            fd.aoBottom = bottomClear ? aoFunc.apply(searchPos) : OPAQUE;
             
             searchPos.set(lightPos).setOffset(aoFace.neighbors[TOP]);
             final boolean topClear = !world.getBlockState(searchPos).isFullOpaque(world, searchPos);
             fd.top = topClear ? brightnessFunc.applyAsInt(searchPos) : OPAQUE;
-            fd.aoTop = aoFunc.apply(searchPos);
+            fd.aoTop = topClear ? aoFunc.apply(searchPos) : OPAQUE;
             
             searchPos.set(lightPos).setOffset(aoFace.neighbors[LEFT]);
             final boolean leftClear = !world.getBlockState(searchPos).isFullOpaque(world, searchPos);
             fd.left = leftClear ? brightnessFunc.applyAsInt(searchPos) : OPAQUE;
-            fd.aoLeft = aoFunc.apply(searchPos);
+            fd.aoLeft = leftClear ? aoFunc.apply(searchPos) : OPAQUE;
             
             searchPos.set(lightPos).setOffset(aoFace.neighbors[RIGHT]);
             final boolean rightClear = !world.getBlockState(searchPos).isFullOpaque(world, searchPos);
             fd.right = rightClear ? brightnessFunc.applyAsInt(searchPos) : OPAQUE;
-            fd.aoRight = aoFunc.apply(searchPos);
+            fd.aoRight = rightClear ? aoFunc.apply(searchPos) : OPAQUE;
 
 
             if (!(leftClear || bottomClear)) { 
                 // both not clear
-                fd.aoBottomLeft = (fd.aoBottom + fd.aoLeft) * 0.5f;
+                fd.aoBottomLeft = OPAQUE;
                 fd.bottomLeft = OPAQUE;
             } else { // at least one clear
                 searchPos.set(lightPos).setOffset(aoFace.neighbors[BOTTOM]).setOffset(aoFace.neighbors[LEFT]);
-                fd.aoBottomLeft = aoFunc.apply(searchPos);
                 boolean cornerClear = !world.getBlockState(searchPos).isFullOpaque(world, searchPos);
                 fd.bottomLeft = cornerClear ? brightnessFunc.applyAsInt(searchPos) : OPAQUE;
+                fd.aoBottomLeft = aoLookup(world, cornerClear, lightFace, aoFace, LEFT, BOTTOM);
             }
             
             if (!(rightClear || bottomClear)) { 
                 // both not clear
-                fd.aoBottomRight = (fd.aoBottom + fd.aoRight) * 0.5f;
+                fd.aoBottomRight = OPAQUE;
                 fd.bottomRight = OPAQUE;
             } else { // at least one clear
                 searchPos.set(lightPos).setOffset(aoFace.neighbors[BOTTOM]).setOffset(aoFace.neighbors[RIGHT]);
-                fd.aoBottomRight = aoFunc.apply(searchPos);
                 boolean cornerClear = !world.getBlockState(searchPos).isFullOpaque(world, searchPos);
                 fd.bottomRight = cornerClear ? brightnessFunc.applyAsInt(searchPos) : OPAQUE;
+                fd.aoBottomRight = aoLookup(world, cornerClear, lightFace, aoFace, RIGHT, BOTTOM);
             }
             
             if (!(leftClear || topClear)) { 
                 // both not clear
-                fd.aoTopLeft = (fd.aoTop + fd.aoLeft) * 0.5f;
+                fd.aoTopLeft = OPAQUE;
                 fd.topLeft = OPAQUE;
             } else { // at least one clear
                 searchPos.set(lightPos).setOffset(aoFace.neighbors[TOP]).setOffset(aoFace.neighbors[LEFT]);
-                fd.aoTopLeft = aoFunc.apply(searchPos);
                 boolean cornerClear = !world.getBlockState(searchPos).isFullOpaque(world, searchPos);
                 fd.topLeft = cornerClear ? brightnessFunc.applyAsInt(searchPos) : OPAQUE;
+                fd.aoTopLeft = aoLookup(world, cornerClear, lightFace, aoFace, TOP, LEFT);
             }
             
             if (!(rightClear || topClear)) { 
                 // both not clear
-                fd.aoTopRight = (fd.aoTop + fd.aoRight) * 0.5f;
+                fd.aoTopRight = OPAQUE;
                 fd.topRight = OPAQUE;
             } else { // at least one clear
                 searchPos.set(lightPos).setOffset(aoFace.neighbors[TOP]).setOffset(aoFace.neighbors[RIGHT]);
-                fd.aoTopRight = aoFunc.apply(searchPos);
                 boolean cornerClear = !world.getBlockState(searchPos).isFullOpaque(world, searchPos);
                 fd.topRight = cornerClear ? brightnessFunc.applyAsInt(searchPos) : OPAQUE;
+                fd.aoTopRight = aoLookup(world, cornerClear, lightFace, aoFace, TOP, RIGHT);
             }
         }
         return fd;
+    }
+    
+    //TODO: make configurable
+    static final boolean AO_TWEAK = true;
+    
+    private float aoLookup(ExtendedBlockView world, boolean cornerClear, Direction lightFace, AoFace aoFace, int uIndex, int vIndex) {
+        if(AO_TWEAK) {
+            if(cornerClear) {
+                return aoFunc.apply(searchPos);
+            } else {
+                // if block next to this block is open, use it
+                searchPos.set(lightPos).setOffset(aoFace.neighbors[vIndex]).setOffset(lightFace.getOpposite());
+                if(!world.getBlockState(searchPos).isFullOpaque(world, searchPos)) {
+                    return aoFunc.apply(searchPos);
+                } else {
+                    searchPos.set(lightPos).setOffset(aoFace.neighbors[uIndex]).setOffset(lightFace.getOpposite());
+                    if(!world.getBlockState(searchPos).isFullOpaque(world, searchPos)) {
+                        return aoFunc.apply(searchPos);
+                    } else {
+                        return OPAQUE;
+                    }
+                }
+            }
+        } else {
+            return cornerClear ? aoFunc.apply(searchPos) : OPAQUE;
+        }
     }
 }

@@ -50,7 +50,7 @@ public class LightmapHd {
     }
     
     private static long mapBlock(AoFaceData faceData) {
-        return LightKey.toKey(
+        return LightKey.toKey240(
             faceData.top & 0xFF,
             faceData.left & 0xFF,
             faceData.right & 0xFF,
@@ -65,7 +65,7 @@ public class LightmapHd {
     }
     
     private static long mapSky(AoFaceData faceData) {
-        return LightKey.toKey(
+        return LightKey.toKey240(
             (faceData.top >>> 16) & 0xFF,
             (faceData.left >>> 16) & 0xFF,
             (faceData.right >>> 16) & 0xFF,
@@ -80,18 +80,22 @@ public class LightmapHd {
     }
     
     private static long mapAo(AoFaceData faceData) {
-        return LightKey.toKey(
-            Math.round(faceData.aoTop * 240),
-            Math.round(faceData.aoLeft * 240),
-            Math.round(faceData.aoRight * 240),
-            Math.round(faceData.aoBottom * 240),
-            Math.round(faceData.aoTopLeft * 240),
-            Math.round(faceData.aoTopRight * 240),
-            Math.round(faceData.aoBottomLeft * 240),
-            Math.round(faceData.aoBottomRight * 240),
-            Math.round(faceData.aoCenter * 240),
+        return LightKey.toKey240(
+            acceptAo(faceData.aoTop),
+            acceptAo(faceData.aoLeft),
+            acceptAo(faceData.aoRight),
+            acceptAo(faceData.aoBottom),
+            acceptAo(faceData.aoTopLeft),
+            acceptAo(faceData.aoTopRight),
+            acceptAo(faceData.aoBottomLeft),
+            acceptAo(faceData.aoBottomRight),
+            acceptAo(faceData.aoCenter),
             true
         );
+    }
+    
+    private static int acceptAo(float aoVal) {
+        return aoVal == AoFaceData.OPAQUE ? AoFaceData.OPAQUE : Math.round(aoVal * 240);
     }
     
     static int lightIndex(int u, int v) {
@@ -139,7 +143,7 @@ public class LightmapHd {
         }
         
         if(LightKey.isAo(key)) {
-            AoHdCalc.computeAo(light, key, index);
+            AoMapHd.computeAo(light, key, index);
         } else {
             LightmapHdCalc.computeLight(light, key, index);
         }
