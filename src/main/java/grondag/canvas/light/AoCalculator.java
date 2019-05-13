@@ -57,31 +57,10 @@ public class AoCalculator {
     static final int BLEND_CACHE_ARRAY_SIZE = BLEND_CACHE_DIVISION * 6;
     static final int BLEND_INDEX_NO_DEPTH = -1;
     static final int BLEND_INDEX_FULL_DEPTH = BLEND_CACHE_DIVISION - 1;
+    
     static int blendIndex(Direction face, float depth) {
         return face.ordinal() * BLEND_CACHE_DEPTH + (((int)(depth * BLEND_CACHE_DIVISION * 2 + 1)) >> 1) - 1;
     }
-    
-    //TODO: remove
-    static {
-        assert blendIndex(Direction.DOWN, 0.0f) == BLEND_INDEX_NO_DEPTH;
-        assert blendIndex(Direction.DOWN, 1.0f/16.0f) == 0;
-        assert blendIndex(Direction.DOWN, 2.0f/16.0f) == 1;
-        assert blendIndex(Direction.DOWN, 3.0f/16.0f) == 2;
-        assert blendIndex(Direction.DOWN, 4.0f/16.0f) == 3;
-        assert blendIndex(Direction.DOWN, 5.0f/16.0f) == 4;
-        assert blendIndex(Direction.DOWN, 6.0f/16.0f) == 5;
-        assert blendIndex(Direction.DOWN, 7.0f/16.0f) == 6;
-        assert blendIndex(Direction.DOWN, 8.0f/16.0f) == 7;
-        assert blendIndex(Direction.DOWN, 9.0f/16.0f) == 8;
-        assert blendIndex(Direction.DOWN, 10.0f/16.0f) == 9;
-        assert blendIndex(Direction.DOWN, 11.0f/16.0f) == 10;
-        assert blendIndex(Direction.DOWN, 12.0f/16.0f) == 11;
-        assert blendIndex(Direction.DOWN, 13.0f/16.0f) == 12;
-        assert blendIndex(Direction.DOWN, 14.0f/16.0f) == 13;
-        assert blendIndex(Direction.DOWN, 15.0f/16.0f) == 14;
-        assert blendIndex(Direction.DOWN, 1.0f) == BLEND_INDEX_FULL_DEPTH;
-    }
-    
     
     /** Used to receive a method reference in constructor for ao value lookup. */
     @FunctionalInterface
@@ -112,6 +91,7 @@ public class AoCalculator {
     
     private final AoFaceCalc[] blendCache = new AoFaceCalc[BLEND_CACHE_ARRAY_SIZE];
     
+    // PERF: need to cache these vs only the calc results due to mixed use
     private final AoFaceData blender = new AoFaceData();
     
     /**
