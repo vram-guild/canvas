@@ -1,6 +1,6 @@
 package grondag.canvas.light;
 
-public class LightmapCornerHelper {
+final class LightmapCornerHelper {
     private static final ThreadLocal<LightmapCornerHelper> THREADLOCAL = ThreadLocal.withInitial(LightmapCornerHelper::new);
     
     public static LightmapCornerHelper prepareThreadlocal(float u, float v, float x) {

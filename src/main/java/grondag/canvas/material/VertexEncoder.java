@@ -93,8 +93,9 @@ public class VertexEncoder {
         final boolean fatMaps = (shaderProps & ShaderProps.SMOOTH_LIGHTMAPS) != 0;
         
         LightmapHd blockMap = fatMaps ? q.blockLight : null;
-        LightmapHd skyMap = fatMaps ? q.skyLight : null;;
-            
+        LightmapHd skyMap = fatMaps ? q.skyLight : null;
+        LightmapHd aoMap = fatMaps ? q.aoShade : null;
+        
         for(int i = 0; i < 4; i++) {
             output.pos(pos, q.x(i), q.y(i), q.z(i));
             if((shaderProps & ShaderProps.WHITE_0) == 0) {
@@ -110,7 +111,7 @@ public class VertexEncoder {
             if(fatMaps) {
                 output.add(blockMap.coord(q, i));
                 output.add(skyMap.coord(q, i));
-                output.add(0);
+                output.add(aoMap.coord(q, i));
             }
             
             int ao = aoData == null ? 0xFF000000 : ((Math.round(aoData[i] * 254) - 127) << 24);

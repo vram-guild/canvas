@@ -48,14 +48,15 @@ void setupVertex() {
     v_texcoord_0 = textureCoord(in_uv_0, 0);
 
 #ifdef CONTEXT_IS_BLOCK
-    v_ao = (in_normal_ao.w + 1.0) * 0.5;
+    #ifdef ENABLE_SMOOTH_LIGHT
+        v_hd_blocklight = in_hd_blocklight / 32768.0;
+        v_hd_skylight = in_hd_skylight / 32768.0;
+        v_hd_ao = in_hd_ao / 32768.0;
+    #else
+        v_ao = (in_normal_ao.w + 1.0) * 0.5;
+    #endif
 #endif
 
-#ifdef ENABLE_SMOOTH_LIGHT
-    v_hd_blocklight = in_hd_blocklight / 32768.0;
-    v_hd_skylight = in_hd_skylight / 32768.0;
-    v_hd_ao = in_hd_ao;
-#endif
 
     v_diffuse = diffuse(diffuseNormal(viewCoord, in_normal_ao.xyz));
 

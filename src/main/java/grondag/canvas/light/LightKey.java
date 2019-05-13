@@ -61,7 +61,7 @@ public final class LightKey {
     }
     
     private static int unclamp(int val) {
-        return val == -1 ? -1 : val << 2;
+        return val == -1 ? AoFaceData.OPAQUE : val << 2;
     }
     
     public static int center(long key) {

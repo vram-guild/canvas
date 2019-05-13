@@ -5,7 +5,12 @@ vec4 colorAndLightmap(vec4 fragmentColor,  int layerIndex, vec4 light) {
 vec4 applyAo(vec4 baseColor) {
 // Don't apply AO for item renders
 #ifdef CONTEXT_IS_BLOCK
-	return baseColor * vec4(v_ao, v_ao, v_ao, 1.0);
+    #ifdef ENABLE_SMOOTH_LIGHT
+        vec4 ao = texture2D(u_utility, v_hd_ao);
+	    return baseColor * vec4(ao.rrr, 1.0);
+    #else
+	    return baseColor * vec4(v_ao, v_ao, v_ao, 1.0);
+	#endif
 #else
 	return baseColor;
 #endif
@@ -19,12 +24,14 @@ float effectModifier() {
 vec4 combinedLight() {
     vec4 block = texture2D(u_utility, v_hd_blocklight);
     vec4 sky = texture2D(u_utility, v_hd_skylight);
+    // PERF: return directly vs extra math below
     vec2 lightCoord = vec2(block.r, sky.r) * 15.0;
+    // TODO: remove
+    lightCoord = vec2(15.0, 15.0);
 #ifdef ENABLE_LIGHT_NOISE
     vec4 dither = texture2D(u_dither, gl_FragCoord.xy / 8.0);
     lightCoord += dither.r / 64.0 - (1.0 / 128.0);
 #endif
-
     return texture2D(u_lightmap, (lightCoord + 0.5) / 16.0);
 }
 #endif

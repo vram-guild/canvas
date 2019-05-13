@@ -70,7 +70,7 @@ public class QuadViewImpl implements QuadView {
     //UGLY
     public LightmapHd blockLight = null;
     public LightmapHd skyLight = null;
-    public LightmapHd shadeFaceData = null;
+    public LightmapHd aoShade = null;
     public float[][] w = new float[4][4];
     public float[] u = new float[4];
     public float[] v = new float[4];
