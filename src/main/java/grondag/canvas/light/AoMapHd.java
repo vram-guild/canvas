@@ -12,7 +12,7 @@ final class AoMapHd {
     static float OPAQUE_PROXY = 0.2f;
     
     static float input(int b) {
-        return b / 240f;
+        return b < 0 ? OPAQUE_PROXY : b / 240f;
     }
     
     static void computeAo(int[] light, long key, int index) {
@@ -27,11 +27,29 @@ final class AoMapHd {
         final float bottomRight = input(LightKey.bottomRight(key));
         final float bottomLeft = input(LightKey.bottomLeft(key));
 
-        // Note: won't work for other than 4x4 interior, 6x6 padded
-        computeQuadrant(center, left, top, topLeft, light, NEG, NEG);
-        computeQuadrant(center, right, top, topRight, light, POS, NEG);
-        computeQuadrant(center, left, bottom, bottomLeft, light, NEG, POS);
-        computeQuadrant(center, right, bottom, bottomRight, light, POS, POS);        
+        final float TL = (center + top + left + topLeft) * 0.25f;
+        final float TR = (center + top + right + topRight) * 0.25f;
+        final float BL = (center + bottom + left + bottomLeft) * 0.25f;
+        final float BR = (center + bottom + right + bottomRight) * 0.25f;
+        
+        for(int u = 0; u < PADDED_SIZE; u++) {
+            for(int v = 0; v < PADDED_SIZE; v++) {
+                float uDist = (float)u / AO_SIZE;
+                float vDist = (float)v / AO_SIZE;
+                
+                float tl = (1 - uDist) * (1 - vDist) * TL;
+                float tr = uDist * (1 - vDist) * TR;
+                float br = uDist * vDist * BR;
+                float bl = (1 - uDist) * vDist * BL;
+                light[lightIndex(u, v)] = output(tl + tr + br + bl);
+            }
+        }
+//        
+//        // Note: won't work for other than 4x4 interior, 6x6 padded
+//        computeQuadrant(center, left, top, topLeft, light, NEG, NEG);
+//        computeQuadrant(center, right, top, topRight, light, POS, NEG);
+//        computeQuadrant(center, left, bottom, bottomLeft, light, NEG, POS);
+//        computeQuadrant(center, right, bottom, bottomRight, light, POS, POS);        
     }
     
     
@@ -159,9 +177,11 @@ final class AoMapHd {
     }
     
     static int output(float in) {
-//        in = 1 - in;
-//        in  = in * 0.7f; //in;
-//        in = 1 - in;
+        in = 1 - in;
+//        in  = in * in;
+        
+        in = in * in * in * (in * (in * 6 - 15) + 10);
+        in = 1 - in;
         return MathHelper.clamp(Math.round(in * 255), 0, 255);
     }
 }
