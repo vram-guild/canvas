@@ -24,10 +24,10 @@ public class AoFaceCalc {
         POOL.offer(this);
     }
     
-    float aoBottomRight;
-    float aoBottomLeft;
-    float aoTopLeft;
-    float aoTopRight;
+    int aoBottomRight;
+    int aoBottomLeft;
+    int aoTopLeft;
+    int aoTopRight;
     
     int blockBottomRight;
     int blockBottomLeft;
@@ -40,21 +40,11 @@ public class AoFaceCalc {
     int skyTopRight;
     
     public AoFaceCalc compute(AoFaceData input) {
-        final float aoCenter = inputAoData(input.aoCenter);
-        final float aoTop = inputAoData(input.aoTop);
-        final float aoLeft = inputAoData(input.aoLeft);
-        final float aoRight = inputAoData(input.aoRight);
-        final float aoBottom = inputAoData(input.aoBottom);
-        final float aoTopLeft = inputAoData(input.aoTopLeft);
-        final float aoTopRight = inputAoData(input.aoTopRight);
-        final float aoBottomLeft = inputAoData(input.aoBottomLeft);
-        final float aoBottomRight = inputAoData(input.aoBottomRight);
+        aoTopLeft = input.aoTopLeft;
+        aoTopRight = input.aoTopRight;
+        aoBottomLeft = input.aoBottomLeft;
+        aoBottomRight = input.aoBottomRight;
         
-        this.aoBottomRight = (aoRight + aoBottom + aoBottomRight + aoCenter) * 0.25F;
-        this.aoBottomLeft = (aoLeft + aoBottom + aoBottomLeft + aoCenter) * 0.25F;
-        this.aoTopLeft = (aoLeft + aoTop + aoTopLeft + aoCenter) * 0.25F;
-        this.aoTopRight = (aoRight + aoTop + aoTopRight + aoCenter) * 0.25F;
-
         int l = meanBrightness(input.right, input.bottom, input.bottomRight, input.center);
         blockBottomRight = l & 0xFFFF;
         skyBottomRight = (l >>> 16) & 0xFFFF;
@@ -74,10 +64,6 @@ public class AoFaceCalc {
         return this;
     }
 
-    static float inputAoData(float aoDataVal) {
-        return aoDataVal == AoFaceData.OPAQUE ? .2f : aoDataVal;
-    }
-    
     int weigtedBlockLight(float[] w) {
         return (int) (blockBottomRight * w[0] + blockBottomLeft * w[1] + blockTopLeft * w[2] + blockTopRight * w[3]) & 0xFF;
     }
@@ -106,18 +92,20 @@ public class AoFaceCalc {
         return aoBottomRight * w[0] + aoBottomLeft * w[1] + aoTopLeft * w[2] + aoTopRight * w[3];
     }
 
-    float maxAo(float oldMax) {
-        final float x = aoBottomRight > aoBottomLeft ? aoBottomRight : aoBottomLeft;
-        final float y = aoTopLeft > aoTopRight ? aoTopLeft : aoTopRight;
-        final float z = x > y ? x : y;
+    int maxAo(int oldMax) {
+        final int x = aoBottomRight > aoBottomLeft ? aoBottomRight : aoBottomLeft;
+        final int y = aoTopLeft > aoTopRight ? aoTopLeft : aoTopRight;
+        final int z = x > y ? x : y;
         return oldMax > z ? oldMax : z;
     }
 
     AoFaceCalc toArray(float[] aoOut, int[] lightOut, int[] vertexMap) {
-        aoOut[vertexMap[0]] = aoBottomRight;
-        aoOut[vertexMap[1]] = aoBottomLeft;
-        aoOut[vertexMap[2]] = aoTopLeft;
-        aoOut[vertexMap[3]] = aoTopRight;
+        // PERF: pass ints directly to vertex encoder
+        aoOut[vertexMap[0]] = aoBottomRight / 255f;
+        aoOut[vertexMap[1]] = aoBottomLeft / 255f;
+        aoOut[vertexMap[2]] = aoTopLeft / 255f;
+        aoOut[vertexMap[3]] = aoTopRight / 255f;
+        
         lightOut[vertexMap[0]] = skyBottomRight << 16 | blockBottomRight;
         lightOut[vertexMap[1]] = skyBottomLeft << 16 | blockBottomLeft;
         lightOut[vertexMap[2]] = skyTopLeft << 16 | blockTopLeft;
@@ -125,28 +113,14 @@ public class AoFaceCalc {
         return this;
     }
 
-    // PERF - given that we need the out samples
-    // should average those and then derive the block corner values if needed
+    // PERF: use integer weights
     static AoFaceCalc weightedMean(AoFaceCalc in0, float w0, AoFaceCalc in1, float w1) {
         AoFaceCalc out = claim();
-        out.aoBottomRight = in0.aoBottomRight * w0 + in1.aoBottomRight * w1;
-        out.aoBottomLeft = in0.aoBottomLeft * w0 + in1.aoBottomLeft * w1;
-        out.aoTopLeft = in0.aoTopLeft * w0 + in1.aoTopLeft * w1;
-        out.aoTopRight = in0.aoTopRight * w0 + in1.aoTopRight * w1;
+        out.aoBottomRight = Math.round(in0.aoBottomRight * w0 + in1.aoBottomRight * w1);
+        out.aoBottomLeft = Math.round(in0.aoBottomLeft * w0 + in1.aoBottomLeft * w1);
+        out.aoTopLeft = Math.round(in0.aoTopLeft * w0 + in1.aoTopLeft * w1);
+        out.aoTopRight = Math.round(in0.aoTopRight * w0 + in1.aoTopRight * w1);
 
-        // was here when was part of input class
-//        out.aoBottom = in0.aoBottom * w0 + in1.aoBottom * w1;
-//        out.aoTop = in0.aoTop * w0 + in1.aoTop * w1;
-//        out.aoLeft = in0.aoLeft * w0 + in1.aoLeft * w1;
-//        out.aoRight = in0.aoRight * w0 + in1.aoRight * w1;
-//        
-//        out.aoBottomLeft = in0.aoBottomLeft * w0 + in1.aoBottomLeft * w1;
-//        out.aoBottomRight = in0.aoBottomRight * w0 + in1.aoBottomRight * w1;
-//        out.aoTopLeft = in0.aoTopLeft * w0 + in1.aoTopLeft * w1;
-//        out.aoTopRight = in0.aoTopRight * w0 + in1.aoTopRight * w1;
-//        
-//        out.aoCenter = in0.aoCenter * w0 + in1.aoCenter * w1;
-        
         out.blockBottomRight = (int) (in0.blockBottomRight * w0 + in1.blockBottomRight * w1);
         out.blockBottomLeft = (int) (in0.blockBottomLeft * w0 + in1.blockBottomLeft * w1);
         out.blockTopLeft = (int) (in0.blockTopLeft * w0 + in1.blockTopLeft * w1);

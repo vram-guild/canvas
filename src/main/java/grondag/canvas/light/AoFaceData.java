@@ -21,7 +21,8 @@ package grondag.canvas.light;
  * provides various utility methods to simplify code elsewhere.
  */
 public class AoFaceData {
-    public static int OPAQUE = -1;
+    
+    public static final int OPAQUE = -1;
     
     // packed values gathered during compute
     public int bottom;
@@ -34,15 +35,11 @@ public class AoFaceData {
     public int topRight;
     public int center;
 
-    float aoBottom;
-    float aoTop;
-    float aoLeft;
-    float aoRight;
-    float aoBottomLeft;
-    float aoBottomRight;
-    float aoTopLeft;
-    float aoTopRight;
-    float aoCenter;
+    // these values are fully computed at gather time
+    int aoBottomLeft;
+    int aoBottomRight;
+    int aoTopLeft;
+    int aoTopRight;
     
     private AoFaceCalc calc = null;
     
@@ -76,17 +73,10 @@ public class AoFaceData {
         
         out.center = lightBlend(in0.center, w0, in1.center, w1);
         
-        out.aoTop = in0.aoTop * w0 + in1.aoTop * w1;
-        out.aoLeft = in0.aoLeft * w0 + in1.aoLeft * w1;
-        out.aoRight = in0.aoRight * w0 + in1.aoRight * w1;
-        out.aoBottom = in0.aoBottom * w0 + in1.aoBottom * w1;
-        
-        out.aoTopLeft = in0.aoTopLeft * w0 + in1.aoTopLeft * w1;
-        out.aoTopRight = in0.aoTopRight * w0 + in1.aoTopRight * w1;
-        out.aoBottomLeft = in0.aoBottomLeft * w0 + in1.aoBottomLeft * w1;
-        out.aoBottomRight = in0.aoBottomRight * w0 + in1.aoBottomRight * w1;
-        
-        out.aoCenter = in0.aoCenter * w0 + in1.aoCenter * w1;
+        out.aoTopLeft = Math.round(in0.aoTopLeft * w0 + in1.aoTopLeft * w1);
+        out.aoTopRight = Math.round(in0.aoTopRight * w0 + in1.aoTopRight * w1);
+        out.aoBottomLeft = Math.round(in0.aoBottomLeft * w0 + in1.aoBottomLeft * w1);
+        out.aoBottomRight = Math.round(in0.aoBottomRight * w0 + in1.aoBottomRight * w1);
         
         return out;
     }

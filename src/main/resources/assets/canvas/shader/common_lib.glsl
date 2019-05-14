@@ -11,6 +11,9 @@
 // defined if AO shading should be applied
 #define ENABLE_AO_SHADING
 
+// defined if AO values should get quadratic smoothing
+#define ENABLE_SUBTLE_AO
+
 // defined if diffuse shading should be applied
 #define ENABLE_DIFFUSE_SHADING
 

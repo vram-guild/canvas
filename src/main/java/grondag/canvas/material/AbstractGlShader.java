@@ -147,6 +147,10 @@ abstract class AbstractGlShader {
             result = result.replaceAll("#define ENABLE_AO_SHADING", "#define DISABLE_AO_SHADING");
         }
         
+        if(!Configurator.enableSubtleAo) {
+            result = result.replaceAll("#define ENABLE_SUBTLE_AO", "#define DISABLE_SUBTLE_AO");
+        }
+        
         if(!Configurator.enableDiffuseShading) {
             result = result.replaceAll("#define ENABLE_DIFFUSE_SHADING", "#define DISABLE_DIFFUSE_SHADING");
         }

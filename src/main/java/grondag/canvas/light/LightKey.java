@@ -3,6 +3,7 @@ package grondag.canvas.light;
 import grondag.fermion.varia.BitPacker64;
 import grondag.fermion.varia.BitPacker64.BooleanElement;
 import grondag.fermion.varia.BitPacker64.IntElement;
+import net.minecraft.util.math.MathHelper;
 
 @SuppressWarnings("rawtypes")
 public final class LightKey {
@@ -22,7 +23,7 @@ public final class LightKey {
     
     private static final BooleanElement IS_AO = PACKER.createBooleanElement();
     
-    static long toKey240(
+    static long toLightmapKey(
             int top,
             int left,
             int right,
@@ -31,8 +32,7 @@ public final class LightKey {
             int topRight,
             int bottomLeft,
             int bottomRight,
-            int center, 
-            boolean isAo)
+            int center)
     {
         long result = CENTER.setValue(clamp240(center), 0);
         
@@ -46,7 +46,23 @@ public final class LightKey {
         result = BOTTOM_LEFT.setValue(clamp240(bottomLeft), result);
         result = BOTTOM_RIGHT.setValue(clamp240(bottomRight), result);
         
-        result = IS_AO.setValue(isAo, result);
+        result = IS_AO.setValue(false, result); 
+        
+        return result;
+    }
+    
+    static long toAoKey(
+            int topLeft,
+            int topRight,
+            int bottomLeft,
+            int bottomRight)
+    {
+        long result = IS_AO.setValue(true, 0);
+        
+        result = TOP_LEFT.setValue(MathHelper.clamp(topLeft, 0, 255) / 5, result);
+        result = TOP_RIGHT.setValue(MathHelper.clamp(topRight, 0, 255) / 5, result);
+        result = BOTTOM_LEFT.setValue(MathHelper.clamp(bottomLeft, 0, 255) / 5, result);
+        result = BOTTOM_RIGHT.setValue(MathHelper.clamp(bottomRight, 0, 255) / 5, result);
         
         return result;
     }
@@ -98,6 +114,22 @@ public final class LightKey {
     
     public static int bottomRight(long key) {
         return unclamp240(BOTTOM_RIGHT.getValue(key));
+    }
+    
+    public static int topLeftAo(long key) {
+        return TOP_LEFT.getValue(key) * 5;
+    }
+    
+    public static int topRightAo(long key) {
+        return TOP_RIGHT.getValue(key) * 5;
+    }
+    
+    public static int bottomLeftAo(long key) {
+        return BOTTOM_LEFT.getValue(key) * 5;
+    }
+    
+    public static int bottomRightAo(long key) {
+        return BOTTOM_RIGHT.getValue(key) * 5;
     }
     
     public static boolean isAo(long key) {

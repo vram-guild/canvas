@@ -90,6 +90,10 @@ public class LightmapHdTexture implements AutoCloseable {
 
     public void onRenderTick() {
         
+        if(updates.isEmpty()) {
+            return;
+        }
+        
         final SimpleImage image = this.image;
         int uMin = Integer.MAX_VALUE;
         int vMin = Integer.MAX_VALUE;

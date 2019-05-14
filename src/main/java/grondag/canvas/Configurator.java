@@ -73,6 +73,9 @@ public class Configurator implements ModMenuApi {
         boolean enableLightSmoothing = false;
         
         @Comment("TODO")
+        boolean enableSubtleAo = true;
+        
+        @Comment("TODO")
         boolean enableAoShading = true;
         
         @Comment("TODO")
@@ -106,6 +109,7 @@ public class Configurator implements ModMenuApi {
     public static boolean enableLightmapNoise = DEFAULTS.enableLightmapNoise;
     public static boolean enableDiffuseShading = DEFAULTS.enableDiffuseShading;
     public static boolean enableLightSmoothing = DEFAULTS.enableLightSmoothing;
+    public static boolean enableSubtleAo = DEFAULTS.enableSubtleAo;
     public static boolean enableAoShading = DEFAULTS.enableAoShading;
     
     public static boolean enableCompactGPUFormats = DEFAULTS.enableCompactGPUFormats;
@@ -153,6 +157,7 @@ public class Configurator implements ModMenuApi {
         enableDiffuseShading = config.enableDiffuseShading;
         enableLightSmoothing = config.enableLightSmoothing;
         enableAoShading = config.enableAoShading;
+        enableSubtleAo = config.enableSubtleAo;
         
         enableSinglePassCutout = config.enableSinglePassCutout;
         enableImprovedChunkOcclusion = config.enableImprovedChunkOcclusion;
@@ -174,7 +179,8 @@ public class Configurator implements ModMenuApi {
         config.enableLightmapNoise = enableLightmapNoise;
         config.enableDiffuseShading = enableDiffuseShading;
         config.enableLightSmoothing = enableLightSmoothing;
-        config.enableAoShading = enableAoShading;      
+        config.enableAoShading = enableAoShading; 
+        config.enableSubtleAo = enableSubtleAo;
         
         config.enableSinglePassCutout = enableSinglePassCutout;
         config.enableImprovedChunkOcclusion = enableImprovedChunkOcclusion;
@@ -258,6 +264,10 @@ public class Configurator implements ModMenuApi {
         lighting.addOption(new BooleanListEntry("config.canvas.value.smooth_lightmaps", enableHdLightmaps, "config.canvas.reset", 
                 () -> DEFAULTS.enableHdLightmaps, b -> {enableHdLightmaps = b; reloadTerrain = true;}, 
                 () -> Optional.of(I18n.translate("config.canvas.help.smooth_lightmaps").split(";"))));
+        
+        lighting.addOption(new BooleanListEntry("config.canvas.value.subtle_ao", enableSubtleAo, "config.canvas.reset", 
+                () -> DEFAULTS.enableSubtleAo, b -> {enableSubtleAo = b; reloadShaders = true;}, 
+                () -> Optional.of(I18n.translate("config.canvas.help.subtle_ao").split(";"))));
         
         lighting.addOption(new BooleanListEntry("config.canvas.value.lightmap_noise", enableLightmapNoise, "config.canvas.reset", 
                 () -> DEFAULTS.enableLightmapNoise, b -> {enableLightmapNoise = b; reloadShaders = true;}, 

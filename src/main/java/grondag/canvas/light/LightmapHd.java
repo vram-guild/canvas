@@ -51,7 +51,7 @@ public class LightmapHd {
     }
     
     private static long mapBlock(AoFaceData faceData) {
-        return LightKey.toKey240(
+        return LightKey.toLightmapKey(
             faceData.top & 0xFF,
             faceData.left & 0xFF,
             faceData.right & 0xFF,
@@ -60,13 +60,12 @@ public class LightmapHd {
             faceData.topRight & 0xFF,
             faceData.bottomLeft & 0xFF,
             faceData.bottomRight & 0xFF,
-            faceData.center & 0xFF,
-            false
+            faceData.center & 0xFF        
         );
     }
     
     private static long mapSky(AoFaceData faceData) {
-        return LightKey.toKey240(
+        return LightKey.toLightmapKey(
             (faceData.top >>> 16) & 0xFF,
             (faceData.left >>> 16) & 0xFF,
             (faceData.right >>> 16) & 0xFF,
@@ -75,28 +74,17 @@ public class LightmapHd {
             (faceData.topRight >>> 16) & 0xFF,
             (faceData.bottomLeft >>> 16) & 0xFF,
             (faceData.bottomRight >>> 16) & 0xFF,
-            (faceData.center >>> 16) & 0xFF,
-            false
+            (faceData.center >>> 16) & 0xFF
         );
     }
     
     private static long mapAo(AoFaceData faceData) {
-        return LightKey.toKey240(
-            acceptAo(faceData.aoTop),
-            acceptAo(faceData.aoLeft),
-            acceptAo(faceData.aoRight),
-            acceptAo(faceData.aoBottom),
-            acceptAo(faceData.aoTopLeft),
-            acceptAo(faceData.aoTopRight),
-            acceptAo(faceData.aoBottomLeft),
-            acceptAo(faceData.aoBottomRight),
-            acceptAo(faceData.aoCenter),
-            true
+        return LightKey.toAoKey(
+            faceData.aoTopLeft,
+            faceData.aoTopRight,
+            faceData.aoBottomLeft,
+            faceData.aoBottomRight
         );
-    }
-    
-    private static int acceptAo(float aoVal) {
-        return aoVal == AoFaceData.OPAQUE ? AoFaceData.OPAQUE : Math.round(aoVal * 240);
     }
     
     static int lightIndex(int u, int v) {

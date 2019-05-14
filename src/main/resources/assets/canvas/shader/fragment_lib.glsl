@@ -6,11 +6,22 @@ vec4 applyAo(vec4 baseColor) {
 // Don't apply AO for item renders
 #ifdef CONTEXT_IS_BLOCK
     #ifdef ENABLE_SMOOTH_LIGHT
-        vec4 ao = texture2D(u_utility, v_hd_ao);
-	    return baseColor * vec4(ao.rrr, 1.0);
+        vec4 aotex = texture2D(u_utility, v_hd_ao);
+	    float ao = aotex.r;
     #else
-	    return baseColor * vec4(v_ao, v_ao, v_ao, 1.0);
+	    float ao = v_ao;
 	#endif
+
+	#ifdef ENABLE_SUBTLE_AO
+        // smooth the transition from 0.4 (should be the minimum) to 1.0
+        ao = (ao - 0.4) / 0.6;
+        ao = clamp(ao, 0.0, 1.0);
+        ao = 1.0 - ao;
+        ao = 1.0 - ao * ao;
+        ao = 0.4 + ao * 0.6;
+	#endif
+
+	return baseColor * vec4(ao, ao, ao, 1.0);
 #else
 	return baseColor;
 #endif
@@ -27,7 +38,7 @@ vec4 combinedLight() {
     // PERF: return directly vs extra math below
     vec2 lightCoord = vec2(block.r, sky.r) * 15.0;
     // TODO: remove
-    lightCoord = vec2(15.0, 15.0);
+//    lightCoord = vec2(15.0, 15.0);
 #ifdef ENABLE_LIGHT_NOISE
     vec4 dither = texture2D(u_dither, gl_FragCoord.xy / 8.0);
     lightCoord += dither.r / 64.0 - (1.0 / 128.0);
