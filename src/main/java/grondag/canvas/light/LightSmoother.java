@@ -1,6 +1,6 @@
 package grondag.canvas.light;
 
-import grondag.canvas.apiimpl.util.SafeWorldViewExt;
+import grondag.canvas.apiimpl.util.ChunkRendererRegionExt;
 import grondag.fermion.world.PackedBlockPos;
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 import net.minecraft.block.BlockState;
@@ -36,7 +36,7 @@ public class LightSmoother {
         final int minY = chunkOrigin.getY() - MARGIN;
         final int minZ = chunkOrigin.getZ() - MARGIN;
 
-        ExtendedBlockView view = (ExtendedBlockView) ((SafeWorldViewExt)blockViewIn).canvas_worldHack();
+        ExtendedBlockView view = (ExtendedBlockView) ((ChunkRendererRegionExt)blockViewIn).canvas_worldHack();
 
         for(int x = 0; x < POS_DIAMETER; x++) {
             for(int y = 0; y < POS_DIAMETER; y++) {

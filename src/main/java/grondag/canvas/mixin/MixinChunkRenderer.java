@@ -57,7 +57,7 @@ import net.minecraft.client.render.chunk.ChunkOcclusionGraphBuilder;
 import net.minecraft.client.render.chunk.ChunkRenderData;
 import net.minecraft.client.render.chunk.ChunkRenderTask;
 import net.minecraft.client.render.chunk.ChunkRenderer;
-import net.minecraft.client.world.SafeWorldView;
+import net.minecraft.client.render.chunk.ChunkRendererRegion;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -72,9 +72,9 @@ public abstract class MixinChunkRenderer implements ChunkRendererExt {
     @Shadow
     public static int chunkUpdateCount;
     @Shadow
-    public ChunkRenderData chunkRenderData;
+    public ChunkRenderData data;
     @Shadow
-    private ReentrantLock chunkRenderLock;
+    private ReentrantLock lock;
     @Shadow
     private BlockPos.Mutable origin;
     @Shadow
@@ -101,28 +101,28 @@ public abstract class MixinChunkRenderer implements ChunkRendererExt {
     }
 
     @Inject(method = "delete", at = @At("RETURN"), require = 1)
-    private void onDeleteGlResources(CallbackInfo ci) {
+    private void onDelete(CallbackInfo ci) {
         canvas_releaseDrawables();
     }
 
-    @Inject(method = "setChunkRenderData", require = 1, at = @At(value = "FIELD", opcode = Opcodes.PUTFIELD, target = "Lnet/minecraft/client/render/chunk/ChunkRenderer;chunkRenderData:Lnet/minecraft/client/render/chunk/ChunkRenderData;"))
-    private void onsetChunkRenderData(ChunkRenderData chunkDataIn, CallbackInfo ci) {
-        if (chunkRenderData == null || chunkRenderData == ChunkRenderData.EMPTY || chunkDataIn == chunkRenderData)
+    @Inject(method = "setData", require = 1, at = @At(value = "FIELD", opcode = Opcodes.PUTFIELD, target = "Lnet/minecraft/client/render/chunk/ChunkRenderer;data:Lnet/minecraft/client/render/chunk/ChunkRenderData;"))
+    private void onSetData(ChunkRenderData chunkDataIn, CallbackInfo ci) {
+        if (data == null || data == ChunkRenderData.EMPTY || chunkDataIn == data)
             return;
 
-        ((ChunkRenderDataExt) chunkRenderData).canvas_chunkVisibility().canvas_releaseVisibilityData();
-        ChunkRenderDataStore.release(chunkRenderData);
+        ((ChunkRenderDataExt) data).canvas_chunkVisibility().canvas_releaseVisibilityData();
+        ChunkRenderDataStore.release(data);
     }
 
-    @Inject(method = "clear", require = 1, at = @At(value = "FIELD", opcode = Opcodes.PUTFIELD, target = "Lnet/minecraft/client/render/chunk/ChunkRenderer;chunkRenderData:Lnet/minecraft/client/render/chunk/ChunkRenderData;"))
+    @Inject(method = "clear", require = 1, at = @At(value = "FIELD", opcode = Opcodes.PUTFIELD, target = "Lnet/minecraft/client/render/chunk/ChunkRenderer;data:Lnet/minecraft/client/render/chunk/ChunkRenderData;"))
     private void onClear(CallbackInfo ci) {
         canvas_releaseDrawables();
         
-        if (chunkRenderData == null || chunkRenderData == ChunkRenderData.EMPTY)
+        if (data == null || data == ChunkRenderData.EMPTY)
             return;
 
-        ((ChunkRenderDataExt) chunkRenderData).canvas_chunkVisibility().canvas_releaseVisibilityData();
-        ChunkRenderDataStore.release(chunkRenderData);
+        ((ChunkRenderDataExt) data).canvas_chunkVisibility().canvas_releaseVisibilityData();
+        ChunkRenderDataStore.release(data);
     }
 
     @Override
@@ -179,7 +179,7 @@ public abstract class MixinChunkRenderer implements ChunkRendererExt {
             HashSet<BlockEntity> blockEntities = Sets.newHashSet();
 
             
-            SafeWorldView safeWorldView = chunkRenderTask.getAndInvalidateWorldView();
+            ChunkRendererRegion safeWorldView = chunkRenderTask.takeRegion();
             if (safeWorldView != null) {
                 ++chunkUpdateCount;
                 help.prepareCollectors(origin.getX(), origin.getY(), origin.getZ());
@@ -275,9 +275,9 @@ public abstract class MixinChunkRenderer implements ChunkRendererExt {
                 BlockModelRenderer.disableBrightnessCache();
             }
 
-            chunkRenderData.method_3640(visibilityData.build());
+            chunkRenderData.setOcclusionGraph(visibilityData.build());
             
-            this.chunkRenderLock.lock();
+            this.lock.lock();
             try {
                 help.tileEntitiesToAdd.addAll(blockEntities);
                 help.tileEntitiesToRemove.addAll(this.blockEntities);
@@ -289,7 +289,7 @@ public abstract class MixinChunkRenderer implements ChunkRendererExt {
                 this.blockEntities.addAll(blockEntities);
                 this.renderer.updateBlockEntities(help.tileEntitiesToRemove, help.tileEntitiesToAdd);
             } finally {
-                this.chunkRenderLock.unlock();
+                this.lock.unlock();
             }
         }
         ci.cancel();
@@ -300,7 +300,7 @@ public abstract class MixinChunkRenderer implements ChunkRendererExt {
         final ChunkRenderData chunkRenderData = chunkRenderTask.getRenderData();
         final ChunkRenderDataExt chunkDataExt = (ChunkRenderDataExt) chunkRenderData;
         int[][] collectorState = chunkDataExt.canvas_collectorState();
-        if (collectorState != null && !chunkRenderData.method_3641(BlockRenderLayer.TRANSLUCENT)) {
+        if (collectorState != null && !chunkRenderData.isEmpty(BlockRenderLayer.TRANSLUCENT)) {
             VertexCollectorList translucentCollector = TerrainRenderContext.POOL.get().chunkRebuildHelper.translucentCollector;
             translucentCollector.loadCollectorState(collectorState);
             translucentCollector.setViewCoordinates(x, y, z);

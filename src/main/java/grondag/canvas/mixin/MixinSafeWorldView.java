@@ -20,13 +20,13 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
-import grondag.canvas.apiimpl.util.SafeWorldViewExt;
-import net.minecraft.client.world.SafeWorldView;
+import grondag.canvas.apiimpl.util.ChunkRendererRegionExt;
+import net.minecraft.client.render.chunk.ChunkRendererRegion;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 
-@Mixin(SafeWorldView.class)
-public abstract class MixinSafeWorldView implements SafeWorldViewExt {
+@Mixin(ChunkRendererRegion.class)
+public abstract class MixinSafeWorldView implements ChunkRendererRegionExt {
     
     @Shadow protected World world;
     

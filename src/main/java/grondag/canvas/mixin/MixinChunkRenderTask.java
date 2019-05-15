@@ -23,18 +23,18 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
-import grondag.canvas.apiimpl.util.SafeWorldViewExt;
+import grondag.canvas.apiimpl.util.ChunkRendererRegionExt;
 import net.minecraft.client.render.chunk.ChunkRenderTask;
-import net.minecraft.client.world.SafeWorldView;
+import net.minecraft.client.render.chunk.ChunkRendererRegion;
 
 @Mixin(ChunkRenderTask.class)
 public abstract class MixinChunkRenderTask {
     @Shadow
-    private SafeWorldView worldView;
+    private ChunkRendererRegion region;
 
     /**
      * The block view reference is voided when
-     * {@link ChunkRenderTask#getAndInvalidateWorldView()} is called during chunk
+     * {@link ChunkRenderTask#takeRegion()} is called during chunk
      * rebuild, but we need it and it is harder to make reliable, non-invasive
      * changes there. So we capture the block view before the reference is voided
      * and send it to the renderer.
@@ -43,13 +43,13 @@ public abstract class MixinChunkRenderTask {
      * We also store a reference to the renderer in the view to avoid doing
      * thread-local lookups for each block.
      */
-    @Inject(at = @At("HEAD"), method = "getAndInvalidateWorldView")
-    private void chunkDataHook(CallbackInfoReturnable<SafeWorldView> info) {
-        final SafeWorldView blockView = worldView;
+    @Inject(at = @At("HEAD"), method = "takeRegion")
+    private void onTakeRegion(CallbackInfoReturnable<ChunkRendererRegion> info) {
+        final ChunkRendererRegion blockView = region;
         if (blockView != null) {
             final TerrainRenderContext renderer = TerrainRenderContext.POOL.get();
             renderer.setBlockView(blockView);
-            ((SafeWorldViewExt) blockView).canvas_renderer(renderer);
+            ((ChunkRendererRegionExt) blockView).canvas_renderer(renderer);
         }
     }
 }

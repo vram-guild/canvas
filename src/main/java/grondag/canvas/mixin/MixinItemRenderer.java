@@ -31,9 +31,9 @@ import grondag.canvas.draw.TessellatorExt;
 import grondag.canvas.light.GuiLightingHelper;
 import grondag.canvas.material.ShaderContext;
 import grondag.frex.api.model.DynamicBakedModel;
+import net.minecraft.client.color.item.ItemColors;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.Tessellator;
-import net.minecraft.client.render.item.ItemColorMap;
 import net.minecraft.client.render.item.ItemRenderer;
 import net.minecraft.client.render.model.BakedModel;
 import net.minecraft.client.render.model.BakedQuad;
@@ -45,7 +45,7 @@ public abstract class MixinItemRenderer {
     @Shadow
     private void renderQuads(BufferBuilder bufferBuilder, List<BakedQuad> quads, int color, ItemStack stack) {}
 
-    @Shadow protected ItemColorMap colorMap;
+    @Shadow protected ItemColors colorMap;
     
     private ItemRenderContext context;
     private ItemRenderContextOld oldContext;

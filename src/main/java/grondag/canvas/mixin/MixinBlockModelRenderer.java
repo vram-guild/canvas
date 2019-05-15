@@ -27,8 +27,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import grondag.canvas.apiimpl.rendercontext.BlockRenderContext;
 import grondag.frex.api.render.TerrainBlockView;
 import net.minecraft.block.BlockState;
+import net.minecraft.client.color.block.BlockColors;
 import net.minecraft.client.render.BufferBuilder;
-import net.minecraft.client.render.block.BlockColorMap;
 import net.minecraft.client.render.block.BlockModelRenderer;
 import net.minecraft.client.render.model.BakedModel;
 import net.minecraft.util.math.BlockPos;
@@ -37,7 +37,7 @@ import net.minecraft.world.ExtendedBlockView;
 @Mixin(BlockModelRenderer.class)
 public abstract class MixinBlockModelRenderer { 
     @Shadow
-    protected BlockColorMap colorMap;
+    protected BlockColors colorMap;
     private final ThreadLocal<BlockRenderContext> CONTEXTS = ThreadLocal.withInitial(BlockRenderContext::new);
 
     @Inject(at = @At("HEAD"), method = "tesselate", cancellable = true)

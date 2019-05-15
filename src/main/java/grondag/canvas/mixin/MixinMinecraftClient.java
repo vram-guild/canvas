@@ -27,13 +27,12 @@ import grondag.canvas.material.ShaderManager;
 import grondag.canvas.varia.CanvasGlHelper;
 import grondag.canvas.varia.MinecraftClientExt;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.util.ThreadExecutor;
+import net.minecraft.util.NonBlockingThreadExecutor;
 import net.minecraft.util.profiler.DisableableProfiler;
 import net.minecraft.util.profiler.Profiler;
 
-@SuppressWarnings("rawtypes")
 @Mixin(MinecraftClient.class)
-public abstract class MixinMinecraftClient extends ThreadExecutor implements MinecraftClientExt {
+public abstract class MixinMinecraftClient extends NonBlockingThreadExecutor<Runnable> implements MinecraftClientExt {
     protected MixinMinecraftClient(String dummy) {
         super(dummy);
     }

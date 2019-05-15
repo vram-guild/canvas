@@ -18,7 +18,6 @@ package grondag.canvas.mixin;
 
 import java.util.concurrent.ArrayBlockingQueue;
 
-import org.spongepowered.asm.lib.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -43,10 +42,10 @@ public abstract class MixinChunkBatcher {
     /**
      * Prevent creation of BlockLayerBufferBuilder instances - never needed/used with Canvas
      */
-    @Redirect(method = "<init>*", at = @At(value = "FIELD", opcode = Opcodes.PUTFIELD, ordinal = 0,
-            target = "Lnet/minecraft/client/render/chunk/ChunkBatcher;field_4442:I"), allow = 1, require = 1)
-    private void zeroLayerBuilders(ChunkBatcher batcher, int val) {
-        // do nothing - let it be zero
+    @Redirect(method = "<init>*", allow = 1, require = 1, at = @At(value = "INVOKE", ordinal = 1,
+            target = "Ljava/lang/Math;max(II)I"))
+    private int zeroLayerBuilders(int a, int b) {
+        return 0;
     }
 
     /**
@@ -58,8 +57,8 @@ public abstract class MixinChunkBatcher {
         return Queues.newArrayBlockingQueue(1);
     }
 
-    @Inject(method = "method_3635", at = @At("HEAD"), cancellable = true, require = 1)
-    public void onUploadChunk(final BlockRenderLayer blockRenderLayer, final BufferBuilder bufferBuilder,
+    @Inject(method = "upload", at = @At("HEAD"), cancellable = true, require = 1)
+    public void onUpload(final BlockRenderLayer blockRenderLayer, final BufferBuilder bufferBuilder,
             final ChunkRenderer renderChunk, final ChunkRenderData chunkData, final double distanceSq,
             CallbackInfoReturnable<ListenableFuture<Object>> ci) {
         if (MinecraftClient.getInstance().isOnThread()) // main thread check

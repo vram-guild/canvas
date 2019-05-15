@@ -40,7 +40,7 @@ public abstract class MixinChunkRenderWorker {
 
     private static boolean shouldUploadLayer(ChunkRenderData chunkData, BlockRenderLayer blockrenderlayer) {
         // skip if empty
-        return chunkData.isBufferInitialized(blockrenderlayer) && !chunkData.method_3641(blockrenderlayer);
+        return chunkData.isBufferInitialized(blockrenderlayer) && !chunkData.isEmpty(blockrenderlayer);
     }
     
     /** 

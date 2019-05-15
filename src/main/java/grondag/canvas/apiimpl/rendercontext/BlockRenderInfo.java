@@ -24,7 +24,7 @@ import grondag.frex.api.render.TerrainBlockView;
 import net.minecraft.block.BlockRenderLayer;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.block.BlockColorMap;
+import net.minecraft.client.color.block.BlockColors;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 
@@ -37,7 +37,7 @@ import net.minecraft.util.math.Direction;
  * so they can be applied together with chunk offsets.
  */
 public class BlockRenderInfo {
-    private final BlockColorMap blockColorMap = MinecraftClient.getInstance().getBlockColorMap();
+    private final BlockColors blockColorMap = MinecraftClient.getInstance().getBlockColorMap();
     public final Random random = new Random();
     public TerrainBlockView blockView;
     public BlockPos blockPos;
@@ -77,7 +77,7 @@ public class BlockRenderInfo {
     }
 
     int blockColor(int colorIndex) {
-        return 0xFF000000 | blockColorMap.getRenderColor(blockState, blockView, blockPos, colorIndex);
+        return 0xFF000000 | blockColorMap.getColorMultiplier(blockState, blockView, blockPos, colorIndex);
     }
 
     boolean shouldDrawFace(Direction face) {

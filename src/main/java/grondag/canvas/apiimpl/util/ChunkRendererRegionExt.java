@@ -23,7 +23,7 @@ import net.minecraft.world.BlockView;
  * Used to stash block renderer reference in local scope during chunk rebuild,
  * thus avoiding repeated thread-local lookups.
  */
-public interface SafeWorldViewExt {
+public interface ChunkRendererRegionExt {
     TerrainRenderContext canvas_renderer();
 
     void canvas_renderer(TerrainRenderContext renderer);

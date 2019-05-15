@@ -201,7 +201,7 @@ public abstract class RenderMaterialImpl {
             switch(blendMode(0)) {
             case CUTOUT:
                 FLAGS[UNMIPPED_INDEX_START + 0].setValue(true, this);
-            case MIPPED_CUTOUT:
+            case CUTOUT_MIPPED:
                 FLAGS[CUTOUT_INDEX_START + 0].setValue(true, this);
             default:
                 break;
@@ -212,7 +212,7 @@ public abstract class RenderMaterialImpl {
                 switch(blendMode(1)) {
                 case CUTOUT:
                     FLAGS[UNMIPPED_INDEX_START + 1].setValue(true, this);
-                case MIPPED_CUTOUT:
+                case CUTOUT_MIPPED:
                     FLAGS[CUTOUT_INDEX_START + 1].setValue(true, this);
                 default:
                     break;
@@ -222,7 +222,7 @@ public abstract class RenderMaterialImpl {
                 switch(blendMode(2)) {
                     case CUTOUT:
                         FLAGS[UNMIPPED_INDEX_START + 2].setValue(true, this);
-                    case MIPPED_CUTOUT:
+                    case CUTOUT_MIPPED:
                         FLAGS[CUTOUT_INDEX_START + 2].setValue(true, this);
                     default:
                         break;

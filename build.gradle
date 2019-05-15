@@ -1,8 +1,11 @@
+import net.fabricmc.loom.task.RemapJar
+
 plugins {
-	id 'fabric-loom' version '0.2.1-SNAPSHOT'
+	id 'fabric-loom' version '0.2.2-SNAPSHOT'
 	id 'java'
 	id 'maven'
 	id 'maven-publish'
+	id 'com.github.johnrengelman.shadow' version '4.0.3'
 	id "com.zoltu.git-versioning" version "3.0.3"
 }
 
@@ -27,6 +30,7 @@ repositories {
     maven { url "http://maven.sargunv.s3-website-us-west-2.amazonaws.com/" }
     maven { url "https://minecraft.curseforge.com/api/maven" }
     maven { url "https://maven.fabricmc.net/io/github/prospector/modmenu/ModMenu/" }
+    maven { url "https://maven.jamieswhiteshirt.com/libs-release/"}
     
  	maven {
     	name = "grondag"
@@ -46,6 +50,26 @@ processResources {
 	}
 }
 
+configurations {
+    included {
+        transitive = false
+    }
+}
+
+shadowJar {
+    version = autoVersion
+    classifier = null
+    configurations = [project.configurations.included]
+}
+
+task remapShadowJar(type: RemapJar) {
+    jar = shadowJar.archivePath
+}
+
+tasks.remapShadowJar.dependsOn tasks.shadowJar
+
+tasks.assemble.dependsOn tasks.remapShadowJar
+
 // Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
 // if it is present.
 // If you remove this task, sources will not be generated.
@@ -62,6 +86,7 @@ tasks.withType(JavaCompile) {
 }
 
 jar {
+	classifier = "slim"
 	from "LICENSE"
 }
 
@@ -84,38 +109,40 @@ sourceSets {
     }
 }
 
-def mcVersion = "1.14"
+def mcVersion = "1.14.1"
 
 dependencies {
 	minecraft "com.mojang:minecraft:$mcVersion"
-	mappings "net.fabricmc:yarn:$mcVersion+build.1"
-	modCompile "net.fabricmc:fabric-loader:0.4.2+build.132"
-	modCompile "net.fabricmc:fabric:0.2.7+build.127"
+	mappings "net.fabricmc:yarn:$mcVersion+build.5"
+	modCompile "net.fabricmc:fabric-loader:0.4.7+build.147"
+	modCompile "net.fabricmc.fabric-api:fabric-api:0.3.0-pre+build.156"
 	
-	modCompile "grondag:frex:0.4.+"
-	modCompile "grondag:renderbender:0.4.+"
-    modCompile "cloth-config:ClothConfig:0.2.0.12"
+	modCompile "grondag:renderbender:0.5.1"
 	
 	modCompile "grondag:fermion:0.4.+"
 	include "grondag:fermion:0.4.+"
 
-	modCompile "grondag:frex:0.6.1-full"
-	include "grondag:frex:0.6.1-full"
-
+	modCompile "grondag:frex:0.6.2"
+	include "grondag:frex:0.6.2"
+	
+    modCompile "cloth-config:ClothConfig:0.2.1.14"
+    include "cloth-config:ClothConfig:0.2.1.14"
+	
+	compile "blue.endless:jankson:1.1.0"
+	included "blue.endless:jankson:1.1.0"
+	
 	// For dev env testing 
-	modCompile "io.github.prospector.modmenu:ModMenu:1.4.0-72"
-	modCompile "cloth:ClothEvents:0.3.1.23" // for REI
-	modCompile "roughly-enough-items:RoughlyEnoughItems:2.7.11.97"
+	modCompile "com.jamieswhiteshirt:developer-mode:1.0.11"
+	modCompile "io.github.prospector.modmenu:ModMenu:1.5.4-85"
+	//modCompile "cloth:ClothEvents:0.3.1.23" // for REI
+	//modCompile "roughly-enough-items:RoughlyEnoughItems:2.7.11.97"
 	
 	// dev env annotation support
 	compile "org.apiguardian:apiguardian-api:1.0.0"
 	compile "com.google.code.findbugs:jsr305:3.0.2"
 	
 	// shadowed by FREX but needed in dev
-	compile "org.joml:joml:1.9.14"
-	
-	// shadowed by autoconfig but needed in dev
-	compile "blue.endless:jankson:1.1.0"
+	//compile "org.joml:joml:1.9.14"
 }
 
 publishing {
@@ -126,6 +153,9 @@ publishing {
 			}
 			artifact(sourcesJar) {
 				builtBy remapSourcesJar
+			}
+			artifact(shadowJar) {
+				builtBy remapShadowJar
 			}
         }
     }

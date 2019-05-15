@@ -53,10 +53,10 @@ import grondag.canvas.apiimpl.util.ColorHelper;
 import grondag.canvas.apiimpl.util.MeshEncodingHelper;
 import grondag.canvas.varia.BufferBuilderExt;
 import net.minecraft.block.BlockState;
+import net.minecraft.client.color.item.ItemColors;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.Tessellator;
 import net.minecraft.client.render.VertexFormats;
-import net.minecraft.client.render.item.ItemColorMap;
 import net.minecraft.client.render.model.BakedModel;
 import net.minecraft.client.render.model.BakedQuad;
 import net.minecraft.item.ItemStack;
@@ -72,7 +72,7 @@ public class ItemRenderContextOld extends AbstractRenderContextOld implements Re
         void accept(BufferBuilder bufferBuilder, List<BakedQuad> quads, int color, ItemStack stack);
     }
 
-    private final ItemColorMap colorMap;
+    private final ItemColors colorMap;
     private final Random random = new Random();
     BufferBuilder bufferBuilder;
     BufferBuilderExt fabricBuffer;
@@ -97,7 +97,7 @@ public class ItemRenderContextOld extends AbstractRenderContextOld implements Re
 
     private final int[] quadData = new int[MeshEncodingHelper.MAX_STRIDE];;
 
-    public ItemRenderContextOld(ItemColorMap colorMap) {
+    public ItemRenderContextOld(ItemColors colorMap) {
         this.colorMap = colorMap;
     }
 
@@ -183,7 +183,7 @@ public class ItemRenderContextOld extends AbstractRenderContextOld implements Re
         final int colorIndex = editorQuad.colorIndex();
         int quadColor = color;
         if (!enchantment && quadColor == -1 && colorIndex != 1) {
-            quadColor = colorMap.getRenderColor(itemStack, colorIndex);
+            quadColor = colorMap.getColorMultiplier(itemStack, colorIndex);
             quadColor |= -16777216;
         }
         return quadColor;

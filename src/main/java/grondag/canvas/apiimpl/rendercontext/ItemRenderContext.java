@@ -46,8 +46,8 @@ import grondag.frex.api.model.ModelHelper;
 import grondag.frex.api.render.RenderContext;
 import net.minecraft.block.BlockRenderLayer;
 import net.minecraft.block.BlockState;
+import net.minecraft.client.color.item.ItemColors;
 import net.minecraft.client.render.Tessellator;
-import net.minecraft.client.render.item.ItemColorMap;
 import net.minecraft.client.render.model.BakedModel;
 import net.minecraft.client.render.model.BakedQuad;
 import net.minecraft.item.ItemStack;
@@ -67,7 +67,7 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
         return playerLightmap;
     }
     
-    private final ItemColorMap colorMap;
+    private final ItemColors colorMap;
     private final Random random = new Random();
     private Tessellator tessellator = Tessellator.getInstance();
     private TessellatorExt tessellatorExt = (TessellatorExt)tessellator;
@@ -96,7 +96,7 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
      */
     public ItemStack enchantmentStack;
     
-    public ItemRenderContext(ItemColorMap colorMap) {
+    public ItemRenderContext(ItemColors colorMap) {
         this.colorMap = colorMap;
     }
     
@@ -165,7 +165,7 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
         final int colorIndex = editorQuad.colorIndex();
         int quadColor = color;
         if (!enchantment && quadColor == -1 && colorIndex != -1) {
-            quadColor = colorMap.getRenderColor(itemStack, colorIndex);
+            quadColor = colorMap.getColorMultiplier(itemStack, colorIndex);
             quadColor |= -16777216;
         }
         return quadColor;

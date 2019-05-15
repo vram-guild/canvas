@@ -62,7 +62,7 @@ public abstract class MixinWorldRenderer {
         ChunkRenderer renderChunk = ((ChunkRendererDispatcherExt)chunkRenderDispatcher).canvas_chunkRenderer(pos);
         if(renderChunk != null)
         {
-            Object visData = ((ChunkRenderDataExt)renderChunk.chunkRenderData).canvas_chunkVisibility().canvas_visibilityData();
+            Object visData = ((ChunkRenderDataExt)renderChunk.data).canvas_chunkVisibility().canvas_visibilityData();
             // unbuilt chunks won't have extended info
             if(visData != null) {
                 // note we return copies because result may be modified
@@ -82,7 +82,7 @@ public abstract class MixinWorldRenderer {
         switch (layer) {
 
         case CUTOUT:
-        case MIPPED_CUTOUT:
+        case CUTOUT_MIPPED:
             ci.setReturnValue(0);
             break;
             

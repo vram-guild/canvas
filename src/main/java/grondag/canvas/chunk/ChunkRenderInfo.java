@@ -44,7 +44,7 @@ import net.minecraft.block.BlockState;
 import net.minecraft.client.render.chunk.ChunkRenderData;
 import net.minecraft.client.render.chunk.ChunkRenderTask;
 import net.minecraft.client.render.chunk.ChunkRenderer;
-import net.minecraft.client.world.SafeWorldView;
+import net.minecraft.client.render.chunk.ChunkRendererRegion;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.ExtendedBlockView;
@@ -113,7 +113,7 @@ public class ChunkRenderInfo {
 //        subtractedCache.defaultReturnValue(Short.MIN_VALUE);
     }
 
-    public void setBlockView(SafeWorldView blockView) {
+    public void setBlockView(ChunkRendererRegion blockView) {
         this.blockView = blockView;
     }
 
