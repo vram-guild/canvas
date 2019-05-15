@@ -99,6 +99,9 @@ dependencies {
 	modCompile "grondag:fermion:0.4.+"
 	include "grondag:fermion:0.4.+"
 
+	modCompile "grondag:frex:0.6.1-full"
+	include "grondag:frex:0.6.1-full"
+
 	// For dev env testing 
 	modCompile "io.github.prospector.modmenu:ModMenu:1.4.0-72"
 	modCompile "cloth:ClothEvents:0.3.1.23" // for REI
