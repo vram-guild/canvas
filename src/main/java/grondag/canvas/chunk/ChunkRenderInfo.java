@@ -35,6 +35,7 @@ package grondag.canvas.chunk;
 import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.rendercontext.BlockRenderInfo;
+import grondag.canvas.apiimpl.util.ChunkRendererRegionExt;
 import grondag.canvas.light.LightSmoother;
 import grondag.fermion.world.PackedBlockPos;
 import it.unimi.dsi.fastutil.longs.Long2FloatOpenHashMap;
@@ -132,6 +133,8 @@ public class ChunkRenderInfo {
     }
 
     public void release() {
+        ((ChunkRendererRegionExt)blockView).canvas_release();
+        blockView = null;
         chunkData = null;
         chunkTask = null;
         chunkRenderer = null;

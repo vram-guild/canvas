@@ -23,6 +23,7 @@
 	"MixinItemRenderer",
 	"MixinLightmapTextureManager",
 	"MixinMinecraftClient",
+	"MixinPalettedContainer",
 	"MixinTessellator",
 	"MixinVboChunkRendererList",
 	"MixinWorldRenderer"

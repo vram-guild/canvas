@@ -16,20 +16,91 @@
 
 package grondag.canvas.mixin;
 
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.concurrent.ArrayBlockingQueue;
+
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.Redirect;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
 import grondag.canvas.apiimpl.util.ChunkRendererRegionExt;
+import grondag.canvas.chunk.ChunkHack;
+import net.minecraft.block.BlockState;
 import net.minecraft.client.render.chunk.ChunkRendererRegion;
+import net.minecraft.fluid.FluidState;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
+import net.minecraft.world.chunk.WorldChunk;
 
 @Mixin(ChunkRendererRegion.class)
 public abstract class MixinChunkRendererRegion implements ChunkRendererRegionExt {
-    
+    private static final ArrayBlockingQueue<BlockState[][]> SECTION_POOL = new ArrayBlockingQueue<>(4096); 
+
+    private static BlockState[][] claimSectionArray() {
+        final BlockState[][] result = SECTION_POOL.poll();
+        return result == null ? new BlockState[27][4096] : result;
+    }
+
+    private static void releaseSectionArray(BlockState[][] section) {
+        SECTION_POOL.offer(section);
+    }
+
     @Shadow protected World world;
+    @Shadow protected BlockState[] blockStates;
+    @Shadow protected FluidState[] fluidStates;
+    @Shadow protected BlockPos offset;
+    @Shadow protected int xSize;
+    @Shadow protected int ySize;
+    @Shadow protected int zSize;
+
+    @Shadow
+    protected abstract int getIndex(int x, int y, int z);
+
+    private BlockState[][] sections;
+
+    private int secBaseX;
+    private int secBaseY;
+    private int secBaseZ;
+
+    private static final Iterable<BlockPos> DUMMY_ITERABLE = new Iterable<BlockPos>() {
+        @Override
+        public Iterator<BlockPos> iterator() {
+            return Collections.emptyIterator();
+        }
+    };
     
+    @Redirect(method = "<init>*", require = 1, at = @At(value = "INVOKE", 
+            target = "Lnet/minecraft/util/math/BlockPos;iterate(Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/util/math/BlockPos;)Ljava/lang/Iterable;"))
+    private Iterable<BlockPos> hookIterate(BlockPos from, BlockPos to) {
+        return DUMMY_ITERABLE;
+    }
+    
+    @Inject(at = @At("RETURN"), method = "<init>")
+    public void init(World world, int cxOff, int czOff, WorldChunk[][] chunks, BlockPos posFrom, BlockPos posTo, CallbackInfo info) {
+
+        secBaseX = posFrom.getX() >> 4;
+        secBaseY = posFrom.getY() >> 4;
+        secBaseZ = posFrom.getZ() >> 4;
+
+        sections = claimSectionArray();
+        final int ySection = posFrom.getY() >> 4;
+
+        for(int x = 0; x < 3; x++) {
+            for(int z = 0; z < 3; z++) {
+                for(int y = 0; y < 3; y++) {
+                    ChunkHack.captureSection(sections[x + y * 3 + z * 9], chunks[x][z], y + ySection);
+                }
+            }
+        }
+    }
+
     private TerrainRenderContext fabric_renderer;
 
     @Override
@@ -42,8 +113,63 @@ public abstract class MixinChunkRendererRegion implements ChunkRendererRegionExt
         fabric_renderer = renderer;
     }
 
+    //UGLY: remove or rework
     @Override
     public BlockView canvas_worldHack() {
         return world;
+    }
+
+    //TODO: remove
+    private void validate() {
+        for(int x = 0; x < this.xSize; x++) {
+            for(int y = 0; y < this.ySize; y++) {
+                for(int z = 0; z < this.zSize; z++) {
+                    final int bx = x + offset.getX();
+                    final int by = y + offset.getY();
+                    final int bz = z + offset.getZ();
+
+                    BlockState oldState = blockStates[getIndex(bx, by, bz)];
+                    BlockState newState = fastBlockState(bx, by, bz);
+                    if(newState != oldState) {
+                        System.out.print(false);
+                    }
+                }
+            }
+
+        }
+    }
+
+    private BlockState fastBlockState(int x, int y, int z) {
+        return sections[secIndex(x, y, z)][blockIndex(x, y, z)];
+    }
+
+    private int blockIndex(int x, int y, int z) {
+        return (x & 0xF) | ((y & 0xF) << 8) | ((z & 0xF) << 4);
+    }
+
+    private int secIndex(int x, int y, int z) {
+        int bx = (x >> 4) - secBaseX;
+        int by = (y >> 4) - secBaseY;
+        int bz = (z >> 4) - secBaseZ;
+        return bx + by * 3 + bz * 9;
+        //return (x >> 4) * 4096 + chunk y * 12288 + chunk z * 36864
+    }
+
+    @Overwrite
+    public BlockState getBlockState(BlockPos pos) {
+        return fastBlockState(pos.getX(), pos.getY(), pos.getZ());
+    }
+
+    @Overwrite
+    public FluidState getFluidState(BlockPos pos) {
+        return fastBlockState(pos.getX(), pos.getY(), pos.getZ()).getFluidState();
+    }
+    
+    @Override
+    public void canvas_release() {
+        if(sections != null) {
+            releaseSectionArray(sections);
+            sections = null;
+        }
     }
 }

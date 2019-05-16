@@ -14,21 +14,16 @@
  * the License.
  ******************************************************************************/
 
-package grondag.canvas.apiimpl.util;
+package grondag.canvas.mixin;
 
-import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
-import net.minecraft.world.BlockView;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.gen.Invoker;
 
-/**
- * Used to stash block renderer reference in local scope during chunk rebuild,
- * thus avoiding repeated thread-local lookups.
- */
-public interface ChunkRendererRegionExt {
-    TerrainRenderContext canvas_renderer();
+import net.minecraft.world.chunk.PalettedContainer;
 
-    void canvas_renderer(TerrainRenderContext renderer);
+@Mixin(PalettedContainer.class)
+public interface MixinPalettedContainer {
+    @Invoker
+    public <T> T invokeGet(int i);
     
-    BlockView canvas_worldHack();
-    
-    void canvas_release();
 }

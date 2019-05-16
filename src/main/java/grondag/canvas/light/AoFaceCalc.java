@@ -89,7 +89,8 @@ public class AoFaceCalc {
     }
 
     float weigtedAo(float[] w) {
-        return aoBottomRight * w[0] + aoBottomLeft * w[1] + aoTopLeft * w[2] + aoTopRight * w[3];
+        // PERF: pass ints directly to vertex encoder
+        return (aoBottomRight * w[0] + aoBottomLeft * w[1] + aoTopLeft * w[2] + aoTopRight * w[3]) / 255f;
     }
 
     int maxAo(int oldMax) {
@@ -159,7 +160,7 @@ public class AoFaceCalc {
      * value from all four samples.
      */
     private static int meanBrightness(int a, int b, int c, int d) {
-        int missingVal = 0;
+        int missingVal = 0x0FFFFFFF;
         IntBinaryOperator func = AoFaceCalc::min;
         int missingCount = 0;
         int total = 0;
