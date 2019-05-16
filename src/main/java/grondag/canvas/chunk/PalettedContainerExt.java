@@ -1,5 +1,7 @@
 package grondag.canvas.chunk;
 
+import grondag.canvas.chunk.ChunkHack.PaletteCopy;
+
 public interface PalettedContainerExt {
-    <T> T canvas_get(int i);
+    PaletteCopy canvas_paletteCopy();
 }

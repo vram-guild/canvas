@@ -116,6 +116,7 @@ public class ChunkRenderInfo {
 
     public void setBlockView(ChunkRendererRegion blockView) {
         this.blockView = blockView;
+        ((ChunkRendererRegionExt)blockView).canvas_prepare();
     }
 
     public void setChunkTask(ChunkRenderTask chunkTask) {

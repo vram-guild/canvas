@@ -16,26 +16,25 @@
 
 package grondag.canvas.mixin;
 
+import java.util.Arrays;
+
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
-import grondag.canvas.chunk.PalettedContainerExt;
-import grondag.canvas.chunk.ChunkHack.PaletteCopy;
-import net.minecraft.block.BlockState;
+import grondag.canvas.chunk.PackedIntegerArrayExt;
 import net.minecraft.util.PackedIntegerArray;
-import net.minecraft.world.chunk.Palette;
-import net.minecraft.world.chunk.PalettedContainer;
 
-@Mixin(PalettedContainer.class)
-public abstract class MixinPalettedContainer<T> implements PalettedContainerExt {
+@Mixin(PackedIntegerArray.class)
+public abstract class MixinPackedIntegerArray implements PackedIntegerArrayExt {
+
+    @Shadow private long[] storage;
+    @Shadow private int elementBits;
+    @Shadow private int size;
     
-    @Shadow private T field_12935;
-    @Shadow protected PackedIntegerArray data;
-    @Shadow private Palette<T> palette;
-    
-    @SuppressWarnings("unchecked")
     @Override
-    public PaletteCopy canvas_paletteCopy() {
-        return new PaletteCopy((Palette<BlockState>) palette, data, (BlockState)field_12935);
+    public PackedIntegerArray canvas_copy() {
+        // PERF: reuse these arrays
+        final long[] storageCopy = Arrays.copyOf(storage, storage.length);
+        return new PackedIntegerArray(elementBits, size, storageCopy);
     }
 }

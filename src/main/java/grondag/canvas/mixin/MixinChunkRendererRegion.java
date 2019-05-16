@@ -31,6 +31,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
 import grondag.canvas.apiimpl.util.ChunkRendererRegionExt;
 import grondag.canvas.chunk.ChunkHack;
+import grondag.canvas.chunk.ChunkHack.PaletteCopy;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.render.chunk.ChunkRendererRegion;
 import net.minecraft.fluid.FluidState;
@@ -63,6 +64,7 @@ public abstract class MixinChunkRendererRegion implements ChunkRendererRegionExt
     @Shadow
     protected abstract int getIndex(int x, int y, int z);
 
+    private PaletteCopy[] copies;
     private BlockState[][] sections;
 
     private int secBaseX;
@@ -90,12 +92,13 @@ public abstract class MixinChunkRendererRegion implements ChunkRendererRegionExt
         secBaseZ = posFrom.getZ() >> 4;
 
         sections = claimSectionArray();
-        final int ySection = posFrom.getY() >> 4;
 
+        copies = new PaletteCopy[27];
+        
         for(int x = 0; x < 3; x++) {
             for(int z = 0; z < 3; z++) {
                 for(int y = 0; y < 3; y++) {
-                    ChunkHack.captureSection(sections[x + y * 3 + z * 9], chunks[x][z], y + ySection);
+                    copies[x + y * 3 + z * 9] = ChunkHack.captureCopy(chunks[x][z], y + secBaseY);
                 }
             }
         }
@@ -113,31 +116,45 @@ public abstract class MixinChunkRendererRegion implements ChunkRendererRegionExt
         fabric_renderer = renderer;
     }
 
-    //UGLY: remove or rework
+    @Override
+    public void canvas_prepare() {
+        sections = claimSectionArray();
+
+        for(int x = 0; x < 3; x++) {
+            for(int z = 0; z < 3; z++) {
+                for(int y = 0; y < 3; y++) {
+                    final int i = x + y * 3 + z * 9;
+                    ChunkHack.captureSection(sections[i], copies[i]);
+                }
+            }
+        }
+    }
+    
+  //UGLY: remove or rework
     @Override
     public BlockView canvas_worldHack() {
         return world;
     }
 
     //TODO: remove
-    private void validate() {
-        for(int x = 0; x < this.xSize; x++) {
-            for(int y = 0; y < this.ySize; y++) {
-                for(int z = 0; z < this.zSize; z++) {
-                    final int bx = x + offset.getX();
-                    final int by = y + offset.getY();
-                    final int bz = z + offset.getZ();
-
-                    BlockState oldState = blockStates[getIndex(bx, by, bz)];
-                    BlockState newState = fastBlockState(bx, by, bz);
-                    if(newState != oldState) {
-                        System.out.print(false);
-                    }
-                }
-            }
-
-        }
-    }
+//    private void validate() {
+//        for(int x = 0; x < this.xSize; x++) {
+//            for(int y = 0; y < this.ySize; y++) {
+//                for(int z = 0; z < this.zSize; z++) {
+//                    final int bx = x + offset.getX();
+//                    final int by = y + offset.getY();
+//                    final int bz = z + offset.getZ();
+//
+//                    BlockState oldState = blockStates[getIndex(bx, by, bz)];
+//                    BlockState newState = fastBlockState(bx, by, bz);
+//                    if(newState != oldState) {
+//                        System.out.print(false);
+//                    }
+//                }
+//            }
+//
+//        }
+//    }
 
     private BlockState fastBlockState(int x, int y, int z) {
         return sections[secIndex(x, y, z)][blockIndex(x, y, z)];

@@ -28,6 +28,8 @@ public interface ChunkRendererRegionExt {
 
     void canvas_renderer(TerrainRenderContext renderer);
     
+    void canvas_prepare();
+    
     BlockView canvas_worldHack();
     
     void canvas_release();
