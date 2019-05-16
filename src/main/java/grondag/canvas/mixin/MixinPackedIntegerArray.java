@@ -16,12 +16,11 @@
 
 package grondag.canvas.mixin;
 
-import java.util.Arrays;
-
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
 import grondag.canvas.chunk.PackedIntegerArrayExt;
+import grondag.canvas.chunk.PackedIntegerStorageHelper;
 import net.minecraft.util.PackedIntegerArray;
 
 @Mixin(PackedIntegerArray.class)
@@ -33,8 +32,6 @@ public abstract class MixinPackedIntegerArray implements PackedIntegerArrayExt {
     
     @Override
     public PackedIntegerArray canvas_copy() {
-        // PERF: reuse these arrays
-        final long[] storageCopy = Arrays.copyOf(storage, storage.length);
-        return new PackedIntegerArray(elementBits, size, storageCopy);
+        return new PackedIntegerArray(elementBits, size, PackedIntegerStorageHelper.claimStorageCopy(storage));
     }
 }

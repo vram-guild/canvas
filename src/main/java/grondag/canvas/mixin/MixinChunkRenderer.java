@@ -30,6 +30,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import com.google.common.collect.Sets;
 
+import grondag.canvas.Canvas;
 import grondag.canvas.apiimpl.RendererImpl;
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
 import grondag.canvas.buffer.packing.FluidBufferBuilder;
@@ -42,6 +43,7 @@ import grondag.canvas.chunk.DrawableChunk.Solid;
 import grondag.canvas.chunk.DrawableChunk.Translucent;
 import grondag.canvas.chunk.UploadableChunk;
 import grondag.canvas.material.ShaderProps;
+import grondag.fermion.concurrency.ConcurrentPerformanceCounter;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockRenderLayer;
 import net.minecraft.block.BlockRenderType;
@@ -150,8 +152,12 @@ public abstract class MixinChunkRenderer implements ChunkRendererExt {
         }
     }
 
+    //TODO: remove
+    private static final ConcurrentPerformanceCounter counter = new ConcurrentPerformanceCounter();
+    
     @Inject(method = "rebuildChunk", at = @At("HEAD"), cancellable = true, require = 1)
     private void onRebuildChunk(final float x, final float y, final float z, final ChunkRenderTask chunkRenderTask, final CallbackInfo ci) {
+        final long start = counter.startRun();
         final TerrainRenderContext renderContext = TerrainRenderContext.POOL.get();
         final ChunkRebuildHelper help = renderContext.chunkRebuildHelper;
         help.clear();
@@ -292,6 +298,13 @@ public abstract class MixinChunkRenderer implements ChunkRendererExt {
                 this.lock.unlock();
             }
         }
+        counter.endRun(start);
+        counter.addCount(1);
+        if(counter.runCount() >= 2000) {
+            Canvas.LOG.info(counter.stats());
+            counter.clearStats();
+        }
+        
         ci.cancel();
     }
     

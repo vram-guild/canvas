@@ -18,7 +18,7 @@ package grondag.canvas.mixin;
 
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.concurrent.ArrayBlockingQueue;
+import java.util.function.IntFunction;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
@@ -42,16 +42,16 @@ import net.minecraft.world.chunk.WorldChunk;
 
 @Mixin(ChunkRendererRegion.class)
 public abstract class MixinChunkRendererRegion implements ChunkRendererRegionExt {
-    private static final ArrayBlockingQueue<BlockState[][]> SECTION_POOL = new ArrayBlockingQueue<>(4096); 
-
-    private static BlockState[][] claimSectionArray() {
-        final BlockState[][] result = SECTION_POOL.poll();
-        return result == null ? new BlockState[27][4096] : result;
-    }
-
-    private static void releaseSectionArray(BlockState[][] section) {
-        SECTION_POOL.offer(section);
-    }
+//    private static final ArrayBlockingQueue<BlockState[][]> SECTION_POOL = new ArrayBlockingQueue<>(4096); 
+//
+//    private static BlockState[][] claimSectionArray() {
+//        final BlockState[][] result = SECTION_POOL.poll();
+//        return result == null ? new BlockState[27][4096] : result;
+//    }
+//
+//    private static void releaseSectionArray(BlockState[][] section) {
+//        SECTION_POOL.offer(section);
+//    }
 
     @Shadow protected World world;
     @Shadow protected BlockState[] blockStates;
@@ -64,8 +64,8 @@ public abstract class MixinChunkRendererRegion implements ChunkRendererRegionExt
     @Shadow
     protected abstract int getIndex(int x, int y, int z);
 
-    private PaletteCopy[] copies;
-    private BlockState[][] sections;
+    private IntFunction<BlockState>[] copies;
+//    private BlockState[][] sections;
 
     private int secBaseX;
     private int secBaseY;
@@ -84,6 +84,7 @@ public abstract class MixinChunkRendererRegion implements ChunkRendererRegionExt
         return DUMMY_ITERABLE;
     }
     
+    @SuppressWarnings("unchecked")
     @Inject(at = @At("RETURN"), method = "<init>")
     public void init(World world, int cxOff, int czOff, WorldChunk[][] chunks, BlockPos posFrom, BlockPos posTo, CallbackInfo info) {
 
@@ -91,14 +92,15 @@ public abstract class MixinChunkRendererRegion implements ChunkRendererRegionExt
         secBaseY = posFrom.getY() >> 4;
         secBaseZ = posFrom.getZ() >> 4;
 
-        sections = claimSectionArray();
+//        sections = claimSectionArray();
 
-        copies = new PaletteCopy[27];
+        // larger than it needs to be to speed up indexing
+        copies = new IntFunction[64];
         
         for(int x = 0; x < 3; x++) {
             for(int z = 0; z < 3; z++) {
                 for(int y = 0; y < 3; y++) {
-                    copies[x + y * 3 + z * 9] = ChunkHack.captureCopy(chunks[x][z], y + secBaseY);
+                    copies[x | (y << 2) | (z << 4)] = ChunkHack.captureCopy(chunks[x][z], y + secBaseY);
                 }
             }
         }
@@ -116,18 +118,19 @@ public abstract class MixinChunkRendererRegion implements ChunkRendererRegionExt
         fabric_renderer = renderer;
     }
 
+    //TODO: remove if not used
     @Override
     public void canvas_prepare() {
-        sections = claimSectionArray();
-
-        for(int x = 0; x < 3; x++) {
-            for(int z = 0; z < 3; z++) {
-                for(int y = 0; y < 3; y++) {
-                    final int i = x + y * 3 + z * 9;
-                    ChunkHack.captureSection(sections[i], copies[i]);
-                }
-            }
-        }
+//        sections = claimSectionArray();
+//
+//        for(int x = 0; x < 3; x++) {
+//            for(int z = 0; z < 3; z++) {
+//                for(int y = 0; y < 3; y++) {
+//                    final int i = x + y * 3 + z * 9;
+//                    ChunkHack.captureSection(sections[i], copies[i]);
+//                }
+//            }
+//        }
     }
     
   //UGLY: remove or rework
@@ -157,7 +160,8 @@ public abstract class MixinChunkRendererRegion implements ChunkRendererRegionExt
 //    }
 
     private BlockState fastBlockState(int x, int y, int z) {
-        return sections[secIndex(x, y, z)][blockIndex(x, y, z)];
+//        return sections[secIndex(x, y, z)][blockIndex(x, y, z)];
+        return copies[secIndex(x, y, z)].apply(blockIndex(x, y, z));
     }
 
     private int blockIndex(int x, int y, int z) {
@@ -168,7 +172,7 @@ public abstract class MixinChunkRendererRegion implements ChunkRendererRegionExt
         int bx = (x >> 4) - secBaseX;
         int by = (y >> 4) - secBaseY;
         int bz = (z >> 4) - secBaseZ;
-        return bx + by * 3 + bz * 9;
+        return bx | (by << 2) | (bz << 4);
         //return (x >> 4) * 4096 + chunk y * 12288 + chunk z * 36864
     }
 
@@ -182,11 +186,17 @@ public abstract class MixinChunkRendererRegion implements ChunkRendererRegionExt
         return fastBlockState(pos.getX(), pos.getY(), pos.getZ()).getFluidState();
     }
     
+    //TODO: remove if not used
     @Override
     public void canvas_release() {
-        if(sections != null) {
-            releaseSectionArray(sections);
-            sections = null;
+        for(Object o : copies) {
+            if(o instanceof PaletteCopy) {
+                ((PaletteCopy)o).release();
+            }
         }
+//        if(sections != null) {
+//            releaseSectionArray(sections);
+//            sections = null;
+//        }
     }
 }

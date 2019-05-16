@@ -1,6 +1,7 @@
 package grondag.canvas.chunk;
 
 import java.util.Arrays;
+import java.util.function.IntFunction;
 
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
@@ -12,7 +13,7 @@ import net.minecraft.world.chunk.WorldChunk;
 public class ChunkHack {
     private static final BlockState AIR = Blocks.AIR.getDefaultState();
     
-    public static class PaletteCopy {
+    public static class PaletteCopy implements IntFunction<BlockState>{
         private PackedIntegerArray data;
         private final Palette<BlockState> palette;
         public final BlockState emptyVal;
@@ -25,9 +26,14 @@ public class ChunkHack {
             this.emptyVal = emptyVal;
         }
 
-        public BlockState blockState(int index) {
+        @Override
+        public BlockState apply(int index) {
             final BlockState result = palette.getByIndex(data.get(index));
             return result == null ? emptyVal : result;
+        }
+
+        public void release() {
+            PackedIntegerStorageHelper.releaseStorageCopy(data.getStorage());
         }
     }
 
@@ -36,14 +42,14 @@ public class ChunkHack {
             Arrays.fill(blockStates, paletteCopy.emptyVal);
         } else {
             for(int i = 0; i < 4096; i++) {
-                blockStates[i] = paletteCopy.blockState(i);
+                blockStates[i] = paletteCopy.apply(i);
             }
         }
     }
     
-    private static final PaletteCopy AIR_COPY = new PaletteCopy(null, null, AIR);
+    private static final IntFunction<BlockState> AIR_COPY = i -> AIR;
 
-    public static PaletteCopy captureCopy(WorldChunk chunk, int sectionIndex) {
+    public static IntFunction<BlockState> captureCopy(WorldChunk chunk, int sectionIndex) {
         if(chunk == null || sectionIndex < 0) {
             return AIR_COPY;
         }
