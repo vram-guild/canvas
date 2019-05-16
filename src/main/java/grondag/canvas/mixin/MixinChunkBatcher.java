@@ -16,15 +16,11 @@
 
 package grondag.canvas.mixin;
 
-import java.util.concurrent.ArrayBlockingQueue;
-
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import com.google.common.collect.Queues;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 
@@ -39,23 +35,26 @@ import net.minecraft.client.render.chunk.ChunkRenderer;
 @Mixin(ChunkBatcher.class)
 public abstract class MixinChunkBatcher {
 
+//    @Shadow private BlockingQueue<BlockLayeredBufferBuilder> availableBuffers;
+    
+    //TODO: remove - doesn't seem necessary if buffer builder memory allocation is small anyway
     /**
-     * Prevent creation of BlockLayerBufferBuilder instances - never needed/used with Canvas
+     * Remove BlockLayerBufferBuilder instances - never needed/used with Canvas
      */
-    @Redirect(method = "<init>*", allow = 1, require = 1, at = @At(value = "INVOKE", ordinal = 1,
-            target = "Ljava/lang/Math;max(II)I"))
-    private int zeroLayerBuilders(int a, int b) {
-        return 0;
-    }
+//    @Inject(method = "<init>*", at = @At("RETURN"), cancellable = true, require = 1)
+//    private void onInit(CallbackInfo ci) {
+//        availableBuffers.clear();
+//    }
 
+    
     /**
      * Making layer builder count zero will cause an error in creating queue, so avoid there here.
      */
-    @Redirect(method = "<init>*",  allow = 1, require = 1, at = @At(value = "INVOKE", ordinal = 0,
-            target = "Lcom/google/common/collect/Queues;newArrayBlockingQueue(I)Ljava/util/concurrent/ArrayBlockingQueue;"))
-    private ArrayBlockingQueue<?> getQueue(int size) {
-        return Queues.newArrayBlockingQueue(1);
-    }
+//    @Redirect(method = "<init>*",  allow = 1, require = 1, at = @At(value = "INVOKE", ordinal = 0,
+//            target = "Lcom/google/common/collect/Queues;newArrayBlockingQueue(I)Ljava/util/concurrent/ArrayBlockingQueue;"))
+//    private ArrayBlockingQueue<?> getQueue(int size) {
+//        return Queues.newArrayBlockingQueue(1);
+//    }
 
     @Inject(method = "upload", at = @At("HEAD"), cancellable = true, require = 1)
     public void onUpload(final BlockRenderLayer blockRenderLayer, final BufferBuilder bufferBuilder,

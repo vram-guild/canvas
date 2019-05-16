@@ -26,7 +26,7 @@ import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 
 @Mixin(ChunkRendererRegion.class)
-public abstract class MixinSafeWorldView implements ChunkRendererRegionExt {
+public abstract class MixinChunkRendererRegion implements ChunkRendererRegionExt {
     
     @Shadow protected World world;
     

@@ -153,23 +153,14 @@ public class AoFaceCalc {
         return s | b;
     }
     
-    private static int max(int x, int y) {
-        final int s = Math.max(x & 0x00FF0000, y & 0x00FF0000);
-        final int b = Math.max(x & 0xFF, y & 0xFF);
-        return s | b;
-    }
-
-    
     /** 
      * Vanilla code excluded missing light values from mean but was not isotropic.
      * Still need to substitute or edges are too dark but consistently use the min 
      * value from all four samples.
      */
     private static int meanBrightness(int a, int b, int c, int d) {
-        //TODO: configure min vs max - vanilla is min
-        final boolean useMax = false;
-        int missingVal = useMax ? 0 : 0x0FFFFFFF;
-        IntBinaryOperator func = useMax ? AoFaceCalc::max : AoFaceCalc::min;
+        int missingVal = 0;
+        IntBinaryOperator func = AoFaceCalc::min;
         int missingCount = 0;
         int total = 0;
         
