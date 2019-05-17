@@ -42,6 +42,7 @@ import grondag.canvas.chunk.ChunkRenderDataStore;
 import grondag.canvas.chunk.ChunkRendererExt;
 import grondag.canvas.chunk.DrawableChunk.Solid;
 import grondag.canvas.chunk.DrawableChunk.Translucent;
+import grondag.canvas.chunk.FastRenderRegion;
 import grondag.canvas.chunk.UploadableChunk;
 import grondag.canvas.material.ShaderProps;
 import grondag.fermion.concurrency.ConcurrentPerformanceCounter;
@@ -158,7 +159,7 @@ public abstract class MixinChunkRenderer implements ChunkRendererExt {
     
     @Inject(method = "rebuildChunk", at = @At("HEAD"), cancellable = true, require = 1)
     private void onRebuildChunk(final float x, final float y, final float z, final ChunkRenderTask chunkRenderTask, final CallbackInfo ci) {
-        final long start = counter.startRun();
+        
         final TerrainRenderContext renderContext = TerrainRenderContext.POOL.get();
         final ChunkRebuildHelper help = renderContext.chunkRebuildHelper;
         help.clear();
@@ -182,14 +183,20 @@ public abstract class MixinChunkRenderer implements ChunkRendererExt {
                 chunkRenderTask.getLock().unlock();
             }
 
+            // PERF: avoid allocation
             ChunkOcclusionGraphBuilder visibilityData = new ChunkOcclusionGraphBuilder();
+            
+            // PERF: avoid allocation
             HashSet<BlockEntity> blockEntities = Sets.newHashSet();
 
             
-            final ChunkRendererRegion renderRegion = chunkRenderTask.takeRegion();
-            final ChunkRendererRegionExt fastRegion = (ChunkRendererRegionExt)renderRegion;
+            final ChunkRendererRegion vanillaRegion = chunkRenderTask.takeRegion();
             
-            if (renderRegion != null) {
+            if (vanillaRegion != null) {
+                
+                final long start = counter.startRun();
+                
+                final FastRenderRegion renderRegion = ((ChunkRendererRegionExt)vanillaRegion).canvas_fastRegion();
                 ++chunkUpdateCount;
                 help.prepareCollectors(origin.getX(), origin.getY(), origin.getZ());
                 
@@ -288,6 +295,13 @@ public abstract class MixinChunkRenderer implements ChunkRendererExt {
                  */
                 renderContext.release();
                 BlockModelRenderer.disableBrightnessCache();
+                
+                counter.endRun(start);
+                counter.addCount(1);
+                if(counter.runCount() >= 2000) {
+                    Canvas.LOG.info(counter.stats());
+                    counter.clearStats();
+                }
             }
 
             chunkRenderData.setOcclusionGraph(visibilityData.build());
@@ -307,12 +321,7 @@ public abstract class MixinChunkRenderer implements ChunkRendererExt {
                 this.lock.unlock();
             }
         }
-        counter.endRun(start);
-        counter.addCount(1);
-        if(counter.runCount() >= 2000) {
-            Canvas.LOG.info(counter.stats());
-            counter.clearStats();
-        }
+       
         
         ci.cancel();
     }

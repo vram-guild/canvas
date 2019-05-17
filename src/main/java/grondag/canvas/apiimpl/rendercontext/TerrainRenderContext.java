@@ -21,20 +21,19 @@ import java.util.function.Consumer;
 import grondag.canvas.apiimpl.RenderMaterialImpl;
 import grondag.canvas.chunk.ChunkRebuildHelper;
 import grondag.canvas.chunk.ChunkRenderInfo;
+import grondag.canvas.chunk.FastRenderRegion;
 import grondag.canvas.light.AoCalculator;
 import grondag.canvas.material.ShaderContext;
 import grondag.frex.api.mesh.Mesh;
 import grondag.frex.api.mesh.QuadEmitter;
 import grondag.frex.api.model.DynamicBakedModel;
 import grondag.frex.api.render.RenderContext;
-import grondag.frex.api.render.TerrainBlockView;
 import net.minecraft.block.BlockRenderLayer;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.block.BlockRenderManager;
 import net.minecraft.client.render.chunk.ChunkRenderTask;
 import net.minecraft.client.render.chunk.ChunkRenderer;
-import net.minecraft.client.render.chunk.ChunkRendererRegion;
 import net.minecraft.client.render.model.BakedModel;
 import net.minecraft.util.crash.CrashException;
 import net.minecraft.util.crash.CrashReport;
@@ -62,8 +61,8 @@ public class TerrainRenderContext extends AbstractRenderContext implements Rende
     private final FallbackConsumer fallbackConsumer = new FallbackConsumer(blockInfo, chunkInfo::cachedBrightness, chunkRebuildHelper::collectorForMaterial, aoCalc, this::transform, chunkInfo::applyOffsets, TerrainRenderContext::contextFunc);
     private final BlockRenderManager blockRenderManager = MinecraftClient.getInstance().getBlockRenderManager();
 
-    public void setBlockView(ChunkRendererRegion blockView) {
-        blockInfo.setBlockView((TerrainBlockView) blockView);
+    public void setBlockView(FastRenderRegion blockView) {
+        blockInfo.setBlockView(blockView);
         chunkInfo.setBlockView(blockView);
     }
 

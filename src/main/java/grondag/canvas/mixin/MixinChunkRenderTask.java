@@ -48,8 +48,9 @@ public abstract class MixinChunkRenderTask {
         final ChunkRendererRegion blockView = region;
         if (blockView != null) {
             final TerrainRenderContext renderer = TerrainRenderContext.POOL.get();
-            renderer.setBlockView(blockView);
-            ((ChunkRendererRegionExt) blockView).canvas_renderer(renderer);
+            ChunkRendererRegionExt regionExt = (ChunkRendererRegionExt)region;
+            renderer.setBlockView(regionExt.canvas_fastRegion());
+            regionExt.canvas_renderer(renderer);
         }
     }
 }

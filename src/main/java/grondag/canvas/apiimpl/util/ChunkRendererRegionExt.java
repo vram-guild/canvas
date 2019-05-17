@@ -17,6 +17,7 @@
 package grondag.canvas.apiimpl.util;
 
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
+import grondag.canvas.chunk.FastRenderRegion;
 import net.minecraft.world.BlockView;
 
 /**
@@ -28,9 +29,7 @@ public interface ChunkRendererRegionExt {
 
     void canvas_renderer(TerrainRenderContext renderer);
     
-    void canvas_prepare();
-    
     BlockView canvas_worldHack();
     
-    void canvas_release();
+    FastRenderRegion canvas_fastRegion();
 }

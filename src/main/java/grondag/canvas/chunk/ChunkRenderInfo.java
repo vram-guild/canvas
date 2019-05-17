@@ -35,7 +35,6 @@ package grondag.canvas.chunk;
 import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.rendercontext.BlockRenderInfo;
-import grondag.canvas.apiimpl.util.ChunkRendererRegionExt;
 import grondag.canvas.light.LightSmoother;
 import grondag.fermion.world.PackedBlockPos;
 import it.unimi.dsi.fastutil.longs.Long2FloatOpenHashMap;
@@ -45,10 +44,8 @@ import net.minecraft.block.BlockState;
 import net.minecraft.client.render.chunk.ChunkRenderData;
 import net.minecraft.client.render.chunk.ChunkRenderTask;
 import net.minecraft.client.render.chunk.ChunkRenderer;
-import net.minecraft.client.render.chunk.ChunkRendererRegion;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.ExtendedBlockView;
 
 //PERF: many opportunities here
 
@@ -96,7 +93,7 @@ public class ChunkRenderInfo {
     ChunkRenderTask chunkTask;
     ChunkRenderData chunkData;
     ChunkRenderer chunkRenderer;
-    ExtendedBlockView blockView;
+    FastRenderRegion blockView;
 
     // model offsets for plants, etc.
     private boolean hasOffsets = false;
@@ -114,9 +111,8 @@ public class ChunkRenderInfo {
 //        subtractedCache.defaultReturnValue(Short.MIN_VALUE);
     }
 
-    public void setBlockView(ChunkRendererRegion blockView) {
+    public void setBlockView(FastRenderRegion blockView) {
         this.blockView = blockView;
-        ((ChunkRendererRegionExt)blockView).canvas_prepare();
     }
 
     public void setChunkTask(ChunkRenderTask chunkTask) {
@@ -134,7 +130,7 @@ public class ChunkRenderInfo {
     }
 
     public void release() {
-        ((ChunkRendererRegionExt)blockView).canvas_release();
+        blockView.release();
         blockView = null;
         chunkData = null;
         chunkTask = null;

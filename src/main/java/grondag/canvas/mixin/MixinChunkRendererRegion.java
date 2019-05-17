@@ -18,7 +18,6 @@ package grondag.canvas.mixin;
 
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.function.IntFunction;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
@@ -30,9 +29,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
 import grondag.canvas.apiimpl.util.ChunkRendererRegionExt;
-import grondag.canvas.chunk.ChunkHack;
-import grondag.canvas.chunk.ChunkHack.PaletteCopy;
 import grondag.canvas.chunk.FastRenderRegion;
+import grondag.frex.api.render.TerrainBlockView;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.render.chunk.ChunkRendererRegion;
 import net.minecraft.fluid.FluidState;
@@ -71,10 +69,9 @@ public abstract class MixinChunkRendererRegion implements ChunkRendererRegionExt
         return DUMMY_ITERABLE;
     }
     
-    @SuppressWarnings("unchecked")
     @Inject(at = @At("RETURN"), method = "<init>")
     public void init(World world, int cxOff, int czOff, WorldChunk[][] chunks, BlockPos posFrom, BlockPos posTo, CallbackInfo info) {
-        fastRegion = FastRenderRegion.claim().prepare(world, chunks, posFrom);
+        fastRegion = FastRenderRegion.claim().prepare(world, cxOff, czOff, chunks, posFrom, ((TerrainBlockView)this)::getCachedRenderData);
     }
 
     private TerrainRenderContext fabric_renderer;
@@ -88,28 +85,18 @@ public abstract class MixinChunkRendererRegion implements ChunkRendererRegionExt
     public void canvas_renderer(TerrainRenderContext renderer) {
         fabric_renderer = renderer;
     }
-
-    //TODO: remove if not used
-    @Override
-    public void canvas_prepare() {
-//        sections = claimSectionArray();
-//
-//        for(int x = 0; x < 3; x++) {
-//            for(int z = 0; z < 3; z++) {
-//                for(int y = 0; y < 3; y++) {
-//                    final int i = x + y * 3 + z * 9;
-//                    ChunkHack.captureSection(sections[i], copies[i]);
-//                }
-//            }
-//        }
-    }
     
-  //UGLY: remove or rework
+   //UGLY: remove or rework
     @Override
     public BlockView canvas_worldHack() {
         return world;
     }
 
+    @Override
+    public FastRenderRegion canvas_fastRegion() {
+        return fastRegion;
+    }
+    
     @Overwrite
     public BlockState getBlockState(BlockPos pos) {
         return fastRegion.getBlockState(pos.getX(), pos.getY(), pos.getZ());
@@ -118,13 +105,5 @@ public abstract class MixinChunkRendererRegion implements ChunkRendererRegionExt
     @Overwrite
     public FluidState getFluidState(BlockPos pos) {
         return fastRegion.getBlockState(pos.getX(), pos.getY(), pos.getZ()).getFluidState();
-    }
-    
-    @Override
-    public void canvas_release() {
-        if(fastRegion != null) {
-            fastRegion.release();
-            fastRegion = null;
-        }
     }
 }
