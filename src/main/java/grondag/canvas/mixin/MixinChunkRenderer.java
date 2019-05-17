@@ -46,7 +46,6 @@ import grondag.canvas.chunk.FastRenderRegion;
 import grondag.canvas.chunk.UploadableChunk;
 import grondag.canvas.material.ShaderProps;
 import grondag.fermion.concurrency.ConcurrentPerformanceCounter;
-import net.minecraft.block.Block;
 import net.minecraft.block.BlockRenderLayer;
 import net.minecraft.block.BlockRenderType;
 import net.minecraft.block.BlockState;
@@ -209,8 +208,9 @@ public abstract class MixinChunkRenderer implements ChunkRendererExt {
                  */
                 renderContext.prepare((ChunkRenderer) (Object) this, origin);
                 
-                // NB: We don't use this and it probably isn't but leaving just in case - cost is low
+                // NB: We don't use this and it probably isn't needed but leaving just in case - cost is low
                 BlockModelRenderer.enableBrightnessCache();
+                
                 final BlockRenderManager blockRenderManager = MinecraftClient.getInstance().getBlockRenderManager();
 
                 final BlockPos.Mutable searchPos = help.searchPos;
@@ -224,18 +224,16 @@ public abstract class MixinChunkRenderer implements ChunkRendererExt {
                 for (int xPos = xMin; xPos < xMax; xPos++) {
                     for (int yPos = yMin; yPos < yMax; yPos++) {
                         for (int zPos = zMin; zPos < zMax; zPos++) {
+                            final BlockState blockState = renderRegion.getBlockState(xPos, yPos, zPos);
                             searchPos.set(xPos, yPos, zPos);
-                            BlockState blockState = renderRegion.getBlockState(searchPos);
-                            Block block = blockState.getBlock();
                             if (blockState.isFullOpaque(renderRegion, searchPos)) {
                                 visibilityData.markClosed(searchPos);
                             }
 
-                            if (block.hasBlockEntity()) {
+                            if (blockState.getBlock().hasBlockEntity()) {
                                 final BlockEntity blockEntity = renderRegion.getBlockEntity(searchPos, WorldChunk.CreationType.CHECK);
                                 if (blockEntity != null) {
-                                    BlockEntityRenderer<BlockEntity> blockEntityRenderer = BlockEntityRenderDispatcher.INSTANCE
-                                            .get(blockEntity);
+                                    BlockEntityRenderer<BlockEntity> blockEntityRenderer = BlockEntityRenderDispatcher.INSTANCE.get(blockEntity);
                                     if (blockEntityRenderer != null) {
                                         // Fixes MC-112730 - no reason to render both globally and in chunk
                                         if (blockEntityRenderer.method_3563(blockEntity)) {

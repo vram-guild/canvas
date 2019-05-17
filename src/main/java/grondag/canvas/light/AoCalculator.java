@@ -422,7 +422,7 @@ public class AoCalculator {
                 searchPos.set(lightPos).setOffset(aoFace.neighbors[BOTTOM]).setOffset(aoFace.neighbors[LEFT]);
                 boolean cornerClear = !world.getBlockState(searchPos).isFullOpaque(world, searchPos);
                 fd.bottomLeft = cornerClear ? brightnessFunc.applyAsInt(searchPos) : OPAQUE;
-                final int aoBottomLeft = aoLookup(world, cornerClear, lightFace, aoFace, LEFT, BOTTOM);
+                final int aoBottomLeft = cornerClear ? Math.round(aoFunc.apply(searchPos) * 255) : OPAQUE_AO;
                 fd.aoBottomLeft = (aoBottomLeft + aoBottom + aoCenter + aoLeft + 1) >> 2;  // bitwise divide by four, rounding up
             }
             
@@ -434,7 +434,7 @@ public class AoCalculator {
                 searchPos.set(lightPos).setOffset(aoFace.neighbors[BOTTOM]).setOffset(aoFace.neighbors[RIGHT]);
                 boolean cornerClear = !world.getBlockState(searchPos).isFullOpaque(world, searchPos);
                 fd.bottomRight = cornerClear ? brightnessFunc.applyAsInt(searchPos) : OPAQUE;
-                final int aoBottomRight = aoLookup(world, cornerClear, lightFace, aoFace, RIGHT, BOTTOM);
+                final int aoBottomRight = cornerClear ? Math.round(aoFunc.apply(searchPos) * 255) : OPAQUE_AO;
                 fd.aoBottomRight = (aoBottomRight + aoBottom + aoCenter + aoRight + 1) >> 2;
             }
             
@@ -446,7 +446,7 @@ public class AoCalculator {
                 searchPos.set(lightPos).setOffset(aoFace.neighbors[TOP]).setOffset(aoFace.neighbors[LEFT]);
                 boolean cornerClear = !world.getBlockState(searchPos).isFullOpaque(world, searchPos);
                 fd.topLeft = cornerClear ? brightnessFunc.applyAsInt(searchPos) : OPAQUE;
-                final int aoTopLeft = aoLookup(world, cornerClear, lightFace, aoFace, TOP, LEFT);
+                final int aoTopLeft = cornerClear ? Math.round(aoFunc.apply(searchPos) * 255) : OPAQUE_AO;
                 fd.aoTopLeft = (aoTopLeft + aoTop + aoCenter + aoLeft + 1) >> 2;
             }
             
@@ -458,36 +458,10 @@ public class AoCalculator {
                 searchPos.set(lightPos).setOffset(aoFace.neighbors[TOP]).setOffset(aoFace.neighbors[RIGHT]);
                 boolean cornerClear = !world.getBlockState(searchPos).isFullOpaque(world, searchPos);
                 fd.topRight = cornerClear ? brightnessFunc.applyAsInt(searchPos) : OPAQUE;
-                final int aoTopRight = aoLookup(world, cornerClear, lightFace, aoFace, TOP, RIGHT);
+                final int aoTopRight = cornerClear ? Math.round(aoFunc.apply(searchPos) * 255) : OPAQUE_AO;
                 fd.aoTopRight = (aoTopRight + aoTop + aoCenter + aoRight + 1) >> 2;
             }
         }
         return fd;
-    }
-    
-    //TODO: make configurable or remove if abandoned
-    static final boolean AO_TWEAK = true;
-    
-    private int aoLookup(ExtendedBlockView world, boolean cornerClear, Direction lightFace, AoFace aoFace, int uIndex, int vIndex) {
-//        if(AO_TWEAK) {
-//            if(cornerClear) {
-//                return Math.round(aoFunc.apply(searchPos) * 255);
-//            } else {
-//                // if block next to this block is open, use it
-//                searchPos.set(lightPos).setOffset(aoFace.neighbors[vIndex]).setOffset(lightFace.getOpposite());
-//                if(!world.getBlockState(searchPos).isFullOpaque(world, searchPos)) {
-//                    return Math.round(aoFunc.apply(searchPos) * 255);
-//                } else {
-//                    searchPos.set(lightPos).setOffset(aoFace.neighbors[uIndex]).setOffset(lightFace.getOpposite());
-//                    if(!world.getBlockState(searchPos).isFullOpaque(world, searchPos)) {
-//                        return Math.round(aoFunc.apply(searchPos) * 255);
-//                    } else {
-//                        return OPAQUE_AO;
-//                    }
-//                }
-//            }
-//        } else {
-            return cornerClear ? Math.round(aoFunc.apply(searchPos) * 255) : OPAQUE_AO;
-//        }
     }
 }

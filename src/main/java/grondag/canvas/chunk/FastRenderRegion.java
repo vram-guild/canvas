@@ -47,7 +47,7 @@ public class FastRenderRegion implements TerrainBlockView {
     private static void release(FastRenderRegion region) {
         POOL.offer(region);
     }
-
+    
     /**
      * Serves same function as brightness cache in Mojang's AO calculator, with some
      * differences as follows...
@@ -75,8 +75,6 @@ public class FastRenderRegion implements TerrainBlockView {
      * BlockRenderer.
      */
     public final Long2IntOpenHashMap brightnessCache;
-    // currently not used
-//    private final Long2ShortOpenHashMap subtractedCache;
     public final Long2FloatOpenHashMap aoLevelCache;
     
     private World world;
@@ -95,9 +93,9 @@ public class FastRenderRegion implements TerrainBlockView {
     public final IntFunction<BlockState>[] sectionCopies = new IntFunction[64];
 
     private FastRenderRegion() {
-        brightnessCache = new Long2IntOpenHashMap();
+        brightnessCache = new Long2IntOpenHashMap(65536);
         brightnessCache.defaultReturnValue(Integer.MAX_VALUE);
-        aoLevelCache = new Long2FloatOpenHashMap();
+        aoLevelCache = new Long2FloatOpenHashMap(65536);
         aoLevelCache.defaultReturnValue(Float.MAX_VALUE);
     }
     
@@ -110,10 +108,9 @@ public class FastRenderRegion implements TerrainBlockView {
         secBaseX = posFrom.getX() >> 4;
         secBaseY = posFrom.getY() >> 4;
         secBaseZ = posFrom.getZ() >> 4;
-
         brightnessCache.clear();
         aoLevelCache.clear();
-
+        
         for(int x = 0; x < 3; x++) {
             for(int z = 0; z < 3; z++) {
                 for(int y = 0; y < 3; y++) {
@@ -124,12 +121,12 @@ public class FastRenderRegion implements TerrainBlockView {
 
         return this;
     }
-
+    
     public BlockState getBlockState(int x, int y, int z) {
-        return sectionCopies[secIndex(x, y, z)].apply(blockIndex(x, y, z));
+        return sectionCopies[secIndex(x, y, z)].apply(secBlockIndex(x, y, z));
     }
 
-    private int blockIndex(int x, int y, int z) {
+    private int secBlockIndex(int x, int y, int z) {
         return (x & 0xF) | ((y & 0xF) << 8) | ((z & 0xF) << 4);
     }
 
@@ -198,16 +195,6 @@ public class FastRenderRegion implements TerrainBlockView {
         }
         return result;
     }
-    
-//    public boolean cachedClearness(BlockPos pos) {
-//        long key = PackedBlockPos.pack(pos);
-//        short result = subtractedCache.get(key);
-//        if (result == Short.MIN_VALUE) {
-//            result = (short) blockView.getBlockState(pos).getLightSubtracted(blockView, pos);
-//            subtractedCache.put(key, result);
-//        }
-//        return result == 0;
-//    }
     
     public float cachedAoLevel(BlockPos pos) {
         long key = PackedBlockPos.pack(pos);
