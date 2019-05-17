@@ -30,7 +30,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import com.google.common.collect.Sets;
 
-import grondag.canvas.Canvas;
 import grondag.canvas.apiimpl.RendererImpl;
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
 import grondag.canvas.apiimpl.util.ChunkRendererRegionExt;
@@ -45,7 +44,6 @@ import grondag.canvas.chunk.DrawableChunk.Translucent;
 import grondag.canvas.chunk.FastRenderRegion;
 import grondag.canvas.chunk.UploadableChunk;
 import grondag.canvas.material.ShaderProps;
-import grondag.fermion.concurrency.ConcurrentPerformanceCounter;
 import net.minecraft.block.BlockRenderLayer;
 import net.minecraft.block.BlockRenderType;
 import net.minecraft.block.BlockState;
@@ -153,8 +151,7 @@ public abstract class MixinChunkRenderer implements ChunkRendererExt {
         }
     }
 
-    //TODO: remove
-    private static final ConcurrentPerformanceCounter counter = new ConcurrentPerformanceCounter();
+//    private static final ConcurrentPerformanceCounter counter = new ConcurrentPerformanceCounter();
     
     @Inject(method = "rebuildChunk", at = @At("HEAD"), cancellable = true, require = 1)
     private void onRebuildChunk(final float x, final float y, final float z, final ChunkRenderTask chunkRenderTask, final CallbackInfo ci) {
@@ -193,7 +190,7 @@ public abstract class MixinChunkRenderer implements ChunkRendererExt {
             
             if (vanillaRegion != null) {
                 
-                final long start = counter.startRun();
+//                final long start = counter.startRun();
                 
                 final FastRenderRegion renderRegion = ((ChunkRendererRegionExt)vanillaRegion).canvas_fastRegion();
                 ++chunkUpdateCount;
@@ -294,12 +291,12 @@ public abstract class MixinChunkRenderer implements ChunkRendererExt {
                 renderContext.release();
                 BlockModelRenderer.disableBrightnessCache();
                 
-                counter.endRun(start);
-                counter.addCount(1);
-                if(counter.runCount() >= 2000) {
-                    Canvas.LOG.info(counter.stats());
-                    counter.clearStats();
-                }
+//                counter.endRun(start);
+//                counter.addCount(1);
+//                if(counter.runCount() >= 2000) {
+//                    Canvas.LOG.info(counter.stats());
+//                    counter.clearStats();
+//                }
             }
 
             chunkRenderData.setOcclusionGraph(visibilityData.build());

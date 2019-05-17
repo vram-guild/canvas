@@ -97,11 +97,13 @@ public abstract class MixinChunkRendererRegion implements ChunkRendererRegionExt
         return fastRegion;
     }
     
+    /** Performance */
     @Overwrite
     public BlockState getBlockState(BlockPos pos) {
         return fastRegion.getBlockState(pos.getX(), pos.getY(), pos.getZ());
     }
 
+    /** Performance */
     @Overwrite
     public FluidState getFluidState(BlockPos pos) {
         return fastRegion.getBlockState(pos.getX(), pos.getY(), pos.getZ()).getFluidState();

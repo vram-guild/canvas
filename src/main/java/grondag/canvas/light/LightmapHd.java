@@ -130,16 +130,15 @@ public class LightmapHd {
             //TODO: put back and/or handle better
             //assert false : "Out of lightmap space.";
             Canvas.LOG.info("Out of lightmap space for index = " + index);
-            return;
-        }
-        
-        if(isAo) {
-            AoMapHd.computeAo(light, key, index);
         } else {
-            LightmapHdCalc.computeLight(light, key, index);
+            if(isAo) {
+                AoMapHd.computeAo(light, key, index);
+            } else {
+                LightmapHdCalc.computeLight(light, key, index);
+            }
+            
+            LightmapHdTexture.instance().setDirty(this);
         }
-        
-        LightmapHdTexture.instance().setDirty(this);
     }
     
     /**
@@ -158,7 +157,6 @@ public class LightmapHd {
         } else {
             u = Math.round((uMinImg + 1  + q.u[i] * LIGHTMAP_SIZE) * TEXTURE_TO_BUFFER);
             v = Math.round((vMinImg + 1  + q.v[i] * LIGHTMAP_SIZE) * TEXTURE_TO_BUFFER);
-
         }
         
         return u | (v << 16);

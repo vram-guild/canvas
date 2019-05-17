@@ -33,6 +33,7 @@ import me.shedaniel.cloth.api.ConfigScreenBuilder;
 import me.shedaniel.cloth.api.ConfigScreenBuilder.SavedConfig;
 import me.shedaniel.cloth.gui.entries.BooleanListEntry;
 import me.shedaniel.cloth.gui.entries.IntegerSliderEntry;
+import me.shedaniel.cloth.gui.entries.LongListEntry;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.loader.api.FabricLoader;
@@ -57,6 +58,9 @@ public class Configurator implements ModMenuApi {
         boolean enableItemRender = false;
         
         //TODO: docs
+        @Comment("TODO")
+        long minChunkBudgetNanos = 200000;
+        
         @Comment("TODO")
         boolean enableCompactGPUFormats = true;
         
@@ -112,6 +116,7 @@ public class Configurator implements ModMenuApi {
     public static boolean enableSubtleAo = DEFAULTS.enableSubtleAo;
     public static boolean enableAoShading = DEFAULTS.enableAoShading;
     
+    public static long minChunkBudgetNanos = DEFAULTS.minChunkBudgetNanos;
     public static boolean enableCompactGPUFormats = DEFAULTS.enableCompactGPUFormats;
     
     public static boolean enableSinglePassCutout = DEFAULTS.enableSinglePassCutout;
@@ -151,6 +156,7 @@ public class Configurator implements ModMenuApi {
         enableShaderDebug = config.enableShaderDebug;
         maxShaders = config.maxPipelines;
         enableCompactGPUFormats = config.enableCompactGPUFormats;
+        minChunkBudgetNanos = config.minChunkBudgetNanos;
         
         enableHdLightmaps = config.enableHdLightmaps;
         enableLightmapNoise = config.enableLightmapNoise;
@@ -174,6 +180,7 @@ public class Configurator implements ModMenuApi {
         config.enableShaderDebug = enableShaderDebug;
         config.maxPipelines = maxShaders;
         config.enableCompactGPUFormats = enableCompactGPUFormats;
+        config.minChunkBudgetNanos = minChunkBudgetNanos;
         
         config.enableHdLightmaps = enableHdLightmaps;
         config.enableLightmapNoise = enableLightmapNoise;
@@ -222,6 +229,10 @@ public class Configurator implements ModMenuApi {
         rendering.addOption(new BooleanListEntry("config.canvas.value.compact_gpu_formats", enableCompactGPUFormats, "config.canvas.reset", 
                 () -> DEFAULTS.enableCompactGPUFormats, b -> enableCompactGPUFormats = b, 
                 () -> Optional.of(I18n.translate("config.canvas.help.compact_gpu_formats").split(";"))));
+        
+        rendering.addOption(new LongListEntry("config.canvas.value.min_chunk_budget", minChunkBudgetNanos, "config.canvas.reset", 
+                () -> DEFAULTS.minChunkBudgetNanos, l -> minChunkBudgetNanos = l, 
+                () -> Optional.of(I18n.translate("config.canvas.help.min_chunk_budget").split(";"))));
         
         rendering.addOption(new BooleanListEntry("config.canvas.value.item_render", enableItemRender, "config.canvas.reset", 
                 () -> DEFAULTS.enableItemRender, b -> enableItemRender = b, 

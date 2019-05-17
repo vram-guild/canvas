@@ -34,7 +34,6 @@ import net.minecraft.client.render.chunk.ChunkRenderer;
 
 @Mixin(ChunkBatcher.class)
 public abstract class MixinChunkBatcher {
-
 //    @Shadow private BlockingQueue<BlockLayeredBufferBuilder> availableBuffers;
     
     //TODO: remove - doesn't seem necessary if buffer builder memory allocation is small anyway

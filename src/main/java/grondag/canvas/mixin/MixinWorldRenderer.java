@@ -47,7 +47,6 @@ public abstract class MixinWorldRenderer {
     @Shadow private ChunkRendererList chunkRendererList;
     @Shadow private ChunkRenderDispatcher chunkRenderDispatcher;
     
-    
     @Inject(method = "setUpTerrain", at = @At("HEAD"), cancellable = false, require = 1)
     private void onPrepareTerrain(Camera camera, VisibleRegion region, int int_1, boolean boolean_1, CallbackInfo ci) {
         ShaderManager.INSTANCE.prepareForFrame(camera);
