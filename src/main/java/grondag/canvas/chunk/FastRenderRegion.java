@@ -23,7 +23,10 @@ import java.util.function.IntFunction;
 import javax.annotation.Nullable;
 
 import grondag.canvas.chunk.ChunkHack.PaletteCopy;
+import grondag.fermion.world.PackedBlockPos;
 import grondag.frex.api.render.TerrainBlockView;
+import it.unimi.dsi.fastutil.longs.Long2FloatOpenHashMap;
+import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.fluid.FluidState;
@@ -45,6 +48,37 @@ public class FastRenderRegion implements TerrainBlockView {
         POOL.offer(region);
     }
 
+    /**
+     * Serves same function as brightness cache in Mojang's AO calculator, with some
+     * differences as follows...
+     * <p>
+     * 
+     * 1) Mojang uses Object2Int. This uses Long2Int for performance and to avoid
+     * creating new immutable BlockPos references. But will break if someone wants
+     * to expand Y limit or world borders. If we want to support that may need to
+     * switch or make configurable.
+     * <p>
+     * 
+     * 2) Mojang overrides the map methods to limit the cache to 50 values. However,
+     * a render chunk only has 18^3 blocks in it, and the cache is cleared every
+     * chunk. For performance and simplicity, we just let map grow to the size of
+     * the render chunk.
+     * 
+     * 3) Mojang only uses the cache for Ao. Here it is used for all brightness
+     * lookups, including flat lighting.
+     * 
+     * 4) The Mojang cache is a separate threadlocal with a threadlocal boolean to
+     * enable disable. Cache clearing happens with the disable. There's no use case
+     * for us when the cache needs to be disabled (and no apparent case in Mojang's
+     * code either) so we simply clear the cache at the start of each new chunk. It
+     * is also not a threadlocal because it's held within a threadlocal
+     * BlockRenderer.
+     */
+    public final Long2IntOpenHashMap brightnessCache;
+    // currently not used
+//    private final Long2ShortOpenHashMap subtractedCache;
+    public final Long2FloatOpenHashMap aoLevelCache;
+    
     private World world;
     private WorldChunk[][] chunks;
     private int chunkXOffset;
@@ -60,6 +94,13 @@ public class FastRenderRegion implements TerrainBlockView {
     // larger than it needs to be to speed up indexing
     public final IntFunction<BlockState>[] sectionCopies = new IntFunction[64];
 
+    private FastRenderRegion() {
+        brightnessCache = new Long2IntOpenHashMap();
+        brightnessCache.defaultReturnValue(Integer.MAX_VALUE);
+        aoLevelCache = new Long2FloatOpenHashMap();
+        aoLevelCache.defaultReturnValue(Float.MAX_VALUE);
+    }
+    
     public FastRenderRegion prepare(World world, int cxOff, int czOff, WorldChunk[][] chunks, BlockPos posFrom, Function<BlockPos, Object> renderFunc) {
         this.world = world;
         this.chunks = chunks;
@@ -70,6 +111,8 @@ public class FastRenderRegion implements TerrainBlockView {
         secBaseY = posFrom.getY() >> 4;
         secBaseZ = posFrom.getZ() >> 4;
 
+        brightnessCache.clear();
+        aoLevelCache.clear();
 
         for(int x = 0; x < 3; x++) {
             for(int z = 0; z < 3; z++) {
@@ -144,5 +187,35 @@ public class FastRenderRegion implements TerrainBlockView {
     @Override
     public Object getCachedRenderData(BlockPos pos) {
         return renderFunc.apply(pos);
+    }
+    
+    public int cachedBrightness(BlockPos pos) {
+        long key = PackedBlockPos.pack(pos);
+        int result = brightnessCache.get(key);
+        if (result == Integer.MAX_VALUE) {
+            result = getBlockState(pos).getBlockBrightness(this, pos);
+            brightnessCache.put(key, result);
+        }
+        return result;
+    }
+    
+//    public boolean cachedClearness(BlockPos pos) {
+//        long key = PackedBlockPos.pack(pos);
+//        short result = subtractedCache.get(key);
+//        if (result == Short.MIN_VALUE) {
+//            result = (short) blockView.getBlockState(pos).getLightSubtracted(blockView, pos);
+//            subtractedCache.put(key, result);
+//        }
+//        return result == 0;
+//    }
+    
+    public float cachedAoLevel(BlockPos pos) {
+        long key = PackedBlockPos.pack(pos);
+        float result = aoLevelCache.get(key);
+        if (result == Float.MAX_VALUE) {
+            result = getBlockState(pos).getAmbientOcclusionLightLevel(this, pos);
+            aoLevelCache.put(key, result);
+        }
+        return result;
     }
 }
