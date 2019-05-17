@@ -32,6 +32,7 @@ import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
 import grondag.canvas.apiimpl.util.ChunkRendererRegionExt;
 import grondag.canvas.chunk.ChunkHack;
 import grondag.canvas.chunk.ChunkHack.PaletteCopy;
+import grondag.canvas.chunk.FastRenderRegion;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.render.chunk.ChunkRendererRegion;
 import net.minecraft.fluid.FluidState;
@@ -42,17 +43,6 @@ import net.minecraft.world.chunk.WorldChunk;
 
 @Mixin(ChunkRendererRegion.class)
 public abstract class MixinChunkRendererRegion implements ChunkRendererRegionExt {
-//    private static final ArrayBlockingQueue<BlockState[][]> SECTION_POOL = new ArrayBlockingQueue<>(4096); 
-//
-//    private static BlockState[][] claimSectionArray() {
-//        final BlockState[][] result = SECTION_POOL.poll();
-//        return result == null ? new BlockState[27][4096] : result;
-//    }
-//
-//    private static void releaseSectionArray(BlockState[][] section) {
-//        SECTION_POOL.offer(section);
-//    }
-
     @Shadow protected World world;
     @Shadow protected BlockState[] blockStates;
     @Shadow protected FluidState[] fluidStates;
@@ -64,19 +54,16 @@ public abstract class MixinChunkRendererRegion implements ChunkRendererRegionExt
     @Shadow
     protected abstract int getIndex(int x, int y, int z);
 
-    private IntFunction<BlockState>[] copies;
-//    private BlockState[][] sections;
-
-    private int secBaseX;
-    private int secBaseY;
-    private int secBaseZ;
-
     private static final Iterable<BlockPos> DUMMY_ITERABLE = new Iterable<BlockPos>() {
         @Override
         public Iterator<BlockPos> iterator() {
             return Collections.emptyIterator();
         }
     };
+    
+    private FastRenderRegion fastRegion;
+    
+    //PERF: could avoid some allocation by zeroing array allocation of unused block/fluid cache arrays
     
     @Redirect(method = "<init>*", require = 1, at = @At(value = "INVOKE", 
             target = "Lnet/minecraft/util/math/BlockPos;iterate(Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/util/math/BlockPos;)Ljava/lang/Iterable;"))
@@ -87,23 +74,7 @@ public abstract class MixinChunkRendererRegion implements ChunkRendererRegionExt
     @SuppressWarnings("unchecked")
     @Inject(at = @At("RETURN"), method = "<init>")
     public void init(World world, int cxOff, int czOff, WorldChunk[][] chunks, BlockPos posFrom, BlockPos posTo, CallbackInfo info) {
-
-        secBaseX = posFrom.getX() >> 4;
-        secBaseY = posFrom.getY() >> 4;
-        secBaseZ = posFrom.getZ() >> 4;
-
-//        sections = claimSectionArray();
-
-        // larger than it needs to be to speed up indexing
-        copies = new IntFunction[64];
-        
-        for(int x = 0; x < 3; x++) {
-            for(int z = 0; z < 3; z++) {
-                for(int y = 0; y < 3; y++) {
-                    copies[x | (y << 2) | (z << 4)] = ChunkHack.captureCopy(chunks[x][z], y + secBaseY);
-                }
-            }
-        }
+        fastRegion = FastRenderRegion.claim().prepare(world, chunks, posFrom);
     }
 
     private TerrainRenderContext fabric_renderer;
@@ -139,64 +110,21 @@ public abstract class MixinChunkRendererRegion implements ChunkRendererRegionExt
         return world;
     }
 
-    //TODO: remove
-//    private void validate() {
-//        for(int x = 0; x < this.xSize; x++) {
-//            for(int y = 0; y < this.ySize; y++) {
-//                for(int z = 0; z < this.zSize; z++) {
-//                    final int bx = x + offset.getX();
-//                    final int by = y + offset.getY();
-//                    final int bz = z + offset.getZ();
-//
-//                    BlockState oldState = blockStates[getIndex(bx, by, bz)];
-//                    BlockState newState = fastBlockState(bx, by, bz);
-//                    if(newState != oldState) {
-//                        System.out.print(false);
-//                    }
-//                }
-//            }
-//
-//        }
-//    }
-
-    private BlockState fastBlockState(int x, int y, int z) {
-//        return sections[secIndex(x, y, z)][blockIndex(x, y, z)];
-        return copies[secIndex(x, y, z)].apply(blockIndex(x, y, z));
-    }
-
-    private int blockIndex(int x, int y, int z) {
-        return (x & 0xF) | ((y & 0xF) << 8) | ((z & 0xF) << 4);
-    }
-
-    private int secIndex(int x, int y, int z) {
-        int bx = (x >> 4) - secBaseX;
-        int by = (y >> 4) - secBaseY;
-        int bz = (z >> 4) - secBaseZ;
-        return bx | (by << 2) | (bz << 4);
-        //return (x >> 4) * 4096 + chunk y * 12288 + chunk z * 36864
-    }
-
     @Overwrite
     public BlockState getBlockState(BlockPos pos) {
-        return fastBlockState(pos.getX(), pos.getY(), pos.getZ());
+        return fastRegion.getBlockState(pos.getX(), pos.getY(), pos.getZ());
     }
 
     @Overwrite
     public FluidState getFluidState(BlockPos pos) {
-        return fastBlockState(pos.getX(), pos.getY(), pos.getZ()).getFluidState();
+        return fastRegion.getBlockState(pos.getX(), pos.getY(), pos.getZ()).getFluidState();
     }
     
-    //TODO: remove if not used
     @Override
     public void canvas_release() {
-        for(Object o : copies) {
-            if(o instanceof PaletteCopy) {
-                ((PaletteCopy)o).release();
-            }
+        if(fastRegion != null) {
+            fastRegion.release();
+            fastRegion = null;
         }
-//        if(sections != null) {
-//            releaseSectionArray(sections);
-//            sections = null;
-//        }
     }
 }

@@ -33,6 +33,7 @@ import com.google.common.collect.Sets;
 import grondag.canvas.Canvas;
 import grondag.canvas.apiimpl.RendererImpl;
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
+import grondag.canvas.apiimpl.util.ChunkRendererRegionExt;
 import grondag.canvas.buffer.packing.FluidBufferBuilder;
 import grondag.canvas.buffer.packing.VertexCollectorList;
 import grondag.canvas.chunk.ChunkRebuildHelper;
@@ -185,8 +186,10 @@ public abstract class MixinChunkRenderer implements ChunkRendererExt {
             HashSet<BlockEntity> blockEntities = Sets.newHashSet();
 
             
-            ChunkRendererRegion safeWorldView = chunkRenderTask.takeRegion();
-            if (safeWorldView != null) {
+            final ChunkRendererRegion renderRegion = chunkRenderTask.takeRegion();
+            final ChunkRendererRegionExt fastRegion = (ChunkRendererRegionExt)renderRegion;
+            
+            if (renderRegion != null) {
                 ++chunkUpdateCount;
                 help.prepareCollectors(origin.getX(), origin.getY(), origin.getZ());
                 
@@ -199,7 +202,7 @@ public abstract class MixinChunkRenderer implements ChunkRendererExt {
                  */
                 renderContext.prepare((ChunkRenderer) (Object) this, origin);
                 
-                // PERF: should still happen?  Replace with ours?
+                // NB: We don't use this and it probably isn't but leaving just in case - cost is low
                 BlockModelRenderer.enableBrightnessCache();
                 final BlockRenderManager blockRenderManager = MinecraftClient.getInstance().getBlockRenderManager();
 
@@ -207,20 +210,22 @@ public abstract class MixinChunkRenderer implements ChunkRendererExt {
                 final int xMin = origin.getX();
                 final int yMin = origin.getY();
                 final int zMin = origin.getZ();
+                final int xMax = xMin + 16;
+                final int yMax = yMin + 16;
+                final int zMax = zMin + 16;
 
-                for (int xPos = 0; xPos < 16; xPos++) {
-                    for (int yPos = 0; yPos < 16; yPos++) {
-                        for (int zPos = 0; zPos < 16; zPos++) {
-                            searchPos.set(xMin + xPos, yMin + yPos, zMin + zPos);
-                            BlockState blockState = safeWorldView.getBlockState(searchPos);
+                for (int xPos = xMin; xPos < xMax; xPos++) {
+                    for (int yPos = yMin; yPos < yMax; yPos++) {
+                        for (int zPos = zMin; zPos < zMax; zPos++) {
+                            searchPos.set(xPos, yPos, zPos);
+                            BlockState blockState = renderRegion.getBlockState(searchPos);
                             Block block = blockState.getBlock();
-                            if (blockState.isFullOpaque(safeWorldView, searchPos)) {
+                            if (blockState.isFullOpaque(renderRegion, searchPos)) {
                                 visibilityData.markClosed(searchPos);
                             }
 
                             if (block.hasBlockEntity()) {
-                                final BlockEntity blockEntity = safeWorldView.getBlockEntity(searchPos,
-                                        WorldChunk.CreationType.CHECK);
+                                final BlockEntity blockEntity = renderRegion.getBlockEntity(searchPos, WorldChunk.CreationType.CHECK);
                                 if (blockEntity != null) {
                                     BlockEntityRenderer<BlockEntity> blockEntityRenderer = BlockEntityRenderDispatcher.INSTANCE
                                             .get(blockEntity);
@@ -238,12 +243,16 @@ public abstract class MixinChunkRenderer implements ChunkRendererExt {
                             }
 
                             BlockRenderLayer renderLayer;
-                            FluidState fluidState = safeWorldView.getFluidState(searchPos);
+                            
+                            //UGLY: we are relying on knowledge that fluid state is directly derived from block state, which
+                            //may not be true in future versions and may break.  However, is significantly faster to re-use block
+                            //state here vs. retrieving it again.
+                            FluidState fluidState = blockState.getFluidState();
                             if (!fluidState.isEmpty()) {
                                 renderLayer = fluidState.getRenderLayer();
                                 //TODO: apply appropriate shader props for fluids
                                 FluidBufferBuilder fluidBuilder = help.fluidBuilder.prepare(help.getCollector(renderLayer).get(RendererImpl.MATERIAL_STANDARD, ShaderProps.waterProps()), searchPos, renderLayer);
-                                blockRenderManager.tesselateFluid(searchPos, safeWorldView, fluidBuilder, fluidState);
+                                blockRenderManager.tesselateFluid(searchPos, renderRegion, fluidBuilder, fluidState);
                             }
 
                             if (blockState.getRenderType() == BlockRenderType.MODEL) {
