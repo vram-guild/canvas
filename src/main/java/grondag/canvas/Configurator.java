@@ -238,6 +238,37 @@ public class Configurator implements ModMenuApi {
                 () -> DEFAULTS.maxPipelines, i -> maxShaders = i, 
                 () -> Optional.of(I18n.translate("config.canvas.help.max_materials").split(";"))));
         
+        // LIGHTING
+        ConfigScreenBuilder.CategoryBuilder lighting = builder.addCategory("config.canvas.category.lighting");
+        
+        lighting.addOption(new BooleanListEntry("config.canvas.value.light_smoothing", enableLightSmoothing, "config.canvas.reset", 
+                () -> DEFAULTS.enableLightSmoothing, b -> {enableLightSmoothing = b; reloadTerrain = true;}, 
+                () -> Optional.of(I18n.translate("config.canvas.help.light_smoothing").split(";"))));
+        
+        lighting.addOption(new BooleanListEntry("config.canvas.value.hd_lightmaps", enableHdLightmaps, "config.canvas.reset", 
+                () -> DEFAULTS.enableHdLightmaps, b -> {enableHdLightmaps = b; reloadTerrain = true;}, 
+                () -> Optional.of(I18n.translate("config.canvas.help.hd_lightmaps").split(";"))));
+        
+        lighting.addOption(new BooleanListEntry("config.canvas.value.subtle_ao", enableSubtleAo, "config.canvas.reset", 
+                () -> DEFAULTS.enableSubtleAo, b -> {enableSubtleAo = b; reloadShaders = true;}, 
+                () -> Optional.of(I18n.translate("config.canvas.help.subtle_ao").split(";"))));
+        
+        lighting.addOption(new BooleanListEntry("config.canvas.value.lightmap_noise", enableLightmapNoise, "config.canvas.reset", 
+                () -> DEFAULTS.enableLightmapNoise, b -> {enableLightmapNoise = b; reloadShaders = true;}, 
+                () -> Optional.of(I18n.translate("config.canvas.help.lightmap_noise").split(";"))));
+        
+        lighting.addOption(new BooleanListEntry("config.canvas.value.diffuse_shading", enableDiffuseShading, "config.canvas.reset", 
+                () -> DEFAULTS.enableDiffuseShading, b -> {enableDiffuseShading = b; reloadShaders = true;}, 
+                () -> Optional.of(I18n.translate("config.canvas.help.diffuse_shading").split(";"))));
+        
+        lighting.addOption(new BooleanListEntry("config.canvas.value.ao_shading", enableAoShading, "config.canvas.reset", 
+                () -> DEFAULTS.enableAoShading, b -> {enableAoShading = b; reloadShaders = true;}, 
+                () -> Optional.of(I18n.translate("config.canvas.help.ao_shading").split(";"))));
+        
+        lighting.addOption(new IntegerSliderEntry("config.canvas.value.lightmap_delay_frames", 0, 20, maxLightmapDelayFrames, "config.canvas.reset", 
+                () -> DEFAULTS.maxLightmapDelayFrames, b -> maxLightmapDelayFrames = b, 
+                () -> Optional.of(I18n.translate("config.canvas.help.lightmap_delay_frames").split(";"))));
+        
         // TWEAKS
         ConfigScreenBuilder.CategoryBuilder tweaks = builder.addCategory("config.canvas.category.tweaks");
         
@@ -268,37 +299,6 @@ public class Configurator implements ModMenuApi {
         tweaks.addOption(new BooleanListEntry("config.canvas.value.adjust_vanilla_geometry", adjustVanillaModelGeometry, "config.canvas.reset", 
                 () -> DEFAULTS.adjustVanillaModelGeometry, b -> adjustVanillaModelGeometry = b, 
                 () -> Optional.of(I18n.translate("config.canvas.help.adjust_vanilla_geometry").split(";"))));
-        
-        
-        // LIGHTING
-        ConfigScreenBuilder.CategoryBuilder lighting = builder.addCategory("config.canvas.category.lighting");
-        lighting.addOption(new BooleanListEntry("config.canvas.value.light_smoothing", enableLightSmoothing, "config.canvas.reset", 
-                () -> DEFAULTS.enableLightSmoothing, b -> {enableLightSmoothing = b; reloadTerrain = true;}, 
-                () -> Optional.of(I18n.translate("config.canvas.help.light_smoothing").split(";"))));
-        
-        lighting.addOption(new BooleanListEntry("config.canvas.value.smooth_lightmaps", enableHdLightmaps, "config.canvas.reset", 
-                () -> DEFAULTS.enableHdLightmaps, b -> {enableHdLightmaps = b; reloadTerrain = true;}, 
-                () -> Optional.of(I18n.translate("config.canvas.help.smooth_lightmaps").split(";"))));
-        
-        lighting.addOption(new BooleanListEntry("config.canvas.value.subtle_ao", enableSubtleAo, "config.canvas.reset", 
-                () -> DEFAULTS.enableSubtleAo, b -> {enableSubtleAo = b; reloadShaders = true;}, 
-                () -> Optional.of(I18n.translate("config.canvas.help.subtle_ao").split(";"))));
-        
-        lighting.addOption(new BooleanListEntry("config.canvas.value.lightmap_noise", enableLightmapNoise, "config.canvas.reset", 
-                () -> DEFAULTS.enableLightmapNoise, b -> {enableLightmapNoise = b; reloadShaders = true;}, 
-                () -> Optional.of(I18n.translate("config.canvas.help.lightmap_noise").split(";"))));
-        
-        lighting.addOption(new BooleanListEntry("config.canvas.value.diffuse_shading", enableDiffuseShading, "config.canvas.reset", 
-                () -> DEFAULTS.enableDiffuseShading, b -> {enableDiffuseShading = b; reloadShaders = true;}, 
-                () -> Optional.of(I18n.translate("config.canvas.help.diffuse_shading").split(";"))));
-        
-        lighting.addOption(new BooleanListEntry("config.canvas.value.ao_shading", enableAoShading, "config.canvas.reset", 
-                () -> DEFAULTS.enableAoShading, b -> {enableAoShading = b; reloadShaders = true;}, 
-                () -> Optional.of(I18n.translate("config.canvas.help.ao_shading").split(";"))));
-        
-        lighting.addOption(new IntegerSliderEntry("config.canvas.value.lightmap_delay_frames", 0, 20, maxLightmapDelayFrames, "config.canvas.reset", 
-                () -> DEFAULTS.maxLightmapDelayFrames, b -> maxLightmapDelayFrames = b, 
-                () -> Optional.of(I18n.translate("config.canvas.help.lightmap_delay_frames").split(";"))));
         
         
         // DEBUG
