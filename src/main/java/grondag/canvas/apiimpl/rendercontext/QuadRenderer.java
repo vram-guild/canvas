@@ -132,6 +132,10 @@ public class QuadRenderer {
         for (int i = 0; i < 4; i++) {
             quad.lightmap(i, ColorHelper.maxBrightness(quad.lightmap(i), brightness));
         }
+        //UGLY: ugly hack is ugly (and slow)
+        quad.aoShade = null;
+        quad.blockLight = null;
+        quad.skyLight = null;
     }
 
     private final BlockPos.Mutable mpos = new BlockPos.Mutable();
