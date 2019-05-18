@@ -125,6 +125,9 @@ dependencies {
     modCompile "cloth-config:ClothConfig:0.2.1.14"
     include "cloth-config:ClothConfig:0.2.1.14"
 	
+	modCompile "me.sargunvohra.mcmods:auto-config:1.1.0+mc1.14.1"
+	include "me.sargunvohra.mcmods:auto-config:1.1.0+mc1.14.1"
+	
 	compile "blue.endless:jankson:1.1.0"
 	included "blue.endless:jankson:1.1.0"
 	
