@@ -42,7 +42,6 @@ import net.minecraft.client.gui.Screen;
 import net.minecraft.client.resource.language.I18n;
 import net.minecraft.util.math.MathHelper;
 
-// UGLY: this is a rushed mess
 @Environment(EnvType.CLIENT)
 public class Configurator implements ModMenuApi {
     
@@ -228,56 +227,51 @@ public class Configurator implements ModMenuApi {
         
         ConfigScreenBuilder builder = ConfigScreenBuilder.create(screenIn, "config.canvas.title", null);
         
-        // RENDERING
-        ConfigScreenBuilder.CategoryBuilder rendering = builder.addCategory("config.canvas.category.rendering");
+        // FEATURES
+        ConfigScreenBuilder.CategoryBuilder features = builder.addCategory("config.canvas.category.features");
         
-        
-        rendering.addOption(new BooleanListEntry("config.canvas.value.compact_gpu_formats", enableCompactGPUFormats, "config.canvas.reset", 
-                () -> DEFAULTS.enableCompactGPUFormats, b -> enableCompactGPUFormats = b, 
-                () -> Optional.of(I18n.translate("config.canvas.help.compact_gpu_formats").split(";"))));
-        
-        rendering.addOption(new LongListEntry("config.canvas.value.min_chunk_budget", minChunkBudgetNanos, "config.canvas.reset", 
-                () -> DEFAULTS.minChunkBudgetNanos, l -> minChunkBudgetNanos = l, 
-                () -> Optional.of(I18n.translate("config.canvas.help.min_chunk_budget").split(";"))));
-        
-        rendering.addOption(new BooleanListEntry("config.canvas.value.item_render", enableItemRender, "config.canvas.reset", 
+        features.addOption(new BooleanListEntry("config.canvas.value.item_render", enableItemRender, "config.canvas.reset", 
                 () -> DEFAULTS.enableItemRender, b -> enableItemRender = b, 
                 () -> Optional.of(I18n.translate("config.canvas.help.item_render").split(";"))));
         
-        rendering.addOption(new IntegerSliderEntry("config.canvas.value.max_materials", 128, 4096, maxShaders, "config.canvas.reset", 
+        features.addOption(new IntegerSliderEntry("config.canvas.value.max_materials", 128, 4096, maxShaders, "config.canvas.reset", 
                 () -> DEFAULTS.maxPipelines, i -> maxShaders = i, 
                 () -> Optional.of(I18n.translate("config.canvas.help.max_materials").split(";"))));
         
-        ///
-
+        // TWEAKS
+        ConfigScreenBuilder.CategoryBuilder tweaks = builder.addCategory("config.canvas.category.tweaks");
         
-        rendering.addOption(new IntegerSliderEntry("config.canvas.value.lightmap_delay_frames", 0, 20, maxLightmapDelayFrames, "config.canvas.reset", 
-                () -> DEFAULTS.maxLightmapDelayFrames, b -> maxLightmapDelayFrames = b, 
-                () -> Optional.of(I18n.translate("config.canvas.help.lightmap_delay_frames").split(";"))));
+        tweaks.addOption(new BooleanListEntry("config.canvas.value.compact_gpu_formats", enableCompactGPUFormats, "config.canvas.reset", 
+                () -> DEFAULTS.enableCompactGPUFormats, b -> enableCompactGPUFormats = b, 
+                () -> Optional.of(I18n.translate("config.canvas.help.compact_gpu_formats").split(";"))));
         
-        rendering.addOption(new BooleanListEntry("config.canvas.value.single_pass_cutout", enableSinglePassCutout, "config.canvas.reset", 
+        tweaks.addOption(new LongListEntry("config.canvas.value.min_chunk_budget", minChunkBudgetNanos, "config.canvas.reset", 
+                () -> DEFAULTS.minChunkBudgetNanos, l -> minChunkBudgetNanos = l, 
+                () -> Optional.of(I18n.translate("config.canvas.help.min_chunk_budget").split(";"))));
+        
+        tweaks.addOption(new BooleanListEntry("config.canvas.value.single_pass_cutout", enableSinglePassCutout, "config.canvas.reset", 
                 () -> DEFAULTS.enableSinglePassCutout, b -> enableSinglePassCutout = b, 
                 () -> Optional.of(I18n.translate("config.canvas.help.single_pass_cutout").split(";"))));
         
-        rendering.addOption(new BooleanListEntry("config.canvas.value.chunk_occlusion", enableImprovedChunkOcclusion, "config.canvas.reset", 
+        tweaks.addOption(new BooleanListEntry("config.canvas.value.chunk_occlusion", enableImprovedChunkOcclusion, "config.canvas.reset", 
                 () -> DEFAULTS.enableImprovedChunkOcclusion, b -> enableImprovedChunkOcclusion = b, 
                 () -> Optional.of(I18n.translate("config.canvas.help.chunk_occlusion").split(";"))));
         
-        rendering.addOption(new BooleanListEntry("config.canvas.value.batch_chunk_render", enableBatchedChunkRender, "config.canvas.reset", 
+        tweaks.addOption(new BooleanListEntry("config.canvas.value.batch_chunk_render", enableBatchedChunkRender, "config.canvas.reset", 
                 () -> DEFAULTS.enableBatchedChunkRender, b -> enableBatchedChunkRender = b, 
                 () -> Optional.of(I18n.translate("config.canvas.help.batch_chunk_render").split(";"))));
         
-        rendering.addOption(new BooleanListEntry("config.canvas.value.vanilla_chunk_matrix", disableVanillaChunkMatrix, "config.canvas.reset", 
+        tweaks.addOption(new BooleanListEntry("config.canvas.value.vanilla_chunk_matrix", disableVanillaChunkMatrix, "config.canvas.reset", 
                 () -> DEFAULTS.disableVanillaChunkMatrix, b -> disableVanillaChunkMatrix = b, 
                 () -> Optional.of(I18n.translate("config.canvas.help.vanilla_chunk_matrix").split(";"))));
         
-        rendering.addOption(new BooleanListEntry("config.canvas.value.adjust_vanilla_geometry", adjustVanillaModelGeometry, "config.canvas.reset", 
+        tweaks.addOption(new BooleanListEntry("config.canvas.value.adjust_vanilla_geometry", adjustVanillaModelGeometry, "config.canvas.reset", 
                 () -> DEFAULTS.adjustVanillaModelGeometry, b -> adjustVanillaModelGeometry = b, 
                 () -> Optional.of(I18n.translate("config.canvas.help.adjust_vanilla_geometry").split(";"))));
         
-        ConfigScreenBuilder.CategoryBuilder lighting = builder.addCategory("config.canvas.category.lighting");
         
         // LIGHTING
+        ConfigScreenBuilder.CategoryBuilder lighting = builder.addCategory("config.canvas.category.lighting");
         lighting.addOption(new BooleanListEntry("config.canvas.value.light_smoothing", enableLightSmoothing, "config.canvas.reset", 
                 () -> DEFAULTS.enableLightSmoothing, b -> {enableLightSmoothing = b; reloadTerrain = true;}, 
                 () -> Optional.of(I18n.translate("config.canvas.help.light_smoothing").split(";"))));
@@ -301,6 +295,10 @@ public class Configurator implements ModMenuApi {
         lighting.addOption(new BooleanListEntry("config.canvas.value.ao_shading", enableAoShading, "config.canvas.reset", 
                 () -> DEFAULTS.enableAoShading, b -> {enableAoShading = b; reloadShaders = true;}, 
                 () -> Optional.of(I18n.translate("config.canvas.help.ao_shading").split(";"))));
+        
+        lighting.addOption(new IntegerSliderEntry("config.canvas.value.lightmap_delay_frames", 0, 20, maxLightmapDelayFrames, "config.canvas.reset", 
+                () -> DEFAULTS.maxLightmapDelayFrames, b -> maxLightmapDelayFrames = b, 
+                () -> Optional.of(I18n.translate("config.canvas.help.lightmap_delay_frames").split(";"))));
         
         
         // DEBUG

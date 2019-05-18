@@ -7,15 +7,32 @@
 	
 	"config.canvas.title" : "Canvas Renderer Configuration",
 	"config.canvas.reset" : "Reset",
-	"config.canvas.category.rendering" : "Rendering",
-	"config.canvas.category.debug" : "Debug",
 	
+	"config.canvas.category.features" : "Features",
 	"config.canvas.value.item_render" : "Enable Item Rendering",
 	"config.canvas.help.item_render" : "Applies material properties;and shaders to items. (WIP)",
-	
 	"config.canvas.value.max_materials" : "Max Shader Materials",
 	"config.canvas.help.max_materials" : "Increase if 'Max shader material exceeded';error occurs. Larger values consume a;small amount of memory. Requires restart.",
 	
+	"config.canvas.category.lighting" : "Lighting",
+	"config.canvas.value.light_smoothing" : "TODO",
+	"config.canvas.help.light_smoothing" : "TODO",
+	"config.canvas.value.hd_lightmaps" : "TODO",
+	"config.canvas.help.hd_lightmaps" : "TODO",
+	"config.canvas.value.subtle_ao" : "TODO",
+	"config.canvas.help.subtle_ao" : "TODO",
+	"config.canvas.value.lightmap_noise" : "TODO",
+	"config.canvas.help.lightmap_noise" : "TODO",
+	"config.canvas.value.diffuse_shading" : "TODO",
+	"config.canvas.help.diffuse_shading" : "TODO",
+	"config.canvas.value.ao_shading" : "TODO",
+	"config.canvas.help.ao_shading" : "TODO",
+	
+	"config.canvas.category.tweaks" : "Tweaks",
+		"config.canvas.value.light_smoothing" : "TODO",
+	"config.canvas.help.light_smoothing" : "TODO",
+	
+	"config.canvas.category.debug" : "Debug",
 	"config.canvas.value.shader_debug" : "Enable Shader Debug Output",
 	"config.canvas.help.shader_debug" : "Output runtime per-material shader source.;For shader development debugging."
 }

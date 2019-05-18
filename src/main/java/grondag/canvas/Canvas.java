@@ -28,7 +28,7 @@ import net.fabricmc.api.ModInitializer;
 //FIX: lighting problems on nvidia cards?
 //FIX: try with resources
 //FIX: concise log messages for resource/shader failures
-
+//FIX: lighting on dodecs (again)
 //TODO: dynamic vertex formats
 //TODO: configurable compact vertex formats - GPU side  white, face, unlit, pixel-aligned, etc.
 //TODO: configurable cutout single pass, separate pass may give early cull in solid
