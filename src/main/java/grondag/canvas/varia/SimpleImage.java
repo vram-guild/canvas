@@ -20,6 +20,7 @@ import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL21;
 import org.lwjgl.system.MemoryUtil;
 
 import com.mojang.blaze3d.platform.GlStateManager;
@@ -117,13 +118,11 @@ public final class SimpleImage implements AutoCloseable {
         assert pointer != 0L : "Image not allocated.";
         setTextureFilter(interpolate, mipmap);
         setTextureClamp(clamp);
-        GlStateManager.pixelStore(GL11.GL_UNPACK_ALIGNMENT, this.bytesPerPixel);
-        GlStateManager.pixelStore(GL11.GL_UNPACK_ROW_LENGTH, this.width);
-        GlStateManager.pixelStore(GL11.GL_UNPACK_SKIP_PIXELS, skipPixels);
-        GlStateManager.pixelStore(GL11.GL_UNPACK_SKIP_ROWS, skipRows);
-        //FIX: why? why? why?
-//        GlStateManager.texSubImage2D(GL11.GL_TEXTURE_2D, lod, x, y, width, height, pixelDataFormat, pixelDataType, pointer);
-        GlStateManager.texSubImage2D(GL11.GL_TEXTURE_2D, lod, 0, 0, this.width, this.height, pixelDataFormat, pixelDataType, pointer);
+        GlStateManager.pixelStore(GL21.GL_UNPACK_ALIGNMENT, this.bytesPerPixel);
+        GlStateManager.pixelStore(GL21.GL_UNPACK_ROW_LENGTH, this.width);
+        GlStateManager.pixelStore(GL21.GL_UNPACK_SKIP_PIXELS, skipPixels);
+        GlStateManager.pixelStore(GL21.GL_UNPACK_SKIP_ROWS, skipRows);
+        GlStateManager.texSubImage2D(GL11.GL_TEXTURE_2D, lod, x, y, width, height, pixelDataFormat, pixelDataType, pointer);
     }
 
     public void untrack() {
