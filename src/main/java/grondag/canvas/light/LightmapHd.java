@@ -37,6 +37,7 @@ public class LightmapHd {
         MAP.clear();
     }
     
+    // PERF: use Fermion cache
     static final Long2ObjectOpenHashMap<LightmapHd> MAP = new Long2ObjectOpenHashMap<>(MathHelper.smallestEncompassingPowerOfTwo(MAX_COUNT), MAX_COUNT / (float)MathHelper.smallestEncompassingPowerOfTwo(MAX_COUNT));
     
     public static LightmapHd findBlock(AoFaceData faceData) {

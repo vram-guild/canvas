@@ -1,6 +1,6 @@
 package grondag.canvas.light;
 
-import grondag.canvas.apiimpl.util.ChunkRendererRegionExt;
+import grondag.canvas.chunk.FastRenderRegion;
 import grondag.fermion.world.PackedBlockPos;
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 import net.minecraft.block.BlockState;
@@ -36,18 +36,21 @@ public class LightSmoother {
         final int minY = chunkOrigin.getY() - MARGIN;
         final int minZ = chunkOrigin.getZ() - MARGIN;
 
-        ExtendedBlockView view = (ExtendedBlockView) ((ChunkRendererRegionExt)blockViewIn).canvas_worldHack();
+        FastRenderRegion view = (FastRenderRegion) blockViewIn;
 
         for(int x = 0; x < POS_DIAMETER; x++) {
             for(int y = 0; y < POS_DIAMETER; y++) {
                 for(int z = 0; z < POS_DIAMETER; z++) {
-                    smoothPos.set(x + minX, y + minY, z + minZ);
+                    final int bx = x + minX;
+                    final int by = y + minY;
+                    final int bz = z + minZ;
+                    smoothPos.set(bx, by, bz);
                     
-                    // PERF: make better use of cached blocked state in ChunkRenderer view
-                    BlockState state = view.getBlockState(smoothPos);
-                    final int packedLight = state.getBlockBrightness(view, smoothPos);
+                    //PERF: consider packed pos
+                    BlockState state = view.getBlockState(bx, by, bz);
+                    final int packedLight = view.cachedBrightness(smoothPos);
 
-                    //PERF: still needed for Ao calc?
+                    //PERF: use cache
                     final boolean opaque = state.isFullOpaque(view, smoothPos);
 //                    //                    subtractedCache.put(packedPos, (short) subtracted);
 

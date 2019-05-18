@@ -32,13 +32,13 @@ import com.google.common.collect.Sets;
 
 import grondag.canvas.apiimpl.RendererImpl;
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
-import grondag.canvas.apiimpl.util.ChunkRendererRegionExt;
 import grondag.canvas.buffer.packing.FluidBufferBuilder;
 import grondag.canvas.buffer.packing.VertexCollectorList;
 import grondag.canvas.chunk.ChunkRebuildHelper;
 import grondag.canvas.chunk.ChunkRenderDataExt;
 import grondag.canvas.chunk.ChunkRenderDataStore;
 import grondag.canvas.chunk.ChunkRendererExt;
+import grondag.canvas.chunk.ChunkRendererRegionExt;
 import grondag.canvas.chunk.DrawableChunk.Solid;
 import grondag.canvas.chunk.DrawableChunk.Translucent;
 import grondag.canvas.chunk.FastRenderRegion;

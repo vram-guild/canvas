@@ -28,14 +28,13 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
-import grondag.canvas.apiimpl.util.ChunkRendererRegionExt;
+import grondag.canvas.chunk.ChunkRendererRegionExt;
 import grondag.canvas.chunk.FastRenderRegion;
 import grondag.frex.api.render.TerrainBlockView;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.render.chunk.ChunkRendererRegion;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.WorldChunk;
 
@@ -86,12 +85,6 @@ public abstract class MixinChunkRendererRegion implements ChunkRendererRegionExt
         fabric_renderer = renderer;
     }
     
-   //UGLY: remove or rework
-    @Override
-    public BlockView canvas_worldHack() {
-        return world;
-    }
-
     @Override
     public FastRenderRegion canvas_fastRegion() {
         return fastRegion;

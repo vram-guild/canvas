@@ -14,11 +14,9 @@
  * the License.
  ******************************************************************************/
 
-package grondag.canvas.apiimpl.util;
+package grondag.canvas.chunk;
 
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
-import grondag.canvas.chunk.FastRenderRegion;
-import net.minecraft.world.BlockView;
 
 /**
  * Used to stash block renderer reference in local scope during chunk rebuild,
@@ -28,8 +26,6 @@ public interface ChunkRendererRegionExt {
     TerrainRenderContext canvas_renderer();
 
     void canvas_renderer(TerrainRenderContext renderer);
-    
-    BlockView canvas_worldHack();
     
     FastRenderRegion canvas_fastRegion();
 }
