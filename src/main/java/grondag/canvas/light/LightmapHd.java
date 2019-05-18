@@ -137,7 +137,7 @@ public class LightmapHd {
                 LightmapHdCalc.computeLight(light, key, index);
             }
             
-            LightmapHdTexture.instance().setDirty(this);
+            LightmapHdTexture.instance().enque(this);
         }
     }
     

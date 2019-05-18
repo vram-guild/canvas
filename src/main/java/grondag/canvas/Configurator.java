@@ -59,6 +59,9 @@ public class Configurator implements ModMenuApi {
         
         //TODO: docs
         @Comment("TODO")
+        int maxLightmapDelayFrames = 0;
+        
+        @Comment("TODO")
         long minChunkBudgetNanos = 200000;
         
         @Comment("TODO")
@@ -108,6 +111,7 @@ public class Configurator implements ModMenuApi {
     public static int maxShaders = DEFAULTS.maxPipelines;
     public static boolean enableItemRender = DEFAULTS.enableItemRender;
     public static boolean enableShaderDebug = DEFAULTS.enableShaderDebug;
+    public static int maxLightmapDelayFrames = DEFAULTS.maxLightmapDelayFrames;
     
     public static boolean enableHdLightmaps = DEFAULTS.enableHdLightmaps;
     public static boolean enableLightmapNoise = DEFAULTS.enableLightmapNoise;
@@ -157,6 +161,7 @@ public class Configurator implements ModMenuApi {
         maxShaders = config.maxPipelines;
         enableCompactGPUFormats = config.enableCompactGPUFormats;
         minChunkBudgetNanos = config.minChunkBudgetNanos;
+        maxLightmapDelayFrames = config.maxLightmapDelayFrames;
         
         enableHdLightmaps = config.enableHdLightmaps;
         enableLightmapNoise = config.enableLightmapNoise;
@@ -181,6 +186,7 @@ public class Configurator implements ModMenuApi {
         config.maxPipelines = maxShaders;
         config.enableCompactGPUFormats = enableCompactGPUFormats;
         config.minChunkBudgetNanos = minChunkBudgetNanos;
+        config.maxLightmapDelayFrames = maxLightmapDelayFrames;
         
         config.enableHdLightmaps = enableHdLightmaps;
         config.enableLightmapNoise = enableLightmapNoise;
@@ -244,6 +250,10 @@ public class Configurator implements ModMenuApi {
         
         ///
 
+        
+        rendering.addOption(new IntegerSliderEntry("config.canvas.value.lightmap_delay_frames", 0, 20, maxLightmapDelayFrames, "config.canvas.reset", 
+                () -> DEFAULTS.maxLightmapDelayFrames, b -> maxLightmapDelayFrames = b, 
+                () -> Optional.of(I18n.translate("config.canvas.help.lightmap_delay_frames").split(";"))));
         
         rendering.addOption(new BooleanListEntry("config.canvas.value.single_pass_cutout", enableSinglePassCutout, "config.canvas.reset", 
                 () -> DEFAULTS.enableSinglePassCutout, b -> enableSinglePassCutout = b, 

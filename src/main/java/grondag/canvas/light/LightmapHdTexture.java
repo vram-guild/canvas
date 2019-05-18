@@ -39,15 +39,31 @@ public class LightmapHdTexture implements AutoCloseable {
         this.texture = new SimpleTexture(new SimpleImage(1, GL11.GL_RED, LightmapHd.TEX_SIZE, LightmapHd.TEX_SIZE, false), GL11.GL_RED);
         this.client.getTextureManager().registerTexture(textureIdentifier, this.texture);
         this.image = this.texture.getImage();
+        clear();
+    }
+    
+    private void clear() {
+        this.image.clearLuminance((byte)255);
+        this.texture.upload();
     }
 
     public void forceReload() {
         LightmapHd.forceReload();
+        clear();
     }
 
     private static final ConcurrentLinkedQueue<LightmapHd> updates = new ConcurrentLinkedQueue<>();
     
-    public synchronized void setDirty(LightmapHd lightmap) {
+    public void enque(LightmapHd lightmap) {
+        final SimpleImage image = this.image;
+        final int uMap = lightmap.uMinImg;
+        final int vMap = lightmap.vMinImg;
+        
+        for(int u = 0; u < LightmapHd.PADDED_SIZE; u++) {
+            for(int v = 0; v < LightmapHd.PADDED_SIZE; v++) {
+                image.setLuminance(uMap + u, vMap + v, (byte)lightmap.pixel(u,v));
+            }
+        }
         updates.add(lightmap);
     }
     
@@ -88,13 +104,17 @@ public class LightmapHdTexture implements AutoCloseable {
         GlStateManager.activeTexture(GLX.GL_TEXTURE0);
     }
 
+    private int frameCounter = 0;
+    
     public void onRenderTick() {
+        frameCounter++;
         
-        if(updates.isEmpty()) {
+        if(updates.isEmpty() || frameCounter < Configurator.maxLightmapDelayFrames) {
             return;
         }
         
-        final SimpleImage image = this.image;
+        frameCounter = 0;
+        
         int uMin = Integer.MAX_VALUE;
         int vMin = Integer.MAX_VALUE;
         int uMax = Integer.MIN_VALUE;
@@ -104,19 +124,11 @@ public class LightmapHdTexture implements AutoCloseable {
         while((map = updates.poll()) != null) {
             final int uMap = map.uMinImg;
             final int vMap = map.vMinImg;
-            
-            for(int u = 0; u < LightmapHd.PADDED_SIZE; u++) {
-                for(int v = 0; v < LightmapHd.PADDED_SIZE; v++) {
-                    image.setLuminance(uMap + u, vMap + v, (byte)map.pixel(u,v));
-                }
-            }
-            
             uMin = Math.min(uMin, uMap);
             vMin = Math.min(vMin, vMap);
             uMax = Math.max(uMax, uMap + LightmapHd.PADDED_SIZE);
             vMax = Math.max(vMax, vMap + LightmapHd.PADDED_SIZE);
         }
-        
         
         if(uMin == Integer.MAX_VALUE) {
             return;

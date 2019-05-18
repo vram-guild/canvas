@@ -106,6 +106,15 @@ public final class SimpleImage implements AutoCloseable {
         byteBuffer.put(u + v * this.width, value);
     }
 
+    public void clearLuminance(byte value) {
+        assert this.bytesPerPixel == 1;
+        assert pointer != 0L : "Image not allocated.";
+        final int limit = this.width * this.height;
+        for(int i = 0; i < limit; i++) {
+            byteBuffer.put(i, value);
+        }
+    }
+    
     public void upload(int lod, int x, int y, boolean clamp) {
         this.upload(lod, x, y, 0, 0, this.width, this.height, clamp);
     }

@@ -23,9 +23,14 @@ import grondag.canvas.apiimpl.RendererImpl;
 import grondag.frex.api.RendererAccess;
 import net.fabricmc.api.ModInitializer;
 
+
+//FIX: block breaking?
+//FIX: lighting problems on nvidia cards?
+//FIX: try with resources
+//FIX: concise log messages for resource/shader failures
+
 //TODO: dynamic vertex formats
 //TODO: configurable compact vertex formats - GPU side  white, face, unlit, pixel-aligned, etc.
-//TODO: configurable super smooth lighting
 //TODO: configurable cutout single pass, separate pass may give early cull in solid
 //TODO: configurable occlusion hook
 //TODO: configurable render region
@@ -35,15 +40,15 @@ import net.fabricmc.api.ModInitializer;
 //TODO: configurable compressed vertex formats - CPU side (maybe wait for Brocade Mesh)
 //TODO: remove configurable shader/condition limits?
 //TODO: capture & log more GL capability info - allow disable, enabled by default
-//TODO: remove quad splitting smooth lighting
-//TODO: per chunk occlusion mesh - for sky shadow mask
-//TODO: per chunk depth mesh - addendum to occlusion mesh to render for depth pass - includes translucent cutout
-//TODO: first person dynamic light
-//FIX: block breaking?
-//FIX: lighting problems on nvidia cards?
-//FIX: try with resources
-//FIX: concise log messages for resource/shader failures
 
+//FEAT: per chunk occlusion mesh - for sky shadow mask
+//FEAT: per chunk depth mesh - addendum to occlusion mesh to render for depth pass - includes translucent cutout
+//FEAT: first person dynamic light
+
+//PERF: manage buffers to avoid heap fragmentation
+
+//DONE: configurable super smooth lighting
+//DONE: remove quad splitting smooth lighting
 
 public class Canvas implements ModInitializer {
     @Override

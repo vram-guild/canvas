@@ -15,12 +15,10 @@ bin
 eclipse
 
 ## gradle
-gradlew*
-.gradle
+
 build
 run
-gradle.properties
-
+.gradle
 
 ##idea
 *.iml
