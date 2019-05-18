@@ -16,7 +16,6 @@ eclipse
 
 ## gradle
 gradlew*
-gradle
 .gradle
 build
 run
