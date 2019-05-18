@@ -71,13 +71,13 @@ public final class LightKey {
         if(val < 0 || val == 0xFF) {
             return -1;
         } else if(val > 240) {
-            return 60;
+            return 30;
         }
-        return val >> 2; // 0-60
+        return val >> 3; // 0-30
     }
     
     private static int unclamp240(int val) {
-        return val == -1 ? AoFaceData.OPAQUE : val << 2;
+        return val == -1 ? AoFaceData.OPAQUE : val << 3;
     }
     
     public static int center(long key) {
