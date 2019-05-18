@@ -7,6 +7,7 @@ import grondag.canvas.Canvas;
 import grondag.canvas.apiimpl.QuadViewImpl;
 import it.unimi.dsi.fastutil.ints.Int2IntFunction;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import net.minecraft.util.math.MathHelper;
 
 public class LightmapHd {
     static final int TEX_SIZE = 4096;
@@ -36,7 +37,7 @@ public class LightmapHd {
         MAP.clear();
     }
     
-    static final Long2ObjectOpenHashMap<LightmapHd> MAP = new Long2ObjectOpenHashMap<>();
+    static final Long2ObjectOpenHashMap<LightmapHd> MAP = new Long2ObjectOpenHashMap<>(MathHelper.smallestEncompassingPowerOfTwo(MAX_COUNT), MAX_COUNT / (float)MathHelper.smallestEncompassingPowerOfTwo(MAX_COUNT));
     
     public static LightmapHd findBlock(AoFaceData faceData) {
         return find(faceData, LightmapHd::mapBlock);
