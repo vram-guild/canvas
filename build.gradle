@@ -23,9 +23,6 @@ minecraft {
 }
 
 repositories {
-    flatDir {
-        dirs '../renderbender/build/libs'
-    }
     maven { url "https://tehnut.info/maven"}
     maven { url "http://maven.sargunv.s3-website-us-west-2.amazonaws.com/" }
     maven { url "https://minecraft.curseforge.com/api/maven" }
