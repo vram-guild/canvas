@@ -50,9 +50,9 @@ public class BlockRenderContext extends AbstractRenderContext implements RenderC
     private final BlockRenderInfo blockInfo = new BlockRenderInfo();
     private final AoCalculator aoCalc = new AoCalculator(blockInfo, this::brightness, this::aoLevel);
     private final MeshConsumer meshConsumer = new MeshConsumer(blockInfo, this::brightness, this::getCollector, aoCalc,
-            this::transform, QuadRenderer.NO_OFFSET, BlockRenderContext::contextFunc);
+            this::hasTransform, this::transform, QuadRenderer.NO_OFFSET, BlockRenderContext::contextFunc);
     private final FallbackConsumer fallbackConsumer = new FallbackConsumer(blockInfo, this::brightness, this::getCollector, aoCalc,
-            this::transform, QuadRenderer.NO_OFFSET, BlockRenderContext::contextFunc);
+            this::hasTransform, this::transform, QuadRenderer.NO_OFFSET, BlockRenderContext::contextFunc);
     private final TessellatorExt tesselatorExt = (TessellatorExt) Tessellator.getInstance();
     private CanvasBufferBuilder canvasBuilder;
     private boolean didOutput = false;

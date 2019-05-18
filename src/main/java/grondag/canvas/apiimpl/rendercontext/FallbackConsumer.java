@@ -19,6 +19,7 @@ package grondag.canvas.apiimpl.rendercontext;
 import java.util.List;
 import java.util.Random;
 import java.util.function.BiFunction;
+import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -70,11 +71,12 @@ public class FallbackConsumer extends QuadRenderer implements Consumer<BakedMode
             BlockRenderInfo blockInfo, 
             ToIntFunction<BlockPos> brightnessFunc, 
             BiFunction<RenderMaterialImpl.Value, QuadViewImpl, VertexCollector> collectorFunc, 
-            AoCalculator aoCalc, 
+            AoCalculator aoCalc,
+            BooleanSupplier hasTransform,
             QuadTransform transform, 
             Consumer<MutableQuadViewImpl> offsetFunc,
             Function<RenderMaterialImpl.Value, ShaderContext> contextFunc) {
-        super(blockInfo, brightnessFunc, collectorFunc, aoCalc, transform, offsetFunc, contextFunc);
+        super(blockInfo, brightnessFunc, collectorFunc, aoCalc, hasTransform, transform, offsetFunc, contextFunc);
         this.editorQuad = new Maker();
     }
     

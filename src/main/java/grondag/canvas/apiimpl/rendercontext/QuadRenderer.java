@@ -19,6 +19,7 @@ package grondag.canvas.apiimpl.rendercontext;
 import static grondag.canvas.apiimpl.util.GeometryHelper.LIGHT_FACE_FLAG;
 
 import java.util.function.BiFunction;
+import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.ToIntFunction;
@@ -46,6 +47,7 @@ public class QuadRenderer {
     protected final BiFunction<RenderMaterialImpl.Value, QuadViewImpl, VertexCollector> collectorFunc;
     protected final BlockRenderInfo blockInfo;
     protected final AoCalculator aoCalc;
+    protected final BooleanSupplier hasTransform;
     protected final QuadTransform transform;
     protected MutableQuadViewImpl editorQuad;
     protected final Consumer<MutableQuadViewImpl> offsetFunc;
@@ -55,6 +57,7 @@ public class QuadRenderer {
             ToIntFunction<BlockPos> brightnessFunc,
             BiFunction<RenderMaterialImpl.Value, QuadViewImpl, VertexCollector> collectorFunc, 
             AoCalculator aoCalc, 
+            BooleanSupplier hasTransform,
             QuadTransform transform,
             Consumer<MutableQuadViewImpl> offsetFunc,
             Function<RenderMaterialImpl.Value, ShaderContext> contextFunc) {
@@ -62,6 +65,7 @@ public class QuadRenderer {
         this.brightnessFunc = brightnessFunc;
         this.collectorFunc = collectorFunc;
         this.aoCalc = aoCalc;
+        this.hasTransform = hasTransform;
         this.transform = transform;
         this.offsetFunc = offsetFunc;
         this.contextFunc = contextFunc;
@@ -77,14 +81,16 @@ public class QuadRenderer {
     protected final void renderQuad() {
         final MutableQuadViewImpl q = editorQuad;
         
-        if (!transform.transform(q)) {
-            return;
+        if(hasTransform.getAsBoolean()) {
+            if (!transform.transform(q)) {
+                return;
+            }
+            
+            if (!blockInfo.shouldDrawFace(q.cullFace())) {
+                return;
+            }
         }
         
-        if (!blockInfo.shouldDrawFace(q.cullFace())) {
-            return;
-        }
-
         final RenderMaterialImpl.Value mat = q.material().forRenderLayer(blockInfo.defaultLayerIndex);
         
         final boolean isAo = blockInfo.defaultAo && mat.hasAo;

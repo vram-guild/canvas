@@ -57,8 +57,10 @@ public class TerrainRenderContext extends AbstractRenderContext implements Rende
     public final ChunkRebuildHelper chunkRebuildHelper = new ChunkRebuildHelper();
     
     private final AoCalculator aoCalc = new AoCalculator(blockInfo, chunkInfo::cachedBrightness, chunkInfo::cachedAoLevel);
-    private final MeshConsumer meshConsumer = new MeshConsumer(blockInfo, chunkInfo::cachedBrightness, chunkRebuildHelper::collectorForMaterial, aoCalc, this::transform, chunkInfo::applyOffsets, TerrainRenderContext::contextFunc);
-    private final FallbackConsumer fallbackConsumer = new FallbackConsumer(blockInfo, chunkInfo::cachedBrightness, chunkRebuildHelper::collectorForMaterial, aoCalc, this::transform, chunkInfo::applyOffsets, TerrainRenderContext::contextFunc);
+    private final MeshConsumer meshConsumer = new MeshConsumer(blockInfo, chunkInfo::cachedBrightness, chunkRebuildHelper::collectorForMaterial, aoCalc, 
+            this::hasTransform, this::transform, chunkInfo::applyOffsets, TerrainRenderContext::contextFunc);
+    private final FallbackConsumer fallbackConsumer = new FallbackConsumer(blockInfo, chunkInfo::cachedBrightness, chunkRebuildHelper::collectorForMaterial, aoCalc, 
+            this::hasTransform, this::transform, chunkInfo::applyOffsets, TerrainRenderContext::contextFunc);
     private final BlockRenderManager blockRenderManager = MinecraftClient.getInstance().getBlockRenderManager();
 
     public void setBlockView(FastRenderRegion blockView) {

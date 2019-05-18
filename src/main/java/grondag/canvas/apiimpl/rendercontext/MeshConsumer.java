@@ -17,6 +17,7 @@
 package grondag.canvas.apiimpl.rendercontext;
 
 import java.util.function.BiFunction;
+import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.ToIntFunction;
@@ -47,10 +48,11 @@ public class MeshConsumer extends QuadRenderer implements Consumer<Mesh> {
             ToIntFunction<BlockPos> brightnessFunc,
             BiFunction<RenderMaterialImpl.Value, QuadViewImpl, VertexCollector> collectorFunc, 
             AoCalculator aoCalc, 
+            BooleanSupplier hasTransform,
             QuadTransform transform,
             Consumer<MutableQuadViewImpl> offsetFunc,
             Function<RenderMaterialImpl.Value, ShaderContext> contextFunction) {
-        super(blockInfo, brightnessFunc, collectorFunc, aoCalc, transform, offsetFunc, contextFunction);
+        super(blockInfo, brightnessFunc, collectorFunc, aoCalc, hasTransform, transform, offsetFunc, contextFunction);
         editorQuad = new Maker();
     }
 

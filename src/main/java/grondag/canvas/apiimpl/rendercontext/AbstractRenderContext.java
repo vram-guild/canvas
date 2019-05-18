@@ -39,6 +39,10 @@ abstract class AbstractRenderContext implements RenderContext {
     protected final boolean transform(MutableQuadView q) {
         return activeTransform.transform(q);
     }
+    
+    protected final boolean hasTransform() {
+        return activeTransform != NO_TRANSFORM;
+    }
 
     @Override
     public void pushTransform(QuadTransform transform) {
