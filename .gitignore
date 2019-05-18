@@ -26,7 +26,7 @@ run
 *.iws
 
 ## Jars
-*.jar
+
 
 ### OSX (adds a lot of garbage)###
 .DS_Store
