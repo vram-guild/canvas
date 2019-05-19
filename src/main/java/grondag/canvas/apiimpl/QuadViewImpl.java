@@ -48,6 +48,7 @@ public class QuadViewImpl implements QuadView {
     protected Direction lightFace;
     protected int colorIndex = -1;
     protected int tag = 0;
+    
     /**
      * indicate if vertex normal has been set - bits correspond to vertex ordinals
      */
