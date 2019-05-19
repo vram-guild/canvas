@@ -65,6 +65,7 @@ public abstract class MixinWorldRenderer {
     
     /**
      * Use pre-computed visibility stored during render chunk rebuild vs computing on fly each time.
+     * Seems to be about 50 to 100X faster but doesn't matter as much as it did in 1.12.
      */
     @SuppressWarnings("unchecked")
     @Inject(method = "getOpenChunkFaces", at = @At("HEAD"), cancellable = true, require = 1)

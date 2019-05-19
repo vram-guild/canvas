@@ -53,7 +53,7 @@
 	"config.canvas.value.chunk_occlusion" : "Fast Chunk Occlusion",
 	"config.canvas.help.chunk_occlusion" : "Helps with chunk rebuild;and also rendering when; player is moving or;many blocks update.",
 	"config.canvas.value.batch_chunk_render" : "Batched Chunk Render",
-	"config.canvas.help.batch_chunk_render" : "TODO",
+	"config.canvas.help.batch_chunk_render" : "Draws multiple chunks with;same view transformation.;Much faster, but try without;if you see visual defects.",
 	"config.canvas.value.vanilla_chunk_matrix" : "Vanilla Chunk Scaling",
 	"config.canvas.help.vanilla_chunk_matrix" : "TODO",
 	"config.canvas.value.adjust_vanilla_geometry" : "Adjust Vanilla Models",

@@ -20,6 +20,7 @@ import org.joml.Vector3f;
 
 import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.MaterialShaderImpl;
+import grondag.canvas.buffer.packing.RenderCube;
 import grondag.canvas.light.LightmapHd;
 import grondag.canvas.light.LightmapHdTexture;
 import grondag.canvas.varia.DitherTexture;
@@ -98,7 +99,9 @@ public final class ShaderManager implements ClientTickCallback {
         emissiveColor.set((color & 0xFF) / 255f, ((color >> 8) & 0xFF) / 255f, ((color >> 16) & 0xFF) / 255f);
     }
     
+    // UGLY: probably doesn't all belong here
     public void forceReload() {
+        RenderCube.forceReload();
         GlShaderManager.INSTANCE.forceReload();
         VertexEncoder.forceReload();
         LightmapHdTexture.instance().forceReload();

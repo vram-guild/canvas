@@ -47,6 +47,7 @@ public class Configurator implements ModMenuApi {
     
     @SuppressWarnings("hiding")
     static class ConfigData {
+        //TODO: remove
         @Comment("Increase if 'Max shader material exceeded' error occurs. Larger values consume a small amount of memory.")
         int maxPipelines = 128;
         
@@ -57,17 +58,17 @@ public class Configurator implements ModMenuApi {
         boolean hardcoreDarkness = false;
         
         @Comment("TODO")
-        boolean subtleFog = true;
+        boolean subtleFog = false;
         
         //TODO: docs
         @Comment("TODO")
         int maxLightmapDelayFrames = 0;
         
         @Comment("TODO")
-        long minChunkBudgetNanos = 200000;
+        long minChunkBudgetNanos = 100000;
         
         @Comment("TODO")
-        boolean enableCompactGPUFormats = true;
+        boolean enableCompactGPUFormats = false;
         
         @Comment("TODO")
         boolean enableHdLightmaps = false;
@@ -377,7 +378,6 @@ public class Configurator implements ModMenuApi {
             ShaderManager.INSTANCE.forceReload();
         }
     }
-    
     
     @Override
     public Optional<Supplier<Screen>> getConfigScreen(Screen screen) {

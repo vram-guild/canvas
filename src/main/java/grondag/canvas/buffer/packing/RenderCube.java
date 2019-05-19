@@ -23,11 +23,16 @@ import static grondag.fermion.world.PackedBlockPos.Y_MASK;
 import static grondag.fermion.world.PackedBlockPos.Y_SHIFT;
 import static grondag.fermion.world.PackedBlockPos.Z_MASK;
 
+import grondag.canvas.Configurator;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 
 public class RenderCube {
-    private static final int CUBE_MASK = 0xFFFFFF00;
+    public static void forceReload() {
+        CUBE_MASK = Configurator.enableBatchedChunkRender ? 0xFFFFFF00 : 0xFFFFFFF0;
+    }
+    
+    private static int CUBE_MASK = Configurator.enableBatchedChunkRender ? 0xFFFFFF00 : 0xFFFFFFF0;
     
     /**
      * Finds the origin of the 256x256x256 render cube for the given coordinate.

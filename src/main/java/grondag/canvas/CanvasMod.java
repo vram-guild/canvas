@@ -23,9 +23,7 @@ import grondag.canvas.apiimpl.Canvas;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.renderer.v1.RendererAccess;
 
-
-//TODO: configurable occlusion hook
-//TODO: configurable render region
+//TODO: lightmap message
 //TODO: configurable disable chunk matrix
 //TODO: configurable vanilla model vertex adjustment
 //TODO: configurable cutout single pass, separate pass may give early cull in solid
@@ -42,6 +40,8 @@ import net.fabricmc.fabric.api.renderer.v1.RendererAccess;
 //PERF: improve light smoothing performance
 //PERF: manage buffers to avoid heap fragmentation
 
+//DONE: configurable render region
+//DONE: configurable occlusion hook
 //DONE: configurable fog
 //DONE: configurable hardcore darkness
 //DONE: dynamic vertex formats
