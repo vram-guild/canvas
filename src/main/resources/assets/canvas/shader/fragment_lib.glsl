@@ -27,6 +27,33 @@ vec4 applyAo(vec4 baseColor) {
 #endif
 }
 
+vec2 aoFactor() {
+// Don't apply AO for item renders
+#if CONTEXT_IS_BLOCK
+    #if ENABLE_SMOOTH_LIGHT
+        vec4 aotex = texture2D(u_utility, v_hd_ao);
+        float ao = aotex.r;
+    #else
+        float ao = v_ao;
+    #endif
+
+    #if ENABLE_SUBTLE_AO
+        // smooth the transition from 0.4 (should be the minimum) to 1.0
+        float bao = (ao - 0.4) / 0.6;
+        bao = clamp(ao, 0.0, 1.0);
+        bao = 1.0 - ao;
+        bao = 1.0 - ao * ao;
+        bao = 0.4 + ao * 0.6;
+        return vec2(bao, ao);
+    #else
+        return vec2(ao, ao);
+    #endif
+
+#else
+    return vec2(1.0, 1.0);
+#endif
+}
+
 float effectModifier() {
     return u_world[WORLD_EFFECT_MODIFIER];
 }
@@ -37,101 +64,124 @@ vec4 combinedLight() {
     vec4 sky = texture2D(u_utility, v_hd_skylight);
     // PERF: return directly vs extra math below
     vec2 lightCoord = vec2(block.r, sky.r) * 15.0;
-    // TODO: remove
-//    lightCoord = vec2(15.0, 15.0);
+
 #if ENABLE_LIGHT_NOISE
     vec4 dither = texture2D(u_dither, gl_FragCoord.xy / 8.0);
     lightCoord += dither.r / 64.0 - (1.0 / 128.0);
 #endif
+
     return texture2D(u_lightmap, (lightCoord + 0.5) / 16.0);
 }
 #endif
 
+vec2 lightCoord() {
+#if ENABLE_SMOOTH_LIGHT
+    vec4 block = texture2D(u_utility, v_hd_blocklight);
+    vec4 sky = texture2D(u_utility, v_hd_skylight);
+    // PERF: return directly vs extra math below
+    vec2 lightCoord = vec2(block.r, sky.r) * 15.0;
+
+#if ENABLE_LIGHT_NOISE
+    vec4 dither = texture2D(u_dither, gl_FragCoord.xy / 8.0);
+    lightCoord += dither.r / 64.0 - (1.0 / 128.0);
+#endif
+
+    return (lightCoord + 0.5) / 16.0;
+#else
+    return v_lightcoord;
+#endif
+}
+
 vec4 diffuseColor() {
 
-#if CONTEXT == CONTEXT_BLOCK_SOLID
-	float non_mipped_0 = bitValue(v_flags.x, FLAG_UNMIPPED_0) * -4.0;
-	vec4 a = texture2D(u_textures, v_texcoord_0, non_mipped_0);
-
-	float cutout = bitValue(v_flags.x, FLAG_CUTOUT_0);
-	if(cutout == 1.0 && a.a < 0.5) {
-		discard;
-	}
-#else // alpha
-	vec4 a = texture2D(u_textures, v_texcoord_0);
-#endif
-
-#if CONTEXT_IS_BLOCK
-	#if ENABLE_SMOOTH_LIGHT
-	    vec4 light = combinedLight();
-    #else
-	    vec4 light = texture2D(u_lightmap, v_lightcoord);
+    #if CONTEXT != CONTEXT_ITEM_GUI
+        vec2 lightCoord = lightCoord();
     #endif
 
-#elif CONTEXT == CONTEXT_ITEM_GUI
-	vec4 light = vec4(1.0, 1.0, 1.0, 1.0);
-#else
-	vec4 light = texture2D(u_lightmap, v_lightcoord);
-#endif
+    #if ENABLE_AO_SHADING && CONTEXT_IS_BLOCK
+        vec2 aoFactor = aoFactor();
+    #endif
 
-	a *= colorAndLightmap(v_color_0, 0, light);
+    #if CONTEXT == CONTEXT_BLOCK_SOLID
+        float non_mipped_0 = bitValue(v_flags.x, FLAG_UNMIPPED_0) * -4.0;
+        vec4 a = texture2D(u_textures, v_texcoord_0, non_mipped_0);
 
-#if ENABLE_AO_SHADING
-    if(bitValue(v_flags.x, FLAG_DISABLE_AO_0) == 0.0) {
-    	a = applyAo(a);
-    }
-#endif
+        float cutout = bitValue(v_flags.x, FLAG_CUTOUT_0);
+        if(cutout == 1.0 && a.a < 0.5) {
+            discard;
+        }
+    #else // alpha
+        vec4 a = texture2D(u_textures, v_texcoord_0);
+    #endif
 
-#if ENABLE_DIFFUSE
-    if(bitValue(v_flags.x, FLAG_DISABLE_DIFFUSE_0) == 0.0) {
-    	a *= vec4(v_diffuse, v_diffuse, v_diffuse, 1.0);
-    }
-#endif
+    #if CONTEXT_IS_BLOCK
+        vec2 lc = lightCoord;
+        #if ENABLE_AO_SHADING
+            if(bitValue(v_flags.x, FLAG_DISABLE_AO_0) == 0.0) {
+                lc *= aoFactor;
+            }
+        #endif
 
-#if LAYER_COUNT > 1
-	float non_mipped_1 = bitValue(v_flags.y, FLAG_UNMIPPED_1) * -4.0;
-	vec4 b = texture2D(u_textures, v_texcoord_1, non_mipped_1);
-	float cutout_1 = bitValue(v_flags.y, FLAG_CUTOUT_1);
-	if(cutout_1 != 1.0 || b.a >= 0.5) {
-		b *= colorAndLightmap(v_color_1, 1, light);
+        vec4 light = texture2D(u_lightmap, lc);
 
-#if ENABLE_AO_SHADING
-		if(bitValue(v_flags.y, FLAG_DISABLE_AO_1) == 0.0) {
-		    b = applyAo(b);
-		}
-#endif
+    #elif CONTEXT == CONTEXT_ITEM_GUI
+        vec4 light = vec4(1.0, 1.0, 1.0, 1.0);
+    #else
+        vec4 light = texture2D(u_lightmap, v_lightcoord);
+    #endif
 
-#if ENABLE_DIFFUSE
-		if(bitValue(v_flags.y, FLAG_DISABLE_DIFFUSE_1) == 0.0) {
-			b *= vec4(v_diffuse, v_diffuse, v_diffuse, 1.0);
-		}
-#endif
-		a = vec4(mix(a.rgb, b.rgb, b.a), a.a);
-	}
-#endif
+    a *= colorAndLightmap(v_color_0, 0, light);
 
-#if LAYER_COUNT > 2
-	float non_mipped_2 = bitValue(v_flags.y, FLAG_UNMIPPED_2) * -4.0;
-	vec4 c = texture2D(u_textures, v_texcoord_2, non_mipped_2);
-	float cutout_2 = bitValue(v_flags.y, FLAG_CUTOUT_2);
-	if(cutout_2 != 1.0 || c.a >= 0.5) {
-		c *= colorAndLightmap(v_color_2, 2, light);
+    #if ENABLE_DIFFUSE
+        if(bitValue(v_flags.x, FLAG_DISABLE_DIFFUSE_0) == 0.0) {
+            a *= vec4(v_diffuse, v_diffuse, v_diffuse, 1.0);
+        }
+    #endif
 
-#if ENABLE_AO_SHADING
-		if(bitValue(v_flags.y, FLAG_DISABLE_AO_2) == 0.0) {
-		    c = applyAo(c);
-		}
-#endif
+    #if LAYER_COUNT > 1
+        float non_mipped_1 = bitValue(v_flags.y, FLAG_UNMIPPED_1) * -4.0;
+        vec4 b = texture2D(u_textures, v_texcoord_1, non_mipped_1);
+        float cutout_1 = bitValue(v_flags.y, FLAG_CUTOUT_1);
+        if(cutout_1 != 1.0 || b.a >= 0.5) {
+            b *= colorAndLightmap(v_color_1, 1, light);
 
-#if ENABLE_DIFFUSE
-		if(bitValue(v_flags.y, FLAG_DISABLE_DIFFUSE_2) == 0.0) {
-			c *= vec4(v_diffuse, v_diffuse, v_diffuse, 1.0);
-		}
-#endif
+            #if ENABLE_AO_SHADING
+                if(bitValue(v_flags.y, FLAG_DISABLE_AO_1) == 0.0) {
+                    b = applyAo(b);
+                }
+            #endif
 
-		a = vec4(mix(a.rgb, c.rgb, c.a), a.a);
-	}
-#endif
+            #if ENABLE_DIFFUSE
+                if(bitValue(v_flags.y, FLAG_DISABLE_DIFFUSE_1) == 0.0) {
+                    b *= vec4(v_diffuse, v_diffuse, v_diffuse, 1.0);
+                }
+            #endif
+            a = vec4(mix(a.rgb, b.rgb, b.a), a.a);
+        }
+    #endif
+
+    #if LAYER_COUNT > 2
+        float non_mipped_2 = bitValue(v_flags.y, FLAG_UNMIPPED_2) * -4.0;
+        vec4 c = texture2D(u_textures, v_texcoord_2, non_mipped_2);
+        float cutout_2 = bitValue(v_flags.y, FLAG_CUTOUT_2);
+        if(cutout_2 != 1.0 || c.a >= 0.5) {
+            c *= colorAndLightmap(v_color_2, 2, light);
+
+            #if ENABLE_AO_SHADING
+                if(bitValue(v_flags.y, FLAG_DISABLE_AO_2) == 0.0) {
+                    c = applyAo(c);
+                }
+            #endif
+
+            #if ENABLE_DIFFUSE
+                if(bitValue(v_flags.y, FLAG_DISABLE_DIFFUSE_2) == 0.0) {
+                    c *= vec4(v_diffuse, v_diffuse, v_diffuse, 1.0);
+                }
+            #endif
+
+            a = vec4(mix(a.rgb, c.rgb, c.a), a.a);
+        }
+    #endif
 
 	return a;
 }
