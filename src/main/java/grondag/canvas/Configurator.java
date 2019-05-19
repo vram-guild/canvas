@@ -56,6 +56,9 @@ public class Configurator implements ModMenuApi {
         @Comment("TODO")
         boolean hardcoreDarkness = false;
         
+        @Comment("TODO")
+        boolean subtleFog = true;
+        
         //TODO: docs
         @Comment("TODO")
         int maxLightmapDelayFrames = 0;
@@ -113,6 +116,7 @@ public class Configurator implements ModMenuApi {
     
     public static boolean enableItemRender = DEFAULTS.enableItemRender;
     public static boolean hardcoreDarkness = DEFAULTS.hardcoreDarkness;
+    public static boolean subtleFog = DEFAULTS.subtleFog;
     public static boolean enableShaderDebug = DEFAULTS.enableShaderDebug;
     public static int maxLightmapDelayFrames = DEFAULTS.maxLightmapDelayFrames;
     
@@ -160,6 +164,7 @@ public class Configurator implements ModMenuApi {
         }
         enableItemRender = config.enableItemRender;
         hardcoreDarkness = config.hardcoreDarkness;
+        subtleFog = config.subtleFog;
         enableShaderDebug = config.enableShaderDebug;
         enableCompactGPUFormats = config.enableCompactGPUFormats;
         minChunkBudgetNanos = config.minChunkBudgetNanos;
@@ -185,6 +190,7 @@ public class Configurator implements ModMenuApi {
         ConfigData config = new ConfigData();
         config.enableItemRender = enableItemRender;
         config.hardcoreDarkness = hardcoreDarkness;
+        config.subtleFog = subtleFog;
         config.enableShaderDebug = enableShaderDebug;
         config.enableCompactGPUFormats = enableCompactGPUFormats;
         config.minChunkBudgetNanos = minChunkBudgetNanos;
@@ -264,6 +270,10 @@ public class Configurator implements ModMenuApi {
         features.addOption(new BooleanListEntry("config.canvas.value.hardcore_darkness", hardcoreDarkness, "config.canvas.reset", 
                 () -> DEFAULTS.hardcoreDarkness, b -> {hardcoreDarkness = b; reloadShaders = true;}, 
                 () -> Optional.of(I18n.translate("config.canvas.help.hardcore_darkness").split(";"))));
+        
+        features.addOption(new BooleanListEntry("config.canvas.value.subtle_fog", subtleFog, "config.canvas.reset", 
+                () -> DEFAULTS.subtleFog, b -> {subtleFog = b; reloadShaders = true;}, 
+                () -> Optional.of(I18n.translate("config.canvas.help.subtle_fog").split(";"))));
         
         // LIGHTING
         ConfigScreenBuilder.CategoryBuilder lighting = builder.addCategory("config.canvas.category.lighting");

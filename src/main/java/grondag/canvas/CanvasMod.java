@@ -23,7 +23,7 @@ import grondag.canvas.apiimpl.Canvas;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.renderer.v1.RendererAccess;
 
-//TODO: configurable fog
+
 //TODO: configurable occlusion hook
 //TODO: configurable render region
 //TODO: configurable disable chunk matrix
@@ -42,15 +42,16 @@ import net.fabricmc.fabric.api.renderer.v1.RendererAccess;
 //PERF: improve light smoothing performance
 //PERF: manage buffers to avoid heap fragmentation
 
+//DONE: configurable fog
 //DONE: configurable hardcore darkness
 //DONE: dynamic vertex formats
 //DONE: configurable diffuse lighting
 //DONE: configurable AO lighting
-//DONE: remove configurable shader/condition limits?
+//DONE: configurable smooth lighting
+//DONE: remove configurable shader/condition limits
 //DONE: try with resources
 //DONE: concise log messages for resource/shader failures
 //DONE: API compatibility
-//DONE: configurable super smooth lighting
 //DONE: remove quad splitting smooth lighting
 
 public class CanvasMod implements ClientModInitializer {

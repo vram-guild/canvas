@@ -207,6 +207,10 @@ abstract class AbstractGlShader {
             result = result.replaceAll("#define HARDCORE_DARKNESS FALSE", "#define HARDCORE_DARKNESS TRUE");
         }
 
+        if(Configurator.subtleFog && context != ShaderContext.ITEM_GUI) {
+            result = result.replaceAll("#define SUBTLE_FOG FALSE", "#define SUBTLE_FOG TRUE");
+        }
+        
         if(!context.isBlock) {
             result = result.replaceAll("#define CONTEXT_IS_BLOCK TRUE", "#define CONTEXT_IS_BLOCK FALSE");
         }

@@ -201,6 +201,10 @@ float fogFactor() {
 vec4 fog(vec4 diffuseColor) {
 #if CONTEXT == CONTEXT_ITEM_GUI
 	return diffuseColor;
+#elif SUBTLE_FOG
+	float f = 1.0 - fogFactor();
+	f *= f;
+	return mix(vec4(gl_Fog.color.rgb, diffuseColor.a), diffuseColor, 1.0 - f);
 #else
 	return mix(vec4(gl_Fog.color.rgb, diffuseColor.a), diffuseColor, fogFactor());
 #endif
