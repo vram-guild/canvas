@@ -19,8 +19,12 @@
 // true if AO shading should be applied
 #define AO_SHADING_MODE AO_MODE_NORMAL
 
+#define DIFFUSE_MODE_NORMAL 0
+#define DIFFUSE_MODE_SKY_ONLY 1
+#define DIFFUSE_MODE_NONE 2
+
 // true if diffuse shading should be applied
-#define ENABLE_DIFFUSE TRUE
+#define DIFFUSE_SHADING_MODE DIFFUSE_MODE_NORMAL
 
 // true if using smooth lightmaps
 // currently only enabled in block contexts
@@ -36,6 +40,8 @@
 // true if this is an item context
 #define CONTEXT_IS_ITEM TRUE
 
+#define HARDCORE_DARKNESS FALSE
+
 #define CONTEXT_BLOCK_SOLID 0
 #define CONTEXT_BLOCK_TRANSLUCENT 1
 #define CONTEXT_ITEM_WORLD 2
@@ -45,6 +51,16 @@
 #define CONTEXT 0
 
 #define WORLD_EFFECT_MODIFIER 0
+#define WORLD_NIGHT_VISION 1
+#define WORLD_EFFECTIVE_INTENSITY 2
+#define WORLD_AMBIENT_INTENSITY 3
+#define WORLD_HAS_SKYLIGHT 4
+#define WOLRD_DIMENSION_ID 5
+#define WOLRD_MOON_SIZE 6
+
+#define DIMENSION_OVERWORLD 1
+#define DIMENSION_NETHER 0
+#define DIMENSION_END 2
 
 uniform float[8] u_world;
 uniform float u_time;
@@ -59,21 +75,26 @@ uniform int u_fogMode;
 #endif
 
 #if ENABLE_SMOOTH_LIGHT
+    uniform sampler2D u_utility;
+    varying vec2 v_hd_blocklight;
+    varying vec2 v_hd_skylight;
+    varying vec2 v_hd_ao;
 
-uniform sampler2D u_utility;
-varying vec2 v_hd_blocklight;
-varying vec2 v_hd_skylight;
-varying vec2 v_hd_ao;
-
-//TODO: make this depend on shader props
+    //TODO: make this depend on shader props
     #if ENABLE_LIGHT_NOISE
         uniform sampler2D u_dither;
     #endif
 #endif
 
-varying float v_diffuse;
+#if DIFFUSE_SHADING_MODE != DIFFUSE_MODE_NONE
+        varying float v_diffuse;
+#endif
+
+//TODO - disable when not used
 varying vec4 v_color_0;
 varying vec2 v_texcoord_0;
+
+//TODO - disable when not used
 varying vec2 v_lightcoord;
 
 #ifdef GL_EXT_gpu_shader4
@@ -250,4 +271,9 @@ const float[8] BITWISE_DIVISORS = float[8](0.5, 0.25, 0.125, 0.0625, 0.03125, 0.
  */
 float bitValue(float byteValue, int bitIndex) {
     return floor(fract(byteValue * BITWISE_DIVISORS[bitIndex]) * 2.0);
+}
+
+/** Converts RGB to grayscale */
+float luminance(vec3 color) {
+    return dot(color.rgb, vec3(0.299, 0.587, 0.114));
 }

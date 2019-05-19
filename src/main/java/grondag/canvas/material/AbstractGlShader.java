@@ -31,6 +31,7 @@ import com.mojang.blaze3d.platform.GLX;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
 import grondag.canvas.Configurator.AoMode;
+import grondag.canvas.Configurator.DiffuseMode;
 import grondag.canvas.varia.CanvasGlHelper;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
@@ -202,10 +203,14 @@ abstract class AbstractGlShader {
             result = result.replaceAll("#define CONTEXT_IS_BLOCK TRUE", "#define CONTEXT_IS_BLOCK FALSE");
         }
         
-        if(!context.isItem) {
-            result = result.replaceAll("#define CONTEXT_IS_ITEM TRUE", "#define CONTEXT_IS_ITEM FALSE");
+        if(Configurator.hardcoreDarkness && context != ShaderContext.ITEM_GUI) {
+            result = result.replaceAll("#define HARDCORE_DARKNESS FALSE", "#define HARDCORE_DARKNESS TRUE");
         }
 
+        if(!context.isBlock) {
+            result = result.replaceAll("#define CONTEXT_IS_BLOCK TRUE", "#define CONTEXT_IS_BLOCK FALSE");
+        }
+        
         if(!Configurator.enableHdLightmaps || ((shaderProps & ShaderProps.SMOOTH_LIGHTMAPS) == 0)) {
             result = result.replaceAll("#define ENABLE_SMOOTH_LIGHT TRUE", "#define ENABLE_SMOOTH_LIGHT FALSE");
         }
@@ -219,8 +224,9 @@ abstract class AbstractGlShader {
                     "#define AO_SHADING_MODE AO_MODE_" + Configurator.aoShadingMode.name());
         }
         
-        if(!Configurator.enableDiffuseShading) {
-            result = result.replaceAll("#define ENABLE_DIFFUSE TRUE", "#define ENABLE_DIFFUSE FALSE");
+        if(Configurator.diffuseShadingMode != DiffuseMode.NORMAL) {
+            result = result.replaceAll("#define DIFFUSE_SHADING_MODE DIFFUSE_MODE_NORMAL", 
+                    "#define DIFFUSE_SHADING_MODE DIFFUSE_MODE_" + Configurator.diffuseShadingMode.name());
         }
         
         if(!CanvasGlHelper.useGpuShader4() ) {

@@ -618,7 +618,7 @@ public class GlProgram {
     }
 
     public boolean containsUniformSpec(String type, String name) {
-        String regex = "(?m)^uniform\\s+" + type + "\\s+" + name + "\\s*;";
+        String regex = "(?m)^\\s*uniform\\s+" + type + "\\s+" + name + "\\s*;";
         Pattern pattern = Pattern.compile(regex);
         return pattern.matcher(this.vertexShader.getSource()).find()
                 || pattern.matcher(this.fragmentShader.getSource()).find();

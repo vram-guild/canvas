@@ -23,30 +23,29 @@ import grondag.canvas.apiimpl.Canvas;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.renderer.v1.RendererAccess;
 
-
+//TODO: configurable fog
 //TODO: configurable occlusion hook
 //TODO: configurable render region
 //TODO: configurable disable chunk matrix
 //TODO: configurable vanilla model vertex adjustment
 //TODO: configurable cutout single pass, separate pass may give early cull in solid
-//TODO: configurable hardcore darkness
 //TODO: capture & log more GL capability info - allow disable, enabled by default
+//TODO: configurable compact vertex formats - GPU side  white, face, unlit, pixel-aligned, etc.
+//FIX: lighting on dodecs (again)
 
 //FIX: block breaking?
 //FIX: lighting problems on nvidia cards?
-
-//FIX: lighting on dodecs (again)
-//TODO: dynamic vertex formats
-//TODO: configurable compact vertex formats - GPU side  white, face, unlit, pixel-aligned, etc.
-
 //FEAT: configurable compressed vertex formats - CPU side (maybe wait for Brocade Mesh)
 //FEAT: per chunk occlusion mesh - for sky shadow mask
 //FEAT: per chunk depth mesh - addendum to occlusion mesh to render for depth pass - includes translucent cutout
 //FEAT: first person dynamic light
-
 //PERF: improve light smoothing performance
 //PERF: manage buffers to avoid heap fragmentation
 
+//DONE: configurable hardcore darkness
+//DONE: dynamic vertex formats
+//DONE: configurable diffuse lighting
+//DONE: configurable AO lighting
 //DONE: remove configurable shader/condition limits?
 //DONE: try with resources
 //DONE: concise log messages for resource/shader failures

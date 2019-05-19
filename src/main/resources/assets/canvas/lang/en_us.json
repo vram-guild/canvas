@@ -13,6 +13,8 @@
 	"config.canvas.category.features" : "Features",
 	"config.canvas.value.item_render" : "Shader-Based Item Render (WIP)",
 	"config.canvas.help.item_render" : "Applies material properties;and shaders to items.;Mostly works but not complete.",
+	"config.canvas.value.hardcore_darkness" : "Hardcore Darkness",
+	"config.canvas.help.hardcore_darkness" : "TODO",
 	
 	"config.canvas.category.lighting" : "Lighting",
 	"config.canvas.value.light_smoothing" : "Light Smoothing",
@@ -30,10 +32,14 @@
 	"config.canvas.value.lightmap_delay_frames" : "Max Lightmap Delay",
 	"config.canvas.help.lightmap_delay_frames" : "TODO",
 	
-	"config.canvas.enum.ao_mode.normal" : "Vanilla AO Shading",
-	"config.canvas.enum.ao_mode.subtle_always" : "Less Heavy",
-	"config.canvas.enum.ao_mode.subtle" : "Less heavy in Block Light",
-	"config.canvas.enum.ao_mode.none" : "No AO Shading",
+	"config.canvas.enum.ao_mode.normal" : "Vanilla",
+	"config.canvas.enum.ao_mode.subtle_always" : "Subtle",
+	"config.canvas.enum.ao_mode.subtle_block_light" : "Subtle Torchlit",
+	"config.canvas.enum.ao_mode.none" : "None",
+	
+	"config.canvas.enum.diffuse_mode.normal" : "Vanilla",
+	"config.canvas.enum.diffuse_mode.sky_only" : "Skylight Only",
+	"config.canvas.enum.diffuse_mode.none" : "None",
 	
 	"config.canvas.category.tweaks" : "Tweaks",
 	"config.canvas.value.compact_gpu_formats" : "Compact GPU Formats",

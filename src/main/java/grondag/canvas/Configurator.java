@@ -19,8 +19,6 @@ package grondag.canvas;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.util.Optional;
-import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 import com.google.gson.Gson;
@@ -35,7 +33,6 @@ import me.shedaniel.cloth.api.ConfigScreenBuilder;
 import me.shedaniel.cloth.api.ConfigScreenBuilder.SavedConfig;
 import me.shedaniel.cloth.gui.entries.BooleanListEntry;
 import me.shedaniel.cloth.gui.entries.EnumListEntry;
-import me.shedaniel.cloth.gui.entries.EnumListEntry.Translatable;
 import me.shedaniel.cloth.gui.entries.IntegerSliderEntry;
 import me.shedaniel.cloth.gui.entries.LongListEntry;
 import net.fabricmc.api.EnvType;
@@ -56,6 +53,9 @@ public class Configurator implements ModMenuApi {
         @Comment("Applies material properties and shaders to items. (WIP)")
         boolean enableItemRender = false;
         
+        @Comment("TODO")
+        boolean hardcoreDarkness = false;
+        
         //TODO: docs
         @Comment("TODO")
         int maxLightmapDelayFrames = 0;
@@ -73,7 +73,7 @@ public class Configurator implements ModMenuApi {
         boolean enableLightmapNoise = false;
         
         @Comment("TODO")
-        boolean enableDiffuseShading = true;
+        DiffuseMode diffuseShadingMode = DiffuseMode.NORMAL;
         
         @Comment("TODO")
         boolean enableLightSmoothing = false;
@@ -112,12 +112,13 @@ public class Configurator implements ModMenuApi {
     private static final Jankson JANKSON = Jankson.builder().build();
     
     public static boolean enableItemRender = DEFAULTS.enableItemRender;
+    public static boolean hardcoreDarkness = DEFAULTS.hardcoreDarkness;
     public static boolean enableShaderDebug = DEFAULTS.enableShaderDebug;
     public static int maxLightmapDelayFrames = DEFAULTS.maxLightmapDelayFrames;
     
     public static boolean enableHdLightmaps = DEFAULTS.enableHdLightmaps;
     public static boolean enableLightmapNoise = DEFAULTS.enableLightmapNoise;
-    public static boolean enableDiffuseShading = DEFAULTS.enableDiffuseShading;
+    public static DiffuseMode diffuseShadingMode = DEFAULTS.diffuseShadingMode;
     public static boolean enableLightSmoothing = DEFAULTS.enableLightSmoothing;
     public static AoMode aoShadingMode = DEFAULTS.aoShadingMode;
     
@@ -158,6 +159,7 @@ public class Configurator implements ModMenuApi {
             CanvasMod.LOG.error("Unable to load config. Using default values.");
         }
         enableItemRender = config.enableItemRender;
+        hardcoreDarkness = config.hardcoreDarkness;
         enableShaderDebug = config.enableShaderDebug;
         enableCompactGPUFormats = config.enableCompactGPUFormats;
         minChunkBudgetNanos = config.minChunkBudgetNanos;
@@ -165,7 +167,7 @@ public class Configurator implements ModMenuApi {
         
         enableHdLightmaps = config.enableHdLightmaps;
         enableLightmapNoise = config.enableLightmapNoise;
-        enableDiffuseShading = config.enableDiffuseShading;
+        diffuseShadingMode = config.diffuseShadingMode;
         enableLightSmoothing = config.enableLightSmoothing;
         aoShadingMode = config.aoShadingMode;
         
@@ -182,6 +184,7 @@ public class Configurator implements ModMenuApi {
     private static void saveConfig() {
         ConfigData config = new ConfigData();
         config.enableItemRender = enableItemRender;
+        config.hardcoreDarkness = hardcoreDarkness;
         config.enableShaderDebug = enableShaderDebug;
         config.enableCompactGPUFormats = enableCompactGPUFormats;
         config.minChunkBudgetNanos = minChunkBudgetNanos;
@@ -189,7 +192,7 @@ public class Configurator implements ModMenuApi {
         
         config.enableHdLightmaps = enableHdLightmaps;
         config.enableLightmapNoise = enableLightmapNoise;
-        config.enableDiffuseShading = enableDiffuseShading;
+        config.diffuseShadingMode = diffuseShadingMode;
         config.enableLightSmoothing = enableLightSmoothing;
         config.aoShadingMode = aoShadingMode; 
         
@@ -221,15 +224,26 @@ public class Configurator implements ModMenuApi {
     static boolean reloadTerrain = false;
     static boolean reloadShaders = false;
     
-    public static enum AoMode implements Translatable {
+    public static enum AoMode {
         NORMAL,
         SUBTLE_ALWAYS,
         SUBTLE_BLOCK_LIGHT,
         NONE;
 
         @Override
-        public String getKey() {
-            return "config.canvas.enum.ao_mode." + this.toString().toLowerCase();
+        public String toString() {
+            return I18n.translate("config.canvas.enum.ao_mode." + this.name().toLowerCase());
+        }
+    }
+    
+    public static enum DiffuseMode {
+        NORMAL,
+        SKY_ONLY,
+        NONE;
+
+        @Override
+        public String toString() {
+            return I18n.translate("config.canvas.enum.diffuse_mode." + this.name().toLowerCase());
         }
     }
     
@@ -247,6 +261,10 @@ public class Configurator implements ModMenuApi {
                 () -> DEFAULTS.enableItemRender, b -> enableItemRender = b, 
                 () -> Optional.of(I18n.translate("config.canvas.help.item_render").split(";"))));
         
+        features.addOption(new BooleanListEntry("config.canvas.value.hardcore_darkness", hardcoreDarkness, "config.canvas.reset", 
+                () -> DEFAULTS.hardcoreDarkness, b -> {hardcoreDarkness = b; reloadShaders = true;}, 
+                () -> Optional.of(I18n.translate("config.canvas.help.hardcore_darkness").split(";"))));
+        
         // LIGHTING
         ConfigScreenBuilder.CategoryBuilder lighting = builder.addCategory("config.canvas.category.lighting");
         
@@ -262,8 +280,14 @@ public class Configurator implements ModMenuApi {
                 () -> DEFAULTS.enableLightmapNoise, b -> {enableLightmapNoise = b; reloadShaders = true;}, 
                 () -> Optional.of(I18n.translate("config.canvas.help.lightmap_noise").split(";"))));
         
-        lighting.addOption(new BooleanListEntry("config.canvas.value.diffuse_shading", enableDiffuseShading, "config.canvas.reset", 
-                () -> DEFAULTS.enableDiffuseShading, b -> {enableDiffuseShading = b; reloadShaders = true;}, 
+        lighting.addOption(new EnumListEntry(
+                "config.canvas.value.diffuse_shading", 
+                DiffuseMode.class, 
+                diffuseShadingMode, 
+                "config.canvas.reset", 
+                () -> DEFAULTS.diffuseShadingMode, 
+                (b) -> {diffuseShadingMode = (DiffuseMode) b; reloadShaders = true;},
+                a -> a.toString(),
                 () -> Optional.of(I18n.translate("config.canvas.help.diffuse_shading").split(";"))));
         
         lighting.addOption(new EnumListEntry(

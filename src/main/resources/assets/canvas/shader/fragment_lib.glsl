@@ -17,8 +17,8 @@ vec4 aoFactor(vec2 lightCoord) {
         float bao = (ao - 0.4) / 0.6;
         bao = clamp(bao, 0.0, 1.0);
         bao = 1.0 - bao;
-        bao = 1.0 - bao * bao;
-        bao = 0.4 + bao * 0.6;
+        bao = bao * bao * (1.0 - lightCoord.x * 0.6);
+        bao = 0.4 + (1.0 - bao) * 0.6;
 
         #if AO_SHADING_MODE == AO_MODE_SUBTLE_ALWAYS
             return vec4(bao, bao, bao, 1.0);
@@ -70,8 +70,34 @@ vec4 diffuseColor() {
         vec4 light = texture2D(u_lightmap, v_lightcoord);
     #endif
 
+    #if HARDCORE_DARKNESS
+        if(u_world[WORLD_HAS_SKYLIGHT] == 1.0 && u_world[WORLD_NIGHT_VISION] == 0.0) {
+            float floor = u_world[WOLRD_MOON_SIZE] * lightCoord.y;
+            float dark = 1.0 - smoothstep(0.0, 0.8, 1.0 - luminance(light.rgb));
+            dark = max(floor, dark);
+            light *= vec4(dark, dark, dark, 1.0);
+        }
+    #endif
+
     #if AO_SHADING_MODE != AO_MODE_NONE && CONTEXT_IS_BLOCK
         vec4 aoFactor = aoFactor(lightCoord);
+    #endif
+
+    #if DIFFUSE_SHADING_MODE == DIFFUSE_MODE_SKY_ONLY && CONTEXT_IS_BLOCK
+        vec4 diffuse;
+        if(u_world[WORLD_HAS_SKYLIGHT] == 1.0 && u_world[WORLD_NIGHT_VISION] == 0) {
+            float d = 1.0 - v_diffuse;
+            d *= u_world[WORLD_EFFECTIVE_INTENSITY];
+            d *= lightCoord.y;
+            d += 0.03125;
+            d = clamp(1.0 - d, 0.0, 1.0);
+            diffuse = vec4(d, d, d, 1.0);
+        } else {
+            diffuse = vec4(v_diffuse, v_diffuse, v_diffuse, 1.0);
+        }
+
+    #elif DIFFUSE_SHADING_MODE != DIFFUSE_MODE_NONE
+        vec4 diffuse = vec4(v_diffuse, v_diffuse, v_diffuse, 1.0);
     #endif
 
     #if CONTEXT == CONTEXT_BLOCK_SOLID
@@ -94,9 +120,9 @@ vec4 diffuseColor() {
         }
     #endif
 
-    #if ENABLE_DIFFUSE
+    #if DIFFUSE_SHADING_MODE != DIFFUSE_MODE_NONE
         if(bitValue(v_flags.x, FLAG_DISABLE_DIFFUSE_0) == 0.0) {
-            a *= vec4(v_diffuse, v_diffuse, v_diffuse, 1.0);
+            a *= diffuse;
         }
     #endif
 
@@ -113,9 +139,9 @@ vec4 diffuseColor() {
                 }
             #endif
 
-            #if ENABLE_DIFFUSE
+            #if DIFFUSE_SHADING_MODE != DIFFUSE_MODE_NONE
                 if(bitValue(v_flags.y, FLAG_DISABLE_DIFFUSE_1) == 0.0) {
-                    b *= vec4(v_diffuse, v_diffuse, v_diffuse, 1.0);
+                    b *= diffuse;
                 }
             #endif
             a = vec4(mix(a.rgb, b.rgb, b.a), a.a);
@@ -135,9 +161,9 @@ vec4 diffuseColor() {
                 }
             #endif
 
-            #if ENABLE_DIFFUSE
+            #if DIFFUSE_SHADING_MODE != DIFFUSE_MODE_NONE
                 if(bitValue(v_flags.y, FLAG_DISABLE_DIFFUSE_2) == 0.0) {
-                    c *= vec4(v_diffuse, v_diffuse, v_diffuse, 1.0);
+                    c *= diffuse;
                 }
             #endif
 
