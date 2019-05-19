@@ -104,6 +104,8 @@ public abstract class RenderMaterialImpl {
         SHADER = BITPACKER.createIntElement(ShaderManager.MAX_SHADERS);
         CONDITION = BITPACKER.createIntElement(MaterialConditionImpl.MAX_CONDITIONS);
         
+        assert BITPACKER.bitLength() <= 64;
+        
         long defaultBits = 0;
         defaultBits = BLEND_MODES[0].setValue(null, defaultBits);
         defaultBits = BLEND_MODES[1].setValue(null, defaultBits);

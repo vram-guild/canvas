@@ -24,29 +24,33 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.renderer.v1.RendererAccess;
 
 
-//FIX: block breaking?
-//FIX: lighting problems on nvidia cards?
-//FIX: try with resources
-//FIX: concise log messages for resource/shader failures
-//FIX: lighting on dodecs (again)
-//TODO: dynamic vertex formats
-//TODO: configurable compact vertex formats - GPU side  white, face, unlit, pixel-aligned, etc.
-//TODO: configurable cutout single pass, separate pass may give early cull in solid
 //TODO: configurable occlusion hook
 //TODO: configurable render region
 //TODO: configurable disable chunk matrix
 //TODO: configurable vanilla model vertex adjustment
+//TODO: configurable cutout single pass, separate pass may give early cull in solid
 //TODO: configurable hardcore darkness
-//TODO: configurable compressed vertex formats - CPU side (maybe wait for Brocade Mesh)
-//TODO: remove configurable shader/condition limits?
 //TODO: capture & log more GL capability info - allow disable, enabled by default
 
+//FIX: block breaking?
+//FIX: lighting problems on nvidia cards?
+
+//FIX: lighting on dodecs (again)
+//TODO: dynamic vertex formats
+//TODO: configurable compact vertex formats - GPU side  white, face, unlit, pixel-aligned, etc.
+
+//FEAT: configurable compressed vertex formats - CPU side (maybe wait for Brocade Mesh)
 //FEAT: per chunk occlusion mesh - for sky shadow mask
 //FEAT: per chunk depth mesh - addendum to occlusion mesh to render for depth pass - includes translucent cutout
 //FEAT: first person dynamic light
 
+//PERF: improve light smoothing performance
 //PERF: manage buffers to avoid heap fragmentation
 
+//DONE: remove configurable shader/condition limits?
+//DONE: try with resources
+//DONE: concise log messages for resource/shader failures
+//DONE: API compatibility
 //DONE: configurable super smooth lighting
 //DONE: remove quad splitting smooth lighting
 

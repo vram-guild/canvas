@@ -2,6 +2,8 @@
 	"debug.canvas.missing_uniform" : "Unable to find uniform %s in shaders %s, %s. This is normal if the uniform isn't used in the shader.",
 	"info.canvas.reloading" : "Canvas Renderer is initializing.",
 	"warn.canvas.slow_gl_call" : "Unable to obtain a fast call path to %s due to reflection error. Render performance may be reduced.",
+	"error.canvas.fail_create_shader" : "Unable to create shader %s with property index %d due to unexpected error: %s.",
+	"error.canvas.fail_create_any_shader" : "Unable to create one or more shaders due to compilation errors. See canvas_shader_debug folder for details.",
 	"error.canvas.program_link_failure" : "Unable to create linked shader due to unexpected error.",
 	"error.canvas.max_materials_exceeded" : "Max shader materials exceeded. Increase max shader materials in Canvas configuration.",	
 	
@@ -9,18 +11,16 @@
 	"config.canvas.reset" : "Reset",
 	
 	"config.canvas.category.features" : "Features",
-	"config.canvas.value.item_render" : "Enable Item Rendering",
-	"config.canvas.help.item_render" : "Applies material properties;and shaders to items. (WIP)",
-	"config.canvas.value.max_materials" : "Max Shader Materials",
-	"config.canvas.help.max_materials" : "Increase if 'Max shader material exceeded';error occurs. Larger values consume a;small amount of memory. Requires restart.",
+	"config.canvas.value.item_render" : "Shader-Based Item Render (WIP)",
+	"config.canvas.help.item_render" : "Applies material properties;and shaders to items.;Mostly works but not complete.",
 	
 	"config.canvas.category.lighting" : "Lighting",
-	"config.canvas.value.light_smoothing" : "TODO",
-	"config.canvas.help.light_smoothing" : "TODO",
-	"config.canvas.value.hd_lightmaps" : "TODO",
-	"config.canvas.help.hd_lightmaps" : "TODO",
-	"config.canvas.value.subtle_ao" : "TODO",
-	"config.canvas.help.subtle_ao" : "TODO",
+	"config.canvas.value.light_smoothing" : "Light Smoothing",
+	"config.canvas.help.light_smoothing" : "Makes light sources less cross-shaped.;Chunk loading a little slower.;Overall light levels remain similar.",
+	"config.canvas.value.hd_lightmaps" : "HD Lightmaps",
+	"config.canvas.help.hd_lightmaps" : "Prevents banding at block boundaries.;Some impact to memeory use,;chunk loading and frame rate.",
+	"config.canvas.value.subtle_ao" : "Subtle Ambient Occlusion",
+	"config.canvas.help.subtle_ao" : "Ambient Occlusion shading is;less heavy for block light.",
 	"config.canvas.value.lightmap_noise" : "TODO",
 	"config.canvas.help.lightmap_noise" : "TODO",
 	"config.canvas.value.diffuse_shading" : "TODO",
@@ -48,5 +48,7 @@
 	
 	"config.canvas.category.debug" : "Debug",
 	"config.canvas.value.shader_debug" : "Enable Shader Debug Output",
-	"config.canvas.help.shader_debug" : "Output runtime per-material shader source.;For shader development debugging."
+	"config.canvas.help.shader_debug" : "Output runtime per-material shader source.;For shader development debugging.",
+	"config.canvas.value.concise_errors" : "Concise Error Log",
+	"config.canvas.help.concise_errors" : "Summarizes multiple errors and warnings to single-line entries in the log."
 }

@@ -57,7 +57,7 @@ uniform vec3 u_eye_position;
 uniform int u_fogMode;
 
 #ifdef CONTEXT_IS_BLOCK
-varying float v_ao;
+    varying float v_ao;
 #endif
 
 #ifdef ENABLE_SMOOTH_LIGHT

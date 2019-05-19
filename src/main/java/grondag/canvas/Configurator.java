@@ -40,7 +40,6 @@ import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.resource.language.I18n;
-import net.minecraft.util.math.MathHelper;
 
 @Environment(EnvType.CLIENT)
 public class Configurator implements ModMenuApi {
@@ -49,9 +48,6 @@ public class Configurator implements ModMenuApi {
     static class ConfigData {
         @Comment("Increase if 'Max shader material exceeded' error occurs. Larger values consume a small amount of memory.")
         int maxPipelines = 128;
-        
-        @Comment("Output runtime per-material shader source. For shader development debugging.")
-        boolean enableShaderDebug = false;
         
         @Comment("Applies material properties and shaders to items. (WIP)")
         boolean enableItemRender = false;
@@ -98,16 +94,22 @@ public class Configurator implements ModMenuApi {
         
         @Comment("TODO")
         boolean adjustVanillaModelGeometry = true;
+
+        // DEBUG
+        @Comment("Output runtime per-material shader source. For shader development debugging.")
+        boolean enableShaderDebug = false;
         
         @Comment("TODO")        
         boolean enableLightmapDebug = false;
+        
+        @Comment("TODO")        
+        boolean enableConciseErrors = true;
     }
     
     static final ConfigData DEFAULTS = new ConfigData();
     private static final Gson GSON = new GsonBuilder().create();
     private static final Jankson JANKSON = Jankson.builder().build();
     
-    public static int maxShaders = DEFAULTS.maxPipelines;
     public static boolean enableItemRender = DEFAULTS.enableItemRender;
     public static boolean enableShaderDebug = DEFAULTS.enableShaderDebug;
     public static int maxLightmapDelayFrames = DEFAULTS.maxLightmapDelayFrames;
@@ -128,7 +130,7 @@ public class Configurator implements ModMenuApi {
     public static boolean disableVanillaChunkMatrix = DEFAULTS.disableVanillaChunkMatrix;
     public static boolean adjustVanillaModelGeometry = DEFAULTS.adjustVanillaModelGeometry;
     public static boolean enableLightmapDebug = DEFAULTS.enableLightmapDebug;
-    
+    public static boolean enableConciseErrors = DEFAULTS.enableConciseErrors;
 
     
     /** use to stash parent screen during display */
@@ -157,7 +159,6 @@ public class Configurator implements ModMenuApi {
         }
         enableItemRender = config.enableItemRender;
         enableShaderDebug = config.enableShaderDebug;
-        maxShaders = config.maxPipelines;
         enableCompactGPUFormats = config.enableCompactGPUFormats;
         minChunkBudgetNanos = config.minChunkBudgetNanos;
         maxLightmapDelayFrames = config.maxLightmapDelayFrames;
@@ -176,13 +177,13 @@ public class Configurator implements ModMenuApi {
         adjustVanillaModelGeometry = config.adjustVanillaModelGeometry;
         
         enableLightmapDebug = config.enableLightmapDebug;
+        enableConciseErrors = config.enableConciseErrors;
     }
 
     private static void saveConfig() {
         ConfigData config = new ConfigData();
         config.enableItemRender = enableItemRender;
         config.enableShaderDebug = enableShaderDebug;
-        config.maxPipelines = maxShaders;
         config.enableCompactGPUFormats = enableCompactGPUFormats;
         config.minChunkBudgetNanos = minChunkBudgetNanos;
         config.maxLightmapDelayFrames = maxLightmapDelayFrames;
@@ -201,6 +202,7 @@ public class Configurator implements ModMenuApi {
         config.adjustVanillaModelGeometry = adjustVanillaModelGeometry;
         
         config.enableLightmapDebug = enableLightmapDebug;
+        config.enableConciseErrors = enableConciseErrors;
         
         try {
             String result = JANKSON.toJson(config).toJson(true, true, 0);
@@ -233,10 +235,6 @@ public class Configurator implements ModMenuApi {
         features.addOption(new BooleanListEntry("config.canvas.value.item_render", enableItemRender, "config.canvas.reset", 
                 () -> DEFAULTS.enableItemRender, b -> enableItemRender = b, 
                 () -> Optional.of(I18n.translate("config.canvas.help.item_render").split(";"))));
-        
-        features.addOption(new IntegerSliderEntry("config.canvas.value.max_materials", 128, 4096, maxShaders, "config.canvas.reset", 
-                () -> DEFAULTS.maxPipelines, i -> maxShaders = i, 
-                () -> Optional.of(I18n.translate("config.canvas.help.max_materials").split(";"))));
         
         // LIGHTING
         ConfigScreenBuilder.CategoryBuilder lighting = builder.addCategory("config.canvas.category.lighting");
@@ -312,6 +310,10 @@ public class Configurator implements ModMenuApi {
                 () -> DEFAULTS.enableLightmapDebug, b -> enableLightmapDebug = b, 
                 () -> Optional.of(I18n.translate("config.canvas.help.shader_debug_lightmap").split(";"))));
         
+        debug.addOption(new BooleanListEntry("config.canvas.value.concise_errors", enableConciseErrors, "config.canvas.reset", 
+                () -> DEFAULTS.enableConciseErrors, b -> enableConciseErrors = b, 
+                () -> Optional.of(I18n.translate("config.canvas.help.concise_errors").split(";"))));
+        
         builder.setDoesConfirmSave(false);
         
         builder.setOnSave(Configurator::saveUserInput);
@@ -320,7 +322,6 @@ public class Configurator implements ModMenuApi {
     }
     
     private static void saveUserInput(SavedConfig config) {
-        maxShaders = MathHelper.smallestEncompassingPowerOfTwo(maxShaders);
         saveConfig();
         
         if(reloadTerrain) {

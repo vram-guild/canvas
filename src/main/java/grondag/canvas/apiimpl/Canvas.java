@@ -37,22 +37,12 @@ public class Canvas implements Renderer, RenderReloadCallback {
     public static final Canvas INSTANCE = new Canvas();
 
     public static final RenderMaterialImpl.Value MATERIAL_STANDARD = (Value) INSTANCE.materialFinder().find();
-//    private static final Value[] VANILLA_MATERIALS = new Value[4];
 
 
     static {
         INSTANCE.registerMaterial(RenderMaterial.MATERIAL_STANDARD, MATERIAL_STANDARD);
-        
-//        Finder finder = new Finder();
-//        for(BlockRenderLayer layer : RenderMaterialImpl.BLEND_MODES) {
-//            VANILLA_MATERIALS[layer.ordinal()] = finder.clear().blendMode(0, layer).find();
-//        }
     }
 
-//    public static Value vanillaMaterial(BlockRenderLayer layer) {
-//        return VANILLA_MATERIALS[layer.ordinal()];
-//    }
-    
     private final HashMap<Identifier, Value> materialMap = new HashMap<>();
 
     private final HashMap<Identifier, MaterialShaderImpl> shaderMap = new HashMap<>();

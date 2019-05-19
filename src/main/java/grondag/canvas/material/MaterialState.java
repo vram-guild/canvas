@@ -23,7 +23,6 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 
 public class MaterialState {
     private static final int SHADER_SHIFT = Useful.bitLength(MaterialConditionImpl.MAX_CONDITIONS) + ShaderProps.BITLENGTH;
-    public static final int MAX_MATERIAL_STATES = MaterialConditionImpl.MAX_CONDITIONS * ShaderManager.MAX_SHADERS;
 
     private static int computeIndex(MaterialShaderImpl shader, MaterialConditionImpl condition, int shaderProps) {
         return (shader.getIndex() << SHADER_SHIFT) | (shaderProps << ShaderProps.BITLENGTH) | condition.index;

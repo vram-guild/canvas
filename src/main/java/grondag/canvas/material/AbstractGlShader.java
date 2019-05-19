@@ -38,6 +38,8 @@ import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.Identifier;
 
 abstract class AbstractGlShader {
+    private static boolean isErrorNoticeComplete = false;
+    
     public final Identifier shaderSource;
 
     private final int shaderType;
@@ -70,48 +72,116 @@ abstract class AbstractGlShader {
     }
 
     private final void load() {
-        this.needsLoad = false;
-        this.isErrored = false;
+        needsLoad = false;
+        isErrored = false;
+        String source = null;
+        String error = null;
+        
         try {
-            if (this.glId <= 0) {
-                this.glId = GLX.glCreateShader(shaderType);
-                if (this.glId == 0) {
-                    this.glId = -1;
-                    this.isErrored = true;
+            if (glId <= 0) {
+                glId = GLX.glCreateShader(shaderType);
+                if (glId == 0) {
+                    glId = -1;
+                    isErrored = true;
                     return;
                 }
             }
             
-            final String source = this.getSource();
+            source = getSource();
             
-            if(Configurator.enableShaderDebug) {
-                final String key = shaderSource.toString().replace("/", "-") + "."  + context.toString() +  "." + shaderProps;
-                File gameDir = FabricLoader.getInstance().getGameDirectory();
-                File shaderDir = new File(gameDir.getAbsolutePath().replace(".", "canvas_shader_debug"));
-                if(!shaderDir.exists()) {
-                    shaderDir.mkdir();
-                }
-                if(shaderDir.exists()) {
-                    FileWriter writer = new FileWriter(shaderDir.getAbsolutePath() + File.separator + key + ".glsl", false);
-                    writer.write(source);
-                    writer.close();
+            GLX.glShaderSource(glId, source);
+            GLX.glCompileShader(glId);
+
+            if (GLX.glGetShaderi(glId, GLX.GL_COMPILE_STATUS) == GL11.GL_FALSE) {
+                isErrored = true;
+                error = CanvasGlHelper.getShaderInfoLog(glId);
+                if(error == null || error.isEmpty()) {
+                    error = "Unknown OpenGL Error.";
                 }
             }
-            
-            GLX.glShaderSource(this.glId, source);
-            GLX.glCompileShader(this.glId);
-
-            if (GLX.glGetShaderi(this.glId, GLX.GL_COMPILE_STATUS) == GL11.GL_FALSE)
-                throw new RuntimeException(CanvasGlHelper.getShaderInfoLog(this.glId));
 
         } catch (Exception e) {
-            this.isErrored = true;
-            if (this.glId > 0) {
+            isErrored = true;
+            error = e.getMessage();
+        }
+        
+        if(this.isErrored) {
+            if(this.glId > 0) {
                 GLX.glDeleteShader(glId);
                 this.glId = -1;
             }
-            CanvasMod.LOG.error(I18n.translate("misc.fail_create_shader", this.shaderSource.toString(),
-                    Integer.toString(this.shaderProps), e.getMessage()));
+            
+            if(Configurator.enableConciseErrors) {
+                if(!isErrorNoticeComplete) {
+                    if(Configurator.enableConciseErrors)
+                    CanvasMod.LOG.error(I18n.translate("error.canvas.fail_create_any_shader"));
+                    isErrorNoticeComplete = true;
+                }
+            } else {
+                CanvasMod.LOG.error(I18n.translate("error.canvas.fail_create_shader", this.shaderSource.toString(), Integer.toString(this.shaderProps), error));
+            }
+            outputDebugSource(source, error);
+            
+        } else if(Configurator.enableShaderDebug) {
+            outputDebugSource(source, null);
+        }
+    }
+    
+    public static void forceReloadErrors() {
+        isErrorNoticeComplete = false;
+        clearDebugSource();
+    }
+    
+    private static void clearDebugSource() {
+        try {
+            File gameDir = FabricLoader.getInstance().getGameDirectory();
+            File shaderDir = new File(gameDir.getAbsolutePath().replace(".", "canvas_shader_debug"));
+            
+            if(shaderDir.exists()) {
+                File files[] = shaderDir.listFiles();
+                for(File f : files)
+                if (f.toString().endsWith(".glsl")) {
+                    f.delete();
+                }
+            }
+            
+            shaderDir = new File(gameDir.getAbsolutePath().replace(".", "canvas_shader_debug/failed"));
+            if(shaderDir.exists()) {
+                File files[] = shaderDir.listFiles();
+                for(File f : files)
+                if (f.toString().endsWith(".glsl")) {
+                    f.delete();
+                }
+            }
+        } catch(Exception e){
+            // eat it
+        }
+    }
+    
+    private void outputDebugSource(String source, String error) {
+        final String key = shaderSource.toString().replace("/", "-") + "."  + context.toString() +  "." + shaderProps;
+        File gameDir = FabricLoader.getInstance().getGameDirectory();
+        File shaderDir = new File(gameDir.getAbsolutePath().replace(".", "canvas_shader_debug"));
+        if(!shaderDir.exists()) {
+            shaderDir.mkdir();
+        }
+        if(error != null) {
+            shaderDir = new File(gameDir.getAbsolutePath().replace(".", "canvas_shader_debug/failed"));
+            if(!shaderDir.exists()) {
+                shaderDir.mkdir();
+            }
+            source = "///////// ERROR ////////\n" + error + "\n////////////////////////\n\n" + source;
+        }
+        
+        if(shaderDir.exists()) {
+            try(
+                FileWriter writer = new FileWriter(shaderDir.getAbsolutePath() + File.separator + key + ".glsl", false);
+            ) {
+                writer.write(source);
+                writer.close();
+            } catch (IOException e) {
+                // eat it
+            }
         }
     }
 

@@ -75,6 +75,7 @@ public final class GlShaderManager {
     }
 
     public void forceReload() {
+        AbstractGlShader.forceReloadErrors();
         this.loadLibrarySources();
         this.fragmentShaders.values().forEach(s -> s.forceReload());
         this.vertexShaders.values().forEach(s -> s.forceReload());

@@ -25,24 +25,22 @@ import grondag.canvas.light.LightmapHdTexture;
 import grondag.canvas.varia.DitherTexture;
 import grondag.canvas.varia.FogStateExtHolder;
 import grondag.canvas.varia.WorldDataManager;
+import grondag.fermion.structures.SimpleUnorderedArrayList;
 import grondag.frex.api.material.UniformRefreshFrequency;
 import net.fabricmc.fabric.api.event.client.ClientTickCallback;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.Camera;
-import net.minecraft.client.resource.language.I18n;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec3d;
 
 
 public final class ShaderManager implements ClientTickCallback {
-    public static final int MAX_SHADERS = Configurator.maxShaders;
+    public static final int MAX_SHADERS = 0xFFFF;
 
     public static final ShaderManager INSTANCE = new ShaderManager();
 
-    private final MaterialShaderImpl[] shaders = new MaterialShaderImpl[ShaderManager.MAX_SHADERS];
-
-    private int shaderCount = 0;
+    private final SimpleUnorderedArrayList<MaterialShaderImpl> shaders = new SimpleUnorderedArrayList<>();
 
     private final MaterialShaderImpl defaultShader;
     private final MaterialShaderImpl waterShader;
@@ -105,8 +103,9 @@ public final class ShaderManager implements ClientTickCallback {
         VertexEncoder.forceReload();
         LightmapHdTexture.instance().forceReload();
         LightmapHd.forceReload();
-        for (int i = 0; i < this.shaderCount; i++) {
-            this.shaders[i].forceReload();
+        final int limit = this.shaders.size();
+        for (int i = 0; i < limit; i++) {
+            this.shaders.get(i).forceReload();
         }
     }
 
@@ -120,12 +119,8 @@ public final class ShaderManager implements ClientTickCallback {
             fragmentShaderSource = GlShaderManager.DEFAULT_FRAGMENT_SOURCE;
         }
         
-        if (this.shaderCount >= ShaderManager.MAX_SHADERS) {
-            throw new IndexOutOfBoundsException(I18n.translate("error.canvas.max_materials_exceeded"));
-        }
-
-        MaterialShaderImpl result = new MaterialShaderImpl(this.shaderCount++, vertexShaderSource, fragmentShaderSource);
-        this.shaders[result.getIndex()] = result;
+        MaterialShaderImpl result = new MaterialShaderImpl(this.shaders.size(), vertexShaderSource, fragmentShaderSource);
+        this.shaders.add(result);
 
         addStandardUniforms(result);
 
@@ -133,7 +128,7 @@ public final class ShaderManager implements ClientTickCallback {
     }
 
     public final MaterialShaderImpl get(int index) {
-        return shaders[index];
+        return shaders.get(index);
     }
 
     public final MaterialShaderImpl getDefault() {
@@ -152,7 +147,7 @@ public final class ShaderManager implements ClientTickCallback {
      * The number of shaders currently registered.
      */
     public final int shaderCount() {
-        return this.shaderCount;
+        return this.shaders.size();
     }
 
     public final int tickIndex() {
@@ -217,8 +212,9 @@ public final class ShaderManager implements ClientTickCallback {
     @Override
     public void tick(MinecraftClient client) {
         tickIndex++;
-        for (int i = 0; i < this.shaderCount; i++) {
-            shaders[i].onGameTick();
+        final int limit = shaders.size();
+        for (int i = 0; i < limit; i++) {
+            shaders.get(i).onGameTick();
         }
         
         //UGLY: need central tick handler
@@ -227,8 +223,9 @@ public final class ShaderManager implements ClientTickCallback {
     
     public void onRenderTick() {
         frameIndex++;
-        for (int i = 0; i < this.shaderCount; i++) {
-            shaders[i].onRenderTick();
+        final int limit = shaders.size();
+        for (int i = 0; i < limit; i++) {
+            shaders.get(i).onRenderTick();
         }
     }
 
