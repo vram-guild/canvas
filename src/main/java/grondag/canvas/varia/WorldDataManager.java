@@ -7,14 +7,8 @@ import net.minecraft.world.World;
 
 //TODO: still need this?  How much of it?
 public class WorldDataManager {
-    public static int LENGTH = 32;
-    public static int  WORLD_DIM_LIGHT_0 = 0;
-    public static int  WORLD_DIM_LIGHT_LEN = 16;
-    public static int  WORLD_GAMMA = 16;
-    public static int  WORLD_SKY_DARKNESS = 17;
-    public static int  WORLD_EFFECT_MODIFIER = 18;
-    public static int  WORLD_FLICKER = 19;
-    public static int  WORLD_AMBIENT = 20;
+    public static int LENGTH = 8;
+    public static int  WORLD_EFFECT_MODIFIER = 0;
     
     static float[] UNIFORM_DATA = new float[LENGTH];
     
@@ -25,17 +19,11 @@ public class WorldDataManager {
     static float lastFlicker;
     
     public static void updateLight(float tick, float flicker) {
-        UNIFORM_DATA[WORLD_FLICKER] = flicker * 0.1F + 1.5F;
-        
         final MinecraftClient client = MinecraftClient.getInstance();
         final World world = client.world;
         final GameRenderer gameRenderer = client.gameRenderer;
-        UNIFORM_DATA[WORLD_SKY_DARKNESS] = gameRenderer.getSkyDarkness(tick);
-        UNIFORM_DATA[WORLD_GAMMA] = (float)client.options.gamma;
         
         if (world != null) {
-            System.arraycopy(world.dimension.getLightLevelToBrightness(), 0, UNIFORM_DATA, WORLD_DIM_LIGHT_0, WORLD_DIM_LIGHT_LEN);
-            UNIFORM_DATA[WORLD_AMBIENT] = world.getAmbientLight(1.0F);
             final float fluidModifier = client.player.method_3140();
             if (client.player.hasStatusEffect(StatusEffects.NIGHT_VISION)) {
                 UNIFORM_DATA[WORLD_EFFECT_MODIFIER] = gameRenderer.getNightVisionStrength(client.player, tick);

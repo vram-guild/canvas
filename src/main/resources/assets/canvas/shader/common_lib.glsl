@@ -42,16 +42,9 @@
 // will be changed to one of the context values defined above
 #define CONTEXT 0
 
-#define WORLD_DIM_LIGHT_0 0
-#define WORLD_DIM_LIGHT_LEN 16
-#define WORLD_GAMMA 16
-#define WORLD_SKY_DARKNESS 17
-#define WORLD_EFFECT_MODIFIER 18
-#define WORLD_FLICKER 19
-#define WORLD_AMBIENT 20
+#define WORLD_EFFECT_MODIFIER 0
 
-
-uniform float[32] u_world;
+uniform float[8] u_world;
 uniform float u_time;
 uniform sampler2D u_textures;
 uniform sampler2D u_lightmap;
