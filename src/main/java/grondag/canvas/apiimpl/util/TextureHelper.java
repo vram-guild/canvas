@@ -16,7 +16,7 @@
 
 package grondag.canvas.apiimpl.util;
 
-import grondag.frex.api.mesh.MutableQuadView;
+import net.fabricmc.fabric.api.renderer.v1.mesh.MutableQuadView;
 import net.minecraft.client.texture.Sprite;
 import net.minecraft.util.math.Direction;
 

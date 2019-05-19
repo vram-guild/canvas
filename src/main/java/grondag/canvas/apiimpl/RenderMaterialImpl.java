@@ -19,12 +19,12 @@ package grondag.canvas.apiimpl;
 import grondag.canvas.material.ShaderManager;
 import grondag.fermion.varia.BitPacker64;
 import grondag.fermion.varia.BitPacker64.BooleanElement;
-import grondag.frex.api.material.RenderMaterial;
 import grondag.frex.api.material.MaterialFinder;
 import grondag.frex.api.material.MaterialShader;
 import grondag.frex.api.material.MaterialCondition;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import net.fabricmc.fabric.api.renderer.v1.material.RenderMaterial;
 import net.minecraft.block.BlockRenderLayer;
 
 public abstract class RenderMaterialImpl {

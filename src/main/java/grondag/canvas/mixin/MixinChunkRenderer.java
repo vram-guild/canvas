@@ -30,7 +30,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import com.google.common.collect.Sets;
 
-import grondag.canvas.apiimpl.RendererImpl;
+import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
 import grondag.canvas.buffer.packing.FluidBufferBuilder;
 import grondag.canvas.buffer.packing.VertexCollectorList;
@@ -253,7 +253,7 @@ public abstract class MixinChunkRenderer implements ChunkRendererExt {
                             if (!fluidState.isEmpty()) {
                                 renderLayer = fluidState.getRenderLayer();
                                 //TODO: apply appropriate shader props for fluids
-                                FluidBufferBuilder fluidBuilder = help.fluidBuilder.prepare(help.getCollector(renderLayer).get(RendererImpl.MATERIAL_STANDARD, ShaderProps.waterProps()), searchPos, renderLayer);
+                                FluidBufferBuilder fluidBuilder = help.fluidBuilder.prepare(help.getCollector(renderLayer).get(Canvas.MATERIAL_STANDARD, ShaderProps.waterProps()), searchPos, renderLayer);
                                 blockRenderManager.tesselateFluid(searchPos, renderRegion, fluidBuilder, fluidState);
                             }
 

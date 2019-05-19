@@ -3,7 +3,7 @@ package grondag.canvas.light;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.ToLongFunction;
 
-import grondag.canvas.Canvas;
+import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.QuadViewImpl;
 import it.unimi.dsi.fastutil.ints.Int2IntFunction;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
@@ -131,7 +131,7 @@ public class LightmapHd {
         if(index >= MAX_COUNT) {
             //TODO: put back and/or handle better
             //assert false : "Out of lightmap space.";
-            Canvas.LOG.info("Out of lightmap space for index = " + index);
+            CanvasMod.LOG.info("Out of lightmap space for index = " + index);
         } else {
             if(isAo) {
                 AoMapHd.computeAo(light, key, index);

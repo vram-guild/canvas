@@ -26,11 +26,11 @@ import grondag.canvas.draw.TessellatorExt;
 import grondag.canvas.light.AoCalculator;
 import grondag.canvas.material.ShaderContext;
 import grondag.canvas.material.ShaderProps;
-import grondag.frex.api.mesh.Mesh;
-import grondag.frex.api.mesh.QuadEmitter;
 import grondag.frex.api.model.DynamicBakedModel;
-import grondag.frex.api.render.RenderContext;
-import grondag.frex.api.render.TerrainBlockView;
+import net.fabricmc.fabric.api.renderer.v1.mesh.Mesh;
+import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
+import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
+import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachedBlockView;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.Tessellator;
@@ -79,7 +79,7 @@ public class BlockRenderContext extends AbstractRenderContext implements RenderC
         return canvasBuilder.vcList.get(mat, props);
     }
 
-    public boolean tesselate(BlockModelRenderer vanillaRenderer, TerrainBlockView blockView, BakedModel model,
+    public boolean tesselate(BlockModelRenderer vanillaRenderer, RenderAttachedBlockView blockView, BakedModel model,
             BlockState state, BlockPos pos, BufferBuilder buffer, long seed) {
         this.canvasBuilder = (CanvasBufferBuilder) buffer;
         this.didOutput = false;

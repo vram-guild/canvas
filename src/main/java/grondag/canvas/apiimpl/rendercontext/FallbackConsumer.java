@@ -29,16 +29,16 @@ import grondag.canvas.apiimpl.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.QuadViewImpl;
 import grondag.canvas.apiimpl.RenderMaterialImpl;
 import grondag.canvas.apiimpl.RenderMaterialImpl.Value;
-import grondag.canvas.apiimpl.RendererImpl;
+import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.apiimpl.util.GeometryHelper;
 import grondag.canvas.apiimpl.util.MeshEncodingHelper;
 import grondag.canvas.buffer.packing.VertexCollector;
 import grondag.canvas.light.AoCalculator;
 import grondag.canvas.material.ShaderContext;
 import grondag.canvas.varia.BakedQuadExt;
-import grondag.frex.api.mesh.QuadEmitter;
-import grondag.frex.api.model.ModelHelper;
-import grondag.frex.api.render.RenderContext.QuadTransform;
+import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
+import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
+import net.fabricmc.fabric.api.renderer.v1.render.RenderContext.QuadTransform;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.render.model.BakedModel;
 import net.minecraft.client.render.model.BakedQuad;
@@ -46,10 +46,10 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 
 public class FallbackConsumer extends QuadRenderer implements Consumer<BakedModel> {
-    protected static Value MATERIAL_FLAT = (Value) RendererImpl.INSTANCE.materialFinder().disableDiffuse(0, true).disableAo(0, true).find();
-    protected static Value MATERIAL_SHADED = (Value) RendererImpl.INSTANCE.materialFinder().disableAo(0, true).find();
-    protected static Value MATERIAL_AO_FLAT = (Value) RendererImpl.INSTANCE.materialFinder().disableDiffuse(0, true).find();
-    protected static Value MATERIAL_AO_SHADED = (Value) RendererImpl.INSTANCE.materialFinder().find();
+    protected static Value MATERIAL_FLAT = (Value) Canvas.INSTANCE.materialFinder().disableDiffuse(0, true).disableAo(0, true).find();
+    protected static Value MATERIAL_SHADED = (Value) Canvas.INSTANCE.materialFinder().disableAo(0, true).find();
+    protected static Value MATERIAL_AO_FLAT = (Value) Canvas.INSTANCE.materialFinder().disableDiffuse(0, true).find();
+    protected static Value MATERIAL_AO_SHADED = (Value) Canvas.INSTANCE.materialFinder().find();
     
     protected final int[] editorBuffer = new int[28];
 

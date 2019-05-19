@@ -38,7 +38,7 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.Screen;
+import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.resource.language.I18n;
 import net.minecraft.util.math.MathHelper;
 
@@ -153,7 +153,7 @@ public class Configurator implements ModMenuApi {
             config = GSON.fromJson(regularized, ConfigData.class);
         } catch (Exception e) {
             e.printStackTrace();
-            Canvas.LOG.error("Unable to load config. Using default values.");
+            CanvasMod.LOG.error("Unable to load config. Using default values.");
         }
         enableItemRender = config.enableItemRender;
         enableShaderDebug = config.enableShaderDebug;
@@ -213,7 +213,7 @@ public class Configurator implements ModMenuApi {
             out.close();
         } catch (Exception e) {
             e.printStackTrace();
-            Canvas.LOG.error("Unable to save config.");
+            CanvasMod.LOG.error("Unable to save config.");
             return;
         }
     }

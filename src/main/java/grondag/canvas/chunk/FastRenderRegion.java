@@ -24,9 +24,9 @@ import javax.annotation.Nullable;
 
 import grondag.canvas.chunk.ChunkHack.PaletteCopy;
 import grondag.fermion.world.PackedBlockPos;
-import grondag.frex.api.render.TerrainBlockView;
 import it.unimi.dsi.fastutil.longs.Long2FloatOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
+import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachedBlockView;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.fluid.FluidState;
@@ -36,7 +36,7 @@ import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.chunk.WorldChunk;
 
-public class FastRenderRegion implements TerrainBlockView {
+public class FastRenderRegion implements RenderAttachedBlockView {
     private static final ArrayBlockingQueue<FastRenderRegion> POOL = new ArrayBlockingQueue<>(256); 
 
     public static FastRenderRegion claim() {
@@ -182,7 +182,7 @@ public class FastRenderRegion implements TerrainBlockView {
     }
 
     @Override
-    public Object getCachedRenderData(BlockPos pos) {
+    public Object getBlockEntityRenderAttachment(BlockPos pos) {
         return renderFunc.apply(pos);
     }
     

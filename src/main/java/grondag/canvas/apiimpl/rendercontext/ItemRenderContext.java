@@ -29,7 +29,7 @@ import grondag.canvas.apiimpl.MeshImpl;
 import grondag.canvas.apiimpl.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.RenderMaterialImpl;
 import grondag.canvas.apiimpl.RenderMaterialImpl.Value;
-import grondag.canvas.apiimpl.RendererImpl;
+import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.apiimpl.util.ColorHelper;
 import grondag.canvas.apiimpl.util.MeshEncodingHelper;
 import grondag.canvas.buffer.packing.CanvasBufferBuilder;
@@ -39,11 +39,11 @@ import grondag.canvas.material.ShaderContext;
 import grondag.canvas.material.ShaderProps;
 import grondag.canvas.material.VertexEncoder;
 import grondag.canvas.varia.BakedQuadExt;
-import grondag.frex.api.mesh.Mesh;
-import grondag.frex.api.mesh.QuadEmitter;
 import grondag.frex.api.model.DynamicBakedModel;
-import grondag.frex.api.model.ModelHelper;
-import grondag.frex.api.render.RenderContext;
+import net.fabricmc.fabric.api.renderer.v1.mesh.Mesh;
+import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
+import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
+import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 import net.minecraft.block.BlockRenderLayer;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.color.item.ItemColors;
@@ -77,7 +77,7 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
     private boolean smoothShading = false;
     private boolean enchantment = false;
     private final int[] quadData = new int[MeshEncodingHelper.MAX_STRIDE];
-    private final RenderMaterialImpl.Value glintMaterial = RendererImpl.INSTANCE.materialFinder()
+    private final RenderMaterialImpl.Value glintMaterial = Canvas.INSTANCE.materialFinder()
             .blendMode(0, BlockRenderLayer.TRANSLUCENT)
             .disableAo(0, true)
             .disableDiffuse(0, true)

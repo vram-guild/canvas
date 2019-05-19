@@ -28,7 +28,7 @@ import org.lwjgl.opengl.GL11;
 import com.google.common.io.CharStreams;
 import com.mojang.blaze3d.platform.GLX;
 
-import grondag.canvas.Canvas;
+import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
 import grondag.canvas.varia.CanvasGlHelper;
 import net.fabricmc.loader.api.FabricLoader;
@@ -110,7 +110,7 @@ abstract class AbstractGlShader {
                 GLX.glDeleteShader(glId);
                 this.glId = -1;
             }
-            Canvas.LOG.error(I18n.translate("misc.fail_create_shader", this.shaderSource.toString(),
+            CanvasMod.LOG.error(I18n.translate("misc.fail_create_shader", this.shaderSource.toString(),
                     Integer.toString(this.shaderProps), e.getMessage()));
         }
     }

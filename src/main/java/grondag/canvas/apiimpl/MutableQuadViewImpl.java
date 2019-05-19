@@ -16,9 +16,6 @@
 
 package grondag.canvas.apiimpl;
 
-import grondag.frex.api.mesh.QuadEmitter;
-import grondag.frex.api.material.RenderMaterial;
-
 import static grondag.canvas.apiimpl.util.MeshEncodingHelper.EMPTY;
 import static grondag.canvas.apiimpl.util.MeshEncodingHelper.NORMALS_OFFSET;
 import static grondag.canvas.apiimpl.util.MeshEncodingHelper.VANILLA_STRIDE;
@@ -27,6 +24,8 @@ import static grondag.canvas.apiimpl.util.MeshEncodingHelper.VERTEX_START_OFFSET
 import grondag.canvas.apiimpl.util.MeshEncodingHelper;
 import grondag.canvas.apiimpl.util.NormalHelper;
 import grondag.canvas.apiimpl.util.TextureHelper;
+import net.fabricmc.fabric.api.renderer.v1.material.RenderMaterial;
+import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
 import net.minecraft.client.texture.Sprite;
 import net.minecraft.util.math.Direction;
 
@@ -51,7 +50,7 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
         cullFace = null;
         lightFace = null;
         nominalFace = null;
-        material = RendererImpl.MATERIAL_STANDARD;
+        material = Canvas.MATERIAL_STANDARD;
     }
 
     @Override

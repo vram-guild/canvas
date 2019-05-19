@@ -19,9 +19,9 @@ package grondag.canvas;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import grondag.canvas.apiimpl.RendererImpl;
-import grondag.frex.api.RendererAccess;
-import net.fabricmc.api.ModInitializer;
+import grondag.canvas.apiimpl.Canvas;
+import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.renderer.v1.RendererAccess;
 
 
 //FIX: block breaking?
@@ -50,11 +50,11 @@ import net.fabricmc.api.ModInitializer;
 //DONE: configurable super smooth lighting
 //DONE: remove quad splitting smooth lighting
 
-public class Canvas implements ModInitializer {
+public class CanvasMod implements ClientModInitializer {
     @Override
-    public void onInitialize() {
+    public void onInitializeClient() {
         Configurator.init();
-        RendererAccess.INSTANCE.registerRenderer(RendererImpl.INSTANCE);
+        RendererAccess.INSTANCE.registerRenderer(Canvas.INSTANCE);
     }
 
     public static final String MODID = "canvas";

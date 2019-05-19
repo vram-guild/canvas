@@ -28,7 +28,7 @@ import org.lwjgl.system.MemoryUtil;
 
 import com.mojang.blaze3d.platform.GLX;
 
-import grondag.canvas.Canvas;
+import grondag.canvas.CanvasMod;
 import grondag.canvas.varia.CanvasGlHelper;
 import grondag.frex.api.material.Uniform;
 import grondag.frex.api.material.Uniform.Uniform1f;
@@ -106,7 +106,7 @@ public class GlProgram {
         private final void load(int programID) {
             this.unifID = GLX.glGetUniformLocation(programID, name);
             if (this.unifID == -1) {
-                Canvas.LOG.debug(I18n.translate("debug.canvas.missing_uniform", name,
+                CanvasMod.LOG.debug(I18n.translate("debug.canvas.missing_uniform", name,
                         GlProgram.this.vertexShader.shaderSource.toString(), GlProgram.this.fragmentShader.shaderSource.toString()));
                 this.flags = 0;
             } else {
@@ -561,7 +561,7 @@ public class GlProgram {
             if (this.progID > 0)
                 GLX.glDeleteProgram(progID);
 
-            Canvas.LOG.error(I18n.translate("error.canvas.program_link_failure"), e);
+            CanvasMod.LOG.error(I18n.translate("error.canvas.program_link_failure"), e);
             this.progID = -1;
         }
 
@@ -596,7 +596,7 @@ public class GlProgram {
 
         GLX.glLinkProgram(programID);
         if (GLX.glGetProgrami(programID, GLX.GL_LINK_STATUS) == GL11.GL_FALSE) {
-            Canvas.LOG.error(CanvasGlHelper.getProgramInfoLog(programID));
+            CanvasMod.LOG.error(CanvasGlHelper.getProgramInfoLog(programID));
             return false;
         }
 

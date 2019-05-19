@@ -32,8 +32,8 @@ import grondag.canvas.apiimpl.util.GeometryHelper;
 import grondag.canvas.apiimpl.util.MeshEncodingHelper;
 import grondag.canvas.apiimpl.util.NormalHelper;
 import grondag.canvas.light.LightmapHd;
-import grondag.frex.api.mesh.MutableQuadView;
-import grondag.frex.api.mesh.QuadView;
+import net.fabricmc.fabric.api.renderer.v1.mesh.MutableQuadView;
+import net.fabricmc.fabric.api.renderer.v1.mesh.QuadView;
 import net.minecraft.client.util.math.Vector3f;
 import net.minecraft.util.math.Direction;
 

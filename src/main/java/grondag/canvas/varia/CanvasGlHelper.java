@@ -33,7 +33,7 @@ import org.lwjgl.opengl.GLCapabilities;
 
 import com.mojang.blaze3d.platform.GLX;
 
-import grondag.canvas.Canvas;
+import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
 import net.minecraft.client.resource.language.I18n;
 
@@ -148,7 +148,7 @@ public class CanvasGlHelper {
             }
         } catch (Exception e) {
             fastNioCopy = false;
-            Canvas.LOG.error(I18n.translate("warn.canvas.slow_gl_call", "fastNioCopy"), e);
+            CanvasMod.LOG.error(I18n.translate("warn.canvas.slow_gl_call", "fastNioCopy"), e);
         }
     }
 

@@ -19,22 +19,22 @@ package grondag.canvas.apiimpl;
 import java.util.HashMap;
 import java.util.function.BooleanSupplier;
 
-import grondag.canvas.Canvas;
+import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.RenderMaterialImpl.Finder;
 import grondag.canvas.apiimpl.RenderMaterialImpl.Value;
 import grondag.canvas.material.ShaderManager;
-import grondag.frex.api.mesh.MeshBuilder;
-import grondag.frex.api.material.RenderMaterial;
 import grondag.frex.api.Renderer;
 import grondag.frex.api.material.MaterialShader;
 import grondag.frex.api.material.ShaderBuilder;
 import grondag.frex.api.material.MaterialCondition;
 import grondag.frex.api.RenderReloadCallback;
+import net.fabricmc.fabric.api.renderer.v1.material.RenderMaterial;
+import net.fabricmc.fabric.api.renderer.v1.mesh.MeshBuilder;
 import net.minecraft.client.resource.language.I18n;
 import net.minecraft.util.Identifier;
 
-public class RendererImpl implements Renderer, RenderReloadCallback {
-    public static final RendererImpl INSTANCE = new RendererImpl();
+public class Canvas implements Renderer, RenderReloadCallback {
+    public static final Canvas INSTANCE = new Canvas();
 
     public static final RenderMaterialImpl.Value MATERIAL_STANDARD = (Value) INSTANCE.materialFinder().find();
 //    private static final Value[] VANILLA_MATERIALS = new Value[4];
@@ -59,7 +59,7 @@ public class RendererImpl implements Renderer, RenderReloadCallback {
     
     private final HashMap<Identifier, MaterialConditionImpl> conditionMap = new HashMap<>();
     
-    private RendererImpl() {
+    private Canvas() {
         RenderReloadCallback.EVENT.register(this);
     };
 
@@ -89,7 +89,7 @@ public class RendererImpl implements Renderer, RenderReloadCallback {
 
     @Override
     public void reload() {
-        Canvas.LOG.info(I18n.translate("info.canvas.reloading"));
+        CanvasMod.LOG.info(I18n.translate("info.canvas.reloading"));
         ShaderManager.INSTANCE.forceReload();
     }
 

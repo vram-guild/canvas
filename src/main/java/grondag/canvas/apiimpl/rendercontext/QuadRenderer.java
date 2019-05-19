@@ -32,7 +32,7 @@ import grondag.canvas.buffer.packing.VertexCollector;
 import grondag.canvas.light.AoCalculator;
 import grondag.canvas.material.ShaderContext;
 import grondag.canvas.material.VertexEncoder;
-import grondag.frex.api.render.RenderContext.QuadTransform;
+import net.fabricmc.fabric.api.renderer.v1.render.RenderContext.QuadTransform;
 import net.minecraft.block.BlockState;
 import net.minecraft.util.math.BlockPos;
 

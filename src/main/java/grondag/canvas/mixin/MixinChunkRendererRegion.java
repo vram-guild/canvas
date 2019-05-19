@@ -30,7 +30,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
 import grondag.canvas.chunk.ChunkRendererRegionExt;
 import grondag.canvas.chunk.FastRenderRegion;
-import grondag.frex.api.render.TerrainBlockView;
+import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachedBlockView;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.render.chunk.ChunkRendererRegion;
 import net.minecraft.fluid.FluidState;
@@ -70,7 +70,7 @@ public abstract class MixinChunkRendererRegion implements ChunkRendererRegionExt
     
     @Inject(at = @At("RETURN"), method = "<init>")
     public void init(World world, int cxOff, int czOff, WorldChunk[][] chunks, BlockPos posFrom, BlockPos posTo, CallbackInfo info) {
-        fastRegion = FastRenderRegion.claim().prepare(world, cxOff, czOff, chunks, posFrom, ((TerrainBlockView)this)::getCachedRenderData);
+        fastRegion = FastRenderRegion.claim().prepare(world, cxOff, czOff, chunks, posFrom, ((RenderAttachedBlockView)this)::getBlockEntityRenderAttachment);
     }
 
     private TerrainRenderContext fabric_renderer;

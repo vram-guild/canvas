@@ -18,10 +18,9 @@ package grondag.canvas.apiimpl;
 
 import grondag.canvas.apiimpl.util.GeometryHelper;
 import grondag.canvas.apiimpl.util.MeshEncodingHelper;
-import grondag.frex.api.mesh.Mesh;
-import grondag.frex.api.mesh.MeshBuilder;
-import grondag.frex.api.mesh.MutableQuadView;
-import grondag.frex.api.mesh.QuadEmitter;
+import net.fabricmc.fabric.api.renderer.v1.mesh.Mesh;
+import net.fabricmc.fabric.api.renderer.v1.mesh.MeshBuilder;
+import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
 
 /**
  * Our implementation of {@link MeshBuilder}, used for static mesh creation and

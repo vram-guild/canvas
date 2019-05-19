@@ -27,14 +27,14 @@ import grondag.canvas.apiimpl.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.QuadViewImpl;
 import grondag.canvas.apiimpl.RenderMaterialImpl;
 import grondag.canvas.apiimpl.RenderMaterialImpl.Value;
-import grondag.canvas.apiimpl.RendererImpl;
+import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.apiimpl.util.MeshEncodingHelper;
 import grondag.canvas.buffer.packing.VertexCollector;
 import grondag.canvas.light.AoCalculator;
 import grondag.canvas.material.ShaderContext;
-import grondag.frex.api.mesh.Mesh;
-import grondag.frex.api.mesh.QuadEmitter;
-import grondag.frex.api.render.RenderContext.QuadTransform;
+import net.fabricmc.fabric.api.renderer.v1.mesh.Mesh;
+import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
+import net.fabricmc.fabric.api.renderer.v1.render.RenderContext.QuadTransform;
 import net.minecraft.util.math.BlockPos;
 
 /**
@@ -64,7 +64,7 @@ public class MeshConsumer extends QuadRenderer implements Consumer<Mesh> {
     private class Maker extends MutableQuadViewImpl implements QuadEmitter {
         {
             data = new int[MeshEncodingHelper.MAX_STRIDE];
-            material = (Value) RendererImpl.INSTANCE.materialFinder().spriteDepth(RenderMaterialImpl.MAX_SPRITE_DEPTH)
+            material = (Value) Canvas.INSTANCE.materialFinder().spriteDepth(RenderMaterialImpl.MAX_SPRITE_DEPTH)
                     .find();
         }
 

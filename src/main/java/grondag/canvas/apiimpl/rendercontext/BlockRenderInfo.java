@@ -20,7 +20,7 @@ import java.util.Random;
 import java.util.function.Supplier;
 
 import grondag.canvas.chunk.ChunkRenderInfo;
-import grondag.frex.api.render.TerrainBlockView;
+import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachedBlockView;
 import net.minecraft.block.BlockRenderLayer;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
@@ -39,7 +39,7 @@ import net.minecraft.util.math.Direction;
 public class BlockRenderInfo {
     private final BlockColors blockColorMap = MinecraftClient.getInstance().getBlockColorMap();
     public final Random random = new Random();
-    public TerrainBlockView blockView;
+    public RenderAttachedBlockView blockView;
     public BlockPos blockPos;
     public BlockState blockState;
     public long seed;
@@ -57,7 +57,7 @@ public class BlockRenderInfo {
         return result;
     };
 
-    public void setBlockView(TerrainBlockView blockView) {
+    public void setBlockView(RenderAttachedBlockView blockView) {
         this.blockView = blockView;
     }
 

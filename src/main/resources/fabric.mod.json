@@ -18,21 +18,22 @@
   
   "environment": "client",
   "entrypoints": {
-    "main": [ "grondag.canvas.Canvas" ],
+    "client": [ "grondag.canvas.CanvasMod" ],
     "modmenu": [ "grondag.canvas.Configurator" ]
   },
   "mixins": [
     "canvas.client.json"
   ],
   "requires": {
-    "fabricloader": ">=0.4.0",
+    "fabricloader": ">=0.4.7",
     "fabric": "*",
-    "frex": ">=0.4.0",
+    "frex": ">=0.6.6",
     "fermion": ">=0.4.0",
-    "cloth-config": ">=0.2.0"
+    "cloth-config": ">=0.2.1"
   },
   "custom": {
     "modmenu:api": true,
-    "modmenu:clientsideOnly": true
+    "modmenu:clientsideOnly": true,
+    "fabric-renderer-api-v1:contains_renderer" : true
   }
 }
