@@ -24,6 +24,7 @@ import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
+import org.apache.logging.log4j.Logger;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.ARBVertexArrayObject;
 import org.lwjgl.opengl.GL;
@@ -35,6 +36,7 @@ import com.mojang.blaze3d.platform.GLX;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.resource.language.I18n;
 
 public class CanvasGlHelper {
@@ -53,6 +55,28 @@ public class CanvasGlHelper {
         vaoEnabled = caps.GL_ARB_vertex_array_object || caps.OpenGL30;
         useVaoArb = !caps.OpenGL30 && caps.GL_ARB_vertex_array_object;
         useGpuShader4 = caps.GL_EXT_gpu_shader4;
+        
+        if(Configurator.logMachineInfo) {
+            logMachineInfo(caps);
+        }
+    }
+    
+    private static void logMachineInfo(GLCapabilities caps) {
+        final Logger log = CanvasMod.LOG;
+        final MinecraftClient client = MinecraftClient.getInstance();
+        
+        log.info("==================  CANVAS RENDERER DEBUG INFORMATION ==================");
+        log.info(String.format(" Java: %s %dbit", System.getProperty("java.version"), client.is64Bit() ? 64 : 32));
+        log.info(String.format(" CPU: %s", GLX.getCpuInfo()));
+        log.info(String.format(" GPU: %s  %s", GLX.getVendor(), GLX.getRenderer()));
+        log.info(String.format(" OpenGL: %s", GLX.getOpenGLVersion()));
+        log.info(String.format(" GpuShader4: %s  VboArb: %s  VaoEnabled: %s  VaoArb: %s", 
+                useGpuShader4 ? "Y" : "N",
+                useVboArb ? "Y" : "N",
+                vaoEnabled ? "Y" : "N",
+                useVaoArb ? "Y" : "N"));
+        log.info(" (This message can be disabled by configuring logMachineInfo = false.)");
+        log.info("========================================================================");
     }
 
     static private int attributeEnabledCount = 0;

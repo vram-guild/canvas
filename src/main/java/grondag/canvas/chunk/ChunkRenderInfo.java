@@ -82,7 +82,7 @@ public class ChunkRenderInfo {
     public void prepare(ChunkRenderer chunkRenderer, BlockPos.Mutable chunkOrigin) {
         this.chunkData = chunkTask.getRenderData();
         this.chunkRenderer = chunkRenderer;
-        if(Configurator.enableLightSmoothing) {
+        if(Configurator.lightSmoothing) {
             LightSmoother.computeSmoothedBrightness(chunkOrigin, blockView, blockView.brightnessCache);
         }
     }

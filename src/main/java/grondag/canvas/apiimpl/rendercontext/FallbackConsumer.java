@@ -138,7 +138,7 @@ public class FallbackConsumer extends QuadRenderer implements Consumer<BakedMode
             }
         }
         
-        if(Configurator.adjustVanillaModelGeometry) {
+        if(Configurator.preventDepthFighting) {
             preventDepthFighting();
         }
         

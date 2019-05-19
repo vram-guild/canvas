@@ -64,7 +64,7 @@ public abstract class MixinChunkOcclusionGraphBuilder implements ChunkOcclusionG
     
     @Inject(method = "build", at = @At("HEAD"), cancellable = true, require = 1)
     public void buildFast(CallbackInfoReturnable<ChunkOcclusionGraph> ci) {
-        if(Configurator.enableImprovedChunkOcclusion) {
+        if(Configurator.fastChunkOcclusion) {
             
             //PERF: any way to avoid allocation?
             ChunkOcclusionGraph result = new ChunkOcclusionGraph();

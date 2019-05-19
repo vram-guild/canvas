@@ -48,7 +48,7 @@ public class Configurator implements ModMenuApi {
     @SuppressWarnings("hiding")
     static class ConfigData {
         @Comment("Applies material properties and shaders to items. (WIP)")
-        boolean enableItemRender = false;
+        boolean itemShaderRender = false;
         
         @Comment("TODO")
         boolean hardcoreDarkness = false;
@@ -63,77 +63,80 @@ public class Configurator implements ModMenuApi {
         @Comment("TODO")
         long minChunkBudgetNanos = 100000;
         
-        @Comment("TODO")
-        boolean enableCompactGPUFormats = false;
+//        @Comment("TODO")
+//        boolean enableCompactGPUFormats = false;
         
         @Comment("TODO")
-        boolean enableHdLightmaps = false;
+        boolean hdLightmaps = false;
         
         @Comment("TODO")
-        boolean enableLightmapNoise = false;
+        boolean lightmapNoise = false;
         
         @Comment("TODO")
         DiffuseMode diffuseShadingMode = DiffuseMode.NORMAL;
         
         @Comment("TODO")
-        boolean enableLightSmoothing = false;
+        boolean lightSmoothing = false;
         
         @Comment("TODO")
         AoMode aoShadingMode = AoMode.NORMAL;
         
-        @Comment("TODO")
-        boolean enableSinglePassCutout = true;
+//        @Comment("TODO")
+//        boolean enableSinglePassCutout = true;
         
         @Comment("TODO")
-        boolean enableImprovedChunkOcclusion = true;
+        boolean fastChunkOcclusion = true;
         
         @Comment("TODO")
-        boolean enableBatchedChunkRender = true;
+        boolean batchedChunkRender = true;
+        
+//        @Comment("TODO")
+//        boolean disableVanillaChunkMatrix = true;
         
         @Comment("TODO")
-        boolean disableVanillaChunkMatrix = true;
-        
-        @Comment("TODO")
-        boolean adjustVanillaModelGeometry = true;
+        boolean preventDepthFighting = true;
 
         // DEBUG
         @Comment("Output runtime per-material shader source. For shader development debugging.")
-        boolean enableShaderDebug = false;
+        boolean shaderDebug = false;
         
         @Comment("TODO")        
-        boolean enableLightmapDebug = false;
+        boolean lightmapDebug = false;
         
         @Comment("TODO")        
-        boolean enableConciseErrors = true;
+        boolean conciseErrors = true;
+        
+        @Comment("TODO")        
+        boolean logMachineInfo = true;
     }
     
     static final ConfigData DEFAULTS = new ConfigData();
     private static final Gson GSON = new GsonBuilder().create();
     private static final Jankson JANKSON = Jankson.builder().build();
     
-    public static boolean enableItemRender = DEFAULTS.enableItemRender;
+    public static boolean itemShaderRender = DEFAULTS.itemShaderRender;
     public static boolean hardcoreDarkness = DEFAULTS.hardcoreDarkness;
     public static boolean subtleFog = DEFAULTS.subtleFog;
-    public static boolean enableShaderDebug = DEFAULTS.enableShaderDebug;
+    public static boolean shaderDebug = DEFAULTS.shaderDebug;
     public static int maxLightmapDelayFrames = DEFAULTS.maxLightmapDelayFrames;
     
-    public static boolean enableHdLightmaps = DEFAULTS.enableHdLightmaps;
-    public static boolean enableLightmapNoise = DEFAULTS.enableLightmapNoise;
+    public static boolean hdLightmaps = DEFAULTS.hdLightmaps;
+    public static boolean lightmapNoise = DEFAULTS.lightmapNoise;
     public static DiffuseMode diffuseShadingMode = DEFAULTS.diffuseShadingMode;
-    public static boolean enableLightSmoothing = DEFAULTS.enableLightSmoothing;
+    public static boolean lightSmoothing = DEFAULTS.lightSmoothing;
     public static AoMode aoShadingMode = DEFAULTS.aoShadingMode;
     
     public static long minChunkBudgetNanos = DEFAULTS.minChunkBudgetNanos;
-    public static boolean enableCompactGPUFormats = DEFAULTS.enableCompactGPUFormats;
+    public static boolean enableCompactGPUFormats = false; //DEFAULTS.enableCompactGPUFormats;
     
-    public static boolean enableSinglePassCutout = DEFAULTS.enableSinglePassCutout;
-    public static boolean enableImprovedChunkOcclusion = DEFAULTS.enableImprovedChunkOcclusion;
-    public static boolean enableBatchedChunkRender = DEFAULTS.enableBatchedChunkRender;
-    public static boolean disableVanillaChunkMatrix = DEFAULTS.disableVanillaChunkMatrix;
-    public static boolean adjustVanillaModelGeometry = DEFAULTS.adjustVanillaModelGeometry;
-    public static boolean enableLightmapDebug = DEFAULTS.enableLightmapDebug;
-    public static boolean enableConciseErrors = DEFAULTS.enableConciseErrors;
-
+    public static boolean enableSinglePassCutout = false; //DEFAULTS.enableSinglePassCutout;
+    public static boolean fastChunkOcclusion = DEFAULTS.fastChunkOcclusion;
+    public static boolean batchedChunkRender = DEFAULTS.batchedChunkRender;
+    public static boolean disableVanillaChunkMatrix = false; //DEFAULTS.disableVanillaChunkMatrix;
+    public static boolean preventDepthFighting = DEFAULTS.preventDepthFighting;
+    public static boolean lightmapDebug = DEFAULTS.lightmapDebug;
+    public static boolean conciseErrors = DEFAULTS.conciseErrors;
+    public static boolean logMachineInfo = DEFAULTS.logMachineInfo;
     
     /** use to stash parent screen during display */
     private static Screen screenIn;
@@ -159,64 +162,69 @@ public class Configurator implements ModMenuApi {
             e.printStackTrace();
             CanvasMod.LOG.error("Unable to load config. Using default values.");
         }
-        enableItemRender = config.enableItemRender;
+        itemShaderRender = config.itemShaderRender;
         hardcoreDarkness = config.hardcoreDarkness;
         subtleFog = config.subtleFog;
-        enableShaderDebug = config.enableShaderDebug;
-        enableCompactGPUFormats = config.enableCompactGPUFormats;
+        shaderDebug = config.shaderDebug;
+//        enableCompactGPUFormats = config.enableCompactGPUFormats;
         minChunkBudgetNanos = config.minChunkBudgetNanos;
         maxLightmapDelayFrames = config.maxLightmapDelayFrames;
         
-        enableHdLightmaps = config.enableHdLightmaps;
-        enableLightmapNoise = config.enableLightmapNoise;
+        hdLightmaps = config.hdLightmaps;
+        lightmapNoise = config.lightmapNoise;
         diffuseShadingMode = config.diffuseShadingMode;
-        enableLightSmoothing = config.enableLightSmoothing;
+        lightSmoothing = config.lightSmoothing;
         aoShadingMode = config.aoShadingMode;
         
-        enableSinglePassCutout = config.enableSinglePassCutout;
-        enableImprovedChunkOcclusion = config.enableImprovedChunkOcclusion;
-        enableBatchedChunkRender = config.enableBatchedChunkRender;
-        disableVanillaChunkMatrix = config.disableVanillaChunkMatrix;
-        adjustVanillaModelGeometry = config.adjustVanillaModelGeometry;
+//        enableSinglePassCutout = config.enableSinglePassCutout;
+        fastChunkOcclusion = config.fastChunkOcclusion;
+        batchedChunkRender = config.batchedChunkRender;
+//        disableVanillaChunkMatrix = config.disableVanillaChunkMatrix;
+        preventDepthFighting = config.preventDepthFighting;
         
-        enableLightmapDebug = config.enableLightmapDebug;
-        enableConciseErrors = config.enableConciseErrors;
+        lightmapDebug = config.lightmapDebug;
+        conciseErrors = config.conciseErrors;
+        logMachineInfo = config.logMachineInfo;
     }
 
     private static void saveConfig() {
         ConfigData config = new ConfigData();
-        config.enableItemRender = enableItemRender;
+        config.itemShaderRender = itemShaderRender;
         config.hardcoreDarkness = hardcoreDarkness;
         config.subtleFog = subtleFog;
-        config.enableShaderDebug = enableShaderDebug;
-        config.enableCompactGPUFormats = enableCompactGPUFormats;
+        config.shaderDebug = shaderDebug;
+//        config.enableCompactGPUFormats = enableCompactGPUFormats;
         config.minChunkBudgetNanos = minChunkBudgetNanos;
         config.maxLightmapDelayFrames = maxLightmapDelayFrames;
         
-        config.enableHdLightmaps = enableHdLightmaps;
-        config.enableLightmapNoise = enableLightmapNoise;
+        config.hdLightmaps = hdLightmaps;
+        config.lightmapNoise = lightmapNoise;
         config.diffuseShadingMode = diffuseShadingMode;
-        config.enableLightSmoothing = enableLightSmoothing;
+        config.lightSmoothing = lightSmoothing;
         config.aoShadingMode = aoShadingMode; 
         
-        config.enableSinglePassCutout = enableSinglePassCutout;
-        config.enableImprovedChunkOcclusion = enableImprovedChunkOcclusion;
-        config.enableBatchedChunkRender = enableBatchedChunkRender;
-        config.disableVanillaChunkMatrix = disableVanillaChunkMatrix;
-        config.adjustVanillaModelGeometry = adjustVanillaModelGeometry;
+//        config.enableSinglePassCutout = enableSinglePassCutout;
+        config.fastChunkOcclusion = fastChunkOcclusion;
+        config.batchedChunkRender = batchedChunkRender;
+//        config.disableVanillaChunkMatrix = disableVanillaChunkMatrix;
+        config.preventDepthFighting = preventDepthFighting;
         
-        config.enableLightmapDebug = enableLightmapDebug;
-        config.enableConciseErrors = enableConciseErrors;
+        config.lightmapDebug = lightmapDebug;
+        config.conciseErrors = conciseErrors;
+        config.logMachineInfo = logMachineInfo;
         
         try {
             String result = JANKSON.toJson(config).toJson(true, true, 0);
             if (!configFile.exists())
                 configFile.createNewFile();
-            FileOutputStream out = new FileOutputStream(configFile, false);
             
-            out.write(result.getBytes());
-            out.flush();
-            out.close();
+            try(
+                    FileOutputStream out = new FileOutputStream(configFile, false);
+            ) {
+                out.write(result.getBytes());
+                out.flush();
+                out.close();
+            }
         } catch (Exception e) {
             e.printStackTrace();
             CanvasMod.LOG.error("Unable to save config.");
@@ -260,8 +268,8 @@ public class Configurator implements ModMenuApi {
         // FEATURES
         ConfigScreenBuilder.CategoryBuilder features = builder.addCategory("config.canvas.category.features");
         
-        features.addOption(new BooleanListEntry("config.canvas.value.item_render", enableItemRender, "config.canvas.reset", 
-                () -> DEFAULTS.enableItemRender, b -> enableItemRender = b, 
+        features.addOption(new BooleanListEntry("config.canvas.value.item_render", itemShaderRender, "config.canvas.reset", 
+                () -> DEFAULTS.itemShaderRender, b -> itemShaderRender = b, 
                 () -> Optional.of(I18n.translate("config.canvas.help.item_render").split(";"))));
         
         features.addOption(new BooleanListEntry("config.canvas.value.hardcore_darkness", hardcoreDarkness, "config.canvas.reset", 
@@ -275,16 +283,16 @@ public class Configurator implements ModMenuApi {
         // LIGHTING
         ConfigScreenBuilder.CategoryBuilder lighting = builder.addCategory("config.canvas.category.lighting");
         
-        lighting.addOption(new BooleanListEntry("config.canvas.value.light_smoothing", enableLightSmoothing, "config.canvas.reset", 
-                () -> DEFAULTS.enableLightSmoothing, b -> {enableLightSmoothing = b; reloadTerrain = true;}, 
+        lighting.addOption(new BooleanListEntry("config.canvas.value.light_smoothing", lightSmoothing, "config.canvas.reset", 
+                () -> DEFAULTS.lightSmoothing, b -> {lightSmoothing = b; reloadTerrain = true;}, 
                 () -> Optional.of(I18n.translate("config.canvas.help.light_smoothing").split(";"))));
         
-        lighting.addOption(new BooleanListEntry("config.canvas.value.hd_lightmaps", enableHdLightmaps, "config.canvas.reset", 
-                () -> DEFAULTS.enableHdLightmaps, b -> {enableHdLightmaps = b; reloadTerrain = true;}, 
+        lighting.addOption(new BooleanListEntry("config.canvas.value.hd_lightmaps", hdLightmaps, "config.canvas.reset", 
+                () -> DEFAULTS.hdLightmaps, b -> {hdLightmaps = b; reloadTerrain = true;}, 
                 () -> Optional.of(I18n.translate("config.canvas.help.hd_lightmaps").split(";"))));
         
-        lighting.addOption(new BooleanListEntry("config.canvas.value.lightmap_noise", enableLightmapNoise, "config.canvas.reset", 
-                () -> DEFAULTS.enableLightmapNoise, b -> {enableLightmapNoise = b; reloadShaders = true;}, 
+        lighting.addOption(new BooleanListEntry("config.canvas.value.lightmap_noise", lightmapNoise, "config.canvas.reset", 
+                () -> DEFAULTS.lightmapNoise, b -> {lightmapNoise = b; reloadShaders = true;}, 
                 () -> Optional.of(I18n.translate("config.canvas.help.lightmap_noise").split(";"))));
         
         lighting.addOption(new EnumListEntry(
@@ -314,49 +322,53 @@ public class Configurator implements ModMenuApi {
         // TWEAKS
         ConfigScreenBuilder.CategoryBuilder tweaks = builder.addCategory("config.canvas.category.tweaks");
         
-        tweaks.addOption(new BooleanListEntry("config.canvas.value.compact_gpu_formats", enableCompactGPUFormats, "config.canvas.reset", 
-                () -> DEFAULTS.enableCompactGPUFormats, b -> enableCompactGPUFormats = b, 
-                () -> Optional.of(I18n.translate("config.canvas.help.compact_gpu_formats").split(";"))));
+//        tweaks.addOption(new BooleanListEntry("config.canvas.value.compact_gpu_formats", enableCompactGPUFormats, "config.canvas.reset", 
+//                () -> DEFAULTS.enableCompactGPUFormats, b -> enableCompactGPUFormats = b, 
+//                () -> Optional.of(I18n.translate("config.canvas.help.compact_gpu_formats").split(";"))));
         
         tweaks.addOption(new LongListEntry("config.canvas.value.min_chunk_budget", minChunkBudgetNanos, "config.canvas.reset", 
                 () -> DEFAULTS.minChunkBudgetNanos, l -> minChunkBudgetNanos = l, 
                 () -> Optional.of(I18n.translate("config.canvas.help.min_chunk_budget").split(";"))));
         
-        tweaks.addOption(new BooleanListEntry("config.canvas.value.single_pass_cutout", enableSinglePassCutout, "config.canvas.reset", 
-                () -> DEFAULTS.enableSinglePassCutout, b -> enableSinglePassCutout = b, 
-                () -> Optional.of(I18n.translate("config.canvas.help.single_pass_cutout").split(";"))));
+//        tweaks.addOption(new BooleanListEntry("config.canvas.value.single_pass_cutout", enableSinglePassCutout, "config.canvas.reset", 
+//                () -> DEFAULTS.enableSinglePassCutout, b -> enableSinglePassCutout = b, 
+//                () -> Optional.of(I18n.translate("config.canvas.help.single_pass_cutout").split(";"))));
         
-        tweaks.addOption(new BooleanListEntry("config.canvas.value.chunk_occlusion", enableImprovedChunkOcclusion, "config.canvas.reset", 
-                () -> DEFAULTS.enableImprovedChunkOcclusion, b -> enableImprovedChunkOcclusion = b, 
+        tweaks.addOption(new BooleanListEntry("config.canvas.value.chunk_occlusion", fastChunkOcclusion, "config.canvas.reset", 
+                () -> DEFAULTS.fastChunkOcclusion, b -> fastChunkOcclusion = b, 
                 () -> Optional.of(I18n.translate("config.canvas.help.chunk_occlusion").split(";"))));
         
-        tweaks.addOption(new BooleanListEntry("config.canvas.value.batch_chunk_render", enableBatchedChunkRender, "config.canvas.reset", 
-                () -> DEFAULTS.enableBatchedChunkRender, b -> enableBatchedChunkRender = b, 
+        tweaks.addOption(new BooleanListEntry("config.canvas.value.batch_chunk_render", batchedChunkRender, "config.canvas.reset", 
+                () -> DEFAULTS.batchedChunkRender, b -> batchedChunkRender = b, 
                 () -> Optional.of(I18n.translate("config.canvas.help.batch_chunk_render").split(";"))));
         
-        tweaks.addOption(new BooleanListEntry("config.canvas.value.vanilla_chunk_matrix", disableVanillaChunkMatrix, "config.canvas.reset", 
-                () -> DEFAULTS.disableVanillaChunkMatrix, b -> disableVanillaChunkMatrix = b, 
-                () -> Optional.of(I18n.translate("config.canvas.help.vanilla_chunk_matrix").split(";"))));
+//        tweaks.addOption(new BooleanListEntry("config.canvas.value.vanilla_chunk_matrix", disableVanillaChunkMatrix, "config.canvas.reset", 
+//                () -> DEFAULTS.disableVanillaChunkMatrix, b -> disableVanillaChunkMatrix = b, 
+//                () -> Optional.of(I18n.translate("config.canvas.help.vanilla_chunk_matrix").split(";"))));
         
-        tweaks.addOption(new BooleanListEntry("config.canvas.value.adjust_vanilla_geometry", adjustVanillaModelGeometry, "config.canvas.reset", 
-                () -> DEFAULTS.adjustVanillaModelGeometry, b -> {adjustVanillaModelGeometry = b; reloadTerrain = true;}, 
+        tweaks.addOption(new BooleanListEntry("config.canvas.value.adjust_vanilla_geometry", preventDepthFighting, "config.canvas.reset", 
+                () -> DEFAULTS.preventDepthFighting, b -> {preventDepthFighting = b; reloadTerrain = true;}, 
                 () -> Optional.of(I18n.translate("config.canvas.help.adjust_vanilla_geometry").split(";"))));
         
         
         // DEBUG
         ConfigScreenBuilder.CategoryBuilder debug = builder.addCategory("config.canvas.category.debug");
         
-        debug.addOption(new BooleanListEntry("config.canvas.value.shader_debug", enableShaderDebug, "config.canvas.reset", 
-                () -> DEFAULTS.enableShaderDebug, b -> enableShaderDebug = b, 
+        debug.addOption(new BooleanListEntry("config.canvas.value.shader_debug", shaderDebug, "config.canvas.reset", 
+                () -> DEFAULTS.shaderDebug, b -> shaderDebug = b, 
                 () -> Optional.of(I18n.translate("config.canvas.help.shader_debug").split(";"))));
         
-        debug.addOption(new BooleanListEntry("config.canvas.value.shader_debug_lightmap", enableLightmapDebug, "config.canvas.reset", 
-                () -> DEFAULTS.enableLightmapDebug, b -> enableLightmapDebug = b, 
+        debug.addOption(new BooleanListEntry("config.canvas.value.shader_debug_lightmap", lightmapDebug, "config.canvas.reset", 
+                () -> DEFAULTS.lightmapDebug, b -> lightmapDebug = b, 
                 () -> Optional.of(I18n.translate("config.canvas.help.shader_debug_lightmap").split(";"))));
         
-        debug.addOption(new BooleanListEntry("config.canvas.value.concise_errors", enableConciseErrors, "config.canvas.reset", 
-                () -> DEFAULTS.enableConciseErrors, b -> enableConciseErrors = b, 
+        debug.addOption(new BooleanListEntry("config.canvas.value.concise_errors", conciseErrors, "config.canvas.reset", 
+                () -> DEFAULTS.conciseErrors, b -> conciseErrors = b, 
                 () -> Optional.of(I18n.translate("config.canvas.help.concise_errors").split(";"))));
+        
+        debug.addOption(new BooleanListEntry("config.canvas.value.log_machine_info", logMachineInfo, "config.canvas.reset", 
+                () -> DEFAULTS.logMachineInfo, b -> logMachineInfo = b, 
+                () -> Optional.of(I18n.translate("config.canvas.help.log_machine_info").split(";"))));
         
         builder.setDoesConfirmSave(false);
         

@@ -65,5 +65,7 @@
 	"config.canvas.value.shader_debug_lightmap" : "Render Debug Lightmaps",
 	"config.canvas.help.shader_debug_lightmap" : "TODO",
 	"config.canvas.value.concise_errors" : "Concise Error Log",
-	"config.canvas.help.concise_errors" : "Summarizes multiple errors and warnings to single-line entries in the log."
+	"config.canvas.help.concise_errors" : "Summarizes multiple errors and warnings to single-line entries in the log.",
+	"config.canvas.value.log_machine_info" : "Log Machine Info",
+	"config.canvas.help.log_machine_info" : "Writes information useful for bug;reports to the game log."
 }

@@ -46,7 +46,7 @@ public class DitherTexture implements AutoCloseable {
     }
     
     public void disable() {
-        if(!Configurator.enableHdLightmaps) {
+        if(!Configurator.hdLightmaps) {
             return;
         }
 
@@ -56,7 +56,7 @@ public class DitherTexture implements AutoCloseable {
     }
     
     public void enable() {
-        if(!Configurator.enableHdLightmaps) {
+        if(!Configurator.hdLightmaps) {
             return;
         }
 
@@ -71,7 +71,7 @@ public class DitherTexture implements AutoCloseable {
     }
     
     public void tick() {
-        if(needsInitialized && Configurator.enableHdLightmaps) {
+        if(needsInitialized && Configurator.hdLightmaps) {
             final NativeImage image = this.image;
 
             if(needsInitialized) {

@@ -113,9 +113,9 @@ abstract class AbstractGlShader {
                 this.glId = -1;
             }
             
-            if(Configurator.enableConciseErrors) {
+            if(Configurator.conciseErrors) {
                 if(!isErrorNoticeComplete) {
-                    if(Configurator.enableConciseErrors)
+                    if(Configurator.conciseErrors)
                     CanvasMod.LOG.error(I18n.translate("error.canvas.fail_create_any_shader"));
                     isErrorNoticeComplete = true;
                 }
@@ -124,7 +124,7 @@ abstract class AbstractGlShader {
             }
             outputDebugSource(source, error);
             
-        } else if(Configurator.enableShaderDebug) {
+        } else if(Configurator.shaderDebug) {
             outputDebugSource(source, null);
         }
     }
@@ -215,11 +215,11 @@ abstract class AbstractGlShader {
             result = result.replaceAll("#define CONTEXT_IS_BLOCK TRUE", "#define CONTEXT_IS_BLOCK FALSE");
         }
         
-        if(!Configurator.enableHdLightmaps || ((shaderProps & ShaderProps.SMOOTH_LIGHTMAPS) == 0)) {
+        if(!Configurator.hdLightmaps || ((shaderProps & ShaderProps.SMOOTH_LIGHTMAPS) == 0)) {
             result = result.replaceAll("#define ENABLE_SMOOTH_LIGHT TRUE", "#define ENABLE_SMOOTH_LIGHT FALSE");
         }
         
-        if(!Configurator.enableLightmapNoise || !Configurator.enableHdLightmaps) {
+        if(!Configurator.lightmapNoise || !Configurator.hdLightmaps) {
             result = result.replaceAll("#define ENABLE_LIGHT_NOISE TRUE", "#define ENABLE_LIGHT_NOISE FALSE");
         }
         

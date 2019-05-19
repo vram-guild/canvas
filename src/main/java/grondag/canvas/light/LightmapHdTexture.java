@@ -75,7 +75,7 @@ public class LightmapHdTexture implements AutoCloseable {
     public void disable() {
         //UGLY doesn't belong here
         DitherTexture.instance().disable();
-        if(!Configurator.enableHdLightmaps) {
+        if(!Configurator.hdLightmaps) {
             return;
         }
 
@@ -87,7 +87,7 @@ public class LightmapHdTexture implements AutoCloseable {
     public void enable() {
         //UGLY doesn't belong here
         DitherTexture.instance().enable();
-        if(!Configurator.enableHdLightmaps) {
+        if(!Configurator.hdLightmaps) {
             return;
         }
 
@@ -96,7 +96,7 @@ public class LightmapHdTexture implements AutoCloseable {
         this.client.getTextureManager().bindTexture(this.textureIdentifier);
         
         
-        final int mode = Configurator.enableLightmapDebug ? GL11.GL_NEAREST : GL11.GL_LINEAR;
+        final int mode = Configurator.lightmapDebug ? GL11.GL_NEAREST : GL11.GL_LINEAR;
         GlStateManager.texParameter(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, mode);
         GlStateManager.texParameter(GL11.GL_TEXTURE_2D,  GL11.GL_TEXTURE_MAG_FILTER, mode);
         GlStateManager.color4f(1.0F, 1.0F, 1.0F, 1.0F);

@@ -29,10 +29,10 @@ import net.minecraft.util.math.MathHelper;
 
 public class RenderCube {
     public static void forceReload() {
-        CUBE_MASK = Configurator.enableBatchedChunkRender ? 0xFFFFFF00 : 0xFFFFFFF0;
+        CUBE_MASK = Configurator.batchedChunkRender ? 0xFFFFFF00 : 0xFFFFFFF0;
     }
     
-    private static int CUBE_MASK = Configurator.enableBatchedChunkRender ? 0xFFFFFF00 : 0xFFFFFFF0;
+    private static int CUBE_MASK = Configurator.batchedChunkRender ? 0xFFFFFF00 : 0xFFFFFFF0;
     
     /**
      * Finds the origin of the 256x256x256 render cube for the given coordinate.

@@ -64,7 +64,7 @@ public abstract class MixinItemRenderer {
      */
     @Inject(at = @At("HEAD"), method = "renderItemAndGlow")
     private void hookRenderItemAndGlow(ItemStack stack, BakedModel model, CallbackInfo ci) {
-        if(Configurator.enableItemRender) {
+        if(Configurator.itemShaderRender) {
             if (!model.isBuiltin() && stack.hasEnchantmentGlint()) {
                 context.enchantmentStack = stack;
             }
@@ -78,7 +78,7 @@ public abstract class MixinItemRenderer {
     @Inject(at = @At("HEAD"), method = "renderModel", cancellable = true)
     private void hookRenderModel(BakedModel model, int color, ItemStack stack, CallbackInfo ci) {
         DynamicBakedModel dynamicModel = (DynamicBakedModel) model;
-        if(Configurator.enableItemRender) {
+        if(Configurator.itemShaderRender) {
             // PERF: redirect most of the enables so we don't have to change state here each time
             GuiLightingHelper.suspend();
             context.renderModel(dynamicModel, color, stack);
@@ -99,14 +99,14 @@ public abstract class MixinItemRenderer {
     
     @Inject(at = @At("HEAD"), method = "renderItem(Lnet/minecraft/item/ItemStack;Lnet/minecraft/client/render/model/BakedModel;Lnet/minecraft/client/render/model/json/ModelTransformation$Type;Z)V")
     private void onRenderItem(ItemStack itemStack, BakedModel bakedModel, ModelTransformation.Type type, boolean flag, CallbackInfo ci) {
-        if(Configurator.enableItemRender) {
+        if(Configurator.itemShaderRender) {
             tessellatorExt.canvas_context(ShaderContext.ITEM_WORLD);
         }
     }
     
     @Inject(at = @At("HEAD"), method = "renderGuiItemModel")
     private void onRenderGuiItemModel(ItemStack itemStack, int int_1, int int_2, BakedModel bakedModel, CallbackInfo ci) {
-        if(Configurator.enableItemRender) {
+        if(Configurator.itemShaderRender) {
             tessellatorExt.canvas_context(ShaderContext.ITEM_GUI);
         }
     }
