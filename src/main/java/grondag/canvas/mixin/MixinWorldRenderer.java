@@ -46,11 +46,22 @@ import net.minecraft.util.math.Direction;
 public abstract class MixinWorldRenderer {
     @Shadow private ChunkRendererList chunkRendererList;
     @Shadow private ChunkRenderDispatcher chunkRenderDispatcher;
-    
+
     @Inject(method = "setUpTerrain", at = @At("HEAD"), cancellable = false, require = 1)
     private void onPrepareTerrain(Camera camera, VisibleRegion region, int int_1, boolean boolean_1, CallbackInfo ci) {
         ShaderManager.INSTANCE.prepareForFrame(camera);
     }
+
+//    private static final ConcurrentPerformanceCounter counter = new ConcurrentPerformanceCounter();
+//    private static long start;
+//    private static void end() {
+//        counter.endRun(start);
+//        counter.addCount(1);
+//        if(counter.runCount() >= 200) {
+//            CanvasMod.LOG.info(counter.stats());
+//            counter.clearStats();
+//        }
+//    }
     
     /**
      * Use pre-computed visibility stored during render chunk rebuild vs computing on fly each time.
@@ -58,6 +69,7 @@ public abstract class MixinWorldRenderer {
     @SuppressWarnings("unchecked")
     @Inject(method = "getOpenChunkFaces", at = @At("HEAD"), cancellable = true, require = 1)
     private void onGetOpenChunkFaces(BlockPos pos, CallbackInfoReturnable<Set<Direction>> ci) {
+//        start = counter.startRun();
         ChunkRenderer renderChunk = ((ChunkRendererDispatcherExt)chunkRenderDispatcher).canvas_chunkRenderer(pos);
         if(renderChunk != null)
         {
@@ -71,11 +83,17 @@ public abstract class MixinWorldRenderer {
                 } else {
                     result.addAll(((ChunkOcclusionMap) visData).getFaceSet(ChunkOcclusionBuilderAccessHelper.PACK_FUNCTION.apply(pos)));
                 }
+//                end();
                 ci.setReturnValue(result);
             }
         }
     }
-    
+
+//    @Inject(method = "getOpenChunkFaces", at = @At("TAIL"), cancellable = false, require = 1)
+//    private void afterGetOpenChunkFaces(BlockPos pos, CallbackInfoReturnable<Set<Direction>> ci) {
+//        end();
+//    }
+
     @Inject(method = "renderLayer", at = @At("HEAD"), cancellable = true, require = 1)
     private void onRenderLayer(BlockRenderLayer layer, Camera camera, CallbackInfoReturnable<Integer> ci) {
         switch (layer) {
@@ -84,12 +102,12 @@ public abstract class MixinWorldRenderer {
         case CUTOUT_MIPPED:
             ci.setReturnValue(0);
             break;
-            
+
         case SOLID:
             // Must happen after camera transform is set up and before chunk render
             ((ChunkRendererListExt)chunkRendererList).canvas_prepareForFrame();
             break;
-            
+
         case TRANSLUCENT:
         default:
             // nothing

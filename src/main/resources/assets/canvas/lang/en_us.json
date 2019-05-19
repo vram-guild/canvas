@@ -51,7 +51,7 @@
 	"config.canvas.value.single_pass_cutout" : "Single Pass Cutout",
 	"config.canvas.help.single_pass_cutout" : "TODO",
 	"config.canvas.value.chunk_occlusion" : "Fast Chunk Occlusion",
-	"config.canvas.help.chunk_occlusion" : "TODO",
+	"config.canvas.help.chunk_occlusion" : "Helps with chunk rebuild;and also rendering when; player is moving or;many blocks update.",
 	"config.canvas.value.batch_chunk_render" : "Batched Chunk Render",
 	"config.canvas.help.batch_chunk_render" : "TODO",
 	"config.canvas.value.vanilla_chunk_matrix" : "Vanilla Chunk Scaling",

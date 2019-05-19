@@ -26,6 +26,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import grondag.canvas.Configurator;
 import grondag.canvas.chunk.occlusion.ChunkOcclusionBuilderAccessHelper.ChunkOcclusionGraphBuilderExt;
 import grondag.canvas.chunk.occlusion.ChunkOcclusionGraphExt;
 import grondag.canvas.chunk.occlusion.ChunkOcclusionMap;
@@ -63,33 +64,37 @@ public abstract class MixinChunkOcclusionGraphBuilder implements ChunkOcclusionG
     
     @Inject(method = "build", at = @At("HEAD"), cancellable = true, require = 1)
     public void buildFast(CallbackInfoReturnable<ChunkOcclusionGraph> ci) {
-        ChunkOcclusionGraph result = new ChunkOcclusionGraph();
-
-        if (4096 - openCount < 256) {
-            result.fill(true); // set all visible
-            ((ChunkOcclusionGraphExt) result).canvas_visibilityData(DirectionSet.ALL);
-        } else if (openCount == 0) {
-            result.fill(false);
-            ((ChunkOcclusionGraphExt) result).canvas_visibilityData(DirectionSet.NONE);
-        } else {
-            final BitSet bitSet = closed;
-            ChunkOcclusionMap facingMap = ChunkOcclusionMap.claim();
-
-            for (int i : EDGE_POINTS) {
-                if (!bitSet.get(i)) {
-                    final Pair<Set<Direction>, IntArrayList> floodResult = getOpenFacesFast(i);
-                    final Set<Direction> fillSet = floodResult.getLeft();
-                    result.addOpenEdgeFaces(fillSet); // set multiple visible
-                    byte setIndex = (byte) DirectionSet.sharedIndex(fillSet);
-                    final IntArrayList list = floodResult.getRight();
-                    final int limit = list.size();
-                    for (int j = 0; j < limit; j++)
-                        facingMap.setIndex(list.getInt(j), setIndex);
+        if(Configurator.enableImprovedChunkOcclusion) {
+            
+            //PERF: any way to avoid allocation?
+            ChunkOcclusionGraph result = new ChunkOcclusionGraph();
+    
+            if (4096 - openCount < 256) {
+                result.fill(true); // set all visible
+                ((ChunkOcclusionGraphExt) result).canvas_visibilityData(DirectionSet.ALL);
+            } else if (openCount == 0) {
+                result.fill(false);
+                ((ChunkOcclusionGraphExt) result).canvas_visibilityData(DirectionSet.NONE);
+            } else {
+                final BitSet bitSet = closed;
+                ChunkOcclusionMap facingMap = ChunkOcclusionMap.claim();
+    
+                for (int i : EDGE_POINTS) {
+                    if (!bitSet.get(i)) {
+                        final Pair<Set<Direction>, IntArrayList> floodResult = getOpenFacesFast(i);
+                        final Set<Direction> fillSet = floodResult.getLeft();
+                        result.addOpenEdgeFaces(fillSet); // set multiple visible
+                        byte setIndex = (byte) DirectionSet.sharedIndex(fillSet);
+                        final IntArrayList list = floodResult.getRight();
+                        final int limit = list.size();
+                        for (int j = 0; j < limit; j++)
+                            facingMap.setIndex(list.getInt(j), setIndex);
+                    }
                 }
+                ((ChunkOcclusionGraphExt) result).canvas_visibilityData(facingMap);
             }
-            ((ChunkOcclusionGraphExt) result).canvas_visibilityData(facingMap);
+            ci.setReturnValue(result);
         }
-        ci.setReturnValue(result);
     }
     
     private Pair<Set<Direction>, IntArrayList> getOpenFacesFast(int pos) {
