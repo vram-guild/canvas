@@ -25,7 +25,6 @@ import net.fabricmc.fabric.api.renderer.v1.RendererAccess;
 
 //TODO: lightmap message
 //TODO: configurable disable chunk matrix
-//TODO: configurable vanilla model vertex adjustment
 //TODO: configurable cutout single pass, separate pass may give early cull in solid
 //TODO: capture & log more GL capability info - allow disable, enabled by default
 //TODO: configurable compact vertex formats - GPU side  white, face, unlit, pixel-aligned, etc.
@@ -40,6 +39,7 @@ import net.fabricmc.fabric.api.renderer.v1.RendererAccess;
 //PERF: improve light smoothing performance
 //PERF: manage buffers to avoid heap fragmentation
 
+//DONE: configurable vanilla model vertex adjustment
 //DONE: configurable render region
 //DONE: configurable occlusion hook
 //DONE: configurable fog

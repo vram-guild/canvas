@@ -56,8 +56,8 @@
 	"config.canvas.help.batch_chunk_render" : "Draws multiple chunks with;same view transformation.;Much faster, but try without;if you see visual defects.",
 	"config.canvas.value.vanilla_chunk_matrix" : "Vanilla Chunk Scaling",
 	"config.canvas.help.vanilla_chunk_matrix" : "TODO",
-	"config.canvas.value.adjust_vanilla_geometry" : "Adjust Vanilla Models",
-	"config.canvas.help.adjust_vanilla_geometry" : "TODO",
+	"config.canvas.value.adjust_vanilla_geometry" : "Prevent Depth Fighting",
+	"config.canvas.help.adjust_vanilla_geometry" : "Adjusts quads on some vanilla; models (like iron bars) to avoid;z-fighting with neighbor blocks.",
 	
 	"config.canvas.category.debug" : "Debug",
 	"config.canvas.value.shader_debug" : "Enable Shader Debug Output",

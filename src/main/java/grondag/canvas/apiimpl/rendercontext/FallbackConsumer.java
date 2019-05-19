@@ -29,6 +29,7 @@ import grondag.canvas.apiimpl.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.QuadViewImpl;
 import grondag.canvas.apiimpl.RenderMaterialImpl;
 import grondag.canvas.apiimpl.RenderMaterialImpl.Value;
+import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.apiimpl.util.GeometryHelper;
 import grondag.canvas.apiimpl.util.MeshEncodingHelper;
@@ -137,7 +138,9 @@ public class FallbackConsumer extends QuadRenderer implements Consumer<BakedMode
             }
         }
         
-        preventDepthFighting();
+        if(Configurator.adjustVanillaModelGeometry) {
+            preventDepthFighting();
+        }
         
         super.renderQuad();
     }

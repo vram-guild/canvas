@@ -47,10 +47,6 @@ public class Configurator implements ModMenuApi {
     
     @SuppressWarnings("hiding")
     static class ConfigData {
-        //TODO: remove
-        @Comment("Increase if 'Max shader material exceeded' error occurs. Larger values consume a small amount of memory.")
-        int maxPipelines = 128;
-        
         @Comment("Applies material properties and shaders to items. (WIP)")
         boolean enableItemRender = false;
         
@@ -343,7 +339,7 @@ public class Configurator implements ModMenuApi {
                 () -> Optional.of(I18n.translate("config.canvas.help.vanilla_chunk_matrix").split(";"))));
         
         tweaks.addOption(new BooleanListEntry("config.canvas.value.adjust_vanilla_geometry", adjustVanillaModelGeometry, "config.canvas.reset", 
-                () -> DEFAULTS.adjustVanillaModelGeometry, b -> adjustVanillaModelGeometry = b, 
+                () -> DEFAULTS.adjustVanillaModelGeometry, b -> {adjustVanillaModelGeometry = b; reloadTerrain = true;}, 
                 () -> Optional.of(I18n.translate("config.canvas.help.adjust_vanilla_geometry").split(";"))));
         
         
