@@ -28,7 +28,6 @@ import blue.endless.jankson.Comment;
 import blue.endless.jankson.Jankson;
 import blue.endless.jankson.JsonObject;
 import grondag.canvas.material.ShaderManager;
-import io.github.prospector.modmenu.api.ModMenuApi;
 import me.shedaniel.cloth.api.ConfigScreenBuilder;
 import me.shedaniel.cloth.api.ConfigScreenBuilder.SavedConfig;
 import me.shedaniel.cloth.gui.entries.BooleanListEntry;
@@ -43,7 +42,7 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.resource.language.I18n;
 
 @Environment(EnvType.CLIENT)
-public class Configurator implements ModMenuApi {
+public class Configurator {
     
     @SuppressWarnings("hiding")
     static class ConfigData {
@@ -377,6 +376,11 @@ public class Configurator implements ModMenuApi {
         return builder.build();
     }
     
+    public static Optional<Supplier<Screen>> getConfigScreen(Screen screen) {
+        screenIn = screen;
+        return Optional.of(Configurator::display);
+    }
+    
     private static void saveUserInput(SavedConfig config) {
         saveConfig();
         
@@ -385,17 +389,6 @@ public class Configurator implements ModMenuApi {
         } else if(reloadShaders) {
             ShaderManager.INSTANCE.forceReload();
         }
-    }
-    
-    @Override
-    public Optional<Supplier<Screen>> getConfigScreen(Screen screen) {
-        screenIn = screen;
-        return Optional.of(Configurator::display);
-    }
-    
-    @Override
-    public String getModId() {
-        return "canvas";
     }
     
     // LEGACY STUFF
