@@ -23,8 +23,6 @@ import grondag.canvas.apiimpl.Canvas;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.renderer.v1.RendererAccess;
 
-//TODO: lightmap message
-
 //TODO: configurable disable chunk matrix
 //TODO: configurable compact vertex formats - GPU side  white, face, unlit, pixel-aligned, etc.
 //FIX: lighting on dodecs (again)
@@ -38,6 +36,7 @@ import net.fabricmc.fabric.api.renderer.v1.RendererAccess;
 //PERF: improve light smoothing performance
 //PERF: manage buffers to avoid heap fragmentation
 
+//DONE: lightmap message
 //DONE: capture & log more GL capability info - allow disable, enabled by default
 //DONE: fast chunk loading
 //DONE: configurable vanilla model vertex adjustment

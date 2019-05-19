@@ -1,11 +1,11 @@
 {
-	"debug.canvas.missing_uniform" : "Unable to find uniform %s in shaders %s, %s. This is normal if the uniform isn't used in the shader.",
+	"debug.canvas.missing_uniform" : "Canvas unable to find uniform %s in shaders %s, %s. This is normal if the uniform isn't used in the shader.",
 	"info.canvas.reloading" : "Canvas Renderer is initializing.",
-	"warn.canvas.slow_gl_call" : "Unable to obtain a fast call path to %s due to reflection error. Render performance may be reduced.",
-	"error.canvas.fail_create_shader" : "Unable to create shader %s with property index %d due to unexpected error: %s.",
-	"error.canvas.fail_create_any_shader" : "Unable to create one or more shaders due to compilation errors. See canvas_shader_debug folder for details.",
-	"error.canvas.program_link_failure" : "Unable to create linked shader due to unexpected error.",
-	"error.canvas.max_materials_exceeded" : "Max shader materials exceeded. Increase max shader materials in Canvas configuration.",	
+	"warn.canvas.slow_gl_call" : "Canvas unable to obtain a fast call path to %s due to reflection error. Render performance may be reduced.",
+	"error.canvas.fail_create_shader" : "Canvas unable to create shader %s with property index %d due to unexpected error: %s.",
+	"error.canvas.fail_create_any_shader" : "Canvas unable to create one or more shaders due to compilation errors. See canvas_shader_debug folder for details.",
+	"error.canvas.program_link_failure" : "Canvas unable to create linked shader due to unexpected error.",
+	"error.canvas.fail_create_lightmap" : "Canvas unable to create HD lightmap(s) - out of space. \nSome blocks will not render with proper lighting. \nReduce view distance or disable HD lightmaps. F3+A will temporarily clear this problem.",
 	
 	"config.canvas.title" : "Canvas Renderer Configuration",
 	"config.canvas.reset" : "Reset",

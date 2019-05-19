@@ -7,6 +7,7 @@ import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.QuadViewImpl;
 import it.unimi.dsi.fastutil.ints.Int2IntFunction;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import net.minecraft.client.resource.language.I18n;
 import net.minecraft.util.math.MathHelper;
 
 public class LightmapHd {
@@ -30,11 +31,14 @@ public class LightmapHd {
     /** converts zero-based distance from center to u/v index - use for bottom/right */
     static final Int2IntFunction POS = i -> RADIUS + 1 + i;
     
+    private static boolean errorNoticeNeeded = true;
+    
     private static final AtomicInteger nextIndex = new AtomicInteger();
     
     public static void forceReload() {
         nextIndex.set(0);
         MAP.clear();
+        errorNoticeNeeded = true;
     }
     
     // PERF: use Fermion cache
@@ -129,9 +133,10 @@ public class LightmapHd {
         isAo = LightKey.isAo(key);
         
         if(index >= MAX_COUNT) {
-            //TODO: put back and/or handle better
-            //assert false : "Out of lightmap space.";
-            CanvasMod.LOG.info("Out of lightmap space for index = " + index);
+            if(errorNoticeNeeded) {
+                CanvasMod.LOG.warn(I18n.translate("error.canvas.fail_create_lightmap"));
+                errorNoticeNeeded = false;
+            }
         } else {
             if(isAo) {
                 AoMapHd.computeAo(light, key, index);
