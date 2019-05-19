@@ -4,15 +4,15 @@ vec4 colorAndLightmap(vec4 fragmentColor,  int layerIndex, vec4 light) {
 
 vec4 applyAo(vec4 baseColor) {
 // Don't apply AO for item renders
-#ifdef CONTEXT_IS_BLOCK
-    #ifdef ENABLE_SMOOTH_LIGHT
+#if CONTEXT_IS_BLOCK
+    #if ENABLE_SMOOTH_LIGHT
         vec4 aotex = texture2D(u_utility, v_hd_ao);
 	    float ao = aotex.r;
     #else
 	    float ao = v_ao;
 	#endif
 
-	#ifdef ENABLE_SUBTLE_AO
+	#if ENABLE_SUBTLE_AO
         // smooth the transition from 0.4 (should be the minimum) to 1.0
         ao = (ao - 0.4) / 0.6;
         ao = clamp(ao, 0.0, 1.0);
@@ -31,7 +31,7 @@ float effectModifier() {
     return u_world[WORLD_EFFECT_MODIFIER];
 }
 
-#ifdef ENABLE_SMOOTH_LIGHT
+#if ENABLE_SMOOTH_LIGHT
 vec4 combinedLight() {
     vec4 block = texture2D(u_utility, v_hd_blocklight);
     vec4 sky = texture2D(u_utility, v_hd_skylight);
@@ -39,7 +39,7 @@ vec4 combinedLight() {
     vec2 lightCoord = vec2(block.r, sky.r) * 15.0;
     // TODO: remove
 //    lightCoord = vec2(15.0, 15.0);
-#ifdef ENABLE_LIGHT_NOISE
+#if ENABLE_LIGHT_NOISE
     vec4 dither = texture2D(u_dither, gl_FragCoord.xy / 8.0);
     lightCoord += dither.r / 64.0 - (1.0 / 128.0);
 #endif
@@ -61,8 +61,8 @@ vec4 diffuseColor() {
 	vec4 a = texture2D(u_textures, v_texcoord_0);
 #endif
 
-#ifdef CONTEXT_IS_BLOCK
-	#ifdef ENABLE_SMOOTH_LIGHT
+#if CONTEXT_IS_BLOCK
+	#if ENABLE_SMOOTH_LIGHT
 	    vec4 light = combinedLight();
     #else
 	    vec4 light = texture2D(u_lightmap, v_lightcoord);
@@ -76,13 +76,13 @@ vec4 diffuseColor() {
 
 	a *= colorAndLightmap(v_color_0, 0, light);
 
-#ifdef ENABLE_AO_SHADING
+#if ENABLE_AO_SHADING
     if(bitValue(v_flags.x, FLAG_DISABLE_AO_0) == 0.0) {
     	a = applyAo(a);
     }
 #endif
 
-#ifdef ENABLE_DIFFUSE_SHADING
+#if ENABLE_DIFFUSE
     if(bitValue(v_flags.x, FLAG_DISABLE_DIFFUSE_0) == 0.0) {
     	a *= vec4(v_diffuse, v_diffuse, v_diffuse, 1.0);
     }
@@ -95,13 +95,13 @@ vec4 diffuseColor() {
 	if(cutout_1 != 1.0 || b.a >= 0.5) {
 		b *= colorAndLightmap(v_color_1, 1, light);
 
-#ifdef ENABLE_AO_SHADING
+#if ENABLE_AO_SHADING
 		if(bitValue(v_flags.y, FLAG_DISABLE_AO_1) == 0.0) {
 		    b = applyAo(b);
 		}
 #endif
 
-#ifdef ENABLE_DIFFUSE_SHADING
+#if ENABLE_DIFFUSE
 		if(bitValue(v_flags.y, FLAG_DISABLE_DIFFUSE_1) == 0.0) {
 			b *= vec4(v_diffuse, v_diffuse, v_diffuse, 1.0);
 		}
@@ -117,13 +117,13 @@ vec4 diffuseColor() {
 	if(cutout_2 != 1.0 || c.a >= 0.5) {
 		c *= colorAndLightmap(v_color_2, 2, light);
 
-#ifdef ENABLE_AO_SHADING
+#if ENABLE_AO_SHADING
 		if(bitValue(v_flags.y, FLAG_DISABLE_AO_2) == 0.0) {
 		    c = applyAo(c);
 		}
 #endif
 
-#ifdef ENABLE_DIFFUSE_SHADING
+#if ENABLE_DIFFUSE
 		if(bitValue(v_flags.y, FLAG_DISABLE_DIFFUSE_2) == 0.0) {
 			c *= vec4(v_diffuse, v_diffuse, v_diffuse, 1.0);
 		}

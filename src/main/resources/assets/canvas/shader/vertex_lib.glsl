@@ -1,13 +1,13 @@
 attribute vec4 in_normal_ao;
 
-#ifndef WHITE_0
+#if !(WHITE_0)
     attribute vec4 in_color_0;
 #endif
 
 attribute vec2 in_uv_0;
 attribute vec4 in_lightmap;
 
-#ifdef ENABLE_SMOOTH_LIGHT
+#if ENABLE_SMOOTH_LIGHT
 attribute vec2 in_hd_blocklight;
 attribute vec2 in_hd_skylight;
 attribute vec2 in_hd_ao;
@@ -47,8 +47,8 @@ void setupVertex() {
     gl_FogFragCoord = length(viewCoord.xyz);
     v_texcoord_0 = textureCoord(in_uv_0, 0);
 
-#ifdef CONTEXT_IS_BLOCK
-    #ifdef ENABLE_SMOOTH_LIGHT
+#if CONTEXT_IS_BLOCK
+    #if ENABLE_SMOOTH_LIGHT
         v_hd_blocklight = in_hd_blocklight / 32768.0;
         v_hd_skylight = in_hd_skylight / 32768.0;
         v_hd_ao = in_hd_ao / 32768.0;
@@ -72,7 +72,7 @@ void setupVertex() {
     // due to FP error on some cards/drivers.  Also made varying attribute invariant (rolls eyes at OpenGL)
     v_flags =  in_lightmap.ba + 0.5;
 
-#ifdef WHITE_0
+#if WHITE_0
     v_color_0 = vec4(1.0, 1.0, 1.0, 1.0);
 #else
     v_color_0 = in_color_0;

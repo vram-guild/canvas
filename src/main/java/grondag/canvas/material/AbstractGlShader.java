@@ -198,39 +198,39 @@ abstract class AbstractGlShader {
         result = result.replaceAll("#define CONTEXT 0", "#define CONTEXT " + context.ordinal());
 
         if(!context.isBlock) {
-            result = result.replaceAll("#define CONTEXT_IS_BLOCK", "#define CONTEXT_IS_NOT_BLOCK");
+            result = result.replaceAll("#define CONTEXT_IS_BLOCK TRUE", "#define CONTEXT_IS_BLOCK FALSE");
         }
         
         if(!context.isItem) {
-            result = result.replaceAll("#define CONTEXT_IS_ITEM", "#define CONTEXT_IS_NOT_ITEM");
+            result = result.replaceAll("#define CONTEXT_IS_ITEM TRUE", "#define CONTEXT_IS_ITEM FALSE");
         }
 
         if(!Configurator.enableHdLightmaps || ((shaderProps & ShaderProps.SMOOTH_LIGHTMAPS) == 0)) {
-            result = result.replaceAll("#define ENABLE_SMOOTH_LIGHT", "#define DISABLE_SMOOTH_LIGHT");
+            result = result.replaceAll("#define ENABLE_SMOOTH_LIGHT TRUE", "#define ENABLE_SMOOTH_LIGHT FALSE");
         }
         
         if(!Configurator.enableLightmapNoise || !Configurator.enableHdLightmaps) {
-            result = result.replaceAll("#define ENABLE_LIGHT_NOISE", "#define DISABLE_LIGHT_NOISE");
+            result = result.replaceAll("#define ENABLE_LIGHT_NOISE TRUE", "#define ENABLE_LIGHT_NOISE FALSE");
         }
         
         if(!Configurator.enableAoShading) {
-            result = result.replaceAll("#define ENABLE_AO_SHADING", "#define DISABLE_AO_SHADING");
+            result = result.replaceAll("#define ENABLE_AO_SHADING TRUE", "#define ENABLE_AO_SHADING FALSE");
         }
         
         if(!Configurator.enableSubtleAo) {
-            result = result.replaceAll("#define ENABLE_SUBTLE_AO", "#define DISABLE_SUBTLE_AO");
+            result = result.replaceAll("#define ENABLE_SUBTLE_AO TRUE", "#define ENABLE_SUBTLE_AO FALSE");
         }
         
         if(!Configurator.enableDiffuseShading) {
-            result = result.replaceAll("#define ENABLE_DIFFUSE_SHADING", "#define DISABLE_DIFFUSE_SHADING");
+            result = result.replaceAll("#define ENABLE_DIFFUSE TRUE", "#define ENABLE_DIFFUSE FALSE");
         }
         
         if(!CanvasGlHelper.useGpuShader4() ) {
             result = result.replaceAll("#extension GL_EXT_gpu_shader4 : enable", "");
         }
         
-        if((shaderProps & ShaderProps.WHITE_0) == 0) {
-            result = result.replaceAll("#define WHITE_0", "#define NOT_WHITE_0");
+        if((shaderProps & ShaderProps.WHITE_0) != 0) {
+            result = result.replaceAll("#define WHITE_0 FALSE", "#define WHITE_0 TRUE");
         }
         
         return result;

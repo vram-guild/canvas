@@ -4,32 +4,35 @@
 // will be changed to sprite depth (1, 2 or 3) before compile
 #define LAYER_COUNT 1
 
-// defined if first sprite color is all white and will not be sent
-// definition prefixed with NOT_ if first sprite is colorized or compact formats are disabled
-#define WHITE_0
+#define TRUE 1
+#define FALSE 0
 
-// defined if AO shading should be applied
-#define ENABLE_AO_SHADING
+// true if first sprite color is all white and will not be sent
+// false if first sprite is colorized or compact formats are disabled
+#define WHITE_0 FALSE
 
-// defined if AO values should get quadratic smoothing
-#define ENABLE_SUBTLE_AO
+// true if AO shading should be applied
+#define ENABLE_AO_SHADING TRUE
 
-// defined if diffuse shading should be applied
-#define ENABLE_DIFFUSE_SHADING
+// true if AO values should get quadratic smoothing
+#define ENABLE_SUBTLE_AO TRUE
 
-// defined if using smooth lightmaps
+// true if diffuse shading should be applied
+#define ENABLE_DIFFUSE TRUE
+
+// true if using smooth lightmaps
 // currently only enabled in block contexts
-#define ENABLE_SMOOTH_LIGHT
+#define ENABLE_SMOOTH_LIGHT TRUE
 
-// defined if lighting should be noised to prevent mach banding
+// true if lighting should be noised to prevent mach banding
 // will only be enabled if smooth light is also enabled
-#define ENABLE_LIGHT_NOISE
+#define ENABLE_LIGHT_NOISE TRUE
 
-// will be changed to _IS_NOT_ unless this is a block context
-#define CONTEXT_IS_BLOCK
+// true if this is a block context
+#define CONTEXT_IS_BLOCK TRUE
 
-// will be changed to _IS_NOT_ unless this is an item context
-#define CONTEXT_IS_ITEM
+// true if this is an item context
+#define CONTEXT_IS_ITEM TRUE
 
 #define CONTEXT_BLOCK_SOLID 0
 #define CONTEXT_BLOCK_TRANSLUCENT 1
@@ -56,11 +59,11 @@ uniform vec4 u_emissiveColor;
 uniform vec3 u_eye_position;
 uniform int u_fogMode;
 
-#ifdef CONTEXT_IS_BLOCK
+#if CONTEXT_IS_BLOCK
     varying float v_ao;
 #endif
 
-#ifdef ENABLE_SMOOTH_LIGHT
+#if ENABLE_SMOOTH_LIGHT
 
 uniform sampler2D u_utility;
 varying vec2 v_hd_blocklight;
@@ -68,7 +71,7 @@ varying vec2 v_hd_skylight;
 varying vec2 v_hd_ao;
 
 //TODO: make this depend on shader props
-    #ifdef ENABLE_LIGHT_NOISE
+    #if ENABLE_LIGHT_NOISE
         uniform sampler2D u_dither;
     #endif
 #endif
