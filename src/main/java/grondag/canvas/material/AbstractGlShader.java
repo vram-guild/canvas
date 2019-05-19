@@ -30,6 +30,7 @@ import com.mojang.blaze3d.platform.GLX;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
+import grondag.canvas.Configurator.AoMode;
 import grondag.canvas.varia.CanvasGlHelper;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
@@ -213,12 +214,9 @@ abstract class AbstractGlShader {
             result = result.replaceAll("#define ENABLE_LIGHT_NOISE TRUE", "#define ENABLE_LIGHT_NOISE FALSE");
         }
         
-        if(!Configurator.enableAoShading) {
-            result = result.replaceAll("#define ENABLE_AO_SHADING TRUE", "#define ENABLE_AO_SHADING FALSE");
-        }
-        
-        if(!Configurator.enableSubtleAo) {
-            result = result.replaceAll("#define ENABLE_SUBTLE_AO TRUE", "#define ENABLE_SUBTLE_AO FALSE");
+        if(Configurator.aoShadingMode != AoMode.NORMAL) {
+            result = result.replaceAll("#define AO_SHADING_MODE AO_MODE_NORMAL", 
+                    "#define AO_SHADING_MODE AO_MODE_" + Configurator.aoShadingMode.name());
         }
         
         if(!Configurator.enableDiffuseShading) {

@@ -11,11 +11,13 @@
 // false if first sprite is colorized or compact formats are disabled
 #define WHITE_0 FALSE
 
-// true if AO shading should be applied
-#define ENABLE_AO_SHADING TRUE
+#define AO_MODE_NORMAL 0
+#define AO_MODE_SUBTLE_ALWAYS 1
+#define AO_MODE_SUBTLE_BLOCK_LIGHT 2
+#define AO_MODE_NONE 3
 
-// true if AO values should get quadratic smoothing
-#define ENABLE_SUBTLE_AO TRUE
+// true if AO shading should be applied
+#define AO_SHADING_MODE AO_MODE_NORMAL
 
 // true if diffuse shading should be applied
 #define ENABLE_DIFFUSE TRUE

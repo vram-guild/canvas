@@ -19,6 +19,8 @@ package grondag.canvas;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import com.google.gson.Gson;
@@ -32,6 +34,8 @@ import io.github.prospector.modmenu.api.ModMenuApi;
 import me.shedaniel.cloth.api.ConfigScreenBuilder;
 import me.shedaniel.cloth.api.ConfigScreenBuilder.SavedConfig;
 import me.shedaniel.cloth.gui.entries.BooleanListEntry;
+import me.shedaniel.cloth.gui.entries.EnumListEntry;
+import me.shedaniel.cloth.gui.entries.EnumListEntry.Translatable;
 import me.shedaniel.cloth.gui.entries.IntegerSliderEntry;
 import me.shedaniel.cloth.gui.entries.LongListEntry;
 import net.fabricmc.api.EnvType;
@@ -75,10 +79,7 @@ public class Configurator implements ModMenuApi {
         boolean enableLightSmoothing = false;
         
         @Comment("TODO")
-        boolean enableSubtleAo = true;
-        
-        @Comment("TODO")
-        boolean enableAoShading = true;
+        AoMode aoShadingMode = AoMode.NORMAL;
         
         @Comment("TODO")
         boolean enableSinglePassCutout = true;
@@ -118,8 +119,7 @@ public class Configurator implements ModMenuApi {
     public static boolean enableLightmapNoise = DEFAULTS.enableLightmapNoise;
     public static boolean enableDiffuseShading = DEFAULTS.enableDiffuseShading;
     public static boolean enableLightSmoothing = DEFAULTS.enableLightSmoothing;
-    public static boolean enableSubtleAo = DEFAULTS.enableSubtleAo;
-    public static boolean enableAoShading = DEFAULTS.enableAoShading;
+    public static AoMode aoShadingMode = DEFAULTS.aoShadingMode;
     
     public static long minChunkBudgetNanos = DEFAULTS.minChunkBudgetNanos;
     public static boolean enableCompactGPUFormats = DEFAULTS.enableCompactGPUFormats;
@@ -167,8 +167,7 @@ public class Configurator implements ModMenuApi {
         enableLightmapNoise = config.enableLightmapNoise;
         enableDiffuseShading = config.enableDiffuseShading;
         enableLightSmoothing = config.enableLightSmoothing;
-        enableAoShading = config.enableAoShading;
-        enableSubtleAo = config.enableSubtleAo;
+        aoShadingMode = config.aoShadingMode;
         
         enableSinglePassCutout = config.enableSinglePassCutout;
         enableImprovedChunkOcclusion = config.enableImprovedChunkOcclusion;
@@ -192,8 +191,7 @@ public class Configurator implements ModMenuApi {
         config.enableLightmapNoise = enableLightmapNoise;
         config.enableDiffuseShading = enableDiffuseShading;
         config.enableLightSmoothing = enableLightSmoothing;
-        config.enableAoShading = enableAoShading; 
-        config.enableSubtleAo = enableSubtleAo;
+        config.aoShadingMode = aoShadingMode; 
         
         config.enableSinglePassCutout = enableSinglePassCutout;
         config.enableImprovedChunkOcclusion = enableImprovedChunkOcclusion;
@@ -223,6 +221,19 @@ public class Configurator implements ModMenuApi {
     static boolean reloadTerrain = false;
     static boolean reloadShaders = false;
     
+    public static enum AoMode implements Translatable {
+        NORMAL,
+        SUBTLE_ALWAYS,
+        SUBTLE_BLOCK_LIGHT,
+        NONE;
+
+        @Override
+        public String getKey() {
+            return "config.canvas.enum.ao_mode." + this.toString().toLowerCase();
+        }
+    }
+    
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     private static Screen display() {
         reloadTerrain = false;
         reloadShaders = false;
@@ -247,10 +258,6 @@ public class Configurator implements ModMenuApi {
                 () -> DEFAULTS.enableHdLightmaps, b -> {enableHdLightmaps = b; reloadTerrain = true;}, 
                 () -> Optional.of(I18n.translate("config.canvas.help.hd_lightmaps").split(";"))));
         
-        lighting.addOption(new BooleanListEntry("config.canvas.value.subtle_ao", enableSubtleAo, "config.canvas.reset", 
-                () -> DEFAULTS.enableSubtleAo, b -> {enableSubtleAo = b; reloadShaders = true;}, 
-                () -> Optional.of(I18n.translate("config.canvas.help.subtle_ao").split(";"))));
-        
         lighting.addOption(new BooleanListEntry("config.canvas.value.lightmap_noise", enableLightmapNoise, "config.canvas.reset", 
                 () -> DEFAULTS.enableLightmapNoise, b -> {enableLightmapNoise = b; reloadShaders = true;}, 
                 () -> Optional.of(I18n.translate("config.canvas.help.lightmap_noise").split(";"))));
@@ -259,8 +266,14 @@ public class Configurator implements ModMenuApi {
                 () -> DEFAULTS.enableDiffuseShading, b -> {enableDiffuseShading = b; reloadShaders = true;}, 
                 () -> Optional.of(I18n.translate("config.canvas.help.diffuse_shading").split(";"))));
         
-        lighting.addOption(new BooleanListEntry("config.canvas.value.ao_shading", enableAoShading, "config.canvas.reset", 
-                () -> DEFAULTS.enableAoShading, b -> {enableAoShading = b; reloadShaders = true;}, 
+        lighting.addOption(new EnumListEntry(
+                "config.canvas.value.ao_shading", 
+                AoMode.class, 
+                aoShadingMode, 
+                "config.canvas.reset", 
+                () -> DEFAULTS.aoShadingMode, 
+                (b) -> {aoShadingMode = (AoMode) b; reloadShaders = true;},
+                a -> a.toString(),
                 () -> Optional.of(I18n.translate("config.canvas.help.ao_shading").split(";"))));
         
         lighting.addOption(new IntegerSliderEntry("config.canvas.value.lightmap_delay_frames", 0, 20, maxLightmapDelayFrames, "config.canvas.reset", 
