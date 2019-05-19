@@ -23,12 +23,10 @@ import grondag.canvas.apiimpl.Canvas;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.renderer.v1.RendererAccess;
 
+//FIX: lighting on dodecs (again)
 //TODO: configurable disable chunk matrix
 //TODO: configurable compact vertex formats - GPU side  white, face, unlit, pixel-aligned, etc.
-//FIX: lighting on dodecs (again)
 //TODO: configurable cutout single pass, separate pass may give early cull in solid
-//FIX: block breaking?
-//FIX: lighting problems on nvidia cards?
 //FEAT: configurable compressed vertex formats - CPU side (maybe wait for Brocade Mesh)
 //FEAT: per chunk occlusion mesh - for sky shadow mask
 //FEAT: per chunk depth mesh - addendum to occlusion mesh to render for depth pass - includes translucent cutout
@@ -36,23 +34,6 @@ import net.fabricmc.fabric.api.renderer.v1.RendererAccess;
 //PERF: improve light smoothing performance
 //PERF: manage buffers to avoid heap fragmentation
 
-//DONE: lightmap message
-//DONE: capture & log more GL capability info - allow disable, enabled by default
-//DONE: fast chunk loading
-//DONE: configurable vanilla model vertex adjustment
-//DONE: configurable render region
-//DONE: configurable occlusion hook
-//DONE: configurable fog
-//DONE: configurable hardcore darkness
-//DONE: dynamic vertex formats
-//DONE: configurable diffuse lighting
-//DONE: configurable AO lighting
-//DONE: configurable smooth lighting
-//DONE: remove configurable shader/condition limits
-//DONE: try with resources
-//DONE: concise log messages for resource/shader failures
-//DONE: API compatibility
-//DONE: remove quad splitting smooth lighting
 
 public class CanvasMod implements ClientModInitializer {
     @Override

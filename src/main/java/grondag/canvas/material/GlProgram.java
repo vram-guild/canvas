@@ -463,8 +463,7 @@ public class GlProgram {
     }
 
     public UniformArrayi uniformArrayi(String name, UniformRefreshFrequency frequency, Consumer<UniformArrayi> initializer, int size) {
-        // TODO Auto-generated method stub
-        return null;
+        return addUniform(new UniformArrayiImpl(name, initializer, frequency, size));
     }
     
     public GlProgram(GlVertexShader vertexShader, GlFragmentShader fragmentShader, int shaderProps, boolean isSolidLayer) {
