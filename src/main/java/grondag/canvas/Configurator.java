@@ -50,63 +50,63 @@ public class Configurator implements ModMenuApi {
         @Comment("Applies material properties and shaders to items. (WIP)")
         boolean itemShaderRender = false;
         
-        @Comment("TODO")
+        @Comment("Reduces terrain lighting to full darkness in absence of moon/torch light.")
         boolean hardcoreDarkness = false;
         
-        @Comment("TODO")
+        @Comment("Makes terrain fog a little less foggy.")
         boolean subtleFog = false;
-        
-        //TODO: docs
-        @Comment("TODO")
-        int maxLightmapDelayFrames = 0;
-        
-        @Comment("TODO")
-        long minChunkBudgetNanos = 100000;
         
 //        @Comment("TODO")
 //        boolean enableCompactGPUFormats = false;
         
-        @Comment("TODO")
+        @Comment("Truly smoothh lighting. Some impact to memory use, chunk loading and frame rate.")
         boolean hdLightmaps = false;
         
-        @Comment("TODO")
+        @Comment("Slight variation in light values - may prevent banding. Slight performance impact and not usually necessary.")
         boolean lightmapNoise = false;
         
-        @Comment("TODO")
+        @Comment("Mimics directional light.")
         DiffuseMode diffuseShadingMode = DiffuseMode.NORMAL;
         
-        @Comment("TODO")
+        @Comment("Makes light sources less cross-shaped. Chunk loading a little slower. Overall light levels remain similar.")
         boolean lightSmoothing = false;
         
-        @Comment("TODO")
+        @Comment("Mimics light blocked by nearby objects.")
         AoMode aoShadingMode = AoMode.NORMAL;
+        
+        @Comment("Setting > 0 may give slightly better FPS at cost of potential flickering when lighting changes.")
+        int maxLightmapDelayFrames = 0;
+        
         
 //        @Comment("TODO")
 //        boolean enableSinglePassCutout = true;
         
-        @Comment("TODO")
+        @Comment("Helps with chunk rebuild and also rendering when player is moving or many blocks update.")
         boolean fastChunkOcclusion = true;
         
-        @Comment("TODO")
+        @Comment("Draws multiple chunks with same view transformation. Much faster, but try without if you see visual defects.")
         boolean batchedChunkRender = true;
         
 //        @Comment("TODO")
 //        boolean disableVanillaChunkMatrix = true;
         
-        @Comment("TODO")
+        @Comment("Adjusts quads on some vanilla models (like iron bars) to avoid z-fighting with neighbor blocks.")
         boolean preventDepthFighting = true;
+        
+        @Comment("Forces game to allow up to this many nanoseconds for chunk loading each frame. May prevent chunk load delay at high FPS.")
+        long minChunkBudgetNanos = 100000;
 
         // DEBUG
         @Comment("Output runtime per-material shader source. For shader development debugging.")
         boolean shaderDebug = false;
         
-        @Comment("TODO")        
+        @Comment("Shows HD lightmap pixels for debug purposes. Also looks cool.")        
         boolean lightmapDebug = false;
         
-        @Comment("TODO")        
+        @Comment("Summarizes multiple errors and warnings to single-line entries in the log.")        
         boolean conciseErrors = true;
         
-        @Comment("TODO")        
+        @Comment("Writes information useful for bug reports to the game log at startup.")        
         boolean logMachineInfo = true;
     }
     
