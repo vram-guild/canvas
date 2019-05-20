@@ -26,6 +26,8 @@ import net.fabricmc.fabric.api.renderer.v1.RendererAccess;
 //FIX: lighting on dodecs (again)
 //FIX: depth for campfire smoke / water
 //FIX: track lightmap occupancy
+//TODO: #include preprocessor directive for glsl
+//TODO: separate all uniform/variant-dependent elements to separate glsl libs
 //TODO: configurable disable chunk matrix
 //TODO: configurable compact vertex formats - GPU side  white, face, unlit, pixel-aligned, etc.
 //TODO: configurable cutout single pass, separate pass may give early cull in solid

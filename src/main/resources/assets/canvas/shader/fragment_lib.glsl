@@ -114,7 +114,7 @@ vec4 diffuseColor() {
 
     a *= colorAndLightmap(v_color_0, 0, light);
 
-    #if AO_SHADING_MODE != AO_MODE_NONE
+    #if AO_SHADING_MODE != AO_MODE_NONE && CONTEXT_IS_BLOCK
         if(bitValue(v_flags.x, FLAG_DISABLE_AO_0) == 0.0) {
             a *= aoFactor;
         }
@@ -133,7 +133,7 @@ vec4 diffuseColor() {
         if(cutout_1 != 1.0 || b.a >= 0.5) {
             b *= colorAndLightmap(v_color_1, 1, light);
 
-            #if AO_SHADING_MODE != AO_MODE_NONE
+            #if AO_SHADING_MODE != AO_MODE_NONE && CONTEXT_IS_BLOCK
                 if(bitValue(v_flags.y, FLAG_DISABLE_AO_1) == 0.0) {
                     b *= aoFactor;
                 }
@@ -155,7 +155,7 @@ vec4 diffuseColor() {
         if(cutout_2 != 1.0 || c.a >= 0.5) {
             c *= colorAndLightmap(v_color_2, 2, light);
 
-            #if AO_SHADING_MODE != AO_MODE_NONE
+            #if AO_SHADING_MODE != AO_MODE_NONE && CONTEXT_IS_BLOCK
                 if(bitValue(v_flags.y, FLAG_DISABLE_AO_2) == 0.0) {
                     c *= aoFactor;
                 }
