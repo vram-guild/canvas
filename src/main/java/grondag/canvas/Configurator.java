@@ -76,6 +76,8 @@ public class Configurator {
         @Comment("Setting > 0 may give slightly better FPS at cost of potential flickering when lighting changes.")
         int maxLightmapDelayFrames = 0;
         
+        @Comment("Extra lightmap capacity. Ensure enabled if you are getting `unable to create HD lightmap(s) - out of space' messages.")
+        boolean moreLightmap = true;
         
 //        @Comment("TODO")
 //        boolean enableSinglePassCutout = true;
@@ -124,6 +126,7 @@ public class Configurator {
     public static DiffuseMode diffuseShadingMode = DEFAULTS.diffuseShadingMode;
     public static boolean lightSmoothing = DEFAULTS.lightSmoothing;
     public static AoMode aoShadingMode = DEFAULTS.aoShadingMode;
+    public static boolean moreLightmap = DEFAULTS.moreLightmap;
     
     public static long minChunkBudgetNanos = DEFAULTS.minChunkBudgetNanos;
     public static boolean enableCompactGPUFormats = false; //DEFAULTS.enableCompactGPUFormats;
@@ -168,12 +171,14 @@ public class Configurator {
 //        enableCompactGPUFormats = config.enableCompactGPUFormats;
         minChunkBudgetNanos = config.minChunkBudgetNanos;
         maxLightmapDelayFrames = config.maxLightmapDelayFrames;
+        moreLightmap = config.moreLightmap;
         
         hdLightmaps = config.hdLightmaps;
         lightmapNoise = config.lightmapNoise;
         diffuseShadingMode = config.diffuseShadingMode;
         lightSmoothing = config.lightSmoothing;
         aoShadingMode = config.aoShadingMode;
+        
         
 //        enableSinglePassCutout = config.enableSinglePassCutout;
         fastChunkOcclusion = config.fastChunkOcclusion;
@@ -201,6 +206,7 @@ public class Configurator {
         config.diffuseShadingMode = diffuseShadingMode;
         config.lightSmoothing = lightSmoothing;
         config.aoShadingMode = aoShadingMode; 
+        config.moreLightmap = moreLightmap;
         
 //        config.enableSinglePassCutout = enableSinglePassCutout;
         config.fastChunkOcclusion = fastChunkOcclusion;
@@ -289,6 +295,10 @@ public class Configurator {
         lighting.addOption(new BooleanListEntry("config.canvas.value.hd_lightmaps", hdLightmaps, "config.canvas.reset", 
                 () -> DEFAULTS.hdLightmaps, b -> {hdLightmaps = b; reloadTerrain = true;}, 
                 () -> Optional.of(I18n.translate("config.canvas.help.hd_lightmaps").split(";"))));
+        
+        lighting.addOption(new BooleanListEntry("config.canvas.value.more_lightmap", moreLightmap, "config.canvas.reset", 
+                () -> DEFAULTS.moreLightmap, b -> moreLightmap = b, 
+                () -> Optional.of(I18n.translate("config.canvas.help.more_lightmap").split(";"))));
         
         lighting.addOption(new BooleanListEntry("config.canvas.value.lightmap_noise", lightmapNoise, "config.canvas.reset", 
                 () -> DEFAULTS.lightmapNoise, b -> {lightmapNoise = b; reloadShaders = true;}, 
@@ -402,6 +412,7 @@ public class Configurator {
 //    @Comment({"Enable fancy water and lava rendering.",
 //        " This feature is currently work in progress and has no visible effect if enabled."})
     public static boolean fancyFluids = false;
+    
 
 //    @LangKey("config.disable_yield")
 //    @RequiresMcRestart

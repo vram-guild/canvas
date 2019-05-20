@@ -24,15 +24,26 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.renderer.v1.RendererAccess;
 
 //FIX: lighting on dodecs (again)
+//FIX: depth for campfire smoke / water
+//FIX: track lightmap occupancy
 //TODO: configurable disable chunk matrix
 //TODO: configurable compact vertex formats - GPU side  white, face, unlit, pixel-aligned, etc.
 //TODO: configurable cutout single pass, separate pass may give early cull in solid
+//FEAT: complete item rendering
+//FEAT: custom samplers
+//FEAT: GLSL pre-processor
+//FEAT: fancy water
+//FEAT: fancy lava
+//PERF: disable lava/water texture animation (configurable)
+//FEAT: GLSL library and docs
+//PERF: improve light smoothing performance
+//PERF: manage buffers to avoid heap fragmentation
+//FEAT: colored lights
+//FEAT: gen purpose tessellator
 //FEAT: configurable compressed vertex formats - CPU side (maybe wait for Brocade Mesh)
 //FEAT: per chunk occlusion mesh - for sky shadow mask
 //FEAT: per chunk depth mesh - addendum to occlusion mesh to render for depth pass - includes translucent cutout
 //FEAT: first person dynamic light
-//PERF: improve light smoothing performance
-//PERF: manage buffers to avoid heap fragmentation
 
 
 public class CanvasMod implements ClientModInitializer {

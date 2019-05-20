@@ -16,7 +16,6 @@
 
 package grondag.canvas.varia;
 
-import java.io.IOException;
 import java.nio.IntBuffer;
 
 import javax.annotation.Nullable;
@@ -26,17 +25,18 @@ import org.lwjgl.opengl.GL12;
 import org.lwjgl.opengl.GL21;
 
 import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.platform.TextureUtil;
 
 import net.minecraft.client.texture.AbstractTexture;
-import net.minecraft.client.texture.Texture;
-import net.minecraft.resource.ResourceManager;
 
 /**
  * Leaner adaptation of Minecraft NativeImageBackedTexture suitable for our needs.
  */
-public class SimpleTexture extends AbstractTexture implements AutoCloseable, Texture {
+public class SimpleTexture implements AutoCloseable { 
     private SimpleImage image;
-
+    protected int glId = -1;
+    AbstractTexture tex;
+    
     public SimpleTexture(SimpleImage image, int internalFormat) {
         this.image = image;
 
@@ -48,10 +48,25 @@ public class SimpleTexture extends AbstractTexture implements AutoCloseable, Tex
         GlStateManager.texImage2D(GL11.GL_TEXTURE_2D, 0, internalFormat, image.width, image.height, 0, image.pixelDataFormat, image.pixelDataType, (IntBuffer)null);
     }
 
-    @Override
-    public void load(ResourceManager resourceManager) throws IOException {
-    }
+    public int getGlId() {
+        if (this.glId == -1) {
+           this.glId = TextureUtil.generateTextureId();
+        }
 
+        return this.glId;
+     }
+
+     public void clearGlId() {
+        if (this.glId != -1) {
+           TextureUtil.releaseTextureId(this.glId);
+           this.glId = -1;
+        }
+     }
+     
+    public void bindTexture() {
+        GlStateManager.bindTexture(this.getGlId());
+    }
+    
     public void upload() {
         this.bindTexture();
         this.image.upload(0, 0, 0, false);

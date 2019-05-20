@@ -22,10 +22,10 @@ final class LightmapHdCalc {
         final float bottomLeft = input(LightKey.bottomLeft(key));
 
         // Note: won't work for other than 4x4 interior, 6x6 padded
-        computeQuadrant(center, left, top, topLeft, light, NEG, NEG);
-        computeQuadrant(center, right, top, topRight, light, POS, NEG);
-        computeQuadrant(center, left, bottom, bottomLeft, light, NEG, POS);
-        computeQuadrant(center, right, bottom, bottomRight, light, POS, POS);
+        computeQuadrant(center, left, top, topLeft, light, LightmapSizer.NEG, LightmapSizer.NEG);
+        computeQuadrant(center, right, top, topRight, light, LightmapSizer.POS, LightmapSizer.NEG);
+        computeQuadrant(center, left, bottom, bottomLeft, light, LightmapSizer.NEG, LightmapSizer.POS);
+        computeQuadrant(center, right, bottom, bottomRight, light, LightmapSizer.POS, LightmapSizer.POS);
     }
     
     private static void computeQuadrant(float center, float uSide, float vSide, float corner, int light[], Int2IntFunction uFunc, Int2IntFunction vFunc) {
@@ -61,10 +61,10 @@ final class LightmapHdCalc {
     }
     
     static void computeOpen(float center, float uSide, float vSide, float corner, int light[], Int2IntFunction uFunc, Int2IntFunction vFunc) {
-        for(int u = 0; u <= RADIUS; u++) {
-            for(int v = 0; v <= RADIUS; v++) {
-                final float uLinear = 1f - (u + 0.5f) / LIGHTMAP_SIZE;
-                final float vLinear = 1f - (v + 0.5f) / LIGHTMAP_SIZE;
+        for(int u = 0; u <= LightmapSizer.radius; u++) {
+            for(int v = 0; v <= LightmapSizer.radius; v++) {
+                final float uLinear = 1f - (u + 0.5f) / LightmapSizer.lightmapSize;
+                final float vLinear = 1f - (v + 0.5f) / LightmapSizer.lightmapSize;
                 
                 assert uLinear >= 0 && uLinear <= 1f;
                 assert vLinear >= 0 && vLinear <= 1f;

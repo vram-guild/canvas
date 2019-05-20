@@ -23,6 +23,8 @@
 	"config.canvas.help.light_smoothing" : "Makes light sources less cross-shaped.;Chunk loading a little slower.;Overall light levels remain similar.",
 	"config.canvas.value.hd_lightmaps" : "HD Lightmaps",
 	"config.canvas.help.hd_lightmaps" : "Truly smoothh lighting.;Some impact to memory use,;chunk loading and frame rate.",
+	"config.canvas.value.more_lightmap" : "More Lightmap Capacity",
+	"config.canvas.help.more_lightmap" : "Reserves more memory for lightmaps.;May be needed for large view distances.;REQUIRES RESTART",
 	"config.canvas.value.lightmap_noise" : "Lightmap Noise",
 	"config.canvas.help.lightmap_noise" : "Slight variation in light;values - may prevent banding.;Slight performance impact and;not usually necessary.",
 	"config.canvas.value.diffuse_shading" : "Diffuse Shading",

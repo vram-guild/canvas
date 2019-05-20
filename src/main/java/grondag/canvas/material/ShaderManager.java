@@ -104,7 +104,7 @@ public final class ShaderManager implements ClientTickCallback {
         RenderCube.forceReload();
         GlShaderManager.INSTANCE.forceReload();
         VertexEncoder.forceReload();
-        LightmapHdTexture.instance().forceReload();
+        LightmapHdTexture.forceReload();
         LightmapHd.forceReload();
         final int limit = this.shaders.size();
         for (int i = 0; i < limit; i++) {

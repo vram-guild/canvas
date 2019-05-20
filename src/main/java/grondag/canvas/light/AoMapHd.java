@@ -1,7 +1,5 @@
 package grondag.canvas.light;
 
-import static grondag.canvas.light.LightmapHd.AO_SIZE;
-import static grondag.canvas.light.LightmapHd.PADDED_SIZE;
 import static grondag.canvas.light.LightmapHd.lightIndex;
 
 import net.minecraft.util.math.MathHelper;
@@ -16,10 +14,10 @@ final class AoMapHd {
       final float bottomLeft = LightKey.bottomLeftAo(key) / 255f;
 
       
-      for(int u = 0; u < PADDED_SIZE; u++) {
-          for(int v = 0; v < PADDED_SIZE; v++) {
-              float uDist = (float)u / AO_SIZE;
-              float vDist = (float)v / AO_SIZE;
+      for(int u = 0; u < LightmapSizer.paddedSize; u++) {
+          for(int v = 0; v < LightmapSizer.paddedSize; v++) {
+              float uDist = (float)u / LightmapSizer.aoSize;
+              float vDist = (float)v / LightmapSizer.aoSize;
               
               float tl = (1 - uDist) * (1 - vDist) * topLeft;
               float tr = uDist * (1 - vDist) * topRight;

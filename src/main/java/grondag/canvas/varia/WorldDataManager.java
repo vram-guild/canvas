@@ -5,7 +5,6 @@ import net.minecraft.client.render.GameRenderer;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.world.World;
 
-//TODO: still need this?  How much of it?
 public class WorldDataManager {
     public static int LENGTH = 8;
     public static int WORLD_EFFECT_MODIFIER = 0;

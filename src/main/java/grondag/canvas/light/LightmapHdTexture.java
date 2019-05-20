@@ -13,8 +13,6 @@ import grondag.canvas.varia.SimpleImage;
 import grondag.canvas.varia.SimpleTexture;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.util.Identifier;
 
 @Environment(EnvType.CLIENT)
 public class LightmapHdTexture implements AutoCloseable {
@@ -29,15 +27,21 @@ public class LightmapHdTexture implements AutoCloseable {
         return result;
     }
 
-    private final SimpleTexture texture;
-    private final SimpleImage image;
-    private final Identifier textureIdentifier = new Identifier("canvas", "light_map");
-    private final MinecraftClient client;
+    public static void forceReload() {
+        // just clear image if size is same
+        if(instance != null && instance.texture.getImage().width == LightmapSizer.texSize) {
+            instance.clear();
+        } else if(instance != null) {
+            instance.close();
+            instance = null;
+        }
+    }
+    
+    private SimpleTexture texture;
+    private SimpleImage image;
 
     private LightmapHdTexture() {
-        this.client = MinecraftClient.getInstance();
-        this.texture = new SimpleTexture(new SimpleImage(1, GL11.GL_RED, LightmapHd.TEX_SIZE, LightmapHd.TEX_SIZE, false), GL11.GL_RED);
-        this.client.getTextureManager().registerTexture(textureIdentifier, this.texture);
+        this.texture = new SimpleTexture(new SimpleImage(1, GL11.GL_RED, LightmapSizer.texSize, LightmapSizer.texSize, false), GL11.GL_RED);
         this.image = this.texture.getImage();
         clear();
     }
@@ -47,11 +51,6 @@ public class LightmapHdTexture implements AutoCloseable {
         this.texture.upload();
     }
 
-    public void forceReload() {
-        LightmapHd.forceReload();
-        clear();
-    }
-
     private static final ConcurrentLinkedQueue<LightmapHd> updates = new ConcurrentLinkedQueue<>();
     
     public void enque(LightmapHd lightmap) {
@@ -59,8 +58,8 @@ public class LightmapHdTexture implements AutoCloseable {
         final int uMap = lightmap.uMinImg;
         final int vMap = lightmap.vMinImg;
         
-        for(int u = 0; u < LightmapHd.PADDED_SIZE; u++) {
-            for(int v = 0; v < LightmapHd.PADDED_SIZE; v++) {
+        for(int u = 0; u < LightmapSizer.paddedSize; u++) {
+            for(int v = 0; v < LightmapSizer.paddedSize; v++) {
                 image.setLuminance(uMap + u, vMap + v, (byte)lightmap.pixel(u,v));
             }
         }
@@ -91,10 +90,9 @@ public class LightmapHdTexture implements AutoCloseable {
             return;
         }
 
-        //UGLY: clean up and use ReliableImage methods instead
+        //TODO: make this dynamically assigned by Shader uniform manager
         GlStateManager.activeTexture(GLX.GL_TEXTURE2);
-        this.client.getTextureManager().bindTexture(this.textureIdentifier);
-        
+        this.texture.bindTexture();
         
         final int mode = Configurator.lightmapDebug ? GL11.GL_NEAREST : GL11.GL_LINEAR;
         GlStateManager.texParameter(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, mode);
@@ -126,8 +124,8 @@ public class LightmapHdTexture implements AutoCloseable {
             final int vMap = map.vMinImg;
             uMin = Math.min(uMin, uMap);
             vMin = Math.min(vMin, vMap);
-            uMax = Math.max(uMax, uMap + LightmapHd.PADDED_SIZE);
-            vMax = Math.max(vMax, vMap + LightmapHd.PADDED_SIZE);
+            uMax = Math.max(uMax, uMap + LightmapSizer.paddedSize);
+            vMax = Math.max(vMax, vMap + LightmapSizer.paddedSize);
         }
         
         if(uMin == Integer.MAX_VALUE) {

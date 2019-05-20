@@ -17,6 +17,7 @@
 	"MixinChunkRendererRegion",
 	"MixinChunkRenderTask",
 	"MixinChunkRenderWorker",
+	"MixinDebugHud",
 	"MixinFirstPersonRenderer",
     "MixinFogState",
     "MixinGameRenderer",
