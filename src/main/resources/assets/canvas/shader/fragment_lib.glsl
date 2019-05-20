@@ -45,10 +45,10 @@ vec2 lightCoord() {
     // PERF: return directly vs extra math below
     vec2 lightCoord = vec2(block.r, sky.r) * 15.0;
 
-#if ENABLE_LIGHT_NOISE
-    vec4 dither = texture2D(u_dither, gl_FragCoord.xy / 8.0);
-    lightCoord += dither.r / 64.0 - (1.0 / 128.0);
-#endif
+    #if ENABLE_LIGHT_NOISE
+        vec4 dither = texture2D(u_dither, gl_FragCoord.xy / 8.0);
+        lightCoord += dither.r / 64.0 - (1.0 / 128.0);
+    #endif
 
     return (lightCoord + 0.5) / 16.0;
 #else
