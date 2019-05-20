@@ -24,12 +24,14 @@
   "mixins": [
     "canvas.client.json"
   ],
-  "requires": {
+  "depends": {
     "fabricloader": ">=0.4.7",
-    "fabric": "*",
     "frex": ">=0.6.6",
     "fermion": ">=0.4.0",
-    "cloth-config": ">=0.2.1"
+    "cloth-config": ">=0.2.1",
+    "fabric-api-base": "*",
+    "fabric-renderer-api-v1": "*",
+    "fabric-rendering-data-attachment-v1": "*"
   },
   "custom": {
     "modmenu:api": true,

@@ -391,6 +391,11 @@ public class Configurator {
         return Optional.of(Configurator::display);
     }
     
+    public static Screen getRawConfigScreen(Screen screen) {
+        screenIn = screen;
+        return display();
+    }
+    
     private static void saveUserInput(SavedConfig config) {
         saveConfig();
         

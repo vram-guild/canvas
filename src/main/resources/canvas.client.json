@@ -29,6 +29,7 @@
 	"MixinPalettedContainer",
 	"MixinTessellator",
 	"MixinVboChunkRendererList",
+	"MixinVideoOptionsScreen",
 	"MixinWorldRenderer"
       ],
   "injectors": {

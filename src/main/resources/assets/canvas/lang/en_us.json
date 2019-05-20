@@ -7,6 +7,7 @@
 	"error.canvas.program_link_failure" : "Canvas unable to create linked shader due to unexpected error.",
 	"error.canvas.fail_create_lightmap" : "Canvas unable to create HD lightmap(s) - out of space. \nSome blocks will not render with proper lighting. \nReduce view distance or disable HD lightmaps. F3+A will temporarily clear this problem.",
 	
+	"config.canvas.button" : "Canvas",
 	"config.canvas.title" : "Canvas Renderer Configuration",
 	"config.canvas.reset" : "Reset",
 	
