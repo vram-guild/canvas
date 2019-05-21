@@ -233,7 +233,9 @@ abstract class AbstractGlShader {
                     "#define DIFFUSE_SHADING_MODE DIFFUSE_MODE_" + Configurator.diffuseShadingMode.name());
         }
         
-        if(!CanvasGlHelper.useGpuShader4() ) {
+        if(CanvasGlHelper.useGpuShader4() ) {
+            result = result.replaceAll("#define USE_FLAT_VARYING FALSE", "#define USE_FLAT_VARYING TRUE");
+        } else {
             result = result.replaceAll("#extension GL_EXT_gpu_shader4 : enable", "");
         }
         

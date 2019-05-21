@@ -1,11 +1,11 @@
 #version 120
 #extension GL_EXT_gpu_shader4 : enable
 
-// will be changed to sprite depth (1, 2 or 3) before compile
-#define LAYER_COUNT 1
-
 #define TRUE 1
 #define FALSE 0
+
+// will be changed to sprite depth (1, 2 or 3) before compile
+#define LAYER_COUNT 1
 
 // true if first sprite color is all white and will not be sent
 // false if first sprite is colorized or compact formats are disabled
@@ -98,12 +98,14 @@ varying vec2 v_texcoord_0;
 //TODO - disable when not used
 varying vec2 v_lightcoord;
 
-#ifdef GL_EXT_gpu_shader4
-    // may be faster when available
+#define USE_FLAT_VARYING FALSE
+
+#if USE_FLAT_VARYING
+    // may be faster when available and
+    // prevents problems on some NVidia cards/drives
     flat varying vec2 v_flags;
 #else
-    // flat no available on mesa drivers and
-    // plain varying caused some issues in past with NVidia drivers
+    // flat no available on mesa drivers
     invariant varying vec2 v_flags;
 #endif
 
