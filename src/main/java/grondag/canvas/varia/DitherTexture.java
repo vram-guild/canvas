@@ -1,9 +1,8 @@
 package grondag.canvas.varia;
 
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL13;
+import org.lwjgl.opengl.GL21;
 
-import com.mojang.blaze3d.platform.GLX;
 import com.mojang.blaze3d.platform.GlStateManager;
 
 import grondag.canvas.Configurator;
@@ -46,28 +45,29 @@ public class DitherTexture implements AutoCloseable {
     }
     
     public void disable() {
-        if(!Configurator.hdLightmaps) {
+        if(!Configurator.lightmapNoise) {
             return;
         }
 
-        GlStateManager.activeTexture(GL13.GL_TEXTURE3);
+        //TODO: dynamically map texture IDs
+        GlStateManager.activeTexture(GL21.GL_TEXTURE5);
         GlStateManager.disableTexture();
-        GlStateManager.activeTexture(GL13.GL_TEXTURE3);
+        GlStateManager.activeTexture(GL21.GL_TEXTURE0);
     }
     
     public void enable() {
-        if(!Configurator.hdLightmaps) {
+        if(!Configurator.lightmapNoise) {
             return;
         }
 
-        GlStateManager.activeTexture(GL13.GL_TEXTURE3);
+        GlStateManager.activeTexture(GL21.GL_TEXTURE5);
         this.client.getTextureManager().bindTexture(this.textureIdentifier);
         GlStateManager.texParameter(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, GL11.GL_REPEAT);
         GlStateManager.texParameter(GL11.GL_TEXTURE_2D,  GL11.GL_TEXTURE_WRAP_T, GL11.GL_REPEAT);
         GlStateManager.texParameter(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_NEAREST);
         GlStateManager.texParameter(GL11.GL_TEXTURE_2D,  GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_NEAREST);
         GlStateManager.enableTexture();
-        GlStateManager.activeTexture(GLX.GL_TEXTURE0);
+        GlStateManager.activeTexture(GL21.GL_TEXTURE0);
     }
     
     public void tick() {

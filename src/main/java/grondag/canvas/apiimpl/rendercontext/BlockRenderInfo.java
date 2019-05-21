@@ -19,6 +19,8 @@ package grondag.canvas.apiimpl.rendercontext;
 import java.util.Random;
 import java.util.function.Supplier;
 
+import grondag.canvas.Configurator;
+import grondag.canvas.Configurator.AoMode;
 import grondag.canvas.chunk.ChunkRenderInfo;
 import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachedBlockView;
 import net.minecraft.block.BlockRenderLayer;
@@ -67,7 +69,8 @@ public class BlockRenderInfo {
         // in the unlikely case seed actually matches this, we'll simply retrieve it
         // more than one
         seed = -1L;
-        defaultAo = modelAO && MinecraftClient.isAmbientOcclusionEnabled() && blockState.getLuminance() == 0;
+        // PERF: Cache this check?  This code will be very hot.
+        defaultAo = modelAO && MinecraftClient.isAmbientOcclusionEnabled() && blockState.getLuminance() == 0 ;
         defaultLayerIndex = blockState.getBlock().getRenderLayer().ordinal();
     }
 

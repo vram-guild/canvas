@@ -3,8 +3,8 @@ package grondag.canvas.light;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL21;
 
-import com.mojang.blaze3d.platform.GLX;
 import com.mojang.blaze3d.platform.GlStateManager;
 
 import grondag.canvas.Configurator;
@@ -78,9 +78,9 @@ public class LightmapHdTexture implements AutoCloseable {
             return;
         }
 
-        GlStateManager.activeTexture(GLX.GL_TEXTURE2);
+        GlStateManager.activeTexture(GL21.GL_TEXTURE4);
         GlStateManager.disableTexture();
-        GlStateManager.activeTexture(GLX.GL_TEXTURE0);
+        GlStateManager.activeTexture(GL21.GL_TEXTURE0);
     }
 
     public void enable() {
@@ -91,7 +91,7 @@ public class LightmapHdTexture implements AutoCloseable {
         }
 
         //TODO: make this dynamically assigned by Shader uniform manager
-        GlStateManager.activeTexture(GLX.GL_TEXTURE2);
+        GlStateManager.activeTexture(GL21.GL_TEXTURE4);
         this.texture.bindTexture();
         
         final int mode = Configurator.lightmapDebug ? GL11.GL_NEAREST : GL11.GL_LINEAR;
@@ -99,7 +99,7 @@ public class LightmapHdTexture implements AutoCloseable {
         GlStateManager.texParameter(GL11.GL_TEXTURE_2D,  GL11.GL_TEXTURE_MAG_FILTER, mode);
         GlStateManager.color4f(1.0F, 1.0F, 1.0F, 1.0F);
         GlStateManager.enableTexture();
-        GlStateManager.activeTexture(GLX.GL_TEXTURE0);
+        GlStateManager.activeTexture(GL21.GL_TEXTURE0);
     }
 
     private int frameCounter = 0;
