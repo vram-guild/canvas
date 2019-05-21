@@ -1,7 +1,6 @@
 {
 	"debug.canvas.missing_uniform" : "Canvas unable to find uniform %s in shaders %s, %s. This is normal if the uniform isn't used in the shader.",
 	"info.canvas.reloading" : "Canvas Renderer is initializing.",
-	"warn.canvas.slow_gl_call" : "Canvas unable to obtain a fast call path to %s due to reflection error. Render performance may be reduced.",
 	"error.canvas.fail_create_shader" : "Canvas unable to create shader %s with property index %d due to unexpected error: %s.",
 	"error.canvas.fail_create_any_shader" : "Canvas unable to create one or more shaders due to compilation errors. See canvas_shader_debug folder for details.",
 	"error.canvas.program_link_failure" : "Canvas unable to create linked shader due to unexpected error.",

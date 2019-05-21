@@ -16,16 +16,9 @@
 
 package grondag.canvas.varia;
 
-import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.nio.ByteOrder;
-import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
 import org.apache.logging.log4j.Logger;
-import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.ARBVertexArrayObject;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL20;
@@ -37,19 +30,14 @@ import com.mojang.blaze3d.platform.GLX;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.resource.language.I18n;
 
 public class CanvasGlHelper {
-    static private final MethodHandles.Lookup lookup = MethodHandles.lookup();
-
     static boolean useVboArb;
     static private boolean vaoEnabled = false;
     static private boolean useVaoArb = false;
     static private boolean useGpuShader4 = false;
     
     public static void init() {
-        initFastNioCopy();
-
         GLCapabilities caps = GL.getCapabilities();
         useVboArb = !caps.OpenGL15 && caps.GL_ARB_vertex_buffer_object;
         vaoEnabled = caps.GL_ARB_vertex_array_object || caps.OpenGL30;
@@ -127,73 +115,6 @@ public class CanvasGlHelper {
 
     public static String getShaderInfoLog(int obj) {
         return GLX.glGetProgramInfoLog(obj, GLX.glGetShaderi(obj, GL20.GL_INFO_LOG_LENGTH));
-    }
-
-    static private MethodHandle nioCopyFromArray = null;
-    static private MethodHandle nioCopyFromIntArray = null;
-    static private boolean fastNioCopy = true;
-    static private long nioFloatArrayBaseOffset;
-    static private boolean nioFloatNeedsFlip;
-    static private MethodHandle fastMatrixBufferCopyHandler;
-
-    private static void initFastNioCopy() {
-        try {
-            Class<?> clazz = Class.forName("java.nio.Bits");
-            Method nioCopyFromArray = clazz.getDeclaredMethod("copyFromArray", Object.class, long.class, long.class,
-                    long.class, long.class);
-            nioCopyFromArray.setAccessible(true);
-            CanvasGlHelper.nioCopyFromArray = lookup.unreflect(nioCopyFromArray);
-
-            Method nioCopyFromIntArray = clazz.getDeclaredMethod("copyFromIntArray", Object.class, long.class,
-                    long.class, long.class);
-            nioCopyFromIntArray.setAccessible(true);
-            CanvasGlHelper.nioCopyFromIntArray = lookup.unreflect(nioCopyFromIntArray);
-
-            clazz = Class.forName("java.nio.DirectFloatBufferU");
-            Field f = clazz.getDeclaredField("arrayBaseOffset");
-            f.setAccessible(true);
-            nioFloatArrayBaseOffset = f.getLong(null);
-
-            FloatBuffer testBuffer = BufferUtils.createFloatBuffer(16);
-            nioFloatNeedsFlip = testBuffer.order() != ByteOrder.nativeOrder();
-
-            fastNioCopy = true;
-
-            if (fastNioCopy) {
-                Method handlerMethod;
-                if (nioFloatNeedsFlip)
-                    handlerMethod = CanvasGlHelper.class.getDeclaredMethod("fastMatrix4fBufferCopyFlipped",
-                            float[].class, long.class);
-                else
-                    handlerMethod = CanvasGlHelper.class.getDeclaredMethod("fastMatrix4fBufferCopyStraight",
-                            float[].class, long.class);
-
-                fastMatrixBufferCopyHandler = lookup.unreflect(handlerMethod);
-            }
-        } catch (Exception e) {
-            fastNioCopy = false;
-            CanvasMod.LOG.error(I18n.translate("warn.canvas.slow_gl_call", "fastNioCopy"), e);
-        }
-    }
-
-    public static final boolean isFastNioCopyEnabled() {
-        return fastNioCopy;
-    }
-
-    public static final void fastMatrix4fBufferCopy(float[] elements, long bufferAddress) {
-        try {
-            fastMatrixBufferCopyHandler.invokeExact(elements, bufferAddress);
-        } catch (Throwable e) {
-            throw new UnsupportedOperationException(e);
-        }
-    }
-
-    public static final void fastMatrix4fBufferCopyFlipped(float[] elements, long bufferAddress) throws Throwable {
-        nioCopyFromIntArray.invokeExact((Object) elements, 0l, bufferAddress, 64l);
-    }
-
-    public static final void fastMatrix4fBufferCopyStraight(float[] elements, long bufferAddress) throws Throwable {
-        nioCopyFromArray.invokeExact((Object) elements, nioFloatArrayBaseOffset, 0l, bufferAddress, 64l);
     }
 
     public static boolean isVaoEnabled() {
