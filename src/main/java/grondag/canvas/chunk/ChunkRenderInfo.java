@@ -79,11 +79,39 @@ public class ChunkRenderInfo {
         this.chunkTask = chunkTask;
     }
 
+//    private static final ConcurrentPerformanceCounter counter = new ConcurrentPerformanceCounter();
+
+    // stable samples - original version
+//    [05:49:13] [Chunk Batcher 9/INFO]: time this sample = 9.480s for 2,000 items @ 4740143ns each.
+//    [05:49:25] [Chunk Batcher 9/INFO]: time this sample = 9.260s for 2,000 items @ 4630223ns each.
+//    [05:49:25] [Chunk Batcher 10/INFO]: time this sample = 9.265s for 2,001 items @ 4630319ns each.
+//    [05:49:35] [Chunk Batcher 11/INFO]: time this sample = 10.096s for 2,000 items @ 5047808ns each.
+//    [05:49:43] [Chunk Batcher 12/INFO]: time this sample = 10.832s for 2,000 items @ 5416180ns each.
+//    [05:49:52] [Chunk Batcher 14/INFO]: time this sample = 9.635s for 2,000 items @ 4817543ns each.
+//    [05:49:52] [Chunk Batcher 11/INFO]: time this sample = 9.641s for 2,001 items @ 4818034ns each.
+//    [05:49:52] [Chunk Batcher 12/INFO]: time this sample = 9.648s for 2,002 items @ 4819068ns each.
+           
+    // after integer math + simpler indexing
+//    [07:40:51] [Chunk Batcher 6/INFO]: time this sample = 8.103s for 2,000 items @ 4051533ns each.
+//    [07:40:51] [Chunk Batcher 1/INFO]: time this sample = 8.106s for 2,001 items @ 4051069ns each.
+//    [07:40:58] [Chunk Batcher 0/INFO]: time this sample = 7.770s for 2,000 items @ 3884816ns each.
+//    [07:41:06] [Chunk Batcher 6/INFO]: time this sample = 5.997s for 2,000 items @ 2998444ns each.
+//    [07:41:39] [Chunk Batcher 1/INFO]: time this sample = 6.762s for 2,000 items @ 3380933ns each.
+//    [07:42:01] [Chunk Batcher 7/INFO]: time this sample = 6.655s for 2,000 items @ 3327388ns each.
+            
     public void prepare(ChunkRenderer chunkRenderer, BlockPos.Mutable chunkOrigin) {
         this.chunkData = chunkTask.getRenderData();
         this.chunkRenderer = chunkRenderer;
         if(Configurator.lightSmoothing) {
+//            final long start = counter.startRun();
             LightSmoother.computeSmoothedBrightness(chunkOrigin, blockView, blockView.brightnessCache);
+            
+//            counter.endRun(start);
+//            counter.addCount(1);
+//            if(counter.runCount() >= 2000) {
+//                CanvasMod.LOG.info(counter.stats());
+//                counter.clearStats();
+//            }
         }
     }
 
@@ -120,11 +148,11 @@ public class ChunkRenderInfo {
             }
         }
     }
-    
+
     public int cachedBrightness(BlockPos pos) {
         return blockView.cachedBrightness(pos);
     }
-    
+
     public float cachedAoLevel(BlockPos pos) {
         return blockView.cachedAoLevel(pos);
     }

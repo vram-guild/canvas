@@ -192,6 +192,10 @@ public class FastRenderRegion implements RenderAttachedBlockView {
         return result;
     }
     
+    public int directBrightness(BlockPos pos) {
+        return getBlockState(pos).getBlockBrightness(this, pos);
+    }
+    
     public float cachedAoLevel(BlockPos pos) {
         long key = PackedBlockPos.pack(pos);
         float result = aoLevelCache.get(key);
