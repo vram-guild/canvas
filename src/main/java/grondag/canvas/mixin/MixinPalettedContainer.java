@@ -19,8 +19,9 @@ package grondag.canvas.mixin;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
+import grondag.canvas.chunk.ChunkPaletteCopier;
+import grondag.canvas.chunk.ChunkPaletteCopier.PaletteCopy;
 import grondag.canvas.chunk.PalettedContainerExt;
-import grondag.canvas.chunk.ChunkHack.PaletteCopy;
 import net.minecraft.block.BlockState;
 import net.minecraft.util.PackedIntegerArray;
 import net.minecraft.world.chunk.Palette;
@@ -36,6 +37,6 @@ public abstract class MixinPalettedContainer<T> implements PalettedContainerExt 
     @SuppressWarnings("unchecked")
     @Override
     public PaletteCopy canvas_paletteCopy() {
-        return new PaletteCopy((Palette<BlockState>) palette, data, (BlockState)field_12935);
+        return ChunkPaletteCopier.captureCopy((Palette<BlockState>) palette, data, (BlockState)field_12935);
     }
 }

@@ -19,8 +19,6 @@ package grondag.canvas.apiimpl.rendercontext;
 import java.util.Random;
 import java.util.function.Supplier;
 
-import grondag.canvas.Configurator;
-import grondag.canvas.Configurator.AoMode;
 import grondag.canvas.chunk.ChunkRenderInfo;
 import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachedBlockView;
 import net.minecraft.block.BlockRenderLayer;

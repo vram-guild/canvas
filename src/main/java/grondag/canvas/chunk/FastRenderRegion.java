@@ -18,11 +18,10 @@ package grondag.canvas.chunk;
 
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.function.Function;
-import java.util.function.IntFunction;
 
 import javax.annotation.Nullable;
 
-import grondag.canvas.chunk.ChunkHack.PaletteCopy;
+import grondag.canvas.chunk.ChunkPaletteCopier.PaletteCopy;
 import grondag.fermion.world.PackedBlockPos;
 import it.unimi.dsi.fastutil.longs.Long2FloatOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
@@ -88,9 +87,8 @@ public class FastRenderRegion implements RenderAttachedBlockView {
     
     private Function<BlockPos, Object> renderFunc;
 
-    @SuppressWarnings("unchecked")
     // larger than it needs to be to speed up indexing
-    public final IntFunction<BlockState>[] sectionCopies = new IntFunction[64];
+    public final PaletteCopy[] sectionCopies = new PaletteCopy[64];
 
     private FastRenderRegion() {
         brightnessCache = new Long2IntOpenHashMap(65536);
@@ -114,7 +112,7 @@ public class FastRenderRegion implements RenderAttachedBlockView {
         for(int x = 0; x < 3; x++) {
             for(int z = 0; z < 3; z++) {
                 for(int y = 0; y < 3; y++) {
-                    sectionCopies[x | (y << 2) | (z << 4)] = ChunkHack.captureCopy(chunks[x][z], y + secBaseY);
+                    sectionCopies[x | (y << 2) | (z << 4)] = ChunkPaletteCopier.captureCopy(chunks[x][z], y + secBaseY);
                 }
             }
         }
@@ -138,10 +136,8 @@ public class FastRenderRegion implements RenderAttachedBlockView {
     }
 
     public void release() {
-        for(Object o : sectionCopies) {
-            if(o instanceof PaletteCopy) {
-                ((PaletteCopy)o).release();
-            }
+        for(PaletteCopy c : sectionCopies) {
+            if(c != null) c.release();
         }
         release(this);
     }
