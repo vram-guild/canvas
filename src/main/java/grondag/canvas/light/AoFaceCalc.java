@@ -90,10 +90,10 @@ public class AoFaceCalc {
 
     float weigtedAo(float[] w) {
         // PERF: pass ints directly to vertex encoder
-        return (aoBottomRight * w[0] + aoBottomLeft * w[1] + aoTopLeft * w[2] + aoTopRight * w[3]) / 255f;
+        return (aoBottomRight * w[0] + aoBottomLeft * w[1] + aoTopLeft * w[2] + aoTopRight * w[3]);
     }
 
-    int maxAo(int oldMax) {
+    float maxAo(float oldMax) {
         final int x = aoBottomRight > aoBottomLeft ? aoBottomRight : aoBottomLeft;
         final int y = aoTopLeft > aoTopRight ? aoTopLeft : aoTopRight;
         final int z = x > y ? x : y;
@@ -102,10 +102,10 @@ public class AoFaceCalc {
 
     AoFaceCalc toArray(float[] aoOut, int[] lightOut, int[] vertexMap) {
         // PERF: pass ints directly to vertex encoder
-        aoOut[vertexMap[0]] = aoBottomRight / 255f;
-        aoOut[vertexMap[1]] = aoBottomLeft / 255f;
-        aoOut[vertexMap[2]] = aoTopLeft / 255f;
-        aoOut[vertexMap[3]] = aoTopRight / 255f;
+        aoOut[vertexMap[0]] = aoBottomRight * AoCalculator.DIVIDE_BY_255;
+        aoOut[vertexMap[1]] = aoBottomLeft * AoCalculator.DIVIDE_BY_255;
+        aoOut[vertexMap[2]] = aoTopLeft * AoCalculator.DIVIDE_BY_255;
+        aoOut[vertexMap[3]] = aoTopRight * AoCalculator.DIVIDE_BY_255;
         
         lightOut[vertexMap[0]] = skyBottomRight << 16 | blockBottomRight;
         lightOut[vertexMap[1]] = skyBottomLeft << 16 | blockBottomLeft;

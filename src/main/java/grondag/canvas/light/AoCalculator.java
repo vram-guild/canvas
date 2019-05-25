@@ -50,6 +50,7 @@ import net.minecraft.world.ExtendedBlockView;
  */
 @Environment(EnvType.CLIENT)
 public class AoCalculator {
+    public static final float DIVIDE_BY_255 = 1f / 255f;
     
     //PERF: could be better - or wait for a diff Ao model
     static final int BLEND_CACHE_DIVISION = 16;
@@ -193,7 +194,7 @@ public class AoCalculator {
             final float[] w = quad.w[i];
             wFunc.apply(quad, i, w);
             light[i] = faceData.weightedCombinedLight(w);
-            ao[i] = faceData.weigtedAo(w);
+            ao[i] = faceData.weigtedAo(w) * DIVIDE_BY_255;
         }
     }
     
@@ -251,7 +252,7 @@ public class AoCalculator {
             final float[] w = quad.w[i];
             wFunc.apply(quad, i, w);
             light[i] = faceData.weightedCombinedLight(w);
-            ao[i] = faceData.weigtedAo(w);
+            ao[i] = faceData.weigtedAo(w) * DIVIDE_BY_255;;
         }
     }
 
@@ -297,7 +298,8 @@ public class AoCalculator {
         for (int i = 0; i < 4; i++) {
             normal = quad.hasNormal(i) ? quad.copyNormal(i, vertexNormal) : faceNorm;
             float ao = 0, sky = 0, block = 0;
-            int maxSky = 0, maxBlock = 0, maxAo = 0;
+            int maxSky = 0, maxBlock = 0;
+            float maxAo = 0;
 
             final float x = normal.x();
             if (!MathHelper.equalsApproximate(0f, x)) {
@@ -342,7 +344,7 @@ public class AoCalculator {
                 maxBlock = fd.maxBlockLight(maxBlock);
             }
 
-            aoResult[i] = (ao + maxAo) * (0.5f / 255f);
+            aoResult[i] = (ao + maxAo) * (0.5f * DIVIDE_BY_255);
             lightResult[i] = (((int) ((sky + maxSky) * 0.5f) & 0xFF) << 16)
                     | ((int) ((block + maxBlock) * 0.5f) & 0xFF);
         }
