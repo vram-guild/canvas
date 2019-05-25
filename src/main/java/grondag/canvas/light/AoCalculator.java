@@ -53,13 +53,14 @@ public class AoCalculator {
     
     //PERF: could be better - or wait for a diff Ao model
     static final int BLEND_CACHE_DIVISION = 16;
-    static final int BLEND_CACHE_DEPTH = BLEND_CACHE_DIVISION - 2;
-    static final int BLEND_CACHE_ARRAY_SIZE = BLEND_CACHE_DIVISION * 6;
+    static final int BLEND_CACHE_DEPTH = BLEND_CACHE_DIVISION - 1;
+    static final int BLEND_CACHE_ARRAY_SIZE = BLEND_CACHE_DEPTH * 6;
     static final int BLEND_INDEX_NO_DEPTH = -1;
     static final int BLEND_INDEX_FULL_DEPTH = BLEND_CACHE_DIVISION - 1;
     
     static int blendIndex(Direction face, float depth) {
-        return face.ordinal() * BLEND_CACHE_DEPTH + (((int)(depth * BLEND_CACHE_DIVISION * 2 + 1)) >> 1) - 1;
+        int depthIndex = MathHelper.clamp((((int)(depth * BLEND_CACHE_DIVISION * 2 + 1)) >> 1), 1, 15) - 1;
+        return face.ordinal() * BLEND_CACHE_DEPTH + depthIndex;
     }
     
     /** Used to receive a method reference in constructor for ao value lookup. */
@@ -218,9 +219,9 @@ public class AoCalculator {
      */
     private AoFaceCalc blendedInsetData(QuadViewImpl quad, int vertexIndex, Direction lightFace) {
         final float w1 = AoFace.get(lightFace).depthFunc.apply(quad, vertexIndex);
-        if (MathHelper.equalsApproximate(w1, 0)) {
+        if (w1 <= 0.03125f) {
             return gatherFace(lightFace, true).calc();
-        } else if (MathHelper.equalsApproximate(w1, 1)) {
+        } else if (w1 >= 0.96875f) {
             return gatherFace(lightFace, false).calc();
         } else {
             int depth = blendIndex(lightFace, w1);

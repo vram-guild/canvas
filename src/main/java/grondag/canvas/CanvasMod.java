@@ -23,6 +23,8 @@ import grondag.canvas.apiimpl.Canvas;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.renderer.v1.RendererAccess;
 
+//TODO: allow for shaders to be defined based on Block materials. Apply only to default material.
+
 //FIX: lighting on dodecs (again)
 //FIX: depth for campfire smoke / water
 //FIX: track lightmap occupancy
