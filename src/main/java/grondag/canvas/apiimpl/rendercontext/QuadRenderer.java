@@ -85,10 +85,10 @@ public class QuadRenderer {
             if (!transform.transform(q)) {
                 return;
             }
-            
-            if (!blockInfo.shouldDrawFace(q.cullFace())) {
-                return;
-            }
+        }
+        
+        if (!blockInfo.shouldDrawFace(q.cullFace())) {
+            return;
         }
         
         final RenderMaterialImpl.Value mat = q.material().forRenderLayer(blockInfo.defaultLayerIndex);
