@@ -188,51 +188,11 @@ public abstract class RenderMaterialImpl {
             this.bits = bits;
             this.shader = shader;
             this.condition = MaterialConditionImpl.fromIndex(CONDITION.getValue(bits));
-            setupBlockLayerVariants();
             hasAo = !disableAo(0) || (spriteDepth() > 1 && !disableAo(1)) || (spriteDepth() == 3 && !disableAo(2));
             emissiveFlags = (emissive(0) ? 1 : 0) | (emissive(1) ? 2 : 0) | (emissive(2) ? 4 : 0);
             this.renderLayer = this.blendMode(0) == BlockRenderLayer.TRANSLUCENT ? BlockRenderLayer.TRANSLUCENT : BlockRenderLayer.SOLID;
         }
 
-        /**
-         * Only called if this has no null blend modes - will be meaningless otherwise.
-         * Materials will null blend modes shouldn't be used - get correct materials
-         * via {@link #forRenderLayer(int)}.
-         */
-        private void setupShaderFlags() {
-            switch(blendMode(0)) {
-            case CUTOUT:
-                FLAGS[UNMIPPED_INDEX_START + 0].setValue(true, this);
-            case CUTOUT_MIPPED:
-                FLAGS[CUTOUT_INDEX_START + 0].setValue(true, this);
-            default:
-                break;
-            }
-            
-            final int depth = this.spriteDepth();
-            if(depth > 1) {
-                switch(blendMode(1)) {
-                case CUTOUT:
-                    FLAGS[UNMIPPED_INDEX_START + 1].setValue(true, this);
-                case CUTOUT_MIPPED:
-                    FLAGS[CUTOUT_INDEX_START + 1].setValue(true, this);
-                default:
-                    break;
-                }
-                
-                if(depth == 3) {
-                switch(blendMode(2)) {
-                    case CUTOUT:
-                        FLAGS[UNMIPPED_INDEX_START + 2].setValue(true, this);
-                    case CUTOUT_MIPPED:
-                        FLAGS[CUTOUT_INDEX_START + 2].setValue(true, this);
-                    default:
-                        break;
-                    }
-                }
-            }
-        }
-        
         private static final ThreadLocal<Finder> variantFinder = ThreadLocal.withInitial(Finder::new); 
         
         private void setupBlockLayerVariants() {
@@ -266,7 +226,6 @@ public abstract class RenderMaterialImpl {
                 }
             } else {
                 // we are a renderable material, so set up control flags needed by shader
-                setupShaderFlags();
                 for(int i = 0; i < 4; i++) {
                     blockLayerVariants[i] = this;
                 }
@@ -308,6 +267,7 @@ public abstract class RenderMaterialImpl {
                 result = new Value(LIST.size(), bits, s);
                 LIST.add(result);
                 MAP.put(result.bits, result);
+                result.setupBlockLayerVariants();
             }
             return result;
         }
@@ -322,6 +282,22 @@ public abstract class RenderMaterialImpl {
         @Override
         public Finder blendMode(int spriteIndex, BlockRenderLayer blendMode) {
             BLEND_MODES[spriteIndex].setValue(blendMode, this);
+            
+            switch(blendMode) {
+            case CUTOUT:
+                FLAGS[CUTOUT_INDEX_START + spriteIndex].setValue(true, this);
+                FLAGS[UNMIPPED_INDEX_START + spriteIndex].setValue(true, this);
+                break;
+            case CUTOUT_MIPPED:
+                FLAGS[CUTOUT_INDEX_START + spriteIndex].setValue(true, this);
+                FLAGS[UNMIPPED_INDEX_START + spriteIndex].setValue(false, this);
+                break;
+            default:
+                FLAGS[CUTOUT_INDEX_START + spriteIndex].setValue(false, this);
+                FLAGS[UNMIPPED_INDEX_START + spriteIndex].setValue(false, this);
+                break;
+            }
+            
             return this;
         }
 
