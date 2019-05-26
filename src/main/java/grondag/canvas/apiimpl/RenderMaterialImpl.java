@@ -314,7 +314,7 @@ public abstract class RenderMaterialImpl {
 
         @Override
         public Finder clear() {
-            bits = 0;
+            bits = DEFAULT_BITS;
             shader = null;
             return this;
         }

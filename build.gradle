@@ -27,7 +27,7 @@ ext.getVersionCode = { ->
 
 archivesBaseName = "canvas"
 group = "grondag"
-version = version = "0.6.2." + project.getVersionCode();
+version = version = "0.6.3-build." + project.getVersionCode();
 
 minecraft {
 }

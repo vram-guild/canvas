@@ -21,7 +21,6 @@ import java.util.function.Supplier;
 
 import grondag.canvas.chunk.ChunkRenderInfo;
 import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachedBlockView;
-import net.minecraft.block.BlockRenderLayer;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.color.block.BlockColors;
@@ -83,9 +82,5 @@ public class BlockRenderInfo {
 
     boolean shouldDrawFace(Direction face) {
         return true;
-    }
-
-    int layerIndexOrDefault(BlockRenderLayer layer) {
-        return layer == null ? this.defaultLayerIndex : layer.ordinal();
     }
 }
