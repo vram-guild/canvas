@@ -48,6 +48,7 @@ public abstract class ShaderProps {
             for(int i = 0; i < 4; i++) {
                 if(white0 && quad.spriteColor(i, 0) != -1) {
                     white0 = false;
+                    break;
                 }
             }
             if(white0) {
