@@ -20,6 +20,7 @@ import java.util.Random;
 import java.util.function.Supplier;
 
 import grondag.canvas.chunk.ChunkRenderInfo;
+import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachedBlockView;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
@@ -37,6 +38,10 @@ import net.minecraft.util.math.Direction;
  */
 public class BlockRenderInfo {
     private final BlockColors blockColorMap = MinecraftClient.getInstance().getBlockColorMap();
+    private final Long2IntOpenHashMap colorCache = new Long2IntOpenHashMap();
+    private boolean needsColorLookup = true;
+    private int blockColor = -1;
+    
     public final Random random = new Random();
     public RenderAttachedBlockView blockView;
     public BlockPos blockPos;
@@ -58,15 +63,15 @@ public class BlockRenderInfo {
 
     public void setBlockView(RenderAttachedBlockView blockView) {
         this.blockView = blockView;
+        colorCache.clear();
     }
 
     public void prepareForBlock(BlockState blockState, BlockPos blockPos, boolean modelAO) {
         this.blockPos = blockPos;
         this.blockState = blockState;
-        // in the unlikely case seed actually matches this, we'll simply retrieve it
-        // more than one
+        needsColorLookup = true;
+        // in the unlikely case seed actually matches this, we'll simply retrieve it more than once
         seed = -1L;
-        // PERF: Cache this check?  This code will be very hot.
         defaultAo = modelAO && MinecraftClient.isAmbientOcclusionEnabled() && blockState.getLuminance() == 0 ;
         defaultLayerIndex = blockState.getBlock().getRenderLayer().ordinal();
     }
@@ -77,7 +82,20 @@ public class BlockRenderInfo {
     }
 
     int blockColor(int colorIndex) {
-        return 0xFF000000 | blockColorMap.getColorMultiplier(blockState, blockView, blockPos, colorIndex);
+        if(needsColorLookup) {
+            final long packedPos = BlockPos.asLong(blockPos.getX(), 0, blockPos.getZ());
+            final int result;
+            if(colorCache.containsKey(packedPos)) {
+                result = colorCache.get(packedPos);
+            } else {
+                result = 0xFF000000 | blockColorMap.getColorMultiplier(blockState, blockView, blockPos, colorIndex);
+                colorCache.put(packedPos, result);
+            }
+            blockColor = result;
+            return result;
+        } else {
+            return blockColor;
+        }
     }
 
     boolean shouldDrawFace(Direction face) {
