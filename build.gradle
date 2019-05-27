@@ -145,7 +145,7 @@ dependencies {
 	//modCompile "cloth:ClothEvents:0.3.1.23" // for REI
 	//modCompile "roughly-enough-items:RoughlyEnoughItems:2.7.11.97"
 	modCompile "grondag:jmx:0.0.2+build.1"
-	modCompile "grondag:instruments:0.0.1+build.1"
+	modCompile "grondag:instruments:0.0.1+build.3"
 	
 	// dev env annotation support
 	compile "org.apiguardian:apiguardian-api:1.0.0"

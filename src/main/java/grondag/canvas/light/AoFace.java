@@ -122,8 +122,8 @@ enum AoFace {
         neighborData[EAST.getId()] = AOF_EAST;
     });
 
-    public static AoFace get(Direction direction) {
-        return values[direction.getId()];
+    public static AoFace get(int directionOrdinal) {
+        return values[directionOrdinal];
     }
 
     /**

@@ -16,9 +16,8 @@
 
 package grondag.canvas.apiimpl.util;
 
-import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 import grondag.canvas.apiimpl.RenderMaterialImpl;
-import net.minecraft.util.math.Direction;
+import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 
 /**
  * Holds all the array offsets and bit-wise encoders/decoders for
@@ -67,20 +66,28 @@ public abstract class MeshEncodingHelper {
     private static final int GEOMETRY_MASK = 0b111;
     private static final int GEOMETRY_INVERSE_MASK = ~(GEOMETRY_MASK << GEOMETRY_SHIFT);
 
-    public static Direction cullFace(int bits) {
-        return ModelHelper.faceFromIndex((bits >> CULL_SHIFT) & DIRECTION_MASK);
+    public static final int DEFAULT_HEADER_BITS;
+    
+    static {
+        int defaultHeader = 0;
+        defaultHeader = cullFace(defaultHeader, ModelHelper.NULL_FACE_ID);
+        defaultHeader = lightFace(defaultHeader, ModelHelper.NULL_FACE_ID);
+        DEFAULT_HEADER_BITS = defaultHeader;
+    }
+    public static int cullFace(int bits) {
+        return (bits >> CULL_SHIFT) & DIRECTION_MASK;
     }
 
-    public static int cullFace(int bits, Direction face) {
-        return (bits & CULL_INVERSE_MASK) | (ModelHelper.toFaceIndex(face) << CULL_SHIFT);
+    public static int cullFace(int bits, int face) {
+        return (bits & CULL_INVERSE_MASK) | (face << CULL_SHIFT);
     }
 
-    public static Direction lightFace(int bits) {
-        return ModelHelper.faceFromIndex((bits >> LIGHT_SHIFT) & DIRECTION_MASK);
+    public static int lightFace(int bits) {
+        return (bits >> LIGHT_SHIFT) & DIRECTION_MASK;
     }
 
-    public static int lightFace(int bits, Direction face) {
-        return (bits & LIGHT_INVERSE_MASK) | (ModelHelper.toFaceIndex(face) << LIGHT_SHIFT);
+    public static int lightFace(int bits, int face) {
+        return (bits & LIGHT_INVERSE_MASK) | (face << LIGHT_SHIFT);
     }
 
     public static int normalFlags(int bits) {

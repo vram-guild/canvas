@@ -34,6 +34,7 @@ import grondag.canvas.apiimpl.util.NormalHelper;
 import grondag.canvas.light.LightmapHd;
 import net.fabricmc.fabric.api.renderer.v1.mesh.MutableQuadView;
 import net.fabricmc.fabric.api.renderer.v1.mesh.QuadView;
+import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 import net.minecraft.client.util.math.Vector3f;
 import net.minecraft.util.math.Direction;
 
@@ -43,9 +44,7 @@ import net.minecraft.util.math.Direction;
  */
 public class QuadViewImpl implements QuadView {
     protected RenderMaterialImpl.Value material;
-    protected Direction cullFace;
-    protected Direction nominalFace;
-    protected Direction lightFace;
+    protected int nominalFaceId = -1;
     protected int colorIndex = -1;
     protected int tag = 0;
     
@@ -140,9 +139,7 @@ public class QuadViewImpl implements QuadView {
         colorIndex = data[baseIndex + HEADER_COLOR_INDEX];
         tag = data[baseIndex + HEADER_TAG];
         geometryFlags = MeshEncodingHelper.geometryFlags(bits);
-        cullFace = MeshEncodingHelper.cullFace(bits);
-        lightFace = MeshEncodingHelper.lightFace(bits);
-        nominalFace = lightFace;
+        nominalFaceId = ModelHelper.NULL_FACE_ID;
         normalFlags = MeshEncodingHelper.normalFlags(bits);
     }
 
@@ -151,10 +148,8 @@ public class QuadViewImpl implements QuadView {
         data[baseIndex + HEADER_MATERIAL] = material.index();
         data[baseIndex + HEADER_COLOR_INDEX] = colorIndex;
         data[baseIndex + HEADER_TAG] = tag;
-        int bits = MeshEncodingHelper.geometryFlags(0, geometryFlags);
+        int bits = MeshEncodingHelper.geometryFlags(data[baseIndex + HEADER_BITS], geometryFlags);
         bits = MeshEncodingHelper.normalFlags(bits, normalFlags);
-        bits = MeshEncodingHelper.cullFace(bits, cullFace);
-        bits = MeshEncodingHelper.lightFace(bits, lightFace);
         data[baseIndex + HEADER_BITS] = bits;
     }
 
@@ -242,19 +237,30 @@ public class QuadViewImpl implements QuadView {
         return tag;
     }
 
+    public final int lightFaceId() {
+        return MeshEncodingHelper.lightFace(data[baseIndex + HEADER_BITS]);
+    }
+    
     @Override
+    @Deprecated
     public final Direction lightFace() {
-        return lightFace;
+        return ModelHelper.faceFromIndex(lightFaceId());
     }
 
+    public final int cullFaceId() {
+        return MeshEncodingHelper.cullFace(data[baseIndex + HEADER_BITS]);
+    }
+    
     @Override
+    @Deprecated
     public final Direction cullFace() {
-        return cullFace;
+        return ModelHelper.faceFromIndex(cullFaceId());
     }
 
     @Override
+    @Deprecated
     public final Direction nominalFace() {
-        return nominalFace;
+        return ModelHelper.faceFromIndex(nominalFaceId);
     }
 
     @Override
@@ -288,11 +294,11 @@ public class QuadViewImpl implements QuadView {
             quad.faceNormal.set(this.faceNormal.x(), this.faceNormal.y(), this.faceNormal.z());
             quad.packedFaceNormal = this.packedFaceNormal;
         }
-        quad.lightFace = this.lightFace;
-        quad.colorIndex = this.colorIndex;
-        quad.tag = this.tag;
-        quad.cullFace = this.cullFace;
-        quad.nominalFace = this.nominalFace;
+        quad.lightFace(lightFaceId());
+        quad.colorIndex(colorIndex());
+        quad.tag(tag());
+        quad.cullFace(cullFaceId());
+        quad.nominalFace(nominalFaceId);
         quad.normalFlags = this.normalFlags;
     }
 

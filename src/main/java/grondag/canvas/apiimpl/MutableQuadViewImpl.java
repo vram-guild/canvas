@@ -17,6 +17,7 @@
 package grondag.canvas.apiimpl;
 
 import static grondag.canvas.apiimpl.util.MeshEncodingHelper.EMPTY;
+import static grondag.canvas.apiimpl.util.MeshEncodingHelper.HEADER_BITS;
 import static grondag.canvas.apiimpl.util.MeshEncodingHelper.NORMALS_OFFSET;
 import static grondag.canvas.apiimpl.util.MeshEncodingHelper.VANILLA_STRIDE;
 import static grondag.canvas.apiimpl.util.MeshEncodingHelper.VERTEX_START_OFFSET;
@@ -26,6 +27,7 @@ import grondag.canvas.apiimpl.util.NormalHelper;
 import grondag.canvas.apiimpl.util.TextureHelper;
 import net.fabricmc.fabric.api.renderer.v1.material.RenderMaterial;
 import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
+import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 import net.minecraft.client.texture.Sprite;
 import net.minecraft.util.math.Direction;
 
@@ -47,9 +49,8 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
         normalFlags = 0;
         tag = 0;
         colorIndex = -1;
-        cullFace = null;
-        lightFace = null;
-        nominalFace = null;
+        data[baseIndex + HEADER_BITS] = MeshEncodingHelper.DEFAULT_HEADER_BITS;
+        nominalFaceId = ModelHelper.NULL_FACE_ID;
         material = Canvas.MATERIAL_STANDARD;
     }
 
@@ -59,22 +60,32 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
         return this;
     }
 
+    public final MutableQuadViewImpl cullFace(int faceId) {
+        data[baseIndex + HEADER_BITS] = MeshEncodingHelper.cullFace(data[baseIndex + HEADER_BITS], faceId);
+        nominalFaceId = faceId;
+        return this;
+    }
+    
     @Override
+    @Deprecated
     public final MutableQuadViewImpl cullFace(Direction face) {
-        cullFace = face;
-        nominalFace = face;
+        return cullFace(ModelHelper.toFaceIndex(face));
+    }
+
+    public final MutableQuadViewImpl lightFace(int faceId) {
+        data[baseIndex + HEADER_BITS] = MeshEncodingHelper.lightFace(data[baseIndex + HEADER_BITS], faceId);
         return this;
     }
 
-    public final MutableQuadViewImpl lightFace(Direction face) {
-        lightFace = face;
+    public final MutableQuadViewImpl nominalFace(int faceId) {
+        nominalFaceId = faceId;
         return this;
     }
-
+    
     @Override
+    @Deprecated
     public final MutableQuadViewImpl nominalFace(Direction face) {
-        nominalFace = face;
-        return this;
+        return nominalFace(ModelHelper.toFaceIndex(face));
     }
 
     @Override

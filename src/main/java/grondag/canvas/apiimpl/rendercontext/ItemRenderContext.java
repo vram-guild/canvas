@@ -216,7 +216,7 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
     private void renderQuad(BakedQuad quad, Direction cullFace, Value defaultMaterial) {
         System.arraycopy(quad.getVertexData(), 0, quadData, MeshEncodingHelper.VERTEX_START_OFFSET, 28);
         editorQuad.cullFace(cullFace);
-        final Direction lightFace = quad.getFace();
+        final int lightFace = ModelHelper.toFaceIndex(quad.getFace());
         editorQuad.lightFace(lightFace);
         editorQuad.nominalFace(lightFace);
         editorQuad.colorIndex(quad.getColorIndex());

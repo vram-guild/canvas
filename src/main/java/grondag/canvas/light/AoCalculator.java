@@ -20,12 +20,6 @@ import static grondag.canvas.apiimpl.util.GeometryHelper.AXIS_ALIGNED_FLAG;
 import static grondag.canvas.apiimpl.util.GeometryHelper.CUBIC_FLAG;
 import static grondag.canvas.apiimpl.util.GeometryHelper.LIGHT_FACE_FLAG;
 import static grondag.canvas.light.AoFaceData.OPAQUE;
-import static net.minecraft.util.math.Direction.DOWN;
-import static net.minecraft.util.math.Direction.EAST;
-import static net.minecraft.util.math.Direction.NORTH;
-import static net.minecraft.util.math.Direction.SOUTH;
-import static net.minecraft.util.math.Direction.UP;
-import static net.minecraft.util.math.Direction.WEST;
 
 import java.util.function.ToIntFunction;
 
@@ -35,13 +29,13 @@ import grondag.canvas.apiimpl.QuadViewImpl;
 import grondag.canvas.apiimpl.rendercontext.BlockRenderInfo;
 import grondag.canvas.light.AoFace.Vertex2Float;
 import grondag.canvas.light.AoFace.WeightFunction;
+import grondag.canvas.varia.BlockPosHelper;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.util.math.Vector3f;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3i;
 import net.minecraft.world.ExtendedBlockView;
 
 /**
@@ -59,9 +53,9 @@ public class AoCalculator {
     static final int BLEND_INDEX_NO_DEPTH = -1;
     static final int BLEND_INDEX_FULL_DEPTH = BLEND_CACHE_DIVISION - 1;
     
-    static int blendIndex(Direction face, float depth) {
+    static int blendIndex(int face, float depth) {
         int depthIndex = MathHelper.clamp((((int)(depth * BLEND_CACHE_DIVISION * 2 + 1)) >> 1), 1, 15) - 1;
-        return face.ordinal() * BLEND_CACHE_DEPTH + depthIndex;
+        return face * BLEND_CACHE_DEPTH + depthIndex;
     }
     
     /** Used to receive a method reference in constructor for ao value lookup. */
@@ -77,12 +71,12 @@ public class AoCalculator {
      */
     private static final int[][] VERTEX_MAP = new int[6][4];
     static {
-        VERTEX_MAP[DOWN.getId()] = new int[] { 0, 1, 2, 3 };
-        VERTEX_MAP[UP.getId()] = new int[] { 2, 3, 0, 1 };
-        VERTEX_MAP[NORTH.getId()] = new int[] { 3, 0, 1, 2 };
-        VERTEX_MAP[SOUTH.getId()] = new int[] { 0, 1, 2, 3 };
-        VERTEX_MAP[WEST.getId()] = new int[] { 3, 0, 1, 2 };
-        VERTEX_MAP[EAST.getId()] = new int[] { 1, 2, 3, 0 };
+        VERTEX_MAP[Direction.DOWN.getId()] = new int[] { 0, 1, 2, 3 };
+        VERTEX_MAP[Direction.UP.getId()] = new int[] { 2, 3, 0, 1 };
+        VERTEX_MAP[Direction.NORTH.getId()] = new int[] { 3, 0, 1, 2 };
+        VERTEX_MAP[Direction.SOUTH.getId()] = new int[] { 0, 1, 2, 3 };
+        VERTEX_MAP[Direction.WEST.getId()] = new int[] { 3, 0, 1, 2 };
+        VERTEX_MAP[Direction.EAST.getId()] = new int[] { 1, 2, 3, 0 };
     }
 
     private final BlockPos.Mutable lightPos = new BlockPos.Mutable();
@@ -182,12 +176,12 @@ public class AoCalculator {
     }
 
     private void vanillaFullFace(MutableQuadViewImpl quad, boolean isOnLightFace) {
-        final Direction lightFace = quad.lightFace();
-        gatherFace(lightFace, isOnLightFace).calc().toArray(ao, light, VERTEX_MAP[lightFace.getId()]);
+        final int lightFace = quad.lightFace().ordinal();
+        gatherFace(lightFace, isOnLightFace).calc().toArray(ao, light, VERTEX_MAP[lightFace]);
     }
 
     private void vanillaPartialFace(MutableQuadViewImpl quad, boolean isOnLightFace) {
-        final Direction lightFace = quad.lightFace();
+        final int lightFace = quad.lightFace().ordinal();
         final AoFaceCalc faceData = gatherFace(lightFace, isOnLightFace).calc();
         final AoFace face = AoFace.get(lightFace);
         final WeightFunction wFunc = face.weightFunc;
@@ -200,7 +194,7 @@ public class AoCalculator {
     }
     
     private void vanillaPartialFaceSmooth(MutableQuadViewImpl quad, boolean isOnLightFace) {
-        final Direction lightFace = quad.lightFace();
+        final int lightFace = quad.lightFace().ordinal();
         AoFaceData faceData = gatherFace(lightFace, isOnLightFace);
         AoFace face = AoFace.get(lightFace);
         final Vertex2Float uFunc = face.uFunc;
@@ -219,7 +213,7 @@ public class AoCalculator {
      * Returns linearly interpolated blend of outer and inner face based on depth of
      * vertex in face
      */
-    private AoFaceCalc blendedInsetData(QuadViewImpl quad, int vertexIndex, Direction lightFace) {
+    private AoFaceCalc blendedInsetData(QuadViewImpl quad, int vertexIndex, int lightFace) {
         final float w1 = AoFace.get(lightFace).depthFunc.apply(quad, vertexIndex);
         if (w1 <= 0.03125f) {
             return gatherFace(lightFace, true).calc();
@@ -240,12 +234,12 @@ public class AoCalculator {
     }
 
     private void blendedFullFace(MutableQuadViewImpl quad) {
-        final Direction lightFace = quad.lightFace();
-        blendedInsetData(quad, 0, lightFace).toArray(ao, light, VERTEX_MAP[lightFace.getId()]);
+        final int lightFace = quad.lightFaceId();
+        blendedInsetData(quad, 0, lightFace).toArray(ao, light, VERTEX_MAP[lightFace]);
     }
 
     private void blendedPartialFace(MutableQuadViewImpl quad) {
-        final Direction lightFace = quad.lightFace();
+        final int lightFace = quad.lightFaceId();
         AoFaceCalc faceData = blendedInsetData(quad, 0, lightFace);
         AoFace face = AoFace.get(lightFace);
         final WeightFunction wFunc = face.weightFunc;
@@ -258,8 +252,7 @@ public class AoCalculator {
     }
 
     private void blendedPartialFaceSmooth(MutableQuadViewImpl quad) {
-        final Direction lightFace = quad.lightFace();
-        
+        final int lightFace = quad.lightFaceId();
         final float w1 = AoFace.get(lightFace).depthFunc.apply(quad, 0);
         final float w0 = 1 - w1;
         // PERF: cache recent results somehow
@@ -284,6 +277,13 @@ public class AoCalculator {
 
     private final float[] w = new float[4];
     
+    private static final int UP = Direction.UP.ordinal();
+    private static final int DOWN = Direction.DOWN.ordinal();
+    private static final int EAST = Direction.EAST.ordinal();
+    private static final int WEST = Direction.WEST.ordinal();
+    private static final int NORTH = Direction.NORTH.ordinal();
+    private static final int SOUTH = Direction.SOUTH.ordinal();
+    
     private void irregularFace(MutableQuadViewImpl quad) {
         final Vector3f faceNorm = quad.faceNormal();
         Vector3f normal;
@@ -304,7 +304,7 @@ public class AoCalculator {
 
             final float x = normal.x();
             if (!MathHelper.equalsApproximate(0f, x)) {
-                final Direction face = x > 0 ? Direction.EAST : Direction.WEST;
+                final int face = x > 0 ? EAST : WEST;
                 // PERF: really need to cache these
                 final AoFaceCalc fd = blendedInsetData(quad, i, face);
                 AoFace.get(face).weightFunc.apply(quad, i, w);
@@ -319,7 +319,7 @@ public class AoCalculator {
 
             final float y = normal.y();
             if (!MathHelper.equalsApproximate(0f, y)) {
-                final Direction face = y > 0 ? Direction.UP : Direction.DOWN;
+                final int face = y > 0 ? UP : DOWN;
                 final AoFaceCalc fd = blendedInsetData(quad, i, face);
                 AoFace.get(face).weightFunc.apply(quad, i, w);
                 final float n = y * y;
@@ -333,7 +333,7 @@ public class AoCalculator {
 
             final float z = normal.z();
             if (!MathHelper.equalsApproximate(0f, z)) {
-                final Direction face = z > 0 ? Direction.SOUTH : Direction.NORTH;
+                final int face = z > 0 ? SOUTH : NORTH;
                 final AoFaceCalc fd = blendedInsetData(quad, i, face);
                 AoFace.get(face).weightFunc.apply(quad, i, w);
                 final float n = z * z;
@@ -366,8 +366,8 @@ public class AoCalculator {
      * in vanilla logic for some blocks that aren't full opaque cubes. Except for
      * parameterization, the logic itself is practically identical to vanilla.
      */
-    private AoFaceData gatherFace(Direction lightFace, boolean isOnBlockFace) {
-        final int faceDataIndex = isOnBlockFace ? lightFace.getId() : lightFace.getId() + 6;
+    private AoFaceData gatherFace(final int lightFace, boolean isOnBlockFace) {
+        final int faceDataIndex = isOnBlockFace ? lightFace : lightFace + 6;
         final int mask = 1 << faceDataIndex;
         final AoFaceData fd = faceData[faceDataIndex];
         if ((completionFlags & mask) == 0) {
@@ -379,14 +379,17 @@ public class AoCalculator {
             final BlockPos.Mutable lightPos = this.lightPos;
             final BlockPos.Mutable searchPos = this.searchPos;
 
-            // PERF: don't generate instance here
-            lightPos.set(isOnBlockFace ? pos.offset(lightFace) : pos);
+            if(isOnBlockFace) {
+                BlockPosHelper.fastFaceOffset(lightPos, pos, lightFace);
+            } else {
+                lightPos.set(pos);
+            }
             AoFace aoFace = AoFace.get(lightFace);
 
             // If on block face or neighbor isn't occluding, "center" will be neighbor
             // brightness
             // Doesn't use light pos because logic not based solely on this block's geometry
-            searchPos.set((Vec3i) pos).setOffset(lightFace);
+            BlockPosHelper.fastFaceOffset(searchPos, pos, lightFace);
             if (isOnBlockFace || !world.getBlockState(searchPos).isFullOpaque(world, searchPos)) {
                 fd.center = brightnessFunc.applyAsInt(searchPos);
             } else {

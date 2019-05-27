@@ -52,7 +52,7 @@ public class FallbackConsumer extends QuadRenderer implements Consumer<BakedMode
     protected static Value MATERIAL_AO_FLAT = (Value) Canvas.INSTANCE.materialFinder().disableDiffuse(0, true).find();
     protected static Value MATERIAL_AO_SHADED = (Value) Canvas.INSTANCE.materialFinder().find();
     
-    protected final int[] editorBuffer = new int[28];
+    protected final int[] editorBuffer = new int[MeshEncodingHelper.HEADER_STRIDE + MeshEncodingHelper.VANILLA_STRIDE];
 
     private final Maker editorQuad;
     
@@ -60,7 +60,6 @@ public class FallbackConsumer extends QuadRenderer implements Consumer<BakedMode
         {
             data = editorBuffer;
             material = MATERIAL_SHADED;
-            baseIndex = -MeshEncodingHelper.HEADER_STRIDE;
         }
 
         @Override
@@ -99,7 +98,7 @@ public class FallbackConsumer extends QuadRenderer implements Consumer<BakedMode
                     final Value defaultMaterial = ((BakedQuadExt)q).canvas_disableDiffuse()
                             ?  (useAo ? MATERIAL_AO_FLAT : MATERIAL_FLAT)
                             :  (useAo ? MATERIAL_AO_SHADED : MATERIAL_SHADED);
-                    renderQuad(q, face, defaultMaterial);
+                    renderQuad(q, i, defaultMaterial);
                 }
             }
         }
@@ -112,16 +111,16 @@ public class FallbackConsumer extends QuadRenderer implements Consumer<BakedMode
                 final Value defaultMaterial = ((BakedQuadExt)q).canvas_disableDiffuse()
                         ?  (useAo ? MATERIAL_AO_FLAT : MATERIAL_FLAT)
                         :  (useAo ? MATERIAL_AO_SHADED : MATERIAL_SHADED);
-                renderQuad(q, null, defaultMaterial);
+                renderQuad(q, ModelHelper.NULL_FACE_ID, defaultMaterial);
             }
         }
     }
     
-    private void renderQuad(BakedQuad quad, Direction cullFace, Value defaultMaterial) {
+    private void renderQuad(BakedQuad quad, int cullFace, Value defaultMaterial) {
         final Maker editorQuad = this.editorQuad;
-        System.arraycopy(quad.getVertexData(), 0, editorBuffer, 0, 28);
+        System.arraycopy(quad.getVertexData(), 0, editorBuffer, MeshEncodingHelper.HEADER_STRIDE, 28);
         editorQuad.cullFace(cullFace);
-        final Direction lightFace = quad.getFace();
+        final int lightFace = ModelHelper.toFaceIndex(quad.getFace());
         editorQuad.lightFace(lightFace);
         editorQuad.nominalFace(lightFace);
         editorQuad.colorIndex(quad.getColorIndex());
@@ -133,7 +132,7 @@ public class FallbackConsumer extends QuadRenderer implements Consumer<BakedMode
             // vanilla compatibility hack
             // For flat lighting, if cull face is set always use neighbor light.
             // Otherwise still need to ensure geometry is updated before offsets are applied
-            if (cullFace == null) {
+            if (cullFace == ModelHelper.NULL_FACE_ID) {
                 editorQuad.invalidateShape();
                 editorQuad.geometryFlags();
             } else {
@@ -151,62 +150,63 @@ public class FallbackConsumer extends QuadRenderer implements Consumer<BakedMode
     private static final float MIN_Z_LOW = 0.002f;
     private static final float MIN_Z_HIGH = 1 - MIN_Z_LOW;
     
-    private void preventDepthFighting() {
-        if(editorQuad.cullFace() == null) {
-            switch(editorQuad.lightFace()) {
-            
-            case DOWN:
-                for(int i = 0; i < 4; i++) {
-                    if(editorQuad.y(i) > MIN_Z_HIGH) {
-                        editorQuad.y(i,MIN_Z_HIGH);
-                    }
+    @SuppressWarnings("unchecked")
+    private static final Consumer<Maker> DEPTH_FIGHTERS[] = new Consumer[6];
+    
+    static {
+        DEPTH_FIGHTERS[Direction.DOWN.ordinal()] = q -> {
+            for(int i = 0; i < 4; i++) {
+                if(q.y(i) > MIN_Z_HIGH) {
+                    q.y(i,MIN_Z_HIGH);
                 }
-                break;
-                
-            case UP:
-                for(int i = 0; i < 4; i++) {
-                    if(editorQuad.y(i) < MIN_Z_LOW) {
-                        editorQuad.y(i, MIN_Z_LOW);
-                    }
-                }
-                break;
-                
-            case NORTH:
-                for(int i = 0; i < 4; i++) {
-                    if(editorQuad.z(i) > MIN_Z_HIGH) {
-                        editorQuad.z(i, MIN_Z_HIGH);
-                    }
-                }
-                break;
-                
-            case SOUTH:
-                for(int i = 0; i < 4; i++) {
-                    if(editorQuad.z(i) < MIN_Z_LOW) {
-                        editorQuad.z(i, MIN_Z_LOW);
-                    }
-                }
-                break;
-                
-            case EAST:
-                for(int i = 0; i < 4; i++) {
-                    if(editorQuad.x(i) < MIN_Z_LOW) {
-                        editorQuad.x(i, MIN_Z_LOW);
-                    }
-                }
-                break;
-                
-            case WEST:
-                for(int i = 0; i < 4; i++) {
-                    if(editorQuad.x(i) > MIN_Z_HIGH) {
-                        editorQuad.x(i, MIN_Z_HIGH);
-                    }
-                }
-                break;
-                
-            default:
-                break;
-            
             }
+        };
+        
+        DEPTH_FIGHTERS[Direction.UP.ordinal()] = q -> {
+            for(int i = 0; i < 4; i++) {
+                if(q.y(i) < MIN_Z_LOW) {
+                    q.y(i, MIN_Z_LOW);
+                }
+            }
+        };
+        
+        DEPTH_FIGHTERS[Direction.NORTH.ordinal()] = q -> {
+            for(int i = 0; i < 4; i++) {
+                if(q.z(i) > MIN_Z_HIGH) {
+                    q.z(i, MIN_Z_HIGH);
+                }
+            }
+        };
+        
+        DEPTH_FIGHTERS[Direction.SOUTH.ordinal()] = q -> {
+            for(int i = 0; i < 4; i++) {
+                if(q.z(i) < MIN_Z_LOW) {
+                    q.z(i, MIN_Z_LOW);
+                }
+            }
+        };
+        
+        DEPTH_FIGHTERS[Direction.EAST.ordinal()] = q -> {
+            for(int i = 0; i < 4; i++) {
+                if(q.x(i) < MIN_Z_LOW) {
+                    q.x(i, MIN_Z_LOW);
+                }
+            }
+        };
+        
+        DEPTH_FIGHTERS[Direction.WEST.ordinal()] = q -> {
+            for(int i = 0; i < 4; i++) {
+                if(q.x(i) > MIN_Z_HIGH) {
+                    q.x(i, MIN_Z_HIGH);
+                }
+            }
+        };
+    }
+    
+    private void preventDepthFighting() {
+        if(editorQuad.cullFaceId() == ModelHelper.NULL_FACE_ID) {
+            Maker q = editorQuad;
+            DEPTH_FIGHTERS[q.lightFaceId()].accept(q);
         }
     }
 }
