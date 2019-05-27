@@ -44,9 +44,7 @@ import net.minecraft.util.math.Direction;
  */
 public class QuadViewImpl implements QuadView {
     protected RenderMaterialImpl.Value material;
-    protected int nominalFaceId = -1;
-    protected int colorIndex = -1;
-    protected int tag = 0;
+    protected int nominalFaceId = ModelHelper.NULL_FACE_ID;
     
     /**
      * indicate if vertex normal has been set - bits correspond to vertex ordinals
@@ -136,8 +134,6 @@ public class QuadViewImpl implements QuadView {
     protected void decodeHeader() {
         material = RenderMaterialImpl.byIndex(data[baseIndex + HEADER_MATERIAL]);
         final int bits = data[baseIndex + HEADER_BITS];
-        colorIndex = data[baseIndex + HEADER_COLOR_INDEX];
-        tag = data[baseIndex + HEADER_TAG];
         geometryFlags = MeshEncodingHelper.geometryFlags(bits);
         nominalFaceId = ModelHelper.NULL_FACE_ID;
         normalFlags = MeshEncodingHelper.normalFlags(bits);
@@ -146,8 +142,6 @@ public class QuadViewImpl implements QuadView {
     /** writes state to header - vertex attributes are saved directly */
     protected void encodeHeader() {
         data[baseIndex + HEADER_MATERIAL] = material.index();
-        data[baseIndex + HEADER_COLOR_INDEX] = colorIndex;
-        data[baseIndex + HEADER_TAG] = tag;
         int bits = MeshEncodingHelper.geometryFlags(data[baseIndex + HEADER_BITS], geometryFlags);
         bits = MeshEncodingHelper.normalFlags(bits, normalFlags);
         data[baseIndex + HEADER_BITS] = bits;
@@ -229,12 +223,12 @@ public class QuadViewImpl implements QuadView {
 
     @Override
     public final int colorIndex() {
-        return colorIndex;
+        return data[baseIndex + HEADER_COLOR_INDEX];
     }
 
     @Override
     public final int tag() {
-        return tag;
+        return data[baseIndex + HEADER_TAG];
     }
 
     public final int lightFaceId() {

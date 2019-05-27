@@ -18,6 +18,8 @@ package grondag.canvas.apiimpl;
 
 import static grondag.canvas.apiimpl.util.MeshEncodingHelper.EMPTY;
 import static grondag.canvas.apiimpl.util.MeshEncodingHelper.HEADER_BITS;
+import static grondag.canvas.apiimpl.util.MeshEncodingHelper.HEADER_COLOR_INDEX;
+import static grondag.canvas.apiimpl.util.MeshEncodingHelper.HEADER_TAG;
 import static grondag.canvas.apiimpl.util.MeshEncodingHelper.NORMALS_OFFSET;
 import static grondag.canvas.apiimpl.util.MeshEncodingHelper.VANILLA_STRIDE;
 import static grondag.canvas.apiimpl.util.MeshEncodingHelper.VERTEX_START_OFFSET;
@@ -47,8 +49,8 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
         System.arraycopy(EMPTY, 0, data, baseIndex, MeshEncodingHelper.MAX_STRIDE);
         invalidateShape();
         normalFlags = 0;
-        tag = 0;
-        colorIndex = -1;
+        data[baseIndex + HEADER_TAG] = 0;
+        data[baseIndex + HEADER_COLOR_INDEX] = -1;
         data[baseIndex + HEADER_BITS] = MeshEncodingHelper.DEFAULT_HEADER_BITS;
         nominalFaceId = ModelHelper.NULL_FACE_ID;
         material = Canvas.MATERIAL_STANDARD;
@@ -90,13 +92,13 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 
     @Override
     public final MutableQuadViewImpl colorIndex(int colorIndex) {
-        this.colorIndex = colorIndex;
+        data[baseIndex + HEADER_COLOR_INDEX] = colorIndex;
         return this;
     }
 
     @Override
     public final MutableQuadViewImpl tag(int tag) {
-        this.tag = tag;
+        data[baseIndex + HEADER_TAG] = tag;
         return this;
     }
 
