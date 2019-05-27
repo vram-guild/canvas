@@ -151,8 +151,6 @@ public abstract class MixinChunkRenderer implements ChunkRendererExt {
         }
     }
 
-//    private static final ConcurrentPerformanceCounter counter = new ConcurrentPerformanceCounter();
-    
     @Inject(method = "rebuildChunk", at = @At("HEAD"), cancellable = true, require = 1)
     private void onRebuildChunk(final float x, final float y, final float z, final ChunkRenderTask chunkRenderTask, final CallbackInfo ci) {
         
@@ -189,9 +187,6 @@ public abstract class MixinChunkRenderer implements ChunkRendererExt {
             final ChunkRendererRegion vanillaRegion = chunkRenderTask.takeRegion();
             
             if (vanillaRegion != null) {
-                
-//                final long start = counter.startRun();
-                
                 final FastRenderRegion renderRegion = ((ChunkRendererRegionExt)vanillaRegion).canvas_fastRegion();
                 ++chunkUpdateCount;
                 help.prepareCollectors(origin.getX(), origin.getY(), origin.getZ());
@@ -290,13 +285,6 @@ public abstract class MixinChunkRenderer implements ChunkRendererExt {
                  */
                 renderContext.release();
                 BlockModelRenderer.disableBrightnessCache();
-                
-//                counter.endRun(start);
-//                counter.addCount(1);
-//                if(counter.runCount() >= 2000) {
-//                    Canvas.LOG.info(counter.stats());
-//                    counter.clearStats();
-//                }
             }
 
             chunkRenderData.setOcclusionGraph(visibilityData.build());
