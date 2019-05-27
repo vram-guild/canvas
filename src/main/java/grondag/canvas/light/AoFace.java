@@ -16,20 +16,25 @@
 
 package grondag.canvas.light;
 
-import static net.minecraft.util.math.Direction.*;
+import static net.minecraft.util.math.Direction.DOWN;
+import static net.minecraft.util.math.Direction.EAST;
+import static net.minecraft.util.math.Direction.NORTH;
+import static net.minecraft.util.math.Direction.SOUTH;
+import static net.minecraft.util.math.Direction.UP;
+import static net.minecraft.util.math.Direction.WEST;
 
 import grondag.canvas.apiimpl.QuadViewImpl;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.util.SystemUtil;
-import net.minecraft.util.math.Direction;
 
 /**
  * Adapted from vanilla BlockModelRenderer.AoCalculator.
  */
 @Environment(EnvType.CLIENT)
 enum AoFace {
-    AOF_DOWN(new Direction[] { WEST, EAST, NORTH, SOUTH }, (q, i) -> q.y(i), 
+    AOF_DOWN(new int[] { WEST.ordinal(), EAST.ordinal(), NORTH.ordinal(), SOUTH.ordinal() },
+        (q, i) -> q.y(i), 
         (q, i) -> q.z(i),
         (q, i) -> 1 - q.x(i), 
         (q, i, w) -> {
@@ -41,7 +46,8 @@ enum AoFace {
             w[3] = (1 - v) * u;
         }),
     
-    AOF_UP(new Direction[] { EAST, WEST, NORTH, SOUTH }, (q, i) -> 1 - q.y(i), 
+    AOF_UP(new int[] { EAST.ordinal(), WEST.ordinal(), NORTH.ordinal(), SOUTH.ordinal() },
+        (q, i) -> 1 - q.y(i), 
         (q, i) -> q.z(i),
         (q, i) -> q.x(i), 
         (q, i, w) -> {
@@ -53,7 +59,8 @@ enum AoFace {
             w[3] = (1 - v) * u;
     }), 
     
-    AOF_NORTH(new Direction[] { UP, DOWN, EAST, WEST }, (q, i) -> q.z(i),
+    AOF_NORTH(new int[] { UP.ordinal(), DOWN.ordinal(), EAST.ordinal(), WEST.ordinal() },
+        (q, i) -> q.z(i),
         (q, i) -> 1 - q.x(i),
         (q, i) -> q.y(i), 
         (q, i, w) -> {
@@ -64,7 +71,8 @@ enum AoFace {
             w[2] = (1 - v) * (1 - u);
             w[3] = (1 - v) * u;
     }), 
-    AOF_SOUTH(new Direction[] { WEST, EAST, DOWN, UP }, (q, i) -> 1 - q.z(i),
+    AOF_SOUTH(new int[] { WEST.ordinal(), EAST.ordinal(), DOWN.ordinal(), UP.ordinal() },
+        (q, i) -> 1 - q.z(i),
         (q, i) -> q.y(i), 
         (q, i) -> 1 - q.x(i),
         (q, i, w) -> {
@@ -75,7 +83,8 @@ enum AoFace {
             w[2] = (1 - u) * (1 - v);
             w[3] = u * (1 - v);
     }), 
-    AOF_WEST(new Direction[] { UP, DOWN, NORTH, SOUTH }, (q, i) -> q.x(i),
+    AOF_WEST(new int[] { UP.ordinal(), DOWN.ordinal(), NORTH.ordinal(), SOUTH.ordinal() },
+        (q, i) -> q.x(i),
         (q, i) -> q.z(i),
         (q, i) -> q.y(i),
         (q, i, w) -> {
@@ -86,7 +95,8 @@ enum AoFace {
             w[2] = (1 - v) * (1 - u);
             w[3] = (1 - v) * u;
     }), 
-    AOF_EAST(new Direction[] { DOWN, UP, NORTH, SOUTH }, (q, i) -> 1 - q.x(i),
+    AOF_EAST(new int[] { DOWN.ordinal(), UP.ordinal(), NORTH.ordinal(), SOUTH.ordinal() },
+        (q, i) -> 1 - q.x(i),
         (q, i) -> q.z(i),
         (q, i) -> 1 - q.y(i),
         (q, i, w) -> {
@@ -98,13 +108,13 @@ enum AoFace {
             w[3] = (1 - v) * u;
     });
 
-    final Direction[] neighbors;
+    final int[] neighbors;
     final WeightFunction weightFunc;
     final Vertex2Float depthFunc;
     final Vertex2Float uFunc;
     final Vertex2Float vFunc;
 
-    private AoFace(Direction[] faces, Vertex2Float depthFunc, 
+    private AoFace(int[] faces, Vertex2Float depthFunc, 
             Vertex2Float uFunc, Vertex2Float vFunc, WeightFunction weightFunc) {
         this.neighbors = faces;
         this.depthFunc = depthFunc;
