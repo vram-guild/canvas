@@ -92,7 +92,7 @@ public class FallbackConsumer extends QuadRenderer implements Consumer<BakedMode
             Direction face = ModelHelper.faceFromIndex(i);
             List<BakedQuad> quads = model.getQuads(blockState, face, random.get());
             final int count = quads.size();
-            if (count != 0 && blockInfo.shouldDrawFace(face)) {
+            if (count != 0 && blockInfo.shouldDrawFace(i)) {
                 for (int j = 0; j < count; j++) {
                     BakedQuad q = quads.get(j);
                     final Value defaultMaterial = ((BakedQuadExt)q).canvas_disableDiffuse()
@@ -144,7 +144,17 @@ public class FallbackConsumer extends QuadRenderer implements Consumer<BakedMode
             preventDepthFighting();
         }
         
-        super.renderQuad(editorQuad);
+        if(hasTransform.getAsBoolean()) {
+            if (!transform.transform(editorQuad)) {
+                return;
+            }
+            
+            // culling will have already happened unless transform changed things
+            if (!blockInfo.shouldDrawFace(editorQuad.cullFaceId())) {
+                return;
+            }
+        }
+        super.renderQuadInner(editorQuad);
     }
     
     private static final float MIN_Z_LOW = 0.002f;

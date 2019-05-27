@@ -25,7 +25,6 @@ import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.color.block.BlockColors;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
 
 /**
  * Holds, manages and provides access to the block/world related state needed by
@@ -88,7 +87,7 @@ public class BlockRenderInfo {
         }
     }
 
-    boolean shouldDrawFace(Direction face) {
+    boolean shouldDrawFace(int face) {
         return true;
     }
 }

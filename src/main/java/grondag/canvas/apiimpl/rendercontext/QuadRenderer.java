@@ -76,7 +76,7 @@ public class QuadRenderer {
         ColorHelper.colorizeQuad(q, blockColorIndex == -1 ? -1 : (blockInfo.blockColor(blockColorIndex)));
     }
 
-    /** final output step, common to all renders */
+    /** final output step */
     protected final void renderQuad(final MutableQuadViewImpl q) {
         if(hasTransform.getAsBoolean()) {
             if (!transform.transform(q)) {
@@ -84,10 +84,17 @@ public class QuadRenderer {
             }
         }
         
-        if (!blockInfo.shouldDrawFace(q.cullFace())) {
+        if (!blockInfo.shouldDrawFace(q.cullFaceId())) {
             return;
         }
         
+        renderQuadInner(q);
+    }
+    
+    /**
+     * Use when transform and face call have already been applied/checked.
+     */
+    protected void renderQuadInner(final MutableQuadViewImpl q) {
         final RenderMaterialImpl.Value mat = q.material().forRenderLayer(blockInfo.defaultLayerIndex);
         
         final boolean isAo = blockInfo.defaultAo && mat.hasAo;

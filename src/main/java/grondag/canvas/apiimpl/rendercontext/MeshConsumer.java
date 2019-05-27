@@ -16,6 +16,8 @@
 
 package grondag.canvas.apiimpl.rendercontext;
 
+import static grondag.canvas.apiimpl.util.MeshEncodingHelper.HEADER_BITS;
+
 import java.util.function.BiFunction;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
@@ -87,10 +89,24 @@ public class MeshConsumer extends QuadRenderer implements Consumer<Mesh> {
         while (index < limit) {
             RenderMaterialImpl.Value mat = RenderMaterialImpl.byIndex(data[index]);
             final int stride = MeshEncodingHelper.stride(mat.spriteDepth());
-            System.arraycopy(data, index, q.data(), 0, stride);
-            q.load();
+            
+            if(hasTransform.getAsBoolean()) {
+                System.arraycopy(data, index, q.data(), 0, stride);
+                q.load();
+                if (blockInfo.shouldDrawFace(q.cullFaceId())) {
+                    renderQuadInner(q);
+                }
+            } else {
+                // early out for culling
+                final int cullFace = MeshEncodingHelper.cullFace(data[index + HEADER_BITS]);
+                if (blockInfo.shouldDrawFace(cullFace)) {
+                    System.arraycopy(data, index, q.data(), 0, stride);
+                    q.load();
+                    renderQuadInner(q);
+                }
+            }
+            
             index += stride;
-            renderQuad(q);
         }
     }
 

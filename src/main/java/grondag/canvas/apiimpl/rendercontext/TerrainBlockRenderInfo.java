@@ -16,10 +16,10 @@
 
 package grondag.canvas.apiimpl.rendercontext;
 
+import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
 
 public class TerrainBlockRenderInfo extends BlockRenderInfo {
     private int cullCompletionFlags;
@@ -33,15 +33,15 @@ public class TerrainBlockRenderInfo extends BlockRenderInfo {
     }
 
     @Override
-    boolean shouldDrawFace(Direction face) {
-        if (face == null) {
+    boolean shouldDrawFace(int face) {
+        if (face == ModelHelper.NULL_FACE_ID) {
             return true;
         }
-        final int mask = 1 << face.getId();
+        final int mask = 1 << face;
 
         if ((cullCompletionFlags & mask) == 0) {
             cullCompletionFlags |= mask;
-            if (Block.shouldDrawSide(blockState, blockView, blockPos, face)) {
+            if (Block.shouldDrawSide(blockState, blockView, blockPos, ModelHelper.faceFromIndex(face))) {
                 cullResultFlags |= mask;
                 return true;
             } else {
