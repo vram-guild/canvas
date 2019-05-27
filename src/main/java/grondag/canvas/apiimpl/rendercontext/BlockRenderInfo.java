@@ -20,7 +20,6 @@ import java.util.Random;
 import java.util.function.Supplier;
 
 import grondag.canvas.chunk.ChunkRenderInfo;
-import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachedBlockView;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
@@ -38,7 +37,6 @@ import net.minecraft.util.math.Direction;
  */
 public class BlockRenderInfo {
     private final BlockColors blockColorMap = MinecraftClient.getInstance().getBlockColorMap();
-    private final Long2IntOpenHashMap colorCache = new Long2IntOpenHashMap();
     private boolean needsColorLookup = true;
     private int blockColor = -1;
     
@@ -63,7 +61,6 @@ public class BlockRenderInfo {
 
     public void setBlockView(RenderAttachedBlockView blockView) {
         this.blockView = blockView;
-        colorCache.clear();
     }
 
     public void prepareForBlock(BlockState blockState, BlockPos blockPos, boolean modelAO) {
@@ -83,14 +80,7 @@ public class BlockRenderInfo {
 
     int blockColor(int colorIndex) {
         if(needsColorLookup) {
-            final long packedPos = BlockPos.asLong(blockPos.getX(), 0, blockPos.getZ());
-            final int result;
-            if(colorCache.containsKey(packedPos)) {
-                result = colorCache.get(packedPos);
-            } else {
-                result = 0xFF000000 | blockColorMap.getColorMultiplier(blockState, blockView, blockPos, colorIndex);
-                colorCache.put(packedPos, result);
-            }
+            final int result = 0xFF000000 | blockColorMap.getColorMultiplier(blockState, blockView, blockPos, colorIndex);
             blockColor = result;
             return result;
         } else {

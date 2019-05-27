@@ -73,7 +73,7 @@ public class QuadRenderer {
     /** handles block color and red-blue swizzle, common to all renders */
     private void colorizeQuad(MutableQuadViewImpl q) {
         final int blockColorIndex = q.colorIndex();
-        ColorHelper.colorizeQuad(q, blockColorIndex == -1 ? -1 : (blockInfo.blockColor(blockColorIndex) | 0xFF000000));
+        ColorHelper.colorizeQuad(q, blockColorIndex == -1 ? -1 : (blockInfo.blockColor(blockColorIndex)));
     }
 
     /** final output step, common to all renders */
