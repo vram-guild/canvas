@@ -123,17 +123,18 @@ public class AoCalculator {
 
     /** call at start of each new block */
     public void clear() {
-        completionFlags = 0;
-        for(int i = 0; i < BLEND_CACHE_ARRAY_SIZE; i++) {
-            AoFaceCalc d = blendCache[i];
-            if(d != null) {
-                d.release();
-                blendCache[i] = null;
+        if(completionFlags != 0) {
+            completionFlags = 0;
+            for(int i = 0; i < BLEND_CACHE_ARRAY_SIZE; i++) {
+                AoFaceCalc d = blendCache[i];
+                if(d != null) {
+                    d.release();
+                    blendCache[i] = null;
+                }
             }
         }
     }
-
-    /** returns true if should match vanilla results */
+    
     public void compute(MutableQuadViewImpl quad) {
         final int flags = quad.geometryFlags();
         if(Configurator.hdLightmaps) {
