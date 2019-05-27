@@ -54,6 +54,8 @@ public class FallbackConsumer extends QuadRenderer implements Consumer<BakedMode
     
     protected final int[] editorBuffer = new int[28];
 
+    private final Maker editorQuad;
+    
     protected class Maker extends MutableQuadViewImpl {
         {
             data = editorBuffer;
@@ -116,6 +118,7 @@ public class FallbackConsumer extends QuadRenderer implements Consumer<BakedMode
     }
     
     private void renderQuad(BakedQuad quad, Direction cullFace, Value defaultMaterial) {
+        final Maker editorQuad = this.editorQuad;
         System.arraycopy(quad.getVertexData(), 0, editorBuffer, 0, 28);
         editorQuad.cullFace(cullFace);
         final Direction lightFace = quad.getFace();
@@ -142,7 +145,7 @@ public class FallbackConsumer extends QuadRenderer implements Consumer<BakedMode
             preventDepthFighting();
         }
         
-        super.renderQuad();
+        super.renderQuad(editorQuad);
     }
     
     private static final float MIN_Z_LOW = 0.002f;

@@ -43,6 +43,8 @@ import net.minecraft.util.math.BlockPos;
  * buffering.
  */
 public class MeshConsumer extends QuadRenderer implements Consumer<Mesh> {
+    private final Maker editorQuad;
+    
     protected MeshConsumer(
             BlockRenderInfo blockInfo, 
             ToIntFunction<BlockPos> brightnessFunc,
@@ -71,7 +73,7 @@ public class MeshConsumer extends QuadRenderer implements Consumer<Mesh> {
         // only used via RenderContext.getEmitter()
         @Override
         public Maker emit() {
-            renderQuad();
+            renderQuad(editorQuad);
             clear();
             return this;
         }
@@ -83,13 +85,14 @@ public class MeshConsumer extends QuadRenderer implements Consumer<Mesh> {
         final int[] data = m.data();
         final int limit = data.length;
         int index = 0;
+        final Maker q = this.editorQuad;
         while (index < limit) {
             RenderMaterialImpl.Value mat = RenderMaterialImpl.byIndex(data[index]);
             final int stride = MeshEncodingHelper.stride(mat.spriteDepth());
-            System.arraycopy(data, index, editorQuad.data(), 0, stride);
-            editorQuad.load();
+            System.arraycopy(data, index, q.data(), 0, stride);
+            q.load();
             index += stride;
-            renderQuad();
+            renderQuad(q);
         }
     }
 

@@ -49,7 +49,6 @@ public class QuadRenderer {
     protected final AoCalculator aoCalc;
     protected final BooleanSupplier hasTransform;
     protected final QuadTransform transform;
-    protected MutableQuadViewImpl editorQuad;
     protected final Consumer<MutableQuadViewImpl> offsetFunc;
     protected final Function<RenderMaterialImpl.Value, ShaderContext> contextFunc;
     QuadRenderer(
@@ -78,9 +77,7 @@ public class QuadRenderer {
     }
 
     /** final output step, common to all renders */
-    protected final void renderQuad() {
-        final MutableQuadViewImpl q = editorQuad;
-        
+    protected final void renderQuad(final MutableQuadViewImpl q) {
         if(hasTransform.getAsBoolean()) {
             if (!transform.transform(q)) {
                 return;
@@ -99,7 +96,7 @@ public class QuadRenderer {
             // needs to happen before offsets are applied
             aoCalc.compute(q);
         }
-
+        
         offsetFunc.accept(q);
         
         colorizeQuad(q);
