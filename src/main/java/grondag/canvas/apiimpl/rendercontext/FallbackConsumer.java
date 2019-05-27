@@ -59,7 +59,7 @@ public class FallbackConsumer extends QuadRenderer implements Consumer<BakedMode
     protected class Maker extends MutableQuadViewImpl {
         {
             data = editorBuffer;
-            material = MATERIAL_SHADED;
+            material(MATERIAL_SHADED);
         }
 
         @Override

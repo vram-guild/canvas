@@ -22,12 +22,11 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.ToIntFunction;
 
+import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.apiimpl.MeshImpl;
 import grondag.canvas.apiimpl.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.QuadViewImpl;
 import grondag.canvas.apiimpl.RenderMaterialImpl;
-import grondag.canvas.apiimpl.RenderMaterialImpl.Value;
-import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.apiimpl.util.MeshEncodingHelper;
 import grondag.canvas.buffer.packing.VertexCollector;
 import grondag.canvas.light.AoCalculator;
@@ -66,8 +65,7 @@ public class MeshConsumer extends QuadRenderer implements Consumer<Mesh> {
     private class Maker extends MutableQuadViewImpl implements QuadEmitter {
         {
             data = new int[MeshEncodingHelper.MAX_STRIDE];
-            material = (Value) Canvas.INSTANCE.materialFinder().spriteDepth(RenderMaterialImpl.MAX_SPRITE_DEPTH)
-                    .find();
+            material(Canvas.INSTANCE.materialFinder().spriteDepth(RenderMaterialImpl.MAX_SPRITE_DEPTH).find());
         }
 
         // only used via RenderContext.getEmitter()

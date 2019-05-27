@@ -19,6 +19,7 @@ package grondag.canvas.apiimpl;
 import static grondag.canvas.apiimpl.util.MeshEncodingHelper.EMPTY;
 import static grondag.canvas.apiimpl.util.MeshEncodingHelper.HEADER_BITS;
 import static grondag.canvas.apiimpl.util.MeshEncodingHelper.HEADER_COLOR_INDEX;
+import static grondag.canvas.apiimpl.util.MeshEncodingHelper.HEADER_MATERIAL;
 import static grondag.canvas.apiimpl.util.MeshEncodingHelper.HEADER_TAG;
 import static grondag.canvas.apiimpl.util.MeshEncodingHelper.NORMALS_OFFSET;
 import static grondag.canvas.apiimpl.util.MeshEncodingHelper.VANILLA_STRIDE;
@@ -53,12 +54,12 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
         data[baseIndex + HEADER_COLOR_INDEX] = -1;
         data[baseIndex + HEADER_BITS] = MeshEncodingHelper.DEFAULT_HEADER_BITS;
         nominalFaceId = ModelHelper.NULL_FACE_ID;
-        material = Canvas.MATERIAL_STANDARD;
+        material(Canvas.MATERIAL_STANDARD);
     }
 
     @Override
     public final MutableQuadViewImpl material(RenderMaterial material) {
-        this.material = (RenderMaterialImpl.Value) material;
+        data[baseIndex + HEADER_MATERIAL] = ((RenderMaterialImpl.Value)material).index();
         return this;
     }
 

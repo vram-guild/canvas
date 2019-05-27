@@ -43,7 +43,6 @@ import net.minecraft.util.math.Direction;
  * and encoding the quad state.
  */
 public class QuadViewImpl implements QuadView {
-    protected RenderMaterialImpl.Value material;
     protected int nominalFaceId = ModelHelper.NULL_FACE_ID;
     
     /**
@@ -127,12 +126,11 @@ public class QuadViewImpl implements QuadView {
 
     /** Length of encoded quad in array, including header. */
     final int stride() {
-        return MeshEncodingHelper.stride(material.spriteDepth());
+        return MeshEncodingHelper.stride(material().spriteDepth());
     }
 
     /** reads state from header - vertex attributes are saved directly */
     protected void decodeHeader() {
-        material = RenderMaterialImpl.byIndex(data[baseIndex + HEADER_MATERIAL]);
         final int bits = data[baseIndex + HEADER_BITS];
         geometryFlags = MeshEncodingHelper.geometryFlags(bits);
         nominalFaceId = ModelHelper.NULL_FACE_ID;
@@ -141,7 +139,6 @@ public class QuadViewImpl implements QuadView {
 
     /** writes state to header - vertex attributes are saved directly */
     protected void encodeHeader() {
-        data[baseIndex + HEADER_MATERIAL] = material.index();
         int bits = MeshEncodingHelper.geometryFlags(data[baseIndex + HEADER_BITS], geometryFlags);
         bits = MeshEncodingHelper.normalFlags(bits, normalFlags);
         data[baseIndex + HEADER_BITS] = bits;
@@ -218,7 +215,7 @@ public class QuadViewImpl implements QuadView {
 
     @Override
     public final RenderMaterialImpl.Value material() {
-        return material;
+        return RenderMaterialImpl.byIndex(data[baseIndex + HEADER_MATERIAL]);
     }
 
     @Override
