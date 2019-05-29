@@ -130,13 +130,12 @@ public class FallbackConsumer extends QuadRenderer implements Consumer<BakedMode
             editorQuad.invalidateShape();
         } else {
             // vanilla compatibility hack
-            // For flat lighting, if cull face is set always use neighbor light.
-            // Otherwise still need to ensure geometry is updated before offsets are applied
+            // For flat lighting, cull face is always used instead of light face.
             if (cullFace == ModelHelper.NULL_FACE_ID) {
-                editorQuad.invalidateShape();
-                editorQuad.geometryFlags();
+                editorQuad.geometryFlags(0);
             } else {
                 editorQuad.geometryFlags(GeometryHelper.AXIS_ALIGNED_FLAG | GeometryHelper.LIGHT_FACE_FLAG);
+                editorQuad.lightFace(cullFace);
             }
         }
         
