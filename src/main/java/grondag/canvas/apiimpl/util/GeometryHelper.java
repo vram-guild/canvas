@@ -31,18 +31,18 @@ import net.minecraft.util.math.Direction.AxisDirection;
  * without the default renderer.
  */
 public abstract class GeometryHelper {
-    /** set when a quad touches all four corners of a unit cube */
+    /** Set when a quad touches (or encloses) all four corners of the unit square of the light face */
     public static final int CUBIC_FLAG = 1;
 
-    /** set when a quad is parallel to (but not necessarily on) a its light face */
+    /** Set when a quad is parallel to (but not necessarily on) its light face */
     public static final int AXIS_ALIGNED_FLAG = CUBIC_FLAG << 1;
 
-    /**
-     * set when a quad is coplanar with its light face. Implies
-     * {@link #AXIS_ALIGNED_FLAG}
-     */
+    /** Set when a quad is coplanar with its light face. Implies {@link #AXIS_ALIGNED_FLAG} */
     public static final int LIGHT_FACE_FLAG = AXIS_ALIGNED_FLAG << 1;
 
+    private static final float EPS_MIN = 0.0001f;
+    private static final float EPS_MAX = 1.0f - EPS_MIN;
+    
     private GeometryHelper() {
     }
 
@@ -147,27 +147,27 @@ public abstract class GeometryHelper {
 
     /**
      * Used by {@link #isQuadCubic(Direction, int[], int, QuadSerializer)}. True if
-     * quad touches all four corners of unit square.
+     * quad touches or encloses all four corners of light face unit square.
      */
     private static boolean confirmSquareCorners(int aCoordinate, int bCoordinate, QuadView quad) {
         int flags = 0;
-
-        for (int i = 0; i < 4; i++) {
+        
+        for(int i = 0; i < 4; i++) {
             final float a = quad.posByIndex(i, aCoordinate);
             final float b = quad.posByIndex(i, bCoordinate);
-
-            if (equalsApproximate(a, 0)) {
-                if (equalsApproximate(b, 0)) {
+            
+            if(a <= EPS_MIN) {
+                if(b <= EPS_MIN) {
                     flags |= 1;
-                } else if (equalsApproximate(b, 1)) {
+                } else if(b >= EPS_MAX) {
                     flags |= 2;
                 } else {
                     return false;
                 }
-            } else if (equalsApproximate(a, 1)) {
-                if (equalsApproximate(b, 0)) {
+            } else if(a >= EPS_MAX) {
+                if(b <= EPS_MIN) {
                     flags |= 4;
-                } else if (equalsApproximate(b, 1)) {
+                } else if(b >= EPS_MAX) {
                     flags |= 8;
                 } else {
                     return false;

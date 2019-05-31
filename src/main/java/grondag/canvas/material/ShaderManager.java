@@ -21,6 +21,7 @@ import org.joml.Vector3f;
 import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.MaterialShaderImpl;
 import grondag.canvas.buffer.packing.RenderCube;
+import grondag.canvas.light.AoVertexClampFunction;
 import grondag.canvas.light.LightmapHd;
 import grondag.canvas.light.LightmapHdTexture;
 import grondag.canvas.varia.DitherTexture;
@@ -101,6 +102,7 @@ public final class ShaderManager implements ClientTickCallback {
     
     // UGLY: probably doesn't all belong here
     public void forceReload() {
+        AoVertexClampFunction.forceReload();
         RenderCube.forceReload();
         GlShaderManager.INSTANCE.forceReload();
         VertexEncoder.forceReload();

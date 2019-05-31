@@ -96,6 +96,9 @@ public class Configurator {
         
         @Comment("Forces game to allow up to this many nanoseconds for chunk loading each frame. May prevent chunk load delay at high FPS.")
         long minChunkBudgetNanos = 100000;
+        
+        @Comment("Treats model geometry outside of block boundaries as on the block for lighting purposes. Helps prevent bad lighting outcomes.")
+        boolean clampExteriorVertices = true;
 
         // DEBUG
         @Comment("Output runtime per-material shader source. For shader development debugging.")
@@ -136,6 +139,7 @@ public class Configurator {
     public static boolean batchedChunkRender = DEFAULTS.batchedChunkRender;
     public static boolean disableVanillaChunkMatrix = false; //DEFAULTS.disableVanillaChunkMatrix;
     public static boolean preventDepthFighting = DEFAULTS.preventDepthFighting;
+    public static boolean clampExteriorVertices = DEFAULTS.clampExteriorVertices;
     public static boolean lightmapDebug = DEFAULTS.lightmapDebug;
     public static boolean conciseErrors = DEFAULTS.conciseErrors;
     public static boolean logMachineInfo = DEFAULTS.logMachineInfo;
@@ -185,6 +189,7 @@ public class Configurator {
         batchedChunkRender = config.batchedChunkRender;
 //        disableVanillaChunkMatrix = config.disableVanillaChunkMatrix;
         preventDepthFighting = config.preventDepthFighting;
+        clampExteriorVertices = config.clampExteriorVertices;
         
         lightmapDebug = config.lightmapDebug;
         conciseErrors = config.conciseErrors;
@@ -213,6 +218,7 @@ public class Configurator {
         config.batchedChunkRender = batchedChunkRender;
 //        config.disableVanillaChunkMatrix = disableVanillaChunkMatrix;
         config.preventDepthFighting = preventDepthFighting;
+        config.clampExteriorVertices = clampExteriorVertices;
         
         config.lightmapDebug = lightmapDebug;
         config.conciseErrors = conciseErrors;
@@ -358,6 +364,11 @@ public class Configurator {
         tweaks.addOption(new BooleanListEntry("config.canvas.value.adjust_vanilla_geometry", preventDepthFighting, "config.canvas.reset", 
                 () -> DEFAULTS.preventDepthFighting, b -> {preventDepthFighting = b; reloadTerrain = true;}, 
                 () -> Optional.of(I18n.translate("config.canvas.help.adjust_vanilla_geometry").split(";"))));
+        
+        
+        tweaks.addOption(new BooleanListEntry("config.canvas.value.clamp_exterior_vertices", clampExteriorVertices, "config.canvas.reset", 
+                () -> DEFAULTS.clampExteriorVertices, b -> {clampExteriorVertices = b; reloadTerrain = true;}, 
+                () -> Optional.of(I18n.translate("config.canvas.help.clamp_exterior_vertices").split(";"))));
         
         
         // DEBUG

@@ -22,6 +22,7 @@ import static net.minecraft.util.math.Direction.NORTH;
 import static net.minecraft.util.math.Direction.SOUTH;
 import static net.minecraft.util.math.Direction.UP;
 import static net.minecraft.util.math.Direction.WEST;
+import static grondag.canvas.light.AoVertexClampFunction.clamp;
 
 import grondag.canvas.apiimpl.QuadViewImpl;
 import net.fabricmc.api.EnvType;
@@ -34,12 +35,12 @@ import net.minecraft.util.SystemUtil;
 @Environment(EnvType.CLIENT)
 enum AoFace {
     AOF_DOWN(new int[] { WEST.ordinal(), EAST.ordinal(), NORTH.ordinal(), SOUTH.ordinal() },
-        (q, i) -> q.y(i), 
-        (q, i) -> q.z(i),
-        (q, i) -> 1 - q.x(i), 
+        (q, i) -> clamp(q.y(i)), 
+        (q, i) -> clamp(q.z(i)),
+        (q, i) -> 1 - clamp(q.x(i)), 
         (q, i, w) -> {
-            final float u = q.z(i);
-            final float v = 1 - q.x(i);
+            final float u = clamp(q.z(i));
+            final float v = 1 - clamp(q.x(i));
             w[0] = v * u;
             w[1] = v * (1 - u);
             w[2] = (1 - v) * (1 - u);
@@ -47,12 +48,12 @@ enum AoFace {
         }),
     
     AOF_UP(new int[] { EAST.ordinal(), WEST.ordinal(), NORTH.ordinal(), SOUTH.ordinal() },
-        (q, i) -> 1 - q.y(i), 
-        (q, i) -> q.z(i),
-        (q, i) -> q.x(i), 
+        (q, i) -> 1 - clamp(q.y(i)), 
+        (q, i) -> clamp(q.z(i)),
+        (q, i) -> clamp(q.x(i)), 
         (q, i, w) -> {
-            final float u = q.z(i);
-            final float v = q.x(i);
+            final float u = clamp(q.z(i));
+            final float v = clamp(q.x(i));
             w[0] = v * u;
             w[1] = v * (1 - u);
             w[2] = (1 - v) * (1 - u);
@@ -60,48 +61,48 @@ enum AoFace {
     }), 
     
     AOF_NORTH(new int[] { UP.ordinal(), DOWN.ordinal(), EAST.ordinal(), WEST.ordinal() },
-        (q, i) -> q.z(i),
-        (q, i) -> 1 - q.x(i),
-        (q, i) -> q.y(i), 
+        (q, i) -> clamp(q.z(i)),
+        (q, i) -> 1 - clamp(q.x(i)),
+        (q, i) -> clamp(q.y(i)), 
         (q, i, w) -> {
-            final float u = 1 - q.x(i);
-            final float v = q.y(i);
+            final float u = 1 - clamp(q.x(i));
+            final float v = clamp(q.y(i));
             w[0] = v * u;
             w[1] = v * (1 - u);
             w[2] = (1 - v) * (1 - u);
             w[3] = (1 - v) * u;
     }), 
     AOF_SOUTH(new int[] { WEST.ordinal(), EAST.ordinal(), DOWN.ordinal(), UP.ordinal() },
-        (q, i) -> 1 - q.z(i),
-        (q, i) -> q.y(i), 
-        (q, i) -> 1 - q.x(i),
+        (q, i) -> 1 - clamp(q.z(i)),
+        (q, i) -> clamp(q.y(i)), 
+        (q, i) -> 1 - clamp(q.x(i)),
         (q, i, w) -> {
-            final float u = q.y(i);
-            final float v = 1 - q.x(i);
+            final float u = clamp(q.y(i));
+            final float v = 1 - clamp(q.x(i));
             w[0] = u * v;
             w[1] = (1 - u) * v;
             w[2] = (1 - u) * (1 - v);
             w[3] = u * (1 - v);
     }), 
     AOF_WEST(new int[] { UP.ordinal(), DOWN.ordinal(), NORTH.ordinal(), SOUTH.ordinal() },
-        (q, i) -> q.x(i),
-        (q, i) -> q.z(i),
-        (q, i) -> q.y(i),
+        (q, i) -> clamp(q.x(i)),
+        (q, i) -> clamp(q.z(i)),
+        (q, i) -> clamp(q.y(i)),
         (q, i, w) -> {
-            final float u = q.z(i);
-            final float v = q.y(i);
+            final float u = clamp(q.z(i));
+            final float v = clamp(q.y(i));
             w[0] = v * u;
             w[1] = v * (1 - u);
             w[2] = (1 - v) * (1 - u);
             w[3] = (1 - v) * u;
     }), 
     AOF_EAST(new int[] { DOWN.ordinal(), UP.ordinal(), NORTH.ordinal(), SOUTH.ordinal() },
-        (q, i) -> 1 - q.x(i),
-        (q, i) -> q.z(i),
-        (q, i) -> 1 - q.y(i),
+        (q, i) -> 1 - clamp(q.x(i)),
+        (q, i) -> clamp(q.z(i)),
+        (q, i) -> 1 - clamp(q.y(i)),
         (q, i, w) -> {
-            final float u = q.z(i);
-            final float v = 1 - q.y(i);
+            final float u = clamp(q.z(i));
+            final float v = 1 - clamp(q.y(i));
             w[0] = v * u;
             w[1] = v * (1 - u);
             w[2] = (1 - v) * (1 - u);
