@@ -48,7 +48,7 @@ import net.fabricmc.fabric.api.renderer.v1.RendererAccess;
 //FEAT: per chunk occlusion mesh - for sky shadow mask
 //FEAT: per chunk depth mesh - addendum to occlusion mesh to render for depth pass - includes translucent cutout
 //FEAT: first person dynamic light
-
+//FEAT: weather/season/biome(?) uniforms/attributes
 
 public class CanvasMod implements ClientModInitializer {
     @Override

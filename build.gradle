@@ -27,7 +27,7 @@ ext.getVersionCode = { ->
 
 archivesBaseName = "canvas"
 group = "grondag"
-version = version = "0.6.3+build." + project.getVersionCode();
+version = version = "0.6.4+build." + project.getVersionCode();
 
 minecraft {
 }
@@ -117,13 +117,13 @@ sourceSets {
     }
 }
 
-def mcVersion = "1.14.2 Pre-Release 2"
+def mcVersion = "1.14.2"
 
 dependencies {
 	minecraft "com.mojang:minecraft:$mcVersion"
-	mappings "net.fabricmc:yarn:$mcVersion+build.4"
-	modCompile "net.fabricmc:fabric-loader:0.4.7+build.147"
-	modCompile "net.fabricmc.fabric-api:fabric-api:0.3.0-pre+build.164"
+	mappings "net.fabricmc:yarn:$mcVersion+build.2"
+    modCompile "net.fabricmc:fabric-loader:0.4.8+build.154"
+    modCompile "net.fabricmc.fabric-api:fabric-api:0.3.0+build.175"
 	
 	modCompile "grondag:renderbender:0.5.2"
 	
@@ -144,8 +144,8 @@ dependencies {
 	modCompile "io.github.prospector.modmenu:ModMenu:1.5.4-85"
 	//modCompile "cloth:ClothEvents:0.3.1.23" // for REI
 	//modCompile "roughly-enough-items:RoughlyEnoughItems:2.7.11.97"
-	modCompile "grondag:jmx:0.0.2+build.1"
-	modCompile "grondag:instruments:0.0.1+build.3"
+	//modCompile "grondag:jmx:0.0.2+build.2"
+	//modCompile "grondag:instruments:0.0.1+build.3"
 	
 	// dev env annotation support
 	compile "org.apiguardian:apiguardian-api:1.0.0"
