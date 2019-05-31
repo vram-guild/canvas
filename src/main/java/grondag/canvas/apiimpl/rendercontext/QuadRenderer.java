@@ -16,8 +16,6 @@
 
 package grondag.canvas.apiimpl.rendercontext;
 
-import static grondag.canvas.apiimpl.util.GeometryHelper.LIGHT_FACE_FLAG;
-
 import java.util.function.BiFunction;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
@@ -35,6 +33,7 @@ import grondag.canvas.material.VertexEncoder;
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext.QuadTransform;
 import net.minecraft.block.BlockState;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
 
 /**
  * Base quad-rendering class for fallback and mesh consumers. Has most of the
@@ -96,7 +95,6 @@ public class QuadRenderer {
      */
     protected void renderQuadInner(final MutableQuadViewImpl q) {
         final RenderMaterialImpl.Value mat = q.material().forRenderLayer(blockInfo.defaultLayerIndex);
-        
         final boolean isAo = blockInfo.defaultAo && mat.hasAo;
         
         if (isAo) {
@@ -149,9 +147,12 @@ public class QuadRenderer {
      * brightness. That logic only applies in flat lighting.
      */
     private int flatBrightness(MutableQuadViewImpl quad, BlockState blockState, BlockPos pos) {
+        // vanilla compatibility hack
+        // For flat lighting, cull face is always used instead of light face.
+        final Direction cullFace = quad.cullFace();
         mpos.set(pos);
-        if ((quad.geometryFlags() & LIGHT_FACE_FLAG) != 0) {
-            mpos.setOffset(quad.lightFace());
+        if (cullFace != null) {
+            mpos.setOffset(cullFace);
         }
         return brightnessFunc.applyAsInt(mpos);
     }

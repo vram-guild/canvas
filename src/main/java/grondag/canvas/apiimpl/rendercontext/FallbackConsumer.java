@@ -25,13 +25,12 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.function.ToIntFunction;
 
+import grondag.canvas.Configurator;
+import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.apiimpl.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.QuadViewImpl;
 import grondag.canvas.apiimpl.RenderMaterialImpl;
 import grondag.canvas.apiimpl.RenderMaterialImpl.Value;
-import grondag.canvas.Configurator;
-import grondag.canvas.apiimpl.Canvas;
-import grondag.canvas.apiimpl.util.GeometryHelper;
 import grondag.canvas.apiimpl.util.MeshEncodingHelper;
 import grondag.canvas.buffer.packing.VertexCollector;
 import grondag.canvas.light.AoCalculator;
@@ -119,24 +118,19 @@ public class FallbackConsumer extends QuadRenderer implements Consumer<BakedMode
     private void renderQuad(BakedQuad quad, int cullFace, Value defaultMaterial) {
         final Maker editorQuad = this.editorQuad;
         System.arraycopy(quad.getVertexData(), 0, editorBuffer, MeshEncodingHelper.HEADER_STRIDE, 28);
+        editorQuad.invalidateShape();
         editorQuad.cullFace(cullFace);
-        final int lightFace = ModelHelper.toFaceIndex(quad.getFace());
-        editorQuad.lightFace(lightFace);
-        editorQuad.nominalFace(lightFace);
         editorQuad.colorIndex(quad.getColorIndex());
         editorQuad.material(defaultMaterial);
         
-        if (editorQuad.material().hasAo) {
-            editorQuad.invalidateShape();
+        if (defaultMaterial.hasAo) {
+            final int lightFace = ModelHelper.toFaceIndex(quad.getFace());
+            editorQuad.lightFace(lightFace);
+            editorQuad.nominalFace(lightFace);
         } else {
-            // vanilla compatibility hack
-            // For flat lighting, cull face is always used instead of light face.
-            if (cullFace == ModelHelper.NULL_FACE_ID) {
-                editorQuad.geometryFlags(0);
-            } else {
-                editorQuad.geometryFlags(GeometryHelper.AXIS_ALIGNED_FLAG | GeometryHelper.LIGHT_FACE_FLAG);
-                editorQuad.lightFace(cullFace);
-            }
+            final int lightFace = cullFace == ModelHelper.NULL_FACE_ID ? Direction.UP.ordinal() : cullFace;
+            editorQuad.lightFace(lightFace);
+            editorQuad.nominalFace(lightFace);
         }
         
         if(Configurator.preventDepthFighting) {
