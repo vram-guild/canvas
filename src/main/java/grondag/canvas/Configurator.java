@@ -99,6 +99,9 @@ public class Configurator {
         
         @Comment("Treats model geometry outside of block boundaries as on the block for lighting purposes. Helps prevent bad lighting outcomes.")
         boolean clampExteriorVertices = true;
+        
+//        @Comment("Pad vertex data in chunks with multiple formats. Significantly increases frame rate at cost of some wasted memory.")
+//        boolean padTranslucentFormats = true;
 
         // DEBUG
         @Comment("Output runtime per-material shader source. For shader development debugging.")
@@ -143,6 +146,8 @@ public class Configurator {
     public static boolean disableVanillaChunkMatrix = false; //DEFAULTS.disableVanillaChunkMatrix;
     public static boolean preventDepthFighting = DEFAULTS.preventDepthFighting;
     public static boolean clampExteriorVertices = DEFAULTS.clampExteriorVertices;
+//    public static boolean padTranslucentFormats = DEFAULTS.padTranslucentFormats;
+    
     public static boolean lightmapDebug = DEFAULTS.lightmapDebug;
     public static boolean conciseErrors = DEFAULTS.conciseErrors;
     public static boolean logMachineInfo = DEFAULTS.logMachineInfo;
@@ -194,6 +199,7 @@ public class Configurator {
 //        disableVanillaChunkMatrix = config.disableVanillaChunkMatrix;
         preventDepthFighting = config.preventDepthFighting;
         clampExteriorVertices = config.clampExteriorVertices;
+//        padTranslucentFormats = config.padTranslucentFormats;
         
         lightmapDebug = config.lightmapDebug;
         conciseErrors = config.conciseErrors;
@@ -224,6 +230,7 @@ public class Configurator {
 //        config.disableVanillaChunkMatrix = disableVanillaChunkMatrix;
         config.preventDepthFighting = preventDepthFighting;
         config.clampExteriorVertices = clampExteriorVertices;
+//        config.padTranslucentFormats = padTranslucentFormats;
         
         config.lightmapDebug = lightmapDebug;
         config.conciseErrors = conciseErrors;
@@ -371,11 +378,13 @@ public class Configurator {
                 () -> DEFAULTS.preventDepthFighting, b -> {preventDepthFighting = b; reloadTerrain = true;}, 
                 () -> Optional.of(I18n.translate("config.canvas.help.adjust_vanilla_geometry").split(";"))));
         
-        
         tweaks.addOption(new BooleanListEntry("config.canvas.value.clamp_exterior_vertices", clampExteriorVertices, "config.canvas.reset", 
                 () -> DEFAULTS.clampExteriorVertices, b -> {clampExteriorVertices = b; reloadTerrain = true;}, 
                 () -> Optional.of(I18n.translate("config.canvas.help.clamp_exterior_vertices").split(";"))));
         
+//        tweaks.addOption(new BooleanListEntry("config.canvas.value.pad_translucent_formats", padTranslucentFormats, "config.canvas.reset", 
+//                () -> DEFAULTS.padTranslucentFormats, b -> {padTranslucentFormats = b; reloadTerrain = true;}, 
+//                () -> Optional.of(I18n.translate("config.canvas.help.pad_translucent_formats").split(";"))));
         
         // DEBUG
         ConfigScreenBuilder.CategoryBuilder debug = builder.addCategory("config.canvas.category.debug");

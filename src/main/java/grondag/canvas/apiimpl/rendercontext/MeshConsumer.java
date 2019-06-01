@@ -73,7 +73,17 @@ public class MeshConsumer extends QuadRenderer implements Consumer<Mesh> {
         // only used via RenderContext.getEmitter()
         @Override
         public Maker emit() {
-            renderQuad(editorQuad);
+            if(hasTransform.getAsBoolean()) {
+                if (!transform.transform(editorQuad)) {
+                    return this;
+                }
+            }
+            
+            if (!blockInfo.shouldDrawFace(editorQuad.cullFaceId())) {
+                return this;
+            }
+            
+            renderQuadInner(editorQuad);
             clear();
             return this;
         }
@@ -93,6 +103,11 @@ public class MeshConsumer extends QuadRenderer implements Consumer<Mesh> {
             if(hasTransform.getAsBoolean()) {
                 System.arraycopy(data, index, q.data(), 0, stride);
                 q.load();
+                
+                if (!transform.transform(q)) {
+                    return;
+                }
+                
                 if (blockInfo.shouldDrawFace(q.cullFaceId())) {
                     renderQuadInner(q);
                 }

@@ -29,7 +29,7 @@ import grondag.canvas.apiimpl.util.ColorHelper;
 import grondag.canvas.buffer.packing.VertexCollector;
 import grondag.canvas.light.AoCalculator;
 import grondag.canvas.material.ShaderContext;
-import grondag.canvas.material.VertexEncoder;
+import grondag.canvas.material.VertexEncodingContext;
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext.QuadTransform;
 import net.minecraft.block.BlockState;
 import net.minecraft.util.math.BlockPos;
@@ -75,21 +75,6 @@ public class QuadRenderer {
         ColorHelper.colorizeQuad(q, blockColorIndex == -1 ? -1 : (blockInfo.blockColor(blockColorIndex)));
     }
 
-    /** final output step */
-    protected final void renderQuad(final MutableQuadViewImpl q) {
-        if(hasTransform.getAsBoolean()) {
-            if (!transform.transform(q)) {
-                return;
-            }
-        }
-        
-        if (!blockInfo.shouldDrawFace(q.cullFaceId())) {
-            return;
-        }
-        
-        renderQuadInner(q);
-    }
-    
     /**
      * Use when transform and face call have already been applied/checked.
      */
@@ -117,8 +102,10 @@ public class QuadRenderer {
         encodeQuad(q, output, mat, isAo);
     }
     
+    private final VertexEncodingContext encodingContext = new VertexEncodingContext();
+    
     private void encodeQuad(MutableQuadViewImpl q, VertexCollector output, RenderMaterialImpl.Value mat, boolean isAo) {
-        VertexEncoder.encodeBlock(q, mat, contextFunc.apply(mat), output, blockInfo.blockPos, isAo ? aoCalc.ao : null);
+        output.materialState().materialVertexFormat().encode(q, encodingContext.prepare(mat, contextFunc.apply(mat), blockInfo.blockPos, isAo ? aoCalc.ao : null), output);
     }
     
     /** for non-emissive mesh quads and all fallback quads with smooth lighting */

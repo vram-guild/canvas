@@ -62,6 +62,9 @@ public class VertexCollectorList {
     
     private final BufferPackingList packingList = new BufferPackingList();
     
+    @SuppressWarnings("unused")
+    private final boolean isTranslucent;
+    
     private int usedCount = 0;
     
     private final ObjectArrayList<VertexCollector> allCollectors = new ObjectArrayList<>();
@@ -80,6 +83,10 @@ public class VertexCollectorList {
     /** used in transparency layer sorting - updated with origin of render cube */
     double renderOriginZ = 0;
 
+    public VertexCollectorList(boolean isTranslucent) {
+        this.isTranslucent = isTranslucent;
+    }
+    
     /**
      * Releases any held vertex collectors and resets state
      */
@@ -136,7 +143,10 @@ public class VertexCollectorList {
         final int renderIndex = renderState.index;
         VertexCollector result = usedCollectors.get(renderIndex);
         if(result == null) {
-            result = emptyCollector().prepare(renderState);
+//            final MaterialVertexFormat format = (isTranslucent && Configurator.padTranslucentFormats) 
+//                    ? MaterialVertexFormats.fromShaderProps(ShaderProps.PADDED_TRANSLUCENCY) 
+//                    : renderState.format;
+            result = emptyCollector().prepare(renderState, renderState.format);
             usedCollectors.put(renderIndex, result);
         }
         return result;

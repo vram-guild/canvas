@@ -46,8 +46,8 @@ public class ChunkRebuildHelper {
     public final ChunkOcclusionGraphBuilder visGraph = new ChunkOcclusionGraphBuilder();
     public final Random random = new Random();
     public final FluidBufferBuilder fluidBuilder = new FluidBufferBuilder();
-    public final VertexCollectorList solidCollector = new VertexCollectorList();
-    public final VertexCollectorList translucentCollector = new VertexCollectorList();
+    public final VertexCollectorList solidCollector = new VertexCollectorList(false);
+    public final VertexCollectorList translucentCollector = new VertexCollectorList(true);
     
     public VertexCollectorList getCollector(BlockRenderLayer layer) {
         return layer == BlockRenderLayer.TRANSLUCENT ? translucentCollector : solidCollector;

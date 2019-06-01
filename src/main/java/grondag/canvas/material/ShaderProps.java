@@ -40,10 +40,14 @@ public abstract class ShaderProps {
     
     public static final int BITLENGTH = FLAGS_LENGTH + 2;
     
+//    public static final int PADDED_TRANSLUCENCY = (Configurator.hdLightmaps ? SMOOTH_LIGHTMAPS : 0) | (3 << FLAGS_LENGTH);
+            
     public static int classify(RenderMaterialImpl.Value material, QuadViewImpl quad, ShaderContext context) {
         int flags = 0;
+        final boolean isBlock = context.isBlock;
+//        final boolean padTranslucent = Configurator.padTranslucentFormats && material.isTranslucent;
         
-        if(Configurator.enableCompactGPUFormats && context.isBlock) {
+        if(isBlock && Configurator.enableCompactGPUFormats) { // && !padTranslucent) {
             boolean white0 = true;
             for(int i = 0; i < 4; i++) {
                 if(white0 && quad.spriteColor(i, 0) != -1) {
@@ -60,8 +64,7 @@ public abstract class ShaderProps {
             flags |= CUTOUT;
         }
         
-        // PERF - sucks
-        if(context.isBlock && quad.blockLight != null && quad.skyLight != null && quad.aoShade != null) {
+        if(isBlock && Configurator.hdLightmaps && quad.blockLight != null && quad.skyLight != null && quad.aoShade != null) {
             flags |= SMOOTH_LIGHTMAPS;
         }
         

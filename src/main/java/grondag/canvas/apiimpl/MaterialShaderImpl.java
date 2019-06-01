@@ -23,10 +23,8 @@ import grondag.canvas.material.GlFragmentShader;
 import grondag.canvas.material.GlProgram;
 import grondag.canvas.material.GlShaderManager;
 import grondag.canvas.material.GlVertexShader;
-import grondag.canvas.material.MaterialVertexFormat;
 import grondag.canvas.material.ShaderContext;
 import grondag.canvas.material.ShaderProps;
-import grondag.canvas.material.VertexEncoder;
 import grondag.frex.api.material.MaterialShader;
 import grondag.frex.api.material.Uniform.Uniform1f;
 import grondag.frex.api.material.Uniform.Uniform1i;
@@ -96,10 +94,6 @@ public final class MaterialShaderImpl implements MaterialShader {
     @Deprecated
     public int spriteDepth() {
         return 1;
-    }
-
-    public MaterialVertexFormat piplineVertexFormat(int shaderProps) {
-        return VertexEncoder.format(shaderProps);
     }
 
     public int getIndex() {

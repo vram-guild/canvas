@@ -57,6 +57,7 @@ public class MaterialState {
     public final long sortIndex;
     //UGLY: encapsulate
     public final int shaderProps;
+    public final MaterialVertexFormat format;
     
     private MaterialState(MaterialShaderImpl shader, MaterialConditionImpl condition, int index, int shaderProps) {
         this.shader = shader;
@@ -66,7 +67,8 @@ public class MaterialState {
         assert ShaderProps.spriteDepth(shaderProps) > 0;
         //ensure solid comes before cutout
         final long solidBoost = Configurator.enableSinglePassCutout || ShaderProps.cutout(shaderProps) ? 0 : (1L << 32);
-        this.sortIndex = solidBoost | (shader.piplineVertexFormat(shaderProps).vertexStrideBytes << 24) | index;
+        this.format = MaterialVertexFormats.fromShaderProps(shaderProps);
+        this.sortIndex = solidBoost | (format.vertexStrideBytes << 24) | index;
     }
 
     public void activate(ShaderContext context) {
@@ -74,6 +76,6 @@ public class MaterialState {
     }
     
     public MaterialVertexFormat materialVertexFormat() {
-        return shader.piplineVertexFormat(shaderProps);
+        return format;
     }
 }

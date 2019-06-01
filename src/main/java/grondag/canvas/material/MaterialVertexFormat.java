@@ -23,6 +23,8 @@ import org.lwjgl.opengl.GL20;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
+import grondag.canvas.apiimpl.QuadViewImpl;
+import grondag.canvas.buffer.packing.VertexCollector;
 import grondag.canvas.varia.CanvasGlHelper;
 
 public class MaterialVertexFormat {
@@ -34,7 +36,10 @@ public class MaterialVertexFormat {
 
     private final MaterialVertextFormatElement[] elements;
 
-    public MaterialVertexFormat(Collection<MaterialVertextFormatElement> elementsIn) {
+    public final int index;
+    
+    public MaterialVertexFormat(int index, Collection<MaterialVertextFormatElement> elementsIn) {
+        this.index = index;
         elements = new MaterialVertextFormatElement[elementsIn.size()];
         elementsIn.toArray(elements);
         
@@ -49,6 +54,15 @@ public class MaterialVertexFormat {
         this.vertexStrideBytes = bytes;
     }
 
+    public void encode(QuadViewImpl q, VertexEncodingContext context, VertexCollector output) {
+        final MaterialVertextFormatElement[] elements = this.elements;
+        for(int i = 0; i < 4; i++) {
+            for(MaterialVertextFormatElement e : elements) {
+                e.encoder.encode(q, i, context, output);
+            }
+        }
+    }
+    
     /**
      * Enables generic vertex attributes and binds their location.
      * For use with non-VAO VBOs

@@ -22,6 +22,7 @@ import grondag.canvas.buffer.allocation.AllocationProvider;
 import grondag.canvas.draw.DelegateLists;
 import grondag.canvas.draw.DrawableDelegate;
 import grondag.canvas.material.MaterialState;
+import grondag.canvas.material.MaterialVertexFormat;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 public class BufferPacker {
@@ -50,8 +51,10 @@ public class BufferPacker {
     }
 
     public void accept(MaterialState materialState, int vertexStart, int vertexCount) {
-        final int stride = materialState.materialVertexFormat().vertexStrideBytes;
-        allocator.claimAllocation(materialState, vertexCount * stride, ref -> {
+        final VertexCollector collector = collectorList.get(materialState);
+        final MaterialVertexFormat format = collector.format();
+        final int stride = format.vertexStrideBytes;
+        allocator.claimAllocation(vertexCount * stride, ref -> {
             final int byteOffset = ref.byteOffset();
             final int byteCount = ref.byteCount();
             final int intLength = byteCount / 4;
@@ -59,10 +62,10 @@ public class BufferPacker {
             ref.buffer().lockForWrite();
             final IntBuffer intBuffer = ref.intBuffer();
             intBuffer.position(byteOffset / 4);
-            intBuffer.put(collectorList.get(materialState).rawData(), vertexStart * stride / 4, intLength);
+            intBuffer.put(collector.rawData(), vertexStart * stride / 4, intLength);
             ref.buffer().unlockForWrite();
 
-            delegates.add(DrawableDelegate.claim(ref, materialState, byteCount / stride));
+            delegates.add(DrawableDelegate.claim(ref, materialState, byteCount / stride, format));
         });
     }
 }

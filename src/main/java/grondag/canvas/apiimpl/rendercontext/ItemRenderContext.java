@@ -25,11 +25,11 @@ import org.lwjgl.opengl.GL11;
 
 import com.mojang.blaze3d.platform.GlStateManager;
 
+import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.apiimpl.MeshImpl;
 import grondag.canvas.apiimpl.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.RenderMaterialImpl;
 import grondag.canvas.apiimpl.RenderMaterialImpl.Value;
-import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.apiimpl.util.ColorHelper;
 import grondag.canvas.apiimpl.util.MeshEncodingHelper;
 import grondag.canvas.buffer.packing.CanvasBufferBuilder;
@@ -37,7 +37,7 @@ import grondag.canvas.buffer.packing.VertexCollector;
 import grondag.canvas.draw.TessellatorExt;
 import grondag.canvas.material.ShaderContext;
 import grondag.canvas.material.ShaderProps;
-import grondag.canvas.material.VertexEncoder;
+import grondag.canvas.material.VertexEncodingContext;
 import grondag.canvas.varia.BakedQuadExt;
 import grondag.frex.api.model.DynamicBakedModel;
 import net.fabricmc.fabric.api.renderer.v1.mesh.Mesh;
@@ -171,6 +171,8 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
         return quadColor;
     }
 
+    private final VertexEncodingContext encodingContext = new VertexEncodingContext();
+    
     private void renderQuad() {
         final MutableQuadViewImpl quad = editorQuad;
         if (!transform(editorQuad)) {
@@ -186,7 +188,7 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
         
         ColorHelper.colorizeQuad(quad, quadColor());
         
-        VertexEncoder.encodeItem(quad, mat, context, output);
+        output.materialState().materialVertexFormat().encode(quad, encodingContext.prepare(mat, context, null, null), output);
     }
 
     @Override

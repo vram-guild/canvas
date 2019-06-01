@@ -147,6 +147,7 @@ public class FallbackConsumer extends QuadRenderer implements Consumer<BakedMode
                 return;
             }
         }
+        
         super.renderQuadInner(editorQuad);
     }
     

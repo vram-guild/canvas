@@ -19,6 +19,7 @@ package grondag.canvas.buffer.packing;
 import com.google.common.primitives.Doubles;
 
 import grondag.canvas.material.MaterialState;
+import grondag.canvas.material.MaterialVertexFormat;
 import it.unimi.dsi.fastutil.Swapper;
 import it.unimi.dsi.fastutil.ints.AbstractIntComparator;
 import net.minecraft.util.math.BlockPos;
@@ -27,6 +28,8 @@ public class VertexCollector {
     private int[] data;
     private int integerSize = 0;
     private MaterialState materialState;
+//    private MaterialVertexFormat format;
+    
     public final VertexCollectorList parent;
 
     /**
@@ -51,8 +54,9 @@ public class VertexCollector {
         this.parent = parent;
     }
     
-    public VertexCollector prepare(MaterialState materialState) {
+    public VertexCollector prepare(MaterialState materialState, MaterialVertexFormat format) {
         this.materialState = materialState;
+//        this.format = format;
         return this;
     }
 
@@ -64,6 +68,10 @@ public class VertexCollector {
     public MaterialState materialState() {
         return this.materialState;
     }
+    
+    public MaterialVertexFormat format() {
+        return this.materialState.format;
+    }
 
     public int byteSize() {
         return this.integerSize * 4;
@@ -74,7 +82,7 @@ public class VertexCollector {
     }
 
     public int vertexCount() {
-        return this.integerSize * 4 / this.materialState.materialVertexFormat().vertexStrideBytes;
+        return this.integerSize * 4 / this.format().vertexStrideBytes;
     }
     
     public int quadCount() {
@@ -114,7 +122,7 @@ public class VertexCollector {
     }
 
     public final void pos(final BlockPos pos, float modelX, float modelY, float modelZ) {
-        this.checkForSize(this.materialState.materialVertexFormat().vertexStrideBytes);
+        this.checkForSize(this.format().vertexStrideBytes);
         this.add((float)(pos.getX() - parent.renderOriginX + modelX));
         this.add((float)(pos.getY() - parent.renderOriginY + modelY));
         this.add((float)(pos.getZ() - parent.renderOriginZ + modelZ));
@@ -122,7 +130,7 @@ public class VertexCollector {
 
     /** for items */
     public final void pos(float modelX, float modelY, float modelZ) {
-        this.checkForSize(this.materialState.materialVertexFormat().vertexStrideBytes);
+        this.checkForSize(this.format().vertexStrideBytes);
         this.add((float)(modelX));
         this.add((float)(modelY));
         this.add((float)(modelZ));
@@ -159,7 +167,7 @@ public class VertexCollector {
         private void doSort(VertexCollector caller, double x, double y, double z) {
             // works because 4 bytes per int
             data = caller.data;
-            quadIntStride = caller.materialState.materialVertexFormat().vertexStrideBytes;
+            quadIntStride = caller.format().vertexStrideBytes;
             final int vertexIntStride = quadIntStride / 4;
             final int quadCount = caller.vertexCount() / 4;
             if (perQuadDistance.length < quadCount)
@@ -264,25 +272,27 @@ public class VertexCollector {
     }
 
     public int[] saveState(int[] priorState) {
-        final int outputSize = integerSize + 1;
+        final int outputSize = integerSize + 2;
         int[] result = priorState;
         if (result == null || result.length != outputSize)
             result = new int[outputSize];
 
         result[0] = materialState.index;
+        result[1] = format().index;
         if (integerSize > 0)
-            System.arraycopy(data, 0, result, 1, integerSize);
+            System.arraycopy(data, 0, result, 2, integerSize);
         return result;
     }
 
     public VertexCollector loadState(int[] stateData) {
         this.materialState = MaterialState.get(stateData[0]);
-        final int newSize = stateData.length - 1;
+//        this.format() = MaterialVertexFormats.fromIndex(stateData[1]);
+        final int newSize = stateData.length - 2;
         integerSize = 0;
         if (newSize > 0) {
             checkForSize(newSize);
             integerSize = newSize;
-            System.arraycopy(stateData, 1, data, 0, newSize);
+            System.arraycopy(stateData, 2, data, 0, newSize);
         }
         return this;
     }

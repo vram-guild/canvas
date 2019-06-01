@@ -60,6 +60,8 @@
 	"config.canvas.help.adjust_vanilla_geometry" : "Adjusts quads on some vanilla; models (like iron bars) to avoid;z-fighting with neighbor blocks.",
 	"config.canvas.value.clamp_exterior_vertices" : "Clamp Exterior Vertices",
 	"config.canvas.help.clamp_exterior_vertices" : "Treats model geometry outside of;block boundaries as on;the block for lighting purposes.;Helps prevent bad lighting outcomes.",
+	"config.canvas.value.pad_translucent_formats" : "Pad Translucent Formats",
+	"config.canvas.help.pad_translucent_formats" : "Pad vertex data in chunks with multiple;formats. Significantly increases frame rate;at cost of some wasted memory.",
 	
 	"config.canvas.category.debug" : "Debug",
 	"config.canvas.value.shader_debug" : "Enable Shader Debug Output",

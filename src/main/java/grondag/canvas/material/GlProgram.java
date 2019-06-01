@@ -470,7 +470,7 @@ public class GlProgram {
         this.vertexShader = vertexShader;
         this.fragmentShader = fragmentShader;
         this.spriteDepth = ShaderProps.spriteDepth(shaderProps);
-        this.pipelineVertexFormat = VertexEncoder.format(shaderProps);
+        this.pipelineVertexFormat = MaterialVertexFormats.fromShaderProps(shaderProps);
         this.isSolidLayer = isSolidLayer;
     }
 

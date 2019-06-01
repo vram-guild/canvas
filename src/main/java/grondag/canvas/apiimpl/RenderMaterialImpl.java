@@ -182,6 +182,11 @@ public abstract class RenderMaterialImpl {
          */
         public final boolean isCutout;
         
+        /**
+         * True if base layer is translucent.
+         */
+        public final boolean isTranslucent;
+        
         public final MaterialConditionImpl condition;
         
         public MaterialShaderImpl shader;
@@ -198,6 +203,7 @@ public abstract class RenderMaterialImpl {
             final BlockRenderLayer baseLayer = this.blendMode(0);
             this.renderLayer = baseLayer == BlockRenderLayer.TRANSLUCENT ? BlockRenderLayer.TRANSLUCENT : BlockRenderLayer.SOLID;
             this.isCutout = baseLayer == BlockRenderLayer.CUTOUT || baseLayer == BlockRenderLayer.CUTOUT_MIPPED;
+            this.isTranslucent = this.renderLayer == BlockRenderLayer.TRANSLUCENT;
         }
 
         private static final ThreadLocal<Finder> variantFinder = ThreadLocal.withInitial(Finder::new); 

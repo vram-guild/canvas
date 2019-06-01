@@ -66,7 +66,7 @@ public class DrawableDelegate {
         void bind(MaterialVertexFormat format, boolean isNewBuffer);
     }
     
-    public static DrawableDelegate claim(BufferDelegate bufferDelegate, MaterialState renderState, int vertexCount) {
+    public static DrawableDelegate claim(BufferDelegate bufferDelegate, MaterialState renderState, int vertexCount, MaterialVertexFormat format) {
         DrawableDelegate result = store.poll();
         if(result == null) {
             result = new DrawableDelegate();
@@ -80,6 +80,7 @@ public class DrawableDelegate {
                 : result::bindBuffer;
         bufferDelegate.buffer().retain(result);
         result.bufferId = BUFFER_UNKNOWN;
+        result.format = format;
         
         return result;
     }
@@ -90,6 +91,9 @@ public class DrawableDelegate {
     private boolean isReleased = false;
     private VertexBinder vertexBinder;
     private int bufferId = BUFFER_UNKNOWN;
+    
+    /** With translucency chunks may be different (padded) vs what material state would normally dictate - avoids attribute re-binding when VAO not an option */
+    private MaterialVertexFormat format = null;
     
     /**
      * VAO Buffer name if enabled and initialized.
@@ -135,7 +139,7 @@ public class DrawableDelegate {
             return;
 
         final boolean isNewBuffer = buffer.bindable().bind();
-        vertexBinder.bind(materialState.materialVertexFormat(), isNewBuffer);
+        vertexBinder.bind(format, isNewBuffer);
     }
 
     /**
