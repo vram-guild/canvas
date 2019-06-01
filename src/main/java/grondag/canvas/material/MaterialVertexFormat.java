@@ -21,6 +21,8 @@ import java.util.Collection;
 
 import org.lwjgl.opengl.GL20;
 
+import grondag.canvas.CanvasMod;
+import grondag.canvas.Configurator;
 import grondag.canvas.varia.CanvasGlHelper;
 
 public class MaterialVertexFormat {
@@ -52,8 +54,8 @@ public class MaterialVertexFormat {
      * For use with non-VAO VBOs
      */
     public void enableAndBindAttributes(int bufferOffset) {
-        CanvasGlHelper.enableAttributes(this.attributeCount);
-        bindAttributeLocations(bufferOffset);
+        final int attribCount = CanvasGlHelper.enableAttributes(this.attributeCount, false);
+        bindAttributeLocations(bufferOffset, attribCount);
     }
 
     /**
@@ -61,30 +63,60 @@ public class MaterialVertexFormat {
      * For use with non-VBO buffers.
      */
     public void enableAndBindAttributes(ByteBuffer buffer, int bufferOffset) {
-        CanvasGlHelper.enableAttributes(this.attributeCount);
+        final int attribCount = CanvasGlHelper.enableAttributes(this.attributeCount, false);
         int offset = 0;
         int index = 1;
-        for (MaterialVertextFormatElement e : elements) {
-            if (e.attributeName != null) {
-                buffer.position(bufferOffset + offset);
-                GL20.glVertexAttribPointer(index++, e.elementCount, e.glConstant, e.isNormalized, vertexStrideBytes, buffer);
+        final int limit = elements.length;
+        // NB: <= because element 0 is vertex
+        for(int i = 0; i <= attribCount; i++) {
+            if(i < limit) {
+                MaterialVertextFormatElement e = elements[i];
+                if (e.attributeName != null) {
+                    buffer.position(bufferOffset + offset);
+                    if(Configurator.logGlStateChanges) {
+                        CanvasMod.LOG.info(String.format("GlState: glVertexAttribPointer(%d, %d, %d, %b, %d, %s) [non-VBO]", index, e.elementCount, e.glConstant, e.isNormalized, vertexStrideBytes, buffer.toString()));
+                    }
+                    GL20.glVertexAttribPointer(index++, e.elementCount, e.glConstant, e.isNormalized, vertexStrideBytes, buffer);
+                }
+                offset += e.byteSize;
+            } else {
+                // dummy attribute
+                buffer.position(bufferOffset + 12);
+                if(Configurator.logGlStateChanges) {
+                    CanvasMod.LOG.info(String.format("GlState: glVertexAttribPointer(%d, %d, %d, %b, %d, %s) [non-VBO, dummy]", index, 4, GL20.GL_BYTE, false, vertexStrideBytes, buffer.toString()));
+                }
+                GL20.glVertexAttribPointer(index++, 4, GL20.GL_BYTE, false, vertexStrideBytes, buffer);
             }
-            offset += e.byteSize;
         }
     }
     
     /**
      * Binds attribute locations without enabling them. For use with VAOs. In other
      * cases just call {@link #enableAndBindAttributes(int)}
+     * @param attribCount How many attributes are currently enabled.  Any not in format should be bound to dummy index.
      */
-    public void bindAttributeLocations(int bufferOffset) {
+    public void bindAttributeLocations(int bufferOffset, int attribCount) {
         int offset = 0;
         int index = 1;
-        for (MaterialVertextFormatElement e : elements) {
-            if (e.attributeName != null) {
-                GL20.glVertexAttribPointer(index++, e.elementCount, e.glConstant, e.isNormalized, vertexStrideBytes, bufferOffset + offset);
+        final int limit = elements.length;
+        // NB: <= because element 0 is vertex
+        for(int i = 0; i <= attribCount; i++) {
+            if(i < limit) {
+                MaterialVertextFormatElement e = elements[i];
+                if (e.attributeName != null) {
+                    if(Configurator.logGlStateChanges) {
+                        CanvasMod.LOG.info(String.format("GlState: glVertexAttribPointer(%d, %d, %d, %b, %d, %d)", index, e.elementCount, e.glConstant, e.isNormalized, vertexStrideBytes, bufferOffset + offset));
+                    }
+                    GL20.glVertexAttribPointer(index++, e.elementCount, e.glConstant, e.isNormalized, vertexStrideBytes, bufferOffset + offset);
+                }
+                offset += e.byteSize;
+            } else {
+                // dummy attribute
+                if(Configurator.logGlStateChanges) {
+                    CanvasMod.LOG.info(String.format("GlState: glVertexAttribPointer(%d, %d, %d, %b, %d, %d) [dummy]", index, 4, GL20.GL_BYTE, false, vertexStrideBytes, bufferOffset + 12));
+                }
+                GL20.glVertexAttribPointer(index++, 4, GL20.GL_BYTE, false, vertexStrideBytes, bufferOffset + 12);
             }
-            offset += e.byteSize;
         }
     }
 

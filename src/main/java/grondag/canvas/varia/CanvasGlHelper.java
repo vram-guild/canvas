@@ -79,6 +79,9 @@ public class CanvasGlHelper {
      */
     public static void disableAttributesVao(int enabledCount) {
         for (int i = 1; i <= enabledCount; i++) {
+            if(Configurator.logGlStateChanges) {
+                CanvasMod.LOG.info(String.format("GlState: glDisableVertexAttribArray(%d)", i));
+            }
             GL20.glDisableVertexAttribArray(i);
         }
     }
@@ -90,6 +93,9 @@ public class CanvasGlHelper {
      */
     public static void enableAttributesVao(int enabledCount) {
         for (int i = 1; i <= enabledCount; i++) {
+            if(Configurator.logGlStateChanges) {
+                CanvasMod.LOG.info(String.format("GlState: glEnableVertexAttribArray(%d)", i));
+            }
             GL20.glEnableVertexAttribArray(i);
         }
     }
@@ -97,16 +103,32 @@ public class CanvasGlHelper {
     /**
      * Enables the given number of generic vertex attributes if not already enabled.
      * Using 1-based numbering for attribute slots because GL (on my machine at
-     * least) not liking slot 0.
+     * least) not liking slot 0.<p>
+     * 
+     * For non-VAO setups, pass shouldReduce = false and bind unused attributes to dummy indices.
+     * This is generally more performant than disabling and re-enabling for each format.
+     * 
+     * @param enabledCount  Minimum number of needed attributes.
+     * @param shouldReduce  If true, enabled attributes above enabled count will be disabled.
+     * @return  Count of attributes currently enabled.
      */
-    public static void enableAttributes(int enabledCount) {
+    public static int enableAttributes(int enabledCount, boolean shouldReduce) {
         if (enabledCount > attributeEnabledCount) {
-            while (enabledCount > attributeEnabledCount)
+            while (enabledCount > attributeEnabledCount) {
+                if(Configurator.logGlStateChanges) {
+                    CanvasMod.LOG.info(String.format("GlState: glEnableVertexAttribArray(%d)", attributeEnabledCount + 1));
+                }
                 GL20.glEnableVertexAttribArray(++attributeEnabledCount);
-        } else if (enabledCount < attributeEnabledCount) {
-            while (enabledCount < attributeEnabledCount)
+            }
+        } else if (shouldReduce && enabledCount < attributeEnabledCount) {
+            while (enabledCount < attributeEnabledCount) {
+                if(Configurator.logGlStateChanges) {
+                    CanvasMod.LOG.info(String.format("GlState: glDisableVertexAttribArray(%d)", attributeEnabledCount));
+                }
                 GL20.glDisableVertexAttribArray(attributeEnabledCount--);
+            }
         }
+        return attributeEnabledCount;
     }
 
     public static String getProgramInfoLog(int obj) {

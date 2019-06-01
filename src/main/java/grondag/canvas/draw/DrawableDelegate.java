@@ -23,6 +23,8 @@ import org.lwjgl.opengl.GL11;
 
 import com.mojang.blaze3d.platform.GlStateManager;
 
+import grondag.canvas.CanvasMod;
+import grondag.canvas.Configurator;
 import grondag.canvas.buffer.allocation.AbstractBuffer;
 import grondag.canvas.buffer.allocation.BufferDelegate;
 import grondag.canvas.material.MaterialState;
@@ -173,10 +175,16 @@ public class DrawableDelegate {
         if (vaoBufferId == -1) {
             vaoBufferId = VaoStore.claimVertexArray();
             CanvasGlHelper.glBindVertexArray(vaoBufferId);
+            if(Configurator.logGlStateChanges) {
+                CanvasMod.LOG.info(String.format("GlState: GlStateManager.enableClientState(%d)", GL11.GL_VERTEX_ARRAY));
+            }
             GlStateManager.enableClientState(GL11.GL_VERTEX_ARRAY);
             CanvasGlHelper.enableAttributesVao(format.attributeCount);
+            if(Configurator.logGlStateChanges) {
+                CanvasMod.LOG.info(String.format("GlState: GlStateManager.vertexPointer(%d, %d, %d, %d)", 3, VertexFormatElement.Format.FLOAT.getGlId(), format.vertexStrideBytes, bufferDelegate.byteOffset()));
+            }
             GlStateManager.vertexPointer(3, VertexFormatElement.Format.FLOAT.getGlId(), format.vertexStrideBytes, bufferDelegate.byteOffset());
-            format.bindAttributeLocations(bufferDelegate.byteOffset());
+            format.bindAttributeLocations(bufferDelegate.byteOffset(), format.attributeCount);
         } else {
             CanvasGlHelper.glBindVertexArray(vaoBufferId);
         }
@@ -189,6 +197,9 @@ public class DrawableDelegate {
             lastFormat = format;
             vertexOffset = 0;
             boundByteOffset = byteOffset;
+            if(Configurator.logGlStateChanges) {
+                CanvasMod.LOG.info(String.format("GlState: GlStateManager.vertexPointer(%d, %d, %d, %d)", 3, VertexFormatElement.Format.FLOAT.getGlId(), format.vertexStrideBytes, byteOffset));
+            }
             GlStateManager.vertexPointer(3, VertexFormatElement.Format.FLOAT.getGlId(), format.vertexStrideBytes, byteOffset);
             format.enableAndBindAttributes(boundByteOffset);
         } else {
@@ -206,6 +217,10 @@ public class DrawableDelegate {
             vertexOffset = 0;
             boundByteOffset = byteOffset;
             buffer.position(byteOffset);
+            if(Configurator.logGlStateChanges) {
+                CanvasMod.LOG.info(String.format("GlState: GlStateManager.enableClientState(%d)", GL11.GL_VERTEX_ARRAY));
+                CanvasMod.LOG.info(String.format("GlState: GlStateManager.vertexPointer(%d, %d, %d, %s)", 3, VertexFormatElement.Format.FLOAT.getGlId(), format.vertexStrideBytes, buffer.toString()));
+            }
             GlStateManager.enableClientState(GL11.GL_VERTEX_ARRAY);
             GlStateManager.vertexPointer(3, VertexFormatElement.Format.FLOAT.getGlId(), format.vertexStrideBytes, buffer);
             format.enableAndBindAttributes(buffer, byteOffset);

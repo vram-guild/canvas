@@ -69,5 +69,8 @@
 	"config.canvas.value.concise_errors" : "Concise Error Log",
 	"config.canvas.help.concise_errors" : "Summarizes multiple errors and;warnings to single-line;entries in the log.",
 	"config.canvas.value.log_machine_info" : "Log Machine Info",
-	"config.canvas.help.log_machine_info" : "Writes information useful for bug;reports to the game log;at startup."
+	"config.canvas.help.log_machine_info" : "Writes information useful for bug;reports to the game log;at startup.",
+	"config.canvas.value.log_gl_state_changes" : "Log GL State Changes",
+	"config.canvas.help.log_gl_state_changes" : "Writes OpenGL state changes to log.;*VERY SPAMMY - KILLS FRAME RATE*;Used only for debugging."
+	
 }

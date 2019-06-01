@@ -25,6 +25,8 @@ import org.lwjgl.opengl.GL11;
 import com.mojang.blaze3d.platform.GLX;
 import com.mojang.blaze3d.platform.GlStateManager;
 
+import grondag.canvas.CanvasMod;
+import grondag.canvas.Configurator;
 import grondag.canvas.buffer.packing.RenderCube;
 import grondag.canvas.chunk.ChunkRendererExt;
 import grondag.canvas.chunk.DrawableChunk;
@@ -187,6 +189,10 @@ public class CanvasChunkRenderList {
         if (this.solidLists.isEmpty())
             return;
 
+        if(Configurator.logGlStateChanges) {
+            CanvasMod.LOG.info(String.format("GlState: renderChunkLayerSolid for %d lists", solidLists.size()));
+        }
+        
         preRenderSetup();
 
         ObjectIterator<Entry<SolidRenderList>> it = solidLists.long2ObjectEntrySet().fastIterator();
@@ -206,6 +212,10 @@ public class CanvasChunkRenderList {
 
         if (chunkCount == 0)
             return;
+        
+        if(Configurator.logGlStateChanges) {
+            CanvasMod.LOG.info(String.format("GlState: renderChunkLayerTranslucent for %d chunks", chunkCount));
+        }
         
         preRenderSetup();
 

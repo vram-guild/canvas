@@ -112,6 +112,9 @@ public class Configurator {
         
         @Comment("Writes information useful for bug reports to the game log at startup.")        
         boolean logMachineInfo = true;
+        
+        @Comment("Writes OpenGL state changes to log.  *VERY SPAMMY - KILLS FRAME RATE*  Used only for debugging.")
+        boolean logGlStateChanges = false;
     }
     
     static final ConfigData DEFAULTS = new ConfigData();
@@ -143,6 +146,7 @@ public class Configurator {
     public static boolean lightmapDebug = DEFAULTS.lightmapDebug;
     public static boolean conciseErrors = DEFAULTS.conciseErrors;
     public static boolean logMachineInfo = DEFAULTS.logMachineInfo;
+    public static boolean logGlStateChanges = DEFAULTS.logGlStateChanges;
     
     /** use to stash parent screen during display */
     private static Screen screenIn;
@@ -194,6 +198,7 @@ public class Configurator {
         lightmapDebug = config.lightmapDebug;
         conciseErrors = config.conciseErrors;
         logMachineInfo = config.logMachineInfo;
+        logGlStateChanges = config.logGlStateChanges;
     }
 
     private static void saveConfig() {
@@ -223,6 +228,7 @@ public class Configurator {
         config.lightmapDebug = lightmapDebug;
         config.conciseErrors = conciseErrors;
         config.logMachineInfo = logMachineInfo;
+        config.logGlStateChanges = logGlStateChanges;
         
         try {
             String result = JANKSON.toJson(config).toJson(true, true, 0);
@@ -389,6 +395,11 @@ public class Configurator {
         debug.addOption(new BooleanListEntry("config.canvas.value.log_machine_info", logMachineInfo, "config.canvas.reset", 
                 () -> DEFAULTS.logMachineInfo, b -> logMachineInfo = b, 
                 () -> Optional.of(I18n.translate("config.canvas.help.log_machine_info").split(";"))));
+        
+        debug.addOption(new BooleanListEntry("config.canvas.value.log_gl_state_changes", logGlStateChanges, "config.canvas.reset", 
+                () -> DEFAULTS.logGlStateChanges, b -> logGlStateChanges = b, 
+                () -> Optional.of(I18n.translate("config.canvas.help.log_gl_state_changes").split(";"))));
+        
         
         builder.setDoesConfirmSave(false);
         
