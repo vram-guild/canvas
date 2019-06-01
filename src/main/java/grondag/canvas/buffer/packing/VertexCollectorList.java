@@ -40,7 +40,7 @@ public class VertexCollectorList {
     private static final Comparator<Object> solidComparator = new Comparator<Object>() {
         @Override
         public int compare(Object o1, Object o2) {
-            return Integer.compare(((VertexCollector)o1).materialState().sortIndex, ((VertexCollector)o2).materialState().sortIndex);
+            return Long.compare(((VertexCollector)o1).materialState().sortIndex, ((VertexCollector)o2).materialState().sortIndex);
         }
     };
 

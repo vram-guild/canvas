@@ -194,6 +194,10 @@ abstract class AbstractGlShader {
 
         final int spriteDepth = ShaderProps.spriteDepth(shaderProps);
         
+        if(Configurator.enableSinglePassCutout || ShaderProps.cutout(shaderProps)) {
+            result = result.replaceAll("#define CUTOUT FALSE", "#define CUTOUT TRUE");
+        }
+        
         if (spriteDepth > 1)
             result = result.replaceAll("#define LAYER_COUNT 1", String.format("#define LAYER_COUNT %d", spriteDepth));
         

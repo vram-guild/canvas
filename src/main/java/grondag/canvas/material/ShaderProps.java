@@ -33,7 +33,7 @@ public abstract class ShaderProps {
     public static final int NO_AO = 32;
     public static final int SIMPLE_SKYLIGHT = 64;
     public static final int SIMPLE_BLOCKLIGHT = 128;
-    public static final int CUTOUT_SPLIT = 256;
+    public static final int CUTOUT = 256;
     public static final int SMOOTH_LIGHTMAPS = 512;
     
     private static final int FLAGS_LENGTH = 10;
@@ -56,6 +56,10 @@ public abstract class ShaderProps {
             }
         }
         
+        if(material.isCutout && !Configurator.enableSinglePassCutout) {
+            flags |= CUTOUT;
+        }
+        
         // PERF - sucks
         if(context.isBlock && quad.blockLight != null && quad.skyLight != null && quad.aoShade != null) {
             flags |= SMOOTH_LIGHTMAPS;
@@ -71,5 +75,9 @@ public abstract class ShaderProps {
     
     public static int waterProps() {
         return 1 << FLAGS_LENGTH;
+    }
+    
+    public static boolean cutout(int props) {
+        return (props & CUTOUT) == CUTOUT;
     }
 }

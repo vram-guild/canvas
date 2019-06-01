@@ -79,8 +79,8 @@ public class Configurator {
         @Comment("Extra lightmap capacity. Ensure enabled if you are getting `unable to create HD lightmap(s) - out of space' messages.")
         boolean moreLightmap = true;
         
-//        @Comment("TODO")
-//        boolean enableSinglePassCutout = true;
+        @Comment("Render cutout and solid layers in a single pass.")
+        boolean enableSinglePassCutout = true;
         
         @Comment("Helps with chunk rebuild and also rendering when player is moving or many blocks update.")
         boolean fastChunkOcclusion = true;
@@ -134,7 +134,7 @@ public class Configurator {
     public static long minChunkBudgetNanos = DEFAULTS.minChunkBudgetNanos;
     public static boolean enableCompactGPUFormats = false; //DEFAULTS.enableCompactGPUFormats;
     
-    public static boolean enableSinglePassCutout = false; //DEFAULTS.enableSinglePassCutout;
+    public static boolean enableSinglePassCutout = DEFAULTS.enableSinglePassCutout;
     public static boolean fastChunkOcclusion = DEFAULTS.fastChunkOcclusion;
     public static boolean batchedChunkRender = DEFAULTS.batchedChunkRender;
     public static boolean disableVanillaChunkMatrix = false; //DEFAULTS.disableVanillaChunkMatrix;
@@ -184,7 +184,7 @@ public class Configurator {
         aoShadingMode = config.aoShadingMode;
         
         
-//        enableSinglePassCutout = config.enableSinglePassCutout;
+        enableSinglePassCutout = config.enableSinglePassCutout;
         fastChunkOcclusion = config.fastChunkOcclusion;
         batchedChunkRender = config.batchedChunkRender;
 //        disableVanillaChunkMatrix = config.disableVanillaChunkMatrix;
@@ -213,7 +213,7 @@ public class Configurator {
         config.aoShadingMode = aoShadingMode; 
         config.moreLightmap = moreLightmap;
         
-//        config.enableSinglePassCutout = enableSinglePassCutout;
+        config.enableSinglePassCutout = enableSinglePassCutout;
         config.fastChunkOcclusion = fastChunkOcclusion;
         config.batchedChunkRender = batchedChunkRender;
 //        config.disableVanillaChunkMatrix = disableVanillaChunkMatrix;
@@ -345,9 +345,9 @@ public class Configurator {
                 () -> DEFAULTS.minChunkBudgetNanos, l -> minChunkBudgetNanos = l, 
                 () -> Optional.of(I18n.translate("config.canvas.help.min_chunk_budget").split(";"))));
         
-//        tweaks.addOption(new BooleanListEntry("config.canvas.value.single_pass_cutout", enableSinglePassCutout, "config.canvas.reset", 
-//                () -> DEFAULTS.enableSinglePassCutout, b -> enableSinglePassCutout = b, 
-//                () -> Optional.of(I18n.translate("config.canvas.help.single_pass_cutout").split(";"))));
+        tweaks.addOption(new BooleanListEntry("config.canvas.value.single_pass_cutout", enableSinglePassCutout, "config.canvas.reset", 
+                () -> DEFAULTS.enableSinglePassCutout, b -> {enableSinglePassCutout = b; reloadTerrain = true;}, 
+                () -> Optional.of(I18n.translate("config.canvas.help.single_pass_cutout").split(";"))));
         
         tweaks.addOption(new BooleanListEntry("config.canvas.value.chunk_occlusion", fastChunkOcclusion, "config.canvas.reset", 
                 () -> DEFAULTS.fastChunkOcclusion, b -> fastChunkOcclusion = b, 

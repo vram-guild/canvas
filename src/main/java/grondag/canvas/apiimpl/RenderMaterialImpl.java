@@ -177,6 +177,11 @@ public abstract class RenderMaterialImpl {
          */
         public final BlockRenderLayer renderLayer;
         
+        /**
+         * True if base layer is a cutout layer. Implies renderLayer == SOLID.
+         */
+        public final boolean isCutout;
+        
         public final MaterialConditionImpl condition;
         
         public MaterialShaderImpl shader;
@@ -190,7 +195,9 @@ public abstract class RenderMaterialImpl {
             this.condition = MaterialConditionImpl.fromIndex(CONDITION.getValue(bits));
             hasAo = !disableAo(0) || (spriteDepth() > 1 && !disableAo(1)) || (spriteDepth() == 3 && !disableAo(2));
             emissiveFlags = (emissive(0) ? 1 : 0) | (emissive(1) ? 2 : 0) | (emissive(2) ? 4 : 0);
-            this.renderLayer = this.blendMode(0) == BlockRenderLayer.TRANSLUCENT ? BlockRenderLayer.TRANSLUCENT : BlockRenderLayer.SOLID;
+            final BlockRenderLayer baseLayer = this.blendMode(0);
+            this.renderLayer = baseLayer == BlockRenderLayer.TRANSLUCENT ? BlockRenderLayer.TRANSLUCENT : BlockRenderLayer.SOLID;
+            this.isCutout = baseLayer == BlockRenderLayer.CUTOUT || baseLayer == BlockRenderLayer.CUTOUT_MIPPED;
         }
 
         private static final ThreadLocal<Finder> variantFinder = ThreadLocal.withInitial(Finder::new); 

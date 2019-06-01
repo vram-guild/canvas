@@ -16,6 +16,7 @@
 
 package grondag.canvas.material;
 
+import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.MaterialConditionImpl;
 import grondag.canvas.apiimpl.MaterialShaderImpl;
 import grondag.fermion.varia.Useful;
@@ -53,7 +54,7 @@ public class MaterialState {
     public final MaterialShaderImpl shader;
     public final MaterialConditionImpl condition;
     public final int index;
-    public final int sortIndex;
+    public final long sortIndex;
     //UGLY: encapsulate
     public final int shaderProps;
     
@@ -63,7 +64,9 @@ public class MaterialState {
         this.index = index;
         this.shaderProps = shaderProps;
         assert ShaderProps.spriteDepth(shaderProps) > 0;
-        this.sortIndex = (shader.piplineVertexFormat(shaderProps).vertexStrideBytes << 24) | index;
+        //ensure solid comes before cutout
+        final long solidBoost = Configurator.enableSinglePassCutout || ShaderProps.cutout(shaderProps) ? 0 : (1L << 32);
+        this.sortIndex = solidBoost | (shader.piplineVertexFormat(shaderProps).vertexStrideBytes << 24) | index;
     }
 
     public void activate(ShaderContext context) {

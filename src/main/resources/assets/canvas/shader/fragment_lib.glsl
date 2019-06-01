@@ -104,10 +104,13 @@ vec4 diffuseColor() {
         float non_mipped_0 = bitValue(v_flags.x, FLAG_UNMIPPED_0) * -4.0;
         vec4 a = texture2D(u_textures, v_texcoord_0, non_mipped_0);
 
-        float cutout = bitValue(v_flags.x, FLAG_CUTOUT_0);
-        if(cutout == 1.0 && a.a < 0.5) {
-            discard;
-        }
+        #if CUTOUT
+            float cutout = bitValue(v_flags.x, FLAG_CUTOUT_0);
+            if(cutout == 1.0 && a.a < 0.5) {
+                discard;
+            }
+        #endif
+
     #else // alpha
         vec4 a = texture2D(u_textures, v_texcoord_0);
     #endif

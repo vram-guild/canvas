@@ -49,7 +49,7 @@
 	"config.canvas.value.min_chunk_budget" : "Minimum Chunk Budget",
 	"config.canvas.help.min_chunk_budget" : "Forces game to allow up to this;many nanoseconds for chunk;loading each frame.;May prevent chunk load delay at high FPS.",
 	"config.canvas.value.single_pass_cutout" : "Single Pass Cutout",
-	"config.canvas.help.single_pass_cutout" : "WIP",
+	"config.canvas.help.single_pass_cutout" : "Solid and cutout layer render;in a single pass. May or may;not be faster - depends on hardware.",
 	"config.canvas.value.chunk_occlusion" : "Fast Chunk Occlusion",
 	"config.canvas.help.chunk_occlusion" : "Helps with chunk rebuild;and also rendering when;player is moving or;many blocks update.",
 	"config.canvas.value.batch_chunk_render" : "Batched Chunk Render",

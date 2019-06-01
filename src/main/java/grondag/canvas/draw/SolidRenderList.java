@@ -21,20 +21,19 @@ import java.util.function.Consumer;
 
 import org.lwjgl.opengl.GL11;
 
-import com.google.common.collect.ComparisonChain;
 import com.mojang.blaze3d.platform.GlStateManager;
 
 import grondag.canvas.apiimpl.MaterialConditionImpl;
 import grondag.canvas.apiimpl.MaterialShaderImpl;
 import grondag.canvas.buffer.allocation.BindStateManager;
-import grondag.canvas.material.ShaderManager;
+import grondag.canvas.material.GlProgram;
 import grondag.canvas.material.MaterialState;
 import grondag.canvas.material.ShaderContext;
-import grondag.canvas.material.GlProgram;
+import grondag.canvas.material.ShaderManager;
 import grondag.canvas.varia.CanvasGlHelper;
 import it.unimi.dsi.fastutil.Arrays;
 import it.unimi.dsi.fastutil.Swapper;
-import it.unimi.dsi.fastutil.ints.AbstractIntComparator;
+import it.unimi.dsi.fastutil.ints.IntComparator;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 /**
@@ -54,18 +53,15 @@ public class SolidRenderList implements Consumer<ObjectArrayList<DrawableDelegat
         return result;
     }
     
-    @SuppressWarnings("serial")
-    private static class BufferSorter extends AbstractIntComparator implements Swapper {
+    private static class BufferSorter implements IntComparator, Swapper {
         Object[] delegates;
 
         @Override
         public int compare(int aIndex, int bIndex) {
             DrawableDelegate a = (DrawableDelegate) delegates[aIndex];
             DrawableDelegate b = (DrawableDelegate) delegates[bIndex];
-            return ComparisonChain.start()
-                    .compare(a.materialState().sortIndex, b.materialState().sortIndex)
-                    .compare(a.bufferId(), b.bufferId())
-                    .result();
+            final int matCompare = Long.compare(a.materialState().sortIndex, b.materialState().sortIndex);
+            return matCompare == 0 ? Integer.compare(a.bufferId(), b.bufferId()) : matCompare;
         }
 
         @Override
