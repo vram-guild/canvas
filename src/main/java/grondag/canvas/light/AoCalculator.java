@@ -377,47 +377,46 @@ public class AoCalculator {
             
             final ExtendedBlockView world = blockInfo.blockView;
             final BlockPos pos = blockInfo.blockPos;
-            final BlockPos.Mutable lightPos = this.lightPos;
+            final BlockPos.Mutable centerPos = this.lightPos;
             final BlockPos.Mutable searchPos = this.searchPos;
 
+            // Overall this is different from vanilla, which seems to be buggy
+            // basically, use neighbor pos unless it is full opaque - in that case cheat and use
+            // this block's position.
+            // A key difference from vanilla is that this position is then used as the center for 
+            // all following offsets, which avoids anisotropy in smooth lighting.
             if(isOnBlockFace) {
-                BlockPosHelper.fastFaceOffset(lightPos, pos, lightFace);
+                BlockPosHelper.fastFaceOffset(centerPos, pos, lightFace);
+                if(world.getBlockState(centerPos).isFullOpaque(world, centerPos)) {
+                    centerPos.set(pos);
+                }
             } else {
-                lightPos.set(pos);
+                centerPos.set(pos);
             }
+            fd.center = brightnessFunc.applyAsInt(centerPos);
+            int aoCenter = Math.round(aoFunc.apply(centerPos) * 255);
+
             AoFace aoFace = AoFace.get(lightFace);
-
-            // If on block face or neighbor isn't occluding, "center" will be neighbor
-            // brightness
-            // Doesn't use light pos because logic not based solely on this block's geometry
-            fastFaceOffset(searchPos, pos, lightFace);
-            if (isOnBlockFace || !world.getBlockState(searchPos).isFullOpaque(world, searchPos)) {
-                fd.center = brightnessFunc.applyAsInt(searchPos);
-            } else {
-                fd.center = brightnessFunc.applyAsInt(pos);
-            }
-
-            int aoCenter = Math.round(aoFunc.apply(isOnBlockFace ? lightPos : pos) * 255);
             
             // vanilla was further offsetting these in the direction of the light face
             // but it was actually mis-sampling and causing visible artifacts in certain situation
             // PERF: use clearness cache in chunk info
-            fastFaceOffset(searchPos, lightPos, aoFace.neighbors[BOTTOM]);
+            fastFaceOffset(searchPos, centerPos, aoFace.neighbors[BOTTOM]);
             final boolean bottomClear = !world.getBlockState(searchPos).isFullOpaque(world, searchPos);
             fd.bottom = bottomClear ? brightnessFunc.applyAsInt(searchPos) : OPAQUE;
             int aoBottom = bottomClear ? Math.round(aoFunc.apply(searchPos) * 255) : OPAQUE_AO;
             
-            fastFaceOffset(searchPos, lightPos, aoFace.neighbors[TOP]);
+            fastFaceOffset(searchPos, centerPos, aoFace.neighbors[TOP]);
             final boolean topClear = !world.getBlockState(searchPos).isFullOpaque(world, searchPos);
             fd.top = topClear ? brightnessFunc.applyAsInt(searchPos) : OPAQUE;
             int aoTop = topClear ? Math.round(aoFunc.apply(searchPos) * 255) : OPAQUE_AO;
             
-            fastFaceOffset(searchPos, lightPos, aoFace.neighbors[LEFT]);
+            fastFaceOffset(searchPos, centerPos, aoFace.neighbors[LEFT]);
             final boolean leftClear = !world.getBlockState(searchPos).isFullOpaque(world, searchPos);
             fd.left = leftClear ? brightnessFunc.applyAsInt(searchPos) : OPAQUE;
             int aoLeft = leftClear ? Math.round(aoFunc.apply(searchPos) * 255) : OPAQUE_AO;
             
-            fastFaceOffset(searchPos, lightPos, aoFace.neighbors[RIGHT]);
+            fastFaceOffset(searchPos, centerPos, aoFace.neighbors[RIGHT]);
             final boolean rightClear = !world.getBlockState(searchPos).isFullOpaque(world, searchPos);
             fd.right = rightClear ? brightnessFunc.applyAsInt(searchPos) : OPAQUE;
             int aoRight = rightClear ? Math.round(aoFunc.apply(searchPos) * 255) : OPAQUE_AO;
@@ -427,7 +426,7 @@ public class AoCalculator {
                 fd.aoBottomLeft = (OPAQUE_AO + OPAQUE_AO + OPAQUE_AO + 1 + aoCenter) >> 2;
                 fd.bottomLeft = OPAQUE;
             } else { // at least one clear
-                fastFaceOffset(searchPos, fastFaceOffset(searchPos, lightPos, aoFace.neighbors[BOTTOM]), aoFace.neighbors[LEFT]);
+                fastFaceOffset(searchPos, fastFaceOffset(searchPos, centerPos, aoFace.neighbors[BOTTOM]), aoFace.neighbors[LEFT]);
                 boolean cornerClear = !world.getBlockState(searchPos).isFullOpaque(world, searchPos);
                 fd.bottomLeft = cornerClear ? brightnessFunc.applyAsInt(searchPos) : OPAQUE;
                 final int aoBottomLeft = cornerClear ? Math.round(aoFunc.apply(searchPos) * 255) : OPAQUE_AO;
@@ -439,7 +438,7 @@ public class AoCalculator {
                 fd.aoBottomRight = (OPAQUE_AO + OPAQUE_AO + OPAQUE_AO + 1 + aoCenter) >> 2;
                 fd.bottomRight = OPAQUE;
             } else { // at least one clear
-                fastFaceOffset(searchPos, fastFaceOffset(searchPos, lightPos, aoFace.neighbors[BOTTOM]), aoFace.neighbors[RIGHT]);
+                fastFaceOffset(searchPos, fastFaceOffset(searchPos, centerPos, aoFace.neighbors[BOTTOM]), aoFace.neighbors[RIGHT]);
                 boolean cornerClear = !world.getBlockState(searchPos).isFullOpaque(world, searchPos);
                 fd.bottomRight = cornerClear ? brightnessFunc.applyAsInt(searchPos) : OPAQUE;
                 final int aoBottomRight = cornerClear ? Math.round(aoFunc.apply(searchPos) * 255) : OPAQUE_AO;
@@ -451,7 +450,7 @@ public class AoCalculator {
                 fd.aoTopLeft = (OPAQUE_AO + OPAQUE_AO + OPAQUE_AO + 1 + aoCenter) >> 2;
                 fd.topLeft = OPAQUE;
             } else { // at least one clear
-                fastFaceOffset(searchPos, fastFaceOffset(searchPos, lightPos, aoFace.neighbors[TOP]), aoFace.neighbors[LEFT]);
+                fastFaceOffset(searchPos, fastFaceOffset(searchPos, centerPos, aoFace.neighbors[TOP]), aoFace.neighbors[LEFT]);
                 boolean cornerClear = !world.getBlockState(searchPos).isFullOpaque(world, searchPos);
                 fd.topLeft = cornerClear ? brightnessFunc.applyAsInt(searchPos) : OPAQUE;
                 final int aoTopLeft = cornerClear ? Math.round(aoFunc.apply(searchPos) * 255) : OPAQUE_AO;
@@ -463,7 +462,7 @@ public class AoCalculator {
                 fd.aoTopRight = (OPAQUE_AO + OPAQUE_AO + OPAQUE_AO + 1 + aoCenter) >> 2;
                 fd.topRight = OPAQUE;
             } else { // at least one clear
-                fastFaceOffset(searchPos, fastFaceOffset(searchPos, lightPos, aoFace.neighbors[TOP]), aoFace.neighbors[RIGHT]);
+                fastFaceOffset(searchPos, fastFaceOffset(searchPos, centerPos, aoFace.neighbors[TOP]), aoFace.neighbors[RIGHT]);
                 boolean cornerClear = !world.getBlockState(searchPos).isFullOpaque(world, searchPos);
                 fd.topRight = cornerClear ? brightnessFunc.applyAsInt(searchPos) : OPAQUE;
                 final int aoTopRight = cornerClear ? Math.round(aoFunc.apply(searchPos) * 255) : OPAQUE_AO;

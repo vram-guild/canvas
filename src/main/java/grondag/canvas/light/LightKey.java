@@ -59,10 +59,10 @@ public final class LightKey {
     {
         long result = IS_AO.setValue(true, 0);
         
-        result = TOP_LEFT.setValue(MathHelper.clamp(topLeft, 0, 255) / 5, result);
-        result = TOP_RIGHT.setValue(MathHelper.clamp(topRight, 0, 255) / 5, result);
-        result = BOTTOM_LEFT.setValue(MathHelper.clamp(bottomLeft, 0, 255) / 5, result);
-        result = BOTTOM_RIGHT.setValue(MathHelper.clamp(bottomRight, 0, 255) / 5, result);
+        result = TOP_LEFT.setValue(MathHelper.clamp(topLeft + 2, 0, 255) / 5, result);
+        result = TOP_RIGHT.setValue(MathHelper.clamp(topRight + 2, 0, 255) / 5, result);
+        result = BOTTOM_LEFT.setValue(MathHelper.clamp(bottomLeft + 2, 0, 255) / 5, result);
+        result = BOTTOM_RIGHT.setValue(MathHelper.clamp(bottomRight + 2, 0, 255) / 5, result);
         
         return result;
     }
@@ -70,10 +70,10 @@ public final class LightKey {
     private static int clamp240(int val) {
         if(val < 0 || val == 0xFF) {
             return -1;
-        } else if(val > 240) {
+        } else if(val > 236) {
             return 30;
         }
-        return val >> 3; // 0-30
+        return (val + 4) >> 3; // 0-30
     }
     
     private static int unclamp240(int val) {

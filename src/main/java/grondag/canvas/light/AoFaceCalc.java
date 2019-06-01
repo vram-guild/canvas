@@ -122,25 +122,15 @@ public class AoFaceCalc {
         out.aoTopLeft = Math.round(in0.aoTopLeft * w0 + in1.aoTopLeft * w1);
         out.aoTopRight = Math.round(in0.aoTopRight * w0 + in1.aoTopRight * w1);
 
-        out.blockBottomRight = (int) (in0.blockBottomRight * w0 + in1.blockBottomRight * w1);
-        out.blockBottomLeft = (int) (in0.blockBottomLeft * w0 + in1.blockBottomLeft * w1);
-        out.blockTopLeft = (int) (in0.blockTopLeft * w0 + in1.blockTopLeft * w1);
-        out.blockTopRight = (int) (in0.blockTopRight * w0 + in1.blockTopRight * w1);
+        out.blockBottomRight = Math.round(in0.blockBottomRight * w0 + in1.blockBottomRight * w1);
+        out.blockBottomLeft = Math.round(in0.blockBottomLeft * w0 + in1.blockBottomLeft * w1);
+        out.blockTopLeft = Math.round(in0.blockTopLeft * w0 + in1.blockTopLeft * w1);
+        out.blockTopRight = Math.round(in0.blockTopRight * w0 + in1.blockTopRight * w1);
 
-        out.skyBottomRight = (int) (in0.skyBottomRight * w0 + in1.skyBottomRight * w1);
-        out.skyBottomLeft = (int) (in0.skyBottomLeft * w0 + in1.skyBottomLeft * w1);
-        out.skyTopLeft = (int) (in0.skyTopLeft * w0 + in1.skyTopLeft * w1);
-        out.skyTopRight = (int) (in0.skyTopRight * w0 + in1.skyTopRight * w1);
-
-        out.blockBottomRight = (int) (in0.blockBottomRight * w0 + in1.blockBottomRight * w1);
-        out.blockBottomLeft = (int) (in0.blockBottomLeft * w0 + in1.blockBottomLeft * w1);
-        out.blockTopLeft = (int) (in0.blockTopLeft * w0 + in1.blockTopLeft * w1);
-        out.blockTopRight = (int) (in0.blockTopRight * w0 + in1.blockTopRight * w1);
-
-        out.skyBottomRight = (int) (in0.skyBottomRight * w0 + in1.skyBottomRight * w1);
-        out.skyBottomLeft = (int) (in0.skyBottomLeft * w0 + in1.skyBottomLeft * w1);
-        out.skyTopLeft = (int) (in0.skyTopLeft * w0 + in1.skyTopLeft * w1);
-        out.skyTopRight = (int) (in0.skyTopRight * w0 + in1.skyTopRight * w1);
+        out.skyBottomRight = Math.round(in0.skyBottomRight * w0 + in1.skyBottomRight * w1);
+        out.skyBottomLeft = Math.round(in0.skyBottomLeft * w0 + in1.skyBottomLeft * w1);
+        out.skyTopLeft = Math.round(in0.skyTopLeft * w0 + in1.skyTopLeft * w1);
+        out.skyTopRight = Math.round(in0.skyTopRight * w0 + in1.skyTopRight * w1);
         
         return out;
     }
@@ -196,7 +186,7 @@ public class AoFaceCalc {
         
         assert missingCount < 4 : "Computing light for four occluding neighbors?";
         
-        // bitwise divide by 4, clamp to expected (positive) range
-        return (total + missingVal * missingCount) >> 2 & 16711935;
+        // bitwise divide by 4, clamp to expected (positive) range, round up
+        return (total + missingVal * missingCount + 2) >> 2 & 16711935;
     }
 }
