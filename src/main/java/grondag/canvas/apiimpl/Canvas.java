@@ -120,4 +120,9 @@ public class Canvas implements Renderer, RenderReloadCallback {
     public MaterialCondition conditionById(Identifier id) {
         return conditionMap.get(id);
     }
+
+    @Override
+    public int maxSpriteDepth() {
+        return RenderMaterialImpl.MAX_SPRITE_DEPTH;
+    }
 }

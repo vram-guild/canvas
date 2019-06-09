@@ -1,11 +1,8 @@
-import net.fabricmc.loom.task.RemapJar
-
 plugins {
 	id 'fabric-loom' version '0.2.2-SNAPSHOT'
 	id 'java'
 	id 'maven'
 	id 'maven-publish'
-	id 'com.github.johnrengelman.shadow' version '4.0.3'
 }
 
 sourceCompatibility = 1.8
@@ -27,7 +24,7 @@ ext.getVersionCode = { ->
 
 archivesBaseName = "canvas"
 group = "grondag"
-version = version = "0.6.3+build." + project.getVersionCode();
+version = version = "0.7+alpha." + project.getVersionCode();
 
 minecraft {
 }
@@ -56,27 +53,6 @@ processResources {
 		expand "version": version
 	}
 }
-
-configurations {
-    included {
-        transitive = false
-    }
-}
-
-shadowJar {
-    version = version
-    classifier = null
-    configurations = [project.configurations.included]
-    relocate 'blue.endless.jankson', 'grondag.canvas.shadow.jankson'
-}
-
-task remapShadowJar(type: RemapJar) {
-    jar = shadowJar.archivePath
-}
-
-tasks.remapShadowJar.dependsOn tasks.shadowJar
-
-tasks.assemble.dependsOn tasks.remapShadowJar
 
 // Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
 // if it is present.
@@ -121,23 +97,20 @@ def mcVersion = "1.14.2"
 
 dependencies {
 	minecraft "com.mojang:minecraft:$mcVersion"
-	mappings "net.fabricmc:yarn:$mcVersion+build.2"
+	mappings "net.fabricmc:yarn:$mcVersion+build.7"
     modCompile "net.fabricmc:fabric-loader:0.4.8+build.154"
-    modCompile "net.fabricmc.fabric-api:fabric-api:0.3.0+build.175"
+    modCompile "net.fabricmc.fabric-api:fabric-api:0.3.0+build.180"
 	
-	modCompile "grondag:renderbender:0.5.2"
+	modCompile "grondag:renderbender:0.7.+"
 	
-	modCompile "grondag:fermion:0.4.+"
-	include "grondag:fermion:0.4.+"
+	modCompile "grondag:fermion:0.6.+"
+	include "grondag:fermion:0.6.+"
 
-	modCompile "grondag:frex:0.6.6"
-	include "grondag:frex:0.6.6"
+	modCompile "grondag:frex:0.7.0+"
+	include "grondag:frex:0.7.0+"
 	
     modCompile "cloth-config:ClothConfig:0.2.1.14"
     include "cloth-config:ClothConfig:0.2.1.14"
-	
-	compile "blue.endless:jankson:1.1.0"
-	included "blue.endless:jankson:1.1.0"
 	
 	// For dev env testing 
 	modCompile "com.jamieswhiteshirt:developer-mode:1.0.11"
@@ -163,9 +136,6 @@ publishing {
 			}
 			artifact(sourcesJar) {
 				builtBy remapSourcesJar
-			}
-			artifact(shadowJar) {
-				builtBy remapShadowJar
 			}
         }
     }
