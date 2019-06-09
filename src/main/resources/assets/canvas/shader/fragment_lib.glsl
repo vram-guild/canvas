@@ -58,7 +58,7 @@ vec2 lightCoord() {
 
 vec4 diffuseColor() {
 
-    #if CONTEXT == CONTEXT_BLOCK_SOLID && CUTOUT
+    #if CUTOUT
         bool didOutput = false;
     #endif
 
@@ -107,13 +107,12 @@ vec4 diffuseColor() {
     #if CONTEXT == CONTEXT_BLOCK_SOLID
         float non_mipped_0 = bitValue(v_flags.x, FLAG_UNMIPPED_0) * -4.0;
         vec4 a = texture2D(u_textures, v_texcoord_0, non_mipped_0);
-
-        #if CUTOUT
-            didOutput = !(bitValue(v_flags.x, FLAG_CUTOUT_0) == 1.0 && a.a < 0.5);
-        #endif
-
     #else // alpha
         vec4 a = texture2D(u_textures, v_texcoord_0);
+    #endif
+
+    #if CUTOUT
+        didOutput = !(bitValue(v_flags.x, FLAG_CUTOUT_0) == 1.0 && a.a < 0.5);
     #endif
 
     a *= colorAndLightmap(v_color_0, 0, light);
@@ -149,9 +148,10 @@ vec4 diffuseColor() {
                 }
             #endif
 
-            if(cutout_1) {
+            // PERF - should not need this check if not cutout
+            if(cutout_1 == 1.0) {
                 a = b;
-                #if CONTEXT == CONTEXT_BLOCK_SOLID && CUTOUT
+                #if CUTOUT
                     didOutput = true;
                 #endif
             } else {
@@ -179,19 +179,19 @@ vec4 diffuseColor() {
                 }
             #endif
 
-                if(cutout_2) {
-                    a = c;
-                    #if CONTEXT == CONTEXT_BLOCK_SOLID && CUTOUT
-                        didOutput = true;
-                    #endif
-                } else {
-                    a = vec4(mix(a.rgb, c.rgb, c.a), a.a);
-                }
+            // PERF - should not need this check if not cutout
+            if(cutout_2 == 1.0) {
+                a = c;
+                #if CUTOUT
+                    didOutput = true;
+                #endif
+            } else {
+                a = vec4(mix(a.rgb, c.rgb, c.a), a.a);
             }
         }
     #endif
 
-    #if CONTEXT == CONTEXT_BLOCK_SOLID && CUTOUT
+    #if CUTOUT
         if (!didOutput) {
             discard;
         }
