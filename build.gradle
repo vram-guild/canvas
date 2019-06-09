@@ -1,12 +1,12 @@
 plugins {
-	id 'fabric-loom' version '0.2.2-SNAPSHOT'
-	id 'java'
-	id 'maven'
+	id 'fabric-loom' version '0.2.4-SNAPSHOT'
+	//id 'java'
+	//id 'maven'
 	id 'maven-publish'
 }
 
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
 
 ext.getVersionCode = { ->
     try {
@@ -24,7 +24,7 @@ ext.getVersionCode = { ->
 
 archivesBaseName = "canvas"
 group = "grondag"
-version = version = "0.7+alpha." + project.getVersionCode();
+version = version = "0.7.0+pre." + project.getVersionCode();
 
 minecraft {
 }
@@ -48,9 +48,14 @@ repositories {
 
 processResources {
 	inputs.property "version", version
+	
 	from(sourceSets.main.resources.srcDirs) {
 		include "fabric.mod.json"
 		expand "version": version
+	}
+	
+	from(sourceSets.main.resources.srcDirs) {
+		exclude "fabric.mod.json"
 	}
 }
 
@@ -70,7 +75,6 @@ tasks.withType(JavaCompile) {
 }
 
 jar {
-	classifier = "slim"
 	from "LICENSE"
 }
 
@@ -98,34 +102,27 @@ def mcVersion = "1.14.2"
 dependencies {
 	minecraft "com.mojang:minecraft:$mcVersion"
 	mappings "net.fabricmc:yarn:$mcVersion+build.7"
-    modCompile "net.fabricmc:fabric-loader:0.4.8+build.154"
-    modCompile "net.fabricmc.fabric-api:fabric-api:0.3.0+build.180"
+    modImplementation "net.fabricmc:fabric-loader:0.4.8+build.154"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:0.3.0+build.180"
 	
-	modCompile "grondag:renderbender:0.7.+"
+	//modImplementation "grondag:renderbender:0.7.+"
 	
-	modCompile "grondag:fermion:0.6.+"
+	modImplementation "grondag:fermion:0.6.+"
 	include "grondag:fermion:0.6.+"
 
-	modCompile "grondag:frex:0.7.0+"
+	modImplementation "grondag:frex:0.7.0+"
 	include "grondag:frex:0.7.0+"
 	
-    modCompile "cloth-config:ClothConfig:0.2.1.14"
+    modImplementation "cloth-config:ClothConfig:0.2.1.14"
     include "cloth-config:ClothConfig:0.2.1.14"
 	
 	// For dev env testing 
-	modCompile "com.jamieswhiteshirt:developer-mode:1.0.11"
-	modCompile "io.github.prospector.modmenu:ModMenu:1.5.4-85"
-	//modCompile "cloth:ClothEvents:0.3.1.23" // for REI
-	//modCompile "roughly-enough-items:RoughlyEnoughItems:2.7.11.97"
-	//modCompile "grondag:jmx:0.0.2+build.2"
-	//modCompile "grondag:instruments:0.0.1+build.3"
+	modImplementation "com.jamieswhiteshirt:developer-mode:1.0.11"
+	modImplementation "io.github.prospector.modmenu:ModMenu:1.5.4-85"
 	
 	// dev env annotation support
 	compile "org.apiguardian:apiguardian-api:1.0.0"
 	compile "com.google.code.findbugs:jsr305:3.0.2"
-	
-	// shadowed by FREX but needed in dev
-	//compile "org.joml:joml:1.9.14"
 }
 
 publishing {
