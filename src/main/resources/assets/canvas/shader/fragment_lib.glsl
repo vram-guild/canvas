@@ -58,6 +58,10 @@ vec2 lightCoord() {
 
 vec4 diffuseColor() {
 
+    #if CONTEXT == CONTEXT_BLOCK_SOLID && CUTOUT
+        bool didOutput = false;
+    #endif
+
     #if CONTEXT != CONTEXT_ITEM_GUI
         vec2 lightCoord = lightCoord();
     #endif
@@ -105,10 +109,7 @@ vec4 diffuseColor() {
         vec4 a = texture2D(u_textures, v_texcoord_0, non_mipped_0);
 
         #if CUTOUT
-            float cutout = bitValue(v_flags.x, FLAG_CUTOUT_0);
-            if(cutout == 1.0 && a.a < 0.5) {
-                discard;
-            }
+            didOutput = !(bitValue(v_flags.x, FLAG_CUTOUT_0) == 1.0 && a.a < 0.5);
         #endif
 
     #else // alpha
@@ -147,7 +148,15 @@ vec4 diffuseColor() {
                     b *= diffuse;
                 }
             #endif
-            a = vec4(mix(a.rgb, b.rgb, b.a), a.a);
+
+            if(cutout_1) {
+                a = b;
+                #if CONTEXT == CONTEXT_BLOCK_SOLID && CUTOUT
+                    didOutput = true;
+                #endif
+            } else {
+                a = vec4(mix(a.rgb, b.rgb, b.a), a.a);
+            }
         }
     #endif
 
@@ -170,7 +179,21 @@ vec4 diffuseColor() {
                 }
             #endif
 
-            a = vec4(mix(a.rgb, c.rgb, c.a), a.a);
+                if(cutout_2) {
+                    a = c;
+                    #if CONTEXT == CONTEXT_BLOCK_SOLID && CUTOUT
+                        didOutput = true;
+                    #endif
+                } else {
+                    a = vec4(mix(a.rgb, c.rgb, c.a), a.a);
+                }
+            }
+        }
+    #endif
+
+    #if CONTEXT == CONTEXT_BLOCK_SOLID && CUTOUT
+        if (!didOutput) {
+            discard;
         }
     #endif
 
