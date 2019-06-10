@@ -26,7 +26,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import net.minecraft.block.BlockRenderLayer;
 import net.minecraft.client.render.chunk.BlockLayeredBufferBuilder;
 import net.minecraft.client.render.chunk.ChunkRenderData;
-import net.minecraft.client.render.chunk.ChunkRenderTask;
 import net.minecraft.client.render.chunk.ChunkRenderWorker;
 
 @Mixin(ChunkRenderWorker.class)
@@ -55,7 +54,7 @@ public abstract class MixinChunkRenderWorker {
      * Should never be needed with canvas - avoids memory use and overhead of BlockLayeredBufferBuilders
      */
     @Inject(method = "freeRenderTask", at = @At("HEAD"), cancellable = true, require = 1)
-    private void onFreeRenderTask(ChunkRenderTask chunkRenderTask_1, CallbackInfo ci) {
+    private void onFreeRenderTask(BlockLayeredBufferBuilder buffers, CallbackInfo ci) {
         ci.cancel();
     }
 }
