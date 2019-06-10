@@ -27,16 +27,16 @@ public final class GlShaderManager {
     String vertexLibrarySource;
     String fragmentLibrarySource;
 
-    public static final Identifier DEFAULT_VERTEX_SOURCE = new Identifier("canvas", "shader/default.vert");
-    public static final Identifier DEFAULT_FRAGMENT_SOURCE = new Identifier("canvas", "shader/default.frag");
-    public static final Identifier WATER_VERTEX_SOURCE = new Identifier("canvas", "shader/water.vert");
-    public static final Identifier WATER_FRAGMENT_SOURCE = new Identifier("canvas", "shader/water.frag");
-    public static final Identifier LAVA_VERTEX_SOURCE = new Identifier("canvas", "shader/lava.vert");
-    public static final Identifier LAVA_FRAGMENT_SOURCE = new Identifier("canvas", "shader/lava.frag");
+    public static final Identifier DEFAULT_VERTEX_SOURCE = new Identifier("canvas", "shaders/default.vert");
+    public static final Identifier DEFAULT_FRAGMENT_SOURCE = new Identifier("canvas", "shaders/default.frag");
+    public static final Identifier WATER_VERTEX_SOURCE = new Identifier("canvas", "shaders/water.vert");
+    public static final Identifier WATER_FRAGMENT_SOURCE = new Identifier("canvas", "shaders/water.frag");
+    public static final Identifier LAVA_VERTEX_SOURCE = new Identifier("canvas", "shaders/lava.vert");
+    public static final Identifier LAVA_FRAGMENT_SOURCE = new Identifier("canvas", "shaders/lava.frag");
     
-    public static final Identifier COMMON_SOURCE = new Identifier("canvas", "shader/common_lib.glsl");
-    public static final Identifier COMMON_VERTEX_SOURCE = new Identifier("canvas", "shader/vertex_lib.glsl");
-    public static final Identifier COMMON_FRAGMENT_SOURCE = new Identifier("canvas", "shader/fragment_lib.glsl");
+    public static final Identifier COMMON_SOURCE = new Identifier("canvas", "shaders/common_lib.glsl");
+    public static final Identifier COMMON_VERTEX_SOURCE = new Identifier("canvas", "shaders/vertex_lib.glsl");
+    public static final Identifier COMMON_FRAGMENT_SOURCE = new Identifier("canvas", "shaders/fragment_lib.glsl");
     
     private void loadLibrarySources() {
         String commonSource = AbstractGlShader.getShaderSource(COMMON_SOURCE);

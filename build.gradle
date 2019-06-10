@@ -110,8 +110,8 @@ dependencies {
 	modImplementation "grondag:fermion:0.6.+"
 	include "grondag:fermion:0.6.+"
 
-	modImplementation "grondag:frex:0.7.0+"
-	include "grondag:frex:0.7.0+"
+	modImplementation "grondag:frex:0.7.0+build.54"
+	include "grondag:frex:0.7.0+build.54"
 	
     modImplementation "cloth-config:ClothConfig:0.2.1.14"
     include "cloth-config:ClothConfig:0.2.1.14"
