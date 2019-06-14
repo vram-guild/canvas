@@ -102,8 +102,8 @@ def mcVersion = "1.14.2"
 dependencies {
 	minecraft "com.mojang:minecraft:$mcVersion"
 	mappings "net.fabricmc:yarn:$mcVersion+build.7"
-    modImplementation "net.fabricmc:fabric-loader:0.4.8+build.154"
-    modImplementation "net.fabricmc.fabric-api:fabric-api:0.3.0+build.180"
+    modImplementation "net.fabricmc:fabric-loader:0.4.8+build.155"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:0.3.0+build.184"
 	
 	//modImplementation "grondag:renderbender:0.7.+"
 	
@@ -118,7 +118,7 @@ dependencies {
 	
 	// For dev env testing 
 	modImplementation "com.jamieswhiteshirt:developer-mode:1.0.11"
-	modImplementation "io.github.prospector.modmenu:ModMenu:1.5.4-85"
+	modImplementation "io.github.prospector.modmenu:ModMenu:1.6.2-92"
 	
 	// dev env annotation support
 	compile "org.apiguardian:apiguardian-api:1.0.0"
