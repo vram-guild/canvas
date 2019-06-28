@@ -28,12 +28,12 @@ import grondag.canvas.material.ShaderManager;
 import grondag.fermion.shadow.jankson.Comment;
 import grondag.fermion.shadow.jankson.Jankson;
 import grondag.fermion.shadow.jankson.JsonObject;
-import me.shedaniel.cloth.api.ConfigScreenBuilder;
-import me.shedaniel.cloth.api.ConfigScreenBuilder.SavedConfig;
-import me.shedaniel.cloth.gui.entries.BooleanListEntry;
-import me.shedaniel.cloth.gui.entries.EnumListEntry;
-import me.shedaniel.cloth.gui.entries.IntegerSliderEntry;
-import me.shedaniel.cloth.gui.entries.LongListEntry;
+import me.shedaniel.clothconfig2.api.ConfigBuilder;
+import me.shedaniel.clothconfig2.api.ConfigCategory;
+import me.shedaniel.clothconfig2.gui.entries.BooleanListEntry;
+import me.shedaniel.clothconfig2.gui.entries.EnumListEntry;
+import me.shedaniel.clothconfig2.gui.entries.IntegerSliderEntry;
+import me.shedaniel.clothconfig2.gui.entries.LongListEntry;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.loader.api.FabricLoader;
@@ -287,43 +287,44 @@ public class Configurator {
         reloadTerrain = false;
         reloadShaders = false;
         
-        ConfigScreenBuilder builder = ConfigScreenBuilder.create(screenIn, "config.canvas.title", null);
+        ConfigBuilder builder = ConfigBuilder.create()
+                .setParentScreen(screenIn).setTitle("config.canvas.title").setSavingRunnable(Configurator::saveUserInput);
         
         // FEATURES
-        ConfigScreenBuilder.CategoryBuilder features = builder.addCategory("config.canvas.category.features");
+        ConfigCategory features = builder.getOrCreateCategory("config.canvas.category.features");
         
-        features.addOption(new BooleanListEntry("config.canvas.value.item_render", itemShaderRender, "config.canvas.reset", 
+        features.addEntry(new BooleanListEntry("config.canvas.value.item_render", itemShaderRender, "config.canvas.reset", 
                 () -> DEFAULTS.itemShaderRender, b -> itemShaderRender = b, 
                 () -> Optional.of(I18n.translate("config.canvas.help.item_render").split(";"))));
         
-        features.addOption(new BooleanListEntry("config.canvas.value.hardcore_darkness", hardcoreDarkness, "config.canvas.reset", 
+        features.addEntry(new BooleanListEntry("config.canvas.value.hardcore_darkness", hardcoreDarkness, "config.canvas.reset", 
                 () -> DEFAULTS.hardcoreDarkness, b -> {hardcoreDarkness = b; reloadShaders = true;}, 
                 () -> Optional.of(I18n.translate("config.canvas.help.hardcore_darkness").split(";"))));
         
-        features.addOption(new BooleanListEntry("config.canvas.value.subtle_fog", subtleFog, "config.canvas.reset", 
+        features.addEntry(new BooleanListEntry("config.canvas.value.subtle_fog", subtleFog, "config.canvas.reset", 
                 () -> DEFAULTS.subtleFog, b -> {subtleFog = b; reloadShaders = true;}, 
                 () -> Optional.of(I18n.translate("config.canvas.help.subtle_fog").split(";"))));
         
         // LIGHTING
-        ConfigScreenBuilder.CategoryBuilder lighting = builder.addCategory("config.canvas.category.lighting");
+        ConfigCategory lighting = builder.getOrCreateCategory("config.canvas.category.lighting");
         
-        lighting.addOption(new BooleanListEntry("config.canvas.value.light_smoothing", lightSmoothing, "config.canvas.reset", 
+        lighting.addEntry(new BooleanListEntry("config.canvas.value.light_smoothing", lightSmoothing, "config.canvas.reset", 
                 () -> DEFAULTS.lightSmoothing, b -> {lightSmoothing = b; reloadTerrain = true;}, 
                 () -> Optional.of(I18n.translate("config.canvas.help.light_smoothing").split(";"))));
         
-        lighting.addOption(new BooleanListEntry("config.canvas.value.hd_lightmaps", hdLightmaps, "config.canvas.reset", 
+        lighting.addEntry(new BooleanListEntry("config.canvas.value.hd_lightmaps", hdLightmaps, "config.canvas.reset", 
                 () -> DEFAULTS.hdLightmaps, b -> {hdLightmaps = b; reloadTerrain = true;}, 
                 () -> Optional.of(I18n.translate("config.canvas.help.hd_lightmaps").split(";"))));
         
-        lighting.addOption(new BooleanListEntry("config.canvas.value.more_lightmap", moreLightmap, "config.canvas.reset", 
+        lighting.addEntry(new BooleanListEntry("config.canvas.value.more_lightmap", moreLightmap, "config.canvas.reset", 
                 () -> DEFAULTS.moreLightmap, b -> moreLightmap = b, 
                 () -> Optional.of(I18n.translate("config.canvas.help.more_lightmap").split(";"))));
         
-        lighting.addOption(new BooleanListEntry("config.canvas.value.lightmap_noise", lightmapNoise, "config.canvas.reset", 
+        lighting.addEntry(new BooleanListEntry("config.canvas.value.lightmap_noise", lightmapNoise, "config.canvas.reset", 
                 () -> DEFAULTS.lightmapNoise, b -> {lightmapNoise = b; reloadShaders = true;}, 
                 () -> Optional.of(I18n.translate("config.canvas.help.lightmap_noise").split(";"))));
         
-        lighting.addOption(new EnumListEntry(
+        lighting.addEntry(new EnumListEntry(
                 "config.canvas.value.diffuse_shading", 
                 DiffuseMode.class, 
                 diffuseShadingMode, 
@@ -333,7 +334,7 @@ public class Configurator {
                 a -> a.toString(),
                 () -> Optional.of(I18n.translate("config.canvas.help.diffuse_shading").split(";"))));
         
-        lighting.addOption(new EnumListEntry(
+        lighting.addEntry(new EnumListEntry(
                 "config.canvas.value.ao_shading", 
                 AoMode.class, 
                 aoShadingMode, 
@@ -343,30 +344,30 @@ public class Configurator {
                 a -> a.toString(),
                 () -> Optional.of(I18n.translate("config.canvas.help.ao_shading").split(";"))));
         
-        lighting.addOption(new IntegerSliderEntry("config.canvas.value.lightmap_delay_frames", 0, 20, maxLightmapDelayFrames, "config.canvas.reset", 
+        lighting.addEntry(new IntegerSliderEntry("config.canvas.value.lightmap_delay_frames", 0, 20, maxLightmapDelayFrames, "config.canvas.reset", 
                 () -> DEFAULTS.maxLightmapDelayFrames, b -> maxLightmapDelayFrames = b, 
                 () -> Optional.of(I18n.translate("config.canvas.help.lightmap_delay_frames").split(";"))));
         
         // TWEAKS
-        ConfigScreenBuilder.CategoryBuilder tweaks = builder.addCategory("config.canvas.category.tweaks");
+        ConfigCategory tweaks = builder.getOrCreateCategory("config.canvas.category.tweaks");
         
 //        tweaks.addOption(new BooleanListEntry("config.canvas.value.compact_gpu_formats", enableCompactGPUFormats, "config.canvas.reset", 
 //                () -> DEFAULTS.enableCompactGPUFormats, b -> enableCompactGPUFormats = b, 
 //                () -> Optional.of(I18n.translate("config.canvas.help.compact_gpu_formats").split(";"))));
         
-        tweaks.addOption(new LongListEntry("config.canvas.value.min_chunk_budget", minChunkBudgetNanos, "config.canvas.reset", 
+        tweaks.addEntry(new LongListEntry("config.canvas.value.min_chunk_budget", minChunkBudgetNanos, "config.canvas.reset", 
                 () -> DEFAULTS.minChunkBudgetNanos, l -> minChunkBudgetNanos = l, 
                 () -> Optional.of(I18n.translate("config.canvas.help.min_chunk_budget").split(";"))));
         
-        tweaks.addOption(new BooleanListEntry("config.canvas.value.single_pass_cutout", enableSinglePassCutout, "config.canvas.reset", 
+        tweaks.addEntry(new BooleanListEntry("config.canvas.value.single_pass_cutout", enableSinglePassCutout, "config.canvas.reset", 
                 () -> DEFAULTS.enableSinglePassCutout, b -> {enableSinglePassCutout = b; reloadTerrain = true;}, 
                 () -> Optional.of(I18n.translate("config.canvas.help.single_pass_cutout").split(";"))));
         
-        tweaks.addOption(new BooleanListEntry("config.canvas.value.chunk_occlusion", fastChunkOcclusion, "config.canvas.reset", 
+        tweaks.addEntry(new BooleanListEntry("config.canvas.value.chunk_occlusion", fastChunkOcclusion, "config.canvas.reset", 
                 () -> DEFAULTS.fastChunkOcclusion, b -> fastChunkOcclusion = b, 
                 () -> Optional.of(I18n.translate("config.canvas.help.chunk_occlusion").split(";"))));
         
-        tweaks.addOption(new BooleanListEntry("config.canvas.value.batch_chunk_render", batchedChunkRender, "config.canvas.reset", 
+        tweaks.addEntry(new BooleanListEntry("config.canvas.value.batch_chunk_render", batchedChunkRender, "config.canvas.reset", 
                 () -> DEFAULTS.batchedChunkRender, b -> batchedChunkRender = b, 
                 () -> Optional.of(I18n.translate("config.canvas.help.batch_chunk_render").split(";"))));
         
@@ -374,11 +375,11 @@ public class Configurator {
 //                () -> DEFAULTS.disableVanillaChunkMatrix, b -> disableVanillaChunkMatrix = b, 
 //                () -> Optional.of(I18n.translate("config.canvas.help.vanilla_chunk_matrix").split(";"))));
         
-        tweaks.addOption(new BooleanListEntry("config.canvas.value.adjust_vanilla_geometry", preventDepthFighting, "config.canvas.reset", 
+        tweaks.addEntry(new BooleanListEntry("config.canvas.value.adjust_vanilla_geometry", preventDepthFighting, "config.canvas.reset", 
                 () -> DEFAULTS.preventDepthFighting, b -> {preventDepthFighting = b; reloadTerrain = true;}, 
                 () -> Optional.of(I18n.translate("config.canvas.help.adjust_vanilla_geometry").split(";"))));
         
-        tweaks.addOption(new BooleanListEntry("config.canvas.value.clamp_exterior_vertices", clampExteriorVertices, "config.canvas.reset", 
+        tweaks.addEntry(new BooleanListEntry("config.canvas.value.clamp_exterior_vertices", clampExteriorVertices, "config.canvas.reset", 
                 () -> DEFAULTS.clampExteriorVertices, b -> {clampExteriorVertices = b; reloadTerrain = true;}, 
                 () -> Optional.of(I18n.translate("config.canvas.help.clamp_exterior_vertices").split(";"))));
         
@@ -387,32 +388,29 @@ public class Configurator {
 //                () -> Optional.of(I18n.translate("config.canvas.help.pad_translucent_formats").split(";"))));
         
         // DEBUG
-        ConfigScreenBuilder.CategoryBuilder debug = builder.addCategory("config.canvas.category.debug");
+        ConfigCategory debug = builder.getOrCreateCategory("config.canvas.category.debug");
         
-        debug.addOption(new BooleanListEntry("config.canvas.value.shader_debug", shaderDebug, "config.canvas.reset", 
+        debug.addEntry(new BooleanListEntry("config.canvas.value.shader_debug", shaderDebug, "config.canvas.reset", 
                 () -> DEFAULTS.shaderDebug, b -> shaderDebug = b, 
                 () -> Optional.of(I18n.translate("config.canvas.help.shader_debug").split(";"))));
         
-        debug.addOption(new BooleanListEntry("config.canvas.value.shader_debug_lightmap", lightmapDebug, "config.canvas.reset", 
+        debug.addEntry(new BooleanListEntry("config.canvas.value.shader_debug_lightmap", lightmapDebug, "config.canvas.reset", 
                 () -> DEFAULTS.lightmapDebug, b -> lightmapDebug = b, 
                 () -> Optional.of(I18n.translate("config.canvas.help.shader_debug_lightmap").split(";"))));
         
-        debug.addOption(new BooleanListEntry("config.canvas.value.concise_errors", conciseErrors, "config.canvas.reset", 
+        debug.addEntry(new BooleanListEntry("config.canvas.value.concise_errors", conciseErrors, "config.canvas.reset", 
                 () -> DEFAULTS.conciseErrors, b -> conciseErrors = b, 
                 () -> Optional.of(I18n.translate("config.canvas.help.concise_errors").split(";"))));
         
-        debug.addOption(new BooleanListEntry("config.canvas.value.log_machine_info", logMachineInfo, "config.canvas.reset", 
+        debug.addEntry(new BooleanListEntry("config.canvas.value.log_machine_info", logMachineInfo, "config.canvas.reset", 
                 () -> DEFAULTS.logMachineInfo, b -> logMachineInfo = b, 
                 () -> Optional.of(I18n.translate("config.canvas.help.log_machine_info").split(";"))));
         
-        debug.addOption(new BooleanListEntry("config.canvas.value.log_gl_state_changes", logGlStateChanges, "config.canvas.reset", 
+        debug.addEntry(new BooleanListEntry("config.canvas.value.log_gl_state_changes", logGlStateChanges, "config.canvas.reset", 
                 () -> DEFAULTS.logGlStateChanges, b -> logGlStateChanges = b, 
                 () -> Optional.of(I18n.translate("config.canvas.help.log_gl_state_changes").split(";"))));
         
-        
         builder.setDoesConfirmSave(false);
-        
-        builder.setOnSave(Configurator::saveUserInput);
         
         return builder.build();
     }
@@ -427,7 +425,7 @@ public class Configurator {
         return display();
     }
     
-    private static void saveUserInput(SavedConfig config) {
+    private static void saveUserInput() {
         saveConfig();
         
         if(reloadTerrain) {

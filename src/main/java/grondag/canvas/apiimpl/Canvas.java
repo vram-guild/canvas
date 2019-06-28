@@ -24,16 +24,15 @@ import grondag.canvas.apiimpl.RenderMaterialImpl.Finder;
 import grondag.canvas.apiimpl.RenderMaterialImpl.Value;
 import grondag.canvas.material.ShaderManager;
 import grondag.frex.api.Renderer;
+import grondag.frex.api.material.MaterialCondition;
 import grondag.frex.api.material.MaterialShader;
 import grondag.frex.api.material.ShaderBuilder;
-import grondag.frex.api.material.MaterialCondition;
-import grondag.frex.api.RenderReloadCallback;
 import net.fabricmc.fabric.api.renderer.v1.material.RenderMaterial;
 import net.fabricmc.fabric.api.renderer.v1.mesh.MeshBuilder;
 import net.minecraft.client.resource.language.I18n;
 import net.minecraft.util.Identifier;
 
-public class Canvas implements Renderer, RenderReloadCallback {
+public class Canvas implements Renderer {
     public static final Canvas INSTANCE = new Canvas();
 
     public static final RenderMaterialImpl.Value MATERIAL_STANDARD = (Value) INSTANCE.materialFinder().find();
@@ -49,10 +48,6 @@ public class Canvas implements Renderer, RenderReloadCallback {
     
     private final HashMap<Identifier, MaterialConditionImpl> conditionMap = new HashMap<>();
     
-    private Canvas() {
-        RenderReloadCallback.EVENT.register(this);
-    };
-
     @Override
     public MeshBuilder meshBuilder() {
         return new MeshBuilderImpl();
@@ -77,7 +72,6 @@ public class Canvas implements Renderer, RenderReloadCallback {
         return true;
     }
 
-    @Override
     public void reload() {
         CanvasMod.LOG.info(I18n.translate("info.canvas.reloading"));
         ShaderManager.INSTANCE.forceReload();

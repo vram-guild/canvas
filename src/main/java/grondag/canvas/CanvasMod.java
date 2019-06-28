@@ -21,6 +21,7 @@ import org.apache.logging.log4j.Logger;
 
 import grondag.canvas.apiimpl.Canvas;
 import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.render.InvalidateRenderStateCallback;
 import net.fabricmc.fabric.api.renderer.v1.RendererAccess;
 
 //TODO: allow for shaders to be defined based on Block materials. Apply only to default material.
@@ -55,6 +56,7 @@ public class CanvasMod implements ClientModInitializer {
     public void onInitializeClient() {
         Configurator.init();
         RendererAccess.INSTANCE.registerRenderer(Canvas.INSTANCE);
+        InvalidateRenderStateCallback.EVENT.register(Canvas.INSTANCE::reload);
     }
 
     public static final String MODID = "canvas";
