@@ -51,6 +51,7 @@ public class MeshBuilderImpl implements MeshBuilder {
         int[] packed = new int[index];
         System.arraycopy(data, 0, packed, 0, index);
         index = 0;
+        maker.begin(data, 0);
         return new MeshImpl(packed);
     }
 
