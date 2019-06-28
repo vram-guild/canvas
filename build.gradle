@@ -97,15 +97,16 @@ sourceSets {
     }
 }
 
-def mcVersion = "1.14.2"
+def mcVersion = "1.14.3-pre2"
 
 dependencies {
 	minecraft "com.mojang:minecraft:$mcVersion"
-	mappings "net.fabricmc:yarn:$mcVersion+build.7"
+
+	mappings "net.fabricmc:yarn:$mcVersion+build.3"
     modImplementation "net.fabricmc:fabric-loader:0.4.8+build.155"
-    modImplementation "net.fabricmc.fabric-api:fabric-api:0.3.0+build.184"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:0.3.0+build.183"
 	
-	//modImplementation "grondag:renderbender:0.7.+"
+	modImplementation "grondag:renderbender:0.7.+"
 	
 	modImplementation "grondag:fermion:0.6.+"
 	include "grondag:fermion:0.6.+"

@@ -25,12 +25,12 @@ import grondag.canvas.varia.CanvasButtonWidget;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.VideoOptionsScreen;
 import net.minecraft.client.resource.language.I18n;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.text.Text;
 
 @Mixin(VideoOptionsScreen.class)
 public class MixinVideoOptionsScreen extends Screen {
     
-    public MixinVideoOptionsScreen(TextComponent title) {
+    public MixinVideoOptionsScreen(Text title) {
         super(title);
     }
 
