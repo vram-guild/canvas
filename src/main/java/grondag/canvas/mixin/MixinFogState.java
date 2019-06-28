@@ -25,7 +25,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import grondag.canvas.varia.FogStateExt;
 import grondag.canvas.varia.FogStateExtHolder;
 
-@Mixin(targets = "com.mojang.blaze3d.platform.GlStateManager$FogState")
+@Mixin(targets = "com.mojang.blaze3d.platform.GlStateManager$FogState", remap = false)
 public abstract class MixinFogState implements FogStateExt {
     @Shadow private int mode;
     
@@ -34,7 +34,7 @@ public abstract class MixinFogState implements FogStateExt {
         return mode;
     }
     
-    @Inject(method = "<init>*", require = 1, at = @At("RETURN"))
+    @Inject(method = "<init>", require = 1, at = @At("RETURN"))
     private void onConstructed(CallbackInfo ci) {
         FogStateExtHolder.INSTANCE = ((FogStateExt) (Object) this);
     }

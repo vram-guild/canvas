@@ -32,7 +32,7 @@ import net.minecraft.client.render.chunk.ChunkRenderData;
 @Mixin(ChunkRenderData.class)
 public abstract class MixinChunkRenderData implements ChunkRenderDataExt {
     @Shadow
-    private boolean[] field_4450; // has content
+    private boolean[] nonEmpty; // has content
     @Shadow
     private boolean[] initialized;
     @Shadow
@@ -40,34 +40,34 @@ public abstract class MixinChunkRenderData implements ChunkRenderDataExt {
     @Shadow
     private List<BlockEntity> blockEntities;
     @Shadow
-    private ChunkOcclusionGraph field_4455;
+    private ChunkOcclusionGraph occlusionGraph;
 
     @Shadow
-    protected abstract void method_3643(BlockRenderLayer blockRenderLayer);
+    protected abstract void setNonEmpty(BlockRenderLayer blockRenderLayer);
     
     private int[][] collectorState;
     
     @Override
     public void canvas_setNonEmpty(BlockRenderLayer blockRenderLayer) {
-        method_3643(blockRenderLayer);
+        setNonEmpty(blockRenderLayer);
     }
 
     @Override
     public void canvas_clear() {
         empty = true;
-        System.arraycopy(ChunkRebuildHelper.EMPTY_RENDER_LAYER_FLAGS, 0, field_4450, 0,
+        System.arraycopy(ChunkRebuildHelper.EMPTY_RENDER_LAYER_FLAGS, 0, nonEmpty, 0,
                 ChunkRebuildHelper.BLOCK_RENDER_LAYER_COUNT);
         System.arraycopy(ChunkRebuildHelper.EMPTY_RENDER_LAYER_FLAGS, 0, initialized, 0,
                 ChunkRebuildHelper.BLOCK_RENDER_LAYER_COUNT);
-        field_4455.fill(false); // set all false
-        ((ChunkOcclusionGraphExt) field_4455).canvas_visibilityData(null);
+        occlusionGraph.fill(false); // set all false
+        ((ChunkOcclusionGraphExt) occlusionGraph).canvas_visibilityData(null);
         collectorState = null;
         blockEntities.clear();
     }
 
     @Override
     public ChunkOcclusionGraphExt canvas_chunkVisibility() {
-        return (ChunkOcclusionGraphExt) field_4455;
+        return (ChunkOcclusionGraphExt) occlusionGraph;
     }
     
     @Override
