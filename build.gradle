@@ -111,11 +111,11 @@ dependencies {
 	modImplementation "grondag:frex:0.7.3+build.71"
     include "grondag:frex:0.7.3+build.71"
 	
-	modApi "cloth-config:ClothConfig2:0.2.0"
+	modImplementation "cloth-config:ClothConfig2:0.2.0"
     include "cloth-config:ClothConfig2:0.2.0"
 	
 	// For dev env testing 
-	modApi "io.github.prospector.modmenu:ModMenu:1.6.2-92"
+	modImplementation "io.github.prospector.modmenu:ModMenu:1.6.2-92"
 	modRuntime "com.jamieswhiteshirt:developer-mode:1.0.11"
 	modRuntime "grondag:instruments:0.0.2+"
 	
