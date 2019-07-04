@@ -201,9 +201,22 @@ public abstract class RenderMaterialImpl {
             hasAo = !disableAo(0) || (spriteDepth() > 1 && !disableAo(1)) || (spriteDepth() == 3 && !disableAo(2));
             emissiveFlags = (emissive(0) ? 1 : 0) | (emissive(1) ? 2 : 0) | (emissive(2) ? 4 : 0);
             final BlockRenderLayer baseLayer = this.blendMode(0);
-            this.renderLayer = baseLayer == BlockRenderLayer.TRANSLUCENT ? BlockRenderLayer.TRANSLUCENT : BlockRenderLayer.SOLID;
-            this.isCutout = baseLayer == BlockRenderLayer.CUTOUT || baseLayer == BlockRenderLayer.CUTOUT_MIPPED;
-            this.isTranslucent = this.renderLayer == BlockRenderLayer.TRANSLUCENT;
+            final int depth = this.spriteDepth();
+            
+            if(baseLayer == BlockRenderLayer.SOLID) {
+                this.isTranslucent = false;
+                this.renderLayer = BlockRenderLayer.SOLID;
+                this.isCutout = false;
+            } else {
+                // if there is no solid base layer and any layer is translucent then whole material must render on translucent pass
+                this.isTranslucent = (baseLayer == BlockRenderLayer.TRANSLUCENT)
+                        || (depth > 1 && this.blendMode(1) == BlockRenderLayer.TRANSLUCENT)
+                        || (depth == 3 && this.blendMode(2) == BlockRenderLayer.TRANSLUCENT);
+                
+                // not solid and not translucent so must be cutout
+                this.isCutout = !isTranslucent;
+                this.renderLayer = isTranslucent ? BlockRenderLayer.TRANSLUCENT : BlockRenderLayer.SOLID;
+            }
         }
 
         private static final ThreadLocal<Finder> variantFinder = ThreadLocal.withInitial(Finder::new); 

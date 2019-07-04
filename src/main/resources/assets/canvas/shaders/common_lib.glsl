@@ -7,7 +7,7 @@
 // will be changed to sprite depth (1, 2 or 3) before compile
 #define LAYER_COUNT 1
 
-// will be true if base layer is a cutout layer and fragment discard is possible
+// will be true all layers are cutout layers and fragment discard is possible
 #define CUTOUT FALSE
 
 // true if first sprite color is all white and will not be sent

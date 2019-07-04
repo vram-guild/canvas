@@ -60,7 +60,7 @@ public abstract class ShaderProps {
             }
         }
         
-        if(material.isCutout && !Configurator.enableSinglePassCutout) {
+        if(material.isCutout) {
             flags |= CUTOUT;
         }
         

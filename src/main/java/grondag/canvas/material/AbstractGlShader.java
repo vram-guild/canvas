@@ -194,7 +194,7 @@ abstract class AbstractGlShader {
 
         final int spriteDepth = ShaderProps.spriteDepth(shaderProps);
         
-        if(Configurator.enableSinglePassCutout || ShaderProps.cutout(shaderProps)) {
+        if(ShaderProps.cutout(shaderProps)) {
             result = result.replaceAll("#define CUTOUT FALSE", "#define CUTOUT TRUE");
         }
         

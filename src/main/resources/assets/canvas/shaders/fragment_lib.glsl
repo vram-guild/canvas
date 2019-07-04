@@ -58,10 +58,6 @@ vec2 lightCoord() {
 
 vec4 diffuseColor() {
 
-    #if CUTOUT
-        bool didOutput = false;
-    #endif
-
     #if CONTEXT != CONTEXT_ITEM_GUI
         vec2 lightCoord = lightCoord();
     #endif
@@ -104,36 +100,37 @@ vec4 diffuseColor() {
         vec4 diffuse = vec4(v_diffuse, v_diffuse, v_diffuse, 1.0);
     #endif
 
-    #if CONTEXT == CONTEXT_BLOCK_SOLID
-        float non_mipped_0 = bitValue(v_flags.x, FLAG_UNMIPPED_0) * -4.0;
-        vec4 a = texture2D(u_textures, v_texcoord_0, non_mipped_0);
-    #else // alpha
-        vec4 a = texture2D(u_textures, v_texcoord_0);
-    #endif
+    float non_mipped_0 = bitValue(v_flags.x, FLAG_UNMIPPED_0) * -4.0;
+    vec4 a = texture2D(u_textures, v_texcoord_0, non_mipped_0);
 
-    #if CUTOUT
-        didOutput = !(bitValue(v_flags.x, FLAG_CUTOUT_0) == 1.0 && a.a < 0.5);
-    #endif
+    bool cutout_0 = bitValue(v_flags.x, FLAG_CUTOUT_0) == 1.0;
 
-    a *= colorAndLightmap(v_color_0, 0, light);
+    // PREF: actually needed?
+    bool didOutput = (a.a >= 0.5 || !cutout_0);
 
-    #if AO_SHADING_MODE != AO_MODE_NONE && CONTEXT_IS_BLOCK
-        if(bitValue(v_flags.x, FLAG_DISABLE_AO_0) == 0.0) {
-            a *= aoFactor;
-        }
-    #endif
+    if(didOutput) {
+        a *= colorAndLightmap(v_color_0, 0, light);
 
-    #if DIFFUSE_SHADING_MODE != DIFFUSE_MODE_NONE
-        if(bitValue(v_flags.x, FLAG_DISABLE_DIFFUSE_0) == 0.0) {
-            a *= diffuse;
-        }
-    #endif
+        #if AO_SHADING_MODE != AO_MODE_NONE && CONTEXT_IS_BLOCK
+            if(bitValue(v_flags.x, FLAG_DISABLE_AO_0) == 0.0) {
+                a *= aoFactor;
+            }
+        #endif
+
+        #if DIFFUSE_SHADING_MODE != DIFFUSE_MODE_NONE
+            if(bitValue(v_flags.x, FLAG_DISABLE_DIFFUSE_0) == 0.0) {
+                a *= diffuse;
+            }
+        #endif
+    } else {
+        a = vec4(1.0, 1.0, 1.0, 0.0);
+    }
 
     #if LAYER_COUNT > 1
         float non_mipped_1 = bitValue(v_flags.y, FLAG_UNMIPPED_1) * -4.0;
         vec4 b = texture2D(u_textures, v_texcoord_1, non_mipped_1);
-        float cutout_1 = bitValue(v_flags.y, FLAG_CUTOUT_1);
-        if(cutout_1 != 1.0 || b.a >= 0.5) {
+        bool cutout_1 = bitValue(v_flags.y, FLAG_CUTOUT_1) == 1.0;
+        if(b.a >= 0.5 || !cutout_1) {
             b *= colorAndLightmap(v_color_1, 1, light);
 
             #if AO_SHADING_MODE != AO_MODE_NONE && CONTEXT_IS_BLOCK
@@ -148,23 +145,22 @@ vec4 diffuseColor() {
                 }
             #endif
 
-            // PERF - should not need this check if not cutout
-            if(cutout_1 == 1.0) {
+            // PERF: simplify blend logic when no translucent in play
+            if(cutout_1 || b.a == 1.0 || !didOutput) {
                 a = b;
-                #if CUTOUT
-                    didOutput = true;
-                #endif
             } else {
-                a = vec4(mix(a.rgb, b.rgb, b.a), a.a);
+                float newAlpha = a.a * (1.0 - b.a) + b.a;
+                a = vec4(mix(a.rgb, b.rgb, b.a / newAlpha), newAlpha);
             }
+            didOutput = true;
         }
     #endif
 
     #if LAYER_COUNT > 2
         float non_mipped_2 = bitValue(v_flags.y, FLAG_UNMIPPED_2) * -4.0;
         vec4 c = texture2D(u_textures, v_texcoord_2, non_mipped_2);
-        float cutout_2 = bitValue(v_flags.y, FLAG_CUTOUT_2);
-        if(cutout_2 != 1.0 || c.a >= 0.5) {
+        bool cutout_2 = bitValue(v_flags.y, FLAG_CUTOUT_2) == 1.0;
+        if(c.a >= 0.5 || !cutout_2) {
             c *= colorAndLightmap(v_color_2, 2, light);
 
             #if AO_SHADING_MODE != AO_MODE_NONE && CONTEXT_IS_BLOCK
@@ -179,15 +175,14 @@ vec4 diffuseColor() {
                 }
             #endif
 
-            // PERF - should not need this check if not cutout
-            if(cutout_2 == 1.0) {
+            if(cutout_2 || c.a == 1.0 || !didOutput) {
                 a = c;
-                #if CUTOUT
-                    didOutput = true;
-                #endif
             } else {
-                a = vec4(mix(a.rgb, c.rgb, c.a), a.a);
+                float newAlpha = a.a * (1.0 - c.a) + c.a;
+                a = vec4(mix(a.rgb, c.rgb, c.a / newAlpha), newAlpha);
             }
+
+            didOutput = true;
         }
     #endif
 
