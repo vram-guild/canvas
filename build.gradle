@@ -103,19 +103,18 @@ dependencies {
     modImplementation "net.fabricmc:fabric-loader:0.4.8+build.155"
     modCompile "net.fabricmc.fabric-api:fabric-api:0.3.0+build.187"
 	
-	//modImplementation "grondag:renderbender:0.7.+"
-	
     modImplementation "grondag:fermion:0.6.3+build.37"
     include "grondag:fermion:0.6.3+build.37"
 	
-	modImplementation "grondag:frex:0.7.3+build.71"
-    include "grondag:frex:0.7.3+build.71"
+	modImplementation "grondag:frex:0.7.4+build.72"
+    include "grondag:frex:0.7.4+build.72"
 	
 	modImplementation "cloth-config:ClothConfig2:0.2.0"
     include "cloth-config:ClothConfig2:0.2.0"
 	
 	// For dev env testing 
 	modImplementation "io.github.prospector.modmenu:ModMenu:1.6.2-92"
+	modRuntime "grondag:renderbender:0.7.1+"
 	modRuntime "com.jamieswhiteshirt:developer-mode:1.0.11"
 	modRuntime "grondag:instruments:0.0.2+"
 	
@@ -127,7 +126,7 @@ dependencies {
 publishing {
     publications {
         mavenJava(MavenPublication) {
-			artifact(jar.archivePath) {
+			artifact(jar) {
 			    builtBy remapJar
 			}
 			artifact(sourcesJar) {
