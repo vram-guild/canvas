@@ -126,7 +126,7 @@ dependencies {
 publishing {
     publications {
         mavenJava(MavenPublication) {
-			artifact(jar) {
+			artifact(jar.archivePath) {
 			    builtBy remapJar
 			}
 			artifact(sourcesJar) {
@@ -134,7 +134,7 @@ publishing {
 			}
         }
     }
-
+    
     repositories {
         maven {
             url "https://grondag-repo.appspot.com"
