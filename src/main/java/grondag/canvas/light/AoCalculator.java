@@ -65,21 +65,6 @@ public class AoCalculator {
         float apply(BlockPos pos);
     }
 
-    /**
-     * Vanilla models with cubic quads have vertices in a certain order, which
-     * allows us to map them using a lookup. Adapted from enum in vanilla
-     * AoCalculator.
-     */
-    private static final int[][] VERTEX_MAP = new int[6][4];
-    static {
-        VERTEX_MAP[Direction.DOWN.getId()] = new int[] { 0, 1, 2, 3 };
-        VERTEX_MAP[Direction.UP.getId()] = new int[] { 2, 3, 0, 1 };
-        VERTEX_MAP[Direction.NORTH.getId()] = new int[] { 3, 0, 1, 2 };
-        VERTEX_MAP[Direction.SOUTH.getId()] = new int[] { 0, 1, 2, 3 };
-        VERTEX_MAP[Direction.WEST.getId()] = new int[] { 3, 0, 1, 2 };
-        VERTEX_MAP[Direction.EAST.getId()] = new int[] { 1, 2, 3, 0 };
-    }
-
     private final BlockPos.Mutable lightPos = new BlockPos.Mutable();
     private final BlockPos.Mutable searchPos = new BlockPos.Mutable();
     private final BlockRenderInfo blockInfo;
@@ -155,19 +140,13 @@ public class AoCalculator {
         
         switch (flags) {
         case AXIS_ALIGNED_FLAG | CUBIC_FLAG | LIGHT_FACE_FLAG:
-            vanillaFullFace(quad, true);
-            break;
-
         case AXIS_ALIGNED_FLAG | LIGHT_FACE_FLAG:
-            vanillaPartialFace(quad, true);
+            blockFace(quad, true);
             break;
 
         case AXIS_ALIGNED_FLAG | CUBIC_FLAG:
-            blendedFullFace(quad);
-            break;
-
         case AXIS_ALIGNED_FLAG:
-            blendedPartialFace(quad);
+            blendedFace(quad);
             break;
 
         default:
@@ -176,12 +155,7 @@ public class AoCalculator {
         }
     }
 
-    private void vanillaFullFace(MutableQuadViewImpl quad, boolean isOnLightFace) {
-        final int lightFace = quad.lightFace().ordinal();
-        gatherFace(lightFace, isOnLightFace).calc().toArray(ao, light, VERTEX_MAP[lightFace]);
-    }
-
-    private void vanillaPartialFace(MutableQuadViewImpl quad, boolean isOnLightFace) {
+    private void blockFace(MutableQuadViewImpl quad, boolean isOnLightFace) {
         final int lightFace = quad.lightFace().ordinal();
         final AoFaceCalc faceData = gatherFace(lightFace, isOnLightFace).calc();
         final AoFace face = AoFace.get(lightFace);
@@ -234,12 +208,7 @@ public class AoCalculator {
         }
     }
 
-    private void blendedFullFace(MutableQuadViewImpl quad) {
-        final int lightFace = quad.lightFaceId();
-        blendedInsetData(quad, 0, lightFace).toArray(ao, light, VERTEX_MAP[lightFace]);
-    }
-
-    private void blendedPartialFace(MutableQuadViewImpl quad) {
+    private void blendedFace(MutableQuadViewImpl quad) {
         final int lightFace = quad.lightFaceId();
         AoFaceCalc faceData = blendedInsetData(quad, 0, lightFace);
         AoFace face = AoFace.get(lightFace);

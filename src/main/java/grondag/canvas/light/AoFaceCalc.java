@@ -100,20 +100,6 @@ public class AoFaceCalc {
         return oldMax > z ? oldMax : z;
     }
 
-    AoFaceCalc toArray(float[] aoOut, int[] lightOut, int[] vertexMap) {
-        // PERF: pass ints directly to vertex encoder
-        aoOut[vertexMap[0]] = aoBottomRight * AoCalculator.DIVIDE_BY_255;
-        aoOut[vertexMap[1]] = aoBottomLeft * AoCalculator.DIVIDE_BY_255;
-        aoOut[vertexMap[2]] = aoTopLeft * AoCalculator.DIVIDE_BY_255;
-        aoOut[vertexMap[3]] = aoTopRight * AoCalculator.DIVIDE_BY_255;
-        
-        lightOut[vertexMap[0]] = skyBottomRight << 16 | blockBottomRight;
-        lightOut[vertexMap[1]] = skyBottomLeft << 16 | blockBottomLeft;
-        lightOut[vertexMap[2]] = skyTopLeft << 16 | blockTopLeft;
-        lightOut[vertexMap[3]] = skyTopRight << 16 | blockTopRight;
-        return this;
-    }
-
     // PERF: use integer weights
     static AoFaceCalc weightedMean(AoFaceCalc in0, float w0, AoFaceCalc in1, float w1) {
         AoFaceCalc out = claim();
