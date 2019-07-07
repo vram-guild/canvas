@@ -16,7 +16,8 @@
 
 package grondag.canvas.chunk.occlusion;
 
-import grondag.fermion.functions.PrimitiveFunctions.ObjToIntFunction;
+import java.util.function.ToIntFunction;
+
 import net.minecraft.client.render.chunk.ChunkOcclusionGraphBuilder;
 import net.minecraft.util.math.BlockPos;
 
@@ -24,7 +25,7 @@ import net.minecraft.util.math.BlockPos;
  * Used to get static access to private static block pos hash function.
  */
 public abstract class ChunkOcclusionBuilderAccessHelper {
-    public static final ObjToIntFunction<BlockPos> PACK_FUNCTION;
+    public static final ToIntFunction<BlockPos> PACK_FUNCTION;
     static
     {
         ChunkOcclusionGraphBuilderExt visData = (ChunkOcclusionGraphBuilderExt) new ChunkOcclusionGraphBuilder();
@@ -33,7 +34,7 @@ public abstract class ChunkOcclusionBuilderAccessHelper {
     
     public interface ChunkOcclusionGraphBuilderExt {
         /** Actually static - use to get and hold lambda */
-        ObjToIntFunction<BlockPos> canvas_pack();
+    	ToIntFunction<BlockPos> canvas_pack();
         
         void canvas_clear();
     }

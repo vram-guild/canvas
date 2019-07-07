@@ -22,7 +22,7 @@ ext.getVersionCode = { ->
 
 archivesBaseName = "canvas"
 group = "grondag"
-version = version = "0.7.4+build." + project.getVersionCode();
+version = version = "0.7.5+build." + project.getVersionCode();
 
 minecraft {
 }
@@ -103,11 +103,17 @@ dependencies {
     modImplementation "net.fabricmc:fabric-loader:0.4.8+build.155"
     modCompile "net.fabricmc.fabric-api:fabric-api:0.3.0+build.187"
 	
-    modImplementation "grondag:fermion:0.6.3+build.37"
-    include "grondag:fermion:0.6.3+build.37"
+    modImplementation "grondag:fermion:0.7+"
+    include "grondag:fermion:0.7+"
 	
-	modImplementation "grondag:frex:0.7.4+build.72"
-    include "grondag:frex:0.7.4+build.72"
+	modImplementation "grondag:frex:0.8+"
+    include "grondag:frex:0.8+"
+	
+	modImplementation "grondag:joml-mod:1.0+"
+    include "grondag:joml-mod:1.0+"
+    
+	modImplementation "blue.endless:jankson:1.1.2"
+	include "blue.endless:jankson:1.1.2" //{ transitive = false }
 	
 	modImplementation "cloth-config:ClothConfig2:0.2.0"
     include "cloth-config:ClothConfig2:0.2.0"

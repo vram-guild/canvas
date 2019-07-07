@@ -24,10 +24,10 @@ import java.util.function.Supplier;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import blue.endless.jankson.Comment;
+import blue.endless.jankson.Jankson;
+import blue.endless.jankson.JsonObject;
 import grondag.canvas.material.ShaderManager;
-import grondag.fermion.shadow.jankson.Comment;
-import grondag.fermion.shadow.jankson.Jankson;
-import grondag.fermion.shadow.jankson.JsonObject;
 import me.shedaniel.clothconfig2.api.ConfigBuilder;
 import me.shedaniel.clothconfig2.api.ConfigCategory;
 import me.shedaniel.clothconfig2.gui.entries.BooleanListEntry;

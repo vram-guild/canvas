@@ -29,6 +29,7 @@ import org.lwjgl.system.MemoryUtil;
 import com.mojang.blaze3d.platform.GLX;
 
 import grondag.canvas.CanvasMod;
+import grondag.canvas.apiimpl.MaterialShaderImpl.UniformMatrix4f;
 import grondag.canvas.varia.CanvasGlHelper;
 import grondag.frex.api.material.Uniform;
 import grondag.frex.api.material.Uniform.Uniform1f;
@@ -41,7 +42,6 @@ import grondag.frex.api.material.Uniform.Uniform4f;
 import grondag.frex.api.material.Uniform.Uniform4i;
 import grondag.frex.api.material.Uniform.UniformArrayf;
 import grondag.frex.api.material.Uniform.UniformArrayi;
-import grondag.frex.api.material.Uniform.UniformMatrix4f;
 import grondag.frex.api.material.UniformRefreshFrequency;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.client.resource.language.I18n;
@@ -86,7 +86,7 @@ public class GlProgram {
             this.frequency = frequency;
         }
 
-        public final void setDirty() {
+		public final void setDirty() {
             final int flags = this.flags;
             if (flags == 0)
                 dirtyUniforms[dirtyCount++] = this;

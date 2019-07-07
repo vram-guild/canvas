@@ -19,6 +19,8 @@ package grondag.canvas.apiimpl;
 import java.util.ArrayList;
 import java.util.function.Consumer;
 
+import org.joml.Matrix4f;
+
 import grondag.canvas.material.GlFragmentShader;
 import grondag.canvas.material.GlProgram;
 import grondag.canvas.material.GlShaderManager;
@@ -26,6 +28,7 @@ import grondag.canvas.material.GlVertexShader;
 import grondag.canvas.material.ShaderContext;
 import grondag.canvas.material.ShaderProps;
 import grondag.frex.api.material.MaterialShader;
+import grondag.frex.api.material.Uniform;
 import grondag.frex.api.material.Uniform.Uniform1f;
 import grondag.frex.api.material.Uniform.Uniform1i;
 import grondag.frex.api.material.Uniform.Uniform2f;
@@ -36,7 +39,6 @@ import grondag.frex.api.material.Uniform.Uniform4f;
 import grondag.frex.api.material.Uniform.Uniform4i;
 import grondag.frex.api.material.Uniform.UniformArrayf;
 import grondag.frex.api.material.Uniform.UniformArrayi;
-import grondag.frex.api.material.Uniform.UniformMatrix4f;
 import grondag.frex.api.material.UniformRefreshFrequency;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
@@ -177,6 +179,11 @@ public final class MaterialShaderImpl implements MaterialShader {
         });
     }
 
+    @FunctionalInterface
+    public static interface UniformMatrix4f extends Uniform {
+        void set(Matrix4f matrix);
+    }
+    
     public void uniformMatrix4f(String name, UniformRefreshFrequency frequency, Consumer<UniformMatrix4f> initializer) {
         uniforms.add(p -> {
             if (p.containsUniformSpec("mat4", name))

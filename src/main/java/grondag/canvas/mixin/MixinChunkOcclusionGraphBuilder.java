@@ -18,6 +18,7 @@ package grondag.canvas.mixin;
 
 import java.util.BitSet;
 import java.util.Set;
+import java.util.function.ToIntFunction;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.spongepowered.asm.mixin.Mixin;
@@ -32,7 +33,6 @@ import grondag.canvas.chunk.occlusion.ChunkOcclusionGraphExt;
 import grondag.canvas.chunk.occlusion.ChunkOcclusionMap;
 import grondag.canvas.chunk.occlusion.DirectionSet;
 import grondag.canvas.chunk.occlusion.OcclusionHelper;
-import grondag.fermion.functions.PrimitiveFunctions.ObjToIntFunction;
 import it.unimi.dsi.fastutil.ints.IntArrayFIFOQueue;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
@@ -130,7 +130,7 @@ public abstract class MixinChunkOcclusionGraphBuilder implements ChunkOcclusionG
     }
     
     @Override
-    public ObjToIntFunction<BlockPos> canvas_pack() {
+    public ToIntFunction<BlockPos> canvas_pack() {
         return b -> pack(b);
     }
     

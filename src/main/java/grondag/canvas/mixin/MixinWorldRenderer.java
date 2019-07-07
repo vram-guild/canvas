@@ -82,7 +82,7 @@ public abstract class MixinWorldRenderer {
                 if (visData instanceof Set) {
                     result.addAll((Set<Direction>)visData);
                 } else {
-                    result.addAll(((ChunkOcclusionMap) visData).getFaceSet(ChunkOcclusionBuilderAccessHelper.PACK_FUNCTION.apply(pos)));
+                    result.addAll(((ChunkOcclusionMap) visData).getFaceSet(ChunkOcclusionBuilderAccessHelper.PACK_FUNCTION.applyAsInt(pos)));
                 }
 //                end();
                 ci.setReturnValue(result);
