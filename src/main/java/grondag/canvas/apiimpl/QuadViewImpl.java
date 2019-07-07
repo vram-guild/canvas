@@ -133,7 +133,7 @@ public class QuadViewImpl implements QuadView {
     protected void decodeHeader() {
         final int bits = data[baseIndex + HEADER_BITS];
         geometryFlags = MeshEncodingHelper.geometryFlags(bits);
-        nominalFaceId = ModelHelper.NULL_FACE_ID;
+        nominalFaceId = this.lightFaceId();
         normalFlags = MeshEncodingHelper.normalFlags(bits);
     }
 
