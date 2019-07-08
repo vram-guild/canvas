@@ -106,8 +106,8 @@ dependencies {
     modImplementation "grondag:fermion:0.7+"
     include "grondag:fermion:0.7+"
 	
-	modImplementation "grondag:frex:0.8+"
-    include "grondag:frex:0.8+"
+	modImplementation "grondag:frex:0.8.1+"
+    include "grondag:frex:0.8.1+"
 	
 	modImplementation "grondag:joml-mod:1.0+"
     include "grondag:joml-mod:1.0+"
