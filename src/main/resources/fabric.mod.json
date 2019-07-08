@@ -33,6 +33,7 @@
   "custom": {
     "modmenu:api": true,
     "modmenu:clientsideOnly": true,
-    "fabric-renderer-api-v1:contains_renderer" : true
+    "fabric-renderer-api-v1:contains_renderer" : true,
+    "frex:contains_frex_renderer": true
   }
 }
