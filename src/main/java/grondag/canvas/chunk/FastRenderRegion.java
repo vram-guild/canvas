@@ -22,6 +22,7 @@ import java.util.function.Function;
 import javax.annotation.Nullable;
 
 import grondag.canvas.chunk.ChunkPaletteCopier.PaletteCopy;
+import grondag.canvas.light.AoLuminanceFix;
 import grondag.fermion.world.PackedBlockPos;
 import it.unimi.dsi.fastutil.longs.Long2FloatOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
@@ -45,6 +46,11 @@ public class FastRenderRegion implements RenderAttachedBlockView {
 
     private static void release(FastRenderRegion region) {
         POOL.offer(region);
+    }
+    
+    public static void forceReload() {
+    	// ensure current AoFix rule or other config-dependent lambdas are used
+    	POOL.clear();
     }
     
     /**
@@ -75,12 +81,13 @@ public class FastRenderRegion implements RenderAttachedBlockView {
      */
     public final Long2IntOpenHashMap brightnessCache;
     public final Long2FloatOpenHashMap aoLevelCache;
+    private final AoLuminanceFix aoFix = AoLuminanceFix.effective();
     
     private World world;
     private WorldChunk[][] chunks;
     private int chunkXOffset;
     private int chunkZOffset;
-
+    
     private int secBaseX;
     private int secBaseY;
     private int secBaseZ;
@@ -200,7 +207,7 @@ public class FastRenderRegion implements RenderAttachedBlockView {
         long key = PackedBlockPos.pack(pos);
         float result = aoLevelCache.get(key);
         if (result == Float.MAX_VALUE) {
-            result = getBlockState(pos).getAmbientOcclusionLightLevel(this, pos);
+            result = aoFix.apply(this, pos);
             aoLevelCache.put(key, result);
         }
         return result;

@@ -100,6 +100,9 @@ public class Configurator {
 //        @Comment("Pad vertex data in chunks with multiple formats. Significantly increases frame rate at cost of some wasted memory.")
 //        boolean padTranslucentFormats = true;
 
+        @Comment("Prevent Glowstone and other blocks that emit light from casting shade on nearby blocks.")
+        boolean fixLuminousBlockShading = true;
+        
         // DEBUG
         @Comment("Output runtime per-material shader source. For shader development debugging.")
         boolean shaderDebug = false;
@@ -143,6 +146,7 @@ public class Configurator {
     public static boolean preventDepthFighting = DEFAULTS.preventDepthFighting;
     public static boolean clampExteriorVertices = DEFAULTS.clampExteriorVertices;
 //    public static boolean padTranslucentFormats = DEFAULTS.padTranslucentFormats;
+    public static boolean fixLuminousBlockShading = DEFAULTS.fixLuminousBlockShading;
     
     public static boolean lightmapDebug = DEFAULTS.lightmapDebug;
     public static boolean conciseErrors = DEFAULTS.conciseErrors;
@@ -194,6 +198,7 @@ public class Configurator {
         preventDepthFighting = config.preventDepthFighting;
         clampExteriorVertices = config.clampExteriorVertices;
 //        padTranslucentFormats = config.padTranslucentFormats;
+        fixLuminousBlockShading = config.fixLuminousBlockShading;
         
         lightmapDebug = config.lightmapDebug;
         conciseErrors = config.conciseErrors;
@@ -371,6 +376,10 @@ public class Configurator {
         tweaks.addEntry(new BooleanListEntry("config.canvas.value.clamp_exterior_vertices", clampExteriorVertices, "config.canvas.reset", 
                 () -> DEFAULTS.clampExteriorVertices, b -> {clampExteriorVertices = b; reloadTerrain = true;}, 
                 () -> Optional.of(I18n.translate("config.canvas.help.clamp_exterior_vertices").split(";"))));
+        
+        tweaks.addEntry(new BooleanListEntry("config.canvas.value.fix_luminous_block_shade", fixLuminousBlockShading, "config.canvas.reset", 
+                () -> DEFAULTS.fixLuminousBlockShading, b -> {fixLuminousBlockShading = b; reloadTerrain = true;}, 
+                () -> Optional.of(I18n.translate("config.canvas.help.fix_luminous_block_shade").split(";"))));
         
 //        tweaks.addOption(new BooleanListEntry("config.canvas.value.pad_translucent_formats", padTranslucentFormats, "config.canvas.reset", 
 //                () -> DEFAULTS.padTranslucentFormats, b -> {padTranslucentFormats = b; reloadTerrain = true;}, 

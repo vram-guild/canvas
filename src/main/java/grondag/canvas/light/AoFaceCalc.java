@@ -124,9 +124,18 @@ public class AoFaceCalc {
     /**
      * Independent minimum of packed components
      */
-    private static int min(int x, int y) {
+    public static int min(int x, int y) {
         final int s = Math.min(x & 0x00FF0000, y & 0x00FF0000);
         final int b = Math.min(x & 0xFF, y & 0xFF);
+        return s | b;
+    }
+    
+    /**
+     * Independent maximum of packed components
+     */
+    public static int max(int x, int y) {
+        final int s = Math.max(x & 0x00FF0000, y & 0x00FF0000);
+        final int b = Math.max(x & 0xFF, y & 0xFF);
         return s | b;
     }
     

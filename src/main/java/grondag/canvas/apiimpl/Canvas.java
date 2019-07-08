@@ -22,6 +22,8 @@ import java.util.function.BooleanSupplier;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.RenderMaterialImpl.Finder;
 import grondag.canvas.apiimpl.RenderMaterialImpl.Value;
+import grondag.canvas.apiimpl.rendercontext.BlockRenderContext;
+import grondag.canvas.chunk.FastRenderRegion;
 import grondag.canvas.material.ShaderManager;
 import grondag.frex.api.Renderer;
 import grondag.frex.api.material.MaterialCondition;
@@ -75,6 +77,8 @@ public class Canvas implements Renderer {
     public void reload() {
         CanvasMod.LOG.info(I18n.translate("info.canvas.reloading"));
         ShaderManager.INSTANCE.forceReload();
+        FastRenderRegion.forceReload();
+        BlockRenderContext.forceReload();
     }
 
     @Override

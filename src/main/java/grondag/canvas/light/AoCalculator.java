@@ -335,8 +335,6 @@ public class AoCalculator {
     private static final int LEFT = 2;
     private static final int RIGHT = 3;
     
-    private static final int OPAQUE_AO = Math.round(0.2f * 255);
-    
     /**
      * Computes smoothed brightness and Ao shading for four corners of a block face.
      * Outer block face is what you normally see and what you get get when second
@@ -382,69 +380,65 @@ public class AoCalculator {
             fastFaceOffset(searchPos, centerPos, aoFace.neighbors[BOTTOM]);
             final boolean bottomClear = !world.getBlockState(searchPos).isFullOpaque(world, searchPos);
             fd.bottom = bottomClear ? brightnessFunc.applyAsInt(searchPos) : OPAQUE;
-            int aoBottom = bottomClear ? Math.round(aoFunc.apply(searchPos) * 255) : OPAQUE_AO;
+            int aoBottom = Math.round(aoFunc.apply(searchPos) * 255);
             
             fastFaceOffset(searchPos, centerPos, aoFace.neighbors[TOP]);
             final boolean topClear = !world.getBlockState(searchPos).isFullOpaque(world, searchPos);
             fd.top = topClear ? brightnessFunc.applyAsInt(searchPos) : OPAQUE;
-            int aoTop = topClear ? Math.round(aoFunc.apply(searchPos) * 255) : OPAQUE_AO;
+            int aoTop = Math.round(aoFunc.apply(searchPos) * 255);
             
             fastFaceOffset(searchPos, centerPos, aoFace.neighbors[LEFT]);
             final boolean leftClear = !world.getBlockState(searchPos).isFullOpaque(world, searchPos);
             fd.left = leftClear ? brightnessFunc.applyAsInt(searchPos) : OPAQUE;
-            int aoLeft = leftClear ? Math.round(aoFunc.apply(searchPos) * 255) : OPAQUE_AO;
+            int aoLeft = Math.round(aoFunc.apply(searchPos) * 255);
             
             fastFaceOffset(searchPos, centerPos, aoFace.neighbors[RIGHT]);
             final boolean rightClear = !world.getBlockState(searchPos).isFullOpaque(world, searchPos);
             fd.right = rightClear ? brightnessFunc.applyAsInt(searchPos) : OPAQUE;
-            int aoRight = rightClear ? Math.round(aoFunc.apply(searchPos) * 255) : OPAQUE_AO;
+            int aoRight = Math.round(aoFunc.apply(searchPos) * 255);
 
             if (!(leftClear || bottomClear)) { 
                 // both not clear
-                fd.aoBottomLeft = (OPAQUE_AO + OPAQUE_AO + OPAQUE_AO + 1 + aoCenter) >> 2;
+            	fd.aoBottomLeft = (Math.min(aoLeft, aoBottom) + aoBottom + aoLeft + 1 + aoCenter) >> 2;
                 fd.bottomLeft = OPAQUE;
             } else { // at least one clear
                 fastFaceOffset(searchPos, fastFaceOffset(searchPos, centerPos, aoFace.neighbors[BOTTOM]), aoFace.neighbors[LEFT]);
                 boolean cornerClear = !world.getBlockState(searchPos).isFullOpaque(world, searchPos);
                 fd.bottomLeft = cornerClear ? brightnessFunc.applyAsInt(searchPos) : OPAQUE;
-                final int aoBottomLeft = cornerClear ? Math.round(aoFunc.apply(searchPos) * 255) : OPAQUE_AO;
-                fd.aoBottomLeft = (aoBottomLeft + aoBottom + aoCenter + aoLeft + 1) >> 2;  // bitwise divide by four, rounding up
+                fd.aoBottomLeft = (Math.round(aoFunc.apply(searchPos) * 255) + aoBottom + aoCenter + aoLeft + 1) >> 2;  // bitwise divide by four, rounding up
             }
             
             if (!(rightClear || bottomClear)) { 
                 // both not clear
-                fd.aoBottomRight = (OPAQUE_AO + OPAQUE_AO + OPAQUE_AO + 1 + aoCenter) >> 2;
+                fd.aoBottomRight = (Math.min(aoRight, aoBottom) + aoBottom + aoRight + 1 + aoCenter) >> 2;
                 fd.bottomRight = OPAQUE;
             } else { // at least one clear
                 fastFaceOffset(searchPos, fastFaceOffset(searchPos, centerPos, aoFace.neighbors[BOTTOM]), aoFace.neighbors[RIGHT]);
                 boolean cornerClear = !world.getBlockState(searchPos).isFullOpaque(world, searchPos);
                 fd.bottomRight = cornerClear ? brightnessFunc.applyAsInt(searchPos) : OPAQUE;
-                final int aoBottomRight = cornerClear ? Math.round(aoFunc.apply(searchPos) * 255) : OPAQUE_AO;
-                fd.aoBottomRight = (aoBottomRight + aoBottom + aoCenter + aoRight + 1) >> 2;
+                fd.aoBottomRight = (Math.round(aoFunc.apply(searchPos) * 255) + aoBottom + aoCenter + aoRight + 1) >> 2;
             }
             
             if (!(leftClear || topClear)) { 
                 // both not clear
-                fd.aoTopLeft = (OPAQUE_AO + OPAQUE_AO + OPAQUE_AO + 1 + aoCenter) >> 2;
+                fd.aoTopLeft = (Math.min(aoLeft, aoTop) + aoTop + aoLeft + 1 + aoCenter) >> 2;
                 fd.topLeft = OPAQUE;
             } else { // at least one clear
                 fastFaceOffset(searchPos, fastFaceOffset(searchPos, centerPos, aoFace.neighbors[TOP]), aoFace.neighbors[LEFT]);
                 boolean cornerClear = !world.getBlockState(searchPos).isFullOpaque(world, searchPos);
                 fd.topLeft = cornerClear ? brightnessFunc.applyAsInt(searchPos) : OPAQUE;
-                final int aoTopLeft = cornerClear ? Math.round(aoFunc.apply(searchPos) * 255) : OPAQUE_AO;
-                fd.aoTopLeft = (aoTopLeft + aoTop + aoCenter + aoLeft + 1) >> 2;
+                fd.aoTopLeft = (Math.round(aoFunc.apply(searchPos) * 255) + aoTop + aoCenter + aoLeft + 1) >> 2;
             }
             
             if (!(rightClear || topClear)) { 
                 // both not clear
-                fd.aoTopRight = (OPAQUE_AO + OPAQUE_AO + OPAQUE_AO + 1 + aoCenter) >> 2;
+                fd.aoTopRight = (Math.min(aoRight, aoTop) + aoTop+ aoRight + 1 + aoCenter) >> 2;
                 fd.topRight = OPAQUE;
             } else { // at least one clear
                 fastFaceOffset(searchPos, fastFaceOffset(searchPos, centerPos, aoFace.neighbors[TOP]), aoFace.neighbors[RIGHT]);
                 boolean cornerClear = !world.getBlockState(searchPos).isFullOpaque(world, searchPos);
                 fd.topRight = cornerClear ? brightnessFunc.applyAsInt(searchPos) : OPAQUE;
-                final int aoTopRight = cornerClear ? Math.round(aoFunc.apply(searchPos) * 255) : OPAQUE_AO;
-                fd.aoTopRight = (aoTopRight + aoTop + aoCenter + aoRight + 1) >> 2;
+                fd.aoTopRight = (Math.round(aoFunc.apply(searchPos) * 255) + aoTop + aoCenter + aoRight + 1) >> 2;
             }
         }
         return fd;

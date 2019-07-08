@@ -62,6 +62,8 @@
 	"config.canvas.help.clamp_exterior_vertices" : "Treats model geometry outside of;block boundaries as on;the block for lighting purposes.;Helps prevent bad lighting outcomes.",
 	"config.canvas.value.pad_translucent_formats" : "Pad Translucent Formats",
 	"config.canvas.help.pad_translucent_formats" : "Pad vertex data in chunks with multiple;formats. Significantly increases frame rate;at cost of some wasted memory.",
+	"config.canvas.value.fix_luminous_block_shade": "Prevent Luminous Block Shading",
+	"config.canvas.help.fix_luminous_block_shade": "Prevent Glowstone and other blocks that emit;light from casting shade on nearby blocks.",
 	
 	"config.canvas.category.debug" : "Debug",
 	"config.canvas.value.shader_debug" : "Enable Shader Debug Output",

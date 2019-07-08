@@ -24,6 +24,7 @@ import grondag.canvas.buffer.packing.CanvasBufferBuilder;
 import grondag.canvas.buffer.packing.VertexCollector;
 import grondag.canvas.draw.TessellatorExt;
 import grondag.canvas.light.AoCalculator;
+import grondag.canvas.light.AoLuminanceFix;
 import grondag.canvas.material.ShaderContext;
 import grondag.canvas.material.ShaderProps;
 import grondag.frex.api.model.DynamicBakedModel;
@@ -47,6 +48,12 @@ public class BlockRenderContext extends AbstractRenderContext implements RenderC
         return ShaderContext.BLOCK_SOLID;
     }
     
+    public static ThreadLocal<BlockRenderContext> POOL = ThreadLocal.withInitial(BlockRenderContext::new);
+    
+    public static void forceReload() {
+    	POOL = ThreadLocal.withInitial(BlockRenderContext::new);
+    }
+    
     private final BlockRenderInfo blockInfo = new BlockRenderInfo();
     private final AoCalculator aoCalc = new AoCalculator(blockInfo, this::brightness, this::aoLevel);
     private final MeshConsumer meshConsumer = new MeshConsumer(blockInfo, this::brightness, this::getCollector, aoCalc,
@@ -54,6 +61,8 @@ public class BlockRenderContext extends AbstractRenderContext implements RenderC
     private final FallbackConsumer fallbackConsumer = new FallbackConsumer(blockInfo, this::brightness, this::getCollector, aoCalc,
             this::hasTransform, this::transform, QuadRenderer.NO_OFFSET, BlockRenderContext::contextFunc);
     private final TessellatorExt tesselatorExt = (TessellatorExt) Tessellator.getInstance();
+    private final AoLuminanceFix aoFix = AoLuminanceFix.effective();
+    
     private CanvasBufferBuilder canvasBuilder;
     private boolean didOutput = false;
 
@@ -70,7 +79,7 @@ public class BlockRenderContext extends AbstractRenderContext implements RenderC
         if (blockView == null) {
             return 1f;
         }
-        return blockView.getBlockState(pos).getAmbientOcclusionLightLevel(blockView, pos);
+        return aoFix.apply(blockView, pos);
     }
 
     private VertexCollector getCollector(RenderMaterialImpl.Value mat, QuadViewImpl quad) {

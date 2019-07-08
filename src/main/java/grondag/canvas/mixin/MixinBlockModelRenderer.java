@@ -38,12 +38,11 @@ import net.minecraft.world.ExtendedBlockView;
 public abstract class MixinBlockModelRenderer { 
     @Shadow
     protected BlockColors colorMap;
-    private final ThreadLocal<BlockRenderContext> CONTEXTS = ThreadLocal.withInitial(BlockRenderContext::new);
 
     @Inject(at = @At("HEAD"), method = "tesselate", cancellable = true)
     private void hookTesselate(ExtendedBlockView blockView, BakedModel model, BlockState state, BlockPos pos,
             BufferBuilder buffer, boolean checkSides, Random rand, long seed, CallbackInfoReturnable<Boolean> ci) {
-        ci.setReturnValue(CONTEXTS.get().tesselate((BlockModelRenderer) (Object) this,
+        ci.setReturnValue(BlockRenderContext.POOL.get().tesselate((BlockModelRenderer) (Object) this,
                 (RenderAttachedBlockView) blockView, model, state, pos, buffer, seed));
     }
 }
