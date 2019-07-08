@@ -101,7 +101,7 @@ dependencies {
 	minecraft "com.mojang:minecraft:$mcVersion"
 	mappings "net.fabricmc:yarn:$mcVersion+build.1"
     modImplementation "net.fabricmc:fabric-loader:0.4.8+build.155"
-    modCompile "net.fabricmc.fabric-api:fabric-api:0.3.0+build.187"
+    modCompile "net.fabricmc.fabric-api:fabric-api:0.3.0+build.191"
 	
     modImplementation "grondag:fermion:0.7+"
     include "grondag:fermion:0.7+"
@@ -132,9 +132,16 @@ dependencies {
 publishing {
     publications {
         mavenJava(MavenPublication) {
-			artifact(jar.archivePath) {
-			    builtBy remapJar
+			artifact ("${project.buildDir.absolutePath}/libs/${archivesBaseName}-${project.version}.jar") { 
+				classifier null
+				builtBy remapJar
 			}
+
+			artifact ("${project.buildDir.absolutePath}/libs/${archivesBaseName}-${project.version}-dev.jar") { 
+				classifier "dev"
+				builtBy remapJar
+			}
+			
 			artifact(sourcesJar) {
 				builtBy remapSourcesJar
 			}
