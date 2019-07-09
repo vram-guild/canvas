@@ -31,7 +31,7 @@ public interface VertexAttributeEncoder {
         }
         int blockLight = (packedLight & 0xFF);
         int skyLight = ((packedLight >> 16) & 0xFF);
-        o.add(blockLight | (skyLight << 8) | (c.mat.shaderFlags() << 16));
+        o.add(blockLight | (skyLight << 8) | (c.shaderFlags << 16));
     };
     
     public static final VertexAttributeEncoder HD_BLOCK_LIGHTMAP = (q, i, c, o) -> o.add(q.blockLight == null ? 0 : q.blockLight.coord(q, i));

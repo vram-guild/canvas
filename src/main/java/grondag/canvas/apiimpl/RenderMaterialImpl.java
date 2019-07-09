@@ -58,9 +58,10 @@ public abstract class RenderMaterialImpl {
     
     private static final long DEFAULT_BITS;
     
-    static private final ObjectArrayList<Value> LIST = new ObjectArrayList<>();
-    static private final Long2ObjectOpenHashMap<Value> MAP = new Long2ObjectOpenHashMap<>();
+    private static final ObjectArrayList<Value> LIST = new ObjectArrayList<>();
+    private static final Long2ObjectOpenHashMap<Value> MAP = new Long2ObjectOpenHashMap<>();
 
+    public static final int SHADER_FLAGS_DISABLE_AO;
     
     static {
         // First 16 bits of material bits are sent directly to the shader as control flags.
@@ -111,6 +112,12 @@ public abstract class RenderMaterialImpl {
         defaultBits = BLEND_MODES[1].setValue(null, defaultBits);
         defaultBits = BLEND_MODES[2].setValue(null, defaultBits);
         DEFAULT_BITS = defaultBits;
+        
+        long aoDisableBits = 0;
+        aoDisableBits = FLAGS[AO_INDEX_START + 0].setValue(true, aoDisableBits);
+        aoDisableBits = FLAGS[AO_INDEX_START + 1].setValue(true, aoDisableBits);
+        aoDisableBits = FLAGS[AO_INDEX_START + 2].setValue(true, aoDisableBits);
+        SHADER_FLAGS_DISABLE_AO = (int)aoDisableBits;
     }
     
     public static RenderMaterialImpl.Value byIndex(int index) {

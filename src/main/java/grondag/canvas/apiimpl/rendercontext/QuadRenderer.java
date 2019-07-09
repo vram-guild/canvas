@@ -105,7 +105,8 @@ public class QuadRenderer {
     private final VertexEncodingContext encodingContext = new VertexEncodingContext();
     
     private void encodeQuad(MutableQuadViewImpl q, VertexCollector output, RenderMaterialImpl.Value mat, boolean isAo) {
-        output.materialState().materialVertexFormat().encode(q, encodingContext.prepare(mat, contextFunc.apply(mat), blockInfo.blockPos, isAo ? aoCalc.ao : null), output);
+    	final int shaderFlags = isAo ? mat.shaderFlags() : mat.shaderFlags() | RenderMaterialImpl.SHADER_FLAGS_DISABLE_AO;
+        output.materialState().materialVertexFormat().encode(q, encodingContext.prepare(mat, contextFunc.apply(mat), blockInfo.blockPos, isAo ? aoCalc.ao : null, shaderFlags), output);
     }
     
     /** for non-emissive mesh quads and all fallback quads with smooth lighting */

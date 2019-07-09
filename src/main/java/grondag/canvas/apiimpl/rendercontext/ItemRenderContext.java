@@ -188,7 +188,7 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
         
         ColorHelper.colorizeQuad(quad, quadColor());
         
-        output.materialState().materialVertexFormat().encode(quad, encodingContext.prepare(mat, context, null, null), output);
+        output.materialState().materialVertexFormat().encode(quad, encodingContext.prepare(mat, context, null, null, mat.shaderFlags()), output);
     }
 
     @Override
