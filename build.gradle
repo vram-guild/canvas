@@ -20,9 +20,9 @@ ext.getVersionCode = { ->
     }
 }
 
-archivesBaseName = "canvas"
-group = "grondag"
-version = version = "0.7.5+build." + project.getVersionCode();
+archivesBaseName = project.archives_base_name
+group = project.maven_group
+version = project.mod_version + "+build." + project.getVersionCode();
 
 minecraft {
 }
@@ -95,13 +95,11 @@ sourceSets {
     }
 }
 
-def mcVersion = "1.14.3"
-
 dependencies {
-	minecraft "com.mojang:minecraft:$mcVersion"
-	mappings "net.fabricmc:yarn:$mcVersion+build.1"
-    modImplementation "net.fabricmc:fabric-loader:0.4.8+build.155"
-    modCompile "net.fabricmc.fabric-api:fabric-api:0.3.0+build.191"
+	minecraft "com.mojang:minecraft:${project.minecraft_version}"
+	mappings "net.fabricmc:yarn:${project.yarn_mappings}"
+	modCompile "net.fabricmc:fabric-loader:${project.loader_version}"
+	modCompile "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 	
     modImplementation "grondag:fermion:0.7+"
     include "grondag:fermion:0.7+"
