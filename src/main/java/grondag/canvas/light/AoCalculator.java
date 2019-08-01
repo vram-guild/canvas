@@ -272,7 +272,7 @@ public class AoCalculator {
             int maxSky = 0, maxBlock = 0;
             float maxAo = 0;
 
-            final float x = normal.x();
+            final float x = normal.getX();
             if (!MathHelper.equalsApproximate(0f, x)) {
                 final int face = x > 0 ? EAST : WEST;
                 // PERF: really need to cache these
@@ -290,7 +290,7 @@ public class AoCalculator {
                 maxBlock = b;
             }
 
-            final float y = normal.y();
+            final float y = normal.getY();
             if (!MathHelper.equalsApproximate(0f, y)) {
                 final int face = y > 0 ? UP : DOWN;
                 final AoFaceCalc fd = blendedInsetData(quad, i, face);
@@ -307,7 +307,7 @@ public class AoCalculator {
                 maxBlock = Math.max(b, maxBlock);
             }
 
-            final float z = normal.z();
+            final float z = normal.getZ();
             if (!MathHelper.equalsApproximate(0f, z)) {
                 final int face = z > 0 ? SOUTH : NORTH;
                 final AoFaceCalc fd = blendedInsetData(quad, i, face);

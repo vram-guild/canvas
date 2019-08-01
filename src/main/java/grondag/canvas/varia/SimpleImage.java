@@ -27,7 +27,7 @@ import com.mojang.blaze3d.platform.GlStateManager;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.util.UntrackMemoryUtil;
+import net.minecraft.client.util.Untracker;
 
 /**
  * Leaner adaptation of Minecraft NativeImage suitable for our needs.
@@ -135,6 +135,6 @@ public final class SimpleImage implements AutoCloseable {
     }
 
     public void untrack() {
-        UntrackMemoryUtil.untrack(this.pointer);
+        Untracker.untrack(this.pointer);
     }
 }
