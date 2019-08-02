@@ -1,7 +1,7 @@
 package grondag.canvas.light;
 
 import grondag.canvas.chunk.FastRenderRegion;
-import grondag.fermion.world.PackedBlockPos;
+import grondag.fermion.position.PackedBlockPos;
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 import net.minecraft.block.BlockState;
 import net.minecraft.util.math.BlockPos;

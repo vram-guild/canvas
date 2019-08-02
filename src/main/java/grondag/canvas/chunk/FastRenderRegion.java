@@ -23,7 +23,7 @@ import javax.annotation.Nullable;
 
 import grondag.canvas.chunk.ChunkPaletteCopier.PaletteCopy;
 import grondag.canvas.light.AoLuminanceFix;
-import grondag.fermion.world.PackedBlockPos;
+import grondag.fermion.position.PackedBlockPos;
 import it.unimi.dsi.fastutil.longs.Long2FloatOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachedBlockView;

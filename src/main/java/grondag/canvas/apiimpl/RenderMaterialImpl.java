@@ -17,8 +17,8 @@
 package grondag.canvas.apiimpl;
 
 import grondag.canvas.material.ShaderManager;
-import grondag.fermion.varia.BitPacker64;
-import grondag.fermion.varia.BitPacker64.BooleanElement;
+import grondag.fermion.bits.BitPacker64;
+import grondag.fermion.bits.BitPacker64.BooleanElement;
 import grondag.frex.api.material.MaterialFinder;
 import grondag.frex.api.material.MaterialShader;
 import grondag.frex.api.material.MaterialCondition;

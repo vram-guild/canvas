@@ -1,8 +1,8 @@
 package grondag.canvas.light;
 
-import grondag.fermion.varia.BitPacker64;
-import grondag.fermion.varia.BitPacker64.BooleanElement;
-import grondag.fermion.varia.BitPacker64.IntElement;
+import grondag.fermion.bits.BitPacker64;
+import grondag.fermion.bits.BitPacker64.BooleanElement;
+import grondag.fermion.bits.BitPacker64.IntElement;
 import net.minecraft.util.math.MathHelper;
 
 @SuppressWarnings("rawtypes")

@@ -16,12 +16,12 @@
 
 package grondag.canvas.buffer.packing;
 
-import static grondag.fermion.world.PackedBlockPos.WORLD_BOUNDARY;
-import static grondag.fermion.world.PackedBlockPos.X_MASK;
-import static grondag.fermion.world.PackedBlockPos.X_SHIFT;
-import static grondag.fermion.world.PackedBlockPos.Y_MASK;
-import static grondag.fermion.world.PackedBlockPos.Y_SHIFT;
-import static grondag.fermion.world.PackedBlockPos.Z_MASK;
+import static grondag.fermion.position.PackedBlockPos.WORLD_BOUNDARY;
+import static grondag.fermion.position.PackedBlockPos.X_MASK;
+import static grondag.fermion.position.PackedBlockPos.X_SHIFT;
+import static grondag.fermion.position.PackedBlockPos.Y_MASK;
+import static grondag.fermion.position.PackedBlockPos.Y_SHIFT;
+import static grondag.fermion.position.PackedBlockPos.Z_MASK;
 
 import grondag.canvas.Configurator;
 import net.minecraft.util.math.BlockPos;
