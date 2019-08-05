@@ -142,6 +142,7 @@ public class QuadRenderer {
         if (cullFace != null) {
             mpos.setOffset(cullFace);
         }
-        return brightnessFunc.applyAsInt(mpos);
+        // Unfortunately cannot use cache for flat lighting because of magma blocks
+        return blockState.getBlockBrightness(blockInfo.blockView, mpos);
     }
 }
