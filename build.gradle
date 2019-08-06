@@ -135,9 +135,16 @@ dependencies {
 publishing {
     publications {
         mavenJava(MavenPublication) {
-			artifact(jar.archivePath) {
-	    		builtBy remapJar
+			artifact ("${project.buildDir.absolutePath}/libs/${archivesBaseName}-${project.version}.jar") { 
+				classifier null
+				builtBy remapJar
 			}
+
+			artifact ("${project.buildDir.absolutePath}/libs/${archivesBaseName}-${project.version}-dev.jar") { 
+				classifier "dev"
+				builtBy remapJar
+			}
+			
 			artifact(sourcesJar) {
 				builtBy remapSourcesJar
 			}
