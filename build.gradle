@@ -1,33 +1,33 @@
 plugins {
-	id 'fabric-loom' version '0.2.4-SNAPSHOT'
+	id 'fabric-loom' version '0.2.5-SNAPSHOT'
 	id 'maven-publish'
+	id "org.ajoberstar.grgit" version "3.1.1"
 }
 
 sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
 
-ext.getVersionCode = { ->
-    try {
-        def stdout = new ByteArrayOutputStream()
-        exec {
-            commandLine 'git', 'rev-list', '--first-parent', '--count', 'origin/master'
-            standardOutput = stdout
-        }
-        return Integer.parseInt(stdout.toString().trim())
-    }
-    catch (ignored) {
-        return -1;
-    }
-}
+archivesBaseName = "canvas"
+group = "grondag"
+def version_tag = 'canvas_version'
 
-archivesBaseName = project.archives_base_name
-group = project.maven_group
-version = project.mod_version + "+build." + project.getVersionCode();
+if (grgit == null) {
+	version = '99.0.0-nogit'
+} else if (project.hasProperty(version_tag)) {
+	if(grgit.status().isClean()) {
+		version = project.getProperty(version_tag) + '.' + grgit.log().size() + '+' + project.minecraft_version
+	} else {
+		version = project.getProperty(version_tag) + '.' + (grgit.log().size() + 1) + '-snapshot+' + project.minecraft_version
+	}
+} else {
+	version = '99.0.0-local'
+}
 
 minecraft {
 }
 
 repositories {
+	mavenLocal()
     maven { url "https://tehnut.info/maven"}
     maven { url "http://maven.sargunv.s3-website-us-west-2.amazonaws.com/" }
     maven { url "https://minecraft.curseforge.com/api/maven" }
@@ -101,26 +101,31 @@ dependencies {
 	modCompile "net.fabricmc:fabric-loader:${project.loader_version}"
 	modCompile "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 	
-    modImplementation "grondag:fermion:0.7+"
-    include "grondag:fermion:0.7+"
+	modImplementation "grondag:fermion:${project.fermion_version}+"
+    include "grondag:fermion:${project.fermion_version}+"
 	
-	modImplementation "grondag:frex:0.8.1+build.75"
-    include "grondag:frex:0.8.1+build.75"
+    modImplementation "grondag:fermion-varia:${project.fermion_varia_version}+"
+    include "grondag:fermion-varia:${project.fermion_varia_version}+"
+    
+	modImplementation "grondag:special-circumstances:${project.special_circumstances_version}+"
+    include "grondag:special-circumstances:${project.special_circumstances_version}+"
+    
+	modImplementation "grondag:frex:${project.frex_version}+"
+    include "grondag:frex:${project.frex_version}+"
 	
 	modImplementation "grondag:joml-mod:1.0+"
     include "grondag:joml-mod:1.0+"
     
 	modImplementation "blue.endless:jankson:1.1.2"
-	include "blue.endless:jankson:1.1.2" //{ transitive = false }
+	include "blue.endless:jankson:1.1.2"
 	
-	modImplementation "cloth-config:ClothConfig2:0.2.0"
-    include "cloth-config:ClothConfig2:0.2.0"
+	modImplementation ("me.shedaniel.cloth:config-2:${clothconfig_version}") {
+        exclude group :"io.github.prospector.modmenu"
+        exclude group :"net.fabricmc.fabric-api"
+    }
+	include "me.shedaniel.cloth:config-2:${clothconfig_version}"
 	
-	// For dev env testing 
-	modImplementation "io.github.prospector.modmenu:ModMenu:1.6.2-92"
-	modRuntime "grondag:renderbender:0.7.1+"
-	modRuntime "com.jamieswhiteshirt:developer-mode:1.0.11"
-	modRuntime "grondag:instruments:0.0.2+"
+	modImplementation "io.github.prospector:modmenu:${project.modmenu_version}"
 	
 	// dev env annotation support
 	compile "org.apiguardian:apiguardian-api:1.0.0"
@@ -130,16 +135,9 @@ dependencies {
 publishing {
     publications {
         mavenJava(MavenPublication) {
-			artifact ("${project.buildDir.absolutePath}/libs/${archivesBaseName}-${project.version}.jar") { 
-				classifier null
-				builtBy remapJar
+			artifact(jar.archivePath) {
+	    		builtBy remapJar
 			}
-
-			artifact ("${project.buildDir.absolutePath}/libs/${archivesBaseName}-${project.version}-dev.jar") { 
-				classifier "dev"
-				builtBy remapJar
-			}
-			
 			artifact(sourcesJar) {
 				builtBy remapSourcesJar
 			}
