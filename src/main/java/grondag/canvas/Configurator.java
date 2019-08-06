@@ -118,6 +118,12 @@ public class Configurator {
         
         @Comment("Writes OpenGL state changes to log.  *VERY SPAMMY - KILLS FRAME RATE*  Used only for debugging.")
         boolean logGlStateChanges = false;
+        
+        @Comment("Enables LWJGL memory allocation tracking.  Will harm performance. Use for debugging memory leaks. Requires restart.")
+        boolean debugNativeMemoryAllocation = false;
+        
+        @Comment("Uses slower/safer memory allocation method for GL buffers.  Use only if having problems. Requires restart.")
+        boolean safeNativeMemoryAllocation = false;
     }
     
     static final ConfigData DEFAULTS = new ConfigData();
@@ -152,6 +158,8 @@ public class Configurator {
     public static boolean conciseErrors = DEFAULTS.conciseErrors;
     public static boolean logMachineInfo = DEFAULTS.logMachineInfo;
     public static boolean logGlStateChanges = DEFAULTS.logGlStateChanges;
+    public static boolean debugNativeMemoryAllocation = DEFAULTS.debugNativeMemoryAllocation;
+    public static boolean safeNativeMemoryAllocation = DEFAULTS.safeNativeMemoryAllocation;
     
     /** use to stash parent screen during display */
     private static Screen screenIn;
@@ -204,6 +212,8 @@ public class Configurator {
         conciseErrors = config.conciseErrors;
         logMachineInfo = config.logMachineInfo;
         logGlStateChanges = config.logGlStateChanges;
+        debugNativeMemoryAllocation = config.debugNativeMemoryAllocation;
+        safeNativeMemoryAllocation = config.safeNativeMemoryAllocation;
     }
 
     private static void saveConfig() {
@@ -234,6 +244,8 @@ public class Configurator {
         config.conciseErrors = conciseErrors;
         config.logMachineInfo = logMachineInfo;
         config.logGlStateChanges = logGlStateChanges;
+        config.debugNativeMemoryAllocation = debugNativeMemoryAllocation;
+        config.safeNativeMemoryAllocation = safeNativeMemoryAllocation;
         
         try {
             String result = JANKSON.toJson(config).toJson(true, true, 0);
@@ -407,6 +419,14 @@ public class Configurator {
         debug.addEntry(new BooleanListEntry("config.canvas.value.log_gl_state_changes", logGlStateChanges, "config.canvas.reset", 
                 () -> DEFAULTS.logGlStateChanges, b -> logGlStateChanges = b, 
                 () -> Optional.of(I18n.translate("config.canvas.help.log_gl_state_changes").split(";"))));
+       
+        debug.addEntry(new BooleanListEntry("config.canvas.value.debug_native_allocation", debugNativeMemoryAllocation, "config.canvas.reset", 
+                () -> DEFAULTS.debugNativeMemoryAllocation, b -> debugNativeMemoryAllocation = b, 
+                () -> Optional.of(I18n.translate("config.canvas.help.debug_native_allocation").split(";"))));
+        
+        debug.addEntry(new BooleanListEntry("config.canvas.value.safe_native_allocation", safeNativeMemoryAllocation, "config.canvas.reset", 
+                () -> DEFAULTS.safeNativeMemoryAllocation, b -> safeNativeMemoryAllocation = b, 
+                () -> Optional.of(I18n.translate("config.canvas.help.safe_native_allocation").split(";"))));
         
         builder.setDoesConfirmSave(false);
         

@@ -16,9 +16,8 @@
 
 package grondag.canvas.buffer.allocation;
 
-import java.util.Collections;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import grondag.canvas.draw.DrawableDelegate;
 import grondag.canvas.varia.GLBufferStore;
@@ -31,10 +30,9 @@ public abstract class UploadableBuffer extends AbstractBuffer implements Bindabl
     public final int id = nextID++;
 
     /**
-     * DrawableChunkDelegates currently using the buffer for rendering.
+     * Count of delegates currently using the buffer for rendering.
      */
-    protected final Set<DrawableDelegate> retainers = Collections
-            .newSetFromMap(new ConcurrentHashMap<DrawableDelegate, Boolean>());
+    protected final AtomicInteger retainers = new AtomicInteger();
 
     @Override
     public BindableBuffer bindable() {
@@ -75,7 +73,7 @@ public abstract class UploadableBuffer extends AbstractBuffer implements Bindabl
     
     @Override
     public void retain(DrawableDelegate drawable) {
-        retainers.add(drawable);
+        retainers.getAndIncrement();
     }
 
     /**
@@ -83,24 +81,28 @@ public abstract class UploadableBuffer extends AbstractBuffer implements Bindabl
      */
     @Override
     public void release(DrawableDelegate drawable) {
-        retainers.remove(drawable);
+        if(retainers.decrementAndGet() == 0) {
+            dispose();
+        }
     }
 
-    protected boolean isDisposed = false;
+    private final AtomicBoolean isDisposed = new AtomicBoolean();
 
     @Override
-    public boolean isDisposed() {
-        return isDisposed;
+    public final boolean isDisposed() {
+        return isDisposed.get();
     }
 
     /** called by store on render reload to recycle GL buffer */
-    protected void dispose() {
-        if (!isDisposed) {
-            isDisposed = true;
-        }
-        if(glBufferId != -1) {
-            GLBufferStore.releaseBuffer(glBufferId);
-            glBufferId = -1;
+    protected final void dispose() {
+        if (isDisposed.compareAndSet(false, true)) {
+            if(glBufferId != -1) {
+                GLBufferStore.releaseBuffer(glBufferId);
+                glBufferId = -1;
+            }
+            onDispose();
         }
     }
+    
+    protected abstract void onDispose();
 }

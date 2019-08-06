@@ -18,11 +18,13 @@ package grondag.canvas;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.lwjgl.system.Configuration;
 
 import grondag.canvas.apiimpl.Canvas;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.render.InvalidateRenderStateCallback;
 import net.fabricmc.fabric.api.renderer.v1.RendererAccess;
+import net.minecraft.client.resource.language.I18n;
 
 //TODO: allow for shaders to be defined based on Block materials. Apply only to default material.
 
@@ -57,6 +59,10 @@ public class CanvasMod implements ClientModInitializer {
         Configurator.init();
         RendererAccess.INSTANCE.registerRenderer(Canvas.INSTANCE);
         InvalidateRenderStateCallback.EVENT.register(Canvas.INSTANCE::reload);
+        if(Configurator.debugNativeMemoryAllocation) {
+            LOG.warn("Canvas is configured to enable native memory debug. This WILL cause slow performance and other issues.  Debug output will print at game exit.");
+            Configuration.DEBUG_MEMORY_ALLOCATOR.set(true);
+        }
     }
 
     public static final String MODID = "canvas";

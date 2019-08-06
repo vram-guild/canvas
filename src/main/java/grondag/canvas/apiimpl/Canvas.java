@@ -23,6 +23,7 @@ import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.RenderMaterialImpl.Finder;
 import grondag.canvas.apiimpl.RenderMaterialImpl.Value;
 import grondag.canvas.apiimpl.rendercontext.BlockRenderContext;
+import grondag.canvas.buffer.allocation.BufferAllocator;
 import grondag.canvas.chunk.FastRenderRegion;
 import grondag.canvas.material.ShaderManager;
 import grondag.frex.api.Renderer;
@@ -79,6 +80,7 @@ public class Canvas implements Renderer {
         ShaderManager.INSTANCE.forceReload();
         FastRenderRegion.forceReload();
         BlockRenderContext.forceReload();
+        BufferAllocator.forceReload();
     }
 
     @Override

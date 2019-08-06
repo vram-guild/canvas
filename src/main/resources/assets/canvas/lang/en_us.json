@@ -75,6 +75,10 @@
 	"config.canvas.value.log_machine_info" : "Log Machine Info",
 	"config.canvas.help.log_machine_info" : "Writes information useful for bug;reports to the game log;at startup.",
 	"config.canvas.value.log_gl_state_changes" : "Log GL State Changes",
-	"config.canvas.help.log_gl_state_changes" : "Writes OpenGL state changes to log.;*VERY SPAMMY - KILLS FRAME RATE*;Used only for debugging."
+	"config.canvas.help.log_gl_state_changes" : "Writes OpenGL state changes to log.;*VERY SPAMMY - KILLS FRAME RATE*;Used only for debugging.",
+	"config.canvas.value.debug_native_allocation" : "Enable LWJGL memory tracking",
+	"config.canvas.help.debug_native_allocation" : "Used for debugging memory leaks. Will harm performance;and cause other errors. Requires restart.",
+	"config.canvas.value.safe_native_allocation" : "Safe Memory Allocation",
+	"config.canvas.help.safe_native_allocation" : "Uses slower/safer memory allocation for GL buffers.;Use only if having problems. Requires restart."
 	
 }

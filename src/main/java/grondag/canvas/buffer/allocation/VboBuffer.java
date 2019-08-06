@@ -19,8 +19,6 @@ package grondag.canvas.buffer.allocation;
 import java.nio.ByteBuffer;
 import java.util.function.Consumer;
 
-import org.lwjgl.system.MemoryUtil;
-
 import com.mojang.blaze3d.platform.GLX;
 
 public class VboBuffer extends UploadableBuffer implements AllocationProvider {
@@ -29,27 +27,28 @@ public class VboBuffer extends UploadableBuffer implements AllocationProvider {
     int byteOffset = 0;
     
     public VboBuffer(int bytes) {
-        uploadBuffer = MemoryUtil.memAlloc(bytes);
+        uploadBuffer = BufferAllocator.claim(bytes);
     }
     
     @Override
     public void upload() {
+        final ByteBuffer uploadBuffer = this.uploadBuffer;
         if(uploadBuffer != null) {
             bind();
             uploadBuffer.rewind();
             GLX.glBufferData(GLX.GL_ARRAY_BUFFER, uploadBuffer, GLX.GL_STATIC_DRAW);
             unbind();
-            MemoryUtil.memFree(uploadBuffer);
-            uploadBuffer = null;
+            BufferAllocator.release(uploadBuffer);
+            this.uploadBuffer = null;
         }
     }
     
     @Override
-    protected void dispose() {
-        super.dispose();
+    protected void onDispose() {
+        final ByteBuffer uploadBuffer = this.uploadBuffer;
         if(uploadBuffer != null) {
-            MemoryUtil.memFree(uploadBuffer);
-            uploadBuffer = null;
+            BufferAllocator.release(uploadBuffer);
+            this.uploadBuffer = null;
         }
     }
     
