@@ -133,29 +133,23 @@ dependencies {
 }
 
 publishing {
-    publications {
-        mavenJava(MavenPublication) {
-			artifact ("${project.buildDir.absolutePath}/libs/${archivesBaseName}-${project.version}.jar") { 
-				classifier null
+	publications {
+		mavenJava(MavenPublication) {
+			artifact(remapJar) {
 				builtBy remapJar
 			}
-
-			artifact ("${project.buildDir.absolutePath}/libs/${archivesBaseName}-${project.version}-dev.jar") { 
-				classifier "dev"
-				builtBy remapJar
-			}
-			
 			artifact(sourcesJar) {
 				builtBy remapSourcesJar
 			}
-        }
-    }
-    
-    repositories {
-        maven {
+		}
+	}
+
+	repositories {
+		mavenLocal()
+		maven {
             url "https://grondag-repo.appspot.com"
             credentials {
-            	if (project.hasProperty('maven_user')){
+				if (project.hasProperty('maven_user')){
 					username = project.getProperty('maven_user')
 				}
 				if (project.hasProperty('maven_password')){
@@ -163,5 +157,5 @@ publishing {
 				}
 			}
         }
-    }
+	}
 }
