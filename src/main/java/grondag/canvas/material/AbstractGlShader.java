@@ -36,6 +36,7 @@ import grondag.canvas.varia.CanvasGlHelper;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.resource.language.I18n;
+import net.minecraft.resource.Resource;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.Identifier;
 
@@ -252,13 +253,12 @@ abstract class AbstractGlShader {
     abstract String getSource();
 
     public static String getShaderSource(Identifier shaderSource) {
-        try {
-            ResourceManager rm = MinecraftClient.getInstance().getResourceManager();
-            InputStream in = rm.getResource(shaderSource).getInputStream();
-            if (in == null)
-                return "";
-            final Reader reader = new InputStreamReader(in);
-            return CharStreams.toString(reader);
+        ResourceManager resourceManager = MinecraftClient.getInstance().getResourceManager();
+
+        try(Resource resource = resourceManager.getResource(shaderSource)) {
+            try (Reader reader = new InputStreamReader(resource.getInputStream())) {
+                return CharStreams.toString(reader);
+            }
         } catch (IOException e) {
             return "";
         }
