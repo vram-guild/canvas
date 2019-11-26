@@ -51,7 +51,7 @@ dependencies {
 	modCompile "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 	
 	modRuntime "grondag:fermion:${project.fermion_version}.+"
-    include "grondag:fermion:${project.fermion_version}.+""
+    include "grondag:fermion:${project.fermion_version}.+"
 	
     modImplementation ("grondag:fermion-varia:${project.fermion_varia_version}.+") {
         exclude group :"grondag"
