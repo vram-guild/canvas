@@ -97,7 +97,7 @@ abstract class AbstractGlShader {
             if (GLX.glGetShaderi(glId, GLX.GL_COMPILE_STATUS) == GL11.GL_FALSE) {
                 isErrored = true;
                 error = CanvasGlHelper.getShaderInfoLog(glId);
-                if(error == null || error.isEmpty()) {
+                if(error.isEmpty()) {
                     error = "Unknown OpenGL Error.";
                 }
             }
@@ -115,7 +115,6 @@ abstract class AbstractGlShader {
             
             if(Configurator.conciseErrors) {
                 if(!isErrorNoticeComplete) {
-                    if(Configurator.conciseErrors)
                     CanvasMod.LOG.error(I18n.translate("error.canvas.fail_create_any_shader"));
                     isErrorNoticeComplete = true;
                 }

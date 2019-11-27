@@ -136,7 +136,7 @@ public class CanvasGlHelper {
     }
 
     public static String getShaderInfoLog(int obj) {
-        return GLX.glGetProgramInfoLog(obj, GLX.glGetShaderi(obj, GL20.GL_INFO_LOG_LENGTH));
+        return GLX.glGetShaderInfoLog(obj, GLX.glGetShaderi(obj, GL20.GL_INFO_LOG_LENGTH));
     }
 
     public static boolean isVaoEnabled() {
