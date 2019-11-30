@@ -120,8 +120,9 @@ public class GlProgram {
 
 		@SuppressWarnings("unchecked")
 		protected final void upload() {
-			if (this.flags == 0)
+			if (this.flags == 0) {
 				return;
+			}
 
 			if ((this.flags & FLAG_NEEDS_INITIALIZATION) == FLAG_NEEDS_INITIALIZATION) {
 				this.initializer.accept((T) this);
@@ -153,8 +154,9 @@ public class GlProgram {
 
 		@Override
 		public final void set(float value) {
-			if (unifID == -1)
+			if (unifID == -1) {
 				return;
+			}
 			if (uniformFloatBuffer.get(0) != value) {
 				uniformFloatBuffer.put(0, value);
 				setDirty();
@@ -174,8 +176,9 @@ public class GlProgram {
 
 		@Override
 		public final void set(float v0, float v1) {
-			if (unifID == -1)
+			if (unifID == -1) {
 				return;
+			}
 			if (uniformFloatBuffer.get(0) != v0) {
 				uniformFloatBuffer.put(0, v0);
 				setDirty();
@@ -199,8 +202,9 @@ public class GlProgram {
 
 		@Override
 		public final void set(float v0, float v1, float v2) {
-			if (unifID == -1)
+			if (unifID == -1) {
 				return;
+			}
 			if (uniformFloatBuffer.get(0) != v0) {
 				uniformFloatBuffer.put(0, v0);
 				setDirty();
@@ -228,8 +232,9 @@ public class GlProgram {
 
 		@Override
 		public final void set(float v0, float v1, float v2, float v3) {
-			if (unifID == -1)
+			if (unifID == -1) {
 				return;
+			}
 			if (uniformFloatBuffer.get(0) != v0) {
 				uniformFloatBuffer.put(0, v0);
 				setDirty();
@@ -261,8 +266,9 @@ public class GlProgram {
 
 		@Override
 		public final void set(float[] data) {
-			if (unifID == -1)
+			if (unifID == -1) {
 				return;
+			}
 
 			final int limit = data.length;
 			for(int i = 0; i < limit; i++) {
@@ -325,8 +331,9 @@ public class GlProgram {
 
 		@Override
 		public final void set(int value) {
-			if (unifID == -1)
+			if (unifID == -1) {
 				return;
+			}
 			if (uniformIntBuffer.get(0) != value) {
 				uniformIntBuffer.put(0, value);
 				setDirty();
@@ -346,8 +353,9 @@ public class GlProgram {
 
 		@Override
 		public final void set(int v0, int v1) {
-			if (unifID == -1)
+			if (unifID == -1) {
 				return;
+			}
 			if (uniformIntBuffer.get(0) != v0) {
 				uniformIntBuffer.put(0, v0);
 				setDirty();
@@ -371,8 +379,9 @@ public class GlProgram {
 
 		@Override
 		public final void set(int v0, int v1, int v2) {
-			if (unifID == -1)
+			if (unifID == -1) {
 				return;
+			}
 			if (uniformIntBuffer.get(0) != v0) {
 				uniformIntBuffer.put(0, v0);
 				setDirty();
@@ -400,8 +409,9 @@ public class GlProgram {
 
 		@Override
 		public final void set(int v0, int v1, int v2, int v3) {
-			if (unifID == -1)
+			if (unifID == -1) {
 				return;
+			}
 			if (uniformIntBuffer.get(0) != v0) {
 				uniformIntBuffer.put(0, v0);
 				setDirty();
@@ -433,8 +443,9 @@ public class GlProgram {
 
 		@Override
 		public final void set(int[] data) {
-			if (unifID == -1)
+			if (unifID == -1) {
 				return;
+			}
 
 			final int limit = data.length;
 			for(int i = 0; i < limit; i++) {
@@ -480,8 +491,9 @@ public class GlProgram {
 	}
 
 	public final void activate() {
-		if (isErrored)
+		if (isErrored) {
 			return;
+		}
 
 		if (activeProgram != this) {
 			activeProgram = this;
@@ -519,11 +531,13 @@ public class GlProgram {
 
 		@Override
 		public final void set(Matrix4f matrix) {
-			if (unifID == -1)
+			if (unifID == -1) {
 				return;
+			}
 
-			if(matrix == null || matrix.equals(lastValue))
+			if(matrix == null || matrix.equals(lastValue)) {
 				return;
+			}
 
 			lastValue.set(matrix);
 
@@ -585,16 +599,19 @@ public class GlProgram {
 	 */
 	private final boolean loadInner() {
 		final int programID = progID;
-		if (programID <= 0)
+		if (programID <= 0) {
 			return false;
+		}
 
 		final int vertId = vertexShader.glId();
-		if (vertId <= 0)
+		if (vertId <= 0) {
 			return false;
+		}
 
 		final int fragId = fragmentShader.glId();
-		if (fragId <= 0)
+		if (fragId <= 0) {
 			return false;
+		}
 
 		GLX.glAttachShader(programID, vertId);
 		GLX.glAttachShader(programID, fragId);

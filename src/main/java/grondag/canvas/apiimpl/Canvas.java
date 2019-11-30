@@ -70,8 +70,9 @@ public class Canvas implements Renderer {
 
 	@Override
 	public boolean registerMaterial(Identifier id, RenderMaterial material) {
-		if (materialMap.containsKey(id))
+		if (materialMap.containsKey(id)) {
 			return false;
+		}
 		// cast to prevent acceptance of impostor implementations
 		materialMap.put(id, (Value) material);
 		return true;
@@ -97,8 +98,9 @@ public class Canvas implements Renderer {
 
 	@Override
 	public boolean registerShader(Identifier id, MaterialShader shader) {
-		if (shaderMap.containsKey(id))
+		if (shaderMap.containsKey(id)) {
 			return false;
+		}
 		// cast to prevent acceptance of impostor implementations
 		shaderMap.put(id, (MaterialShaderImpl) shader);
 		return true;
@@ -111,8 +113,9 @@ public class Canvas implements Renderer {
 
 	@Override
 	public boolean registerCondition(Identifier id, MaterialCondition condition) {
-		if (conditionMap.containsKey(id))
+		if (conditionMap.containsKey(id)) {
 			return false;
+		}
 		// cast to prevent acceptance of impostor implementations
 		conditionMap.put(id, (MaterialConditionImpl) condition);
 		return true;

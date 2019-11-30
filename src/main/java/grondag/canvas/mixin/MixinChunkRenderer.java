@@ -108,8 +108,9 @@ public abstract class MixinChunkRenderer implements ChunkRendererExt {
 
 	@Inject(method = "setData", require = 1, at = @At(value = "FIELD", opcode = Opcodes.PUTFIELD, target = "Lnet/minecraft/client/render/chunk/ChunkRenderer;data:Lnet/minecraft/client/render/chunk/ChunkRenderData;"))
 	private void onSetData(ChunkRenderData chunkDataIn, CallbackInfo ci) {
-		if (data == null || data == ChunkRenderData.EMPTY || chunkDataIn == data)
+		if (data == null || data == ChunkRenderData.EMPTY || chunkDataIn == data) {
 			return;
+		}
 
 		((ChunkRenderDataExt) data).canvas_chunkVisibility().canvas_releaseVisibilityData();
 		ChunkRenderDataStore.release(data);
@@ -119,8 +120,9 @@ public abstract class MixinChunkRenderer implements ChunkRendererExt {
 	private void onClear(CallbackInfo ci) {
 		canvas_releaseDrawables();
 
-		if (data == null || data == ChunkRenderData.EMPTY)
+		if (data == null || data == ChunkRenderData.EMPTY) {
 			return;
+		}
 
 		((ChunkRenderDataExt) data).canvas_chunkVisibility().canvas_releaseVisibilityData();
 		ChunkRenderDataStore.release(data);
@@ -168,8 +170,9 @@ public abstract class MixinChunkRenderer implements ChunkRendererExt {
 			chunkRenderTask.getLock().lock();
 
 			try {
-				if (chunkRenderTask.getStage() != ChunkRenderTask.Stage.COMPILING)
+				if (chunkRenderTask.getStage() != ChunkRenderTask.Stage.COMPILING) {
 					return;
+				}
 
 				chunkRenderTask.setRenderData(chunkRenderData);
 			} finally {

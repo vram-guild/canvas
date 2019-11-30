@@ -69,11 +69,11 @@ public class DirectionSet {
 	}
 
 	public static int sharedIndex(Set<Direction> fromSet) {
-		if (fromSet.isEmpty())
+		if (fromSet.isEmpty()) {
 			return 0;
-		else if (fromSet.size() == 6)
+		} else if (fromSet.size() == 6) {
 			return 63;
-		else {
+		} else {
 			int bits = 0;
 			if (fromSet.contains(Direction.DOWN)) {
 				bits |= (1 << DOWN.ordinal());

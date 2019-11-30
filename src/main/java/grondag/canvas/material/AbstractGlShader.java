@@ -142,19 +142,21 @@ abstract class AbstractGlShader {
 
 			if(shaderDir.exists()) {
 				final File files[] = shaderDir.listFiles();
-				for(final File f : files)
+				for(final File f : files) {
 					if (f.toString().endsWith(".glsl")) {
 						f.delete();
 					}
+				}
 			}
 
 			shaderDir = new File(gameDir.getAbsolutePath().replace(".", "canvas_shader_debug/failed"));
 			if(shaderDir.exists()) {
 				final File files[] = shaderDir.listFiles();
-				for(final File f : files)
+				for(final File f : files) {
 					if (f.toString().endsWith(".glsl")) {
 						f.delete();
 					}
+				}
 			}
 		} catch(final Exception e){
 			// eat it

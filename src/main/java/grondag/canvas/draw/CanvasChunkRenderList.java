@@ -131,8 +131,9 @@ public class CanvasChunkRenderList {
 	}
 
 	private final void updateViewMatrix(final int ox, final int oy, final int oz) {
-		if (ox == originX && oz == originZ && oy == originY && didUpdateTransform)
+		if (ox == originX && oz == originZ && oy == originY && didUpdateTransform) {
 			return;
+		}
 
 		if(didUpdateTransform ) {
 			GlStateManager.popMatrix();
@@ -188,8 +189,9 @@ public class CanvasChunkRenderList {
 	}
 
 	protected final void renderChunkLayerSolid() {
-		if (solidLists.isEmpty())
+		if (solidLists.isEmpty()) {
 			return;
+		}
 
 		if(Configurator.logGlStateChanges) {
 			CanvasMod.LOG.info(String.format("GlState: renderChunkLayerSolid for %d lists", solidLists.size()));
@@ -212,8 +214,9 @@ public class CanvasChunkRenderList {
 		final ObjectArrayList<ChunkRenderer> chunks = this.chunks;
 		final int chunkCount = chunks.size();
 
-		if (chunkCount == 0)
+		if (chunkCount == 0) {
 			return;
+		}
 
 		if(Configurator.logGlStateChanges) {
 			CanvasMod.LOG.info(String.format("GlState: renderChunkLayerTranslucent for %d chunks", chunkCount));

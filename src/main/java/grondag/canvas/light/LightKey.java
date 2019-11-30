@@ -69,10 +69,11 @@ public final class LightKey {
 	}
 
 	private static int clamp240(int val) {
-		if(val < 0 || val == 0xFF)
+		if(val < 0 || val == 0xFF) {
 			return -1;
-		else if(val > 236)
+		} else if(val > 236) {
 			return 30;
+		}
 		return (val + 4) >> 3; // 0-30
 	}
 

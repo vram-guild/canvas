@@ -45,8 +45,9 @@ public class DitherTexture implements AutoCloseable {
 	}
 
 	public void disable() {
-		if(!Configurator.lightmapNoise)
+		if(!Configurator.lightmapNoise) {
 			return;
+		}
 
 		//TODO: dynamically map texture IDs
 		GlStateManager.activeTexture(GL21.GL_TEXTURE5);
@@ -55,8 +56,9 @@ public class DitherTexture implements AutoCloseable {
 	}
 
 	public void enable() {
-		if(!Configurator.lightmapNoise)
+		if(!Configurator.lightmapNoise) {
 			return;
+		}
 
 		GlStateManager.activeTexture(GL21.GL_TEXTURE5);
 		client.getTextureManager().bindTexture(textureIdentifier);

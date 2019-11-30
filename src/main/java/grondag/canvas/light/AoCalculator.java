@@ -199,11 +199,11 @@ public class AoCalculator {
 	 */
 	private AoFaceCalc blendedInsetData(QuadViewImpl quad, int vertexIndex, int lightFace) {
 		final float w1 = AoFace.get(lightFace).depthFunc.apply(quad, vertexIndex);
-		if (w1 <= 0.03125f)
+		if (w1 <= 0.03125f) {
 			return gatherFace(lightFace, true).calc();
-		else if (w1 >= 0.96875f)
+		} else if (w1 >= 0.96875f) {
 			return gatherFace(lightFace, false).calc();
-		else {
+		} else {
 			final int depth = blendIndex(lightFace, w1);
 			AoFaceCalc result = blendCache[depth];
 			if(result == null) {

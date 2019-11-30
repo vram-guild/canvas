@@ -63,17 +63,20 @@ public class ChunkPaletteCopier {
 	private static final PaletteCopy AIR_COPY = i -> AIR;
 
 	public static PaletteCopy captureCopy(WorldChunk chunk, int sectionIndex) {
-		if(chunk == null || sectionIndex < 0)
+		if(chunk == null || sectionIndex < 0) {
 			return AIR_COPY;
+		}
 
 		final ChunkSection[] sections = chunk.getSectionArray();
 
-		if(sections == null || sectionIndex >= sections.length)
+		if(sections == null || sectionIndex >= sections.length) {
 			return AIR_COPY;
+		}
 
 		final ChunkSection sec = sections[sectionIndex];
-		if(sec == null)
+		if(sec == null) {
 			return AIR_COPY;
+		}
 
 		if(sec.isEmpty()) {
 			final BlockState filler = sec.getBlockState(0, 0, 0);
@@ -87,8 +90,9 @@ public class ChunkPaletteCopier {
 	 * Callback from canvas_paletteCopy()
 	 */
 	public static PaletteCopy captureCopy(Palette<BlockState> palette, PackedIntegerArray data, BlockState emptyVal) {
-		if(palette == null || data == null)
+		if(palette == null || data == null) {
 			return emptyVal == null ? AIR_COPY : i -> emptyVal;
-			return new PaletteCopyImpl(palette, data, emptyVal);
+		}
+		return new PaletteCopyImpl(palette, data, emptyVal);
 	}
 }

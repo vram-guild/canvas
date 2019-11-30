@@ -28,8 +28,9 @@ abstract class AbstractRenderContextOld implements RenderContext {
 	private final QuadTransform stackTransform = (q) -> {
 		int i = transformStack.size() - 1;
 		while (i >= 0) {
-			if (!transformStack.get(i--).transform(q))
+			if (!transformStack.get(i--).transform(q)) {
 				return false;
+			}
 		}
 		return true;
 	};
@@ -42,8 +43,9 @@ abstract class AbstractRenderContextOld implements RenderContext {
 
 	@Override
 	public void pushTransform(QuadTransform transform) {
-		if (transform == null)
+		if (transform == null) {
 			throw new NullPointerException("Renderer received null QuadTransform.");
+		}
 		transformStack.push(transform);
 		if (transformStack.size() == 1) {
 			activeTransform = transform;

@@ -94,8 +94,9 @@ public class SolidRenderList implements Consumer<ObjectArrayList<DrawableDelegat
 	public void draw(ShaderContext context) {
 		final int limit = delegates.size();
 
-		if (limit == 0)
+		if (limit == 0) {
 			return;
+		}
 
 		final Object[] draws = delegates.elements();
 

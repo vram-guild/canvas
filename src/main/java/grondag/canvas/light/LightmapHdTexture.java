@@ -74,8 +74,9 @@ public class LightmapHdTexture implements AutoCloseable {
 	public void disable() {
 		//UGLY doesn't belong here
 		DitherTexture.instance().disable();
-		if(!Configurator.hdLightmaps)
+		if(!Configurator.hdLightmaps) {
 			return;
+		}
 
 		GlStateManager.activeTexture(GL21.GL_TEXTURE4);
 		GlStateManager.disableTexture();
@@ -85,8 +86,9 @@ public class LightmapHdTexture implements AutoCloseable {
 	public void enable() {
 		//UGLY doesn't belong here
 		DitherTexture.instance().enable();
-		if(!Configurator.hdLightmaps)
+		if(!Configurator.hdLightmaps) {
 			return;
+		}
 
 		//TODO: make this dynamically assigned by Shader uniform manager
 		GlStateManager.activeTexture(GL21.GL_TEXTURE4);
@@ -105,8 +107,9 @@ public class LightmapHdTexture implements AutoCloseable {
 	public void onRenderTick() {
 		frameCounter++;
 
-		if(updates.isEmpty() || frameCounter < Configurator.maxLightmapDelayFrames)
+		if(updates.isEmpty() || frameCounter < Configurator.maxLightmapDelayFrames) {
 			return;
+		}
 
 		frameCounter = 0;
 
@@ -125,8 +128,9 @@ public class LightmapHdTexture implements AutoCloseable {
 			vMax = Math.max(vMax, vMap + LightmapSizer.paddedSize);
 		}
 
-		if(uMin == Integer.MAX_VALUE)
+		if(uMin == Integer.MAX_VALUE) {
 			return;
+		}
 
 		uMin = (uMin / 4) * 4;
 		final int w = ((uMax - uMin + 3) / 4) * 4;

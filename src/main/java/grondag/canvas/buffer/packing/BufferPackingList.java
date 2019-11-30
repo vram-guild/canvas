@@ -48,8 +48,9 @@ public class BufferPackingList {
 	 * For performance testing.
 	 */
 	public int quadCount() {
-		if (size == 0)
+		if (size == 0) {
 			return 0;
+		}
 
 		int quads = 0;
 

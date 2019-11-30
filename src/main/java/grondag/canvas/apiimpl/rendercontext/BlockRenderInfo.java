@@ -84,8 +84,9 @@ public class BlockRenderInfo {
 			final int result = 0xFF000000 | blockColorMap.getColorMultiplier(blockState, blockView, blockPos, colorIndex);
 			blockColor = result;
 			return result;
-		} else
+		} else {
 			return blockColor;
+		}
 	}
 
 	boolean shouldDrawFace(int face) {

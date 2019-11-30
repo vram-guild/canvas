@@ -73,8 +73,9 @@ public abstract class GeometryHelper {
 	 * winding order. Expects convex quads with all points co-planar.
 	 */
 	public static boolean isQuadParallelToFace(Direction face, QuadView quad) {
-		if (face == null)
+		if (face == null) {
 			return false;
+		}
 		final int i = face.getAxis().ordinal();
 		final float val = quad.posByIndex(0, i);
 		return equalsApproximate(val, quad.posByIndex(1, i)) && equalsApproximate(val, quad.posByIndex(2, i))
@@ -92,8 +93,9 @@ public abstract class GeometryHelper {
 	 * <p>
 	 */
 	public static boolean isParallelQuadOnFace(Direction lightFace, QuadView quad) {
-		if (lightFace == null)
+		if (lightFace == null) {
 			return false;
+		}
 		final int coordinateIndex = lightFace.getAxis().ordinal();
 		final float expectedValue = lightFace.getDirection() == AxisDirection.POSITIVE ? 1 : 0;
 		return equalsApproximate(quad.posByIndex(0, coordinateIndex), expectedValue);
@@ -115,8 +117,9 @@ public abstract class GeometryHelper {
 	 * @param lightFace MUST be non-null.
 	 */
 	public static boolean isQuadCubic(Direction lightFace, QuadView quad) {
-		if (lightFace == null)
+		if (lightFace == null) {
 			return false;
+		}
 
 		int a, b;
 
@@ -160,17 +163,20 @@ public abstract class GeometryHelper {
 					flags |= 1;
 				} else if(b >= EPS_MAX) {
 					flags |= 2;
-				} else
+				} else {
 					return false;
+				}
 			} else if(a >= EPS_MAX) {
 				if(b <= EPS_MIN) {
 					flags |= 4;
 				} else if(b >= EPS_MAX) {
 					flags |= 8;
-				} else
+				} else {
 					return false;
-			} else
+				}
+			} else {
 				return false;
+			}
 		}
 		return flags == 15;
 	}

@@ -176,8 +176,9 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 
 	private void renderQuad() {
 		final MutableQuadViewImpl quad = editorQuad;
-		if (!transform(editorQuad))
+		if (!transform(editorQuad)) {
 			return;
+		}
 
 		final ShaderContext context = tessellatorExt.canvas_context();
 		final RenderMaterialImpl.Value mat = enchantment ? glintMaterial : quad.material();

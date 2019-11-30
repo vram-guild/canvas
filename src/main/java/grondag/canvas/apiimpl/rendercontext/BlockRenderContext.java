@@ -70,15 +70,17 @@ public class BlockRenderContext extends AbstractRenderContext implements RenderC
 
 	private int brightness(BlockPos pos) {
 		final ExtendedBlockView blockView = blockInfo.blockView;
-		if (blockView == null)
+		if (blockView == null) {
 			return 15 << 20 | 15 << 4;
+		}
 		return blockView.getBlockState(pos).getBlockBrightness(blockView, pos);
 	}
 
 	private float aoLevel(BlockPos pos) {
 		final ExtendedBlockView blockView = blockInfo.blockView;
-		if (blockView == null)
+		if (blockView == null) {
 			return 1f;
+		}
 		return aoFix.apply(blockView, pos);
 	}
 

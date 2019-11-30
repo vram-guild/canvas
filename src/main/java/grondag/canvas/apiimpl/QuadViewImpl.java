@@ -341,8 +341,9 @@ public class QuadViewImpl implements QuadView {
 			target.set(NormalHelper.getPackedNormalComponent(normal, 0),
 					NormalHelper.getPackedNormalComponent(normal, 1), NormalHelper.getPackedNormalComponent(normal, 2));
 			return target;
-		} else
+		} else {
 			return null;
+		}
 	}
 
 	public int packedNormal(int vertexIndex) {

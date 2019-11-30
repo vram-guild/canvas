@@ -6,9 +6,9 @@ public class BindStateManager {
 	private static int lastBoundBufferId = -1;
 
 	public static boolean bind(int glBufferId) {
-		if(glBufferId == lastBoundBufferId)
+		if(glBufferId == lastBoundBufferId) {
 			return false;
-		else {
+		} else {
 			lastBoundBufferId = glBufferId;
 			GLX.glBindBuffer(GLX.GL_ARRAY_BUFFER, glBufferId);
 			return true;

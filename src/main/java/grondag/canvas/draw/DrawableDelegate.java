@@ -135,8 +135,9 @@ public class DrawableDelegate {
 	 */
 	public void bind() {
 		final AbstractBuffer buffer = bufferDelegate.buffer();
-		if (buffer.isDisposed())
+		if (buffer.isDisposed()) {
 			return;
+		}
 
 		final boolean isNewBuffer = buffer.bindable().bind();
 		vertexBinder.bind(format, isNewBuffer);
@@ -149,8 +150,9 @@ public class DrawableDelegate {
 	public void draw() {
 		assert !isReleased;
 
-		if (bufferDelegate.buffer().isDisposed())
+		if (bufferDelegate.buffer().isDisposed()) {
 			return;
+		}
 
 		GlStateManager.drawArrays(GL11.GL_QUADS, vertexOffset, vertexCount);
 	}

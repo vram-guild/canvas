@@ -140,12 +140,14 @@ public class FallbackConsumer extends QuadRenderer implements Consumer<BakedMode
 		}
 
 		if(hasTransform.getAsBoolean()) {
-			if (!transform.transform(editorQuad))
+			if (!transform.transform(editorQuad)) {
 				return;
+			}
 
 			// culling will have already happened unless transform changed things
-			if (!blockInfo.shouldDrawFace(editorQuad.cullFaceId()))
+			if (!blockInfo.shouldDrawFace(editorQuad.cullFaceId())) {
 				return;
+			}
 		}
 
 		super.renderQuadInner(editorQuad);

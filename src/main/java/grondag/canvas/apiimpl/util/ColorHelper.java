@@ -58,10 +58,11 @@ public abstract class ColorHelper {
 					 * Component-wise multiply. Components need to be in same order in both inputs!
 					 */
 					public static int multiplyColor(int color1, int color2) {
-						if (color1 == -1)
+						if (color1 == -1) {
 							return color2;
-						else if (color2 == -1)
+						} else if (color2 == -1) {
 							return color1;
+						}
 
 						final int alpha = ((color1 >> 24) & 0xFF) * ((color2 >> 24) & 0xFF) / 0xFF;
 						final int red = ((color1 >> 16) & 0xFF) * ((color2 >> 16) & 0xFF) / 0xFF;
@@ -169,10 +170,11 @@ public abstract class ColorHelper {
 					 * Component-wise max
 					 */
 					public static int maxBrightness(int b0, int b1) {
-						if (b0 == 0)
+						if (b0 == 0) {
 							return b1;
-						else if (b1 == 0)
+						} else if (b1 == 0) {
 							return b0;
+						}
 						return Math.max(b0 & 0xFFFF, b1 & 0xFFFF) | Math.max(b0 & 0xFFFF0000, b1 & 0xFFFF0000);
 					}
 }

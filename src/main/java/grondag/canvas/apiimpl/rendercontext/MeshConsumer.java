@@ -76,12 +76,14 @@ public class MeshConsumer extends QuadRenderer implements Consumer<Mesh> {
 		@Override
 		public Maker emit() {
 			if(hasTransform.getAsBoolean()) {
-				if (!transform.transform(editorQuad))
+				if (!transform.transform(editorQuad)) {
 					return this;
+				}
 			}
 
-			if (!blockInfo.shouldDrawFace(editorQuad.cullFaceId()))
+			if (!blockInfo.shouldDrawFace(editorQuad.cullFaceId())) {
 				return this;
+			}
 
 			renderQuadInner(editorQuad);
 			clear();
@@ -104,8 +106,9 @@ public class MeshConsumer extends QuadRenderer implements Consumer<Mesh> {
 				System.arraycopy(data, index, q.data(), 0, stride);
 				q.load();
 
-				if (!transform.transform(q))
+				if (!transform.transform(q)) {
 					return;
+				}
 
 				if (blockInfo.shouldDrawFace(q.cullFaceId())) {
 					renderQuadInner(q);

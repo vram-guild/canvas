@@ -79,8 +79,9 @@ public final class MaterialShaderImpl implements MaterialShader {
 			programMap.put(key, newProgram);
 			programList.add(newProgram);
 			return newProgram;
-		} else
+		} else {
 			return result;
+		}
 	}
 
 	public void activate(ShaderContext context, int shaderProps) {

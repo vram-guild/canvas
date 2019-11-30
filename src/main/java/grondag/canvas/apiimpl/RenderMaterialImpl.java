@@ -345,8 +345,9 @@ public abstract class RenderMaterialImpl {
 
 		@Override
 		public Finder spriteDepth(int depth) {
-			if (depth < 1 || depth > MAX_SPRITE_DEPTH)
+			if (depth < 1 || depth > MAX_SPRITE_DEPTH) {
 				throw new IndexOutOfBoundsException("Invalid sprite depth: " + depth);
+			}
 			SPRITE_DEPTH.setValue(depth, this);
 			return this;
 		}

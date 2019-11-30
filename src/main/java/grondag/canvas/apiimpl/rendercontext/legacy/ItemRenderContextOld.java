@@ -202,8 +202,9 @@ public class ItemRenderContextOld extends AbstractRenderContextOld implements Re
 
 	private void renderQuad() {
 		final MutableQuadViewImpl quad = editorQuad;
-		if (!transform(editorQuad))
+		if (!transform(editorQuad)) {
 			return;
+		}
 
 		final RenderMaterialImpl.Value mat = quad.material();
 		final int quadColor = quadColor();

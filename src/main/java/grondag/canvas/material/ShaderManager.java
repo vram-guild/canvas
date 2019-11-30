@@ -204,8 +204,9 @@ public final class ShaderManager implements ClientTickCallback {
 		assert cameraEntity != null;
 		assert cameraEntity.getEntityWorld() != null;
 
-		if (cameraEntity == null || cameraEntity.getEntityWorld() == null)
+		if (cameraEntity == null || cameraEntity.getEntityWorld() == null) {
 			return;
+		}
 
 		computeRenderSeconds(cameraEntity);
 

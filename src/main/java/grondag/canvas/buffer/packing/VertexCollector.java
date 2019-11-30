@@ -263,8 +263,9 @@ public class VertexCollector {
 	 * (All distances are actually squared distances, to be clear.)
 	 */
 	public int unpackUntilDistance(double minDistanceSquared) {
-		if (!hasUnpackedSortedQuads())
+		if (!hasUnpackedSortedQuads()) {
 			return 0;
+		}
 
 		int result = 0;
 		final int limit = sortMaxIndex;

@@ -83,15 +83,17 @@ public class AoFaceData {
 
 	private static int lightBlend(int l0, float w0, int l1, float w1) {
 		if(l0 == OPAQUE) {
-			if(l1 == OPAQUE)
+			if(l1 == OPAQUE) {
 				return OPAQUE;
-			else
+			} else {
 				return reduce(l1);
+			}
 		} else {
-			if(l1 == OPAQUE)
+			if(l1 == OPAQUE) {
 				return reduce(l0);
-			else
+			} else {
 				return lightBlendInner(l0, w0, l1, w1);
+			}
 		}
 	}
 

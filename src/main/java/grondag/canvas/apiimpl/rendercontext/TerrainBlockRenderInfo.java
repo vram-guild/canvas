@@ -35,8 +35,9 @@ public class TerrainBlockRenderInfo extends BlockRenderInfo {
 
 	@Override
 	boolean shouldDrawFace(int face) {
-		if (face == ModelHelper.NULL_FACE_ID)
+		if (face == ModelHelper.NULL_FACE_ID) {
 			return true;
+		}
 		final int mask = 1 << face;
 
 		if ((cullCompletionFlags & mask) == 0) {
@@ -44,9 +45,11 @@ public class TerrainBlockRenderInfo extends BlockRenderInfo {
 			if (Block.shouldDrawSide(blockState, blockView, blockPos, ModelHelper.faceFromIndex(face))) {
 				cullResultFlags |= mask;
 				return true;
-			} else
+			} else {
 				return false;
-		} else
+			}
+		} else {
 			return (cullResultFlags & mask) != 0;
+		}
 	}
 }

@@ -46,15 +46,16 @@ public class MaterialConditionImpl implements MaterialCondition {
 		synchronized(ALL_BY_INDEX) {
 			index = ALL_BY_INDEX.size();
 			ALL_BY_INDEX.add(this);
-			if(index >= MAX_CONDITIONS)
+			if(index >= MAX_CONDITIONS) {
 				throw new IndexOutOfBoundsException("Max render condition count exceeded.");
+			}
 		}
 	}
 
 	public boolean compute(int frameIndex) {
-		if(frameIndex == this.frameIndex)
+		if(frameIndex == this.frameIndex) {
 			return result;
-		else {
+		} else {
 			final boolean result = supplier.getAsBoolean();
 			this.result = result;
 			return result;

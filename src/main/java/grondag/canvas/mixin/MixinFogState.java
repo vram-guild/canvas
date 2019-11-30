@@ -36,6 +36,6 @@ public abstract class MixinFogState implements FogStateExt {
 
 	@Inject(method = "<init>()V", require = 1, at = @At("RETURN"))
 	private void onConstructed(CallbackInfo ci) {
-		FogStateExtHolder.INSTANCE = ((FogStateExt) this);
+		FogStateExtHolder.INSTANCE = (this);
 	}
 }
