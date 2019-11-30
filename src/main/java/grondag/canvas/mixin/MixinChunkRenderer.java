@@ -21,6 +21,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
 
+import com.google.common.collect.Sets;
 import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -28,22 +29,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import com.google.common.collect.Sets;
-
-import grondag.canvas.apiimpl.Canvas;
-import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
-import grondag.canvas.buffer.packing.FluidBufferBuilder;
-import grondag.canvas.buffer.packing.VertexCollectorList;
-import grondag.canvas.chunk.ChunkRebuildHelper;
-import grondag.canvas.chunk.ChunkRenderDataExt;
-import grondag.canvas.chunk.ChunkRenderDataStore;
-import grondag.canvas.chunk.ChunkRendererExt;
-import grondag.canvas.chunk.ChunkRendererRegionExt;
-import grondag.canvas.chunk.DrawableChunk.Solid;
-import grondag.canvas.chunk.DrawableChunk.Translucent;
-import grondag.canvas.chunk.FastRenderRegion;
-import grondag.canvas.chunk.UploadableChunk;
-import grondag.canvas.material.ShaderProps;
 import net.minecraft.block.BlockRenderLayer;
 import net.minecraft.block.BlockRenderType;
 import net.minecraft.block.BlockState;
@@ -63,6 +48,21 @@ import net.minecraft.fluid.FluidState;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.WorldChunk;
+
+import grondag.canvas.apiimpl.Canvas;
+import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
+import grondag.canvas.buffer.packing.FluidBufferBuilder;
+import grondag.canvas.buffer.packing.VertexCollectorList;
+import grondag.canvas.chunk.ChunkRebuildHelper;
+import grondag.canvas.chunk.ChunkRenderDataExt;
+import grondag.canvas.chunk.ChunkRenderDataStore;
+import grondag.canvas.chunk.ChunkRendererExt;
+import grondag.canvas.chunk.ChunkRendererRegionExt;
+import grondag.canvas.chunk.DrawableChunk.Solid;
+import grondag.canvas.chunk.DrawableChunk.Translucent;
+import grondag.canvas.chunk.FastRenderRegion;
+import grondag.canvas.chunk.UploadableChunk;
+import grondag.canvas.material.ShaderProps;
 
 @Mixin(ChunkRenderer.class)
 public abstract class MixinChunkRenderer implements ChunkRendererExt {
@@ -168,9 +168,8 @@ public abstract class MixinChunkRenderer implements ChunkRendererExt {
 			chunkRenderTask.getLock().lock();
 
 			try {
-				if (chunkRenderTask.getStage() != ChunkRenderTask.Stage.COMPILING) {
+				if (chunkRenderTask.getStage() != ChunkRenderTask.Stage.COMPILING)
 					return;
-				}
 
 				chunkRenderTask.setRenderData(chunkRenderData);
 			} finally {

@@ -1,12 +1,12 @@
 /*******************************************************************************
  * Copyright 2019 grondag
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
  * of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
@@ -20,10 +20,11 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.lwjgl.system.Configuration;
 
-import grondag.canvas.apiimpl.Canvas;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.render.InvalidateRenderStateCallback;
 import net.fabricmc.fabric.api.renderer.v1.RendererAccess;
+
+import grondag.canvas.apiimpl.Canvas;
 
 //TODO: allow for shaders to be defined based on Block materials. Apply only to default material.
 
@@ -53,18 +54,18 @@ import net.fabricmc.fabric.api.renderer.v1.RendererAccess;
 //FEAT: weather/season/biome(?) uniforms/attributes
 
 public class CanvasMod implements ClientModInitializer {
-    @Override
-    public void onInitializeClient() {
-        Configurator.init();
-        RendererAccess.INSTANCE.registerRenderer(Canvas.INSTANCE);
-        InvalidateRenderStateCallback.EVENT.register(Canvas.INSTANCE::reload);
-        if(Configurator.debugNativeMemoryAllocation) {
-            LOG.warn("Canvas is configured to enable native memory debug. This WILL cause slow performance and other issues.  Debug output will print at game exit.");
-            Configuration.DEBUG_MEMORY_ALLOCATOR.set(true);
-        }
-    }
+	@Override
+	public void onInitializeClient() {
+		Configurator.init();
+		RendererAccess.INSTANCE.registerRenderer(Canvas.INSTANCE);
+		InvalidateRenderStateCallback.EVENT.register(Canvas.INSTANCE::reload);
+		if(Configurator.debugNativeMemoryAllocation) {
+			LOG.warn("Canvas is configured to enable native memory debug. This WILL cause slow performance and other issues.  Debug output will print at game exit.");
+			Configuration.DEBUG_MEMORY_ALLOCATOR.set(true);
+		}
+	}
 
-    public static final String MODID = "canvas";
-    
-    public static final Logger LOG = LogManager.getLogger("Canvas");
+	public static final String MODID = "canvas";
+
+	public static final Logger LOG = LogManager.getLogger("Canvas");
 }

@@ -1,12 +1,12 @@
 /*******************************************************************************
  * Copyright 2019 grondag
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
  * of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
@@ -21,40 +21,41 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import grondag.canvas.chunk.ChunkRendererListExt;
-import grondag.canvas.draw.CanvasChunkRenderList;
 import net.minecraft.block.BlockRenderLayer;
 import net.minecraft.client.render.chunk.ChunkRenderer;
 import net.minecraft.client.render.chunk.ChunkRendererList;
 import net.minecraft.client.render.chunk.VboChunkRendererList;
 
+import grondag.canvas.chunk.ChunkRendererListExt;
+import grondag.canvas.draw.CanvasChunkRenderList;
+
 @Mixin(VboChunkRendererList.class)
 public abstract class MixinVboChunkRendererList extends ChunkRendererList implements ChunkRendererListExt {
-    private CanvasChunkRenderList ext;
-    
-    @Inject(method = "<init>*", at = @At("RETURN"), require = 1)
-    private void onConstructed(CallbackInfo ci) {
-        ext = new CanvasChunkRenderList();
-    }
-    
-    @Override
-    public void add(ChunkRenderer renderChunkIn, BlockRenderLayer layer) {
-        ext.addChunkRenderer(renderChunkIn, layer);
-    }
-    
-    @Override
-    public void setCameraPosition(double viewEntityXIn, double viewEntityYIn, double viewEntityZIn) {
-        ext.initialize(viewEntityXIn, viewEntityYIn, viewEntityZIn);
-    }
+	private CanvasChunkRenderList ext;
 
-    @Inject(method = "render", at = @At("HEAD"), cancellable = true, require = 1)
-    private void onRender(BlockRenderLayer layer, CallbackInfo ci) {
-            ext.renderChunkLayer(layer);
-            ci.cancel();
-    }
-    
-    @Override
-    public void canvas_prepareForFrame() {
-        ext.downloadModelViewMatrix();
-    }
+	@Inject(method = "<init>*", at = @At("RETURN"), require = 1)
+	private void onConstructed(CallbackInfo ci) {
+		ext = new CanvasChunkRenderList();
+	}
+
+	@Override
+	public void add(ChunkRenderer renderChunkIn, BlockRenderLayer layer) {
+		ext.addChunkRenderer(renderChunkIn, layer);
+	}
+
+	@Override
+	public void setCameraPosition(double viewEntityXIn, double viewEntityYIn, double viewEntityZIn) {
+		ext.initialize(viewEntityXIn, viewEntityYIn, viewEntityZIn);
+	}
+
+	@Inject(method = "render", at = @At("HEAD"), cancellable = true, require = 1)
+	private void onRender(BlockRenderLayer layer, CallbackInfo ci) {
+		ext.renderChunkLayer(layer);
+		ci.cancel();
+	}
+
+	@Override
+	public void canvas_prepareForFrame() {
+		ext.downloadModelViewMatrix();
+	}
 }
