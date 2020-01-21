@@ -81,7 +81,7 @@ public class QuadRenderer {
 	 * Use when transform and face call have already been applied/checked.
 	 */
 	protected void renderQuadInner(final MutableQuadViewImpl q) {
-		final RenderMaterialImpl.Value mat = q.material().forRenderLayer(blockInfo.defaultLayerIndex);
+		final RenderMaterialImpl.Value mat = q.material().forRenderLayer(blockInfo..defaultLayerIndex);
 		final boolean isAo = blockInfo.defaultAo && mat.hasAo;
 
 		if (isAo) {

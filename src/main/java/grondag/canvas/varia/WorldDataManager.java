@@ -2,8 +2,8 @@ package grondag.canvas.varia;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.GameRenderer;
+import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.effect.StatusEffects;
-import net.minecraft.world.World;
 
 public class WorldDataManager {
 	public static int LENGTH = 8;
@@ -23,15 +23,14 @@ public class WorldDataManager {
 
 	public static void updateLight(float tick, float flicker) {
 		final MinecraftClient client = MinecraftClient.getInstance();
-		final World world = client.world;
-		final GameRenderer gameRenderer = client.gameRenderer;
+		final ClientWorld world = client.world;
 
 		if (world != null) {
 			final boolean hasSkyLight = world.dimension.hasSkyLight();
 			final boolean nightVision = client.player.hasStatusEffect(StatusEffects.NIGHT_VISION);
 			UNIFORM_DATA[DIMENSION_ID] = world.dimension.getType().getRawId();
 			UNIFORM_DATA[HAS_SKYLIGHT] = hasSkyLight ? 1 : 0;
-			UNIFORM_DATA[AMBIENT_INTENSITY] = world.getAmbientLight(1.0F);
+			UNIFORM_DATA[AMBIENT_INTENSITY] = world.method_23783(1.0F);
 			UNIFORM_DATA[EFFECTIVE_INTENSITY] = hasSkyLight && !nightVision ? UNIFORM_DATA[AMBIENT_INTENSITY] : 1;
 			UNIFORM_DATA[MOON_SIZE] = world.getMoonSize();
 
@@ -40,7 +39,7 @@ public class WorldDataManager {
 
 			final float fluidModifier = client.player.method_3140();
 			if (nightVision) {
-				UNIFORM_DATA[WORLD_EFFECT_MODIFIER] = gameRenderer.getNightVisionStrength(client.player, tick);
+				UNIFORM_DATA[WORLD_EFFECT_MODIFIER] = GameRenderer.getNightVisionStrength(client.player, tick);
 			} else if (fluidModifier > 0.0F && client.player.hasStatusEffect(StatusEffects.CONDUIT_POWER)) {
 				UNIFORM_DATA[WORLD_EFFECT_MODIFIER] = fluidModifier;
 			} else {

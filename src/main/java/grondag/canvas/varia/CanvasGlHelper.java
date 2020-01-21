@@ -23,6 +23,7 @@ import org.apache.logging.log4j.Logger;
 import org.lwjgl.opengl.ARBVertexArrayObject;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL20;
+import org.lwjgl.opengl.GL21;
 import org.lwjgl.opengl.GL30;
 import org.lwjgl.opengl.GLCapabilities;
 
@@ -55,9 +56,9 @@ public class CanvasGlHelper {
 
 		log.info("==================  CANVAS RENDERER DEBUG INFORMATION ==================");
 		log.info(String.format(" Java: %s %dbit", System.getProperty("java.version"), client.is64Bit() ? 64 : 32));
-		log.info(String.format(" CPU: %s", GLX.getCpuInfo()));
-		log.info(String.format(" GPU: %s  %s", GLX.getVendor(), GLX.getRenderer()));
-		log.info(String.format(" OpenGL: %s", GLX.getOpenGLVersion()));
+		log.info(String.format(" CPU: %s", GLX._getCpuInfo()));
+		log.info(String.format(" GPU: %s  %s", GLX._getCapsString()), GLX._getLWJGLVersion());
+		log.info(String.format(" OpenGL: %s", GLX.getOpenGLVersionString()));
 		log.info(String.format(" GpuShader4: %s  VboArb: %s  VaoEnabled: %s  VaoArb: %s",
 				useGpuShader4 ? "Y" : "N",
 						useVboArb ? "Y" : "N",
@@ -132,11 +133,11 @@ public class CanvasGlHelper {
 	}
 
 	public static String getProgramInfoLog(int obj) {
-		return GLX.glGetProgramInfoLog(obj, GLX.glGetProgrami(obj, GL20.GL_INFO_LOG_LENGTH));
+		return GL21.glGetProgramInfoLog(obj, GL21.glGetProgrami(obj, GL21.GL_INFO_LOG_LENGTH));
 	}
 
 	public static String getShaderInfoLog(int obj) {
-		return GLX.glGetShaderInfoLog(obj, GLX.glGetShaderi(obj, GL20.GL_INFO_LOG_LENGTH));
+		return GL21.glGetShaderInfoLog(obj, GL21.glGetShaderi(obj, GL21.GL_INFO_LOG_LENGTH));
 	}
 
 	public static boolean isVaoEnabled() {

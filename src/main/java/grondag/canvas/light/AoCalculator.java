@@ -28,7 +28,7 @@ import net.minecraft.client.util.math.Vector3f;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.world.ExtendedBlockView;
+import net.minecraft.world.BlockRenderView;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -165,7 +165,7 @@ public class AoCalculator {
 	}
 
 	private void blockFace(MutableQuadViewImpl quad, boolean isOnLightFace) {
-		final int lightFace = quad.lightFace().ordinal();
+		final int lightFace = quad.lightFaceId();
 		final AoFaceCalc faceData = gatherFace(lightFace, isOnLightFace).calc();
 		final AoFace face = AoFace.get(lightFace);
 		final WeightFunction wFunc = face.weightFunc;
@@ -178,7 +178,7 @@ public class AoCalculator {
 	}
 
 	private void vanillaPartialFaceSmooth(MutableQuadViewImpl quad, boolean isOnLightFace) {
-		final int lightFace = quad.lightFace().ordinal();
+		final int lightFace = quad.lightFaceId();
 		final AoFaceData faceData = gatherFace(lightFace, isOnLightFace);
 		final AoFace face = AoFace.get(lightFace);
 		final Vertex2Float uFunc = face.uFunc;
@@ -282,7 +282,7 @@ public class AoCalculator {
 			float maxAo = 0;
 
 			final float x = normal.getX();
-			if (!MathHelper.equalsApproximate(0f, x)) {
+			if (!MathHelper.approximatelyEquals(0f, x)) {
 				final int face = x > 0 ? EAST : WEST;
 				// PERF: really need to cache these
 				final AoFaceCalc fd = blendedInsetData(quad, i, face);
@@ -300,7 +300,7 @@ public class AoCalculator {
 			}
 
 			final float y = normal.getY();
-			if (!MathHelper.equalsApproximate(0f, y)) {
+			if (!MathHelper.approximatelyEquals(0f, y)) {
 				final int face = y > 0 ? UP : DOWN;
 				final AoFaceCalc fd = blendedInsetData(quad, i, face);
 				AoFace.get(face).weightFunc.apply(quad, i, w);
@@ -317,7 +317,7 @@ public class AoCalculator {
 			}
 
 			final float z = normal.getZ();
-			if (!MathHelper.equalsApproximate(0f, z)) {
+			if (!MathHelper.approximatelyEquals(0f, z)) {
 				final int face = z > 0 ? SOUTH : NORTH;
 				final AoFaceCalc fd = blendedInsetData(quad, i, face);
 				AoFace.get(face).weightFunc.apply(quad, i, w);
@@ -360,7 +360,7 @@ public class AoCalculator {
 			completionFlags |= mask;
 			fd.resetCalc();
 
-			final ExtendedBlockView world = blockInfo.blockView;
+			final BlockRenderView world = blockInfo.blockView;
 			final BlockPos pos = blockInfo.blockPos;
 			final BlockPos.Mutable centerPos = lightPos;
 			final BlockPos.Mutable searchPos = this.searchPos;

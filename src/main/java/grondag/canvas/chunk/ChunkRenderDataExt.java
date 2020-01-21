@@ -16,14 +16,14 @@
 
 package grondag.canvas.chunk;
 
-import net.minecraft.block.BlockRenderLayer;
+import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 
 import grondag.canvas.chunk.occlusion.ChunkOcclusionGraphExt;
 
 public interface ChunkRenderDataExt {
 	void canvas_clear();
 
-	void canvas_setNonEmpty(BlockRenderLayer blockRenderLayer);
+	void canvas_setNonEmpty(BlendMode blockRenderLayer);
 
 	ChunkOcclusionGraphExt canvas_chunkVisibility();
 

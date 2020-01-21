@@ -22,10 +22,11 @@ import java.util.Set;
 
 import com.google.common.collect.Sets;
 
-import net.minecraft.block.BlockRenderLayer;
 import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.client.render.chunk.ChunkOcclusionGraphBuilder;
+import net.minecraft.client.render.chunk.ChunkOcclusionDataBuilder;
 import net.minecraft.util.math.BlockPos;
+
+import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 
 import grondag.canvas.apiimpl.QuadViewImpl;
 import grondag.canvas.apiimpl.RenderMaterialImpl;
@@ -37,21 +38,21 @@ import grondag.canvas.chunk.occlusion.ChunkOcclusionBuilderAccessHelper.ChunkOcc
 import grondag.canvas.material.ShaderProps;
 
 public class ChunkRebuildHelper {
-	public static final int BLOCK_RENDER_LAYER_COUNT = BlockRenderLayer.values().length;
+	public static final int BLOCK_RENDER_LAYER_COUNT = BlendMode.values().length;
 	public static final boolean[] EMPTY_RENDER_LAYER_FLAGS = new boolean[BLOCK_RENDER_LAYER_COUNT];
 
 	public final BlockPos.Mutable searchPos = new BlockPos.Mutable();
 	public final HashSet<BlockEntity> tileEntities = Sets.newHashSet();
 	public final Set<BlockEntity> tileEntitiesToAdd = Sets.newHashSet();
 	public final Set<BlockEntity> tileEntitiesToRemove = Sets.newHashSet();
-	public final ChunkOcclusionGraphBuilder visGraph = new ChunkOcclusionGraphBuilder();
+	public final ChunkOcclusionDataBuilder visGraph = new ChunkOcclusionDataBuilder();
 	public final Random random = new Random();
 	public final FluidBufferBuilder fluidBuilder = new FluidBufferBuilder();
 	public final VertexCollectorList solidCollector = new VertexCollectorList(false);
 	public final VertexCollectorList translucentCollector = new VertexCollectorList(true);
 
-	public VertexCollectorList getCollector(BlockRenderLayer layer) {
-		return layer == BlockRenderLayer.TRANSLUCENT ? translucentCollector : solidCollector;
+	public VertexCollectorList getCollector(BlendMode layer) {
+		return layer == BlendMode.TRANSLUCENT ? translucentCollector : solidCollector;
 	}
 
 	public VertexCollector collectorForMaterial(RenderMaterialImpl.Value mat, QuadViewImpl quad) {

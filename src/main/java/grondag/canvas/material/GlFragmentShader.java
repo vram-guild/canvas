@@ -16,13 +16,13 @@
 
 package grondag.canvas.material;
 
-import com.mojang.blaze3d.platform.GLX;
+import org.lwjgl.opengl.GL21;
 
 import net.minecraft.util.Identifier;
 
 public final class GlFragmentShader extends AbstractGlShader {
 	GlFragmentShader(Identifier shaderSource, int shaderProps, ShaderContext context) {
-		super(shaderSource, GLX.GL_FRAGMENT_SHADER, shaderProps, context);
+		super(shaderSource, GL21.GL_FRAGMENT_SHADER, shaderProps, context);
 	}
 
 	@Override

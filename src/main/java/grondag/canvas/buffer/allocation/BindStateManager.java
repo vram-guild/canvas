@@ -1,6 +1,6 @@
 package grondag.canvas.buffer.allocation;
 
-import com.mojang.blaze3d.platform.GLX;
+import org.lwjgl.opengl.GL21;
 
 public class BindStateManager {
 	private static int lastBoundBufferId = -1;
@@ -10,7 +10,7 @@ public class BindStateManager {
 			return false;
 		} else {
 			lastBoundBufferId = glBufferId;
-			GLX.glBindBuffer(GLX.GL_ARRAY_BUFFER, glBufferId);
+			GL21.glBindBuffer(GL21.GL_ARRAY_BUFFER, glBufferId);
 			return true;
 		}
 	}
@@ -18,7 +18,7 @@ public class BindStateManager {
 	public static void unbind() {
 		if(lastBoundBufferId != -1) {
 			lastBoundBufferId = -1;
-			GLX.glBindBuffer(GLX.GL_ARRAY_BUFFER, 0);
+			GL21.glBindBuffer(GL21.GL_ARRAY_BUFFER, 0);
 		}
 	}
 }

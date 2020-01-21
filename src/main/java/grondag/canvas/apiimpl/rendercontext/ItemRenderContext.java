@@ -24,7 +24,6 @@ import java.util.function.Supplier;
 import com.mojang.blaze3d.platform.GlStateManager;
 import org.lwjgl.opengl.GL11;
 
-import net.minecraft.block.BlockRenderLayer;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.color.item.ItemColors;
 import net.minecraft.client.render.Tessellator;
@@ -33,6 +32,7 @@ import net.minecraft.client.render.model.BakedQuad;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.Direction;
 
+import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 import net.fabricmc.fabric.api.renderer.v1.mesh.Mesh;
 import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
 import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
@@ -79,7 +79,7 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 	private boolean enchantment = false;
 	private final int[] quadData = new int[MeshEncodingHelper.MAX_STRIDE];
 	private final RenderMaterialImpl.Value glintMaterial = Canvas.INSTANCE.materialFinder()
-			.blendMode(0, BlockRenderLayer.TRANSLUCENT)
+			.blendMode(0, BlendMode.TRANSLUCENT)
 			.disableAo(0, true)
 			.disableDiffuse(0, true)
 			.emissive(0, true).find();
@@ -200,7 +200,7 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 	private static final BlockState NULL_BLOCK_STATE = null;
 
 	private final Consumer<BakedModel> fallbackConsumer = model -> {
-		final boolean disableGuiLighting = !model.hasDepthInGui();
+		final boolean disableGuiLighting = !model.isSideLit();
 		for (int i = 0; i < 7; i++) {
 			random.setSeed(42L);
 			final Direction face = ModelHelper.faceFromIndex(i);

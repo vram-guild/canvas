@@ -21,6 +21,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 
 import com.mojang.blaze3d.platform.GlStateManager;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.system.MemoryUtil;
 
 import net.minecraft.client.render.VertexFormatElement;
 
@@ -228,7 +229,7 @@ public class DrawableDelegate {
 				CanvasMod.LOG.info(String.format("GlState: GlStateManager.vertexPointer(%d, %d, %d, %s)", 3, VertexFormatElement.Format.FLOAT.getGlId(), format.vertexStrideBytes, buffer.toString()));
 			}
 			GlStateManager.enableClientState(GL11.GL_VERTEX_ARRAY);
-			GlStateManager.vertexPointer(3, VertexFormatElement.Format.FLOAT.getGlId(), format.vertexStrideBytes, buffer);
+			GlStateManager.vertexPointer(3, VertexFormatElement.Format.FLOAT.getGlId(), format.vertexStrideBytes, MemoryUtil.memAddress(buffer));
 			format.enableAndBindAttributes(buffer, byteOffset);
 		} else {
 			// reuse vertex binding with offset

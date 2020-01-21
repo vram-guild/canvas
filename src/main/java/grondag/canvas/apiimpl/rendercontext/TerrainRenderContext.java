@@ -18,18 +18,20 @@ package grondag.canvas.apiimpl.rendercontext;
 
 import java.util.function.Consumer;
 
-import net.minecraft.block.BlockRenderLayer;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.block.BlockRenderManager;
-import net.minecraft.client.render.chunk.ChunkRenderTask;
-import net.minecraft.client.render.chunk.ChunkRenderer;
+import net.minecraft.client.render.chunk.BlockBufferBuilderStorage;
+import net.minecraft.client.render.chunk.ChunkBuilder.BuiltChunk;
+import net.minecraft.client.render.chunk.ChunkBuilder.ChunkData;
+import net.minecraft.client.render.chunk.ChunkRendererRegion;
 import net.minecraft.client.render.model.BakedModel;
 import net.minecraft.util.crash.CrashException;
 import net.minecraft.util.crash.CrashReport;
 import net.minecraft.util.crash.CrashReportSection;
 import net.minecraft.util.math.BlockPos;
 
+import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 import net.fabricmc.fabric.api.renderer.v1.mesh.Mesh;
 import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
@@ -51,7 +53,7 @@ public class TerrainRenderContext extends AbstractRenderContext implements Rende
 	public static final ThreadLocal<TerrainRenderContext> POOL = ThreadLocal.withInitial(TerrainRenderContext::new);
 
 	public static ShaderContext contextFunc(RenderMaterialImpl.Value mat) {
-		return mat.renderLayer == BlockRenderLayer.TRANSLUCENT ? ShaderContext.BLOCK_TRANSLUCENT : ShaderContext.BLOCK_SOLID;
+		return mat.renderLayer == BlendMode.TRANSLUCENT ? ShaderContext.BLOCK_TRANSLUCENT : ShaderContext.BLOCK_SOLID;
 	}
 
 	private final TerrainBlockRenderInfo blockInfo = new TerrainBlockRenderInfo();
@@ -74,7 +76,7 @@ public class TerrainRenderContext extends AbstractRenderContext implements Rende
 		chunkInfo.setChunkTask(chunkTask);
 	}
 
-	public TerrainRenderContext prepare(ChunkRenderer chunkRenderer, BlockPos.Mutable chunkOrigin) {
+	public TerrainRenderContext prepare(ChunkRendererRegion blockView, BuiltChunk chunkRenderer, ChunkData chunkData, BlockBufferBuilderStorage builders) {
 		chunkInfo.prepare(chunkRenderer, chunkOrigin);
 		return this;
 	}

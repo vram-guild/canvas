@@ -23,8 +23,8 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 
 import com.google.common.io.CharStreams;
-import com.mojang.blaze3d.platform.GLX;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL21;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.resource.language.I18n;
@@ -83,7 +83,7 @@ abstract class AbstractGlShader {
 
 		try {
 			if (glId <= 0) {
-				glId = GLX.glCreateShader(shaderType);
+				glId = GL21.glCreateShader(shaderType);
 				if (glId == 0) {
 					glId = -1;
 					isErrored = true;
@@ -93,10 +93,10 @@ abstract class AbstractGlShader {
 
 			source = getSource();
 
-			GLX.glShaderSource(glId, source);
-			GLX.glCompileShader(glId);
+			GL21.glShaderSource(glId, source);
+			GL21.glCompileShader(glId);
 
-			if (GLX.glGetShaderi(glId, GLX.GL_COMPILE_STATUS) == GL11.GL_FALSE) {
+			if (GL21.glGetShaderi(glId, GL21.GL_COMPILE_STATUS) == GL11.GL_FALSE) {
 				isErrored = true;
 				error = CanvasGlHelper.getShaderInfoLog(glId);
 				if(error.isEmpty()) {
@@ -111,7 +111,7 @@ abstract class AbstractGlShader {
 
 		if(isErrored) {
 			if(glId > 0) {
-				GLX.glDeleteShader(glId);
+				GL21.glDeleteShader(glId);
 				glId = -1;
 			}
 

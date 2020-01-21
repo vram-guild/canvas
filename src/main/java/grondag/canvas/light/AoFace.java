@@ -24,8 +24,6 @@ import static net.minecraft.util.math.Direction.SOUTH;
 import static net.minecraft.util.math.Direction.UP;
 import static net.minecraft.util.math.Direction.WEST;
 
-import net.minecraft.util.SystemUtil;
-
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 
@@ -126,14 +124,18 @@ enum AoFace {
 		this.uFunc = uFunc;
 	}
 
-	private static final AoFace[] values = (AoFace[]) SystemUtil.consume(new AoFace[6], (neighborData) -> {
-		neighborData[DOWN.getId()] = AOF_DOWN;
-		neighborData[UP.getId()] = AOF_UP;
-		neighborData[NORTH.getId()] = AOF_NORTH;
-		neighborData[SOUTH.getId()] = AOF_SOUTH;
-		neighborData[WEST.getId()] = AOF_WEST;
-		neighborData[EAST.getId()] = AOF_EAST;
-	});
+	private static final AoFace[] values = createValues();
+
+	private static AoFace[] createValues() {
+		final AoFace[] result = new AoFace[6];
+		result[DOWN.getId()] = AOF_DOWN;
+		result[UP.getId()] = AOF_UP;
+		result[NORTH.getId()] = AOF_NORTH;
+		result[SOUTH.getId()] = AOF_SOUTH;
+		result[WEST.getId()] = AOF_WEST;
+		result[EAST.getId()] = AOF_EAST;
+		return result;
+	}
 
 	public static AoFace get(int directionOrdinal) {
 		return values[directionOrdinal];

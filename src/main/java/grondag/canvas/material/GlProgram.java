@@ -21,11 +21,11 @@ import java.nio.IntBuffer;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
-import com.mojang.blaze3d.platform.GLX;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.joml.Matrix4f;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL21;
 import org.lwjgl.system.MemoryUtil;
 
 import net.minecraft.client.resource.language.I18n;
@@ -51,7 +51,7 @@ public class GlProgram {
 
 	public static void deactivate() {
 		activeProgram = null;
-		GLX.glUseProgram(0);
+		GL21.glUseProgram(0);
 	}
 
 	private int progID = -1;
@@ -106,7 +106,7 @@ public class GlProgram {
 		}
 
 		private final void load(int programID) {
-			this.unifID = GLX.glGetUniformLocation(programID, name);
+			this.unifID = GL21.glGetUniformLocation(programID, name);
 			if (this.unifID == -1) {
 				CanvasMod.LOG.debug(I18n.translate("debug.canvas.missing_uniform", name,
 						vertexShader.shaderSource.toString(), fragmentShader.shaderSource.toString()));
@@ -165,7 +165,7 @@ public class GlProgram {
 
 		@Override
 		protected void uploadInner() {
-			GLX.glUniform1(unifID, uniformFloatBuffer);
+			GL21.glUniform1fv(unifID, uniformFloatBuffer);
 		}
 	}
 
@@ -191,7 +191,7 @@ public class GlProgram {
 
 		@Override
 		protected void uploadInner() {
-			GLX.glUniform2(unifID, uniformFloatBuffer);
+			GL21.glUniform2fv(unifID, uniformFloatBuffer);
 		}
 	}
 
@@ -221,7 +221,7 @@ public class GlProgram {
 
 		@Override
 		protected void uploadInner() {
-			GLX.glUniform3(unifID, uniformFloatBuffer);
+			GL21.glUniform3fv(unifID, uniformFloatBuffer);
 		}
 	}
 
@@ -255,7 +255,7 @@ public class GlProgram {
 
 		@Override
 		protected void uploadInner() {
-			GLX.glUniform4(unifID, uniformFloatBuffer);
+			GL21.glUniform4fv(unifID, uniformFloatBuffer);
 		}
 	}
 
@@ -281,7 +281,7 @@ public class GlProgram {
 
 		@Override
 		protected void uploadInner() {
-			GLX.glUniform1(unifID, uniformFloatBuffer);
+			GL21.glUniform1fv(unifID, uniformFloatBuffer);
 		}
 	}
 
@@ -342,7 +342,7 @@ public class GlProgram {
 
 		@Override
 		protected void uploadInner() {
-			GLX.glUniform1(unifID, uniformIntBuffer);
+			GL21.glUniform1iv(unifID, uniformIntBuffer);
 		}
 	}
 
@@ -368,7 +368,7 @@ public class GlProgram {
 
 		@Override
 		protected void uploadInner() {
-			GLX.glUniform2(unifID, uniformIntBuffer);
+			GL21.glUniform2iv(unifID, uniformIntBuffer);
 		}
 	}
 
@@ -398,7 +398,7 @@ public class GlProgram {
 
 		@Override
 		protected void uploadInner() {
-			GLX.glUniform3(unifID, uniformIntBuffer);
+			GL21.glUniform3iv(unifID, uniformIntBuffer);
 		}
 	}
 
@@ -432,7 +432,7 @@ public class GlProgram {
 
 		@Override
 		protected void uploadInner() {
-			GLX.glUniform4(unifID, uniformIntBuffer);
+			GL21.glUniform4iv(unifID, uniformIntBuffer);
 		}
 	}
 
@@ -458,7 +458,7 @@ public class GlProgram {
 
 		@Override
 		protected void uploadInner() {
-			GLX.glUniform1(unifID, uniformIntBuffer);
+			GL21.glUniform1iv(unifID, uniformIntBuffer);
 		}
 	}
 
@@ -497,7 +497,7 @@ public class GlProgram {
 
 		if (activeProgram != this) {
 			activeProgram = this;
-			GLX.glUseProgram(progID);
+			GL21.glUseProgram(progID);
 
 			final int count = dirtyCount;
 			if (count != 0) {
@@ -548,7 +548,7 @@ public class GlProgram {
 
 		@Override
 		protected void uploadInner() {
-			GLX.glUniformMatrix4(unifID, false, uniformFloatBuffer);
+			GL21.glUniformMatrix4fv(unifID, false, uniformFloatBuffer);
 		}
 	}
 
@@ -570,15 +570,15 @@ public class GlProgram {
 		dirtyCount = 0;
 		try {
 			if (progID > 0) {
-				GLX.glDeleteProgram(progID);
+				GL21.glDeleteProgram(progID);
 			}
 
-			progID = GLX.glCreateProgram();
+			progID = GL21.glCreateProgram();
 
 			isErrored = progID > 0 && !loadInner();
 		} catch (final Exception e) {
 			if (progID > 0) {
-				GLX.glDeleteProgram(progID);
+				GL21.glDeleteProgram(progID);
 			}
 
 			CanvasMod.LOG.error(I18n.translate("error.canvas.program_link_failure"), e);
@@ -613,13 +613,13 @@ public class GlProgram {
 			return false;
 		}
 
-		GLX.glAttachShader(programID, vertId);
-		GLX.glAttachShader(programID, fragId);
+		GL21.glAttachShader(programID, vertId);
+		GL21.glAttachShader(programID, fragId);
 
 		pipelineVertexFormat.bindProgramAttributes(programID);
 
-		GLX.glLinkProgram(programID);
-		if (GLX.glGetProgrami(programID, GLX.GL_LINK_STATUS) == GL11.GL_FALSE) {
+		GL21.glLinkProgram(programID);
+		if (GL21.glGetProgrami(programID, GL21.GL_LINK_STATUS) == GL11.GL_FALSE) {
 			CanvasMod.LOG.error(CanvasGlHelper.getProgramInfoLog(programID));
 			return false;
 		}

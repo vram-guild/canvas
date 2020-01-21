@@ -5,7 +5,7 @@ import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 import net.minecraft.block.BlockState;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.world.ExtendedBlockView;
+import net.minecraft.world.BlockRenderView;
 
 import grondag.canvas.chunk.FastRenderRegion;
 import grondag.fermion.position.PackedBlockPos;
@@ -32,7 +32,7 @@ public class LightSmoother {
 
 	private static final ThreadLocal<Helper> helpers = ThreadLocal.withInitial(Helper::new);
 
-	public static void computeSmoothedBrightness(BlockPos chunkOrigin, ExtendedBlockView blockViewIn, Long2IntOpenHashMap output) {
+	public static void computeSmoothedBrightness(BlockPos chunkOrigin, BlockRenderView blockViewIn, Long2IntOpenHashMap output) {
 		final Helper help = helpers.get();
 		final BlockPos.Mutable smoothPos = help.smoothPos;
 		final int[] sky = help.a;

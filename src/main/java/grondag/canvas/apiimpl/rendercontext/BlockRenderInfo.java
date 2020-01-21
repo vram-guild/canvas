@@ -22,6 +22,8 @@ import java.util.function.Supplier;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.color.block.BlockColors;
+import net.minecraft.client.render.RenderLayer;
+import net.minecraft.client.render.RenderLayers;
 import net.minecraft.util.math.BlockPos;
 
 import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachedBlockView;
@@ -47,7 +49,7 @@ public class BlockRenderInfo {
 	public BlockState blockState;
 	public long seed;
 	boolean defaultAo;
-	int defaultLayerIndex;
+	RenderLayer defaultLayer;
 
 	public final Supplier<Random> randomSupplier = () -> {
 		final Random result = random;
@@ -71,7 +73,7 @@ public class BlockRenderInfo {
 		// in the unlikely case seed actually matches this, we'll simply retrieve it more than once
 		seed = -1L;
 		defaultAo = modelAO && MinecraftClient.isAmbientOcclusionEnabled() && blockState.getLuminance() == 0 ;
-		defaultLayerIndex = blockState.getBlock().getRenderLayer().ordinal();
+		defaultLayer = RenderLayers.getBlockLayer(blockState);
 	}
 
 	public void release() {
@@ -81,7 +83,7 @@ public class BlockRenderInfo {
 
 	int blockColor(int colorIndex) {
 		if(needsColorLookup) {
-			final int result = 0xFF000000 | blockColorMap.getColorMultiplier(blockState, blockView, blockPos, colorIndex);
+			final int result = 0xFF000000 | blockColorMap.getColor(blockState, blockView, blockPos, colorIndex);
 			blockColor = result;
 			return result;
 		} else {

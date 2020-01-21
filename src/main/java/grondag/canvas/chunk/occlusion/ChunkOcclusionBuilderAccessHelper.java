@@ -18,7 +18,7 @@ package grondag.canvas.chunk.occlusion;
 
 import java.util.function.ToIntFunction;
 
-import net.minecraft.client.render.chunk.ChunkOcclusionGraphBuilder;
+import net.minecraft.client.render.chunk.ChunkOcclusionDataBuilder;
 import net.minecraft.util.math.BlockPos;
 
 /**
@@ -28,7 +28,7 @@ public abstract class ChunkOcclusionBuilderAccessHelper {
 	public static final ToIntFunction<BlockPos> PACK_FUNCTION;
 	static
 	{
-		final ChunkOcclusionGraphBuilderExt visData = (ChunkOcclusionGraphBuilderExt) new ChunkOcclusionGraphBuilder();
+		final ChunkOcclusionGraphBuilderExt visData = (ChunkOcclusionGraphBuilderExt) new ChunkOcclusionDataBuilder();
 		PACK_FUNCTION = visData.canvas_pack();
 	}
 

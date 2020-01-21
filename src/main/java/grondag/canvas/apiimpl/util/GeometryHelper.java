@@ -16,7 +16,7 @@
 
 package grondag.canvas.apiimpl.util;
 
-import static net.minecraft.util.math.MathHelper.equalsApproximate;
+import static net.minecraft.util.math.MathHelper.approximatelyEquals;
 
 import net.minecraft.client.render.model.BakedQuad;
 import net.minecraft.client.util.math.Vector3f;
@@ -78,8 +78,8 @@ public abstract class GeometryHelper {
 		}
 		final int i = face.getAxis().ordinal();
 		final float val = quad.posByIndex(0, i);
-		return equalsApproximate(val, quad.posByIndex(1, i)) && equalsApproximate(val, quad.posByIndex(2, i))
-				&& equalsApproximate(val, quad.posByIndex(3, i));
+		return approximatelyEquals(val, quad.posByIndex(1, i)) && approximatelyEquals(val, quad.posByIndex(2, i))
+				&& approximatelyEquals(val, quad.posByIndex(3, i));
 	}
 
 	/**
@@ -98,7 +98,7 @@ public abstract class GeometryHelper {
 		}
 		final int coordinateIndex = lightFace.getAxis().ordinal();
 		final float expectedValue = lightFace.getDirection() == AxisDirection.POSITIVE ? 1 : 0;
-		return equalsApproximate(quad.posByIndex(0, coordinateIndex), expectedValue);
+		return approximatelyEquals(quad.posByIndex(0, coordinateIndex), expectedValue);
 	}
 
 	/**

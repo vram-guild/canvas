@@ -18,12 +18,12 @@ package grondag.canvas.mixin;
 
 import org.spongepowered.asm.mixin.Mixin;
 
-import net.minecraft.client.render.chunk.ChunkOcclusionGraph;
+import net.minecraft.client.render.chunk.ChunkOcclusionData;
 
 import grondag.canvas.chunk.occlusion.ChunkOcclusionGraphExt;
 import grondag.canvas.chunk.occlusion.ChunkOcclusionMap;
 
-@Mixin(ChunkOcclusionGraph.class)
+@Mixin(ChunkOcclusionData.class)
 public abstract class MixinChunkOcclusionGraph implements ChunkOcclusionGraphExt {
 	private Object visibilityData = null;
 

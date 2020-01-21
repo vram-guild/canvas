@@ -18,7 +18,6 @@ package grondag.canvas.varia;
 
 import java.nio.IntBuffer;
 
-import com.mojang.blaze3d.platform.GLX;
 import it.unimi.dsi.fastutil.ints.IntArrayFIFOQueue;
 
 import net.minecraft.client.util.GlAllocationUtils;
@@ -33,7 +32,7 @@ public class GLBufferStore {
 
 	public static int claimBuffer() {
 		if (queue.isEmpty()) {
-			GLX.glGenBuffers(buff);
+			org.lwjgl.opengl.GL21.glGenBuffers(buff);
 
 			for (int i = 0; i < 128; i++) {
 				queue.enqueue(buff.get(i));

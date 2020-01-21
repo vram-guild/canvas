@@ -88,7 +88,7 @@ public class DitherTexture implements AutoCloseable {
 
 				for(int u = 0; u < 8; u++) {
 					for(int v = 0; v < 8; v++) {
-						image.setPixelRGBA(u, v, pattern[v * 8 + u]);
+						image.setPixelRgba(u, v, pattern[v * 8 + u]);
 					}
 				}
 				needsInitialized = false;

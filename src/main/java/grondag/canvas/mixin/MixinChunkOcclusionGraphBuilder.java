@@ -29,8 +29,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import net.minecraft.client.render.chunk.ChunkOcclusionGraph;
-import net.minecraft.client.render.chunk.ChunkOcclusionGraphBuilder;
+import net.minecraft.client.render.chunk.ChunkOcclusionData;
+import net.minecraft.client.render.chunk.ChunkOcclusionDataBuilder;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 
@@ -43,7 +43,7 @@ import grondag.canvas.chunk.occlusion.ChunkOcclusionMap;
 import grondag.canvas.chunk.occlusion.DirectionSet;
 import grondag.canvas.chunk.occlusion.OcclusionHelper;
 
-@Mixin(ChunkOcclusionGraphBuilder.class)
+@Mixin(ChunkOcclusionDataBuilder.class)
 public abstract class MixinChunkOcclusionGraphBuilder implements ChunkOcclusionGraphBuilderExt {
 	@Shadow private static int[] EDGE_POINTS;
 	@Shadow private BitSet closed;
@@ -65,11 +65,11 @@ public abstract class MixinChunkOcclusionGraphBuilder implements ChunkOcclusionG
 	}
 
 	@Inject(method = "build", at = @At("HEAD"), cancellable = true, require = 1)
-	public void buildFast(CallbackInfoReturnable<ChunkOcclusionGraph> ci) {
+	public void buildFast(CallbackInfoReturnable<ChunkOcclusionData> ci) {
 		if(Configurator.fastChunkOcclusion) {
 
 			//PERF: any way to avoid allocation?
-			final ChunkOcclusionGraph result = new ChunkOcclusionGraph();
+			final ChunkOcclusionData result = new ChunkOcclusionData();
 
 			if (4096 - openCount < 256) {
 				result.fill(true); // set all visible

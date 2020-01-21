@@ -21,10 +21,11 @@ import java.util.function.Consumer;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.Tessellator;
+import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.client.render.block.BlockModelRenderer;
 import net.minecraft.client.render.model.BakedModel;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.ExtendedBlockView;
+import net.minecraft.world.BlockRenderView;
 
 import net.fabricmc.fabric.api.renderer.v1.mesh.Mesh;
 import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
@@ -69,15 +70,16 @@ public class BlockRenderContext extends AbstractRenderContext implements RenderC
 	private boolean didOutput = false;
 
 	private int brightness(BlockPos pos) {
-		final ExtendedBlockView blockView = blockInfo.blockView;
+		final BlockRenderView blockView = blockInfo.blockView;
 		if (blockView == null) {
 			return 15 << 20 | 15 << 4;
 		}
-		return blockView.getBlockState(pos).getBlockBrightness(blockView, pos);
+
+		return WorldRenderer.getLightmapCoordinates(blockInfo.blockView, blockInfo.blockView.getBlockState(pos), pos);
 	}
 
 	private float aoLevel(BlockPos pos) {
-		final ExtendedBlockView blockView = blockInfo.blockView;
+		final BlockRenderView blockView = blockInfo.blockView;
 		if (blockView == null) {
 			return 1f;
 		}

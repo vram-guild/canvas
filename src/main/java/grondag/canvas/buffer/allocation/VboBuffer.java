@@ -19,7 +19,7 @@ package grondag.canvas.buffer.allocation;
 import java.nio.ByteBuffer;
 import java.util.function.Consumer;
 
-import com.mojang.blaze3d.platform.GLX;
+import org.lwjgl.opengl.GL21;
 
 public class VboBuffer extends UploadableBuffer implements AllocationProvider {
 	ByteBuffer uploadBuffer;
@@ -36,7 +36,7 @@ public class VboBuffer extends UploadableBuffer implements AllocationProvider {
 		if(uploadBuffer != null) {
 			bind();
 			uploadBuffer.rewind();
-			GLX.glBufferData(GLX.GL_ARRAY_BUFFER, uploadBuffer, GLX.GL_STATIC_DRAW);
+			GL21.glBufferData(GL21.GL_ARRAY_BUFFER, uploadBuffer, GL21.GL_STATIC_DRAW);
 			unbind();
 			BufferAllocator.release(uploadBuffer);
 			this.uploadBuffer = null;

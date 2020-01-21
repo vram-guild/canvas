@@ -18,10 +18,11 @@ package grondag.canvas.buffer.packing;
 
 import java.nio.ByteBuffer;
 
-import net.minecraft.block.BlockRenderLayer;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.VertexFormat;
 import net.minecraft.util.math.BlockPos;
+
+import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 
 import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.apiimpl.util.ColorHelper;
@@ -42,7 +43,7 @@ public class FluidBufferBuilder extends BufferBuilder {
 	private final int[] lightmaps = new int[4];
 	private final float[] uv = new float[8];
 
-	public FluidBufferBuilder prepare(VertexCollector vc, BlockPos pos, BlockRenderLayer layer) {
+	public FluidBufferBuilder prepare(VertexCollector vc, BlockPos pos, BlendMode layer) {
 		this.vc = vc;
 		this.pos = pos;
 		vertexIndex = 0;

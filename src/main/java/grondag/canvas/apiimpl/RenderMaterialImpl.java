@@ -19,8 +19,7 @@ package grondag.canvas.apiimpl;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
-import net.minecraft.block.BlockRenderLayer;
-
+import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 import net.fabricmc.fabric.api.renderer.v1.material.RenderMaterial;
 
 import grondag.canvas.material.ShaderManager;
@@ -33,7 +32,7 @@ import grondag.frex.api.material.MaterialShader;
 public abstract class RenderMaterialImpl {
 	private static final BitPacker64<RenderMaterialImpl> BITPACKER = new BitPacker64<>(RenderMaterialImpl::getBits, RenderMaterialImpl::setBits);
 	public static final int MAX_SPRITE_DEPTH = 3;
-	private static final BlockRenderLayer[] LAYERS = BlockRenderLayer.values();
+	private static final BlendMode[] LAYERS = BlendMode.values();
 
 	// Following are indexes into the array of boolean elements.
 	// They are NOT the index of the bits themselves.  Used to
@@ -51,7 +50,7 @@ public abstract class RenderMaterialImpl {
 	private static final BitPacker64<RenderMaterialImpl>.BooleanElement[] FLAGS = new BooleanElement[COLOR_DISABLE_INDEX_START + MAX_SPRITE_DEPTH];
 
 	@SuppressWarnings("unchecked")
-	private static final BitPacker64<RenderMaterialImpl>.NullableEnumElement<BlockRenderLayer> BLEND_MODES[] = new BitPacker64.NullableEnumElement[MAX_SPRITE_DEPTH];
+	private static final BitPacker64<RenderMaterialImpl>.NullableEnumElement<BlendMode> BLEND_MODES[] = new BitPacker64.NullableEnumElement[MAX_SPRITE_DEPTH];
 
 	private static final BitPacker64<RenderMaterialImpl>.IntElement SPRITE_DEPTH;
 
@@ -100,9 +99,9 @@ public abstract class RenderMaterialImpl {
 		FLAGS[COLOR_DISABLE_INDEX_START + 1] = BITPACKER.createBooleanElement();
 		FLAGS[COLOR_DISABLE_INDEX_START + 2] = BITPACKER.createBooleanElement();
 
-		BLEND_MODES[0] = BITPACKER.createNullableEnumElement(BlockRenderLayer.class);
-		BLEND_MODES[1] = BITPACKER.createNullableEnumElement(BlockRenderLayer.class);
-		BLEND_MODES[2] = BITPACKER.createNullableEnumElement(BlockRenderLayer.class);
+		BLEND_MODES[0] = BITPACKER.createNullableEnumElement(BlendMode.class);
+		BLEND_MODES[1] = BITPACKER.createNullableEnumElement(BlendMode.class);
+		BLEND_MODES[2] = BITPACKER.createNullableEnumElement(BlendMode.class);
 
 		SPRITE_DEPTH = BITPACKER.createIntElement(1, MAX_SPRITE_DEPTH);
 		SHADER = BITPACKER.createIntElement(ShaderManager.MAX_SHADERS);
@@ -137,7 +136,7 @@ public abstract class RenderMaterialImpl {
 		this.bits = bits;
 	}
 
-	public BlockRenderLayer blendMode(int spriteIndex) {
+	public BlendMode blendMode(int spriteIndex) {
 		return BLEND_MODES[spriteIndex].getValue(this);
 	}
 
@@ -185,7 +184,7 @@ public abstract class RenderMaterialImpl {
 		 * as decals and render in solid pass.  If base layer is translucent
 		 * then all sprite layers render as translucent.
 		 */
-		public final BlockRenderLayer renderLayer;
+		public final BlendMode renderLayer;
 
 		/**
 		 * True if base layer is a cutout layer. Implies renderLayer == SOLID.
@@ -210,22 +209,22 @@ public abstract class RenderMaterialImpl {
 			condition = MaterialConditionImpl.fromIndex(CONDITION.getValue(bits));
 			hasAo = !disableAo(0) || (spriteDepth() > 1 && !disableAo(1)) || (spriteDepth() == 3 && !disableAo(2));
 			emissiveFlags = (emissive(0) ? 1 : 0) | (emissive(1) ? 2 : 0) | (emissive(2) ? 4 : 0);
-			final BlockRenderLayer baseLayer = blendMode(0);
+			final BlendMode baseLayer = blendMode(0);
 			final int depth = spriteDepth();
 
-			if(baseLayer == BlockRenderLayer.SOLID) {
+			if(baseLayer == BlendMode.SOLID) {
 				isTranslucent = false;
-				renderLayer = BlockRenderLayer.SOLID;
+				renderLayer = BlendMode.SOLID;
 				isCutout = false;
 			} else {
 				// if there is no solid base layer and any layer is translucent then whole material must render on translucent pass
-				isTranslucent = (baseLayer == BlockRenderLayer.TRANSLUCENT)
-						|| (depth > 1 && blendMode(1) == BlockRenderLayer.TRANSLUCENT)
-						|| (depth == 3 && blendMode(2) == BlockRenderLayer.TRANSLUCENT);
+				isTranslucent = (baseLayer == BlendMode.TRANSLUCENT)
+						|| (depth > 1 && blendMode(1) == BlendMode.TRANSLUCENT)
+						|| (depth == 3 && blendMode(2) == BlendMode.TRANSLUCENT);
 
 				// not solid and not translucent so must be cutout
 				isCutout = !isTranslucent;
-				renderLayer = isTranslucent ? BlockRenderLayer.TRANSLUCENT : BlockRenderLayer.SOLID;
+				renderLayer = isTranslucent ? BlendMode.TRANSLUCENT : BlendMode.SOLID;
 			}
 		}
 
@@ -244,7 +243,7 @@ public abstract class RenderMaterialImpl {
 			if(needsVariant) {
 				final Finder finder = variantFinder.get();
 				for(int i = 0; i < 4; i++) {
-					final BlockRenderLayer layer = LAYERS[i];
+					final BlendMode layer = LAYERS[i];
 					finder.bits = bits;
 					finder.shader = shader;
 					if(finder.blendMode(0) == null) {
@@ -316,7 +315,7 @@ public abstract class RenderMaterialImpl {
 		}
 
 		@Override
-		public Finder blendMode(int spriteIndex, BlockRenderLayer blendMode) {
+		public Finder blendMode(int spriteIndex, BlendMode blendMode) {
 			BLEND_MODES[spriteIndex].setValue(blendMode, this);
 
 			switch(blendMode) {
