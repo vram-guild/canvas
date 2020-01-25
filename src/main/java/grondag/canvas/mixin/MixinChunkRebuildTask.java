@@ -45,8 +45,8 @@ import net.minecraft.world.BlockRenderView;
 import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
 import net.fabricmc.fabric.impl.client.indigo.Indigo;
 
-import grondag.canvas.renderer.accessor.AccessChunkRendererRegion;
-import grondag.canvas.renderer.render.TerrainRenderContext;
+import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
+import grondag.canvas.mixinterface.AccessChunkRendererRegion;
 
 /**
  * Implements the main hooks for terrain rendering. Attempts to tread

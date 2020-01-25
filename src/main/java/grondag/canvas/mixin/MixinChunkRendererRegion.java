@@ -20,8 +20,8 @@ import org.spongepowered.asm.mixin.Mixin;
 
 import net.minecraft.client.render.chunk.ChunkRendererRegion;
 
-import grondag.canvas.renderer.accessor.AccessChunkRendererRegion;
-import grondag.canvas.renderer.render.TerrainRenderContext;
+import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
+import grondag.canvas.mixinterface.AccessChunkRendererRegion;
 
 
 @Mixin(ChunkRendererRegion.class)

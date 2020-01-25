@@ -14,26 +14,15 @@
  * limitations under the License.
  */
 
-package grondag.canvas.mixin;
+package grondag.canvas.mixinterface;
 
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
+import java.util.BitSet;
 
-import net.minecraft.client.render.BufferBuilder;
-import net.minecraft.client.render.chunk.ChunkBuilder.BuiltChunk;
+import net.minecraft.block.BlockState;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
+import net.minecraft.world.BlockRenderView;
 
-import grondag.canvas.mixinterface.AccessChunkRenderer;
-
-@Mixin(BuiltChunk.class)
-public abstract class MixinChunkRenderer implements AccessChunkRenderer {
-	@Shadow
-	abstract void beginBufferBuilding(BufferBuilder builder);
-
-	/**
-	 * Access method for renderer.
-	 */
-	@Override
-	public void canvas_beginBufferBuilding(BufferBuilder builder) {
-		beginBufferBuilding(builder);
-	}
+public interface AccessBlockModelRenderer {
+	void canvas_updateShape(BlockRenderView blockRenderView, BlockState blockState, BlockPos pos, int[] vertexData, Direction face, float[] aoData, BitSet controlBits);
 }

@@ -26,7 +26,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import net.minecraft.block.BlockState;
-import net.minecraft.client.color.block.BlockColors;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.block.BlockModelRenderer;
 import net.minecraft.client.render.model.BakedModel;
@@ -35,16 +34,11 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.BlockRenderView;
 
-import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
-
-import grondag.canvas.renderer.accessor.AccessBlockModelRenderer;
-import grondag.canvas.renderer.render.BlockRenderContext;
+import grondag.canvas.apiimpl.rendercontext.BlockRenderContext;
+import grondag.canvas.mixinterface.AccessBlockModelRenderer;
 
 @Mixin(BlockModelRenderer.class)
 public abstract class MixinBlockModelRenderer implements AccessBlockModelRenderer {
-	@Shadow
-	protected BlockColors colorMap;
-
 	@Shadow
 	protected abstract void getQuadDimensions(BlockRenderView blockView, BlockState blockState, BlockPos blockPos, int[] vertexData, Direction face, float[] aoData, BitSet controlBits);
 
@@ -52,12 +46,10 @@ public abstract class MixinBlockModelRenderer implements AccessBlockModelRendere
 
 	@Inject(at = @At("HEAD"), method = "render(Lnet/minecraft/world/BlockRenderView;Lnet/minecraft/client/render/model/BakedModel;Lnet/minecraft/block/BlockState;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumer;ZLjava/util/Random;JI)Z", cancellable = true)
 	private void hookTesselate(BlockRenderView blockView, BakedModel model, BlockState state, BlockPos pos, MatrixStack matrix, VertexConsumer buffer, boolean checkSides, Random rand, long seed, int overlay, CallbackInfoReturnable<Boolean> ci) {
-		if (!((FabricBakedModel) model).isVanillaAdapter()) {
-			final BlockRenderContext context = CONTEXTS.get();
+		final BlockRenderContext context = CONTEXTS.get();
 
-			if (!context.isCallingVanilla()) {
-				ci.setReturnValue(CONTEXTS.get().tesselate((BlockModelRenderer) (Object) this, blockView, model, state, pos, matrix, buffer, checkSides, seed, overlay));
-			}
+		if (!context.isCallingVanilla()) {
+			ci.setReturnValue(CONTEXTS.get().tesselate((BlockModelRenderer) (Object) this, blockView, model, state, pos, matrix, buffer, checkSides, seed, overlay));
 		}
 	}
 

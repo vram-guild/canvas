@@ -14,26 +14,16 @@
  * limitations under the License.
  */
 
-package grondag.canvas.mixin;
+package grondag.canvas.mixinterface;
 
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
+import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
 
-import net.minecraft.client.render.BufferBuilder;
-import net.minecraft.client.render.chunk.ChunkBuilder.BuiltChunk;
+/**
+ * Used to stash block renderer reference in local scope during
+ * chunk rebuild, thus avoiding repeated thread-local lookups.
+ */
+public interface AccessChunkRendererRegion {
+	TerrainRenderContext canvas_getRenderer();
 
-import grondag.canvas.mixinterface.AccessChunkRenderer;
-
-@Mixin(BuiltChunk.class)
-public abstract class MixinChunkRenderer implements AccessChunkRenderer {
-	@Shadow
-	abstract void beginBufferBuilding(BufferBuilder builder);
-
-	/**
-	 * Access method for renderer.
-	 */
-	@Override
-	public void canvas_beginBufferBuilding(BufferBuilder builder) {
-		beginBufferBuilding(builder);
-	}
+	void canvas_setRenderer(TerrainRenderContext renderer);
 }

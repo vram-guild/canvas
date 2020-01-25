@@ -24,7 +24,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.chunk.ChunkBuilder.ChunkData;
 
-import grondag.canvas.renderer.accessor.AccessChunkRendererData;
+import grondag.canvas.mixinterface.AccessChunkRendererData;
 
 
 @Mixin(ChunkData.class)

@@ -33,10 +33,10 @@ import net.minecraft.item.ItemStack;
 
 import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
 
-import grondag.canvas.renderer.accessor.AccessItemRenderer;
-import grondag.canvas.renderer.render.CanvasQuadHandler;
-import grondag.canvas.renderer.render.ItemRenderContext;
-import grondag.canvas.renderer.render.ItemRenderContext.VanillaQuadHandler;
+import grondag.canvas.apiimpl.rendercontext.CanvasQuadHandler;
+import grondag.canvas.apiimpl.rendercontext.ItemRenderContext;
+import grondag.canvas.apiimpl.rendercontext.ItemRenderContext.VanillaQuadHandler;
+import grondag.canvas.mixinterface.AccessItemRenderer;
 
 @Mixin(ItemRenderer.class)
 public abstract class MixinItemRenderer implements AccessItemRenderer {

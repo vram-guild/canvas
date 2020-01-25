@@ -24,7 +24,7 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.rendering.v1.InvalidateRenderStateCallback;
 import net.fabricmc.fabric.api.renderer.v1.RendererAccess;
 
-import grondag.canvas.renderer.Canvas;
+import grondag.canvas.apiimpl.Canvas;
 
 
 //TODO: allow for shaders to be defined based on Block materials. Apply only to default material.
