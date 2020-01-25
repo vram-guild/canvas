@@ -16,7 +16,6 @@
 
 package grondag.canvas.apiimpl.rendercontext;
 
-import java.util.Random;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -47,17 +46,8 @@ public class BlockRenderContext extends AbstractRenderContext implements RenderC
 	private final BlockRenderInfo blockInfo = new BlockRenderInfo();
 	private final AoCalculator aoCalc = new AoCalculator(blockInfo, this::brightness, this::aoLevel);
 	private final MeshConsumer meshConsumer = new MeshConsumer(blockInfo, this::outputBuffer, aoCalc, this::transform);
-	private final Random random = new Random();
-	private BlockModelRenderer vanillaRenderer;
 	private VertexConsumer bufferBuilder;
-	private long seed;
-	private boolean isCallingVanilla = false;
 	private boolean didOutput = false;
-	private MatrixStack matrixStack;
-
-	public boolean isCallingVanilla() {
-		return isCallingVanilla;
-	}
 
 	private int brightness(BlockPos pos) {
 		if (blockInfo.blockView == null) {
@@ -78,32 +68,22 @@ public class BlockRenderContext extends AbstractRenderContext implements RenderC
 	}
 
 	public boolean tesselate(BlockModelRenderer vanillaRenderer, BlockRenderView blockView, BakedModel model, BlockState state, BlockPos pos, MatrixStack matrixStack, VertexConsumer buffer, boolean checkSides, long seed, int overlay) {
-		this.vanillaRenderer = vanillaRenderer;
 		bufferBuilder = buffer;
-		this.matrixStack = matrixStack;
 		matrix = matrixStack.peek().getModel();
 		normalMatrix = matrixStack.peek().getNormal();
 
-		this.seed = seed;
 		this.overlay = overlay;
 		didOutput = false;
 		aoCalc.clear();
 		blockInfo.setBlockView(blockView);
-		blockInfo.prepareForBlock(state, pos, model.useAmbientOcclusion());
+		blockInfo.prepareForBlock(state, pos, model.useAmbientOcclusion(), seed);
 
 		((FabricBakedModel) model).emitBlockQuads(blockView, state, pos, blockInfo.randomSupplier, this);
 
-		this.vanillaRenderer = null;
 		blockInfo.release();
 		bufferBuilder = null;
 
 		return didOutput;
-	}
-
-	protected void acceptVanillaModel(BakedModel model) {
-		isCallingVanilla = true;
-		didOutput = didOutput && vanillaRenderer.render(blockInfo.blockView, model, blockInfo.blockState, blockInfo.blockPos, matrixStack, bufferBuilder, false, random, seed, overlay);
-		isCallingVanilla = false;
 	}
 
 	private class MeshConsumer extends AbstractMeshConsumer {
@@ -127,6 +107,23 @@ public class BlockRenderContext extends AbstractRenderContext implements RenderC
 		}
 	}
 
+	private final TerrainFallbackConsumer fallbackConsumer = new TerrainFallbackConsumer(blockInfo, this::outputBuffer, aoCalc, this::transform) {
+		@Override
+		protected int overlay() {
+			return overlay;
+		}
+
+		@Override
+		protected Matrix4f matrix() {
+			return matrix;
+		}
+
+		@Override
+		protected Matrix3f normalMatrix() {
+			return normalMatrix;
+		}
+	};
+
 	@Override
 	public Consumer<Mesh> meshConsumer() {
 		return meshConsumer;
@@ -134,7 +131,7 @@ public class BlockRenderContext extends AbstractRenderContext implements RenderC
 
 	@Override
 	public Consumer<BakedModel> fallbackConsumer() {
-		return this::acceptVanillaModel;
+		return fallbackConsumer;
 	}
 
 	@Override

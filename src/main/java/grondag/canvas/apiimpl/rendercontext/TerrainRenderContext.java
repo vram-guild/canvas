@@ -102,7 +102,7 @@ public class TerrainRenderContext extends AbstractRenderContext implements Rende
 
 		try {
 			aoCalc.clear();
-			blockInfo.prepareForBlock(blockState, blockPos, model.useAmbientOcclusion());
+			blockInfo.prepareForBlock(blockState, blockPos, model.useAmbientOcclusion(), -1);
 			((FabricBakedModel) model).emitBlockQuads(blockInfo.blockView, blockInfo.blockState, blockInfo.blockPos, blockInfo.randomSupplier, this);
 		} catch (final Throwable var9) {
 			final CrashReport crashReport_1 = CrashReport.create(var9, "Tesselating block in world - Indigo Renderer");

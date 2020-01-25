@@ -39,6 +39,10 @@ import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
  */
 public class BlockRenderInfo {
 	private final BlockColors blockColorMap = MinecraftClient.getInstance().getBlockColorMap();
+	private boolean needsRandomRefresh = true;
+	private int lastColorIndex = -1;
+	private int blockColor = -1;
+
 	public final Random random = new Random();
 	public BlockRenderView blockView;
 	public BlockPos blockPos;
@@ -49,14 +53,19 @@ public class BlockRenderInfo {
 
 	public final Supplier<Random> randomSupplier = () -> {
 		final Random result = random;
-		long seed = this.seed;
 
-		if (seed == -1L) {
-			seed = blockState.getRenderingSeed(blockPos);
-			this.seed = seed;
+		if(needsRandomRefresh) {
+			needsRandomRefresh = false;
+			long seed = this.seed;
+
+			if (seed == -1L) {
+				seed = blockState.getRenderingSeed(blockPos);
+				this.seed = seed;
+			}
+
+			result.setSeed(seed);
 		}
 
-		result.setSeed(seed);
 		return result;
 	};
 
@@ -64,13 +73,20 @@ public class BlockRenderInfo {
 		this.blockView = blockView;
 	}
 
-	public void prepareForBlock(BlockState blockState, BlockPos blockPos, boolean modelAO) {
+	/**
+	 *
+	 * @param blockState
+	 * @param blockPos
+	 * @param modelAO
+	 * @param seed pass -1 for default behavior
+	 */
+	public void prepareForBlock(BlockState blockState, BlockPos blockPos, boolean modelAO, long seed) {
 		this.blockPos = blockPos;
 		this.blockState = blockState;
-		// in the unlikely case seed actually matches this, we'll simply retrieve it more than one
-		seed = -1L;
+		lastColorIndex = -1;
+		needsRandomRefresh = true;
+		this.seed = seed;
 		defaultAo = modelAO && MinecraftClient.isAmbientOcclusionEnabled() && blockState.getLuminance() == 0;
-
 		defaultLayer = RenderLayers.getBlockLayer(blockState);
 	}
 
@@ -80,7 +96,16 @@ public class BlockRenderInfo {
 	}
 
 	int blockColor(int colorIndex) {
-		return 0xFF000000 | blockColorMap.getColor(blockState, blockView, blockPos, colorIndex);
+		if(colorIndex == -1) {
+			return -1;
+		} else if(lastColorIndex == colorIndex) {
+			return blockColor;
+		} else {
+			lastColorIndex = colorIndex;
+			final int result = 0xFF000000 | blockColorMap.getColor(blockState, blockView, blockPos, colorIndex);
+			blockColor = result;
+			return result;
+		}
 	}
 
 	boolean shouldDrawFace(Direction face) {
@@ -88,6 +113,6 @@ public class BlockRenderInfo {
 	}
 
 	RenderLayer effectiveRenderLayer(BlendMode blendMode) {
-		return blendMode == BlendMode.DEFAULT ? this.defaultLayer : blendMode.blockRenderLayer;
+		return blendMode == BlendMode.DEFAULT ? defaultLayer : blendMode.blockRenderLayer;
 	}
 }
