@@ -14,26 +14,23 @@
  * limitations under the License.
  */
 
-package grondag.canvas.mixin;
+package grondag.canvas.renderer.accessor;
 
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
+import net.minecraft.client.render.RenderLayer;
 
-import net.minecraft.client.render.BufferBuilder;
-import net.minecraft.client.render.chunk.ChunkBuilder.BuiltChunk;
-
-import grondag.canvas.renderer.accessor.AccessChunkRenderer;
-
-@Mixin(BuiltChunk.class)
-public abstract class MixinChunkRenderer implements AccessChunkRenderer {
-	@Shadow
-	abstract void beginBufferBuilding(BufferBuilder builder);
+public interface AccessChunkRendererData {
+	/**
+	 * Mark internal tracking set that buffer has been initialized.
+	 *
+	 * @param renderLayer  Layer to be initialized.
+	 * @return {@code true} if layer was not already initialized.
+	 */
+	boolean canvas_markInitialized(RenderLayer renderLayer);
 
 	/**
-	 * Access method for renderer.
+	 * Mark internal tracking set that buffer has content.
+	 *
+	 * @param renderLayer  Layer with content.
 	 */
-	@Override
-	public void canvas_beginBufferBuilding(BufferBuilder builder) {
-		beginBufferBuilding(builder);
-	}
+	void canvas_markPopulated(RenderLayer renderLayer);
 }

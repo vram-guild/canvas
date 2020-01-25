@@ -14,26 +14,16 @@
  * limitations under the License.
  */
 
-package grondag.canvas.mixin;
+package grondag.canvas.renderer.aocalc;
 
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 
-import net.minecraft.client.render.BufferBuilder;
-import net.minecraft.client.render.chunk.ChunkBuilder.BuiltChunk;
+@Environment(EnvType.CLIENT)
+@FunctionalInterface
+interface AoVertexClampFunction {
+	float clamp(float x);
 
-import grondag.canvas.renderer.accessor.AccessChunkRenderer;
-
-@Mixin(BuiltChunk.class)
-public abstract class MixinChunkRenderer implements AccessChunkRenderer {
-	@Shadow
-	abstract void beginBufferBuilding(BufferBuilder builder);
-
-	/**
-	 * Access method for renderer.
-	 */
-	@Override
-	public void canvas_beginBufferBuilding(BufferBuilder builder) {
-		beginBufferBuilding(builder);
-	}
+	// TODO: remove?
+	AoVertexClampFunction CLAMP_FUNC = x -> x < 0f ? 0f : (x > 1f ? 1f : x);
 }

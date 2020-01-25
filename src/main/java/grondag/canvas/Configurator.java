@@ -41,8 +41,6 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.loader.api.FabricLoader;
 
-import grondag.canvas.material.ShaderManager;
-
 @Environment(EnvType.CLIENT)
 public class Configurator {
 
@@ -452,7 +450,8 @@ public class Configurator {
 		if(reloadTerrain) {
 			MinecraftClient.getInstance().worldRenderer.reload();
 		} else if(reloadShaders) {
-			ShaderManager.INSTANCE.forceReload();
+			// TODO: put back
+			//ShaderManager.INSTANCE.forceReload();
 		}
 	}
 

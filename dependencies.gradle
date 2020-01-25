@@ -36,11 +36,11 @@ dependencies {
   }
   include "grondag:special-circumstances-${project.mc_tag}:${project.special_circumstances_version}.+"
 
-	modImplementation ("grondag:frex:${project.frex_version}.+") {
+	modImplementation ("grondag:frex-${project.mc_tag}:${project.frex_version}.+") {
     exclude group :"grondag"
     exclude group :"net.fabricmc.fabric-api"
   }
-  include "grondag:frex:${project.frex_version}.+"
+  include "grondag:frex-${project.mc_tag}:${project.frex_version}.+"
 
 	modImplementation ("grondag:joml-mod:1.0+") {
     exclude group :"grondag"
