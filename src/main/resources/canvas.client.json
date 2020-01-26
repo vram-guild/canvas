@@ -6,7 +6,6 @@
     "MixinBlockModelRenderer",
     "MixinChunkRebuildTask",
     "MixinChunkRenderData",
-    "MixinChunkRenderer",
     "MixinChunkRendererRegion",
     "MixinItemRenderer"
       ],

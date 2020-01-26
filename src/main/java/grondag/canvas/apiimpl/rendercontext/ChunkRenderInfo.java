@@ -23,16 +23,15 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.RenderLayer;
+import net.minecraft.client.render.VertexFormats;
 import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.client.render.chunk.BlockBufferBuilderStorage;
-import net.minecraft.client.render.chunk.ChunkBuilder.BuiltChunk;
 import net.minecraft.client.render.chunk.ChunkBuilder.ChunkData;
 import net.minecraft.client.render.chunk.ChunkRendererRegion;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.BlockRenderView;
 
 import grondag.canvas.light.AoLuminanceFix;
-import grondag.canvas.mixinterface.AccessChunkRenderer;
 import grondag.canvas.mixinterface.AccessChunkRendererData;
 
 /**
@@ -70,7 +69,6 @@ public class ChunkRenderInfo {
 
 	private final BlockPos.Mutable chunkOrigin = new BlockPos.Mutable();
 	AccessChunkRendererData chunkData;
-	BuiltChunk chunkRenderer;
 	BlockBufferBuilderStorage builders;
 	BlockRenderView blockView;
 
@@ -83,11 +81,10 @@ public class ChunkRenderInfo {
 		aoLevelCache.defaultReturnValue(Float.MAX_VALUE);
 	}
 
-	void prepare(ChunkRendererRegion blockView, BuiltChunk chunkRenderer, ChunkData chunkData, BlockBufferBuilderStorage builders) {
+	void prepare(ChunkRendererRegion blockView, ChunkData chunkData, BlockBufferBuilderStorage builders, BlockPos origin) {
 		this.blockView = blockView;
-		chunkOrigin.set(chunkRenderer.getOrigin());
+		chunkOrigin.set(origin);
 		this.chunkData = (AccessChunkRendererData) chunkData;
-		this.chunkRenderer = chunkRenderer;
 		this.builders = builders;
 		buffers.clear();
 		brightnessCache.clear();
@@ -96,7 +93,6 @@ public class ChunkRenderInfo {
 
 	void release() {
 		chunkData = null;
-		chunkRenderer = null;
 		buffers.clear();
 	}
 
@@ -105,13 +101,12 @@ public class ChunkRenderInfo {
 		BufferBuilder result = buffers.get(renderLayer);
 
 		if (result == null) {
-			final BufferBuilder builder = builders.get(renderLayer);
-			result = builder;
+			result = builders.get(renderLayer);
 			chunkData.canvas_markPopulated(renderLayer);
 			buffers.put(renderLayer, result);
 
 			if (chunkData.canvas_markInitialized(renderLayer)) {
-				((AccessChunkRenderer) chunkRenderer).canvas_beginBufferBuilding(builder);
+				result.begin(7, VertexFormats.POSITION_COLOR_TEXTURE_LIGHT_NORMAL);
 			}
 		}
 

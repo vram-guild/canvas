@@ -20,7 +20,6 @@ import java.util.function.Consumer;
 
 import net.minecraft.block.BlockState;
 import net.minecraft.client.render.chunk.BlockBufferBuilderStorage;
-import net.minecraft.client.render.chunk.ChunkBuilder.BuiltChunk;
 import net.minecraft.client.render.chunk.ChunkBuilder.ChunkData;
 import net.minecraft.client.render.chunk.ChunkRendererRegion;
 import net.minecraft.client.render.model.BakedModel;
@@ -49,6 +48,9 @@ public class TerrainRenderContext extends AbstractRenderContext implements Rende
 	private final TerrainBlockRenderInfo blockInfo = new TerrainBlockRenderInfo();
 	private final ChunkRenderInfo chunkInfo = new ChunkRenderInfo();
 	private final AoCalculator aoCalc = new AoCalculator(blockInfo, chunkInfo::cachedBrightness, chunkInfo::cachedAoLevel);
+
+	/** for use by chunk builder - avoids another threadlocal */
+	public final BlockPos.Mutable searchPos = new BlockPos.Mutable();
 
 	private final AbstractMeshConsumer meshConsumer = new AbstractMeshConsumer(blockInfo, chunkInfo::getInitializedBuffer, aoCalc, this::transform) {
 		@Override
@@ -84,9 +86,9 @@ public class TerrainRenderContext extends AbstractRenderContext implements Rende
 		}
 	};
 
-	public TerrainRenderContext prepare(ChunkRendererRegion blockView, BuiltChunk chunkRenderer, ChunkData chunkData, BlockBufferBuilderStorage builders) {
+	public TerrainRenderContext prepare(ChunkRendererRegion blockView, ChunkData chunkData, BlockBufferBuilderStorage builders, BlockPos origin) {
 		blockInfo.setBlockView(blockView);
-		chunkInfo.prepare(blockView, chunkRenderer, chunkData, builders);
+		chunkInfo.prepare(blockView, chunkData, builders, origin);
 		return this;
 	}
 
@@ -96,7 +98,7 @@ public class TerrainRenderContext extends AbstractRenderContext implements Rende
 	}
 
 	/** Called from chunk renderer hook. */
-	public boolean tesselateBlock(BlockState blockState, BlockPos blockPos, final BakedModel model, MatrixStack matrixStack) {
+	public void tesselateBlock(BlockState blockState, BlockPos blockPos, final BakedModel model, MatrixStack matrixStack) {
 		matrix = matrixStack.peek().getModel();
 		normalMatrix = matrixStack.peek().getNormal();
 
@@ -110,9 +112,6 @@ public class TerrainRenderContext extends AbstractRenderContext implements Rende
 			CrashReportSection.addBlockInfo(crashReportElement_1, blockPos, blockState);
 			throw new CrashException(crashReport_1);
 		}
-
-		// false because we've already marked the chunk as populated - caller doesn't need to
-		return false;
 	}
 
 	@Override

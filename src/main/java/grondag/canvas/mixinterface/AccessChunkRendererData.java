@@ -17,6 +17,8 @@
 package grondag.canvas.mixinterface;
 
 import net.minecraft.client.render.RenderLayer;
+import net.minecraft.client.render.chunk.BlockBufferBuilderStorage;
+import net.minecraft.client.render.chunk.ChunkOcclusionData;
 
 public interface AccessChunkRendererData {
 	/**
@@ -33,4 +35,8 @@ public interface AccessChunkRendererData {
 	 * @param renderLayer  Layer with content.
 	 */
 	void canvas_markPopulated(RenderLayer renderLayer);
+
+	void canvas_endBuffering(float x, float y, float z, BlockBufferBuilderStorage buffers);
+
+	void canvas_setOcclusionGraph(ChunkOcclusionData occlusionGraph);
 }
