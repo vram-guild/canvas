@@ -43,10 +43,17 @@ import grondag.canvas.light.AoLuminanceFix;
  * Context for non-terrain block rendering.
  */
 public class BlockRenderContext extends AbstractRenderContext implements RenderContext {
+	public static ThreadLocal<BlockRenderContext> POOL = ThreadLocal.withInitial(BlockRenderContext::new);
+
+	public static void forceReload() {
+		POOL = ThreadLocal.withInitial(BlockRenderContext::new);
+	}
+
 	private final BlockRenderInfo blockInfo = new BlockRenderInfo();
 	private final AoCalculator aoCalc = new AoCalculator(blockInfo, this::brightness, this::aoLevel);
 	private final MeshConsumer meshConsumer = new MeshConsumer(blockInfo, this::outputBuffer, aoCalc, this::transform);
 	private VertexConsumer bufferBuilder;
+	private final AoLuminanceFix aoFix = AoLuminanceFix.effective();
 	private boolean didOutput = false;
 
 	private int brightness(BlockPos pos) {
@@ -59,7 +66,7 @@ public class BlockRenderContext extends AbstractRenderContext implements RenderC
 
 	private float aoLevel(BlockPos pos) {
 		final BlockRenderView blockView = blockInfo.blockView;
-		return blockView == null ? 1f : AoLuminanceFix.INSTANCE.apply(blockView, pos);
+		return blockView == null ? 1f : aoFix.apply(blockView, pos);
 	}
 
 	private VertexConsumer outputBuffer(RenderLayer renderLayer) {

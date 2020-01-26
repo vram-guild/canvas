@@ -21,7 +21,6 @@ import java.util.function.Consumer;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.render.chunk.BlockBufferBuilderStorage;
 import net.minecraft.client.render.chunk.ChunkBuilder.ChunkData;
-import net.minecraft.client.render.chunk.ChunkRendererRegion;
 import net.minecraft.client.render.model.BakedModel;
 import net.minecraft.client.util.math.Matrix3f;
 import net.minecraft.client.util.math.Matrix4f;
@@ -36,7 +35,9 @@ import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
 import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 
+import grondag.canvas.chunk.FastRenderRegion;
 import grondag.canvas.light.AoCalculator;
+import grondag.canvas.mixinterface.AccessChunkRendererRegion;
 
 /**
  * Implementation of {@link RenderContext} used during terrain rendering.
@@ -86,7 +87,9 @@ public class TerrainRenderContext extends AbstractRenderContext implements Rende
 		}
 	};
 
-	public TerrainRenderContext prepare(ChunkRendererRegion blockView, ChunkData chunkData, BlockBufferBuilderStorage builders, BlockPos origin) {
+	public TerrainRenderContext prepare(AccessChunkRendererRegion region, ChunkData chunkData, BlockBufferBuilderStorage builders, BlockPos origin) {
+		region.canvas_setTerrainContext(this);
+		final FastRenderRegion blockView = region.canvas_fastRegion();
 		blockInfo.setBlockView(blockView);
 		chunkInfo.prepare(blockView, chunkData, builders, origin);
 		return this;

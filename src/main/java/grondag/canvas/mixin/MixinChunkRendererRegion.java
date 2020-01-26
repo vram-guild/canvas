@@ -16,25 +16,98 @@
 
 package grondag.canvas.mixin;
 
-import org.spongepowered.asm.mixin.Mixin;
+import java.util.Collections;
+import java.util.Iterator;
 
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Overwrite;
+import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.Redirect;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+import net.minecraft.block.BlockState;
 import net.minecraft.client.render.chunk.ChunkRendererRegion;
+import net.minecraft.fluid.FluidState;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
+import net.minecraft.world.chunk.WorldChunk;
+
+import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachedBlockView;
 
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
+import grondag.canvas.chunk.FastRenderRegion;
 import grondag.canvas.mixinterface.AccessChunkRendererRegion;
 
 
 @Mixin(ChunkRendererRegion.class)
 public abstract class MixinChunkRendererRegion implements AccessChunkRendererRegion {
-	private TerrainRenderContext canvas_renderer;
+	@Shadow protected World world;
+	@Shadow protected BlockState[] blockStates;
+	@Shadow protected FluidState[] fluidStates;
+	@Shadow protected BlockPos offset;
+	@Shadow protected int xSize;
+	@Shadow protected int ySize;
+	@Shadow protected int zSize;
 
-	@Override
-	public TerrainRenderContext canvas_getRenderer() {
-		return canvas_renderer;
+	@Shadow
+	protected abstract int getIndex(int x, int y, int z);
+
+	private TerrainRenderContext terrainContext;
+
+	private static final Iterable<BlockPos> DUMMY_ITERABLE = new Iterable<BlockPos>() {
+		@Override
+		public Iterator<BlockPos> iterator() {
+			return Collections.emptyIterator();
+		}
+	};
+
+	private FastRenderRegion fastRegion;
+
+	//PERF: could avoid some allocation by zeroing array allocation of unused block/fluid cache arrays
+
+	@Redirect(method = "<init>*", require = 1, at = @At(value = "INVOKE",
+			target = "Lnet/minecraft/util/math/BlockPos;iterate(Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/util/math/BlockPos;)Ljava/lang/Iterable;"))
+	private Iterable<BlockPos> hookIterate(BlockPos from, BlockPos to) {
+		return DUMMY_ITERABLE;
+	}
+
+	@Inject(at = @At("RETURN"), method = "<init>")
+	public void init(World world, int cxOff, int czOff, WorldChunk[][] chunks, BlockPos posFrom, BlockPos posTo, CallbackInfo info) {
+		fastRegion = FastRenderRegion.claim().prepare(world, cxOff, czOff, chunks, posFrom, ((RenderAttachedBlockView)this)::getBlockEntityRenderAttachment);
 	}
 
 	@Override
-	public void canvas_setRenderer(TerrainRenderContext renderer) {
-		canvas_renderer = renderer;
+	public TerrainRenderContext canvas_getTerrainContext() {
+		return terrainContext;
+	}
+
+	@Override
+	public void canvas_setTerrainContext(TerrainRenderContext renderer) {
+		terrainContext = renderer;
+	}
+
+	@Override
+	public FastRenderRegion canvas_fastRegion() {
+		return fastRegion;
+	}
+
+	/**
+	 * @reason performance
+	 * @author grondag
+	 */
+	@Overwrite
+	public BlockState getBlockState(BlockPos pos) {
+		return fastRegion.getBlockState(pos.getX(), pos.getY(), pos.getZ());
+	}
+
+	/**
+	 * @reason performance
+	 * @author grondag
+	 */
+	@Overwrite
+	public FluidState getFluidState(BlockPos pos) {
+		return fastRegion.getBlockState(pos.getX(), pos.getY(), pos.getZ()).getFluidState();
 	}
 }

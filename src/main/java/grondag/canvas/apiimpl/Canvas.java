@@ -29,6 +29,8 @@ import net.fabricmc.fabric.api.renderer.v1.mesh.MeshBuilder;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.RenderMaterialImpl.Value;
 import grondag.canvas.apiimpl.mesh.MeshBuilderImpl;
+import grondag.canvas.apiimpl.rendercontext.BlockRenderContext;
+import grondag.canvas.chunk.FastRenderRegion;
 
 /**
  * The Fabric default renderer implementation. Supports all
@@ -75,5 +77,7 @@ public class Canvas implements Renderer {
 
 	public void reload() {
 		CanvasMod.LOG.info(I18n.translate("info.canvas.reloading"));
+		FastRenderRegion.forceReload();
+		BlockRenderContext.forceReload();
 	}
 }

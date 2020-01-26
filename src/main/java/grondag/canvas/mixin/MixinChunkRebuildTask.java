@@ -69,8 +69,7 @@ public abstract class MixinChunkRebuildTask {
 
 		if (region != null) {
 			final TerrainRenderContext renderer = TerrainRenderContext.POOL.get();
-			renderer.prepare(region, chunkData, buffers, origin);
-			((AccessChunkRendererRegion) region).canvas_setRenderer(renderer);
+			renderer.prepare((AccessChunkRendererRegion) region, chunkData, buffers, origin);
 
 			final BlockRenderManager blockRenderManager = MinecraftClient.getInstance().getBlockRenderManager();
 			final BlockPos.Mutable searchPos = renderer.searchPos;
@@ -123,7 +122,7 @@ public abstract class MixinChunkRebuildTask {
 							matrixStack.translate(xPos & 15, yPos & 15, zPos & 15);
 							final Vec3d vec3d = blockState.getOffsetPos(region, searchPos);
 							matrixStack.translate(vec3d.x, vec3d.y, vec3d.z);
-							((AccessChunkRendererRegion) region).canvas_getRenderer().tesselateBlock(blockState, searchPos, blockRenderManager.getModel(blockState), matrixStack);
+							((AccessChunkRendererRegion) region).canvas_getTerrainContext().tesselateBlock(blockState, searchPos, blockRenderManager.getModel(blockState), matrixStack);
 							matrixStack.pop();
 						}
 					}

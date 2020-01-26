@@ -30,7 +30,9 @@ import grondag.canvas.Configurator;
 public interface AoLuminanceFix {
 	float apply(BlockView view, BlockPos pos);
 
-	AoLuminanceFix INSTANCE = Configurator.fixLuminousBlockShading ? AoLuminanceFix::fixed : AoLuminanceFix::vanilla;
+	static AoLuminanceFix effective() {
+		return Configurator.fixLuminousBlockShading ? AoLuminanceFix::fixed : AoLuminanceFix::vanilla;
+	}
 
 	static float vanilla(BlockView view, BlockPos pos) {
 		return view.getBlockState(pos).getAmbientOcclusionLightLevel(view, pos);

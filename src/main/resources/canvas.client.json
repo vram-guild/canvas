@@ -7,8 +7,10 @@
     "MixinChunkRebuildTask",
     "MixinChunkRenderData",
     "MixinChunkRendererRegion",
-    "MixinItemRenderer"
-      ],
+    "MixinItemRenderer",
+    "MixinPackedIntegerArray",
+    "MixinPalettedContainer"
+  ],
   "injectors": {
     "defaultRequire": 1
   }
