@@ -52,6 +52,7 @@ import grondag.canvas.chunk.FastRenderRegion;
 import grondag.canvas.mixinterface.AccessChunkRendererData;
 import grondag.canvas.mixinterface.AccessRebuildTask;
 import grondag.canvas.perf.ChunkRebuildCounters;
+import grondag.fermion.position.PackedBlockPos;
 
 @Mixin(targets = "net.minecraft.client.render.chunk.ChunkBuilder$BuiltChunk$RebuildTask")
 public abstract class MixinChunkRebuildTask implements AccessRebuildTask {
@@ -89,8 +90,10 @@ public abstract class MixinChunkRebuildTask implements AccessRebuildTask {
 			for (int xPos = xMin; xPos < xMax; xPos++) {
 				for (int yPos = yMin; yPos < yMax; yPos++) {
 					for (int zPos = zMin; zPos < zMax; zPos++) {
+						final long packedPos = PackedBlockPos.pack(xPos, yPos, zPos);
 						searchPos.set(xPos, yPos, zPos);
-						final BlockState blockState = region.getBlockState(searchPos);
+
+						final BlockState blockState = region.getBlockState(xPos, yPos, zPos);
 						final Block block = blockState.getBlock();
 
 						if (blockState.isFullOpaque(region, searchPos)) {
@@ -105,7 +108,7 @@ public abstract class MixinChunkRebuildTask implements AccessRebuildTask {
 							}
 						}
 
-						final FluidState fluidState = region.getFluidState(searchPos);
+						final FluidState fluidState = blockState.getFluidState();
 						RenderLayer fluidLayer;
 						BufferBuilder fluidBuffer;
 
@@ -126,7 +129,11 @@ public abstract class MixinChunkRebuildTask implements AccessRebuildTask {
 							matrixStack.push();
 							matrixStack.translate(xPos & 15, yPos & 15, zPos & 15);
 							final Vec3d vec3d = blockState.getOffsetPos(region, searchPos);
-							matrixStack.translate(vec3d.x, vec3d.y, vec3d.z);
+
+							if(vec3d != Vec3d.ZERO) {
+								matrixStack.translate(vec3d.x, vec3d.y, vec3d.z);
+							}
+
 							context.tesselateBlock(blockState, searchPos, blockRenderManager.getModel(blockState), matrixStack);
 							matrixStack.pop();
 						}

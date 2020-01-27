@@ -22,6 +22,7 @@ import javax.annotation.Nullable;
 
 import it.unimi.dsi.fastutil.longs.Long2FloatOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
@@ -86,10 +87,12 @@ public class FastRenderRegion implements RenderAttachedBlockView {
 	 */
 	public final Long2IntOpenHashMap brightnessCache;
 	public final Long2FloatOpenHashMap aoLevelCache;
+	public final Long2ObjectOpenHashMap<BlockState> stateCache;
 	private final AoLuminanceFix aoFix = AoLuminanceFix.effective();
 
 	private World world;
-	private final WorldChunk[][] chunks = new WorldChunk[18][18];
+	// larger than it needs to be to speed up indexing
+	private final WorldChunk[] chunks = new WorldChunk[16];
 	private int chunkXOffset;
 	private int chunkZOffset;
 
@@ -107,6 +110,7 @@ public class FastRenderRegion implements RenderAttachedBlockView {
 		brightnessCache.defaultReturnValue(Integer.MAX_VALUE);
 		aoLevelCache = new Long2FloatOpenHashMap(65536);
 		aoLevelCache.defaultReturnValue(Float.MAX_VALUE);
+		stateCache = new Long2ObjectOpenHashMap<>(65536);
 	}
 
 	private FastRenderRegion prepare(World world, BlockPos origin) {
@@ -124,6 +128,7 @@ public class FastRenderRegion implements RenderAttachedBlockView {
 
 		brightnessCache.clear();
 		aoLevelCache.clear();
+		stateCache.clear();
 
 		boolean isEmpty = true;
 
@@ -131,9 +136,9 @@ public class FastRenderRegion implements RenderAttachedBlockView {
 			for(int z = 0; z < 3; z++) {
 				for(int y = 0; y < 3; y++) {
 					final WorldChunk chunk = world.getChunk(secBaseX + x, secBaseZ + z);
-					chunks[x][z] = chunk;
+					chunks[x | (z << 2)] = chunk;
 
-					final PaletteCopy pCopy = ChunkPaletteCopier.captureCopy(chunks[x][z], y + secBaseY);
+					final PaletteCopy pCopy = ChunkPaletteCopier.captureCopy(chunk, y + secBaseY);
 					sectionCopies[x | (y << 2) | (z << 4)] = pCopy;
 
 					if(isEmpty && pCopy != ChunkPaletteCopier.AIR_COPY) {
@@ -155,9 +160,9 @@ public class FastRenderRegion implements RenderAttachedBlockView {
 	}
 
 	private int secIndex(int x, int y, int z) {
-		final int bx = (x >> 4) - secBaseX;
-		final int by = (y >> 4) - secBaseY;
-		final int bz = (z >> 4) - secBaseZ;
+		final int bx = ((x >> 4) - secBaseX) & 0xF;
+		final int by = ((y >> 4) - secBaseY) & 0xF;
+		final int bz = ((z >> 4) - secBaseZ) & 0xF;
 		return bx | (by << 2) | (bz << 4);
 	}
 
@@ -170,7 +175,7 @@ public class FastRenderRegion implements RenderAttachedBlockView {
 
 		for(int x = 0; x < 3; x++) {
 			for(int z = 0; z < 3; z++) {
-				chunks[x][z] = null;
+				chunks[x | (z << 2)] = null;
 			}
 		}
 
@@ -187,9 +192,9 @@ public class FastRenderRegion implements RenderAttachedBlockView {
 
 	@Nullable
 	public BlockEntity getBlockEntity(BlockPos pos, WorldChunk.CreationType creationType) {
-		final int i = (pos.getX() >> 4) - chunkXOffset;
-		final int j = (pos.getZ() >> 4) - chunkZOffset;
-		return chunks[i][j].getBlockEntity(pos, creationType);
+		final int i = (pos.getX() >> 4) - chunkXOffset + 1;
+		final int j = (pos.getZ() >> 4) - chunkZOffset + 1;
+		return chunks[i | (j << 2)].getBlockEntity(pos, creationType);
 	}
 
 	@Override
@@ -199,7 +204,7 @@ public class FastRenderRegion implements RenderAttachedBlockView {
 
 	@Override
 	public FluidState getFluidState(BlockPos pos) {
-		return getBlockState(pos.getX(), pos.getY(), pos.getZ()).getFluidState();
+		return getBlockState(pos).getFluidState();
 	}
 
 	@Override
