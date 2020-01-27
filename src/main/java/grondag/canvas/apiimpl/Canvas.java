@@ -31,6 +31,7 @@ import grondag.canvas.apiimpl.RenderMaterialImpl.Value;
 import grondag.canvas.apiimpl.mesh.MeshBuilderImpl;
 import grondag.canvas.apiimpl.rendercontext.BlockRenderContext;
 import grondag.canvas.chunk.FastRenderRegion;
+import grondag.canvas.perf.ChunkRebuildCounters;
 
 /**
  * The Fabric default renderer implementation. Supports all
@@ -79,5 +80,6 @@ public class Canvas implements Renderer {
 		CanvasMod.LOG.info(I18n.translate("info.canvas.reloading"));
 		FastRenderRegion.forceReload();
 		BlockRenderContext.forceReload();
+		ChunkRebuildCounters.reset();
 	}
 }

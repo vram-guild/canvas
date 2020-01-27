@@ -16,6 +16,7 @@
 
 package grondag.canvas.mixin;
 
+import java.util.Iterator;
 import java.util.Set;
 
 import com.google.common.collect.Sets;
@@ -45,10 +46,12 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.chunk.WorldChunk;
 
+import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
 import grondag.canvas.chunk.FastRenderRegion;
 import grondag.canvas.mixinterface.AccessChunkRendererData;
 import grondag.canvas.mixinterface.AccessRebuildTask;
+import grondag.canvas.perf.ChunkRebuildCounters;
 
 @Mixin(targets = "net.minecraft.client.render.chunk.ChunkBuilder$BuiltChunk$RebuildTask")
 public abstract class MixinChunkRebuildTask implements AccessRebuildTask {
@@ -68,6 +71,8 @@ public abstract class MixinChunkRebuildTask implements AccessRebuildTask {
 		final MatrixStack matrixStack = new MatrixStack();
 
 		if (region != null) {
+			final long start = ChunkRebuildCounters.get().counter.startRun();
+
 			final TerrainRenderContext context = TerrainRenderContext.POOL.get();
 			context.prepare(region, chunkData, buffers, origin);
 
@@ -130,6 +135,7 @@ public abstract class MixinChunkRebuildTask implements AccessRebuildTask {
 			}
 
 			chunkDataAccess.canvas_endBuffering(x - xMin, y - yMin, z - zMin, buffers);
+			endTimer(region, start);
 			context.release();
 			region.release();
 		}
@@ -141,5 +147,42 @@ public abstract class MixinChunkRebuildTask implements AccessRebuildTask {
 	@Override
 	public void canvas_setRegion(FastRenderRegion region) {
 		fastRegion = region;
+	}
+
+	private void endTimer(FastRenderRegion world, long start) {
+
+		final ChunkRebuildCounters counts = ChunkRebuildCounters.get();
+		final long nanos = counts.counter.endRun(start);
+
+		int blockCount = 0;
+		int fluidCount = 0;
+
+		final Iterator<BlockPos> it = BlockPos.iterate(field_20839.getOrigin(), field_20839.getOrigin().add(15, 15, 15)).iterator();
+		while(it.hasNext()) {
+			final BlockState state = world.getBlockState(it.next());
+			if(state.getBlock().getRenderType(state) == BlockRenderType.MODEL) {
+				blockCount++;
+			}
+			if(!state.getFluidState().isEmpty()) {
+				fluidCount++;
+			}
+		}
+
+		final int chunkCount = counts.counter.addCount(1);
+		blockCount = counts.blockCounter.addAndGet(blockCount);
+		fluidCount = counts.fluidCounter.addAndGet(fluidCount);
+
+		if(chunkCount == 2000) {
+			ChunkRebuildCounters.reset();
+
+			final int total = blockCount + fluidCount;
+			CanvasMod.LOG.info(String.format("Chunk Rebuild elapsed time per chunk for last 2000 chunks = %,dns", nanos / 2000));
+
+			CanvasMod.LOG.info(String.format("Time per fluid/block = %,dns  Count = %,d  fluid:block ratio = %d:%d",
+					Math.round((double)nanos / total), total,
+					Math.round(fluidCount * 100f / total), Math.round(blockCount * 100f / total)));
+
+			CanvasMod.LOG.info("");
+		}
 	}
 }
