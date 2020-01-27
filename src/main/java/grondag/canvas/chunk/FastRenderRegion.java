@@ -16,6 +16,7 @@
 
 package grondag.canvas.chunk;
 
+import java.util.Arrays;
 import java.util.concurrent.ArrayBlockingQueue;
 
 import javax.annotation.Nullable;
@@ -59,50 +60,30 @@ public class FastRenderRegion implements RenderAttachedBlockView {
 		POOL.clear();
 	}
 
-	/**
-	 * Serves same function as brightness cache in Mojang's AO calculator, with some
-	 * differences as follows...
-	 * <p>
-	 *
-	 * 1) Mojang uses Object2Int. This uses Long2Int for performance and to avoid
-	 * creating new immutable BlockPos references. But will break if someone wants
-	 * to expand Y limit or world borders. If we want to support that may need to
-	 * switch or make configurable.
-	 * <p>
-	 *
-	 * 2) Mojang overrides the map methods to limit the cache to 50 values. However,
-	 * a render chunk only has 18^3 blocks in it, and the cache is cleared every
-	 * chunk. For performance and simplicity, we just let map grow to the size of
-	 * the render chunk.
-	 *
-	 * 3) Mojang only uses the cache for Ao. Here it is used for all brightness
-	 * lookups, including flat lighting.
-	 *
-	 * 4) The Mojang cache is a separate threadlocal with a threadlocal boolean to
-	 * enable disable. Cache clearing happens with the disable. There's no use case
-	 * for us when the cache needs to be disabled (and no apparent case in Mojang's
-	 * code either) so we simply clear the cache at the start of each new chunk. It
-	 * is also not a threadlocal because it's held within a threadlocal
-	 * BlockRenderer.
-	 */
 	public final Long2IntOpenHashMap brightnessCache;
 	public final Long2FloatOpenHashMap aoLevelCache;
 	public final Long2ObjectOpenHashMap<BlockState> stateCache;
 	private final AoLuminanceFix aoFix = AoLuminanceFix.effective();
 
-	private World world;
-	// larger than it needs to be to speed up indexing
+	private static final int STATE_COUNT = 18 * 18 * 18;
+	private final BlockState[] states = new BlockState[STATE_COUNT];
+
+	// larger than they need to be to speed up indexing
 	private final WorldChunk[] chunks = new WorldChunk[16];
-	private int chunkXOffset;
-	private int chunkZOffset;
-
-	private int secBaseX;
-	private int secBaseY;
-	private int secBaseZ;
-
-	// larger than it needs to be to speed up indexing
 	private final PaletteCopy[] sectionCopies = new PaletteCopy[64];
 
+	private int chunkXOrigin;
+	private int chunkZOrigin;
+
+	private int blockBaseX;
+	private int blockBaseY;
+	private int blockBaseZ;
+
+	private int chunkBaseX;
+	private int chunkBaseY;
+	private int chunkBaseZ;
+
+	private World world;
 	public TerrainRenderContext terrainContext;
 
 	private FastRenderRegion() {
@@ -113,6 +94,41 @@ public class FastRenderRegion implements RenderAttachedBlockView {
 		stateCache = new Long2ObjectOpenHashMap<>(65536);
 	}
 
+	// PERF: consider morton numbering for better locality
+	private int stateIndex(int x, int y, int z) {
+		return x + y * 18 + z * 324;
+	}
+
+	public void prepareForUse() {
+		for(int i = 0; i < 3; i++) {
+			for(int j = 0; j < 3; j++) {
+				for(int k = 0; k < 3; k++) {
+					final PaletteCopy pc = sectionCopies[i | (j << 2) | (k << 4)];
+
+					final int minX = i == 0 ? 15 : 0;
+					final int minY = j == 0 ? 15 : 0;
+					final int minZ = k == 0 ? 15 : 0;
+
+					final int maxX = i == 2 ? 0 : 15;
+					final int maxY = j == 2 ? 0 : 15;
+					final int maxZ = k == 2 ? 0 : 15;
+
+					final int bx = i == 0 ? -15 : i == 1 ? 1 : 17;
+					final int by = j == 0 ? -15 : j == 1 ? 1 : 17;
+					final int bz = k == 0 ? -15 : k == 1 ? 1 : 17;
+
+					for(int x = minX; x <= maxX; x++) {
+						for(int y = minY; y <= maxY; y++) {
+							for(int z = minZ; z <= maxZ; z++) {
+								states[stateIndex(bx + x, by + y, bz + z)] = pc.apply(x | (y << 8) | (z << 4));
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
 	private FastRenderRegion prepare(World world, BlockPos origin) {
 		this.world = world;
 
@@ -120,50 +136,56 @@ public class FastRenderRegion implements RenderAttachedBlockView {
 		final int oy = origin.getY();
 		final int oz = origin.getZ();
 
-		chunkXOffset = ox >> 4;
-		chunkZOffset = oz >> 4;
-		secBaseX = (ox - 1) >> 4;
-		secBaseY = (oy - 1) >> 4;
-		secBaseZ = (oz - 1) >> 4;
+		// eclipse save action formatting shits the bed here for no apparent reason
+		chunkXOrigin = ox >> 4;
+								chunkZOrigin = oz >> 4;
 
-		brightnessCache.clear();
-		aoLevelCache.clear();
-		stateCache.clear();
+								blockBaseX = ox - 1;
+								blockBaseY = oy - 1;
+								blockBaseZ = oz - 1;
 
-		boolean isEmpty = true;
+								chunkBaseX = blockBaseX >> 4;
+							chunkBaseY = blockBaseY >> 4;
+					chunkBaseZ = blockBaseZ >> 4;
 
-		for(int x = 0; x < 3; x++) {
-			for(int z = 0; z < 3; z++) {
-				for(int y = 0; y < 3; y++) {
-					final WorldChunk chunk = world.getChunk(secBaseX + x, secBaseZ + z);
-					chunks[x | (z << 2)] = chunk;
+					brightnessCache.clear();
+					aoLevelCache.clear();
+					stateCache.clear();
 
-					final PaletteCopy pCopy = ChunkPaletteCopier.captureCopy(chunk, y + secBaseY);
-					sectionCopies[x | (y << 2) | (z << 4)] = pCopy;
+					boolean isEmpty = true;
 
-					if(isEmpty && pCopy != ChunkPaletteCopier.AIR_COPY) {
-						isEmpty = false;
+					for(int x = 0; x < 3; x++) {
+						for(int z = 0; z < 3; z++) {
+							for(int y = 0; y < 3; y++) {
+								final WorldChunk chunk = world.getChunk(chunkBaseX + x, chunkBaseZ + z);
+								chunks[x | (z << 2)] = chunk;
+
+								final PaletteCopy pCopy = ChunkPaletteCopier.captureCopy(chunk, y + chunkBaseY);
+								sectionCopies[x | (y << 2) | (z << 4)] = pCopy;
+
+								if(isEmpty && pCopy != ChunkPaletteCopier.AIR_COPY) {
+									isEmpty = false;
+								}
+							}
+						}
 					}
-				}
-			}
+
+					return isEmpty ? null : this;
+	}
+
+	@Override
+	public BlockState getBlockState(BlockPos pos) {
+		final int x = pos.getX();
+		final int y = pos.getY();
+		final int z = pos.getZ();
+
+		final int i = stateIndex(x - blockBaseX, y - blockBaseY, z - blockBaseZ);
+
+		if(i < 0 || i >= STATE_COUNT) {
+			return world.getBlockState(pos);
 		}
 
-		return isEmpty ? null : this;
-	}
-
-	public BlockState getBlockState(int x, int y, int z) {
-		return sectionCopies[secIndex(x, y, z)].apply(secBlockIndex(x, y, z));
-	}
-
-	private int secBlockIndex(int x, int y, int z) {
-		return (x & 0xF) | ((y & 0xF) << 8) | ((z & 0xF) << 4);
-	}
-
-	private int secIndex(int x, int y, int z) {
-		final int bx = ((x >> 4) - secBaseX) & 0xF;
-		final int by = ((y >> 4) - secBaseY) & 0xF;
-		final int bz = ((z >> 4) - secBaseZ) & 0xF;
-		return bx | (by << 2) | (bz << 4);
+		return states[i];
 	}
 
 	public void release() {
@@ -179,6 +201,8 @@ public class FastRenderRegion implements RenderAttachedBlockView {
 			}
 		}
 
+		Arrays.fill(states, null);
+
 		terrainContext = null;
 
 		release(this);
@@ -192,14 +216,9 @@ public class FastRenderRegion implements RenderAttachedBlockView {
 
 	@Nullable
 	public BlockEntity getBlockEntity(BlockPos pos, WorldChunk.CreationType creationType) {
-		final int i = (pos.getX() >> 4) - chunkXOffset + 1;
-		final int j = (pos.getZ() >> 4) - chunkZOffset + 1;
+		final int i = (pos.getX() >> 4) - chunkXOrigin + 1;
+		final int j = (pos.getZ() >> 4) - chunkZOrigin + 1;
 		return chunks[i | (j << 2)].getBlockEntity(pos, creationType);
-	}
-
-	@Override
-	public BlockState getBlockState(BlockPos pos) {
-		return getBlockState(pos.getX(), pos.getY(), pos.getZ());
 	}
 
 	@Override

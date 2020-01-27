@@ -52,7 +52,6 @@ import grondag.canvas.chunk.FastRenderRegion;
 import grondag.canvas.mixinterface.AccessChunkRendererData;
 import grondag.canvas.mixinterface.AccessRebuildTask;
 import grondag.canvas.perf.ChunkRebuildCounters;
-import grondag.fermion.position.PackedBlockPos;
 
 @Mixin(targets = "net.minecraft.client.render.chunk.ChunkBuilder$BuiltChunk$RebuildTask")
 public abstract class MixinChunkRebuildTask implements AccessRebuildTask {
@@ -73,6 +72,7 @@ public abstract class MixinChunkRebuildTask implements AccessRebuildTask {
 
 		if (region != null) {
 			final long start = ChunkRebuildCounters.get().counter.startRun();
+			region.prepareForUse();
 
 			final TerrainRenderContext context = TerrainRenderContext.POOL.get();
 			context.prepare(region, chunkData, buffers, origin);
@@ -90,10 +90,9 @@ public abstract class MixinChunkRebuildTask implements AccessRebuildTask {
 			for (int xPos = xMin; xPos < xMax; xPos++) {
 				for (int yPos = yMin; yPos < yMax; yPos++) {
 					for (int zPos = zMin; zPos < zMax; zPos++) {
-						final long packedPos = PackedBlockPos.pack(xPos, yPos, zPos);
 						searchPos.set(xPos, yPos, zPos);
 
-						final BlockState blockState = region.getBlockState(xPos, yPos, zPos);
+						final BlockState blockState = region.getBlockState(searchPos);
 						final Block block = blockState.getBlock();
 
 						if (blockState.isFullOpaque(region, searchPos)) {
