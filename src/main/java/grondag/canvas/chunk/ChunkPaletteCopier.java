@@ -60,7 +60,7 @@ public class ChunkPaletteCopier {
 		}
 	}
 
-	private static final PaletteCopy AIR_COPY = i -> AIR;
+	public static final PaletteCopy AIR_COPY = i -> AIR;
 
 	public static PaletteCopy captureCopy(WorldChunk chunk, int sectionIndex) {
 		if(chunk == null || sectionIndex < 0) {

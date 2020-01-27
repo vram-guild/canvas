@@ -16,17 +16,12 @@
 
 package grondag.canvas.mixinterface;
 
-import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
 import grondag.canvas.chunk.FastRenderRegion;
 
 /**
  * Used to stash block renderer reference in local scope during
  * chunk rebuild, thus avoiding repeated thread-local lookups.
  */
-public interface AccessChunkRendererRegion {
-	TerrainRenderContext canvas_getTerrainContext();
-
-	void canvas_setTerrainContext(TerrainRenderContext renderer);
-
-	FastRenderRegion canvas_fastRegion();
+public interface AccessRebuildTask {
+	void canvas_setRegion(FastRenderRegion region);
 }

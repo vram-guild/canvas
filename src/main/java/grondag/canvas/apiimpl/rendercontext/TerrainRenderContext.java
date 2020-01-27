@@ -37,7 +37,6 @@ import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 
 import grondag.canvas.chunk.FastRenderRegion;
 import grondag.canvas.light.AoCalculator;
-import grondag.canvas.mixinterface.AccessChunkRendererRegion;
 
 /**
  * Implementation of {@link RenderContext} used during terrain rendering.
@@ -87,11 +86,10 @@ public class TerrainRenderContext extends AbstractRenderContext implements Rende
 		}
 	};
 
-	public TerrainRenderContext prepare(AccessChunkRendererRegion region, ChunkData chunkData, BlockBufferBuilderStorage builders, BlockPos origin) {
-		region.canvas_setTerrainContext(this);
-		final FastRenderRegion blockView = region.canvas_fastRegion();
-		blockInfo.setBlockView(blockView);
-		chunkInfo.prepare(blockView, chunkData, builders, origin);
+	public TerrainRenderContext prepare(FastRenderRegion region, ChunkData chunkData, BlockBufferBuilderStorage builders, BlockPos origin) {
+		region.terrainContext = this;
+		blockInfo.setBlockView(region);
+		chunkInfo.prepare(region, chunkData, builders, origin);
 		return this;
 	}
 

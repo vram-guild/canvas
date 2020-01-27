@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019 grondag
+ * Copyright 2019, 2020 grondag
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
@@ -17,7 +17,6 @@
 package grondag.canvas.chunk;
 
 import java.util.concurrent.ArrayBlockingQueue;
-import java.util.function.Function;
 
 import javax.annotation.Nullable;
 
@@ -36,16 +35,18 @@ import net.minecraft.world.chunk.light.LightingProvider;
 import net.minecraft.world.level.ColorResolver;
 
 import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachedBlockView;
+import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachmentBlockEntity;
 
+import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
 import grondag.canvas.chunk.ChunkPaletteCopier.PaletteCopy;
 import grondag.canvas.light.AoLuminanceFix;
 
 public class FastRenderRegion implements RenderAttachedBlockView {
 	private static final ArrayBlockingQueue<FastRenderRegion> POOL = new ArrayBlockingQueue<>(256);
 
-	public static FastRenderRegion claim() {
+	public static FastRenderRegion claim(World world, BlockPos origin) {
 		final FastRenderRegion result = POOL.poll();
-		return result == null ? new FastRenderRegion() : result;
+		return (result == null ? new FastRenderRegion() : result).prepare(world, origin);
 	}
 
 	private static void release(FastRenderRegion region) {
@@ -88,7 +89,7 @@ public class FastRenderRegion implements RenderAttachedBlockView {
 	private final AoLuminanceFix aoFix = AoLuminanceFix.effective();
 
 	private World world;
-	private WorldChunk[][] chunks;
+	private final WorldChunk[][] chunks = new WorldChunk[18][18];
 	private int chunkXOffset;
 	private int chunkZOffset;
 
@@ -96,10 +97,10 @@ public class FastRenderRegion implements RenderAttachedBlockView {
 	private int secBaseY;
 	private int secBaseZ;
 
-	private Function<BlockPos, Object> renderFunc;
-
 	// larger than it needs to be to speed up indexing
-	public final PaletteCopy[] sectionCopies = new PaletteCopy[64];
+	private final PaletteCopy[] sectionCopies = new PaletteCopy[64];
+
+	public TerrainRenderContext terrainContext;
 
 	private FastRenderRegion() {
 		brightnessCache = new Long2IntOpenHashMap(65536);
@@ -108,27 +109,41 @@ public class FastRenderRegion implements RenderAttachedBlockView {
 		aoLevelCache.defaultReturnValue(Float.MAX_VALUE);
 	}
 
-	public FastRenderRegion prepare(World world, int cxOff, int czOff, WorldChunk[][] chunks, BlockPos posFrom, Function<BlockPos, Object> renderFunc) {
+	private FastRenderRegion prepare(World world, BlockPos origin) {
 		this.world = world;
-		this.chunks = chunks;
-		chunkXOffset = cxOff;
-		chunkZOffset = czOff;
-		this.renderFunc = renderFunc;
-		secBaseX = posFrom.getX() >> 4;
-		secBaseY = posFrom.getY() >> 4;
-		secBaseZ = posFrom.getZ() >> 4;
+
+		final int ox = origin.getX();
+		final int oy = origin.getY();
+		final int oz = origin.getZ();
+
+		chunkXOffset = ox >> 4;
+		chunkZOffset = oz >> 4;
+		secBaseX = (ox - 1) >> 4;
+		secBaseY = (oy - 1) >> 4;
+		secBaseZ = (oz - 1) >> 4;
+
 		brightnessCache.clear();
 		aoLevelCache.clear();
+
+		boolean isEmpty = true;
 
 		for(int x = 0; x < 3; x++) {
 			for(int z = 0; z < 3; z++) {
 				for(int y = 0; y < 3; y++) {
-					sectionCopies[x | (y << 2) | (z << 4)] = ChunkPaletteCopier.captureCopy(chunks[x][z], y + secBaseY);
+					final WorldChunk chunk = world.getChunk(secBaseX + x, secBaseZ + z);
+					chunks[x][z] = chunk;
+
+					final PaletteCopy pCopy = ChunkPaletteCopier.captureCopy(chunks[x][z], y + secBaseY);
+					sectionCopies[x | (y << 2) | (z << 4)] = pCopy;
+
+					if(isEmpty && pCopy != ChunkPaletteCopier.AIR_COPY) {
+						isEmpty = false;
+					}
 				}
 			}
 		}
 
-		return this;
+		return isEmpty ? null : this;
 	}
 
 	public BlockState getBlockState(int x, int y, int z) {
@@ -152,6 +167,15 @@ public class FastRenderRegion implements RenderAttachedBlockView {
 				c.release();
 			}
 		}
+
+		for(int x = 0; x < 3; x++) {
+			for(int z = 0; z < 3; z++) {
+				chunks[x][z] = null;
+			}
+		}
+
+		terrainContext = null;
+
 		release(this);
 	}
 
@@ -185,7 +209,9 @@ public class FastRenderRegion implements RenderAttachedBlockView {
 
 	@Override
 	public Object getBlockEntityRenderAttachment(BlockPos pos) {
-		return renderFunc.apply(pos);
+		final BlockEntity be = getBlockEntity(pos);
+
+		return be == null ? null : ((RenderAttachmentBlockEntity) be).getRenderAttachmentData();
 	}
 
 	public int cachedBrightness(BlockPos pos) {

@@ -39,7 +39,6 @@ import net.minecraft.client.render.chunk.BlockBufferBuilderStorage;
 import net.minecraft.client.render.chunk.ChunkBuilder;
 import net.minecraft.client.render.chunk.ChunkBuilder.BuiltChunk;
 import net.minecraft.client.render.chunk.ChunkOcclusionDataBuilder;
-import net.minecraft.client.render.chunk.ChunkRendererRegion;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.util.math.BlockPos;
@@ -47,13 +46,14 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.chunk.WorldChunk;
 
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
+import grondag.canvas.chunk.FastRenderRegion;
 import grondag.canvas.mixinterface.AccessChunkRendererData;
-import grondag.canvas.mixinterface.AccessChunkRendererRegion;
+import grondag.canvas.mixinterface.AccessRebuildTask;
 
 @Mixin(targets = "net.minecraft.client.render.chunk.ChunkBuilder$BuiltChunk$RebuildTask")
-public abstract class MixinChunkRebuildTask {
+public abstract class MixinChunkRebuildTask implements AccessRebuildTask {
 	@Shadow protected BuiltChunk field_20839;
-	@Shadow protected ChunkRendererRegion region;
+	private FastRenderRegion fastRegion;
 	@Shadow private <E extends BlockEntity> void addBlockEntity(ChunkBuilder.ChunkData chunkData, Set<BlockEntity> set, E blockEntity) {}
 
 	@Inject(at = @At("HEAD"), method = "Lnet/minecraft/client/render/chunk/ChunkBuilder$BuiltChunk$RebuildTask;render(FFFLnet/minecraft/client/render/chunk/ChunkBuilder$ChunkData;Lnet/minecraft/client/render/chunk/BlockBufferBuilderStorage;)Ljava/util/Set;", cancellable = true)
@@ -62,17 +62,17 @@ public abstract class MixinChunkRebuildTask {
 		final Set<BlockEntity> blockEntities = Sets.newHashSet();
 		final BlockPos origin = field_20839.getOrigin();
 		final AccessChunkRendererData chunkDataAccess = (AccessChunkRendererData) chunkData;
-		final ChunkRendererRegion region = this.region;
-		this.region = null;
+		final FastRenderRegion region = fastRegion;
+		fastRegion = null;
 
 		final MatrixStack matrixStack = new MatrixStack();
 
 		if (region != null) {
-			final TerrainRenderContext renderer = TerrainRenderContext.POOL.get();
-			renderer.prepare((AccessChunkRendererRegion) region, chunkData, buffers, origin);
+			final TerrainRenderContext context = TerrainRenderContext.POOL.get();
+			context.prepare(region, chunkData, buffers, origin);
 
 			final BlockRenderManager blockRenderManager = MinecraftClient.getInstance().getBlockRenderManager();
-			final BlockPos.Mutable searchPos = renderer.searchPos;
+			final BlockPos.Mutable searchPos = context.searchPos;
 
 			final int xMin = origin.getX();
 			final int yMin = origin.getY();
@@ -122,7 +122,7 @@ public abstract class MixinChunkRebuildTask {
 							matrixStack.translate(xPos & 15, yPos & 15, zPos & 15);
 							final Vec3d vec3d = blockState.getOffsetPos(region, searchPos);
 							matrixStack.translate(vec3d.x, vec3d.y, vec3d.z);
-							((AccessChunkRendererRegion) region).canvas_getTerrainContext().tesselateBlock(blockState, searchPos, blockRenderManager.getModel(blockState), matrixStack);
+							context.tesselateBlock(blockState, searchPos, blockRenderManager.getModel(blockState), matrixStack);
 							matrixStack.pop();
 						}
 					}
@@ -130,9 +130,16 @@ public abstract class MixinChunkRebuildTask {
 			}
 
 			chunkDataAccess.canvas_endBuffering(x - xMin, y - yMin, z - zMin, buffers);
+			context.release();
+			region.release();
 		}
 
 		chunkDataAccess.canvas_setOcclusionGraph(chunkOcclusionDataBuilder.build());
 		ci.setReturnValue(blockEntities);
+	}
+
+	@Override
+	public void canvas_setRegion(FastRenderRegion region) {
+		fastRegion = region;
 	}
 }

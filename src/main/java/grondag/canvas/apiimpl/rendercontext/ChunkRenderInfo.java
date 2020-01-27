@@ -44,12 +44,12 @@ public class ChunkRenderInfo {
 	private final BlockPos.Mutable chunkOrigin = new BlockPos.Mutable();
 	AccessChunkRendererData chunkData;
 	BlockBufferBuilderStorage builders;
-	FastRenderRegion blockView;
+	FastRenderRegion region;
 
 	private final Object2ObjectOpenHashMap<RenderLayer, BufferBuilder> buffers = new Object2ObjectOpenHashMap<>();
 
 	void prepare(FastRenderRegion blockView, ChunkData chunkData, BlockBufferBuilderStorage builders, BlockPos origin) {
-		this.blockView = blockView;
+		region = blockView;
 		chunkOrigin.set(origin);
 		this.chunkData = (AccessChunkRendererData) chunkData;
 		this.builders = builders;
@@ -59,6 +59,7 @@ public class ChunkRenderInfo {
 	void release() {
 		chunkData = null;
 		buffers.clear();
+		region = null;
 	}
 
 	/** Lazily retrieves output buffer for given layer, initializing as needed. */
@@ -83,10 +84,10 @@ public class ChunkRenderInfo {
 	 * See also the comments for {@link #brightnessCache}.
 	 */
 	int cachedBrightness(BlockPos pos) {
-		return blockView.cachedBrightness(pos);
+		return region.cachedBrightness(pos);
 	}
 
 	float cachedAoLevel(BlockPos pos) {
-		return blockView.cachedAoLevel(pos);
+		return region.cachedAoLevel(pos);
 	}
 }
