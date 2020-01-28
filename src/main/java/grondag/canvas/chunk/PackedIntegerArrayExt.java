@@ -1,7 +1,7 @@
 package grondag.canvas.chunk;
 
-import net.minecraft.util.PackedIntegerArray;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
 
 public interface PackedIntegerArrayExt {
-	PackedIntegerArray canvas_copy();
+	void canvas_fastForEach(IntArrayList list);
 }

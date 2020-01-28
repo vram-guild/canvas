@@ -18,46 +18,30 @@ package grondag.canvas.chunk;
 
 import java.util.concurrent.ArrayBlockingQueue;
 
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+
+import net.minecraft.util.PackedIntegerArray;
+
 /**
- * Minimize new allocation for chunk storage copies by recycling the long arrays.
+ * Minimize new allocation for chunk storage copies by recycling the arrays.
  */
 public class PackedIntegerStorageHelper {
 
-	private static final ArrayBlockingQueue<long[]> POOL_256 = new ArrayBlockingQueue<>(1024);
-	private static final ArrayBlockingQueue<long[]> POOL_320 = new ArrayBlockingQueue<>(1024);
+	private static final ArrayBlockingQueue<IntArrayList> POOL = new ArrayBlockingQueue<>(1024);
 
-	private static long[] claim256() {
-		final long[] result = POOL_256.poll();
-		return result == null ? new long[256] : result;
+	private static IntArrayList claimList() {
+		final IntArrayList list = POOL.poll();
+		return list == null ? new IntArrayList(512) : list;
 	}
 
-	private static long[] claim320() {
-		final long[] result = POOL_320.poll();
-		return result == null ? new long[320] : result;
+	public static void release(IntArrayList list) {
+		list.clear();
+		POOL.offer(list);
 	}
 
-	public static void releaseStorageCopy(long[] storage) {
-		final int len = storage.length;
-
-		if(len == 256) {
-			POOL_256.offer(storage);
-		} else if(len == 320) {
-			POOL_320.offer(storage);
-		}
+	public static IntArrayList claim(PackedIntegerArray array) {
+		final IntArrayList list = claimList();
+		((PackedIntegerArrayExt) array).canvas_fastForEach(list);
+		return list;
 	}
-
-	public static long[] claimStorageCopy(long[] storage) {
-		final int len = storage.length;
-		final long[] result;
-		if(len == 256) {
-			result = claim256();
-		} else if(len == 320) {
-			result = claim320();
-		} else {
-			result = new long[len];
-		}
-		System.arraycopy(storage, 0, result, 0, len);
-		return result;
-	}
-
 }

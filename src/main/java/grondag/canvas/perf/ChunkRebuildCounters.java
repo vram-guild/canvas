@@ -3,7 +3,9 @@ package grondag.canvas.perf;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class ChunkRebuildCounters {
-	public final ConcurrentPerformanceCounter counter = new ConcurrentPerformanceCounter();
+	public final ConcurrentPerformanceCounter buildCounter = new ConcurrentPerformanceCounter();
+	public final ConcurrentPerformanceCounter copyCounter = new ConcurrentPerformanceCounter();
+
 	public final AtomicInteger blockCounter = new AtomicInteger();
 	public final AtomicInteger fluidCounter = new AtomicInteger();
 

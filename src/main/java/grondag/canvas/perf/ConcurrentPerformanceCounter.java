@@ -27,6 +27,6 @@ public class ConcurrentPerformanceCounter {
 	public int runCount() { return runCount.get(); }
 	public long runTime() { return runTime.get(); }
 	public long timePerRun() { return runCount.get() == 0 ? 0 : runTime.get() / runCount.get(); }
-	public String stats() { return String.format("time this sample = %1$.3fs for %2$,d items @ %3$dns each."
+	public String stats() { return String.format("time this sample = %1$.3fs for %2$,d items @ %3$,dns each."
 			, ((double)runTime() / 1000000000), runCount(),  timePerRun()); }
 }

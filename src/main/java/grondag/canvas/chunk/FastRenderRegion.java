@@ -23,7 +23,6 @@ import javax.annotation.Nullable;
 
 import it.unimi.dsi.fastutil.longs.Long2FloatOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
@@ -42,6 +41,7 @@ import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachmentBlockEntity;
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
 import grondag.canvas.chunk.ChunkPaletteCopier.PaletteCopy;
 import grondag.canvas.light.AoLuminanceFix;
+import grondag.canvas.perf.ChunkRebuildCounters;
 
 public class FastRenderRegion implements RenderAttachedBlockView {
 	private static final ArrayBlockingQueue<FastRenderRegion> POOL = new ArrayBlockingQueue<>(256);
@@ -62,7 +62,6 @@ public class FastRenderRegion implements RenderAttachedBlockView {
 
 	public final Long2IntOpenHashMap brightnessCache;
 	public final Long2FloatOpenHashMap aoLevelCache;
-	public final Long2ObjectOpenHashMap<BlockState> stateCache;
 	private final AoLuminanceFix aoFix = AoLuminanceFix.effective();
 
 	private static final int STATE_COUNT = 18 * 18 * 18;
@@ -91,7 +90,6 @@ public class FastRenderRegion implements RenderAttachedBlockView {
 		brightnessCache.defaultReturnValue(Integer.MAX_VALUE);
 		aoLevelCache = new Long2FloatOpenHashMap(65536);
 		aoLevelCache.defaultReturnValue(Float.MAX_VALUE);
-		stateCache = new Long2ObjectOpenHashMap<>(65536);
 	}
 
 	// PERF: consider morton numbering for better locality
@@ -130,6 +128,9 @@ public class FastRenderRegion implements RenderAttachedBlockView {
 	}
 
 	private FastRenderRegion prepare(World world, BlockPos origin) {
+		final ChunkRebuildCounters counter = ChunkRebuildCounters.get();
+		final long start = counter.copyCounter.startRun();
+
 		this.world = world;
 
 		final int ox = origin.getX();
@@ -150,7 +151,6 @@ public class FastRenderRegion implements RenderAttachedBlockView {
 
 					brightnessCache.clear();
 					aoLevelCache.clear();
-					stateCache.clear();
 
 					boolean isEmpty = true;
 
@@ -169,6 +169,9 @@ public class FastRenderRegion implements RenderAttachedBlockView {
 							}
 						}
 					}
+
+					counter.copyCounter.endRun(start);
+					counter.copyCounter.addCount(1);
 
 					return isEmpty ? null : this;
 	}

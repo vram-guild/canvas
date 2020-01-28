@@ -71,7 +71,8 @@ public abstract class MixinChunkRebuildTask implements AccessRebuildTask {
 		final MatrixStack matrixStack = new MatrixStack();
 
 		if (region != null) {
-			final long start = ChunkRebuildCounters.get().counter.startRun();
+			final ChunkRebuildCounters counter = ChunkRebuildCounters.get();
+			final long start = counter.buildCounter.startRun();
 			region.prepareForUse();
 
 			final TerrainRenderContext context = TerrainRenderContext.POOL.get();
@@ -141,7 +142,7 @@ public abstract class MixinChunkRebuildTask implements AccessRebuildTask {
 			}
 
 			chunkDataAccess.canvas_endBuffering(x - xMin, y - yMin, z - zMin, buffers);
-			endTimer(region, start);
+			endTimer(counter, region, start);
 			context.release();
 			region.release();
 		}
@@ -155,10 +156,8 @@ public abstract class MixinChunkRebuildTask implements AccessRebuildTask {
 		fastRegion = region;
 	}
 
-	private void endTimer(FastRenderRegion world, long start) {
-
-		final ChunkRebuildCounters counts = ChunkRebuildCounters.get();
-		final long nanos = counts.counter.endRun(start);
+	private void endTimer(ChunkRebuildCounters counter, FastRenderRegion world, long start) {
+		final long nanos = counter.buildCounter.endRun(start);
 
 		int blockCount = 0;
 		int fluidCount = 0;
@@ -174,16 +173,18 @@ public abstract class MixinChunkRebuildTask implements AccessRebuildTask {
 			}
 		}
 
-		final int chunkCount = counts.counter.addCount(1);
-		blockCount = counts.blockCounter.addAndGet(blockCount);
-		fluidCount = counts.fluidCounter.addAndGet(fluidCount);
+		final int chunkCount = counter.buildCounter.addCount(1);
+		blockCount = counter.blockCounter.addAndGet(blockCount);
+		fluidCount = counter.fluidCounter.addAndGet(fluidCount);
 
 		if(chunkCount == 2000) {
+			final String copyStats = counter.copyCounter.stats();
+
 			ChunkRebuildCounters.reset();
 
 			final int total = blockCount + fluidCount;
 			CanvasMod.LOG.info(String.format("Chunk Rebuild elapsed time per chunk for last 2000 chunks = %,dns", nanos / 2000));
-
+			CanvasMod.LOG.info(String.format("Chunk Copy Stats: " + copyStats));
 			CanvasMod.LOG.info(String.format("Time per fluid/block = %,dns  Count = %,d  fluid:block ratio = %d:%d",
 					Math.round((double)nanos / total), total,
 					Math.round(fluidCount * 100f / total), Math.round(blockCount * 100f / total)));

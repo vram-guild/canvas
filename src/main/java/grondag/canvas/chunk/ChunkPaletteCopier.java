@@ -16,6 +16,7 @@
 
 package grondag.canvas.chunk;
 
+import it.unimi.dsi.fastutil.ints.IntArrayList;
 import org.apache.commons.lang3.ObjectUtils;
 
 import net.minecraft.block.BlockState;
@@ -37,7 +38,7 @@ public class ChunkPaletteCopier {
 	private static final BlockState AIR = Blocks.AIR.getDefaultState();
 
 	private static class PaletteCopyImpl implements PaletteCopy {
-		private final PackedIntegerArray data;
+		private final IntArrayList data;
 		private final Palette<BlockState> palette;
 		public final BlockState emptyVal;
 
@@ -45,18 +46,18 @@ public class ChunkPaletteCopier {
 			assert data != null;
 			assert palette != null;
 			this.palette = palette;
-			this.data = ((PackedIntegerArrayExt)data).canvas_copy();
+			this.data = PackedIntegerStorageHelper.claim(data);
 			this.emptyVal = emptyVal;
 		}
 
 		@Override
 		public BlockState apply(int index) {
-			return ObjectUtils.defaultIfNull(palette.getByIndex(data.get(index)), emptyVal);
+			return ObjectUtils.defaultIfNull(palette.getByIndex(data.getInt(index)), emptyVal);
 		}
 
 		@Override
 		public void release() {
-			PackedIntegerStorageHelper.releaseStorageCopy(data.getStorage());
+			PackedIntegerStorageHelper.release(data);
 		}
 	}
 
@@ -93,6 +94,7 @@ public class ChunkPaletteCopier {
 		if(palette == null || data == null) {
 			return emptyVal == null ? AIR_COPY : i -> emptyVal;
 		}
+
 		return new PaletteCopyImpl(palette, data, emptyVal);
 	}
 }
