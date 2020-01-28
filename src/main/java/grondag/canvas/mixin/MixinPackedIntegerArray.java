@@ -40,17 +40,18 @@ public abstract class MixinPackedIntegerArray implements PackedIntegerArrayExt {
 			int lastWordIndex = 0;
 			long currentWord = storage[0];
 			long nextWord = len > 1 ? storage[1] : 0L;
+			int currentBitIndex = 0;
 
 			for(int i = 0; i < size; ++i) {
-				final int leastBitIndex = i * elementBits;
-				final int lowWordIndex = leastBitIndex >> 6;
-
-			final int highWordIndex = (i + 1) * elementBits - 1 >> 6;
-			final int lowShift = leastBitIndex ^ lowWordIndex << 6;
+				final int nextBitIndex = currentBitIndex + elementBits;
+				final int lowWordIndex = currentBitIndex >> 6;
+			final int highWordIndex = (nextBitIndex - 1) >> 6;
+			final int lowShift = currentBitIndex ^ lowWordIndex << 6;
 
 			if (lowWordIndex != lastWordIndex) {
 				currentWord = nextWord;
-				nextWord = lowWordIndex + 1 < len ? storage[lowWordIndex + 1] : 0L;
+				final int nextWorldIndex = lowWordIndex + 1;
+				nextWord = nextWorldIndex < len ? storage[nextWorldIndex] : 0L;
 				lastWordIndex = lowWordIndex;
 			}
 
@@ -60,8 +61,9 @@ public abstract class MixinPackedIntegerArray implements PackedIntegerArrayExt {
 				final int highShift = 64 - lowShift;
 				list.add((int)((currentWord >>> lowShift | nextWord << highShift) & maxValue));
 			}
-			}
 
+			currentBitIndex = nextBitIndex;
+			}
 		}
 
 	}

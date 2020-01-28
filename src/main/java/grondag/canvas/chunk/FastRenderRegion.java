@@ -16,7 +16,6 @@
 
 package grondag.canvas.chunk;
 
-import java.util.Arrays;
 import java.util.concurrent.ArrayBlockingQueue;
 
 import javax.annotation.Nullable;
@@ -25,12 +24,14 @@ import it.unimi.dsi.fastutil.longs.Long2FloatOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 
 import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.LightType;
 import net.minecraft.world.World;
+import net.minecraft.world.chunk.ChunkSection;
 import net.minecraft.world.chunk.WorldChunk;
 import net.minecraft.world.chunk.light.LightingProvider;
 import net.minecraft.world.level.ColorResolver;
@@ -44,6 +45,8 @@ import grondag.canvas.light.AoLuminanceFix;
 import grondag.canvas.perf.ChunkRebuildCounters;
 
 public class FastRenderRegion implements RenderAttachedBlockView {
+	private static final BlockState AIR = Blocks.AIR.getDefaultState();
+
 	private static final ArrayBlockingQueue<FastRenderRegion> POOL = new ArrayBlockingQueue<>(256);
 
 	public static FastRenderRegion claim(World world, BlockPos origin) {
@@ -69,7 +72,7 @@ public class FastRenderRegion implements RenderAttachedBlockView {
 
 	// larger than they need to be to speed up indexing
 	private final WorldChunk[] chunks = new WorldChunk[16];
-	private final PaletteCopy[] sectionCopies = new PaletteCopy[64];
+	private PaletteCopy mainSectionCopy;
 
 	private int chunkXOrigin;
 	private int chunkZOrigin;
@@ -94,37 +97,23 @@ public class FastRenderRegion implements RenderAttachedBlockView {
 
 	// PERF: consider morton numbering for better locality
 	private int stateIndex(int x, int y, int z) {
+		// TODO avoid multiplication
 		return x + y * 18 + z * 324;
 	}
 
 	public void prepareForUse() {
-		for(int i = 0; i < 3; i++) {
-			for(int j = 0; j < 3; j++) {
-				for(int k = 0; k < 3; k++) {
-					final PaletteCopy pc = sectionCopies[i | (j << 2) | (k << 4)];
+		final PaletteCopy pc = mainSectionCopy;
+		mainSectionCopy = null;
 
-					final int minX = i == 0 ? 15 : 0;
-					final int minY = j == 0 ? 15 : 0;
-					final int minZ = k == 0 ? 15 : 0;
-
-					final int maxX = i == 2 ? 0 : 15;
-					final int maxY = j == 2 ? 0 : 15;
-					final int maxZ = k == 2 ? 0 : 15;
-
-					final int bx = i == 0 ? -15 : i == 1 ? 1 : 17;
-					final int by = j == 0 ? -15 : j == 1 ? 1 : 17;
-					final int bz = k == 0 ? -15 : k == 1 ? 1 : 17;
-
-					for(int x = minX; x <= maxX; x++) {
-						for(int y = minY; y <= maxY; y++) {
-							for(int z = minZ; z <= maxZ; z++) {
-								states[stateIndex(bx + x, by + y, bz + z)] = pc.apply(x | (y << 8) | (z << 4));
-							}
-						}
-					}
+		for(int x = 0; x < 16; x++) {
+			for(int y = 0; y < 16; y++) {
+				for(int z = 0; z < 16; z++) {
+					states[stateIndex(1 + x, 1 + y, 1 + z)] = pc.apply(x | (y << 8) | (z << 4));
 				}
 			}
 		}
+
+		pc.release();
 	}
 
 	private FastRenderRegion prepare(World world, BlockPos origin) {
@@ -139,43 +128,137 @@ public class FastRenderRegion implements RenderAttachedBlockView {
 
 		// eclipse save action formatting shits the bed here for no apparent reason
 		chunkXOrigin = ox >> 4;
-								chunkZOrigin = oz >> 4;
+					chunkZOrigin = oz >> 4;
 
-								blockBaseX = ox - 1;
-								blockBaseY = oy - 1;
-								blockBaseZ = oz - 1;
+					blockBaseX = ox - 1;
+					blockBaseY = oy - 1;
+					blockBaseZ = oz - 1;
 
-								chunkBaseX = blockBaseX >> 4;
-							chunkBaseY = blockBaseY >> 4;
-					chunkBaseZ = blockBaseZ >> 4;
+					chunkBaseX = blockBaseX >> 4;
+				chunkBaseY = blockBaseY >> 4;
+		chunkBaseZ = blockBaseZ >> 4;
 
-					brightnessCache.clear();
-					aoLevelCache.clear();
+		final WorldChunk mainChunk = world.getChunk(chunkBaseX + 1, chunkBaseZ + 1);
+		mainSectionCopy = ChunkPaletteCopier.captureCopy(mainChunk, 1 + chunkBaseY);
 
-					boolean isEmpty = true;
+		final FastRenderRegion result;
 
-					for(int x = 0; x < 3; x++) {
-						for(int z = 0; z < 3; z++) {
-							for(int y = 0; y < 3; y++) {
-								final WorldChunk chunk = world.getChunk(chunkBaseX + x, chunkBaseZ + z);
-								chunks[x | (z << 2)] = chunk;
+		if(mainSectionCopy == ChunkPaletteCopier.AIR_COPY) {
+			this.release();
+			result = null;
+		} else {
+			chunks[1 | (1 << 2)] = mainChunk;
+			chunks[0 | (0 << 2)] = world.getChunk(chunkBaseX + 0, chunkBaseZ + 0);
+			chunks[0 | (1 << 2)] = world.getChunk(chunkBaseX + 0, chunkBaseZ + 1);
+			chunks[0 | (2 << 2)] = world.getChunk(chunkBaseX + 0, chunkBaseZ + 2);
+			chunks[1 | (0 << 2)] = world.getChunk(chunkBaseX + 1, chunkBaseZ + 0);
+			chunks[1 | (2 << 2)] = world.getChunk(chunkBaseX + 1, chunkBaseZ + 2);
+			chunks[2 | (0 << 2)] = world.getChunk(chunkBaseX + 2, chunkBaseZ + 0);
+			chunks[2 | (1 << 2)] = world.getChunk(chunkBaseX + 2, chunkBaseZ + 1);
+			chunks[2 | (2 << 2)] = world.getChunk(chunkBaseX + 2, chunkBaseZ + 2);
 
-								final PaletteCopy pCopy = ChunkPaletteCopier.captureCopy(chunk, y + chunkBaseY);
-								sectionCopies[x | (y << 2) | (z << 4)] = pCopy;
+			captureCorners();
+			captureEdges();
+			captureFaces();
 
-								if(isEmpty && pCopy != ChunkPaletteCopier.AIR_COPY) {
-									isEmpty = false;
-								}
-							}
-						}
-					}
+			brightnessCache.clear();
+			aoLevelCache.clear();
 
-					counter.copyCounter.endRun(start);
-					counter.copyCounter.addCount(1);
+			result = this;
+		}
 
-					return isEmpty ? null : this;
+		counter.copyCounter.endRun(start);
+		counter.copyCounter.addCount(1);
+
+		return result;
 	}
 
+	private void captureFaces() {
+		final ChunkSection lowX = getSection(0, 1, 1);
+		final ChunkSection highX = getSection(2, 1, 1);
+		final ChunkSection lowZ = getSection(1, 1, 0);
+		final ChunkSection highZ = getSection(1, 1, 2);
+		final ChunkSection lowY = getSection(1, 0, 1);
+		final ChunkSection highY = getSection(1, 2, 1);
+
+		for (int i = 0; i < 16; i++) {
+			for (int j = 0; j < 16; j++) {
+				final int ip = i + 1;
+				final int jp = j + 1;
+
+				states[stateIndex(0, ip, jp)] = lowX == null ? AIR : lowX.getBlockState(15, i, j);
+				states[stateIndex(17, ip, jp)] = highX == null ? AIR : highX.getBlockState(0, i, j);
+
+				states[stateIndex(ip, jp, 0)] = lowZ == null ? AIR : lowZ.getBlockState(i, j, 15);
+				states[stateIndex(ip, jp, 17)] = highZ == null ? AIR : highZ.getBlockState(i, j, 0);
+
+				states[stateIndex(ip, 0, jp)] = lowY == null ? AIR : lowY.getBlockState(i, 15, j);
+				states[stateIndex(ip, 17, jp)] = highY == null ? AIR : highY.getBlockState(i, 0, j);
+			}
+		}
+	}
+
+	private ChunkSection getSection(int x, int y, int z) {
+		// TODO: handle world border
+
+		if ((y == 0 && chunkBaseY < 0) || (y == 2 && chunkBaseY > 13)) {
+			return null;
+		}
+
+		return chunks[x | (z << 2)].getSectionArray()[chunkBaseY + y];
+	}
+
+	private void captureEdges() {
+		final ChunkSection aaZ = getSection(0, 0, 1);
+		final ChunkSection abZ = getSection(0, 2, 1);
+		final ChunkSection baZ = getSection(2, 0, 1);
+		final ChunkSection bbZ = getSection(2, 2, 1);
+
+		final ChunkSection aYa = getSection(0, 1, 0);
+		final ChunkSection aYb = getSection(0, 1, 2);
+		final ChunkSection bYa = getSection(2, 1, 0);
+		final ChunkSection bYb = getSection(2, 1, 2);
+
+		final ChunkSection Xaa = getSection(1, 0, 0);
+		final ChunkSection Xab = getSection(1, 0, 2);
+		final ChunkSection Xba = getSection(1, 2, 0);
+		final ChunkSection Xbb = getSection(1, 2, 2);
+
+		for(int i = 0; i < 16; i++) {
+			final int ip = i + 1;
+			states[stateIndex(0, 0, ip)] = aaZ == null ? AIR : aaZ.getBlockState(15, 15, i);
+			states[stateIndex(0, 17, ip)] = abZ == null ? AIR : abZ.getBlockState(15, 0, i);
+			states[stateIndex(17, 0, ip)] = baZ == null ? AIR : baZ.getBlockState(0, 15, i);
+			states[stateIndex(17, 17, ip)] = bbZ == null ? AIR : bbZ.getBlockState(0, 0, i);
+
+			states[stateIndex(0, ip, 0)] = aYa == null ? AIR : aYa.getBlockState(15, i, 15);
+			states[stateIndex(0, ip, 17)] = aYb == null ? AIR : aYb.getBlockState(15, i, 0);
+			states[stateIndex(17, ip, 0)] = bYa == null ? AIR : bYa.getBlockState(0, i, 15);
+			states[stateIndex(17, ip, 17)] = bYb == null ? AIR : bYb.getBlockState(0, i, 0);
+
+			states[stateIndex(ip, 0, 0)] = Xaa == null ? AIR : Xaa.getBlockState(i, 15, 15);
+			states[stateIndex(ip, 0, 17)] = Xab == null ? AIR : Xab.getBlockState(i, 15, 0);
+			states[stateIndex(ip, 17, 0)] = Xba == null ? AIR : Xba.getBlockState(i, 0, 15);
+			states[stateIndex(ip, 17, 17)] = Xbb == null ? AIR : Xbb.getBlockState(i, 0, 0);
+		}
+	}
+
+	private void captureCorners() {
+		states[stateIndex(0, 0, 0)] = captureCornerState(0, 0, 0);
+		states[stateIndex(0, 0, 17)] = captureCornerState(0, 0, 2);
+		states[stateIndex(0, 17, 0)] = captureCornerState(0, 2, 0);
+		states[stateIndex(0, 17, 17)] = captureCornerState(0, 2, 2);
+
+		states[stateIndex(17, 0, 0)] = captureCornerState(2, 0, 0);
+		states[stateIndex(17, 0, 17)] = captureCornerState(2, 0, 2);
+		states[stateIndex(17, 17, 0)] = captureCornerState(2, 2, 0);
+		states[stateIndex(17, 17, 17)] = captureCornerState(2, 2, 2);
+	}
+
+	private BlockState captureCornerState(int x, int y, int z) {
+		final ChunkSection section = getSection(x, y, z);
+		return section == null ? AIR : section.getBlockState(x == 0 ? 15 : 0, y == 0 ? 15 : 0, z == 0 ? 15 : 0);
+	}
 	@Override
 	public BlockState getBlockState(BlockPos pos) {
 		final int x = pos.getX();
@@ -192,10 +275,9 @@ public class FastRenderRegion implements RenderAttachedBlockView {
 	}
 
 	public void release() {
-		for(final PaletteCopy c : sectionCopies) {
-			if(c != null) {
-				c.release();
-			}
+		if(mainSectionCopy != null) {
+			mainSectionCopy.release();
+			mainSectionCopy = null;
 		}
 
 		for(int x = 0; x < 3; x++) {
@@ -203,8 +285,6 @@ public class FastRenderRegion implements RenderAttachedBlockView {
 				chunks[x | (z << 2)] = null;
 			}
 		}
-
-		Arrays.fill(states, null);
 
 		terrainContext = null;
 

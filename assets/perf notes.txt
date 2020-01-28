@@ -59,3 +59,69 @@ baseline
 [18:15:52] [Server-Worker-5/INFO]: Chunk Rebuild elapsed time per chunk for last 2000 chunks = 3,287,839ns
 [18:15:52] [Server-Worker-5/INFO]: Chunk Copy Stats: time this sample = 1.264s for 5,396 items @ 234,285ns each.
 [18:15:52] [Server-Worker-5/INFO]: Time per fluid/block = 2,509ns  Count = 2,621,069  fluid:block ratio = 3:97
+
+
+-------
+remove multiplication in fast packed int array Copy
+
+[18:26:52] [main/INFO]: Canvas Renderer is initializing.
+[18:26:53] [main/INFO]: [CHAT] [Debug]: Reloading all chunks
+[18:27:19] [Server-Worker-5/INFO]: Chunk Rebuild elapsed time per chunk for last 2000 chunks = 3,495,852ns
+[18:27:19] [Server-Worker-5/INFO]: Chunk Copy Stats: time this sample = 1.034s for 5,396 items @ 191,535ns each.
+[18:27:19] [Server-Worker-5/INFO]: Time per fluid/block = 2,672ns  Count = 2,616,754  fluid:block ratio = 3:97
+[18:27:19] [Server-Worker-5/INFO]:
+[18:27:33] [main/INFO]: Canvas Renderer is initializing.
+[18:27:33] [main/INFO]: [CHAT] [Debug]: Reloading all chunks
+[18:28:04] [Server-Worker-8/INFO]: Chunk Rebuild elapsed time per chunk for last 2000 chunks = 3,329,434ns
+[18:28:04] [Server-Worker-8/INFO]: Chunk Copy Stats: time this sample = 1.011s for 5,179 items @ 195,297ns each.
+[18:28:04] [Server-Worker-8/INFO]: Time per fluid/block = 2,535ns  Count = 2,627,240  fluid:block ratio = 3:97
+[18:28:04] [Server-Worker-8/INFO]:
+[18:28:09] [main/INFO]: Canvas Renderer is initializing.
+[18:28:10] [main/INFO]: [CHAT] [Debug]: Reloading all chunks
+[18:28:36] [Server-Worker-9/INFO]: Chunk Rebuild elapsed time per chunk for last 2000 chunks = 3,439,465ns
+[18:28:36] [Server-Worker-9/INFO]: Chunk Copy Stats: time this sample = 1.032s for 5,180 items @ 199,297ns each.
+[18:28:36] [Server-Worker-9/INFO]: Time per fluid/block = 2,617ns  Count = 2,628,281  fluid:block ratio = 3:97
+[18:28:36] [Server-Worker-9/INFO]:
+
+-------
+avoid building empty chunks (avg per chunk time is thus higher)
+
+[20:52:45] [main/INFO]: Canvas Renderer is initializing.
+[20:52:46] [main/INFO]: [CHAT] [Debug]: Reloading all chunks
+[20:52:58] [Server-Worker-15/INFO]: Chunk Rebuild elapsed time per chunk for last 2000 chunks = 18,239,838ns
+[20:52:58] [Server-Worker-15/INFO]: Chunk Copy Stats: time this sample = 0.443s for 5,451 items @ 81,326ns each.
+[20:52:58] [Server-Worker-15/INFO]: Time per fluid/block = 8,033ns  Count = 4,540,966  fluid:block ratio = 2:98
+[20:52:58] [Server-Worker-15/INFO]:
+[20:54:35] [main/INFO]: Canvas Renderer is initializing.
+[20:54:35] [main/INFO]: [CHAT] [Debug]: Reloading all chunks
+[20:54:47] [Server-Worker-22/INFO]: Chunk Rebuild elapsed time per chunk for last 2000 chunks = 17,383,528ns
+[20:54:47] [Server-Worker-22/INFO]: Chunk Copy Stats: time this sample = 0.429s for 5,451 items @ 78,667ns each.
+[20:54:47] [Server-Worker-22/INFO]: Time per fluid/block = 7,661ns  Count = 4,538,441  fluid:block ratio = 2:98
+[20:54:47] [Server-Worker-22/INFO]:
+[20:55:28] [main/INFO]: Canvas Renderer is initializing.
+[20:55:29] [main/INFO]: [CHAT] [Debug]: Reloading all chunks
+[20:55:41] [Server-Worker-26/INFO]: Chunk Rebuild elapsed time per chunk for last 2000 chunks = 17,362,281ns
+[20:55:41] [Server-Worker-26/INFO]: Chunk Copy Stats: time this sample = 0.435s for 5,457 items @ 79,769ns each.
+[20:55:41] [Server-Worker-26/INFO]: Time per fluid/block = 7,660ns  Count = 4,533,086  fluid:block ratio = 2:98
+
+-----
+finish edge state captures
+
+[21:51:02] [main/INFO]: Canvas Renderer is initializing.
+[21:51:02] [main/INFO]: [CHAT] [Debug]: Reloading all chunks
+[21:51:13] [Server-Worker-9/INFO]: Chunk Rebuild elapsed time per chunk for last 2000 chunks = 6,671,960ns
+[21:51:13] [Server-Worker-9/INFO]: Chunk Copy Stats: time this sample = 0.442s for 5,410 items @ 81,639ns each.
+[21:51:13] [Server-Worker-9/INFO]: Time per fluid/block = 2,939ns  Count = 4,540,580  fluid:block ratio = 2:98
+[21:51:13] [Server-Worker-9/INFO]:
+[21:51:24] [main/INFO]: Canvas Renderer is initializing.
+[21:51:24] [main/INFO]: [CHAT] [Debug]: Reloading all chunks
+[21:51:35] [Server-Worker-6/INFO]: Chunk Rebuild elapsed time per chunk for last 2000 chunks = 6,568,584ns
+[21:51:35] [Server-Worker-6/INFO]: Chunk Copy Stats: time this sample = 0.458s for 5,405 items @ 84,816ns each.
+[21:51:35] [Server-Worker-6/INFO]: Time per fluid/block = 2,892ns  Count = 4,542,711  fluid:block ratio = 2:98
+[21:51:35] [Server-Worker-6/INFO]:
+[21:51:39] [main/INFO]: Canvas Renderer is initializing.
+[21:51:40] [main/INFO]: [CHAT] [Debug]: Reloading all chunks
+[21:51:50] [Server-Worker-11/INFO]: Chunk Rebuild elapsed time per chunk for last 2000 chunks = 6,688,737ns
+[21:51:50] [Server-Worker-11/INFO]: Chunk Copy Stats: time this sample = 0.440s for 5,403 items @ 81,396ns each.
+[21:51:50] [Server-Worker-11/INFO]: Time per fluid/block = 2,945ns  Count = 4,541,827  fluid:block ratio = 2:98
+[21:51:50] [Server-Worker-11/INFO]: 
