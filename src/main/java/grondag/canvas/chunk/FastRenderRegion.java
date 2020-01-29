@@ -67,10 +67,10 @@ public class FastRenderRegion implements RenderAttachedBlockView {
 	public final Long2FloatOpenHashMap aoLevelCache;
 	private final AoLuminanceFix aoFix = AoLuminanceFix.effective();
 
-	private static final int STATE_COUNT = 18 * 18 * 18;
+	private static final int STATE_COUNT = 32768; //18 * 18 * 18;
 	private final BlockState[] states = new BlockState[STATE_COUNT];
 
-	// larger than they need to be to speed up indexing
+	// larger than needed to speed up indexing
 	private final WorldChunk[] chunks = new WorldChunk[16];
 	private PaletteCopy mainSectionCopy;
 
@@ -89,25 +89,26 @@ public class FastRenderRegion implements RenderAttachedBlockView {
 	public TerrainRenderContext terrainContext;
 
 	private FastRenderRegion() {
-		brightnessCache = new Long2IntOpenHashMap(65536);
+		brightnessCache = new Long2IntOpenHashMap(32768);
 		brightnessCache.defaultReturnValue(Integer.MAX_VALUE);
-		aoLevelCache = new Long2FloatOpenHashMap(65536);
+		aoLevelCache = new Long2FloatOpenHashMap(32768);
 		aoLevelCache.defaultReturnValue(Float.MAX_VALUE);
 	}
 
 	// PERF: consider morton numbering for better locality
 	private int stateIndex(int x, int y, int z) {
 		// TODO avoid multiplication
-		return x + y * 18 + z * 324;
+		//return x + y * 18 + z * 324;
+		return x | (y << 5) | (z << 10);
 	}
 
 	public void prepareForUse() {
 		final PaletteCopy pc = mainSectionCopy;
 		mainSectionCopy = null;
 
-		for(int x = 0; x < 16; x++) {
-			for(int y = 0; y < 16; y++) {
-				for(int z = 0; z < 16; z++) {
+		for (int x = 0; x < 16; x++) {
+			for (int y = 0; y < 16; y++) {
+				for (int z = 0; z < 16; z++) {
 					states[stateIndex(1 + x, 1 + y, 1 + z)] = pc.apply(x | (y << 8) | (z << 4));
 				}
 			}
@@ -259,6 +260,7 @@ public class FastRenderRegion implements RenderAttachedBlockView {
 		final ChunkSection section = getSection(x, y, z);
 		return section == null ? AIR : section.getBlockState(x == 0 ? 15 : 0, y == 0 ? 15 : 0, z == 0 ? 15 : 0);
 	}
+
 	@Override
 	public BlockState getBlockState(BlockPos pos) {
 		final int x = pos.getX();
@@ -267,21 +269,25 @@ public class FastRenderRegion implements RenderAttachedBlockView {
 
 		final int i = stateIndex(x - blockBaseX, y - blockBaseY, z - blockBaseZ);
 
-		if(i < 0 || i >= STATE_COUNT) {
+		if (i < 0 || i >= STATE_COUNT) {
 			return world.getBlockState(pos);
 		}
 
 		return states[i];
 	}
 
+	public BlockState getBlockState(int x, int y, int z) {
+		return states[stateIndex(x + 1, y + 1, z + 1)];
+	}
+
 	public void release() {
-		if(mainSectionCopy != null) {
+		if (mainSectionCopy != null) {
 			mainSectionCopy.release();
 			mainSectionCopy = null;
 		}
 
-		for(int x = 0; x < 3; x++) {
-			for(int z = 0; z < 3; z++) {
+		for (int x = 0; x < 3; x++) {
+			for (int z = 0; z < 3; z++) {
 				chunks[x | (z << 2)] = null;
 			}
 		}

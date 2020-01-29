@@ -84,58 +84,61 @@ public abstract class MixinChunkRebuildTask implements AccessRebuildTask {
 			final int xMin = origin.getX();
 			final int yMin = origin.getY();
 			final int zMin = origin.getZ();
-			final int xMax = xMin + 16;
-			final int yMax = yMin + 16;
-			final int zMax = zMin + 16;
 
-			for (int xPos = xMin; xPos < xMax; xPos++) {
-				for (int yPos = yMin; yPos < yMax; yPos++) {
-					for (int zPos = zMin; zPos < zMax; zPos++) {
-						searchPos.set(xPos, yPos, zPos);
+			for (int xPos = 0; xPos < 16; xPos++) {
+				for (int yPos = 0; yPos < 16; yPos++) {
+					for (int zPos = 0; zPos < 16; zPos++) {
 
-						final BlockState blockState = region.getBlockState(searchPos);
-						final Block block = blockState.getBlock();
-
-						if (blockState.isFullOpaque(region, searchPos)) {
-							chunkOcclusionDataBuilder.markClosed(searchPos);
-						}
-
-						if (block.hasBlockEntity()) {
-							final BlockEntity blockEntity = region.getBlockEntity(searchPos, WorldChunk.CreationType.CHECK);
-
-							if (blockEntity != null) {
-								this.addBlockEntity(chunkData, blockEntities, blockEntity);
-							}
-						}
-
+						final BlockState blockState = region.getBlockState(xPos, yPos, zPos);
 						final FluidState fluidState = blockState.getFluidState();
-						RenderLayer fluidLayer;
-						BufferBuilder fluidBuffer;
+						final Block block = blockState.getBlock();
+						final boolean hasBe = block.hasBlockEntity();
+						final boolean hasFluid = !fluidState.isEmpty();
+						final boolean hasBlockModel = blockState.getRenderType() != BlockRenderType.INVISIBLE;
 
-						if (!fluidState.isEmpty()) {
-							fluidLayer = RenderLayers.getFluidLayer(fluidState);
-							fluidBuffer = buffers.get(fluidLayer);
+						if (hasBe || hasFluid || hasBlockModel) {
+							searchPos.set(xPos + xMin, yPos + yMin, zPos + zMin);
 
-							if(chunkDataAccess.canvas_markInitialized(fluidLayer)) {
-								fluidBuffer.begin(7, VertexFormats.POSITION_COLOR_TEXTURE_LIGHT_NORMAL);
+							if (blockState.isFullOpaque(region, searchPos)) {
+								chunkOcclusionDataBuilder.markClosed(searchPos);
 							}
 
-							if (blockRenderManager.renderFluid(searchPos, region, fluidBuffer, fluidState)) {
-								chunkDataAccess.canvas_markPopulated(fluidLayer);
-							}
-						}
+							if (hasBe) {
+								final BlockEntity blockEntity = region.getBlockEntity(searchPos, WorldChunk.CreationType.CHECK);
 
-						if (blockState.getRenderType() != BlockRenderType.INVISIBLE) {
-							matrixStack.push();
-							matrixStack.translate(xPos & 15, yPos & 15, zPos & 15);
-							final Vec3d vec3d = blockState.getOffsetPos(region, searchPos);
-
-							if(vec3d != Vec3d.ZERO) {
-								matrixStack.translate(vec3d.x, vec3d.y, vec3d.z);
+								if (blockEntity != null) {
+									this.addBlockEntity(chunkData, blockEntities, blockEntity);
+								}
 							}
 
-							context.tesselateBlock(blockState, searchPos, blockRenderManager.getModel(blockState), matrixStack);
-							matrixStack.pop();
+							if (hasFluid) {
+								final RenderLayer fluidLayer = RenderLayers.getFluidLayer(fluidState);
+								final BufferBuilder fluidBuffer = buffers.get(fluidLayer);
+
+								if (chunkDataAccess.canvas_markInitialized(fluidLayer)) {
+									fluidBuffer.begin(7, VertexFormats.POSITION_COLOR_TEXTURE_LIGHT_NORMAL);
+								}
+
+								if (blockRenderManager.renderFluid(searchPos, region, fluidBuffer, fluidState)) {
+									chunkDataAccess.canvas_markPopulated(fluidLayer);
+								}
+							}
+
+							if (hasBlockModel) {
+								matrixStack.push();
+								matrixStack.translate(xPos, yPos, zPos);
+
+								if (block.getOffsetType() != Block.OffsetType.NONE) {
+									final Vec3d vec3d = blockState.getOffsetPos(region, searchPos);
+
+									if (vec3d != Vec3d.ZERO) {
+										matrixStack.translate(vec3d.x, vec3d.y, vec3d.z);
+									}
+								}
+
+								context.tesselateBlock(blockState, searchPos, blockRenderManager.getModel(blockState), matrixStack);
+								matrixStack.pop();
+							}
 						}
 					}
 				}
@@ -150,6 +153,7 @@ public abstract class MixinChunkRebuildTask implements AccessRebuildTask {
 		chunkDataAccess.canvas_setOcclusionGraph(chunkOcclusionDataBuilder.build());
 		ci.setReturnValue(blockEntities);
 	}
+
 
 	@Override
 	public void canvas_setRegion(FastRenderRegion region) {
