@@ -49,8 +49,8 @@ import grondag.fermion.position.PackedBlockPos;
 
 public class FastRenderRegion implements RenderAttachedBlockView {
 	private static final BlockState AIR = Blocks.AIR.getDefaultState();
-
 	private static final ArrayBlockingQueue<FastRenderRegion> POOL = new ArrayBlockingQueue<>(256);
+	private static final int STATE_COUNT = 32768;
 
 	public static FastRenderRegion claim(World world, BlockPos origin) {
 		final FastRenderRegion result = POOL.poll();
@@ -72,15 +72,12 @@ public class FastRenderRegion implements RenderAttachedBlockView {
 	private final Int2ObjectOpenHashMap<Object> renderData = new Int2ObjectOpenHashMap<>();
 	public final Int2ObjectOpenHashMap<BlockEntity> blockEntities = new Int2ObjectOpenHashMap<>();
 
-	private static final int STATE_COUNT = 32768; //18 * 18 * 18;
 	private final BlockState[] states = new BlockState[STATE_COUNT];
 
 	// larger than needed to speed up indexing
 	private final WorldChunk[] chunks = new WorldChunk[16];
 	private PaletteCopy mainSectionCopy;
 
-	private int chunkXOrigin;
-	private int chunkZOrigin;
 	private long chunkOriginKey;
 
 	private int blockBaseX;
@@ -137,52 +134,49 @@ public class FastRenderRegion implements RenderAttachedBlockView {
 
 		chunkOriginKey = chunkKey(ox, oy, oz);
 
-		// eclipse save action formatting shits the bed here for no apparent reason
-		chunkXOrigin = ox >> 4;
-					chunkZOrigin = oz >> 4;
+		blockBaseX = ox - 1;
+		blockBaseY = oy - 1;
+		blockBaseZ = oz - 1;
 
-					blockBaseX = ox - 1;
-					blockBaseY = oy - 1;
-					blockBaseZ = oz - 1;
+		chunkBaseX = blockBaseX >> 4;
+					// eclipse save action formatting shits the bed here for no apparent reason
+					chunkBaseY = blockBaseY >> 4;
+					chunkBaseZ = blockBaseZ >> 4;
 
-					chunkBaseX = blockBaseX >> 4;
-				chunkBaseY = blockBaseY >> 4;
-		chunkBaseZ = blockBaseZ >> 4;
+				final WorldChunk mainChunk = world.getChunk(chunkBaseX + 1, chunkBaseZ + 1);
+				mainSectionCopy = ChunkPaletteCopier.captureCopy(mainChunk, 1 + chunkBaseY);
 
-		final WorldChunk mainChunk = world.getChunk(chunkBaseX + 1, chunkBaseZ + 1);
-		mainSectionCopy = ChunkPaletteCopier.captureCopy(mainChunk, 1 + chunkBaseY);
+				final FastRenderRegion result;
 
-		final FastRenderRegion result;
+				if(mainSectionCopy == ChunkPaletteCopier.AIR_COPY) {
+					this.release();
+					result = null;
+				} else {
+					captureBlockEntities(mainChunk);
+					chunks[1 | (1 << 2)] = mainChunk;
+					chunks[0 | (0 << 2)] = world.getChunk(chunkBaseX + 0, chunkBaseZ + 0);
+					chunks[0 | (1 << 2)] = world.getChunk(chunkBaseX + 0, chunkBaseZ + 1);
+					chunks[0 | (2 << 2)] = world.getChunk(chunkBaseX + 0, chunkBaseZ + 2);
+					chunks[1 | (0 << 2)] = world.getChunk(chunkBaseX + 1, chunkBaseZ + 0);
+					chunks[1 | (2 << 2)] = world.getChunk(chunkBaseX + 1, chunkBaseZ + 2);
+					chunks[2 | (0 << 2)] = world.getChunk(chunkBaseX + 2, chunkBaseZ + 0);
+					chunks[2 | (1 << 2)] = world.getChunk(chunkBaseX + 2, chunkBaseZ + 1);
+					chunks[2 | (2 << 2)] = world.getChunk(chunkBaseX + 2, chunkBaseZ + 2);
 
-		if(mainSectionCopy == ChunkPaletteCopier.AIR_COPY) {
-			this.release();
-			result = null;
-		} else {
-			captureBlockEntities(mainChunk);
-			chunks[1 | (1 << 2)] = mainChunk;
-			chunks[0 | (0 << 2)] = world.getChunk(chunkBaseX + 0, chunkBaseZ + 0);
-			chunks[0 | (1 << 2)] = world.getChunk(chunkBaseX + 0, chunkBaseZ + 1);
-			chunks[0 | (2 << 2)] = world.getChunk(chunkBaseX + 0, chunkBaseZ + 2);
-			chunks[1 | (0 << 2)] = world.getChunk(chunkBaseX + 1, chunkBaseZ + 0);
-			chunks[1 | (2 << 2)] = world.getChunk(chunkBaseX + 1, chunkBaseZ + 2);
-			chunks[2 | (0 << 2)] = world.getChunk(chunkBaseX + 2, chunkBaseZ + 0);
-			chunks[2 | (1 << 2)] = world.getChunk(chunkBaseX + 2, chunkBaseZ + 1);
-			chunks[2 | (2 << 2)] = world.getChunk(chunkBaseX + 2, chunkBaseZ + 2);
+					captureCorners();
+					captureEdges();
+					captureFaces();
 
-			captureCorners();
-			captureEdges();
-			captureFaces();
+					brightnessCache.clear();
+					aoLevelCache.clear();
 
-			brightnessCache.clear();
-			aoLevelCache.clear();
+					result = this;
+				}
 
-			result = this;
-		}
+				counter.copyCounter.endRun(start);
+				counter.copyCounter.addCount(1);
 
-		counter.copyCounter.endRun(start);
-		counter.copyCounter.addCount(1);
-
-		return result;
+				return result;
 	}
 
 	private int singleChunkBlockIndex(int x, int y, int z) {
