@@ -44,7 +44,6 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.chunk.WorldChunk;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
@@ -75,6 +74,10 @@ public abstract class MixinChunkRebuildTask implements AccessRebuildTask {
 			final long start = counter.buildCounter.startRun();
 			region.prepareForUse();
 
+			for(final BlockEntity blockEntity : region.blockEntities.values()) {
+				addBlockEntity(chunkData, blockEntities, blockEntity);
+			}
+
 			final TerrainRenderContext context = TerrainRenderContext.POOL.get();
 			context.prepare(region, chunkData, buffers, origin);
 
@@ -92,23 +95,14 @@ public abstract class MixinChunkRebuildTask implements AccessRebuildTask {
 						final BlockState blockState = region.getBlockState(xPos, yPos, zPos);
 						final FluidState fluidState = blockState.getFluidState();
 						final Block block = blockState.getBlock();
-						final boolean hasBe = block.hasBlockEntity();
 						final boolean hasFluid = !fluidState.isEmpty();
 						final boolean hasBlockModel = blockState.getRenderType() != BlockRenderType.INVISIBLE;
 
-						if (hasBe || hasFluid || hasBlockModel) {
+						if (hasFluid || hasBlockModel) {
 							searchPos.set(xPos + xMin, yPos + yMin, zPos + zMin);
 
 							if (blockState.isFullOpaque(region, searchPos)) {
 								chunkOcclusionDataBuilder.markClosed(searchPos);
-							}
-
-							if (hasBe) {
-								final BlockEntity blockEntity = region.getBlockEntity(searchPos, WorldChunk.CreationType.CHECK);
-
-								if (blockEntity != null) {
-									this.addBlockEntity(chunkData, blockEntities, blockEntity);
-								}
 							}
 
 							if (hasFluid) {

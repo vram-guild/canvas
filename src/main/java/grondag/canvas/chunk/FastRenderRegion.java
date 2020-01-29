@@ -16,10 +16,12 @@
 
 package grondag.canvas.chunk;
 
+import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 
 import javax.annotation.Nullable;
 
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2FloatOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 
@@ -43,6 +45,7 @@ import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
 import grondag.canvas.chunk.ChunkPaletteCopier.PaletteCopy;
 import grondag.canvas.light.AoLuminanceFix;
 import grondag.canvas.perf.ChunkRebuildCounters;
+import grondag.fermion.position.PackedBlockPos;
 
 public class FastRenderRegion implements RenderAttachedBlockView {
 	private static final BlockState AIR = Blocks.AIR.getDefaultState();
@@ -66,6 +69,8 @@ public class FastRenderRegion implements RenderAttachedBlockView {
 	public final Long2IntOpenHashMap brightnessCache;
 	public final Long2FloatOpenHashMap aoLevelCache;
 	private final AoLuminanceFix aoFix = AoLuminanceFix.effective();
+	private final Int2ObjectOpenHashMap<Object> renderData = new Int2ObjectOpenHashMap<>();
+	public final Int2ObjectOpenHashMap<BlockEntity> blockEntities = new Int2ObjectOpenHashMap<>();
 
 	private static final int STATE_COUNT = 32768; //18 * 18 * 18;
 	private final BlockState[] states = new BlockState[STATE_COUNT];
@@ -76,6 +81,7 @@ public class FastRenderRegion implements RenderAttachedBlockView {
 
 	private int chunkXOrigin;
 	private int chunkZOrigin;
+	private long chunkOriginKey;
 
 	private int blockBaseX;
 	private int blockBaseY;
@@ -97,8 +103,6 @@ public class FastRenderRegion implements RenderAttachedBlockView {
 
 	// PERF: consider morton numbering for better locality
 	private int stateIndex(int x, int y, int z) {
-		// TODO avoid multiplication
-		//return x + y * 18 + z * 324;
 		return x | (y << 5) | (z << 10);
 	}
 
@@ -117,6 +121,10 @@ public class FastRenderRegion implements RenderAttachedBlockView {
 		pc.release();
 	}
 
+	private long chunkKey(int x, int y, int z) {
+		return PackedBlockPos.pack(x & 0xFFFFFFF0, y & 0xF0, z & 0xFFFFFFF0);
+	}
+
 	private FastRenderRegion prepare(World world, BlockPos origin) {
 		final ChunkRebuildCounters counter = ChunkRebuildCounters.get();
 		final long start = counter.copyCounter.startRun();
@@ -126,6 +134,8 @@ public class FastRenderRegion implements RenderAttachedBlockView {
 		final int ox = origin.getX();
 		final int oy = origin.getY();
 		final int oz = origin.getZ();
+
+		chunkOriginKey = chunkKey(ox, oy, oz);
 
 		// eclipse save action formatting shits the bed here for no apparent reason
 		chunkXOrigin = ox >> 4;
@@ -148,6 +158,7 @@ public class FastRenderRegion implements RenderAttachedBlockView {
 			this.release();
 			result = null;
 		} else {
+			captureBlockEntities(mainChunk);
 			chunks[1 | (1 << 2)] = mainChunk;
 			chunks[0 | (0 << 2)] = world.getChunk(chunkBaseX + 0, chunkBaseZ + 0);
 			chunks[0 | (1 << 2)] = world.getChunk(chunkBaseX + 0, chunkBaseZ + 1);
@@ -172,6 +183,38 @@ public class FastRenderRegion implements RenderAttachedBlockView {
 		counter.copyCounter.addCount(1);
 
 		return result;
+	}
+
+	private int singleChunkBlockIndex(int x, int y, int z) {
+		return (x & 0xF) | ((y & 0xF) << 4) | ((z & 0xF) << 8);
+	}
+
+	private int singleChunkBlockIndex(BlockPos pos) {
+		return singleChunkBlockIndex(pos.getX(), pos.getY(), pos.getZ());
+	}
+
+	private boolean isInMainChunk(int x, int y, int z) {
+		return chunkKey(x, y, z) == chunkOriginKey;
+	}
+
+	private boolean isInMainChunk(BlockPos pos) {
+		return isInMainChunk(pos.getX(), pos.getY(), pos.getZ());
+	}
+
+	private void captureBlockEntities(WorldChunk mainChunk) {
+		renderData.clear();
+		blockEntities.clear();
+
+		for(final Map.Entry<BlockPos, BlockEntity> entry : mainChunk.getBlockEntities().entrySet()) {
+			final int key = singleChunkBlockIndex(entry.getKey());
+			final BlockEntity be = entry.getValue();
+			blockEntities.put(key, be);
+			final Object rd = ((RenderAttachmentBlockEntity) be).getRenderAttachmentData();
+
+			if(rd != null) {
+				renderData.put(key, rd);
+			}
+		}
 	}
 
 	private void captureFaces() {
@@ -293,6 +336,8 @@ public class FastRenderRegion implements RenderAttachedBlockView {
 		}
 
 		terrainContext = null;
+		blockEntities.clear();
+		renderData.clear();
 
 		release(this);
 	}
@@ -300,14 +345,7 @@ public class FastRenderRegion implements RenderAttachedBlockView {
 	@Override
 	@Nullable
 	public BlockEntity getBlockEntity(BlockPos pos) {
-		return this.getBlockEntity(pos, WorldChunk.CreationType.IMMEDIATE);
-	}
-
-	@Nullable
-	public BlockEntity getBlockEntity(BlockPos pos, WorldChunk.CreationType creationType) {
-		final int i = (pos.getX() >> 4) - chunkXOrigin + 1;
-		final int j = (pos.getZ() >> 4) - chunkZOrigin + 1;
-		return chunks[i | (j << 2)].getBlockEntity(pos, creationType);
+		return isInMainChunk(pos) ? blockEntities.get(this.singleChunkBlockIndex(pos)) : world.getBlockEntity(pos);
 	}
 
 	@Override
@@ -322,9 +360,7 @@ public class FastRenderRegion implements RenderAttachedBlockView {
 
 	@Override
 	public Object getBlockEntityRenderAttachment(BlockPos pos) {
-		final BlockEntity be = getBlockEntity(pos);
-
-		return be == null ? null : ((RenderAttachmentBlockEntity) be).getRenderAttachmentData();
+		return renderData.get(singleChunkBlockIndex(pos));
 	}
 
 	public int cachedBrightness(BlockPos pos) {
