@@ -29,7 +29,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockRenderType;
 import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.BufferBuilder;
@@ -55,8 +54,6 @@ import grondag.canvas.perf.ChunkRebuildCounters;
 
 @Mixin(targets = "net.minecraft.client.render.chunk.ChunkBuilder$BuiltChunk$RebuildTask")
 public abstract class MixinChunkRebuildTask implements AccessRebuildTask {
-	private static final BlockState AIR = Blocks.AIR.getDefaultState();
-
 	@Shadow protected BuiltChunk field_20839;
 	private FastRenderRegion fastRegion;
 	@Shadow private <E extends BlockEntity> void addBlockEntity(ChunkBuilder.ChunkData chunkData, Set<BlockEntity> set, E blockEntity) {}
@@ -91,59 +88,52 @@ public abstract class MixinChunkRebuildTask implements AccessRebuildTask {
 			final int yMin = origin.getY();
 			final int zMin = origin.getZ();
 
-			final BlockState[] states = region.states;
+			for (int xPos = 0; xPos < 16; xPos++) {
+				for (int yPos = 0; yPos < 16; yPos++) {
+					for (int zPos = 0; zPos < 16; zPos++) {
 
-			for (int i = 0; i < 4096; ++i) {
-				final BlockState blockState = states[i];
+						final BlockState blockState = region.getBlockState(xPos, yPos, zPos);
+						final FluidState fluidState = blockState.getFluidState();
+						final Block block = blockState.getBlock();
+						final boolean hasFluid = !fluidState.isEmpty();
+						final boolean hasBlockModel = blockState.getRenderType() != BlockRenderType.INVISIBLE;
 
-				if (blockState == AIR) {
-					continue;
-				}
+						if (hasFluid || hasBlockModel) {
+							searchPos.set(xPos + xMin, yPos + yMin, zPos + zMin);
 
-				final FluidState fluidState = blockState.getFluidState();
-				final Block block = blockState.getBlock();
-				final boolean hasFluid = !fluidState.isEmpty();
-				final boolean hasBlockModel = blockState.getRenderType() != BlockRenderType.INVISIBLE;
+							if (blockState.isFullOpaque(region, searchPos)) {
+								chunkOcclusionDataBuilder.markClosed(searchPos);
+							}
 
-				if (hasFluid || hasBlockModel) {
-					// indexing scheme here matches block state palette
-					final int xPos = i & 0xF;
-					final int yPos = (i >> 8) & 0xF;
-					final int zPos = (i >> 4) & 0xF;
+							if (hasFluid) {
+								final RenderLayer fluidLayer = RenderLayers.getFluidLayer(fluidState);
+								final BufferBuilder fluidBuffer = buffers.get(fluidLayer);
 
-					searchPos.set(xPos + xMin, yPos + yMin, zPos + zMin);
+								if (chunkDataAccess.canvas_markInitialized(fluidLayer)) {
+									fluidBuffer.begin(7, VertexFormats.POSITION_COLOR_TEXTURE_LIGHT_NORMAL);
+								}
 
-					if (blockState.isFullOpaque(region, searchPos)) {
-						chunkOcclusionDataBuilder.markClosed(searchPos);
-					}
+								if (blockRenderManager.renderFluid(searchPos, region, fluidBuffer, fluidState)) {
+									chunkDataAccess.canvas_markPopulated(fluidLayer);
+								}
+							}
 
-					if (hasFluid) {
-						final RenderLayer fluidLayer = RenderLayers.getFluidLayer(fluidState);
-						final BufferBuilder fluidBuffer = buffers.get(fluidLayer);
+							if (hasBlockModel) {
+								matrixStack.push();
+								matrixStack.translate(xPos, yPos, zPos);
 
-						if (chunkDataAccess.canvas_markInitialized(fluidLayer)) {
-							fluidBuffer.begin(7, VertexFormats.POSITION_COLOR_TEXTURE_LIGHT_NORMAL);
-						}
+								if (block.getOffsetType() != Block.OffsetType.NONE) {
+									final Vec3d vec3d = blockState.getOffsetPos(region, searchPos);
 
-						if (blockRenderManager.renderFluid(searchPos, region, fluidBuffer, fluidState)) {
-							chunkDataAccess.canvas_markPopulated(fluidLayer);
-						}
-					}
+									if (vec3d != Vec3d.ZERO) {
+										matrixStack.translate(vec3d.x, vec3d.y, vec3d.z);
+									}
+								}
 
-					if (hasBlockModel) {
-						matrixStack.push();
-						matrixStack.translate(xPos, yPos, zPos);
-
-						if (block.getOffsetType() != Block.OffsetType.NONE) {
-							final Vec3d vec3d = blockState.getOffsetPos(region, searchPos);
-
-							if (vec3d != Vec3d.ZERO) {
-								matrixStack.translate(vec3d.x, vec3d.y, vec3d.z);
+								context.tesselateBlock(blockState, searchPos, blockRenderManager.getModel(blockState), matrixStack);
+								matrixStack.pop();
 							}
 						}
-
-						context.tesselateBlock(blockState, searchPos, blockRenderManager.getModel(blockState), matrixStack);
-						matrixStack.pop();
 					}
 				}
 			}
