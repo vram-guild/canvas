@@ -122,9 +122,14 @@ public class FastRenderRegion implements RenderAttachedBlockView {
 		return PackedBlockPos.pack(x & 0xFFFFFFF0, y & 0xF0, z & 0xFFFFFFF0);
 	}
 
+	private long start;
+	ChunkRebuildCounters counter;
+
 	private FastRenderRegion prepare(World world, BlockPos origin) {
-		final ChunkRebuildCounters counter = ChunkRebuildCounters.get();
-		final long start = counter.copyCounter.startRun();
+		if(ChunkRebuildCounters.ENABLED) {
+			counter = ChunkRebuildCounters.get();
+			start = counter.copyCounter.startRun();
+		}
 
 		this.world = world;
 
@@ -173,8 +178,10 @@ public class FastRenderRegion implements RenderAttachedBlockView {
 					result = this;
 				}
 
-				counter.copyCounter.endRun(start);
-				counter.copyCounter.addCount(1);
+				if(ChunkRebuildCounters.ENABLED) {
+					counter.copyCounter.endRun(start);
+					counter.copyCounter.addCount(1);
+				}
 
 				return result;
 	}

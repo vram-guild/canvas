@@ -124,6 +124,9 @@ public class Configurator {
 
 		@Comment("Uses slower/safer memory allocation method for GL buffers.  Use only if having problems. Requires restart.")
 		boolean safeNativeMemoryAllocation = false;
+
+		@Comment("Output performance trade data to log. Will have significant performance impact. Requires restart.")
+		boolean enablePerformanceTrace = false;
 	}
 
 	static final ConfigData DEFAULTS = new ConfigData();
@@ -160,6 +163,7 @@ public class Configurator {
 	public static boolean logGlStateChanges = DEFAULTS.logGlStateChanges;
 	public static boolean debugNativeMemoryAllocation = DEFAULTS.debugNativeMemoryAllocation;
 	public static boolean safeNativeMemoryAllocation = DEFAULTS.safeNativeMemoryAllocation;
+	public static boolean enablePerformanceTrace = DEFAULTS.enablePerformanceTrace;
 
 	/** use to stash parent screen during display */
 	private static Screen screenIn;
@@ -214,6 +218,7 @@ public class Configurator {
 		logGlStateChanges = config.logGlStateChanges;
 		debugNativeMemoryAllocation = config.debugNativeMemoryAllocation;
 		safeNativeMemoryAllocation = config.safeNativeMemoryAllocation;
+		enablePerformanceTrace = config.enablePerformanceTrace;
 	}
 
 	private static void saveConfig() {
@@ -246,6 +251,7 @@ public class Configurator {
 		config.logGlStateChanges = logGlStateChanges;
 		config.debugNativeMemoryAllocation = debugNativeMemoryAllocation;
 		config.safeNativeMemoryAllocation = safeNativeMemoryAllocation;
+		config.enablePerformanceTrace = enablePerformanceTrace;
 
 		try {
 			final String result = JANKSON.toJson(config).toJson(true, true, 0);

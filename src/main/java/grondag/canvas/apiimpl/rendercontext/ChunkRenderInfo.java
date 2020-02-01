@@ -23,7 +23,6 @@ import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexFormats;
 import net.minecraft.client.render.chunk.BlockBufferBuilderStorage;
-import net.minecraft.client.render.chunk.ChunkBuilder.ChunkData;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.BlockRenderView;
 
@@ -48,10 +47,10 @@ public class ChunkRenderInfo {
 
 	private final Object2ObjectOpenHashMap<RenderLayer, BufferBuilder> buffers = new Object2ObjectOpenHashMap<>();
 
-	void prepare(FastRenderRegion blockView, ChunkData chunkData, BlockBufferBuilderStorage builders, BlockPos origin) {
+	void prepare(FastRenderRegion blockView, AccessChunkRendererData chunkData, BlockBufferBuilderStorage builders, BlockPos origin) {
 		region = blockView;
 		chunkOrigin.set(origin);
-		this.chunkData = (AccessChunkRendererData) chunkData;
+		this.chunkData = chunkData;
 		this.builders = builders;
 		buffers.clear();
 	}

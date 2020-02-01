@@ -26,26 +26,16 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import net.minecraft.block.Block;
 import net.minecraft.block.BlockRenderType;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.BufferBuilder;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.RenderLayers;
-import net.minecraft.client.render.VertexFormats;
-import net.minecraft.client.render.block.BlockRenderManager;
 import net.minecraft.client.render.chunk.BlockBufferBuilderStorage;
 import net.minecraft.client.render.chunk.ChunkBuilder;
 import net.minecraft.client.render.chunk.ChunkBuilder.BuiltChunk;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.fluid.FluidState;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
 
 import grondag.canvas.CanvasMod;
-import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
+import grondag.canvas.chunk.ChunkRebuildinator;
 import grondag.canvas.chunk.FastRenderRegion;
 import grondag.canvas.chunk.occlusion.FastChunkOcclusionDataBuilder;
 import grondag.canvas.mixinterface.AccessChunkRendererData;
@@ -58,105 +48,33 @@ public abstract class MixinChunkRebuildTask implements AccessRebuildTask {
 	private FastRenderRegion fastRegion;
 	@Shadow private <E extends BlockEntity> void addBlockEntity(ChunkBuilder.ChunkData chunkData, Set<BlockEntity> set, E blockEntity) {}
 
+	private ChunkRebuildCounters counter;
+	private long start;
+
 	@Inject(at = @At("HEAD"), method = "Lnet/minecraft/client/render/chunk/ChunkBuilder$BuiltChunk$RebuildTask;render(FFFLnet/minecraft/client/render/chunk/ChunkBuilder$ChunkData;Lnet/minecraft/client/render/chunk/BlockBufferBuilderStorage;)Ljava/util/Set;", cancellable = true)
 	private void hookChunkBuild(float x, float y, float z, ChunkBuilder.ChunkData chunkData, BlockBufferBuilderStorage buffers, CallbackInfoReturnable<Set<BlockEntity>> ci) {
-		final TerrainRenderContext context = TerrainRenderContext.POOL.get();
-		final FastChunkOcclusionDataBuilder chunkOcclusionDataBuilder = context.occlusionDataBuilder.prepare();
-
 		final Set<BlockEntity> blockEntities = Sets.newHashSet();
 		final BlockPos origin = field_20839.getOrigin();
-		final AccessChunkRendererData chunkDataAccess = (AccessChunkRendererData) chunkData;
 		final FastRenderRegion region = fastRegion;
+		final AccessChunkRendererData chunkDataAccess = (AccessChunkRendererData) chunkData;
 		fastRegion = null;
 
-		final MatrixStack matrixStack = new MatrixStack();
-
 		if (region != null) {
-			final ChunkRebuildCounters counter = ChunkRebuildCounters.get();
-			final long start = counter.buildCounter.startRun();
-			region.prepareForUse();
+			if (ChunkRebuildCounters.ENABLED) {
+				counter = ChunkRebuildCounters.get();
+				start = counter.buildCounter.startRun();
+			}
 
 			for(final BlockEntity blockEntity : region.blockEntities.values()) {
 				addBlockEntity(chunkData, blockEntities, blockEntity);
 			}
 
-			context.prepare(region, chunkData, buffers, origin);
+			ChunkRebuildinator.rebuildChunk(x, y, z, chunkDataAccess, buffers, region, origin);
 
-			final BlockRenderManager blockRenderManager = MinecraftClient.getInstance().getBlockRenderManager();
-			final BlockPos.Mutable searchPos = context.searchPos;
-
-			final int xMin = origin.getX();
-			final int yMin = origin.getY();
-			final int zMin = origin.getZ();
-
-			for (int xPos = 0; xPos < 16; xPos++) {
-				final int xb = xPos + xMin;
-
-				for (int yPos = 0; yPos < 16; yPos++) {
-					final int yb = yPos + yMin;
-
-					for (int zPos = 0; zPos < 16; zPos++) {
-						final BlockState blockState = region.getBlockState(xPos, yPos, zPos);
-
-						if(blockState.getRenderType() != BlockRenderType.INVISIBLE || !blockState.getFluidState().isEmpty()) {
-							searchPos.set(xb, yb, zPos + zMin);
-							chunkOcclusionDataBuilder.setVisibility(xPos, yPos, zPos, blockState.isFullOpaque(region, searchPos), true);
-						}
-					}
-				}
+			if (ChunkRebuildCounters.ENABLED) {
+				endTimer(counter, region, start);
 			}
 
-			chunkDataAccess.canvas_setOcclusionGraph(chunkOcclusionDataBuilder.build());
-
-			for (int xPos = 0; xPos < 16; xPos++) {
-				final int xb = xPos + xMin;
-
-				for (int yPos = 0; yPos < 16; yPos++) {
-					final int yb = yPos + yMin;
-
-					for (int zPos = 0; zPos < 16; zPos++) {
-
-						if(chunkOcclusionDataBuilder.shouldRender(xPos, yPos, zPos)) {
-							searchPos.set(xb, yb, zPos + zMin);
-							final BlockState blockState = region.getBlockState(xPos, yPos, zPos);
-							final FluidState fluidState = blockState.getFluidState();
-
-							if (!fluidState.isEmpty()) {
-								final RenderLayer fluidLayer = RenderLayers.getFluidLayer(fluidState);
-								final BufferBuilder fluidBuffer = buffers.get(fluidLayer);
-
-								if (chunkDataAccess.canvas_markInitialized(fluidLayer)) {
-									fluidBuffer.begin(7, VertexFormats.POSITION_COLOR_TEXTURE_LIGHT_NORMAL);
-								}
-
-								if (blockRenderManager.renderFluid(searchPos, region, fluidBuffer, fluidState)) {
-									chunkDataAccess.canvas_markPopulated(fluidLayer);
-								}
-							}
-
-							if (blockState.getRenderType() != BlockRenderType.INVISIBLE) {
-								matrixStack.push();
-								matrixStack.translate(xPos, yPos, zPos);
-
-								if (blockState.getBlock().getOffsetType() != Block.OffsetType.NONE) {
-									final Vec3d vec3d = blockState.getOffsetPos(region, searchPos);
-
-									if (vec3d != Vec3d.ZERO) {
-										matrixStack.translate(vec3d.x, vec3d.y, vec3d.z);
-									}
-								}
-
-								context.tesselateBlock(blockState, searchPos, blockRenderManager.getModel(blockState), matrixStack);
-								matrixStack.pop();
-							}
-						}
-					}
-				}
-			}
-
-			chunkDataAccess.canvas_endBuffering(x - xMin, y - yMin, z - zMin, buffers);
-			endTimer(counter, region, start);
-			context.release();
 			region.release();
 		} else {
 			chunkDataAccess.canvas_setOcclusionGraph(FastChunkOcclusionDataBuilder.ALL_OPEN);

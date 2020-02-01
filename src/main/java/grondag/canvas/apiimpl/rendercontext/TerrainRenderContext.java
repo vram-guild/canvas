@@ -20,7 +20,6 @@ import java.util.function.Consumer;
 
 import net.minecraft.block.BlockState;
 import net.minecraft.client.render.chunk.BlockBufferBuilderStorage;
-import net.minecraft.client.render.chunk.ChunkBuilder.ChunkData;
 import net.minecraft.client.render.model.BakedModel;
 import net.minecraft.client.util.math.Matrix3f;
 import net.minecraft.client.util.math.Matrix4f;
@@ -35,9 +34,11 @@ import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
 import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 
+import grondag.canvas.chunk.ChunkRebuildinator;
 import grondag.canvas.chunk.FastRenderRegion;
 import grondag.canvas.chunk.occlusion.FastChunkOcclusionDataBuilder;
 import grondag.canvas.light.AoCalculator;
+import grondag.canvas.mixinterface.AccessChunkRendererData;
 
 /**
  * Implementation of {@link RenderContext} used during terrain rendering.
@@ -88,7 +89,7 @@ public class TerrainRenderContext extends AbstractRenderContext implements Rende
 		}
 	};
 
-	public TerrainRenderContext prepare(FastRenderRegion region, ChunkData chunkData, BlockBufferBuilderStorage builders, BlockPos origin) {
+	public TerrainRenderContext prepare(FastRenderRegion region, AccessChunkRendererData chunkData, BlockBufferBuilderStorage builders, BlockPos origin) {
 		region.terrainContext = this;
 		blockInfo.setBlockView(region);
 		chunkInfo.prepare(region, chunkData, builders, origin);
@@ -108,7 +109,9 @@ public class TerrainRenderContext extends AbstractRenderContext implements Rende
 		try {
 			aoCalc.clear();
 			blockInfo.prepareForBlock(blockState, blockPos, model.useAmbientOcclusion(), -1);
+			ChunkRebuildinator.inner.start();
 			((FabricBakedModel) model).emitBlockQuads(blockInfo.blockView, blockInfo.blockState, blockInfo.blockPos, blockInfo.randomSupplier, this);
+			ChunkRebuildinator.inner.stop();
 		} catch (final Throwable var9) {
 			final CrashReport crashReport_1 = CrashReport.create(var9, "Tesselating block in world - Indigo Renderer");
 			final CrashReportSection crashReportElement_1 = crashReport_1.addElement("Block being tesselated");

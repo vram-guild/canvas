@@ -30,12 +30,7 @@ public class MicroTimer {
 	private final AtomicLong elapsed = new AtomicLong();
 	private final int sampleSize;
 	private final String label;
-	private final ThreadLocal<AtomicLong> started = new ThreadLocal<AtomicLong>() {
-		@Override
-		protected AtomicLong initialValue() {
-			return new AtomicLong();
-		}
-	};
+	private final ThreadLocal<Long> started = ThreadLocal.withInitial(() -> 0L);
 
 	public MicroTimer(String label, int sampleSize) {
 		this.label = label;
@@ -43,7 +38,6 @@ public class MicroTimer {
 	}
 
 	public void start() {
-		final AtomicLong started = this.started.get();
 		started.set(System.nanoTime());
 	}
 
@@ -53,7 +47,7 @@ public class MicroTimer {
 	 */
 	public boolean stop() {
 		final long end = System.nanoTime();
-		final long e = elapsed.addAndGet(end - started.get().get());
+		final long e = elapsed.addAndGet(end - started.get());
 		final long h = hits.incrementAndGet();
 		if (h == sampleSize) {
 			doReportAndClear(e, h);
@@ -66,8 +60,8 @@ public class MicroTimer {
 	private void doReportAndClear(long e, long h) {
 		hits.set(0);
 		elapsed.set(0);
-		CanvasMod.LOG.info("Avg %s duration = %d ns, total duration = %d, total runs = %d", label, e / h,
-				e / 1000000, h);
+		CanvasMod.LOG.info(String.format("Avg %s duration = %,d ns, total duration = %,d, total runs = %,d", label, e / h,
+				e / 1000000, h));
 	}
 
 	public void reportAndClear() {
