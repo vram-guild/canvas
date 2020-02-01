@@ -39,7 +39,6 @@ import net.minecraft.client.render.block.BlockRenderManager;
 import net.minecraft.client.render.chunk.BlockBufferBuilderStorage;
 import net.minecraft.client.render.chunk.ChunkBuilder;
 import net.minecraft.client.render.chunk.ChunkBuilder.BuiltChunk;
-import net.minecraft.client.render.chunk.ChunkOcclusionDataBuilder;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.util.math.BlockPos;
@@ -48,6 +47,7 @@ import net.minecraft.util.math.Vec3d;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
 import grondag.canvas.chunk.FastRenderRegion;
+import grondag.canvas.chunk.occlusion.FastChunkOcclusionDataBuilder;
 import grondag.canvas.mixinterface.AccessChunkRendererData;
 import grondag.canvas.mixinterface.AccessRebuildTask;
 import grondag.canvas.perf.ChunkRebuildCounters;
@@ -60,7 +60,9 @@ public abstract class MixinChunkRebuildTask implements AccessRebuildTask {
 
 	@Inject(at = @At("HEAD"), method = "Lnet/minecraft/client/render/chunk/ChunkBuilder$BuiltChunk$RebuildTask;render(FFFLnet/minecraft/client/render/chunk/ChunkBuilder$ChunkData;Lnet/minecraft/client/render/chunk/BlockBufferBuilderStorage;)Ljava/util/Set;", cancellable = true)
 	private void hookChunkBuild(float x, float y, float z, ChunkBuilder.ChunkData chunkData, BlockBufferBuilderStorage buffers, CallbackInfoReturnable<Set<BlockEntity>> ci) {
-		final ChunkOcclusionDataBuilder chunkOcclusionDataBuilder = new ChunkOcclusionDataBuilder();
+		final TerrainRenderContext context = TerrainRenderContext.POOL.get();
+		final FastChunkOcclusionDataBuilder chunkOcclusionDataBuilder = context.occlusionDataBuilder.prepare();
+
 		final Set<BlockEntity> blockEntities = Sets.newHashSet();
 		final BlockPos origin = field_20839.getOrigin();
 		final AccessChunkRendererData chunkDataAccess = (AccessChunkRendererData) chunkData;
@@ -78,7 +80,6 @@ public abstract class MixinChunkRebuildTask implements AccessRebuildTask {
 				addBlockEntity(chunkData, blockEntities, blockEntity);
 			}
 
-			final TerrainRenderContext context = TerrainRenderContext.POOL.get();
 			context.prepare(region, chunkData, buffers, origin);
 
 			final BlockRenderManager blockRenderManager = MinecraftClient.getInstance().getBlockRenderManager();
@@ -91,21 +92,31 @@ public abstract class MixinChunkRebuildTask implements AccessRebuildTask {
 			for (int xPos = 0; xPos < 16; xPos++) {
 				for (int yPos = 0; yPos < 16; yPos++) {
 					for (int zPos = 0; zPos < 16; zPos++) {
-
 						final BlockState blockState = region.getBlockState(xPos, yPos, zPos);
-						final FluidState fluidState = blockState.getFluidState();
-						final Block block = blockState.getBlock();
-						final boolean hasFluid = !fluidState.isEmpty();
-						final boolean hasBlockModel = blockState.getRenderType() != BlockRenderType.INVISIBLE;
+						searchPos.set(xPos + xMin, yPos + yMin, zPos + zMin);
 
-						if (hasFluid || hasBlockModel) {
+						final boolean opaque = blockState.isFullOpaque(region, searchPos);
+						final boolean renderable = blockState.getRenderType() != BlockRenderType.INVISIBLE || !blockState.getFluidState().isEmpty();
+
+						if(renderable || opaque) {
+							chunkOcclusionDataBuilder.setVisibility(xPos, yPos, zPos, opaque, renderable);
+						}
+					}
+				}
+			}
+
+			chunkDataAccess.canvas_setOcclusionGraph(chunkOcclusionDataBuilder.build());
+
+			for (int xPos = 0; xPos < 16; xPos++) {
+				for (int yPos = 0; yPos < 16; yPos++) {
+					for (int zPos = 0; zPos < 16; zPos++) {
+
+						if(chunkOcclusionDataBuilder.shouldRender(xPos, yPos, zPos)) {
 							searchPos.set(xPos + xMin, yPos + yMin, zPos + zMin);
+							final BlockState blockState = region.getBlockState(xPos, yPos, zPos);
+							final FluidState fluidState = blockState.getFluidState();
 
-							if (blockState.isFullOpaque(region, searchPos)) {
-								chunkOcclusionDataBuilder.markClosed(searchPos);
-							}
-
-							if (hasFluid) {
+							if (!fluidState.isEmpty()) {
 								final RenderLayer fluidLayer = RenderLayers.getFluidLayer(fluidState);
 								final BufferBuilder fluidBuffer = buffers.get(fluidLayer);
 
@@ -118,11 +129,11 @@ public abstract class MixinChunkRebuildTask implements AccessRebuildTask {
 								}
 							}
 
-							if (hasBlockModel) {
+							if (blockState.getRenderType() != BlockRenderType.INVISIBLE) {
 								matrixStack.push();
 								matrixStack.translate(xPos, yPos, zPos);
 
-								if (block.getOffsetType() != Block.OffsetType.NONE) {
+								if (blockState.getBlock().getOffsetType() != Block.OffsetType.NONE) {
 									final Vec3d vec3d = blockState.getOffsetPos(region, searchPos);
 
 									if (vec3d != Vec3d.ZERO) {
@@ -142,9 +153,10 @@ public abstract class MixinChunkRebuildTask implements AccessRebuildTask {
 			endTimer(counter, region, start);
 			context.release();
 			region.release();
+		} else {
+			chunkDataAccess.canvas_setOcclusionGraph(FastChunkOcclusionDataBuilder.ALL_OPEN);
 		}
 
-		chunkDataAccess.canvas_setOcclusionGraph(chunkOcclusionDataBuilder.build());
 		ci.setReturnValue(blockEntities);
 	}
 

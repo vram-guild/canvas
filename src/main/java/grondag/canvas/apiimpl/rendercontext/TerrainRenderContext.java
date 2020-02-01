@@ -36,6 +36,7 @@ import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 
 import grondag.canvas.chunk.FastRenderRegion;
+import grondag.canvas.chunk.occlusion.FastChunkOcclusionDataBuilder;
 import grondag.canvas.light.AoCalculator;
 
 /**
@@ -48,6 +49,7 @@ public class TerrainRenderContext extends AbstractRenderContext implements Rende
 	private final TerrainBlockRenderInfo blockInfo = new TerrainBlockRenderInfo();
 	private final ChunkRenderInfo chunkInfo = new ChunkRenderInfo();
 	private final AoCalculator aoCalc = new AoCalculator(blockInfo, chunkInfo::cachedBrightness, chunkInfo::cachedAoLevel);
+	public final FastChunkOcclusionDataBuilder occlusionDataBuilder = new FastChunkOcclusionDataBuilder();
 
 	/** for use by chunk builder - avoids another threadlocal */
 	public final BlockPos.Mutable searchPos = new BlockPos.Mutable();
