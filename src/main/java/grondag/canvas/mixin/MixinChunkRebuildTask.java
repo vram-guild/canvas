@@ -90,16 +90,17 @@ public abstract class MixinChunkRebuildTask implements AccessRebuildTask {
 			final int zMin = origin.getZ();
 
 			for (int xPos = 0; xPos < 16; xPos++) {
+				final int xb = xPos + xMin;
+
 				for (int yPos = 0; yPos < 16; yPos++) {
+					final int yb = yPos + yMin;
+
 					for (int zPos = 0; zPos < 16; zPos++) {
 						final BlockState blockState = region.getBlockState(xPos, yPos, zPos);
-						searchPos.set(xPos + xMin, yPos + yMin, zPos + zMin);
 
-						final boolean opaque = blockState.isFullOpaque(region, searchPos);
-						final boolean renderable = blockState.getRenderType() != BlockRenderType.INVISIBLE || !blockState.getFluidState().isEmpty();
-
-						if(renderable || opaque) {
-							chunkOcclusionDataBuilder.setVisibility(xPos, yPos, zPos, opaque, renderable);
+						if(blockState.getRenderType() != BlockRenderType.INVISIBLE || !blockState.getFluidState().isEmpty()) {
+							searchPos.set(xb, yb, zPos + zMin);
+							chunkOcclusionDataBuilder.setVisibility(xPos, yPos, zPos, blockState.isFullOpaque(region, searchPos), true);
 						}
 					}
 				}
@@ -108,11 +109,15 @@ public abstract class MixinChunkRebuildTask implements AccessRebuildTask {
 			chunkDataAccess.canvas_setOcclusionGraph(chunkOcclusionDataBuilder.build());
 
 			for (int xPos = 0; xPos < 16; xPos++) {
+				final int xb = xPos + xMin;
+
 				for (int yPos = 0; yPos < 16; yPos++) {
+					final int yb = yPos + yMin;
+
 					for (int zPos = 0; zPos < 16; zPos++) {
 
 						if(chunkOcclusionDataBuilder.shouldRender(xPos, yPos, zPos)) {
-							searchPos.set(xPos + xMin, yPos + yMin, zPos + zMin);
+							searchPos.set(xb, yb, zPos + zMin);
 							final BlockState blockState = region.getBlockState(xPos, yPos, zPos);
 							final FluidState fluidState = blockState.getFluidState();
 
