@@ -28,11 +28,17 @@ import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.color.world.BiomeColors;
 import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.LightType;
 import net.minecraft.world.World;
+import net.minecraft.world.biome.Biome;
+import net.minecraft.world.biome.source.BiomeAccess;
+import net.minecraft.world.biome.source.BiomeArray;
+import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.ChunkSection;
 import net.minecraft.world.chunk.WorldChunk;
 import net.minecraft.world.chunk.light.LightingProvider;
@@ -44,13 +50,15 @@ import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachmentBlockEntity;
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
 import grondag.canvas.chunk.ChunkPaletteCopier.PaletteCopy;
 import grondag.canvas.light.AoLuminanceFix;
+import grondag.canvas.mixinterface.BiomeAccessExt;
 import grondag.canvas.perf.ChunkRebuildCounters;
 import grondag.fermion.position.PackedBlockPos;
 
-public class FastRenderRegion implements RenderAttachedBlockView {
+public class FastRenderRegion implements RenderAttachedBlockView, BiomeAccess.Storage {
 	private static final BlockState AIR = Blocks.AIR.getDefaultState();
 	private static final ArrayBlockingQueue<FastRenderRegion> POOL = new ArrayBlockingQueue<>(256);
 	private static final int STATE_COUNT = 32768;
+	private static final MinecraftClient mc = MinecraftClient.getInstance();
 
 	public static FastRenderRegion claim(World world, BlockPos origin) {
 		final FastRenderRegion result = POOL.poll();
@@ -397,8 +405,89 @@ public class FastRenderRegion implements RenderAttachedBlockView {
 		return world.getLightingProvider();
 	}
 
+	//	private static BiomeColorCache GRASS_CACHE = new BiomeColorCache();
+	//	private static BiomeColorCache FOLIAGE_CACHE = new BiomeColorCache();
+	//	private static BiomeColorCache WATER_CACHE = new BiomeColorCache();
+
 	@Override
 	public int getColor(BlockPos blockPos, ColorResolver colorResolver) {
-		return world.getColor(blockPos, colorResolver);
+		ChunkRebuildinator.inner.start();
+		final int result;
+
+		if (colorResolver == BiomeColors.GRASS_COLOR) {
+			//			result = GRASS_CACHE.getBiomeColor(blockPos, () -> {
+			result = calculateColor(blockPos.getX(), blockPos.getY(), blockPos.getZ(), BiomeColors.GRASS_COLOR);
+			//			});
+		} else if (colorResolver == BiomeColors.FOLIAGE_COLOR) {
+			//			result = FOLIAGE_CACHE.getBiomeColor(blockPos, () -> {
+			result = calculateColor(blockPos.getX(), blockPos.getY(), blockPos.getZ(), BiomeColors.FOLIAGE_COLOR);
+			//			});
+		} else if (colorResolver == BiomeColors.WATER_COLOR) {
+			//			result = WATER_CACHE.getBiomeColor(blockPos, () -> {
+			result = calculateColor(blockPos.getX(), blockPos.getY(), blockPos.getZ(), BiomeColors.WATER_COLOR);
+			//			});
+		} else {
+			result = -1;
+		}
+
+		ChunkRebuildinator.inner.stop();
+		return result;
+	}
+
+	private Biome getBiome(int x, int y, int z) {
+		return ((BiomeAccessExt) world.getBiomeAccess()).getBiome(x, y, z, world);
+	}
+
+	public int calculateColor(int xIn, int yIn, int zIn, ColorResolver colorResolver) {
+		final int radius = mc.options.biomeBlendRadius;
+
+		if (radius == 0) {
+			return colorResolver.getColor(getBiome(xIn, yIn, zIn), xIn, zIn);
+		} else {
+			final int sampleCount = (radius * 2 + 1) * (radius * 2 + 1);
+			int r = 0;
+			int g = 0;
+			int b = 0;
+
+			final int xMax = xIn + radius;
+			final int zMax = zIn + radius;
+
+			for(int x = xIn - radius; x <= xMax; x++) {
+				for(int z = zIn - radius; z <= zMax; z++) {
+					final int color = colorResolver.getColor(getBiome(x, yIn, z), x, z);
+					g += (color >> 8) & 255;
+					r += (color >> 16) & 255;
+					b += color & 255;
+				}
+			}
+
+			return (r / sampleCount & 255) << 16 | (g / sampleCount & 255) << 8 | b / sampleCount & 255;
+		}
+	}
+
+	private WorldChunk getChunk(int cx, int cz) {
+		final int chunkBaseX = this.chunkBaseX;
+		final int chunkBaseZ = this.chunkBaseZ;
+
+		if (cx < chunkBaseX || cx > (chunkBaseZ + 2) || cz < chunkBaseZ || cz > (chunkBaseZ + 2)) {
+			return world.getChunk(cx, cz);
+		} else {
+			return chunks[(cx - chunkBaseX) | ((cz - chunkBaseZ) << 2)];
+		}
+	}
+
+	@Override
+	public Biome getBiomeForNoiseGen(int x, int y, int z) {
+		final Chunk chunk = getChunk(x >> 2, z >> 2);
+
+		if (chunk != null) {
+			final BiomeArray ba = chunk.getBiomeArray();
+
+			if (ba != null) {
+				return chunk.getBiomeArray().getBiomeForNoiseGen(x, y, z);
+			}
+		}
+
+		return world.getGeneratorStoredBiome(x, y, z);
 	}
 }

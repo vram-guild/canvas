@@ -34,7 +34,6 @@ import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
 import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 
-import grondag.canvas.chunk.ChunkRebuildinator;
 import grondag.canvas.chunk.FastRenderRegion;
 import grondag.canvas.chunk.occlusion.FastChunkOcclusionDataBuilder;
 import grondag.canvas.light.AoCalculator;
@@ -109,9 +108,7 @@ public class TerrainRenderContext extends AbstractRenderContext implements Rende
 		try {
 			aoCalc.clear();
 			blockInfo.prepareForBlock(blockState, blockPos, model.useAmbientOcclusion(), -1);
-			ChunkRebuildinator.inner.start();
 			((FabricBakedModel) model).emitBlockQuads(blockInfo.blockView, blockInfo.blockState, blockInfo.blockPos, blockInfo.randomSupplier, this);
-			ChunkRebuildinator.inner.stop();
 		} catch (final Throwable var9) {
 			final CrashReport crashReport_1 = CrashReport.create(var9, "Tesselating block in world - Indigo Renderer");
 			final CrashReportSection crashReportElement_1 = crashReport_1.addElement("Block being tesselated");
