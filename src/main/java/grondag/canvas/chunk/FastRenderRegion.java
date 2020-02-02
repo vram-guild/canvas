@@ -43,7 +43,6 @@ import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachmentBlockEntity;
 
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
 import grondag.canvas.chunk.ChunkPaletteCopier.PaletteCopy;
-import grondag.canvas.light.AoLuminanceFix;
 import grondag.canvas.perf.ChunkRebuildCounters;
 import grondag.fermion.position.PackedBlockPos;
 
@@ -66,9 +65,9 @@ public class FastRenderRegion implements RenderAttachedBlockView {
 		POOL.clear();
 	}
 
+	private final BlockPos.Mutable searchPos = new BlockPos.Mutable();
 	public final Long2IntOpenHashMap brightnessCache;
 	public final Long2FloatOpenHashMap aoLevelCache;
-	private final AoLuminanceFix aoFix = AoLuminanceFix.effective();
 	private final Int2ObjectOpenHashMap<Object> renderData = new Int2ObjectOpenHashMap<>();
 	public final Int2ObjectOpenHashMap<BlockEntity> blockEntities = new Int2ObjectOpenHashMap<>();
 
@@ -321,6 +320,16 @@ public class FastRenderRegion implements RenderAttachedBlockView {
 	}
 
 	public BlockState getBlockState(int x, int y, int z) {
+		final int i = stateIndex(x - blockBaseX, y - blockBaseY, z - blockBaseZ);
+
+		if (i < 0 || i >= STATE_COUNT) {
+			return world.getBlockState(searchPos.set(x, y, z));
+		}
+
+		return states[i];
+	}
+
+	public BlockState getChunkBlockState(int x, int y, int z) {
 		return states[stateIndex(x + 1, y + 1, z + 1)];
 	}
 
@@ -380,12 +389,13 @@ public class FastRenderRegion implements RenderAttachedBlockView {
 		return WorldRenderer.getLightmapCoordinates(world, getBlockState(pos), pos);
 	}
 
-	public float cachedAoLevel(BlockPos pos) {
-		final long key = pos.asLong();
+	public float cachedAoLevel(int x, int y, int z) {
+		final long key = PackedBlockPos.pack(x, y, z);
 		float result = aoLevelCache.get(key);
 
 		if (result == Float.MAX_VALUE) {
-			result = aoFix.apply(this, pos);
+			final BlockState state = getBlockState(x, y, z);
+			result = state.getLuminance() == 0 ? state.getAmbientOcclusionLightLevel(this, searchPos) : 1F;
 			aoLevelCache.put(key, result);
 		}
 

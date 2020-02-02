@@ -37,7 +37,6 @@ import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 
 import grondag.canvas.light.AoCalculator;
-import grondag.canvas.light.AoLuminanceFix;
 
 /**
  * Context for non-terrain block rendering.
@@ -49,11 +48,25 @@ public class BlockRenderContext extends AbstractRenderContext implements RenderC
 		POOL = ThreadLocal.withInitial(BlockRenderContext::new);
 	}
 
+	private final BlockPos.Mutable searchPos = new BlockPos.Mutable();
 	private final BlockRenderInfo blockInfo = new BlockRenderInfo();
-	private final AoCalculator aoCalc = new AoCalculator(blockInfo, this::brightness, this::aoLevel);
+
+	private final AoCalculator aoCalc = new AoCalculator(blockInfo, this::brightness) {
+		@Override
+		protected float ao(int x, int y, int z) {
+			final BlockRenderView blockView = blockInfo.blockView;
+			if (blockView == null) {
+				return 1f;
+			} else {
+				searchPos.set(x, y, z);
+				final BlockState state = blockView.getBlockState(searchPos);
+				return state.getLuminance() == 0 ? state.getAmbientOcclusionLightLevel(blockView, searchPos) : 1F;
+			}
+		}
+	};
+
 	private final MeshConsumer meshConsumer = new MeshConsumer(blockInfo, this::outputBuffer, aoCalc, this::transform);
 	private VertexConsumer bufferBuilder;
-	private final AoLuminanceFix aoFix = AoLuminanceFix.effective();
 	private boolean didOutput = false;
 
 	private int brightness(BlockPos pos) {
@@ -62,11 +75,6 @@ public class BlockRenderContext extends AbstractRenderContext implements RenderC
 		}
 
 		return WorldRenderer.getLightmapCoordinates(blockInfo.blockView, blockInfo.blockView.getBlockState(pos), pos);
-	}
-
-	private float aoLevel(BlockPos pos) {
-		final BlockRenderView blockView = blockInfo.blockView;
-		return blockView == null ? 1f : aoFix.apply(blockView, pos);
 	}
 
 	private VertexConsumer outputBuffer(RenderLayer renderLayer) {

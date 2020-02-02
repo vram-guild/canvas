@@ -48,8 +48,14 @@ public class TerrainRenderContext extends AbstractRenderContext implements Rende
 	public static final ThreadLocal<TerrainRenderContext> POOL = ThreadLocal.withInitial(TerrainRenderContext::new);
 	private final TerrainBlockRenderInfo blockInfo = new TerrainBlockRenderInfo();
 	private final ChunkRenderInfo chunkInfo = new ChunkRenderInfo();
-	private final AoCalculator aoCalc = new AoCalculator(blockInfo, chunkInfo::cachedBrightness, chunkInfo::cachedAoLevel);
 	public final FastChunkOcclusionDataBuilder occlusionDataBuilder = new FastChunkOcclusionDataBuilder();
+
+	private final AoCalculator aoCalc = new AoCalculator(blockInfo, chunkInfo::cachedBrightness) {
+		@Override
+		protected float ao(int x, int y, int z) {
+			return chunkInfo.cachedAoLevel(x, y, z);
+		}
+	};
 
 	/** for use by chunk builder - avoids another threadlocal */
 	public final BlockPos.Mutable searchPos = new BlockPos.Mutable();

@@ -24,6 +24,9 @@ import static net.minecraft.util.math.Direction.SOUTH;
 import static net.minecraft.util.math.Direction.UP;
 import static net.minecraft.util.math.Direction.WEST;
 
+import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.Vec3i;
+
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 
@@ -34,7 +37,7 @@ import grondag.canvas.apiimpl.mesh.QuadViewImpl;
  */
 @Environment(EnvType.CLIENT)
 enum AoFace {
-	AOF_DOWN(new int[] { WEST.ordinal(), EAST.ordinal(), NORTH.ordinal(), SOUTH.ordinal() },
+	AOF_DOWN(WEST, EAST, NORTH, SOUTH,
 			(q, i) -> clamp(q.y(i)),
 			(q, i) -> clamp(q.z(i)),
 			(q, i) -> 1 - clamp(q.x(i)),
@@ -47,7 +50,7 @@ enum AoFace {
 				w[3] = (1 - v) * u;
 			}),
 
-	AOF_UP(new int[] { EAST.ordinal(), WEST.ordinal(), NORTH.ordinal(), SOUTH.ordinal() },
+	AOF_UP(EAST, WEST, NORTH, SOUTH,
 			(q, i) -> 1 - clamp(q.y(i)),
 			(q, i) -> clamp(q.z(i)),
 			(q, i) -> clamp(q.x(i)),
@@ -60,7 +63,7 @@ enum AoFace {
 				w[3] = (1 - v) * u;
 			}),
 
-	AOF_NORTH(new int[] { UP.ordinal(), DOWN.ordinal(), EAST.ordinal(), WEST.ordinal() },
+	AOF_NORTH(UP, DOWN, EAST, WEST,
 			(q, i) -> clamp(q.z(i)),
 			(q, i) -> 1 - clamp(q.x(i)),
 			(q, i) -> clamp(q.y(i)),
@@ -72,7 +75,7 @@ enum AoFace {
 				w[2] = (1 - v) * (1 - u);
 				w[3] = (1 - v) * u;
 			}),
-	AOF_SOUTH(new int[] { WEST.ordinal(), EAST.ordinal(), DOWN.ordinal(), UP.ordinal() },
+	AOF_SOUTH(WEST, EAST, DOWN, UP,
 			(q, i) -> 1 - clamp(q.z(i)),
 			(q, i) -> clamp(q.y(i)),
 			(q, i) -> 1 - clamp(q.x(i)),
@@ -84,7 +87,7 @@ enum AoFace {
 				w[2] = (1 - u) * (1 - v);
 				w[3] = u * (1 - v);
 			}),
-	AOF_WEST(new int[] { UP.ordinal(), DOWN.ordinal(), NORTH.ordinal(), SOUTH.ordinal() },
+	AOF_WEST(UP, DOWN, NORTH, SOUTH,
 			(q, i) -> clamp(q.x(i)),
 			(q, i) -> clamp(q.z(i)),
 			(q, i) -> clamp(q.y(i)),
@@ -96,7 +99,7 @@ enum AoFace {
 				w[2] = (1 - v) * (1 - u);
 				w[3] = (1 - v) * u;
 			}),
-	AOF_EAST(new int[] { DOWN.ordinal(), UP.ordinal(), NORTH.ordinal(), SOUTH.ordinal() },
+	AOF_EAST(DOWN, UP, NORTH, SOUTH,
 			(q, i) -> 1 - clamp(q.x(i)),
 			(q, i) -> clamp(q.z(i)),
 			(q, i) -> 1 - clamp(q.y(i)),
@@ -114,10 +117,33 @@ enum AoFace {
 	final Vertex2Float depthFunc;
 	final Vertex2Float uFunc;
 	final Vertex2Float vFunc;
+	final Vec3i bottomVec;
+	final Vec3i leftVec;
+	final Vec3i topVec;
+	final Vec3i rightVec;
+	final Vec3i bottomLeftVec;
+	final Vec3i bottomRightVec;
+	final Vec3i topLeftVec;
+	final Vec3i topRightVec;
 
-	private AoFace(int[] faces, Vertex2Float depthFunc,
+	private AoFace(Direction bottom, Direction top, Direction left, Direction right, Vertex2Float depthFunc,
 			Vertex2Float uFunc, Vertex2Float vFunc, WeightFunction weightFunc) {
-		neighbors = faces;
+		neighbors = new int[4];
+		neighbors[0] = bottom.ordinal();
+		neighbors[1] = top.ordinal();
+		neighbors[2] = left.ordinal();
+		neighbors[3] = right.ordinal();
+
+		bottomVec = bottom.getVector();
+		leftVec = left.getVector();
+		topVec = top.getVector();
+		rightVec = right.getVector();
+
+		bottomLeftVec = new Vec3i(bottomVec.getX() + leftVec.getX(), bottomVec.getY() + leftVec.getY(), bottomVec.getZ() + leftVec.getZ());
+		bottomRightVec = new Vec3i(bottomVec.getX() + rightVec.getX(), bottomVec.getY() + rightVec.getY(), bottomVec.getZ() + rightVec.getZ());
+		topLeftVec = new Vec3i(topVec.getX() + leftVec.getX(), topVec.getY() + leftVec.getY(), topVec.getZ() + leftVec.getZ());
+		topRightVec = new Vec3i(topVec.getX() + rightVec.getX(), topVec.getY() + rightVec.getY(), topVec.getZ() + rightVec.getZ());
+
 		this.depthFunc = depthFunc;
 		this.weightFunc = weightFunc;
 		this.vFunc = vFunc;

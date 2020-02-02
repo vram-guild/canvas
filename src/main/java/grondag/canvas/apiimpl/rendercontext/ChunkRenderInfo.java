@@ -86,7 +86,7 @@ public class ChunkRenderInfo {
 		return region.cachedBrightness(pos);
 	}
 
-	float cachedAoLevel(BlockPos pos) {
-		return region.cachedAoLevel(pos);
+	float cachedAoLevel(int x, int y, int z) {
+		return region.cachedAoLevel(x, y, z);
 	}
 }
