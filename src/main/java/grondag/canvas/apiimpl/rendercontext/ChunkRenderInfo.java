@@ -82,8 +82,8 @@ public class ChunkRenderInfo {
 	 * Cached values for {@link BlockState#getBlockBrightness(BlockRenderView, BlockPos)}.
 	 * See also the comments for {@link #brightnessCache}.
 	 */
-	int cachedBrightness(BlockPos pos) {
-		return region.cachedBrightness(pos);
+	int cachedBrightness(int x, int y, int z) {
+		return region.cachedBrightness(x, y, z);
 	}
 
 	float cachedAoLevel(int x, int y, int z) {

@@ -373,12 +373,13 @@ public class FastRenderRegion implements RenderAttachedBlockView {
 		return renderData.get(singleChunkBlockIndex(pos));
 	}
 
-	public int cachedBrightness(BlockPos pos) {
-		final long key = pos.asLong();
+	public int cachedBrightness(int x, int y, int z) {
+		final long key = PackedBlockPos.pack(x, y, z);
 		int result = brightnessCache.get(key);
 
 		if (result == Integer.MAX_VALUE) {
-			result = WorldRenderer.getLightmapCoordinates(world, getBlockState(pos), pos);
+			final BlockState state = getBlockState(x, y, z);
+			result = WorldRenderer.getLightmapCoordinates(world, state, searchPos.set(x, y, z));
 			brightnessCache.put(key, result);
 		}
 
@@ -395,7 +396,7 @@ public class FastRenderRegion implements RenderAttachedBlockView {
 
 		if (result == Float.MAX_VALUE) {
 			final BlockState state = getBlockState(x, y, z);
-			result = state.getLuminance() == 0 ? state.getAmbientOcclusionLightLevel(this, searchPos) : 1F;
+			result = state.getLuminance() == 0 ? state.getAmbientOcclusionLightLevel(this, searchPos.set(x, y, z)) : 1F;
 			aoLevelCache.put(key, result);
 		}
 

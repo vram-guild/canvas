@@ -50,10 +50,15 @@ public class TerrainRenderContext extends AbstractRenderContext implements Rende
 	private final ChunkRenderInfo chunkInfo = new ChunkRenderInfo();
 	public final FastChunkOcclusionDataBuilder occlusionDataBuilder = new FastChunkOcclusionDataBuilder();
 
-	private final AoCalculator aoCalc = new AoCalculator(blockInfo, chunkInfo::cachedBrightness) {
+	private final AoCalculator aoCalc = new AoCalculator(blockInfo) {
 		@Override
 		protected float ao(int x, int y, int z) {
 			return chunkInfo.cachedAoLevel(x, y, z);
+		}
+
+		@Override
+		protected int brightness(int x, int y, int z) {
+			return chunkInfo.cachedBrightness(x, y, z);
 		}
 	};
 

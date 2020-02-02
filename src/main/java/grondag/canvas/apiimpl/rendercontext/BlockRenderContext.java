@@ -51,7 +51,7 @@ public class BlockRenderContext extends AbstractRenderContext implements RenderC
 	private final BlockPos.Mutable searchPos = new BlockPos.Mutable();
 	private final BlockRenderInfo blockInfo = new BlockRenderInfo();
 
-	private final AoCalculator aoCalc = new AoCalculator(blockInfo, this::brightness) {
+	private final AoCalculator aoCalc = new AoCalculator(blockInfo) {
 		@Override
 		protected float ao(int x, int y, int z) {
 			final BlockRenderView blockView = blockInfo.blockView;
@@ -63,19 +63,21 @@ public class BlockRenderContext extends AbstractRenderContext implements RenderC
 				return state.getLuminance() == 0 ? state.getAmbientOcclusionLightLevel(blockView, searchPos) : 1F;
 			}
 		}
+
+		@Override
+		protected int brightness(int x, int y, int z) {
+			if (blockInfo.blockView == null) {
+				return 15 << 20 | 15 << 4;
+			}
+
+			searchPos.set(x, y, z);
+			return WorldRenderer.getLightmapCoordinates(blockInfo.blockView, blockInfo.blockView.getBlockState(searchPos), searchPos);
+		}
 	};
 
 	private final MeshConsumer meshConsumer = new MeshConsumer(blockInfo, this::outputBuffer, aoCalc, this::transform);
 	private VertexConsumer bufferBuilder;
 	private boolean didOutput = false;
-
-	private int brightness(BlockPos pos) {
-		if (blockInfo.blockView == null) {
-			return 15 << 20 | 15 << 4;
-		}
-
-		return WorldRenderer.getLightmapCoordinates(blockInfo.blockView, blockInfo.blockView.getBlockState(pos), pos);
-	}
 
 	private VertexConsumer outputBuffer(RenderLayer renderLayer) {
 		didOutput = true;
