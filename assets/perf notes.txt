@@ -315,3 +315,20 @@ Space-efficient block state cache
 
 [13:57:03] [Server-Worker-36/INFO]: Avg outer duration = 4,612,049 ns, total duration = 4,612, total runs = 1,000
 [13:57:03] [Server-Worker-36/INFO]: Avg inner duration = 2,144 ns, total duration = 1,488, total runs = 693,897
+
+
+Direct addressing for ao and brightness cache
+
+[14:16:33] [main/INFO]: Canvas Renderer is initializing.
+[14:16:33] [main/INFO]: [CHAT] [Debug]: Reloading all chunks
+[14:16:34] [Server-Worker-1/INFO]: Avg outer duration = 4,106,304 ns, total duration = 4,106, total runs = 1,000
+[14:16:34] [Server-Worker-1/INFO]: Avg inner duration = 1,927 ns, total duration = 1,290, total runs = 669,707
+
+[14:16:37] [Server-Worker-6/INFO]: Avg outer duration = 4,766,078 ns, total duration = 4,766, total runs = 1,000
+[14:16:37] [Server-Worker-6/INFO]: Avg inner duration = 1,916 ns, total duration = 1,934, total runs = 1,009,551
+
+[14:16:41] [Server-Worker-1/INFO]: Avg outer duration = 3,778,918 ns, total duration = 3,778, total runs = 1,000
+[14:16:41] [Server-Worker-1/INFO]: Avg inner duration = 1,784 ns, total duration = 1,097, total runs = 615,387
+
+[14:16:48] [Server-Worker-9/INFO]: Avg outer duration = 4,546,082 ns, total duration = 4,546, total runs = 1,000
+[14:16:48] [Server-Worker-9/INFO]: Avg inner duration = 2,195 ns, total duration = 1,399, total runs = 637,446

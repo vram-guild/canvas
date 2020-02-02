@@ -16,14 +16,13 @@
 
 package grondag.canvas.chunk;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 
 import javax.annotation.Nullable;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.longs.Long2FloatOpenHashMap;
-import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
@@ -44,46 +43,21 @@ import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachmentBlockEntity;
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
 import grondag.canvas.chunk.ChunkPaletteCopier.PaletteCopy;
 import grondag.canvas.perf.ChunkRebuildCounters;
-import grondag.fermion.position.PackedBlockPos;
 
 public class FastRenderRegion extends AbstractRenderRegion implements RenderAttachedBlockView {
-	private static final BlockState AIR = Blocks.AIR.getDefaultState();
-	private static final ArrayBlockingQueue<FastRenderRegion> POOL = new ArrayBlockingQueue<>(256);
-
-	public static FastRenderRegion claim(World world, BlockPos origin) {
-		final FastRenderRegion result = POOL.poll();
-		return (result == null ? new FastRenderRegion() : result).prepare(world, origin);
-	}
-
-	private static void release(FastRenderRegion region) {
-		POOL.offer(region);
-	}
-
-	public static void forceReload() {
-		// ensure current AoFix rule or other config-dependent lambdas are used
-		POOL.clear();
-	}
-
 	private final BlockPos.Mutable searchPos = new BlockPos.Mutable();
-	public final Long2IntOpenHashMap brightnessCache;
-	public final Long2FloatOpenHashMap aoLevelCache;
 	private final Int2ObjectOpenHashMap<Object> renderData = new Int2ObjectOpenHashMap<>();
 	public final Int2ObjectOpenHashMap<BlockEntity> blockEntities = new Int2ObjectOpenHashMap<>();
 
 	private final BlockState[] states = new BlockState[TOTAL_CACHE_SIZE];
+	private final float[] aoCache = new float[TOTAL_CACHE_SIZE];
+	private final int[] lightCache = new int[TOTAL_CACHE_SIZE];
 
 	// larger than needed to speed up indexing
 	private final WorldChunk[] chunks = new WorldChunk[16];
 	private PaletteCopy mainSectionCopy;
 
 	public TerrainRenderContext terrainContext;
-
-	private FastRenderRegion() {
-		brightnessCache = new Long2IntOpenHashMap(4096);
-		brightnessCache.defaultReturnValue(Integer.MAX_VALUE);
-		aoLevelCache = new Long2FloatOpenHashMap(4096);
-		aoLevelCache.defaultReturnValue(Float.MAX_VALUE);
-	}
 
 	public void prepareForUse() {
 		final PaletteCopy pc = mainSectionCopy;
@@ -143,8 +117,8 @@ public class FastRenderRegion extends AbstractRenderRegion implements RenderAtta
 			captureEdges();
 			captureFaces();
 
-			brightnessCache.clear();
-			aoLevelCache.clear();
+			System.arraycopy(EMPTY_AO_CACHE, 0, aoCache, 0, TOTAL_CACHE_SIZE);
+			System.arraycopy(EMPTY_LIGHT_CACHE, 0, lightCache, 0, TOTAL_CACHE_SIZE);
 
 			result = this;
 		}
@@ -325,13 +299,20 @@ public class FastRenderRegion extends AbstractRenderRegion implements RenderAtta
 	}
 
 	public int cachedBrightness(int x, int y, int z) {
-		final long key = PackedBlockPos.pack(x, y, z);
-		int result = brightnessCache.get(key);
+		final int i = blockIndex(x, y, z);
+
+		if (i == -1) {
+			searchPos.set(x, y, z);
+			final BlockState state = world.getBlockState(searchPos);
+			return WorldRenderer.getLightmapCoordinates(world, state, searchPos);
+		}
+
+		int result = lightCache[i];
 
 		if (result == Integer.MAX_VALUE) {
-			final BlockState state = getBlockState(x, y, z);
+			final BlockState state = states[i];
 			result = WorldRenderer.getLightmapCoordinates(world, state, searchPos.set(x, y, z));
-			brightnessCache.put(key, result);
+			lightCache[i] = result;
 		}
 
 		return result;
@@ -342,13 +323,20 @@ public class FastRenderRegion extends AbstractRenderRegion implements RenderAtta
 	}
 
 	public float cachedAoLevel(int x, int y, int z) {
-		final long key = PackedBlockPos.pack(x, y, z);
-		float result = aoLevelCache.get(key);
+		final int i = blockIndex(x, y, z);
+
+		if (i == -1) {
+			searchPos.set(x, y, z);
+			final BlockState state = world.getBlockState(searchPos);
+			return state.getLuminance() == 0 ? state.getAmbientOcclusionLightLevel(this, searchPos) : 1F;
+		}
+
+		float result = aoCache[i];
 
 		if (result == Float.MAX_VALUE) {
-			final BlockState state = getBlockState(x, y, z);
+			final BlockState state = states[i];
 			result = state.getLuminance() == 0 ? state.getAmbientOcclusionLightLevel(this, searchPos.set(x, y, z)) : 1F;
-			aoLevelCache.put(key, result);
+			aoCache[i] = result;
 		}
 
 		return result;
@@ -378,5 +366,30 @@ public class FastRenderRegion extends AbstractRenderRegion implements RenderAtta
 		} else {
 			return chunks[(cx - chunkBaseX) | ((cz - chunkBaseZ) << 2)];
 		}
+	}
+
+	private static final BlockState AIR = Blocks.AIR.getDefaultState();
+	private static final ArrayBlockingQueue<FastRenderRegion> POOL = new ArrayBlockingQueue<>(256);
+
+	public static FastRenderRegion claim(World world, BlockPos origin) {
+		final FastRenderRegion result = POOL.poll();
+		return (result == null ? new FastRenderRegion() : result).prepare(world, origin);
+	}
+
+	private static void release(FastRenderRegion region) {
+		POOL.offer(region);
+	}
+
+	public static void forceReload() {
+		// ensure current AoFix rule or other config-dependent lambdas are used
+		POOL.clear();
+	}
+
+	private static final float[] EMPTY_AO_CACHE = new float[TOTAL_CACHE_SIZE];
+	private static final int[] EMPTY_LIGHT_CACHE = new int[TOTAL_CACHE_SIZE];
+
+	static {
+		Arrays.fill(EMPTY_AO_CACHE, Float.MAX_VALUE);
+		Arrays.fill(EMPTY_LIGHT_CACHE, Integer.MAX_VALUE);
 	}
 }
