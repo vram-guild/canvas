@@ -332,3 +332,17 @@ Direct addressing for ao and brightness cache
 
 [14:16:48] [Server-Worker-9/INFO]: Avg outer duration = 4,546,082 ns, total duration = 4,546, total runs = 1,000
 [14:16:48] [Server-Worker-9/INFO]: Avg inner duration = 2,195 ns, total duration = 1,399, total runs = 637,446
+
+
+Clear blend cache for new blocks (fix defect, causes more calc with lots of snow)
+
+[14:54:29] [main/INFO]: Canvas Renderer is initializing.
+[14:54:30] [main/INFO]: [CHAT] [Debug]: Reloading all chunks
+[14:54:32] [Server-Worker-4/INFO]: Avg outer duration = 4,901,131 ns, total duration = 4,901, total runs = 1,000
+[14:54:32] [Server-Worker-4/INFO]: Avg inner duration = 3,227 ns, total duration = 2,165, total runs = 671,086
+
+[14:54:34] [Server-Worker-10/INFO]: Avg outer duration = 5,260,305 ns, total duration = 5,260, total runs = 1,000
+[14:54:34] [Server-Worker-10/INFO]: Avg inner duration = 2,828 ns, total duration = 2,468, total runs = 872,731
+
+[14:54:38] [Server-Worker-8/INFO]: Avg outer duration = 4,517,738 ns, total duration = 4,517, total runs = 1,000
+[14:54:38] [Server-Worker-8/INFO]: Avg inner duration = 2,763 ns, total duration = 1,777, total runs = 643,037

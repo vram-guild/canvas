@@ -100,19 +100,18 @@ public abstract class AoCalculator {
 
 	/** call at start of each new block */
 	public void clear() {
-		completionFlags = 0;
+		if(completionFlags != 0) {
+			completionFlags = 0;
 
-		// TODO: restore
-		//		if(completionFlags != 0) {
-		//			completionFlags = 0;
-		//			for(int i = 0; i < BLEND_CACHE_ARRAY_SIZE; i++) {
-		//				final AoFaceCalc d = blendCache[i];
-		//				if(d != null) {
-		//					d.release();
-		//					blendCache[i] = null;
-		//				}
-		//			}
-		//		}
+			for(int i = 0; i < BLEND_CACHE_ARRAY_SIZE; i++) {
+				final AoFaceCalc d = blendCache[i];
+
+				if(d != null) {
+					d.release();
+					blendCache[i] = null;
+				}
+			}
+		}
 	}
 
 	public void compute(MutableQuadViewImpl quad) {
@@ -444,7 +443,7 @@ public abstract class AoCalculator {
 			if (!(rightClear || bottomClear)) {
 				// both not clear
 				fd.aoBottomRight = (Math.min(aoRight, aoBottom) + aoBottom + aoRight + 1 + aoCenter) >> 2;
-		fd.bottomRight = OPAQUE;
+			fd.bottomRight = OPAQUE;
 			} else { // at least one clear
 				fastFaceOffset(searchPos, fastFaceOffset(searchPos, centerPos, aoFace.neighbors[BOTTOM]), aoFace.neighbors[RIGHT]);
 				offset = aoFace.bottomRightVec;
