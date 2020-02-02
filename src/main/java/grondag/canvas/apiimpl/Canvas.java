@@ -30,6 +30,7 @@ import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.RenderMaterialImpl.Value;
 import grondag.canvas.apiimpl.mesh.MeshBuilderImpl;
 import grondag.canvas.apiimpl.rendercontext.BlockRenderContext;
+import grondag.canvas.chunk.ChunkColorCache;
 import grondag.canvas.chunk.FastRenderRegion;
 import grondag.canvas.perf.ChunkRebuildCounters;
 
@@ -81,5 +82,6 @@ public class Canvas implements Renderer {
 		FastRenderRegion.forceReload();
 		BlockRenderContext.forceReload();
 		ChunkRebuildCounters.reset();
+		ChunkColorCache.invalidate();
 	}
 }

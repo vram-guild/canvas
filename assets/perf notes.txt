@@ -233,3 +233,47 @@ Start of fast occlusion
 [10:41:30] [Server-Worker-5/INFO]: Chunk Rebuild elapsed time per chunk for last 2000 chunks = 4,566,222ns
 [10:41:30] [Server-Worker-5/INFO]: Chunk Copy Stats: time this sample = 0.358s for 6,397 items @ 55,969ns each.
 [10:41:30] [Server-Worker-5/INFO]: Time per fluid/block = 2,035ns  Count = 4,488,470  fluid:block ratio = 1:99
+
+
+------
+
+block portion of build
+
+[14:09:43] [Server-Worker-11/INFO]: Avg outer duration = 4,788,233 ns, total duration = 4,788, total runs = 1,000
+[14:09:43] [Server-Worker-11/INFO]: Avg inner duration = 4,340 ns, total duration = 4,053, total runs = 933,945
+
+tesselate block alone
+[14:11:21] [Server-Worker-20/INFO]: Avg outer duration = 4,334,838 ns, total duration = 4,334, total runs = 1,000
+[14:11:21] [Server-Worker-20/INFO]: Avg inner duration = 4,111 ns, total duration = 3,627, total runs = 882,270
+
+[14:11:25] [Server-Worker-20/INFO]: Avg outer duration = 4,369,655 ns, total duration = 4,369, total runs = 1,000
+[14:11:25] [Server-Worker-20/INFO]: Avg inner duration = 3,611 ns, total duration = 3,486, total runs = 965,196
+
+
+emitBlockQuads
+[14:22:36] [Server-Worker-14/INFO]: Avg outer duration = 5,225,480 ns, total duration = 5,225, total runs = 1,000
+[14:22:36] [Server-Worker-14/INFO]: Avg inner duration = 4,592 ns, total duration = 4,222, total runs = 919,412
+
+[14:22:41] [Server-Worker-19/INFO]: Avg outer duration = 4,805,674 ns, total duration = 4,805, total runs = 1,000
+[14:22:41] [Server-Worker-19/INFO]: Avg inner duration = 3,987 ns, total duration = 3,812, total runs = 956,044
+
+similar getColor implementation
+[15:06:19] [Server-Worker-7/INFO]: Avg outer duration = 4,486,606 ns, total duration = 4,486, total runs = 1,000
+[15:06:19] [Server-Worker-7/INFO]: Avg inner duration = 6,126 ns, total duration = 985, total runs = 160,818
+
+[15:06:23] [Server-Worker-4/INFO]: Avg outer duration = 4,303,022 ns, total duration = 4,303, total runs = 1,000
+[15:06:23] [Server-Worker-4/INFO]: Avg inner duration = 5,348 ns, total duration = 818, total runs = 153,106
+
+[15:06:31] [Server-Worker-9/INFO]: Avg outer duration = 4,170,246 ns, total duration = 4,170, total runs = 1,000
+[15:06:31] [Server-Worker-9/INFO]: Avg inner duration = 6,103 ns, total duration = 859, total runs = 140,881
+
+with ChunkColorCache
+[08:24:27] [main/INFO]: [CHAT] [Debug]: Reloading all chunks
+[08:24:30] [Server-Worker-13/INFO]: Avg outer duration = 3,538,536 ns, total duration = 3,538, total runs = 1,000
+[08:24:30] [Server-Worker-13/INFO]: Avg inner duration = 977 ns, total duration = 183, total runs = 187,401
+
+[08:24:33] [Server-Worker-12/INFO]: Avg outer duration = 3,480,352 ns, total duration = 3,480, total runs = 1,000
+[08:24:33] [Server-Worker-12/INFO]: Avg inner duration = 1,094 ns, total duration = 171, total runs = 156,189
+
+[08:24:37] [Server-Worker-10/INFO]: Avg outer duration = 3,069,597 ns, total duration = 3,069, total runs = 1,000
+[08:24:37] [Server-Worker-10/INFO]: Avg inner duration = 736 ns, total duration = 142, total runs = 193,627

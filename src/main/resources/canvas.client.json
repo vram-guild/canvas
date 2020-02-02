@@ -9,9 +9,11 @@
     "MixinBuiltChunk",
     "MixinChunkRebuildTask",
     "MixinChunkRenderData",
+    "MixinClientChunkManager",
     "MixinItemRenderer",
     "MixinPackedIntegerArray",
-    "MixinPalettedContainer"
+    "MixinPalettedContainer",
+    "MixinWorldChunk"
   ],
   "injectors": {
     "defaultRequire": 1
