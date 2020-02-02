@@ -38,6 +38,7 @@ import grondag.canvas.apiimpl.RenderMaterialImpl.Value;
 import grondag.canvas.apiimpl.mesh.EncodingFormat;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.util.GeometryHelper;
+import grondag.canvas.chunk.ChunkRebuildinator;
 import grondag.canvas.light.AoCalculator;
 
 /**
@@ -131,7 +132,9 @@ public abstract class TerrainFallbackConsumer extends AbstractQuadRenderer imple
 		if (!editorQuad.material().disableAo(0)) {
 			// needs to happen before offsets are applied
 			editorQuad.invalidateShape();
-			aoCalc.compute(editorQuad, true);
+			ChunkRebuildinator.inner.start();
+			aoCalc.compute(editorQuad);
+			ChunkRebuildinator.inner.stop();
 			tesselateSmooth(editorQuad, blockInfo.defaultLayer, editorQuad.colorIndex());
 		} else {
 			// vanilla compatibility hack

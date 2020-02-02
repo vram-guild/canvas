@@ -277,3 +277,27 @@ with ChunkColorCache
 
 [08:24:37] [Server-Worker-10/INFO]: Avg outer duration = 3,069,597 ns, total duration = 3,069, total runs = 1,000
 [08:24:37] [Server-Worker-10/INFO]: Avg inner duration = 736 ns, total duration = 142, total runs = 193,627
+
+AO pre optimization
+[08:29:17] [main/INFO]: [CHAT] [Debug]: Reloading all chunks
+[08:29:20] [Server-Worker-4/INFO]: Avg outer duration = 3,535,612 ns, total duration = 3,535, total runs = 1,000
+[08:29:20] [Server-Worker-4/INFO]: Avg inner duration = 1,116 ns, total duration = 1,030, total runs = 922,955
+
+[08:29:23] [Server-Worker-4/INFO]: Avg outer duration = 3,467,761 ns, total duration = 3,467, total runs = 1,000
+[08:29:23] [Server-Worker-4/INFO]: Avg inner duration = 1,149 ns, total duration = 875, total runs = 761,428
+
+[08:29:28] [Server-Worker-8/INFO]: Avg outer duration = 4,129,500 ns, total duration = 4,129, total runs = 1,000
+[08:29:28] [Server-Worker-8/INFO]: Avg inner duration = 1,332 ns, total duration = 1,078, total runs = 809,337
+
+Bring in Canvas AO calc. Hmmm....
+
+[08:55:48] [main/INFO]: Canvas Renderer is initializing.
+[08:55:48] [main/INFO]: [CHAT] [Debug]: Reloading all chunks
+[08:55:51] [Server-Worker-8/INFO]: Avg outer duration = 4,639,336 ns, total duration = 4,639, total runs = 1,000
+[08:55:51] [Server-Worker-8/INFO]: Avg inner duration = 2,548 ns, total duration = 1,973, total runs = 774,304
+
+[08:55:54] [Server-Worker-3/INFO]: Avg outer duration = 4,515,039 ns, total duration = 4,515, total runs = 1,000
+[08:55:54] [Server-Worker-3/INFO]: Avg inner duration = 2,282 ns, total duration = 1,985, total runs = 869,822
+
+[08:55:58] [Server-Worker-3/INFO]: Avg outer duration = 3,978,104 ns, total duration = 3,978, total runs = 1,000
+[08:55:58] [Server-Worker-3/INFO]: Avg inner duration = 2,083 ns, total duration = 1,404, total runs = 674,072

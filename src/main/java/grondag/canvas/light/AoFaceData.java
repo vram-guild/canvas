@@ -1,102 +1,115 @@
-/*
- * Copyright (c) 2016, 2017, 2018, 2019 FabricMC
+/*******************************************************************************
+ * Copyright 2019 grondag
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License.  You may obtain a copy
+ * of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ ******************************************************************************/
 
 package grondag.canvas.light;
 
 /**
- * Holds per-corner results for a single block face.
- * Handles caching and provides various utility methods to simplify code elsewhere.
+ * Holds per-corner results for a single block face. Handles caching and
+ * provides various utility methods to simplify code elsewhere.
  */
-class AoFaceData {
-	float a0;
-	float a1;
-	float a2;
-	float a3;
-	int b0;
-	int b1;
-	int b2;
-	int b3;
-	int s0;
-	int s1;
-	int s2;
-	int s3;
+public class AoFaceData {
 
-	void l0(int l0) {
-		this.b0 = l0 & 0xFFFF;
-		this.s0 = (l0 >>> 16) & 0xFFFF;
+	public static final int OPAQUE = -1;
+
+	// packed values gathered during compute
+	public int bottom;
+	public int top;
+	public int left;
+	public int right;
+	public int bottomLeft;
+	public int bottomRight;
+	public int topLeft;
+	public int topRight;
+	public int center;
+
+	// these values are fully computed at gather time
+	int aoBottomLeft;
+	int aoBottomRight;
+	int aoTopLeft;
+	int aoTopRight;
+
+	private AoFaceCalc calc = null;
+
+	public AoFaceCalc calc() {
+		AoFaceCalc result = calc;
+		if(result == null) {
+			result = AoFaceCalc.claim().compute(this);
+			calc = result;
+		}
+		return result;
 	}
 
-	void l1(int l1) {
-		this.b1 = l1 & 0xFFFF;
-		this.s1 = (l1 >>> 16) & 0xFFFF;
+	public AoFaceData resetCalc() {
+		if(calc != null) {
+			calc.release();
+			calc = null;
+		}
+		return this;
 	}
 
-	void l2(int l2) {
-		this.b2 = l2 & 0xFFFF;
-		this.s2 = (l2 >>> 16) & 0xFFFF;
-	}
+	public static AoFaceData weightedBlend(AoFaceData in0, float w0, AoFaceData in1, float w1, AoFaceData out) {
+		out.top = lightBlend(in0.top, w0, in1.top, w1);
+		out.left = lightBlend(in0.left, w0, in1.left, w1);
+		out.right = lightBlend(in0.right, w0, in1.right, w1);
+		out.bottom = lightBlend(in0.bottom, w0, in1.bottom, w1);
 
-	void l3(int l3) {
-		this.b3 = l3 & 0xFFFF;
-		this.s3 = (l3 >>> 16) & 0xFFFF;
-	}
+		out.topLeft = lightBlend(in0.topLeft, w0, in1.topLeft, w1);
+		out.topRight = lightBlend(in0.topRight, w0, in1.topRight, w1);
+		out.bottomLeft = lightBlend(in0.bottomLeft, w0, in1.bottomLeft, w1);
+		out.bottomRight = lightBlend(in0.bottomRight, w0, in1.bottomRight, w1);
 
-	int weigtedBlockLight(float[] w) {
-		return (int) (b0 * w[0] + b1 * w[1] + b2 * w[2] + b3 * w[3]) & 0xFF;
-	}
+		out.center = lightBlend(in0.center, w0, in1.center, w1);
 
-	int weigtedSkyLight(float[] w) {
-		return (int) (s0 * w[0] + s1 * w[1] + s2 * w[2] + s3 * w[3]) & 0xFF;
-	}
-
-	int weightedCombinedLight(float[] w) {
-		return weigtedSkyLight(w) << 16 | weigtedBlockLight(w);
-	}
-
-	float weigtedAo(float[] w) {
-		return a0 * w[0] + a1 * w[1] + a2 * w[2] + a3 * w[3];
-	}
-
-	void toArray(float[] aOut, int[] bOut, int[] vertexMap) {
-		aOut[vertexMap[0]] = a0;
-		aOut[vertexMap[1]] = a1;
-		aOut[vertexMap[2]] = a2;
-		aOut[vertexMap[3]] = a3;
-		bOut[vertexMap[0]] = s0 << 16 | b0;
-		bOut[vertexMap[1]] = s1 << 16 | b1;
-		bOut[vertexMap[2]] = s2 << 16 | b2;
-		bOut[vertexMap[3]] = s3 << 16 | b3;
-	}
-
-	static AoFaceData weightedMean(AoFaceData in0, float w0, AoFaceData in1, float w1, AoFaceData out) {
-		out.a0 = in0.a0 * w0 + in1.a0 * w1;
-		out.a1 = in0.a1 * w0 + in1.a1 * w1;
-		out.a2 = in0.a2 * w0 + in1.a2 * w1;
-		out.a3 = in0.a3 * w0 + in1.a3 * w1;
-
-		out.b0 = (int) (in0.b0 * w0 + in1.b0 * w1);
-		out.b1 = (int) (in0.b1 * w0 + in1.b1 * w1);
-		out.b2 = (int) (in0.b2 * w0 + in1.b2 * w1);
-		out.b3 = (int) (in0.b3 * w0 + in1.b3 * w1);
-
-		out.s0 = (int) (in0.s0 * w0 + in1.s0 * w1);
-		out.s1 = (int) (in0.s1 * w0 + in1.s1 * w1);
-		out.s2 = (int) (in0.s2 * w0 + in1.s2 * w1);
-		out.s3 = (int) (in0.s3 * w0 + in1.s3 * w1);
+		out.aoTopLeft = Math.round(in0.aoTopLeft * w0 + in1.aoTopLeft * w1);
+		out.aoTopRight = Math.round(in0.aoTopRight * w0 + in1.aoTopRight * w1);
+		out.aoBottomLeft = Math.round(in0.aoBottomLeft * w0 + in1.aoBottomLeft * w1);
+		out.aoBottomRight = Math.round(in0.aoBottomRight * w0 + in1.aoBottomRight * w1);
 
 		return out;
+	}
+
+	private static int lightBlend(int l0, float w0, int l1, float w1) {
+		if(l0 == OPAQUE) {
+			if(l1 == OPAQUE) {
+				return OPAQUE;
+			} else {
+				return reduce(l1);
+			}
+		} else {
+			if(l1 == OPAQUE) {
+				return reduce(l0);
+			} else {
+				return lightBlendInner(l0, w0, l1, w1);
+			}
+		}
+	}
+
+	private static int lightBlendInner(int l0, float w0, int l1, float w1) {
+		final int b0 = (l0 & 0xFF);
+		final int k0 = ((l0 >> 16) & 0xFF);
+		final int b1 = (l1 & 0xFF);
+		final int k1 = ((l1 >> 16) & 0xFF);
+		final float b = b0 * w0 + b1 * w1;
+		final float k = k0 * w0 + k1 * w1;
+		return Math.round(b) | (Math.round(k) << 16);
+	}
+
+	private static int reduce(int light) {
+		final int block = (light & 0xFF) - 16;
+		final int sky = ((light >> 16) & 0xFF) - 16;
+		return Math.max(0, block) | (Math.max(0, sky) << 16);
 	}
 }

@@ -399,13 +399,11 @@ public class FastRenderRegion implements RenderAttachedBlockView {
 
 	@Override
 	public int getColor(BlockPos blockPos, ColorResolver colorResolver) {
-		ChunkRebuildinator.inner.start();
 		final int x = blockPos.getX();
 		final int z = blockPos.getZ();
 
 		final int result = ChunkColorCache.get(getChunk(x >> 4, z >> 4)).getColor(x, blockPos.getY(), z, colorResolver);
 
-		ChunkRebuildinator.inner.stop();
 		return result;
 	}
 

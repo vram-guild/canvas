@@ -112,6 +112,10 @@ public abstract class EncodingFormat {
 		return ModelHelper.faceFromIndex((bits >> LIGHT_SHIFT) & DIRECTION_MASK);
 	}
 
+	static int lightFaceId(int bits) {
+		return (bits >> LIGHT_SHIFT) & DIRECTION_MASK;
+	}
+
 	static int lightFace(int bits, Direction face) {
 		return (bits & LIGHT_INVERSE_MASK) | (ModelHelper.toFaceIndex(face) << LIGHT_SHIFT);
 	}

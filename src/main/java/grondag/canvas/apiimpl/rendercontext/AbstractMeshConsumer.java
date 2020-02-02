@@ -101,7 +101,7 @@ public abstract class AbstractMeshConsumer extends AbstractQuadRenderer implemen
 
 		if (!mat.disableAo(0) && MinecraftClient.isAmbientOcclusionEnabled()) {
 			// needs to happen before offsets are applied
-			aoCalc.compute(q, false);
+			aoCalc.compute(q);
 		}
 
 		tesselateQuad(q, mat, 0);

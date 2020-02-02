@@ -148,6 +148,10 @@ public class QuadViewImpl implements QuadView {
 		return EncodingFormat.lightFace(data[baseIndex + HEADER_BITS]);
 	}
 
+	public final int lightFaceId() {
+		return EncodingFormat.lightFaceId(data[baseIndex + HEADER_BITS]);
+	}
+
 	@Override
 	public final Direction cullFace() {
 		return EncodingFormat.cullFace(data[baseIndex + HEADER_BITS]);
