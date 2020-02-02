@@ -46,10 +46,9 @@ import grondag.canvas.chunk.ChunkPaletteCopier.PaletteCopy;
 import grondag.canvas.perf.ChunkRebuildCounters;
 import grondag.fermion.position.PackedBlockPos;
 
-public class FastRenderRegion implements RenderAttachedBlockView {
+public class FastRenderRegion extends AbstractRenderRegion implements RenderAttachedBlockView {
 	private static final BlockState AIR = Blocks.AIR.getDefaultState();
 	private static final ArrayBlockingQueue<FastRenderRegion> POOL = new ArrayBlockingQueue<>(256);
-	private static final int STATE_COUNT = 32768;
 
 	public static FastRenderRegion claim(World world, BlockPos origin) {
 		final FastRenderRegion result = POOL.poll();
@@ -71,23 +70,12 @@ public class FastRenderRegion implements RenderAttachedBlockView {
 	private final Int2ObjectOpenHashMap<Object> renderData = new Int2ObjectOpenHashMap<>();
 	public final Int2ObjectOpenHashMap<BlockEntity> blockEntities = new Int2ObjectOpenHashMap<>();
 
-	private final BlockState[] states = new BlockState[STATE_COUNT];
+	private final BlockState[] states = new BlockState[TOTAL_CACHE_SIZE];
 
 	// larger than needed to speed up indexing
 	private final WorldChunk[] chunks = new WorldChunk[16];
 	private PaletteCopy mainSectionCopy;
 
-	private long chunkOriginKey;
-
-	private int blockBaseX;
-	private int blockBaseY;
-	private int blockBaseZ;
-
-	private int chunkBaseX;
-	private int chunkBaseY;
-	private int chunkBaseZ;
-
-	private World world;
 	public TerrainRenderContext terrainContext;
 
 	private FastRenderRegion() {
@@ -97,11 +85,6 @@ public class FastRenderRegion implements RenderAttachedBlockView {
 		aoLevelCache.defaultReturnValue(Float.MAX_VALUE);
 	}
 
-	// PERF: consider morton numbering for better locality
-	private int stateIndex(int x, int y, int z) {
-		return x | (y << 5) | (z << 10);
-	}
-
 	public void prepareForUse() {
 		final PaletteCopy pc = mainSectionCopy;
 		mainSectionCopy = null;
@@ -109,16 +92,12 @@ public class FastRenderRegion implements RenderAttachedBlockView {
 		for (int x = 0; x < 16; x++) {
 			for (int y = 0; y < 16; y++) {
 				for (int z = 0; z < 16; z++) {
-					states[stateIndex(1 + x, 1 + y, 1 + z)] = pc.apply(x | (y << 8) | (z << 4));
+					states[mainChunkLocalIndex(x, y, z)] = pc.apply(x | (y << 8) | (z << 4));
 				}
 			}
 		}
 
 		pc.release();
-	}
-
-	private long chunkKey(int x, int y, int z) {
-		return PackedBlockPos.pack(x & 0xFFFFFFF0, y & 0xF0, z & 0xFFFFFFF0);
 	}
 
 	private long start;
@@ -132,73 +111,50 @@ public class FastRenderRegion implements RenderAttachedBlockView {
 
 		this.world = world;
 
-		final int ox = origin.getX();
-		final int oy = origin.getY();
-		final int oz = origin.getZ();
+		originX = origin.getX();
+		originY = origin.getY();
+		originZ = origin.getZ();
 
-		chunkOriginKey = chunkKey(ox, oy, oz);
+		chunkBaseX = (originX >> 4) - 1;
+		chunkBaseY = (originY >> 4) - 1;
+		chunkBaseZ = (originZ >> 4) - 1;
 
-		blockBaseX = ox - 1;
-		blockBaseY = oy - 1;
-		blockBaseZ = oz - 1;
+		final WorldChunk mainChunk = world.getChunk(chunkBaseX + 1, chunkBaseZ + 1);
+		mainSectionCopy = ChunkPaletteCopier.captureCopy(mainChunk, 1 + chunkBaseY);
 
-		chunkBaseX = blockBaseX >> 4;
-					// eclipse save action formatting shits the bed here for no apparent reason
-					chunkBaseY = blockBaseY >> 4;
-					chunkBaseZ = blockBaseZ >> 4;
+		final FastRenderRegion result;
 
-				final WorldChunk mainChunk = world.getChunk(chunkBaseX + 1, chunkBaseZ + 1);
-				mainSectionCopy = ChunkPaletteCopier.captureCopy(mainChunk, 1 + chunkBaseY);
+		if(mainSectionCopy == ChunkPaletteCopier.AIR_COPY) {
+			this.release();
+			result = null;
+		} else {
+			captureBlockEntities(mainChunk);
+			chunks[1 | (1 << 2)] = mainChunk;
+			chunks[0 | (0 << 2)] = world.getChunk(chunkBaseX + 0, chunkBaseZ + 0);
+			chunks[0 | (1 << 2)] = world.getChunk(chunkBaseX + 0, chunkBaseZ + 1);
+			chunks[0 | (2 << 2)] = world.getChunk(chunkBaseX + 0, chunkBaseZ + 2);
+			chunks[1 | (0 << 2)] = world.getChunk(chunkBaseX + 1, chunkBaseZ + 0);
+			chunks[1 | (2 << 2)] = world.getChunk(chunkBaseX + 1, chunkBaseZ + 2);
+			chunks[2 | (0 << 2)] = world.getChunk(chunkBaseX + 2, chunkBaseZ + 0);
+			chunks[2 | (1 << 2)] = world.getChunk(chunkBaseX + 2, chunkBaseZ + 1);
+			chunks[2 | (2 << 2)] = world.getChunk(chunkBaseX + 2, chunkBaseZ + 2);
 
-				final FastRenderRegion result;
+			captureCorners();
+			captureEdges();
+			captureFaces();
 
-				if(mainSectionCopy == ChunkPaletteCopier.AIR_COPY) {
-					this.release();
-					result = null;
-				} else {
-					captureBlockEntities(mainChunk);
-					chunks[1 | (1 << 2)] = mainChunk;
-					chunks[0 | (0 << 2)] = world.getChunk(chunkBaseX + 0, chunkBaseZ + 0);
-					chunks[0 | (1 << 2)] = world.getChunk(chunkBaseX + 0, chunkBaseZ + 1);
-					chunks[0 | (2 << 2)] = world.getChunk(chunkBaseX + 0, chunkBaseZ + 2);
-					chunks[1 | (0 << 2)] = world.getChunk(chunkBaseX + 1, chunkBaseZ + 0);
-					chunks[1 | (2 << 2)] = world.getChunk(chunkBaseX + 1, chunkBaseZ + 2);
-					chunks[2 | (0 << 2)] = world.getChunk(chunkBaseX + 2, chunkBaseZ + 0);
-					chunks[2 | (1 << 2)] = world.getChunk(chunkBaseX + 2, chunkBaseZ + 1);
-					chunks[2 | (2 << 2)] = world.getChunk(chunkBaseX + 2, chunkBaseZ + 2);
+			brightnessCache.clear();
+			aoLevelCache.clear();
 
-					captureCorners();
-					captureEdges();
-					captureFaces();
+			result = this;
+		}
 
-					brightnessCache.clear();
-					aoLevelCache.clear();
+		if(ChunkRebuildCounters.ENABLED) {
+			counter.copyCounter.endRun(start);
+			counter.copyCounter.addCount(1);
+		}
 
-					result = this;
-				}
-
-				if(ChunkRebuildCounters.ENABLED) {
-					counter.copyCounter.endRun(start);
-					counter.copyCounter.addCount(1);
-				}
-
-				return result;
-	}
-
-	private int singleChunkBlockIndex(int x, int y, int z) {
-		return (x & 0xF) | ((y & 0xF) << 4) | ((z & 0xF) << 8);
-	}
-
-	private int singleChunkBlockIndex(BlockPos pos) {
-		return singleChunkBlockIndex(pos.getX(), pos.getY(), pos.getZ());
-	}
-
-	private boolean isInMainChunk(int x, int y, int z) {
-		return chunkKey(x, y, z) == chunkOriginKey;
-	}
-
-	private boolean isInMainChunk(BlockPos pos) {
-		return isInMainChunk(pos.getX(), pos.getY(), pos.getZ());
+		return result;
 	}
 
 	private void captureBlockEntities(WorldChunk mainChunk) {
@@ -206,7 +162,7 @@ public class FastRenderRegion implements RenderAttachedBlockView {
 		blockEntities.clear();
 
 		for(final Map.Entry<BlockPos, BlockEntity> entry : mainChunk.getBlockEntities().entrySet()) {
-			final int key = singleChunkBlockIndex(entry.getKey());
+			final int key = mainChunkBlockIndex(entry.getKey());
 			final BlockEntity be = entry.getValue();
 			blockEntities.put(key, be);
 			final Object rd = ((RenderAttachmentBlockEntity) be).getRenderAttachmentData();
@@ -227,17 +183,14 @@ public class FastRenderRegion implements RenderAttachedBlockView {
 
 		for (int i = 0; i < 16; i++) {
 			for (int j = 0; j < 16; j++) {
-				final int ip = i + 1;
-				final int jp = j + 1;
+				states[localXfaceIndex(false, i, j)] = lowX == null ? AIR : lowX.getBlockState(15, i, j);
+				states[localXfaceIndex(true, i, j)] = highX == null ? AIR : highX.getBlockState(0, i, j);
 
-				states[stateIndex(0, ip, jp)] = lowX == null ? AIR : lowX.getBlockState(15, i, j);
-				states[stateIndex(17, ip, jp)] = highX == null ? AIR : highX.getBlockState(0, i, j);
+				states[localZfaceIndex(i, j, false)] = lowZ == null ? AIR : lowZ.getBlockState(i, j, 15);
+				states[localZfaceIndex(i, j, true)] = highZ == null ? AIR : highZ.getBlockState(i, j, 0);
 
-				states[stateIndex(ip, jp, 0)] = lowZ == null ? AIR : lowZ.getBlockState(i, j, 15);
-				states[stateIndex(ip, jp, 17)] = highZ == null ? AIR : highZ.getBlockState(i, j, 0);
-
-				states[stateIndex(ip, 0, jp)] = lowY == null ? AIR : lowY.getBlockState(i, 15, j);
-				states[stateIndex(ip, 17, jp)] = highY == null ? AIR : highY.getBlockState(i, 0, j);
+				states[localYfaceIndex(i, false, j)] = lowY == null ? AIR : lowY.getBlockState(i, 15, j);
+				states[localYfaceIndex(i, true, j)] = highY == null ? AIR : highY.getBlockState(i, 0, j);
 			}
 		}
 	}
@@ -269,34 +222,33 @@ public class FastRenderRegion implements RenderAttachedBlockView {
 		final ChunkSection Xbb = getSection(1, 2, 2);
 
 		for(int i = 0; i < 16; i++) {
-			final int ip = i + 1;
-			states[stateIndex(0, 0, ip)] = aaZ == null ? AIR : aaZ.getBlockState(15, 15, i);
-			states[stateIndex(0, 17, ip)] = abZ == null ? AIR : abZ.getBlockState(15, 0, i);
-			states[stateIndex(17, 0, ip)] = baZ == null ? AIR : baZ.getBlockState(0, 15, i);
-			states[stateIndex(17, 17, ip)] = bbZ == null ? AIR : bbZ.getBlockState(0, 0, i);
+			states[localZEdgeIndex(false, false, i)] = aaZ == null ? AIR : aaZ.getBlockState(15, 15, i);
+			states[localZEdgeIndex(false, true, i)] = abZ == null ? AIR : abZ.getBlockState(15, 0, i);
+			states[localZEdgeIndex(true, false, i)] = baZ == null ? AIR : baZ.getBlockState(0, 15, i);
+			states[localZEdgeIndex(true, true, i)] = bbZ == null ? AIR : bbZ.getBlockState(0, 0, i);
 
-			states[stateIndex(0, ip, 0)] = aYa == null ? AIR : aYa.getBlockState(15, i, 15);
-			states[stateIndex(0, ip, 17)] = aYb == null ? AIR : aYb.getBlockState(15, i, 0);
-			states[stateIndex(17, ip, 0)] = bYa == null ? AIR : bYa.getBlockState(0, i, 15);
-			states[stateIndex(17, ip, 17)] = bYb == null ? AIR : bYb.getBlockState(0, i, 0);
+			states[localYEdgeIndex(false, i, false)] = aYa == null ? AIR : aYa.getBlockState(15, i, 15);
+			states[localYEdgeIndex(false, i, true)] = aYb == null ? AIR : aYb.getBlockState(15, i, 0);
+			states[localYEdgeIndex(true, i, false)] = bYa == null ? AIR : bYa.getBlockState(0, i, 15);
+			states[localYEdgeIndex(true, i, true)] = bYb == null ? AIR : bYb.getBlockState(0, i, 0);
 
-			states[stateIndex(ip, 0, 0)] = Xaa == null ? AIR : Xaa.getBlockState(i, 15, 15);
-			states[stateIndex(ip, 0, 17)] = Xab == null ? AIR : Xab.getBlockState(i, 15, 0);
-			states[stateIndex(ip, 17, 0)] = Xba == null ? AIR : Xba.getBlockState(i, 0, 15);
-			states[stateIndex(ip, 17, 17)] = Xbb == null ? AIR : Xbb.getBlockState(i, 0, 0);
+			states[localXEdgeIndex(i, false, false)] = Xaa == null ? AIR : Xaa.getBlockState(i, 15, 15);
+			states[localXEdgeIndex(i, false, true)] = Xab == null ? AIR : Xab.getBlockState(i, 15, 0);
+			states[localXEdgeIndex(i, true, false)] = Xba == null ? AIR : Xba.getBlockState(i, 0, 15);
+			states[localXEdgeIndex(i, true, true)] = Xbb == null ? AIR : Xbb.getBlockState(i, 0, 0);
 		}
 	}
 
 	private void captureCorners() {
-		states[stateIndex(0, 0, 0)] = captureCornerState(0, 0, 0);
-		states[stateIndex(0, 0, 17)] = captureCornerState(0, 0, 2);
-		states[stateIndex(0, 17, 0)] = captureCornerState(0, 2, 0);
-		states[stateIndex(0, 17, 17)] = captureCornerState(0, 2, 2);
+		states[localCornerIndex(false, false, false)] = captureCornerState(0, 0, 0);
+		states[localCornerIndex(false, false, true)] = captureCornerState(0, 0, 2);
+		states[localCornerIndex(false, true, false)] = captureCornerState(0, 2, 0);
+		states[localCornerIndex(false, true, true)] = captureCornerState(0, 2, 2);
 
-		states[stateIndex(17, 0, 0)] = captureCornerState(2, 0, 0);
-		states[stateIndex(17, 0, 17)] = captureCornerState(2, 0, 2);
-		states[stateIndex(17, 17, 0)] = captureCornerState(2, 2, 0);
-		states[stateIndex(17, 17, 17)] = captureCornerState(2, 2, 2);
+		states[localCornerIndex(true, false, false)] = captureCornerState(2, 0, 0);
+		states[localCornerIndex(true, false, true)] = captureCornerState(2, 0, 2);
+		states[localCornerIndex(true, true, false)] = captureCornerState(2, 2, 0);
+		states[localCornerIndex(true, true, true)] = captureCornerState(2, 2, 2);
 	}
 
 	private BlockState captureCornerState(int x, int y, int z) {
@@ -306,13 +258,9 @@ public class FastRenderRegion implements RenderAttachedBlockView {
 
 	@Override
 	public BlockState getBlockState(BlockPos pos) {
-		final int x = pos.getX();
-		final int y = pos.getY();
-		final int z = pos.getZ();
+		final int i = blockIndex(pos.getX(), pos.getY(), pos.getZ());
 
-		final int i = stateIndex(x - blockBaseX, y - blockBaseY, z - blockBaseZ);
-
-		if (i < 0 || i >= STATE_COUNT) {
+		if (i == -1) {
 			return world.getBlockState(pos);
 		}
 
@@ -320,17 +268,20 @@ public class FastRenderRegion implements RenderAttachedBlockView {
 	}
 
 	public BlockState getBlockState(int x, int y, int z) {
-		final int i = stateIndex(x - blockBaseX, y - blockBaseY, z - blockBaseZ);
+		final int i = blockIndex(x, y, z);
 
-		if (i < 0 || i >= STATE_COUNT) {
+		if (i == -1) {
 			return world.getBlockState(searchPos.set(x, y, z));
 		}
 
 		return states[i];
 	}
 
-	public BlockState getChunkBlockState(int x, int y, int z) {
-		return states[stateIndex(x + 1, y + 1, z + 1)];
+	/**
+	 * Assumes values 0-15
+	 */
+	public BlockState getLocalBlockState(int x, int y, int z) {
+		return states[mainChunkLocalIndex(x, y, z)];
 	}
 
 	public void release() {
@@ -355,7 +306,7 @@ public class FastRenderRegion implements RenderAttachedBlockView {
 	@Override
 	@Nullable
 	public BlockEntity getBlockEntity(BlockPos pos) {
-		return isInMainChunk(pos) ? blockEntities.get(this.singleChunkBlockIndex(pos)) : world.getBlockEntity(pos);
+		return isInMainChunk(pos) ? blockEntities.get(this.mainChunkBlockIndex(pos)) : world.getBlockEntity(pos);
 	}
 
 	@Override
@@ -370,7 +321,7 @@ public class FastRenderRegion implements RenderAttachedBlockView {
 
 	@Override
 	public Object getBlockEntityRenderAttachment(BlockPos pos) {
-		return renderData.get(singleChunkBlockIndex(pos));
+		return renderData.get(mainChunkBlockIndex(pos));
 	}
 
 	public int cachedBrightness(int x, int y, int z) {

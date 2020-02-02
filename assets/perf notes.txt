@@ -301,3 +301,17 @@ Bring in Canvas AO calc. Hmmm....
 
 [08:55:58] [Server-Worker-3/INFO]: Avg outer duration = 3,978,104 ns, total duration = 3,978, total runs = 1,000
 [08:55:58] [Server-Worker-3/INFO]: Avg inner duration = 2,083 ns, total duration = 1,404, total runs = 674,072
+
+
+Space-efficient block state cache
+
+[13:56:54] [main/INFO]: Canvas Renderer is initializing.
+[13:56:54] [main/INFO]: [CHAT] [Debug]: Reloading all chunks
+[13:56:55] [Server-Worker-30/INFO]: Avg outer duration = 4,736,499 ns, total duration = 4,736, total runs = 1,000
+[13:56:55] [Server-Worker-30/INFO]: Avg inner duration = 2,231 ns, total duration = 1,931, total runs = 865,498
+
+[13:56:58] [Server-Worker-36/INFO]: Avg outer duration = 4,797,472 ns, total duration = 4,797, total runs = 1,000
+[13:56:58] [Server-Worker-36/INFO]: Avg inner duration = 2,120 ns, total duration = 2,013, total runs = 949,840
+
+[13:57:03] [Server-Worker-36/INFO]: Avg outer duration = 4,612,049 ns, total duration = 4,612, total runs = 1,000
+[13:57:03] [Server-Worker-36/INFO]: Avg inner duration = 2,144 ns, total duration = 1,488, total runs = 693,897

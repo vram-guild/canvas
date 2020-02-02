@@ -52,7 +52,7 @@ public class LightSmoother {
 					final int bz = z + minZ;
 					smoothPos.set(bx, by, bz);
 
-					final BlockState state = view.getChunkBlockState(bx, by, bz);
+					final BlockState state = view.getBlockState(bx, by, bz);
 					//PERF: consider packed pos
 					// don't use cache here because we are populating the cache
 					final int packedLight = view.directBrightness(smoothPos);

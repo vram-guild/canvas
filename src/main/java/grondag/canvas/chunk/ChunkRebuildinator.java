@@ -62,7 +62,7 @@ public class ChunkRebuildinator {
 				final int yb = yPos + yMin;
 
 				for (int zPos = 0; zPos < 16; zPos++) {
-					final BlockState blockState = region.getChunkBlockState(xPos, yPos, zPos);
+					final BlockState blockState = region.getLocalBlockState(xPos, yPos, zPos);
 
 					if(blockState.getRenderType() != BlockRenderType.INVISIBLE || !blockState.getFluidState().isEmpty()) {
 						searchPos.set(xb, yb, zPos + zMin);
@@ -87,7 +87,7 @@ public class ChunkRebuildinator {
 
 					if(chunkOcclusionDataBuilder.shouldRender(xPos, yPos, zPos)) {
 						searchPos.set(xb, yb, zPos + zMin);
-						final BlockState blockState = region.getChunkBlockState(xPos, yPos, zPos);
+						final BlockState blockState = region.getLocalBlockState(xPos, yPos, zPos);
 						final FluidState fluidState = blockState.getFluidState();
 
 						if (!fluidState.isEmpty()) {

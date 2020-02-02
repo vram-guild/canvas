@@ -45,6 +45,11 @@ public class FastChunkOcclusionDataBuilder {
 		}
 	}
 
+	public boolean isClosed(int xPos, int yPos, int zPos) {
+		final int xyz4 = packedXYZ4(xPos, yPos, zPos);
+		return (bits[(xyz4 >> 6)] & (1L << (xyz4 & 63))) != 0;
+	}
+
 	public boolean shouldRender(int xPos, int yPos, int zPos) {
 		return shouldRender(packedXYZ4(xPos, yPos, zPos));
 	}
