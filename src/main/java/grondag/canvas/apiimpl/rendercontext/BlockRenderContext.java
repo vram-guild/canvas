@@ -73,6 +73,19 @@ public class BlockRenderContext extends AbstractRenderContext implements RenderC
 			searchPos.set(x, y, z);
 			return WorldRenderer.getLightmapCoordinates(blockInfo.blockView, blockInfo.blockView.getBlockState(searchPos), searchPos);
 		}
+
+		@Override
+		protected boolean isOpaque(int x, int y, int z) {
+			final BlockRenderView blockView = blockInfo.blockView;
+
+			if (blockView == null) {
+				return false;
+			} else {
+				searchPos.set(x, y, z);
+				final BlockState state = blockView.getBlockState(searchPos);
+				return state.isFullOpaque(blockView, searchPos);
+			}
+		}
 	};
 
 	private final MeshConsumer meshConsumer = new MeshConsumer(blockInfo, this::outputBuffer, aoCalc, this::transform);

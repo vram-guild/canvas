@@ -49,16 +49,22 @@ public class TerrainRenderContext extends AbstractRenderContext implements Rende
 	private final TerrainBlockRenderInfo blockInfo = new TerrainBlockRenderInfo();
 	private final ChunkRenderInfo chunkInfo = new ChunkRenderInfo();
 	public final FastChunkOcclusionDataBuilder occlusionDataBuilder = new FastChunkOcclusionDataBuilder();
+	private FastRenderRegion region;
 
 	private final AoCalculator aoCalc = new AoCalculator(blockInfo) {
 		@Override
 		protected float ao(int x, int y, int z) {
-			return chunkInfo.cachedAoLevel(x, y, z);
+			return region.cachedAoLevel(x, y, z);
 		}
 
 		@Override
 		protected int brightness(int x, int y, int z) {
-			return chunkInfo.cachedBrightness(x, y, z);
+			return region.cachedBrightness(x, y, z);
+		}
+
+		@Override
+		protected boolean isOpaque(int x, int y, int z) {
+			return region.isOpaque(x, y, z, occlusionDataBuilder);
 		}
 	};
 
@@ -101,14 +107,16 @@ public class TerrainRenderContext extends AbstractRenderContext implements Rende
 
 	public TerrainRenderContext prepare(FastRenderRegion region, AccessChunkRendererData chunkData, BlockBufferBuilderStorage builders, BlockPos origin) {
 		region.terrainContext = this;
+		this.region = region;
 		blockInfo.setBlockView(region);
-		chunkInfo.prepare(region, chunkData, builders, origin);
+		chunkInfo.prepare(chunkData, builders, origin);
 		return this;
 	}
 
 	public void release() {
 		chunkInfo.release();
 		blockInfo.release();
+		region = null;
 	}
 
 	/** Called from chunk renderer hook. */

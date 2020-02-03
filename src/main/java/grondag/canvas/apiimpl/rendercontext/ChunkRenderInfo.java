@@ -18,15 +18,12 @@ package grondag.canvas.apiimpl.rendercontext;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
-import net.minecraft.block.BlockState;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexFormats;
 import net.minecraft.client.render.chunk.BlockBufferBuilderStorage;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.BlockRenderView;
 
-import grondag.canvas.chunk.FastRenderRegion;
 import grondag.canvas.mixinterface.AccessChunkRendererData;
 
 /**
@@ -43,12 +40,10 @@ public class ChunkRenderInfo {
 	private final BlockPos.Mutable chunkOrigin = new BlockPos.Mutable();
 	AccessChunkRendererData chunkData;
 	BlockBufferBuilderStorage builders;
-	FastRenderRegion region;
 
 	private final Object2ObjectOpenHashMap<RenderLayer, BufferBuilder> buffers = new Object2ObjectOpenHashMap<>();
 
-	void prepare(FastRenderRegion blockView, AccessChunkRendererData chunkData, BlockBufferBuilderStorage builders, BlockPos origin) {
-		region = blockView;
+	void prepare(AccessChunkRendererData chunkData, BlockBufferBuilderStorage builders, BlockPos origin) {
 		chunkOrigin.set(origin);
 		this.chunkData = chunkData;
 		this.builders = builders;
@@ -58,7 +53,6 @@ public class ChunkRenderInfo {
 	void release() {
 		chunkData = null;
 		buffers.clear();
-		region = null;
 	}
 
 	/** Lazily retrieves output buffer for given layer, initializing as needed. */
@@ -76,17 +70,5 @@ public class ChunkRenderInfo {
 		}
 
 		return result;
-	}
-
-	/**
-	 * Cached values for {@link BlockState#getBlockBrightness(BlockRenderView, BlockPos)}.
-	 * See also the comments for {@link #brightnessCache}.
-	 */
-	int cachedBrightness(int x, int y, int z) {
-		return region.cachedBrightness(x, y, z);
-	}
-
-	float cachedAoLevel(int x, int y, int z) {
-		return region.cachedAoLevel(x, y, z);
 	}
 }

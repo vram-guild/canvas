@@ -346,3 +346,17 @@ Clear blend cache for new blocks (fix defect, causes more calc with lots of snow
 
 [14:54:38] [Server-Worker-8/INFO]: Avg outer duration = 4,517,738 ns, total duration = 4,517, total runs = 1,000
 [14:54:38] [Server-Worker-8/INFO]: Avg inner duration = 2,763 ns, total duration = 1,777, total runs = 643,037
+
+
+Use main chunk opacity cache
+
+[16:38:26] [main/INFO]: Canvas Renderer is initializing.
+[16:38:27] [main/INFO]: [CHAT] [Debug]: Reloading all chunks
+[16:38:28] [Server-Worker-8/INFO]: Avg outer duration = 3,925,910 ns, total duration = 3,925, total runs = 1,000
+[16:38:28] [Server-Worker-8/INFO]: Avg inner duration = 1,915 ns, total duration = 1,425, total runs = 744,006
+
+[16:38:31] [Server-Worker-5/INFO]: Avg outer duration = 4,175,011 ns, total duration = 4,175, total runs = 1,000
+[16:38:31] [Server-Worker-5/INFO]: Avg inner duration = 1,686 ns, total duration = 1,383, total runs = 820,203
+
+[16:38:35] [Server-Worker-3/INFO]: Avg outer duration = 4,358,138 ns, total duration = 4,358, total runs = 1,000
+[16:38:35] [Server-Worker-3/INFO]: Avg inner duration = 1,895 ns, total duration = 1,202, total runs = 634,483

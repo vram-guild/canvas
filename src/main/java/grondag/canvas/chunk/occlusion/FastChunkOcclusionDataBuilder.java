@@ -11,6 +11,8 @@ import net.minecraft.util.math.Direction;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 
+// FIXME: always hides interior space, which will be a problem in enclosed spaces inside a single chunk
+
 @Environment(EnvType.CLIENT)
 public class FastChunkOcclusionDataBuilder {
 	private final EnumSet<Direction> faces = EnumSet.noneOf(Direction.class);

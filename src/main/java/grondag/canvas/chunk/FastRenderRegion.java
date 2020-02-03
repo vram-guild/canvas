@@ -42,6 +42,7 @@ import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachmentBlockEntity;
 
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
 import grondag.canvas.chunk.ChunkPaletteCopier.PaletteCopy;
+import grondag.canvas.chunk.occlusion.FastChunkOcclusionDataBuilder;
 import grondag.canvas.perf.ChunkRebuildCounters;
 
 public class FastRenderRegion extends AbstractRenderRegion implements RenderAttachedBlockView {
@@ -340,6 +341,15 @@ public class FastRenderRegion extends AbstractRenderRegion implements RenderAtta
 		}
 
 		return result;
+	}
+
+	public boolean isOpaque(int x, int y, int z, FastChunkOcclusionDataBuilder builder) {
+		if (isInMainChunk(x, y, z)) {
+			return builder.isClosed(x & 0xF, y & 0xF, z & 0xF);
+		} else {
+			final BlockState state = getBlockState(x, y, z);
+			return state.isFullOpaque(this, searchPos.set(x, y, z));
+		}
 	}
 
 	@Override
