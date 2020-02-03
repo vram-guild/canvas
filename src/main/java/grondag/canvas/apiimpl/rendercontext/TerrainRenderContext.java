@@ -36,7 +36,6 @@ import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 
 import grondag.canvas.chunk.FastRenderRegion;
 import grondag.canvas.chunk.ProtoRenderRegion;
-import grondag.canvas.chunk.occlusion.FastChunkOcclusionDataBuilder;
 import grondag.canvas.light.AoCalculator;
 import grondag.canvas.mixinterface.AccessChunkRendererData;
 
@@ -49,7 +48,6 @@ public class TerrainRenderContext extends AbstractRenderContext implements Rende
 	public static final ThreadLocal<TerrainRenderContext> POOL = ThreadLocal.withInitial(TerrainRenderContext::new);
 	private final TerrainBlockRenderInfo blockInfo = new TerrainBlockRenderInfo();
 	private final ChunkRenderInfo chunkInfo = new ChunkRenderInfo();
-	public final FastChunkOcclusionDataBuilder occlusionDataBuilder = new FastChunkOcclusionDataBuilder();
 	public final FastRenderRegion region = new FastRenderRegion(this);
 
 	TerrainRenderContext() {
@@ -112,7 +110,6 @@ public class TerrainRenderContext extends AbstractRenderContext implements Rende
 
 	public TerrainRenderContext prepare(ProtoRenderRegion protoRegion, AccessChunkRendererData chunkData, BlockBufferBuilderStorage builders, BlockPos origin) {
 		region.prepare(protoRegion);
-		occlusionDataBuilder.prepare();
 		chunkInfo.prepare(chunkData, builders, origin);
 		return this;
 	}

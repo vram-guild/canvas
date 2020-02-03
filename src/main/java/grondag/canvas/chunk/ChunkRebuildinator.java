@@ -16,7 +16,6 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
-import grondag.canvas.chunk.occlusion.FastChunkOcclusionDataBuilder;
 import grondag.canvas.mixinterface.AccessChunkRendererData;
 import grondag.canvas.perf.MicroTimer;
 
@@ -28,7 +27,6 @@ public class ChunkRebuildinator {
 		outer.start();
 
 		final TerrainRenderContext context = TerrainRenderContext.POOL.get().prepare(protoRegion, chunkDataAccess, buffers, origin);
-		final FastChunkOcclusionDataBuilder chunkOcclusionDataBuilder = context.occlusionDataBuilder;
 		final FastRenderRegion region = context.region;
 		final BlockPos.Mutable searchPos = context.searchPos;
 
@@ -36,11 +34,9 @@ public class ChunkRebuildinator {
 		final int yMin = origin.getY();
 		final int zMin = origin.getZ();
 
-		ChunkRebuildinator.buildOcclusionData(chunkOcclusionDataBuilder, xMin, yMin, zMin, region, searchPos);
+		chunkDataAccess.canvas_setOcclusionGraph(region.occlusion.build());
 
-		chunkDataAccess.canvas_setOcclusionGraph(chunkOcclusionDataBuilder.build());
-
-		ChunkRebuildinator.buildTerrain(chunkOcclusionDataBuilder, chunkDataAccess, buffers, context, xMin, yMin, zMin, region, searchPos);
+		ChunkRebuildinator.buildTerrain(chunkDataAccess, buffers, context, xMin, yMin, zMin, region, searchPos);
 
 		chunkDataAccess.canvas_endBuffering(x - xMin, y - yMin, z - zMin, buffers);
 		context.release();
@@ -51,29 +47,12 @@ public class ChunkRebuildinator {
 		}
 	}
 
-	private static void buildOcclusionData(FastChunkOcclusionDataBuilder chunkOcclusionDataBuilder, int xMin, int yMin, int zMin, FastRenderRegion region, BlockPos.Mutable searchPos) {
-		for (int xPos = 0; xPos < 16; xPos++) {
-			final int xb = xPos + xMin;
-
-			for (int yPos = 0; yPos < 16; yPos++) {
-				final int yb = yPos + yMin;
-
-				for (int zPos = 0; zPos < 16; zPos++) {
-					final BlockState blockState = region.getLocalBlockState(xPos, yPos, zPos);
-
-					if(blockState.getRenderType() != BlockRenderType.INVISIBLE || !blockState.getFluidState().isEmpty()) {
-						searchPos.set(xb, yb, zPos + zMin);
-						chunkOcclusionDataBuilder.setVisibility(xPos, yPos, zPos, blockState.isFullOpaque(region, searchPos), true);
-					}
-				}
-			}
-		}
-	}
-
-	private static void buildTerrain(FastChunkOcclusionDataBuilder chunkOcclusionDataBuilder, AccessChunkRendererData chunkDataAccess, BlockBufferBuilderStorage buffers, TerrainRenderContext context, int xMin, int yMin, int zMin, FastRenderRegion region, BlockPos.Mutable searchPos) {
+	private static void buildTerrain(AccessChunkRendererData chunkDataAccess, BlockBufferBuilderStorage buffers, TerrainRenderContext context, int xMin, int yMin, int zMin, FastRenderRegion region, BlockPos.Mutable searchPos) {
 		final MatrixStack matrixStack = new MatrixStack();
 		final BlockRenderManager blockRenderManager = MinecraftClient.getInstance().getBlockRenderManager();
+		final OcclusionRegion occlusionRegion = region.occlusion;
 
+		// TODO: use staight 0-4096 loop here and only split if going to render
 		for (int xPos = 0; xPos < 16; xPos++) {
 			final int xb = xPos + xMin;
 
@@ -82,7 +61,7 @@ public class ChunkRebuildinator {
 
 				for (int zPos = 0; zPos < 16; zPos++) {
 
-					if(chunkOcclusionDataBuilder.shouldRender(xPos, yPos, zPos)) {
+					if(occlusionRegion.shouldRender(xPos, yPos, zPos)) {
 						searchPos.set(xb, yb, zPos + zMin);
 						final BlockState blockState = region.getLocalBlockState(xPos, yPos, zPos);
 						final FluidState fluidState = blockState.getFluidState();

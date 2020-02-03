@@ -42,7 +42,6 @@ import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachedBlockView;
 
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
 import grondag.canvas.chunk.ChunkPaletteCopier.PaletteCopy;
-import grondag.canvas.chunk.occlusion.FastChunkOcclusionDataBuilder;
 
 // PERF: to conserve memory, make this thread-local, residing in the terrain context
 // only capture the paletteCopy, chunks and border states before prepare
@@ -217,15 +216,6 @@ public class FastRenderRegion extends AbstractRenderRegion implements RenderAtta
 		return result;
 	}
 
-	public boolean isOpaque(int x, int y, int z, FastChunkOcclusionDataBuilder builder) {
-		if (isInMainChunk(x, y, z)) {
-			return builder.isClosed(x & 0xF, y & 0xF, z & 0xF);
-		} else {
-			final BlockState state = getBlockState(x, y, z);
-			return state.isFullOpaque(this, searchPos.set(x, y, z));
-		}
-	}
-
 	@Override
 	public LightingProvider getLightingProvider() {
 		return world.getLightingProvider();
@@ -252,18 +242,7 @@ public class FastRenderRegion extends AbstractRenderRegion implements RenderAtta
 		return occlusion.isClosed(i);
 	}
 
-	/** only valid for positions in render region, including exterior */
-	public boolean shouldRender(int x, int y, int z) {
-		final int i = blockIndex(x, y, z);
-
-		if (i == -1) {
-			return false;
-		}
-
-		return occlusion.shouldRender(i);
-	}
-
-	private final OcclusionRegion occlusion = new OcclusionRegion() {
+	public final OcclusionRegion occlusion = new OcclusionRegion() {
 
 		@Override
 		protected BlockState blockStateAtIndex(int index) {

@@ -32,8 +32,8 @@ import net.minecraft.client.render.chunk.ChunkBuilder.BuiltChunk;
 import net.minecraft.util.math.BlockPos;
 
 import grondag.canvas.chunk.ChunkRebuildinator;
+import grondag.canvas.chunk.OcclusionRegion;
 import grondag.canvas.chunk.ProtoRenderRegion;
-import grondag.canvas.chunk.occlusion.FastChunkOcclusionDataBuilder;
 import grondag.canvas.mixinterface.AccessChunkRendererData;
 import grondag.canvas.mixinterface.AccessRebuildTask;
 
@@ -60,7 +60,7 @@ public abstract class MixinChunkRebuildTask implements AccessRebuildTask {
 
 			region.release();
 		} else {
-			chunkDataAccess.canvas_setOcclusionGraph(FastChunkOcclusionDataBuilder.ALL_OPEN);
+			chunkDataAccess.canvas_setOcclusionGraph(OcclusionRegion.ALL_OPEN);
 		}
 
 		ci.setReturnValue(blockEntities);
