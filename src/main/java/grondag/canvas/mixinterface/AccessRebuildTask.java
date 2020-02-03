@@ -16,12 +16,12 @@
 
 package grondag.canvas.mixinterface;
 
-import grondag.canvas.chunk.FastRenderRegion;
+import grondag.canvas.chunk.ProtoRenderRegion;
 
 /**
  * Used to stash block renderer reference in local scope during
  * chunk rebuild, thus avoiding repeated thread-local lookups.
  */
 public interface AccessRebuildTask {
-	void canvas_setRegion(FastRenderRegion region);
+	void canvas_setRegion(ProtoRenderRegion region);
 }

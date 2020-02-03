@@ -1,7 +1,11 @@
 package grondag.canvas.chunk;
 
+import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import net.minecraft.world.chunk.ChunkSection;
+import net.minecraft.world.chunk.WorldChunk;
 
 import grondag.fermion.position.PackedBlockPos;
 
@@ -18,6 +22,9 @@ abstract class AbstractRenderRegion {
 	protected int chunkBaseZ;
 
 	protected World world;
+
+	// larger than needed to speed up indexing
+	protected final WorldChunk[] chunks = new WorldChunk[16];
 
 	final int mainChunkBlockIndex(int x, int y, int z) {
 		return mainChunkLocalIndex(x & 0xF, y & 0xF, z & 0xF);
@@ -86,17 +93,6 @@ abstract class AbstractRenderRegion {
 
 		return CORNER_CACHE_START + subindex;
 	}
-
-	static final int MAIN_CACHE_SIZE = 4096;
-	static final int FACE_CACHE_START = MAIN_CACHE_SIZE;
-	static final int FACE_CACHE_SIZE = 256 * 6;
-	static final int EDGE_CACHE_START = FACE_CACHE_START + FACE_CACHE_SIZE;
-	static final int EDGE_CACHE_SIZE = 16 * 12;
-	static final int CORNER_CACHE_START = EDGE_CACHE_START + EDGE_CACHE_SIZE;
-	static final int CORNER_CACHE_SIZE = 8;
-	static final int TOTAL_CACHE_SIZE = MAIN_CACHE_SIZE + FACE_CACHE_SIZE + EDGE_CACHE_SIZE + CORNER_CACHE_SIZE;
-
-
 
 	final int blockIndex(int x, int y, int z) {
 		final int oxIn = x & 0xFFFFFFF0;
@@ -229,4 +225,39 @@ abstract class AbstractRenderRegion {
 		// use world directly
 		return -1;
 	}
+
+	protected ChunkSection getSection(int x, int y, int z) {
+		// TODO: handle world border
+
+		if ((y == 0 && chunkBaseY < 0) || (y == 2 && chunkBaseY > 13)) {
+			return null;
+		}
+
+		return chunks[x | (z << 2)].getSectionArray()[chunkBaseY + y];
+	}
+
+	protected WorldChunk getChunk(int cx, int cz) {
+		final int chunkBaseX = this.chunkBaseX;
+		final int chunkBaseZ = this.chunkBaseZ;
+
+		if (cx < chunkBaseX || cx > (chunkBaseZ + 2) || cz < chunkBaseZ || cz > (chunkBaseZ + 2)) {
+			return world.getChunk(cx, cz);
+		} else {
+			return chunks[(cx - chunkBaseX) | ((cz - chunkBaseZ) << 2)];
+		}
+	}
+
+	protected static final BlockState AIR = Blocks.AIR.getDefaultState();
+
+	static final int MAIN_CACHE_SIZE = 4096;
+	static final int FACE_CACHE_START = MAIN_CACHE_SIZE;
+	static final int FACE_CACHE_SIZE = 256 * 6;
+	static final int EDGE_CACHE_START = FACE_CACHE_START + FACE_CACHE_SIZE;
+	static final int EDGE_CACHE_SIZE = 16 * 12;
+	static final int CORNER_CACHE_START = EDGE_CACHE_START + EDGE_CACHE_SIZE;
+	static final int CORNER_CACHE_SIZE = 8;
+	static final int TOTAL_CACHE_SIZE = MAIN_CACHE_SIZE + FACE_CACHE_SIZE + EDGE_CACHE_SIZE + CORNER_CACHE_SIZE;
+
+	static final int BORDER_CACHE_SIZE = TOTAL_CACHE_SIZE - MAIN_CACHE_SIZE;
+
 }

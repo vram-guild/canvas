@@ -22,11 +22,10 @@ public class FastChunkOcclusionDataBuilder {
 	private final long[] bits = new long[192];
 	private int openCount = 4096;
 
-	public FastChunkOcclusionDataBuilder prepare() {
+	public void prepare() {
 		System.arraycopy(EMPTY, 0, bits, 0, 192);
 		openCount = 4096;
 		queue.clear();
-		return this;
 	}
 
 	public void setVisibility(int xPos, int yPos, int zPos, boolean isOpaque, boolean isRenderable) {

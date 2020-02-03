@@ -26,7 +26,7 @@ import net.minecraft.client.render.chunk.ChunkBuilder;
 import net.minecraft.client.render.chunk.ChunkBuilder.BuiltChunk;
 import net.minecraft.util.math.BlockPos;
 
-import grondag.canvas.chunk.FastRenderRegion;
+import grondag.canvas.chunk.ProtoRenderRegion;
 import grondag.canvas.chunk.RebuildTaskFactory;
 import grondag.canvas.mixinterface.AccessRebuildTask;
 
@@ -43,7 +43,7 @@ public abstract class MixinBuiltChunk {
 		cancel();
 		final BlockPos blockPos = origin.toImmutable();
 		final Object rebuildTask = RebuildTaskFactory.INSTANCE.get((BuiltChunk)(Object) this, getSquaredCameraDistance());
-		((AccessRebuildTask) rebuildTask).canvas_setRegion(FastRenderRegion.claim(((AccessChunkBuilder) field_20833).getWorld(), blockPos));
+		((AccessRebuildTask) rebuildTask).canvas_setRegion(ProtoRenderRegion.claim(((AccessChunkBuilder) field_20833).getWorld(), blockPos));
 		ci.setReturnValue(rebuildTask);
 	}
 }

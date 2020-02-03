@@ -24,20 +24,17 @@ public class ChunkRebuildinator {
 	public static MicroTimer outer = new MicroTimer("outer", 1000);
 	public static MicroTimer inner = new MicroTimer("inner", -1);
 
-	public static void rebuildChunk(float x, float y, float z, AccessChunkRendererData chunkDataAccess, BlockBufferBuilderStorage buffers, FastRenderRegion region, BlockPos origin) {
+	public static void rebuildChunk(float x, float y, float z, AccessChunkRendererData chunkDataAccess, BlockBufferBuilderStorage buffers, ProtoRenderRegion protoRegion, BlockPos origin) {
 		outer.start();
 
-		final TerrainRenderContext context = TerrainRenderContext.POOL.get();
-		final FastChunkOcclusionDataBuilder chunkOcclusionDataBuilder = context.occlusionDataBuilder.prepare();
-
+		final TerrainRenderContext context = TerrainRenderContext.POOL.get().prepare(protoRegion, chunkDataAccess, buffers, origin);
+		final FastChunkOcclusionDataBuilder chunkOcclusionDataBuilder = context.occlusionDataBuilder;
+		final FastRenderRegion region = context.region;
 		final BlockPos.Mutable searchPos = context.searchPos;
 
 		final int xMin = origin.getX();
 		final int yMin = origin.getY();
 		final int zMin = origin.getZ();
-
-		region.prepareForUse();
-		context.prepare(region, chunkDataAccess, buffers, origin);
 
 		ChunkRebuildinator.buildOcclusionData(chunkOcclusionDataBuilder, xMin, yMin, zMin, region, searchPos);
 

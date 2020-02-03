@@ -360,3 +360,17 @@ Use main chunk opacity cache
 
 [16:38:35] [Server-Worker-3/INFO]: Avg outer duration = 4,358,138 ns, total duration = 4,358, total runs = 1,000
 [16:38:35] [Server-Worker-3/INFO]: Avg inner duration = 1,895 ns, total duration = 1,202, total runs = 634,483
+
+
+Split out proto-regions
+
+[18:03:13] [main/INFO]: Canvas Renderer is initializing.
+[18:03:14] [main/INFO]: [CHAT] [Debug]: Reloading all chunks
+[18:03:16] [Server-Worker-12/INFO]: Avg outer duration = 4,274,651 ns, total duration = 4,274, total runs = 1,000
+[18:03:16] [Server-Worker-12/INFO]: Avg inner duration = 2,232 ns, total duration = 1,577, total runs = 706,318
+
+[18:03:19] [Server-Worker-9/INFO]: Avg outer duration = 4,623,399 ns, total duration = 4,623, total runs = 1,000
+[18:03:19] [Server-Worker-9/INFO]: Avg inner duration = 2,209 ns, total duration = 1,878, total runs = 850,251
+
+[18:03:23] [Server-Worker-14/INFO]: Avg outer duration = 4,064,661 ns, total duration = 4,064, total runs = 1,000
+[18:03:23] [Server-Worker-14/INFO]: Avg inner duration = 2,119 ns, total duration = 1,285, total runs = 606,351

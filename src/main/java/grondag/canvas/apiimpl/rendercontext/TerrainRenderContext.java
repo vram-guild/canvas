@@ -35,6 +35,7 @@ import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 
 import grondag.canvas.chunk.FastRenderRegion;
+import grondag.canvas.chunk.ProtoRenderRegion;
 import grondag.canvas.chunk.occlusion.FastChunkOcclusionDataBuilder;
 import grondag.canvas.light.AoCalculator;
 import grondag.canvas.mixinterface.AccessChunkRendererData;
@@ -49,7 +50,11 @@ public class TerrainRenderContext extends AbstractRenderContext implements Rende
 	private final TerrainBlockRenderInfo blockInfo = new TerrainBlockRenderInfo();
 	private final ChunkRenderInfo chunkInfo = new ChunkRenderInfo();
 	public final FastChunkOcclusionDataBuilder occlusionDataBuilder = new FastChunkOcclusionDataBuilder();
-	private FastRenderRegion region;
+	public final FastRenderRegion region = new FastRenderRegion(this);
+
+	TerrainRenderContext() {
+		blockInfo.setBlockView(region);
+	}
 
 	private final AoCalculator aoCalc = new AoCalculator(blockInfo) {
 		@Override
@@ -105,10 +110,9 @@ public class TerrainRenderContext extends AbstractRenderContext implements Rende
 		}
 	};
 
-	public TerrainRenderContext prepare(FastRenderRegion region, AccessChunkRendererData chunkData, BlockBufferBuilderStorage builders, BlockPos origin) {
-		region.terrainContext = this;
-		this.region = region;
-		blockInfo.setBlockView(region);
+	public TerrainRenderContext prepare(ProtoRenderRegion protoRegion, AccessChunkRendererData chunkData, BlockBufferBuilderStorage builders, BlockPos origin) {
+		region.prepare(protoRegion);
+		occlusionDataBuilder.prepare();
 		chunkInfo.prepare(chunkData, builders, origin);
 		return this;
 	}
@@ -116,7 +120,6 @@ public class TerrainRenderContext extends AbstractRenderContext implements Rende
 	public void release() {
 		chunkInfo.release();
 		blockInfo.release();
-		region = null;
 	}
 
 	/** Called from chunk renderer hook. */
