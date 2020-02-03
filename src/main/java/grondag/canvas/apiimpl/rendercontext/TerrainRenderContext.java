@@ -69,7 +69,7 @@ public class TerrainRenderContext extends AbstractRenderContext implements Rende
 
 		@Override
 		protected boolean isOpaque(int x, int y, int z) {
-			return region.isOpaque(x, y, z, occlusionDataBuilder);
+			return region.isClosed(x, y, z);
 		}
 	};
 

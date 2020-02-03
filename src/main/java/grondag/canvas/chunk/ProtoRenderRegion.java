@@ -1,5 +1,17 @@
 package grondag.canvas.chunk;
 
+import static grondag.canvas.chunk.RenderRegionAddressHelper.AIR;
+import static grondag.canvas.chunk.RenderRegionAddressHelper.EXTERIOR_CACHE_SIZE;
+import static grondag.canvas.chunk.RenderRegionAddressHelper.INTERIOR_CACHE_SIZE;
+import static grondag.canvas.chunk.RenderRegionAddressHelper.localCornerIndex;
+import static grondag.canvas.chunk.RenderRegionAddressHelper.localXEdgeIndex;
+import static grondag.canvas.chunk.RenderRegionAddressHelper.localXfaceIndex;
+import static grondag.canvas.chunk.RenderRegionAddressHelper.localYEdgeIndex;
+import static grondag.canvas.chunk.RenderRegionAddressHelper.localYfaceIndex;
+import static grondag.canvas.chunk.RenderRegionAddressHelper.localZEdgeIndex;
+import static grondag.canvas.chunk.RenderRegionAddressHelper.localZfaceIndex;
+import static grondag.canvas.chunk.RenderRegionAddressHelper.mainChunkBlockIndex;
+
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 
@@ -19,7 +31,7 @@ import grondag.canvas.chunk.ChunkPaletteCopier.PaletteCopy;
 import grondag.canvas.perf.ChunkRebuildCounters;
 
 public class ProtoRenderRegion extends AbstractRenderRegion {
-	final BlockState[] states = new BlockState[BORDER_CACHE_SIZE];
+	final BlockState[] states = new BlockState[EXTERIOR_CACHE_SIZE];
 
 	final ShortArrayList renderDataPos = new ShortArrayList();
 	final ObjectArrayList<Object> renderData = new ObjectArrayList<>();
@@ -121,14 +133,14 @@ public class ProtoRenderRegion extends AbstractRenderRegion {
 
 		for (int i = 0; i < 16; i++) {
 			for (int j = 0; j < 16; j++) {
-				states[localXfaceIndex(false, i, j) - MAIN_CACHE_SIZE] = lowX == null ? AIR : lowX.getBlockState(15, i, j);
-				states[localXfaceIndex(true, i, j) - MAIN_CACHE_SIZE] = highX == null ? AIR : highX.getBlockState(0, i, j);
+				states[localXfaceIndex(false, i, j) - INTERIOR_CACHE_SIZE] = lowX == null ? AIR : lowX.getBlockState(15, i, j);
+				states[localXfaceIndex(true, i, j) - INTERIOR_CACHE_SIZE] = highX == null ? AIR : highX.getBlockState(0, i, j);
 
-				states[localZfaceIndex(i, j, false) - MAIN_CACHE_SIZE] = lowZ == null ? AIR : lowZ.getBlockState(i, j, 15);
-				states[localZfaceIndex(i, j, true) - MAIN_CACHE_SIZE] = highZ == null ? AIR : highZ.getBlockState(i, j, 0);
+				states[localZfaceIndex(i, j, false) - INTERIOR_CACHE_SIZE] = lowZ == null ? AIR : lowZ.getBlockState(i, j, 15);
+				states[localZfaceIndex(i, j, true) - INTERIOR_CACHE_SIZE] = highZ == null ? AIR : highZ.getBlockState(i, j, 0);
 
-				states[localYfaceIndex(i, false, j) - MAIN_CACHE_SIZE] = lowY == null ? AIR : lowY.getBlockState(i, 15, j);
-				states[localYfaceIndex(i, true, j) - MAIN_CACHE_SIZE] = highY == null ? AIR : highY.getBlockState(i, 0, j);
+				states[localYfaceIndex(i, false, j) - INTERIOR_CACHE_SIZE] = lowY == null ? AIR : lowY.getBlockState(i, 15, j);
+				states[localYfaceIndex(i, true, j) - INTERIOR_CACHE_SIZE] = highY == null ? AIR : highY.getBlockState(i, 0, j);
 			}
 		}
 	}
@@ -150,33 +162,33 @@ public class ProtoRenderRegion extends AbstractRenderRegion {
 		final ChunkSection Xbb = getSection(1, 2, 2);
 
 		for(int i = 0; i < 16; i++) {
-			states[localZEdgeIndex(false, false, i) - MAIN_CACHE_SIZE] = aaZ == null ? AIR : aaZ.getBlockState(15, 15, i);
-			states[localZEdgeIndex(false, true, i) - MAIN_CACHE_SIZE] = abZ == null ? AIR : abZ.getBlockState(15, 0, i);
-			states[localZEdgeIndex(true, false, i) - MAIN_CACHE_SIZE] = baZ == null ? AIR : baZ.getBlockState(0, 15, i);
-			states[localZEdgeIndex(true, true, i) - MAIN_CACHE_SIZE] = bbZ == null ? AIR : bbZ.getBlockState(0, 0, i);
+			states[localZEdgeIndex(false, false, i) - INTERIOR_CACHE_SIZE] = aaZ == null ? AIR : aaZ.getBlockState(15, 15, i);
+			states[localZEdgeIndex(false, true, i) - INTERIOR_CACHE_SIZE] = abZ == null ? AIR : abZ.getBlockState(15, 0, i);
+			states[localZEdgeIndex(true, false, i) - INTERIOR_CACHE_SIZE] = baZ == null ? AIR : baZ.getBlockState(0, 15, i);
+			states[localZEdgeIndex(true, true, i) - INTERIOR_CACHE_SIZE] = bbZ == null ? AIR : bbZ.getBlockState(0, 0, i);
 
-			states[localYEdgeIndex(false, i, false) - MAIN_CACHE_SIZE] = aYa == null ? AIR : aYa.getBlockState(15, i, 15);
-			states[localYEdgeIndex(false, i, true) - MAIN_CACHE_SIZE] = aYb == null ? AIR : aYb.getBlockState(15, i, 0);
-			states[localYEdgeIndex(true, i, false) - MAIN_CACHE_SIZE] = bYa == null ? AIR : bYa.getBlockState(0, i, 15);
-			states[localYEdgeIndex(true, i, true) - MAIN_CACHE_SIZE] = bYb == null ? AIR : bYb.getBlockState(0, i, 0);
+			states[localYEdgeIndex(false, i, false) - INTERIOR_CACHE_SIZE] = aYa == null ? AIR : aYa.getBlockState(15, i, 15);
+			states[localYEdgeIndex(false, i, true) - INTERIOR_CACHE_SIZE] = aYb == null ? AIR : aYb.getBlockState(15, i, 0);
+			states[localYEdgeIndex(true, i, false) - INTERIOR_CACHE_SIZE] = bYa == null ? AIR : bYa.getBlockState(0, i, 15);
+			states[localYEdgeIndex(true, i, true) - INTERIOR_CACHE_SIZE] = bYb == null ? AIR : bYb.getBlockState(0, i, 0);
 
-			states[localXEdgeIndex(i, false, false) - MAIN_CACHE_SIZE] = Xaa == null ? AIR : Xaa.getBlockState(i, 15, 15);
-			states[localXEdgeIndex(i, false, true) - MAIN_CACHE_SIZE] = Xab == null ? AIR : Xab.getBlockState(i, 15, 0);
-			states[localXEdgeIndex(i, true, false) - MAIN_CACHE_SIZE] = Xba == null ? AIR : Xba.getBlockState(i, 0, 15);
-			states[localXEdgeIndex(i, true, true) - MAIN_CACHE_SIZE] = Xbb == null ? AIR : Xbb.getBlockState(i, 0, 0);
+			states[localXEdgeIndex(i, false, false) - INTERIOR_CACHE_SIZE] = Xaa == null ? AIR : Xaa.getBlockState(i, 15, 15);
+			states[localXEdgeIndex(i, false, true) - INTERIOR_CACHE_SIZE] = Xab == null ? AIR : Xab.getBlockState(i, 15, 0);
+			states[localXEdgeIndex(i, true, false) - INTERIOR_CACHE_SIZE] = Xba == null ? AIR : Xba.getBlockState(i, 0, 15);
+			states[localXEdgeIndex(i, true, true) - INTERIOR_CACHE_SIZE] = Xbb == null ? AIR : Xbb.getBlockState(i, 0, 0);
 		}
 	}
 
 	private void captureCorners() {
-		states[localCornerIndex(false, false, false) - MAIN_CACHE_SIZE] = captureCornerState(0, 0, 0);
-		states[localCornerIndex(false, false, true) - MAIN_CACHE_SIZE] = captureCornerState(0, 0, 2);
-		states[localCornerIndex(false, true, false) - MAIN_CACHE_SIZE] = captureCornerState(0, 2, 0);
-		states[localCornerIndex(false, true, true) - MAIN_CACHE_SIZE] = captureCornerState(0, 2, 2);
+		states[localCornerIndex(false, false, false) - INTERIOR_CACHE_SIZE] = captureCornerState(0, 0, 0);
+		states[localCornerIndex(false, false, true) - INTERIOR_CACHE_SIZE] = captureCornerState(0, 0, 2);
+		states[localCornerIndex(false, true, false) - INTERIOR_CACHE_SIZE] = captureCornerState(0, 2, 0);
+		states[localCornerIndex(false, true, true) - INTERIOR_CACHE_SIZE] = captureCornerState(0, 2, 2);
 
-		states[localCornerIndex(true, false, false) - MAIN_CACHE_SIZE] = captureCornerState(2, 0, 0);
-		states[localCornerIndex(true, false, true) - MAIN_CACHE_SIZE] = captureCornerState(2, 0, 2);
-		states[localCornerIndex(true, true, false) - MAIN_CACHE_SIZE] = captureCornerState(2, 2, 0);
-		states[localCornerIndex(true, true, true) - MAIN_CACHE_SIZE] = captureCornerState(2, 2, 2);
+		states[localCornerIndex(true, false, false) - INTERIOR_CACHE_SIZE] = captureCornerState(2, 0, 0);
+		states[localCornerIndex(true, false, true) - INTERIOR_CACHE_SIZE] = captureCornerState(2, 0, 2);
+		states[localCornerIndex(true, true, false) - INTERIOR_CACHE_SIZE] = captureCornerState(2, 2, 0);
+		states[localCornerIndex(true, true, true) - INTERIOR_CACHE_SIZE] = captureCornerState(2, 2, 2);
 	}
 
 	private BlockState captureCornerState(int x, int y, int z) {

@@ -1,13 +1,18 @@
 package grondag.canvas.chunk;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
+import static grondag.canvas.chunk.RenderRegionAddressHelper.localCornerIndex;
+import static grondag.canvas.chunk.RenderRegionAddressHelper.localXEdgeIndex;
+import static grondag.canvas.chunk.RenderRegionAddressHelper.localXfaceIndex;
+import static grondag.canvas.chunk.RenderRegionAddressHelper.localYEdgeIndex;
+import static grondag.canvas.chunk.RenderRegionAddressHelper.localYfaceIndex;
+import static grondag.canvas.chunk.RenderRegionAddressHelper.localZEdgeIndex;
+import static grondag.canvas.chunk.RenderRegionAddressHelper.localZfaceIndex;
+import static grondag.canvas.chunk.RenderRegionAddressHelper.mainChunkBlockIndex;
+
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.ChunkSection;
 import net.minecraft.world.chunk.WorldChunk;
-
-import grondag.fermion.position.PackedBlockPos;
 
 /**
  * Tries to prevent FastRenderRegion from being unreadably big. Fails.
@@ -26,72 +31,12 @@ abstract class AbstractRenderRegion {
 	// larger than needed to speed up indexing
 	protected final WorldChunk[] chunks = new WorldChunk[16];
 
-	final int mainChunkBlockIndex(int x, int y, int z) {
-		return mainChunkLocalIndex(x & 0xF, y & 0xF, z & 0xF);
-	}
-
-	/**
-	 * Assumes values 0-15
-	 */
-	final int mainChunkLocalIndex(int x, int y, int z) {
-		return x | (y << 4) | (z << 8);
-	}
-
-	final int mainChunkBlockIndex(BlockPos pos) {
-		return mainChunkBlockIndex(pos.getX(), pos.getY(), pos.getZ());
-	}
-
 	final boolean isInMainChunk(int x, int y, int z) {
 		return originX == (x ^ 0xF) && originY == (y ^ 0xF) && originZ == (z ^ 0xF);
 	}
 
 	final boolean isInMainChunk(BlockPos pos) {
 		return isInMainChunk(pos.getX(), pos.getY(), pos.getZ());
-	}
-
-	final long chunkKey(int x, int y, int z) {
-		return PackedBlockPos.pack(x & 0xFFFFFFF0, y & 0xF0, z & 0xFFFFFFF0);
-	}
-
-	final int localXfaceIndex(boolean high, int y, int z) {
-		return FACE_CACHE_START + (high ? 256 : 0) | y | (z << 4);
-	}
-
-	final int localYfaceIndex(int x, boolean high, int z) {
-		return FACE_CACHE_START + (high ? 768 : 512) | x | (z << 4);
-	}
-
-	final int localZfaceIndex(int x, int y, boolean high) {
-		return FACE_CACHE_START + (high ? 1280 : 1024) | x | (y << 4);
-	}
-
-	final int localXEdgeIndex(int x, boolean highY, boolean highZ) {
-		final int subindex = highY ? highZ ? 48 : 32 : highZ ? 16 : 0;
-		return EDGE_CACHE_START + subindex + x;
-	}
-
-	final int localYEdgeIndex(boolean highX, int y, boolean highZ) {
-		final int subindex = highX ? highZ ? 48 : 32 : highZ ? 16 : 0;
-		return EDGE_CACHE_START + 64 + subindex + y;
-	}
-
-	final int localZEdgeIndex(boolean highX, boolean highY, int z) {
-		final int subindex = highX ? highY ? 48 : 32 : highY ? 16 : 0;
-		return EDGE_CACHE_START + 128 + subindex + z;
-	}
-
-	final int localCornerIndex(boolean highX, boolean highY, boolean highZ) {
-		int subindex = highX ? 0 : 1;
-
-		if(highY) {
-			subindex |= 2;
-		}
-
-		if(highZ) {
-			subindex |= 4;
-		}
-
-		return CORNER_CACHE_START + subindex;
 	}
 
 	final int blockIndex(int x, int y, int z) {
@@ -246,18 +191,4 @@ abstract class AbstractRenderRegion {
 			return chunks[(cx - chunkBaseX) | ((cz - chunkBaseZ) << 2)];
 		}
 	}
-
-	protected static final BlockState AIR = Blocks.AIR.getDefaultState();
-
-	static final int MAIN_CACHE_SIZE = 4096;
-	static final int FACE_CACHE_START = MAIN_CACHE_SIZE;
-	static final int FACE_CACHE_SIZE = 256 * 6;
-	static final int EDGE_CACHE_START = FACE_CACHE_START + FACE_CACHE_SIZE;
-	static final int EDGE_CACHE_SIZE = 16 * 12;
-	static final int CORNER_CACHE_START = EDGE_CACHE_START + EDGE_CACHE_SIZE;
-	static final int CORNER_CACHE_SIZE = 8;
-	static final int TOTAL_CACHE_SIZE = MAIN_CACHE_SIZE + FACE_CACHE_SIZE + EDGE_CACHE_SIZE + CORNER_CACHE_SIZE;
-
-	static final int BORDER_CACHE_SIZE = TOTAL_CACHE_SIZE - MAIN_CACHE_SIZE;
-
 }

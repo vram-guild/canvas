@@ -16,6 +16,12 @@
 
 package grondag.canvas.chunk;
 
+import static grondag.canvas.chunk.RenderRegionAddressHelper.EXTERIOR_CACHE_SIZE;
+import static grondag.canvas.chunk.RenderRegionAddressHelper.INTERIOR_CACHE_SIZE;
+import static grondag.canvas.chunk.RenderRegionAddressHelper.TOTAL_CACHE_SIZE;
+import static grondag.canvas.chunk.RenderRegionAddressHelper.mainChunkBlockIndex;
+import static grondag.canvas.chunk.RenderRegionAddressHelper.mainChunkLocalIndex;
+
 import java.util.Arrays;
 
 import javax.annotation.Nullable;
@@ -44,8 +50,8 @@ import grondag.canvas.chunk.occlusion.FastChunkOcclusionDataBuilder;
 public class FastRenderRegion extends AbstractRenderRegion implements RenderAttachedBlockView {
 	protected final BlockPos.Mutable searchPos = new BlockPos.Mutable();
 
-	protected final Object[] renderData = new Object[MAIN_CACHE_SIZE];
-	public final BlockEntity[] blockEntities = new BlockEntity[MAIN_CACHE_SIZE];
+	protected final Object[] renderData = new Object[INTERIOR_CACHE_SIZE];
+	public final BlockEntity[] blockEntities = new BlockEntity[INTERIOR_CACHE_SIZE];
 
 	private final BlockState[] states = new BlockState[TOTAL_CACHE_SIZE];
 	private final float[] aoCache = new float[TOTAL_CACHE_SIZE];
@@ -60,8 +66,8 @@ public class FastRenderRegion extends AbstractRenderRegion implements RenderAtta
 
 	public void prepare(ProtoRenderRegion protoRegion) {
 		System.arraycopy(protoRegion.chunks, 0, chunks, 0, 16);
-		System.arraycopy(EMPTY_BLOCK_ENTITIES, 0, blockEntities, 0, MAIN_CACHE_SIZE);
-		System.arraycopy(EMPTY_RENDER_DATA, 0, renderData, 0, MAIN_CACHE_SIZE);
+		System.arraycopy(EMPTY_BLOCK_ENTITIES, 0, blockEntities, 0, INTERIOR_CACHE_SIZE);
+		System.arraycopy(EMPTY_RENDER_DATA, 0, renderData, 0, INTERIOR_CACHE_SIZE);
 		System.arraycopy(EMPTY_AO_CACHE, 0, aoCache, 0, TOTAL_CACHE_SIZE);
 		System.arraycopy(EMPTY_LIGHT_CACHE, 0, lightCache, 0, TOTAL_CACHE_SIZE);
 
@@ -87,9 +93,11 @@ public class FastRenderRegion extends AbstractRenderRegion implements RenderAtta
 
 		pc.release();
 
-		System.arraycopy(protoRegion.states, 0, states, MAIN_CACHE_SIZE, BORDER_CACHE_SIZE);
+		System.arraycopy(protoRegion.states, 0, states, INTERIOR_CACHE_SIZE, EXTERIOR_CACHE_SIZE);
 
 		copyBeData(protoRegion);
+
+		occlusion.prepare();
 	}
 
 	private void copyBeData(ProtoRenderRegion protoRegion) {
@@ -233,10 +241,45 @@ public class FastRenderRegion extends AbstractRenderRegion implements RenderAtta
 		return result;
 	}
 
+	/** only valid for positions in render region, including exterior */
+	public boolean isClosed(int x, int y, int z) {
+		final int i = blockIndex(x, y, z);
+
+		if (i == -1) {
+			return false;
+		}
+
+		return occlusion.isClosed(i);
+	}
+
+	/** only valid for positions in render region, including exterior */
+	public boolean shouldRender(int x, int y, int z) {
+		final int i = blockIndex(x, y, z);
+
+		if (i == -1) {
+			return false;
+		}
+
+		return occlusion.shouldRender(i);
+	}
+
+	private final OcclusionRegion occlusion = new OcclusionRegion() {
+
+		@Override
+		protected BlockState blockStateAtIndex(int index) {
+			return states[index];
+		}
+
+		@Override
+		protected boolean closedAtRelativePos(BlockState blockState, int x, int y, int z) {
+			return blockState.isFullOpaque(world, searchPos.set(originX + x, originY + y, originZ + z));
+		}
+	};
+
 	private static final float[] EMPTY_AO_CACHE = new float[TOTAL_CACHE_SIZE];
 	private static final int[] EMPTY_LIGHT_CACHE = new int[TOTAL_CACHE_SIZE];
-	private static final Object[] EMPTY_RENDER_DATA = new Object[MAIN_CACHE_SIZE];
-	private static final BlockEntity[] EMPTY_BLOCK_ENTITIES = new BlockEntity[MAIN_CACHE_SIZE];
+	private static final Object[] EMPTY_RENDER_DATA = new Object[INTERIOR_CACHE_SIZE];
+	private static final BlockEntity[] EMPTY_BLOCK_ENTITIES = new BlockEntity[INTERIOR_CACHE_SIZE];
 
 	static {
 		Arrays.fill(EMPTY_AO_CACHE, Float.MAX_VALUE);

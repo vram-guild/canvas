@@ -374,3 +374,16 @@ Split out proto-regions
 
 [18:03:23] [Server-Worker-14/INFO]: Avg outer duration = 4,064,661 ns, total duration = 4,064, total runs = 1,000
 [18:03:23] [Server-Worker-14/INFO]: Avg inner duration = 2,119 ns, total duration = 1,285, total runs = 606,351
+
+Start moving opacity to render region
+
+[06:47:41] [main/INFO]: Canvas Renderer is initializing.
+[06:47:41] [main/INFO]: [CHAT] [Debug]: Reloading all chunks
+[06:47:44] [Server-Worker-24/INFO]: Avg outer duration = 3,839,872 ns, total duration = 3,839, total runs = 1,000
+[06:47:44] [Server-Worker-24/INFO]: Avg inner duration = 1,737 ns, total duration = 1,260, total runs = 725,275
+
+[06:47:47] [Server-Worker-22/INFO]: Avg outer duration = 4,431,084 ns, total duration = 4,431, total runs = 1,000
+[06:47:47] [Server-Worker-22/INFO]: Avg inner duration = 1,757 ns, total duration = 1,601, total runs = 910,811
+
+[06:47:51] [Server-Worker-22/INFO]: Avg outer duration = 3,523,940 ns, total duration = 3,523, total runs = 1,000
+[06:47:51] [Server-Worker-22/INFO]: Avg inner duration = 1,548 ns, total duration = 877, total runs = 566,373
