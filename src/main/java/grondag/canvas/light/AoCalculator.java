@@ -57,6 +57,8 @@ public abstract class AoCalculator {
 		return face * BLEND_CACHE_DEPTH + depthIndex;
 	}
 
+	private long blendCacheCompletionLowFlags;
+	private long blendCacheCompletionHighFlags;
 
 	private int regionRelativeCacheIndex;
 
@@ -88,6 +90,10 @@ public abstract class AoCalculator {
 		for (int i = 0; i < 12; i++) {
 			faceData[i] = new AoFaceData();
 		}
+
+		for (int i = 0; i < BLEND_CACHE_ARRAY_SIZE; i++) {
+			blendCache[i] = new AoFaceCalc();
+		}
 	}
 
 	protected abstract float ao(int cacheIndex);
@@ -96,25 +102,37 @@ public abstract class AoCalculator {
 
 	protected abstract boolean isOpaque(int cacheIndex);
 
+	private boolean checkBlendDirty(int blendIndex) {
+		if((blendIndex & 63) == 0) {
+			final long mask = 1L << blendIndex;
+
+			if ((blendCacheCompletionLowFlags & mask) == 0) {
+				blendCacheCompletionLowFlags |= mask;
+				return true;
+			} else {
+				return false;
+			}
+		} else {
+			final long mask = 1L << (blendIndex - 64);
+
+			if ((blendCacheCompletionHighFlags & mask) == 0) {
+				blendCacheCompletionHighFlags |= mask;
+				return true;
+			} else {
+				return false;
+			}
+		}
+	}
+
 	/**
 	 * call at start of each new block
 	 * @param index region-relative index - must be an interior index - for block context, will always be 0
 	 */
 	public void prepare(int index) {
 		regionRelativeCacheIndex = index;
-
-		if(completionFlags != 0) {
-			completionFlags = 0;
-
-			for(int i = 0; i < BLEND_CACHE_ARRAY_SIZE; i++) {
-				final AoFaceCalc d = blendCache[i];
-
-				if(d != null) {
-					d.release();
-					blendCache[i] = null;
-				}
-			}
-		}
+		completionFlags = 0;
+		blendCacheCompletionLowFlags = 0;
+		blendCacheCompletionHighFlags = 0;
 	}
 
 	public void compute(MutableQuadViewImpl quad) {
@@ -167,9 +185,10 @@ public abstract class AoCalculator {
 
 	private void blockFace(MutableQuadViewImpl quad, boolean isOnLightFace) {
 		final int lightFace = quad.lightFaceId();
-		final AoFaceCalc faceData = gatherFace(lightFace, isOnLightFace).calc();
+		final AoFaceCalc faceData = gatherFace(lightFace, isOnLightFace).calc;
 		final AoFace face = AoFace.get(lightFace);
 		final WeightFunction wFunc = face.weightFunc;
+
 		for (int i = 0; i < 4; i++) {
 			//			final float[] w = quad.w[i];
 			wFunc.apply(quad, i, w);
@@ -201,19 +220,18 @@ public abstract class AoCalculator {
 		final float w1 = AoFace.get(lightFace).depthFunc.apply(quad, vertexIndex);
 
 		if (w1 <= 0.03125f) {
-			return gatherFace(lightFace, true).calc();
+			return gatherFace(lightFace, true).calc;
 		} else if (w1 >= 0.96875f) {
-			return gatherFace(lightFace, false).calc();
+			return gatherFace(lightFace, false).calc;
 		} else {
-			final int depth = blendIndex(lightFace, w1);
-			AoFaceCalc result = blendCache[depth];
+			final int blendIndex = blendIndex(lightFace, w1);
+			final AoFaceCalc result = blendCache[blendIndex];
 
-			if (result == null) {
+			if (checkBlendDirty(blendIndex)) {
 				final float w0 = 1 - w1;
-				result = AoFaceCalc.weightedMean(
-						gatherFace(lightFace, true).calc(), w0,
-						gatherFace(lightFace, false).calc(), w1);
-				blendCache[depth] = result;
+				result.weightedMean(
+						gatherFace(lightFace, true).calc, w0,
+						gatherFace(lightFace, false).calc, w1);
 			}
 
 			return result;
@@ -363,8 +381,6 @@ public abstract class AoCalculator {
 	}
 
 	private void updateFace(AoFaceData fd, final int lightFace, boolean isOnBlockFace) {
-		fd.resetCalc();
-
 		int index = regionRelativeCacheIndex;
 
 		// Overall this is different from vanilla, which seems to be buggy
@@ -431,7 +447,7 @@ public abstract class AoCalculator {
 		if (!(rightClear || bottomClear)) {
 			// both not clear
 			fd.aoBottomRight = (Math.min(aoRight, aoBottom) + aoBottom + aoRight + 1 + aoCenter) >> 2;
-			fd.bottomRight = OPAQUE;
+		fd.bottomRight = OPAQUE;
 		} else { // at least one clear
 			offset = aoFace.bottomRightVec;
 			cacheIndex = fastRelativeCacheIndex(x + offset.getX() , y + offset.getY(), z + offset.getZ());
@@ -463,6 +479,8 @@ public abstract class AoCalculator {
 			fd.topRight = cornerClear ? brightness(cacheIndex) : OPAQUE;
 			fd.aoTopRight = (Math.round(ao(cacheIndex) * 255) + aoTop + aoCenter + aoRight + 1) >> 2;
 		}
+
+		fd.calc.compute(fd);
 	}
 }
 

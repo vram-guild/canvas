@@ -41,24 +41,7 @@ public class AoFaceData {
 	int aoTopLeft;
 	int aoTopRight;
 
-	private AoFaceCalc calc = null;
-
-	public AoFaceCalc calc() {
-		AoFaceCalc result = calc;
-		if(result == null) {
-			result = AoFaceCalc.claim().compute(this);
-			calc = result;
-		}
-		return result;
-	}
-
-	public AoFaceData resetCalc() {
-		if(calc != null) {
-			calc.release();
-			calc = null;
-		}
-		return this;
-	}
+	public final AoFaceCalc calc = new AoFaceCalc();
 
 	public static AoFaceData weightedBlend(AoFaceData in0, float w0, AoFaceData in1, float w1, AoFaceData out) {
 		out.top = lightBlend(in0.top, w0, in1.top, w1);

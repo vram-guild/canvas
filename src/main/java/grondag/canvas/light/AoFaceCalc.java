@@ -1,6 +1,5 @@
 package grondag.canvas.light;
 
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.function.IntBinaryOperator;
 
 
@@ -8,22 +7,6 @@ import java.util.function.IntBinaryOperator;
  * Handles vanilla-style calculations for ao and light blending.
  */
 public class AoFaceCalc {
-	private static final ArrayBlockingQueue<AoFaceCalc> POOL = new ArrayBlockingQueue<>(512);
-
-	public static AoFaceCalc claim() {
-		AoFaceCalc result = POOL.poll();
-		if (result == null) {
-			result = new AoFaceCalc();
-		}
-		return result;
-	}
-
-	private AoFaceCalc() {}
-
-	public void release() {
-		POOL.offer(this);
-	}
-
 	int aoBottomRight;
 	int aoBottomLeft;
 	int aoTopLeft;
@@ -39,7 +22,7 @@ public class AoFaceCalc {
 	int skyTopLeft;
 	int skyTopRight;
 
-	public AoFaceCalc compute(AoFaceData input) {
+	public void compute(AoFaceData input) {
 		aoTopLeft = input.aoTopLeft;
 		aoTopRight = input.aoTopRight;
 		aoBottomLeft = input.aoBottomLeft;
@@ -60,8 +43,6 @@ public class AoFaceCalc {
 		l = meanBrightness(input.right, input.top, input.topRight, input.center);
 		blockTopRight = l & 0xFFFF;
 		skyTopRight = (l >>> 16) & 0xFFFF;
-
-		return this;
 	}
 
 	int weigtedBlockLight(float[] w) {
@@ -101,24 +82,21 @@ public class AoFaceCalc {
 	}
 
 	// PERF: use integer weights
-	static AoFaceCalc weightedMean(AoFaceCalc in0, float w0, AoFaceCalc in1, float w1) {
-		final AoFaceCalc out = claim();
-		out.aoBottomRight = Math.round(in0.aoBottomRight * w0 + in1.aoBottomRight * w1);
-		out.aoBottomLeft = Math.round(in0.aoBottomLeft * w0 + in1.aoBottomLeft * w1);
-		out.aoTopLeft = Math.round(in0.aoTopLeft * w0 + in1.aoTopLeft * w1);
-		out.aoTopRight = Math.round(in0.aoTopRight * w0 + in1.aoTopRight * w1);
+	public void weightedMean(AoFaceCalc in0, float w0, AoFaceCalc in1, float w1) {
+		aoBottomRight = Math.round(in0.aoBottomRight * w0 + in1.aoBottomRight * w1);
+		aoBottomLeft = Math.round(in0.aoBottomLeft * w0 + in1.aoBottomLeft * w1);
+		aoTopLeft = Math.round(in0.aoTopLeft * w0 + in1.aoTopLeft * w1);
+		aoTopRight = Math.round(in0.aoTopRight * w0 + in1.aoTopRight * w1);
 
-		out.blockBottomRight = Math.round(in0.blockBottomRight * w0 + in1.blockBottomRight * w1);
-		out.blockBottomLeft = Math.round(in0.blockBottomLeft * w0 + in1.blockBottomLeft * w1);
-		out.blockTopLeft = Math.round(in0.blockTopLeft * w0 + in1.blockTopLeft * w1);
-		out.blockTopRight = Math.round(in0.blockTopRight * w0 + in1.blockTopRight * w1);
+		blockBottomRight = Math.round(in0.blockBottomRight * w0 + in1.blockBottomRight * w1);
+		blockBottomLeft = Math.round(in0.blockBottomLeft * w0 + in1.blockBottomLeft * w1);
+		blockTopLeft = Math.round(in0.blockTopLeft * w0 + in1.blockTopLeft * w1);
+		blockTopRight = Math.round(in0.blockTopRight * w0 + in1.blockTopRight * w1);
 
-		out.skyBottomRight = Math.round(in0.skyBottomRight * w0 + in1.skyBottomRight * w1);
-		out.skyBottomLeft = Math.round(in0.skyBottomLeft * w0 + in1.skyBottomLeft * w1);
-		out.skyTopLeft = Math.round(in0.skyTopLeft * w0 + in1.skyTopLeft * w1);
-		out.skyTopRight = Math.round(in0.skyTopRight * w0 + in1.skyTopRight * w1);
-
-		return out;
+		skyBottomRight = Math.round(in0.skyBottomRight * w0 + in1.skyBottomRight * w1);
+		skyBottomLeft = Math.round(in0.skyBottomLeft * w0 + in1.skyBottomLeft * w1);
+		skyTopLeft = Math.round(in0.skyTopLeft * w0 + in1.skyTopLeft * w1);
+		skyTopRight = Math.round(in0.skyTopRight * w0 + in1.skyTopRight * w1);
 	}
 
 	/**

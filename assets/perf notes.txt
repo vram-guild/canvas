@@ -423,3 +423,16 @@ Finish interior occlusion, Reduce cache address overhead
 
 [06:49:03] [Server-Worker-3/INFO]: Avg outer duration = 2,805,817 ns, total duration = 2,805, total runs = 1,000
 [06:49:03] [Server-Worker-3/INFO]: Avg inner duration = 1,834 ns, total duration = 969, total runs = 528,735
+
+Make AoCalc non-pooled
+
+[07:26:21] [main/INFO]: Canvas Renderer is initializing.
+[07:26:21] [main/INFO]: [CHAT] [Debug]: Reloading all chunks
+[07:26:24] [Server-Worker-2/INFO]: Avg outer duration = 2,428,692 ns, total duration = 2,428, total runs = 1,000
+[07:26:24] [Server-Worker-2/INFO]: Avg inner duration = 902 ns, total duration = 599, total runs = 663,735
+
+[07:26:26] [Server-Worker-11/INFO]: Avg outer duration = 2,677,551 ns, total duration = 2,677, total runs = 1,000
+[07:26:26] [Server-Worker-11/INFO]: Avg inner duration = 852 ns, total duration = 657, total runs = 771,261
+
+[07:26:30] [Server-Worker-6/INFO]: Avg outer duration = 2,151,441 ns, total duration = 2,151, total runs = 1,000
+[07:26:30] [Server-Worker-6/INFO]: Avg inner duration = 861 ns, total duration = 455, total runs = 529,396
