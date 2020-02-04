@@ -193,13 +193,13 @@ public abstract class AoCalculator {
 	//		quad.skyLight = LightmapHd.findSky(faceData);
 	//	}
 
-
 	/**
 	 * Returns linearly interpolated blend of outer and inner face based on depth of
 	 * vertex in face
 	 */
 	private AoFaceCalc blendedInsetData(QuadViewImpl quad, int vertexIndex, int lightFace) {
 		final float w1 = AoFace.get(lightFace).depthFunc.apply(quad, vertexIndex);
+
 		if (w1 <= 0.03125f) {
 			return gatherFace(lightFace, true).calc();
 		} else if (w1 >= 0.96875f) {
@@ -207,13 +207,15 @@ public abstract class AoCalculator {
 		} else {
 			final int depth = blendIndex(lightFace, w1);
 			AoFaceCalc result = blendCache[depth];
-			if(result == null) {
+
+			if (result == null) {
 				final float w0 = 1 - w1;
 				result = AoFaceCalc.weightedMean(
 						gatherFace(lightFace, true).calc(), w0,
 						gatherFace(lightFace, false).calc(), w1);
 				blendCache[depth] = result;
 			}
+
 			return result;
 		}
 	}
@@ -354,132 +356,113 @@ public abstract class AoCalculator {
 
 		if ((completionFlags & mask) == 0) {
 			completionFlags |= mask;
-			fd.resetCalc();
-
-			int index = regionRelativeCacheIndex;
-
-			// Overall this is different from vanilla, which seems to be buggy
-			// basically, use neighbor pos unless it is full opaque - in that case cheat and use
-			// this block's position.
-			// A key difference from vanilla is that this position is then used as the center for
-			// all following offsets, which avoids anisotropy in smooth lighting.
-			if (isOnBlockFace) {
-				final int offsetIndex = offsetMainChunkBlockIndex(index, ModelHelper.faceFromIndex(lightFace));
-
-				if(!isOpaque(offsetIndex)) {
-					index = offsetIndex;
-				}
-			}
-
-			final int packedXyz5 = cacheIndexToXyz5(index);
-			final int x = (packedXyz5 & 31) - 1;
-			final int y = ((packedXyz5 >> 5) & 31) - 1;
-			final int z = (packedXyz5 >> 10) - 1;
-
-			fd.center = brightness(index);
-			final int aoCenter = Math.round(ao(index) * 255);
-
-			final AoFace aoFace = AoFace.get(lightFace);
-
-			// vanilla was further offsetting these in the direction of the light face
-			// but it was actually mis-sampling and causing visible artifacts in certain situation
-			Vec3i offset = aoFace.bottomVec;
-			int sx = x + offset.getX();
-			int sy = y + offset.getY();
-			int sz = z + offset.getZ();
-			int cacheIndex = fastRelativeCacheIndex(sx , sy, sz);
-			final boolean bottomClear = !isOpaque(cacheIndex);
-			fd.bottom = bottomClear ? brightness(cacheIndex) : OPAQUE;
-			final int aoBottom = Math.round(ao(cacheIndex) * 255);
-
-			offset = aoFace.topVec;
-			sx = x + offset.getX();
-			sy = y + offset.getY();
-			sz = z + offset.getZ();
-			cacheIndex = fastRelativeCacheIndex(sx , sy, sz);
-			final boolean topClear = !isOpaque(cacheIndex);
-			fd.top = topClear ? brightness(cacheIndex) : OPAQUE;
-			final int aoTop = Math.round(ao(cacheIndex) * 255);
-
-			offset = aoFace.leftVec;
-			sx = x + offset.getX();
-			sy = y + offset.getY();
-			sz = z + offset.getZ();
-			cacheIndex = fastRelativeCacheIndex(sx , sy, sz);
-			final boolean leftClear = !isOpaque(cacheIndex);
-			fd.left = leftClear ? brightness(cacheIndex) : OPAQUE;
-			final int aoLeft = Math.round(ao(cacheIndex) * 255);
-
-			offset = aoFace.rightVec;
-			sx = x + offset.getX();
-			sy = y + offset.getY();
-			sz = z + offset.getZ();
-			cacheIndex = fastRelativeCacheIndex(sx , sy, sz);
-			final boolean rightClear = !isOpaque(cacheIndex);
-			fd.right = rightClear ? brightness(cacheIndex) : OPAQUE;
-			final int aoRight = Math.round(ao(cacheIndex) * 255);
-
-			if (!(leftClear || bottomClear)) {
-				// both not clear
-				fd.aoBottomLeft = (Math.min(aoLeft, aoBottom) + aoBottom + aoLeft + 1 + aoCenter) >> 2;
-			fd.bottomLeft = OPAQUE;
-			} else { // at least one clear
-				offset = aoFace.bottomLeftVec;
-				sx = x + offset.getX();
-				sy = y + offset.getY();
-				sz = z + offset.getZ();
-				cacheIndex = fastRelativeCacheIndex(sx , sy, sz);
-				final boolean cornerClear = !isOpaque(cacheIndex);
-				fd.bottomLeft = cornerClear ? brightness(cacheIndex) : OPAQUE;
-				fd.aoBottomLeft = (Math.round(ao(cacheIndex) * 255) + aoBottom + aoCenter + aoLeft + 1) >> 2;  // bitwise divide by four, rounding up
-			}
-
-			if (!(rightClear || bottomClear)) {
-				// both not clear
-				fd.aoBottomRight = (Math.min(aoRight, aoBottom) + aoBottom + aoRight + 1 + aoCenter) >> 2;
-				fd.bottomRight = OPAQUE;
-			} else { // at least one clear
-				offset = aoFace.bottomRightVec;
-				sx = x + offset.getX();
-				sy = y + offset.getY();
-				sz = z + offset.getZ();
-				cacheIndex = fastRelativeCacheIndex(sx , sy, sz);
-				final boolean cornerClear = !isOpaque(cacheIndex);
-				fd.bottomRight = cornerClear ? brightness(cacheIndex) : OPAQUE;
-				fd.aoBottomRight = (Math.round(ao(cacheIndex) * 255) + aoBottom + aoCenter + aoRight + 1) >> 2;
-			}
-
-			if (!(leftClear || topClear)) {
-				// both not clear
-				fd.aoTopLeft = (Math.min(aoLeft, aoTop) + aoTop + aoLeft + 1 + aoCenter) >> 2;
-				fd.topLeft = OPAQUE;
-			} else { // at least one clear
-				offset = aoFace.topLeftVec;
-				sx = x + offset.getX();
-				sy = y + offset.getY();
-				sz = z + offset.getZ();
-				cacheIndex = fastRelativeCacheIndex(sx , sy, sz);
-				final boolean cornerClear = !isOpaque(cacheIndex);
-				fd.topLeft = cornerClear ? brightness(cacheIndex) : OPAQUE;
-				fd.aoTopLeft = (Math.round(ao(cacheIndex) * 255) + aoTop + aoCenter + aoLeft + 1) >> 2;
-			}
-
-			if (!(rightClear || topClear)) {
-				// both not clear
-				fd.aoTopRight = (Math.min(aoRight, aoTop) + aoTop+ aoRight + 1 + aoCenter) >> 2;
-				fd.topRight = OPAQUE;
-			} else { // at least one clear
-				offset = aoFace.topRightVec;
-				sx = x + offset.getX();
-				sy = y + offset.getY();
-				sz = z + offset.getZ();
-				cacheIndex = fastRelativeCacheIndex(sx , sy, sz);
-				final boolean cornerClear = !isOpaque(cacheIndex);
-				fd.topRight = cornerClear ? brightness(cacheIndex) : OPAQUE;
-				fd.aoTopRight = (Math.round(ao(cacheIndex) * 255) + aoTop + aoCenter + aoRight + 1) >> 2;
-			}
+			updateFace(fd, lightFace, isOnBlockFace);
 		}
 
 		return fd;
 	}
+
+	private void updateFace(AoFaceData fd, final int lightFace, boolean isOnBlockFace) {
+		fd.resetCalc();
+
+		int index = regionRelativeCacheIndex;
+
+		// Overall this is different from vanilla, which seems to be buggy
+		// basically, use neighbor pos unless it is full opaque - in that case cheat and use
+		// this block's position.
+		// A key difference from vanilla is that this position is then used as the center for
+		// all following offsets, which avoids anisotropy in smooth lighting.
+		if (isOnBlockFace) {
+			final int offsetIndex = offsetMainChunkBlockIndex(index, ModelHelper.faceFromIndex(lightFace));
+
+			if(!isOpaque(offsetIndex)) {
+				index = offsetIndex;
+			}
+		}
+
+		final int packedXyz5 = cacheIndexToXyz5(index);
+		final int x = (packedXyz5 & 31) - 1;
+		final int y = ((packedXyz5 >> 5) & 31) - 1;
+		final int z = (packedXyz5 >> 10) - 1;
+
+		fd.center = brightness(index);
+		final int aoCenter = Math.round(ao(index) * 255);
+
+		final AoFace aoFace = AoFace.get(lightFace);
+
+		// vanilla was further offsetting these in the direction of the light face
+		// but it was actually mis-sampling and causing visible artifacts in certain situation
+		Vec3i offset = aoFace.bottomVec;
+		int cacheIndex = fastRelativeCacheIndex(x + offset.getX() , y + offset.getY(), z + offset.getZ());
+		final boolean bottomClear = !isOpaque(cacheIndex);
+		fd.bottom = bottomClear ? brightness(cacheIndex) : OPAQUE;
+		final int aoBottom = Math.round(ao(cacheIndex) * 255);
+
+		offset = aoFace.topVec;
+		cacheIndex = fastRelativeCacheIndex(x + offset.getX() , y + offset.getY(), z + offset.getZ());
+		final boolean topClear = !isOpaque(cacheIndex);
+		fd.top = topClear ? brightness(cacheIndex) : OPAQUE;
+		final int aoTop = Math.round(ao(cacheIndex) * 255);
+
+		offset = aoFace.leftVec;
+		cacheIndex = fastRelativeCacheIndex(x + offset.getX() , y + offset.getY(), z + offset.getZ());
+		final boolean leftClear = !isOpaque(cacheIndex);
+		fd.left = leftClear ? brightness(cacheIndex) : OPAQUE;
+		final int aoLeft = Math.round(ao(cacheIndex) * 255);
+
+		offset = aoFace.rightVec;
+		cacheIndex = fastRelativeCacheIndex(x + offset.getX() , y + offset.getY(), z + offset.getZ());
+		final boolean rightClear = !isOpaque(cacheIndex);
+		fd.right = rightClear ? brightness(cacheIndex) : OPAQUE;
+		final int aoRight = Math.round(ao(cacheIndex) * 255);
+
+		if (!(leftClear || bottomClear)) {
+			// both not clear
+			fd.aoBottomLeft = (Math.min(aoLeft, aoBottom) + aoBottom + aoLeft + 1 + aoCenter) >> 2;
+			fd.bottomLeft = OPAQUE;
+		} else { // at least one clear
+			offset = aoFace.bottomLeftVec;
+			cacheIndex = fastRelativeCacheIndex(x + offset.getX() , y + offset.getY(), z + offset.getZ());
+			final boolean cornerClear = !isOpaque(cacheIndex);
+			fd.bottomLeft = cornerClear ? brightness(cacheIndex) : OPAQUE;
+			fd.aoBottomLeft = (Math.round(ao(cacheIndex) * 255) + aoBottom + aoCenter + aoLeft + 1) >> 2;  // bitwise divide by four, rounding up
+		}
+
+		if (!(rightClear || bottomClear)) {
+			// both not clear
+			fd.aoBottomRight = (Math.min(aoRight, aoBottom) + aoBottom + aoRight + 1 + aoCenter) >> 2;
+			fd.bottomRight = OPAQUE;
+		} else { // at least one clear
+			offset = aoFace.bottomRightVec;
+			cacheIndex = fastRelativeCacheIndex(x + offset.getX() , y + offset.getY(), z + offset.getZ());
+			final boolean cornerClear = !isOpaque(cacheIndex);
+			fd.bottomRight = cornerClear ? brightness(cacheIndex) : OPAQUE;
+			fd.aoBottomRight = (Math.round(ao(cacheIndex) * 255) + aoBottom + aoCenter + aoRight + 1) >> 2;
+		}
+
+		if (!(leftClear || topClear)) {
+			// both not clear
+			fd.aoTopLeft = (Math.min(aoLeft, aoTop) + aoTop + aoLeft + 1 + aoCenter) >> 2;
+			fd.topLeft = OPAQUE;
+		} else { // at least one clear
+			offset = aoFace.topLeftVec;
+			cacheIndex = fastRelativeCacheIndex(x + offset.getX() , y + offset.getY(), z + offset.getZ());
+			final boolean cornerClear = !isOpaque(cacheIndex);
+			fd.topLeft = cornerClear ? brightness(cacheIndex) : OPAQUE;
+			fd.aoTopLeft = (Math.round(ao(cacheIndex) * 255) + aoTop + aoCenter + aoLeft + 1) >> 2;
+		}
+
+		if (!(rightClear || topClear)) {
+			// both not clear
+			fd.aoTopRight = (Math.min(aoRight, aoTop) + aoTop+ aoRight + 1 + aoCenter) >> 2;
+			fd.topRight = OPAQUE;
+		} else { // at least one clear
+			offset = aoFace.topRightVec;
+			cacheIndex = fastRelativeCacheIndex(x + offset.getX() , y + offset.getY(), z + offset.getZ());
+			final boolean cornerClear = !isOpaque(cacheIndex);
+			fd.topRight = cornerClear ? brightness(cacheIndex) : OPAQUE;
+			fd.aoTopRight = (Math.round(ao(cacheIndex) * 255) + aoTop + aoCenter + aoRight + 1) >> 2;
+		}
+	}
 }
+
