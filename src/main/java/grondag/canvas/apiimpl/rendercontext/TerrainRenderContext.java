@@ -36,6 +36,7 @@ import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 
 import grondag.canvas.chunk.FastRenderRegion;
 import grondag.canvas.chunk.ProtoRenderRegion;
+import grondag.canvas.chunk.RenderRegionAddressHelper;
 import grondag.canvas.light.AoCalculator;
 import grondag.canvas.mixinterface.AccessChunkRendererData;
 
@@ -54,20 +55,20 @@ public class TerrainRenderContext extends AbstractRenderContext implements Rende
 		blockInfo.setBlockView(region);
 	}
 
-	private final AoCalculator aoCalc = new AoCalculator(blockInfo) {
+	private final AoCalculator aoCalc = new AoCalculator() {
 		@Override
-		protected float ao(int x, int y, int z) {
-			return region.cachedAoLevel(x, y, z);
+		protected float ao(int cacheIndex) {
+			return region.cachedAoLevel(cacheIndex);
 		}
 
 		@Override
-		protected int brightness(int x, int y, int z) {
-			return region.cachedBrightness(x, y, z);
+		protected int brightness(int cacheIndex) {
+			return region.cachedBrightness(cacheIndex);
 		}
 
 		@Override
-		protected boolean isOpaque(int x, int y, int z) {
-			return region.isClosed(x, y, z);
+		protected boolean isOpaque(int cacheIndex) {
+			return region.isClosed(cacheIndex);
 		}
 	};
 
@@ -125,7 +126,7 @@ public class TerrainRenderContext extends AbstractRenderContext implements Rende
 		normalMatrix = matrixStack.peek().getNormal();
 
 		try {
-			aoCalc.clear();
+			aoCalc.prepare(RenderRegionAddressHelper.mainChunkBlockIndex(blockPos));
 			blockInfo.prepareForBlock(blockState, blockPos, model.useAmbientOcclusion(), -1);
 			((FabricBakedModel) model).emitBlockQuads(blockInfo.blockView, blockInfo.blockState, blockInfo.blockPos, blockInfo.randomSupplier, this);
 		} catch (final Throwable var9) {

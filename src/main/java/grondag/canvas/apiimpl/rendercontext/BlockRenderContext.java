@@ -16,6 +16,8 @@
 
 package grondag.canvas.apiimpl.rendercontext;
 
+import static grondag.canvas.chunk.RenderRegionAddressHelper.cacheIndexToXyz5;
+
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -51,40 +53,55 @@ public class BlockRenderContext extends AbstractRenderContext implements RenderC
 	private final BlockPos.Mutable searchPos = new BlockPos.Mutable();
 	private final BlockRenderInfo blockInfo = new BlockRenderInfo();
 
-	private final AoCalculator aoCalc = new AoCalculator(blockInfo) {
+	private final AoCalculator aoCalc = new AoCalculator() {
 		@Override
-		protected float ao(int x, int y, int z) {
+		protected float ao(int cacheIndex) {
 			final BlockRenderView blockView = blockInfo.blockView;
 			if (blockView == null) {
 				return 1f;
-			} else {
-				searchPos.set(x, y, z);
-				final BlockState state = blockView.getBlockState(searchPos);
-				return state.getLuminance() == 0 ? state.getAmbientOcclusionLightLevel(blockView, searchPos) : 1F;
 			}
+
+			final int packedXyz5 = cacheIndexToXyz5(cacheIndex);
+			final BlockPos pos = blockInfo.blockPos;
+			final int x = (packedXyz5 & 31) - 1 + pos.getX();
+			final int y = ((packedXyz5 >> 5) & 31) - 1+ pos.getY();
+			final int z = (packedXyz5 >> 10) - 1+ pos.getZ();
+			searchPos.set(x, y, z);
+			final BlockState state = blockView.getBlockState(searchPos);
+			return state.getLuminance() == 0 ? state.getAmbientOcclusionLightLevel(blockView, searchPos) : 1F;
 		}
 
 		@Override
-		protected int brightness(int x, int y, int z) {
+		protected int brightness(int cacheIndex) {
 			if (blockInfo.blockView == null) {
 				return 15 << 20 | 15 << 4;
 			}
 
+			final int packedXyz5 = cacheIndexToXyz5(cacheIndex);
+			final BlockPos pos = blockInfo.blockPos;
+			final int x = (packedXyz5 & 31) - 1 + pos.getX();
+			final int y = ((packedXyz5 >> 5) & 31) - 1+ pos.getY();
+			final int z = (packedXyz5 >> 10) - 1+ pos.getZ();
 			searchPos.set(x, y, z);
 			return WorldRenderer.getLightmapCoordinates(blockInfo.blockView, blockInfo.blockView.getBlockState(searchPos), searchPos);
 		}
 
 		@Override
-		protected boolean isOpaque(int x, int y, int z) {
+		protected boolean isOpaque(int cacheIndex) {
 			final BlockRenderView blockView = blockInfo.blockView;
 
 			if (blockView == null) {
 				return false;
-			} else {
-				searchPos.set(x, y, z);
-				final BlockState state = blockView.getBlockState(searchPos);
-				return state.isFullOpaque(blockView, searchPos);
 			}
+
+			final int packedXyz5 = cacheIndexToXyz5(cacheIndex);
+			final BlockPos pos = blockInfo.blockPos;
+			final int x = (packedXyz5 & 31) - 1 + pos.getX();
+			final int y = ((packedXyz5 >> 5) & 31) - 1+ pos.getY();
+			final int z = (packedXyz5 >> 10) - 1+ pos.getZ();
+			searchPos.set(x, y, z);
+			final BlockState state = blockView.getBlockState(searchPos);
+			return state.isFullOpaque(blockView, searchPos);
 		}
 	};
 
@@ -104,7 +121,7 @@ public class BlockRenderContext extends AbstractRenderContext implements RenderC
 
 		this.overlay = overlay;
 		didOutput = false;
-		aoCalc.clear();
+		aoCalc.prepare(0);
 		blockInfo.setBlockView(blockView);
 		blockInfo.prepareForBlock(state, pos, model.useAmbientOcclusion(), seed);
 

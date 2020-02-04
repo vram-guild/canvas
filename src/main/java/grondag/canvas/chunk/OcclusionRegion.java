@@ -4,6 +4,7 @@ import static grondag.canvas.chunk.RenderRegionAddressHelper.INTERIOR_CACHE_SIZE
 import static grondag.canvas.chunk.RenderRegionAddressHelper.INTERIOR_CACHE_WORDS;
 import static grondag.canvas.chunk.RenderRegionAddressHelper.TOTAL_CACHE_SIZE;
 import static grondag.canvas.chunk.RenderRegionAddressHelper.TOTAL_CACHE_WORDS;
+import static grondag.canvas.chunk.RenderRegionAddressHelper.fastRelativeCacheIndex;
 import static grondag.canvas.chunk.RenderRegionAddressHelper.localCornerIndex;
 import static grondag.canvas.chunk.RenderRegionAddressHelper.localXEdgeIndex;
 import static grondag.canvas.chunk.RenderRegionAddressHelper.localXfaceIndex;
@@ -12,7 +13,6 @@ import static grondag.canvas.chunk.RenderRegionAddressHelper.localYfaceIndex;
 import static grondag.canvas.chunk.RenderRegionAddressHelper.localZEdgeIndex;
 import static grondag.canvas.chunk.RenderRegionAddressHelper.localZfaceIndex;
 import static grondag.canvas.chunk.RenderRegionAddressHelper.mainChunkLocalIndex;
-import static grondag.canvas.chunk.RenderRegionAddressHelper.relativeBlockIndex;
 
 import java.util.EnumSet;
 import java.util.Set;
@@ -201,9 +201,9 @@ public abstract class OcclusionRegion {
 				final int y = (i >> 4) & 0xF;
 				final int z = (i >> 8) & 0xF;
 
-				if(isClosed(relativeBlockIndex(x - 1, y, z)) && isClosed(relativeBlockIndex(x + 1, y, z))
-						&& isClosed(relativeBlockIndex(x, y - 1, z)) && isClosed(relativeBlockIndex(x, y + 1, z))
-						&& isClosed(relativeBlockIndex(x, y, z - 1)) && isClosed(relativeBlockIndex(x, y, z + 1))) {
+				if(isClosed(fastRelativeCacheIndex(x - 1, y, z)) && isClosed(fastRelativeCacheIndex(x + 1, y, z))
+						&& isClosed(fastRelativeCacheIndex(x, y - 1, z)) && isClosed(fastRelativeCacheIndex(x, y + 1, z))
+						&& isClosed(fastRelativeCacheIndex(x, y, z - 1)) && isClosed(fastRelativeCacheIndex(x, y, z + 1))) {
 
 					bits[wordIndex] &=  ~mask;
 				}
@@ -224,9 +224,9 @@ public abstract class OcclusionRegion {
 				final int y = (i >> 4) & 0xF;
 				final int z = (i >> 8) & 0xF;
 
-				if(isClosed(relativeBlockIndex(x - 1, y, z)) && isClosed(relativeBlockIndex(x + 1, y, z))
-						&& isClosed(relativeBlockIndex(x, y - 1, z)) && isClosed(relativeBlockIndex(x, y + 1, z))
-						&& isClosed(relativeBlockIndex(x, y, z - 1)) && isClosed(relativeBlockIndex(x, y, z + 1))) {
+				if(isClosed(fastRelativeCacheIndex(x - 1, y, z)) && isClosed(fastRelativeCacheIndex(x + 1, y, z))
+						&& isClosed(fastRelativeCacheIndex(x, y - 1, z)) && isClosed(fastRelativeCacheIndex(x, y + 1, z))
+						&& isClosed(fastRelativeCacheIndex(x, y, z - 1)) && isClosed(fastRelativeCacheIndex(x, y, z + 1))) {
 
 					bits[wordIndex + RENDERABLE_OFFSET] &=  ~mask;
 				}

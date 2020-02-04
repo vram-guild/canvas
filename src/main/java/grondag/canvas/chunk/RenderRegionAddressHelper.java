@@ -1,13 +1,17 @@
 package grondag.canvas.chunk;
 
+import java.util.Arrays;
+
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.Vec3i;
 
 public abstract class RenderRegionAddressHelper {
 	private RenderRegionAddressHelper() {}
 
-	protected static int mainChunkBlockIndex(int x, int y, int z) {
+	public static int mainChunkBlockIndex(int x, int y, int z) {
 		return mainChunkLocalIndex(x & 0xF, y & 0xF, z & 0xF);
 	}
 
@@ -18,7 +22,7 @@ public abstract class RenderRegionAddressHelper {
 		return x | (y << 4) | (z << 8);
 	}
 
-	protected static int mainChunkBlockIndex(BlockPos pos) {
+	public static int mainChunkBlockIndex(BlockPos pos) {
 		return mainChunkBlockIndex(pos.getX(), pos.getY(), pos.getZ());
 	}
 
@@ -64,7 +68,44 @@ public abstract class RenderRegionAddressHelper {
 		return CORNER_CACHE_START + subindex;
 	}
 
-	public static int relativeBlockIndex(int x, int y, int z) {
+	/**
+	 * Accepts a main section index (0-4096) and returns
+	 * a full-region index offset by the given face.
+	 */
+	public static int offsetMainChunkBlockIndex(int index, Direction face) {
+		final Vec3i vec = face.getVector();
+
+		final int x = (index & 0xF) + vec.getX();
+		final int y = ((index >> 4) & 0xF) + vec.getY();
+		final int z = ((index >> 8) & 0xF) + vec.getZ();
+
+		return fastRelativeCacheIndex(x, y, z);
+	}
+
+	/** checks for values outside -1 to 16, returns -1 if outside */
+	public static int relativeCacheIndex(int x, int y, int z) {
+		final int ix = (x + 1);
+
+		if((ix & 31) != ix) return -1;
+
+		final int iy = (y + 1);
+
+		if((iy & 31) != iy) return -1;
+
+		final int iz = (z + 1);
+
+		if((iz & 31) != iz) return -1;
+
+		return INDEX_LOOKUP[ix | (iy << 5) | (iz << 10)];
+	}
+
+	/** values must be -1 to 16 */
+	public static int fastRelativeCacheIndex(int x, int y, int z) {
+		final int lookupIndex = (x + 1)  | ((y + 1) << 5) | ((z + 1) << 10);
+		return INDEX_LOOKUP[lookupIndex];
+	}
+
+	private static int computeRelativeBlockIndex(int x, int y, int z) {
 		final int scenario = ((x & 0xF) == x ? 1 : 0) | ((y & 0xF) == y ? 2 : 0) | ((z & 0xF) == z ? 4 : 0);
 
 		switch(scenario) {
@@ -191,6 +232,14 @@ public abstract class RenderRegionAddressHelper {
 		return -1;
 	}
 
+	/**
+	 * Return packed x, y, z relative coordinates for the given cache position.
+	 * Values are +1 actual. (0-17 instead of -1 to 16).
+	 */
+	public static int cacheIndexToXyz5(int cacheIndex) {
+		return REVERSE_INDEX_LOOKUP[cacheIndex];
+	}
+
 	protected static final BlockState AIR = Blocks.AIR.getDefaultState();
 
 	protected static final int INTERIOR_CACHE_SIZE = 4096;
@@ -207,5 +256,25 @@ public abstract class RenderRegionAddressHelper {
 	protected static final int INTERIOR_CACHE_WORDS = INTERIOR_CACHE_SIZE / 64;
 	protected static final int EXTERIOR_CACHE_WORDS = (EXTERIOR_CACHE_SIZE + 63) / 64;
 	protected static final int TOTAL_CACHE_WORDS = INTERIOR_CACHE_WORDS + EXTERIOR_CACHE_WORDS;
+
+
+	protected static final int[] REVERSE_INDEX_LOOKUP = new int[TOTAL_CACHE_SIZE];
+	protected static final int[] INDEX_LOOKUP = new int[32768];
+
+
+	static {
+		Arrays.fill(INDEX_LOOKUP, -1);
+
+		for (int x = -1; x <= 16; x++) {
+			for (int y = -1; y <= 16; y++) {
+				for (int z = -1; z <= 16; z++) {
+					final int fastIndex = (x + 1) | ((y + 1) << 5) | ((z + 1) << 10);
+					final int cacheIndex = computeRelativeBlockIndex(x, y, z);
+					INDEX_LOOKUP[fastIndex] = cacheIndex;
+					REVERSE_INDEX_LOOKUP[cacheIndex] = fastIndex;
+				}
+			}
+		}
+	}
 
 }

@@ -1,6 +1,6 @@
 package grondag.canvas.chunk;
 
-import static grondag.canvas.chunk.RenderRegionAddressHelper.relativeBlockIndex;
+import static grondag.canvas.chunk.RenderRegionAddressHelper.relativeCacheIndex;
 
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -33,7 +33,7 @@ abstract class AbstractRenderRegion {
 	}
 
 	final int blockIndex(int x, int y, int z) {
-		return relativeBlockIndex(x - originX, y - originY, z - originZ);
+		return relativeCacheIndex(x - originX, y - originY, z - originZ);
 	}
 
 	protected ChunkSection getSection(int x, int y, int z) {

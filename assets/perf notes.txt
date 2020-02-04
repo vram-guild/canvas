@@ -408,4 +408,18 @@ Finish moving occlusion to render region
 [08:30:03] [Server-Worker-10/INFO]: Avg inner duration = 1,819 ns, total duration = 1,202, total runs = 661,099
 
 [08:30:28] [Server-Worker-13/INFO]: Avg outer duration = 3,738,371 ns, total duration = 3,738, total runs = 1,000
-[08:30:28] [Server-Worker-13/INFO]: Avg inner duration = 1,916 ns, total duration = 1,594, total runs = 831,885 
+[08:30:28] [Server-Worker-13/INFO]: Avg inner duration = 1,916 ns, total duration = 1,594, total runs = 831,885
+
+
+Finish interior occlusion, Reduce cache address overhead
+
+[06:48:56] [main/INFO]: Canvas Renderer is initializing.
+[06:48:56] [main/INFO]: [CHAT] [Debug]: Reloading all chunks
+[06:48:57] [Server-Worker-3/INFO]: Avg outer duration = 2,939,462 ns, total duration = 2,939, total runs = 1,000
+[06:48:57] [Server-Worker-3/INFO]: Avg inner duration = 1,741 ns, total duration = 1,169, total runs = 671,457
+
+[06:48:59] [Server-Worker-5/INFO]: Avg outer duration = 2,630,660 ns, total duration = 2,630, total runs = 1,000
+[06:48:59] [Server-Worker-5/INFO]: Avg inner duration = 1,327 ns, total duration = 1,011, total runs = 761,708
+
+[06:49:03] [Server-Worker-3/INFO]: Avg outer duration = 2,805,817 ns, total duration = 2,805, total runs = 1,000
+[06:49:03] [Server-Worker-3/INFO]: Avg inner duration = 1,834 ns, total duration = 969, total runs = 528,735

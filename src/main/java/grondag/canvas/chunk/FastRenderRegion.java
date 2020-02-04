@@ -19,6 +19,7 @@ package grondag.canvas.chunk;
 import static grondag.canvas.chunk.RenderRegionAddressHelper.EXTERIOR_CACHE_SIZE;
 import static grondag.canvas.chunk.RenderRegionAddressHelper.INTERIOR_CACHE_SIZE;
 import static grondag.canvas.chunk.RenderRegionAddressHelper.TOTAL_CACHE_SIZE;
+import static grondag.canvas.chunk.RenderRegionAddressHelper.cacheIndexToXyz5;
 import static grondag.canvas.chunk.RenderRegionAddressHelper.mainChunkBlockIndex;
 import static grondag.canvas.chunk.RenderRegionAddressHelper.mainChunkLocalIndex;
 
@@ -172,21 +173,17 @@ public class FastRenderRegion extends AbstractRenderRegion implements RenderAtta
 		return isInMainChunk(pos) ? renderData[mainChunkBlockIndex(pos)] : null;
 	}
 
-	public int cachedBrightness(int x, int y, int z) {
-		final int i = blockIndex(x, y, z);
-
-		if (i == -1) {
-			searchPos.set(x, y, z);
-			final BlockState state = world.getBlockState(searchPos);
-			return WorldRenderer.getLightmapCoordinates(world, state, searchPos);
-		}
-
-		int result = lightCache[i];
+	public int cachedBrightness(int cacheIndex) {
+		int result = lightCache[cacheIndex];
 
 		if (result == Integer.MAX_VALUE) {
-			final BlockState state = states[i];
+			final BlockState state = states[cacheIndex];
+			final int packedXyz5 = cacheIndexToXyz5(cacheIndex);
+			final int x = (packedXyz5 & 31) - 1 + originX;
+			final int y = ((packedXyz5 >> 5) & 31) - 1 + originY;
+			final int z = (packedXyz5 >> 10) - 1 + originZ;
 			result = WorldRenderer.getLightmapCoordinates(world, state, searchPos.set(x, y, z));
-			lightCache[i] = result;
+			lightCache[cacheIndex] = result;
 		}
 
 		return result;
@@ -196,21 +193,23 @@ public class FastRenderRegion extends AbstractRenderRegion implements RenderAtta
 		return WorldRenderer.getLightmapCoordinates(world, getBlockState(pos), pos);
 	}
 
-	public float cachedAoLevel(int x, int y, int z) {
-		final int i = blockIndex(x, y, z);
-
-		if (i == -1) {
-			searchPos.set(x, y, z);
-			final BlockState state = world.getBlockState(searchPos);
-			return state.getLuminance() == 0 ? state.getAmbientOcclusionLightLevel(this, searchPos) : 1F;
-		}
-
-		float result = aoCache[i];
+	public float cachedAoLevel(int cacheIndex) {
+		float result = aoCache[cacheIndex];
 
 		if (result == Float.MAX_VALUE) {
-			final BlockState state = states[i];
-			result = state.getLuminance() == 0 ? state.getAmbientOcclusionLightLevel(this, searchPos.set(x, y, z)) : 1F;
-			aoCache[i] = result;
+			final BlockState state = states[cacheIndex];
+
+			if(state.getLuminance() == 0) {
+				final int packedXyz5 = cacheIndexToXyz5(cacheIndex);
+				final int x = (packedXyz5 & 31) - 1 + originX;
+				final int y = ((packedXyz5 >> 5) & 31) - 1 + originY;
+				final int z = (packedXyz5 >> 10) - 1 + originZ;
+				result = state.getAmbientOcclusionLightLevel(this, searchPos.set(x, y, z));
+			} else {
+				result = 1F;
+			}
+
+			aoCache[cacheIndex] = result;
 		}
 
 		return result;
@@ -232,14 +231,8 @@ public class FastRenderRegion extends AbstractRenderRegion implements RenderAtta
 	}
 
 	/** only valid for positions in render region, including exterior */
-	public boolean isClosed(int x, int y, int z) {
-		final int i = blockIndex(x, y, z);
-
-		if (i == -1) {
-			return false;
-		}
-
-		return occlusion.isClosed(i);
+	public boolean isClosed(int cacheIndex) {
+		return occlusion.isClosed(cacheIndex);
 	}
 
 	public final OcclusionRegion occlusion = new OcclusionRegion() {
