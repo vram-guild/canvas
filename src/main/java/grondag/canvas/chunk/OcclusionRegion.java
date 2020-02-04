@@ -211,6 +211,29 @@ public abstract class OcclusionRegion {
 		}
 	}
 
+	/**
+	 * Removes renderable flag if position has no open neighbors and is not visible from exterior.
+	 */
+	private void hideInteriorClosedPositions() {
+		for (int i = 0; i < INTERIOR_CACHE_SIZE; i++) {
+			final long mask = (1L << (i & 63));
+			final int wordIndex = (i >> 6);
+
+			if ((bits[wordIndex + RENDERABLE_OFFSET] & mask) != 0 && (bits[wordIndex + EXTERIOR_VISIBLE_OFFSET] & mask) == 0) {
+				final int x = i & 0xF;
+				final int y = (i >> 4) & 0xF;
+				final int z = (i >> 8) & 0xF;
+
+				if(isClosed(relativeBlockIndex(x - 1, y, z)) && isClosed(relativeBlockIndex(x + 1, y, z))
+						&& isClosed(relativeBlockIndex(x, y - 1, z)) && isClosed(relativeBlockIndex(x, y + 1, z))
+						&& isClosed(relativeBlockIndex(x, y, z - 1)) && isClosed(relativeBlockIndex(x, y, z + 1))) {
+
+					bits[wordIndex + RENDERABLE_OFFSET] &=  ~mask;
+				}
+			}
+		}
+	}
+
 	private void addOpenEdgeFacesIfCanVisit(ChunkOcclusionData result, int x, int y, int z) {
 		final int index = mainChunkLocalIndex(x, y, z);
 
@@ -236,11 +259,7 @@ public abstract class OcclusionRegion {
 			}
 		}
 
-		// TODO: disable in spectator mode
-		// mask renderable to visible
-		for(int i = 0; i < INTERIOR_CACHE_WORDS; i++) {
-			bits[i + RENDERABLE_OFFSET] &= bits[i + EXTERIOR_VISIBLE_OFFSET];
-		}
+		hideInteriorClosedPositions();
 
 		return result;
 	}
@@ -331,8 +350,7 @@ public abstract class OcclusionRegion {
 
 	static final int RENDERABLE_OFFSET = TOTAL_CACHE_WORDS;
 	static final int EXTERIOR_VISIBLE_OFFSET = RENDERABLE_OFFSET + TOTAL_CACHE_WORDS;
-	static final int INTERIOR_VISIBLE_OFFSET = EXTERIOR_VISIBLE_OFFSET + TOTAL_CACHE_WORDS;
-	static final int WORLD_COUNT = INTERIOR_VISIBLE_OFFSET + TOTAL_CACHE_WORDS;
+	static final int WORLD_COUNT = EXTERIOR_VISIBLE_OFFSET + TOTAL_CACHE_WORDS;
 
 	static final long[] EMPTY_BITS = new long[WORLD_COUNT];
 	static final long[] EXTERIOR_MASK = new long[INTERIOR_CACHE_WORDS];
