@@ -243,7 +243,6 @@ public class FastRenderRegion extends AbstractRenderRegion implements RenderAtta
 	}
 
 	public final OcclusionRegion occlusion = new OcclusionRegion() {
-
 		@Override
 		protected BlockState blockStateAtIndex(int index) {
 			return states[index];

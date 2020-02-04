@@ -12,6 +12,7 @@ import static grondag.canvas.chunk.RenderRegionAddressHelper.localYfaceIndex;
 import static grondag.canvas.chunk.RenderRegionAddressHelper.localZEdgeIndex;
 import static grondag.canvas.chunk.RenderRegionAddressHelper.localZfaceIndex;
 import static grondag.canvas.chunk.RenderRegionAddressHelper.mainChunkLocalIndex;
+import static grondag.canvas.chunk.RenderRegionAddressHelper.relativeBlockIndex;
 
 import java.util.EnumSet;
 import java.util.Set;
@@ -185,6 +186,31 @@ public abstract class OcclusionRegion {
 		}
 	}
 
+	/**
+	 * Removes renderable flag if position has no open neighbors.
+	 * Probably less expensive than a flood fill when small number of closed position
+	 * and used in that scenario.
+	 */
+	private void hideClosedPositions() {
+		for (int i = 0; i < INTERIOR_CACHE_SIZE; i++) {
+			final long mask = (1L << (i & 63));
+			final int wordIndex = (i >> 6) + RENDERABLE_OFFSET;
+
+			if ((bits[wordIndex] & mask) != 0) {
+				final int x = i & 0xF;
+				final int y = (i >> 4) & 0xF;
+				final int z = (i >> 8) & 0xF;
+
+				if(isClosed(relativeBlockIndex(x - 1, y, z)) && isClosed(relativeBlockIndex(x + 1, y, z))
+						&& isClosed(relativeBlockIndex(x, y - 1, z)) && isClosed(relativeBlockIndex(x, y + 1, z))
+						&& isClosed(relativeBlockIndex(x, y, z - 1)) && isClosed(relativeBlockIndex(x, y, z + 1))) {
+
+					bits[wordIndex] &=  ~mask;
+				}
+			}
+		}
+	}
+
 	private void addOpenEdgeFacesIfCanVisit(ChunkOcclusionData result, int x, int y, int z) {
 		final int index = mainChunkLocalIndex(x, y, z);
 
@@ -220,8 +246,16 @@ public abstract class OcclusionRegion {
 	}
 
 	public ChunkOcclusionData build() {
-		if (4096 - openCount < 256) {
-			// set all visible, renderable is unmasked
+		final int closedCount = 4096 - openCount;
+
+		if (closedCount < 256) {
+
+			if(closedCount > 7) {
+				// hide unexposed blocks
+				hideClosedPositions();
+			}
+
+			// all chunk faces thru-visible
 			return ALL_OPEN;
 		} else if (openCount == 0) {
 			// only surface blocks are visible, and only if not covered
