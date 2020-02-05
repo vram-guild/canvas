@@ -1,3 +1,17 @@
+/*******************************************************************************
+ * Copyright 2019, 2020 grondag
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License.  You may obtain a copy
+ * of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ ******************************************************************************/
 package grondag.canvas.chunk;
 
 import net.minecraft.block.Block;
@@ -17,14 +31,13 @@ import net.minecraft.util.math.Vec3d;
 
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
 import grondag.canvas.mixinterface.AccessChunkRendererData;
-import grondag.canvas.perf.MicroTimer;
 
 public class ChunkRebuildinator {
-	public static MicroTimer outer = new MicroTimer("outer", 1000);
-	public static MicroTimer inner = new MicroTimer("inner", -1);
+	//	public static MicroTimer outer = new MicroTimer("outer", 1000);
+	//	public static MicroTimer inner = new MicroTimer("inner", -1);
 
 	public static void rebuildChunk(float x, float y, float z, AccessChunkRendererData chunkDataAccess, BlockBufferBuilderStorage buffers, ProtoRenderRegion protoRegion, BlockPos origin) {
-		outer.start();
+		//outer.start();
 
 		final TerrainRenderContext context = TerrainRenderContext.POOL.get().prepare(protoRegion, chunkDataAccess, buffers, origin);
 		final FastRenderRegion region = context.region;
@@ -41,10 +54,10 @@ public class ChunkRebuildinator {
 		chunkDataAccess.canvas_endBuffering(x - xMin, y - yMin, z - zMin, buffers);
 		context.release();
 
-		if (outer.stop()) {
-			inner.reportAndClear();
-			System.out.println();
-		}
+		//		if (outer.stop()) {
+		//			inner.reportAndClear();
+		//			System.out.println();
+		//		}
 	}
 
 	private static void buildTerrain(AccessChunkRendererData chunkDataAccess, BlockBufferBuilderStorage buffers, TerrainRenderContext context, int xMin, int yMin, int zMin, FastRenderRegion region, BlockPos.Mutable searchPos) {
