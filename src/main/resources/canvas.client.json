@@ -7,13 +7,16 @@
   	"MixinBiomeAccess",
     "MixinBlockModelRenderer",
     "MixinBuiltChunk",
+    "MixinBuiltChunkStorage",
+    "MixinChunkInfo",
     "MixinChunkRebuildTask",
     "MixinChunkRenderData",
     "MixinClientChunkManager",
     "MixinItemRenderer",
     "MixinPackedIntegerArray",
     "MixinPalettedContainer",
-    "MixinWorldChunk"
+    "MixinWorldChunk",
+    "MixinWorldRenderer"
   ],
   "injectors": {
     "defaultRequire": 1
