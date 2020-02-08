@@ -66,11 +66,16 @@ public class MixinWorldRenderer implements WorldRendererExt {
 	// TODO: remove
 	private static final MicroTimer timer = new MicroTimer("setupTerrain", 200);
 
+
 	@Inject(at = @At("HEAD"), method = "setupTerrain", cancellable = true)
 	private void onSetupTerrain(Camera camera, Frustum frustum, boolean bl, int i, boolean bl2, CallbackInfo ci) {
 		timer.start();
 		terrainRenderer.setupTerrain(camera, frustum, bl, i, bl2);
-		timer.stop();
+
+		if(timer.stop()) {
+			TerrainRenderer.innerTimer.reportAndClear();
+		}
+
 		ci.cancel();
 	}
 

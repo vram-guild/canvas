@@ -33,8 +33,11 @@ import net.minecraft.world.chunk.WorldChunk;
 
 import grondag.canvas.mixinterface.ChunkInfoExt;
 import grondag.canvas.mixinterface.WorldRendererExt;
+import grondag.canvas.perf.MicroTimer;
 
 public class TerrainRenderer {
+	public static final MicroTimer innerTimer = new MicroTimer("inner", -1);
+
 	private final WorldRendererExt wr;
 
 	public TerrainRenderer(WorldRendererExt wr) {
@@ -123,35 +126,12 @@ public class TerrainRenderer {
 				}
 			} else {
 				// start from top or bottom of world if camera is outside of world
-				final int yLevel = cameraBlockPos.getY() > 0 ? 248 : 8;
-				final int xCenter = MathHelper.floor(cameraPos.x / 16.0D) * 16;
-				final int zCenter = MathHelper.floor(cameraPos.z / 16.0D) * 16;
-				final ObjectArrayList<ChunkInfoExt> searchList = this.searchList;
-				final IntArrayList searchDist = this.searchDist;
-				searchList.clear();
-				searchDist.clear();
-
-				for(int zOffset = -renderDistance; zOffset <= renderDistance; ++zOffset) {
-					for(int xOffset = -renderDistance; xOffset <= renderDistance; ++xOffset) {
-						final ChunkBuilder.BuiltChunk builtChunk = wr.canvas_getRenderedChunk(new BlockPos(xCenter + (xOffset << 4) + 8, yLevel, zCenter + (zOffset << 4) + 8));
-
-						if (builtChunk != null && frustum.isVisible(builtChunk.boundingBox)) {
-							builtChunk.setRebuildFrame(frameCounter);
-							searchList.add(ChunkInfoFactory.INSTANCE.get(wr, builtChunk, (Direction)null, 0));
-							searchDist.add(squaredDistance(builtChunk.getOrigin(), cameraBlockPos));
-						}
-					}
-				}
-
-				final int limit = searchList.size();
-				it.unimi.dsi.fastutil.Arrays.quickSort(0, limit, comparator, swapper);
-
-				for(int i = 0; i < limit; i++) {
-					searchQueue.enqueue(searchList.get(i));
-				}
+				startSearchFromOutsideWorld(cameraBlockPos, cameraPos, renderDistance, frustum, frameCounter);
 			}
 
 			mc.getProfiler().push("iteration");
+
+			innerTimer.start();
 
 			while(!searchQueue.isEmpty()) {
 				final ChunkInfoExt chunkInfo = searchQueue.dequeue();
@@ -198,6 +178,8 @@ public class TerrainRenderer {
 			mc.getProfiler().pop();
 		}
 
+		innerTimer.stop();
+
 		mc.getProfiler().swap("rebuildNear");
 		final Set<ChunkBuilder.BuiltChunk> oldChunksToRebuild  = wr.canvas_chunkToRebuild();
 		final Set<ChunkBuilder.BuiltChunk> chunksToRebuild = wr.canvas_newChunkToRebuild();
@@ -224,6 +206,35 @@ public class TerrainRenderer {
 
 		chunksToRebuild.addAll(oldChunksToRebuild);
 		mc.getProfiler().pop();
+	}
+
+	private final void startSearchFromOutsideWorld(BlockPos cameraBlockPos, Vec3d cameraPos, int renderDistance, Frustum frustum, int frameCounter) {
+		final int yLevel = cameraBlockPos.getY() > 0 ? 248 : 8;
+		final int xCenter = MathHelper.floor(cameraPos.x / 16.0D) * 16;
+		final int zCenter = MathHelper.floor(cameraPos.z / 16.0D) * 16;
+		final ObjectArrayList<ChunkInfoExt> searchList = this.searchList;
+		final IntArrayList searchDist = this.searchDist;
+		searchList.clear();
+		searchDist.clear();
+
+		for(int zOffset = -renderDistance; zOffset <= renderDistance; ++zOffset) {
+			for(int xOffset = -renderDistance; xOffset <= renderDistance; ++xOffset) {
+				final ChunkBuilder.BuiltChunk builtChunk = wr.canvas_getRenderedChunk(new BlockPos(xCenter + (xOffset << 4) + 8, yLevel, zCenter + (zOffset << 4) + 8));
+
+				if (builtChunk != null && frustum.isVisible(builtChunk.boundingBox)) {
+					builtChunk.setRebuildFrame(frameCounter);
+					searchList.add(ChunkInfoFactory.INSTANCE.get(wr, builtChunk, (Direction)null, 0));
+					searchDist.add(squaredDistance(builtChunk.getOrigin(), cameraBlockPos));
+				}
+			}
+		}
+
+		final int limit = searchList.size();
+		it.unimi.dsi.fastutil.Arrays.quickSort(0, limit, comparator, swapper);
+
+		for(int i = 0; i < limit; i++) {
+			searchQueue.enqueue(searchList.get(i));
+		}
 	}
 
 	private static int squaredDistance(BlockPos chunkOrigin, BlockPos cameraBlockPos) {
