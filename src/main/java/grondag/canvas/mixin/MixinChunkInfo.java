@@ -32,7 +32,7 @@ public class MixinChunkInfo implements ChunkInfoExt {
 	@Shadow private int propagationLevel;
 
 	@Override
-	public Direction canvas_direction() {
+	public Direction canvas_entryFace() {
 		return direction;
 	}
 
@@ -47,17 +47,17 @@ public class MixinChunkInfo implements ChunkInfoExt {
 	}
 
 	@Override
-	public byte canvas_cullingState() {
+	public byte canvas_backtrackState() {
 		return cullingState;
 	}
 
 	@Override
-	public boolean canvas_canCull(Direction direction) {
+	public boolean canvas_isBacktrack(Direction direction) {
 		return (cullingState & 1 << direction.ordinal()) > 0;
 	}
 
 	@Override
-	public void canvas_updateCullingState(byte b, Direction direction) {
+	public void canvas_updateBacktrackState(byte b, Direction direction) {
 		cullingState = (byte)(cullingState | b | 1 << direction.ordinal());
 	}
 }

@@ -436,3 +436,35 @@ Make AoCalc non-pooled
 
 [07:26:30] [Server-Worker-6/INFO]: Avg outer duration = 2,151,441 ns, total duration = 2,151, total runs = 1,000
 [07:26:30] [Server-Worker-6/INFO]: Avg inner duration = 861 ns, total duration = 455, total runs = 529,396
+
+
+Baseline terrainSetup
+
+[07:32:44] [main/INFO]: Canvas Renderer is initializing.
+[07:32:45] [main/INFO]: [CHAT] [Debug]: Reloading all chunks
+[07:32:49] [main/INFO]: Avg setupTerrain duration = 9,467,979 ns, total duration = 1,893, total runs = 200
+[07:32:58] [main/INFO]: Avg setupTerrain duration = 12,628,127 ns, total duration = 2,525, total runs = 200
+[07:33:00] [main/INFO]: Canvas Renderer is initializing.
+[07:33:01] [main/INFO]: [CHAT] [Debug]: Reloading all chunks
+[07:33:05] [main/INFO]: Avg setupTerrain duration = 9,248,210 ns, total duration = 1,849, total runs = 200
+[07:33:14] [main/INFO]: Avg setupTerrain duration = 12,873,393 ns, total duration = 2,574, total runs = 200
+[07:33:15] [main/INFO]: Canvas Renderer is initializing.
+[07:33:17] [main/INFO]: [CHAT] [Debug]: Reloading all chunks
+[07:33:21] [main/INFO]: Avg setupTerrain duration = 9,342,812 ns, total duration = 1,868, total runs = 200
+[07:33:31] [main/INFO]: Avg setupTerrain duration = 12,759,066 ns, total duration = 2,551, total runs = 200
+
+
+with minor cleanup
+
+[07:38:39] [main/INFO]: Canvas Renderer is initializing.
+[07:38:40] [main/INFO]: [CHAT] [Debug]: Reloading all chunks
+[07:38:45] [main/INFO]: Avg setupTerrain duration = 9,103,957 ns, total duration = 1,820, total runs = 200
+[07:38:55] [main/INFO]: Avg setupTerrain duration = 13,063,980 ns, total duration = 2,612, total runs = 200
+[07:38:55] [main/INFO]: Canvas Renderer is initializing.
+[07:38:57] [main/INFO]: [CHAT] [Debug]: Reloading all chunks
+[07:39:01] [main/INFO]: Avg setupTerrain duration = 8,920,602 ns, total duration = 1,784, total runs = 200
+[07:39:11] [main/INFO]: Avg setupTerrain duration = 13,249,497 ns, total duration = 2,649, total runs = 200
+[07:39:12] [main/INFO]: Canvas Renderer is initializing.
+[07:39:13] [main/INFO]: [CHAT] [Debug]: Reloading all chunks
+[07:39:18] [main/INFO]: Avg setupTerrain duration = 9,344,257 ns, total duration = 1,868, total runs = 200
+[07:39:27] [main/INFO]: Avg setupTerrain duration = 12,890,355 ns, total duration = 2,578, total runs = 200

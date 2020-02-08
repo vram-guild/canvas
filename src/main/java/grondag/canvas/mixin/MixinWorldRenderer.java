@@ -36,6 +36,7 @@ import net.minecraft.util.math.Vec3d;
 
 import grondag.canvas.chunk.TerrainRenderer;
 import grondag.canvas.mixinterface.WorldRendererExt;
+import grondag.canvas.perf.MicroTimer;
 
 @Mixin(WorldRenderer.class)
 public class MixinWorldRenderer implements WorldRendererExt {
@@ -60,9 +61,16 @@ public class MixinWorldRenderer implements WorldRendererExt {
 	@Shadow private BuiltChunkStorage chunks;
 	@Shadow private boolean needsTerrainUpdate;
 
+	private final TerrainRenderer terrainRenderer = new TerrainRenderer(this);
+
+	// TODO: remove
+	private static final MicroTimer timer = new MicroTimer("setupTerrain", 200);
+
 	@Inject(at = @At("HEAD"), method = "setupTerrain", cancellable = true)
 	private void onSetupTerrain(Camera camera, Frustum frustum, boolean bl, int i, boolean bl2, CallbackInfo ci) {
-		TerrainRenderer.setupTerrain(this, camera, frustum, bl, i, bl2);
+		timer.start();
+		terrainRenderer.setupTerrain(camera, frustum, bl, i, bl2);
+		timer.stop();
 		ci.cancel();
 	}
 

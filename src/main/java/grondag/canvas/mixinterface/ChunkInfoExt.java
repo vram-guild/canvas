@@ -19,18 +19,33 @@ import net.minecraft.util.math.Direction;
 
 public interface ChunkInfoExt {
 
-	Direction canvas_direction();
+	/**
+	 * Direction from which chunk visibility search entered last time.
+	 * Null if started from within chunk or from top or bottom of world.
+	 */
+	Direction canvas_entryFace();
 
 	BuiltChunk canvas_chunk();
 
-	boolean canvas_canCull(Direction opposite);
+	/**
+	 * True if the direction is the opposite of a back-facing direction.
+	 */
+	boolean canvas_isBacktrack(Direction opposite);
 
-	byte canvas_cullingState();
+	/**
+	 * Bits indicate chunk faces that are opposite the back-facing faces for this chunk.
+	 * Bit positions are indexed by direction ordinals.
+	 * Backfacing faces include the face from which the chunk was visited, plus
+	 * the backfaces from the visiting chunk.
+	 */
+	byte canvas_backtrackState();
 
-	void canvas_updateCullingState(byte b, Direction direction);
+	/**
+	 * Adds backtrack faces in bit flags and
+	 * also marks the direction in as back-facing.
+	 * All directions are the opposite of what they should be.
+	 */
+	void canvas_updateBacktrackState(byte cullState, Direction opposite);
 
 	int canvas_propagationLevel();
-
-
-
 }
