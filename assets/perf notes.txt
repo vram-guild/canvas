@@ -468,3 +468,18 @@ with minor cleanup
 [07:39:13] [main/INFO]: [CHAT] [Debug]: Reloading all chunks
 [07:39:18] [main/INFO]: Avg setupTerrain duration = 9,344,257 ns, total duration = 1,868, total runs = 200
 [07:39:27] [main/INFO]: Avg setupTerrain duration = 12,890,355 ns, total duration = 2,578, total runs = 200
+
+optimize out-of-world visiblity sort
+
+[12:19:00] [main/INFO]: Canvas Renderer is initializing.
+[12:19:01] [main/INFO]: [CHAT] [Debug]: Reloading all chunks
+[12:19:06] [main/INFO]: Avg setupTerrain duration = 8,512,660 ns, total duration = 1,702, total runs = 200
+[12:19:15] [main/INFO]: Avg setupTerrain duration = 11,472,467 ns, total duration = 2,294, total runs = 200
+[12:19:16] [main/INFO]: Canvas Renderer is initializing.
+[12:19:17] [main/INFO]: [CHAT] [Debug]: Reloading all chunks
+[12:19:22] [main/INFO]: Avg setupTerrain duration = 7,584,738 ns, total duration = 1,516, total runs = 200
+[12:19:31] [main/INFO]: Avg setupTerrain duration = 11,182,056 ns, total duration = 2,236, total runs = 200
+[12:19:31] [main/INFO]: Canvas Renderer is initializing.
+[12:19:32] [main/INFO]: [CHAT] [Debug]: Reloading all chunks
+[12:19:37] [main/INFO]: Avg setupTerrain duration = 8,032,978 ns, total duration = 1,606, total runs = 200
+[12:19:46] [main/INFO]: Avg setupTerrain duration = 11,370,818 ns, total duration = 2,274, total runs = 200

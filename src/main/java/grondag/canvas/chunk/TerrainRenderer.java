@@ -1,15 +1,15 @@
 package grondag.canvas.chunk;
 
-import java.util.Comparator;
 import java.util.Iterator;
-import java.util.List;
-import java.util.Queue;
 import java.util.Set;
 
 import javax.annotation.Nullable;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Queues;
+import it.unimi.dsi.fastutil.Swapper;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntComparator;
+import it.unimi.dsi.fastutil.objects.ObjectArrayFIFOQueue;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectList;
 import it.unimi.dsi.fastutil.objects.ObjectListIterator;
 
@@ -41,25 +41,29 @@ public class TerrainRenderer {
 		this.wr = wr;
 	}
 
-	//	private final AbstractLongComparator comparator = new AbstractLongComparator() {
-	//		@Override
-	//		public int compare(long a, long b) {
-	//			return Doubles.compare(perQuadDistance[b], perQuadDistance[a]);
-	//		}
-	//	};
-	//
-	//	private final Swapper swapper = new Swapper() {
-	//		@Override
-	//		public void swap(int a, int b) {
-	//			final double distSwap = perQuadDistance[a];
-	//			perQuadDistance[a] = perQuadDistance[b];
-	//			perQuadDistance[b] = distSwap;
-	//
-	//			System.arraycopy(data, a * quadIntStride, quadSwap, 0, quadIntStride);
-	//			System.arraycopy(data, b * quadIntStride, data, a * quadIntStride, quadIntStride);
-	//			System.arraycopy(quadSwap, 0, data, b * quadIntStride, quadIntStride);
-	//		}
-	//	};
+	private final IntComparator comparator = new IntComparator() {
+		@Override
+		public int compare(int a, int b) {
+			return Integer.compare(searchDist.getInt(a), searchDist.getInt(b));
+		}
+	};
+
+	private final Swapper swapper = new Swapper() {
+		@Override
+		public void swap(int a, int b) {
+			final int distSwap = searchDist.getInt(a);
+			searchDist.set(a, searchDist.getInt(b));
+			searchDist.set(b, distSwap);
+
+			final ChunkInfoExt chunkSwap = searchList.get(a);
+			searchList.set(a, searchList.get(b));
+			searchList.set(b, chunkSwap);
+		}
+	};
+
+	private final ObjectArrayFIFOQueue<ChunkInfoExt> searchQueue = new ObjectArrayFIFOQueue<>();
+	private final ObjectArrayList<ChunkInfoExt> searchList = new ObjectArrayList<>();
+	private final IntArrayList searchDist = new IntArrayList();
 
 	@SuppressWarnings("unchecked")
 	public void setupTerrain(Camera camera, Frustum frustum, boolean capturedFrustum, int frameCounter, boolean isSpectator) {
@@ -92,7 +96,7 @@ public class TerrainRenderer {
 		if (!capturedFrustum && needsTerrainUpdate) {
 			needsTerrainUpdate = wr.canvas_setNeedsTerrainUpdate(false);
 			visibleChunks.clear();
-			final Queue<ChunkInfoExt> queue = Queues.newArrayDeque();
+			final ObjectArrayFIFOQueue<ChunkInfoExt> searchQueue = this.searchQueue;
 			Entity.setRenderDistanceMultiplier(MathHelper.clamp(mc.options.viewDistance / 8.0D, 1.0D, 2.5D));
 			boolean chunkCullingEnabled = mc.chunkCullingEnabled;
 
@@ -115,14 +119,17 @@ public class TerrainRenderer {
 					}
 
 					cameraChunk.setRebuildFrame(frameCounter);
-					queue.add(chunkInfo);
+					searchQueue.enqueue(chunkInfo);
 				}
 			} else {
 				// start from top or bottom of world if camera is outside of world
 				final int yLevel = cameraBlockPos.getY() > 0 ? 248 : 8;
 				final int xCenter = MathHelper.floor(cameraPos.x / 16.0D) * 16;
 				final int zCenter = MathHelper.floor(cameraPos.z / 16.0D) * 16;
-				final List<ChunkInfoExt> list = Lists.newArrayList();
+				final ObjectArrayList<ChunkInfoExt> searchList = this.searchList;
+				final IntArrayList searchDist = this.searchDist;
+				searchList.clear();
+				searchDist.clear();
 
 				for(int zOffset = -renderDistance; zOffset <= renderDistance; ++zOffset) {
 					for(int xOffset = -renderDistance; xOffset <= renderDistance; ++xOffset) {
@@ -130,22 +137,24 @@ public class TerrainRenderer {
 
 						if (builtChunk != null && frustum.isVisible(builtChunk.boundingBox)) {
 							builtChunk.setRebuildFrame(frameCounter);
-							list.add(ChunkInfoFactory.INSTANCE.get(wr, builtChunk, (Direction)null, 0));
+							searchList.add(ChunkInfoFactory.INSTANCE.get(wr, builtChunk, (Direction)null, 0));
+							searchDist.add(squaredDistance(builtChunk.getOrigin(), cameraBlockPos));
 						}
 					}
 				}
 
-				list.sort(Comparator.comparingDouble((chunkInfox) -> {
-					return squaredDistance(chunkInfox.canvas_chunk().getOrigin(), cameraBlockPos);
-				}));
+				final int limit = searchList.size();
+				it.unimi.dsi.fastutil.Arrays.quickSort(0, limit, comparator, swapper);
 
-				queue.addAll(list);
+				for(int i = 0; i < limit; i++) {
+					searchQueue.enqueue(searchList.get(i));
+				}
 			}
 
 			mc.getProfiler().push("iteration");
 
-			while(!queue.isEmpty()) {
-				final ChunkInfoExt chunkInfo = queue.poll();
+			while(!searchQueue.isEmpty()) {
+				final ChunkInfoExt chunkInfo = searchQueue.dequeue();
 				final BuiltChunk builtChunk = chunkInfo.canvas_chunk();
 				final ChunkData chunkData = builtChunk.getData();
 				final Direction currentChunkEntryFace = chunkInfo.canvas_entryFace();
@@ -181,7 +190,7 @@ public class TerrainRenderer {
 						// this is confusing, because it's actually the opposite of the backwards face because Mojang flips faces when checking
 						// FIX: this seems likely to be the source of over-optimistic occlusion bug seen earlier
 						adjacentChunkInfo.canvas_updateBacktrackState(chunkInfo.canvas_backtrackState(), face);
-						queue.add(adjacentChunkInfo);
+						searchQueue.enqueue(adjacentChunkInfo);
 					}
 				}
 			}
@@ -217,10 +226,10 @@ public class TerrainRenderer {
 		mc.getProfiler().pop();
 	}
 
-	private static long squaredDistance(BlockPos chunkOrigin, BlockPos cameraBlockPos) {
-		final long dx = chunkOrigin.getX() + 8 - cameraBlockPos.getX();
-		final long dy = chunkOrigin.getY() + 8 - cameraBlockPos.getY();
-		final long dz = chunkOrigin.getZ() + 8 - cameraBlockPos.getZ();
+	private static int squaredDistance(BlockPos chunkOrigin, BlockPos cameraBlockPos) {
+		final int dx = chunkOrigin.getX() + 8 - cameraBlockPos.getX();
+		final int dy = chunkOrigin.getY() + 8 - cameraBlockPos.getY();
+		final int dz = chunkOrigin.getZ() + 8 - cameraBlockPos.getZ();
 		return dx * dx + dy * dy + dz * dz;
 
 	}
