@@ -14,9 +14,8 @@
  ******************************************************************************/
 package grondag.canvas.mixinterface;
 
-import net.minecraft.client.render.chunk.ChunkBuilder.BuiltChunk;
-import net.minecraft.util.math.BlockPos;
+import grondag.canvas.chunk.ChunkPaletteCopier.PaletteCopy;
 
-public interface BuiltChunkStorageExt {
-	BuiltChunk canvas_getRendereredChunk(BlockPos pos);
+public interface PalettedContainerExt {
+	PaletteCopy canvas_paletteCopy();
 }

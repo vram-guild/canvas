@@ -3,9 +3,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
  * of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
@@ -26,7 +26,7 @@ import static grondag.canvas.chunk.RenderRegionAddressHelper.localYEdgeIndex;
 import static grondag.canvas.chunk.RenderRegionAddressHelper.localYfaceIndex;
 import static grondag.canvas.chunk.RenderRegionAddressHelper.localZEdgeIndex;
 import static grondag.canvas.chunk.RenderRegionAddressHelper.localZfaceIndex;
-import static grondag.canvas.chunk.RenderRegionAddressHelper.mainChunkLocalIndex;
+import static grondag.canvas.chunk.RenderRegionAddressHelper.interiorIndex;
 
 import java.util.EnumSet;
 import java.util.Set;
@@ -61,9 +61,8 @@ public abstract class OcclusionRegion {
 		return (bits[(index >> 6)] & (1L << (index & 63))) != 0;
 	}
 
-	public boolean shouldRender(int x, int y, int z) {
-		final int index = mainChunkLocalIndex(x, y, z);
-		return (bits[(index >> 6) + RENDERABLE_OFFSET] & (1L << (index & 63))) != 0;
+	public boolean shouldRender(int interiorIndex) {
+		return (bits[(interiorIndex >> 6) + RENDERABLE_OFFSET] & (1L << (interiorIndex & 63))) != 0;
 	}
 
 	protected void setVisibility(int index, boolean isRenderable, boolean isClosed) {
@@ -176,7 +175,7 @@ public abstract class OcclusionRegion {
 	}
 
 	private void clearInteriorRenderable(int x, int y, int z) {
-		final int index = mainChunkLocalIndex(x, y, z);
+		final int index = interiorIndex(x, y, z);
 		bits[(index >> 6) + RENDERABLE_OFFSET] &= ~(1L << (index & 63));
 	}
 
@@ -249,7 +248,7 @@ public abstract class OcclusionRegion {
 	}
 
 	private void addOpenEdgeFacesIfCanVisit(ChunkOcclusionData result, int x, int y, int z) {
-		final int index = mainChunkLocalIndex(x, y, z);
+		final int index = interiorIndex(x, y, z);
 
 		if (canVisit(index)) {
 			result.addOpenEdgeFaces(getVistedFaces(index));

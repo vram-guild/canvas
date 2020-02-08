@@ -15,14 +15,30 @@
 package grondag.canvas.mixinterface;
 
 import java.util.Set;
+import java.util.SortedSet;
 
-import it.unimi.dsi.fastutil.objects.ObjectList;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 
+import net.minecraft.block.BlockState;
+import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.BuiltChunkStorage;
-import net.minecraft.client.render.chunk.ChunkBuilder;
-import net.minecraft.client.render.chunk.ChunkBuilder.BuiltChunk;
+import net.minecraft.client.gl.Framebuffer;
+import net.minecraft.client.gl.ShaderEffect;
+import net.minecraft.client.render.BlockBreakingInfo;
+import net.minecraft.client.render.BufferBuilderStorage;
+import net.minecraft.client.render.Camera;
+import net.minecraft.client.render.FpsSmoother;
+import net.minecraft.client.render.Frustum;
+import net.minecraft.client.render.LightmapTextureManager;
+import net.minecraft.client.render.VertexConsumer;
+import net.minecraft.client.render.VertexConsumerProvider;
+import net.minecraft.client.render.VertexFormat;
+import net.minecraft.client.render.entity.EntityRenderDispatcher;
+import net.minecraft.client.texture.TextureManager;
+import net.minecraft.client.util.math.Matrix4f;
+import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.client.world.ClientWorld;
+import net.minecraft.entity.Entity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 
@@ -50,27 +66,53 @@ public interface WorldRendererExt {
 
 	int canvas_camereChunkZ();
 
-	BuiltChunkStorage canvas_chunks();
-
-	Set<BuiltChunk> canvas_chunkToRebuild();
-
-	Set<BuiltChunk> canvas_newChunkToRebuild();
-
-	ChunkBuilder canvas_chunkBuilder();
-
 	/** Updates stored values
 	 * @param yaw
 	 * @param pitch
 	 * @param cameraPos */
 	boolean canvas_checkNeedsTerrainUpdate(Vec3d cameraPos, float pitch, float yaw);
 
-	/** Returns value passed in */
-	boolean canvas_setNeedsTerrainUpdate(boolean needsUpdate);
+	void canvas_setNeedsTerrainUpdate(boolean needsUpdate);
 
-	@SuppressWarnings("rawtypes")
-	ObjectList canvas_visibleChunks();
+	TextureManager canvas_textureManager();
 
-	default BuiltChunk canvas_getRenderedChunk(BlockPos pos) {
-		return ((BuiltChunkStorageExt) canvas_chunks()).canvas_getRendereredChunk(pos);
-	}
+	EntityRenderDispatcher canvas_entityRenderDispatcher();
+
+	BufferBuilderStorage canvas_bufferBuilders();
+
+	Frustum canvas_getCapturedFrustum ();
+
+	void canvas_setCapturedFrustum (Frustum frustum);
+
+	void canvas_setCapturedFrustumPosition(Frustum frustum);
+
+	void canvas_captureFrustumIfNeeded(Matrix4f matrix4f2, Matrix4f matrix4f, Vec3d cameraPos, boolean hasCapturedFrustum, Frustum frustum2);
+
+	int canvas_getAndIncrementFrameIndex();
+
+	FpsSmoother canvas_chunkUpdateSmoother();
+
+	boolean canvas_canDrawEntityOutlines();
+
+	Framebuffer canvas_entityOutlinesFramebuffer();
+
+	ShaderEffect canvas_entityOutlineShader();
+
+	Set<BlockEntity> canvas_noCullingBlockEntities();
+
+	void canvas_drawBlockOutline(MatrixStack matrixStack, VertexConsumer vertexConsumer, Entity entity, double d, double e, double f, BlockPos blockPos, BlockState blockState);
+
+	void canvas_renderWorldBorder(Camera camera);
+
+	Long2ObjectMap<SortedSet<BlockBreakingInfo>> canvas_blockBreakingProgressions();
+
+	void canvas_renderEntity(Entity entity, double d, double e, double f, float g, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider);
+
+	void canvas_renderWeather(LightmapTextureManager lightmapTextureManager, float f, double d, double e, double g);
+
+	void canvas_setEntityCount(int count);
+
+	boolean canvas_shouldSortTranslucent(double x, double y, double z);
+
+	VertexFormat canvas_vertexFormat();
 }

@@ -3,12 +3,11 @@
   "package": "grondag.canvas.mixin",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
-  	"AccessChunkBuilder",
   	"MixinBiomeAccess",
     "MixinBlockModelRenderer",
     "MixinBuiltChunk",
     "MixinBuiltChunkStorage",
-    "MixinChunkInfo",
+  	"MixinChunkBuilder",
     "MixinChunkRebuildTask",
     "MixinChunkRenderData",
     "MixinClientChunkManager",

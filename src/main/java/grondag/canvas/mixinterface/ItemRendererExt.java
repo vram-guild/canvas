@@ -12,10 +12,15 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  ******************************************************************************/
-package grondag.canvas.chunk;
 
-import it.unimi.dsi.fastutil.ints.IntArrayList;
 
-public interface PackedIntegerArrayExt {
-	void canvas_fastForEach(IntArrayList list);
+package grondag.canvas.mixinterface;
+
+import net.minecraft.client.render.VertexConsumer;
+import net.minecraft.client.render.model.BakedModel;
+import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.item.ItemStack;
+
+public interface ItemRendererExt {
+	void canvas_renderBakedItemModel(BakedModel model, ItemStack stack, int light, int overlay, MatrixStack matrixStack, VertexConsumer buffer);
 }

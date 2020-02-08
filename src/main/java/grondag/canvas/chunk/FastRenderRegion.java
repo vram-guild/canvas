@@ -3,9 +3,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
  * of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
@@ -18,8 +18,7 @@ import static grondag.canvas.chunk.RenderRegionAddressHelper.EXTERIOR_CACHE_SIZE
 import static grondag.canvas.chunk.RenderRegionAddressHelper.INTERIOR_CACHE_SIZE;
 import static grondag.canvas.chunk.RenderRegionAddressHelper.TOTAL_CACHE_SIZE;
 import static grondag.canvas.chunk.RenderRegionAddressHelper.cacheIndexToXyz5;
-import static grondag.canvas.chunk.RenderRegionAddressHelper.mainChunkBlockIndex;
-import static grondag.canvas.chunk.RenderRegionAddressHelper.mainChunkLocalIndex;
+import static grondag.canvas.chunk.RenderRegionAddressHelper.interiorIndex;
 
 import java.util.Arrays;
 
@@ -41,9 +40,6 @@ import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachedBlockView;
 
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
 import grondag.canvas.chunk.ChunkPaletteCopier.PaletteCopy;
-
-// PERF: to conserve memory, make this thread-local, residing in the terrain context
-// only capture the paletteCopy, chunks and border states before prepare
 
 public class FastRenderRegion extends AbstractRenderRegion implements RenderAttachedBlockView {
 	protected final BlockPos.Mutable searchPos = new BlockPos.Mutable();
@@ -84,7 +80,7 @@ public class FastRenderRegion extends AbstractRenderRegion implements RenderAtta
 		for (int x = 0; x < 16; x++) {
 			for (int y = 0; y < 16; y++) {
 				for (int z = 0; z < 16; z++) {
-					states[mainChunkLocalIndex(x, y, z)] = pc.apply(x | (y << 8) | (z << 4));
+					states[interiorIndex(x, y, z)] = pc.apply(x | (y << 8) | (z << 4));
 				}
 			}
 		}
@@ -146,14 +142,14 @@ public class FastRenderRegion extends AbstractRenderRegion implements RenderAtta
 	/**
 	 * Assumes values 0-15
 	 */
-	public BlockState getLocalBlockState(int x, int y, int z) {
-		return states[mainChunkLocalIndex(x, y, z)];
+	public BlockState getLocalBlockState(int interiorIndex) {
+		return states[interiorIndex];
 	}
 
 	@Override
 	@Nullable
 	public BlockEntity getBlockEntity(BlockPos pos) {
-		return isInMainChunk(pos) ? blockEntities[mainChunkBlockIndex(pos)] : world.getBlockEntity(pos);
+		return isInMainChunk(pos) ? blockEntities[interiorIndex(pos)] : world.getBlockEntity(pos);
 	}
 
 	@Override
@@ -168,7 +164,7 @@ public class FastRenderRegion extends AbstractRenderRegion implements RenderAtta
 
 	@Override
 	public Object getBlockEntityRenderAttachment(BlockPos pos) {
-		return isInMainChunk(pos) ? renderData[mainChunkBlockIndex(pos)] : null;
+		return isInMainChunk(pos) ? renderData[interiorIndex(pos)] : null;
 	}
 
 	public int cachedBrightness(int cacheIndex) {

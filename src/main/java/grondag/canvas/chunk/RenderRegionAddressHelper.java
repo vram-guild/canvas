@@ -3,9 +3,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
  * of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
@@ -25,19 +25,22 @@ import net.minecraft.util.math.Vec3i;
 public abstract class RenderRegionAddressHelper {
 	private RenderRegionAddressHelper() {}
 
-	public static int mainChunkBlockIndex(int x, int y, int z) {
-		return mainChunkLocalIndex(x & 0xF, y & 0xF, z & 0xF);
+	/**
+	 * Handles values < 0 or > 15 by masking to LSB.
+	 */
+	public static int clampedInteriorIndex(int x, int y, int z) {
+		return interiorIndex(x & 0xF, y & 0xF, z & 0xF);
 	}
 
 	/**
 	 * Assumes values 0-15
 	 */
-	protected static int mainChunkLocalIndex(int x, int y, int z) {
+	protected static int interiorIndex(int x, int y, int z) {
 		return x | (y << 4) | (z << 8);
 	}
 
-	public static int mainChunkBlockIndex(BlockPos pos) {
-		return mainChunkBlockIndex(pos.getX(), pos.getY(), pos.getZ());
+	public static int interiorIndex(BlockPos pos) {
+		return clampedInteriorIndex(pos.getX(), pos.getY(), pos.getZ());
 	}
 
 	protected static int localXfaceIndex(boolean high, int y, int z) {
@@ -239,7 +242,7 @@ public abstract class RenderRegionAddressHelper {
 
 		case 0b111:
 			// contained in XYZ - is main section
-			return mainChunkBlockIndex(x, y, z);
+			return clampedInteriorIndex(x, y, z);
 		}
 
 		// use world directly
@@ -271,10 +274,8 @@ public abstract class RenderRegionAddressHelper {
 	protected static final int EXTERIOR_CACHE_WORDS = (EXTERIOR_CACHE_SIZE + 63) / 64;
 	protected static final int TOTAL_CACHE_WORDS = INTERIOR_CACHE_WORDS + EXTERIOR_CACHE_WORDS;
 
-
 	protected static final int[] REVERSE_INDEX_LOOKUP = new int[TOTAL_CACHE_SIZE];
 	protected static final int[] INDEX_LOOKUP = new int[32768];
-
 
 	static {
 		Arrays.fill(INDEX_LOOKUP, -1);
@@ -290,5 +291,4 @@ public abstract class RenderRegionAddressHelper {
 			}
 		}
 	}
-
 }

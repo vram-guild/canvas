@@ -12,16 +12,10 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  ******************************************************************************/
-
-
 package grondag.canvas.mixinterface;
 
-import grondag.canvas.chunk.ProtoRenderRegion;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
 
-/**
- * Used to stash block renderer reference in local scope during
- * chunk rebuild, thus avoiding repeated thread-local lookups.
- */
-public interface AccessRebuildTask {
-	void canvas_setRegion(ProtoRenderRegion region);
+public interface PackedIntegerArrayExt {
+	void canvas_fastForEach(IntArrayList list);
 }

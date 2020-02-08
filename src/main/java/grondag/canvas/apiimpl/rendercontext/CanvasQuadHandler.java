@@ -21,12 +21,12 @@ import net.minecraft.client.render.model.BakedModel;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.item.ItemStack;
 
-import grondag.canvas.mixinterface.AccessItemRenderer;
+import grondag.canvas.mixinterface.ItemRendererExt;
 
 public class CanvasQuadHandler implements ItemRenderContext.VanillaQuadHandler {
-	private final AccessItemRenderer itemRenderer;
+	private final ItemRendererExt itemRenderer;
 
-	public CanvasQuadHandler(AccessItemRenderer itemRenderer) {
+	public CanvasQuadHandler(ItemRendererExt itemRenderer) {
 		this.itemRenderer = itemRenderer;
 	}
 

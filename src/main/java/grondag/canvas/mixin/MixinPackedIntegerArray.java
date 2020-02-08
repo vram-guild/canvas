@@ -20,7 +20,7 @@ import org.spongepowered.asm.mixin.Shadow;
 
 import net.minecraft.util.PackedIntegerArray;
 
-import grondag.canvas.chunk.PackedIntegerArrayExt;
+import grondag.canvas.mixinterface.PackedIntegerArrayExt;
 
 @Mixin(PackedIntegerArray.class)
 public abstract class MixinPackedIntegerArray implements PackedIntegerArrayExt {

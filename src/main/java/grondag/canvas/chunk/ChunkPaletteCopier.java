@@ -24,6 +24,8 @@ import net.minecraft.world.chunk.ChunkSection;
 import net.minecraft.world.chunk.Palette;
 import net.minecraft.world.chunk.WorldChunk;
 
+import grondag.canvas.mixinterface.PalettedContainerExt;
+
 public class ChunkPaletteCopier {
 
 	@FunctionalInterface

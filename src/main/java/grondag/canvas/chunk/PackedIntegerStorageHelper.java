@@ -20,6 +20,8 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 
 import net.minecraft.util.PackedIntegerArray;
 
+import grondag.canvas.mixinterface.PackedIntegerArrayExt;
+
 /**
  * Minimize new allocation for chunk storage copies by recycling the arrays.
  */

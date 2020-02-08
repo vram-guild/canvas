@@ -36,10 +36,10 @@ import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
 import grondag.canvas.apiimpl.rendercontext.CanvasQuadHandler;
 import grondag.canvas.apiimpl.rendercontext.ItemRenderContext;
 import grondag.canvas.apiimpl.rendercontext.ItemRenderContext.VanillaQuadHandler;
-import grondag.canvas.mixinterface.AccessItemRenderer;
+import grondag.canvas.mixinterface.ItemRendererExt;
 
 @Mixin(ItemRenderer.class)
-public abstract class MixinItemRenderer implements AccessItemRenderer {
+public abstract class MixinItemRenderer implements ItemRendererExt {
 	@Shadow
 	protected abstract void renderBakedItemModel(BakedModel model, ItemStack stack, int light, int overlay, MatrixStack matrixStack, VertexConsumer buffer);
 

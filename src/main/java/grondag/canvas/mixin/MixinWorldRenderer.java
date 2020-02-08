@@ -15,28 +15,51 @@
 package grondag.canvas.mixin;
 
 import java.util.Set;
+import java.util.SortedSet;
 
-import com.google.common.collect.Sets;
-import it.unimi.dsi.fastutil.objects.ObjectList;
+import javax.annotation.Nullable;
+
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import net.minecraft.block.BlockState;
+import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.BuiltChunkStorage;
+import net.minecraft.client.gl.Framebuffer;
+import net.minecraft.client.gl.ShaderEffect;
+import net.minecraft.client.render.BlockBreakingInfo;
+import net.minecraft.client.render.BufferBuilderStorage;
 import net.minecraft.client.render.Camera;
+import net.minecraft.client.render.FpsSmoother;
 import net.minecraft.client.render.Frustum;
+import net.minecraft.client.render.GameRenderer;
+import net.minecraft.client.render.LightmapTextureManager;
+import net.minecraft.client.render.RenderLayers;
+import net.minecraft.client.render.VertexConsumer;
+import net.minecraft.client.render.VertexConsumerProvider;
+import net.minecraft.client.render.VertexFormat;
 import net.minecraft.client.render.WorldRenderer;
-import net.minecraft.client.render.chunk.ChunkBuilder;
 import net.minecraft.client.render.chunk.ChunkBuilder.BuiltChunk;
+import net.minecraft.client.render.entity.EntityRenderDispatcher;
+import net.minecraft.client.texture.TextureManager;
+import net.minecraft.client.util.math.Matrix4f;
+import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.client.util.math.Vector3d;
 import net.minecraft.client.world.ClientWorld;
+import net.minecraft.entity.Entity;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 
-import grondag.canvas.chunk.TerrainRenderer;
+import grondag.canvas.CanvasMod;
+import grondag.canvas.chunk.RenderRegionBuilder;
 import grondag.canvas.mixinterface.WorldRendererExt;
-import grondag.canvas.perf.MicroTimer;
+import grondag.canvas.render.CanvasWorldRenderer;
 
 @Mixin(WorldRenderer.class)
 public class MixinWorldRenderer implements WorldRendererExt {
@@ -54,28 +77,138 @@ public class MixinWorldRenderer implements WorldRendererExt {
 	@Shadow private double lastCameraZ;
 	@Shadow private double lastCameraPitch;
 	@Shadow private double lastCameraYaw;
-	@Shadow private ChunkBuilder chunkBuilder;
-	@Shadow private Set<ChunkBuilder.BuiltChunk> chunksToRebuild;
-	@SuppressWarnings("rawtypes")
-	@Shadow private ObjectList visibleChunks;
-	@Shadow private BuiltChunkStorage chunks;
+	@Shadow private double lastTranslucentSortX;
+	@Shadow private double lastTranslucentSortY;
+	@Shadow private double lastTranslucentSortZ;
+	@Shadow private int frame;
 	@Shadow private boolean needsTerrainUpdate;
+	@Shadow private boolean cloudsDirty;
+	@Shadow private TextureManager textureManager;
+	@Shadow private EntityRenderDispatcher entityRenderDispatcher;
+	@Shadow private BufferBuilderStorage bufferBuilders;
+	@Shadow private Frustum capturedFrustum;
+	@Shadow private Vector3d capturedFrustumPosition;
+	@Shadow private boolean shouldCaptureFrustum;
+	@Shadow private int regularEntityCount;
+	@Shadow private FpsSmoother chunkUpdateSmoother;
+	@Shadow private Framebuffer entityOutlinesFramebuffer;
+	@Shadow private ShaderEffect entityOutlineShader;
+	@Shadow private Set<BlockEntity> noCullingBlockEntities;
+	@Shadow private Long2ObjectMap<SortedSet<BlockBreakingInfo>> blockBreakingProgressions;
+	@Shadow private VertexFormat vertexFormat;
 
-	private final TerrainRenderer terrainRenderer = new TerrainRenderer(this);
+	@Shadow private void captureFrustum(Matrix4f matrix4f, Matrix4f matrix4f2, double d, double e, double f, Frustum frustum) {}
+	@Shadow protected boolean canDrawEntityOutlines() { return false; }
+	@Shadow private void drawBlockOutline(MatrixStack matrixStack, VertexConsumer vertexConsumer, Entity entity, double d, double e, double f, BlockPos blockPos, BlockState blockState) {}
+	@Shadow private void renderWorldBorder(Camera camera) {}
+	@Shadow private void renderEntity(Entity entity, double d, double e, double f, float g, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider) {}
+	@Shadow private void renderWeather(LightmapTextureManager lightmapTextureManager, float f, double d, double e, double g) {}
 
-	// TODO: remove
-	private static final MicroTimer timer = new MicroTimer("setupTerrain", 200);
-
+	private final CanvasWorldRenderer canvasWorldRenderer = new CanvasWorldRenderer(this);
 
 	@Inject(at = @At("HEAD"), method = "setupTerrain", cancellable = true)
 	private void onSetupTerrain(Camera camera, Frustum frustum, boolean bl, int i, boolean bl2, CallbackInfo ci) {
-		timer.start();
-		terrainRenderer.setupTerrain(camera, frustum, bl, i, bl2);
+		// TODO: suppress repeat warnings
+		CanvasMod.LOG.warn("[Canvas] WorldRendererer.setupTerrain() called unexpectedly.");
+		ci.cancel();
+	}
 
-		if(timer.stop()) {
-			TerrainRenderer.innerTimer.reportAndClear();
+	@Inject(at = @At("HEAD"), method = "getCompletedChunkCount", cancellable = true)
+	private void onGetCompletedChunkCount(CallbackInfoReturnable<Integer> ci) {
+		ci.setReturnValue(canvasWorldRenderer.completedChunkCount());
+	}
+
+	@Inject(at = @At("HEAD"), method = "renderChunkDebugInfo", cancellable = true)
+	private void onRenderChunkDebugInfo(Camera camera, CallbackInfo ci) {
+		ci.cancel();
+	}
+
+	@Inject(at = @At("HEAD"), method = "clearChunkRenderers", cancellable = true)
+	private void onClearChunkRenderers(CallbackInfo ci) {
+		canvasWorldRenderer.clearChunkRenderers();
+		ci.cancel();
+	}
+
+	@Inject(at = @At("HEAD"), method = "setWorld")
+	private void onSetWorld(@Nullable ClientWorld clientWorld, CallbackInfo ci) {
+		canvasWorldRenderer.setWorld(clientWorld);
+	}
+
+	@Inject(at = @At("HEAD"), method = "isTerrainRenderComplete", cancellable = true)
+	private void onIsTerrainRenderComplete(CallbackInfoReturnable<Boolean> ci) {
+		ci.setReturnValue(canvasWorldRenderer.isTerrainRenderComplete());
+	}
+
+	@Inject(at = @At("HEAD"), method = "getChunksDebugString", cancellable = true)
+	private void onGetChunksDebugString(CallbackInfoReturnable<String> ci) {
+		final int len = canvasWorldRenderer.builtChunkStorage().regions().length;
+		final int count = canvasWorldRenderer.completedChunkCount();
+		final RenderRegionBuilder chunkBuilder = canvasWorldRenderer.chunkBuilder();
+		final String result = String.format("C: %d/%d %sD: %d, %s", count, len, client.chunkCullingEnabled ? "(s) " : "", renderDistance, chunkBuilder == null ? "null" : chunkBuilder.getDebugString());
+		ci.setReturnValue(result);
+	}
+
+	/**
+	 * @reason performance
+	 * @author grondag
+	 */
+	@Overwrite
+	private void scheduleChunkRender(int x, int y, int z, boolean urgent) {
+		canvasWorldRenderer.builtChunkStorage().scheduleRebuild(x, y, z, urgent);
+	}
+
+	// circumvent vanilla logic by faking null world and then do our load after
+	ClientWorld saveWorld = null;
+
+	@Inject(at = @At("HEAD"), method = "reload")
+	private void beforeReload(CallbackInfo ci) {
+		saveWorld = world;
+		world = null;
+	}
+
+	@Inject(at = @At("RETURN"), method = "reload")
+	private void afterReload(CallbackInfo ci) {
+		world = saveWorld;
+		if (world != null) {
+			world.reloadColor();
+			RenderLayers.setFancyGraphics(client.options.fancyGraphics);
+			renderDistance = client.options.viewDistance;
+
+			canvasWorldRenderer.reload();
+
+			needsTerrainUpdate = true;
+			cloudsDirty = true;
+
+			synchronized(noCullingBlockEntities) {
+				noCullingBlockEntities.clear();
+			}
 		}
+	}
 
+	@Inject(at = @At("HEAD"), method = "renderLayer", cancellable = true)
+	private void onRenderLayer(CallbackInfo ci) {
+		// TODO: suppress repeat warnings
+		CanvasMod.LOG.warn("[Canvas] WorldRendererer.renderLayer() called unexpectedly.");
+		ci.cancel();
+	}
+
+	@Inject(at = @At("HEAD"), method = "getAdjacentChunk", cancellable = true)
+	private void onGetAdjacentChunk(CallbackInfoReturnable<BuiltChunk> ci) {
+		// TODO: suppress repeat warnings
+		CanvasMod.LOG.warn("[Canvas] WorldRendererer.getAdjacentChunk() called unexpectedly.");
+		ci.setReturnValue(null);
+	}
+
+	@Inject(at = @At("HEAD"), method = "updateChunks", cancellable = true)
+	private void onUpdateChunks(CallbackInfo ci) {
+		// TODO: suppress repeat warnings
+		CanvasMod.LOG.warn("[Canvas] WorldRendererer.udpateChunks() called unexpectedly.");
+		ci.cancel();
+	}
+
+	@Inject(at = @At("HEAD"), method = "render", cancellable = true)
+	public void render(MatrixStack matrixStack, float f, long l, boolean bl, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f matrix4f, CallbackInfo ci) {
+		canvasWorldRenderer.renderWorld(matrixStack, f, l, bl, camera, gameRenderer, lightmapTextureManager, matrix4f);
 		ci.cancel();
 	}
 
@@ -140,29 +273,8 @@ public class MixinWorldRenderer implements WorldRendererExt {
 	}
 
 	@Override
-	public BuiltChunkStorage canvas_chunks() {
-		return chunks;
-	}
-
-	@Override
-	public Set<BuiltChunk> canvas_chunkToRebuild() {
-		return chunksToRebuild;
-	}
-
-	@Override
-	public Set<BuiltChunk> canvas_newChunkToRebuild() {
-		chunksToRebuild = Sets.newLinkedHashSet();
-		return chunksToRebuild;
-	}
-
-	@Override
-	public ChunkBuilder canvas_chunkBuilder() {
-		return chunkBuilder;
-	}
-
-	@Override
 	public boolean canvas_checkNeedsTerrainUpdate(Vec3d cameraPos, float pitch, float yaw) {
-		needsTerrainUpdate = needsTerrainUpdate || !chunksToRebuild.isEmpty() || cameraPos.x != lastCameraX || cameraPos.y != lastCameraY || cameraPos.z != lastCameraZ || pitch != lastCameraPitch || yaw != lastCameraYaw;
+		needsTerrainUpdate = needsTerrainUpdate || !canvasWorldRenderer.chunksToRebuild.isEmpty() || cameraPos.x != lastCameraX || cameraPos.y != lastCameraY || cameraPos.z != lastCameraZ || pitch != lastCameraPitch || yaw != lastCameraYaw;
 		lastCameraX = cameraPos.x;
 		lastCameraY = cameraPos.y;
 		lastCameraZ = cameraPos.z;
@@ -172,15 +284,128 @@ public class MixinWorldRenderer implements WorldRendererExt {
 		return needsTerrainUpdate;
 	}
 
-	@SuppressWarnings("rawtypes")
 	@Override
-	public ObjectList canvas_visibleChunks() {
-		return visibleChunks;
+	public void canvas_setNeedsTerrainUpdate(boolean needsUpdate) {
+		needsTerrainUpdate = needsUpdate;
 	}
 
 	@Override
-	public boolean canvas_setNeedsTerrainUpdate(boolean needsUpdate) {
-		needsTerrainUpdate = needsUpdate;
-		return needsUpdate;
+	public TextureManager canvas_textureManager() {
+		return textureManager;
+	}
+
+	@Override
+	public EntityRenderDispatcher canvas_entityRenderDispatcher() {
+		return entityRenderDispatcher;
+	}
+
+	@Override
+	public BufferBuilderStorage canvas_bufferBuilders() {
+		return bufferBuilders;
+	}
+
+	@Override
+	public Frustum canvas_getCapturedFrustum () {
+		return capturedFrustum;
+	}
+
+	@Override
+	public void canvas_setCapturedFrustum (Frustum frustum) {
+		capturedFrustum = frustum;
+	}
+
+	@Override
+	public void canvas_setCapturedFrustumPosition(Frustum frustum) {
+		frustum.setPosition(capturedFrustumPosition.x, capturedFrustumPosition.y, capturedFrustumPosition.z);
+	}
+
+	@Override
+	public void canvas_captureFrustumIfNeeded(Matrix4f matrix4f2, Matrix4f matrix4f, Vec3d cameraPos, boolean hasCapturedFrustum, Frustum frustum2) {
+		if (shouldCaptureFrustum) {
+			client.getProfiler().swap("captureFrustum");
+			captureFrustum(matrix4f2, matrix4f, cameraPos.x, cameraPos.y, cameraPos.z, hasCapturedFrustum ? new Frustum(matrix4f2, matrix4f) : frustum2);
+			shouldCaptureFrustum = false;
+		}
+	}
+
+	@Override
+	public int canvas_getAndIncrementFrameIndex() {
+		return frame++;
+	}
+
+	@Override
+	public FpsSmoother canvas_chunkUpdateSmoother() {
+		return chunkUpdateSmoother;
+	}
+
+	@Override
+	public boolean canvas_canDrawEntityOutlines() {
+		return canDrawEntityOutlines();
+	}
+
+	@Override
+	public Framebuffer canvas_entityOutlinesFramebuffer() {
+		return entityOutlinesFramebuffer;
+	}
+
+	@Override
+	public ShaderEffect canvas_entityOutlineShader() {
+		return entityOutlineShader;
+	}
+
+	@Override
+	public Set<BlockEntity> canvas_noCullingBlockEntities() {
+		return noCullingBlockEntities;
+	}
+
+	@Override
+	public void canvas_drawBlockOutline(MatrixStack matrixStack, VertexConsumer vertexConsumer, Entity entity, double d, double e, double f, BlockPos blockPos, BlockState blockState) {
+		drawBlockOutline(matrixStack, vertexConsumer, entity, d, e, f, blockPos, blockState);
+	}
+
+	@Override
+	public void canvas_renderWorldBorder(Camera camera) {
+		renderWorldBorder(camera);
+	}
+
+	@Override
+	public Long2ObjectMap<SortedSet<BlockBreakingInfo>> canvas_blockBreakingProgressions() {
+		return blockBreakingProgressions;
+	}
+
+	@Override
+	public void canvas_renderEntity(Entity entity, double d, double e, double f, float g, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider) {
+		renderEntity(entity, d, e, f, g, matrixStack, vertexConsumerProvider);
+	}
+
+	@Override
+	public void canvas_renderWeather(LightmapTextureManager lightmapTextureManager, float f, double d, double e, double g) {
+		renderWeather(lightmapTextureManager, f, d, e, g);
+	}
+
+	@Override
+	public void canvas_setEntityCount(int count) {
+		regularEntityCount = count;
+	}
+
+	@Override
+	public boolean canvas_shouldSortTranslucent(double x, double y, double z) {
+		final double dx = x - lastTranslucentSortX;
+		final double dy = y - lastTranslucentSortY;
+		final double dz = z - lastTranslucentSortZ;
+
+		if (dx * dx + dy * dy + dz * dz > 1.0D) {
+			lastTranslucentSortX = x;
+			lastTranslucentSortY = y;
+			lastTranslucentSortZ = z;
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	@Override
+	public VertexFormat canvas_vertexFormat() {
+		return vertexFormat;
 	}
 }

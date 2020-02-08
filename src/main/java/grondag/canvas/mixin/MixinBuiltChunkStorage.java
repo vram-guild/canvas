@@ -14,25 +14,20 @@
  ******************************************************************************/
 package grondag.canvas.mixin;
 
-import javax.annotation.Nullable;
-
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import net.minecraft.client.render.BuiltChunkStorage;
-import net.minecraft.client.render.chunk.ChunkBuilder;
-import net.minecraft.client.render.chunk.ChunkBuilder.BuiltChunk;
-import net.minecraft.util.math.BlockPos;
 
-import grondag.canvas.mixinterface.BuiltChunkStorageExt;
+import grondag.canvas.CanvasMod;
 
 @Mixin(BuiltChunkStorage.class)
-public abstract class MixinBuiltChunkStorage implements BuiltChunkStorageExt {
-	@Nullable
-	@Shadow protected abstract ChunkBuilder.BuiltChunk getRenderedChunk(BlockPos blockPos);
-
-	@Override
-	public BuiltChunk canvas_getRendereredChunk(BlockPos pos) {
-		return getRenderedChunk(pos);
+public class MixinBuiltChunkStorage {
+	@Inject(at = @At("RETURN"), method = "<init>*")
+	private void onNew(CallbackInfo ci) {
+		// TODO: suppress repeat warnings
+		CanvasMod.LOG.warn("[Canvas] BuiltChunkStorage instantiated unexpectedly.");
 	}
 }

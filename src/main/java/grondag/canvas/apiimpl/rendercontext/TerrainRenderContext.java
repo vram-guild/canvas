@@ -3,9 +3,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
  * of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
@@ -18,7 +18,10 @@ package grondag.canvas.apiimpl.rendercontext;
 
 import java.util.function.Consumer;
 
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+
 import net.minecraft.block.BlockState;
+import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.render.chunk.BlockBufferBuilderStorage;
 import net.minecraft.client.render.model.BakedModel;
 import net.minecraft.client.util.math.Matrix3f;
@@ -36,9 +39,9 @@ import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 
 import grondag.canvas.chunk.FastRenderRegion;
 import grondag.canvas.chunk.ProtoRenderRegion;
+import grondag.canvas.chunk.RegionData;
 import grondag.canvas.chunk.RenderRegionAddressHelper;
 import grondag.canvas.light.AoCalculator;
-import grondag.canvas.mixinterface.AccessChunkRendererData;
 
 /**
  * Implementation of {@link RenderContext} used during terrain rendering.
@@ -46,12 +49,16 @@ import grondag.canvas.mixinterface.AccessChunkRendererData;
  * and holds/manages all of the state needed by them.
  */
 public class TerrainRenderContext extends AbstractRenderContext implements RenderContext {
-	public static final ThreadLocal<TerrainRenderContext> POOL = ThreadLocal.withInitial(TerrainRenderContext::new);
 	private final TerrainBlockRenderInfo blockInfo = new TerrainBlockRenderInfo();
 	private final ChunkRenderInfo chunkInfo = new ChunkRenderInfo();
 	public final FastRenderRegion region = new FastRenderRegion(this);
 
-	TerrainRenderContext() {
+	// Reused each build to prevent needless allocation
+	public final ObjectOpenHashSet<BlockEntity> nonCullBlockEntities = new ObjectOpenHashSet<>();
+	public final ObjectOpenHashSet<BlockEntity> addedBlockEntities = new ObjectOpenHashSet<>();
+	public final ObjectOpenHashSet<BlockEntity> removedBlockEntities = new ObjectOpenHashSet<>();
+
+	public TerrainRenderContext() {
 		blockInfo.setBlockView(region);
 	}
 
@@ -109,10 +116,16 @@ public class TerrainRenderContext extends AbstractRenderContext implements Rende
 		}
 	};
 
-	public TerrainRenderContext prepare(ProtoRenderRegion protoRegion, AccessChunkRendererData chunkData, BlockBufferBuilderStorage builders, BlockPos origin) {
+	public TerrainRenderContext prepareRegion(ProtoRenderRegion protoRegion) {
+		nonCullBlockEntities.clear();
+		addedBlockEntities.clear();
+		removedBlockEntities.clear();
 		region.prepare(protoRegion);
-		chunkInfo.prepare(chunkData, builders, origin);
 		return this;
+	}
+
+	public void prepareChunk(RegionData chunkData, BlockBufferBuilderStorage builders, BlockPos origin) {
+		chunkInfo.prepare(chunkData, builders, origin);
 	}
 
 	public void release() {
@@ -126,7 +139,7 @@ public class TerrainRenderContext extends AbstractRenderContext implements Rende
 		normalMatrix = matrixStack.peek().getNormal();
 
 		try {
-			aoCalc.prepare(RenderRegionAddressHelper.mainChunkBlockIndex(blockPos));
+			aoCalc.prepare(RenderRegionAddressHelper.interiorIndex(blockPos));
 			blockInfo.prepareForBlock(blockState, blockPos, model.useAmbientOcclusion(), -1);
 			((FabricBakedModel) model).emitBlockQuads(blockInfo.blockView, blockInfo.blockState, blockInfo.blockPos, blockInfo.randomSupplier, this);
 		} catch (final Throwable var9) {

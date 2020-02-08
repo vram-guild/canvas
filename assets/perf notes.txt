@@ -483,3 +483,102 @@ optimize out-of-world visiblity sort
 [12:19:32] [main/INFO]: [CHAT] [Debug]: Reloading all chunks
 [12:19:37] [main/INFO]: Avg setupTerrain duration = 8,032,978 ns, total duration = 1,606, total runs = 200
 [12:19:46] [main/INFO]: Avg setupTerrain duration = 11,370,818 ns, total duration = 2,274, total runs = 200
+
+Small refactor, add temporary inner timing
+
+[12:45:48] [main/INFO]: [CHAT] [Debug]: Reloading all chunks
+[12:45:52] [main/INFO]: Avg setupTerrain duration = 8,684,446 ns, total duration = 1,736, total runs = 200
+[12:45:52] [main/INFO]: Avg inner duration = 7,325,090 ns, total duration = 1,465, total runs = 200
+[12:46:01] [main/INFO]: Avg setupTerrain duration = 11,145,704 ns, total duration = 2,229, total runs = 200
+[12:46:01] [main/INFO]: Avg inner duration = 9,472,563 ns, total duration = 1,894, total runs = 200
+[12:46:05] [main/INFO]: Canvas Renderer is initializing.
+[12:46:06] [main/INFO]: [CHAT] [Debug]: Reloading all chunks
+[12:46:09] [main/INFO]: Avg setupTerrain duration = 8,272,359 ns, total duration = 1,654, total runs = 200
+[12:46:09] [main/INFO]: Avg inner duration = 60,208,958 ns, total duration = 12,041, total runs = 200
+[12:46:18] [main/INFO]: Avg setupTerrain duration = 10,675,672 ns, total duration = 2,135, total runs = 200
+[12:46:18] [main/INFO]: Avg inner duration = 9,330,307 ns, total duration = 1,866, total runs = 200
+[12:46:20] [main/INFO]: Canvas Renderer is initializing.
+[12:46:22] [main/INFO]: [CHAT] [Debug]: Reloading all chunks
+[12:46:25] [main/INFO]: Avg setupTerrain duration = 8,374,876 ns, total duration = 1,674, total runs = 200
+[12:46:25] [main/INFO]: Avg inner duration = 6,976,828 ns, total duration = 1,395, total runs = 200
+
+
+Optimize test order
+
+[15:29:43] [main/INFO]: Canvas Renderer is initializing.
+[15:29:44] [main/INFO]: [CHAT] [Debug]: Reloading all chunks
+[15:29:49] [main/INFO]: Avg setupTerrain duration = 6,761,214 ns, total duration = 1,352, total runs = 200
+[15:29:49] [main/INFO]: Avg inner duration = 5,389,305 ns, total duration = 1,077, total runs = 200
+[15:29:59] [main/INFO]: Avg setupTerrain duration = 9,923,747 ns, total duration = 1,984, total runs = 200
+[15:29:59] [main/INFO]: Avg inner duration = 8,373,958 ns, total duration = 1,674, total runs = 200
+[15:29:59] [main/INFO]: Canvas Renderer is initializing.
+[15:30:01] [main/INFO]: [CHAT] [Debug]: Reloading all chunks
+[15:30:05] [main/INFO]: Avg setupTerrain duration = 7,128,745 ns, total duration = 1,425, total runs = 200
+[15:30:05] [main/INFO]: Avg inner duration = 5,763,855 ns, total duration = 1,152, total runs = 200
+[15:30:14] [main/INFO]: Avg setupTerrain duration = 8,933,513 ns, total duration = 1,786, total runs = 200
+[15:30:14] [main/INFO]: Avg inner duration = 7,463,174 ns, total duration = 1,492, total runs = 200
+[15:30:15] [main/INFO]: Canvas Renderer is initializing.
+[15:30:16] [main/INFO]: [CHAT] [Debug]: Reloading all chunks
+[15:30:21] [main/INFO]: Avg setupTerrain duration = 7,124,412 ns, total duration = 1,424, total runs = 200
+[15:30:21] [main/INFO]: Avg inner duration = 5,686,443 ns, total duration = 1,137, total runs = 200
+[15:30:30] [main/INFO]: Avg setupTerrain duration = 9,786,969 ns, total duration = 1,957, total runs = 200
+[15:30:30] [main/INFO]: Avg inner duration = 8,108,295 ns, total duration = 1,621, total runs = 200
+
+cost of getAdjacentChunk
+
+[15:45:12] [main/INFO]: Avg setupTerrain duration = 26,619,243 ns, total duration = 5,323, total runs = 200
+[15:45:12] [main/INFO]: Avg inner duration = 221 ns, total duration = 1,290, total runs = 5,835,678
+[15:45:25] [main/INFO]: Avg setupTerrain duration = 32,844,706 ns, total duration = 6,568, total runs = 200
+[15:45:25] [main/INFO]: Avg inner duration = 177 ns, total duration = 1,538, total runs = 8,658,330
+[15:45:39] [main/INFO]: Avg setupTerrain duration = 30,404,667 ns, total duration = 6,080, total runs = 200
+[15:45:39] [main/INFO]: Avg inner duration = 139 ns, total duration = 1,597, total runs = 11,454,288
+
+minor numerical optimizations
+
+[08:17:36] [main/INFO]: [CHAT] [Debug]: Reloading all chunks
+[08:17:37] [main/INFO]: Avg setupTerrain duration = 18,845,988 ns, total duration = 3,769, total runs = 200
+[08:17:37] [main/INFO]: Avg inner duration = 94 ns, total duration = 1,253, total runs = 13,226,766
+[08:17:44] [main/INFO]: Avg setupTerrain duration = 14,632,957 ns, total duration = 2,926, total runs = 200
+[08:17:44] [main/INFO]: Avg inner duration = 105 ns, total duration = 981, total runs = 9,329,088
+[08:17:55] [main/INFO]: Avg setupTerrain duration = 20,037,469 ns, total duration = 4,007, total runs = 200
+[08:17:55] [main/INFO]: Avg inner duration = 100 ns, total duration = 1,357, total runs = 13,540,950
+
+cache/use neighbor indices instead of positions
+
+[09:06:43] [main/INFO]: Avg setupTerrain duration = 14,666,537 ns, total duration = 2,933, total runs = 200
+[09:06:43] [main/INFO]: Avg inner duration = 68 ns, total duration = 704, total runs = 10,296,300
+[09:06:51] [main/INFO]: Avg setupTerrain duration = 15,917,309 ns, total duration = 3,183, total runs = 200
+[09:06:51] [main/INFO]: Avg inner duration = 69 ns, total duration = 799, total runs = 11,525,988
+[09:07:05] [main/INFO]: Avg setupTerrain duration = 19,599,766 ns, total duration = 3,919, total runs = 200
+[09:07:05] [main/INFO]: Avg inner duration = 63 ns, total duration = 946, total runs = 14,939,082
+[09:07:15] [main/INFO]: Avg setupTerrain duration = 4,278,695 ns, total duration = 855, total runs = 200
+[09:07:15] [main/INFO]: Avg inner duration = 71 ns, total duration = 186, total runs = 2,600,574
+
+reduce indirection on built chunk neighbor lookup
+
+[09:20:55] [main/INFO]: Avg setupTerrain duration = 23,705,441 ns, total duration = 4,741, total runs = 200
+[09:20:55] [main/INFO]: Avg inner duration = 65 ns, total duration = 975, total runs = 14,872,950
+[09:21:02] [main/INFO]: Avg setupTerrain duration = 12,922,206 ns, total duration = 2,584, total runs = 200
+[09:21:02] [main/INFO]: Avg inner duration = 65 ns, total duration = 596, total runs = 9,094,558
+[09:21:13] [main/INFO]: Avg setupTerrain duration = 18,626,279 ns, total duration = 3,725, total runs = 200
+[09:21:13] [main/INFO]: Avg inner duration = 65 ns, total duration = 884, total runs = 13,548,312
+
+baseline shouldBuild check
+
+[18:03:39] [main/INFO]: [CHAT] [Debug]: Reloading all chunks
+[18:03:43] [main/INFO]: Avg setupTerrain duration = 6,751,303 ns, total duration = 1,350, total runs = 200
+[18:03:43] [main/INFO]: Avg inner duration = 316 ns, total duration = 476, total runs = 1,503,604
+[18:03:50] [main/INFO]: Avg setupTerrain duration = 8,440,928 ns, total duration = 1,688, total runs = 200
+[18:03:50] [main/INFO]: Avg inner duration = 296 ns, total duration = 584, total runs = 1,973,332
+[18:04:00] [main/INFO]: Avg setupTerrain duration = 10,452,146 ns, total duration = 2,090, total runs = 200
+[18:04:00] [main/INFO]: Avg inner duration = 294 ns, total duration = 730, total runs = 2,482,726
+
+some code optimization - minor effect
+
+[05:37:18] [main/INFO]: [CHAT] [Debug]: Reloading all chunks
+[05:37:21] [main/INFO]: Avg setupTerrain duration = 6,657,134 ns, total duration = 1,331, total runs = 200
+[05:37:21] [main/INFO]: Avg inner duration = 286 ns, total duration = 447, total runs = 1,560,045
+[05:37:28] [main/INFO]: Avg setupTerrain duration = 7,963,705 ns, total duration = 1,592, total runs = 200
+[05:37:28] [main/INFO]: Avg inner duration = 274 ns, total duration = 537, total runs = 1,957,777
+[05:37:38] [main/INFO]: Avg setupTerrain duration = 10,034,648 ns, total duration = 2,006, total runs = 200
+[05:37:38] [main/INFO]: Avg inner duration = 276 ns, total duration = 686, total runs = 2,482,188

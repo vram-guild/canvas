@@ -3,9 +3,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
  * of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
@@ -24,7 +24,7 @@ import static grondag.canvas.chunk.RenderRegionAddressHelper.localYEdgeIndex;
 import static grondag.canvas.chunk.RenderRegionAddressHelper.localYfaceIndex;
 import static grondag.canvas.chunk.RenderRegionAddressHelper.localZEdgeIndex;
 import static grondag.canvas.chunk.RenderRegionAddressHelper.localZfaceIndex;
-import static grondag.canvas.chunk.RenderRegionAddressHelper.mainChunkBlockIndex;
+import static grondag.canvas.chunk.RenderRegionAddressHelper.interiorIndex;
 
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -80,7 +80,7 @@ public class ProtoRenderRegion extends AbstractRenderRegion {
 
 		if(mainSectionCopy == ChunkPaletteCopier.AIR_COPY) {
 			release();
-			result = null;
+			result = EMPTY;
 		} else {
 			captureBlockEntities(mainChunk);
 			chunks[1 | (1 << 2)] = mainChunk;
@@ -122,7 +122,7 @@ public class ProtoRenderRegion extends AbstractRenderRegion {
 		blockEntities.clear();
 
 		for(final Map.Entry<BlockPos, BlockEntity> entry : mainChunk.getBlockEntities().entrySet()) {
-			final short key = (short) mainChunkBlockIndex(entry.getKey());
+			final short key = (short) interiorIndex(entry.getKey());
 			final BlockEntity be = entry.getValue();
 
 			blockEntityPos.add(key);
@@ -243,4 +243,31 @@ public class ProtoRenderRegion extends AbstractRenderRegion {
 		// ensure current AoFix rule or other config-dependent lambdas are used
 		POOL.clear();
 	}
+
+	private static class DummyRegion extends ProtoRenderRegion {
+		@Override
+		public void release() {}
+	}
+
+	/**
+	 * Signals that build was completed successfully, or has never been run. Nothing is scheduled.
+	 */
+	public static final ProtoRenderRegion IDLE = new DummyRegion();
+
+
+	/**
+	 * Signals that build is for resort only.
+	 */
+	public static final ProtoRenderRegion RESORT_ONLY = new DummyRegion();
+
+	/**
+	 * Signals that build has been cancelled or some other condition has made it unbuildable.
+	 */
+	public static final ProtoRenderRegion INVALID = new DummyRegion();
+
+	/**
+	 * Signals that build is for empty chunk.
+	 */
+	public static final ProtoRenderRegion EMPTY = new DummyRegion();
+
 }
