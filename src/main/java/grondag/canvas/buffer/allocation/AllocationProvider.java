@@ -14,32 +14,19 @@
  * the License.
  ******************************************************************************/
 
-package grondag.canvas.apiimpl;
+package grondag.canvas.buffer.allocation;
 
-import net.minecraft.util.Identifier;
+import java.util.function.Consumer;
 
-import grondag.canvas.material.ShaderContext;
-import grondag.frex.api.material.MaterialShader;
-
-public final class MaterialShaderImpl implements MaterialShader {
-	// TODO: stub
-
-	public MaterialShaderImpl(int index, Identifier vertexShader, Identifier fragmentShader) {
-	}
-
-	@Override
-	public int spriteDepth() {
-		// TODO Auto-generated method stub
-		return 1;
-	}
-
-	public int getIndex() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	public void activate(ShaderContext context, int shaderProps) {
-		// TODO Auto-generated method stub
-
-	}
+@FunctionalInterface
+public interface AllocationProvider {
+	/**
+	 * If byteCount is larger than a single buffer will give consumer more than one
+	 * buffer w/ offsets able to contain the given byte count. Otherwise will always
+	 * call consumer 1X with an allocation that contains the entire byte count. If
+	 * more than one buffer is needed, break(s) will be at a boundary compatible
+	 * with all vertex formats. All vertices in the buffer(s) will share the same
+	 * pipeline (and thus vertex format).
+	 */
+	void claimAllocation(int byteCount, Consumer<BufferDelegate> consumer);
 }

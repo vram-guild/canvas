@@ -76,7 +76,13 @@ import grondag.canvas.mixinterface.WorldRendererExt;
 import grondag.canvas.perf.MicroTimer;
 
 public class CanvasWorldRenderer {
+	private static CanvasWorldRenderer instance;
 
+	public static CanvasWorldRenderer instance() {
+		return instance;
+	}
+
+	private int playerLightmap = 0;
 	private RenderRegionBuilder chunkBuilder;
 	private RenderRegionStorage renderRegionStorage;
 
@@ -123,6 +129,7 @@ public class CanvasWorldRenderer {
 
 	public CanvasWorldRenderer(WorldRendererExt wr) {
 		this.wr = wr;
+		instance = this;
 	}
 
 	public void clearChunkRenderers() {
@@ -435,9 +442,18 @@ public class CanvasWorldRenderer {
 		chunkBuilder.setCameraPosition(cameraPos);
 	}
 
+	public static int playerLightmap() {
+		return instance == null ? 0 : instance.playerLightmap;
+	}
+
+	private void updatePlayerLightmap(MinecraftClient mc, float f) {
+		playerLightmap = mc.getEntityRenderManager().getLight(mc.player, f);
+	}
+
 	public void renderWorld(MatrixStack matrixStack, float f, long l, boolean bl, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f matrix4f) {
 		final WorldRendererExt wr = this.wr;
 		final MinecraftClient mc = wr.canvas_mc();
+		updatePlayerLightmap(mc, f);
 		final ClientWorld world = wr.canvas_world();
 		final BufferBuilderStorage bufferBuilders = wr.canvas_bufferBuilders();
 

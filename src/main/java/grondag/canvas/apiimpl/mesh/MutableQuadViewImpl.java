@@ -39,16 +39,22 @@ import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 
 import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.apiimpl.RenderMaterialImpl;
-import grondag.canvas.apiimpl.util.MeshEncodingHelper;
 import grondag.canvas.apiimpl.util.GeometryHelper;
+import grondag.canvas.apiimpl.util.MeshEncodingHelper;
 import grondag.canvas.apiimpl.util.NormalHelper;
 import grondag.canvas.apiimpl.util.TextureHelper;
+import grondag.canvas.light.LightmapHd;
 
 /**
  * Almost-concrete implementation of a mutable quad. The only missing part is {@link #emit()},
  * because that depends on where/how it is used. (Mesh encoding vs. render-time transformation).
  */
 public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEmitter {
+	// UGLY
+	public LightmapHd blockLight = null;
+	public LightmapHd skyLight = null;
+	public LightmapHd aoShade = null;
+
 	public final void begin(int[] data, int baseIndex) {
 		this.data = data;
 		this.baseIndex = baseIndex;

@@ -14,32 +14,28 @@
  * the License.
  ******************************************************************************/
 
-package grondag.canvas.apiimpl;
+package grondag.canvas.draw;
 
-import net.minecraft.util.Identifier;
+import java.util.concurrent.ArrayBlockingQueue;
 
-import grondag.canvas.material.ShaderContext;
-import grondag.frex.api.material.MaterialShader;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
-public final class MaterialShaderImpl implements MaterialShader {
-	// TODO: stub
+public class DelegateLists {
+	private static final ArrayBlockingQueue<ObjectArrayList<DrawableDelegate>> delegateLists = new ArrayBlockingQueue<>(
+			4096);
 
-	public MaterialShaderImpl(int index, Identifier vertexShader, Identifier fragmentShader) {
+	public static ObjectArrayList<DrawableDelegate> getReadyDelegateList() {
+		ObjectArrayList<DrawableDelegate> result = delegateLists.poll();
+		if (result == null) {
+			result = new ObjectArrayList<>();
+		}
+		return result;
 	}
 
-	@Override
-	public int spriteDepth() {
-		// TODO Auto-generated method stub
-		return 1;
-	}
-
-	public int getIndex() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	public void activate(ShaderContext context, int shaderProps) {
-		// TODO Auto-generated method stub
-
+	public static void releaseDelegateList(ObjectArrayList<DrawableDelegate> list) {
+		if (!list.isEmpty()) {
+			list.clear();
+		}
+		delegateLists.offer(list);
 	}
 }

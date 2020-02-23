@@ -40,4 +40,9 @@ public final class ShaderManager implements ClientTickCallback {
 	public MaterialShaderImpl getDefault() {
 		return defaultShader;
 	}
+
+	public int frameIndex() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
 }
