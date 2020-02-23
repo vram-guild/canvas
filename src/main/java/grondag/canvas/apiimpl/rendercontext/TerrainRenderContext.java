@@ -37,8 +37,6 @@ import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
 import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 
-import grondag.canvas.apiimpl.rendercontext.wip.AbstractMeshConsumer2;
-import grondag.canvas.apiimpl.rendercontext.wip.TerrainFallbackConsumer2;
 import grondag.canvas.chunk.FastRenderRegion;
 import grondag.canvas.chunk.ProtoRenderRegion;
 import grondag.canvas.chunk.RegionData;
@@ -84,7 +82,7 @@ public class TerrainRenderContext extends AbstractRenderContext implements Rende
 	/** for use by chunk builder - avoids another threadlocal */
 	public final BlockPos.Mutable searchPos = new BlockPos.Mutable();
 
-	private final AbstractMeshConsumer2 meshConsumer = new AbstractMeshConsumer2(blockInfo, chunkInfo::getInitializedBuffer, aoCalc, this::transform) {
+	private final AbstractMeshConsumer meshConsumer = new AbstractMeshConsumer(blockInfo, chunkInfo::getInitializedBuffer, aoCalc, this::transform) {
 		@Override
 		public int overlay() {
 			return overlay;
@@ -101,7 +99,7 @@ public class TerrainRenderContext extends AbstractRenderContext implements Rende
 		}
 	};
 
-	private final TerrainFallbackConsumer2 fallbackConsumer = new TerrainFallbackConsumer2(blockInfo, chunkInfo::getInitializedBuffer, aoCalc, this::transform) {
+	private final FallbackConsumer fallbackConsumer = new FallbackConsumer(blockInfo, chunkInfo::getInitializedBuffer, aoCalc, this::transform) {
 		@Override
 		public int overlay() {
 			return overlay;

@@ -14,7 +14,7 @@
  ******************************************************************************/
 
 
-package grondag.canvas.apiimpl.rendercontext.wip;
+package grondag.canvas.apiimpl.rendercontext;
 
 import java.util.List;
 import java.util.Random;
@@ -36,7 +36,8 @@ import net.fabricmc.fabric.api.renderer.v1.render.RenderContext.QuadTransform;
 import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.apiimpl.RenderMaterialImpl.Value;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
-import grondag.canvas.apiimpl.rendercontext.BlockRenderInfo;
+import grondag.canvas.apiimpl.rendercontext.wip.AbstractQuadRenderer2;
+import grondag.canvas.apiimpl.rendercontext.wip.QuadEncoder;
 import grondag.canvas.apiimpl.util.GeometryHelper;
 import grondag.canvas.apiimpl.util.MeshEncodingHelper;
 import grondag.canvas.light.AoCalculator;
@@ -60,13 +61,13 @@ import grondag.canvas.light.AoCalculator;
  *  vertex data is sent to the byte buffer.  Generally POJO array access will be faster than
  *  manipulating the data via NIO.
  */
-public abstract class TerrainFallbackConsumer2 extends AbstractQuadRenderer2 implements Consumer<BakedModel> {
+public abstract class FallbackConsumer extends AbstractQuadRenderer2 implements Consumer<BakedModel> {
 	private static Value MATERIAL_FLAT = Canvas.INSTANCE.materialFinder().disableAo(0, true).find();
 	private static Value MATERIAL_SHADED = Canvas.INSTANCE.materialFinder().find();
 
 	private final int[] editorBuffer = new int[MeshEncodingHelper.TOTAL_QUAD_STRIDE];
 
-	public TerrainFallbackConsumer2(BlockRenderInfo blockInfo, Function<RenderLayer, VertexConsumer> bufferFunc, AoCalculator aoCalc, QuadTransform transform) {
+	public FallbackConsumer(BlockRenderInfo blockInfo, Function<RenderLayer, VertexConsumer> bufferFunc, AoCalculator aoCalc, QuadTransform transform) {
 		super(blockInfo, bufferFunc, aoCalc, transform);
 	}
 

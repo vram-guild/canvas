@@ -19,7 +19,6 @@ package grondag.canvas.apiimpl.rendercontext;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexConsumer;
 
@@ -28,19 +27,20 @@ import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext.QuadTransform;
 
 import grondag.canvas.apiimpl.Canvas;
-import grondag.canvas.apiimpl.RenderMaterialImpl;
 import grondag.canvas.apiimpl.mesh.MeshImpl;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
+import grondag.canvas.apiimpl.rendercontext.wip.AbstractQuadRenderer2;
+import grondag.canvas.apiimpl.rendercontext.wip.QuadEncoder;
 import grondag.canvas.apiimpl.util.ColorHelper;
-import grondag.canvas.apiimpl.util.MeshEncodingHelper;
 import grondag.canvas.apiimpl.util.GeometryHelper;
+import grondag.canvas.apiimpl.util.MeshEncodingHelper;
 import grondag.canvas.light.AoCalculator;
 
 /**
  * Consumer for pre-baked meshes.  Works by copying the mesh data to a
  * "editor" quad held in the instance, where all transformations are applied before buffering.
  */
-public abstract class AbstractMeshConsumer extends AbstractQuadRenderer implements Consumer<Mesh> {
+public abstract class AbstractMeshConsumer extends AbstractQuadRenderer2 implements Consumer<Mesh> {
 	protected AbstractMeshConsumer(BlockRenderInfo blockInfo, Function<RenderLayer, VertexConsumer> bufferFunc, AoCalculator aoCalc, QuadTransform transform) {
 		super(blockInfo, bufferFunc, aoCalc, transform);
 	}
@@ -97,36 +97,6 @@ public abstract class AbstractMeshConsumer extends AbstractQuadRenderer implemen
 			return;
 		}
 
-		final RenderMaterialImpl.Value mat = q.material();
-
-		if (!mat.disableAo(0) && MinecraftClient.isAmbientOcclusionEnabled()) {
-			// needs to happen before offsets are applied
-			aoCalc.compute(q);
-		}
-
-		tesselateQuad(q, mat, 0);
-	}
-
-	/**
-	 * Determines color index and render layer, then routes to appropriate
-	 * tesselate routine based on material properties.
-	 */
-	private void tesselateQuad(MutableQuadViewImpl quad, RenderMaterialImpl.Value mat, int textureIndex) {
-		final int colorIndex = mat.disableColorIndex(textureIndex) ? -1 : quad.colorIndex();
-		final RenderLayer renderLayer = blockInfo.effectiveRenderLayer(mat.blendMode(textureIndex));
-
-		if (blockInfo.defaultAo && !mat.disableAo(textureIndex)) {
-			if (mat.emissive(textureIndex)) {
-				tesselateSmoothEmissive(quad, renderLayer, colorIndex);
-			} else {
-				tesselateSmooth(quad, renderLayer, colorIndex);
-			}
-		} else {
-			if (mat.emissive(textureIndex)) {
-				tesselateFlatEmissive(quad, renderLayer, colorIndex);
-			} else {
-				tesselateFlat(quad, renderLayer, colorIndex);
-			}
-		}
+		QuadEncoder.INSTANCE.tesselateQuad(q, this);
 	}
 }

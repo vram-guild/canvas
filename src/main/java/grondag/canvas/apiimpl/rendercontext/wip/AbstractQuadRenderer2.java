@@ -71,7 +71,7 @@ public abstract class AbstractQuadRenderer2 implements EncoderContext {
 		return normalVec;
 	}
 
-	AbstractQuadRenderer2(BlockRenderInfo blockInfo, Function<RenderLayer, VertexConsumer> bufferFunc, AoCalculator aoCalc, QuadTransform transform) {
+	public AbstractQuadRenderer2(BlockRenderInfo blockInfo, Function<RenderLayer, VertexConsumer> bufferFunc, AoCalculator aoCalc, QuadTransform transform) {
 		this.blockInfo = blockInfo;
 		this.bufferFunc = bufferFunc;
 		this.aoCalc = aoCalc;
