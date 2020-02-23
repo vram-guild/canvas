@@ -32,9 +32,9 @@ import net.minecraft.client.resource.language.I18n;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.MaterialShaderImpl.UniformMatrix4f;
-import grondag.canvas.buffer.encoding.MaterialVertexFormat;
-import grondag.canvas.buffer.encoding.MaterialVertexFormats;
-import grondag.canvas.shader.old.ShaderProps;
+import grondag.canvas.buffer.encoding.old.OldMaterialVertexFormat;
+import grondag.canvas.buffer.encoding.old.OldMaterialVertexFormats;
+import grondag.canvas.shader.old.OldShaderProps;
 import grondag.canvas.varia.CanvasGlHelper;
 import grondag.frex.api.material.Uniform;
 import grondag.frex.api.material.Uniform.Uniform1f;
@@ -64,7 +64,7 @@ public class GlProgram {
 	public final GlFragmentShader fragmentShader;
 	public final int spriteDepth;
 	public final boolean isSolidLayer;
-	public final MaterialVertexFormat pipelineVertexFormat;
+	public final OldMaterialVertexFormat pipelineVertexFormat;
 
 	private final ObjectArrayList<UniformImpl<?>> uniforms = new ObjectArrayList<>();
 	private final ObjectArrayList<UniformImpl<?>> renderTickUpdates = new ObjectArrayList<>();
@@ -488,8 +488,8 @@ public class GlProgram {
 	public GlProgram(GlVertexShader vertexShader, GlFragmentShader fragmentShader, int shaderProps, boolean isSolidLayer) {
 		this.vertexShader = vertexShader;
 		this.fragmentShader = fragmentShader;
-		spriteDepth = ShaderProps.spriteDepth(shaderProps);
-		pipelineVertexFormat = MaterialVertexFormats.fromShaderProps(shaderProps);
+		spriteDepth = OldShaderProps.spriteDepth(shaderProps);
+		pipelineVertexFormat = OldMaterialVertexFormats.fromShaderProps(shaderProps);
 		this.isSolidLayer = isSolidLayer;
 	}
 

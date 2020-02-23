@@ -33,10 +33,10 @@ import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.mesh.QuadViewImpl;
 import grondag.canvas.apiimpl.rendercontext.BlockRenderInfo;
 import grondag.canvas.apiimpl.util.ColorHelper;
-import grondag.canvas.buffer.encoding.VertexEncodingContext;
+import grondag.canvas.buffer.encoding.old.OldVertexEncodingContext;
 import grondag.canvas.buffer.packing.old.VertexCollector;
 import grondag.canvas.light.AoCalculator;
-import grondag.canvas.shader.old.ShaderContext;
+import grondag.canvas.shader.old.OldShaderContext;
 
 /**
  * Base quad-rendering class for fallback and mesh consumers. Has most of the
@@ -52,7 +52,7 @@ public class QuadRenderer {
 	protected final BooleanSupplier hasTransform;
 	protected final QuadTransform transform;
 	protected final Consumer<MutableQuadViewImpl> offsetFunc;
-	protected final Function<RenderMaterialImpl.Value, ShaderContext> contextFunc;
+	protected final Function<RenderMaterialImpl.Value, OldShaderContext> contextFunc;
 	QuadRenderer(
 			BlockRenderInfo blockInfo,
 			ToIntFunction<BlockPos> brightnessFunc,
@@ -61,7 +61,7 @@ public class QuadRenderer {
 			BooleanSupplier hasTransform,
 			QuadTransform transform,
 			Consumer<MutableQuadViewImpl> offsetFunc,
-			Function<RenderMaterialImpl.Value, ShaderContext> contextFunc) {
+			Function<RenderMaterialImpl.Value, OldShaderContext> contextFunc) {
 		this.blockInfo = blockInfo;
 		this.brightnessFunc = brightnessFunc;
 		this.collectorFunc = collectorFunc;
@@ -105,7 +105,7 @@ public class QuadRenderer {
 		encodeQuad(q, output, mat, isAo);
 	}
 
-	private final VertexEncodingContext encodingContext = new VertexEncodingContext();
+	private final OldVertexEncodingContext encodingContext = new OldVertexEncodingContext();
 
 	private void encodeQuad(MutableQuadViewImpl q, VertexCollector output, RenderMaterialImpl.Value mat, boolean isAo) {
 		final int shaderFlags = isAo ? mat.shaderFlags() : mat.shaderFlags() | RenderMaterialImpl.SHADER_FLAGS_DISABLE_AO;

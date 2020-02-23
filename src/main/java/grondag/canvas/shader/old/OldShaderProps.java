@@ -22,8 +22,8 @@ import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 /**
  * Identifies and encodes shader properties needed for a given material and quad.
  */
-public abstract class ShaderProps {
-	ShaderProps() {}
+public abstract class OldShaderProps {
+	OldShaderProps() {}
 
 	public static final int WHITE_0 = 1;
 	public static final int WHITE_1 = 2;
@@ -40,7 +40,7 @@ public abstract class ShaderProps {
 
 	public static final int BITLENGTH = FLAGS_LENGTH + 2;
 
-	public static int classify(RenderMaterialImpl.Value material, MutableQuadViewImpl quad, ShaderContext context) {
+	public static int classify(RenderMaterialImpl.Value material, MutableQuadViewImpl quad, OldShaderContext context) {
 		int flags = 0;
 		final boolean isBlock = context.isBlock;
 

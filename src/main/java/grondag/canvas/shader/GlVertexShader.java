@@ -20,10 +20,10 @@ import org.lwjgl.opengl.GL21;
 
 import net.minecraft.util.Identifier;
 
-import grondag.canvas.shader.old.ShaderContext;
+import grondag.canvas.shader.old.OldShaderContext;
 
 public final class GlVertexShader extends AbstractGlShader {
-	GlVertexShader(Identifier shaderSource, int shaderProps, ShaderContext context) {
+	GlVertexShader(Identifier shaderSource, int shaderProps, OldShaderContext context) {
 		super(shaderSource, GL21.GL_VERTEX_SHADER, shaderProps, context);
 	}
 

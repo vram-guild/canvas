@@ -29,8 +29,8 @@ import grondag.canvas.shader.GlFragmentShader;
 import grondag.canvas.shader.GlProgram;
 import grondag.canvas.shader.GlShaderManager;
 import grondag.canvas.shader.GlVertexShader;
-import grondag.canvas.shader.old.ShaderContext;
-import grondag.canvas.shader.old.ShaderProps;
+import grondag.canvas.shader.old.OldShaderContext;
+import grondag.canvas.shader.old.OldShaderProps;
 import grondag.frex.api.material.MaterialShader;
 import grondag.frex.api.material.Uniform;
 import grondag.frex.api.material.Uniform.Uniform1f;
@@ -61,15 +61,15 @@ public final class MaterialShaderImpl implements MaterialShader {
 		this.index = index;
 	}
 
-	private static int key(ShaderContext context, int shaderProps) {
+	private static int key(OldShaderContext context, int shaderProps) {
 		return context.ordinal() | (shaderProps << 3);
 	}
 
-	private GlProgram getOrCreate(ShaderContext context, int shaderProps) {
+	private GlProgram getOrCreate(OldShaderContext context, int shaderProps) {
 		final int key = key(context, shaderProps);
 		final GlProgram result = programMap.get(key);
 		if(result == null) {
-			final int spriteDepth = ShaderProps.spriteDepth(shaderProps);
+			final int spriteDepth = OldShaderProps.spriteDepth(shaderProps);
 			assert spriteDepth > 0;
 			final GlVertexShader vs = GlShaderManager.INSTANCE.getOrCreateVertexShader(vertexShader, shaderProps, context);
 			final GlFragmentShader fs = GlShaderManager.INSTANCE.getOrCreateFragmentShader(fragmentShader, shaderProps, context);
@@ -84,7 +84,7 @@ public final class MaterialShaderImpl implements MaterialShader {
 		}
 	}
 
-	public void activate(ShaderContext context, int shaderProps) {
+	public void activate(OldShaderContext context, int shaderProps) {
 		getOrCreate(context, shaderProps).activate();
 	}
 

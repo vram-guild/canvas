@@ -20,33 +20,33 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 
 import grondag.canvas.apiimpl.MaterialConditionImpl;
 import grondag.canvas.apiimpl.MaterialShaderImpl;
-import grondag.canvas.buffer.encoding.MaterialVertexFormat;
-import grondag.canvas.buffer.encoding.MaterialVertexFormats;
-import grondag.canvas.shader.old.ShaderContext;
-import grondag.canvas.shader.old.ShaderProps;
+import grondag.canvas.buffer.encoding.old.OldMaterialVertexFormat;
+import grondag.canvas.buffer.encoding.old.OldMaterialVertexFormats;
+import grondag.canvas.shader.old.OldShaderContext;
+import grondag.canvas.shader.old.OldShaderProps;
 import grondag.fermion.varia.Useful;
 
-public class MaterialState {
-	private static final int SHADER_SHIFT = Useful.bitLength(MaterialConditionImpl.MAX_CONDITIONS) + ShaderProps.BITLENGTH;
+public class OldMaterialState {
+	private static final int SHADER_SHIFT = Useful.bitLength(MaterialConditionImpl.MAX_CONDITIONS) + OldShaderProps.BITLENGTH;
 
 	private static int computeIndex(MaterialShaderImpl shader, MaterialConditionImpl condition, int shaderProps) {
-		return (shader.getIndex() << SHADER_SHIFT) | (shaderProps << ShaderProps.BITLENGTH) | condition.index;
+		return (shader.getIndex() << SHADER_SHIFT) | (shaderProps << OldShaderProps.BITLENGTH) | condition.index;
 	}
 
-	private static final Int2ObjectOpenHashMap<MaterialState> VALUES = new Int2ObjectOpenHashMap<>();
+	private static final Int2ObjectOpenHashMap<OldMaterialState> VALUES = new Int2ObjectOpenHashMap<>();
 
-	public static MaterialState get(int index) {
+	public static OldMaterialState get(int index) {
 		return VALUES.get(index);
 	}
 
-	public static MaterialState get(MaterialShaderImpl shader, MaterialConditionImpl condition, int shaderProps) {
+	public static OldMaterialState get(MaterialShaderImpl shader, MaterialConditionImpl condition, int shaderProps) {
 		final int index = computeIndex(shader, condition, shaderProps);
-		MaterialState result = VALUES.get(index);
+		OldMaterialState result = VALUES.get(index);
 		if(result == null) {
 			synchronized(VALUES) {
 				result = VALUES.get(index);
 				if(result == null) {
-					result = new MaterialState(shader, condition, index, shaderProps);
+					result = new OldMaterialState(shader, condition, index, shaderProps);
 					VALUES.put(index, result);
 				}
 			}
@@ -61,23 +61,23 @@ public class MaterialState {
 	public final long sortIndex;
 	//UGLY: encapsulate
 	public final int shaderProps;
-	public final MaterialVertexFormat format;
+	public final OldMaterialVertexFormat format;
 
-	private MaterialState(MaterialShaderImpl shader, MaterialConditionImpl condition, int index, int shaderProps) {
+	private OldMaterialState(MaterialShaderImpl shader, MaterialConditionImpl condition, int index, int shaderProps) {
 		this.shader = shader;
 		this.condition = condition;
 		this.index = index;
 		this.shaderProps = shaderProps;
-		assert ShaderProps.spriteDepth(shaderProps) > 0;
-		format = MaterialVertexFormats.fromShaderProps(shaderProps);
+		assert OldShaderProps.spriteDepth(shaderProps) > 0;
+		format = OldMaterialVertexFormats.fromShaderProps(shaderProps);
 		sortIndex = (format.vertexStrideBytes << 24) | index;
 	}
 
-	public void activate(ShaderContext context) {
+	public void activate(OldShaderContext context) {
 		shader.activate(context, shaderProps);
 	}
 
-	public MaterialVertexFormat materialVertexFormat() {
+	public OldMaterialVertexFormat materialVertexFormat() {
 		return format;
 	}
 }

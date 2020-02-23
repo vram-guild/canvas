@@ -35,7 +35,7 @@ import grondag.canvas.draw.SolidRenderList;
 import grondag.canvas.light.LightmapHdTexture;
 import grondag.canvas.salvage.CanvasBufferBuilder;
 import grondag.canvas.salvage.TessellatorExt;
-import grondag.canvas.shader.old.ShaderContext;
+import grondag.canvas.shader.old.OldShaderContext;
 
 //TODO: Enable or Remove
 @Mixin(Tessellator.class)
@@ -52,7 +52,7 @@ public class MixinTessellator implements TessellatorExt {
 		canvas_draw();
 	}
 
-	private ShaderContext context = ShaderContext.BLOCK_SOLID;
+	private OldShaderContext context = OldShaderContext.BLOCK_SOLID;
 
 	@Override
 	public void canvas_draw() {
@@ -82,12 +82,12 @@ public class MixinTessellator implements TessellatorExt {
 	}
 
 	@Override
-	public void canvas_context(ShaderContext context) {
+	public void canvas_context(OldShaderContext context) {
 		this.context = context;
 	}
 
 	@Override
-	public ShaderContext canvas_context() {
+	public OldShaderContext canvas_context() {
 		return context;
 	}
 }

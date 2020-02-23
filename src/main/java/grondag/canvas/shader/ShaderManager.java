@@ -28,7 +28,7 @@ import net.fabricmc.fabric.api.event.client.ClientTickCallback;
 
 import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.MaterialShaderImpl;
-import grondag.canvas.buffer.encoding.MaterialVertexFormats;
+import grondag.canvas.buffer.encoding.old.OldMaterialVertexFormats;
 import grondag.canvas.buffer.packing.RenderCube;
 import grondag.canvas.light.AoVertexClampFunction;
 import grondag.canvas.light.LightmapHd;
@@ -108,7 +108,7 @@ public final class ShaderManager implements ClientTickCallback {
 		AoVertexClampFunction.forceReload();
 		RenderCube.forceReload();
 		GlShaderManager.INSTANCE.forceReload();
-		MaterialVertexFormats.forceReload();
+		OldMaterialVertexFormats.forceReload();
 		LightmapHdTexture.forceReload();
 		LightmapHd.forceReload();
 		final int limit = shaders.size();

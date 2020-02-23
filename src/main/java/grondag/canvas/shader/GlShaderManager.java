@@ -20,7 +20,7 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
 import net.minecraft.util.Identifier;
 
-import grondag.canvas.shader.old.ShaderContext;
+import grondag.canvas.shader.old.OldShaderContext;
 
 public final class GlShaderManager {
 	public final static GlShaderManager INSTANCE = new GlShaderManager();
@@ -47,11 +47,11 @@ public final class GlShaderManager {
 		fragmentLibrarySource = commonSource + AbstractGlShader.getShaderSource(COMMON_FRAGMENT_SOURCE);
 	}
 
-	public static String shaderKey(Identifier shaderSource, int spriteDepth, ShaderContext context) {
+	public static String shaderKey(Identifier shaderSource, int spriteDepth, OldShaderContext context) {
 		return String.format("%s.%s.%s", shaderSource.toString(), spriteDepth, context.ordinal());
 	}
 
-	public GlVertexShader getOrCreateVertexShader(Identifier shaderSource, int shaderProps, ShaderContext context) {
+	public GlVertexShader getOrCreateVertexShader(Identifier shaderSource, int shaderProps, OldShaderContext context) {
 		final String shaderKey = shaderKey(shaderSource, shaderProps, context);
 
 		synchronized (vertexShaders) {
@@ -64,7 +64,7 @@ public final class GlShaderManager {
 		}
 	}
 
-	public GlFragmentShader getOrCreateFragmentShader(Identifier shaderSourceId, int shaderProps, ShaderContext context) {
+	public GlFragmentShader getOrCreateFragmentShader(Identifier shaderSourceId, int shaderProps, OldShaderContext context) {
 		final String shaderKey = shaderKey(shaderSourceId, shaderProps, context);
 
 		synchronized (fragmentShaders) {

@@ -21,12 +21,12 @@ import java.nio.IntBuffer;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import grondag.canvas.buffer.allocation.AllocationProvider;
-import grondag.canvas.buffer.encoding.MaterialVertexFormat;
+import grondag.canvas.buffer.encoding.old.OldMaterialVertexFormat;
 import grondag.canvas.buffer.packing.old.VertexCollector;
 import grondag.canvas.buffer.packing.old.VertexCollectorList;
 import grondag.canvas.draw.DelegateLists;
 import grondag.canvas.draw.DrawableDelegate;
-import grondag.canvas.material.old.MaterialState;
+import grondag.canvas.material.old.OldMaterialState;
 
 public class BufferPacker {
 	private static final ThreadLocal<BufferPacker> THREADLOCAL = ThreadLocal.withInitial(BufferPacker::new);
@@ -53,9 +53,9 @@ public class BufferPacker {
 		return result;
 	}
 
-	public void accept(MaterialState materialState, int vertexStart, int vertexCount) {
+	public void accept(OldMaterialState materialState, int vertexStart, int vertexCount) {
 		final VertexCollector collector = collectorList.get(materialState);
-		final MaterialVertexFormat format = collector.format();
+		final OldMaterialVertexFormat format = collector.format();
 		final int stride = format.vertexStrideBytes;
 		allocator.claimAllocation(vertexCount * stride, ref -> {
 			final int byteOffset = ref.byteOffset();

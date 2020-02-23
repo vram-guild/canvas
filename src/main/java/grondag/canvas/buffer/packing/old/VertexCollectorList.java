@@ -30,7 +30,7 @@ import grondag.canvas.apiimpl.RenderMaterialImpl;
 import grondag.canvas.buffer.packing.BufferPackingList;
 import grondag.canvas.buffer.packing.RenderCube;
 import grondag.canvas.chunk.UploadableChunk;
-import grondag.canvas.material.old.MaterialState;
+import grondag.canvas.material.old.OldMaterialState;
 
 public class VertexCollectorList {
 	private static final Comparator<VertexCollector> translucentComparator = new Comparator<VertexCollector>() {
@@ -140,10 +140,10 @@ public class VertexCollectorList {
 	}
 
 	public final VertexCollector get(RenderMaterialImpl.Value material, int shaderProps) {
-		return get(MaterialState.get(material.shader, material.condition, shaderProps));
+		return get(OldMaterialState.get(material.shader, material.condition, shaderProps));
 	}
 
-	public final VertexCollector get(MaterialState renderState) {
+	public final VertexCollector get(OldMaterialState renderState) {
 		final int renderIndex = renderState.index;
 		VertexCollector result = usedCollectors.get(renderIndex);
 

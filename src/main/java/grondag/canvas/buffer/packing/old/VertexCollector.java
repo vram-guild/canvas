@@ -22,13 +22,13 @@ import it.unimi.dsi.fastutil.ints.AbstractIntComparator;
 
 import net.minecraft.util.math.BlockPos;
 
-import grondag.canvas.buffer.encoding.MaterialVertexFormat;
-import grondag.canvas.material.old.MaterialState;
+import grondag.canvas.buffer.encoding.old.OldMaterialVertexFormat;
+import grondag.canvas.material.old.OldMaterialState;
 
 public class VertexCollector {
 	private int[] data;
 	private int integerSize = 0;
-	private MaterialState materialState;
+	private OldMaterialState materialState;
 	//    private MaterialVertexFormat format;
 
 	public final VertexCollectorList parent;
@@ -55,7 +55,7 @@ public class VertexCollector {
 		this.parent = parent;
 	}
 
-	public VertexCollector prepare(MaterialState materialState, MaterialVertexFormat format) {
+	public VertexCollector prepare(OldMaterialState materialState, OldMaterialVertexFormat format) {
 		this.materialState = materialState;
 		//        this.format = format;
 		return this;
@@ -66,11 +66,11 @@ public class VertexCollector {
 		materialState = null;
 	}
 
-	public MaterialState materialState() {
+	public OldMaterialState materialState() {
 		return materialState;
 	}
 
-	public MaterialVertexFormat format() {
+	public OldMaterialVertexFormat format() {
 		return materialState.format;
 	}
 
@@ -292,7 +292,7 @@ public class VertexCollector {
 	}
 
 	public VertexCollector loadState(int[] stateData) {
-		materialState = MaterialState.get(stateData[0]);
+		materialState = OldMaterialState.get(stateData[0]);
 		//        this.format() = MaterialVertexFormats.fromIndex(stateData[1]);
 		final int newSize = stateData.length - 2;
 		integerSize = 0;

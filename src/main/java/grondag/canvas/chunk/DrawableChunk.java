@@ -22,9 +22,9 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import grondag.canvas.draw.DelegateLists;
 import grondag.canvas.draw.DrawableDelegate;
-import grondag.canvas.material.old.MaterialState;
+import grondag.canvas.material.old.OldMaterialState;
 import grondag.canvas.shader.ShaderManager;
-import grondag.canvas.shader.old.ShaderContext;
+import grondag.canvas.shader.old.OldShaderContext;
 
 /**
  * Plays same role as VertexBuffer in RenderChunk but implementation is much
@@ -145,9 +145,9 @@ public abstract class DrawableChunk {
 			// profiling shows it matters
 			for (int i = 0; i < limit; i++) {
 				final DrawableDelegate b = (DrawableDelegate) draws[i];
-				final MaterialState p = b.materialState();
+				final OldMaterialState p = b.materialState();
 				if(!p.condition.affectBlocks || p.condition.compute(frameIndex)) {
-					p.activate(ShaderContext.BLOCK_TRANSLUCENT);
+					p.activate(OldShaderContext.BLOCK_TRANSLUCENT);
 					b.bind();
 					b.draw();
 				}

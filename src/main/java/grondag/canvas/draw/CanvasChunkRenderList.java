@@ -37,7 +37,7 @@ import grondag.canvas.buffer.packing.RenderCube;
 import grondag.canvas.chunk.BuiltRenderRegion;
 import grondag.canvas.chunk.DrawableChunk;
 import grondag.canvas.light.LightmapHdTexture;
-import grondag.canvas.shader.old.ShaderContext;
+import grondag.canvas.shader.old.OldShaderContext;
 import grondag.canvas.varia.CanvasGlHelper;
 
 public class CanvasChunkRenderList {
@@ -203,7 +203,7 @@ public class CanvasChunkRenderList {
 		while (it.hasNext()) {
 			final Entry<SolidRenderList> e = it.next();
 			updateViewMatrix(e.getLongKey());
-			e.getValue().drawAndRelease(ShaderContext.BLOCK_SOLID);
+			e.getValue().drawAndRelease(OldShaderContext.BLOCK_SOLID);
 		}
 
 		solidLists.clear();

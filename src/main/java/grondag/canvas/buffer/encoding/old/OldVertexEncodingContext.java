@@ -1,18 +1,18 @@
-package grondag.canvas.buffer.encoding;
+package grondag.canvas.buffer.encoding.old;
 
 import net.minecraft.util.math.BlockPos;
 
 import grondag.canvas.apiimpl.RenderMaterialImpl;
-import grondag.canvas.shader.old.ShaderContext;
+import grondag.canvas.shader.old.OldShaderContext;
 
-public final class VertexEncodingContext {
+public final class OldVertexEncodingContext {
 	RenderMaterialImpl.Value mat;
-	ShaderContext context;
+	OldShaderContext context;
 	BlockPos pos;
 	float[] aoData;
 	int shaderFlags;
 
-	public VertexEncodingContext prepare(RenderMaterialImpl.Value mat, ShaderContext context, BlockPos pos, float[] aoData, int shaderFlags) {
+	public OldVertexEncodingContext prepare(RenderMaterialImpl.Value mat, OldShaderContext context, BlockPos pos, float[] aoData, int shaderFlags) {
 		this.mat = mat;
 		this.context = context;
 		this.pos = pos;

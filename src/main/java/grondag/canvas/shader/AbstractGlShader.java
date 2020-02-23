@@ -38,8 +38,8 @@ import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
 import grondag.canvas.Configurator.AoMode;
 import grondag.canvas.Configurator.DiffuseMode;
-import grondag.canvas.shader.old.ShaderContext;
-import grondag.canvas.shader.old.ShaderProps;
+import grondag.canvas.shader.old.OldShaderContext;
+import grondag.canvas.shader.old.OldShaderProps;
 import grondag.canvas.varia.CanvasGlHelper;
 
 abstract class AbstractGlShader {
@@ -49,13 +49,13 @@ abstract class AbstractGlShader {
 
 	private final int shaderType;
 	private final int shaderProps;
-	private final ShaderContext context;
+	private final OldShaderContext context;
 
 	private int glId = -1;
 	private boolean needsLoad = true;
 	private boolean isErrored = false;
 
-	AbstractGlShader(Identifier shaderSource, int shaderType, int shaderProps, ShaderContext context) {
+	AbstractGlShader(Identifier shaderSource, int shaderType, int shaderProps, OldShaderContext context) {
 		this.shaderSource = shaderSource;
 		this.shaderType = shaderType;
 		this.shaderProps = shaderProps;
@@ -197,9 +197,9 @@ abstract class AbstractGlShader {
 		result = result.replaceAll("#version\\s+120", "");
 		result = librarySource + result;
 
-		final int spriteDepth = ShaderProps.spriteDepth(shaderProps);
+		final int spriteDepth = OldShaderProps.spriteDepth(shaderProps);
 
-		if(ShaderProps.cutout(shaderProps)) {
+		if(OldShaderProps.cutout(shaderProps)) {
 			result = result.replaceAll("#define CUTOUT FALSE", "#define CUTOUT TRUE");
 		}
 
@@ -213,11 +213,11 @@ abstract class AbstractGlShader {
 			result = result.replaceAll("#define CONTEXT_IS_BLOCK TRUE", "#define CONTEXT_IS_BLOCK FALSE");
 		}
 
-		if(Configurator.hardcoreDarkness && context != ShaderContext.ITEM_GUI) {
+		if(Configurator.hardcoreDarkness && context != OldShaderContext.ITEM_GUI) {
 			result = result.replaceAll("#define HARDCORE_DARKNESS FALSE", "#define HARDCORE_DARKNESS TRUE");
 		}
 
-		if(Configurator.subtleFog && context != ShaderContext.ITEM_GUI) {
+		if(Configurator.subtleFog && context != OldShaderContext.ITEM_GUI) {
 			result = result.replaceAll("#define SUBTLE_FOG FALSE", "#define SUBTLE_FOG TRUE");
 		}
 
@@ -225,7 +225,7 @@ abstract class AbstractGlShader {
 			result = result.replaceAll("#define CONTEXT_IS_BLOCK TRUE", "#define CONTEXT_IS_BLOCK FALSE");
 		}
 
-		if(!Configurator.hdLightmaps || ((shaderProps & ShaderProps.SMOOTH_LIGHTMAPS) == 0)) {
+		if(!Configurator.hdLightmaps || ((shaderProps & OldShaderProps.SMOOTH_LIGHTMAPS) == 0)) {
 			result = result.replaceAll("#define ENABLE_SMOOTH_LIGHT TRUE", "#define ENABLE_SMOOTH_LIGHT FALSE");
 		}
 
@@ -249,7 +249,7 @@ abstract class AbstractGlShader {
 			result = result.replaceAll("#extension GL_EXT_gpu_shader4 : enable", "");
 		}
 
-		if((shaderProps & ShaderProps.WHITE_0) != 0) {
+		if((shaderProps & OldShaderProps.WHITE_0) != 0) {
 			result = result.replaceAll("#define WHITE_0 FALSE", "#define WHITE_0 TRUE");
 		}
 

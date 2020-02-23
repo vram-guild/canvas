@@ -1,11 +1,11 @@
 package grondag.canvas.salvage;
 
-import grondag.canvas.shader.old.ShaderContext;
+import grondag.canvas.shader.old.OldShaderContext;
 
 public interface TessellatorExt {
 	void canvas_draw();
 
-	void canvas_context(ShaderContext context);
+	void canvas_context(OldShaderContext context);
 
-	ShaderContext canvas_context();
+	OldShaderContext canvas_context();
 }

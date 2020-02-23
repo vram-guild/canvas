@@ -29,10 +29,10 @@ import org.lwjgl.opengl.GL11;
 import grondag.canvas.apiimpl.MaterialConditionImpl;
 import grondag.canvas.apiimpl.MaterialShaderImpl;
 import grondag.canvas.buffer.allocation.BindStateManager;
-import grondag.canvas.material.old.MaterialState;
+import grondag.canvas.material.old.OldMaterialState;
 import grondag.canvas.shader.GlProgram;
 import grondag.canvas.shader.ShaderManager;
-import grondag.canvas.shader.old.ShaderContext;
+import grondag.canvas.shader.old.OldShaderContext;
 import grondag.canvas.varia.CanvasGlHelper;
 
 /**
@@ -91,7 +91,7 @@ public class SolidRenderList implements Consumer<ObjectArrayList<DrawableDelegat
 	 * Renders delegates in buffer order to minimize bind calls.
 	 * Assumes all delegates in the list share the same pipeline.
 	 */
-	public void draw(ShaderContext context) {
+	public void draw(OldShaderContext context) {
 		final int limit = delegates.size();
 
 		if (limit == 0) {
@@ -111,7 +111,7 @@ public class SolidRenderList implements Consumer<ObjectArrayList<DrawableDelegat
 
 		for (int i = 0; i < limit; i++) {
 			final DrawableDelegate b = (DrawableDelegate) draws[i];
-			final MaterialState state = b.materialState();
+			final OldMaterialState state = b.materialState();
 			final MaterialConditionImpl condition = state.condition;
 
 			if(!condition.affectBlocks || condition.compute(frameIndex)) {
@@ -145,7 +145,7 @@ public class SolidRenderList implements Consumer<ObjectArrayList<DrawableDelegat
 		POOL.offer(this);
 	}
 
-	public void drawAndRelease(ShaderContext context) {
+	public void drawAndRelease(OldShaderContext context) {
 		draw(context);
 		release();
 	}
