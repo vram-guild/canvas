@@ -118,8 +118,8 @@ public abstract class AbstractQuadRenderer {
 		colorizeQuad(q, blockColorIndex);
 
 		for (int i = 0; i < 4; i++) {
-			q.spriteColor(i, 0, ColorHelper.multiplyRGB(q.spriteColor(i, 0), aoCalc.ao[i]));
-			q.lightmap(i, ColorHelper.maxBrightness(q.lightmap(i), aoCalc.light[i]));
+			q.spriteColor(i, 0, ColorHelper.multiplyRGB(q.spriteColor(i, 0), q.ao[i]));
+			q.lightmap(i, ColorHelper.maxBrightness(q.lightmap(i), q.light[i]));
 		}
 
 		bufferQuad(q, renderLayer);
@@ -130,7 +130,7 @@ public abstract class AbstractQuadRenderer {
 		colorizeQuad(q, blockColorIndex);
 
 		for (int i = 0; i < 4; i++) {
-			q.spriteColor(i, 0, ColorHelper.multiplyRGB(q.spriteColor(i, 0), aoCalc.ao[i]));
+			q.spriteColor(i, 0, ColorHelper.multiplyRGB(q.spriteColor(i, 0), q.ao[i]));
 			q.lightmap(i, FULL_BRIGHTNESS);
 		}
 

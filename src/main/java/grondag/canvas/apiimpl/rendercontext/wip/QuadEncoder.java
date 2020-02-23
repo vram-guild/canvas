@@ -17,7 +17,6 @@ import grondag.canvas.apiimpl.RenderMaterialImpl;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.rendercontext.BlockRenderInfo;
 import grondag.canvas.apiimpl.util.ColorHelper;
-import grondag.canvas.light.AoCalculator;
 
 public class QuadEncoder {
 	static final int FULL_BRIGHTNESS = 0xF000F0;
@@ -97,11 +96,10 @@ public class QuadEncoder {
 	/** for non-emissive mesh quads and all fallback quads with smooth lighting. */
 	private void tesselateSmooth(MutableQuadViewImpl q, EncoderContext context, RenderLayer renderLayer, int blockColorIndex) {
 		colorizeQuad(q, context, blockColorIndex);
-		final AoCalculator aoCalc = context.aoCalc();
 
 		for (int i = 0; i < 4; i++) {
-			q.spriteColor(i, 0, ColorHelper.multiplyRGB(q.spriteColor(i, 0), aoCalc.ao[i]));
-			q.lightmap(i, ColorHelper.maxBrightness(q.lightmap(i), aoCalc.light[i]));
+			q.spriteColor(i, 0, ColorHelper.multiplyRGB(q.spriteColor(i, 0), q.ao[i]));
+			q.lightmap(i, ColorHelper.maxBrightness(q.lightmap(i), q.light[i]));
 		}
 
 		bufferQuad(q, context, renderLayer);
@@ -110,10 +108,9 @@ public class QuadEncoder {
 	/** for emissive mesh quads with smooth lighting. */
 	private void tesselateSmoothEmissive(MutableQuadViewImpl q, EncoderContext context, RenderLayer renderLayer, int blockColorIndex) {
 		colorizeQuad(q, context, blockColorIndex);
-		final AoCalculator aoCalc = context.aoCalc();
 
 		for (int i = 0; i < 4; i++) {
-			q.spriteColor(i, 0, ColorHelper.multiplyRGB(q.spriteColor(i, 0), aoCalc.ao[i]));
+			q.spriteColor(i, 0, ColorHelper.multiplyRGB(q.spriteColor(i, 0), q.ao[i]));
 			q.lightmap(i, FULL_BRIGHTNESS);
 		}
 

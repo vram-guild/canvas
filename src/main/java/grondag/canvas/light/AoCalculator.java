@@ -82,10 +82,6 @@ public abstract class AoCalculator {
 	/** holds per-corner weights - used locally to avoid new allocation. */
 	private final float[] w = new float[4];
 
-	// outputs
-	public final float[] ao = new float[4];
-	public final int[] light = new int[4];
-
 	public AoCalculator() {
 		for (int i = 0; i < 12; i++) {
 			faceData[i] = new AoFaceData();
@@ -188,9 +184,11 @@ public abstract class AoCalculator {
 		final AoFaceCalc faceData = gatherFace(lightFace, isOnLightFace).calc;
 		final AoFace face = AoFace.get(lightFace);
 		final WeightFunction wFunc = face.weightFunc;
+		final float[] w = this.w;
+		final float[] ao = quad.ao;
+		final int[] light = quad.light;
 
 		for (int i = 0; i < 4; i++) {
-			final float[] w = quad.w[i];
 			wFunc.apply(quad, i, w);
 			light[i] = faceData.weightedCombinedLight(w);
 			ao[i] = faceData.weigtedAo(w) * DIVIDE_BY_255;
@@ -245,9 +243,11 @@ public abstract class AoCalculator {
 		final AoFaceCalc faceData = blendedInsetData(quad, 0, lightFace);
 		final AoFace face = AoFace.get(lightFace);
 		final WeightFunction wFunc = face.weightFunc;
+		final float[] w = this.w;
+		final float[] ao = quad.ao;
+		final int[] light = quad.light;
 
 		for (int i = 0; i < 4; i++) {
-			final float[] w = quad.w[i];
 			wFunc.apply(quad, i, w);
 			light[i] = faceData.weightedCombinedLight(w);
 			ao[i] = faceData.weigtedAo(w) * DIVIDE_BY_255;
@@ -289,8 +289,8 @@ public abstract class AoCalculator {
 		final Vector3f faceNorm = quad.faceNormal();
 		Vector3f normal;
 		final float[] w = this.w;
-		final float aoResult[] = ao;
-		final int[] lightResult = light;
+		final float aoResult[] = quad.ao;
+		final int[] lightResult = quad.light;
 
 		//TODO: currently no way to handle 3d interpolation shader-side
 		quad.blockLight = null;

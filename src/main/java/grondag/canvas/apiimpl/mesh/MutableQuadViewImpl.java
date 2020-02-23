@@ -50,13 +50,16 @@ import grondag.canvas.light.LightmapHd;
  * because that depends on where/how it is used. (Mesh encoding vs. render-time transformation).
  */
 public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEmitter {
-	// UGLY
+	// UGLY - need a lighting result class?
 	public LightmapHd blockLight = null;
 	public LightmapHd skyLight = null;
 	public LightmapHd aoShade = null;
-	public float[][] w = new float[4][4];
-	public float[] u = new float[4];
-	public float[] v = new float[4];
+	// PERF: pack into one array for LOR?
+	public final float[] u = new float[4];
+	public final float[] v = new float[4];
+	// vanilla light outputs
+	public final float[] ao = new float[4];
+	public final int[] light = new int[4];
 
 	public final void begin(int[] data, int baseIndex) {
 		this.data = data;
