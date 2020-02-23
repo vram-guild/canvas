@@ -26,6 +26,7 @@ import net.minecraft.client.util.math.Vector3f;
 
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext.QuadTransform;
 
+import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.rendercontext.BlockRenderInfo;
 
 /**
@@ -50,7 +51,8 @@ public abstract class AbstractQuadRenderer2 implements EncoderContext {
 	public abstract int overlay();
 
 	@Override
-	public VertexConsumer consumer(RenderLayer layer) {
+	public VertexConsumer consumer(MutableQuadViewImpl quad) {
+		final RenderLayer layer = blockInfo.effectiveRenderLayer(quad.material().blendMode(0));
 		return bufferFunc.apply(layer);
 	}
 
@@ -58,7 +60,6 @@ public abstract class AbstractQuadRenderer2 implements EncoderContext {
 	public BlockRenderInfo blockInfo() {
 		return blockInfo;
 	}
-
 
 	@Override
 	public Vector3f normalVec() {

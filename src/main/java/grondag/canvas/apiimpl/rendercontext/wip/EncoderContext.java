@@ -1,6 +1,5 @@
 package grondag.canvas.apiimpl.rendercontext.wip;
 
-import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.util.math.Matrix3f;
 import net.minecraft.client.util.math.Matrix4f;
@@ -10,8 +9,6 @@ import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.rendercontext.BlockRenderInfo;
 
 public interface EncoderContext {
-	VertexConsumer consumer(RenderLayer layer);
-
 	BlockRenderInfo blockInfo();
 
 	void computeLighting(MutableQuadViewImpl quad);
@@ -23,4 +20,6 @@ public interface EncoderContext {
 	Matrix3f normalMatrix();
 
 	int overlay();
+
+	VertexConsumer consumer(MutableQuadViewImpl quad);
 }
