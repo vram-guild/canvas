@@ -3,9 +3,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
  * of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
@@ -16,18 +16,17 @@
 
 package grondag.canvas.apiimpl.mesh;
 
-import static grondag.canvas.apiimpl.mesh.EncodingFormat.EMPTY;
-import static grondag.canvas.apiimpl.mesh.EncodingFormat.HEADER_BITS;
-import static grondag.canvas.apiimpl.mesh.EncodingFormat.HEADER_COLOR_INDEX;
-import static grondag.canvas.apiimpl.mesh.EncodingFormat.HEADER_STRIDE;
-import static grondag.canvas.apiimpl.mesh.EncodingFormat.HEADER_TAG;
-import static grondag.canvas.apiimpl.mesh.EncodingFormat.QUAD_STRIDE;
-import static grondag.canvas.apiimpl.mesh.EncodingFormat.VERTEX_COLOR;
-import static grondag.canvas.apiimpl.mesh.EncodingFormat.VERTEX_LIGHTMAP;
-import static grondag.canvas.apiimpl.mesh.EncodingFormat.VERTEX_NORMAL;
-import static grondag.canvas.apiimpl.mesh.EncodingFormat.VERTEX_STRIDE;
-import static grondag.canvas.apiimpl.mesh.EncodingFormat.VERTEX_U;
-import static grondag.canvas.apiimpl.mesh.EncodingFormat.VERTEX_X;
+import static grondag.canvas.apiimpl.util.MeshEncodingHelper.EMPTY;
+import static grondag.canvas.apiimpl.util.MeshEncodingHelper.HEADER_BITS;
+import static grondag.canvas.apiimpl.util.MeshEncodingHelper.HEADER_COLOR_INDEX;
+import static grondag.canvas.apiimpl.util.MeshEncodingHelper.HEADER_MATERIAL;
+import static grondag.canvas.apiimpl.util.MeshEncodingHelper.HEADER_STRIDE;
+import static grondag.canvas.apiimpl.util.MeshEncodingHelper.HEADER_TAG;
+import static grondag.canvas.apiimpl.util.MeshEncodingHelper.VANILLA_STRIDE;
+import static grondag.canvas.apiimpl.util.MeshEncodingHelper.VERTEX_LIGHTMAP;
+import static grondag.canvas.apiimpl.util.MeshEncodingHelper.VERTEX_NORMAL;
+import static grondag.canvas.apiimpl.util.MeshEncodingHelper.VERTEX_STRIDE;
+import static grondag.canvas.apiimpl.util.MeshEncodingHelper.VERTEX_X;
 
 import com.google.common.base.Preconditions;
 
@@ -36,13 +35,15 @@ import net.minecraft.util.math.Direction;
 
 import net.fabricmc.fabric.api.renderer.v1.material.RenderMaterial;
 import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
+import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 
 import grondag.canvas.apiimpl.Canvas;
-import grondag.canvas.apiimpl.RenderMaterialImpl.Value;
+import grondag.canvas.apiimpl.RenderMaterialImpl;
+import grondag.canvas.apiimpl.util.ColorHelper.ShadeableQuad;
 import grondag.canvas.apiimpl.util.GeometryHelper;
+import grondag.canvas.apiimpl.util.MeshEncodingHelper;
 import grondag.canvas.apiimpl.util.NormalHelper;
 import grondag.canvas.apiimpl.util.TextureHelper;
-import grondag.canvas.apiimpl.util.ColorHelper.ShadeableQuad;
 
 /**
  * Almost-concrete implementation of a mutable quad. The only missing part is {@link #emit()},
@@ -56,10 +57,10 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 	}
 
 	public void clear() {
-		System.arraycopy(EMPTY, 0, data, baseIndex, EncodingFormat.TOTAL_STRIDE);
+		System.arraycopy(EMPTY, 0, data, baseIndex, MeshEncodingHelper.TOTAL_STRIDE);
 		isFaceNormalInvalid = true;
 		isGeometryInvalid = true;
-		nominalFace = null;
+		nominalFaceId = ModelHelper.NULL_FACE_ID;
 		normalFlags(0);
 		tag(0);
 		colorIndex(-1);
@@ -73,28 +74,42 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 			material = Canvas.MATERIAL_STANDARD;
 		}
 
-		data[baseIndex + HEADER_BITS] = EncodingFormat.material(data[baseIndex + HEADER_BITS], (Value) material);
+		data[baseIndex + HEADER_MATERIAL] = ((RenderMaterialImpl.Value)material).index();
+		return this;
+	}
+
+	public final MutableQuadViewImpl cullFace(int faceId) {
+		data[baseIndex + HEADER_BITS] = MeshEncodingHelper.cullFace(data[baseIndex + HEADER_BITS], faceId);
+		nominalFaceId = faceId;
 		return this;
 	}
 
 	@Override
+	@Deprecated
 	public final MutableQuadViewImpl cullFace(Direction face) {
-		data[baseIndex + HEADER_BITS] = EncodingFormat.cullFace(data[baseIndex + HEADER_BITS], face);
-		nominalFace(face);
+		return cullFace(ModelHelper.toFaceIndex(face));
+	}
+
+	public final MutableQuadViewImpl lightFace(int faceId) {
+		data[baseIndex + HEADER_BITS] = MeshEncodingHelper.lightFace(data[baseIndex + HEADER_BITS], faceId);
 		return this;
 	}
 
+	@Deprecated
 	public final MutableQuadViewImpl lightFace(Direction face) {
 		Preconditions.checkNotNull(face);
+		return lightFace(ModelHelper.toFaceIndex(face));
+	}
 
-		data[baseIndex + HEADER_BITS] = EncodingFormat.lightFace(data[baseIndex + HEADER_BITS], face);
+	public final MutableQuadViewImpl nominalFace(int faceId) {
+		nominalFaceId = faceId;
 		return this;
 	}
 
 	@Override
+	@Deprecated
 	public final MutableQuadViewImpl nominalFace(Direction face) {
-		nominalFace = face;
-		return this;
+		return nominalFace(ModelHelper.toFaceIndex(face));
 	}
 
 	@Override
@@ -111,16 +126,18 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 
 	@Override
 	public final MutableQuadViewImpl fromVanilla(int[] quadData, int startIndex, boolean isItem) {
-		System.arraycopy(quadData, startIndex, data, baseIndex + HEADER_STRIDE, QUAD_STRIDE);
+		System.arraycopy(quadData, startIndex, data, baseIndex + HEADER_STRIDE, VANILLA_STRIDE);
 		invalidateShape();
 		return this;
 	}
 
+	// TODO: remove?
 	@Override
 	public boolean isFaceAligned() {
 		return (geometryFlags() & GeometryHelper.AXIS_ALIGNED_FLAG) != 0;
 	}
 
+	// TODO: remove?
 	@Override
 	public boolean needsDiffuseShading(int textureIndex) {
 		return textureIndex == 0 && !material().disableDiffuse(textureIndex);
@@ -132,12 +149,33 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 		data[index] = Float.floatToRawIntBits(x);
 		data[index + 1] = Float.floatToRawIntBits(y);
 		data[index + 2] = Float.floatToRawIntBits(z);
-		isFaceNormalInvalid = true;
+		invalidateShape();
+		return this;
+	}
+
+	public MutableQuadViewImpl x(int vertexIndex, float x) {
+		final int index = baseIndex + vertexIndex * VERTEX_STRIDE + VERTEX_X;
+		data[index] = Float.floatToRawIntBits(x);
+		invalidateShape();
+		return this;
+	}
+
+	public MutableQuadViewImpl y(int vertexIndex, float y) {
+		final int index = baseIndex + vertexIndex * VERTEX_STRIDE + VERTEX_X;
+		data[index + 1] = Float.floatToRawIntBits(y);
+		invalidateShape();
+		return this;
+	}
+
+	public MutableQuadViewImpl z(int vertexIndex, float z) {
+		final int index = baseIndex + vertexIndex * VERTEX_STRIDE + VERTEX_X;
+		data[index + 2] = Float.floatToRawIntBits(z);
+		invalidateShape();
 		return this;
 	}
 
 	public void normalFlags(int flags) {
-		data[baseIndex + HEADER_BITS] = EncodingFormat.normalFlags(data[baseIndex + HEADER_BITS], flags);
+		data[baseIndex + HEADER_BITS] = MeshEncodingHelper.normalFlags(data[baseIndex + HEADER_BITS], flags);
 	}
 
 	@Override
@@ -176,17 +214,13 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 
 	@Override
 	public MutableQuadViewImpl spriteColor(int vertexIndex, int spriteIndex, int color) {
-		Preconditions.checkArgument(spriteIndex == 0, "Unsupported sprite index: %s", spriteIndex);
-
-		data[baseIndex + vertexIndex * VERTEX_STRIDE + VERTEX_COLOR] = color;
+		data[baseIndex + colorOffset(vertexIndex, spriteIndex)] = color;
 		return this;
 	}
 
 	@Override
 	public MutableQuadViewImpl sprite(int vertexIndex, int spriteIndex, float u, float v) {
-		Preconditions.checkArgument(spriteIndex == 0, "Unsupported sprite index: %s", spriteIndex);
-
-		final int i = baseIndex + vertexIndex * VERTEX_STRIDE + VERTEX_U;
+		final int i = baseIndex + colorOffset(vertexIndex, spriteIndex) + 1;
 		data[i] = Float.floatToRawIntBits(u);
 		data[i + 1] = Float.floatToRawIntBits(v);
 		return this;
@@ -194,8 +228,6 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 
 	@Override
 	public MutableQuadViewImpl spriteBake(int spriteIndex, Sprite sprite, int bakeFlags) {
-		Preconditions.checkArgument(spriteIndex == 0, "Unsupported sprite index: %s", spriteIndex);
-
 		TextureHelper.bakeSprite(this, spriteIndex, sprite, bakeFlags);
 		return this;
 	}

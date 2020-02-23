@@ -3,9 +3,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
  * of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
@@ -48,11 +48,11 @@ import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 
 import grondag.canvas.apiimpl.RenderMaterialImpl;
-import grondag.canvas.apiimpl.mesh.EncodingFormat;
 import grondag.canvas.apiimpl.mesh.MeshImpl;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.util.ColorHelper;
 import grondag.canvas.apiimpl.util.GeometryHelper;
+import grondag.canvas.apiimpl.util.MeshEncodingHelper;
 
 /**
  * The render context used for item rendering.
@@ -92,7 +92,7 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 		return random;
 	};
 
-	private final int[] quadData = new int[EncodingFormat.TOTAL_STRIDE];
+	private final int[] quadData = new int[MeshEncodingHelper.TOTAL_STRIDE];
 
 	public ItemRenderContext(ItemColors colorMap) {
 		this.colorMap = colorMap;
@@ -162,9 +162,9 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 		int index = 0;
 
 		while (index < limit) {
-			System.arraycopy(data, index, editorQuad.data(), 0, EncodingFormat.TOTAL_STRIDE);
+			System.arraycopy(data, index, editorQuad.data(), 0, MeshEncodingHelper.TOTAL_STRIDE);
 			editorQuad.load();
-			index += EncodingFormat.TOTAL_STRIDE;
+			index += MeshEncodingHelper.TOTAL_STRIDE;
 			renderQuad();
 		}
 	};

@@ -3,9 +3,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
  * of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
@@ -16,31 +16,34 @@
 
 package grondag.canvas.apiimpl.mesh;
 
-import static grondag.canvas.apiimpl.mesh.EncodingFormat.HEADER_BITS;
-import static grondag.canvas.apiimpl.mesh.EncodingFormat.HEADER_COLOR_INDEX;
-import static grondag.canvas.apiimpl.mesh.EncodingFormat.HEADER_STRIDE;
-import static grondag.canvas.apiimpl.mesh.EncodingFormat.HEADER_TAG;
-import static grondag.canvas.apiimpl.mesh.EncodingFormat.QUAD_STRIDE;
-import static grondag.canvas.apiimpl.mesh.EncodingFormat.VERTEX_COLOR;
-import static grondag.canvas.apiimpl.mesh.EncodingFormat.VERTEX_LIGHTMAP;
-import static grondag.canvas.apiimpl.mesh.EncodingFormat.VERTEX_NORMAL;
-import static grondag.canvas.apiimpl.mesh.EncodingFormat.VERTEX_STRIDE;
-import static grondag.canvas.apiimpl.mesh.EncodingFormat.VERTEX_U;
-import static grondag.canvas.apiimpl.mesh.EncodingFormat.VERTEX_V;
-import static grondag.canvas.apiimpl.mesh.EncodingFormat.VERTEX_X;
-import static grondag.canvas.apiimpl.mesh.EncodingFormat.VERTEX_Y;
-import static grondag.canvas.apiimpl.mesh.EncodingFormat.VERTEX_Z;
-
-import com.google.common.base.Preconditions;
+import static grondag.canvas.apiimpl.util.MeshEncodingHelper.HEADER_BITS;
+import static grondag.canvas.apiimpl.util.MeshEncodingHelper.HEADER_COLOR_INDEX;
+import static grondag.canvas.apiimpl.util.MeshEncodingHelper.HEADER_MATERIAL;
+import static grondag.canvas.apiimpl.util.MeshEncodingHelper.HEADER_STRIDE;
+import static grondag.canvas.apiimpl.util.MeshEncodingHelper.HEADER_TAG;
+import static grondag.canvas.apiimpl.util.MeshEncodingHelper.TEXTURE_OFFSET_MINUS;
+import static grondag.canvas.apiimpl.util.MeshEncodingHelper.TEXTURE_STRIDE;
+import static grondag.canvas.apiimpl.util.MeshEncodingHelper.TEXTURE_VERTEX_STRIDE;
+import static grondag.canvas.apiimpl.util.MeshEncodingHelper.VANILLA_STRIDE;
+import static grondag.canvas.apiimpl.util.MeshEncodingHelper.VERTEX_COLOR;
+import static grondag.canvas.apiimpl.util.MeshEncodingHelper.VERTEX_LIGHTMAP;
+import static grondag.canvas.apiimpl.util.MeshEncodingHelper.VERTEX_NORMAL;
+import static grondag.canvas.apiimpl.util.MeshEncodingHelper.VERTEX_START_OFFSET;
+import static grondag.canvas.apiimpl.util.MeshEncodingHelper.VERTEX_STRIDE;
+import static grondag.canvas.apiimpl.util.MeshEncodingHelper.VERTEX_X;
+import static grondag.canvas.apiimpl.util.MeshEncodingHelper.VERTEX_Y;
+import static grondag.canvas.apiimpl.util.MeshEncodingHelper.VERTEX_Z;
 
 import net.minecraft.client.util.math.Vector3f;
 import net.minecraft.util.math.Direction;
 
 import net.fabricmc.fabric.api.renderer.v1.mesh.MutableQuadView;
 import net.fabricmc.fabric.api.renderer.v1.mesh.QuadView;
+import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 
 import grondag.canvas.apiimpl.RenderMaterialImpl;
 import grondag.canvas.apiimpl.util.GeometryHelper;
+import grondag.canvas.apiimpl.util.MeshEncodingHelper;
 import grondag.canvas.apiimpl.util.NormalHelper;
 
 /**
@@ -48,9 +51,10 @@ import grondag.canvas.apiimpl.util.NormalHelper;
  * of maintaining and encoding the quad state.
  */
 public class QuadViewImpl implements QuadView {
-	protected Direction nominalFace;
+	protected int nominalFaceId = ModelHelper.NULL_FACE_ID;
 	protected boolean isGeometryInvalid = true;
 	protected final Vector3f faceNormal = new Vector3f();
+	protected int packedFaceNormal = -1;
 	protected boolean isFaceNormalInvalid = true;
 
 	/** Size and where it comes from will vary in subtypes. But in all cases quad is fully encoded to array. */
@@ -76,6 +80,7 @@ public class QuadViewImpl implements QuadView {
 	public final void invalidateShape() {
 		isFaceNormalInvalid = true;
 		isGeometryInvalid = true;
+		packedFaceNormal = -1;
 	}
 
 	/**
@@ -85,8 +90,9 @@ public class QuadViewImpl implements QuadView {
 	public final void load() {
 		// face normal isn't encoded but geometry flags are
 		isFaceNormalInvalid = true;
+		packedFaceNormal = -1;
 		isGeometryInvalid = false;
-		nominalFace = lightFace();
+		nominalFaceId = lightFace().ordinal();
 	}
 
 	/** Reference to underlying array. Use with caution. Meant for fast renderer access */
@@ -95,7 +101,7 @@ public class QuadViewImpl implements QuadView {
 	}
 
 	public int normalFlags() {
-		return EncodingFormat.normalFlags(data[baseIndex + HEADER_BITS]);
+		return MeshEncodingHelper.normalFlags(data[baseIndex + HEADER_BITS]);
 	}
 
 	/** True if any vertex normal has been set. */
@@ -103,15 +109,27 @@ public class QuadViewImpl implements QuadView {
 		return normalFlags() != 0;
 	}
 
+	/**
+	 * Index after header where vertex data starts (first 28 will be vanilla format.
+	 */
+	public int vertexStart() {
+		return baseIndex + HEADER_STRIDE;
+	}
+
+	/** Length of encoded quad in array, including header. */
+	final int stride() {
+		return MeshEncodingHelper.stride(material().spriteDepth());
+	}
+
 	/** gets flags used for lighting - lazily computed via {@link GeometryHelper#computeShapeFlags(QuadView)}. */
 	public int geometryFlags() {
 		if (isGeometryInvalid) {
 			isGeometryInvalid = false;
 			final int result = GeometryHelper.computeShapeFlags(this);
-			data[baseIndex + HEADER_BITS] = EncodingFormat.geometryFlags(data[baseIndex + HEADER_BITS], result);
+			data[baseIndex + HEADER_BITS] = MeshEncodingHelper.geometryFlags(data[baseIndex + HEADER_BITS], result);
 			return result;
 		} else {
-			return EncodingFormat.geometryFlags(data[baseIndex + HEADER_BITS]);
+			return MeshEncodingHelper.geometryFlags(data[baseIndex + HEADER_BITS]);
 		}
 	}
 
@@ -120,17 +138,17 @@ public class QuadViewImpl implements QuadView {
 	 */
 	public void geometryFlags(int flags) {
 		isGeometryInvalid = false;
-		data[baseIndex + HEADER_BITS] = EncodingFormat.geometryFlags(data[baseIndex + HEADER_BITS], flags);
+		data[baseIndex + HEADER_BITS] = MeshEncodingHelper.geometryFlags(data[baseIndex + HEADER_BITS], flags);
 	}
 
 	@Override
 	public final void toVanilla(int textureIndex, int[] target, int targetIndex, boolean isItem) {
-		System.arraycopy(data, baseIndex + VERTEX_X, target, targetIndex, QUAD_STRIDE);
+		System.arraycopy(data, baseIndex + VERTEX_START_OFFSET, target, targetIndex, VANILLA_STRIDE);
 	}
 
 	@Override
 	public final RenderMaterialImpl.Value material() {
-		return EncodingFormat.material(data[baseIndex + HEADER_BITS]);
+		return RenderMaterialImpl.byIndex(data[baseIndex + HEADER_MATERIAL]);
 	}
 
 	@Override
@@ -143,23 +161,29 @@ public class QuadViewImpl implements QuadView {
 		return data[baseIndex + HEADER_TAG];
 	}
 
-	@Override
-	public final Direction lightFace() {
-		return EncodingFormat.lightFace(data[baseIndex + HEADER_BITS]);
-	}
-
 	public final int lightFaceId() {
-		return EncodingFormat.lightFaceId(data[baseIndex + HEADER_BITS]);
+		return MeshEncodingHelper.lightFace(data[baseIndex + HEADER_BITS]);
 	}
 
 	@Override
+	@Deprecated
+	public final Direction lightFace() {
+		return ModelHelper.faceFromIndex(lightFaceId());
+	}
+
+	public final int cullFaceId() {
+		return MeshEncodingHelper.cullFace(data[baseIndex + HEADER_BITS]);
+	}
+
+	@Override
+	@Deprecated
 	public final Direction cullFace() {
-		return EncodingFormat.cullFace(data[baseIndex + HEADER_BITS]);
+		return ModelHelper.faceFromIndex(cullFaceId());
 	}
 
 	@Override
 	public final Direction nominalFace() {
-		return nominalFace;
+		return ModelHelper.faceFromIndex(nominalFaceId);
 	}
 
 	@Override
@@ -172,22 +196,36 @@ public class QuadViewImpl implements QuadView {
 		return faceNormal;
 	}
 
+	public int packedFaceNormal() {
+		int result = packedFaceNormal;
+		if(result == -1) {
+			result = NormalHelper.packNormal(faceNormal(), 0);
+			packedFaceNormal = result;
+		}
+		return result;
+	}
+
 	@Override
 	public void copyTo(MutableQuadView target) {
 		final MutableQuadViewImpl quad = (MutableQuadViewImpl) target;
+
+		final int len = Math.min(stride(), quad.stride());
+
 		// copy everything except the header/material
-		System.arraycopy(data, baseIndex + 1, quad.data, quad.baseIndex + 1, EncodingFormat.TOTAL_STRIDE - 1);
+		System.arraycopy(data, baseIndex + 1, quad.data, quad.baseIndex + 1, len - 1);
+
 		quad.isFaceNormalInvalid = isFaceNormalInvalid;
 
 		if (!isFaceNormalInvalid) {
 			quad.faceNormal.set(faceNormal.getX(), faceNormal.getY(), faceNormal.getZ());
+			quad.packedFaceNormal = packedFaceNormal;
 		}
 
-		quad.lightFace(lightFace());
+		quad.lightFace(lightFaceId());
 		quad.colorIndex(colorIndex());
 		quad.tag(tag());
-		quad.cullFace(cullFace());
-		quad.nominalFace = nominalFace;
+		quad.cullFace(cullFaceId());
+		quad.nominalFaceId = nominalFaceId;
 		quad.normalFlags(normalFlags());
 	}
 
@@ -246,6 +284,10 @@ public class QuadViewImpl implements QuadView {
 		}
 	}
 
+	public int packedNormal(int vertexIndex) {
+		return hasNormal(vertexIndex) ? data[normalIndex(vertexIndex)] : packedFaceNormal();
+	}
+
 	@Override
 	public float normalX(int vertexIndex) {
 		return hasNormal(vertexIndex) ? NormalHelper.getPackedNormalComponent(data[normalIndex(vertexIndex)], 0) : Float.NaN;
@@ -266,28 +308,23 @@ public class QuadViewImpl implements QuadView {
 		return data[baseIndex + vertexIndex * VERTEX_STRIDE + VERTEX_LIGHTMAP];
 	}
 
+	protected int colorOffset(int vertexIndex, int spriteIndex) {
+		return spriteIndex == 0 ? vertexIndex * VERTEX_STRIDE + VERTEX_COLOR
+				: TEXTURE_OFFSET_MINUS + spriteIndex * TEXTURE_STRIDE + vertexIndex * TEXTURE_VERTEX_STRIDE;
+	}
+
 	@Override
 	public int spriteColor(int vertexIndex, int spriteIndex) {
-		Preconditions.checkArgument(spriteIndex == 0, "Unsupported sprite index: %s", spriteIndex);
-
-		return data[baseIndex + vertexIndex * VERTEX_STRIDE + VERTEX_COLOR];
+		return data[baseIndex + colorOffset(vertexIndex, spriteIndex)];
 	}
 
 	@Override
 	public float spriteU(int vertexIndex, int spriteIndex) {
-		Preconditions.checkArgument(spriteIndex == 0, "Unsupported sprite index: %s", spriteIndex);
-
-		return Float.intBitsToFloat(data[baseIndex + vertexIndex * VERTEX_STRIDE + VERTEX_U]);
+		return Float.intBitsToFloat(data[baseIndex + colorOffset(vertexIndex, spriteIndex) + 1]);
 	}
 
 	@Override
 	public float spriteV(int vertexIndex, int spriteIndex) {
-		Preconditions.checkArgument(spriteIndex == 0, "Unsupported sprite index: %s", spriteIndex);
-
-		return Float.intBitsToFloat(data[baseIndex + vertexIndex * VERTEX_STRIDE + VERTEX_V]);
-	}
-
-	public int vertexStart() {
-		return baseIndex + HEADER_STRIDE;
+		return Float.intBitsToFloat(data[baseIndex + colorOffset(vertexIndex, spriteIndex) + 2]);
 	}
 }

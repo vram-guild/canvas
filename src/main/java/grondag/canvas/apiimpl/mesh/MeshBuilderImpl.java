@@ -3,9 +3,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
  * of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
@@ -22,6 +22,7 @@ import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
 
 import grondag.canvas.apiimpl.util.ColorHelper;
 import grondag.canvas.apiimpl.util.GeometryHelper;
+import grondag.canvas.apiimpl.util.MeshEncodingHelper;
 
 /**
  * Our implementation of {@link MeshBuilder}, used for static mesh creation and baking.
@@ -57,7 +58,7 @@ public class MeshBuilderImpl implements MeshBuilder {
 
 	@Override
 	public QuadEmitter getEmitter() {
-		ensureCapacity(EncodingFormat.TOTAL_STRIDE);
+		ensureCapacity(MeshEncodingHelper.TOTAL_STRIDE);
 		maker.begin(data, index);
 		return maker;
 	}
@@ -78,8 +79,8 @@ public class MeshBuilderImpl implements MeshBuilder {
 			}
 
 			ColorHelper.applyDiffuseShading(this, false);
-			index += EncodingFormat.TOTAL_STRIDE;
-			ensureCapacity(EncodingFormat.TOTAL_STRIDE);
+			index += MeshEncodingHelper.TOTAL_STRIDE;
+			ensureCapacity(MeshEncodingHelper.TOTAL_STRIDE);
 			baseIndex = index;
 			clear();
 			return this;

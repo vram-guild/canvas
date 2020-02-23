@@ -3,9 +3,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
  * of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
@@ -35,9 +35,9 @@ import net.fabricmc.fabric.api.renderer.v1.render.RenderContext.QuadTransform;
 
 import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.apiimpl.RenderMaterialImpl.Value;
-import grondag.canvas.apiimpl.mesh.EncodingFormat;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.util.GeometryHelper;
+import grondag.canvas.apiimpl.util.MeshEncodingHelper;
 import grondag.canvas.light.AoCalculator;
 
 /**
@@ -60,10 +60,10 @@ import grondag.canvas.light.AoCalculator;
  *  manipulating the data via NIO.
  */
 public abstract class TerrainFallbackConsumer extends AbstractQuadRenderer implements Consumer<BakedModel> {
-	private static Value MATERIAL_FLAT = (Value) Canvas.INSTANCE.materialFinder().disableAo(0, true).find();
-	private static Value MATERIAL_SHADED = (Value) Canvas.INSTANCE.materialFinder().find();
+	private static Value MATERIAL_FLAT = Canvas.INSTANCE.materialFinder().disableAo(0, true).find();
+	private static Value MATERIAL_SHADED = Canvas.INSTANCE.materialFinder().find();
 
-	private final int[] editorBuffer = new int[EncodingFormat.TOTAL_STRIDE];
+	private final int[] editorBuffer = new int[MeshEncodingHelper.TOTAL_STRIDE];
 
 	TerrainFallbackConsumer(BlockRenderInfo blockInfo, Function<RenderLayer, VertexConsumer> bufferFunc, AoCalculator aoCalc, QuadTransform transform) {
 		super(blockInfo, bufferFunc, aoCalc, transform);
@@ -116,7 +116,7 @@ public abstract class TerrainFallbackConsumer extends AbstractQuadRenderer imple
 		final int[] vertexData = quad.getVertexData();
 
 		final MutableQuadViewImpl editorQuad = this.editorQuad;
-		System.arraycopy(vertexData, 0, editorBuffer, EncodingFormat.HEADER_STRIDE, EncodingFormat.QUAD_STRIDE);
+		System.arraycopy(vertexData, 0, editorBuffer, MeshEncodingHelper.HEADER_STRIDE, MeshEncodingHelper.QUAD_STRIDE);
 		editorQuad.cullFace(cullFace);
 		final Direction lightFace = quad.getFace();
 		editorQuad.lightFace(lightFace);
