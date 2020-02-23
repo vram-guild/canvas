@@ -19,10 +19,11 @@ package grondag.canvas.apiimpl.mesh;
 import net.fabricmc.fabric.api.renderer.v1.mesh.Mesh;
 import net.fabricmc.fabric.api.renderer.v1.mesh.MeshBuilder;
 import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
+import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 
 import grondag.canvas.apiimpl.util.ColorHelper;
-import grondag.canvas.apiimpl.util.MeshEncodingHelper;
 import grondag.canvas.apiimpl.util.GeometryHelper;
+import grondag.canvas.apiimpl.util.MeshEncodingHelper;
 
 /**
  * Our implementation of {@link MeshBuilder}, used for static mesh creation and baking.
@@ -58,7 +59,7 @@ public class MeshBuilderImpl implements MeshBuilder {
 
 	@Override
 	public QuadEmitter getEmitter() {
-		ensureCapacity(MeshEncodingHelper.TOTAL_QUAD_STRIDE);
+		ensureCapacity(MeshEncodingHelper.MAX_QUAD_STRIDE);
 		maker.begin(data, index);
 		return maker;
 	}
@@ -72,15 +73,17 @@ public class MeshBuilderImpl implements MeshBuilder {
 	private class Maker extends MutableQuadViewImpl implements QuadEmitter {
 		@Override
 		public Maker emit() {
-			lightFace(GeometryHelper.lightFace(this));
+			lightFace(ModelHelper.toFaceIndex(GeometryHelper.lightFace(this)));
 
 			if (isGeometryInvalid) {
 				geometryFlags(GeometryHelper.computeShapeFlags(this));
 			}
 
+			// TODO: remove or configure based on lighting model
 			ColorHelper.applyDiffuseShading(this, false);
-			index += MeshEncodingHelper.TOTAL_QUAD_STRIDE;
-			ensureCapacity(MeshEncodingHelper.TOTAL_QUAD_STRIDE);
+
+			index += maker.stride();
+			ensureCapacity(MeshEncodingHelper.MAX_QUAD_STRIDE);
 			baseIndex = index;
 			clear();
 			return this;

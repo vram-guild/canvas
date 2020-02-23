@@ -54,6 +54,9 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 	public LightmapHd blockLight = null;
 	public LightmapHd skyLight = null;
 	public LightmapHd aoShade = null;
+	public float[][] w = new float[4][4];
+	public float[] u = new float[4];
+	public float[] v = new float[4];
 
 	public final void begin(int[] data, int baseIndex) {
 		this.data = data;

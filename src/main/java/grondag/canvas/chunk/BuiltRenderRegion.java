@@ -40,6 +40,8 @@ import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
+import grondag.canvas.chunk.DrawableChunk.Solid;
+import grondag.canvas.chunk.DrawableChunk.Translucent;
 
 @Environment(EnvType.CLIENT)
 public class BuiltRenderRegion {
@@ -451,5 +453,15 @@ public class BuiltRenderRegion {
 
 	public RegionData getRenderData() {
 		return renderData.get();
+	}
+
+	public Translucent translucentDrawable() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Solid solidDrawable() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

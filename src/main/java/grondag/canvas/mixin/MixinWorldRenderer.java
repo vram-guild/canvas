@@ -85,6 +85,7 @@ public class MixinWorldRenderer implements WorldRendererExt {
 	@Shadow private boolean cloudsDirty;
 	@Shadow private TextureManager textureManager;
 	@Shadow private EntityRenderDispatcher entityRenderDispatcher;
+	// PERF: prevent wasteful allocation of these - they are never used with Canvas and take a lot of space - should allocate only 1 for immediate use
 	@Shadow private BufferBuilderStorage bufferBuilders;
 	@Shadow private Frustum capturedFrustum;
 	@Shadow private Vector3d capturedFrustumPosition;

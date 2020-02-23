@@ -3,9 +3,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
  * of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
@@ -31,8 +31,10 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 
+import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.mesh.QuadViewImpl;
+import grondag.canvas.light.AoFace.Vertex2Float;
 import grondag.canvas.light.AoFace.WeightFunction;
 
 /**
@@ -63,7 +65,7 @@ public abstract class AoCalculator {
 	private final AoFaceCalc[] blendCache = new AoFaceCalc[BLEND_CACHE_ARRAY_SIZE];
 
 	// PERF: need to cache these vs only the calc results due to mixed use
-	//private final AoFaceData blender = new AoFaceData();
+	private final AoFaceData blender = new AoFaceData();
 
 	/**
 	 * caches results of {@link #gatherFace(Direction, boolean)} for the current
@@ -143,26 +145,26 @@ public abstract class AoCalculator {
 
 		final int flags = quad.geometryFlags();
 
-		//		if(Configurator.hdLightmaps) {
-		//			if((flags & AXIS_ALIGNED_FLAG) == AXIS_ALIGNED_FLAG) {
-		//				if((flags & LIGHT_FACE_FLAG) == LIGHT_FACE_FLAG) {
-		//					vanillaPartialFaceSmooth(quad, true);
-		//				} else {
-		//					blendedPartialFaceSmooth(quad);
-		//				}
-		//			} else {
-		//				// currently can't handle these
-		//				irregularFace(quad);
-		//				//				quad.aoShade = null;
-		//				//				quad.blockLight = null;
-		//				//				quad.skyLight = null;
-		//			}
-		//			return;
-		//		}
+		if(Configurator.hdLightmaps) {
+			if((flags & AXIS_ALIGNED_FLAG) == AXIS_ALIGNED_FLAG) {
+				if((flags & LIGHT_FACE_FLAG) == LIGHT_FACE_FLAG) {
+					vanillaPartialFaceSmooth(quad, true);
+				} else {
+					blendedPartialFaceSmooth(quad);
+				}
+			} else {
+				// currently can't handle these
+				irregularFace(quad);
+				quad.aoShade = null;
+				quad.blockLight = null;
+				quad.skyLight = null;
+			}
+			return;
+		}
 
-		//		quad.aoShade = null;
-		//		quad.blockLight = null;
-		//		quad.skyLight = null;
+		quad.aoShade = null;
+		quad.blockLight = null;
+		quad.skyLight = null;
 
 		switch (flags) {
 		case AXIS_ALIGNED_FLAG | CUBIC_FLAG | LIGHT_FACE_FLAG:
@@ -188,27 +190,29 @@ public abstract class AoCalculator {
 		final WeightFunction wFunc = face.weightFunc;
 
 		for (int i = 0; i < 4; i++) {
-			//			final float[] w = quad.w[i];
+			final float[] w = quad.w[i];
 			wFunc.apply(quad, i, w);
 			light[i] = faceData.weightedCombinedLight(w);
 			ao[i] = faceData.weigtedAo(w) * DIVIDE_BY_255;
 		}
 	}
 
-	//	private void vanillaPartialFaceSmooth(MutableQuadViewImpl quad, boolean isOnLightFace) {
-	//		final int lightFace = quad.lightFaceId();
-	//		final AoFaceData faceData = gatherFace(lightFace, isOnLightFace);
-	//		final AoFace face = AoFace.get(lightFace);
-	//		final Vertex2Float uFunc = face.uFunc;
-	//		final Vertex2Float vFunc = face.vFunc;
-	//		for (int i = 0; i < 4; i++) {
-	//			quad.u[i] = uFunc.apply(quad, i);
-	//			quad.v[i] = vFunc.apply(quad, i);
-	//		}
-	//		quad.aoShade = LightmapHd.findAo(faceData);
-	//		quad.blockLight = LightmapHd.findBlock(faceData);
-	//		quad.skyLight = LightmapHd.findSky(faceData);
-	//	}
+	private void vanillaPartialFaceSmooth(MutableQuadViewImpl quad, boolean isOnLightFace) {
+		final int lightFace = quad.lightFaceId();
+		final AoFaceData faceData = gatherFace(lightFace, isOnLightFace);
+		final AoFace face = AoFace.get(lightFace);
+		final Vertex2Float uFunc = face.uFunc;
+		final Vertex2Float vFunc = face.vFunc;
+
+		for (int i = 0; i < 4; i++) {
+			quad.u[i] = uFunc.apply(quad, i);
+			quad.v[i] = vFunc.apply(quad, i);
+		}
+
+		quad.aoShade = LightmapHd.findAo(faceData);
+		quad.blockLight = LightmapHd.findBlock(faceData);
+		quad.skyLight = LightmapHd.findSky(faceData);
+	}
 
 	/**
 	 * Returns linearly interpolated blend of outer and inner face based on depth of
@@ -243,31 +247,31 @@ public abstract class AoCalculator {
 		final WeightFunction wFunc = face.weightFunc;
 
 		for (int i = 0; i < 4; i++) {
-			//			final float[] w = quad.w[i];
+			final float[] w = quad.w[i];
 			wFunc.apply(quad, i, w);
 			light[i] = faceData.weightedCombinedLight(w);
 			ao[i] = faceData.weigtedAo(w) * DIVIDE_BY_255;
 		}
 	}
 
-	//	private void blendedPartialFaceSmooth(MutableQuadViewImpl quad) {
-	//		final int lightFace = quad.lightFaceId();
-	//		final float w1 = AoFace.get(lightFace).depthFunc.apply(quad, 0);
-	//		final float w0 = 1 - w1;
-	//		// PERF: cache recent results somehow
-	//		final AoFaceData faceData = AoFaceData.weightedBlend(gatherFace(lightFace, true), w0, gatherFace(lightFace, false), w1, blender);
-	//		final AoFace face = AoFace.get(lightFace);
-	//		final Vertex2Float uFunc = face.uFunc;
-	//		final Vertex2Float vFunc = face.vFunc;
-	//		for (int i = 0; i < 4; i++) {
-	//			quad.u[i] = uFunc.apply(quad, i);
-	//			quad.v[i] = vFunc.apply(quad, i);
-	//		}
-	//
-	//		quad.aoShade = LightmapHd.findAo(faceData);
-	//		quad.skyLight = LightmapHd.findSky(faceData);
-	//		quad.blockLight = LightmapHd.findBlock(faceData);
-	//	}
+	private void blendedPartialFaceSmooth(MutableQuadViewImpl quad) {
+		final int lightFace = quad.lightFaceId();
+		final float w1 = AoFace.get(lightFace).depthFunc.apply(quad, 0);
+		final float w0 = 1 - w1;
+		// PERF: cache recent results somehow
+		final AoFaceData faceData = AoFaceData.weightedBlend(gatherFace(lightFace, true), w0, gatherFace(lightFace, false), w1, blender);
+		final AoFace face = AoFace.get(lightFace);
+		final Vertex2Float uFunc = face.uFunc;
+		final Vertex2Float vFunc = face.vFunc;
+		for (int i = 0; i < 4; i++) {
+			quad.u[i] = uFunc.apply(quad, i);
+			quad.v[i] = vFunc.apply(quad, i);
+		}
+
+		quad.aoShade = LightmapHd.findAo(faceData);
+		quad.skyLight = LightmapHd.findSky(faceData);
+		quad.blockLight = LightmapHd.findBlock(faceData);
+	}
 
 	/**
 	 * used exclusively in irregular face to avoid new heap allocations each call.
@@ -289,9 +293,9 @@ public abstract class AoCalculator {
 		final int[] lightResult = light;
 
 		//TODO: currently no way to handle 3d interpolation shader-side
-		//		quad.blockLight = null;
-		//		quad.skyLight = null;
-		//		quad.aoShade = null;
+		quad.blockLight = null;
+		quad.skyLight = null;
+		quad.aoShade = null;
 
 		for (int i = 0; i < 4; i++) {
 			normal = quad.hasNormal(i) ? quad.copyNormal(i, vertexNormal) : faceNorm;
@@ -433,7 +437,7 @@ public abstract class AoCalculator {
 		if (!(leftClear || bottomClear)) {
 			// both not clear
 			fd.aoBottomLeft = (Math.min(aoLeft, aoBottom) + aoBottom + aoLeft + 1 + aoCenter) >> 2;
-			fd.bottomLeft = OPAQUE;
+		fd.bottomLeft = OPAQUE;
 		} else { // at least one clear
 			offset = aoFace.bottomLeftVec;
 			cacheIndex = fastRelativeCacheIndex(x + offset.getX() , y + offset.getY(), z + offset.getZ());
@@ -445,7 +449,7 @@ public abstract class AoCalculator {
 		if (!(rightClear || bottomClear)) {
 			// both not clear
 			fd.aoBottomRight = (Math.min(aoRight, aoBottom) + aoBottom + aoRight + 1 + aoCenter) >> 2;
-		fd.bottomRight = OPAQUE;
+			fd.bottomRight = OPAQUE;
 		} else { // at least one clear
 			offset = aoFace.bottomRightVec;
 			cacheIndex = fastRelativeCacheIndex(x + offset.getX() , y + offset.getY(), z + offset.getZ());

@@ -19,6 +19,7 @@ import static grondag.canvas.chunk.RenderRegionAddressHelper.INTERIOR_CACHE_WORD
 import static grondag.canvas.chunk.RenderRegionAddressHelper.TOTAL_CACHE_SIZE;
 import static grondag.canvas.chunk.RenderRegionAddressHelper.TOTAL_CACHE_WORDS;
 import static grondag.canvas.chunk.RenderRegionAddressHelper.fastRelativeCacheIndex;
+import static grondag.canvas.chunk.RenderRegionAddressHelper.interiorIndex;
 import static grondag.canvas.chunk.RenderRegionAddressHelper.localCornerIndex;
 import static grondag.canvas.chunk.RenderRegionAddressHelper.localXEdgeIndex;
 import static grondag.canvas.chunk.RenderRegionAddressHelper.localXfaceIndex;
@@ -26,9 +27,7 @@ import static grondag.canvas.chunk.RenderRegionAddressHelper.localYEdgeIndex;
 import static grondag.canvas.chunk.RenderRegionAddressHelper.localYfaceIndex;
 import static grondag.canvas.chunk.RenderRegionAddressHelper.localZEdgeIndex;
 import static grondag.canvas.chunk.RenderRegionAddressHelper.localZfaceIndex;
-import static grondag.canvas.chunk.RenderRegionAddressHelper.interiorIndex;
 
-import java.util.EnumSet;
 import java.util.Set;
 
 import it.unimi.dsi.fastutil.ints.IntArrayFIFOQueue;
@@ -39,7 +38,6 @@ import net.minecraft.client.render.chunk.ChunkOcclusionData;
 import net.minecraft.util.math.Direction;
 
 public abstract class OcclusionRegion {
-	private final EnumSet<Direction> faces = EnumSet.noneOf(Direction.class);
 	private final IntArrayFIFOQueue queue = new IntArrayFIFOQueue();
 	private final long[] bits = new long[WORLD_COUNT];
 	private int openCount;
@@ -301,26 +299,26 @@ public abstract class OcclusionRegion {
 	}
 
 	private  Set<Direction> getVistedFaces(int xyz4) {
-		faces.clear();
+		int faceBits = 0;
 		setVisited(xyz4);
-		visit(xyz4);
+		faceBits = visit(xyz4, faceBits);
 
 		while (!queue.isEmpty()) {
 			final int nextXyz4 = queue.dequeueInt();
-			visit(nextXyz4);
+			faceBits = visit(nextXyz4, faceBits);
 		}
 
-		return faces;
+		return DirectionSet.sharedInstance(faceBits);
 	}
 
-	private void visit(int xyz4) {
+	private int visit(int xyz4, int faceBits) {
 		final int x = xyz4 & 0xF;
 
 		if (x == 0) {
-			faces.add(Direction.WEST);
+			faceBits = DirectionSet.addFaceToBit(faceBits, Direction.WEST);
 			enqueIfUnvisited(xyz4 + 1);
 		} else if (x == 15) {
-			faces.add(Direction.EAST);
+			faceBits =  DirectionSet.addFaceToBit(faceBits, Direction.EAST);
 			enqueIfUnvisited(xyz4 - 1);
 		} else {
 			enqueIfUnvisited(xyz4 - 1);
@@ -330,10 +328,10 @@ public abstract class OcclusionRegion {
 		final int y = xyz4 & 0xF0;
 
 		if (y == 0) {
-			faces.add(Direction.DOWN);
+			faceBits =  DirectionSet.addFaceToBit(faceBits, Direction.DOWN);
 			enqueIfUnvisited(xyz4 + 0x10);
 		} else if (y == 0xF0) {
-			faces.add(Direction.UP);
+			faceBits =  DirectionSet.addFaceToBit(faceBits, Direction.UP);
 			enqueIfUnvisited(xyz4 - 0x10);
 		} else {
 			enqueIfUnvisited(xyz4 - 0x10);
@@ -343,15 +341,17 @@ public abstract class OcclusionRegion {
 		final int z = xyz4 & 0xF00;
 
 		if (z == 0) {
-			faces.add(Direction.NORTH);
+			faceBits =  DirectionSet.addFaceToBit(faceBits, Direction.NORTH);
 			enqueIfUnvisited(xyz4 + 0x100);
 		} else if (z == 0xF00) {
-			faces.add(Direction.SOUTH);
+			faceBits =  DirectionSet.addFaceToBit(faceBits, Direction.SOUTH);
 			enqueIfUnvisited(xyz4 - 0x100);
 		} else {
 			enqueIfUnvisited(xyz4 - 0x100);
 			enqueIfUnvisited(xyz4 + 0x100);
 		}
+
+		return faceBits;
 	}
 
 	private void enqueIfUnvisited(int xyz4) {
