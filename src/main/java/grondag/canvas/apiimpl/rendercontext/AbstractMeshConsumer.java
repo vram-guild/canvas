@@ -34,15 +34,14 @@ import grondag.canvas.apiimpl.rendercontext.wip.QuadEncoder;
 import grondag.canvas.apiimpl.util.ColorHelper;
 import grondag.canvas.apiimpl.util.GeometryHelper;
 import grondag.canvas.apiimpl.util.MeshEncodingHelper;
-import grondag.canvas.light.AoCalculator;
 
 /**
  * Consumer for pre-baked meshes.  Works by copying the mesh data to a
  * "editor" quad held in the instance, where all transformations are applied before buffering.
  */
 public abstract class AbstractMeshConsumer extends AbstractQuadRenderer2 implements Consumer<Mesh> {
-	protected AbstractMeshConsumer(BlockRenderInfo blockInfo, Function<RenderLayer, VertexConsumer> bufferFunc, AoCalculator aoCalc, QuadTransform transform) {
-		super(blockInfo, bufferFunc, aoCalc, transform);
+	protected AbstractMeshConsumer(BlockRenderInfo blockInfo, Function<RenderLayer, VertexConsumer> bufferFunc, QuadTransform transform) {
+		super(blockInfo, bufferFunc, transform);
 	}
 
 	/**

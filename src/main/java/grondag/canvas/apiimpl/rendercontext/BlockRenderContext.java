@@ -38,6 +38,7 @@ import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
 import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 
+import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.light.AoCalculator;
 
 /**
@@ -105,7 +106,7 @@ public class BlockRenderContext extends AbstractRenderContext implements RenderC
 		}
 	};
 
-	private final MeshConsumer meshConsumer = new MeshConsumer(blockInfo, this::outputBuffer, aoCalc, this::transform);
+	private final MeshConsumer meshConsumer = new MeshConsumer(blockInfo, this::outputBuffer, this::transform);
 	private VertexConsumer bufferBuilder;
 	private boolean didOutput = false;
 
@@ -134,8 +135,8 @@ public class BlockRenderContext extends AbstractRenderContext implements RenderC
 	}
 
 	private class MeshConsumer extends AbstractMeshConsumer {
-		MeshConsumer(BlockRenderInfo blockInfo, Function<RenderLayer, VertexConsumer> bufferFunc, AoCalculator aoCalc, QuadTransform transform) {
-			super(blockInfo, bufferFunc, aoCalc, transform);
+		MeshConsumer(BlockRenderInfo blockInfo, Function<RenderLayer, VertexConsumer> bufferFunc, QuadTransform transform) {
+			super(blockInfo, bufferFunc, transform);
 		}
 
 		@Override
@@ -151,10 +152,15 @@ public class BlockRenderContext extends AbstractRenderContext implements RenderC
 		@Override
 		public int overlay() {
 			return overlay;
+		}
+
+		@Override
+		public void computeLighting(MutableQuadViewImpl quad) {
+			aoCalc.compute(quad);
 		}
 	}
 
-	private final FallbackConsumer fallbackConsumer = new FallbackConsumer(blockInfo, this::outputBuffer, aoCalc, this::transform) {
+	private final FallbackConsumer fallbackConsumer = new FallbackConsumer(blockInfo, this::outputBuffer, this::transform) {
 		@Override
 		public int overlay() {
 			return overlay;
@@ -168,6 +174,11 @@ public class BlockRenderContext extends AbstractRenderContext implements RenderC
 		@Override
 		public Matrix3f normalMatrix() {
 			return normalMatrix;
+		}
+
+		@Override
+		public void computeLighting(MutableQuadViewImpl quad) {
+			aoCalc.compute(quad);
 		}
 	};
 

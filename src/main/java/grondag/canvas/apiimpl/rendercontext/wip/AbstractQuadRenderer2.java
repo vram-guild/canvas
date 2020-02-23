@@ -27,7 +27,6 @@ import net.minecraft.client.util.math.Vector3f;
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext.QuadTransform;
 
 import grondag.canvas.apiimpl.rendercontext.BlockRenderInfo;
-import grondag.canvas.light.AoCalculator;
 
 /**
  * Base quad-rendering class for fallback and mesh consumers.
@@ -39,7 +38,6 @@ public abstract class AbstractQuadRenderer2 implements EncoderContext {
 	protected final Function<RenderLayer, VertexConsumer> bufferFunc;
 	protected final QuadTransform transform;
 	protected final BlockRenderInfo blockInfo;
-	protected final AoCalculator aoCalc;
 	protected final Vector3f normalVec = new Vector3f();
 
 	@Override
@@ -61,20 +59,15 @@ public abstract class AbstractQuadRenderer2 implements EncoderContext {
 		return blockInfo;
 	}
 
-	@Override
-	public AoCalculator aoCalc() {
-		return aoCalc;
-	}
 
 	@Override
 	public Vector3f normalVec() {
 		return normalVec;
 	}
 
-	public AbstractQuadRenderer2(BlockRenderInfo blockInfo, Function<RenderLayer, VertexConsumer> bufferFunc, AoCalculator aoCalc, QuadTransform transform) {
+	public AbstractQuadRenderer2(BlockRenderInfo blockInfo, Function<RenderLayer, VertexConsumer> bufferFunc, QuadTransform transform) {
 		this.blockInfo = blockInfo;
 		this.bufferFunc = bufferFunc;
-		this.aoCalc = aoCalc;
 		this.transform = transform;
 	}
 }

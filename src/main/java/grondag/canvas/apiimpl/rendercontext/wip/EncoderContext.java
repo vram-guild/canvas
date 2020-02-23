@@ -6,15 +6,15 @@ import net.minecraft.client.util.math.Matrix3f;
 import net.minecraft.client.util.math.Matrix4f;
 import net.minecraft.client.util.math.Vector3f;
 
+import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.rendercontext.BlockRenderInfo;
-import grondag.canvas.light.AoCalculator;
 
 public interface EncoderContext {
 	VertexConsumer consumer(RenderLayer layer);
 
 	BlockRenderInfo blockInfo();
 
-	AoCalculator aoCalc();
+	void computeLighting(MutableQuadViewImpl quad);
 
 	Vector3f normalVec();
 

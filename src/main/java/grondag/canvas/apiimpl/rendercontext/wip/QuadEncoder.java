@@ -30,9 +30,10 @@ public class QuadEncoder {
 	public void tesselateQuad(MutableQuadViewImpl quad, EncoderContext context) {
 		final RenderMaterialImpl.Value mat = quad.material();
 
+		// needs to happen before offsets are applied
+		// TODO: move this check to the encoder
 		if (!mat.disableAo(0) && MinecraftClient.isAmbientOcclusionEnabled()) {
-			// needs to happen before offsets are applied
-			context.aoCalc().compute(quad);
+			context.computeLighting(quad);
 		}
 
 		// TODO: handle multiple

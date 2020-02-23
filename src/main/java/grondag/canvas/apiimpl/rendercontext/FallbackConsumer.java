@@ -40,7 +40,6 @@ import grondag.canvas.apiimpl.rendercontext.wip.AbstractQuadRenderer2;
 import grondag.canvas.apiimpl.rendercontext.wip.QuadEncoder;
 import grondag.canvas.apiimpl.util.GeometryHelper;
 import grondag.canvas.apiimpl.util.MeshEncodingHelper;
-import grondag.canvas.light.AoCalculator;
 
 /**
  * Consumer for vanilla baked models. Generally intended to give visual results matching a vanilla render,
@@ -67,8 +66,8 @@ public abstract class FallbackConsumer extends AbstractQuadRenderer2 implements 
 
 	private final int[] editorBuffer = new int[MeshEncodingHelper.TOTAL_QUAD_STRIDE];
 
-	public FallbackConsumer(BlockRenderInfo blockInfo, Function<RenderLayer, VertexConsumer> bufferFunc, AoCalculator aoCalc, QuadTransform transform) {
-		super(blockInfo, bufferFunc, aoCalc, transform);
+	public FallbackConsumer(BlockRenderInfo blockInfo, Function<RenderLayer, VertexConsumer> bufferFunc, QuadTransform transform) {
+		super(blockInfo, bufferFunc, transform);
 	}
 
 	private final MutableQuadViewImpl editorQuad = new MutableQuadViewImpl() {
