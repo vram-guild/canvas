@@ -14,7 +14,7 @@
  * the License.
  ******************************************************************************/
 
-package grondag.canvas.material;
+package grondag.canvas.shader;
 
 import org.joml.Vector3f;
 
@@ -28,6 +28,7 @@ import net.fabricmc.fabric.api.event.client.ClientTickCallback;
 
 import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.MaterialShaderImpl;
+import grondag.canvas.buffer.encoding.MaterialVertexFormats;
 import grondag.canvas.buffer.packing.RenderCube;
 import grondag.canvas.light.AoVertexClampFunction;
 import grondag.canvas.light.LightmapHd;

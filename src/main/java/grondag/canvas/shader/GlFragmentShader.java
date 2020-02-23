@@ -14,19 +14,19 @@
  * the License.
  ******************************************************************************/
 
-package grondag.canvas.material;
+package grondag.canvas.shader;
 
 import org.lwjgl.opengl.GL21;
 
 import net.minecraft.util.Identifier;
 
-public final class GlVertexShader extends AbstractGlShader {
-	GlVertexShader(Identifier shaderSource, int shaderProps, ShaderContext context) {
-		super(shaderSource, GL21.GL_VERTEX_SHADER, shaderProps, context);
+public final class GlFragmentShader extends AbstractGlShader {
+	GlFragmentShader(Identifier shaderSource, int shaderProps, ShaderContext context) {
+		super(shaderSource, GL21.GL_FRAGMENT_SHADER, shaderProps, context);
 	}
 
 	@Override
 	public String getSource() {
-		return buildSource(GlShaderManager.INSTANCE.vertexLibrarySource);
+		return buildSource(GlShaderManager.INSTANCE.fragmentLibrarySource);
 	}
 }

@@ -33,9 +33,9 @@ import grondag.canvas.buffer.packing.VertexCollectorList;
 import grondag.canvas.draw.DrawableDelegate;
 import grondag.canvas.draw.SolidRenderList;
 import grondag.canvas.light.LightmapHdTexture;
-import grondag.canvas.material.ShaderContext;
 import grondag.canvas.salvage.CanvasBufferBuilder;
 import grondag.canvas.salvage.TessellatorExt;
+import grondag.canvas.shader.ShaderContext;
 
 //TODO: Enable or Remove
 @Mixin(Tessellator.class)

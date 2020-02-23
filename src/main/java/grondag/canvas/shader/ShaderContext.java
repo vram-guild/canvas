@@ -1,4 +1,4 @@
-package grondag.canvas.material;
+package grondag.canvas.shader;
 
 public enum ShaderContext {
 	BLOCK_SOLID(true, false),

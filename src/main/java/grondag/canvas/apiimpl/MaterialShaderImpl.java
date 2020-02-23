@@ -25,12 +25,12 @@ import org.joml.Matrix4f;
 
 import net.minecraft.util.Identifier;
 
-import grondag.canvas.material.GlFragmentShader;
-import grondag.canvas.material.GlProgram;
-import grondag.canvas.material.GlShaderManager;
-import grondag.canvas.material.GlVertexShader;
-import grondag.canvas.material.ShaderContext;
-import grondag.canvas.material.ShaderProps;
+import grondag.canvas.shader.GlFragmentShader;
+import grondag.canvas.shader.GlProgram;
+import grondag.canvas.shader.GlShaderManager;
+import grondag.canvas.shader.GlVertexShader;
+import grondag.canvas.shader.ShaderContext;
+import grondag.canvas.shader.ShaderProps;
 import grondag.frex.api.material.MaterialShader;
 import grondag.frex.api.material.Uniform;
 import grondag.frex.api.material.Uniform.Uniform1f;

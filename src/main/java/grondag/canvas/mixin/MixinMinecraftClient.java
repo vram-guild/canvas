@@ -28,7 +28,7 @@ import net.minecraft.util.profiler.Profiler;
 import net.minecraft.util.thread.ReentrantThreadExecutor;
 
 import grondag.canvas.light.LightmapHdTexture;
-import grondag.canvas.material.ShaderManager;
+import grondag.canvas.shader.ShaderManager;
 import grondag.canvas.varia.CanvasGlHelper;
 
 //TODO: Enable

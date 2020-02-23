@@ -22,7 +22,7 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 import net.fabricmc.fabric.api.renderer.v1.material.RenderMaterial;
 
-import grondag.canvas.material.ShaderManager;
+import grondag.canvas.shader.ShaderManager;
 import grondag.fermion.bits.BitPacker64;
 import grondag.fermion.bits.BitPacker64.BooleanElement;
 import grondag.frex.api.material.MaterialCondition;

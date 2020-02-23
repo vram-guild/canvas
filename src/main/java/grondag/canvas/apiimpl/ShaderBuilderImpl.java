@@ -22,7 +22,7 @@ import java.util.function.Consumer;
 import net.minecraft.util.Identifier;
 
 import grondag.canvas.apiimpl.MaterialShaderImpl.UniformMatrix4f;
-import grondag.canvas.material.ShaderManager;
+import grondag.canvas.shader.ShaderManager;
 import grondag.frex.api.material.MaterialShader;
 import grondag.frex.api.material.ShaderBuilder;
 import grondag.frex.api.material.Uniform.Uniform1f;

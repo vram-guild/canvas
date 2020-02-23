@@ -23,8 +23,8 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import grondag.canvas.draw.DelegateLists;
 import grondag.canvas.draw.DrawableDelegate;
 import grondag.canvas.material.MaterialState;
-import grondag.canvas.material.ShaderContext;
-import grondag.canvas.material.ShaderManager;
+import grondag.canvas.shader.ShaderContext;
+import grondag.canvas.shader.ShaderManager;
 
 /**
  * Plays same role as VertexBuffer in RenderChunk but implementation is much

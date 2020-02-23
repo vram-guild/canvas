@@ -14,7 +14,7 @@
  * the License.
  ******************************************************************************/
 
-package grondag.canvas.material;
+package grondag.canvas.shader;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 

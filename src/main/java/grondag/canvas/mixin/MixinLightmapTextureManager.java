@@ -25,7 +25,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import net.minecraft.client.render.LightmapTextureManager;
 
-import grondag.canvas.material.ShaderManager;
+import grondag.canvas.shader.ShaderManager;
 import grondag.canvas.varia.WorldDataManager;
 
 //TODO: Enable

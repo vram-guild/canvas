@@ -29,10 +29,10 @@ import org.lwjgl.opengl.GL11;
 import grondag.canvas.apiimpl.MaterialConditionImpl;
 import grondag.canvas.apiimpl.MaterialShaderImpl;
 import grondag.canvas.buffer.allocation.BindStateManager;
-import grondag.canvas.material.GlProgram;
 import grondag.canvas.material.MaterialState;
-import grondag.canvas.material.ShaderContext;
-import grondag.canvas.material.ShaderManager;
+import grondag.canvas.shader.GlProgram;
+import grondag.canvas.shader.ShaderContext;
+import grondag.canvas.shader.ShaderManager;
 import grondag.canvas.varia.CanvasGlHelper;
 
 /**

@@ -20,6 +20,10 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 
 import grondag.canvas.apiimpl.MaterialConditionImpl;
 import grondag.canvas.apiimpl.MaterialShaderImpl;
+import grondag.canvas.buffer.encoding.MaterialVertexFormat;
+import grondag.canvas.buffer.encoding.MaterialVertexFormats;
+import grondag.canvas.shader.ShaderContext;
+import grondag.canvas.shader.ShaderProps;
 import grondag.fermion.varia.Useful;
 
 public class MaterialState {

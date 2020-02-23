@@ -14,7 +14,7 @@
  * the License.
  ******************************************************************************/
 
-package grondag.canvas.material;
+package grondag.canvas.shader;
 
 import java.io.File;
 import java.io.FileWriter;

@@ -14,7 +14,7 @@
  * the License.
  ******************************************************************************/
 
-package grondag.canvas.material;
+package grondag.canvas.buffer.encoding;
 
 import java.nio.ByteBuffer;
 import java.util.Collection;

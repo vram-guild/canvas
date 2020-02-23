@@ -1,20 +1,22 @@
-package grondag.canvas.material;
+package grondag.canvas.buffer.encoding;
 
-import static grondag.canvas.material.MaterialVertextFormatElement.BASE_RGBA_4UB;
-import static grondag.canvas.material.MaterialVertextFormatElement.BASE_TEX_2F;
-import static grondag.canvas.material.MaterialVertextFormatElement.HD_AO_SHADEMAP_2US;
-import static grondag.canvas.material.MaterialVertextFormatElement.HD_BLOCK_LIGHTMAP_2US;
-import static grondag.canvas.material.MaterialVertextFormatElement.HD_SKY_LIGHTMAP_2US;
-import static grondag.canvas.material.MaterialVertextFormatElement.LIGHTMAPS_4UB;
-import static grondag.canvas.material.MaterialVertextFormatElement.NORMAL_AO_4UB;
-import static grondag.canvas.material.MaterialVertextFormatElement.POSITION_3F;
-import static grondag.canvas.material.MaterialVertextFormatElement.SECONDARY_RGBA_4UB;
-import static grondag.canvas.material.MaterialVertextFormatElement.SECONDARY_TEX_2F;
-import static grondag.canvas.material.MaterialVertextFormatElement.TERTIARY_RGBA_4UB;
-import static grondag.canvas.material.MaterialVertextFormatElement.TERTIARY_TEX_2F;
+import static grondag.canvas.buffer.encoding.MaterialVertextFormatElement.BASE_RGBA_4UB;
+import static grondag.canvas.buffer.encoding.MaterialVertextFormatElement.BASE_TEX_2F;
+import static grondag.canvas.buffer.encoding.MaterialVertextFormatElement.HD_AO_SHADEMAP_2US;
+import static grondag.canvas.buffer.encoding.MaterialVertextFormatElement.HD_BLOCK_LIGHTMAP_2US;
+import static grondag.canvas.buffer.encoding.MaterialVertextFormatElement.HD_SKY_LIGHTMAP_2US;
+import static grondag.canvas.buffer.encoding.MaterialVertextFormatElement.LIGHTMAPS_4UB;
+import static grondag.canvas.buffer.encoding.MaterialVertextFormatElement.NORMAL_AO_4UB;
+import static grondag.canvas.buffer.encoding.MaterialVertextFormatElement.POSITION_3F;
+import static grondag.canvas.buffer.encoding.MaterialVertextFormatElement.SECONDARY_RGBA_4UB;
+import static grondag.canvas.buffer.encoding.MaterialVertextFormatElement.SECONDARY_TEX_2F;
+import static grondag.canvas.buffer.encoding.MaterialVertextFormatElement.TERTIARY_RGBA_4UB;
+import static grondag.canvas.buffer.encoding.MaterialVertextFormatElement.TERTIARY_TEX_2F;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+
+import grondag.canvas.shader.ShaderProps;
 
 public final class MaterialVertexFormats {
 	private static final Int2ObjectOpenHashMap<MaterialVertexFormat> MAP = new Int2ObjectOpenHashMap<>();

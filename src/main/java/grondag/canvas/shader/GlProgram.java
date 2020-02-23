@@ -14,7 +14,7 @@
  * the License.
  ******************************************************************************/
 
-package grondag.canvas.material;
+package grondag.canvas.shader;
 
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
@@ -32,6 +32,8 @@ import net.minecraft.client.resource.language.I18n;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.MaterialShaderImpl.UniformMatrix4f;
+import grondag.canvas.buffer.encoding.MaterialVertexFormat;
+import grondag.canvas.buffer.encoding.MaterialVertexFormats;
 import grondag.canvas.varia.CanvasGlHelper;
 import grondag.frex.api.material.Uniform;
 import grondag.frex.api.material.Uniform.Uniform1f;

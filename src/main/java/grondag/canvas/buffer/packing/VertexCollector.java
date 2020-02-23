@@ -22,8 +22,8 @@ import it.unimi.dsi.fastutil.ints.AbstractIntComparator;
 
 import net.minecraft.util.math.BlockPos;
 
+import grondag.canvas.buffer.encoding.MaterialVertexFormat;
 import grondag.canvas.material.MaterialState;
-import grondag.canvas.material.MaterialVertexFormat;
 
 public class VertexCollector {
 	private int[] data;

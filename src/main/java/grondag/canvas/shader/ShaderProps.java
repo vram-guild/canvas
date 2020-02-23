@@ -13,7 +13,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  ******************************************************************************/
-package grondag.canvas.material;
+package grondag.canvas.shader;
 
 import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.RenderMaterialImpl;

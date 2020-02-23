@@ -14,20 +14,20 @@
  * the License.
  ******************************************************************************/
 
-package grondag.canvas.material;
+package grondag.canvas.buffer.encoding;
 
-import static grondag.canvas.material.VertexAttributeEncoder.HD_AO_SHADEMAP;
-import static grondag.canvas.material.VertexAttributeEncoder.HD_BLOCK_LIGHTMAP;
-import static grondag.canvas.material.VertexAttributeEncoder.HD_SKY_LIGHTMAP;
-import static grondag.canvas.material.VertexAttributeEncoder.LIGHTMAP;
-import static grondag.canvas.material.VertexAttributeEncoder.NORMAL_AO;
-import static grondag.canvas.material.VertexAttributeEncoder.POS;
-import static grondag.canvas.material.VertexAttributeEncoder.SPRITE_COLOR_0;
-import static grondag.canvas.material.VertexAttributeEncoder.SPRITE_COLOR_1;
-import static grondag.canvas.material.VertexAttributeEncoder.SPRITE_COLOR_2;
-import static grondag.canvas.material.VertexAttributeEncoder.SPRITE_UV_0;
-import static grondag.canvas.material.VertexAttributeEncoder.SPRITE_UV_1;
-import static grondag.canvas.material.VertexAttributeEncoder.SPRITE_UV_2;
+import static grondag.canvas.buffer.encoding.VertexAttributeEncoder.HD_AO_SHADEMAP;
+import static grondag.canvas.buffer.encoding.VertexAttributeEncoder.HD_BLOCK_LIGHTMAP;
+import static grondag.canvas.buffer.encoding.VertexAttributeEncoder.HD_SKY_LIGHTMAP;
+import static grondag.canvas.buffer.encoding.VertexAttributeEncoder.LIGHTMAP;
+import static grondag.canvas.buffer.encoding.VertexAttributeEncoder.NORMAL_AO;
+import static grondag.canvas.buffer.encoding.VertexAttributeEncoder.POS;
+import static grondag.canvas.buffer.encoding.VertexAttributeEncoder.SPRITE_COLOR_0;
+import static grondag.canvas.buffer.encoding.VertexAttributeEncoder.SPRITE_COLOR_1;
+import static grondag.canvas.buffer.encoding.VertexAttributeEncoder.SPRITE_COLOR_2;
+import static grondag.canvas.buffer.encoding.VertexAttributeEncoder.SPRITE_UV_0;
+import static grondag.canvas.buffer.encoding.VertexAttributeEncoder.SPRITE_UV_1;
+import static grondag.canvas.buffer.encoding.VertexAttributeEncoder.SPRITE_UV_2;
 
 import net.minecraft.client.render.VertexFormatElement;
 
