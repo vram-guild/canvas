@@ -16,16 +16,16 @@
 
 package grondag.canvas.apiimpl.mesh;
 
+import static grondag.canvas.apiimpl.util.MeshEncodingHelper.BASE_QUAD_STRIDE;
+import static grondag.canvas.apiimpl.util.MeshEncodingHelper.BASE_VERTEX_STRIDE;
 import static grondag.canvas.apiimpl.util.MeshEncodingHelper.EMPTY;
 import static grondag.canvas.apiimpl.util.MeshEncodingHelper.HEADER_BITS;
 import static grondag.canvas.apiimpl.util.MeshEncodingHelper.HEADER_COLOR_INDEX;
 import static grondag.canvas.apiimpl.util.MeshEncodingHelper.HEADER_MATERIAL;
 import static grondag.canvas.apiimpl.util.MeshEncodingHelper.HEADER_STRIDE;
 import static grondag.canvas.apiimpl.util.MeshEncodingHelper.HEADER_TAG;
-import static grondag.canvas.apiimpl.util.MeshEncodingHelper.BASE_QUAD_STRIDE;
 import static grondag.canvas.apiimpl.util.MeshEncodingHelper.VERTEX_LIGHTMAP;
 import static grondag.canvas.apiimpl.util.MeshEncodingHelper.VERTEX_NORMAL;
-import static grondag.canvas.apiimpl.util.MeshEncodingHelper.BASE_VERTEX_STRIDE;
 import static grondag.canvas.apiimpl.util.MeshEncodingHelper.VERTEX_X;
 
 import com.google.common.base.Preconditions;
@@ -39,9 +39,8 @@ import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 
 import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.apiimpl.RenderMaterialImpl;
-import grondag.canvas.apiimpl.util.ColorHelper.ShadeableQuad;
-import grondag.canvas.apiimpl.util.GeometryHelper;
 import grondag.canvas.apiimpl.util.MeshEncodingHelper;
+import grondag.canvas.apiimpl.util.GeometryHelper;
 import grondag.canvas.apiimpl.util.NormalHelper;
 import grondag.canvas.apiimpl.util.TextureHelper;
 
@@ -49,7 +48,7 @@ import grondag.canvas.apiimpl.util.TextureHelper;
  * Almost-concrete implementation of a mutable quad. The only missing part is {@link #emit()},
  * because that depends on where/how it is used. (Mesh encoding vs. render-time transformation).
  */
-public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEmitter, ShadeableQuad {
+public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEmitter {
 	public final void begin(int[] data, int baseIndex) {
 		this.data = data;
 		this.baseIndex = baseIndex;
@@ -132,13 +131,11 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 	}
 
 	// TODO: remove?
-	@Override
 	public boolean isFaceAligned() {
 		return (geometryFlags() & GeometryHelper.AXIS_ALIGNED_FLAG) != 0;
 	}
 
 	// TODO: remove?
-	@Override
 	public boolean needsDiffuseShading(int textureIndex) {
 		return textureIndex == 0 && !material().disableDiffuse(textureIndex);
 	}

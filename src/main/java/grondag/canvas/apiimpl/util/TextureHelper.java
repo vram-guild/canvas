@@ -3,9 +3,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
  * of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
@@ -91,7 +91,8 @@ public class TextureHelper {
 		}
 	}
 
-	private static final VertexModifier[] ROTATIONS = new VertexModifier[] { null, (q, i, t) -> q.sprite(i, t, q.spriteV(i, t), q.spriteU(i, t)), //90
+	private static final VertexModifier[] ROTATIONS = new VertexModifier[] { null,
+			(q, i, t) -> q.sprite(i, t, q.spriteV(i, t), q.spriteU(i, t)), //90
 			(q, i, t) -> q.sprite(i, t, 1 - q.spriteU(i, t), 1 - q.spriteV(i, t)), //180
 			(q, i, t) -> q.sprite(i, t, 1 - q.spriteV(i, t), q.spriteU(i, t)) // 270
 	};

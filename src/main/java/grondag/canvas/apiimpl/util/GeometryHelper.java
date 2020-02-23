@@ -3,9 +3,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
  * of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
@@ -56,7 +56,7 @@ public abstract class GeometryHelper {
 	 * Expects convex quads with all points co-planar.
 	 */
 	public static int computeShapeFlags(QuadView quad) {
-		Direction lightFace = quad.lightFace();
+		final Direction lightFace = quad.lightFace();
 		int bits = 0;
 
 		if (isQuadParallelToFace(lightFace, quad)) {
@@ -84,7 +84,7 @@ public abstract class GeometryHelper {
 			return false;
 		}
 
-		int i = face.getAxis().ordinal();
+		final int i = face.getAxis().ordinal();
 		final float val = quad.posByIndex(0, i);
 		return approximatelyEquals(val, quad.posByIndex(1, i)) && approximatelyEquals(val, quad.posByIndex(2, i)) && approximatelyEquals(val, quad.posByIndex(3, i));
 	}
@@ -239,14 +239,13 @@ public abstract class GeometryHelper {
 	public static Axis longestAxis(float normalX, float normalY, float normalZ) {
 		Axis result = Axis.Y;
 		float longest = Math.abs(normalY);
-		float a = Math.abs(normalX);
+		final float a = Math.abs(normalX);
 
 		if (a > longest) {
 			result = Axis.X;
 			longest = a;
 		}
 
-		return Math.abs(normalZ) > longest
-				? Axis.Z : result;
+		return Math.abs(normalZ) > longest ? Axis.Z : result;
 	}
 }
