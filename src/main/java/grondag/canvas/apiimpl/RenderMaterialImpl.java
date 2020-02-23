@@ -51,7 +51,7 @@ public abstract class RenderMaterialImpl {
 
 	// PERF: reduce indirection
 	@SuppressWarnings("unchecked")
-	private static final BitPacker64<RenderMaterialImpl>.NullableEnumElement<BlendMode> BLEND_MODES[] = new BitPacker64.NullableEnumElement[MAX_SPRITE_DEPTH];
+	private static final BitPacker64<RenderMaterialImpl>.EnumElement<BlendMode> BLEND_MODES[] = new BitPacker64.EnumElement[MAX_SPRITE_DEPTH];
 
 	private static final BitPacker64<RenderMaterialImpl>.IntElement SPRITE_DEPTH;
 
@@ -100,9 +100,9 @@ public abstract class RenderMaterialImpl {
 		FLAGS[COLOR_DISABLE_INDEX_START + 1] = BITPACKER.createBooleanElement();
 		FLAGS[COLOR_DISABLE_INDEX_START + 2] = BITPACKER.createBooleanElement();
 
-		BLEND_MODES[0] = BITPACKER.createNullableEnumElement(BlendMode.class);
-		BLEND_MODES[1] = BITPACKER.createNullableEnumElement(BlendMode.class);
-		BLEND_MODES[2] = BITPACKER.createNullableEnumElement(BlendMode.class);
+		BLEND_MODES[0] = BITPACKER.createEnumElement(BlendMode.class);
+		BLEND_MODES[1] = BITPACKER.createEnumElement(BlendMode.class);
+		BLEND_MODES[2] = BITPACKER.createEnumElement(BlendMode.class);
 
 		SPRITE_DEPTH = BITPACKER.createIntElement(1, MAX_SPRITE_DEPTH);
 		SHADER = BITPACKER.createIntElement(ShaderManager.MAX_SHADERS);
@@ -111,9 +111,9 @@ public abstract class RenderMaterialImpl {
 		assert BITPACKER.bitLength() <= 64;
 
 		long defaultBits = 0;
-		defaultBits = BLEND_MODES[0].setValue(null, defaultBits);
-		defaultBits = BLEND_MODES[1].setValue(null, defaultBits);
-		defaultBits = BLEND_MODES[2].setValue(null, defaultBits);
+		defaultBits = BLEND_MODES[0].setValue(BlendMode.DEFAULT, defaultBits);
+		defaultBits = BLEND_MODES[1].setValue(BlendMode.DEFAULT, defaultBits);
+		defaultBits = BLEND_MODES[2].setValue(BlendMode.DEFAULT, defaultBits);
 		DEFAULT_BITS = defaultBits;
 
 		long aoDisableBits = 0;

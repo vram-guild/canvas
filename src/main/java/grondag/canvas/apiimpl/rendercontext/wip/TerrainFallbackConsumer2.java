@@ -66,7 +66,7 @@ public abstract class TerrainFallbackConsumer2 extends AbstractQuadRenderer2 imp
 
 	private final int[] editorBuffer = new int[MeshEncodingHelper.TOTAL_QUAD_STRIDE];
 
-	TerrainFallbackConsumer2(BlockRenderInfo blockInfo, Function<RenderLayer, VertexConsumer> bufferFunc, AoCalculator aoCalc, QuadTransform transform) {
+	public TerrainFallbackConsumer2(BlockRenderInfo blockInfo, Function<RenderLayer, VertexConsumer> bufferFunc, AoCalculator aoCalc, QuadTransform transform) {
 		super(blockInfo, bufferFunc, aoCalc, transform);
 	}
 
