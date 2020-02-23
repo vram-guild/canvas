@@ -3,9 +3,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
  * of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
@@ -95,9 +95,6 @@ public class Configurator {
 		@Comment("Treats model geometry outside of block boundaries as on the block for lighting purposes. Helps prevent bad lighting outcomes.")
 		boolean clampExteriorVertices = true;
 
-		//        @Comment("Pad vertex data in chunks with multiple formats. Significantly increases frame rate at cost of some wasted memory.")
-		//        boolean padTranslucentFormats = true;
-
 		@Comment("Prevent Glowstone and other blocks that emit light from casting shade on nearby blocks.")
 		boolean fixLuminousBlockShading = true;
 
@@ -152,7 +149,6 @@ public class Configurator {
 	public static boolean disableVanillaChunkMatrix = false; //DEFAULTS.disableVanillaChunkMatrix;
 	public static boolean preventDepthFighting = DEFAULTS.preventDepthFighting;
 	public static boolean clampExteriorVertices = DEFAULTS.clampExteriorVertices;
-	//    public static boolean padTranslucentFormats = DEFAULTS.padTranslucentFormats;
 	public static boolean fixLuminousBlockShading = DEFAULTS.fixLuminousBlockShading;
 
 	public static boolean lightmapDebug = DEFAULTS.lightmapDebug;
@@ -207,7 +203,6 @@ public class Configurator {
 		//        disableVanillaChunkMatrix = config.disableVanillaChunkMatrix;
 		preventDepthFighting = config.preventDepthFighting;
 		clampExteriorVertices = config.clampExteriorVertices;
-		//        padTranslucentFormats = config.padTranslucentFormats;
 		fixLuminousBlockShading = config.fixLuminousBlockShading;
 
 		lightmapDebug = config.lightmapDebug;
@@ -241,7 +236,6 @@ public class Configurator {
 		//        config.disableVanillaChunkMatrix = disableVanillaChunkMatrix;
 		config.preventDepthFighting = preventDepthFighting;
 		config.clampExteriorVertices = clampExteriorVertices;
-		//        config.padTranslucentFormats = padTranslucentFormats;
 
 		config.lightmapDebug = lightmapDebug;
 		config.conciseErrors = conciseErrors;
@@ -397,10 +391,6 @@ public class Configurator {
 		tweaks.addEntry(new BooleanListEntry("config.canvas.value.fix_luminous_block_shade", fixLuminousBlockShading, "config.canvas.reset",
 				() -> DEFAULTS.fixLuminousBlockShading, b -> {fixLuminousBlockShading = b; reloadTerrain = true;},
 				() -> Optional.of(I18n.translate("config.canvas.help.fix_luminous_block_shade").split(";"))));
-
-		//        tweaks.addOption(new BooleanListEntry("config.canvas.value.pad_translucent_formats", padTranslucentFormats, "config.canvas.reset",
-		//                () -> DEFAULTS.padTranslucentFormats, b -> {padTranslucentFormats = b; reloadTerrain = true;},
-		//                () -> Optional.of(I18n.translate("config.canvas.help.pad_translucent_formats").split(";"))));
 
 		// DEBUG
 		final ConfigCategory debug = builder.getOrCreateCategory("config.canvas.category.debug");

@@ -144,18 +144,18 @@ public class VertexCollectorList {
 	public final VertexCollector get(MaterialState renderState) {
 		final int renderIndex = renderState.index;
 		VertexCollector result = usedCollectors.get(renderIndex);
+
 		if(result == null) {
-			//            final MaterialVertexFormat format = (isTranslucent && Configurator.padTranslucentFormats)
-			//                    ? MaterialVertexFormats.fromShaderProps(ShaderProps.PADDED_TRANSLUCENCY)
-			//                    : renderState.format;
 			result = emptyCollector().prepare(renderState, renderState.format);
 			usedCollectors.put(renderIndex, result);
 		}
+
 		return result;
 	}
 
 	private VertexCollector emptyCollector() {
 		VertexCollector result;
+
 		if(usedCount == allCollectors.size()) {
 			result = new VertexCollector(this);
 			allCollectors.add(result);
@@ -163,6 +163,7 @@ public class VertexCollectorList {
 			result = allCollectors.get(usedCount);
 			result.clear();
 		}
+
 		usedCount++;
 		return result;
 	}
@@ -187,13 +188,15 @@ public class VertexCollectorList {
 
 		Arrays.sort(collectors, 0, usedCount, solidComparator);
 
-		for(int i = 0; i < usedCount; i++) {
+		for (int i = 0; i < usedCount; i++) {
 			final VertexCollector vertexCollector = (VertexCollector) collectors[i];
 			final int vertexCount = vertexCollector.vertexCount();
+
 			if (vertexCount != 0) {
 				packing.addPacking(vertexCollector.materialState(), 0, vertexCount);
 			}
 		}
+
 		return packing;
 	}
 
@@ -222,8 +225,10 @@ public class VertexCollectorList {
 
 		// Sort quads within each pipeline, while accumulating in priority queue
 		final int usedCount = this.usedCount;
-		for(int i = 0; i < usedCount; i++) {
+
+		for (int i = 0; i < usedCount; i++) {
 			final VertexCollector vertexCollector = allCollectors.get(i);
+
 			if (vertexCollector.vertexCount() != 0) {
 				vertexCollector.sortQuads(x, y, z);
 				sorter.add(vertexCollector);
@@ -237,6 +242,7 @@ public class VertexCollectorList {
 		} else if (sorter.size() != 0) {
 			VertexCollector first = sorter.poll();
 			VertexCollector second = sorter.poll();
+
 			do {
 				// x4 because packing is vertices vs quads
 				final int startVertex = first.sortReadIndex() * 4;
