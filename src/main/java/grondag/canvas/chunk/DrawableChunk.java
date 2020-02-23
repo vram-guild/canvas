@@ -20,8 +20,8 @@ import java.util.function.Consumer;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
-import grondag.canvas.draw.DelegateLists;
-import grondag.canvas.draw.DrawableDelegate;
+import grondag.canvas.chunk.draw.DelegateLists;
+import grondag.canvas.chunk.draw.DrawableDelegate;
 import grondag.canvas.material.old.OldMaterialState;
 import grondag.canvas.shader.ShaderManager;
 import grondag.canvas.shader.old.OldShaderContext;

@@ -18,7 +18,7 @@ package grondag.canvas.buffer.allocation;
 
 import java.nio.ByteBuffer;
 
-import grondag.canvas.draw.DrawableDelegate;
+import grondag.canvas.chunk.draw.DrawableDelegate;
 
 public abstract class AbstractBuffer {
 	public abstract ByteBuffer byteBuffer();

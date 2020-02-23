@@ -24,8 +24,8 @@ import grondag.canvas.buffer.allocation.AllocationProvider;
 import grondag.canvas.buffer.encoding.old.OldMaterialVertexFormat;
 import grondag.canvas.buffer.packing.old.VertexCollector;
 import grondag.canvas.buffer.packing.old.VertexCollectorList;
-import grondag.canvas.draw.DelegateLists;
-import grondag.canvas.draw.DrawableDelegate;
+import grondag.canvas.chunk.draw.DelegateLists;
+import grondag.canvas.chunk.draw.DrawableDelegate;
 import grondag.canvas.material.old.OldMaterialState;
 
 public class BufferPacker {

@@ -19,7 +19,7 @@ package grondag.canvas.buffer.allocation;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import grondag.canvas.draw.DrawableDelegate;
+import grondag.canvas.chunk.draw.DrawableDelegate;
 import grondag.canvas.varia.GLBufferStore;
 
 public abstract class UploadableBuffer extends AbstractBuffer implements BindableBuffer {

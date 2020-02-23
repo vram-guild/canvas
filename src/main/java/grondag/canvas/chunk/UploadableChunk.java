@@ -22,7 +22,7 @@ import grondag.canvas.buffer.allocation.VboBuffer;
 import grondag.canvas.buffer.packing.BufferPacker;
 import grondag.canvas.buffer.packing.BufferPackingList;
 import grondag.canvas.buffer.packing.old.VertexCollectorList;
-import grondag.canvas.draw.DrawableDelegate;
+import grondag.canvas.chunk.draw.DrawableDelegate;
 
 public abstract class UploadableChunk<V extends DrawableChunk> {
 	protected final ObjectArrayList<DrawableDelegate> delegates;
