@@ -43,14 +43,14 @@ public class ChunkRenderInfo {
 
 	private final Object2ObjectOpenHashMap<RenderLayer, BufferBuilder> buffers = new Object2ObjectOpenHashMap<>();
 
-	void prepare(RegionData chunkData, BlockBufferBuilderStorage builders, BlockPos origin) {
+	public void prepare(RegionData chunkData, BlockBufferBuilderStorage builders, BlockPos origin) {
 		chunkOrigin.set(origin);
 		this.chunkData = chunkData;
 		this.builders = builders;
 		buffers.clear();
 	}
 
-	void release() {
+	public void release() {
 		chunkData = null;
 		buffers.clear();
 	}
