@@ -21,7 +21,7 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import grondag.canvas.buffer.allocation.VboBuffer;
 import grondag.canvas.buffer.packing.BufferPacker;
 import grondag.canvas.buffer.packing.BufferPackingList;
-import grondag.canvas.buffer.packing.VertexCollectorList;
+import grondag.canvas.buffer.packing.old.VertexCollectorList;
 import grondag.canvas.draw.DrawableDelegate;
 
 public abstract class UploadableChunk<V extends DrawableChunk> {

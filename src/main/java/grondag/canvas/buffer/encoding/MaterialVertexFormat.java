@@ -24,7 +24,7 @@ import org.lwjgl.opengl.GL20;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
-import grondag.canvas.buffer.packing.VertexCollector;
+import grondag.canvas.buffer.packing.old.VertexCollector;
 import grondag.canvas.varia.CanvasGlHelper;
 
 public class MaterialVertexFormat {

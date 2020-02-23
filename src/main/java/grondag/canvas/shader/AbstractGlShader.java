@@ -38,6 +38,8 @@ import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
 import grondag.canvas.Configurator.AoMode;
 import grondag.canvas.Configurator.DiffuseMode;
+import grondag.canvas.shader.old.ShaderContext;
+import grondag.canvas.shader.old.ShaderProps;
 import grondag.canvas.varia.CanvasGlHelper;
 
 abstract class AbstractGlShader {

@@ -30,7 +30,7 @@ import grondag.canvas.Configurator;
 import grondag.canvas.buffer.allocation.AbstractBuffer;
 import grondag.canvas.buffer.allocation.BufferDelegate;
 import grondag.canvas.buffer.encoding.MaterialVertexFormat;
-import grondag.canvas.material.MaterialState;
+import grondag.canvas.material.old.MaterialState;
 import grondag.canvas.varia.CanvasGlHelper;
 import grondag.canvas.varia.VaoStore;
 

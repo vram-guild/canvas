@@ -25,7 +25,7 @@ import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.apiimpl.util.ColorHelper;
 import grondag.canvas.apiimpl.util.NormalHelper;
-import grondag.canvas.buffer.packing.VertexCollector;
+import grondag.canvas.buffer.packing.old.VertexCollector;
 
 public class FluidBufferBuilder extends BufferBuilder {
 	private static final int DEFAULT_SHADER_FLAGS = Canvas.INSTANCE.materialFinder().disableAo(0, true).find().shaderFlags() << 16;

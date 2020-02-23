@@ -20,6 +20,8 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
 import net.minecraft.util.Identifier;
 
+import grondag.canvas.shader.old.ShaderContext;
+
 public final class GlShaderManager {
 	public final static GlShaderManager INSTANCE = new GlShaderManager();
 	private final Object2ObjectOpenHashMap<String, GlVertexShader> vertexShaders = new Object2ObjectOpenHashMap<>();

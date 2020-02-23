@@ -29,13 +29,13 @@ import net.minecraft.client.render.Tessellator;
 
 import grondag.canvas.buffer.packing.BufferPacker;
 import grondag.canvas.buffer.packing.BufferPackingList;
-import grondag.canvas.buffer.packing.VertexCollectorList;
+import grondag.canvas.buffer.packing.old.VertexCollectorList;
 import grondag.canvas.draw.DrawableDelegate;
 import grondag.canvas.draw.SolidRenderList;
 import grondag.canvas.light.LightmapHdTexture;
 import grondag.canvas.salvage.CanvasBufferBuilder;
 import grondag.canvas.salvage.TessellatorExt;
-import grondag.canvas.shader.ShaderContext;
+import grondag.canvas.shader.old.ShaderContext;
 
 //TODO: Enable or Remove
 @Mixin(Tessellator.class)

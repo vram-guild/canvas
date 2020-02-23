@@ -34,9 +34,9 @@ import grondag.canvas.apiimpl.mesh.QuadViewImpl;
 import grondag.canvas.apiimpl.rendercontext.BlockRenderInfo;
 import grondag.canvas.apiimpl.util.ColorHelper;
 import grondag.canvas.buffer.encoding.VertexEncodingContext;
-import grondag.canvas.buffer.packing.VertexCollector;
+import grondag.canvas.buffer.packing.old.VertexCollector;
 import grondag.canvas.light.AoCalculator;
-import grondag.canvas.shader.ShaderContext;
+import grondag.canvas.shader.old.ShaderContext;
 
 /**
  * Base quad-rendering class for fallback and mesh consumers. Has most of the

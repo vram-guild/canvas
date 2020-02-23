@@ -1,6 +1,6 @@
 package grondag.canvas.salvage;
 
-import grondag.canvas.shader.ShaderContext;
+import grondag.canvas.shader.old.ShaderContext;
 
 public interface TessellatorExt {
 	void canvas_draw();

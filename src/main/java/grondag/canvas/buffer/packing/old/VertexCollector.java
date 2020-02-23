@@ -14,7 +14,7 @@
  * the License.
  ******************************************************************************/
 
-package grondag.canvas.buffer.packing;
+package grondag.canvas.buffer.packing.old;
 
 import com.google.common.primitives.Doubles;
 import it.unimi.dsi.fastutil.Swapper;
@@ -23,7 +23,7 @@ import it.unimi.dsi.fastutil.ints.AbstractIntComparator;
 import net.minecraft.util.math.BlockPos;
 
 import grondag.canvas.buffer.encoding.MaterialVertexFormat;
-import grondag.canvas.material.MaterialState;
+import grondag.canvas.material.old.MaterialState;
 
 public class VertexCollector {
 	private int[] data;

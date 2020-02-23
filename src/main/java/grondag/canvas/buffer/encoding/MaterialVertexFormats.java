@@ -16,7 +16,7 @@ import static grondag.canvas.buffer.encoding.MaterialVertextFormatElement.TERTIA
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
-import grondag.canvas.shader.ShaderProps;
+import grondag.canvas.shader.old.ShaderProps;
 
 public final class MaterialVertexFormats {
 	private static final Int2ObjectOpenHashMap<MaterialVertexFormat> MAP = new Int2ObjectOpenHashMap<>();

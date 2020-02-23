@@ -18,7 +18,7 @@ package grondag.canvas.buffer.packing;
 
 import java.util.function.Consumer;
 
-import grondag.canvas.material.MaterialState;
+import grondag.canvas.material.old.MaterialState;
 
 /**
  * Tracks number of vertices, pipeline and sequence thereof within a buffer.
@@ -31,7 +31,7 @@ public class BufferPackingList {
 	private int size = 0;
 	private int totalBytes = 0;
 
-	BufferPackingList() {
+	public BufferPackingList() {
 
 	}
 

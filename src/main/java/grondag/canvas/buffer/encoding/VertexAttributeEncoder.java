@@ -2,9 +2,9 @@ package grondag.canvas.buffer.encoding;
 
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.util.ColorHelper;
-import grondag.canvas.buffer.packing.VertexCollector;
+import grondag.canvas.buffer.packing.old.VertexCollector;
 import grondag.canvas.render.CanvasWorldRenderer;
-import grondag.canvas.shader.ShaderContext;
+import grondag.canvas.shader.old.ShaderContext;
 
 @FunctionalInterface
 public interface VertexAttributeEncoder {

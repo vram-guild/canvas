@@ -14,7 +14,7 @@
  * the License.
  ******************************************************************************/
 
-package grondag.canvas.material;
+package grondag.canvas.material.old;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 
@@ -22,8 +22,8 @@ import grondag.canvas.apiimpl.MaterialConditionImpl;
 import grondag.canvas.apiimpl.MaterialShaderImpl;
 import grondag.canvas.buffer.encoding.MaterialVertexFormat;
 import grondag.canvas.buffer.encoding.MaterialVertexFormats;
-import grondag.canvas.shader.ShaderContext;
-import grondag.canvas.shader.ShaderProps;
+import grondag.canvas.shader.old.ShaderContext;
+import grondag.canvas.shader.old.ShaderProps;
 import grondag.fermion.varia.Useful;
 
 public class MaterialState {

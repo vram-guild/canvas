@@ -30,8 +30,8 @@ import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 
 import grondag.canvas.apiimpl.RenderMaterialImpl;
 import grondag.canvas.apiimpl.mesh.QuadViewImpl;
-import grondag.canvas.buffer.packing.VertexCollector;
-import grondag.canvas.buffer.packing.VertexCollectorList;
+import grondag.canvas.buffer.packing.old.VertexCollector;
+import grondag.canvas.buffer.packing.old.VertexCollectorList;
 
 public class ChunkRebuildHelper {
 	public static final int BLOCK_RENDER_LAYER_COUNT = BlendMode.values().length;

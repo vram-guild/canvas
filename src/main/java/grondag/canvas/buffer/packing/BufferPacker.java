@@ -22,9 +22,11 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import grondag.canvas.buffer.allocation.AllocationProvider;
 import grondag.canvas.buffer.encoding.MaterialVertexFormat;
+import grondag.canvas.buffer.packing.old.VertexCollector;
+import grondag.canvas.buffer.packing.old.VertexCollectorList;
 import grondag.canvas.draw.DelegateLists;
 import grondag.canvas.draw.DrawableDelegate;
-import grondag.canvas.material.MaterialState;
+import grondag.canvas.material.old.MaterialState;
 
 public class BufferPacker {
 	private static final ThreadLocal<BufferPacker> THREADLOCAL = ThreadLocal.withInitial(BufferPacker::new);

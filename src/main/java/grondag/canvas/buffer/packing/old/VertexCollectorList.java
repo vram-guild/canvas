@@ -14,7 +14,7 @@
  * the License.
  ******************************************************************************/
 
-package grondag.canvas.buffer.packing;
+package grondag.canvas.buffer.packing.old;
 
 import java.util.Arrays;
 import java.util.Comparator;
@@ -27,8 +27,10 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.util.math.MathHelper;
 
 import grondag.canvas.apiimpl.RenderMaterialImpl;
+import grondag.canvas.buffer.packing.BufferPackingList;
+import grondag.canvas.buffer.packing.RenderCube;
 import grondag.canvas.chunk.UploadableChunk;
-import grondag.canvas.material.MaterialState;
+import grondag.canvas.material.old.MaterialState;
 
 public class VertexCollectorList {
 	private static final Comparator<VertexCollector> translucentComparator = new Comparator<VertexCollector>() {

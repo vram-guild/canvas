@@ -34,6 +34,7 @@ import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.MaterialShaderImpl.UniformMatrix4f;
 import grondag.canvas.buffer.encoding.MaterialVertexFormat;
 import grondag.canvas.buffer.encoding.MaterialVertexFormats;
+import grondag.canvas.shader.old.ShaderProps;
 import grondag.canvas.varia.CanvasGlHelper;
 import grondag.frex.api.material.Uniform;
 import grondag.frex.api.material.Uniform.Uniform1f;
