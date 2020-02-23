@@ -51,7 +51,7 @@ public abstract class AbstractMeshConsumer extends AbstractQuadRenderer implemen
 	 */
 	private class Maker extends MutableQuadViewImpl implements QuadEmitter {
 		{
-			data = new int[MeshEncodingHelper.TOTAL_STRIDE];
+			data = new int[MeshEncodingHelper.TOTAL_QUAD_STRIDE];
 			material(Canvas.MATERIAL_STANDARD);
 		}
 
@@ -76,9 +76,9 @@ public abstract class AbstractMeshConsumer extends AbstractQuadRenderer implemen
 		int index = 0;
 
 		while (index < limit) {
-			System.arraycopy(data, index, editorQuad.data(), 0, MeshEncodingHelper.TOTAL_STRIDE);
+			System.arraycopy(data, index, editorQuad.data(), 0, MeshEncodingHelper.TOTAL_QUAD_STRIDE);
 			editorQuad.load();
-			index += MeshEncodingHelper.TOTAL_STRIDE;
+			index += MeshEncodingHelper.TOTAL_QUAD_STRIDE;
 			renderQuad(editorQuad);
 		}
 	}

@@ -63,7 +63,7 @@ public abstract class TerrainFallbackConsumer extends AbstractQuadRenderer imple
 	private static Value MATERIAL_FLAT = Canvas.INSTANCE.materialFinder().disableAo(0, true).find();
 	private static Value MATERIAL_SHADED = Canvas.INSTANCE.materialFinder().find();
 
-	private final int[] editorBuffer = new int[MeshEncodingHelper.TOTAL_STRIDE];
+	private final int[] editorBuffer = new int[MeshEncodingHelper.TOTAL_QUAD_STRIDE];
 
 	TerrainFallbackConsumer(BlockRenderInfo blockInfo, Function<RenderLayer, VertexConsumer> bufferFunc, AoCalculator aoCalc, QuadTransform transform) {
 		super(blockInfo, bufferFunc, aoCalc, transform);
@@ -116,7 +116,7 @@ public abstract class TerrainFallbackConsumer extends AbstractQuadRenderer imple
 		final int[] vertexData = quad.getVertexData();
 
 		final MutableQuadViewImpl editorQuad = this.editorQuad;
-		System.arraycopy(vertexData, 0, editorBuffer, MeshEncodingHelper.HEADER_STRIDE, MeshEncodingHelper.QUAD_STRIDE);
+		System.arraycopy(vertexData, 0, editorBuffer, MeshEncodingHelper.HEADER_STRIDE, MeshEncodingHelper.BASE_QUAD_STRIDE);
 		editorQuad.cullFace(cullFace);
 		final Direction lightFace = quad.getFace();
 		editorQuad.lightFace(lightFace);

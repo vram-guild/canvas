@@ -92,7 +92,7 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 		return random;
 	};
 
-	private final int[] quadData = new int[MeshEncodingHelper.TOTAL_STRIDE];
+	private final int[] quadData = new int[MeshEncodingHelper.TOTAL_QUAD_STRIDE];
 
 	public ItemRenderContext(ItemColors colorMap) {
 		this.colorMap = colorMap;
@@ -162,9 +162,9 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 		int index = 0;
 
 		while (index < limit) {
-			System.arraycopy(data, index, editorQuad.data(), 0, MeshEncodingHelper.TOTAL_STRIDE);
+			System.arraycopy(data, index, editorQuad.data(), 0, MeshEncodingHelper.TOTAL_QUAD_STRIDE);
 			editorQuad.load();
-			index += MeshEncodingHelper.TOTAL_STRIDE;
+			index += MeshEncodingHelper.TOTAL_QUAD_STRIDE;
 			renderQuad();
 		}
 	};

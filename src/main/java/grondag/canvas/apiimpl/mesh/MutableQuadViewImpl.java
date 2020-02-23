@@ -22,10 +22,10 @@ import static grondag.canvas.apiimpl.util.MeshEncodingHelper.HEADER_COLOR_INDEX;
 import static grondag.canvas.apiimpl.util.MeshEncodingHelper.HEADER_MATERIAL;
 import static grondag.canvas.apiimpl.util.MeshEncodingHelper.HEADER_STRIDE;
 import static grondag.canvas.apiimpl.util.MeshEncodingHelper.HEADER_TAG;
-import static grondag.canvas.apiimpl.util.MeshEncodingHelper.VANILLA_STRIDE;
+import static grondag.canvas.apiimpl.util.MeshEncodingHelper.BASE_QUAD_STRIDE;
 import static grondag.canvas.apiimpl.util.MeshEncodingHelper.VERTEX_LIGHTMAP;
 import static grondag.canvas.apiimpl.util.MeshEncodingHelper.VERTEX_NORMAL;
-import static grondag.canvas.apiimpl.util.MeshEncodingHelper.VERTEX_STRIDE;
+import static grondag.canvas.apiimpl.util.MeshEncodingHelper.BASE_VERTEX_STRIDE;
 import static grondag.canvas.apiimpl.util.MeshEncodingHelper.VERTEX_X;
 
 import com.google.common.base.Preconditions;
@@ -57,7 +57,7 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 	}
 
 	public void clear() {
-		System.arraycopy(EMPTY, 0, data, baseIndex, MeshEncodingHelper.TOTAL_STRIDE);
+		System.arraycopy(EMPTY, 0, data, baseIndex, MeshEncodingHelper.TOTAL_QUAD_STRIDE);
 		isFaceNormalInvalid = true;
 		isGeometryInvalid = true;
 		nominalFaceId = ModelHelper.NULL_FACE_ID;
@@ -126,7 +126,7 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 
 	@Override
 	public final MutableQuadViewImpl fromVanilla(int[] quadData, int startIndex, boolean isItem) {
-		System.arraycopy(quadData, startIndex, data, baseIndex + HEADER_STRIDE, VANILLA_STRIDE);
+		System.arraycopy(quadData, startIndex, data, baseIndex + HEADER_STRIDE, BASE_QUAD_STRIDE);
 		invalidateShape();
 		return this;
 	}
@@ -145,7 +145,7 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 
 	@Override
 	public MutableQuadViewImpl pos(int vertexIndex, float x, float y, float z) {
-		final int index = baseIndex + vertexIndex * VERTEX_STRIDE + VERTEX_X;
+		final int index = baseIndex + vertexIndex * BASE_VERTEX_STRIDE + VERTEX_X;
 		data[index] = Float.floatToRawIntBits(x);
 		data[index + 1] = Float.floatToRawIntBits(y);
 		data[index + 2] = Float.floatToRawIntBits(z);
@@ -154,21 +154,21 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 	}
 
 	public MutableQuadViewImpl x(int vertexIndex, float x) {
-		final int index = baseIndex + vertexIndex * VERTEX_STRIDE + VERTEX_X;
+		final int index = baseIndex + vertexIndex * BASE_VERTEX_STRIDE + VERTEX_X;
 		data[index] = Float.floatToRawIntBits(x);
 		invalidateShape();
 		return this;
 	}
 
 	public MutableQuadViewImpl y(int vertexIndex, float y) {
-		final int index = baseIndex + vertexIndex * VERTEX_STRIDE + VERTEX_X;
+		final int index = baseIndex + vertexIndex * BASE_VERTEX_STRIDE + VERTEX_X;
 		data[index + 1] = Float.floatToRawIntBits(y);
 		invalidateShape();
 		return this;
 	}
 
 	public MutableQuadViewImpl z(int vertexIndex, float z) {
-		final int index = baseIndex + vertexIndex * VERTEX_STRIDE + VERTEX_X;
+		final int index = baseIndex + vertexIndex * BASE_VERTEX_STRIDE + VERTEX_X;
 		data[index + 2] = Float.floatToRawIntBits(z);
 		invalidateShape();
 		return this;
@@ -181,7 +181,7 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 	@Override
 	public MutableQuadViewImpl normal(int vertexIndex, float x, float y, float z) {
 		normalFlags(normalFlags() | (1 << vertexIndex));
-		data[baseIndex + vertexIndex * VERTEX_STRIDE + VERTEX_NORMAL] = NormalHelper.packNormal(x, y, z, 0);
+		data[baseIndex + vertexIndex * BASE_VERTEX_STRIDE + VERTEX_NORMAL] = NormalHelper.packNormal(x, y, z, 0);
 		return this;
 	}
 
@@ -199,7 +199,7 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 
 		for (int v = 0; v < 4; v++) {
 			if ((normalFlags & (1 << v)) == 0) {
-				data[baseIndex + v * VERTEX_STRIDE + VERTEX_NORMAL] = packedFaceNormal;
+				data[baseIndex + v * BASE_VERTEX_STRIDE + VERTEX_NORMAL] = packedFaceNormal;
 			}
 		}
 
@@ -208,7 +208,7 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 
 	@Override
 	public MutableQuadViewImpl lightmap(int vertexIndex, int lightmap) {
-		data[baseIndex + vertexIndex * VERTEX_STRIDE + VERTEX_LIGHTMAP] = lightmap;
+		data[baseIndex + vertexIndex * BASE_VERTEX_STRIDE + VERTEX_LIGHTMAP] = lightmap;
 		return this;
 	}
 

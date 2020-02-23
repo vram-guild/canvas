@@ -22,14 +22,14 @@ import static grondag.canvas.apiimpl.util.MeshEncodingHelper.HEADER_MATERIAL;
 import static grondag.canvas.apiimpl.util.MeshEncodingHelper.HEADER_STRIDE;
 import static grondag.canvas.apiimpl.util.MeshEncodingHelper.HEADER_TAG;
 import static grondag.canvas.apiimpl.util.MeshEncodingHelper.TEXTURE_OFFSET_MINUS;
-import static grondag.canvas.apiimpl.util.MeshEncodingHelper.TEXTURE_STRIDE;
+import static grondag.canvas.apiimpl.util.MeshEncodingHelper.TEXTURE_QUAD_STRIDE;
 import static grondag.canvas.apiimpl.util.MeshEncodingHelper.TEXTURE_VERTEX_STRIDE;
-import static grondag.canvas.apiimpl.util.MeshEncodingHelper.VANILLA_STRIDE;
+import static grondag.canvas.apiimpl.util.MeshEncodingHelper.BASE_QUAD_STRIDE;
 import static grondag.canvas.apiimpl.util.MeshEncodingHelper.VERTEX_COLOR;
 import static grondag.canvas.apiimpl.util.MeshEncodingHelper.VERTEX_LIGHTMAP;
 import static grondag.canvas.apiimpl.util.MeshEncodingHelper.VERTEX_NORMAL;
-import static grondag.canvas.apiimpl.util.MeshEncodingHelper.VERTEX_START_OFFSET;
-import static grondag.canvas.apiimpl.util.MeshEncodingHelper.VERTEX_STRIDE;
+import static grondag.canvas.apiimpl.util.MeshEncodingHelper.VERTEX_START;
+import static grondag.canvas.apiimpl.util.MeshEncodingHelper.BASE_VERTEX_STRIDE;
 import static grondag.canvas.apiimpl.util.MeshEncodingHelper.VERTEX_X;
 import static grondag.canvas.apiimpl.util.MeshEncodingHelper.VERTEX_Y;
 import static grondag.canvas.apiimpl.util.MeshEncodingHelper.VERTEX_Z;
@@ -143,7 +143,7 @@ public class QuadViewImpl implements QuadView {
 
 	@Override
 	public final void toVanilla(int textureIndex, int[] target, int targetIndex, boolean isItem) {
-		System.arraycopy(data, baseIndex + VERTEX_START_OFFSET, target, targetIndex, VANILLA_STRIDE);
+		System.arraycopy(data, baseIndex + VERTEX_START, target, targetIndex, BASE_QUAD_STRIDE);
 	}
 
 	@Override
@@ -235,29 +235,29 @@ public class QuadViewImpl implements QuadView {
 			target = new Vector3f();
 		}
 
-		final int index = baseIndex + vertexIndex * VERTEX_STRIDE + VERTEX_X;
+		final int index = baseIndex + vertexIndex * BASE_VERTEX_STRIDE + VERTEX_X;
 		target.set(Float.intBitsToFloat(data[index]), Float.intBitsToFloat(data[index + 1]), Float.intBitsToFloat(data[index + 2]));
 		return target;
 	}
 
 	@Override
 	public float posByIndex(int vertexIndex, int coordinateIndex) {
-		return Float.intBitsToFloat(data[baseIndex + vertexIndex * VERTEX_STRIDE + VERTEX_X + coordinateIndex]);
+		return Float.intBitsToFloat(data[baseIndex + vertexIndex * BASE_VERTEX_STRIDE + VERTEX_X + coordinateIndex]);
 	}
 
 	@Override
 	public float x(int vertexIndex) {
-		return Float.intBitsToFloat(data[baseIndex + vertexIndex * VERTEX_STRIDE + VERTEX_X]);
+		return Float.intBitsToFloat(data[baseIndex + vertexIndex * BASE_VERTEX_STRIDE + VERTEX_X]);
 	}
 
 	@Override
 	public float y(int vertexIndex) {
-		return Float.intBitsToFloat(data[baseIndex + vertexIndex * VERTEX_STRIDE + VERTEX_Y]);
+		return Float.intBitsToFloat(data[baseIndex + vertexIndex * BASE_VERTEX_STRIDE + VERTEX_Y]);
 	}
 
 	@Override
 	public float z(int vertexIndex) {
-		return Float.intBitsToFloat(data[baseIndex + vertexIndex * VERTEX_STRIDE + VERTEX_Z]);
+		return Float.intBitsToFloat(data[baseIndex + vertexIndex * BASE_VERTEX_STRIDE + VERTEX_Z]);
 	}
 
 	@Override
@@ -266,7 +266,7 @@ public class QuadViewImpl implements QuadView {
 	}
 
 	protected final int normalIndex(int vertexIndex) {
-		return baseIndex + vertexIndex * VERTEX_STRIDE + VERTEX_NORMAL;
+		return baseIndex + vertexIndex * BASE_VERTEX_STRIDE + VERTEX_NORMAL;
 	}
 
 	@Override
@@ -305,12 +305,12 @@ public class QuadViewImpl implements QuadView {
 
 	@Override
 	public int lightmap(int vertexIndex) {
-		return data[baseIndex + vertexIndex * VERTEX_STRIDE + VERTEX_LIGHTMAP];
+		return data[baseIndex + vertexIndex * BASE_VERTEX_STRIDE + VERTEX_LIGHTMAP];
 	}
 
 	protected int colorOffset(int vertexIndex, int spriteIndex) {
-		return spriteIndex == 0 ? vertexIndex * VERTEX_STRIDE + VERTEX_COLOR
-				: TEXTURE_OFFSET_MINUS + spriteIndex * TEXTURE_STRIDE + vertexIndex * TEXTURE_VERTEX_STRIDE;
+		return spriteIndex == 0 ? vertexIndex * BASE_VERTEX_STRIDE + VERTEX_COLOR
+				: TEXTURE_OFFSET_MINUS + spriteIndex * TEXTURE_QUAD_STRIDE + vertexIndex * TEXTURE_VERTEX_STRIDE;
 	}
 
 	@Override

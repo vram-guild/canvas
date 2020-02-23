@@ -49,17 +49,16 @@ public abstract class MeshEncodingHelper {
 	public static final int VERTEX_V;
 	public static final int VERTEX_LIGHTMAP;
 	public static final int VERTEX_NORMAL;
-	public static final int VERTEX_STRIDE;
+	public static final int BASE_VERTEX_STRIDE;
 
-	public static final int QUAD_STRIDE;
-	public static final int QUAD_STRIDE_BYTES;
-	public static final int TOTAL_STRIDE;
-	public static final int VERTEX_START_OFFSET;
-	public static final int VANILLA_STRIDE;
+	public static final int BASE_QUAD_STRIDE_BYTES;
+	public static final int TOTAL_QUAD_STRIDE;
+	public static final int VERTEX_START;
+	public static final int BASE_QUAD_STRIDE;
 
 	// normals are followed by 0-2 sets of color/uv coordinates
 	public static final int TEXTURE_VERTEX_STRIDE;
-	public static final int TEXTURE_STRIDE;
+	public static final int TEXTURE_QUAD_STRIDE;
 
 	/**
 	 * is one tex stride less than the actual base, because when used tex index is >= 1
@@ -67,7 +66,7 @@ public abstract class MeshEncodingHelper {
 	public static final int TEXTURE_OFFSET_MINUS;
 	public static final int SECOND_TEXTURE_OFFSET;
 	public static final int THIRD_TEXTURE_OFFSET;
-	public static final int MAX_STRIDE;
+	public static final int MAX_QUAD_STRIDE;
 
 	static {
 		final VertexFormat format = VertexFormats.POSITION_COLOR_TEXTURE_LIGHT_NORMAL;
@@ -79,33 +78,31 @@ public abstract class MeshEncodingHelper {
 		VERTEX_V = VERTEX_U + 1;
 		VERTEX_LIGHTMAP = HEADER_STRIDE + 6;
 		VERTEX_NORMAL = HEADER_STRIDE + 7;
-		VERTEX_STRIDE = format.getVertexSizeInteger();
-		QUAD_STRIDE = VERTEX_STRIDE * 4;
-		QUAD_STRIDE_BYTES = QUAD_STRIDE * 4;
-		TOTAL_STRIDE = HEADER_STRIDE + QUAD_STRIDE;
+		BASE_VERTEX_STRIDE = format.getVertexSizeInteger();
+		BASE_QUAD_STRIDE = BASE_VERTEX_STRIDE * 4;
+		BASE_QUAD_STRIDE_BYTES = BASE_QUAD_STRIDE * 4;
+		TOTAL_QUAD_STRIDE = HEADER_STRIDE + BASE_QUAD_STRIDE;
 
-		Preconditions.checkState(VERTEX_STRIDE == QuadView.VANILLA_VERTEX_STRIDE, "Canvas vertex stride (%s) mismatched with rendering API (%s)", VERTEX_STRIDE, QuadView.VANILLA_VERTEX_STRIDE);
-		Preconditions.checkState(QUAD_STRIDE == QuadView.VANILLA_QUAD_STRIDE, "Canvas quad stride (%s) mismatched with rendering API (%s)", QUAD_STRIDE, QuadView.VANILLA_QUAD_STRIDE);
+		Preconditions.checkState(BASE_VERTEX_STRIDE == QuadView.VANILLA_VERTEX_STRIDE, "Canvas vertex stride (%s) mismatched with rendering API (%s)", BASE_VERTEX_STRIDE, QuadView.VANILLA_VERTEX_STRIDE);
+		Preconditions.checkState(BASE_QUAD_STRIDE == QuadView.VANILLA_QUAD_STRIDE, "Canvas quad stride (%s) mismatched with rendering API (%s)", BASE_QUAD_STRIDE, QuadView.VANILLA_QUAD_STRIDE);
 
-		// our internal format always include packed normals
-		VERTEX_START_OFFSET = VERTEX_X; // TODO: consolidate
-		VANILLA_STRIDE = QUAD_STRIDE; // TODO: consolidate
+		VERTEX_START = VERTEX_X;
 
 		// base quad followed by 0-2 sets of color/uv coordinates
 		TEXTURE_VERTEX_STRIDE = 3;
-		TEXTURE_STRIDE = TEXTURE_VERTEX_STRIDE * 4;
+		TEXTURE_QUAD_STRIDE = TEXTURE_VERTEX_STRIDE * 4;
 
 		/**
 		 * is one tex stride less than the actual base, because when used tex index is >= 1
 		 */
-		TEXTURE_OFFSET_MINUS = TOTAL_STRIDE - TEXTURE_STRIDE;
-		SECOND_TEXTURE_OFFSET = TOTAL_STRIDE;
-		THIRD_TEXTURE_OFFSET = SECOND_TEXTURE_OFFSET + TEXTURE_STRIDE;
-		MAX_STRIDE = TOTAL_STRIDE + TEXTURE_STRIDE * (RenderMaterialImpl.MAX_SPRITE_DEPTH - 1);
+		TEXTURE_OFFSET_MINUS = TOTAL_QUAD_STRIDE - TEXTURE_QUAD_STRIDE;
+		SECOND_TEXTURE_OFFSET = TOTAL_QUAD_STRIDE;
+		THIRD_TEXTURE_OFFSET = SECOND_TEXTURE_OFFSET + TEXTURE_QUAD_STRIDE;
+		MAX_QUAD_STRIDE = TOTAL_QUAD_STRIDE + TEXTURE_QUAD_STRIDE * (RenderMaterialImpl.MAX_SPRITE_DEPTH - 1);
 	}
 
 	/** used for quick clearing of quad buffers */
-	public static final int[] EMPTY = new int[MAX_STRIDE];
+	public static final int[] EMPTY = new int[MAX_QUAD_STRIDE];
 
 	private static final int DIRECTION_MASK = 7;
 	private static final int CULL_SHIFT = 0;
@@ -153,7 +150,7 @@ public abstract class MeshEncodingHelper {
 	}
 
 	public static int stride(int textureDepth) {
-		return SECOND_TEXTURE_OFFSET - TEXTURE_STRIDE + textureDepth * TEXTURE_STRIDE;
+		return SECOND_TEXTURE_OFFSET - TEXTURE_QUAD_STRIDE + textureDepth * TEXTURE_QUAD_STRIDE;
 	}
 
 	public static int geometryFlags(int bits) {
