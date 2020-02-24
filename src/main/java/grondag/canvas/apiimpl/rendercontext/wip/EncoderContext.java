@@ -22,4 +22,6 @@ public interface EncoderContext {
 	int overlay();
 
 	VertexConsumer consumer(MutableQuadViewImpl quad);
+
+	int indexedColor(int colorIndex);
 }

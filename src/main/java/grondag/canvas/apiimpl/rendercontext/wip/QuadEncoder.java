@@ -38,19 +38,17 @@ public class QuadEncoder {
 		// TODO: handle multiple
 		final int textureIndex = 0;
 
-		final int colorIndex = mat.disableColorIndex(textureIndex) ? -1 : quad.colorIndex();
-
 		if (context.blockInfo().defaultAo && !mat.disableAo(textureIndex)) {
 			if (mat.emissive(textureIndex)) {
-				tesselateSmoothEmissive(quad, context, colorIndex);
+				tesselateSmoothEmissive(quad, context);
 			} else {
-				tesselateSmooth(quad, context, colorIndex);
+				tesselateSmooth(quad, context);
 			}
 		} else {
 			if (mat.emissive(textureIndex)) {
-				tesselateFlatEmissive(quad, context, colorIndex);
+				tesselateFlatEmissive(quad, context);
 			} else {
-				tesselateFlat(quad, context, colorIndex);
+				tesselateFlat(quad, context);
 			}
 		}
 	}
@@ -93,8 +91,8 @@ public class QuadEncoder {
 	// routines below have a bit of copy-paste code reuse to avoid conditional execution inside a hot loop
 
 	/** for non-emissive mesh quads and all fallback quads with smooth lighting. */
-	private void tesselateSmooth(MutableQuadViewImpl q, EncoderContext context, int blockColorIndex) {
-		colorizeQuad(q, context, blockColorIndex);
+	private void tesselateSmooth(MutableQuadViewImpl q, EncoderContext context) {
+		colorizeQuad(q, context);
 
 		for (int i = 0; i < 4; i++) {
 			q.spriteColor(i, 0, ColorHelper.multiplyRGB(q.spriteColor(i, 0), q.ao[i]));
@@ -105,8 +103,8 @@ public class QuadEncoder {
 	}
 
 	/** for emissive mesh quads with smooth lighting. */
-	private void tesselateSmoothEmissive(MutableQuadViewImpl q, EncoderContext context, int blockColorIndex) {
-		colorizeQuad(q, context, blockColorIndex);
+	private void tesselateSmoothEmissive(MutableQuadViewImpl q, EncoderContext context) {
+		colorizeQuad(q, context);
 
 		for (int i = 0; i < 4; i++) {
 			q.spriteColor(i, 0, ColorHelper.multiplyRGB(q.spriteColor(i, 0), q.ao[i]));
@@ -117,8 +115,8 @@ public class QuadEncoder {
 	}
 
 	/** for non-emissive mesh quads and all fallback quads with flat lighting. */
-	private void tesselateFlat(MutableQuadViewImpl quad, EncoderContext context, int blockColorIndex) {
-		colorizeQuad(quad, context, blockColorIndex);
+	private void tesselateFlat(MutableQuadViewImpl quad, EncoderContext context) {
+		colorizeQuad(quad, context);
 		final int brightness = flatBrightness(quad, context.blockInfo());
 
 		for (int i = 0; i < 4; i++) {
@@ -129,8 +127,8 @@ public class QuadEncoder {
 	}
 
 	/** for emissive mesh quads with flat lighting. */
-	private void tesselateFlatEmissive(MutableQuadViewImpl quad, EncoderContext context, int blockColorIndex) {
-		colorizeQuad(quad, context, blockColorIndex);
+	private void tesselateFlatEmissive(MutableQuadViewImpl quad, EncoderContext context) {
+		colorizeQuad(quad, context);
 
 		for (int i = 0; i < 4; i++) {
 			quad.lightmap(i, FULL_BRIGHTNESS);
@@ -160,16 +158,21 @@ public class QuadEncoder {
 	}
 
 	/** handles block color and red-blue swizzle, common to all renders. */
-	private void colorizeQuad(MutableQuadViewImpl q, EncoderContext context, int blockColorIndex) {
-		if (blockColorIndex == -1) {
+	private void colorizeQuad(MutableQuadViewImpl quad, EncoderContext context) {
+
+		final int colorIndex = quad.colorIndex();
+
+		// TODO: handle layers
+
+		if (colorIndex == -1 || quad.material().disableColorIndex(0)) {
 			for (int i = 0; i < 4; i++) {
-				q.spriteColor(i, 0, ColorHelper.swapRedBlueIfNeeded(q.spriteColor(i, 0)));
+				quad.spriteColor(i, 0, ColorHelper.swapRedBlueIfNeeded(quad.spriteColor(i, 0)));
 			}
 		} else {
-			final int blockColor = context.blockInfo().blockColor(blockColorIndex);
+			final int indexedColor = context.indexedColor(colorIndex);
 
 			for (int i = 0; i < 4; i++) {
-				q.spriteColor(i, 0, ColorHelper.swapRedBlueIfNeeded(ColorHelper.multiplyColor(blockColor, q.spriteColor(i, 0))));
+				quad.spriteColor(i, 0, ColorHelper.swapRedBlueIfNeeded(ColorHelper.multiplyColor(indexedColor, quad.spriteColor(i, 0))));
 			}
 		}
 	}
