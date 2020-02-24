@@ -57,13 +57,18 @@ public abstract class AbstractQuadRenderer2 implements EncoderContext {
 	}
 
 	@Override
-	public BlockRenderInfo blockInfo() {
-		return blockInfo;
+	public Vector3f normalVec() {
+		return normalVec;
 	}
 
 	@Override
-	public Vector3f normalVec() {
-		return normalVec;
+	public final int indexedColor(int colorIndex) {
+		return blockInfo.blockColor(colorIndex);
+	}
+
+	@Override
+	public final void applyLighting(MutableQuadViewImpl quad) {
+		blockInfo.applyBlockLighting(quad);
 	}
 
 	public AbstractQuadRenderer2(BlockRenderInfo blockInfo, Function<RenderLayer, VertexConsumer> bufferFunc, QuadTransform transform) {

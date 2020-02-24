@@ -6,12 +6,11 @@ import net.minecraft.client.util.math.Matrix4f;
 import net.minecraft.client.util.math.Vector3f;
 
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
-import grondag.canvas.apiimpl.rendercontext.BlockRenderInfo;
 
 public interface EncoderContext {
-	BlockRenderInfo blockInfo();
-
 	void computeLighting(MutableQuadViewImpl quad);
+
+	void applyLighting(MutableQuadViewImpl quad);
 
 	Vector3f normalVec();
 

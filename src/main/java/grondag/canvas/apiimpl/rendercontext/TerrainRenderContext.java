@@ -103,11 +103,6 @@ public class TerrainRenderContext extends AbstractRenderContext implements Rende
 		public void computeLighting(MutableQuadViewImpl quad) {
 			aoCalc.compute(quad);
 		}
-
-		@Override
-		public int indexedColor(int colorIndex) {
-			return blockInfo.blockColor(colorIndex);
-		}
 	};
 
 	private final FallbackConsumer fallbackConsumer = new FallbackConsumer(blockInfo, chunkInfo::getInitializedBuffer, this::transform) {
@@ -129,11 +124,6 @@ public class TerrainRenderContext extends AbstractRenderContext implements Rende
 		@Override
 		public void computeLighting(MutableQuadViewImpl quad) {
 			aoCalc.compute(quad);
-		}
-
-		@Override
-		public int indexedColor(int colorIndex) {
-			return blockInfo.blockColor(colorIndex);
 		}
 	};
 
