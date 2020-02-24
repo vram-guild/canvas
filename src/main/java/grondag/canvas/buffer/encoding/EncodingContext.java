@@ -1,4 +1,4 @@
-package grondag.canvas.apiimpl.rendercontext.wip;
+package grondag.canvas.buffer.encoding;
 
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.util.math.Matrix3f;
@@ -7,7 +7,7 @@ import net.minecraft.client.util.math.Vector3f;
 
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 
-public interface EncoderContext {
+public interface EncodingContext {
 	void computeLighting(MutableQuadViewImpl quad);
 
 	void applyLighting(MutableQuadViewImpl quad);

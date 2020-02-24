@@ -1,4 +1,4 @@
-package grondag.canvas.apiimpl.rendercontext.wip;
+package grondag.canvas.buffer.encoding;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.VertexConsumer;
@@ -17,7 +17,7 @@ public class QuadEncoder {
 	 * Determines color index and render layer, then routes to appropriate
 	 * tesselate routine based on material properties.
 	 */
-	public void tesselateQuad(MutableQuadViewImpl quad, EncoderContext context) {
+	public void tesselateQuad(MutableQuadViewImpl quad, EncodingContext context) {
 		final RenderMaterialImpl.Value mat = quad.material();
 
 		// needs to happen before offsets are applied
@@ -33,7 +33,7 @@ public class QuadEncoder {
 		bufferQuad(quad, context);
 	}
 
-	private void bufferQuad(MutableQuadViewImpl quad, EncoderContext context) {
+	private void bufferQuad(MutableQuadViewImpl quad, EncodingContext context) {
 		final Matrix4f matrix = context.matrix();
 		final int overlay = context.overlay();
 		final Matrix3f normalMatrix = context.normalMatrix();
@@ -69,7 +69,7 @@ public class QuadEncoder {
 	}
 
 	/** handles block color and red-blue swizzle, common to all renders. */
-	private void colorizeQuad(MutableQuadViewImpl quad, EncoderContext context) {
+	private void colorizeQuad(MutableQuadViewImpl quad, EncodingContext context) {
 
 		final int colorIndex = quad.colorIndex();
 

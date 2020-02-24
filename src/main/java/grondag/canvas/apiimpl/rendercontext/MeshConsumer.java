@@ -13,35 +13,30 @@
  * the License.
  ******************************************************************************/
 
-
 package grondag.canvas.apiimpl.rendercontext;
 
 import java.util.function.Consumer;
-import java.util.function.Function;
-
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.VertexConsumer;
 
 import net.fabricmc.fabric.api.renderer.v1.mesh.Mesh;
 import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
-import net.fabricmc.fabric.api.renderer.v1.render.RenderContext.QuadTransform;
 
 import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.apiimpl.mesh.MeshImpl;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
-import grondag.canvas.apiimpl.rendercontext.wip.AbstractQuadRenderer2;
-import grondag.canvas.apiimpl.rendercontext.wip.QuadEncoder;
 import grondag.canvas.apiimpl.util.ColorHelper;
 import grondag.canvas.apiimpl.util.GeometryHelper;
 import grondag.canvas.apiimpl.util.MeshEncodingHelper;
+import grondag.canvas.buffer.encoding.QuadEncoder;
 
 /**
  * Consumer for pre-baked meshes.  Works by copying the mesh data to a
  * "editor" quad held in the instance, where all transformations are applied before buffering.
  */
-public abstract class AbstractMeshConsumer extends AbstractQuadRenderer2 implements Consumer<Mesh> {
-	protected AbstractMeshConsumer(BlockRenderInfo blockInfo, Function<RenderLayer, VertexConsumer> bufferFunc, QuadTransform transform) {
-		super(blockInfo, bufferFunc, transform);
+public class MeshConsumer implements Consumer<Mesh> {
+	private final AbstractEncodingContext  encodingContext;
+
+	protected MeshConsumer(AbstractEncodingContext encodingContext) {
+		this.encodingContext = encodingContext;
 	}
 
 	/**
@@ -88,14 +83,14 @@ public abstract class AbstractMeshConsumer extends AbstractQuadRenderer2 impleme
 	}
 
 	private void renderQuad(MutableQuadViewImpl q) {
-		if (!transform.transform(editorQuad)) {
+		if (!encodingContext.transform.transform(editorQuad)) {
 			return;
 		}
 
-		if (!blockInfo.shouldDrawFace(q.cullFace())) {
+		if (!encodingContext.cullTest.test(q.cullFace())) {
 			return;
 		}
 
-		QuadEncoder.INSTANCE.tesselateQuad(q, this);
+		QuadEncoder.INSTANCE.tesselateQuad(q, encodingContext);
 	}
 }

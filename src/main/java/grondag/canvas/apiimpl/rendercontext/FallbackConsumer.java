@@ -19,27 +19,22 @@ package grondag.canvas.apiimpl.rendercontext;
 import java.util.List;
 import java.util.Random;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 import net.minecraft.block.BlockState;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.model.BakedModel;
 import net.minecraft.client.render.model.BakedQuad;
 import net.minecraft.util.math.Direction;
 
 import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
 import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
-import net.fabricmc.fabric.api.renderer.v1.render.RenderContext.QuadTransform;
 
 import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.apiimpl.RenderMaterialImpl.Value;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
-import grondag.canvas.apiimpl.rendercontext.wip.AbstractQuadRenderer2;
-import grondag.canvas.apiimpl.rendercontext.wip.QuadEncoder;
 import grondag.canvas.apiimpl.util.GeometryHelper;
 import grondag.canvas.apiimpl.util.MeshEncodingHelper;
+import grondag.canvas.buffer.encoding.QuadEncoder;
 
 /**
  * Consumer for vanilla baked models. Generally intended to give visual results matching a vanilla render,
@@ -60,14 +55,18 @@ import grondag.canvas.apiimpl.util.MeshEncodingHelper;
  *  vertex data is sent to the byte buffer.  Generally POJO array access will be faster than
  *  manipulating the data via NIO.
  */
-public abstract class FallbackConsumer extends AbstractQuadRenderer2 implements Consumer<BakedModel> {
+public class FallbackConsumer implements Consumer<BakedModel> {
 	private static Value MATERIAL_FLAT = Canvas.INSTANCE.materialFinder().disableAo(0, true).find();
 	private static Value MATERIAL_SHADED = Canvas.INSTANCE.materialFinder().find();
 
+	private final AbstractEncodingContext  encodingContext;
+	private final BlockRenderInfo blockInfo;
+
 	private final int[] editorBuffer = new int[MeshEncodingHelper.TOTAL_QUAD_STRIDE];
 
-	public FallbackConsumer(BlockRenderInfo blockInfo, Function<RenderLayer, VertexConsumer> bufferFunc, QuadTransform transform) {
-		super(blockInfo, bufferFunc, transform);
+	public FallbackConsumer(AbstractEncodingContext encodingContext, BlockRenderInfo blockInfo) {
+		this.encodingContext = encodingContext;
+		this.blockInfo = blockInfo;
 	}
 
 	private final MutableQuadViewImpl editorQuad = new MutableQuadViewImpl() {
@@ -94,7 +93,7 @@ public abstract class FallbackConsumer extends AbstractQuadRenderer2 implements 
 			final List<BakedQuad> quads = model.getQuads(blockState, face, random.get());
 			final int count = quads.size();
 
-			if (count != 0 && blockInfo.shouldDrawFace(face)) {
+			if (count != 0 && encodingContext.cullTest.test(face)) {
 				for (int j = 0; j < count; j++) {
 					final BakedQuad q = quads.get(j);
 					renderQuad(q, face, defaultMaterial);
@@ -125,7 +124,7 @@ public abstract class FallbackConsumer extends AbstractQuadRenderer2 implements 
 		editorQuad.colorIndex(quad.getColorIndex());
 		editorQuad.material(defaultMaterial);
 
-		if (!transform.transform(editorQuad)) {
+		if (!encodingContext.transform.transform(editorQuad)) {
 			return;
 		}
 
@@ -145,6 +144,6 @@ public abstract class FallbackConsumer extends AbstractQuadRenderer2 implements 
 			}
 		}
 
-		QuadEncoder.INSTANCE.tesselateQuad(editorQuad, this);
+		QuadEncoder.INSTANCE.tesselateQuad(editorQuad, encodingContext);
 	}
 }

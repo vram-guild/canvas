@@ -19,7 +19,6 @@ package grondag.canvas.apiimpl.rendercontext;
 import static grondag.canvas.chunk.RenderRegionAddressHelper.cacheIndexToXyz5;
 
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 import net.minecraft.block.BlockState;
 import net.minecraft.client.render.RenderLayer;
@@ -106,7 +105,6 @@ public class BlockRenderContext extends AbstractRenderContext implements RenderC
 		}
 	};
 
-	private final MeshConsumer meshConsumer = new MeshConsumer(blockInfo, this::outputBuffer, this::transform);
 	private VertexConsumer bufferBuilder;
 	private boolean didOutput = false;
 
@@ -134,33 +132,7 @@ public class BlockRenderContext extends AbstractRenderContext implements RenderC
 		return didOutput;
 	}
 
-	private class MeshConsumer extends AbstractMeshConsumer {
-		MeshConsumer(BlockRenderInfo blockInfo, Function<RenderLayer, VertexConsumer> bufferFunc, QuadTransform transform) {
-			super(blockInfo, bufferFunc, transform);
-		}
-
-		@Override
-		public Matrix4f matrix() {
-			return matrix;
-		}
-
-		@Override
-		public Matrix3f normalMatrix() {
-			return normalMatrix;
-		}
-
-		@Override
-		public int overlay() {
-			return overlay;
-		}
-
-		@Override
-		public void computeLighting(MutableQuadViewImpl quad) {
-			aoCalc.compute(quad);
-		}
-	}
-
-	private final FallbackConsumer fallbackConsumer = new FallbackConsumer(blockInfo, this::outputBuffer, this::transform) {
+	private final AbstractBlockEncodingContext encodingContext = new AbstractBlockEncodingContext(blockInfo, this::outputBuffer, this::transform) {
 		@Override
 		public int overlay() {
 			return overlay;
@@ -181,6 +153,10 @@ public class BlockRenderContext extends AbstractRenderContext implements RenderC
 			aoCalc.compute(quad);
 		}
 	};
+
+	private final MeshConsumer meshConsumer = new MeshConsumer(encodingContext);
+
+	private final FallbackConsumer fallbackConsumer = new FallbackConsumer(encodingContext, blockInfo);
 
 	@Override
 	public Consumer<Mesh> meshConsumer() {

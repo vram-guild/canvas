@@ -14,32 +14,33 @@
  ******************************************************************************/
 
 
-package grondag.canvas.apiimpl.rendercontext.wip;
+package grondag.canvas.apiimpl.rendercontext;
 
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.util.math.Matrix3f;
 import net.minecraft.client.util.math.Matrix4f;
 import net.minecraft.client.util.math.Vector3f;
+import net.minecraft.util.math.Direction;
 
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext.QuadTransform;
 
-import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
-import grondag.canvas.apiimpl.rendercontext.BlockRenderInfo;
+import grondag.canvas.buffer.encoding.EncodingContext;
 
 /**
  * Base quad-rendering class for fallback and mesh consumers.
  * Has most of the actual buffer-time lighting and coloring logic.
  */
-public abstract class AbstractQuadRenderer2 implements EncoderContext {
+public abstract class AbstractEncodingContext implements EncodingContext {
 	static final int FULL_BRIGHTNESS = 0xF000F0;
 
 	protected final Function<RenderLayer, VertexConsumer> bufferFunc;
-	protected final QuadTransform transform;
-	protected final BlockRenderInfo blockInfo;
+	public final QuadTransform transform;
 	protected final Vector3f normalVec = new Vector3f();
+	public final Predicate<Direction> cullTest;
 
 	@Override
 	public abstract Matrix4f matrix();
@@ -51,29 +52,13 @@ public abstract class AbstractQuadRenderer2 implements EncoderContext {
 	public abstract int overlay();
 
 	@Override
-	public VertexConsumer consumer(MutableQuadViewImpl quad) {
-		final RenderLayer layer = blockInfo.effectiveRenderLayer(quad.material().blendMode(0));
-		return bufferFunc.apply(layer);
-	}
-
-	@Override
 	public Vector3f normalVec() {
 		return normalVec;
 	}
 
-	@Override
-	public final int indexedColor(int colorIndex) {
-		return blockInfo.blockColor(colorIndex);
-	}
-
-	@Override
-	public final void applyLighting(MutableQuadViewImpl quad) {
-		blockInfo.applyBlockLighting(quad);
-	}
-
-	public AbstractQuadRenderer2(BlockRenderInfo blockInfo, Function<RenderLayer, VertexConsumer> bufferFunc, QuadTransform transform) {
-		this.blockInfo = blockInfo;
+	public AbstractEncodingContext(Function<RenderLayer, VertexConsumer> bufferFunc, QuadTransform transform, Predicate<Direction> cullTest) {
 		this.bufferFunc = bufferFunc;
 		this.transform = transform;
+		this.cullTest = cullTest;
 	}
 }
