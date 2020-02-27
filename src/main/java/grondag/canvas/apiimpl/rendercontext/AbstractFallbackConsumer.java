@@ -146,6 +146,6 @@ public abstract class AbstractFallbackConsumer implements Consumer<BakedModel> {
 			}
 		}
 
-		VanillaEncoder.INSTANCE.tesselateQuad(editorQuad, encodingContext);
+		VanillaEncoder.INSTANCE.encodeQuad(editorQuad, encodingContext);
 	}
 }

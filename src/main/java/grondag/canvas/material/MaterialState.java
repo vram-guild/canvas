@@ -6,6 +6,7 @@ import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.buffer.encoding.VertexEncoder;
 import grondag.canvas.buffer.encoding.VertexEncoders;
 import grondag.canvas.draw.DrawHandler;
+import grondag.canvas.draw.DrawHandlers;
 import grondag.fermion.varia.Useful;
 
 public class MaterialState {
@@ -16,7 +17,7 @@ public class MaterialState {
 	// output format must match input format of draw handler
 	public final VertexEncoder encoder;
 
-	// sets up gl state, updates uniforms and does draw.  For shaders, handles vertex attributes and will be the same shader.
+	// sets up gl state, updates uniforms and does draw.  For shaders, handles vertex attributes and same handler implies same shader.
 	// input format must match output format of draw handler
 	public final DrawHandler drawHandler;
 
@@ -33,7 +34,7 @@ public class MaterialState {
 	private static final int DRAW_HANDLER_SHIFT = ENCODER_SHIFT + Useful.bitLength(VertexEncoders.MAX_ENCODERS);
 
 	// TODO: make configurable
-	public static int MAX_PIPELINE_COUNT = 0xFFFF;
+	public static int MAX_MATERIAL_STATES = 0xFFFF;
 
 	private static final MaterialState[] VALUES = new MaterialState[0xFFFF];
 
@@ -43,7 +44,9 @@ public class MaterialState {
 
 		final VertexEncoder encoder = VertexEncoders.get(context, format, mat);
 
-		final DrawHandler drawHandler = DrawHandler.get(context, format, mat);
+		final DrawHandler drawHandler = DrawHandlers.get(context, format, mat);
+
+		assert encoder.outputFormat() == drawHandler.inputFormat();
 
 		final int index = index(context, encoder, drawHandler);
 

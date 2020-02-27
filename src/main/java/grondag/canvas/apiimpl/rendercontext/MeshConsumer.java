@@ -91,6 +91,6 @@ public class MeshConsumer implements Consumer<Mesh> {
 			return;
 		}
 
-		VanillaEncoder.INSTANCE.tesselateQuad(q, encodingContext);
+		VanillaEncoder.INSTANCE.encodeQuad(q, encodingContext);
 	}
 }

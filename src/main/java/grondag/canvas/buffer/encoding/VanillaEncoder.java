@@ -9,25 +9,11 @@ import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.util.ColorHelper;
 import grondag.canvas.material.MaterialBufferFormat;
 
-public class VanillaEncoder implements VertexEncoder {
+public class VanillaEncoder extends VertexEncoder {
 	public static final VanillaEncoder INSTANCE = new VanillaEncoder();
 
-	/**
-	 * Determines color index and render layer, then routes to appropriate
-	 * tesselate routine based on material properties.
-	 */
-	public void tesselateQuad(MutableQuadViewImpl quad, VertexEncodingContext context) {
-		// needs to happen before offsets are applied
-		context.computeLighting(quad);
-
-		colorizeQuad(quad, context);
-
-		context.applyLighting(quad);
-
-		bufferQuad(quad, context);
-	}
-
-	private void bufferQuad(MutableQuadViewImpl quad, VertexEncodingContext context) {
+	@Override
+	protected void bufferQuad(MutableQuadViewImpl quad, VertexEncodingContext context) {
 		final Matrix4f matrix = context.matrix();
 		final int overlay = context.overlay();
 		final Matrix3f normalMatrix = context.normalMatrix();
@@ -63,7 +49,8 @@ public class VanillaEncoder implements VertexEncoder {
 	}
 
 	/** handles block color and red-blue swizzle, common to all renders. */
-	private void colorizeQuad(MutableQuadViewImpl quad, VertexEncodingContext context) {
+	@Override
+	protected void colorizeQuad(MutableQuadViewImpl quad, VertexEncodingContext context) {
 
 		final int colorIndex = quad.colorIndex();
 
@@ -84,13 +71,6 @@ public class VanillaEncoder implements VertexEncoder {
 
 	@Override
 	public MaterialBufferFormat outputFormat() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public int index() {
-		// TODO Auto-generated method stub
-		return 0;
+		return MaterialBufferFormat.VANILLA_BLOCKS_AND_ITEMS;
 	}
 }
