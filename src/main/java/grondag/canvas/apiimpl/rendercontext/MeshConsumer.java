@@ -27,15 +27,16 @@ import grondag.canvas.apiimpl.util.ColorHelper;
 import grondag.canvas.apiimpl.util.GeometryHelper;
 import grondag.canvas.apiimpl.util.MeshEncodingHelper;
 import grondag.canvas.buffer.encoding.VanillaEncoder;
+import grondag.canvas.buffer.encoding.VertexEncodingContext;
 
 /**
  * Consumer for pre-baked meshes.  Works by copying the mesh data to a
  * "editor" quad held in the instance, where all transformations are applied before buffering.
  */
 public class MeshConsumer implements Consumer<Mesh> {
-	private final AbstractEncodingContext  encodingContext;
+	private final VertexEncodingContext  encodingContext;
 
-	protected MeshConsumer(AbstractEncodingContext encodingContext) {
+	protected MeshConsumer(VertexEncodingContext encodingContext) {
 		this.encodingContext = encodingContext;
 	}
 

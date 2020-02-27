@@ -21,6 +21,8 @@ import java.util.function.Supplier;
 
 import net.minecraft.block.BlockState;
 
+import grondag.canvas.buffer.encoding.VertexEncodingContext;
+
 /**
  * Consumer for vanilla baked models. Generally intended to give visual results matching a vanilla render,
  * however there could be subtle (and desirable) lighting variations so is good to be able to render
@@ -43,7 +45,7 @@ import net.minecraft.block.BlockState;
 public class BlockFallbackConsumer extends AbstractFallbackConsumer {
 	private final BlockRenderInfo blockInfo;
 
-	public BlockFallbackConsumer(AbstractEncodingContext encodingContext, BlockRenderInfo blockInfo) {
+	public BlockFallbackConsumer(VertexEncodingContext encodingContext, BlockRenderInfo blockInfo) {
 		super(encodingContext);
 		this.blockInfo = blockInfo;
 	}

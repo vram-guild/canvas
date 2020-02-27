@@ -43,6 +43,7 @@ import grondag.canvas.chunk.ProtoRenderRegion;
 import grondag.canvas.chunk.RegionData;
 import grondag.canvas.chunk.RenderRegionAddressHelper;
 import grondag.canvas.light.AoCalculator;
+import grondag.canvas.material.MaterialContext;
 
 /**
  * Implementation of {@link RenderContext} used during terrain rendering.
@@ -102,6 +103,11 @@ public class TerrainRenderContext extends AbstractRenderContext implements Rende
 		@Override
 		public void computeLighting(MutableQuadViewImpl quad) {
 			aoCalc.compute(quad);
+		}
+
+		@Override
+		public MaterialContext materialContext() {
+			return MaterialContext.TERRAIN;
 		}
 	};
 

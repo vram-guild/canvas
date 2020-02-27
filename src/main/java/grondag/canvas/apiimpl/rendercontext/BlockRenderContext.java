@@ -40,6 +40,7 @@ import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.light.AoCalculator;
+import grondag.canvas.material.MaterialContext;
 
 /**
  * Context for non-terrain block rendering.
@@ -154,6 +155,11 @@ public class BlockRenderContext extends AbstractRenderContext implements RenderC
 			if (!quad.material().disableAo(0) && MinecraftClient.isAmbientOcclusionEnabled()) {
 				aoCalc.compute(quad);
 			}
+		}
+
+		@Override
+		public MaterialContext materialContext() {
+			return MaterialContext.BLOCK;
 		}
 	};
 

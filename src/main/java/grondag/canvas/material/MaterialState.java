@@ -1,5 +1,7 @@
 package grondag.canvas.material;
 
+import net.minecraft.util.math.MathHelper;
+
 import net.fabricmc.fabric.impl.client.indigo.renderer.RenderMaterialImpl;
 
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
@@ -30,7 +32,7 @@ public class MaterialState {
 		this.index = index;
 	}
 
-	private static final int ENCODER_SHIFT = Useful.bitLength(MaterialContext.MAX_CONTEXTS);
+	private static final int ENCODER_SHIFT = Useful.bitLength(MathHelper.smallestEncompassingPowerOfTwo(MaterialContext.values().length));
 	private static final int DRAW_HANDLER_SHIFT = ENCODER_SHIFT + Useful.bitLength(VertexEncoders.MAX_ENCODERS);
 
 	// TODO: make configurable
@@ -71,6 +73,6 @@ public class MaterialState {
 	}
 
 	private static int index(MaterialContext context, VertexEncoder encoder, DrawHandler drawHandler) {
-		return context.index | (encoder.index() << ENCODER_SHIFT) | (drawHandler.index() << DRAW_HANDLER_SHIFT);
+		return context.ordinal() | (encoder.index() << ENCODER_SHIFT) | (drawHandler.index() << DRAW_HANDLER_SHIFT);
 	}
 }

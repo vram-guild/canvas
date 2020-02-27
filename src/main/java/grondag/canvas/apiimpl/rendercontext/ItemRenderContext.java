@@ -47,6 +47,8 @@ import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.util.ColorHelper;
+import grondag.canvas.buffer.encoding.VertexEncodingContext;
+import grondag.canvas.material.MaterialContext;
 
 /**
  * The render context used for item rendering.
@@ -62,8 +64,10 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 
 	private VertexConsumerProvider vertexConsumerProvider;
 	private VertexConsumer modelVertexConsumer;
+
 	private BlendMode quadBlendMode;
 	private VertexConsumer quadVertexConsumer;
+
 	private Mode transformMode;
 	private int lightmap;
 	private ItemStack itemStack;
@@ -74,7 +78,9 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 		return random;
 	};
 
-	private final AbstractEncodingContext encodingContext = new AbstractEncodingContext(this::selectVertexConsumer, this::transform, Predicates.alwaysTrue()) {
+
+	private final VertexEncodingContext encodingContext = new VertexEncodingContext(this::selectVertexConsumer, this::transform, Predicates.alwaysTrue()) {
+
 		@Override
 		public int overlay() {
 			return overlay;
@@ -114,6 +120,11 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 		public int indexedColor(int colorIndex) {
 			return colorIndex == -1 ? -1 : (colorMap.getColorMultiplier(itemStack, colorIndex) | 0xFF000000);
 		}
+
+		@Override
+		public MaterialContext materialContext() {
+			return MaterialContext.ITEM;
+		}
 	};
 
 	public ItemRenderContext(ItemColors colorMap) {
@@ -129,7 +140,6 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 
 		quadBlendMode = BlendMode.DEFAULT;
 		modelVertexConsumer = selectVertexConsumer(RenderLayers.getItemLayer(itemStack));
-
 		matrixStack.push();
 
 		((BakedModel) model).getTransformation().getTransformation(transformMode).apply(invert, matrixStack);

@@ -35,6 +35,7 @@ import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.util.GeometryHelper;
 import grondag.canvas.apiimpl.util.MeshEncodingHelper;
 import grondag.canvas.buffer.encoding.VanillaEncoder;
+import grondag.canvas.buffer.encoding.VertexEncodingContext;
 
 /**
  * Consumer for vanilla baked models. Generally intended to give visual results matching a vanilla render,
@@ -59,11 +60,11 @@ public abstract class AbstractFallbackConsumer implements Consumer<BakedModel> {
 	private static Value MATERIAL_FLAT = Canvas.INSTANCE.materialFinder().disableAo(0, true).find();
 	private static Value MATERIAL_SHADED = Canvas.INSTANCE.materialFinder().find();
 
-	private final AbstractEncodingContext  encodingContext;
+	private final VertexEncodingContext  encodingContext;
 
 	private final int[] editorBuffer = new int[MeshEncodingHelper.TOTAL_QUAD_STRIDE];
 
-	public AbstractFallbackConsumer(AbstractEncodingContext encodingContext) {
+	public AbstractFallbackConsumer(VertexEncodingContext encodingContext) {
 		this.encodingContext = encodingContext;
 	}
 
@@ -134,7 +135,7 @@ public abstract class AbstractFallbackConsumer implements Consumer<BakedModel> {
 			return;
 		}
 
-		if (defaultMaterial.disableAo(0)) {
+		if (editorQuad.material().disableAo(0)) {
 			// vanilla compatibility hack
 			// For flat lighting, cull face drives everything and light face is ignored.
 			if (cullFaceId == ModelHelper.NULL_FACE_ID) {

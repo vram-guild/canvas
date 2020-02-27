@@ -8,8 +8,9 @@ import net.minecraft.client.render.VertexConsumer;
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext.QuadTransform;
 
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
+import grondag.canvas.buffer.encoding.VertexEncodingContext;
 
-public abstract class AbstractBlockEncodingContext extends AbstractEncodingContext {
+public abstract class AbstractBlockEncodingContext extends VertexEncodingContext {
 	static final int FULL_BRIGHTNESS = 0xF000F0;
 
 	protected final BlockRenderInfo blockInfo;
