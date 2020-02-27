@@ -34,8 +34,8 @@ import grondag.canvas.apiimpl.RenderMaterialImpl.Value;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.util.GeometryHelper;
 import grondag.canvas.apiimpl.util.MeshEncodingHelper;
-import grondag.canvas.buffer.encoding.VanillaEncoder;
 import grondag.canvas.buffer.encoding.VertexEncodingContext;
+import grondag.canvas.material.MaterialState;
 
 /**
  * Consumer for vanilla baked models. Generally intended to give visual results matching a vanilla render,
@@ -147,6 +147,6 @@ public abstract class AbstractFallbackConsumer implements Consumer<BakedModel> {
 			}
 		}
 
-		VanillaEncoder.INSTANCE.encodeQuad(editorQuad, encodingContext);
+		MaterialState.get(encodingContext.materialContext(), editorQuad).encoder.encodeQuad(editorQuad, encodingContext);
 	}
 }

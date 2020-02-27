@@ -26,8 +26,8 @@ import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.util.ColorHelper;
 import grondag.canvas.apiimpl.util.GeometryHelper;
 import grondag.canvas.apiimpl.util.MeshEncodingHelper;
-import grondag.canvas.buffer.encoding.VanillaEncoder;
 import grondag.canvas.buffer.encoding.VertexEncodingContext;
+import grondag.canvas.material.MaterialState;
 
 /**
  * Consumer for pre-baked meshes.  Works by copying the mesh data to a
@@ -83,15 +83,15 @@ public class MeshConsumer implements Consumer<Mesh> {
 		return editorQuad;
 	}
 
-	private void renderQuad(MutableQuadViewImpl q) {
+	private void renderQuad(MutableQuadViewImpl quad) {
 		if (!encodingContext.transform.transform(editorQuad)) {
 			return;
 		}
 
-		if (!encodingContext.cullTest.test(q.cullFace())) {
+		if (!encodingContext.cullTest.test(quad.cullFace())) {
 			return;
 		}
 
-		VanillaEncoder.INSTANCE.encodeQuad(q, encodingContext);
+		MaterialState.get(encodingContext.materialContext(), quad).encoder.encodeQuad(quad, encodingContext);
 	}
 }

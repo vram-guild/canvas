@@ -2,8 +2,7 @@ package grondag.canvas.material;
 
 import net.minecraft.util.math.MathHelper;
 
-import net.fabricmc.fabric.impl.client.indigo.renderer.RenderMaterialImpl;
-
+import grondag.canvas.apiimpl.RenderMaterialImpl.Value;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.buffer.encoding.VertexEncoder;
 import grondag.canvas.buffer.encoding.VertexEncoders;
@@ -40,8 +39,10 @@ public class MaterialState {
 
 	private static final MaterialState[] VALUES = new MaterialState[0xFFFF];
 
-	public static MaterialState get(MaterialContext context, RenderMaterialImpl.Value mat, MutableQuadViewImpl quad) {
+	public static MaterialState get(MaterialContext context, MutableQuadViewImpl quad) {
 		// analyze quad for lighting/color/texture content to allow for compact encoding, subject to material constraints
+		final Value mat = quad.material();
+
 		final MaterialBufferFormat format = MaterialBufferFormat.get(context, mat, quad);
 
 		final VertexEncoder encoder = VertexEncoders.get(context, format, mat);

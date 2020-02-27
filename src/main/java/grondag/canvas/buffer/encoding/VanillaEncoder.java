@@ -10,7 +10,7 @@ import grondag.canvas.apiimpl.util.ColorHelper;
 import grondag.canvas.material.MaterialBufferFormat;
 
 public class VanillaEncoder extends VertexEncoder {
-	public static final VanillaEncoder INSTANCE = new VanillaEncoder();
+	static final VanillaEncoder INSTANCE = new VanillaEncoder();
 
 	@Override
 	protected void bufferQuad(MutableQuadViewImpl quad, VertexEncodingContext context) {

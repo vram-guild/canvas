@@ -1,7 +1,7 @@
 package grondag.canvas.material;
 
-import net.fabricmc.fabric.impl.client.indigo.renderer.RenderMaterialImpl.Value;
 
+import grondag.canvas.apiimpl.RenderMaterialImpl.Value;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 
 /**
