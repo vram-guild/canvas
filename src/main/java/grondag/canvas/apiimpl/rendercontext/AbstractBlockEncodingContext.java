@@ -10,6 +10,8 @@ import net.fabricmc.fabric.api.renderer.v1.render.RenderContext.QuadTransform;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 
 public abstract class AbstractBlockEncodingContext extends AbstractEncodingContext {
+	static final int FULL_BRIGHTNESS = 0xF000F0;
+
 	protected final BlockRenderInfo blockInfo;
 
 	public AbstractBlockEncodingContext(BlockRenderInfo blockInfo, Function<RenderLayer, VertexConsumer> bufferFunc, QuadTransform transform) {

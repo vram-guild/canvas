@@ -73,7 +73,7 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 		isGeometryInvalid = true;
 		nominalFaceId = ModelHelper.NULL_FACE_ID;
 		normalFlags(0);
-		tag(0);
+		// tag(0); seems redundant - handled by array copy
 		colorIndex(-1);
 		cullFace(null);
 		material(Canvas.MATERIAL_STANDARD);

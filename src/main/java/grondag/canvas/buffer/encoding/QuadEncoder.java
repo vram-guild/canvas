@@ -1,12 +1,10 @@
 package grondag.canvas.buffer.encoding;
 
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.util.math.Matrix3f;
 import net.minecraft.client.util.math.Matrix4f;
 import net.minecraft.client.util.math.Vector3f;
 
-import grondag.canvas.apiimpl.RenderMaterialImpl;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.util.ColorHelper;
 
@@ -18,13 +16,8 @@ public class QuadEncoder {
 	 * tesselate routine based on material properties.
 	 */
 	public void tesselateQuad(MutableQuadViewImpl quad, EncodingContext context) {
-		final RenderMaterialImpl.Value mat = quad.material();
-
 		// needs to happen before offsets are applied
-		// TODO: move this check to the encoder
-		if (!mat.disableAo(0) && MinecraftClient.isAmbientOcclusionEnabled()) {
-			context.computeLighting(quad);
-		}
+		context.computeLighting(quad);
 
 		colorizeQuad(quad, context);
 

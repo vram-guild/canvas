@@ -21,6 +21,7 @@ import static grondag.canvas.chunk.RenderRegionAddressHelper.cacheIndexToXyz5;
 import java.util.function.Consumer;
 
 import net.minecraft.block.BlockState;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.WorldRenderer;
@@ -150,13 +151,15 @@ public class BlockRenderContext extends AbstractRenderContext implements RenderC
 
 		@Override
 		public void computeLighting(MutableQuadViewImpl quad) {
-			aoCalc.compute(quad);
+			if (!quad.material().disableAo(0) && MinecraftClient.isAmbientOcclusionEnabled()) {
+				aoCalc.compute(quad);
+			}
 		}
 	};
 
 	private final MeshConsumer meshConsumer = new MeshConsumer(encodingContext);
 
-	private final FallbackConsumer fallbackConsumer = new FallbackConsumer(encodingContext, blockInfo);
+	private final BlockFallbackConsumer fallbackConsumer = new BlockFallbackConsumer(encodingContext, blockInfo);
 
 	@Override
 	public Consumer<Mesh> meshConsumer() {

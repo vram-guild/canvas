@@ -108,7 +108,7 @@ public class TerrainRenderContext extends AbstractRenderContext implements Rende
 
 	private final MeshConsumer meshConsumer = new MeshConsumer(encodingContext);
 
-	private final FallbackConsumer fallbackConsumer = new FallbackConsumer(encodingContext, blockInfo);
+	private final BlockFallbackConsumer fallbackConsumer = new BlockFallbackConsumer(encodingContext, blockInfo);
 
 	public TerrainRenderContext prepareRegion(ProtoRenderRegion protoRegion) {
 		nonCullBlockEntities.clear();

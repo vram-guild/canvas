@@ -55,18 +55,16 @@ import grondag.canvas.buffer.encoding.QuadEncoder;
  *  vertex data is sent to the byte buffer.  Generally POJO array access will be faster than
  *  manipulating the data via NIO.
  */
-public class FallbackConsumer implements Consumer<BakedModel> {
+public abstract class AbstractFallbackConsumer implements Consumer<BakedModel> {
 	private static Value MATERIAL_FLAT = Canvas.INSTANCE.materialFinder().disableAo(0, true).find();
 	private static Value MATERIAL_SHADED = Canvas.INSTANCE.materialFinder().find();
 
 	private final AbstractEncodingContext  encodingContext;
-	private final BlockRenderInfo blockInfo;
 
 	private final int[] editorBuffer = new int[MeshEncodingHelper.TOTAL_QUAD_STRIDE];
 
-	public FallbackConsumer(AbstractEncodingContext encodingContext, BlockRenderInfo blockInfo) {
+	public AbstractFallbackConsumer(AbstractEncodingContext encodingContext) {
 		this.encodingContext = encodingContext;
-		this.blockInfo = blockInfo;
 	}
 
 	private final MutableQuadViewImpl editorQuad = new MutableQuadViewImpl() {
@@ -82,11 +80,17 @@ public class FallbackConsumer implements Consumer<BakedModel> {
 		}
 	};
 
+	protected abstract Supplier<Random> randomSupplier();
+
+	protected abstract boolean defaultAo();
+
+	protected abstract BlockState blockState();
+
 	@Override
 	public void accept(BakedModel model) {
-		final Supplier<Random> random = blockInfo.randomSupplier;
-		final Value defaultMaterial = blockInfo.defaultAo && model.useAmbientOcclusion() ? MATERIAL_SHADED : MATERIAL_FLAT;
-		final BlockState blockState = blockInfo.blockState;
+		final Supplier<Random> random = randomSupplier();
+		final Value defaultMaterial = defaultAo() && model.useAmbientOcclusion() ? MATERIAL_SHADED : MATERIAL_FLAT;
+		final BlockState blockState = blockState();
 
 		for (int i = 0; i < 6; i++) {
 			final Direction face = ModelHelper.faceFromIndex(i);
@@ -96,7 +100,7 @@ public class FallbackConsumer implements Consumer<BakedModel> {
 			if (count != 0 && encodingContext.cullTest.test(face)) {
 				for (int j = 0; j < count; j++) {
 					final BakedQuad q = quads.get(j);
-					renderQuad(q, face, defaultMaterial);
+					renderQuad(q, i, defaultMaterial);
 				}
 			}
 		}
@@ -107,40 +111,38 @@ public class FallbackConsumer implements Consumer<BakedModel> {
 		if (count != 0) {
 			for (int j = 0; j < count; j++) {
 				final BakedQuad q = quads.get(j);
-				renderQuad(q, null, defaultMaterial);
+				renderQuad(q, ModelHelper.NULL_FACE_ID, defaultMaterial);
 			}
 		}
 	}
 
-	private void renderQuad(BakedQuad quad, Direction cullFace, Value defaultMaterial) {
+	private void renderQuad(BakedQuad quad, int cullFaceId, Value defaultMaterial) {
 		final int[] vertexData = quad.getVertexData();
 
 		final MutableQuadViewImpl editorQuad = this.editorQuad;
 		System.arraycopy(vertexData, 0, editorBuffer, MeshEncodingHelper.HEADER_STRIDE, MeshEncodingHelper.BASE_QUAD_STRIDE);
-		editorQuad.cullFace(cullFace);
-		final Direction lightFace = quad.getFace();
-		editorQuad.lightFace(lightFace);
-		editorQuad.nominalFace(lightFace);
+		editorQuad.cullFace(cullFaceId);
+		final int lightFaceId = quad.getFace().ordinal();
+		editorQuad.lightFace(lightFaceId);
+		editorQuad.nominalFace(lightFaceId);
 		editorQuad.colorIndex(quad.getColorIndex());
 		editorQuad.material(defaultMaterial);
+		editorQuad.tag(0);
+		editorQuad.invalidateShape();
 
 		if (!encodingContext.transform.transform(editorQuad)) {
 			return;
 		}
 
-		if (!editorQuad.material().disableAo(0)) {
-			// needs to happen before offsets are applied
-			editorQuad.invalidateShape();
-		} else {
+		if (defaultMaterial.disableAo(0)) {
 			// vanilla compatibility hack
 			// For flat lighting, cull face drives everything and light face is ignored.
-			if (cullFace == null) {
-				editorQuad.invalidateShape();
-				// Can't rely on lazy computation in tesselateFlat() because needs to happen before offsets are applied
+			if (cullFaceId == ModelHelper.NULL_FACE_ID) {
+				// Can't rely on lazy computation in tesselate because needs to happen before offsets are applied
 				editorQuad.geometryFlags();
 			} else {
-				editorQuad.geometryFlags(GeometryHelper.LIGHT_FACE_FLAG);
-				editorQuad.lightFace(cullFace);
+				editorQuad.geometryFlags(GeometryHelper.LIGHT_FACE_FLAG | GeometryHelper.AXIS_ALIGNED_FLAG);
+				editorQuad.lightFace(cullFaceId);
 			}
 		}
 

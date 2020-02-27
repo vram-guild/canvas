@@ -16,11 +16,12 @@
 
 package grondag.canvas.apiimpl.rendercontext;
 
-import java.util.List;
 import java.util.Objects;
 import java.util.Random;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+
+import com.google.common.base.Predicates;
 
 import net.minecraft.block.BlockState;
 import net.minecraft.client.color.item.ItemColors;
@@ -31,28 +32,21 @@ import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.item.ItemRenderer;
 import net.minecraft.client.render.model.BakedModel;
-import net.minecraft.client.render.model.BakedQuad;
 import net.minecraft.client.render.model.json.ModelTransformation;
 import net.minecraft.client.render.model.json.ModelTransformation.Mode;
+import net.minecraft.client.util.math.Matrix3f;
 import net.minecraft.client.util.math.Matrix4f;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.client.util.math.Vector3f;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.math.Direction;
 
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 import net.fabricmc.fabric.api.renderer.v1.mesh.Mesh;
 import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
 import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
-import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 
-import grondag.canvas.apiimpl.RenderMaterialImpl;
-import grondag.canvas.apiimpl.mesh.MeshImpl;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.util.ColorHelper;
-import grondag.canvas.apiimpl.util.MeshEncodingHelper;
-import grondag.canvas.apiimpl.util.GeometryHelper;
 
 /**
  * The render context used for item rendering.
@@ -63,28 +57,16 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 	/** Value vanilla uses for item rendering.  The only sensible choice, of course.  */
 	private static final long ITEM_RANDOM_SEED = 42L;
 
-	/** used to accept a method reference from the ItemRenderer. */
-	@FunctionalInterface
-	public interface VanillaQuadHandler {
-		void accept(BakedModel model, ItemStack stack, int color, int overlay, MatrixStack matrixStack, VertexConsumer buffer);
-	}
-
 	private final ItemColors colorMap;
 	private final Random random = new Random();
-	private final Consumer<BakedModel> fallbackConsumer;
-	private final Vector3f normalVec = new Vector3f();
 
-	private MatrixStack matrixStack;
-	private Matrix4f matrix;
 	private VertexConsumerProvider vertexConsumerProvider;
 	private VertexConsumer modelVertexConsumer;
 	private BlendMode quadBlendMode;
 	private VertexConsumer quadVertexConsumer;
 	private Mode transformMode;
 	private int lightmap;
-	private int overlay;
 	private ItemStack itemStack;
-	private VanillaQuadHandler vanillaHandler;
 
 	private final Supplier<Random> randomSupplier = () -> {
 		final Random result = random;
@@ -92,25 +74,64 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 		return random;
 	};
 
-	private final int[] quadData = new int[MeshEncodingHelper.TOTAL_QUAD_STRIDE];
+	private final AbstractEncodingContext encodingContext = new AbstractEncodingContext(this::selectVertexConsumer, this::transform, Predicates.alwaysTrue()) {
+		@Override
+		public int overlay() {
+			return overlay;
+		}
+
+		@Override
+		public Matrix4f matrix() {
+			return matrix;
+		}
+
+		@Override
+		public Matrix3f normalMatrix() {
+			return normalMatrix;
+		}
+
+		@Override
+		public void computeLighting(MutableQuadViewImpl quad) {
+			// UGLY: for vanilla lighting need to undo diffuse shading
+			ColorHelper.applyDiffuseShading(quad, true);
+		}
+
+		@Override
+		public void applyLighting(MutableQuadViewImpl quad) {
+			final int lightmap = quad.material().emissive(0) ? FULL_BRIGHTNESS : ItemRenderContext.this.lightmap;
+
+			for (int i = 0; i < 4; i++) {
+				quad.lightmap(i, ColorHelper.maxBrightness(quad.lightmap(i), lightmap));
+			}
+		}
+
+		@Override
+		public VertexConsumer consumer(MutableQuadViewImpl quad) {
+			return quadVertexConsumer(quad.material().blendMode(0));
+		}
+
+		@Override
+		public int indexedColor(int colorIndex) {
+			return colorIndex == -1 ? -1 : (colorMap.getColorMultiplier(itemStack, colorIndex) | 0xFF000000);
+		}
+	};
 
 	public ItemRenderContext(ItemColors colorMap) {
 		this.colorMap = colorMap;
-		fallbackConsumer = this::fallbackConsumer;
 	}
 
-	public void renderModel(ItemStack itemStack, Mode transformMode, boolean invert, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int lightmap, int overlay, FabricBakedModel model, VanillaQuadHandler vanillaHandler) {
+	public void renderModel(ItemStack itemStack, Mode transformMode, boolean invert, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int lightmap, int overlay, FabricBakedModel model) {
 		this.lightmap = lightmap;
 		this.overlay = overlay;
 		this.itemStack = itemStack;
 		this.vertexConsumerProvider = vertexConsumerProvider;
-		this.matrixStack = matrixStack;
 		this.transformMode = transformMode;
-		this.vanillaHandler = vanillaHandler;
+
 		quadBlendMode = BlendMode.DEFAULT;
 		modelVertexConsumer = selectVertexConsumer(RenderLayers.getItemLayer(itemStack));
 
 		matrixStack.push();
+
 		((BakedModel) model).getTransformation().getTransformation(transformMode).apply(invert, matrixStack);
 		matrixStack.translate(-0.5D, -0.5D, -0.5D);
 		matrix = matrixStack.peek().getModel();
@@ -120,9 +141,7 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 
 		matrixStack.pop();
 
-		this.matrixStack = null;
 		this.itemStack = null;
-		this.vanillaHandler = null;
 		modelVertexConsumer = null;
 	}
 
@@ -137,63 +156,7 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 		return ItemRenderer.getArmorVertexConsumer(vertexConsumerProvider, layer, true, itemStack.hasEnchantmentGlint());
 	}
 
-	private class Maker extends MutableQuadViewImpl implements QuadEmitter {
-		{
-			data = quadData;
-			clear();
-		}
-
-		@Override
-		public Maker emit() {
-			lightFace(GeometryHelper.lightFace(this));
-			ColorHelper.applyDiffuseShading(this, false);
-			renderQuad();
-			clear();
-			return this;
-		}
-	}
-
-	private final Maker editorQuad = new Maker();
-
-	private final Consumer<Mesh> meshConsumer = (mesh) -> {
-		final MeshImpl m = (MeshImpl) mesh;
-		final int[] data = m.data();
-		final int limit = data.length;
-		int index = 0;
-
-		while (index < limit) {
-			System.arraycopy(data, index, editorQuad.data(), 0, MeshEncodingHelper.TOTAL_QUAD_STRIDE);
-			editorQuad.load();
-			index += MeshEncodingHelper.TOTAL_QUAD_STRIDE;
-			renderQuad();
-		}
-	};
-
-	private int indexColor() {
-		final int colorIndex = editorQuad.colorIndex();
-		return colorIndex == -1 ? -1 : (colorMap.getColorMultiplier(itemStack, colorIndex) | 0xFF000000);
-	}
-
-	private void renderQuad() {
-		final MutableQuadViewImpl quad = editorQuad;
-
-		if (!transform(editorQuad)) {
-			return;
-		}
-
-		final RenderMaterialImpl.Value mat = quad.material();
-		final int quadColor = mat.disableColorIndex(0) ? -1 : indexColor();
-		final int lightmap = mat.emissive(0) ? AbstractQuadRenderer.FULL_BRIGHTNESS : this.lightmap;
-
-		for (int i = 0; i < 4; i++) {
-			int c = quad.spriteColor(i, 0);
-			c = ColorHelper.multiplyColor(quadColor, c);
-			quad.spriteColor(i, 0, ColorHelper.swapRedBlueIfNeeded(c));
-			quad.lightmap(i, ColorHelper.maxBrightness(quad.lightmap(i), lightmap));
-		}
-
-		AbstractQuadRenderer.bufferQuad(quadVertexConsumer(mat.blendMode(0)), quad, matrix, overlay, normalMatrix, normalVec);
-	}
+	private final MeshConsumer meshConsumer = new MeshConsumer(encodingContext);
 
 	/**
 	 * Caches custom blend mode / vertex consumers and mimics the logic
@@ -227,39 +190,22 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 		return meshConsumer;
 	}
 
-	private void fallbackConsumer(BakedModel model) {
-		if (hasTransform()) {
-			// if there's a transform in effect, convert to mesh-based quads so that we can apply it
-			for (int i = 0; i <= ModelHelper.NULL_FACE_ID; i++) {
-				random.setSeed(ITEM_RANDOM_SEED);
-				final Direction cullFace = ModelHelper.faceFromIndex(i);
-				renderFallbackWithTransform(model.getQuads((BlockState) null, cullFace, random), cullFace);
-			}
-		} else {
-			for (int i = 0; i <= ModelHelper.NULL_FACE_ID; i++) {
-				vanillaHandler.accept(model, itemStack, lightmap, overlay, matrixStack, modelVertexConsumer);
-			}
-		}
-	}
-
-	private void renderFallbackWithTransform(List<BakedQuad> quads, Direction cullFace) {
-		if (quads.isEmpty()) {
-			return;
+	private final AbstractFallbackConsumer fallbackConsumer = new AbstractFallbackConsumer(encodingContext) {
+		@Override
+		protected Supplier<Random> randomSupplier() {
+			return randomSupplier;
 		}
 
-		final Maker editorQuad = this.editorQuad;
-
-		for (final BakedQuad q : quads) {
-			editorQuad.clear();
-			editorQuad.fromVanilla(q.getVertexData(), 0, false);
-			editorQuad.cullFace(cullFace);
-			final Direction lightFace = q.getFace();
-			editorQuad.lightFace(lightFace);
-			editorQuad.nominalFace(lightFace);
-			editorQuad.colorIndex(q.getColorIndex());
-			renderQuad();
+		@Override
+		protected boolean defaultAo() {
+			return false;
 		}
-	}
+
+		@Override
+		protected BlockState blockState() {
+			return null;
+		}
+	};
 
 	@Override
 	public Consumer<BakedModel> fallbackConsumer() {
@@ -268,7 +214,6 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 
 	@Override
 	public QuadEmitter getEmitter() {
-		editorQuad.clear();
-		return editorQuad;
+		return meshConsumer.getEmitter();
 	}
 }
