@@ -1,10 +1,10 @@
 package grondag.canvas.buffer.encoding;
 
-import grondag.canvas.pipeline.BufferFormat;
+import grondag.canvas.material.MaterialBufferFormat;
 
 public interface VertexEncoder {
 
-	BufferFormat outputFormat();
+	MaterialBufferFormat outputFormat();
 
 	int index();
 }

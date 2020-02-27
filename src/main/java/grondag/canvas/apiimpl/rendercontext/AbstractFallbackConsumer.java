@@ -34,7 +34,7 @@ import grondag.canvas.apiimpl.RenderMaterialImpl.Value;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.util.GeometryHelper;
 import grondag.canvas.apiimpl.util.MeshEncodingHelper;
-import grondag.canvas.buffer.encoding.QuadEncoder;
+import grondag.canvas.buffer.encoding.VanillaEncoder;
 
 /**
  * Consumer for vanilla baked models. Generally intended to give visual results matching a vanilla render,
@@ -146,6 +146,6 @@ public abstract class AbstractFallbackConsumer implements Consumer<BakedModel> {
 			}
 		}
 
-		QuadEncoder.INSTANCE.tesselateQuad(editorQuad, encodingContext);
+		VanillaEncoder.INSTANCE.tesselateQuad(editorQuad, encodingContext);
 	}
 }

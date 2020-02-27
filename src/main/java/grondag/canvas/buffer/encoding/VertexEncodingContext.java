@@ -7,7 +7,7 @@ import net.minecraft.client.util.math.Vector3f;
 
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 
-public interface EncodingContext {
+public interface VertexEncodingContext {
 	void computeLighting(MutableQuadViewImpl quad);
 
 	void applyLighting(MutableQuadViewImpl quad);

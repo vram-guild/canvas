@@ -28,13 +28,13 @@ import net.minecraft.util.math.Direction;
 
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext.QuadTransform;
 
-import grondag.canvas.buffer.encoding.EncodingContext;
+import grondag.canvas.buffer.encoding.VertexEncodingContext;
 
 /**
  * Base quad-rendering class for fallback and mesh consumers.
  * Has most of the actual buffer-time lighting and coloring logic.
  */
-public abstract class AbstractEncodingContext implements EncodingContext {
+public abstract class AbstractEncodingContext implements VertexEncodingContext {
 	static final int FULL_BRIGHTNESS = 0xF000F0;
 
 	protected final Function<RenderLayer, VertexConsumer> bufferFunc;

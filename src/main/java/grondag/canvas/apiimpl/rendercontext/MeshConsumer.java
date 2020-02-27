@@ -26,7 +26,7 @@ import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.util.ColorHelper;
 import grondag.canvas.apiimpl.util.GeometryHelper;
 import grondag.canvas.apiimpl.util.MeshEncodingHelper;
-import grondag.canvas.buffer.encoding.QuadEncoder;
+import grondag.canvas.buffer.encoding.VanillaEncoder;
 
 /**
  * Consumer for pre-baked meshes.  Works by copying the mesh data to a
@@ -91,6 +91,6 @@ public class MeshConsumer implements Consumer<Mesh> {
 			return;
 		}
 
-		QuadEncoder.INSTANCE.tesselateQuad(q, encodingContext);
+		VanillaEncoder.INSTANCE.tesselateQuad(q, encodingContext);
 	}
 }
