@@ -27,9 +27,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.Tessellator;
 
-import grondag.canvas.buffer.packing.BufferPacker;
-import grondag.canvas.buffer.packing.BufferPackingList;
-import grondag.canvas.buffer.packing.old.VertexCollectorList;
+import grondag.canvas.buffer.packing.old.OldBufferPacker;
+import grondag.canvas.buffer.packing.old.OldBufferPackingList;
+import grondag.canvas.buffer.packing.old.OldVertexCollectorList;
 import grondag.canvas.chunk.draw.DrawableDelegate;
 import grondag.canvas.chunk.draw.SolidRenderList;
 import grondag.canvas.light.LightmapHdTexture;
@@ -57,12 +57,12 @@ public class MixinTessellator implements TessellatorExt {
 	@Override
 	public void canvas_draw() {
 		final CanvasBufferBuilder buffer = (CanvasBufferBuilder)this.buffer;
-		final VertexCollectorList vcList = buffer.vcList;
+		final OldVertexCollectorList vcList = buffer.vcList;
 		if(!vcList.isEmpty()) {
-			final BufferPackingList packingList = vcList.packingListSolid();
+			final OldBufferPackingList packingList = vcList.packingListSolid();
 			final SolidRenderList renderList = SolidRenderList.claim();
 			buffer.ensureCapacity(packingList.totalBytes());
-			final ObjectArrayList<DrawableDelegate> delegates = BufferPacker.pack(packingList, vcList, buffer);
+			final ObjectArrayList<DrawableDelegate> delegates = OldBufferPacker.pack(packingList, vcList, buffer);
 			renderList.accept(delegates);
 
 			//PERF: lightmap tex probably not needed here, or at least make context-dependent

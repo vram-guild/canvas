@@ -582,3 +582,25 @@ some code optimization - minor effect
 [05:37:28] [main/INFO]: Avg inner duration = 274 ns, total duration = 537, total runs = 1,957,777
 [05:37:38] [main/INFO]: Avg setupTerrain duration = 10,034,648 ns, total duration = 2,006, total runs = 200
 [05:37:38] [main/INFO]: Avg inner duration = 276 ns, total duration = 686, total runs = 2,482,188
+
+
+baseline before new buffer / draw code
+
+[13:54:54] [main/INFO]: [CHAT] [Debug]: Reloading all chunks
+[13:54:55] [Canvas Render Thread - 5/INFO]: Rebuild elapsed time per region for last 2000 chunks = 2,811,030ns
+[13:54:55] [Canvas Render Thread - 5/INFO]: World copy time per chunk for last 12142 regions = 17,791ns
+[13:54:55] [Canvas Render Thread - 5/INFO]: Upload time per region for last 22031 regions = 137,236ns
+[13:54:55] [Canvas Render Thread - 5/INFO]:
+[13:54:57] [Canvas Render Thread - 3/INFO]: Rebuild elapsed time per region for last 2000 chunks = 2,740,983ns
+[13:54:57] [Canvas Render Thread - 3/INFO]: World copy time per chunk for last 4107 regions = 56,074ns
+[13:54:57] [Canvas Render Thread - 3/INFO]: Upload time per region for last 24045 regions = 140,942ns
+[13:54:57] [Canvas Render Thread - 3/INFO]:
+[13:54:58] [Canvas Render Thread - 6/INFO]: Rebuild elapsed time per region for last 2000 chunks = 2,988,030ns
+[13:54:58] [Canvas Render Thread - 6/INFO]: World copy time per chunk for last 3048 regions = 100,360ns
+[13:54:58] [Canvas Render Thread - 6/INFO]: Upload time per region for last 26051 regions = 144,606ns
+[13:54:58] [Canvas Render Thread - 6/INFO]:
+[13:55:01] [Canvas Render Thread - 1/INFO]: Rebuild elapsed time per region for last 2000 chunks = 2,962,926ns
+[13:55:01] [Canvas Render Thread - 1/INFO]: World copy time per chunk for last 2156 regions = 93,380ns
+[13:55:01] [Canvas Render Thread - 1/INFO]: Upload time per region for last 28046 regions = 146,241ns
+
+12-14 fps  allocated 62%

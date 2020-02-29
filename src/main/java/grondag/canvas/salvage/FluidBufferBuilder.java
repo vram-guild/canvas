@@ -25,7 +25,7 @@ import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.apiimpl.util.ColorHelper;
 import grondag.canvas.apiimpl.util.NormalHelper;
-import grondag.canvas.buffer.packing.old.VertexCollector;
+import grondag.canvas.buffer.packing.old.OldVertexCollector;
 
 public class FluidBufferBuilder extends BufferBuilder {
 	private static final int DEFAULT_SHADER_FLAGS = Canvas.INSTANCE.materialFinder().disableAo(0, true).find().shaderFlags() << 16;
@@ -34,7 +34,7 @@ public class FluidBufferBuilder extends BufferBuilder {
 		super(256);
 	}
 
-	VertexCollector vc;
+	OldVertexCollector vc;
 	BlockPos pos;
 	private int vertexIndex = 0;
 	private final float[] vertex = new float[12];
@@ -42,7 +42,7 @@ public class FluidBufferBuilder extends BufferBuilder {
 	private final int[] lightmaps = new int[4];
 	private final float[] uv = new float[8];
 
-	public FluidBufferBuilder prepare(VertexCollector vc, BlockPos pos, BlendMode layer) {
+	public FluidBufferBuilder prepare(OldVertexCollector vc, BlockPos pos, BlendMode layer) {
 		this.vc = vc;
 		this.pos = pos;
 		vertexIndex = 0;

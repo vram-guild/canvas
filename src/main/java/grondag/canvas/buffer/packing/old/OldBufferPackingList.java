@@ -14,24 +14,24 @@
  * the License.
  ******************************************************************************/
 
-package grondag.canvas.buffer.packing;
+package grondag.canvas.buffer.packing.old;
 
 import java.util.function.Consumer;
 
-import grondag.canvas.material.MaterialState;
+import grondag.canvas.material.old.OldMaterialState;
 
 /**
  * Tracks number of vertices, pipeline and sequence thereof within a buffer.
  */
-public class BufferPackingList {
+public class OldBufferPackingList {
 	private int[] starts = new int[16];
 	private int[] counts = new int[16];
-	private MaterialState[] materialStates = new MaterialState[16];
+	private OldMaterialState[] materialStates = new OldMaterialState[16];
 
 	private int size = 0;
 	private int totalBytes = 0;
 
-	public BufferPackingList() {
+	public OldBufferPackingList() {
 
 	}
 
@@ -64,7 +64,7 @@ public class BufferPackingList {
 		return totalBytes;
 	}
 
-	public void addPacking(MaterialState materialState, int startVertex, int vertexCount) {
+	public void addPacking(OldMaterialState materialState, int startVertex, int vertexCount) {
 		if (size == materialStates.length) {
 			final int cCopy[] = new int[size * 2];
 			System.arraycopy(counts, 0, cCopy, 0, size);
@@ -74,7 +74,7 @@ public class BufferPackingList {
 			System.arraycopy(starts, 0, sCopy, 0, size);
 			starts = sCopy;
 
-			final MaterialState pCopy[] = new MaterialState[size * 2];
+			final OldMaterialState pCopy[] = new OldMaterialState[size * 2];
 			System.arraycopy(materialStates, 0, pCopy, 0, size);
 			materialStates = pCopy;
 		}
@@ -82,25 +82,25 @@ public class BufferPackingList {
 		materialStates[size] = materialState;
 		starts[size] = startVertex;
 		counts[size] = vertexCount;
-		totalBytes += materialState.bufferFormat.vertexStrideBytes * vertexCount;
+		totalBytes += materialState.materialVertexFormat().vertexStrideBytes * vertexCount;
 		size++;
 	}
 
-	public final void forEach(BufferPacker consumer) {
+	public final void forEach(OldBufferPacker consumer) {
 		final int size = this.size;
 		for (int i = 0; i < size; i++) {
 			consumer.accept(materialStates[i], starts[i], counts[i]);
 		}
 	}
 
-	public final void forEachMaterialState(Consumer<MaterialState> consumer) {
+	public final void forEachMaterialState(Consumer<OldMaterialState> consumer) {
 		final int size = this.size;
 		for (int i = 0; i < size; i++) {
 			consumer.accept(materialStates[i]);
 		}
 	}
 
-	public final MaterialState getMaterialState(int index) {
+	public final OldMaterialState getMaterialState(int index) {
 		return materialStates[index];
 	}
 

@@ -25,13 +25,13 @@ import net.minecraft.util.math.BlockPos;
 import grondag.canvas.buffer.encoding.old.OldMaterialVertexFormat;
 import grondag.canvas.material.old.OldMaterialState;
 
-public class VertexCollector {
+public class OldVertexCollector {
 	private int[] data;
 	private int integerSize = 0;
 	private OldMaterialState materialState;
 	//    private MaterialVertexFormat format;
 
-	public final VertexCollectorList parent;
+	public final OldVertexCollectorList parent;
 
 	/**
 	 * Holds per-quad distance after {@link #sortQuads(double, double, double)} is
@@ -50,12 +50,12 @@ public class VertexCollector {
 	 */
 	private int sortMaxIndex = 0;
 
-	public VertexCollector(VertexCollectorList parent) {
+	public OldVertexCollector(OldVertexCollectorList parent) {
 		data = new int[0x10000];
 		this.parent = parent;
 	}
 
-	public VertexCollector prepare(OldMaterialState materialState, OldMaterialVertexFormat format) {
+	public OldVertexCollector prepare(OldMaterialState materialState, OldMaterialVertexFormat format) {
 		this.materialState = materialState;
 		//        this.format = format;
 		return this;
@@ -95,7 +95,7 @@ public class VertexCollector {
 	}
 
 	@Override
-	public VertexCollector clone() {
+	public OldVertexCollector clone() {
 		throw new UnsupportedOperationException();
 		//        VertexCollector result = new VertexCollector(this.data.length);
 		//        System.arraycopy(this.data, 0, result.data, 0, this.integerSize);
@@ -165,7 +165,7 @@ public class VertexCollector {
 			}
 		};
 
-		private void doSort(VertexCollector caller, double x, double y, double z) {
+		private void doSort(OldVertexCollector caller, double x, double y, double z) {
 			// works because 4 bytes per int
 			data = caller.data;
 			quadIntStride = caller.format().vertexStrideBytes;
@@ -291,7 +291,7 @@ public class VertexCollector {
 		return result;
 	}
 
-	public VertexCollector loadState(int[] stateData) {
+	public OldVertexCollector loadState(int[] stateData) {
 		materialState = OldMaterialState.get(stateData[0]);
 		//        this.format() = MaterialVertexFormats.fromIndex(stateData[1]);
 		final int newSize = stateData.length - 2;

@@ -34,7 +34,7 @@ import grondag.canvas.apiimpl.mesh.QuadViewImpl;
 import grondag.canvas.apiimpl.rendercontext.BlockRenderInfo;
 import grondag.canvas.apiimpl.util.ColorHelper;
 import grondag.canvas.buffer.encoding.old.OldVertexEncodingContext;
-import grondag.canvas.buffer.packing.old.VertexCollector;
+import grondag.canvas.buffer.packing.old.OldVertexCollector;
 import grondag.canvas.light.AoCalculator;
 import grondag.canvas.shader.old.OldShaderContext;
 
@@ -46,7 +46,7 @@ public class QuadRenderer {
 	public static final Consumer<MutableQuadViewImpl> NO_OFFSET = (q) -> {};
 
 	protected final ToIntFunction<BlockPos> brightnessFunc;
-	protected final BiFunction<RenderMaterialImpl.Value, QuadViewImpl, VertexCollector> collectorFunc;
+	protected final BiFunction<RenderMaterialImpl.Value, QuadViewImpl, OldVertexCollector> collectorFunc;
 	protected final BlockRenderInfo blockInfo;
 	protected final AoCalculator aoCalc;
 	protected final BooleanSupplier hasTransform;
@@ -56,7 +56,7 @@ public class QuadRenderer {
 	QuadRenderer(
 			BlockRenderInfo blockInfo,
 			ToIntFunction<BlockPos> brightnessFunc,
-			BiFunction<RenderMaterialImpl.Value, QuadViewImpl, VertexCollector> collectorFunc,
+			BiFunction<RenderMaterialImpl.Value, QuadViewImpl, OldVertexCollector> collectorFunc,
 			AoCalculator aoCalc,
 			BooleanSupplier hasTransform,
 			QuadTransform transform,
@@ -100,14 +100,14 @@ public class QuadRenderer {
 			lightFlat(q);
 		}
 
-		final VertexCollector output = collectorFunc.apply(mat, q);
+		final OldVertexCollector output = collectorFunc.apply(mat, q);
 
 		encodeQuad(q, output, mat, isAo);
 	}
 
 	private final OldVertexEncodingContext encodingContext = new OldVertexEncodingContext();
 
-	private void encodeQuad(MutableQuadViewImpl q, VertexCollector output, RenderMaterialImpl.Value mat, boolean isAo) {
+	private void encodeQuad(MutableQuadViewImpl q, OldVertexCollector output, RenderMaterialImpl.Value mat, boolean isAo) {
 		final int shaderFlags = isAo ? mat.shaderFlags() : mat.shaderFlags() | RenderMaterialImpl.SHADER_FLAGS_DISABLE_AO;
 		output.materialState().materialVertexFormat().encode(q, encodingContext.prepare(mat, contextFunc.apply(mat), blockInfo.blockPos, isAo ? q.ao : null, shaderFlags), output);
 	}

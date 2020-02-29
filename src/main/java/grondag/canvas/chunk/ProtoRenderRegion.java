@@ -17,6 +17,7 @@ package grondag.canvas.chunk;
 import static grondag.canvas.chunk.RenderRegionAddressHelper.AIR;
 import static grondag.canvas.chunk.RenderRegionAddressHelper.EXTERIOR_CACHE_SIZE;
 import static grondag.canvas.chunk.RenderRegionAddressHelper.INTERIOR_CACHE_SIZE;
+import static grondag.canvas.chunk.RenderRegionAddressHelper.interiorIndex;
 import static grondag.canvas.chunk.RenderRegionAddressHelper.localCornerIndex;
 import static grondag.canvas.chunk.RenderRegionAddressHelper.localXEdgeIndex;
 import static grondag.canvas.chunk.RenderRegionAddressHelper.localXfaceIndex;
@@ -24,7 +25,6 @@ import static grondag.canvas.chunk.RenderRegionAddressHelper.localYEdgeIndex;
 import static grondag.canvas.chunk.RenderRegionAddressHelper.localYfaceIndex;
 import static grondag.canvas.chunk.RenderRegionAddressHelper.localZEdgeIndex;
 import static grondag.canvas.chunk.RenderRegionAddressHelper.localZfaceIndex;
-import static grondag.canvas.chunk.RenderRegionAddressHelper.interiorIndex;
 
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -54,13 +54,9 @@ public class ProtoRenderRegion extends AbstractRenderRegion {
 
 	PaletteCopy mainSectionCopy;
 
-	private long start;
-	ChunkRebuildCounters counter;
-
 	private ProtoRenderRegion prepare(World world, BlockPos origin) {
 		if(ChunkRebuildCounters.ENABLED) {
-			counter = ChunkRebuildCounters.get();
-			start = counter.copyCounter.startRun();
+			ChunkRebuildCounters.startCopy();
 		}
 
 		this.world = world;
@@ -101,8 +97,7 @@ public class ProtoRenderRegion extends AbstractRenderRegion {
 		}
 
 		if(ChunkRebuildCounters.ENABLED) {
-			counter.copyCounter.endRun(start);
-			counter.copyCounter.addCount(1);
+			ChunkRebuildCounters.completeCopy();
 		}
 
 		return result;

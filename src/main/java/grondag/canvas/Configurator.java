@@ -117,7 +117,7 @@ public class Configurator {
 		@Comment("Enables LWJGL memory allocation tracking.  Will harm performance. Use for debugging memory leaks. Requires restart.")
 		boolean debugNativeMemoryAllocation = false;
 
-		@Comment("Uses slower/safer memory allocation method for GL buffers.  Use only if having problems. Requires restart.")
+		@Comment("Uses slower and safer memory allocation method for GL buffers.  Use only if having problems. Requires restart.")
 		boolean safeNativeMemoryAllocation = false;
 
 		@Comment("Output performance trade data to log. Will have significant performance impact. Requires restart.")

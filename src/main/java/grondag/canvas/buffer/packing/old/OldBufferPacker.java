@@ -14,34 +14,32 @@
  * the License.
  ******************************************************************************/
 
-package grondag.canvas.buffer.packing;
+package grondag.canvas.buffer.packing.old;
 
 import java.nio.IntBuffer;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import grondag.canvas.buffer.allocation.AllocationProvider;
+import grondag.canvas.buffer.encoding.old.OldMaterialVertexFormat;
 import grondag.canvas.chunk.draw.DelegateLists;
 import grondag.canvas.chunk.draw.DrawableDelegate;
-import grondag.canvas.material.MaterialBufferFormat;
-import grondag.canvas.material.MaterialState;
+import grondag.canvas.material.old.OldMaterialState;
 
-public class BufferPacker {
-
-	// PERF: stash in context or worker thread
-	private static final ThreadLocal<BufferPacker> THREADLOCAL = ThreadLocal.withInitial(BufferPacker::new);
+public class OldBufferPacker {
+	private static final ThreadLocal<OldBufferPacker> THREADLOCAL = ThreadLocal.withInitial(OldBufferPacker::new);
 
 	ObjectArrayList<DrawableDelegate> delegates;
-	VertexCollectorList collectorList;
+	OldVertexCollectorList collectorList;
 	AllocationProvider allocator;
 
-	private BufferPacker() {
+	private OldBufferPacker() {
 		//private
 	}
 
 	/** Does not retain packing list reference */
-	public static ObjectArrayList<DrawableDelegate> pack(BufferPackingList packingList, VertexCollectorList collectorList, AllocationProvider allocator) {
-		final BufferPacker packer = THREADLOCAL.get();
+	public static ObjectArrayList<DrawableDelegate> pack(OldBufferPackingList packingList, OldVertexCollectorList collectorList, AllocationProvider allocator) {
+		final OldBufferPacker packer = THREADLOCAL.get();
 		final ObjectArrayList<DrawableDelegate> result = DelegateLists.getReadyDelegateList();
 		packer.delegates = result;
 		packer.collectorList = collectorList;
@@ -53,11 +51,10 @@ public class BufferPacker {
 		return result;
 	}
 
-	public void accept(MaterialState materialState, int vertexStart, int vertexCount) {
-		final AbstractVertexCollector collector = collectorList.get(materialState);
-		final MaterialBufferFormat format = collector.format();
+	public void accept(OldMaterialState materialState, int vertexStart, int vertexCount) {
+		final OldVertexCollector collector = collectorList.get(materialState);
+		final OldMaterialVertexFormat format = collector.format();
 		final int stride = format.vertexStrideBytes;
-
 		allocator.claimAllocation(vertexCount * stride, ref -> {
 			final int byteOffset = ref.byteOffset();
 			final int byteCount = ref.byteCount();
@@ -66,12 +63,7 @@ public class BufferPacker {
 			ref.buffer().lockForWrite();
 			final IntBuffer intBuffer = ref.intBuffer();
 			intBuffer.position(byteOffset / 4);
-
-			// FIX: don't think this logic would actual work with split buffers
-			// because the start position in the collector is always the same.
-			// Either simplify and assume a single buffer (wouldn't need this lambda)
-			// or make it actually work.
-			collector.toBuffer(intBuffer, vertexStart * stride / 4, intLength);
+			intBuffer.put(collector.rawData(), vertexStart * stride / 4, intLength);
 			ref.buffer().unlockForWrite();
 
 			delegates.add(DrawableDelegate.claim(ref, materialState, byteCount / stride, format));

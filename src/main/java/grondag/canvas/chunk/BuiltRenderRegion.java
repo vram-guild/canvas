@@ -42,6 +42,7 @@ import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
 import grondag.canvas.chunk.DrawableChunk.Solid;
 import grondag.canvas.chunk.DrawableChunk.Translucent;
+import grondag.canvas.perf.ChunkRebuildCounters;
 
 @Environment(EnvType.CLIENT)
 public class BuiltRenderRegion {
@@ -238,9 +239,17 @@ public class BuiltRenderRegion {
 					renderRegionBuilder.workerBufferStorage.offer(buffers);
 				} else {
 					renderRegionBuilder.scheduleUpload(() -> {
+						if (ChunkRebuildCounters.ENABLED) {
+							ChunkRebuildCounters.startUpload();
+						}
+
 						getBuffer(RenderLayer.getTranslucent()).upload(bufferBuilder);
 						bufferBuilder.reset();
 						renderRegionBuilder.workerBufferStorage.offer(buffers);
+
+						if (ChunkRebuildCounters.ENABLED) {
+							ChunkRebuildCounters.completeUpload();
+						}
 					});
 				}
 			}
@@ -266,6 +275,10 @@ public class BuiltRenderRegion {
 				renderRegionBuilder.workerBufferStorage.offer(buffers);
 			} else {
 				renderRegionBuilder.scheduleUpload(() -> {
+					if (ChunkRebuildCounters.ENABLED) {
+						ChunkRebuildCounters.startUpload();
+					}
+
 					chunkData.initializedLayers.forEach((renderLayer) -> {
 						final BufferBuilder builder = buffers.get(renderLayer);
 						getBuffer(renderLayer).upload(builder);
@@ -274,6 +287,10 @@ public class BuiltRenderRegion {
 
 					renderData.set(chunkData);
 					renderRegionBuilder.workerBufferStorage.offer(buffers);
+
+					if (ChunkRebuildCounters.ENABLED) {
+						ChunkRebuildCounters.completeUpload();
+					}
 				});
 			}
 
@@ -291,6 +308,10 @@ public class BuiltRenderRegion {
 	}
 
 	private void buildTerrain(TerrainRenderContext context, RegionData regionData, BlockBufferBuilderStorage buffers) {
+		if(ChunkRebuildCounters.ENABLED) {
+			ChunkRebuildCounters.startChunk();
+		}
+
 		context.prepareChunk(regionData, buffers, origin);
 		final BlockPos.Mutable searchPos = context.searchPos;
 		final int xOrigin = origin.getX();
@@ -344,6 +365,10 @@ public class BuiltRenderRegion {
 		}
 
 		regionData.endBuffering((float) (cameraPos.x - xOrigin), (float) (cameraPos.y - yOrigin), (float) (cameraPos.z - zOrigin), buffers);
+
+		if(ChunkRebuildCounters.ENABLED) {
+			ChunkRebuildCounters.completeChunk();
+		}
 	}
 
 	private BlockBufferBuilderStorage claimBuilderBuffers() {
@@ -425,9 +450,17 @@ public class BuiltRenderRegion {
 		buildTerrain(context, regionData, buffers);
 
 		regionData.initializedLayers.forEach((renderLayer) -> {
+			if (ChunkRebuildCounters.ENABLED) {
+				ChunkRebuildCounters.startUpload();
+			}
+
 			final BufferBuilder builder = buffers.get(renderLayer);
 			getBuffer(renderLayer).upload(builder);
 			builder.reset();
+
+			if (ChunkRebuildCounters.ENABLED) {
+				ChunkRebuildCounters.completeUpload();
+			}
 		});
 
 		renderData.set(regionData);

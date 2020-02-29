@@ -1,5 +1,7 @@
 package grondag.canvas.buffer.packing;
 
-public class VertexCollector {
+import net.minecraft.client.render.VertexConsumer;
+
+public interface VertexCollector extends VertexConsumer {
 
 }

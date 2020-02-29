@@ -26,7 +26,7 @@ import net.minecraft.client.util.GlAllocationUtils;
 import grondag.canvas.buffer.allocation.AbstractBuffer;
 import grondag.canvas.buffer.allocation.AllocationProvider;
 import grondag.canvas.buffer.allocation.BufferDelegate;
-import grondag.canvas.buffer.packing.old.VertexCollectorList;
+import grondag.canvas.buffer.packing.old.OldVertexCollectorList;
 
 public class CanvasBufferBuilder extends BufferBuilder implements AllocationProvider {
 	private final CanvasBuffer canvasBuffer = new CanvasBuffer();
@@ -35,7 +35,7 @@ public class CanvasBufferBuilder extends BufferBuilder implements AllocationProv
 		super(size);
 	}
 
-	public final VertexCollectorList vcList = new VertexCollectorList(true);
+	public final OldVertexCollectorList vcList = new OldVertexCollectorList(true);
 
 	int byteOffset = 0;
 

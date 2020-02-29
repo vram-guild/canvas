@@ -22,13 +22,19 @@ public class MaterialState {
 	// input format must match output format of draw handler
 	public final DrawHandler drawHandler;
 
+	public final MaterialBufferFormat bufferFormat;
+
 	public final int index;
+
+	public final long sortIndex;
 
 	private MaterialState(MaterialContext context, VertexEncoder encoder, DrawHandler drawHandler, int index) {
 		this.context = context;
 		this.encoder = encoder;
+		bufferFormat = encoder.outputFormat();
 		this.drawHandler = drawHandler;
 		this.index = index;
+		sortIndex = (bufferFormat.vertexStrideBytes << 24) | index;
 	}
 
 	private static final int ENCODER_SHIFT = Useful.bitLength(MathHelper.smallestEncompassingPowerOfTwo(MaterialContext.values().length));

@@ -9,7 +9,16 @@ import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
  * Encoder and draw handler output/input formats must match.
  */
 public enum MaterialBufferFormat {
-	VANILLA_BLOCKS_AND_ITEMS;
+	VANILLA_BLOCKS_AND_ITEMS(8);
+
+	public final int vertexStrideBytes;
+
+	public final int vertexStrideInts;
+
+	private MaterialBufferFormat(int vertexStrideBytes) {
+		this.vertexStrideBytes = vertexStrideBytes;
+		vertexStrideInts = vertexStrideBytes / 4;
+	}
 
 	/**
 	 * Determine minimal buffer format able to handle all attributes of the given quad/material/context.
@@ -20,5 +29,6 @@ public enum MaterialBufferFormat {
 	 */
 	public static MaterialBufferFormat get(MaterialContext context, Value mat, MutableQuadViewImpl quad) {
 		return VANILLA_BLOCKS_AND_ITEMS;
+
 	}
 }
