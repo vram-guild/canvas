@@ -16,7 +16,7 @@
 
 package grondag.canvas.apiimpl.rendercontext;
 
-import java.util.function.Consumer;
+import java.util.Random;
 import java.util.function.Function;
 
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
@@ -33,13 +33,13 @@ import net.minecraft.util.crash.CrashException;
 import net.minecraft.util.crash.CrashReport;
 import net.minecraft.util.crash.CrashReportSection;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
 
-import net.fabricmc.fabric.api.renderer.v1.mesh.Mesh;
-import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
 import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
+import grondag.canvas.buffer.encoding.VertexEncodingContext;
 import grondag.canvas.chunk.FastRenderRegion;
 import grondag.canvas.chunk.ProtoRenderRegion;
 import grondag.canvas.chunk.RenderRegionAddressHelper;
@@ -86,7 +86,7 @@ public class TerrainRenderContext extends AbstractRenderContext implements Rende
 
 	final Function<RenderLayer, VertexConsumer> dummyBufferFunc = (RenderLayer l) -> collectors.get(MaterialContext.TERRAIN, l);
 
-	private final AbstractBlockEncodingContext encodingContext = new AbstractBlockEncodingContext(blockInfo, dummyBufferFunc, collectors, this::transform) {
+	private final AbstractBlockEncodingContext encodingContext = new AbstractBlockEncodingContext(blockInfo, dummyBufferFunc, collectors) {
 		@Override
 		public int overlay() {
 			return overlay;
@@ -112,10 +112,6 @@ public class TerrainRenderContext extends AbstractRenderContext implements Rende
 			return MaterialContext.TERRAIN;
 		}
 	};
-
-	private final MeshConsumer meshConsumer = new MeshConsumer(encodingContext);
-
-	private final BlockFallbackConsumer fallbackConsumer = new BlockFallbackConsumer(encodingContext, blockInfo);
 
 	public TerrainRenderContext prepareRegion(ProtoRenderRegion protoRegion) {
 		nonCullBlockEntities.clear();
@@ -147,17 +143,32 @@ public class TerrainRenderContext extends AbstractRenderContext implements Rende
 	}
 
 	@Override
-	public Consumer<Mesh> meshConsumer() {
-		return meshConsumer;
+	protected boolean cullTest(Direction face) {
+		return blockInfo.shouldDrawFace(face);
 	}
 
 	@Override
-	public Consumer<BakedModel> fallbackConsumer() {
-		return fallbackConsumer;
+	protected MaterialContext materialContext() {
+		return MaterialContext.TERRAIN;
 	}
 
 	@Override
-	public QuadEmitter getEmitter() {
-		return meshConsumer.getEmitter();
+	protected VertexEncodingContext encodingContext() {
+		return encodingContext;
+	}
+
+	@Override
+	protected Random random() {
+		return blockInfo.randomSupplier.get();
+	}
+
+	@Override
+	protected boolean defaultAo() {
+		return blockInfo.defaultAo;
+	}
+
+	@Override
+	protected BlockState blockState() {
+		return blockInfo.blockState;
 	}
 }

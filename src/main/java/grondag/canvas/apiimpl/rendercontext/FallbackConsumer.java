@@ -17,9 +17,7 @@
 package grondag.canvas.apiimpl.rendercontext;
 
 import java.util.List;
-import java.util.Random;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 import net.minecraft.block.BlockState;
 import net.minecraft.client.render.model.BakedModel;
@@ -34,7 +32,6 @@ import grondag.canvas.apiimpl.RenderMaterialImpl.Value;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.util.GeometryHelper;
 import grondag.canvas.apiimpl.util.MeshEncodingHelper;
-import grondag.canvas.buffer.encoding.VertexEncodingContext;
 import grondag.canvas.material.MaterialState;
 
 /**
@@ -56,16 +53,16 @@ import grondag.canvas.material.MaterialState;
  *  vertex data is sent to the byte buffer.  Generally POJO array access will be faster than
  *  manipulating the data via NIO.
  */
-public abstract class AbstractFallbackConsumer implements Consumer<BakedModel> {
+public class FallbackConsumer implements Consumer<BakedModel> {
 	private static Value MATERIAL_FLAT = Canvas.INSTANCE.materialFinder().disableAo(0, true).find();
 	private static Value MATERIAL_SHADED = Canvas.INSTANCE.materialFinder().find();
 
-	private final VertexEncodingContext  encodingContext;
+	protected final AbstractRenderContext context;
 
 	private final int[] editorBuffer = new int[MeshEncodingHelper.TOTAL_QUAD_STRIDE];
 
-	public AbstractFallbackConsumer(VertexEncodingContext encodingContext) {
-		this.encodingContext = encodingContext;
+	public FallbackConsumer(AbstractRenderContext context) {
+		this.context = context;
 	}
 
 	private final MutableQuadViewImpl editorQuad = new MutableQuadViewImpl() {
@@ -81,35 +78,42 @@ public abstract class AbstractFallbackConsumer implements Consumer<BakedModel> {
 		}
 	};
 
-	protected abstract Supplier<Random> randomSupplier();
-
-	protected abstract boolean defaultAo();
-
-	protected abstract BlockState blockState();
-
 	@Override
 	public void accept(BakedModel model) {
-		final Supplier<Random> random = randomSupplier();
-		final Value defaultMaterial = defaultAo() && model.useAmbientOcclusion() ? MATERIAL_SHADED : MATERIAL_FLAT;
-		final BlockState blockState = blockState();
+		final Value defaultMaterial = context.defaultAo() && model.useAmbientOcclusion() ? MATERIAL_SHADED : MATERIAL_FLAT;
+		final BlockState blockState = context.blockState();
 
-		for (int i = 0; i < 6; i++) {
-			final Direction face = ModelHelper.faceFromIndex(i);
-			final List<BakedQuad> quads = model.getQuads(blockState, face, random.get());
-			final int count = quads.size();
+		acceptFaceQuads(Direction.DOWN, defaultMaterial, model.getQuads(blockState, Direction.DOWN, context.random()));
+		acceptFaceQuads(Direction.UP, defaultMaterial, model.getQuads(blockState, Direction.UP, context.random()));
+		acceptFaceQuads(Direction.NORTH, defaultMaterial, model.getQuads(blockState, Direction.NORTH, context.random()));
+		acceptFaceQuads(Direction.SOUTH, defaultMaterial, model.getQuads(blockState, Direction.SOUTH, context.random()));
+		acceptFaceQuads(Direction.WEST, defaultMaterial, model.getQuads(blockState, Direction.WEST, context.random()));
+		acceptFaceQuads(Direction.EAST, defaultMaterial, model.getQuads(blockState, Direction.EAST, context.random()));
 
-			if (count != 0 && encodingContext.cullTest.test(face)) {
+		acceptInsideQuads(defaultMaterial, model.getQuads(blockState, null, context.random()));
+	}
+
+	private void acceptFaceQuads(Direction face, Value defaultMaterial, List<BakedQuad> quads) {
+		final int count = quads.size();
+		if (count != 0 && context.cullTest(face)) {
+			if (count == 1) {
+				final BakedQuad q = quads.get(0);
+				renderQuad(q, face.ordinal(), defaultMaterial);
+			} else { // > 1
 				for (int j = 0; j < count; j++) {
 					final BakedQuad q = quads.get(j);
-					renderQuad(q, i, defaultMaterial);
+					renderQuad(q, face.ordinal(), defaultMaterial);
 				}
 			}
 		}
+	}
 
-		final List<BakedQuad> quads = model.getQuads(blockState, null, random.get());
+	private void acceptInsideQuads(Value defaultMaterial, List<BakedQuad> quads) {
 		final int count = quads.size();
-
-		if (count != 0) {
+		if (count == 1) {
+			final BakedQuad q = quads.get(0);
+			renderQuad(q, ModelHelper.NULL_FACE_ID, defaultMaterial);
+		} else if (count > 1) {
 			for (int j = 0; j < count; j++) {
 				final BakedQuad q = quads.get(j);
 				renderQuad(q, ModelHelper.NULL_FACE_ID, defaultMaterial);
@@ -131,7 +135,7 @@ public abstract class AbstractFallbackConsumer implements Consumer<BakedModel> {
 		editorQuad.tag(0);
 		editorQuad.invalidateShape();
 
-		if (!encodingContext.transform.transform(editorQuad)) {
+		if (!context.transform(editorQuad)) {
 			return;
 		}
 
@@ -147,6 +151,6 @@ public abstract class AbstractFallbackConsumer implements Consumer<BakedModel> {
 			}
 		}
 
-		MaterialState.get(encodingContext.materialContext(), editorQuad).encoder.encodeQuad(editorQuad, encodingContext);
+		MaterialState.get(context.materialContext(), editorQuad).encoder.encodeQuad(editorQuad, context.encodingContext());
 	}
 }

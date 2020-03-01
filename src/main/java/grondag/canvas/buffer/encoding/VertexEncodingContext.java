@@ -17,16 +17,12 @@
 package grondag.canvas.buffer.encoding;
 
 import java.util.function.Function;
-import java.util.function.Predicate;
 
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.util.math.Matrix3f;
 import net.minecraft.client.util.math.Matrix4f;
 import net.minecraft.client.util.math.Vector3f;
-import net.minecraft.util.math.Direction;
-
-import net.fabricmc.fabric.api.renderer.v1.render.RenderContext.QuadTransform;
 
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.buffer.packing.VertexCollectorList;
@@ -42,15 +38,11 @@ public abstract class VertexEncodingContext  {
 	@Deprecated
 	protected final Function<RenderLayer, VertexConsumer> bufferFunc; // TODO: remove when other contexts are done
 	protected final VertexCollectorList collectors;
-	public final QuadTransform transform;
 	protected final Vector3f normalVec = new Vector3f();
-	public final Predicate<Direction> cullTest;
 
-	protected VertexEncodingContext(Function<RenderLayer, VertexConsumer> bufferFunc, VertexCollectorList collectors, QuadTransform transform, Predicate<Direction> cullTest) {
+	protected VertexEncodingContext(Function<RenderLayer, VertexConsumer> bufferFunc, VertexCollectorList collectors) {
 		this.bufferFunc = bufferFunc;
 		this.collectors = collectors;
-		this.transform = transform;
-		this.cullTest = cullTest;
 	}
 
 	public abstract MaterialContext materialContext();

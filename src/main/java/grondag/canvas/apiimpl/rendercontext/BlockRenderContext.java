@@ -18,7 +18,7 @@ package grondag.canvas.apiimpl.rendercontext;
 
 import static grondag.canvas.chunk.RenderRegionAddressHelper.cacheIndexToXyz5;
 
-import java.util.function.Consumer;
+import java.util.Random;
 
 import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
@@ -31,14 +31,14 @@ import net.minecraft.client.util.math.Matrix3f;
 import net.minecraft.client.util.math.Matrix4f;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
 import net.minecraft.world.BlockRenderView;
 
-import net.fabricmc.fabric.api.renderer.v1.mesh.Mesh;
-import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
 import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
+import grondag.canvas.buffer.encoding.VertexEncodingContext;
 import grondag.canvas.light.AoCalculator;
 import grondag.canvas.material.MaterialContext;
 
@@ -134,7 +134,7 @@ public class BlockRenderContext extends AbstractRenderContext implements RenderC
 		return didOutput;
 	}
 
-	private final AbstractBlockEncodingContext encodingContext = new AbstractBlockEncodingContext(blockInfo, this::outputBuffer, collectors, this::transform) {
+	private final AbstractBlockEncodingContext encodingContext = new AbstractBlockEncodingContext(blockInfo, this::outputBuffer, collectors) {
 		@Override
 		public int overlay() {
 			return overlay;
@@ -163,22 +163,33 @@ public class BlockRenderContext extends AbstractRenderContext implements RenderC
 		}
 	};
 
-	private final MeshConsumer meshConsumer = new MeshConsumer(encodingContext);
-
-	private final BlockFallbackConsumer fallbackConsumer = new BlockFallbackConsumer(encodingContext, blockInfo);
-
 	@Override
-	public Consumer<Mesh> meshConsumer() {
-		return meshConsumer;
+	protected boolean cullTest(Direction face) {
+		return blockInfo.shouldDrawFace(face);
 	}
 
 	@Override
-	public Consumer<BakedModel> fallbackConsumer() {
-		return fallbackConsumer;
+	protected MaterialContext materialContext() {
+		return MaterialContext.BLOCK;
 	}
 
 	@Override
-	public QuadEmitter getEmitter() {
-		return meshConsumer.getEmitter();
+	protected VertexEncodingContext encodingContext() {
+		return encodingContext;
+	}
+
+	@Override
+	protected Random random() {
+		return blockInfo.randomSupplier.get();
+	}
+
+	@Override
+	protected boolean defaultAo() {
+		return blockInfo.defaultAo;
+	}
+
+	@Override
+	protected BlockState blockState() {
+		return blockInfo.blockState;
 	}
 }

@@ -26,7 +26,6 @@ import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.util.ColorHelper;
 import grondag.canvas.apiimpl.util.GeometryHelper;
 import grondag.canvas.apiimpl.util.MeshEncodingHelper;
-import grondag.canvas.buffer.encoding.VertexEncodingContext;
 import grondag.canvas.material.MaterialState;
 
 /**
@@ -34,10 +33,10 @@ import grondag.canvas.material.MaterialState;
  * "editor" quad held in the instance, where all transformations are applied before buffering.
  */
 public class MeshConsumer implements Consumer<Mesh> {
-	private final VertexEncodingContext  encodingContext;
+	private final AbstractRenderContext context;
 
-	protected MeshConsumer(VertexEncodingContext encodingContext) {
-		this.encodingContext = encodingContext;
+	protected MeshConsumer(AbstractRenderContext context) {
+		this.context = context;
 	}
 
 	/**
@@ -84,14 +83,14 @@ public class MeshConsumer implements Consumer<Mesh> {
 	}
 
 	private void renderQuad(MutableQuadViewImpl quad) {
-		if (!encodingContext.transform.transform(editorQuad)) {
+		if (!context.transform(editorQuad)) {
 			return;
 		}
 
-		if (!encodingContext.cullTest.test(quad.cullFace())) {
+		if (!context.cullTest(quad.cullFace())) {
 			return;
 		}
 
-		MaterialState.get(encodingContext.materialContext(), quad).encoder.encodeQuad(quad, encodingContext);
+		MaterialState.get(context.materialContext(), quad).encoder.encodeQuad(quad, context.encodingContext());
 	}
 }

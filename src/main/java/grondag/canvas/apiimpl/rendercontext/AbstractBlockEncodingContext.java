@@ -5,8 +5,6 @@ import java.util.function.Function;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexConsumer;
 
-import net.fabricmc.fabric.api.renderer.v1.render.RenderContext.QuadTransform;
-
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.buffer.encoding.VertexEncodingContext;
 import grondag.canvas.buffer.packing.VertexCollectorList;
@@ -14,8 +12,8 @@ import grondag.canvas.buffer.packing.VertexCollectorList;
 public abstract class AbstractBlockEncodingContext extends VertexEncodingContext {
 	protected final BlockRenderInfo blockInfo;
 
-	public AbstractBlockEncodingContext(BlockRenderInfo blockInfo, Function<RenderLayer, VertexConsumer> bufferFunc, VertexCollectorList collectors, QuadTransform transform) {
-		super(bufferFunc, collectors, transform, blockInfo::shouldDrawFace);
+	public AbstractBlockEncodingContext(BlockRenderInfo blockInfo, Function<RenderLayer, VertexConsumer> bufferFunc, VertexCollectorList collectors) {
+		super(bufferFunc, collectors);
 		this.blockInfo = blockInfo;
 	}
 

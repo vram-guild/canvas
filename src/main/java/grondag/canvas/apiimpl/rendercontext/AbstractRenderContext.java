@@ -16,15 +16,25 @@
 
 package grondag.canvas.apiimpl.rendercontext;
 
+import java.util.Random;
+import java.util.function.Consumer;
+
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
+import net.minecraft.block.BlockState;
+import net.minecraft.client.render.model.BakedModel;
 import net.minecraft.client.util.math.Matrix3f;
 import net.minecraft.client.util.math.Matrix4f;
+import net.minecraft.util.math.Direction;
 
+import net.fabricmc.fabric.api.renderer.v1.mesh.Mesh;
 import net.fabricmc.fabric.api.renderer.v1.mesh.MutableQuadView;
+import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 
+import grondag.canvas.buffer.encoding.VertexEncodingContext;
 import grondag.canvas.buffer.packing.VertexCollectorList;
+import grondag.canvas.material.MaterialContext;
 
 public abstract class AbstractRenderContext implements RenderContext {
 	public final VertexCollectorList collectors = new VertexCollectorList();
@@ -81,4 +91,35 @@ public abstract class AbstractRenderContext implements RenderContext {
 			activeTransform = transformStack.get(0);
 		}
 	}
+
+	protected final MeshConsumer meshConsumer = new MeshConsumer(this);
+
+	@Override
+	public final Consumer<Mesh> meshConsumer() {
+		return meshConsumer;
+	}
+
+	protected final FallbackConsumer fallbackConsumer = new FallbackConsumer(this);
+
+	@Override
+	public final Consumer<BakedModel> fallbackConsumer() {
+		return fallbackConsumer;
+	}
+
+	@Override
+	public final QuadEmitter getEmitter() {
+		return meshConsumer.getEmitter();
+	}
+
+	protected abstract boolean cullTest(Direction face);
+
+	protected abstract MaterialContext materialContext();
+
+	protected abstract VertexEncodingContext encodingContext();
+
+	protected abstract Random random();
+
+	protected abstract boolean defaultAo();
+
+	protected abstract BlockState blockState();
 }

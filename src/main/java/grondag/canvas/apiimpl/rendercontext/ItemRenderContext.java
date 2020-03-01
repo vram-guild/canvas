@@ -18,10 +18,7 @@ package grondag.canvas.apiimpl.rendercontext;
 
 import java.util.Objects;
 import java.util.Random;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
-
-import com.google.common.base.Predicates;
 
 import net.minecraft.block.BlockState;
 import net.minecraft.client.color.item.ItemColors;
@@ -38,10 +35,9 @@ import net.minecraft.client.util.math.Matrix3f;
 import net.minecraft.client.util.math.Matrix4f;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.math.Direction;
 
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
-import net.fabricmc.fabric.api.renderer.v1.mesh.Mesh;
-import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
 import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 
@@ -78,8 +74,7 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 		return random;
 	};
 
-
-	private final VertexEncodingContext encodingContext = new VertexEncodingContext(this::selectVertexConsumer, collectors, this::transform, Predicates.alwaysTrue()) {
+	private final VertexEncodingContext encodingContext = new VertexEncodingContext(this::selectVertexConsumer, collectors) {
 
 		@Override
 		public int overlay() {
@@ -166,8 +161,6 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 		return ItemRenderer.getArmorVertexConsumer(vertexConsumerProvider, layer, true, itemStack.hasEnchantmentGlint());
 	}
 
-	private final MeshConsumer meshConsumer = new MeshConsumer(encodingContext);
-
 	/**
 	 * Caches custom blend mode / vertex consumers and mimics the logic
 	 * in {@code RenderLayers.getEntityBlockLayer}. Layers other than
@@ -196,34 +189,32 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 	}
 
 	@Override
-	public Consumer<Mesh> meshConsumer() {
-		return meshConsumer;
-	}
-
-	private final AbstractFallbackConsumer fallbackConsumer = new AbstractFallbackConsumer(encodingContext) {
-		@Override
-		protected Supplier<Random> randomSupplier() {
-			return randomSupplier;
-		}
-
-		@Override
-		protected boolean defaultAo() {
-			return false;
-		}
-
-		@Override
-		protected BlockState blockState() {
-			return null;
-		}
-	};
-
-	@Override
-	public Consumer<BakedModel> fallbackConsumer() {
-		return fallbackConsumer;
+	protected boolean cullTest(Direction face) {
+		return true;
 	}
 
 	@Override
-	public QuadEmitter getEmitter() {
-		return meshConsumer.getEmitter();
+	protected MaterialContext materialContext() {
+		return MaterialContext.ITEM;
+	}
+
+	@Override
+	protected VertexEncodingContext encodingContext() {
+		return encodingContext;
+	}
+
+	@Override
+	protected Random random() {
+		return randomSupplier.get();
+	}
+
+	@Override
+	protected boolean defaultAo() {
+		return false;
+	}
+
+	@Override
+	protected BlockState blockState() {
+		return null;
 	}
 }
