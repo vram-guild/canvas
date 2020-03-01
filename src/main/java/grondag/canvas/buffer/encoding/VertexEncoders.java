@@ -11,10 +11,10 @@ public class VertexEncoders {
 	public static final int MAX_ENCODERS = 8;
 
 	public static VertexEncoder get(MaterialContext context, MaterialVertexFormat format, Value mat) {
-		return VanillaEncoder.INSTANCE;
+		return context == MaterialContext.TERRAIN ? TerrainEncoder.INSTANCE : VanillaEncoder.INSTANCE;
 	}
 
 	public static VertexEncoder get(MaterialContext context, RenderLayer layer) {
-		return VanillaEncoder.INSTANCE;
+		return context == MaterialContext.TERRAIN ? TerrainEncoder.INSTANCE : VanillaEncoder.INSTANCE;
 	}
 }

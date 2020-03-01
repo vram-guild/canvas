@@ -13,6 +13,7 @@ import net.minecraft.util.math.MathHelper;
 import net.fabricmc.fabric.impl.client.indigo.renderer.helper.NormalHelper;
 
 import grondag.canvas.material.MaterialState;
+import grondag.canvas.material.MaterialVertexFormats;
 import grondag.fermion.intstream.IntStreamProvider;
 import grondag.fermion.intstream.IntStreamProvider.IntStreamImpl;
 
@@ -21,6 +22,7 @@ public class VertexCollectorImpl implements VertexCollector {
 	private int integerSize = 0;
 	private MaterialState materialState;
 	public final VertexCollectorList parent;
+	public final int[] appendData  = new int[MaterialVertexFormats.MAX_QUAD_INT_STRIDE];
 
 	/**
 	 * Holds per-quad distance after {@link #sortQuads(double, double, double)} is
@@ -50,7 +52,7 @@ public class VertexCollectorImpl implements VertexCollector {
 
 	public void clear() {
 		integerSize = 0;
-		data.clear();
+		data.reset();
 	}
 
 	public MaterialState materialState() {
@@ -256,7 +258,12 @@ public class VertexCollectorImpl implements VertexCollector {
 	}
 
 	public final void add(final float f) {
-		this.add(Float.floatToRawIntBits(f));
+		data.set(integerSize++, Float.floatToRawIntBits(f));
+	}
+
+	public final void add(int[] appendData, int length) {
+		data.copyFrom(integerSize, appendData, 0, length);
+		integerSize += length;
 	}
 
 	public final void pos(final BlockPos pos, float modelX, float modelY, float modelZ) {
@@ -282,6 +289,19 @@ public class VertexCollectorImpl implements VertexCollector {
 		add((float) y);
 		add((float) z);
 		return this;
+	}
+
+	@Override
+	public void vertex(float x, float y, float z, float i, float j, float k, float l, float m, float n, int o, int p, float q, float r, float s) {
+		add(x);
+		add(y);
+		add(z);
+		this.color(i, j, k, l);
+		texture(m, n);
+		this.overlay(o);
+		this.light(p);
+		this.normal(q, r, s);
+		next();
 	}
 
 	@Override

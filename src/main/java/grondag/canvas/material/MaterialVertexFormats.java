@@ -27,6 +27,9 @@ public final class MaterialVertexFormats {
 			LIGHTMAPS_4UB,
 			NORMAL_AO_4UB);
 
+	// UGLY: derive this from formats
+	public static final int MAX_QUAD_INT_STRIDE = 128;
+
 	public static MaterialVertexFormat get(MaterialContext context, Value mat, MutableQuadViewImpl quad) {
 		return VANILLA_BLOCKS_AND_ITEMS;
 	}

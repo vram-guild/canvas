@@ -58,9 +58,11 @@ public abstract class UploadableChunk<V extends DrawableChunk> {
 		@Override
 		public DrawableChunk.Solid produceDrawable() {
 			final int limit = delegates.size();
+
 			for (int i = 0; i < limit; i++) {
 				delegates.get(i).flush();
 			}
+
 			return new DrawableChunk.Solid(delegates);
 		}
 	}

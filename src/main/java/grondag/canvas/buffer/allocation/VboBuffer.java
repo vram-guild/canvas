@@ -19,6 +19,7 @@ package grondag.canvas.buffer.allocation;
 import java.nio.ByteBuffer;
 import java.util.function.Consumer;
 
+import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL21;
 
 public class VboBuffer extends UploadableBuffer implements AllocationProvider {
@@ -27,7 +28,8 @@ public class VboBuffer extends UploadableBuffer implements AllocationProvider {
 	int byteOffset = 0;
 
 	public VboBuffer(int bytes) {
-		uploadBuffer = BufferAllocator.claim(bytes);
+		// TODO: get rid of BufferAllocator if it won't be faster
+		uploadBuffer = BufferUtils.createByteBuffer(bytes); //BufferAllocator.claim(bytes);
 	}
 
 	@Override
