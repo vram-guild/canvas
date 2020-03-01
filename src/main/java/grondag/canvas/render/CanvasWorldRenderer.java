@@ -530,7 +530,7 @@ public class CanvasWorldRenderer {
 		//		}
 
 		profiler.swap("terrain");
-		renderLayer(false, matrixStack, d, e, g);
+		renderTerrainLayer(false, matrixStack, d, e, g);
 		DiffuseLighting.enableForLevel(matrixStack.peek().getModel());
 
 		profiler.swap("entities");
@@ -656,13 +656,17 @@ public class CanvasWorldRenderer {
 										bufferBuilders.getEffectVertexConsumers().draw();
 										immediate.draw(RenderLayer.getLines());
 										immediate.draw();
+
 										profiler.swap("translucent");
-										renderLayer(true, matrixStack, d, e, g);
+										renderTerrainLayer(true, matrixStack, d, e, g);
+
 										profiler.swap("particles");
 										mc.particleManager.renderParticles(matrixStack, immediate, lightmapTextureManager, camera, f);
 										RenderSystem.pushMatrix();
 										RenderSystem.multMatrix(matrixStack.peek().getModel());
+
 										profiler.swap("cloudsLayers");
+
 										if (mc.options.getCloudRenderMode() != CloudRenderMode.OFF) {
 											profiler.swap("clouds");
 											((WorldRenderer) wr).renderClouds(matrixStack, f, d, e, g);
@@ -743,7 +747,7 @@ public class CanvasWorldRenderer {
 		}
 	}
 
-	private void renderLayer(boolean isTranslucent, MatrixStack matrixStack, double x, double y, double z) {
+	private void renderTerrainLayer(boolean isTranslucent, MatrixStack matrixStack, double x, double y, double z) {
 		final int visibleChunkCount = this.visibleChunkCount;
 
 		if (visibleChunkCount == 0) {

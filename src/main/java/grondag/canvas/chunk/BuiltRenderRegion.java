@@ -69,19 +69,23 @@ public class BuiltRenderRegion {
 	}
 
 	public boolean shouldBuild() {
-		if (squaredCameraDistance <= 576.0D) {
-			return true;
-		} else {
-			final int chunkX = origin.getX() >> 4;
+		return squaredCameraDistance <= 576 || areCornersLoadedCache || areCornerChunksLoaded();
+	}
+
+	private boolean areCornersLoadedCache = false;
+
+	// PERF: create a chunk load status cache that can reuse lookups each frame  - right now each chunk is checked by 16 vertical and 4 horizontal
+	private boolean areCornerChunksLoaded() {
+		final int chunkX = origin.getX() >> 4;
 		final int chunkZ = origin.getZ() >> 4;
 		final ClientWorld world = renderRegionBuilder.world;
 
-		return world.getChunk(chunkX - 1, chunkZ - 1, ChunkStatus.FULL, false) != null
+		areCornersLoadedCache = world.getChunk(chunkX - 1, chunkZ - 1, ChunkStatus.FULL, false) != null
 				&& world.getChunk(chunkX - 1, chunkZ + 1, ChunkStatus.FULL, false) != null
 				&& world.getChunk(chunkX + 1, chunkZ - 1, ChunkStatus.FULL, false) != null
 				&& world.getChunk(chunkX + 1, chunkZ + 1, ChunkStatus.FULL, false) != null;
 
-		}
+		return areCornersLoadedCache;
 	}
 
 	public void setOrigin(int x, int y, int z, RenderRegionStorage storage) {
@@ -125,6 +129,7 @@ public class BuiltRenderRegion {
 		buildData.set(RegionData.EMPTY);
 		renderData.set(RegionData.EMPTY);
 		needsRebuild = true;
+		areCornersLoadedCache = false;
 
 		if (solidDrawable != null) {
 			solidDrawable.clear();
