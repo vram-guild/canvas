@@ -20,8 +20,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 
 import grondag.canvas.apiimpl.MaterialConditionImpl;
 import grondag.canvas.apiimpl.MaterialShaderImpl;
-import grondag.canvas.buffer.encoding.old.OldMaterialVertexFormat;
-import grondag.canvas.buffer.encoding.old.OldMaterialVertexFormats;
+import grondag.canvas.material.MaterialVertexFormat;
 import grondag.canvas.shader.old.OldShaderContext;
 import grondag.canvas.shader.old.OldShaderProps;
 import grondag.fermion.varia.Useful;
@@ -39,14 +38,14 @@ public class OldMaterialState {
 		return VALUES.get(index);
 	}
 
-	public static OldMaterialState get(MaterialShaderImpl shader, MaterialConditionImpl condition, int shaderProps) {
+	public static OldMaterialState get(MaterialShaderImpl shader, MaterialConditionImpl condition, MaterialVertexFormat format, int shaderProps) {
 		final int index = computeIndex(shader, condition, shaderProps);
 		OldMaterialState result = VALUES.get(index);
 		if(result == null) {
 			synchronized(VALUES) {
 				result = VALUES.get(index);
 				if(result == null) {
-					result = new OldMaterialState(shader, condition, index, shaderProps);
+					result = new OldMaterialState(shader, condition, format, index, shaderProps);
 					VALUES.put(index, result);
 				}
 			}
@@ -61,23 +60,23 @@ public class OldMaterialState {
 	public final long sortIndex;
 	//UGLY: encapsulate
 	public final int shaderProps;
-	public final OldMaterialVertexFormat format;
+	public final MaterialVertexFormat format;
 
-	private OldMaterialState(MaterialShaderImpl shader, MaterialConditionImpl condition, int index, int shaderProps) {
+	private OldMaterialState(MaterialShaderImpl shader, MaterialConditionImpl condition, MaterialVertexFormat format, int index, int shaderProps) {
 		this.shader = shader;
 		this.condition = condition;
 		this.index = index;
 		this.shaderProps = shaderProps;
 		assert OldShaderProps.spriteDepth(shaderProps) > 0;
-		format = OldMaterialVertexFormats.fromShaderProps(shaderProps);
+		this.format = format;
 		sortIndex = (format.vertexStrideBytes << 24) | index;
 	}
 
 	public void activate(OldShaderContext context) {
-		shader.activate(context, shaderProps);
+		shader.activate(context, format, shaderProps);
 	}
 
-	public OldMaterialVertexFormat materialVertexFormat() {
+	public MaterialVertexFormat materialVertexFormat() {
 		return format;
 	}
 }

@@ -19,17 +19,17 @@ package grondag.canvas.chunk;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import grondag.canvas.buffer.allocation.VboBuffer;
-import grondag.canvas.buffer.packing.old.OldBufferPacker;
-import grondag.canvas.buffer.packing.old.OldBufferPackingList;
-import grondag.canvas.buffer.packing.old.OldVertexCollectorList;
+import grondag.canvas.buffer.packing.BufferPacker;
+import grondag.canvas.buffer.packing.BufferPackingList;
+import grondag.canvas.buffer.packing.VertexCollectorList;
 import grondag.canvas.chunk.draw.DrawableDelegate;
 
 public abstract class UploadableChunk<V extends DrawableChunk> {
 	protected final ObjectArrayList<DrawableDelegate> delegates;
 
 	/** Does not retain packing list reference */
-	protected UploadableChunk(OldBufferPackingList packingList, OldVertexCollectorList collectorList) {
-		delegates = OldBufferPacker.pack(packingList, collectorList, new VboBuffer(packingList.totalBytes()));
+	protected UploadableChunk(BufferPackingList packingList, VertexCollectorList collectorList) {
+		delegates = BufferPacker.pack(packingList, collectorList, new VboBuffer(packingList.totalBytes()));
 	}
 
 	/**
@@ -51,7 +51,7 @@ public abstract class UploadableChunk<V extends DrawableChunk> {
 	}
 
 	public static class Solid extends UploadableChunk<DrawableChunk.Solid> {
-		public Solid(OldBufferPackingList packing, OldVertexCollectorList collectorList) {
+		public Solid(BufferPackingList packing, VertexCollectorList collectorList) {
 			super(packing, collectorList);
 		}
 
@@ -66,7 +66,7 @@ public abstract class UploadableChunk<V extends DrawableChunk> {
 	}
 
 	public static class Translucent extends UploadableChunk<DrawableChunk.Translucent> {
-		public Translucent(OldBufferPackingList packing, OldVertexCollectorList collectorList) {
+		public Translucent(BufferPackingList packing, VertexCollectorList collectorList) {
 			super(packing, collectorList);
 		}
 

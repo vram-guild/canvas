@@ -22,7 +22,7 @@ public class MaterialState {
 	// input format must match output format of draw handler
 	public final DrawHandler drawHandler;
 
-	public final MaterialBufferFormat bufferFormat;
+	public final MaterialVertexFormat bufferFormat;
 
 	public final int index;
 
@@ -31,7 +31,7 @@ public class MaterialState {
 	private MaterialState(MaterialContext context, VertexEncoder encoder, DrawHandler drawHandler, int index) {
 		this.context = context;
 		this.encoder = encoder;
-		bufferFormat = encoder.outputFormat();
+		bufferFormat = encoder.format;
 		this.drawHandler = drawHandler;
 		this.index = index;
 		sortIndex = (bufferFormat.vertexStrideBytes << 24) | index;
@@ -49,13 +49,13 @@ public class MaterialState {
 		// analyze quad for lighting/color/texture content to allow for compact encoding, subject to material constraints
 		final Value mat = quad.material();
 
-		final MaterialBufferFormat format = MaterialBufferFormat.get(context, mat, quad);
+		final MaterialVertexFormat format = MaterialVertexFormats.get(context, mat, quad);
 
 		final VertexEncoder encoder = VertexEncoders.get(context, format, mat);
 
 		final DrawHandler drawHandler = DrawHandlers.get(context, format, mat);
 
-		assert encoder.outputFormat() == drawHandler.inputFormat();
+		assert encoder.format == drawHandler.format;
 
 		final int index = index(context, encoder, drawHandler);
 
@@ -80,6 +80,6 @@ public class MaterialState {
 	}
 
 	private static int index(MaterialContext context, VertexEncoder encoder, DrawHandler drawHandler) {
-		return context.ordinal() | (encoder.index() << ENCODER_SHIFT) | (drawHandler.index() << DRAW_HANDLER_SHIFT);
+		return context.ordinal() | (encoder.index << ENCODER_SHIFT) | (drawHandler.index << DRAW_HANDLER_SHIFT);
 	}
 }

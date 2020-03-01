@@ -22,9 +22,8 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import grondag.canvas.chunk.draw.DelegateLists;
 import grondag.canvas.chunk.draw.DrawableDelegate;
-import grondag.canvas.material.old.OldMaterialState;
+import grondag.canvas.draw.DrawHandler;
 import grondag.canvas.shader.ShaderManager;
-import grondag.canvas.shader.old.OldShaderContext;
 
 /**
  * Plays same role as VertexBuffer in RenderChunk but implementation is much
@@ -73,7 +72,7 @@ public abstract class DrawableChunk {
 			final int limit = delegates.size();
 			for(int i = 0; i < limit; i++) {
 				final DrawableDelegate d = delegates.get(i);
-				result += d.bufferDelegate().byteCount() / d.materialState().materialVertexFormat().vertexStrideBytes / 4;
+				result += d.bufferDelegate().byteCount() / d.materialState().bufferFormat.vertexStrideBytes / 4;
 			}
 			quadCount = result;
 		}
@@ -144,12 +143,12 @@ public abstract class DrawableChunk {
 			// using conventional loop here to prevent iterator garbage in hot loop
 			// profiling shows it matters
 			for (int i = 0; i < limit; i++) {
-				final DrawableDelegate b = (DrawableDelegate) draws[i];
-				final OldMaterialState p = b.materialState();
-				if(!p.condition.affectBlocks || p.condition.compute(frameIndex)) {
-					p.activate(OldShaderContext.BLOCK_TRANSLUCENT);
-					b.bind();
-					b.draw();
+				final DrawableDelegate delegate = (DrawableDelegate) draws[i];
+				final DrawHandler handler = delegate.materialState().drawHandler;
+
+				// UGLY - check probably belongs in draw handler
+				if (!handler.condition.affectBlocks || handler.condition.compute(frameIndex)) {
+					handler.draw(delegate);
 				}
 			}
 		}

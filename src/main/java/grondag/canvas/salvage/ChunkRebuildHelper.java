@@ -30,8 +30,8 @@ import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 
 import grondag.canvas.apiimpl.RenderMaterialImpl;
 import grondag.canvas.apiimpl.mesh.QuadViewImpl;
-import grondag.canvas.buffer.packing.old.OldVertexCollector;
-import grondag.canvas.buffer.packing.old.OldVertexCollectorList;
+import grondag.canvas.buffer.packing.VertexCollector;
+import grondag.canvas.buffer.packing.VertexCollectorList;
 
 // TODO: remove
 public class ChunkRebuildHelper {
@@ -45,14 +45,14 @@ public class ChunkRebuildHelper {
 	public final ChunkOcclusionDataBuilder visGraph = new ChunkOcclusionDataBuilder();
 	public final Random random = new Random();
 	public final FluidBufferBuilder fluidBuilder = new FluidBufferBuilder();
-	public final OldVertexCollectorList solidCollector = new OldVertexCollectorList(false);
-	public final OldVertexCollectorList translucentCollector = new OldVertexCollectorList(true);
+	public final VertexCollectorList solidCollector = new VertexCollectorList();
+	public final VertexCollectorList translucentCollector = new VertexCollectorList();
 
-	public OldVertexCollectorList getCollector(BlendMode layer) {
+	public VertexCollectorList getCollector(BlendMode layer) {
 		return layer == BlendMode.TRANSLUCENT ? translucentCollector : solidCollector;
 	}
 
-	public OldVertexCollector collectorForMaterial(RenderMaterialImpl.Value mat, QuadViewImpl quad) {
+	public VertexCollector collectorForMaterial(RenderMaterialImpl.Value mat, QuadViewImpl quad) {
 		//final int props = ShaderProps.classify(mat, quad, TerrainRenderContext.contextFunc(mat));
 		//return getCollector(mat.renderLayer).get(mat, props);
 		return null;

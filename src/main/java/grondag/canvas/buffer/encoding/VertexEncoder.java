@@ -1,12 +1,18 @@
 package grondag.canvas.buffer.encoding;
 
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
-import grondag.canvas.material.MaterialBufferFormat;
+import grondag.canvas.material.MaterialVertexFormat;
 
 public abstract class VertexEncoder {
 	private static int nextEncoderIndex = 0;
 
-	final int index = nextEncoderIndex++;
+	public final int index = nextEncoderIndex++;
+
+	public final MaterialVertexFormat format;
+
+	VertexEncoder(MaterialVertexFormat format) {
+		this.format = format;
+	}
 
 	/**
 	 * Determines color index and render layer, then routes to appropriate
@@ -26,10 +32,4 @@ public abstract class VertexEncoder {
 	protected abstract void bufferQuad(MutableQuadViewImpl quad, VertexEncodingContext context);
 
 	protected abstract void colorizeQuad(MutableQuadViewImpl quad, VertexEncodingContext context);
-
-	public abstract MaterialBufferFormat outputFormat();
-
-	public final int index() {
-		return index;
-	}
 }

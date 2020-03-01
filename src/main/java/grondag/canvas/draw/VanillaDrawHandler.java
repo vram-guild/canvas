@@ -1,12 +1,18 @@
 package grondag.canvas.draw;
 
-import grondag.canvas.material.MaterialBufferFormat;
+import grondag.canvas.apiimpl.RenderMaterialImpl;
+import grondag.canvas.material.MaterialVertexFormats;
 
 public class VanillaDrawHandler extends DrawHandler {
-	static final VanillaDrawHandler INSTANCE = new VanillaDrawHandler();
+	public static final VanillaDrawHandler INSTANCE = new VanillaDrawHandler();
+
+	VanillaDrawHandler() {
+		super(MaterialVertexFormats.VANILLA_BLOCKS_AND_ITEMS, RenderMaterialImpl.byIndex(0));
+	}
 
 	@Override
-	public MaterialBufferFormat inputFormat() {
-		return MaterialBufferFormat.VANILLA_BLOCKS_AND_ITEMS;
+	protected void activate() {
+		// TODO Auto-generated method stub
+
 	}
 }

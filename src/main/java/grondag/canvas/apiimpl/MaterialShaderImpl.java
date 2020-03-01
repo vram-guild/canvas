@@ -25,6 +25,7 @@ import org.joml.Matrix4f;
 
 import net.minecraft.util.Identifier;
 
+import grondag.canvas.material.MaterialVertexFormat;
 import grondag.canvas.shader.GlFragmentShader;
 import grondag.canvas.shader.GlProgram;
 import grondag.canvas.shader.GlShaderManager;
@@ -65,7 +66,7 @@ public final class MaterialShaderImpl implements MaterialShader {
 		return context.ordinal() | (shaderProps << 3);
 	}
 
-	private GlProgram getOrCreate(OldShaderContext context, int shaderProps) {
+	private GlProgram getOrCreate(OldShaderContext context,  MaterialVertexFormat format, int shaderProps) {
 		final int key = key(context, shaderProps);
 		final GlProgram result = programMap.get(key);
 		if(result == null) {
@@ -73,7 +74,7 @@ public final class MaterialShaderImpl implements MaterialShader {
 			assert spriteDepth > 0;
 			final GlVertexShader vs = GlShaderManager.INSTANCE.getOrCreateVertexShader(vertexShader, shaderProps, context);
 			final GlFragmentShader fs = GlShaderManager.INSTANCE.getOrCreateFragmentShader(fragmentShader, shaderProps, context);
-			final GlProgram newProgram = new GlProgram(vs, fs, shaderProps, true);
+			final GlProgram newProgram = new GlProgram(vs, fs, format, shaderProps, true);
 			uniforms.forEach(u -> u.accept(newProgram));
 			newProgram.load();
 			programMap.put(key, newProgram);
@@ -84,8 +85,8 @@ public final class MaterialShaderImpl implements MaterialShader {
 		}
 	}
 
-	public void activate(OldShaderContext context, int shaderProps) {
-		getOrCreate(context, shaderProps).activate();
+	public void activate(OldShaderContext context, MaterialVertexFormat format, int shaderProps) {
+		getOrCreate(context, format, shaderProps).activate();
 	}
 
 	public void forceReload() {

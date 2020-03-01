@@ -25,7 +25,7 @@ import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.apiimpl.util.ColorHelper;
 import grondag.canvas.apiimpl.util.NormalHelper;
-import grondag.canvas.buffer.packing.old.OldVertexCollector;
+import grondag.canvas.buffer.packing.VertexCollector;
 
 public class FluidBufferBuilder extends BufferBuilder {
 	private static final int DEFAULT_SHADER_FLAGS = Canvas.INSTANCE.materialFinder().disableAo(0, true).find().shaderFlags() << 16;
@@ -34,7 +34,7 @@ public class FluidBufferBuilder extends BufferBuilder {
 		super(256);
 	}
 
-	OldVertexCollector vc;
+	VertexCollector vc;
 	BlockPos pos;
 	private int vertexIndex = 0;
 	private final float[] vertex = new float[12];
@@ -42,7 +42,7 @@ public class FluidBufferBuilder extends BufferBuilder {
 	private final int[] lightmaps = new int[4];
 	private final float[] uv = new float[8];
 
-	public FluidBufferBuilder prepare(OldVertexCollector vc, BlockPos pos, BlendMode layer) {
+	public FluidBufferBuilder prepare(VertexCollector vc, BlockPos pos, BlendMode layer) {
 		this.vc = vc;
 		this.pos = pos;
 		vertexIndex = 0;
@@ -61,7 +61,8 @@ public class FluidBufferBuilder extends BufferBuilder {
 
 	//@Override
 	public void setOffset(double x, double y, double z) {
-		vc.parent.setRelativeRenderOrigin(-x, -y, -z);
+		// TODO: restore or remove
+		//vc.parent.setRelativeRenderOrigin(-x, -y, -z);
 		//super.setOffset(x, y, z);
 	}
 
@@ -89,6 +90,7 @@ public class FluidBufferBuilder extends BufferBuilder {
 		return this;
 	}
 
+	@SuppressWarnings("unused")
 	@Override
 	public void next() {
 		if(++vertexIndex == 4) {
@@ -103,15 +105,16 @@ public class FluidBufferBuilder extends BufferBuilder {
 				undoShade = 2f;
 			}
 
-			int j = 0;
-			int k = 0;
+			final int j = 0;
+			final int k = 0;
 			for(int i = 0; i < 4; i++) {
-				vc.pos(pos, vertex[j++], vertex[j++], vertex[j++]);
-				vc.add(ColorHelper.multiplyRGB(colors[i], undoShade));
-				vc.add(uv[k++]);
-				vc.add(uv[k++]);
-				vc.add(lightmaps[i]);
-				vc.add(normal);
+				// TODO: restore or remove
+				//				vc.pos(pos, vertex[j++], vertex[j++], vertex[j++]);
+				//				vc.add(ColorHelper.multiplyRGB(colors[i], undoShade));
+				//				vc.add(uv[k++]);
+				//				vc.add(uv[k++]);
+				//				vc.add(lightmaps[i]);
+				//				vc.add(normal);
 			}
 			vertexIndex = 0;
 		}

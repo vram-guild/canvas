@@ -7,9 +7,13 @@ import net.minecraft.client.util.math.Vector3f;
 
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.util.ColorHelper;
-import grondag.canvas.material.MaterialBufferFormat;
+import grondag.canvas.material.MaterialVertexFormats;
 
 public class VanillaEncoder extends VertexEncoder {
+	VanillaEncoder() {
+		super(MaterialVertexFormats.VANILLA_BLOCKS_AND_ITEMS);
+	}
+
 	static final VanillaEncoder INSTANCE = new VanillaEncoder();
 
 	@Override
@@ -67,10 +71,5 @@ public class VanillaEncoder extends VertexEncoder {
 				quad.spriteColor(i, 0, ColorHelper.swapRedBlueIfNeeded(ColorHelper.multiplyColor(indexedColor, quad.spriteColor(i, 0))));
 			}
 		}
-	}
-
-	@Override
-	public MaterialBufferFormat outputFormat() {
-		return MaterialBufferFormat.VANILLA_BLOCKS_AND_ITEMS;
 	}
 }

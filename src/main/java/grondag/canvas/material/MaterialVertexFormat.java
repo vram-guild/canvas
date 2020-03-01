@@ -14,38 +14,37 @@
  * the License.
  ******************************************************************************/
 
-package grondag.canvas.buffer.encoding.old;
+package grondag.canvas.material;
 
 import java.nio.ByteBuffer;
-import java.util.Collection;
 
 import org.lwjgl.opengl.GL20;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
-import grondag.canvas.buffer.packing.old.OldVertexCollector;
+import grondag.canvas.buffer.packing.AbstractVertexCollector;
 import grondag.canvas.varia.CanvasGlHelper;
 
-public class OldMaterialVertexFormat {
+public class MaterialVertexFormat {
+	private static int nextIndex = 0;
 
 	public final int attributeCount;
 
 	/** vertex stride in bytes */
 	public final int vertexStrideBytes;
+	public final int vertexStrideInts;
 
-	private final OldMaterialVertextFormatElement[] elements;
+	private final MaterialVertextFormatElement[] elements;
 
-	public final int index;
+	public final int index = nextIndex++;
 
-	public OldMaterialVertexFormat(int index, Collection<OldMaterialVertextFormatElement> elementsIn) {
-		this.index = index;
-		elements = new OldMaterialVertextFormatElement[elementsIn.size()];
-		elementsIn.toArray(elements);
+	MaterialVertexFormat(MaterialVertextFormatElement... elementsIn) {
+		elements = elementsIn;
 
 		int bytes = 0;
 		int count = 0;
-		for (final OldMaterialVertextFormatElement e : elements) {
+		for (final MaterialVertextFormatElement e : elements) {
 			bytes += e.byteSize;
 			if (e.attributeName != null) {
 				count++;
@@ -53,12 +52,13 @@ public class OldMaterialVertexFormat {
 		}
 		attributeCount = count;
 		vertexStrideBytes = bytes;
+		vertexStrideInts = bytes / 4;
 	}
 
-	public void encode(MutableQuadViewImpl q, OldVertexEncodingContext context, OldVertexCollector output) {
-		final OldMaterialVertextFormatElement[] elements = this.elements;
+	public void encode(MutableQuadViewImpl q, OldVertexEncodingContext context, AbstractVertexCollector output) {
+		final MaterialVertextFormatElement[] elements = this.elements;
 		for(int i = 0; i < 4; i++) {
-			for(final OldMaterialVertextFormatElement e : elements) {
+			for(final MaterialVertextFormatElement e : elements) {
 				e.encoder.encode(q, i, context, output);
 			}
 		}
@@ -85,7 +85,7 @@ public class OldMaterialVertexFormat {
 		// NB: <= because element 0 is vertex
 		for(int i = 0; i <= attribCount; i++) {
 			if(i < limit) {
-				final OldMaterialVertextFormatElement e = elements[i];
+				final MaterialVertextFormatElement e = elements[i];
 				if (e.attributeName != null) {
 					buffer.position(bufferOffset + offset);
 					if(Configurator.logGlStateChanges) {
@@ -117,7 +117,7 @@ public class OldMaterialVertexFormat {
 		// NB: <= because element 0 is vertex
 		for(int i = 0; i <= attribCount; i++) {
 			if(i < limit) {
-				final OldMaterialVertextFormatElement e = elements[i];
+				final MaterialVertextFormatElement e = elements[i];
 				if (e.attributeName != null) {
 					if(Configurator.logGlStateChanges) {
 						CanvasMod.LOG.info(String.format("GlState: glVertexAttribPointer(%d, %d, %d, %b, %d, %d)", index, e.elementCount, e.glConstant, e.isNormalized, vertexStrideBytes, bufferOffset + offset));
@@ -140,7 +140,7 @@ public class OldMaterialVertexFormat {
 	 */
 	public void bindProgramAttributes(int programID) {
 		int index = 1;
-		for (final OldMaterialVertextFormatElement e : elements) {
+		for (final MaterialVertextFormatElement e : elements) {
 			if (e.attributeName != null) {
 				GL20.glBindAttribLocation(programID, index++, e.attributeName);
 			}

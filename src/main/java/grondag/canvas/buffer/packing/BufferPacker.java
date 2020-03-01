@@ -23,8 +23,8 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import grondag.canvas.buffer.allocation.AllocationProvider;
 import grondag.canvas.chunk.draw.DelegateLists;
 import grondag.canvas.chunk.draw.DrawableDelegate;
-import grondag.canvas.material.MaterialBufferFormat;
 import grondag.canvas.material.MaterialState;
+import grondag.canvas.material.MaterialVertexFormat;
 
 public class BufferPacker {
 
@@ -55,7 +55,7 @@ public class BufferPacker {
 
 	public void accept(MaterialState materialState, int vertexStart, int vertexCount) {
 		final AbstractVertexCollector collector = collectorList.get(materialState);
-		final MaterialBufferFormat format = collector.format();
+		final MaterialVertexFormat format = collector.materialState().bufferFormat;
 		final int stride = format.vertexStrideBytes;
 
 		allocator.claimAllocation(vertexCount * stride, ref -> {

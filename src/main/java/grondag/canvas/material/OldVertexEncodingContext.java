@@ -1,4 +1,4 @@
-package grondag.canvas.buffer.encoding.old;
+package grondag.canvas.material;
 
 import net.minecraft.util.math.BlockPos;
 
@@ -19,5 +19,10 @@ public final class OldVertexEncodingContext {
 		this.aoData = aoData;
 		this.shaderFlags = shaderFlags;
 		return this;
+	}
+
+	public int overlay() {
+		// TODO Auto-generated method stub
+		return 0;
 	}
 }

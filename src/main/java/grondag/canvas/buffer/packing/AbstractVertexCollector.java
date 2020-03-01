@@ -6,6 +6,7 @@ import com.google.common.primitives.Doubles;
 import it.unimi.dsi.fastutil.Swapper;
 import it.unimi.dsi.fastutil.ints.IntComparator;
 
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 
 import grondag.canvas.material.MaterialState;
@@ -244,4 +245,25 @@ public class AbstractVertexCollector {
 			return new QuadSorter();
 		}
 	};
+
+	public final void add(final int i) {
+		data.set(integerSize++, i);
+	}
+
+	public final void add(final float f) {
+		this.add(Float.floatToRawIntBits(f));
+	}
+
+	public final void pos(final BlockPos pos, float modelX, float modelY, float modelZ) {
+		this.add((float)(pos.getX() - parent.renderOriginX + modelX));
+		this.add((float)(pos.getY() - parent.renderOriginY + modelY));
+		this.add((float)(pos.getZ() - parent.renderOriginZ + modelZ));
+	}
+
+	/** for items */
+	public final void pos(float modelX, float modelY, float modelZ) {
+		this.add((modelX));
+		this.add((modelY));
+		this.add((modelZ));
+	}
 }

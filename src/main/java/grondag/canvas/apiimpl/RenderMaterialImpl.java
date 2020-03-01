@@ -299,12 +299,14 @@ public abstract class RenderMaterialImpl {
 			final MaterialShaderImpl s = shader == null ? ShaderManager.INSTANCE.getDefault() : shader;
 			SHADER.setValue(s.getIndex(), this);
 			Value result = MAP.get(bits);
+
 			if (result == null) {
 				result = new Value(LIST.size(), bits, s);
 				LIST.add(result);
 				MAP.put(result.bits, result);
 				result.setupBlockLayerVariants();
 			}
+
 			return result;
 		}
 

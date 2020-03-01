@@ -26,10 +26,8 @@ import it.unimi.dsi.fastutil.ints.IntComparator;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.lwjgl.opengl.GL11;
 
-import grondag.canvas.apiimpl.MaterialConditionImpl;
-import grondag.canvas.apiimpl.MaterialShaderImpl;
 import grondag.canvas.buffer.allocation.BindStateManager;
-import grondag.canvas.material.old.OldMaterialState;
+import grondag.canvas.draw.DrawHandler;
 import grondag.canvas.shader.GlProgram;
 import grondag.canvas.shader.ShaderManager;
 import grondag.canvas.shader.old.OldShaderContext;
@@ -99,31 +97,23 @@ public class SolidRenderList implements Consumer<ObjectArrayList<DrawableDelegat
 		}
 
 		final Object[] draws = delegates.elements();
-
 		final BufferSorter sorter = SORTERS.get();
 		sorter.delegates = draws;
 		Arrays.quickSort(0, limit, sorter, sorter);
 
-		MaterialShaderImpl lastShader = null;
-		int lastProps = -1;
-
 		final int frameIndex = ShaderManager.INSTANCE.frameIndex();
 
 		for (int i = 0; i < limit; i++) {
-			final DrawableDelegate b = (DrawableDelegate) draws[i];
-			final OldMaterialState state = b.materialState();
-			final MaterialConditionImpl condition = state.condition;
+			final DrawableDelegate delegate = (DrawableDelegate) draws[i];
+			// UGLY handler is contained in delegate - why not ecapsulate draw?
+			final DrawHandler handler = delegate.materialState().drawHandler;
 
-			if(!condition.affectBlocks || condition.compute(frameIndex)) {
-				if(state.shader != lastShader || state.shaderProps != lastProps) {
-					state.activate(context);
-					lastShader = state.shader;
-					lastProps = state.shaderProps;
-				}
-				b.bind();
-				b.draw();
+			// UGLY - check probably belongs in draw handler
+			if(!handler.condition.affectBlocks || handler.condition.compute(frameIndex)) {
+				handler.draw(delegate);
 			}
 		}
+
 		delegates.clear();
 	}
 
