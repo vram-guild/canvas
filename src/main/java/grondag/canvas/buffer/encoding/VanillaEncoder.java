@@ -2,6 +2,7 @@ package grondag.canvas.buffer.encoding;
 
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.util.math.Matrix4f;
+import net.minecraft.client.util.math.Vector4f;
 
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.rendercontext.AbstractRenderContext;
@@ -17,6 +18,7 @@ abstract class VanillaEncoder extends VertexEncoder {
 
 	protected void bufferQuad(MutableQuadViewImpl quad, AbstractRenderContext context) {
 		final Matrix4f matrix = context.matrix();
+		final Vector4f transformVector = context.transformVector;
 		final int overlay = context.overlay();
 		final Matrix3fExt normalMatrix = context.normalMatrix();
 		final VertexConsumer buff = context.consumer(quad);
@@ -36,9 +38,13 @@ abstract class VanillaEncoder extends VertexEncoder {
 		}
 
 		for (int i = 0; i < 4; i++) {
-			buff.vertex(matrix, quad.x(i), quad.y(i), quad.z(i));
+			transformVector.set(quad.x(i), quad.y(i), quad.z(i), 1.0F);
+			transformVector.transform(matrix);
+			buff.vertex(transformVector.getX(), transformVector.getY(), transformVector.getZ());
+
 			final int color = quad.spriteColor(i, 0);
 			buff.color(color & 0xFF, (color >> 8) & 0xFF, (color >> 16) & 0xFF, (color >> 24) & 0xFF);
+
 			buff.texture(quad.spriteU(i, 0), quad.spriteV(i, 0));
 			buff.overlay(overlay);
 			buff.light(quad.lightmap(i));

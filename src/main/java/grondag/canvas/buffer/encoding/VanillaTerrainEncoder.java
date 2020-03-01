@@ -12,6 +12,7 @@ public class VanillaTerrainEncoder extends VanillaBlockEncoder {
 	@Override
 	protected void bufferQuad(MutableQuadViewImpl quad, AbstractRenderContext context) {
 		final Matrix4f matrix = context.matrix();
+		final Vector4f transformVector = context.transformVector;
 		final Matrix3fExt normalMatrix = context.normalMatrix();
 		final VertexCollectorImpl buff = (VertexCollectorImpl) context.consumer(quad);
 		final int[] appendData = buff.appendData;
@@ -29,12 +30,11 @@ public class VanillaTerrainEncoder extends VanillaBlockEncoder {
 
 		int k = 0;
 		for (int i = 0; i < 4; i++) {
-			// PERF: this is BS
-			final Vector4f vector4f = new Vector4f(quad.x(i), quad.y(i), quad.z(i), 1.0F);
-			vector4f.transform(matrix);
-			appendData[k++] = Float.floatToRawIntBits(vector4f.getX());
-			appendData[k++] = Float.floatToRawIntBits(vector4f.getY());
-			appendData[k++] = Float.floatToRawIntBits(vector4f.getZ());
+			transformVector.set(quad.x(i), quad.y(i), quad.z(i), 1.0F);
+			transformVector.transform(matrix);
+			appendData[k++] = Float.floatToRawIntBits(transformVector.getX());
+			appendData[k++] = Float.floatToRawIntBits(transformVector.getY());
+			appendData[k++] = Float.floatToRawIntBits(transformVector.getZ());
 
 			appendData[k++] = quad.spriteColor(i, 0);
 

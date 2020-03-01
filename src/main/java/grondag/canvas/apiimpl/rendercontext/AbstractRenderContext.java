@@ -27,6 +27,7 @@ import net.minecraft.block.BlockState;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.model.BakedModel;
 import net.minecraft.client.util.math.Matrix4f;
+import net.minecraft.client.util.math.Vector4f;
 import net.minecraft.util.math.Direction;
 
 import net.fabricmc.fabric.api.renderer.v1.mesh.Mesh;
@@ -41,6 +42,9 @@ import grondag.canvas.material.MaterialContext;
 import grondag.canvas.mixinterface.Matrix3fExt;
 
 public abstract class AbstractRenderContext implements RenderContext {
+	/** for use in encoders without a threadlocal */
+	public final Vector4f transformVector = new Vector4f();
+
 	public final VertexCollectorList collectors = new VertexCollectorList();
 	private final ObjectArrayList<QuadTransform> transformStack = new ObjectArrayList<>();
 	private static final QuadTransform NO_TRANSFORM = (q) -> true;
