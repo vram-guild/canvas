@@ -1,13 +1,14 @@
 package grondag.canvas.buffer.encoding;
 
 import net.minecraft.client.render.VertexConsumer;
-import net.minecraft.client.util.math.Matrix3f;
 import net.minecraft.client.util.math.Matrix4f;
-import net.minecraft.client.util.math.Vector3f;
 
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
+import grondag.canvas.apiimpl.rendercontext.AbstractRenderContext;
 import grondag.canvas.apiimpl.util.ColorHelper;
+import grondag.canvas.apiimpl.util.NormalHelper;
 import grondag.canvas.material.MaterialVertexFormats;
+import grondag.canvas.mixinterface.Matrix3fExt;
 
 public class VanillaEncoder extends VertexEncoder {
 	VanillaEncoder() {
@@ -17,21 +18,24 @@ public class VanillaEncoder extends VertexEncoder {
 	static final VanillaEncoder INSTANCE = new VanillaEncoder();
 
 	@Override
-	protected void bufferQuad(MutableQuadViewImpl quad, VertexEncodingContext context) {
+	protected void bufferQuad(MutableQuadViewImpl quad, AbstractRenderContext context) {
 		final Matrix4f matrix = context.matrix();
 		final int overlay = context.overlay();
-		final Matrix3f normalMatrix = context.normalMatrix();
-		final Vector3f normalVec = context.normalVec();
+		final Matrix3fExt normalMatrix = context.normalMatrix();
 		final VertexConsumer buff = context.consumer(quad);
 
+		int packedNormal = 0;
+		float nx = 0, ny = 0, nz = 0;
 		final boolean useNormals = quad.hasVertexNormals();
 
 		if (useNormals) {
 			quad.populateMissingNormals();
 		} else {
-			final Vector3f faceNormal = quad.faceNormal();
-			normalVec.set(faceNormal.getX(), faceNormal.getY(), faceNormal.getZ());
-			normalVec.transform(normalMatrix);
+			packedNormal = quad.packedFaceNormal();
+			final int transformedNormal = normalMatrix.canvas_transform(packedNormal);
+			nx = NormalHelper.getPackedNormalComponent(transformedNormal, 0);
+			ny = NormalHelper.getPackedNormalComponent(transformedNormal, 1);
+			nz = NormalHelper.getPackedNormalComponent(transformedNormal, 2);
 		}
 
 		for (int i = 0; i < 4; i++) {
@@ -43,18 +47,25 @@ public class VanillaEncoder extends VertexEncoder {
 			buff.light(quad.lightmap(i));
 
 			if (useNormals) {
-				normalVec.set(quad.normalX(i), quad.normalY(i), quad.normalZ(i));
-				normalVec.transform(normalMatrix);
+				final int p = quad.packedNormal(i);
+
+				if (p != packedNormal) {
+					packedNormal = p;
+					final int transformedNormal = normalMatrix.canvas_transform(packedNormal);
+					nx = NormalHelper.getPackedNormalComponent(transformedNormal, 0);
+					ny = NormalHelper.getPackedNormalComponent(transformedNormal, 1);
+					nz = NormalHelper.getPackedNormalComponent(transformedNormal, 2);
+				}
 			}
 
-			buff.normal(normalVec.getX(), normalVec.getY(), normalVec.getZ());
+			buff.normal(nx, ny, nz);
 			buff.next();
 		}
 	}
 
 	/** handles block color and red-blue swizzle, common to all renders. */
 	@Override
-	protected void colorizeQuad(MutableQuadViewImpl quad, VertexEncodingContext context) {
+	protected void colorizeQuad(MutableQuadViewImpl quad, AbstractRenderContext context) {
 
 		final int colorIndex = quad.colorIndex();
 

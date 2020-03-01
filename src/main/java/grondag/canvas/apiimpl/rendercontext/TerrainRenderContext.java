@@ -17,7 +17,6 @@
 package grondag.canvas.apiimpl.rendercontext;
 
 import java.util.Random;
-import java.util.function.Function;
 
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 
@@ -26,7 +25,6 @@ import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.model.BakedModel;
-import net.minecraft.client.util.math.Matrix3f;
 import net.minecraft.client.util.math.Matrix4f;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.crash.CrashException;
@@ -39,12 +37,12 @@ import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
-import grondag.canvas.buffer.encoding.VertexEncodingContext;
 import grondag.canvas.chunk.FastRenderRegion;
 import grondag.canvas.chunk.ProtoRenderRegion;
 import grondag.canvas.chunk.RenderRegionAddressHelper;
 import grondag.canvas.light.AoCalculator;
 import grondag.canvas.material.MaterialContext;
+import grondag.canvas.mixinterface.Matrix3fExt;
 
 /**
  * Implementation of {@link RenderContext} used during terrain rendering.
@@ -84,35 +82,6 @@ public class TerrainRenderContext extends AbstractRenderContext implements Rende
 	/** for use by chunk builder - avoids another threadlocal */
 	public final BlockPos.Mutable searchPos = new BlockPos.Mutable();
 
-	final Function<RenderLayer, VertexConsumer> dummyBufferFunc = (RenderLayer l) -> collectors.get(MaterialContext.TERRAIN, l);
-
-	private final AbstractBlockEncodingContext encodingContext = new AbstractBlockEncodingContext(blockInfo, dummyBufferFunc, collectors) {
-		@Override
-		public int overlay() {
-			return overlay;
-		}
-
-		@Override
-		public Matrix4f matrix() {
-			return matrix;
-		}
-
-		@Override
-		public Matrix3f normalMatrix() {
-			return normalMatrix;
-		}
-
-		@Override
-		public void computeLighting(MutableQuadViewImpl quad) {
-			aoCalc.compute(quad);
-		}
-
-		@Override
-		public MaterialContext materialContext() {
-			return MaterialContext.TERRAIN;
-		}
-	};
-
 	public TerrainRenderContext prepareRegion(ProtoRenderRegion protoRegion) {
 		nonCullBlockEntities.clear();
 		addedBlockEntities.clear();
@@ -128,7 +97,7 @@ public class TerrainRenderContext extends AbstractRenderContext implements Rende
 	/** Called from chunk renderer hook. */
 	public void tesselateBlock(BlockState blockState, BlockPos blockPos, final BakedModel model, MatrixStack matrixStack) {
 		matrix = matrixStack.peek().getModel();
-		normalMatrix = matrixStack.peek().getNormal();
+		normalMatrix = (Matrix3fExt)(Object) matrixStack.peek().getNormal();
 
 		try {
 			aoCalc.prepare(RenderRegionAddressHelper.interiorIndex(blockPos));
@@ -148,13 +117,28 @@ public class TerrainRenderContext extends AbstractRenderContext implements Rende
 	}
 
 	@Override
-	protected MaterialContext materialContext() {
+	public MaterialContext materialContext() {
 		return MaterialContext.TERRAIN;
 	}
 
 	@Override
-	protected VertexEncodingContext encodingContext() {
-		return encodingContext;
+	public int overlay() {
+		return overlay;
+	}
+
+	@Override
+	public Matrix4f matrix() {
+		return matrix;
+	}
+
+	@Override
+	public Matrix3fExt normalMatrix() {
+		return normalMatrix;
+	}
+
+	@Override
+	public void computeLighting(MutableQuadViewImpl quad) {
+		aoCalc.compute(quad);
 	}
 
 	@Override
@@ -170,5 +154,21 @@ public class TerrainRenderContext extends AbstractRenderContext implements Rende
 	@Override
 	protected BlockState blockState() {
 		return blockInfo.blockState;
+	}
+
+	@Override
+	public VertexConsumer consumer(MutableQuadViewImpl quad) {
+		final RenderLayer layer = blockInfo.effectiveRenderLayer(quad.material().blendMode(0));
+		return collectors.get(MaterialContext.TERRAIN, layer);
+	}
+
+	@Override
+	public final int indexedColor(int colorIndex) {
+		return blockInfo.blockColor(colorIndex);
+	}
+
+	@Override
+	public final void applyLighting(MutableQuadViewImpl quad) {
+		blockInfo.applyBlockLighting(quad);
 	}
 }

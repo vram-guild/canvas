@@ -22,8 +22,8 @@ import java.util.function.Consumer;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import net.minecraft.block.BlockState;
+import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.model.BakedModel;
-import net.minecraft.client.util.math.Matrix3f;
 import net.minecraft.client.util.math.Matrix4f;
 import net.minecraft.util.math.Direction;
 
@@ -32,16 +32,17 @@ import net.fabricmc.fabric.api.renderer.v1.mesh.MutableQuadView;
 import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 
-import grondag.canvas.buffer.encoding.VertexEncodingContext;
+import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.buffer.packing.VertexCollectorList;
 import grondag.canvas.material.MaterialContext;
+import grondag.canvas.mixinterface.Matrix3fExt;
 
 public abstract class AbstractRenderContext implements RenderContext {
 	public final VertexCollectorList collectors = new VertexCollectorList();
 	private final ObjectArrayList<QuadTransform> transformStack = new ObjectArrayList<>();
 	private static final QuadTransform NO_TRANSFORM = (q) -> true;
 	protected Matrix4f matrix;
-	protected Matrix3f normalMatrix;
+	protected Matrix3fExt normalMatrix;
 	protected int overlay;
 
 	private final QuadTransform stackTransform = (q) -> {
@@ -113,13 +114,25 @@ public abstract class AbstractRenderContext implements RenderContext {
 
 	protected abstract boolean cullTest(Direction face);
 
-	protected abstract MaterialContext materialContext();
-
-	protected abstract VertexEncodingContext encodingContext();
-
 	protected abstract Random random();
 
 	protected abstract boolean defaultAo();
 
 	protected abstract BlockState blockState();
+
+	public abstract MaterialContext materialContext();
+
+	public abstract Matrix4f matrix();
+
+	public abstract Matrix3fExt normalMatrix();
+
+	public abstract int overlay();
+
+	public abstract VertexConsumer consumer(MutableQuadViewImpl quad);
+
+	public abstract int indexedColor(int colorIndex);
+
+	public abstract void applyLighting(MutableQuadViewImpl quad);
+
+	public abstract void computeLighting(MutableQuadViewImpl quad);
 }

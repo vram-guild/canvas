@@ -1,16 +1,14 @@
 package grondag.canvas.buffer.encoding;
 
-import net.minecraft.client.util.math.Matrix3f;
 import net.minecraft.client.util.math.Matrix4f;
-import net.minecraft.client.util.math.Vector3f;
 import net.minecraft.client.util.math.Vector4f;
 
-import net.fabricmc.fabric.impl.client.indigo.renderer.helper.NormalHelper;
-
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
+import grondag.canvas.apiimpl.rendercontext.AbstractRenderContext;
 import grondag.canvas.apiimpl.util.ColorHelper;
 import grondag.canvas.buffer.packing.VertexCollectorImpl;
 import grondag.canvas.material.MaterialVertexFormats;
+import grondag.canvas.mixinterface.Matrix3fExt;
 
 public class TerrainEncoder extends VertexEncoder {
 	TerrainEncoder() {
@@ -20,21 +18,21 @@ public class TerrainEncoder extends VertexEncoder {
 	static final TerrainEncoder INSTANCE = new TerrainEncoder();
 
 	@Override
-	protected void bufferQuad(MutableQuadViewImpl quad, VertexEncodingContext context) {
+	protected void bufferQuad(MutableQuadViewImpl quad, AbstractRenderContext context) {
 		final Matrix4f matrix = context.matrix();
-		final Matrix3f normalMatrix = context.normalMatrix();
-		final Vector3f normalVec = context.normalVec();
+		final Matrix3fExt normalMatrix = context.normalMatrix();
 		final VertexCollectorImpl buff = (VertexCollectorImpl) context.consumer(quad);
 		final int[] appendData = buff.appendData;
 
+		int packedNormal = 0;
+		int transformedNormal = 0;
 		final boolean useNormals = quad.hasVertexNormals();
 
 		if (useNormals) {
 			quad.populateMissingNormals();
 		} else {
-			final Vector3f faceNormal = quad.faceNormal();
-			normalVec.set(faceNormal.getX(), faceNormal.getY(), faceNormal.getZ());
-			normalVec.transform(normalMatrix);
+			packedNormal = quad.packedFaceNormal();
+			transformedNormal = normalMatrix.canvas_transform(packedNormal);
 		}
 
 		int k = 0;
@@ -53,13 +51,16 @@ public class TerrainEncoder extends VertexEncoder {
 
 			appendData[k++] = quad.lightmap(i);
 
-			// PERF: don't unpack and transform normal unless necessary
 			if (useNormals) {
-				normalVec.set(quad.normalX(i), quad.normalY(i), quad.normalZ(i));
-				normalVec.transform(normalMatrix);
+				final int p = quad.packedNormal(i);
+
+				if (p != packedNormal) {
+					packedNormal = p;
+					transformedNormal = normalMatrix.canvas_transform(packedNormal);
+				}
 			}
 
-			appendData[k++] = NormalHelper.packNormal(normalVec, 1);
+			appendData[k++] = transformedNormal;
 		}
 
 		buff.add(appendData, k);
@@ -67,7 +68,7 @@ public class TerrainEncoder extends VertexEncoder {
 
 	/** handles block color and red-blue swizzle, common to all renders. */
 	@Override
-	protected void colorizeQuad(MutableQuadViewImpl quad, VertexEncodingContext context) {
+	protected void colorizeQuad(MutableQuadViewImpl quad, AbstractRenderContext context) {
 
 		final int colorIndex = quad.colorIndex();
 

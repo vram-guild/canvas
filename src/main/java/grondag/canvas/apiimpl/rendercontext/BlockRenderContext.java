@@ -27,7 +27,6 @@ import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.client.render.block.BlockModelRenderer;
 import net.minecraft.client.render.model.BakedModel;
-import net.minecraft.client.util.math.Matrix3f;
 import net.minecraft.client.util.math.Matrix4f;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.math.BlockPos;
@@ -38,9 +37,9 @@ import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
-import grondag.canvas.buffer.encoding.VertexEncodingContext;
 import grondag.canvas.light.AoCalculator;
 import grondag.canvas.material.MaterialContext;
+import grondag.canvas.mixinterface.Matrix3fExt;
 
 /**
  * Context for non-terrain block rendering.
@@ -118,7 +117,7 @@ public class BlockRenderContext extends AbstractRenderContext implements RenderC
 	public boolean tesselate(BlockModelRenderer vanillaRenderer, BlockRenderView blockView, BakedModel model, BlockState state, BlockPos pos, MatrixStack matrixStack, VertexConsumer buffer, boolean checkSides, long seed, int overlay) {
 		bufferBuilder = buffer;
 		matrix = matrixStack.peek().getModel();
-		normalMatrix = matrixStack.peek().getNormal();
+		normalMatrix = (Matrix3fExt)(Object) matrixStack.peek().getNormal();
 
 		this.overlay = overlay;
 		didOutput = false;
@@ -134,34 +133,27 @@ public class BlockRenderContext extends AbstractRenderContext implements RenderC
 		return didOutput;
 	}
 
-	private final AbstractBlockEncodingContext encodingContext = new AbstractBlockEncodingContext(blockInfo, this::outputBuffer, collectors) {
-		@Override
-		public int overlay() {
-			return overlay;
-		}
+	@Override
+	public int overlay() {
+		return overlay;
+	}
 
-		@Override
-		public Matrix4f matrix() {
-			return matrix;
-		}
+	@Override
+	public Matrix4f matrix() {
+		return matrix;
+	}
 
-		@Override
-		public Matrix3f normalMatrix() {
-			return normalMatrix;
-		}
+	@Override
+	public Matrix3fExt normalMatrix() {
+		return normalMatrix;
+	}
 
-		@Override
-		public void computeLighting(MutableQuadViewImpl quad) {
-			if (!quad.material().disableAo(0) && MinecraftClient.isAmbientOcclusionEnabled()) {
-				aoCalc.compute(quad);
-			}
+	@Override
+	public void computeLighting(MutableQuadViewImpl quad) {
+		if (!quad.material().disableAo(0) && MinecraftClient.isAmbientOcclusionEnabled()) {
+			aoCalc.compute(quad);
 		}
-
-		@Override
-		public MaterialContext materialContext() {
-			return MaterialContext.BLOCK;
-		}
-	};
+	}
 
 	@Override
 	protected boolean cullTest(Direction face) {
@@ -169,13 +161,8 @@ public class BlockRenderContext extends AbstractRenderContext implements RenderC
 	}
 
 	@Override
-	protected MaterialContext materialContext() {
+	public MaterialContext materialContext() {
 		return MaterialContext.BLOCK;
-	}
-
-	@Override
-	protected VertexEncodingContext encodingContext() {
-		return encodingContext;
 	}
 
 	@Override
@@ -191,5 +178,20 @@ public class BlockRenderContext extends AbstractRenderContext implements RenderC
 	@Override
 	protected BlockState blockState() {
 		return blockInfo.blockState;
+	}
+	@Override
+	public VertexConsumer consumer(MutableQuadViewImpl quad) {
+		final RenderLayer layer = blockInfo.effectiveRenderLayer(quad.material().blendMode(0));
+		return outputBuffer(layer);
+	}
+
+	@Override
+	public final int indexedColor(int colorIndex) {
+		return blockInfo.blockColor(colorIndex);
+	}
+
+	@Override
+	public final void applyLighting(MutableQuadViewImpl quad) {
+		blockInfo.applyBlockLighting(quad);
 	}
 }

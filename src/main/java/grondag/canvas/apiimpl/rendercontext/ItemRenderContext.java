@@ -31,7 +31,6 @@ import net.minecraft.client.render.item.ItemRenderer;
 import net.minecraft.client.render.model.BakedModel;
 import net.minecraft.client.render.model.json.ModelTransformation;
 import net.minecraft.client.render.model.json.ModelTransformation.Mode;
-import net.minecraft.client.util.math.Matrix3f;
 import net.minecraft.client.util.math.Matrix4f;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.item.ItemStack;
@@ -43,8 +42,9 @@ import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.util.ColorHelper;
-import grondag.canvas.buffer.encoding.VertexEncodingContext;
+import grondag.canvas.buffer.encoding.VertexEncoder;
 import grondag.canvas.material.MaterialContext;
+import grondag.canvas.mixinterface.Matrix3fExt;
 
 /**
  * The render context used for item rendering.
@@ -74,54 +74,6 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 		return random;
 	};
 
-	private final VertexEncodingContext encodingContext = new VertexEncodingContext(this::selectVertexConsumer, collectors) {
-
-		@Override
-		public int overlay() {
-			return overlay;
-		}
-
-		@Override
-		public Matrix4f matrix() {
-			return matrix;
-		}
-
-		@Override
-		public Matrix3f normalMatrix() {
-			return normalMatrix;
-		}
-
-		@Override
-		public void computeLighting(MutableQuadViewImpl quad) {
-			// UGLY: for vanilla lighting need to undo diffuse shading
-			ColorHelper.applyDiffuseShading(quad, true);
-		}
-
-		@Override
-		public void applyLighting(MutableQuadViewImpl quad) {
-			final int lightmap = quad.material().emissive(0) ? FULL_BRIGHTNESS : ItemRenderContext.this.lightmap;
-
-			for (int i = 0; i < 4; i++) {
-				quad.lightmap(i, ColorHelper.maxBrightness(quad.lightmap(i), lightmap));
-			}
-		}
-
-		@Override
-		public VertexConsumer consumer(MutableQuadViewImpl quad) {
-			return quadVertexConsumer(quad.material().blendMode(0));
-		}
-
-		@Override
-		public int indexedColor(int colorIndex) {
-			return colorIndex == -1 ? -1 : (colorMap.getColorMultiplier(itemStack, colorIndex) | 0xFF000000);
-		}
-
-		@Override
-		public MaterialContext materialContext() {
-			return MaterialContext.ITEM;
-		}
-	};
-
 	public ItemRenderContext(ItemColors colorMap) {
 		this.colorMap = colorMap;
 	}
@@ -140,7 +92,7 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 		((BakedModel) model).getTransformation().getTransformation(transformMode).apply(invert, matrixStack);
 		matrixStack.translate(-0.5D, -0.5D, -0.5D);
 		matrix = matrixStack.peek().getModel();
-		normalMatrix = matrixStack.peek().getNormal();
+		normalMatrix = (Matrix3fExt)(Object) matrixStack.peek().getNormal();
 
 		model.emitItemQuads(itemStack, randomSupplier, this);
 
@@ -194,13 +146,8 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 	}
 
 	@Override
-	protected MaterialContext materialContext() {
+	public MaterialContext materialContext() {
 		return MaterialContext.ITEM;
-	}
-
-	@Override
-	protected VertexEncodingContext encodingContext() {
-		return encodingContext;
 	}
 
 	@Override
@@ -216,5 +163,45 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 	@Override
 	protected BlockState blockState() {
 		return null;
+	}
+
+	@Override
+	public int overlay() {
+		return overlay;
+	}
+
+	@Override
+	public Matrix4f matrix() {
+		return matrix;
+	}
+
+	@Override
+	public Matrix3fExt normalMatrix() {
+		return normalMatrix;
+	}
+
+	@Override
+	public void computeLighting(MutableQuadViewImpl quad) {
+		// UGLY: for vanilla lighting need to undo diffuse shading
+		ColorHelper.applyDiffuseShading(quad, true);
+	}
+
+	@Override
+	public void applyLighting(MutableQuadViewImpl quad) {
+		final int lightmap = quad.material().emissive(0) ? VertexEncoder.FULL_BRIGHTNESS : ItemRenderContext.this.lightmap;
+
+		for (int i = 0; i < 4; i++) {
+			quad.lightmap(i, ColorHelper.maxBrightness(quad.lightmap(i), lightmap));
+		}
+	}
+
+	@Override
+	public VertexConsumer consumer(MutableQuadViewImpl quad) {
+		return quadVertexConsumer(quad.material().blendMode(0));
+	}
+
+	@Override
+	public int indexedColor(int colorIndex) {
+		return colorIndex == -1 ? -1 : (colorMap.getColorMultiplier(itemStack, colorIndex) | 0xFF000000);
 	}
 }

@@ -17,6 +17,7 @@
     "MixinFogState",
     "MixinItemRenderer",
     "MixinLightmapTextureManager",
+    "MixinMatrix3f",
     "MixinMinecraftClient",
     "MixinPackedIntegerArray",
     "MixinPalettedContainer",
