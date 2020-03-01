@@ -28,25 +28,25 @@ import net.minecraft.client.render.LightmapTextureManager;
 import grondag.canvas.shader.ShaderManager;
 import grondag.canvas.varia.WorldDataManager;
 
-//TODO: Enable
 @Mixin(LightmapTextureManager.class)
 public abstract class MixinLightmapTextureManager {
 
 	@Shadow
-	private float prevFlicker;
+	private float field_21528; //was prevFlicker - still same meaning?
 
 	@ModifyArg(method = "update", index = 2, at = @At(value = "INVOKE",
-			target = "Lnet/minecraft/client/texture/NativeImage;setPixelRGBA(III)V"))
-	private int onSetPixelRGBA(int i, int j, int color) {
+			target = "Lnet/minecraft/client/texture/NativeImage;setPixelRgba(III)V"))
+	private int onSetPixelRgba(int i, int j, int color) {
 		if(i == 15 && j == 15) {
 			ShaderManager.INSTANCE.updateEmissiveColor(color);
 		}
+
 		return color;
 	}
 
 	//UGLY: still needed?
 	@Inject(at = @At("RETURN"), method = "update")
 	private void afterUpdate(float tick, CallbackInfo info) {
-		WorldDataManager.updateLight(tick, prevFlicker);
+		WorldDataManager.updateLight(tick, field_21528);
 	}
 }

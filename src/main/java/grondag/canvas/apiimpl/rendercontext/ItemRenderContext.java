@@ -79,7 +79,7 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 	};
 
 
-	private final VertexEncodingContext encodingContext = new VertexEncodingContext(this::selectVertexConsumer, this::transform, Predicates.alwaysTrue()) {
+	private final VertexEncodingContext encodingContext = new VertexEncodingContext(this::selectVertexConsumer, collectors, this::transform, Predicates.alwaysTrue()) {
 
 		@Override
 		public int overlay() {

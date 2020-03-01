@@ -31,7 +31,6 @@ import grondag.canvas.light.LightmapHdTexture;
 import grondag.canvas.shader.ShaderManager;
 import grondag.canvas.varia.CanvasGlHelper;
 
-//TODO: Enable
 @Mixin(MinecraftClient.class)
 public abstract class MixinMinecraftClient extends ReentrantThreadExecutor<Runnable> implements grondag.canvas.mixinterface.MinecraftClientExt {
 	protected MixinMinecraftClient(String dummy) {
@@ -46,7 +45,7 @@ public abstract class MixinMinecraftClient extends ReentrantThreadExecutor<Runna
 		return profiler;
 	}
 
-	@Inject(at = @At("RETURN"), method = "init")
+	@Inject(at = @At("RETURN"), method = "<init>*")
 	private void hookInit(CallbackInfo info) {
 		CanvasGlHelper.init();
 		ShaderManager.INSTANCE.forceReload();

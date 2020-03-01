@@ -142,8 +142,15 @@ public class DrawableDelegate {
 			return;
 		}
 
+		// TODO: bind format here again
+		@SuppressWarnings("unused")
 		final boolean isNewBuffer = buffer.bindable().bind();
-		vertexBinder.bind(format, isNewBuffer);
+		//vertexBinder.bind(format, isNewBuffer);
+	}
+
+	// TODO: remove when vanilla hacks are done
+	public int byteOffset() {
+		return bufferDelegate.byteOffset();
 	}
 
 	/**

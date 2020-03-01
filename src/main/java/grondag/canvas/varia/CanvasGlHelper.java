@@ -57,7 +57,7 @@ public class CanvasGlHelper {
 		log.info("==================  CANVAS RENDERER DEBUG INFORMATION ==================");
 		log.info(String.format(" Java: %s %dbit", System.getProperty("java.version"), client.is64Bit() ? 64 : 32));
 		log.info(String.format(" CPU: %s", GLX._getCpuInfo()));
-		log.info(String.format(" GPU: %s  %s", GLX._getCapsString()), GLX._getLWJGLVersion());
+		log.info(String.format(" GPU: %s  %s", GLX._getCapsString(), GLX._getLWJGLVersion()));
 		log.info(String.format(" OpenGL: %s", GLX.getOpenGLVersionString()));
 		log.info(String.format(" GpuShader4: %s  VboArb: %s  VaoEnabled: %s  VaoArb: %s",
 				useGpuShader4 ? "Y" : "N",

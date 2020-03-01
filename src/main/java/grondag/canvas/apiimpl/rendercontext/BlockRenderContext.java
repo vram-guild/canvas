@@ -134,7 +134,7 @@ public class BlockRenderContext extends AbstractRenderContext implements RenderC
 		return didOutput;
 	}
 
-	private final AbstractBlockEncodingContext encodingContext = new AbstractBlockEncodingContext(blockInfo, this::outputBuffer, this::transform) {
+	private final AbstractBlockEncodingContext encodingContext = new AbstractBlockEncodingContext(blockInfo, this::outputBuffer, collectors, this::transform) {
 		@Override
 		public int overlay() {
 			return overlay;

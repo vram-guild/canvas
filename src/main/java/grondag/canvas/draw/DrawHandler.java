@@ -1,5 +1,9 @@
 package grondag.canvas.draw;
 
+import net.minecraft.client.render.RenderLayer;
+
+import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
+
 import grondag.canvas.apiimpl.MaterialConditionImpl;
 import grondag.canvas.apiimpl.MaterialShaderImpl;
 import grondag.canvas.apiimpl.RenderMaterialImpl.Value;
@@ -15,8 +19,23 @@ public abstract class DrawHandler {
 	public final MaterialConditionImpl condition;
 	public final MaterialVertexFormat format;
 
+	public RenderLayer renderLayer;
+
 	DrawHandler (MaterialVertexFormat format, Value mat) {
 		this.format = format;
+
+		// TODO: egregious hack is egregious
+		RenderLayer renderLayer = RenderLayer.getSolid();
+
+		if (mat.blendMode(0) == BlendMode.CUTOUT) {
+			renderLayer = RenderLayer.getCutout();
+		} else if (mat.blendMode(0) == BlendMode.CUTOUT_MIPPED) {
+			renderLayer = RenderLayer.getCutoutMipped();
+		} else if (mat.blendMode(0) == BlendMode.TRANSLUCENT) {
+			renderLayer = RenderLayer.getTranslucent();
+		}
+
+		this.renderLayer = renderLayer;
 		shader = mat.shader;
 		condition = mat.condition;
 	}

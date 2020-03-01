@@ -3,17 +3,26 @@
   "package": "grondag.canvas.mixin",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
-  	"MixinBiomeAccess",
+    "MixinBakedQuad",
+    "MixinBakedQuadFactory",
+    "MixinBiomeAccess",
     "MixinBlockModelRenderer",
     "MixinBuiltChunk",
     "MixinBuiltChunkStorage",
-  	"MixinChunkBuilder",
+    "MixinChunkBuilder",
     "MixinChunkRebuildTask",
     "MixinChunkRenderData",
     "MixinClientChunkManager",
+    "MixinDebugHud",
+    "MixinFogState",
     "MixinItemRenderer",
+    "MixinLightmapTextureManager",
+    "MixinMinecraftClient",
     "MixinPackedIntegerArray",
     "MixinPalettedContainer",
+    "MixinRenderLayer",
+    "MixinTessellator",
+    "MixinVideoOptionsScreen",
     "MixinWorldChunk",
     "MixinWorldRenderer"
   ],
@@ -21,3 +30,4 @@
     "defaultRequire": 1
   }
 }
+

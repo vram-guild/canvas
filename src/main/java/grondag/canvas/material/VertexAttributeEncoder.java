@@ -2,13 +2,13 @@ package grondag.canvas.material;
 
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.util.ColorHelper;
-import grondag.canvas.buffer.packing.AbstractVertexCollector;
+import grondag.canvas.buffer.packing.VertexCollectorImpl;
 import grondag.canvas.render.CanvasWorldRenderer;
 import grondag.canvas.shader.old.OldShaderContext;
 
 @FunctionalInterface
 public interface VertexAttributeEncoder {
-	void encode(MutableQuadViewImpl quad, int vertexIndex, OldVertexEncodingContext context, AbstractVertexCollector output);
+	void encode(MutableQuadViewImpl quad, int vertexIndex, OldVertexEncodingContext context, VertexCollectorImpl output);
 
 	VertexAttributeEncoder POS = (q, i, c, o) -> {
 		if(c.pos == null) {

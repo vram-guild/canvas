@@ -1,10 +1,8 @@
 package grondag.canvas.chunk;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
 
 import io.netty.util.internal.shaded.org.jctools.queues.MessagePassingQueue.Consumer;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
@@ -16,15 +14,11 @@ import net.minecraft.block.BlockRenderType;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gl.VertexBuffer;
-import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.RenderLayers;
-import net.minecraft.client.render.VertexFormats;
 import net.minecraft.client.render.block.BlockRenderManager;
 import net.minecraft.client.render.block.entity.BlockEntityRenderDispatcher;
 import net.minecraft.client.render.block.entity.BlockEntityRenderer;
-import net.minecraft.client.render.chunk.BlockBufferBuilderStorage;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.fluid.FluidState;
@@ -38,10 +32,12 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 
-import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
+import grondag.canvas.buffer.packing.VertexCollectorImpl;
+import grondag.canvas.buffer.packing.VertexCollectorList;
 import grondag.canvas.chunk.DrawableChunk.Solid;
 import grondag.canvas.chunk.DrawableChunk.Translucent;
+import grondag.canvas.material.MaterialContext;
 import grondag.canvas.perf.ChunkRebuildCounters;
 
 @Environment(EnvType.CLIENT)
@@ -50,7 +46,6 @@ public class BuiltRenderRegion {
 	private final AtomicReference<RegionData> renderData;
 	private final AtomicReference<RegionData> buildData;
 	private final ObjectOpenHashSet<BlockEntity> localNoCullingBlockEntities = new ObjectOpenHashSet<>();
-	private final Map<RenderLayer, VertexBuffer> buffers;
 	public Box boundingBox;
 	private int frameIndex;
 	private boolean needsRebuild;
@@ -59,6 +54,8 @@ public class BuiltRenderRegion {
 	private volatile RegionBuildState buildState = new RegionBuildState();
 	private final Consumer<TerrainRenderContext> buildTask = this::rebuildOnWorkerThread;
 	private final int[] neighborIndices = new int[6];
+	private Translucent translucentDrawable;
+	private Solid solidDrawable;
 
 	int squaredCameraDistance;
 
@@ -66,11 +63,6 @@ public class BuiltRenderRegion {
 		this.renderRegionBuilder = renderRegionBuilder;
 		buildData = new AtomicReference<>(RegionData.EMPTY);
 		renderData = new AtomicReference<>(RegionData.EMPTY);
-		buffers = RenderLayer.getBlockLayers().stream().collect(Collectors.toMap((renderLayer) -> {
-			return renderLayer;
-		}, (renderLayer) -> {
-			return new VertexBuffer(VertexFormats.POSITION_COLOR_TEXTURE_LIGHT_NORMAL);
-		}));
 		frameIndex = -1;
 		needsRebuild = true;
 		origin = new BlockPos.Mutable(-1, -1, -1);
@@ -90,10 +82,6 @@ public class BuiltRenderRegion {
 				&& world.getChunk(chunkX + 1, chunkZ + 1, ChunkStatus.FULL, false) != null;
 
 		}
-	}
-
-	public VertexBuffer getBuffer(RenderLayer renderLayer) {
-		return buffers.get(renderLayer);
 	}
 
 	public void setOrigin(int x, int y, int z, RenderRegionStorage storage) {
@@ -137,11 +125,20 @@ public class BuiltRenderRegion {
 		buildData.set(RegionData.EMPTY);
 		renderData.set(RegionData.EMPTY);
 		needsRebuild = true;
+
+		if (solidDrawable != null) {
+			solidDrawable.clear();
+			solidDrawable = null;
+		}
+
+		if (translucentDrawable != null) {
+			translucentDrawable.clear();
+			translucentDrawable = null;
+		}
 	}
 
 	public void delete() {
 		clear();
-		buffers.values().forEach(VertexBuffer::close);
 	}
 
 	public BlockPos getOrigin() {
@@ -176,10 +173,10 @@ public class BuiltRenderRegion {
 		}
 	}
 
-	public boolean enqueueSort(RenderLayer renderLayer) {
+	public boolean enqueueSort() {
 		final RegionData regionData = buildData.get();
 
-		if (!regionData.initializedLayers.contains(renderLayer)) {
+		if (regionData.translucentState != null) {
 			return false;
 		} else {
 			if (buildState.protoRegion.compareAndSet(ProtoRenderRegion.IDLE,  ProtoRenderRegion.RESORT_ONLY)) {
@@ -222,30 +219,65 @@ public class BuiltRenderRegion {
 
 		if(region == ProtoRenderRegion.RESORT_ONLY) {
 			final RegionData regionData = buildData.get();
-			final BufferBuilder.State state = regionData.bufferState;
+			final int[] state = regionData.translucentState;
 
-			if (state != null && regionData.nonEmptyLayers.contains(RenderLayer.getTranslucent())) {
+			if (state != null) {
 				final Vec3d cameraPos = renderRegionBuilder.getCameraPosition();
-				final BlockBufferBuilderStorage buffers = claimBuilderBuffers();
-				final BufferBuilder bufferBuilder = buffers.get(RenderLayer.getTranslucent());
+				final VertexCollectorList collectors = context.collectors;
+				final VertexCollectorImpl collector = collectors.get(MaterialContext.TERRAIN, RenderLayer.getTranslucent());
 
-				bufferBuilder.begin(7, VertexFormats.POSITION_COLOR_TEXTURE_LIGHT_NORMAL);
-				bufferBuilder.restoreState(state);
-				bufferBuilder.sortQuads((float)cameraPos.x - origin.getX(), (float)cameraPos.y - origin.getY(), (float)cameraPos.z - origin.getZ());
-				regionData.bufferState = bufferBuilder.popState();
-				bufferBuilder.end();
+				collector.loadState(state);
+				collector.sortQuads((float)cameraPos.x - origin.getX(), (float)cameraPos.y - origin.getY(), (float)cameraPos.z - origin.getZ());
+				regionData.translucentState = collector.saveState(state);
+				collector.end();
 
-				if(runningState.protoRegion.get() == ProtoRenderRegion.INVALID) {
-					renderRegionBuilder.workerBufferStorage.offer(buffers);
-				} else {
+				if(runningState.protoRegion.get() != ProtoRenderRegion.INVALID) {
+					final UploadableChunk<Translucent> upload = collectors.packUploadTranslucent();
+
 					renderRegionBuilder.scheduleUpload(() -> {
 						if (ChunkRebuildCounters.ENABLED) {
 							ChunkRebuildCounters.startUpload();
 						}
 
-						getBuffer(RenderLayer.getTranslucent()).upload(bufferBuilder);
-						bufferBuilder.reset();
-						renderRegionBuilder.workerBufferStorage.offer(buffers);
+						translucentDrawable = upload.produceDrawable();
+
+						if (ChunkRebuildCounters.ENABLED) {
+							ChunkRebuildCounters.completeUpload();
+						}
+					});
+				}
+
+				collectors.clear();
+			}
+		} else {
+			context.prepareRegion(region);
+			final RegionData chunkData = buildRegionData(context);
+			buildData.set(chunkData);
+
+			final VertexCollectorList collectors = context.collectors;
+
+			if (runningState.protoRegion.get() == ProtoRenderRegion.INVALID) {
+				collectors.clear();
+				region.release();
+				context.release();
+				return;
+			}
+
+			buildTerrain(context, chunkData);
+
+			if(runningState.protoRegion.get() != ProtoRenderRegion.INVALID) {
+				final UploadableChunk<Solid> solidUpload = collectors.packUploadSolid();
+				final UploadableChunk<Translucent> translucentUpload = collectors.packUploadTranslucent();
+
+				if (solidUpload != null || translucentUpload != null) {
+					renderRegionBuilder.scheduleUpload(() -> {
+						if (ChunkRebuildCounters.ENABLED) {
+							ChunkRebuildCounters.startUpload();
+						}
+
+						solidDrawable = solidUpload == null ? null : solidUpload.produceDrawable();
+						translucentDrawable = translucentUpload == null ? null : translucentUpload.produceDrawable();
+						renderData.set(chunkData);
 
 						if (ChunkRebuildCounters.ENABLED) {
 							ChunkRebuildCounters.completeUpload();
@@ -253,47 +285,8 @@ public class BuiltRenderRegion {
 					});
 				}
 			}
-		} else {
-			context.prepareRegion(region);
-			final RegionData chunkData = buildRegionData(context);
-			buildData.set(chunkData);
 
-			final BlockBufferBuilderStorage buffers = claimBuilderBuffers();
-
-			if (runningState.protoRegion.get() == ProtoRenderRegion.INVALID) {
-				renderRegionBuilder.workerBufferStorage.offer(buffers);
-				region.release();
-				context.release();
-				return;
-			}
-
-			if (buffers != null) {
-				buildTerrain(context, chunkData, buffers);
-			}
-
-			if(runningState.protoRegion.get() == ProtoRenderRegion.INVALID) {
-				renderRegionBuilder.workerBufferStorage.offer(buffers);
-			} else {
-				renderRegionBuilder.scheduleUpload(() -> {
-					if (ChunkRebuildCounters.ENABLED) {
-						ChunkRebuildCounters.startUpload();
-					}
-
-					chunkData.initializedLayers.forEach((renderLayer) -> {
-						final BufferBuilder builder = buffers.get(renderLayer);
-						getBuffer(renderLayer).upload(builder);
-						builder.reset();
-					});
-
-					renderData.set(chunkData);
-					renderRegionBuilder.workerBufferStorage.offer(buffers);
-
-					if (ChunkRebuildCounters.ENABLED) {
-						ChunkRebuildCounters.completeUpload();
-					}
-				});
-			}
-
+			collectors.clear();
 			region.release();
 			context.release();
 		}
@@ -307,12 +300,13 @@ public class BuiltRenderRegion {
 		return regionData;
 	}
 
-	private void buildTerrain(TerrainRenderContext context, RegionData regionData, BlockBufferBuilderStorage buffers) {
+	private void buildTerrain(TerrainRenderContext context, RegionData regionData) {
 		if(ChunkRebuildCounters.ENABLED) {
 			ChunkRebuildCounters.startChunk();
 		}
 
-		context.prepareChunk(regionData, buffers, origin);
+		final VertexCollectorList collectors = context.collectors;
+
 		final BlockPos.Mutable searchPos = context.searchPos;
 		final int xOrigin = origin.getX();
 		final int yOrigin = origin.getY();
@@ -334,15 +328,9 @@ public class BuiltRenderRegion {
 
 				if (!fluidState.isEmpty()) {
 					final RenderLayer fluidLayer = RenderLayers.getFluidLayer(fluidState);
-					final BufferBuilder fluidBuffer = buffers.get(fluidLayer);
+					final VertexCollectorImpl fluidBuffer = collectors.get(MaterialContext.TERRAIN, fluidLayer);
 
-					if (regionData.markInitialized(fluidLayer)) {
-						fluidBuffer.begin(7, VertexFormats.POSITION_COLOR_TEXTURE_LIGHT_NORMAL);
-					}
-
-					if (blockRenderManager.renderFluid(searchPos, region, fluidBuffer, fluidState)) {
-						regionData.markPopulated(fluidLayer);
-					}
+					blockRenderManager.renderFluid(searchPos, region, fluidBuffer, fluidState);
 				}
 
 				if (blockState.getRenderType() != BlockRenderType.INVISIBLE) {
@@ -364,30 +352,11 @@ public class BuiltRenderRegion {
 			}
 		}
 
-		regionData.endBuffering((float) (cameraPos.x - xOrigin), (float) (cameraPos.y - yOrigin), (float) (cameraPos.z - zOrigin), buffers);
+		regionData.endBuffering((float) (cameraPos.x - xOrigin), (float) (cameraPos.y - yOrigin), (float) (cameraPos.z - zOrigin), collectors);
 
 		if(ChunkRebuildCounters.ENABLED) {
 			ChunkRebuildCounters.completeChunk();
 		}
-	}
-
-	private BlockBufferBuilderStorage claimBuilderBuffers() {
-		BlockBufferBuilderStorage buffers = null;
-		int retryCount = 0;
-
-		while (buffers == null && retryCount < 10) {
-			try {
-				buffers = renderRegionBuilder.workerBufferStorage.take();
-			} catch (final InterruptedException e) {
-				++retryCount;
-			}
-		}
-
-		if (buffers == null) {
-			CanvasMod.LOG.warn("Unable to retrieve block buffer on worker thread. Chunk was not rebuilt.");
-		}
-
-		return buffers;
 	}
 
 	private void handleBlockEntities(RegionData regionData, TerrainRenderContext context) {
@@ -445,25 +414,24 @@ public class BuiltRenderRegion {
 		final RegionData regionData = buildRegionData(context);
 		buildData.set(regionData);
 
-		final BlockBufferBuilderStorage buffers = renderRegionBuilder.mainThreadBufferStorage;
+		buildTerrain(context, regionData);
 
-		buildTerrain(context, regionData, buffers);
+		if (ChunkRebuildCounters.ENABLED) {
+			ChunkRebuildCounters.startUpload();
+		}
 
-		regionData.initializedLayers.forEach((renderLayer) -> {
-			if (ChunkRebuildCounters.ENABLED) {
-				ChunkRebuildCounters.startUpload();
-			}
+		final VertexCollectorList collectors = context.collectors;
+		final UploadableChunk<Solid> solidUpload = collectors.packUploadSolid();
+		final UploadableChunk<Translucent> translucentUpload = collectors.packUploadTranslucent();
+		solidDrawable = solidUpload == null ? null : solidUpload.produceDrawable();
+		translucentDrawable = translucentUpload == null ? null : translucentUpload.produceDrawable();
 
-			final BufferBuilder builder = buffers.get(renderLayer);
-			getBuffer(renderLayer).upload(builder);
-			builder.reset();
-
-			if (ChunkRebuildCounters.ENABLED) {
-				ChunkRebuildCounters.completeUpload();
-			}
-		});
+		if (ChunkRebuildCounters.ENABLED) {
+			ChunkRebuildCounters.completeUpload();
+		}
 
 		renderData.set(regionData);
+		collectors.clear();
 		region.release();
 		context.release();
 	}
@@ -489,12 +457,10 @@ public class BuiltRenderRegion {
 	}
 
 	public Translucent translucentDrawable() {
-		// TODO Auto-generated method stub
-		return null;
+		return translucentDrawable;
 	}
 
 	public Solid solidDrawable() {
-		// TODO Auto-generated method stub
-		return null;
+		return solidDrawable;
 	}
 }

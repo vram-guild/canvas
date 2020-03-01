@@ -6,14 +6,17 @@ import com.google.common.primitives.Doubles;
 import it.unimi.dsi.fastutil.Swapper;
 import it.unimi.dsi.fastutil.ints.IntComparator;
 
+import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
+
+import net.fabricmc.fabric.impl.client.indigo.renderer.helper.NormalHelper;
 
 import grondag.canvas.material.MaterialState;
 import grondag.fermion.intstream.IntStreamProvider;
 import grondag.fermion.intstream.IntStreamProvider.IntStreamImpl;
 
-public class AbstractVertexCollector {
+public class VertexCollectorImpl implements VertexCollector {
 	private final IntStreamImpl data = INT_STREAM_PROVIDER.claim();
 	private int integerSize = 0;
 	private MaterialState materialState;
@@ -36,11 +39,11 @@ public class AbstractVertexCollector {
 	 */
 	private int sortMaxIndex = 0;
 
-	public AbstractVertexCollector(VertexCollectorList parent) {
+	public VertexCollectorImpl(VertexCollectorList parent) {
 		this.parent = parent;
 	}
 
-	public AbstractVertexCollector prepare(MaterialState materialState) {
+	public VertexCollectorImpl prepare(MaterialState materialState) {
 		this.materialState = materialState;
 		return this;
 	}
@@ -63,7 +66,7 @@ public class AbstractVertexCollector {
 	}
 
 	@Override
-	public AbstractVertexCollector clone() {
+	public VertexCollectorImpl clone() {
 		throw new UnsupportedOperationException();
 	}
 
@@ -159,7 +162,7 @@ public class AbstractVertexCollector {
 		return result;
 	}
 
-	public AbstractVertexCollector loadState(int[] stateData) {
+	public VertexCollectorImpl loadState(int[] stateData) {
 		materialState = MaterialState.get(stateData[0]);
 		final int newSize = stateData.length - 1;
 		integerSize = 0;
@@ -210,9 +213,10 @@ public class AbstractVertexCollector {
 			}
 		};
 
-		private void doSort(AbstractVertexCollector caller, double x, double y, double z) {
-			// works because 4 bytes per int
+		private void doSort(VertexCollectorImpl caller, double x, double y, double z) {
 			data = caller.data;
+
+			// works because 4 bytes per int
 			quadIntStride = caller.materialState.bufferFormat.vertexStrideBytes;
 			final int vertexIntStride = quadIntStride / 4;
 			final int quadCount = caller.vertexCount() / 4;
@@ -220,6 +224,7 @@ public class AbstractVertexCollector {
 			if (perQuadDistance.length < quadCount) {
 				perQuadDistance = new double[MathHelper.smallestEncompassingPowerOfTwo(quadCount)];
 			}
+
 			if (quadSwap.length < quadIntStride) {
 				quadSwap = new int[quadIntStride];
 			}
@@ -255,15 +260,64 @@ public class AbstractVertexCollector {
 	}
 
 	public final void pos(final BlockPos pos, float modelX, float modelY, float modelZ) {
-		this.add((float)(pos.getX() - parent.renderOriginX + modelX));
-		this.add((float)(pos.getY() - parent.renderOriginY + modelY));
-		this.add((float)(pos.getZ() - parent.renderOriginZ + modelZ));
+		add((float)(pos.getX() - parent.renderOriginX + modelX));
+		add((float)(pos.getY() - parent.renderOriginY + modelY));
+		add((float)(pos.getZ() - parent.renderOriginZ + modelZ));
 	}
 
 	/** for items */
 	public final void pos(float modelX, float modelY, float modelZ) {
-		this.add((modelX));
-		this.add((modelY));
-		this.add((modelZ));
+		add((modelX));
+		add((modelY));
+		add((modelZ));
+	}
+
+	public void end() {
+		// NOOP
+	}
+
+	@Override
+	public VertexConsumer vertex(double x, double y, double z) {
+		add((float) x);
+		add((float) y);
+		add((float) z);
+		return this;
+	}
+
+	@Override
+	public VertexConsumer color(int r, int g, int b, int a) {
+		add((r & 0xFF) | ((g & 0xFF) << 8) | ((b & 0xFF) << 16) | ((a & 0xFF) << 24));
+		return this;
+	}
+
+	@Override
+	public VertexConsumer texture(float u, float v) {
+		add(u);
+		add(v);
+		return this;
+	}
+
+	@Override
+	public VertexConsumer overlay(int s, int t) {
+		// TODO: disabled for now - needs to be controlled by format because is called when not present
+		//add((s & 0xFFFF) | ((t & 0xFFFF) << 16));
+		return this;
+	}
+
+	@Override
+	public VertexConsumer light(int s, int t) {
+		add((s & 0xFFFF) | ((t & 0xFFFF) << 16));
+		return this;
+	}
+
+	@Override
+	public VertexConsumer normal(float x, float y, float z) {
+		add(NormalHelper.packNormal(x, y, z, 0));
+		return this;
+	}
+
+	@Override
+	public void next() {
+		// NOOP
 	}
 }

@@ -29,6 +29,7 @@ import net.minecraft.util.math.Direction;
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext.QuadTransform;
 
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
+import grondag.canvas.buffer.packing.VertexCollectorList;
 import grondag.canvas.material.MaterialContext;
 
 /**
@@ -38,13 +39,16 @@ import grondag.canvas.material.MaterialContext;
 public abstract class VertexEncodingContext  {
 	public static final int FULL_BRIGHTNESS = 0xF000F0;
 
-	protected final Function<RenderLayer, VertexConsumer> bufferFunc;
+	@Deprecated
+	protected final Function<RenderLayer, VertexConsumer> bufferFunc; // TODO: remove when other contexts are done
+	protected final VertexCollectorList collectors;
 	public final QuadTransform transform;
 	protected final Vector3f normalVec = new Vector3f();
 	public final Predicate<Direction> cullTest;
 
-	protected VertexEncodingContext(Function<RenderLayer, VertexConsumer> bufferFunc, QuadTransform transform, Predicate<Direction> cullTest) {
+	protected VertexEncodingContext(Function<RenderLayer, VertexConsumer> bufferFunc, VertexCollectorList collectors, QuadTransform transform, Predicate<Direction> cullTest) {
 		this.bufferFunc = bufferFunc;
+		this.collectors = collectors;
 		this.transform = transform;
 		this.cullTest = cullTest;
 	}

@@ -17,12 +17,14 @@
 package grondag.canvas.apiimpl.rendercontext;
 
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.client.render.chunk.BlockBufferBuilderStorage;
+import net.minecraft.client.render.RenderLayer;
+import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.model.BakedModel;
 import net.minecraft.client.util.math.Matrix3f;
 import net.minecraft.client.util.math.Matrix4f;
@@ -40,7 +42,6 @@ import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.chunk.FastRenderRegion;
 import grondag.canvas.chunk.ProtoRenderRegion;
-import grondag.canvas.chunk.RegionData;
 import grondag.canvas.chunk.RenderRegionAddressHelper;
 import grondag.canvas.light.AoCalculator;
 import grondag.canvas.material.MaterialContext;
@@ -52,7 +53,6 @@ import grondag.canvas.material.MaterialContext;
  */
 public class TerrainRenderContext extends AbstractRenderContext implements RenderContext {
 	private final TerrainBlockRenderInfo blockInfo = new TerrainBlockRenderInfo();
-	private final ChunkRenderInfo chunkInfo = new ChunkRenderInfo();
 	public final FastRenderRegion region = new FastRenderRegion(this);
 
 	// Reused each build to prevent needless allocation
@@ -84,7 +84,9 @@ public class TerrainRenderContext extends AbstractRenderContext implements Rende
 	/** for use by chunk builder - avoids another threadlocal */
 	public final BlockPos.Mutable searchPos = new BlockPos.Mutable();
 
-	private final AbstractBlockEncodingContext encodingContext = new AbstractBlockEncodingContext(blockInfo, chunkInfo::getInitializedBuffer, this::transform) {
+	final Function<RenderLayer, VertexConsumer> dummyBufferFunc = (RenderLayer l) -> collectors.get(MaterialContext.TERRAIN, l);
+
+	private final AbstractBlockEncodingContext encodingContext = new AbstractBlockEncodingContext(blockInfo, dummyBufferFunc, collectors, this::transform) {
 		@Override
 		public int overlay() {
 			return overlay;
@@ -111,7 +113,6 @@ public class TerrainRenderContext extends AbstractRenderContext implements Rende
 		}
 	};
 
-
 	private final MeshConsumer meshConsumer = new MeshConsumer(encodingContext);
 
 	private final BlockFallbackConsumer fallbackConsumer = new BlockFallbackConsumer(encodingContext, blockInfo);
@@ -124,12 +125,7 @@ public class TerrainRenderContext extends AbstractRenderContext implements Rende
 		return this;
 	}
 
-	public void prepareChunk(RegionData chunkData, BlockBufferBuilderStorage builders, BlockPos origin) {
-		chunkInfo.prepare(chunkData, builders, origin);
-	}
-
 	public void release() {
-		chunkInfo.release();
 		blockInfo.release();
 	}
 

@@ -61,6 +61,10 @@ public abstract class DrawableChunk {
 		this.delegates = delegates;
 	}
 
+	public ObjectArrayList<DrawableDelegate> delegates() {
+		return delegates;
+	}
+
 	public int drawCount() {
 		return delegates.size();
 	}
@@ -77,6 +81,10 @@ public abstract class DrawableChunk {
 			quadCount = result;
 		}
 		return result;
+	}
+
+	public boolean isEmpty() {
+		return isCleared && delegates != null && !delegates.isEmpty();
 	}
 
 	/**
@@ -98,6 +106,7 @@ public abstract class DrawableChunk {
 		}
 	}
 
+	// UGLY: remove
 	@Override
 	protected void finalize() {
 		clear();

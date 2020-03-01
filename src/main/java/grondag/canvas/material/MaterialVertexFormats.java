@@ -7,7 +7,6 @@ import static grondag.canvas.material.MaterialVertextFormatElement.HD_BLOCK_LIGH
 import static grondag.canvas.material.MaterialVertextFormatElement.HD_SKY_LIGHTMAP_2US;
 import static grondag.canvas.material.MaterialVertextFormatElement.LIGHTMAPS_4UB;
 import static grondag.canvas.material.MaterialVertextFormatElement.NORMAL_AO_4UB;
-import static grondag.canvas.material.MaterialVertextFormatElement.OVERLAY_4UB;
 import static grondag.canvas.material.MaterialVertextFormatElement.POSITION_3F;
 import static grondag.canvas.material.MaterialVertextFormatElement.SECONDARY_RGBA_4UB;
 import static grondag.canvas.material.MaterialVertextFormatElement.SECONDARY_TEX_2F;
@@ -25,7 +24,6 @@ public final class MaterialVertexFormats {
 			POSITION_3F,
 			BASE_RGBA_4UB,
 			BASE_TEX_2F,
-			OVERLAY_4UB,
 			LIGHTMAPS_4UB,
 			NORMAL_AO_4UB);
 

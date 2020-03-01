@@ -5,17 +5,18 @@ import java.util.List;
 import javax.annotation.Nullable;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 
 import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.chunk.BlockBufferBuilderStorage;
 import net.minecraft.client.render.chunk.ChunkOcclusionData;
 import net.minecraft.util.math.Direction;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+
+import grondag.canvas.buffer.packing.VertexCollectorImpl;
+import grondag.canvas.buffer.packing.VertexCollectorList;
+import grondag.canvas.material.MaterialContext;
 
 @Environment(EnvType.CLIENT)
 public class RegionData {
@@ -26,20 +27,15 @@ public class RegionData {
 		}
 	};
 
-	final ObjectOpenHashSet<RenderLayer> nonEmptyLayers = new ObjectOpenHashSet<>();
-	final ObjectOpenHashSet<RenderLayer> initializedLayers = new ObjectOpenHashSet<>();
+	//final ObjectOpenHashSet<RenderLayer> nonEmptyLayers = new ObjectOpenHashSet<>();
+	//final ObjectOpenHashSet<RenderLayer> initializedLayers = new ObjectOpenHashSet<>();
 	final ObjectArrayList<BlockEntity> blockEntities = new ObjectArrayList<>();
 	ChunkOcclusionData occlusionGraph = new ChunkOcclusionData();
-	boolean empty = true;
-	@Nullable BufferBuilder.State bufferState;
+	@Nullable int[] translucentState;
 
-	public boolean isEmpty() {
-		return empty;
-	}
-
-	public boolean isEmpty(RenderLayer renderLayer) {
-		return !nonEmptyLayers.contains(renderLayer);
-	}
+	//	public boolean isEmpty(RenderLayer renderLayer) {
+	//		return !nonEmptyLayers.contains(renderLayer);
+	//	}
 
 	public List<BlockEntity> getBlockEntities() {
 		return blockEntities;
@@ -49,26 +45,22 @@ public class RegionData {
 		return occlusionGraph.isVisibleThrough(direction, direction2);
 	}
 
-	public boolean markInitialized(RenderLayer renderLayer) {
-		return initializedLayers.add(renderLayer);
-	}
+	//	public boolean markInitialized(RenderLayer renderLayer) {
+	//		return initializedLayers.add(renderLayer);
+	//	}
+	//
+	//	public void markPopulated(RenderLayer renderLayer) {
+	//		empty = false;
+	//		nonEmptyLayers.add(renderLayer);
+	//	}
 
-	public void markPopulated(RenderLayer renderLayer) {
-		empty = false;
-		nonEmptyLayers.add(renderLayer);
-	}
-
-	public void endBuffering(float x, float y, float z, BlockBufferBuilderStorage buffers) {
+	public void endBuffering(float x, float y, float z, VertexCollectorList buffers) {
 		final RenderLayer translucent = RenderLayer.getTranslucent();
 
-		if (nonEmptyLayers.contains(translucent)) {
-			final BufferBuilder buffer = buffers.get(RenderLayer.getTranslucent());
+		if (buffers.contains(MaterialContext.TERRAIN, translucent)) {
+			final VertexCollectorImpl buffer = buffers.get(MaterialContext.TERRAIN, translucent);
 			buffer.sortQuads(x, y, z);
-			bufferState = buffer.popState();
-		}
-
-		for(final RenderLayer layer : initializedLayers) {
-			buffers.get(layer).end();
+			translucentState = buffer.saveState(translucentState);
 		}
 	}
 

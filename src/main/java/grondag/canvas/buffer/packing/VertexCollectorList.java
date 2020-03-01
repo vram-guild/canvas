@@ -7,19 +7,21 @@ import java.util.function.Consumer;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
+import net.minecraft.client.render.RenderLayer;
 import net.minecraft.util.math.MathHelper;
 
 import grondag.canvas.chunk.UploadableChunk;
+import grondag.canvas.material.MaterialContext;
 import grondag.canvas.material.MaterialState;
 
 public class VertexCollectorList {
-	private final AbstractVertexCollector[] collectors = new AbstractVertexCollector[MaterialState.MAX_MATERIAL_STATES];
+	private final VertexCollectorImpl[] collectors = new VertexCollectorImpl[MaterialState.MAX_MATERIAL_STATES];
 
 	private final BufferPackingList packingList = new BufferPackingList();
 
 	private int usedCount = 0;
 
-	private final ObjectArrayList<AbstractVertexCollector> allCollectors = new ObjectArrayList<>();
+	private final ObjectArrayList<VertexCollectorImpl> allCollectors = new ObjectArrayList<>();
 
 	/** used in transparency layer sorting - updated with player eye coordinates */
 	private double viewX;
@@ -82,9 +84,9 @@ public class VertexCollectorList {
 		renderOriginZ = z;
 	}
 
-	public final AbstractVertexCollector get(MaterialState materialState) {
+	public final VertexCollectorImpl get(MaterialState materialState) {
 		final int materialIndex = materialState.index;
-		AbstractVertexCollector result = collectors[materialIndex];
+		VertexCollectorImpl result = collectors[materialIndex];
 
 		if(result == null) {
 			result = emptyCollector().prepare(materialState);
@@ -94,11 +96,11 @@ public class VertexCollectorList {
 		return result;
 	}
 
-	private AbstractVertexCollector emptyCollector() {
-		AbstractVertexCollector result;
+	private VertexCollectorImpl emptyCollector() {
+		VertexCollectorImpl result;
 
 		if(usedCount == allCollectors.size()) {
-			result = new AbstractVertexCollector(this);
+			result = new VertexCollectorImpl(this);
 			allCollectors.add(result);
 		} else {
 			result = allCollectors.get(usedCount);
@@ -108,7 +110,7 @@ public class VertexCollectorList {
 		return result;
 	}
 
-	public final void forEachExisting(Consumer<AbstractVertexCollector> consumer) {
+	public final void forEachExisting(Consumer<VertexCollectorImpl> consumer) {
 		final int usedCount = this.usedCount;
 		for(int i = 0; i < usedCount; i++) {
 			consumer.accept(allCollectors.get(i));
@@ -129,11 +131,12 @@ public class VertexCollectorList {
 		Arrays.sort(collectors, 0, usedCount, solidComparator);
 
 		for (int i = 0; i < usedCount; i++) {
-			final AbstractVertexCollector vertexCollector = (AbstractVertexCollector) collectors[i];
+			final VertexCollectorImpl vertexCollector = (VertexCollectorImpl) collectors[i];
 			final int vertexCount = vertexCollector.vertexCount();
+			final MaterialState matState = vertexCollector.materialState();
 
-			if (vertexCount != 0) {
-				packing.addPacking(vertexCollector.materialState(), 0, vertexCount);
+			if (vertexCount != 0 && !matState.isTranslucent) {
+				packing.addPacking(matState, 0, vertexCount);
 			}
 		}
 
@@ -157,31 +160,37 @@ public class VertexCollectorList {
 	public final BufferPackingList packingListTranslucent() {
 		final BufferPackingList packing = packingList;
 		packing.clear();
-		final PriorityQueue<AbstractVertexCollector> sorter = sorters.get();
+		final PriorityQueue<VertexCollectorImpl> sorter = sorters.get();
 
 		final double x = viewX - renderOriginX;
 		final double y = viewY - renderOriginY;
 		final double z = viewZ - renderOriginZ;
 
-		// Sort quads within each pipeline, while accumulating in priority queue
 		final int usedCount = this.usedCount;
+		final Object[] collectors = allCollectors.elements();
+
+		Arrays.sort(collectors, 0, usedCount, solidComparator);
+
+		// Sort quads within each pipeline, while accumulating in priority queue
 
 		for (int i = 0; i < usedCount; i++) {
-			final AbstractVertexCollector vertexCollector = allCollectors.get(i);
+			final VertexCollectorImpl vertexCollector = (VertexCollectorImpl) collectors[i];
 
-			if (vertexCollector.vertexCount() != 0) {
+			if (vertexCollector.materialState().isTranslucent && vertexCollector.vertexCount() != 0) {
 				vertexCollector.sortQuads(x, y, z);
 				sorter.add(vertexCollector);
 			}
 		}
 
+		//  TODO: can remove handling for more than one translucent pipeline
+
 		// exploit special case when only one transparent pipeline in this render chunk
 		if (sorter.size() == 1) {
-			final AbstractVertexCollector only = sorter.poll();
+			final VertexCollectorImpl only = sorter.poll();
 			packing.addPacking(only.materialState(), 0, only.vertexCount());
 		} else if (sorter.size() != 0) {
-			AbstractVertexCollector first = sorter.poll();
-			AbstractVertexCollector second = sorter.poll();
+			VertexCollectorImpl first = sorter.poll();
+			VertexCollectorImpl second = sorter.poll();
 
 			do {
 				// x4 because packing is vertices vs quads
@@ -227,14 +236,14 @@ public class VertexCollectorList {
 	public void loadCollectorState(int[][] stateData) {
 		clear();
 		for (final int[] data : stateData) {
-			final AbstractVertexCollector vc = emptyCollector().loadState(data);
+			final VertexCollectorImpl vc = emptyCollector().loadState(data);
 			collectors[vc.materialState().index] = vc;
 		}
 	}
 
-	private static final Comparator<AbstractVertexCollector> translucentComparator = new Comparator<AbstractVertexCollector>() {
+	private static final Comparator<VertexCollectorImpl> translucentComparator = new Comparator<VertexCollectorImpl>() {
 		@Override
-		public int compare(AbstractVertexCollector o1, AbstractVertexCollector o2) {
+		public int compare(VertexCollectorImpl o1, VertexCollectorImpl o2) {
 			// note reverse order - take most distant first
 			return Double.compare(o2.firstUnpackedDistance(), o1.firstUnpackedDistance());
 		}
@@ -243,23 +252,31 @@ public class VertexCollectorList {
 	private static final Comparator<Object> solidComparator = new Comparator<Object>() {
 		@Override
 		public int compare(Object o1, Object o2) {
-			return Long.compare(((AbstractVertexCollector)o1).materialState().sortIndex, ((AbstractVertexCollector)o2).materialState().sortIndex);
+			return Long.compare(((VertexCollectorImpl)o1).materialState().sortIndex, ((VertexCollectorImpl)o2).materialState().sortIndex);
 		}
 	};
 
-	private static final ThreadLocal<PriorityQueue<AbstractVertexCollector>> sorters = new ThreadLocal<PriorityQueue<AbstractVertexCollector>>() {
+	private static final ThreadLocal<PriorityQueue<VertexCollectorImpl>> sorters = new ThreadLocal<PriorityQueue<VertexCollectorImpl>>() {
 		@Override
-		protected PriorityQueue<AbstractVertexCollector> initialValue() {
+		protected PriorityQueue<VertexCollectorImpl> initialValue() {
 			return new PriorityQueue<>(translucentComparator);
 		}
 
 		@Override
-		public PriorityQueue<AbstractVertexCollector> get() {
-			final PriorityQueue<AbstractVertexCollector> result = super.get();
+		public PriorityQueue<VertexCollectorImpl> get() {
+			final PriorityQueue<VertexCollectorImpl> result = super.get();
 			result.clear();
 			return result;
 		}
 	};
 
-	private static final AbstractVertexCollector[] EMPTY = new AbstractVertexCollector[MaterialState.MAX_MATERIAL_STATES];
+	private static final VertexCollectorImpl[] EMPTY = new VertexCollectorImpl[MaterialState.MAX_MATERIAL_STATES];
+
+	public VertexCollectorImpl get(MaterialContext context, RenderLayer layer) {
+		return get(MaterialState.get(context, layer));
+	}
+
+	public boolean contains(MaterialContext context, RenderLayer layer) {
+		return collectors[MaterialState.get(context, layer).index] != null;
+	}
 }

@@ -24,7 +24,10 @@ import net.minecraft.client.util.math.Matrix4f;
 import net.fabricmc.fabric.api.renderer.v1.mesh.MutableQuadView;
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 
+import grondag.canvas.buffer.packing.VertexCollectorList;
+
 public abstract class AbstractRenderContext implements RenderContext {
+	public final VertexCollectorList collectors = new VertexCollectorList();
 	private final ObjectArrayList<QuadTransform> transformStack = new ObjectArrayList<>();
 	private static final QuadTransform NO_TRANSFORM = (q) -> true;
 	protected Matrix4f matrix;
