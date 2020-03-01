@@ -110,7 +110,9 @@ public class SolidRenderList implements Consumer<ObjectArrayList<DrawableDelegat
 
 			// UGLY - check probably belongs in draw handler
 			if(!handler.condition.affectBlocks || handler.condition.compute(frameIndex)) {
-				handler.draw(delegate);
+				handler.setup();
+				delegate.bind();
+				delegate.draw();
 			}
 		}
 
@@ -137,6 +139,7 @@ public class SolidRenderList implements Consumer<ObjectArrayList<DrawableDelegat
 
 	public void drawAndRelease(OldShaderContext context) {
 		draw(context);
+		DrawHandler.teardown();
 		release();
 	}
 }

@@ -32,6 +32,7 @@ import grondag.canvas.buffer.packing.BufferPackingList;
 import grondag.canvas.buffer.packing.VertexCollectorList;
 import grondag.canvas.chunk.draw.DrawableDelegate;
 import grondag.canvas.chunk.draw.SolidRenderList;
+import grondag.canvas.draw.DrawHandler;
 import grondag.canvas.light.LightmapHdTexture;
 import grondag.canvas.salvage.CanvasBufferBuilder;
 import grondag.canvas.salvage.TessellatorExt;
@@ -68,6 +69,7 @@ public class MixinTessellator implements TessellatorExt {
 			//PERF: lightmap tex probably not needed here, or at least make context-dependent
 			LightmapHdTexture.instance().enable();
 			renderList.draw(context);
+			DrawHandler.teardown();
 			LightmapHdTexture.instance().disable();
 
 			final int limit = delegates.size();

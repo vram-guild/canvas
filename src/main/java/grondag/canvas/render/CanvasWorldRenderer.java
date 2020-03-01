@@ -75,6 +75,7 @@ import grondag.canvas.chunk.RegionData;
 import grondag.canvas.chunk.RenderRegionBuilder;
 import grondag.canvas.chunk.RenderRegionStorage;
 import grondag.canvas.chunk.draw.DrawableDelegate;
+import grondag.canvas.draw.DrawHandler;
 import grondag.canvas.mixinterface.WorldRendererExt;
 import grondag.canvas.perf.MicroTimer;
 
@@ -529,9 +530,7 @@ public class CanvasWorldRenderer {
 		//		}
 
 		profiler.swap("terrain");
-		renderLayer(RenderLayer.getSolid(), matrixStack, d, e, g);
-		renderLayer(RenderLayer.getCutoutMipped(), matrixStack, d, e, g);
-		renderLayer(RenderLayer.getCutout(), matrixStack, d, e, g);
+		renderLayer(false, matrixStack, d, e, g);
 		DiffuseLighting.enableForLevel(matrixStack.peek().getModel());
 
 		profiler.swap("entities");
@@ -658,7 +657,7 @@ public class CanvasWorldRenderer {
 										immediate.draw(RenderLayer.getLines());
 										immediate.draw();
 										profiler.swap("translucent");
-										renderLayer(RenderLayer.getTranslucent(), matrixStack, d, e, g);
+										renderLayer(true, matrixStack, d, e, g);
 										profiler.swap("particles");
 										mc.particleManager.renderParticles(matrixStack, immediate, lightmapTextureManager, camera, f);
 										RenderSystem.pushMatrix();
@@ -744,7 +743,7 @@ public class CanvasWorldRenderer {
 		}
 	}
 
-	private void renderLayer(RenderLayer renderLayer, MatrixStack matrixStack, double x, double y, double z) {
+	private void renderLayer(boolean isTranslucent, MatrixStack matrixStack, double x, double y, double z) {
 		final int visibleChunkCount = this.visibleChunkCount;
 
 		if (visibleChunkCount == 0) {
@@ -755,11 +754,6 @@ public class CanvasWorldRenderer {
 		final MinecraftClient mc = wr.canvas_mc();
 		final BuiltRenderRegion[] visibleChunks = this.visibleChunks;
 		final VertexFormat vertexFormat = wr.canvas_vertexFormat();
-
-		// TODO: remove when switch to material-driven
-		renderLayer.startDrawing();
-
-		final boolean isTranslucent = renderLayer == RenderLayer.getTranslucent();
 
 		if (isTranslucent) {
 			mc.getProfiler().push("translucent_sort");
@@ -778,7 +772,7 @@ public class CanvasWorldRenderer {
 
 		mc.getProfiler().push("filterempty");
 		mc.getProfiler().swap(() -> {
-			return "render_" + renderLayer;
+			return "render_" + (isTranslucent ? "translucent" : "solid");
 		});
 
 		final int startIndex = isTranslucent ? visibleChunkCount - 1 : 0 ;
@@ -790,29 +784,27 @@ public class CanvasWorldRenderer {
 			final DrawableChunk drawable = isTranslucent ? builtChunk.translucentDrawable() : builtChunk.solidDrawable();
 
 			if (drawable != null && !drawable.isEmpty()) {
-				final ObjectArrayList<DrawableDelegate> delegates = drawable.delegates();
+				matrixStack.push();
+				final BlockPos blockPos = builtChunk.getOrigin();
+				matrixStack.translate(blockPos.getX() - x, blockPos.getY() - y, blockPos.getZ() - z);
+				RenderSystem.pushMatrix();
+				RenderSystem.loadIdentity();
+				RenderSystem.multMatrix(matrixStack.peek().getModel());
 
-				// TODO: draw the entire solid delegate once when have shaders
+				final ObjectArrayList<DrawableDelegate> delegates = drawable.delegates();
 				final int limit = delegates.size();
 
 				for(int i = 0; i < limit; i++) {
 					final DrawableDelegate d = delegates.get(i);
-
-					if (d.materialState().drawHandler.renderLayer == renderLayer) {
-						matrixStack.push();
-						final BlockPos blockPos = builtChunk.getOrigin();
-						matrixStack.translate(blockPos.getX() - x, blockPos.getY() - y, blockPos.getZ() - z);
-						d.bind();
-						// TODO: confirm everything that used to happen below happens in bind above
-						vertexFormat.startDrawing(d.byteOffset());
-						RenderSystem.pushMatrix();
-						RenderSystem.loadIdentity();
-						RenderSystem.multMatrix(matrixStack.peek().getModel());
-						d.draw();
-						RenderSystem.popMatrix();
-						matrixStack.pop();
-					}
+					d.materialState().drawHandler.setup();
+					d.bind();
+					// TODO: confirm everything that used to happen below happens in bind above
+					vertexFormat.startDrawing(d.byteOffset());
+					d.draw();
 				}
+
+				RenderSystem.popMatrix();
+				matrixStack.pop();
 			}
 		}
 
@@ -820,10 +812,8 @@ public class CanvasWorldRenderer {
 		VertexBuffer.unbind();
 		RenderSystem.clearCurrentColor();
 		vertexFormat.endDrawing();
+		DrawHandler.teardown();
 		mc.getProfiler().pop();
-
-		// TODO: remove when switch to material-driven
-		renderLayer.endDrawing();
 	}
 
 	private void updateChunks(long l) {

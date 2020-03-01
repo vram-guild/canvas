@@ -157,7 +157,9 @@ public abstract class DrawableChunk {
 
 				// UGLY - check probably belongs in draw handler
 				if (!handler.condition.affectBlocks || handler.condition.compute(frameIndex)) {
-					handler.draw(delegate);
+					handler.setup();
+					delegate.bind();
+					delegate.draw();
 				}
 			}
 		}
