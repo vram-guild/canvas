@@ -21,7 +21,6 @@ import static grondag.canvas.chunk.RenderRegionAddressHelper.cacheIndexToXyz5;
 import java.util.Random;
 
 import net.minecraft.block.BlockState;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.WorldRenderer;
@@ -149,13 +148,6 @@ public class BlockRenderContext extends AbstractRenderContext implements RenderC
 	}
 
 	@Override
-	public void computeLighting(MutableQuadViewImpl quad) {
-		if (!quad.material().disableAo(0) && MinecraftClient.isAmbientOcclusionEnabled()) {
-			aoCalc.compute(quad);
-		}
-	}
-
-	@Override
 	protected boolean cullTest(Direction face) {
 		return blockInfo.shouldDrawFace(face);
 	}
@@ -171,12 +163,12 @@ public class BlockRenderContext extends AbstractRenderContext implements RenderC
 	}
 
 	@Override
-	protected boolean defaultAo() {
+	public boolean defaultAo() {
 		return blockInfo.defaultAo;
 	}
 
 	@Override
-	protected BlockState blockState() {
+	public BlockState blockState() {
 		return blockInfo.blockState;
 	}
 	@Override
@@ -191,7 +183,17 @@ public class BlockRenderContext extends AbstractRenderContext implements RenderC
 	}
 
 	@Override
-	public final void applyLighting(MutableQuadViewImpl quad) {
-		blockInfo.applyBlockLighting(quad);
+	public int brightness() {
+		return 0;
+	}
+
+	@Override
+	public AoCalculator aoCalc() {
+		return aoCalc;
+	}
+
+	@Override
+	public int flatBrightness(MutableQuadViewImpl quad) {
+		return blockInfo.flatBrightness(quad);
 	}
 }

@@ -137,22 +137,17 @@ public class TerrainRenderContext extends AbstractRenderContext implements Rende
 	}
 
 	@Override
-	public void computeLighting(MutableQuadViewImpl quad) {
-		aoCalc.compute(quad);
-	}
-
-	@Override
 	protected Random random() {
 		return blockInfo.randomSupplier.get();
 	}
 
 	@Override
-	protected boolean defaultAo() {
+	public boolean defaultAo() {
 		return blockInfo.defaultAo;
 	}
 
 	@Override
-	protected BlockState blockState() {
+	public BlockState blockState() {
 		return blockInfo.blockState;
 	}
 
@@ -168,7 +163,17 @@ public class TerrainRenderContext extends AbstractRenderContext implements Rende
 	}
 
 	@Override
-	public final void applyLighting(MutableQuadViewImpl quad) {
-		blockInfo.applyBlockLighting(quad);
+	public int brightness() {
+		return 0;
+	}
+
+	@Override
+	public AoCalculator aoCalc() {
+		return aoCalc;
+	}
+
+	@Override
+	public int flatBrightness(MutableQuadViewImpl quad) {
+		return blockInfo.flatBrightness(quad);
 	}
 }

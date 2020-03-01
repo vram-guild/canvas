@@ -10,14 +10,11 @@ import grondag.canvas.apiimpl.util.NormalHelper;
 import grondag.canvas.material.MaterialVertexFormats;
 import grondag.canvas.mixinterface.Matrix3fExt;
 
-public class VanillaEncoder extends VertexEncoder {
+abstract class VanillaEncoder extends VertexEncoder {
 	VanillaEncoder() {
 		super(MaterialVertexFormats.VANILLA_BLOCKS_AND_ITEMS);
 	}
 
-	static final VanillaEncoder INSTANCE = new VanillaEncoder();
-
-	@Override
 	protected void bufferQuad(MutableQuadViewImpl quad, AbstractRenderContext context) {
 		final Matrix4f matrix = context.matrix();
 		final int overlay = context.overlay();
@@ -64,9 +61,7 @@ public class VanillaEncoder extends VertexEncoder {
 	}
 
 	/** handles block color and red-blue swizzle, common to all renders. */
-	@Override
 	protected void colorizeQuad(MutableQuadViewImpl quad, AbstractRenderContext context) {
-
 		final int colorIndex = quad.colorIndex();
 
 		// TODO: handle layers

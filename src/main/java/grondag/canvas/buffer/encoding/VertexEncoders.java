@@ -10,11 +10,31 @@ import grondag.canvas.material.MaterialVertexFormat;
 public class VertexEncoders {
 	public static final int MAX_ENCODERS = 8;
 
+	public static final VanillaBlockEncoder VANILLA_BLOCK = new VanillaBlockEncoder();
+	public static final VanillaItemEncoder VANILLA_ITEM = new VanillaItemEncoder();
+	public static final VanillaTerrainEncoder VANILLA_TERRAIN = new VanillaTerrainEncoder();
+
 	public static VertexEncoder get(MaterialContext context, MaterialVertexFormat format, Value mat) {
-		return context == MaterialContext.TERRAIN ? TerrainEncoder.INSTANCE : VanillaEncoder.INSTANCE;
+		switch (context) {
+		case BLOCK:
+			return VANILLA_BLOCK;
+		case ITEM:
+			return VANILLA_ITEM;
+		case TERRAIN:
+		default:
+			return VANILLA_TERRAIN;
+		}
 	}
 
 	public static VertexEncoder get(MaterialContext context, RenderLayer layer) {
-		return context == MaterialContext.TERRAIN ? TerrainEncoder.INSTANCE : VanillaEncoder.INSTANCE;
+		switch (context) {
+		case BLOCK:
+			return VANILLA_BLOCK;
+		case ITEM:
+			return VANILLA_ITEM;
+		case TERRAIN:
+		default:
+			return VANILLA_TERRAIN;
+		}
 	}
 }

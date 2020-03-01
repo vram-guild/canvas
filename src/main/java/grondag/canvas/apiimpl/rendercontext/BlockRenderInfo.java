@@ -34,9 +34,7 @@ import net.minecraft.world.BlockRenderView;
 
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 
-import grondag.canvas.apiimpl.RenderMaterialImpl;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
-import grondag.canvas.apiimpl.util.ColorHelper;
 
 /**
  * Holds, manages and provides access to the block/world related state
@@ -124,73 +122,15 @@ public class BlockRenderInfo {
 		return blendMode == BlendMode.DEFAULT ? defaultLayer : blendMode.blockRenderLayer;
 	}
 
-	public void applyBlockLighting(MutableQuadViewImpl quad) {
-		final RenderMaterialImpl.Value mat = quad.material();
-
-		// TODO: handle multiple
-		final int textureIndex = 0;
-
-		if (defaultAo && !mat.disableAo(textureIndex)) {
-			if (mat.emissive(textureIndex)) {
-				tesselateSmoothEmissive(quad);
-			} else {
-				tesselateSmooth(quad);
-			}
-		} else {
-			if (mat.emissive(textureIndex)) {
-				tesselateFlatEmissive(quad);
-			} else {
-				tesselateFlat(quad);
-			}
-		}
-	}
-
-	// routines below have a bit of copy-paste code reuse to avoid conditional execution inside a hot loop
-
-	static final int FULL_BRIGHTNESS = 0xF000F0;
-
-	/** for non-emissive mesh quads and all fallback quads with smooth lighting. */
-	private void tesselateSmooth(MutableQuadViewImpl q) {
-		for (int i = 0; i < 4; i++) {
-			q.spriteColor(i, 0, ColorHelper.multiplyRGB(q.spriteColor(i, 0), q.ao[i]));
-			q.lightmap(i, ColorHelper.maxBrightness(q.lightmap(i), q.light[i]));
-		}
-	}
-
-	/** for emissive mesh quads with smooth lighting. */
-	private void tesselateSmoothEmissive(MutableQuadViewImpl q) {
-		for (int i = 0; i < 4; i++) {
-			q.spriteColor(i, 0, ColorHelper.multiplyRGB(q.spriteColor(i, 0), q.ao[i]));
-			q.lightmap(i, FULL_BRIGHTNESS);
-		}
-	}
-
-	/** for non-emissive mesh quads and all fallback quads with flat lighting. */
-	private void tesselateFlat(MutableQuadViewImpl quad) {
-		final int brightness = flatBrightness(quad);
-
-		for (int i = 0; i < 4; i++) {
-			quad.lightmap(i, ColorHelper.maxBrightness(quad.lightmap(i), brightness));
-		}
-	}
-
-	/** for emissive mesh quads with flat lighting. */
-	private void tesselateFlatEmissive(MutableQuadViewImpl quad) {
-		for (int i = 0; i < 4; i++) {
-			quad.lightmap(i, FULL_BRIGHTNESS);
-		}
-	}
-
-	private final BlockPos.Mutable mpos = new BlockPos.Mutable();
+	protected final BlockPos.Mutable mpos = new BlockPos.Mutable();
 
 	/**
 	 * Handles geometry-based check for using self brightness or neighbor brightness.
 	 * That logic only applies in flat lighting.
 	 */
-	private int flatBrightness(MutableQuadViewImpl quad) {
+	public int flatBrightness(MutableQuadViewImpl quad) {
 		final BlockState blockState = this.blockState;
 		final BlockPos pos = blockPos;
-
 		mpos.set(pos);
 
 		if ((quad.geometryFlags() & LIGHT_FACE_FLAG) != 0 || Block.isShapeFullCube(blockState.getCollisionShape(blockView, pos))) {

@@ -21,18 +21,5 @@ public abstract class VertexEncoder {
 	 * Determines color index and render layer, then routes to appropriate
 	 * tesselate routine based on material properties.
 	 */
-	public final void encodeQuad(MutableQuadViewImpl quad, AbstractRenderContext context) {
-		// needs to happen before offsets are applied
-		context.computeLighting(quad);
-
-		colorizeQuad(quad, context);
-
-		context.applyLighting(quad);
-
-		bufferQuad(quad, context);
-	}
-
-	protected abstract void bufferQuad(MutableQuadViewImpl quad, AbstractRenderContext context);
-
-	protected abstract void colorizeQuad(MutableQuadViewImpl quad, AbstractRenderContext context);
+	public abstract void encodeQuad(MutableQuadViewImpl quad, AbstractRenderContext context);
 }

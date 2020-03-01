@@ -41,8 +41,7 @@ import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
-import grondag.canvas.apiimpl.util.ColorHelper;
-import grondag.canvas.buffer.encoding.VertexEncoder;
+import grondag.canvas.light.AoCalculator;
 import grondag.canvas.material.MaterialContext;
 import grondag.canvas.mixinterface.Matrix3fExt;
 
@@ -156,12 +155,12 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 	}
 
 	@Override
-	protected boolean defaultAo() {
+	public boolean defaultAo() {
 		return false;
 	}
 
 	@Override
-	protected BlockState blockState() {
+	public BlockState blockState() {
 		return null;
 	}
 
@@ -181,21 +180,6 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 	}
 
 	@Override
-	public void computeLighting(MutableQuadViewImpl quad) {
-		// UGLY: for vanilla lighting need to undo diffuse shading
-		ColorHelper.applyDiffuseShading(quad, true);
-	}
-
-	@Override
-	public void applyLighting(MutableQuadViewImpl quad) {
-		final int lightmap = quad.material().emissive(0) ? VertexEncoder.FULL_BRIGHTNESS : ItemRenderContext.this.lightmap;
-
-		for (int i = 0; i < 4; i++) {
-			quad.lightmap(i, ColorHelper.maxBrightness(quad.lightmap(i), lightmap));
-		}
-	}
-
-	@Override
 	public VertexConsumer consumer(MutableQuadViewImpl quad) {
 		return quadVertexConsumer(quad.material().blendMode(0));
 	}
@@ -203,5 +187,20 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 	@Override
 	public int indexedColor(int colorIndex) {
 		return colorIndex == -1 ? -1 : (colorMap.getColorMultiplier(itemStack, colorIndex) | 0xFF000000);
+	}
+
+	@Override
+	public int brightness() {
+		return lightmap;
+	}
+
+	@Override
+	public AoCalculator aoCalc() {
+		return null;
+	}
+
+	@Override
+	public int flatBrightness(MutableQuadViewImpl quad) {
+		return 0;
 	}
 }

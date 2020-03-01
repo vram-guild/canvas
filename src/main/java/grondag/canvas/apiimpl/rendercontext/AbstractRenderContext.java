@@ -19,6 +19,8 @@ package grondag.canvas.apiimpl.rendercontext;
 import java.util.Random;
 import java.util.function.Consumer;
 
+import javax.annotation.Nullable;
+
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import net.minecraft.block.BlockState;
@@ -34,6 +36,7 @@ import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.buffer.packing.VertexCollectorList;
+import grondag.canvas.light.AoCalculator;
 import grondag.canvas.material.MaterialContext;
 import grondag.canvas.mixinterface.Matrix3fExt;
 
@@ -116,7 +119,7 @@ public abstract class AbstractRenderContext implements RenderContext {
 
 	protected abstract Random random();
 
-	protected abstract boolean defaultAo();
+	public abstract boolean defaultAo();
 
 	protected abstract BlockState blockState();
 
@@ -132,7 +135,15 @@ public abstract class AbstractRenderContext implements RenderContext {
 
 	public abstract int indexedColor(int colorIndex);
 
-	public abstract void applyLighting(MutableQuadViewImpl quad);
+	/**
+	 * Used in contexts with a fixed brightness, like ITEM.
+	 */
+	public abstract int brightness();
 
-	public abstract void computeLighting(MutableQuadViewImpl quad);
+	/**
+	 * Null in some contexts, like ITEM.
+	 */
+	public abstract @Nullable AoCalculator aoCalc();
+
+	public abstract int flatBrightness(MutableQuadViewImpl quad);
 }
