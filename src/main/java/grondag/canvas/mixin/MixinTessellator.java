@@ -16,37 +16,27 @@
 
 package grondag.canvas.mixin;
 
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.Tessellator;
 
-import grondag.canvas.buffer.packing.BufferPacker;
-import grondag.canvas.buffer.packing.BufferPackingList;
-import grondag.canvas.buffer.packing.VertexCollectorList;
-import grondag.canvas.chunk.draw.DrawableDelegate;
-import grondag.canvas.chunk.draw.SolidRenderList;
-import grondag.canvas.draw.DrawHandler;
-import grondag.canvas.light.LightmapHdTexture;
-import grondag.canvas.salvage.CanvasBufferBuilder;
 import grondag.canvas.salvage.TessellatorExt;
 import grondag.canvas.shader.old.OldShaderContext;
 
-//TODO: Enable or Remove
+//TODO: Remove or Restore
 @Mixin(Tessellator.class)
 public class MixinTessellator implements TessellatorExt {
 	@Shadow private BufferBuilder buffer;
 
-	@Redirect(method = "<init>*", require = 1, at = @At(value = "NEW", args = "class=net/minecraft/client/render/BufferBuilder"))
-	private BufferBuilder newBuferBuilder(int bufferSizeIn) {
-		return new CanvasBufferBuilder(bufferSizeIn);
-	}
+	//	@Redirect(method = "<init>*", require = 1, at = @At(value = "NEW", args = "class=net/minecraft/client/render/BufferBuilder"))
+	//	private BufferBuilder newBuferBuilder(int bufferSizeIn) {
+	//		return new CanvasBufferBuilder(bufferSizeIn);
+	//	}
 
 	@Inject(method = "draw", at = @At("RETURN"), require = 1)
 	private void afterDraw(CallbackInfo ci) {
@@ -57,30 +47,30 @@ public class MixinTessellator implements TessellatorExt {
 
 	@Override
 	public void canvas_draw() {
-		final CanvasBufferBuilder buffer = (CanvasBufferBuilder)this.buffer;
-		final VertexCollectorList vcList = buffer.vcList;
-		if(!vcList.isEmpty()) {
-			final BufferPackingList packingList = vcList.packingListSolid();
-			final SolidRenderList renderList = SolidRenderList.claim();
-			buffer.ensureCapacity(packingList.totalBytes());
-			final ObjectArrayList<DrawableDelegate> delegates = BufferPacker.pack(packingList, vcList, buffer);
-			renderList.accept(delegates);
-
-			//PERF: lightmap tex probably not needed here, or at least make context-dependent
-			LightmapHdTexture.instance().enable();
-			renderList.draw(context);
-			DrawHandler.teardown();
-			LightmapHdTexture.instance().disable();
-
-			final int limit = delegates.size();
-			for(int i = 0; i < limit; i++) {
-				delegates.get(i).release();
-			}
-			SolidRenderList.postDrawCleanup();
-			renderList.release();
-			vcList.clear();
-			buffer.clearAllocations();
-		}
+		//		final CanvasBufferBuilder buffer = (CanvasBufferBuilder)this.buffer;
+		//		final VertexCollectorList vcList = buffer.vcList;
+		//		if(!vcList.isEmpty()) {
+		//			final BufferPackingList packingList = vcList.packingListSolid();
+		//			final SolidRenderList renderList = SolidRenderList.claim();
+		//			buffer.ensureCapacity(packingList.totalBytes());
+		//			final ObjectArrayList<DrawableDelegate> delegates = BufferPacker.pack(packingList, vcList, buffer);
+		//			renderList.accept(delegates);
+		//
+		//			//PERF: lightmap tex probably not needed here, or at least make context-dependent
+		//			LightmapHdTexture.instance().enable();
+		//			renderList.draw(context);
+		//			DrawHandler.teardown();
+		//			LightmapHdTexture.instance().disable();
+		//
+		//			final int limit = delegates.size();
+		//			for(int i = 0; i < limit; i++) {
+		//				delegates.get(i).release();
+		//			}
+		//			SolidRenderList.postDrawCleanup();
+		//			renderList.release();
+		//			vcList.clear();
+		//			buffer.clearAllocations();
+		//		}
 	}
 
 	@Override

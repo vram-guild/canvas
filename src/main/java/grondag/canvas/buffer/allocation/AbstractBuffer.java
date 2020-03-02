@@ -63,7 +63,7 @@ public abstract class AbstractBuffer {
 	/**
 	 * True if buffer has been fully released and recycled.  Disposed buffers cannot be used.
 	 */
-	public boolean isDisposed() {
+	public boolean isClosed() {
 		return false;
 	}
 }

@@ -27,7 +27,6 @@ import net.minecraft.client.render.VertexFormatElement;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
-import grondag.canvas.buffer.allocation.AbstractBuffer;
 import grondag.canvas.buffer.allocation.BufferDelegate;
 import grondag.canvas.material.MaterialState;
 import grondag.canvas.material.MaterialVertexFormat;
@@ -36,12 +35,6 @@ import grondag.canvas.varia.VaoStore;
 
 public class DrawableDelegate {
 	private static final ArrayBlockingQueue<DrawableDelegate> store = new ArrayBlockingQueue<>(4096);
-
-	/**
-	 * Signals the gl buffer not determined.
-	 * Can't be populated at construction because that can happen off thread.
-	 */
-	private static final int BUFFER_UNKNOWN = -1000;
 
 	/**
 	 * Pointer to start of vertex data for current vertex binding.
@@ -78,23 +71,23 @@ public class DrawableDelegate {
 		result.materialState = renderState;
 		result.vertexCount = vertexCount;
 		result.isReleased = false;
-		result.vertexBinder = bufferDelegate.buffer().isVbo()
-				? (CanvasGlHelper.isVaoEnabled() ? result::bindVao : result::bindVbo)
-						: result::bindBuffer;
-				bufferDelegate.buffer().retain(result);
-				result.bufferId = BUFFER_UNKNOWN;
-				result.format = format;
+		result.vertexBinder = CanvasGlHelper.isVaoEnabled() ? result::bindVao : result::bindVbo;
+		result.format = format;
 
-				return result;
+		return result;
 	}
 
 	private BufferDelegate bufferDelegate;
 	private MaterialState materialState;
 	private int vertexCount;
 	private boolean isReleased = false;
-	private VertexBinder vertexBinder;
-	private int bufferId = BUFFER_UNKNOWN;
 
+	// TODO: remove or restore use of these next two
+	@SuppressWarnings("unused")
+	private VertexBinder vertexBinder;
+
+
+	@SuppressWarnings("unused")
 	/** With translucency chunks may be different (padded) vs what material state would normally dictate - avoids attribute re-binding when VAO not an option */
 	private MaterialVertexFormat format = null;
 
@@ -117,12 +110,7 @@ public class DrawableDelegate {
 	 * vertex buffer and pipeline/format.
 	 */
 	public int bufferId() {
-		final int result = bufferId;
-		if(bufferId == BUFFER_UNKNOWN) {
-			bufferDelegate.buffer().bindable().glBufferId();
-			bufferId = result;
-		}
-		return result;
+		return bufferDelegate.buffer().glBufferId();
 	}
 
 	/**
@@ -137,15 +125,7 @@ public class DrawableDelegate {
 	 * attributes. Returns the buffer Id that is bound, or input if unchanged.
 	 */
 	public void bind() {
-		final AbstractBuffer buffer = bufferDelegate.buffer();
-		if (buffer.isDisposed()) {
-			return;
-		}
-
-		// TODO: bind format here again
-		@SuppressWarnings("unused")
-		final boolean isNewBuffer = buffer.bindable().bind();
-		//vertexBinder.bind(format, isNewBuffer);
+		bufferDelegate.buffer().bind();
 	}
 
 	// TODO: remove when vanilla hacks are done
@@ -160,7 +140,7 @@ public class DrawableDelegate {
 	public void draw() {
 		assert !isReleased;
 
-		if (bufferDelegate.buffer().isDisposed()) {
+		if (bufferDelegate.buffer().isClosed()) {
 			return;
 		}
 
@@ -170,8 +150,6 @@ public class DrawableDelegate {
 	public void release() {
 		if (!isReleased) {
 			isReleased = true;
-			bufferDelegate.buffer().release(this);
-			bufferDelegate.release();
 			bufferDelegate = null;
 
 			if (vaoBufferId != -1) {

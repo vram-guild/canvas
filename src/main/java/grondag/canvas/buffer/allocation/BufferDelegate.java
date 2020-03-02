@@ -17,35 +17,16 @@
 package grondag.canvas.buffer.allocation;
 
 import java.nio.IntBuffer;
-import java.util.concurrent.ArrayBlockingQueue;
 
 public class BufferDelegate {
-	private static final ArrayBlockingQueue<BufferDelegate> POOL = new ArrayBlockingQueue<>(4096);
+	private final int byteCount;
+	private final int byteOffset;
+	private final VboBuffer buffer;
 
-	public static BufferDelegate claim(AbstractBuffer buffer, int byteOffset, int byteCount) {
-		BufferDelegate result = POOL.poll();
-		if (result == null) {
-			result = new BufferDelegate();
-		}
-		return result.prepare(buffer, byteOffset, byteCount);
-	}
-
-	private int byteCount;
-	private int byteOffset;
-	private AbstractBuffer buffer;
-
-	private BufferDelegate() {
-	}
-
-	private BufferDelegate prepare(AbstractBuffer buffer, int byteOffset, int byteCount) {
+	public BufferDelegate (VboBuffer buffer, int byteOffset, int byteCount) {
 		this.buffer = buffer;
 		this.byteCount = byteCount;
 		this.byteOffset = byteOffset;
-		return this;
-	}
-
-	public void release() {
-		POOL.offer(this);
 	}
 
 	/**
@@ -67,7 +48,7 @@ public class BufferDelegate {
 		return buffer.byteBuffer().asIntBuffer();
 	}
 
-	public AbstractBuffer buffer() {
+	public VboBuffer buffer() {
 		return buffer;
 	}
 }

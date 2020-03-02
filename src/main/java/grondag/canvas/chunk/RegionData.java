@@ -17,6 +17,7 @@ import net.fabricmc.api.Environment;
 import grondag.canvas.buffer.packing.VertexCollectorImpl;
 import grondag.canvas.buffer.packing.VertexCollectorList;
 import grondag.canvas.material.MaterialContext;
+import grondag.canvas.material.MaterialState;
 
 @Environment(EnvType.CLIENT)
 public class RegionData {
@@ -27,15 +28,9 @@ public class RegionData {
 		}
 	};
 
-	//final ObjectOpenHashSet<RenderLayer> nonEmptyLayers = new ObjectOpenHashSet<>();
-	//final ObjectOpenHashSet<RenderLayer> initializedLayers = new ObjectOpenHashSet<>();
 	final ObjectArrayList<BlockEntity> blockEntities = new ObjectArrayList<>();
 	ChunkOcclusionData occlusionGraph = new ChunkOcclusionData();
 	@Nullable int[] translucentState;
-
-	//	public boolean isEmpty(RenderLayer renderLayer) {
-	//		return !nonEmptyLayers.contains(renderLayer);
-	//	}
 
 	public List<BlockEntity> getBlockEntities() {
 		return blockEntities;
@@ -45,20 +40,11 @@ public class RegionData {
 		return occlusionGraph.isVisibleThrough(direction, direction2);
 	}
 
-	//	public boolean markInitialized(RenderLayer renderLayer) {
-	//		return initializedLayers.add(renderLayer);
-	//	}
-	//
-	//	public void markPopulated(RenderLayer renderLayer) {
-	//		empty = false;
-	//		nonEmptyLayers.add(renderLayer);
-	//	}
-
 	public void endBuffering(float x, float y, float z, VertexCollectorList buffers) {
-		final RenderLayer translucent = RenderLayer.getTranslucent();
+		final MaterialState translucent = MaterialState.get(MaterialContext.TERRAIN, RenderLayer.getTranslucent());
 
-		if (buffers.contains(MaterialContext.TERRAIN, translucent)) {
-			final VertexCollectorImpl buffer = buffers.get(MaterialContext.TERRAIN, translucent);
+		if (buffers.contains(translucent)) {
+			final VertexCollectorImpl buffer = buffers.get(translucent);
 			buffer.sortQuads(x, y, z);
 			translucentState = buffer.saveState(translucentState);
 		}

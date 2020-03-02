@@ -12,9 +12,10 @@ public interface VertexAttributeEncoder {
 
 	VertexAttributeEncoder POS = (q, i, c, o) -> {
 		if(c.pos == null) {
-			o.pos(q.x(i), q.y(i), q.z(i));
+			// TODO: remove or restore
+			//o.pos(q.x(i), q.y(i), q.z(i));
 		} else {
-			o.pos(c.pos, q.x(i), q.y(i), q.z(i));
+			//o.pos(c.pos, q.x(i), q.y(i), q.z(i));
 		}
 	};
 

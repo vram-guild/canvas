@@ -22,7 +22,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import grondag.canvas.chunk.draw.DrawableDelegate;
 import grondag.canvas.varia.GLBufferStore;
 
-public abstract class UploadableBuffer extends AbstractBuffer implements BindableBuffer {
+public abstract class UploadableBuffer extends AbstractBuffer implements BindableBuffer, AutoCloseable {
 	protected static int nextID = 0;
 
 	private int glBufferId = -1;
@@ -82,27 +82,29 @@ public abstract class UploadableBuffer extends AbstractBuffer implements Bindabl
 	@Override
 	public void release(DrawableDelegate drawable) {
 		if(retainers.decrementAndGet() == 0) {
-			dispose();
+			close();
 		}
 	}
 
-	private final AtomicBoolean isDisposed = new AtomicBoolean();
+	private final AtomicBoolean isClosed = new AtomicBoolean();
 
 	@Override
-	public final boolean isDisposed() {
-		return isDisposed.get();
+	public final boolean isClosed() {
+		return isClosed.get();
 	}
 
 	/** called by store on render reload to recycle GL buffer */
-	protected final void dispose() {
-		if (isDisposed.compareAndSet(false, true)) {
+	@Override
+	public final void close() {
+		if (isClosed.compareAndSet(false, true)) {
 			if(glBufferId != -1) {
 				GLBufferStore.releaseBuffer(glBufferId);
 				glBufferId = -1;
 			}
-			onDispose();
+
+			onClose();
 		}
 	}
 
-	protected abstract void onDispose();
+	protected abstract void onClose();
 }

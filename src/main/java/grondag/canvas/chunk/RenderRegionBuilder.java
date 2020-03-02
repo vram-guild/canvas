@@ -3,6 +3,7 @@ package grondag.canvas.chunk;
 import java.util.Queue;
 
 import com.google.common.collect.Queues;
+import com.mojang.blaze3d.systems.RenderSystem;
 
 import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.client.world.ClientWorld;
@@ -50,6 +51,8 @@ public class RenderRegionBuilder {
 	}
 
 	public boolean upload() {
+		assert RenderSystem.isOnRenderThread();
+
 		Runnable task = uploadQueue.poll();
 
 		final boolean didRun = task != null;

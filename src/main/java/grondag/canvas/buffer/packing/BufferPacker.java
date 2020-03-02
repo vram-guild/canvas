@@ -63,7 +63,6 @@ public class BufferPacker {
 			final int byteCount = ref.byteCount();
 			final int intLength = byteCount / 4;
 
-			ref.buffer().lockForWrite();
 			final IntBuffer intBuffer = ref.intBuffer();
 			intBuffer.position(byteOffset / 4);
 
@@ -72,7 +71,6 @@ public class BufferPacker {
 			// Either simplify and assume a single buffer (wouldn't need this lambda)
 			// or make it actually work.
 			collector.toBuffer(intBuffer, vertexStart * stride / 4, intLength);
-			ref.buffer().unlockForWrite();
 
 			delegates.add(DrawableDelegate.claim(ref, materialState, byteCount / stride, format));
 		});

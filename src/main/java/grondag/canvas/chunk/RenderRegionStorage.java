@@ -78,7 +78,7 @@ public class RenderRegionStorage {
 		final int m = Math.floorMod(y, sizeY);
 		final int n = Math.floorMod(z, sizeZ);
 		final BuiltRenderRegion builtChunk = regions[getRegionIndex(l, m, n)];
-		builtChunk.scheduleRebuild(urgent);
+		builtChunk.markForBuild(urgent);
 	}
 
 	/**

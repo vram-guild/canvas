@@ -71,13 +71,16 @@ public abstract class DrawableChunk {
 
 	public int quadCount() {
 		int result = quadCount;
+
 		if(result == -1) {
 			result = 0;
 			final int limit = delegates.size();
+
 			for(int i = 0; i < limit; i++) {
 				final DrawableDelegate d = delegates.get(i);
 				result += d.bufferDelegate().byteCount() / d.materialState().bufferFormat.vertexStrideBytes / 4;
 			}
+
 			quadCount = result;
 		}
 		return result;
@@ -94,22 +97,20 @@ public abstract class DrawableChunk {
 		if (!isCleared) {
 			isCleared = true;
 			assert delegates != null;
+
 			if (!delegates.isEmpty()) {
 				final int limit = delegates.size();
+
 				for (int i = 0; i < limit; i++) {
 					delegates.get(i).release();
 				}
+
 				delegates.clear();
 			}
+
 			DelegateLists.releaseDelegateList(delegates);
 			delegates = null;
 		}
-	}
-
-	// UGLY: remove
-	@Override
-	protected void finalize() {
-		clear();
 	}
 
 	public static class Solid extends DrawableChunk {
@@ -125,6 +126,7 @@ public abstract class DrawableChunk {
 			if (isCleared) {
 				return;
 			}
+
 			consumer.accept(delegates);
 		}
 	}

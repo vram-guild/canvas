@@ -26,7 +26,6 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.ShaderEffect;
-import net.minecraft.client.gl.VertexBuffer;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.options.CloudRenderMode;
 import net.minecraft.client.options.Option;
@@ -69,6 +68,7 @@ import net.minecraft.util.profiler.Profiler;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.WorldChunk;
 
+import grondag.canvas.buffer.allocation.VboBuffer;
 import grondag.canvas.chunk.BuiltRenderRegion;
 import grondag.canvas.chunk.DrawableChunk;
 import grondag.canvas.chunk.RegionData;
@@ -95,7 +95,7 @@ public class CanvasWorldRenderer {
 
 	// TODO: remove
 	@SuppressWarnings("unused")
-	private static final MicroTimer timer = new MicroTimer("setupTerrain", 200);
+	private static final MicroTimer timer = new MicroTimer("outer", 200);
 	public static final MicroTimer innerTimer = new MicroTimer("inner", -1);
 
 	private final IntComparator comparator = new IntComparator() {
@@ -355,7 +355,7 @@ public class CanvasWorldRenderer {
 				} else {
 					mc.getProfiler().push("build near");
 					builtChunk.rebuildOnMainThread();
-					builtChunk.cancelRebuild();
+					builtChunk.markBuilt();
 					mc.getProfiler().pop();
 				}
 			}
@@ -454,7 +454,7 @@ public class CanvasWorldRenderer {
 		playerLightmap = mc.getEntityRenderManager().getLight(mc.player, f);
 	}
 
-	public void renderWorld(MatrixStack matrixStack, float f, long l, boolean bl, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f matrix4f) {
+	public void renderWorld(MatrixStack matrixStack, float f, long startTime, boolean bl, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f matrix4f) {
 		final WorldRendererExt wr = this.wr;
 		final MinecraftClient mc = wr.canvas_mc();
 		updatePlayerLightmap(mc, f);
@@ -507,23 +507,24 @@ public class CanvasWorldRenderer {
 		setupTerrain(camera, frustum2, hasCapturedFrustum, wr.canvas_getAndIncrementFrameIndex(), mc.player.isSpectator());
 
 		profiler.swap("updatechunks");
-		final int j = mc.options.maxFps;
-		long o;
+		final int maxFps = mc.options.maxFps;
+		long maxFpsLimit;
 
-		if (j == Option.FRAMERATE_LIMIT.getMax()) {
-			o = 0L;
+		if (maxFps == Option.FRAMERATE_LIMIT.getMax()) {
+			maxFpsLimit = 0L;
 		} else {
-			o = 1000000000 / j;
+			maxFpsLimit = 1000000000 / maxFps;
 		}
 
-		final long p = Util.getMeasuringTimeNano() - l;
-		final long q = wr.canvas_chunkUpdateSmoother().getTargetUsedTime(p);
-		final long r = q * 3L / 2L;
-		final long s = MathHelper.clamp(r, o, 33333333L);
+		final long budget = Util.getMeasuringTimeNano() - startTime;
+
+		// No idea wtg the 3/2 is for - looks like a hack
+		final long updateBudget = wr.canvas_chunkUpdateSmoother().getTargetUsedTime(budget) * 3L / 2L;
+		final long clampedBudget = MathHelper.clamp(updateBudget, maxFpsLimit, 33333333L);
 
 		//		timer.start();
 		//innerTimer.start();
-		updateChunks(l + s);
+		updateChunks(startTime + clampedBudget);
 		//innerTimer.stop();
 		//		if(timer.stop()) {
 		//CanvasWorldRenderer.innerTimer.reportAndClear();
@@ -812,15 +813,14 @@ public class CanvasWorldRenderer {
 			}
 		}
 
-		// TODO: handle unbind in Canvas code
-		VertexBuffer.unbind();
+		VboBuffer.unbind();
 		RenderSystem.clearCurrentColor();
 		vertexFormat.endDrawing();
 		DrawHandler.teardown();
 		mc.getProfiler().pop();
 	}
 
-	private void updateChunks(long l) {
+	private void updateChunks(long endNanos) {
 		final WorldRendererExt wr = this.wr;
 		final Set<BuiltRenderRegion> chunksToRebuild  = this.chunksToRebuild;
 
@@ -828,30 +828,39 @@ public class CanvasWorldRenderer {
 			wr.canvas_setNeedsTerrainUpdate(true);
 		}
 
-		// TODO: put back, plus below
-		//		final long m = Util.getMeasuringTimeNano();
-		//		int i = 0;
+		//final long start = Util.getMeasuringTimeNano();
+		//int builtCount = 0;
+
 		if (!chunksToRebuild.isEmpty()) {
 			final Iterator<BuiltRenderRegion> iterator = chunksToRebuild.iterator();
 
 			while(iterator.hasNext()) {
 				final BuiltRenderRegion builtChunk = iterator.next();
+
 				if (builtChunk.needsImportantRebuild()) {
 					builtChunk.rebuildOnMainThread();
 				} else {
 					builtChunk.enqueuRebuild();
 				}
 
-				builtChunk.cancelRebuild();
+				builtChunk.markBuilt();
 				iterator.remove();
-				//				++i;
-				//				final long n = Util.getMeasuringTimeNano();
-				//				final long o = n - m;
-				//				final long p = o / i;
-				//				final long q = l - n;
-				//				if (q < p) {
+
+				// this seemed excessive
+				//				++builtCount;
+				//
+				//				final long now = Util.getMeasuringTimeNano();
+				//				final long elapsed = now - start;
+				//				final long avg = elapsed / builtCount;
+				//				final long remaining = endNanos - now;
+				//
+				//				if (remaining < avg) {
 				//					break;
 				//				}
+
+				if (Util.getMeasuringTimeNano() >= endNanos) {
+					break;
+				}
 			}
 		}
 	}

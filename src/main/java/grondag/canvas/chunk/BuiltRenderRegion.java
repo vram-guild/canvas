@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import io.netty.util.internal.shaded.org.jctools.queues.MessagePassingQueue.Consumer;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
@@ -38,6 +39,7 @@ import grondag.canvas.buffer.packing.VertexCollectorList;
 import grondag.canvas.chunk.DrawableChunk.Solid;
 import grondag.canvas.chunk.DrawableChunk.Translucent;
 import grondag.canvas.material.MaterialContext;
+import grondag.canvas.material.MaterialState;
 import grondag.canvas.perf.ChunkRebuildCounters;
 
 @Environment(EnvType.CLIENT)
@@ -125,6 +127,8 @@ public class BuiltRenderRegion {
 	}
 
 	private void clear() {
+		assert RenderSystem.isOnRenderThread();
+
 		cancel();
 		buildData.set(RegionData.EMPTY);
 		renderData.set(RegionData.EMPTY);
@@ -150,13 +154,13 @@ public class BuiltRenderRegion {
 		return origin;
 	}
 
-	public void scheduleRebuild(boolean isImportant) {
+	public void markForBuild(boolean isImportant) {
 		final boolean neededRebuild = needsRebuild;
 		needsRebuild = true;
 		needsImportantRebuild = isImportant | (neededRebuild && needsImportantRebuild);
 	}
 
-	public void cancelRebuild() {
+	public void markBuilt() {
 		needsRebuild = false;
 		needsImportantRebuild = false;
 	}
@@ -181,7 +185,7 @@ public class BuiltRenderRegion {
 	public boolean enqueueSort() {
 		final RegionData regionData = buildData.get();
 
-		if (regionData.translucentState != null) {
+		if (regionData.translucentState == null) {
 			return false;
 		} else {
 			if (buildState.protoRegion.compareAndSet(ProtoRenderRegion.IDLE,  ProtoRenderRegion.RESORT_ONLY)) {
@@ -217,7 +221,7 @@ public class BuiltRenderRegion {
 
 		// check loaded neighbors and camera distance, abort rebuild and restore needsRebuild if out of view/not ready
 		if (!shouldBuild()) {
-			scheduleRebuild(false);
+			markForBuild(false);
 			region.release();
 			return;
 		}
@@ -229,27 +233,29 @@ public class BuiltRenderRegion {
 			if (state != null) {
 				final Vec3d cameraPos = renderRegionBuilder.getCameraPosition();
 				final VertexCollectorList collectors = context.collectors;
-				final VertexCollectorImpl collector = collectors.get(MaterialContext.TERRAIN, RenderLayer.getTranslucent());
+				final MaterialState translucentState = MaterialState.get(MaterialContext.TERRAIN, RenderLayer.getTranslucent());
+				final VertexCollectorImpl collector = collectors.get(translucentState);
 
 				collector.loadState(state);
 				collector.sortQuads((float)cameraPos.x - origin.getX(), (float)cameraPos.y - origin.getY(), (float)cameraPos.z - origin.getZ());
 				regionData.translucentState = collector.saveState(state);
-				collector.end();
 
 				if(runningState.protoRegion.get() != ProtoRenderRegion.INVALID) {
-					final UploadableChunk<Translucent> upload = collectors.packUploadTranslucent();
+					final UploadableChunk<Translucent> upload = collectors.packUploadTranslucent(translucentState);
 
-					renderRegionBuilder.scheduleUpload(() -> {
-						if (ChunkRebuildCounters.ENABLED) {
-							ChunkRebuildCounters.startUpload();
-						}
+					if (upload != null) {
+						renderRegionBuilder.scheduleUpload(() -> {
+							if (ChunkRebuildCounters.ENABLED) {
+								ChunkRebuildCounters.startUpload();
+							}
 
-						translucentDrawable = upload.produceDrawable();
+							translucentDrawable = upload.produceDrawable();
 
-						if (ChunkRebuildCounters.ENABLED) {
-							ChunkRebuildCounters.completeUpload();
-						}
-					});
+							if (ChunkRebuildCounters.ENABLED) {
+								ChunkRebuildCounters.completeUpload();
+							}
+						});
+					}
 				}
 
 				collectors.clear();
@@ -271,7 +277,7 @@ public class BuiltRenderRegion {
 
 			if(runningState.protoRegion.get() != ProtoRenderRegion.INVALID) {
 				final UploadableChunk<Solid> solidUpload = collectors.packUploadSolid();
-				final UploadableChunk<Translucent> translucentUpload = collectors.packUploadTranslucent();
+				final UploadableChunk<Translucent> translucentUpload = collectors.packUploadTranslucent(MaterialState.get(MaterialContext.TERRAIN, RenderLayer.getTranslucent()));
 
 				if (solidUpload != null || translucentUpload != null) {
 					renderRegionBuilder.scheduleUpload(() -> {
@@ -425,7 +431,7 @@ public class BuiltRenderRegion {
 
 		final VertexCollectorList collectors = context.collectors;
 		final UploadableChunk<Solid> solidUpload = collectors.packUploadSolid();
-		final UploadableChunk<Translucent> translucentUpload = collectors.packUploadTranslucent();
+		final UploadableChunk<Translucent> translucentUpload = collectors.packUploadTranslucent(MaterialState.get(MaterialContext.TERRAIN, RenderLayer.getTranslucent()));
 		solidDrawable = solidUpload == null ? null : solidUpload.produceDrawable();
 		translucentDrawable = translucentUpload == null ? null : translucentUpload.produceDrawable();
 

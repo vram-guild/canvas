@@ -7,7 +7,6 @@ import it.unimi.dsi.fastutil.Swapper;
 import it.unimi.dsi.fastutil.ints.IntComparator;
 
 import net.minecraft.client.render.VertexConsumer;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 
 import net.fabricmc.fabric.impl.client.indigo.renderer.helper.NormalHelper;
@@ -194,7 +193,6 @@ public class VertexCollectorImpl implements VertexCollector {
 		IntStreamImpl data;
 		int quadIntStride;
 
-		@SuppressWarnings("serial")
 		private final IntComparator comparator = new IntComparator() {
 			@Override
 			public int compare(int a, int b) {
@@ -228,7 +226,7 @@ public class VertexCollectorImpl implements VertexCollector {
 			}
 
 			if (quadSwap.length < quadIntStride) {
-				quadSwap = new int[quadIntStride];
+				quadSwap = new int[MathHelper.smallestEncompassingPowerOfTwo(quadIntStride)];
 			}
 
 			for (int j = 0; j < quadCount; ++j) {
@@ -264,23 +262,6 @@ public class VertexCollectorImpl implements VertexCollector {
 	public final void add(int[] appendData, int length) {
 		data.copyFrom(integerSize, appendData, 0, length);
 		integerSize += length;
-	}
-
-	public final void pos(final BlockPos pos, float modelX, float modelY, float modelZ) {
-		add((float)(pos.getX() - parent.renderOriginX + modelX));
-		add((float)(pos.getY() - parent.renderOriginY + modelY));
-		add((float)(pos.getZ() - parent.renderOriginZ + modelZ));
-	}
-
-	/** for items */
-	public final void pos(float modelX, float modelY, float modelZ) {
-		add((modelX));
-		add((modelY));
-		add((modelZ));
-	}
-
-	public void end() {
-		// NOOP
 	}
 
 	@Override
