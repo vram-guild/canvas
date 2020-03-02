@@ -19,28 +19,30 @@ package grondag.canvas.buffer.allocation;
 import java.nio.ByteBuffer;
 import java.util.function.Consumer;
 
-import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL21;
+import org.lwjgl.system.MemoryUtil;
 
-public class VboBuffer extends UploadableBuffer implements AllocationProvider {
+public class VboBuffer extends UploadableBuffer implements AllocationProvider, AutoCloseable {
 	ByteBuffer uploadBuffer;
 
 	int byteOffset = 0;
 
 	public VboBuffer(int bytes) {
 		// TODO: get rid of BufferAllocator if it won't be faster
-		uploadBuffer = BufferUtils.createByteBuffer(bytes); //BufferAllocator.claim(bytes);
+		uploadBuffer = MemoryUtil.memAlloc(bytes); //BufferUtils.createByteBuffer(bytes); //BufferAllocator.claim(bytes);
 	}
 
 	@Override
 	public void upload() {
 		final ByteBuffer uploadBuffer = this.uploadBuffer;
+
 		if(uploadBuffer != null) {
 			bind();
 			uploadBuffer.rewind();
 			GL21.glBufferData(GL21.GL_ARRAY_BUFFER, uploadBuffer, GL21.GL_STATIC_DRAW);
 			unbind();
-			BufferAllocator.release(uploadBuffer);
+			MemoryUtil.memFree(uploadBuffer);
+			//BufferAllocator.release(uploadBuffer);
 			this.uploadBuffer = null;
 		}
 	}
@@ -48,8 +50,10 @@ public class VboBuffer extends UploadableBuffer implements AllocationProvider {
 	@Override
 	protected void onDispose() {
 		final ByteBuffer uploadBuffer = this.uploadBuffer;
+
 		if(uploadBuffer != null) {
-			BufferAllocator.release(uploadBuffer);
+			MemoryUtil.memFree(uploadBuffer);
+			//BufferUtils.BufferAllocator.release(uploadBuffer);
 			this.uploadBuffer = null;
 		}
 	}
@@ -68,5 +72,10 @@ public class VboBuffer extends UploadableBuffer implements AllocationProvider {
 	@Override
 	public boolean isVbo() {
 		return true;
+	}
+
+	@Override
+	public void close() {
+		onDispose();
 	}
 }

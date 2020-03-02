@@ -30,6 +30,7 @@ public abstract class ChunkRebuildCounters {
 	public static void reset() {
 		buildCounter.clearStats();
 		copyCounter.clearStats();
+		uploadCounter.clearStats();
 	}
 
 	private static final ThreadLocal<Long> chunkStart = ThreadLocal.withInitial(() -> 0L);
@@ -43,18 +44,17 @@ public abstract class ChunkRebuildCounters {
 		final int chunkCount = buildCounter.addCount(1);
 
 		if(chunkCount == 2000) {
-			CanvasMod.LOG.info(String.format("Rebuild elapsed time per region for last 2000 chunks = %,dns", buildCounter.runTime() / 2000));
+			CanvasMod.LOG.info(String.format("Rebuild elapsed time per region for last 2000 chunks = %,dns  total time: %fs", buildCounter.runTime() / 2000, buildCounter.runTime() / 1000000000d));
 
 			final int copyCount = copyCounter.runCount();
-			CanvasMod.LOG.info(String.format("World copy time per chunk for last %d regions = %,dns", copyCount, copyCount == 0 ? 0 : copyCounter.runTime() / copyCount));
+			CanvasMod.LOG.info(String.format("World copy time per chunk for last %d regions = %,dns  total time: %fs", copyCount, copyCount == 0 ? 0 : copyCounter.runTime() / copyCount, copyCounter.runTime() / 1000000000d));
 
 			final int uploadCount = uploadCounter.runCount();
-			CanvasMod.LOG.info(String.format("Upload time per region for last %d regions = %,dns", uploadCount, uploadCount == 0 ? 0 : uploadCounter.runTime() / uploadCount));
+			CanvasMod.LOG.info(String.format("Upload time per region for last %d regions = %,dns  total time: %fs", uploadCount, uploadCount == 0 ? 0 : uploadCounter.runTime() / uploadCount, uploadCounter.runTime() / 1000000000d));
 			reset();
 
 			CanvasMod.LOG.info("");
 		}
-
 	}
 
 	private static final ThreadLocal<Long> copyStart = ThreadLocal.withInitial(() -> 0L);
