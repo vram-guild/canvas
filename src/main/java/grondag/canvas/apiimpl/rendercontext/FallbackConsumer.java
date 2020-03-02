@@ -30,7 +30,6 @@ import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.apiimpl.RenderMaterialImpl.Value;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
-import grondag.canvas.apiimpl.util.GeometryHelper;
 import grondag.canvas.apiimpl.util.MeshEncodingHelper;
 import grondag.canvas.material.MaterialState;
 
@@ -122,34 +121,23 @@ public class FallbackConsumer implements Consumer<BakedModel> {
 	}
 
 	private void renderQuad(BakedQuad quad, int cullFaceId, Value defaultMaterial) {
-		final int[] vertexData = quad.getVertexData();
-
 		final MutableQuadViewImpl editorQuad = this.editorQuad;
-		System.arraycopy(vertexData, 0, editorBuffer, MeshEncodingHelper.HEADER_STRIDE, MeshEncodingHelper.BASE_QUAD_STRIDE);
-		editorQuad.cullFace(cullFaceId);
-		final int lightFaceId = quad.getFace().ordinal();
-		editorQuad.lightFace(lightFaceId);
-		editorQuad.nominalFace(lightFaceId);
-		editorQuad.colorIndex(quad.getColorIndex());
-		editorQuad.material(defaultMaterial);
-		editorQuad.tag(0);
-		editorQuad.invalidateShape();
+		final int[] editorBuffer = this.editorBuffer;
+
+		editorQuad.setupVanillaFace(cullFaceId, quad.getFace().ordinal());
+
+		editorBuffer[MeshEncodingHelper.HEADER_COLOR_INDEX] = quad.getColorIndex();
+		editorBuffer[MeshEncodingHelper.HEADER_MATERIAL] = defaultMaterial.index();
+		editorBuffer[MeshEncodingHelper.HEADER_TAG] = 0;
+
+		System.arraycopy(quad.getVertexData(), 0, editorBuffer, MeshEncodingHelper.HEADER_STRIDE, MeshEncodingHelper.BASE_QUAD_STRIDE);
 
 		if (!context.transform(editorQuad)) {
 			return;
 		}
 
-		if (editorQuad.material().disableAo(0)) {
-			// vanilla compatibility hack
-			// For flat lighting, cull face drives everything and light face is ignored.
-			if (cullFaceId == ModelHelper.NULL_FACE_ID) {
-				// Can't rely on lazy computation in tesselate because needs to happen before offsets are applied
-				editorQuad.geometryFlags();
-			} else {
-				editorQuad.geometryFlags(GeometryHelper.LIGHT_FACE_FLAG | GeometryHelper.AXIS_ALIGNED_FLAG);
-				editorQuad.lightFace(cullFaceId);
-			}
-		}
+		// Can't rely on lazy computation in tesselate because needs to happen before offsets are applied
+		editorQuad.geometryFlags();
 
 		MaterialState.get(context.materialContext(), editorQuad).encoder.encodeQuad(editorQuad, context);
 	}

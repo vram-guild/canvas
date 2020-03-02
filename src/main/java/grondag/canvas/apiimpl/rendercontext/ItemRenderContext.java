@@ -31,7 +31,6 @@ import net.minecraft.client.render.item.ItemRenderer;
 import net.minecraft.client.render.model.BakedModel;
 import net.minecraft.client.render.model.json.ModelTransformation;
 import net.minecraft.client.render.model.json.ModelTransformation.Mode;
-import net.minecraft.client.util.math.Matrix4f;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.Direction;
@@ -162,21 +161,6 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 	@Override
 	public BlockState blockState() {
 		return null;
-	}
-
-	@Override
-	public int overlay() {
-		return overlay;
-	}
-
-	@Override
-	public Matrix4f matrix() {
-		return matrix;
-	}
-
-	@Override
-	public Matrix3fExt normalMatrix() {
-		return normalMatrix;
 	}
 
 	@Override

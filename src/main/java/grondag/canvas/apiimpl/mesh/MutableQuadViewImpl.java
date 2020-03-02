@@ -240,4 +240,15 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 		TextureHelper.bakeSprite(this, spriteIndex, sprite, bakeFlags);
 		return this;
 	}
+
+	/** avoids call overhead in fallback consumer */
+	public void setupVanillaFace(int cullFaceId, int lightFaceId) {
+		final int bits = MeshEncodingHelper.cullFace(data[baseIndex + HEADER_BITS], cullFaceId);
+		data[baseIndex + HEADER_BITS] = MeshEncodingHelper.lightFace(bits, lightFaceId);
+
+		nominalFaceId = lightFaceId;
+		isFaceNormalInvalid = true;
+		isGeometryInvalid = true;
+		packedFaceNormal = -1;
+	}
 }

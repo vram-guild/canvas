@@ -29,6 +29,7 @@ public class VanillaTerrainEncoder extends VanillaBlockEncoder {
 		}
 
 		int k = 0;
+
 		for (int i = 0; i < 4; i++) {
 			transformVector.set(quad.x(i), quad.y(i), quad.z(i), 1.0F);
 			transformVector.transform(matrix);

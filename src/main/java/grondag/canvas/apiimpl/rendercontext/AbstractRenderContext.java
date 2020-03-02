@@ -129,12 +129,6 @@ public abstract class AbstractRenderContext implements RenderContext {
 
 	public abstract MaterialContext materialContext();
 
-	public abstract Matrix4f matrix();
-
-	public abstract Matrix3fExt normalMatrix();
-
-	public abstract int overlay();
-
 	public abstract VertexConsumer consumer(MutableQuadViewImpl quad);
 
 	public abstract int indexedColor(int colorIndex);
@@ -150,4 +144,17 @@ public abstract class AbstractRenderContext implements RenderContext {
 	public abstract @Nullable AoCalculator aoCalc();
 
 	public abstract int flatBrightness(MutableQuadViewImpl quad);
+
+	public final int overlay() {
+		return overlay;
+	}
+
+	public final Matrix4f matrix() {
+		return matrix;
+	}
+
+	public final Matrix3fExt normalMatrix() {
+		return normalMatrix;
+	}
+
 }

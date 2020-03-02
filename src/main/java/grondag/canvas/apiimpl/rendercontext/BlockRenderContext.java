@@ -18,22 +18,18 @@ package grondag.canvas.apiimpl.rendercontext;
 
 import static grondag.canvas.chunk.RenderRegionAddressHelper.cacheIndexToXyz5;
 
-import java.util.Random;
-
 import net.minecraft.block.BlockState;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.client.render.block.BlockModelRenderer;
 import net.minecraft.client.render.model.BakedModel;
-import net.minecraft.client.util.math.Matrix4f;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.BlockRenderView;
 
 import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
-import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.light.AoCalculator;
@@ -43,65 +39,61 @@ import grondag.canvas.mixinterface.Matrix3fExt;
 /**
  * Context for non-terrain block rendering.
  */
-public class BlockRenderContext extends AbstractRenderContext implements RenderContext {
+public class BlockRenderContext extends AbstractBlockRenderContext<BlockRenderView> {
 	public static ThreadLocal<BlockRenderContext> POOL = ThreadLocal.withInitial(BlockRenderContext::new);
 
 	public static void forceReload() {
 		POOL = ThreadLocal.withInitial(BlockRenderContext::new);
 	}
 
-	private final BlockPos.Mutable searchPos = new BlockPos.Mutable();
-	private final BlockRenderInfo blockInfo = new BlockRenderInfo();
-
 	private final AoCalculator aoCalc = new AoCalculator() {
 		@Override
 		protected float ao(int cacheIndex) {
-			final BlockRenderView blockView = blockInfo.blockView;
-			if (blockView == null) {
+			if (region == null) {
 				return 1f;
 			}
 
 			final int packedXyz5 = cacheIndexToXyz5(cacheIndex);
-			final BlockPos pos = blockInfo.blockPos;
+			final BlockPos pos = blockPos;
 			final int x = (packedXyz5 & 31) - 1 + pos.getX();
 			final int y = ((packedXyz5 >> 5) & 31) - 1+ pos.getY();
 			final int z = (packedXyz5 >> 10) - 1+ pos.getZ();
-			searchPos.set(x, y, z);
-			final BlockState state = blockView.getBlockState(searchPos);
-			return state.getLuminance() == 0 ? state.getAmbientOcclusionLightLevel(blockView, searchPos) : 1F;
+			internalSearchPos.set(x, y, z);
+			final BlockState state = region.getBlockState(internalSearchPos);
+			return state.getLuminance() == 0 ? state.getAmbientOcclusionLightLevel(region, internalSearchPos) : 1F;
 		}
 
 		@Override
 		protected int brightness(int cacheIndex) {
-			if (blockInfo.blockView == null) {
+			if (region == null) {
 				return 15 << 20 | 15 << 4;
 			}
 
 			final int packedXyz5 = cacheIndexToXyz5(cacheIndex);
-			final BlockPos pos = blockInfo.blockPos;
+			final BlockPos pos = blockPos;
 			final int x = (packedXyz5 & 31) - 1 + pos.getX();
 			final int y = ((packedXyz5 >> 5) & 31) - 1+ pos.getY();
 			final int z = (packedXyz5 >> 10) - 1+ pos.getZ();
-			searchPos.set(x, y, z);
-			return WorldRenderer.getLightmapCoordinates(blockInfo.blockView, blockInfo.blockView.getBlockState(searchPos), searchPos);
+			internalSearchPos.set(x, y, z);
+			return WorldRenderer.getLightmapCoordinates(region, region.getBlockState(internalSearchPos), internalSearchPos);
 		}
 
 		@Override
 		protected boolean isOpaque(int cacheIndex) {
-			final BlockRenderView blockView = blockInfo.blockView;
+			final BlockRenderView blockView = region;
 
 			if (blockView == null) {
 				return false;
 			}
 
 			final int packedXyz5 = cacheIndexToXyz5(cacheIndex);
-			final BlockPos pos = blockInfo.blockPos;
+			final BlockPos pos = blockPos;
 			final int x = (packedXyz5 & 31) - 1 + pos.getX();
 			final int y = ((packedXyz5 >> 5) & 31) - 1+ pos.getY();
 			final int z = (packedXyz5 >> 10) - 1+ pos.getZ();
-			searchPos.set(x, y, z);
-			final BlockState state = blockView.getBlockState(searchPos);
-			return state.isFullOpaque(blockView, searchPos);
+			internalSearchPos.set(x, y, z);
+			final BlockState state = blockView.getBlockState(internalSearchPos);
+			return state.isFullOpaque(blockView, internalSearchPos);
 		}
 	};
 
@@ -121,35 +113,14 @@ public class BlockRenderContext extends AbstractRenderContext implements RenderC
 		this.overlay = overlay;
 		didOutput = false;
 		aoCalc.prepare(0);
-		blockInfo.setBlockView(blockView);
-		blockInfo.prepareForBlock(state, pos, model.useAmbientOcclusion(), seed);
+		region = blockView;
+		prepareForBlock(state, pos, model.useAmbientOcclusion(), seed);
 
-		((FabricBakedModel) model).emitBlockQuads(blockView, state, pos, blockInfo.randomSupplier, this);
+		((FabricBakedModel) model).emitBlockQuads(blockView, state, pos, randomSupplier, this);
 
-		blockInfo.release();
 		bufferBuilder = null;
 
 		return didOutput;
-	}
-
-	@Override
-	public int overlay() {
-		return overlay;
-	}
-
-	@Override
-	public Matrix4f matrix() {
-		return matrix;
-	}
-
-	@Override
-	public Matrix3fExt normalMatrix() {
-		return normalMatrix;
-	}
-
-	@Override
-	protected boolean cullTest(Direction face) {
-		return blockInfo.shouldDrawFace(face);
 	}
 
 	@Override
@@ -158,28 +129,9 @@ public class BlockRenderContext extends AbstractRenderContext implements RenderC
 	}
 
 	@Override
-	protected Random random() {
-		return blockInfo.randomSupplier.get();
-	}
-
-	@Override
-	public boolean defaultAo() {
-		return blockInfo.defaultAo;
-	}
-
-	@Override
-	public BlockState blockState() {
-		return blockInfo.blockState;
-	}
-	@Override
 	public VertexConsumer consumer(MutableQuadViewImpl quad) {
-		final RenderLayer layer = blockInfo.effectiveRenderLayer(quad.material().blendMode(0));
+		final RenderLayer layer = effectiveRenderLayer(quad.material().blendMode(0));
 		return outputBuffer(layer);
-	}
-
-	@Override
-	public final int indexedColor(int colorIndex) {
-		return blockInfo.blockColor(colorIndex);
 	}
 
 	@Override
@@ -193,7 +145,12 @@ public class BlockRenderContext extends AbstractRenderContext implements RenderC
 	}
 
 	@Override
-	public int flatBrightness(MutableQuadViewImpl quad) {
-		return blockInfo.flatBrightness(quad);
+	public boolean cullTest(Direction face) {
+		return true;
+	}
+
+	@Override
+	protected int fastBrightness(BlockState blockState, BlockPos pos) {
+		return WorldRenderer.getLightmapCoordinates(region, blockState, pos);
 	}
 }

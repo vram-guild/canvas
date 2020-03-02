@@ -167,6 +167,10 @@ public class FastRenderRegion extends AbstractRenderRegion implements RenderAtta
 		return isInMainChunk(pos) ? renderData[interiorIndex(pos)] : null;
 	}
 
+	public int cachedBrightness(BlockPos pos) {
+		return cachedBrightness(blockIndex(pos.getX(), pos.getY(), pos.getZ()));
+	}
+
 	public int cachedBrightness(int cacheIndex) {
 		int result = lightCache[cacheIndex];
 

@@ -264,7 +264,6 @@ public class BuiltRenderRegion {
 			if (runningState.protoRegion.get() == ProtoRenderRegion.INVALID) {
 				collectors.clear();
 				region.release();
-				context.release();
 				return;
 			}
 
@@ -293,7 +292,6 @@ public class BuiltRenderRegion {
 
 			collectors.clear();
 			region.release();
-			context.release();
 		}
 	}
 
@@ -438,7 +436,6 @@ public class BuiltRenderRegion {
 		renderData.set(regionData);
 		collectors.clear();
 		region.release();
-		context.release();
 	}
 
 	public int getFrameIndex() {

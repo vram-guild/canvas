@@ -84,4 +84,6 @@ abstract class VanillaEncoder extends VertexEncoder {
 			}
 		}
 	}
+
+
 }

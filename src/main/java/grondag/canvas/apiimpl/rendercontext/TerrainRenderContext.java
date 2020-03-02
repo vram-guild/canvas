@@ -16,16 +16,14 @@
 
 package grondag.canvas.apiimpl.rendercontext;
 
-import java.util.Random;
-
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.model.BakedModel;
-import net.minecraft.client.util.math.Matrix4f;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.crash.CrashException;
 import net.minecraft.util.crash.CrashReport;
@@ -36,6 +34,7 @@ import net.minecraft.util.math.Direction;
 import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 
+import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.chunk.FastRenderRegion;
 import grondag.canvas.chunk.ProtoRenderRegion;
@@ -49,17 +48,17 @@ import grondag.canvas.mixinterface.Matrix3fExt;
  * Dispatches calls from models during chunk rebuild to the appropriate consumer,
  * and holds/manages all of the state needed by them.
  */
-public class TerrainRenderContext extends AbstractRenderContext implements RenderContext {
-	private final TerrainBlockRenderInfo blockInfo = new TerrainBlockRenderInfo();
-	public final FastRenderRegion region = new FastRenderRegion(this);
-
+public class TerrainRenderContext extends AbstractBlockRenderContext<FastRenderRegion> {
 	// Reused each build to prevent needless allocation
 	public final ObjectOpenHashSet<BlockEntity> nonCullBlockEntities = new ObjectOpenHashSet<>();
 	public final ObjectOpenHashSet<BlockEntity> addedBlockEntities = new ObjectOpenHashSet<>();
 	public final ObjectOpenHashSet<BlockEntity> removedBlockEntities = new ObjectOpenHashSet<>();
 
+	private int cullCompletionFlags;
+	private int cullResultFlags;
+
 	public TerrainRenderContext() {
-		blockInfo.setBlockView(region);
+		region = new FastRenderRegion(this);
 	}
 
 	private final AoCalculator aoCalc = new AoCalculator() {
@@ -79,19 +78,19 @@ public class TerrainRenderContext extends AbstractRenderContext implements Rende
 		}
 	};
 
-	/** for use by chunk builder - avoids another threadlocal */
-	public final BlockPos.Mutable searchPos = new BlockPos.Mutable();
-
 	public TerrainRenderContext prepareRegion(ProtoRenderRegion protoRegion) {
 		nonCullBlockEntities.clear();
 		addedBlockEntities.clear();
 		removedBlockEntities.clear();
 		region.prepare(protoRegion);
-		return this;
-	}
 
-	public void release() {
-		blockInfo.release();
+		// TODO: renable smooth lighting
+		if(Configurator.lightSmoothing) {
+			//            final long start = counter.startRun();
+			//LightSmoother.computeSmoothedBrightness(null, null, null); // chunkOrigin, blockView, blockView.brightnessCache);
+		}
+
+		return this;
 	}
 
 	/** Called from chunk renderer hook. */
@@ -101,8 +100,10 @@ public class TerrainRenderContext extends AbstractRenderContext implements Rende
 
 		try {
 			aoCalc.prepare(RenderRegionAddressHelper.interiorIndex(blockPos));
-			blockInfo.prepareForBlock(blockState, blockPos, model.useAmbientOcclusion(), -1);
-			((FabricBakedModel) model).emitBlockQuads(blockInfo.blockView, blockInfo.blockState, blockInfo.blockPos, blockInfo.randomSupplier, this);
+			prepareForBlock(blockState, blockPos, model.useAmbientOcclusion(), -1);
+			cullCompletionFlags = 0;
+			cullResultFlags = 0;
+			((FabricBakedModel) model).emitBlockQuads(region, blockState, blockPos, randomSupplier, this);
 		} catch (final Throwable var9) {
 			final CrashReport crashReport_1 = CrashReport.create(var9, "Tesselating block in world - Indigo Renderer");
 			final CrashReportSection crashReportElement_1 = crashReport_1.addElement("Block being tesselated");
@@ -112,54 +113,14 @@ public class TerrainRenderContext extends AbstractRenderContext implements Rende
 	}
 
 	@Override
-	protected boolean cullTest(Direction face) {
-		return blockInfo.shouldDrawFace(face);
-	}
-
-	@Override
 	public MaterialContext materialContext() {
 		return MaterialContext.TERRAIN;
 	}
 
 	@Override
-	public int overlay() {
-		return overlay;
-	}
-
-	@Override
-	public Matrix4f matrix() {
-		return matrix;
-	}
-
-	@Override
-	public Matrix3fExt normalMatrix() {
-		return normalMatrix;
-	}
-
-	@Override
-	protected Random random() {
-		return blockInfo.randomSupplier.get();
-	}
-
-	@Override
-	public boolean defaultAo() {
-		return blockInfo.defaultAo;
-	}
-
-	@Override
-	public BlockState blockState() {
-		return blockInfo.blockState;
-	}
-
-	@Override
 	public VertexConsumer consumer(MutableQuadViewImpl quad) {
-		final RenderLayer layer = blockInfo.effectiveRenderLayer(quad.material().blendMode(0));
+		final RenderLayer layer = effectiveRenderLayer(quad.material().blendMode(0));
 		return collectors.get(MaterialContext.TERRAIN, layer);
-	}
-
-	@Override
-	public final int indexedColor(int colorIndex) {
-		return blockInfo.blockColor(colorIndex);
 	}
 
 	@Override
@@ -173,7 +134,29 @@ public class TerrainRenderContext extends AbstractRenderContext implements Rende
 	}
 
 	@Override
-	public int flatBrightness(MutableQuadViewImpl quad) {
-		return blockInfo.flatBrightness(quad);
+	protected int fastBrightness(BlockState blockState, BlockPos pos) {
+		return region.cachedBrightness(pos);
+	}
+
+	@Override
+	public boolean cullTest(Direction face) {
+		if (face == null) {
+			return true;
+		}
+
+		final int mask = 1 << face.getId();
+
+		if ((cullCompletionFlags & mask) == 0) {
+			cullCompletionFlags |= mask;
+
+			if (Block.shouldDrawSide(blockState, region, blockPos, face)) {
+				cullResultFlags |= mask;
+				return true;
+			} else {
+				return false;
+			}
+		} else {
+			return (cullResultFlags & mask) != 0;
+		}
 	}
 }
