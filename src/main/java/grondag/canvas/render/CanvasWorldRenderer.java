@@ -94,9 +94,27 @@ public class CanvasWorldRenderer {
 	public Set<BuiltRenderRegion> chunksToRebuild = Sets.newLinkedHashSet();
 
 	// TODO: remove
-	@SuppressWarnings("unused")
-	private static final MicroTimer timer = new MicroTimer("outer", 200);
+	private static final MicroTimer outerTimer = new MicroTimer("outer", 200);
 	public static final MicroTimer innerTimer = new MicroTimer("inner", -1);
+	private int lastSolidCount;
+	private int lastTranlsucentCount;
+
+	public void stopOuterTimer() {
+		final long outerElapsed = outerTimer.elapsed();
+
+		if (outerTimer.stop()) {
+			System.out.println("Avg inner runs per frame = " + innerTimer.hits() / 100); // 100 because outer runs 2X per frame
+			System.out.println("Inner elapsed is " + 100 * innerTimer.elapsed() / outerElapsed + "% of outer");
+			System.out.println("Visible chunk count = " + completedChunkCount());
+			System.out.println("lastSolidCount = " + lastSolidCount + "   lastTranlsucentCount = " + lastTranlsucentCount);
+			innerTimer.reportAndClear();
+			System.out.println();
+		}
+	}
+	//outerTimer.start();
+	//stopOuterTimer();
+	//innerTimer.start();
+	//innerTimer.stop();
 
 	private final IntComparator comparator = new IntComparator() {
 		@Override
@@ -126,7 +144,6 @@ public class CanvasWorldRenderer {
 	private int[] searchDist = new int[69696];
 
 	private BuiltRenderRegion[] visibleChunks = new BuiltRenderRegion[69696];
-	//	private int[] visibleChunkInfo = new int[69696];
 	private int visibleChunkCount = 0;
 
 	private final WorldRendererExt wr;
@@ -403,7 +420,7 @@ public class CanvasWorldRenderer {
 		}
 	}
 
-	// TODO: remove
+	// TODO: remove and use values in built regions if possible
 	private static int squaredDistance(BlockPos chunkOrigin, BlockPos cameraBlockPos) {
 		final int dx = chunkOrigin.getX() + 8 - cameraBlockPos.getX();
 		final int dy = chunkOrigin.getY() + 8 - cameraBlockPos.getY();
@@ -455,6 +472,10 @@ public class CanvasWorldRenderer {
 	}
 
 	public void renderWorld(MatrixStack matrixStack, float f, long startTime, boolean bl, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f matrix4f) {
+		// TODO: remove
+		lastTranlsucentCount = 0;
+		lastSolidCount = 0;
+
 		final WorldRendererExt wr = this.wr;
 		final MinecraftClient mc = wr.canvas_mc();
 		updatePlayerLightmap(mc, f);
@@ -522,13 +543,7 @@ public class CanvasWorldRenderer {
 		final long updateBudget = wr.canvas_chunkUpdateSmoother().getTargetUsedTime(budget) * 3L / 2L;
 		final long clampedBudget = MathHelper.clamp(updateBudget, maxFpsLimit, 33333333L);
 
-		//		timer.start();
-		//innerTimer.start();
 		updateChunks(startTime + clampedBudget);
-		//innerTimer.stop();
-		//		if(timer.stop()) {
-		//CanvasWorldRenderer.innerTimer.reportAndClear();
-		//		}
 
 		profiler.swap("terrain");
 		renderTerrainLayer(false, matrixStack, d, e, g);
@@ -775,10 +790,20 @@ public class CanvasWorldRenderer {
 			mc.getProfiler().pop();
 		}
 
-		mc.getProfiler().push("filterempty");
-		mc.getProfiler().swap(() -> {
-			return "render_" + (isTranslucent ? "translucent" : "solid");
-		});
+		mc.getProfiler().push("render_" + (isTranslucent ? "translucent" : "solid"));
+
+		// PERF: things to try
+		// more culling
+		// backface culling
+		// single-draw solid layer via shaders
+		// render larger cubes - avoid matrix state changes
+		// shared buffers
+		// render leaves as solid at distance - omit interior faces
+		// optimize frustum tests - consider skipping far plane test
+		// retain vertex bindings when possible, use VAO
+		// don't render grass, cobwebs, flowers, etc. at longer ranges
+
+		outerTimer.start();
 
 		final int startIndex = isTranslucent ? visibleChunkCount - 1 : 0 ;
 		final int endIndex = isTranslucent ? -1 : visibleChunkCount;
@@ -800,12 +825,20 @@ public class CanvasWorldRenderer {
 				final int limit = delegates.size();
 
 				for(int i = 0; i < limit; i++) {
+					if (isTranslucent) {
+						++lastTranlsucentCount;
+					} else {
+						++lastSolidCount;
+					}
+
 					final DrawableDelegate d = delegates.get(i);
 					d.materialState().drawHandler.setup();
 					d.bind();
 					// TODO: confirm everything that used to happen below happens in bind above
 					vertexFormat.startDrawing(d.byteOffset());
+					innerTimer.start();
 					d.draw();
+					innerTimer.stop();
 				}
 
 				RenderSystem.popMatrix();
@@ -817,6 +850,9 @@ public class CanvasWorldRenderer {
 		RenderSystem.clearCurrentColor();
 		vertexFormat.endDrawing();
 		DrawHandler.teardown();
+
+		stopOuterTimer();
+
 		mc.getProfiler().pop();
 	}
 
@@ -868,7 +904,7 @@ public class CanvasWorldRenderer {
 	private static final Direction[] DIRECTIONS = Direction.values();
 
 	public int completedChunkCount() {
-		final int result = 0;
+		int result = 0;
 		final BuiltRenderRegion[] visibleChunks = this.visibleChunks;
 		final int limit = visibleChunkCount;
 
@@ -876,7 +912,7 @@ public class CanvasWorldRenderer {
 			final BuiltRenderRegion chunk = visibleChunks[i];
 
 			if (chunk.solidDrawable() != null || chunk.translucentDrawable() != null) {
-				++i;
+				++result;
 			}
 		}
 

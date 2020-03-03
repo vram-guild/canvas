@@ -604,3 +604,52 @@ baseline before new buffer / draw code
 [13:55:01] [Canvas Render Thread - 1/INFO]: Upload time per region for last 28046 regions = 146,241ns
 
 12-14 fps  allocated 62%
+
+
+
+inner = draw call alone outer = render_solid/translucent
+
+[08:15:55] [main/INFO]: Avg outer duration = 24,352,242 ns, total duration = 4,870, total runs = 200
+[08:15:55] [main/INFO]: Avg inner duration = 2,865 ns, total duration = 2,660, total runs = 928,397
+
+[08:16:00] [main/INFO]: Avg outer duration = 24,373,351 ns, total duration = 4,874, total runs = 200
+[08:16:00] [main/INFO]: Avg inner duration = 2,885 ns, total duration = 2,678, total runs = 928,242
+
+[08:16:06] [main/INFO]: Avg outer duration = 24,346,441 ns, total duration = 4,869, total runs = 200
+[08:16:06] [main/INFO]: Avg inner duration = 2,899 ns, total duration = 2,691, total runs = 928,200
+
+[08:16:12] [main/INFO]: Avg outer duration = 24,420,227 ns, total duration = 4,884, total runs = 200
+[08:16:12] [main/INFO]: Avg inner duration = 2,894 ns, total duration = 2,686, total runs = 928,268
+
+[08:16:17] [main/INFO]: Avg outer duration = 24,352,504 ns, total duration = 4,870, total runs = 200
+[08:16:17] [main/INFO]: Avg inner duration = 2,901 ns, total duration = 2,693, total runs = 928,300
+
+-----
+
+[06:49:09] [main/INFO]: Avg outer duration = 23,925,518 ns, total duration = 4,785, total runs = 200
+[06:49:09] [main/INFO]: [STDOUT]: Avg inner runs per frame = 8987
+[06:49:09] [main/INFO]: [STDOUT]: Inner elapsed is 55% of outer
+[06:49:09] [main/INFO]: [STDOUT]: Visible chunk count = 4526
+[06:49:09] [main/INFO]: [STDOUT]: lastSolidCount = 8110   lastTranlsucentCount = 877
+[06:49:09] [main/INFO]: Avg inner duration = 2,967 ns, total duration = 2,667, total runs = 898,700
+
+[06:49:14] [main/INFO]: Avg outer duration = 23,842,271 ns, total duration = 4,768, total runs = 200
+[06:49:14] [main/INFO]: [STDOUT]: Avg inner runs per frame = 8987
+[06:49:14] [main/INFO]: [STDOUT]: Inner elapsed is 55% of outer
+[06:49:14] [main/INFO]: [STDOUT]: Visible chunk count = 4526
+[06:49:14] [main/INFO]: [STDOUT]: lastSolidCount = 8110   lastTranlsucentCount = 877
+[06:49:14] [main/INFO]: Avg inner duration = 2,960 ns, total duration = 2,660, total runs = 898,700
+
+[06:49:19] [main/INFO]: Avg outer duration = 23,118,360 ns, total duration = 4,623, total runs = 200
+[06:49:19] [main/INFO]: [STDOUT]: Avg inner runs per frame = 8987
+[06:49:19] [main/INFO]: [STDOUT]: Inner elapsed is 55% of outer
+[06:49:19] [main/INFO]: [STDOUT]: Visible chunk count = 4526
+[06:49:19] [main/INFO]: [STDOUT]: lastSolidCount = 8110   lastTranlsucentCount = 877
+[06:49:19] [main/INFO]: Avg inner duration = 2,867 ns, total duration = 2,576, total runs = 898,700
+
+[06:49:25] [main/INFO]: Avg outer duration = 22,707,750 ns, total duration = 4,541, total runs = 200
+[06:49:25] [main/INFO]: [STDOUT]: Avg inner runs per frame = 8987
+[06:49:25] [main/INFO]: [STDOUT]: Inner elapsed is 55% of outer
+[06:49:25] [main/INFO]: [STDOUT]: Visible chunk count = 4526
+[06:49:25] [main/INFO]: [STDOUT]: lastSolidCount = 8110   lastTranlsucentCount = 877
+[06:49:25] [main/INFO]: Avg inner duration = 2,822 ns, total duration = 2,536, total runs = 898,700

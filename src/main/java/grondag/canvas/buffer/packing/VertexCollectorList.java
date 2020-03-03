@@ -35,7 +35,19 @@ public class VertexCollectorList {
 	}
 
 	public final boolean isEmpty() {
-		return usedCount == 0;
+		if (usedCount == 0) {
+			return true;
+		}
+
+		final int usedCount = this.usedCount;
+
+		for(int i = 0; i < usedCount; i++) {
+			if (allCollectors.get(i).integerSize() > 0) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	public final VertexCollectorImpl get(MaterialState materialState) {
@@ -75,7 +87,7 @@ public class VertexCollectorList {
 	 * Sorts pipelines by pipeline index numerical order.
 	 * DO NOT RETAIN A REFERENCE
 	 */
-	public final BufferPackingList packingListSolid() {
+	private final BufferPackingList packingListSolid() {
 		final BufferPackingList packing = packingList;
 		packing.clear();
 
@@ -111,11 +123,12 @@ public class VertexCollectorList {
 	 * Assumes only a single translucent material state - sorting is done externally
 	 * DO NOT RETAIN A REFERENCE
 	 */
-	public final BufferPackingList packingListTranslucent(MaterialState translucentState) {
+	private final BufferPackingList packingListTranslucent(MaterialState translucentState) {
 		final BufferPackingList packing = packingList;
 		packing.clear();
 
 		final VertexCollectorImpl vertexCollector = collectors[translucentState.index];
+
 		if  (vertexCollector != null && vertexCollector.vertexCount() > 0) {
 			packing.addPacking(translucentState, 0, vertexCollector.vertexCount());
 		}

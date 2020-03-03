@@ -54,6 +54,10 @@ public class VertexCollectorImpl implements VertexCollector {
 		data.reset();
 	}
 
+	public int integerSize() {
+		return integerSize;
+	}
+
 	public MaterialState materialState() {
 		return materialState;
 	}
@@ -149,13 +153,19 @@ public class VertexCollectorImpl implements VertexCollector {
 	}
 
 	public int[] saveState(int[] priorState) {
+		if (integerSize == 0) {
+			return null;
+		}
+
 		final int outputSize = integerSize + 1;
 		int[] result = priorState;
+
 		if (result == null || result.length != outputSize) {
 			result = new int[outputSize];
 		}
 
 		result[0] = materialState.index;
+
 		if (integerSize > 0) {
 			data.copyTo(0, result, 1, integerSize);
 		}
@@ -164,6 +174,11 @@ public class VertexCollectorImpl implements VertexCollector {
 	}
 
 	public VertexCollectorImpl loadState(int[] stateData) {
+		if (stateData == null) {
+			clear();
+			return this;
+		}
+
 		materialState = MaterialState.get(stateData[0]);
 		final int newSize = stateData.length - 1;
 		integerSize = 0;

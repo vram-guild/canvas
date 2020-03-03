@@ -35,6 +35,14 @@ public class MicroTimer {
 		this.sampleSize = sampleSize;
 	}
 
+	public int hits() {
+		return hits.get();
+	}
+
+	public long elapsed() {
+		return elapsed.get();
+	}
+
 	public void start() {
 		started.set(System.nanoTime());
 	}
