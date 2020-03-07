@@ -471,4 +471,8 @@ public class BuiltRenderRegion {
 	public Solid solidDrawable() {
 		return solidDrawable;
 	}
+
+	public int squaredCameraDistance() {
+		return squaredCameraDistance;
+	}
 }

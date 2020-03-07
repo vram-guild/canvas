@@ -89,6 +89,7 @@ public class CanvasWorldRenderer {
 	private int playerLightmap = 0;
 	private RenderRegionBuilder chunkBuilder;
 	private RenderRegionStorage renderRegionStorage;
+	private final TerrainOccluder occluder = new TerrainOccluder();
 
 	// TODO: redirect uses in MC WorldRenderer
 	public Set<BuiltRenderRegion> chunksToRebuild = Sets.newLinkedHashSet();
@@ -247,6 +248,9 @@ public class CanvasWorldRenderer {
 		if (!capturedFrustum && wr.canvas_checkNeedsTerrainUpdate(cameraPos, camera.getPitch(), camera.getYaw())) {
 			wr.canvas_setNeedsTerrainUpdate(false);
 			visibleChunkCount = 0;
+			// TODO: remove
+			occluder.occlude(-6.0f, 93.0f, -8.0f, -4.0f, 95f, -6.0f);
+
 			final IntArrayFIFOQueue searchQueue = this.searchQueue;
 			Entity.setRenderDistanceMultiplier(MathHelper.clamp(mc.options.viewDistance / 8.0D, 1.0D, 2.5D));
 			boolean chunkCullingEnabled = mc.chunkCullingEnabled;
@@ -335,10 +339,17 @@ public class CanvasWorldRenderer {
 						continue;
 					}
 
+					// don't visit if chunk is outside near distance and doesn't have all 4 neighbors loaded
 					if (!adjacentChunk.shouldBuild()) {
-						// don't visit if chunk is outside near distance and doesn't have all 4 neighbors loaded
 						continue;
 					}
+
+					final BlockPos pos =  adjacentChunk.getOrigin();
+
+					if (!occluder.isVisible(pos.getX(), pos.getY(), pos.getZ(), pos.getX() + 16, pos.getY() + 16, pos.getZ() + 16)) {
+						continue;
+					}
+
 
 					// backtrack faces for adjacent will those of current chunk plus the face from which we are visiting
 					// this is confusing, because it's actually the opposite of the backwards face because Mojang flips faces when checking
@@ -365,7 +376,7 @@ public class CanvasWorldRenderer {
 
 			if (builtChunk.needsRebuild() || oldChunksToRebuild.contains(builtChunk)) {
 				needsTerrainUpdate = true;
-				final boolean isNear = squaredDistance(builtChunk.getOrigin(), cameraBlockPos) < 768.0D;
+				final boolean isNear = builtChunk.squaredCameraDistance() < 768;
 
 				if (!builtChunk.needsImportantRebuild() && !isNear) {
 					chunksToRebuild.add(builtChunk);
@@ -408,25 +419,17 @@ public class CanvasWorldRenderer {
 					final int chunkInfo = encodeChunkInfo(regionIndex, null, 0);
 
 					searchList[searchIndex] = chunkInfo;
-					searchDist[searchIndex++] = squaredDistance(region.getOrigin(), cameraBlockPos);
+					searchDist[searchIndex++] = region.squaredCameraDistance();
 				}
 			}
 		}
 
+		// PERF: don't need two arrays/swapper here now that squared distance is available on the region
 		it.unimi.dsi.fastutil.Arrays.quickSort(0, searchIndex, comparator, swapper);
 
 		for(int i = 0; i < searchIndex; i++) {
 			searchQueue.enqueue(searchList[i]);
 		}
-	}
-
-	// TODO: remove and use values in built regions if possible
-	private static int squaredDistance(BlockPos chunkOrigin, BlockPos cameraBlockPos) {
-		final int dx = chunkOrigin.getX() + 8 - cameraBlockPos.getX();
-		final int dy = chunkOrigin.getY() + 8 - cameraBlockPos.getY();
-		final int dz = chunkOrigin.getZ() + 8 - cameraBlockPos.getZ();
-		return dx * dx + dy * dy + dz * dz;
-
 	}
 
 	private static Set<Direction> getOpenChunkFaces(World world, BlockPos blockPos) {
@@ -471,7 +474,7 @@ public class CanvasWorldRenderer {
 		playerLightmap = mc.getEntityRenderManager().getLight(mc.player, f);
 	}
 
-	public void renderWorld(MatrixStack matrixStack, float f, long startTime, boolean bl, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f matrix4f) {
+	public void renderWorld(MatrixStack matrixStack, float f, long startTime, boolean bl, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f projectionMatrix) {
 		// TODO: remove
 		lastTranlsucentCount = 0;
 		lastSolidCount = 0;
@@ -490,10 +493,17 @@ public class CanvasWorldRenderer {
 		profiler.swap("light_updates");
 		mc.world.getChunkManager().getLightingProvider().doLightUpdates(Integer.MAX_VALUE, true, true);
 		final Vec3d vec3d = camera.getPos();
-		final double d = vec3d.getX();
-		final double e = vec3d.getY();
-		final double g = vec3d.getZ();
-		final Matrix4f matrix4f2 = matrixStack.peek().getModel();
+		final double cameraX = vec3d.getX();
+		final double cameraY = vec3d.getY();
+		final double cameraZ = vec3d.getZ();
+		final Matrix4f modelMatrix = matrixStack.peek().getModel();
+
+		final Matrix4f mvpMatrix = projectionMatrix.copy();
+		mvpMatrix.multiply(modelMatrix);
+		mvpMatrix.multiply(Matrix4f.translate((float) -cameraX, (float) -cameraY, (float) -cameraZ));
+
+		occluder.prepareScene(mvpMatrix, (float) cameraX, (float) cameraY, (float) cameraZ);
+
 		profiler.swap("culling");
 
 		final Frustum capturedFrustum = wr.canvas_getCapturedFrustum();
@@ -504,17 +514,17 @@ public class CanvasWorldRenderer {
 			frustum2 = capturedFrustum;
 			wr.canvas_setCapturedFrustumPosition(frustum2);
 		} else {
-			frustum2 = new Frustum(matrix4f2, matrix4f);
-			frustum2.setPosition(d, e, g);
+			frustum2 = new Frustum(modelMatrix, projectionMatrix);
+			frustum2.setPosition(cameraX, cameraY, cameraZ);
 		}
 
-		wr.canvas_captureFrustumIfNeeded(matrix4f2, matrix4f, vec3d, hasCapturedFrustum, frustum2);
+		wr.canvas_captureFrustumIfNeeded(modelMatrix, projectionMatrix, vec3d, hasCapturedFrustum, frustum2);
 
 		profiler.swap("clear");
 		BackgroundRenderer.render(camera, f, mc.world, mc.options.viewDistance, gameRenderer.getSkyDarkness(f));
 		RenderSystem.clear(16640, MinecraftClient.IS_SYSTEM_MAC);
 		final float h = gameRenderer.getViewDistance();
-		final boolean bl3 = mc.world.dimension.isFogThick(MathHelper.floor(d), MathHelper.floor(e)) || mc.inGameHud.getBossBarHud().shouldThickenFog();
+		final boolean bl3 = mc.world.dimension.isFogThick(MathHelper.floor(cameraX), MathHelper.floor(cameraY)) || mc.inGameHud.getBossBarHud().shouldThickenFog();
 		if (mc.options.viewDistance >= 4) {
 			BackgroundRenderer.applyFog(camera, BackgroundRenderer.FogType.FOG_SKY, h, bl3);
 			profiler.swap("sky");
@@ -546,7 +556,7 @@ public class CanvasWorldRenderer {
 		updateChunks(startTime + clampedBudget);
 
 		profiler.swap("terrain");
-		renderTerrainLayer(false, matrixStack, d, e, g);
+		renderTerrainLayer(false, matrixStack, cameraX, cameraY, cameraZ);
 		DiffuseLighting.enableForLevel(matrixStack.peek().getModel());
 
 		profiler.swap("entities");
@@ -600,7 +610,7 @@ public class CanvasWorldRenderer {
 												final BlockEntity blockEntity2 = var56.next();
 												final BlockPos blockPos2 = blockEntity2.getPos();
 												matrixStack.push();
-												matrixStack.translate(blockPos2.getX() - d, blockPos2.getY() - e, blockPos2.getZ() - g);
+												matrixStack.translate(blockPos2.getX() - cameraX, blockPos2.getY() - cameraY, blockPos2.getZ() - cameraZ);
 												BlockEntityRenderDispatcher.INSTANCE.render(blockEntity2, f, matrixStack, immediate);
 												matrixStack.pop();
 											}
@@ -626,9 +636,9 @@ public class CanvasWorldRenderer {
 										while(var53.hasNext()) {
 											final Entry<SortedSet<BlockBreakingInfo>> entry = var53.next();
 											final BlockPos blockPos3 = BlockPos.fromLong(entry.getLongKey());
-											final double y = blockPos3.getX() - d;
-											final double z = blockPos3.getY() - e;
-											final double aa = blockPos3.getZ() - g;
+											final double y = blockPos3.getX() - cameraX;
+											final double z = blockPos3.getY() - cameraY;
+											final double aa = blockPos3.getZ() - cameraZ;
 
 											if (y * y + z * z + aa * aa <= 1024.0D) {
 												final SortedSet<BlockBreakingInfo> sortedSet2 = entry.getValue();
@@ -636,7 +646,7 @@ public class CanvasWorldRenderer {
 												if (sortedSet2 != null && !sortedSet2.isEmpty()) {
 													final int ab = sortedSet2.last().getStage();
 													matrixStack.push();
-													matrixStack.translate(blockPos3.getX() - d, blockPos3.getY() - e, blockPos3.getZ() - g);
+													matrixStack.translate(blockPos3.getX() - cameraX, blockPos3.getY() - cameraY, blockPos3.getZ() - cameraZ);
 													final VertexConsumer vertexConsumer2 = new TransformingVertexConsumer(bufferBuilders.getEffectVertexConsumers().getBuffer(ModelLoader.BLOCK_DESTRUCTION_RENDER_LAYERS.get(ab)), matrixStack.peek());
 													mc.getBlockRenderManager().renderDamage(world.getBlockState(blockPos3), blockPos3, world, matrixStack, vertexConsumer2);
 													matrixStack.pop();
@@ -654,13 +664,13 @@ public class CanvasWorldRenderer {
 
 											if (!blockState.isAir() && world.getWorldBorder().contains(blockPos4)) {
 												final VertexConsumer vertexConsumer3 = immediate.getBuffer(RenderLayer.getLines());
-												wr.canvas_drawBlockOutline(matrixStack, vertexConsumer3, camera.getFocusedEntity(), d, e, g, blockPos4, blockState);
+												wr.canvas_drawBlockOutline(matrixStack, vertexConsumer3, camera.getFocusedEntity(), cameraX, cameraY, cameraZ, blockPos4, blockState);
 											}
 										}
 
 										RenderSystem.pushMatrix();
 										RenderSystem.multMatrix(matrixStack.peek().getModel());
-										mc.debugRenderer.render(matrixStack, immediate, d, e, g);
+										mc.debugRenderer.render(matrixStack, immediate, cameraX, cameraY, cameraZ);
 										wr.canvas_renderWorldBorder(camera);
 										RenderSystem.popMatrix();
 										immediate.draw(TexturedRenderLayers.getEntityTranslucent());
@@ -674,7 +684,7 @@ public class CanvasWorldRenderer {
 										immediate.draw();
 
 										profiler.swap("translucent");
-										renderTerrainLayer(true, matrixStack, d, e, g);
+										renderTerrainLayer(true, matrixStack, cameraX, cameraY, cameraZ);
 
 										profiler.swap("particles");
 										mc.particleManager.renderParticles(matrixStack, immediate, lightmapTextureManager, camera, f);
@@ -685,12 +695,12 @@ public class CanvasWorldRenderer {
 
 										if (mc.options.getCloudRenderMode() != CloudRenderMode.OFF) {
 											profiler.swap("clouds");
-											((WorldRenderer) wr).renderClouds(matrixStack, f, d, e, g);
+											((WorldRenderer) wr).renderClouds(matrixStack, f, cameraX, cameraY, cameraZ);
 										}
 
 										RenderSystem.depthMask(false);
 										profiler.swap("weather");
-										wr.canvas_renderWeather(lightmapTextureManager, f, d, e, g);
+										wr.canvas_renderWeather(lightmapTextureManager, f, cameraX, cameraY, cameraZ);
 										RenderSystem.depthMask(true);
 										//this.renderChunkDebugInfo(camera);
 										RenderSystem.shadeModel(7424);
@@ -713,7 +723,7 @@ public class CanvasWorldRenderer {
 									final BlockPos blockPos = blockEntity.getPos();
 									VertexConsumerProvider vertexConsumerProvider3 = immediate;
 									matrixStack.push();
-									matrixStack.translate(blockPos.getX() - d, blockPos.getY() - e, blockPos.getZ() - g);
+									matrixStack.translate(blockPos.getX() - cameraX, blockPos.getY() - cameraY, blockPos.getZ() - cameraZ);
 									final SortedSet<BlockBreakingInfo> sortedSet = wr.canvas_blockBreakingProgressions().get(blockPos.asLong());
 
 									if (sortedSet != null && !sortedSet.isEmpty()) {
@@ -734,7 +744,7 @@ public class CanvasWorldRenderer {
 						}
 
 						entity = var39.next();
-					} while(!entityRenderDispatcher.shouldRender(entity, frustum2, d, e, g) && !entity.hasPassengerDeep(mc.player));
+					} while(!entityRenderDispatcher.shouldRender(entity, frustum2, cameraX, cameraY, cameraZ) && !entity.hasPassengerDeep(mc.player));
 				} while(entity == camera.getFocusedEntity() && !camera.isThirdPerson() && (!(camera.getFocusedEntity() instanceof LivingEntity) || !((LivingEntity)camera.getFocusedEntity()).isSleeping()));
 			} while(entity instanceof ClientPlayerEntity && camera.getFocusedEntity() != entity);
 
@@ -759,7 +769,7 @@ public class CanvasWorldRenderer {
 				vertexConsumerProvider2 = immediate;
 			}
 
-			wr.canvas_renderEntity(entity, d, e, g, f, matrixStack, (VertexConsumerProvider)vertexConsumerProvider2);
+			wr.canvas_renderEntity(entity, cameraX, cameraY, cameraZ, f, matrixStack, (VertexConsumerProvider)vertexConsumerProvider2);
 		}
 	}
 
