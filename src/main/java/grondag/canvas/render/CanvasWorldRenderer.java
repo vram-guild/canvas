@@ -261,53 +261,7 @@ public class CanvasWorldRenderer {
 
 			mc.getProfiler().push("iteration");
 
-
-			// selectivity estimates
-			//			[14:09:08] [main/INFO]: [STDOUT]: nullNeighbor 105
-			//			[14:09:08] [main/INFO]: [STDOUT]: visited 461014
-			//			[14:09:08] [main/INFO]: [STDOUT]: noThruVis 57950
-			//			[14:09:08] [main/INFO]: [STDOUT]: backtrack 283620
-			//			[14:09:08] [main/INFO]: [STDOUT]: outsideFrustum 23048
-			//			[14:09:08] [main/INFO]: [STDOUT]: notReady 2353
-
 			for(final BuiltRenderRegion builtChunk : chunkStorage.sortedRegions()) {
-				//final int chunkInfo = searchQueue.dequeueInt();
-				//final BuiltRenderRegion builtChunk = regions[decodeChunkIndex(chunkInfo)];
-				//visibleChunks[visibleChunkCount++] = builtChunk;
-
-
-				//				final Direction currentChunkEntryFace = decodeEntryFaceOrdinal(chunkInfo);
-				//				final int[] neighborIndices = builtChunk.getNeighborIndices();
-				//
-				//				for(final Direction face : DIRECTIONS) {
-				//					final int adjacentChunkIndex = neighborIndices[face.ordinal()];
-				//					// don't visit if adjacent chunk is null
-				//					if (adjacentChunkIndex == -1) {
-				//						continue;
-				//					}
-				//
-				//					final BuiltRenderRegion adjacentChunk = regions[adjacentChunkIndex];
-				//
-				//					// don't visit if already visited this frame
-				//					if (adjacentChunk.getFrameIndex() == frameCounter) {
-				//						continue;
-				//					}
-
-				// don't visit if chunk culling is enabled and face is backwards-pointing for current chunk
-				//					if (chunkCullingEnabled) {
-				//						// don't visit if chunk culling is enabled and not visible through our chunk
-				//						if (currentChunkEntryFace != null && !chunkData.isVisibleThrough(currentChunkEntryFace.getOpposite(), face)) {
-				//							continue;
-				//						}
-				//
-				//						if(isBacktrack(chunkInfo, face.getOpposite())) {
-				//							continue;
-				//						}
-				//					}
-
-				// all outcomes below here mark chunk as visited
-				//					builtChunk.setFrameIndex(frameCounter);
-
 				// don't visit if not in frustum
 				if(!frustum.isVisible(builtChunk.boundingBox)) {
 					continue;
@@ -323,15 +277,8 @@ public class CanvasWorldRenderer {
 				final int py = pos.getY();
 				final int pz = pos.getZ();
 
-				if (occluder.isVisible(px, py, pz, px + 16, py + 16, pz + 16)) {
+				if (!chunkCullingEnabled || occluder.isVisible(px, py, pz, px + 16, py + 16, pz + 16)) {
 					visibleChunks[visibleChunkCount++] = builtChunk;
-
-					//					final RegionData chunkData = builtChunk.getBuildData();
-					//
-					//					if(chunkData == RegionData.EMPTY) {
-					//						// all tests will fail if not loaded
-					//						continue;
-					//					}
 
 					final int[] visData =  builtChunk.getBuildData().getOcclusionData();
 
@@ -340,8 +287,7 @@ public class CanvasWorldRenderer {
 						occluder.occlude(px, py, pz, px + 16, py + 16, pz + 16);
 					} else if (RegionOcclusionData.isEmptyChunk(visData)) {
 						builtChunk.canRenderTerrain = false;
-						// NOOP
-					} else if (RegionOcclusionData.isVisibleFullChunk(visData) || occluder.isVisible(px + visData[X0], py + visData[Y0], pz + visData[Z0], px + visData[X1], py + visData[Y1], pz + visData[Z1])) {
+					} else if (RegionOcclusionData.isFullChunkVisible(visData) || occluder.isVisible(px + visData[X0], py + visData[Y0], pz + visData[Z0], px + visData[X1], py + visData[Y1], pz + visData[Z1])) {
 						builtChunk.canRenderTerrain = true;
 
 						if (RegionOcclusionData.sameAsVisible(visData)) {
@@ -353,14 +299,6 @@ public class CanvasWorldRenderer {
 				} else {
 					continue;
 				}
-
-				// backtrack faces for adjacent will those of current chunk plus the face from which we are visiting
-				// this is confusing, because it's actually the opposite of the backwards face because Mojang flips faces when checking
-				// FIX: this seems likely to be the source of over-optimistic occlusion bug seen earlier
-				//					final int adjacentChunkInfo = encodeChunkInfo(adjacentChunkIndex, face, decodeBacktrackFlags(chunkInfo));
-
-				//					searchQueue.enqueue(adjacentChunkInfo);
-
 			}
 
 			this.visibleChunkCount = visibleChunkCount;

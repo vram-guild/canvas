@@ -33,7 +33,7 @@ public abstract class RegionOcclusionData {
 		return SAME_AS_VISIBLE_FLAG.getValue(data[BITS]);
 	}
 
-	public static boolean isVisibleFullChunk(int[] data) {
+	public static boolean isFullChunkVisible(int[] data) {
 		return FULL_CHUNK_VISIBLE_FLAG.getValue(data[BITS]);
 	}
 
@@ -41,9 +41,10 @@ public abstract class RegionOcclusionData {
 		data[BITS] = SAME_AS_VISIBLE_FLAG.setValue(val, data[BITS]);
 	}
 
-	public static void isVisibleFullChunk(int[] data, boolean val) {
+	public static void isFullChunkVisible(int[] data, boolean val) {
 		data[BITS] = FULL_CHUNK_VISIBLE_FLAG.setValue(val, data[BITS]);
 	}
+
 	/**
 	 * Layout
 	 * 0-5: visible bounds

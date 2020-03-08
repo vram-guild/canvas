@@ -355,7 +355,7 @@ public abstract class OcclusionRegion {
 			result[Z1] = maxRenderableZ + 1;
 
 			if ((minRenderableX | minRenderableY | minRenderableZ) == 0 && (maxRenderableX & maxRenderableY & maxRenderableZ) == 15) {
-				RegionOcclusionData.isVisibleFullChunk(result, true);
+				RegionOcclusionData.isFullChunkVisible(result, true);
 
 				if(xPos && xNeg && yPos && yNeg && zPos && zNeg) {
 					RegionOcclusionData.sameAsVisible(result, true);
