@@ -8,8 +8,6 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.chunk.ChunkOcclusionData;
-import net.minecraft.util.math.Direction;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -21,23 +19,15 @@ import grondag.canvas.material.MaterialState;
 
 @Environment(EnvType.CLIENT)
 public class RegionData {
-	public static final RegionData EMPTY = new RegionData() {
-		@Override
-		public boolean isVisibleThrough(Direction direction, Direction direction2) {
-			return false;
-		}
-	};
+	public static final RegionData EMPTY = new RegionData();
 
 	final ObjectArrayList<BlockEntity> blockEntities = new ObjectArrayList<>();
-	ChunkOcclusionData occlusionGraph = new ChunkOcclusionData();
+	int[] occlusionData = null;
+
 	@Nullable int[] translucentState;
 
 	public List<BlockEntity> getBlockEntities() {
 		return blockEntities;
-	}
-
-	public boolean isVisibleThrough(Direction direction, Direction direction2) {
-		return occlusionGraph.isVisibleThrough(direction, direction2);
 	}
 
 	public void endBuffering(float x, float y, float z, VertexCollectorList buffers) {
@@ -50,7 +40,11 @@ public class RegionData {
 		}
 	}
 
-	public void setOcclusionGraph(ChunkOcclusionData occlusionGraph) {
-		this.occlusionGraph = occlusionGraph;
+	public int[] getOcclusionData() {
+		return occlusionData;
+	}
+
+	public void setOcclusionData(int[] occlusionData) {
+		this.occlusionData = occlusionData;
 	}
 }

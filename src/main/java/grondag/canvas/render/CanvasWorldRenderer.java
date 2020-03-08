@@ -1,10 +1,11 @@
 package grondag.canvas.render;
 
-import static grondag.canvas.chunk.ChunkInfoEncoder.decodeBacktrackFlags;
-import static grondag.canvas.chunk.ChunkInfoEncoder.decodeChunkIndex;
-import static grondag.canvas.chunk.ChunkInfoEncoder.decodeEntryFaceOrdinal;
-import static grondag.canvas.chunk.ChunkInfoEncoder.encodeChunkInfo;
-import static grondag.canvas.chunk.ChunkInfoEncoder.isBacktrack;
+import static grondag.canvas.chunk.RegionOcclusionData.X0;
+import static grondag.canvas.chunk.RegionOcclusionData.X1;
+import static grondag.canvas.chunk.RegionOcclusionData.Y0;
+import static grondag.canvas.chunk.RegionOcclusionData.Y1;
+import static grondag.canvas.chunk.RegionOcclusionData.Z0;
+import static grondag.canvas.chunk.RegionOcclusionData.Z1;
 
 import java.util.Iterator;
 import java.util.List;
@@ -15,9 +16,6 @@ import javax.annotation.Nullable;
 
 import com.google.common.collect.Sets;
 import com.mojang.blaze3d.systems.RenderSystem;
-import it.unimi.dsi.fastutil.Swapper;
-import it.unimi.dsi.fastutil.ints.IntArrayFIFOQueue;
-import it.unimi.dsi.fastutil.ints.IntComparator;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap.Entry;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
@@ -47,13 +45,11 @@ import net.minecraft.client.render.VertexConsumers;
 import net.minecraft.client.render.VertexFormat;
 import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.client.render.block.entity.BlockEntityRenderDispatcher;
-import net.minecraft.client.render.chunk.ChunkOcclusionDataBuilder;
 import net.minecraft.client.render.entity.EntityRenderDispatcher;
 import net.minecraft.client.render.model.ModelLoader;
 import net.minecraft.client.texture.SpriteAtlasTexture;
 import net.minecraft.client.util.math.Matrix4f;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.client.util.math.Vector3f;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
@@ -61,17 +57,14 @@ import net.minecraft.util.Util;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.profiler.Profiler;
-import net.minecraft.world.World;
-import net.minecraft.world.chunk.WorldChunk;
 
 import grondag.canvas.buffer.allocation.VboBuffer;
 import grondag.canvas.chunk.BuiltRenderRegion;
 import grondag.canvas.chunk.DrawableChunk;
-import grondag.canvas.chunk.RegionData;
+import grondag.canvas.chunk.RegionOcclusionData;
 import grondag.canvas.chunk.RenderRegionBuilder;
 import grondag.canvas.chunk.RenderRegionStorage;
 import grondag.canvas.chunk.draw.DrawableDelegate;
@@ -117,32 +110,12 @@ public class CanvasWorldRenderer {
 	//innerTimer.start();
 	//innerTimer.stop();
 
-	private final IntComparator comparator = new IntComparator() {
-		@Override
-		public int compare(int a, int b) {
-			final int[] searchDist = CanvasWorldRenderer.this.searchDist;
-			return Integer.compare(searchDist[a], searchDist[b]);
-		}
-	};
 
-	private final Swapper swapper = new Swapper() {
-		@Override
-		public void swap(int a, int b) {
-			final int[] searchDist = CanvasWorldRenderer.this.searchDist;
-			final int[] searchInfo = CanvasWorldRenderer.this.searchInfo;
-			final int distSwap = searchDist[a];
-			searchDist[a] = searchDist[b];
-			searchDist[b] = distSwap;
 
-			final int infoSwap = searchInfo[a];
-			searchInfo[a] = searchInfo[b];
-			searchInfo[b] = infoSwap;
-		}
-	};
 
-	private final IntArrayFIFOQueue searchQueue = new IntArrayFIFOQueue();
-	private int[] searchInfo = new int[69696];
-	private int[] searchDist = new int[69696];
+	//private final IntArrayFIFOQueue searchQueue = new IntArrayFIFOQueue();
+	//	private int[] searchInfo = new int[69696];
+	//	private int[] searchDist = new int[69696];
 
 	private BuiltRenderRegion[] visibleChunks = new BuiltRenderRegion[69696];
 	private int visibleChunkCount = 0;
@@ -205,11 +178,11 @@ public class CanvasWorldRenderer {
 	}
 
 	private void resizeArraysIfNeeded(int size) {
-		final int current = searchInfo.length;
+		final int current = visibleChunks.length;
 
 		if (current < size) {
-			searchInfo = new int[size];
-			searchDist = new int[size];
+			//			searchInfo = new int[size];
+			//			searchDist = new int[size];
 			visibleChunks = new BuiltRenderRegion[size];
 			visibleChunkCount = 0;
 		}
@@ -237,48 +210,54 @@ public class CanvasWorldRenderer {
 
 		world.getProfiler().swap("cull");
 		mc.getProfiler().swap("culling");
-		final BlockPos cameraBlockPos = camera.getBlockPos();
+		//final BlockPos cameraBlockPos = camera.getBlockPos();
 
-		final int cameraChunkIndex = chunkStorage.getRegionIndexSafely(cameraBlockPos);
-		final BuiltRenderRegion cameraChunk = cameraChunkIndex == -1 ? null : regions[cameraChunkIndex];
+
+
+		//		final int cameraChunkIndex = chunkStorage.getRegionIndexSafely(cameraBlockPos);
+		//		final BuiltRenderRegion cameraChunk = cameraChunkIndex == -1 ? null : regions[cameraChunkIndex];
 
 		mc.getProfiler().swap("update");
 		int visibleChunkCount = this.visibleChunkCount;
-
-		if (!capturedFrustum && wr.canvas_checkNeedsTerrainUpdate(cameraPos, camera.getPitch(), camera.getYaw())) {
+		// TODO: remove force to true
+		if (!capturedFrustum && wr.canvas_checkNeedsTerrainUpdate(cameraPos, camera.getPitch(), camera.getYaw()) || true) {
 			wr.canvas_setNeedsTerrainUpdate(false);
 			visibleChunkCount = 0;
 			// TODO: remove
-			occluder.occlude(-6.0f, 93.0f, -8.0f, -4.0f, 95f, -6.0f);
+			//occluder.occlude(-6.0f, 93.0f, -8.0f, -4.0f, 95f, -6.0f);
 
-			final IntArrayFIFOQueue searchQueue = this.searchQueue;
+			//			final IntArrayFIFOQueue searchQueue = this.searchQueue;
 			Entity.setRenderDistanceMultiplier(MathHelper.clamp(mc.options.viewDistance / 8.0D, 1.0D, 2.5D));
-			boolean chunkCullingEnabled = mc.chunkCullingEnabled;
+			final boolean chunkCullingEnabled = mc.chunkCullingEnabled;
 
-			if (cameraChunk != null) {
-				// start from camera chunk if camera is in the world
-				final Set<Direction> set = getOpenChunkFaces(world, cameraBlockPos);
-
-				if (set.size() == 1) {
-					final Vector3f vector3f = camera.getHorizontalPlane();
-					final Direction direction = Direction.getFacing(vector3f.getX(), vector3f.getY(), vector3f.getZ()).getOpposite();
-					set.remove(direction);
-				}
-
-				if (set.isEmpty() && !isSpectator) {
-					visibleChunks[visibleChunkCount++] = cameraChunk;
-				} else {
-					if (isSpectator && world.getBlockState(cameraBlockPos).isFullOpaque(world, cameraBlockPos)) {
-						chunkCullingEnabled = false;
-					}
-
-					cameraChunk.setFrameIndex(frameCounter);
-					searchQueue.enqueue(encodeChunkInfo(cameraChunkIndex, null, 0));
-				}
-			} else {
-				// start from top or bottom of world if camera is outside of world
-				startSearchFromOutsideWorld(cameraBlockPos, cameraPos, renderDistance, frustum, frameCounter);
-			}
+			//			if (cameraChunk != null) {
+			//				cameraChunk.canRender =  true;
+			//
+			//				// TODO: render to occluder
+			//
+			//				// start from camera chunk if camera is in the world
+			//				final Set<Direction> set = getOpenChunkFaces(world, cameraBlockPos);
+			//
+			//				if (set.size() == 1) {
+			//					final Vector3f vector3f = camera.getHorizontalPlane();
+			//					final Direction direction = Direction.getFacing(vector3f.getX(), vector3f.getY(), vector3f.getZ()).getOpposite();
+			//					set.remove(direction);
+			//				}
+			//
+			//				if (set.isEmpty() && !isSpectator) {
+			//					visibleChunks[visibleChunkCount++] = cameraChunk;
+			//				} else {
+			//					if (isSpectator && world.getBlockState(cameraBlockPos).isFullOpaque(world, cameraBlockPos)) {
+			//						chunkCullingEnabled = false;
+			//					}
+			//
+			//					cameraChunk.setFrameIndex(frameCounter);
+			//					searchQueue.enqueue(encodeChunkInfo(cameraChunkIndex, null, 0));
+			//				}
+			//			} else {
+			//				// start from top or bottom of world if camera is outside of world
+			//				startSearchFromOutsideWorld(cameraBlockPos, cameraPos, renderDistance, frustum, frameCounter);
+			//			}
 
 			mc.getProfiler().push("iteration");
 
@@ -291,73 +270,97 @@ public class CanvasWorldRenderer {
 			//			[14:09:08] [main/INFO]: [STDOUT]: outsideFrustum 23048
 			//			[14:09:08] [main/INFO]: [STDOUT]: notReady 2353
 
-			while(!searchQueue.isEmpty()) {
-				final int chunkInfo = searchQueue.dequeueInt();
-				final BuiltRenderRegion builtChunk = regions[decodeChunkIndex(chunkInfo)];
-				visibleChunks[visibleChunkCount++] = builtChunk;
-				final RegionData chunkData = builtChunk.getBuildData();
+			for(final BuiltRenderRegion builtChunk : chunkStorage.sortedRegions()) {
+				//final int chunkInfo = searchQueue.dequeueInt();
+				//final BuiltRenderRegion builtChunk = regions[decodeChunkIndex(chunkInfo)];
+				//visibleChunks[visibleChunkCount++] = builtChunk;
 
-				if(chunkData == RegionData.EMPTY) {
-					// all tests will fail if not loaded
+
+				//				final Direction currentChunkEntryFace = decodeEntryFaceOrdinal(chunkInfo);
+				//				final int[] neighborIndices = builtChunk.getNeighborIndices();
+				//
+				//				for(final Direction face : DIRECTIONS) {
+				//					final int adjacentChunkIndex = neighborIndices[face.ordinal()];
+				//					// don't visit if adjacent chunk is null
+				//					if (adjacentChunkIndex == -1) {
+				//						continue;
+				//					}
+				//
+				//					final BuiltRenderRegion adjacentChunk = regions[adjacentChunkIndex];
+				//
+				//					// don't visit if already visited this frame
+				//					if (adjacentChunk.getFrameIndex() == frameCounter) {
+				//						continue;
+				//					}
+
+				// don't visit if chunk culling is enabled and face is backwards-pointing for current chunk
+				//					if (chunkCullingEnabled) {
+				//						// don't visit if chunk culling is enabled and not visible through our chunk
+				//						if (currentChunkEntryFace != null && !chunkData.isVisibleThrough(currentChunkEntryFace.getOpposite(), face)) {
+				//							continue;
+				//						}
+				//
+				//						if(isBacktrack(chunkInfo, face.getOpposite())) {
+				//							continue;
+				//						}
+				//					}
+
+				// all outcomes below here mark chunk as visited
+				//					builtChunk.setFrameIndex(frameCounter);
+
+				// don't visit if not in frustum
+				if(!frustum.isVisible(builtChunk.boundingBox)) {
 					continue;
 				}
 
-				final Direction currentChunkEntryFace = decodeEntryFaceOrdinal(chunkInfo);
-				final int[] neighborIndices = builtChunk.getNeighborIndices();
-
-				for(final Direction face : DIRECTIONS) {
-					final int adjacentChunkIndex = neighborIndices[face.ordinal()];
-					// don't visit if adjacent chunk is null
-					if (adjacentChunkIndex == -1) {
-						continue;
-					}
-
-					final BuiltRenderRegion adjacentChunk = regions[adjacentChunkIndex];
-
-					// don't visit if already visited this frame
-					if (adjacentChunk.getFrameIndex() == frameCounter) {
-						continue;
-					}
-
-					// don't visit if chunk culling is enabled and face is backwards-pointing for current chunk
-					if (chunkCullingEnabled) {
-						// don't visit if chunk culling is enabled and not visible through our chunk
-						if (currentChunkEntryFace != null && !chunkData.isVisibleThrough(currentChunkEntryFace.getOpposite(), face)) {
-							continue;
-						}
-
-						if(isBacktrack(chunkInfo, face.getOpposite())) {
-							continue;
-						}
-					}
-
-					// all outcomes below here mark chunk as visited
-					adjacentChunk.setFrameIndex(frameCounter);
-
-					// don't visit if not in frustum
-					if(!frustum.isVisible(adjacentChunk.boundingBox)) {
-						continue;
-					}
-
-					// don't visit if chunk is outside near distance and doesn't have all 4 neighbors loaded
-					if (!adjacentChunk.shouldBuild()) {
-						continue;
-					}
-
-					final BlockPos pos =  adjacentChunk.getOrigin();
-
-					if (!occluder.isVisible(pos.getX(), pos.getY(), pos.getZ(), pos.getX() + 16, pos.getY() + 16, pos.getZ() + 16)) {
-						continue;
-					}
-
-
-					// backtrack faces for adjacent will those of current chunk plus the face from which we are visiting
-					// this is confusing, because it's actually the opposite of the backwards face because Mojang flips faces when checking
-					// FIX: this seems likely to be the source of over-optimistic occlusion bug seen earlier
-					final int adjacentChunkInfo = encodeChunkInfo(adjacentChunkIndex, face, decodeBacktrackFlags(chunkInfo));
-
-					searchQueue.enqueue(adjacentChunkInfo);
+				// don't visit if chunk is outside near distance and doesn't have all 4 neighbors loaded
+				if (!builtChunk.shouldBuild()) {
+					continue;
 				}
+
+				final BlockPos pos =  builtChunk.getOrigin();
+				final int px = pos.getX();
+				final int py = pos.getY();
+				final int pz = pos.getZ();
+
+				if (occluder.isVisible(px, py, pz, px + 16, py + 16, pz + 16)) {
+					visibleChunks[visibleChunkCount++] = builtChunk;
+
+					//					final RegionData chunkData = builtChunk.getBuildData();
+					//
+					//					if(chunkData == RegionData.EMPTY) {
+					//						// all tests will fail if not loaded
+					//						continue;
+					//					}
+
+					final int[] visData =  builtChunk.getBuildData().getOcclusionData();
+
+					if (visData == null) {
+						builtChunk.canRenderTerrain = false;
+						occluder.occlude(px, py, pz, px + 16, py + 16, pz + 16);
+					} else if (RegionOcclusionData.isEmptyChunk(visData)) {
+						builtChunk.canRenderTerrain = false;
+						// NOOP
+					} else if (RegionOcclusionData.isVisibleFullChunk(visData) || occluder.isVisible(px + visData[X0], py + visData[Y0], pz + visData[Z0], px + visData[X1], py + visData[Y1], pz + visData[Z1])) {
+						builtChunk.canRenderTerrain = true;
+
+						if (RegionOcclusionData.sameAsVisible(visData)) {
+							occluder.occlude(px + visData[X0], py + visData[Y0], pz + visData[Z0], px + visData[X1], py + visData[Y1], pz + visData[Z1]);
+						}
+					} else {
+						builtChunk.canRenderTerrain = false;
+					}
+				} else {
+					continue;
+				}
+
+				// backtrack faces for adjacent will those of current chunk plus the face from which we are visiting
+				// this is confusing, because it's actually the opposite of the backwards face because Mojang flips faces when checking
+				// FIX: this seems likely to be the source of over-optimistic occlusion bug seen earlier
+				//					final int adjacentChunkInfo = encodeChunkInfo(adjacentChunkIndex, face, decodeBacktrackFlags(chunkInfo));
+
+				//					searchQueue.enqueue(adjacentChunkInfo);
+
 			}
 
 			this.visibleChunkCount = visibleChunkCount;
@@ -397,56 +400,56 @@ public class CanvasWorldRenderer {
 		mc.getProfiler().pop();
 	}
 
-	private final void startSearchFromOutsideWorld(BlockPos cameraBlockPos, Vec3d cameraPos, int renderDistance, Frustum frustum, int frameCounter) {
-		final RenderRegionStorage regionStorage = renderRegionStorage;
-		final BuiltRenderRegion[] regions = regionStorage.regions();
-		final int yLevel = cameraBlockPos.getY() > 0 ? 248 : 8;
-		final int xCenter = MathHelper.floor(cameraPos.x / 16.0D) * 16;
-		final int zCenter = MathHelper.floor(cameraPos.z / 16.0D) * 16;
-		final int[] searchList = searchInfo;
-		final int[] searchDist = this.searchDist;
+	//	private final void startSearchFromOutsideWorld(BlockPos cameraBlockPos, Vec3d cameraPos, int renderDistance, Frustum frustum, int frameCounter) {
+	//		final RenderRegionStorage regionStorage = renderRegionStorage;
+	//		final BuiltRenderRegion[] regions = regionStorage.regions();
+	//		final int yLevel = cameraBlockPos.getY() > 0 ? 248 : 8;
+	//		final int xCenter = MathHelper.floor(cameraPos.x / 16.0D) * 16;
+	//		final int zCenter = MathHelper.floor(cameraPos.z / 16.0D) * 16;
+	//		final int[] searchList = searchInfo;
+	//		final int[] searchDist = this.searchDist;
+	//
+	//		int searchIndex = 0;
+	//
+	//		for(int zOffset = -renderDistance; zOffset <= renderDistance; ++zOffset) {
+	//			for(int xOffset = -renderDistance; xOffset <= renderDistance; ++xOffset) {
+	//				final int regionIndex = regionStorage.getRegionIndexSafely(xCenter + (xOffset << 4) + 8, yLevel, zCenter + (zOffset << 4) + 8);
+	//				final BuiltRenderRegion region = regionIndex == -1 ? null : regions[regionIndex];
+	//
+	//				if (region != null && frustum.isVisible(region.boundingBox)) {
+	//					region.setFrameIndex(frameCounter);
+	//
+	//					final int chunkInfo = encodeChunkInfo(regionIndex, null, 0);
+	//
+	//					searchList[searchIndex] = chunkInfo;
+	//					searchDist[searchIndex++] = region.squaredCameraDistance();
+	//				}
+	//			}
+	//		}
+	//
+	//		// PERF: don't need two arrays/swapper here now that squared distance is available on the region
+	//		//it.unimi.dsi.fastutil.Arrays.quickSort(0, searchIndex, comparator, swapper);
+	//
+	//		for(int i = 0; i < searchIndex; i++) {
+	//			searchQueue.enqueue(searchList[i]);
+	//		}
+	//	}
 
-		int searchIndex = 0;
-
-		for(int zOffset = -renderDistance; zOffset <= renderDistance; ++zOffset) {
-			for(int xOffset = -renderDistance; xOffset <= renderDistance; ++xOffset) {
-				final int regionIndex = regionStorage.getRegionIndexSafely(xCenter + (xOffset << 4) + 8, yLevel, zCenter + (zOffset << 4) + 8);
-				final BuiltRenderRegion region = regionIndex == -1 ? null : regions[regionIndex];
-
-				if (region != null && frustum.isVisible(region.boundingBox)) {
-					region.setFrameIndex(frameCounter);
-
-					final int chunkInfo = encodeChunkInfo(regionIndex, null, 0);
-
-					searchList[searchIndex] = chunkInfo;
-					searchDist[searchIndex++] = region.squaredCameraDistance();
-				}
-			}
-		}
-
-		// PERF: don't need two arrays/swapper here now that squared distance is available on the region
-		it.unimi.dsi.fastutil.Arrays.quickSort(0, searchIndex, comparator, swapper);
-
-		for(int i = 0; i < searchIndex; i++) {
-			searchQueue.enqueue(searchList[i]);
-		}
-	}
-
-	private static Set<Direction> getOpenChunkFaces(World world, BlockPos blockPos) {
-		final ChunkOcclusionDataBuilder chunkOcclusionDataBuilder = new ChunkOcclusionDataBuilder();
-		final BlockPos blockPos2 = new BlockPos(blockPos.getX() >> 4 << 4, blockPos.getY() >> 4 << 4, blockPos.getZ() >> 4 << 4);
-		final WorldChunk worldChunk = world.getWorldChunk(blockPos2);
-		final Iterator<?> var5 = BlockPos.iterate(blockPos2, blockPos2.add(15, 15, 15)).iterator();
-
-		while(var5.hasNext()) {
-			final BlockPos blockPos3 = (BlockPos)var5.next();
-			if (worldChunk.getBlockState(blockPos3).isFullOpaque(world, blockPos3)) {
-				chunkOcclusionDataBuilder.markClosed(blockPos3);
-			}
-		}
-
-		return chunkOcclusionDataBuilder.getOpenFaces(blockPos);
-	}
+	//	private static Set<Direction> getOpenChunkFaces(World world, BlockPos blockPos) {
+	//		final ChunkOcclusionDataBuilder chunkOcclusionDataBuilder = new ChunkOcclusionDataBuilder();
+	//		final BlockPos blockPos2 = new BlockPos(blockPos.getX() >> 4 << 4, blockPos.getY() >> 4 << 4, blockPos.getZ() >> 4 << 4);
+	//		final WorldChunk worldChunk = world.getWorldChunk(blockPos2);
+	//		final Iterator<?> var5 = BlockPos.iterate(blockPos2, blockPos2.add(15, 15, 15)).iterator();
+	//
+	//		while(var5.hasNext()) {
+	//			final BlockPos blockPos3 = (BlockPos)var5.next();
+	//			if (worldChunk.getBlockState(blockPos3).isFullOpaque(world, blockPos3)) {
+	//				chunkOcclusionDataBuilder.markClosed(blockPos3);
+	//			}
+	//		}
+	//
+	//		return chunkOcclusionDataBuilder.getOpenFaces(blockPos);
+	//	}
 
 	private void setupCamera(WorldRendererExt wr, MinecraftClient mc, RenderRegionBuilder chunkBuilder, Vec3d cameraPos) {
 		final RenderRegionStorage chunks = renderRegionStorage;
@@ -762,9 +765,9 @@ public class CanvasWorldRenderer {
 				vertexConsumerProvider2 = outlineVertexConsumerProvider;
 				final int k = entity.getTeamColorValue();
 				final int u = k >> 16 & 255;
-				final int v = k >> 8 & 255;
-			x = k & 255;
-			outlineVertexConsumerProvider.setColor(u, v, x, 255);
+		final int v = k >> 8 & 255;
+		x = k & 255;
+		outlineVertexConsumerProvider.setColor(u, v, x, 255);
 			} else {
 				vertexConsumerProvider2 = immediate;
 			}
@@ -821,38 +824,41 @@ public class CanvasWorldRenderer {
 
 		for (int chunkIndex = startIndex; chunkIndex != endIndex; chunkIndex += step) {
 			final BuiltRenderRegion builtChunk = visibleChunks[chunkIndex];
-			final DrawableChunk drawable = isTranslucent ? builtChunk.translucentDrawable() : builtChunk.solidDrawable();
 
-			if (drawable != null && !drawable.isEmpty()) {
-				matrixStack.push();
-				final BlockPos blockPos = builtChunk.getOrigin();
-				matrixStack.translate(blockPos.getX() - x, blockPos.getY() - y, blockPos.getZ() - z);
-				RenderSystem.pushMatrix();
-				RenderSystem.loadIdentity();
-				RenderSystem.multMatrix(matrixStack.peek().getModel());
+			if (builtChunk.canRenderTerrain) {
+				final DrawableChunk drawable = isTranslucent ? builtChunk.translucentDrawable() : builtChunk.solidDrawable();
 
-				final ObjectArrayList<DrawableDelegate> delegates = drawable.delegates();
-				final int limit = delegates.size();
+				if (drawable != null && !drawable.isEmpty()) {
+					matrixStack.push();
+					final BlockPos blockPos = builtChunk.getOrigin();
+					matrixStack.translate(blockPos.getX() - x, blockPos.getY() - y, blockPos.getZ() - z);
+					RenderSystem.pushMatrix();
+					RenderSystem.loadIdentity();
+					RenderSystem.multMatrix(matrixStack.peek().getModel());
 
-				for(int i = 0; i < limit; i++) {
-					if (isTranslucent) {
-						++lastTranlsucentCount;
-					} else {
-						++lastSolidCount;
+					final ObjectArrayList<DrawableDelegate> delegates = drawable.delegates();
+					final int limit = delegates.size();
+
+					for(int i = 0; i < limit; i++) {
+						if (isTranslucent) {
+							++lastTranlsucentCount;
+						} else {
+							++lastSolidCount;
+						}
+
+						final DrawableDelegate d = delegates.get(i);
+						d.materialState().drawHandler.setup();
+						d.bind();
+						// TODO: confirm everything that used to happen below happens in bind above
+						vertexFormat.startDrawing(d.byteOffset());
+						innerTimer.start();
+						d.draw();
+						innerTimer.stop();
 					}
 
-					final DrawableDelegate d = delegates.get(i);
-					d.materialState().drawHandler.setup();
-					d.bind();
-					// TODO: confirm everything that used to happen below happens in bind above
-					vertexFormat.startDrawing(d.byteOffset());
-					innerTimer.start();
-					d.draw();
-					innerTimer.stop();
+					RenderSystem.popMatrix();
+					matrixStack.pop();
 				}
-
-				RenderSystem.popMatrix();
-				matrixStack.pop();
 			}
 		}
 
@@ -911,7 +917,7 @@ public class CanvasWorldRenderer {
 		}
 	}
 
-	private static final Direction[] DIRECTIONS = Direction.values();
+	//	private static final Direction[] DIRECTIONS = Direction.values();
 
 	public int completedChunkCount() {
 		int result = 0;

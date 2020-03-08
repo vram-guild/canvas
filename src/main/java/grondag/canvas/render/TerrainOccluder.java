@@ -1,12 +1,8 @@
 package grondag.canvas.render;
 
-import java.util.BitSet;
-
 import net.minecraft.client.util.math.Matrix4f;
 import net.minecraft.client.util.math.Vector4f;
 import net.minecraft.util.math.MathHelper;
-
-import grondag.fermion.varia.Useful;
 
 // Some elements are adapted from content found at
 // https://fgiesen.wordpress.com/2013/02/17/optimizing-sw-occlusion-culling-index/
@@ -19,7 +15,14 @@ public class TerrainOccluder {
 	static final int HEIGHT = HALF_HEIGHT * 2;
 	static final int SHIFT = Integer.bitCount(WIDTH - 1);
 
-	private final BitSet bits = new BitSet();
+	static final int WORD_COUNT = WIDTH * HEIGHT / 64;
+	static final int INVERSE_WIDTH_MASK = ~(WIDTH - 1);
+	static final int INVERSE_HEIGHT_MASK = ~(HEIGHT - 1);
+
+	static final long[] EMPTY_BITS = new long[WORD_COUNT];
+
+	static final long[] bits = new long[WORD_COUNT];
+
 	private Matrix4f mvpMatrix;
 
 	private final Vector4f vec = new Vector4f();
@@ -138,7 +141,7 @@ public class TerrainOccluder {
 		this.viewX = viewX;
 		this.viewY = viewY;
 		this.viewZ = viewZ;
-		bits.clear();
+		System.arraycopy(EMPTY_BITS, 0, bits, 0, WORD_COUNT);
 	}
 
 	private boolean inFrustum() {
@@ -260,39 +263,112 @@ public class TerrainOccluder {
 		z111 = checkZ(vec.getZ());
 	}
 
-	/** assume CCW winding order */
-	private void drawQuad(int x0, int y0, int x1, int y1, int x2, int y2, int x3, int y3) {
-		drawTri(x0, y0, x1, y1, x2, y2);
-		drawTri(x0, y0, x2, y2, x3, y3);
+	private boolean isCcw(int x0, int y0, int x1, int y1, int x2, int y2) {
+		return (x1 - x0) * (y2 - y0) - (x2 - x0) * (y1 - y0) > 0;
 	}
 
-	/** assume CCW winding order */
+	private void drawQuad(int x0, int y0, int x1, int y1, int x2, int y2, int x3, int y3) {
+		if (isCcw(x0, y0, x1, y1, x2, y2)) {
+			drawTri(x0, y0, x1, y1, x2, y2);
+			drawTri(x0, y0, x2, y2, x3, y3);
+		}
+	}
+
 	private boolean testQuad(int x0, int y0, int x1, int y1, int x2, int y2, int x3, int y3) {
-		return testTri(x0, y0, x1, y1, x2, y2) || testTri(x0, y0, x2, y2, x3, y3);
+		return isCcw(x0, y0, x1, y1, x2, y2) && (testTri(x0, y0, x1, y1, x2, y2) || testTri(x0, y0, x2, y2, x3, y3));
 	}
 
 	private int orient2d(int ax, int ay, int bx, int by, int cx, int cy) {
 		return (bx-ax)*(cy-ay) - (by-ay)*(cx-ax);
 	}
 
+	int minX;
+	int minY;
+	int maxX;
+	int maxY;
+	int w0_row;
+	int w1_row;
+	int w2_row;
+
+	private boolean prepareTriBounds(int x0, int y0, int x1, int y1, int x2, int y2) {
+
+
+		int minX = x0;
+		int maxX = x0;
+
+		if (x1 < minX) {
+			minX = x1;
+		} else if (x1 > maxX) {
+			maxX = x1;
+		}
+
+		if (x2 < minX) {
+			minX = x2;
+		} else if (x2 > maxX) {
+			maxX = x2;
+		}
+
+		if (maxX < 0 || minX >= WIDTH) {
+			return false;
+		}
+
+		if (minX < 0) {
+			minX = 0;
+		}
+
+		if (maxX > WIDTH - 1)  {
+			maxX = WIDTH - 1;
+		}
+
+		int minY = y0;
+		int maxY = y0;
+
+		if (y1 < minY) {
+			minY = y1;
+		} else if (y1 > maxY) {
+			maxY = y1;
+		}
+
+		if (y2 < minY) {
+			minY = y2;
+		} else if (y2 > maxY) {
+			maxY = y2;
+		}
+
+		if (maxY < 0 || minY >= HEIGHT) {
+			return false;
+		}
+
+		if (minY < 0) {
+			minY = 0;
+		}
+
+		if (maxY > HEIGHT - 1)  {
+			maxY = HEIGHT - 1;
+		}
+
+		// Barycentric coordinates at minX/minY corner
+		w0_row = orient2d(x1, y1, x2, y2, minX, minY);
+		w1_row = orient2d(x2, y2, x0, y0, minX, minY);
+		w2_row = orient2d(x0, y0, x1, y1, minX, minY);
+
+		this.minX = minX;
+		this.maxX = maxX;
+		this.minY = minY;
+		this.maxY = maxY;
+
+		return true;
+	}
+
 	private void drawTri(int x0, int y0, int x1, int y1, int x2, int y2) {
-		// PERF: optimize comparisons
-
-		// Compute triangle bounding box
-		int minX = Useful.min(x0, x1, x2);
-		int minY = Useful.min(y0, y1, y2);
-		int maxX = Useful.max(x0, x1, x2);
-		int maxY = Useful.max(y0, y1, y2);
-
-		if ((maxX | maxY) < 0 || minX >= WIDTH  || minY >= HEIGHT) {
+		if (!prepareTriBounds(x0, y0, x1, y1, x2, y2)) {
 			return;
 		}
 
-		// Clip against screen bounds
-		minX = Math.max(minX, 0);
-		minY = Math.max(minY, 0);
-		maxX = Math.min(maxX, WIDTH - 1);
-		maxY = Math.min(maxY, HEIGHT - 1);
+		final int minX = this.minX;
+		final int maxX = this.maxX;
+		final int minY = this.minY;
+		final int maxY = this.maxY;
 
 		// Triangle setup
 		final int A01 = y0 - y1;
@@ -303,9 +379,9 @@ public class TerrainOccluder {
 		final int B20 = x0 - x2;
 
 		// Barycentric coordinates at minX/minY corner
-		int w0_row = orient2d(x1, y1, x2, y2, minX, minY);
-		int w1_row = orient2d(x2, y2, x0, y0, minX, minY);
-		int w2_row = orient2d(x0, y0, x1, y1, minX, minY);
+		int w0_row = this.w0_row;
+		int w1_row = this.w1_row;
+		int w2_row = this.w2_row;
 
 		// Rasterize
 		for (int y = minY; y <= maxY; y++) {
@@ -334,29 +410,21 @@ public class TerrainOccluder {
 	}
 
 	private void drawPixel(int x, int y) {
-		if ((x | y) >=0 && x < WIDTH && y < HEIGHT) {
-			bits.set((y << SHIFT) | x);
-		}
+		//		if (((x & INVERSE_WIDTH_MASK) | (y & INVERSE_HEIGHT_MASK)) == 0) {
+		final int addr = (y << SHIFT) | x;
+		bits[addr >> 6] |= (1 << (addr & 63));
+		//		}
 	}
 
 	boolean testTri(int x0, int y0, int x1, int y1, int x2, int y2) {
-		// PERF: optimize comparisons
+		if (!prepareTriBounds(x0, y0, x1, y1, x2, y2)) {
+			return false;
+		}
 
-		// Compute triangle bounding box
-		int minX = Useful.min(x0, x1, x2);
-		int minY = Useful.min(y0, y1, y2);
-		int maxX = Useful.max(x0, x1, x2);
-		int maxY = Useful.max(y0, y1, y2);
-
-		//		if ((maxX | maxY) < 0 || minX >= WIDTH  || minY >= HEIGHT) {
-		//			return false;
-		//		}
-
-		// Clip against screen bounds
-		minX = Math.max(minX, 0);
-		minY = Math.max(minY, 0);
-		maxX = Math.min(maxX, WIDTH - 1);
-		maxY = Math.min(maxY, HEIGHT - 1);
+		final int minX = this.minX;
+		final int maxX = this.maxX;
+		final int minY = this.minY;
+		final int maxY = this.maxY;
 
 		// Triangle setup
 		final int A01 = y0 - y1;
@@ -367,9 +435,9 @@ public class TerrainOccluder {
 		final int B20 = x0 - x2;
 
 		// Barycentric coordinates at minX/minY corner
-		int w0_row = orient2d(x1, y1, x2, y2, minX, minY);
-		int w1_row = orient2d(x2, y2, x0, y0, minX, minY);
-		int w2_row = orient2d(x0, y0, x1, y1, minX, minY);
+		int w0_row = this.w0_row;
+		int w1_row = this.w1_row;
+		int w2_row = this.w2_row;
 
 		// Rasterize
 		for (int y = minY; y <= maxY; y++) {
@@ -402,6 +470,11 @@ public class TerrainOccluder {
 	}
 
 	private boolean testPixel(int x, int y) {
-		return (x | y) >=0 && x < WIDTH && y < HEIGHT && !bits.get((y << SHIFT) | x);
+		//if (((x & INVERSE_WIDTH_MASK) | (y & INVERSE_HEIGHT_MASK)) == 0) {
+		final int addr = (y << SHIFT) | x;
+		return (bits[addr >> 6] & (1 << (addr & 63))) == 0;
+		//		} else {
+		//			return false;
+		//		}
 	}
 }

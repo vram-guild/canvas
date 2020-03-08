@@ -14,6 +14,12 @@
  ******************************************************************************/
 package grondag.canvas.chunk;
 
+import static grondag.canvas.chunk.RegionOcclusionData.X0;
+import static grondag.canvas.chunk.RegionOcclusionData.X1;
+import static grondag.canvas.chunk.RegionOcclusionData.Y0;
+import static grondag.canvas.chunk.RegionOcclusionData.Y1;
+import static grondag.canvas.chunk.RegionOcclusionData.Z0;
+import static grondag.canvas.chunk.RegionOcclusionData.Z1;
 import static grondag.canvas.chunk.RenderRegionAddressHelper.INTERIOR_CACHE_SIZE;
 import static grondag.canvas.chunk.RenderRegionAddressHelper.INTERIOR_CACHE_WORDS;
 import static grondag.canvas.chunk.RenderRegionAddressHelper.TOTAL_CACHE_SIZE;
@@ -28,22 +34,18 @@ import static grondag.canvas.chunk.RenderRegionAddressHelper.localYfaceIndex;
 import static grondag.canvas.chunk.RenderRegionAddressHelper.localZEdgeIndex;
 import static grondag.canvas.chunk.RenderRegionAddressHelper.localZfaceIndex;
 
-import java.util.Set;
-
 import it.unimi.dsi.fastutil.ints.IntArrayFIFOQueue;
 
 import net.minecraft.block.BlockRenderType;
 import net.minecraft.block.BlockState;
-import net.minecraft.client.render.chunk.ChunkOcclusionData;
-import net.minecraft.util.math.Direction;
 
 public abstract class OcclusionRegion {
 	private final IntArrayFIFOQueue queue = new IntArrayFIFOQueue();
-	private final long[] bits = new long[WORLD_COUNT];
+	private final long[] bits = new long[WORD_COUNT];
 	private int openCount;
 
 	void prepare() {
-		System.arraycopy(EMPTY_BITS, 0, bits, 0, WORLD_COUNT);
+		System.arraycopy(EMPTY_BITS, 0, bits, 0, WORD_COUNT);
 		captureFaces();
 		captureEdges();
 		captureCorners();
@@ -222,60 +224,149 @@ public abstract class OcclusionRegion {
 		}
 	}
 
+	private int minRenderableX;
+	private int minRenderableY;
+	private int minRenderableZ;
+	private int maxRenderableX;
+	private int maxRenderableY;
+	private int maxRenderableZ;
+
 	/**
 	 * Removes renderable flag if position has no open neighbors and is not visible from exterior.
 	 */
 	private void hideInteriorClosedPositions() {
+		int minX = Integer.MAX_VALUE;
+		int minY = Integer.MAX_VALUE;
+		int minZ = Integer.MAX_VALUE;
+		int maxX = Integer.MIN_VALUE;
+		int maxY = Integer.MIN_VALUE;
+		int maxZ = Integer.MIN_VALUE;
+
 		for (int i = 0; i < INTERIOR_CACHE_SIZE; i++) {
 			final long mask = (1L << (i & 63));
 			final int wordIndex = (i >> 6);
 
-			if ((bits[wordIndex + RENDERABLE_OFFSET] & mask) != 0 && (bits[wordIndex + EXTERIOR_VISIBLE_OFFSET] & mask) == 0) {
+			if ((bits[wordIndex + RENDERABLE_OFFSET] & mask) != 0) {
+
 				final int x = i & 0xF;
 				final int y = (i >> 4) & 0xF;
 				final int z = (i >> 8) & 0xF;
 
-				if(isClosed(fastRelativeCacheIndex(x - 1, y, z)) && isClosed(fastRelativeCacheIndex(x + 1, y, z))
+				if((bits[wordIndex + EXTERIOR_VISIBLE_OFFSET] & mask) == 0 && isClosed(fastRelativeCacheIndex(x - 1, y, z)) && isClosed(fastRelativeCacheIndex(x + 1, y, z))
 						&& isClosed(fastRelativeCacheIndex(x, y - 1, z)) && isClosed(fastRelativeCacheIndex(x, y + 1, z))
 						&& isClosed(fastRelativeCacheIndex(x, y, z - 1)) && isClosed(fastRelativeCacheIndex(x, y, z + 1))) {
 
-					bits[wordIndex + RENDERABLE_OFFSET] &=  ~mask;
+					bits[wordIndex + RENDERABLE_OFFSET] &= ~mask;
+				} else {
+					if (x < minX) {
+						minX = x;
+					} else if (x > maxX) {
+						maxX = x;
+					}
+
+					if (y < minY) {
+						minY = y;
+					} else if (y > maxY) {
+						maxY = y;
+					}
+
+					if (z < minZ) {
+						minZ = z;
+					} else if (z > maxZ) {
+						maxZ = z;
+					}
 				}
 			}
 		}
+
+		minRenderableX = minX;
+		minRenderableY = minY;
+		minRenderableZ = minZ;
+		maxRenderableX = maxX;
+		maxRenderableY = maxY;
+		maxRenderableZ = maxZ;
 	}
 
-	private void addOpenEdgeFacesIfCanVisit(ChunkOcclusionData result, int x, int y, int z) {
+	private void visitSurfaceIfPossible(int x, int y, int z) {
 		final int index = interiorIndex(x, y, z);
 
 		if (canVisit(index)) {
-			result.addOpenEdgeFaces(getVistedFaces(index));
+			fill(index);
 		}
 	}
 
-	private ChunkOcclusionData computeOcclusion() {
-		final ChunkOcclusionData result = new ChunkOcclusionData();
+	private int[] computeOcclusion() {
+		//		final RegionOcclusionData result = new RegionOcclusionData(null);
+		//
+		//		// determine which blocks are visible
+		boolean xPos = true;
+		boolean xNeg = true;
+		boolean yPos = true;
+		boolean yNeg = true;
+		boolean zPos = true;
+		boolean zNeg = true;
 
-		// determine which blocks are visible
 		for (int i = 0; i < 16; i++) {
 			for (int j = 0; j < 16; j++) {
-				if (!isClosed(localXfaceIndex(false, i, j))) addOpenEdgeFacesIfCanVisit(result, 0, i, j);
-				if (!isClosed(localXfaceIndex(true, i, j))) addOpenEdgeFacesIfCanVisit(result, 15, i, j);
+				if (!isClosed(localXfaceIndex(false, i, j))) {
+					visitSurfaceIfPossible(0, i, j);
+					xNeg = false;
+				}
+				if (!isClosed(localXfaceIndex(true, i, j))) {
+					visitSurfaceIfPossible(15, i, j);
+					xPos = false;
+				}
 
-				if (!isClosed(localZfaceIndex(i, j, false))) addOpenEdgeFacesIfCanVisit(result, i, j, 0);
-				if (!isClosed(localZfaceIndex(i, j, true))) addOpenEdgeFacesIfCanVisit(result, i, j, 15);
+				if (!isClosed(localZfaceIndex(i, j, false))) {
+					visitSurfaceIfPossible(i, j, 0);
+					yNeg = false;
+				}
 
-				if (!isClosed(localYfaceIndex(i, false, j))) addOpenEdgeFacesIfCanVisit(result, i, 0, j);
-				if (!isClosed(localYfaceIndex(i, true, j))) addOpenEdgeFacesIfCanVisit(result, i, 15, j);
+				if (!isClosed(localZfaceIndex(i, j, true))) {
+					visitSurfaceIfPossible(i, j, 15);
+					yPos = false;
+				}
+
+				if (!isClosed(localYfaceIndex(i, false, j))) {
+					visitSurfaceIfPossible(i, 0, j);
+					zNeg = false;
+				}
+
+				if (!isClosed(localYfaceIndex(i, true, j))) {
+					visitSurfaceIfPossible(i, 15, j);
+					zPos = false;
+				}
 			}
 		}
 
 		hideInteriorClosedPositions();
 
+		final int[] result = new int[7];
+
+		if (minRenderableX == Integer.MAX_VALUE) {
+			RegionOcclusionData.isEmptyChunk(result, true);
+
+		} else {
+			result[X0] = minRenderableX;
+			result[Y0] = minRenderableY;
+			result[Z0] = minRenderableZ;
+			result[X1] = maxRenderableX + 1;
+			result[Y1] = maxRenderableY + 1;
+			result[Z1] = maxRenderableZ + 1;
+
+			if ((minRenderableX | minRenderableY | minRenderableZ) == 0 && (maxRenderableX & maxRenderableY & maxRenderableZ) == 15) {
+				RegionOcclusionData.isVisibleFullChunk(result, true);
+
+				if(xPos && xNeg && yPos && yNeg && zPos && zNeg) {
+					RegionOcclusionData.sameAsVisible(result, true);
+				}
+			}
+		}
+
 		return result;
 	}
 
-	public ChunkOcclusionData build() {
+	public int[] build() {
 		final int closedCount = 4096 - openCount;
 
 		if (closedCount < 256) {
@@ -286,39 +377,35 @@ public abstract class OcclusionRegion {
 			}
 
 			// all chunk faces thru-visible
-			return ALL_OPEN;
+			//return ALL_OPEN;
 		} else if (openCount == 0) {
 			// only surface blocks are visible, and only if not covered
 			adjustSurfaceVisbility();
 
 			// all interior blocks are closed, no thru-visibility
-			return ALL_CLOSED;
-		} else {
-			return computeOcclusion();
+			//return ALL_CLOSED;
 		}
+
+		return computeOcclusion();
 	}
 
-	private  Set<Direction> getVistedFaces(int xyz4) {
-		int faceBits = 0;
+	private  void fill(int xyz4) {
+		final int faceBits = 0;
 		setVisited(xyz4);
-		faceBits = visit(xyz4, faceBits);
+		visit(xyz4, faceBits);
 
 		while (!queue.isEmpty()) {
 			final int nextXyz4 = queue.dequeueInt();
-			faceBits = visit(nextXyz4, faceBits);
+			visit(nextXyz4, faceBits);
 		}
-
-		return DirectionSet.sharedInstance(faceBits);
 	}
 
-	private int visit(int xyz4, int faceBits) {
+	private void visit(int xyz4, int faceBits) {
 		final int x = xyz4 & 0xF;
 
 		if (x == 0) {
-			faceBits = DirectionSet.addFaceToBit(faceBits, Direction.WEST);
 			enqueIfUnvisited(xyz4 + 1);
 		} else if (x == 15) {
-			faceBits =  DirectionSet.addFaceToBit(faceBits, Direction.EAST);
 			enqueIfUnvisited(xyz4 - 1);
 		} else {
 			enqueIfUnvisited(xyz4 - 1);
@@ -328,10 +415,8 @@ public abstract class OcclusionRegion {
 		final int y = xyz4 & 0xF0;
 
 		if (y == 0) {
-			faceBits =  DirectionSet.addFaceToBit(faceBits, Direction.DOWN);
 			enqueIfUnvisited(xyz4 + 0x10);
 		} else if (y == 0xF0) {
-			faceBits =  DirectionSet.addFaceToBit(faceBits, Direction.UP);
 			enqueIfUnvisited(xyz4 - 0x10);
 		} else {
 			enqueIfUnvisited(xyz4 - 0x10);
@@ -341,17 +426,13 @@ public abstract class OcclusionRegion {
 		final int z = xyz4 & 0xF00;
 
 		if (z == 0) {
-			faceBits =  DirectionSet.addFaceToBit(faceBits, Direction.NORTH);
 			enqueIfUnvisited(xyz4 + 0x100);
 		} else if (z == 0xF00) {
-			faceBits =  DirectionSet.addFaceToBit(faceBits, Direction.SOUTH);
 			enqueIfUnvisited(xyz4 - 0x100);
 		} else {
 			enqueIfUnvisited(xyz4 - 0x100);
 			enqueIfUnvisited(xyz4 + 0x100);
 		}
-
-		return faceBits;
 	}
 
 	private void enqueIfUnvisited(int xyz4) {
@@ -363,20 +444,25 @@ public abstract class OcclusionRegion {
 
 	static final int RENDERABLE_OFFSET = TOTAL_CACHE_WORDS;
 	static final int EXTERIOR_VISIBLE_OFFSET = RENDERABLE_OFFSET + TOTAL_CACHE_WORDS;
-	static final int WORLD_COUNT = EXTERIOR_VISIBLE_OFFSET + TOTAL_CACHE_WORDS;
+	static final int WORD_COUNT = EXTERIOR_VISIBLE_OFFSET + TOTAL_CACHE_WORDS;
 
-	static final long[] EMPTY_BITS = new long[WORLD_COUNT];
+	static final long[] EMPTY_BITS = new long[WORD_COUNT];
 	static final long[] EXTERIOR_MASK = new long[INTERIOR_CACHE_WORDS];
 
-	public static final ChunkOcclusionData ALL_OPEN;
-	public static final ChunkOcclusionData ALL_CLOSED;
+	//	public static final RegionOcclusionData ALL_OPEN;
+	//	public static final RegionOcclusionData ALL_CLOSED;
 
 	static {
-		ALL_OPEN = new ChunkOcclusionData();
-		ALL_OPEN.fill(true);
-
-		ALL_CLOSED = new ChunkOcclusionData();
-		ALL_CLOSED.fill(false);
+		//		final int[] open = {0, 0, 0, 16, 16, 16, 0};
+		//		ALL_OPEN = new RegionOcclusionData(open);
+		//		RegionOcclusionData.isVisibleFullChunk(open, true);
+		//		ALL_OPEN.fill(true);
+		//
+		//		final int[] closed = {0, 0, 0, 16, 16, 16, 0};
+		//		RegionOcclusionData.isVisibleFullChunk(open, true);
+		//		RegionOcclusionData.sameAsVisible(open, true);
+		//		ALL_CLOSED = new RegionOcclusionData(closed);
+		//		ALL_CLOSED.fill(false);
 
 		for (int i = 0; i < 4096; i++) {
 			final int x = i & 15;

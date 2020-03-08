@@ -49,7 +49,7 @@ public class BuiltRenderRegion {
 	private final AtomicReference<RegionData> buildData;
 	private final ObjectOpenHashSet<BlockEntity> localNoCullingBlockEntities = new ObjectOpenHashSet<>();
 	public Box boundingBox;
-	private int frameIndex;
+	//private int frameIndex;
 	private boolean needsRebuild;
 	private final BlockPos.Mutable origin;
 	private boolean needsImportantRebuild;
@@ -58,6 +58,8 @@ public class BuiltRenderRegion {
 	private final int[] neighborIndices = new int[6];
 	private Translucent translucentDrawable;
 	private Solid solidDrawable;
+	// UGLY: encapsulate
+	public boolean canRenderTerrain;
 
 	int squaredCameraDistance;
 
@@ -65,7 +67,7 @@ public class BuiltRenderRegion {
 		this.renderRegionBuilder = renderRegionBuilder;
 		buildData = new AtomicReference<>(RegionData.EMPTY);
 		renderData = new AtomicReference<>(RegionData.EMPTY);
-		frameIndex = -1;
+		//frameIndex = -1;
 		needsRebuild = true;
 		origin = new BlockPos.Mutable(-1, -1, -1);
 	}
@@ -213,7 +215,7 @@ public class BuiltRenderRegion {
 
 		if (region == ProtoRenderRegion.EMPTY) {
 			final RegionData chunkData = new RegionData();
-			chunkData.setOcclusionGraph(OcclusionRegion.ALL_OPEN);
+			chunkData.setOcclusionData(RegionOcclusionData.EMPTY_DATA);
 			buildData.set(chunkData);
 			renderData.set(chunkData);
 			return;
@@ -303,7 +305,7 @@ public class BuiltRenderRegion {
 
 	private RegionData buildRegionData(TerrainRenderContext context) {
 		final RegionData regionData = new RegionData();
-		regionData.setOcclusionGraph(context.region.occlusion.build());
+		regionData.setOcclusionData(context.region.occlusion.build());
 		handleBlockEntities(regionData, context);
 		buildData.set(regionData);
 		return regionData;
@@ -414,7 +416,7 @@ public class BuiltRenderRegion {
 
 		if (region == ProtoRenderRegion.EMPTY) {
 			final RegionData regionData = new RegionData();
-			regionData.setOcclusionGraph(OcclusionRegion.ALL_OPEN);
+			regionData.setOcclusionData(RegionOcclusionData.EMPTY_DATA);
 			buildData.set(regionData);
 			return;
 		}
@@ -444,13 +446,13 @@ public class BuiltRenderRegion {
 		region.release();
 	}
 
-	public int getFrameIndex() {
-		return frameIndex;
-	}
-
-	public void setFrameIndex(int frameIndex) {
-		this.frameIndex = frameIndex;
-	}
+	//	public int getFrameIndex() {
+	//		return frameIndex;
+	//	}
+	//
+	//	public void setFrameIndex(int frameIndex) {
+	//		this.frameIndex = frameIndex;
+	//	}
 
 	public int[] getNeighborIndices() {
 		return neighborIndices;
