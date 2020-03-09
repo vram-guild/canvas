@@ -40,6 +40,7 @@ import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachedBlockView;
 
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
 import grondag.canvas.chunk.ChunkPaletteCopier.PaletteCopy;
+import grondag.canvas.chunk.occlusion.OcclusionRegion;
 
 public class FastRenderRegion extends AbstractRenderRegion implements RenderAttachedBlockView {
 	protected final BlockPos.Mutable searchPos = new BlockPos.Mutable();

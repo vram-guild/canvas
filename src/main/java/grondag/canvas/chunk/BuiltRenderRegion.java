@@ -38,6 +38,8 @@ import grondag.canvas.buffer.packing.VertexCollectorImpl;
 import grondag.canvas.buffer.packing.VertexCollectorList;
 import grondag.canvas.chunk.DrawableChunk.Solid;
 import grondag.canvas.chunk.DrawableChunk.Translucent;
+import grondag.canvas.chunk.occlusion.OcclusionRegion;
+import grondag.canvas.chunk.occlusion.RegionOcclusionData;
 import grondag.canvas.material.MaterialContext;
 import grondag.canvas.material.MaterialState;
 import grondag.canvas.perf.ChunkRebuildCounters;

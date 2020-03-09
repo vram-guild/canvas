@@ -1,11 +1,11 @@
 package grondag.canvas.render;
 
-import static grondag.canvas.chunk.RegionOcclusionData.X0;
-import static grondag.canvas.chunk.RegionOcclusionData.X1;
-import static grondag.canvas.chunk.RegionOcclusionData.Y0;
-import static grondag.canvas.chunk.RegionOcclusionData.Y1;
-import static grondag.canvas.chunk.RegionOcclusionData.Z0;
-import static grondag.canvas.chunk.RegionOcclusionData.Z1;
+import static grondag.canvas.chunk.occlusion.RegionOcclusionData.X0;
+import static grondag.canvas.chunk.occlusion.RegionOcclusionData.X1;
+import static grondag.canvas.chunk.occlusion.RegionOcclusionData.Y0;
+import static grondag.canvas.chunk.occlusion.RegionOcclusionData.Y1;
+import static grondag.canvas.chunk.occlusion.RegionOcclusionData.Z0;
+import static grondag.canvas.chunk.occlusion.RegionOcclusionData.Z1;
 
 import java.util.Iterator;
 import java.util.List;
@@ -64,10 +64,11 @@ import net.minecraft.util.profiler.Profiler;
 import grondag.canvas.buffer.allocation.VboBuffer;
 import grondag.canvas.chunk.BuiltRenderRegion;
 import grondag.canvas.chunk.DrawableChunk;
-import grondag.canvas.chunk.RegionOcclusionData;
 import grondag.canvas.chunk.RenderRegionBuilder;
 import grondag.canvas.chunk.RenderRegionStorage;
 import grondag.canvas.chunk.draw.DrawableDelegate;
+import grondag.canvas.chunk.occlusion.RegionOcclusionData;
+import grondag.canvas.chunk.occlusion.TerrainOccluder;
 import grondag.canvas.draw.DrawHandler;
 import grondag.canvas.mixinterface.WorldRendererExt;
 import grondag.canvas.perf.MicroTimer;

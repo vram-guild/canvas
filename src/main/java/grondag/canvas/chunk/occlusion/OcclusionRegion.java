@@ -12,14 +12,8 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  ******************************************************************************/
-package grondag.canvas.chunk;
+package grondag.canvas.chunk.occlusion;
 
-import static grondag.canvas.chunk.RegionOcclusionData.X0;
-import static grondag.canvas.chunk.RegionOcclusionData.X1;
-import static grondag.canvas.chunk.RegionOcclusionData.Y0;
-import static grondag.canvas.chunk.RegionOcclusionData.Y1;
-import static grondag.canvas.chunk.RegionOcclusionData.Z0;
-import static grondag.canvas.chunk.RegionOcclusionData.Z1;
 import static grondag.canvas.chunk.RenderRegionAddressHelper.INTERIOR_CACHE_SIZE;
 import static grondag.canvas.chunk.RenderRegionAddressHelper.INTERIOR_CACHE_WORDS;
 import static grondag.canvas.chunk.RenderRegionAddressHelper.TOTAL_CACHE_SIZE;
@@ -33,6 +27,12 @@ import static grondag.canvas.chunk.RenderRegionAddressHelper.localYEdgeIndex;
 import static grondag.canvas.chunk.RenderRegionAddressHelper.localYfaceIndex;
 import static grondag.canvas.chunk.RenderRegionAddressHelper.localZEdgeIndex;
 import static grondag.canvas.chunk.RenderRegionAddressHelper.localZfaceIndex;
+import static grondag.canvas.chunk.occlusion.RegionOcclusionData.X0;
+import static grondag.canvas.chunk.occlusion.RegionOcclusionData.X1;
+import static grondag.canvas.chunk.occlusion.RegionOcclusionData.Y0;
+import static grondag.canvas.chunk.occlusion.RegionOcclusionData.Y1;
+import static grondag.canvas.chunk.occlusion.RegionOcclusionData.Z0;
+import static grondag.canvas.chunk.occlusion.RegionOcclusionData.Z1;
 
 import it.unimi.dsi.fastutil.ints.IntArrayFIFOQueue;
 
@@ -44,7 +44,7 @@ public abstract class OcclusionRegion {
 	private final long[] bits = new long[WORD_COUNT];
 	private int openCount;
 
-	void prepare() {
+	public void prepare() {
 		System.arraycopy(EMPTY_BITS, 0, bits, 0, WORD_COUNT);
 		captureFaces();
 		captureEdges();

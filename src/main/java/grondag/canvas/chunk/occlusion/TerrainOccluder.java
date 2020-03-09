@@ -1,4 +1,4 @@
-package grondag.canvas.render;
+package grondag.canvas.chunk.occlusion;
 
 import net.minecraft.client.util.math.Matrix4f;
 import net.minecraft.client.util.math.Vector4f;

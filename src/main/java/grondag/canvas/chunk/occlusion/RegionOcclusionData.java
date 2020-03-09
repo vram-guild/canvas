@@ -1,4 +1,4 @@
-package grondag.canvas.chunk;
+package grondag.canvas.chunk.occlusion;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
