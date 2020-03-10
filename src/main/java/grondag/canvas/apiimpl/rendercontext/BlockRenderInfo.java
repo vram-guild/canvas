@@ -42,6 +42,7 @@ public class BlockRenderInfo {
 	private final BlockColors blockColorMap = MinecraftClient.getInstance().getBlockColorMap();
 	private boolean needsColorLookup = true;
 	private int blockColor = -1;
+	private boolean needsRandomRefresh = true;
 
 	public final Random random = new Random();
 	public RenderAttachedBlockView blockView;
@@ -53,12 +54,17 @@ public class BlockRenderInfo {
 
 	public final Supplier<Random> randomSupplier = () -> {
 		final Random result = random;
-		long seed = this.seed;
-		if (seed == -1L) {
-			seed = blockState.getRenderingSeed(blockPos);
-			this.seed = seed;
+		if(needsRandomRefresh) {
+			long seed = this.seed;
+
+			if (seed == -1L) {
+				seed = blockState.getRenderingSeed(blockPos);
+				this.seed = seed;
+			}
+
+			result.setSeed(seed);
 		}
-		result.setSeed(seed);
+
 		return result;
 	};
 
@@ -66,12 +72,19 @@ public class BlockRenderInfo {
 		this.blockView = blockView;
 	}
 
-	public void prepareForBlock(BlockState blockState, BlockPos blockPos, boolean modelAO) {
+	/**
+	 *
+	 * @param blockState
+	 * @param blockPos
+	 * @param modelAO
+	 * @param seed pass -1 for default behavior
+	 */
+	public void prepareForBlock(BlockState blockState, BlockPos blockPos, boolean modelAO, long seed) {
 		this.blockPos = blockPos;
 		this.blockState = blockState;
 		needsColorLookup = true;
-		// in the unlikely case seed actually matches this, we'll simply retrieve it more than once
-		seed = -1L;
+		needsRandomRefresh = true;
+		this.seed = seed;
 		defaultAo = modelAO && MinecraftClient.isAmbientOcclusionEnabled() && blockState.getLuminance() == 0 ;
 		defaultLayer = RenderLayers.getBlockLayer(blockState);
 	}
