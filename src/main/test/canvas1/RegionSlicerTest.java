@@ -1,8 +1,5 @@
 package canvas1;
 
-import java.util.Random;
-
-import io.netty.util.internal.ThreadLocalRandom;
 import org.junit.jupiter.api.Test;
 
 import grondag.canvas.chunk.occlusion.RegionSlicer;
@@ -14,7 +11,7 @@ public class RegionSlicerTest {
 
 		final long[] sample = new long[4 * 16];
 
-		final Random rand = ThreadLocalRandom.current();
+		//final Random rand = ThreadLocalRandom.current();
 
 		//		for(int i = 0; i < 4  * 16 * 64 * 2; i++) {
 		//			final int x = rand.nextInt(16);
