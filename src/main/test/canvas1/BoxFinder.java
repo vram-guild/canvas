@@ -6,12 +6,9 @@ import java.util.Random;
 import com.google.common.base.Strings;
 import io.netty.util.internal.ThreadLocalRandom;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.junit.jupiter.api.Test;
 
 class BoxFinder {
-
-	//	final Long2ObjectOpenHashMap<RectGroup> groups = new Long2ObjectOpenHashMap<>();
 
 	static int rectKey(int x0, int y0, int x1, int y1) {
 		return x0 | (y0 << 5) | (x1 << 10) | (y1 << 15);
@@ -34,7 +31,7 @@ class BoxFinder {
 	}
 
 	static class AreaFinder {
-		final Rect[] areas;
+		final Area[] areas;
 
 		final int areaCount;
 
@@ -72,12 +69,12 @@ class BoxFinder {
 
 			areaCount = keys.size();
 
-			areas = new Rect[areaCount];
+			areas = new Area[areaCount];
 
 			int i = 0;
 
 			for(final int k : keys) {
-				areas[i++] = new Rect(k);
+				areas[i++] = new Area(k);
 			}
 
 			Arrays.sort(areas, (a, b) -> {
@@ -96,7 +93,7 @@ class BoxFinder {
 
 			long hash = bitHash(bits);
 
-			for(final Rect r : areas) {
+			for(final Area r : areas) {
 				if (r.matchesHash(hash) && r.matches(bits)) {
 					r.printShape();
 					remove(r, bits);
@@ -114,196 +111,37 @@ class BoxFinder {
 
 	@Test
 	void test() {
-		Rect rect = new Rect(rectKey(0, 0, 15, 15));
+		Area rect = new Area(rectKey(0, 0, 15, 15));
 		assert(rect.bitHash == -1L);
 
-		rect = new Rect(rectKey(0, 0, 0, 0));
+		rect = new Area(rectKey(0, 0, 0, 0));
 		assert(rect.bitHash == 1);
 
-		rect = new Rect(rectKey(4, 4, 5, 5));
+		rect = new Area(rectKey(4, 4, 5, 5));
 		assert rect.bitHash == hashCoordinate(2, 2);
 
-		rect = new Rect(rectKey(11, 11, 13, 13));
+		rect = new Area(rectKey(11, 11, 13, 13));
 		assert rect.bitHash == (hashCoordinate(5, 5) | hashCoordinate(5, 6) | hashCoordinate(6, 5) | hashCoordinate(6, 6));
 
 
-
-
-		//keys.forEach((int i) -> printRect(i));
-
-		//System.out.println("Rect count = " + keys.size());
-
-		//		final int[] bitCounts = new int[256];
-		//
-		//		keys.forEach((int i) -> {
-		//			final Rect r = new Rect(i);
-		//
-		//			final long[] bits = r.bits;
-		//
-		//			for (int j = 0; j < 256; j++) {
-		//				if ((bits[j >> 6] & (1L << (j & 63))) != 0) {
-		//					bitCounts[j] += 1;
-		//				}
-		//			}
-		//		});
-
-		//		keys.forEach((int i) -> {
-		//			final Rect r = new Rect(i);
-		//			groups.computeIfAbsent(r.bitHash, RectGroup::new).add(r);
-		//		});
-		//
-		//		groups.values().forEach(RectGroup::finish);
-		//
-		//		System.out.println("Group count = " + groups.size());
-
-		//		System.out.print(Arrays.toString(bitCounts));
-
-		//		final NodeBuilder builder = new NodeBuilder();
-		//
-		//		keys.forEach((int i) -> builder.add(new Rect(i)));
-		//
-		//		final Node node = builder.build();
-		//
 		final AreaFinder finder = new AreaFinder();
 		final Sample sample = new Sample();
 
 		final Random rand = ThreadLocalRandom.current();
 
-		//final int limit = 256 + rand.nextInt(128);
 		for(int i = 0; i < 512; i++) {
 			final int x = rand.nextInt(16);
 			final int y = rand.nextInt(16);
 			sample.fill(x, y, x, y);
 		}
 		System.out.println("INPUT");
-		printShape(sample.bits);
+		TestUtils.printShape(sample.bits, 0);
 
 		System.out.println();
 		System.out.println("OUTPUT");
 		finder.find(sample.bits);
 	}
 
-	//	static class NodeBuilder {
-	//		final ObjectArrayList<Rect> list = new ObjectArrayList<>();
-	//
-	//		void add(Rect r) {
-	//			list.add(r);
-	//		}
-	//
-	//		int[] bitCounts() {
-	//			final int[] bitCounts = new int[256];
-	//
-	//			for (final Rect r : list) {
-	//				final long[] bits = r.bits;
-	//
-	//				for (int j = 0; j < 256; j++) {
-	//					if ((bits[j >> 6] & (1L << (j & 63))) != 0) {
-	//						bitCounts[j] += 1;
-	//					}
-	//				}
-	//			}
-	//
-	//			return bitCounts;
-	//		}
-	//
-	//		Node build() {
-	//			if (list.size() == 1) {
-	//				return new EndNode(list.get(0));
-	//			} else {
-	//
-	//				final long[] dependentBits = new long[4];
-	//				final NodeBuilder independent = new NodeBuilder();
-	//				final NodeBuilder dependent = new NodeBuilder();
-	//
-	//				int targetCount = (list.size() + 1) / 2;
-	//
-	//				while (targetCount > 0) {
-	//					int best = -1;
-	//					int bestCount = 0;
-	//					final int[] bitCounts = bitCounts();
-	//					for (int j = 0; j < 256; j++) {
-	//						final int c = bitCounts[j];
-	//
-	//						if (c > bestCount && c <= targetCount) {
-	//							best = j;
-	//							bestCount = c;
-	//						}
-	//					}
-	//
-	//					if (best == -1) {
-	//						if (dependent.list.isEmpty()) {
-	//							System.out.println("boop");
-	//						}
-	//
-	//						break;
-	//					} else {
-	//						dependentBits[best >> 6] |= (1L << (best & 63));
-	//						targetCount -= bestCount;
-	//					}
-	//
-	//					final ObjectListIterator<Rect> it = list.listIterator();
-	//
-	//					while (it.hasNext()) {
-	//						final Rect r = it.next();
-	//						final long[] bits = r.bits;
-	//
-	//						if ((bits[best >> 6] & (1L << (best & 63))) != 0) {
-	//							dependent.add(r);
-	//							it.remove();
-	//						}
-	//					}
-	//				}
-	//
-	//				list.forEach(r -> independent.add(r));
-	//
-	//				assert !dependent.list.isEmpty();
-	//				assert !independent.list.isEmpty();
-	//
-	//				return new BranchNode(independent.build(), dependent.build(), dependentBits);
-	//			}
-	//		}
-	//	}
-	//
-	//	static abstract class Node {
-	//		abstract Rect get(long bits[]);
-	//	}
-	//
-	//	static class EndNode extends Node {
-	//		final Rect rect;
-	//
-	//		EndNode(Rect rect) {
-	//			this.rect = rect;
-	//		}
-	//
-	//		@Override
-	//		Rect get(long[] bits) {
-	//			return rect.matches(bits) ? rect : null;
-	//		}
-	//	}
-	//
-	//	static class BranchNode extends Node {
-	//		final Node independentNode;
-	//
-	//		final Node dependentNode;
-	//
-	//		final long[] dependencyBits;
-	//
-	//		BranchNode(Node independentNode, Node dependentNode, long[] dependencyBits) {
-	//			this.independentNode = independentNode;
-	//			this.dependentNode = dependentNode;
-	//			this.dependencyBits = dependencyBits;
-	//		}
-	//
-	//		@Override
-	//		Rect get(long[] bits) {
-	//			final long[] myBits = dependencyBits;
-	//
-	//			return match(myBits[0], bits[0])
-	//					&& match(myBits[1], bits[1])
-	//					&& match(myBits[2], bits[2])
-	//					&& match(myBits[3], bits[3]) ? dependentNode.get(bits) : independentNode.get(bits);
-	//		}
-	//	}
 
 	static class Sample {
 		final long[] bits = new long[4];
@@ -317,7 +155,7 @@ class BoxFinder {
 			}
 		}
 
-		public void remove(Rect r) {
+		public void remove(Area r) {
 			BoxFinder.remove(r, bits);
 		}
 
@@ -331,25 +169,7 @@ class BoxFinder {
 
 	}
 
-	static class RectGroup {
-		final long rectHash;
-
-		final ObjectArrayList<Rect> rects = new ObjectArrayList<>();
-
-		RectGroup(long rectHash) {
-			this.rectHash = rectHash;
-		}
-
-		void add(Rect rect) {
-			rects.add(rect);
-		}
-
-		void finish() {
-			rects.sort((a, b) -> Integer.compare(b.area, a.area));
-		}
-	}
-
-	static class Rect {
+	static class Area {
 		final int rectKey;
 		final int x0;
 		final int y0;
@@ -371,7 +191,7 @@ class BoxFinder {
 					&& match(myBits[3], bits[3]);
 		}
 
-		public boolean intersects(Rect other) {
+		public boolean intersects(Area other) {
 			final long[] myBits = bits;
 			final long[] otherBits = other.bits;
 			return (myBits[0] & otherBits[0]) != 0
@@ -384,7 +204,7 @@ class BoxFinder {
 			return (bitHash & hash) == bitHash;
 		}
 
-		Rect(int rectKey) {
+		Area(int rectKey) {
 			this.rectKey = rectKey;
 			x0 = rectKey & 31;
 			y0 = (rectKey >> 5) & 31;
@@ -428,42 +248,11 @@ class BoxFinder {
 		}
 
 		public void printShape() {
-			BoxFinder.printShape(bits);
+			TestUtils.printShape(bits, 0);
 		}
 	}
 
-	public static void printShape(long[] bits) {
-		String s = Strings.padStart(Long.toBinaryString(bits[3]), 64, '0');
-		printSpaced(s.substring(0, 16));
-		printSpaced(s.substring(16, 32));
-		printSpaced(s.substring(32, 48));
-		printSpaced(s.substring(48, 64));
-
-		s = Strings.padStart(Long.toBinaryString(bits[2]), 64, '0');
-		printSpaced(s.substring(0, 16));
-		printSpaced(s.substring(16, 32));
-		printSpaced(s.substring(32, 48));
-		printSpaced(s.substring(48, 64));
-
-		s = Strings.padStart(Long.toBinaryString(bits[1]), 64, '0');
-		printSpaced(s.substring(0, 16));
-		printSpaced(s.substring(16, 32));
-		printSpaced(s.substring(32, 48));
-		printSpaced(s.substring(48, 64));
-
-		s = Strings.padStart(Long.toBinaryString(bits[0]), 64, '0');
-		printSpaced(s.substring(0, 16));
-		printSpaced(s.substring(16, 32));
-		printSpaced(s.substring(32, 48));
-		printSpaced(s.substring(48, 64));
-
-		System.out.println();
-	}
-
-	private static void printSpaced(String s) {
-		System.out.println(s.replace("0", "- ").replace("1", "X "));
-	}
-	public static void remove(Rect r, long[] bits) {
+	public static void remove(Area r, long[] bits) {
 		final int x0 = r.x0;
 		final int y0 = r.y0;
 		final int x1 = r.x1;

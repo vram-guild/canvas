@@ -442,6 +442,7 @@ public abstract class OcclusionRegion {
 		}
 	}
 
+	// PERF: do we need space for exterior positions in all cases?
 	static final int RENDERABLE_OFFSET = TOTAL_CACHE_WORDS;
 	static final int EXTERIOR_VISIBLE_OFFSET = RENDERABLE_OFFSET + TOTAL_CACHE_WORDS;
 	static final int WORD_COUNT = EXTERIOR_VISIBLE_OFFSET + TOTAL_CACHE_WORDS;
