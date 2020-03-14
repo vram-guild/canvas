@@ -39,7 +39,6 @@ import grondag.canvas.buffer.packing.VertexCollectorList;
 import grondag.canvas.chunk.DrawableChunk.Solid;
 import grondag.canvas.chunk.DrawableChunk.Translucent;
 import grondag.canvas.chunk.occlusion.OcclusionRegion;
-import grondag.canvas.chunk.occlusion.RegionOcclusionData;
 import grondag.canvas.material.MaterialContext;
 import grondag.canvas.material.MaterialState;
 import grondag.canvas.perf.ChunkRebuildCounters;
@@ -217,7 +216,7 @@ public class BuiltRenderRegion {
 
 		if (region == ProtoRenderRegion.EMPTY) {
 			final RegionData chunkData = new RegionData();
-			chunkData.setOcclusionData(RegionOcclusionData.EMPTY_DATA);
+			chunkData.setOcclusionData(OcclusionRegion.EMPTY_CULL_DATA);
 			buildData.set(chunkData);
 			renderData.set(chunkData);
 			return;
@@ -418,7 +417,7 @@ public class BuiltRenderRegion {
 
 		if (region == ProtoRenderRegion.EMPTY) {
 			final RegionData regionData = new RegionData();
-			regionData.setOcclusionData(RegionOcclusionData.EMPTY_DATA);
+			regionData.setOcclusionData(OcclusionRegion.EMPTY_CULL_DATA);
 			buildData.set(regionData);
 			return;
 		}

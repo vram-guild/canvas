@@ -15,13 +15,15 @@ public class RegionSlicer {
 
 	public final long[] outputBits = new long[WORD_COUNT];
 
-	long[] inputBits = new long[RenderRegionAddressHelper.INTERIOR_CACHE_WORDS];
+	private final long[] inputBits = new long[RenderRegionAddressHelper.INTERIOR_CACHE_WORDS];
 
-	public void copyAxisZ(long[] source, int startIndex) {
+	public void buildAxisZ(long[] source, int startIndex) {
 		System.arraycopy(source, startIndex, inputBits, 0, RenderRegionAddressHelper.INTERIOR_CACHE_WORDS);
+
+		build();
 	}
 
-	public void buildAxisZ() {
+	private void build() {
 		System.arraycopy(inputBits, 0, outputBits, 0, SLICE_WORD_COUNT);
 		System.arraycopy(inputBits, RenderRegionAddressHelper.INTERIOR_CACHE_WORDS - SLICE_WORD_COUNT, outputBits, RenderRegionAddressHelper.INTERIOR_CACHE_WORDS, SLICE_WORD_COUNT);
 
@@ -30,26 +32,75 @@ public class RegionSlicer {
 		}
 	}
 
-	public void copyAxisX(long[] source, int startIndex) {
-		/**
-		 *
-		 * AAA  BBB  CCC
-		 * AAA  BBB  CCC
-		 * AAA  BBB  CCC
-		 *
-		 * CCC  CCC  CCC
-		 * BBB  BBB  BBB
-		 * AAA  AAA  AAA
-		 */
-		System.arraycopy(source, startIndex, inputBits, 0, RenderRegionAddressHelper.INTERIOR_CACHE_WORDS);
+	private static final long X_MASK = 0x0001000100010001L;
+
+	public void buildAxisX(long[] source, int startIndex) {
+
+		final long[] input = inputBits;
+
+		long mask = X_MASK;
+
+		for (int i = 0; i < 16; i++) {
+			long a = 0;
+			long b = 0;
+			long c = 0;
+			long d = 0;
+
+			for (int j = 0; j < 16; j++) {
+				final int jIndex = j << 2;
+				final int offset = j - i;
+
+				a |= shift(offset, (source[jIndex] & mask));
+				b |= shift(offset, (source[jIndex + 1] & mask));
+				c |= shift(offset, (source[jIndex + 2] & mask));
+				d |= shift(offset, (source[jIndex + 3] & mask));
+			}
+
+			final int iIndex = i << 2;
+
+			input[iIndex]= a;
+			input[iIndex + 1]= b;
+			input[iIndex + 2]= c;
+			input[iIndex + 3]= d;
+
+			mask <<= 1;
+		}
+
+		build();
 	}
 
-	public void buildAxisX() {
-		System.arraycopy(inputBits, 0, outputBits, 0, SLICE_WORD_COUNT);
-		System.arraycopy(inputBits, RenderRegionAddressHelper.INTERIOR_CACHE_WORDS - SLICE_WORD_COUNT, outputBits, RenderRegionAddressHelper.INTERIOR_CACHE_WORDS, SLICE_WORD_COUNT);
+	private static final long Y_MASK = 0xFFFFL;
 
-		for (int i = 0; i < 15 * SLICE_WORD_COUNT; i++) {
-			outputBits[i + SLICE_WORD_COUNT] = inputBits[i] | inputBits[i + SLICE_WORD_COUNT];
+	public void buildAxisY(long[] source, int startIndex) {
+
+		final long[] input = inputBits;
+
+
+		for (int y = 0; y < 16; y++) {
+			final long ySrcShift =  (y & 3) << 4;
+			final int yTargetOffset = y << 2;
+			final int ySrcOffset = y >>> 2;
+
+			for (int zWord = 0; zWord < 4; zWord++) {
+				final int zSrcOffset = ySrcOffset + (zWord << 4);
+				long zResult = (source[zSrcOffset] >>> ySrcShift) & Y_MASK;
+				zResult |= ((source[zSrcOffset + 4] >>> ySrcShift) & Y_MASK) << 16;
+				zResult |= ((source[zSrcOffset + 8] >>> ySrcShift) & Y_MASK) << 32;
+				zResult |= ((source[zSrcOffset + 12] >>> ySrcShift) &  Y_MASK) << 48;
+				input[yTargetOffset + zWord] = zResult;
+			}
+		}
+
+		build();
+	}
+
+	private static long shift(int offset, long bits) {
+		if (offset < 0) {
+			return bits >>>= -offset;
+		} else if (offset > 0) {
+			return bits <<= offset;
+		} else {
+			return bits;
 		}
 	}
 }

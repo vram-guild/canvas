@@ -27,12 +27,6 @@ import static grondag.canvas.chunk.RenderRegionAddressHelper.localYEdgeIndex;
 import static grondag.canvas.chunk.RenderRegionAddressHelper.localYfaceIndex;
 import static grondag.canvas.chunk.RenderRegionAddressHelper.localZEdgeIndex;
 import static grondag.canvas.chunk.RenderRegionAddressHelper.localZfaceIndex;
-import static grondag.canvas.chunk.occlusion.RegionOcclusionData.X0;
-import static grondag.canvas.chunk.occlusion.RegionOcclusionData.X1;
-import static grondag.canvas.chunk.occlusion.RegionOcclusionData.Y0;
-import static grondag.canvas.chunk.occlusion.RegionOcclusionData.Y1;
-import static grondag.canvas.chunk.occlusion.RegionOcclusionData.Z0;
-import static grondag.canvas.chunk.occlusion.RegionOcclusionData.Z1;
 
 import it.unimi.dsi.fastutil.ints.IntArrayFIFOQueue;
 
@@ -282,9 +276,10 @@ public abstract class OcclusionRegion {
 		minRenderableX = minX;
 		minRenderableY = minY;
 		minRenderableZ = minZ;
-		maxRenderableX = maxX;
-		maxRenderableY = maxY;
-		maxRenderableZ = maxZ;
+		// handle cases when min and max are same - logic in loop won't catch
+		maxRenderableX = maxX < minX ? minX : maxX;
+		maxRenderableY = maxY < minY ? minY : maxY;
+		maxRenderableZ = maxZ < minZ ? minZ : maxZ;
 	}
 
 	private void visitSurfaceIfPossible(int x, int y, int z) {
@@ -299,67 +294,58 @@ public abstract class OcclusionRegion {
 		//		final RegionOcclusionData result = new RegionOcclusionData(null);
 		//
 		//		// determine which blocks are visible
-		boolean xPos = true;
-		boolean xNeg = true;
-		boolean yPos = true;
-		boolean yNeg = true;
-		boolean zPos = true;
-		boolean zNeg = true;
+		//		boolean xPos = true;
+		//		boolean xNeg = true;
+		//		boolean yPos = true;
+		//		boolean yNeg = true;
+		//		boolean zPos = true;
+		//		boolean zNeg = true;
 
 		for (int i = 0; i < 16; i++) {
 			for (int j = 0; j < 16; j++) {
 				if (!isClosed(localXfaceIndex(false, i, j))) {
 					visitSurfaceIfPossible(0, i, j);
-					xNeg = false;
+					//					xNeg = false;
 				}
 				if (!isClosed(localXfaceIndex(true, i, j))) {
 					visitSurfaceIfPossible(15, i, j);
-					xPos = false;
+					//					xPos = false;
 				}
 
 				if (!isClosed(localZfaceIndex(i, j, false))) {
 					visitSurfaceIfPossible(i, j, 0);
-					yNeg = false;
+					//					yNeg = false;
 				}
 
 				if (!isClosed(localZfaceIndex(i, j, true))) {
 					visitSurfaceIfPossible(i, j, 15);
-					yPos = false;
+					//					yPos = false;
 				}
 
 				if (!isClosed(localYfaceIndex(i, false, j))) {
 					visitSurfaceIfPossible(i, 0, j);
-					zNeg = false;
+					//					zNeg = false;
 				}
 
 				if (!isClosed(localYfaceIndex(i, true, j))) {
 					visitSurfaceIfPossible(i, 15, j);
-					zPos = false;
+					//					zPos = false;
 				}
 			}
 		}
 
 		hideInteriorClosedPositions();
 
-		final int[] result = new int[7];
+		final int[] result = new int[1];
 
 		if (minRenderableX == Integer.MAX_VALUE) {
-			RegionOcclusionData.isEmptyChunk(result, true);
-
+			result[CULL_DATA_CHUNK_BOUNDS] = PackedBox.EMPTY_BOX;
 		} else {
-			result[X0] = minRenderableX;
-			result[Y0] = minRenderableY;
-			result[Z0] = minRenderableZ;
-			result[X1] = maxRenderableX + 1;
-			result[Y1] = maxRenderableY + 1;
-			result[Z1] = maxRenderableZ + 1;
-
 			if ((minRenderableX | minRenderableY | minRenderableZ) == 0 && (maxRenderableX & maxRenderableY & maxRenderableZ) == 15) {
-				RegionOcclusionData.isFullChunkVisible(result, true);
-
-				if(xPos && xNeg && yPos && yNeg && zPos && zNeg) {
-					RegionOcclusionData.sameAsVisible(result, true);
-				}
+				result[CULL_DATA_CHUNK_BOUNDS] = PackedBox.FULL_BOX;
+			} else {
+				result[CULL_DATA_CHUNK_BOUNDS] = PackedBox.pack(minRenderableX, minRenderableY, minRenderableZ,
+						maxRenderableX + 1, maxRenderableY + 1, maxRenderableZ + 1);
 			}
 		}
 
@@ -475,4 +461,8 @@ public abstract class OcclusionRegion {
 			}
 		}
 	}
+
+	public static final int CULL_DATA_CHUNK_BOUNDS = 0;
+	public static final int CULL_DATA_FIRST_AREA = 1;
+	public static final int[] EMPTY_CULL_DATA = {PackedBox.EMPTY_BOX};
 }

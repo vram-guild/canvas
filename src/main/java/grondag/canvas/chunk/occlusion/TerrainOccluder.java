@@ -2,6 +2,7 @@ package grondag.canvas.chunk.occlusion;
 
 import net.minecraft.client.util.math.Matrix4f;
 import net.minecraft.client.util.math.Vector4f;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 
 // Some elements are adapted from content found at
@@ -178,16 +179,19 @@ public class TerrainOccluder {
 		return testQuad(x100, y100, x000, y000, x010, y010, x110, y110);
 	}
 
-	float viewX;
-	float viewY;
-	float viewZ;
-
-	public void prepareScene(Matrix4f mvpMatrix, float viewX, float viewY, float viewZ) {
+	public void prepareScene(Matrix4f mvpMatrix) {
 		this.mvpMatrix = mvpMatrix;
-		this.viewX = viewX;
-		this.viewY = viewY;
-		this.viewZ = viewZ;
 		System.arraycopy(EMPTY_BITS, 0, bits, 0, WORD_COUNT);
+	}
+
+	private int xOrigin;
+	private int yOrigin;
+	private int zOrigin;
+
+	public void prepareChunk(BlockPos origin) {
+		xOrigin = origin.getX();
+		yOrigin = origin.getY();
+		zOrigin = origin.getZ();
 	}
 
 	//	private boolean inFrustum() {
@@ -206,24 +210,32 @@ public class TerrainOccluder {
 		}
 	}
 
-	public boolean isVisible(int x0, int y0, int z0, int x1, int y1, int z1) {
-		switch (checkAxis(x0, y0, z0, x1, y1, z1)) {
-		default:
+	public boolean isChunkVisible()  {
+		final int faceFlags = computeProjectedBoxBounds(xOrigin, yOrigin, zOrigin, xOrigin + 16, yOrigin + 16, zOrigin + 16);
+		return testX(faceFlags) || testZ(faceFlags) || testY(faceFlags);
+	}
 
-		case AXIS_ALL:
-			final int faceFlags = computeProjectedBoxBounds(x0, y0, z0, x1, y1, z1);
-			return testX(faceFlags) || testZ(faceFlags) || testY(faceFlags);
+	public boolean isBoxVisible(int packedBox) {
+		final int xo = xOrigin;
+		final int yo = yOrigin;
+		final int zo = zOrigin;
 
-		case AXIS_X:
-			return testX(computeProjectedXBounds(x0, y0, z0, x1, y1, z1));
+		final int faceFlags = computeProjectedBoxBounds(
+				xo + PackedBox.x0(packedBox),
+				yo + PackedBox.y0(packedBox),
+				zo + PackedBox.z0(packedBox),
+				xo + PackedBox.x1(packedBox),
+				yo + PackedBox.y1(packedBox),
+				zo + PackedBox.z1(packedBox));
 
-		case AXIS_Y:
-			return testY(computeProjectedYBounds(x0, y0, z0, x1, y1, z1));
+		return testX(faceFlags) || testZ(faceFlags) || testY(faceFlags);
+	}
 
-		case AXIS_Z:
-			return testZ(computeProjectedZBounds(x0, y0, z0, x1, y1, z1));
-
-		}
+	public void occludeChunk()  {
+		final int faceFlags = computeProjectedBoxBounds(xOrigin, yOrigin, zOrigin, xOrigin + 16, yOrigin + 16, zOrigin + 16);
+		drawX(faceFlags);
+		drawY(faceFlags);
+		drawZ(faceFlags);
 	}
 
 	public void occlude(int x0, int y0, int z0, int x1, int y1, int z1) {

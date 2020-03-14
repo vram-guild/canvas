@@ -35,15 +35,36 @@ public class RegionSlicerTest {
 		}
 
 
-		slicer.copyAxisZ(sample, 0);
-		slicer.buildAxisZ();
+		slicer.buildAxisZ(sample, 0);
 
 		System.out.println();
-		System.out.println("OUTPUT");
+		System.out.println("OUTPUT - Z AXIS");
 
 		for(int z = 0; z <= 16; z++) {
 			System.out.println("Z = " + z);
 			TestUtils.printShape(slicer.outputBits, z * 4);
+			System.out.println();
+		}
+
+		slicer.buildAxisX(sample, 0);
+
+		System.out.println();
+		System.out.println("OUTPUT - X AXIS");
+
+		for(int x = 0; x <= 16; x++) {
+			System.out.println("X = " + x);
+			TestUtils.printShape(slicer.outputBits, x * 4);
+			System.out.println();
+		}
+
+		slicer.buildAxisY(sample, 0);
+
+		System.out.println();
+		System.out.println("OUTPUT - Y AXIS");
+
+		for(int y = 0; y <= 16; y++) {
+			System.out.println("Y = " + y);
+			TestUtils.printShape(slicer.outputBits, y * 4);
 			System.out.println();
 		}
 	}

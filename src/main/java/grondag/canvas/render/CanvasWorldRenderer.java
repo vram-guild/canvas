@@ -1,12 +1,5 @@
 package grondag.canvas.render;
 
-import static grondag.canvas.chunk.occlusion.RegionOcclusionData.X0;
-import static grondag.canvas.chunk.occlusion.RegionOcclusionData.X1;
-import static grondag.canvas.chunk.occlusion.RegionOcclusionData.Y0;
-import static grondag.canvas.chunk.occlusion.RegionOcclusionData.Y1;
-import static grondag.canvas.chunk.occlusion.RegionOcclusionData.Z0;
-import static grondag.canvas.chunk.occlusion.RegionOcclusionData.Z1;
-
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -67,7 +60,8 @@ import grondag.canvas.chunk.DrawableChunk;
 import grondag.canvas.chunk.RenderRegionBuilder;
 import grondag.canvas.chunk.RenderRegionStorage;
 import grondag.canvas.chunk.draw.DrawableDelegate;
-import grondag.canvas.chunk.occlusion.RegionOcclusionData;
+import grondag.canvas.chunk.occlusion.OcclusionRegion;
+import grondag.canvas.chunk.occlusion.PackedBox;
 import grondag.canvas.chunk.occlusion.TerrainOccluder;
 import grondag.canvas.draw.DrawHandler;
 import grondag.canvas.mixinterface.WorldRendererExt;
@@ -273,29 +267,31 @@ public class CanvasWorldRenderer {
 					continue;
 				}
 
-				final BlockPos pos =  builtChunk.getOrigin();
-				final int px = pos.getX();
-				final int py = pos.getY();
-				final int pz = pos.getZ();
+				occluder.prepareChunk(builtChunk.getOrigin());
 
-				if (!chunkCullingEnabled || occluder.isVisible(px, py, pz, px + 16, py + 16, pz + 16)) {
+				if (!chunkCullingEnabled || occluder.isChunkVisible()) {
 					visibleChunks[visibleChunkCount++] = builtChunk;
-
 					final int[] visData =  builtChunk.getBuildData().getOcclusionData();
 
 					if (visData == null) {
 						builtChunk.canRenderTerrain = false;
-						occluder.occlude(px, py, pz, px + 16, py + 16, pz + 16);
-					} else if (RegionOcclusionData.isEmptyChunk(visData)) {
-						builtChunk.canRenderTerrain = false;
-					} else if (RegionOcclusionData.isFullChunkVisible(visData) || occluder.isVisible(px + visData[X0], py + visData[Y0], pz + visData[Z0], px + visData[X1], py + visData[Y1], pz + visData[Z1])) {
-						builtChunk.canRenderTerrain = true;
-
-						if (RegionOcclusionData.sameAsVisible(visData)) {
-							occluder.occlude(px + visData[X0], py + visData[Y0], pz + visData[Z0], px + visData[X1], py + visData[Y1], pz + visData[Z1]);
-						}
+						occluder.occludeChunk();
 					} else {
-						builtChunk.canRenderTerrain = false;
+						final int chunkRenderBounds = visData[OcclusionRegion.CULL_DATA_CHUNK_BOUNDS];
+
+						if (chunkRenderBounds == PackedBox.EMPTY_BOX) {
+							builtChunk.canRenderTerrain = false;
+						} else if (chunkRenderBounds == PackedBox.FULL_BOX || occluder.isBoxVisible(chunkRenderBounds)) {
+							builtChunk.canRenderTerrain = true;
+							final int limit = visData.length;
+
+							if (limit > 1) {
+								// TODO
+								//							occluder.occlude(px + visData[X0], py + visData[Y0], pz + visData[Z0], px + visData[X1], py + visData[Y1], pz + visData[Z1]);
+							}
+						} else {
+							builtChunk.canRenderTerrain = false;
+						}
 					}
 				} else {
 					continue;
@@ -444,7 +440,7 @@ public class CanvasWorldRenderer {
 		mvpMatrix.multiply(modelMatrix);
 		mvpMatrix.multiply(Matrix4f.translate((float) -cameraX, (float) -cameraY, (float) -cameraZ));
 
-		occluder.prepareScene(mvpMatrix, (float) cameraX, (float) cameraY, (float) cameraZ);
+		occluder.prepareScene(mvpMatrix);
 
 		profiler.swap("culling");
 
@@ -704,9 +700,9 @@ public class CanvasWorldRenderer {
 				vertexConsumerProvider2 = outlineVertexConsumerProvider;
 				final int k = entity.getTeamColorValue();
 				final int u = k >> 16 & 255;
-		final int v = k >> 8 & 255;
-		x = k & 255;
-		outlineVertexConsumerProvider.setColor(u, v, x, 255);
+				final int v = k >> 8 & 255;
+				x = k & 255;
+				outlineVertexConsumerProvider.setColor(u, v, x, 255);
 			} else {
 				vertexConsumerProvider2 = immediate;
 			}
