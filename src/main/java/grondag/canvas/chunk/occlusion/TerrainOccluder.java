@@ -238,6 +238,47 @@ public class TerrainOccluder {
 		drawZ(faceFlags);
 	}
 
+	public void occlude(int[] visData, int squaredCameraDistance) {
+		final int limit= visData.length;
+		final boolean far = squaredCameraDistance > 400;
+
+		if (limit > 1) {
+			for (int i = 1; i < limit; i++) {
+				final int bounds  = visData[i];
+
+				if (far && OcclusionBounds.size(bounds) < 64) {
+					break;
+				}
+
+				switch (OcclusionBounds.face(bounds)) {
+				case OcclusionBounds.FACE_DOWN:
+				case OcclusionBounds.FACE_UP:
+					final int y = OcclusionBounds.depth(bounds);
+					drawY(computeProjectedYBounds(
+							OcclusionBounds.u0(bounds), y, OcclusionBounds.v0(bounds),
+							OcclusionBounds.u1(bounds), y, OcclusionBounds.v1(bounds)));
+					break;
+
+				case OcclusionBounds.FACE_EAST:
+				case OcclusionBounds.FACE_WEST:
+					final int x = OcclusionBounds.depth(bounds);
+					drawX(computeProjectedYBounds(
+							x, OcclusionBounds.v0(bounds), OcclusionBounds.u0(bounds),
+							x, OcclusionBounds.v1(bounds), OcclusionBounds.u1(bounds)));
+					break;
+
+				case OcclusionBounds.FACE_NORTH:
+				case OcclusionBounds.FACE_SOUTH:
+					final int z = OcclusionBounds.depth(bounds);
+					drawZ(computeProjectedYBounds(
+							OcclusionBounds.u0(bounds), OcclusionBounds.v0(bounds), z,
+							OcclusionBounds.u1(bounds), OcclusionBounds.v1(bounds),  z));
+					break;
+				}
+			}
+		}
+	}
+
 	public void occlude(int x0, int y0, int z0, int x1, int y1, int z1) {
 		switch (checkAxis(x0, y0, z0, x1, y1, z1)) {
 		default:

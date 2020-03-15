@@ -283,12 +283,7 @@ public class CanvasWorldRenderer {
 							builtChunk.canRenderTerrain = false;
 						} else if (chunkRenderBounds == PackedBox.FULL_BOX || occluder.isBoxVisible(chunkRenderBounds)) {
 							builtChunk.canRenderTerrain = true;
-							final int limit = visData.length;
-
-							if (limit > 1) {
-								// TODO
-								//							occluder.occlude(px + visData[X0], py + visData[Y0], pz + visData[Z0], px + visData[X1], py + visData[Y1], pz + visData[Z1]);
-							}
+							occluder.occlude(visData, builtChunk.squaredCameraDistance());
 						} else {
 							builtChunk.canRenderTerrain = false;
 						}
@@ -700,9 +695,9 @@ public class CanvasWorldRenderer {
 				vertexConsumerProvider2 = outlineVertexConsumerProvider;
 				final int k = entity.getTeamColorValue();
 				final int u = k >> 16 & 255;
-				final int v = k >> 8 & 255;
-				x = k & 255;
-				outlineVertexConsumerProvider.setColor(u, v, x, 255);
+		final int v = k >> 8 & 255;
+		x = k & 255;
+		outlineVertexConsumerProvider.setColor(u, v, x, 255);
 			} else {
 				vertexConsumerProvider2 = immediate;
 			}

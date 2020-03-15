@@ -1,16 +1,14 @@
 package grondag.canvas.chunk.occlusion;
 
-import net.minecraft.util.math.Direction;
-
 public abstract class OcclusionBounds {
 	private OcclusionBounds() {}
 
-	public static final int FACE_UP = Direction.UP.ordinal();
-	public static final int FACE_DOWN = Direction.DOWN.ordinal();
-	public static final int FACE_EAST = Direction.EAST.ordinal();
-	public static final int FACE_WEST = Direction.WEST.ordinal();
-	public static final int FACE_NORTH = Direction.NORTH.ordinal();
-	public static final int FACE_SOUTH = Direction.SOUTH.ordinal();
+	public static final int FACE_DOWN = 0;
+	public static final int FACE_UP = 1;
+	public static final int FACE_NORTH = 2;
+	public static final int FACE_SOUTH = 3;
+	public static final int FACE_WEST = 4;
+	public static final int FACE_EAST = 5;
 
 	private static final int SHIFT_U0 = 0;
 	private static final int SHIFT_V0 = SHIFT_U0 + 4;
