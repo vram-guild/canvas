@@ -57,6 +57,7 @@ import net.minecraft.util.profiler.Profiler;
 import grondag.canvas.buffer.allocation.VboBuffer;
 import grondag.canvas.chunk.BuiltRenderRegion;
 import grondag.canvas.chunk.DrawableChunk;
+import grondag.canvas.chunk.RegionData;
 import grondag.canvas.chunk.RenderRegionBuilder;
 import grondag.canvas.chunk.RenderRegionStorage;
 import grondag.canvas.chunk.draw.DrawableDelegate;
@@ -91,14 +92,14 @@ public class CanvasWorldRenderer {
 	public void stopOuterTimer() {
 		final long outerElapsed = outerTimer.elapsed();
 
-		if (outerTimer.stop()) {
-			System.out.println("Avg inner runs per frame = " + innerTimer.hits() / 100); // 100 because outer runs 2X per frame
-			System.out.println("Inner elapsed is " + 100 * innerTimer.elapsed() / outerElapsed + "% of outer");
-			System.out.println("Visible chunk count = " + completedChunkCount());
-			System.out.println("lastSolidCount = " + lastSolidCount + "   lastTranlsucentCount = " + lastTranlsucentCount);
-			innerTimer.reportAndClear();
-			System.out.println();
-		}
+		//		if (outerTimer.stop()) {
+		//			System.out.println("Avg inner runs per frame = " + innerTimer.hits() / 100); // 100 because outer runs 2X per frame
+		//			System.out.println("Inner elapsed is " + 100 * innerTimer.elapsed() / outerElapsed + "% of outer");
+		//			System.out.println("Visible chunk count = " + completedChunkCount());
+		//			System.out.println("lastSolidCount = " + lastSolidCount + "   lastTranlsucentCount = " + lastTranlsucentCount);
+		//			innerTimer.reportAndClear();
+		//			System.out.println();
+		//		}
 	}
 	//outerTimer.start();
 	//stopOuterTimer();
@@ -205,12 +206,9 @@ public class CanvasWorldRenderer {
 
 		world.getProfiler().swap("cull");
 		mc.getProfiler().swap("culling");
-		//final BlockPos cameraBlockPos = camera.getBlockPos();
-
-
-
-		//		final int cameraChunkIndex = chunkStorage.getRegionIndexSafely(cameraBlockPos);
-		//		final BuiltRenderRegion cameraChunk = cameraChunkIndex == -1 ? null : regions[cameraChunkIndex];
+		final BlockPos cameraBlockPos = camera.getBlockPos();
+		final int cameraChunkIndex = chunkStorage.getRegionIndexSafely(cameraBlockPos);
+		final BuiltRenderRegion cameraChunk = cameraChunkIndex == -1 ? null : regions[cameraChunkIndex];
 
 		mc.getProfiler().swap("update");
 		int visibleChunkCount = this.visibleChunkCount;
@@ -269,9 +267,10 @@ public class CanvasWorldRenderer {
 
 				occluder.prepareChunk(builtChunk.getOrigin());
 
-				if (!chunkCullingEnabled || occluder.isChunkVisible()) {
+				if (!chunkCullingEnabled || builtChunk == cameraChunk || occluder.isChunkVisible()) {
 					visibleChunks[visibleChunkCount++] = builtChunk;
-					final int[] visData =  builtChunk.getBuildData().getOcclusionData();
+					final RegionData regionData = builtChunk.getBuildData();
+					final int[] visData =  regionData.getOcclusionData();
 
 					if (visData == null) {
 						builtChunk.canRenderTerrain = false;
@@ -281,9 +280,13 @@ public class CanvasWorldRenderer {
 
 						if (chunkRenderBounds == PackedBox.EMPTY_BOX) {
 							builtChunk.canRenderTerrain = false;
-						} else if (chunkRenderBounds == PackedBox.FULL_BOX || occluder.isBoxVisible(chunkRenderBounds)) {
+						} else if (chunkRenderBounds == PackedBox.FULL_BOX || occluder.isBoxVisible(chunkRenderBounds) || builtChunk == cameraChunk) {
 							builtChunk.canRenderTerrain = true;
+
+							// TODO: remove
+							occluder.isHacked = regionData.isHacked;
 							occluder.occlude(visData, builtChunk.squaredCameraDistance());
+
 						} else {
 							builtChunk.canRenderTerrain = false;
 						}
@@ -431,11 +434,11 @@ public class CanvasWorldRenderer {
 		final double cameraZ = vec3d.getZ();
 		final Matrix4f modelMatrix = matrixStack.peek().getModel();
 
-		final Matrix4f mvpMatrix = projectionMatrix.copy();
-		mvpMatrix.multiply(modelMatrix);
-		mvpMatrix.multiply(Matrix4f.translate((float) -cameraX, (float) -cameraY, (float) -cameraZ));
+		//final Matrix4f mvpMatrix = projectionMatrix.copy();
+		//mvpMatrix.multiply(modelMatrix);
+		//mvpMatrix.multiply(Matrix4f.translate((float) -cameraX, (float) -cameraY, (float) -cameraZ));
 
-		occluder.prepareScene(mvpMatrix);
+		occluder.prepareScene(projectionMatrix, modelMatrix, camera);
 
 		profiler.swap("culling");
 

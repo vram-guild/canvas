@@ -29,14 +29,20 @@ import static grondag.canvas.chunk.RenderRegionAddressHelper.localZEdgeIndex;
 import static grondag.canvas.chunk.RenderRegionAddressHelper.localZfaceIndex;
 
 import it.unimi.dsi.fastutil.ints.IntArrayFIFOQueue;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
 
 import net.minecraft.block.BlockRenderType;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
 
 public abstract class OcclusionRegion {
 	private final IntArrayFIFOQueue queue = new IntArrayFIFOQueue();
 	private final long[] bits = new long[WORD_COUNT];
 	private int openCount;
+	private final BoxFinder boxFinder = new BoxFinder();
+
+	// TODO: remove
+	public boolean isHacked = false;
 
 	public void prepare() {
 		System.arraycopy(EMPTY_BITS, 0, bits, 0, WORD_COUNT);
@@ -45,6 +51,7 @@ public abstract class OcclusionRegion {
 		captureCorners();
 
 		openCount = TOTAL_CACHE_SIZE;
+		isHacked = false;
 		captureInterior();
 	}
 
@@ -76,8 +83,13 @@ public abstract class OcclusionRegion {
 	private void captureInteriorVisbility(int index, int x, int y, int z) {
 		final BlockState blockState = blockStateAtIndex(index);
 
+		// TODO: remove/restore
+		final boolean isHack = blockState.getBlock() == Blocks.WHITE_STAINED_GLASS;
+		isHacked |= isHack;
+
 		if(blockState.getRenderType() != BlockRenderType.INVISIBLE || !blockState.getFluidState().isEmpty()) {
-			setVisibility(index, true, closedAtRelativePos(blockState, x, y, z));
+			setVisibility(index, true, closedAtRelativePos(blockState, x, y, z) || isHack);
+			//setVisibility(index, true, closedAtRelativePos(blockState, x, y, z));
 		}
 	}
 
@@ -198,7 +210,8 @@ public abstract class OcclusionRegion {
 	 * Probably less expensive than a flood fill when small number of closed position
 	 * and used in that scenario.
 	 */
-	private void hideClosedPositions() {
+	private void hideUnexposedPositions() {
+		// TODO: broken?  Remove or fix and use - only seems to work for single block voids
 		for (int i = 0; i < INTERIOR_CACHE_SIZE; i++) {
 			final long mask = (1L << (i & 63));
 			final int wordIndex = (i >> 6) + RENDERABLE_OFFSET;
@@ -226,7 +239,7 @@ public abstract class OcclusionRegion {
 	private int maxRenderableZ;
 
 	/**
-	 * Removes renderable flag if position has no open neighbors and is not visible from exterior.
+	 * Removes renderable flag and marks closed if position has no open neighbors and is not visible from exterior.
 	 */
 	private void hideInteriorClosedPositions() {
 		int minX = Integer.MAX_VALUE;
@@ -251,6 +264,8 @@ public abstract class OcclusionRegion {
 						&& isClosed(fastRelativeCacheIndex(x, y, z - 1)) && isClosed(fastRelativeCacheIndex(x, y, z + 1))) {
 
 					bits[wordIndex + RENDERABLE_OFFSET] &= ~mask;
+					// mark it opaque
+					bits[wordIndex] |= mask;
 				} else {
 					if (x < minX) {
 						minX = x;
@@ -336,7 +351,33 @@ public abstract class OcclusionRegion {
 
 		hideInteriorClosedPositions();
 
-		final int[] result = new int[1];
+		final BoxFinder boxFinder = this.boxFinder;
+		final IntArrayList boxes = boxFinder.boxes;
+
+		if (isHacked) {
+			boxFinder.findBoxes(bits, 0);
+		} else {
+			boxFinder.findBoxes(bits, 0);
+		}
+
+		final int limit = boxes.size();
+
+		final int[] result = new int[limit + 1];
+
+		if (limit > 0) {
+			for (int i = 0; i < limit; i++) {
+				// TODO: remove
+				if (isHacked) {
+					System.out.println(PackedBox.toString(boxes.getInt(i)));
+				}
+
+				result[i + 1] = boxes.getInt(i);
+			}
+
+			if (isHacked) {
+				System.out.println();
+			}
+		}
 
 		if (minRenderableX == Integer.MAX_VALUE) {
 			result[CULL_DATA_CHUNK_BOUNDS] = PackedBox.EMPTY_BOX;
@@ -353,18 +394,20 @@ public abstract class OcclusionRegion {
 	}
 
 	public int[] build() {
-		final int closedCount = 4096 - openCount;
+		//		final int closedCount = 4096 - openCount;
 
-		if (closedCount < 256) {
-
-			if(closedCount > 7) {
-				// hide unexposed blocks
-				hideClosedPositions();
-			}
-
-			// all chunk faces thru-visible
-			//return ALL_OPEN;
-		} else if (openCount == 0) {
+		//		if (closedCount < 256) {
+		//
+		//			if(closedCount > 7) {
+		//				// hide unexposed blocks
+		//				// TODO: remove ? Seems to be redundant of clearInteriorRenderable, also - doesn't work
+		//				hideUnexposedPositions();
+		//			}
+		//
+		//			// all chunk faces thru-visible
+		//			//return ALL_OPEN;
+		//		} else if (openCount == 0) {
+		if (openCount == 0) {
 			// only surface blocks are visible, and only if not covered
 			adjustSurfaceVisbility();
 
@@ -372,7 +415,13 @@ public abstract class OcclusionRegion {
 			//return ALL_CLOSED;
 		}
 
-		return computeOcclusion();
+		// TODO: remove
+		if (isHacked) {
+			return computeOcclusion();
+		} else {
+			return computeOcclusion();
+		}
+
 	}
 
 	private  void fill(int xyz4) {

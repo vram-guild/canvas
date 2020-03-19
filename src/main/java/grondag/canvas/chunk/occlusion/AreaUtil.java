@@ -63,8 +63,8 @@ public class AreaUtil {
 		return result;
 	}
 
-	public static boolean includes(long template, long candidate) {
-		return (template & candidate) == template;
+	public static boolean sampleIncludes(long template, long sample) {
+		return (template & sample) == template;
 	}
 
 	public static void clearAreaFromWords(Area r, long[] areaWords) {

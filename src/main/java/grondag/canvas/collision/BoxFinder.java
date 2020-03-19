@@ -8,7 +8,6 @@ import it.unimi.dsi.fastutil.longs.LongIterator;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 
 import grondag.canvas.CanvasMod;
-import grondag.canvas.collision.BoxFinderUtils.Slice;
 import grondag.canvas.collision.octree.OctreeCoordinates.IAreaBoundsIntFunction;
 import grondag.fermion.bits.BitHelper;
 

@@ -270,6 +270,8 @@ public abstract class RenderRegionAddressHelper {
 
 	public static final int EXTERIOR_CACHE_SIZE = TOTAL_CACHE_SIZE - INTERIOR_CACHE_SIZE;
 
+	/** number of long words per dimensional unit.  Default orientation sliced on z axis */
+	public static final int SLICE_WORD_COUNT = 4;
 	public static final int INTERIOR_CACHE_WORDS = INTERIOR_CACHE_SIZE / 64;
 	public static final int EXTERIOR_CACHE_WORDS = (EXTERIOR_CACHE_SIZE + 63) / 64;
 	public static final int TOTAL_CACHE_WORDS = INTERIOR_CACHE_WORDS + EXTERIOR_CACHE_WORDS;

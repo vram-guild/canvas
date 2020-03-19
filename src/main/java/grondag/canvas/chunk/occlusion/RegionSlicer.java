@@ -1,6 +1,7 @@
 package grondag.canvas.chunk.occlusion;
 
-import grondag.canvas.chunk.RenderRegionAddressHelper;
+import static grondag.canvas.chunk.RenderRegionAddressHelper.INTERIOR_CACHE_WORDS;
+import static grondag.canvas.chunk.RenderRegionAddressHelper.SLICE_WORD_COUNT;
 
 /**
  * Copies data from a render region and finds occluding rectangles for each axis.<p>
@@ -10,22 +11,21 @@ import grondag.canvas.chunk.RenderRegionAddressHelper;
 public class RegionSlicer {
 	// We have an extra unit of words on the slicing dimension because we slice
 	// on inter-block planes vs through block centers.
-	static final int SLICE_WORD_COUNT = 4;
-	static final int WORD_COUNT = RenderRegionAddressHelper.INTERIOR_CACHE_WORDS + SLICE_WORD_COUNT;
+	static final int WORD_COUNT = INTERIOR_CACHE_WORDS + SLICE_WORD_COUNT;
 
 	public final long[] outputBits = new long[WORD_COUNT];
 
-	private final long[] inputBits = new long[RenderRegionAddressHelper.INTERIOR_CACHE_WORDS];
+	private final long[] inputBits = new long[INTERIOR_CACHE_WORDS];
 
 	public void buildAxisZ(long[] source, int startIndex) {
-		System.arraycopy(source, startIndex, inputBits, 0, RenderRegionAddressHelper.INTERIOR_CACHE_WORDS);
+		System.arraycopy(source, startIndex, inputBits, 0, INTERIOR_CACHE_WORDS);
 
 		build();
 	}
 
 	private void build() {
 		System.arraycopy(inputBits, 0, outputBits, 0, SLICE_WORD_COUNT);
-		System.arraycopy(inputBits, RenderRegionAddressHelper.INTERIOR_CACHE_WORDS - SLICE_WORD_COUNT, outputBits, RenderRegionAddressHelper.INTERIOR_CACHE_WORDS, SLICE_WORD_COUNT);
+		System.arraycopy(inputBits, INTERIOR_CACHE_WORDS - SLICE_WORD_COUNT, outputBits, INTERIOR_CACHE_WORDS, SLICE_WORD_COUNT);
 
 		for (int i = 0; i < 15 * SLICE_WORD_COUNT; i++) {
 			outputBits[i + SLICE_WORD_COUNT] = inputBits[i] | inputBits[i + SLICE_WORD_COUNT];

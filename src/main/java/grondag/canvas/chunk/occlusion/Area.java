@@ -15,13 +15,13 @@ public class Area {
 
 	private final long[] bits = new long[4];
 
-	boolean matches(long[] bits) {
-		final long[] myBits = this.bits;
+	boolean isIncludedBySample(long[] sample, int sampleStart) {
+		final long[] myBits = bits;
 
-		return AreaUtil.includes(myBits[0], bits[0])
-				&& AreaUtil.includes(myBits[1], bits[1])
-				&& AreaUtil.includes(myBits[2], bits[2])
-				&& AreaUtil.includes(myBits[3], bits[3]);
+		return AreaUtil.sampleIncludes(myBits[0], sample[sampleStart])
+				&& AreaUtil.sampleIncludes(myBits[1], sample[sampleStart + 1])
+				&& AreaUtil.sampleIncludes(myBits[2], sample[sampleStart + 2])
+				&& AreaUtil.sampleIncludes(myBits[3], sample[sampleStart + 3]);
 	}
 
 	public boolean intersects(Area other) {

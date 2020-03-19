@@ -26,6 +26,9 @@ public class RegionData {
 
 	@Nullable int[] translucentState;
 
+	//  TODO: removed
+	public boolean isHacked;
+
 	public List<BlockEntity> getBlockEntities() {
 		return blockEntities;
 	}

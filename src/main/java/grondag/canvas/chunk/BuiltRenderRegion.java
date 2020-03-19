@@ -307,6 +307,7 @@ public class BuiltRenderRegion {
 	private RegionData buildRegionData(TerrainRenderContext context) {
 		final RegionData regionData = new RegionData();
 		regionData.setOcclusionData(context.region.occlusion.build());
+		regionData.isHacked = context.region.occlusion.isHacked;
 		handleBlockEntities(regionData, context);
 		buildData.set(regionData);
 		return regionData;
