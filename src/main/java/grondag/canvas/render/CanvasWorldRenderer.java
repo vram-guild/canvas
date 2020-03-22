@@ -205,6 +205,7 @@ public class CanvasWorldRenderer {
 		if (!capturedFrustum && wr.canvas_checkNeedsTerrainUpdate(cameraPos, camera.getPitch(), camera.getYaw())) {
 			wr.canvas_setNeedsTerrainUpdate(false);
 			visibleChunkCount = 0;
+			occluder.clearScene();
 
 			Entity.setRenderDistanceMultiplier(MathHelper.clamp(mc.options.viewDistance / 8.0D, 1.0D, 2.5D));
 			final boolean chunkCullingEnabled = mc.chunkCullingEnabled;

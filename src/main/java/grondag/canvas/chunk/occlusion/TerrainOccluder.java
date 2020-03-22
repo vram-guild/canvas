@@ -19,13 +19,22 @@ import grondag.canvas.render.CanvasWorldRenderer;
 // by Fabian “ryg” Giesen. That content is in the public domain.
 
 public class TerrainOccluder {
-	static final int HALF_WIDTH = 128;
-	private static final int WIDTH = HALF_WIDTH * 2;
-	static final int HALF_HEIGHT = 64;
-	private static final int HEIGHT = HALF_HEIGHT * 2;
-	private static final int SHIFT = Integer.bitCount(WIDTH - 1);
+	static final int WORD_AXIS_SHIFT = 3;
+	static final int WORD_PIXEL_DIAMETER = 1 << WORD_AXIS_SHIFT;
+	static final int WORD_PIXEL_INDEX_MASK = WORD_PIXEL_DIAMETER - 1;
+	static final int WORD_PIXEL_INVERSE_MASK = ~WORD_PIXEL_INDEX_MASK;
 
-	private static final int WORD_COUNT = WIDTH * HEIGHT / 64;
+	private static final int WIDTH_WORDS = 32;
+	private static final int WIDTH = WIDTH_WORDS * WORD_PIXEL_DIAMETER;
+	static final int HALF_WIDTH = WIDTH / 2;
+
+	private static final int HEIGHT_WORDS = 16;
+	private static final int HEIGHT = HEIGHT_WORDS * WORD_PIXEL_DIAMETER;
+	static final int HALF_HEIGHT = HEIGHT / 2;
+	private static final int HEIGHT_WORD_SHIFT = Integer.bitCount(WIDTH_WORDS - 1);
+	private static final int HEIGHT_WORD_RELATIVE_SHIFT = HEIGHT_WORD_SHIFT - WORD_AXIS_SHIFT;
+
+	private static final int WORD_COUNT = WIDTH_WORDS * HEIGHT_WORDS;
 
 	private static final long[] EMPTY_BITS = new long[WORD_COUNT];
 
@@ -113,6 +122,9 @@ public class TerrainOccluder {
 		cameraX = vec3d.getX();
 		cameraY = vec3d.getY();
 		cameraZ = vec3d.getZ();
+	}
+
+	public void clearScene() {
 		System.arraycopy(EMPTY_BITS, 0, bits, 0, WORD_COUNT);
 	}
 
@@ -556,8 +568,7 @@ public class TerrainOccluder {
 	}
 
 	private void drawPixel(int x, int y) {
-		final int addr = (y << SHIFT) | x;
-		bits[addr >> 6] |= (1L << (addr & 63));
+		bits[wordIndex(x, y)] |= (1L << (pixelIndex(x, y)));
 	}
 
 	private boolean testTri(Lazy4f v0, Lazy4f v1, Lazy4f v2) {
@@ -643,42 +654,53 @@ public class TerrainOccluder {
 		return false;
 	}
 
-	private boolean testPixel(int x, int y) {
-		final int addr = (y << SHIFT) | x;
-		return (bits[addr >> 6] & (1L << (addr & 63))) == 0;
+	private static int wordIndex(int x, int y)  {
+		return  ((y & WORD_PIXEL_INVERSE_MASK) << HEIGHT_WORD_RELATIVE_SHIFT) | (x >> WORD_AXIS_SHIFT);
 	}
 
-	private int tickCounter;
+	private static int pixelIndex(int x, int y)  {
+		return  ((y & WORD_PIXEL_INDEX_MASK) << WORD_AXIS_SHIFT) | (x & WORD_PIXEL_INDEX_MASK);
+	}
+
+	private boolean testPixel(int x, int y) {
+		return (bits[wordIndex(x, y)] & (1L << (pixelIndex(x, y)))) == 0;
+	}
+
+	private long nextTime;
 	private static final boolean DISABLE_RASTER_OUTPUT = !Configurator.debugOcclusionRaster;
 
 	public void outputRaster() {
-		if (DISABLE_RASTER_OUTPUT || --tickCounter > 0) {
+		if (DISABLE_RASTER_OUTPUT) {
 			return;
 		}
 
-		tickCounter = 200;
+		final long t = System.currentTimeMillis();
 
-		final NativeImage nativeImage = new NativeImage(WIDTH, HEIGHT, false);
+		if (t >= nextTime) {
+			nextTime = t + 1000;
 
-		for (int x = 0; x < WIDTH; x++) {
-			for (int y = 0; y < HEIGHT; y++) {
-				nativeImage.setPixelRgba(x, y, testPixel(x, y) ? -1 :0xFF000000);
+			final NativeImage nativeImage = new NativeImage(WIDTH, HEIGHT, false);
+
+			for (int x = 0; x < WIDTH; x++) {
+				for (int y = 0; y < HEIGHT; y++) {
+					nativeImage.setPixelRgba(x, y, testPixel(x, y) ? -1 :0xFF000000);
+				}
 			}
+
+			nativeImage.mirrorVertically();
+
+			final File file = new File(MinecraftClient.getInstance().runDirectory, "canvas_occlusion_raster.png");
+
+			ResourceImpl.RESOURCE_IO_EXECUTOR.execute(() -> {
+				try {
+					nativeImage.writeFile(file);
+				} catch (final Exception e) {
+					CanvasMod.LOG.warn("Couldn't save occluder image", e);
+				} finally {
+					nativeImage.close();
+				}
+
+			});
 		}
-
-		nativeImage.mirrorVertically();
-
-		final File file = new File(MinecraftClient.getInstance().runDirectory, "canvas_occlusion_raster.png");
-
-		ResourceImpl.RESOURCE_IO_EXECUTOR.execute(() -> {
-			try {
-				nativeImage.writeFile(file);
-			} catch (final Exception e) {
-				CanvasMod.LOG.warn("Couldn't save occluder image", e);
-			} finally {
-				nativeImage.close();
-			}
-
-		});
 	}
 }
