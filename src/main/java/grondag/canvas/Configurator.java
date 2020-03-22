@@ -449,6 +449,9 @@ public class Configurator {
 		}
 	}
 
+	// TODO: add real config for this
+	public static boolean debugOcclusionRaster = false;
+
 	// LEGACY STUFF
 
 	//    @LangKey("config.acuity_enable_vao")
@@ -460,6 +463,7 @@ public class Configurator {
 	//    @Comment({"Enable fancy water and lava rendering.",
 	//        " This feature is currently work in progress and has no visible effect if enabled."})
 	public static boolean fancyFluids = false;
+
 
 
 	//    @LangKey("config.disable_yield")

@@ -46,9 +46,6 @@ public abstract class OcclusionRegion {
 	private int maxRenderableY;
 	private int maxRenderableZ;
 
-	// TODO: remove
-	public boolean isHacked = false;
-
 	public void prepare() {
 		System.arraycopy(EMPTY_BITS, 0, bits, 0, WORD_COUNT);
 		captureFaces();
@@ -56,7 +53,6 @@ public abstract class OcclusionRegion {
 		captureCorners();
 
 		openCount = INTERIOR_CACHE_SIZE;
-		isHacked = false;
 		captureInterior();
 	}
 
@@ -88,9 +84,8 @@ public abstract class OcclusionRegion {
 	private void captureInteriorVisbility(int index, int x, int y, int z) {
 		final BlockState blockState = blockStateAtIndex(index);
 
-		// TODO: remove/restore
+		// TODO: remove or make configurable
 		final boolean isHack = blockState.getBlock() == Blocks.WHITE_STAINED_GLASS;
-		isHacked |= isHack;
 
 		if(blockState.getRenderType() != BlockRenderType.INVISIBLE || !blockState.getFluidState().isEmpty()) {
 			setVisibility(index, true, closedAtRelativePos(blockState, x, y, z) || isHack);
@@ -343,11 +338,6 @@ public abstract class OcclusionRegion {
 		final BoxFinder boxFinder = this.boxFinder;
 		final IntArrayList boxes = boxFinder.boxes;
 
-		// TODO: remove
-		if (boxFinder.areaFinder.hacked) {
-			OcclusionBitPrinter.printRegion("INPUT", bits, 0);
-		}
-
 		boxFinder.findBoxes(bits, 0);
 
 		final int limit = boxes.size();
@@ -356,16 +346,7 @@ public abstract class OcclusionRegion {
 
 		if (limit > 0) {
 			for (int i = 0; i < limit; i++) {
-				// TODO: remove
-				if (isHacked) {
-					System.out.println(PackedBox.toString(boxes.getInt(i)));
-				}
-
 				result[i + 1] = boxes.getInt(i);
-			}
-
-			if (isHacked) {
-				System.out.println();
 			}
 		}
 
@@ -396,12 +377,7 @@ public abstract class OcclusionRegion {
 			result[CULL_DATA_FIRST_AREA] = PackedBox.FULL_BOX;
 			return result;
 		} else {
-			// TODO: remove
-			if (isHacked) {
-				return computeOcclusion();
-			} else {
-				return computeOcclusion();
-			}
+			return computeOcclusion();
 		}
 	}
 

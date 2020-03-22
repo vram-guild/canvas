@@ -68,7 +68,6 @@ public class BuiltRenderRegion {
 		this.renderRegionBuilder = renderRegionBuilder;
 		buildData = new AtomicReference<>(RegionData.EMPTY);
 		renderData = new AtomicReference<>(RegionData.EMPTY);
-		//frameIndex = -1;
 		needsRebuild = true;
 		origin = new BlockPos.Mutable(-1, -1, -1);
 	}
@@ -305,19 +304,8 @@ public class BuiltRenderRegion {
 	}
 
 	private RegionData buildRegionData(TerrainRenderContext context) {
-
-		//TODO: remove
-		//		if ((origin.getX() >> 4) == 6 && (origin.getY() >> 4) == 4 && (origin.getZ() >> 4) == -1) {
-		//		if (origin.getX() == (32 & 0xFFFFFFF0) &&  origin.getY() == (63 & 0xFFFFFFF0) && origin.getZ() == (-33 & 0xFFFFFFF0)) {
-		//			System.out.println("boop");
-		//			context.region.occlusion.boxFinder.areaFinder.hacked = true;
-		//		} else {
-		//			context.region.occlusion.boxFinder.areaFinder.hacked = false;
-		//		}
-
 		final RegionData regionData = new RegionData();
 		regionData.setOcclusionData(context.region.occlusion.build());
-		regionData.isHacked = context.region.occlusion.isHacked;
 		handleBlockEntities(regionData, context);
 		buildData.set(regionData);
 		return regionData;
@@ -457,14 +445,6 @@ public class BuiltRenderRegion {
 		collectors.clear();
 		region.release();
 	}
-
-	//	public int getFrameIndex() {
-	//		return frameIndex;
-	//	}
-	//
-	//	public void setFrameIndex(int frameIndex) {
-	//		this.frameIndex = frameIndex;
-	//	}
 
 	public int[] getNeighborIndices() {
 		return neighborIndices;

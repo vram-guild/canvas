@@ -101,17 +101,6 @@ public class CanvasWorldRenderer {
 			System.out.println();
 		}
 	}
-	//outerTimer.start();
-	//stopOuterTimer();
-	//innerTimer.start();
-	//innerTimer.stop();
-
-
-
-
-	//private final IntArrayFIFOQueue searchQueue = new IntArrayFIFOQueue();
-	//	private int[] searchInfo = new int[69696];
-	//	private int[] searchDist = new int[69696];
 
 	private BuiltRenderRegion[] visibleChunks = new BuiltRenderRegion[69696];
 	private int visibleChunkCount = 0;
@@ -212,45 +201,13 @@ public class CanvasWorldRenderer {
 
 		mc.getProfiler().swap("update");
 		int visibleChunkCount = this.visibleChunkCount;
-		// TODO: remove force to true
-		if (!capturedFrustum && wr.canvas_checkNeedsTerrainUpdate(cameraPos, camera.getPitch(), camera.getYaw()) || true) {
+
+		if (!capturedFrustum && wr.canvas_checkNeedsTerrainUpdate(cameraPos, camera.getPitch(), camera.getYaw())) {
 			wr.canvas_setNeedsTerrainUpdate(false);
 			visibleChunkCount = 0;
-			// TODO: remove
-			//occluder.occlude(-6.0f, 93.0f, -8.0f, -4.0f, 95f, -6.0f);
 
-			//			final IntArrayFIFOQueue searchQueue = this.searchQueue;
 			Entity.setRenderDistanceMultiplier(MathHelper.clamp(mc.options.viewDistance / 8.0D, 1.0D, 2.5D));
 			final boolean chunkCullingEnabled = mc.chunkCullingEnabled;
-
-			//			if (cameraChunk != null) {
-			//				cameraChunk.canRender =  true;
-			//
-			//				// TODO: render to occluder
-			//
-			//				// start from camera chunk if camera is in the world
-			//				final Set<Direction> set = getOpenChunkFaces(world, cameraBlockPos);
-			//
-			//				if (set.size() == 1) {
-			//					final Vector3f vector3f = camera.getHorizontalPlane();
-			//					final Direction direction = Direction.getFacing(vector3f.getX(), vector3f.getY(), vector3f.getZ()).getOpposite();
-			//					set.remove(direction);
-			//				}
-			//
-			//				if (set.isEmpty() && !isSpectator) {
-			//					visibleChunks[visibleChunkCount++] = cameraChunk;
-			//				} else {
-			//					if (isSpectator && world.getBlockState(cameraBlockPos).isFullOpaque(world, cameraBlockPos)) {
-			//						chunkCullingEnabled = false;
-			//					}
-			//
-			//					cameraChunk.setFrameIndex(frameCounter);
-			//					searchQueue.enqueue(encodeChunkInfo(cameraChunkIndex, null, 0));
-			//				}
-			//			} else {
-			//				// start from top or bottom of world if camera is outside of world
-			//				startSearchFromOutsideWorld(cameraBlockPos, cameraPos, renderDistance, frustum, frameCounter);
-			//			}
 
 			mc.getProfiler().push("iteration");
 
@@ -282,12 +239,7 @@ public class CanvasWorldRenderer {
 							builtChunk.canRenderTerrain = false;
 						} else if (chunkRenderBounds == PackedBox.FULL_BOX || occluder.isBoxVisible(chunkRenderBounds) || builtChunk == cameraChunk) {
 							builtChunk.canRenderTerrain = true;
-
-							// TODO: remove
-							//							if(regionData.isHacked) {
 							occluder.occlude(visData, builtChunk.squaredCameraDistance());
-							//							}
-
 						} else {
 							builtChunk.canRenderTerrain = false;
 						}
@@ -335,58 +287,6 @@ public class CanvasWorldRenderer {
 		chunksToRebuild.addAll(oldChunksToRebuild);
 		mc.getProfiler().pop();
 	}
-
-	//	private final void startSearchFromOutsideWorld(BlockPos cameraBlockPos, Vec3d cameraPos, int renderDistance, Frustum frustum, int frameCounter) {
-	//		final RenderRegionStorage regionStorage = renderRegionStorage;
-	//		final BuiltRenderRegion[] regions = regionStorage.regions();
-	//		final int yLevel = cameraBlockPos.getY() > 0 ? 248 : 8;
-	//		final int xCenter = MathHelper.floor(cameraPos.x / 16.0D) * 16;
-	//		final int zCenter = MathHelper.floor(cameraPos.z / 16.0D) * 16;
-	//		final int[] searchList = searchInfo;
-	//		final int[] searchDist = this.searchDist;
-	//
-	//		int searchIndex = 0;
-	//
-	//		for(int zOffset = -renderDistance; zOffset <= renderDistance; ++zOffset) {
-	//			for(int xOffset = -renderDistance; xOffset <= renderDistance; ++xOffset) {
-	//				final int regionIndex = regionStorage.getRegionIndexSafely(xCenter + (xOffset << 4) + 8, yLevel, zCenter + (zOffset << 4) + 8);
-	//				final BuiltRenderRegion region = regionIndex == -1 ? null : regions[regionIndex];
-	//
-	//				if (region != null && frustum.isVisible(region.boundingBox)) {
-	//					region.setFrameIndex(frameCounter);
-	//
-	//					final int chunkInfo = encodeChunkInfo(regionIndex, null, 0);
-	//
-	//					searchList[searchIndex] = chunkInfo;
-	//					searchDist[searchIndex++] = region.squaredCameraDistance();
-	//				}
-	//			}
-	//		}
-	//
-	//		// PERF: don't need two arrays/swapper here now that squared distance is available on the region
-	//		//it.unimi.dsi.fastutil.Arrays.quickSort(0, searchIndex, comparator, swapper);
-	//
-	//		for(int i = 0; i < searchIndex; i++) {
-	//			searchQueue.enqueue(searchList[i]);
-	//		}
-	//	}
-
-	//	private static Set<Direction> getOpenChunkFaces(World world, BlockPos blockPos) {
-	//		final ChunkOcclusionDataBuilder chunkOcclusionDataBuilder = new ChunkOcclusionDataBuilder();
-	//		final BlockPos blockPos2 = new BlockPos(blockPos.getX() >> 4 << 4, blockPos.getY() >> 4 << 4, blockPos.getZ() >> 4 << 4);
-	//		final WorldChunk worldChunk = world.getWorldChunk(blockPos2);
-	//		final Iterator<?> var5 = BlockPos.iterate(blockPos2, blockPos2.add(15, 15, 15)).iterator();
-	//
-	//		while(var5.hasNext()) {
-	//			final BlockPos blockPos3 = (BlockPos)var5.next();
-	//			if (worldChunk.getBlockState(blockPos3).isFullOpaque(world, blockPos3)) {
-	//				chunkOcclusionDataBuilder.markClosed(blockPos3);
-	//			}
-	//		}
-	//
-	//		return chunkOcclusionDataBuilder.getOpenFaces(blockPos);
-	//	}
-
 	private void setupCamera(WorldRendererExt wr, MinecraftClient mc, RenderRegionBuilder chunkBuilder, Vec3d cameraPos) {
 		final RenderRegionStorage chunks = renderRegionStorage;
 		final double dx = mc.player.getX() - wr.canvas_lastCameraChunkUpdateX();
@@ -438,10 +338,6 @@ public class CanvasWorldRenderer {
 		final double cameraY = vec3d.getY();
 		final double cameraZ = vec3d.getZ();
 		final Matrix4f modelMatrix = matrixStack.peek().getModel();
-
-		//final Matrix4f mvpMatrix = projectionMatrix.copy();
-		//mvpMatrix.multiply(modelMatrix);
-		//mvpMatrix.multiply(Matrix4f.translate((float) -cameraX, (float) -cameraY, (float) -cameraZ));
 
 		occluder.prepareScene(projectionMatrix, modelMatrix, camera);
 

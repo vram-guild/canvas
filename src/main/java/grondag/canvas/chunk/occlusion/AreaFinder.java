@@ -10,9 +10,6 @@ public class AreaFinder {
 
 	private static final int AREA_COUNT;
 
-	// TODO: remove
-	public boolean hacked = false;
-
 	static {
 		final IntOpenHashSet keys = new IntOpenHashSet();
 
@@ -63,10 +60,6 @@ public class AreaFinder {
 		long hash = AreaUtil.areaHash(bits);
 
 		for(final Area r : AREA) {
-			// TODO: remove
-			if (hacked && r.x0 == 0 && r.x1 == 15 && r.y0 == 3 && r.y1 == 3) {
-				//System.out.println("boop");
-			}
 			if (r.matchesHash(hash) && r.isIncludedBySample(bits, 0)) {
 				areas.add(r);
 				AreaUtil.clearAreaFromWords(r, bits);
