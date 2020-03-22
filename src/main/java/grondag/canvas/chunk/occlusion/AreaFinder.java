@@ -10,6 +10,9 @@ public class AreaFinder {
 
 	private static final int AREA_COUNT;
 
+	// TODO: remove
+	public boolean hacked = false;
+
 	static {
 		final IntOpenHashSet keys = new IntOpenHashSet();
 
@@ -20,22 +23,10 @@ public class AreaFinder {
 		keys.add(AreaUtil.areaKey(0, 1, 15, 15));
 		keys.add(AreaUtil.areaKey(0, 0, 15, 14));
 
-		for (int dx = 14; dx >= 0; --dx) {
-			for (int dy = 14; dy >= 0; --dy) {
-				for (int x0 = 0; x0 < 15; x0++) {
-					final int x1 = x0 + dx;
-
-					if (x1 > 15) {
-						break;
-					}
-
-					for (int y0 = 0; y0 < 15; y0++) {
-						final int y1 = y0 + dy;
-
-						if(y1 > 15) {
-							break;
-						}
-
+		for (int x0 = 0; x0 <= 15; x0++) {
+			for (int x1 = x0; x1 <= 15; x1++) {
+				for (int y0 = 0; y0 <= 15; y0++) {
+					for(int y1 = y0; y1 <= 15; y1++) {
 						keys.add(AreaUtil.areaKey(x0, y0, x1, y1));
 					}
 				}
@@ -72,12 +63,16 @@ public class AreaFinder {
 		long hash = AreaUtil.areaHash(bits);
 
 		for(final Area r : AREA) {
+			// TODO: remove
+			if (hacked && r.x0 == 0 && r.x1 == 15 && r.y0 == 3 && r.y1 == 3) {
+				//System.out.println("boop");
+			}
 			if (r.matchesHash(hash) && r.isIncludedBySample(bits, 0)) {
 				areas.add(r);
 				AreaUtil.clearAreaFromWords(r, bits);
 				hash = AreaUtil.areaHash(bits);
 
-				if (hash == 0 || r.areaSize < 4) {
+				if (hash == 0) {
 					break;
 				}
 			}

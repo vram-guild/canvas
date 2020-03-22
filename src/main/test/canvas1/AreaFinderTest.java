@@ -9,6 +9,7 @@ import grondag.canvas.chunk.occlusion.Area;
 import grondag.canvas.chunk.occlusion.AreaFinder;
 import grondag.canvas.chunk.occlusion.AreaSample;
 import grondag.canvas.chunk.occlusion.AreaUtil;
+import grondag.canvas.chunk.occlusion.OcclusionBitPrinter;
 
 class AreaFinderTest {
 
@@ -39,7 +40,7 @@ class AreaFinderTest {
 		}
 
 		System.out.println("INPUT");
-		TestUtils.printShape(sample.bits, 0);
+		OcclusionBitPrinter.printShape(sample.bits, 0);
 
 		System.out.println();
 		System.out.println("OUTPUT");

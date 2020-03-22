@@ -11,7 +11,7 @@ public class AreaUtil {
 		final int y0 = (areaKey >> 5) & 31;
 		final int x1 = (areaKey >> 10) & 31;
 		final int y1 = (areaKey >> 15) & 31;
-	
+
 		final int x = x1 - x0 + 1;
 		final int y = y1 - y0 + 1;
 		final int a = x * y;
@@ -27,39 +27,39 @@ public class AreaUtil {
 		result |= AreaUtil.areaWordHash(words[1], 1);
 		result |= AreaUtil.areaWordHash(words[2], 2);
 		result |= AreaUtil.areaWordHash(words[3], 3);
-	
+
 		return result;
 	}
 
 	public static long areaWordHash(long bits, int y) {
 		long result = 0;
-	
+
 		long testMask = 0b11 | (0b11 << 16);
-	
+
 		long outputMask = areaWordHashMask(0, y << 1);
-	
+
 		for (int x = 0; x < 8; x++) {
 			if ((bits & testMask) != 0) {
 				result |= outputMask;
 			}
-	
+
 			testMask <<= 2;
 			outputMask <<= 1;
 		}
-	
+
 		testMask <<= 16;
-	
+
 		for (int x = 0; x < 8; x++) {
 			if ((bits & testMask) != 0) {
 				result |= outputMask;
 			}
-	
+
 			testMask <<= 2;
 			outputMask <<= 1;
 		}
-	
+
 		//System.out.println(Long.toBinaryString(result));
-	
+
 		return result;
 	}
 
@@ -67,12 +67,13 @@ public class AreaUtil {
 		return (template & sample) == template;
 	}
 
+	// PERF: avoid loop, store bitmap in area
 	public static void clearAreaFromWords(Area r, long[] areaWords) {
 		final int x0 = r.x0;
 		final int y0 = r.y0;
 		final int x1 = r.x1;
 		final int y1 = r.y1;
-	
+
 		for (int x = x0; x <= x1; x++) {
 			for (int y = y0; y <= y1; y++) {
 				final int key = (y << 4) | x;

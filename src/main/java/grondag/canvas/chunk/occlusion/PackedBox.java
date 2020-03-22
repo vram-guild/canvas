@@ -51,9 +51,9 @@ public abstract class PackedBox {
 		final int dy = y1 - y0;
 		final int dz = z1 - z0;
 
-		final int span = Useful.max(Math.min(dx, dy), Math.min(dz, dy), Math.min(dx, dz));
+		final int area = Useful.max(dx * dy, dz * dy, dx * dz);
 
-		return span < 4 ? OCCLUSION_RANGE_NEAR : span < 8 ? OCCLUSION_RANGE_MEDIUM :  OCCLUSION_RANGE_FAR;
+		return area <= 4 ? OCCLUSION_RANGE_NEAR : area <= 9 ? OCCLUSION_RANGE_MEDIUM :  OCCLUSION_RANGE_FAR;
 	}
 
 	public static int x0(int packed) {

@@ -92,14 +92,14 @@ public class CanvasWorldRenderer {
 	public void stopOuterTimer() {
 		final long outerElapsed = outerTimer.elapsed();
 
-		//		if (outerTimer.stop()) {
-		//			System.out.println("Avg inner runs per frame = " + innerTimer.hits() / 100); // 100 because outer runs 2X per frame
-		//			System.out.println("Inner elapsed is " + 100 * innerTimer.elapsed() / outerElapsed + "% of outer");
-		//			System.out.println("Visible chunk count = " + completedChunkCount());
-		//			System.out.println("lastSolidCount = " + lastSolidCount + "   lastTranlsucentCount = " + lastTranlsucentCount);
-		//			innerTimer.reportAndClear();
-		//			System.out.println();
-		//		}
+		if (outerTimer.stop()) {
+			System.out.println("Avg inner runs per frame = " + innerTimer.hits() / 100); // 100 because outer runs 2X per frame
+			System.out.println("Inner elapsed is " + 100 * innerTimer.elapsed() / outerElapsed + "% of outer");
+			System.out.println("Visible chunk count = " + completedChunkCount());
+			System.out.println("lastSolidCount = " + lastSolidCount + "   lastTranlsucentCount = " + lastTranlsucentCount);
+			innerTimer.reportAndClear();
+			System.out.println();
+		}
 	}
 	//outerTimer.start();
 	//stopOuterTimer();
@@ -284,8 +284,9 @@ public class CanvasWorldRenderer {
 							builtChunk.canRenderTerrain = true;
 
 							// TODO: remove
-							occluder.isHacked = regionData.isHacked;
+							//							if(regionData.isHacked) {
 							occluder.occlude(visData, builtChunk.squaredCameraDistance());
+							//							}
 
 						} else {
 							builtChunk.canRenderTerrain = false;
@@ -299,6 +300,8 @@ public class CanvasWorldRenderer {
 			this.visibleChunkCount = visibleChunkCount;
 			mc.getProfiler().pop();
 		}
+
+		occluder.outputRaster();
 
 		mc.getProfiler().swap("rebuildNear");
 		final Set<BuiltRenderRegion> oldChunksToRebuild  = chunksToRebuild;
@@ -411,6 +414,8 @@ public class CanvasWorldRenderer {
 	}
 
 	public void renderWorld(MatrixStack matrixStack, float f, long startTime, boolean bl, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f projectionMatrix) {
+		outerTimer.start();
+
 		// TODO: remove
 		lastTranlsucentCount = 0;
 		lastSolidCount = 0;
@@ -646,6 +651,8 @@ public class CanvasWorldRenderer {
 										BackgroundRenderer.method_23792();
 
 										wr.canvas_setEntityCount(entityCount);
+
+										stopOuterTimer();
 										return;
 									}
 
@@ -749,8 +756,6 @@ public class CanvasWorldRenderer {
 		// retain vertex bindings when possible, use VAO
 		// don't render grass, cobwebs, flowers, etc. at longer ranges
 
-		outerTimer.start();
-
 		final int startIndex = isTranslucent ? visibleChunkCount - 1 : 0 ;
 		final int endIndex = isTranslucent ? -1 : visibleChunkCount;
 		final int step = isTranslucent ? -1 : 1;
@@ -784,9 +789,7 @@ public class CanvasWorldRenderer {
 						d.bind();
 						// TODO: confirm everything that used to happen below happens in bind above
 						vertexFormat.startDrawing(d.byteOffset());
-						innerTimer.start();
 						d.draw();
-						innerTimer.stop();
 					}
 
 					RenderSystem.popMatrix();
@@ -799,8 +802,6 @@ public class CanvasWorldRenderer {
 		RenderSystem.clearCurrentColor();
 		vertexFormat.endDrawing();
 		DrawHandler.teardown();
-
-		stopOuterTimer();
 
 		mc.getProfiler().pop();
 	}

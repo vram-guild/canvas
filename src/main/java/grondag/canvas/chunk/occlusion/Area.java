@@ -1,6 +1,5 @@
 package grondag.canvas.chunk.occlusion;
 
-import canvas1.TestUtils;
 import com.google.common.base.Strings;
 
 public class Area {
@@ -81,6 +80,6 @@ public class Area {
 	}
 
 	public void printShape() {
-		TestUtils.printShape(bits, 0);
+		OcclusionBitPrinter.printShape(bits, 0);
 	}
 }

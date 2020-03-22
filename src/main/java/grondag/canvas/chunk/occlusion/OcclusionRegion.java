@@ -16,9 +16,7 @@ package grondag.canvas.chunk.occlusion;
 
 import static grondag.canvas.chunk.RenderRegionAddressHelper.INTERIOR_CACHE_SIZE;
 import static grondag.canvas.chunk.RenderRegionAddressHelper.INTERIOR_CACHE_WORDS;
-import static grondag.canvas.chunk.RenderRegionAddressHelper.TOTAL_CACHE_SIZE;
 import static grondag.canvas.chunk.RenderRegionAddressHelper.TOTAL_CACHE_WORDS;
-import static grondag.canvas.chunk.RenderRegionAddressHelper.fastRelativeCacheIndex;
 import static grondag.canvas.chunk.RenderRegionAddressHelper.interiorIndex;
 import static grondag.canvas.chunk.RenderRegionAddressHelper.localCornerIndex;
 import static grondag.canvas.chunk.RenderRegionAddressHelper.localXEdgeIndex;
@@ -39,7 +37,14 @@ public abstract class OcclusionRegion {
 	private final IntArrayFIFOQueue queue = new IntArrayFIFOQueue();
 	private final long[] bits = new long[WORD_COUNT];
 	private int openCount;
-	private final BoxFinder boxFinder = new BoxFinder();
+	public final BoxFinder boxFinder = new BoxFinder();
+
+	private int minRenderableX;
+	private int minRenderableY;
+	private int minRenderableZ;
+	private int maxRenderableX;
+	private int maxRenderableY;
+	private int maxRenderableZ;
 
 	// TODO: remove
 	public boolean isHacked = false;
@@ -50,7 +55,7 @@ public abstract class OcclusionRegion {
 		captureEdges();
 		captureCorners();
 
-		openCount = TOTAL_CACHE_SIZE;
+		openCount = INTERIOR_CACHE_SIZE;
 		isHacked = false;
 		captureInterior();
 	}
@@ -102,7 +107,7 @@ public abstract class OcclusionRegion {
 	}
 
 	private void captureInterior() {
-		for(int i = 0; i <= INTERIOR_CACHE_SIZE; i++) {
+		for(int i = 0; i < INTERIOR_CACHE_SIZE; i++) {
 			captureInteriorVisbility(i, i & 0xF, (i >> 4) & 0xF, (i >> 8) & 0xF);
 		}
 	}
@@ -168,13 +173,8 @@ public abstract class OcclusionRegion {
 		final long mask = 1L << (index & 63);
 
 		if((bits[baseIndex + EXTERIOR_VISIBLE_OFFSET] & mask) == 0) {
-			if ((bits[baseIndex] & mask) == 0) {
-				return true;
-			} else {
-				// if closed then mark and report as visited - only want to do this for checked positions
-				bits[baseIndex + EXTERIOR_VISIBLE_OFFSET] |= mask;
-				return false;
-			}
+			bits[baseIndex + EXTERIOR_VISIBLE_OFFSET] |= mask;
+			return (bits[baseIndex] & mask) == 0;
 		} else {
 			return false;
 		}
@@ -191,8 +191,9 @@ public abstract class OcclusionRegion {
 			bits[i + RENDERABLE_OFFSET] &= EXTERIOR_MASK[i];
 		}
 
-		for (int i = 0; i < 16; i++) {
-			for (int j = 0; j < 16; j++) {
+		// don't render face blocks obscured by neighboring chunks
+		for (int i = 1; i < 15; i++) {
+			for (int j = 1; j < 15; j++) {
 				if (isClosed(localXfaceIndex(false, i, j))) clearInteriorRenderable(0, i, j);
 				if (isClosed(localXfaceIndex(true, i, j))) clearInteriorRenderable(15, i, j);
 
@@ -203,40 +204,35 @@ public abstract class OcclusionRegion {
 				if (isClosed(localYfaceIndex(i, true, j))) clearInteriorRenderable(i, 15, j);
 			}
 		}
-	}
 
-	/**
-	 * Removes renderable flag if position has no open neighbors.
-	 * Probably less expensive than a flood fill when small number of closed position
-	 * and used in that scenario.
-	 */
-	private void hideUnexposedPositions() {
-		// TODO: broken?  Remove or fix and use - only seems to work for single block voids
-		for (int i = 0; i < INTERIOR_CACHE_SIZE; i++) {
-			final long mask = (1L << (i & 63));
-			final int wordIndex = (i >> 6) + RENDERABLE_OFFSET;
+		// don't render edge blocks obscured by neighboring chunks
+		for (int i = 1; i < 15; i++) {
+			if (isClosed(localXfaceIndex(false, 0, i)) &&  isClosed(localYfaceIndex(0, false, i))) clearInteriorRenderable(0, 0, i);
+			if (isClosed(localXfaceIndex(true, 0, i)) &&  isClosed(localYfaceIndex(15, false, i))) clearInteriorRenderable(15, 0, i);
+			if (isClosed(localXfaceIndex(false, 15, i)) &&  isClosed(localYfaceIndex(0, true, i))) clearInteriorRenderable(0, 15, i);
+			if (isClosed(localXfaceIndex(true, 15, i)) &&  isClosed(localYfaceIndex(15, true, i))) clearInteriorRenderable(15, 15, i);
 
-			if ((bits[wordIndex] & mask) != 0) {
-				final int x = i & 0xF;
-				final int y = (i >> 4) & 0xF;
-				final int z = (i >> 8) & 0xF;
+			if (isClosed(localZfaceIndex(i, 0, false)) &&  isClosed(localYfaceIndex(i, false, 0))) clearInteriorRenderable(i, 0, 0);
+			if (isClosed(localZfaceIndex(i, 0, true)) &&  isClosed(localYfaceIndex(i, false, 15))) clearInteriorRenderable(i, 0, 15);
+			if (isClosed(localZfaceIndex(i, 15, false)) &&  isClosed(localYfaceIndex(i, true, 0))) clearInteriorRenderable(i, 15, 0);
+			if (isClosed(localZfaceIndex(i, 15, true)) &&  isClosed(localYfaceIndex(i, true, 15))) clearInteriorRenderable(i, 15, 15);
 
-				if(isClosed(fastRelativeCacheIndex(x - 1, y, z)) && isClosed(fastRelativeCacheIndex(x + 1, y, z))
-						&& isClosed(fastRelativeCacheIndex(x, y - 1, z)) && isClosed(fastRelativeCacheIndex(x, y + 1, z))
-						&& isClosed(fastRelativeCacheIndex(x, y, z - 1)) && isClosed(fastRelativeCacheIndex(x, y, z + 1))) {
-
-					bits[wordIndex] &=  ~mask;
-				}
-			}
+			if (isClosed(localXfaceIndex(false, i, 0)) &&  isClosed(localZfaceIndex(0, i, false))) clearInteriorRenderable(0, i, 0);
+			if (isClosed(localXfaceIndex(true, i, 0)) &&  isClosed(localZfaceIndex(15, i, false))) clearInteriorRenderable(15, i, 0);
+			if (isClosed(localXfaceIndex(false, i, 15)) &&  isClosed(localZfaceIndex(0, i, true))) clearInteriorRenderable(0, i, 15);
+			if (isClosed(localXfaceIndex(true, i, 15)) &&  isClosed(localZfaceIndex(15, i, true))) clearInteriorRenderable(15, i, 15);
 		}
-	}
 
-	private int minRenderableX;
-	private int minRenderableY;
-	private int minRenderableZ;
-	private int maxRenderableX;
-	private int maxRenderableY;
-	private int maxRenderableZ;
+		// don't render corner blocks obscured by neighboring chunks
+		if (isClosed(localXfaceIndex(false, 0, 0)) && isClosed(localYfaceIndex(0, false, 0)) && isClosed(localZfaceIndex(0, 0, false))) clearInteriorRenderable(0, 0, 0);
+		if (isClosed(localXfaceIndex(true, 0, 0)) && isClosed(localYfaceIndex(15, false, 0)) && isClosed(localZfaceIndex(15, 0, false))) clearInteriorRenderable(15, 0, 0);
+		if (isClosed(localXfaceIndex(false, 15, 0)) && isClosed(localYfaceIndex(0, true, 0)) && isClosed(localZfaceIndex(0, 15, false))) clearInteriorRenderable(0, 15, 0);
+		if (isClosed(localXfaceIndex(true, 15, 0)) && isClosed(localYfaceIndex(15, true, 0)) && isClosed(localZfaceIndex(15, 15, false))) clearInteriorRenderable(15, 15, 0);
+		if (isClosed(localXfaceIndex(false, 0, 15)) && isClosed(localYfaceIndex(0, false, 15)) && isClosed(localZfaceIndex(0, 0, true))) clearInteriorRenderable(0, 0, 15);
+		if (isClosed(localXfaceIndex(true, 0, 15)) && isClosed(localYfaceIndex(15, false, 15)) && isClosed(localZfaceIndex(15, 0, true))) clearInteriorRenderable(15, 0, 15);
+		if (isClosed(localXfaceIndex(false, 15, 15)) && isClosed(localYfaceIndex(0, true, 15)) && isClosed(localZfaceIndex(0, 15, true))) clearInteriorRenderable(0, 15, 15);
+		if (isClosed(localXfaceIndex(true, 15, 15)) && isClosed(localYfaceIndex(15, true, 15)) && isClosed(localZfaceIndex(15, 15, true))) clearInteriorRenderable(15, 15, 15);
+	}
 
 	/**
 	 * Removes renderable flag and marks closed if position has no open neighbors and is not visible from exterior.
@@ -253,37 +249,41 @@ public abstract class OcclusionRegion {
 			final long mask = (1L << (i & 63));
 			final int wordIndex = (i >> 6);
 
-			if ((bits[wordIndex + RENDERABLE_OFFSET] & mask) != 0) {
+			final int x = i & 0xF;
+			final int y = (i >> 4) & 0xF;
+			final int z = (i >> 8) & 0xF;
+			// TODO: remove
+			//			if (boxFinder.areaFinder.hacked && x == 13 && y == 8 && z == 9) {
+			//				System.out.println("boop");
+			//			}
 
-				final int x = i & 0xF;
-				final int y = (i >> 4) & 0xF;
-				final int z = (i >> 8) & 0xF;
+			//  TODO: disable in near chunks
+			if ((bits[wordIndex + EXTERIOR_VISIBLE_OFFSET] & mask) == 0 && x != 0 && y != 0 && z != 0 && x != 15 && y != 15 && z != 15) {
 
-				if((bits[wordIndex + EXTERIOR_VISIBLE_OFFSET] & mask) == 0 && isClosed(fastRelativeCacheIndex(x - 1, y, z)) && isClosed(fastRelativeCacheIndex(x + 1, y, z))
-						&& isClosed(fastRelativeCacheIndex(x, y - 1, z)) && isClosed(fastRelativeCacheIndex(x, y + 1, z))
-						&& isClosed(fastRelativeCacheIndex(x, y, z - 1)) && isClosed(fastRelativeCacheIndex(x, y, z + 1))) {
+				//				if((bits[wordIndex + EXTERIOR_VISIBLE_OFFSET] & mask) == 0 && isClosed(fastRelativeCacheIndex(x - 1, y, z)) && isClosed(fastRelativeCacheIndex(x + 1, y, z))
+				//						&& isClosed(fastRelativeCacheIndex(x, y - 1, z)) && isClosed(fastRelativeCacheIndex(x, y + 1, z))
+				//						&& isClosed(fastRelativeCacheIndex(x, y, z - 1)) && isClosed(fastRelativeCacheIndex(x, y, z + 1))) {
+				bits[wordIndex + RENDERABLE_OFFSET] &= ~mask;
+				// mark it opaque
+				bits[wordIndex] |= mask;
+			} else if ((bits[wordIndex + RENDERABLE_OFFSET] & mask) != 0){
 
-					bits[wordIndex + RENDERABLE_OFFSET] &= ~mask;
-					// mark it opaque
-					bits[wordIndex] |= mask;
-				} else {
-					if (x < minX) {
-						minX = x;
-					} else if (x > maxX) {
-						maxX = x;
-					}
+				if (x < minX) {
+					minX = x;
+				} else if (x > maxX) {
+					maxX = x;
+				}
 
-					if (y < minY) {
-						minY = y;
-					} else if (y > maxY) {
-						maxY = y;
-					}
+				if (y < minY) {
+					minY = y;
+				} else if (y > maxY) {
+					maxY = y;
+				}
 
-					if (z < minZ) {
-						minZ = z;
-					} else if (z > maxZ) {
-						maxZ = z;
-					}
+				if (z < minZ) {
+					minZ = z;
+				} else if (z > maxZ) {
+					maxZ = z;
 				}
 			}
 		}
@@ -309,42 +309,31 @@ public abstract class OcclusionRegion {
 		//		final RegionOcclusionData result = new RegionOcclusionData(null);
 		//
 		//		// determine which blocks are visible
-		//		boolean xPos = true;
-		//		boolean xNeg = true;
-		//		boolean yPos = true;
-		//		boolean yNeg = true;
-		//		boolean zPos = true;
-		//		boolean zNeg = true;
 
 		for (int i = 0; i < 16; i++) {
 			for (int j = 0; j < 16; j++) {
 				if (!isClosed(localXfaceIndex(false, i, j))) {
 					visitSurfaceIfPossible(0, i, j);
-					//					xNeg = false;
 				}
+
 				if (!isClosed(localXfaceIndex(true, i, j))) {
 					visitSurfaceIfPossible(15, i, j);
-					//					xPos = false;
 				}
 
 				if (!isClosed(localZfaceIndex(i, j, false))) {
 					visitSurfaceIfPossible(i, j, 0);
-					//					yNeg = false;
 				}
 
 				if (!isClosed(localZfaceIndex(i, j, true))) {
 					visitSurfaceIfPossible(i, j, 15);
-					//					yPos = false;
 				}
 
 				if (!isClosed(localYfaceIndex(i, false, j))) {
 					visitSurfaceIfPossible(i, 0, j);
-					//					zNeg = false;
 				}
 
 				if (!isClosed(localYfaceIndex(i, true, j))) {
 					visitSurfaceIfPossible(i, 15, j);
-					//					zPos = false;
 				}
 			}
 		}
@@ -354,11 +343,12 @@ public abstract class OcclusionRegion {
 		final BoxFinder boxFinder = this.boxFinder;
 		final IntArrayList boxes = boxFinder.boxes;
 
-		if (isHacked) {
-			boxFinder.findBoxes(bits, 0);
-		} else {
-			boxFinder.findBoxes(bits, 0);
+		// TODO: remove
+		if (boxFinder.areaFinder.hacked) {
+			OcclusionBitPrinter.printRegion("INPUT", bits, 0);
 		}
+
+		boxFinder.findBoxes(bits, 0);
 
 		final int limit = boxes.size();
 
@@ -394,34 +384,25 @@ public abstract class OcclusionRegion {
 	}
 
 	public int[] build() {
-		//		final int closedCount = 4096 - openCount;
-
-		//		if (closedCount < 256) {
-		//
-		//			if(closedCount > 7) {
-		//				// hide unexposed blocks
-		//				// TODO: remove ? Seems to be redundant of clearInteriorRenderable, also - doesn't work
-		//				hideUnexposedPositions();
-		//			}
-		//
-		//			// all chunk faces thru-visible
-		//			//return ALL_OPEN;
-		//		} else if (openCount == 0) {
 		if (openCount == 0) {
 			// only surface blocks are visible, and only if not covered
+
+			// PERF: should do this after hiding interior closed positions?
+			// PERF: should still compute render box instead of assuming it is full
 			adjustSurfaceVisbility();
 
-			// all interior blocks are closed, no thru-visibility
-			//return ALL_CLOSED;
-		}
-
-		// TODO: remove
-		if (isHacked) {
-			return computeOcclusion();
+			final int[] result = new int[2];
+			result[CULL_DATA_CHUNK_BOUNDS] = PackedBox.FULL_BOX;
+			result[CULL_DATA_FIRST_AREA] = PackedBox.FULL_BOX;
+			return result;
 		} else {
-			return computeOcclusion();
+			// TODO: remove
+			if (isHacked) {
+				return computeOcclusion();
+			} else {
+				return computeOcclusion();
+			}
 		}
-
 	}
 
 	private  void fill(int xyz4) {

@@ -2,6 +2,7 @@ package canvas1;
 
 import org.junit.jupiter.api.Test;
 
+import grondag.canvas.chunk.occlusion.OcclusionBitPrinter;
 import grondag.canvas.chunk.occlusion.RegionSlicer;
 
 public class RegionSlicerTest {
@@ -25,15 +26,7 @@ public class RegionSlicerTest {
 			setZyx(sample, 15 - i, 15 - i, i);
 		}
 
-		System.out.println("INPUT");
-		System.out.println();
-
-		for(int z = 0; z < 16; z++) {
-			System.out.println("Z = " + z);
-			TestUtils.printShape(sample, z * 4);
-			System.out.println();
-		}
-
+		OcclusionBitPrinter.printRegion("INPUT", sample, 0);
 
 		slicer.buildAxisZ(sample, 0);
 
@@ -42,7 +35,7 @@ public class RegionSlicerTest {
 
 		for(int z = 0; z <= 16; z++) {
 			System.out.println("Z = " + z);
-			TestUtils.printShape(slicer.outputBits, z * 4);
+			OcclusionBitPrinter.printShape(slicer.outputBits, z * 4);
 			System.out.println();
 		}
 
@@ -53,7 +46,7 @@ public class RegionSlicerTest {
 
 		for(int x = 0; x <= 16; x++) {
 			System.out.println("X = " + x);
-			TestUtils.printShape(slicer.outputBits, x * 4);
+			OcclusionBitPrinter.printShape(slicer.outputBits, x * 4);
 			System.out.println();
 		}
 
@@ -64,7 +57,7 @@ public class RegionSlicerTest {
 
 		for(int y = 0; y <= 16; y++) {
 			System.out.println("Y = " + y);
-			TestUtils.printShape(slicer.outputBits, y * 4);
+			OcclusionBitPrinter.printShape(slicer.outputBits, y * 4);
 			System.out.println();
 		}
 	}

@@ -305,6 +305,16 @@ public class BuiltRenderRegion {
 	}
 
 	private RegionData buildRegionData(TerrainRenderContext context) {
+
+		//TODO: remove
+		//		if ((origin.getX() >> 4) == 6 && (origin.getY() >> 4) == 4 && (origin.getZ() >> 4) == -1) {
+		//		if (origin.getX() == (32 & 0xFFFFFFF0) &&  origin.getY() == (63 & 0xFFFFFFF0) && origin.getZ() == (-33 & 0xFFFFFFF0)) {
+		//			System.out.println("boop");
+		//			context.region.occlusion.boxFinder.areaFinder.hacked = true;
+		//		} else {
+		//			context.region.occlusion.boxFinder.areaFinder.hacked = false;
+		//		}
+
 		final RegionData regionData = new RegionData();
 		regionData.setOcclusionData(context.region.occlusion.build());
 		regionData.isHacked = context.region.occlusion.isHacked;
