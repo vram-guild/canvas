@@ -140,8 +140,6 @@ public class TerrainOccluder {
 	}
 
 	public boolean isChunkVisible()  {
-		CanvasWorldRenderer.innerTimer.start();
-
 		computeProjectedBoxBounds(0, 0, 0, 16, 16, 16);
 
 		final boolean east = testEast();
@@ -151,7 +149,6 @@ public class TerrainOccluder {
 		final boolean up = testUp();
 		final boolean down = testDown();
 
-		CanvasWorldRenderer.innerTimer.stop();
 
 		return east || west || north || south || up || down;
 	}
@@ -221,6 +218,7 @@ public class TerrainOccluder {
 	}
 
 	private void computeProjectedBoxBounds(float x0, float y0, float z0, float x1, float y1, float z1) {
+
 		v000.set(x0, y0, z0, 1);
 		v000.transform(mvpMatrix);
 
@@ -589,6 +587,14 @@ public class TerrainOccluder {
 			return false;
 		}
 
+		CanvasWorldRenderer.innerTimer.start();
+		final boolean result = testTriInner(v0, v1, v2);
+		CanvasWorldRenderer.innerTimer.stop();
+
+		return result;
+	}
+
+	private boolean testTriInner(Lazy4f v0, Lazy4f v1, Lazy4f v2) {
 		final int x0 = v0.ix();
 		final int y0 = v0.iy();
 		final int x1 = v1.ix();
