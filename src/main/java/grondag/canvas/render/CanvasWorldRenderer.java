@@ -214,9 +214,12 @@ public class CanvasWorldRenderer {
 
 			for(final BuiltRenderRegion builtChunk : chunkStorage.sortedRegions()) {
 				// don't visit if not in frustum
+				CanvasWorldRenderer.innerTimer.start();
 				if(!frustum.isVisible(builtChunk.boundingBox)) {
+					CanvasWorldRenderer.innerTimer.stop();
 					continue;
 				}
+				CanvasWorldRenderer.innerTimer.stop();
 
 				// don't visit if chunk is outside near distance and doesn't have all 4 neighbors loaded
 				if (!builtChunk.shouldBuild()) {
