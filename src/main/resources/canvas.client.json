@@ -18,6 +18,7 @@
     "MixinItemRenderer",
     "MixinLightmapTextureManager",
     "MixinMatrix3f",
+    "MixinMatrix4f",
     "MixinMinecraftClient",
     "MixinPackedIntegerArray",
     "MixinPalettedContainer",

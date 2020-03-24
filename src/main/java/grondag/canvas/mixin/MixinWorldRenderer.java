@@ -50,7 +50,6 @@ import net.minecraft.client.render.entity.EntityRenderDispatcher;
 import net.minecraft.client.texture.TextureManager;
 import net.minecraft.client.util.math.Matrix4f;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.client.util.math.Vector3d;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.math.BlockPos;
@@ -87,9 +86,6 @@ public class MixinWorldRenderer implements WorldRendererExt {
 	@Shadow private EntityRenderDispatcher entityRenderDispatcher;
 	// PERF: prevent wasteful allocation of these - they are never used with Canvas and take a lot of space - should allocate only 1 for immediate use
 	@Shadow private BufferBuilderStorage bufferBuilders;
-	@Shadow private Frustum capturedFrustum;
-	@Shadow private Vector3d capturedFrustumPosition;
-	@Shadow private boolean shouldCaptureFrustum;
 	@Shadow private int regularEntityCount;
 	@Shadow private FpsSmoother chunkUpdateSmoother;
 	@Shadow private Framebuffer entityOutlinesFramebuffer;
@@ -303,30 +299,6 @@ public class MixinWorldRenderer implements WorldRendererExt {
 	@Override
 	public BufferBuilderStorage canvas_bufferBuilders() {
 		return bufferBuilders;
-	}
-
-	@Override
-	public Frustum canvas_getCapturedFrustum () {
-		return capturedFrustum;
-	}
-
-	@Override
-	public void canvas_setCapturedFrustum (Frustum frustum) {
-		capturedFrustum = frustum;
-	}
-
-	@Override
-	public void canvas_setCapturedFrustumPosition(Frustum frustum) {
-		frustum.setPosition(capturedFrustumPosition.x, capturedFrustumPosition.y, capturedFrustumPosition.z);
-	}
-
-	@Override
-	public void canvas_captureFrustumIfNeeded(Matrix4f matrix4f2, Matrix4f matrix4f, Vec3d cameraPos, boolean hasCapturedFrustum, Frustum frustum2) {
-		if (shouldCaptureFrustum) {
-			client.getProfiler().swap("captureFrustum");
-			captureFrustum(matrix4f2, matrix4f, cameraPos.x, cameraPos.y, cameraPos.z, hasCapturedFrustum ? new Frustum(matrix4f2, matrix4f) : frustum2);
-			shouldCaptureFrustum = false;
-		}
 	}
 
 	@Override

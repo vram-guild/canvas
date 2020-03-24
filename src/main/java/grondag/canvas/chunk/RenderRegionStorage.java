@@ -131,9 +131,13 @@ public class RenderRegionStorage {
 
 	/** Called each frame. Avoids recalc on each lookup, which also happens every frame */
 	public void updateCameraDistance(Vec3d cameraPos) {
-		final int x = (int) Math.round(cameraPos.x);
-		final int y = (int) Math.round(cameraPos.y);
-		final int z = (int) Math.round(cameraPos.z);
+		final double xExact = cameraPos.x;
+		final double yExact = cameraPos.y;
+		final double zExact = cameraPos.z;
+
+		final int x = (int) Math.round(xExact);
+		final int y = (int) Math.round(yExact);
+		final int z = (int) Math.round(zExact);
 
 		if (x == lastCameraX && y == lastCameraY && z == lastCameraZ) {
 			return;
@@ -144,7 +148,7 @@ public class RenderRegionStorage {
 		lastCameraZ = z;
 
 		for (final BuiltRenderRegion chunk : regions) {
-			chunk.updateCameraDistance(x, y, z);
+			chunk.updateCameraDistance(xExact, yExact, zExact);
 		}
 
 		isSortDirty = true;

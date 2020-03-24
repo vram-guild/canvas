@@ -25,7 +25,6 @@ import net.minecraft.client.render.BlockBreakingInfo;
 import net.minecraft.client.render.BufferBuilderStorage;
 import net.minecraft.client.render.Camera;
 import net.minecraft.client.render.DiffuseLighting;
-import net.minecraft.client.render.Frustum;
 import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.render.LightmapTextureManager;
 import net.minecraft.client.render.OutlineVertexConsumerProvider;
@@ -79,6 +78,7 @@ public class CanvasWorldRenderer {
 	private RenderRegionBuilder chunkBuilder;
 	private RenderRegionStorage renderRegionStorage;
 	private final TerrainOccluder occluder = new TerrainOccluder();
+	private final CanvasFrustum frustum = new CanvasFrustum();
 
 	// TODO: redirect uses in MC WorldRenderer
 	public Set<BuiltRenderRegion> chunksToRebuild = Sets.newLinkedHashSet();
@@ -173,7 +173,7 @@ public class CanvasWorldRenderer {
 		}
 	}
 
-	public void setupTerrain(Camera camera, Frustum frustum, boolean capturedFrustum, int frameCounter, boolean isSpectator) {
+	public void setupTerrain(Camera camera, CanvasFrustum frustum, int frameCounter, boolean isSpectator) {
 		final WorldRendererExt wr = this.wr;
 		final MinecraftClient mc = wr.canvas_mc();
 		final int renderDistance = wr.canvas_renderDistance();
@@ -202,7 +202,7 @@ public class CanvasWorldRenderer {
 		mc.getProfiler().swap("update");
 		int visibleChunkCount = this.visibleChunkCount;
 
-		if (!capturedFrustum && wr.canvas_checkNeedsTerrainUpdate(cameraPos, camera.getPitch(), camera.getYaw())) {
+		if (wr.canvas_checkNeedsTerrainUpdate(cameraPos, camera.getPitch(), camera.getYaw())) {
 			wr.canvas_setNeedsTerrainUpdate(false);
 			visibleChunkCount = 0;
 			occluder.clearScene();
@@ -215,7 +215,7 @@ public class CanvasWorldRenderer {
 			for(final BuiltRenderRegion builtChunk : chunkStorage.sortedRegions()) {
 				// don't visit if not in frustum
 				CanvasWorldRenderer.innerTimer.start();
-				if(!frustum.isVisible(builtChunk.boundingBox)) {
+				if(!frustum.isChunkVisible(builtChunk)) {
 					CanvasWorldRenderer.innerTimer.stop();
 					continue;
 				}
@@ -347,19 +347,8 @@ public class CanvasWorldRenderer {
 
 		profiler.swap("culling");
 
-		final Frustum capturedFrustum = wr.canvas_getCapturedFrustum();
-		final boolean hasCapturedFrustum = capturedFrustum != null;
-		Frustum frustum2;
-
-		if (hasCapturedFrustum) {
-			frustum2 = capturedFrustum;
-			wr.canvas_setCapturedFrustumPosition(frustum2);
-		} else {
-			frustum2 = new Frustum(modelMatrix, projectionMatrix);
-			frustum2.setPosition(cameraX, cameraY, cameraZ);
-		}
-
-		wr.canvas_captureFrustumIfNeeded(modelMatrix, projectionMatrix, vec3d, hasCapturedFrustum, frustum2);
+		final CanvasFrustum frustum = this.frustum;
+		frustum.prepare(modelMatrix, projectionMatrix, camera);
 
 		profiler.swap("clear");
 		BackgroundRenderer.render(camera, f, mc.world, mc.options.viewDistance, gameRenderer.getSkyDarkness(f));
@@ -376,7 +365,7 @@ public class CanvasWorldRenderer {
 		BackgroundRenderer.applyFog(camera, BackgroundRenderer.FogType.FOG_TERRAIN, Math.max(h - 16.0F, 32.0F), bl3);
 		profiler.swap("terrain_setup");
 
-		setupTerrain(camera, frustum2, hasCapturedFrustum, wr.canvas_getAndIncrementFrameIndex(), mc.player.isSpectator());
+		setupTerrain(camera, frustum, wr.canvas_getAndIncrementFrameIndex(), mc.player.isSpectator());
 
 		profiler.swap("updatechunks");
 		final int maxFps = mc.options.maxFps;
@@ -587,7 +576,7 @@ public class CanvasWorldRenderer {
 						}
 
 						entity = var39.next();
-					} while(!entityRenderDispatcher.shouldRender(entity, frustum2, cameraX, cameraY, cameraZ) && !entity.hasPassengerDeep(mc.player));
+					} while(!entityRenderDispatcher.shouldRender(entity, frustum, cameraX, cameraY, cameraZ) && !entity.hasPassengerDeep(mc.player));
 				} while(entity == camera.getFocusedEntity() && !camera.isThirdPerson() && (!(camera.getFocusedEntity() instanceof LivingEntity) || !((LivingEntity)camera.getFocusedEntity()).isSleeping()));
 			} while(entity instanceof ClientPlayerEntity && camera.getFocusedEntity() != entity);
 

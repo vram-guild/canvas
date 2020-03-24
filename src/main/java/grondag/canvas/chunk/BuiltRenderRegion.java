@@ -24,7 +24,6 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.chunk.ChunkStatus;
@@ -49,7 +48,6 @@ public class BuiltRenderRegion {
 	private final AtomicReference<RegionData> renderData;
 	private final AtomicReference<RegionData> buildData;
 	private final ObjectOpenHashSet<BlockEntity> localNoCullingBlockEntities = new ObjectOpenHashSet<>();
-	public Box boundingBox;
 	//private int frameIndex;
 	private boolean needsRebuild;
 	private final BlockPos.Mutable origin;
@@ -63,6 +61,10 @@ public class BuiltRenderRegion {
 	public boolean canRenderTerrain;
 
 	int squaredCameraDistance;
+
+	public float cameraRelativeCenterX;
+	public float cameraRelativeCenterY;
+	public float cameraRelativeCenterZ;
 
 	public BuiltRenderRegion(RenderRegionBuilder renderRegionBuilder) {
 		this.renderRegionBuilder = renderRegionBuilder;
@@ -96,7 +98,6 @@ public class BuiltRenderRegion {
 		if (x != origin.getX() || y != origin.getY() || z != origin.getZ()) {
 			clear();
 			origin.set(x, y, z);
-			boundingBox = new Box(x, y, z, x + 16, y + 16, z + 16);
 
 			final int[] neighborIndices = this.neighborIndices;
 
@@ -108,12 +109,15 @@ public class BuiltRenderRegion {
 		}
 	}
 
-	void updateCameraDistance(int cameraX, int cameraY, int cameraZ) {
+	void updateCameraDistance(double cameraX, double cameraY, double cameraZ) {
 		final BlockPos.Mutable origin = this.origin;
-		final int dx = origin.getX() + 8 - cameraX;
-		final int dy = origin.getY() + 8 - cameraY;
-		final int dz = origin.getZ() + 8 - cameraZ;
-		squaredCameraDistance = dx * dx + dy * dy + dz * dz;
+		final float dx = (float) (origin.getX() + 8 - cameraX);
+		final float dy = (float) (origin.getY() + 8 - cameraY);
+		final float dz = (float) (origin.getZ() + 8 - cameraZ);
+		squaredCameraDistance = (int) (dx * dx + dy * dy + dz * dz);
+		cameraRelativeCenterX = dx;
+		cameraRelativeCenterY = dy;
+		cameraRelativeCenterZ = dz;
 	}
 
 	private static <E extends BlockEntity> void addBlockEntity(List<BlockEntity> chunkEntities, Set<BlockEntity> globalEntities, E blockEntity) {

@@ -28,14 +28,12 @@ import net.minecraft.client.render.BlockBreakingInfo;
 import net.minecraft.client.render.BufferBuilderStorage;
 import net.minecraft.client.render.Camera;
 import net.minecraft.client.render.FpsSmoother;
-import net.minecraft.client.render.Frustum;
 import net.minecraft.client.render.LightmapTextureManager;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.VertexFormat;
 import net.minecraft.client.render.entity.EntityRenderDispatcher;
 import net.minecraft.client.texture.TextureManager;
-import net.minecraft.client.util.math.Matrix4f;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.Entity;
@@ -79,14 +77,6 @@ public interface WorldRendererExt {
 	EntityRenderDispatcher canvas_entityRenderDispatcher();
 
 	BufferBuilderStorage canvas_bufferBuilders();
-
-	Frustum canvas_getCapturedFrustum ();
-
-	void canvas_setCapturedFrustum (Frustum frustum);
-
-	void canvas_setCapturedFrustumPosition(Frustum frustum);
-
-	void canvas_captureFrustumIfNeeded(Matrix4f matrix4f2, Matrix4f matrix4f, Vec3d cameraPos, boolean hasCapturedFrustum, Frustum frustum2);
 
 	int canvas_getAndIncrementFrameIndex();
 
