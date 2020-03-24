@@ -7,6 +7,8 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 
+import grondag.canvas.render.CanvasFrustum;
+
 public class RenderRegionStorage {
 	private int sizeY;
 	private int sizeX;
@@ -152,6 +154,22 @@ public class RenderRegionStorage {
 		}
 
 		isSortDirty = true;
+	}
+
+	/**
+	 * Assumes camera distance update has already happened
+	 */
+	public void updateFrustumTest(CanvasFrustum frustum) {
+		if (!frustum.isDirty()) {
+			return;
+		}
+
+		frustum.clearDirty();
+
+		//  PERF: implement hierarchical tests with propagation of per-plane inside test results
+		for (final BuiltRenderRegion chunk : regions) {
+			chunk.isInFrustum = frustum.isChunkVisible(chunk);
+		}
 	}
 
 	public BuiltRenderRegion[] regions() {

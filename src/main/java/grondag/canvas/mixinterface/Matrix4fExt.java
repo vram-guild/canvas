@@ -1,5 +1,7 @@
 package grondag.canvas.mixinterface;
 
+import net.minecraft.client.util.math.Matrix4f;
+
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 
@@ -38,4 +40,56 @@ public interface Matrix4fExt {
 	void a31(float val);
 	void a32(float val);
 	void a33(float val);
+
+	default void set(Matrix4fExt val) {
+		a00(val.a00());
+		a01(val.a01());
+		a02(val.a02());
+		a03(val.a03());
+
+		a10(val.a10());
+		a11(val.a11());
+		a12(val.a12());
+		a13(val.a13());
+
+		a20(val.a20());
+		a21(val.a21());
+		a22(val.a22());
+		a23(val.a23());
+
+		a30(val.a30());
+		a31(val.a31());
+		a32(val.a32());
+		a33(val.a33());
+	}
+
+	default void set(Matrix4f val) {
+		set((Matrix4fExt)(Object) val);
+	}
+
+	default boolean matches(Matrix4fExt val) {
+		return a00() == val.a00()
+				&& a01() == val.a01()
+				&& a02() == val.a02()
+				&& a03() == val.a03()
+
+				&& a10() == val.a10()
+				&& a11() == val.a11()
+				&& a12() == val.a12()
+				&& a13() == val.a13()
+
+				&& a20() == val.a20()
+				&& a21() == val.a21()
+				&& a22() == val.a22()
+				&& a23() == val.a23()
+
+				&& a30() == val.a30()
+				&& a31() == val.a31()
+				&& a32() == val.a32()
+				&& a33() == val.a33();
+	}
+
+	default boolean matches(Matrix4f val) {
+		return matches((Matrix4fExt)(Object) val);
+	}
 }

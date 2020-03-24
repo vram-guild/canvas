@@ -59,6 +59,7 @@ public class BuiltRenderRegion {
 	private Solid solidDrawable;
 	// UGLY: encapsulate
 	public boolean canRenderTerrain;
+	public boolean isInFrustum;
 
 	int squaredCameraDistance;
 

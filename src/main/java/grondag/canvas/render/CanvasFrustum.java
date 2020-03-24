@@ -25,10 +25,17 @@ import grondag.canvas.mixinterface.Matrix4fExt;
 @Environment(EnvType.CLIENT)
 public class CanvasFrustum extends Frustum {
 	private final Matrix4f mvpMatrix = new Matrix4f();
+	private final Matrix4fExt lastProjectionMatrix = (Matrix4fExt)(Object) new Matrix4f();
+	private final Matrix4fExt lastModelMatrix = (Matrix4fExt)(Object) new Matrix4f();
 
 	private Frustum testFrustum;
+	private float lastCameraX;
+	private float lastCameraY;
+	private float lastCameraZ;
 
 	private final float[] planes = new float[6 * PLANE_STRIDE];
+
+	private boolean isDirty = false;
 
 	public CanvasFrustum() {
 		super(dummyMatrix(), dummyMatrix());
@@ -40,7 +47,39 @@ public class CanvasFrustum extends Frustum {
 		return dummt;
 	}
 
+	/**
+	 * True if region tests should be refreshed.
+	 */
+	public boolean isDirty() {
+		return isDirty;
+	}
+
+	/**
+	 * Call after region tests are updated.
+	 */
+	public void clearDirty() {
+		isDirty = false;
+	}
+
 	public void prepare(Matrix4f modelMatrix, Matrix4f projectionMatrix, Camera camera) {
+		final Vec3d vec = camera.getPos();
+		final float cx = (float) vec.x;
+		final float cy = (float) vec.y;
+		final float cz = (float) vec.z;
+
+		if(cx == lastCameraX && cy == lastCameraY && cx == lastCameraZ
+				&& lastModelMatrix.matches(modelMatrix)
+				&& lastProjectionMatrix.matches(projectionMatrix)) {
+			return;
+		}
+
+		lastCameraX = cx;
+		lastCameraY = cy;
+		lastCameraZ = cz;
+		lastModelMatrix.set(modelMatrix);
+		lastProjectionMatrix.set(projectionMatrix);
+		isDirty = true;
+
 		mvpMatrix.loadIdentity();
 		mvpMatrix.multiply(projectionMatrix);
 		mvpMatrix.multiply(modelMatrix);
@@ -48,8 +87,6 @@ public class CanvasFrustum extends Frustum {
 		extractPlanes();
 
 		testFrustum = new Frustum(modelMatrix, projectionMatrix);
-
-		final Vec3d vec = camera.getPos();
 
 		testFrustum.setPosition(vec.x, vec.y, vec.z);
 	}

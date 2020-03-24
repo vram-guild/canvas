@@ -12,6 +12,7 @@ import net.minecraft.util.math.Vec3d;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
+import grondag.canvas.render.CanvasWorldRenderer;
 
 // Some elements are adapted from content found at
 // https://fgiesen.wordpress.com/2013/02/17/optimizing-sw-occlusion-culling-index/
@@ -151,6 +152,8 @@ public class TerrainOccluder {
 	}
 
 	public boolean isChunkVisible()  {
+		CanvasWorldRenderer.innerTimer.start();
+
 		computeProjectedBoxBounds(0, 0, 0, 16, 16, 16);
 
 		final boolean east = testEast();
@@ -160,8 +163,10 @@ public class TerrainOccluder {
 		final boolean up = testUp();
 		final boolean down = testDown();
 
+		final boolean result = east || west || north || south || up || down;
+		CanvasWorldRenderer.innerTimer.stop();
 
-		return east || west || north || south || up || down;
+		return result;
 	}
 
 	public boolean isBoxVisible(int packedBox) {

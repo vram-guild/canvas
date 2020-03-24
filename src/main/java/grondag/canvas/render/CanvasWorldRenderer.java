@@ -207,6 +207,10 @@ public class CanvasWorldRenderer {
 			visibleChunkCount = 0;
 			occluder.clearScene();
 
+			CanvasWorldRenderer.innerTimer.start();
+			chunkStorage.updateFrustumTest(frustum);
+			CanvasWorldRenderer.innerTimer.stop();
+
 			Entity.setRenderDistanceMultiplier(MathHelper.clamp(mc.options.viewDistance / 8.0D, 1.0D, 2.5D));
 			final boolean chunkCullingEnabled = mc.chunkCullingEnabled;
 
@@ -214,12 +218,9 @@ public class CanvasWorldRenderer {
 
 			for(final BuiltRenderRegion builtChunk : chunkStorage.sortedRegions()) {
 				// don't visit if not in frustum
-				CanvasWorldRenderer.innerTimer.start();
-				if(!frustum.isChunkVisible(builtChunk)) {
-					CanvasWorldRenderer.innerTimer.stop();
+				if(!builtChunk.isInFrustum) {
 					continue;
 				}
-				CanvasWorldRenderer.innerTimer.stop();
 
 				// don't visit if chunk is outside near distance and doesn't have all 4 neighbors loaded
 				if (!builtChunk.shouldBuild()) {
