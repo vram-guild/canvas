@@ -44,17 +44,17 @@ public class TerrainOccluder {
 	private Matrix4f modelMatrix;
 	private final Matrix4f mvpMatrix = new Matrix4f();
 
-	private final Lazy4f v000 = new Lazy4f();
-	private final Lazy4f v001 = new Lazy4f();
-	private final Lazy4f v010 = new Lazy4f();
-	private final Lazy4f v011 = new Lazy4f();
-	private final Lazy4f v100 = new Lazy4f();
-	private final Lazy4f v101 = new Lazy4f();
-	private final Lazy4f v110 = new Lazy4f();
-	private final Lazy4f v111 = new Lazy4f();
+	private final ProjectionVector4f v000 = new ProjectionVector4f();
+	private final ProjectionVector4f v001 = new ProjectionVector4f();
+	private final ProjectionVector4f v010 = new ProjectionVector4f();
+	private final ProjectionVector4f v011 = new ProjectionVector4f();
+	private final ProjectionVector4f v100 = new ProjectionVector4f();
+	private final ProjectionVector4f v101 = new ProjectionVector4f();
+	private final ProjectionVector4f v110 = new ProjectionVector4f();
+	private final ProjectionVector4f v111 = new ProjectionVector4f();
 
-	private final Lazy4f va = new Lazy4f();
-	private final Lazy4f vb = new Lazy4f();
+	private final ProjectionVector4f va = new ProjectionVector4f();
+	private final ProjectionVector4f vb = new ProjectionVector4f();
 
 	// Boumds of current triangle
 	private int minX;
@@ -269,7 +269,7 @@ public class TerrainOccluder {
 		v111.transform(mvpMatrix);
 	}
 
-	private void drawQuad(Lazy4f v0, Lazy4f v1, Lazy4f v2, Lazy4f v3) {
+	private void drawQuad(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2, ProjectionVector4f v3) {
 		final int split = v0.externalFlag() | (v1.externalFlag() << 1) | (v2.externalFlag() << 2) | (v3.externalFlag() << 3);
 
 		switch (split) {
@@ -329,9 +329,9 @@ public class TerrainOccluder {
 		}
 	}
 
-	private void drawSplitThree(Lazy4f extA, Lazy4f internal, Lazy4f extB) {
-		final Lazy4f va = this.va;
-		final Lazy4f vb = this.vb;
+	private void drawSplitThree(ProjectionVector4f extA, ProjectionVector4f internal, ProjectionVector4f extB) {
+		final ProjectionVector4f va = this.va;
+		final ProjectionVector4f vb = this.vb;
 
 		va.interpolateClip(internal, extA);
 		vb.interpolateClip(internal, extB);
@@ -339,9 +339,9 @@ public class TerrainOccluder {
 		drawTriFast(va, internal, vb);
 	}
 
-	private void drawSplitTwo(Lazy4f extA, Lazy4f internal0, Lazy4f internal1, Lazy4f extB) {
-		final Lazy4f va = this.va;
-		final Lazy4f vb = this.vb;
+	private void drawSplitTwo(ProjectionVector4f extA, ProjectionVector4f internal0, ProjectionVector4f internal1, ProjectionVector4f extB) {
+		final ProjectionVector4f va = this.va;
+		final ProjectionVector4f vb = this.vb;
 
 		va.interpolateClip(internal0, extA);
 		vb.interpolateClip(internal1, extB);
@@ -350,9 +350,9 @@ public class TerrainOccluder {
 		drawTriFast(va, internal1, vb);
 	}
 
-	private void drawSplitOne(Lazy4f v0, Lazy4f v1, Lazy4f v2, Lazy4f ext) {
-		final Lazy4f va = this.va;
-		final Lazy4f vb = this.vb;
+	private void drawSplitOne(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2, ProjectionVector4f ext) {
+		final ProjectionVector4f va = this.va;
+		final ProjectionVector4f vb = this.vb;
 
 		va.interpolateClip(v2, ext);
 		vb.interpolateClip(v0, ext);
@@ -362,7 +362,7 @@ public class TerrainOccluder {
 		drawTriFast(v0, va, vb);
 	}
 
-	private boolean testQuad(Lazy4f v0, Lazy4f v1, Lazy4f v2, Lazy4f v3) {
+	private boolean testQuad(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2, ProjectionVector4f v3) {
 		final int split = v0.externalFlag() | (v1.externalFlag() << 1) | (v2.externalFlag() << 2) | (v3.externalFlag() << 3);
 
 		switch (split) {
@@ -408,9 +408,9 @@ public class TerrainOccluder {
 		}
 	}
 
-	private boolean testSplitThree(Lazy4f extA, Lazy4f internal, Lazy4f extB) {
-		final Lazy4f va = this.va;
-		final Lazy4f vb = this.vb;
+	private boolean testSplitThree(ProjectionVector4f extA, ProjectionVector4f internal, ProjectionVector4f extB) {
+		final ProjectionVector4f va = this.va;
+		final ProjectionVector4f vb = this.vb;
 
 		va.interpolateClip(internal, extA);
 		vb.interpolateClip(internal, extB);
@@ -418,9 +418,9 @@ public class TerrainOccluder {
 		return testTri(va, internal, vb);
 	}
 
-	private boolean testSplitTwo(Lazy4f extA, Lazy4f internal0, Lazy4f internal1, Lazy4f extB) {
-		final Lazy4f va = this.va;
-		final Lazy4f vb = this.vb;
+	private boolean testSplitTwo(ProjectionVector4f extA, ProjectionVector4f internal0, ProjectionVector4f internal1, ProjectionVector4f extB) {
+		final ProjectionVector4f va = this.va;
+		final ProjectionVector4f vb = this.vb;
 
 		va.interpolateClip(internal0, extA);
 		vb.interpolateClip(internal1, extB);
@@ -428,9 +428,9 @@ public class TerrainOccluder {
 		return testTri(va, internal0, internal1) || testTri(va, internal1, vb);
 	}
 
-	private boolean testSplitOne(Lazy4f v0, Lazy4f v1, Lazy4f v2, Lazy4f ext) {
-		final Lazy4f va = this.va;
-		final Lazy4f vb = this.vb;
+	private boolean testSplitOne(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2, ProjectionVector4f ext) {
+		final ProjectionVector4f va = this.va;
+		final ProjectionVector4f vb = this.vb;
 
 		va.interpolateClip(v2, ext);
 		vb.interpolateClip(v0, ext);
@@ -467,7 +467,7 @@ public class TerrainOccluder {
 	int xyBinStep1;
 	int xyBinStep2;
 
-	private boolean prepareTriBounds(Lazy4f v0, Lazy4f v1, Lazy4f v2) {
+	private boolean prepareTriBounds(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2) {
 		final int x0 = v0.ix();
 		final int y0 = v0.iy();
 		final int x1 = v1.ix();
@@ -577,7 +577,7 @@ public class TerrainOccluder {
 	}
 
 	@SuppressWarnings("unused")
-	private void drawTriReference(Lazy4f v0, Lazy4f v1, Lazy4f v2) {
+	private void drawTriReference(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2) {
 		if (!prepareTriBounds(v0, v1, v2)) {
 			return;
 		}
@@ -627,7 +627,7 @@ public class TerrainOccluder {
 		}
 	}
 
-	private void drawTriFast(Lazy4f v0, Lazy4f v1, Lazy4f v2) {
+	private void drawTriFast(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2) {
 		if (!prepareTriBounds(v0, v1, v2)) {
 			return;
 		}
@@ -699,7 +699,7 @@ public class TerrainOccluder {
 		bits[wordIndex(x, y)] |= (1L << (pixelIndex(x, y)));
 	}
 
-	private boolean testTri(Lazy4f v0, Lazy4f v1, Lazy4f v2) {
+	private boolean testTri(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2) {
 		if (!prepareTriBounds(v0, v1, v2)) {
 			return false;
 		}
@@ -732,7 +732,7 @@ public class TerrainOccluder {
 	}
 
 	@SuppressWarnings("unused")
-	private boolean testTriReference(Lazy4f v0, Lazy4f v1, Lazy4f v2) {
+	private boolean testTriReference(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2) {
 		prepareTriScan();
 
 		// Triangle setup
@@ -776,7 +776,7 @@ public class TerrainOccluder {
 		return false;
 	}
 
-	private boolean testTriFast(Lazy4f v0, Lazy4f v1, Lazy4f v2) {
+	private boolean testTriFast(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2) {
 		prepareTriScan();
 
 		final int minX = this.minX;

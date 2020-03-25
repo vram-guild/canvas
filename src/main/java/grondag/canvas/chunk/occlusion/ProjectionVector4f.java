@@ -4,8 +4,7 @@ import net.minecraft.client.util.math.Matrix4f;
 import net.minecraft.client.util.math.Vector4f;
 import net.minecraft.util.math.MathHelper;
 
-public class Lazy4f extends Vector4f {
-	protected boolean dirty = true;
+public class ProjectionVector4f extends Vector4f {
 	protected float px;
 	protected float py;
 	protected int ix;
@@ -13,54 +12,45 @@ public class Lazy4f extends Vector4f {
 	protected int externalFlag;
 
 	protected void calc() {
-		if (dirty) {
-			px = getX() / getW();
-			py = getY() / getW();
-			ix = MathHelper.floor(TerrainOccluder.HALF_WIDTH + px * TerrainOccluder.HALF_WIDTH);
-			iy = MathHelper.floor(TerrainOccluder.HALF_HEIGHT + py * TerrainOccluder.HALF_HEIGHT);
-			externalFlag = getW() <= 0 ? 1 : 0;
-			dirty = false;
-		}
+		px = getX() / getW();
+		py = getY() / getW();
+		ix = MathHelper.floor(TerrainOccluder.HALF_WIDTH + px * TerrainOccluder.HALF_WIDTH);
+		iy = MathHelper.floor(TerrainOccluder.HALF_HEIGHT + py * TerrainOccluder.HALF_HEIGHT);
+		externalFlag = getW() <= 0 ? 1 : 0;
 	}
 
 	@Override
 	public void set(float f, float g, float h, float i) {
 		super.set(f, g, h, i);
-		dirty = true;
 	}
 
 	@Override
 	public void transform(Matrix4f matrix4f) {
 		super.transform(matrix4f);
-		dirty = true;
+		calc();
 	}
 
 	float px() {
-		calc();
 		return px;
 	}
 
 	float py() {
-		calc();
 		return py;
 	}
 
 	int ix() {
-		calc();
 		return ix;
 	}
 
 	int iy() {
-		calc();
 		return iy;
 	}
 
 	int externalFlag() {
-		calc();
 		return externalFlag;
 	}
 
-	void interpolateClip(Lazy4f internal, Lazy4f external) {
+	void interpolateClip(ProjectionVector4f internal, ProjectionVector4f external) {
 		// external z will be negative
 		final float wt  = internal.getZ() / (internal.getZ() - external.getZ());
 
@@ -69,5 +59,6 @@ public class Lazy4f extends Vector4f {
 		final float w = internal.getW() + (external.getW() - internal.getW()) * wt;
 
 		set(x / w, y / w, 1, 1);
+		calc();
 	}
 }
