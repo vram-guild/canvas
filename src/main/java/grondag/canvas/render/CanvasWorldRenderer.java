@@ -207,9 +207,7 @@ public class CanvasWorldRenderer {
 			visibleChunkCount = 0;
 			occluder.clearScene();
 
-			CanvasWorldRenderer.innerTimer.start();
 			chunkStorage.updateFrustumTest(frustum);
-			CanvasWorldRenderer.innerTimer.stop();
 
 			Entity.setRenderDistanceMultiplier(MathHelper.clamp(mc.options.viewDistance / 8.0D, 1.0D, 2.5D));
 			final boolean chunkCullingEnabled = mc.chunkCullingEnabled;

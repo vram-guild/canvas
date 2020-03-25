@@ -722,3 +722,26 @@ inner = draw call alone outer = render_solid/translucent
 [09:23:13] [main/INFO]: [STDOUT]: Visible chunk count = 107
 [09:23:13] [main/INFO]: [STDOUT]: lastSolidCount = 122   lastTranlsucentCount = 6
 [09:23:13] [main/INFO]: Avg inner duration = 791 ns, total duration = 2,750, total runs = 3,476,596
+
+-- isChunkVisible after camera position / AABB tests
+
+[18:47:05] [main/INFO]: Avg outer duration = 44,786,506 ns, total duration = 8,957, total runs = 200
+[18:47:05] [main/INFO]: [STDOUT]: Avg inner runs per frame = 38336
+[18:47:05] [main/INFO]: [STDOUT]: Inner elapsed is 24% of outer
+[18:47:05] [main/INFO]: [STDOUT]: Visible chunk count = 785
+[18:47:05] [main/INFO]: [STDOUT]: lastSolidCount = 1627   lastTranlsucentCount = 84
+[18:47:05] [main/INFO]: Avg inner duration = 561 ns, total duration = 2,153, total runs = 3,833,600
+
+[18:47:15] [main/INFO]: Avg outer duration = 44,186,764 ns, total duration = 8,837, total runs = 200
+[18:47:15] [main/INFO]: [STDOUT]: Avg inner runs per frame = 38579
+[18:47:15] [main/INFO]: [STDOUT]: Inner elapsed is 25% of outer
+[18:47:15] [main/INFO]: [STDOUT]: Visible chunk count = 507
+[18:47:15] [main/INFO]: [STDOUT]: lastSolidCount = 1067   lastTranlsucentCount = 56
+[18:47:15] [main/INFO]: Avg inner duration = 580 ns, total duration = 2,237, total runs = 3,857,973
+
+[18:47:21] [main/INFO]: Avg outer duration = 26,052,236 ns, total duration = 5,210, total runs = 200
+[18:47:21] [main/INFO]: [STDOUT]: Avg inner runs per frame = 14528
+[18:47:21] [main/INFO]: [STDOUT]: Inner elapsed is 14% of outer
+[18:47:21] [main/INFO]: [STDOUT]: Visible chunk count = 708
+[18:47:21] [main/INFO]: [STDOUT]: lastSolidCount = 1533   lastTranlsucentCount = 85
+[18:47:21] [main/INFO]: Avg inner duration = 529 ns, total duration = 769, total runs = 1,452,839

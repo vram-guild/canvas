@@ -67,6 +67,14 @@ public class TerrainOccluder {
 	private int wOrigin1;
 	private int wOrigin2;
 
+	private int xOrigin;
+	private int yOrigin;
+	private int zOrigin;
+
+	private double cameraX;
+	private double cameraY;
+	private double cameraZ;
+
 	private void drawDown() {
 		drawQuad(v000, v100, v101, v001);
 	}
@@ -128,23 +136,24 @@ public class TerrainOccluder {
 		System.arraycopy(EMPTY_BITS, 0, bits, 0, WORD_COUNT);
 	}
 
-	private int xOrigin;
-	private int yOrigin;
-	private int zOrigin;
-
-	private double cameraX;
-	private double cameraY;
-	private double cameraZ;
+	private float offsetX;
+	private float offsetY;
+	private float offsetZ;
 
 	public void prepareChunk(BlockPos origin) {
 		xOrigin = origin.getX();
 		yOrigin = origin.getY();
 		zOrigin = origin.getZ();
 
-		final float offsetX = (float) (xOrigin - cameraX);
-		final float offsetY = (float) (yOrigin - cameraY);
-		final float offsetZ = (float) (zOrigin - cameraZ);
+		offsetX = (float) (xOrigin - cameraX);
+		offsetY = (float) (yOrigin - cameraY);
+		offsetZ = (float) (zOrigin - cameraZ);
 
+		// oy + 16 < cy
+		// oy - cy < -16;
+
+		// oy > cy
+		// oy - cy > 0
 		mvpMatrix.loadIdentity();
 		mvpMatrix.multiply(projectionMatrix);
 		mvpMatrix.multiply(modelMatrix);
@@ -156,14 +165,17 @@ public class TerrainOccluder {
 
 		computeProjectedBoxBounds(0, 0, 0, 16, 16, 16);
 
-		final boolean east = testEast();
-		final boolean west = testWest();
-		final boolean north = testNorth();
-		final boolean south = testSouth();
-		final boolean up = testUp();
-		final boolean down = testDown();
+		final boolean result =
+				// if camera below top face can't be seen
+				(offsetY < -16 && testUp())
+				|| (offsetY > 0 && testDown())
 
-		final boolean result = east || west || north || south || up || down;
+				|| (offsetX < -16 &&  testEast())
+				|| (offsetX > -0 && testWest())
+
+				|| (offsetZ > 0 && testNorth())
+				|| (offsetZ < -16 && testSouth());
+
 		CanvasWorldRenderer.innerTimer.stop();
 
 		return result;
@@ -575,7 +587,8 @@ public class TerrainOccluder {
 		xyBinStep2 = xBinStep2 + yBinStep2;
 	}
 
-	private void drawTri(Lazy4f v0, Lazy4f v1, Lazy4f v2) {
+	@SuppressWarnings("unused")
+	private void drawTriReference(Lazy4f v0, Lazy4f v1, Lazy4f v2) {
 		if (!prepareTriBounds(v0, v1, v2)) {
 			return;
 		}
@@ -735,7 +748,8 @@ public class TerrainOccluder {
 		return result;
 	}
 
-	private boolean testTriInner(Lazy4f v0, Lazy4f v1, Lazy4f v2) {
+	@SuppressWarnings("unused")
+	private boolean testTriReference(Lazy4f v0, Lazy4f v1, Lazy4f v2) {
 		prepareTriScan();
 
 		// Triangle setup
