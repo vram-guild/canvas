@@ -149,11 +149,6 @@ public class TerrainOccluder {
 		offsetY = (float) (yOrigin - cameraY);
 		offsetZ = (float) (zOrigin - cameraZ);
 
-		// oy + 16 < cy
-		// oy - cy < -16;
-
-		// oy > cy
-		// oy - cy > 0
 		mvpMatrix.loadIdentity();
 		mvpMatrix.multiply(projectionMatrix);
 		mvpMatrix.multiply(modelMatrix);
@@ -170,11 +165,11 @@ public class TerrainOccluder {
 				(offsetY < -16 && testUp())
 				|| (offsetY > 0 && testDown())
 
-				|| (offsetX < -16 &&  testEast())
-				|| (offsetX > -0 && testWest())
+				|| (offsetX < -16 && testEast())
+				|| (offsetX > 0 && testWest())
 
-				|| (offsetZ > 0 && testNorth())
-				|| (offsetZ < -16 && testSouth());
+				|| (offsetZ < -16 && testSouth())
+				|| (offsetZ > 0 && testNorth());
 
 		CanvasWorldRenderer.innerTimer.stop();
 
@@ -182,24 +177,24 @@ public class TerrainOccluder {
 	}
 
 	public boolean isBoxVisible(int packedBox) {
+		final int x0  = PackedBox.x0(packedBox);
+		final int y0  = PackedBox.y0(packedBox);
+		final int z0  = PackedBox.z0(packedBox);
+		final int x1  = PackedBox.x1(packedBox);
+		final int y1  = PackedBox.y1(packedBox);
+		final int z1  = PackedBox.z1(packedBox);
 
-		computeProjectedBoxBounds(
-				PackedBox.x0(packedBox),
-				PackedBox.y0(packedBox),
-				PackedBox.z0(packedBox),
-				PackedBox.x1(packedBox),
-				PackedBox.y1(packedBox),
-				PackedBox.z1(packedBox));
+		computeProjectedBoxBounds(x0, y0, z0, x1, y1, z1);
 
-		final boolean east = testEast();
-		final boolean west = testWest();
-		final boolean north = testNorth();
-		final boolean south = testSouth();
-		final boolean up = testUp();
-		final boolean down = testDown();
+		// if camera below top face can't be seen
+		return (offsetY < -y1 && testUp())
+				|| (offsetY > -y0 && testDown())
 
+				|| (offsetX < -x1 && testEast())
+				|| (offsetX > -x0 && testWest())
 
-		return east || west || north || south || up || down;
+				|| (offsetZ < -z1 && testSouth())
+				|| (offsetZ > -z0 && testNorth());
 	}
 
 	public void occludeChunk()  {
@@ -374,10 +369,8 @@ public class TerrainOccluder {
 
 		if (split != 0) {
 			return split == 0b1111 ? false : testSplitQuad(split, v0, v1,  v2, v3);
-		} else if (isCcw(v0, v1, v2))  {
-			return testTri(v0, v1, v2) || testTri(v0, v2, v3);
 		} else {
-			return false;
+			return testTri(v0, v1, v2) || testTri(v0, v2, v3);
 		}
 	}
 
@@ -737,13 +730,7 @@ public class TerrainOccluder {
 			return false;
 		}
 
-		//CanvasWorldRenderer.innerTimer.start();
 		final boolean result = testTriFast(v0, v1, v2);
-		//CanvasWorldRenderer.innerTimer.stop();
-
-		//		if (testTriFast(v0, v1, v2) != result) {
-		//			testTriFast(v0, v1, v2);
-		//		}
 
 		return result;
 	}
