@@ -199,12 +199,13 @@ public class TerrainOccluder {
 
 	public void occludeChunk()  {
 		computeProjectedBoxBounds(0, 0, 0, 16, 16, 16);
-		drawUp();
-		drawDown();
-		drawEast();
-		drawWest();
-		drawNorth();
-		drawSouth();
+
+		if (offsetY < -16) drawUp();
+		if (offsetY > 0) drawDown();
+		if (offsetX < -16) drawEast();
+		if (offsetX > 0) drawWest();
+		if (offsetZ < -16) drawSouth();
+		if (offsetZ > 0) drawNorth();
 	}
 
 	public void occlude(int[] visData, int squaredCameraDistance) {
@@ -232,12 +233,13 @@ public class TerrainOccluder {
 
 	private void occlude(float x0, float y0, float z0, float x1, float y1, float z1) {
 		computeProjectedBoxBounds(x0, y0, z0, x1, y1, z1);
-		drawUp();
-		drawDown();
-		drawEast();
-		drawWest();
-		drawNorth();
-		drawSouth();
+
+		if (offsetY < -y1) drawUp();
+		if (offsetY > -y0) drawDown();
+		if (offsetX < -x1) drawEast();
+		if (offsetX > -x0) drawWest();
+		if (offsetZ < -z1) drawSouth();
+		if (offsetZ > -z0) drawNorth();
 	}
 
 	private void computeProjectedBoxBounds(float x0, float y0, float z0, float x1, float y1, float z1) {
@@ -267,27 +269,18 @@ public class TerrainOccluder {
 		v111.transform(mvpMatrix);
 	}
 
-	private boolean isCcw(Lazy4f v0, Lazy4f v1, Lazy4f v2) {
-		return (v1.px() - v0.px()) * (v2.py() - v0.py()) - (v2.px() - v0.px()) * (v1.py() - v0.py()) > 0;
-	}
-
 	private void drawQuad(Lazy4f v0, Lazy4f v1, Lazy4f v2, Lazy4f v3) {
 		final int split = v0.externalFlag() | (v1.externalFlag() << 1) | (v2.externalFlag() << 2) | (v3.externalFlag() << 3);
 
-		if (split != 0) {
-			if (split != 0b1111) {
-				drawSplitQuad(split, v0, v1,  v2, v3);
-			}
-		} else if (isCcw(v0, v1, v2))  {
-			drawTriFast(v0, v1, v2);
-			drawTriFast(v0, v2, v3);
-		}
-	}
-
-	private void drawSplitQuad(int split, Lazy4f v0, Lazy4f v1, Lazy4f v2, Lazy4f v3) {
 		switch (split) {
 
-		// missing one corner, three tris
+		// nominal case, all inside
+		case 0b0000:
+			drawTriFast(v0, v1, v2);
+			drawTriFast(v0, v2, v3);
+			break;
+
+			// missing one corner, three tris
 		case 0b0001:
 			drawSplitOne(v1, v2, v3, v0);
 			break;
@@ -328,6 +321,11 @@ public class TerrainOccluder {
 		case 0b1011:
 			drawSplitThree(v1, v2, v3);
 			break;
+
+		default:
+		case 0b1111:
+			// all external, draw nothing
+			break;
 		}
 	}
 
@@ -367,17 +365,13 @@ public class TerrainOccluder {
 	private boolean testQuad(Lazy4f v0, Lazy4f v1, Lazy4f v2, Lazy4f v3) {
 		final int split = v0.externalFlag() | (v1.externalFlag() << 1) | (v2.externalFlag() << 2) | (v3.externalFlag() << 3);
 
-		if (split != 0) {
-			return split == 0b1111 ? false : testSplitQuad(split, v0, v1,  v2, v3);
-		} else {
-			return testTri(v0, v1, v2) || testTri(v0, v2, v3);
-		}
-	}
-
-	private boolean testSplitQuad(int split, Lazy4f v0, Lazy4f v1, Lazy4f v2, Lazy4f v3) {
 		switch (split) {
 
-		// missing one corner, three tris
+		// nominal case, all inside
+		case 0b0000:
+			return testTri(v0, v1, v2) || testTri(v0, v2, v3);
+
+			// missing one corner, three tris
 		case 0b0001:
 			return testSplitOne(v1, v2, v3, v0);
 		case 0b0010:
@@ -408,6 +402,8 @@ public class TerrainOccluder {
 			return testSplitThree(v1, v2, v3);
 
 		default:
+		case 0b1111:
+			// all external, not in view
 			return false;
 		}
 	}
