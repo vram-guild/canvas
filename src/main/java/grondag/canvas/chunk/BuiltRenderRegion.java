@@ -38,6 +38,7 @@ import grondag.canvas.buffer.packing.VertexCollectorList;
 import grondag.canvas.chunk.DrawableChunk.Solid;
 import grondag.canvas.chunk.DrawableChunk.Translucent;
 import grondag.canvas.chunk.occlusion.OcclusionRegion;
+import grondag.canvas.chunk.occlusion.PackedBox;
 import grondag.canvas.material.MaterialContext;
 import grondag.canvas.material.MaterialState;
 import grondag.canvas.perf.ChunkRebuildCounters;
@@ -62,6 +63,7 @@ public class BuiltRenderRegion {
 	public boolean isInFrustum;
 
 	int squaredCameraDistance;
+	public int occlusionRange;
 
 	public float cameraRelativeCenterX;
 	public float cameraRelativeCenterY;
@@ -119,6 +121,7 @@ public class BuiltRenderRegion {
 		cameraRelativeCenterX = dx;
 		cameraRelativeCenterY = dy;
 		cameraRelativeCenterZ = dz;
+		occlusionRange = squaredCameraDistance > 1024 ? PackedBox.OCCLUSION_RANGE_FAR : squaredCameraDistance < 512 ? PackedBox.OCCLUSION_RANGE_NEAR : PackedBox.OCCLUSION_RANGE_MEDIUM;
 	}
 
 	private static <E extends BlockEntity> void addBlockEntity(List<BlockEntity> chunkEntities, Set<BlockEntity> globalEntities, E blockEntity) {

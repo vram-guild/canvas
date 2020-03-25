@@ -19,27 +19,6 @@ import grondag.canvas.render.CanvasWorldRenderer;
 // by Fabian “ryg” Giesen. That content is in the public domain.
 
 public class TerrainOccluder {
-	static final int WORD_AXIS_SHIFT = 3;
-	static final int WORD_PIXEL_DIAMETER = 1 << WORD_AXIS_SHIFT;
-	static final int WORD_PIXEL_INDEX_MASK = WORD_PIXEL_DIAMETER - 1;
-	static final int WORD_PIXEL_INVERSE_MASK = ~WORD_PIXEL_INDEX_MASK;
-
-	private static final int WIDTH_WORDS = 32;
-	private static final int WIDTH = WIDTH_WORDS * WORD_PIXEL_DIAMETER;
-	static final int HALF_WIDTH = WIDTH / 2;
-
-	private static final int HEIGHT_WORDS = 16;
-	private static final int HEIGHT = HEIGHT_WORDS * WORD_PIXEL_DIAMETER;
-	static final int HALF_HEIGHT = HEIGHT / 2;
-	private static final int HEIGHT_WORD_SHIFT = Integer.bitCount(WIDTH_WORDS - 1);
-	private static final int HEIGHT_WORD_RELATIVE_SHIFT = HEIGHT_WORD_SHIFT - WORD_AXIS_SHIFT;
-
-	private static final int WORD_COUNT = WIDTH_WORDS * HEIGHT_WORDS;
-
-	private static final long[] EMPTY_BITS = new long[WORD_COUNT];
-
-	private static final long[] bits = new long[WORD_COUNT];
-
 	private Matrix4f projectionMatrix;
 	private Matrix4f modelMatrix;
 	private final Matrix4f mvpMatrix = new Matrix4f();
@@ -74,54 +53,6 @@ public class TerrainOccluder {
 	private double cameraX;
 	private double cameraY;
 	private double cameraZ;
-
-	private void drawDown() {
-		drawQuad(v000, v100, v101, v001);
-	}
-
-	private void drawUp() {
-		drawQuad(v110, v010, v011, v111);
-	}
-
-	private void drawEast() {
-		drawQuad(v101, v100, v110, v111);
-	}
-
-	private void drawWest() {
-		drawQuad(v000, v001, v011, v010);
-	}
-
-	private void drawSouth() {
-		drawQuad(v001, v101, v111, v011);
-	}
-
-	private void drawNorth() {
-		drawQuad(v100, v000, v010, v110);
-	}
-
-	private boolean testDown() {
-		return testQuad(v000, v100, v101, v001);  // down
-	}
-
-	private boolean testUp() {
-		return testQuad(v110, v010, v011, v111); // up
-	}
-
-	private boolean testEast() {
-		return testQuad(v101, v100, v110, v111); // east
-	}
-
-	private boolean testWest() {
-		return testQuad(v000, v001, v011, v010); // west
-	}
-
-	private boolean testSouth() {
-		return testQuad(v001, v101, v111, v011); // south
-	}
-
-	private boolean testNorth() {
-		return testQuad(v100, v000, v010, v110); // north
-	}
 
 	public void prepareScene(Matrix4f projectionMatrix, Matrix4f modelMatrix, Camera camera) {
 		this.projectionMatrix = projectionMatrix.copy();
@@ -162,14 +93,14 @@ public class TerrainOccluder {
 
 		final boolean result =
 				// if camera below top face can't be seen
-				(offsetY < -16 && testUp())
-				|| (offsetY > 0 && testDown())
+				(offsetY < -16 && testQuad(v110, v010, v011, v111)) // up
+				|| (offsetY > 0 && testQuad(v000, v100, v101, v001)) // down
 
-				|| (offsetX < -16 && testEast())
-				|| (offsetX > 0 && testWest())
+				|| (offsetX < -16 && testQuad(v101, v100, v110, v111)) // east
+				|| (offsetX > 0 && testQuad(v000, v001, v011, v010)) // west
 
-				|| (offsetZ < -16 && testSouth())
-				|| (offsetZ > 0 && testNorth());
+				|| (offsetZ < -16 && testQuad(v001, v101, v111, v011)) // south
+				|| (offsetZ > 0 && testQuad(v100, v000, v010, v110)); // north
 
 		CanvasWorldRenderer.innerTimer.stop();
 
@@ -187,30 +118,40 @@ public class TerrainOccluder {
 		computeProjectedBoxBounds(x0, y0, z0, x1, y1, z1);
 
 		// if camera below top face can't be seen
-		return (offsetY < -y1 && testUp())
-				|| (offsetY > -y0 && testDown())
+		return (offsetY < -y1 && testQuad(v110, v010, v011, v111)) // up
+				|| (offsetY > -y0 && testQuad(v000, v100, v101, v001)) // down
 
-				|| (offsetX < -x1 && testEast())
-				|| (offsetX > -x0 && testWest())
+				|| (offsetX < -x1 && testQuad(v101, v100, v110, v111)) // east
+				|| (offsetX > -x0 && testQuad(v000, v001, v011, v010)) // west
 
-				|| (offsetZ < -z1 && testSouth())
-				|| (offsetZ > -z0 && testNorth());
+				|| (offsetZ < -z1 && testQuad(v001, v101, v111, v011)) // south
+				|| (offsetZ > -z0 && testQuad(v100, v000, v010, v110)); // north
 	}
 
 	public void occludeChunk()  {
 		computeProjectedBoxBounds(0, 0, 0, 16, 16, 16);
 
-		if (offsetY < -16) drawUp();
-		if (offsetY > 0) drawDown();
-		if (offsetX < -16) drawEast();
-		if (offsetX > 0) drawWest();
-		if (offsetZ < -16) drawSouth();
-		if (offsetZ > 0) drawNorth();
+		if (offsetY < -16) drawQuad(v110, v010, v011, v111); // up
+		if (offsetY > 0) drawQuad(v000, v100, v101, v001); // down
+		if (offsetX < -16) drawQuad(v101, v100, v110, v111); // east
+		if (offsetX > 0) drawQuad(v000, v001, v011, v010); // west
+		if (offsetZ < -16) drawQuad(v001, v101, v111, v011); // south
+		if (offsetZ > 0) drawQuad(v100, v000, v010, v110); // north
 	}
 
-	public void occlude(int[] visData, int squaredCameraDistance) {
+	private void occlude(float x0, float y0, float z0, float x1, float y1, float z1) {
+		computeProjectedBoxBounds(x0, y0, z0, x1, y1, z1);
+
+		if (offsetY < -y1) drawQuad(v110, v010, v011, v111); // up
+		if (offsetY > -y0) drawQuad(v000, v100, v101, v001); // down
+		if (offsetX < -x1) drawQuad(v101, v100, v110, v111); // east
+		if (offsetX > -x0) drawQuad(v000, v001, v011, v010); // west
+		if (offsetZ < -z1) drawQuad(v001, v101, v111, v011); // south
+		if (offsetZ > -z0) drawQuad(v100, v000, v010, v110); // north
+	}
+
+	public void occlude(int[] visData, int range) {
 		final int limit= visData.length;
-		final int range = squaredCameraDistance > 1024 ? PackedBox.OCCLUSION_RANGE_FAR : squaredCameraDistance < 512 ? PackedBox.OCCLUSION_RANGE_NEAR : PackedBox.OCCLUSION_RANGE_MEDIUM;
 
 		if (limit > 1) {
 			for (int i = 1; i < limit; i++) {
@@ -229,17 +170,6 @@ public class TerrainOccluder {
 						PackedBox.z1(box));
 			}
 		}
-	}
-
-	private void occlude(float x0, float y0, float z0, float x1, float y1, float z1) {
-		computeProjectedBoxBounds(x0, y0, z0, x1, y1, z1);
-
-		if (offsetY < -y1) drawUp();
-		if (offsetY > -y0) drawDown();
-		if (offsetX < -x1) drawEast();
-		if (offsetX > -x0) drawWest();
-		if (offsetZ < -z1) drawSouth();
-		if (offsetZ > -z0) drawNorth();
 	}
 
 	private void computeProjectedBoxBounds(float x0, float y0, float z0, float x1, float y1, float z1) {
@@ -1152,4 +1082,25 @@ public class TerrainOccluder {
 			});
 		}
 	}
+
+	static final int WORD_AXIS_SHIFT = 3;
+	static final int WORD_PIXEL_DIAMETER = 1 << WORD_AXIS_SHIFT;
+	static final int WORD_PIXEL_INDEX_MASK = WORD_PIXEL_DIAMETER - 1;
+	static final int WORD_PIXEL_INVERSE_MASK = ~WORD_PIXEL_INDEX_MASK;
+
+	private static final int WIDTH_WORDS = 128;
+	private static final int WIDTH = WIDTH_WORDS * WORD_PIXEL_DIAMETER;
+	static final int HALF_WIDTH = WIDTH / 2;
+
+	private static final int HEIGHT_WORDS = 64;
+	private static final int HEIGHT = HEIGHT_WORDS * WORD_PIXEL_DIAMETER;
+	static final int HALF_HEIGHT = HEIGHT / 2;
+	private static final int HEIGHT_WORD_SHIFT = Integer.bitCount(WIDTH_WORDS - 1);
+	private static final int HEIGHT_WORD_RELATIVE_SHIFT = HEIGHT_WORD_SHIFT - WORD_AXIS_SHIFT;
+
+	private static final int WORD_COUNT = WIDTH_WORDS * HEIGHT_WORDS;
+
+	private static final long[] EMPTY_BITS = new long[WORD_COUNT];
+
+	private static final long[] bits = new long[WORD_COUNT];
 }
