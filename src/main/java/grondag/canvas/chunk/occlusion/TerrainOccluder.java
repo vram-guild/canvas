@@ -19,6 +19,10 @@ import grondag.canvas.render.CanvasWorldRenderer;
 // by Fabian “ryg” Giesen. That content is in the public domain.
 
 public class TerrainOccluder {
+	private final long[] lowBins = new long[LOW_BIN_COUNT];
+	private final long[] midBins = new long[MIDDLE_BIN_COUNT];
+	private final long[] topBins = new long[TOP_BIN_COUNT];
+
 	private Matrix4f projectionMatrix;
 	private Matrix4f modelMatrix;
 	private final Matrix4f mvpMatrix = new Matrix4f();
@@ -54,6 +58,50 @@ public class TerrainOccluder {
 	private double cameraY;
 	private double cameraZ;
 
+	private int x0;
+	private int y0;
+	private int x1;
+	private int y1;
+	private int x2;
+	private int y2;
+
+	int a0;
+	int b0;
+	int a1;
+	int b1;
+	int a2;
+	int b2;
+
+	int xLowStep0;
+	int yLowStep0;
+	int xLowStep1;
+	int yLowStep1;
+	int xLowStep2;
+	int yLowStep2;
+	int xyLowStep0;
+	int xyLowStep1;
+	int xyLowStep2;
+
+	int xMidStep0;
+	int yMidStep0;
+	int xMidStep1;
+	int yMidStep1;
+	int xMidStep2;
+	int yMidStep2;
+	int xyMidStep0;
+	int xyMidStep1;
+	int xyMidStep2;
+
+	int xTopStep0;
+	int yTopStep0;
+	int xTopStep1;
+	int yTopStep1;
+	int xTopStep2;
+	int yTopStep2;
+	int xyTopStep0;
+	int xyTopStep1;
+	int xyTopStep2;
+
 	public void prepareScene(Matrix4f projectionMatrix, Matrix4f modelMatrix, Camera camera) {
 		this.projectionMatrix = projectionMatrix.copy();
 		this.modelMatrix = modelMatrix.copy();
@@ -64,7 +112,9 @@ public class TerrainOccluder {
 	}
 
 	public void clearScene() {
-		System.arraycopy(EMPTY_BITS, 0, bits, 0, WORD_COUNT);
+		System.arraycopy(EMPTY_BITS, 0, lowBins, 0, LOW_BIN_COUNT);
+		System.arraycopy(EMPTY_BITS, 0, midBins, 0, MIDDLE_BIN_COUNT);
+		System.arraycopy(EMPTY_BITS, 0, topBins, 0, TOP_BIN_COUNT);
 	}
 
 	private float offsetX;
@@ -368,35 +418,6 @@ public class TerrainOccluder {
 		return testTri(v0, v1, v2) || testTri(v0, v2, va) || testTri(v0, va, vb);
 	}
 
-	private int orient2d(int ax, int ay, int bx, int by, int cx, int cy) {
-		return (bx - ax) * (cy - ay) - (by - ay) * (cx - ax);
-	}
-
-	private int x0;
-	private int y0;
-	private int x1;
-	private int y1;
-	private int x2;
-	private int y2;
-
-	int xStep0;
-	int yStep0;
-	int xStep1;
-	int yStep1;
-	int xStep2;
-	int yStep2;
-
-	int xBinStep0;
-	int yBinStep0;
-	int xBinStep1;
-	int yBinStep1;
-	int xBinStep2;
-	int yBinStep2;
-
-	int xyBinStep0;
-	int xyBinStep1;
-	int xyBinStep2;
-
 	private boolean prepareTriBounds(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2) {
 		final int x0 = v0.ix();
 		final int y0 = v0.iy();
@@ -420,7 +441,7 @@ public class TerrainOccluder {
 			maxX = x2;
 		}
 
-		if (maxX < 0 || minX >= WIDTH) {
+		if (maxX < 0 || minX >= PIXEL_WIDTH) {
 			return false;
 		}
 
@@ -428,8 +449,8 @@ public class TerrainOccluder {
 			minX = 0;
 		}
 
-		if (maxX > WIDTH - 1)  {
-			maxX = WIDTH - 1;
+		if (maxX > PIXEL_WIDTH - 1)  {
+			maxX = PIXEL_WIDTH - 1;
 		}
 
 		int minY = y0;
@@ -447,7 +468,7 @@ public class TerrainOccluder {
 			maxY = y2;
 		}
 
-		if (maxY < 0 || minY >= HEIGHT) {
+		if (maxY < 0 || minY >= PIXEL_HEIGHT) {
 			return false;
 		}
 
@@ -455,8 +476,8 @@ public class TerrainOccluder {
 			minY = 0;
 		}
 
-		if (maxY > HEIGHT - 1)  {
-			maxY = HEIGHT - 1;
+		if (maxY > PIXEL_HEIGHT - 1)  {
+			maxY = PIXEL_HEIGHT - 1;
 		}
 
 		this.minX = minX;
@@ -474,6 +495,10 @@ public class TerrainOccluder {
 		return true;
 	}
 
+	private int orient2d(int x0, int y0, int x1, int y1, int minX, int minY) {
+		return (x1 - x0) * (minY - y0) - (y1 - y0) * (minX - x0);
+	}
+
 	private void prepareTriScan() {
 		final int x0 = this.x0;
 		final int y0 = this.y0;
@@ -482,28 +507,63 @@ public class TerrainOccluder {
 		final int x2 = this.x2;
 		final int y2 = this.y2;
 
+		final int a0 = y1 - y2;
+		final int b0 = x2 - x1;
+		final int a1 = y2 - y0;
+		final int b1 = x0 - x2;
+		final int a2 = y0 - y1;
+		final int b2 = x1 - x0;
+
+		final boolean isTopLeft0 = a0 > 0 || (a0 == 0 && b0 < 0);
+		final boolean isTopLeft1 = a1 > 0 || (a1 == 0 && b1 < 0);
+		final boolean isTopLeft2 = a2 > 0 || (a2 == 0 && b2 < 0);
+
 		// Barycentric coordinates at minX/minY corner
-		wOrigin0 = orient2d(x1, y1, x2, y2, minX, minY);
-		wOrigin1 = orient2d(x2, y2, x0, y0, minX, minY);
-		wOrigin2 = orient2d(x0, y0, x1, y1, minX, minY);
+		wOrigin0 = orient2d(x1, y1, x2, y2, minX, minY) + (isTopLeft0 ? 0 : -1);
+		wOrigin1 = orient2d(x2, y2, x0, y0, minX, minY) + (isTopLeft1 ? 0 : -1);
+		wOrigin2 = orient2d(x0, y0, x1, y1, minX, minY) + (isTopLeft2 ? 0 : -1);
 
-		xStep0 = y1 - y2;
-		yStep0 = x2 - x1;
-		xStep1 = y2 - y0;
-		yStep1 = x0 - x2;
-		xStep2 = y0 - y1;
-		yStep2 = x1 - x0;
+		xLowStep0 = a0 * 8;
+		yLowStep0 = b0 * 8;
+		xLowStep1 = a1 * 8;
+		yLowStep1 = b1 * 8;
+		xLowStep2 = a2 * 8;
+		yLowStep2 = b2 * 8;
+		xyLowStep0 = xLowStep0 + yLowStep0;
+		xyLowStep1 = xLowStep1 + yLowStep1;
+		xyLowStep2 = xLowStep2 + yLowStep2;
 
-		xBinStep0 = xStep0 * 8;
-		yBinStep0 = yStep0 * 8;
-		xBinStep1 = xStep1 * 8;
-		yBinStep1 = yStep1 * 8;
-		xBinStep2 = xStep2 * 8;
-		yBinStep2 = yStep2 * 8;
+		xMidStep0 = a0 * 64;
+		yMidStep0 = b0 * 64;
+		xMidStep1 = a1 * 64;
+		yMidStep1 = b1 * 64;
+		xMidStep2 = a2 * 64;
+		yMidStep2 = b2 * 64;
+		xyMidStep0 = xMidStep0 + yMidStep0;
+		xyMidStep1 = xMidStep1 + yMidStep1;
+		xyMidStep2 = xMidStep2 + yMidStep2;
 
-		xyBinStep0 = xBinStep0 + yBinStep0;
-		xyBinStep1 = xBinStep1 + yBinStep1;
-		xyBinStep2 = xBinStep2 + yBinStep2;
+		xTopStep0 = a0 * 512;
+		yTopStep0 = b0 * 512;
+		xTopStep1 = a1 * 512;
+		yTopStep1 = b1 * 512;
+		xTopStep2 = a2 * 512;
+		yTopStep2 = b2 * 512;
+		xyTopStep0 = xTopStep0 + yTopStep0;
+		xyTopStep1 = xTopStep1 + yTopStep1;
+		xyTopStep2 = xTopStep2 + yTopStep2;
+
+		this.a0 = a0;
+		this.b0 = b0;
+		this.a1 = a1;
+		this.b1 = b1;
+		this.a2 = a2;
+		this.b2 = b2;
+	}
+
+	private boolean isTopLeft(int x0, int y0, int x1, int y1) {
+		// TODO Auto-generated method stub
+		return false;
 	}
 
 	@SuppressWarnings("unused")
@@ -519,12 +579,12 @@ public class TerrainOccluder {
 		prepareTriScan();
 
 		// Triangle setup
-		final int dy10 = xStep2;
-		final int dx01 = yStep2;
-		final int dy21 = xStep0;
-		final int dx12 = yStep0;
-		final int dy02 = xStep1;
-		final int dx20 = yStep1;
+		final int dy10 = a2;
+		final int dx01 = b2;
+		final int dy21 = a0;
+		final int dx12 = b0;
+		final int dy02 = a1;
+		final int dx20 = b1;
 
 		// Barycentric coordinates at bounding box origin
 		int w0_row = wOrigin0;
@@ -557,11 +617,157 @@ public class TerrainOccluder {
 		}
 	}
 
+	private void drawTriFastNew(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2) {
+		if (!prepareTriBounds(v0, v1, v2)) {
+			return;
+		}
+
+		// TODO: keep?
+		if (maxX - minX < 2 || maxY - minY < 2) {
+			return;
+		}
+
+		prepareTriScan();
+
+		drawTriInner();
+	}
+
+	private void drawTriInner() {
+		final int bx0 = minX >> TOP_AXIS_SHIFT;
+		final int bx1 = maxX >> TOP_AXIS_SHIFT;
+		final int by0 = minY >> TOP_AXIS_SHIFT;
+		final int by1 = maxY >> TOP_AXIS_SHIFT;
+
+		if (bx0 == bx1 && by0 == by1) {
+			drawTriTop(bx0, by0);
+		} else {
+			for (int by = by0; by <= by1; by++) {
+				for (int bx = bx0; bx <= bx1; bx++) {
+					drawTriTop(bx, by);
+				}
+			}
+		}
+	}
+
+	private void drawTriTop(int topX, int topY) {
+		final int index = (topY << TOP_Y_SHIFT) | topX;
+		long word = topBins[index];
+
+		if (word == -1L) {
+			// if bin fully occluded nothing to do
+			return;
+		}
+
+		final int binOriginX = topX << TOP_AXIS_SHIFT;
+		final int binOriginY = topY << TOP_AXIS_SHIFT;
+		final int minX = Math.max(this.minX, binOriginX);
+		final int maxX = Math.min(this.maxX, binOriginX + TOP_BIN_PIXEL_WIDTH - 1);
+		final int minY = Math.max(this.minY, binOriginY);
+		final int maxY = Math.min(this.maxY, binOriginY + TOP_BIN_PIXEL_WIDTH - 1);
+
+		final int midX0 = minX >>> MID_AXIS_SHIFT;
+		final int midX1 = maxX >>> MID_AXIS_SHIFT;
+		final int midY0 = minY >>> MID_AXIS_SHIFT;
+			final int midY1 = maxY >>> MID_AXIS_SHIFT;
+
+		if (midX0 == midX1 && midY0 == midY1) {
+			if (isPixelClear(word, midX0, midY0))  {
+				if (drawTriMid(midX0, midY0)) {
+					topBins[index] = setPixelInWord(word, midX0, midY0)| word;
+				}
+			}
+
+			return;
+		}
+
+		final int dx = binOriginX - this.minX;
+		final int dy = binOriginY - this.minX;
+		final int w0_row = wOrigin0 + dx * a0 + dy * b0;
+		final int w1_row = wOrigin1 + dx * a1 + dy * b1;
+		final int w2_row = wOrigin2 + dx * a2 + dy * b2;
+
+		// if filling whole bin then do it quick
+		if (((midX0 | midY0) & 7)== 0 && (midX1 & midY1 & 7) == 7) {
+			if ((w0_row | w1_row | w2_row
+					| (w0_row + xTopStep0) | (w1_row + xTopStep1) | (w2_row + xTopStep2)
+					| (w0_row + yTopStep0) | (w1_row + yTopStep1) | (w2_row + yTopStep2)
+					| (w0_row + xyTopStep0) | (w1_row + xyTopStep1) | (w2_row + xyTopStep2)) >= 0) {
+				topBins[index] = -1;
+
+				// PERF: disable unless need image output
+				fillTopBinChildren(topX, topY);
+				return;
+			}
+		}
+
+		for (int midY = midY0; midY <= midY1; midY++) {
+			final int w0 = w0_row;
+			final int w1 = w1_row;
+			final int w2 = w2_row;
+
+			for (int midX = midX0; midX <= midX1; midX++) {
+				if ((w0 | w1 | w2) >= 0 && isPixelClear(word, midX0, midY0))  {
+					if (drawTriMid(midX0, midY0)) {
+						word |= setPixelInWord(word, midX0, midY0)| word;
+					}
+				}
+
+				// One step to the right
+
+				//TODO: pick up here
+				//				w0 += dy21;
+				//				w1 += dy02;
+				//				w2 += dy10;
+
+			}
+		}
+
+		topBins[index] = word;
+	}
+
+	private void fillTopBinChildren(int topX, int topY) {
+		final int midX0 = topX << 3;
+		final int midY0 = topY << 3;
+		final int midX1 = midX0 + 7;
+		final int midY1 = midY0 + 7;
+
+		for (int midY = midY0; midY <= midY1; midY++) {
+			for (int midX = midX0; midX <= midX1; midX++) {
+				final int index = (midY << MID_Y_SHIFT) | midX;
+
+				if (midBins[index] != -1L) {
+					midBins[index] = -1L;
+					fillMidBinChildren(midX, midY);
+				}
+			}
+		}
+	}
+
+	private void fillMidBinChildren(int midX, int midY) {
+		final int lowX0 = midX << 3;
+		final int lowY0 = midY << 3;
+		final int lowX1 = lowX0 + 7;
+		final int lowY1 = lowY0 + 7;
+
+		for (int lowY = lowY0; lowY <= lowY1; lowY++) {
+			for (int lowX = lowX0; lowX <= lowX1; lowX++) {
+				lowBins[(lowY << LOW_Y_SHIFT) | lowX] = -1L;
+			}
+		}
+	}
+
+	private boolean drawTriMid(int bx0, int by0) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@SuppressWarnings("unused")
 	private void drawTriFast(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2) {
 		if (!prepareTriBounds(v0, v1, v2)) {
 			return;
 		}
 
+		// TODO: keep?
 		if (maxX - minX < 2 || maxY - minY < 2) {
 			return;
 		}
@@ -574,10 +780,11 @@ public class TerrainOccluder {
 		final int maxX = this.maxX;
 		final int maxY = this.maxY;
 
-		final int bx0 = minX >> WORD_AXIS_SHIFT;
-		final int bx1 = maxX >> WORD_AXIS_SHIFT;
-		final int by0 = minY >> WORD_AXIS_SHIFT;
-		final int by1 = maxY >> WORD_AXIS_SHIFT;
+		final int bx0 = minX >> BIN_AXIS_SHIFT;
+		final int bx1 = maxX >> BIN_AXIS_SHIFT;
+				final int by0 = minY >> BIN_AXIS_SHIFT;
+			final int by1 = maxY >> BIN_AXIS_SHIFT;
+
 
 		// Barycentric coordinates at bounding box origin
 		int w0_row = wOrigin0;
@@ -591,42 +798,42 @@ public class TerrainOccluder {
 			int w2 = w2_row;
 
 			for (int bx = bx0; bx <= bx1; bx++) {
-				final int x0 = bx == bx0 ? (minX & WORD_PIXEL_INDEX_MASK) : 0;
-				final int y0 = by == by0 ? (minY & WORD_PIXEL_INDEX_MASK) : 0;
-				final int x1 = bx == bx1 ? (maxX & WORD_PIXEL_INDEX_MASK) : 7;
-				final int y1 = by == by1 ? (maxY & WORD_PIXEL_INDEX_MASK) : 7;
+				final int x0 = bx == bx0 ? (minX & BIN_PIXEL_INDEX_MASK) : 0;
+				final int y0 = by == by0 ? (minY & BIN_PIXEL_INDEX_MASK) : 0;
+				final int x1 = bx == bx1 ? (maxX & BIN_PIXEL_INDEX_MASK) : 7;
+				final int y1 = by == by1 ? (maxY & BIN_PIXEL_INDEX_MASK) : 7;
 
 				drawBin(bx, by, x0, y0, x1, y1, w0, w1, w2);
 
 				// Step to the right
 				if (bx == bx0) {
-					final int xSteps = 8 - (minX & WORD_PIXEL_INDEX_MASK);
-					w0 += xStep0 * xSteps;
-					w1 += xStep1 * xSteps;
-					w2 += xStep2 * xSteps;
+					final int xSteps = 8 - (minX & BIN_PIXEL_INDEX_MASK);
+					w0 += a0 * xSteps;
+					w1 += a1 * xSteps;
+					w2 += a2 * xSteps;
 				} else {
-					w0 += xBinStep0;
-					w1 += xBinStep1;
-					w2 += xBinStep2;
+					w0 += xLowStep0;
+					w1 += xLowStep1;
+					w2 += xLowStep2;
 				}
 			}
 
 			// Row step
 			if (by == by0) {
-				final int ySteps = 8 - (minY & WORD_PIXEL_INDEX_MASK);
-				w0_row += yStep0 * ySteps;
-				w1_row += yStep1 * ySteps;
-				w2_row += yStep2 * ySteps;
+				final int ySteps = 8 - (minY & BIN_PIXEL_INDEX_MASK);
+				w0_row += b0 * ySteps;
+				w1_row += b1 * ySteps;
+				w2_row += b2 * ySteps;
 			} else {
-				w0_row += yBinStep0;
-				w1_row += yBinStep1;
-				w2_row += yBinStep2;
+				w0_row += yLowStep0;
+				w1_row += yLowStep1;
+				w2_row += yLowStep2;
 			}
 		}
 	}
 
 	private void drawPixel(int x, int y) {
-		bits[wordIndex(x, y)] |= (1L << (pixelIndex(x, y)));
+		lowBins[wordIndex(x, y)] |= (1L << (pixelIndex(x, y)));
 	}
 
 	private boolean testTri(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2) {
@@ -666,12 +873,12 @@ public class TerrainOccluder {
 		prepareTriScan();
 
 		// Triangle setup
-		final int dy10 = xStep2;
-		final int dx01 = yStep2;
-		final int dy21 = xStep0;
-		final int dx12 = yStep0;
-		final int dy02 = xStep1;
-		final int dx20 = yStep1;
+		final int dy10 = a2;
+		final int dx01 = b2;
+		final int dy21 = a0;
+		final int dx12 = b0;
+		final int dy02 = a1;
+		final int dx20 = b1;
 
 		// Barycentric coordinates at bounding box origin
 		int w0_row = wOrigin0;
@@ -714,10 +921,10 @@ public class TerrainOccluder {
 		final int maxX = this.maxX;
 		final int maxY = this.maxY;
 
-		final int bx0 = minX >> WORD_AXIS_SHIFT;
-		final int bx1 = maxX >> WORD_AXIS_SHIFT;
-				final int by0 = minY >> WORD_AXIS_SHIFT;
-		final int by1 = maxY >> WORD_AXIS_SHIFT;
+		final int bx0 = minX >> BIN_AXIS_SHIFT;
+		final int bx1 = maxX >> BIN_AXIS_SHIFT;
+				final int by0 = minY >> BIN_AXIS_SHIFT;
+		final int by1 = maxY >> BIN_AXIS_SHIFT;
 
 		// Barycentric coordinates at bounding box origin
 		int w0_row = wOrigin0;
@@ -731,10 +938,10 @@ public class TerrainOccluder {
 			int w2 = w2_row;
 
 			for (int bx = bx0; bx <= bx1; bx++) {
-				final int x0 = bx == bx0 ? (minX & WORD_PIXEL_INDEX_MASK) : 0;
-				final int y0 = by == by0 ? (minY & WORD_PIXEL_INDEX_MASK) : 0;
-				final int x1 = bx == bx1 ? (maxX & WORD_PIXEL_INDEX_MASK) : 7;
-				final int y1 = by == by1 ? (maxY & WORD_PIXEL_INDEX_MASK) : 7;
+				final int x0 = bx == bx0 ? (minX & BIN_PIXEL_INDEX_MASK) : 0;
+				final int y0 = by == by0 ? (minY & BIN_PIXEL_INDEX_MASK) : 0;
+				final int x1 = bx == bx1 ? (maxX & BIN_PIXEL_INDEX_MASK) : 7;
+				final int y1 = by == by1 ? (maxY & BIN_PIXEL_INDEX_MASK) : 7;
 
 				if (testBin(bx, by, x0, y0, x1, y1, w0, w1, w2)) {
 					return true;
@@ -742,27 +949,27 @@ public class TerrainOccluder {
 
 				// Step to the right
 				if (bx == bx0) {
-					final int xSteps = 8 - (minX & WORD_PIXEL_INDEX_MASK);
-					w0 += xStep0 * xSteps;
-					w1 += xStep1 * xSteps;
-					w2 += xStep2 * xSteps;
+					final int xSteps = 8 - (minX & BIN_PIXEL_INDEX_MASK);
+					w0 += a0 * xSteps;
+					w1 += a1 * xSteps;
+					w2 += a2 * xSteps;
 				} else {
-					w0 += xBinStep0;
-					w1 += xBinStep1;
-					w2 += xBinStep2;
+					w0 += xLowStep0;
+					w1 += xLowStep1;
+					w2 += xLowStep2;
 				}
 			}
 
 			// Row step
 			if (by == by0) {
-				final int ySteps = 8 - (minY & WORD_PIXEL_INDEX_MASK);
-				w0_row += yStep0 * ySteps;
-				w1_row += yStep1 * ySteps;
-				w2_row += yStep2 * ySteps;
+				final int ySteps = 8 - (minY & BIN_PIXEL_INDEX_MASK);
+				w0_row += b0 * ySteps;
+				w1_row += b1 * ySteps;
+				w2_row += b2 * ySteps;
 			} else {
-				w0_row += yBinStep0;
-				w1_row += yBinStep1;
-				w2_row += yBinStep2;
+				w0_row += yLowStep0;
+				w1_row += yLowStep1;
+				w2_row += yLowStep2;
 			}
 		}
 
@@ -794,7 +1001,7 @@ public class TerrainOccluder {
 			int w2_row)
 	{
 
-		final long word = bits[(binY << HEIGHT_WORD_SHIFT) | binX];
+		final long word = lowBins[(binY << LOW_Y_SHIFT) | binX];
 
 		if (word == -1L)
 			// if bin fully occluded always false
@@ -812,9 +1019,9 @@ public class TerrainOccluder {
 			final int w2 = w2_row;
 
 			int flags = (w0 | w1 | w2) >= 0 ? 1 : 0;
-			if (((w0 + xBinStep0) | (w1 + xBinStep1) | (w2 + xBinStep2)) >= 0) flags |= 2;
-			if (((w0 + yBinStep0) | (w1 + yBinStep1) | (w2 + yBinStep2)) >= 0) flags |= 4;
-			if (((w0 + xyBinStep0) | (w1 + xyBinStep1) | (w2 + xyBinStep2)) >= 0) flags |= 8;
+			if (((w0 + xLowStep0) | (w1 + xLowStep1) | (w2 + xLowStep2)) >= 0) flags |= 2;
+			if (((w0 + yLowStep0) | (w1 + yLowStep1) | (w2 + yLowStep2)) >= 0) flags |= 4;
+			if (((w0 + xyLowStep0) | (w1 + xyLowStep1) | (w2 + xyLowStep2)) >= 0) flags |= 8;
 
 			// PERF: need another way to handle corners and sub-bin tris/segments
 			//			if(flags == 0) {
@@ -833,21 +1040,21 @@ public class TerrainOccluder {
 		// special case optimize for lines and points
 		if (x0 == x1) {
 			if(y0 == y1) {
-				return (w0_row | w1_row | w2_row) >= 0 && testPixelInWord(word, x0, y0);
+				return (w0_row | w1_row | w2_row) >= 0 && testPixelInWordPreMasked(word, x0, y0);
 			} else {
 				int w0 = w0_row;
 				int w1 = w1_row;
 				int w2 = w2_row;
 
 				for(int y = y0; y <= y1; y++) {
-					if ((w0 | w1 | w2) >= 0  && testPixelInWord(word, x0, y)) {
+					if ((w0 | w1 | w2) >= 0  && testPixelInWordPreMasked(word, x0, y)) {
 						return true;
 					}
 
 					// One row step
-					w0 += yStep0;
-					w1 += yStep1;
-					w2 += yStep2;
+					w0 += b0;
+					w1 += b1;
+					w2 += b2;
 				}
 
 				return false;
@@ -858,14 +1065,14 @@ public class TerrainOccluder {
 			int w2 = w2_row;
 
 			for(int x = x0; x <= x1; x++) {
-				if ((w0 | w1 | w2) >= 0  && testPixelInWord(word, x, y0)) {
+				if ((w0 | w1 | w2) >= 0  && testPixelInWordPreMasked(word, x, y0)) {
 					return true;
 				}
 
 				// One step to the right
-				w0 += xStep0;
-				w1 += xStep1;
-				w2 += xStep2;
+				w0 += a0;
+				w1 += a1;
+				w2 += a2;
 			}
 
 			return false;
@@ -879,20 +1086,20 @@ public class TerrainOccluder {
 
 			for (int x = x0; x <= x1; x++) {
 				// If p is on or inside all edges, render pixel.
-				if ((w0 | w1 | w2) >= 0 && testPixelInWord(word, x, y)) {
+				if ((w0 | w1 | w2) >= 0 && testPixelInWordPreMasked(word, x, y)) {
 					return true;
 				}
 
 				// One step to the right
-				w0 += xStep0;
-				w1 += xStep1;
-				w2 += xStep2;
+				w0 += a0;
+				w1 += a1;
+				w2 += a2;
 			}
 
 			// One row step
-			w0_row += yStep0;
-			w1_row += yStep1;
-			w2_row += yStep2;
+			w0_row += b0;
+			w1_row += b1;
+			w2_row += b2;
 		}
 
 		return false;
@@ -922,8 +1129,8 @@ public class TerrainOccluder {
 			int w1_row,
 			int w2_row)
 	{
-		final int index = (binY << HEIGHT_WORD_SHIFT) | binX;
-		long word = bits[index];
+		final int index = (binY << LOW_Y_SHIFT) | binX;
+		long word = lowBins[index];
 
 		if (word == -1L) {
 			// if bin fully occluded nothing to do
@@ -935,7 +1142,7 @@ public class TerrainOccluder {
 			if(y0 == y1) {
 				//				if (w0_row > 0 && w1_row > 0 && w2_row > 0)  {
 				if ((w0_row | w1_row | w2_row) >= 0) {
-					bits[index] = drawPixelInWord(word, x0, y0);
+					lowBins[index] = setPixelInWordPreMasked(word, x0, y0);
 				}
 			} else {
 				int w0 = w0_row;
@@ -945,16 +1152,16 @@ public class TerrainOccluder {
 				for(int y = y0; y <= y1; y++) {
 					//					if (w0 > 0 && w1 > 0 && w2 > 0) {
 					if ((w0 | w1 | w2) >= 0) {
-						word = drawPixelInWord(word, x0, y);
+						word = setPixelInWordPreMasked(word, x0, y);
 					}
 
 					// One row step
-					w0 += yStep0;
-					w1 += yStep1;
-					w2 += yStep2;
+					w0 += b0;
+					w1 += b1;
+					w2 += b2;
 				}
 
-				bits[index] = word;
+				lowBins[index] = word;
 			}
 		} else if (y0 == y1) {
 			int w0 = w0_row;
@@ -964,16 +1171,16 @@ public class TerrainOccluder {
 			for(int x = x0; x <= x1; x++) {
 				//				if (w0 > 0 && w1 > 0 && w2 > 0) {
 				if ((w0 | w1 | w2) >= 0) {
-					word = drawPixelInWord(word, x, y0);
+					word = setPixelInWordPreMasked(word, x, y0);
 				}
 
 				// One step to the right
-				w0 += xStep0;
-				w1 += xStep1;
-				w2 += xStep2;
+				w0 += a0;
+				w1 += a1;
+				w2 += a2;
 			}
 
-			bits[index] = word;
+			lowBins[index] = word;
 		}
 
 		if ((x0 | y0) == 0 && (x1 & y1) == 7) {
@@ -988,10 +1195,10 @@ public class TerrainOccluder {
 			//					&& w0 + xyBinStep0 > 0 && w1 + xyBinStep1 > 0 && w2 + xyBinStep2 > 0) {
 
 			if ((w0 | w1 | w2
-					| (w0 + xBinStep0) | (w1 + xBinStep1) | (w2 + xBinStep2)
-					| (w0 + yBinStep0) | (w1 + yBinStep1) | (w2 + yBinStep2)
-					| (w0 + xyBinStep0) | (w1 + xyBinStep1) | (w2 + xyBinStep2)) >= 0) {
-				bits[index] = -1;
+					| (w0 + xLowStep0) | (w1 + xLowStep1) | (w2 + xLowStep2)
+					| (w0 + yLowStep0) | (w1 + yLowStep1) | (w2 + yLowStep2)
+					| (w0 + xyLowStep0) | (w1 + xyLowStep1) | (w2 + xyLowStep2)) >= 0) {
+				lowBins[index] = -1;
 				return;
 			}
 		}
@@ -1007,42 +1214,51 @@ public class TerrainOccluder {
 
 				//				if (w0 > 0 && w1 > 0 && w2 > 0) {
 				if ((w0 | w1 | w2) >= 0) {
-					word = drawPixelInWord(word, x, y);
+					word = setPixelInWordPreMasked(word, x, y);
 				}
 
 				// One step to the right
-				w0 += xStep0;
-				w1 += xStep1;
-				w2 += xStep2;
+				w0 += a0;
+				w1 += a1;
+				w2 += a2;
 			}
 
 			// One row step
-			w0_row += yStep0;
-			w1_row += yStep1;
-			w2_row += yStep2;
+			w0_row += b0;
+			w1_row += b1;
+			w2_row += b2;
 		}
 
-		bits[index] = word;
+		lowBins[index] = word;
 	}
 
 	private static int wordIndex(int x, int y)  {
-		return  ((y & WORD_PIXEL_INVERSE_MASK) << HEIGHT_WORD_RELATIVE_SHIFT) | (x >> WORD_AXIS_SHIFT);
+		return  ((y & BIN_PIXEL_INVERSE_MASK) << HEIGHT_WORD_RELATIVE_SHIFT) | (x >> BIN_AXIS_SHIFT);
 	}
 
 	private static int pixelIndex(int x, int y)  {
-		return  ((y & WORD_PIXEL_INDEX_MASK) << WORD_AXIS_SHIFT) | (x & WORD_PIXEL_INDEX_MASK);
+		return  ((y & BIN_PIXEL_INDEX_MASK) << BIN_AXIS_SHIFT) | (x & BIN_PIXEL_INDEX_MASK);
 	}
 
-	private static boolean testPixelInWord(long word, int x, int y) {
-		return (word & (1L << ((y << WORD_AXIS_SHIFT) | x))) == 0;
+	private static boolean isPixelClear(long word, int x, int y)  {
+		return (word & (1L << pixelIndex(x, y))) == 0;
 	}
 
-	private static long drawPixelInWord(long word, int x, int y) {
-		return word | (1L << ((y << WORD_AXIS_SHIFT) | x));
+	private static long setPixelInWord(long word, int x, int y) {
+		return word | (1L << pixelIndex(x, y));
+	}
+
+	/** REQUIRES 0-7 inputs! */
+	private static boolean testPixelInWordPreMasked(long word, int x, int y) {
+		return (word & (1L << ((y << BIN_AXIS_SHIFT) | x))) == 0;
+	}
+
+	private static long setPixelInWordPreMasked(long word, int x, int y) {
+		return word | (1L << ((y << BIN_AXIS_SHIFT) | x));
 	}
 
 	private boolean testPixel(int x, int y) {
-		return (bits[wordIndex(x, y)] & (1L << (pixelIndex(x, y)))) == 0;
+		return (lowBins[wordIndex(x, y)] & (1L << (pixelIndex(x, y)))) == 0;
 	}
 
 	private long nextTime;
@@ -1058,10 +1274,10 @@ public class TerrainOccluder {
 		if (t >= nextTime) {
 			nextTime = t + 1000;
 
-			final NativeImage nativeImage = new NativeImage(WIDTH, HEIGHT, false);
+			final NativeImage nativeImage = new NativeImage(PIXEL_WIDTH, PIXEL_HEIGHT, false);
 
-			for (int x = 0; x < WIDTH; x++) {
-				for (int y = 0; y < HEIGHT; y++) {
+			for (int x = 0; x < PIXEL_WIDTH; x++) {
+				for (int y = 0; y < PIXEL_HEIGHT; y++) {
 					nativeImage.setPixelRgba(x, y, testPixel(x, y) ? -1 :0xFF000000);
 				}
 			}
@@ -1083,24 +1299,40 @@ public class TerrainOccluder {
 		}
 	}
 
-	static final int WORD_AXIS_SHIFT = 3;
-	static final int WORD_PIXEL_DIAMETER = 1 << WORD_AXIS_SHIFT;
-	static final int WORD_PIXEL_INDEX_MASK = WORD_PIXEL_DIAMETER - 1;
-	static final int WORD_PIXEL_INVERSE_MASK = ~WORD_PIXEL_INDEX_MASK;
+	static final int BIN_AXIS_SHIFT = 3;
+	static final int BIN_PIXEL_DIAMETER = 1 << BIN_AXIS_SHIFT;
+	static final int BIN_PIXEL_INDEX_MASK = BIN_PIXEL_DIAMETER - 1;
+	static final int BIN_PIXEL_INVERSE_MASK = ~BIN_PIXEL_INDEX_MASK;
 
-	private static final int WIDTH_WORDS = 128;
-	private static final int WIDTH = WIDTH_WORDS * WORD_PIXEL_DIAMETER;
-	static final int HALF_WIDTH = WIDTH / 2;
+	private static final int LOW_AXIS_SHIFT = BIN_AXIS_SHIFT;
+	private static final int MID_AXIS_SHIFT = BIN_AXIS_SHIFT * 2;
+	private static final int TOP_AXIS_SHIFT = BIN_AXIS_SHIFT * 3;
 
-	private static final int HEIGHT_WORDS = 64;
-	private static final int HEIGHT = HEIGHT_WORDS * WORD_PIXEL_DIAMETER;
-	static final int HALF_HEIGHT = HEIGHT / 2;
-	private static final int HEIGHT_WORD_SHIFT = Integer.bitCount(WIDTH_WORDS - 1);
-	private static final int HEIGHT_WORD_RELATIVE_SHIFT = HEIGHT_WORD_SHIFT - WORD_AXIS_SHIFT;
+	private static final int TOP_WIDTH = 2;
+	private static final int TOP_Y_SHIFT = Integer.bitCount(TOP_WIDTH - 1);
+	private static final int TOP_HEIGHT = 1;
 
-	private static final int WORD_COUNT = WIDTH_WORDS * HEIGHT_WORDS;
+	private static final int MID_WIDTH = TOP_WIDTH  * 8;
+	private static final int MID_Y_SHIFT = Integer.bitCount(MID_WIDTH - 1);
+	private static final int MIDDLE_HEIGHT = TOP_HEIGHT  * 8;
 
-	private static final long[] EMPTY_BITS = new long[WORD_COUNT];
+	private static final int LOW_WIDTH = MID_WIDTH * 8;
+	private static final int LOW_Y_SHIFT = Integer.bitCount(LOW_WIDTH - 1);
+	private static final int PIXEL_WIDTH = LOW_WIDTH * BIN_PIXEL_DIAMETER;
+	static final int HALF_PIXEL_WIDTH = PIXEL_WIDTH / 2;
 
-	private static final long[] bits = new long[WORD_COUNT];
+	private static final int LOW_HEIGHT = MIDDLE_HEIGHT * 8;
+	private static final int PIXEL_HEIGHT = LOW_HEIGHT * BIN_PIXEL_DIAMETER;
+	static final int HALF_PIXEL_HEIGHT = PIXEL_HEIGHT / 2;
+	private static final int HEIGHT_WORD_RELATIVE_SHIFT = LOW_Y_SHIFT - BIN_AXIS_SHIFT;
+
+	private static final int LOW_BIN_COUNT = LOW_WIDTH * LOW_HEIGHT;
+	private static final int MIDDLE_BIN_COUNT = MID_WIDTH * LOW_HEIGHT;
+	private static final int TOP_BIN_COUNT = TOP_WIDTH * TOP_HEIGHT;
+
+	private static final int TOP_BIN_PIXEL_WIDTH = PIXEL_WIDTH / TOP_WIDTH;
+	private static final int MID_BIN_PIXEL_WIDTH = PIXEL_WIDTH / MID_WIDTH;
+	private static final int LOW_BIN_PIXEL_WIDTH = PIXEL_WIDTH / LOW_WIDTH;
+
+	private static final long[] EMPTY_BITS = new long[LOW_BIN_COUNT];
 }

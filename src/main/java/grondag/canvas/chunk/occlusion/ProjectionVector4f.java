@@ -14,8 +14,8 @@ public class ProjectionVector4f extends Vector4f {
 	protected void calc() {
 		px = getX() / getW();
 		py = getY() / getW();
-		ix = MathHelper.floor(TerrainOccluder.HALF_WIDTH + px * TerrainOccluder.HALF_WIDTH);
-		iy = MathHelper.floor(TerrainOccluder.HALF_HEIGHT + py * TerrainOccluder.HALF_HEIGHT);
+		ix = MathHelper.floor(TerrainOccluder.HALF_PIXEL_WIDTH + px * TerrainOccluder.HALF_PIXEL_WIDTH);
+		iy = MathHelper.floor(TerrainOccluder.HALF_PIXEL_HEIGHT + py * TerrainOccluder.HALF_PIXEL_HEIGHT);
 		externalFlag = getW() <= 0 ? 1 : 0;
 	}
 
