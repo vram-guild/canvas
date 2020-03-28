@@ -2,20 +2,19 @@ package grondag.canvas.chunk.occlusion;
 
 import net.minecraft.client.util.math.Matrix4f;
 import net.minecraft.client.util.math.Vector4f;
-import net.minecraft.util.math.MathHelper;
 
 public class ProjectionVector4f extends Vector4f {
-	protected float px;
-	protected float py;
+	//	protected float px;
+	//	protected float py;
 	protected int ix;
 	protected int iy;
 	protected int externalFlag;
 
 	protected void calc() {
-		px = getX() / getW();
-		py = getY() / getW();
-		ix = MathHelper.floor(TerrainOccluder.HALF_PIXEL_WIDTH + px * TerrainOccluder.HALF_PIXEL_WIDTH);
-		iy = MathHelper.floor(TerrainOccluder.HALF_PIXEL_HEIGHT + py * TerrainOccluder.HALF_PIXEL_HEIGHT);
+		final float px = getX() * TerrainOccluder.HALF_PRECISION_WIDTH / getW();
+		final float py = getY() * TerrainOccluder.HALF_PRECISION_HEIGHT / getW();
+		ix = Math.round(px) + TerrainOccluder.HALF_PRECISION_WIDTH;
+		iy = Math.round(py) + TerrainOccluder.HALF_PRECISION_HEIGHT;
 		externalFlag = getW() <= 0 ? 1 : 0;
 	}
 
@@ -30,13 +29,13 @@ public class ProjectionVector4f extends Vector4f {
 		calc();
 	}
 
-	float px() {
-		return px;
-	}
-
-	float py() {
-		return py;
-	}
+	//	float px() {
+	//		return px;
+	//	}
+	//
+	//	float py() {
+	//		return py;
+	//	}
 
 	int ix() {
 		return ix;
