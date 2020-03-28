@@ -36,8 +36,17 @@ public class TerrainOccluder {
 	private final ProjectionVector4f v110 = new ProjectionVector4f();
 	private final ProjectionVector4f v111 = new ProjectionVector4f();
 
-	private final ProjectionVector4f va = new ProjectionVector4f();
-	private final ProjectionVector4f vb = new ProjectionVector4f();
+	private final ProjectionVector4f vNearClipA = new ProjectionVector4f();
+	private final ProjectionVector4f vNearClipB = new ProjectionVector4f();
+
+	private final ProjectionVector4f vClipLowXA = new ProjectionVector4f();
+	private final ProjectionVector4f vClipLowXB = new ProjectionVector4f();
+	private final ProjectionVector4f vClipLowYA = new ProjectionVector4f();
+	private final ProjectionVector4f vClipLowYB = new ProjectionVector4f();
+	private final ProjectionVector4f vClipHighXA = new ProjectionVector4f();
+	private final ProjectionVector4f vClipHighXB = new ProjectionVector4f();
+	private final ProjectionVector4f vClipHighYA = new ProjectionVector4f();
+	private final ProjectionVector4f vClipHighYB = new ProjectionVector4f();
 
 	// Boumds of current triangle
 	private int minX;
@@ -130,6 +139,11 @@ public class TerrainOccluder {
 		xOrigin = origin.getX();
 		yOrigin = origin.getY();
 		zOrigin = origin.getZ();
+
+		// TODO: remove
+		if (xOrigin == -16 &&  yOrigin == 0 && zOrigin == 0 ) {
+			xOrigin = xOrigin;
+		}
 
 		offsetX = (float) (xOrigin - cameraX);
 		offsetY = (float) (yOrigin - cameraY);
@@ -255,7 +269,7 @@ public class TerrainOccluder {
 	}
 
 	private void drawQuad(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2, ProjectionVector4f v3) {
-		final int split = v0.externalFlag() | (v1.externalFlag() << 1) | (v2.externalFlag() << 2) | (v3.externalFlag() << 3);
+		final int split = v0.needsNearClip() | (v1.needsNearClip() << 1) | (v2.needsNearClip() << 2) | (v3.needsNearClip() << 3);
 
 		switch (split) {
 
@@ -315,32 +329,32 @@ public class TerrainOccluder {
 	}
 
 	private void drawSplitThree(ProjectionVector4f extA, ProjectionVector4f internal, ProjectionVector4f extB) {
-		final ProjectionVector4f va = this.va;
-		final ProjectionVector4f vb = this.vb;
+		final ProjectionVector4f va = vNearClipA;
+		final ProjectionVector4f vb = vNearClipB;
 
-		va.interpolateClip(internal, extA);
-		vb.interpolateClip(internal, extB);
+		va.clipNear(internal, extA);
+		vb.clipNear(internal, extB);
 
 		drawTri(va, internal, vb);
 	}
 
 	private void drawSplitTwo(ProjectionVector4f extA, ProjectionVector4f internal0, ProjectionVector4f internal1, ProjectionVector4f extB) {
-		final ProjectionVector4f va = this.va;
-		final ProjectionVector4f vb = this.vb;
+		final ProjectionVector4f va = vNearClipA;
+		final ProjectionVector4f vb = vNearClipB;
 
-		va.interpolateClip(internal0, extA);
-		vb.interpolateClip(internal1, extB);
+		va.clipNear(internal0, extA);
+		vb.clipNear(internal1, extB);
 
 		drawTri(va, internal0, internal1);
 		drawTri(va, internal1, vb);
 	}
 
 	private void drawSplitOne(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2, ProjectionVector4f ext) {
-		final ProjectionVector4f va = this.va;
-		final ProjectionVector4f vb = this.vb;
+		final ProjectionVector4f va = vNearClipA;
+		final ProjectionVector4f vb = vNearClipB;
 
-		va.interpolateClip(v2, ext);
-		vb.interpolateClip(v0, ext);
+		va.clipNear(v2, ext);
+		vb.clipNear(v0, ext);
 
 		drawTri(v0, v1, v2);
 		drawTri(v0, v2, va);
@@ -348,7 +362,7 @@ public class TerrainOccluder {
 	}
 
 	private boolean testQuad(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2, ProjectionVector4f v3) {
-		final int split = v0.externalFlag() | (v1.externalFlag() << 1) | (v2.externalFlag() << 2) | (v3.externalFlag() << 3);
+		final int split = v0.needsNearClip() | (v1.needsNearClip() << 1) | (v2.needsNearClip() << 2) | (v3.needsNearClip() << 3);
 
 		switch (split) {
 
@@ -394,31 +408,31 @@ public class TerrainOccluder {
 	}
 
 	private boolean testSplitThree(ProjectionVector4f extA, ProjectionVector4f internal, ProjectionVector4f extB) {
-		final ProjectionVector4f va = this.va;
-		final ProjectionVector4f vb = this.vb;
+		final ProjectionVector4f va = vNearClipA;
+		final ProjectionVector4f vb = vNearClipB;
 
-		va.interpolateClip(internal, extA);
-		vb.interpolateClip(internal, extB);
+		va.clipNear(internal, extA);
+		vb.clipNear(internal, extB);
 
 		return testTri(va, internal, vb);
 	}
 
 	private boolean testSplitTwo(ProjectionVector4f extA, ProjectionVector4f internal0, ProjectionVector4f internal1, ProjectionVector4f extB) {
-		final ProjectionVector4f va = this.va;
-		final ProjectionVector4f vb = this.vb;
+		final ProjectionVector4f va = vNearClipA;
+		final ProjectionVector4f vb = vNearClipB;
 
-		va.interpolateClip(internal0, extA);
-		vb.interpolateClip(internal1, extB);
+		va.clipNear(internal0, extA);
+		vb.clipNear(internal1, extB);
 
 		return testTri(va, internal0, internal1) || testTri(va, internal1, vb);
 	}
 
 	private boolean testSplitOne(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2, ProjectionVector4f ext) {
-		final ProjectionVector4f va = this.va;
-		final ProjectionVector4f vb = this.vb;
+		final ProjectionVector4f va = vNearClipA;
+		final ProjectionVector4f vb = vNearClipB;
 
-		va.interpolateClip(v2, ext);
-		vb.interpolateClip(v0, ext);
+		va.clipNear(v2, ext);
+		vb.clipNear(v0, ext);
 
 		return testTri(v0, v1, v2) || testTri(v0, v2, va) || testTri(v0, va, vb);
 	}
@@ -505,8 +519,8 @@ public class TerrainOccluder {
 		return true;
 	}
 
-	private long orient2d(long x0, long y0, long x1, long y1, long minX, long minY) {
-		return ((x1 - x0) * (minY - y0) - (y1 - y0) * (minX - x0)) >> PRECISION_BITS;
+	private long orient2d(long x0, long y0, long x1, long y1, long cx, long cy) {
+		return ((x1 - x0) * (cy - y0) - (y1 - y0) * (cx - x0));
 	}
 
 	private void prepareTriScan() {
@@ -517,12 +531,13 @@ public class TerrainOccluder {
 		final int x2 = this.x2;
 		final int y2 = this.y2;
 
-		final int a0 = y1 - y2;
-		final int b0 = x2 - x1;
-		final int a1 = y2 - y0;
-		final int b1 = x0 - x2;
-		final int a2 = y0 - y1;
-		final int b2 = x1 - x0;
+		final int a0 = (y1 - y2) << PRECISION_BITS;
+		final int b0 = (x2 - x1) << PRECISION_BITS;
+		final int a1 = (y2 - y0) << PRECISION_BITS;
+		final int b1 = (x0 - x2) << PRECISION_BITS;
+		final int a2 = (y0 - y1) << PRECISION_BITS;
+		final int b2 = (x1 - x0) << PRECISION_BITS;
+
 
 		final boolean isTopLeft0 = a0 > 0 || (a0 == 0 && b0 < 0);
 		final boolean isTopLeft1 = a1 > 0 || (a1 == 0 && b1 < 0);
@@ -574,14 +589,11 @@ public class TerrainOccluder {
 		xyTopStep2 = xTopStep2 + yTopStep2;
 	}
 
-	private void drawTri(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2) {
+	@SuppressWarnings("unused")
+	private void drawTriReference(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2) {
 		if (!prepareTriBounds(v0, v1, v2)) {
 			return;
 		}
-
-		//		if (maxPixelX - minPixelX < 2 || maxPixelY - minPixelY < 2) {
-		//			return;
-		//		}
 
 		prepareTriScan();
 
@@ -676,59 +688,59 @@ public class TerrainOccluder {
 		final int midY0 = minY >>> MID_AXIS_SHIFT;
 			final int midY1 = maxY >>> MID_AXIS_SHIFT;
 
-			if (midX0 == midX1 && midY0 == midY1) {
-				if (isPixelClear(word, midX0, midY0))  {
-					if (drawTriMid(midX0, midY0)) {
-						topBins[index] = setPixelInWord(word, midX0, midY0)| word;
-					}
+		if (midX0 == midX1 && midY0 == midY1) {
+			if (isPixelClear(word, midX0, midY0))  {
+				if (drawTriMid(midX0, midY0)) {
+					topBins[index] = setPixelInWord(word, midX0, midY0)| word;
 				}
+			}
 
+			return;
+		}
+
+		final int dx = binOriginX - this.minX;
+		final int dy = binOriginY - this.minX;
+		final int w0_row = wOrigin0 + dx * a0 + dy * b0;
+		final int w1_row = wOrigin1 + dx * a1 + dy * b1;
+		final int w2_row = wOrigin2 + dx * a2 + dy * b2;
+
+		// if filling whole bin then do it quick
+		if (((midX0 | midY0) & 7)== 0 && (midX1 & midY1 & 7) == 7) {
+			if ((w0_row | w1_row | w2_row
+					| (w0_row + xTopStep0) | (w1_row + xTopStep1) | (w2_row + xTopStep2)
+					| (w0_row + yTopStep0) | (w1_row + yTopStep1) | (w2_row + yTopStep2)
+					| (w0_row + xyTopStep0) | (w1_row + xyTopStep1) | (w2_row + xyTopStep2)) >= 0) {
+				topBins[index] = -1;
+
+				// PERF: disable unless need image output
+				fillTopBinChildren(topX, topY);
 				return;
 			}
+		}
 
-			final int dx = binOriginX - this.minX;
-			final int dy = binOriginY - this.minX;
-			final int w0_row = wOrigin0 + dx * a0 + dy * b0;
-			final int w1_row = wOrigin1 + dx * a1 + dy * b1;
-			final int w2_row = wOrigin2 + dx * a2 + dy * b2;
+		for (int midY = midY0; midY <= midY1; midY++) {
+			final int w0 = w0_row;
+			final int w1 = w1_row;
+			final int w2 = w2_row;
 
-			// if filling whole bin then do it quick
-			if (((midX0 | midY0) & 7)== 0 && (midX1 & midY1 & 7) == 7) {
-				if ((w0_row | w1_row | w2_row
-						| (w0_row + xTopStep0) | (w1_row + xTopStep1) | (w2_row + xTopStep2)
-						| (w0_row + yTopStep0) | (w1_row + yTopStep1) | (w2_row + yTopStep2)
-						| (w0_row + xyTopStep0) | (w1_row + xyTopStep1) | (w2_row + xyTopStep2)) >= 0) {
-					topBins[index] = -1;
-
-					// PERF: disable unless need image output
-					fillTopBinChildren(topX, topY);
-					return;
-				}
-			}
-
-			for (int midY = midY0; midY <= midY1; midY++) {
-				final int w0 = w0_row;
-				final int w1 = w1_row;
-				final int w2 = w2_row;
-
-				for (int midX = midX0; midX <= midX1; midX++) {
-					if ((w0 | w1 | w2) >= 0 && isPixelClear(word, midX0, midY0))  {
-						if (drawTriMid(midX0, midY0)) {
-							word |= setPixelInWord(word, midX0, midY0)| word;
-						}
+			for (int midX = midX0; midX <= midX1; midX++) {
+				if ((w0 | w1 | w2) >= 0 && isPixelClear(word, midX0, midY0))  {
+					if (drawTriMid(midX0, midY0)) {
+						word |= setPixelInWord(word, midX0, midY0)| word;
 					}
-
-					// One step to the right
-
-					//TODO: pick up here
-					//				w0 += dy21;
-					//				w1 += dy02;
-					//				w2 += dy10;
-
 				}
-			}
 
-			topBins[index] = word;
+				// One step to the right
+
+				//TODO: pick up here
+				//				w0 += dy21;
+				//				w1 += dy02;
+				//				w2 += dy10;
+
+			}
+		}
+
+		topBins[index] = word;
 	}
 
 	private void fillTopBinChildren(int topX, int topY) {
@@ -767,28 +779,240 @@ public class TerrainOccluder {
 		return false;
 	}
 
-	private void drawTriFast(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2) {
+	private boolean triNeedsClipped() {
+		return minX < -GUARD_SIZE || minY < -GUARD_SIZE || maxX > GUARD_WIDTH || maxY > GUARD_HEIGHT;
+	}
+
+	private void drawClippedLowX(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2) {
+		// NB: order here is lexical not bitwise
+		final int split = v2.needsClipLowX() | (v1.needsClipLowX() << 1) | (v0.needsClipLowX() << 2);
+
+		switch (split) {
+		case 0b000:
+			drawClippedLowY(v0, v1, v2);
+			break;
+
+		case 0b100:
+			drawClippedLowXOne(v0, v1, v2);
+			break;
+
+		case 0b010:
+			drawClippedLowXOne(v1, v2, v0);
+			break;
+
+		case 0b001:
+			drawClippedLowXOne(v2, v0, v1);
+			break;
+
+		case 0b110:
+			drawClippedLowXTwo(v0, v1, v2);
+			break;
+
+		case 0b011:
+			drawClippedLowXTwo(v1, v2, v0);
+			break;
+
+		case 0b101:
+			drawClippedLowXTwo(v2, v0, v1);
+			break;
+
+		case 0b111:
+			// NOOP
+			break;
+		}
+	}
+
+	private void drawClippedLowXOne(ProjectionVector4f v0ext, ProjectionVector4f v1, ProjectionVector4f v2) {
+		vClipLowXA.clipLowX(v1, v0ext);
+		vClipLowXB.clipLowX(v2, v0ext);
+		drawClippedLowY(vClipLowXA, v1, vClipLowXB);
+		drawClippedLowY(vClipLowXB, v1, v2);
+	}
+
+	private void drawClippedLowXTwo(ProjectionVector4f v0ext, ProjectionVector4f v1ext, ProjectionVector4f v2) {
+		vClipLowXA.clipLowX(v2, v0ext);
+		vClipLowXB.clipLowX(v2, v1ext);
+		drawClippedLowY(v2, vClipLowXA, vClipLowXB);
+	}
+
+	private void drawClippedLowY(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2) {
+		// NB: order here is lexical not bitwise
+		final int split = v2.needsClipLowY() | (v1.needsClipLowY() << 1) | (v0.needsClipLowY() << 2);
+
+		switch (split) {
+		case 0b000:
+			drawClippedHighX(v0, v1, v2);
+			break;
+
+		case 0b100:
+			drawClippedLowYOne(v0, v1, v2);
+			break;
+
+		case 0b010:
+			drawClippedLowYOne(v1, v2, v0);
+			break;
+
+		case 0b001:
+			drawClippedLowYOne(v2, v0, v1);
+			break;
+
+		case 0b110:
+			drawClippedLowYTwo(v0, v1, v2);
+			break;
+
+		case 0b011:
+			drawClippedLowYTwo(v1, v2, v0);
+			break;
+
+		case 0b101:
+			drawClippedLowYTwo(v2, v0, v1);
+			break;
+
+		case 0b111:
+			// NOOP
+			break;
+		}
+	}
+
+	private void drawClippedLowYOne(ProjectionVector4f v0ext, ProjectionVector4f v1, ProjectionVector4f v2) {
+		vClipLowYA.clipLowY(v1, v0ext);
+		vClipLowYB.clipLowY(v2, v0ext);
+		drawClippedHighX(vClipLowYA, v1, vClipLowYB);
+		drawClippedHighX(vClipLowYB, v1, v2);
+	}
+
+	private void drawClippedLowYTwo(ProjectionVector4f v0ext, ProjectionVector4f v1ext, ProjectionVector4f v2) {
+		vClipLowYA.clipLowY(v2, v0ext);
+		vClipLowYB.clipLowY(v2, v1ext);
+		drawClippedHighX(v2, vClipLowYA, vClipLowYB);
+	}
+
+	private void drawClippedHighX(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2) {
+		// NB: order here is lexical not bitwise
+		final int split = v2.needsClipHighX() | (v1.needsClipHighX() << 1) | (v0.needsClipHighX() << 2);
+
+		switch (split) {
+		case 0b000:
+			drawClippedHighY(v0, v1, v2);
+			break;
+
+		case 0b100:
+			drawClippedHighXOne(v0, v1, v2);
+			break;
+
+		case 0b010:
+			drawClippedHighXOne(v1, v2, v0);
+			break;
+
+		case 0b001:
+			drawClippedHighXOne(v2, v0, v1);
+			break;
+
+		case 0b110:
+			drawClippedHighXTwo(v0, v1, v2);
+			break;
+
+		case 0b011:
+			drawClippedHighXTwo(v1, v2, v0);
+			break;
+
+		case 0b101:
+			drawClippedHighXTwo(v2, v0, v1);
+			break;
+
+		case 0b111:
+			// NOOP
+			break;
+		}
+	}
+
+	private void drawClippedHighXOne(ProjectionVector4f v0ext, ProjectionVector4f v1, ProjectionVector4f v2) {
+		vClipHighXA.clipHighX(v1, v0ext);
+		vClipHighXB.clipHighX(v2, v0ext);
+		drawClippedHighY(vClipHighXA, v1, vClipHighXB);
+		drawClippedHighY(vClipHighXB, v1, v2);
+	}
+
+	private void drawClippedHighXTwo(ProjectionVector4f v0ext, ProjectionVector4f v1ext, ProjectionVector4f v2) {
+		vClipHighXA.clipHighX(v2, v0ext);
+		vClipHighXB.clipHighX(v2, v1ext);
+		drawClippedHighY(v2, vClipHighXA, vClipHighXB);
+	}
+
+	private void drawClippedHighY(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2) {
+		// NB: order here is lexical not bitwise
+		final int split = v2.needsClipHighY() | (v1.needsClipHighY() << 1) | (v0.needsClipHighY() << 2);
+
+		switch (split) {
+		case 0b000:
+			drawTri(v0, v1, v2);
+			break;
+
+		case 0b100:
+			drawClippedHighYOne(v0, v1, v2);
+			break;
+
+		case 0b010:
+			drawClippedHighYOne(v1, v2, v0);
+			break;
+
+		case 0b001:
+			drawClippedHighYOne(v2, v0, v1);
+			break;
+
+		case 0b110:
+			drawClippedHighYTwo(v0, v1, v2);
+			break;
+
+		case 0b011:
+			drawClippedHighYTwo(v1, v2, v0);
+			break;
+
+		case 0b101:
+			drawClippedHighYTwo(v2, v0, v1);
+			break;
+
+		case 0b111:
+			// NOOP
+			break;
+		}
+	}
+
+	private void drawClippedHighYOne(ProjectionVector4f v0ext, ProjectionVector4f v1, ProjectionVector4f v2) {
+		vClipHighYA.clipHighY(v1, v0ext);
+		vClipHighYB.clipHighY(v2, v0ext);
+		drawTri(vClipHighYA, v1, vClipHighYB);
+		drawTri(vClipHighYB, v1, v2);
+	}
+
+	private void drawClippedHighYTwo(ProjectionVector4f v0ext, ProjectionVector4f v1ext, ProjectionVector4f v2) {
+		vClipHighYA.clipHighY(v2, v0ext);
+		vClipHighYB.clipHighY(v2, v1ext);
+		drawTri(v2, vClipHighYA, vClipHighYB);
+	}
+
+	private void drawTri(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2) {
 		if (!prepareTriBounds(v0, v1, v2)) {
 			return;
 		}
 
-		// TODO: keep?
-		if (maxX - minX < 2 || maxY - minY < 2) {
+		if (triNeedsClipped()) {
+			drawClippedLowX(v0, v1, v2);
 			return;
 		}
 
 		prepareTriScan();
 
 		// Triangle setup
-		final int minX = this.minX;
-		final int minY = this.minY;
-		final int maxX = this.maxX;
-		final int maxY = this.maxY;
+		final int px0 = minPixelX;
+		final int py0 = minPixelY;
+		final int px1 = maxPixelX;
+		final int py1 = maxPixelY;
 
-		final int bx0 = minX >> BIN_AXIS_SHIFT;
-		final int bx1 = maxX >> BIN_AXIS_SHIFT;
-				final int by0 = minY >> BIN_AXIS_SHIFT;
-			final int by1 = maxY >> BIN_AXIS_SHIFT;
+		final int bx0 = px0 >> BIN_AXIS_SHIFT;
+		final int bx1 = px1 >> BIN_AXIS_SHIFT;
+		final int by0 = py0 >> BIN_AXIS_SHIFT;
+		final int by1 = py1 >> BIN_AXIS_SHIFT;
 
 
 		// Barycentric coordinates at bounding box origin
@@ -803,16 +1027,16 @@ public class TerrainOccluder {
 			int w2 = w2_row;
 
 			for (int bx = bx0; bx <= bx1; bx++) {
-				final int x0 = bx == bx0 ? (minX & BIN_PIXEL_INDEX_MASK) : 0;
-				final int y0 = by == by0 ? (minY & BIN_PIXEL_INDEX_MASK) : 0;
-				final int x1 = bx == bx1 ? (maxX & BIN_PIXEL_INDEX_MASK) : 7;
-				final int y1 = by == by1 ? (maxY & BIN_PIXEL_INDEX_MASK) : 7;
+				final int x0 = bx == bx0 ? (px0 & BIN_PIXEL_INDEX_MASK) : 0;
+				final int y0 = by == by0 ? (py0 & BIN_PIXEL_INDEX_MASK) : 0;
+				final int x1 = bx == bx1 ? (px1 & BIN_PIXEL_INDEX_MASK) : 7;
+				final int y1 = by == by1 ? (py1 & BIN_PIXEL_INDEX_MASK) : 7;
 
 				drawBin(bx, by, x0, y0, x1, y1, w0, w1, w2);
 
 				// Step to the right
 				if (bx == bx0) {
-					final int xSteps = 8 - (minX & BIN_PIXEL_INDEX_MASK);
+					final int xSteps = 8 - (px0 & BIN_PIXEL_INDEX_MASK);
 					w0 += a0 * xSteps;
 					w1 += a1 * xSteps;
 					w2 += a2 * xSteps;
@@ -825,7 +1049,7 @@ public class TerrainOccluder {
 
 			// Row step
 			if (by == by0) {
-				final int ySteps = 8 - (minY & BIN_PIXEL_INDEX_MASK);
+				final int ySteps = 8 - (py0 & BIN_PIXEL_INDEX_MASK);
 				w0_row += b0 * ySteps;
 				w1_row += b1 * ySteps;
 				w2_row += b2 * ySteps;
@@ -844,6 +1068,10 @@ public class TerrainOccluder {
 	private boolean testTri(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2) {
 		if (!prepareTriBounds(v0, v1, v2)) {
 			return false;
+		}
+
+		if (triNeedsClipped()) {
+			return testClippedLowX(v0, v1, v2);
 		}
 
 		if (minPixelX == maxPixelX) {
@@ -868,11 +1096,192 @@ public class TerrainOccluder {
 			return false;
 		}
 
-		final boolean result = testTriReference(v0, v1, v2);
+		final boolean result = testTriFast(v0, v1, v2);
 
 		return result;
 	}
 
+	private boolean testClippedLowX(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2) {
+		// NB: order here is lexical not bitwise
+		final int split = v2.needsClipLowX() | (v1.needsClipLowX() << 1) | (v0.needsClipLowX() << 2);
+
+		switch (split) {
+		case 0b000:
+			return testClippedLowY(v0, v1, v2);
+
+		case 0b100:
+			return testClippedLowXOne(v0, v1, v2);
+
+		case 0b010:
+			return testClippedLowXOne(v1, v2, v0);
+
+		case 0b001:
+			return testClippedLowXOne(v2, v0, v1);
+
+		case 0b110:
+			return testClippedLowXTwo(v0, v1, v2);
+
+		case 0b011:
+			return testClippedLowXTwo(v1, v2, v0);
+
+		case 0b101:
+			return testClippedLowXTwo(v2, v0, v1);
+
+		default:
+		case 0b111:
+			return false;
+		}
+	}
+
+	private boolean testClippedLowXOne(ProjectionVector4f v0ext, ProjectionVector4f v1, ProjectionVector4f v2) {
+		vClipLowXA.clipLowX(v1, v0ext);
+		vClipLowXB.clipLowX(v2, v0ext);
+		return testClippedLowY(vClipLowXA, v1, vClipLowXB)
+				|| testClippedLowY(vClipLowXB, v1, v2);
+	}
+
+	private boolean testClippedLowXTwo(ProjectionVector4f v0ext, ProjectionVector4f v1ext, ProjectionVector4f v2) {
+		vClipLowXA.clipLowX(v2, v0ext);
+		vClipLowXB.clipLowX(v2, v1ext);
+		return testClippedLowY(v2, vClipLowXA, vClipLowXB);
+	}
+
+	private boolean testClippedLowY(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2) {
+		// NB: order here is lexical not bitwise
+		final int split = v2.needsClipLowY() | (v1.needsClipLowY() << 1) | (v0.needsClipLowY() << 2);
+
+		switch (split) {
+		case 0b000:
+			return testClippedHighX(v0, v1, v2);
+
+		case 0b100:
+			return testClippedLowYOne(v0, v1, v2);
+
+		case 0b010:
+			return testClippedLowYOne(v1, v2, v0);
+
+		case 0b001:
+			return testClippedLowYOne(v2, v0, v1);
+
+		case 0b110:
+			return testClippedLowYTwo(v0, v1, v2);
+
+		case 0b011:
+			return testClippedLowYTwo(v1, v2, v0);
+
+		case 0b101:
+			return testClippedLowYTwo(v2, v0, v1);
+
+		default:
+		case 0b111:
+			return false;
+		}
+	}
+
+	private boolean testClippedLowYOne(ProjectionVector4f v0ext, ProjectionVector4f v1, ProjectionVector4f v2) {
+		vClipLowYA.clipLowY(v1, v0ext);
+		vClipLowYB.clipLowY(v2, v0ext);
+		return testClippedHighX(vClipLowYA, v1, vClipLowYB)
+				|| testClippedHighX(vClipLowYB, v1, v2);
+	}
+
+	private boolean testClippedLowYTwo(ProjectionVector4f v0ext, ProjectionVector4f v1ext, ProjectionVector4f v2) {
+		vClipLowYA.clipLowY(v2, v0ext);
+		vClipLowYB.clipLowY(v2, v1ext);
+		return testClippedHighX(v2, vClipLowYA, vClipLowYB);
+	}
+
+	private boolean testClippedHighX(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2) {
+		// NB: order here is lexical not bitwise
+		final int split = v2.needsClipHighX() | (v1.needsClipHighX() << 1) | (v0.needsClipHighX() << 2);
+
+		switch (split) {
+		case 0b000:
+			return testClippedHighY(v0, v1, v2);
+
+		case 0b100:
+			return testClippedHighXOne(v0, v1, v2);
+
+		case 0b010:
+			return testClippedHighXOne(v1, v2, v0);
+
+		case 0b001:
+			return testClippedHighXOne(v2, v0, v1);
+
+		case 0b110:
+			return testClippedHighXTwo(v0, v1, v2);
+
+		case 0b011:
+			return testClippedHighXTwo(v1, v2, v0);
+
+		case 0b101:
+			return testClippedHighXTwo(v2, v0, v1);
+
+		default:
+		case 0b111:
+			return false;
+		}
+	}
+
+	private boolean testClippedHighXOne(ProjectionVector4f v0ext, ProjectionVector4f v1, ProjectionVector4f v2) {
+		vClipHighXA.clipHighX(v1, v0ext);
+		vClipHighXB.clipHighX(v2, v0ext);
+		return testClippedHighY(vClipHighXA, v1, vClipHighXB)
+				|| testClippedHighY(vClipHighXB, v1, v2);
+	}
+
+	private boolean testClippedHighXTwo(ProjectionVector4f v0ext, ProjectionVector4f v1ext, ProjectionVector4f v2) {
+		vClipHighXA.clipHighX(v2, v0ext);
+		vClipHighXB.clipHighX(v2, v1ext);
+		return testClippedHighY(v2, vClipHighXA, vClipHighXB);
+	}
+
+	private boolean testClippedHighY(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2) {
+		// NB: order here is lexical not bitwise
+		final int split = v2.needsClipHighY() | (v1.needsClipHighY() << 1) | (v0.needsClipHighY() << 2);
+
+		switch (split) {
+		case 0b000:
+			return testTri(v0, v1, v2);
+
+		case 0b100:
+			return testClippedHighYOne(v0, v1, v2);
+
+		case 0b010:
+			return testClippedHighYOne(v1, v2, v0);
+
+		case 0b001:
+			return testClippedHighYOne(v2, v0, v1);
+
+		case 0b110:
+			return testClippedHighYTwo(v0, v1, v2);
+
+		case 0b011:
+			return testClippedHighYTwo(v1, v2, v0);
+
+		case 0b101:
+			return testClippedHighYTwo(v2, v0, v1);
+
+		default:
+		case 0b111:
+			return false;
+		}
+	}
+
+	private boolean testClippedHighYOne(ProjectionVector4f v0ext, ProjectionVector4f v1, ProjectionVector4f v2) {
+		vClipHighYA.clipHighY(v1, v0ext);
+		vClipHighYB.clipHighY(v2, v0ext);
+		return testTri(vClipHighYA, v1, vClipHighYB)
+				|| testTri(vClipHighYB, v1, v2);
+	}
+
+	private boolean testClippedHighYTwo(ProjectionVector4f v0ext, ProjectionVector4f v1ext, ProjectionVector4f v2) {
+		vClipHighYA.clipHighY(v2, v0ext);
+		vClipHighYB.clipHighY(v2, v1ext);
+		return testTri(v2, vClipHighYA, vClipHighYB);
+	}
+
+	@SuppressWarnings("unused")
 	private boolean testTriReference(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2) {
 		prepareTriScan();
 
@@ -920,15 +1329,15 @@ public class TerrainOccluder {
 	private boolean testTriFast(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2) {
 		prepareTriScan();
 
-		final int minX = this.minX;
-		final int minY = this.minY;
-		final int maxX = this.maxX;
-		final int maxY = this.maxY;
+		final int px0 = minPixelX;
+		final int py0 = minPixelY;
+		final int px1 = maxPixelX;
+		final int py1 = maxPixelY;
 
-		final int bx0 = minX >> BIN_AXIS_SHIFT;
-		final int bx1 = maxX >> BIN_AXIS_SHIFT;
-				final int by0 = minY >> BIN_AXIS_SHIFT;
-		final int by1 = maxY >> BIN_AXIS_SHIFT;
+		final int bx0 = px0 >> BIN_AXIS_SHIFT;
+		final int bx1 = px1 >> BIN_AXIS_SHIFT;
+		final int by0 = py0 >> BIN_AXIS_SHIFT;
+		final int by1 = py1 >> BIN_AXIS_SHIFT;
 
 		// Barycentric coordinates at bounding box origin
 		int w0_row = wOrigin0;
@@ -942,10 +1351,10 @@ public class TerrainOccluder {
 			int w2 = w2_row;
 
 			for (int bx = bx0; bx <= bx1; bx++) {
-				final int x0 = bx == bx0 ? (minX & BIN_PIXEL_INDEX_MASK) : 0;
-				final int y0 = by == by0 ? (minY & BIN_PIXEL_INDEX_MASK) : 0;
-				final int x1 = bx == bx1 ? (maxX & BIN_PIXEL_INDEX_MASK) : 7;
-				final int y1 = by == by1 ? (maxY & BIN_PIXEL_INDEX_MASK) : 7;
+				final int x0 = bx == bx0 ? (px0 & BIN_PIXEL_INDEX_MASK) : 0;
+				final int y0 = by == by0 ? (py0 & BIN_PIXEL_INDEX_MASK) : 0;
+				final int x1 = bx == bx1 ? (px1 & BIN_PIXEL_INDEX_MASK) : 7;
+				final int y1 = by == by1 ? (py1 & BIN_PIXEL_INDEX_MASK) : 7;
 
 				if (testBin(bx, by, x0, y0, x1, y1, w0, w1, w2)) {
 					return true;
@@ -953,7 +1362,7 @@ public class TerrainOccluder {
 
 				// Step to the right
 				if (bx == bx0) {
-					final int xSteps = 8 - (minX & BIN_PIXEL_INDEX_MASK);
+					final int xSteps = 8 - (px0 & BIN_PIXEL_INDEX_MASK);
 					w0 += a0 * xSteps;
 					w1 += a1 * xSteps;
 					w2 += a2 * xSteps;
@@ -966,7 +1375,7 @@ public class TerrainOccluder {
 
 			// Row step
 			if (by == by0) {
-				final int ySteps = 8 - (minY & BIN_PIXEL_INDEX_MASK);
+				final int ySteps = 8 - (py0 & BIN_PIXEL_INDEX_MASK);
 				w0_row += b0 * ySteps;
 				w1_row += b1 * ySteps;
 				w2_row += b2 * ySteps;
@@ -984,10 +1393,10 @@ public class TerrainOccluder {
 	 *
 	 * @param binX bin x index
 	 * @param binY bin y index
-	 * @param x0 bin-relative min x, 0-7, inclusive
-	 * @param y0 bin-relative min y, 0-7, inclusive
-	 * @param x1 bin-relative max x, 0-7, inclusive
-	 * @param y2 bin-relative max y, 0-7, inclusive
+	 * @param px0 bin-relative min x, 0-7, inclusive
+	 * @param py0 bin-relative min y, 0-7, inclusive
+	 * @param px1 bin-relative max x, 0-7, inclusive
+	 * @param py1 bin-relative max y, 0-7, inclusive
 	 * @param wo0 edge weight 0 at x0, y0
 	 * @param wo1 edge weight 1 at x0, y0
 	 * @param wo2 edge weight 2 at x0, y0
@@ -996,10 +1405,10 @@ public class TerrainOccluder {
 	private boolean testBin(
 			int binX,
 			int binY,
-			int x0,
-			int y0,
-			int x1,
-			int y1,
+			int px0,
+			int py0,
+			int px1,
+			int py1,
 			int w0_row,
 			int w1_row,
 			int w2_row)
@@ -1010,7 +1419,7 @@ public class TerrainOccluder {
 		if (word == -1L)
 			// if bin fully occluded always false
 			return false;
-		else if ((x0 | y0) == 0 && (x1 & y1) == 7) {
+		else if ((px0 | py0) == 0 && (px1 & py1) == 7) {
 			// testing whole bin
 
 			// if whole bin is inside then any open pixel counts
@@ -1041,17 +1450,21 @@ public class TerrainOccluder {
 			}
 		}
 
+
 		// special case optimize for lines and points
-		if (x0 == x1) {
-			if(y0 == y1) {
-				return (w0_row | w1_row | w2_row) >= 0 && testPixelInWordPreMasked(word, x0, y0);
+		if (px0 == px1) {
+			if(py0 == py1) {
+				return (w0_row | w1_row | w2_row) >= 0 && testPixelInWordPreMasked(word, px0, py0);
 			} else {
 				int w0 = w0_row;
 				int w1 = w1_row;
 				int w2 = w2_row;
+				final int b0 = this.b0;
+				final int b1 = this.b1;
+				final int b2 = this.b2;
 
-				for(int y = y0; y <= y1; y++) {
-					if ((w0 | w1 | w2) >= 0  && testPixelInWordPreMasked(word, x0, y)) {
+				for(int y = py0; y <= py1; y++) {
+					if ((w0 | w1 | w2) >= 0  && testPixelInWordPreMasked(word, px0, y)) {
 						return true;
 					}
 
@@ -1063,13 +1476,16 @@ public class TerrainOccluder {
 
 				return false;
 			}
-		} else if (y0 == y1) {
+		} else if (py0 == py1) {
 			int w0 = w0_row;
 			int w1 = w1_row;
 			int w2 = w2_row;
+			final int a0 = this.a0;
+			final int a1 = this.a1;
+			final int a2 = this.a2;
 
-			for(int x = x0; x <= x1; x++) {
-				if ((w0 | w1 | w2) >= 0  && testPixelInWordPreMasked(word, x, y0)) {
+			for(int x = px0; x <= px1; x++) {
+				if ((w0 | w1 | w2) >= 0  && testPixelInWordPreMasked(word, x, py0)) {
 					return true;
 				}
 
@@ -1080,43 +1496,50 @@ public class TerrainOccluder {
 			}
 
 			return false;
-		}
+		}  else {
+			final int a0 = this.a0;
+			final int b0 = this.b0;
+			final int a1 = this.a1;
+			final int b1 = this.b1;
+			final int a2 = this.a2;
+			final int b2 = this.b2;
 
-		// Rasterize
-		for (int y = y0; y <= y1; y++) {
-			int w0 = w0_row;
-			int w1 = w1_row;
-			int w2 = w2_row;
+			// Rasterize
+			for (int y = py0; y <= py1; y++) {
+				int w0 = w0_row;
+				int w1 = w1_row;
+				int w2 = w2_row;
 
-			for (int x = x0; x <= x1; x++) {
-				// If p is on or inside all edges, render pixel.
-				if ((w0 | w1 | w2) >= 0 && testPixelInWordPreMasked(word, x, y)) {
-					return true;
+				for (int x = px0; x <= px1; x++) {
+					// If p is on or inside all edges, render pixel.
+					if ((w0 | w1 | w2) >= 0 && testPixelInWordPreMasked(word, x, y)) {
+						return true;
+					}
+
+					// One step to the right
+					w0 += a0;
+					w1 += a1;
+					w2 += a2;
 				}
 
-				// One step to the right
-				w0 += a0;
-				w1 += a1;
-				w2 += a2;
+				// One row step
+				w0_row += b0;
+				w1_row += b1;
+				w2_row += b2;
 			}
 
-			// One row step
-			w0_row += b0;
-			w1_row += b1;
-			w2_row += b2;
+			return false;
 		}
-
-		return false;
 	}
 
 	/**
 	 *
 	 * @param binX bin x index
 	 * @param binY bin y index
-	 * @param x0 bin-relative min x, 0-7, inclusive
-	 * @param y0 bin-relative min y, 0-7, inclusive
-	 * @param x1 bin-relative max x, 0-7, inclusive
-	 * @param y2 bin-relative max y, 0-7, inclusive
+	 * @param px0 bin-relative min x, 0-7, inclusive
+	 * @param py0 bin-relative min y, 0-7, inclusive
+	 * @param px1 bin-relative max x, 0-7, inclusive
+	 * @param py1 bin-relative max y, 0-7, inclusive
 	 * @param wo0 edge weight 0 at x0, y0
 	 * @param wo1 edge weight 1 at x0, y0
 	 * @param wo2 edge weight 2 at x0, y0
@@ -1125,10 +1548,10 @@ public class TerrainOccluder {
 	private void drawBin(
 			int binX,
 			int binY,
-			int x0,
-			int y0,
-			int x1,
-			int y1,
+			int px0,
+			int py0,
+			int px1,
+			int py1,
 			int w0_row,
 			int w1_row,
 			int w2_row)
@@ -1142,21 +1565,27 @@ public class TerrainOccluder {
 		}
 
 		// special case optimize for lines and points
-		if (x0 == x1) {
-			if(y0 == y1) {
+		if (px0 == px1) {
+			if(py0 == py1) {
 				//				if (w0_row > 0 && w1_row > 0 && w2_row > 0)  {
 				if ((w0_row | w1_row | w2_row) >= 0) {
-					lowBins[index] = setPixelInWordPreMasked(word, x0, y0);
+					lowBins[index] = setPixelInWordPreMasked(word, px0, py0);
 				}
+
+				return;
+
 			} else {
 				int w0 = w0_row;
 				int w1 = w1_row;
 				int w2 = w2_row;
+				final int b0 = this.b0;
+				final int b1 = this.b1;
+				final int b2 = this.b2;
 
-				for(int y = y0; y <= y1; y++) {
+				for(int y = py0; y <= py1; y++) {
 					//					if (w0 > 0 && w1 > 0 && w2 > 0) {
 					if ((w0 | w1 | w2) >= 0) {
-						word = setPixelInWordPreMasked(word, x0, y);
+						word = setPixelInWordPreMasked(word, px0, y);
 					}
 
 					// One row step
@@ -1166,16 +1595,20 @@ public class TerrainOccluder {
 				}
 
 				lowBins[index] = word;
+				return;
 			}
-		} else if (y0 == y1) {
+		} else if (py0 == py1) {
 			int w0 = w0_row;
 			int w1 = w1_row;
 			int w2 = w2_row;
+			final int a0 = this.a0;
+			final int a1 = this.a1;
+			final int a2 = this.a2;
 
-			for(int x = x0; x <= x1; x++) {
+			for(int x = px0; x <= px1; x++) {
 				//				if (w0 > 0 && w1 > 0 && w2 > 0) {
 				if ((w0 | w1 | w2) >= 0) {
-					word = setPixelInWordPreMasked(word, x, y0);
+					word = setPixelInWordPreMasked(word, x, py0);
 				}
 
 				// One step to the right
@@ -1185,9 +1618,9 @@ public class TerrainOccluder {
 			}
 
 			lowBins[index] = word;
-		}
+			return;
 
-		if ((x0 | y0) == 0 && (x1 & y1) == 7) {
+		} else if ((px0 | py0) == 0 && (px1 & py1) == 7) {
 			// if filling whole bin then do it quick
 			final int w0 = w0_row;
 			final int w1 = w1_row;
@@ -1207,13 +1640,20 @@ public class TerrainOccluder {
 			}
 		}
 
+		final int a0 = this.a0;
+		final int b0 = this.b0;
+		final int a1 = this.a1;
+		final int b1 = this.b1;
+		final int a2 = this.a2;
+		final int b2 = this.b2;
+
 		// Rasterize
-		for (int y = y0; y <= y1; y++) {
+		for (int y = py0; y <= py1; y++) {
 			int w0 = w0_row;
 			int w1 = w1_row;
 			int w2 = w2_row;
 
-			for (int x = x0; x <= x1; x++) {
+			for (int x = px0; x <= px1; x++) {
 				// If p is on or inside all edges, render pixel.
 
 				//				if (w0 > 0 && w1 > 0 && w2 > 0) {
@@ -1234,6 +1674,7 @@ public class TerrainOccluder {
 		}
 
 		lowBins[index] = word;
+		return;
 	}
 
 	private static int wordIndex(int x, int y)  {
@@ -1338,6 +1779,10 @@ public class TerrainOccluder {
 	private static final int HEIGHT_WORD_RELATIVE_SHIFT = LOW_Y_SHIFT - BIN_AXIS_SHIFT;
 	static final int PRECISION_HEIGHT = PIXEL_HEIGHT << PRECISION_BITS;
 	static final int HALF_PRECISION_HEIGHT = PRECISION_HEIGHT / 2;
+
+	static final int GUARD_SIZE = 256;
+	static final int GUARD_WIDTH = PRECISION_WIDTH + GUARD_SIZE;
+	static final int GUARD_HEIGHT = PRECISION_HEIGHT + GUARD_SIZE;
 
 	private static final int LOW_BIN_COUNT = LOW_WIDTH * LOW_HEIGHT;
 	private static final int MIDDLE_BIN_COUNT = MID_WIDTH * LOW_HEIGHT;
