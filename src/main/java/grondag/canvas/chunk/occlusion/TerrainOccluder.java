@@ -140,11 +140,6 @@ public class TerrainOccluder {
 		yOrigin = origin.getY();
 		zOrigin = origin.getZ();
 
-		// TODO: remove
-		if (xOrigin == -16 &&  yOrigin == 0 && zOrigin == 0 ) {
-			xOrigin = xOrigin;
-		}
-
 		offsetX = (float) (xOrigin - cameraX);
 		offsetY = (float) (yOrigin - cameraY);
 		offsetZ = (float) (zOrigin - cameraZ);
@@ -242,7 +237,6 @@ public class TerrainOccluder {
 	}
 
 	private void computeProjectedBoxBounds(float x0, float y0, float z0, float x1, float y1, float z1) {
-
 		v000.set(x0, y0, z0, 1);
 		v000.transform(mvpMatrix);
 
@@ -531,12 +525,12 @@ public class TerrainOccluder {
 		final int x2 = this.x2;
 		final int y2 = this.y2;
 
-		final int a0 = (y1 - y2) << PRECISION_BITS;
-		final int b0 = (x2 - x1) << PRECISION_BITS;
-		final int a1 = (y2 - y0) << PRECISION_BITS;
-		final int b1 = (x0 - x2) << PRECISION_BITS;
-		final int a2 = (y0 - y1) << PRECISION_BITS;
-		final int b2 = (x1 - x0) << PRECISION_BITS;
+		final int a0 = (y1 - y2);
+		final int b0 = (x2 - x1);
+		final int a1 = (y2 - y0);
+		final int b1 = (x0 - x2);
+		final int a2 = (y0 - y1);
+		final int b2 = (x1 - x0);
 
 
 		final boolean isTopLeft0 = a0 > 0 || (a0 == 0 && b0 < 0);
@@ -547,9 +541,9 @@ public class TerrainOccluder {
 		final long cy = (minPixelY << PRECISION_BITS) + PRECISION_PIXEL_CENTER;
 
 		// Barycentric coordinates at minX/minY corner
-		wOrigin0 = (int) orient2d(x1, y1, x2, y2, cx, cy) + (isTopLeft0 ? 0 : -1);
-		wOrigin1 = (int) orient2d(x2, y2, x0, y0, cx, cy) + (isTopLeft1 ? 0 : -1);
-		wOrigin2 = (int) orient2d(x0, y0, x1, y1, cx, cy) + (isTopLeft2 ? 0 : -1);
+		wOrigin0 = (int) ((orient2d(x1, y1, x2, y2, cx, cy) + (isTopLeft0 ? PRECISION_PIXEL_CENTER : (PRECISION_PIXEL_CENTER - 1))) >> PRECISION_BITS);
+		wOrigin1 = (int) ((orient2d(x2, y2, x0, y0, cx, cy) + (isTopLeft1 ? PRECISION_PIXEL_CENTER : (PRECISION_PIXEL_CENTER - 1))) >> PRECISION_BITS);
+		wOrigin2 = (int) ((orient2d(x0, y0, x1, y1, cx, cy) + (isTopLeft2 ? PRECISION_PIXEL_CENTER : (PRECISION_PIXEL_CENTER - 1))) >> PRECISION_BITS);
 
 		this.a0 = a0;
 		this.b0 = b0;
@@ -688,59 +682,59 @@ public class TerrainOccluder {
 		final int midY0 = minY >>> MID_AXIS_SHIFT;
 			final int midY1 = maxY >>> MID_AXIS_SHIFT;
 
-		if (midX0 == midX1 && midY0 == midY1) {
-			if (isPixelClear(word, midX0, midY0))  {
-				if (drawTriMid(midX0, midY0)) {
-					topBins[index] = setPixelInWord(word, midX0, midY0)| word;
-				}
-			}
-
-			return;
-		}
-
-		final int dx = binOriginX - this.minX;
-		final int dy = binOriginY - this.minX;
-		final int w0_row = wOrigin0 + dx * a0 + dy * b0;
-		final int w1_row = wOrigin1 + dx * a1 + dy * b1;
-		final int w2_row = wOrigin2 + dx * a2 + dy * b2;
-
-		// if filling whole bin then do it quick
-		if (((midX0 | midY0) & 7)== 0 && (midX1 & midY1 & 7) == 7) {
-			if ((w0_row | w1_row | w2_row
-					| (w0_row + xTopStep0) | (w1_row + xTopStep1) | (w2_row + xTopStep2)
-					| (w0_row + yTopStep0) | (w1_row + yTopStep1) | (w2_row + yTopStep2)
-					| (w0_row + xyTopStep0) | (w1_row + xyTopStep1) | (w2_row + xyTopStep2)) >= 0) {
-				topBins[index] = -1;
-
-				// PERF: disable unless need image output
-				fillTopBinChildren(topX, topY);
-				return;
-			}
-		}
-
-		for (int midY = midY0; midY <= midY1; midY++) {
-			final int w0 = w0_row;
-			final int w1 = w1_row;
-			final int w2 = w2_row;
-
-			for (int midX = midX0; midX <= midX1; midX++) {
-				if ((w0 | w1 | w2) >= 0 && isPixelClear(word, midX0, midY0))  {
+			if (midX0 == midX1 && midY0 == midY1) {
+				if (isPixelClear(word, midX0, midY0))  {
 					if (drawTriMid(midX0, midY0)) {
-						word |= setPixelInWord(word, midX0, midY0)| word;
+						topBins[index] = setPixelInWord(word, midX0, midY0)| word;
 					}
 				}
 
-				// One step to the right
-
-				//TODO: pick up here
-				//				w0 += dy21;
-				//				w1 += dy02;
-				//				w2 += dy10;
-
+				return;
 			}
-		}
 
-		topBins[index] = word;
+			final int dx = binOriginX - this.minX;
+			final int dy = binOriginY - this.minX;
+			final int w0_row = wOrigin0 + dx * a0 + dy * b0;
+			final int w1_row = wOrigin1 + dx * a1 + dy * b1;
+			final int w2_row = wOrigin2 + dx * a2 + dy * b2;
+
+			// if filling whole bin then do it quick
+			if (((midX0 | midY0) & 7)== 0 && (midX1 & midY1 & 7) == 7) {
+				if ((w0_row | w1_row | w2_row
+						| (w0_row + xTopStep0) | (w1_row + xTopStep1) | (w2_row + xTopStep2)
+						| (w0_row + yTopStep0) | (w1_row + yTopStep1) | (w2_row + yTopStep2)
+						| (w0_row + xyTopStep0) | (w1_row + xyTopStep1) | (w2_row + xyTopStep2)) >= 0) {
+					topBins[index] = -1;
+
+					// PERF: disable unless need image output
+					fillTopBinChildren(topX, topY);
+					return;
+				}
+			}
+
+			for (int midY = midY0; midY <= midY1; midY++) {
+				final int w0 = w0_row;
+				final int w1 = w1_row;
+				final int w2 = w2_row;
+
+				for (int midX = midX0; midX <= midX1; midX++) {
+					if ((w0 | w1 | w2) >= 0 && isPixelClear(word, midX0, midY0))  {
+						if (drawTriMid(midX0, midY0)) {
+							word |= setPixelInWord(word, midX0, midY0)| word;
+						}
+					}
+
+					// One step to the right
+
+					//TODO: pick up here
+					//				w0 += dy21;
+					//				w1 += dy02;
+					//				w2 += dy10;
+
+				}
+			}
+
+			topBins[index] = word;
 	}
 
 	private void fillTopBinChildren(int topX, int topY) {
@@ -1761,7 +1755,7 @@ public class TerrainOccluder {
 	private static final int MID_Y_SHIFT = Integer.bitCount(MID_WIDTH - 1);
 	private static final int MIDDLE_HEIGHT = TOP_HEIGHT  * 8;
 
-	static final int PRECISION_BITS = 2;
+	static final int PRECISION_BITS = 4;
 	static final int PRECISION_FRACTION_MASK = (1 << PRECISION_BITS) - 1;
 	static final int PRECISION_INTEGER_MASK = ~PRECISION_FRACTION_MASK;
 	static final int PRECISION_PIXEL_CENTER = 1 << (PRECISION_BITS - 1);
@@ -1780,7 +1774,7 @@ public class TerrainOccluder {
 	static final int PRECISION_HEIGHT = PIXEL_HEIGHT << PRECISION_BITS;
 	static final int HALF_PRECISION_HEIGHT = PRECISION_HEIGHT / 2;
 
-	static final int GUARD_SIZE = 256;
+	static final int GUARD_SIZE = 512;
 	static final int GUARD_WIDTH = PRECISION_WIDTH + GUARD_SIZE;
 	static final int GUARD_HEIGHT = PRECISION_HEIGHT + GUARD_SIZE;
 
