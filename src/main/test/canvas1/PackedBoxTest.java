@@ -14,19 +14,6 @@ class PackedBoxTest {
 
 		assert PackedBox.pack(0, 0, 0, 16, 16, 16) == PackedBox.FULL_BOX;
 
-		final long near = PackedBox.packSortable(2, 2, 2, 4, 4, 2);
-		final long medium = PackedBox.packSortable(0, 0, 0, 7, 7, 7);
-		final long far = PackedBox.packSortable(1, 1, 2, 13, 2, 15);
-
-		assert medium > near;
-		assert far > medium;
-		assert (int) near == PackedBox.pack(2, 2, 2, 4, 4, 2);
-		assert (int) medium == PackedBox.pack(0, 0, 0, 7, 7, 7);
-		assert (int) far == PackedBox.pack(1, 1, 2, 13, 2, 15);
-		assert PackedBox.range((int) near) == PackedBox.OCCLUSION_RANGE_NEAR;
-		assert PackedBox.range((int) medium) == PackedBox.OCCLUSION_RANGE_MEDIUM;
-		assert PackedBox.range((int) far) == PackedBox.OCCLUSION_RANGE_FAR;
-
 		final Random r = ThreadLocalRandom.current();
 
 		for (int i = 0; i < 500; i++) {

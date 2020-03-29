@@ -4,15 +4,15 @@ import static grondag.canvas.chunk.RenderRegionAddressHelper.INTERIOR_CACHE_WORD
 import static grondag.canvas.chunk.RenderRegionAddressHelper.SLICE_WORD_COUNT;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
-import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 public class BoxFinder {
 	final long[] combined = new long[COMBINED_WORD_COUNT];
 	final long[] filled = new long[INTERIOR_CACHE_WORDS];
 
-	private final LongArrayList sortedBoxes = new LongArrayList();
-	public final IntArrayList boxes = new IntArrayList();
+	private final IntArrayList sortedBoxes = new IntArrayList();
+	public final IntArrayList nearBoxes = new IntArrayList();
+	public final IntArrayList farPlanes = new IntArrayList();
 
 	public final AreaFinder areaFinder = new AreaFinder();
 
@@ -20,7 +20,7 @@ public class BoxFinder {
 		final AreaFinder areaFinder = this.areaFinder;
 		final ObjectArrayList<Area> areas = areaFinder.areas;
 		final long[] combined = this.combined;
-		final LongArrayList sortedBoxes = this.sortedBoxes;
+		final IntArrayList sortedBoxes = this.sortedBoxes;
 		sortedBoxes.clear();
 
 		loadCombined(sourceBits, sourceIndex);
@@ -30,7 +30,7 @@ public class BoxFinder {
 
 		if (!areas.isEmpty()) {
 			for (final Area area : areas) {
-				sortedBoxes.add(PackedBox.packSortable(area.x0, area.y0, 0, area.x1 + 1, area.y1 + 1, 16));
+				sortedBoxes.add(PackedBox.pack(area.x0, area.y0, 0, area.x1 + 1, area.y1 + 1, 16));
 			}
 		}
 
@@ -44,7 +44,7 @@ public class BoxFinder {
 				if (!areas.isEmpty()) {
 					for (final Area area : areas) {
 						if (!includedInAnyParent(area, depth, slice)) {
-							sortedBoxes.add(PackedBox.packSortable(area.x0, area.y0, slice, area.x1 + 1, area.y1 + 1, slice + depth));
+							sortedBoxes.add(PackedBox.pack(area.x0, area.y0, slice, area.x1 + 1, area.y1 + 1, slice + depth));
 						}
 					}
 				}
@@ -53,9 +53,9 @@ public class BoxFinder {
 			priorOffset = thisOffset;
 		}
 
-		sortedBoxes.sort((a, b) -> Long.compare(b, a));
+		sortedBoxes.sort((a, b) -> Integer.compare(b, a));
 
-		final IntArrayList boxes = this.boxes;
+		final IntArrayList boxes = nearBoxes;
 		boxes.clear();
 
 		final int limit = sortedBoxes.size();
@@ -64,7 +64,7 @@ public class BoxFinder {
 			System.arraycopy(EMPTY_WORDS, 0, filled, 0, INTERIOR_CACHE_WORDS);
 
 			for (int i = 0; i < limit; i++) {
-				final int box =  (int) sortedBoxes.getLong(i);
+				final int box =  sortedBoxes.getInt(i);
 
 				if (fill(box)) {
 					boxes.add(box);
@@ -74,6 +74,7 @@ public class BoxFinder {
 	}
 
 	private final long[] fillSlice = new long[SLICE_WORD_COUNT];
+
 
 	private boolean fill(int packedBox) {
 		final long[] fillSlice = this.fillSlice;

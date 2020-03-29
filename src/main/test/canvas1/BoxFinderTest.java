@@ -12,7 +12,7 @@ class BoxFinderTest {
 	final long[] words = new long[4096];
 
 	final BoxFinder finder = new BoxFinder();
-	final IntArrayList boxes =  finder.boxes;
+	final IntArrayList boxes =  finder.nearBoxes;
 
 	@Test
 	void test() {

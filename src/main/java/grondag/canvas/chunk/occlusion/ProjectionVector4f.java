@@ -1,10 +1,10 @@
 package grondag.canvas.chunk.occlusion;
 
-import static grondag.canvas.chunk.occlusion.TerrainOccluder.GUARD_HEIGHT;
-import static grondag.canvas.chunk.occlusion.TerrainOccluder.GUARD_SIZE;
-import static grondag.canvas.chunk.occlusion.TerrainOccluder.GUARD_WIDTH;
-import static grondag.canvas.chunk.occlusion.TerrainOccluder.HALF_PRECISION_HEIGHT;
-import static grondag.canvas.chunk.occlusion.TerrainOccluder.HALF_PRECISION_WIDTH;
+import static grondag.canvas.chunk.occlusion.AbstractTerrainOccluder.GUARD_HEIGHT;
+import static grondag.canvas.chunk.occlusion.AbstractTerrainOccluder.GUARD_SIZE;
+import static grondag.canvas.chunk.occlusion.AbstractTerrainOccluder.GUARD_WIDTH;
+import static grondag.canvas.chunk.occlusion.AbstractTerrainOccluder.HALF_PRECISION_HEIGHT;
+import static grondag.canvas.chunk.occlusion.AbstractTerrainOccluder.HALF_PRECISION_WIDTH;
 
 import net.minecraft.client.util.math.Matrix4f;
 import net.minecraft.client.util.math.Vector4f;
@@ -113,5 +113,12 @@ public class ProjectionVector4f extends Vector4f {
 		final float wt = (GUARD_HEIGHT - internal.iy) / dy;
 		ix = Math.round(internal.ix + wt * dx);
 		iy = Math.round(internal.iy + wt * dy);
+	}
+
+	public void set(ProjectionVector4f val) {
+		set(val.getX(), val.getY(), val.getZ(), val.getW());
+		ix = val.ix;
+		iy = val.iy;
+		needsNearClip = val.needsNearClip;
 	}
 }

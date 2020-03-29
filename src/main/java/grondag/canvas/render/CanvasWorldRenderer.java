@@ -242,7 +242,7 @@ public class CanvasWorldRenderer {
 							builtChunk.canRenderTerrain = false;
 						} else if (chunkRenderBounds == PackedBox.FULL_BOX || occluder.isBoxVisible(chunkRenderBounds) || builtChunk == cameraChunk) {
 							builtChunk.canRenderTerrain = true;
-							occluder.occlude(visData, builtChunk.occlusionRange);
+							occluder.occlude(visData, builtChunk.isNear());
 						} else {
 							builtChunk.canRenderTerrain = false;
 						}
@@ -270,15 +270,14 @@ public class CanvasWorldRenderer {
 
 			if (builtChunk.needsRebuild() || oldChunksToRebuild.contains(builtChunk)) {
 				needsTerrainUpdate = true;
-				final boolean isNear = builtChunk.squaredCameraDistance() < 768;
 
-				if (!builtChunk.needsImportantRebuild() && !isNear) {
-					chunksToRebuild.add(builtChunk);
-				} else {
+				if (builtChunk.needsImportantRebuild() || builtChunk.isNear()) {
 					mc.getProfiler().push("build near");
 					builtChunk.rebuildOnMainThread();
 					builtChunk.markBuilt();
 					mc.getProfiler().pop();
+				} else {
+					chunksToRebuild.add(builtChunk);
 				}
 			}
 		}
@@ -593,9 +592,9 @@ public class CanvasWorldRenderer {
 				vertexConsumerProvider2 = outlineVertexConsumerProvider;
 				final int k = entity.getTeamColorValue();
 				final int u = k >> 16 & 255;
-		final int v = k >> 8 & 255;
-		x = k & 255;
-		outlineVertexConsumerProvider.setColor(u, v, x, 255);
+				final int v = k >> 8 & 255;
+				x = k & 255;
+				outlineVertexConsumerProvider.setColor(u, v, x, 255);
 			} else {
 				vertexConsumerProvider2 = immediate;
 			}

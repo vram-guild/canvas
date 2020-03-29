@@ -150,18 +150,53 @@ public abstract class AbstractTerrainOccluder {
 		if (offsetZ > -z0) drawQuad(v100, v000, v010, v110); // north
 	}
 
-	public final void occlude(int[] visData, int range) {
-		final int limit= visData.length;
+	protected final void occludePlane(int plane, float x0, float y0, float z0, float x1, float y1, float z1) {
+		if (plane == PackedBox.PLANE_X) {
+			computeProjectedXBounds(x0, y0, z0, x1, y1, z1);
+			if (offsetX < -x1) drawQuad(v101, v100, v110, v111); // east
+			if (offsetX > -x0) drawQuad(v000, v001, v011, v010); // west
+		} else if (plane == PackedBox.PLANE_Y) {
+			computeProjectedYBounds(x0, y0, z0, x1, y1, z1);
+			if (offsetY < -y1) drawQuad(v110, v010, v011, v111); // up
+			if (offsetY > -y0) drawQuad(v000, v100, v101, v001); // down
+		} else {
+			assert plane == PackedBox.PLANE_Z;
+			computeProjectedZBounds(x0, y0, z0, x1, y1, z1);
+			if (offsetZ < -z1) drawQuad(v001, v101, v111, v011); // south
+			if (offsetZ > -z0) drawQuad(v100, v000, v010, v110); // north
+		}
+	}
 
-		if (limit > 1) {
-			for (int i = 1; i < limit; i++) {
+	public final void occlude(int[] visData, boolean near) {
+		final int farCount = visData[OcclusionRegion.CULL_DATA_FAR_COUNT];
+
+		if (farCount != 0 && visData[OcclusionRegion.CULL_DATA_FIRST_FAR] == PackedBox.FULL_BOX) {
+			occludeChunk();
+			return;
+		}
+
+		if (near) {
+			final int limit= visData.length;
+
+			for (int i = OcclusionRegion.CULL_DATA_FIRST_FAR + farCount; i < limit; i++) {
 				final int box  = visData[i];
 
-				if (range > PackedBox.range(box)) {
-					break;
-				}
-
 				occlude(
+						PackedBox.x0(box),
+						PackedBox.y0(box),
+						PackedBox.z0(box),
+						PackedBox.x1(box),
+						PackedBox.y1(box),
+						PackedBox.z1(box));
+			}
+		} else if (farCount > 0) {
+			final int limit = farCount + OcclusionRegion.CULL_DATA_FIRST_FAR;
+
+			for (int i = OcclusionRegion.CULL_DATA_FIRST_FAR; i < limit; i++) {
+				final int box  = visData[i];
+
+				occludePlane(
+						PackedBox.plane(box),
 						PackedBox.x0(box),
 						PackedBox.y0(box),
 						PackedBox.z0(box),
@@ -196,6 +231,63 @@ public abstract class AbstractTerrainOccluder {
 
 		v111.set(x1, y1, z1, 1);
 		v111.transform(mvpMatrix);
+	}
+
+	protected final void computeProjectedXBounds(float x0, float y0, float z0, float x1, float y1, float z1) {
+		v000.set(x0, y0, z0, 1);
+		v000.transform(mvpMatrix);
+
+		v010.set(x0, y1, z0, 1);
+		v010.transform(mvpMatrix);
+
+		v100.set(x1, y0, z0, 1);
+		v100.transform(mvpMatrix);
+
+		v110.set(x1, y1, z0, 1);
+		v110.transform(mvpMatrix);
+
+		v001.set(v000);
+		v011.set(v010);
+		v101.set(v100);
+		v111.set(v110);
+	}
+
+	protected final void computeProjectedYBounds(float x0, float y0, float z0, float x1, float y1, float z1) {
+		v000.set(x0, y0, z0, 1);
+		v000.transform(mvpMatrix);
+
+		v001.set(x0, y0, z1, 1);
+		v001.transform(mvpMatrix);
+
+		v100.set(x1, y0, z0, 1);
+		v100.transform(mvpMatrix);
+
+		v101.set(x1, y0, z1, 1);
+		v101.transform(mvpMatrix);
+
+		v010.set(v000);
+		v011.set(v001);
+		v110.set(v100);
+		v111.set(v101);
+	}
+
+	protected final void computeProjectedZBounds(float x0, float y0, float z0, float x1, float y1, float z1) {
+		v000.set(x0, y0, z0, 1);
+		v000.transform(mvpMatrix);
+
+		v001.set(x0, y0, z1, 1);
+		v001.transform(mvpMatrix);
+
+		v010.set(x0, y1, z0, 1);
+		v010.transform(mvpMatrix);
+
+		v011.set(x0, y1, z1, 1);
+		v011.transform(mvpMatrix);
+
+		v100.set(v000);
+		v101.set(v001);
+		v110.set(v010);
+		v111.set(v011);
 	}
 
 	public final void prepareScene(Matrix4f projectionMatrix, Matrix4f modelMatrix, Camera camera) {
@@ -287,35 +379,35 @@ public abstract class AbstractTerrainOccluder {
 		this.y2 = y2;
 
 		minPixelX = (minX + PRECISION_PIXEL_CENTER - 1) >> PRECISION_BITS;
-		minPixelY = (minY + PRECISION_PIXEL_CENTER - 1) >> PRECISION_BITS;
-		maxPixelX = (maxX - PRECISION_PIXEL_CENTER) >> PRECISION_BITS;
-		maxPixelY = (maxY - PRECISION_PIXEL_CENTER) >> PRECISION_BITS;
+			minPixelY = (minY + PRECISION_PIXEL_CENTER - 1) >> PRECISION_BITS;
+			maxPixelX = (maxX - PRECISION_PIXEL_CENTER) >> PRECISION_BITS;
+			maxPixelY = (maxY - PRECISION_PIXEL_CENTER) >> PRECISION_BITS;
 
-		if (maxPixelX < 0 || minPixelX >= PIXEL_WIDTH) {
-			return false;
-		}
+			if (maxPixelX < 0 || minPixelX >= PIXEL_WIDTH) {
+				return false;
+			}
 
-		if (minPixelX < 0) {
-			minPixelX = 0;
-		}
+			if (minPixelX < 0) {
+				minPixelX = 0;
+			}
 
-		if (maxPixelX > PIXEL_WIDTH - 1)  {
-			maxPixelX = PIXEL_WIDTH  - 1;
-		}
+			if (maxPixelX > PIXEL_WIDTH - 1)  {
+				maxPixelX = PIXEL_WIDTH  - 1;
+			}
 
-		if (maxPixelY < 0 || minPixelY >= PIXEL_HEIGHT) {
-			return false;
-		}
+			if (maxPixelY < 0 || minPixelY >= PIXEL_HEIGHT) {
+				return false;
+			}
 
-		if (minPixelY < 0) {
-			minPixelY = 0;
-		}
+			if (minPixelY < 0) {
+				minPixelY = 0;
+			}
 
-		if (maxPixelY > PIXEL_HEIGHT - 1)  {
-			maxPixelY = PIXEL_HEIGHT - 1;
-		}
+			if (maxPixelY > PIXEL_HEIGHT - 1)  {
+				maxPixelY = PIXEL_HEIGHT - 1;
+			}
 
-		return true;
+			return true;
 	}
 
 	protected void prepareTriScan() {

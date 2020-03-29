@@ -212,6 +212,9 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 			return true;
 		}
 
+		final int baseX = midX << LOW_AXIS_SHIFT;
+		final int baseY = midY << LOW_AXIS_SHIFT;
+
 		coverage &= ~word;
 
 		if (coverage == 0) {
@@ -221,7 +224,7 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		long mask = 1;
 
 		for (int n = 0; n < 64; ++n) {
-			if ((mask & coverage) != 0 && drawTriLow(binOriginX + (n & 7), binOriginY + (n >> 3))) {
+			if ((mask & coverage) != 0 && drawTriLow(baseX + (n & 7), baseY + (n >> 3))) {
 				word |= mask;
 			}
 
