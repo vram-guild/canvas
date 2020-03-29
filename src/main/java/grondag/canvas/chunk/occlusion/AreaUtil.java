@@ -66,20 +66,4 @@ public class AreaUtil {
 	public static boolean sampleIncludes(long template, long sample) {
 		return (template & sample) == template;
 	}
-
-	// PERF: avoid loop, store bitmap in area
-	public static void clearAreaFromWords(Area r, long[] areaWords) {
-		final int x0 = r.x0;
-		final int y0 = r.y0;
-		final int x1 = r.x1;
-		final int y1 = r.y1;
-
-		for (int x = x0; x <= x1; x++) {
-			for (int y = y0; y <= y1; y++) {
-				final int key = (y << 4) | x;
-				areaWords[key >> 6] &= ~(1L << (key & 63));
-			}
-		}
-	}
-
 }

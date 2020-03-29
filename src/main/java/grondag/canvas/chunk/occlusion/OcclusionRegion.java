@@ -37,7 +37,8 @@ public abstract class OcclusionRegion {
 	private final IntArrayFIFOQueue queue = new IntArrayFIFOQueue();
 	private final long[] bits = new long[WORD_COUNT];
 	private int openCount;
-	public final BoxFinder boxFinder = new BoxFinder();
+	public final BoxFinder boxFinder = new BoxFinder(new AreaFinder());
+	public final PlaneFinder planeFinder = new PlaneFinder(boxFinder.areaFinder);
 
 	private int minRenderableX;
 	private int minRenderableY;
@@ -336,10 +337,12 @@ public abstract class OcclusionRegion {
 		hideInteriorClosedPositions();
 
 		final BoxFinder boxFinder = this.boxFinder;
-		final IntArrayList boxes = boxFinder.nearBoxes;
-		final IntArrayList planes = boxFinder.farPlanes;
+		final IntArrayList boxes = boxFinder.boxes;
+		final PlaneFinder planeFinder = this.planeFinder;
+		final IntArrayList planes = planeFinder.planes;
 
 		boxFinder.findBoxes(bits, 0);
+		planeFinder.findPlanes(bits, 0);
 
 		final int boxCount = boxes.size();
 		final int planeCount = planes.size();

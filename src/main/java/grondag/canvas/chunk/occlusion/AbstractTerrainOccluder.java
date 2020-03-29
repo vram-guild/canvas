@@ -237,19 +237,19 @@ public abstract class AbstractTerrainOccluder {
 		v000.set(x0, y0, z0, 1);
 		v000.transform(mvpMatrix);
 
+		v001.set(x0, y0, z1, 1);
+		v001.transform(mvpMatrix);
+
 		v010.set(x0, y1, z0, 1);
 		v010.transform(mvpMatrix);
 
-		v100.set(x1, y0, z0, 1);
-		v100.transform(mvpMatrix);
+		v011.set(x0, y1, z1, 1);
+		v011.transform(mvpMatrix);
 
-		v110.set(x1, y1, z0, 1);
-		v110.transform(mvpMatrix);
-
-		v001.set(v000);
-		v011.set(v010);
-		v101.set(v100);
-		v111.set(v110);
+		v100.set(v000);
+		v101.set(v001);
+		v110.set(v010);
+		v111.set(v011);
 	}
 
 	protected final void computeProjectedYBounds(float x0, float y0, float z0, float x1, float y1, float z1) {
@@ -275,19 +275,19 @@ public abstract class AbstractTerrainOccluder {
 		v000.set(x0, y0, z0, 1);
 		v000.transform(mvpMatrix);
 
-		v001.set(x0, y0, z1, 1);
-		v001.transform(mvpMatrix);
-
 		v010.set(x0, y1, z0, 1);
 		v010.transform(mvpMatrix);
 
-		v011.set(x0, y1, z1, 1);
-		v011.transform(mvpMatrix);
+		v100.set(x1, y0, z0, 1);
+		v100.transform(mvpMatrix);
 
-		v100.set(v000);
-		v101.set(v001);
-		v110.set(v010);
-		v111.set(v011);
+		v110.set(x1, y1, z0, 1);
+		v110.transform(mvpMatrix);
+
+		v001.set(v000);
+		v011.set(v010);
+		v101.set(v100);
+		v111.set(v110);
 	}
 
 	public final void prepareScene(Matrix4f projectionMatrix, Matrix4f modelMatrix, Camera camera) {

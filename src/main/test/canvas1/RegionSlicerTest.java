@@ -2,13 +2,14 @@ package canvas1;
 
 import org.junit.jupiter.api.Test;
 
+import grondag.canvas.chunk.occlusion.AreaFinder;
 import grondag.canvas.chunk.occlusion.OcclusionBitPrinter;
-import grondag.canvas.chunk.occlusion.RegionSlicer;
+import grondag.canvas.chunk.occlusion.PlaneFinder;
 
 public class RegionSlicerTest {
 	@Test
 	void test() {
-		final RegionSlicer slicer = new RegionSlicer();
+		final PlaneFinder slicer = new PlaneFinder(new AreaFinder());
 
 		final long[] sample = new long[4 * 16];
 

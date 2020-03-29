@@ -32,8 +32,30 @@ public class Area {
 				|| (myBits[3] & otherBits[3]) != 0;
 	}
 
+	public boolean intersectsWithSample(long[] sample, int sampleStart) {
+		final long[] myBits = bits;
+		return (myBits[0] & sample[sampleStart]) != 0
+				|| (myBits[1] & sample[++sampleStart]) != 0
+				|| (myBits[2] & sample[++sampleStart]) != 0
+				|| (myBits[3] & sample[++sampleStart]) != 0;
+	}
+
 	public boolean matchesHash(long hash) {
 		return (areaHash & hash) == areaHash;
+	}
+
+	public void setBits(long[] targetBits, int startIndex) {
+		targetBits[startIndex] |= bits[0];
+		targetBits[++startIndex] |= bits[1];
+		targetBits[++startIndex] |= bits[2];
+		targetBits[++startIndex] |= bits[3];
+	}
+
+	public void clearBits(long[] targetBits, int startIndex) {
+		targetBits[startIndex] &= ~bits[0];
+		targetBits[++startIndex] &= ~bits[1];
+		targetBits[++startIndex] &= ~bits[2];
+		targetBits[++startIndex] &= ~bits[3];
 	}
 
 	public Area(int rectKey) {

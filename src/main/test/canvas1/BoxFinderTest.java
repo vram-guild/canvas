@@ -5,14 +5,15 @@ import java.util.Arrays;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import org.junit.jupiter.api.Test;
 
+import grondag.canvas.chunk.occlusion.AreaFinder;
 import grondag.canvas.chunk.occlusion.BoxFinder;
 import grondag.canvas.chunk.occlusion.PackedBox;
 
 class BoxFinderTest {
 	final long[] words = new long[4096];
 
-	final BoxFinder finder = new BoxFinder();
-	final IntArrayList boxes =  finder.nearBoxes;
+	final BoxFinder finder = new BoxFinder(new AreaFinder());
+	final IntArrayList boxes =  finder.boxes;
 
 	@Test
 	void test() {

@@ -11,10 +11,13 @@ public class BoxFinder {
 	final long[] filled = new long[INTERIOR_CACHE_WORDS];
 
 	private final IntArrayList sortedBoxes = new IntArrayList();
-	public final IntArrayList nearBoxes = new IntArrayList();
-	public final IntArrayList farPlanes = new IntArrayList();
+	public final IntArrayList boxes = new IntArrayList();
 
-	public final AreaFinder areaFinder = new AreaFinder();
+	public final AreaFinder areaFinder;
+
+	public BoxFinder(AreaFinder areaFinder) {
+		this.areaFinder = areaFinder;
+	}
 
 	public void findBoxes(long[] sourceBits, int sourceIndex) {
 		final AreaFinder areaFinder = this.areaFinder;
@@ -55,7 +58,7 @@ public class BoxFinder {
 
 		sortedBoxes.sort((a, b) -> Integer.compare(b, a));
 
-		final IntArrayList boxes = nearBoxes;
+		final IntArrayList boxes = this.boxes;
 		boxes.clear();
 
 		final int limit = sortedBoxes.size();

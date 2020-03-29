@@ -13,7 +13,11 @@ public class AreaSample {
 	}
 
 	public void remove(Area r) {
-		AreaUtil.clearAreaFromWords(r, bits);
+		r.clearBits(bits, 0);
+	}
+
+	public void fill(Area r) {
+		r.setBits(bits, 0);
 	}
 
 	void clear() {

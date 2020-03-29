@@ -8,7 +8,11 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 public class AreaFinder {
 	private static final Area[] AREA;
 
-	private static final int AREA_COUNT;
+	public static final int AREA_COUNT;
+
+	public Area get(int index) {
+		return AREA[index];
+	}
 
 	static {
 		final IntOpenHashSet keys = new IntOpenHashSet();
@@ -62,7 +66,7 @@ public class AreaFinder {
 		for(final Area r : AREA) {
 			if (r.matchesHash(hash) && r.isIncludedBySample(bits, 0)) {
 				areas.add(r);
-				AreaUtil.clearAreaFromWords(r, bits);
+				r.clearBits(bits, 0);
 				hash = AreaUtil.areaHash(bits);
 
 				if (hash == 0) {
