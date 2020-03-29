@@ -3,99 +3,17 @@ package grondag.canvas.chunk.occlusion;
 import java.io.File;
 
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.Camera;
 import net.minecraft.client.texture.NativeImage;
-import net.minecraft.client.util.math.Matrix4f;
 import net.minecraft.resource.ResourceImpl;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
-import grondag.canvas.render.CanvasWorldRenderer;
 
 // Some elements are adapted from content found at
 // https://fgiesen.wordpress.com/2013/02/17/optimizing-sw-occlusion-culling-index/
 // by Fabian “ryg” Giesen. That content is in the public domain.
 
-public class TerrainOccluder {
-	private final long[] lowBins = new long[LOW_BIN_COUNT];
-	private final long[] midBins = new long[MIDDLE_BIN_COUNT];
-	private final long[] topBins = new long[TOP_BIN_COUNT];
-
-	private Matrix4f projectionMatrix;
-	private Matrix4f modelMatrix;
-	private final Matrix4f mvpMatrix = new Matrix4f();
-
-	private final ProjectionVector4f v000 = new ProjectionVector4f();
-	private final ProjectionVector4f v001 = new ProjectionVector4f();
-	private final ProjectionVector4f v010 = new ProjectionVector4f();
-	private final ProjectionVector4f v011 = new ProjectionVector4f();
-	private final ProjectionVector4f v100 = new ProjectionVector4f();
-	private final ProjectionVector4f v101 = new ProjectionVector4f();
-	private final ProjectionVector4f v110 = new ProjectionVector4f();
-	private final ProjectionVector4f v111 = new ProjectionVector4f();
-
-	private final ProjectionVector4f vNearClipA = new ProjectionVector4f();
-	private final ProjectionVector4f vNearClipB = new ProjectionVector4f();
-
-	private final ProjectionVector4f vClipLowXA = new ProjectionVector4f();
-	private final ProjectionVector4f vClipLowXB = new ProjectionVector4f();
-	private final ProjectionVector4f vClipLowYA = new ProjectionVector4f();
-	private final ProjectionVector4f vClipLowYB = new ProjectionVector4f();
-	private final ProjectionVector4f vClipHighXA = new ProjectionVector4f();
-	private final ProjectionVector4f vClipHighXB = new ProjectionVector4f();
-	private final ProjectionVector4f vClipHighYA = new ProjectionVector4f();
-	private final ProjectionVector4f vClipHighYB = new ProjectionVector4f();
-
-	// Boumds of current triangle
-	private int minX;
-	private int minY;
-	private int maxX;
-	private int maxY;
-
-	private int minPixelX;
-	private int minPixelY;
-	private int maxPixelX;
-	private int maxPixelY;
-
-	// Barycentric coordinates at minX/minY corner
-	private int wOrigin0;
-	private int wOrigin1;
-	private int wOrigin2;
-
-	private int xOrigin;
-	private int yOrigin;
-	private int zOrigin;
-
-	private double cameraX;
-	private double cameraY;
-	private double cameraZ;
-
-	private int x0;
-	private int y0;
-	private int x1;
-	private int y1;
-	private int x2;
-	private int y2;
-
-	private int a0;
-	private int b0;
-	private int a1;
-	private int b1;
-	private int a2;
-	private int b2;
-
-	private int aLow0;
-	private int bLow0;
-	private int aLow1;
-	private int bLow1;
-	private int aLow2;
-	private int bLow2;
-	private int abLow0;
-	private int abLow1;
-	private int abLow2;
-
+public class TerrainOccluder extends ClippingTerrainOccluder  {
 	private int aMid0;
 	private int bMid0;
 	private int aMid1;
@@ -116,452 +34,9 @@ public class TerrainOccluder {
 	private int abTop1;
 	private int abTop2;
 
-	public void prepareScene(Matrix4f projectionMatrix, Matrix4f modelMatrix, Camera camera) {
-		this.projectionMatrix = projectionMatrix.copy();
-		this.modelMatrix = modelMatrix.copy();
-		final Vec3d vec3d = camera.getPos();
-		cameraX = vec3d.getX();
-		cameraY = vec3d.getY();
-		cameraZ = vec3d.getZ();
-	}
-
-	public void clearScene() {
-		System.arraycopy(EMPTY_BITS, 0, lowBins, 0, LOW_BIN_COUNT);
-		System.arraycopy(EMPTY_BITS, 0, midBins, 0, MIDDLE_BIN_COUNT);
-		System.arraycopy(EMPTY_BITS, 0, topBins, 0, TOP_BIN_COUNT);
-	}
-
-	private float offsetX;
-	private float offsetY;
-	private float offsetZ;
-
-	public void prepareChunk(BlockPos origin) {
-		xOrigin = origin.getX();
-		yOrigin = origin.getY();
-		zOrigin = origin.getZ();
-
-		offsetX = (float) (xOrigin - cameraX);
-		offsetY = (float) (yOrigin - cameraY);
-		offsetZ = (float) (zOrigin - cameraZ);
-
-		mvpMatrix.loadIdentity();
-		mvpMatrix.multiply(projectionMatrix);
-		mvpMatrix.multiply(modelMatrix);
-		mvpMatrix.multiply(Matrix4f.translate(offsetX, offsetY, offsetZ));
-	}
-
-	public boolean isChunkVisible()  {
-		CanvasWorldRenderer.innerTimer.start();
-
-		computeProjectedBoxBounds(0, 0, 0, 16, 16, 16);
-
-		final boolean result =
-				// if camera below top face can't be seen
-				(offsetY < -16 && testQuad(v110, v010, v011, v111)) // up
-				|| (offsetY > 0 && testQuad(v000, v100, v101, v001)) // down
-
-				|| (offsetX < -16 && testQuad(v101, v100, v110, v111)) // east
-				|| (offsetX > 0 && testQuad(v000, v001, v011, v010)) // west
-
-				|| (offsetZ < -16 && testQuad(v001, v101, v111, v011)) // south
-				|| (offsetZ > 0 && testQuad(v100, v000, v010, v110)); // north
-
-		CanvasWorldRenderer.innerTimer.stop();
-
-		return result;
-	}
-
-	public boolean isBoxVisible(int packedBox) {
-		final int x0  = PackedBox.x0(packedBox);
-		final int y0  = PackedBox.y0(packedBox);
-		final int z0  = PackedBox.z0(packedBox);
-		final int x1  = PackedBox.x1(packedBox);
-		final int y1  = PackedBox.y1(packedBox);
-		final int z1  = PackedBox.z1(packedBox);
-
-		computeProjectedBoxBounds(x0, y0, z0, x1, y1, z1);
-
-		// if camera below top face can't be seen
-		return (offsetY < -y1 && testQuad(v110, v010, v011, v111)) // up
-				|| (offsetY > -y0 && testQuad(v000, v100, v101, v001)) // down
-
-				|| (offsetX < -x1 && testQuad(v101, v100, v110, v111)) // east
-				|| (offsetX > -x0 && testQuad(v000, v001, v011, v010)) // west
-
-				|| (offsetZ < -z1 && testQuad(v001, v101, v111, v011)) // south
-				|| (offsetZ > -z0 && testQuad(v100, v000, v010, v110)); // north
-	}
-
-	public void occludeChunk()  {
-		computeProjectedBoxBounds(0, 0, 0, 16, 16, 16);
-
-		if (offsetY < -16) drawQuad(v110, v010, v011, v111); // up
-		if (offsetY > 0) drawQuad(v000, v100, v101, v001); // down
-		if (offsetX < -16) drawQuad(v101, v100, v110, v111); // east
-		if (offsetX > 0) drawQuad(v000, v001, v011, v010); // west
-		if (offsetZ < -16) drawQuad(v001, v101, v111, v011); // south
-		if (offsetZ > 0) drawQuad(v100, v000, v010, v110); // north
-	}
-
-	private void occlude(float x0, float y0, float z0, float x1, float y1, float z1) {
-		computeProjectedBoxBounds(x0, y0, z0, x1, y1, z1);
-
-		if (offsetY < -y1) drawQuad(v110, v010, v011, v111); // up
-		if (offsetY > -y0) drawQuad(v000, v100, v101, v001); // down
-		if (offsetX < -x1) drawQuad(v101, v100, v110, v111); // east
-		if (offsetX > -x0) drawQuad(v000, v001, v011, v010); // west
-		if (offsetZ < -z1) drawQuad(v001, v101, v111, v011); // south
-		if (offsetZ > -z0) drawQuad(v100, v000, v010, v110); // north
-	}
-
-	public void occlude(int[] visData, int range) {
-		final int limit= visData.length;
-
-		if (limit > 1) {
-			for (int i = 1; i < limit; i++) {
-				final int box  = visData[i];
-
-				if (range > PackedBox.range(box)) {
-					break;
-				}
-
-				occlude(
-						PackedBox.x0(box),
-						PackedBox.y0(box),
-						PackedBox.z0(box),
-						PackedBox.x1(box),
-						PackedBox.y1(box),
-						PackedBox.z1(box));
-			}
-		}
-	}
-
-	private void computeProjectedBoxBounds(float x0, float y0, float z0, float x1, float y1, float z1) {
-		v000.set(x0, y0, z0, 1);
-		v000.transform(mvpMatrix);
-
-		v001.set(x0, y0, z1, 1);
-		v001.transform(mvpMatrix);
-
-		v010.set(x0, y1, z0, 1);
-		v010.transform(mvpMatrix);
-
-		v011.set(x0, y1, z1, 1);
-		v011.transform(mvpMatrix);
-
-		v100.set(x1, y0, z0, 1);
-		v100.transform(mvpMatrix);
-
-		v101.set(x1, y0, z1, 1);
-		v101.transform(mvpMatrix);
-
-		v110.set(x1, y1, z0, 1);
-		v110.transform(mvpMatrix);
-
-		v111.set(x1, y1, z1, 1);
-		v111.transform(mvpMatrix);
-	}
-
-	private void drawQuad(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2, ProjectionVector4f v3) {
-		final int split = v0.needsNearClip() | (v1.needsNearClip() << 1) | (v2.needsNearClip() << 2) | (v3.needsNearClip() << 3);
-
-		switch (split) {
-
-		// nominal case, all inside
-		case 0b0000:
-			drawTri(v0, v1, v2);
-			drawTri(v0, v2, v3);
-			break;
-
-			// missing one corner, three tris
-		case 0b0001:
-			drawSplitOne(v1, v2, v3, v0);
-			break;
-		case 0b0010:
-			drawSplitOne(v2, v3, v0, v1);
-			break;
-		case 0b0100:
-			drawSplitOne(v3, v0, v1, v2);
-			break;
-		case 0b1000:
-			drawSplitOne(v0, v1, v2, v3);
-			break;
-
-			// missing two corners, two tris
-		case 0b0011:
-			drawSplitTwo(v1, v2, v3, v0);
-			break;
-		case 0b0110:
-			drawSplitTwo(v2, v3, v0, v1);
-			break;
-		case 0b1100:
-			drawSplitTwo(v3, v0, v1, v2);
-			break;
-		case 0b1001:
-			drawSplitTwo(v0, v1, v2, v3);
-			break;
-
-			// missing three corner, one tri
-		case 0b0111:
-			drawSplitThree(v2, v3, v0);
-			break;
-		case 0b1110:
-			drawSplitThree(v3, v0, v1);
-			break;
-		case 0b1101:
-			drawSplitThree(v0, v1, v2);
-			break;
-		case 0b1011:
-			drawSplitThree(v1, v2, v3);
-			break;
-
-		default:
-		case 0b1111:
-			// all external, draw nothing
-			break;
-		}
-	}
-
-	private void drawSplitThree(ProjectionVector4f extA, ProjectionVector4f internal, ProjectionVector4f extB) {
-		final ProjectionVector4f va = vNearClipA;
-		final ProjectionVector4f vb = vNearClipB;
-
-		va.clipNear(internal, extA);
-		vb.clipNear(internal, extB);
-
-		drawTri(va, internal, vb);
-	}
-
-	private void drawSplitTwo(ProjectionVector4f extA, ProjectionVector4f internal0, ProjectionVector4f internal1, ProjectionVector4f extB) {
-		final ProjectionVector4f va = vNearClipA;
-		final ProjectionVector4f vb = vNearClipB;
-
-		va.clipNear(internal0, extA);
-		vb.clipNear(internal1, extB);
-
-		drawTri(va, internal0, internal1);
-		drawTri(va, internal1, vb);
-	}
-
-	private void drawSplitOne(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2, ProjectionVector4f ext) {
-		final ProjectionVector4f va = vNearClipA;
-		final ProjectionVector4f vb = vNearClipB;
-
-		va.clipNear(v2, ext);
-		vb.clipNear(v0, ext);
-
-		drawTri(v0, v1, v2);
-		drawTri(v0, v2, va);
-		drawTri(v0, va, vb);
-	}
-
-	private boolean testQuad(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2, ProjectionVector4f v3) {
-		final int split = v0.needsNearClip() | (v1.needsNearClip() << 1) | (v2.needsNearClip() << 2) | (v3.needsNearClip() << 3);
-
-		switch (split) {
-
-		// nominal case, all inside
-		case 0b0000:
-			return testTri(v0, v1, v2) || testTri(v0, v2, v3);
-
-			// missing one corner, three tris
-		case 0b0001:
-			return testSplitOne(v1, v2, v3, v0);
-		case 0b0010:
-			return testSplitOne(v2, v3, v0, v1);
-		case 0b0100:
-			return testSplitOne(v3, v0, v1, v2);
-		case 0b1000:
-			return testSplitOne(v0, v1, v2, v3);
-
-			// missing two corners, two tris
-		case 0b0011:
-			return testSplitTwo(v1, v2, v3, v0);
-		case 0b0110:
-			return testSplitTwo(v2, v3, v0, v1);
-		case 0b1100:
-			return testSplitTwo(v3, v0, v1, v2);
-		case 0b1001:
-			return testSplitTwo(v0, v1, v2, v3);
-
-			// missing three corner, one tri
-		case 0b0111:
-			return testSplitThree(v2, v3, v0);
-		case 0b1110:
-			return testSplitThree(v3, v0, v1);
-		case 0b1101:
-			return testSplitThree(v0, v1, v2);
-		case 0b1011:
-			return testSplitThree(v1, v2, v3);
-
-		default:
-		case 0b1111:
-			// all external, not in view
-			return false;
-		}
-	}
-
-	private boolean testSplitThree(ProjectionVector4f extA, ProjectionVector4f internal, ProjectionVector4f extB) {
-		final ProjectionVector4f va = vNearClipA;
-		final ProjectionVector4f vb = vNearClipB;
-
-		va.clipNear(internal, extA);
-		vb.clipNear(internal, extB);
-
-		return testTri(va, internal, vb);
-	}
-
-	private boolean testSplitTwo(ProjectionVector4f extA, ProjectionVector4f internal0, ProjectionVector4f internal1, ProjectionVector4f extB) {
-		final ProjectionVector4f va = vNearClipA;
-		final ProjectionVector4f vb = vNearClipB;
-
-		va.clipNear(internal0, extA);
-		vb.clipNear(internal1, extB);
-
-		return testTri(va, internal0, internal1) || testTri(va, internal1, vb);
-	}
-
-	private boolean testSplitOne(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2, ProjectionVector4f ext) {
-		final ProjectionVector4f va = vNearClipA;
-		final ProjectionVector4f vb = vNearClipB;
-
-		va.clipNear(v2, ext);
-		vb.clipNear(v0, ext);
-
-		return testTri(v0, v1, v2) || testTri(v0, v2, va) || testTri(v0, va, vb);
-	}
-
-	private boolean prepareTriBounds(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2) {
-		final int x0 = v0.ix();
-		final int y0 = v0.iy();
-		final int x1 = v1.ix();
-		final int y1 = v1.iy();
-		final int x2 = v2.ix();
-		final int y2 = v2.iy();
-
-		int minX = x0;
-		int maxX = x0;
-
-		if (x1 < minX) {
-			minX = x1;
-		} else if (x1 > maxX) {
-			maxX = x1;
-		}
-
-		if (x2 < minX) {
-			minX = x2;
-		} else if (x2 > maxX) {
-			maxX = x2;
-		}
-
-		int minY = y0;
-		int maxY = y0;
-
-		if (y1 < minY) {
-			minY = y1;
-		} else if (y1 > maxY) {
-			maxY = y1;
-		}
-
-		if (y2 < minY) {
-			minY = y2;
-		} else if (y2 > maxY) {
-			maxY = y2;
-		}
-
-		this.minX = minX;
-		this.maxX = maxX;
-		this.minY = minY;
-		this.maxY = maxY;
-
-		this.x0 = x0;
-		this.y0 = y0;
-		this.x1 = x1;
-		this.y1 = y1;
-		this.x2 = x2;
-		this.y2 = y2;
-
-		minPixelX = (minX + PRECISION_PIXEL_CENTER - 1) >> PRECISION_BITS;
-		minPixelY = (minY + PRECISION_PIXEL_CENTER - 1) >> PRECISION_BITS;
-		maxPixelX = (maxX - PRECISION_PIXEL_CENTER) >> PRECISION_BITS;
-		maxPixelY = (maxY - PRECISION_PIXEL_CENTER) >> PRECISION_BITS;
-
-		if (maxPixelX < 0 || minPixelX >= PIXEL_WIDTH) {
-			return false;
-		}
-
-		if (minPixelX < 0) {
-			minPixelX = 0;
-		}
-
-		if (maxPixelX > PIXEL_WIDTH - 1)  {
-			maxPixelX = PIXEL_WIDTH  - 1;
-		}
-
-		if (maxPixelY < 0 || minPixelY >= PIXEL_HEIGHT) {
-			return false;
-		}
-
-		if (minPixelY < 0) {
-			minPixelY = 0;
-		}
-
-		if (maxPixelY > PIXEL_HEIGHT - 1)  {
-			maxPixelY = PIXEL_HEIGHT - 1;
-		}
-
-		return true;
-	}
-
-	private long orient2d(long x0, long y0, long x1, long y1, long cx, long cy) {
-		return ((x1 - x0) * (cy - y0) - (y1 - y0) * (cx - x0));
-	}
-
-	private void prepareTriScan() {
-		final int x0 = this.x0;
-		final int y0 = this.y0;
-		final int x1 = this.x1;
-		final int y1 = this.y1;
-		final int x2 = this.x2;
-		final int y2 = this.y2;
-
-		final int a0 = (y1 - y2);
-		final int b0 = (x2 - x1);
-		final int a1 = (y2 - y0);
-		final int b1 = (x0 - x2);
-		final int a2 = (y0 - y1);
-		final int b2 = (x1 - x0);
-
-
-		final boolean isTopLeft0 = a0 > 0 || (a0 == 0 && b0 < 0);
-		final boolean isTopLeft1 = a1 > 0 || (a1 == 0 && b1 < 0);
-		final boolean isTopLeft2 = a2 > 0 || (a2 == 0 && b2 < 0);
-
-		final long cx = (minPixelX << PRECISION_BITS) + PRECISION_PIXEL_CENTER;
-		final long cy = (minPixelY << PRECISION_BITS) + PRECISION_PIXEL_CENTER;
-
-		// Barycentric coordinates at minX/minY corner
-		// Can reduce precision (with accurate rounding) because increments will always be multiple of full pixel width
-		wOrigin0 = (int) ((orient2d(x1, y1, x2, y2, cx, cy) + (isTopLeft0 ? PRECISION_PIXEL_CENTER : (PRECISION_PIXEL_CENTER - 1))) >> PRECISION_BITS);
-		wOrigin1 = (int) ((orient2d(x2, y2, x0, y0, cx, cy) + (isTopLeft1 ? PRECISION_PIXEL_CENTER : (PRECISION_PIXEL_CENTER - 1))) >> PRECISION_BITS);
-		wOrigin2 = (int) ((orient2d(x0, y0, x1, y1, cx, cy) + (isTopLeft2 ? PRECISION_PIXEL_CENTER : (PRECISION_PIXEL_CENTER - 1))) >> PRECISION_BITS);
-
-		this.a0 = a0;
-		this.b0 = b0;
-		this.a1 = a1;
-		this.b1 = b1;
-		this.a2 = a2;
-		this.b2 = b2;
-
-		aLow0 = a0 * LOW_BIN_PIXEL_DIAMETER - a0;
-		bLow0 = b0 * LOW_BIN_PIXEL_DIAMETER - b0;
-		aLow1 = a1 * LOW_BIN_PIXEL_DIAMETER - a1;
-		bLow1 = b1 * LOW_BIN_PIXEL_DIAMETER - b1;
-		aLow2 = a2 * LOW_BIN_PIXEL_DIAMETER - a2;
-		bLow2 = b2 * LOW_BIN_PIXEL_DIAMETER - b2;
-		abLow0 = aLow0 + bLow0;
-		abLow1 = aLow1 + bLow1;
-		abLow2 = aLow2 + bLow2;
+	@Override
+	protected void prepareTriScan() {
+		super.prepareTriScan();
 
 		aMid0 = a0 * MID_BIN_PIXEL_DIAMETER - a0;
 		bMid0 = b0 * MID_BIN_PIXEL_DIAMETER - b0;
@@ -584,7 +59,8 @@ public class TerrainOccluder {
 		abTop2 = aTop2 + bTop2;
 	}
 
-	private void drawTri(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2) {
+	@Override
+	protected void drawTri(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2) {
 		if (!prepareTriBounds(v0, v1, v2)) {
 			return;
 		}
@@ -650,8 +126,8 @@ public class TerrainOccluder {
 				final int b1 = this.b1;
 				final int a2 = this.a2;
 				final int b2 = this.b2;
-				final int dx = binOriginX - minPixelX;
-				final int dy = binOriginY - minPixelY;
+				final int dx = minX - minPixelX;
+				final int dy = minY - minPixelY;
 				final int w0_row = wOrigin0 + dx * a0 + dy * b0;
 				final int w1_row = wOrigin1 + dx * a1 + dy * b1;
 				final int w2_row = wOrigin2 + dx * a2 + dy * b2;
@@ -663,7 +139,7 @@ public class TerrainOccluder {
 					topBins[index] = -1;
 
 					// PERF: disable unless need image output
-					//fillTopBinChildren(topX, topY);
+					fillTopBinChildren(topX, topY);
 					return;
 				}
 			}
@@ -681,6 +157,7 @@ public class TerrainOccluder {
 			topBins[index] = word;
 	}
 
+	@SuppressWarnings("unused")
 	private void fillTopBinChildren(final int topX, final int topY) {
 		final int midX0 = topX << 3;
 		final int midY0 = topY << 3;
@@ -699,6 +176,7 @@ public class TerrainOccluder {
 		}
 	}
 
+	@SuppressWarnings("unused")
 	private void fillMidBinChildren(final int midX, final int midY) {
 		final int lowX0 = midX << 3;
 		final int lowY0 = midY << 3;
@@ -769,7 +247,7 @@ public class TerrainOccluder {
 				midBins[index] = -1;
 
 				// PERF: disable unless need image output
-				//fillMidBinChildren(midX, midY);
+				fillMidBinChildren(midX, midY);
 				return true;
 			}
 		}
@@ -869,221 +347,10 @@ public class TerrainOccluder {
 		return word == -1L;
 	}
 
-	private boolean triNeedsClipped() {
-		return minX < -GUARD_SIZE || minY < -GUARD_SIZE || maxX > GUARD_WIDTH || maxY > GUARD_HEIGHT;
-	}
 
-	private void drawClippedLowX(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2) {
-		// NB: order here is lexical not bitwise
-		final int split = v2.needsClipLowX() | (v1.needsClipLowX() << 1) | (v0.needsClipLowX() << 2);
 
-		switch (split) {
-		case 0b000:
-			drawClippedLowY(v0, v1, v2);
-			break;
-
-		case 0b100:
-			drawClippedLowXOne(v0, v1, v2);
-			break;
-
-		case 0b010:
-			drawClippedLowXOne(v1, v2, v0);
-			break;
-
-		case 0b001:
-			drawClippedLowXOne(v2, v0, v1);
-			break;
-
-		case 0b110:
-			drawClippedLowXTwo(v0, v1, v2);
-			break;
-
-		case 0b011:
-			drawClippedLowXTwo(v1, v2, v0);
-			break;
-
-		case 0b101:
-			drawClippedLowXTwo(v2, v0, v1);
-			break;
-
-		case 0b111:
-			// NOOP
-			break;
-		}
-	}
-
-	private void drawClippedLowXOne(ProjectionVector4f v0ext, ProjectionVector4f v1, ProjectionVector4f v2) {
-		vClipLowXA.clipLowX(v1, v0ext);
-		vClipLowXB.clipLowX(v2, v0ext);
-		drawClippedLowY(vClipLowXA, v1, vClipLowXB);
-		drawClippedLowY(vClipLowXB, v1, v2);
-	}
-
-	private void drawClippedLowXTwo(ProjectionVector4f v0ext, ProjectionVector4f v1ext, ProjectionVector4f v2) {
-		vClipLowXA.clipLowX(v2, v0ext);
-		vClipLowXB.clipLowX(v2, v1ext);
-		drawClippedLowY(v2, vClipLowXA, vClipLowXB);
-	}
-
-	private void drawClippedLowY(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2) {
-		// NB: order here is lexical not bitwise
-		final int split = v2.needsClipLowY() | (v1.needsClipLowY() << 1) | (v0.needsClipLowY() << 2);
-
-		switch (split) {
-		case 0b000:
-			drawClippedHighX(v0, v1, v2);
-			break;
-
-		case 0b100:
-			drawClippedLowYOne(v0, v1, v2);
-			break;
-
-		case 0b010:
-			drawClippedLowYOne(v1, v2, v0);
-			break;
-
-		case 0b001:
-			drawClippedLowYOne(v2, v0, v1);
-			break;
-
-		case 0b110:
-			drawClippedLowYTwo(v0, v1, v2);
-			break;
-
-		case 0b011:
-			drawClippedLowYTwo(v1, v2, v0);
-			break;
-
-		case 0b101:
-			drawClippedLowYTwo(v2, v0, v1);
-			break;
-
-		case 0b111:
-			// NOOP
-			break;
-		}
-	}
-
-	private void drawClippedLowYOne(ProjectionVector4f v0ext, ProjectionVector4f v1, ProjectionVector4f v2) {
-		vClipLowYA.clipLowY(v1, v0ext);
-		vClipLowYB.clipLowY(v2, v0ext);
-		drawClippedHighX(vClipLowYA, v1, vClipLowYB);
-		drawClippedHighX(vClipLowYB, v1, v2);
-	}
-
-	private void drawClippedLowYTwo(ProjectionVector4f v0ext, ProjectionVector4f v1ext, ProjectionVector4f v2) {
-		vClipLowYA.clipLowY(v2, v0ext);
-		vClipLowYB.clipLowY(v2, v1ext);
-		drawClippedHighX(v2, vClipLowYA, vClipLowYB);
-	}
-
-	private void drawClippedHighX(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2) {
-		// NB: order here is lexical not bitwise
-		final int split = v2.needsClipHighX() | (v1.needsClipHighX() << 1) | (v0.needsClipHighX() << 2);
-
-		switch (split) {
-		case 0b000:
-			drawClippedHighY(v0, v1, v2);
-			break;
-
-		case 0b100:
-			drawClippedHighXOne(v0, v1, v2);
-			break;
-
-		case 0b010:
-			drawClippedHighXOne(v1, v2, v0);
-			break;
-
-		case 0b001:
-			drawClippedHighXOne(v2, v0, v1);
-			break;
-
-		case 0b110:
-			drawClippedHighXTwo(v0, v1, v2);
-			break;
-
-		case 0b011:
-			drawClippedHighXTwo(v1, v2, v0);
-			break;
-
-		case 0b101:
-			drawClippedHighXTwo(v2, v0, v1);
-			break;
-
-		case 0b111:
-			// NOOP
-			break;
-		}
-	}
-
-	private void drawClippedHighXOne(ProjectionVector4f v0ext, ProjectionVector4f v1, ProjectionVector4f v2) {
-		vClipHighXA.clipHighX(v1, v0ext);
-		vClipHighXB.clipHighX(v2, v0ext);
-		drawClippedHighY(vClipHighXA, v1, vClipHighXB);
-		drawClippedHighY(vClipHighXB, v1, v2);
-	}
-
-	private void drawClippedHighXTwo(ProjectionVector4f v0ext, ProjectionVector4f v1ext, ProjectionVector4f v2) {
-		vClipHighXA.clipHighX(v2, v0ext);
-		vClipHighXB.clipHighX(v2, v1ext);
-		drawClippedHighY(v2, vClipHighXA, vClipHighXB);
-	}
-
-	private void drawClippedHighY(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2) {
-		// NB: order here is lexical not bitwise
-		final int split = v2.needsClipHighY() | (v1.needsClipHighY() << 1) | (v0.needsClipHighY() << 2);
-
-		switch (split) {
-		case 0b000:
-			drawTri(v0, v1, v2);
-			break;
-
-		case 0b100:
-			drawClippedHighYOne(v0, v1, v2);
-			break;
-
-		case 0b010:
-			drawClippedHighYOne(v1, v2, v0);
-			break;
-
-		case 0b001:
-			drawClippedHighYOne(v2, v0, v1);
-			break;
-
-		case 0b110:
-			drawClippedHighYTwo(v0, v1, v2);
-			break;
-
-		case 0b011:
-			drawClippedHighYTwo(v1, v2, v0);
-			break;
-
-		case 0b101:
-			drawClippedHighYTwo(v2, v0, v1);
-			break;
-
-		case 0b111:
-			// NOOP
-			break;
-		}
-	}
-
-	private void drawClippedHighYOne(ProjectionVector4f v0ext, ProjectionVector4f v1, ProjectionVector4f v2) {
-		vClipHighYA.clipHighY(v1, v0ext);
-		vClipHighYB.clipHighY(v2, v0ext);
-		drawTri(vClipHighYA, v1, vClipHighYB);
-		drawTri(vClipHighYB, v1, v2);
-	}
-
-	private void drawClippedHighYTwo(ProjectionVector4f v0ext, ProjectionVector4f v1ext, ProjectionVector4f v2) {
-		vClipHighYA.clipHighY(v2, v0ext);
-		vClipHighYB.clipHighY(v2, v1ext);
-		drawTri(v2, vClipHighYA, vClipHighYB);
-	}
-
-	///////
-
-	private boolean testTri(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2) {
+	@Override
+	protected boolean testTri(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2) {
 		if (!prepareTriBounds(v0, v1, v2)) {
 			return false;
 		}
@@ -1095,8 +362,8 @@ public class TerrainOccluder {
 		prepareTriScan();
 
 		final int bx0 = minPixelX >> TOP_AXIS_SHIFT;
-		final int bx1 = maxPixelX >> TOP_AXIS_SHIFT;
-		final int by0 = minPixelY >> TOP_AXIS_SHIFT;
+					final int bx1 = maxPixelX >> TOP_AXIS_SHIFT;
+					final int by0 = minPixelY >> TOP_AXIS_SHIFT;
 		final int by1 = maxPixelY >> TOP_AXIS_SHIFT;
 
 		if (bx0 == bx1 && by0 == by1) {
@@ -1181,12 +448,6 @@ public class TerrainOccluder {
 		final int index = (midY << MID_Y_SHIFT) | midX;
 		final long word = midBins[index];
 
-		// PERF:  remove check because won't be called if set?  Same at other levels
-		if (word == -1L) {
-			// bin fully occluded
-			return false;
-		}
-
 		final int binOriginX = midX << MID_AXIS_SHIFT;
 		final int binOriginY = midY << MID_AXIS_SHIFT;
 		final int minX = Math.max(minPixelX, binOriginX);
@@ -1241,11 +502,6 @@ public class TerrainOccluder {
 	private boolean testTriLow(int lowX, int lowY) {
 		final int index = (lowY << LOW_Y_SHIFT) | lowX;
 		final long word = lowBins[index];
-
-		//		if (word == -1L) {
-		//			// if bin fully occluded nothing to do
-		//			return true;
-		//		}
 
 		final int binOriginX = lowX << LOW_AXIS_SHIFT;
 		final int binOriginY = lowY << LOW_AXIS_SHIFT;
@@ -1315,189 +571,6 @@ public class TerrainOccluder {
 		return false;
 	}
 
-	//////
-
-	private boolean testClippedLowX(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2) {
-		// NB: order here is lexical not bitwise
-		final int split = v2.needsClipLowX() | (v1.needsClipLowX() << 1) | (v0.needsClipLowX() << 2);
-
-		switch (split) {
-		case 0b000:
-			return testClippedLowY(v0, v1, v2);
-
-		case 0b100:
-			return testClippedLowXOne(v0, v1, v2);
-
-		case 0b010:
-			return testClippedLowXOne(v1, v2, v0);
-
-		case 0b001:
-			return testClippedLowXOne(v2, v0, v1);
-
-		case 0b110:
-			return testClippedLowXTwo(v0, v1, v2);
-
-		case 0b011:
-			return testClippedLowXTwo(v1, v2, v0);
-
-		case 0b101:
-			return testClippedLowXTwo(v2, v0, v1);
-
-		default:
-		case 0b111:
-			return false;
-		}
-	}
-
-	private boolean testClippedLowXOne(ProjectionVector4f v0ext, ProjectionVector4f v1, ProjectionVector4f v2) {
-		vClipLowXA.clipLowX(v1, v0ext);
-		vClipLowXB.clipLowX(v2, v0ext);
-		return testClippedLowY(vClipLowXA, v1, vClipLowXB)
-				|| testClippedLowY(vClipLowXB, v1, v2);
-	}
-
-	private boolean testClippedLowXTwo(ProjectionVector4f v0ext, ProjectionVector4f v1ext, ProjectionVector4f v2) {
-		vClipLowXA.clipLowX(v2, v0ext);
-		vClipLowXB.clipLowX(v2, v1ext);
-		return testClippedLowY(v2, vClipLowXA, vClipLowXB);
-	}
-
-	private boolean testClippedLowY(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2) {
-		// NB: order here is lexical not bitwise
-		final int split = v2.needsClipLowY() | (v1.needsClipLowY() << 1) | (v0.needsClipLowY() << 2);
-
-		switch (split) {
-		case 0b000:
-			return testClippedHighX(v0, v1, v2);
-
-		case 0b100:
-			return testClippedLowYOne(v0, v1, v2);
-
-		case 0b010:
-			return testClippedLowYOne(v1, v2, v0);
-
-		case 0b001:
-			return testClippedLowYOne(v2, v0, v1);
-
-		case 0b110:
-			return testClippedLowYTwo(v0, v1, v2);
-
-		case 0b011:
-			return testClippedLowYTwo(v1, v2, v0);
-
-		case 0b101:
-			return testClippedLowYTwo(v2, v0, v1);
-
-		default:
-		case 0b111:
-			return false;
-		}
-	}
-
-	private boolean testClippedLowYOne(ProjectionVector4f v0ext, ProjectionVector4f v1, ProjectionVector4f v2) {
-		vClipLowYA.clipLowY(v1, v0ext);
-		vClipLowYB.clipLowY(v2, v0ext);
-		return testClippedHighX(vClipLowYA, v1, vClipLowYB)
-				|| testClippedHighX(vClipLowYB, v1, v2);
-	}
-
-	private boolean testClippedLowYTwo(ProjectionVector4f v0ext, ProjectionVector4f v1ext, ProjectionVector4f v2) {
-		vClipLowYA.clipLowY(v2, v0ext);
-		vClipLowYB.clipLowY(v2, v1ext);
-		return testClippedHighX(v2, vClipLowYA, vClipLowYB);
-	}
-
-	private boolean testClippedHighX(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2) {
-		// NB: order here is lexical not bitwise
-		final int split = v2.needsClipHighX() | (v1.needsClipHighX() << 1) | (v0.needsClipHighX() << 2);
-
-		switch (split) {
-		case 0b000:
-			return testClippedHighY(v0, v1, v2);
-
-		case 0b100:
-			return testClippedHighXOne(v0, v1, v2);
-
-		case 0b010:
-			return testClippedHighXOne(v1, v2, v0);
-
-		case 0b001:
-			return testClippedHighXOne(v2, v0, v1);
-
-		case 0b110:
-			return testClippedHighXTwo(v0, v1, v2);
-
-		case 0b011:
-			return testClippedHighXTwo(v1, v2, v0);
-
-		case 0b101:
-			return testClippedHighXTwo(v2, v0, v1);
-
-		default:
-		case 0b111:
-			return false;
-		}
-	}
-
-	private boolean testClippedHighXOne(ProjectionVector4f v0ext, ProjectionVector4f v1, ProjectionVector4f v2) {
-		vClipHighXA.clipHighX(v1, v0ext);
-		vClipHighXB.clipHighX(v2, v0ext);
-		return testClippedHighY(vClipHighXA, v1, vClipHighXB)
-				|| testClippedHighY(vClipHighXB, v1, v2);
-	}
-
-	private boolean testClippedHighXTwo(ProjectionVector4f v0ext, ProjectionVector4f v1ext, ProjectionVector4f v2) {
-		vClipHighXA.clipHighX(v2, v0ext);
-		vClipHighXB.clipHighX(v2, v1ext);
-		return testClippedHighY(v2, vClipHighXA, vClipHighXB);
-	}
-
-	private boolean testClippedHighY(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2) {
-		// NB: order here is lexical not bitwise
-		final int split = v2.needsClipHighY() | (v1.needsClipHighY() << 1) | (v0.needsClipHighY() << 2);
-
-		switch (split) {
-		case 0b000:
-			return testTri(v0, v1, v2);
-
-		case 0b100:
-			return testClippedHighYOne(v0, v1, v2);
-
-		case 0b010:
-			return testClippedHighYOne(v1, v2, v0);
-
-		case 0b001:
-			return testClippedHighYOne(v2, v0, v1);
-
-		case 0b110:
-			return testClippedHighYTwo(v0, v1, v2);
-
-		case 0b011:
-			return testClippedHighYTwo(v1, v2, v0);
-
-		case 0b101:
-			return testClippedHighYTwo(v2, v0, v1);
-
-		default:
-		case 0b111:
-			return false;
-		}
-	}
-
-	private boolean testClippedHighYOne(ProjectionVector4f v0ext, ProjectionVector4f v1, ProjectionVector4f v2) {
-		vClipHighYA.clipHighY(v1, v0ext);
-		vClipHighYB.clipHighY(v2, v0ext);
-		return testTri(vClipHighYA, v1, vClipHighYB)
-				|| testTri(vClipHighYB, v1, v2);
-	}
-
-	private boolean testClippedHighYTwo(ProjectionVector4f v0ext, ProjectionVector4f v1ext, ProjectionVector4f v2) {
-		vClipHighYA.clipHighY(v2, v0ext);
-		vClipHighYB.clipHighY(v2, v1ext);
-		return testTri(v2, vClipHighYA, vClipHighYB);
-	}
-
-
 	private static int wordIndex(int x, int y)  {
 		return  ((y & BIN_PIXEL_INVERSE_MASK) << HEIGHT_WORD_RELATIVE_SHIFT) | (x >> BIN_AXIS_SHIFT);
 	}
@@ -1560,59 +633,4 @@ public class TerrainOccluder {
 			});
 		}
 	}
-
-	static final int BIN_AXIS_SHIFT = 3;
-	static final int BIN_PIXEL_DIAMETER = 1 << BIN_AXIS_SHIFT;
-	static final int BIN_PIXEL_INDEX_MASK = BIN_PIXEL_DIAMETER - 1;
-	static final int BIN_PIXEL_INVERSE_MASK = ~BIN_PIXEL_INDEX_MASK;
-
-	private static final int LOW_AXIS_SHIFT = BIN_AXIS_SHIFT;
-	private static final int MID_AXIS_SHIFT = BIN_AXIS_SHIFT * 2;
-	private static final int TOP_AXIS_SHIFT = BIN_AXIS_SHIFT * 3;
-
-	private static final int TOP_WIDTH = 2;
-	private static final int TOP_Y_SHIFT = Integer.bitCount(TOP_WIDTH - 1);
-	private static final int TOP_HEIGHT = 1;
-
-	private static final int MID_WIDTH = TOP_WIDTH  * 8;
-	private static final int MID_Y_SHIFT = Integer.bitCount(MID_WIDTH - 1);
-	private static final int MIDDLE_HEIGHT = TOP_HEIGHT  * 8;
-
-	static final int PRECISION_BITS = 4;
-	static final int PRECISION_FRACTION_MASK = (1 << PRECISION_BITS) - 1;
-	static final int PRECISION_INTEGER_MASK = ~PRECISION_FRACTION_MASK;
-	static final int PRECISION_PIXEL_CENTER = 1 << (PRECISION_BITS - 1);
-
-	private static final int LOW_WIDTH = MID_WIDTH * 8;
-	private static final int LOW_Y_SHIFT = Integer.bitCount(LOW_WIDTH - 1);
-	private static final int PIXEL_WIDTH = LOW_WIDTH * BIN_PIXEL_DIAMETER;
-	static final int HALF_PIXEL_WIDTH = PIXEL_WIDTH / 2;
-	static final int PRECISION_WIDTH = PIXEL_WIDTH << PRECISION_BITS;
-	static final int HALF_PRECISION_WIDTH = PRECISION_WIDTH / 2;
-
-	private static final int LOW_HEIGHT = MIDDLE_HEIGHT * 8;
-	private static final int PIXEL_HEIGHT = LOW_HEIGHT * BIN_PIXEL_DIAMETER;
-	static final int HALF_PIXEL_HEIGHT = PIXEL_HEIGHT / 2;
-	private static final int HEIGHT_WORD_RELATIVE_SHIFT = LOW_Y_SHIFT - BIN_AXIS_SHIFT;
-	static final int PRECISION_HEIGHT = PIXEL_HEIGHT << PRECISION_BITS;
-	static final int HALF_PRECISION_HEIGHT = PRECISION_HEIGHT / 2;
-
-	static final int GUARD_SIZE = 512;
-	static final int GUARD_WIDTH = PRECISION_WIDTH + GUARD_SIZE;
-	static final int GUARD_HEIGHT = PRECISION_HEIGHT + GUARD_SIZE;
-
-	private static final int LOW_BIN_COUNT = LOW_WIDTH * LOW_HEIGHT;
-	private static final int MIDDLE_BIN_COUNT = MID_WIDTH * LOW_HEIGHT;
-	private static final int TOP_BIN_COUNT = TOP_WIDTH * TOP_HEIGHT;
-
-	private static final int TOP_BIN_PIXEL_DIAMETER = PIXEL_WIDTH / TOP_WIDTH;
-	private static final int TOP_BIN_PIXEL_INDEX_MASK = TOP_BIN_PIXEL_DIAMETER - 1;
-
-	private static final int MID_BIN_PIXEL_DIAMETER = PIXEL_WIDTH / MID_WIDTH;
-	private static final int MID_BIN_PIXEL_INDEX_MASK = MID_BIN_PIXEL_DIAMETER - 1;
-
-	private static final int LOW_BIN_PIXEL_DIAMETER = PIXEL_WIDTH / LOW_WIDTH;
-	private static final int LOW_BIN_PIXEL_INDEX_MASK = LOW_BIN_PIXEL_DIAMETER - 1;
-
-	private static final long[] EMPTY_BITS = new long[LOW_BIN_COUNT];
 }
