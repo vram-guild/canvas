@@ -1,10 +1,17 @@
 package grondag.canvas.chunk.occlusion;
 
+import java.io.File;
+
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.Camera;
+import net.minecraft.client.texture.NativeImage;
 import net.minecraft.client.util.math.Matrix4f;
+import net.minecraft.resource.ResourceImpl;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 
+import grondag.canvas.CanvasMod;
+import grondag.canvas.Configurator;
 import grondag.canvas.render.CanvasWorldRenderer;
 
 public abstract class AbstractTerrainOccluder {
@@ -360,6 +367,112 @@ public abstract class AbstractTerrainOccluder {
 		return ((x1 - x0) * (cy - y0) - (y1 - y0) * (cx - x0));
 	}
 
+	protected  final boolean testPixel(int x, int y) {
+		return (lowBins[lowIndexFromPixelXY(x, y)] & (1L << (pixelIndex(x, y)))) == 0;
+	}
+
+	protected void drawPixel(int x, int y) {
+		lowBins[lowIndexFromPixelXY(x, y)] |= (1L << (pixelIndex(x, y)));
+	}
+
+	private long nextTime;
+
+	public final void outputRaster() {
+		if (DISABLE_RASTER_OUTPUT) {
+			return;
+		}
+
+		final long t = System.currentTimeMillis();
+
+		if (t >= nextTime) {
+			nextTime = t + 1000;
+
+			final NativeImage nativeImage = new NativeImage(PIXEL_WIDTH, PIXEL_HEIGHT, false);
+
+			for (int x = 0; x < PIXEL_WIDTH; x++) {
+				for (int y = 0; y < PIXEL_HEIGHT; y++) {
+					nativeImage.setPixelRgba(x, y, testPixel(x, y) ? -1 :0xFF000000);
+				}
+			}
+
+			nativeImage.mirrorVertically();
+
+			final File file = new File(MinecraftClient.getInstance().runDirectory, "canvas_occlusion_raster.png");
+
+			ResourceImpl.RESOURCE_IO_EXECUTOR.execute(() -> {
+				try {
+					nativeImage.writeFile(file);
+				} catch (final Exception e) {
+					CanvasMod.LOG.warn("Couldn't save occluder image", e);
+				} finally {
+					nativeImage.close();
+				}
+
+			});
+		}
+	}
+
+	@SuppressWarnings("unused")
+	private static int mortonNumber(int x, int y) {
+		int z = (x & 0b001) | ((y & 0b001) << 1);
+		z |= ((x & 0b010) << 1) | ((y & 0b010) << 2);
+		return z | ((x & 0b100) << 2) | ((y & 0b100) << 3);
+	}
+
+	protected static int midIndex(int midX, int midY) {
+		final int topX = (midX >> LOW_AXIS_SHIFT);
+		final int topY = (midY >> LOW_AXIS_SHIFT);
+		//		return (topIndex(topX, topY) << MID_AXIS_SHIFT) | (midX & BIN_PIXEL_INDEX_MASK) | ((midY & BIN_PIXEL_INDEX_MASK) << BIN_AXIS_SHIFT);
+		return (topIndex(topX, topY) << MID_AXIS_SHIFT) | (mortonNumber(midX, midY));
+		//return (midY << MID_Y_SHIFT) | midX;
+	}
+
+	protected static int topIndex(int topX, int topY) {
+		return (topY << TOP_Y_SHIFT) | topX;
+	}
+
+	protected static int lowIndex(int lowX, int lowY) {
+		//		return (midIndex(lowX >> LOW_AXIS_SHIFT, lowY >> LOW_AXIS_SHIFT) << MID_AXIS_SHIFT)
+		//				| (lowX & BIN_PIXEL_INDEX_MASK) | ((lowY & BIN_PIXEL_INDEX_MASK) << BIN_AXIS_SHIFT);
+
+		final int midX = (lowX >> LOW_AXIS_SHIFT) & BIN_PIXEL_INDEX_MASK;
+		final int midY = (lowY >> LOW_AXIS_SHIFT) & BIN_PIXEL_INDEX_MASK;
+
+		final int topX = (lowX >> MID_AXIS_SHIFT);
+		final int topY = (lowY >> MID_AXIS_SHIFT);
+
+		return (topIndex(topX, topY) << TOP_INDEX_SHIFT) | (mortonNumber(midX, midY) << MID_INDEX_SHIFT) | mortonNumber(lowX & BIN_PIXEL_INDEX_MASK, lowY & BIN_PIXEL_INDEX_MASK);
+
+		//				return (lowY << LOW_Y_SHIFT) | lowX;
+	}
+
+	protected static int lowIndexFromPixelXY(int x, int y)  {
+		return lowIndex(x >>> LOW_AXIS_SHIFT, y >>> LOW_AXIS_SHIFT);
+	}
+
+	protected static int pixelIndex(int x, int y)  {
+		return  ((y & BIN_PIXEL_INDEX_MASK) << BIN_AXIS_SHIFT) | (x & BIN_PIXEL_INDEX_MASK);
+	}
+
+	protected static boolean isPixelClear(long word, int x, int y)  {
+		return (word & (1L << pixelIndex(x, y))) == 0;
+	}
+
+	protected static long pixelMask(int x, int y) {
+		return 1L << pixelIndex(x, y);
+	}
+
+	/** REQUIRES 0-7 inputs! */
+	protected static boolean testPixelInWordPreMasked(long word, int x, int y) {
+		return (word & (1L << ((y << BIN_AXIS_SHIFT) | x))) == 0;
+	}
+
+	protected static long setPixelInWordPreMasked(long word, int x, int y) {
+		return word | (1L << ((y << BIN_AXIS_SHIFT) | x));
+	}
+
+	protected static final boolean DISABLE_RASTER_OUTPUT = !Configurator.debugOcclusionRaster;
+
 	protected static final int BIN_AXIS_SHIFT = 3;
 	protected static final int BIN_PIXEL_DIAMETER = 1 << BIN_AXIS_SHIFT;
 	protected static final int BIN_PIXEL_INDEX_MASK = BIN_PIXEL_DIAMETER - 1;
@@ -368,6 +481,9 @@ public abstract class AbstractTerrainOccluder {
 	protected static final int LOW_AXIS_SHIFT = BIN_AXIS_SHIFT;
 	protected static final int MID_AXIS_SHIFT = BIN_AXIS_SHIFT * 2;
 	protected static final int TOP_AXIS_SHIFT = BIN_AXIS_SHIFT * 3;
+
+	protected static final int MID_INDEX_SHIFT = LOW_AXIS_SHIFT * 2;
+	protected static final int TOP_INDEX_SHIFT = MID_INDEX_SHIFT * 2;
 
 	protected static final int TOP_WIDTH = 2;
 	protected static final int TOP_Y_SHIFT = Integer.bitCount(TOP_WIDTH - 1);
@@ -383,7 +499,7 @@ public abstract class AbstractTerrainOccluder {
 	protected static final int PRECISION_PIXEL_CENTER = 1 << (PRECISION_BITS - 1);
 
 	protected static final int LOW_WIDTH = MID_WIDTH * 8;
-	protected static final int LOW_Y_SHIFT = Integer.bitCount(LOW_WIDTH - 1);
+	//protected static final int LOW_Y_SHIFT = Integer.bitCount(LOW_WIDTH - 1);
 	protected static final int PIXEL_WIDTH = LOW_WIDTH * BIN_PIXEL_DIAMETER;
 	protected static final int HALF_PIXEL_WIDTH = PIXEL_WIDTH / 2;
 	protected static final int PRECISION_WIDTH = PIXEL_WIDTH << PRECISION_BITS;
@@ -392,7 +508,7 @@ public abstract class AbstractTerrainOccluder {
 	protected static final int LOW_HEIGHT = MIDDLE_HEIGHT * 8;
 	protected static final int PIXEL_HEIGHT = LOW_HEIGHT * BIN_PIXEL_DIAMETER;
 	protected static final int HALF_PIXEL_HEIGHT = PIXEL_HEIGHT / 2;
-	protected static final int HEIGHT_WORD_RELATIVE_SHIFT = LOW_Y_SHIFT - BIN_AXIS_SHIFT;
+	//	protected static final int HEIGHT_WORD_RELATIVE_SHIFT = LOW_Y_SHIFT - BIN_AXIS_SHIFT;
 	protected static final int PRECISION_HEIGHT = PIXEL_HEIGHT << PRECISION_BITS;
 	protected static final int HALF_PRECISION_HEIGHT = PRECISION_HEIGHT / 2;
 

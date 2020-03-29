@@ -1,14 +1,5 @@
 package grondag.canvas.chunk.occlusion;
 
-import java.io.File;
-
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.texture.NativeImage;
-import net.minecraft.resource.ResourceImpl;
-
-import grondag.canvas.CanvasMod;
-import grondag.canvas.Configurator;
-
 // Some elements are adapted from content found at
 // https://fgiesen.wordpress.com/2013/02/17/optimizing-sw-occlusion-culling-index/
 // by Fabian “ryg” Giesen. That content is in the public domain.
@@ -129,10 +120,6 @@ public class ReferenceTerrainOccluder extends ClippingTerrainOccluder {
 				w2_row += bLow2;
 			}
 		}
-	}
-
-	private void drawPixel(int x, int y) {
-		lowBins[wordIndex(x, y)] |= (1L << (pixelIndex(x, y)));
 	}
 
 	@Override
@@ -305,7 +292,7 @@ public class ReferenceTerrainOccluder extends ClippingTerrainOccluder {
 			int w2_row)
 	{
 
-		final long word = lowBins[(binY << LOW_Y_SHIFT) | binX];
+		final long word = lowBins[lowIndex(binX, binY)];
 
 		if (word == -1L)
 			// if bin fully occluded always false
@@ -447,7 +434,7 @@ public class ReferenceTerrainOccluder extends ClippingTerrainOccluder {
 			int w1_row,
 			int w2_row)
 	{
-		final int index = (binY << LOW_Y_SHIFT) | binX;
+		final int index = lowIndex(binX, binY);
 		long word = lowBins[index];
 
 		if (word == -1L) {
@@ -566,64 +553,5 @@ public class ReferenceTerrainOccluder extends ClippingTerrainOccluder {
 
 		lowBins[index] = word;
 		return;
-	}
-
-	private static int wordIndex(int x, int y)  {
-		return  ((y & BIN_PIXEL_INVERSE_MASK) << HEIGHT_WORD_RELATIVE_SHIFT) | (x >> BIN_AXIS_SHIFT);
-	}
-
-	private static int pixelIndex(int x, int y)  {
-		return  ((y & BIN_PIXEL_INDEX_MASK) << BIN_AXIS_SHIFT) | (x & BIN_PIXEL_INDEX_MASK);
-	}
-
-	/** REQUIRES 0-7 inputs! */
-	private static boolean testPixelInWordPreMasked(long word, int x, int y) {
-		return (word & (1L << ((y << BIN_AXIS_SHIFT) | x))) == 0;
-	}
-
-	private static long setPixelInWordPreMasked(long word, int x, int y) {
-		return word | (1L << ((y << BIN_AXIS_SHIFT) | x));
-	}
-
-	private boolean testPixel(int x, int y) {
-		return (lowBins[wordIndex(x, y)] & (1L << (pixelIndex(x, y)))) == 0;
-	}
-
-	private long nextTime;
-	private static final boolean DISABLE_RASTER_OUTPUT = !Configurator.debugOcclusionRaster;
-
-	public void outputRaster() {
-		if (DISABLE_RASTER_OUTPUT) {
-			return;
-		}
-
-		final long t = System.currentTimeMillis();
-
-		if (t >= nextTime) {
-			nextTime = t + 1000;
-
-			final NativeImage nativeImage = new NativeImage(PIXEL_WIDTH, PIXEL_HEIGHT, false);
-
-			for (int x = 0; x < PIXEL_WIDTH; x++) {
-				for (int y = 0; y < PIXEL_HEIGHT; y++) {
-					nativeImage.setPixelRgba(x, y, testPixel(x, y) ? -1 :0xFF000000);
-				}
-			}
-
-			nativeImage.mirrorVertically();
-
-			final File file = new File(MinecraftClient.getInstance().runDirectory, "canvas_occlusion_raster.png");
-
-			ResourceImpl.RESOURCE_IO_EXECUTOR.execute(() -> {
-				try {
-					nativeImage.writeFile(file);
-				} catch (final Exception e) {
-					CanvasMod.LOG.warn("Couldn't save occluder image", e);
-				} finally {
-					nativeImage.close();
-				}
-
-			});
-		}
 	}
 }
