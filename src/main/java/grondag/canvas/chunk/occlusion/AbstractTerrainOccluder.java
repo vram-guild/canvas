@@ -2,6 +2,8 @@ package grondag.canvas.chunk.occlusion;
 
 import java.io.File;
 
+import com.google.common.base.Strings;
+
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.Camera;
 import net.minecraft.client.texture.NativeImage;
@@ -378,7 +380,7 @@ public abstract class AbstractTerrainOccluder {
 	private long nextTime;
 
 	public final void outputRaster() {
-		if (DISABLE_RASTER_OUTPUT) {
+		if (!ENABLE_RASTER_OUTPUT) {
 			return;
 		}
 
@@ -412,7 +414,6 @@ public abstract class AbstractTerrainOccluder {
 		}
 	}
 
-	@SuppressWarnings("unused")
 	private static int mortonNumber(int x, int y) {
 		int z = (x & 0b001) | ((y & 0b001) << 1);
 		z |= ((x & 0b010) << 1) | ((y & 0b010) << 2);
@@ -422,9 +423,7 @@ public abstract class AbstractTerrainOccluder {
 	protected static int midIndex(int midX, int midY) {
 		final int topX = (midX >> LOW_AXIS_SHIFT);
 		final int topY = (midY >> LOW_AXIS_SHIFT);
-		//		return (topIndex(topX, topY) << MID_AXIS_SHIFT) | (midX & BIN_PIXEL_INDEX_MASK) | ((midY & BIN_PIXEL_INDEX_MASK) << BIN_AXIS_SHIFT);
 		return (topIndex(topX, topY) << MID_AXIS_SHIFT) | (mortonNumber(midX, midY));
-		//return (midY << MID_Y_SHIFT) | midX;
 	}
 
 	protected static int topIndex(int topX, int topY) {
@@ -432,9 +431,6 @@ public abstract class AbstractTerrainOccluder {
 	}
 
 	protected static int lowIndex(int lowX, int lowY) {
-		//		return (midIndex(lowX >> LOW_AXIS_SHIFT, lowY >> LOW_AXIS_SHIFT) << MID_AXIS_SHIFT)
-		//				| (lowX & BIN_PIXEL_INDEX_MASK) | ((lowY & BIN_PIXEL_INDEX_MASK) << BIN_AXIS_SHIFT);
-
 		final int midX = (lowX >> LOW_AXIS_SHIFT) & BIN_PIXEL_INDEX_MASK;
 		final int midY = (lowY >> LOW_AXIS_SHIFT) & BIN_PIXEL_INDEX_MASK;
 
@@ -442,8 +438,6 @@ public abstract class AbstractTerrainOccluder {
 		final int topY = (lowY >> MID_AXIS_SHIFT);
 
 		return (topIndex(topX, topY) << TOP_INDEX_SHIFT) | (mortonNumber(midX, midY) << MID_INDEX_SHIFT) | mortonNumber(lowX & BIN_PIXEL_INDEX_MASK, lowY & BIN_PIXEL_INDEX_MASK);
-
-		//				return (lowY << LOW_Y_SHIFT) | lowX;
 	}
 
 	protected static int lowIndexFromPixelXY(int x, int y)  {
@@ -471,7 +465,65 @@ public abstract class AbstractTerrainOccluder {
 		return word | (1L << ((y << BIN_AXIS_SHIFT) | x));
 	}
 
-	protected static final boolean DISABLE_RASTER_OUTPUT = !Configurator.debugOcclusionRaster;
+	/**
+	 *
+	 * @param x0 zero to seven
+	 * @param y0 zero to seven
+	 * @param x1 zero to seven
+	 * @param y1 zero to seven
+	 * @return
+	 */
+	protected static long coverageMask(int x0, int y0, int x1, int y1) {
+		return X_COVERAGE_MASKS[coverageMaskIndex(x0, x1)] & Y_COVERAGE_MASKS[coverageMaskIndex(y0, y1)];
+	}
+
+	protected static void printCoverageMask(long mask) {
+		final String s = Strings.padStart(Long.toBinaryString(mask), 64, '0');
+		OcclusionBitPrinter.printSpaced(s.substring(0, 8));
+		OcclusionBitPrinter.printSpaced(s.substring(8, 16));
+		OcclusionBitPrinter.printSpaced(s.substring(16, 24));
+		OcclusionBitPrinter.printSpaced(s.substring(24, 32));
+		OcclusionBitPrinter.printSpaced(s.substring(32, 40));
+		OcclusionBitPrinter.printSpaced(s.substring(40, 48));
+		OcclusionBitPrinter.printSpaced(s.substring(48, 56));
+		OcclusionBitPrinter.printSpaced(s.substring(56, 64));
+		System.out.println();
+	}
+
+	private static int coverageMaskIndex(int min, int max) {
+		return min | (max << 3);
+	}
+
+	private static long X_COVERAGE_MASKS[] = new long[64];
+	private static long Y_COVERAGE_MASKS[] = new long[64];
+
+	protected static final long CORNER_COVERAGE_MASK;
+
+	static {
+		for (int min = 0; min <= 7; min++) {
+			for (int max = 0; max <= 7; max++) {
+				if (min <= max) {
+					long xBits = 0;
+					long yBits = 0;
+
+					for (int i = min; i <= max; i++) {
+						for (int j = 0; j <= 7; j++) {
+							xBits |= pixelMask(i, j);
+							yBits |= pixelMask(j, i);
+						}
+					}
+
+					final int index = coverageMaskIndex(min, max);
+					X_COVERAGE_MASKS[index] = xBits;
+					Y_COVERAGE_MASKS[index] = yBits;
+				}
+			}
+		}
+
+		CORNER_COVERAGE_MASK = pixelMask(0, 0) | pixelMask(7, 0) | pixelMask(0, 7) | pixelMask(7, 7);
+	}
+
+	protected static final boolean ENABLE_RASTER_OUTPUT = Configurator.debugOcclusionRaster;
 
 	protected static final int BIN_AXIS_SHIFT = 3;
 	protected static final int BIN_PIXEL_DIAMETER = 1 << BIN_AXIS_SHIFT;

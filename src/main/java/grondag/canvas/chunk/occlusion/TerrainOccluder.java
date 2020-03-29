@@ -129,8 +129,10 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 							| (w0_row + abTop0) | (w1_row + abTop1) | (w2_row + abTop2)) >= 0) {
 						topBins[index] = -1;
 
-						// PERF: disable unless need image output
-						fillTopBinChildren(topX, topY);
+						if (ENABLE_RASTER_OUTPUT) {
+							fillTopBinChildren(topX, topY);
+						}
+
 						return;
 					}
 				}
@@ -148,7 +150,6 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 				topBins[index] = word;
 	}
 
-	@SuppressWarnings("unused")
 	private void fillTopBinChildren(final int topX, final int topY) {
 		final int midX0 = topX << 3;
 		final int midY0 = topY << 3;
@@ -161,13 +162,12 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 
 				if (midBins[index] != -1L) {
 					midBins[index] = -1L;
-					//fillMidBinChildren(midX, midY);
+					fillMidBinChildren(midX, midY);
 				}
 			}
 		}
 	}
 
-	@SuppressWarnings("unused")
 	private void fillMidBinChildren(final int midX, final int midY) {
 		final int lowX0 = midX << 3;
 		final int lowY0 = midY << 3;
@@ -193,49 +193,39 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		final int minPixelX = this.minPixelX;
 		final int minPixelY = this.minPixelY;
 
-		final int minX = Math.max(minPixelX, binOriginX);
+		final int minX = minPixelX < binOriginX ? binOriginX : minPixelX;
+		final int minY = minPixelY < binOriginY ? binOriginY : minPixelY;
 		final int maxX = Math.min(maxPixelX, binOriginX + MID_BIN_PIXEL_DIAMETER - 1);
-		final int minY = Math.max(minPixelY, binOriginY);
 		final int maxY = Math.min(maxPixelY, binOriginY + MID_BIN_PIXEL_DIAMETER - 1);
 
-		final int lowX0 = minX >> LOW_AXIS_SHIFT;
-		final int lowX1 = maxX >> LOW_AXIS_SHIFT;
-		final int lowY0 = minY >> LOW_AXIS_SHIFT;
-			final int lowY1 = maxY >> LOW_AXIS_SHIFT;
-
-		// handle single bin case
-		if (lowX0 == lowX1 && lowY0 == lowY1) {
-			final long mask = pixelMask(lowX0, lowY0);
-
-			if ((mask & word) == 0 && drawTriLow(lowX0, lowY0)) {
-				word |= mask;
-				midBins[index] = word;
-			}
-
-			return word == -1L;
-		}
+		long coverage = coverageMask((minX >> LOW_AXIS_SHIFT) & 7, (minY >> LOW_AXIS_SHIFT) & 7,
+				(maxX >> LOW_AXIS_SHIFT) & 7, (maxY >> LOW_AXIS_SHIFT) & 7);
 
 		// if filling whole bin then do it quick
-		if ((minX & MID_BIN_PIXEL_INDEX_MASK) == 0 && (minY & MID_BIN_PIXEL_INDEX_MASK) == 0
-				&& (maxX & MID_BIN_PIXEL_INDEX_MASK) == MID_BIN_PIXEL_INDEX_MASK
-				&& (maxY  & MID_BIN_PIXEL_INDEX_MASK) == MID_BIN_PIXEL_INDEX_MASK
-				&& isTriMidCovered(minX,  minY)) {
+		if ((coverage & CORNER_COVERAGE_MASK) == CORNER_COVERAGE_MASK && isTriMidCovered(minX,  minY)) {
 			midBins[index] = -1;
 
-			// PERF: disable unless need image output
-			fillMidBinChildren(midX, midY);
+			if (ENABLE_RASTER_OUTPUT) {
+				fillMidBinChildren(midX, midY);
+			}
 
 			return true;
 		}
 
-		for (int lowX = lowX0; lowX <= lowX1; lowX++) {
-			for (int lowY = lowY0; lowY <= lowY1; lowY++) {
-				final long mask = pixelMask(lowX, lowY);
+		coverage &= ~word;
 
-				if ((mask & word) == 0 && drawTriLow(lowX, lowY)) {
-					word |= mask;
-				}
+		if (coverage == 0) {
+			return false;
+		}
+
+		long mask = 1;
+
+		for (int n = 0; n < 64; ++n) {
+			if ((mask & coverage) != 0 && drawTriLow(binOriginX + (n & 7), binOriginY + (n >> 3))) {
+				word |= mask;
 			}
+
+			mask <<= 1;
 		}
 
 		midBins[index] = word;
@@ -456,45 +446,45 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		final int lowX0 = minX >>> LOW_AXIS_SHIFT;
 		final int lowX1 = maxX >>> LOW_AXIS_SHIFT;
 			final int lowY0 = minY >>> LOW_AXIS_SHIFT;
-					final int lowY1 = maxY >>> LOW_AXIS_SHIFT;
+		final int lowY1 = maxY >>> LOW_AXIS_SHIFT;
 
-					// handle single bin case
-					if (lowX0 == lowX1 && lowY0 == lowY1) {
-						return isPixelClear(word, lowX0, lowY0) && testTriLow(lowX0, lowY0);
-					}
+		// handle single bin case
+		if (lowX0 == lowX1 && lowY0 == lowY1) {
+			return isPixelClear(word, lowX0, lowY0) && testTriLow(lowX0, lowY0);
+		}
 
-					// if checking whole bin then do it quick
-					if (((minX | minY) & MID_BIN_PIXEL_INDEX_MASK)== 0 && (maxX & maxY & MID_BIN_PIXEL_INDEX_MASK) == MID_BIN_PIXEL_INDEX_MASK) {
-						final int a0 = this.a0;
-						final int b0 = this.b0;
-						final int a1 = this.a1;
-						final int b1 = this.b1;
-						final int a2 = this.a2;
-						final int b2 = this.b2;
-						final int dx = binOriginX - minPixelX;
-						final int dy = binOriginY - minPixelY;
-						final int w0_row = wOrigin0 + dx * a0 + dy * b0;
-						final int w1_row = wOrigin1 + dx * a1 + dy * b1;
-						final int w2_row = wOrigin2 + dx * a2 + dy * b2;
+		// if checking whole bin then do it quick
+		if (((minX | minY) & MID_BIN_PIXEL_INDEX_MASK)== 0 && (maxX & maxY & MID_BIN_PIXEL_INDEX_MASK) == MID_BIN_PIXEL_INDEX_MASK) {
+			final int a0 = this.a0;
+			final int b0 = this.b0;
+			final int a1 = this.a1;
+			final int b1 = this.b1;
+			final int a2 = this.a2;
+			final int b2 = this.b2;
+			final int dx = binOriginX - minPixelX;
+			final int dy = binOriginY - minPixelY;
+			final int w0_row = wOrigin0 + dx * a0 + dy * b0;
+			final int w1_row = wOrigin1 + dx * a1 + dy * b1;
+			final int w2_row = wOrigin2 + dx * a2 + dy * b2;
 
-						if ((w0_row | w1_row | w2_row
-								| (w0_row + aMid0) | (w1_row + aMid1) | (w2_row + aMid2)
-								| (w0_row + bMid0) | (w1_row + bMid1) | (w2_row + bMid2)
-								| (w0_row + abMid0) | (w1_row + abMid1) | (w2_row + abMid2)) >= 0) {
-							// word already known to be not fully occluded at this point
-							return true;
-						}
-					}
+			if ((w0_row | w1_row | w2_row
+					| (w0_row + aMid0) | (w1_row + aMid1) | (w2_row + aMid2)
+					| (w0_row + bMid0) | (w1_row + bMid1) | (w2_row + bMid2)
+					| (w0_row + abMid0) | (w1_row + abMid1) | (w2_row + abMid2)) >= 0) {
+				// word already known to be not fully occluded at this point
+				return true;
+			}
+		}
 
-					for (int lowY = lowY0; lowY <= lowY1; lowY++) {
-						for (int lowX = lowX0; lowX <= lowX1; lowX++) {
-							if (isPixelClear(word, lowX, lowY) && testTriLow(lowX, lowY)) {
-								return true;
-							}
-						}
-					}
+		for (int lowY = lowY0; lowY <= lowY1; lowY++) {
+			for (int lowX = lowX0; lowX <= lowX1; lowX++) {
+				if (isPixelClear(word, lowX, lowY) && testTriLow(lowX, lowY)) {
+					return true;
+				}
+			}
+		}
 
-					return false;
+		return false;
 	}
 
 	private boolean testTriLow(int lowX, int lowY) {
