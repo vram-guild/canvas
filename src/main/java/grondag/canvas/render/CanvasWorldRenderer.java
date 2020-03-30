@@ -1,5 +1,6 @@
 package grondag.canvas.render;
 
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -11,6 +12,7 @@ import com.google.common.collect.Sets;
 import com.mojang.blaze3d.systems.RenderSystem;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap.Entry;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import it.unimi.dsi.fastutil.objects.ObjectHeapPriorityQueue;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
 
 import net.minecraft.block.BlockState;
@@ -74,11 +76,13 @@ public class CanvasWorldRenderer {
 		return instance;
 	}
 
+	private static final Comparator<BuiltRenderRegion> REGION_COMPARATOR = (a, b) -> Integer.compare(a.squaredCameraDistance(), b.squaredCameraDistance());
 	private int playerLightmap = 0;
 	private RenderRegionBuilder chunkBuilder;
 	private RenderRegionStorage renderRegionStorage;
 	private final TerrainOccluder occluder = new TerrainOccluder();
 	private final CanvasFrustum frustum = new CanvasFrustum();
+	private final ObjectHeapPriorityQueue<BuiltRenderRegion> regionQueue = new ObjectHeapPriorityQueue<>(REGION_COMPARATOR);
 
 	// TODO: redirect uses in MC WorldRenderer
 	public Set<BuiltRenderRegion> chunksToRebuild = Sets.newLinkedHashSet();
@@ -204,10 +208,8 @@ public class CanvasWorldRenderer {
 
 		if (wr.canvas_checkNeedsTerrainUpdate(cameraPos, camera.getPitch(), camera.getYaw())) {
 			BuiltRenderRegion.advanceFrameIndex();
-
-			if (cameraChunk != null) {
-				cameraChunk.setVisible();
-			}
+			final ObjectHeapPriorityQueue<BuiltRenderRegion> regionQueue = this.regionQueue;
+			regionQueue.enqueue(cameraChunk);
 
 			// TODO: prime visible when above or below world and camera chunk is null
 
@@ -220,10 +222,8 @@ public class CanvasWorldRenderer {
 
 			mc.getProfiler().push("iteration");
 
-			for(final BuiltRenderRegion builtChunk : chunkStorage.sortedRegions()) {
-				if (!builtChunk.mayBeVisible()) {
-					continue;
-				}
+			while(!regionQueue.isEmpty()) {
+				final BuiltRenderRegion builtChunk = regionQueue.dequeue();
 
 				// don't visit if not in frustum
 				if(!builtChunk.isInFrustum(frustum)) {
@@ -238,7 +238,7 @@ public class CanvasWorldRenderer {
 				occluder.prepareChunk(builtChunk.getOrigin());
 
 				if (!chunkCullingEnabled || builtChunk == cameraChunk || occluder.isChunkVisible()) {
-					builtChunk.setVisible();
+					builtChunk.enqueueUnvistedNeighbors(regionQueue);
 					visibleChunks[visibleChunkCount++] = builtChunk;
 					final RegionData regionData = builtChunk.getBuildData();
 					final int[] visData =  regionData.getOcclusionData();

@@ -1,8 +1,5 @@
 package grondag.canvas.chunk;
 
-import it.unimi.dsi.fastutil.Swapper;
-import it.unimi.dsi.fastutil.ints.IntComparator;
-
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
@@ -12,29 +9,14 @@ public class RenderRegionStorage {
 	private int sizeX;
 	private int sizeZ;
 	private final BuiltRenderRegion[] regions;
-	private final BuiltRenderRegion[] sortedRegions;
 	private int lastCameraX;
 	private int lastCameraY;
 	private int lastCameraZ;
-	private boolean isSortDirty = true;
-
-	private final IntComparator comparator;
-
-	private final Swapper swapper;
 
 	public RenderRegionStorage(RenderRegionBuilder regionBuilder, int viewDistance) {
 		setViewDistance(viewDistance);
 		final int i = sizeX * sizeY * sizeZ;
 		regions = new BuiltRenderRegion[i];
-		sortedRegions = new BuiltRenderRegion[i];
-
-		comparator = (a, b) -> Integer.compare(sortedRegions[a].squaredCameraDistance(), sortedRegions[b].squaredCameraDistance());
-
-		swapper = (a, b) -> {
-			final BuiltRenderRegion swap = sortedRegions[a];
-			sortedRegions[a] = sortedRegions[b];
-			sortedRegions[b] = swap;
-		};
 
 		for(int j = 0; j < sizeX; ++j) {
 			for(int k = 0; k < sizeY; ++k) {
@@ -43,7 +25,6 @@ public class RenderRegionStorage {
 					final BuiltRenderRegion r = new BuiltRenderRegion(regionBuilder, this);
 					r.setOrigin(j * 16, k * 16, l * 16);
 					regions[m] = r;
-					sortedRegions[m] = r;
 				}
 			}
 		}
@@ -91,8 +72,6 @@ public class RenderRegionStorage {
 				}
 			}
 		}
-
-		isSortDirty = true;
 	}
 
 	public void scheduleRebuild(int x, int y, int z, boolean urgent) {
@@ -150,21 +129,9 @@ public class RenderRegionStorage {
 		for (final BuiltRenderRegion chunk : regions) {
 			chunk.updateCameraDistance(xExact, yExact, zExact);
 		}
-
-		isSortDirty = true;
 	}
 
 	public BuiltRenderRegion[] regions() {
 		return regions;
-	}
-
-	public BuiltRenderRegion[] sortedRegions() {
-		if (isSortDirty) {
-			isSortDirty = false;
-
-			it.unimi.dsi.fastutil.Arrays.quickSort(0, sortedRegions.length, comparator, swapper);
-		}
-
-		return sortedRegions;
 	}
 }

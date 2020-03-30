@@ -7,6 +7,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import com.mojang.blaze3d.systems.RenderSystem;
 import io.netty.util.internal.shaded.org.jctools.queues.MessagePassingQueue.Consumer;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import it.unimi.dsi.fastutil.objects.ObjectHeapPriorityQueue;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 
@@ -63,7 +64,7 @@ public class BuiltRenderRegion {
 	public boolean canRenderTerrain;
 	private int frustumVersion;
 	private boolean frustumResult;
-	public int visibleNeighborFrameIndex;
+	private int lastSeenFrameIndex;
 
 	int squaredCameraDistance;
 	public int occlusionRange;
@@ -95,25 +96,6 @@ public class BuiltRenderRegion {
 			final boolean result = frustum.isChunkVisible(this);
 			frustumResult = result;
 			return result;
-		}
-	}
-
-	public boolean mayBeVisible() {
-		return visibleNeighborFrameIndex == frameIndex;
-	}
-
-	/**
-	 * Only works if has a visible neighbor unless force is used.
-	 */
-	public void setVisible() {
-		final int index = frameIndex;
-		final BuiltRenderRegion regions[] = storage.regions();
-		visibleNeighborFrameIndex = index;
-
-		for (final int i : neighborIndices) {
-			if (i != -1) {
-				regions[i].visibleNeighborFrameIndex = index;
-			}
 		}
 	}
 
@@ -527,5 +509,23 @@ public class BuiltRenderRegion {
 
 	public static void advanceFrameIndex() {
 		++frameIndex;
+	}
+
+	public void enqueueUnvistedNeighbors(ObjectHeapPriorityQueue<BuiltRenderRegion> regionQueue) {
+		final int index = frameIndex;
+		lastSeenFrameIndex = index;
+		final BuiltRenderRegion regions[] = storage.regions();
+
+		for (final int i : neighborIndices) {
+			if (i != -1) {
+				final BuiltRenderRegion r = regions[i];
+				final int ri = r.lastSeenFrameIndex;
+
+				if (ri != index) {
+					r.lastSeenFrameIndex = index;
+					regionQueue.enqueue(r);
+				}
+			}
+		}
 	}
 }
