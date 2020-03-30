@@ -75,4 +75,21 @@ public class AreaFinder {
 			}
 		}
 	}
+
+	// PERF: start later in search for smaller samples
+	// or search by hash
+	public Area findLargest(long[] bitsIn, int sourceIndex) {
+		final long[] bits = this.bits;
+		System.arraycopy(bitsIn, sourceIndex, bits, 0, 4);
+
+		final long hash = AreaUtil.areaHash(bits);
+
+		for(final Area r : AREA) {
+			if (r.matchesHash(hash) && r.isIncludedBySample(bits, 0)) {
+				return r;
+			}
+		}
+
+		return  null;
+	}
 }

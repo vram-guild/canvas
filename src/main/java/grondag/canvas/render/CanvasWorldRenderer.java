@@ -242,7 +242,7 @@ public class CanvasWorldRenderer {
 							builtChunk.canRenderTerrain = false;
 						} else if (chunkRenderBounds == PackedBox.FULL_BOX || occluder.isBoxVisible(chunkRenderBounds) || builtChunk == cameraChunk) {
 							builtChunk.canRenderTerrain = true;
-							occluder.occlude(visData, builtChunk.isNear());
+							occluder.occlude(visData, builtChunk.occlusionRange);
 						} else {
 							builtChunk.canRenderTerrain = false;
 						}

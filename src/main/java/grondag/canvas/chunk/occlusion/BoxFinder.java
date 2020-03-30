@@ -4,13 +4,12 @@ import static grondag.canvas.chunk.RenderRegionAddressHelper.INTERIOR_CACHE_WORD
 import static grondag.canvas.chunk.RenderRegionAddressHelper.SLICE_WORD_COUNT;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 public class BoxFinder {
 	final long[] combined = new long[COMBINED_WORD_COUNT];
 	final long[] filled = new long[INTERIOR_CACHE_WORDS];
 
-	private final IntArrayList sortedBoxes = new IntArrayList();
+	//private final IntArrayList sortedBoxes = new IntArrayList();
 	public final IntArrayList boxes = new IntArrayList();
 
 	public final AreaFinder areaFinder;
@@ -21,128 +20,77 @@ public class BoxFinder {
 
 	public void findBoxes(long[] sourceBits, int sourceIndex) {
 		final AreaFinder areaFinder = this.areaFinder;
-		final ObjectArrayList<Area> areas = areaFinder.areas;
 		final long[] combined = this.combined;
-		final IntArrayList sortedBoxes = this.sortedBoxes;
-		sortedBoxes.clear();
-
+		final IntArrayList boxes = this.boxes;
+		boxes.clear();
 		loadCombined(sourceBits, sourceIndex);
-		int priorOffset = SLICE_OFFSET[16];
 
-		areaFinder.find(combined, priorOffset);
+		do {
+			int priorOffset = SLICE_OFFSET[16];
 
-		if (!areas.isEmpty()) {
-			for (final Area area : areas) {
-				sortedBoxes.add(PackedBox.pack(area.x0, area.y0, 0, area.x1 + 1, area.y1 + 1, 16));
+			int z0 = -1;
+			int z1 = -1;
+			Area maxArea = areaFinder.findLargest(combined, priorOffset);
+			int maxVol = -1;
+
+			if (maxArea != null) {
+				z0 = 0;
+				z1 = 16;
+				maxVol = 16 * maxArea.areaSize;
 			}
-		}
 
-		for (int depth = 15; depth >= 1; depth--) {
-			final int thisOffset = SLICE_OFFSET[depth];
-			final int sliceCount = sliceCount(depth);
+			for (int depth = 15; depth >= 1; depth--) {
+				final int thisOffset = SLICE_OFFSET[depth];
+				final int sliceCount = sliceCount(depth);
 
-			for (int slice = 0; slice < sliceCount; slice++) {
-				areaFinder.find(combined, thisOffset + (slice << 2));
+				for (int slice = 0; slice < sliceCount; slice++) {
+					final Area a = areaFinder.findLargest(combined, thisOffset + (slice << 2));
 
-				if (!areas.isEmpty()) {
-					for (final Area area : areas) {
-						if (!includedInAnyParent(area, depth, slice)) {
-							sortedBoxes.add(PackedBox.pack(area.x0, area.y0, slice, area.x1 + 1, area.y1 + 1, slice + depth));
+					if (a != null) {
+						final int v = depth * a.areaSize;
+
+						if (v > maxVol) {
+							maxVol = v;
+							z0 = slice;
+							z1 = slice + depth;
+							maxArea = a;
 						}
 					}
 				}
+
+				priorOffset = thisOffset;
 			}
 
-			priorOffset = thisOffset;
-		}
-
-		sortedBoxes.sort((a, b) -> Integer.compare(b, a));
-
-		final IntArrayList boxes = this.boxes;
-		boxes.clear();
-
-		final int limit = sortedBoxes.size();
-
-		if (limit > 0) {
-			System.arraycopy(EMPTY_WORDS, 0, filled, 0, INTERIOR_CACHE_WORDS);
-
-			for (int i = 0; i < limit; i++) {
-				final int box =  sortedBoxes.getInt(i);
-
-				if (fill(box)) {
-					boxes.add(box);
-				}
+			if (maxVol == -1) {
+				break;
+			} else {
+				boxes.add(PackedBox.pack(maxArea.x0, maxArea.y0, z0, maxArea.x1 + 1, maxArea.y1 + 1, z1));
+				clear(maxArea, z0, z1);
 			}
-		}
+
+			combine();
+		} while (true);
+
+		//boxes.sort((a, b) -> Integer.compare(b, a));
 	}
 
-	private final long[] fillSlice = new long[SLICE_WORD_COUNT];
+	private void clear(Area a, int z0, int z1) {
+		final long[] combined = this.combined;
 
-
-	private boolean fill(int packedBox) {
-		final long[] fillSlice = this.fillSlice;
-		System.arraycopy(EMPTY_WORDS, 0, fillSlice, 0, SLICE_WORD_COUNT);
-		final int x0 = PackedBox.x0(packedBox);
-		final int y0 = PackedBox.y0(packedBox);
-		final int z0 = PackedBox.z0(packedBox);
-		final int x1 = PackedBox.x1(packedBox);
-		final int y1 = PackedBox.y1(packedBox);
-		final int z1 = PackedBox.z1(packedBox);
-
-		// PERF: optimize XY fill
-		for (int x = x0; x < x1; x++) {
-			for (int y = y0; y < y1; y++) {
-				final int index = x | (y << 4);
-				fillSlice[index >> 6] |= (1L << (index & 63));
-			}
-		}
-
-		boolean didFill = false;
-		final long word0 = fillSlice[0];
-		final long word1 = fillSlice[1];
-		final long word2 = fillSlice[2];
-		final long word3 = fillSlice[3];
-
-		for (int z  = z0; z < z1; z++) {
-			final int baseIndex = z << 2;
-			didFill |= fillWord(word0, baseIndex);
-			didFill |= fillWord(word1, baseIndex + 1);
-			didFill |= fillWord(word2, baseIndex + 2);
-			didFill |= fillWord(word3, baseIndex + 3);
-		}
-
-		return didFill;
-	}
-
-	private boolean fillWord(long word, int fillIndex) {
-		if (word != 0) {
-			final long prior = filled[fillIndex];
-			final long updated = prior | word;
-
-			if (updated != prior) {
-				filled[fillIndex] = updated;
-				return true;
-			}
-		}
-
-		return false;
-	}
-
-	private boolean includedInAnyParent(Area area, int childSlideDepth, int childSliceIndex) {
-		if (childSliceIndex == 0) {
-			return area.isIncludedBySample(combined, SLICE_OFFSET[childSlideDepth + 1]);
-		} else if (childSliceIndex == 16 - childSlideDepth) {
-			return area.isIncludedBySample(combined, SLICE_OFFSET[childSlideDepth + 1] + ((childSliceIndex - 1) << 2));
-		} else {
-			final int parentOffset = SLICE_OFFSET[childSlideDepth + 1] + (childSliceIndex << 2);
-			return area.isIncludedBySample(combined, parentOffset) || area.isIncludedBySample(combined, parentOffset - 4);
+		int index = z0 * SLICE_WORD_COUNT;
+		for  (int z = z0; z < z1; ++z) {
+			a.clearBits(combined, index);
+			index += SLICE_WORD_COUNT;
 		}
 	}
 
 	public void loadCombined(long[] voxels, int sourceIndex) {
-		final long[] combined = this.combined;
 		System.arraycopy(voxels, 0, combined, 0, INTERIOR_CACHE_WORDS);
+		combine();
+	}
 
+	private void combine() {
+		final long[] combined = this.combined;
 		combineTo(combined, D1_0, D1_1, D2_0);
 		combineTo(combined, D1_1, D1_2, D2_1);
 		combineTo(combined, D1_2, D1_3, D2_2);
@@ -277,7 +225,6 @@ public class BoxFinder {
 		combineTo(combined, DE_1, D1_F, DF_1);
 
 		combineTo(combined, DF_0, D1_F, D_FULL);
-
 	}
 
 	private static void combineTo(long[] combined, int offsetA, int offsetB, int targetOffset) {
@@ -290,7 +237,6 @@ public class BoxFinder {
 	/** indexed by depth, zero-element not used for ease of addressing */
 	private static final int[] SLICE_OFFSET = new int[17];
 	private static final int COMBINED_WORD_COUNT;
-	private static final long[] EMPTY_WORDS = new long[INTERIOR_CACHE_WORDS];
 
 	static {
 		int wordCount = 0;

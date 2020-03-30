@@ -38,7 +38,6 @@ public abstract class OcclusionRegion {
 	private final long[] bits = new long[WORD_COUNT];
 	private int openCount;
 	public final BoxFinder boxFinder = new BoxFinder(new AreaFinder());
-	public final PlaneFinder planeFinder = new PlaneFinder(boxFinder.areaFinder);
 
 	private int minRenderableX;
 	private int minRenderableY;
@@ -338,26 +337,14 @@ public abstract class OcclusionRegion {
 
 		final BoxFinder boxFinder = this.boxFinder;
 		final IntArrayList boxes = boxFinder.boxes;
-		final PlaneFinder planeFinder = this.planeFinder;
-		final IntArrayList planes = planeFinder.planes;
 
 		boxFinder.findBoxes(bits, 0);
-		planeFinder.findPlanes(bits, 0);
 
 		final int boxCount = boxes.size();
-		final int planeCount = planes.size();
 
-		final int[] result = new int[boxCount + planeCount + 2];
+		final int[] result = new int[boxCount + 1];
 
-		result[OcclusionRegion.CULL_DATA_FAR_COUNT] = planeCount;
-
-		int n = OcclusionRegion.CULL_DATA_FIRST_FAR;
-
-		if (planeCount > 0) {
-			for (int i = 0; i < planeCount; i++) {
-				result[n++] = planes.getInt(i);
-			}
-		}
+		int n = OcclusionRegion.CULL_DATA_FIRST_BOX;
 
 		if (boxCount > 0) {
 			for (int i = 0; i < boxCount; i++) {
@@ -387,10 +374,9 @@ public abstract class OcclusionRegion {
 			// PERF: should still compute render box instead of assuming it is full
 			adjustSurfaceVisbility();
 
-			final int[] result = new int[3];
+			final int[] result = new int[2];
 			result[CULL_DATA_CHUNK_BOUNDS] = PackedBox.FULL_BOX;
-			result[CULL_DATA_FAR_COUNT] = 1;
-			result[CULL_DATA_FIRST_FAR] = PackedBox.FULL_BOX;
+			result[CULL_DATA_FIRST_BOX] = PackedBox.FULL_BOX;
 			return result;
 		} else {
 			return computeOcclusion();
@@ -485,12 +471,7 @@ public abstract class OcclusionRegion {
 	}
 
 	public static final int CULL_DATA_CHUNK_BOUNDS = 0;
-	public static final int CULL_DATA_FAR_COUNT = 1;
-	public static final int CULL_DATA_FIRST_FAR = 2;
-
-	public static final int firstNearIndex(int[] visData) {
-		return visData[CULL_DATA_FAR_COUNT] + CULL_DATA_FIRST_FAR;
-	}
+	public static final int CULL_DATA_FIRST_BOX = 1;
 
 	public static final int[] EMPTY_CULL_DATA = {PackedBox.EMPTY_BOX};
 }
