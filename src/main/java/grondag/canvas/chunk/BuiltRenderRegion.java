@@ -42,6 +42,7 @@ import grondag.canvas.chunk.occlusion.PackedBox;
 import grondag.canvas.material.MaterialContext;
 import grondag.canvas.material.MaterialState;
 import grondag.canvas.perf.ChunkRebuildCounters;
+import grondag.canvas.render.CanvasFrustum;
 
 @Environment(EnvType.CLIENT)
 public class BuiltRenderRegion {
@@ -60,7 +61,8 @@ public class BuiltRenderRegion {
 	private Solid solidDrawable;
 	// UGLY: encapsulate
 	public boolean canRenderTerrain;
-	public boolean isInFrustum;
+	private int frustumVersion;
+	private boolean frustumResult;
 	public int visibleNeighborFrameIndex;
 
 	int squaredCameraDistance;
@@ -79,6 +81,23 @@ public class BuiltRenderRegion {
 		origin = new BlockPos.Mutable(-1, -1, -1);
 	}
 
+	/**
+	 * Assumes camera distance update has already happened
+	 */
+	public boolean isInFrustum(CanvasFrustum frustum) {
+		final int v = frustum.version();
+
+		if (v == frustumVersion) {
+			return frustumResult;
+		} else {
+			frustumVersion = v;
+			//  PERF: implement hierarchical tests with propagation of per-plane inside test results
+			final boolean result = frustum.isChunkVisible(this);
+			frustumResult = result;
+			return result;
+		}
+	}
+
 	public boolean mayBeVisible() {
 		return visibleNeighborFrameIndex == frameIndex;
 	}
@@ -89,6 +108,7 @@ public class BuiltRenderRegion {
 	public void setVisible() {
 		final int index = frameIndex;
 		final BuiltRenderRegion regions[] = storage.regions();
+		visibleNeighborFrameIndex = index;
 
 		for (final int i : neighborIndices) {
 			if (i != -1) {

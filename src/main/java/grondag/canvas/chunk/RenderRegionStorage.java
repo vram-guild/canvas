@@ -7,8 +7,6 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 
-import grondag.canvas.render.CanvasFrustum;
-
 public class RenderRegionStorage {
 	private int sizeY;
 	private int sizeX;
@@ -61,8 +59,8 @@ public class RenderRegionStorage {
 		}
 	}
 
-	public int getRegionIndex(int i, int j, int k) {
-		return (k * sizeY + j) * sizeX + i;
+	public int getRegionIndex(int x, int y, int z) {
+		return (z * sizeY + y) * sizeX + x;
 	}
 
 	private void setViewDistance(int i) {
@@ -73,22 +71,22 @@ public class RenderRegionStorage {
 	}
 
 	public void updateRegionOrigins(double playerX, double playerZ) {
-		final int i = MathHelper.floor(playerX);
-		final int j = MathHelper.floor(playerZ);
+		final int cx = MathHelper.floor(playerX);
+		final int cz = MathHelper.floor(playerZ);
 
-		for(int k = 0; k < sizeX; ++k) {
-			final int l = sizeX * 16;
-			final int m = i - 8 - l / 2;
-			final int x = m + Math.floorMod(k * 16 - m, l);
+		for(int dx = 0; dx < sizeX; ++dx) {
+			final int xDist = sizeX * 16;
+			final int dcx = cx - 8 - xDist / 2;
+			final int x = dcx + Math.floorMod(dx * 16 - dcx, xDist);
 
-			for(int o = 0; o < sizeZ; ++o) {
-				final int p = sizeZ * 16;
-				final int q = j - 8 - p / 2;
-				final int z = q + Math.floorMod(o * 16 - q, p);
+			for(int dz = 0; dz < sizeZ; ++dz) {
+				final int zDist = sizeZ * 16;
+				final int dcz = cz - 8 - zDist / 2;
+				final int z = dcz + Math.floorMod(dz * 16 - dcz, zDist);
 
-				for(int s = 0; s < sizeY; ++s) {
-					final int y = s * 16;
-					final BuiltRenderRegion builtChunk = regions[getRegionIndex(k, s, o)];
+				for(int dy = 0; dy < sizeY; ++dy) {
+					final int y = dy * 16;
+					final BuiltRenderRegion builtChunk = regions[getRegionIndex(dx, dy, dz)];
 					builtChunk.setOrigin(x, y, z);
 				}
 			}
@@ -154,22 +152,6 @@ public class RenderRegionStorage {
 		}
 
 		isSortDirty = true;
-	}
-
-	/**
-	 * Assumes camera distance update has already happened
-	 */
-	public void updateFrustumTest(CanvasFrustum frustum) {
-		if (!frustum.isDirty()) {
-			return;
-		}
-
-		frustum.clearDirty();
-
-		//  PERF: implement hierarchical tests with propagation of per-plane inside test results
-		for (final BuiltRenderRegion chunk : regions) {
-			chunk.isInFrustum = frustum.isChunkVisible(chunk);
-		}
 	}
 
 	public BuiltRenderRegion[] regions() {

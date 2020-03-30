@@ -27,15 +27,18 @@ public class CanvasFrustum extends Frustum {
 	private final Matrix4f mvpMatrix = new Matrix4f();
 	private final Matrix4fExt lastProjectionMatrix = (Matrix4fExt)(Object) new Matrix4f();
 	private final Matrix4fExt lastModelMatrix = (Matrix4fExt)(Object) new Matrix4f();
+	private int version;
 
 	private Frustum testFrustum;
 	private float lastCameraX;
 	private float lastCameraY;
 	private float lastCameraZ;
 
-	private final float[] planes = new float[6 * PLANE_STRIDE];
-
-	private boolean isDirty = false;
+	private float leftX, leftY, leftZ, leftDist;
+	private float rightX, rightY, rightZ, rightDist;
+	private float topX, topY, topZ, topDist;
+	private float bottomX, bottomY, bottomZ, bottomDist;
+	private float nearX, nearY, nearZ, nearDist;
 
 	public CanvasFrustum() {
 		super(dummyMatrix(), dummyMatrix());
@@ -47,18 +50,8 @@ public class CanvasFrustum extends Frustum {
 		return dummt;
 	}
 
-	/**
-	 * True if region tests should be refreshed.
-	 */
-	public boolean isDirty() {
-		return isDirty;
-	}
-
-	/**
-	 * Call after region tests are updated.
-	 */
-	public void clearDirty() {
-		isDirty = false;
+	public int version() {
+		return version;
 	}
 
 	public void prepare(Matrix4f modelMatrix, Matrix4f projectionMatrix, Camera camera) {
@@ -78,7 +71,7 @@ public class CanvasFrustum extends Frustum {
 		lastCameraZ = cz;
 		lastModelMatrix.set(modelMatrix);
 		lastProjectionMatrix.set(projectionMatrix);
-		isDirty = true;
+		++version;
 
 		mvpMatrix.loadIdentity();
 		mvpMatrix.multiply(projectionMatrix);
@@ -98,115 +91,113 @@ public class CanvasFrustum extends Frustum {
 	}
 
 	public boolean isChunkVisible(BuiltRenderRegion region) {
+		CanvasWorldRenderer.innerTimer.start();
+		final boolean result = isChunkVisibleInner(region);
+		CanvasWorldRenderer.innerTimer.stop();
+
+		return result;
+	}
+
+	private boolean isChunkVisibleInner(BuiltRenderRegion region) {
 		final float cx = region.cameraRelativeCenterX;
 		final float cy = region.cameraRelativeCenterY;
 		final float cz = region.cameraRelativeCenterZ;
 
-		return planeAABBIntersect(cx, cy, cz, PLANE_NEAR) != OUTSIDE
-				&& planeAABBIntersect(cx, cy, cz, PLANE_LEFT) != OUTSIDE
-				&& planeAABBIntersect(cx, cy, cz, PLANE_RIGHT) != OUTSIDE
-				&& planeAABBIntersect(cx, cy, cz, PLANE_TOP) != OUTSIDE
-				&& planeAABBIntersect(cx, cy, cz, PLANE_BOTTOM) != OUTSIDE;
-		//				&& planeAABBIntersect(cx, cy, cz, PLANE_FAR) != OUTSIDE;
-	}
-
-	private int planeAABBIntersect(float cx, float cy, float cz, int planeOffset) {
-		final float[] planes = this.planes;
-		final float e = planes[planeOffset + PLANE_EXTENT];
-		final float s = cx * planes[planeOffset + PLANE_NORMAL_X]
-				+ cy * planes[planeOffset + PLANE_NORMAL_Y]
-						+ cz * planes[planeOffset + PLANE_NORMAL_Z]
-								+ planes[planeOffset + PLANE_DISTANCE];
-
-		if(s - e > 0) {
-			return OUTSIDE;
-		} else if(s + e < 0) {
-			return INSIDE;
-		} else {
-			return INTERSECTING;
+		if(cx * leftX + cy * leftY + cz * leftZ + leftDist > 0) {
+			return false;
 		}
-	}
 
-	private static final int OUTSIDE = 0;
-	private static final int INSIDE = 1;
-	private static final int INTERSECTING = 2;
+		if(cx * rightX + cy * rightY + cz * rightZ + rightDist > 0) {
+			return false;
+		}
 
-	private static final int PLANE_NORMAL_X = 0;
-	private static final int PLANE_NORMAL_Y = 1;
-	private static final int PLANE_NORMAL_Z = 2;
-	private static final int PLANE_DISTANCE = 3;
-	private static final int PLANE_EXTENT = 4;
-	private static final int PLANE_STRIDE = PLANE_EXTENT + 1;
+		if(cx * nearX + cy * nearY + cz * nearZ + nearDist > 0) {
+			return false;
+		}
 
-	private static final int PLANE_LEFT = 0;
-	private static final int PLANE_RIGHT = PLANE_STRIDE;
-	private static final int PLANE_TOP = PLANE_STRIDE * 2;
-	private static final int PLANE_BOTTOM = PLANE_STRIDE * 3;
-	private static final int PLANE_NEAR = PLANE_STRIDE * 4;
-	//	private static final int PLANE_FAR = PLANE_STRIDE * 5;
+		if(cx * topX + cy * topY + cz * topZ + topDist > 0) {
+			return false;
+		}
 
-	private void normalizePlane(int planeOffset) {
-		final float[] planes = this.planes;
+		if(cx * bottomX + cy * bottomY + cz * bottomZ + bottomDist > 0) {
+			return false;
+		}
 
-		float a  = planes[planeOffset + PLANE_NORMAL_X];
-		float b  = planes[planeOffset + PLANE_NORMAL_Y];
-		float c  = planes[planeOffset + PLANE_NORMAL_Z];
-		float d  = planes[planeOffset + PLANE_DISTANCE];
-
-		final float mag = -1f / (float) Math.sqrt(a * a + b * b + c * c);
-
-		a *= mag;
-		b *= mag;
-		c *= mag;
-		d *= mag;
-
-		planes[planeOffset + PLANE_NORMAL_X] = a;
-		planes[planeOffset + PLANE_NORMAL_Y] = b;
-		planes[planeOffset + PLANE_NORMAL_Z] = c;
-		planes[planeOffset + PLANE_DISTANCE] = d;
-
-		planes[planeOffset + PLANE_EXTENT] = 8 * (Math.abs(a) + Math.abs(b) + Math.abs(c));
+		return true;
 	}
 
 	private void extractPlanes() {
 		final Matrix4fExt matrix = (Matrix4fExt)(Object) mvpMatrix;
-		final float[] planes = this.planes;
 
-		planes[PLANE_LEFT + PLANE_NORMAL_X] = matrix.a30() + matrix.a00();
-		planes[PLANE_LEFT + PLANE_NORMAL_Y] = matrix.a31() + matrix.a01();
-		planes[PLANE_LEFT + PLANE_NORMAL_Z] = matrix.a32() + matrix.a02();
-		planes[PLANE_LEFT + PLANE_DISTANCE] = matrix.a33() + matrix.a03();
+		float a  = matrix.a30() + matrix.a00();
+		float b  = matrix.a31() + matrix.a01();
+		float c  = matrix.a32() + matrix.a02();
+		float d  = matrix.a33() + matrix.a03();
+		float mag = -1f / (float) Math.sqrt(a * a + b * b + c * c);
+		a *= mag;
+		b *= mag;
+		c *= mag;
+		d *= mag;
+		leftX = a;
+		leftY = b;
+		leftZ = c;
+		// subtract maximum extent of box center to corner
+		leftDist = d - 8 * (Math.abs(a) + Math.abs(b) + Math.abs(c));
 
-		planes[PLANE_RIGHT + PLANE_NORMAL_X] = matrix.a30() - matrix.a00();
-		planes[PLANE_RIGHT + PLANE_NORMAL_Y] = matrix.a31() - matrix.a01();
-		planes[PLANE_RIGHT + PLANE_NORMAL_Z] = matrix.a32() - matrix.a02();
-		planes[PLANE_RIGHT + PLANE_DISTANCE] = matrix.a33() - matrix.a03();
+		a  = matrix.a30() - matrix.a00();
+		b  = matrix.a31() - matrix.a01();
+		c  = matrix.a32() - matrix.a02();
+		d  = matrix.a33() - matrix.a03();
+		mag = -1f / (float) Math.sqrt(a * a + b * b + c * c);
+		a *= mag;
+		b *= mag;
+		c *= mag;
+		d *= mag;
+		rightX = a;
+		rightY = b;
+		rightZ = c;
+		rightDist = d - 8 * (Math.abs(a) + Math.abs(b) + Math.abs(c));
 
-		planes[PLANE_TOP + PLANE_NORMAL_X] = matrix.a30() - matrix.a10();
-		planes[PLANE_TOP + PLANE_NORMAL_Y] = matrix.a31() - matrix.a11();
-		planes[PLANE_TOP + PLANE_NORMAL_Z] = matrix.a32() - matrix.a12();
-		planes[PLANE_TOP + PLANE_DISTANCE] = matrix.a33() - matrix.a13();
+		a  = matrix.a30() - matrix.a10();
+		b  = matrix.a31() - matrix.a11();
+		c  = matrix.a32() - matrix.a12();
+		d  = matrix.a33() - matrix.a13();
+		mag = -1f / (float) Math.sqrt(a * a + b * b + c * c);
+		a *= mag;
+		b *= mag;
+		c *= mag;
+		d *= mag;
+		topX = a;
+		topY = b;
+		topZ = c;
+		topDist = d - 8 * (Math.abs(a) + Math.abs(b) + Math.abs(c));
 
-		planes[PLANE_BOTTOM + PLANE_NORMAL_X] = matrix.a30() + matrix.a10();
-		planes[PLANE_BOTTOM + PLANE_NORMAL_Y] = matrix.a31() + matrix.a11();
-		planes[PLANE_BOTTOM + PLANE_NORMAL_Z] = matrix.a32() + matrix.a12();
-		planes[PLANE_BOTTOM + PLANE_DISTANCE] = matrix.a33() + matrix.a13();
+		a  = matrix.a30() + matrix.a10();
+		b  = matrix.a31() + matrix.a11();
+		c  = matrix.a32() + matrix.a12();
+		d  = matrix.a33() + matrix.a13();
+		mag = -1f / (float) Math.sqrt(a * a + b * b + c * c);
+		a *= mag;
+		b *= mag;
+		c *= mag;
+		d *= mag;
+		bottomX = a;
+		bottomY = b;
+		bottomZ = c;
+		bottomDist = d - 8 * (Math.abs(a) + Math.abs(b) + Math.abs(c));
 
-		planes[PLANE_NEAR + PLANE_NORMAL_X] = matrix.a30() + matrix.a20();
-		planes[PLANE_NEAR + PLANE_NORMAL_Y] = matrix.a31() + matrix.a21();
-		planes[PLANE_NEAR + PLANE_NORMAL_Z] = matrix.a32() + matrix.a22();
-		planes[PLANE_NEAR + PLANE_DISTANCE] = matrix.a33() + matrix.a23();
-
-		//		planes[PLANE_FAR + PLANE_NORMAL_X] = matrix.a30() - matrix.a20();
-		//		planes[PLANE_FAR + PLANE_NORMAL_Y] = matrix.a31() - matrix.a21();
-		//		planes[PLANE_FAR + PLANE_NORMAL_Z] = matrix.a32() - matrix.a22();
-		//		planes[PLANE_FAR + PLANE_DISTANCE] = matrix.a33() - matrix.a23();
-
-		normalizePlane(PLANE_LEFT);
-		normalizePlane(PLANE_RIGHT);
-		normalizePlane(PLANE_TOP);
-		normalizePlane(PLANE_BOTTOM);
-		normalizePlane(PLANE_NEAR);
-		//		normalizePlane(PLANE_FAR);
+		a  = matrix.a30() + matrix.a20();
+		b  = matrix.a31() + matrix.a21();
+		c  = matrix.a32() + matrix.a22();
+		d  = matrix.a33() + matrix.a23();
+		mag = -1f / (float) Math.sqrt(a * a + b * b + c * c);
+		a *= mag;
+		b *= mag;
+		c *= mag;
+		d *= mag;
+		nearX = a;
+		nearY = b;
+		nearZ = c;
+		nearDist = d - 8 * (Math.abs(a) + Math.abs(b) + Math.abs(c));
 	}
 }

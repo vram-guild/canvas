@@ -215,8 +215,6 @@ public class CanvasWorldRenderer {
 			visibleChunkCount = 0;
 			occluder.clearScene();
 
-			chunkStorage.updateFrustumTest(frustum);
-
 			Entity.setRenderDistanceMultiplier(MathHelper.clamp(mc.options.viewDistance / 8.0D, 1.0D, 2.5D));
 			final boolean chunkCullingEnabled = mc.chunkCullingEnabled;
 
@@ -228,7 +226,7 @@ public class CanvasWorldRenderer {
 				}
 
 				// don't visit if not in frustum
-				if(!builtChunk.isInFrustum) {
+				if(!builtChunk.isInFrustum(frustum)) {
 					continue;
 				}
 

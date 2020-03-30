@@ -14,7 +14,6 @@ import net.minecraft.util.math.Vec3d;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
-import grondag.canvas.render.CanvasWorldRenderer;
 
 public abstract class AbstractTerrainOccluder {
 	protected final long[] lowBins = new long[LOW_BIN_COUNT];
@@ -87,8 +86,6 @@ public abstract class AbstractTerrainOccluder {
 	protected int abLow2;
 
 	public final boolean isChunkVisible()  {
-		CanvasWorldRenderer.innerTimer.start();
-
 		computeProjectedBoxBounds(0, 0, 0, 16, 16, 16);
 
 		final boolean result =
@@ -101,8 +98,6 @@ public abstract class AbstractTerrainOccluder {
 
 				|| (offsetZ < -16 && testQuad(v001, v101, v111, v011)) // south
 				|| (offsetZ > 0 && testQuad(v100, v000, v010, v110)); // north
-
-		CanvasWorldRenderer.innerTimer.stop();
 
 		return result;
 	}
