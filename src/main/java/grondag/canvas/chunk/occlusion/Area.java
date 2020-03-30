@@ -11,6 +11,7 @@ public class Area {
 	public final int areaSize;
 	public final int edgeCount;
 	public final long areaHash;
+	public final int index;
 
 	private final long[] bits = new long[4];
 
@@ -58,8 +59,9 @@ public class Area {
 		targetBits[++startIndex] &= ~bits[3];
 	}
 
-	public Area(int rectKey) {
+	public Area(int rectKey, int index) {
 		areaKey = rectKey;
+		this.index = index;
 		x0 = rectKey & 31;
 		y0 = (rectKey >> 5) & 31;
 		x1 = (rectKey >> 10) & 31;

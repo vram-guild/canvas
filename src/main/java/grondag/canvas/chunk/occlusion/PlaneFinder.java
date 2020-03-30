@@ -134,9 +134,9 @@ public class PlaneFinder {
 		int apply(Area a, int d);
 	}
 
-	private static final PlaneFunction Z_FUNC = (a, d) -> PackedBox.pack(a.x0, a.y0, d, a.x1 + 1, a.y1 + 1, d);
-	private static final PlaneFunction X_FUNC = (a, d) -> PackedBox.pack(d, a.y0, a.x0, d, a.y1 + 1, a.x1 + 1);
-	private static final PlaneFunction Y_FUNC = (a, d) -> PackedBox.pack(a.x0, d, a.y0, a.x1 + 1, d, a.y1 + 1);
+	private static final PlaneFunction Z_FUNC = (a, d) -> PackedBox.pack(a.x0, a.y0, d, a.x1 + 1, a.y1 + 1, d, 0);
+	private static final PlaneFunction X_FUNC = (a, d) -> PackedBox.pack(d, a.y0, a.x0, d, a.y1 + 1, a.x1 + 1, 0);
+	private static final PlaneFunction Y_FUNC = (a, d) -> PackedBox.pack(a.x0, d, a.y0, a.x1 + 1, d, a.y1 + 1, 0);
 
 	private void findPlanes(PlaneFunction planeFunc) {
 		final long[] fillBits =  this.fillBits;

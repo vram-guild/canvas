@@ -203,6 +203,14 @@ public class CanvasWorldRenderer {
 		int visibleChunkCount = this.visibleChunkCount;
 
 		if (wr.canvas_checkNeedsTerrainUpdate(cameraPos, camera.getPitch(), camera.getYaw())) {
+			BuiltRenderRegion.advanceFrameIndex();
+
+			if (cameraChunk != null) {
+				cameraChunk.setVisible();
+			}
+
+			// TODO: prime visible when above or below world and camera chunk is null
+
 			wr.canvas_setNeedsTerrainUpdate(false);
 			visibleChunkCount = 0;
 			occluder.clearScene();
@@ -215,6 +223,10 @@ public class CanvasWorldRenderer {
 			mc.getProfiler().push("iteration");
 
 			for(final BuiltRenderRegion builtChunk : chunkStorage.sortedRegions()) {
+				if (!builtChunk.mayBeVisible()) {
+					continue;
+				}
+
 				// don't visit if not in frustum
 				if(!builtChunk.isInFrustum) {
 					continue;
@@ -228,13 +240,13 @@ public class CanvasWorldRenderer {
 				occluder.prepareChunk(builtChunk.getOrigin());
 
 				if (!chunkCullingEnabled || builtChunk == cameraChunk || occluder.isChunkVisible()) {
+					builtChunk.setVisible();
 					visibleChunks[visibleChunkCount++] = builtChunk;
 					final RegionData regionData = builtChunk.getBuildData();
 					final int[] visData =  regionData.getOcclusionData();
 
 					if (visData == null) {
 						builtChunk.canRenderTerrain = false;
-						occluder.occludeChunk();
 					} else {
 						final int chunkRenderBounds = visData[OcclusionRegion.CULL_DATA_CHUNK_BOUNDS];
 

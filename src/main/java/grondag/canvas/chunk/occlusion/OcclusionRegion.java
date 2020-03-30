@@ -359,7 +359,7 @@ public abstract class OcclusionRegion {
 				result[CULL_DATA_CHUNK_BOUNDS] = PackedBox.FULL_BOX;
 			} else {
 				result[CULL_DATA_CHUNK_BOUNDS] = PackedBox.pack(minRenderableX, minRenderableY, minRenderableZ,
-						maxRenderableX + 1, maxRenderableY + 1, maxRenderableZ + 1);
+						maxRenderableX + 1, maxRenderableY + 1, maxRenderableZ + 1, PackedBox.RANGE_FAR);
 			}
 		}
 

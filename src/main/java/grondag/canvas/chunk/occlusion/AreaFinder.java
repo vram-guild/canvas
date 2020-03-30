@@ -41,7 +41,7 @@ public class AreaFinder {
 		int i = 0;
 
 		for(final int k : keys) {
-			AREA[i++] = new Area(k);
+			AREA[i++] = new Area(k, 0);
 		}
 
 		Arrays.sort(AREA, (a, b) -> {
@@ -50,6 +50,11 @@ public class AreaFinder {
 			// within same area size, prefer more compact rectangles
 			return result == 0 ? Integer.compare(a.edgeCount, b.edgeCount) : result;
 		});
+
+		// PERF: minor, but sort keys instead array to avoid extra alloc at startup
+		for (int j = 0; j < AREA_COUNT; j++) {
+			AREA[j] = new Area(AREA[j].areaKey, j);
+		}
 	}
 
 	final long[] bits = new long[4];
@@ -61,13 +66,12 @@ public class AreaFinder {
 		final long[] bits = this.bits;
 		System.arraycopy(bitsIn, sourceIndex, bits, 0, 4);
 
-		long hash = AreaUtil.areaHash(bits);
+		final long hash = AreaUtil.areaHash(bits);
 
 		for(final Area r : AREA) {
 			if (r.matchesHash(hash) && r.isIncludedBySample(bits, 0)) {
 				areas.add(r);
 				r.clearBits(bits, 0);
-				hash = AreaUtil.areaHash(bits);
 
 				if (hash == 0) {
 					break;
@@ -79,13 +83,8 @@ public class AreaFinder {
 	// PERF: start later in search for smaller samples
 	// or search by hash
 	public Area findLargest(long[] bitsIn, int sourceIndex) {
-		final long[] bits = this.bits;
-		System.arraycopy(bitsIn, sourceIndex, bits, 0, 4);
-
-		final long hash = AreaUtil.areaHash(bits);
-
 		for(final Area r : AREA) {
-			if (r.matchesHash(hash) && r.isIncludedBySample(bits, 0)) {
+			if (r.isIncludedBySample(bitsIn, sourceIndex)) {
 				return r;
 			}
 		}

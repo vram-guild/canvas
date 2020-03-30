@@ -15,19 +15,10 @@ public abstract class PackedBox {
 	public static final int RANGE_MID = 1;
 	public static final int RANGE_FAR = 2;
 
-	public static int pack(int x0, int y0, int z0, int x1, int y1, int z1) {
+	public static int pack(int x0, int y0, int z0, int x1, int y1, int z1, int range) {
 		return x0 | (y0 << SHIFT_Y0) | (z0 << SHIFT_Z0)
 				| ((x1) << SHIFT_X1) | ((y1) << SHIFT_Y1) | ((z1) << SHIFT_Z1)
-				| (computeRange(x0, y0, z0, x1, y1, z1) << SHIFT_RANGE);
-	}
-
-	private static int computeRange(int x0, int y0, int z0, int x1, int y1, int z1) {
-		final int dx = x1 - x0;
-		final int dy = y1 - y0;
-		final int dz = z1 - z0;
-
-		final int power = dx * dy * dz;
-		return power < 16 ? RANGE_NEAR : power < 64 ? RANGE_MID : RANGE_FAR;
+				| (range << SHIFT_RANGE);
 	}
 
 	public static int range(int packed) {
@@ -63,7 +54,7 @@ public abstract class PackedBox {
 				+ x1(packed) + ", " + y1(packed) + ", " + z1(packed) + ")";
 	}
 
-	public static final int FULL_BOX = pack(0, 0, 0, 16, 16, 16);
+	public static final int FULL_BOX = pack(0, 0, 0, 16, 16, 16, RANGE_FAR);
 
 	public static final int EMPTY_BOX = 0;
 }

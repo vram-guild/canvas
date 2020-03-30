@@ -46,10 +46,10 @@ import grondag.canvas.perf.ChunkRebuildCounters;
 @Environment(EnvType.CLIENT)
 public class BuiltRenderRegion {
 	private final RenderRegionBuilder renderRegionBuilder;
+	private final RenderRegionStorage storage;
 	private final AtomicReference<RegionData> renderData;
 	private final AtomicReference<RegionData> buildData;
 	private final ObjectOpenHashSet<BlockEntity> localNoCullingBlockEntities = new ObjectOpenHashSet<>();
-	//private int frameIndex;
 	private boolean needsRebuild;
 	private final BlockPos.Mutable origin;
 	private boolean needsImportantRebuild;
@@ -61,6 +61,7 @@ public class BuiltRenderRegion {
 	// UGLY: encapsulate
 	public boolean canRenderTerrain;
 	public boolean isInFrustum;
+	public int visibleNeighborFrameIndex;
 
 	int squaredCameraDistance;
 	public int occlusionRange;
@@ -69,12 +70,31 @@ public class BuiltRenderRegion {
 	public float cameraRelativeCenterY;
 	public float cameraRelativeCenterZ;
 
-	public BuiltRenderRegion(RenderRegionBuilder renderRegionBuilder) {
+	public BuiltRenderRegion(RenderRegionBuilder renderRegionBuilder, RenderRegionStorage storage) {
 		this.renderRegionBuilder = renderRegionBuilder;
+		this.storage = storage;
 		buildData = new AtomicReference<>(RegionData.EMPTY);
 		renderData = new AtomicReference<>(RegionData.EMPTY);
 		needsRebuild = true;
 		origin = new BlockPos.Mutable(-1, -1, -1);
+	}
+
+	public boolean mayBeVisible() {
+		return visibleNeighborFrameIndex == frameIndex;
+	}
+
+	/**
+	 * Only works if has a visible neighbor unless force is used.
+	 */
+	public void setVisible() {
+		final int index = frameIndex;
+		final BuiltRenderRegion regions[] = storage.regions();
+
+		for (final int i : neighborIndices) {
+			if (i != -1) {
+				regions[i].visibleNeighborFrameIndex = index;
+			}
+		}
 	}
 
 	public boolean shouldBuild() {
@@ -97,7 +117,7 @@ public class BuiltRenderRegion {
 		return areCornersLoadedCache;
 	}
 
-	public void setOrigin(int x, int y, int z, RenderRegionStorage storage) {
+	public void setOrigin(int x, int y, int z) {
 		if (x != origin.getX() || y != origin.getY() || z != origin.getZ()) {
 			clear();
 			origin.set(x, y, z);
@@ -481,5 +501,11 @@ public class BuiltRenderRegion {
 
 	public boolean isNear() {
 		return squaredCameraDistance < 768;
+	}
+
+	private static int frameIndex;
+
+	public static void advanceFrameIndex() {
+		++frameIndex;
 	}
 }

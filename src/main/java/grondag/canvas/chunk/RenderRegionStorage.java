@@ -42,8 +42,8 @@ public class RenderRegionStorage {
 			for(int k = 0; k < sizeY; ++k) {
 				for(int l = 0; l < sizeZ; ++l) {
 					final int m = getRegionIndex(j, k, l);
-					final BuiltRenderRegion r = new BuiltRenderRegion(regionBuilder);
-					r.setOrigin(j * 16, k * 16, l * 16, this);
+					final BuiltRenderRegion r = new BuiltRenderRegion(regionBuilder, this);
+					r.setOrigin(j * 16, k * 16, l * 16);
 					regions[m] = r;
 					sortedRegions[m] = r;
 				}
@@ -89,7 +89,7 @@ public class RenderRegionStorage {
 				for(int s = 0; s < sizeY; ++s) {
 					final int y = s * 16;
 					final BuiltRenderRegion builtChunk = regions[getRegionIndex(k, s, o)];
-					builtChunk.setOrigin(x, y, z, this);
+					builtChunk.setOrigin(x, y, z);
 				}
 			}
 		}

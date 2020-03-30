@@ -36,8 +36,8 @@ class BoxFinderTest {
 		}
 
 		assert boxes.size() == 2;
-		assert boxes.getInt(0) == PackedBox.pack(0, 0, 0, 9, 9, 9);
-		assert boxes.getInt(1) == PackedBox.pack(8, 8, 8, 16, 16, 16);
+		assert boxes.getInt(0) == PackedBox.pack(0, 0, 0, 9, 9, 9, 0);
+		assert boxes.getInt(1) == PackedBox.pack(8, 8, 8, 16, 16, 16, 0);
 
 		Arrays.fill(words, 0);
 
@@ -45,7 +45,7 @@ class BoxFinderTest {
 
 		finder.findBoxes(words, 0);
 
-		assert boxes.size() == 1 && boxes.getInt(0) == PackedBox.pack(0, 0, 0, 3, 3, 3);
+		assert boxes.size() == 1 && boxes.getInt(0) == PackedBox.pack(0, 0, 0, 3, 3, 3, 0);
 	}
 
 	void fill (int x0, int y0, int z0, int x1, int y1, int z1) {

@@ -4,13 +4,15 @@ import static grondag.canvas.chunk.RenderRegionAddressHelper.INTERIOR_CACHE_WORD
 import static grondag.canvas.chunk.RenderRegionAddressHelper.SLICE_WORD_COUNT;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.longs.LongArrayList;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 public class BoxFinder {
 	final long[] combined = new long[COMBINED_WORD_COUNT];
 	final long[] filled = new long[INTERIOR_CACHE_WORDS];
 
-	//private final IntArrayList sortedBoxes = new IntArrayList();
 	public final IntArrayList boxes = new IntArrayList();
+	private final LongArrayList sortedBoxes = new LongArrayList();
 
 	public final AreaFinder areaFinder;
 
@@ -20,68 +22,125 @@ public class BoxFinder {
 
 	public void findBoxes(long[] sourceBits, int sourceIndex) {
 		final AreaFinder areaFinder = this.areaFinder;
+		final ObjectArrayList<Area> areas = areaFinder.areas;
 		final long[] combined = this.combined;
-		final IntArrayList boxes = this.boxes;
-		boxes.clear();
+
+		final LongArrayList sortedBoxes = this.sortedBoxes;
+		sortedBoxes.clear();
+		System.arraycopy(OcclusionRegion.EMPTY_BITS, 0, filled, 0, INTERIOR_CACHE_WORDS);
+
+		// PERF: fill concave bits
 		loadCombined(sourceBits, sourceIndex);
 
-		do {
-			int priorOffset = SLICE_OFFSET[16];
+		int voxelCount = voxelCount();
 
-			int z0 = -1;
-			int z1 = -1;
-			Area maxArea = areaFinder.findLargest(combined, priorOffset);
-			int maxVol = -1;
+		int priorOffset = SLICE_OFFSET[16];
 
-			if (maxArea != null) {
-				z0 = 0;
-				z1 = 16;
-				maxVol = 16 * maxArea.areaSize;
+		areaFinder.find(combined, priorOffset);
+
+		if (!areas.isEmpty()) {
+			for (final Area area : areas) {
+				final long vol = area.areaSize * 16;
+				sortedBoxes.add((vol << 34) | (area.index << 10) | 0b1000000000);
 			}
+		}
 
-			for (int depth = 15; depth >= 1; depth--) {
-				final int thisOffset = SLICE_OFFSET[depth];
-				final int sliceCount = sliceCount(depth);
+		for (int depth = 15; depth >= 1; depth--) {
+			final int thisOffset = SLICE_OFFSET[depth];
+			final int sliceCount = sliceCount(depth);
 
-				for (int slice = 0; slice < sliceCount; slice++) {
-					final Area a = areaFinder.findLargest(combined, thisOffset + (slice << 2));
+			for (int z0 = 0; z0 < sliceCount; z0++) {
+				areaFinder.find(combined, thisOffset + (z0 << 2));
+				final int z1 = z0 + depth;
 
-					if (a != null) {
-						final int v = depth * a.areaSize;
-
-						if (v > maxVol) {
-							maxVol = v;
-							z0 = slice;
-							z1 = slice + depth;
-							maxArea = a;
+				if (!areas.isEmpty()) {
+					for (final Area area : areas) {
+						if (!includedInAnyParent(area, depth, z0)) {
+							final long vol = area.areaSize * depth;
+							sortedBoxes.add((vol << 34) | (area.index << 10) | (z1 << 5) | z0);
 						}
 					}
 				}
-
-				priorOffset = thisOffset;
 			}
 
-			if (maxVol == -1) {
-				break;
-			} else {
-				boxes.add(PackedBox.pack(maxArea.x0, maxArea.y0, z0, maxArea.x1 + 1, maxArea.y1 + 1, z1));
-				clear(maxArea, z0, z1);
+			priorOffset = thisOffset;
+		}
+
+		sortedBoxes.sort((a,b) -> Long.compare(b, a));
+
+		final int limit = sortedBoxes.size();
+		final IntArrayList boxes = this.boxes;
+		boxes.clear();
+
+		for (int i = 0; i < limit; i++) {
+			final long box = sortedBoxes.getLong(i);
+			final Area area =  areaFinder.get((int) (box >> 10) & 0xFFFFFF);
+			final int z0 = (int) box & 31;
+			final int z1 = (int) (box >> 5) & 31;
+
+			if (!intersects(area, z0, z1)) {
+				fill(area, z0, z1);
+				final int vol = (int) (box >>> 34);
+				boxes.add(PackedBox.pack(area.x0, area.y0, z0, area.x1 + 1, area.y1 + 1, z1, range(vol)));
+				voxelCount -= vol;
+
+				if (voxelCount == 0) {
+					break;
+				}
 			}
-
-			combine();
-		} while (true);
-
-		//boxes.sort((a, b) -> Integer.compare(b, a));
+		}
 	}
 
-	private void clear(Area a, int z0, int z1) {
+	private int voxelCount() {
 		final long[] combined = this.combined;
+		int result = 0;
 
+		for (int i = 0; i < INTERIOR_CACHE_WORDS; ++i) {
+			final long bits = combined[i];
+			result +=  bits == 0 ? 0 : bits == -1 ? 64 : Long.bitCount(bits);
+		}
+
+		return result;
+	}
+
+	private  int range(int volume) {
+		return volume < 16 ? PackedBox.RANGE_NEAR : volume < 64 ? PackedBox.RANGE_MID : PackedBox.RANGE_FAR;
+	}
+
+	private boolean includedInAnyParent(Area area, int childSlideDepth, int childSliceIndex) {
+		if (childSliceIndex == 0) {
+			return area.isIncludedBySample(combined, SLICE_OFFSET[childSlideDepth + 1]);
+		} else if (childSliceIndex == 16 - childSlideDepth) {
+			return area.isIncludedBySample(combined, SLICE_OFFSET[childSlideDepth + 1] + ((childSliceIndex - 1) << 2));
+		} else {
+			final int parentOffset = SLICE_OFFSET[childSlideDepth + 1] + (childSliceIndex << 2);
+			return area.isIncludedBySample(combined, parentOffset) || area.isIncludedBySample(combined, parentOffset - 4);
+		}
+	}
+
+	private void fill(Area a, int z0, int z1) {
+		final long[] filled = this.filled;
 		int index = z0 * SLICE_WORD_COUNT;
+
 		for  (int z = z0; z < z1; ++z) {
-			a.clearBits(combined, index);
+			a.setBits(filled, index);
 			index += SLICE_WORD_COUNT;
 		}
+	}
+
+	private boolean intersects(Area a, int z0, int z1) {
+		final long[] filled = this.filled;
+		int index = z0 * SLICE_WORD_COUNT;
+
+		for  (int z = z0; z < z1; ++z) {
+			if (a.intersectsWithSample(filled, index)) {
+				return true;
+			}
+
+			index += SLICE_WORD_COUNT;
+		}
+
+		return false;
 	}
 
 	public void loadCombined(long[] voxels, int sourceIndex) {

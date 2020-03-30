@@ -12,7 +12,7 @@ class PackedBoxTest {
 	@Test
 	void test() {
 
-		assert PackedBox.pack(0, 0, 0, 16, 16, 16) == PackedBox.FULL_BOX;
+		assert PackedBox.pack(0, 0, 0, 16, 16, 16, PackedBox.RANGE_FAR) == PackedBox.FULL_BOX;
 
 		final Random r = ThreadLocalRandom.current();
 
@@ -25,7 +25,7 @@ class PackedBoxTest {
 			final int y1 = Math.min(16, y0 + r.nextInt(15) + 1);
 			final int z1 = Math.min(16, z0 + r.nextInt(15) + 1);
 
-			final int bounds = PackedBox.pack(x0, y0, z0, x1, y1, z1);
+			final int bounds = PackedBox.pack(x0, y0, z0, x1, y1, z1, 0);
 
 			assert PackedBox.x0(bounds) == x0;
 			assert PackedBox.y0(bounds) ==  y0;
