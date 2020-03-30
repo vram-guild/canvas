@@ -1,6 +1,7 @@
 package grondag.canvas.chunk.occlusion;
 
 import java.util.Arrays;
+import java.util.function.Consumer;
 
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
@@ -74,6 +75,32 @@ public class AreaFinder {
 				r.clearBits(bits, 0);
 
 				if (hash == 0) {
+					break;
+				}
+			}
+		}
+	}
+
+	public void find(long[] bitsIn, int sourceIndex, Consumer<Area> consumer) {
+		areas.clear();
+		final long[] bits = this.bits;
+		System.arraycopy(bitsIn, sourceIndex, bits, 0, 4);
+
+		int bitCount = Long.bitCount(bits[0]) +  Long.bitCount(bits[1]) +  Long.bitCount(bits[2]) +  Long.bitCount(bits[3]);
+
+		if (bitCount == 0) {
+			return;
+		}
+
+		final long hash = AreaUtil.areaHash(bits);
+
+		for(final Area r : AREA) {
+			if (r.matchesHash(hash) && r.isIncludedBySample(bits, 0)) {
+				consumer.accept(r);
+				r.clearBits(bits, 0);
+				bitCount -= r.areaSize;
+
+				if (bitCount == 0) {
 					break;
 				}
 			}
