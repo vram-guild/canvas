@@ -1,5 +1,7 @@
 package grondag.canvas.chunk.occlusion;
 
+import grondag.canvas.render.CanvasWorldRenderer;
+
 // Some elements are adapted from content found at
 // https://fgiesen.wordpress.com/2013/02/17/optimizing-sw-occlusion-culling-index/
 // by Fabian “ryg” Giesen. That content is in the public domain.
@@ -142,7 +144,7 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 						final long mask = pixelMask(midX, midY);
 
 						if ((word & mask) == 0 && drawTriMid(midX, midY)) {
-							word |= pixelMask(midX, midY);
+							word |= mask;
 						}
 					}
 				}
@@ -186,7 +188,6 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 	 */
 	private boolean drawTriMid(final int midX, final int midY) {
 		final int index = midIndex(midX, midY);
-		long word = midBins[index];
 
 		final int binOriginX = midX << MID_AXIS_SHIFT;
 		final int binOriginY = midY << MID_AXIS_SHIFT;
@@ -212,14 +213,17 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 			return true;
 		}
 
-		final int baseX = midX << LOW_AXIS_SHIFT;
-		final int baseY = midY << LOW_AXIS_SHIFT;
-
+		long word = midBins[index];
 		coverage &= ~word;
 
 		if (coverage == 0) {
 			return false;
 		}
+
+		final int baseX = midX << LOW_AXIS_SHIFT;
+		final int baseY = midY << LOW_AXIS_SHIFT;
+
+		CanvasWorldRenderer.innerTimer.start();
 
 		long mask = 1;
 
@@ -232,16 +236,13 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		}
 
 		midBins[index] = word;
+
+		CanvasWorldRenderer.innerTimer.stop();
+
 		return word == -1L;
 	}
 
 	private boolean isTriMidCovered(int minX, int minY) {
-		final int a0 = this.a0;
-		final int b0 = this.b0;
-		final int a1 = this.a1;
-		final int b1 = this.b1;
-		final int a2 = this.a2;
-		final int b2 = this.b2;
 		final int dx = minX - minPixelX;
 		final int dy = minY - minPixelY;
 		final int w0_row = wOrigin0 + dx * a0 + dy * b0;
@@ -260,29 +261,42 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 
 	private boolean drawTriLow(int lowX, int lowY) {
 		final int index = lowIndex(lowX, lowY);
-		long word = lowBins[index];
-
-		if (word == -1L) {
-			// if bin fully occluded nothing to do
-			return true;
-		}
 
 		final int binOriginX = lowX << LOW_AXIS_SHIFT;
 		final int binOriginY = lowY << LOW_AXIS_SHIFT;
-		final int minX = Math.max(minPixelX, binOriginX);
+		final int minPixelX = this.minPixelX;
+		final int minPixelY = this.minPixelY;
+
+		final int minX = minPixelX < binOriginX ? binOriginX : minPixelX;
+		final int minY = minPixelY < binOriginY ? binOriginY : minPixelY;
 		final int maxX = Math.min(maxPixelX, binOriginX + LOW_BIN_PIXEL_DIAMETER - 1);
-		final int minY = Math.max(minPixelY, binOriginY);
 		final int maxY = Math.min(maxPixelY, binOriginY + LOW_BIN_PIXEL_DIAMETER - 1);
-		final int x0 = minX & LOW_BIN_PIXEL_INDEX_MASK;
-		final int x1 = maxX & LOW_BIN_PIXEL_INDEX_MASK;
-		final int y0 = minY & LOW_BIN_PIXEL_INDEX_MASK;
-		final int y1 = maxY & LOW_BIN_PIXEL_INDEX_MASK;
+
+		long coverage = coverageMask(minX & 7, minY & 7, maxX & 7, maxY & 7);
+
+		// if filling whole bin then do it quick
+		if ((coverage & CORNER_COVERAGE_MASK) == CORNER_COVERAGE_MASK && isTriLowCovered(minX,  minY)) {
+			lowBins[index] = -1;
+			return true;
+		}
+
+		long word = lowBins[index];
+		coverage &= ~word;
+
+		if (coverage == 0) {
+			return false;
+		}
+
 		final int a0 = this.a0;
 		final int b0 = this.b0;
 		final int a1 = this.a1;
 		final int b1 = this.b1;
 		final int a2 = this.a2;
 		final int b2 = this.b2;
+		final int x0 = minX & LOW_BIN_PIXEL_INDEX_MASK;
+		final int x1 = maxX & LOW_BIN_PIXEL_INDEX_MASK;
+		final int y0 = minY & LOW_BIN_PIXEL_INDEX_MASK;
+		final int y1 = maxY & LOW_BIN_PIXEL_INDEX_MASK;
 		final int dx = minX - minPixelX;
 		final int dy = minY - minPixelY;
 
@@ -290,42 +304,24 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		int w1_row = wOrigin1 + dx * a1 + dy * b1;
 		int w2_row = wOrigin2 + dx * a2 + dy * b2;
 
-		// handle single bin case
-		if (x0 == x1 && y0 == y1) {
-			if (testPixelInWordPreMasked(word, x0, y0)  && (w0_row | w1_row | w2_row) >= 0)  {
-				word |= pixelMask(x0, y0);
-				lowBins[index] = word;
-			}
-
-			return word == -1L;
-		}
-
-		// if filling whole bin then do it quick
-		if ((x0 | y0)== 0 && (x1 & y1) == LOW_BIN_PIXEL_INDEX_MASK) {
-			if ((w0_row | w1_row | w2_row
-					| (w0_row + aLow0) | (w1_row + aLow1) | (w2_row + aLow2)
-					| (w0_row + bLow0) | (w1_row + bLow1) | (w2_row + bLow2)
-					| (w0_row + abLow0) | (w1_row + abLow1) | (w2_row + abLow2)) >= 0) {
-				lowBins[index] = -1;
-				return true;
-			}
-		}
-
 		for (int y = y0; y <= y1; y++) {
 			int w0 = w0_row;
 			int w1 = w1_row;
 			int w2 = w2_row;
+			long mask = 1L << ((y << BIN_AXIS_SHIFT) | x0);
 
 			for (int x = x0; x <= x1; x++) {
+
 				// If p is on or inside all edges, render pixel.
-				if ((w0 | w1 | w2) >= 0) {
-					word |= (1L << ((y << BIN_AXIS_SHIFT) | x));
+				if ((word & mask) == 0 && (w0 | w1 | w2) >= 0) {
+					word |= mask;
 				}
 
 				// One step to the right
 				w0 += a0;
 				w1 += a1;
 				w2 += a2;
+				mask <<= 1;
 			}
 
 			// One row step
@@ -338,6 +334,22 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		return word == -1L;
 	}
 
+	private boolean isTriLowCovered(int minX, int minY) {
+		final int dx = minX - minPixelX;
+		final int dy = minY - minPixelY;
+		final int w0_row = wOrigin0 + dx * a0 + dy * b0;
+		final int w1_row = wOrigin1 + dx * a1 + dy * b1;
+		final int w2_row = wOrigin2 + dx * a2 + dy * b2;
+
+		if ((w0_row | w1_row | w2_row
+				| (w0_row + aLow0) | (w1_row + aLow1) | (w2_row + aLow2)
+				| (w0_row + bLow0) | (w1_row + bLow1) | (w2_row + bLow2)
+				| (w0_row + abLow0) | (w1_row + abLow1) | (w2_row + abLow2)) >= 0) {
+			return true;
+		} else {
+			return false;
+		}
+	}
 
 
 	@Override
@@ -353,9 +365,9 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		prepareTriScan();
 
 		final int bx0 = minPixelX >> TOP_AXIS_SHIFT;
-					final int bx1 = maxPixelX >> TOP_AXIS_SHIFT;
-					final int by0 = minPixelY >> TOP_AXIS_SHIFT;
-		final int by1 = maxPixelY >> TOP_AXIS_SHIFT;
+				final int bx1 = maxPixelX >> TOP_AXIS_SHIFT;
+			final int by0 = minPixelY >> TOP_AXIS_SHIFT;
+			final int by1 = maxPixelY >> TOP_AXIS_SHIFT;
 
 		if (bx0 == bx1 && by0 == by1) {
 			return testTriTop(bx0, by0);
@@ -393,43 +405,43 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 				final int midY0 = minY >>> MID_AXIS_SHIFT;
 		final int midY1 = maxY >>> MID_AXIS_SHIFT;
 
-		// handle single bin case
-		if (midX0 == midX1 && midY0 == midY1) {
-			return isPixelClear(word, midX0, midY0) && testTriMid(midX0, midY0);
-		}
-
-		// if checking whole bin then do it quick
-		if (((minX | minY) & TOP_BIN_PIXEL_INDEX_MASK)== 0 && (maxX & maxY & TOP_BIN_PIXEL_INDEX_MASK) == TOP_BIN_PIXEL_INDEX_MASK) {
-			final int a0 = this.a0;
-			final int b0 = this.b0;
-			final int a1 = this.a1;
-			final int b1 = this.b1;
-			final int a2 = this.a2;
-			final int b2 = this.b2;
-			final int dx = binOriginX - minPixelX;
-			final int dy = binOriginY - minPixelY;
-			final int w0_row = wOrigin0 + dx * a0 + dy * b0;
-			final int w1_row = wOrigin1 + dx * a1 + dy * b1;
-			final int w2_row = wOrigin2 + dx * a2 + dy * b2;
-
-			if ((w0_row | w1_row | w2_row
-					| (w0_row + aTop0) | (w1_row + aTop1) | (w2_row + aTop2)
-					| (w0_row + bTop0) | (w1_row + bTop1) | (w2_row + bTop2)
-					| (w0_row + abTop0) | (w1_row + abTop1) | (w2_row + abTop2)) >= 0) {
-				// word already known to be not fully occluded at this point
-				return true;
+			// handle single bin case
+			if (midX0 == midX1 && midY0 == midY1) {
+				return isPixelClear(word, midX0, midY0) && testTriMid(midX0, midY0);
 			}
-		}
 
-		for (int midY = midY0; midY <= midY1; midY++) {
-			for (int midX = midX0; midX <= midX1; midX++) {
-				if (isPixelClear(word, midX, midY) && testTriMid(midX, midY)) {
+			// if checking whole bin then do it quick
+			if (((minX | minY) & TOP_BIN_PIXEL_INDEX_MASK)== 0 && (maxX & maxY & TOP_BIN_PIXEL_INDEX_MASK) == TOP_BIN_PIXEL_INDEX_MASK) {
+				final int a0 = this.a0;
+				final int b0 = this.b0;
+				final int a1 = this.a1;
+				final int b1 = this.b1;
+				final int a2 = this.a2;
+				final int b2 = this.b2;
+				final int dx = binOriginX - minPixelX;
+				final int dy = binOriginY - minPixelY;
+				final int w0_row = wOrigin0 + dx * a0 + dy * b0;
+				final int w1_row = wOrigin1 + dx * a1 + dy * b1;
+				final int w2_row = wOrigin2 + dx * a2 + dy * b2;
+
+				if ((w0_row | w1_row | w2_row
+						| (w0_row + aTop0) | (w1_row + aTop1) | (w2_row + aTop2)
+						| (w0_row + bTop0) | (w1_row + bTop1) | (w2_row + bTop2)
+						| (w0_row + abTop0) | (w1_row + abTop1) | (w2_row + abTop2)) >= 0) {
+					// word already known to be not fully occluded at this point
 					return true;
 				}
 			}
-		}
 
-		return false;
+			for (int midY = midY0; midY <= midY1; midY++) {
+				for (int midX = midX0; midX <= midX1; midX++) {
+					if (isPixelClear(word, midX, midY) && testTriMid(midX, midY)) {
+						return true;
+					}
+				}
+			}
+
+			return false;
 	}
 
 	/**
@@ -448,7 +460,7 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 
 		final int lowX0 = minX >>> LOW_AXIS_SHIFT;
 		final int lowX1 = maxX >>> LOW_AXIS_SHIFT;
-			final int lowY0 = minY >>> LOW_AXIS_SHIFT;
+				final int lowY0 = minY >>> LOW_AXIS_SHIFT;
 		final int lowY1 = maxY >>> LOW_AXIS_SHIFT;
 
 		// handle single bin case

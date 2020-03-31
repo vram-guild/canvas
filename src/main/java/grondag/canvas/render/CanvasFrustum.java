@@ -91,14 +91,6 @@ public class CanvasFrustum extends Frustum {
 	}
 
 	public boolean isChunkVisible(BuiltRenderRegion region) {
-		CanvasWorldRenderer.innerTimer.start();
-		final boolean result = isChunkVisibleInner(region);
-		CanvasWorldRenderer.innerTimer.stop();
-
-		return result;
-	}
-
-	private boolean isChunkVisibleInner(BuiltRenderRegion region) {
 		final float cx = region.cameraRelativeCenterX;
 		final float cy = region.cameraRelativeCenterY;
 		final float cz = region.cameraRelativeCenterZ;

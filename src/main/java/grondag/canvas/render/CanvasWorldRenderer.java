@@ -207,6 +207,7 @@ public class CanvasWorldRenderer {
 		int visibleChunkCount = this.visibleChunkCount;
 
 		if (wr.canvas_checkNeedsTerrainUpdate(cameraPos, camera.getPitch(), camera.getYaw())) {
+			outerTimer.start();
 			BuiltRenderRegion.advanceFrameIndex();
 			final ObjectHeapPriorityQueue<BuiltRenderRegion> regionQueue = this.regionQueue;
 			regionQueue.enqueue(cameraChunk);
@@ -264,6 +265,8 @@ public class CanvasWorldRenderer {
 
 			this.visibleChunkCount = visibleChunkCount;
 			mc.getProfiler().pop();
+
+			stopOuterTimer();
 		}
 
 		occluder.outputRaster();
@@ -326,8 +329,6 @@ public class CanvasWorldRenderer {
 	}
 
 	public void renderWorld(MatrixStack matrixStack, float f, long startTime, boolean bl, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f projectionMatrix) {
-		outerTimer.start();
-
 		// TODO: remove
 		lastTranlsucentCount = 0;
 		lastSolidCount = 0;
@@ -549,7 +550,6 @@ public class CanvasWorldRenderer {
 
 										wr.canvas_setEntityCount(entityCount);
 
-										stopOuterTimer();
 										return;
 									}
 
