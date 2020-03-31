@@ -472,7 +472,7 @@ public abstract class AbstractTerrainOccluder {
 	 * @return
 	 */
 	protected static long coverageMask(int x0, int y0, int x1, int y1) {
-		return X_COVERAGE_MASKS[coverageMaskIndex(x0, x1)] & Y_COVERAGE_MASKS[coverageMaskIndex(y0, y1)];
+		return COVERAGE_MASKS[x0 | (x1 << 3)] & COVERAGE_MASKS[64 | y0 | (y1 << 3)];
 	}
 
 	protected static void printCoverageMask(long mask) {
@@ -488,14 +488,8 @@ public abstract class AbstractTerrainOccluder {
 		System.out.println();
 	}
 
-	private static int coverageMaskIndex(int min, int max) {
-		return min | (max << 3);
-	}
-
-	private static long X_COVERAGE_MASKS[] = new long[64];
-	private static long Y_COVERAGE_MASKS[] = new long[64];
-
-	protected static final long CORNER_COVERAGE_MASK;
+	//Y starts  at  64
+	private static long COVERAGE_MASKS[] = new long[128];
 
 	static {
 		for (int min = 0; min <= 7; min++) {
@@ -511,14 +505,12 @@ public abstract class AbstractTerrainOccluder {
 						}
 					}
 
-					final int index = coverageMaskIndex(min, max);
-					X_COVERAGE_MASKS[index] = xBits;
-					Y_COVERAGE_MASKS[index] = yBits;
+					final int index = min | (max << 3);
+					COVERAGE_MASKS[index] = xBits;
+					COVERAGE_MASKS[index + 64] = yBits;
 				}
 			}
 		}
-
-		CORNER_COVERAGE_MASK = pixelMask(0, 0) | pixelMask(7, 0) | pixelMask(0, 7) | pixelMask(7, 7);
 	}
 
 	protected static final boolean ENABLE_RASTER_OUTPUT = Configurator.debugOcclusionRaster;

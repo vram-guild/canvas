@@ -17,16 +17,6 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 	private int abMid1;
 	private int abMid2;
 
-	private int aTop0;
-	private int bTop0;
-	private int aTop1;
-	private int bTop1;
-	private int aTop2;
-	private int bTop2;
-	private int abTop0;
-	private int abTop1;
-	private int abTop2;
-
 	@Override
 	protected void prepareTriScan() {
 		super.prepareTriScan();
@@ -40,16 +30,6 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		abMid0 = aMid0 + bMid0;
 		abMid1 = aMid1 + bMid1;
 		abMid2 = aMid2 + bMid2;
-
-		aTop0 = a0 * TOP_BIN_PIXEL_DIAMETER - a0;
-		bTop0 = b0 * TOP_BIN_PIXEL_DIAMETER - b0;
-		aTop1 = a1 * TOP_BIN_PIXEL_DIAMETER - a1;
-		bTop1 = b1 * TOP_BIN_PIXEL_DIAMETER - b1;
-		aTop2 = a2 * TOP_BIN_PIXEL_DIAMETER - a2;
-		bTop2 = b2 * TOP_BIN_PIXEL_DIAMETER - b2;
-		abTop0 = aTop0 + bTop0;
-		abTop1 = aTop1 + bTop1;
-		abTop2 = aTop2 + bTop2;
 	}
 
 	@Override
@@ -103,17 +83,6 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		long coverage = coverageMask((minX >> MID_AXIS_SHIFT) & 7, (minY >> MID_AXIS_SHIFT) & 7,
 				(maxX >> MID_AXIS_SHIFT) & 7, (maxY >> MID_AXIS_SHIFT) & 7);
 
-		// if filling whole bin then do it quick
-		if ((coverage & CORNER_COVERAGE_MASK) == CORNER_COVERAGE_MASK && isTriTopCovered(minX,  minY)) {
-			topBins[index] = -1;
-
-			if (ENABLE_RASTER_OUTPUT) {
-				fillTopBinChildren(topX, topY);
-			}
-
-			return;
-		}
-
 		coverage &= ~word;
 
 		if (coverage == 0) {
@@ -140,41 +109,6 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		}
 
 		topBins[index] = word;
-	}
-
-	private boolean isTriTopCovered(int minX, int minY) {
-		final int dx = minX - minPixelX;
-		final int dy = minY - minPixelY;
-		final int w0_row = wOrigin0 + dx * a0 + dy * b0;
-		final int w1_row = wOrigin1 + dx * a1 + dy * b1;
-		final int w2_row = wOrigin2 + dx * a2 + dy * b2;
-
-		if ((w0_row | w1_row | w2_row
-				| (w0_row + aTop0) | (w1_row + aTop1) | (w2_row + aTop2)
-				| (w0_row + bTop0) | (w1_row + bTop1) | (w2_row + bTop2)
-				| (w0_row + abTop0) | (w1_row + abTop1) | (w2_row + abTop2)) >= 0) {
-			return true;
-		} else {
-			return false;
-		}
-	}
-
-	private void fillTopBinChildren(final int topX, final int topY) {
-		final int midX0 = topX << 3;
-		final int midY0 = topY << 3;
-		final int midX1 = midX0 + 7;
-		final int midY1 = midY0 + 7;
-
-		for (int midY = midY0; midY <= midY1; midY++) {
-			for (int midX = midX0; midX <= midX1; midX++) {
-				final int index = midIndex(midX, midY);
-
-				if (midBins[index] != -1L) {
-					midBins[index] = -1L;
-					fillMidBinChildren(midX, midY);
-				}
-			}
-		}
 	}
 
 	private void fillMidBinChildren(final int midX, final int midY) {
@@ -260,7 +194,7 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		long coverage = coverageMask(lowX0 & 7, lowY0 & 7, lowX1 & 7, lowY1 & 7);
 
 		// optimize whole bin case
-		if ((coverage & CORNER_COVERAGE_MASK) == CORNER_COVERAGE_MASK && isTriMidCovered(minX,  minY)) {
+		if (coverage == -1L && isTriMidCovered(minX,  minY)) {
 			midBins[index] = -1;
 
 			if (ENABLE_RASTER_OUTPUT) {
@@ -478,6 +412,9 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		}
 	}
 
+	//	private final Int2IntOpenHashMap binCounts = new Int2IntOpenHashMap();
+	//	private int counter;
+
 	private boolean drawTriLow(int lowX, int lowY) {
 		final int index = lowIndex(lowX, lowY);
 
@@ -494,7 +431,7 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		long coverage = coverageMask(minX & 7, minY & 7, maxX & 7, maxY & 7);
 
 		// if filling whole bin then do it quick
-		if ((coverage & CORNER_COVERAGE_MASK) == CORNER_COVERAGE_MASK && isTriLowCovered(minX,  minY)) {
+		if (coverage == -1L && isTriLowCovered(minX,  minY)) {
 			lowBins[index] = -1;
 			return true;
 		}
@@ -502,9 +439,21 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		long word = lowBins[index];
 		coverage &= ~word;
 
-		if (coverage == 0) {
+		if (coverage == 0L) {
 			return false;
 		}
+
+		//		final boolean oneRow = minY == maxY;
+		//		final boolean oneCol = minX == maxX;
+		//
+		//		binCounts.addTo(oneRow ? (oneCol ? 0 : 1) : (oneCol ? 2 : 3), 1);
+		//
+		//		if (++counter == 8000000) {
+		//			binCounts.int2IntEntrySet().fastForEach(e -> System.out.println(e.toString()));
+		//			System.out.println();
+		//			counter = 0;
+		//			binCounts.clear();
+		//		}
 
 		final int a0 = this.a0;
 		final int b0 = this.b0;
@@ -629,29 +578,6 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 					return isPixelClear(word, midX0, midY0) && testTriMid(midX0, midY0);
 				}
 
-				// if checking whole bin then do it quick
-				if (((minX | minY) & TOP_BIN_PIXEL_INDEX_MASK)== 0 && (maxX & maxY & TOP_BIN_PIXEL_INDEX_MASK) == TOP_BIN_PIXEL_INDEX_MASK) {
-					final int a0 = this.a0;
-					final int b0 = this.b0;
-					final int a1 = this.a1;
-					final int b1 = this.b1;
-					final int a2 = this.a2;
-					final int b2 = this.b2;
-					final int dx = binOriginX - minPixelX;
-					final int dy = binOriginY - minPixelY;
-					final int w0_row = wOrigin0 + dx * a0 + dy * b0;
-					final int w1_row = wOrigin1 + dx * a1 + dy * b1;
-					final int w2_row = wOrigin2 + dx * a2 + dy * b2;
-
-					if ((w0_row | w1_row | w2_row
-							| (w0_row + aTop0) | (w1_row + aTop1) | (w2_row + aTop2)
-							| (w0_row + bTop0) | (w1_row + bTop1) | (w2_row + bTop2)
-							| (w0_row + abTop0) | (w1_row + abTop1) | (w2_row + abTop2)) >= 0) {
-						// word already known to be not fully occluded at this point
-						return true;
-					}
-				}
-
 				for (int midY = midY0; midY <= midY1; midY++) {
 					for (int midX = midX0; midX <= midX1; midX++) {
 						if (isPixelClear(word, midX, midY) && testTriMid(midX, midY)) {
@@ -680,45 +606,45 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		final int lowX0 = minX >>> LOW_AXIS_SHIFT;
 		final int lowX1 = maxX >>> LOW_AXIS_SHIFT;
 					final int lowY0 = minY >>> LOW_AXIS_SHIFT;
-				final int lowY1 = maxY >>> LOW_AXIS_SHIFT;
+		final int lowY1 = maxY >>> LOW_AXIS_SHIFT;
 
-					// handle single bin case
-					if (lowX0 == lowX1 && lowY0 == lowY1) {
-						return isPixelClear(word, lowX0, lowY0) && testTriLow(lowX0, lowY0);
+			// handle single bin case
+			if (lowX0 == lowX1 && lowY0 == lowY1) {
+				return isPixelClear(word, lowX0, lowY0) && testTriLow(lowX0, lowY0);
+			}
+
+			// if checking whole bin then do it quick
+			if (((minX | minY) & MID_BIN_PIXEL_INDEX_MASK)== 0 && (maxX & maxY & MID_BIN_PIXEL_INDEX_MASK) == MID_BIN_PIXEL_INDEX_MASK) {
+				final int a0 = this.a0;
+				final int b0 = this.b0;
+				final int a1 = this.a1;
+				final int b1 = this.b1;
+				final int a2 = this.a2;
+				final int b2 = this.b2;
+				final int dx = binOriginX - minPixelX;
+				final int dy = binOriginY - minPixelY;
+				final int w0_row = wOrigin0 + dx * a0 + dy * b0;
+				final int w1_row = wOrigin1 + dx * a1 + dy * b1;
+				final int w2_row = wOrigin2 + dx * a2 + dy * b2;
+
+				if ((w0_row | w1_row | w2_row
+						| (w0_row + aMid0) | (w1_row + aMid1) | (w2_row + aMid2)
+						| (w0_row + bMid0) | (w1_row + bMid1) | (w2_row + bMid2)
+						| (w0_row + abMid0) | (w1_row + abMid1) | (w2_row + abMid2)) >= 0) {
+					// word already known to be not fully occluded at this point
+					return true;
+				}
+			}
+
+			for (int lowY = lowY0; lowY <= lowY1; lowY++) {
+				for (int lowX = lowX0; lowX <= lowX1; lowX++) {
+					if (isPixelClear(word, lowX, lowY) && testTriLow(lowX, lowY)) {
+						return true;
 					}
+				}
+			}
 
-					// if checking whole bin then do it quick
-					if (((minX | minY) & MID_BIN_PIXEL_INDEX_MASK)== 0 && (maxX & maxY & MID_BIN_PIXEL_INDEX_MASK) == MID_BIN_PIXEL_INDEX_MASK) {
-						final int a0 = this.a0;
-						final int b0 = this.b0;
-						final int a1 = this.a1;
-						final int b1 = this.b1;
-						final int a2 = this.a2;
-						final int b2 = this.b2;
-						final int dx = binOriginX - minPixelX;
-						final int dy = binOriginY - minPixelY;
-						final int w0_row = wOrigin0 + dx * a0 + dy * b0;
-						final int w1_row = wOrigin1 + dx * a1 + dy * b1;
-						final int w2_row = wOrigin2 + dx * a2 + dy * b2;
-
-						if ((w0_row | w1_row | w2_row
-								| (w0_row + aMid0) | (w1_row + aMid1) | (w2_row + aMid2)
-								| (w0_row + bMid0) | (w1_row + bMid1) | (w2_row + bMid2)
-								| (w0_row + abMid0) | (w1_row + abMid1) | (w2_row + abMid2)) >= 0) {
-							// word already known to be not fully occluded at this point
-							return true;
-						}
-					}
-
-					for (int lowY = lowY0; lowY <= lowY1; lowY++) {
-						for (int lowX = lowX0; lowX <= lowX1; lowX++) {
-							if (isPixelClear(word, lowX, lowY) && testTriLow(lowX, lowY)) {
-								return true;
-							}
-						}
-					}
-
-					return false;
+			return false;
 	}
 
 	private boolean testTriLow(int lowX, int lowY) {
