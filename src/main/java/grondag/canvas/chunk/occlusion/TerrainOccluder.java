@@ -92,64 +92,65 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 
 		final int binOriginX = topX << TOP_AXIS_SHIFT;
 		final int binOriginY = topY << TOP_AXIS_SHIFT;
-		final int minX = Math.max(minPixelX, binOriginX);
+		final int minPixelX = this.minPixelX;
+		final int minPixelY = this.minPixelY;
+
+		final int minX = minPixelX < binOriginX ? binOriginX : minPixelX;
+		final int minY = minPixelY < binOriginY ? binOriginY : minPixelY;
 		final int maxX = Math.min(maxPixelX, binOriginX + TOP_BIN_PIXEL_DIAMETER - 1);
-		final int minY = Math.max(minPixelY, binOriginY);
 		final int maxY = Math.min(maxPixelY, binOriginY + TOP_BIN_PIXEL_DIAMETER - 1);
 
-		final int midX0 = minX >>> MID_AXIS_SHIFT;
-		final int midX1 = maxX >>> MID_AXIS_SHIFT;
-				final int midY0 = minY >>> MID_AXIS_SHIFT;
-				final int midY1 = maxY >>> MID_AXIS_SHIFT;
+		long coverage = coverageMask((minX >> MID_AXIS_SHIFT) & 7, (minY >> MID_AXIS_SHIFT) & 7,
+				(maxX >> MID_AXIS_SHIFT) & 7, (maxY >> MID_AXIS_SHIFT) & 7);
 
-				// handle single bin case
-				if (midX0 == midX1 && midY0 == midY1) {
-					if (isPixelClear(word, midX0, midY0) && drawTriMid(midX0, midY0)) {
-						topBins[index] = word | pixelMask(midX0, midY0);
-					}
+		// if filling whole bin then do it quick
+		if ((coverage & CORNER_COVERAGE_MASK) == CORNER_COVERAGE_MASK && isTriTopCovered(minX,  minY)) {
+			topBins[index] = -1;
 
-					return;
-				}
+			if (ENABLE_RASTER_OUTPUT) {
+				fillTopBinChildren(topX, topY);
+			}
 
-				// if filling whole bin then do it quick
-				if (((minX | minY) & TOP_BIN_PIXEL_INDEX_MASK)== 0 && (maxX & maxY & TOP_BIN_PIXEL_INDEX_MASK) == TOP_BIN_PIXEL_INDEX_MASK) {
-					final int a0 = this.a0;
-					final int b0 = this.b0;
-					final int a1 = this.a1;
-					final int b1 = this.b1;
-					final int a2 = this.a2;
-					final int b2 = this.b2;
-					final int dx = minX - minPixelX;
-					final int dy = minY - minPixelY;
-					final int w0_row = wOrigin0 + dx * a0 + dy * b0;
-					final int w1_row = wOrigin1 + dx * a1 + dy * b1;
-					final int w2_row = wOrigin2 + dx * a2 + dy * b2;
+			return;
+		}
 
-					if ((w0_row | w1_row | w2_row
-							| (w0_row + aTop0) | (w1_row + aTop1) | (w2_row + aTop2)
-							| (w0_row + bTop0) | (w1_row + bTop1) | (w2_row + bTop2)
-							| (w0_row + abTop0) | (w1_row + abTop1) | (w2_row + abTop2)) >= 0) {
-						topBins[index] = -1;
+		coverage &= ~word;
 
-						if (ENABLE_RASTER_OUTPUT) {
-							fillTopBinChildren(topX, topY);
-						}
+		if (coverage == 0) {
+			return;
+		}
 
-						return;
-					}
-				}
+		final int baseX = topX << BIN_AXIS_SHIFT;
+		final int baseY = topY << BIN_AXIS_SHIFT;
 
-				for (int midY = midY0; midY <= midY1; midY++) {
-					for (int midX = midX0; midX <= midX1; midX++) {
-						final long mask = pixelMask(midX, midY);
+		long mask = 1;
 
-						if ((word & mask) == 0 && drawTriMid(midX, midY)) {
-							word |= mask;
-						}
-					}
-				}
+		for (int n = 0; n < 64; ++n) {
+			if ((mask & coverage) != 0 && drawTriMid(baseX + (n & 7), baseY + (n >> 3))) {
+				word |= mask;
+			}
 
-				topBins[index] = word;
+			mask <<= 1;
+		}
+
+		topBins[index] = word;
+	}
+
+	private boolean isTriTopCovered(int minX, int minY) {
+		final int dx = minX - minPixelX;
+		final int dy = minY - minPixelY;
+		final int w0_row = wOrigin0 + dx * a0 + dy * b0;
+		final int w1_row = wOrigin1 + dx * a1 + dy * b1;
+		final int w2_row = wOrigin2 + dx * a2 + dy * b2;
+
+		if ((w0_row | w1_row | w2_row
+				| (w0_row + aTop0) | (w1_row + aTop1) | (w2_row + aTop2)
+				| (w0_row + bTop0) | (w1_row + bTop1) | (w2_row + bTop2)
+				| (w0_row + abTop0) | (w1_row + abTop1) | (w2_row + abTop2)) >= 0) {
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 	private void fillTopBinChildren(final int topX, final int topY) {
@@ -220,20 +221,196 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 			return false;
 		}
 
-		final int baseX = midX << LOW_AXIS_SHIFT;
-		final int baseY = midY << LOW_AXIS_SHIFT;
+		final int baseX = midX << BIN_AXIS_SHIFT;
+		int baseY = midY << BIN_AXIS_SHIFT;
 
 		CanvasWorldRenderer.innerTimer.start();
 
-		long mask = 1;
+		for (int y = 0; y < 8; y++) {
+			final int bits = (int) coverage & 0xFF;
+			int setBits = 0;
 
-		for (int n = 0; n < 64; ++n) {
-			if ((mask & coverage) != 0 && drawTriLow(baseX + (n & 7), baseY + (n >> 3))) {
-				word |= mask;
+			switch (bits & 0xF) {
+			case 0b0000:
+				break;
+
+			case 0b0001:
+				if (drawTriLow(baseX + 0, baseY)) setBits |= 1;
+				break;
+
+			case 0b0010:
+				if (drawTriLow(baseX + 1, baseY)) setBits |= 2;
+				break;
+
+			case 0b0011:
+				if (drawTriLow(baseX + 0, baseY)) setBits |= 1;
+				if (drawTriLow(baseX + 1, baseY)) setBits |= 2;
+				break;
+
+			case 0b0100:
+				if (drawTriLow(baseX + 2, baseY)) setBits |= 4;
+				break;
+
+			case 0b0101:
+				if (drawTriLow(baseX + 0, baseY)) setBits |= 1;
+				if (drawTriLow(baseX + 2, baseY)) setBits |= 4;
+				break;
+
+			case 0b0110:
+				if (drawTriLow(baseX + 1, baseY)) setBits |= 2;
+				if (drawTriLow(baseX + 2, baseY)) setBits |= 4;
+				break;
+
+			case 0b0111:
+				if (drawTriLow(baseX + 0, baseY)) setBits |= 1;
+				if (drawTriLow(baseX + 1, baseY)) setBits |= 2;
+				if (drawTriLow(baseX + 2, baseY)) setBits |= 4;
+				break;
+
+			case 0b1000:
+				if (drawTriLow(baseX + 3, baseY)) setBits |= 8;
+				break;
+
+			case 0b1001:
+				if (drawTriLow(baseX + 0, baseY)) setBits |= 1;
+				if (drawTriLow(baseX + 3, baseY)) setBits |= 8;
+				break;
+
+			case 0b1010:
+				if (drawTriLow(baseX + 1, baseY)) setBits |= 2;
+				if (drawTriLow(baseX + 3, baseY)) setBits |= 8;
+				break;
+
+			case 0b1011:
+				if (drawTriLow(baseX + 0, baseY)) setBits |= 1;
+				if (drawTriLow(baseX + 1, baseY)) setBits |= 2;
+				if (drawTriLow(baseX + 3, baseY)) setBits |= 8;
+				break;
+
+			case 0b1100:
+				if (drawTriLow(baseX + 2, baseY)) setBits |= 4;
+				if (drawTriLow(baseX + 3, baseY)) setBits |= 8;
+				break;
+
+			case 0b1101:
+				if (drawTriLow(baseX + 0, baseY)) setBits |= 1;
+				if (drawTriLow(baseX + 2, baseY)) setBits |= 4;
+				if (drawTriLow(baseX + 3, baseY)) setBits |= 8;
+				break;
+
+			case 0b1110:
+				if (drawTriLow(baseX + 1, baseY)) setBits |= 2;
+				if (drawTriLow(baseX + 2, baseY)) setBits |= 4;
+				if (drawTriLow(baseX + 3, baseY)) setBits |= 8;
+				break;
+
+			case 0b1111:
+				if (drawTriLow(baseX + 0, baseY)) setBits |= 1;
+				if (drawTriLow(baseX + 1, baseY)) setBits |= 2;
+				if (drawTriLow(baseX + 2, baseY)) setBits |= 4;
+				if (drawTriLow(baseX + 3, baseY)) setBits |= 8;
+				break;
 			}
 
-			mask <<= 1;
+			switch (bits >> 4) {
+			case 0b0000:
+				break;
+
+			case 0b0001:
+				if (drawTriLow(baseX + 4, baseY)) setBits |= 16;
+				break;
+
+			case 0b0010:
+				if (drawTriLow(baseX + 5, baseY)) setBits |= 32;
+				break;
+
+			case 0b0011:
+				if (drawTriLow(baseX + 4, baseY)) setBits |= 16;
+				if (drawTriLow(baseX + 5, baseY)) setBits |= 32;
+				break;
+
+			case 0b0100:
+				if (drawTriLow(baseX + 6, baseY)) setBits |= 64;
+				break;
+
+			case 0b0101:
+				if (drawTriLow(baseX + 4, baseY)) setBits |= 16;
+				if (drawTriLow(baseX + 6, baseY)) setBits |= 64;
+				break;
+
+			case 0b0110:
+				if (drawTriLow(baseX + 5, baseY)) setBits |= 32;
+				if (drawTriLow(baseX + 6, baseY)) setBits |= 64;
+				break;
+
+			case 0b0111:
+				if (drawTriLow(baseX + 4, baseY)) setBits |= 16;
+				if (drawTriLow(baseX + 5, baseY)) setBits |= 32;
+				if (drawTriLow(baseX + 6, baseY)) setBits |= 64;
+				break;
+
+			case 0b1000:
+				if (drawTriLow(baseX + 7, baseY)) setBits |= 128;
+				break;
+
+			case 0b1001:
+				if (drawTriLow(baseX + 4, baseY)) setBits |= 16;
+				if (drawTriLow(baseX + 7, baseY)) setBits |= 128;
+				break;
+
+			case 0b1010:
+				if (drawTriLow(baseX + 5, baseY)) setBits |= 32;
+				if (drawTriLow(baseX + 7, baseY)) setBits |= 128;
+				break;
+
+			case 0b1011:
+				if (drawTriLow(baseX + 4, baseY)) setBits |= 16;
+				if (drawTriLow(baseX + 5, baseY)) setBits |= 32;
+				if (drawTriLow(baseX + 7, baseY)) setBits |= 128;
+				break;
+
+			case 0b1100:
+				if (drawTriLow(baseX + 6, baseY)) setBits |= 64;
+				if (drawTriLow(baseX + 7, baseY)) setBits |= 128;
+				break;
+
+			case 0b1101:
+				if (drawTriLow(baseX + 4, baseY)) setBits |= 16;
+				if (drawTriLow(baseX + 6, baseY)) setBits |= 64;
+				if (drawTriLow(baseX + 7, baseY)) setBits |= 128;
+				break;
+
+			case 0b1110:
+				if (drawTriLow(baseX + 5, baseY)) setBits |= 32;
+				if (drawTriLow(baseX + 6, baseY)) setBits |= 64;
+				if (drawTriLow(baseX + 7, baseY)) setBits |= 128;
+				break;
+
+			case 0b1111:
+				if (drawTriLow(baseX + 4, baseY)) setBits |= 16;
+				if (drawTriLow(baseX + 5, baseY)) setBits |= 32;
+				if (drawTriLow(baseX + 6, baseY)) setBits |= 64;
+				if (drawTriLow(baseX + 7, baseY)) setBits |= 128;
+				break;
+			}
+
+			if (setBits != 0) {
+				word |= ((long) setBits) << (y << 3);
+			}
+
+			++baseY;
+			coverage >>= 8;
 		}
+
+		//		long mask = 1;
+		//
+		//		for (int n = 0; n < 64; ++n) {
+		//			if ((mask & coverage) != 0 && drawTriLow(baseX + (n & 7), baseY + (n >> 3))) {
+		//				word |= mask;
+		//			}
+		//
+		//			mask <<= 1;
+		//		}
 
 		midBins[index] = word;
 
@@ -405,43 +582,43 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 				final int midY0 = minY >>> MID_AXIS_SHIFT;
 		final int midY1 = maxY >>> MID_AXIS_SHIFT;
 
-			// handle single bin case
-			if (midX0 == midX1 && midY0 == midY1) {
-				return isPixelClear(word, midX0, midY0) && testTriMid(midX0, midY0);
-			}
-
-			// if checking whole bin then do it quick
-			if (((minX | minY) & TOP_BIN_PIXEL_INDEX_MASK)== 0 && (maxX & maxY & TOP_BIN_PIXEL_INDEX_MASK) == TOP_BIN_PIXEL_INDEX_MASK) {
-				final int a0 = this.a0;
-				final int b0 = this.b0;
-				final int a1 = this.a1;
-				final int b1 = this.b1;
-				final int a2 = this.a2;
-				final int b2 = this.b2;
-				final int dx = binOriginX - minPixelX;
-				final int dy = binOriginY - minPixelY;
-				final int w0_row = wOrigin0 + dx * a0 + dy * b0;
-				final int w1_row = wOrigin1 + dx * a1 + dy * b1;
-				final int w2_row = wOrigin2 + dx * a2 + dy * b2;
-
-				if ((w0_row | w1_row | w2_row
-						| (w0_row + aTop0) | (w1_row + aTop1) | (w2_row + aTop2)
-						| (w0_row + bTop0) | (w1_row + bTop1) | (w2_row + bTop2)
-						| (w0_row + abTop0) | (w1_row + abTop1) | (w2_row + abTop2)) >= 0) {
-					// word already known to be not fully occluded at this point
-					return true;
+				// handle single bin case
+				if (midX0 == midX1 && midY0 == midY1) {
+					return isPixelClear(word, midX0, midY0) && testTriMid(midX0, midY0);
 				}
-			}
 
-			for (int midY = midY0; midY <= midY1; midY++) {
-				for (int midX = midX0; midX <= midX1; midX++) {
-					if (isPixelClear(word, midX, midY) && testTriMid(midX, midY)) {
+				// if checking whole bin then do it quick
+				if (((minX | minY) & TOP_BIN_PIXEL_INDEX_MASK)== 0 && (maxX & maxY & TOP_BIN_PIXEL_INDEX_MASK) == TOP_BIN_PIXEL_INDEX_MASK) {
+					final int a0 = this.a0;
+					final int b0 = this.b0;
+					final int a1 = this.a1;
+					final int b1 = this.b1;
+					final int a2 = this.a2;
+					final int b2 = this.b2;
+					final int dx = binOriginX - minPixelX;
+					final int dy = binOriginY - minPixelY;
+					final int w0_row = wOrigin0 + dx * a0 + dy * b0;
+					final int w1_row = wOrigin1 + dx * a1 + dy * b1;
+					final int w2_row = wOrigin2 + dx * a2 + dy * b2;
+
+					if ((w0_row | w1_row | w2_row
+							| (w0_row + aTop0) | (w1_row + aTop1) | (w2_row + aTop2)
+							| (w0_row + bTop0) | (w1_row + bTop1) | (w2_row + bTop2)
+							| (w0_row + abTop0) | (w1_row + abTop1) | (w2_row + abTop2)) >= 0) {
+						// word already known to be not fully occluded at this point
 						return true;
 					}
 				}
-			}
 
-			return false;
+				for (int midY = midY0; midY <= midY1; midY++) {
+					for (int midX = midX0; midX <= midX1; midX++) {
+						if (isPixelClear(word, midX, midY) && testTriMid(midX, midY)) {
+							return true;
+						}
+					}
+				}
+
+				return false;
 	}
 
 	/**
@@ -460,7 +637,7 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 
 		final int lowX0 = minX >>> LOW_AXIS_SHIFT;
 		final int lowX1 = maxX >>> LOW_AXIS_SHIFT;
-				final int lowY0 = minY >>> LOW_AXIS_SHIFT;
+					final int lowY0 = minY >>> LOW_AXIS_SHIFT;
 		final int lowY1 = maxY >>> LOW_AXIS_SHIFT;
 
 		// handle single bin case
