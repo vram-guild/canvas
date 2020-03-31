@@ -1,7 +1,5 @@
 package grondag.canvas.chunk.occlusion;
 
-import grondag.canvas.render.CanvasWorldRenderer;
-
 // Some elements are adapted from content found at
 // https://fgiesen.wordpress.com/2013/02/17/optimizing-sw-occlusion-culling-index/
 // by Fabian “ryg” Giesen. That content is in the public domain.
@@ -200,10 +198,60 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		final int maxX = Math.min(maxPixelX, binOriginX + MID_BIN_PIXEL_DIAMETER - 1);
 		final int maxY = Math.min(maxPixelY, binOriginY + MID_BIN_PIXEL_DIAMETER - 1);
 
-		long coverage = coverageMask((minX >> LOW_AXIS_SHIFT) & 7, (minY >> LOW_AXIS_SHIFT) & 7,
-				(maxX >> LOW_AXIS_SHIFT) & 7, (maxY >> LOW_AXIS_SHIFT) & 7);
+		final int lowX0 = minX >> LOW_AXIS_SHIFT;
+		final int lowX1 = maxX >> LOW_AXIS_SHIFT;
+		final int lowY0 = minY >> LOW_AXIS_SHIFT;
+		final int lowY1 = (maxY >> LOW_AXIS_SHIFT); // parens stop eclipse formatter from freaking
 
-		// if filling whole bin then do it quick
+		long word = midBins[index];
+
+		if (lowX0 == lowX1)  {
+			if (lowY0 == lowY1) {
+				// single  bin
+				final long mask = pixelMask(lowX0, lowY0);
+
+				if ((word & mask) != 0 && drawTriLow(lowX0, lowY0)) {
+					word |= mask;
+					midBins[index] = word;
+					return word == -1;
+				} else {
+					return false;
+				}
+			} else {
+				// single column
+				long mask = pixelMask(lowX0, lowY0);
+
+				for (int y = lowY0; y <= lowY1; ++y) {
+					if ((word & mask) == 0 && drawTriLow(lowX0, y)) {
+						word |= mask;
+					}
+
+					mask  <<= 8;
+				}
+
+				midBins[index] = word;
+				return word == -1;
+			}
+
+		} else if (lowY0 == lowY1) {
+			// single row
+			long mask = pixelMask(lowX0, lowY0);
+
+			for (int x = lowX0; x <= lowX1; ++x) {
+				if ((word & mask) == 0 && drawTriLow(x, lowY0)) {
+					word |= mask;
+				}
+
+				mask  <<= 1;
+			}
+
+			midBins[index] = word;
+			return word == -1;
+		}
+
+		long coverage = coverageMask(lowX0 & 7, lowY0 & 7, lowX1 & 7, lowY1 & 7);
+
+		// optimize whole bin case
 		if ((coverage & CORNER_COVERAGE_MASK) == CORNER_COVERAGE_MASK && isTriMidCovered(minX,  minY)) {
 			midBins[index] = -1;
 
@@ -214,7 +262,6 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 			return true;
 		}
 
-		long word = midBins[index];
 		coverage &= ~word;
 
 		if (coverage == 0) {
@@ -224,7 +271,6 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		final int baseX = midX << BIN_AXIS_SHIFT;
 		int baseY = midY << BIN_AXIS_SHIFT;
 
-		CanvasWorldRenderer.innerTimer.start();
 
 		for (int y = 0; y < 8; y++) {
 			final int bits = (int) coverage & 0xFF;
@@ -402,19 +448,7 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 			coverage >>= 8;
 		}
 
-		//		long mask = 1;
-		//
-		//		for (int n = 0; n < 64; ++n) {
-		//			if ((mask & coverage) != 0 && drawTriLow(baseX + (n & 7), baseY + (n >> 3))) {
-		//				word |= mask;
-		//			}
-		//
-		//			mask <<= 1;
-		//		}
-
 		midBins[index] = word;
-
-		CanvasWorldRenderer.innerTimer.stop();
 
 		return word == -1L;
 	}
@@ -638,45 +672,45 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		final int lowX0 = minX >>> LOW_AXIS_SHIFT;
 		final int lowX1 = maxX >>> LOW_AXIS_SHIFT;
 					final int lowY0 = minY >>> LOW_AXIS_SHIFT;
-		final int lowY1 = maxY >>> LOW_AXIS_SHIFT;
+				final int lowY1 = maxY >>> LOW_AXIS_SHIFT;
 
-		// handle single bin case
-		if (lowX0 == lowX1 && lowY0 == lowY1) {
-			return isPixelClear(word, lowX0, lowY0) && testTriLow(lowX0, lowY0);
-		}
+					// handle single bin case
+					if (lowX0 == lowX1 && lowY0 == lowY1) {
+						return isPixelClear(word, lowX0, lowY0) && testTriLow(lowX0, lowY0);
+					}
 
-		// if checking whole bin then do it quick
-		if (((minX | minY) & MID_BIN_PIXEL_INDEX_MASK)== 0 && (maxX & maxY & MID_BIN_PIXEL_INDEX_MASK) == MID_BIN_PIXEL_INDEX_MASK) {
-			final int a0 = this.a0;
-			final int b0 = this.b0;
-			final int a1 = this.a1;
-			final int b1 = this.b1;
-			final int a2 = this.a2;
-			final int b2 = this.b2;
-			final int dx = binOriginX - minPixelX;
-			final int dy = binOriginY - minPixelY;
-			final int w0_row = wOrigin0 + dx * a0 + dy * b0;
-			final int w1_row = wOrigin1 + dx * a1 + dy * b1;
-			final int w2_row = wOrigin2 + dx * a2 + dy * b2;
+					// if checking whole bin then do it quick
+					if (((minX | minY) & MID_BIN_PIXEL_INDEX_MASK)== 0 && (maxX & maxY & MID_BIN_PIXEL_INDEX_MASK) == MID_BIN_PIXEL_INDEX_MASK) {
+						final int a0 = this.a0;
+						final int b0 = this.b0;
+						final int a1 = this.a1;
+						final int b1 = this.b1;
+						final int a2 = this.a2;
+						final int b2 = this.b2;
+						final int dx = binOriginX - minPixelX;
+						final int dy = binOriginY - minPixelY;
+						final int w0_row = wOrigin0 + dx * a0 + dy * b0;
+						final int w1_row = wOrigin1 + dx * a1 + dy * b1;
+						final int w2_row = wOrigin2 + dx * a2 + dy * b2;
 
-			if ((w0_row | w1_row | w2_row
-					| (w0_row + aMid0) | (w1_row + aMid1) | (w2_row + aMid2)
-					| (w0_row + bMid0) | (w1_row + bMid1) | (w2_row + bMid2)
-					| (w0_row + abMid0) | (w1_row + abMid1) | (w2_row + abMid2)) >= 0) {
-				// word already known to be not fully occluded at this point
-				return true;
-			}
-		}
+						if ((w0_row | w1_row | w2_row
+								| (w0_row + aMid0) | (w1_row + aMid1) | (w2_row + aMid2)
+								| (w0_row + bMid0) | (w1_row + bMid1) | (w2_row + bMid2)
+								| (w0_row + abMid0) | (w1_row + abMid1) | (w2_row + abMid2)) >= 0) {
+							// word already known to be not fully occluded at this point
+							return true;
+						}
+					}
 
-		for (int lowY = lowY0; lowY <= lowY1; lowY++) {
-			for (int lowX = lowX0; lowX <= lowX1; lowX++) {
-				if (isPixelClear(word, lowX, lowY) && testTriLow(lowX, lowY)) {
-					return true;
-				}
-			}
-		}
+					for (int lowY = lowY0; lowY <= lowY1; lowY++) {
+						for (int lowX = lowX0; lowX <= lowX1; lowX++) {
+							if (isPixelClear(word, lowX, lowY) && testTriLow(lowX, lowY)) {
+								return true;
+							}
+						}
+					}
 
-		return false;
+					return false;
 	}
 
 	private boolean testTriLow(int lowX, int lowY) {
