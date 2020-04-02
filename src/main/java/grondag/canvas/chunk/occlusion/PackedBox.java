@@ -14,6 +14,23 @@ public abstract class PackedBox {
 	public static final int RANGE_NEAR = 0;
 	public static final int RANGE_MID = 1;
 	public static final int RANGE_FAR = 2;
+	public static final int RANGE_EXTREME = 3;
+
+	public static final int CHUNK_DIST_NEAR = 1;
+	public static final int CHUNK_DIST_MID = 2;
+	public static final int CHUNK_DIST_FAR = 8;
+
+	public static final int SQUARE_BLOCK_DIST_NEAR = CHUNK_DIST_NEAR * CHUNK_DIST_NEAR * 16 * 16 * 3;
+	public static final int SQUARE_BLOCK_DIST_MID = CHUNK_DIST_MID * CHUNK_DIST_MID * 16 * 16 * 3;
+	public static final int SQUARE_BLOCK_DIST_FAR = CHUNK_DIST_FAR * CHUNK_DIST_FAR * 16 * 16 * 3;
+
+	public static int rangeFromSquareBlockDist(int squareBlockDist) {
+		if (squareBlockDist <= SQUARE_BLOCK_DIST_MID) {
+			return squareBlockDist > SQUARE_BLOCK_DIST_NEAR ? RANGE_MID : RANGE_NEAR;
+		} else {
+			return squareBlockDist > SQUARE_BLOCK_DIST_FAR ? RANGE_EXTREME: RANGE_FAR;
+		}
+	}
 
 	public static int pack(int x0, int y0, int z0, int x1, int y1, int z1, int range) {
 		return x0 | (y0 << SHIFT_Y0) | (z0 << SHIFT_Z0)
@@ -54,7 +71,7 @@ public abstract class PackedBox {
 				+ x1(packed) + ", " + y1(packed) + ", " + z1(packed) + ")";
 	}
 
-	public static final int FULL_BOX = pack(0, 0, 0, 16, 16, 16, RANGE_FAR);
+	public static final int FULL_BOX = pack(0, 0, 0, 16, 16, 16, RANGE_EXTREME);
 
 	public static final int EMPTY_BOX = 0;
 }

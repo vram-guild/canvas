@@ -14,6 +14,7 @@ import net.minecraft.util.math.Vec3d;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
+import grondag.canvas.render.CanvasWorldRenderer;
 
 public abstract class AbstractTerrainOccluder {
 	protected final long[] lowBins = new long[LOW_BIN_COUNT];
@@ -85,7 +86,10 @@ public abstract class AbstractTerrainOccluder {
 	protected int abLow1;
 	protected int abLow2;
 
+	protected int range;
+
 	public final boolean isChunkVisible()  {
+		CanvasWorldRenderer.innerTimer.start();
 		computeProjectedBoxBounds(0, 0, 0, 16, 16, 16);
 
 		final boolean result =
@@ -99,6 +103,7 @@ public abstract class AbstractTerrainOccluder {
 				|| (offsetZ < -16 && testQuad(v001, v101, v111, v011)) // south
 				|| (offsetZ > 0 && testQuad(v100, v000, v010, v110)); // north
 
+		CanvasWorldRenderer.innerTimer.stop();
 		return result;
 	}
 
@@ -113,7 +118,7 @@ public abstract class AbstractTerrainOccluder {
 		computeProjectedBoxBounds(x0, y0, z0, x1, y1, z1);
 
 		// if camera below top face can't be seen
-		return (offsetY < -y1 && testQuad(v110, v010, v011, v111)) // up
+		return  (offsetY < -y1 && testQuad(v110, v010, v011, v111)) // up
 				|| (offsetY > -y0 && testQuad(v000, v100, v101, v001)) // down
 
 				|| (offsetX < -x1 && testQuad(v101, v100, v110, v111)) // east
@@ -146,13 +151,14 @@ public abstract class AbstractTerrainOccluder {
 	}
 
 	public final void occlude(int[] visData, int range) {
+
 		final int limit= visData.length;
 
 		if (limit > 1) {
 			for (int i = 1; i < limit; i++) {
 				final int box  = visData[i];
 				if (range > PackedBox.range(box)) {
-					//					if (limit > 3) {
+					//					if (i > 8) {
 					//						System.out.println(String.format("Occluded %d of %d at range %d", i - 1, limit - 1, range));
 					//					}
 

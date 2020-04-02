@@ -12,7 +12,7 @@ class PackedBoxTest {
 	@Test
 	void test() {
 
-		assert PackedBox.pack(0, 0, 0, 16, 16, 16, PackedBox.RANGE_FAR) == PackedBox.FULL_BOX;
+		assert PackedBox.pack(0, 0, 0, 16, 16, 16, PackedBox.RANGE_EXTREME) == PackedBox.FULL_BOX;
 
 		final Random r = ThreadLocalRandom.current();
 

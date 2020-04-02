@@ -14,34 +14,37 @@
  ******************************************************************************/
 package grondag.canvas.perf;
 
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
+
 import grondag.canvas.CanvasMod;
 
 /**
  * For crude but simple microbenchmarks - for small scope, in-game situations
  * where JMH would be more than I want
  */
-public class MicroTimer {
-	private int hits;
-	private long elapsed;
+public class ConcurrentMicroTimer {
+	private final AtomicInteger hits = new AtomicInteger();
+	private final AtomicLong elapsed = new AtomicLong();
 	private final int sampleSize;
 	private final String label;
-	private long started ;
+	private final ThreadLocal<Long> started = ThreadLocal.withInitial(() -> 0L);
 
-	public MicroTimer(String label, int sampleSize) {
+	public ConcurrentMicroTimer(String label, int sampleSize) {
 		this.label = label;
 		this.sampleSize = sampleSize;
 	}
 
 	public int hits() {
-		return hits;
+		return hits.get();
 	}
 
 	public long elapsed() {
-		return elapsed;
+		return elapsed.get();
 	}
 
 	public void start() {
-		started = System.nanoTime();
+		started.set(System.nanoTime());
 	}
 
 	/**
@@ -50,10 +53,10 @@ public class MicroTimer {
 	 */
 	public boolean stop() {
 		final long end = System.nanoTime();
-		elapsed += (end - started);
-		final long h = ++hits;
+		final long e = elapsed.addAndGet(end - started.get());
+		final long h = hits.incrementAndGet();
 		if (h == sampleSize) {
-			doReportAndClear(elapsed, h);
+			doReportAndClear(e, h);
 			return true;
 		} else {
 			return false;
@@ -61,14 +64,14 @@ public class MicroTimer {
 	}
 
 	private void doReportAndClear(long e, long h) {
-		hits = 0;
-		elapsed = 0;
+		hits.set(0);
+		elapsed.set(0);
 		if (h == 0) h = 1;
 		CanvasMod.LOG.info(String.format("Avg %s duration = %,d ns, total duration = %,d, total runs = %,d", label, e / h,
 				e / 1000000, h));
 	}
 
 	public void reportAndClear() {
-		doReportAndClear(elapsed, hits);
+		doReportAndClear(elapsed.get(), hits.get());
 	}
 }

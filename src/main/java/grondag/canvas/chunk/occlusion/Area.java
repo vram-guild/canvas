@@ -41,6 +41,14 @@ public class Area {
 				|| (myBits[3] & sample[++sampleStart]) != 0;
 	}
 
+	public boolean isAdditive(long[] sample, int sampleStart) {
+		final long[] myBits = bits;
+		return (myBits[0] | sample[sampleStart]) != sample[sampleStart]
+				|| (myBits[1] | sample[++sampleStart]) != sample[sampleStart]
+						|| (myBits[2] | sample[++sampleStart]) != sample[sampleStart]
+								|| (myBits[3] | sample[++sampleStart]) != sample[sampleStart];
+	}
+
 	public boolean matchesHash(long hash) {
 		return (areaHash & hash) == areaHash;
 	}
@@ -70,7 +78,7 @@ public class Area {
 		final int x = x1 - x0 + 1;
 		final int y = y1 - y0 + 1;
 		areaSize = x * y;
-		edgeCount =  x +  y;
+		edgeCount =  x + y;
 
 		populateBits();
 

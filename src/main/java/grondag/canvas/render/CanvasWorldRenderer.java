@@ -14,6 +14,7 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectMap.Entry;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectHeapPriorityQueue;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
+import org.lwjgl.opengl.GL21;
 
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
@@ -24,6 +25,7 @@ import net.minecraft.client.options.CloudRenderMode;
 import net.minecraft.client.options.Option;
 import net.minecraft.client.render.BackgroundRenderer;
 import net.minecraft.client.render.BlockBreakingInfo;
+import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.BufferBuilderStorage;
 import net.minecraft.client.render.Camera;
 import net.minecraft.client.render.DiffuseLighting;
@@ -31,12 +33,15 @@ import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.render.LightmapTextureManager;
 import net.minecraft.client.render.OutlineVertexConsumerProvider;
 import net.minecraft.client.render.RenderLayer;
+import net.minecraft.client.render.Tessellator;
 import net.minecraft.client.render.TexturedRenderLayers;
 import net.minecraft.client.render.TransformingVertexConsumer;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
+import net.minecraft.client.render.VertexConsumerProvider.Immediate;
 import net.minecraft.client.render.VertexConsumers;
 import net.minecraft.client.render.VertexFormat;
+import net.minecraft.client.render.VertexFormats;
 import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.client.render.block.entity.BlockEntityRenderDispatcher;
 import net.minecraft.client.render.entity.EntityRenderDispatcher;
@@ -530,6 +535,8 @@ public class CanvasWorldRenderer {
 										RenderSystem.pushMatrix();
 										RenderSystem.multMatrix(matrixStack.peek().getModel());
 
+										renderCullBoxes(matrixStack, immediate, cameraX, cameraY, cameraZ, f);
+
 										profiler.swap("cloudsLayers");
 
 										if (mc.options.getCloudRenderMode() != CloudRenderMode.OFF) {
@@ -611,6 +618,138 @@ public class CanvasWorldRenderer {
 
 			wr.canvas_renderEntity(entity, cameraX, cameraY, cameraZ, f, matrixStack, (VertexConsumerProvider)vertexConsumerProvider2);
 		}
+	}
+
+	private void renderCullBoxes(MatrixStack matrixStack, Immediate immediate, double cameraX, double cameraY, double cameraZ,  float tickDelta) {
+		RenderSystem.pushMatrix();
+		RenderSystem.enableBlend();
+		RenderSystem.defaultBlendFunc();
+		RenderSystem.disableTexture();
+
+		final Tessellator tessellator = Tessellator.getInstance();
+		final BufferBuilder bufferBuilder = tessellator.getBuffer();
+		final Entity entity = MinecraftClient.getInstance().gameRenderer.getCamera().getFocusedEntity();
+
+		final HitResult hit = entity.rayTrace(12 * 16, tickDelta, true);
+
+		if (hit.getType() != HitResult.Type.BLOCK) {
+			return;
+		}
+
+		final BlockPos pos = ((BlockHitResult) (hit)).getBlockPos();
+
+		final int regionIndex = renderRegionStorage.getRegionIndexSafely(pos);
+
+		if (regionIndex == -1) {
+			return;
+		}
+
+		final BuiltRenderRegion region = renderRegionStorage.regions()[regionIndex];
+		final int[] boxes = region.getRenderData().getOcclusionData();
+
+		if (boxes == null || boxes.length < OcclusionRegion.CULL_DATA_FIRST_BOX) {
+			return;
+		}
+
+		final int cb = boxes[0];
+		final int limit = boxes.length;
+
+		final double x = (pos.getX() & ~0xF) - cameraX;
+		final double y = (pos.getY() & ~0xF) - cameraY;
+		final double z = (pos.getZ() & ~0xF) - cameraZ;
+
+		RenderSystem.lineWidth(6.0F);
+		bufferBuilder.begin(GL21.GL_LINES, VertexFormats.POSITION_COLOR);
+		final int regionRange = region.occlusionRange;
+
+		drawOutline(bufferBuilder, x + PackedBox.x0(cb), y + PackedBox.y0(cb), z + PackedBox.z0(cb), x + PackedBox.x1(cb), y + PackedBox.y1(cb), z + PackedBox.z1(cb), 0xFFAAAAAA);
+
+		for (int i = OcclusionRegion.CULL_DATA_FIRST_BOX; i < limit; ++i) {
+			final int b = boxes[i];
+			final int range = PackedBox.range(b);
+
+			if (regionRange > range) {
+				break;
+			}
+
+			drawOutline(bufferBuilder, x + PackedBox.x0(b), y + PackedBox.y0(b), z + PackedBox.z0(b), x + PackedBox.x1(b), y + PackedBox.y1(b), z + PackedBox.z1(b), rangeColor(range));
+		}
+
+		tessellator.draw();
+		RenderSystem.disableDepthTest();
+		RenderSystem.lineWidth(3.0F);
+		bufferBuilder.begin(GL21.GL_LINES, VertexFormats.POSITION_COLOR);
+
+		drawOutline(bufferBuilder, x + PackedBox.x0(cb), y + PackedBox.y0(cb), z + PackedBox.z0(cb), x + PackedBox.x1(cb), y + PackedBox.y1(cb), z + PackedBox.z1(cb), 0xFFAAAAAA);
+
+		for (int i = OcclusionRegion.CULL_DATA_FIRST_BOX; i < limit; ++i) {
+			final int b = boxes[i];
+			final int range = PackedBox.range(b);
+
+			if (regionRange > range) {
+				break;
+			}
+
+			drawOutline(bufferBuilder, x + PackedBox.x0(b), y + PackedBox.y0(b), z + PackedBox.z0(b), x + PackedBox.x1(b), y + PackedBox.y1(b), z + PackedBox.z1(b), rangeColor(range));
+		}
+
+		tessellator.draw();
+
+		RenderSystem.enableDepthTest();
+		RenderSystem.enableTexture();
+		RenderSystem.disableBlend();
+		RenderSystem.popMatrix();
+	}
+
+	private static int rangeColor(int range) {
+		switch (range) {
+		default:
+		case  PackedBox.RANGE_NEAR:
+			return 0x80FF8080;
+
+		case  PackedBox.RANGE_MID:
+			return 0x80FFFF80;
+
+		case  PackedBox.RANGE_FAR:
+			return 0x8080FF80;
+
+		case  PackedBox.RANGE_EXTREME:
+			return 0x808080FF;
+		}
+	}
+
+	private void drawOutline(BufferBuilder bufferBuilder, double x0, double y0, double z0, double x1, double y1, double z1, int color) {
+		final int a = (color >>> 24) & 0xFF;
+		final int r = (color >> 16) & 0xFF;
+		final int g = (color >> 8) & 0xFF;
+		final int b = color & 0xFF;
+
+		bufferBuilder.vertex(x0, y0, z0).color(r, g, b, a).next();
+		bufferBuilder.vertex(x0, y1, z0).color(r, g, b, a).next();
+		bufferBuilder.vertex(x1, y0, z0).color(r, g, b, a).next();
+		bufferBuilder.vertex(x1, y1, z0).color(r, g, b, a).next();
+		bufferBuilder.vertex(x0, y0, z1).color(r, g, b, a).next();
+		bufferBuilder.vertex(x0, y1, z1).color(r, g, b, a).next();
+		bufferBuilder.vertex(x1, y0, z1).color(r, g, b, a).next();
+		bufferBuilder.vertex(x1, y1, z1).color(r, g, b, a).next();
+
+		bufferBuilder.vertex(x0, y0, z0).color(r, g, b, a).next();
+		bufferBuilder.vertex(x1, y0, z0).color(r, g, b, a).next();
+		bufferBuilder.vertex(x0, y1, z0).color(r, g, b, a).next();
+		bufferBuilder.vertex(x1, y1, z0).color(r, g, b, a).next();
+		bufferBuilder.vertex(x0, y0, z1).color(r, g, b, a).next();
+		bufferBuilder.vertex(x1, y0, z1).color(r, g, b, a).next();
+		bufferBuilder.vertex(x0, y1, z1).color(r, g, b, a).next();
+		bufferBuilder.vertex(x1, y1, z1).color(r, g, b, a).next();
+
+		bufferBuilder.vertex(x0, y0, z0).color(r, g, b, a).next();
+		bufferBuilder.vertex(x0, y0, z1).color(r, g, b, a).next();
+		bufferBuilder.vertex(x1, y0, z0).color(r, g, b, a).next();
+		bufferBuilder.vertex(x1, y0, z1).color(r, g, b, a).next();
+		bufferBuilder.vertex(x0, y1, z0).color(r, g, b, a).next();
+		bufferBuilder.vertex(x0, y1, z1).color(r, g, b, a).next();
+		bufferBuilder.vertex(x1, y1, z0).color(r, g, b, a).next();
+		bufferBuilder.vertex(x1, y1, z1).color(r, g, b, a).next();
 	}
 
 	private void renderTerrainLayer(boolean isTranslucent, MatrixStack matrixStack, double x, double y, double z) {
@@ -707,6 +846,7 @@ public class CanvasWorldRenderer {
 		final WorldRendererExt wr = this.wr;
 		final Set<BuiltRenderRegion> chunksToRebuild  = this.chunksToRebuild;
 
+		// PERF: don't update terrain unless occlusion data changed and chunk was in view for at least one uploaded chunk
 		if (chunkBuilder.upload()) {
 			wr.canvas_setNeedsTerrainUpdate(true);
 		}

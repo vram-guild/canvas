@@ -144,7 +144,7 @@ public class BuiltRenderRegion {
 		cameraRelativeCenterY = dy;
 		cameraRelativeCenterZ = dz;
 
-		occlusionRange = squaredCameraDistance > 1024 ? PackedBox.RANGE_FAR : squaredCameraDistance < 512 ? PackedBox.RANGE_NEAR : PackedBox.RANGE_MID;
+		occlusionRange = PackedBox.rangeFromSquareBlockDist(squaredCameraDistance);
 	}
 
 	private static <E extends BlockEntity> void addBlockEntity(List<BlockEntity> chunkEntities, Set<BlockEntity> globalEntities, E blockEntity) {
@@ -336,6 +336,7 @@ public class BuiltRenderRegion {
 
 	private RegionData buildRegionData(TerrainRenderContext context) {
 		final RegionData regionData = new RegionData();
+
 		regionData.setOcclusionData(context.region.occlusion.build());
 		handleBlockEntities(regionData, context);
 		buildData.set(regionData);

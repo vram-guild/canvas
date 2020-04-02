@@ -1,7 +1,5 @@
 package grondag.canvas.chunk.occlusion;
 
-import grondag.canvas.render.CanvasWorldRenderer;
-
 // Some elements are adapted from content found at
 // https://fgiesen.wordpress.com/2013/02/17/optimizing-sw-occlusion-culling-index/
 // by Fabian “ryg” Giesen. That content is in the public domain.
@@ -96,9 +94,7 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 
 		for (int n = 0; n < 64; ++n) {
 			if ((mask & coverage) != 0) {
-				CanvasWorldRenderer.innerTimer.start();
 				final boolean mid = drawTriMid(baseX + (n & 7), baseY + (n >> 3));
-				CanvasWorldRenderer.innerTimer.stop();
 
 				if (mid) {
 					word |= mask;

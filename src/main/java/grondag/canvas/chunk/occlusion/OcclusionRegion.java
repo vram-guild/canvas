@@ -241,16 +241,13 @@ public abstract class OcclusionRegion {
 		int maxZ = Integer.MIN_VALUE;
 
 		for (int i = 0; i < INTERIOR_CACHE_SIZE; i++) {
+			// PERF: iterate by word vs recomputing mask each time
 			final long mask = (1L << (i & 63));
 			final int wordIndex = (i >> 6);
 
 			final int x = i & 0xF;
 			final int y = (i >> 4) & 0xF;
 			final int z = (i >> 8) & 0xF;
-			// TODO: remove
-			//			if (boxFinder.areaFinder.hacked && x == 13 && y == 8 && z == 9) {
-			//				System.out.println("boop");
-			//			}
 
 			//  TODO: disable in near chunks
 			if ((bits[wordIndex + EXTERIOR_VISIBLE_OFFSET] & mask) == 0 && x != 0 && y != 0 && z != 0 && x != 15 && y != 15 && z != 15) {
@@ -263,6 +260,7 @@ public abstract class OcclusionRegion {
 				bits[wordIndex] |= mask;
 			} else if ((bits[wordIndex + RENDERABLE_OFFSET] & mask) != 0){
 
+				// PERF: probably faster to do bit-wise analysis of words after the face
 				if (x < minX) {
 					minX = x;
 				} else if (x > maxX) {
@@ -359,7 +357,7 @@ public abstract class OcclusionRegion {
 				result[CULL_DATA_CHUNK_BOUNDS] = PackedBox.FULL_BOX;
 			} else {
 				result[CULL_DATA_CHUNK_BOUNDS] = PackedBox.pack(minRenderableX, minRenderableY, minRenderableZ,
-						maxRenderableX + 1, maxRenderableY + 1, maxRenderableZ + 1, PackedBox.RANGE_FAR);
+						maxRenderableX + 1, maxRenderableY + 1, maxRenderableZ + 1, PackedBox.RANGE_EXTREME);
 			}
 		}
 
