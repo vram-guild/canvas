@@ -35,11 +35,6 @@ public abstract class AbstractTerrainOccluder {
 	protected final ProjectionVector4f v111 = new ProjectionVector4f();
 
 	// Boumds of current triangle
-	protected int minX;
-	protected int minY;
-	protected int maxX;
-	protected int maxY;
-
 	protected int minPixelX;
 	protected int minPixelY;
 	protected int maxPixelX;
@@ -86,24 +81,122 @@ public abstract class AbstractTerrainOccluder {
 	protected int abLow1;
 	protected int abLow2;
 
-	protected int range;
+	protected int occlusionRange;
+
+	protected int totalCount;
+	protected int extTrue;
+	protected int extFalse;
+
+	@FunctionalInterface
+	private interface QuadTest {
+		boolean test();
+	}
+
+	private final QuadTest TEST_UP = () -> testQuad(v110, v010, v011, v111);
+	private final QuadTest TEST_DOWN = () -> testQuad(v000, v100, v101, v001);
+	private final QuadTest TEST_EAST = () -> testQuad(v101, v100, v110, v111);
+	private final QuadTest TEST_WEST = () -> testQuad(v000, v001, v011, v010);
+	private final QuadTest TEST_SOUTH = () -> testQuad(v001, v101, v111, v011);
+	private final QuadTest TEST_NORTH = () -> testQuad(v100, v000, v010, v110);
+	private final QuadTest TEST_DUMMY = () -> false;
+
+	//	(offsetY < -16 && testQuad(v110, v010, v011, v111)) // up
+	//	|| (offsetY > 0 && testQuad(v000, v100, v101, v001)) // down
+	//
+	//	|| (offsetX < -16 && testQuad(v101, v100, v110, v111)) // east
+	//	|| (offsetX > 0 && testQuad(v000, v001, v011, v010)) // west
+	//
+	//	|| (offsetZ < -16 && testQuad(v001, v101, v111, v011)) // south
+	//	|| (offsetZ > 0 && testQuad(v100, v000, v010, v110)); // north
 
 	public final boolean isChunkVisible()  {
-		CanvasWorldRenderer.innerTimer.start();
 		computeProjectedBoxBounds(0, 0, 0, 16, 16, 16);
 
-		final boolean result =
-				// if camera below top face can't be seen
-				(offsetY < -16 && testQuad(v110, v010, v011, v111)) // up
-				|| (offsetY > 0 && testQuad(v000, v100, v101, v001)) // down
+		//time to beat: 413ns
 
-				|| (offsetX < -16 && testQuad(v101, v100, v110, v111)) // east
-				|| (offsetX > 0 && testQuad(v000, v001, v011, v010)) // west
+		CanvasWorldRenderer.innerTimer.start();
 
-				|| (offsetZ < -16 && testQuad(v001, v101, v111, v011)) // south
-				|| (offsetZ > 0 && testQuad(v100, v000, v010, v110)); // north
+		// rank tests by how directly they face - use distance from camera coordinates for this
+		final float offsetX = this.offsetX;
+		final float offsetY = this.offsetY;
+		final float offsetZ = this.offsetZ;
+
+		QuadTest aTest = TEST_DUMMY;
+		QuadTest bTest = TEST_DUMMY;
+		QuadTest cTest = TEST_DUMMY;
+		float maxDist = 0;
+
+		// if camera below top face can't be seen
+		if (offsetY <  -16) {
+			aTest = TEST_UP;
+			maxDist = -(offsetY + 16);
+		} else if (offsetY > 0) {
+			aTest = TEST_DOWN;
+			maxDist = offsetY;
+		}
+
+		if (offsetX <  -16) {
+			final float max = -(offsetX + 16);
+
+			if (max > maxDist) {
+				if (aTest != TEST_DUMMY) {
+					bTest = aTest;
+				}
+
+				aTest = TEST_EAST;
+				maxDist = max;
+			}
+		} else if (offsetX > 0) {
+			if (offsetX > maxDist) {
+				if (aTest != TEST_DUMMY) {
+					bTest = aTest;
+				}
+
+				aTest = TEST_WEST;
+				maxDist = offsetX;
+			}
+		}
+
+		if (offsetZ <  -16) {
+			if (-(offsetZ + 16) > maxDist) {
+				if (aTest != TEST_DUMMY) {
+					cTest = bTest;
+					bTest = aTest;
+				}
+
+				aTest = TEST_SOUTH;
+			}
+		} else if (offsetZ > 0) {
+			if (offsetZ > maxDist) {
+				if (aTest != TEST_DUMMY) {
+					cTest = bTest;
+					bTest = aTest;
+				}
+
+				aTest = TEST_NORTH;
+			}
+		}
+
+		final boolean result = aTest.test() || bTest.test() || cTest.test();
 
 		CanvasWorldRenderer.innerTimer.stop();
+
+
+		//		// TODO: remove
+		//		if (occlusionRange == PackedBox.RANGE_EXTREME) {
+		//			if (result) {
+		//				++extTrue;
+		//			} else {
+		//				++extFalse;
+		//			}
+		//		}
+		//
+		//		if (++totalCount == 10000) {
+		//			System.out.println(String.format("extreme true: %f  extreme false: %f", extTrue / 100f, extFalse / 100f));
+		//			totalCount = 0;
+		//			extTrue = 0;
+		//			extFalse = 0;
+		//		}
 		return result;
 	}
 
@@ -150,14 +243,14 @@ public abstract class AbstractTerrainOccluder {
 		if (offsetZ > -z0) drawQuad(v100, v000, v010, v110); // north
 	}
 
-	public final void occlude(int[] visData, int range) {
-
+	public final void occlude(int[] visData) {
+		final int occlusionRange = this.occlusionRange;
 		final int limit= visData.length;
 
 		if (limit > 1) {
 			for (int i = 1; i < limit; i++) {
 				final int box  = visData[i];
-				if (range > PackedBox.range(box)) {
+				if (occlusionRange > PackedBox.range(box)) {
 					//					if (i > 8) {
 					//						System.out.println(String.format("Occluded %d of %d at range %d", i - 1, limit - 1, range));
 					//					}
@@ -217,7 +310,8 @@ public abstract class AbstractTerrainOccluder {
 		System.arraycopy(EMPTY_BITS, 0, topBins, 0, TOP_BIN_COUNT);
 	}
 
-	public final void prepareChunk(BlockPos origin) {
+	public final void prepareChunk(BlockPos origin, int occlusionRange) {
+		this.occlusionRange = occlusionRange;
 		xOrigin = origin.getX();
 		yOrigin = origin.getY();
 		zOrigin = origin.getZ();
@@ -240,28 +334,20 @@ public abstract class AbstractTerrainOccluder {
 
 	protected abstract boolean testTri(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2);
 
-	protected final boolean prepareTriBounds(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2) {
+	/**
+	 *
+	 * @param v0
+	 * @param v1
+	 * @param v2
+	 * @return constant value from BoundsResult
+	 */
+	protected final int prepareTriBounds(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2) {
 		final int x0 = v0.ix();
 		final int y0 = v0.iy();
 		final int x1 = v1.ix();
 		final int y1 = v1.iy();
 		final int x2 = v2.ix();
 		final int y2 = v2.iy();
-
-		int minX = x0;
-		int maxX = x0;
-
-		if (x1 < minX) {
-			minX = x1;
-		} else if (x1 > maxX) {
-			maxX = x1;
-		}
-
-		if (x2 < minX) {
-			minX = x2;
-		} else if (x2 > maxX) {
-			maxX = x2;
-		}
 
 		int minY = y0;
 		int maxY = y0;
@@ -278,26 +364,37 @@ public abstract class AbstractTerrainOccluder {
 			maxY = y2;
 		}
 
-		this.minX = minX;
-		this.maxX = maxX;
-		this.minY = minY;
-		this.maxY = maxY;
-
-		this.x0 = x0;
-		this.y0 = y0;
-		this.x1 = x1;
-		this.y1 = y1;
-		this.x2 = x2;
-		this.y2 = y2;
-
-		minPixelX = (minX + PRECISION_PIXEL_CENTER - 1) >> PRECISION_BITS;
-		minPixelY = (minY + PRECISION_PIXEL_CENTER - 1) >> PRECISION_BITS;
-		maxPixelX = (maxX - PRECISION_PIXEL_CENTER) >> PRECISION_BITS;
-		maxPixelY = (maxY - PRECISION_PIXEL_CENTER) >> PRECISION_BITS;
-
-		if (maxPixelX < 0 || minPixelX >= PIXEL_WIDTH) {
-			return false;
+		if (maxY < 0 || minY >= PRECISION_HEIGHT) {
+			return BoundsResult.OUT_OF_BOUNDS;
 		}
+
+		int minX = x0;
+		int maxX = x0;
+
+		if (x1 < minX) {
+			minX = x1;
+		} else if (x1 > maxX) {
+			maxX = x1;
+		}
+
+		if (x2 < minX) {
+			minX = x2;
+		} else if (x2 > maxX) {
+			maxX = x2;
+		}
+
+		if (maxX < 0 || minX >= PRECISION_WIDTH) {
+			return BoundsResult.OUT_OF_BOUNDS;
+		}
+
+		if (minX < -GUARD_SIZE || minY < -GUARD_SIZE || maxX > GUARD_WIDTH || maxY > GUARD_HEIGHT) {
+			return BoundsResult.NEEDS_CLIP;
+		}
+
+		int minPixelX = (minX + PRECISION_PIXEL_CENTER - 1) >> PRECISION_BITS;
+		int minPixelY = (minY + PRECISION_PIXEL_CENTER - 1) >> PRECISION_BITS;
+		int maxPixelX = (maxX - PRECISION_PIXEL_CENTER) >> PRECISION_BITS;
+		int maxPixelY = (maxY - PRECISION_PIXEL_CENTER) >> PRECISION_BITS;
 
 		if (minPixelX < 0) {
 			minPixelX = 0;
@@ -305,10 +402,6 @@ public abstract class AbstractTerrainOccluder {
 
 		if (maxPixelX > PIXEL_WIDTH - 1)  {
 			maxPixelX = PIXEL_WIDTH  - 1;
-		}
-
-		if (maxPixelY < 0 || minPixelY >= PIXEL_HEIGHT) {
-			return false;
 		}
 
 		if (minPixelY < 0) {
@@ -319,7 +412,18 @@ public abstract class AbstractTerrainOccluder {
 			maxPixelY = PIXEL_HEIGHT - 1;
 		}
 
-		return true;
+		this.x0 = x0;
+		this.y0 = y0;
+		this.x1 = x1;
+		this.y1 = y1;
+		this.x2 = x2;
+		this.y2 = y2;
+		this.minPixelX = minPixelX;
+		this.minPixelY = minPixelY;
+		this.maxPixelX = maxPixelX;
+		this.maxPixelY = maxPixelY;
+
+		return BoundsResult.IN_BOUNDS;
 	}
 
 	protected void prepareTriScan() {
@@ -560,7 +664,7 @@ public abstract class AbstractTerrainOccluder {
 	protected static final int PRECISION_HEIGHT = PIXEL_HEIGHT << PRECISION_BITS;
 	protected static final int HALF_PRECISION_HEIGHT = PRECISION_HEIGHT / 2;
 
-	protected static final int GUARD_SIZE = 512;
+	protected static final int GUARD_SIZE = 512 << PRECISION_BITS;
 	protected static final int GUARD_WIDTH = PRECISION_WIDTH + GUARD_SIZE;
 	protected static final int GUARD_HEIGHT = PRECISION_HEIGHT + GUARD_SIZE;
 

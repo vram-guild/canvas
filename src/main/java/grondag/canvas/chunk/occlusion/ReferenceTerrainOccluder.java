@@ -7,7 +7,14 @@ package grondag.canvas.chunk.occlusion;
 public class ReferenceTerrainOccluder extends ClippingTerrainOccluder {
 	@SuppressWarnings("unused")
 	private void drawTriReference(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2) {
-		if (!prepareTriBounds(v0, v1, v2)) {
+		final int boundsResult  = prepareTriBounds(v0, v1, v2);
+
+		if (boundsResult == BoundsResult.OUT_OF_BOUNDS) {
+			return;
+		}
+
+		if (boundsResult == BoundsResult.NEEDS_CLIP) {
+			drawClippedLowX(v0, v1, v2);
 			return;
 		}
 
@@ -53,11 +60,13 @@ public class ReferenceTerrainOccluder extends ClippingTerrainOccluder {
 
 	@Override
 	protected void drawTri(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2) {
-		if (!prepareTriBounds(v0, v1, v2)) {
+		final int boundsResult  = prepareTriBounds(v0, v1, v2);
+
+		if (boundsResult == BoundsResult.OUT_OF_BOUNDS) {
 			return;
 		}
 
-		if (triNeedsClipped()) {
+		if (boundsResult == BoundsResult.NEEDS_CLIP) {
 			drawClippedLowX(v0, v1, v2);
 			return;
 		}
@@ -124,11 +133,13 @@ public class ReferenceTerrainOccluder extends ClippingTerrainOccluder {
 
 	@Override
 	protected boolean testTri(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2) {
-		if (!prepareTriBounds(v0, v1, v2)) {
+		final int boundsResult  = prepareTriBounds(v0, v1, v2);
+
+		if (boundsResult == BoundsResult.OUT_OF_BOUNDS) {
 			return false;
 		}
 
-		if (triNeedsClipped()) {
+		if (boundsResult == BoundsResult.NEEDS_CLIP) {
 			return testClippedLowX(v0, v1, v2);
 		}
 

@@ -100,7 +100,7 @@ public class BuiltRenderRegion {
 	}
 
 	public boolean shouldBuild() {
-		return squaredCameraDistance <= 576 || areCornersLoadedCache || areCornerChunksLoaded();
+		return squaredCameraDistance <= 576 || (areCornersLoadedCache || areCornerChunksLoaded());
 	}
 
 	private boolean areCornersLoadedCache = false;

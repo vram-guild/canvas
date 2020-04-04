@@ -1,5 +1,6 @@
 package grondag.canvas.render;
 
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.Camera;
 import net.minecraft.client.render.Frustum;
 import net.minecraft.client.util.math.Matrix4f;
@@ -39,6 +40,8 @@ public class CanvasFrustum extends Frustum {
 	private float topX, topY, topZ, topDist;
 	private float bottomX, bottomY, bottomZ, bottomDist;
 	private float nearX, nearY, nearZ, nearDist;
+
+	private int viewDistanceSquared;
 
 	public CanvasFrustum() {
 		super(dummyMatrix(), dummyMatrix());
@@ -82,6 +85,9 @@ public class CanvasFrustum extends Frustum {
 		testFrustum = new Frustum(modelMatrix, projectionMatrix);
 
 		testFrustum.setPosition(vec.x, vec.y, vec.z);
+
+		viewDistanceSquared = MinecraftClient.getInstance().options.viewDistance * 16;
+		viewDistanceSquared *= viewDistanceSquared;
 	}
 
 	// PERF: optimize for OBB
@@ -91,6 +97,10 @@ public class CanvasFrustum extends Frustum {
 	}
 
 	public boolean isChunkVisible(BuiltRenderRegion region) {
+		//		if (region.squaredCameraDistance() > viewDistanceSquared) {
+		//			return false;
+		//		}
+
 		final float cx = region.cameraRelativeCenterX;
 		final float cy = region.cameraRelativeCenterY;
 		final float cz = region.cameraRelativeCenterZ;

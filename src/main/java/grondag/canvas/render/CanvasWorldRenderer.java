@@ -241,7 +241,7 @@ public class CanvasWorldRenderer {
 					continue;
 				}
 
-				occluder.prepareChunk(builtChunk.getOrigin());
+				occluder.prepareChunk(builtChunk.getOrigin(), builtChunk.occlusionRange);
 
 				if (!chunkCullingEnabled || builtChunk == cameraChunk || occluder.isChunkVisible()) {
 					builtChunk.enqueueUnvistedNeighbors(regionQueue);
@@ -258,7 +258,7 @@ public class CanvasWorldRenderer {
 							builtChunk.canRenderTerrain = false;
 						} else if (chunkRenderBounds == PackedBox.FULL_BOX || occluder.isBoxVisible(chunkRenderBounds) || builtChunk == cameraChunk) {
 							builtChunk.canRenderTerrain = true;
-							occluder.occlude(visData, builtChunk.occlusionRange);
+							occluder.occlude(visData);
 						} else {
 							builtChunk.canRenderTerrain = false;
 						}
@@ -621,13 +621,6 @@ public class CanvasWorldRenderer {
 	}
 
 	private void renderCullBoxes(MatrixStack matrixStack, Immediate immediate, double cameraX, double cameraY, double cameraZ,  float tickDelta) {
-		RenderSystem.pushMatrix();
-		RenderSystem.enableBlend();
-		RenderSystem.defaultBlendFunc();
-		RenderSystem.disableTexture();
-
-		final Tessellator tessellator = Tessellator.getInstance();
-		final BufferBuilder bufferBuilder = tessellator.getBuffer();
 		final Entity entity = MinecraftClient.getInstance().gameRenderer.getCamera().getFocusedEntity();
 
 		final HitResult hit = entity.rayTrace(12 * 16, tickDelta, true);
@@ -650,6 +643,14 @@ public class CanvasWorldRenderer {
 		if (boxes == null || boxes.length < OcclusionRegion.CULL_DATA_FIRST_BOX) {
 			return;
 		}
+
+		RenderSystem.pushMatrix();
+		RenderSystem.enableBlend();
+		RenderSystem.defaultBlendFunc();
+		RenderSystem.disableTexture();
+
+		final Tessellator tessellator = Tessellator.getInstance();
+		final BufferBuilder bufferBuilder = tessellator.getBuffer();
 
 		final int cb = boxes[0];
 		final int limit = boxes.length;

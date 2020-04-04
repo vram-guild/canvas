@@ -183,10 +183,6 @@ public abstract class ClippingTerrainOccluder extends AbstractTerrainOccluder {
 		return testTri(v0, v1, v2) || testTri(v0, v2, va) || testTri(v0, va, vb);
 	}
 
-	protected final boolean triNeedsClipped() {
-		return minX < -GUARD_SIZE || minY < -GUARD_SIZE || maxX > GUARD_WIDTH || maxY > GUARD_HEIGHT;
-	}
-
 	protected final void drawClippedLowX(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2) {
 		// NB: order here is lexical not bitwise
 		final int split = v2.needsClipLowX() | (v1.needsClipLowX() << 1) | (v0.needsClipLowX() << 2);
