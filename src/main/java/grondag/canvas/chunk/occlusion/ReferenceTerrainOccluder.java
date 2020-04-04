@@ -6,7 +6,7 @@ package grondag.canvas.chunk.occlusion;
 
 public class ReferenceTerrainOccluder extends ClippingTerrainOccluder {
 	@SuppressWarnings("unused")
-	private void drawTriReference(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2) {
+	private void drawTriReference(int v0, int v1, int v2) {
 		final int boundsResult  = prepareTriBounds(v0, v1, v2);
 
 		if (boundsResult == BoundsResult.OUT_OF_BOUNDS) {
@@ -59,7 +59,7 @@ public class ReferenceTerrainOccluder extends ClippingTerrainOccluder {
 	}
 
 	@Override
-	protected void drawTri(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2) {
+	protected void drawTri(int v0, int v1, int v2) {
 		final int boundsResult  = prepareTriBounds(v0, v1, v2);
 
 		if (boundsResult == BoundsResult.OUT_OF_BOUNDS) {
@@ -132,7 +132,7 @@ public class ReferenceTerrainOccluder extends ClippingTerrainOccluder {
 	}
 
 	@Override
-	protected boolean testTri(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2) {
+	protected boolean testTri(int v0, int v1, int v2) {
 		final int boundsResult  = prepareTriBounds(v0, v1, v2);
 
 		if (boundsResult == BoundsResult.OUT_OF_BOUNDS) {
@@ -171,7 +171,7 @@ public class ReferenceTerrainOccluder extends ClippingTerrainOccluder {
 	}
 
 	@SuppressWarnings("unused")
-	private boolean testTriReference(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2) {
+	private boolean testTriReference(int v0, int v1, int v2) {
 		prepareTriScan();
 
 		// Triangle setup
@@ -215,7 +215,7 @@ public class ReferenceTerrainOccluder extends ClippingTerrainOccluder {
 		return false;
 	}
 
-	private boolean testTriFast(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2) {
+	private boolean testTriFast(int v0, int v1, int v2) {
 		prepareTriScan();
 
 		final int px0 = minPixelX;

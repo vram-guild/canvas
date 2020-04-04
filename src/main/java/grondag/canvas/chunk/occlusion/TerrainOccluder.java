@@ -4,6 +4,8 @@ package grondag.canvas.chunk.occlusion;
 // https://fgiesen.wordpress.com/2013/02/17/optimizing-sw-occlusion-culling-index/
 // by Fabian “ryg” Giesen. That content is in the public domain.
 
+// PERF: test box center for shortcut
+// PERF: track partial coverage (not clear) to shortcut testing with summary coverage maps
 public class TerrainOccluder extends ClippingTerrainOccluder  {
 	private int aMid0;
 	private int bMid0;
@@ -31,7 +33,7 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 	}
 
 	@Override
-	protected void drawTri(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2) {
+	protected void drawTri(int v0, int v1, int v2) {
 		final int boundsResult  = prepareTriBounds(v0, v1, v2);
 
 		if (boundsResult == BoundsResult.OUT_OF_BOUNDS) {
@@ -522,7 +524,7 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 	//	private int earlyExitTotal;
 
 	@Override
-	protected boolean testTri(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2) {
+	protected boolean testTri(int v0, int v1, int v2) {
 
 		final int boundsResult  = prepareTriBounds(v0, v1, v2);
 

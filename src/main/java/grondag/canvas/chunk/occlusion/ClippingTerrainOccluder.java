@@ -1,20 +1,22 @@
 package grondag.canvas.chunk.occlusion;
 
+import static grondag.canvas.chunk.occlusion.ProjectedVertexData.clipHighX;
+import static grondag.canvas.chunk.occlusion.ProjectedVertexData.clipHighY;
+import static grondag.canvas.chunk.occlusion.ProjectedVertexData.clipLowX;
+import static grondag.canvas.chunk.occlusion.ProjectedVertexData.clipLowY;
+import static grondag.canvas.chunk.occlusion.ProjectedVertexData.clipNear;
+import static grondag.canvas.chunk.occlusion.ProjectedVertexData.needsClipHighX;
+import static grondag.canvas.chunk.occlusion.ProjectedVertexData.needsClipHighY;
+import static grondag.canvas.chunk.occlusion.ProjectedVertexData.needsClipLowX;
+import static grondag.canvas.chunk.occlusion.ProjectedVertexData.needsClipLowY;
+import static grondag.canvas.chunk.occlusion.ProjectedVertexData.needsNearClip;
+
 public abstract class ClippingTerrainOccluder extends AbstractTerrainOccluder {
-	private final ProjectionVector4f vNearClipA = new ProjectionVector4f();
-	private final ProjectionVector4f vNearClipB = new ProjectionVector4f();
-	private final ProjectionVector4f vClipLowXA = new ProjectionVector4f();
-	private final ProjectionVector4f vClipLowXB = new ProjectionVector4f();
-	private final ProjectionVector4f vClipLowYA = new ProjectionVector4f();
-	private final ProjectionVector4f vClipLowYB = new ProjectionVector4f();
-	private final ProjectionVector4f vClipHighXA = new ProjectionVector4f();
-	private final ProjectionVector4f vClipHighXB = new ProjectionVector4f();
-	private final ProjectionVector4f vClipHighYA = new ProjectionVector4f();
-	private final ProjectionVector4f vClipHighYB = new ProjectionVector4f();
 
 	@Override
-	protected final void drawQuad(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2, ProjectionVector4f v3) {
-		final int split = v0.needsNearClip() | (v1.needsNearClip() << 1) | (v2.needsNearClip() << 2) | (v3.needsNearClip() << 3);
+	protected final void drawQuad(int v0, int v1, int v2, int v3) {
+		final int[] vertexData = this.vertexData;
+		final int split = needsNearClip(vertexData, v0) | (needsNearClip(vertexData, v1) << 1) | (needsNearClip(vertexData, v2) << 2) | (needsNearClip(vertexData, v3) << 3);
 
 		switch (split) {
 
@@ -73,42 +75,37 @@ public abstract class ClippingTerrainOccluder extends AbstractTerrainOccluder {
 		}
 	}
 
-	private final void drawSplitThree(ProjectionVector4f extA, ProjectionVector4f internal, ProjectionVector4f extB) {
-		final ProjectionVector4f va = vNearClipA;
-		final ProjectionVector4f vb = vNearClipB;
+	private final void drawSplitThree(int extA, int internal, int extB) {
+		final int[] vertexData = this.vertexData;
+		clipNear(vertexData, V_NEAR_CLIP_A, internal, extA);
+		clipNear(vertexData, V_NEAR_CLIP_B, internal, extB);
 
-		va.clipNear(internal, extA);
-		vb.clipNear(internal, extB);
-
-		drawTri(va, internal, vb);
+		drawTri(V_NEAR_CLIP_A, internal, V_NEAR_CLIP_B);
 	}
 
-	private final void drawSplitTwo(ProjectionVector4f extA, ProjectionVector4f internal0, ProjectionVector4f internal1, ProjectionVector4f extB) {
-		final ProjectionVector4f va = vNearClipA;
-		final ProjectionVector4f vb = vNearClipB;
+	private final void drawSplitTwo(int extA, int internal0, int internal1, int extB) {
+		final int[] vertexData = this.vertexData;
+		clipNear(vertexData, V_NEAR_CLIP_A, internal0, extA);
+		clipNear(vertexData, V_NEAR_CLIP_B, internal1, extB);
 
-		va.clipNear(internal0, extA);
-		vb.clipNear(internal1, extB);
-
-		drawTri(va, internal0, internal1);
-		drawTri(va, internal1, vb);
+		drawTri(V_NEAR_CLIP_A, internal0, internal1);
+		drawTri(V_NEAR_CLIP_A, internal1, V_NEAR_CLIP_B);
 	}
 
-	private final void drawSplitOne(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2, ProjectionVector4f ext) {
-		final ProjectionVector4f va = vNearClipA;
-		final ProjectionVector4f vb = vNearClipB;
-
-		va.clipNear(v2, ext);
-		vb.clipNear(v0, ext);
+	private final void drawSplitOne(int v0, int v1, int v2, int ext) {
+		final int[] vertexData = this.vertexData;
+		clipNear(vertexData, V_NEAR_CLIP_A, v2, ext);
+		clipNear(vertexData, V_NEAR_CLIP_B, v0, ext);
 
 		drawTri(v0, v1, v2);
-		drawTri(v0, v2, va);
-		drawTri(v0, va, vb);
+		drawTri(v0, v2, V_NEAR_CLIP_A);
+		drawTri(v0, V_NEAR_CLIP_A, V_NEAR_CLIP_B);
 	}
 
 	@Override
-	protected final boolean testQuad(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2, ProjectionVector4f v3) {
-		final int split = v0.needsNearClip() | (v1.needsNearClip() << 1) | (v2.needsNearClip() << 2) | (v3.needsNearClip() << 3);
+	protected final boolean testQuad(int v0, int v1, int v2, int v3) {
+		final int[] vertexData = this.vertexData;
+		final int split = needsNearClip(vertexData, v0) | (needsNearClip(vertexData, v1) << 1) | (needsNearClip(vertexData, v2) << 2) | (needsNearClip(vertexData, v3) << 3);
 
 		switch (split) {
 
@@ -153,39 +150,34 @@ public abstract class ClippingTerrainOccluder extends AbstractTerrainOccluder {
 		}
 	}
 
-	private final boolean testSplitThree(ProjectionVector4f extA, ProjectionVector4f internal, ProjectionVector4f extB) {
-		final ProjectionVector4f va = vNearClipA;
-		final ProjectionVector4f vb = vNearClipB;
+	private final boolean testSplitThree(int extA, int internal, int extB) {
+		final int[] vertexData = this.vertexData;
+		clipNear(vertexData, V_NEAR_CLIP_A, internal, extA);
+		clipNear(vertexData, V_NEAR_CLIP_B, internal, extB);
 
-		va.clipNear(internal, extA);
-		vb.clipNear(internal, extB);
-
-		return testTri(va, internal, vb);
+		return testTri(V_NEAR_CLIP_A, internal, V_NEAR_CLIP_B);
 	}
 
-	private final boolean testSplitTwo(ProjectionVector4f extA, ProjectionVector4f internal0, ProjectionVector4f internal1, ProjectionVector4f extB) {
-		final ProjectionVector4f va = vNearClipA;
-		final ProjectionVector4f vb = vNearClipB;
+	private final boolean testSplitTwo(int extA, int internal0, int internal1, int extB) {
+		final int[] vertexData = this.vertexData;
+		clipNear(vertexData, V_NEAR_CLIP_A, internal0, extA);
+		clipNear(vertexData, V_NEAR_CLIP_B, internal1, extB);
 
-		va.clipNear(internal0, extA);
-		vb.clipNear(internal1, extB);
-
-		return testTri(va, internal0, internal1) || testTri(va, internal1, vb);
+		return testTri(V_NEAR_CLIP_A, internal0, internal1) || testTri(V_NEAR_CLIP_A, internal1, V_NEAR_CLIP_B);
 	}
 
-	private final boolean testSplitOne(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2, ProjectionVector4f ext) {
-		final ProjectionVector4f va = vNearClipA;
-		final ProjectionVector4f vb = vNearClipB;
+	private final boolean testSplitOne(int v0, int v1, int v2, int ext) {
+		final int[] vertexData = this.vertexData;
+		clipNear(vertexData, V_NEAR_CLIP_A, v2, ext);
+		clipNear(vertexData, V_NEAR_CLIP_B, v0, ext);
 
-		va.clipNear(v2, ext);
-		vb.clipNear(v0, ext);
-
-		return testTri(v0, v1, v2) || testTri(v0, v2, va) || testTri(v0, va, vb);
+		return testTri(v0, v1, v2) || testTri(v0, v2, V_NEAR_CLIP_A) || testTri(v0, V_NEAR_CLIP_A, V_NEAR_CLIP_B);
 	}
 
-	protected final void drawClippedLowX(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2) {
+	protected final void drawClippedLowX(int v0, int v1, int v2) {
+		final int[] vertexData = this.vertexData;
 		// NB: order here is lexical not bitwise
-		final int split = v2.needsClipLowX() | (v1.needsClipLowX() << 1) | (v0.needsClipLowX() << 2);
+		final int split = needsClipLowX(vertexData, v2) | (needsClipLowX(vertexData, v1) << 1) | (needsClipLowX(vertexData, v0) << 2);
 
 		switch (split) {
 		case 0b000:
@@ -222,22 +214,25 @@ public abstract class ClippingTerrainOccluder extends AbstractTerrainOccluder {
 		}
 	}
 
-	private void drawClippedLowXOne(ProjectionVector4f v0ext, ProjectionVector4f v1, ProjectionVector4f v2) {
-		vClipLowXA.clipLowX(v1, v0ext);
-		vClipLowXB.clipLowX(v2, v0ext);
-		drawClippedLowY(vClipLowXA, v1, vClipLowXB);
-		drawClippedLowY(vClipLowXB, v1, v2);
+	private void drawClippedLowXOne(int v0ext, int v1, int v2) {
+		final int[] vertexData = this.vertexData;
+		clipLowX(vertexData, V_LOW_X_CLIP_A, v1, v0ext);
+		clipLowX(vertexData, V_LOW_X_CLIP_B, v2, v0ext);
+		drawClippedLowY(V_LOW_X_CLIP_A, v1, V_LOW_X_CLIP_B);
+		drawClippedLowY(V_LOW_X_CLIP_B, v1, v2);
 	}
 
-	private void drawClippedLowXTwo(ProjectionVector4f v0ext, ProjectionVector4f v1ext, ProjectionVector4f v2) {
-		vClipLowXA.clipLowX(v2, v0ext);
-		vClipLowXB.clipLowX(v2, v1ext);
-		drawClippedLowY(v2, vClipLowXA, vClipLowXB);
+	private void drawClippedLowXTwo(int v0ext, int v1ext, int v2) {
+		final int[] vertexData = this.vertexData;
+		clipLowX(vertexData, V_LOW_X_CLIP_A, v2, v0ext);
+		clipLowX(vertexData, V_LOW_X_CLIP_B, v2, v1ext);
+		drawClippedLowY(v2, V_LOW_X_CLIP_A, V_LOW_X_CLIP_B);
 	}
 
-	private void drawClippedLowY(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2) {
+	private void drawClippedLowY(int v0, int v1, int v2) {
+		final int[] vertexData = this.vertexData;
 		// NB: order here is lexical not bitwise
-		final int split = v2.needsClipLowY() | (v1.needsClipLowY() << 1) | (v0.needsClipLowY() << 2);
+		final int split = needsClipLowY(vertexData, v2) | (needsClipLowY(vertexData, v1) << 1) | (needsClipLowY(vertexData, v0) << 2);
 
 		switch (split) {
 		case 0b000:
@@ -274,22 +269,25 @@ public abstract class ClippingTerrainOccluder extends AbstractTerrainOccluder {
 		}
 	}
 
-	private void drawClippedLowYOne(ProjectionVector4f v0ext, ProjectionVector4f v1, ProjectionVector4f v2) {
-		vClipLowYA.clipLowY(v1, v0ext);
-		vClipLowYB.clipLowY(v2, v0ext);
-		drawClippedHighX(vClipLowYA, v1, vClipLowYB);
-		drawClippedHighX(vClipLowYB, v1, v2);
+	private void drawClippedLowYOne(int v0ext, int v1, int v2) {
+		final int[] vertexData = this.vertexData;
+		clipLowY(vertexData, V_LOW_Y_CLIP_A, v1, v0ext);
+		clipLowY(vertexData, V_LOW_Y_CLIP_B, v2, v0ext);
+		drawClippedHighX(V_LOW_Y_CLIP_A, v1, V_LOW_Y_CLIP_B);
+		drawClippedHighX(V_LOW_Y_CLIP_B, v1, v2);
 	}
 
-	private void drawClippedLowYTwo(ProjectionVector4f v0ext, ProjectionVector4f v1ext, ProjectionVector4f v2) {
-		vClipLowYA.clipLowY(v2, v0ext);
-		vClipLowYB.clipLowY(v2, v1ext);
-		drawClippedHighX(v2, vClipLowYA, vClipLowYB);
+	private void drawClippedLowYTwo(int v0ext, int v1ext, int v2) {
+		final int[] vertexData = this.vertexData;
+		clipLowY(vertexData, V_LOW_Y_CLIP_A, v2, v0ext);
+		clipLowY(vertexData, V_LOW_Y_CLIP_B, v2, v1ext);
+		drawClippedHighX(v2, V_LOW_Y_CLIP_A, V_LOW_Y_CLIP_B);
 	}
 
-	private void drawClippedHighX(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2) {
+	private void drawClippedHighX(int v0, int v1, int v2) {
+		final int[] vertexData = this.vertexData;
 		// NB: order here is lexical not bitwise
-		final int split = v2.needsClipHighX() | (v1.needsClipHighX() << 1) | (v0.needsClipHighX() << 2);
+		final int split = needsClipHighX(vertexData, v2) | (needsClipHighX(vertexData, v1) << 1) | (needsClipHighX(vertexData, v0) << 2);
 
 		switch (split) {
 		case 0b000:
@@ -326,22 +324,25 @@ public abstract class ClippingTerrainOccluder extends AbstractTerrainOccluder {
 		}
 	}
 
-	private void drawClippedHighXOne(ProjectionVector4f v0ext, ProjectionVector4f v1, ProjectionVector4f v2) {
-		vClipHighXA.clipHighX(v1, v0ext);
-		vClipHighXB.clipHighX(v2, v0ext);
-		drawClippedHighY(vClipHighXA, v1, vClipHighXB);
-		drawClippedHighY(vClipHighXB, v1, v2);
+	private void drawClippedHighXOne(int v0ext, int v1, int v2) {
+		final int[] vertexData = this.vertexData;
+		clipHighX(vertexData, V_HIGH_X_CLIP_A, v1, v0ext);
+		clipHighX(vertexData, V_HIGH_X_CLIP_B, v2, v0ext);
+		drawClippedHighY(V_HIGH_X_CLIP_A, v1, V_HIGH_X_CLIP_B);
+		drawClippedHighY(V_HIGH_X_CLIP_B, v1, v2);
 	}
 
-	private void drawClippedHighXTwo(ProjectionVector4f v0ext, ProjectionVector4f v1ext, ProjectionVector4f v2) {
-		vClipHighXA.clipHighX(v2, v0ext);
-		vClipHighXB.clipHighX(v2, v1ext);
-		drawClippedHighY(v2, vClipHighXA, vClipHighXB);
+	private void drawClippedHighXTwo(int v0ext, int v1ext, int v2) {
+		final int[] vertexData = this.vertexData;
+		clipHighX(vertexData, V_HIGH_X_CLIP_A, v2, v0ext);
+		clipHighX(vertexData, V_HIGH_X_CLIP_B, v2, v1ext);
+		drawClippedHighY(v2, V_HIGH_X_CLIP_A, V_HIGH_X_CLIP_B);
 	}
 
-	private void drawClippedHighY(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2) {
+	private void drawClippedHighY(int v0, int v1, int v2) {
+		final int[] vertexData = this.vertexData;
 		// NB: order here is lexical not bitwise
-		final int split = v2.needsClipHighY() | (v1.needsClipHighY() << 1) | (v0.needsClipHighY() << 2);
+		final int split = needsClipHighY(vertexData, v2) | (needsClipHighY(vertexData, v1) << 1) | (needsClipHighY(vertexData, v0) << 2);
 
 		switch (split) {
 		case 0b000:
@@ -378,22 +379,25 @@ public abstract class ClippingTerrainOccluder extends AbstractTerrainOccluder {
 		}
 	}
 
-	private void drawClippedHighYOne(ProjectionVector4f v0ext, ProjectionVector4f v1, ProjectionVector4f v2) {
-		vClipHighYA.clipHighY(v1, v0ext);
-		vClipHighYB.clipHighY(v2, v0ext);
-		drawTri(vClipHighYA, v1, vClipHighYB);
-		drawTri(vClipHighYB, v1, v2);
+	private void drawClippedHighYOne(int v0ext, int v1, int v2) {
+		final int[] vertexData = this.vertexData;
+		clipHighY(vertexData, V_HIGH_Y_CLIP_A, v1, v0ext);
+		clipHighY(vertexData, V_HIGH_Y_CLIP_B, v2, v0ext);
+		drawTri(V_HIGH_Y_CLIP_A, v1, V_HIGH_Y_CLIP_B);
+		drawTri(V_HIGH_Y_CLIP_B, v1, v2);
 	}
 
-	private void drawClippedHighYTwo(ProjectionVector4f v0ext, ProjectionVector4f v1ext, ProjectionVector4f v2) {
-		vClipHighYA.clipHighY(v2, v0ext);
-		vClipHighYB.clipHighY(v2, v1ext);
-		drawTri(v2, vClipHighYA, vClipHighYB);
+	private void drawClippedHighYTwo(int v0ext, int v1ext, int v2) {
+		final int[] vertexData = this.vertexData;
+		clipHighY(vertexData, V_HIGH_Y_CLIP_A, v2, v0ext);
+		clipHighY(vertexData, V_HIGH_Y_CLIP_B, v2, v1ext);
+		drawTri(v2, V_HIGH_Y_CLIP_A, V_HIGH_Y_CLIP_B);
 	}
 
-	protected final boolean testClippedLowX(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2) {
+	protected final boolean testClippedLowX(int v0, int v1, int v2) {
+		final int[] vertexData = this.vertexData;
 		// NB: order here is lexical not bitwise
-		final int split = v2.needsClipLowX() | (v1.needsClipLowX() << 1) | (v0.needsClipLowX() << 2);
+		final int split = needsClipLowX(vertexData, v2) | (needsClipLowX(vertexData, v1) << 1) | (needsClipLowX(vertexData, v0) << 2);
 
 		switch (split) {
 		case 0b000:
@@ -423,22 +427,24 @@ public abstract class ClippingTerrainOccluder extends AbstractTerrainOccluder {
 		}
 	}
 
-	private boolean testClippedLowXOne(ProjectionVector4f v0ext, ProjectionVector4f v1, ProjectionVector4f v2) {
-		vClipLowXA.clipLowX(v1, v0ext);
-		vClipLowXB.clipLowX(v2, v0ext);
-		return testClippedLowY(vClipLowXA, v1, vClipLowXB)
-				|| testClippedLowY(vClipLowXB, v1, v2);
+	private boolean testClippedLowXOne(int v0ext, int v1, int v2) {
+		final int[] vertexData = this.vertexData;
+		clipLowX(vertexData, V_LOW_X_CLIP_A, v1, v0ext);
+		clipLowX(vertexData, V_LOW_X_CLIP_B, v2, v0ext);
+		return testClippedLowY(V_LOW_X_CLIP_A, v1, V_LOW_X_CLIP_B)
+				|| testClippedLowY(V_LOW_X_CLIP_B, v1, v2);
 	}
 
-	private boolean testClippedLowXTwo(ProjectionVector4f v0ext, ProjectionVector4f v1ext, ProjectionVector4f v2) {
-		vClipLowXA.clipLowX(v2, v0ext);
-		vClipLowXB.clipLowX(v2, v1ext);
-		return testClippedLowY(v2, vClipLowXA, vClipLowXB);
+	private boolean testClippedLowXTwo(int v0ext, int v1ext, int v2) {
+		clipLowX(vertexData, V_LOW_X_CLIP_A, v2, v0ext);
+		clipLowX(vertexData, V_LOW_X_CLIP_B, v2, v1ext);
+		return testClippedLowY(v2, V_LOW_X_CLIP_A, V_LOW_X_CLIP_B);
 	}
 
-	private boolean testClippedLowY(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2) {
+	private boolean testClippedLowY(int v0, int v1, int v2) {
+		final int[] vertexData = this.vertexData;
 		// NB: order here is lexical not bitwise
-		final int split = v2.needsClipLowY() | (v1.needsClipLowY() << 1) | (v0.needsClipLowY() << 2);
+		final int split = needsClipLowY(vertexData, v2) | (needsClipLowY(vertexData, v1) << 1) | (needsClipLowY(vertexData, v0) << 2);
 
 		switch (split) {
 		case 0b000:
@@ -468,22 +474,25 @@ public abstract class ClippingTerrainOccluder extends AbstractTerrainOccluder {
 		}
 	}
 
-	private final boolean testClippedLowYOne(ProjectionVector4f v0ext, ProjectionVector4f v1, ProjectionVector4f v2) {
-		vClipLowYA.clipLowY(v1, v0ext);
-		vClipLowYB.clipLowY(v2, v0ext);
-		return testClippedHighX(vClipLowYA, v1, vClipLowYB)
-				|| testClippedHighX(vClipLowYB, v1, v2);
+	private final boolean testClippedLowYOne(int v0ext, int v1, int v2) {
+		final int[] vertexData = this.vertexData;
+		clipLowY(vertexData, V_LOW_Y_CLIP_A, v1, v0ext);
+		clipLowY(vertexData, V_LOW_Y_CLIP_B, v2, v0ext);
+		return testClippedHighX(V_LOW_Y_CLIP_A, v1, V_LOW_Y_CLIP_B)
+				|| testClippedHighX(V_LOW_Y_CLIP_B, v1, v2);
 	}
 
-	private boolean testClippedLowYTwo(ProjectionVector4f v0ext, ProjectionVector4f v1ext, ProjectionVector4f v2) {
-		vClipLowYA.clipLowY(v2, v0ext);
-		vClipLowYB.clipLowY(v2, v1ext);
-		return testClippedHighX(v2, vClipLowYA, vClipLowYB);
+	private boolean testClippedLowYTwo(int v0ext, int v1ext, int v2) {
+		final int[] vertexData = this.vertexData;
+		clipLowY(vertexData, V_LOW_Y_CLIP_A, v2, v0ext);
+		clipLowY(vertexData, V_LOW_Y_CLIP_B, v2, v1ext);
+		return testClippedHighX(v2, V_LOW_Y_CLIP_A, V_LOW_Y_CLIP_B);
 	}
 
-	private boolean testClippedHighX(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2) {
+	private boolean testClippedHighX(int v0, int v1, int v2) {
+		final int[] vertexData = this.vertexData;
 		// NB: order here is lexical not bitwise
-		final int split = v2.needsClipHighX() | (v1.needsClipHighX() << 1) | (v0.needsClipHighX() << 2);
+		final int split = needsClipHighX(vertexData, v2) | (needsClipHighX(vertexData, v1) << 1) | (needsClipHighX(vertexData, v0) << 2);
 
 		switch (split) {
 		case 0b000:
@@ -513,22 +522,24 @@ public abstract class ClippingTerrainOccluder extends AbstractTerrainOccluder {
 		}
 	}
 
-	private boolean testClippedHighXOne(ProjectionVector4f v0ext, ProjectionVector4f v1, ProjectionVector4f v2) {
-		vClipHighXA.clipHighX(v1, v0ext);
-		vClipHighXB.clipHighX(v2, v0ext);
-		return testClippedHighY(vClipHighXA, v1, vClipHighXB)
-				|| testClippedHighY(vClipHighXB, v1, v2);
+	private boolean testClippedHighXOne(int v0ext, int v1, int v2) {
+		final int[] vertexData = this.vertexData;
+		clipHighX(vertexData, V_HIGH_X_CLIP_A, v1, v0ext);
+		clipHighX(vertexData, V_HIGH_X_CLIP_B, v2, v0ext);
+		return testClippedHighY(V_HIGH_X_CLIP_A, v1, V_HIGH_X_CLIP_B)
+				|| testClippedHighY(V_HIGH_X_CLIP_B, v1, v2);
 	}
 
-	private boolean testClippedHighXTwo(ProjectionVector4f v0ext, ProjectionVector4f v1ext, ProjectionVector4f v2) {
-		vClipHighXA.clipHighX(v2, v0ext);
-		vClipHighXB.clipHighX(v2, v1ext);
-		return testClippedHighY(v2, vClipHighXA, vClipHighXB);
+	private boolean testClippedHighXTwo(int v0ext, int v1ext, int v2) {
+		clipHighX(vertexData, V_HIGH_X_CLIP_A, v2, v0ext);
+		clipHighX(vertexData, V_HIGH_X_CLIP_B, v2, v1ext);
+		return testClippedHighY(v2, V_HIGH_X_CLIP_A, V_HIGH_X_CLIP_B);
 	}
 
-	private boolean testClippedHighY(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2) {
+	private boolean testClippedHighY(int v0, int v1, int v2) {
+		final int[] vertexData = this.vertexData;
 		// NB: order here is lexical not bitwise
-		final int split = v2.needsClipHighY() | (v1.needsClipHighY() << 1) | (v0.needsClipHighY() << 2);
+		final int split = needsClipHighY(vertexData, v2) | (needsClipHighY(vertexData, v1) << 1) | (needsClipHighY(vertexData, v0) << 2);
 
 		switch (split) {
 		case 0b000:
@@ -558,16 +569,18 @@ public abstract class ClippingTerrainOccluder extends AbstractTerrainOccluder {
 		}
 	}
 
-	private boolean testClippedHighYOne(ProjectionVector4f v0ext, ProjectionVector4f v1, ProjectionVector4f v2) {
-		vClipHighYA.clipHighY(v1, v0ext);
-		vClipHighYB.clipHighY(v2, v0ext);
-		return testTri(vClipHighYA, v1, vClipHighYB)
-				|| testTri(vClipHighYB, v1, v2);
+	private boolean testClippedHighYOne(int v0ext, int v1, int v2) {
+		final int[] vertexData = this.vertexData;
+		clipHighY(vertexData, V_HIGH_Y_CLIP_A, v1, v0ext);
+		clipHighY(vertexData, V_HIGH_Y_CLIP_B, v2, v0ext);
+		return testTri(V_HIGH_Y_CLIP_A, v1, V_HIGH_Y_CLIP_B)
+				|| testTri(V_HIGH_Y_CLIP_B, v1, v2);
 	}
 
-	private boolean testClippedHighYTwo(ProjectionVector4f v0ext, ProjectionVector4f v1ext, ProjectionVector4f v2) {
-		vClipHighYA.clipHighY(v2, v0ext);
-		vClipHighYB.clipHighY(v2, v1ext);
-		return testTri(v2, vClipHighYA, vClipHighYB);
+	private boolean testClippedHighYTwo(int v0ext, int v1ext, int v2) {
+		final int[] vertexData = this.vertexData;
+		clipHighY(vertexData, V_HIGH_Y_CLIP_A, v2, v0ext);
+		clipHighY(vertexData, V_HIGH_Y_CLIP_B, v2, v1ext);
+		return testTri(v2, V_HIGH_Y_CLIP_A, V_HIGH_Y_CLIP_B);
 	}
 }

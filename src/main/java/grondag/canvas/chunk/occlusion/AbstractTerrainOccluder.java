@@ -1,5 +1,10 @@
 package grondag.canvas.chunk.occlusion;
 
+import static grondag.canvas.chunk.occlusion.ProjectedVertexData.PROJECTED_VERTEX_STRIDE;
+import static grondag.canvas.chunk.occlusion.ProjectedVertexData.PV_PX;
+import static grondag.canvas.chunk.occlusion.ProjectedVertexData.PV_PY;
+import static grondag.canvas.chunk.occlusion.ProjectedVertexData.setupVertex;
+
 import java.io.File;
 
 import com.google.common.base.Strings;
@@ -14,6 +19,7 @@ import net.minecraft.util.math.Vec3d;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
+import grondag.canvas.mixinterface.Matrix4fExt;
 import grondag.canvas.render.CanvasWorldRenderer;
 
 public abstract class AbstractTerrainOccluder {
@@ -24,15 +30,40 @@ public abstract class AbstractTerrainOccluder {
 	protected Matrix4f projectionMatrix;
 	protected Matrix4f modelMatrix;
 	protected final Matrix4f mvpMatrix = new Matrix4f();
+	protected final Matrix4fExt mvpMatrixExt =  (Matrix4fExt)(Object) mvpMatrix;
 
-	protected final ProjectionVector4f v000 = new ProjectionVector4f();
-	protected final ProjectionVector4f v001 = new ProjectionVector4f();
-	protected final ProjectionVector4f v010 = new ProjectionVector4f();
-	protected final ProjectionVector4f v011 = new ProjectionVector4f();
-	protected final ProjectionVector4f v100 = new ProjectionVector4f();
-	protected final ProjectionVector4f v101 = new ProjectionVector4f();
-	protected final ProjectionVector4f v110 = new ProjectionVector4f();
-	protected final ProjectionVector4f v111 = new ProjectionVector4f();
+	protected static final int V000 = 0;
+	protected static final int V001 = V000 + PROJECTED_VERTEX_STRIDE;
+	protected static final int V010 = V001 + PROJECTED_VERTEX_STRIDE;
+	protected static final int V011 = V010 + PROJECTED_VERTEX_STRIDE;
+	protected static final int V100 = V011 + PROJECTED_VERTEX_STRIDE;
+	protected static final int V101 = V100 + PROJECTED_VERTEX_STRIDE;
+	protected static final int V110 = V101 + PROJECTED_VERTEX_STRIDE;
+	protected static final int V111 = V110 + PROJECTED_VERTEX_STRIDE;
+
+	protected static final int V_NEAR_CLIP_A = V111 + PROJECTED_VERTEX_STRIDE;
+	protected static final int V_NEAR_CLIP_B = V_NEAR_CLIP_A + PROJECTED_VERTEX_STRIDE;
+	protected static final int V_LOW_X_CLIP_A = V_NEAR_CLIP_B + PROJECTED_VERTEX_STRIDE;
+	protected static final int V_LOW_X_CLIP_B = V_LOW_X_CLIP_A + PROJECTED_VERTEX_STRIDE;
+	protected static final int V_LOW_Y_CLIP_A = V_LOW_X_CLIP_B + PROJECTED_VERTEX_STRIDE;
+	protected static final int V_LOW_Y_CLIP_B = V_LOW_Y_CLIP_A + PROJECTED_VERTEX_STRIDE;
+	protected static final int V_HIGH_X_CLIP_A = V_LOW_Y_CLIP_B + PROJECTED_VERTEX_STRIDE;
+	protected static final int V_HIGH_X_CLIP_B = V_HIGH_X_CLIP_A + PROJECTED_VERTEX_STRIDE;
+	protected static final int V_HIGH_Y_CLIP_A = V_HIGH_X_CLIP_B + PROJECTED_VERTEX_STRIDE;
+	protected static final int V_HIGH_Y_CLIP_B = V_HIGH_Y_CLIP_A + PROJECTED_VERTEX_STRIDE;
+
+	protected static final int VERTEX_DATA_LENGTH = V_HIGH_Y_CLIP_B + PROJECTED_VERTEX_STRIDE;
+
+	protected final int[] vertexData = new int[VERTEX_DATA_LENGTH];
+
+	//	protected final ProjectionVector4f _v000 = new ProjectionVector4f();
+	//	protected final ProjectionVector4f _v001 = new ProjectionVector4f();
+	//	protected final ProjectionVector4f _v010 = new ProjectionVector4f();
+	//	protected final ProjectionVector4f _v011 = new ProjectionVector4f();
+	//	protected final ProjectionVector4f _v100 = new ProjectionVector4f();
+	//	protected final ProjectionVector4f _v101 = new ProjectionVector4f();
+	//	protected final ProjectionVector4f _v110 = new ProjectionVector4f();
+	//	protected final ProjectionVector4f _v111 = new ProjectionVector4f();
 
 	// Boumds of current triangle
 	protected int minPixelX;
@@ -102,12 +133,12 @@ public abstract class AbstractTerrainOccluder {
 	private final QuadTest[] tests = new QuadTest[6];
 
 	{
-		tests[TEST_UP] = () -> testQuad(v110, v010, v011, v111);
-		tests[TEST_DOWN] = () -> testQuad(v000, v100, v101, v001);
-		tests[TEST_EAST] = () -> testQuad(v101, v100, v110, v111);
-		tests[TEST_WEST] = () -> testQuad(v000, v001, v011, v010);
-		tests[TEST_SOUTH] = () -> testQuad(v001, v101, v111, v011);
-		tests[TEST_NORTH] = () -> testQuad(v100, v000, v010, v110);
+		tests[TEST_UP] = () -> testQuad(V110, V010, V011, V111);
+		tests[TEST_DOWN] = () -> testQuad(V000, V100, V101, V001);
+		tests[TEST_EAST] = () -> testQuad(V101, V100, V110, V111);
+		tests[TEST_WEST] = () -> testQuad(V000, V001, V011, V010);
+		tests[TEST_SOUTH] = () -> testQuad(V001, V101, V111, V011);
+		tests[TEST_NORTH] = () -> testQuad(V100, V000, V010, V110);
 	}
 
 	public final boolean isChunkVisible()  {
@@ -203,38 +234,38 @@ public abstract class AbstractTerrainOccluder {
 		// PERF use same techniques as chunk
 
 		// if camera below top face can't be seen
-		return (offsetY < -(y1 << CAMERA_PRECISION_BITS) && testQuad(v110, v010, v011, v111)) // up
-				|| (offsetY > -(y0 << CAMERA_PRECISION_BITS) && testQuad(v000, v100, v101, v001)) // down
+		return (offsetY < -(y1 << CAMERA_PRECISION_BITS) && testQuad(V110, V010, V011, V111)) // up
+				|| (offsetY > -(y0 << CAMERA_PRECISION_BITS) && testQuad(V000, V100, V101, V001)) // down
 
-				|| (offsetX < -(x1 << CAMERA_PRECISION_BITS) && testQuad(v101, v100, v110, v111)) // east
-				|| (offsetX > -(x0 << CAMERA_PRECISION_BITS) && testQuad(v000, v001, v011, v010)) // west
+				|| (offsetX < -(x1 << CAMERA_PRECISION_BITS) && testQuad(V101, V100, V110, V111)) // east
+				|| (offsetX > -(x0 << CAMERA_PRECISION_BITS) && testQuad(V000, V001, V011, V010)) // west
 
-				|| (offsetZ < -(z1 << CAMERA_PRECISION_BITS) && testQuad(v001, v101, v111, v011)) // south
-				|| (offsetZ > -(z0 << CAMERA_PRECISION_BITS) && testQuad(v100, v000, v010, v110)); // north
+				|| (offsetZ < -(z1 << CAMERA_PRECISION_BITS) && testQuad(V001, V101, V111, V011)) // south
+				|| (offsetZ > -(z0 << CAMERA_PRECISION_BITS) && testQuad(V100, V000, V010, V110)); // north
 	}
 
 	public final void occludeChunk()  {
 		computeProjectedBoxBounds(0, 0, 0, 16, 16, 16);
 
 		// PERF use same techniques as chunk
-		if (offsetY < -CAMERA_PRECISION_CHUNK_MAX) drawQuad(v110, v010, v011, v111); // up
-		if (offsetY > 0) drawQuad(v000, v100, v101, v001); // down
-		if (offsetX < -CAMERA_PRECISION_CHUNK_MAX) drawQuad(v101, v100, v110, v111); // east
-		if (offsetX > 0) drawQuad(v000, v001, v011, v010); // west
-		if (offsetZ < -CAMERA_PRECISION_CHUNK_MAX) drawQuad(v001, v101, v111, v011); // south
-		if (offsetZ > 0) drawQuad(v100, v000, v010, v110); // north
+		if (offsetY < -CAMERA_PRECISION_CHUNK_MAX) drawQuad(V110, V010, V011, V111); // up
+		if (offsetY > 0) drawQuad(V000, V100, V101, V001); // down
+		if (offsetX < -CAMERA_PRECISION_CHUNK_MAX) drawQuad(V101, V100, V110, V111); // east
+		if (offsetX > 0) drawQuad(V000, V001, V011, V010); // west
+		if (offsetZ < -CAMERA_PRECISION_CHUNK_MAX) drawQuad(V001, V101, V111, V011); // south
+		if (offsetZ > 0) drawQuad(V100, V000, V010, V110); // north
 	}
 
 	protected final void occlude(int x0, int y0, int z0, int x1, int y1, int z1) {
 		computeProjectedBoxBounds(x0, y0, z0, x1, y1, z1);
 
 		// PERF use same techniques as chunk
-		if (offsetY < -(y1 << CAMERA_PRECISION_BITS)) drawQuad(v110, v010, v011, v111); // up
-		if (offsetY > -(y0 << CAMERA_PRECISION_BITS)) drawQuad(v000, v100, v101, v001); // down
-		if (offsetX < -(x1 << CAMERA_PRECISION_BITS)) drawQuad(v101, v100, v110, v111); // east
-		if (offsetX > -(x0 << CAMERA_PRECISION_BITS)) drawQuad(v000, v001, v011, v010); // west
-		if (offsetZ < -(z1 << CAMERA_PRECISION_BITS)) drawQuad(v001, v101, v111, v011); // south
-		if (offsetZ > -(z0 << CAMERA_PRECISION_BITS)) drawQuad(v100, v000, v010, v110); // north
+		if (offsetY < -(y1 << CAMERA_PRECISION_BITS)) drawQuad(V110, V010, V011, V111); // up
+		if (offsetY > -(y0 << CAMERA_PRECISION_BITS)) drawQuad(V000, V100, V101, V001); // down
+		if (offsetX < -(x1 << CAMERA_PRECISION_BITS)) drawQuad(V101, V100, V110, V111); // east
+		if (offsetX > -(x0 << CAMERA_PRECISION_BITS)) drawQuad(V000, V001, V011, V010); // west
+		if (offsetZ < -(z1 << CAMERA_PRECISION_BITS)) drawQuad(V001, V101, V111, V011); // south
+		if (offsetZ > -(z0 << CAMERA_PRECISION_BITS)) drawQuad(V100, V000, V010, V110); // north
 	}
 
 	public final void occlude(int[] visData) {
@@ -263,30 +294,41 @@ public abstract class AbstractTerrainOccluder {
 		}
 	}
 
+	//  PERF: use ints as inputs  after ditching vertex class
 	protected final void computeProjectedBoxBounds(float x0, float y0, float z0, float x1, float y1, float z1) {
-		v000.set(x0, y0, z0, 1);
-		v000.transform(mvpMatrix);
+		final int[] vertexData = this.vertexData;
 
-		v001.set(x0, y0, z1, 1);
-		v001.transform(mvpMatrix);
+		//		_v000.set(x0, y0, z0, 1);
+		//		_v000.transform(mvpMatrix);
+		setupVertex(vertexData, V000, x0, y0, z0, mvpMatrixExt);
 
-		v010.set(x0, y1, z0, 1);
-		v010.transform(mvpMatrix);
+		//		_v001.set(x0, y0, z1, 1);
+		//		_v001.transform(mvpMatrix);
+		setupVertex(vertexData, V001, x0, y0, z1, mvpMatrixExt);
 
-		v011.set(x0, y1, z1, 1);
-		v011.transform(mvpMatrix);
+		//		_v010.set(x0, y1, z0, 1);
+		//		_v010.transform(mvpMatrix);
+		setupVertex(vertexData, V010, x0, y1, z0, mvpMatrixExt);
 
-		v100.set(x1, y0, z0, 1);
-		v100.transform(mvpMatrix);
+		//		_v011.set(x0, y1, z1, 1);
+		//		_v011.transform(mvpMatrix);
+		setupVertex(vertexData, V011, x0, y1, z1, mvpMatrixExt);
 
-		v101.set(x1, y0, z1, 1);
-		v101.transform(mvpMatrix);
+		//		_v100.set(x1, y0, z0, 1);
+		//		_v100.transform(mvpMatrix);
+		setupVertex(vertexData, V100, x1, y0, z0, mvpMatrixExt);
 
-		v110.set(x1, y1, z0, 1);
-		v110.transform(mvpMatrix);
+		//		_v101.set(x1, y0, z1, 1);
+		//		_v101.transform(mvpMatrix);
+		setupVertex(vertexData, V101, x1, y0, z1, mvpMatrixExt);
 
-		v111.set(x1, y1, z1, 1);
-		v111.transform(mvpMatrix);
+		//		_v110.set(x1, y1, z0, 1);
+		//		_v110.transform(mvpMatrix);
+		setupVertex(vertexData, V110, x1, y1, z0, mvpMatrixExt);
+
+		//		_v111.set(x1, y1, z1, 1);
+		//		_v111.transform(mvpMatrix);
+		setupVertex(vertexData, V111, x1, y1, z1, mvpMatrixExt);
 	}
 
 	public final void prepareScene(Matrix4f projectionMatrix, Matrix4f modelMatrix, Camera camera) {
@@ -324,13 +366,13 @@ public abstract class AbstractTerrainOccluder {
 		offsetZ = Math.round(offsetZf * CAMERA_PRECISION_UNITY);
 	}
 
-	protected abstract void drawQuad(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2, ProjectionVector4f v3);
+	protected abstract void drawQuad(int v0, int v1, int v2, int v3);
 
-	protected abstract void drawTri(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2);
+	protected abstract void drawTri(int v0, int v1, int v2);
 
-	protected abstract boolean testQuad(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2, ProjectionVector4f v3);
+	protected abstract boolean testQuad(int v0, int v1, int v2, int v3);
 
-	protected abstract boolean testTri(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2);
+	protected abstract boolean testTri(int v0, int v1, int v2);
 
 	/**
 	 *
@@ -339,13 +381,14 @@ public abstract class AbstractTerrainOccluder {
 	 * @param v2
 	 * @return constant value from BoundsResult
 	 */
-	protected final int prepareTriBounds(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2) {
-		final int x0 = v0.ix();
-		final int y0 = v0.iy();
-		final int x1 = v1.ix();
-		final int y1 = v1.iy();
-		final int x2 = v2.ix();
-		final int y2 = v2.iy();
+	protected final int prepareTriBounds(int v0, int v1, int v2) {
+		final int[] vertexData = this.vertexData;
+		final int x0 = vertexData[v0 + PV_PX];
+		final int y0 = vertexData[v0 + PV_PY];
+		final int x1 = vertexData[v1 + PV_PX];
+		final int y1 = vertexData[v1 + PV_PY];
+		final int x2 = vertexData[v2 + PV_PX];
+		final int y2 = vertexData[v2 + PV_PY];
 
 		int minY = y0;
 		int maxY = y0;

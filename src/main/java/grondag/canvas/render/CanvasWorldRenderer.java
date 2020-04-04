@@ -231,6 +231,11 @@ public class CanvasWorldRenderer {
 			while(!regionQueue.isEmpty()) {
 				final BuiltRenderRegion builtChunk = regionQueue.dequeue();
 
+				// TODO: remove
+				if (builtChunk == cameraChunk) {
+					System.out.println("boop");
+				}
+
 				// don't visit if not in frustum
 				if(!builtChunk.isInFrustum(frustum)) {
 					continue;
