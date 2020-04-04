@@ -53,9 +53,9 @@ public abstract class AbstractTerrainOccluder {
 	protected double cameraY;
 	protected double cameraZ;
 
-	protected float offsetX;
-	protected float offsetY;
-	protected float offsetZ;
+	protected int offsetX;
+	protected int offsetY;
+	protected int offsetZ;
 
 	protected int x0;
 	protected int y0;
@@ -92,96 +92,86 @@ public abstract class AbstractTerrainOccluder {
 		boolean test();
 	}
 
-	private final QuadTest TEST_UP = () -> testQuad(v110, v010, v011, v111);
-	private final QuadTest TEST_DOWN = () -> testQuad(v000, v100, v101, v001);
-	private final QuadTest TEST_EAST = () -> testQuad(v101, v100, v110, v111);
-	private final QuadTest TEST_WEST = () -> testQuad(v000, v001, v011, v010);
-	private final QuadTest TEST_SOUTH = () -> testQuad(v001, v101, v111, v011);
-	private final QuadTest TEST_NORTH = () -> testQuad(v100, v000, v010, v110);
-	private final QuadTest TEST_DUMMY = () -> false;
+	private static final int TEST_UP = 0;
+	private static final int TEST_DOWN = 1;
+	private static final int TEST_EAST = 2;
+	private static final int TEST_WEST = 3;
+	private static final int TEST_SOUTH = 4;
+	private static final int TEST_NORTH = 5;
 
-	//	(offsetY < -16 && testQuad(v110, v010, v011, v111)) // up
-	//	|| (offsetY > 0 && testQuad(v000, v100, v101, v001)) // down
-	//
-	//	|| (offsetX < -16 && testQuad(v101, v100, v110, v111)) // east
-	//	|| (offsetX > 0 && testQuad(v000, v001, v011, v010)) // west
-	//
-	//	|| (offsetZ < -16 && testQuad(v001, v101, v111, v011)) // south
-	//	|| (offsetZ > 0 && testQuad(v100, v000, v010, v110)); // north
+	private final QuadTest[] tests = new QuadTest[6];
+
+	{
+		tests[TEST_UP] = () -> testQuad(v110, v010, v011, v111);
+		tests[TEST_DOWN] = () -> testQuad(v000, v100, v101, v001);
+		tests[TEST_EAST] = () -> testQuad(v101, v100, v110, v111);
+		tests[TEST_WEST] = () -> testQuad(v000, v001, v011, v010);
+		tests[TEST_SOUTH] = () -> testQuad(v001, v101, v111, v011);
+		tests[TEST_NORTH] = () -> testQuad(v100, v000, v010, v110);
+	}
 
 	public final boolean isChunkVisible()  {
 		computeProjectedBoxBounds(0, 0, 0, 16, 16, 16);
 
-		//time to beat: 413ns
+		// time to beat: 398ns
 
 		CanvasWorldRenderer.innerTimer.start();
 
 		// rank tests by how directly they face - use distance from camera coordinates for this
-		final float offsetX = this.offsetX;
-		final float offsetY = this.offsetY;
-		final float offsetZ = this.offsetZ;
+		final int offsetX = this.offsetX;
+		final int offsetY = this.offsetY;
+		final int offsetZ = this.offsetZ;
 
-		QuadTest aTest = TEST_DUMMY;
-		QuadTest bTest = TEST_DUMMY;
-		QuadTest cTest = TEST_DUMMY;
-		float maxDist = 0;
+		int xTest =  0, yTest = 0, zTest = 0;
 
 		// if camera below top face can't be seen
-		if (offsetY <  -16) {
-			aTest = TEST_UP;
-			maxDist = -(offsetY + 16);
+		if (offsetY < -CAMERA_PRECISION_CHUNK_MAX) {
+			yTest = ((-offsetY + CAMERA_PRECISION_CHUNK_MAX) << 3) | TEST_UP;
 		} else if (offsetY > 0) {
-			aTest = TEST_DOWN;
-			maxDist = offsetY;
+			yTest = (offsetY << 3) | TEST_DOWN;
 		}
 
-		if (offsetX <  -16) {
-			final float max = -(offsetX + 16);
-
-			if (max > maxDist) {
-				if (aTest != TEST_DUMMY) {
-					bTest = aTest;
-				}
-
-				aTest = TEST_EAST;
-				maxDist = max;
-			}
-		} else if (offsetX > 0) {
-			if (offsetX > maxDist) {
-				if (aTest != TEST_DUMMY) {
-					bTest = aTest;
-				}
-
-				aTest = TEST_WEST;
-				maxDist = offsetX;
-			}
+		if (offsetX < -CAMERA_PRECISION_CHUNK_MAX) {
+			xTest = ((-offsetX + CAMERA_PRECISION_CHUNK_MAX) << 3) | TEST_EAST;
+		} else {
+			xTest = (offsetX << 3) | TEST_WEST;
 		}
 
-		if (offsetZ <  -16) {
-			if (-(offsetZ + 16) > maxDist) {
-				if (aTest != TEST_DUMMY) {
-					cTest = bTest;
-					bTest = aTest;
-				}
-
-				aTest = TEST_SOUTH;
-			}
-		} else if (offsetZ > 0) {
-			if (offsetZ > maxDist) {
-				if (aTest != TEST_DUMMY) {
-					cTest = bTest;
-					bTest = aTest;
-				}
-
-				aTest = TEST_NORTH;
-			}
+		if (offsetZ < -CAMERA_PRECISION_CHUNK_MAX) {
+			zTest = ((-offsetZ + CAMERA_PRECISION_CHUNK_MAX) << 3) | TEST_SOUTH;
+		} else {
+			zTest = (offsetZ << 3) | TEST_NORTH;
 		}
 
-		final boolean result = aTest.test() || bTest.test() || cTest.test();
+		final QuadTest[] tests = this.tests;
+
+		final boolean result;
+
+		if (xTest > yTest) {
+			if  (zTest > xTest) {
+				// z first
+				result = tests[zTest & 7].test()
+						|| (xTest != 0 && tests[xTest & 7].test())
+						|| (yTest != 0 && tests[yTest & 7].test());
+			} else {
+				// x first
+				result = tests[xTest & 7].test()
+						|| (yTest != 0 && tests[yTest & 7].test())
+						|| (zTest != 0 && tests[zTest & 7].test());
+			}
+		} else if (zTest > yTest) {
+			// z first
+			result = tests[zTest & 7].test()
+					|| (yTest != 0 && tests[yTest & 7].test())
+					|| (xTest != 0 && tests[xTest & 7].test());
+		} else {
+			// y first
+			result =  tests[yTest & 7].test()
+					|| (zTest != 0 && tests[zTest & 7].test())
+					|| (xTest != 0 && tests[xTest & 7].test());
+		}
 
 		CanvasWorldRenderer.innerTimer.stop();
-
-
 		//		// TODO: remove
 		//		if (occlusionRange == PackedBox.RANGE_EXTREME) {
 		//			if (result) {
@@ -210,37 +200,41 @@ public abstract class AbstractTerrainOccluder {
 
 		computeProjectedBoxBounds(x0, y0, z0, x1, y1, z1);
 
+		// PERF use same techniques as chunk
+
 		// if camera below top face can't be seen
-		return  (offsetY < -y1 && testQuad(v110, v010, v011, v111)) // up
-				|| (offsetY > -y0 && testQuad(v000, v100, v101, v001)) // down
+		return (offsetY < -(y1 << CAMERA_PRECISION_BITS) && testQuad(v110, v010, v011, v111)) // up
+				|| (offsetY > -(y0 << CAMERA_PRECISION_BITS) && testQuad(v000, v100, v101, v001)) // down
 
-				|| (offsetX < -x1 && testQuad(v101, v100, v110, v111)) // east
-				|| (offsetX > -x0 && testQuad(v000, v001, v011, v010)) // west
+				|| (offsetX < -(x1 << CAMERA_PRECISION_BITS) && testQuad(v101, v100, v110, v111)) // east
+				|| (offsetX > -(x0 << CAMERA_PRECISION_BITS) && testQuad(v000, v001, v011, v010)) // west
 
-				|| (offsetZ < -z1 && testQuad(v001, v101, v111, v011)) // south
-				|| (offsetZ > -z0 && testQuad(v100, v000, v010, v110)); // north
+				|| (offsetZ < -(z1 << CAMERA_PRECISION_BITS) && testQuad(v001, v101, v111, v011)) // south
+				|| (offsetZ > -(z0 << CAMERA_PRECISION_BITS) && testQuad(v100, v000, v010, v110)); // north
 	}
 
 	public final void occludeChunk()  {
 		computeProjectedBoxBounds(0, 0, 0, 16, 16, 16);
 
-		if (offsetY < -16) drawQuad(v110, v010, v011, v111); // up
+		// PERF use same techniques as chunk
+		if (offsetY < -CAMERA_PRECISION_CHUNK_MAX) drawQuad(v110, v010, v011, v111); // up
 		if (offsetY > 0) drawQuad(v000, v100, v101, v001); // down
-		if (offsetX < -16) drawQuad(v101, v100, v110, v111); // east
+		if (offsetX < -CAMERA_PRECISION_CHUNK_MAX) drawQuad(v101, v100, v110, v111); // east
 		if (offsetX > 0) drawQuad(v000, v001, v011, v010); // west
-		if (offsetZ < -16) drawQuad(v001, v101, v111, v011); // south
+		if (offsetZ < -CAMERA_PRECISION_CHUNK_MAX) drawQuad(v001, v101, v111, v011); // south
 		if (offsetZ > 0) drawQuad(v100, v000, v010, v110); // north
 	}
 
-	protected final void occlude(float x0, float y0, float z0, float x1, float y1, float z1) {
+	protected final void occlude(int x0, int y0, int z0, int x1, int y1, int z1) {
 		computeProjectedBoxBounds(x0, y0, z0, x1, y1, z1);
 
-		if (offsetY < -y1) drawQuad(v110, v010, v011, v111); // up
-		if (offsetY > -y0) drawQuad(v000, v100, v101, v001); // down
-		if (offsetX < -x1) drawQuad(v101, v100, v110, v111); // east
-		if (offsetX > -x0) drawQuad(v000, v001, v011, v010); // west
-		if (offsetZ < -z1) drawQuad(v001, v101, v111, v011); // south
-		if (offsetZ > -z0) drawQuad(v100, v000, v010, v110); // north
+		// PERF use same techniques as chunk
+		if (offsetY < -(y1 << CAMERA_PRECISION_BITS)) drawQuad(v110, v010, v011, v111); // up
+		if (offsetY > -(y0 << CAMERA_PRECISION_BITS)) drawQuad(v000, v100, v101, v001); // down
+		if (offsetX < -(x1 << CAMERA_PRECISION_BITS)) drawQuad(v101, v100, v110, v111); // east
+		if (offsetX > -(x0 << CAMERA_PRECISION_BITS)) drawQuad(v000, v001, v011, v010); // west
+		if (offsetZ < -(z1 << CAMERA_PRECISION_BITS)) drawQuad(v001, v101, v111, v011); // south
+		if (offsetZ > -(z0 << CAMERA_PRECISION_BITS)) drawQuad(v100, v000, v010, v110); // north
 	}
 
 	public final void occlude(int[] visData) {
@@ -316,14 +310,18 @@ public abstract class AbstractTerrainOccluder {
 		yOrigin = origin.getY();
 		zOrigin = origin.getZ();
 
-		offsetX = (float) (xOrigin - cameraX);
-		offsetY = (float) (yOrigin - cameraY);
-		offsetZ = (float) (zOrigin - cameraZ);
+		final float offsetXf = (float) (xOrigin - cameraX);
+		final float offsetYf = (float) (yOrigin - cameraY);
+		final float offsetZf = (float) (zOrigin - cameraZ);
 
 		mvpMatrix.loadIdentity();
 		mvpMatrix.multiply(projectionMatrix);
 		mvpMatrix.multiply(modelMatrix);
-		mvpMatrix.multiply(Matrix4f.translate(offsetX, offsetY, offsetZ));
+		mvpMatrix.multiply(Matrix4f.translate(offsetXf, offsetYf, offsetZf));
+
+		offsetX = Math.round(offsetXf * CAMERA_PRECISION_UNITY);
+		offsetY = Math.round(offsetYf * CAMERA_PRECISION_UNITY);
+		offsetZ = Math.round(offsetZf * CAMERA_PRECISION_UNITY);
 	}
 
 	protected abstract void drawQuad(ProjectionVector4f v0, ProjectionVector4f v1, ProjectionVector4f v2, ProjectionVector4f v3);
@@ -682,4 +680,8 @@ public abstract class AbstractTerrainOccluder {
 	protected static final int LOW_BIN_PIXEL_INDEX_MASK = LOW_BIN_PIXEL_DIAMETER - 1;
 
 	protected static final long[] EMPTY_BITS = new long[LOW_BIN_COUNT];
+
+	protected static final int CAMERA_PRECISION_BITS = 12;
+	protected static final int CAMERA_PRECISION_UNITY = 1 << CAMERA_PRECISION_BITS;
+	protected static final int CAMERA_PRECISION_CHUNK_MAX = 16 * CAMERA_PRECISION_UNITY;
 }
