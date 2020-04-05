@@ -105,9 +105,11 @@ public abstract class AbstractTerrainOccluder {
 
 	protected int occlusionRange;
 
+	// TODO: remove
 	protected int totalCount;
 	protected int extTrue;
 	protected int extFalse;
+	protected int earlyExit;
 
 
 	private final boolean testUp() { return testQuad(V110, V010, V011, V111); }
@@ -118,11 +120,11 @@ public abstract class AbstractTerrainOccluder {
 	private final boolean testNorth() { return testQuad(V100, V000, V010, V110); }
 
 	public final boolean isChunkVisible()  {
+		CanvasWorldRenderer.innerTimer.start();
+
 		computeProjectedBoxBounds(0, 0, 0, 16, 16, 16);
 
 		// time to beat: 398ns
-
-		CanvasWorldRenderer.innerTimer.start();
 
 		// rank tests by how directly they face - use distance from camera coordinates for this
 		final int offsetX = this.offsetX;
@@ -190,6 +192,7 @@ public abstract class AbstractTerrainOccluder {
 			zTest = offsetZ;
 			testBits |= 4;
 		}
+
 
 		final boolean result;
 
@@ -261,21 +264,26 @@ public abstract class AbstractTerrainOccluder {
 		}
 
 		CanvasWorldRenderer.innerTimer.stop();
-		//		// TODO: remove
-		//		if (occlusionRange == PackedBox.RANGE_EXTREME) {
-		//			if (result) {
-		//				++extTrue;
-		//			} else {
-		//				++extFalse;
-		//			}
-		//		}
-		//
-		//		if (++totalCount == 10000) {
-		//			System.out.println(String.format("extreme true: %f  extreme false: %f", extTrue / 100f, extFalse / 100f));
-		//			totalCount = 0;
-		//			extTrue = 0;
-		//			extFalse = 0;
-		//		}
+
+		// TODO: remove
+		if (occlusionRange == PackedBox.RANGE_EXTREME) {
+			if (result) {
+				++extTrue;
+			} else {
+				++extFalse;
+			}
+		}
+
+		if (++totalCount == 100000) {
+			System.out.println(String.format("extreme true: %f  extreme false: %f", extTrue / 1000f, extFalse / 1000f));
+			System.out.println(String.format("Early exit: %f", earlyExit / 1000f));
+			System.out.println();
+			totalCount = 0;
+			extTrue = 0;
+			extFalse = 0;
+			earlyExit = 0;
+		}
+
 		return result;
 	}
 

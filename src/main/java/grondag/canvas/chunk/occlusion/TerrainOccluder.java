@@ -616,11 +616,18 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 
 	private boolean testTriTop(final int topX, final int topY) {
 		final int index = topIndex(topX, topY) << 1; // shift because two words per index
-		final long word = topBins[index];
+		final long wordFull = topBins[index + OFFSET_FULL];
 
-		if (word == -1L) {
+		if (wordFull == -1L) {
 			// bin fully occluded
 			return false;
+		}
+
+		final long wordPartial = topBins[index + OFFSET_PARTIAL];
+
+		if (wordPartial == 0) {
+			// bin has no occlusion
+			return true;
 		}
 
 		final int binOriginX = topX << TOP_AXIS_SHIFT;
@@ -636,10 +643,16 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		long coverage = coverageMask((minX >> MID_AXIS_SHIFT) & 7, (minY >> MID_AXIS_SHIFT) & 7,
 				(maxX >> MID_AXIS_SHIFT) & 7, (maxY >> MID_AXIS_SHIFT) & 7);
 
-		coverage &= ~word;
+		coverage &= ~wordFull;
 
 		if (coverage == 0) {
+			// all bins fully occluded
 			return false;
+		}
+
+		if ((coverage & wordPartial) == 0) {
+			// no bins are occluded
+			return true;
 		}
 
 		final int baseX = topX << BIN_AXIS_SHIFT;
@@ -663,7 +676,8 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 	 */
 	private boolean testTriMid(final int midX, final int midY) {
 		final int index = midIndex(midX, midY) << 1; // shift because two words per index
-		final long word = midBins[index];
+		final long wordFull = midBins[index + OFFSET_FULL];
+		final long wordPartial = midBins[index + OFFSET_PARTIAL];
 
 		final int binOriginX = midX << MID_AXIS_SHIFT;
 		final int binOriginY = midY << MID_AXIS_SHIFT;
@@ -683,13 +697,14 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		if (lowX0 == lowX1)  {
 			if (lowY0 == lowY1) {
 				// single  bin
-				return (word & pixelMask(lowX0, lowY0)) == 0 && testTriLow(lowX0, lowY0);
+				final long mask = pixelMask(lowX0, lowY0);
+				return (wordPartial & mask) == 0 || ((wordFull & mask) == 0 && testTriLow(lowX0, lowY0));
 			} else {
 				// single column
 				long mask = pixelMask(lowX0, lowY0);
 
 				for (int y = lowY0; y <= lowY1; ++y) {
-					if ((word & mask) == 0 && testTriLow(lowX0, y)) {
+					if ((wordPartial & mask) == 0 || ((wordFull & mask) == 0 && testTriLow(lowX0, y))) {
 						return true;
 					}
 
@@ -704,7 +719,7 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 			long mask = pixelMask(lowX0, lowY0);
 
 			for (int x = lowX0; x <= lowX1; ++x) {
-				if ((word & mask) == 0 && testTriLow(x, lowY0)) {
+				if ((wordPartial & mask) == 0 || ((wordFull & mask) == 0 && testTriLow(x, lowY0))) {
 					return true;
 				}
 
@@ -716,15 +731,18 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 
 		long coverage = coverageMask(lowX0 & 7, lowY0 & 7, lowX1 & 7, lowY1 & 7);
 
-		coverage &= ~word;
+		coverage &= ~wordFull;
 
 		if (coverage == 0) {
 			return false;
 		}
 
+		if ((coverage & wordPartial) == 0) {
+			return true;
+		}
+
 		final int baseX = midX << BIN_AXIS_SHIFT;
 		int baseY = midY << BIN_AXIS_SHIFT;
-
 
 		for (int y = 0; y < 8; y++) {
 			final int bits = (int) coverage & 0xFF;
@@ -919,6 +937,7 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		coverage &= ~word;
 
 		if (coverage == 0L) {
+			earlyExit++;
 			return false;
 		}
 
