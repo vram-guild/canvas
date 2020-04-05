@@ -66,7 +66,7 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 	}
 
 	private void drawTriTop(final int topX, final int topY) {
-		final int index = topIndex(topX, topY);
+		final int index = topIndex(topX, topY) << 1; // shift because two words per index
 		long word = topBins[index];
 
 		if (word == -1L) {
@@ -130,7 +130,7 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 	 * Returns true when bin fully occluded
 	 */
 	private boolean drawTriMid(final int midX, final int midY) {
-		final int index = midIndex(midX, midY);
+		final int index = midIndex(midX, midY) << 1; // shift because two words per index
 		long word = midBins[index];
 
 		final int binOriginX = midX << MID_AXIS_SHIFT;
@@ -577,7 +577,7 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 	}
 
 	private boolean testTriTop(final int topX, final int topY) {
-		final int index = topIndex(topX, topY);
+		final int index = topIndex(topX, topY) << 1; // shift because two words per index
 		final long word = topBins[index];
 
 		if (word == -1L) {
@@ -624,7 +624,7 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 	 * Returns true when bin fully occluded
 	 */
 	private boolean testTriMid(final int midX, final int midY) {
-		final int index = midIndex(midX, midY);
+		final int index = midIndex(midX, midY) << 1; // shift because two words per index
 		final long word = midBins[index];
 
 		final int binOriginX = midX << MID_AXIS_SHIFT;
