@@ -6,6 +6,7 @@ package grondag.canvas.chunk.occlusion;
 
 // PERF: test box center for shortcut
 // PERF: track partial coverage (not clear) to shortcut testing with summary coverage maps
+// PERF: try propagating edge function values up/down heirarchy
 public class TerrainOccluder extends ClippingTerrainOccluder  {
 	private int aMid0;
 	private int bMid0;

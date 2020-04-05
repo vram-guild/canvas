@@ -37,26 +37,28 @@ public final class ProjectedVertexData {
 	}
 
 	public static int needsNearClip(final int[] data, final int baseIndex) {
-		return Float.intBitsToFloat(data[baseIndex + PV_W]) <= 0 ? 1 : 0;
+		return Float.intBitsToFloat(data[baseIndex + PV_W]) <= 0 || Float.intBitsToFloat(data[baseIndex + PV_Z]) <= 0 ? 1 : 0;
 	}
 
 	public static void clipNear(final int[] data, int target, int internal, int external) {
 		final float intX = Float.intBitsToFloat(data[internal + PV_X]);
 		final float intY = Float.intBitsToFloat(data[internal + PV_Y]);
 		final float intZ = Float.intBitsToFloat(data[internal + PV_Z]);
-		final float intW = Float.intBitsToFloat(data[internal + PV_W]);
 
 		final float extX = Float.intBitsToFloat(data[external + PV_X]);
 		final float extY = Float.intBitsToFloat(data[external + PV_Y]);
 		final float extZ = Float.intBitsToFloat(data[external + PV_Z]);
-		final float extW = Float.intBitsToFloat(data[external + PV_W]);
 
-		// intersection point is zero, so no need to subtract it
-		final float wt  = (0 - intZ) / (extZ - intZ);
+		// intersection point is the projection plane, at which point Z == 1
+		// and w will be 0 but projection division isn't needed, so force output to W = 1
+		// see https://www.cs.usfca.edu/~cruse/math202s11/homocoords.pdf
 
-		final float invW = 1f / (intW + (extW - intW) * wt);
-		final float x = (intX + (extX - intX) * wt) * invW;
-		final float y = (intY + (extY - intY) * wt) * invW;
+		// external Z  will be negative
+		final float wt  = intZ / (intZ - extZ);
+
+		// note again that projection division isn't needed
+		final float x = (intX + (extX - intX) * wt);
+		final float y = (intY + (extY - intY) * wt);
 
 		data[target + PV_PX] = Math.round(x * HALF_PRECISION_WIDTH) + HALF_PRECISION_WIDTH;
 		data[target + PV_PY] = Math.round(y * HALF_PRECISION_HEIGHT) + HALF_PRECISION_HEIGHT;
@@ -77,7 +79,7 @@ public final class ProjectedVertexData {
 		final float dx = data[external + PV_PX] - intX;
 		final float dy = data[external + PV_PY] - intY;
 		final float wt = (-GUARD_SIZE - intX) / dx;
-		data[target + PV_PX] = Math.round(intX + wt * dx);
+		data[target + PV_PX] = -GUARD_SIZE; //Math.round(intX + wt * dx);
 		data[target + PV_PY] = Math.round(intY + wt * dy);
 	}
 
@@ -92,7 +94,7 @@ public final class ProjectedVertexData {
 		final float dy = data[external + PV_PY] - intY;
 		final float wt = (-GUARD_SIZE - intY) / dy;
 		data[target + PV_PX] = Math.round(intX + wt * dx);
-		data[target + PV_PY] = Math.round(intY + wt * dy);
+		data[target + PV_PY] = -GUARD_SIZE; //Math.round(intY + wt * dy);
 	}
 
 	public static int needsClipHighX(final int[] data, final int baseIndex) {
@@ -105,7 +107,7 @@ public final class ProjectedVertexData {
 		final float dx = data[external + PV_PX] - intX;
 		final float dy = data[external + PV_PY] - intY;
 		final float wt = (GUARD_WIDTH - intX) / dx;
-		data[target + PV_PX] = Math.round(intX + wt * dx);
+		data[target + PV_PX] = GUARD_WIDTH; //Math.round(intX + wt * dx);
 		data[target + PV_PY] = Math.round(intY + wt * dy);
 	}
 
@@ -120,6 +122,6 @@ public final class ProjectedVertexData {
 		final float dy = data[external + PV_PY] - intY;
 		final float wt = (GUARD_HEIGHT - intY) / dy;
 		data[target + PV_PX] = Math.round(intX + wt * dx);
-		data[target + PV_PY] = Math.round(intY + wt * dy);
+		data[target + PV_PY] = GUARD_HEIGHT; //Math.round(intY + wt * dy);
 	}
 }
