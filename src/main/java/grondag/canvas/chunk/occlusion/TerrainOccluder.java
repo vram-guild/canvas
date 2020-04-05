@@ -67,9 +67,9 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 
 	private void drawTriTop(final int topX, final int topY) {
 		final int index = topIndex(topX, topY) << 1; // shift because two words per index
-		long word = topBins[index];
+		long wordFull = topBins[index + OFFSET_FULL];
 
-		if (word == -1L) {
+		if (wordFull == -1L) {
 			// if bin fully occluded nothing to do
 			return;
 		}
@@ -87,7 +87,7 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		long coverage = coverageMask((minX >> MID_AXIS_SHIFT) & 7, (minY >> MID_AXIS_SHIFT) & 7,
 				(maxX >> MID_AXIS_SHIFT) & 7, (maxY >> MID_AXIS_SHIFT) & 7);
 
-		coverage &= ~word;
+		coverage &= ~wordFull;
 
 		if (coverage == 0) {
 			return;
@@ -95,22 +95,27 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 
 		final int baseX = topX << BIN_AXIS_SHIFT;
 		final int baseY = topY << BIN_AXIS_SHIFT;
-
+		long wordPartial = topBins[index + OFFSET_PARTIAL];
 		long mask = 1;
 
 		for (int n = 0; n < 64; ++n) {
 			if ((mask & coverage) != 0) {
-				final boolean mid = drawTriMid(baseX + (n & 7), baseY + (n >> 3));
+				final int mid = drawTriMid(baseX + (n & 7), baseY + (n >> 3));
 
-				if (mid) {
-					word |= mask;
+				if (mid != COVERAGE_NONE) {
+					wordPartial |= mask;
+
+					if (mid == COVERAGE_FULL) {
+						wordFull |= mask;
+					}
 				}
 			}
 
 			mask <<= 1;
 		}
 
-		topBins[index] = word;
+		topBins[index + OFFSET_FULL] = wordFull;
+		topBins[index + OFFSET_PARTIAL] = wordPartial;
 	}
 
 	private void fillMidBinChildren(final int midX, final int midY) {
@@ -129,9 +134,9 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 	/**
 	 * Returns true when bin fully occluded
 	 */
-	private boolean drawTriMid(final int midX, final int midY) {
+	private int drawTriMid(final int midX, final int midY) {
 		final int index = midIndex(midX, midY) << 1; // shift because two words per index
-		long word = midBins[index];
+		long wordFull = midBins[index + OFFSET_FULL];
 
 		final int binOriginX = midX << MID_AXIS_SHIFT;
 		final int binOriginY = midY << MID_AXIS_SHIFT;
@@ -154,67 +159,97 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 				// single  bin
 				final long mask = pixelMask(lowX0, lowY0);
 
-				if ((word & mask) == 0 && drawTriLow(lowX0, lowY0)) {
-					word |= mask;
-					midBins[index] = word;
-					return word == -1;
-				} else {
-					return false;
+				if ((wordFull & mask) == 0) {
+					final int lowCoverage = drawTriLow(lowX0, lowY0);
+
+					if (lowCoverage != COVERAGE_NONE) {
+						midBins[index + OFFSET_PARTIAL] |= mask;
+
+						if (lowCoverage == COVERAGE_FULL) {
+							wordFull |= mask;
+							midBins[index + OFFSET_FULL] = wordFull;
+						}
+
+						return wordFull == -1 ? COVERAGE_FULL : COVERAGE_PARTIAL;
+					}
 				}
+
+				return COVERAGE_NONE;
 			} else {
 				// single column
 				long mask = pixelMask(lowX0, lowY0);
+				long wordPartial = midBins[index + OFFSET_PARTIAL];
 
 				for (int y = lowY0; y <= lowY1; ++y) {
-					if ((word & mask) == 0 && drawTriLow(lowX0, y)) {
-						word |= mask;
+					if ((wordFull & mask) == 0) {
+						final int lowCover = drawTriLow(lowX0, y);
+
+						if(lowCover != COVERAGE_NONE) {
+							wordPartial |= mask;
+
+							if (lowCover == COVERAGE_FULL) {
+								wordFull |= mask;
+							}
+						}
 					}
 
 					mask  <<= 8;
 				}
 
-				midBins[index] = word;
-				return word == -1;
+				midBins[index + OFFSET_FULL] = wordFull;
+				midBins[index + OFFSET_PARTIAL] = wordPartial;
+				return wordFull == -1 ? COVERAGE_FULL : wordPartial == 0 ? COVERAGE_NONE : COVERAGE_PARTIAL;
 			}
 
 		} else if (lowY0 == lowY1) {
 			// single row
 			long mask = pixelMask(lowX0, lowY0);
+			long wordPartial = midBins[index + OFFSET_PARTIAL];
 
 			for (int x = lowX0; x <= lowX1; ++x) {
-				if ((word & mask) == 0 && drawTriLow(x, lowY0)) {
-					word |= mask;
+				if ((wordFull & mask) == 0) {
+					final int lowCover = drawTriLow(x, lowY0);
+
+					if(lowCover != COVERAGE_NONE) {
+						wordPartial |= mask;
+
+						if (lowCover == COVERAGE_FULL) {
+							wordFull |= mask;
+						}
+					}
 				}
 
 				mask  <<= 1;
 			}
 
-			midBins[index] = word;
-			return word == -1;
+			midBins[index + OFFSET_FULL] = wordFull;
+			midBins[index + OFFSET_PARTIAL] = wordPartial;
+			return wordFull == -1 ? COVERAGE_FULL : wordPartial == 0 ? COVERAGE_NONE : COVERAGE_PARTIAL;
 		}
 
 		long coverage = coverageMask(lowX0 & 7, lowY0 & 7, lowX1 & 7, lowY1 & 7);
 
 		// optimize whole bin case
 		if (coverage == -1L && isTriMidCovered(minX,  minY)) {
-			midBins[index] = -1;
+			midBins[index + OFFSET_FULL] =  -1;
+			midBins[index + OFFSET_PARTIAL] =  -1;
 
 			if (ENABLE_RASTER_OUTPUT) {
 				fillMidBinChildren(midX, midY);
 			}
 
-			return true;
+			return COVERAGE_FULL;
 		}
 
-		coverage &= ~word;
+		coverage &= ~wordFull;
 
 		if (coverage == 0) {
-			return false;
+			return COVERAGE_NONE;
 		}
 
 		final int baseX = midX << BIN_AXIS_SHIFT;
 		int baseY = midY << BIN_AXIS_SHIFT;
-
+		long wordPartial = midBins[index + OFFSET_PARTIAL];
 
 		for (int y = 0; y < 8; y++) {
 			final int bits = (int) coverage & 0xFF;
@@ -225,80 +260,80 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 				break;
 
 			case 0b0001:
-				if (drawTriLow(baseX + 0, baseY)) setBits |= 1;
+				setBits |= drawTriLow(baseX + 0, baseY);
 				break;
 
 			case 0b0010:
-				if (drawTriLow(baseX + 1, baseY)) setBits |= 2;
+				setBits |= drawTriLow(baseX + 1, baseY) << 1;
 				break;
 
 			case 0b0011:
-				if (drawTriLow(baseX + 0, baseY)) setBits |= 1;
-				if (drawTriLow(baseX + 1, baseY)) setBits |= 2;
+				setBits |= drawTriLow(baseX + 0, baseY);
+				setBits |= drawTriLow(baseX + 1, baseY) << 1;
 				break;
 
 			case 0b0100:
-				if (drawTriLow(baseX + 2, baseY)) setBits |= 4;
+				setBits |= drawTriLow(baseX + 2, baseY) << 2;
 				break;
 
 			case 0b0101:
-				if (drawTriLow(baseX + 0, baseY)) setBits |= 1;
-				if (drawTriLow(baseX + 2, baseY)) setBits |= 4;
+				setBits |= drawTriLow(baseX + 0, baseY);
+				setBits |= drawTriLow(baseX + 2, baseY) << 2;
 				break;
 
 			case 0b0110:
-				if (drawTriLow(baseX + 1, baseY)) setBits |= 2;
-				if (drawTriLow(baseX + 2, baseY)) setBits |= 4;
+				setBits |= drawTriLow(baseX + 1, baseY) << 1;
+				setBits |= drawTriLow(baseX + 2, baseY) << 2;
 				break;
 
 			case 0b0111:
-				if (drawTriLow(baseX + 0, baseY)) setBits |= 1;
-				if (drawTriLow(baseX + 1, baseY)) setBits |= 2;
-				if (drawTriLow(baseX + 2, baseY)) setBits |= 4;
+				setBits |= drawTriLow(baseX + 0, baseY);
+				setBits |= drawTriLow(baseX + 1, baseY) << 1;
+				setBits |= drawTriLow(baseX + 2, baseY) << 2;
 				break;
 
 			case 0b1000:
-				if (drawTriLow(baseX + 3, baseY)) setBits |= 8;
+				setBits |= drawTriLow(baseX + 3, baseY) << 3;
 				break;
 
 			case 0b1001:
-				if (drawTriLow(baseX + 0, baseY)) setBits |= 1;
-				if (drawTriLow(baseX + 3, baseY)) setBits |= 8;
+				setBits |= drawTriLow(baseX + 0, baseY);
+				setBits |= drawTriLow(baseX + 3, baseY) << 3;
 				break;
 
 			case 0b1010:
-				if (drawTriLow(baseX + 1, baseY)) setBits |= 2;
-				if (drawTriLow(baseX + 3, baseY)) setBits |= 8;
+				setBits |= drawTriLow(baseX + 1, baseY) << 1;
+				setBits |= drawTriLow(baseX + 3, baseY) << 3;
 				break;
 
 			case 0b1011:
-				if (drawTriLow(baseX + 0, baseY)) setBits |= 1;
-				if (drawTriLow(baseX + 1, baseY)) setBits |= 2;
-				if (drawTriLow(baseX + 3, baseY)) setBits |= 8;
+				setBits |= drawTriLow(baseX + 0, baseY);
+				setBits |= drawTriLow(baseX + 1, baseY) << 1;
+				setBits |= drawTriLow(baseX + 3, baseY) << 3;
 				break;
 
 			case 0b1100:
-				if (drawTriLow(baseX + 2, baseY)) setBits |= 4;
-				if (drawTriLow(baseX + 3, baseY)) setBits |= 8;
+				setBits |= drawTriLow(baseX + 2, baseY) << 2;
+				setBits |= drawTriLow(baseX + 3, baseY) << 3;
 				break;
 
 			case 0b1101:
-				if (drawTriLow(baseX + 0, baseY)) setBits |= 1;
-				if (drawTriLow(baseX + 2, baseY)) setBits |= 4;
-				if (drawTriLow(baseX + 3, baseY)) setBits |= 8;
+				setBits |= drawTriLow(baseX + 0, baseY);
+				setBits |= drawTriLow(baseX + 2, baseY) << 2;
+				setBits |= drawTriLow(baseX + 3, baseY) << 3;
 				break;
 
 			case 0b1110:
-				if (drawTriLow(baseX + 1, baseY)) setBits |= 2;
-				if (drawTriLow(baseX + 2, baseY)) setBits |= 4;
-				if (drawTriLow(baseX + 3, baseY)) setBits |= 8;
+				setBits |= drawTriLow(baseX + 1, baseY) << 1;
+				setBits |= drawTriLow(baseX + 2, baseY) << 2;
+				setBits |= drawTriLow(baseX + 3, baseY) << 3;
 				break;
 
 			case 0b1111:
-				if (drawTriLow(baseX + 0, baseY)) setBits |= 1;
-				if (drawTriLow(baseX + 1, baseY)) setBits |= 2;
-				if (drawTriLow(baseX + 2, baseY)) setBits |= 4;
-				if (drawTriLow(baseX + 3, baseY)) setBits |= 8;
+				setBits |= drawTriLow(baseX + 0, baseY);
+				setBits |= drawTriLow(baseX + 1, baseY) << 1;
+				setBits |= drawTriLow(baseX + 2, baseY) << 2;
+				setBits |= drawTriLow(baseX + 3, baseY) << 3;
 				break;
 			}
 
@@ -307,94 +342,97 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 				break;
 
 			case 0b0001:
-				if (drawTriLow(baseX + 4, baseY)) setBits |= 16;
+				setBits |= drawTriLow(baseX + 4, baseY) << 4;
 				break;
 
 			case 0b0010:
-				if (drawTriLow(baseX + 5, baseY)) setBits |= 32;
+				setBits |= drawTriLow(baseX + 5, baseY) << 5;
 				break;
 
 			case 0b0011:
-				if (drawTriLow(baseX + 4, baseY)) setBits |= 16;
-				if (drawTriLow(baseX + 5, baseY)) setBits |= 32;
+				setBits |= drawTriLow(baseX + 4, baseY) << 4;
+				setBits |= drawTriLow(baseX + 5, baseY) << 5;
 				break;
 
 			case 0b0100:
-				if (drawTriLow(baseX + 6, baseY)) setBits |= 64;
+				setBits |= drawTriLow(baseX + 6, baseY) << 6;
 				break;
 
 			case 0b0101:
-				if (drawTriLow(baseX + 4, baseY)) setBits |= 16;
-				if (drawTriLow(baseX + 6, baseY)) setBits |= 64;
+				setBits |= drawTriLow(baseX + 4, baseY) << 4;
+				setBits |= drawTriLow(baseX + 6, baseY) << 6;
 				break;
 
 			case 0b0110:
-				if (drawTriLow(baseX + 5, baseY)) setBits |= 32;
-				if (drawTriLow(baseX + 6, baseY)) setBits |= 64;
+				setBits |= drawTriLow(baseX + 5, baseY) << 5;
+				setBits |= drawTriLow(baseX + 6, baseY) << 6;
 				break;
 
 			case 0b0111:
-				if (drawTriLow(baseX + 4, baseY)) setBits |= 16;
-				if (drawTriLow(baseX + 5, baseY)) setBits |= 32;
-				if (drawTriLow(baseX + 6, baseY)) setBits |= 64;
+				setBits |= drawTriLow(baseX + 4, baseY) << 4;
+				setBits |= drawTriLow(baseX + 5, baseY) << 5;
+				setBits |= drawTriLow(baseX + 6, baseY) << 6;
 				break;
 
 			case 0b1000:
-				if (drawTriLow(baseX + 7, baseY)) setBits |= 128;
+				setBits |= drawTriLow(baseX + 7, baseY) << 7;
 				break;
 
 			case 0b1001:
-				if (drawTriLow(baseX + 4, baseY)) setBits |= 16;
-				if (drawTriLow(baseX + 7, baseY)) setBits |= 128;
+				setBits |= drawTriLow(baseX + 4, baseY) << 4;
+				setBits |= drawTriLow(baseX + 7, baseY) << 7;
 				break;
 
 			case 0b1010:
-				if (drawTriLow(baseX + 5, baseY)) setBits |= 32;
-				if (drawTriLow(baseX + 7, baseY)) setBits |= 128;
+				setBits |= drawTriLow(baseX + 5, baseY) << 5;
+				setBits |= drawTriLow(baseX + 7, baseY) << 7;
 				break;
 
 			case 0b1011:
-				if (drawTriLow(baseX + 4, baseY)) setBits |= 16;
-				if (drawTriLow(baseX + 5, baseY)) setBits |= 32;
-				if (drawTriLow(baseX + 7, baseY)) setBits |= 128;
+				setBits |= drawTriLow(baseX + 4, baseY) << 4;
+				setBits |= drawTriLow(baseX + 5, baseY) << 5;
+				setBits |= drawTriLow(baseX + 7, baseY) << 7;
 				break;
 
 			case 0b1100:
-				if (drawTriLow(baseX + 6, baseY)) setBits |= 64;
-				if (drawTriLow(baseX + 7, baseY)) setBits |= 128;
+				setBits |= drawTriLow(baseX + 6, baseY) << 6;
+				setBits |= drawTriLow(baseX + 7, baseY) << 7;
 				break;
 
 			case 0b1101:
-				if (drawTriLow(baseX + 4, baseY)) setBits |= 16;
-				if (drawTriLow(baseX + 6, baseY)) setBits |= 64;
-				if (drawTriLow(baseX + 7, baseY)) setBits |= 128;
+				setBits |= drawTriLow(baseX + 4, baseY) << 4;
+				setBits |= drawTriLow(baseX + 6, baseY) << 6;
+				setBits |= drawTriLow(baseX + 7, baseY) << 7;
 				break;
 
 			case 0b1110:
-				if (drawTriLow(baseX + 5, baseY)) setBits |= 32;
-				if (drawTriLow(baseX + 6, baseY)) setBits |= 64;
-				if (drawTriLow(baseX + 7, baseY)) setBits |= 128;
+				setBits |= drawTriLow(baseX + 5, baseY) << 5;
+				setBits |= drawTriLow(baseX + 6, baseY) << 6;
+				setBits |= drawTriLow(baseX + 7, baseY) << 7;
 				break;
 
 			case 0b1111:
-				if (drawTriLow(baseX + 4, baseY)) setBits |= 16;
-				if (drawTriLow(baseX + 5, baseY)) setBits |= 32;
-				if (drawTriLow(baseX + 6, baseY)) setBits |= 64;
-				if (drawTriLow(baseX + 7, baseY)) setBits |= 128;
+				setBits |= drawTriLow(baseX + 4, baseY) << 4;
+				setBits |= drawTriLow(baseX + 5, baseY) << 5;
+				setBits |= drawTriLow(baseX + 6, baseY) << 6;
+				setBits |= drawTriLow(baseX + 7, baseY) << 7;
 				break;
 			}
 
 			if (setBits != 0) {
-				word |= ((long) setBits) << (y << 3);
+				final long fullMask = ((long) setBits >> 8) << (y << 3);
+				wordFull |= fullMask;
+				wordPartial |= fullMask | ((setBits & 0xFFL) << (y << 3));
 			}
 
 			++baseY;
 			coverage >>= 8;
 		}
 
-		midBins[index] = word;
+		midBins[index + OFFSET_FULL] = wordFull;
+		midBins[index + OFFSET_PARTIAL] = wordPartial;
 
-		return word == -1L;
+		return wordFull == -1L ? COVERAGE_FULL : wordPartial == 0 ? COVERAGE_NONE : COVERAGE_PARTIAL;
 	}
 
 	private boolean isTriMidCovered(int minX, int minY) {
@@ -417,7 +455,7 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 	//	private final Int2IntOpenHashMap binCounts = new Int2IntOpenHashMap();
 	//	private int counter;
 
-	private boolean drawTriLow(int lowX, int lowY) {
+	private int drawTriLow(int lowX, int lowY) {
 		final int index = lowIndex(lowX, lowY);
 
 		final int binOriginX = lowX << LOW_AXIS_SHIFT;
@@ -435,14 +473,14 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		// if filling whole bin then do it quick
 		if (coverage == -1L && isTriLowCovered(minX,  minY)) {
 			lowBins[index] = -1;
-			return true;
+			return COVERAGE_FULL;
 		}
 
 		long word = lowBins[index];
 		coverage &= ~word;
 
 		if (coverage == 0L) {
-			return false;
+			return COVERAGE_NONE;
 		}
 
 		//		final boolean oneRow = minY == maxY;
@@ -500,7 +538,7 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		}
 
 		lowBins[index] = word;
-		return word == -1L;
+		return word == 0 ? COVERAGE_NONE : word == -1L ? COVERAGE_FULL : COVERAGE_PARTIAL;
 	}
 
 	private boolean isTriLowCovered(int minX, int minY) {
@@ -932,4 +970,11 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 
 		return false;
 	}
+
+	private static final int COVERAGE_NONE = 0;
+	private static final int COVERAGE_PARTIAL = 1;
+	// 8 bits away from partial coverage so partial and full results can be accumulated in one word and combined with their respective masks
+	private static final int COVERAGE_FULL = 1 << 8;
+	private static final int OFFSET_FULL = 0;
+	private static final int OFFSET_PARTIAL = 1;
 }
