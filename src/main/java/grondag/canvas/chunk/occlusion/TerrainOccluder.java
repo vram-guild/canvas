@@ -4,33 +4,37 @@ package grondag.canvas.chunk.occlusion;
 // https://fgiesen.wordpress.com/2013/02/17/optimizing-sw-occlusion-culling-index/
 // by Fabian “ryg” Giesen. That content is in the public domain.
 
-// PERF: test box center for shortcut
-// PERF: track partial coverage (not clear) to shortcut testing with summary coverage maps
 // PERF: try propagating edge function values up/down heirarchy
+// PERF: remove partial coverage mask if can't make it pay
 public class TerrainOccluder extends ClippingTerrainOccluder  {
-	private int aMid0;
-	private int bMid0;
-	private int aMid1;
-	private int bMid1;
-	private int aMid2;
-	private int bMid2;
-	private int abMid0;
-	private int abMid1;
-	private int abMid2;
+	private final int[] aMid = new int[3];
+	private final int[] bMid = new int[3];
+	private final int[] abMid = new int[3];
+
+	private void prepareTriMidA() {
+		for (int i = 0; i < 3; ++i) {
+			aMid[i] = a[0] * MID_BIN_DIAMETER_VECTOR[i];
+		}
+	}
+
+	private void prepareTriMidB() {
+		for (int i = 0; i < 3; ++i) {
+			bMid[i] = b[0] * MID_BIN_DIAMETER_VECTOR[i];
+		}
+	}
+
+	private void prepareTriMidAB() {
+		for (int i = 0; i < 3; ++i) {
+			abMid[i] = aMid[0] + bMid[0];
+		}
+	}
 
 	@Override
-	protected void prepareTriScan() {
-		super.prepareTriScan();
-
-		aMid0 = a0 * MID_BIN_PIXEL_DIAMETER - a0;
-		bMid0 = b0 * MID_BIN_PIXEL_DIAMETER - b0;
-		aMid1 = a1 * MID_BIN_PIXEL_DIAMETER - a1;
-		bMid1 = b1 * MID_BIN_PIXEL_DIAMETER - b1;
-		aMid2 = a2 * MID_BIN_PIXEL_DIAMETER - a2;
-		bMid2 = b2 * MID_BIN_PIXEL_DIAMETER - b2;
-		abMid0 = aMid0 + bMid0;
-		abMid1 = aMid1 + bMid1;
-		abMid2 = aMid2 + bMid2;
+	protected void prepareTriScan(int v0, int v1, int v2) {
+		super.prepareTriScan(v0, v1, v2);
+		prepareTriMidA();
+		prepareTriMidB();
+		prepareTriMidAB();
 	}
 
 	@Override
@@ -47,7 +51,7 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		}
 
 		//  PERF: consider skipping small tris at intermediate ranges (at extreme range only full sections are attempted)
-		prepareTriScan();
+		prepareTriScan(v0, v1, v2);
 
 		final int bx0 = minPixelX >> TOP_AXIS_SHIFT;
 		final int bx1 = maxPixelX >> TOP_AXIS_SHIFT;
@@ -152,7 +156,6 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		final int lowX1 = maxX >> LOW_AXIS_SHIFT;
 		final int lowY0 = minY >> LOW_AXIS_SHIFT;
 		final int lowY1 = (maxY >> LOW_AXIS_SHIFT); // parens stop eclipse formatter from freaking
-
 
 		if (lowX0 == lowX1)  {
 			if (lowY0 == lowY1) {
@@ -438,14 +441,21 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 	private boolean isTriMidCovered(int minX, int minY) {
 		final int dx = minX - minPixelX;
 		final int dy = minY - minPixelY;
-		final int w0_row = wOrigin0 + dx * a0 + dy * b0;
-		final int w1_row = wOrigin1 + dx * a1 + dy * b1;
-		final int w2_row = wOrigin2 + dx * a2 + dy * b2;
+
+		//		final int w0_row = wOrigin0 + dx * a0 + dy * b0;
+		//		final int w1_row = wOrigin1 + dx * a1 + dy * b1;
+		//		final int w2_row = wOrigin2 + dx * a2 + dy * b2;
+
+		computeRow(dx, dy);
+		final int[] wRow = this.wRow;
+		final int w0_row = wRow[0];
+		final int w1_row = wRow[1];
+		final int w2_row = wRow[2];
 
 		if ((w0_row | w1_row | w2_row
-				| (w0_row + aMid0) | (w1_row + aMid1) | (w2_row + aMid2)
-				| (w0_row + bMid0) | (w1_row + bMid1) | (w2_row + bMid2)
-				| (w0_row + abMid0) | (w1_row + abMid1) | (w2_row + abMid2)) >= 0) {
+				| (w0_row + aMid[0]) | (w1_row + aMid[1]) | (w2_row + aMid[2])
+				| (w0_row + bMid[0]) | (w1_row + bMid[1]) | (w2_row + bMid[2])
+				| (w0_row + abMid[0]) | (w1_row + abMid[1]) | (w2_row + abMid[2])) >= 0) {
 			return true;
 		} else {
 			return false;
@@ -454,6 +464,33 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 
 	//	private final Int2IntOpenHashMap binCounts = new Int2IntOpenHashMap();
 	//	private int counter;
+
+	private final int[] wLowX = new int[3];
+	private final int[] wLowY = new int[3];
+
+	private static void copyVec3(int[] source, int[] target) {
+		for (int i = 0; i < 3; ++i) {
+			target[i] = source[i];
+		}
+	}
+
+	private static void addVec3(int[] source, int[] target) {
+		for (int i = 0; i < 3; ++i) {
+			target[i] += source[i];
+		}
+	}
+
+	protected void computeLowY(final int dx, final int dy) {
+		for (int i = 0; i < 3; ++i)  {
+			wLowY[i] = wOrigin[i] + a[i] * dx + b[i] * dy;
+		}
+	}
+
+	protected void computeLowX(final int dx, final int dy) {
+		for (int i = 0; i < 3; ++i)  {
+			wLowX[i] = wOrigin[i] + a[i] * dx + b[i] * dy;
+		}
+	}
 
 	private int drawTriLow(int lowX, int lowY) {
 		final int index = lowIndex(lowX, lowY);
@@ -495,12 +532,6 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		//			binCounts.clear();
 		//		}
 
-		final int a0 = this.a0;
-		final int b0 = this.b0;
-		final int a1 = this.a1;
-		final int b1 = this.b1;
-		final int a2 = this.a2;
-		final int b2 = this.b2;
 		final int x0 = minX & LOW_BIN_PIXEL_INDEX_MASK;
 		final int x1 = maxX & LOW_BIN_PIXEL_INDEX_MASK;
 		final int y0 = minY & LOW_BIN_PIXEL_INDEX_MASK;
@@ -508,33 +539,27 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		final int dx = minX - minPixelX;
 		final int dy = minY - minPixelY;
 
-		int w0_row = wOrigin0 + dx * a0 + dy * b0;
-		int w1_row = wOrigin1 + dx * a1 + dy * b1;
-		int w2_row = wOrigin2 + dx * a2 + dy * b2;
+		final int[] wLowX = this.wLowX;
+		final int[] wLowY = this.wLowY;
+		computeLowY(dx, dy);
 
 		for (int y = y0; y <= y1; y++) {
-			int w0 = w0_row;
-			int w1 = w1_row;
-			int w2 = w2_row;
+			copyVec3(wLowY, wLowX);
 			long mask = 1L << ((y << BIN_AXIS_SHIFT) | x0);
 
 			for (int x = x0; x <= x1; x++) {
 				// If p is on or inside all edges, render pixel.
-				if ((word & mask) == 0 && (w0 | w1 | w2) >= 0) {
+				if ((word & mask) == 0 && (wLowX[0] | wLowX[1] | wLowX[2]) >= 0) {
 					word |= mask;
 				}
 
 				// One step to the right
-				w0 += a0;
-				w1 += a1;
-				w2 += a2;
+				addVec3(a, wLowX);
 				mask <<= 1;
 			}
 
 			// One row step
-			w0_row += b0;
-			w1_row += b1;
-			w2_row += b2;
+			addVec3(b, wLowY);
 		}
 
 		lowBins[index] = word;
@@ -544,27 +569,25 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 	private boolean isTriLowCovered(int minX, int minY) {
 		final int dx = minX - minPixelX;
 		final int dy = minY - minPixelY;
-		final int w0_row = wOrigin0 + dx * a0 + dy * b0;
-		final int w1_row = wOrigin1 + dx * a1 + dy * b1;
-		final int w2_row = wOrigin2 + dx * a2 + dy * b2;
+		final int[] wLowX = this.wLowX;
+		computeLowX(dx, dy);
+
+		final int w0_row = wLowX[0];
+		final int w1_row = wLowX[1];
+		final int w2_row = wLowX[2];
 
 		if ((w0_row | w1_row | w2_row
-				| (w0_row + aLow0) | (w1_row + aLow1) | (w2_row + aLow2)
-				| (w0_row + bLow0) | (w1_row + bLow1) | (w2_row + bLow2)
-				| (w0_row + abLow0) | (w1_row + abLow1) | (w2_row + abLow2)) >= 0) {
+				| (w0_row + aLow[0]) | (w1_row + aLow[1]) | (w2_row + aLow[2])
+				| (w0_row + bLow[0]) | (w1_row + bLow[1]) | (w2_row + bLow[2])
+				| (w0_row + abLow[0]) | (w1_row + abLow[1]) | (w2_row + abLow[2])) >= 0) {
 			return true;
 		} else {
 			return false;
 		}
 	}
 
-	// TODO: remove
-	//	private int testTotal;
-	//	private int earlyExitTotal;
-
 	@Override
 	protected boolean testTri(int v0, int v1, int v2) {
-
 		final int boundsResult  = prepareTriBounds(v0, v1, v2);
 
 		if (boundsResult == BoundsResult.OUT_OF_BOUNDS) {
@@ -575,24 +598,7 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 			return testClippedLowX(v0, v1, v2);
 		}
 
-		// test centroid as shortcut
-		// good for about 40% early exit in outdoor scenes
-		final int x = (((x0 + x1 + x2) / 3 + PRECISION_PIXEL_CENTER - 1) >> PRECISION_BITS);
-		final int y = (((y0 + y1 + y2) / 3 + PRECISION_PIXEL_CENTER - 1) >> PRECISION_BITS);
-
-		if (x >= 0 && y >= 0 && x < PIXEL_WIDTH && y < PIXEL_HEIGHT && testPixel(x, y)) {
-			//			++testTotal;
-			//			++earlyExitTotal;
-			return true;
-		}
-
-		//		if (++testTotal > 100000) {
-		//			System.out.println("Early Exit: " + (100f * earlyExitTotal / testTotal));
-		//			earlyExitTotal = 0;
-		//			testTotal = 0;
-		//		}
-
-		prepareTriScan();
+		prepareTriScan(v0, v1, v2);
 
 		final int bx0 = (minPixelX >> TOP_AXIS_SHIFT);
 		final int bx1 = (maxPixelX >> TOP_AXIS_SHIFT);
@@ -659,6 +665,7 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		final int baseY = topY << BIN_AXIS_SHIFT;
 
 		long mask = 1;
+
 
 		for (int n = 0; n < 64; ++n) {
 			if ((mask & coverage) != 0 && testTriMid(baseX + (n & 7), baseY + (n >> 3))) {
@@ -937,16 +944,17 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		coverage &= ~word;
 
 		if (coverage == 0L) {
-			earlyExit++;
+			// TODO: remove
+			//earlyExit++;
 			return false;
 		}
 
-		final int a0 = this.a0;
-		final int b0 = this.b0;
-		final int a1 = this.a1;
-		final int b1 = this.b1;
-		final int a2 = this.a2;
-		final int b2 = this.b2;
+		final int a0 = a[0];
+		final int b0 = b[0];
+		final int a1 = a[1];
+		final int b1 = b[1];
+		final int a2 = a[2];
+		final int b2 = b[2];
 		final int x0 = minX & LOW_BIN_PIXEL_INDEX_MASK;
 		final int x1 = maxX & LOW_BIN_PIXEL_INDEX_MASK;
 		final int y0 = minY & LOW_BIN_PIXEL_INDEX_MASK;
@@ -954,9 +962,13 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		final int dx = minX - minPixelX;
 		final int dy = minY - minPixelY;
 
-		int w0_row = wOrigin0 + dx * a0 + dy * b0;
-		int w1_row = wOrigin1 + dx * a1 + dy * b1;
-		int w2_row = wOrigin2 + dx * a2 + dy * b2;
+		computeRow(dx, dy);
+		int w0_row = wRow[0];
+		int w1_row = wRow[1];
+		int w2_row = wRow[2];
+		//		int w0_row = wOrigin0 + dx * a0 + dy * b0;
+		//		int w1_row = wOrigin1 + dx * a1 + dy * b1;
+		//		int w2_row = wOrigin2 + dx * a2 + dy * b2;
 
 		// handle single pixel case
 		if (x0 == x1 && y0 == y1) {

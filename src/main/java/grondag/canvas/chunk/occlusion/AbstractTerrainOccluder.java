@@ -62,11 +62,6 @@ public abstract class AbstractTerrainOccluder {
 	protected int maxPixelX;
 	protected int maxPixelY;
 
-	// Barycentric coordinates at minX/minY corner
-	protected int wOrigin0;
-	protected int wOrigin1;
-	protected int wOrigin2;
-
 	protected int xOrigin;
 	protected int yOrigin;
 	protected int zOrigin;
@@ -79,37 +74,23 @@ public abstract class AbstractTerrainOccluder {
 	protected int offsetY;
 	protected int offsetZ;
 
-	protected int x0;
-	protected int y0;
-	protected int x1;
-	protected int y1;
-	protected int x2;
-	protected int y2;
+	// Barycentric coordinates at minX/minY corner
+	protected final int[] wOrigin = new int[3];
+	protected final int[] a = new int[3];
+	protected final int[] b = new int[3];
+	protected final int[] wRow = new int[3];
 
-	protected int a0;
-	protected int b0;
-	protected int a1;
-	protected int b1;
-	protected int a2;
-	protected int b2;
-
-	protected int aLow0;
-	protected int bLow0;
-	protected int aLow1;
-	protected int bLow1;
-	protected int aLow2;
-	protected int bLow2;
-	protected int abLow0;
-	protected int abLow1;
-	protected int abLow2;
+	protected final int[] aLow = new int[3];
+	protected final int[] bLow = new int[3];
+	protected final int[] abLow = new int[3];
 
 	protected int occlusionRange;
 
 	// TODO: remove
-	protected int totalCount;
-	protected int extTrue;
-	protected int extFalse;
-	protected int earlyExit;
+	//	protected int totalCount;
+	//	protected int extTrue;
+	//	protected int extFalse;
+	//	protected int earlyExit;
 
 
 	private final boolean testUp() { return testQuad(V110, V010, V011, V111); }
@@ -121,168 +102,172 @@ public abstract class AbstractTerrainOccluder {
 
 	public final boolean isChunkVisible()  {
 		CanvasWorldRenderer.innerTimer.start();
-
-		computeProjectedBoxBounds(0, 0, 0, 16, 16, 16);
-
-		// time to beat: 398ns
-
-		// rank tests by how directly they face - use distance from camera coordinates for this
-		final int offsetX = this.offsetX;
-		final int offsetY = this.offsetY;
-		final int offsetZ = this.offsetZ;
-
-		int testBits = 0;
-		int nearBits  = 0;
-		int xTest =  0;
-		int yTest = 0;
-		int zTest = 0;
-
-		// if camera below top face can't be seen
-		if (offsetY < -CAMERA_PRECISION_CHUNK_MAX) {
-			// UP
-			if (offsetY > -CAMERA_PRECISION_CHUNK_MAX - CAMERA_PRECISION_UNITY) {
-				// if very close to plane then don't test - precision may give inconsistent results
-				nearBits |= 2;
-			}
-
-			yTest = -offsetY + CAMERA_PRECISION_CHUNK_MAX;
-			testBits |= 2;
-		} else if (offsetY > 0) {
-			// DOWN
-			if (offsetY < CAMERA_PRECISION_UNITY) {
-				nearBits |= 2;
-			}
-
-			yTest = offsetY;
-			testBits |= 2;
-		}
-
-		if (offsetX < -CAMERA_PRECISION_CHUNK_MAX) {
-			// EAST;
-			if (offsetX > -CAMERA_PRECISION_CHUNK_MAX - CAMERA_PRECISION_UNITY) {
-				nearBits |= 1;
-			}
-
-			xTest = -offsetX + CAMERA_PRECISION_CHUNK_MAX;
-			testBits |= 1;
-		} else if (offsetX > 0) {
-			// WEST
-			if (offsetX < CAMERA_PRECISION_UNITY) {
-				nearBits |= 1;
-			}
-
-			xTest = offsetX;
-			testBits |= 1;
-		}
-
-		if (offsetZ < -CAMERA_PRECISION_CHUNK_MAX) {
-			// SOUTH
-			if (offsetZ > -CAMERA_PRECISION_CHUNK_MAX - CAMERA_PRECISION_UNITY) {
-				nearBits |= 4;
-			}
-
-			zTest = -offsetZ + CAMERA_PRECISION_CHUNK_MAX;
-			testBits |= 4;
-		} else if (offsetZ > 0) {
-			// NORTH
-			if (offsetZ < CAMERA_PRECISION_UNITY) {
-				nearBits |= 4;
-			}
-
-			zTest = offsetZ;
-			testBits |= 4;
-		}
-
-
 		final boolean result;
 
-		// if only valid tests are very near, assume visible to avoid false negatives due to precision
-		if (nearBits != 0 && (testBits & ~nearBits) == 0) {
+		final boolean early = isPointVisible(8, 8, 8);
+
+		if (early)  { //isPointVisible(8, 8, 8)) {
+			//			++earlyExit;
 			result = true;
 		} else {
-			switch (testBits)  {
-			default:
-			case 0b000:
-				result = false;
-				break;
-			case 0b001:
-				result = offsetX > 0 ? testWest() : testEast();
-				break;
-			case 0b010:
-				result = offsetY > 0 ? testDown() : testUp();
-				break;
-			case 0b011:
-				if (xTest > yTest) {
-					result = (offsetX > 0 ? testWest() : testEast()) || (offsetY > 0 ? testDown() : testUp());
-				} else {
-					result = (offsetY > 0 ? testDown() : testUp()) || (offsetX > 0 ? testWest() : testEast());
+			computeProjectedBoxBounds(0, 0, 0, 16, 16, 16);
+
+
+			// rank tests by how directly they face - use distance from camera coordinates for this
+			final int offsetX = this.offsetX;
+			final int offsetY = this.offsetY;
+			final int offsetZ = this.offsetZ;
+
+			int testBits = 0;
+			int nearBits  = 0;
+			int xTest =  0;
+			int yTest = 0;
+			int zTest = 0;
+
+			// if camera below top face can't be seen
+			if (offsetY < -CAMERA_PRECISION_CHUNK_MAX) {
+				// UP
+				if (offsetY > -CAMERA_PRECISION_CHUNK_MAX - CAMERA_PRECISION_UNITY) {
+					// if very close to plane then don't test - precision may give inconsistent results
+					nearBits |= 2;
 				}
-				break;
-			case 0b100:
-				result = offsetZ > 0 ? testNorth() : testSouth();
-				break;
-			case 0b101:
-				if (xTest > zTest) {
-					result = (offsetX > 0 ? testWest() : testEast()) || (offsetZ > 0 ? testNorth() : testSouth());
-				} else {
-					result = (offsetZ > 0 ? testNorth() : testSouth()) || (offsetX > 0 ? testWest() : testEast());
+
+				yTest = -offsetY + CAMERA_PRECISION_CHUNK_MAX;
+				testBits |= 2;
+			} else if (offsetY > 0) {
+				// DOWN
+				if (offsetY < CAMERA_PRECISION_UNITY) {
+					nearBits |= 2;
 				}
-				break;
-			case 0b110:
-				if (yTest > zTest) {
-					result = (offsetY > 0 ? testDown() : testUp()) || (offsetZ > 0 ? testNorth() : testSouth());
-				} else {
-					result = (offsetZ > 0 ? testNorth() : testSouth()) || (offsetY > 0 ? testDown() : testUp());
+
+				yTest = offsetY;
+				testBits |= 2;
+			}
+
+			if (offsetX < -CAMERA_PRECISION_CHUNK_MAX) {
+				// EAST;
+				if (offsetX > -CAMERA_PRECISION_CHUNK_MAX - CAMERA_PRECISION_UNITY) {
+					nearBits |= 1;
 				}
-				break;
-			case 0b111:
-				if (xTest > yTest) {
-					if  (zTest > xTest) {
+
+				xTest = -offsetX + CAMERA_PRECISION_CHUNK_MAX;
+				testBits |= 1;
+			} else if (offsetX > 0) {
+				// WEST
+				if (offsetX < CAMERA_PRECISION_UNITY) {
+					nearBits |= 1;
+				}
+
+				xTest = offsetX;
+				testBits |= 1;
+			}
+
+			if (offsetZ < -CAMERA_PRECISION_CHUNK_MAX) {
+				// SOUTH
+				if (offsetZ > -CAMERA_PRECISION_CHUNK_MAX - CAMERA_PRECISION_UNITY) {
+					nearBits |= 4;
+				}
+
+				zTest = -offsetZ + CAMERA_PRECISION_CHUNK_MAX;
+				testBits |= 4;
+			} else if (offsetZ > 0) {
+				// NORTH
+				if (offsetZ < CAMERA_PRECISION_UNITY) {
+					nearBits |= 4;
+				}
+
+				zTest = offsetZ;
+				testBits |= 4;
+			}
+
+			// if only valid tests are very near, assume visible to avoid false negatives due to precision
+			if (nearBits != 0 && (testBits & ~nearBits) == 0) {
+				result = true;
+			} else {
+				switch (testBits)  {
+				default:
+				case 0b000:
+					result = false;
+					break;
+				case 0b001:
+					result = offsetX > 0 ? testWest() : testEast();
+					break;
+				case 0b010:
+					result = offsetY > 0 ? testDown() : testUp();
+					break;
+				case 0b011:
+					if (xTest > yTest) {
+						result = (offsetX > 0 ? testWest() : testEast()) || (offsetY > 0 ? testDown() : testUp());
+					} else {
+						result = (offsetY > 0 ? testDown() : testUp()) || (offsetX > 0 ? testWest() : testEast());
+					}
+					break;
+				case 0b100:
+					result = offsetZ > 0 ? testNorth() : testSouth();
+					break;
+				case 0b101:
+					if (xTest > zTest) {
+						result = (offsetX > 0 ? testWest() : testEast()) || (offsetZ > 0 ? testNorth() : testSouth());
+					} else {
+						result = (offsetZ > 0 ? testNorth() : testSouth()) || (offsetX > 0 ? testWest() : testEast());
+					}
+					break;
+				case 0b110:
+					if (yTest > zTest) {
+						result = (offsetY > 0 ? testDown() : testUp()) || (offsetZ > 0 ? testNorth() : testSouth());
+					} else {
+						result = (offsetZ > 0 ? testNorth() : testSouth()) || (offsetY > 0 ? testDown() : testUp());
+					}
+					break;
+				case 0b111:
+					if (xTest > yTest) {
+						if  (zTest > xTest) {
+							// z first
+							result = (offsetZ > 0 ? testNorth() : testSouth())
+									|| (offsetX > 0 ? testWest() : testEast())
+									|| (offsetY > 0 ? testDown() : testUp());
+						} else {
+							// x first
+							result = (offsetX > 0 ? testWest() : testEast())
+									|| (offsetZ > 0 ? testNorth() : testSouth())
+									|| (offsetY > 0 ? testDown() : testUp());
+						}
+					} else if (zTest > yTest) {
 						// z first
 						result = (offsetZ > 0 ? testNorth() : testSouth())
-								|| (offsetX > 0 ? testWest() : testEast())
-								|| (offsetY > 0 ? testDown() : testUp());
+								|| (offsetY > 0 ? testDown() : testUp())
+								|| (offsetX > 0 ? testWest() : testEast());
 					} else {
-						// x first
-						result = (offsetX > 0 ? testWest() : testEast())
+						// y first
+						result = (offsetY > 0 ? testDown() : testUp())
 								|| (offsetZ > 0 ? testNorth() : testSouth())
-								|| (offsetY > 0 ? testDown() : testUp());
+								|| (offsetX > 0 ? testWest() : testEast());
 					}
-				} else if (zTest > yTest) {
-					// z first
-					result = (offsetZ > 0 ? testNorth() : testSouth())
-							|| (offsetY > 0 ? testDown() : testUp())
-							|| (offsetX > 0 ? testWest() : testEast());
-				} else {
-					// y first
-					result = (offsetY > 0 ? testDown() : testUp())
-							|| (offsetZ > 0 ? testNorth() : testSouth())
-							|| (offsetX > 0 ? testWest() : testEast());
+					break;
 				}
-				break;
 			}
 		}
 
 		CanvasWorldRenderer.innerTimer.stop();
 
-		// TODO: remove
-		if (occlusionRange == PackedBox.RANGE_EXTREME) {
-			if (result) {
-				++extTrue;
-			} else {
-				++extFalse;
-			}
-		}
-
-		if (++totalCount == 100000) {
-			System.out.println(String.format("extreme true: %f  extreme false: %f", extTrue / 1000f, extFalse / 1000f));
-			System.out.println(String.format("Early exit: %f", earlyExit / 1000f));
-			System.out.println();
-			totalCount = 0;
-			extTrue = 0;
-			extFalse = 0;
-			earlyExit = 0;
-		}
+		//		// TODO: remove
+		//		if (occlusionRange == PackedBox.RANGE_EXTREME) {
+		//			if (result) {
+		//				++extTrue;
+		//			} else {
+		//				++extFalse;
+		//			}
+		//		}
+		//
+		//		if (++totalCount == 1000000) {
+		//			System.out.println(String.format("extreme true: %f  extreme false: %f", extTrue / 10000f, extFalse / 10000f));
+		//			System.out.println(String.format("Early exit: %f", earlyExit / 10000f));
+		//			System.out.println();
+		//			totalCount = 0;
+		//			extTrue = 0;
+		//			extFalse = 0;
+		//			earlyExit = 0;
+		//		}
 
 		return result;
 	}
@@ -294,6 +279,7 @@ public abstract class AbstractTerrainOccluder {
 		final int x1  = PackedBox.x1(packedBox);
 		final int y1  = PackedBox.y1(packedBox);
 		final int z1  = PackedBox.z1(packedBox);
+
 
 		computeProjectedBoxBounds(x0, y0, z0, x1, y1, z1);
 
@@ -481,6 +467,36 @@ public abstract class AbstractTerrainOccluder {
 		}
 	}
 
+	/**
+	 * For early exit testing
+	 * @param x
+	 * @param y
+	 * @param z
+	 * @return
+	 */
+	protected boolean isPointVisible(int x, int y, int z) {
+		final Matrix4fExt mvpMatrixExt = this.mvpMatrixExt;
+
+		final float w = mvpMatrixExt.a30() * x + mvpMatrixExt.a31() * y + mvpMatrixExt.a32() * z + mvpMatrixExt.a33();
+		final float tz = mvpMatrixExt.a20() * x + mvpMatrixExt.a21() * y + mvpMatrixExt.a22() * z + mvpMatrixExt.a23();
+
+		if (w <= 0 || tz < 0 || tz > w) {
+			return false;
+		}
+
+		final float iw = 1f / w;
+		final float tx = HALF_PIXEL_WIDTH  * iw * (mvpMatrixExt.a00() * x + mvpMatrixExt.a01() * y + mvpMatrixExt.a02() * z + mvpMatrixExt.a03());
+		final float ty = HALF_PIXEL_HEIGHT * iw * (mvpMatrixExt.a10() * x + mvpMatrixExt.a11() * y + mvpMatrixExt.a12() * z + mvpMatrixExt.a13());
+		final int px = (int) tx + HALF_PIXEL_WIDTH;
+		final int py = (int) ty + HALF_PIXEL_HEIGHT;
+
+		if (px >= 0 && py >= 0 && px < PIXEL_WIDTH && py < PIXEL_HEIGHT && testPixel(px, py)) {
+			return true;
+		}
+
+		return false;
+	}
+
 	protected final void computeProjectedBoxBounds(int x0, int y0, int z0, int x1, int y1, int z1) {
 		final int[] vertexData = this.vertexData;
 		setupVertex(vertexData, V000, x0, y0, z0, mvpMatrixExt);
@@ -615,12 +631,6 @@ public abstract class AbstractTerrainOccluder {
 			maxPixelY = PIXEL_HEIGHT - 1;
 		}
 
-		this.x0 = x0;
-		this.y0 = y0;
-		this.x1 = x1;
-		this.y1 = y1;
-		this.x2 = x2;
-		this.y2 = y2;
 		this.minPixelX = minPixelX;
 		this.minPixelY = minPixelY;
 		this.maxPixelX = maxPixelX;
@@ -629,13 +639,32 @@ public abstract class AbstractTerrainOccluder {
 		return BoundsResult.IN_BOUNDS;
 	}
 
-	protected void prepareTriScan() {
-		final int x0 = this.x0;
-		final int y0 = this.y0;
-		final int x1 = this.x1;
-		final int y1 = this.y1;
-		final int x2 = this.x2;
-		final int y2 = this.y2;
+	private void prepareTriLowA() {
+		for (int i = 0; i < 3; ++i) {
+			aLow[i] = a[0] * LOW_BIN_DIAMETER_VECTOR[i];
+		}
+	}
+
+	private void prepareTriLowB() {
+		for (int i = 0; i < 3; ++i) {
+			bLow[i] = b[0] * LOW_BIN_DIAMETER_VECTOR[i];
+		}
+	}
+
+	private void prepareTriLowAB() {
+		for (int i = 0; i < 3; ++i) {
+			abLow[i] = aLow[0] + bLow[0];
+		}
+	}
+
+	protected void prepareTriScan(int v0, int v1, int v2) {
+		final int[] vertexData = this.vertexData;
+		final int x0 = vertexData[v0 + PV_PX];
+		final int y0 = vertexData[v0 + PV_PY];
+		final int x1 = vertexData[v1 + PV_PX];
+		final int y1 = vertexData[v1 + PV_PY];
+		final int x2 = vertexData[v2 + PV_PX];
+		final int y2 = vertexData[v2 + PV_PY];
 
 		final int a0 = (y1 - y2);
 		final int b0 = (x2 - x1);
@@ -654,26 +683,27 @@ public abstract class AbstractTerrainOccluder {
 
 		// Barycentric coordinates at minX/minY corner
 		// Can reduce precision (with accurate rounding) because increments will always be multiple of full pixel width
-		wOrigin0 = (int) ((orient2d(x1, y1, x2, y2, cx, cy) + (isTopLeft0 ? PRECISION_PIXEL_CENTER : (PRECISION_PIXEL_CENTER - 1))) >> PRECISION_BITS);
-		wOrigin1 = (int) ((orient2d(x2, y2, x0, y0, cx, cy) + (isTopLeft1 ? PRECISION_PIXEL_CENTER : (PRECISION_PIXEL_CENTER - 1))) >> PRECISION_BITS);
-		wOrigin2 = (int) ((orient2d(x0, y0, x1, y1, cx, cy) + (isTopLeft2 ? PRECISION_PIXEL_CENTER : (PRECISION_PIXEL_CENTER - 1))) >> PRECISION_BITS);
+		wOrigin[0] = (int) ((orient2d(x1, y1, x2, y2, cx, cy) + (isTopLeft0 ? PRECISION_PIXEL_CENTER : (PRECISION_PIXEL_CENTER - 1))) >> PRECISION_BITS);
+		wOrigin[1] = (int) ((orient2d(x2, y2, x0, y0, cx, cy) + (isTopLeft1 ? PRECISION_PIXEL_CENTER : (PRECISION_PIXEL_CENTER - 1))) >> PRECISION_BITS);
+		wOrigin[2] = (int) ((orient2d(x0, y0, x1, y1, cx, cy) + (isTopLeft2 ? PRECISION_PIXEL_CENTER : (PRECISION_PIXEL_CENTER - 1))) >> PRECISION_BITS);
 
-		this.a0 = a0;
-		this.b0 = b0;
-		this.a1 = a1;
-		this.b1 = b1;
-		this.a2 = a2;
-		this.b2 = b2;
+		a[0] = a0;
+		a[1] = a1;
+		a[2] = a2;
 
-		aLow0 = a0 * LOW_BIN_PIXEL_DIAMETER - a0;
-		bLow0 = b0 * LOW_BIN_PIXEL_DIAMETER - b0;
-		aLow1 = a1 * LOW_BIN_PIXEL_DIAMETER - a1;
-		bLow1 = b1 * LOW_BIN_PIXEL_DIAMETER - b1;
-		aLow2 = a2 * LOW_BIN_PIXEL_DIAMETER - a2;
-		bLow2 = b2 * LOW_BIN_PIXEL_DIAMETER - b2;
-		abLow0 = aLow0 + bLow0;
-		abLow1 = aLow1 + bLow1;
-		abLow2 = aLow2 + bLow2;
+		b[0] = b0;
+		b[1] = b1;
+		b[2] = b2;
+
+		prepareTriLowA();
+		prepareTriLowB();
+		prepareTriLowAB();
+	}
+
+	protected void computeRow(final int dx, final int dy) {
+		for (int i = 0; i < 3; ++i)  {
+			wRow[i] = wOrigin[i] + a[i] * dx + b[i] * dy;
+		}
 	}
 
 	protected final long orient2d(long x0, long y0, long x1, long y1, long cx, long cy) {
@@ -893,4 +923,7 @@ public abstract class AbstractTerrainOccluder {
 	protected static final int CAMERA_PRECISION_BITS = 12;
 	protected static final int CAMERA_PRECISION_UNITY = 1 << CAMERA_PRECISION_BITS;
 	protected static final int CAMERA_PRECISION_CHUNK_MAX = 16 * CAMERA_PRECISION_UNITY;
+
+	private static final int[] LOW_BIN_DIAMETER_VECTOR = {LOW_BIN_PIXEL_DIAMETER - 1, LOW_BIN_PIXEL_DIAMETER - 1, LOW_BIN_PIXEL_DIAMETER - 1};
+	protected static final int[] MID_BIN_DIAMETER_VECTOR = {MID_BIN_PIXEL_DIAMETER - 1, MID_BIN_PIXEL_DIAMETER - 1, MID_BIN_PIXEL_DIAMETER - 1};
 }

@@ -450,7 +450,7 @@ public class Configurator {
 	}
 
 	// TODO: add real config for this
-	public static boolean debugOcclusionRaster = true;
+	public static boolean debugOcclusionRaster = false;
 
 	// LEGACY STUFF
 
