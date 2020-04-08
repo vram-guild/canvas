@@ -1,5 +1,8 @@
 package grondag.canvas.chunk.occlusion;
 
+import static grondag.canvas.chunk.occlusion.ProjectedVertexData.PV_PX;
+import static grondag.canvas.chunk.occlusion.ProjectedVertexData.PV_PY;
+
 // Some elements are adapted from content found at
 // https://fgiesen.wordpress.com/2013/02/17/optimizing-sw-occlusion-culling-index/
 // by Fabian “ryg” Giesen. That content is in the public domain.
@@ -11,15 +14,17 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 	private final int[] bMid = new int[3];
 	private final int[] abMid = new int[3];
 
+	private final LowTile lowTile = new LowTile();
+
 	private void prepareTriMidA() {
 		for (int i = 0; i < 3; ++i) {
-			aMid[i] = a[0] * MID_BIN_DIAMETER_VECTOR[i];
+			aMid[i] = a[0] * MID_BIN_PIXEL_DIAMETER_VECTOR[i];
 		}
 	}
 
 	private void prepareTriMidB() {
 		for (int i = 0; i < 3; ++i) {
-			bMid[i] = b[0] * MID_BIN_DIAMETER_VECTOR[i];
+			bMid[i] = b[0] * MID_BIN_PIXEL_DIAMETER_VECTOR[i];
 		}
 	}
 
@@ -35,6 +40,8 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		prepareTriMidA();
 		prepareTriMidB();
 		prepareTriMidAB();
+
+		lowTile.computeSpan();
 	}
 
 	@Override
@@ -580,6 +587,15 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 				| (w0_row + aLow[0]) | (w1_row + aLow[1]) | (w2_row + aLow[2])
 				| (w0_row + bLow[0]) | (w1_row + bLow[1]) | (w2_row + bLow[2])
 				| (w0_row + abLow[0]) | (w1_row + abLow[1]) | (w2_row + abLow[2])) >= 0) {
+
+			System.out.println(String.format("L00: %d, %d, %d", w0_row, w1_row, w2_row));
+			System.out.println(String.format("L10: %d, %d, %d", (w0_row + aLow[0]), (w1_row + aLow[1]), (w2_row + aLow[2])));
+			System.out.println(String.format("L01: %d, %d, %d", (w0_row + bLow[0]), (w1_row + bLow[1]), (w2_row + bLow[2])));
+			System.out.println(String.format("L11: %d, %d, %d", (w0_row + abLow[0]), (w1_row + abLow[1]), (w2_row + abLow[2])));
+			lowTile.moveTo(minX >> LOW_AXIS_SHIFT, minY >> LOW_AXIS_SHIFT);
+			lowTile.assertCovered();
+			System.out.println();
+
 			return true;
 		} else {
 			return false;
@@ -1008,4 +1024,224 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 	private static final int COVERAGE_FULL = 1 << 8;
 	private static final int OFFSET_FULL = 0;
 	private static final int OFFSET_PARTIAL = 1;
+
+
+	private abstract class AbstractTile {
+		// all coordinates are full precision and corner-oriented unless otherwise noted
+		protected final int[] tileData = new int[18];
+
+		protected static final int CORNER_X0_Y0_E0 = 0;
+		protected static final int CORNER_X0_Y0_E1 = 1;
+		protected static final int CORNER_X0_Y0_E2 = 2;
+
+		protected static final int CORNER_X1_Y0_E0 = 3;
+		protected static final int CORNER_X1_Y0_E1 = 4;
+		protected static final int CORNER_X1_Y0_E2 = 5;
+
+		protected static final int CORNER_X0_Y1_E0 = 6;
+		protected static final int CORNER_X0_Y1_E1 = 7;
+		protected static final int CORNER_X0_Y1_E2 = 8;
+
+		protected static final int CORNER_X1_Y1_E0 = 9;
+		protected static final int CORNER_X1_Y1_E1 = 10;
+		protected static final int CORNER_X1_Y1_E2 = 11;
+
+		protected static final int SPAN_A0 = 12;
+		protected static final int SPAN_A1 = 13;
+		protected static final int SPAN_A2 = 14;
+
+		protected static final int SPAN_B0 = 15;
+		protected static final int SPAN_B1 = 16;
+		protected static final int SPAN_B2 = 17;
+
+		protected abstract void computeSpan();
+	}
+
+	private class LowTile extends AbstractTile {
+		// PERF: accept/preserve one or more corners pre-computed
+		// PERF: add moveDown/Left/Right/Up
+		// PERF: make corner compute lazy
+		// PERF: compute base a/b based on origin or snapped corner to avoid dx/dy computation
+
+		protected int lowX, lowY;
+
+		public void moveTo(int lowX, int lowY) {
+			final int binOriginX = lowX << LOW_AXIS_SHIFT;
+			final int binOriginY = lowY << LOW_AXIS_SHIFT;
+			final int[] tileData = this.tileData;
+			this.lowX = lowX;
+			this.lowY = lowY;
+
+			final int dx = binOriginX - minPixelX;
+			final int dy = binOriginY - minPixelY;
+
+			tileData[CORNER_X0_Y0_E0] = cornerOrigin[0] + a[0] * dx + b[0] * dy;
+			tileData[CORNER_X0_Y0_E1] = cornerOrigin[1] + a[1] * dx + b[1] * dy;
+			tileData[CORNER_X0_Y0_E2] = cornerOrigin[2] + a[2] * dx + b[2] * dy;
+
+			tileData[CORNER_X1_Y0_E0] = tileData[CORNER_X0_Y0_E0] + tileData[SPAN_A0];
+			tileData[CORNER_X1_Y0_E1] = tileData[CORNER_X0_Y0_E1] + tileData[SPAN_A1];
+			tileData[CORNER_X1_Y0_E2] = tileData[CORNER_X0_Y0_E2] + tileData[SPAN_A2];
+
+			tileData[CORNER_X0_Y1_E0] = tileData[CORNER_X0_Y0_E0] + tileData[SPAN_B0];
+			tileData[CORNER_X0_Y1_E1] = tileData[CORNER_X0_Y0_E1] + tileData[SPAN_B1];
+			tileData[CORNER_X0_Y1_E2] = tileData[CORNER_X0_Y0_E2] + tileData[SPAN_B2];
+
+			tileData[CORNER_X1_Y1_E0] = tileData[CORNER_X0_Y1_E0] + tileData[SPAN_A0];
+			tileData[CORNER_X1_Y1_E1] = tileData[CORNER_X0_Y1_E1] + tileData[SPAN_A1];
+			tileData[CORNER_X1_Y1_E2] = tileData[CORNER_X0_Y1_E2] + tileData[SPAN_A2];
+		}
+
+		public void assertCovered() {
+			final int[] tileData = this.tileData;
+
+			final int e00a = tileData[CORNER_X0_Y0_E0];
+			final int e00b = tileData[CORNER_X0_Y0_E1];
+			final int e00c = tileData[CORNER_X0_Y0_E2];
+
+			final int e01a = tileData[CORNER_X0_Y1_E0];
+			final int e01b = tileData[CORNER_X0_Y1_E1];
+			final int e01c = tileData[CORNER_X0_Y1_E2];
+
+			final int e10a = tileData[CORNER_X1_Y0_E0];
+			final int e10b = tileData[CORNER_X1_Y0_E1];
+			final int e10c = tileData[CORNER_X1_Y0_E2];
+
+			final int e11a = tileData[CORNER_X1_Y1_E0];
+			final int e11b = tileData[CORNER_X1_Y1_E1];
+			final int e11c = tileData[CORNER_X1_Y1_E2];
+
+			System.out.println();
+			System.out.println(String.format("E00: %d, %d, %d", e00a, e00b, e00c));
+			System.out.println(String.format("E10: %d, %d, %d", e10a, e10b, e10c));
+			System.out.println(String.format("E01: %d, %d, %d", e01a, e01b, e01c));
+			System.out.println(String.format("E11: %d, %d, %d", e11a, e11b, e11c));
+
+			final int ef = edgeFlags;
+			final int e0 = ef & EDGE_MASK;
+			final int e1 = (ef >> EDGE_SHIFT_1) & EDGE_MASK;
+			final int e2 = (ef >> EDGE_SHIFT_2);
+
+			final int a0 = a[0] / 2;
+			final int a1 = a[1] / 2;
+			final int a2 = a[2] / 2;
+			final int b0 = b[0] / 2;
+			final int b1 = b[1] / 2;
+			final int b2 = b[2] / 2;
+
+			final int w00a = (tileData[CORNER_X0_Y0_E0] + a0 + b0);
+			final int w00b = (tileData[CORNER_X0_Y0_E1] + a1 + b1);
+			final int w00c = (tileData[CORNER_X0_Y0_E2] + a2 + b2);
+
+			final int w01a = (tileData[CORNER_X0_Y1_E0] + a0 - b0);
+			final int w01b = (tileData[CORNER_X0_Y1_E1] + a1 - b1);
+			final int w01c = (tileData[CORNER_X0_Y1_E2] + a2 - b2);
+
+			final int w10a = (tileData[CORNER_X1_Y0_E0] - a0 + b0);
+			final int w10b = (tileData[CORNER_X1_Y0_E1] - a1 + b1);
+			final int w10c = (tileData[CORNER_X1_Y0_E2] - a2 + b2);
+
+			final int w11a = (tileData[CORNER_X1_Y1_E0] - a0 - b0);
+			final int w11b = (tileData[CORNER_X1_Y1_E1] - a1 - b1);
+			final int w11c = (tileData[CORNER_X1_Y1_E2] - a2 - b2);
+
+			System.out.println();
+			System.out.println(String.format("P00: %d, %d, %d", w00a, w00b, w00c));
+			System.out.println(String.format("P10: %d, %d, %d", w10a, w10b, w10c));
+			System.out.println(String.format("P01: %d, %d, %d", w01a, w01b, w01c));
+			System.out.println(String.format("P11: %d, %d, %d", w11a, w11b, w11c));
+			System.out.println();
+
+			int d0 = Integer.MIN_VALUE, d1 = Integer.MIN_VALUE, d2 = Integer.MIN_VALUE;
+
+
+			switch  (e0) {
+			case EDGE_TOP:
+			case EDGE_TOP_LEFT:
+			case EDGE_LEFT:
+				d0 = e01a;
+				break;
+			case EDGE_BOTTOM_LEFT:
+				d0 = e00a;
+				break;
+			case EDGE_TOP_RIGHT:
+				d0 = e11a;
+				break;
+			case EDGE_BOTTOM:
+			case EDGE_RIGHT:
+			case EDGE_BOTTOM_RIGHT:
+				d0 = e10a;
+			}
+
+			switch  (e1) {
+			case EDGE_TOP:
+			case EDGE_TOP_LEFT:
+			case EDGE_LEFT:
+				d1 = e01b;
+				break;
+			case EDGE_BOTTOM_LEFT:
+				d1 = e00b;
+				break;
+			case EDGE_TOP_RIGHT:
+				d1 = e11b;
+				break;
+			case EDGE_BOTTOM:
+			case EDGE_RIGHT:
+			case EDGE_BOTTOM_RIGHT:
+				d1 = e10b;
+			}
+
+			switch  (e2) {
+			case EDGE_TOP:
+			case EDGE_TOP_LEFT:
+			case EDGE_LEFT:
+				d2 = e01c;
+				break;
+			case EDGE_BOTTOM_LEFT:
+				d2 = e00c;
+				break;
+			case EDGE_TOP_RIGHT:
+				d2 = e11c;
+				break;
+			case EDGE_BOTTOM:
+			case EDGE_RIGHT:
+			case EDGE_BOTTOM_RIGHT:
+				d2 = e10c;
+			}
+
+			final float x0 = vertexData[v0 + PV_PX] / 16f;
+			final float y0 = vertexData[v0 + PV_PY] / 16f;
+			final float x1 = vertexData[v1 + PV_PX] / 16f;
+			final float y1 = vertexData[v1 + PV_PY] / 16f;
+			final float x2 = vertexData[v2 + PV_PX] / 16f;
+			final float y2 = vertexData[v2 + PV_PY] / 16f;
+
+			System.out.println(String.format("Points: %f\t%f\t%f\t%f\t%f\t%f", x0, y0, x1, y1, x2, y2));
+			System.out.println(String.format("A,B: (%d, %d)  (%d, %d)  (%d, %d)", a[0], b[0], a[1], b[1], a[2], b[2]));
+			System.out.println(String.format("Edges: %d, %d, %d", e0, e1, e2));
+			System.out.println(String.format("D: %d, %d, %d", d0, d1, d2));
+			System.out.println(String.format("origin: (%d, %d)", lowX << LOW_AXIS_SHIFT,  lowY << LOW_AXIS_SHIFT));
+
+			if ((w00a | w00b | w00c | w01a | w01b | w01c | w10a | w10b | w10c | w11a | w11b | w11c) < 0) {
+				System.out.println("boop");
+			}
+		}
+
+		@Override
+		protected void computeSpan() {
+			final int[] tileData = this.tileData;
+			tileData[SPAN_A0] = a[0] * LOW_BIN_PIXEL_DIAMETER;
+			tileData[SPAN_A1] = a[1] * LOW_BIN_PIXEL_DIAMETER;
+			tileData[SPAN_A2] = a[2] * LOW_BIN_PIXEL_DIAMETER;
+			tileData[SPAN_B0] = b[0] * LOW_BIN_PIXEL_DIAMETER;
+			tileData[SPAN_B1] = b[1] * LOW_BIN_PIXEL_DIAMETER;
+			tileData[SPAN_B2] = b[2] * LOW_BIN_PIXEL_DIAMETER;
+		}
+
+		/**
+		 *
+		 * edge functions are line equations: ax + by + c = 0 where c is the origin value
+		 * a and b are normal to the line/edge
+		 */
+	}
 }

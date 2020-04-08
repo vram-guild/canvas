@@ -3,8 +3,8 @@ package grondag.canvas.chunk.occlusion;
 import static grondag.canvas.chunk.occlusion.AbstractTerrainOccluder.GUARD_HEIGHT;
 import static grondag.canvas.chunk.occlusion.AbstractTerrainOccluder.GUARD_SIZE;
 import static grondag.canvas.chunk.occlusion.AbstractTerrainOccluder.GUARD_WIDTH;
-import static grondag.canvas.chunk.occlusion.AbstractTerrainOccluder.HALF_PRECISION_HEIGHT;
-import static grondag.canvas.chunk.occlusion.AbstractTerrainOccluder.HALF_PRECISION_WIDTH;
+import static grondag.canvas.chunk.occlusion.AbstractTerrainOccluder.HALF_PRECISE_HEIGHT;
+import static grondag.canvas.chunk.occlusion.AbstractTerrainOccluder.HALF_PRECISE_WIDTH;
 
 import net.minecraft.client.util.math.Matrix4f;
 import net.minecraft.client.util.math.Vector4f;
@@ -17,10 +17,10 @@ public class ProjectionVector4f extends Vector4f {
 	protected int needsNearClip;
 
 	protected void calc() {
-		final float px = getX() / getW() * HALF_PRECISION_WIDTH;
-		final float py = getY() / getW() * HALF_PRECISION_HEIGHT;
-		ix = Math.round(px) + HALF_PRECISION_WIDTH;
-		iy = Math.round(py) + HALF_PRECISION_HEIGHT;
+		final float px = getX() / getW() * HALF_PRECISE_WIDTH;
+		final float py = getY() / getW() * HALF_PRECISE_HEIGHT;
+		ix = Math.round(px) + HALF_PRECISE_WIDTH;
+		iy = Math.round(py) + HALF_PRECISE_HEIGHT;
 		needsNearClip = getW() <= 0 ? 1 : 0;
 	}
 

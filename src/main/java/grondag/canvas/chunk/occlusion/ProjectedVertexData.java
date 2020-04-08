@@ -3,8 +3,8 @@ package grondag.canvas.chunk.occlusion;
 import static grondag.canvas.chunk.occlusion.AbstractTerrainOccluder.GUARD_HEIGHT;
 import static grondag.canvas.chunk.occlusion.AbstractTerrainOccluder.GUARD_SIZE;
 import static grondag.canvas.chunk.occlusion.AbstractTerrainOccluder.GUARD_WIDTH;
-import static grondag.canvas.chunk.occlusion.AbstractTerrainOccluder.HALF_PRECISION_HEIGHT;
-import static grondag.canvas.chunk.occlusion.AbstractTerrainOccluder.HALF_PRECISION_WIDTH;
+import static grondag.canvas.chunk.occlusion.AbstractTerrainOccluder.HALF_PRECISE_HEIGHT;
+import static grondag.canvas.chunk.occlusion.AbstractTerrainOccluder.HALF_PRECISE_WIDTH;
 
 import grondag.canvas.mixinterface.Matrix4fExt;
 
@@ -25,8 +25,8 @@ public final class ProjectedVertexData {
 		final float ty = mvpMatrixExt.a10() * x + mvpMatrixExt.a11() * y + mvpMatrixExt.a12() * z + mvpMatrixExt.a13();
 		final float w = mvpMatrixExt.a30() * x + mvpMatrixExt.a31() * y + mvpMatrixExt.a32() * z + mvpMatrixExt.a33();
 		final float iw = 1f / w;
-		final int px = Math.round(tx * iw * HALF_PRECISION_WIDTH) + HALF_PRECISION_WIDTH;
-		final int py = Math.round(ty * iw * HALF_PRECISION_HEIGHT) + HALF_PRECISION_HEIGHT;
+		final int px = Math.round(tx * iw * HALF_PRECISE_WIDTH) + HALF_PRECISE_WIDTH;
+		final int py = Math.round(ty * iw * HALF_PRECISE_HEIGHT) + HALF_PRECISE_HEIGHT;
 
 		data[baseIndex + PV_PX] = px;
 		data[baseIndex + PV_PY] = py;
@@ -60,8 +60,8 @@ public final class ProjectedVertexData {
 		final float x = (intX + (extX - intX) * wt);
 		final float y = (intY + (extY - intY) * wt);
 
-		data[target + PV_PX] = Math.round(x * HALF_PRECISION_WIDTH) + HALF_PRECISION_WIDTH;
-		data[target + PV_PY] = Math.round(y * HALF_PRECISION_HEIGHT) + HALF_PRECISION_HEIGHT;
+		data[target + PV_PX] = Math.round(x * HALF_PRECISE_WIDTH) + HALF_PRECISE_WIDTH;
+		data[target + PV_PY] = Math.round(y * HALF_PRECISE_HEIGHT) + HALF_PRECISE_HEIGHT;
 		data[target + PV_X] = Float.floatToRawIntBits(x);
 		data[target + PV_Y] = Float.floatToRawIntBits(y);
 		data[target + PV_Z] = Float.floatToRawIntBits(1);

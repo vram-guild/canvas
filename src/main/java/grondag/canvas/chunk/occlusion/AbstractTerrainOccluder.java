@@ -56,7 +56,13 @@ public abstract class AbstractTerrainOccluder {
 
 	protected final int[] vertexData = new int[VERTEX_DATA_LENGTH];
 
-	// Boumds of current triangle
+	// Boumds of current triangle - edge coordinates
+	protected int minX;
+	protected int minY;
+	protected int maxX;
+	protected int maxY;
+
+	// Boumds of current triangle - pixel coordinates
 	protected int minPixelX;
 	protected int minPixelY;
 	protected int maxPixelX;
@@ -85,6 +91,11 @@ public abstract class AbstractTerrainOccluder {
 	protected final int[] abLow = new int[3];
 
 	protected int occlusionRange;
+
+	protected int edgeFlags;
+
+	// edge function values at min bounding corner - not pixel centered
+	protected final int[] cornerOrigin = new int[3];
 
 	// TODO: remove
 	//	protected int totalCount;
@@ -583,7 +594,7 @@ public abstract class AbstractTerrainOccluder {
 			maxY = y2;
 		}
 
-		if (maxY < 0 || minY >= PRECISION_HEIGHT) {
+		if (maxY < 0 || minY >= PRECISE_HEIGHT) {
 			return BoundsResult.OUT_OF_BOUNDS;
 		}
 
@@ -602,7 +613,7 @@ public abstract class AbstractTerrainOccluder {
 			maxX = x2;
 		}
 
-		if (maxX < 0 || minX >= PRECISION_WIDTH) {
+		if (maxX < 0 || minX >= PRECISE_WIDTH) {
 			return BoundsResult.OUT_OF_BOUNDS;
 		}
 
@@ -610,10 +621,10 @@ public abstract class AbstractTerrainOccluder {
 			return BoundsResult.NEEDS_CLIP;
 		}
 
-		int minPixelX = (minX + PRECISION_PIXEL_CENTER - 1) >> PRECISION_BITS;
-		int minPixelY = (minY + PRECISION_PIXEL_CENTER - 1) >> PRECISION_BITS;
-		int maxPixelX = (maxX - PRECISION_PIXEL_CENTER) >> PRECISION_BITS;
-		int maxPixelY = (maxY - PRECISION_PIXEL_CENTER) >> PRECISION_BITS;
+		int minPixelX = (minX + PRECISE_PIXEL_CENTER - 1) >> PRECISION_BITS;
+		int minPixelY = (minY + PRECISE_PIXEL_CENTER - 1) >> PRECISION_BITS;
+		int maxPixelX = (maxX - PRECISE_PIXEL_CENTER) >> PRECISION_BITS;
+		int maxPixelY = (maxY - PRECISE_PIXEL_CENTER) >> PRECISION_BITS;
 
 		if (minPixelX < 0) {
 			minPixelX = 0;
@@ -636,18 +647,23 @@ public abstract class AbstractTerrainOccluder {
 		this.maxPixelX = maxPixelX;
 		this.maxPixelY = maxPixelY;
 
+		this.minX = minX >> PRECISION_BITS;
+		this.minY = minY >> PRECISION_BITS;
+		this.maxX = maxX >> PRECISION_BITS;
+		this.maxY = maxY >> PRECISION_BITS;
+
 		return BoundsResult.IN_BOUNDS;
 	}
 
 	private void prepareTriLowA() {
 		for (int i = 0; i < 3; ++i) {
-			aLow[i] = a[0] * LOW_BIN_DIAMETER_VECTOR[i];
+			aLow[i] = a[0] * LOW_BIN_PIXEL_DIAMETER_VECTOR[i];
 		}
 	}
 
 	private void prepareTriLowB() {
 		for (int i = 0; i < 3; ++i) {
-			bLow[i] = b[0] * LOW_BIN_DIAMETER_VECTOR[i];
+			bLow[i] = b[0] * LOW_BIN_PIXEL_DIAMETER_VECTOR[i];
 		}
 	}
 
@@ -657,7 +673,15 @@ public abstract class AbstractTerrainOccluder {
 		}
 	}
 
+	// TODO: remove
+	protected int v0 = 0, v1 = 0, v2 = 0;
+
 	protected void prepareTriScan(int v0, int v1, int v2) {
+
+		this.v0 = v0;
+		this.v1 = v1;
+		this.v2 = v2;
+
 		final int[] vertexData = this.vertexData;
 		final int x0 = vertexData[v0 + PV_PX];
 		final int y0 = vertexData[v0 + PV_PY];
@@ -678,14 +702,21 @@ public abstract class AbstractTerrainOccluder {
 		final boolean isTopLeft1 = a1 > 0 || (a1 == 0 && b1 < 0);
 		final boolean isTopLeft2 = a2 > 0 || (a2 == 0 && b2 < 0);
 
-		final long cx = (minPixelX << PRECISION_BITS) + PRECISION_PIXEL_CENTER;
-		final long cy = (minPixelY << PRECISION_BITS) + PRECISION_PIXEL_CENTER;
+		final long cx = (minPixelX << PRECISION_BITS) + PRECISE_PIXEL_CENTER;
+		final long cy = (minPixelY << PRECISION_BITS) + PRECISE_PIXEL_CENTER;
 
 		// Barycentric coordinates at minX/minY corner
 		// Can reduce precision (with accurate rounding) because increments will always be multiple of full pixel width
-		wOrigin[0] = (int) ((orient2d(x1, y1, x2, y2, cx, cy) + (isTopLeft0 ? PRECISION_PIXEL_CENTER : (PRECISION_PIXEL_CENTER - 1))) >> PRECISION_BITS);
-		wOrigin[1] = (int) ((orient2d(x2, y2, x0, y0, cx, cy) + (isTopLeft1 ? PRECISION_PIXEL_CENTER : (PRECISION_PIXEL_CENTER - 1))) >> PRECISION_BITS);
-		wOrigin[2] = (int) ((orient2d(x0, y0, x1, y1, cx, cy) + (isTopLeft2 ? PRECISION_PIXEL_CENTER : (PRECISION_PIXEL_CENTER - 1))) >> PRECISION_BITS);
+		wOrigin[0] = (int) ((orient2d(x1, y1, x2, y2, cx, cy) + (isTopLeft0 ? PRECISE_PIXEL_CENTER : (PRECISE_PIXEL_CENTER - 1))) >> PRECISION_BITS);
+		wOrigin[1] = (int) ((orient2d(x2, y2, x0, y0, cx, cy) + (isTopLeft1 ? PRECISE_PIXEL_CENTER : (PRECISE_PIXEL_CENTER - 1))) >> PRECISION_BITS);
+		wOrigin[2] = (int) ((orient2d(x0, y0, x1, y1, cx, cy) + (isTopLeft2 ? PRECISE_PIXEL_CENTER : (PRECISE_PIXEL_CENTER - 1))) >> PRECISION_BITS);
+
+		final long ecx = minX << PRECISION_BITS;
+		final long ecy = minY << PRECISION_BITS;
+
+		cornerOrigin[0] = (int) (orient2d(x1, y1, x2, y2, ecx, ecy) >> PRECISION_BITS);
+		cornerOrigin[1] = (int) (orient2d(x2, y2, x0, y0, ecx, ecy) >> PRECISION_BITS);
+		cornerOrigin[2] = (int) (orient2d(x0, y0, x1, y1, ecx, ecy) >> PRECISION_BITS);
 
 		a[0] = a0;
 		a[1] = a1;
@@ -694,6 +725,8 @@ public abstract class AbstractTerrainOccluder {
 		b[0] = b0;
 		b[1] = b1;
 		b[2] = b2;
+
+		edgeFlags = edgeFlag(a0, b0) | (edgeFlag(a1, b1) << EDGE_SHIFT_1) | (edgeFlag(a2, b2) << EDGE_SHIFT_2);
 
 		prepareTriLowA();
 		prepareTriLowB();
@@ -831,6 +864,7 @@ public abstract class AbstractTerrainOccluder {
 		System.out.println();
 	}
 
+
 	//Y starts  at  64
 	private static long COVERAGE_MASKS[] = new long[128];
 
@@ -879,27 +913,27 @@ public abstract class AbstractTerrainOccluder {
 	protected static final int MIDDLE_HEIGHT = TOP_HEIGHT  * 8;
 
 	protected static final int PRECISION_BITS = 4;
-	protected static final int PRECISION_FRACTION_MASK = (1 << PRECISION_BITS) - 1;
-	protected static final int PRECISION_INTEGER_MASK = ~PRECISION_FRACTION_MASK;
-	protected static final int PRECISION_PIXEL_CENTER = 1 << (PRECISION_BITS - 1);
+	protected static final int PRECISE_FRACTION_MASK = (1 << PRECISION_BITS) - 1;
+	protected static final int PRECISE_INTEGER_MASK = ~PRECISE_FRACTION_MASK;
+	protected static final int PRECISE_PIXEL_CENTER = 1 << (PRECISION_BITS - 1);
 
 	protected static final int LOW_WIDTH = MID_WIDTH * 8;
 	//protected static final int LOW_Y_SHIFT = Integer.bitCount(LOW_WIDTH - 1);
 	protected static final int PIXEL_WIDTH = LOW_WIDTH * BIN_PIXEL_DIAMETER;
 	protected static final int HALF_PIXEL_WIDTH = PIXEL_WIDTH / 2;
-	protected static final int PRECISION_WIDTH = PIXEL_WIDTH << PRECISION_BITS;
-	protected static final int HALF_PRECISION_WIDTH = PRECISION_WIDTH / 2;
+	protected static final int PRECISE_WIDTH = PIXEL_WIDTH << PRECISION_BITS;
+	protected static final int HALF_PRECISE_WIDTH = PRECISE_WIDTH / 2;
 
 	protected static final int LOW_HEIGHT = MIDDLE_HEIGHT * 8;
 	protected static final int PIXEL_HEIGHT = LOW_HEIGHT * BIN_PIXEL_DIAMETER;
 	protected static final int HALF_PIXEL_HEIGHT = PIXEL_HEIGHT / 2;
 	//	protected static final int HEIGHT_WORD_RELATIVE_SHIFT = LOW_Y_SHIFT - BIN_AXIS_SHIFT;
-	protected static final int PRECISION_HEIGHT = PIXEL_HEIGHT << PRECISION_BITS;
-	protected static final int HALF_PRECISION_HEIGHT = PRECISION_HEIGHT / 2;
+	protected static final int PRECISE_HEIGHT = PIXEL_HEIGHT << PRECISION_BITS;
+	protected static final int HALF_PRECISE_HEIGHT = PRECISE_HEIGHT / 2;
 
 	protected static final int GUARD_SIZE = 512 << PRECISION_BITS;
-	protected static final int GUARD_WIDTH = PRECISION_WIDTH + GUARD_SIZE;
-	protected static final int GUARD_HEIGHT = PRECISION_HEIGHT + GUARD_SIZE;
+	protected static final int GUARD_WIDTH = PRECISE_WIDTH + GUARD_SIZE;
+	protected static final int GUARD_HEIGHT = PRECISE_HEIGHT + GUARD_SIZE;
 
 	protected static final int LOW_BIN_COUNT = LOW_WIDTH * LOW_HEIGHT;
 	protected static final int MID_BIN_COUNT = MID_WIDTH * LOW_HEIGHT;
@@ -924,6 +958,41 @@ public abstract class AbstractTerrainOccluder {
 	protected static final int CAMERA_PRECISION_UNITY = 1 << CAMERA_PRECISION_BITS;
 	protected static final int CAMERA_PRECISION_CHUNK_MAX = 16 * CAMERA_PRECISION_UNITY;
 
-	private static final int[] LOW_BIN_DIAMETER_VECTOR = {LOW_BIN_PIXEL_DIAMETER - 1, LOW_BIN_PIXEL_DIAMETER - 1, LOW_BIN_PIXEL_DIAMETER - 1};
-	protected static final int[] MID_BIN_DIAMETER_VECTOR = {MID_BIN_PIXEL_DIAMETER - 1, MID_BIN_PIXEL_DIAMETER - 1, MID_BIN_PIXEL_DIAMETER - 1};
+	protected static final int[] LOW_BIN_PIXEL_DIAMETER_VECTOR = {LOW_BIN_PIXEL_DIAMETER - 1, LOW_BIN_PIXEL_DIAMETER - 1, LOW_BIN_PIXEL_DIAMETER - 1};
+	protected static final int[] MID_BIN_PIXEL_DIAMETER_VECTOR = {MID_BIN_PIXEL_DIAMETER - 1, MID_BIN_PIXEL_DIAMETER - 1, MID_BIN_PIXEL_DIAMETER - 1};
+
+	// Edge classifications - refers to position in the triangle.
+	// Things above top edge, for example, are outside the edge.
+	protected static final int EDGE_TOP = 0;
+	protected static final int EDGE_BOTTOM = 1;
+	protected static final int EDGE_LEFT = 2;
+	protected static final int EDGE_RIGHT = 3;
+	protected static final int EDGE_TOP_LEFT = 4;
+	protected static final int EDGE_TOP_RIGHT = 5;
+	protected static final int EDGE_BOTTOM_LEFT = 6;
+	protected static final int EDGE_BOTTOM_RIGHT = 7;
+
+	protected static final int EDGE_SHIFT_1 = 3;
+	protected static final int EDGE_SHIFT_2 = 6;
+	protected static final int EDGE_MASK = 7;
+
+	protected static int edgeFlag(int a, int b) {
+		// bneg = left
+		// bpos = right
+		// aneg = bottom
+		// apos == top
+		if (a == 0) {
+			return b > 0 ? EDGE_RIGHT : EDGE_LEFT;
+		} else if (b == 0) {
+			return a > 0 ? EDGE_TOP: EDGE_BOTTOM;
+		}
+
+		if (a > 0) {
+			return b > 0 ? EDGE_TOP_RIGHT : EDGE_TOP_LEFT;
+		}  else {
+			// a < 0
+			return b > 0 ? EDGE_BOTTOM_RIGHT : EDGE_BOTTOM_LEFT;
+		}
+	}
 }
+
