@@ -3,6 +3,8 @@ package grondag.canvas.chunk.occlusion;
 import static grondag.canvas.chunk.occlusion.ProjectedVertexData.PV_PX;
 import static grondag.canvas.chunk.occlusion.ProjectedVertexData.PV_PY;
 
+import com.google.common.base.Strings;
+
 // Some elements are adapted from content found at
 // https://fgiesen.wordpress.com/2013/02/17/optimizing-sw-occlusion-culling-index/
 // by Fabian “ryg” Giesen. That content is in the public domain.
@@ -582,13 +584,13 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		final int w0_row = wLowX[0];
 		final int w1_row = wLowX[1];
 		final int w2_row = wLowX[2];
+		lowTile.moveTo(minX >> LOW_AXIS_SHIFT, minY >> LOW_AXIS_SHIFT);
 
 		if ((w0_row | w1_row | w2_row
 				| (w0_row + aLow[0]) | (w1_row + aLow[1]) | (w2_row + aLow[2])
 				| (w0_row + bLow[0]) | (w1_row + bLow[1]) | (w2_row + bLow[2])
 				| (w0_row + abLow[0]) | (w1_row + abLow[1]) | (w2_row + abLow[2])) >= 0) {
 
-			lowTile.moveTo(minX >> LOW_AXIS_SHIFT, minY >> LOW_AXIS_SHIFT);
 
 			if (!lowTile.assertCovered(true)) {
 				System.out.println(String.format("L00: %d, %d, %d", w0_row, w1_row, w2_row));
@@ -601,7 +603,7 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 
 			return true;
 		} else {
-			if (!lowTile.assertCovered(false)) {
+			if (lowTile.assertCovered(false)) {
 				System.out.println(String.format("L00: %d, %d, %d", w0_row, w1_row, w2_row));
 				System.out.println(String.format("L10: %d, %d, %d", (w0_row + aLow[0]), (w1_row + aLow[1]), (w2_row + aLow[2])));
 				System.out.println(String.format("L01: %d, %d, %d", (w0_row + bLow[0]), (w1_row + bLow[1]), (w2_row + bLow[2])));
@@ -1040,7 +1042,7 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 
 	private abstract class AbstractTile {
 		// all coordinates are full precision and corner-oriented unless otherwise noted
-		protected final int[] tileData = new int[18];
+		protected final int[] tileData = new int[23];
 
 		protected static final int CORNER_X0_Y0_E0 = 0;
 		protected static final int CORNER_X0_Y0_E1 = 1;
@@ -1065,6 +1067,13 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		protected static final int SPAN_B0 = 15;
 		protected static final int SPAN_B1 = 16;
 		protected static final int SPAN_B2 = 17;
+
+		protected static final int EXTENT_0 = 18;
+		protected static final int EXTENT_1 = 19;
+		protected static final int EXTENT_2 = 20;
+
+		protected static final int BIN_ORIGIN_X = 21;
+		protected static final int BIN_ORIGIN_Y = 22;
 
 		protected abstract void computeSpan();
 	}
@@ -1102,134 +1111,40 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 			tileData[CORNER_X1_Y1_E0] = tileData[CORNER_X0_Y1_E0] + tileData[SPAN_A0];
 			tileData[CORNER_X1_Y1_E1] = tileData[CORNER_X0_Y1_E1] + tileData[SPAN_A1];
 			tileData[CORNER_X1_Y1_E2] = tileData[CORNER_X0_Y1_E2] + tileData[SPAN_A2];
+
+			tileData[BIN_ORIGIN_X] = binOriginX;
+			tileData[BIN_ORIGIN_Y] = binOriginY;
 		}
 
 		public boolean assertCovered(boolean expected) {
-			final int[] tileData = this.tileData;
-
-			final int e00a = tileData[CORNER_X0_Y0_E0];
-			final int e00b = tileData[CORNER_X0_Y0_E1];
-			final int e00c = tileData[CORNER_X0_Y0_E2];
-
-			final int e01a = tileData[CORNER_X0_Y1_E0];
-			final int e01b = tileData[CORNER_X0_Y1_E1];
-			final int e01c = tileData[CORNER_X0_Y1_E2];
-
-			final int e10a = tileData[CORNER_X1_Y0_E0];
-			final int e10b = tileData[CORNER_X1_Y0_E1];
-			final int e10c = tileData[CORNER_X1_Y0_E2];
-
-			final int e11a = tileData[CORNER_X1_Y1_E0];
-			final int e11b = tileData[CORNER_X1_Y1_E1];
-			final int e11c = tileData[CORNER_X1_Y1_E2];
-
 			final int ef = edgeFlags;
 			final int e0 = ef & EDGE_MASK;
 			final int e1 = (ef >> EDGE_SHIFT_1) & EDGE_MASK;
 			final int e2 = (ef >> EDGE_SHIFT_2);
 
-			//			final int a0 = a[0] / 2;
-			//			final int a1 = a[1] / 2;
-			//			final int a2 = a[2] / 2;
-			//			final int b0 = b[0] / 2;
-			//			final int b1 = b[1] / 2;
-			//			final int b2 = b[2] / 2;
-			//
-			//			final int w00a = (tileData[CORNER_X0_Y0_E0] + a0 + b0);
-			//			final int w00b = (tileData[CORNER_X0_Y0_E1] + a1 + b1);
-			//			final int w00c = (tileData[CORNER_X0_Y0_E2] + a2 + b2);
-			//
-			//			final int w01a = (tileData[CORNER_X0_Y1_E0] + a0 - b0);
-			//			final int w01b = (tileData[CORNER_X0_Y1_E1] + a1 - b1);
-			//			final int w01c = (tileData[CORNER_X0_Y1_E2] + a2 - b2);
-			//
-			//			final int w10a = (tileData[CORNER_X1_Y0_E0] - a0 + b0);
-			//			final int w10b = (tileData[CORNER_X1_Y0_E1] - a1 + b1);
-			//			final int w10c = (tileData[CORNER_X1_Y0_E2] - a2 + b2);
-			//
-			//			final int w11a = (tileData[CORNER_X1_Y1_E0] - a0 - b0);
-			//			final int w11b = (tileData[CORNER_X1_Y1_E1] - a1 - b1);
-			//			final int w11c = (tileData[CORNER_X1_Y1_E2] - a2 - b2);
-			//
-			//			System.out.println();
-			//			System.out.println(String.format("P00: %d, %d, %d", w00a, w00b, w00c));
-			//			System.out.println(String.format("P10: %d, %d, %d", w10a, w10b, w10c));
-			//			System.out.println(String.format("P01: %d, %d, %d", w01a, w01b, w01c));
-			//			System.out.println(String.format("P11: %d, %d, %d", w11a, w11b, w11c));
-			//			System.out.println();
+			final int d0 = chooseEdgeValue(e0, 0);
+			final int d1 = chooseEdgeValue(e1, 1);
+			final int d2 = chooseEdgeValue(e2, 2);
 
-			int d0 = Integer.MIN_VALUE, d1 = Integer.MIN_VALUE, d2 = Integer.MIN_VALUE;
+			final long m0 = computeMask(e0, 0);
+			final long m1 = computeMask(e1, 1);
+			final long m2 = computeMask(e2, 2);
 
+			final boolean result = (m0 & m1 & m2) == -1L;
 
-			switch  (e0) {
-			case EDGE_TOP:
-			case EDGE_TOP_LEFT:
-			case EDGE_LEFT:
-				d0 = e01a;
-				break;
-			case EDGE_BOTTOM_LEFT:
-				d0 = e00a;
-				break;
-			case EDGE_TOP_RIGHT:
-				d0 = e11a;
-				break;
-			case EDGE_BOTTOM:
-			case EDGE_RIGHT:
-			case EDGE_BOTTOM_RIGHT:
-				d0 = e10a;
-			}
+			if (result != expected) {
+				final float x0 = vertexData[v0 + PV_PX] / 16f;
+				final float y0 = vertexData[v0 + PV_PY] / 16f;
+				final float x1 = vertexData[v1 + PV_PX] / 16f;
+				final float y1 = vertexData[v1 + PV_PY] / 16f;
+				final float x2 = vertexData[v2 + PV_PX] / 16f;
+				final float y2 = vertexData[v2 + PV_PY] / 16f;
 
-			switch  (e1) {
-			case EDGE_TOP:
-			case EDGE_TOP_LEFT:
-			case EDGE_LEFT:
-				d1 = e01b;
-				break;
-			case EDGE_BOTTOM_LEFT:
-				d1 = e00b;
-				break;
-			case EDGE_TOP_RIGHT:
-				d1 = e11b;
-				break;
-			case EDGE_BOTTOM:
-			case EDGE_RIGHT:
-			case EDGE_BOTTOM_RIGHT:
-				d1 = e10b;
-			}
-
-			switch  (e2) {
-			case EDGE_TOP:
-			case EDGE_TOP_LEFT:
-			case EDGE_LEFT:
-				d2 = e01c;
-				break;
-			case EDGE_BOTTOM_LEFT:
-				d2 = e00c;
-				break;
-			case EDGE_TOP_RIGHT:
-				d2 = e11c;
-				break;
-			case EDGE_BOTTOM:
-			case EDGE_RIGHT:
-			case EDGE_BOTTOM_RIGHT:
-				d2 = e10c;
-			}
-
-			final float x0 = vertexData[v0 + PV_PX] / 16f;
-			final float y0 = vertexData[v0 + PV_PY] / 16f;
-			final float x1 = vertexData[v1 + PV_PX] / 16f;
-			final float y1 = vertexData[v1 + PV_PY] / 16f;
-			final float x2 = vertexData[v2 + PV_PX] / 16f;
-			final float y2 = vertexData[v2 + PV_PY] / 16f;
-
-
-
-			if ((d0 | d1 | d2) < 0) {
 				System.out.println();
-				System.out.println(String.format("E00: %d, %d, %d", e00a, e00b, e00c));
-				System.out.println(String.format("E10: %d, %d, %d", e10a, e10b, e10c));
-				System.out.println(String.format("E01: %d, %d, %d", e01a, e01b, e01c));
-				System.out.println(String.format("E11: %d, %d, %d", e11a, e11b, e11c));
+				System.out.println(String.format("E00: %d, %d, %d", tileData[CORNER_X0_Y0_E0], tileData[CORNER_X0_Y0_E1], tileData[CORNER_X0_Y0_E2]));
+				System.out.println(String.format("E10: %d, %d, %d", tileData[CORNER_X1_Y0_E0], tileData[CORNER_X1_Y0_E1], tileData[CORNER_X1_Y0_E2]));
+				System.out.println(String.format("E01: %d, %d, %d", tileData[CORNER_X0_Y1_E0], tileData[CORNER_X0_Y1_E1], tileData[CORNER_X0_Y1_E2]));
+				System.out.println(String.format("E11: %d, %d, %d", tileData[CORNER_X1_Y1_E0], tileData[CORNER_X1_Y1_E1], tileData[CORNER_X1_Y1_E2]));
 				System.out.println();
 				System.out.println(String.format("Points: %f\t%f\t%f\t%f\t%f\t%f", x0, y0, x1, y1, x2, y2));
 				System.out.println(String.format("A,B: (%d, %d)  (%d, %d)  (%d, %d)", a[0], b[0], a[1], b[1], a[2], b[2]));
@@ -1237,33 +1152,312 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 				System.out.println(String.format("D: %d, %d, %d", d0, d1, d2));
 				System.out.println(String.format("origin: (%d, %d)", lowX << LOW_AXIS_SHIFT,  lowY << LOW_AXIS_SHIFT));
 				System.out.println();
+			}
 
-				return false;
-			} else {
-				return true;
+			return result;
+		}
+
+		protected int chooseEdgeValue(int edgeFlag, int edgeIndex) {
+			switch  (edgeFlag) {
+			case EDGE_TOP:
+			case EDGE_TOP_LEFT:
+			case EDGE_LEFT:
+				return tileData[CORNER_X0_Y1_E0 + edgeIndex];
+
+			case EDGE_BOTTOM_LEFT:
+				return tileData[CORNER_X0_Y0_E0 + edgeIndex];
+
+			case EDGE_TOP_RIGHT:
+				return tileData[CORNER_X1_Y1_E0 + edgeIndex];
+
+			case EDGE_BOTTOM:
+			case EDGE_RIGHT:
+			case EDGE_BOTTOM_RIGHT:
+				return tileData[CORNER_X1_Y0_E0 + edgeIndex];
+
+			default:
+				assert false : "Edge flag out of bounds.";
+			return -1;
 			}
 		}
 
-		@Override
-		protected void computeSpan() {
-			final int[] tileData = this.tileData;
-			tileData[SPAN_A0] = a[0] * (LOW_BIN_PIXEL_DIAMETER - 1);
-			tileData[SPAN_A1] = a[1] * (LOW_BIN_PIXEL_DIAMETER - 1);
-			tileData[SPAN_A2] = a[2] * (LOW_BIN_PIXEL_DIAMETER - 1);
-			tileData[SPAN_B0] = b[0] * (LOW_BIN_PIXEL_DIAMETER - 1);
-			tileData[SPAN_B1] = b[1] * (LOW_BIN_PIXEL_DIAMETER - 1);
-			tileData[SPAN_B2] = b[2] * (LOW_BIN_PIXEL_DIAMETER - 1);
-		}
 
 		/**
 		 *
-		 * edge functions are line equations: ax + by + c = 0 where c is the origin value
-		 * a and b are normal to the line/edge
+		 * Edge functions are line equations: ax + by + c = 0 where c is the origin value
+		 * a and b are normal to the line/edge.
+		 *
+		 * Distance from point to line is given by (ax + by + c) / magnitude
+		 * where magnitude is sqrt(a^2 + b^2).
+		 *
+		 * A tile is fully outside the edge if signed distance less than -extent, where
+		 * extent is the 7x7 diagonal vector projected onto the edge normal.
+		 *
+		 * The length of the extent is given by  (|a| + |b|) * 7 / magnitude.
+		 *
+		 * Given that magnitude is a common denominator of both the signed distance and the extent
+		 * we can avoid computing square root and compare the weight directly with the un-normalized  extent.
+		 *
+		 * In summary,  if extent e = (|a| + |b|) * 7 and w = ax + by + c then
+		 *    when w < -e  tile is fully outside edge
+		 *    when w >= 0 tile is fully inside edge (or touching)
+		 *    else (-e <= w < 0) tile is intersection (at least one pixel is covered.
+		 *
+		 * For background, see Real Time Rendering, 4th Ed.  Sec 23.1 on Rasterization, esp. Figure 23.3
 		 */
+		@Override
+		protected void computeSpan() {
+			final int[] tileData = this.tileData;
+			int i = a[0];
+			int j = b[0];
+			tileData[SPAN_A0] = i * (LOW_BIN_PIXEL_DIAMETER - 1);
+			tileData[SPAN_B0] = j * (LOW_BIN_PIXEL_DIAMETER - 1);
+			tileData[EXTENT_0] = (Math.abs(i) + Math.abs(j)) * -7;
 
-		protected long computeMask() {
-			// TODO
-			return 0;
+			i = a[1];
+			j = b[1];
+			tileData[SPAN_A1] = i * (LOW_BIN_PIXEL_DIAMETER - 1);
+			tileData[SPAN_B1] = j * (LOW_BIN_PIXEL_DIAMETER - 1);
+			tileData[EXTENT_1] = (Math.abs(i) + Math.abs(j)) * -7;
+
+			i = a[2];
+			j = b[2];
+			tileData[SPAN_A2] = i * (LOW_BIN_PIXEL_DIAMETER - 1);
+			tileData[SPAN_B2] = j * (LOW_BIN_PIXEL_DIAMETER - 1);
+			tileData[EXTENT_2] = (Math.abs(i) + Math.abs(j)) * -7;
+
 		}
+
+		protected long computeMask(int edgeFlag, int edgeIndex) {
+			final int w = chooseEdgeValue(edgeFlag, edgeIndex);
+			//NB extent is always negative
+			final int extent = tileData[EXTENT_0 + edgeIndex];
+
+			if (w < extent) {
+				// fully outside edge
+				return 0;
+			} else if (w >= 0) {
+				// fully inside or touching edge
+				return -1L;
+			} else {
+				// intersecting - at least one pixel is set
+				return buildMask(edgeFlag, edgeIndex);
+			}
+		}
+
+		protected long buildMask(int edgeFlag, int edgeIndex) {
+			final int[] tileData = this.tileData;
+			final int a = TerrainOccluder.this.a[edgeIndex];
+			final int b = TerrainOccluder.this.b[edgeIndex];
+
+			switch  (edgeFlag) {
+			case EDGE_TOP: {
+				int wy = tileData[CORNER_X0_Y0_E0 + edgeIndex]; // bottom left will always be inside
+				//				assert wy >= 0;
+				//				assert b < 0;
+
+				long yMask = 0xFFL;
+				long mask = 0;
+
+				while (wy >= 0 && yMask != 0L) {
+					mask |= yMask;
+					yMask <<= 8;
+					wy += b; //NB: b will be negative
+				}
+
+				//				System.out.println("TOP");
+				//				printMask8x8(mask);
+
+				return mask;
+			}
+
+			case EDGE_BOTTOM: {
+				int wy = tileData[CORNER_X0_Y1_E0 + edgeIndex]; // top left will always be inside
+				assert wy >= 0;
+				assert b > 0;
+
+				long yMask = 0xFF00000000000000L;
+				long mask = 0;
+
+				while (wy >= 0 && yMask != 0L) {
+					mask |= yMask;
+					yMask = (yMask >>> 8); // parens are to help eclipse auto-formatting
+					wy -= b;
+				}
+
+				// TODO: remove once triggered
+				System.out.println("BOTTOM");
+				printMask8x8(mask);
+
+				return mask;
+			}
+
+			case EDGE_RIGHT: {
+				final int wy = tileData[CORNER_X0_Y0_E0 + edgeIndex]; // bottom left will always be inside
+				assert wy >= 0;
+				assert a < 0;
+
+				final int x =  7 - Math.min(7, wy / a);
+				long mask = (0x7F80 >> x) & 0xFF;
+
+				mask |= mask << 8;
+				mask |= mask << 16;
+				mask |= mask << 32;
+
+				// TODO: remove once triggered
+				System.out.println("RIGHT");
+				printMask8x8(mask);
+
+				return mask;
+			}
+
+			case EDGE_LEFT: {
+				final int wy = tileData[CORNER_X1_Y0_E0 + edgeIndex]; // bottom right will always be inside
+				assert wy >= 0;
+				assert a > 0;
+
+				final int x =  Math.min(7, -wy / a);
+				long mask = (0xFF >> x);
+
+				mask |= mask << 8;
+				mask |= mask << 16;
+				mask |= mask << 32;
+
+				// TODO: remove once triggered
+				System.out.println("LEFT");
+				printMask8x8(mask);
+
+				return mask;
+			}
+
+			case EDGE_TOP_LEFT: {
+				// PERF: optimize case when shallow slope and several bottom rows are full
+
+				int wy = tileData[CORNER_X1_Y0_E0 + edgeIndex]; // bottom right will always be inside
+				//				assert wy >= 0;
+				//				assert b < 0;
+				//				assert a > 0;
+
+				// min y will occur at x = 0;
+
+				long mask = 0;
+				int yShift = 0;
+
+				while (yShift < 64 && wy >= 0) {
+					// x  here is first not last
+					final int x =  7 - Math.min(7, wy / a);
+					final int yMask = (0xFF >> x);
+					mask |= ((long) yMask) << yShift;
+					wy += b; //NB: b will be negative
+					yShift += 8;
+				}
+
+				//				System.out.println("TOP LEFT");
+				//				printMask8x8(mask);
+
+				return mask;
+			}
+
+			case EDGE_BOTTOM_LEFT: {
+				int wy = tileData[CORNER_X1_Y1_E0 + edgeIndex]; // top right will always be inside
+				//				assert wy >= 0;
+				//				assert b > 0;
+				//				assert a > 0;
+
+				// min y will occur at x = 7;
+
+				int yShift = 8 * 7;
+				long mask = 0;
+
+				while (yShift >= 0 && wy >= 0) {
+					// x  here is first not last
+					final int x =  7 - Math.min(7, wy / a);
+					final int yMask = (0xFF >> x);
+					mask |= ((long) yMask) << yShift;
+					wy -= b;
+					yShift -= 8;
+				}
+
+				//				System.out.println("BOTTOM LEFT");
+				//				printMask8x8(mask);
+
+				return mask;
+			}
+
+			case EDGE_TOP_RIGHT: {
+				// PERF: optimize case when shallow slope and several bottom rows are full
+
+				// max y will occur at x = 0
+				// Find highest y index of pixels filled at given x.
+				// All pixels with lower y value will also be filled in given x.
+				// ax + by + c = 0 so y at intersection will be y = -(ax + c) / b
+				// Exploit step-wise nature of a/b here to avoid computing the first term
+				// logic in other cases is similar
+				int wy = tileData[CORNER_X0_Y0_E0 + edgeIndex]; // bottom left will always be inside
+				//				assert wy >= 0;
+				//				assert b < 0;
+				//				assert a < 0;
+
+				long mask = 0;
+				int yShift = 0;
+
+				while(yShift < 64 && wy >= 0) {
+					final int x =  Math.min(7, -wy / a);
+					final int yMask = (0x7F80 >> x) & 0xFF;
+					mask |= ((long) yMask) << yShift;
+					wy += b;
+					yShift +=  8;
+				}
+
+				//				System.out.println("TOP RIGHT");
+				//				printMask8x8(mask);
+
+				return mask;
+			}
+
+			case EDGE_BOTTOM_RIGHT: {
+				// PERF: optimize case when shallow slope and several top rows are full
+
+				int wy = tileData[CORNER_X0_Y1_E0 + edgeIndex]; // top left will always be inside
+				//				assert wy >= 0;
+				//				assert b > 0;
+				//				assert a < 0;
+
+				int yShift = 8 * 7;
+				long mask = 0;
+
+				while (yShift >= 0 && wy >= 0) {
+					final int x = Math.min(7, -wy / a);
+					final int yMask = (0x7F80 >> x) & 0xFF;
+					mask |= ((long) yMask) << yShift;
+					wy -= b;
+					yShift -= 8;
+				}
+
+				//				System.out.println("BOTTOM RIGHT");
+				//				printMask8x8(mask);
+
+				return mask;
+			}
+
+			default:
+				assert false : "Edge flag out of bounds.";
+			return 0L;
+			}
+		}
+	}
+
+	public static void printMask8x8(long mask) {
+		final String s = Strings.padStart(Long.toBinaryString(mask), 64, '0');
+		System.out.println(s.substring(0, 8).replace("0", "- ").replace("1", "X "));
+		System.out.println(s.substring(8, 16).replace("0", "- ").replace("1", "X "));
+		System.out.println(s.substring(16, 24).replace("0", "- ").replace("1", "X "));
+		System.out.println(s.substring(24, 32).replace("0", "- ").replace("1", "X "));
+		System.out.println(s.substring(32, 40).replace("0", "- ").replace("1", "X "));
+		System.out.println(s.substring(40, 48).replace("0", "- ").replace("1", "X "));
+		System.out.println(s.substring(48, 56).replace("0", "- ").replace("1", "X "));
+		System.out.println(s.substring(56, 64).replace("0", "- ").replace("1", "X "));
+
+		System.out.println();
 	}
 }

@@ -215,9 +215,11 @@ public class CanvasWorldRenderer {
 			outerTimer.start();
 			BuiltRenderRegion.advanceFrameIndex();
 			final ObjectHeapPriorityQueue<BuiltRenderRegion> regionQueue = this.regionQueue;
-			regionQueue.enqueue(cameraChunk);
-
-			// TODO: prime visible when above or below world and camera chunk is null
+			if (cameraChunk == null) {
+				// TODO: prime visible when above or below world and camera chunk is null
+			}  else {
+				regionQueue.enqueue(cameraChunk);
+			}
 
 			wr.canvas_setNeedsTerrainUpdate(false);
 			visibleChunkCount = 0;
