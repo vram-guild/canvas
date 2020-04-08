@@ -588,16 +588,28 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 				| (w0_row + bLow[0]) | (w1_row + bLow[1]) | (w2_row + bLow[2])
 				| (w0_row + abLow[0]) | (w1_row + abLow[1]) | (w2_row + abLow[2])) >= 0) {
 
-			System.out.println(String.format("L00: %d, %d, %d", w0_row, w1_row, w2_row));
-			System.out.println(String.format("L10: %d, %d, %d", (w0_row + aLow[0]), (w1_row + aLow[1]), (w2_row + aLow[2])));
-			System.out.println(String.format("L01: %d, %d, %d", (w0_row + bLow[0]), (w1_row + bLow[1]), (w2_row + bLow[2])));
-			System.out.println(String.format("L11: %d, %d, %d", (w0_row + abLow[0]), (w1_row + abLow[1]), (w2_row + abLow[2])));
 			lowTile.moveTo(minX >> LOW_AXIS_SHIFT, minY >> LOW_AXIS_SHIFT);
-			lowTile.assertCovered();
-			System.out.println();
+
+			if (!lowTile.assertCovered(true)) {
+				System.out.println(String.format("L00: %d, %d, %d", w0_row, w1_row, w2_row));
+				System.out.println(String.format("L10: %d, %d, %d", (w0_row + aLow[0]), (w1_row + aLow[1]), (w2_row + aLow[2])));
+				System.out.println(String.format("L01: %d, %d, %d", (w0_row + bLow[0]), (w1_row + bLow[1]), (w2_row + bLow[2])));
+				System.out.println(String.format("L11: %d, %d, %d", (w0_row + abLow[0]), (w1_row + abLow[1]), (w2_row + abLow[2])));
+				System.out.println("Optimized reported non-covered, old reported covered.");
+				System.out.println();
+			}
 
 			return true;
 		} else {
+			if (!lowTile.assertCovered(false)) {
+				System.out.println(String.format("L00: %d, %d, %d", w0_row, w1_row, w2_row));
+				System.out.println(String.format("L10: %d, %d, %d", (w0_row + aLow[0]), (w1_row + aLow[1]), (w2_row + aLow[2])));
+				System.out.println(String.format("L01: %d, %d, %d", (w0_row + bLow[0]), (w1_row + bLow[1]), (w2_row + bLow[2])));
+				System.out.println(String.format("L11: %d, %d, %d", (w0_row + abLow[0]), (w1_row + abLow[1]), (w2_row + abLow[2])));
+				System.out.println("Optimized reported covered, old reported non-covered.");
+				System.out.println();
+			}
+
 			return false;
 		}
 	}
@@ -1075,9 +1087,9 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 			final int dx = binOriginX - minPixelX;
 			final int dy = binOriginY - minPixelY;
 
-			tileData[CORNER_X0_Y0_E0] = cornerOrigin[0] + a[0] * dx + b[0] * dy;
-			tileData[CORNER_X0_Y0_E1] = cornerOrigin[1] + a[1] * dx + b[1] * dy;
-			tileData[CORNER_X0_Y0_E2] = cornerOrigin[2] + a[2] * dx + b[2] * dy;
+			tileData[CORNER_X0_Y0_E0] = wOrigin[0] + a[0] * dx + b[0] * dy;
+			tileData[CORNER_X0_Y0_E1] = wOrigin[1] + a[1] * dx + b[1] * dy;
+			tileData[CORNER_X0_Y0_E2] = wOrigin[2] + a[2] * dx + b[2] * dy;
 
 			tileData[CORNER_X1_Y0_E0] = tileData[CORNER_X0_Y0_E0] + tileData[SPAN_A0];
 			tileData[CORNER_X1_Y0_E1] = tileData[CORNER_X0_Y0_E1] + tileData[SPAN_A1];
@@ -1092,7 +1104,7 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 			tileData[CORNER_X1_Y1_E2] = tileData[CORNER_X0_Y1_E2] + tileData[SPAN_A2];
 		}
 
-		public void assertCovered() {
+		public boolean assertCovered(boolean expected) {
 			final int[] tileData = this.tileData;
 
 			final int e00a = tileData[CORNER_X0_Y0_E0];
@@ -1111,46 +1123,40 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 			final int e11b = tileData[CORNER_X1_Y1_E1];
 			final int e11c = tileData[CORNER_X1_Y1_E2];
 
-			System.out.println();
-			System.out.println(String.format("E00: %d, %d, %d", e00a, e00b, e00c));
-			System.out.println(String.format("E10: %d, %d, %d", e10a, e10b, e10c));
-			System.out.println(String.format("E01: %d, %d, %d", e01a, e01b, e01c));
-			System.out.println(String.format("E11: %d, %d, %d", e11a, e11b, e11c));
-
 			final int ef = edgeFlags;
 			final int e0 = ef & EDGE_MASK;
 			final int e1 = (ef >> EDGE_SHIFT_1) & EDGE_MASK;
 			final int e2 = (ef >> EDGE_SHIFT_2);
 
-			final int a0 = a[0] / 2;
-			final int a1 = a[1] / 2;
-			final int a2 = a[2] / 2;
-			final int b0 = b[0] / 2;
-			final int b1 = b[1] / 2;
-			final int b2 = b[2] / 2;
-
-			final int w00a = (tileData[CORNER_X0_Y0_E0] + a0 + b0);
-			final int w00b = (tileData[CORNER_X0_Y0_E1] + a1 + b1);
-			final int w00c = (tileData[CORNER_X0_Y0_E2] + a2 + b2);
-
-			final int w01a = (tileData[CORNER_X0_Y1_E0] + a0 - b0);
-			final int w01b = (tileData[CORNER_X0_Y1_E1] + a1 - b1);
-			final int w01c = (tileData[CORNER_X0_Y1_E2] + a2 - b2);
-
-			final int w10a = (tileData[CORNER_X1_Y0_E0] - a0 + b0);
-			final int w10b = (tileData[CORNER_X1_Y0_E1] - a1 + b1);
-			final int w10c = (tileData[CORNER_X1_Y0_E2] - a2 + b2);
-
-			final int w11a = (tileData[CORNER_X1_Y1_E0] - a0 - b0);
-			final int w11b = (tileData[CORNER_X1_Y1_E1] - a1 - b1);
-			final int w11c = (tileData[CORNER_X1_Y1_E2] - a2 - b2);
-
-			System.out.println();
-			System.out.println(String.format("P00: %d, %d, %d", w00a, w00b, w00c));
-			System.out.println(String.format("P10: %d, %d, %d", w10a, w10b, w10c));
-			System.out.println(String.format("P01: %d, %d, %d", w01a, w01b, w01c));
-			System.out.println(String.format("P11: %d, %d, %d", w11a, w11b, w11c));
-			System.out.println();
+			//			final int a0 = a[0] / 2;
+			//			final int a1 = a[1] / 2;
+			//			final int a2 = a[2] / 2;
+			//			final int b0 = b[0] / 2;
+			//			final int b1 = b[1] / 2;
+			//			final int b2 = b[2] / 2;
+			//
+			//			final int w00a = (tileData[CORNER_X0_Y0_E0] + a0 + b0);
+			//			final int w00b = (tileData[CORNER_X0_Y0_E1] + a1 + b1);
+			//			final int w00c = (tileData[CORNER_X0_Y0_E2] + a2 + b2);
+			//
+			//			final int w01a = (tileData[CORNER_X0_Y1_E0] + a0 - b0);
+			//			final int w01b = (tileData[CORNER_X0_Y1_E1] + a1 - b1);
+			//			final int w01c = (tileData[CORNER_X0_Y1_E2] + a2 - b2);
+			//
+			//			final int w10a = (tileData[CORNER_X1_Y0_E0] - a0 + b0);
+			//			final int w10b = (tileData[CORNER_X1_Y0_E1] - a1 + b1);
+			//			final int w10c = (tileData[CORNER_X1_Y0_E2] - a2 + b2);
+			//
+			//			final int w11a = (tileData[CORNER_X1_Y1_E0] - a0 - b0);
+			//			final int w11b = (tileData[CORNER_X1_Y1_E1] - a1 - b1);
+			//			final int w11c = (tileData[CORNER_X1_Y1_E2] - a2 - b2);
+			//
+			//			System.out.println();
+			//			System.out.println(String.format("P00: %d, %d, %d", w00a, w00b, w00c));
+			//			System.out.println(String.format("P10: %d, %d, %d", w10a, w10b, w10c));
+			//			System.out.println(String.format("P01: %d, %d, %d", w01a, w01b, w01c));
+			//			System.out.println(String.format("P11: %d, %d, %d", w11a, w11b, w11c));
+			//			System.out.println();
 
 			int d0 = Integer.MIN_VALUE, d1 = Integer.MIN_VALUE, d2 = Integer.MIN_VALUE;
 
@@ -1216,26 +1222,37 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 			final float x2 = vertexData[v2 + PV_PX] / 16f;
 			final float y2 = vertexData[v2 + PV_PY] / 16f;
 
-			System.out.println(String.format("Points: %f\t%f\t%f\t%f\t%f\t%f", x0, y0, x1, y1, x2, y2));
-			System.out.println(String.format("A,B: (%d, %d)  (%d, %d)  (%d, %d)", a[0], b[0], a[1], b[1], a[2], b[2]));
-			System.out.println(String.format("Edges: %d, %d, %d", e0, e1, e2));
-			System.out.println(String.format("D: %d, %d, %d", d0, d1, d2));
-			System.out.println(String.format("origin: (%d, %d)", lowX << LOW_AXIS_SHIFT,  lowY << LOW_AXIS_SHIFT));
 
-			if ((w00a | w00b | w00c | w01a | w01b | w01c | w10a | w10b | w10c | w11a | w11b | w11c) < 0) {
-				System.out.println("boop");
+
+			if ((d0 | d1 | d2) < 0) {
+				System.out.println();
+				System.out.println(String.format("E00: %d, %d, %d", e00a, e00b, e00c));
+				System.out.println(String.format("E10: %d, %d, %d", e10a, e10b, e10c));
+				System.out.println(String.format("E01: %d, %d, %d", e01a, e01b, e01c));
+				System.out.println(String.format("E11: %d, %d, %d", e11a, e11b, e11c));
+				System.out.println();
+				System.out.println(String.format("Points: %f\t%f\t%f\t%f\t%f\t%f", x0, y0, x1, y1, x2, y2));
+				System.out.println(String.format("A,B: (%d, %d)  (%d, %d)  (%d, %d)", a[0], b[0], a[1], b[1], a[2], b[2]));
+				System.out.println(String.format("Edges: %d, %d, %d", e0, e1, e2));
+				System.out.println(String.format("D: %d, %d, %d", d0, d1, d2));
+				System.out.println(String.format("origin: (%d, %d)", lowX << LOW_AXIS_SHIFT,  lowY << LOW_AXIS_SHIFT));
+				System.out.println();
+
+				return false;
+			} else {
+				return true;
 			}
 		}
 
 		@Override
 		protected void computeSpan() {
 			final int[] tileData = this.tileData;
-			tileData[SPAN_A0] = a[0] * LOW_BIN_PIXEL_DIAMETER;
-			tileData[SPAN_A1] = a[1] * LOW_BIN_PIXEL_DIAMETER;
-			tileData[SPAN_A2] = a[2] * LOW_BIN_PIXEL_DIAMETER;
-			tileData[SPAN_B0] = b[0] * LOW_BIN_PIXEL_DIAMETER;
-			tileData[SPAN_B1] = b[1] * LOW_BIN_PIXEL_DIAMETER;
-			tileData[SPAN_B2] = b[2] * LOW_BIN_PIXEL_DIAMETER;
+			tileData[SPAN_A0] = a[0] * (LOW_BIN_PIXEL_DIAMETER - 1);
+			tileData[SPAN_A1] = a[1] * (LOW_BIN_PIXEL_DIAMETER - 1);
+			tileData[SPAN_A2] = a[2] * (LOW_BIN_PIXEL_DIAMETER - 1);
+			tileData[SPAN_B0] = b[0] * (LOW_BIN_PIXEL_DIAMETER - 1);
+			tileData[SPAN_B1] = b[1] * (LOW_BIN_PIXEL_DIAMETER - 1);
+			tileData[SPAN_B2] = b[2] * (LOW_BIN_PIXEL_DIAMETER - 1);
 		}
 
 		/**
@@ -1243,5 +1260,10 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		 * edge functions are line equations: ax + by + c = 0 where c is the origin value
 		 * a and b are normal to the line/edge
 		 */
+
+		protected long computeMask() {
+			// TODO
+			return 0;
+		}
 	}
 }

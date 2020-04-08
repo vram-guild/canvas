@@ -95,7 +95,7 @@ public abstract class AbstractTerrainOccluder {
 	protected int edgeFlags;
 
 	// edge function values at min bounding corner - not pixel centered
-	protected final int[] cornerOrigin = new int[3];
+	//	protected final int[] cornerOrigin = new int[3];
 
 	// TODO: remove
 	//	protected int totalCount;
@@ -657,19 +657,19 @@ public abstract class AbstractTerrainOccluder {
 
 	private void prepareTriLowA() {
 		for (int i = 0; i < 3; ++i) {
-			aLow[i] = a[0] * LOW_BIN_PIXEL_DIAMETER_VECTOR[i];
+			aLow[i] = a[i] * LOW_BIN_PIXEL_DIAMETER_VECTOR[i];
 		}
 	}
 
 	private void prepareTriLowB() {
 		for (int i = 0; i < 3; ++i) {
-			bLow[i] = b[0] * LOW_BIN_PIXEL_DIAMETER_VECTOR[i];
+			bLow[i] = b[i] * LOW_BIN_PIXEL_DIAMETER_VECTOR[i];
 		}
 	}
 
 	private void prepareTriLowAB() {
 		for (int i = 0; i < 3; ++i) {
-			abLow[i] = aLow[0] + bLow[0];
+			abLow[i] = aLow[i] + bLow[i];
 		}
 	}
 
@@ -690,12 +690,12 @@ public abstract class AbstractTerrainOccluder {
 		final int x2 = vertexData[v2 + PV_PX];
 		final int y2 = vertexData[v2 + PV_PY];
 
-		final int a0 = (y1 - y2);
-		final int b0 = (x2 - x1);
-		final int a1 = (y2 - y0);
-		final int b1 = (x0 - x2);
-		final int a2 = (y0 - y1);
-		final int b2 = (x1 - x0);
+		final int a0 = (y0 - y1);
+		final int b0 = (x1 - x0);
+		final int a1 = (y1 - y2);
+		final int b1 = (x2 - x1);
+		final int a2 = (y2 - y0);
+		final int b2 = (x0 - x2);
 
 
 		final boolean isTopLeft0 = a0 > 0 || (a0 == 0 && b0 < 0);
@@ -707,16 +707,16 @@ public abstract class AbstractTerrainOccluder {
 
 		// Barycentric coordinates at minX/minY corner
 		// Can reduce precision (with accurate rounding) because increments will always be multiple of full pixel width
-		wOrigin[0] = (int) ((orient2d(x1, y1, x2, y2, cx, cy) + (isTopLeft0 ? PRECISE_PIXEL_CENTER : (PRECISE_PIXEL_CENTER - 1))) >> PRECISION_BITS);
-		wOrigin[1] = (int) ((orient2d(x2, y2, x0, y0, cx, cy) + (isTopLeft1 ? PRECISE_PIXEL_CENTER : (PRECISE_PIXEL_CENTER - 1))) >> PRECISION_BITS);
-		wOrigin[2] = (int) ((orient2d(x0, y0, x1, y1, cx, cy) + (isTopLeft2 ? PRECISE_PIXEL_CENTER : (PRECISE_PIXEL_CENTER - 1))) >> PRECISION_BITS);
+		wOrigin[0] = (int) ((orient2d(x0, y0, x1, y1, cx, cy) + (isTopLeft0 ? PRECISE_PIXEL_CENTER : (PRECISE_PIXEL_CENTER - 1))) >> PRECISION_BITS);
+		wOrigin[1] = (int) ((orient2d(x1, y1, x2, y2, cx, cy) + (isTopLeft1 ? PRECISE_PIXEL_CENTER : (PRECISE_PIXEL_CENTER - 1))) >> PRECISION_BITS);
+		wOrigin[2] = (int) ((orient2d(x2, y2, x0, y0, cx, cy) + (isTopLeft2 ? PRECISE_PIXEL_CENTER : (PRECISE_PIXEL_CENTER - 1))) >> PRECISION_BITS);
 
-		final long ecx = minX << PRECISION_BITS;
-		final long ecy = minY << PRECISION_BITS;
+		//		final long ecx = minX << PRECISION_BITS;
+		//		final long ecy = minY << PRECISION_BITS;
 
-		cornerOrigin[0] = (int) (orient2d(x1, y1, x2, y2, ecx, ecy) >> PRECISION_BITS);
-		cornerOrigin[1] = (int) (orient2d(x2, y2, x0, y0, ecx, ecy) >> PRECISION_BITS);
-		cornerOrigin[2] = (int) (orient2d(x0, y0, x1, y1, ecx, ecy) >> PRECISION_BITS);
+		//		cornerOrigin[0] = (int) (orient2d(x0, y0, x1, y1, ecx, ecy) >> PRECISION_BITS);
+		//		cornerOrigin[1] = (int) (orient2d(x1, y1, x2, y2, ecx, ecy) >> PRECISION_BITS);
+		//		cornerOrigin[2] = (int) (orient2d(x2, y2, x0, y0, ecx, ecy) >> PRECISION_BITS);
 
 		a[0] = a0;
 		a[1] = a1;
@@ -977,21 +977,16 @@ public abstract class AbstractTerrainOccluder {
 	protected static final int EDGE_MASK = 7;
 
 	protected static int edgeFlag(int a, int b) {
-		// bneg = left
-		// bpos = right
-		// aneg = bottom
-		// apos == top
 		if (a == 0) {
-			return b > 0 ? EDGE_RIGHT : EDGE_LEFT;
+			return b > 0 ? EDGE_BOTTOM : EDGE_TOP;
 		} else if (b == 0) {
-			return a > 0 ? EDGE_TOP: EDGE_BOTTOM;
+			return a > 0 ? EDGE_LEFT : EDGE_RIGHT;
 		}
 
 		if (a > 0) {
-			return b > 0 ? EDGE_TOP_RIGHT : EDGE_TOP_LEFT;
-		}  else {
-			// a < 0
-			return b > 0 ? EDGE_BOTTOM_RIGHT : EDGE_BOTTOM_LEFT;
+			return b > 0 ? EDGE_BOTTOM_LEFT : EDGE_TOP_LEFT;
+		}  else { // a < 0
+			return b > 0 ? EDGE_BOTTOM_RIGHT : EDGE_TOP_RIGHT;
 		}
 	}
 }
