@@ -112,7 +112,6 @@ public abstract class AbstractTerrainOccluder {
 	private final boolean testNorth() { return testQuad(V100, V000, V010, V110); }
 
 	public final boolean isChunkVisible()  {
-		CanvasWorldRenderer.innerTimer.start();
 		final boolean result;
 
 		final boolean early = isPointVisible(8, 8, 8);
@@ -195,6 +194,7 @@ public abstract class AbstractTerrainOccluder {
 			if (nearBits != 0 && (testBits & ~nearBits) == 0) {
 				result = true;
 			} else {
+				CanvasWorldRenderer.innerTimer.start();
 				switch (testBits)  {
 				default:
 				case 0b000:
@@ -256,10 +256,12 @@ public abstract class AbstractTerrainOccluder {
 					}
 					break;
 				}
+
+				CanvasWorldRenderer.innerTimer.stop();
 			}
 		}
 
-		CanvasWorldRenderer.innerTimer.stop();
+
 
 		//		// TODO: remove
 		//		if (occlusionRange == PackedBox.RANGE_EXTREME) {

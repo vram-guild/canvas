@@ -4,6 +4,7 @@ import static grondag.canvas.chunk.occlusion.ProjectedVertexData.PV_PX;
 import static grondag.canvas.chunk.occlusion.ProjectedVertexData.PV_PY;
 
 import com.google.common.base.Strings;
+import org.apache.commons.lang3.StringUtils;
 
 // Some elements are adapted from content found at
 // https://fgiesen.wordpress.com/2013/02/17/optimizing-sw-occlusion-culling-index/
@@ -501,7 +502,53 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		}
 	}
 
+	private boolean debug = false;
+
+	private int drawTriWithCompare(int lowX, int lowY) {
+		final int index = lowIndex(lowX, lowY);
+		final long inputWord  =  lowBins[index];
+
+		final int oldResult = drawTriLowOld(lowX, lowY);
+		final long oldWord = lowBins[index];
+		lowBins[index] = inputWord;
+
+		final int newResult = drawTriLow(lowX, lowY);
+		final long newWord = lowBins[index];
+
+		if (newWord != oldWord) { // || newResult != oldResult) {
+			System.out.println("OLD RESULT: " + oldResult);
+			printMask8x8(oldWord);
+			System.out.println();
+			System.out.println("NEW RESULT: " + newResult);
+			printMask8x8(newWord);
+			System.out.println();
+
+			debug = true;
+			lowBins[index] = inputWord;
+			drawTriLow(lowX, lowY);
+			debug = false;
+
+			System.out.println();
+		}
+
+		return newResult;
+	}
+
 	private int drawTriLow(int lowX, int lowY) {
+		lowTile.moveTo(lowX, lowY);
+		final long coverage = lowTile.computeCoverage();
+
+		if (coverage == 0)  {
+			return COVERAGE_NONE;
+		}
+
+		final int index = lowIndex(lowX, lowY);
+		final long word =  lowBins[index] | coverage;
+		lowBins[index] = word;
+		return word == -1L ? COVERAGE_FULL : COVERAGE_PARTIAL;
+	}
+
+	private int drawTriLowOld(int lowX, int lowY) {
 		final int index = lowIndex(lowX, lowY);
 
 		final int binOriginX = lowX << LOW_AXIS_SHIFT;
@@ -955,7 +1002,36 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		return false;
 	}
 
+	private boolean testTriLowWithCompare(int lowX, int lowY) {
+		final int index = lowIndex(lowX, lowY);
+		final long inputWord  =  lowBins[index];
+
+		final boolean oldResult = testTriLowOld(lowX, lowY);
+		final boolean newResult = testTriLow(lowX, lowY);
+
+		if (newResult != oldResult) {
+			System.out.println("INPUT WORD: " + oldResult);
+			printMask8x8(inputWord);
+			System.out.println();
+
+			debug = true;
+			testTriLow(lowX, lowY);
+			debug = false;
+
+			System.out.println();
+		}
+
+		return newResult;
+	}
+
 	private boolean testTriLow(int lowX, int lowY) {
+		lowTile.moveTo(lowX, lowY);
+		final long coverage = lowTile.computeCoverage();
+		final long word =  lowBins[lowIndex(lowX, lowY)];
+		return (~word & coverage) != 0;
+	}
+
+	private boolean testTriLowOld(int lowX, int lowY) {
 		final int index = lowIndex(lowX, lowY);
 
 		final int binOriginX = lowX << LOW_AXIS_SHIFT;
@@ -1116,6 +1192,73 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 			tileData[BIN_ORIGIN_Y] = binOriginY;
 		}
 
+		public long computeCoverage() {
+			final int ef = edgeFlags;
+			final int e0 = ef & EDGE_MASK;
+			final int e1 = (ef >> EDGE_SHIFT_1) & EDGE_MASK;
+			final int e2 = (ef >> EDGE_SHIFT_2);
+
+			final long m0 = computeMask(e0, 0);
+
+			//			if (m0 == 0L) {
+			//				return 0;
+			//			}
+
+			final long m1 = computeMask(e1, 1);
+
+			//			if (m1 == 0L) {
+			//				return 0;
+			//			}
+
+			final long m2 = computeMask(e2, 2);
+
+			//			if ((m0 & m1 & m2) == 0L) {
+			//				if (
+			//						(tileData[CORNER_X0_Y0_E0] | tileData[CORNER_X0_Y0_E1] | tileData[CORNER_X0_Y0_E2]) >= 0
+			//						|| (tileData[CORNER_X1_Y0_E0] | tileData[CORNER_X1_Y0_E1] | tileData[CORNER_X1_Y0_E2]) >= 0
+			//						|| (tileData[CORNER_X0_Y1_E0] | tileData[CORNER_X0_Y1_E1] | tileData[CORNER_X0_Y1_E2]) >= 0
+			//						||  (tileData[CORNER_X1_Y1_E0] | tileData[CORNER_X1_Y1_E1] | tileData[CORNER_X1_Y1_E2]) >= 0
+			//						) {
+			if  (debug) {
+
+				System.out.println("E0 = " + e0);
+				printMask8x8(m0);
+				System.out.println();
+				System.out.println("E1 = " + e1);
+				printMask8x8(m1);
+				System.out.println();
+				System.out.println("E2 = " + e2);
+				printMask8x8(m2);
+				System.out.println();
+
+				System.out.println("COMBINED");
+				printMask8x8(m0 & m1 & m2);
+
+				final float x0 = vertexData[v0 + PV_PX] / 16f;
+				final float y0 = vertexData[v0 + PV_PY] / 16f;
+				final float x1 = vertexData[v1 + PV_PX] / 16f;
+				final float y1 = vertexData[v1 + PV_PY] / 16f;
+				final float x2 = vertexData[v2 + PV_PX] / 16f;
+				final float y2 = vertexData[v2 + PV_PY] / 16f;
+
+				System.out.println();
+				System.out.println(String.format("E00: %d, %d, %d", tileData[CORNER_X0_Y0_E0], tileData[CORNER_X0_Y0_E1], tileData[CORNER_X0_Y0_E2]));
+				System.out.println(String.format("E10: %d, %d, %d", tileData[CORNER_X1_Y0_E0], tileData[CORNER_X1_Y0_E1], tileData[CORNER_X1_Y0_E2]));
+				System.out.println(String.format("E01: %d, %d, %d", tileData[CORNER_X0_Y1_E0], tileData[CORNER_X0_Y1_E1], tileData[CORNER_X0_Y1_E2]));
+				System.out.println(String.format("E11: %d, %d, %d", tileData[CORNER_X1_Y1_E0], tileData[CORNER_X1_Y1_E1], tileData[CORNER_X1_Y1_E2]));
+				System.out.println();
+				System.out.println(String.format("Points: %f\t%f\t%f\t%f\t%f\t%f", x0, y0, x1, y1, x2, y2));
+				System.out.println(String.format("A,B: (%d, %d)  (%d, %d)  (%d, %d)", a[0], b[0], a[1], b[1], a[2], b[2]));
+				System.out.println(String.format("Edges: %d, %d, %d", e0, e1, e2));
+				System.out.println(String.format("origin: (%d, %d)", lowX << LOW_AXIS_SHIFT,  lowY << LOW_AXIS_SHIFT));
+				System.out.println();
+			}
+			//			}
+
+			return m0 & m1 & m2;
+		}
+
+		// TODO: remove
 		public boolean assertCovered(boolean expected) {
 			final int ef = edgeFlags;
 			final int e0 = ef & EDGE_MASK;
@@ -1285,9 +1428,8 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 					wy -= b;
 				}
 
-				// TODO: remove once triggered
-				System.out.println("BOTTOM");
-				printMask8x8(mask);
+				//				System.out.println("BOTTOM");
+				//				printMask8x8(mask);
 
 				return mask;
 			}
@@ -1297,16 +1439,18 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 				assert wy >= 0;
 				assert a < 0;
 
-				final int x =  7 - Math.min(7, wy / a);
-				long mask = (0x7F80 >> x) & 0xFF;
+				final int x = 7 - Math.min(7, -wy / a);
+				long mask = (0xFF >> x);
+
+				//				final int x =  7 - Math.min(7, -wy / a);
+				//				long mask = (0x7F80 >> x) & 0xFF;
 
 				mask |= mask << 8;
 				mask |= mask << 16;
 				mask |= mask << 32;
 
-				// TODO: remove once triggered
-				System.out.println("RIGHT");
-				printMask8x8(mask);
+				//				System.out.println("RIGHT");
+				//				printMask8x8(mask);
 
 				return mask;
 			}
@@ -1316,16 +1460,18 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 				assert wy >= 0;
 				assert a > 0;
 
-				final int x =  Math.min(7, -wy / a);
-				long mask = (0xFF >> x);
+				final int x =  7 - Math.min(7, wy / a);
+				long mask = (0xFF << x) & 0xFF;
+
+				//				final int x =  Math.min(7, wy / a);
+				//				long mask = (0xFF >> x);
 
 				mask |= mask << 8;
 				mask |= mask << 16;
 				mask |= mask << 32;
 
-				// TODO: remove once triggered
-				System.out.println("LEFT");
-				printMask8x8(mask);
+				//				System.out.println("LEFT");
+				//				printMask8x8(mask);
 
 				return mask;
 			}
@@ -1346,7 +1492,7 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 				while (yShift < 64 && wy >= 0) {
 					// x  here is first not last
 					final int x =  7 - Math.min(7, wy / a);
-					final int yMask = (0xFF >> x);
+					final int yMask = (0xFF << x) & 0xFF;
 					mask |= ((long) yMask) << yShift;
 					wy += b; //NB: b will be negative
 					yShift += 8;
@@ -1368,11 +1514,10 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 
 				int yShift = 8 * 7;
 				long mask = 0;
-
 				while (yShift >= 0 && wy >= 0) {
 					// x  here is first not last
 					final int x =  7 - Math.min(7, wy / a);
-					final int yMask = (0xFF >> x);
+					final int yMask = (0xFF << x) & 0xFF;
 					mask |= ((long) yMask) << yShift;
 					wy -= b;
 					yShift -= 8;
@@ -1402,8 +1547,8 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 				int yShift = 0;
 
 				while(yShift < 64 && wy >= 0) {
-					final int x =  Math.min(7, -wy / a);
-					final int yMask = (0x7F80 >> x) & 0xFF;
+					final int x =  7  - Math.min(7, -wy / a);
+					final int yMask = (0xFF >> x);
 					mask |= ((long) yMask) << yShift;
 					wy += b;
 					yShift +=  8;
@@ -1427,8 +1572,8 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 				long mask = 0;
 
 				while (yShift >= 0 && wy >= 0) {
-					final int x = Math.min(7, -wy / a);
-					final int yMask = (0x7F80 >> x) & 0xFF;
+					final int x = 7 - Math.min(7, -wy / a);
+					final int yMask = (0xFF >> x);
 					mask |= ((long) yMask) << yShift;
 					wy -= b;
 					yShift -= 8;
@@ -1449,14 +1594,14 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 
 	public static void printMask8x8(long mask) {
 		final String s = Strings.padStart(Long.toBinaryString(mask), 64, '0');
-		System.out.println(s.substring(0, 8).replace("0", "- ").replace("1", "X "));
-		System.out.println(s.substring(8, 16).replace("0", "- ").replace("1", "X "));
-		System.out.println(s.substring(16, 24).replace("0", "- ").replace("1", "X "));
-		System.out.println(s.substring(24, 32).replace("0", "- ").replace("1", "X "));
-		System.out.println(s.substring(32, 40).replace("0", "- ").replace("1", "X "));
-		System.out.println(s.substring(40, 48).replace("0", "- ").replace("1", "X "));
-		System.out.println(s.substring(48, 56).replace("0", "- ").replace("1", "X "));
-		System.out.println(s.substring(56, 64).replace("0", "- ").replace("1", "X "));
+		System.out.println(StringUtils.reverse(s.substring(0, 8)).replace("0", "- ").replace("1", "X "));
+		System.out.println(StringUtils.reverse(s.substring(8, 16)).replace("0", "- ").replace("1", "X "));
+		System.out.println(StringUtils.reverse(s.substring(16, 24)).replace("0", "- ").replace("1", "X "));
+		System.out.println(StringUtils.reverse(s.substring(24, 32)).replace("0", "- ").replace("1", "X "));
+		System.out.println(StringUtils.reverse(s.substring(32, 40)).replace("0", "- ").replace("1", "X "));
+		System.out.println(StringUtils.reverse(s.substring(40, 48)).replace("0", "- ").replace("1", "X "));
+		System.out.println(StringUtils.reverse(s.substring(48, 56)).replace("0", "- ").replace("1", "X "));
+		System.out.println(StringUtils.reverse(s.substring(56, 64)).replace("0", "- ").replace("1", "X "));
 
 		System.out.println();
 	}
