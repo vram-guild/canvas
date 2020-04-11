@@ -84,11 +84,11 @@ public abstract class AbstractTerrainOccluder {
 	protected final int[] wOrigin = new int[3];
 	protected final int[] a = new int[3];
 	protected final int[] b = new int[3];
-	protected final int[] wRow = new int[3];
+	//	protected final int[] wRow = new int[3];
 
-	protected final int[] aLow = new int[3];
-	protected final int[] bLow = new int[3];
-	protected final int[] abLow = new int[3];
+	//	protected final int[] aLow = new int[3];
+	//	protected final int[] bLow = new int[3];
+	//	protected final int[] abLow = new int[3];
 
 	protected int occlusionRange;
 
@@ -656,23 +656,23 @@ public abstract class AbstractTerrainOccluder {
 		return BoundsResult.IN_BOUNDS;
 	}
 
-	private void prepareTriLowA() {
-		for (int i = 0; i < 3; ++i) {
-			aLow[i] = a[i] * LOW_BIN_PIXEL_DIAMETER_VECTOR[i];
-		}
-	}
-
-	private void prepareTriLowB() {
-		for (int i = 0; i < 3; ++i) {
-			bLow[i] = b[i] * LOW_BIN_PIXEL_DIAMETER_VECTOR[i];
-		}
-	}
-
-	private void prepareTriLowAB() {
-		for (int i = 0; i < 3; ++i) {
-			abLow[i] = aLow[i] + bLow[i];
-		}
-	}
+	//	private void prepareTriLowA() {
+	//		for (int i = 0; i < 3; ++i) {
+	//			aLow[i] = a[i] * LOW_BIN_PIXEL_DIAMETER_VECTOR[i];
+	//		}
+	//	}
+	//
+	//	private void prepareTriLowB() {
+	//		for (int i = 0; i < 3; ++i) {
+	//			bLow[i] = b[i] * LOW_BIN_PIXEL_DIAMETER_VECTOR[i];
+	//		}
+	//	}
+	//
+	//	private void prepareTriLowAB() {
+	//		for (int i = 0; i < 3; ++i) {
+	//			abLow[i] = aLow[i] + bLow[i];
+	//		}
+	//	}
 
 	// TODO: remove
 	protected int v0 = 0, v1 = 0, v2 = 0;
@@ -729,16 +729,16 @@ public abstract class AbstractTerrainOccluder {
 
 		edgeFlags = edgeFlag(a0, b0) | (edgeFlag(a1, b1) << EDGE_SHIFT_1) | (edgeFlag(a2, b2) << EDGE_SHIFT_2);
 
-		prepareTriLowA();
-		prepareTriLowB();
-		prepareTriLowAB();
+		//		prepareTriLowA();
+		//		prepareTriLowB();
+		//		prepareTriLowAB();
 	}
 
-	protected void computeRow(final int dx, final int dy) {
-		for (int i = 0; i < 3; ++i)  {
-			wRow[i] = wOrigin[i] + a[i] * dx + b[i] * dy;
-		}
-	}
+	//	protected void computeRow(final int dx, final int dy) {
+	//		for (int i = 0; i < 3; ++i)  {
+	//			wRow[i] = wOrigin[i] + a[i] * dx + b[i] * dy;
+	//		}
+	//	}
 
 	protected final long orient2d(long x0, long y0, long x1, long y1, long cx, long cy) {
 		return ((x1 - x0) * (cy - y0) - (y1 - y0) * (cx - x0));
@@ -905,9 +905,9 @@ public abstract class AbstractTerrainOccluder {
 	protected static final int MID_INDEX_SHIFT = LOW_AXIS_SHIFT * 2;
 	protected static final int TOP_INDEX_SHIFT = MID_INDEX_SHIFT * 2;
 
-	protected static final int TOP_WIDTH = 4;
+	protected static final int TOP_WIDTH = 2;
 	protected static final int TOP_Y_SHIFT = Integer.bitCount(TOP_WIDTH - 1);
-	protected static final int TOP_HEIGHT = 2;
+	protected static final int TOP_HEIGHT = 1;
 
 	protected static final int MID_WIDTH = TOP_WIDTH  * 8;
 	protected static final int MID_Y_SHIFT = Integer.bitCount(MID_WIDTH - 1);

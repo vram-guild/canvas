@@ -13,37 +13,37 @@ import org.apache.commons.lang3.StringUtils;
 // PERF: try propagating edge function values up/down heirarchy
 // PERF: remove partial coverage mask if can't make it pay
 public class TerrainOccluder extends ClippingTerrainOccluder  {
-	private final int[] aMid = new int[3];
-	private final int[] bMid = new int[3];
-	private final int[] abMid = new int[3];
+	//	private final int[] aMid = new int[3];
+	//	private final int[] bMid = new int[3];
+	//	private final int[] abMid = new int[3];
 
 	private final LowTile lowTile = new LowTile();
 	private final MidTile midTile = new MidTile();
 
-	private void prepareTriMidA() {
-		for (int i = 0; i < 3; ++i) {
-			aMid[i] = a[i] * MID_BIN_PIXEL_DIAMETER_VECTOR[i];
-		}
-	}
+	//	private void prepareTriMidA() {
+	//		for (int i = 0; i < 3; ++i) {
+	//			aMid[i] = a[i] * MID_BIN_PIXEL_DIAMETER_VECTOR[i];
+	//		}
+	//	}
 
-	private void prepareTriMidB() {
-		for (int i = 0; i < 3; ++i) {
-			bMid[i] = b[i] * MID_BIN_PIXEL_DIAMETER_VECTOR[i];
-		}
-	}
+	//	private void prepareTriMidB() {
+	//		for (int i = 0; i < 3; ++i) {
+	//			bMid[i] = b[i] * MID_BIN_PIXEL_DIAMETER_VECTOR[i];
+	//		}
+	//	}
 
-	private void prepareTriMidAB() {
-		for (int i = 0; i < 3; ++i) {
-			abMid[i] = aMid[i] + bMid[i];
-		}
-	}
+	//	private void prepareTriMidAB() {
+	//		for (int i = 0; i < 3; ++i) {
+	//			abMid[i] = aMid[i] + bMid[i];
+	//		}
+	//	}
 
 	@Override
 	protected void prepareTriScan(int v0, int v1, int v2) {
 		super.prepareTriScan(v0, v1, v2);
-		prepareTriMidA();
-		prepareTriMidB();
-		prepareTriMidAB();
+		//		prepareTriMidA();
+		//		prepareTriMidB();
+		//		prepareTriMidAB();
 
 		lowTile.computeSpan();
 		midTile.computeSpan();
@@ -134,62 +134,62 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		topBins[index + OFFSET_PARTIAL] = wordPartial;
 	}
 
-	private void fillMidBinChildren(final int midX, final int midY) {
-		final int lowX0 = midX << 3;
-		final int lowY0 = midY << 3;
-		final int lowX1 = lowX0 + 7;
-		final int lowY1 = lowY0 + 7;
-
-		for (int lowY = lowY0; lowY <= lowY1; lowY++) {
-			for (int lowX = lowX0; lowX <= lowX1; lowX++) {
-				lowBins[lowIndex(lowX, lowY)] = -1L;
-			}
-		}
-	}
+	//	private void fillMidBinChildren(final int midX, final int midY) {
+	//		final int lowX0 = midX << 3;
+	//		final int lowY0 = midY << 3;
+	//		final int lowX1 = lowX0 + 7;
+	//		final int lowY1 = lowY0 + 7;
+	//
+	//		for (int lowY = lowY0; lowY <= lowY1; lowY++) {
+	//			for (int lowX = lowX0; lowX <= lowX1; lowX++) {
+	//				lowBins[lowIndex(lowX, lowY)] = -1L;
+	//			}
+	//		}
+	//	}
 
 	private boolean debugMid = false;
 
-	@SuppressWarnings("unused")
-	private int drawTriMidWithCompare(final int midX, final int midY) {
-		final int index = midIndex(midX, midY) << 1; // shift because two words per index
-		final long inputWordFull = midBins[index + OFFSET_FULL];
-		final long inputWordPartial = midBins[index + OFFSET_PARTIAL];
-
-		final int oldResult = drawTriMidOld(midX, midY);
-		final long oldWordFull = midBins[index + OFFSET_FULL];
-		final long oldWordPartial = midBins[index + OFFSET_PARTIAL];
-		midBins[index + OFFSET_FULL] = inputWordFull;
-		midBins[index + OFFSET_PARTIAL] = inputWordPartial;
-
-		final int newResult = drawTriMid(midX, midY);
-		final long newWordFull = midBins[index + OFFSET_FULL];
-		final long newWordPartial = midBins[index + OFFSET_PARTIAL];
-
-		if (oldWordFull != newWordFull || oldWordPartial != newWordPartial) { // || newResult != oldResult) {
-			System.out.println("OLD FULL RESULT: " + oldResult);
-			printMask8x8(oldWordFull);
-			System.out.println("OLD PARTIAL RESULT");
-			printMask8x8(oldWordPartial);
-			System.out.println();
-
-			System.out.println("NEW FULL RESULT: " + newResult);
-			printMask8x8(newWordFull);
-			System.out.println("NEW PARTIAL RESULT");
-			printMask8x8(newWordPartial);
-			System.out.println();
-
-			debugMid = true;
-			midBins[index + OFFSET_FULL] = inputWordFull;
-			midBins[index + OFFSET_PARTIAL] = inputWordPartial;
-			drawTriMid(midX, midY);
-			debugMid = false;
-			drawTriMid(midX, midY);
-
-			System.out.println();
-		}
-
-		return newResult;
-	}
+	//	@SuppressWarnings("unused")
+	//	private int drawTriMidWithCompare(final int midX, final int midY) {
+	//		final int index = midIndex(midX, midY) << 1; // shift because two words per index
+	//		final long inputWordFull = midBins[index + OFFSET_FULL];
+	//		final long inputWordPartial = midBins[index + OFFSET_PARTIAL];
+	//
+	//		final int oldResult = drawTriMidOld(midX, midY);
+	//		final long oldWordFull = midBins[index + OFFSET_FULL];
+	//		final long oldWordPartial = midBins[index + OFFSET_PARTIAL];
+	//		midBins[index + OFFSET_FULL] = inputWordFull;
+	//		midBins[index + OFFSET_PARTIAL] = inputWordPartial;
+	//
+	//		final int newResult = drawTriMid(midX, midY);
+	//		final long newWordFull = midBins[index + OFFSET_FULL];
+	//		final long newWordPartial = midBins[index + OFFSET_PARTIAL];
+	//
+	//		if (oldWordFull != newWordFull || oldWordPartial != newWordPartial) { // || newResult != oldResult) {
+	//			System.out.println("OLD FULL RESULT: " + oldResult);
+	//			printMask8x8(oldWordFull);
+	//			System.out.println("OLD PARTIAL RESULT");
+	//			printMask8x8(oldWordPartial);
+	//			System.out.println();
+	//
+	//			System.out.println("NEW FULL RESULT: " + newResult);
+	//			printMask8x8(newWordFull);
+	//			System.out.println("NEW PARTIAL RESULT");
+	//			printMask8x8(newWordPartial);
+	//			System.out.println();
+	//
+	//			debugMid = true;
+	//			midBins[index + OFFSET_FULL] = inputWordFull;
+	//			midBins[index + OFFSET_PARTIAL] = inputWordPartial;
+	//			drawTriMid(midX, midY);
+	//			debugMid = false;
+	//			drawTriMid(midX, midY);
+	//
+	//			System.out.println();
+	//		}
+	//
+	//		return newResult;
+	//	}
 
 	/**
 	 * Returns true when bin fully occluded
@@ -592,396 +592,396 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		}
 	}
 
-	/**
-	 * Returns true when bin fully occluded
-	 */
-	private int drawTriMidOld(final int midX, final int midY) {
-		final int index = midIndex(midX, midY) << 1; // shift because two words per index
-		long wordFull = midBins[index + OFFSET_FULL];
-
-		final int binOriginX = midX << MID_AXIS_SHIFT;
-		final int binOriginY = midY << MID_AXIS_SHIFT;
-		final int minPixelX = this.minPixelX;
-		final int minPixelY = this.minPixelY;
-
-		final int minX = minPixelX < binOriginX ? binOriginX : minPixelX;
-		final int minY = minPixelY < binOriginY ? binOriginY : minPixelY;
-		final int maxX = Math.min(maxPixelX, binOriginX + MID_BIN_PIXEL_DIAMETER - 1);
-		final int maxY = Math.min(maxPixelY, binOriginY + MID_BIN_PIXEL_DIAMETER - 1);
-
-		final int lowX0 = minX >> LOW_AXIS_SHIFT;
-		final int lowX1 = maxX >> LOW_AXIS_SHIFT;
-		final int lowY0 = minY >> LOW_AXIS_SHIFT;
-		final int lowY1 = (maxY >> LOW_AXIS_SHIFT); // parens stop eclipse formatter from freaking
-
-		if (lowX0 == lowX1)  {
-			if (lowY0 == lowY1) {
-				// single  bin
-				final long mask = pixelMask(lowX0, lowY0);
-
-				if ((wordFull & mask) == 0) {
-					final int lowCoverage = drawTriLow(lowX0, lowY0);
-
-					if (lowCoverage != COVERAGE_NONE) {
-						midBins[index + OFFSET_PARTIAL] |= mask;
-
-						if (lowCoverage == COVERAGE_FULL) {
-							wordFull |= mask;
-							midBins[index + OFFSET_FULL] = wordFull;
-						}
-
-						return wordFull == -1 ? COVERAGE_FULL : COVERAGE_PARTIAL;
-					}
-				}
-
-				return COVERAGE_NONE;
-			} else {
-				// single column
-				long mask = pixelMask(lowX0, lowY0);
-				long wordPartial = midBins[index + OFFSET_PARTIAL];
-
-				for (int y = lowY0; y <= lowY1; ++y) {
-					if ((wordFull & mask) == 0) {
-						final int lowCover = drawTriLow(lowX0, y);
-
-						if(lowCover != COVERAGE_NONE) {
-							wordPartial |= mask;
-
-							if (lowCover == COVERAGE_FULL) {
-								wordFull |= mask;
-							}
-						}
-					}
-
-					mask  <<= 8;
-				}
-
-				midBins[index + OFFSET_FULL] = wordFull;
-				midBins[index + OFFSET_PARTIAL] = wordPartial;
-				return wordFull == -1 ? COVERAGE_FULL : wordPartial == 0 ? COVERAGE_NONE : COVERAGE_PARTIAL;
-			}
-
-		} else if (lowY0 == lowY1) {
-			// single row
-			long mask = pixelMask(lowX0, lowY0);
-			long wordPartial = midBins[index + OFFSET_PARTIAL];
-
-			for (int x = lowX0; x <= lowX1; ++x) {
-				if ((wordFull & mask) == 0) {
-					final int lowCover = drawTriLow(x, lowY0);
-
-					if(lowCover != COVERAGE_NONE) {
-						wordPartial |= mask;
-
-						if (lowCover == COVERAGE_FULL) {
-							wordFull |= mask;
-						}
-					}
-				}
-
-				mask  <<= 1;
-			}
-
-			midBins[index + OFFSET_FULL] = wordFull;
-			midBins[index + OFFSET_PARTIAL] = wordPartial;
-			return wordFull == -1 ? COVERAGE_FULL : wordPartial == 0 ? COVERAGE_NONE : COVERAGE_PARTIAL;
-		}
-
-		long coverage = coverageMask(lowX0 & 7, lowY0 & 7, lowX1 & 7, lowY1 & 7);
-
-		// optimize whole bin case
-		if (coverage == -1L && isTriMidCovered(minX,  minY)) {
-			midBins[index + OFFSET_FULL] =  -1;
-			midBins[index + OFFSET_PARTIAL] =  -1;
-
-			if (ENABLE_RASTER_OUTPUT) {
-				fillMidBinChildren(midX, midY);
-			}
-
-			return COVERAGE_FULL;
-		}
-
-		coverage &= ~wordFull;
-
-		if (coverage == 0) {
-			return midBins[index + OFFSET_PARTIAL] == 0 ? COVERAGE_NONE : COVERAGE_PARTIAL;
-		}
-
-		final int baseX = midX << BIN_AXIS_SHIFT;
-		int baseY = midY << BIN_AXIS_SHIFT;
-		long wordPartial = midBins[index + OFFSET_PARTIAL];
-
-		for (int y = 0; y < 8; y++) {
-			final int bits = (int) coverage & 0xFF;
-			int setBits = 0;
-
-			switch (bits & 0xF) {
-			case 0b0000:
-				break;
-
-			case 0b0001:
-				setBits |= drawTriLow(baseX + 0, baseY);
-				break;
-
-			case 0b0010:
-				setBits |= drawTriLow(baseX + 1, baseY) << 1;
-				break;
-
-			case 0b0011:
-				setBits |= drawTriLow(baseX + 0, baseY);
-				setBits |= drawTriLow(baseX + 1, baseY) << 1;
-				break;
-
-			case 0b0100:
-				setBits |= drawTriLow(baseX + 2, baseY) << 2;
-				break;
-
-			case 0b0101:
-				setBits |= drawTriLow(baseX + 0, baseY);
-				setBits |= drawTriLow(baseX + 2, baseY) << 2;
-				break;
-
-			case 0b0110:
-				setBits |= drawTriLow(baseX + 1, baseY) << 1;
-				setBits |= drawTriLow(baseX + 2, baseY) << 2;
-				break;
-
-			case 0b0111:
-				setBits |= drawTriLow(baseX + 0, baseY);
-				setBits |= drawTriLow(baseX + 1, baseY) << 1;
-				setBits |= drawTriLow(baseX + 2, baseY) << 2;
-				break;
-
-			case 0b1000:
-				setBits |= drawTriLow(baseX + 3, baseY) << 3;
-				break;
-
-			case 0b1001:
-				setBits |= drawTriLow(baseX + 0, baseY);
-				setBits |= drawTriLow(baseX + 3, baseY) << 3;
-				break;
-
-			case 0b1010:
-				setBits |= drawTriLow(baseX + 1, baseY) << 1;
-				setBits |= drawTriLow(baseX + 3, baseY) << 3;
-				break;
-
-			case 0b1011:
-				setBits |= drawTriLow(baseX + 0, baseY);
-				setBits |= drawTriLow(baseX + 1, baseY) << 1;
-				setBits |= drawTriLow(baseX + 3, baseY) << 3;
-				break;
-
-			case 0b1100:
-				setBits |= drawTriLow(baseX + 2, baseY) << 2;
-				setBits |= drawTriLow(baseX + 3, baseY) << 3;
-				break;
-
-			case 0b1101:
-				setBits |= drawTriLow(baseX + 0, baseY);
-				setBits |= drawTriLow(baseX + 2, baseY) << 2;
-				setBits |= drawTriLow(baseX + 3, baseY) << 3;
-				break;
-
-			case 0b1110:
-				setBits |= drawTriLow(baseX + 1, baseY) << 1;
-				setBits |= drawTriLow(baseX + 2, baseY) << 2;
-				setBits |= drawTriLow(baseX + 3, baseY) << 3;
-				break;
-
-			case 0b1111:
-				setBits |= drawTriLow(baseX + 0, baseY);
-				setBits |= drawTriLow(baseX + 1, baseY) << 1;
-				setBits |= drawTriLow(baseX + 2, baseY) << 2;
-				setBits |= drawTriLow(baseX + 3, baseY) << 3;
-				break;
-			}
-
-			switch (bits >> 4) {
-			case 0b0000:
-				break;
-
-			case 0b0001:
-				setBits |= drawTriLow(baseX + 4, baseY) << 4;
-				break;
-
-			case 0b0010:
-				setBits |= drawTriLow(baseX + 5, baseY) << 5;
-				break;
-
-			case 0b0011:
-				setBits |= drawTriLow(baseX + 4, baseY) << 4;
-				setBits |= drawTriLow(baseX + 5, baseY) << 5;
-				break;
-
-			case 0b0100:
-				setBits |= drawTriLow(baseX + 6, baseY) << 6;
-				break;
-
-			case 0b0101:
-				setBits |= drawTriLow(baseX + 4, baseY) << 4;
-				setBits |= drawTriLow(baseX + 6, baseY) << 6;
-				break;
-
-			case 0b0110:
-				setBits |= drawTriLow(baseX + 5, baseY) << 5;
-				setBits |= drawTriLow(baseX + 6, baseY) << 6;
-				break;
-
-			case 0b0111:
-				setBits |= drawTriLow(baseX + 4, baseY) << 4;
-				setBits |= drawTriLow(baseX + 5, baseY) << 5;
-				setBits |= drawTriLow(baseX + 6, baseY) << 6;
-				break;
-
-			case 0b1000:
-				setBits |= drawTriLow(baseX + 7, baseY) << 7;
-				break;
-
-			case 0b1001:
-				setBits |= drawTriLow(baseX + 4, baseY) << 4;
-				setBits |= drawTriLow(baseX + 7, baseY) << 7;
-				break;
-
-			case 0b1010:
-				setBits |= drawTriLow(baseX + 5, baseY) << 5;
-				setBits |= drawTriLow(baseX + 7, baseY) << 7;
-				break;
-
-			case 0b1011:
-				setBits |= drawTriLow(baseX + 4, baseY) << 4;
-				setBits |= drawTriLow(baseX + 5, baseY) << 5;
-				setBits |= drawTriLow(baseX + 7, baseY) << 7;
-				break;
-
-			case 0b1100:
-				setBits |= drawTriLow(baseX + 6, baseY) << 6;
-				setBits |= drawTriLow(baseX + 7, baseY) << 7;
-				break;
-
-			case 0b1101:
-				setBits |= drawTriLow(baseX + 4, baseY) << 4;
-				setBits |= drawTriLow(baseX + 6, baseY) << 6;
-				setBits |= drawTriLow(baseX + 7, baseY) << 7;
-				break;
-
-			case 0b1110:
-				setBits |= drawTriLow(baseX + 5, baseY) << 5;
-				setBits |= drawTriLow(baseX + 6, baseY) << 6;
-				setBits |= drawTriLow(baseX + 7, baseY) << 7;
-				break;
-
-			case 0b1111:
-				setBits |= drawTriLow(baseX + 4, baseY) << 4;
-				setBits |= drawTriLow(baseX + 5, baseY) << 5;
-				setBits |= drawTriLow(baseX + 6, baseY) << 6;
-				setBits |= drawTriLow(baseX + 7, baseY) << 7;
-				break;
-			}
-
-			if (setBits != 0) {
-				final long fullMask = ((long) setBits >> 8) << (y << 3);
-				wordFull |= fullMask;
-				wordPartial |= fullMask | ((setBits & 0xFFL) << (y << 3));
-			}
-
-			++baseY;
-			coverage >>= 8;
-		}
-
-		midBins[index + OFFSET_FULL] = wordFull;
-		midBins[index + OFFSET_PARTIAL] = wordPartial;
-
-		return wordFull == -1L ? COVERAGE_FULL : wordPartial == 0 ? COVERAGE_NONE : COVERAGE_PARTIAL;
-	}
-
-	private boolean isTriMidCovered(int minX, int minY) {
-		final int dx = minX - minPixelX;
-		final int dy = minY - minPixelY;
-
-		//		final int w0_row = wOrigin0 + dx * a0 + dy * b0;
-		//		final int w1_row = wOrigin1 + dx * a1 + dy * b1;
-		//		final int w2_row = wOrigin2 + dx * a2 + dy * b2;
-
-		computeRow(dx, dy);
-		final int[] wRow = this.wRow;
-		final int w0_row = wRow[0];
-		final int w1_row = wRow[1];
-		final int w2_row = wRow[2];
-
-		if ((w0_row | w1_row | w2_row
-				| (w0_row + aMid[0]) | (w1_row + aMid[1]) | (w2_row + aMid[2])
-				| (w0_row + bMid[0]) | (w1_row + bMid[1]) | (w2_row + bMid[2])
-				| (w0_row + abMid[0]) | (w1_row + abMid[1]) | (w2_row + abMid[2])) >= 0) {
-			return true;
-		} else {
-			return false;
-		}
-	}
+	//	/**
+	//	 * Returns true when bin fully occluded
+	//	 */
+	//	private int drawTriMidOld(final int midX, final int midY) {
+	//		final int index = midIndex(midX, midY) << 1; // shift because two words per index
+	//		long wordFull = midBins[index + OFFSET_FULL];
+	//
+	//		final int binOriginX = midX << MID_AXIS_SHIFT;
+	//		final int binOriginY = midY << MID_AXIS_SHIFT;
+	//		final int minPixelX = this.minPixelX;
+	//		final int minPixelY = this.minPixelY;
+	//
+	//		final int minX = minPixelX < binOriginX ? binOriginX : minPixelX;
+	//		final int minY = minPixelY < binOriginY ? binOriginY : minPixelY;
+	//		final int maxX = Math.min(maxPixelX, binOriginX + MID_BIN_PIXEL_DIAMETER - 1);
+	//		final int maxY = Math.min(maxPixelY, binOriginY + MID_BIN_PIXEL_DIAMETER - 1);
+	//
+	//		final int lowX0 = minX >> LOW_AXIS_SHIFT;
+	//		final int lowX1 = maxX >> LOW_AXIS_SHIFT;
+	//		final int lowY0 = minY >> LOW_AXIS_SHIFT;
+	//		final int lowY1 = (maxY >> LOW_AXIS_SHIFT); // parens stop eclipse formatter from freaking
+	//
+	//		if (lowX0 == lowX1)  {
+	//			if (lowY0 == lowY1) {
+	//				// single  bin
+	//				final long mask = pixelMask(lowX0, lowY0);
+	//
+	//				if ((wordFull & mask) == 0) {
+	//					final int lowCoverage = drawTriLow(lowX0, lowY0);
+	//
+	//					if (lowCoverage != COVERAGE_NONE) {
+	//						midBins[index + OFFSET_PARTIAL] |= mask;
+	//
+	//						if (lowCoverage == COVERAGE_FULL) {
+	//							wordFull |= mask;
+	//							midBins[index + OFFSET_FULL] = wordFull;
+	//						}
+	//
+	//						return wordFull == -1 ? COVERAGE_FULL : COVERAGE_PARTIAL;
+	//					}
+	//				}
+	//
+	//				return COVERAGE_NONE;
+	//			} else {
+	//				// single column
+	//				long mask = pixelMask(lowX0, lowY0);
+	//				long wordPartial = midBins[index + OFFSET_PARTIAL];
+	//
+	//				for (int y = lowY0; y <= lowY1; ++y) {
+	//					if ((wordFull & mask) == 0) {
+	//						final int lowCover = drawTriLow(lowX0, y);
+	//
+	//						if(lowCover != COVERAGE_NONE) {
+	//							wordPartial |= mask;
+	//
+	//							if (lowCover == COVERAGE_FULL) {
+	//								wordFull |= mask;
+	//							}
+	//						}
+	//					}
+	//
+	//					mask  <<= 8;
+	//				}
+	//
+	//				midBins[index + OFFSET_FULL] = wordFull;
+	//				midBins[index + OFFSET_PARTIAL] = wordPartial;
+	//				return wordFull == -1 ? COVERAGE_FULL : wordPartial == 0 ? COVERAGE_NONE : COVERAGE_PARTIAL;
+	//			}
+	//
+	//		} else if (lowY0 == lowY1) {
+	//			// single row
+	//			long mask = pixelMask(lowX0, lowY0);
+	//			long wordPartial = midBins[index + OFFSET_PARTIAL];
+	//
+	//			for (int x = lowX0; x <= lowX1; ++x) {
+	//				if ((wordFull & mask) == 0) {
+	//					final int lowCover = drawTriLow(x, lowY0);
+	//
+	//					if(lowCover != COVERAGE_NONE) {
+	//						wordPartial |= mask;
+	//
+	//						if (lowCover == COVERAGE_FULL) {
+	//							wordFull |= mask;
+	//						}
+	//					}
+	//				}
+	//
+	//				mask  <<= 1;
+	//			}
+	//
+	//			midBins[index + OFFSET_FULL] = wordFull;
+	//			midBins[index + OFFSET_PARTIAL] = wordPartial;
+	//			return wordFull == -1 ? COVERAGE_FULL : wordPartial == 0 ? COVERAGE_NONE : COVERAGE_PARTIAL;
+	//		}
+	//
+	//		long coverage = coverageMask(lowX0 & 7, lowY0 & 7, lowX1 & 7, lowY1 & 7);
+	//
+	//		// optimize whole bin case
+	//		if (coverage == -1L && isTriMidCovered(minX,  minY)) {
+	//			midBins[index + OFFSET_FULL] =  -1;
+	//			midBins[index + OFFSET_PARTIAL] =  -1;
+	//
+	//			if (ENABLE_RASTER_OUTPUT) {
+	//				fillMidBinChildren(midX, midY);
+	//			}
+	//
+	//			return COVERAGE_FULL;
+	//		}
+	//
+	//		coverage &= ~wordFull;
+	//
+	//		if (coverage == 0) {
+	//			return midBins[index + OFFSET_PARTIAL] == 0 ? COVERAGE_NONE : COVERAGE_PARTIAL;
+	//		}
+	//
+	//		final int baseX = midX << BIN_AXIS_SHIFT;
+	//		int baseY = midY << BIN_AXIS_SHIFT;
+	//		long wordPartial = midBins[index + OFFSET_PARTIAL];
+	//
+	//		for (int y = 0; y < 8; y++) {
+	//			final int bits = (int) coverage & 0xFF;
+	//			int setBits = 0;
+	//
+	//			switch (bits & 0xF) {
+	//			case 0b0000:
+	//				break;
+	//
+	//			case 0b0001:
+	//				setBits |= drawTriLow(baseX + 0, baseY);
+	//				break;
+	//
+	//			case 0b0010:
+	//				setBits |= drawTriLow(baseX + 1, baseY) << 1;
+	//				break;
+	//
+	//			case 0b0011:
+	//				setBits |= drawTriLow(baseX + 0, baseY);
+	//				setBits |= drawTriLow(baseX + 1, baseY) << 1;
+	//				break;
+	//
+	//			case 0b0100:
+	//				setBits |= drawTriLow(baseX + 2, baseY) << 2;
+	//				break;
+	//
+	//			case 0b0101:
+	//				setBits |= drawTriLow(baseX + 0, baseY);
+	//				setBits |= drawTriLow(baseX + 2, baseY) << 2;
+	//				break;
+	//
+	//			case 0b0110:
+	//				setBits |= drawTriLow(baseX + 1, baseY) << 1;
+	//				setBits |= drawTriLow(baseX + 2, baseY) << 2;
+	//				break;
+	//
+	//			case 0b0111:
+	//				setBits |= drawTriLow(baseX + 0, baseY);
+	//				setBits |= drawTriLow(baseX + 1, baseY) << 1;
+	//				setBits |= drawTriLow(baseX + 2, baseY) << 2;
+	//				break;
+	//
+	//			case 0b1000:
+	//				setBits |= drawTriLow(baseX + 3, baseY) << 3;
+	//				break;
+	//
+	//			case 0b1001:
+	//				setBits |= drawTriLow(baseX + 0, baseY);
+	//				setBits |= drawTriLow(baseX + 3, baseY) << 3;
+	//				break;
+	//
+	//			case 0b1010:
+	//				setBits |= drawTriLow(baseX + 1, baseY) << 1;
+	//				setBits |= drawTriLow(baseX + 3, baseY) << 3;
+	//				break;
+	//
+	//			case 0b1011:
+	//				setBits |= drawTriLow(baseX + 0, baseY);
+	//				setBits |= drawTriLow(baseX + 1, baseY) << 1;
+	//				setBits |= drawTriLow(baseX + 3, baseY) << 3;
+	//				break;
+	//
+	//			case 0b1100:
+	//				setBits |= drawTriLow(baseX + 2, baseY) << 2;
+	//				setBits |= drawTriLow(baseX + 3, baseY) << 3;
+	//				break;
+	//
+	//			case 0b1101:
+	//				setBits |= drawTriLow(baseX + 0, baseY);
+	//				setBits |= drawTriLow(baseX + 2, baseY) << 2;
+	//				setBits |= drawTriLow(baseX + 3, baseY) << 3;
+	//				break;
+	//
+	//			case 0b1110:
+	//				setBits |= drawTriLow(baseX + 1, baseY) << 1;
+	//				setBits |= drawTriLow(baseX + 2, baseY) << 2;
+	//				setBits |= drawTriLow(baseX + 3, baseY) << 3;
+	//				break;
+	//
+	//			case 0b1111:
+	//				setBits |= drawTriLow(baseX + 0, baseY);
+	//				setBits |= drawTriLow(baseX + 1, baseY) << 1;
+	//				setBits |= drawTriLow(baseX + 2, baseY) << 2;
+	//				setBits |= drawTriLow(baseX + 3, baseY) << 3;
+	//				break;
+	//			}
+	//
+	//			switch (bits >> 4) {
+	//			case 0b0000:
+	//				break;
+	//
+	//			case 0b0001:
+	//				setBits |= drawTriLow(baseX + 4, baseY) << 4;
+	//				break;
+	//
+	//			case 0b0010:
+	//				setBits |= drawTriLow(baseX + 5, baseY) << 5;
+	//				break;
+	//
+	//			case 0b0011:
+	//				setBits |= drawTriLow(baseX + 4, baseY) << 4;
+	//				setBits |= drawTriLow(baseX + 5, baseY) << 5;
+	//				break;
+	//
+	//			case 0b0100:
+	//				setBits |= drawTriLow(baseX + 6, baseY) << 6;
+	//				break;
+	//
+	//			case 0b0101:
+	//				setBits |= drawTriLow(baseX + 4, baseY) << 4;
+	//				setBits |= drawTriLow(baseX + 6, baseY) << 6;
+	//				break;
+	//
+	//			case 0b0110:
+	//				setBits |= drawTriLow(baseX + 5, baseY) << 5;
+	//				setBits |= drawTriLow(baseX + 6, baseY) << 6;
+	//				break;
+	//
+	//			case 0b0111:
+	//				setBits |= drawTriLow(baseX + 4, baseY) << 4;
+	//				setBits |= drawTriLow(baseX + 5, baseY) << 5;
+	//				setBits |= drawTriLow(baseX + 6, baseY) << 6;
+	//				break;
+	//
+	//			case 0b1000:
+	//				setBits |= drawTriLow(baseX + 7, baseY) << 7;
+	//				break;
+	//
+	//			case 0b1001:
+	//				setBits |= drawTriLow(baseX + 4, baseY) << 4;
+	//				setBits |= drawTriLow(baseX + 7, baseY) << 7;
+	//				break;
+	//
+	//			case 0b1010:
+	//				setBits |= drawTriLow(baseX + 5, baseY) << 5;
+	//				setBits |= drawTriLow(baseX + 7, baseY) << 7;
+	//				break;
+	//
+	//			case 0b1011:
+	//				setBits |= drawTriLow(baseX + 4, baseY) << 4;
+	//				setBits |= drawTriLow(baseX + 5, baseY) << 5;
+	//				setBits |= drawTriLow(baseX + 7, baseY) << 7;
+	//				break;
+	//
+	//			case 0b1100:
+	//				setBits |= drawTriLow(baseX + 6, baseY) << 6;
+	//				setBits |= drawTriLow(baseX + 7, baseY) << 7;
+	//				break;
+	//
+	//			case 0b1101:
+	//				setBits |= drawTriLow(baseX + 4, baseY) << 4;
+	//				setBits |= drawTriLow(baseX + 6, baseY) << 6;
+	//				setBits |= drawTriLow(baseX + 7, baseY) << 7;
+	//				break;
+	//
+	//			case 0b1110:
+	//				setBits |= drawTriLow(baseX + 5, baseY) << 5;
+	//				setBits |= drawTriLow(baseX + 6, baseY) << 6;
+	//				setBits |= drawTriLow(baseX + 7, baseY) << 7;
+	//				break;
+	//
+	//			case 0b1111:
+	//				setBits |= drawTriLow(baseX + 4, baseY) << 4;
+	//				setBits |= drawTriLow(baseX + 5, baseY) << 5;
+	//				setBits |= drawTriLow(baseX + 6, baseY) << 6;
+	//				setBits |= drawTriLow(baseX + 7, baseY) << 7;
+	//				break;
+	//			}
+	//
+	//			if (setBits != 0) {
+	//				final long fullMask = ((long) setBits >> 8) << (y << 3);
+	//				wordFull |= fullMask;
+	//				wordPartial |= fullMask | ((setBits & 0xFFL) << (y << 3));
+	//			}
+	//
+	//			++baseY;
+	//			coverage >>= 8;
+	//		}
+	//
+	//		midBins[index + OFFSET_FULL] = wordFull;
+	//		midBins[index + OFFSET_PARTIAL] = wordPartial;
+	//
+	//		return wordFull == -1L ? COVERAGE_FULL : wordPartial == 0 ? COVERAGE_NONE : COVERAGE_PARTIAL;
+	//	}
+
+	//	private boolean isTriMidCovered(int minX, int minY) {
+	//		final int dx = minX - minPixelX;
+	//		final int dy = minY - minPixelY;
+	//
+	//		//		final int w0_row = wOrigin0 + dx * a0 + dy * b0;
+	//		//		final int w1_row = wOrigin1 + dx * a1 + dy * b1;
+	//		//		final int w2_row = wOrigin2 + dx * a2 + dy * b2;
+	//
+	//		computeRow(dx, dy);
+	//		final int[] wRow = this.wRow;
+	//		final int w0_row = wRow[0];
+	//		final int w1_row = wRow[1];
+	//		final int w2_row = wRow[2];
+	//
+	//		if ((w0_row | w1_row | w2_row
+	//				| (w0_row + aMid[0]) | (w1_row + aMid[1]) | (w2_row + aMid[2])
+	//				| (w0_row + bMid[0]) | (w1_row + bMid[1]) | (w2_row + bMid[2])
+	//				| (w0_row + abMid[0]) | (w1_row + abMid[1]) | (w2_row + abMid[2])) >= 0) {
+	//			return true;
+	//		} else {
+	//			return false;
+	//		}
+	//	}
 
 	//	private final Int2IntOpenHashMap binCounts = new Int2IntOpenHashMap();
 	//	private int counter;
 
-	private final int[] wLowX = new int[3];
-	private final int[] wLowY = new int[3];
+	//	private final int[] wLowX = new int[3];
+	//	private final int[] wLowY = new int[3];
 
-	private static void copyVec3(int[] source, int[] target) {
-		for (int i = 0; i < 3; ++i) {
-			target[i] = source[i];
-		}
-	}
+	//	private static void copyVec3(int[] source, int[] target) {
+	//		for (int i = 0; i < 3; ++i) {
+	//			target[i] = source[i];
+	//		}
+	//	}
 
-	private static void addVec3(int[] source, int[] target) {
-		for (int i = 0; i < 3; ++i) {
-			target[i] += source[i];
-		}
-	}
+	//	private static void addVec3(int[] source, int[] target) {
+	//		for (int i = 0; i < 3; ++i) {
+	//			target[i] += source[i];
+	//		}
+	//	}
 
-	protected void computeLowY(final int dx, final int dy) {
-		for (int i = 0; i < 3; ++i)  {
-			wLowY[i] = wOrigin[i] + a[i] * dx + b[i] * dy;
-		}
-	}
+	//	protected void computeLowY(final int dx, final int dy) {
+	//		for (int i = 0; i < 3; ++i)  {
+	//			wLowY[i] = wOrigin[i] + a[i] * dx + b[i] * dy;
+	//		}
+	//	}
+	//
+	//	protected void computeLowX(final int dx, final int dy) {
+	//		for (int i = 0; i < 3; ++i)  {
+	//			wLowX[i] = wOrigin[i] + a[i] * dx + b[i] * dy;
+	//		}
+	//	}
 
-	protected void computeLowX(final int dx, final int dy) {
-		for (int i = 0; i < 3; ++i)  {
-			wLowX[i] = wOrigin[i] + a[i] * dx + b[i] * dy;
-		}
-	}
-
-	private boolean debugLow = false;
+	private final boolean debugLow = false;
 
 	// TODO: remove
-	@SuppressWarnings("unused")
-	private int drawTriLowWithCompare(int lowX, int lowY) {
-		final int index = lowIndex(lowX, lowY);
-		final long inputWord  =  lowBins[index];
-
-		final int oldResult = drawTriLowOld(lowX, lowY);
-		final long oldWord = lowBins[index];
-		lowBins[index] = inputWord;
-
-		final int newResult = drawTriLow(lowX, lowY);
-		final long newWord = lowBins[index];
-
-		if (newWord != oldWord) { // || newResult != oldResult) {
-			System.out.println("OLD RESULT: " + oldResult);
-			printMask8x8(oldWord);
-			System.out.println();
-			System.out.println("NEW RESULT: " + newResult);
-			printMask8x8(newWord);
-			System.out.println();
-
-			debugLow = true;
-			lowBins[index] = inputWord;
-			drawTriLow(lowX, lowY);
-			debugLow = false;
-
-			System.out.println();
-		}
-
-		return newResult;
-	}
+	//	@SuppressWarnings("unused")
+	//	private int drawTriLowWithCompare(int lowX, int lowY) {
+	//		final int index = lowIndex(lowX, lowY);
+	//		final long inputWord  =  lowBins[index];
+	//
+	//		final int oldResult = drawTriLowOld(lowX, lowY);
+	//		final long oldWord = lowBins[index];
+	//		lowBins[index] = inputWord;
+	//
+	//		final int newResult = drawTriLow(lowX, lowY);
+	//		final long newWord = lowBins[index];
+	//
+	//		if (newWord != oldWord) { // || newResult != oldResult) {
+	//			System.out.println("OLD RESULT: " + oldResult);
+	//			printMask8x8(oldWord);
+	//			System.out.println();
+	//			System.out.println("NEW RESULT: " + newResult);
+	//			printMask8x8(newWord);
+	//			System.out.println();
+	//
+	//			debugLow = true;
+	//			lowBins[index] = inputWord;
+	//			drawTriLow(lowX, lowY);
+	//			debugLow = false;
+	//
+	//			System.out.println();
+	//		}
+	//
+	//		return newResult;
+	//	}
 
 	private int drawTriLow(int lowX, int lowY) {
 		lowTile.moveTo(lowX, lowY);
@@ -997,96 +997,96 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		return word == -1L ? COVERAGE_FULL : COVERAGE_PARTIAL;
 	}
 
-	private int drawTriLowOld(int lowX, int lowY) {
-		final int index = lowIndex(lowX, lowY);
+	//	private int drawTriLowOld(int lowX, int lowY) {
+	//		final int index = lowIndex(lowX, lowY);
+	//
+	//		final int binOriginX = lowX << LOW_AXIS_SHIFT;
+	//		final int binOriginY = lowY << LOW_AXIS_SHIFT;
+	//		final int minPixelX = this.minPixelX;
+	//		final int minPixelY = this.minPixelY;
+	//
+	//		final int minX = minPixelX < binOriginX ? binOriginX : minPixelX;
+	//		final int minY = minPixelY < binOriginY ? binOriginY : minPixelY;
+	//		final int maxX = Math.min(maxPixelX, binOriginX + LOW_BIN_PIXEL_DIAMETER - 1);
+	//		final int maxY = Math.min(maxPixelY, binOriginY + LOW_BIN_PIXEL_DIAMETER - 1);
+	//
+	//		long coverage = coverageMask(minX & 7, minY & 7, maxX & 7, maxY & 7);
+	//
+	//		// if filling whole bin then do it quick
+	//		if (coverage == -1L && isTriLowCovered(minX,  minY)) {
+	//			lowBins[index] = -1;
+	//			return 1;
+	//		}
+	//
+	//		long word = lowBins[index];
+	//		coverage &= ~word;
+	//
+	//		if (coverage == 0L) {
+	//			return 0;
+	//		}
+	//
+	//		//		final boolean oneRow = minY == maxY;
+	//		//		final boolean oneCol = minX == maxX;
+	//		//
+	//		//		binCounts.addTo(oneRow ? (oneCol ? 0 : 1) : (oneCol ? 2 : 3), 1);
+	//		//
+	//		//		if (++counter == 8000000) {
+	//		//			binCounts.int2IntEntrySet().fastForEach(e -> System.out.println(e.toString()));
+	//		//			System.out.println();
+	//		//			counter = 0;
+	//		//			binCounts.clear();
+	//		//		}
+	//
+	//		final int x0 = minX & LOW_BIN_PIXEL_INDEX_MASK;
+	//		final int x1 = maxX & LOW_BIN_PIXEL_INDEX_MASK;
+	//		final int y0 = minY & LOW_BIN_PIXEL_INDEX_MASK;
+	//		final int y1 = maxY & LOW_BIN_PIXEL_INDEX_MASK;
+	//		final int dx = minX - minPixelX;
+	//		final int dy = minY - minPixelY;
+	//
+	//		final int[] wLowX = this.wLowX;
+	//		final int[] wLowY = this.wLowY;
+	//		computeLowY(dx, dy);
+	//
+	//		for (int y = y0; y <= y1; y++) {
+	//			copyVec3(wLowY, wLowX);
+	//			long mask = 1L << ((y << BIN_AXIS_SHIFT) | x0);
+	//
+	//			for (int x = x0; x <= x1; x++) {
+	//				// If p is on or inside all edges, render pixel.
+	//				if ((word & mask) == 0 && (wLowX[0] | wLowX[1] | wLowX[2]) >= 0) {
+	//					word |= mask;
+	//				}
+	//
+	//				// One step to the right
+	//				addVec3(a, wLowX);
+	//				mask <<= 1;
+	//			}
+	//
+	//			// One row step
+	//			addVec3(b, wLowY);
+	//		}
+	//
+	//		lowBins[index] = word;
+	//		return word == -1L ? 1 : 0;
+	//	}
 
-		final int binOriginX = lowX << LOW_AXIS_SHIFT;
-		final int binOriginY = lowY << LOW_AXIS_SHIFT;
-		final int minPixelX = this.minPixelX;
-		final int minPixelY = this.minPixelY;
-
-		final int minX = minPixelX < binOriginX ? binOriginX : minPixelX;
-		final int minY = minPixelY < binOriginY ? binOriginY : minPixelY;
-		final int maxX = Math.min(maxPixelX, binOriginX + LOW_BIN_PIXEL_DIAMETER - 1);
-		final int maxY = Math.min(maxPixelY, binOriginY + LOW_BIN_PIXEL_DIAMETER - 1);
-
-		long coverage = coverageMask(minX & 7, minY & 7, maxX & 7, maxY & 7);
-
-		// if filling whole bin then do it quick
-		if (coverage == -1L && isTriLowCovered(minX,  minY)) {
-			lowBins[index] = -1;
-			return 1;
-		}
-
-		long word = lowBins[index];
-		coverage &= ~word;
-
-		if (coverage == 0L) {
-			return 0;
-		}
-
-		//		final boolean oneRow = minY == maxY;
-		//		final boolean oneCol = minX == maxX;
-		//
-		//		binCounts.addTo(oneRow ? (oneCol ? 0 : 1) : (oneCol ? 2 : 3), 1);
-		//
-		//		if (++counter == 8000000) {
-		//			binCounts.int2IntEntrySet().fastForEach(e -> System.out.println(e.toString()));
-		//			System.out.println();
-		//			counter = 0;
-		//			binCounts.clear();
-		//		}
-
-		final int x0 = minX & LOW_BIN_PIXEL_INDEX_MASK;
-		final int x1 = maxX & LOW_BIN_PIXEL_INDEX_MASK;
-		final int y0 = minY & LOW_BIN_PIXEL_INDEX_MASK;
-		final int y1 = maxY & LOW_BIN_PIXEL_INDEX_MASK;
-		final int dx = minX - minPixelX;
-		final int dy = minY - minPixelY;
-
-		final int[] wLowX = this.wLowX;
-		final int[] wLowY = this.wLowY;
-		computeLowY(dx, dy);
-
-		for (int y = y0; y <= y1; y++) {
-			copyVec3(wLowY, wLowX);
-			long mask = 1L << ((y << BIN_AXIS_SHIFT) | x0);
-
-			for (int x = x0; x <= x1; x++) {
-				// If p is on or inside all edges, render pixel.
-				if ((word & mask) == 0 && (wLowX[0] | wLowX[1] | wLowX[2]) >= 0) {
-					word |= mask;
-				}
-
-				// One step to the right
-				addVec3(a, wLowX);
-				mask <<= 1;
-			}
-
-			// One row step
-			addVec3(b, wLowY);
-		}
-
-		lowBins[index] = word;
-		return word == -1L ? 1 : 0;
-	}
-
-	private boolean isTriLowCovered(int minX, int minY) {
-		final int dx = minX - minPixelX;
-		final int dy = minY - minPixelY;
-		final int[] wLowX = this.wLowX;
-		computeLowX(dx, dy);
-
-		final int w0_row = wLowX[0];
-		final int w1_row = wLowX[1];
-		final int w2_row = wLowX[2];
-		lowTile.moveTo(minX >> LOW_AXIS_SHIFT, minY >> LOW_AXIS_SHIFT);
-
-		return ((w0_row | w1_row | w2_row
-				| (w0_row + aLow[0]) | (w1_row + aLow[1]) | (w2_row + aLow[2])
-				| (w0_row + bLow[0]) | (w1_row + bLow[1]) | (w2_row + bLow[2])
-				| (w0_row + abLow[0]) | (w1_row + abLow[1]) | (w2_row + abLow[2])) >= 0);
-	}
+	//	private boolean isTriLowCovered(int minX, int minY) {
+	//		final int dx = minX - minPixelX;
+	//		final int dy = minY - minPixelY;
+	//		final int[] wLowX = this.wLowX;
+	//		computeLowX(dx, dy);
+	//
+	//		final int w0_row = wLowX[0];
+	//		final int w1_row = wLowX[1];
+	//		final int w2_row = wLowX[2];
+	//		lowTile.moveTo(minX >> LOW_AXIS_SHIFT, minY >> LOW_AXIS_SHIFT);
+	//
+	//		return ((w0_row | w1_row | w2_row
+	//				| (w0_row + aLow[0]) | (w1_row + aLow[1]) | (w2_row + aLow[2])
+	//				| (w0_row + bLow[0]) | (w1_row + bLow[1]) | (w2_row + bLow[2])
+	//				| (w0_row + abLow[0]) | (w1_row + abLow[1]) | (w2_row + abLow[2])) >= 0);
+	//	}
 
 	@Override
 	protected boolean testTri(int v0, int v1, int v2) {
@@ -1107,19 +1107,19 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		final int by0 = (minPixelY >> TOP_AXIS_SHIFT);
 		final int by1 = maxPixelY >> TOP_AXIS_SHIFT;
 
-		if (bx0 == bx1 && by0 == by1) {
-			return testTriTop(bx0, by0);
-		} else {
-			for (int by = by0; by <= by1; by++) {
-				for (int bx = bx0; bx <= bx1; bx++) {
-					if (testTriTop(bx, by)) {
-						return true;
-					}
-				}
-			}
+					if (bx0 == bx1 && by0 == by1) {
+						return testTriTop(bx0, by0);
+					} else {
+						for (int by = by0; by <= by1; by++) {
+							for (int bx = bx0; bx <= bx1; bx++) {
+								if (testTriTop(bx, by)) {
+									return true;
+								}
+							}
+						}
 
-			return false;
-		}
+						return false;
+					}
 	}
 
 	private boolean testTriTop(final int topX, final int topY) {
@@ -1227,9 +1227,10 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		// don't check full tiles - they would have been caught earlier
 		coverage &= ~fullCoverage;
 
-
-		// don't check empty tiles
-		coverage &= ~midBins[index + OFFSET_PARTIAL];
+		// if any partially covered tiles are fully empty the must be visible
+		if ((coverage & ~midBins[index + OFFSET_PARTIAL]) != 0) {
+			return true;
+		}
 
 		if (coverage == 0) {
 			// nothing left to check
@@ -1658,28 +1659,28 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 	}
 
 	// TODO: remove
-	@SuppressWarnings("unused")
-	private boolean testTriLowWithCompare(int lowX, int lowY) {
-		final int index = lowIndex(lowX, lowY);
-		final long inputWord  =  lowBins[index];
-
-		final boolean oldResult = testTriLowOld(lowX, lowY);
-		final boolean newResult = testTriLow(lowX, lowY);
-
-		if (newResult != oldResult) {
-			System.out.println("INPUT WORD: " + oldResult);
-			printMask8x8(inputWord);
-			System.out.println();
-
-			debugLow = true;
-			testTriLow(lowX, lowY);
-			debugLow = false;
-
-			System.out.println();
-		}
-
-		return newResult;
-	}
+	//	@SuppressWarnings("unused")
+	//	private boolean testTriLowWithCompare(int lowX, int lowY) {
+	//		final int index = lowIndex(lowX, lowY);
+	//		final long inputWord  =  lowBins[index];
+	//
+	//		final boolean oldResult = testTriLowOld(lowX, lowY);
+	//		final boolean newResult = testTriLow(lowX, lowY);
+	//
+	//		if (newResult != oldResult) {
+	//			System.out.println("INPUT WORD: " + oldResult);
+	//			printMask8x8(inputWord);
+	//			System.out.println();
+	//
+	//			debugLow = true;
+	//			testTriLow(lowX, lowY);
+	//			debugLow = false;
+	//
+	//			System.out.println();
+	//		}
+	//
+	//		return newResult;
+	//	}
 
 	private boolean testTriLow(int lowX, int lowY) {
 		lowTile.moveTo(lowX, lowY);
@@ -1688,82 +1689,82 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		return (~word & coverage) != 0;
 	}
 
-	private boolean testTriLowOld(int lowX, int lowY) {
-		final int index = lowIndex(lowX, lowY);
-
-		final int binOriginX = lowX << LOW_AXIS_SHIFT;
-		final int binOriginY = lowY << LOW_AXIS_SHIFT;
-		final int minPixelX = this.minPixelX;
-		final int minPixelY = this.minPixelY;
-
-		final int minX = minPixelX < binOriginX ? binOriginX : minPixelX;
-		final int minY = minPixelY < binOriginY ? binOriginY : minPixelY;
-		final int maxX = Math.min(maxPixelX, binOriginX + LOW_BIN_PIXEL_DIAMETER - 1);
-		final int maxY = Math.min(maxPixelY, binOriginY + LOW_BIN_PIXEL_DIAMETER - 1);
-
-		long coverage = coverageMask(minX & 7, minY & 7, maxX & 7, maxY & 7);
-
-		final long word = lowBins[index];
-		coverage &= ~word;
-
-		if (coverage == 0L) {
-			// TODO: remove
-			//earlyExit++;
-			return false;
-		}
-
-		final int a0 = a[0];
-		final int b0 = b[0];
-		final int a1 = a[1];
-		final int b1 = b[1];
-		final int a2 = a[2];
-		final int b2 = b[2];
-		final int x0 = minX & LOW_BIN_PIXEL_INDEX_MASK;
-		final int x1 = maxX & LOW_BIN_PIXEL_INDEX_MASK;
-		final int y0 = minY & LOW_BIN_PIXEL_INDEX_MASK;
-		final int y1 = maxY & LOW_BIN_PIXEL_INDEX_MASK;
-		final int dx = minX - minPixelX;
-		final int dy = minY - minPixelY;
-
-		computeRow(dx, dy);
-		int w0_row = wRow[0];
-		int w1_row = wRow[1];
-		int w2_row = wRow[2];
-		//		int w0_row = wOrigin0 + dx * a0 + dy * b0;
-		//		int w1_row = wOrigin1 + dx * a1 + dy * b1;
-		//		int w2_row = wOrigin2 + dx * a2 + dy * b2;
-
-		// handle single pixel case
-		if (x0 == x1 && y0 == y1) {
-			return  testPixelInWordPreMasked(word, x0, y0)  && (w0_row | w1_row | w2_row) >= 0;
-		}
-
-		for (int y = y0; y <= y1; y++) {
-			int w0 = w0_row;
-			int w1 = w1_row;
-			int w2 = w2_row;
-			long mask = 1L << ((y << BIN_AXIS_SHIFT) | x0);
-
-			for (int x = x0; x <= x1; x++) {
-				if ((word & mask) == 0 && (w0 | w1 | w2) >= 0) {
-					return true;
-				}
-
-				// One step to the right
-				w0 += a0;
-				w1 += a1;
-				w2 += a2;
-				mask <<= 1;
-			}
-
-			// One row step
-			w0_row += b0;
-			w1_row += b1;
-			w2_row += b2;
-		}
-
-		return false;
-	}
+	//	private boolean testTriLowOld(int lowX, int lowY) {
+	//		final int index = lowIndex(lowX, lowY);
+	//
+	//		final int binOriginX = lowX << LOW_AXIS_SHIFT;
+	//		final int binOriginY = lowY << LOW_AXIS_SHIFT;
+	//		final int minPixelX = this.minPixelX;
+	//		final int minPixelY = this.minPixelY;
+	//
+	//		final int minX = minPixelX < binOriginX ? binOriginX : minPixelX;
+	//		final int minY = minPixelY < binOriginY ? binOriginY : minPixelY;
+	//		final int maxX = Math.min(maxPixelX, binOriginX + LOW_BIN_PIXEL_DIAMETER - 1);
+	//		final int maxY = Math.min(maxPixelY, binOriginY + LOW_BIN_PIXEL_DIAMETER - 1);
+	//
+	//		long coverage = coverageMask(minX & 7, minY & 7, maxX & 7, maxY & 7);
+	//
+	//		final long word = lowBins[index];
+	//		coverage &= ~word;
+	//
+	//		if (coverage == 0L) {
+	//			// TODO: remove
+	//			//earlyExit++;
+	//			return false;
+	//		}
+	//
+	//		final int a0 = a[0];
+	//		final int b0 = b[0];
+	//		final int a1 = a[1];
+	//		final int b1 = b[1];
+	//		final int a2 = a[2];
+	//		final int b2 = b[2];
+	//		final int x0 = minX & LOW_BIN_PIXEL_INDEX_MASK;
+	//		final int x1 = maxX & LOW_BIN_PIXEL_INDEX_MASK;
+	//		final int y0 = minY & LOW_BIN_PIXEL_INDEX_MASK;
+	//		final int y1 = maxY & LOW_BIN_PIXEL_INDEX_MASK;
+	//		final int dx = minX - minPixelX;
+	//		final int dy = minY - minPixelY;
+	//
+	//		computeRow(dx, dy);
+	//		int w0_row = wRow[0];
+	//		int w1_row = wRow[1];
+	//		int w2_row = wRow[2];
+	//		//		int w0_row = wOrigin0 + dx * a0 + dy * b0;
+	//		//		int w1_row = wOrigin1 + dx * a1 + dy * b1;
+	//		//		int w2_row = wOrigin2 + dx * a2 + dy * b2;
+	//
+	//		// handle single pixel case
+	//		if (x0 == x1 && y0 == y1) {
+	//			return  testPixelInWordPreMasked(word, x0, y0)  && (w0_row | w1_row | w2_row) >= 0;
+	//		}
+	//
+	//		for (int y = y0; y <= y1; y++) {
+	//			int w0 = w0_row;
+	//			int w1 = w1_row;
+	//			int w2 = w2_row;
+	//			long mask = 1L << ((y << BIN_AXIS_SHIFT) | x0);
+	//
+	//			for (int x = x0; x <= x1; x++) {
+	//				if ((word & mask) == 0 && (w0 | w1 | w2) >= 0) {
+	//					return true;
+	//				}
+	//
+	//				// One step to the right
+	//				w0 += a0;
+	//				w1 += a1;
+	//				w2 += a2;
+	//				mask <<= 1;
+	//			}
+	//
+	//			// One row step
+	//			w0_row += b0;
+	//			w1_row += b1;
+	//			w2_row += b2;
+	//		}
+	//
+	//		return false;
+	//	}
 
 	private static final int COVERAGE_NONE = 0;
 	private static final int COVERAGE_PARTIAL = 1;

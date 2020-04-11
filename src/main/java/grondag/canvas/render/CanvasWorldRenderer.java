@@ -245,6 +245,10 @@ public class CanvasWorldRenderer {
 
 				occluder.prepareChunk(builtChunk.getOrigin(), builtChunk.occlusionRange);
 
+				//				if (builtChunk.getOrigin().getX() == (34 & ~0xF) && builtChunk.getOrigin().getY() == (79 & ~0xF) && builtChunk.getOrigin().getZ() == (-100 & ~0xF) && !occluder.isChunkVisible()) {
+				//					occluder.isChunkVisible();
+				//				}
+
 				if (!chunkCullingEnabled || builtChunk == cameraChunk || occluder.isChunkVisible()) {
 					builtChunk.enqueueUnvistedNeighbors(regionQueue);
 					visibleChunks[visibleChunkCount++] = builtChunk;
