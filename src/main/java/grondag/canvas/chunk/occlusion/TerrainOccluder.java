@@ -10,38 +10,13 @@ import org.apache.commons.lang3.StringUtils;
 // PERF: try propagating edge function values up/down heirarchy
 // PERF: remove partial coverage mask if can't make it pay
 public class TerrainOccluder extends ClippingTerrainOccluder  {
-	//	private final int[] aMid = new int[3];
-	//	private final int[] bMid = new int[3];
-	//	private final int[] abMid = new int[3];
-
 	private final LowTile lowTile = new LowTile(triangle);
 	private final MidTile midTile = new MidTile(triangle);
 	private final TopTile topTile = new TopTile(triangle);
 
-	//	private void prepareTriMidA() {
-	//		for (int i = 0; i < 3; ++i) {
-	//			aMid[i] = a[i] * MID_BIN_PIXEL_DIAMETER_VECTOR[i];
-	//		}
-	//	}
-
-	//	private void prepareTriMidB() {
-	//		for (int i = 0; i < 3; ++i) {
-	//			bMid[i] = b[i] * MID_BIN_PIXEL_DIAMETER_VECTOR[i];
-	//		}
-	//	}
-
-	//	private void prepareTriMidAB() {
-	//		for (int i = 0; i < 3; ++i) {
-	//			abMid[i] = aMid[i] + bMid[i];
-	//		}
-	//	}
-
 	@Override
 	protected void prepareTriScan(int v0, int v1, int v2) {
 		super.prepareTriScan(v0, v1, v2);
-		//		prepareTriMidA();
-		//		prepareTriMidB();
-		//		prepareTriMidAB();
 
 		// PERF:  make these lazy
 		lowTile.computeSpan();
@@ -496,60 +471,6 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		}
 	}
 
-	@SuppressWarnings("unused")
-	private void drawTriTopOld(final int topX, final int topY) {
-		final int index = topIndex(topX, topY) << 1; // shift because two words per index
-		long wordFull = topBins[index + OFFSET_FULL];
-
-		if (wordFull == -1L) {
-			// if bin fully occluded nothing to do
-			return;
-		}
-
-		final Triangle tri = triangle;
-		final int binOriginX = topX << TOP_AXIS_SHIFT;
-		final int binOriginY = topY << TOP_AXIS_SHIFT;
-		final int minPixelX = tri.minPixelX;
-		final int minPixelY = tri.minPixelY;
-
-		final int minX = minPixelX < binOriginX ? binOriginX : minPixelX;
-		final int minY = minPixelY < binOriginY ? binOriginY : minPixelY;
-		final int maxX = Math.min(tri.maxPixelX, binOriginX + TOP_BIN_PIXEL_DIAMETER - 1);
-		final int maxY = Math.min(tri.maxPixelY, binOriginY + TOP_BIN_PIXEL_DIAMETER - 1);
-
-		long coverage = coverageMask((minX >> MID_AXIS_SHIFT) & 7, (minY >> MID_AXIS_SHIFT) & 7,
-				(maxX >> MID_AXIS_SHIFT) & 7, (maxY >> MID_AXIS_SHIFT) & 7);
-
-		coverage &= ~wordFull;
-
-		if (coverage == 0) {
-			return;
-		}
-
-		final int baseX = topX << BIN_AXIS_SHIFT;
-		final int baseY = topY << BIN_AXIS_SHIFT;
-		long wordPartial = topBins[index + OFFSET_PARTIAL];
-		long mask = 1;
-
-		for (int n = 0; n < 64; ++n) {
-			if ((mask & coverage) != 0) {
-				final int mid = drawTriMid(baseX + (n & 7), baseY + (n >> 3));
-
-				if (mid != COVERAGE_NONE) {
-					wordPartial |= mask;
-
-					if (mid == COVERAGE_FULL) {
-						wordFull |= mask;
-					}
-				}
-			}
-
-			mask <<= 1;
-		}
-
-		topBins[index + OFFSET_FULL] = wordFull;
-		topBins[index + OFFSET_PARTIAL] = wordPartial;
-	}
 
 	// PERF: do this with arrayCopy
 	private void fillMidBin(final int midX, final int midY) {
@@ -569,50 +490,6 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 			}
 		}
 	}
-
-	//	private final boolean debugMid = false;
-
-	//	@SuppressWarnings("unused")
-	//	private int drawTriMidWithCompare(final int midX, final int midY) {
-	//		final int index = midIndex(midX, midY) << 1; // shift because two words per index
-	//		final long inputWordFull = midBins[index + OFFSET_FULL];
-	//		final long inputWordPartial = midBins[index + OFFSET_PARTIAL];
-	//
-	//		final int oldResult = drawTriMidOld(midX, midY);
-	//		final long oldWordFull = midBins[index + OFFSET_FULL];
-	//		final long oldWordPartial = midBins[index + OFFSET_PARTIAL];
-	//		midBins[index + OFFSET_FULL] = inputWordFull;
-	//		midBins[index + OFFSET_PARTIAL] = inputWordPartial;
-	//
-	//		final int newResult = drawTriMid(midX, midY);
-	//		final long newWordFull = midBins[index + OFFSET_FULL];
-	//		final long newWordPartial = midBins[index + OFFSET_PARTIAL];
-	//
-	//		if (oldWordFull != newWordFull || oldWordPartial != newWordPartial) { // || newResult != oldResult) {
-	//			System.out.println("OLD FULL RESULT: " + oldResult);
-	//			printMask8x8(oldWordFull);
-	//			System.out.println("OLD PARTIAL RESULT");
-	//			printMask8x8(oldWordPartial);
-	//			System.out.println();
-	//
-	//			System.out.println("NEW FULL RESULT: " + newResult);
-	//			printMask8x8(newWordFull);
-	//			System.out.println("NEW PARTIAL RESULT");
-	//			printMask8x8(newWordPartial);
-	//			System.out.println();
-	//
-	//			debugMid = true;
-	//			midBins[index + OFFSET_FULL] = inputWordFull;
-	//			midBins[index + OFFSET_PARTIAL] = inputWordPartial;
-	//			drawTriMid(midX, midY);
-	//			debugMid = false;
-	//			drawTriMid(midX, midY);
-	//
-	//			System.out.println();
-	//		}
-	//
-	//		return newResult;
-	//	}
 
 	/**
 	 * Returns true when bin fully occluded
@@ -2435,7 +2312,7 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 	private static final int OFFSET_PARTIAL = 1;
 
 
-	protected static final int TITLE_SIZE = 29;
+	protected static final int TITLE_SIZE = 27;
 	protected static final int TILE_LOW_START = 0;
 	protected static final int TILE_MID_START = TILE_LOW_START + TITLE_SIZE;
 	protected static final int TILE_TOP_START = TILE_MID_START + TITLE_SIZE;
@@ -2500,9 +2377,6 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		protected static final int EXTENT_0 = 24;
 		protected static final int EXTENT_1 = 25;
 		protected static final int EXTENT_2 = 26;
-
-		protected static final int BIN_ORIGIN_X = 27;
-		protected static final int BIN_ORIGIN_Y = 28;
 
 		protected abstract void computeSpan();
 
@@ -2798,23 +2672,15 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		// PERF: make corner compute lazy
 		// PERF: compute base a/b based on origin or snapped corner to avoid dx/dy computation
 
-		//		protected int lowX, lowY;
-
 		protected LowTile(Triangle triangle) {
 			super(triangle);
 		}
 
 		public void moveTo(int lowX, int lowY) {
-			final int binOriginX = lowX << LOW_AXIS_SHIFT;
-			final int binOriginY = lowY << LOW_AXIS_SHIFT;
+			final int dx = lowX << LOW_AXIS_SHIFT;
+			final int dy = lowY << LOW_AXIS_SHIFT;
 			final int[] tileData = TerrainOccluder.this.tileData;
 			final Triangle tri = triangle;
-
-			//			this.lowX = lowX;
-			//			this.lowY = lowY;
-
-			final int dx = binOriginX - tri.minPixelX;
-			final int dy = binOriginY - tri.minPixelY;
 
 			tileData[CORNER_X0_Y0_E0 + TILE_LOW_START] = tri.c0 + tri.a0 * dx + tri.b0 * dy;
 			tileData[CORNER_X0_Y0_E1 + TILE_LOW_START] = tri.c1 + tri.a1 * dx + tri.b1 * dy;
@@ -2831,9 +2697,6 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 			tileData[CORNER_X1_Y1_E0 + TILE_LOW_START] = tileData[CORNER_X0_Y1_E0 + TILE_LOW_START] + tileData[SPAN_A0 + TILE_LOW_START];
 			tileData[CORNER_X1_Y1_E1 + TILE_LOW_START] = tileData[CORNER_X0_Y1_E1 + TILE_LOW_START] + tileData[SPAN_A1 + TILE_LOW_START];
 			tileData[CORNER_X1_Y1_E2 + TILE_LOW_START] = tileData[CORNER_X0_Y1_E2 + TILE_LOW_START] + tileData[SPAN_A2 + TILE_LOW_START];
-
-			tileData[BIN_ORIGIN_X + TILE_LOW_START] = binOriginX;
-			tileData[BIN_ORIGIN_Y + TILE_LOW_START] = binOriginY;
 		}
 
 		public long computeCoverage() {
@@ -2938,14 +2801,9 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 
 		public void moveTo(int midX, int midY) {
 			final Triangle tri = triangle;
-			final int binOriginX = midX << MID_AXIS_SHIFT;
-			final int binOriginY = midY << MID_AXIS_SHIFT;
+			final int dx = midX << MID_AXIS_SHIFT;
+			final int dy = midY << MID_AXIS_SHIFT;
 			final int[] tileData = TerrainOccluder.this.tileData;
-			//			this.midX = midX;
-			//			this.midY = midY;
-
-			final int dx = binOriginX - tri.minPixelX;
-			final int dy = binOriginY - tri.minPixelY;
 
 			tileData[CORNER_X0_Y0_E0 + TILE_MID_START] = tri.c0 + tri.a0 * dx + tri.b0 * dy;
 			tileData[CORNER_X0_Y0_E1 + TILE_MID_START] = tri.c1 + tri.a1 * dx + tri.b1 * dy;
@@ -2962,9 +2820,6 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 			tileData[CORNER_X1_Y1_E0 + TILE_MID_START] = tileData[CORNER_X0_Y1_E0 + TILE_MID_START] + tileData[SPAN_A0 + TILE_MID_START];
 			tileData[CORNER_X1_Y1_E1 + TILE_MID_START] = tileData[CORNER_X0_Y1_E1 + TILE_MID_START] + tileData[SPAN_A1 + TILE_MID_START];
 			tileData[CORNER_X1_Y1_E2 + TILE_MID_START] = tileData[CORNER_X0_Y1_E2 + TILE_MID_START] + tileData[SPAN_A2 + TILE_MID_START];
-
-			tileData[BIN_ORIGIN_X + TILE_MID_START] = binOriginX;
-			tileData[BIN_ORIGIN_Y + TILE_MID_START] = binOriginY;
 		}
 
 
@@ -3047,7 +2902,6 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 			tileData[SPAN_A0 + TILE_MID_START] = i * (MID_BIN_PIXEL_DIAMETER - 1);
 			tileData[SPAN_B0 + TILE_MID_START] = j * (MID_BIN_PIXEL_DIAMETER - 1);
 			tileData[EXTENT_0 + TILE_MID_START] = -Math.abs(tileData[SPAN_A0 + TILE_MID_START]) - Math.abs(tileData[SPAN_B0 + TILE_MID_START]);
-			//tileData[EXTENT_0 + TILE_MID_START] = (Math.abs(i) + Math.abs(j)) * -7;
 
 			i = tri.a1;
 			j = tri.b1;
@@ -3056,7 +2910,6 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 			tileData[SPAN_A1 + TILE_MID_START] = i * (MID_BIN_PIXEL_DIAMETER - 1);
 			tileData[SPAN_B1 + TILE_MID_START] = j * (MID_BIN_PIXEL_DIAMETER - 1);
 			tileData[EXTENT_1 + TILE_MID_START] = -Math.abs(tileData[SPAN_A1 + TILE_MID_START]) - Math.abs(tileData[SPAN_B1 + TILE_MID_START]);
-			//tileData[EXTENT_1 + TILE_MID_START] = (Math.abs(i) + Math.abs(j)) * -7;
 
 			i = tri.a2;
 			j = tri.b2;
@@ -3065,7 +2918,6 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 			tileData[SPAN_A2 + TILE_MID_START] = i * (MID_BIN_PIXEL_DIAMETER - 1);
 			tileData[SPAN_B2 + TILE_MID_START] = j * (MID_BIN_PIXEL_DIAMETER - 1);
 			tileData[EXTENT_2 + TILE_MID_START] = -Math.abs(tileData[SPAN_A2 + TILE_MID_START]) - Math.abs(tileData[SPAN_B2 + TILE_MID_START]);
-			//			tileData[EXTENT_2 + TILE_MID_START] = (Math.abs(i) + Math.abs(j)) * -7;
 		}
 	}
 
@@ -3074,20 +2926,13 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 			super(triangle);
 		}
 
-		//		protected int topX, topY;
-
 		protected long fullCoverage;
 
 		public void moveTo(int topX, int topY) {
 			final Triangle tri = triangle;
-			final int binOriginX = topX << TOP_AXIS_SHIFT;
-			final int binOriginY = topY << TOP_AXIS_SHIFT;
+			final int dx = topX << TOP_AXIS_SHIFT;
+			final int dy = topY << TOP_AXIS_SHIFT;
 			final int[] tileData = TerrainOccluder.this.tileData;
-			//			this.topX = topX;
-			//			this.topY = topY;
-
-			final int dx = binOriginX - tri.minPixelX;
-			final int dy = binOriginY - tri.minPixelY;
 
 			tileData[CORNER_X0_Y0_E0 + TILE_TOP_START] = tri.c0 + tri.a0 * dx + tri.b0 * dy;
 			tileData[CORNER_X0_Y0_E1 + TILE_TOP_START] = tri.c1 + tri.a1 * dx + tri.b1 * dy;
@@ -3104,9 +2949,6 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 			tileData[CORNER_X1_Y1_E0 + TILE_TOP_START] = tileData[CORNER_X0_Y1_E0 + TILE_TOP_START] + tileData[SPAN_A0 + TILE_TOP_START];
 			tileData[CORNER_X1_Y1_E1 + TILE_TOP_START] = tileData[CORNER_X0_Y1_E1 + TILE_TOP_START] + tileData[SPAN_A1 + TILE_TOP_START];
 			tileData[CORNER_X1_Y1_E2 + TILE_TOP_START] = tileData[CORNER_X0_Y1_E2 + TILE_TOP_START] + tileData[SPAN_A2 + TILE_TOP_START];
-
-			tileData[BIN_ORIGIN_X + TILE_TOP_START] = binOriginX;
-			tileData[BIN_ORIGIN_Y + TILE_TOP_START] = binOriginY;
 		}
 
 

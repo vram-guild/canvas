@@ -539,12 +539,6 @@ public abstract class AbstractTerrainOccluder {
 	protected abstract boolean testTri(int v0, int v1, int v2);
 
 	protected static final class Triangle {
-		// Boumds of current triangle - edge coordinates
-		protected int minX;
-		protected int minY;
-		protected int maxX;
-		protected int maxY;
-
 		// Boumds of current triangle - pixel coordinates
 		protected int minPixelX;
 		protected int minPixelY;
@@ -655,11 +649,6 @@ public abstract class AbstractTerrainOccluder {
 		this.maxPixelX = maxPixelX;
 		this.maxPixelY = maxPixelY;
 
-		this.minX = minX >> PRECISION_BITS;
-		this.minY = minY >> PRECISION_BITS;
-		this.maxX = maxX >> PRECISION_BITS;
-		this.maxY = maxY >> PRECISION_BITS;
-
 		return BoundsResult.IN_BOUNDS;
 		}
 
@@ -690,14 +679,14 @@ public abstract class AbstractTerrainOccluder {
 			final boolean isTopLeft1 = a1 > 0 || (a1 == 0 && b1 < 0);
 			final boolean isTopLeft2 = a2 > 0 || (a2 == 0 && b2 < 0);
 
-			final long cx = (minPixelX << PRECISION_BITS) + PRECISE_PIXEL_CENTER;
-			final long cy = (minPixelY << PRECISION_BITS) + PRECISE_PIXEL_CENTER;
+			//			final long cx = (minPixelX << PRECISION_BITS) + PRECISE_PIXEL_CENTER;
+			//			final long cy = (minPixelY << PRECISION_BITS) + PRECISE_PIXEL_CENTER;
 
 			// Barycentric coordinates at minX/minY corner
 			// Can reduce precision (with accurate rounding) because increments will always be multiple of full pixel width
-			c0 = (int) ((orient2d(x0, y0, x1, y1, cx, cy) + (isTopLeft0 ? PRECISE_PIXEL_CENTER : (PRECISE_PIXEL_CENTER - 1))) >> PRECISION_BITS);
-			c1 = (int) ((orient2d(x1, y1, x2, y2, cx, cy) + (isTopLeft1 ? PRECISE_PIXEL_CENTER : (PRECISE_PIXEL_CENTER - 1))) >> PRECISION_BITS);
-			c2 = (int) ((orient2d(x2, y2, x0, y0, cx, cy) + (isTopLeft2 ? PRECISE_PIXEL_CENTER : (PRECISE_PIXEL_CENTER - 1))) >> PRECISION_BITS);
+			c0 = (int) ((orient2d(x0, y0, x1, y1, 0, 0) + (isTopLeft0 ? PRECISE_PIXEL_CENTER : (PRECISE_PIXEL_CENTER - 1))) >> PRECISION_BITS);
+			c1 = (int) ((orient2d(x1, y1, x2, y2, 0, 0) + (isTopLeft1 ? PRECISE_PIXEL_CENTER : (PRECISE_PIXEL_CENTER - 1))) >> PRECISION_BITS);
+			c2 = (int) ((orient2d(x2, y2, x0, y0, 0, 0) + (isTopLeft2 ? PRECISE_PIXEL_CENTER : (PRECISE_PIXEL_CENTER - 1))) >> PRECISION_BITS);
 
 			this.a0 = a0;
 			this.a1 = a1;
