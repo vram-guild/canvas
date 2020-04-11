@@ -56,18 +56,6 @@ public abstract class AbstractTerrainOccluder {
 
 	protected final int[] vertexData = new int[VERTEX_DATA_LENGTH];
 
-	// Boumds of current triangle - edge coordinates
-	protected int minX;
-	protected int minY;
-	protected int maxX;
-	protected int maxY;
-
-	// Boumds of current triangle - pixel coordinates
-	protected int minPixelX;
-	protected int minPixelY;
-	protected int maxPixelX;
-	protected int maxPixelY;
-
 	protected int xOrigin;
 	protected int yOrigin;
 	protected int zOrigin;
@@ -80,23 +68,9 @@ public abstract class AbstractTerrainOccluder {
 	protected int offsetY;
 	protected int offsetZ;
 
-	// Barycentric coordinates at minX/minY corner
-	protected final int[] wOrigin = new int[3];
-	protected final int[] a = new int[3];
-	protected final int[] b = new int[3];
-	//	protected final int[] wRow = new int[3];
-
-	//	protected final int[] aLow = new int[3];
-	//	protected final int[] bLow = new int[3];
-	//	protected final int[] abLow = new int[3];
-
 	protected int occlusionRange;
 
-	protected int edgeFlags;
-
-	// edge function values at min bounding corner - not pixel centered
-	//	protected final int[] cornerOrigin = new int[3];
-
+	protected final Triangle triangle = new Triangle();
 	// TODO: remove
 	//	protected int totalCount;
 	//	protected int extTrue;
@@ -564,65 +538,98 @@ public abstract class AbstractTerrainOccluder {
 
 	protected abstract boolean testTri(int v0, int v1, int v2);
 
-	/**
-	 *
-	 * @param v0
-	 * @param v1
-	 * @param v2
-	 * @return constant value from BoundsResult
-	 */
-	protected final int prepareTriBounds(int v0, int v1, int v2) {
-		final int[] vertexData = this.vertexData;
-		final int x0 = vertexData[v0 + PV_PX];
-		final int y0 = vertexData[v0 + PV_PY];
-		final int x1 = vertexData[v1 + PV_PX];
-		final int y1 = vertexData[v1 + PV_PY];
-		final int x2 = vertexData[v2 + PV_PX];
-		final int y2 = vertexData[v2 + PV_PY];
+	protected static final class Triangle {
+		// Boumds of current triangle - edge coordinates
+		protected int minX;
+		protected int minY;
+		protected int maxX;
+		protected int maxY;
 
-		int minY = y0;
-		int maxY = y0;
+		// Boumds of current triangle - pixel coordinates
+		protected int minPixelX;
+		protected int minPixelY;
+		protected int maxPixelX;
+		protected int maxPixelY;
 
-		if (y1 < minY) {
-			minY = y1;
-		} else if (y1 > maxY) {
-			maxY = y1;
-		}
+		// Barycentric coordinates at minX/minY corner
+		protected int a0;
+		protected int c0;
+		protected int b0;
+		protected int e0;
 
-		if (y2 < minY) {
-			minY = y2;
-		} else if (y2 > maxY) {
-			maxY = y2;
-		}
+		protected int a1;
+		protected int b1;
+		protected int c1;
+		protected int e1;
 
-		if (maxY < 0 || minY >= PRECISE_HEIGHT) {
-			return BoundsResult.OUT_OF_BOUNDS;
-		}
+		protected int a2;
+		protected int b2;
+		protected int c2;
+		protected int e2;
 
-		int minX = x0;
-		int maxX = x0;
+		// TODO: remove
+		protected int v0 = 0, v1 = 0, v2 = 0;
 
-		if (x1 < minX) {
-			minX = x1;
-		} else if (x1 > maxX) {
-			maxX = x1;
-		}
+		protected static final boolean DEBUG_VERTEX = false;
 
-		if (x2 < minX) {
-			minX = x2;
-		} else if (x2 > maxX) {
-			maxX = x2;
-		}
+		/**
+		 *
+		 * @param v0
+		 * @param v1
+		 * @param v2
+		 * @return constant value from BoundsResult
+		 */
+		protected int prepareBounds(final int[] vertexData, int v0, int v1, int v2) {
+			final int x0 = vertexData[v0 + PV_PX];
+			final int y0 = vertexData[v0 + PV_PY];
+			final int x1 = vertexData[v1 + PV_PX];
+			final int y1 = vertexData[v1 + PV_PY];
+			final int x2 = vertexData[v2 + PV_PX];
+			final int y2 = vertexData[v2 + PV_PY];
 
-		if (maxX < 0 || minX >= PRECISE_WIDTH) {
-			return BoundsResult.OUT_OF_BOUNDS;
-		}
+			int minY = y0;
+			int maxY = y0;
 
-		if (minX < -GUARD_SIZE || minY < -GUARD_SIZE || maxX > GUARD_WIDTH || maxY > GUARD_HEIGHT) {
-			return BoundsResult.NEEDS_CLIP;
-		}
+			if (y1 < minY) {
+				minY = y1;
+			} else if (y1 > maxY) {
+				maxY = y1;
+			}
 
-		int minPixelX = (minX + PRECISE_PIXEL_CENTER - 1) >> PRECISION_BITS;
+			if (y2 < minY) {
+				minY = y2;
+			} else if (y2 > maxY) {
+				maxY = y2;
+			}
+
+			if (maxY < 0 || minY >= PRECISE_HEIGHT) {
+				return BoundsResult.OUT_OF_BOUNDS;
+			}
+
+			int minX = x0;
+			int maxX = x0;
+
+			if (x1 < minX) {
+				minX = x1;
+			} else if (x1 > maxX) {
+				maxX = x1;
+			}
+
+			if (x2 < minX) {
+				minX = x2;
+			} else if (x2 > maxX) {
+				maxX = x2;
+			}
+
+			if (maxX < 0 || minX >= PRECISE_WIDTH) {
+				return BoundsResult.OUT_OF_BOUNDS;
+			}
+
+			if (minX < -GUARD_SIZE || minY < -GUARD_SIZE || maxX > GUARD_WIDTH || maxY > GUARD_HEIGHT) {
+				return BoundsResult.NEEDS_CLIP;
+			}
+
+			int minPixelX = (minX + PRECISE_PIXEL_CENTER - 1) >> PRECISION_BITS;
 		int minPixelY = (minY + PRECISE_PIXEL_CENTER - 1) >> PRECISION_BITS;
 		int maxPixelX = (maxX - PRECISE_PIXEL_CENTER) >> PRECISION_BITS;
 		int maxPixelY = (maxY - PRECISE_PIXEL_CENTER) >> PRECISION_BITS;
@@ -654,6 +661,60 @@ public abstract class AbstractTerrainOccluder {
 		this.maxY = maxY >> PRECISION_BITS;
 
 		return BoundsResult.IN_BOUNDS;
+		}
+
+		protected void prepareScan(final int[] vertexData, int v0, int v1, int v2) {
+
+			if (DEBUG_VERTEX) {
+				this.v0 = v0;
+				this.v1 = v1;
+				this.v2 = v2;
+			}
+
+			final int x0 = vertexData[v0 + PV_PX];
+			final int y0 = vertexData[v0 + PV_PY];
+			final int x1 = vertexData[v1 + PV_PX];
+			final int y1 = vertexData[v1 + PV_PY];
+			final int x2 = vertexData[v2 + PV_PX];
+			final int y2 = vertexData[v2 + PV_PY];
+
+			final int a0 = (y0 - y1);
+			final int b0 = (x1 - x0);
+			final int a1 = (y1 - y2);
+			final int b1 = (x2 - x1);
+			final int a2 = (y2 - y0);
+			final int b2 = (x0 - x2);
+
+
+			final boolean isTopLeft0 = a0 > 0 || (a0 == 0 && b0 < 0);
+			final boolean isTopLeft1 = a1 > 0 || (a1 == 0 && b1 < 0);
+			final boolean isTopLeft2 = a2 > 0 || (a2 == 0 && b2 < 0);
+
+			final long cx = (minPixelX << PRECISION_BITS) + PRECISE_PIXEL_CENTER;
+			final long cy = (minPixelY << PRECISION_BITS) + PRECISE_PIXEL_CENTER;
+
+			// Barycentric coordinates at minX/minY corner
+			// Can reduce precision (with accurate rounding) because increments will always be multiple of full pixel width
+			c0 = (int) ((orient2d(x0, y0, x1, y1, cx, cy) + (isTopLeft0 ? PRECISE_PIXEL_CENTER : (PRECISE_PIXEL_CENTER - 1))) >> PRECISION_BITS);
+			c1 = (int) ((orient2d(x1, y1, x2, y2, cx, cy) + (isTopLeft1 ? PRECISE_PIXEL_CENTER : (PRECISE_PIXEL_CENTER - 1))) >> PRECISION_BITS);
+			c2 = (int) ((orient2d(x2, y2, x0, y0, cx, cy) + (isTopLeft2 ? PRECISE_PIXEL_CENTER : (PRECISE_PIXEL_CENTER - 1))) >> PRECISION_BITS);
+
+			this.a0 = a0;
+			this.a1 = a1;
+			this.a2 = a2;
+
+			this.b0 = b0;
+			this.b1 = b1;
+			this.b2 = b2;
+
+			e0 = edgeFlag(a0, b0);
+			e1 = edgeFlag(a1, b1);
+			e2 = edgeFlag(a2, b2);
+		}
+
+		protected long orient2d(long x0, long y0, long x1, long y1, long cx, long cy) {
+			return ((x1 - x0) * (cy - y0) - (y1 - y0) * (cx - x0));
+		}
 	}
 
 	//	private void prepareTriLowA() {
@@ -674,79 +735,11 @@ public abstract class AbstractTerrainOccluder {
 	//		}
 	//	}
 
-	// TODO: remove
-	protected int v0 = 0, v1 = 0, v2 = 0;
-
-	protected static final boolean DEBUG_VERTEX = false;
-
-	protected void prepareTriScan(int v0, int v1, int v2) {
-
-		if (DEBUG_VERTEX) {
-			this.v0 = v0;
-			this.v1 = v1;
-			this.v2 = v2;
-		}
-
-		final int[] vertexData = this.vertexData;
-		final int x0 = vertexData[v0 + PV_PX];
-		final int y0 = vertexData[v0 + PV_PY];
-		final int x1 = vertexData[v1 + PV_PX];
-		final int y1 = vertexData[v1 + PV_PY];
-		final int x2 = vertexData[v2 + PV_PX];
-		final int y2 = vertexData[v2 + PV_PY];
-
-		final int a0 = (y0 - y1);
-		final int b0 = (x1 - x0);
-		final int a1 = (y1 - y2);
-		final int b1 = (x2 - x1);
-		final int a2 = (y2 - y0);
-		final int b2 = (x0 - x2);
-
-
-		final boolean isTopLeft0 = a0 > 0 || (a0 == 0 && b0 < 0);
-		final boolean isTopLeft1 = a1 > 0 || (a1 == 0 && b1 < 0);
-		final boolean isTopLeft2 = a2 > 0 || (a2 == 0 && b2 < 0);
-
-		final long cx = (minPixelX << PRECISION_BITS) + PRECISE_PIXEL_CENTER;
-		final long cy = (minPixelY << PRECISION_BITS) + PRECISE_PIXEL_CENTER;
-
-		// Barycentric coordinates at minX/minY corner
-		// Can reduce precision (with accurate rounding) because increments will always be multiple of full pixel width
-		wOrigin[0] = (int) ((orient2d(x0, y0, x1, y1, cx, cy) + (isTopLeft0 ? PRECISE_PIXEL_CENTER : (PRECISE_PIXEL_CENTER - 1))) >> PRECISION_BITS);
-		wOrigin[1] = (int) ((orient2d(x1, y1, x2, y2, cx, cy) + (isTopLeft1 ? PRECISE_PIXEL_CENTER : (PRECISE_PIXEL_CENTER - 1))) >> PRECISION_BITS);
-		wOrigin[2] = (int) ((orient2d(x2, y2, x0, y0, cx, cy) + (isTopLeft2 ? PRECISE_PIXEL_CENTER : (PRECISE_PIXEL_CENTER - 1))) >> PRECISION_BITS);
-
-		//		final long ecx = minX << PRECISION_BITS;
-		//		final long ecy = minY << PRECISION_BITS;
-
-		//		cornerOrigin[0] = (int) (orient2d(x0, y0, x1, y1, ecx, ecy) >> PRECISION_BITS);
-		//		cornerOrigin[1] = (int) (orient2d(x1, y1, x2, y2, ecx, ecy) >> PRECISION_BITS);
-		//		cornerOrigin[2] = (int) (orient2d(x2, y2, x0, y0, ecx, ecy) >> PRECISION_BITS);
-
-		a[0] = a0;
-		a[1] = a1;
-		a[2] = a2;
-
-		b[0] = b0;
-		b[1] = b1;
-		b[2] = b2;
-
-		edgeFlags = edgeFlag(a0, b0) | (edgeFlag(a1, b1) << EDGE_SHIFT_1) | (edgeFlag(a2, b2) << EDGE_SHIFT_2);
-
-		//		prepareTriLowA();
-		//		prepareTriLowB();
-		//		prepareTriLowAB();
-	}
-
 	//	protected void computeRow(final int dx, final int dy) {
 	//		for (int i = 0; i < 3; ++i)  {
 	//			wRow[i] = wOrigin[i] + a[i] * dx + b[i] * dy;
 	//		}
 	//	}
-
-	protected final long orient2d(long x0, long y0, long x1, long y1, long cx, long cy) {
-		return ((x1 - x0) * (cy - y0) - (y1 - y0) * (cx - x0));
-	}
 
 	protected  final boolean testPixel(int x, int y) {
 		return (lowBins[lowIndexFromPixelXY(x, y)] & (1L << (pixelIndex(x, y)))) == 0;
@@ -993,6 +986,9 @@ public abstract class AbstractTerrainOccluder {
 		}  else { // a < 0
 			return b > 0 ? EDGE_BOTTOM_RIGHT : EDGE_TOP_RIGHT;
 		}
+	}
+	protected void prepareTriScan(int v0, int v1, int v2) {
+		triangle.prepareScan(vertexData, v0, v1, v2);
 	}
 }
 

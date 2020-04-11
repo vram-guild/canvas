@@ -14,9 +14,9 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 	//	private final int[] bMid = new int[3];
 	//	private final int[] abMid = new int[3];
 
-	private final LowTile lowTile = new LowTile();
-	private final MidTile midTile = new MidTile();
-	private final TopTile topTile = new TopTile();
+	private final LowTile lowTile = new LowTile(triangle);
+	private final MidTile midTile = new MidTile(triangle);
+	private final TopTile topTile = new TopTile(triangle);
 
 	//	private void prepareTriMidA() {
 	//		for (int i = 0; i < 3; ++i) {
@@ -51,7 +51,9 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 
 	@Override
 	protected void drawTri(int v0, int v1, int v2) {
-		final int boundsResult  = prepareTriBounds(v0, v1, v2);
+		final Triangle tri = triangle;
+
+		final int boundsResult  = triangle.prepareBounds(vertexData, v0, v1, v2);
 
 		if (boundsResult == BoundsResult.OUT_OF_BOUNDS) {
 			return;
@@ -65,11 +67,11 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		//  PERF: consider skipping small tris at intermediate ranges (at extreme range only full sections are attempted)
 		prepareTriScan(v0, v1, v2);
 
-		if (minPixelX >> TOP_AXIS_SHIFT == 0) {
+		if (tri.minPixelX >> TOP_AXIS_SHIFT == 0) {
 			drawTriTop(0, 0);
 		}
 
-		if (maxPixelX >> TOP_AXIS_SHIFT == 1) {
+		if (tri.maxPixelX >> TOP_AXIS_SHIFT == 1) {
 			drawTriTop(1, 0);
 		}
 
@@ -504,15 +506,16 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 			return;
 		}
 
+		final Triangle tri = triangle;
 		final int binOriginX = topX << TOP_AXIS_SHIFT;
 		final int binOriginY = topY << TOP_AXIS_SHIFT;
-		final int minPixelX = this.minPixelX;
-		final int minPixelY = this.minPixelY;
+		final int minPixelX = tri.minPixelX;
+		final int minPixelY = tri.minPixelY;
 
 		final int minX = minPixelX < binOriginX ? binOriginX : minPixelX;
 		final int minY = minPixelY < binOriginY ? binOriginY : minPixelY;
-		final int maxX = Math.min(maxPixelX, binOriginX + TOP_BIN_PIXEL_DIAMETER - 1);
-		final int maxY = Math.min(maxPixelY, binOriginY + TOP_BIN_PIXEL_DIAMETER - 1);
+		final int maxX = Math.min(tri.maxPixelX, binOriginX + TOP_BIN_PIXEL_DIAMETER - 1);
+		final int maxY = Math.min(tri.maxPixelY, binOriginY + TOP_BIN_PIXEL_DIAMETER - 1);
 
 		long coverage = coverageMask((minX >> MID_AXIS_SHIFT) & 7, (minY >> MID_AXIS_SHIFT) & 7,
 				(maxX >> MID_AXIS_SHIFT) & 7, (maxY >> MID_AXIS_SHIFT) & 7);
@@ -1509,7 +1512,8 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 
 	@Override
 	protected boolean testTri(int v0, int v1, int v2) {
-		final int boundsResult  = prepareTriBounds(v0, v1, v2);
+		final Triangle tri = triangle;
+		final int boundsResult  = tri.prepareBounds(vertexData, v0, v1, v2);
 
 		if (boundsResult == BoundsResult.OUT_OF_BOUNDS) {
 			return false;
@@ -1521,8 +1525,8 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 
 		prepareTriScan(v0, v1, v2);
 
-		return (minPixelX >> TOP_AXIS_SHIFT == 0 && testTriTop(0, 0))
-				|| (maxPixelX >> TOP_AXIS_SHIFT == 1 && testTriTop(1, 0));
+		return (tri.minPixelX >> TOP_AXIS_SHIFT == 0 && testTriTop(0, 0))
+				|| (tri.maxPixelX >> TOP_AXIS_SHIFT == 1 && testTriTop(1, 0));
 
 		//		final int bx0 = (minPixelX >> TOP_AXIS_SHIFT);
 		//		final int bx1 = (maxPixelX >> TOP_AXIS_SHIFT);
@@ -2439,7 +2443,28 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 	// all coordinates are full precision and corner-oriented unless otherwise noted
 	protected final int[] tileData = new int[TITLE_SIZE * 3];
 
+	private static class AbstractEdge {
+		protected int a0;
+		protected int a1;
+		protected int a2;
+
+		protected int b0;
+		protected int b1;
+		protected int b2;
+
+		protected int span0;
+		protected int span1;
+		protected int span2;
+
+		protected int extent0;
+		protected int extent1;
+		protected int extent2;
+
+	}
+
 	private abstract class AbstractTile {
+		protected final Triangle triangle;
+
 		protected static final int CORNER_X0_Y0_E0 = 0;
 		protected static final int CORNER_X0_Y0_E1 = 1;
 		protected static final int CORNER_X0_Y0_E2 = 2;
@@ -2484,6 +2509,10 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		protected static final int OUTSIDE = 1;
 		protected static final int INTERSECTING = 2;
 		protected static final int INSIDE = 4;
+
+		protected  AbstractTile(Triangle triangle) {
+			this.triangle = triangle;
+		}
 
 		protected final int classify(int edgeFlag, int edgeIndex) {
 			final int w = chooseEdgeValue(edgeFlag, edgeIndex);
@@ -2771,20 +2800,25 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 
 		//		protected int lowX, lowY;
 
+		protected LowTile(Triangle triangle) {
+			super(triangle);
+		}
+
 		public void moveTo(int lowX, int lowY) {
 			final int binOriginX = lowX << LOW_AXIS_SHIFT;
 			final int binOriginY = lowY << LOW_AXIS_SHIFT;
 			final int[] tileData = TerrainOccluder.this.tileData;
+			final Triangle tri = triangle;
 
 			//			this.lowX = lowX;
 			//			this.lowY = lowY;
 
-			final int dx = binOriginX - minPixelX;
-			final int dy = binOriginY - minPixelY;
+			final int dx = binOriginX - tri.minPixelX;
+			final int dy = binOriginY - tri.minPixelY;
 
-			tileData[CORNER_X0_Y0_E0 + TILE_LOW_START] = wOrigin[0] + a[0] * dx + b[0] * dy;
-			tileData[CORNER_X0_Y0_E1 + TILE_LOW_START] = wOrigin[1] + a[1] * dx + b[1] * dy;
-			tileData[CORNER_X0_Y0_E2 + TILE_LOW_START] = wOrigin[2] + a[2] * dx + b[2] * dy;
+			tileData[CORNER_X0_Y0_E0 + TILE_LOW_START] = tri.c0 + tri.a0 * dx + tri.b0 * dy;
+			tileData[CORNER_X0_Y0_E1 + TILE_LOW_START] = tri.c1 + tri.a1 * dx + tri.b1 * dy;
+			tileData[CORNER_X0_Y0_E2 + TILE_LOW_START] = tri.c2 + tri.a2 * dx + tri.b2 * dy;
 
 			tileData[CORNER_X1_Y0_E0 + TILE_LOW_START] = tileData[CORNER_X0_Y0_E0 + TILE_LOW_START] + tileData[SPAN_A0 + TILE_LOW_START];
 			tileData[CORNER_X1_Y0_E1 + TILE_LOW_START] = tileData[CORNER_X0_Y0_E1 + TILE_LOW_START] + tileData[SPAN_A1 + TILE_LOW_START];
@@ -2803,13 +2837,10 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		}
 
 		public long computeCoverage() {
-			final int ef = edgeFlags;
-			final int e0 = ef & EDGE_MASK;
-			final int e1 = (ef >> EDGE_SHIFT_1) & EDGE_MASK;
-			final int e2 = (ef >> EDGE_SHIFT_2);
-			final int c0 = classify(e0, 0 + TILE_LOW_START);
-			final int c1 = classify(e1, 1 + TILE_LOW_START);
-			final int c2 = classify(e2, 2 + TILE_LOW_START);
+			final Triangle tri = triangle;
+			final int c0 = classify(tri.e0, 0 + TILE_LOW_START);
+			final int c1 = classify(tri.e1, 1 + TILE_LOW_START);
+			final int c2 = classify(tri.e2, 2 + TILE_LOW_START);
 
 			final int t = c0 | c1 | c2;
 
@@ -2822,17 +2853,17 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 			long result = -1L;
 
 			if (c0 == INTERSECTING) {
-				final long mask = buildMask(e0, 0 + TILE_LOW_START);
+				final long mask = buildMask(tri.e0, 0 + TILE_LOW_START);
 				result &= mask;
 			}
 
 			if (c1 == INTERSECTING) {
-				final long mask = buildMask(e1, 1 + TILE_LOW_START);
+				final long mask = buildMask(tri.e1, 1 + TILE_LOW_START);
 				result &= mask;
 			}
 
 			if (c2 == INTERSECTING) {
-				final long mask = buildMask(e2, 2 + TILE_LOW_START);
+				final long mask = buildMask(tri.e2, 2 + TILE_LOW_START);
 				result &= mask;
 			}
 
@@ -2864,9 +2895,10 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		 */
 		@Override
 		protected void computeSpan() {
+			final Triangle tri = triangle;
 			final int[] tileData = TerrainOccluder.this.tileData;
-			int i = a[0];
-			int j = b[0];
+			int i = tri.a0;
+			int j = tri.b0;
 			tileData[STEP_A0 + TILE_LOW_START] = i;
 			tileData[STEP_B0 + TILE_LOW_START] = j;
 			tileData[SPAN_A0 + TILE_LOW_START] = i * (LOW_BIN_PIXEL_DIAMETER - 1);
@@ -2874,8 +2906,8 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 			tileData[EXTENT_0 + TILE_LOW_START] = -Math.abs(tileData[SPAN_A0 + TILE_LOW_START]) - Math.abs(tileData[SPAN_B0 + TILE_LOW_START]);
 			//tileData[EXTENT_0 + TILE_LOW_START] = (Math.abs(i) + Math.abs(j)) * -7;
 
-			i = a[1];
-			j = b[1];
+			i = tri.a1;
+			j = tri.b1;
 			tileData[STEP_A1 + TILE_LOW_START] = i;
 			tileData[STEP_B1 + TILE_LOW_START] = j;
 			tileData[SPAN_A1 + TILE_LOW_START] = i * (LOW_BIN_PIXEL_DIAMETER - 1);
@@ -2883,8 +2915,8 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 			tileData[EXTENT_1 + TILE_LOW_START] = -Math.abs(tileData[SPAN_A1 + TILE_LOW_START]) - Math.abs(tileData[SPAN_B1 + TILE_LOW_START]);
 			//			tileData[EXTENT_1 + TILE_LOW_START] = (Math.abs(i) + Math.abs(j)) * -7;
 
-			i = a[2];
-			j = b[2];
+			i = tri.a2;
+			j = tri.b2;
 			tileData[STEP_A2 + TILE_LOW_START] = i;
 			tileData[STEP_B2 + TILE_LOW_START] = j;
 			tileData[SPAN_A2 + TILE_LOW_START] = i * (LOW_BIN_PIXEL_DIAMETER - 1);
@@ -2896,23 +2928,28 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 	}
 
 	private class MidTile extends AbstractTile {
+		protected MidTile(Triangle triangle) {
+			super(triangle);
+		}
+
 		//		protected int midX, midY;
 
 		protected long fullCoverage;
 
 		public void moveTo(int midX, int midY) {
+			final Triangle tri = triangle;
 			final int binOriginX = midX << MID_AXIS_SHIFT;
 			final int binOriginY = midY << MID_AXIS_SHIFT;
 			final int[] tileData = TerrainOccluder.this.tileData;
 			//			this.midX = midX;
 			//			this.midY = midY;
 
-			final int dx = binOriginX - minPixelX;
-			final int dy = binOriginY - minPixelY;
+			final int dx = binOriginX - tri.minPixelX;
+			final int dy = binOriginY - tri.minPixelY;
 
-			tileData[CORNER_X0_Y0_E0 + TILE_MID_START] = wOrigin[0] + a[0] * dx + b[0] * dy;
-			tileData[CORNER_X0_Y0_E1 + TILE_MID_START] = wOrigin[1] + a[1] * dx + b[1] * dy;
-			tileData[CORNER_X0_Y0_E2 + TILE_MID_START] = wOrigin[2] + a[2] * dx + b[2] * dy;
+			tileData[CORNER_X0_Y0_E0 + TILE_MID_START] = tri.c0 + tri.a0 * dx + tri.b0 * dy;
+			tileData[CORNER_X0_Y0_E1 + TILE_MID_START] = tri.c1 + tri.a1 * dx + tri.b1 * dy;
+			tileData[CORNER_X0_Y0_E2 + TILE_MID_START] = tri.c2 + tri.a2 * dx + tri.b2 * dy;
 
 			tileData[CORNER_X1_Y0_E0 + TILE_MID_START] = tileData[CORNER_X0_Y0_E0 + TILE_MID_START] + tileData[SPAN_A0 + TILE_MID_START];
 			tileData[CORNER_X1_Y0_E1 + TILE_MID_START] = tileData[CORNER_X0_Y0_E1 + TILE_MID_START] + tileData[SPAN_A1 + TILE_MID_START];
@@ -2936,13 +2973,10 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		 * @return mask that inclueds edge coverage.
 		 */
 		public long computeCoverage() {
-			final int ef = edgeFlags;
-			final int e0 = ef & EDGE_MASK;
-			final int e1 = (ef >> EDGE_SHIFT_1) & EDGE_MASK;
-			final int e2 = (ef >> EDGE_SHIFT_2);
-			final int c0 = classify(e0, 0 + TILE_MID_START);
-			final int c1 = classify(e1, 1 + TILE_MID_START);
-			final int c2 = classify(e2, 2 + TILE_MID_START);
+			final Triangle tri = triangle;
+			final int c0 = classify(tri.e0, 0 + TILE_MID_START);
+			final int c1 = classify(tri.e1, 1 + TILE_MID_START);
+			final int c2 = classify(tri.e2, 2 + TILE_MID_START);
 
 			final int t = c0 | c1 | c2;
 
@@ -2958,21 +2992,21 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 			long full = -1L;
 
 			if (c0 == INTERSECTING) {
-				final long mask = buildMask(e0, 0 + TILE_MID_START);
+				final long mask = buildMask(tri.e0, 0 + TILE_MID_START);
 				result &= mask;
-				full &= shiftMask(e0, mask);
+				full &= shiftMask(tri.e0, mask);
 			}
 
 			if (c1 == INTERSECTING) {
-				final long mask = buildMask(e1, 1 + TILE_MID_START);
+				final long mask = buildMask(tri.e1, 1 + TILE_MID_START);
 				result &= mask;
-				full &= shiftMask(e1, mask);
+				full &= shiftMask(tri.e1, mask);
 			}
 
 			if (c2 == INTERSECTING) {
-				final long mask = buildMask(e2, 2 + TILE_MID_START);
+				final long mask = buildMask(tri.e2, 2 + TILE_MID_START);
 				result &= mask;
-				full &= shiftMask(e2, mask);
+				full &= shiftMask(tri.e2, mask);
 			}
 
 			fullCoverage = full;
@@ -3004,9 +3038,10 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		 */
 		@Override
 		protected void computeSpan() {
+			final Triangle tri = triangle;
 			final int[] tileData = TerrainOccluder.this.tileData;
-			int i = a[0];
-			int j = b[0];
+			int i = tri.a0;
+			int j = tri.b0;
 			tileData[STEP_A0 + TILE_MID_START] = i * LOW_BIN_PIXEL_DIAMETER;
 			tileData[STEP_B0 + TILE_MID_START] = j * LOW_BIN_PIXEL_DIAMETER;
 			tileData[SPAN_A0 + TILE_MID_START] = i * (MID_BIN_PIXEL_DIAMETER - 1);
@@ -3014,8 +3049,8 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 			tileData[EXTENT_0 + TILE_MID_START] = -Math.abs(tileData[SPAN_A0 + TILE_MID_START]) - Math.abs(tileData[SPAN_B0 + TILE_MID_START]);
 			//tileData[EXTENT_0 + TILE_MID_START] = (Math.abs(i) + Math.abs(j)) * -7;
 
-			i = a[1];
-			j = b[1];
+			i = tri.a1;
+			j = tri.b1;
 			tileData[STEP_A1 + TILE_MID_START] = i * LOW_BIN_PIXEL_DIAMETER;
 			tileData[STEP_B1 + TILE_MID_START] = j * LOW_BIN_PIXEL_DIAMETER;
 			tileData[SPAN_A1 + TILE_MID_START] = i * (MID_BIN_PIXEL_DIAMETER - 1);
@@ -3023,8 +3058,8 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 			tileData[EXTENT_1 + TILE_MID_START] = -Math.abs(tileData[SPAN_A1 + TILE_MID_START]) - Math.abs(tileData[SPAN_B1 + TILE_MID_START]);
 			//tileData[EXTENT_1 + TILE_MID_START] = (Math.abs(i) + Math.abs(j)) * -7;
 
-			i = a[2];
-			j = b[2];
+			i = tri.a2;
+			j = tri.b2;
 			tileData[STEP_A2 + TILE_MID_START] = i * 8;
 			tileData[STEP_B2 + TILE_MID_START] = j * 8;
 			tileData[SPAN_A2 + TILE_MID_START] = i * (MID_BIN_PIXEL_DIAMETER - 1);
@@ -3035,23 +3070,28 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 	}
 
 	private class TopTile extends AbstractTile {
+		protected TopTile(Triangle triangle) {
+			super(triangle);
+		}
+
 		//		protected int topX, topY;
 
 		protected long fullCoverage;
 
 		public void moveTo(int topX, int topY) {
+			final Triangle tri = triangle;
 			final int binOriginX = topX << TOP_AXIS_SHIFT;
 			final int binOriginY = topY << TOP_AXIS_SHIFT;
 			final int[] tileData = TerrainOccluder.this.tileData;
 			//			this.topX = topX;
 			//			this.topY = topY;
 
-			final int dx = binOriginX - minPixelX;
-			final int dy = binOriginY - minPixelY;
+			final int dx = binOriginX - tri.minPixelX;
+			final int dy = binOriginY - tri.minPixelY;
 
-			tileData[CORNER_X0_Y0_E0 + TILE_TOP_START] = wOrigin[0] + a[0] * dx + b[0] * dy;
-			tileData[CORNER_X0_Y0_E1 + TILE_TOP_START] = wOrigin[1] + a[1] * dx + b[1] * dy;
-			tileData[CORNER_X0_Y0_E2 + TILE_TOP_START] = wOrigin[2] + a[2] * dx + b[2] * dy;
+			tileData[CORNER_X0_Y0_E0 + TILE_TOP_START] = tri.c0 + tri.a0 * dx + tri.b0 * dy;
+			tileData[CORNER_X0_Y0_E1 + TILE_TOP_START] = tri.c1 + tri.a1 * dx + tri.b1 * dy;
+			tileData[CORNER_X0_Y0_E2 + TILE_TOP_START] = tri.c2 + tri.a2 * dx + tri.b2 * dy;
 
 			tileData[CORNER_X1_Y0_E0 + TILE_TOP_START] = tileData[CORNER_X0_Y0_E0 + TILE_TOP_START] + tileData[SPAN_A0 + TILE_TOP_START];
 			tileData[CORNER_X1_Y0_E1 + TILE_TOP_START] = tileData[CORNER_X0_Y0_E1 + TILE_TOP_START] + tileData[SPAN_A1 + TILE_TOP_START];
@@ -3075,10 +3115,10 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		 * @return mask that includes edge coverage.
 		 */
 		public long computeCoverage() {
-			final int ef = edgeFlags;
-			final int e0 = ef & EDGE_MASK;
-			final int e1 = (ef >> EDGE_SHIFT_1) & EDGE_MASK;
-			final int e2 = (ef >> EDGE_SHIFT_2);
+			final Triangle tri = triangle;
+			final int e0 = tri.e0;
+			final int e1 = tri.e1;
+			final int e2 = tri.e2;
 			final int c0 = classify(e0, 0 + TILE_TOP_START);
 			final int c1 = classify(e1, 1 + TILE_TOP_START);
 			final int c2 = classify(e2, 2 + TILE_TOP_START);
@@ -3181,9 +3221,10 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		 */
 		@Override
 		protected void computeSpan() {
+			final Triangle tri = triangle;
 			final int[] tileData = TerrainOccluder.this.tileData;
-			int i = a[0];
-			int j = b[0];
+			int i = tri.a0;
+			int j = tri.b0;
 			tileData[STEP_A0 + TILE_TOP_START] = i * MID_BIN_PIXEL_DIAMETER;
 			tileData[STEP_B0 + TILE_TOP_START] = j * MID_BIN_PIXEL_DIAMETER;
 			tileData[SPAN_A0 + TILE_TOP_START] = i * (TOP_BIN_PIXEL_DIAMETER - 1);
@@ -3191,8 +3232,8 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 			tileData[EXTENT_0 + TILE_TOP_START] = -Math.abs(tileData[SPAN_A0 + TILE_TOP_START]) - Math.abs(tileData[SPAN_B0 + TILE_TOP_START]);
 			//tileData[EXTENT_0 + TILE_TOP_START] = (Math.abs(i) + Math.abs(j)) * -7;
 
-			i = a[1];
-			j = b[1];
+			i = tri.a1;
+			j = tri.b1;
 			tileData[STEP_A1 + TILE_TOP_START] = i * MID_BIN_PIXEL_DIAMETER;
 			tileData[STEP_B1 + TILE_TOP_START] = j * MID_BIN_PIXEL_DIAMETER;
 			tileData[SPAN_A1 + TILE_TOP_START] = i * (TOP_BIN_PIXEL_DIAMETER - 1);
@@ -3200,8 +3241,8 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 			tileData[EXTENT_1 + TILE_TOP_START] = -Math.abs(tileData[SPAN_A1 + TILE_TOP_START]) - Math.abs(tileData[SPAN_B1 + TILE_TOP_START]);
 			//tileData[EXTENT_1 + TILE_TOP_START] = (Math.abs(i) + Math.abs(j)) * -7;
 
-			i = a[2];
-			j = b[2];
+			i = tri.a2;
+			j = tri.b2;
 			tileData[STEP_A2 + TILE_TOP_START] = i * MID_BIN_PIXEL_DIAMETER;
 			tileData[STEP_B2 + TILE_TOP_START] = j * MID_BIN_PIXEL_DIAMETER;
 			tileData[SPAN_A2 + TILE_TOP_START] = i * (TOP_BIN_PIXEL_DIAMETER - 1);
