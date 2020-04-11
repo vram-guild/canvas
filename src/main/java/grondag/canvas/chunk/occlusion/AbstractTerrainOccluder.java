@@ -538,28 +538,37 @@ public abstract class AbstractTerrainOccluder {
 
 	protected abstract boolean testTri(int v0, int v1, int v2);
 
-	protected static final class Triangle {
+	public static final class Triangle {
 		// Boumds of current triangle - pixel coordinates
 		protected int minPixelX;
 		protected int minPixelY;
 		protected int maxPixelX;
 		protected int maxPixelY;
 
+
 		// Barycentric coordinates at minX/minY corner
-		protected int a0;
-		protected int c0;
-		protected int b0;
-		protected int e0;
+		public static final class Edge {
+			protected int a;
+			protected int b;
+			protected int c;
+			protected int shape;
 
-		protected int a1;
-		protected int b1;
-		protected int c1;
-		protected int e1;
+			public void prepare(int a, int b, int c) {
+				this.a = a;
+				this.b = b;
+				this.c = c;
+				shape = edgeFlag(a, b);
+			}
 
-		protected int a2;
-		protected int b2;
-		protected int c2;
-		protected int e2;
+			public int compute(int dx, int dy) {
+				return c + a * dx + b * dy;
+			}
+		}
+
+		public final Edge e0 = new Edge();
+		public final Edge e1 = new Edge();
+		public final Edge e2 = new Edge();
+
 
 		// TODO: remove
 		protected int v0 = 0, v1 = 0, v2 = 0;
@@ -679,56 +688,21 @@ public abstract class AbstractTerrainOccluder {
 			final boolean isTopLeft1 = a1 > 0 || (a1 == 0 && b1 < 0);
 			final boolean isTopLeft2 = a2 > 0 || (a2 == 0 && b2 < 0);
 
-			//			final long cx = (minPixelX << PRECISION_BITS) + PRECISE_PIXEL_CENTER;
-			//			final long cy = (minPixelY << PRECISION_BITS) + PRECISE_PIXEL_CENTER;
-
 			// Barycentric coordinates at minX/minY corner
 			// Can reduce precision (with accurate rounding) because increments will always be multiple of full pixel width
-			c0 = (int) ((orient2d(x0, y0, x1, y1, 0, 0) + (isTopLeft0 ? PRECISE_PIXEL_CENTER : (PRECISE_PIXEL_CENTER - 1))) >> PRECISION_BITS);
-			c1 = (int) ((orient2d(x1, y1, x2, y2, 0, 0) + (isTopLeft1 ? PRECISE_PIXEL_CENTER : (PRECISE_PIXEL_CENTER - 1))) >> PRECISION_BITS);
-			c2 = (int) ((orient2d(x2, y2, x0, y0, 0, 0) + (isTopLeft2 ? PRECISE_PIXEL_CENTER : (PRECISE_PIXEL_CENTER - 1))) >> PRECISION_BITS);
+			final int c0 = (int) ((orient2d(x0, y0, x1, y1) + (isTopLeft0 ? PRECISE_PIXEL_CENTER : (PRECISE_PIXEL_CENTER - 1))) >> PRECISION_BITS);
+			final int c1 = (int) ((orient2d(x1, y1, x2, y2) + (isTopLeft1 ? PRECISE_PIXEL_CENTER : (PRECISE_PIXEL_CENTER - 1))) >> PRECISION_BITS);
+			final int c2 = (int) ((orient2d(x2, y2, x0, y0) + (isTopLeft2 ? PRECISE_PIXEL_CENTER : (PRECISE_PIXEL_CENTER - 1))) >> PRECISION_BITS);
 
-			this.a0 = a0;
-			this.a1 = a1;
-			this.a2 = a2;
-
-			this.b0 = b0;
-			this.b1 = b1;
-			this.b2 = b2;
-
-			e0 = edgeFlag(a0, b0);
-			e1 = edgeFlag(a1, b1);
-			e2 = edgeFlag(a2, b2);
+			e0.prepare(a0, b0, c0);
+			e1.prepare(a1, b1, c1);
+			e2.prepare(a2, b2, c2);
 		}
 
-		protected long orient2d(long x0, long y0, long x1, long y1, long cx, long cy) {
-			return ((x1 - x0) * (cy - y0) - (y1 - y0) * (cx - x0));
+		protected long orient2d(long x0, long y0, long x1, long y1) {
+			return (y1 - y0) * x0 - (x1 - x0) * y0;
 		}
 	}
-
-	//	private void prepareTriLowA() {
-	//		for (int i = 0; i < 3; ++i) {
-	//			aLow[i] = a[i] * LOW_BIN_PIXEL_DIAMETER_VECTOR[i];
-	//		}
-	//	}
-	//
-	//	private void prepareTriLowB() {
-	//		for (int i = 0; i < 3; ++i) {
-	//			bLow[i] = b[i] * LOW_BIN_PIXEL_DIAMETER_VECTOR[i];
-	//		}
-	//	}
-	//
-	//	private void prepareTriLowAB() {
-	//		for (int i = 0; i < 3; ++i) {
-	//			abLow[i] = aLow[i] + bLow[i];
-	//		}
-	//	}
-
-	//	protected void computeRow(final int dx, final int dy) {
-	//		for (int i = 0; i < 3; ++i)  {
-	//			wRow[i] = wOrigin[i] + a[i] * dx + b[i] * dy;
-	//		}
-	//	}
 
 	protected  final boolean testPixel(int x, int y) {
 		return (lowBins[lowIndexFromPixelXY(x, y)] & (1L << (pixelIndex(x, y)))) == 0;
