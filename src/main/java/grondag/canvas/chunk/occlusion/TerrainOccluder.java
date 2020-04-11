@@ -19,6 +19,7 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 
 	private final LowTile lowTile = new LowTile();
 	private final MidTile midTile = new MidTile();
+	private final TopTile topTile = new TopTile();
 
 	//	private void prepareTriMidA() {
 	//		for (int i = 0; i < 3; ++i) {
@@ -45,8 +46,10 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		//		prepareTriMidB();
 		//		prepareTriMidAB();
 
+		// PERF:  make these lazy
 		lowTile.computeSpan();
 		midTile.computeSpan();
+		topTile.computeSpan();
 	}
 
 	@Override
@@ -65,23 +68,437 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		//  PERF: consider skipping small tris at intermediate ranges (at extreme range only full sections are attempted)
 		prepareTriScan(v0, v1, v2);
 
-		final int bx0 = minPixelX >> TOP_AXIS_SHIFT;
-		final int bx1 = maxPixelX >> TOP_AXIS_SHIFT;
-		final int by0 = minPixelY >> TOP_AXIS_SHIFT;
-		final int by1 = maxPixelY >> TOP_AXIS_SHIFT;
+		if (minPixelX >> TOP_AXIS_SHIFT == 0) {
+			drawTriTop(0, 0);
+		}
 
-		if (bx0 == bx1 && by0 == by1) {
-			drawTriTop(bx0, by0);
-		} else {
-			for (int by = by0; by <= by1; by++) {
-				for (int bx = bx0; bx <= bx1; bx++) {
-					drawTriTop(bx, by);
-				}
+		if (maxPixelX >> TOP_AXIS_SHIFT == 1) {
+			drawTriTop(1, 0);
+		}
+
+		//		final int bx0 = minPixelX >> TOP_AXIS_SHIFT;
+		//		final int bx1 = maxPixelX >> TOP_AXIS_SHIFT;
+		//
+		//		if (minPixelX >> TOP_AXIS_SHIFT == 0) {
+		//			drawTriTop(0, 0);
+		//		}
+
+		//		final int by0 = minPixelY >> TOP_AXIS_SHIFT;
+		//		final int by1 = maxPixelY >> TOP_AXIS_SHIFT;
+
+		//		if (bx0 == bx1 && by0 == by1) {
+		//			drawTriTop(bx0, by0);
+		//		} else {
+		//			for (int by = by0; by <= by1; by++) {
+		//				for (int bx = bx0; bx <= bx1; bx++) {
+		//					drawTriTop(bx, by);
+		//				}
+		//			}
+		//		}
+	}
+
+	private boolean debugTop = false;
+
+	private void drawTriTop(final int topX, final int topY) {
+		topTile.moveTo(topX, topY);
+		final long newWordPartial = topTile.computeCoverage();
+		final int index = topIndex(topX, topY) << 1; // shift because two words per index
+		final long oldWordPartial = topBins[index + OFFSET_PARTIAL];
+
+		if (newWordPartial == 0) {
+			return;
+		}
+
+		final long oldWordFull = topBins[index + OFFSET_FULL];
+		final long newWordFull = topTile.fullCoverage;
+		long wordFull = oldWordFull;
+		long wordPartial = oldWordPartial;
+
+		if (newWordFull != 0) {
+			doMidFullTiles(topX, topY, newWordFull & ~oldWordFull);
+			wordFull |= newWordFull;
+			wordPartial |= newWordFull;
+
+			if (wordFull == -1L) {
+				topBins[index + OFFSET_FULL] = -1L;
+				topBins[index + OFFSET_PARTIAL] = -1L;
+				return;
 			}
+		}
+
+		long coverage = newWordPartial & ~wordFull;
+
+		if (coverage != 0) {
+
+			final int baseX = topX << BIN_AXIS_SHIFT;
+			int baseY = topY << BIN_AXIS_SHIFT;
+
+			for (int y = 0; y < 8; y++) {
+				final int bits = (int) coverage & 0xFF;
+				int setBits = 0;
+
+				switch (bits & 0xF) {
+				case 0b0000:
+					break;
+
+				case 0b0001:
+					setBits |= drawTriMid(baseX + 0, baseY);
+					break;
+
+				case 0b0010:
+					setBits |= drawTriMid(baseX + 1, baseY) << 1;
+					break;
+
+				case 0b0011:
+					setBits |= drawTriMid(baseX + 0, baseY);
+					setBits |= drawTriMid(baseX + 1, baseY) << 1;
+					break;
+
+				case 0b0100:
+					setBits |= drawTriMid(baseX + 2, baseY) << 2;
+					break;
+
+				case 0b0101:
+					setBits |= drawTriMid(baseX + 0, baseY);
+					setBits |= drawTriMid(baseX + 2, baseY) << 2;
+					break;
+
+				case 0b0110:
+					setBits |= drawTriMid(baseX + 1, baseY) << 1;
+					setBits |= drawTriMid(baseX + 2, baseY) << 2;
+					break;
+
+				case 0b0111:
+					setBits |= drawTriMid(baseX + 0, baseY);
+					setBits |= drawTriMid(baseX + 1, baseY) << 1;
+					setBits |= drawTriMid(baseX + 2, baseY) << 2;
+					break;
+
+				case 0b1000:
+					setBits |= drawTriMid(baseX + 3, baseY) << 3;
+					break;
+
+				case 0b1001:
+					setBits |= drawTriMid(baseX + 0, baseY);
+					setBits |= drawTriMid(baseX + 3, baseY) << 3;
+					break;
+
+				case 0b1010:
+					setBits |= drawTriMid(baseX + 1, baseY) << 1;
+					setBits |= drawTriMid(baseX + 3, baseY) << 3;
+					break;
+
+				case 0b1011:
+					setBits |= drawTriMid(baseX + 0, baseY);
+					setBits |= drawTriMid(baseX + 1, baseY) << 1;
+					setBits |= drawTriMid(baseX + 3, baseY) << 3;
+					break;
+
+				case 0b1100:
+					setBits |= drawTriMid(baseX + 2, baseY) << 2;
+					setBits |= drawTriMid(baseX + 3, baseY) << 3;
+					break;
+
+				case 0b1101:
+					setBits |= drawTriMid(baseX + 0, baseY);
+					setBits |= drawTriMid(baseX + 2, baseY) << 2;
+					setBits |= drawTriMid(baseX + 3, baseY) << 3;
+					break;
+
+				case 0b1110:
+					setBits |= drawTriMid(baseX + 1, baseY) << 1;
+					setBits |= drawTriMid(baseX + 2, baseY) << 2;
+					setBits |= drawTriMid(baseX + 3, baseY) << 3;
+					break;
+
+				case 0b1111:
+					setBits |= drawTriMid(baseX + 0, baseY);
+					setBits |= drawTriMid(baseX + 1, baseY) << 1;
+					setBits |= drawTriMid(baseX + 2, baseY) << 2;
+					setBits |= drawTriMid(baseX + 3, baseY) << 3;
+					break;
+				}
+
+				switch (bits >> 4) {
+				case 0b0000:
+					break;
+
+				case 0b0001:
+					setBits |= drawTriMid(baseX + 4, baseY) << 4;
+					break;
+
+				case 0b0010:
+					setBits |= drawTriMid(baseX + 5, baseY) << 5;
+					break;
+
+				case 0b0011:
+					setBits |= drawTriMid(baseX + 4, baseY) << 4;
+					setBits |= drawTriMid(baseX + 5, baseY) << 5;
+					break;
+
+				case 0b0100:
+					setBits |= drawTriMid(baseX + 6, baseY) << 6;
+					break;
+
+				case 0b0101:
+					setBits |= drawTriMid(baseX + 4, baseY) << 4;
+					setBits |= drawTriMid(baseX + 6, baseY) << 6;
+					break;
+
+				case 0b0110:
+					setBits |= drawTriMid(baseX + 5, baseY) << 5;
+					setBits |= drawTriMid(baseX + 6, baseY) << 6;
+					break;
+
+				case 0b0111:
+					setBits |= drawTriMid(baseX + 4, baseY) << 4;
+					setBits |= drawTriMid(baseX + 5, baseY) << 5;
+					setBits |= drawTriMid(baseX + 6, baseY) << 6;
+					break;
+
+				case 0b1000:
+					setBits |= drawTriMid(baseX + 7, baseY) << 7;
+					break;
+
+				case 0b1001:
+					setBits |= drawTriMid(baseX + 4, baseY) << 4;
+					setBits |= drawTriMid(baseX + 7, baseY) << 7;
+					break;
+
+				case 0b1010:
+					setBits |= drawTriMid(baseX + 5, baseY) << 5;
+					setBits |= drawTriMid(baseX + 7, baseY) << 7;
+					break;
+
+				case 0b1011:
+					setBits |= drawTriMid(baseX + 4, baseY) << 4;
+					setBits |= drawTriMid(baseX + 5, baseY) << 5;
+					setBits |= drawTriMid(baseX + 7, baseY) << 7;
+					break;
+
+				case 0b1100:
+					setBits |= drawTriMid(baseX + 6, baseY) << 6;
+					setBits |= drawTriMid(baseX + 7, baseY) << 7;
+					break;
+
+				case 0b1101:
+					setBits |= drawTriMid(baseX + 4, baseY) << 4;
+					setBits |= drawTriMid(baseX + 6, baseY) << 6;
+					setBits |= drawTriMid(baseX + 7, baseY) << 7;
+					break;
+
+				case 0b1110:
+					setBits |= drawTriMid(baseX + 5, baseY) << 5;
+					setBits |= drawTriMid(baseX + 6, baseY) << 6;
+					setBits |= drawTriMid(baseX + 7, baseY) << 7;
+					break;
+
+				case 0b1111:
+					setBits |= drawTriMid(baseX + 4, baseY) << 4;
+					setBits |= drawTriMid(baseX + 5, baseY) << 5;
+					setBits |= drawTriMid(baseX + 6, baseY) << 6;
+					setBits |= drawTriMid(baseX + 7, baseY) << 7;
+					break;
+				}
+
+				if (setBits != 0) {
+					final long fullMask = ((long) setBits >> 8) << (y << 3);
+					wordFull |= fullMask;
+					wordPartial |= fullMask | ((setBits & 0xFFL) << (y << 3));
+				}
+
+				++baseY;
+				coverage >>= 8;
+			}
+		}
+
+		wordPartial |= wordFull;
+		topBins[index + OFFSET_FULL] = wordFull;
+		topBins[index + OFFSET_PARTIAL] = wordPartial;
+	}
+
+	private void doMidFullTiles(final int topX, final int topY, long coverage) {
+		if (coverage == 0) {
+			return;
+		}
+
+		final int baseX = topX << BIN_AXIS_SHIFT;
+		int baseY = topY << BIN_AXIS_SHIFT;
+
+		for (int y = 0; y < 8; y++) {
+			final int bits = (int) coverage & 0xFF;
+
+			switch (bits & 0xF) {
+			case 0b0000:
+				break;
+
+			case 0b0001:
+				fillMidBin(baseX + 0, baseY);
+				break;
+
+			case 0b0010:
+				fillMidBin(baseX + 1, baseY);
+				break;
+
+			case 0b0011:
+				fillMidBin(baseX + 0, baseY);
+				fillMidBin(baseX + 1, baseY);
+				break;
+
+			case 0b0100:
+				fillMidBin(baseX + 2, baseY);
+				break;
+
+			case 0b0101:
+				fillMidBin(baseX + 0, baseY);
+				fillMidBin(baseX + 2, baseY);
+				break;
+
+			case 0b0110:
+				fillMidBin(baseX + 1, baseY);
+				fillMidBin(baseX + 2, baseY);
+				break;
+
+			case 0b0111:
+				fillMidBin(baseX + 0, baseY);
+				fillMidBin(baseX + 1, baseY);
+				fillMidBin(baseX + 2, baseY);
+				break;
+
+			case 0b1000:
+				fillMidBin(baseX + 3, baseY);
+				break;
+
+			case 0b1001:
+				fillMidBin(baseX + 0, baseY);
+				fillMidBin(baseX + 3, baseY);
+				break;
+
+			case 0b1010:
+				fillMidBin(baseX + 1, baseY);
+				fillMidBin(baseX + 3, baseY);
+				break;
+
+			case 0b1011:
+				fillMidBin(baseX + 0, baseY);
+				fillMidBin(baseX + 1, baseY);
+				fillMidBin(baseX + 3, baseY);
+				break;
+
+			case 0b1100:
+				fillMidBin(baseX + 2, baseY);
+				fillMidBin(baseX + 3, baseY);
+				break;
+
+			case 0b1101:
+				fillMidBin(baseX + 0, baseY);
+				fillMidBin(baseX + 2, baseY);
+				fillMidBin(baseX + 3, baseY);
+				break;
+
+			case 0b1110:
+				fillMidBin(baseX + 1, baseY);
+				fillMidBin(baseX + 2, baseY);
+				fillMidBin(baseX + 3, baseY);
+				break;
+
+			case 0b1111:
+				fillMidBin(baseX + 0, baseY);
+				fillMidBin(baseX + 1, baseY);
+				fillMidBin(baseX + 2, baseY);
+				fillMidBin(baseX + 3, baseY);
+				break;
+			}
+
+			switch (bits >> 4) {
+			case 0b0000:
+				break;
+
+			case 0b0001:
+				fillMidBin(baseX + 4, baseY);
+				break;
+
+			case 0b0010:
+				fillMidBin(baseX + 5, baseY);
+				break;
+
+			case 0b0011:
+				fillMidBin(baseX + 4, baseY);
+				fillMidBin(baseX + 5, baseY);
+				break;
+
+			case 0b0100:
+				fillMidBin(baseX + 6, baseY);
+				break;
+
+			case 0b0101:
+				fillMidBin(baseX + 4, baseY);
+				fillMidBin(baseX + 6, baseY);
+				break;
+
+			case 0b0110:
+				fillMidBin(baseX + 5, baseY);
+				fillMidBin(baseX + 6, baseY);
+				break;
+
+			case 0b0111:
+				fillMidBin(baseX + 4, baseY);
+				fillMidBin(baseX + 5, baseY);
+				fillMidBin(baseX + 6, baseY);
+				break;
+
+			case 0b1000:
+				fillMidBin(baseX + 7, baseY);
+				break;
+
+			case 0b1001:
+				fillMidBin(baseX + 4, baseY);
+				fillMidBin(baseX + 7, baseY);
+				break;
+
+			case 0b1010:
+				fillMidBin(baseX + 5, baseY);
+				fillMidBin(baseX + 7, baseY);
+				break;
+
+			case 0b1011:
+				fillMidBin(baseX + 4, baseY);
+				fillMidBin(baseX + 5, baseY);
+				fillMidBin(baseX + 7, baseY);
+				break;
+
+			case 0b1100:
+				fillMidBin(baseX + 6, baseY);
+				fillMidBin(baseX + 7, baseY);
+				break;
+
+			case 0b1101:
+				fillMidBin(baseX + 4, baseY);
+				fillMidBin(baseX + 6, baseY);
+				fillMidBin(baseX + 7, baseY);
+				break;
+
+			case 0b1110:
+				fillMidBin(baseX + 5, baseY);
+				fillMidBin(baseX + 6, baseY);
+				fillMidBin(baseX + 7, baseY);
+				break;
+
+			case 0b1111:
+				fillMidBin(baseX + 4, baseY);
+				fillMidBin(baseX + 5, baseY);
+				fillMidBin(baseX + 6, baseY);
+				fillMidBin(baseX + 7, baseY);
+				break;
+			}
+
+			++baseY;
+			coverage >>= 8;
 		}
 	}
 
-	private void drawTriTop(final int topX, final int topY) {
+	@SuppressWarnings("unused")
+	private void drawTriTopOld(final int topX, final int topY) {
 		final int index = topIndex(topX, topY) << 1; // shift because two words per index
 		long wordFull = topBins[index + OFFSET_FULL];
 
@@ -134,18 +551,24 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		topBins[index + OFFSET_PARTIAL] = wordPartial;
 	}
 
-	//	private void fillMidBinChildren(final int midX, final int midY) {
-	//		final int lowX0 = midX << 3;
-	//		final int lowY0 = midY << 3;
-	//		final int lowX1 = lowX0 + 7;
-	//		final int lowY1 = lowY0 + 7;
-	//
-	//		for (int lowY = lowY0; lowY <= lowY1; lowY++) {
-	//			for (int lowX = lowX0; lowX <= lowX1; lowX++) {
-	//				lowBins[lowIndex(lowX, lowY)] = -1L;
-	//			}
-	//		}
-	//	}
+	// PERF: do this with arrayCopy
+	private void fillMidBin(final int midX, final int midY) {
+		final int index = midIndex(midX, midY) << 1;
+		midBins[index + OFFSET_FULL] = -1L;
+		midBins[index + OFFSET_PARTIAL] = -1L;
+
+		final int lowX0 = midX << 3;
+		final int lowY0 = midY << 3;
+		final int lowX1 = lowX0 + 7;
+		final int lowY1 = lowY0 + 7;
+		final long[] lowBins = this.lowBins;
+
+		for (int lowY = lowY0; lowY <= lowY1; lowY++) {
+			for (int lowX = lowX0; lowX <= lowX1; lowX++) {
+				lowBins[lowIndex(lowX, lowY)] = -1L;
+			}
+		}
+	}
 
 	private boolean debugMid = false;
 
@@ -212,6 +635,7 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		if (newWordFull != 0) {
 			doLowFullTiles(midX, midY, newWordFull & ~oldWordFull);
 			wordFull |= newWordFull;
+			wordPartial |= newWordFull;
 
 			if (wordFull == -1L) {
 				midBins[index + OFFSET_FULL] = -1L;
@@ -1102,27 +1526,264 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 
 		prepareTriScan(v0, v1, v2);
 
-		final int bx0 = (minPixelX >> TOP_AXIS_SHIFT);
-		final int bx1 = (maxPixelX >> TOP_AXIS_SHIFT);
-		final int by0 = (minPixelY >> TOP_AXIS_SHIFT);
-		final int by1 = maxPixelY >> TOP_AXIS_SHIFT;
+		return (minPixelX >> TOP_AXIS_SHIFT == 0 && testTriTop(0, 0))
+				|| (maxPixelX >> TOP_AXIS_SHIFT == 1 && testTriTop(1, 0));
 
-					if (bx0 == bx1 && by0 == by1) {
-						return testTriTop(bx0, by0);
-					} else {
-						for (int by = by0; by <= by1; by++) {
-							for (int bx = bx0; bx <= bx1; bx++) {
-								if (testTriTop(bx, by)) {
-									return true;
-								}
-							}
-						}
+		//		final int bx0 = (minPixelX >> TOP_AXIS_SHIFT);
+		//		final int bx1 = (maxPixelX >> TOP_AXIS_SHIFT);
+		//		final int by0 = (minPixelY >> TOP_AXIS_SHIFT);
+		//		final int by1 = maxPixelY >> TOP_AXIS_SHIFT;
+		//
+		//					if (bx0 == bx1 && by0 == by1) {
+		//						return testTriTop(bx0, by0);
+		//					} else {
+		//						for (int by = by0; by <= by1; by++) {
+		//							for (int bx = bx0; bx <= bx1; bx++) {
+		//								if (testTriTop(bx, by)) {
+		//									return true;
+		//								}
+		//							}
+		//						}
+		//
+		//						return false;
+		//					}
+	}
 
-						return false;
-					}
+	@SuppressWarnings("unused")
+	private boolean testTriTopWithCompare(final int topX, final int topY) {
+		final boolean oldResult = testTriTopOld(topX,  topY);
+		final boolean newResult = testTriTop(topX,  topY);
+
+		if (newResult != oldResult) {
+			final int index = topIndex(topX, topY) << 1; // shift because two words per index
+			System.out.println("INPUT WORD - FULL: " + oldResult);
+			printMask8x8(topBins[index + OFFSET_FULL]);
+			System.out.println("INPUT WORD - PARTIAL: " + oldResult);
+			printMask8x8(topBins[index + OFFSET_PARTIAL]);
+			System.out.println();
+
+			debugTop = true;
+			testTriTop(topX,  topY);
+			debugTop = false;
+
+			testTriTop(topX,  topY);
+			System.out.println();
+		}
+
+		return newResult;
 	}
 
 	private boolean testTriTop(final int topX, final int topY) {
+		topTile.moveTo(topX, topY);
+		final int index = topIndex(topX, topY) << 1; // shift because two words per index
+		final long notFull = ~topBins[index + OFFSET_FULL];
+
+		long coverage = topTile.computeCoverage() & notFull;
+
+		// if all covered tiles are full, then nothing visible
+		if (coverage  == 0)  {
+			return false;
+		}
+
+		final long fullCoverage = topTile.fullCoverage;
+
+		// if any fully covered tile is not full then must be visible
+		if  ((fullCoverage & notFull) != 0) {
+			return true;
+		}
+
+		// don't check full tiles - they would have been caught earlier
+		coverage &= ~fullCoverage;
+
+		// PERF: is this always true? Significantly increases visible count
+		// if any partially covered tiles are fully empty then must be visible
+		//		if ((coverage & ~topBins[index + OFFSET_PARTIAL]) != 0) {
+		//			return true;
+		//		}
+
+		if (coverage == 0) {
+			// nothing left to check
+			return false;
+		}
+
+		final int baseX = topX << BIN_AXIS_SHIFT;
+		int baseY = topY << BIN_AXIS_SHIFT;
+
+		for (int y = 0; y < 8; y++) {
+			final int bits = (int) coverage & 0xFF;
+
+			switch (bits & 0xF) {
+			case 0b0000:
+				break;
+
+			case 0b0001:
+				if (testTriMid(baseX + 0, baseY)) return true;
+				break;
+
+			case 0b0010:
+				if (testTriMid(baseX + 1, baseY)) return true;
+				break;
+
+			case 0b0011:
+				if (testTriMid(baseX + 0, baseY)) return true;
+				if (testTriMid(baseX + 1, baseY)) return true;
+				break;
+
+			case 0b0100:
+				if (testTriMid(baseX + 2, baseY)) return true;
+				break;
+
+			case 0b0101:
+				if (testTriMid(baseX + 0, baseY)) return true;
+				if (testTriMid(baseX + 2, baseY)) return true;
+				break;
+
+			case 0b0110:
+				if (testTriMid(baseX + 1, baseY)) return true;
+				if (testTriMid(baseX + 2, baseY)) return true;
+				break;
+
+			case 0b0111:
+				if (testTriMid(baseX + 0, baseY)) return true;
+				if (testTriMid(baseX + 1, baseY)) return true;
+				if (testTriMid(baseX + 2, baseY)) return true;
+				break;
+
+			case 0b1000:
+				if (testTriMid(baseX + 3, baseY)) return true;
+				break;
+
+			case 0b1001:
+				if (testTriMid(baseX + 0, baseY)) return true;
+				if (testTriMid(baseX + 3, baseY)) return true;
+				break;
+
+			case 0b1010:
+				if (testTriMid(baseX + 1, baseY)) return true;
+				if (testTriMid(baseX + 3, baseY)) return true;
+				break;
+
+			case 0b1011:
+				if (testTriMid(baseX + 0, baseY)) return true;
+				if (testTriMid(baseX + 1, baseY)) return true;
+				if (testTriMid(baseX + 3, baseY)) return true;
+				break;
+
+			case 0b1100:
+				if (testTriMid(baseX + 2, baseY)) return true;
+				if (testTriMid(baseX + 3, baseY)) return true;
+				break;
+
+			case 0b1101:
+				if (testTriMid(baseX + 0, baseY)) return true;
+				if (testTriMid(baseX + 2, baseY)) return true;
+				if (testTriMid(baseX + 3, baseY)) return true;
+				break;
+
+			case 0b1110:
+				if (testTriMid(baseX + 1, baseY)) return true;
+				if (testTriMid(baseX + 2, baseY)) return true;
+				if (testTriMid(baseX + 3, baseY)) return true;
+				break;
+
+			case 0b1111:
+				if (testTriMid(baseX + 0, baseY)) return true;
+				if (testTriMid(baseX + 1, baseY)) return true;
+				if (testTriMid(baseX + 2, baseY)) return true;
+				if (testTriMid(baseX + 3, baseY)) return true;
+				break;
+			}
+
+			switch (bits >> 4) {
+			case 0b0000:
+				break;
+
+			case 0b0001:
+				if (testTriMid(baseX + 4, baseY)) return true;
+				break;
+
+			case 0b0010:
+				if (testTriMid(baseX + 5, baseY)) return true;
+				break;
+
+			case 0b0011:
+				if (testTriMid(baseX + 4, baseY)) return true;
+				if (testTriMid(baseX + 5, baseY)) return true;
+				break;
+
+			case 0b0100:
+				if (testTriMid(baseX + 6, baseY)) return true;
+				break;
+
+			case 0b0101:
+				if (testTriMid(baseX + 4, baseY)) return true;
+				if (testTriMid(baseX + 6, baseY)) return true;
+				break;
+
+			case 0b0110:
+				if (testTriMid(baseX + 5, baseY)) return true;
+				if (testTriMid(baseX + 6, baseY)) return true;
+				break;
+
+			case 0b0111:
+				if (testTriMid(baseX + 4, baseY)) return true;
+				if (testTriMid(baseX + 5, baseY)) return true;
+				if (testTriMid(baseX + 6, baseY)) return true;
+				break;
+
+			case 0b1000:
+				if (testTriMid(baseX + 7, baseY)) return true;
+				break;
+
+			case 0b1001:
+				if (testTriMid(baseX + 4, baseY)) return true;
+				if (testTriMid(baseX + 7, baseY)) return true;
+				break;
+
+			case 0b1010:
+				if (testTriMid(baseX + 5, baseY)) return true;
+				if (testTriMid(baseX + 7, baseY)) return true;
+				break;
+
+			case 0b1011:
+				if (testTriMid(baseX + 4, baseY)) return true;
+				if (testTriMid(baseX + 5, baseY)) return true;
+				if (testTriMid(baseX + 7, baseY)) return true;
+				break;
+
+			case 0b1100:
+				if (testTriMid(baseX + 6, baseY)) return true;
+				if (testTriMid(baseX + 7, baseY)) return true;
+				break;
+
+			case 0b1101:
+				if (testTriMid(baseX + 4, baseY)) return true;
+				if (testTriMid(baseX + 6, baseY)) return true;
+				if (testTriMid(baseX + 7, baseY)) return true;
+				break;
+
+			case 0b1110:
+				if (testTriMid(baseX + 5, baseY)) return true;
+				if (testTriMid(baseX + 6, baseY)) return true;
+				if (testTriMid(baseX + 7, baseY)) return true;
+				break;
+
+			case 0b1111:
+				if (testTriMid(baseX + 4, baseY)) return true;
+				if (testTriMid(baseX + 5, baseY)) return true;
+				if (testTriMid(baseX + 6, baseY)) return true;
+				if (testTriMid(baseX + 7, baseY)) return true;
+				break;
+			}
+
+			++baseY;
+			coverage >>= 8;
+		}
+
+		return false;
+	}
+
+	private boolean testTriTopOld(final int topX, final int topY) {
 		final int index = topIndex(topX, topY) << 1; // shift because two words per index
 		final long wordFull = topBins[index + OFFSET_FULL];
 
@@ -1227,10 +1888,11 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		// don't check full tiles - they would have been caught earlier
 		coverage &= ~fullCoverage;
 
-		// if any partially covered tiles are fully empty the must be visible
-		if ((coverage & ~midBins[index + OFFSET_PARTIAL]) != 0) {
-			return true;
-		}
+		// PERF: is this always true? Significantly increases visible count
+		// if any partially covered tiles are fully empty then must be visible
+		//		if ((coverage & ~midBins[index + OFFSET_PARTIAL]) != 0) {
+		//			return true;
+		//		}
 
 		if (coverage == 0) {
 			// nothing left to check
@@ -1777,9 +2439,10 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 	protected static final int TITLE_SIZE = 29;
 	protected static final int TILE_LOW_START = 0;
 	protected static final int TILE_MID_START = TILE_LOW_START + TITLE_SIZE;
+	protected static final int TILE_TOP_START = TILE_MID_START + TITLE_SIZE;
 
 	// all coordinates are full precision and corner-oriented unless otherwise noted
-	protected final int[] tileData = new int[TITLE_SIZE * 2];
+	protected final int[] tileData = new int[TITLE_SIZE * 3];
 
 	private abstract class AbstractTile {
 		protected static final int CORNER_X0_Y0_E0 = 0;
@@ -2420,8 +3083,8 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 			final int[] tileData = TerrainOccluder.this.tileData;
 			int i = a[0];
 			int j = b[0];
-			tileData[STEP_A0 + TILE_MID_START] = i * 8;
-			tileData[STEP_B0 + TILE_MID_START] = j * 8;
+			tileData[STEP_A0 + TILE_MID_START] = i * LOW_BIN_PIXEL_DIAMETER;
+			tileData[STEP_B0 + TILE_MID_START] = j * LOW_BIN_PIXEL_DIAMETER;
 			tileData[SPAN_A0 + TILE_MID_START] = i * (MID_BIN_PIXEL_DIAMETER - 1);
 			tileData[SPAN_B0 + TILE_MID_START] = j * (MID_BIN_PIXEL_DIAMETER - 1);
 			tileData[EXTENT_0 + TILE_MID_START] = -Math.abs(tileData[SPAN_A0 + TILE_MID_START]) - Math.abs(tileData[SPAN_B0 + TILE_MID_START]);
@@ -2429,8 +3092,8 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 
 			i = a[1];
 			j = b[1];
-			tileData[STEP_A1 + TILE_MID_START] = i * 8;
-			tileData[STEP_B1 + TILE_MID_START] = j * 8;
+			tileData[STEP_A1 + TILE_MID_START] = i * LOW_BIN_PIXEL_DIAMETER;
+			tileData[STEP_B1 + TILE_MID_START] = j * LOW_BIN_PIXEL_DIAMETER;
 			tileData[SPAN_A1 + TILE_MID_START] = i * (MID_BIN_PIXEL_DIAMETER - 1);
 			tileData[SPAN_B1 + TILE_MID_START] = j * (MID_BIN_PIXEL_DIAMETER - 1);
 			tileData[EXTENT_1 + TILE_MID_START] = -Math.abs(tileData[SPAN_A1 + TILE_MID_START]) - Math.abs(tileData[SPAN_B1 + TILE_MID_START]);
@@ -2444,6 +3107,191 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 			tileData[SPAN_B2 + TILE_MID_START] = j * (MID_BIN_PIXEL_DIAMETER - 1);
 			tileData[EXTENT_2 + TILE_MID_START] = -Math.abs(tileData[SPAN_A2 + TILE_MID_START]) - Math.abs(tileData[SPAN_B2 + TILE_MID_START]);
 			//			tileData[EXTENT_2 + TILE_MID_START] = (Math.abs(i) + Math.abs(j)) * -7;
+		}
+	}
+
+	private class TopTile extends AbstractTile {
+		protected int topX, topY;
+
+		protected long fullCoverage;
+
+		public void moveTo(int topX, int topY) {
+			final int binOriginX = topX << TOP_AXIS_SHIFT;
+			final int binOriginY = topY << TOP_AXIS_SHIFT;
+			final int[] tileData = TerrainOccluder.this.tileData;
+			this.topX = topX;
+			this.topY = topY;
+
+			final int dx = binOriginX - minPixelX;
+			final int dy = binOriginY - minPixelY;
+
+			tileData[CORNER_X0_Y0_E0 + TILE_TOP_START] = wOrigin[0] + a[0] * dx + b[0] * dy;
+			tileData[CORNER_X0_Y0_E1 + TILE_TOP_START] = wOrigin[1] + a[1] * dx + b[1] * dy;
+			tileData[CORNER_X0_Y0_E2 + TILE_TOP_START] = wOrigin[2] + a[2] * dx + b[2] * dy;
+
+			tileData[CORNER_X1_Y0_E0 + TILE_TOP_START] = tileData[CORNER_X0_Y0_E0 + TILE_TOP_START] + tileData[SPAN_A0 + TILE_TOP_START];
+			tileData[CORNER_X1_Y0_E1 + TILE_TOP_START] = tileData[CORNER_X0_Y0_E1 + TILE_TOP_START] + tileData[SPAN_A1 + TILE_TOP_START];
+			tileData[CORNER_X1_Y0_E2 + TILE_TOP_START] = tileData[CORNER_X0_Y0_E2 + TILE_TOP_START] + tileData[SPAN_A2 + TILE_TOP_START];
+
+			tileData[CORNER_X0_Y1_E0 + TILE_TOP_START] = tileData[CORNER_X0_Y0_E0 + TILE_TOP_START] + tileData[SPAN_B0 + TILE_TOP_START];
+			tileData[CORNER_X0_Y1_E1 + TILE_TOP_START] = tileData[CORNER_X0_Y0_E1 + TILE_TOP_START] + tileData[SPAN_B1 + TILE_TOP_START];
+			tileData[CORNER_X0_Y1_E2 + TILE_TOP_START] = tileData[CORNER_X0_Y0_E2 + TILE_TOP_START] + tileData[SPAN_B2 + TILE_TOP_START];
+
+			tileData[CORNER_X1_Y1_E0 + TILE_TOP_START] = tileData[CORNER_X0_Y1_E0 + TILE_TOP_START] + tileData[SPAN_A0 + TILE_TOP_START];
+			tileData[CORNER_X1_Y1_E1 + TILE_TOP_START] = tileData[CORNER_X0_Y1_E1 + TILE_TOP_START] + tileData[SPAN_A1 + TILE_TOP_START];
+			tileData[CORNER_X1_Y1_E2 + TILE_TOP_START] = tileData[CORNER_X0_Y1_E2 + TILE_TOP_START] + tileData[SPAN_A2 + TILE_TOP_START];
+
+			tileData[BIN_ORIGIN_X + TILE_TOP_START] = binOriginX;
+			tileData[BIN_ORIGIN_Y + TILE_TOP_START] = binOriginY;
+		}
+
+
+		/**
+		 *
+		 * @return mask that includes edge coverage.
+		 */
+		public long computeCoverage() {
+			final int ef = edgeFlags;
+			final int e0 = ef & EDGE_MASK;
+			final int e1 = (ef >> EDGE_SHIFT_1) & EDGE_MASK;
+			final int e2 = (ef >> EDGE_SHIFT_2);
+
+			final long m0;
+			int c = classify(e0, 0 + TILE_TOP_START);
+
+			if (c == INTERSECTING) {
+				m0 = buildMask(e0, 0 + TILE_TOP_START);
+				fullCoverage = shiftMask(e0, m0);
+			} else if (c == OUTSIDE){
+				m0 = 0;
+				fullCoverage = 0;
+				//	return 0;
+			} else {
+				m0 = -1L;
+				fullCoverage = -1L;
+			}
+
+
+			final long m1;
+			c = classify(e1, 1 + TILE_TOP_START);
+
+			if (c == INTERSECTING) {
+				m1 = buildMask(e1, 1 + TILE_TOP_START);
+				fullCoverage &= shiftMask(e1, m1);
+			} else if (c == OUTSIDE){
+				m1 = 0;
+				fullCoverage = 0;
+				//return 0;
+			} else {
+				m1 = -1L;
+			}
+
+
+			final long m2;
+			c = classify(e2, 2 + TILE_TOP_START);
+
+			if (c == INTERSECTING) {
+				m2 = buildMask(e2, 2 + TILE_TOP_START);
+				fullCoverage &= shiftMask(e2, m2);
+			} else if (c == OUTSIDE){
+				m2 = 0;
+				fullCoverage = 0;
+				//return 0;
+			} else {
+				m2 = -1L;
+			}
+
+			final long result = m0 & m1 & m2;
+
+			if  (debugTop) {
+				System.out.println("E0 = " + e0);
+				printMask8x8(m0);
+				System.out.println();
+				System.out.println("E1 = " + e1);
+				printMask8x8(m1);
+				System.out.println();
+				System.out.println("E2 = " + e2);
+				printMask8x8(m2);
+				System.out.println();
+
+				System.out.println("COMBINED");
+				printMask8x8(m0 & m1 & m2);
+
+				final float x0 = vertexData[v0 + PV_PX] / 16f;
+				final float y0 = vertexData[v0 + PV_PY] / 16f;
+				final float x1 = vertexData[v1 + PV_PX] / 16f;
+				final float y1 = vertexData[v1 + PV_PY] / 16f;
+				final float x2 = vertexData[v2 + PV_PX] / 16f;
+				final float y2 = vertexData[v2 + PV_PY] / 16f;
+
+				System.out.println();
+				System.out.println(String.format("E00: %d, %d, %d", tileData[CORNER_X0_Y0_E0 + TILE_TOP_START], tileData[CORNER_X0_Y0_E1 + TILE_TOP_START], tileData[CORNER_X0_Y0_E2 + TILE_TOP_START]));
+				System.out.println(String.format("E10: %d, %d, %d", tileData[CORNER_X1_Y0_E0 + TILE_TOP_START], tileData[CORNER_X1_Y0_E1 + TILE_TOP_START], tileData[CORNER_X1_Y0_E2 + TILE_TOP_START]));
+				System.out.println(String.format("E01: %d, %d, %d", tileData[CORNER_X0_Y1_E0 + TILE_TOP_START], tileData[CORNER_X0_Y1_E1 + TILE_TOP_START], tileData[CORNER_X0_Y1_E2 + TILE_TOP_START]));
+				System.out.println(String.format("E11: %d, %d, %d", tileData[CORNER_X1_Y1_E0 + TILE_TOP_START], tileData[CORNER_X1_Y1_E1 + TILE_TOP_START], tileData[CORNER_X1_Y1_E2 + TILE_TOP_START]));
+				System.out.println();
+				System.out.println(String.format("Points: %f\t%f\t%f\t%f\t%f\t%f", x0, y0, x1, y1, x2, y2));
+				System.out.println(String.format("A,B: (%d, %d)  (%d, %d)  (%d, %d)", a[0], b[0], a[1], b[1], a[2], b[2]));
+				System.out.println(String.format("Edges: %d, %d, %d", e0, e1, e2));
+				System.out.println(String.format("origin: (%d, %d)", topX << MID_AXIS_SHIFT,  topY << MID_AXIS_SHIFT));
+				System.out.println();
+			}
+
+			return result;
+		}
+
+		/**
+		 *
+		 * Edge functions are line equations: ax + by + c = 0 where c is the origin value
+		 * a and b are normal to the line/edge.
+		 *
+		 * Distance from point to line is given by (ax + by + c) / magnitude
+		 * where magnitude is sqrt(a^2 + b^2).
+		 *
+		 * A tile is fully outside the edge if signed distance less than -extent, where
+		 * extent is the 7x7 diagonal vector projected onto the edge normal.
+		 *
+		 * The length of the extent is given by  (|a| + |b|) * 7 / magnitude.
+		 *
+		 * Given that magnitude is a common denominator of both the signed distance and the extent
+		 * we can avoid computing square root and compare the weight directly with the un-normalized  extent.
+		 *
+		 * In summary,  if extent e = (|a| + |b|) * 7 and w = ax + by + c then
+		 *    when w < -e  tile is fully outside edge
+		 *    when w >= 0 tile is fully inside edge (or touching)
+		 *    else (-e <= w < 0) tile is intersection (at least one pixel is covered.
+		 *
+		 * For background, see Real Time Rendering, 4th Ed.  Sec 23.1 on Rasterization, esp. Figure 23.3
+		 */
+		@Override
+		protected void computeSpan() {
+			final int[] tileData = TerrainOccluder.this.tileData;
+			int i = a[0];
+			int j = b[0];
+			tileData[STEP_A0 + TILE_TOP_START] = i * MID_BIN_PIXEL_DIAMETER;
+			tileData[STEP_B0 + TILE_TOP_START] = j * MID_BIN_PIXEL_DIAMETER;
+			tileData[SPAN_A0 + TILE_TOP_START] = i * (TOP_BIN_PIXEL_DIAMETER - 1);
+			tileData[SPAN_B0 + TILE_TOP_START] = j * (TOP_BIN_PIXEL_DIAMETER - 1);
+			tileData[EXTENT_0 + TILE_TOP_START] = -Math.abs(tileData[SPAN_A0 + TILE_TOP_START]) - Math.abs(tileData[SPAN_B0 + TILE_TOP_START]);
+			//tileData[EXTENT_0 + TILE_TOP_START] = (Math.abs(i) + Math.abs(j)) * -7;
+
+			i = a[1];
+			j = b[1];
+			tileData[STEP_A1 + TILE_TOP_START] = i * MID_BIN_PIXEL_DIAMETER;
+			tileData[STEP_B1 + TILE_TOP_START] = j * MID_BIN_PIXEL_DIAMETER;
+			tileData[SPAN_A1 + TILE_TOP_START] = i * (TOP_BIN_PIXEL_DIAMETER - 1);
+			tileData[SPAN_B1 + TILE_TOP_START] = j * (TOP_BIN_PIXEL_DIAMETER - 1);
+			tileData[EXTENT_1 + TILE_TOP_START] = -Math.abs(tileData[SPAN_A1 + TILE_TOP_START]) - Math.abs(tileData[SPAN_B1 + TILE_TOP_START]);
+			//tileData[EXTENT_1 + TILE_TOP_START] = (Math.abs(i) + Math.abs(j)) * -7;
+
+			i = a[2];
+			j = b[2];
+			tileData[STEP_A2 + TILE_TOP_START] = i * MID_BIN_PIXEL_DIAMETER;
+			tileData[STEP_B2 + TILE_TOP_START] = j * MID_BIN_PIXEL_DIAMETER;
+			tileData[SPAN_A2 + TILE_TOP_START] = i * (TOP_BIN_PIXEL_DIAMETER - 1);
+			tileData[SPAN_B2 + TILE_TOP_START] = j * (TOP_BIN_PIXEL_DIAMETER - 1);
+			tileData[EXTENT_2 + TILE_TOP_START] = -Math.abs(tileData[SPAN_A2 + TILE_TOP_START]) - Math.abs(tileData[SPAN_B2 + TILE_TOP_START]);
+			//			tileData[EXTENT_2 + TILE_TOP_START] = (Math.abs(i) + Math.abs(j)) * -7;
 		}
 	}
 
