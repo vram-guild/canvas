@@ -677,11 +677,15 @@ public abstract class AbstractTerrainOccluder {
 	// TODO: remove
 	protected int v0 = 0, v1 = 0, v2 = 0;
 
+	protected static final boolean DEBUG_VERTEX = false;
+
 	protected void prepareTriScan(int v0, int v1, int v2) {
 
-		this.v0 = v0;
-		this.v1 = v1;
-		this.v2 = v2;
+		if (DEBUG_VERTEX) {
+			this.v0 = v0;
+			this.v1 = v1;
+			this.v2 = v2;
+		}
 
 		final int[] vertexData = this.vertexData;
 		final int x0 = vertexData[v0 + PV_PX];

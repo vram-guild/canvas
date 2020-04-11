@@ -97,7 +97,7 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		//		}
 	}
 
-	private boolean debugTop = false;
+	private final boolean debugTop = false;
 
 	private void drawTriTop(final int topX, final int topY) {
 		topTile.moveTo(topX, topY);
@@ -570,7 +570,7 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		}
 	}
 
-	private boolean debugMid = false;
+	private final boolean debugMid = false;
 
 	//	@SuppressWarnings("unused")
 	//	private int drawTriMidWithCompare(final int midX, final int midY) {
@@ -1549,29 +1549,29 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		//					}
 	}
 
-	@SuppressWarnings("unused")
-	private boolean testTriTopWithCompare(final int topX, final int topY) {
-		final boolean oldResult = testTriTopOld(topX,  topY);
-		final boolean newResult = testTriTop(topX,  topY);
-
-		if (newResult != oldResult) {
-			final int index = topIndex(topX, topY) << 1; // shift because two words per index
-			System.out.println("INPUT WORD - FULL: " + oldResult);
-			printMask8x8(topBins[index + OFFSET_FULL]);
-			System.out.println("INPUT WORD - PARTIAL: " + oldResult);
-			printMask8x8(topBins[index + OFFSET_PARTIAL]);
-			System.out.println();
-
-			debugTop = true;
-			testTriTop(topX,  topY);
-			debugTop = false;
-
-			testTriTop(topX,  topY);
-			System.out.println();
-		}
-
-		return newResult;
-	}
+	//	@SuppressWarnings("unused")
+	//	private boolean testTriTopWithCompare(final int topX, final int topY) {
+	//		final boolean oldResult = testTriTopOld(topX,  topY);
+	//		final boolean newResult = testTriTop(topX,  topY);
+	//
+	//		if (newResult != oldResult) {
+	//			final int index = topIndex(topX, topY) << 1; // shift because two words per index
+	//			System.out.println("INPUT WORD - FULL: " + oldResult);
+	//			printMask8x8(topBins[index + OFFSET_FULL]);
+	//			System.out.println("INPUT WORD - PARTIAL: " + oldResult);
+	//			printMask8x8(topBins[index + OFFSET_PARTIAL]);
+	//			System.out.println();
+	//
+	//			debugTop = true;
+	//			testTriTop(topX,  topY);
+	//			debugTop = false;
+	//
+	//			testTriTop(topX,  topY);
+	//			System.out.println();
+	//		}
+	//
+	//		return newResult;
+	//	}
 
 	private boolean testTriTop(final int topX, final int topY) {
 		topTile.moveTo(topX, topY);
@@ -1783,87 +1783,87 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		return false;
 	}
 
-	private boolean testTriTopOld(final int topX, final int topY) {
-		final int index = topIndex(topX, topY) << 1; // shift because two words per index
-		final long wordFull = topBins[index + OFFSET_FULL];
+	//	private boolean testTriTopOld(final int topX, final int topY) {
+	//		final int index = topIndex(topX, topY) << 1; // shift because two words per index
+	//		final long wordFull = topBins[index + OFFSET_FULL];
+	//
+	//		if (wordFull == -1L) {
+	//			// bin fully occluded
+	//			return false;
+	//		}
+	//
+	//		final long wordPartial = topBins[index + OFFSET_PARTIAL];
+	//
+	//		if (wordPartial == 0) {
+	//			// bin has no occlusion
+	//			return true;
+	//		}
+	//
+	//		final int binOriginX = topX << TOP_AXIS_SHIFT;
+	//		final int binOriginY = topY << TOP_AXIS_SHIFT;
+	//		final int minPixelX = this.minPixelX;
+	//		final int minPixelY = this.minPixelY;
+	//
+	//		final int minX = minPixelX < binOriginX ? binOriginX : minPixelX;
+	//		final int minY = minPixelY < binOriginY ? binOriginY : minPixelY;
+	//		final int maxX = Math.min(maxPixelX, binOriginX + TOP_BIN_PIXEL_DIAMETER - 1);
+	//		final int maxY = Math.min(maxPixelY, binOriginY + TOP_BIN_PIXEL_DIAMETER - 1);
+	//
+	//		long coverage = coverageMask((minX >> MID_AXIS_SHIFT) & 7, (minY >> MID_AXIS_SHIFT) & 7,
+	//				(maxX >> MID_AXIS_SHIFT) & 7, (maxY >> MID_AXIS_SHIFT) & 7);
+	//
+	//		coverage &= ~wordFull;
+	//
+	//		if (coverage == 0) {
+	//			// all bins fully occluded
+	//			return false;
+	//		}
+	//
+	//		if ((coverage & wordPartial) == 0) {
+	//			// no bins are occluded
+	//			return true;
+	//		}
+	//
+	//		final int baseX = topX << BIN_AXIS_SHIFT;
+	//		final int baseY = topY << BIN_AXIS_SHIFT;
+	//
+	//		long mask = 1;
+	//
+	//
+	//		for (int n = 0; n < 64; ++n) {
+	//			if ((mask & coverage) != 0 && testTriMid(baseX + (n & 7), baseY + (n >> 3))) {
+	//				return true;
+	//			}
+	//
+	//			mask <<= 1;
+	//		}
+	//
+	//		return false;
+	//	}
 
-		if (wordFull == -1L) {
-			// bin fully occluded
-			return false;
-		}
-
-		final long wordPartial = topBins[index + OFFSET_PARTIAL];
-
-		if (wordPartial == 0) {
-			// bin has no occlusion
-			return true;
-		}
-
-		final int binOriginX = topX << TOP_AXIS_SHIFT;
-		final int binOriginY = topY << TOP_AXIS_SHIFT;
-		final int minPixelX = this.minPixelX;
-		final int minPixelY = this.minPixelY;
-
-		final int minX = minPixelX < binOriginX ? binOriginX : minPixelX;
-		final int minY = minPixelY < binOriginY ? binOriginY : minPixelY;
-		final int maxX = Math.min(maxPixelX, binOriginX + TOP_BIN_PIXEL_DIAMETER - 1);
-		final int maxY = Math.min(maxPixelY, binOriginY + TOP_BIN_PIXEL_DIAMETER - 1);
-
-		long coverage = coverageMask((minX >> MID_AXIS_SHIFT) & 7, (minY >> MID_AXIS_SHIFT) & 7,
-				(maxX >> MID_AXIS_SHIFT) & 7, (maxY >> MID_AXIS_SHIFT) & 7);
-
-		coverage &= ~wordFull;
-
-		if (coverage == 0) {
-			// all bins fully occluded
-			return false;
-		}
-
-		if ((coverage & wordPartial) == 0) {
-			// no bins are occluded
-			return true;
-		}
-
-		final int baseX = topX << BIN_AXIS_SHIFT;
-		final int baseY = topY << BIN_AXIS_SHIFT;
-
-		long mask = 1;
-
-
-		for (int n = 0; n < 64; ++n) {
-			if ((mask & coverage) != 0 && testTriMid(baseX + (n & 7), baseY + (n >> 3))) {
-				return true;
-			}
-
-			mask <<= 1;
-		}
-
-		return false;
-	}
-
-	@SuppressWarnings("unused")
-	private boolean testTriMidWithCompare(final int midX, final int midY) {
-		final boolean oldResult = testTriMidOld(midX,  midY);
-		final boolean newResult = testTriMid(midX,  midY);
-
-		if (newResult != oldResult) {
-			final int index = midIndex(midX, midY) << 1; // shift because two words per index
-			System.out.println("INPUT WORD - FULL: " + oldResult);
-			printMask8x8(midBins[index + OFFSET_FULL]);
-			System.out.println("INPUT WORD - PARTIAL: " + oldResult);
-			printMask8x8(midBins[index + OFFSET_PARTIAL]);
-			System.out.println();
-
-			debugMid = true;
-			testTriMid(midX,  midY);
-			debugMid = false;
-
-			testTriMid(midX,  midY);
-			System.out.println();
-		}
-
-		return newResult;
-	}
+	//	@SuppressWarnings("unused")
+	//	private boolean testTriMidWithCompare(final int midX, final int midY) {
+	//		final boolean oldResult = testTriMidOld(midX,  midY);
+	//		final boolean newResult = testTriMid(midX,  midY);
+	//
+	//		if (newResult != oldResult) {
+	//			final int index = midIndex(midX, midY) << 1; // shift because two words per index
+	//			System.out.println("INPUT WORD - FULL: " + oldResult);
+	//			printMask8x8(midBins[index + OFFSET_FULL]);
+	//			System.out.println("INPUT WORD - PARTIAL: " + oldResult);
+	//			printMask8x8(midBins[index + OFFSET_PARTIAL]);
+	//			System.out.println();
+	//
+	//			debugMid = true;
+	//			testTriMid(midX,  midY);
+	//			debugMid = false;
+	//
+	//			testTriMid(midX,  midY);
+	//			System.out.println();
+	//		}
+	//
+	//		return newResult;
+	//	}
 
 
 	private boolean testTriMid(final int midX, final int midY) {
@@ -2076,249 +2076,249 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		return false;
 	}
 
-	private boolean testTriMidOld(final int midX, final int midY) {
-		final int index = midIndex(midX, midY) << 1; // shift because two words per index
-		final long wordFull = midBins[index + OFFSET_FULL];
-		final long wordPartial = midBins[index + OFFSET_PARTIAL];
-
-		final int binOriginX = midX << MID_AXIS_SHIFT;
-		final int binOriginY = midY << MID_AXIS_SHIFT;
-		final int minPixelX = this.minPixelX;
-		final int minPixelY = this.minPixelY;
-
-		final int minX = minPixelX < binOriginX ? binOriginX : minPixelX;
-		final int minY = minPixelY < binOriginY ? binOriginY : minPixelY;
-		final int maxX = Math.min(maxPixelX, binOriginX + MID_BIN_PIXEL_DIAMETER - 1);
-		final int maxY = Math.min(maxPixelY, binOriginY + MID_BIN_PIXEL_DIAMETER - 1);
-
-		final int lowX0 = minX >>> LOW_AXIS_SHIFT;
-		final int lowX1 = maxX >>> LOW_AXIS_SHIFT;
-		final int lowY0 = (minY >>> LOW_AXIS_SHIFT);
-		final int lowY1 = maxY >>> LOW_AXIS_SHIFT;
-
-		if (lowX0 == lowX1)  {
-			if (lowY0 == lowY1) {
-				// single  bin
-				final long mask = pixelMask(lowX0, lowY0);
-				return (wordPartial & mask) == 0 || ((wordFull & mask) == 0 && testTriLow(lowX0, lowY0));
-			} else {
-				// single column
-				long mask = pixelMask(lowX0, lowY0);
-
-				for (int y = lowY0; y <= lowY1; ++y) {
-					if ((wordPartial & mask) == 0 || ((wordFull & mask) == 0 && testTriLow(lowX0, y))) {
-						return true;
-					}
-
-					mask  <<= 8;
-				}
-
-				return false;
-			}
-
-		} else if (lowY0 == lowY1) {
-			// single row
-			long mask = pixelMask(lowX0, lowY0);
-
-			for (int x = lowX0; x <= lowX1; ++x) {
-				if ((wordPartial & mask) == 0 || ((wordFull & mask) == 0 && testTriLow(x, lowY0))) {
-					return true;
-				}
-
-				mask  <<= 1;
-			}
-
-			return false;
-		}
-
-		long coverage = coverageMask(lowX0 & 7, lowY0 & 7, lowX1 & 7, lowY1 & 7);
-
-		coverage &= ~wordFull;
-
-		if (coverage == 0) {
-			return false;
-		}
-
-		if ((coverage & wordPartial) == 0) {
-			return true;
-		}
-
-		final int baseX = midX << BIN_AXIS_SHIFT;
-		int baseY = midY << BIN_AXIS_SHIFT;
-
-		for (int y = 0; y < 8; y++) {
-			final int bits = (int) coverage & 0xFF;
-
-			switch (bits & 0xF) {
-			case 0b0000:
-				break;
-
-			case 0b0001:
-				if (testTriLow(baseX + 0, baseY)) return true;
-				break;
-
-			case 0b0010:
-				if (testTriLow(baseX + 1, baseY)) return true;
-				break;
-
-			case 0b0011:
-				if (testTriLow(baseX + 0, baseY)) return true;
-				if (testTriLow(baseX + 1, baseY)) return true;
-				break;
-
-			case 0b0100:
-				if (testTriLow(baseX + 2, baseY)) return true;
-				break;
-
-			case 0b0101:
-				if (testTriLow(baseX + 0, baseY)) return true;
-				if (testTriLow(baseX + 2, baseY)) return true;
-				break;
-
-			case 0b0110:
-				if (testTriLow(baseX + 1, baseY)) return true;
-				if (testTriLow(baseX + 2, baseY)) return true;
-				break;
-
-			case 0b0111:
-				if (testTriLow(baseX + 0, baseY)) return true;
-				if (testTriLow(baseX + 1, baseY)) return true;
-				if (testTriLow(baseX + 2, baseY)) return true;
-				break;
-
-			case 0b1000:
-				if (testTriLow(baseX + 3, baseY)) return true;
-				break;
-
-			case 0b1001:
-				if (testTriLow(baseX + 0, baseY)) return true;
-				if (testTriLow(baseX + 3, baseY)) return true;
-				break;
-
-			case 0b1010:
-				if (testTriLow(baseX + 1, baseY)) return true;
-				if (testTriLow(baseX + 3, baseY)) return true;
-				break;
-
-			case 0b1011:
-				if (testTriLow(baseX + 0, baseY)) return true;
-				if (testTriLow(baseX + 1, baseY)) return true;
-				if (testTriLow(baseX + 3, baseY)) return true;
-				break;
-
-			case 0b1100:
-				if (testTriLow(baseX + 2, baseY)) return true;
-				if (testTriLow(baseX + 3, baseY)) return true;
-				break;
-
-			case 0b1101:
-				if (testTriLow(baseX + 0, baseY)) return true;
-				if (testTriLow(baseX + 2, baseY)) return true;
-				if (testTriLow(baseX + 3, baseY)) return true;
-				break;
-
-			case 0b1110:
-				if (testTriLow(baseX + 1, baseY)) return true;
-				if (testTriLow(baseX + 2, baseY)) return true;
-				if (testTriLow(baseX + 3, baseY)) return true;
-				break;
-
-			case 0b1111:
-				if (testTriLow(baseX + 0, baseY)) return true;
-				if (testTriLow(baseX + 1, baseY)) return true;
-				if (testTriLow(baseX + 2, baseY)) return true;
-				if (testTriLow(baseX + 3, baseY)) return true;
-				break;
-			}
-
-			switch (bits >> 4) {
-			case 0b0000:
-				break;
-
-			case 0b0001:
-				if (testTriLow(baseX + 4, baseY)) return true;
-				break;
-
-			case 0b0010:
-				if (testTriLow(baseX + 5, baseY)) return true;
-				break;
-
-			case 0b0011:
-				if (testTriLow(baseX + 4, baseY)) return true;
-				if (testTriLow(baseX + 5, baseY)) return true;
-				break;
-
-			case 0b0100:
-				if (testTriLow(baseX + 6, baseY)) return true;
-				break;
-
-			case 0b0101:
-				if (testTriLow(baseX + 4, baseY)) return true;
-				if (testTriLow(baseX + 6, baseY)) return true;
-				break;
-
-			case 0b0110:
-				if (testTriLow(baseX + 5, baseY)) return true;
-				if (testTriLow(baseX + 6, baseY)) return true;
-				break;
-
-			case 0b0111:
-				if (testTriLow(baseX + 4, baseY)) return true;
-				if (testTriLow(baseX + 5, baseY)) return true;
-				if (testTriLow(baseX + 6, baseY)) return true;
-				break;
-
-			case 0b1000:
-				if (testTriLow(baseX + 7, baseY)) return true;
-				break;
-
-			case 0b1001:
-				if (testTriLow(baseX + 4, baseY)) return true;
-				if (testTriLow(baseX + 7, baseY)) return true;
-				break;
-
-			case 0b1010:
-				if (testTriLow(baseX + 5, baseY)) return true;
-				if (testTriLow(baseX + 7, baseY)) return true;
-				break;
-
-			case 0b1011:
-				if (testTriLow(baseX + 4, baseY)) return true;
-				if (testTriLow(baseX + 5, baseY)) return true;
-				if (testTriLow(baseX + 7, baseY)) return true;
-				break;
-
-			case 0b1100:
-				if (testTriLow(baseX + 6, baseY)) return true;
-				if (testTriLow(baseX + 7, baseY)) return true;
-				break;
-
-			case 0b1101:
-				if (testTriLow(baseX + 4, baseY)) return true;
-				if (testTriLow(baseX + 6, baseY)) return true;
-				if (testTriLow(baseX + 7, baseY)) return true;
-				break;
-
-			case 0b1110:
-				if (testTriLow(baseX + 5, baseY)) return true;
-				if (testTriLow(baseX + 6, baseY)) return true;
-				if (testTriLow(baseX + 7, baseY)) return true;
-				break;
-
-			case 0b1111:
-				if (testTriLow(baseX + 4, baseY)) return true;
-				if (testTriLow(baseX + 5, baseY)) return true;
-				if (testTriLow(baseX + 6, baseY)) return true;
-				if (testTriLow(baseX + 7, baseY)) return true;
-				break;
-			}
-
-			++baseY;
-			coverage >>= 8;
-		}
-
-		return false;
-	}
+	//	private boolean testTriMidOld(final int midX, final int midY) {
+	//		final int index = midIndex(midX, midY) << 1; // shift because two words per index
+	//		final long wordFull = midBins[index + OFFSET_FULL];
+	//		final long wordPartial = midBins[index + OFFSET_PARTIAL];
+	//
+	//		final int binOriginX = midX << MID_AXIS_SHIFT;
+	//		final int binOriginY = midY << MID_AXIS_SHIFT;
+	//		final int minPixelX = this.minPixelX;
+	//		final int minPixelY = this.minPixelY;
+	//
+	//		final int minX = minPixelX < binOriginX ? binOriginX : minPixelX;
+	//		final int minY = minPixelY < binOriginY ? binOriginY : minPixelY;
+	//		final int maxX = Math.min(maxPixelX, binOriginX + MID_BIN_PIXEL_DIAMETER - 1);
+	//		final int maxY = Math.min(maxPixelY, binOriginY + MID_BIN_PIXEL_DIAMETER - 1);
+	//
+	//		final int lowX0 = minX >>> LOW_AXIS_SHIFT;
+	//		final int lowX1 = maxX >>> LOW_AXIS_SHIFT;
+	//		final int lowY0 = (minY >>> LOW_AXIS_SHIFT);
+	//		final int lowY1 = maxY >>> LOW_AXIS_SHIFT;
+	//
+	//		if (lowX0 == lowX1)  {
+	//			if (lowY0 == lowY1) {
+	//				// single  bin
+	//				final long mask = pixelMask(lowX0, lowY0);
+	//				return (wordPartial & mask) == 0 || ((wordFull & mask) == 0 && testTriLow(lowX0, lowY0));
+	//			} else {
+	//				// single column
+	//				long mask = pixelMask(lowX0, lowY0);
+	//
+	//				for (int y = lowY0; y <= lowY1; ++y) {
+	//					if ((wordPartial & mask) == 0 || ((wordFull & mask) == 0 && testTriLow(lowX0, y))) {
+	//						return true;
+	//					}
+	//
+	//					mask  <<= 8;
+	//				}
+	//
+	//				return false;
+	//			}
+	//
+	//		} else if (lowY0 == lowY1) {
+	//			// single row
+	//			long mask = pixelMask(lowX0, lowY0);
+	//
+	//			for (int x = lowX0; x <= lowX1; ++x) {
+	//				if ((wordPartial & mask) == 0 || ((wordFull & mask) == 0 && testTriLow(x, lowY0))) {
+	//					return true;
+	//				}
+	//
+	//				mask  <<= 1;
+	//			}
+	//
+	//			return false;
+	//		}
+	//
+	//		long coverage = coverageMask(lowX0 & 7, lowY0 & 7, lowX1 & 7, lowY1 & 7);
+	//
+	//		coverage &= ~wordFull;
+	//
+	//		if (coverage == 0) {
+	//			return false;
+	//		}
+	//
+	//		if ((coverage & wordPartial) == 0) {
+	//			return true;
+	//		}
+	//
+	//		final int baseX = midX << BIN_AXIS_SHIFT;
+	//		int baseY = midY << BIN_AXIS_SHIFT;
+	//
+	//		for (int y = 0; y < 8; y++) {
+	//			final int bits = (int) coverage & 0xFF;
+	//
+	//			switch (bits & 0xF) {
+	//			case 0b0000:
+	//				break;
+	//
+	//			case 0b0001:
+	//				if (testTriLow(baseX + 0, baseY)) return true;
+	//				break;
+	//
+	//			case 0b0010:
+	//				if (testTriLow(baseX + 1, baseY)) return true;
+	//				break;
+	//
+	//			case 0b0011:
+	//				if (testTriLow(baseX + 0, baseY)) return true;
+	//				if (testTriLow(baseX + 1, baseY)) return true;
+	//				break;
+	//
+	//			case 0b0100:
+	//				if (testTriLow(baseX + 2, baseY)) return true;
+	//				break;
+	//
+	//			case 0b0101:
+	//				if (testTriLow(baseX + 0, baseY)) return true;
+	//				if (testTriLow(baseX + 2, baseY)) return true;
+	//				break;
+	//
+	//			case 0b0110:
+	//				if (testTriLow(baseX + 1, baseY)) return true;
+	//				if (testTriLow(baseX + 2, baseY)) return true;
+	//				break;
+	//
+	//			case 0b0111:
+	//				if (testTriLow(baseX + 0, baseY)) return true;
+	//				if (testTriLow(baseX + 1, baseY)) return true;
+	//				if (testTriLow(baseX + 2, baseY)) return true;
+	//				break;
+	//
+	//			case 0b1000:
+	//				if (testTriLow(baseX + 3, baseY)) return true;
+	//				break;
+	//
+	//			case 0b1001:
+	//				if (testTriLow(baseX + 0, baseY)) return true;
+	//				if (testTriLow(baseX + 3, baseY)) return true;
+	//				break;
+	//
+	//			case 0b1010:
+	//				if (testTriLow(baseX + 1, baseY)) return true;
+	//				if (testTriLow(baseX + 3, baseY)) return true;
+	//				break;
+	//
+	//			case 0b1011:
+	//				if (testTriLow(baseX + 0, baseY)) return true;
+	//				if (testTriLow(baseX + 1, baseY)) return true;
+	//				if (testTriLow(baseX + 3, baseY)) return true;
+	//				break;
+	//
+	//			case 0b1100:
+	//				if (testTriLow(baseX + 2, baseY)) return true;
+	//				if (testTriLow(baseX + 3, baseY)) return true;
+	//				break;
+	//
+	//			case 0b1101:
+	//				if (testTriLow(baseX + 0, baseY)) return true;
+	//				if (testTriLow(baseX + 2, baseY)) return true;
+	//				if (testTriLow(baseX + 3, baseY)) return true;
+	//				break;
+	//
+	//			case 0b1110:
+	//				if (testTriLow(baseX + 1, baseY)) return true;
+	//				if (testTriLow(baseX + 2, baseY)) return true;
+	//				if (testTriLow(baseX + 3, baseY)) return true;
+	//				break;
+	//
+	//			case 0b1111:
+	//				if (testTriLow(baseX + 0, baseY)) return true;
+	//				if (testTriLow(baseX + 1, baseY)) return true;
+	//				if (testTriLow(baseX + 2, baseY)) return true;
+	//				if (testTriLow(baseX + 3, baseY)) return true;
+	//				break;
+	//			}
+	//
+	//			switch (bits >> 4) {
+	//			case 0b0000:
+	//				break;
+	//
+	//			case 0b0001:
+	//				if (testTriLow(baseX + 4, baseY)) return true;
+	//				break;
+	//
+	//			case 0b0010:
+	//				if (testTriLow(baseX + 5, baseY)) return true;
+	//				break;
+	//
+	//			case 0b0011:
+	//				if (testTriLow(baseX + 4, baseY)) return true;
+	//				if (testTriLow(baseX + 5, baseY)) return true;
+	//				break;
+	//
+	//			case 0b0100:
+	//				if (testTriLow(baseX + 6, baseY)) return true;
+	//				break;
+	//
+	//			case 0b0101:
+	//				if (testTriLow(baseX + 4, baseY)) return true;
+	//				if (testTriLow(baseX + 6, baseY)) return true;
+	//				break;
+	//
+	//			case 0b0110:
+	//				if (testTriLow(baseX + 5, baseY)) return true;
+	//				if (testTriLow(baseX + 6, baseY)) return true;
+	//				break;
+	//
+	//			case 0b0111:
+	//				if (testTriLow(baseX + 4, baseY)) return true;
+	//				if (testTriLow(baseX + 5, baseY)) return true;
+	//				if (testTriLow(baseX + 6, baseY)) return true;
+	//				break;
+	//
+	//			case 0b1000:
+	//				if (testTriLow(baseX + 7, baseY)) return true;
+	//				break;
+	//
+	//			case 0b1001:
+	//				if (testTriLow(baseX + 4, baseY)) return true;
+	//				if (testTriLow(baseX + 7, baseY)) return true;
+	//				break;
+	//
+	//			case 0b1010:
+	//				if (testTriLow(baseX + 5, baseY)) return true;
+	//				if (testTriLow(baseX + 7, baseY)) return true;
+	//				break;
+	//
+	//			case 0b1011:
+	//				if (testTriLow(baseX + 4, baseY)) return true;
+	//				if (testTriLow(baseX + 5, baseY)) return true;
+	//				if (testTriLow(baseX + 7, baseY)) return true;
+	//				break;
+	//
+	//			case 0b1100:
+	//				if (testTriLow(baseX + 6, baseY)) return true;
+	//				if (testTriLow(baseX + 7, baseY)) return true;
+	//				break;
+	//
+	//			case 0b1101:
+	//				if (testTriLow(baseX + 4, baseY)) return true;
+	//				if (testTriLow(baseX + 6, baseY)) return true;
+	//				if (testTriLow(baseX + 7, baseY)) return true;
+	//				break;
+	//
+	//			case 0b1110:
+	//				if (testTriLow(baseX + 5, baseY)) return true;
+	//				if (testTriLow(baseX + 6, baseY)) return true;
+	//				if (testTriLow(baseX + 7, baseY)) return true;
+	//				break;
+	//
+	//			case 0b1111:
+	//				if (testTriLow(baseX + 4, baseY)) return true;
+	//				if (testTriLow(baseX + 5, baseY)) return true;
+	//				if (testTriLow(baseX + 6, baseY)) return true;
+	//				if (testTriLow(baseX + 7, baseY)) return true;
+	//				break;
+	//			}
+	//
+	//			++baseY;
+	//			coverage >>= 8;
+	//		}
+	//
+	//		return false;
+	//	}
 
 	// TODO: remove
 	//	@SuppressWarnings("unused")
@@ -2774,15 +2774,15 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		// PERF: make corner compute lazy
 		// PERF: compute base a/b based on origin or snapped corner to avoid dx/dy computation
 
-		protected int lowX, lowY;
+		//		protected int lowX, lowY;
 
 		public void moveTo(int lowX, int lowY) {
 			final int binOriginX = lowX << LOW_AXIS_SHIFT;
 			final int binOriginY = lowY << LOW_AXIS_SHIFT;
 			final int[] tileData = TerrainOccluder.this.tileData;
 
-			this.lowX = lowX;
-			this.lowY = lowY;
+			//			this.lowX = lowX;
+			//			this.lowY = lowY;
 
 			final int dx = binOriginX - minPixelX;
 			final int dy = binOriginY - minPixelY;
@@ -2862,7 +2862,7 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 				System.out.println(String.format("Points: %f\t%f\t%f\t%f\t%f\t%f", x0, y0, x1, y1, x2, y2));
 				System.out.println(String.format("A,B: (%d, %d)  (%d, %d)  (%d, %d)", a[0], b[0], a[1], b[1], a[2], b[2]));
 				System.out.println(String.format("Edges: %d, %d, %d", e0, e1, e2));
-				System.out.println(String.format("origin: (%d, %d)", lowX << LOW_AXIS_SHIFT,  lowY << LOW_AXIS_SHIFT));
+				//				System.out.println(String.format("origin: (%d, %d)", lowX << LOW_AXIS_SHIFT,  lowY << LOW_AXIS_SHIFT));
 				System.out.println();
 			}
 
@@ -2926,7 +2926,7 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 	}
 
 	private class MidTile extends AbstractTile {
-		protected int midX, midY;
+		//		protected int midX, midY;
 
 		protected long fullCoverage;
 
@@ -2934,8 +2934,8 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 			final int binOriginX = midX << MID_AXIS_SHIFT;
 			final int binOriginY = midY << MID_AXIS_SHIFT;
 			final int[] tileData = TerrainOccluder.this.tileData;
-			this.midX = midX;
-			this.midY = midY;
+			//			this.midX = midX;
+			//			this.midY = midY;
 
 			final int dx = binOriginX - minPixelX;
 			final int dy = binOriginY - minPixelY;
@@ -3048,7 +3048,7 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 				System.out.println(String.format("Points: %f\t%f\t%f\t%f\t%f\t%f", x0, y0, x1, y1, x2, y2));
 				System.out.println(String.format("A,B: (%d, %d)  (%d, %d)  (%d, %d)", a[0], b[0], a[1], b[1], a[2], b[2]));
 				System.out.println(String.format("Edges: %d, %d, %d", e0, e1, e2));
-				System.out.println(String.format("origin: (%d, %d)", midX << MID_AXIS_SHIFT,  midY << MID_AXIS_SHIFT));
+				//				System.out.println(String.format("origin: (%d, %d)", midX << MID_AXIS_SHIFT,  midY << MID_AXIS_SHIFT));
 				System.out.println();
 			}
 
@@ -3111,7 +3111,7 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 	}
 
 	private class TopTile extends AbstractTile {
-		protected int topX, topY;
+		//		protected int topX, topY;
 
 		protected long fullCoverage;
 
@@ -3119,8 +3119,8 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 			final int binOriginX = topX << TOP_AXIS_SHIFT;
 			final int binOriginY = topY << TOP_AXIS_SHIFT;
 			final int[] tileData = TerrainOccluder.this.tileData;
-			this.topX = topX;
-			this.topY = topY;
+			//			this.topX = topX;
+			//			this.topY = topY;
 
 			final int dx = binOriginX - minPixelX;
 			final int dy = binOriginY - minPixelY;
@@ -3233,7 +3233,7 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 				System.out.println(String.format("Points: %f\t%f\t%f\t%f\t%f\t%f", x0, y0, x1, y1, x2, y2));
 				System.out.println(String.format("A,B: (%d, %d)  (%d, %d)  (%d, %d)", a[0], b[0], a[1], b[1], a[2], b[2]));
 				System.out.println(String.format("Edges: %d, %d, %d", e0, e1, e2));
-				System.out.println(String.format("origin: (%d, %d)", topX << MID_AXIS_SHIFT,  topY << MID_AXIS_SHIFT));
+				//				System.out.println(String.format("origin: (%d, %d)", topX << MID_AXIS_SHIFT,  topY << MID_AXIS_SHIFT));
 				System.out.println();
 			}
 
