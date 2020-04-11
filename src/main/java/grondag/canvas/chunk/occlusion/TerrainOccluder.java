@@ -1,8 +1,5 @@
 package grondag.canvas.chunk.occlusion;
 
-import static grondag.canvas.chunk.occlusion.ProjectedVertexData.PV_PX;
-import static grondag.canvas.chunk.occlusion.ProjectedVertexData.PV_PY;
-
 import com.google.common.base.Strings;
 import org.apache.commons.lang3.StringUtils;
 
@@ -97,7 +94,7 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		//		}
 	}
 
-	private final boolean debugTop = false;
+	//	private final boolean debugTop = false;
 
 	private void drawTriTop(final int topX, final int topY) {
 		topTile.moveTo(topX, topY);
@@ -570,7 +567,7 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		}
 	}
 
-	private final boolean debugMid = false;
+	//	private final boolean debugMid = false;
 
 	//	@SuppressWarnings("unused")
 	//	private int drawTriMidWithCompare(final int midX, final int midY) {
@@ -1372,8 +1369,6 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 	//			wLowX[i] = wOrigin[i] + a[i] * dx + b[i] * dy;
 	//		}
 	//	}
-
-	private final boolean debugLow = false;
 
 	// TODO: remove
 	//	@SuppressWarnings("unused")
@@ -2486,9 +2481,9 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 
 		protected abstract void computeSpan();
 
-		protected static final int INSIDE = -1;
-		protected static final int OUTSIDE = 0;
-		protected static final int INTERSECTING = 1;
+		protected static final int OUTSIDE = 1;
+		protected static final int INTERSECTING = 2;
+		protected static final int INSIDE = 4;
 
 		protected final int classify(int edgeFlag, int edgeIndex) {
 			final int w = chooseEdgeValue(edgeFlag, edgeIndex);
@@ -2807,66 +2802,41 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 			tileData[BIN_ORIGIN_Y + TILE_LOW_START] = binOriginY;
 		}
 
-		private long computeMask(int edgeFlag, int edgeIndex) {
-			final int c = classify(edgeFlag, edgeIndex);
-			return c == INTERSECTING ? buildMask(edgeFlag, edgeIndex) : c;
-		}
-
 		public long computeCoverage() {
 			final int ef = edgeFlags;
 			final int e0 = ef & EDGE_MASK;
 			final int e1 = (ef >> EDGE_SHIFT_1) & EDGE_MASK;
 			final int e2 = (ef >> EDGE_SHIFT_2);
+			final int c0 = classify(e0, 0 + TILE_LOW_START);
+			final int c1 = classify(e1, 1 + TILE_LOW_START);
+			final int c2 = classify(e2, 2 + TILE_LOW_START);
 
-			final long m0 = computeMask(e0, 0 + TILE_LOW_START);
+			final int t = c0 | c1 | c2;
 
-			if (m0 == 0L) {
+			if (t == INSIDE)  {
+				return -1L;
+			} else if((t & OUTSIDE) ==  OUTSIDE) {
 				return 0;
 			}
 
-			final long m1 = computeMask(e1, 1 + TILE_LOW_START);
+			long result = -1L;
 
-			if (m1 == 0L) {
-				return 0;
+			if (c0 == INTERSECTING) {
+				final long mask = buildMask(e0, 0 + TILE_LOW_START);
+				result &= mask;
 			}
 
-			final long m2 = computeMask(e2, 2 + TILE_LOW_START);
-
-			if  (debugLow) {
-				System.out.println("E0 = " + e0);
-				printMask8x8(m0);
-				System.out.println();
-				System.out.println("E1 = " + e1);
-				printMask8x8(m1);
-				System.out.println();
-				System.out.println("E2 = " + e2);
-				printMask8x8(m2);
-				System.out.println();
-
-				System.out.println("COMBINED");
-				printMask8x8(m0 & m1 & m2);
-
-				final float x0 = vertexData[v0 + PV_PX] / 16f;
-				final float y0 = vertexData[v0 + PV_PY] / 16f;
-				final float x1 = vertexData[v1 + PV_PX] / 16f;
-				final float y1 = vertexData[v1 + PV_PY] / 16f;
-				final float x2 = vertexData[v2 + PV_PX] / 16f;
-				final float y2 = vertexData[v2 + PV_PY] / 16f;
-
-				System.out.println();
-				System.out.println(String.format("E00: %d, %d, %d", tileData[CORNER_X0_Y0_E0 + TILE_LOW_START], tileData[CORNER_X0_Y0_E1 + TILE_LOW_START], tileData[CORNER_X0_Y0_E2 + TILE_LOW_START]));
-				System.out.println(String.format("E10: %d, %d, %d", tileData[CORNER_X1_Y0_E0 + TILE_LOW_START], tileData[CORNER_X1_Y0_E1 + TILE_LOW_START], tileData[CORNER_X1_Y0_E2 + TILE_LOW_START]));
-				System.out.println(String.format("E01: %d, %d, %d", tileData[CORNER_X0_Y1_E0 + TILE_LOW_START], tileData[CORNER_X0_Y1_E1 + TILE_LOW_START], tileData[CORNER_X0_Y1_E2 + TILE_LOW_START]));
-				System.out.println(String.format("E11: %d, %d, %d", tileData[CORNER_X1_Y1_E0 + TILE_LOW_START], tileData[CORNER_X1_Y1_E1 + TILE_LOW_START], tileData[CORNER_X1_Y1_E2 + TILE_LOW_START]));
-				System.out.println();
-				System.out.println(String.format("Points: %f\t%f\t%f\t%f\t%f\t%f", x0, y0, x1, y1, x2, y2));
-				System.out.println(String.format("A,B: (%d, %d)  (%d, %d)  (%d, %d)", a[0], b[0], a[1], b[1], a[2], b[2]));
-				System.out.println(String.format("Edges: %d, %d, %d", e0, e1, e2));
-				//				System.out.println(String.format("origin: (%d, %d)", lowX << LOW_AXIS_SHIFT,  lowY << LOW_AXIS_SHIFT));
-				System.out.println();
+			if (c1 == INTERSECTING) {
+				final long mask = buildMask(e1, 1 + TILE_LOW_START);
+				result &= mask;
 			}
 
-			return m0 & m1 & m2;
+			if (c2 == INTERSECTING) {
+				final long mask = buildMask(e2, 2 + TILE_LOW_START);
+				result &= mask;
+			}
+
+			return result;
 		}
 
 		/**
@@ -2970,88 +2940,42 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 			final int e0 = ef & EDGE_MASK;
 			final int e1 = (ef >> EDGE_SHIFT_1) & EDGE_MASK;
 			final int e2 = (ef >> EDGE_SHIFT_2);
+			final int c0 = classify(e0, 0 + TILE_MID_START);
+			final int c1 = classify(e1, 1 + TILE_MID_START);
+			final int c2 = classify(e2, 2 + TILE_MID_START);
 
-			final long m0;
-			int c = classify(e0, 0 + TILE_MID_START);
+			final int t = c0 | c1 | c2;
 
-			if (c == INTERSECTING) {
-				m0 = buildMask(e0, 0 + TILE_MID_START);
-				fullCoverage = shiftMask(e0, m0);
-			} else if (c == OUTSIDE){
-				m0 = 0;
-				fullCoverage = 0;
-				//	return 0;
-			} else {
-				m0 = -1L;
+			if (t == INSIDE)  {
 				fullCoverage = -1L;
-			}
-
-
-			final long m1;
-			c = classify(e1, 1 + TILE_MID_START);
-
-			if (c == INTERSECTING) {
-				m1 = buildMask(e1, 1 + TILE_MID_START);
-				fullCoverage &= shiftMask(e1, m1);
-			} else if (c == OUTSIDE){
-				m1 = 0;
+				return -1L;
+			} else if((t & OUTSIDE) ==  OUTSIDE) {
 				fullCoverage = 0;
-				//return 0;
-			} else {
-				m1 = -1L;
+				return 0;
 			}
 
+			long result = -1L;
+			long full = -1L;
 
-			final long m2;
-			c = classify(e2, 2 + TILE_MID_START);
-
-			if (c == INTERSECTING) {
-				m2 = buildMask(e2, 2 + TILE_MID_START);
-				fullCoverage &= shiftMask(e2, m2);
-			} else if (c == OUTSIDE){
-				m2 = 0;
-				fullCoverage = 0;
-				//return 0;
-			} else {
-				m2 = -1L;
+			if (c0 == INTERSECTING) {
+				final long mask = buildMask(e0, 0 + TILE_MID_START);
+				result &= mask;
+				full &= shiftMask(e0, mask);
 			}
 
-			final long result = m0 & m1 & m2;
-
-			if  (debugMid) {
-				System.out.println("E0 = " + e0);
-				printMask8x8(m0);
-				System.out.println();
-				System.out.println("E1 = " + e1);
-				printMask8x8(m1);
-				System.out.println();
-				System.out.println("E2 = " + e2);
-				printMask8x8(m2);
-				System.out.println();
-
-				System.out.println("COMBINED");
-				printMask8x8(m0 & m1 & m2);
-
-				final float x0 = vertexData[v0 + PV_PX] / 16f;
-				final float y0 = vertexData[v0 + PV_PY] / 16f;
-				final float x1 = vertexData[v1 + PV_PX] / 16f;
-				final float y1 = vertexData[v1 + PV_PY] / 16f;
-				final float x2 = vertexData[v2 + PV_PX] / 16f;
-				final float y2 = vertexData[v2 + PV_PY] / 16f;
-
-				System.out.println();
-				System.out.println(String.format("E00: %d, %d, %d", tileData[CORNER_X0_Y0_E0 + TILE_MID_START], tileData[CORNER_X0_Y0_E1 + TILE_MID_START], tileData[CORNER_X0_Y0_E2 + TILE_MID_START]));
-				System.out.println(String.format("E10: %d, %d, %d", tileData[CORNER_X1_Y0_E0 + TILE_MID_START], tileData[CORNER_X1_Y0_E1 + TILE_MID_START], tileData[CORNER_X1_Y0_E2 + TILE_MID_START]));
-				System.out.println(String.format("E01: %d, %d, %d", tileData[CORNER_X0_Y1_E0 + TILE_MID_START], tileData[CORNER_X0_Y1_E1 + TILE_MID_START], tileData[CORNER_X0_Y1_E2 + TILE_MID_START]));
-				System.out.println(String.format("E11: %d, %d, %d", tileData[CORNER_X1_Y1_E0 + TILE_MID_START], tileData[CORNER_X1_Y1_E1 + TILE_MID_START], tileData[CORNER_X1_Y1_E2 + TILE_MID_START]));
-				System.out.println();
-				System.out.println(String.format("Points: %f\t%f\t%f\t%f\t%f\t%f", x0, y0, x1, y1, x2, y2));
-				System.out.println(String.format("A,B: (%d, %d)  (%d, %d)  (%d, %d)", a[0], b[0], a[1], b[1], a[2], b[2]));
-				System.out.println(String.format("Edges: %d, %d, %d", e0, e1, e2));
-				//				System.out.println(String.format("origin: (%d, %d)", midX << MID_AXIS_SHIFT,  midY << MID_AXIS_SHIFT));
-				System.out.println();
+			if (c1 == INTERSECTING) {
+				final long mask = buildMask(e1, 1 + TILE_MID_START);
+				result &= mask;
+				full &= shiftMask(e1, mask);
 			}
 
+			if (c2 == INTERSECTING) {
+				final long mask = buildMask(e2, 2 + TILE_MID_START);
+				result &= mask;
+				full &= shiftMask(e2, mask);
+			}
+
+			fullCoverage = full;
 			return result;
 		}
 
@@ -3155,89 +3079,81 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 			final int e0 = ef & EDGE_MASK;
 			final int e1 = (ef >> EDGE_SHIFT_1) & EDGE_MASK;
 			final int e2 = (ef >> EDGE_SHIFT_2);
+			final int c0 = classify(e0, 0 + TILE_TOP_START);
+			final int c1 = classify(e1, 1 + TILE_TOP_START);
+			final int c2 = classify(e2, 2 + TILE_TOP_START);
 
-			final long m0;
-			int c = classify(e0, 0 + TILE_TOP_START);
+			final int t = c0 | c1 | c2;
 
-			if (c == INTERSECTING) {
-				m0 = buildMask(e0, 0 + TILE_TOP_START);
-				fullCoverage = shiftMask(e0, m0);
-			} else if (c == OUTSIDE){
-				m0 = 0;
-				fullCoverage = 0;
-				//	return 0;
-			} else {
-				m0 = -1L;
+			if (t == INSIDE)  {
 				fullCoverage = -1L;
-			}
-
-
-			final long m1;
-			c = classify(e1, 1 + TILE_TOP_START);
-
-			if (c == INTERSECTING) {
-				m1 = buildMask(e1, 1 + TILE_TOP_START);
-				fullCoverage &= shiftMask(e1, m1);
-			} else if (c == OUTSIDE){
-				m1 = 0;
+				return -1L;
+			} else if((t & OUTSIDE) ==  OUTSIDE) {
 				fullCoverage = 0;
-				//return 0;
-			} else {
-				m1 = -1L;
+				return 0;
 			}
 
+			long result = -1L;
+			long full = -1L;
 
-			final long m2;
-			c = classify(e2, 2 + TILE_TOP_START);
-
-			if (c == INTERSECTING) {
-				m2 = buildMask(e2, 2 + TILE_TOP_START);
-				fullCoverage &= shiftMask(e2, m2);
-			} else if (c == OUTSIDE){
-				m2 = 0;
-				fullCoverage = 0;
-				//return 0;
-			} else {
-				m2 = -1L;
+			if (c0 == INTERSECTING) {
+				final long mask = buildMask(e0, 0 + TILE_TOP_START);
+				result &= mask;
+				full &= shiftMask(e0, mask);
 			}
 
-			final long result = m0 & m1 & m2;
-
-			if  (debugTop) {
-				System.out.println("E0 = " + e0);
-				printMask8x8(m0);
-				System.out.println();
-				System.out.println("E1 = " + e1);
-				printMask8x8(m1);
-				System.out.println();
-				System.out.println("E2 = " + e2);
-				printMask8x8(m2);
-				System.out.println();
-
-				System.out.println("COMBINED");
-				printMask8x8(m0 & m1 & m2);
-
-				final float x0 = vertexData[v0 + PV_PX] / 16f;
-				final float y0 = vertexData[v0 + PV_PY] / 16f;
-				final float x1 = vertexData[v1 + PV_PX] / 16f;
-				final float y1 = vertexData[v1 + PV_PY] / 16f;
-				final float x2 = vertexData[v2 + PV_PX] / 16f;
-				final float y2 = vertexData[v2 + PV_PY] / 16f;
-
-				System.out.println();
-				System.out.println(String.format("E00: %d, %d, %d", tileData[CORNER_X0_Y0_E0 + TILE_TOP_START], tileData[CORNER_X0_Y0_E1 + TILE_TOP_START], tileData[CORNER_X0_Y0_E2 + TILE_TOP_START]));
-				System.out.println(String.format("E10: %d, %d, %d", tileData[CORNER_X1_Y0_E0 + TILE_TOP_START], tileData[CORNER_X1_Y0_E1 + TILE_TOP_START], tileData[CORNER_X1_Y0_E2 + TILE_TOP_START]));
-				System.out.println(String.format("E01: %d, %d, %d", tileData[CORNER_X0_Y1_E0 + TILE_TOP_START], tileData[CORNER_X0_Y1_E1 + TILE_TOP_START], tileData[CORNER_X0_Y1_E2 + TILE_TOP_START]));
-				System.out.println(String.format("E11: %d, %d, %d", tileData[CORNER_X1_Y1_E0 + TILE_TOP_START], tileData[CORNER_X1_Y1_E1 + TILE_TOP_START], tileData[CORNER_X1_Y1_E2 + TILE_TOP_START]));
-				System.out.println();
-				System.out.println(String.format("Points: %f\t%f\t%f\t%f\t%f\t%f", x0, y0, x1, y1, x2, y2));
-				System.out.println(String.format("A,B: (%d, %d)  (%d, %d)  (%d, %d)", a[0], b[0], a[1], b[1], a[2], b[2]));
-				System.out.println(String.format("Edges: %d, %d, %d", e0, e1, e2));
-				//				System.out.println(String.format("origin: (%d, %d)", topX << MID_AXIS_SHIFT,  topY << MID_AXIS_SHIFT));
-				System.out.println();
+			if (c1 == INTERSECTING) {
+				final long mask = buildMask(e1, 1 + TILE_TOP_START);
+				result &= mask;
+				full &= shiftMask(e1, mask);
 			}
 
+			if (c2 == INTERSECTING) {
+				final long mask = buildMask(e2, 2 + TILE_TOP_START);
+				result &= mask;
+				full &= shiftMask(e2, mask);
+			}
+
+			fullCoverage = full;
 			return result;
+
+			//			final long result = m0 & m1 & m2;
+			//
+			//			if  (debugTop) {
+			//				System.out.println("E0 = " + e0);
+			//				printMask8x8(m0);
+			//				System.out.println();
+			//				System.out.println("E1 = " + e1);
+			//				printMask8x8(m1);
+			//				System.out.println();
+			//				System.out.println("E2 = " + e2);
+			//				printMask8x8(m2);
+			//				System.out.println();
+			//
+			//				System.out.println("COMBINED");
+			//				printMask8x8(m0 & m1 & m2);
+			//
+			//				final float x0 = vertexData[v0 + PV_PX] / 16f;
+			//				final float y0 = vertexData[v0 + PV_PY] / 16f;
+			//				final float x1 = vertexData[v1 + PV_PX] / 16f;
+			//				final float y1 = vertexData[v1 + PV_PY] / 16f;
+			//				final float x2 = vertexData[v2 + PV_PX] / 16f;
+			//				final float y2 = vertexData[v2 + PV_PY] / 16f;
+			//
+			//				System.out.println();
+			//				System.out.println(String.format("E00: %d, %d, %d", tileData[CORNER_X0_Y0_E0 + TILE_TOP_START], tileData[CORNER_X0_Y0_E1 + TILE_TOP_START], tileData[CORNER_X0_Y0_E2 + TILE_TOP_START]));
+			//				System.out.println(String.format("E10: %d, %d, %d", tileData[CORNER_X1_Y0_E0 + TILE_TOP_START], tileData[CORNER_X1_Y0_E1 + TILE_TOP_START], tileData[CORNER_X1_Y0_E2 + TILE_TOP_START]));
+			//				System.out.println(String.format("E01: %d, %d, %d", tileData[CORNER_X0_Y1_E0 + TILE_TOP_START], tileData[CORNER_X0_Y1_E1 + TILE_TOP_START], tileData[CORNER_X0_Y1_E2 + TILE_TOP_START]));
+			//				System.out.println(String.format("E11: %d, %d, %d", tileData[CORNER_X1_Y1_E0 + TILE_TOP_START], tileData[CORNER_X1_Y1_E1 + TILE_TOP_START], tileData[CORNER_X1_Y1_E2 + TILE_TOP_START]));
+			//				System.out.println();
+			//				System.out.println(String.format("Points: %f\t%f\t%f\t%f\t%f\t%f", x0, y0, x1, y1, x2, y2));
+			//				System.out.println(String.format("A,B: (%d, %d)  (%d, %d)  (%d, %d)", a[0], b[0], a[1], b[1], a[2], b[2]));
+			//				System.out.println(String.format("Edges: %d, %d, %d", e0, e1, e2));
+			//				//				System.out.println(String.format("origin: (%d, %d)", topX << MID_AXIS_SHIFT,  topY << MID_AXIS_SHIFT));
+			//				System.out.println();
+			//			}
+			//
+			//			return result;
 		}
 
 		/**
