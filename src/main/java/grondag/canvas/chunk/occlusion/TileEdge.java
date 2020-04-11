@@ -9,31 +9,35 @@ import static grondag.canvas.chunk.occlusion.Edge.EDGE_TOP;
 import static grondag.canvas.chunk.occlusion.Edge.EDGE_TOP_LEFT;
 import static grondag.canvas.chunk.occlusion.Edge.EDGE_TOP_RIGHT;
 
-class TileEdge {
+final class TileEdge {
 	protected final Edge edge;
-	protected final int tileShift;
-	protected final int diameter;
-	protected final int spanSize;
-	protected final int stepSize;
+	private final int tileShift;
+	private final int spanSize;
+	private final int stepSize;
 
 	// all coordinates are full precision and corner-oriented unless otherwise noted
-	protected int stepA;
-	protected int stepB;
-	protected int spanA;
-	protected int spanB;
-	protected int extent;
+	private int stepA;
+	private int stepB;
+	private int spanA;
+	private int spanB;
+	private int extent;
 
-	protected int x0y0;
-	protected int x1y0;
-	protected int x0y1;
-	protected int x1y1;
+	private int x0y0;
+	//	private int x1y0;
+	//	private int x0y1;
+	//	private int x1y1;
+	private int position;
+	//	private int cornerValue;
+
+	private int version = -1;
+	private final Triangle triangle;
 
 	protected TileEdge(Edge edge, int diameter) {
-		this.diameter = diameter;
 		stepSize = diameter / 8;
 		spanSize = diameter - 1;
 		tileShift =  Integer.bitCount(diameter - 1);
 		this.edge = edge;
+		triangle = edge.triangle;
 	}
 
 	/**
@@ -59,44 +63,55 @@ class TileEdge {
 	 *
 	 * For background, see Real Time Rendering, 4th Ed.  Sec 23.1 on Rasterization, esp. Figure 23.3
 	 */
-	protected final void prepare() {
-		final int a = edge.a;
-		final int b = edge.b;
-		stepA = a * stepSize;
-		stepB = b * stepSize;
-		spanA = a * spanSize;
-		spanB = b * spanSize;
-		extent = -Math.abs(spanA) - Math.abs(spanB);
+	private void prepare() {
+		final int v = triangle.version;
+
+		if (v != version)  {
+			final int a = edge.a;
+			final int b = edge.b;
+			stepA = a * stepSize;
+			stepB = b * stepSize;
+			spanA = a * spanSize;
+			spanB = b * spanSize;
+			extent = -Math.abs(spanA) - Math.abs(spanB);
+			version = v;
+		}
 	}
 
-	protected final void moveTo(int tileX, int tileY) {
+	protected void moveTo(int tileX, int tileY) {
+		prepare();
 		final int dx = tileX << tileShift;
 		final int dy = tileY << tileShift;
 
 		x0y0 = edge.compute(dx, dy);
-		x1y0 = x0y0 + spanA;
-		x0y1 = x0y0 + spanB;
-		x1y1 = x0y1 + spanA;
+		classify();
+
+		//		x1y0 = x0y0 + spanA;
+		//		x0y1 = x0y0 + spanB;
+		//		x1y1 = x0y1 + spanA;
 	}
 
 	// PERF: always needed - cache
-	protected final int chooseEdgeValue() {
+	protected int chooseEdgeValue() {
 		switch  (edge.shape) {
 		case EDGE_TOP:
 		case EDGE_TOP_LEFT:
 		case EDGE_LEFT:
-			return x0y1;
+			//			return x0y1;
+			return x0y0 + spanB;
 
 		case EDGE_BOTTOM_LEFT:
 			return x0y0;
 
 		case EDGE_TOP_RIGHT:
-			return x1y1;
+			//			return x1y1;
+			return x0y0 + spanA + spanB;
 
 		case EDGE_BOTTOM:
 		case EDGE_RIGHT:
 		case EDGE_BOTTOM_RIGHT:
-			return x1y0;
+			//			return x1y0;
+			return x0y0 + spanA;
 
 		default:
 			assert false : "Edge flag out of bounds.";
@@ -105,31 +120,36 @@ class TileEdge {
 	}
 
 	// PERF: always needed - cache
-	protected final int classify() {
+	private void classify() {
 		final int w = chooseEdgeValue();
+		//		cornerValue = w;
 		//NB extent is always negative
 
 		if (w < extent) {
 			// fully outside edge
-			return OUTSIDE;
+			position = OUTSIDE;
 		} else if (w >= 0) {
 			// fully inside or touching edge
-			return INSIDE;
+			position = INSIDE;
 		} else {
 			// intersecting - at least one pixel is set
-			return INTERSECTING;
+			position = INTERSECTING;
 		}
 	}
 
-	protected final long buildMask() {
+	public int position() {
+		return position;
+	}
+
+	protected long buildMask() {
 		final int a = stepA;
 		final int b = stepB;
 
 		switch  (edge.shape) {
 		case EDGE_TOP: {
 			int wy = x0y0; // bottom left will always be inside
-			assert wy >= 0;
-			assert b < 0;
+			//			assert wy >= 0;
+			//			assert b < 0;
 
 			long yMask = 0xFFL;
 			long mask = 0;
@@ -147,9 +167,9 @@ class TileEdge {
 		}
 
 		case EDGE_BOTTOM: {
-			int wy = x0y1; // top left will always be inside
-			assert wy >= 0;
-			assert b > 0;
+			int wy = x0y0 + spanB; // top left will always be inside
+			//			assert wy >= 0;
+			//			assert b > 0;
 
 			long yMask = 0xFF00000000000000L;
 			long mask = 0;
@@ -168,8 +188,8 @@ class TileEdge {
 
 		case EDGE_RIGHT: {
 			final int wy = x0y0; // bottom left will always be inside
-			assert wy >= 0;
-			assert a < 0;
+			//			assert wy >= 0;
+			//			assert a < 0;
 
 			final int x = 7 - Math.min(7, -wy / a);
 			long mask = (0xFF >> x);
@@ -185,7 +205,7 @@ class TileEdge {
 		}
 
 		case EDGE_LEFT: {
-			final int wy = x1y0; // bottom right will always be inside
+			final int wy = x0y0 + spanA; // bottom right will always be inside
 			assert wy >= 0;
 			assert a > 0;
 
@@ -205,10 +225,10 @@ class TileEdge {
 		case EDGE_TOP_LEFT: {
 			// PERF: optimize case when shallow slope and several bottom rows are full
 
-			int wy = x1y0; // bottom right will always be inside
-			assert wy >= 0;
-			assert b < 0;
-			assert a > 0;
+			int wy = x0y0 + spanA; // bottom right will always be inside
+			//			assert wy >= 0;
+			//			assert b < 0;
+			//			assert a > 0;
 
 			// min y will occur at x = 0;
 
@@ -231,10 +251,10 @@ class TileEdge {
 		}
 
 		case EDGE_BOTTOM_LEFT: {
-			int wy = x1y1; // top right will always be inside
-			assert wy >= 0;
-			assert b > 0;
-			assert a > 0;
+			int wy = x0y0 + spanA + spanB; // top right will always be inside
+			//			assert wy >= 0;
+			//			assert b > 0;
+			//			assert a > 0;
 
 			// min y will occur at x = 7;
 
@@ -266,9 +286,9 @@ class TileEdge {
 			// Exploit step-wise nature of a/b here to avoid computing the first term
 			// logic in other cases is similar
 			int wy = x0y0; // bottom left will always be inside
-			assert wy >= 0;
-			assert b < 0;
-			assert a < 0;
+			//			assert wy >= 0;
+			//			assert b < 0;
+			//			assert a < 0;
 
 			long mask = 0;
 			int yShift = 0;
@@ -290,10 +310,10 @@ class TileEdge {
 		case EDGE_BOTTOM_RIGHT: {
 			// PERF: optimize case when shallow slope and several top rows are full
 
-			int wy = x0y1; // top left will always be inside
-			assert wy >= 0;
-			assert b > 0;
-			assert a < 0;
+			int wy = x0y0 + spanB; // top left will always be inside
+			//			assert wy >= 0;
+			//			assert b > 0;
+			//			assert a < 0;
 
 			int yShift = 8 * 7;
 			long mask = 0;

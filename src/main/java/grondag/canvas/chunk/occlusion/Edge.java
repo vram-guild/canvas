@@ -6,6 +6,11 @@ public final class Edge {
 	protected int b;
 	protected int c;
 	protected int shape;
+	protected final Triangle triangle;
+
+	public Edge (Triangle triangle) {
+		this.triangle = triangle;
+	}
 
 	public void prepare(int a, int b, int c) {
 		this.a = a;

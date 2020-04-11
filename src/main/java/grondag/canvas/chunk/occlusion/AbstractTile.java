@@ -18,12 +18,6 @@ abstract class AbstractTile {
 	protected final TileEdge te1;
 	protected final TileEdge te2;
 
-	protected final void computeSpan() {
-		te0.prepare();
-		te1.prepare();
-		te2.prepare();
-	}
-
 	protected  AbstractTile(Triangle triangle, int tileSize) {
 		e0 = triangle.e0;
 		e1 = triangle.e1;

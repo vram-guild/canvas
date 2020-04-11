@@ -10,10 +10,11 @@ public final class Triangle {
 	protected int maxPixelX;
 	protected int maxPixelY;
 
-	public final Edge e0 = new Edge();
-	public final Edge e1 = new Edge();
-	public final Edge e2 = new Edge();
+	public final Edge e0 = new Edge(this);
+	public final Edge e1 = new Edge(this);
+	public final Edge e2 = new Edge(this);
 
+	public int version;
 
 	// TODO: remove
 	protected int v0 = 0, v1 = 0, v2 = 0;
@@ -34,6 +35,8 @@ public final class Triangle {
 		final int y1 = vertexData[v1 + PV_PY];
 		final int x2 = vertexData[v2 + PV_PX];
 		final int y2 = vertexData[v2 + PV_PY];
+
+		++version;
 
 		int minY = y0;
 		int maxY = y0;
@@ -78,32 +81,32 @@ public final class Triangle {
 		}
 
 		int minPixelX = (minX + AbstractTerrainOccluder.PRECISE_PIXEL_CENTER - 1) >> AbstractTerrainOccluder.PRECISION_BITS;
-	int minPixelY = (minY + AbstractTerrainOccluder.PRECISE_PIXEL_CENTER - 1) >> AbstractTerrainOccluder.PRECISION_BITS;
-	int maxPixelX = (maxX - AbstractTerrainOccluder.PRECISE_PIXEL_CENTER) >> AbstractTerrainOccluder.PRECISION_BITS;
-	int maxPixelY = (maxY - AbstractTerrainOccluder.PRECISE_PIXEL_CENTER) >> AbstractTerrainOccluder.PRECISION_BITS;
+		int minPixelY = (minY + AbstractTerrainOccluder.PRECISE_PIXEL_CENTER - 1) >> AbstractTerrainOccluder.PRECISION_BITS;
+		int maxPixelX = (maxX - AbstractTerrainOccluder.PRECISE_PIXEL_CENTER) >> AbstractTerrainOccluder.PRECISION_BITS;
+		int maxPixelY = (maxY - AbstractTerrainOccluder.PRECISE_PIXEL_CENTER) >> AbstractTerrainOccluder.PRECISION_BITS;
 
-	if (minPixelX < 0) {
-		minPixelX = 0;
-	}
+		if (minPixelX < 0) {
+			minPixelX = 0;
+		}
 
-	if (maxPixelX > AbstractTerrainOccluder.PIXEL_WIDTH - 1)  {
-		maxPixelX = AbstractTerrainOccluder.PIXEL_WIDTH  - 1;
-	}
+		if (maxPixelX > AbstractTerrainOccluder.PIXEL_WIDTH - 1)  {
+			maxPixelX = AbstractTerrainOccluder.PIXEL_WIDTH  - 1;
+		}
 
-	if (minPixelY < 0) {
-		minPixelY = 0;
-	}
+		if (minPixelY < 0) {
+			minPixelY = 0;
+		}
 
-	if (maxPixelY > AbstractTerrainOccluder.PIXEL_HEIGHT - 1)  {
-		maxPixelY = AbstractTerrainOccluder.PIXEL_HEIGHT - 1;
-	}
+		if (maxPixelY > AbstractTerrainOccluder.PIXEL_HEIGHT - 1)  {
+			maxPixelY = AbstractTerrainOccluder.PIXEL_HEIGHT - 1;
+		}
 
-	this.minPixelX = minPixelX;
-	this.minPixelY = minPixelY;
-	this.maxPixelX = maxPixelX;
-	this.maxPixelY = maxPixelY;
+		this.minPixelX = minPixelX;
+		this.minPixelY = minPixelY;
+		this.maxPixelX = maxPixelX;
+		this.maxPixelY = maxPixelY;
 
-	return BoundsResult.IN_BOUNDS;
+		return BoundsResult.IN_BOUNDS;
 	}
 
 	protected void prepareScan(final int[] vertexData, int v0, int v1, int v2) {

@@ -22,16 +22,6 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 	private final TopTile topTile = new TopTile(triangle);
 
 	@Override
-	protected void prepareTriScan(int v0, int v1, int v2) {
-		super.prepareTriScan(v0, v1, v2);
-
-		// PERF:  make these lazy
-		lowTile.computeSpan();
-		midTile.computeSpan();
-		topTile.computeSpan();
-	}
-
-	@Override
 	protected void drawTri(int v0, int v1, int v2) {
 		final Triangle tri = triangle;
 
@@ -1477,9 +1467,9 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		}
 
 		public long computeCoverage() {
-			final int c0 = te0.classify();
-			final int c1 = te1.classify();
-			final int c2 = te2.classify();
+			final int c0 = te0.position();
+			final int c1 = te1.position();
+			final int c2 = te2.position();
 
 			final int t = c0 | c1 | c2;
 
@@ -1524,9 +1514,9 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		 * @return mask that inclueds edge coverage.
 		 */
 		public long computeCoverage() {
-			final int c0 = te0.classify();
-			final int c1 = te1.classify();
-			final int c2 = te2.classify();
+			final int c0 = te0.position();
+			final int c1 = te1.position();
+			final int c2 = te2.position();
 
 			final int t = c0 | c1 | c2;
 
@@ -1576,9 +1566,9 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		 * @return mask that includes edge coverage.
 		 */
 		public long computeCoverage() {
-			final int c0 = te0.classify();
-			final int c1 = te1.classify();
-			final int c2 = te2.classify();
+			final int c0 = te0.position();
+			final int c1 = te1.position();
+			final int c2 = te2.position();
 
 			final int t = c0 | c1 | c2;
 
