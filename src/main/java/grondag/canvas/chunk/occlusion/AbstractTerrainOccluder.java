@@ -112,8 +112,9 @@ public abstract class AbstractTerrainOccluder {
 	private final boolean testNorth() { return testQuad(V100, V000, V010, V110); }
 
 	public final boolean isChunkVisible()  {
-		final boolean result;
+		CanvasWorldRenderer.innerTimer.start();
 
+		final boolean result;
 		final boolean early = isPointVisible(8, 8, 8);
 
 		if (early)  { //isPointVisible(8, 8, 8)) {
@@ -121,7 +122,6 @@ public abstract class AbstractTerrainOccluder {
 			result = true;
 		} else {
 			computeProjectedBoxBounds(0, 0, 0, 16, 16, 16);
-
 
 			// rank tests by how directly they face - use distance from camera coordinates for this
 			final int offsetX = this.offsetX;
@@ -194,7 +194,6 @@ public abstract class AbstractTerrainOccluder {
 			if (nearBits != 0 && (testBits & ~nearBits) == 0) {
 				result = true;
 			} else {
-				CanvasWorldRenderer.innerTimer.start();
 				switch (testBits)  {
 				default:
 				case 0b000:
@@ -257,10 +256,10 @@ public abstract class AbstractTerrainOccluder {
 					break;
 				}
 
-				CanvasWorldRenderer.innerTimer.stop();
 			}
 		}
 
+		CanvasWorldRenderer.innerTimer.stop();
 
 
 		//		// TODO: remove
@@ -906,9 +905,9 @@ public abstract class AbstractTerrainOccluder {
 	protected static final int MID_INDEX_SHIFT = LOW_AXIS_SHIFT * 2;
 	protected static final int TOP_INDEX_SHIFT = MID_INDEX_SHIFT * 2;
 
-	protected static final int TOP_WIDTH = 2;
+	protected static final int TOP_WIDTH = 4;
 	protected static final int TOP_Y_SHIFT = Integer.bitCount(TOP_WIDTH - 1);
-	protected static final int TOP_HEIGHT = 1;
+	protected static final int TOP_HEIGHT = 2;
 
 	protected static final int MID_WIDTH = TOP_WIDTH  * 8;
 	protected static final int MID_Y_SHIFT = Integer.bitCount(MID_WIDTH - 1);
