@@ -6,7 +6,6 @@ import static grondag.canvas.chunk.occlusion.AbstractTile.COVERAGE_PARTIAL;
 import static grondag.canvas.chunk.occlusion.Triangle.SCALE_LOW;
 import static grondag.canvas.chunk.occlusion.Triangle.SCALE_MID;
 import static grondag.canvas.chunk.occlusion.Triangle.SCALE_POINT;
-import static grondag.canvas.chunk.occlusion.Triangle.SCALE_TOP;
 
 import com.google.common.base.Strings;
 import org.apache.commons.lang3.StringUtils;
@@ -950,11 +949,11 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 
 		switch(tri.scale) {
 		case SCALE_POINT: {
-			CanvasWorldRenderer.innerTimer.start();
+			//			CanvasWorldRenderer.innerTimer.start();
 			final int px = tri.minPixelX;
 			final int py = tri.minPixelY;
 			final boolean result = px >= 0 && py >= 0 && px < PIXEL_WIDTH && py < PIXEL_HEIGHT && testPixel(px, py);
-			CanvasWorldRenderer.innerTimer.stop();
+			//			CanvasWorldRenderer.innerTimer.stop();
 
 			return result;
 		}
@@ -969,22 +968,22 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		}
 
 		case SCALE_MID: {
-			//			CanvasWorldRenderer.innerTimer.start();
+			CanvasWorldRenderer.innerTimer.start();
 			tri.prepareScan(vertexData, v0, v1, v2);
 			final boolean result = testTriMid();
-			//			CanvasWorldRenderer.innerTimer.stop();
+			CanvasWorldRenderer.innerTimer.stop();
 
 			return result;
 		}
 
-		case SCALE_TOP: {
-			//CanvasWorldRenderer.innerTimer.start();
-			tri.prepareScan(vertexData, v0, v1, v2);
-			final boolean result = testTriTop();
-			//CanvasWorldRenderer.innerTimer.stop();
-
-			return result;
-		}
+		//		case SCALE_TOP: {
+		//			//CanvasWorldRenderer.innerTimer.start();
+		//			tri.prepareScan(vertexData, v0, v1, v2);
+		//			final boolean result = testTriTop();
+		//			//CanvasWorldRenderer.innerTimer.stop();
+		//
+		//			return result;
+		//		}
 
 		default:
 			assert false : "Bad triangle scale";
@@ -1011,15 +1010,6 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		//					}
 	}
 
-	private boolean testTriTop() {
-		final Triangle tri = triangle;
-		topTile.prepare();
-		midTile.prepare();
-		lowTile.prepare();
-		return (tri.minPixelX >> TOP_AXIS_SHIFT == 0 && testTriTop(0, 0))
-				|| (tri.maxPixelX >> TOP_AXIS_SHIFT == 1 && testTriTop(1, 0));
-	}
-
 	private boolean testTriMid() {
 		final Triangle tri = triangle;
 		final SummaryTile midTile = this.midTile;
@@ -1032,36 +1022,37 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		final int y1 = (tri.maxPixelY >> MID_AXIS_SHIFT);
 
 		midTile.moveTo(x0, y0);
+		boolean goRight = true;
 
-		if (testTriMidInner()) {
-			return true;
-		}
-
-		if (x0 != x1) {
-			midTile.moveRight();
-
-			if (testTriMidInner()) {
-				return true;
-			}
-		}
-
-		if (y0 != y1) {
-			midTile.moveUp();
-
+		while(true) {
 			if (testTriMidInner()) {
 				return true;
 			}
 
-			if (x0 != x1) {
-				midTile.moveLeft();
-
-				if (testTriMidInner()) {
-					return true;
+			if (goRight) {
+				if (midTile.tileX == x1) {
+					if(midTile.tileY == y1) {
+						return false;
+					} else {
+						midTile.moveUp();
+						goRight = !goRight;
+					}
+				} else {
+					midTile.moveRight();
+				}
+			} else {
+				if (midTile.tileX == x0) {
+					if(midTile.tileY == y1) {
+						return false;
+					} else {
+						midTile.moveUp();
+						goRight = !goRight;
+					}
+				} else {
+					midTile.moveLeft();
 				}
 			}
 		}
-
-		return false;
 	}
 
 	private boolean testTriMidInner() {
@@ -1185,433 +1176,6 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		}
 
 		return (~word & lowTile.computeCoverage()) != 0;
-	}
-
-	private boolean testTriTop(final int topX, final int topY) {
-		topTile.moveTo(topX, topY);
-		final int index = topIndex(topX, topY) << 1; // shift because two words per index
-		final long notFull = ~topBins[index + OFFSET_FULL];
-
-		long coverage = topTile.computeCoverage() & notFull;
-
-		// if all covered tiles are full, then nothing visible
-		if (coverage  == 0)  {
-			return false;
-		}
-
-		final long fullCoverage = topTile.fullCoverage;
-
-		// if any fully covered tile is not full then must be visible
-		if  ((fullCoverage & notFull) != 0) {
-			return true;
-		}
-
-		// don't check full tiles - they would have been caught earlier
-		coverage &= ~fullCoverage;
-
-		// PERF: is this always true? Significantly increases visible count
-		// if any partially covered tiles are fully empty then must be visible
-		//		if ((coverage & ~topBins[index + OFFSET_PARTIAL]) != 0) {
-		//			return true;
-		//		}
-
-		if (coverage == 0) {
-			// nothing left to check
-			return false;
-		}
-
-		final int baseX = topX << BIN_AXIS_SHIFT;
-		int baseY = topY << BIN_AXIS_SHIFT;
-
-		for (int y = 0; y < 8; y++) {
-			final int bits = (int) coverage & 0xFF;
-
-			switch (bits & 0xF) {
-			case 0b0000:
-				break;
-
-			case 0b0001:
-				if (testTriMid(baseX + 0, baseY)) return true;
-				break;
-
-			case 0b0010:
-				if (testTriMid(baseX + 1, baseY)) return true;
-				break;
-
-			case 0b0011:
-				if (testTriMid(baseX + 0, baseY)) return true;
-				if (testTriMid(baseX + 1, baseY)) return true;
-				break;
-
-			case 0b0100:
-				if (testTriMid(baseX + 2, baseY)) return true;
-				break;
-
-			case 0b0101:
-				if (testTriMid(baseX + 0, baseY)) return true;
-				if (testTriMid(baseX + 2, baseY)) return true;
-				break;
-
-			case 0b0110:
-				if (testTriMid(baseX + 1, baseY)) return true;
-				if (testTriMid(baseX + 2, baseY)) return true;
-				break;
-
-			case 0b0111:
-				if (testTriMid(baseX + 0, baseY)) return true;
-				if (testTriMid(baseX + 1, baseY)) return true;
-				if (testTriMid(baseX + 2, baseY)) return true;
-				break;
-
-			case 0b1000:
-				if (testTriMid(baseX + 3, baseY)) return true;
-				break;
-
-			case 0b1001:
-				if (testTriMid(baseX + 0, baseY)) return true;
-				if (testTriMid(baseX + 3, baseY)) return true;
-				break;
-
-			case 0b1010:
-				if (testTriMid(baseX + 1, baseY)) return true;
-				if (testTriMid(baseX + 3, baseY)) return true;
-				break;
-
-			case 0b1011:
-				if (testTriMid(baseX + 0, baseY)) return true;
-				if (testTriMid(baseX + 1, baseY)) return true;
-				if (testTriMid(baseX + 3, baseY)) return true;
-				break;
-
-			case 0b1100:
-				if (testTriMid(baseX + 2, baseY)) return true;
-				if (testTriMid(baseX + 3, baseY)) return true;
-				break;
-
-			case 0b1101:
-				if (testTriMid(baseX + 0, baseY)) return true;
-				if (testTriMid(baseX + 2, baseY)) return true;
-				if (testTriMid(baseX + 3, baseY)) return true;
-				break;
-
-			case 0b1110:
-				if (testTriMid(baseX + 1, baseY)) return true;
-				if (testTriMid(baseX + 2, baseY)) return true;
-				if (testTriMid(baseX + 3, baseY)) return true;
-				break;
-
-			case 0b1111:
-				if (testTriMid(baseX + 0, baseY)) return true;
-				if (testTriMid(baseX + 1, baseY)) return true;
-				if (testTriMid(baseX + 2, baseY)) return true;
-				if (testTriMid(baseX + 3, baseY)) return true;
-				break;
-			}
-
-			switch (bits >> 4) {
-			case 0b0000:
-				break;
-
-			case 0b0001:
-				if (testTriMid(baseX + 4, baseY)) return true;
-				break;
-
-			case 0b0010:
-				if (testTriMid(baseX + 5, baseY)) return true;
-				break;
-
-			case 0b0011:
-				if (testTriMid(baseX + 4, baseY)) return true;
-				if (testTriMid(baseX + 5, baseY)) return true;
-				break;
-
-			case 0b0100:
-				if (testTriMid(baseX + 6, baseY)) return true;
-				break;
-
-			case 0b0101:
-				if (testTriMid(baseX + 4, baseY)) return true;
-				if (testTriMid(baseX + 6, baseY)) return true;
-				break;
-
-			case 0b0110:
-				if (testTriMid(baseX + 5, baseY)) return true;
-				if (testTriMid(baseX + 6, baseY)) return true;
-				break;
-
-			case 0b0111:
-				if (testTriMid(baseX + 4, baseY)) return true;
-				if (testTriMid(baseX + 5, baseY)) return true;
-				if (testTriMid(baseX + 6, baseY)) return true;
-				break;
-
-			case 0b1000:
-				if (testTriMid(baseX + 7, baseY)) return true;
-				break;
-
-			case 0b1001:
-				if (testTriMid(baseX + 4, baseY)) return true;
-				if (testTriMid(baseX + 7, baseY)) return true;
-				break;
-
-			case 0b1010:
-				if (testTriMid(baseX + 5, baseY)) return true;
-				if (testTriMid(baseX + 7, baseY)) return true;
-				break;
-
-			case 0b1011:
-				if (testTriMid(baseX + 4, baseY)) return true;
-				if (testTriMid(baseX + 5, baseY)) return true;
-				if (testTriMid(baseX + 7, baseY)) return true;
-				break;
-
-			case 0b1100:
-				if (testTriMid(baseX + 6, baseY)) return true;
-				if (testTriMid(baseX + 7, baseY)) return true;
-				break;
-
-			case 0b1101:
-				if (testTriMid(baseX + 4, baseY)) return true;
-				if (testTriMid(baseX + 6, baseY)) return true;
-				if (testTriMid(baseX + 7, baseY)) return true;
-				break;
-
-			case 0b1110:
-				if (testTriMid(baseX + 5, baseY)) return true;
-				if (testTriMid(baseX + 6, baseY)) return true;
-				if (testTriMid(baseX + 7, baseY)) return true;
-				break;
-
-			case 0b1111:
-				if (testTriMid(baseX + 4, baseY)) return true;
-				if (testTriMid(baseX + 5, baseY)) return true;
-				if (testTriMid(baseX + 6, baseY)) return true;
-				if (testTriMid(baseX + 7, baseY)) return true;
-				break;
-			}
-
-			++baseY;
-			coverage >>= 8;
-		}
-
-		return false;
-	}
-
-	private boolean testTriMid(final int midX, final int midY) {
-		midTile.moveTo(midX, midY);
-		final int index = midIndex(midX, midY) << 1; // shift because two words per index
-		final long notFull = ~midBins[index + OFFSET_FULL];
-
-		long coverage = midTile.computeCoverage() & notFull;
-
-		// if all covered tiles are full, then nothing visible
-		if (coverage  == 0)  {
-			return false;
-		}
-
-		final long fullCoverage = midTile.fullCoverage;
-
-		// if any fully covered tile is not full then must be visible
-		if  ((fullCoverage & notFull) != 0) {
-			return true;
-		}
-
-		// don't check full tiles - they would have been caught earlier
-		coverage &= ~fullCoverage;
-
-		// PERF: is this always true? Significantly increases visible count
-		// if any partially covered tiles are fully empty then must be visible
-		//		if ((coverage & ~midBins[index + OFFSET_PARTIAL]) != 0) {
-		//			return true;
-		//		}
-
-		if (coverage == 0) {
-			// nothing left to check
-			return false;
-		}
-
-		final int baseX = midX << BIN_AXIS_SHIFT;
-		int baseY = midY << BIN_AXIS_SHIFT;
-
-		for (int y = 0; y < 8; y++) {
-			final int bits = (int) coverage & 0xFF;
-
-			switch (bits & 0xF) {
-			case 0b0000:
-				break;
-
-			case 0b0001:
-				if (testTriLow(baseX + 0, baseY)) return true;
-				break;
-
-			case 0b0010:
-				if (testTriLow(baseX + 1, baseY)) return true;
-				break;
-
-			case 0b0011:
-				if (testTriLow(baseX + 0, baseY)) return true;
-				if (testTriLow(baseX + 1, baseY)) return true;
-				break;
-
-			case 0b0100:
-				if (testTriLow(baseX + 2, baseY)) return true;
-				break;
-
-			case 0b0101:
-				if (testTriLow(baseX + 0, baseY)) return true;
-				if (testTriLow(baseX + 2, baseY)) return true;
-				break;
-
-			case 0b0110:
-				if (testTriLow(baseX + 1, baseY)) return true;
-				if (testTriLow(baseX + 2, baseY)) return true;
-				break;
-
-			case 0b0111:
-				if (testTriLow(baseX + 0, baseY)) return true;
-				if (testTriLow(baseX + 1, baseY)) return true;
-				if (testTriLow(baseX + 2, baseY)) return true;
-				break;
-
-			case 0b1000:
-				if (testTriLow(baseX + 3, baseY)) return true;
-				break;
-
-			case 0b1001:
-				if (testTriLow(baseX + 0, baseY)) return true;
-				if (testTriLow(baseX + 3, baseY)) return true;
-				break;
-
-			case 0b1010:
-				if (testTriLow(baseX + 1, baseY)) return true;
-				if (testTriLow(baseX + 3, baseY)) return true;
-				break;
-
-			case 0b1011:
-				if (testTriLow(baseX + 0, baseY)) return true;
-				if (testTriLow(baseX + 1, baseY)) return true;
-				if (testTriLow(baseX + 3, baseY)) return true;
-				break;
-
-			case 0b1100:
-				if (testTriLow(baseX + 2, baseY)) return true;
-				if (testTriLow(baseX + 3, baseY)) return true;
-				break;
-
-			case 0b1101:
-				if (testTriLow(baseX + 0, baseY)) return true;
-				if (testTriLow(baseX + 2, baseY)) return true;
-				if (testTriLow(baseX + 3, baseY)) return true;
-				break;
-
-			case 0b1110:
-				if (testTriLow(baseX + 1, baseY)) return true;
-				if (testTriLow(baseX + 2, baseY)) return true;
-				if (testTriLow(baseX + 3, baseY)) return true;
-				break;
-
-			case 0b1111:
-				if (testTriLow(baseX + 0, baseY)) return true;
-				if (testTriLow(baseX + 1, baseY)) return true;
-				if (testTriLow(baseX + 2, baseY)) return true;
-				if (testTriLow(baseX + 3, baseY)) return true;
-				break;
-			}
-
-			switch (bits >> 4) {
-			case 0b0000:
-				break;
-
-			case 0b0001:
-				if (testTriLow(baseX + 4, baseY)) return true;
-				break;
-
-			case 0b0010:
-				if (testTriLow(baseX + 5, baseY)) return true;
-				break;
-
-			case 0b0011:
-				if (testTriLow(baseX + 4, baseY)) return true;
-				if (testTriLow(baseX + 5, baseY)) return true;
-				break;
-
-			case 0b0100:
-				if (testTriLow(baseX + 6, baseY)) return true;
-				break;
-
-			case 0b0101:
-				if (testTriLow(baseX + 4, baseY)) return true;
-				if (testTriLow(baseX + 6, baseY)) return true;
-				break;
-
-			case 0b0110:
-				if (testTriLow(baseX + 5, baseY)) return true;
-				if (testTriLow(baseX + 6, baseY)) return true;
-				break;
-
-			case 0b0111:
-				if (testTriLow(baseX + 4, baseY)) return true;
-				if (testTriLow(baseX + 5, baseY)) return true;
-				if (testTriLow(baseX + 6, baseY)) return true;
-				break;
-
-			case 0b1000:
-				if (testTriLow(baseX + 7, baseY)) return true;
-				break;
-
-			case 0b1001:
-				if (testTriLow(baseX + 4, baseY)) return true;
-				if (testTriLow(baseX + 7, baseY)) return true;
-				break;
-
-			case 0b1010:
-				if (testTriLow(baseX + 5, baseY)) return true;
-				if (testTriLow(baseX + 7, baseY)) return true;
-				break;
-
-			case 0b1011:
-				if (testTriLow(baseX + 4, baseY)) return true;
-				if (testTriLow(baseX + 5, baseY)) return true;
-				if (testTriLow(baseX + 7, baseY)) return true;
-				break;
-
-			case 0b1100:
-				if (testTriLow(baseX + 6, baseY)) return true;
-				if (testTriLow(baseX + 7, baseY)) return true;
-				break;
-
-			case 0b1101:
-				if (testTriLow(baseX + 4, baseY)) return true;
-				if (testTriLow(baseX + 6, baseY)) return true;
-				if (testTriLow(baseX + 7, baseY)) return true;
-				break;
-
-			case 0b1110:
-				if (testTriLow(baseX + 5, baseY)) return true;
-				if (testTriLow(baseX + 6, baseY)) return true;
-				if (testTriLow(baseX + 7, baseY)) return true;
-				break;
-
-			case 0b1111:
-				if (testTriLow(baseX + 4, baseY)) return true;
-				if (testTriLow(baseX + 5, baseY)) return true;
-				if (testTriLow(baseX + 6, baseY)) return true;
-				if (testTriLow(baseX + 7, baseY)) return true;
-				break;
-			}
-
-			++baseY;
-			coverage >>= 8;
-		}
-
-		return false;
-	}
-
-	private boolean testTriLow(int lowX, int lowY) {
-		lowTile.moveTo(lowX, lowY);
-		final long coverage = lowTile.computeCoverage();
-		final long word =  lowBins[lowIndex(lowX, lowY)];
-		return (~word & coverage) != 0;
 	}
 
 	protected static final int OFFSET_FULL = 0;

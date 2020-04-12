@@ -154,18 +154,8 @@ public final class Triangle {
 
 		if (x1 <= x0 + 1 && y1 <= y0 + 1) {
 			scale = SCALE_LOW;
-			return;
-		}
-
-		x0  >>= BIN_AXIS_SHIFT;
-		y0  >>= BIN_AXIS_SHIFT;
-		x1  >>= BIN_AXIS_SHIFT;
-		y1  >>= BIN_AXIS_SHIFT;
-
-		if (x1 <= x0 + 1 && y1 <= y0 + 1) {
+		}  else {
 			scale = SCALE_MID;
-		} else {
-			scale = SCALE_TOP;
 		}
 	}
 
@@ -212,5 +202,4 @@ public final class Triangle {
 	public static final int SCALE_POINT = 0;
 	public static final int SCALE_LOW = 1;
 	public static final int SCALE_MID = 2;
-	public static final int SCALE_TOP = 3;
 }
