@@ -10,9 +10,9 @@ public final class Triangle {
 	protected int maxPixelX;
 	protected int maxPixelY;
 
-	public final Edge e0 = new Edge(this);
-	public final Edge e1 = new Edge(this);
-	public final Edge e2 = new Edge(this);
+	public final Edge e0 = new Edge(this, 0);
+	public final Edge e1 = new Edge(this, 1);
+	public final Edge e2 = new Edge(this, 2);
 
 	public int version;
 

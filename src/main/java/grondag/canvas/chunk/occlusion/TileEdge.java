@@ -11,7 +11,7 @@ import static grondag.canvas.chunk.occlusion.Edge.EDGE_TOP_RIGHT;
 
 final class TileEdge {
 	protected final Edge edge;
-	private final int tileShift;
+	protected final AbstractTile tile;
 	private final int spanSize;
 	private final int stepSize;
 
@@ -23,21 +23,17 @@ final class TileEdge {
 	private int extent;
 
 	private int x0y0;
-	//	private int x1y0;
-	//	private int x0y1;
-	//	private int x1y1;
 	private int position;
-	//	private int cornerValue;
 
-	private int version = -1;
-	private final Triangle triangle;
+	public final int ordinalFlag;
 
-	protected TileEdge(Edge edge, int diameter) {
+	protected TileEdge(Edge edge, AbstractTile tile) {
+		ordinalFlag = 1 << edge.ordinal;
+		final int diameter = tile.diameter;
 		stepSize = diameter / 8;
 		spanSize = diameter - 1;
-		tileShift =  Integer.bitCount(diameter - 1);
 		this.edge = edge;
-		triangle = edge.triangle;
+		this.tile = tile;
 	}
 
 	/**
@@ -63,36 +59,24 @@ final class TileEdge {
 	 *
 	 * For background, see Real Time Rendering, 4th Ed.  Sec 23.1 on Rasterization, esp. Figure 23.3
 	 */
-	private void prepare() {
-		final int v = triangle.version;
+	public void prepare() {
+		final int a = edge.a;
+		final int b = edge.b;
+		stepA = a * stepSize;
+		stepB = b * stepSize;
+		spanA = a * spanSize;
+		spanB = b * spanSize;
+		extent = -Math.abs(spanA) - Math.abs(spanB);
+	}
 
-		if (v != version)  {
-			final int a = edge.a;
-			final int b = edge.b;
-			stepA = a * stepSize;
-			stepB = b * stepSize;
-			spanA = a * spanSize;
-			spanB = b * spanSize;
-			extent = -Math.abs(spanA) - Math.abs(spanB);
-			version = v;
+	private void update() {
+		if (tile.isDirty(ordinalFlag)) {
+			x0y0 = edge.compute(tile.tileX, tile.tileY);
+			classify();
 		}
 	}
 
-	protected void moveTo(int tileX, int tileY) {
-		prepare();
-		final int dx = tileX << tileShift;
-		final int dy = tileY << tileShift;
-
-		x0y0 = edge.compute(dx, dy);
-		classify();
-
-		//		x1y0 = x0y0 + spanA;
-		//		x0y1 = x0y0 + spanB;
-		//		x1y1 = x0y1 + spanA;
-	}
-
-	// PERF: always needed - cache
-	protected int chooseEdgeValue() {
+	private int chooseEdgeValue() {
 		switch  (edge.shape) {
 		case EDGE_TOP:
 		case EDGE_TOP_LEFT:
@@ -119,7 +103,6 @@ final class TileEdge {
 		}
 	}
 
-	// PERF: always needed - cache
 	private void classify() {
 		final int w = chooseEdgeValue();
 		//		cornerValue = w;
@@ -138,6 +121,7 @@ final class TileEdge {
 	}
 
 	public int position() {
+		update();
 		return position;
 	}
 

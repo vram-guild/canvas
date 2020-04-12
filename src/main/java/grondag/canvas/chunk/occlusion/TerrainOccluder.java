@@ -10,6 +10,8 @@ import static grondag.canvas.chunk.occlusion.TileEdge.OUTSIDE;
 import com.google.common.base.Strings;
 import org.apache.commons.lang3.StringUtils;
 
+import grondag.canvas.render.CanvasWorldRenderer;
+
 // Some elements are adapted from content found at
 // https://fgiesen.wordpress.com/2013/02/17/optimizing-sw-occlusion-culling-index/
 // by Fabian “ryg” Giesen. That content is in the public domain.
@@ -20,6 +22,16 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 	private final LowTile lowTile = new LowTile(triangle);
 	private final MidTile midTile = new MidTile(triangle);
 	private final TopTile topTile = new TopTile(triangle);
+
+	@Override
+	protected void prepareTriScan(int v0, int v1, int v2) {
+		CanvasWorldRenderer.innerTimer.start();
+		super.prepareTriScan(v0, v1, v2);
+		topTile.prepare();
+		midTile.prepare();
+		lowTile.prepare();
+		CanvasWorldRenderer.innerTimer.stop();
+	}
 
 	@Override
 	protected void drawTri(int v0, int v1, int v2) {

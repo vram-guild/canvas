@@ -7,9 +7,11 @@ public final class Edge {
 	protected int c;
 	protected int shape;
 	protected final Triangle triangle;
+	protected final int ordinal;
 
-	public Edge (Triangle triangle) {
+	public Edge (Triangle triangle, int ordinal) {
 		this.triangle = triangle;
+		this.ordinal = ordinal;
 	}
 
 	public void prepare(int a, int b, int c) {

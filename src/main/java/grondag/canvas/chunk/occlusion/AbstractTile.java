@@ -17,14 +17,22 @@ abstract class AbstractTile {
 	protected final TileEdge te0;
 	protected final TileEdge te1;
 	protected final TileEdge te2;
+	public final int diameter;
+	protected final int tileShift;
+
+	protected int tileX;
+	protected int tileY;
+	protected int completedFlags;
 
 	protected  AbstractTile(Triangle triangle, int tileSize) {
 		e0 = triangle.e0;
 		e1 = triangle.e1;
 		e2 = triangle.e2;
-		te0 = new TileEdge(e0, tileSize);
-		te1 = new TileEdge(e1, tileSize);
-		te2 = new TileEdge(e2, tileSize);
+		diameter = tileSize;
+		tileShift =  Integer.bitCount(diameter - 1);
+		te0 = new TileEdge(e0, this);
+		te1 = new TileEdge(e1, this);
+		te2 = new TileEdge(e2, this);
 	}
 
 	/**
@@ -66,14 +74,29 @@ abstract class AbstractTile {
 		}
 	}
 
+	public void prepare() {
+		te0.prepare();
+		te1.prepare();
+		te2.prepare();
+	}
+
 	public final void moveTo(int tileX, int tileY) {
-		te0.moveTo(tileX, tileY);
-		te1.moveTo(tileX, tileY);
-		te2.moveTo(tileX, tileY);
+		completedFlags = 0;
+		this.tileX = tileX << tileShift;
+		this.tileY = tileY << tileShift;
 	}
 
 	protected static final int COVERAGE_NONE = 0;
 	protected static final int COVERAGE_PARTIAL = 1;
 	// 8 bits away from partial coverage so partial and full results can be accumulated in one word and combined with their respective masks
 	protected static final int COVERAGE_FULL = 1 << 8;
+
+	public boolean isDirty(int ordinalFlag) {
+		if  ((completedFlags & ordinalFlag) == 0) {
+			completedFlags |= ordinalFlag;
+			return true;
+		} else {
+			return false;
+		}
+	}
 }
