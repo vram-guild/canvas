@@ -8,10 +8,10 @@ import static grondag.canvas.chunk.occlusion.TerrainOccluder.OFFSET_FULL;
 import static grondag.canvas.chunk.occlusion.TerrainOccluder.OFFSET_PARTIAL;
 
 public abstract class TileHandler {
-	private final AbstractSummaryTile tile;
+	private final SummaryTile tile;
 	private final long[] bins;
 
-	TileHandler(AbstractSummaryTile tile, long[] bins) {
+	TileHandler(SummaryTile tile, long[] bins) {
 		this.tile = tile;
 		this.bins = bins;
 	}

@@ -1,14 +1,5 @@
 package grondag.canvas.chunk.occlusion;
 
-import static grondag.canvas.chunk.occlusion.Edge.EDGE_BOTTOM;
-import static grondag.canvas.chunk.occlusion.Edge.EDGE_BOTTOM_LEFT;
-import static grondag.canvas.chunk.occlusion.Edge.EDGE_BOTTOM_RIGHT;
-import static grondag.canvas.chunk.occlusion.Edge.EDGE_LEFT;
-import static grondag.canvas.chunk.occlusion.Edge.EDGE_RIGHT;
-import static grondag.canvas.chunk.occlusion.Edge.EDGE_TOP;
-import static grondag.canvas.chunk.occlusion.Edge.EDGE_TOP_LEFT;
-import static grondag.canvas.chunk.occlusion.Edge.EDGE_TOP_RIGHT;
-
 final class TileEdge {
 	protected final Edge edge;
 	protected final AbstractTile tile;
@@ -71,17 +62,26 @@ final class TileEdge {
 
 	public void moveRight() {
 		x0y0 += stepA;
-		classify();
+
+		if (edge.position.isRight) {
+			classify();
+		}
 	}
 
 	public void moveLeft() {
 		x0y0 -= stepA;
-		classify();
+
+		if (edge.position.isLeft) {
+			classify();
+		}
 	}
 
 	public void moveUp() {
 		x0y0 += stepB;
-		classify();
+
+		if (edge.position.isTop) {
+			classify();
+		}
 	}
 
 	private void update() {
@@ -92,28 +92,28 @@ final class TileEdge {
 	}
 
 	private int chooseEdgeValue() {
-		switch  (edge.shape) {
-		case EDGE_TOP:
-		case EDGE_TOP_LEFT:
-		case EDGE_LEFT:
+		switch  (edge.position) {
+		case TOP:
+		case TOP_LEFT:
 			//			return x0y1;
 			return x0y0 + spanB;
 
-		case EDGE_BOTTOM_LEFT:
+		case LEFT:
+		case BOTTOM_LEFT:
+		case BOTTOM:
 			return x0y0;
 
-		case EDGE_TOP_RIGHT:
+		case TOP_RIGHT:
 			//			return x1y1;
 			return x0y0 + spanA + spanB;
 
-		case EDGE_BOTTOM:
-		case EDGE_RIGHT:
-		case EDGE_BOTTOM_RIGHT:
+		case RIGHT:
+		case BOTTOM_RIGHT:
 			//			return x1y0;
 			return x0y0 + spanA;
 
 		default:
-			assert false : "Edge flag out of bounds.";
+			assert false : "Edge position invalid.";
 		return -1;
 		}
 	}
@@ -144,8 +144,8 @@ final class TileEdge {
 		final int a = stepA;
 		final int b = stepB;
 
-		switch  (edge.shape) {
-		case EDGE_TOP: {
+		switch  (edge.position) {
+		case TOP: {
 			int wy = x0y0; // bottom left will always be inside
 			//			assert wy >= 0;
 			//			assert b < 0;
@@ -165,7 +165,7 @@ final class TileEdge {
 			return mask;
 		}
 
-		case EDGE_BOTTOM: {
+		case BOTTOM: {
 			int wy = x0y0 + spanB; // top left will always be inside
 			//			assert wy >= 0;
 			//			assert b > 0;
@@ -185,7 +185,7 @@ final class TileEdge {
 			return mask;
 		}
 
-		case EDGE_RIGHT: {
+		case RIGHT: {
 			final int wy = x0y0; // bottom left will always be inside
 			//			assert wy >= 0;
 			//			assert a < 0;
@@ -203,7 +203,7 @@ final class TileEdge {
 			return mask;
 		}
 
-		case EDGE_LEFT: {
+		case LEFT: {
 			final int wy = x0y0 + spanA; // bottom right will always be inside
 			assert wy >= 0;
 			assert a > 0;
@@ -221,7 +221,7 @@ final class TileEdge {
 			return mask;
 		}
 
-		case EDGE_TOP_LEFT: {
+		case TOP_LEFT: {
 			// PERF: optimize case when shallow slope and several bottom rows are full
 
 			int wy = x0y0 + spanA; // bottom right will always be inside
@@ -249,7 +249,7 @@ final class TileEdge {
 			return mask;
 		}
 
-		case EDGE_BOTTOM_LEFT: {
+		case BOTTOM_LEFT: {
 			int wy = x0y0 + spanA + spanB; // top right will always be inside
 			//			assert wy >= 0;
 			//			assert b > 0;
@@ -275,7 +275,7 @@ final class TileEdge {
 			return mask;
 		}
 
-		case EDGE_TOP_RIGHT: {
+		case TOP_RIGHT: {
 			// PERF: optimize case when shallow slope and several bottom rows are full
 
 			// max y will occur at x = 0
@@ -306,7 +306,7 @@ final class TileEdge {
 			return mask;
 		}
 
-		case EDGE_BOTTOM_RIGHT: {
+		case BOTTOM_RIGHT: {
 			// PERF: optimize case when shallow slope and several top rows are full
 
 			int wy = x0y0 + spanB; // top left will always be inside

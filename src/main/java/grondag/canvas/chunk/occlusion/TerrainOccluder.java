@@ -3,9 +3,6 @@ package grondag.canvas.chunk.occlusion;
 import static grondag.canvas.chunk.occlusion.AbstractTile.COVERAGE_FULL;
 import static grondag.canvas.chunk.occlusion.AbstractTile.COVERAGE_NONE;
 import static grondag.canvas.chunk.occlusion.AbstractTile.COVERAGE_PARTIAL;
-import static grondag.canvas.chunk.occlusion.TileEdge.INSIDE;
-import static grondag.canvas.chunk.occlusion.TileEdge.INTERSECTING;
-import static grondag.canvas.chunk.occlusion.TileEdge.OUTSIDE;
 import static grondag.canvas.chunk.occlusion.Triangle.SCALE_LOW;
 import static grondag.canvas.chunk.occlusion.Triangle.SCALE_MID;
 import static grondag.canvas.chunk.occlusion.Triangle.SCALE_POINT;
@@ -33,9 +30,8 @@ import org.apache.commons.lang3.StringUtils;
 
 public class TerrainOccluder extends ClippingTerrainOccluder  {
 	private final LowTile lowTile = new LowTile(triangle);
-	private final MidTile midTile = new MidTile(triangle);
-	private final TopTile topTile = new TopTile(triangle);
-
+	private final SummaryTile midTile = new SummaryTile(triangle, MID_BIN_PIXEL_DIAMETER);
+	private final SummaryTile topTile = new SummaryTile(triangle, TOP_BIN_PIXEL_DIAMETER);
 
 	@Override
 	protected void drawTri(int v0, int v1, int v2) {
@@ -992,7 +988,7 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 
 	private boolean testTriMid() {
 		final Triangle tri = triangle;
-		final MidTile midTile = this.midTile;
+		final SummaryTile midTile = this.midTile;
 		midTile.prepare();
 		lowTile.prepare();
 
@@ -1628,192 +1624,6 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 	protected static final int OFFSET_FULL = 0;
 	protected static final int OFFSET_PARTIAL = 1;
 
-	private class LowTile extends AbstractTile {
-		// PERF: accept/preserve one or more corners pre-computed
-		// PERF: add moveDown/Left/Right/Up
-		// PERF: make corner compute lazy
-		// PERF: compute base a/b based on origin or snapped corner to avoid dx/dy computation
-
-		protected LowTile(Triangle triangle) {
-			super(triangle, LOW_BIN_PIXEL_DIAMETER);
-		}
-
-		@Override
-		public long computeCoverage() {
-			final int c0 = te0.position();
-			final int c1 = te1.position();
-			final int c2 = te2.position();
-
-			final int t = c0 | c1 | c2;
-
-			if (t == INSIDE)  {
-				return -1L;
-			} else if((t & OUTSIDE) ==  OUTSIDE) {
-				return 0;
-			}
-
-			long result = -1L;
-
-			if (c0 == INTERSECTING) {
-				final long mask = te0.buildMask();
-				result &= mask;
-			}
-
-			if (c1 == INTERSECTING) {
-				final long mask = te1.buildMask();
-				result &= mask;
-			}
-
-			if (c2 == INTERSECTING) {
-				final long mask = te2.buildMask();
-				result &= mask;
-			}
-
-			return result;
-		}
-	}
-
-	private class MidTile extends AbstractSummaryTile {
-		protected MidTile(Triangle triangle) {
-			super(triangle, MID_BIN_PIXEL_DIAMETER);
-		}
-
-		//		protected int midX, midY;
-
-		/**
-		 *
-		 * @return mask that inclueds edge coverage.
-		 */
-		@Override
-		public long computeCoverage() {
-			final int c0 = te0.position();
-			final int c1 = te1.position();
-			final int c2 = te2.position();
-
-			final int t = c0 | c1 | c2;
-
-			if (t == INSIDE)  {
-				fullCoverage = -1L;
-				return -1L;
-			} else if((t & OUTSIDE) ==  OUTSIDE) {
-				fullCoverage = 0;
-				return 0;
-			}
-
-			long result = -1L;
-			long full = -1L;
-
-			if (c0 == INTERSECTING) {
-				final long mask = te0.buildMask();
-				result &= mask;
-				full &= shiftMask(e0.shape, mask);
-			}
-
-			if (c1 == INTERSECTING) {
-				final long mask = te1.buildMask();
-				result &= mask;
-				full &= shiftMask(e1.shape, mask);
-			}
-
-			if (c2 == INTERSECTING) {
-				final long mask = te2.buildMask();
-				result &= mask;
-				full &= shiftMask(e2.shape, mask);
-			}
-
-			fullCoverage = full;
-			return result;
-		}
-	}
-
-	private class TopTile extends AbstractSummaryTile {
-		protected TopTile(Triangle triangle) {
-			super(triangle, TOP_BIN_PIXEL_DIAMETER);
-		}
-
-		/**
-		 *
-		 * @return mask that includes edge coverage.
-		 */
-		@Override
-		public long computeCoverage() {
-			final int c0 = te0.position();
-			final int c1 = te1.position();
-			final int c2 = te2.position();
-
-			final int t = c0 | c1 | c2;
-
-			if (t == INSIDE)  {
-				fullCoverage = -1L;
-				return -1L;
-			} else if((t & OUTSIDE) ==  OUTSIDE) {
-				fullCoverage = 0;
-				return 0;
-			}
-
-			long result = -1L;
-			long full = -1L;
-
-			if (c0 == INTERSECTING) {
-				final long mask = te0.buildMask();
-				result &= mask;
-				full &= shiftMask(e0.shape, mask);
-			}
-
-			if (c1 == INTERSECTING) {
-				final long mask = te1.buildMask();
-				result &= mask;
-				full &= shiftMask(e1.shape, mask);
-			}
-
-			if (c2 == INTERSECTING) {
-				final long mask = te2.buildMask();
-				result &= mask;
-				full &= shiftMask(e2.shape, mask);
-			}
-
-			fullCoverage = full;
-			return result;
-
-			//			final long result = m0 & m1 & m2;
-			//
-			//			if  (debugTop) {
-			//				System.out.println("E0 = " + e0);
-			//				printMask8x8(m0);
-			//				System.out.println();
-			//				System.out.println("E1 = " + e1);
-			//				printMask8x8(m1);
-			//				System.out.println();
-			//				System.out.println("E2 = " + e2);
-			//				printMask8x8(m2);
-			//				System.out.println();
-			//
-			//				System.out.println("COMBINED");
-			//				printMask8x8(m0 & m1 & m2);
-			//
-			//				final float x0 = vertexData[v0 + PV_PX] / 16f;
-			//				final float y0 = vertexData[v0 + PV_PY] / 16f;
-			//				final float x1 = vertexData[v1 + PV_PX] / 16f;
-			//				final float y1 = vertexData[v1 + PV_PY] / 16f;
-			//				final float x2 = vertexData[v2 + PV_PX] / 16f;
-			//				final float y2 = vertexData[v2 + PV_PY] / 16f;
-			//
-			//				System.out.println();
-			//				System.out.println(String.format("E00: %d, %d, %d", tileData[CORNER_X0_Y0_E0 + TILE_TOP_START], tileData[CORNER_X0_Y0_E1 + TILE_TOP_START], tileData[CORNER_X0_Y0_E2 + TILE_TOP_START]));
-			//				System.out.println(String.format("E10: %d, %d, %d", tileData[CORNER_X1_Y0_E0 + TILE_TOP_START], tileData[CORNER_X1_Y0_E1 + TILE_TOP_START], tileData[CORNER_X1_Y0_E2 + TILE_TOP_START]));
-			//				System.out.println(String.format("E01: %d, %d, %d", tileData[CORNER_X0_Y1_E0 + TILE_TOP_START], tileData[CORNER_X0_Y1_E1 + TILE_TOP_START], tileData[CORNER_X0_Y1_E2 + TILE_TOP_START]));
-			//				System.out.println(String.format("E11: %d, %d, %d", tileData[CORNER_X1_Y1_E0 + TILE_TOP_START], tileData[CORNER_X1_Y1_E1 + TILE_TOP_START], tileData[CORNER_X1_Y1_E2 + TILE_TOP_START]));
-			//				System.out.println();
-			//				System.out.println(String.format("Points: %f\t%f\t%f\t%f\t%f\t%f", x0, y0, x1, y1, x2, y2));
-			//				System.out.println(String.format("A,B: (%d, %d)  (%d, %d)  (%d, %d)", a[0], b[0], a[1], b[1], a[2], b[2]));
-			//				System.out.println(String.format("Edges: %d, %d, %d", e0, e1, e2));
-			//				//				System.out.println(String.format("origin: (%d, %d)", topX << MID_AXIS_SHIFT,  topY << MID_AXIS_SHIFT));
-			//				System.out.println();
-			//			}
-			//
-			//			return result;
-		}
-	}
 
 	public static void printMask8x8(long mask) {
 		final String s = Strings.padStart(Long.toBinaryString(mask), 64, '0');
