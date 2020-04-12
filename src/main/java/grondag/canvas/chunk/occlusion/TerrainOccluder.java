@@ -11,6 +11,8 @@ import static grondag.canvas.chunk.occlusion.Triangle.SCALE_TOP;
 import com.google.common.base.Strings;
 import org.apache.commons.lang3.StringUtils;
 
+import grondag.canvas.render.CanvasWorldRenderer;
+
 // Some elements are adapted from content found at
 // https://fgiesen.wordpress.com/2013/02/17/optimizing-sw-occlusion-culling-index/
 // by Fabian “ryg” Giesen. That content is in the public domain.
@@ -948,28 +950,41 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 
 		switch(tri.scale) {
 		case SCALE_POINT: {
+			CanvasWorldRenderer.innerTimer.start();
 			final int px = tri.minPixelX;
 			final int py = tri.minPixelY;
-			return px >= 0 && py >= 0 && px < PIXEL_WIDTH && py < PIXEL_HEIGHT && testPixel(px, py);
-		}
-
-		case SCALE_LOW:
-			tri.prepareScan(vertexData, v0, v1, v2);
-			return testTriLow();
-
-		case SCALE_MID:
-			tri.prepareScan(vertexData, v0, v1, v2);
-			final boolean result = testTriMid();
-
-			//			if (result != testTriTop())  {
-			//				testTriMid();
-			//			}
+			final boolean result = px >= 0 && py >= 0 && px < PIXEL_WIDTH && py < PIXEL_HEIGHT && testPixel(px, py);
+			CanvasWorldRenderer.innerTimer.stop();
 
 			return result;
+		}
 
-		case SCALE_TOP:
+		case SCALE_LOW:{
+			//CanvasWorldRenderer.innerTimer.start();
 			tri.prepareScan(vertexData, v0, v1, v2);
-			return testTriTop();
+			final boolean result =  testTriLow();
+			//CanvasWorldRenderer.innerTimer.stop();
+
+			return result;
+		}
+
+		case SCALE_MID: {
+			//			CanvasWorldRenderer.innerTimer.start();
+			tri.prepareScan(vertexData, v0, v1, v2);
+			final boolean result = testTriMid();
+			//			CanvasWorldRenderer.innerTimer.stop();
+
+			return result;
+		}
+
+		case SCALE_TOP: {
+			//CanvasWorldRenderer.innerTimer.start();
+			tri.prepareScan(vertexData, v0, v1, v2);
+			final boolean result = testTriTop();
+			//CanvasWorldRenderer.innerTimer.stop();
+
+			return result;
+		}
 
 		default:
 			assert false : "Bad triangle scale";
