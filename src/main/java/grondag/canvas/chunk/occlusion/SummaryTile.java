@@ -4,7 +4,7 @@ import static grondag.canvas.chunk.occlusion.TileEdge.INSIDE;
 import static grondag.canvas.chunk.occlusion.TileEdge.INTERSECTING;
 import static grondag.canvas.chunk.occlusion.TileEdge.OUTSIDE;
 
-public class SummaryTile extends AbstractTile {
+public abstract class SummaryTile extends AbstractTile {
 	protected SummaryTile(Triangle triangle, int tileSize) {
 		super(triangle, tileSize);
 	}

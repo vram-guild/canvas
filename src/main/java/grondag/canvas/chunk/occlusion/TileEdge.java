@@ -16,6 +16,9 @@ final class TileEdge {
 	private int x0y0;
 	private int position;
 
+	private int save_x0y0;
+	private int save_position;
+
 	public final int ordinalFlag;
 
 	protected TileEdge(Edge edge, AbstractTile tile) {
@@ -25,6 +28,16 @@ final class TileEdge {
 		spanSize = diameter - 1;
 		this.edge = edge;
 		this.tile = tile;
+	}
+
+	public void push() {
+		save_x0y0 = x0y0;
+		save_position = position;
+	}
+
+	public void pop() {
+		x0y0 = save_x0y0;
+		position = save_position;
 	}
 
 	/**
@@ -61,33 +74,52 @@ final class TileEdge {
 	}
 
 	public void moveRight() {
-		x0y0 += stepA;
+		x0y0 += stepA + spanA;
 
 		if (edge.position.isRight) {
-			classify();
+			if (position != OUTSIDE) {
+				position  =  POSITION_DIRTY;
+			}
+		} else if (edge.position.isLeft && position != INSIDE) {
+			position = POSITION_DIRTY;
 		}
 	}
 
 	public void moveLeft() {
-		x0y0 -= stepA;
+		x0y0 -= stepA + spanA;
 
 		if (edge.position.isLeft) {
-			classify();
+			if (position != OUTSIDE) {
+				position  =  POSITION_DIRTY;
+			}
+		} else if (edge.position.isRight && position != INSIDE) {
+			position = POSITION_DIRTY;
 		}
 	}
 
 	public void moveUp() {
-		x0y0 += stepB;
+		x0y0 += stepB + spanB;
 
 		if (edge.position.isTop) {
-			classify();
+			if (position != OUTSIDE) {
+				position  =  POSITION_DIRTY;
+			}
+		} else if (edge.position.isBottom && position != INSIDE) {
+			position = POSITION_DIRTY;
 		}
 	}
 
-	private void update() {
+	public void updateFromParent(TileEdge parent) {
+		x0y0 = parent.x0y0;
+		position = POSITION_DIRTY;
+	}
+
+	private boolean update() {
 		if (tile.isDirty(ordinalFlag)) {
-			x0y0 = edge.compute(tile.tileX, tile.tileY);
-			classify();
+			x0y0 = edge.compute(tile.x(), tile.y());
+			return true;
+		} else {
+			return false;
 		}
 	}
 
@@ -136,7 +168,10 @@ final class TileEdge {
 	}
 
 	public int position() {
-		update();
+		if ((position == POSITION_DIRTY) || update()) {
+			classify();
+		}
+
 		return position;
 	}
 
@@ -340,4 +375,5 @@ final class TileEdge {
 	protected static final int OUTSIDE = 1;
 	protected static final int INTERSECTING = 2;
 	protected static final int INSIDE = 4;
+	private static final int POSITION_DIRTY = -1;
 }

@@ -30,8 +30,21 @@ import org.apache.commons.lang3.StringUtils;
 
 public class TerrainOccluder extends ClippingTerrainOccluder  {
 	private final LowTile lowTile = new LowTile(triangle);
-	private final SummaryTile midTile = new SummaryTile(triangle, MID_BIN_PIXEL_DIAMETER);
-	private final SummaryTile topTile = new SummaryTile(triangle, TOP_BIN_PIXEL_DIAMETER);
+	private final SummaryTile midTile = new SummaryTile(triangle, MID_BIN_PIXEL_DIAMETER) {
+		@Override
+		public int tileIndex() {
+			// shift because two words per tile
+			return midIndex(tileX,  tileY) << 1;
+		}
+	};
+
+	private final SummaryTile topTile = new SummaryTile(triangle, TOP_BIN_PIXEL_DIAMETER) {
+		@Override
+		public int tileIndex() {
+			// shift because two words per tile
+			return topIndex(tileX,  tileY) << 1;
+		}
+	};
 
 	@Override
 	protected void drawTri(int v0, int v1, int v2) {
@@ -946,7 +959,13 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 
 		case SCALE_MID:
 			tri.prepareScan(vertexData, v0, v1, v2);
-			return testTriMid();
+			final boolean result = testTriMid();
+
+			//			if (result != testTriTop())  {
+			//				testTriMid();
+			//			}
+
+			return result;
 
 		case SCALE_TOP:
 			tri.prepareScan(vertexData, v0, v1, v2);
@@ -997,72 +1016,104 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		final int y0 = (tri.minPixelY >> MID_AXIS_SHIFT);
 		final int y1 = (tri.maxPixelY >> MID_AXIS_SHIFT);
 
-		long word =  midBins[midIndex(x0, y0) << 1];
+		midTile.moveTo(x0, y0);
 
-		if (word != -1L) {
+		if (testTriMidInner()) {
+			return true;
+		}
 
-			// PERF: move one unit instead of direct
+		if (x0 != x1) {
+			midTile.moveRight();
 
-			//		midTile.moveTo(x0, y0);
-
-			//		if ((~word & midTile.computeCoverage()) != 0) {
-			//			return true;
-			//		}
-
-			if (testTriMid(x0, y1)) {
+			if (testTriMidInner()) {
 				return true;
 			}
 		}
 
-		if (x0 != x1) {
-			word =  midBins[midIndex(x1, y0) << 1];
-
-			if (word != -1L) {
-
-				//			midTile.moveRight();
-				//
-				//			if ((~word & midTile.computeCoverage()) != 0) {
-				//				return true;
-				//			}
-
-				if (testTriMid(x1, y0)) {
-					return true;
-				}
-			}
-		}
-
 		if (y0 != y1) {
-			final int x = x0 == x1 ? x0 : x1;
-			word =  midBins[midIndex(x, y1) << 1];
+			midTile.moveUp();
 
-			if (word != -1L) {
-				//			midTile.moveUp();
-				//
-				//			if ((~word & midTile.computeCoverage()) != 0) {
-				//				return true;
-				//			}
-
-				if (testTriMid(x, y1)) {
-					return true;
-				}
+			if (testTriMidInner()) {
+				return true;
 			}
 
 			if (x0 != x1) {
-				word =  midBins[midIndex(x0, y1) << 1];
+				midTile.moveLeft();
 
-				if (word != -1L) {
-					//				midTile.moveLeft();
-					//
-					//				if ((~word & midTile.computeCoverage()) != 0) {
-					//					return true;
-					//				}
-
-					if (testTriMid(x1, y1)) {
-						return true;
-					}
+				if (testTriMidInner()) {
+					return true;
 				}
 			}
 		}
+
+		return false;
+	}
+
+	private boolean testTriMidInner() {
+		final long full = midBins[midTile.tileIndex() + OFFSET_FULL];
+
+		if (full == -1L) {
+			return false;
+		}
+
+		final SummaryTile midTile = this.midTile;
+		long coverage = midTile.computeCoverage();
+
+		// nothing in this tile
+		if (coverage  == 0)  {
+			return false;
+		}
+
+		final long notFull = ~full;
+		final long fullCoverage = midTile.fullCoverage;
+
+		// if any fully covered tile is not full then must be visible
+		if  ((fullCoverage & notFull) != 0) {
+			return true;
+		}
+
+		// don't check tiles fully covered by triangle - they would have been caught in previous step
+		coverage &= ~fullCoverage;
+
+		// don't check tiles known to be fully occluded
+		coverage &= notFull;
+
+		// PERF: is this always true? Significantly increases visible count
+		// if any partially covered tiles are fully empty then must be visible
+		//		if ((coverage & ~midBins[index + OFFSET_PARTIAL]) != 0) {
+		//			return true;
+		//		}
+
+		if (coverage == 0) {
+			// nothing left to check
+			return false;
+		}
+
+		final LowTile lowTile = this.lowTile;
+		lowTile.moveToParentOrigin(midTile);
+
+		do {
+			int row = (int) (coverage & 0xFFL);
+
+			// PERF: more efficient traversal
+			if (row != 0) {
+				lowTile.push();
+
+				do {
+					if  ((row & 1) == 1 && testTriLowInner()) {
+						return true;
+					}
+
+					lowTile.moveRight();
+					row >>= 1;
+				} while (row != 0);
+
+				lowTile.pop();
+			}
+
+			lowTile.moveUp();
+			coverage >>>= 8;
+		} while (coverage != 0L);
 
 		return false;
 	}
@@ -1079,36 +1130,46 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 
 		lowTile.moveTo(x0, y0);
 
-		if ((~lowBins[lowIndex(x0, y0)] & lowTile.computeCoverage()) != 0) {
+		if (testTriLowInner()) {
 			return true;
 		}
 
 		if (x0 != x1) {
 			lowTile.moveRight();
 
-			if ((~lowBins[lowIndex(x1, y0)] & lowTile.computeCoverage()) != 0) {
+			if (testTriLowInner()) {
 				return true;
 			}
 		}
 
 		if (y0 != y1) {
-			final int x = x0 == x1 ? x0 : x1;
 			lowTile.moveUp();
 
-			if ((~lowBins[lowIndex(x, y1)] & lowTile.computeCoverage()) != 0) {
+			if (testTriLowInner()) {
 				return true;
 			}
 
 			if (x0 != x1) {
 				lowTile.moveLeft();
 
-				if ((~lowBins[lowIndex(x0, y1)] & lowTile.computeCoverage()) != 0) {
+				if (testTriLowInner()) {
 					return true;
 				}
 			}
 		}
 
 		return false;
+	}
+
+	private boolean testTriLowInner() {
+		final long word = lowBins[lowTile.tileIndex()];
+
+		// nothing to test if fully occluded
+		if  (word == -1L) {
+			return false;
+		}
+
+		return (~word & lowTile.computeCoverage()) != 0;
 	}
 
 	private boolean testTriTop(final int topX, final int topY) {
@@ -1320,89 +1381,6 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 
 		return false;
 	}
-
-	//	private boolean testTriTopOld(final int topX, final int topY) {
-	//		final int index = topIndex(topX, topY) << 1; // shift because two words per index
-	//		final long wordFull = topBins[index + OFFSET_FULL];
-	//
-	//		if (wordFull == -1L) {
-	//			// bin fully occluded
-	//			return false;
-	//		}
-	//
-	//		final long wordPartial = topBins[index + OFFSET_PARTIAL];
-	//
-	//		if (wordPartial == 0) {
-	//			// bin has no occlusion
-	//			return true;
-	//		}
-	//
-	//		final int binOriginX = topX << TOP_AXIS_SHIFT;
-	//		final int binOriginY = topY << TOP_AXIS_SHIFT;
-	//		final int minPixelX = this.minPixelX;
-	//		final int minPixelY = this.minPixelY;
-	//
-	//		final int minX = minPixelX < binOriginX ? binOriginX : minPixelX;
-	//		final int minY = minPixelY < binOriginY ? binOriginY : minPixelY;
-	//		final int maxX = Math.min(maxPixelX, binOriginX + TOP_BIN_PIXEL_DIAMETER - 1);
-	//		final int maxY = Math.min(maxPixelY, binOriginY + TOP_BIN_PIXEL_DIAMETER - 1);
-	//
-	//		long coverage = coverageMask((minX >> MID_AXIS_SHIFT) & 7, (minY >> MID_AXIS_SHIFT) & 7,
-	//				(maxX >> MID_AXIS_SHIFT) & 7, (maxY >> MID_AXIS_SHIFT) & 7);
-	//
-	//		coverage &= ~wordFull;
-	//
-	//		if (coverage == 0) {
-	//			// all bins fully occluded
-	//			return false;
-	//		}
-	//
-	//		if ((coverage & wordPartial) == 0) {
-	//			// no bins are occluded
-	//			return true;
-	//		}
-	//
-	//		final int baseX = topX << BIN_AXIS_SHIFT;
-	//		final int baseY = topY << BIN_AXIS_SHIFT;
-	//
-	//		long mask = 1;
-	//
-	//
-	//		for (int n = 0; n < 64; ++n) {
-	//			if ((mask & coverage) != 0 && testTriMid(baseX + (n & 7), baseY + (n >> 3))) {
-	//				return true;
-	//			}
-	//
-	//			mask <<= 1;
-	//		}
-	//
-	//		return false;
-	//	}
-
-	//	@SuppressWarnings("unused")
-	//	private boolean testTriMidWithCompare(final int midX, final int midY) {
-	//		final boolean oldResult = testTriMidOld(midX,  midY);
-	//		final boolean newResult = testTriMid(midX,  midY);
-	//
-	//		if (newResult != oldResult) {
-	//			final int index = midIndex(midX, midY) << 1; // shift because two words per index
-	//			System.out.println("INPUT WORD - FULL: " + oldResult);
-	//			printMask8x8(midBins[index + OFFSET_FULL]);
-	//			System.out.println("INPUT WORD - PARTIAL: " + oldResult);
-	//			printMask8x8(midBins[index + OFFSET_PARTIAL]);
-	//			System.out.println();
-	//
-	//			debugMid = true;
-	//			testTriMid(midX,  midY);
-	//			debugMid = false;
-	//
-	//			testTriMid(midX,  midY);
-	//			System.out.println();
-	//		}
-	//
-	//		return newResult;
-	//	}
-
 
 	private boolean testTriMid(final int midX, final int midY) {
 		midTile.moveTo(midX, midY);

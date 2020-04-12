@@ -589,7 +589,7 @@ public abstract class AbstractTerrainOccluder {
 		return (topY << TOP_Y_SHIFT) | topX;
 	}
 
-	protected static int lowIndex(int lowX, int lowY) {
+	public static int lowIndex(int lowX, int lowY) {
 		final int midX = (lowX >> LOW_AXIS_SHIFT) & BIN_PIXEL_INDEX_MASK;
 		final int midY = (lowY >> LOW_AXIS_SHIFT) & BIN_PIXEL_INDEX_MASK;
 

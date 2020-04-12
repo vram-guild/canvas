@@ -30,8 +30,8 @@ public final class Edge {
 		position = edgePosition(a, b);
 	}
 
-	public int compute(int dx, int dy) {
-		return c + a * dx + b * dy;
+	public int compute(int x, int y) {
+		return c + a * x + b * y;
 	}
 
 	private static EdgePosition edgePosition(int a, int b) {

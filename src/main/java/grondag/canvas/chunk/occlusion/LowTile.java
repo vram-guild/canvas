@@ -1,5 +1,6 @@
 package grondag.canvas.chunk.occlusion;
 
+import static grondag.canvas.chunk.occlusion.AbstractTerrainOccluder.lowIndex;
 import static grondag.canvas.chunk.occlusion.TileEdge.INSIDE;
 import static grondag.canvas.chunk.occlusion.TileEdge.INTERSECTING;
 import static grondag.canvas.chunk.occlusion.TileEdge.OUTSIDE;
@@ -48,5 +49,10 @@ class LowTile extends AbstractTile {
 		}
 
 		return result;
+	}
+
+	@Override
+	public int tileIndex() {
+		return lowIndex(tileX,  tileY);
 	}
 }
