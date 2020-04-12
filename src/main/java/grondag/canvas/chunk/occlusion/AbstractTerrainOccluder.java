@@ -21,8 +21,8 @@ import grondag.canvas.mixinterface.Matrix4fExt;
 
 public abstract class AbstractTerrainOccluder {
 	protected final long[] lowBins = new long[LOW_BIN_COUNT];
-	protected final long[] midBins = new long[MID_BIN_WORDS];
-	protected final long[] topBins = new long[TOP_BIN_WORDS];
+	protected final long[] midBins = new long[MID_BIN_COUNT];
+	protected final long[] topBins = new long[TOP_BIN_COUNT];
 
 	protected Matrix4f projectionMatrix;
 	protected Matrix4f modelMatrix;
@@ -495,8 +495,8 @@ public abstract class AbstractTerrainOccluder {
 
 	public final void clearScene() {
 		System.arraycopy(EMPTY_BITS, 0, lowBins, 0, LOW_BIN_COUNT);
-		System.arraycopy(EMPTY_BITS, 0, midBins, 0, MID_BIN_WORDS);
-		System.arraycopy(EMPTY_BITS, 0, topBins, 0, TOP_BIN_WORDS);
+		System.arraycopy(EMPTY_BITS, 0, midBins, 0, MID_BIN_COUNT);
+		System.arraycopy(EMPTY_BITS, 0, topBins, 0, TOP_BIN_COUNT);
 	}
 
 	public final void prepareChunk(BlockPos origin, int occlusionRange) {
@@ -727,11 +727,7 @@ public abstract class AbstractTerrainOccluder {
 
 	protected static final int LOW_BIN_COUNT = LOW_WIDTH * LOW_HEIGHT;
 	protected static final int MID_BIN_COUNT = MID_WIDTH * LOW_HEIGHT;
-	// two words per bin -  first indicates full coverage, second indicates partial
-	protected static final int MID_BIN_WORDS = MID_BIN_COUNT * 2;
 	protected static final int TOP_BIN_COUNT = TOP_WIDTH * TOP_HEIGHT;
-	// two words per bin -  first indicates full coverage, second indicates partial
-	protected static final int TOP_BIN_WORDS = TOP_BIN_COUNT * 2;
 
 	protected static final int TOP_BIN_PIXEL_DIAMETER = PIXEL_WIDTH / TOP_WIDTH;
 	protected static final int TOP_BIN_PIXEL_INDEX_MASK = TOP_BIN_PIXEL_DIAMETER - 1;

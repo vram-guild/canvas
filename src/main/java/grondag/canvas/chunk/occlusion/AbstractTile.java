@@ -1,6 +1,9 @@
 package grondag.canvas.chunk.occlusion;
 
 import static grondag.canvas.chunk.occlusion.AbstractTerrainOccluder.BIN_AXIS_SHIFT;
+import static grondag.canvas.chunk.occlusion.TileEdge.INSIDE;
+import static grondag.canvas.chunk.occlusion.TileEdge.INTERSECTING;
+import static grondag.canvas.chunk.occlusion.TileEdge.OUTSIDE;
 
 abstract class AbstractTile {
 	protected final Edge e0;
@@ -200,7 +203,46 @@ abstract class AbstractTile {
 		}
 	}
 
-	protected abstract long computeCoverage();
+	public final long computeCoverage() {
+		final int c0 = te0.position();
+
+		if (c0 == OUTSIDE) {
+			return 0L;
+		}
+
+		final int c1 = te1.position();
+
+		if (c1 == OUTSIDE) {
+			return 0L;
+		}
+
+		final int c2 = te2.position();
+
+		if (c2 == OUTSIDE) {
+			return 0L;
+		}
+
+		if ((c0 | c1 | c2) == INSIDE)  {
+			return -1L;
+		}
+
+		long result = -1L;
+
+		if (c0 == INTERSECTING) {
+			result &= te0.buildMask();
+		}
+
+		if (c1 == INTERSECTING) {
+			result &= te1.buildMask();
+		}
+
+		if (c2 == INTERSECTING) {
+			result &= te2.buildMask();
+		}
+
+		return result;
+	}
+
 
 	public int x() {
 		return tileX << tileShift;
@@ -288,8 +330,6 @@ abstract class AbstractTile {
 
 	public abstract int tileIndex();
 
-	protected static final int COVERAGE_NONE = 0;
-	protected static final int COVERAGE_PARTIAL = 1;
-	// 8 bits away from partial coverage so partial and full results can be accumulated in one word and combined with their respective masks
-	protected static final int COVERAGE_FULL = 1 << 8;
+	protected static final int COVERAGE_NONE_OR_SOME = 0;
+	protected static final int COVERAGE_FULL = 1;
 }
