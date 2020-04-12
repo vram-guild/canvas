@@ -69,6 +69,21 @@ final class TileEdge {
 		extent = -Math.abs(spanA) - Math.abs(spanB);
 	}
 
+	public void moveRight() {
+		x0y0 += stepA;
+		classify();
+	}
+
+	public void moveLeft() {
+		x0y0 -= stepA;
+		classify();
+	}
+
+	public void moveUp() {
+		x0y0 += stepB;
+		classify();
+	}
+
 	private void update() {
 		if (tile.isDirty(ordinalFlag)) {
 			x0y0 = edge.compute(tile.tileX, tile.tileY);

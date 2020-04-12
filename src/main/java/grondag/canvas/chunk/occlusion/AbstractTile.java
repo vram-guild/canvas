@@ -86,6 +86,54 @@ abstract class AbstractTile {
 		this.tileY = tileY << tileShift;
 	}
 
+	public final void moveRight() {
+		++tileX;
+
+		if ((completedFlags & 1) != 0) {
+			te0.moveRight();
+		}
+
+		if ((completedFlags & 2) != 0) {
+			te1.moveRight();
+		}
+
+		if ((completedFlags & 4) != 0) {
+			te2.moveRight();
+		}
+	}
+
+	public final void moveLeft() {
+		--tileX;
+
+		if ((completedFlags & 1) != 0) {
+			te0.moveLeft();
+		}
+
+		if ((completedFlags & 2) != 0) {
+			te1.moveLeft();
+		}
+
+		if ((completedFlags & 4) != 0) {
+			te2.moveLeft();
+		}
+	}
+
+	public final void moveUp() {
+		++tileY;
+
+		if ((completedFlags & 1) != 0) {
+			te0.moveUp();
+		}
+
+		if ((completedFlags & 2) != 0) {
+			te1.moveUp();
+		}
+
+		if ((completedFlags & 4) != 0) {
+			te2.moveUp();
+		}
+	}
+
 	protected static final int COVERAGE_NONE = 0;
 	protected static final int COVERAGE_PARTIAL = 1;
 	// 8 bits away from partial coverage so partial and full results can be accumulated in one word and combined with their respective masks
@@ -99,4 +147,6 @@ abstract class AbstractTile {
 			return false;
 		}
 	}
+
+	protected abstract long computeCoverage();
 }

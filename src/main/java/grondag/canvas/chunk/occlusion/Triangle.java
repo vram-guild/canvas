@@ -1,5 +1,17 @@
 package grondag.canvas.chunk.occlusion;
 
+import static grondag.canvas.chunk.occlusion.AbstractTerrainOccluder.BIN_AXIS_SHIFT;
+import static grondag.canvas.chunk.occlusion.AbstractTerrainOccluder.GUARD_HEIGHT;
+import static grondag.canvas.chunk.occlusion.AbstractTerrainOccluder.GUARD_SIZE;
+import static grondag.canvas.chunk.occlusion.AbstractTerrainOccluder.GUARD_WIDTH;
+import static grondag.canvas.chunk.occlusion.AbstractTerrainOccluder.MAX_PIXEL_X;
+import static grondag.canvas.chunk.occlusion.AbstractTerrainOccluder.MAX_PIXEL_Y;
+import static grondag.canvas.chunk.occlusion.AbstractTerrainOccluder.PRECISE_HEIGHT;
+import static grondag.canvas.chunk.occlusion.AbstractTerrainOccluder.PRECISE_HEIGHT_CLAMP;
+import static grondag.canvas.chunk.occlusion.AbstractTerrainOccluder.PRECISE_PIXEL_CENTER;
+import static grondag.canvas.chunk.occlusion.AbstractTerrainOccluder.PRECISE_WIDTH;
+import static grondag.canvas.chunk.occlusion.AbstractTerrainOccluder.PRECISE_WIDTH_CLAMP;
+import static grondag.canvas.chunk.occlusion.AbstractTerrainOccluder.PRECISION_BITS;
 import static grondag.canvas.chunk.occlusion.ProjectedVertexData.PV_PX;
 import static grondag.canvas.chunk.occlusion.ProjectedVertexData.PV_PY;
 
@@ -9,12 +21,11 @@ public final class Triangle {
 	protected int minPixelY;
 	protected int maxPixelX;
 	protected int maxPixelY;
+	protected int scale;
 
 	public final Edge e0 = new Edge(this, 0);
 	public final Edge e1 = new Edge(this, 1);
 	public final Edge e2 = new Edge(this, 2);
-
-	public int version;
 
 	// TODO: remove
 	protected int v0 = 0, v1 = 0, v2 = 0;
@@ -36,8 +47,6 @@ public final class Triangle {
 		final int x2 = vertexData[v2 + PV_PX];
 		final int y2 = vertexData[v2 + PV_PY];
 
-		++version;
-
 		int minY = y0;
 		int maxY = y0;
 
@@ -53,7 +62,7 @@ public final class Triangle {
 			maxY = y2;
 		}
 
-		if (maxY < 0 || minY >= AbstractTerrainOccluder.PRECISE_HEIGHT) {
+		if (maxY <= 0 || minY >= PRECISE_HEIGHT) {
 			return BoundsResult.OUT_OF_BOUNDS;
 		}
 
@@ -72,41 +81,92 @@ public final class Triangle {
 			maxX = x2;
 		}
 
-		if (maxX < 0 || minX >= AbstractTerrainOccluder.PRECISE_WIDTH) {
+		if (maxX <= 0 || minX >= PRECISE_WIDTH) {
 			return BoundsResult.OUT_OF_BOUNDS;
 		}
 
-		if (minX < -AbstractTerrainOccluder.GUARD_SIZE || minY < -AbstractTerrainOccluder.GUARD_SIZE || maxX > AbstractTerrainOccluder.GUARD_WIDTH || maxY > AbstractTerrainOccluder.GUARD_HEIGHT) {
+		if (minX < -GUARD_SIZE || minY < -GUARD_SIZE || maxX > GUARD_WIDTH || maxY > GUARD_HEIGHT) {
 			return BoundsResult.NEEDS_CLIP;
 		}
 
-		int minPixelX = (minX + AbstractTerrainOccluder.PRECISE_PIXEL_CENTER - 1) >> AbstractTerrainOccluder.PRECISION_BITS;
-		int minPixelY = (minY + AbstractTerrainOccluder.PRECISE_PIXEL_CENTER - 1) >> AbstractTerrainOccluder.PRECISION_BITS;
-		int maxPixelX = (maxX - AbstractTerrainOccluder.PRECISE_PIXEL_CENTER) >> AbstractTerrainOccluder.PRECISION_BITS;
-		int maxPixelY = (maxY - AbstractTerrainOccluder.PRECISE_PIXEL_CENTER) >> AbstractTerrainOccluder.PRECISION_BITS;
-
-		if (minPixelX < 0) {
-			minPixelX = 0;
+		if (minX < 0) {
+			minX = 0;
 		}
 
-		if (maxPixelX > AbstractTerrainOccluder.PIXEL_WIDTH - 1)  {
-			maxPixelX = AbstractTerrainOccluder.PIXEL_WIDTH  - 1;
+		if (maxX >= PRECISE_WIDTH_CLAMP)  {
+			maxX = PRECISE_WIDTH_CLAMP;
+
+			if(minX > PRECISE_WIDTH_CLAMP) {
+				minX = PRECISE_WIDTH_CLAMP;
+			}
 		}
 
-		if (minPixelY < 0) {
-			minPixelY = 0;
+		if (minY < 0) {
+			minY = 0;
 		}
 
-		if (maxPixelY > AbstractTerrainOccluder.PIXEL_HEIGHT - 1)  {
-			maxPixelY = AbstractTerrainOccluder.PIXEL_HEIGHT - 1;
+		if (maxY >= PRECISE_HEIGHT_CLAMP)  {
+			maxY = PRECISE_HEIGHT_CLAMP;
+
+			if(minY > PRECISE_HEIGHT_CLAMP) {
+				minY = PRECISE_HEIGHT_CLAMP;
+			}
 		}
 
-		this.minPixelX = minPixelX;
-		this.minPixelY = minPixelY;
-		this.maxPixelX = maxPixelX;
-		this.maxPixelY = maxPixelY;
+		minPixelX = (minX + PRECISE_PIXEL_CENTER - 1) >> PRECISION_BITS;
+		minPixelY = (minY + PRECISE_PIXEL_CENTER - 1) >> PRECISION_BITS;
+		maxPixelX = (maxX + PRECISE_PIXEL_CENTER - 1) >> PRECISION_BITS;
+		maxPixelY = (maxY + PRECISE_PIXEL_CENTER - 1) >> PRECISION_BITS;
+
+		assert minPixelX >= 0;
+		assert maxPixelX >= 0;
+		assert minPixelY >= 0;
+		assert maxPixelY >= 0;
+		assert minPixelX <= MAX_PIXEL_X;
+		assert maxPixelX <= MAX_PIXEL_X;
+		assert minPixelY <= MAX_PIXEL_Y;
+		assert maxPixelY <= MAX_PIXEL_Y;
+		assert minPixelX <= maxPixelX;
+		assert minPixelY <= maxPixelY;
+
+		computeScale();
 
 		return BoundsResult.IN_BOUNDS;
+	}
+
+	private void computeScale() {
+		int x0 = minPixelX;
+		int y0 = minPixelY;
+		int x1 = maxPixelX;
+		int y1 = maxPixelY;
+
+		if (x0 == x1 && y0 == y1) {
+			scale = SCALE_POINT;
+			return;
+		}
+
+		//PERF: probably a better way - maybe save outputs?
+
+		x0  >>= BIN_AXIS_SHIFT;
+		y0  >>= BIN_AXIS_SHIFT;
+		x1  >>= BIN_AXIS_SHIFT;
+		y1  >>= BIN_AXIS_SHIFT;
+
+		if (x1 <= x0 + 1 && y1 <= y0 + 1) {
+			scale = SCALE_LOW;
+			return;
+		}
+
+		x0  >>= BIN_AXIS_SHIFT;
+		y0  >>= BIN_AXIS_SHIFT;
+		x1  >>= BIN_AXIS_SHIFT;
+		y1  >>= BIN_AXIS_SHIFT;
+
+		if (x1 <= x0 + 1 && y1 <= y0 + 1) {
+			scale = SCALE_MID;
+		} else {
+			scale = SCALE_TOP;
+		}
 	}
 
 	protected void prepareScan(final int[] vertexData, int v0, int v1, int v2) {
@@ -148,4 +208,9 @@ public final class Triangle {
 	protected long orient2d(long x0, long y0, long x1, long y1) {
 		return (y1 - y0) * x0 - (x1 - x0) * y0;
 	}
+
+	public static final int SCALE_POINT = 0;
+	public static final int SCALE_LOW = 1;
+	public static final int SCALE_MID = 2;
+	public static final int SCALE_TOP = 3;
 }

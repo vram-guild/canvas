@@ -23,6 +23,9 @@ import grondag.canvas.CanvasMod;
 public class MicroTimer {
 	private int hits;
 	private long elapsed;
+	private long min;
+	private long max;
+	private long last;
 	private final int sampleSize;
 	private final String label;
 	private long started ;
@@ -44,31 +47,49 @@ public class MicroTimer {
 		started = System.nanoTime();
 	}
 
+	public long last()  {
+		return last;
+	}
+
 	/**
 	 * Returns true if timer output stats this sample. For use if want to output
 	 * supplementary information at same time.
 	 */
 	public boolean stop() {
-		final long end = System.nanoTime();
-		elapsed += (end - started);
+		final long t = System.nanoTime() - started;
+		elapsed += t;
+		last = t;
+
+		if (t < min) {
+			min = t;
+		}
+
+		if (t > max) {
+			max = t;
+		}
+
 		final long h = ++hits;
+
 		if (h == sampleSize) {
-			doReportAndClear(elapsed, h);
+			reportAndClear();
 			return true;
 		} else {
 			return false;
 		}
 	}
 
-	private void doReportAndClear(long e, long h) {
+	public void reportAndClear(){
+		if (hits == 0) {
+			hits = 1;
+		}
+
+		CanvasMod.LOG.info(String.format("Avg %s duration = %,d ns, min = %d, max = %d, total duration = %,d, total runs = %,d", label,
+				elapsed / hits, min, max, elapsed / 1000000, hits));
+
 		hits = 0;
 		elapsed = 0;
-		if (h == 0) h = 1;
-		CanvasMod.LOG.info(String.format("Avg %s duration = %,d ns, total duration = %,d, total runs = %,d", label, e / h,
-				e / 1000000, h));
+		max = Long.MIN_VALUE;
+		min = Long.MAX_VALUE;
 	}
 
-	public void reportAndClear() {
-		doReportAndClear(elapsed, hits);
-	}
 }
