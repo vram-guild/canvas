@@ -2,23 +2,31 @@ package grondag.canvas.chunk.occlusion;
 
 import static grondag.canvas.chunk.occlusion.AbstractTile.COVERAGE_FULL;
 import static grondag.canvas.chunk.occlusion.AbstractTile.COVERAGE_NONE_OR_SOME;
-import static grondag.canvas.chunk.occlusion.Triangle.SCALE_LOW;
-import static grondag.canvas.chunk.occlusion.Triangle.SCALE_MID;
-import static grondag.canvas.chunk.occlusion.Triangle.SCALE_POINT;
+import static grondag.canvas.chunk.occlusion.Triangle.prepareBounds;
+import static grondag.canvas.chunk.occlusion.Triangle.prepareScan;
 import static grondag.canvas.chunk.occlusion._Clipper.drawClippedLowX;
 import static grondag.canvas.chunk.occlusion._Clipper.testClippedLowX;
+import static grondag.canvas.chunk.occlusion._Constants.BOUNDS_NEEDS_CLIP;
+import static grondag.canvas.chunk.occlusion._Constants.BOUNDS_OUTSIDE_OR_TOO_SMALL;
+import static grondag.canvas.chunk.occlusion._Constants.LOW_AXIS_SHIFT;
+import static grondag.canvas.chunk.occlusion._Constants.MID_AXIS_SHIFT;
 import static grondag.canvas.chunk.occlusion._Constants.PIXEL_HEIGHT;
 import static grondag.canvas.chunk.occlusion._Constants.PIXEL_WIDTH;
+import static grondag.canvas.chunk.occlusion._Constants.SCALE_LOW;
+import static grondag.canvas.chunk.occlusion._Constants.SCALE_MID;
+import static grondag.canvas.chunk.occlusion._Constants.SCALE_POINT;
 import static grondag.canvas.chunk.occlusion._Data.lowTile;
+import static grondag.canvas.chunk.occlusion._Data.maxPixelX;
+import static grondag.canvas.chunk.occlusion._Data.maxPixelY;
 import static grondag.canvas.chunk.occlusion._Data.midTile;
-import static grondag.canvas.chunk.occlusion._Data.triangle;
-import static grondag.canvas.chunk.occlusion._Data.vertexData;
+import static grondag.canvas.chunk.occlusion._Data.minPixelX;
+import static grondag.canvas.chunk.occlusion._Data.minPixelY;
+import static grondag.canvas.chunk.occlusion._Data.scale;
 import static grondag.canvas.chunk.occlusion._Indexer.testPixel;
 
 import com.google.common.base.Strings;
 import org.apache.commons.lang3.StringUtils;
 
-import grondag.canvas.chunk.occlusion.region.BoundsResult;
 
 // Some elements are adapted from content found at
 // https://fgiesen.wordpress.com/2013/02/17/optimizing-sw-occlusion-culling-index/
@@ -39,23 +47,22 @@ abstract class _Rasterizer  {
 	private _Rasterizer() { }
 
 	static void drawTri(int v0, int v1, int v2) {
-		final Triangle tri = triangle;
-		final int boundsResult  = tri.prepareBounds(vertexData, v0, v1, v2);
+		final int boundsResult  = prepareBounds(v0, v1, v2);
 
-		if (boundsResult == BoundsResult.OUT_OF_BOUNDS_OR_TOO_SMALL) {
+		if (boundsResult == BOUNDS_OUTSIDE_OR_TOO_SMALL) {
 			return;
 		}
 
-		if (boundsResult == BoundsResult.NEEDS_CLIP) {
+		if (boundsResult == BOUNDS_NEEDS_CLIP) {
 			drawClippedLowX(v0, v1, v2);
 			return;
 		}
 
-		switch(tri.scale) {
+		switch(scale) {
 
 		case SCALE_LOW:{
 			//CanvasWorldRenderer.innerTimer.start();
-			tri.prepareScan(vertexData, v0, v1, v2);
+			prepareScan(v0, v1, v2);
 			_Rasterizer.drawTriLow();
 			//CanvasWorldRenderer.innerTimer.stop();
 			return;
@@ -63,7 +70,7 @@ abstract class _Rasterizer  {
 
 		case SCALE_MID: {
 			//CanvasWorldRenderer.innerTimer.start();
-			tri.prepareScan(vertexData, v0, v1, v2);
+			prepareScan(v0, v1, v2);
 			_Rasterizer.drawTriMid();
 			//CanvasWorldRenderer.innerTimer.stop();
 
@@ -79,22 +86,21 @@ abstract class _Rasterizer  {
 	}
 
 	static boolean testTri(int v0, int v1, int v2) {
-		final Triangle tri = triangle;
-		final int boundsResult  = tri.prepareBounds(vertexData, v0, v1, v2);
+		final int boundsResult  = prepareBounds(v0, v1, v2);
 
-		if (boundsResult == BoundsResult.OUT_OF_BOUNDS_OR_TOO_SMALL) {
+		if (boundsResult == BOUNDS_OUTSIDE_OR_TOO_SMALL) {
 			return false;
 		}
 
-		if (boundsResult == BoundsResult.NEEDS_CLIP) {
+		if (boundsResult == BOUNDS_NEEDS_CLIP) {
 			return testClippedLowX(v0, v1, v2);
 		}
 
-		switch(tri.scale) {
+		switch(scale) {
 		case SCALE_POINT: {
 			//			CanvasWorldRenderer.innerTimer.start();
-			final int px = tri.minPixelX;
-			final int py = tri.minPixelY;
+			final int px = minPixelX;
+			final int py = minPixelY;
 			final boolean result = px >= 0 && py >= 0 && px < PIXEL_WIDTH && py < PIXEL_HEIGHT && testPixel(px, py);
 			//			CanvasWorldRenderer.innerTimer.stop();
 
@@ -103,7 +109,7 @@ abstract class _Rasterizer  {
 
 		case SCALE_LOW:{
 			//CanvasWorldRenderer.innerTimer.start();
-			tri.prepareScan(vertexData, v0, v1, v2);
+			prepareScan(v0, v1, v2);
 			final boolean result = testTriLow();
 			//CanvasWorldRenderer.innerTimer.stop();
 			return result;
@@ -111,7 +117,7 @@ abstract class _Rasterizer  {
 
 		case SCALE_MID: {
 			//CanvasWorldRenderer.innerTimer.start();
-			tri.prepareScan(vertexData, v0, v1, v2);
+			prepareScan(v0, v1, v2);
 			final boolean result = testTriMid();
 			//CanvasWorldRenderer.innerTimer.stop();
 
@@ -125,15 +131,14 @@ abstract class _Rasterizer  {
 	}
 
 	static boolean testTriMid() {
-		final Triangle tri = triangle;
 		final AbstractTile midTile = _Data.midTile;
 		midTile.prepare();
 		lowTile.prepare();
 
-		final int x0 = (tri.minPixelX >> _Constants.MID_AXIS_SHIFT);
-		final int x1 = (tri.maxPixelX >> _Constants.MID_AXIS_SHIFT);
-		final int y0 = (tri.minPixelY >> _Constants.MID_AXIS_SHIFT);
-		final int y1 = (tri.maxPixelY >> _Constants.MID_AXIS_SHIFT);
+		final int x0 = (minPixelX >> MID_AXIS_SHIFT);
+		final int x1 = (maxPixelX >> MID_AXIS_SHIFT);
+		final int y0 = (minPixelY >> MID_AXIS_SHIFT);
+		final int y1 = (maxPixelY >> MID_AXIS_SHIFT);
 
 		midTile.moveTo(x0, y0);
 		boolean goRight = true;
@@ -215,14 +220,13 @@ abstract class _Rasterizer  {
 	}
 
 	static boolean testTriLow() {
-		final Triangle tri = triangle;
 		final AbstractTile lowTile = _Data.lowTile;
 		lowTile.prepare();
 
-		final int x0 = (tri.minPixelX >> _Constants.LOW_AXIS_SHIFT);
-		final int x1 = (tri.maxPixelX >> _Constants.LOW_AXIS_SHIFT);
-		final int y0 = (tri.minPixelY >> _Constants.LOW_AXIS_SHIFT);
-		final int y1 = (tri.maxPixelY >> _Constants.LOW_AXIS_SHIFT);
+		final int x0 = (minPixelX >> LOW_AXIS_SHIFT);
+		final int x1 = (maxPixelX >> LOW_AXIS_SHIFT);
+		final int y0 = (minPixelY >> LOW_AXIS_SHIFT);
+		final int y1 = (maxPixelY >> LOW_AXIS_SHIFT);
 
 		lowTile.moveTo(x0, y0);
 
@@ -269,14 +273,13 @@ abstract class _Rasterizer  {
 	}
 
 	static void drawTriLow() {
-		final Triangle tri = triangle;
 		final AbstractTile lowTile = _Data.lowTile;
 		lowTile.prepare();
 
-		final int x0 = (tri.minPixelX >> _Constants.LOW_AXIS_SHIFT);
-		final int x1 = (tri.maxPixelX >> _Constants.LOW_AXIS_SHIFT);
-		final int y0 = (tri.minPixelY >> _Constants.LOW_AXIS_SHIFT);
-		final int y1 = (tri.maxPixelY >> _Constants.LOW_AXIS_SHIFT);
+		final int x0 = (minPixelX >> LOW_AXIS_SHIFT);
+		final int x1 = (maxPixelX >> LOW_AXIS_SHIFT);
+		final int y0 = (minPixelY >> LOW_AXIS_SHIFT);
+		final int y1 = (maxPixelY >> LOW_AXIS_SHIFT);
 
 		lowTile.moveTo(x0, y0);
 
@@ -313,15 +316,14 @@ abstract class _Rasterizer  {
 	}
 
 	static void drawTriMid() {
-		final Triangle tri = triangle;
 		final AbstractTile midTile = _Data.midTile;
 		midTile.prepare();
 		lowTile.prepare();
 
-		final int x0 = (tri.minPixelX >> _Constants.MID_AXIS_SHIFT);
-		final int x1 = (tri.maxPixelX >> _Constants.MID_AXIS_SHIFT);
-		final int y0 = (tri.minPixelY >> _Constants.MID_AXIS_SHIFT);
-		final int y1 = (tri.maxPixelY >> _Constants.MID_AXIS_SHIFT);
+		final int x0 = (minPixelX >> MID_AXIS_SHIFT);
+		final int x1 = (maxPixelX >> MID_AXIS_SHIFT);
+		final int y0 = (minPixelY >> MID_AXIS_SHIFT);
+		final int y1 = (maxPixelY >> MID_AXIS_SHIFT);
 
 		midTile.moveTo(x0, y0);
 		boolean goRight = true;

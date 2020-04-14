@@ -2,6 +2,9 @@ package grondag.canvas.chunk.occlusion;
 
 import static grondag.canvas.chunk.occlusion.ProjectedVertexData.PV_PX;
 import static grondag.canvas.chunk.occlusion.ProjectedVertexData.PV_PY;
+import static grondag.canvas.chunk.occlusion._Constants.BOUNDS_IN;
+import static grondag.canvas.chunk.occlusion._Constants.BOUNDS_NEEDS_CLIP;
+import static grondag.canvas.chunk.occlusion._Constants.BOUNDS_OUTSIDE_OR_TOO_SMALL;
 import static grondag.canvas.chunk.occlusion._Constants.GUARD_HEIGHT;
 import static grondag.canvas.chunk.occlusion._Constants.GUARD_SIZE;
 import static grondag.canvas.chunk.occlusion._Constants.GUARD_WIDTH;
@@ -13,34 +16,22 @@ import static grondag.canvas.chunk.occlusion._Constants.PRECISE_PIXEL_CENTER;
 import static grondag.canvas.chunk.occlusion._Constants.PRECISE_WIDTH;
 import static grondag.canvas.chunk.occlusion._Constants.PRECISE_WIDTH_CLAMP;
 import static grondag.canvas.chunk.occlusion._Constants.PRECISION_BITS;
-
-import grondag.canvas.chunk.occlusion.region.BoundsResult;
+import static grondag.canvas.chunk.occlusion._Constants.SCALE_LOW;
+import static grondag.canvas.chunk.occlusion._Constants.SCALE_MID;
+import static grondag.canvas.chunk.occlusion._Constants.SCALE_POINT;
+import static grondag.canvas.chunk.occlusion._Constants.TILE_AXIS_SHIFT;
+import static grondag.canvas.chunk.occlusion._Data.e0;
+import static grondag.canvas.chunk.occlusion._Data.e1;
+import static grondag.canvas.chunk.occlusion._Data.e2;
+import static grondag.canvas.chunk.occlusion._Data.maxPixelX;
+import static grondag.canvas.chunk.occlusion._Data.maxPixelY;
+import static grondag.canvas.chunk.occlusion._Data.minPixelX;
+import static grondag.canvas.chunk.occlusion._Data.minPixelY;
+import static grondag.canvas.chunk.occlusion._Data.scale;
+import static grondag.canvas.chunk.occlusion._Data.vertexData;
 
 public final class Triangle {
-	// Boumds of current triangle - pixel coordinates
-	protected int minPixelX;
-	protected int minPixelY;
-	protected int maxPixelX;
-	protected int maxPixelY;
-	protected int scale;
-
-	public final Edge e0 = new Edge(this, 0);
-	public final Edge e1 = new Edge(this, 1);
-	public final Edge e2 = new Edge(this, 2);
-
-	// TODO: remove
-	protected int v0 = 0, v1 = 0, v2 = 0;
-
-	protected static final boolean DEBUG_VERTEX = false;
-
-	/**
-	 *
-	 * @param v0
-	 * @param v1
-	 * @param v2
-	 * @return constant value from BoundsResult
-	 */
-	protected int prepareBounds(final int[] vertexData, int v0, int v1, int v2) {
+	static int prepareBounds(int v0, int v1, int v2) {
 		final int x0 = vertexData[v0 + PV_PX];
 		final int y0 = vertexData[v0 + PV_PY];
 		final int x1 = vertexData[v1 + PV_PX];
@@ -50,7 +41,7 @@ public final class Triangle {
 
 		// rejects triangles too small to render or where all points are on a line
 		if(!isCcw(x0, y0, x1, y1, x2, y2)) {
-			return  BoundsResult.OUT_OF_BOUNDS_OR_TOO_SMALL;
+			return  BOUNDS_OUTSIDE_OR_TOO_SMALL;
 		}
 
 		int minY = y0;
@@ -69,7 +60,7 @@ public final class Triangle {
 		}
 
 		if (maxY <= 0 || minY >= PRECISE_HEIGHT) {
-			return BoundsResult.OUT_OF_BOUNDS_OR_TOO_SMALL;
+			return BOUNDS_OUTSIDE_OR_TOO_SMALL;
 		}
 
 		int minX = x0;
@@ -88,11 +79,11 @@ public final class Triangle {
 		}
 
 		if (maxX <= 0 || minX >= PRECISE_WIDTH) {
-			return BoundsResult.OUT_OF_BOUNDS_OR_TOO_SMALL;
+			return BOUNDS_OUTSIDE_OR_TOO_SMALL;
 		}
 
 		if (minX < -GUARD_SIZE || minY < -GUARD_SIZE || maxX > GUARD_WIDTH || maxY > GUARD_HEIGHT) {
-			return BoundsResult.NEEDS_CLIP;
+			return BOUNDS_NEEDS_CLIP;
 		}
 
 		if (minX < 0) {
@@ -137,10 +128,10 @@ public final class Triangle {
 
 		computeScale();
 
-		return BoundsResult.IN_BOUNDS;
+		return BOUNDS_IN;
 	}
 
-	private void computeScale() {
+	static void computeScale() {
 		int x0 = minPixelX;
 		int y0 = minPixelY;
 		int x1 = maxPixelX;
@@ -153,10 +144,10 @@ public final class Triangle {
 
 		//PERF: probably a better way - maybe save outputs?
 
-		x0  >>= _Constants.TILE_AXIS_SHIFT;
-		y0  >>= _Constants.TILE_AXIS_SHIFT;
-		x1  >>= _Constants.TILE_AXIS_SHIFT;
-		y1  >>= _Constants.TILE_AXIS_SHIFT;
+		x0  >>= TILE_AXIS_SHIFT;
+		y0  >>= TILE_AXIS_SHIFT;
+		x1  >>= TILE_AXIS_SHIFT;
+		y1  >>= TILE_AXIS_SHIFT;
 
 		if (x1 <= x0 + 1 && y1 <= y0 + 1) {
 			scale = SCALE_LOW;
@@ -165,13 +156,7 @@ public final class Triangle {
 		}
 	}
 
-	protected void prepareScan(final int[] vertexData, int v0, int v1, int v2) {
-		if (DEBUG_VERTEX) {
-			this.v0 = v0;
-			this.v1 = v1;
-			this.v2 = v2;
-		}
-
+	static void prepareScan(int v0, int v1, int v2) {
 		final int x0 = vertexData[v0 + PV_PX];
 		final int y0 = vertexData[v0 + PV_PY];
 		final int x1 = vertexData[v1 + PV_PX];
@@ -201,17 +186,11 @@ public final class Triangle {
 		e2.prepare(a2, b2, c2);
 	}
 
-	public static boolean isCcw(long x0, long y0, long x1, long y1, long x2, long y2) {
+	static boolean isCcw(long x0, long y0, long x1, long y1, long x2, long y2) {
 		return (x1 - x0) * (y2 - y0) - (x2 - x0) * (y1 - y0) > 0L;
 	}
 
-	protected long orient2d(long x0, long y0, long x1, long y1) {
+	static long orient2d(long x0, long y0, long x1, long y1) {
 		return (y1 - y0) * x0 - (x1 - x0) * y0;
 	}
-
-	public static final int SCALE_POINT = 0;
-	public static final int SCALE_VLINE = 1;
-	public static final int SCALE_HLINE = 2;
-	public static final int SCALE_LOW = 3;
-	public static final int SCALE_MID = 4;
 }

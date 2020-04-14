@@ -15,11 +15,9 @@ public final class Edge {
 	protected int b;
 	protected int c;
 	protected EdgePosition position;
-	protected final Triangle triangle;
 	protected final int ordinal;
 
-	public Edge (Triangle triangle, int ordinal) {
-		this.triangle = triangle;
+	public Edge (int ordinal) {
 		this.ordinal = ordinal;
 	}
 

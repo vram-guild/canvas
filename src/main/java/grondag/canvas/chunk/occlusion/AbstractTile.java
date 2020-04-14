@@ -3,12 +3,11 @@ package grondag.canvas.chunk.occlusion;
 import static grondag.canvas.chunk.occlusion.TileEdge.INSIDE;
 import static grondag.canvas.chunk.occlusion.TileEdge.INTERSECTING;
 import static grondag.canvas.chunk.occlusion.TileEdge.OUTSIDE;
+import static grondag.canvas.chunk.occlusion._Data.e0;
+import static grondag.canvas.chunk.occlusion._Data.e1;
+import static grondag.canvas.chunk.occlusion._Data.e2;
 
 abstract class AbstractTile {
-	protected final Edge e0;
-	protected final Edge e1;
-	protected final Edge e2;
-
 	protected final TileEdge te0;
 	protected final TileEdge te1;
 	protected final TileEdge te2;
@@ -22,10 +21,7 @@ abstract class AbstractTile {
 	protected int save_tileY;
 	protected int save_completedFlags;
 
-	protected  AbstractTile(Triangle triangle, int tileSize) {
-		e0 = triangle.e0;
-		e1 = triangle.e1;
-		e2 = triangle.e2;
+	protected  AbstractTile(int tileSize) {
 		diameter = tileSize;
 		tileShift =  Integer.bitCount(diameter - 1);
 		te0 = new TileEdge(e0, this);

@@ -1,12 +1,12 @@
 package grondag.canvas.chunk.occlusion;
 
-import static grondag.canvas.chunk.occlusion._Indexer.lowIndex;
-import static grondag.canvas.chunk.occlusion._Indexer.midIndex;
 import static grondag.canvas.chunk.occlusion.ProjectedVertexData.PROJECTED_VERTEX_STRIDE;
 import static grondag.canvas.chunk.occlusion._Constants.LOW_TILE_COUNT;
 import static grondag.canvas.chunk.occlusion._Constants.LOW_TILE_PIXEL_DIAMETER;
 import static grondag.canvas.chunk.occlusion._Constants.MID_TILE_COUNT;
 import static grondag.canvas.chunk.occlusion._Constants.MID_TILE_PIXEL_DIAMETER;
+import static grondag.canvas.chunk.occlusion._Indexer.lowIndex;
+import static grondag.canvas.chunk.occlusion._Indexer.midIndex;
 
 import net.minecraft.client.util.math.Matrix4f;
 
@@ -21,16 +21,18 @@ public class _Data {
 	static final long[] lowTiles = new long[LOW_TILE_COUNT];
 	static final long[] midTiles = new long[MID_TILE_COUNT];
 
-	static final Triangle triangle = new Triangle();
+	static final Edge e0 = new Edge(0);
+	static final Edge e1 = new Edge(1);
+	static final Edge e2 = new Edge(2);
 
-	static final AbstractTile lowTile = new AbstractTile(triangle, LOW_TILE_PIXEL_DIAMETER) {
+	static final AbstractTile lowTile = new AbstractTile(LOW_TILE_PIXEL_DIAMETER) {
 		@Override
 		public int tileIndex() {
 			return lowIndex(tileX,  tileY);
 		}
 	};
 
-	static final AbstractTile midTile = new AbstractTile(triangle, MID_TILE_PIXEL_DIAMETER) {
+	static final AbstractTile midTile = new AbstractTile(MID_TILE_PIXEL_DIAMETER) {
 		@Override
 		public int tileIndex() {
 			return midIndex(tileX,  tileY);
@@ -51,6 +53,12 @@ public class _Data {
 
 	static int occlusionRange;
 
+	// Boumds of current triangle - pixel coordinates
+	static int minPixelX;
+	static int minPixelY;
+	static int maxPixelX;
+	static int maxPixelY;
+	static int scale;
 
 	// TODO: make static vars instead of array
 	static final int V000 = 0;
