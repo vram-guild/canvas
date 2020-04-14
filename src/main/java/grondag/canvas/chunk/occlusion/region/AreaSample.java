@@ -1,4 +1,4 @@
-package grondag.canvas.chunk.occlusion;
+package grondag.canvas.chunk.occlusion.region;
 
 public class AreaSample {
 	public final long[] bits = new long[4];

@@ -1,4 +1,4 @@
-package grondag.canvas.chunk.occlusion;
+package grondag.canvas.chunk.occlusion.region;
 
 import java.util.Arrays;
 import java.util.function.Consumer;

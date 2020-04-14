@@ -15,6 +15,8 @@ import static grondag.canvas.chunk.occlusion.AbstractTerrainOccluder.PRECISION_B
 import static grondag.canvas.chunk.occlusion.ProjectedVertexData.PV_PX;
 import static grondag.canvas.chunk.occlusion.ProjectedVertexData.PV_PY;
 
+import grondag.canvas.chunk.occlusion.region.BoundsResult;
+
 public final class Triangle {
 	// Boumds of current triangle - pixel coordinates
 	protected int minPixelX;

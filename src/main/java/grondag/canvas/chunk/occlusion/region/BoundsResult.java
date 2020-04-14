@@ -1,4 +1,4 @@
-package grondag.canvas.chunk.occlusion;
+package grondag.canvas.chunk.occlusion.region;
 
 public final class BoundsResult {
 	private BoundsResult() {}

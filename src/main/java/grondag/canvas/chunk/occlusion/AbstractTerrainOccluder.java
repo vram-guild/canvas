@@ -17,6 +17,7 @@ import net.minecraft.util.math.Vec3d;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
+import grondag.canvas.chunk.occlusion.region.PackedBox;
 import grondag.canvas.mixinterface.Matrix4fExt;
 import grondag.canvas.render.CanvasWorldRenderer;
 
@@ -736,8 +737,5 @@ public abstract class AbstractTerrainOccluder {
 	protected static final int CAMERA_PRECISION_BITS = 12;
 	protected static final int CAMERA_PRECISION_UNITY = 1 << CAMERA_PRECISION_BITS;
 	protected static final int CAMERA_PRECISION_CHUNK_MAX = 16 * CAMERA_PRECISION_UNITY;
-
-	protected static final int[] LOW_BIN_PIXEL_DIAMETER_VECTOR = {LOW_BIN_PIXEL_DIAMETER - 1, LOW_BIN_PIXEL_DIAMETER - 1, LOW_BIN_PIXEL_DIAMETER - 1};
-	protected static final int[] MID_BIN_PIXEL_DIAMETER_VECTOR = {MID_BIN_PIXEL_DIAMETER - 1, MID_BIN_PIXEL_DIAMETER - 1, MID_BIN_PIXEL_DIAMETER - 1};
 }
 

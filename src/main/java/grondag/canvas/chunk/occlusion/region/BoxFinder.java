@@ -1,4 +1,4 @@
-package grondag.canvas.chunk.occlusion;
+package grondag.canvas.chunk.occlusion.region;
 
 import static grondag.canvas.chunk.RenderRegionAddressHelper.INTERIOR_CACHE_WORDS;
 import static grondag.canvas.chunk.RenderRegionAddressHelper.SLICE_WORD_COUNT;

@@ -9,6 +9,8 @@ import static grondag.canvas.chunk.occlusion.Triangle.SCALE_POINT;
 import com.google.common.base.Strings;
 import org.apache.commons.lang3.StringUtils;
 
+import grondag.canvas.chunk.occlusion.region.BoundsResult;
+
 // Some elements are adapted from content found at
 // https://fgiesen.wordpress.com/2013/02/17/optimizing-sw-occlusion-culling-index/
 // by Fabian “ryg” Giesen. That content is in the public domain.

@@ -1,3 +1,4 @@
+package grondag.canvas.chunk.occlusion.region;
 //package grondag.canvas.chunk.occlusion;
 //
 //public abstract class OcclusionBounds {
