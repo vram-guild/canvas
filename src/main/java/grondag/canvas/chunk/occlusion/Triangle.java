@@ -1,19 +1,18 @@
 package grondag.canvas.chunk.occlusion;
 
-import static grondag.canvas.chunk.occlusion.AbstractTerrainOccluder.BIN_AXIS_SHIFT;
-import static grondag.canvas.chunk.occlusion.AbstractTerrainOccluder.GUARD_HEIGHT;
-import static grondag.canvas.chunk.occlusion.AbstractTerrainOccluder.GUARD_SIZE;
-import static grondag.canvas.chunk.occlusion.AbstractTerrainOccluder.GUARD_WIDTH;
-import static grondag.canvas.chunk.occlusion.AbstractTerrainOccluder.MAX_PIXEL_X;
-import static grondag.canvas.chunk.occlusion.AbstractTerrainOccluder.MAX_PIXEL_Y;
-import static grondag.canvas.chunk.occlusion.AbstractTerrainOccluder.PRECISE_HEIGHT;
-import static grondag.canvas.chunk.occlusion.AbstractTerrainOccluder.PRECISE_HEIGHT_CLAMP;
-import static grondag.canvas.chunk.occlusion.AbstractTerrainOccluder.PRECISE_PIXEL_CENTER;
-import static grondag.canvas.chunk.occlusion.AbstractTerrainOccluder.PRECISE_WIDTH;
-import static grondag.canvas.chunk.occlusion.AbstractTerrainOccluder.PRECISE_WIDTH_CLAMP;
-import static grondag.canvas.chunk.occlusion.AbstractTerrainOccluder.PRECISION_BITS;
 import static grondag.canvas.chunk.occlusion.ProjectedVertexData.PV_PX;
 import static grondag.canvas.chunk.occlusion.ProjectedVertexData.PV_PY;
+import static grondag.canvas.chunk.occlusion._Constants.GUARD_HEIGHT;
+import static grondag.canvas.chunk.occlusion._Constants.GUARD_SIZE;
+import static grondag.canvas.chunk.occlusion._Constants.GUARD_WIDTH;
+import static grondag.canvas.chunk.occlusion._Constants.MAX_PIXEL_X;
+import static grondag.canvas.chunk.occlusion._Constants.MAX_PIXEL_Y;
+import static grondag.canvas.chunk.occlusion._Constants.PRECISE_HEIGHT;
+import static grondag.canvas.chunk.occlusion._Constants.PRECISE_HEIGHT_CLAMP;
+import static grondag.canvas.chunk.occlusion._Constants.PRECISE_PIXEL_CENTER;
+import static grondag.canvas.chunk.occlusion._Constants.PRECISE_WIDTH;
+import static grondag.canvas.chunk.occlusion._Constants.PRECISE_WIDTH_CLAMP;
+import static grondag.canvas.chunk.occlusion._Constants.PRECISION_BITS;
 
 import grondag.canvas.chunk.occlusion.region.BoundsResult;
 
@@ -154,10 +153,10 @@ public final class Triangle {
 
 		//PERF: probably a better way - maybe save outputs?
 
-		x0  >>= BIN_AXIS_SHIFT;
-		y0  >>= BIN_AXIS_SHIFT;
-		x1  >>= BIN_AXIS_SHIFT;
-		y1  >>= BIN_AXIS_SHIFT;
+		x0  >>= _Constants.TILE_AXIS_SHIFT;
+		y0  >>= _Constants.TILE_AXIS_SHIFT;
+		x1  >>= _Constants.TILE_AXIS_SHIFT;
+		y1  >>= _Constants.TILE_AXIS_SHIFT;
 
 		if (x1 <= x0 + 1 && y1 <= y0 + 1) {
 			scale = SCALE_LOW;
@@ -193,9 +192,9 @@ public final class Triangle {
 
 		// Barycentric coordinates at minX/minY corner
 		// Can reduce precision (with accurate rounding) because increments will always be multiple of full pixel width
-		final int c0 = (int) ((orient2d(x0, y0, x1, y1) + (isTopLeft0 ? AbstractTerrainOccluder.PRECISE_PIXEL_CENTER : (AbstractTerrainOccluder.PRECISE_PIXEL_CENTER - 1))) >> AbstractTerrainOccluder.PRECISION_BITS);
-		final int c1 = (int) ((orient2d(x1, y1, x2, y2) + (isTopLeft1 ? AbstractTerrainOccluder.PRECISE_PIXEL_CENTER : (AbstractTerrainOccluder.PRECISE_PIXEL_CENTER - 1))) >> AbstractTerrainOccluder.PRECISION_BITS);
-		final int c2 = (int) ((orient2d(x2, y2, x0, y0) + (isTopLeft2 ? AbstractTerrainOccluder.PRECISE_PIXEL_CENTER : (AbstractTerrainOccluder.PRECISE_PIXEL_CENTER - 1))) >> AbstractTerrainOccluder.PRECISION_BITS);
+		final int c0 = (int) ((orient2d(x0, y0, x1, y1) + (isTopLeft0 ? PRECISE_PIXEL_CENTER : (PRECISE_PIXEL_CENTER - 1))) >> PRECISION_BITS);
+		final int c1 = (int) ((orient2d(x1, y1, x2, y2) + (isTopLeft1 ? PRECISE_PIXEL_CENTER : (PRECISE_PIXEL_CENTER - 1))) >> PRECISION_BITS);
+		final int c2 = (int) ((orient2d(x2, y2, x0, y0) + (isTopLeft2 ? PRECISE_PIXEL_CENTER : (PRECISE_PIXEL_CENTER - 1))) >> PRECISION_BITS);
 
 		e0.prepare(a0, b0, c0);
 		e1.prepare(a1, b1, c1);

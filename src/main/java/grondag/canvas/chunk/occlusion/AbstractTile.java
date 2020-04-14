@@ -1,6 +1,5 @@
 package grondag.canvas.chunk.occlusion;
 
-import static grondag.canvas.chunk.occlusion.AbstractTerrainOccluder.BIN_AXIS_SHIFT;
 import static grondag.canvas.chunk.occlusion.TileEdge.INSIDE;
 import static grondag.canvas.chunk.occlusion.TileEdge.INTERSECTING;
 import static grondag.canvas.chunk.occlusion.TileEdge.OUTSIDE;
@@ -50,8 +49,8 @@ abstract class AbstractTile {
 	}
 
 	public void moveToParentOrigin(AbstractTile parent) {
-		tileX = parent.tileX <<  BIN_AXIS_SHIFT;
-		tileY = parent.tileY <<  BIN_AXIS_SHIFT;
+		tileX = parent.tileX <<  _Constants.TILE_AXIS_SHIFT;
+		tileY = parent.tileY <<  _Constants.TILE_AXIS_SHIFT;
 
 		te0.updateFromParent(parent.te0);
 		te1.updateFromParent(parent.te1);

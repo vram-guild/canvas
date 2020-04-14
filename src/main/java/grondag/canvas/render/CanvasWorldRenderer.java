@@ -85,7 +85,6 @@ public class CanvasWorldRenderer {
 	private int playerLightmap = 0;
 	private RenderRegionBuilder chunkBuilder;
 	private RenderRegionStorage renderRegionStorage;
-	private final TerrainOccluder occluder = new TerrainOccluder();
 	private final CanvasFrustum frustum = new CanvasFrustum();
 	private final ObjectHeapPriorityQueue<BuiltRenderRegion> regionQueue = new ObjectHeapPriorityQueue<>(REGION_COMPARATOR);
 
@@ -223,7 +222,7 @@ public class CanvasWorldRenderer {
 
 			wr.canvas_setNeedsTerrainUpdate(false);
 			visibleChunkCount = 0;
-			occluder.clearScene();
+			TerrainOccluder.clearScene();
 
 			Entity.setRenderDistanceMultiplier(MathHelper.clamp(mc.options.viewDistance / 8.0D, 1.0D, 2.5D));
 			final boolean chunkCullingEnabled = mc.chunkCullingEnabled;
@@ -243,13 +242,13 @@ public class CanvasWorldRenderer {
 					continue;
 				}
 
-				occluder.prepareChunk(builtChunk.getOrigin(), builtChunk.occlusionRange);
+				TerrainOccluder.prepareChunk(builtChunk.getOrigin(), builtChunk.occlusionRange);
 
 				//				if (builtChunk.getOrigin().getX() == (34 & ~0xF) && builtChunk.getOrigin().getY() == (79 & ~0xF) && builtChunk.getOrigin().getZ() == (-100 & ~0xF) && !occluder.isChunkVisible()) {
 				//					occluder.isChunkVisible();
 				//				}
 
-				if (!chunkCullingEnabled || builtChunk == cameraChunk || occluder.isChunkVisible()) {
+				if (!chunkCullingEnabled || builtChunk == cameraChunk || TerrainOccluder.isChunkVisible()) {
 					builtChunk.enqueueUnvistedNeighbors(regionQueue);
 					visibleChunks[visibleChunkCount++] = builtChunk;
 					final RegionData regionData = builtChunk.getBuildData();
@@ -262,9 +261,9 @@ public class CanvasWorldRenderer {
 
 						if (chunkRenderBounds == PackedBox.EMPTY_BOX) {
 							builtChunk.canRenderTerrain = false;
-						} else if (chunkRenderBounds == PackedBox.FULL_BOX || occluder.isBoxVisible(chunkRenderBounds) || builtChunk == cameraChunk) {
+						} else if (chunkRenderBounds == PackedBox.FULL_BOX || TerrainOccluder.isBoxVisible(chunkRenderBounds) || builtChunk == cameraChunk) {
 							builtChunk.canRenderTerrain = true;
-							occluder.occlude(visData);
+							TerrainOccluder.occlude(visData);
 						} else {
 							builtChunk.canRenderTerrain = false;
 						}
@@ -280,7 +279,7 @@ public class CanvasWorldRenderer {
 			stopOuterTimer();
 		}
 
-		occluder.outputRaster();
+		TerrainOccluder.outputRaster();
 
 		mc.getProfiler().swap("rebuildNear");
 		final Set<BuiltRenderRegion> oldChunksToRebuild  = chunksToRebuild;
@@ -363,7 +362,7 @@ public class CanvasWorldRenderer {
 		final double cameraZ = vec3d.getZ();
 		final Matrix4f modelMatrix = matrixStack.peek().getModel();
 
-		occluder.prepareScene(projectionMatrix, modelMatrix, camera);
+		TerrainOccluder.prepareScene(projectionMatrix, modelMatrix, camera);
 
 		profiler.swap("culling");
 
