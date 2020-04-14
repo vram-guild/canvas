@@ -1,5 +1,13 @@
 package grondag.canvas.chunk.occlusion;
 
+import static grondag.canvas.chunk.occlusion.EdgePosition.BOTTOM;
+import static grondag.canvas.chunk.occlusion.EdgePosition.BOTTOM_LEFT;
+import static grondag.canvas.chunk.occlusion.EdgePosition.BOTTOM_RIGHT;
+import static grondag.canvas.chunk.occlusion.EdgePosition.LEFT;
+import static grondag.canvas.chunk.occlusion.EdgePosition.RIGHT;
+import static grondag.canvas.chunk.occlusion.EdgePosition.TOP;
+import static grondag.canvas.chunk.occlusion.EdgePosition.TOP_LEFT;
+import static grondag.canvas.chunk.occlusion.EdgePosition.TOP_RIGHT;
 import static grondag.canvas.chunk.occlusion.ProjectedVertexData.PV_PX;
 import static grondag.canvas.chunk.occlusion.ProjectedVertexData.PV_PY;
 import static grondag.canvas.chunk.occlusion._Constants.BOUNDS_IN;
@@ -20,9 +28,9 @@ import static grondag.canvas.chunk.occlusion._Constants.SCALE_LOW;
 import static grondag.canvas.chunk.occlusion._Constants.SCALE_MID;
 import static grondag.canvas.chunk.occlusion._Constants.SCALE_POINT;
 import static grondag.canvas.chunk.occlusion._Constants.TILE_AXIS_SHIFT;
-import static grondag.canvas.chunk.occlusion._Data.e0;
-import static grondag.canvas.chunk.occlusion._Data.e1;
-import static grondag.canvas.chunk.occlusion._Data.e2;
+import static grondag.canvas.chunk.occlusion._Data.c0;
+import static grondag.canvas.chunk.occlusion._Data.c1;
+import static grondag.canvas.chunk.occlusion._Data.c2;
 import static grondag.canvas.chunk.occlusion._Data.maxPixelX;
 import static grondag.canvas.chunk.occlusion._Data.maxPixelY;
 import static grondag.canvas.chunk.occlusion._Data.minPixelX;
@@ -126,6 +134,13 @@ public final class Triangle {
 		assert minPixelX <= maxPixelX;
 		assert minPixelY <= maxPixelY;
 
+		_Data.x0 = x0;
+		_Data.y0 = y0;
+		_Data.x1 = x1;
+		_Data.y1 = y1;
+		_Data.x2 = x2;
+		_Data.y2 = y2;
+
 		computeScale();
 
 		return BOUNDS_IN;
@@ -156,13 +171,13 @@ public final class Triangle {
 		}
 	}
 
-	static void prepareScan(int v0, int v1, int v2) {
-		final int x0 = vertexData[v0 + PV_PX];
-		final int y0 = vertexData[v0 + PV_PY];
-		final int x1 = vertexData[v1 + PV_PX];
-		final int y1 = vertexData[v1 + PV_PY];
-		final int x2 = vertexData[v2 + PV_PX];
-		final int y2 = vertexData[v2 + PV_PY];
+	static void prepareScan() {
+		final int x0 = _Data.x0;
+		final int y0 = _Data.y0;
+		final int x1 = _Data.x1;
+		final int y1 = _Data.y1;
+		final int x2 = _Data.x2;
+		final int y2 = _Data.y1;
 
 		final int a0 = (y0 - y1);
 		final int b0 = (x1 - x0);
@@ -177,13 +192,19 @@ public final class Triangle {
 
 		// Barycentric coordinates at minX/minY corner
 		// Can reduce precision (with accurate rounding) because increments will always be multiple of full pixel width
-		final int c0 = (int) ((orient2d(x0, y0, x1, y1) + (isTopLeft0 ? PRECISE_PIXEL_CENTER : (PRECISE_PIXEL_CENTER - 1))) >> PRECISION_BITS);
-		final int c1 = (int) ((orient2d(x1, y1, x2, y2) + (isTopLeft1 ? PRECISE_PIXEL_CENTER : (PRECISE_PIXEL_CENTER - 1))) >> PRECISION_BITS);
-		final int c2 = (int) ((orient2d(x2, y2, x0, y0) + (isTopLeft2 ? PRECISE_PIXEL_CENTER : (PRECISE_PIXEL_CENTER - 1))) >> PRECISION_BITS);
+		c0 = (int) ((orient2d(x0, y0, x1, y1) + (isTopLeft0 ? PRECISE_PIXEL_CENTER : (PRECISE_PIXEL_CENTER - 1))) >> PRECISION_BITS);
+		c1 = (int) ((orient2d(x1, y1, x2, y2) + (isTopLeft1 ? PRECISE_PIXEL_CENTER : (PRECISE_PIXEL_CENTER - 1))) >> PRECISION_BITS);
+		c2 = (int) ((orient2d(x2, y2, x0, y0) + (isTopLeft2 ? PRECISE_PIXEL_CENTER : (PRECISE_PIXEL_CENTER - 1))) >> PRECISION_BITS);
 
-		e0.prepare(a0, b0, c0);
-		e1.prepare(a1, b1, c1);
-		e2.prepare(a2, b2, c2);
+		_Data.a0 = a0;
+		_Data.b0 = b0;
+		_Data.position0 = edgePosition(a0, b0);
+		_Data.a1 = a1;
+		_Data.b1 = b1;
+		_Data.position1 = edgePosition(a0, b0);
+		_Data.a2 = a2;
+		_Data.b2 = b2;
+		_Data.position2 = edgePosition(a0, b0);
 	}
 
 	static boolean isCcw(long x0, long y0, long x1, long y1, long x2, long y2) {
@@ -192,5 +213,19 @@ public final class Triangle {
 
 	static long orient2d(long x0, long y0, long x1, long y1) {
 		return (y1 - y0) * x0 - (x1 - x0) * y0;
+	}
+
+	static EdgePosition edgePosition(int a, int b) {
+		if (a == 0) {
+			return b > 0 ? BOTTOM : TOP;
+		} else if (b == 0) {
+			return a > 0 ? LEFT : RIGHT;
+		}
+
+		if (a > 0) {
+			return b > 0 ? BOTTOM_LEFT : TOP_LEFT;
+		}  else { // a < 0
+			return b > 0 ? BOTTOM_RIGHT : TOP_RIGHT;
+		}
 	}
 }

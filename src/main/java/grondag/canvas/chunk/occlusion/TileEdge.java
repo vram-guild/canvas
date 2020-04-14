@@ -1,7 +1,9 @@
 package grondag.canvas.chunk.occlusion;
 
-final class TileEdge {
-	protected final Edge edge;
+abstract class TileEdge {
+	protected final int ordinal;
+
+
 	protected final AbstractTile tile;
 	private final int spanSize;
 	private final int stepSize;
@@ -21,13 +23,22 @@ final class TileEdge {
 
 	public final int ordinalFlag;
 
-	protected TileEdge(Edge edge, AbstractTile tile) {
-		ordinalFlag = 1 << edge.ordinal;
+	protected TileEdge(int ordinal, AbstractTile tile) {
+		ordinalFlag = 1 << ordinal;
 		final int diameter = tile.diameter;
 		stepSize = diameter / 8;
 		spanSize = diameter - 1;
-		this.edge = edge;
+		this.ordinal = ordinal;
 		this.tile = tile;
+	}
+
+	abstract int a();
+	abstract int b();
+	abstract int c();
+	abstract EdgePosition pos();
+
+	public int compute(int x, int y) {
+		return c() + a() * x + b() * y;
 	}
 
 	public void push() {
@@ -64,8 +75,8 @@ final class TileEdge {
 	 * For background, see Real Time Rendering, 4th Ed.  Sec 23.1 on Rasterization, esp. Figure 23.3
 	 */
 	public void prepare() {
-		final int a = edge.a;
-		final int b = edge.b;
+		final int a = a();
+		final int b = b();
 		stepA = a * stepSize;
 		stepB = b * stepSize;
 		spanA = a * spanSize;
@@ -78,13 +89,14 @@ final class TileEdge {
 			return;
 		}
 
-		x0y0 += edge.a + spanA;
+		final EdgePosition edgePos = pos();
+		x0y0 += a() + spanA;
 
-		if (edge.position.isRight) {
+		if (edgePos.isRight) {
 			if (position != OUTSIDE) {
 				position  =  POSITION_RECLASSIFY;
 			}
-		} else if (edge.position.isLeft && position != INSIDE) {
+		} else if (edgePos.isLeft && position != INSIDE) {
 			position = POSITION_RECLASSIFY;
 		}
 	}
@@ -94,13 +106,14 @@ final class TileEdge {
 			return;
 		}
 
-		x0y0 -= (edge.a + spanA);
+		final EdgePosition edgePos = pos();
+		x0y0 -= (a() + spanA);
 
-		if (edge.position.isLeft) {
+		if (edgePos.isLeft) {
 			if (position != OUTSIDE) {
 				position = POSITION_RECLASSIFY;
 			}
-		} else if (edge.position.isRight && position != INSIDE) {
+		} else if (edgePos.isRight && position != INSIDE) {
 			position = POSITION_RECLASSIFY;
 		}
 	}
@@ -110,13 +123,14 @@ final class TileEdge {
 			return;
 		}
 
-		x0y0 += edge.b + spanB;
+		final EdgePosition edgePos = pos();
+		x0y0 += b() + spanB;
 
-		if (edge.position.isTop) {
+		if (edgePos.isTop) {
 			if (position != OUTSIDE) {
 				position = POSITION_RECLASSIFY;
 			}
-		} else if (edge.position.isBottom && position != INSIDE) {
+		} else if (edgePos.isBottom && position != INSIDE) {
 			position = POSITION_RECLASSIFY;
 		}
 	}
@@ -131,7 +145,7 @@ final class TileEdge {
 	}
 
 	private int chooseEdgeValue() {
-		switch  (edge.position) {
+		switch  (pos()) {
 		case TOP:
 		case TOP_LEFT:
 			//			return x0y1;
@@ -177,7 +191,7 @@ final class TileEdge {
 	public int position() {
 		if (position < 0) {
 			if (position == POSITION_DIRTY) {
-				x0y0 = edge.compute(tile.x(), tile.y());
+				x0y0 = compute(tile.x(), tile.y());
 			}
 
 			classify();
@@ -190,7 +204,7 @@ final class TileEdge {
 		final int a = stepA;
 		final int b = stepB;
 
-		switch  (edge.position) {
+		switch  (pos()) {
 		case TOP: {
 			int wy = x0y0; // bottom left will always be inside
 			assert wy >= 0;
@@ -359,11 +373,11 @@ final class TileEdge {
 		}
 	}
 
-	protected static final int OUTSIDE = 1;
-	protected static final int INTERSECTING = 2;
-	protected static final int INSIDE = 4;
-	private static final int POSITION_DIRTY = -1;
-	private static final int POSITION_RECLASSIFY = -2;
+	static final int OUTSIDE = 1;
+	static final int INTERSECTING = 2;
+	static final int INSIDE = 4;
+	static final int POSITION_DIRTY = -1;
+	static final int POSITION_RECLASSIFY = -2;
 
 	public void makeDirty() {
 		position = POSITION_DIRTY;

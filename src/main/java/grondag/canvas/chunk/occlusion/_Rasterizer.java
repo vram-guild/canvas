@@ -62,7 +62,7 @@ abstract class _Rasterizer  {
 
 		case SCALE_LOW:{
 			//CanvasWorldRenderer.innerTimer.start();
-			prepareScan(v0, v1, v2);
+			prepareScan();
 			_Rasterizer.drawTriLow();
 			//CanvasWorldRenderer.innerTimer.stop();
 			return;
@@ -70,7 +70,7 @@ abstract class _Rasterizer  {
 
 		case SCALE_MID: {
 			//CanvasWorldRenderer.innerTimer.start();
-			prepareScan(v0, v1, v2);
+			prepareScan();
 			_Rasterizer.drawTriMid();
 			//CanvasWorldRenderer.innerTimer.stop();
 
@@ -109,7 +109,7 @@ abstract class _Rasterizer  {
 
 		case SCALE_LOW:{
 			//CanvasWorldRenderer.innerTimer.start();
-			prepareScan(v0, v1, v2);
+			prepareScan();
 			final boolean result = testTriLow();
 			//CanvasWorldRenderer.innerTimer.stop();
 			return result;
@@ -117,7 +117,7 @@ abstract class _Rasterizer  {
 
 		case SCALE_MID: {
 			//CanvasWorldRenderer.innerTimer.start();
-			prepareScan(v0, v1, v2);
+			prepareScan();
 			final boolean result = testTriMid();
 			//CanvasWorldRenderer.innerTimer.stop();
 

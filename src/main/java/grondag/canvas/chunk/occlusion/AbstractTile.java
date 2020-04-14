@@ -3,9 +3,18 @@ package grondag.canvas.chunk.occlusion;
 import static grondag.canvas.chunk.occlusion.TileEdge.INSIDE;
 import static grondag.canvas.chunk.occlusion.TileEdge.INTERSECTING;
 import static grondag.canvas.chunk.occlusion.TileEdge.OUTSIDE;
-import static grondag.canvas.chunk.occlusion._Data.e0;
-import static grondag.canvas.chunk.occlusion._Data.e1;
-import static grondag.canvas.chunk.occlusion._Data.e2;
+import static grondag.canvas.chunk.occlusion._Data.a0;
+import static grondag.canvas.chunk.occlusion._Data.a1;
+import static grondag.canvas.chunk.occlusion._Data.a2;
+import static grondag.canvas.chunk.occlusion._Data.b0;
+import static grondag.canvas.chunk.occlusion._Data.b1;
+import static grondag.canvas.chunk.occlusion._Data.b2;
+import static grondag.canvas.chunk.occlusion._Data.c0;
+import static grondag.canvas.chunk.occlusion._Data.c1;
+import static grondag.canvas.chunk.occlusion._Data.c2;
+import static grondag.canvas.chunk.occlusion._Data.position0;
+import static grondag.canvas.chunk.occlusion._Data.position1;
+import static grondag.canvas.chunk.occlusion._Data.position2;
 
 abstract class AbstractTile {
 	protected final TileEdge te0;
@@ -24,9 +33,71 @@ abstract class AbstractTile {
 	protected  AbstractTile(int tileSize) {
 		diameter = tileSize;
 		tileShift =  Integer.bitCount(diameter - 1);
-		te0 = new TileEdge(e0, this);
-		te1 = new TileEdge(e1, this);
-		te2 = new TileEdge(e2, this);
+		te0 = new TileEdge(0, this) {
+			@Override
+			int a() {
+				return a0;
+			}
+
+			@Override
+			int b() {
+				return b0;
+			}
+
+			@Override
+			int c() {
+				return c0;
+			}
+
+			@Override
+			EdgePosition pos() {
+				return position0;
+			}
+		};
+
+		te1 = new TileEdge(1, this) {
+			@Override
+			int a() {
+				return a1;
+			}
+
+			@Override
+			int b() {
+				return b1;
+			}
+
+			@Override
+			int c() {
+				return c1;
+			}
+
+			@Override
+			EdgePosition pos() {
+				return position1;
+			}
+		};
+
+		te2 = new TileEdge(2, this) {
+			@Override
+			int a() {
+				return a2;
+			}
+
+			@Override
+			int b() {
+				return b2;
+			}
+
+			@Override
+			int c() {
+				return c2;
+			}
+
+			@Override
+			EdgePosition pos() {
+				return position2;
+			}
+		};
 	}
 
 
