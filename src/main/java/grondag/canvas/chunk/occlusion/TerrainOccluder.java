@@ -29,7 +29,7 @@ import grondag.canvas.render.CanvasWorldRenderer;
 //			Above is to allow limit to frequency of rebuilds without too many visibility errors
 
 public class TerrainOccluder extends ClippingTerrainOccluder  {
-	private final AbstractTile lowTile = new AbstractTile(triangle, TerrainOccluder.LOW_BIN_PIXEL_DIAMETER) {
+	private final AbstractTile lowTile = new AbstractTile(triangle, LOW_BIN_PIXEL_DIAMETER) {
 		@Override
 		public int tileIndex() {
 			return lowIndex(tileX,  tileY);
@@ -50,13 +50,13 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		}
 	};
 
-	@Override
-	protected void drawTri(int v0, int v1, int v2) {
+
+	public void drawTriOld(int v0, int v1, int v2) {
 		final Triangle tri = triangle;
 
 		final int boundsResult  = triangle.prepareBounds(vertexData, v0, v1, v2);
 
-		if (boundsResult == BoundsResult.OUT_OF_BOUNDS) {
+		if (boundsResult == BoundsResult.OUT_OF_BOUNDS_OR_TOO_SMALL) {
 			return;
 		}
 
@@ -65,7 +65,6 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 			return;
 		}
 
-		//  PERF: consider skipping small tris at intermediate ranges (at extreme range only full sections are attempted)
 		tri.prepareScan(vertexData, v0, v1, v2);
 		topTile.prepare();
 		midTile.prepare();
@@ -78,29 +77,48 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		if (tri.maxPixelX >> TOP_AXIS_SHIFT == 1) {
 			drawTriTop(1, 0);
 		}
-
-		//		final int bx0 = minPixelX >> TOP_AXIS_SHIFT;
-		//		final int bx1 = maxPixelX >> TOP_AXIS_SHIFT;
-		//
-		//		if (minPixelX >> TOP_AXIS_SHIFT == 0) {
-		//			drawTriTop(0, 0);
-		//		}
-
-		//		final int by0 = minPixelY >> TOP_AXIS_SHIFT;
-		//		final int by1 = maxPixelY >> TOP_AXIS_SHIFT;
-
-		//		if (bx0 == bx1 && by0 == by1) {
-		//			drawTriTop(bx0, by0);
-		//		} else {
-		//			for (int by = by0; by <= by1; by++) {
-		//				for (int bx = bx0; bx <= bx1; bx++) {
-		//					drawTriTop(bx, by);
-		//				}
-		//			}
-		//		}
 	}
 
-	//	private final boolean debugTop = false;
+	@Override
+	public void drawTri(int v0, int v1, int v2) {
+		final Triangle tri = triangle;
+		final int boundsResult  = tri.prepareBounds(vertexData, v0, v1, v2);
+
+		if (boundsResult == BoundsResult.OUT_OF_BOUNDS_OR_TOO_SMALL) {
+			return;
+		}
+
+		if (boundsResult == BoundsResult.NEEDS_CLIP) {
+			drawClippedLowX(v0, v1, v2);
+			return;
+		}
+
+		//		switch(tri.scale) {
+		//
+		//		case SCALE_LOW:{
+		//			//CanvasWorldRenderer.innerTimer.start();
+		//			tri.prepareScan(vertexData, v0, v1, v2);
+		//			drawTriLow();
+		//			//CanvasWorldRenderer.innerTimer.stop();
+		//			return;
+		//		}
+		//
+		//		case SCALE_MID: {
+		//CanvasWorldRenderer.innerTimer.start();
+		tri.prepareScan(vertexData, v0, v1, v2);
+		drawTriMid();
+		//CanvasWorldRenderer.innerTimer.stop();
+		//
+		//			return;
+		//		}
+		//
+		//		// skip drawing single points - can't get accurate coverage
+		//		case SCALE_POINT:
+		//		default:
+		//			assert false : "Bad triangle scale";
+		//		return;
+		//		}
+	}
 
 	private void drawTriTop(final int topX, final int topY) {
 		final int index = topIndex(topX, topY);
@@ -514,7 +532,7 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		final Triangle tri = triangle;
 		final int boundsResult  = tri.prepareBounds(vertexData, v0, v1, v2);
 
-		if (boundsResult == BoundsResult.OUT_OF_BOUNDS) {
+		if (boundsResult == BoundsResult.OUT_OF_BOUNDS_OR_TOO_SMALL) {
 			return false;
 		}
 
@@ -536,9 +554,8 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		case SCALE_LOW:{
 			//CanvasWorldRenderer.innerTimer.start();
 			tri.prepareScan(vertexData, v0, v1, v2);
-			final boolean result =  testTriLow();
+			final boolean result = testTriLow();
 			//CanvasWorldRenderer.innerTimer.stop();
-
 			return result;
 		}
 
@@ -551,38 +568,10 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 			return result;
 		}
 
-		//		case SCALE_TOP: {
-		//			//CanvasWorldRenderer.innerTimer.start();
-		//			tri.prepareScan(vertexData, v0, v1, v2);
-		//			final boolean result = testTriTop();
-		//			//CanvasWorldRenderer.innerTimer.stop();
-		//
-		//			return result;
-		//		}
-
 		default:
 			assert false : "Bad triangle scale";
 		return false;
 		}
-
-		//		final int bx0 = (minPixelX >> TOP_AXIS_SHIFT);
-		//		final int bx1 = (maxPixelX >> TOP_AXIS_SHIFT);
-		//		final int by0 = (minPixelY >> TOP_AXIS_SHIFT);
-		//		final int by1 = maxPixelY >> TOP_AXIS_SHIFT;
-		//
-		//					if (bx0 == bx1 && by0 == by1) {
-		//						return testTriTop(bx0, by0);
-		//					} else {
-		//						for (int by = by0; by <= by1; by++) {
-		//							for (int bx = bx0; bx <= bx1; bx++) {
-		//								if (testTriTop(bx, by)) {
-		//									return true;
-		//								}
-		//							}
-		//						}
-		//
-		//						return false;
-		//					}
 	}
 
 	private boolean testTriMid() {
@@ -727,6 +716,144 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		}
 
 		return (~word & lowTile.computeCoverage()) != 0;
+	}
+
+	private void drawTriLow() {
+		final Triangle tri = triangle;
+		final AbstractTile lowTile = this.lowTile;
+		lowTile.prepare();
+
+		final int x0 = (tri.minPixelX >> LOW_AXIS_SHIFT);
+		final int x1 = (tri.maxPixelX >> LOW_AXIS_SHIFT);
+		final int y0 = (tri.minPixelY >> LOW_AXIS_SHIFT);
+		final int y1 = (tri.maxPixelY >> LOW_AXIS_SHIFT);
+
+		lowTile.moveTo(x0, y0);
+
+		drawTriLowInner();
+
+		if (x0 != x1) {
+			lowTile.moveRight();
+			drawTriLowInner();
+		}
+
+		if (y0 != y1) {
+			lowTile.moveUp();
+			drawTriLowInner();
+
+			if (x0 != x1) {
+				lowTile.moveLeft();
+				drawTriLowInner();
+			}
+		}
+	}
+
+	private int drawTriLowInner() {
+		final int index = lowTile.tileIndex();
+		long word = lowBins[index];
+
+		// nothing to test if fully occluded
+		if  (word == -1L) {
+			return COVERAGE_FULL;
+		}  else {
+			word |= lowTile.computeCoverage();
+			lowBins[index] = word;
+			return word == -1L ? COVERAGE_FULL : COVERAGE_NONE_OR_SOME;
+		}
+	}
+
+	private void drawTriMid() {
+		final Triangle tri = triangle;
+		final AbstractTile midTile = this.midTile;
+		midTile.prepare();
+		lowTile.prepare();
+
+		final int x0 = (tri.minPixelX >> MID_AXIS_SHIFT);
+		final int x1 = (tri.maxPixelX >> MID_AXIS_SHIFT);
+		final int y0 = (tri.minPixelY >> MID_AXIS_SHIFT);
+		final int y1 = (tri.maxPixelY >> MID_AXIS_SHIFT);
+
+		midTile.moveTo(x0, y0);
+		boolean goRight = true;
+
+		while(true) {
+			drawTriMidInner();
+
+			if (goRight) {
+				if (midTile.tileX == x1) {
+					if(midTile.tileY == y1) {
+						return;
+					} else {
+						midTile.moveUp();
+						goRight = !goRight;
+					}
+				} else {
+					midTile.moveRight();
+				}
+			} else {
+				if (midTile.tileX == x0) {
+					if(midTile.tileY == y1) {
+						return;
+					} else {
+						midTile.moveUp();
+						goRight = !goRight;
+					}
+				} else {
+					midTile.moveLeft();
+				}
+			}
+		}
+	}
+
+	private void drawTriMidInner() {
+		final int index = midTile.tileIndex();
+		long word = midBins[index];
+
+		if (word == -1L) {
+			return;
+		}
+
+		final AbstractTile midTile = this.midTile;
+		// don't draw tiles known to be fully occluded
+		long coverage = midTile.computeCoverage() & ~word;
+
+		// nothing to do
+		if (coverage == 0)  {
+			return;
+		}
+
+		final AbstractTile lowTile = this.lowTile;
+		lowTile.moveToParentOrigin(midTile);
+
+		long yMask = 1L;
+
+		do {
+			int row = (int) (coverage & 0xFFL);
+
+			// PERF: more efficient traversal
+			if (row != 0) {
+				lowTile.push();
+				long mask = yMask;
+
+				do {
+					if  ((row & 1) == 1 && drawTriLowInner() == COVERAGE_FULL) {
+						word |= mask;
+					}
+
+					mask <<= 1;
+					lowTile.moveRight();
+					row >>= 1;
+				} while (row != 0);
+
+				lowTile.pop();
+			}
+
+			lowTile.moveUp();
+			yMask <<= 8;
+			coverage >>>= 8;
+		} while (coverage != 0L);
+
+		midBins[index] = word;
 	}
 
 	public static void printMask8x8(long mask) {

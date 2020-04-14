@@ -14,7 +14,7 @@ final class TileEdge {
 	private int extent;
 
 	private int x0y0;
-	private int position;
+	private int position = POSITION_DIRTY;
 
 	private int save_x0y0;
 	private int save_position;
@@ -74,52 +74,59 @@ final class TileEdge {
 	}
 
 	public void moveRight() {
-		x0y0 += stepA + spanA;
+		if (position == POSITION_DIRTY)  {
+			return;
+		}
+
+		x0y0 += edge.a + spanA;
 
 		if (edge.position.isRight) {
 			if (position != OUTSIDE) {
-				position  =  POSITION_DIRTY;
+				position  =  POSITION_RECLASSIFY;
 			}
 		} else if (edge.position.isLeft && position != INSIDE) {
-			position = POSITION_DIRTY;
+			position = POSITION_RECLASSIFY;
 		}
 	}
 
 	public void moveLeft() {
-		x0y0 -= stepA + spanA;
+		if (position == POSITION_DIRTY)  {
+			return;
+		}
+
+		x0y0 -= (edge.a + spanA);
 
 		if (edge.position.isLeft) {
 			if (position != OUTSIDE) {
-				position  =  POSITION_DIRTY;
+				position = POSITION_RECLASSIFY;
 			}
 		} else if (edge.position.isRight && position != INSIDE) {
-			position = POSITION_DIRTY;
+			position = POSITION_RECLASSIFY;
 		}
 	}
 
 	public void moveUp() {
-		x0y0 += stepB + spanB;
+		if (position == POSITION_DIRTY)  {
+			return;
+		}
+
+		x0y0 += edge.b + spanB;
 
 		if (edge.position.isTop) {
 			if (position != OUTSIDE) {
-				position  =  POSITION_DIRTY;
+				position = POSITION_RECLASSIFY;
 			}
 		} else if (edge.position.isBottom && position != INSIDE) {
-			position = POSITION_DIRTY;
+			position = POSITION_RECLASSIFY;
 		}
 	}
 
 	public void updateFromParent(TileEdge parent) {
-		x0y0 = parent.x0y0;
-		position = POSITION_DIRTY;
-	}
-
-	private boolean update() {
-		if (tile.isDirty(ordinalFlag)) {
-			x0y0 = edge.compute(tile.x(), tile.y());
-			return true;
+		if (parent.position == POSITION_DIRTY) {
+			position = POSITION_DIRTY;
 		} else {
-			return false;
+			x0y0 = parent.x0y0;
+			position = POSITION_RECLASSIFY;
 		}
 	}
 
@@ -150,7 +157,7 @@ final class TileEdge {
 		}
 	}
 
-	private void classify() {
+	private void classify()  {
 		final int w = chooseEdgeValue();
 		//		cornerValue = w;
 		//NB extent is always negative
@@ -168,7 +175,11 @@ final class TileEdge {
 	}
 
 	public int position() {
-		if ((position == POSITION_DIRTY) || update()) {
+		if (position < 0) {
+			if (position == POSITION_DIRTY) {
+				x0y0 = edge.compute(tile.x(), tile.y());
+			}
+
 			classify();
 		}
 
@@ -182,8 +193,8 @@ final class TileEdge {
 		switch  (edge.position) {
 		case TOP: {
 			int wy = x0y0; // bottom left will always be inside
-			//			assert wy >= 0;
-			//			assert b < 0;
+			assert wy >= 0;
+			assert b < 0;
 
 			long yMask = 0xFFL;
 			long mask = 0;
@@ -194,16 +205,13 @@ final class TileEdge {
 				wy += b; //NB: b will be negative
 			}
 
-			//				System.out.println("TOP");
-			//				printMask8x8(mask);
-
 			return mask;
 		}
 
 		case BOTTOM: {
 			int wy = x0y0 + spanB; // top left will always be inside
-			//			assert wy >= 0;
-			//			assert b > 0;
+			assert wy >= 0;
+			assert b > 0;
 
 			long yMask = 0xFF00000000000000L;
 			long mask = 0;
@@ -214,16 +222,13 @@ final class TileEdge {
 				wy -= b;
 			}
 
-			//				System.out.println("BOTTOM");
-			//				printMask8x8(mask);
-
 			return mask;
 		}
 
 		case RIGHT: {
 			final int wy = x0y0; // bottom left will always be inside
-			//			assert wy >= 0;
-			//			assert a < 0;
+			assert wy >= 0;
+			assert a < 0;
 
 			final int x = 7 - Math.min(7, -wy / a);
 			long mask = (0xFF >> x);
@@ -231,9 +236,6 @@ final class TileEdge {
 			mask |= mask << 8;
 			mask |= mask << 16;
 			mask |= mask << 32;
-
-			//				System.out.println("RIGHT");
-			//				printMask8x8(mask);
 
 			return mask;
 		}
@@ -250,9 +252,6 @@ final class TileEdge {
 			mask |= mask << 16;
 			mask |= mask << 32;
 
-			//				System.out.println("LEFT");
-			//				printMask8x8(mask);
-
 			return mask;
 		}
 
@@ -260,9 +259,9 @@ final class TileEdge {
 			// PERF: optimize case when shallow slope and several bottom rows are full
 
 			int wy = x0y0 + spanA; // bottom right will always be inside
-			//			assert wy >= 0;
-			//			assert b < 0;
-			//			assert a > 0;
+			assert wy >= 0;
+			assert b < 0;
+			assert a > 0;
 
 			// min y will occur at x = 0;
 
@@ -278,17 +277,14 @@ final class TileEdge {
 				yShift += 8;
 			}
 
-			//				System.out.println("TOP LEFT");
-			//				printMask8x8(mask);
-
 			return mask;
 		}
 
 		case BOTTOM_LEFT: {
 			int wy = x0y0 + spanA + spanB; // top right will always be inside
-			//			assert wy >= 0;
-			//			assert b > 0;
-			//			assert a > 0;
+			assert wy >= 0;
+			assert b > 0;
+			assert a > 0;
 
 			// min y will occur at x = 7;
 
@@ -304,9 +300,6 @@ final class TileEdge {
 				yShift -= 8;
 			}
 
-			//				System.out.println("BOTTOM LEFT");
-			//				printMask8x8(mask);
-
 			return mask;
 		}
 
@@ -320,9 +313,9 @@ final class TileEdge {
 			// Exploit step-wise nature of a/b here to avoid computing the first term
 			// logic in other cases is similar
 			int wy = x0y0; // bottom left will always be inside
-			//			assert wy >= 0;
-			//			assert b < 0;
-			//			assert a < 0;
+			assert wy >= 0;
+			assert b < 0;
+			assert a < 0;
 
 			long mask = 0;
 			int yShift = 0;
@@ -335,9 +328,6 @@ final class TileEdge {
 				yShift +=  8;
 			}
 
-			//				System.out.println("TOP RIGHT");
-			//				printMask8x8(mask);
-
 			return mask;
 		}
 
@@ -345,9 +335,9 @@ final class TileEdge {
 			// PERF: optimize case when shallow slope and several top rows are full
 
 			int wy = x0y0 + spanB; // top left will always be inside
-			//			assert wy >= 0;
-			//			assert b > 0;
-			//			assert a < 0;
+			assert wy >= 0;
+			assert b > 0;
+			assert a < 0;
 
 			int yShift = 8 * 7;
 			long mask = 0;
@@ -359,9 +349,6 @@ final class TileEdge {
 				wy -= b;
 				yShift -= 8;
 			}
-
-			//				System.out.println("BOTTOM RIGHT");
-			//				printMask8x8(mask);
 
 			return mask;
 		}
@@ -376,4 +363,9 @@ final class TileEdge {
 	protected static final int INTERSECTING = 2;
 	protected static final int INSIDE = 4;
 	private static final int POSITION_DIRTY = -1;
+	private static final int POSITION_RECLASSIFY = -2;
+
+	public void makeDirty() {
+		position = POSITION_DIRTY;
+	}
 }

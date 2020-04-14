@@ -24,48 +24,71 @@ public final class ProjectedVertexData {
 		final float tx = mvpMatrixExt.a00() * x + mvpMatrixExt.a01() * y + mvpMatrixExt.a02() * z + mvpMatrixExt.a03();
 		final float ty = mvpMatrixExt.a10() * x + mvpMatrixExt.a11() * y + mvpMatrixExt.a12() * z + mvpMatrixExt.a13();
 		final float w = mvpMatrixExt.a30() * x + mvpMatrixExt.a31() * y + mvpMatrixExt.a32() * z + mvpMatrixExt.a33();
-		final float iw = 1f / w;
-		final int px = Math.round(tx * iw * HALF_PRECISE_WIDTH) + HALF_PRECISE_WIDTH;
-		final int py = Math.round(ty * iw * HALF_PRECISE_HEIGHT) + HALF_PRECISE_HEIGHT;
 
-		data[baseIndex + PV_PX] = px;
-		data[baseIndex + PV_PY] = py;
 		data[baseIndex + PV_X] = Float.floatToRawIntBits(tx);
 		data[baseIndex + PV_Y] = Float.floatToRawIntBits(ty);
 		data[baseIndex + PV_Z] = Float.floatToRawIntBits(mvpMatrixExt.a20() * x + mvpMatrixExt.a21() * y + mvpMatrixExt.a22() * z + mvpMatrixExt.a23());
 		data[baseIndex + PV_W] = Float.floatToRawIntBits(w);
+
+		if (w != 0)  {
+			final float iw = 1f / w;
+			final int px = Math.round(tx * iw * HALF_PRECISE_WIDTH) + HALF_PRECISE_WIDTH;
+			final int py = Math.round(ty * iw * HALF_PRECISE_HEIGHT) + HALF_PRECISE_HEIGHT;
+
+			data[baseIndex + PV_PX] = px;
+			data[baseIndex + PV_PY] = py;
+		}
 	}
 
 	public static int needsNearClip(final int[] data, final int baseIndex) {
-		return Float.intBitsToFloat(data[baseIndex + PV_W]) <= 0 || Float.intBitsToFloat(data[baseIndex + PV_Z]) <= 0 ? 1 : 0;
+		final float w = Float.intBitsToFloat(data[baseIndex + PV_W]);
+		final float z = Float.intBitsToFloat(data[baseIndex + PV_Z]);
+
+		if (w == 0) {
+			return 1;
+		} else if (w > 0) {
+			return z > 0 && z < w ? 0 : 1;
+		} else {
+			// w < 0
+			return z < 0 && z > w ? 0 : 1;
+		}
 	}
 
 	public static void clipNear(final int[] data, int target, int internal, int external) {
 		final float intX = Float.intBitsToFloat(data[internal + PV_X]);
 		final float intY = Float.intBitsToFloat(data[internal + PV_Y]);
 		final float intZ = Float.intBitsToFloat(data[internal + PV_Z]);
+		final float intW = Float.intBitsToFloat(data[internal + PV_W]);
 
 		final float extX = Float.intBitsToFloat(data[external + PV_X]);
 		final float extY = Float.intBitsToFloat(data[external + PV_Y]);
 		final float extZ = Float.intBitsToFloat(data[external + PV_Z]);
+		final float extW = Float.intBitsToFloat(data[external + PV_W]);
 
 		// intersection point is the projection plane, at which point Z == 1
 		// and w will be 0 but projection division isn't needed, so force output to W = 1
 		// see https://www.cs.usfca.edu/~cruse/math202s11/homocoords.pdf
 
-		// external Z  will be negative
-		final float wt  = intZ / (intZ - extZ);
+		assert extZ < 0;
+		assert extZ < extW;
+		assert intZ > 0;
+		assert intZ < intW;
+
+		final float wt  = (intZ + intW) / (-(extW - intW) - (extZ - intZ));
+		//		final float wt  = (intZ - intW) / ((extW - intW) - (extZ - intZ));
 
 		// note again that projection division isn't needed
 		final float x = (intX + (extX - intX) * wt);
 		final float y = (intY + (extY - intY) * wt);
+		final float w = (intW + (extW - intW) * wt);
+		final float iw = 1f / w;
 
-		data[target + PV_PX] = Math.round(x * HALF_PRECISE_WIDTH) + HALF_PRECISE_WIDTH;
-		data[target + PV_PY] = Math.round(y * HALF_PRECISE_HEIGHT) + HALF_PRECISE_HEIGHT;
+		data[target + PV_PX] = Math.round(iw * x * HALF_PRECISE_WIDTH) + HALF_PRECISE_WIDTH;
+		data[target + PV_PY] = Math.round(iw * y * HALF_PRECISE_HEIGHT) + HALF_PRECISE_HEIGHT;
 		data[target + PV_X] = Float.floatToRawIntBits(x);
 		data[target + PV_Y] = Float.floatToRawIntBits(y);
-		data[target + PV_Z] = Float.floatToRawIntBits(1);
-		data[target + PV_W] = Float.floatToRawIntBits(1);
+		data[target + PV_Z] = Float.floatToRawIntBits(w);
+		data[target + PV_W] = Float.floatToRawIntBits(w);
 	}
 
 	public static int needsClipLowX(final int[] data, final int baseIndex) {

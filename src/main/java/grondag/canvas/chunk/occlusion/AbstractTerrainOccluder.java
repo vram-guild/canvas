@@ -699,7 +699,8 @@ public abstract class AbstractTerrainOccluder {
 	protected static final int PRECISION_BITS = 4;
 	protected static final int PRECISE_FRACTION_MASK = (1 << PRECISION_BITS) - 1;
 	protected static final int PRECISE_INTEGER_MASK = ~PRECISE_FRACTION_MASK;
-	protected static final int PRECISE_PIXEL_CENTER = 1 << (PRECISION_BITS - 1);
+	protected static final int PRECISE_PIXEL_SIZE = 1 << PRECISION_BITS;
+	protected static final int PRECISE_PIXEL_CENTER = PRECISE_PIXEL_SIZE / 2;
 
 	protected static final int LOW_WIDTH = MID_WIDTH * 8;
 	//protected static final int LOW_Y_SHIFT = Integer.bitCount(LOW_WIDTH - 1);

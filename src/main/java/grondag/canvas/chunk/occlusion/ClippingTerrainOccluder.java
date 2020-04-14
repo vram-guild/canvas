@@ -80,6 +80,27 @@ public abstract class ClippingTerrainOccluder extends AbstractTerrainOccluder {
 		clipNear(vertexData, V_NEAR_CLIP_A, internal, extA);
 		clipNear(vertexData, V_NEAR_CLIP_B, internal, extB);
 
+		//  TODO: remove
+		//		if (!isCcw(
+		//				vertexData[V_NEAR_CLIP_A + PV_PX], vertexData[V_NEAR_CLIP_A + PV_PY],
+		//				vertexData[internal + PV_PX], vertexData[internal + PV_PY],
+		//				vertexData[V_NEAR_CLIP_B + PV_PX], vertexData[V_NEAR_CLIP_B + PV_PY])) {
+		//
+		//			System.out.println("TRI");
+		//			System.out.println(String.format("extA: %d \t %d \t %f \t %f", vertexData[extA + PV_PX], vertexData[extA + PV_PY], Float.intBitsToFloat(vertexData[extA + PV_Z]), Float.intBitsToFloat(vertexData[extA + PV_W])));
+		//			System.out.println(String.format("int0: %d \t %d \t %f \t %f", vertexData[internal + PV_PX], vertexData[internal + PV_PY], Float.intBitsToFloat(vertexData[internal + PV_Z]), Float.intBitsToFloat(vertexData[internal + PV_W])));
+		//			System.out.println(String.format("extB: %d \t %d \t %f \t %f", vertexData[extB + PV_PX], vertexData[extB + PV_PY], Float.intBitsToFloat(vertexData[extB + PV_Z]), Float.intBitsToFloat(vertexData[extB + PV_W])));
+		//			System.out.println();
+		//			System.out.println(String.format("clipA: %d \t %d", vertexData[V_NEAR_CLIP_A + PV_PX], vertexData[V_NEAR_CLIP_A + PV_PY]));
+		//			System.out.println(String.format("clipB: %d \t %d", vertexData[V_NEAR_CLIP_B + PV_PX], vertexData[V_NEAR_CLIP_B + PV_PY]));
+		//			System.out.println();
+		//		}
+		//
+		//		assert (isCcw(
+		//				vertexData[V_NEAR_CLIP_A + PV_PX], vertexData[V_NEAR_CLIP_A + PV_PY],
+		//				vertexData[internal + PV_PX], vertexData[internal + PV_PY],
+		//				vertexData[V_NEAR_CLIP_B + PV_PX], vertexData[V_NEAR_CLIP_B + PV_PY])) : "Triangle not counter-clockwise";
+
 		drawTri(V_NEAR_CLIP_A, internal, V_NEAR_CLIP_B);
 	}
 
@@ -87,6 +108,37 @@ public abstract class ClippingTerrainOccluder extends AbstractTerrainOccluder {
 		final int[] vertexData = this.vertexData;
 		clipNear(vertexData, V_NEAR_CLIP_A, internal0, extA);
 		clipNear(vertexData, V_NEAR_CLIP_B, internal1, extB);
+
+		//  TODO: remove
+		//		if (!isCcw(
+		//				vertexData[V_NEAR_CLIP_A + PV_PX], vertexData[V_NEAR_CLIP_A + PV_PY],
+		//				vertexData[internal0 + PV_PX], vertexData[internal0 + PV_PY],
+		//				vertexData[internal1 + PV_PX], vertexData[internal1 + PV_PY])
+		//				||  !isCcw(
+		//						vertexData[V_NEAR_CLIP_A + PV_PX], vertexData[V_NEAR_CLIP_A + PV_PY],
+		//						vertexData[internal1 + PV_PX], vertexData[internal1 + PV_PY],
+		//						vertexData[V_NEAR_CLIP_B + PV_PX], vertexData[V_NEAR_CLIP_B + PV_PY])) {
+		//
+		//			System.out.println("QUAD");
+		//			System.out.println(String.format("extA: %d \t %d \t %f \t %f", vertexData[extA + PV_PX], vertexData[extA + PV_PY], Float.intBitsToFloat(vertexData[extA + PV_Z]), Float.intBitsToFloat(vertexData[extA + PV_W])));
+		//			System.out.println(String.format("int0: %d \t %d \t %f \t %f", vertexData[internal0 + PV_PX], vertexData[internal0 + PV_PY], Float.intBitsToFloat(vertexData[internal0 + PV_Z]), Float.intBitsToFloat(vertexData[internal0 + PV_W])));
+		//			System.out.println(String.format("int1: %d \t %d \t %f \t %f", vertexData[internal1 + PV_PX], vertexData[internal1 + PV_PY], Float.intBitsToFloat(vertexData[internal1 + PV_Z]), Float.intBitsToFloat(vertexData[internal1 + PV_W])));
+		//			System.out.println(String.format("extB: %d \t %d \t %f \t %f", vertexData[extB + PV_PX], vertexData[extB + PV_PY], Float.intBitsToFloat(vertexData[extB + PV_Z]), Float.intBitsToFloat(vertexData[extB + PV_W])));
+		//			System.out.println();
+		//			System.out.println(String.format("clipA: %d \t %d", vertexData[V_NEAR_CLIP_A + PV_PX], vertexData[V_NEAR_CLIP_A + PV_PY]));
+		//			System.out.println(String.format("clipB: %d \t %d", vertexData[V_NEAR_CLIP_B + PV_PX], vertexData[V_NEAR_CLIP_B + PV_PY]));
+		//			System.out.println();
+		//		}
+		//
+		//		assert (isCcw(
+		//				vertexData[V_NEAR_CLIP_A + PV_PX], vertexData[V_NEAR_CLIP_A + PV_PY],
+		//				vertexData[internal0 + PV_PX], vertexData[internal0 + PV_PY],
+		//				vertexData[internal1 + PV_PX], vertexData[internal1 + PV_PY])) : "Triangle not counter-clockwise";
+		//
+		//		assert (isCcw(
+		//				vertexData[V_NEAR_CLIP_A + PV_PX], vertexData[V_NEAR_CLIP_A + PV_PY],
+		//				vertexData[internal1 + PV_PX], vertexData[internal1 + PV_PY],
+		//				vertexData[V_NEAR_CLIP_B + PV_PX], vertexData[V_NEAR_CLIP_B + PV_PY])) : "Triangle not counter-clockwise";
 
 		drawTri(V_NEAR_CLIP_A, internal0, internal1);
 		drawTri(V_NEAR_CLIP_A, internal1, V_NEAR_CLIP_B);
@@ -110,10 +162,11 @@ public abstract class ClippingTerrainOccluder extends AbstractTerrainOccluder {
 		switch (split) {
 
 		// nominal case, all inside
-		case 0b0000:
+		case 0b0000: {
 			return testTri(v0, v1, v2) || testTri(v0, v2, v3);
+		}
 
-			// missing one corner, three tris
+		// missing one corner, three tris
 		case 0b0001:
 			return testSplitOne(v1, v2, v3, v0);
 		case 0b0010:
@@ -163,6 +216,27 @@ public abstract class ClippingTerrainOccluder extends AbstractTerrainOccluder {
 		clipNear(vertexData, V_NEAR_CLIP_A, internal0, extA);
 		clipNear(vertexData, V_NEAR_CLIP_B, internal1, extB);
 
+		//  TODO: remove
+		//		if (!isCcw(
+		//				vertexData[V_NEAR_CLIP_A + PV_PX], vertexData[V_NEAR_CLIP_A + PV_PY],
+		//				vertexData[internal0 + PV_PX], vertexData[internal0 + PV_PY],
+		//				vertexData[internal1 + PV_PX], vertexData[internal1 + PV_PY])
+		//				||  !isCcw(
+		//						vertexData[V_NEAR_CLIP_A + PV_PX], vertexData[V_NEAR_CLIP_A + PV_PY],
+		//						vertexData[internal1 + PV_PX], vertexData[internal1 + PV_PY],
+		//						vertexData[V_NEAR_CLIP_B + PV_PX], vertexData[V_NEAR_CLIP_B + PV_PY])) {
+		//
+		//			System.out.println("QUAD");
+		//			System.out.println(String.format("extA: %d \t %d \t %f \t %f", vertexData[extA + PV_PX], vertexData[extA + PV_PY], Float.intBitsToFloat(vertexData[extA + PV_Z]), Float.intBitsToFloat(vertexData[extA + PV_W])));
+		//			System.out.println(String.format("int0: %d \t %d \t %f \t %f", vertexData[internal0 + PV_PX], vertexData[internal0 + PV_PY], Float.intBitsToFloat(vertexData[internal0 + PV_Z]), Float.intBitsToFloat(vertexData[internal0 + PV_W])));
+		//			System.out.println(String.format("int1: %d \t %d \t %f \t %f", vertexData[internal1 + PV_PX], vertexData[internal1 + PV_PY], Float.intBitsToFloat(vertexData[internal1 + PV_Z]), Float.intBitsToFloat(vertexData[internal1 + PV_W])));
+		//			System.out.println(String.format("extB: %d \t %d \t %f \t %f", vertexData[extB + PV_PX], vertexData[extB + PV_PY], Float.intBitsToFloat(vertexData[extB + PV_Z]), Float.intBitsToFloat(vertexData[extB + PV_W])));
+		//			System.out.println();
+		//			System.out.println(String.format("clipA: %d \t %d", vertexData[V_NEAR_CLIP_A + PV_PX], vertexData[V_NEAR_CLIP_A + PV_PY]));
+		//			System.out.println(String.format("clipB: %d \t %d", vertexData[V_NEAR_CLIP_B + PV_PX], vertexData[V_NEAR_CLIP_B + PV_PY]));
+		//			System.out.println();
+		//		}
+
 		return testTri(V_NEAR_CLIP_A, internal0, internal1) || testTri(V_NEAR_CLIP_A, internal1, V_NEAR_CLIP_B);
 	}
 
@@ -171,7 +245,7 @@ public abstract class ClippingTerrainOccluder extends AbstractTerrainOccluder {
 		clipNear(vertexData, V_NEAR_CLIP_A, v2, ext);
 		clipNear(vertexData, V_NEAR_CLIP_B, v0, ext);
 
-		return testTri(v0, v1, v2) || testTri(v0, v2, V_NEAR_CLIP_A) || testTri(v0, V_NEAR_CLIP_A, V_NEAR_CLIP_B);
+		return testTri(v0, v1, v2) || testTri(V_NEAR_CLIP_B, v2, v0) || testTri(V_NEAR_CLIP_B, V_NEAR_CLIP_A, v2);
 	}
 
 	protected final void drawClippedLowX(int v0, int v1, int v2) {

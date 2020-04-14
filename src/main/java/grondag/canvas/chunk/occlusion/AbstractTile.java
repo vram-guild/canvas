@@ -18,7 +18,6 @@ abstract class AbstractTile {
 
 	protected int tileX;
 	protected int tileY;
-	protected int completedFlags;
 
 	protected int save_tileX;
 	protected int save_tileY;
@@ -43,164 +42,41 @@ abstract class AbstractTile {
 	}
 
 	public final void moveTo(int tileX, int tileY) {
-		completedFlags = 0;
+		te0.makeDirty();
+		te1.makeDirty();
+		te2.makeDirty();
 		this.tileX = tileX;
 		this.tileY = tileY;
 	}
 
 	public void moveToParentOrigin(AbstractTile parent) {
-		completedFlags = parent.completedFlags;
 		tileX = parent.tileX <<  BIN_AXIS_SHIFT;
 		tileY = parent.tileY <<  BIN_AXIS_SHIFT;
 
-		switch(completedFlags) {
-		default:
-		case 0:
-			break;
-		case 0b001:
-			te0.updateFromParent(parent.te0);
-			break;
-		case 0b010:
-			te1.updateFromParent(parent.te1);
-			break;
-		case 0b011:
-			te0.updateFromParent(parent.te0);
-			te1.updateFromParent(parent.te1);
-			break;
-		case 0b100:
-			te2.updateFromParent(parent.te2);
-			break;
-		case 0b101:
-			te0.updateFromParent(parent.te0);
-			te2.updateFromParent(parent.te2);
-			break;
-		case 0b110:
-			te1.updateFromParent(parent.te1);
-			te2.updateFromParent(parent.te2);
-			break;
-		case 0b111:
-			te0.updateFromParent(parent.te0);
-			te1.updateFromParent(parent.te1);
-			te2.updateFromParent(parent.te2);
-			break;
-		}
+		te0.updateFromParent(parent.te0);
+		te1.updateFromParent(parent.te1);
+		te2.updateFromParent(parent.te2);
 	}
 
 	public final void moveRight() {
 		++tileX;
-
-		switch(completedFlags) {
-		default:
-		case 0:
-			break;
-		case 0b001:
-			te0.moveRight();
-			break;
-		case 0b010:
-			te1.moveRight();
-			break;
-		case 0b011:
-			te0.moveRight();
-			te1.moveRight();
-			break;
-		case 0b100:
-			te2.moveRight();
-			break;
-		case 0b101:
-			te0.moveRight();
-			te2.moveRight();
-			break;
-		case 0b110:
-			te1.moveRight();
-			te2.moveRight();
-			break;
-		case 0b111:
-			te0.moveRight();
-			te1.moveRight();
-			te2.moveRight();
-			break;
-		}
+		te0.moveRight();
+		te1.moveRight();
+		te2.moveRight();
 	}
 
 	public final void moveLeft() {
 		--tileX;
-
-		switch(completedFlags) {
-		default:
-		case 0:
-			break;
-		case 0b001:
-			te0.moveLeft();
-			break;
-		case 0b010:
-			te1.moveLeft();
-			break;
-		case 0b011:
-			te0.moveLeft();
-			te1.moveLeft();
-			break;
-		case 0b100:
-			te2.moveLeft();
-			break;
-		case 0b101:
-			te0.moveLeft();
-			te2.moveLeft();
-			break;
-		case 0b110:
-			te1.moveLeft();
-			te2.moveLeft();
-			break;
-		case 0b111:
-			te0.moveLeft();
-			te1.moveLeft();
-			te2.moveLeft();
-			break;
-		}
+		te0.moveLeft();
+		te1.moveLeft();
+		te2.moveLeft();
 	}
 
 	public final void moveUp() {
 		++tileY;
-
-		switch(completedFlags) {
-		default:
-		case 0:
-			break;
-		case 0b001:
-			te0.moveUp();
-			break;
-		case 0b010:
-			te1.moveUp();
-			break;
-		case 0b011:
-			te0.moveUp();
-			te1.moveUp();
-			break;
-		case 0b100:
-			te2.moveUp();
-			break;
-		case 0b101:
-			te0.moveUp();
-			te2.moveUp();
-			break;
-		case 0b110:
-			te1.moveUp();
-			te2.moveUp();
-			break;
-		case 0b111:
-			te0.moveUp();
-			te1.moveUp();
-			te2.moveUp();
-			break;
-		}
-	}
-
-	public boolean isDirty(int ordinalFlag) {
-		if  ((completedFlags & ordinalFlag) == 0) {
-			completedFlags |= ordinalFlag;
-			return true;
-		} else {
-			return false;
-		}
+		te0.moveUp();
+		te1.moveUp();
+		te2.moveUp();
 	}
 
 	public final long computeCoverage() {
@@ -255,77 +131,17 @@ abstract class AbstractTile {
 	public void push() {
 		save_tileX = tileX;
 		save_tileY = tileY;
-		save_completedFlags = completedFlags;
-
-		switch(completedFlags) {
-		default:
-		case 0:
-			break;
-		case 0b001:
-			te0.push();
-			break;
-		case 0b010:
-			te1.push();
-			break;
-		case 0b011:
-			te0.push();
-			te1.push();
-			break;
-		case 0b100:
-			te2.push();
-			break;
-		case 0b101:
-			te0.push();
-			te2.push();
-			break;
-		case 0b110:
-			te1.push();
-			te2.push();
-			break;
-		case 0b111:
-			te0.push();
-			te1.push();
-			te2.push();
-			break;
-		}
+		te0.push();
+		te1.push();
+		te2.push();
 	}
 
 	public void pop() {
 		tileX = save_tileX;
 		tileY = save_tileY;
-		completedFlags = save_completedFlags;
-
-		switch(completedFlags) {
-		default:
-		case 0:
-			break;
-		case 0b001:
-			te0.pop();
-			break;
-		case 0b010:
-			te1.pop();
-			break;
-		case 0b011:
-			te0.pop();
-			te1.pop();
-			break;
-		case 0b100:
-			te2.pop();
-			break;
-		case 0b101:
-			te0.pop();
-			te2.pop();
-			break;
-		case 0b110:
-			te1.pop();
-			te2.pop();
-			break;
-		case 0b111:
-			te0.pop();
-			te1.pop();
-			te2.pop();
-			break;
-		}
+		te0.pop();
+		te1.pop();
+		te2.pop();
 	}
 
 	public abstract int tileIndex();

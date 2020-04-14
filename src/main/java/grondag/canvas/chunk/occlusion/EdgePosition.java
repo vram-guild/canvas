@@ -5,63 +5,15 @@ package grondag.canvas.chunk.occlusion;
  * Pixels above top edge, for example, are outside the edge.
  */
 public enum EdgePosition {
-	TOP(false, false, true, false) {
-		@Override
-		public long shiftMask(long mask) {
-			return (mask >>> 8);
-		}
-	},
+	TOP(false, false, true, false),
+	BOTTOM(false, false, false, true),
+	LEFT(true, false, false, false),
+	RIGHT(false, true, false, false),
+	TOP_LEFT(true, false, true, false),
+	TOP_RIGHT(false, true, true, false),
+	BOTTOM_LEFT(true, false, false, true),
+	BOTTOM_RIGHT(false, true, false, true);
 
-	BOTTOM(false, false, false, true) {
-		@Override
-		public long shiftMask(long mask) {
-			return mask << 8;
-		}
-	},
-
-	LEFT(true, false, false, false) {
-		@Override
-		public long shiftMask(long mask) {
-			return (mask << 1) & 0xFEFEFEFEFEFEFEFEL;
-		}
-	},
-
-	RIGHT(false, true, false, false) {
-		@Override
-		public long shiftMask(long mask) {
-			return (mask >>> 1) & 0x7F7F7F7F7F7F7F7FL;
-		}
-	},
-
-	TOP_LEFT(true, false, true, false) {
-		@Override
-		public long shiftMask(long mask) {
-			return (((mask << 1) & 0xFEFEFEFEFEFEFEFEL) >>> 8);
-		}
-	},
-
-	TOP_RIGHT(false, true, true, false) {
-		@Override
-		public long shiftMask(long mask) {
-			return ((mask >>> 1) & 0x7F7F7F7F7F7F7F7FL) >>> 8;
-		}
-	},
-
-	BOTTOM_LEFT(true, false, false, true) {
-		@Override
-		public long shiftMask(long mask) {
-			return ((mask << 1) & 0xFEFEFEFEFEFEFEFEL) << 8;
-		}
-	},
-
-	BOTTOM_RIGHT(false, true, false, true) {
-		@Override
-		public long shiftMask(long mask) {
-			return ((mask >>> 1) & 0x7F7F7F7F7F7F7F7FL) << 8;
-		}
-	};
-
-	//	public abstract int blort();
 	public final boolean isRight;
 	public final boolean isLeft;
 	public final boolean isTop;
@@ -73,13 +25,4 @@ public enum EdgePosition {
 		this.isTop = isTop;
 		this.isBottom = isBottom;
 	}
-
-	/**
-	 * Shifts mask 1 pixel towards positive half plane
-	 * Use to construct full coverage masks
-	 * @param mask
-	 * @param edgeFlag
-	 * @return
-	 */
-	public abstract long shiftMask(long mask);
 }

@@ -47,6 +47,11 @@ public final class Triangle {
 		final int x2 = vertexData[v2 + PV_PX];
 		final int y2 = vertexData[v2 + PV_PY];
 
+		// rejects triangles too small to render or where all points are on a line
+		if(!isCcw(x0, y0, x1, y1, x2, y2)) {
+			return  BoundsResult.OUT_OF_BOUNDS_OR_TOO_SMALL;
+		}
+
 		int minY = y0;
 		int maxY = y0;
 
@@ -63,7 +68,7 @@ public final class Triangle {
 		}
 
 		if (maxY <= 0 || minY >= PRECISE_HEIGHT) {
-			return BoundsResult.OUT_OF_BOUNDS;
+			return BoundsResult.OUT_OF_BOUNDS_OR_TOO_SMALL;
 		}
 
 		int minX = x0;
@@ -82,7 +87,7 @@ public final class Triangle {
 		}
 
 		if (maxX <= 0 || minX >= PRECISE_WIDTH) {
-			return BoundsResult.OUT_OF_BOUNDS;
+			return BoundsResult.OUT_OF_BOUNDS_OR_TOO_SMALL;
 		}
 
 		if (minX < -GUARD_SIZE || minY < -GUARD_SIZE || maxX > GUARD_WIDTH || maxY > GUARD_HEIGHT) {
@@ -113,10 +118,10 @@ public final class Triangle {
 			}
 		}
 
-		minPixelX = (minX + PRECISE_PIXEL_CENTER - 1) >> PRECISION_BITS;
-		minPixelY = (minY + PRECISE_PIXEL_CENTER - 1) >> PRECISION_BITS;
-		maxPixelX = (maxX + PRECISE_PIXEL_CENTER - 1) >> PRECISION_BITS;
-		maxPixelY = (maxY + PRECISE_PIXEL_CENTER - 1) >> PRECISION_BITS;
+		minPixelX = ((minX + PRECISE_PIXEL_CENTER - 1) >> PRECISION_BITS);
+		minPixelY = ((minY + PRECISE_PIXEL_CENTER - 1) >> PRECISION_BITS);
+		maxPixelX = ((maxX + PRECISE_PIXEL_CENTER - 1) >> PRECISION_BITS);
+		maxPixelY = ((maxY + PRECISE_PIXEL_CENTER - 1) >> PRECISION_BITS);
 
 		assert minPixelX >= 0;
 		assert maxPixelX >= 0;
@@ -195,11 +200,17 @@ public final class Triangle {
 		e2.prepare(a2, b2, c2);
 	}
 
+	public static boolean isCcw(long x0, long y0, long x1, long y1, long x2, long y2) {
+		return (x1 - x0) * (y2 - y0) - (x2 - x0) * (y1 - y0) > 0L;
+	}
+
 	protected long orient2d(long x0, long y0, long x1, long y1) {
 		return (y1 - y0) * x0 - (x1 - x0) * y0;
 	}
 
 	public static final int SCALE_POINT = 0;
-	public static final int SCALE_LOW = 1;
-	public static final int SCALE_MID = 2;
+	public static final int SCALE_VLINE = 1;
+	public static final int SCALE_HLINE = 2;
+	public static final int SCALE_LOW = 3;
+	public static final int SCALE_MID = 4;
 }
