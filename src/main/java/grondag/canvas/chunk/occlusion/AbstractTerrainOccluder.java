@@ -18,11 +18,11 @@ import net.minecraft.util.math.Vec3d;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
 import grondag.canvas.mixinterface.Matrix4fExt;
+import grondag.canvas.render.CanvasWorldRenderer;
 
 public abstract class AbstractTerrainOccluder {
 	protected final long[] lowBins = new long[LOW_BIN_COUNT];
 	protected final long[] midBins = new long[MID_BIN_COUNT];
-	protected final long[] topBins = new long[TOP_BIN_COUNT];
 
 	protected Matrix4f projectionMatrix;
 	protected Matrix4f modelMatrix;
@@ -83,9 +83,9 @@ public abstract class AbstractTerrainOccluder {
 	private final boolean testNorth() { return testQuad(V100, V000, V010, V110); }
 
 	public final boolean isChunkVisible() {
-		//		CanvasWorldRenderer.innerTimer.start();
+		CanvasWorldRenderer.innerTimer.start();
 		final boolean result = isChunkVisibleInner();
-		//		CanvasWorldRenderer.innerTimer.stop();
+		CanvasWorldRenderer.innerTimer.stop();
 
 		//		if (CanvasWorldRenderer.innerTimer.last() > 200000) {
 		//			isChunkVisibleInner();
@@ -496,7 +496,6 @@ public abstract class AbstractTerrainOccluder {
 	public final void clearScene() {
 		System.arraycopy(EMPTY_BITS, 0, lowBins, 0, LOW_BIN_COUNT);
 		System.arraycopy(EMPTY_BITS, 0, midBins, 0, MID_BIN_COUNT);
-		System.arraycopy(EMPTY_BITS, 0, topBins, 0, TOP_BIN_COUNT);
 	}
 
 	public final void prepareChunk(BlockPos origin, int occlusionRange) {
@@ -683,18 +682,15 @@ public abstract class AbstractTerrainOccluder {
 
 	protected static final int LOW_AXIS_SHIFT = BIN_AXIS_SHIFT;
 	protected static final int MID_AXIS_SHIFT = BIN_AXIS_SHIFT * 2;
-	protected static final int TOP_AXIS_SHIFT = BIN_AXIS_SHIFT * 3;
 
 	protected static final int MID_INDEX_SHIFT = LOW_AXIS_SHIFT * 2;
 	protected static final int TOP_INDEX_SHIFT = MID_INDEX_SHIFT * 2;
 
-	protected static final int TOP_WIDTH = 2;
-	protected static final int TOP_Y_SHIFT = Integer.bitCount(TOP_WIDTH - 1);
-	protected static final int TOP_HEIGHT = 1;
-
-	protected static final int MID_WIDTH = TOP_WIDTH  * 8;
+	protected static final int MID_WIDTH = 16;
 	protected static final int MID_Y_SHIFT = Integer.bitCount(MID_WIDTH - 1);
-	protected static final int MIDDLE_HEIGHT = TOP_HEIGHT  * 8;
+	protected static final int MIDDLE_HEIGHT = 8;
+
+	protected static final int TOP_Y_SHIFT = Integer.bitCount(MID_WIDTH / 8 - 1);
 
 	protected static final int PRECISION_BITS = 4;
 	protected static final int PRECISE_FRACTION_MASK = (1 << PRECISION_BITS) - 1;
@@ -728,10 +724,6 @@ public abstract class AbstractTerrainOccluder {
 
 	protected static final int LOW_BIN_COUNT = LOW_WIDTH * LOW_HEIGHT;
 	protected static final int MID_BIN_COUNT = MID_WIDTH * LOW_HEIGHT;
-	protected static final int TOP_BIN_COUNT = TOP_WIDTH * TOP_HEIGHT;
-
-	protected static final int TOP_BIN_PIXEL_DIAMETER = PIXEL_WIDTH / TOP_WIDTH;
-	protected static final int TOP_BIN_PIXEL_INDEX_MASK = TOP_BIN_PIXEL_DIAMETER - 1;
 
 	protected static final int MID_BIN_PIXEL_DIAMETER = PIXEL_WIDTH / MID_WIDTH;
 	protected static final int MID_BIN_PIXEL_INDEX_MASK = MID_BIN_PIXEL_DIAMETER - 1;

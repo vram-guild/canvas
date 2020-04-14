@@ -9,14 +9,10 @@ import static grondag.canvas.chunk.occlusion.Triangle.SCALE_POINT;
 import com.google.common.base.Strings;
 import org.apache.commons.lang3.StringUtils;
 
-import grondag.canvas.render.CanvasWorldRenderer;
-
 // Some elements are adapted from content found at
 // https://fgiesen.wordpress.com/2013/02/17/optimizing-sw-occlusion-culling-index/
 // by Fabian “ryg” Giesen. That content is in the public domain.
 
-// PERF: try propagating edge function values up/down heirarchy
-// PERF: remove partial coverage mask if can't make it pay
 // PERF: temporal optimizations...
 //		Limit rebuilds to n/second or when scene is reset or has big rotation
 //		Track breaking changes to region occlusion data
@@ -43,42 +39,6 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		}
 	};
 
-	private final AbstractTile topTile = new AbstractTile(triangle, TOP_BIN_PIXEL_DIAMETER) {
-		@Override
-		public int tileIndex() {
-			return topIndex(tileX,  tileY);
-		}
-	};
-
-
-	public void drawTriOld(int v0, int v1, int v2) {
-		final Triangle tri = triangle;
-
-		final int boundsResult  = triangle.prepareBounds(vertexData, v0, v1, v2);
-
-		if (boundsResult == BoundsResult.OUT_OF_BOUNDS_OR_TOO_SMALL) {
-			return;
-		}
-
-		if (boundsResult == BoundsResult.NEEDS_CLIP) {
-			drawClippedLowX(v0, v1, v2);
-			return;
-		}
-
-		tri.prepareScan(vertexData, v0, v1, v2);
-		topTile.prepare();
-		midTile.prepare();
-		lowTile.prepare();
-
-		if (tri.minPixelX >> TOP_AXIS_SHIFT == 0) {
-			drawTriTop(0, 0);
-		}
-
-		if (tri.maxPixelX >> TOP_AXIS_SHIFT == 1) {
-			drawTriTop(1, 0);
-		}
-	}
-
 	@Override
 	public void drawTri(int v0, int v1, int v2) {
 		final Triangle tri = triangle;
@@ -93,439 +53,32 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 			return;
 		}
 
-		//		switch(tri.scale) {
-		//
-		//		case SCALE_LOW:{
-		//			//CanvasWorldRenderer.innerTimer.start();
-		//			tri.prepareScan(vertexData, v0, v1, v2);
-		//			drawTriLow();
-		//			//CanvasWorldRenderer.innerTimer.stop();
-		//			return;
-		//		}
-		//
-		//		case SCALE_MID: {
-		//CanvasWorldRenderer.innerTimer.start();
-		tri.prepareScan(vertexData, v0, v1, v2);
-		drawTriMid();
-		//CanvasWorldRenderer.innerTimer.stop();
-		//
-		//			return;
-		//		}
-		//
-		//		// skip drawing single points - can't get accurate coverage
-		//		case SCALE_POINT:
-		//		default:
-		//			assert false : "Bad triangle scale";
-		//		return;
-		//		}
-	}
+		switch(tri.scale) {
 
-	private void drawTriTop(final int topX, final int topY) {
-		final int index = topIndex(topX, topY);
-		long word = topBins[index];
-
-		topTile.moveTo(topX, topY);
-
-		long coverage = topTile.computeCoverage() & ~word;
-
-		if (coverage == 0L) {
+		case SCALE_LOW:{
+			//CanvasWorldRenderer.innerTimer.start();
+			tri.prepareScan(vertexData, v0, v1, v2);
+			drawTriLow();
+			//CanvasWorldRenderer.innerTimer.stop();
 			return;
 		}
 
-		final int baseX = topX << BIN_AXIS_SHIFT;
-		int baseY = topY << BIN_AXIS_SHIFT;
+		case SCALE_MID: {
+			//CanvasWorldRenderer.innerTimer.start();
+			tri.prepareScan(vertexData, v0, v1, v2);
+			drawTriMid();
+			//CanvasWorldRenderer.innerTimer.stop();
 
-		for (int y = 0; y < 8; y++) {
-			final int bits = (int) coverage & 0xFF;
-			int setBits = 0;
-
-			switch (bits & 0xF) {
-			case 0b0000:
-				break;
-
-			case 0b0001:
-				setBits |= drawTriMid(baseX + 0, baseY);
-				break;
-
-			case 0b0010:
-				setBits |= drawTriMid(baseX + 1, baseY) << 1;
-				break;
-
-			case 0b0011:
-				setBits |= drawTriMid(baseX + 0, baseY);
-				setBits |= drawTriMid(baseX + 1, baseY) << 1;
-				break;
-
-			case 0b0100:
-				setBits |= drawTriMid(baseX + 2, baseY) << 2;
-				break;
-
-			case 0b0101:
-				setBits |= drawTriMid(baseX + 0, baseY);
-				setBits |= drawTriMid(baseX + 2, baseY) << 2;
-				break;
-
-			case 0b0110:
-				setBits |= drawTriMid(baseX + 1, baseY) << 1;
-				setBits |= drawTriMid(baseX + 2, baseY) << 2;
-				break;
-
-			case 0b0111:
-				setBits |= drawTriMid(baseX + 0, baseY);
-				setBits |= drawTriMid(baseX + 1, baseY) << 1;
-				setBits |= drawTriMid(baseX + 2, baseY) << 2;
-				break;
-
-			case 0b1000:
-				setBits |= drawTriMid(baseX + 3, baseY) << 3;
-				break;
-
-			case 0b1001:
-				setBits |= drawTriMid(baseX + 0, baseY);
-				setBits |= drawTriMid(baseX + 3, baseY) << 3;
-				break;
-
-			case 0b1010:
-				setBits |= drawTriMid(baseX + 1, baseY) << 1;
-				setBits |= drawTriMid(baseX + 3, baseY) << 3;
-				break;
-
-			case 0b1011:
-				setBits |= drawTriMid(baseX + 0, baseY);
-				setBits |= drawTriMid(baseX + 1, baseY) << 1;
-				setBits |= drawTriMid(baseX + 3, baseY) << 3;
-				break;
-
-			case 0b1100:
-				setBits |= drawTriMid(baseX + 2, baseY) << 2;
-				setBits |= drawTriMid(baseX + 3, baseY) << 3;
-				break;
-
-			case 0b1101:
-				setBits |= drawTriMid(baseX + 0, baseY);
-				setBits |= drawTriMid(baseX + 2, baseY) << 2;
-				setBits |= drawTriMid(baseX + 3, baseY) << 3;
-				break;
-
-			case 0b1110:
-				setBits |= drawTriMid(baseX + 1, baseY) << 1;
-				setBits |= drawTriMid(baseX + 2, baseY) << 2;
-				setBits |= drawTriMid(baseX + 3, baseY) << 3;
-				break;
-
-			case 0b1111:
-				setBits |= drawTriMid(baseX + 0, baseY);
-				setBits |= drawTriMid(baseX + 1, baseY) << 1;
-				setBits |= drawTriMid(baseX + 2, baseY) << 2;
-				setBits |= drawTriMid(baseX + 3, baseY) << 3;
-				break;
-			}
-
-			switch (bits >> 4) {
-			case 0b0000:
-				break;
-
-			case 0b0001:
-				setBits |= drawTriMid(baseX + 4, baseY) << 4;
-				break;
-
-			case 0b0010:
-				setBits |= drawTriMid(baseX + 5, baseY) << 5;
-				break;
-
-			case 0b0011:
-				setBits |= drawTriMid(baseX + 4, baseY) << 4;
-				setBits |= drawTriMid(baseX + 5, baseY) << 5;
-				break;
-
-			case 0b0100:
-				setBits |= drawTriMid(baseX + 6, baseY) << 6;
-				break;
-
-			case 0b0101:
-				setBits |= drawTriMid(baseX + 4, baseY) << 4;
-				setBits |= drawTriMid(baseX + 6, baseY) << 6;
-				break;
-
-			case 0b0110:
-				setBits |= drawTriMid(baseX + 5, baseY) << 5;
-				setBits |= drawTriMid(baseX + 6, baseY) << 6;
-				break;
-
-			case 0b0111:
-				setBits |= drawTriMid(baseX + 4, baseY) << 4;
-				setBits |= drawTriMid(baseX + 5, baseY) << 5;
-				setBits |= drawTriMid(baseX + 6, baseY) << 6;
-				break;
-
-			case 0b1000:
-				setBits |= drawTriMid(baseX + 7, baseY) << 7;
-				break;
-
-			case 0b1001:
-				setBits |= drawTriMid(baseX + 4, baseY) << 4;
-				setBits |= drawTriMid(baseX + 7, baseY) << 7;
-				break;
-
-			case 0b1010:
-				setBits |= drawTriMid(baseX + 5, baseY) << 5;
-				setBits |= drawTriMid(baseX + 7, baseY) << 7;
-				break;
-
-			case 0b1011:
-				setBits |= drawTriMid(baseX + 4, baseY) << 4;
-				setBits |= drawTriMid(baseX + 5, baseY) << 5;
-				setBits |= drawTriMid(baseX + 7, baseY) << 7;
-				break;
-
-			case 0b1100:
-				setBits |= drawTriMid(baseX + 6, baseY) << 6;
-				setBits |= drawTriMid(baseX + 7, baseY) << 7;
-				break;
-
-			case 0b1101:
-				setBits |= drawTriMid(baseX + 4, baseY) << 4;
-				setBits |= drawTriMid(baseX + 6, baseY) << 6;
-				setBits |= drawTriMid(baseX + 7, baseY) << 7;
-				break;
-
-			case 0b1110:
-				setBits |= drawTriMid(baseX + 5, baseY) << 5;
-				setBits |= drawTriMid(baseX + 6, baseY) << 6;
-				setBits |= drawTriMid(baseX + 7, baseY) << 7;
-				break;
-
-			case 0b1111:
-				setBits |= drawTriMid(baseX + 4, baseY) << 4;
-				setBits |= drawTriMid(baseX + 5, baseY) << 5;
-				setBits |= drawTriMid(baseX + 6, baseY) << 6;
-				setBits |= drawTriMid(baseX + 7, baseY) << 7;
-				break;
-			}
-
-			if (setBits != 0) {
-				word |= ((setBits & 0xFFL) << (y << 3));
-			}
-
-			++baseY;
-			coverage >>= 8;
+			return;
 		}
 
-		topBins[index] = word;
+		// skip drawing single points - can't get accurate coverage
+		case SCALE_POINT:
+		default:
+			assert false : "Bad triangle scale";
+		return;
+		}
 	}
-
-	/**
-	 * Returns true when bin fully occluded
-	 */
-	private int drawTriMid(final int midX, final int midY) {
-		final int index = midIndex(midX, midY);
-		long word = midBins[index];
-
-		midTile.moveTo(midX, midY);
-		long coverage = midTile.computeCoverage() & ~word;
-
-		if (coverage == 0) {
-			return COVERAGE_NONE_OR_SOME;
-		}
-
-		final int baseX = midX << BIN_AXIS_SHIFT;
-		int baseY = midY << BIN_AXIS_SHIFT;
-
-		for (int y = 0; y < 8; y++) {
-			final int bits = (int) coverage & 0xFF;
-			int setBits = 0;
-
-			switch (bits & 0xF) {
-			case 0b0000:
-				break;
-
-			case 0b0001:
-				setBits |= drawTriLow(baseX + 0, baseY);
-				break;
-
-			case 0b0010:
-				setBits |= drawTriLow(baseX + 1, baseY) << 1;
-				break;
-
-			case 0b0011:
-				setBits |= drawTriLow(baseX + 0, baseY);
-				setBits |= drawTriLow(baseX + 1, baseY) << 1;
-				break;
-
-			case 0b0100:
-				setBits |= drawTriLow(baseX + 2, baseY) << 2;
-				break;
-
-			case 0b0101:
-				setBits |= drawTriLow(baseX + 0, baseY);
-				setBits |= drawTriLow(baseX + 2, baseY) << 2;
-				break;
-
-			case 0b0110:
-				setBits |= drawTriLow(baseX + 1, baseY) << 1;
-				setBits |= drawTriLow(baseX + 2, baseY) << 2;
-				break;
-
-			case 0b0111:
-				setBits |= drawTriLow(baseX + 0, baseY);
-				setBits |= drawTriLow(baseX + 1, baseY) << 1;
-				setBits |= drawTriLow(baseX + 2, baseY) << 2;
-				break;
-
-			case 0b1000:
-				setBits |= drawTriLow(baseX + 3, baseY) << 3;
-				break;
-
-			case 0b1001:
-				setBits |= drawTriLow(baseX + 0, baseY);
-				setBits |= drawTriLow(baseX + 3, baseY) << 3;
-				break;
-
-			case 0b1010:
-				setBits |= drawTriLow(baseX + 1, baseY) << 1;
-				setBits |= drawTriLow(baseX + 3, baseY) << 3;
-				break;
-
-			case 0b1011:
-				setBits |= drawTriLow(baseX + 0, baseY);
-				setBits |= drawTriLow(baseX + 1, baseY) << 1;
-				setBits |= drawTriLow(baseX + 3, baseY) << 3;
-				break;
-
-			case 0b1100:
-				setBits |= drawTriLow(baseX + 2, baseY) << 2;
-				setBits |= drawTriLow(baseX + 3, baseY) << 3;
-				break;
-
-			case 0b1101:
-				setBits |= drawTriLow(baseX + 0, baseY);
-				setBits |= drawTriLow(baseX + 2, baseY) << 2;
-				setBits |= drawTriLow(baseX + 3, baseY) << 3;
-				break;
-
-			case 0b1110:
-				setBits |= drawTriLow(baseX + 1, baseY) << 1;
-				setBits |= drawTriLow(baseX + 2, baseY) << 2;
-				setBits |= drawTriLow(baseX + 3, baseY) << 3;
-				break;
-
-			case 0b1111:
-				setBits |= drawTriLow(baseX + 0, baseY);
-				setBits |= drawTriLow(baseX + 1, baseY) << 1;
-				setBits |= drawTriLow(baseX + 2, baseY) << 2;
-				setBits |= drawTriLow(baseX + 3, baseY) << 3;
-				break;
-			}
-
-			switch (bits >> 4) {
-			case 0b0000:
-				break;
-
-			case 0b0001:
-				setBits |= drawTriLow(baseX + 4, baseY) << 4;
-				break;
-
-			case 0b0010:
-				setBits |= drawTriLow(baseX + 5, baseY) << 5;
-				break;
-
-			case 0b0011:
-				setBits |= drawTriLow(baseX + 4, baseY) << 4;
-				setBits |= drawTriLow(baseX + 5, baseY) << 5;
-				break;
-
-			case 0b0100:
-				setBits |= drawTriLow(baseX + 6, baseY) << 6;
-				break;
-
-			case 0b0101:
-				setBits |= drawTriLow(baseX + 4, baseY) << 4;
-				setBits |= drawTriLow(baseX + 6, baseY) << 6;
-				break;
-
-			case 0b0110:
-				setBits |= drawTriLow(baseX + 5, baseY) << 5;
-				setBits |= drawTriLow(baseX + 6, baseY) << 6;
-				break;
-
-			case 0b0111:
-				setBits |= drawTriLow(baseX + 4, baseY) << 4;
-				setBits |= drawTriLow(baseX + 5, baseY) << 5;
-				setBits |= drawTriLow(baseX + 6, baseY) << 6;
-				break;
-
-			case 0b1000:
-				setBits |= drawTriLow(baseX + 7, baseY) << 7;
-				break;
-
-			case 0b1001:
-				setBits |= drawTriLow(baseX + 4, baseY) << 4;
-				setBits |= drawTriLow(baseX + 7, baseY) << 7;
-				break;
-
-			case 0b1010:
-				setBits |= drawTriLow(baseX + 5, baseY) << 5;
-				setBits |= drawTriLow(baseX + 7, baseY) << 7;
-				break;
-
-			case 0b1011:
-				setBits |= drawTriLow(baseX + 4, baseY) << 4;
-				setBits |= drawTriLow(baseX + 5, baseY) << 5;
-				setBits |= drawTriLow(baseX + 7, baseY) << 7;
-				break;
-
-			case 0b1100:
-				setBits |= drawTriLow(baseX + 6, baseY) << 6;
-				setBits |= drawTriLow(baseX + 7, baseY) << 7;
-				break;
-
-			case 0b1101:
-				setBits |= drawTriLow(baseX + 4, baseY) << 4;
-				setBits |= drawTriLow(baseX + 6, baseY) << 6;
-				setBits |= drawTriLow(baseX + 7, baseY) << 7;
-				break;
-
-			case 0b1110:
-				setBits |= drawTriLow(baseX + 5, baseY) << 5;
-				setBits |= drawTriLow(baseX + 6, baseY) << 6;
-				setBits |= drawTriLow(baseX + 7, baseY) << 7;
-				break;
-
-			case 0b1111:
-				setBits |= drawTriLow(baseX + 4, baseY) << 4;
-				setBits |= drawTriLow(baseX + 5, baseY) << 5;
-				setBits |= drawTriLow(baseX + 6, baseY) << 6;
-				setBits |= drawTriLow(baseX + 7, baseY) << 7;
-				break;
-			}
-
-			if (setBits != 0) {
-				word |= ((setBits & 0xFFL) << (y << 3));
-			}
-
-			++baseY;
-			coverage >>= 8;
-		}
-
-		midBins[index] = word;
-
-		return word == -1L ? COVERAGE_FULL : COVERAGE_NONE_OR_SOME;
-	}
-
-	private int drawTriLow(int lowX, int lowY) {
-		lowTile.moveTo(lowX, lowY);
-		final long coverage = lowTile.computeCoverage();
-
-		if (coverage == 0)  {
-			return COVERAGE_NONE_OR_SOME;
-		}
-
-		final int index = lowIndex(lowX, lowY);
-		final long word = lowBins[index] | coverage;
-		lowBins[index] = word;
-		return word == -1L ? COVERAGE_FULL : COVERAGE_NONE_OR_SOME;
-	}
-
 
 	@Override
 	protected boolean testTri(int v0, int v1, int v2) {
@@ -560,10 +113,10 @@ public class TerrainOccluder extends ClippingTerrainOccluder  {
 		}
 
 		case SCALE_MID: {
-			CanvasWorldRenderer.innerTimer.start();
+			//CanvasWorldRenderer.innerTimer.start();
 			tri.prepareScan(vertexData, v0, v1, v2);
 			final boolean result = testTriMid();
-			CanvasWorldRenderer.innerTimer.stop();
+			//CanvasWorldRenderer.innerTimer.stop();
 
 			return result;
 		}
