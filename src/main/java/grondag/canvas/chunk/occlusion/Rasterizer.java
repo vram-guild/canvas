@@ -1,22 +1,5 @@
 package grondag.canvas.chunk.occlusion;
 
-import static grondag.canvas.chunk.occlusion.Tile.computeLowTileCoverage;
-import static grondag.canvas.chunk.occlusion.Tile.computeMidTileCoverage;
-import static grondag.canvas.chunk.occlusion.Tile.moveLowTileLeft;
-import static grondag.canvas.chunk.occlusion.Tile.moveLowTileRight;
-import static grondag.canvas.chunk.occlusion.Tile.moveLowTileTo;
-import static grondag.canvas.chunk.occlusion.Tile.moveLowTileToParentOrigin;
-import static grondag.canvas.chunk.occlusion.Tile.moveLowTileUp;
-import static grondag.canvas.chunk.occlusion.Tile.moveMidTileLeft;
-import static grondag.canvas.chunk.occlusion.Tile.moveMidTileRight;
-import static grondag.canvas.chunk.occlusion.Tile.moveMidTileTo;
-import static grondag.canvas.chunk.occlusion.Tile.moveMidTileUp;
-import static grondag.canvas.chunk.occlusion.Tile.popLowTile;
-import static grondag.canvas.chunk.occlusion.Tile.prepareHiTile;
-import static grondag.canvas.chunk.occlusion.Tile.prepareLowTile;
-import static grondag.canvas.chunk.occlusion.Tile.pushLowTile;
-import static grondag.canvas.chunk.occlusion.Triangle.prepareBounds;
-import static grondag.canvas.chunk.occlusion.Triangle.prepareScan;
 import static grondag.canvas.chunk.occlusion.Clipper.drawClippedLowX;
 import static grondag.canvas.chunk.occlusion.Clipper.testClippedLowX;
 import static grondag.canvas.chunk.occlusion.Constants.BOUNDS_NEEDS_CLIP;
@@ -44,6 +27,23 @@ import static grondag.canvas.chunk.occlusion.Data.scale;
 import static grondag.canvas.chunk.occlusion.Indexer.lowIndex;
 import static grondag.canvas.chunk.occlusion.Indexer.midIndex;
 import static grondag.canvas.chunk.occlusion.Indexer.testPixel;
+import static grondag.canvas.chunk.occlusion.Tile.computeLowTileCoverage;
+import static grondag.canvas.chunk.occlusion.Tile.computeMidTileCoverage;
+import static grondag.canvas.chunk.occlusion.Tile.moveLowTileLeft;
+import static grondag.canvas.chunk.occlusion.Tile.moveLowTileRight;
+import static grondag.canvas.chunk.occlusion.Tile.moveLowTileTo;
+import static grondag.canvas.chunk.occlusion.Tile.moveLowTileToParentOrigin;
+import static grondag.canvas.chunk.occlusion.Tile.moveLowTileUp;
+import static grondag.canvas.chunk.occlusion.Tile.moveMidTileLeft;
+import static grondag.canvas.chunk.occlusion.Tile.moveMidTileRight;
+import static grondag.canvas.chunk.occlusion.Tile.moveMidTileTo;
+import static grondag.canvas.chunk.occlusion.Tile.moveMidTileUp;
+import static grondag.canvas.chunk.occlusion.Tile.popLowTile;
+import static grondag.canvas.chunk.occlusion.Tile.prepareHiTile;
+import static grondag.canvas.chunk.occlusion.Tile.prepareLowTile;
+import static grondag.canvas.chunk.occlusion.Tile.pushLowTile;
+import static grondag.canvas.chunk.occlusion.Triangle.prepareBounds;
+import static grondag.canvas.chunk.occlusion.Triangle.prepareScan;
 
 import com.google.common.base.Strings;
 import org.apache.commons.lang3.StringUtils;
@@ -101,8 +101,7 @@ abstract class Rasterizer  {
 		// skip drawing single points - can't get accurate coverage
 		case SCALE_POINT:
 		default:
-			assert false : "Bad triangle scale";
-		return;
+			return;
 		}
 	}
 

@@ -84,15 +84,15 @@ abstract class Tile {
 	static void prepareLowTile() {
 		lowSpanA0 = a0 * LOW_TILE_SPAN;
 		lowSpanB0 = b0 * LOW_TILE_SPAN;
-		lowExtent0 = -Math.abs(lowSpanA0) - Math.abs(lowSpanB0);
+		lowExtent0 = Math.abs(lowSpanA0) + Math.abs(lowSpanB0);
 
 		lowSpanA1 = a1 * LOW_TILE_SPAN;
 		lowSpanB1 = b1 * LOW_TILE_SPAN;
-		lowExtent1 = -Math.abs(lowSpanA1) - Math.abs(lowSpanB1);
+		lowExtent1 = Math.abs(lowSpanA1) + Math.abs(lowSpanB1);
 
 		lowSpanA2 = a2 * LOW_TILE_SPAN;
 		lowSpanB2 = b2 * LOW_TILE_SPAN;
-		lowExtent2 = -Math.abs(lowSpanA2) - Math.abs(lowSpanB2);
+		lowExtent2 = Math.abs(lowSpanA2) + Math.abs(lowSpanB2);
 	}
 
 	/**
@@ -123,19 +123,19 @@ abstract class Tile {
 		hiSpanB0 = b0 * MID_TILE_SPAN;
 		hiStepA0 = a0 * LOW_TILE_PIXEL_DIAMETER;
 		hiStepB0 = b0 * LOW_TILE_PIXEL_DIAMETER;
-		hiExtent0 = -Math.abs(hiSpanA0) - Math.abs(hiSpanB0);
+		hiExtent0 = Math.abs(hiSpanA0) + Math.abs(hiSpanB0);
 
 		hiSpanA1 = a1 * MID_TILE_SPAN;
 		hiSpanB1 = b1 * MID_TILE_SPAN;
 		hiStepA1 = a1 * LOW_TILE_PIXEL_DIAMETER;
 		hiStepB1 = b1 * LOW_TILE_PIXEL_DIAMETER;
-		hiExtent1 = -Math.abs(hiSpanA1) - Math.abs(hiSpanB1);
+		hiExtent1 = Math.abs(hiSpanA1) + Math.abs(hiSpanB1);
 
 		hiSpanA2 = a2 * MID_TILE_SPAN;
 		hiSpanB2 = b2 * MID_TILE_SPAN;
 		hiStepA2 = a2 * LOW_TILE_PIXEL_DIAMETER;
 		hiStepB2 = b2 * LOW_TILE_PIXEL_DIAMETER;
-		hiExtent2 = -Math.abs(hiSpanA2) - Math.abs(hiSpanB2);
+		hiExtent2 = Math.abs(hiSpanA2) + Math.abs(hiSpanB2);
 	}
 
 	static void moveLowTileTo(int tileX, int tileY) {
@@ -452,23 +452,20 @@ abstract class Tile {
 
 	private static int chooseEdgeValue(EdgePosition pos, int x0y0, int spanA, int spanB) {
 		switch  (pos) {
-		case TOP:
-		case TOP_LEFT:
-			//			return x0y1;
-			return x0y0 + spanB;
-
-		case LEFT:
-		case BOTTOM_LEFT:
-		case BOTTOM:
+		case TOP: // uses x0y0
+		case RIGHT: // uses x0y0
+		case TOP_RIGHT: // uses  x0y0
 			return x0y0;
 
-		case TOP_RIGHT:
-			//			return x1y1;
+		case BOTTOM: // uses x0y1
+		case BOTTOM_RIGHT: // uses x0y1
+			return x0y0 + spanB;
+
+		case BOTTOM_LEFT: // uses x1y1
 			return x0y0 + spanA + spanB;
 
-		case RIGHT:
-		case BOTTOM_RIGHT:
-			//			return x1y0;
+		case LEFT: // uses x1y0
+		case TOP_LEFT: // uses x1y0
 			return x0y0 + spanA;
 
 		default:
@@ -479,13 +476,11 @@ abstract class Tile {
 
 	private static int classify(EdgePosition pos, int x0y0, int spanA, int spanB, int extent)  {
 		final int w = chooseEdgeValue(pos, x0y0, spanA, spanB);
-		//		cornerValue = w;
-		//NB extent is always negative
 
-		if (w < extent) {
+		if (w < 0) {
 			// fully outside edge
 			return OUTSIDE;
-		} else if (w >= 0) {
+		} else if (w >= extent) {
 			// fully inside or touching edge
 			return INSIDE;
 		} else {
