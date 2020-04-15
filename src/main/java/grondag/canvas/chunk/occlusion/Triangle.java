@@ -1,16 +1,16 @@
 package grondag.canvas.chunk.occlusion;
 
-import static grondag.canvas.chunk.occlusion.EdgePosition.BOTTOM;
-import static grondag.canvas.chunk.occlusion.EdgePosition.BOTTOM_LEFT;
-import static grondag.canvas.chunk.occlusion.EdgePosition.BOTTOM_RIGHT;
-import static grondag.canvas.chunk.occlusion.EdgePosition.LEFT;
-import static grondag.canvas.chunk.occlusion.EdgePosition.RIGHT;
-import static grondag.canvas.chunk.occlusion.EdgePosition.TOP;
-import static grondag.canvas.chunk.occlusion.EdgePosition.TOP_LEFT;
-import static grondag.canvas.chunk.occlusion.EdgePosition.TOP_RIGHT;
 import static grondag.canvas.chunk.occlusion.Constants.BOUNDS_IN;
 import static grondag.canvas.chunk.occlusion.Constants.BOUNDS_NEEDS_CLIP;
 import static grondag.canvas.chunk.occlusion.Constants.BOUNDS_OUTSIDE_OR_TOO_SMALL;
+import static grondag.canvas.chunk.occlusion.Constants.EDGE_BOTTOM;
+import static grondag.canvas.chunk.occlusion.Constants.EDGE_BOTTOM_LEFT;
+import static grondag.canvas.chunk.occlusion.Constants.EDGE_BOTTOM_RIGHT;
+import static grondag.canvas.chunk.occlusion.Constants.EDGE_LEFT;
+import static grondag.canvas.chunk.occlusion.Constants.EDGE_RIGHT;
+import static grondag.canvas.chunk.occlusion.Constants.EDGE_TOP;
+import static grondag.canvas.chunk.occlusion.Constants.EDGE_TOP_LEFT;
+import static grondag.canvas.chunk.occlusion.Constants.EDGE_TOP_RIGHT;
 import static grondag.canvas.chunk.occlusion.Constants.GUARD_HEIGHT;
 import static grondag.canvas.chunk.occlusion.Constants.GUARD_SIZE;
 import static grondag.canvas.chunk.occlusion.Constants.GUARD_WIDTH;
@@ -215,17 +215,17 @@ public final class Triangle {
 		return (y1 - y0) * x0 - (x1 - x0) * y0;
 	}
 
-	static EdgePosition edgePosition(int a, int b) {
+	static int edgePosition(int a, int b) {
 		if (a == 0) {
-			return b > 0 ? BOTTOM : TOP;
+			return b > 0 ? EDGE_BOTTOM : EDGE_TOP;
 		} else if (b == 0) {
-			return a > 0 ? LEFT : RIGHT;
+			return a > 0 ? EDGE_LEFT : EDGE_RIGHT;
 		}
 
 		if (a > 0) {
-			return b > 0 ? BOTTOM_LEFT : TOP_LEFT;
+			return b > 0 ? EDGE_BOTTOM_LEFT : EDGE_TOP_LEFT;
 		}  else { // a < 0
-			return b > 0 ? BOTTOM_RIGHT : TOP_RIGHT;
+			return b > 0 ? EDGE_BOTTOM_RIGHT : EDGE_TOP_RIGHT;
 		}
 	}
 }

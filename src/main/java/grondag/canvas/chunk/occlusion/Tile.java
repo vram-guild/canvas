@@ -1,5 +1,17 @@
 package grondag.canvas.chunk.occlusion;
 
+import static grondag.canvas.chunk.occlusion.Constants.EDGE_BOTTOM;
+import static grondag.canvas.chunk.occlusion.Constants.EDGE_BOTTOM_LEFT;
+import static grondag.canvas.chunk.occlusion.Constants.EDGE_BOTTOM_RIGHT;
+import static grondag.canvas.chunk.occlusion.Constants.EDGE_FLAGS_BOTTOM;
+import static grondag.canvas.chunk.occlusion.Constants.EDGE_FLAGS_LEFT;
+import static grondag.canvas.chunk.occlusion.Constants.EDGE_FLAGS_RIGHT;
+import static grondag.canvas.chunk.occlusion.Constants.EDGE_FLAGS_TOP;
+import static grondag.canvas.chunk.occlusion.Constants.EDGE_LEFT;
+import static grondag.canvas.chunk.occlusion.Constants.EDGE_RIGHT;
+import static grondag.canvas.chunk.occlusion.Constants.EDGE_TOP;
+import static grondag.canvas.chunk.occlusion.Constants.EDGE_TOP_LEFT;
+import static grondag.canvas.chunk.occlusion.Constants.EDGE_TOP_RIGHT;
 import static grondag.canvas.chunk.occlusion.Constants.INSIDE;
 import static grondag.canvas.chunk.occlusion.Constants.INTERSECTING;
 import static grondag.canvas.chunk.occlusion.Constants.LOW_AXIS_SHIFT;
@@ -143,9 +155,9 @@ abstract class Tile {
 		lowTileY = tileY;
 		final int x = tileX << LOW_AXIS_SHIFT;
 		final int y = tileY << LOW_AXIS_SHIFT;
-		x0y0Low0 =  c0 + a0 * x + b0 * y;
-		x0y0Low1 =  c1 + a1 * x + b1 * y;
-		x0y0Low2 =  c2 + a2 * x + b2 * y;
+		x0y0Low0 = c0 + a0 * x + b0 * y;
+		x0y0Low1 = c1 + a1 * x + b1 * y;
+		x0y0Low2 = c2 + a2 * x + b2 * y;
 		positionLow0 = classify(position0, x0y0Low0, lowSpanA0, lowSpanB0, lowExtent0);
 		positionLow1 = classify(position1, x0y0Low1, lowSpanA1, lowSpanB1, lowExtent1);
 		positionLow2 = classify(position2, x0y0Low2, lowSpanA2, lowSpanB2, lowExtent2);
@@ -156,9 +168,9 @@ abstract class Tile {
 		midTileY = tileY;
 		final int x = tileX << MID_AXIS_SHIFT;
 		final int y = tileY << MID_AXIS_SHIFT;
-		x0y0Hi0 =  c0 + a0 * x + b0 * y;
-		x0y0Hi1 =  c1 + a1 * x + b1 * y;
-		x0y0Hi2 =  c2 + a2 * x + b2 * y;
+		x0y0Hi0 = c0 + a0 * x + b0 * y;
+		x0y0Hi1 = c1 + a1 * x + b1 * y;
+		x0y0Hi2 = c2 + a2 * x + b2 * y;
 
 		positionHi0 = classify(position0, x0y0Hi0, hiSpanA0, hiSpanB0, hiExtent0);
 		positionHi1 = classify(position1, x0y0Hi1, hiSpanA1, hiSpanB1, hiExtent1);
@@ -168,9 +180,9 @@ abstract class Tile {
 	static void moveLowTileToParentOrigin() {
 		lowTileX = midTileX << TILE_AXIS_SHIFT;
 		lowTileY = midTileY << TILE_AXIS_SHIFT;
-		x0y0Low0 =  x0y0Hi0;
-		x0y0Low1 =  x0y0Hi1;
-		x0y0Low2 =  x0y0Hi2;
+		x0y0Low0 = x0y0Hi0;
+		x0y0Low1 = x0y0Hi1;
+		x0y0Low2 = x0y0Hi2;
 		positionLow0 = classify(position0, x0y0Low0, lowSpanA0, lowSpanB0, lowExtent0);
 		positionLow1 = classify(position1, x0y0Low1, lowSpanA1, lowSpanB1, lowExtent1);
 		positionLow2 = classify(position2, x0y0Low2, lowSpanA2, lowSpanB2, lowExtent2);
@@ -214,12 +226,14 @@ abstract class Tile {
 		}
 	}
 
-	static boolean updateRightPosition(EdgePosition edgePos, int currentPosition) {
-		if (edgePos.isRight) {
+	static boolean updateRightPosition(int edgePos, int currentPosition) {
+		final int edgeFlag = 1 << edgePos;
+
+		if ((edgeFlag & EDGE_FLAGS_RIGHT) != 0) {
 			if (currentPosition != OUTSIDE) {
 				return true;
 			}
-		} else if (edgePos.isLeft && currentPosition != INSIDE) {
+		} else if ((edgeFlag & EDGE_FLAGS_LEFT) != 0 && currentPosition != INSIDE) {
 			return true;
 		}
 
@@ -264,12 +278,14 @@ abstract class Tile {
 		}
 	}
 
-	static boolean updateLeftPosition(EdgePosition edgePos, int currentPosition) {
-		if (edgePos.isLeft) {
+	static boolean updateLeftPosition(int edgePos, int currentPosition) {
+		final int edgeFlag = 1 << edgePos;
+
+		if ((edgeFlag & EDGE_FLAGS_LEFT) != 0) {
 			if (currentPosition != OUTSIDE) {
 				return true;
 			}
-		} else if (edgePos.isRight && currentPosition != INSIDE) {
+		} else if ((edgeFlag & EDGE_FLAGS_RIGHT) != 0 && currentPosition != INSIDE) {
 			return true;
 		}
 
@@ -314,12 +330,14 @@ abstract class Tile {
 		}
 	}
 
-	static boolean updateTopPosition(EdgePosition edgePos, int currentPosition) {
-		if (edgePos.isTop) {
+	static boolean updateTopPosition(int edgePos, int currentPosition) {
+		final int edgeFlag = 1 << edgePos;
+
+		if ((edgeFlag & EDGE_FLAGS_TOP) != 0) {
 			if (currentPosition != OUTSIDE) {
 				return true;
 			}
-		} else if (edgePos.isBottom && currentPosition != INSIDE) {
+		} else if ((edgeFlag & EDGE_FLAGS_BOTTOM) != 0 && currentPosition != INSIDE) {
 			return true;
 		}
 
@@ -450,22 +468,22 @@ abstract class Tile {
 		positionLow2 = save_positionLow2;
 	}
 
-	private static int chooseEdgeValue(EdgePosition pos, int x0y0, int spanA, int spanB) {
+	private static int chooseEdgeValue(int pos, int x0y0, int spanA, int spanB) {
 		switch  (pos) {
-		case TOP: // uses x0y0
-		case RIGHT: // uses x0y0
-		case TOP_RIGHT: // uses  x0y0
+		case EDGE_TOP: // uses x0y0
+		case EDGE_RIGHT: // uses x0y0
+		case EDGE_TOP_RIGHT: // uses  x0y0
 			return x0y0;
 
-		case BOTTOM: // uses x0y1
-		case BOTTOM_RIGHT: // uses x0y1
+		case EDGE_BOTTOM: // uses x0y1
+		case EDGE_BOTTOM_RIGHT: // uses x0y1
 			return x0y0 + spanB;
 
-		case BOTTOM_LEFT: // uses x1y1
+		case EDGE_BOTTOM_LEFT: // uses x1y1
 			return x0y0 + spanA + spanB;
 
-		case LEFT: // uses x1y0
-		case TOP_LEFT: // uses x1y0
+		case EDGE_LEFT: // uses x1y0
+		case EDGE_TOP_LEFT: // uses x1y0
 			return x0y0 + spanA;
 
 		default:
@@ -474,7 +492,7 @@ abstract class Tile {
 		}
 	}
 
-	private static int classify(EdgePosition pos, int x0y0, int spanA, int spanB, int extent)  {
+	private static int classify(int pos, int x0y0, int spanA, int spanB, int extent)  {
 		final int w = chooseEdgeValue(pos, x0y0, spanA, spanB);
 
 		if (w < 0) {
@@ -489,10 +507,10 @@ abstract class Tile {
 		}
 	}
 
-	static long buildMask(EdgePosition pos, int x0y0, int stepA, int stepB, int spanA, int spanB) {
+	static long buildMask(int pos, int x0y0, int stepA, int stepB, int spanA, int spanB) {
 
 		switch  (pos) {
-		case TOP: {
+		case EDGE_TOP: {
 			int wy = x0y0; // bottom left will always be inside
 			assert wy >= 0;
 			assert stepB < 0;
@@ -509,7 +527,7 @@ abstract class Tile {
 			return mask;
 		}
 
-		case BOTTOM: {
+		case EDGE_BOTTOM: {
 			int wy = x0y0 + spanB; // top left will always be inside
 			assert wy >= 0;
 			assert stepB > 0;
@@ -526,7 +544,7 @@ abstract class Tile {
 			return mask;
 		}
 
-		case RIGHT: {
+		case EDGE_RIGHT: {
 			final int wy = x0y0; // bottom left will always be inside
 			assert wy >= 0;
 			assert stepA < 0;
@@ -541,7 +559,7 @@ abstract class Tile {
 			return mask;
 		}
 
-		case LEFT: {
+		case EDGE_LEFT: {
 			final int wy = x0y0 + spanA; // bottom right will always be inside
 			assert wy >= 0;
 			assert stepA > 0;
@@ -556,7 +574,7 @@ abstract class Tile {
 			return mask;
 		}
 
-		case TOP_LEFT: {
+		case EDGE_TOP_LEFT: {
 			// PERF: optimize case when shallow slope and several bottom rows are full
 
 			int wy = x0y0 + spanA; // bottom right will always be inside
@@ -581,7 +599,7 @@ abstract class Tile {
 			return mask;
 		}
 
-		case BOTTOM_LEFT: {
+		case EDGE_BOTTOM_LEFT: {
 			int wy = x0y0 + spanA + spanB; // top right will always be inside
 			assert wy >= 0;
 			assert stepB > 0;
@@ -604,7 +622,7 @@ abstract class Tile {
 			return mask;
 		}
 
-		case TOP_RIGHT: {
+		case EDGE_TOP_RIGHT: {
 			// PERF: optimize case when shallow slope and several bottom rows are full
 
 			// max y will occur at x = 0
@@ -632,7 +650,7 @@ abstract class Tile {
 			return mask;
 		}
 
-		case BOTTOM_RIGHT: {
+		case EDGE_BOTTOM_RIGHT: {
 			// PERF: optimize case when shallow slope and several top rows are full
 
 			int wy = x0y0 + spanB; // top left will always be inside

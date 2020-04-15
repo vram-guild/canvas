@@ -81,4 +81,18 @@ public class Constants {
 
 	static final int COVERAGE_NONE_OR_SOME = 0;
 	static final int COVERAGE_FULL = 1;
+
+	static final int EDGE_TOP = 0;
+	static final int EDGE_BOTTOM = 1;
+	static final int EDGE_LEFT = 2;
+	static final int EDGE_RIGHT = 3;
+	static final int EDGE_TOP_LEFT = 4;
+	static final int EDGE_TOP_RIGHT = 5;
+	static final int EDGE_BOTTOM_LEFT = 6;
+	static final int EDGE_BOTTOM_RIGHT = 7;
+
+	static final int EDGE_FLAGS_TOP = (1 << EDGE_TOP) | (1 << EDGE_TOP_LEFT) | (1 << EDGE_TOP_RIGHT);
+	static final int EDGE_FLAGS_BOTTOM = (1 << EDGE_BOTTOM) | (1 << EDGE_BOTTOM_LEFT) | (1 << EDGE_BOTTOM_RIGHT);
+	static final int EDGE_FLAGS_LEFT = (1 << EDGE_LEFT) | (1 << EDGE_BOTTOM_LEFT) | (1 << EDGE_TOP_LEFT);
+	static final int EDGE_FLAGS_RIGHT = (1 << EDGE_RIGHT) | (1 << EDGE_TOP_RIGHT) | (1 << EDGE_BOTTOM_RIGHT);
 }
