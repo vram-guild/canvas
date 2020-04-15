@@ -10,22 +10,22 @@ import static grondag.canvas.chunk.occlusion.ProjectedVertexData.needsClipHighY;
 import static grondag.canvas.chunk.occlusion.ProjectedVertexData.needsClipLowX;
 import static grondag.canvas.chunk.occlusion.ProjectedVertexData.needsClipLowY;
 import static grondag.canvas.chunk.occlusion.ProjectedVertexData.needsNearClip;
-import static grondag.canvas.chunk.occlusion._Rasterizer.drawTri;
-import static grondag.canvas.chunk.occlusion._Rasterizer.testTri;
-import static grondag.canvas.chunk.occlusion._Data.V_HIGH_X_CLIP_A;
-import static grondag.canvas.chunk.occlusion._Data.V_HIGH_X_CLIP_B;
-import static grondag.canvas.chunk.occlusion._Data.V_HIGH_Y_CLIP_A;
-import static grondag.canvas.chunk.occlusion._Data.V_HIGH_Y_CLIP_B;
-import static grondag.canvas.chunk.occlusion._Data.V_LOW_X_CLIP_A;
-import static grondag.canvas.chunk.occlusion._Data.V_LOW_X_CLIP_B;
-import static grondag.canvas.chunk.occlusion._Data.V_LOW_Y_CLIP_A;
-import static grondag.canvas.chunk.occlusion._Data.V_LOW_Y_CLIP_B;
-import static grondag.canvas.chunk.occlusion._Data.V_NEAR_CLIP_A;
-import static grondag.canvas.chunk.occlusion._Data.V_NEAR_CLIP_B;
-import static grondag.canvas.chunk.occlusion._Data.vertexData;
+import static grondag.canvas.chunk.occlusion.Rasterizer.drawTri;
+import static grondag.canvas.chunk.occlusion.Rasterizer.testTri;
+import static grondag.canvas.chunk.occlusion.Data.V_HIGH_X_CLIP_A;
+import static grondag.canvas.chunk.occlusion.Data.V_HIGH_X_CLIP_B;
+import static grondag.canvas.chunk.occlusion.Data.V_HIGH_Y_CLIP_A;
+import static grondag.canvas.chunk.occlusion.Data.V_HIGH_Y_CLIP_B;
+import static grondag.canvas.chunk.occlusion.Data.V_LOW_X_CLIP_A;
+import static grondag.canvas.chunk.occlusion.Data.V_LOW_X_CLIP_B;
+import static grondag.canvas.chunk.occlusion.Data.V_LOW_Y_CLIP_A;
+import static grondag.canvas.chunk.occlusion.Data.V_LOW_Y_CLIP_B;
+import static grondag.canvas.chunk.occlusion.Data.V_NEAR_CLIP_A;
+import static grondag.canvas.chunk.occlusion.Data.V_NEAR_CLIP_B;
+import static grondag.canvas.chunk.occlusion.Data.vertexData;
 
-abstract class _Clipper {
-	private _Clipper() { }
+abstract class Clipper {
+	private Clipper() { }
 
 	static final void drawQuad(int v0, int v1, int v2, int v3) {
 		final int split = needsNearClip(vertexData, v0) | (needsNearClip(vertexData, v1) << 1) | (needsNearClip(vertexData, v2) << 2) | (needsNearClip(vertexData, v3) << 3);

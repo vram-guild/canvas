@@ -1,49 +1,49 @@
 package grondag.canvas.chunk.occlusion;
 
-import static grondag.canvas.chunk.occlusion.AbstractTile.computeLowTileCoverage;
-import static grondag.canvas.chunk.occlusion.AbstractTile.computeMidTileCoverage;
-import static grondag.canvas.chunk.occlusion.AbstractTile.moveLowTileLeft;
-import static grondag.canvas.chunk.occlusion.AbstractTile.moveLowTileRight;
-import static grondag.canvas.chunk.occlusion.AbstractTile.moveLowTileTo;
-import static grondag.canvas.chunk.occlusion.AbstractTile.moveLowTileToParentOrigin;
-import static grondag.canvas.chunk.occlusion.AbstractTile.moveLowTileUp;
-import static grondag.canvas.chunk.occlusion.AbstractTile.moveMidTileLeft;
-import static grondag.canvas.chunk.occlusion.AbstractTile.moveMidTileRight;
-import static grondag.canvas.chunk.occlusion.AbstractTile.moveMidTileTo;
-import static grondag.canvas.chunk.occlusion.AbstractTile.moveMidTileUp;
-import static grondag.canvas.chunk.occlusion.AbstractTile.popLowTile;
-import static grondag.canvas.chunk.occlusion.AbstractTile.prepareHiTile;
-import static grondag.canvas.chunk.occlusion.AbstractTile.prepareLowTile;
-import static grondag.canvas.chunk.occlusion.AbstractTile.pushLowTile;
+import static grondag.canvas.chunk.occlusion.Tile.computeLowTileCoverage;
+import static grondag.canvas.chunk.occlusion.Tile.computeMidTileCoverage;
+import static grondag.canvas.chunk.occlusion.Tile.moveLowTileLeft;
+import static grondag.canvas.chunk.occlusion.Tile.moveLowTileRight;
+import static grondag.canvas.chunk.occlusion.Tile.moveLowTileTo;
+import static grondag.canvas.chunk.occlusion.Tile.moveLowTileToParentOrigin;
+import static grondag.canvas.chunk.occlusion.Tile.moveLowTileUp;
+import static grondag.canvas.chunk.occlusion.Tile.moveMidTileLeft;
+import static grondag.canvas.chunk.occlusion.Tile.moveMidTileRight;
+import static grondag.canvas.chunk.occlusion.Tile.moveMidTileTo;
+import static grondag.canvas.chunk.occlusion.Tile.moveMidTileUp;
+import static grondag.canvas.chunk.occlusion.Tile.popLowTile;
+import static grondag.canvas.chunk.occlusion.Tile.prepareHiTile;
+import static grondag.canvas.chunk.occlusion.Tile.prepareLowTile;
+import static grondag.canvas.chunk.occlusion.Tile.pushLowTile;
 import static grondag.canvas.chunk.occlusion.Triangle.prepareBounds;
 import static grondag.canvas.chunk.occlusion.Triangle.prepareScan;
-import static grondag.canvas.chunk.occlusion._Clipper.drawClippedLowX;
-import static grondag.canvas.chunk.occlusion._Clipper.testClippedLowX;
-import static grondag.canvas.chunk.occlusion._Constants.BOUNDS_NEEDS_CLIP;
-import static grondag.canvas.chunk.occlusion._Constants.BOUNDS_OUTSIDE_OR_TOO_SMALL;
-import static grondag.canvas.chunk.occlusion._Constants.COVERAGE_FULL;
-import static grondag.canvas.chunk.occlusion._Constants.COVERAGE_NONE_OR_SOME;
-import static grondag.canvas.chunk.occlusion._Constants.LOW_AXIS_SHIFT;
-import static grondag.canvas.chunk.occlusion._Constants.MID_AXIS_SHIFT;
-import static grondag.canvas.chunk.occlusion._Constants.PIXEL_HEIGHT;
-import static grondag.canvas.chunk.occlusion._Constants.PIXEL_WIDTH;
-import static grondag.canvas.chunk.occlusion._Constants.SCALE_LOW;
-import static grondag.canvas.chunk.occlusion._Constants.SCALE_MID;
-import static grondag.canvas.chunk.occlusion._Constants.SCALE_POINT;
-import static grondag.canvas.chunk.occlusion._Data.lowTileX;
-import static grondag.canvas.chunk.occlusion._Data.lowTileY;
-import static grondag.canvas.chunk.occlusion._Data.lowTiles;
-import static grondag.canvas.chunk.occlusion._Data.maxPixelX;
-import static grondag.canvas.chunk.occlusion._Data.maxPixelY;
-import static grondag.canvas.chunk.occlusion._Data.midTileX;
-import static grondag.canvas.chunk.occlusion._Data.midTileY;
-import static grondag.canvas.chunk.occlusion._Data.midTiles;
-import static grondag.canvas.chunk.occlusion._Data.minPixelX;
-import static grondag.canvas.chunk.occlusion._Data.minPixelY;
-import static grondag.canvas.chunk.occlusion._Data.scale;
-import static grondag.canvas.chunk.occlusion._Indexer.lowIndex;
-import static grondag.canvas.chunk.occlusion._Indexer.midIndex;
-import static grondag.canvas.chunk.occlusion._Indexer.testPixel;
+import static grondag.canvas.chunk.occlusion.Clipper.drawClippedLowX;
+import static grondag.canvas.chunk.occlusion.Clipper.testClippedLowX;
+import static grondag.canvas.chunk.occlusion.Constants.BOUNDS_NEEDS_CLIP;
+import static grondag.canvas.chunk.occlusion.Constants.BOUNDS_OUTSIDE_OR_TOO_SMALL;
+import static grondag.canvas.chunk.occlusion.Constants.COVERAGE_FULL;
+import static grondag.canvas.chunk.occlusion.Constants.COVERAGE_NONE_OR_SOME;
+import static grondag.canvas.chunk.occlusion.Constants.LOW_AXIS_SHIFT;
+import static grondag.canvas.chunk.occlusion.Constants.MID_AXIS_SHIFT;
+import static grondag.canvas.chunk.occlusion.Constants.PIXEL_HEIGHT;
+import static grondag.canvas.chunk.occlusion.Constants.PIXEL_WIDTH;
+import static grondag.canvas.chunk.occlusion.Constants.SCALE_LOW;
+import static grondag.canvas.chunk.occlusion.Constants.SCALE_MID;
+import static grondag.canvas.chunk.occlusion.Constants.SCALE_POINT;
+import static grondag.canvas.chunk.occlusion.Data.lowTileX;
+import static grondag.canvas.chunk.occlusion.Data.lowTileY;
+import static grondag.canvas.chunk.occlusion.Data.lowTiles;
+import static grondag.canvas.chunk.occlusion.Data.maxPixelX;
+import static grondag.canvas.chunk.occlusion.Data.maxPixelY;
+import static grondag.canvas.chunk.occlusion.Data.midTileX;
+import static grondag.canvas.chunk.occlusion.Data.midTileY;
+import static grondag.canvas.chunk.occlusion.Data.midTiles;
+import static grondag.canvas.chunk.occlusion.Data.minPixelX;
+import static grondag.canvas.chunk.occlusion.Data.minPixelY;
+import static grondag.canvas.chunk.occlusion.Data.scale;
+import static grondag.canvas.chunk.occlusion.Indexer.lowIndex;
+import static grondag.canvas.chunk.occlusion.Indexer.midIndex;
+import static grondag.canvas.chunk.occlusion.Indexer.testPixel;
 
 import com.google.common.base.Strings;
 import org.apache.commons.lang3.StringUtils;
@@ -64,8 +64,8 @@ import org.apache.commons.lang3.StringUtils;
 //		With movement, project from forecasted position and retain visible regions for n frames
 //			Above is to allow limit to frequency of rebuilds without too many visibility errors
 
-abstract class _Rasterizer  {
-	private _Rasterizer() { }
+abstract class Rasterizer  {
+	private Rasterizer() { }
 
 	static void drawTri(int v0, int v1, int v2) {
 		final int boundsResult  = prepareBounds(v0, v1, v2);
@@ -84,7 +84,7 @@ abstract class _Rasterizer  {
 		case SCALE_LOW:{
 			//CanvasWorldRenderer.innerTimer.start();
 			prepareScan();
-			_Rasterizer.drawTriLow();
+			Rasterizer.drawTriLow();
 			//CanvasWorldRenderer.innerTimer.stop();
 			return;
 		}
@@ -92,7 +92,7 @@ abstract class _Rasterizer  {
 		case SCALE_MID: {
 			//CanvasWorldRenderer.innerTimer.start();
 			prepareScan();
-			_Rasterizer.drawTriMid();
+			Rasterizer.drawTriMid();
 			//CanvasWorldRenderer.innerTimer.stop();
 
 			return;
@@ -195,7 +195,7 @@ abstract class _Rasterizer  {
 	}
 
 	static boolean testTriMidInner() {
-		final long full = _Data.midTiles[midIndex(midTileX,  midTileY)];
+		final long full = Data.midTiles[midIndex(midTileX,  midTileY)];
 
 		if (full == -1L) {
 			return false;
@@ -319,14 +319,14 @@ abstract class _Rasterizer  {
 
 	static int drawTriLowInner() {
 		final int index = lowIndex(lowTileX, lowTileY);
-		long word = _Data.lowTiles[index];
+		long word = Data.lowTiles[index];
 
 		// nothing to test if fully occluded
 		if  (word == -1L) {
 			return COVERAGE_FULL;
 		}  else {
 			word |= computeLowTileCoverage();
-			_Data.lowTiles[index] = word;
+			Data.lowTiles[index] = word;
 			return word == -1L ? COVERAGE_FULL : COVERAGE_NONE_OR_SOME;
 		}
 	}
@@ -418,7 +418,7 @@ abstract class _Rasterizer  {
 			coverage >>>= 8;
 		} while (coverage != 0L);
 
-		_Data.midTiles[index] = word;
+		Data.midTiles[index] = word;
 	}
 
 	static void printMask8x8(long mask) {

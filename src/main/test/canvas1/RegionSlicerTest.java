@@ -2,8 +2,8 @@ package canvas1;
 
 import org.junit.jupiter.api.Test;
 
-import grondag.canvas.chunk.occlusion.OcclusionBitPrinter;
 import grondag.canvas.chunk.occlusion.region.AreaFinder;
+import grondag.canvas.chunk.occlusion.region.OcclusionBitPrinter;
 import grondag.canvas.chunk.occlusion.region.PlaneFinder;
 
 public class RegionSlicerTest {

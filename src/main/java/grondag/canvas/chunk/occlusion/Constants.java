@@ -2,7 +2,7 @@ package grondag.canvas.chunk.occlusion;
 
 import grondag.canvas.Configurator;
 
-public class _Constants {
+public class Constants {
 
 	static final boolean ENABLE_RASTER_OUTPUT = Configurator.debugOcclusionRaster;
 	static final int TILE_AXIS_SHIFT = 3;

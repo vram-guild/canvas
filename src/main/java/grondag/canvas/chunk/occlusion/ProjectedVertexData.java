@@ -1,10 +1,10 @@
 package grondag.canvas.chunk.occlusion;
 
-import static grondag.canvas.chunk.occlusion._Constants.GUARD_HEIGHT;
-import static grondag.canvas.chunk.occlusion._Constants.GUARD_SIZE;
-import static grondag.canvas.chunk.occlusion._Constants.GUARD_WIDTH;
-import static grondag.canvas.chunk.occlusion._Constants.HALF_PRECISE_HEIGHT;
-import static grondag.canvas.chunk.occlusion._Constants.HALF_PRECISE_WIDTH;
+import static grondag.canvas.chunk.occlusion.Constants.GUARD_HEIGHT;
+import static grondag.canvas.chunk.occlusion.Constants.GUARD_SIZE;
+import static grondag.canvas.chunk.occlusion.Constants.GUARD_WIDTH;
+import static grondag.canvas.chunk.occlusion.Constants.HALF_PRECISE_HEIGHT;
+import static grondag.canvas.chunk.occlusion.Constants.HALF_PRECISE_WIDTH;
 
 import grondag.canvas.mixinterface.Matrix4fExt;
 

@@ -8,33 +8,33 @@ import static grondag.canvas.chunk.occlusion.EdgePosition.RIGHT;
 import static grondag.canvas.chunk.occlusion.EdgePosition.TOP;
 import static grondag.canvas.chunk.occlusion.EdgePosition.TOP_LEFT;
 import static grondag.canvas.chunk.occlusion.EdgePosition.TOP_RIGHT;
-import static grondag.canvas.chunk.occlusion._Constants.BOUNDS_IN;
-import static grondag.canvas.chunk.occlusion._Constants.BOUNDS_NEEDS_CLIP;
-import static grondag.canvas.chunk.occlusion._Constants.BOUNDS_OUTSIDE_OR_TOO_SMALL;
-import static grondag.canvas.chunk.occlusion._Constants.GUARD_HEIGHT;
-import static grondag.canvas.chunk.occlusion._Constants.GUARD_SIZE;
-import static grondag.canvas.chunk.occlusion._Constants.GUARD_WIDTH;
-import static grondag.canvas.chunk.occlusion._Constants.MAX_PIXEL_X;
-import static grondag.canvas.chunk.occlusion._Constants.MAX_PIXEL_Y;
-import static grondag.canvas.chunk.occlusion._Constants.PRECISE_HEIGHT;
-import static grondag.canvas.chunk.occlusion._Constants.PRECISE_HEIGHT_CLAMP;
-import static grondag.canvas.chunk.occlusion._Constants.PRECISE_PIXEL_CENTER;
-import static grondag.canvas.chunk.occlusion._Constants.PRECISE_WIDTH;
-import static grondag.canvas.chunk.occlusion._Constants.PRECISE_WIDTH_CLAMP;
-import static grondag.canvas.chunk.occlusion._Constants.PRECISION_BITS;
-import static grondag.canvas.chunk.occlusion._Constants.SCALE_LOW;
-import static grondag.canvas.chunk.occlusion._Constants.SCALE_MID;
-import static grondag.canvas.chunk.occlusion._Constants.SCALE_POINT;
-import static grondag.canvas.chunk.occlusion._Constants.TILE_AXIS_SHIFT;
-import static grondag.canvas.chunk.occlusion._Data.c0;
-import static grondag.canvas.chunk.occlusion._Data.c1;
-import static grondag.canvas.chunk.occlusion._Data.c2;
-import static grondag.canvas.chunk.occlusion._Data.maxPixelX;
-import static grondag.canvas.chunk.occlusion._Data.maxPixelY;
-import static grondag.canvas.chunk.occlusion._Data.minPixelX;
-import static grondag.canvas.chunk.occlusion._Data.minPixelY;
-import static grondag.canvas.chunk.occlusion._Data.scale;
-import static grondag.canvas.chunk.occlusion._Data.vertexData;
+import static grondag.canvas.chunk.occlusion.Constants.BOUNDS_IN;
+import static grondag.canvas.chunk.occlusion.Constants.BOUNDS_NEEDS_CLIP;
+import static grondag.canvas.chunk.occlusion.Constants.BOUNDS_OUTSIDE_OR_TOO_SMALL;
+import static grondag.canvas.chunk.occlusion.Constants.GUARD_HEIGHT;
+import static grondag.canvas.chunk.occlusion.Constants.GUARD_SIZE;
+import static grondag.canvas.chunk.occlusion.Constants.GUARD_WIDTH;
+import static grondag.canvas.chunk.occlusion.Constants.MAX_PIXEL_X;
+import static grondag.canvas.chunk.occlusion.Constants.MAX_PIXEL_Y;
+import static grondag.canvas.chunk.occlusion.Constants.PRECISE_HEIGHT;
+import static grondag.canvas.chunk.occlusion.Constants.PRECISE_HEIGHT_CLAMP;
+import static grondag.canvas.chunk.occlusion.Constants.PRECISE_PIXEL_CENTER;
+import static grondag.canvas.chunk.occlusion.Constants.PRECISE_WIDTH;
+import static grondag.canvas.chunk.occlusion.Constants.PRECISE_WIDTH_CLAMP;
+import static grondag.canvas.chunk.occlusion.Constants.PRECISION_BITS;
+import static grondag.canvas.chunk.occlusion.Constants.SCALE_LOW;
+import static grondag.canvas.chunk.occlusion.Constants.SCALE_MID;
+import static grondag.canvas.chunk.occlusion.Constants.SCALE_POINT;
+import static grondag.canvas.chunk.occlusion.Constants.TILE_AXIS_SHIFT;
+import static grondag.canvas.chunk.occlusion.Data.c0;
+import static grondag.canvas.chunk.occlusion.Data.c1;
+import static grondag.canvas.chunk.occlusion.Data.c2;
+import static grondag.canvas.chunk.occlusion.Data.maxPixelX;
+import static grondag.canvas.chunk.occlusion.Data.maxPixelY;
+import static grondag.canvas.chunk.occlusion.Data.minPixelX;
+import static grondag.canvas.chunk.occlusion.Data.minPixelY;
+import static grondag.canvas.chunk.occlusion.Data.scale;
+import static grondag.canvas.chunk.occlusion.Data.vertexData;
 import static grondag.canvas.chunk.occlusion.ProjectedVertexData.PV_PX;
 import static grondag.canvas.chunk.occlusion.ProjectedVertexData.PV_PY;
 
@@ -134,12 +134,12 @@ public final class Triangle {
 		assert minPixelX <= maxPixelX;
 		assert minPixelY <= maxPixelY;
 
-		_Data.x0 = x0;
-		_Data.y0 = y0;
-		_Data.x1 = x1;
-		_Data.y1 = y1;
-		_Data.x2 = x2;
-		_Data.y2 = y2;
+		Data.x0 = x0;
+		Data.y0 = y0;
+		Data.x1 = x1;
+		Data.y1 = y1;
+		Data.x2 = x2;
+		Data.y2 = y2;
 
 		computeScale();
 
@@ -172,12 +172,12 @@ public final class Triangle {
 	}
 
 	static void prepareScan() {
-		final int x0 = _Data.x0;
-		final int y0 = _Data.y0;
-		final int x1 = _Data.x1;
-		final int y1 = _Data.y1;
-		final int x2 = _Data.x2;
-		final int y2 = _Data.y2;
+		final int x0 = Data.x0;
+		final int y0 = Data.y0;
+		final int x1 = Data.x1;
+		final int y1 = Data.y1;
+		final int x2 = Data.x2;
+		final int y2 = Data.y2;
 
 		final int a0 = (y0 - y1);
 		final int b0 = (x1 - x0);
@@ -196,15 +196,15 @@ public final class Triangle {
 		c1 = (int) ((orient2d(x1, y1, x2, y2) + (isTopLeft1 ? PRECISE_PIXEL_CENTER : (PRECISE_PIXEL_CENTER - 1))) >> PRECISION_BITS);
 		c2 = (int) ((orient2d(x2, y2, x0, y0) + (isTopLeft2 ? PRECISE_PIXEL_CENTER : (PRECISE_PIXEL_CENTER - 1))) >> PRECISION_BITS);
 
-		_Data.a0 = a0;
-		_Data.b0 = b0;
-		_Data.position0 = edgePosition(a0, b0);
-		_Data.a1 = a1;
-		_Data.b1 = b1;
-		_Data.position1 = edgePosition(a1, b1);
-		_Data.a2 = a2;
-		_Data.b2 = b2;
-		_Data.position2 = edgePosition(a2, b2);
+		Data.a0 = a0;
+		Data.b0 = b0;
+		Data.position0 = edgePosition(a0, b0);
+		Data.a1 = a1;
+		Data.b1 = b1;
+		Data.position1 = edgePosition(a1, b1);
+		Data.a2 = a2;
+		Data.b2 = b2;
+		Data.position2 = edgePosition(a2, b2);
 	}
 
 	static boolean isCcw(long x0, long y0, long x1, long y1, long x2, long y2) {

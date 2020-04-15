@@ -1,25 +1,25 @@
 package grondag.canvas.chunk.occlusion;
 
-import static grondag.canvas.chunk.occlusion._Constants.CAMERA_PRECISION_BITS;
-import static grondag.canvas.chunk.occlusion._Constants.CAMERA_PRECISION_UNITY;
-import static grondag.canvas.chunk.occlusion._Constants.EMPTY_BITS;
-import static grondag.canvas.chunk.occlusion._Constants.ENABLE_RASTER_OUTPUT;
-import static grondag.canvas.chunk.occlusion._Constants.LOW_TILE_COUNT;
-import static grondag.canvas.chunk.occlusion._Constants.MID_TILE_COUNT;
-import static grondag.canvas.chunk.occlusion._Constants.PIXEL_HEIGHT;
-import static grondag.canvas.chunk.occlusion._Constants.PIXEL_WIDTH;
-import static grondag.canvas.chunk.occlusion._Data.cameraX;
-import static grondag.canvas.chunk.occlusion._Data.cameraY;
-import static grondag.canvas.chunk.occlusion._Data.cameraZ;
-import static grondag.canvas.chunk.occlusion._Data.modelMatrix;
-import static grondag.canvas.chunk.occlusion._Data.mvpMatrix;
-import static grondag.canvas.chunk.occlusion._Data.offsetX;
-import static grondag.canvas.chunk.occlusion._Data.offsetY;
-import static grondag.canvas.chunk.occlusion._Data.offsetZ;
-import static grondag.canvas.chunk.occlusion._Data.projectionMatrix;
-import static grondag.canvas.chunk.occlusion._Data.xOrigin;
-import static grondag.canvas.chunk.occlusion._Data.yOrigin;
-import static grondag.canvas.chunk.occlusion._Data.zOrigin;
+import static grondag.canvas.chunk.occlusion.Constants.CAMERA_PRECISION_BITS;
+import static grondag.canvas.chunk.occlusion.Constants.CAMERA_PRECISION_UNITY;
+import static grondag.canvas.chunk.occlusion.Constants.EMPTY_BITS;
+import static grondag.canvas.chunk.occlusion.Constants.ENABLE_RASTER_OUTPUT;
+import static grondag.canvas.chunk.occlusion.Constants.LOW_TILE_COUNT;
+import static grondag.canvas.chunk.occlusion.Constants.MID_TILE_COUNT;
+import static grondag.canvas.chunk.occlusion.Constants.PIXEL_HEIGHT;
+import static grondag.canvas.chunk.occlusion.Constants.PIXEL_WIDTH;
+import static grondag.canvas.chunk.occlusion.Data.cameraX;
+import static grondag.canvas.chunk.occlusion.Data.cameraY;
+import static grondag.canvas.chunk.occlusion.Data.cameraZ;
+import static grondag.canvas.chunk.occlusion.Data.modelMatrix;
+import static grondag.canvas.chunk.occlusion.Data.mvpMatrix;
+import static grondag.canvas.chunk.occlusion.Data.offsetX;
+import static grondag.canvas.chunk.occlusion.Data.offsetY;
+import static grondag.canvas.chunk.occlusion.Data.offsetZ;
+import static grondag.canvas.chunk.occlusion.Data.projectionMatrix;
+import static grondag.canvas.chunk.occlusion.Data.xOrigin;
+import static grondag.canvas.chunk.occlusion.Data.yOrigin;
+import static grondag.canvas.chunk.occlusion.Data.zOrigin;
 
 import java.io.File;
 
@@ -39,12 +39,12 @@ public abstract class TerrainOccluder {
 	private  TerrainOccluder() {}
 
 	public static void clearScene() {
-		System.arraycopy(EMPTY_BITS, 0, _Data.lowTiles, 0, LOW_TILE_COUNT);
-		System.arraycopy(EMPTY_BITS, 0, _Data.midTiles, 0, MID_TILE_COUNT);
+		System.arraycopy(EMPTY_BITS, 0, Data.lowTiles, 0, LOW_TILE_COUNT);
+		System.arraycopy(EMPTY_BITS, 0, Data.midTiles, 0, MID_TILE_COUNT);
 	}
 
 	public static void prepareChunk(BlockPos origin, int occlusionRange) {
-		_Data.occlusionRange = occlusionRange;
+		Data.occlusionRange = occlusionRange;
 		xOrigin = origin.getX();
 		yOrigin = origin.getY();
 		zOrigin = origin.getZ();
@@ -70,14 +70,14 @@ public abstract class TerrainOccluder {
 
 		final long t = System.currentTimeMillis();
 
-		if (t >= _Indexer.nextTime) {
-			_Indexer.nextTime = t + 1000;
+		if (t >= Indexer.nextTime) {
+			Indexer.nextTime = t + 1000;
 
 			final NativeImage nativeImage = new NativeImage(PIXEL_WIDTH, PIXEL_HEIGHT, false);
 
 			for (int x = 0; x < PIXEL_WIDTH; x++) {
 				for (int y = 0; y < PIXEL_HEIGHT; y++) {
-					nativeImage.setPixelRgba(x, y, _Indexer.testPixel(x, y) ? -1 :0xFF000000);
+					nativeImage.setPixelRgba(x, y, Indexer.testPixel(x, y) ? -1 :0xFF000000);
 				}
 			}
 
@@ -100,7 +100,7 @@ public abstract class TerrainOccluder {
 
 	public static boolean isChunkVisible() {
 		CanvasWorldRenderer.innerTimer.start();
-		final boolean result = _Indexer.isChunkVisibleInner();
+		final boolean result = Indexer.isChunkVisibleInner();
 		CanvasWorldRenderer.innerTimer.stop();
 
 		//		if (CanvasWorldRenderer.innerTimer.last() > 200000) {
@@ -111,7 +111,7 @@ public abstract class TerrainOccluder {
 	}
 
 	public static void occlude(int[] visData) {
-		final int occlusionRange = _Data.occlusionRange;
+		final int occlusionRange = Data.occlusionRange;
 		final int limit= visData.length;
 
 		if (limit > 1) {
@@ -125,7 +125,7 @@ public abstract class TerrainOccluder {
 					break;
 				}
 
-				_Indexer.occlude(
+				Indexer.occlude(
 						PackedBox.x0(box),
 						PackedBox.y0(box),
 						PackedBox.z0(box),
@@ -137,8 +137,8 @@ public abstract class TerrainOccluder {
 	}
 
 	public static void prepareScene(Matrix4f projectionMatrix, Matrix4f modelMatrix, Camera camera) {
-		_Data.projectionMatrix = projectionMatrix.copy();
-		_Data.modelMatrix = modelMatrix.copy();
+		Data.projectionMatrix = projectionMatrix.copy();
+		Data.modelMatrix = modelMatrix.copy();
 		final Vec3d vec3d = camera.getPos();
 		cameraX = vec3d.getX();
 		cameraY = vec3d.getY();
@@ -154,12 +154,12 @@ public abstract class TerrainOccluder {
 		final int z1  = PackedBox.z1(packedBox);
 
 
-		_Indexer.computeProjectedBoxBounds(x0, y0, z0, x1, y1, z1);
+		Indexer.computeProjectedBoxBounds(x0, y0, z0, x1, y1, z1);
 
 		// rank tests by how directly they face - use distance from camera coordinates for this
-		final int offsetX = _Data.offsetX;
-		final int offsetY = _Data.offsetY;
-		final int offsetZ = _Data.offsetZ;
+		final int offsetX = Data.offsetX;
+		final int offsetY = Data.offsetY;
+		final int offsetZ = Data.offsetZ;
 
 		int testBits = 0;
 		int nearBits  = 0;
@@ -239,52 +239,52 @@ public abstract class TerrainOccluder {
 			case 0b000:
 				return false;
 			case 0b001:
-				return offsetX > bx0 ? _Indexer.testWest() : _Indexer.testEast();
+				return offsetX > bx0 ? Indexer.testWest() : Indexer.testEast();
 			case 0b010:
-				return offsetY > by0 ? _Indexer.testDown() : _Indexer.testUp();
+				return offsetY > by0 ? Indexer.testDown() : Indexer.testUp();
 			case 0b011:
 				if (xTest > yTest) {
-					return (offsetX > bx0 ? _Indexer.testWest() : _Indexer.testEast()) || (offsetY > by0 ? _Indexer.testDown() : _Indexer.testUp());
+					return (offsetX > bx0 ? Indexer.testWest() : Indexer.testEast()) || (offsetY > by0 ? Indexer.testDown() : Indexer.testUp());
 				} else {
-					return (offsetY > by0 ? _Indexer.testDown() : _Indexer.testUp()) || (offsetX > bx0 ? _Indexer.testWest() : _Indexer.testEast());
+					return (offsetY > by0 ? Indexer.testDown() : Indexer.testUp()) || (offsetX > bx0 ? Indexer.testWest() : Indexer.testEast());
 				}
 			case 0b100:
-				return offsetZ > bz0 ? _Indexer.testNorth() : _Indexer.testSouth();
+				return offsetZ > bz0 ? Indexer.testNorth() : Indexer.testSouth();
 			case 0b101:
 				if (xTest > zTest) {
-					return (offsetX > bx0 ? _Indexer.testWest() : _Indexer.testEast()) || (offsetZ > bz0 ? _Indexer.testNorth() : _Indexer.testSouth());
+					return (offsetX > bx0 ? Indexer.testWest() : Indexer.testEast()) || (offsetZ > bz0 ? Indexer.testNorth() : Indexer.testSouth());
 				} else {
-					return (offsetZ > bz0 ? _Indexer.testNorth() : _Indexer.testSouth()) || (offsetX > bx0 ? _Indexer.testWest() : _Indexer.testEast());
+					return (offsetZ > bz0 ? Indexer.testNorth() : Indexer.testSouth()) || (offsetX > bx0 ? Indexer.testWest() : Indexer.testEast());
 				}
 			case 0b110:
 				if (yTest > zTest) {
-					return (offsetY > by0 ? _Indexer.testDown() : _Indexer.testUp()) || (offsetZ > bz0 ? _Indexer.testNorth() : _Indexer.testSouth());
+					return (offsetY > by0 ? Indexer.testDown() : Indexer.testUp()) || (offsetZ > bz0 ? Indexer.testNorth() : Indexer.testSouth());
 				} else {
-					return (offsetZ > bz0 ? _Indexer.testNorth() : _Indexer.testSouth()) || (offsetY > by0 ? _Indexer.testDown() : _Indexer.testUp());
+					return (offsetZ > bz0 ? Indexer.testNorth() : Indexer.testSouth()) || (offsetY > by0 ? Indexer.testDown() : Indexer.testUp());
 				}
 			case 0b111:
 				if (xTest > yTest) {
 					if  (zTest > xTest) {
 						// z first
-						return (offsetZ > bz0 ? _Indexer.testNorth() : _Indexer.testSouth())
-								|| (offsetX > bx0 ? _Indexer.testWest() : _Indexer.testEast())
-								|| (offsetY > by0 ? _Indexer.testDown() : _Indexer.testUp());
+						return (offsetZ > bz0 ? Indexer.testNorth() : Indexer.testSouth())
+								|| (offsetX > bx0 ? Indexer.testWest() : Indexer.testEast())
+								|| (offsetY > by0 ? Indexer.testDown() : Indexer.testUp());
 					} else {
 						// x first
-						return (offsetX > bx0 ? _Indexer.testWest() : _Indexer.testEast())
-								|| (offsetZ > bz0 ? _Indexer.testNorth() : _Indexer.testSouth())
-								|| (offsetY > by0 ? _Indexer.testDown() : _Indexer.testUp());
+						return (offsetX > bx0 ? Indexer.testWest() : Indexer.testEast())
+								|| (offsetZ > bz0 ? Indexer.testNorth() : Indexer.testSouth())
+								|| (offsetY > by0 ? Indexer.testDown() : Indexer.testUp());
 					}
 				} else if (zTest > yTest) {
 					// z first
-					return (offsetZ > bz0 ? _Indexer.testNorth() : _Indexer.testSouth())
-							|| (offsetY > by0 ? _Indexer.testDown() : _Indexer.testUp())
-							|| (offsetX > bx0 ? _Indexer.testWest() : _Indexer.testEast());
+					return (offsetZ > bz0 ? Indexer.testNorth() : Indexer.testSouth())
+							|| (offsetY > by0 ? Indexer.testDown() : Indexer.testUp())
+							|| (offsetX > bx0 ? Indexer.testWest() : Indexer.testEast());
 				} else {
 					// y first
-					return (offsetY > by0 ? _Indexer.testDown() : _Indexer.testUp())
-							|| (offsetZ > bz0 ? _Indexer.testNorth() : _Indexer.testSouth())
-							|| (offsetX > bx0 ? _Indexer.testWest() : _Indexer.testEast());
+					return (offsetY > by0 ? Indexer.testDown() : Indexer.testUp())
+							|| (offsetZ > bz0 ? Indexer.testNorth() : Indexer.testSouth())
+							|| (offsetX > bx0 ? Indexer.testWest() : Indexer.testEast());
 				}
 			}
 		}

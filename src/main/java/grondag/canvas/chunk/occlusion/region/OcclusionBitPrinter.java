@@ -1,4 +1,4 @@
-package grondag.canvas.chunk.occlusion;
+package grondag.canvas.chunk.occlusion.region;
 
 import com.google.common.base.Strings;
 
@@ -32,7 +32,7 @@ public class OcclusionBitPrinter {
 		System.out.println();
 	}
 
-	static void printSpaced(String s) {
+	public static void printSpaced(String s) {
 		System.out.println(s.replace("0", "- ").replace("1", "X "));
 	}
 

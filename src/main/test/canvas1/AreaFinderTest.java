@@ -5,11 +5,11 @@ import java.util.Random;
 import io.netty.util.internal.ThreadLocalRandom;
 import org.junit.jupiter.api.Test;
 
-import grondag.canvas.chunk.occlusion.OcclusionBitPrinter;
 import grondag.canvas.chunk.occlusion.region.Area;
 import grondag.canvas.chunk.occlusion.region.AreaFinder;
 import grondag.canvas.chunk.occlusion.region.AreaSample;
 import grondag.canvas.chunk.occlusion.region.AreaUtil;
+import grondag.canvas.chunk.occlusion.region.OcclusionBitPrinter;
 
 class AreaFinderTest {
 

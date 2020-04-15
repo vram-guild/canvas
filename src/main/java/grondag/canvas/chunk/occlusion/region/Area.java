@@ -2,8 +2,6 @@ package grondag.canvas.chunk.occlusion.region;
 
 import com.google.common.base.Strings;
 
-import grondag.canvas.chunk.occlusion.OcclusionBitPrinter;
-
 public class Area {
 	public final int areaKey;
 	public final int x0;

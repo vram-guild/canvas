@@ -1,42 +1,43 @@
 package grondag.canvas.chunk.occlusion;
 
-import static grondag.canvas.chunk.occlusion._Clipper.drawQuad;
-import static grondag.canvas.chunk.occlusion._Clipper.testQuad;
-import static grondag.canvas.chunk.occlusion._Constants.CAMERA_PRECISION_BITS;
-import static grondag.canvas.chunk.occlusion._Constants.CAMERA_PRECISION_CHUNK_MAX;
-import static grondag.canvas.chunk.occlusion._Constants.CAMERA_PRECISION_UNITY;
-import static grondag.canvas.chunk.occlusion._Constants.HALF_PIXEL_HEIGHT;
-import static grondag.canvas.chunk.occlusion._Constants.HALF_PIXEL_WIDTH;
-import static grondag.canvas.chunk.occlusion._Constants.LOW_AXIS_SHIFT;
-import static grondag.canvas.chunk.occlusion._Constants.MID_AXIS_SHIFT;
-import static grondag.canvas.chunk.occlusion._Constants.MID_INDEX_SHIFT;
-import static grondag.canvas.chunk.occlusion._Constants.PIXEL_HEIGHT;
-import static grondag.canvas.chunk.occlusion._Constants.PIXEL_WIDTH;
-import static grondag.canvas.chunk.occlusion._Constants.TILE_AXIS_SHIFT;
-import static grondag.canvas.chunk.occlusion._Constants.TILE_PIXEL_INDEX_MASK;
-import static grondag.canvas.chunk.occlusion._Constants.TOP_INDEX_SHIFT;
-import static grondag.canvas.chunk.occlusion._Constants.TOP_Y_SHIFT;
-import static grondag.canvas.chunk.occlusion._Data.V000;
-import static grondag.canvas.chunk.occlusion._Data.V001;
-import static grondag.canvas.chunk.occlusion._Data.V010;
-import static grondag.canvas.chunk.occlusion._Data.V011;
-import static grondag.canvas.chunk.occlusion._Data.V100;
-import static grondag.canvas.chunk.occlusion._Data.V101;
-import static grondag.canvas.chunk.occlusion._Data.V110;
-import static grondag.canvas.chunk.occlusion._Data.V111;
-import static grondag.canvas.chunk.occlusion._Data.mvpMatrixExt;
-import static grondag.canvas.chunk.occlusion._Data.offsetX;
-import static grondag.canvas.chunk.occlusion._Data.offsetY;
-import static grondag.canvas.chunk.occlusion._Data.offsetZ;
-import static grondag.canvas.chunk.occlusion._Data.vertexData;
+import static grondag.canvas.chunk.occlusion.Clipper.drawQuad;
+import static grondag.canvas.chunk.occlusion.Clipper.testQuad;
+import static grondag.canvas.chunk.occlusion.Constants.CAMERA_PRECISION_BITS;
+import static grondag.canvas.chunk.occlusion.Constants.CAMERA_PRECISION_CHUNK_MAX;
+import static grondag.canvas.chunk.occlusion.Constants.CAMERA_PRECISION_UNITY;
+import static grondag.canvas.chunk.occlusion.Constants.HALF_PIXEL_HEIGHT;
+import static grondag.canvas.chunk.occlusion.Constants.HALF_PIXEL_WIDTH;
+import static grondag.canvas.chunk.occlusion.Constants.LOW_AXIS_SHIFT;
+import static grondag.canvas.chunk.occlusion.Constants.MID_AXIS_SHIFT;
+import static grondag.canvas.chunk.occlusion.Constants.MID_INDEX_SHIFT;
+import static grondag.canvas.chunk.occlusion.Constants.PIXEL_HEIGHT;
+import static grondag.canvas.chunk.occlusion.Constants.PIXEL_WIDTH;
+import static grondag.canvas.chunk.occlusion.Constants.TILE_AXIS_SHIFT;
+import static grondag.canvas.chunk.occlusion.Constants.TILE_PIXEL_INDEX_MASK;
+import static grondag.canvas.chunk.occlusion.Constants.TOP_INDEX_SHIFT;
+import static grondag.canvas.chunk.occlusion.Constants.TOP_Y_SHIFT;
+import static grondag.canvas.chunk.occlusion.Data.V000;
+import static grondag.canvas.chunk.occlusion.Data.V001;
+import static grondag.canvas.chunk.occlusion.Data.V010;
+import static grondag.canvas.chunk.occlusion.Data.V011;
+import static grondag.canvas.chunk.occlusion.Data.V100;
+import static grondag.canvas.chunk.occlusion.Data.V101;
+import static grondag.canvas.chunk.occlusion.Data.V110;
+import static grondag.canvas.chunk.occlusion.Data.V111;
+import static grondag.canvas.chunk.occlusion.Data.mvpMatrixExt;
+import static grondag.canvas.chunk.occlusion.Data.offsetX;
+import static grondag.canvas.chunk.occlusion.Data.offsetY;
+import static grondag.canvas.chunk.occlusion.Data.offsetZ;
+import static grondag.canvas.chunk.occlusion.Data.vertexData;
 import static grondag.canvas.chunk.occlusion.ProjectedVertexData.setupVertex;
 
 import com.google.common.base.Strings;
 
+import grondag.canvas.chunk.occlusion.region.OcclusionBitPrinter;
 import grondag.canvas.mixinterface.Matrix4fExt;
 
-abstract class _Indexer {
-	private  _Indexer() {}
+abstract class Indexer {
+	private  Indexer() {}
 
 	// TODO: remove
 	//	int totalCount;
@@ -59,9 +60,9 @@ abstract class _Indexer {
 		computeProjectedBoxBounds(0, 0, 0, 16, 16, 16);
 
 		// rank tests by how directly they face - use distance from camera coordinates for this
-		final int offsetX = _Data.offsetX;
-		final int offsetY = _Data.offsetY;
-		final int offsetZ = _Data.offsetZ;
+		final int offsetX = Data.offsetX;
+		final int offsetY = Data.offsetY;
+		final int offsetZ = Data.offsetZ;
 
 		int testBits = 0;
 		int nearBits  = 0;
@@ -224,7 +225,7 @@ abstract class _Indexer {
 	 * @return
 	 */
 	static boolean isPointVisible(int x, int y, int z) {
-		final Matrix4fExt mvpMatrixExt = _Data.mvpMatrixExt;
+		final Matrix4fExt mvpMatrixExt = Data.mvpMatrixExt;
 
 		final float w = mvpMatrixExt.a30() * x + mvpMatrixExt.a31() * y + mvpMatrixExt.a32() * z + mvpMatrixExt.a33();
 		final float tz = mvpMatrixExt.a20() * x + mvpMatrixExt.a21() * y + mvpMatrixExt.a22() * z + mvpMatrixExt.a23();
@@ -258,11 +259,11 @@ abstract class _Indexer {
 	}
 
 	static boolean testPixel(int x, int y) {
-		return (_Data.lowTiles[lowIndexFromPixelXY(x, y)] & (1L << (pixelIndex(x, y)))) == 0;
+		return (Data.lowTiles[lowIndexFromPixelXY(x, y)] & (1L << (pixelIndex(x, y)))) == 0;
 	}
 
 	static void drawPixel(int x, int y) {
-		_Data.lowTiles[lowIndexFromPixelXY(x, y)] |= (1L << (pixelIndex(x, y)));
+		Data.lowTiles[lowIndexFromPixelXY(x, y)] |= (1L << (pixelIndex(x, y)));
 	}
 
 	static long nextTime;
