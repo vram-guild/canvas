@@ -104,10 +104,8 @@ public class Data {
 	static int hiSpanB0;
 	static int hiExtent0;
 	static int hiCornerW0;
-	static int x0y0Hi0;
 	static int positionHi0;
 	static int save_hiCornerW0;
-	static int save_x0y0Hi0;
 	static int save_positionHi0;
 
 	static int hiStepA1;
@@ -116,10 +114,8 @@ public class Data {
 	static int hiSpanB1;
 	static int hiExtent1;
 	static int hiCornerW1;
-	static int x0y0Hi1;
 	static int positionHi1;
 	static int save_hiCornerW1;
-	static int save_x0y0Hi1;
 	static int save_positionHi1;
 
 	static int hiStepA2;
@@ -128,10 +124,8 @@ public class Data {
 	static int hiSpanB2;
 	static int hiExtent2;
 	static int hiCornerW2;
-	static int x0y0Hi2;
 	static int positionHi2;
 	static int save_hiCornerW2;
-	static int save_x0y0Hi2;
 	static int save_positionHi2;
 	//	static int px000;
 	//	static int py000;

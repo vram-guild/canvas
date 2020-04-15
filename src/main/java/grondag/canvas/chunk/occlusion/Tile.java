@@ -91,12 +91,6 @@ import static grondag.canvas.chunk.occlusion.Data.save_positionHi2;
 import static grondag.canvas.chunk.occlusion.Data.save_positionLow0;
 import static grondag.canvas.chunk.occlusion.Data.save_positionLow1;
 import static grondag.canvas.chunk.occlusion.Data.save_positionLow2;
-import static grondag.canvas.chunk.occlusion.Data.save_x0y0Hi0;
-import static grondag.canvas.chunk.occlusion.Data.save_x0y0Hi1;
-import static grondag.canvas.chunk.occlusion.Data.save_x0y0Hi2;
-import static grondag.canvas.chunk.occlusion.Data.x0y0Hi0;
-import static grondag.canvas.chunk.occlusion.Data.x0y0Hi1;
-import static grondag.canvas.chunk.occlusion.Data.x0y0Hi2;
 
 abstract class Tile {
 	private Tile() {}
@@ -185,17 +179,14 @@ abstract class Tile {
 		// PERF: if have a/b tile widths can avoid shift here and multiply by tile coordinates directly
 		final int x = tileX << MID_AXIS_SHIFT;
 		final int y = tileY << MID_AXIS_SHIFT;
-		x0y0Hi0 = c0 + a0 * x + b0 * y;
-		x0y0Hi1 = c1 + a1 * x + b1 * y;
-		x0y0Hi2 = c2 + a2 * x + b2 * y;
 
-		hiCornerW0 = x0y0Hi0 + ((position0 & OFFSET_A) == 0 ? 0 : hiSpanA0) + ((position0 & OFFSET_B) == 0 ? 0 : hiSpanB0);
+		hiCornerW0 = c0 + a0 * x + b0 * y + ((position0 & OFFSET_A) == 0 ? 0 : hiSpanA0) + ((position0 & OFFSET_B) == 0 ? 0 : hiSpanB0);
 		positionHi0 = hiCornerW0 < 0 ? OUTSIDE : hiCornerW0 >= hiExtent0 ? INSIDE : INTERSECTING;
 
-		hiCornerW1 = x0y0Hi1 + ((position1 & OFFSET_A) == 0 ? 0 : hiSpanA1) + ((position1 & OFFSET_B) == 0 ? 0 : hiSpanB1);
+		hiCornerW1 = c1 + a1 * x + b1 * y + ((position1 & OFFSET_A) == 0 ? 0 : hiSpanA1) + ((position1 & OFFSET_B) == 0 ? 0 : hiSpanB1);
 		positionHi1 = hiCornerW1 < 0 ? OUTSIDE : hiCornerW1 >= hiExtent1 ? INSIDE : INTERSECTING;
 
-		hiCornerW2 = x0y0Hi2 + ((position2 & OFFSET_A) == 0 ? 0 : hiSpanA2) + ((position2 & OFFSET_B) == 0 ? 0 : hiSpanB2);
+		hiCornerW2 = c2 + a2 * x + b2 * y + ((position2 & OFFSET_A) == 0 ? 0 : hiSpanA2) + ((position2 & OFFSET_B) == 0 ? 0 : hiSpanB2);
 		positionHi2 = hiCornerW2 < 0 ? OUTSIDE : hiCornerW2 >= hiExtent2 ? INSIDE : INTERSECTING;
 	}
 
@@ -203,21 +194,21 @@ abstract class Tile {
 		lowTileX = midTileX << TILE_AXIS_SHIFT;
 		lowTileY = midTileY << TILE_AXIS_SHIFT;
 
-		lowCornerW0 = x0y0Hi0 + ((position0 & OFFSET_A) == 0 ? 0 : lowSpanA0) + ((position0 & OFFSET_B) == 0 ? 0 : lowSpanB0);
+		int highW = hiCornerW0 - ((position0 & OFFSET_A) == 0 ? 0 : hiSpanA0) - ((position0 & OFFSET_B) == 0 ? 0 : hiSpanB0);
+		lowCornerW0 = highW + ((position0 & OFFSET_A) == 0 ? 0 : lowSpanA0) + ((position0 & OFFSET_B) == 0 ? 0 : lowSpanB0);
 		positionLow0 = lowCornerW0 < 0 ? OUTSIDE : lowCornerW0 >= lowExtent0 ? INSIDE : INTERSECTING;
 
-		lowCornerW1 = x0y0Hi1 + ((position1 & OFFSET_A) == 0 ? 0 : lowSpanA1) + ((position1 & OFFSET_B) == 0 ? 0 : lowSpanB1);
+		highW = hiCornerW1 - ((position1 & OFFSET_A) == 0 ? 0 : hiSpanA1) - ((position1 & OFFSET_B) == 0 ? 0 : hiSpanB1);
+		lowCornerW1 = highW + ((position1 & OFFSET_A) == 0 ? 0 : lowSpanA1) + ((position1 & OFFSET_B) == 0 ? 0 : lowSpanB1);
 		positionLow1 = lowCornerW1 < 0 ? OUTSIDE : lowCornerW1 >= lowExtent1 ? INSIDE : INTERSECTING;
 
-		lowCornerW2 = x0y0Hi2 + ((position2 & OFFSET_A) == 0 ? 0 : lowSpanA2) + ((position2 & OFFSET_B) == 0 ? 0 : lowSpanB2);
+		highW = hiCornerW2 - ((position2 & OFFSET_A) == 0 ? 0 : hiSpanA2) - ((position2 & OFFSET_B) == 0 ? 0 : hiSpanB2);
+		lowCornerW2 = highW + ((position2 & OFFSET_A) == 0 ? 0 : lowSpanA2) + ((position2 & OFFSET_B) == 0 ? 0 : lowSpanB2);
 		positionLow2 = lowCornerW2 < 0 ? OUTSIDE : lowCornerW2 >= lowExtent2 ? INSIDE : INTERSECTING;
 	}
 
 	static void moveMidTileRight() {
 		++midTileX;
-		x0y0Hi0 += a0 + hiSpanA0;
-		x0y0Hi1 += a1 + hiSpanA1;
-		x0y0Hi2 += a2 + hiSpanA2;
 
 		hiCornerW0 += a0 + hiSpanA0;
 		hiCornerW1 += a1 + hiSpanA1;
@@ -272,9 +263,6 @@ abstract class Tile {
 
 	static void moveMidTileLeft() {
 		--midTileX;
-		x0y0Hi0 -= (a0 + hiSpanA0);
-		x0y0Hi1 -= (a1 + hiSpanA1);
-		x0y0Hi2 -= (a2 + hiSpanA2);
 
 		hiCornerW0 -= (a0 + hiSpanA0);
 		hiCornerW1 -= (a1 + hiSpanA1);
@@ -329,9 +317,6 @@ abstract class Tile {
 
 	static void moveMidTileUp() {
 		++midTileY;
-		x0y0Hi0 += (b0 + hiSpanB0);
-		x0y0Hi1 += (b1 + hiSpanB1);
-		x0y0Hi2 += (b2 + hiSpanB2);
 
 		hiCornerW0 += (b0 + hiSpanB0);
 		hiCornerW1 += (b1 + hiSpanB1);
@@ -468,9 +453,6 @@ abstract class Tile {
 	static void pushMidTile() {
 		save_midTileX = midTileX;
 		save_midTileY = midTileY;
-		save_x0y0Hi0 = x0y0Hi0;
-		save_x0y0Hi1 = x0y0Hi1;
-		save_x0y0Hi2 = x0y0Hi2;
 		save_hiCornerW0 = hiCornerW0;
 		save_hiCornerW1 = hiCornerW1;
 		save_hiCornerW2 = hiCornerW2;
@@ -493,9 +475,6 @@ abstract class Tile {
 	static void popMidTile() {
 		midTileX = save_midTileX;
 		midTileY = save_midTileY;
-		x0y0Hi0 = save_x0y0Hi0;
-		x0y0Hi1 = save_x0y0Hi1;
-		x0y0Hi2 = save_x0y0Hi2;
 		hiCornerW0 = save_hiCornerW0;
 		hiCornerW1 = save_hiCornerW1;
 		hiCornerW2 = save_hiCornerW2;
