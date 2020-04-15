@@ -8,8 +8,6 @@ import static grondag.canvas.chunk.occlusion.EdgePosition.RIGHT;
 import static grondag.canvas.chunk.occlusion.EdgePosition.TOP;
 import static grondag.canvas.chunk.occlusion.EdgePosition.TOP_LEFT;
 import static grondag.canvas.chunk.occlusion.EdgePosition.TOP_RIGHT;
-import static grondag.canvas.chunk.occlusion.ProjectedVertexData.PV_PX;
-import static grondag.canvas.chunk.occlusion.ProjectedVertexData.PV_PY;
 import static grondag.canvas.chunk.occlusion._Constants.BOUNDS_IN;
 import static grondag.canvas.chunk.occlusion._Constants.BOUNDS_NEEDS_CLIP;
 import static grondag.canvas.chunk.occlusion._Constants.BOUNDS_OUTSIDE_OR_TOO_SMALL;
@@ -37,6 +35,8 @@ import static grondag.canvas.chunk.occlusion._Data.minPixelX;
 import static grondag.canvas.chunk.occlusion._Data.minPixelY;
 import static grondag.canvas.chunk.occlusion._Data.scale;
 import static grondag.canvas.chunk.occlusion._Data.vertexData;
+import static grondag.canvas.chunk.occlusion.ProjectedVertexData.PV_PX;
+import static grondag.canvas.chunk.occlusion.ProjectedVertexData.PV_PY;
 
 public final class Triangle {
 	static int prepareBounds(int v0, int v1, int v2) {
@@ -177,7 +177,7 @@ public final class Triangle {
 		final int x1 = _Data.x1;
 		final int y1 = _Data.y1;
 		final int x2 = _Data.x2;
-		final int y2 = _Data.y1;
+		final int y2 = _Data.y2;
 
 		final int a0 = (y0 - y1);
 		final int b0 = (x1 - x0);
@@ -201,10 +201,10 @@ public final class Triangle {
 		_Data.position0 = edgePosition(a0, b0);
 		_Data.a1 = a1;
 		_Data.b1 = b1;
-		_Data.position1 = edgePosition(a0, b0);
+		_Data.position1 = edgePosition(a1, b1);
 		_Data.a2 = a2;
 		_Data.b2 = b2;
-		_Data.position2 = edgePosition(a0, b0);
+		_Data.position2 = edgePosition(a2, b2);
 	}
 
 	static boolean isCcw(long x0, long y0, long x1, long y1, long x2, long y2) {

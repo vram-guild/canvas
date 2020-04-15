@@ -2,11 +2,7 @@ package grondag.canvas.chunk.occlusion;
 
 import static grondag.canvas.chunk.occlusion.ProjectedVertexData.PROJECTED_VERTEX_STRIDE;
 import static grondag.canvas.chunk.occlusion._Constants.LOW_TILE_COUNT;
-import static grondag.canvas.chunk.occlusion._Constants.LOW_TILE_PIXEL_DIAMETER;
 import static grondag.canvas.chunk.occlusion._Constants.MID_TILE_COUNT;
-import static grondag.canvas.chunk.occlusion._Constants.MID_TILE_PIXEL_DIAMETER;
-import static grondag.canvas.chunk.occlusion._Indexer.lowIndex;
-import static grondag.canvas.chunk.occlusion._Indexer.midIndex;
 
 import net.minecraft.client.util.math.Matrix4f;
 
@@ -20,20 +16,6 @@ public class _Data {
 
 	static final long[] lowTiles = new long[LOW_TILE_COUNT];
 	static final long[] midTiles = new long[MID_TILE_COUNT];
-
-	static final AbstractTile lowTile = new AbstractTile(LOW_TILE_PIXEL_DIAMETER) {
-		@Override
-		public int tileIndex() {
-			return lowIndex(tileX,  tileY);
-		}
-	};
-
-	static final AbstractTile midTile = new AbstractTile(MID_TILE_PIXEL_DIAMETER) {
-		@Override
-		public int tileIndex() {
-			return midIndex(tileX,  tileY);
-		}
-	};
 
 	static int xOrigin;
 	static int yOrigin;
@@ -78,8 +60,70 @@ public class _Data {
 	static int c2;
 	static EdgePosition position2;
 
+	static int midTileX;
+	static int midTileY;
+	static int save_midTileX;
+	static int save_midTileY;
 
+	static int lowTileX;
+	static int lowTileY;
+	static int save_lowTileX;
+	static int save_lowTileY;
 
+	// all coordinates are full precision and corner-oriented unless otherwise noted
+	static int lowSpanA0;
+	static int lowSpanB0;
+	static int lowExtent0;
+	static int x0y0Low0;
+	static int positionLow0;
+	static int save_x0y0Low0;
+	static int save_positionLow0;
+
+	static int lowSpanA1;
+	static int lowSpanB1;
+	static int lowExtent1;
+	static int x0y0Low1;
+	static int positionLow1;
+	static int save_x0y0Low1;
+	static int save_positionLow1;
+
+	static int lowSpanA2;
+	static int lowSpanB2;
+	static int lowExtent2;
+	static int x0y0Low2;
+	static int positionLow2;
+	static int save_x0y0Low2;
+	static int save_positionLow2;
+
+	static int hiStepA0;
+	static int hiStepB0;
+	static int hiSpanA0;
+	static int hiSpanB0;
+	static int hiExtent0;
+	static int x0y0Hi0;
+	static int positionHi0;
+	static int save_x0y0Hi0;
+	static int save_positionHi0;
+
+	static int hiStepA1;
+	static int hiStepB1;
+	static int hiSpanA1;
+	static int hiSpanB1;
+	static int hiExtent1;
+	static int x0y0Hi1;
+	static int positionHi1;
+	static int save_x0y0Hi1;
+	static int save_positionHi1;
+
+	static int hiStepA2;
+	static int hiStepB2;
+	static int hiSpanA2;
+	static int hiSpanB2;
+	static int hiExtent2;
+	static int x0y0Hi2;
+	static int positionHi2;
+	static int save_x0y0Hi2;
+	static int save_positionHi2;
 	//	static int px000;
 	//	static int py000;
 	//	static float x000;

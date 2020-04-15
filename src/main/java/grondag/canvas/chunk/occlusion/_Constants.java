@@ -54,10 +54,10 @@ public class _Constants {
 	static final int MID_TILE_COUNT = MID_WIDTH * LOW_HEIGHT;
 
 	static final int MID_TILE_PIXEL_DIAMETER = PIXEL_WIDTH / MID_WIDTH;
-	static final int MID_TILE_PIXEL_INDEX_MASK = MID_TILE_PIXEL_DIAMETER - 1;
+	static final int MID_TILE_SPAN = MID_TILE_PIXEL_DIAMETER - 1;
 
 	static final int LOW_TILE_PIXEL_DIAMETER = PIXEL_WIDTH / LOW_WIDTH;
-	static final int LOW_TILE_PIXEL_INDEX_MASK = LOW_TILE_PIXEL_DIAMETER - 1;
+	static final int LOW_TILE_SPAN = LOW_TILE_PIXEL_DIAMETER - 1;
 
 	static final long[] EMPTY_BITS = new long[LOW_TILE_COUNT];
 
@@ -74,4 +74,11 @@ public class _Constants {
 	static final int BOUNDS_IN = 0;
 	static final int BOUNDS_OUTSIDE_OR_TOO_SMALL = 1;
 	static final int BOUNDS_NEEDS_CLIP = 2;
+
+	static final int OUTSIDE = 1;
+	static final int INTERSECTING = 2;
+	static final int INSIDE = 4;
+
+	static final int COVERAGE_NONE_OR_SOME = 0;
+	static final int COVERAGE_FULL = 1;
 }

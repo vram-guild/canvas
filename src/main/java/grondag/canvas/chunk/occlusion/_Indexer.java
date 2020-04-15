@@ -1,6 +1,5 @@
 package grondag.canvas.chunk.occlusion;
 
-import static grondag.canvas.chunk.occlusion.ProjectedVertexData.setupVertex;
 import static grondag.canvas.chunk.occlusion._Clipper.drawQuad;
 import static grondag.canvas.chunk.occlusion._Clipper.testQuad;
 import static grondag.canvas.chunk.occlusion._Constants.CAMERA_PRECISION_BITS;
@@ -30,6 +29,7 @@ import static grondag.canvas.chunk.occlusion._Data.offsetX;
 import static grondag.canvas.chunk.occlusion._Data.offsetY;
 import static grondag.canvas.chunk.occlusion._Data.offsetZ;
 import static grondag.canvas.chunk.occlusion._Data.vertexData;
+import static grondag.canvas.chunk.occlusion.ProjectedVertexData.setupVertex;
 
 import com.google.common.base.Strings;
 
@@ -44,7 +44,6 @@ abstract class _Indexer {
 	//	int extFalse;
 	//	int earlyExit;
 
-
 	static boolean testUp() { return testQuad(V110, V010, V011, V111); }
 	static boolean testDown() { return testQuad(V000, V100, V101, V001); }
 	static boolean testEast() { return testQuad(V101, V100, V110, V111); }
@@ -56,7 +55,6 @@ abstract class _Indexer {
 		if (isPointVisible(8, 8, 8)) {
 			return true;
 		}
-
 
 		computeProjectedBoxBounds(0, 0, 0, 16, 16, 16);
 
