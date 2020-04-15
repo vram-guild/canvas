@@ -33,6 +33,9 @@ import static grondag.canvas.chunk.occlusion.Data.maxPixelX;
 import static grondag.canvas.chunk.occlusion.Data.maxPixelY;
 import static grondag.canvas.chunk.occlusion.Data.minPixelX;
 import static grondag.canvas.chunk.occlusion.Data.minPixelY;
+import static grondag.canvas.chunk.occlusion.Data.position0;
+import static grondag.canvas.chunk.occlusion.Data.position1;
+import static grondag.canvas.chunk.occlusion.Data.position2;
 import static grondag.canvas.chunk.occlusion.Data.scale;
 import static grondag.canvas.chunk.occlusion.Data.vertexData;
 import static grondag.canvas.chunk.occlusion.ProjectedVertexData.PV_PX;
@@ -198,13 +201,13 @@ public final class Triangle {
 
 		Data.a0 = a0;
 		Data.b0 = b0;
-		Data.position0 = edgePosition(a0, b0);
+		position0 = edgePosition(a0, b0);
 		Data.a1 = a1;
 		Data.b1 = b1;
-		Data.position1 = edgePosition(a1, b1);
+		position1 = edgePosition(a1, b1);
 		Data.a2 = a2;
 		Data.b2 = b2;
-		Data.position2 = edgePosition(a2, b2);
+		position2 = edgePosition(a2, b2);
 	}
 
 	static boolean isCcw(long x0, long y0, long x1, long y1, long x2, long y2) {

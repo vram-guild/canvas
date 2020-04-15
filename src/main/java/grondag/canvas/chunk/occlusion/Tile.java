@@ -19,6 +19,8 @@ import static grondag.canvas.chunk.occlusion.Constants.LOW_TILE_PIXEL_DIAMETER;
 import static grondag.canvas.chunk.occlusion.Constants.LOW_TILE_SPAN;
 import static grondag.canvas.chunk.occlusion.Constants.MID_AXIS_SHIFT;
 import static grondag.canvas.chunk.occlusion.Constants.MID_TILE_SPAN;
+import static grondag.canvas.chunk.occlusion.Constants.OFFSET_A;
+import static grondag.canvas.chunk.occlusion.Constants.OFFSET_B;
 import static grondag.canvas.chunk.occlusion.Constants.OUTSIDE;
 import static grondag.canvas.chunk.occlusion.Constants.TILE_AXIS_SHIFT;
 import static grondag.canvas.chunk.occlusion.Data.a0;
@@ -159,50 +161,56 @@ abstract class Tile {
 	static void moveLowTileTo(int tileX, int tileY) {
 		lowTileX = tileX;
 		lowTileY = tileY;
+
+		// PERF: if have a/b tile widths can avoid shift here and multiply by tile coordinates directly
 		final int x = tileX << LOW_AXIS_SHIFT;
 		final int y = tileY << LOW_AXIS_SHIFT;
 
-		lowCornerW0 = chooseEdgeValue(position0, c0 + a0 * x + b0 * y, lowSpanA0, lowSpanB0);
-		positionLow0 = classify(lowCornerW0, lowExtent0);
+		lowCornerW0 = c0 + a0 * x + b0 * y + ((position0 & OFFSET_A) == 0 ? 0 : lowSpanA0) + ((position0 & OFFSET_B) == 0 ? 0 : lowSpanB0);
+		positionLow0 = lowCornerW0 < 0 ? OUTSIDE : lowCornerW0 >= lowExtent0 ? INSIDE : INTERSECTING;
 
-		lowCornerW1 = chooseEdgeValue(position1, c1 + a1 * x + b1 * y, lowSpanA1, lowSpanB1);
-		positionLow1 = classify(lowCornerW1, lowExtent1);
+		lowCornerW1 = c1 + a1 * x + b1 * y + ((position1 & OFFSET_A) == 0 ? 0 : lowSpanA1) + ((position1 & OFFSET_B) == 0 ? 0 : lowSpanB1);
+		positionLow1 = lowCornerW1 < 0 ? OUTSIDE : lowCornerW1 >= lowExtent1 ? INSIDE : INTERSECTING;
 
-		lowCornerW2 = chooseEdgeValue(position2, c2 + a2 * x + b2 * y, lowSpanA2, lowSpanB2);
-		positionLow2 = classify(lowCornerW2, lowExtent2);
+		lowCornerW2 = c2 + a2 * x + b2 * y + ((position2 & OFFSET_A) == 0 ? 0 : lowSpanA2) + ((position2 & OFFSET_B) == 0 ? 0 : lowSpanB2);
+		positionLow2 = lowCornerW2 < 0 ? OUTSIDE : lowCornerW2 >= lowExtent2 ? INSIDE : INTERSECTING;
 	}
+
+	// PERF: compute first tile origin as main origin, avoid another calc here
 
 	static void moveMidTileTo(int tileX, int tileY) {
 		midTileX = tileX;
 		midTileY = tileY;
+
+		// PERF: if have a/b tile widths can avoid shift here and multiply by tile coordinates directly
 		final int x = tileX << MID_AXIS_SHIFT;
 		final int y = tileY << MID_AXIS_SHIFT;
 		x0y0Hi0 = c0 + a0 * x + b0 * y;
 		x0y0Hi1 = c1 + a1 * x + b1 * y;
 		x0y0Hi2 = c2 + a2 * x + b2 * y;
 
-		hiCornerW0 = chooseEdgeValue(position0, x0y0Hi0, hiSpanA0, hiSpanB0);
-		positionHi0 = classify(hiCornerW0, hiExtent0);
+		hiCornerW0 = x0y0Hi0 + ((position0 & OFFSET_A) == 0 ? 0 : hiSpanA0) + ((position0 & OFFSET_B) == 0 ? 0 : hiSpanB0);
+		positionHi0 = hiCornerW0 < 0 ? OUTSIDE : hiCornerW0 >= hiExtent0 ? INSIDE : INTERSECTING;
 
-		hiCornerW1 = chooseEdgeValue(position1, x0y0Hi1, hiSpanA1, hiSpanB1);
-		positionHi1 = classify(hiCornerW1, hiExtent1);
+		hiCornerW1 = x0y0Hi1 + ((position1 & OFFSET_A) == 0 ? 0 : hiSpanA1) + ((position1 & OFFSET_B) == 0 ? 0 : hiSpanB1);
+		positionHi1 = hiCornerW1 < 0 ? OUTSIDE : hiCornerW1 >= hiExtent1 ? INSIDE : INTERSECTING;
 
-		hiCornerW2 = chooseEdgeValue(position2, x0y0Hi2, hiSpanA2, hiSpanB2);
-		positionHi2 = classify(hiCornerW2, hiExtent2);
+		hiCornerW2 = x0y0Hi2 + ((position2 & OFFSET_A) == 0 ? 0 : hiSpanA2) + ((position2 & OFFSET_B) == 0 ? 0 : hiSpanB2);
+		positionHi2 = hiCornerW2 < 0 ? OUTSIDE : hiCornerW2 >= hiExtent2 ? INSIDE : INTERSECTING;
 	}
 
 	static void moveLowTileToParentOrigin() {
 		lowTileX = midTileX << TILE_AXIS_SHIFT;
 		lowTileY = midTileY << TILE_AXIS_SHIFT;
 
-		lowCornerW0 = chooseEdgeValue(position0, x0y0Hi0, lowSpanA0, lowSpanB0);
-		positionLow0 = classify(lowCornerW0, lowExtent0);
+		lowCornerW0 = x0y0Hi0 + ((position0 & OFFSET_A) == 0 ? 0 : lowSpanA0) + ((position0 & OFFSET_B) == 0 ? 0 : lowSpanB0);
+		positionLow0 = lowCornerW0 < 0 ? OUTSIDE : lowCornerW0 >= lowExtent0 ? INSIDE : INTERSECTING;
 
-		lowCornerW1 = chooseEdgeValue(position1, x0y0Hi1, lowSpanA1, lowSpanB1);
-		positionLow1 = classify(lowCornerW1, lowExtent1);
+		lowCornerW1 = x0y0Hi1 + ((position1 & OFFSET_A) == 0 ? 0 : lowSpanA1) + ((position1 & OFFSET_B) == 0 ? 0 : lowSpanB1);
+		positionLow1 = lowCornerW1 < 0 ? OUTSIDE : lowCornerW1 >= lowExtent1 ? INSIDE : INTERSECTING;
 
-		lowCornerW2 = chooseEdgeValue(position2, x0y0Hi2, lowSpanA2, lowSpanB2);
-		positionLow2 = classify(lowCornerW2, lowExtent2);
+		lowCornerW2 = x0y0Hi2 + ((position2 & OFFSET_A) == 0 ? 0 : lowSpanA2) + ((position2 & OFFSET_B) == 0 ? 0 : lowSpanB2);
+		positionLow2 = lowCornerW2 < 0 ? OUTSIDE : lowCornerW2 >= lowExtent2 ? INSIDE : INTERSECTING;
 	}
 
 	static void moveMidTileRight() {
@@ -216,15 +224,15 @@ abstract class Tile {
 		hiCornerW2 += a2 + hiSpanA2;
 
 		if (updateRightPosition(position0, positionHi0)) {
-			positionHi0 = classify(hiCornerW0, hiExtent0);
+			positionHi0 = hiCornerW0 < 0 ? OUTSIDE : hiCornerW0 >= hiExtent0 ? INSIDE : INTERSECTING;
 		}
 
 		if (updateRightPosition(position1, positionHi1)) {
-			positionHi1 = classify(hiCornerW1, hiExtent1);
+			positionHi1 = hiCornerW1 < 0 ? OUTSIDE : hiCornerW1 >= hiExtent1 ? INSIDE : INTERSECTING;
 		}
 
 		if (updateRightPosition(position2, positionHi2)) {
-			positionHi2 = classify(hiCornerW2, hiExtent2);
+			positionHi2 = hiCornerW2 < 0 ? OUTSIDE : hiCornerW2 >= hiExtent2 ? INSIDE : INTERSECTING;
 		}
 	}
 
@@ -236,15 +244,15 @@ abstract class Tile {
 		lowCornerW2 += a2 + lowSpanA2;
 
 		if (updateRightPosition(position0, positionLow0)) {
-			positionLow0 = classify(lowCornerW0, lowExtent0);
+			positionLow0 = lowCornerW0 < 0 ? OUTSIDE : lowCornerW0 >= lowExtent0 ? INSIDE : INTERSECTING;
 		}
 
 		if (updateRightPosition(position1, positionLow1)) {
-			positionLow1 = classify(lowCornerW1, lowExtent1);
+			positionLow1 = lowCornerW1 < 0 ? OUTSIDE : lowCornerW1 >= lowExtent1 ? INSIDE : INTERSECTING;
 		}
 
 		if (updateRightPosition(position2, positionLow2)) {
-			positionLow2 = classify(lowCornerW2, lowExtent2);
+			positionLow2 = lowCornerW2 < 0 ? OUTSIDE : lowCornerW2 >= lowExtent2 ? INSIDE : INTERSECTING;
 		}
 	}
 
@@ -273,15 +281,15 @@ abstract class Tile {
 		hiCornerW2 -= (a2 + hiSpanA2);
 
 		if (updateLeftPosition(position0, positionHi0)) {
-			positionHi0 = classify(hiCornerW0, hiExtent0);
+			positionHi0 = hiCornerW0 < 0 ? OUTSIDE : hiCornerW0 >= hiExtent0 ? INSIDE : INTERSECTING;
 		}
 
 		if (updateLeftPosition(position1, positionHi1)) {
-			positionHi1 = classify(hiCornerW1, hiExtent1);
+			positionHi1 = hiCornerW1 < 0 ? OUTSIDE : hiCornerW1 >= hiExtent1 ? INSIDE : INTERSECTING;
 		}
 
 		if (updateLeftPosition(position2, positionHi2)) {
-			positionHi2 = classify(hiCornerW2, hiExtent2);
+			positionHi2 = hiCornerW2 < 0 ? OUTSIDE : hiCornerW2 >= hiExtent2 ? INSIDE : INTERSECTING;
 		}
 	}
 
@@ -293,15 +301,15 @@ abstract class Tile {
 		lowCornerW2 -= (a2 + lowSpanA2);
 
 		if (updateLeftPosition(position0, positionLow0)) {
-			positionLow0 = classify(lowCornerW0, lowExtent0);
+			positionLow0 = lowCornerW0 < 0 ? OUTSIDE : lowCornerW0 >= lowExtent0 ? INSIDE : INTERSECTING;
 		}
 
 		if (updateLeftPosition(position1, positionLow1)) {
-			positionLow1 = classify(lowCornerW1, lowExtent1);
+			positionLow1 = lowCornerW1 < 0 ? OUTSIDE : lowCornerW1 >= lowExtent1 ? INSIDE : INTERSECTING;
 		}
 
 		if (updateLeftPosition(position2, positionLow2)) {
-			positionLow2 = classify(lowCornerW2, lowExtent2);
+			positionLow2 = lowCornerW2 < 0 ? OUTSIDE : lowCornerW2 >= lowExtent2 ? INSIDE : INTERSECTING;
 		}
 	}
 
@@ -330,15 +338,15 @@ abstract class Tile {
 		hiCornerW2 += (b2 + hiSpanB2);
 
 		if (updateTopPosition(position0, positionHi0)) {
-			positionHi0 = classify(hiCornerW0, hiExtent0);
+			positionHi0 = hiCornerW0 < 0 ? OUTSIDE : hiCornerW0 >= hiExtent0 ? INSIDE : INTERSECTING;
 		}
 
 		if (updateTopPosition(position1, positionHi1)) {
-			positionHi1 = classify(hiCornerW1, hiExtent1);
+			positionHi1 = hiCornerW1 < 0 ? OUTSIDE : hiCornerW1 >= hiExtent1 ? INSIDE : INTERSECTING;
 		}
 
 		if (updateTopPosition(position2, positionHi2)) {
-			positionHi2 = classify(hiCornerW2, hiExtent2);
+			positionHi2 = hiCornerW2 < 0 ? OUTSIDE : hiCornerW2 >= hiExtent2 ? INSIDE : INTERSECTING;
 		}
 	}
 
@@ -350,15 +358,15 @@ abstract class Tile {
 		lowCornerW2 += (b2 + lowSpanB2);
 
 		if (updateTopPosition(position0, positionLow0)) {
-			positionLow0 = classify(lowCornerW0, lowExtent0);
+			positionLow0 = lowCornerW0 < 0 ? OUTSIDE : lowCornerW0 >= lowExtent0 ? INSIDE : INTERSECTING;
 		}
 
 		if (updateTopPosition(position1, positionLow1)) {
-			positionLow1 = classify(lowCornerW1, lowExtent1);
+			positionLow1 = lowCornerW1 < 0 ? OUTSIDE : lowCornerW1 >= lowExtent1 ? INSIDE : INTERSECTING;
 		}
 
 		if (updateTopPosition(position2, positionLow2)) {
-			positionLow2 = classify(lowCornerW2, lowExtent2);
+			positionLow2 = lowCornerW2 < 0 ? OUTSIDE : lowCornerW2 >= lowExtent2 ? INSIDE : INTERSECTING;
 		}
 	}
 
@@ -505,43 +513,6 @@ abstract class Tile {
 		positionLow0 = save_positionLow0;
 		positionLow1 = save_positionLow1;
 		positionLow2 = save_positionLow2;
-	}
-
-	private static int chooseEdgeValue(int pos, int x0y0, int spanA, int spanB) {
-		switch  (pos) {
-		case EDGE_TOP: // uses x0y0
-		case EDGE_RIGHT: // uses x0y0
-		case EDGE_TOP_RIGHT: // uses  x0y0
-			return x0y0;
-
-		case EDGE_BOTTOM: // uses x0y1
-		case EDGE_BOTTOM_RIGHT: // uses x0y1
-			return x0y0 + spanB;
-
-		case EDGE_BOTTOM_LEFT: // uses x1y1
-			return x0y0 + spanA + spanB;
-
-		case EDGE_LEFT: // uses x1y0
-		case EDGE_TOP_LEFT: // uses x1y0
-			return x0y0 + spanA;
-
-		default:
-			assert false : "Edge position invalid.";
-		return -1;
-		}
-	}
-
-	private static int classify(int w, int extent)  {
-		if (w < 0) {
-			// fully outside edge
-			return OUTSIDE;
-		} else if (w >= extent) {
-			// fully inside or touching edge
-			return INSIDE;
-		} else {
-			// intersecting - at least one pixel is set
-			return INTERSECTING;
-		}
 	}
 
 	static long buildMask(int pos, int stepA, int stepB, int wy) {
