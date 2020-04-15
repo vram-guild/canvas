@@ -74,24 +74,30 @@ public class Data {
 	static int lowSpanA0;
 	static int lowSpanB0;
 	static int lowExtent0;
+	static int lowCornerW0;
 	static int x0y0Low0;
 	static int positionLow0;
+	static int save_lowCornerW0;
 	static int save_x0y0Low0;
 	static int save_positionLow0;
 
 	static int lowSpanA1;
 	static int lowSpanB1;
 	static int lowExtent1;
+	static int lowCornerW1;
 	static int x0y0Low1;
 	static int positionLow1;
+	static int save_lowCornerW1;
 	static int save_x0y0Low1;
 	static int save_positionLow1;
 
 	static int lowSpanA2;
 	static int lowSpanB2;
 	static int lowExtent2;
+	static int lowCornerW2;
 	static int x0y0Low2;
 	static int positionLow2;
+	static int save_lowCornerW2;
 	static int save_x0y0Low2;
 	static int save_positionLow2;
 
@@ -100,8 +106,10 @@ public class Data {
 	static int hiSpanA0;
 	static int hiSpanB0;
 	static int hiExtent0;
+	static int hiCornerW0;
 	static int x0y0Hi0;
 	static int positionHi0;
+	static int save_hiCornerW0;
 	static int save_x0y0Hi0;
 	static int save_positionHi0;
 
@@ -110,8 +118,10 @@ public class Data {
 	static int hiSpanA1;
 	static int hiSpanB1;
 	static int hiExtent1;
+	static int hiCornerW1;
 	static int x0y0Hi1;
 	static int positionHi1;
+	static int save_hiCornerW1;
 	static int save_x0y0Hi1;
 	static int save_positionHi1;
 
@@ -120,8 +130,10 @@ public class Data {
 	static int hiSpanA2;
 	static int hiSpanB2;
 	static int hiExtent2;
+	static int hiCornerW2;
 	static int x0y0Hi2;
 	static int positionHi2;
+	static int save_hiCornerW2;
 	static int save_x0y0Hi2;
 	static int save_positionHi2;
 	//	static int px000;

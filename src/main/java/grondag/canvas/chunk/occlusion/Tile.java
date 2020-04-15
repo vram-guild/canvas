@@ -30,6 +30,9 @@ import static grondag.canvas.chunk.occlusion.Data.b2;
 import static grondag.canvas.chunk.occlusion.Data.c0;
 import static grondag.canvas.chunk.occlusion.Data.c1;
 import static grondag.canvas.chunk.occlusion.Data.c2;
+import static grondag.canvas.chunk.occlusion.Data.hiCornerW0;
+import static grondag.canvas.chunk.occlusion.Data.hiCornerW1;
+import static grondag.canvas.chunk.occlusion.Data.hiCornerW2;
 import static grondag.canvas.chunk.occlusion.Data.hiExtent0;
 import static grondag.canvas.chunk.occlusion.Data.hiExtent1;
 import static grondag.canvas.chunk.occlusion.Data.hiExtent2;
@@ -45,6 +48,9 @@ import static grondag.canvas.chunk.occlusion.Data.hiStepA2;
 import static grondag.canvas.chunk.occlusion.Data.hiStepB0;
 import static grondag.canvas.chunk.occlusion.Data.hiStepB1;
 import static grondag.canvas.chunk.occlusion.Data.hiStepB2;
+import static grondag.canvas.chunk.occlusion.Data.lowCornerW0;
+import static grondag.canvas.chunk.occlusion.Data.lowCornerW1;
+import static grondag.canvas.chunk.occlusion.Data.lowCornerW2;
 import static grondag.canvas.chunk.occlusion.Data.lowExtent0;
 import static grondag.canvas.chunk.occlusion.Data.lowExtent1;
 import static grondag.canvas.chunk.occlusion.Data.lowExtent2;
@@ -67,6 +73,12 @@ import static grondag.canvas.chunk.occlusion.Data.positionHi2;
 import static grondag.canvas.chunk.occlusion.Data.positionLow0;
 import static grondag.canvas.chunk.occlusion.Data.positionLow1;
 import static grondag.canvas.chunk.occlusion.Data.positionLow2;
+import static grondag.canvas.chunk.occlusion.Data.save_hiCornerW0;
+import static grondag.canvas.chunk.occlusion.Data.save_hiCornerW1;
+import static grondag.canvas.chunk.occlusion.Data.save_hiCornerW2;
+import static grondag.canvas.chunk.occlusion.Data.save_lowCornerW0;
+import static grondag.canvas.chunk.occlusion.Data.save_lowCornerW1;
+import static grondag.canvas.chunk.occlusion.Data.save_lowCornerW2;
 import static grondag.canvas.chunk.occlusion.Data.save_lowTileX;
 import static grondag.canvas.chunk.occlusion.Data.save_lowTileY;
 import static grondag.canvas.chunk.occlusion.Data.save_midTileX;
@@ -158,9 +170,15 @@ abstract class Tile {
 		x0y0Low0 = c0 + a0 * x + b0 * y;
 		x0y0Low1 = c1 + a1 * x + b1 * y;
 		x0y0Low2 = c2 + a2 * x + b2 * y;
-		positionLow0 = classify(position0, x0y0Low0, lowSpanA0, lowSpanB0, lowExtent0);
-		positionLow1 = classify(position1, x0y0Low1, lowSpanA1, lowSpanB1, lowExtent1);
-		positionLow2 = classify(position2, x0y0Low2, lowSpanA2, lowSpanB2, lowExtent2);
+
+		lowCornerW0 = chooseEdgeValue(position0, x0y0Low0, lowSpanA0, lowSpanB0);
+		positionLow0 = classify(lowCornerW0, lowExtent0);
+
+		lowCornerW1 = chooseEdgeValue(position1, x0y0Low1, lowSpanA1, lowSpanB1);
+		positionLow1 = classify(lowCornerW1, lowExtent1);
+
+		lowCornerW2 = chooseEdgeValue(position2, x0y0Low2, lowSpanA2, lowSpanB2);
+		positionLow2 = classify(lowCornerW2, lowExtent2);
 	}
 
 	static void moveMidTileTo(int tileX, int tileY) {
@@ -172,9 +190,14 @@ abstract class Tile {
 		x0y0Hi1 = c1 + a1 * x + b1 * y;
 		x0y0Hi2 = c2 + a2 * x + b2 * y;
 
-		positionHi0 = classify(position0, x0y0Hi0, hiSpanA0, hiSpanB0, hiExtent0);
-		positionHi1 = classify(position1, x0y0Hi1, hiSpanA1, hiSpanB1, hiExtent1);
-		positionHi2 = classify(position2, x0y0Hi2, hiSpanA2, hiSpanB2, hiExtent2);
+		hiCornerW0 = chooseEdgeValue(position0, x0y0Hi0, hiSpanA0, hiSpanB0);
+		positionHi0 = classify(hiCornerW0, hiExtent0);
+
+		hiCornerW1 = chooseEdgeValue(position1, x0y0Hi1, hiSpanA1, hiSpanB1);
+		positionHi1 = classify(hiCornerW1, hiExtent1);
+
+		hiCornerW2 = chooseEdgeValue(position2, x0y0Hi2, hiSpanA2, hiSpanB2);
+		positionHi2 = classify(hiCornerW2, hiExtent2);
 	}
 
 	static void moveLowTileToParentOrigin() {
@@ -183,9 +206,15 @@ abstract class Tile {
 		x0y0Low0 = x0y0Hi0;
 		x0y0Low1 = x0y0Hi1;
 		x0y0Low2 = x0y0Hi2;
-		positionLow0 = classify(position0, x0y0Low0, lowSpanA0, lowSpanB0, lowExtent0);
-		positionLow1 = classify(position1, x0y0Low1, lowSpanA1, lowSpanB1, lowExtent1);
-		positionLow2 = classify(position2, x0y0Low2, lowSpanA2, lowSpanB2, lowExtent2);
+
+		lowCornerW0 = chooseEdgeValue(position0, x0y0Low0, lowSpanA0, lowSpanB0);
+		positionLow0 = classify(lowCornerW0, lowExtent0);
+
+		lowCornerW1 = chooseEdgeValue(position1, x0y0Low1, lowSpanA1, lowSpanB1);
+		positionLow1 = classify(lowCornerW1, lowExtent1);
+
+		lowCornerW2 = chooseEdgeValue(position2, x0y0Low2, lowSpanA2, lowSpanB2);
+		positionLow2 = classify(lowCornerW2, lowExtent2);
 	}
 
 	static void moveMidTileRight() {
@@ -194,16 +223,20 @@ abstract class Tile {
 		x0y0Hi1 += a1 + hiSpanA1;
 		x0y0Hi2 += a2 + hiSpanA2;
 
+		hiCornerW0 += a0 + hiSpanA0;
+		hiCornerW1 += a1 + hiSpanA1;
+		hiCornerW2 += a2 + hiSpanA2;
+
 		if (updateRightPosition(position0, positionHi0)) {
-			positionHi0 = classify(position0, x0y0Hi0, hiSpanA0, hiSpanB0, hiExtent0);
+			positionHi0 = classify(hiCornerW0, hiExtent0);
 		}
 
 		if (updateRightPosition(position1, positionHi1)) {
-			positionHi1 = classify(position1, x0y0Hi1, hiSpanA1, hiSpanB1, hiExtent1);
+			positionHi1 = classify(hiCornerW1, hiExtent1);
 		}
 
 		if (updateRightPosition(position2, positionHi2)) {
-			positionHi2 = classify(position2, x0y0Hi2, hiSpanA2, hiSpanB2, hiExtent2);
+			positionHi2 = classify(hiCornerW2, hiExtent2);
 		}
 	}
 
@@ -213,16 +246,20 @@ abstract class Tile {
 		x0y0Low1 += a1 + lowSpanA1;
 		x0y0Low2 += a2 + lowSpanA2;
 
+		lowCornerW0 += a0 + lowSpanA0;
+		lowCornerW1 += a1 + lowSpanA1;
+		lowCornerW2 += a2 + lowSpanA2;
+
 		if (updateRightPosition(position0, positionLow0)) {
-			positionLow0 = classify(position0, x0y0Low0, lowSpanA0, lowSpanB0, lowExtent0);
+			positionLow0 = classify(lowCornerW0, lowExtent0);
 		}
 
 		if (updateRightPosition(position1, positionLow1)) {
-			positionLow1 = classify(position1, x0y0Low1, lowSpanA1, lowSpanB1, lowExtent1);
+			positionLow1 = classify(lowCornerW1, lowExtent1);
 		}
 
 		if (updateRightPosition(position2, positionLow2)) {
-			positionLow2 = classify(position2, x0y0Low2, lowSpanA2, lowSpanB2, lowExtent2);
+			positionLow2 = classify(lowCornerW2, lowExtent2);
 		}
 	}
 
@@ -246,16 +283,20 @@ abstract class Tile {
 		x0y0Hi1 -= (a1 + hiSpanA1);
 		x0y0Hi2 -= (a2 + hiSpanA2);
 
+		hiCornerW0 -= (a0 + hiSpanA0);
+		hiCornerW1 -= (a1 + hiSpanA1);
+		hiCornerW2 -= (a2 + hiSpanA2);
+
 		if (updateLeftPosition(position0, positionHi0)) {
-			positionHi0 = classify(position0, x0y0Hi0, hiSpanA0, hiSpanB0, hiExtent0);
+			positionHi0 = classify(hiCornerW0, hiExtent0);
 		}
 
 		if (updateLeftPosition(position1, positionHi1)) {
-			positionHi1 = classify(position1, x0y0Hi1, hiSpanA1, hiSpanB1, hiExtent1);
+			positionHi1 = classify(hiCornerW1, hiExtent1);
 		}
 
 		if (updateLeftPosition(position2, positionHi2)) {
-			positionHi2 = classify(position2, x0y0Hi2, hiSpanA2, hiSpanB2, hiExtent2);
+			positionHi2 = classify(hiCornerW2, hiExtent2);
 		}
 	}
 
@@ -265,16 +306,20 @@ abstract class Tile {
 		x0y0Low1 -= (a1 + lowSpanA1);
 		x0y0Low2 -= (a2 + lowSpanA2);
 
+		lowCornerW0 -= (a0 + lowSpanA0);
+		lowCornerW1 -= (a1 + lowSpanA1);
+		lowCornerW2 -= (a2 + lowSpanA2);
+
 		if (updateLeftPosition(position0, positionLow0)) {
-			positionLow0 = classify(position0, x0y0Low0, lowSpanA0, lowSpanB0, lowExtent0);
+			positionLow0 = classify(lowCornerW0, lowExtent0);
 		}
 
 		if (updateLeftPosition(position1, positionLow1)) {
-			positionLow1 = classify(position1, x0y0Low1, lowSpanA1, lowSpanB1, lowExtent1);
+			positionLow1 = classify(lowCornerW1, lowExtent1);
 		}
 
 		if (updateLeftPosition(position2, positionLow2)) {
-			positionLow2 = classify(position2, x0y0Low2, lowSpanA2, lowSpanB2, lowExtent2);
+			positionLow2 = classify(lowCornerW2, lowExtent2);
 		}
 	}
 
@@ -298,16 +343,20 @@ abstract class Tile {
 		x0y0Hi1 += (b1 + hiSpanB1);
 		x0y0Hi2 += (b2 + hiSpanB2);
 
+		hiCornerW0 += (b0 + hiSpanB0);
+		hiCornerW1 += (b1 + hiSpanB1);
+		hiCornerW2 += (b2 + hiSpanB2);
+
 		if (updateTopPosition(position0, positionHi0)) {
-			positionHi0 = classify(position0, x0y0Hi0, hiSpanA0, hiSpanB0, hiExtent0);
+			positionHi0 = classify(hiCornerW0, hiExtent0);
 		}
 
 		if (updateTopPosition(position1, positionHi1)) {
-			positionHi1 = classify(position1, x0y0Hi1, hiSpanA1, hiSpanB1, hiExtent1);
+			positionHi1 = classify(hiCornerW1, hiExtent1);
 		}
 
 		if (updateTopPosition(position2, positionHi2)) {
-			positionHi2 = classify(position2, x0y0Hi2, hiSpanA2, hiSpanB2, hiExtent2);
+			positionHi2 = classify(hiCornerW2, hiExtent2);
 		}
 	}
 
@@ -317,16 +366,20 @@ abstract class Tile {
 		x0y0Low1 += (b1 + lowSpanB1);
 		x0y0Low2 += (b2 + lowSpanB2);
 
+		lowCornerW0 += (b0 + lowSpanB0);
+		lowCornerW1 += (b1 + lowSpanB1);
+		lowCornerW2 += (b2 + lowSpanB2);
+
 		if (updateTopPosition(position0, positionLow0)) {
-			positionLow0 = classify(position0, x0y0Low0, lowSpanA0, lowSpanB0, lowExtent0);
+			positionLow0 = classify(lowCornerW0, lowExtent0);
 		}
 
 		if (updateTopPosition(position1, positionLow1)) {
-			positionLow1 = classify(position1, x0y0Low1, lowSpanA1, lowSpanB1, lowExtent1);
+			positionLow1 = classify(lowCornerW1, lowExtent1);
 		}
 
 		if (updateTopPosition(position2, positionLow2)) {
-			positionLow2 = classify(position2, x0y0Low2, lowSpanA2, lowSpanB2, lowExtent2);
+			positionLow2 = classify(lowCornerW2, lowExtent2);
 		}
 	}
 
@@ -345,6 +398,7 @@ abstract class Tile {
 	}
 
 	static long computeLowTileCoverage() {
+		// PERF: use switch somehow - only 27 possible outcomes
 		final int c0 = positionLow0;
 
 		if (c0 == OUTSIDE) {
@@ -430,6 +484,9 @@ abstract class Tile {
 		save_x0y0Hi0 = x0y0Hi0;
 		save_x0y0Hi1 = x0y0Hi1;
 		save_x0y0Hi2 = x0y0Hi2;
+		save_hiCornerW0 = hiCornerW0;
+		save_hiCornerW1 = hiCornerW1;
+		save_hiCornerW2 = hiCornerW2;
 		save_positionHi0 = positionHi0;
 		save_positionHi1 = positionHi1;
 		save_positionHi2 = positionHi2;
@@ -441,6 +498,9 @@ abstract class Tile {
 		save_x0y0Low0 = x0y0Low0;
 		save_x0y0Low1 = x0y0Low1;
 		save_x0y0Low2 = x0y0Low2;
+		save_lowCornerW0 = lowCornerW0;
+		save_lowCornerW1 = lowCornerW1;
+		save_lowCornerW2 = lowCornerW2;
 		save_positionLow0 = positionLow0;
 		save_positionLow1 = positionLow1;
 		save_positionLow2 = positionLow2;
@@ -452,6 +512,9 @@ abstract class Tile {
 		x0y0Hi0 = save_x0y0Hi0;
 		x0y0Hi1 = save_x0y0Hi1;
 		x0y0Hi2 = save_x0y0Hi2;
+		hiCornerW0 = save_hiCornerW0;
+		hiCornerW1 = save_hiCornerW1;
+		hiCornerW2 = save_hiCornerW2;
 		positionHi0 = save_positionHi0;
 		positionHi1 = save_positionHi1;
 		positionHi2 = save_positionHi2;
@@ -463,6 +526,9 @@ abstract class Tile {
 		x0y0Low0 = save_x0y0Low0;
 		x0y0Low1 = save_x0y0Low1;
 		x0y0Low2 = save_x0y0Low2;
+		lowCornerW0 = save_lowCornerW0;
+		lowCornerW1 = save_lowCornerW1;
+		lowCornerW2 = save_lowCornerW2;
 		positionLow0 = save_positionLow0;
 		positionLow1 = save_positionLow1;
 		positionLow2 = save_positionLow2;
@@ -492,9 +558,7 @@ abstract class Tile {
 		}
 	}
 
-	private static int classify(int pos, int x0y0, int spanA, int spanB, int extent)  {
-		final int w = chooseEdgeValue(pos, x0y0, spanA, spanB);
-
+	private static int classify(int w, int extent)  {
 		if (w < 0) {
 			// fully outside edge
 			return OUTSIDE;
