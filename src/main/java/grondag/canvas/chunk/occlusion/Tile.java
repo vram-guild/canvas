@@ -424,15 +424,15 @@ abstract class Tile {
 		long result = -1L;
 
 		if (c0 == INTERSECTING) {
-			result &= buildMask(position0, x0y0Low0, a0, b0,lowSpanA0, lowSpanB0);
+			result &= buildMask(position0, a0, b0, lowCornerW0);
 		}
 
 		if (c1 == INTERSECTING) {
-			result &= buildMask(position1, x0y0Low1, a1, b1,lowSpanA1, lowSpanB1);
+			result &= buildMask(position1, a1, b1, lowCornerW1);
 		}
 
 		if (c2 == INTERSECTING) {
-			result &= buildMask(position2, x0y0Low2, a2, b2,lowSpanA2, lowSpanB2);
+			result &= buildMask(position2, a2, b2, lowCornerW2);
 		}
 
 		return result;
@@ -464,15 +464,15 @@ abstract class Tile {
 		long result = -1L;
 
 		if (c0 == INTERSECTING) {
-			result &= buildMask(position0, x0y0Hi0, hiStepA0, hiStepB0, hiSpanA0, hiSpanB0);
+			result &= buildMask(position0, hiStepA0, hiStepB0, hiCornerW0);
 		}
 
 		if (c1 == INTERSECTING) {
-			result &= buildMask(position1, x0y0Hi1, hiStepA1, hiStepB1, hiSpanA1, hiSpanB1);
+			result &= buildMask(position1, hiStepA1, hiStepB1, hiCornerW1);
 		}
 
 		if (c2 == INTERSECTING) {
-			result &= buildMask(position2, x0y0Hi2, hiStepA2, hiStepB2, hiSpanA2, hiSpanB2);
+			result &= buildMask(position2, hiStepA2, hiStepB2, hiCornerW2);
 		}
 
 		return result;
@@ -571,11 +571,10 @@ abstract class Tile {
 		}
 	}
 
-	static long buildMask(int pos, int x0y0, int stepA, int stepB, int spanA, int spanB) {
+	static long buildMask(int pos, int stepA, int stepB, int wy) {
 
 		switch  (pos) {
 		case EDGE_TOP: {
-			int wy = x0y0; // bottom left will always be inside
 			assert wy >= 0;
 			assert stepB < 0;
 
@@ -592,7 +591,6 @@ abstract class Tile {
 		}
 
 		case EDGE_BOTTOM: {
-			int wy = x0y0 + spanB; // top left will always be inside
 			assert wy >= 0;
 			assert stepB > 0;
 
@@ -609,7 +607,6 @@ abstract class Tile {
 		}
 
 		case EDGE_RIGHT: {
-			final int wy = x0y0; // bottom left will always be inside
 			assert wy >= 0;
 			assert stepA < 0;
 
@@ -624,7 +621,6 @@ abstract class Tile {
 		}
 
 		case EDGE_LEFT: {
-			final int wy = x0y0 + spanA; // bottom right will always be inside
 			assert wy >= 0;
 			assert stepA > 0;
 
@@ -641,7 +637,6 @@ abstract class Tile {
 		case EDGE_TOP_LEFT: {
 			// PERF: optimize case when shallow slope and several bottom rows are full
 
-			int wy = x0y0 + spanA; // bottom right will always be inside
 			assert wy >= 0;
 			assert stepB < 0;
 			assert stepA > 0;
@@ -664,7 +659,6 @@ abstract class Tile {
 		}
 
 		case EDGE_BOTTOM_LEFT: {
-			int wy = x0y0 + spanA + spanB; // top right will always be inside
 			assert wy >= 0;
 			assert stepB > 0;
 			assert stepA > 0;
@@ -695,7 +689,6 @@ abstract class Tile {
 			// ax + by + c = 0 so y at intersection will be y = -(ax + c) / b
 			// Exploit step-wise nature of a/b here to avoid computing the first term
 			// logic in other cases is similar
-			int wy = x0y0; // bottom left will always be inside
 			assert wy >= 0;
 			assert stepB < 0;
 			assert stepA < 0;
@@ -717,7 +710,6 @@ abstract class Tile {
 		case EDGE_BOTTOM_RIGHT: {
 			// PERF: optimize case when shallow slope and several top rows are full
 
-			int wy = x0y0 + spanB; // top left will always be inside
 			assert wy >= 0;
 			assert stepB > 0;
 			assert stepA < 0;
