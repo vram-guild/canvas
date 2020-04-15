@@ -92,15 +92,9 @@ import static grondag.canvas.chunk.occlusion.Data.save_positionLow2;
 import static grondag.canvas.chunk.occlusion.Data.save_x0y0Hi0;
 import static grondag.canvas.chunk.occlusion.Data.save_x0y0Hi1;
 import static grondag.canvas.chunk.occlusion.Data.save_x0y0Hi2;
-import static grondag.canvas.chunk.occlusion.Data.save_x0y0Low0;
-import static grondag.canvas.chunk.occlusion.Data.save_x0y0Low1;
-import static grondag.canvas.chunk.occlusion.Data.save_x0y0Low2;
 import static grondag.canvas.chunk.occlusion.Data.x0y0Hi0;
 import static grondag.canvas.chunk.occlusion.Data.x0y0Hi1;
 import static grondag.canvas.chunk.occlusion.Data.x0y0Hi2;
-import static grondag.canvas.chunk.occlusion.Data.x0y0Low0;
-import static grondag.canvas.chunk.occlusion.Data.x0y0Low1;
-import static grondag.canvas.chunk.occlusion.Data.x0y0Low2;
 
 abstract class Tile {
 	private Tile() {}
@@ -167,17 +161,14 @@ abstract class Tile {
 		lowTileY = tileY;
 		final int x = tileX << LOW_AXIS_SHIFT;
 		final int y = tileY << LOW_AXIS_SHIFT;
-		x0y0Low0 = c0 + a0 * x + b0 * y;
-		x0y0Low1 = c1 + a1 * x + b1 * y;
-		x0y0Low2 = c2 + a2 * x + b2 * y;
 
-		lowCornerW0 = chooseEdgeValue(position0, x0y0Low0, lowSpanA0, lowSpanB0);
+		lowCornerW0 = chooseEdgeValue(position0, c0 + a0 * x + b0 * y, lowSpanA0, lowSpanB0);
 		positionLow0 = classify(lowCornerW0, lowExtent0);
 
-		lowCornerW1 = chooseEdgeValue(position1, x0y0Low1, lowSpanA1, lowSpanB1);
+		lowCornerW1 = chooseEdgeValue(position1, c1 + a1 * x + b1 * y, lowSpanA1, lowSpanB1);
 		positionLow1 = classify(lowCornerW1, lowExtent1);
 
-		lowCornerW2 = chooseEdgeValue(position2, x0y0Low2, lowSpanA2, lowSpanB2);
+		lowCornerW2 = chooseEdgeValue(position2, c2 + a2 * x + b2 * y, lowSpanA2, lowSpanB2);
 		positionLow2 = classify(lowCornerW2, lowExtent2);
 	}
 
@@ -203,17 +194,14 @@ abstract class Tile {
 	static void moveLowTileToParentOrigin() {
 		lowTileX = midTileX << TILE_AXIS_SHIFT;
 		lowTileY = midTileY << TILE_AXIS_SHIFT;
-		x0y0Low0 = x0y0Hi0;
-		x0y0Low1 = x0y0Hi1;
-		x0y0Low2 = x0y0Hi2;
 
-		lowCornerW0 = chooseEdgeValue(position0, x0y0Low0, lowSpanA0, lowSpanB0);
+		lowCornerW0 = chooseEdgeValue(position0, x0y0Hi0, lowSpanA0, lowSpanB0);
 		positionLow0 = classify(lowCornerW0, lowExtent0);
 
-		lowCornerW1 = chooseEdgeValue(position1, x0y0Low1, lowSpanA1, lowSpanB1);
+		lowCornerW1 = chooseEdgeValue(position1, x0y0Hi1, lowSpanA1, lowSpanB1);
 		positionLow1 = classify(lowCornerW1, lowExtent1);
 
-		lowCornerW2 = chooseEdgeValue(position2, x0y0Low2, lowSpanA2, lowSpanB2);
+		lowCornerW2 = chooseEdgeValue(position2, x0y0Hi2, lowSpanA2, lowSpanB2);
 		positionLow2 = classify(lowCornerW2, lowExtent2);
 	}
 
@@ -242,9 +230,6 @@ abstract class Tile {
 
 	static void moveLowTileRight() {
 		++lowTileX;
-		x0y0Low0 += a0 + lowSpanA0;
-		x0y0Low1 += a1 + lowSpanA1;
-		x0y0Low2 += a2 + lowSpanA2;
 
 		lowCornerW0 += a0 + lowSpanA0;
 		lowCornerW1 += a1 + lowSpanA1;
@@ -302,9 +287,6 @@ abstract class Tile {
 
 	static void moveLowTileLeft() {
 		--lowTileX;
-		x0y0Low0 -= (a0 + lowSpanA0);
-		x0y0Low1 -= (a1 + lowSpanA1);
-		x0y0Low2 -= (a2 + lowSpanA2);
 
 		lowCornerW0 -= (a0 + lowSpanA0);
 		lowCornerW1 -= (a1 + lowSpanA1);
@@ -362,9 +344,6 @@ abstract class Tile {
 
 	static void moveLowTileUp() {
 		++lowTileY;
-		x0y0Low0 += (b0 + lowSpanB0);
-		x0y0Low1 += (b1 + lowSpanB1);
-		x0y0Low2 += (b2 + lowSpanB2);
 
 		lowCornerW0 += (b0 + lowSpanB0);
 		lowCornerW1 += (b1 + lowSpanB1);
@@ -495,9 +474,6 @@ abstract class Tile {
 	static void pushLowTile() {
 		save_lowTileX = lowTileX;
 		save_lowTileY = lowTileY;
-		save_x0y0Low0 = x0y0Low0;
-		save_x0y0Low1 = x0y0Low1;
-		save_x0y0Low2 = x0y0Low2;
 		save_lowCornerW0 = lowCornerW0;
 		save_lowCornerW1 = lowCornerW1;
 		save_lowCornerW2 = lowCornerW2;
@@ -523,9 +499,6 @@ abstract class Tile {
 	static void popLowTile() {
 		lowTileX = save_lowTileX;
 		lowTileY = save_lowTileY;
-		x0y0Low0 = save_x0y0Low0;
-		x0y0Low1 = save_x0y0Low1;
-		x0y0Low2 = save_x0y0Low2;
 		lowCornerW0 = save_lowCornerW0;
 		lowCornerW1 = save_lowCornerW1;
 		lowCornerW2 = save_lowCornerW2;
