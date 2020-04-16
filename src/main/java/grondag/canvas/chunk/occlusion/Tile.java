@@ -1,5 +1,7 @@
 package grondag.canvas.chunk.occlusion;
 
+import static grondag.canvas.chunk.occlusion.Constants.A_POSITIVE;
+import static grondag.canvas.chunk.occlusion.Constants.B_POSITIVE;
 import static grondag.canvas.chunk.occlusion.Constants.EDGE_BOTTOM;
 import static grondag.canvas.chunk.occlusion.Constants.EDGE_BOTTOM_LEFT;
 import static grondag.canvas.chunk.occlusion.Constants.EDGE_BOTTOM_RIGHT;
@@ -14,8 +16,6 @@ import static grondag.canvas.chunk.occlusion.Constants.EDGE_TOP_LEFT;
 import static grondag.canvas.chunk.occlusion.Constants.EDGE_TOP_RIGHT;
 import static grondag.canvas.chunk.occlusion.Constants.INSIDE;
 import static grondag.canvas.chunk.occlusion.Constants.INTERSECTING;
-import static grondag.canvas.chunk.occlusion.Constants.OFFSET_A;
-import static grondag.canvas.chunk.occlusion.Constants.OFFSET_B;
 import static grondag.canvas.chunk.occlusion.Constants.OUTSIDE;
 import static grondag.canvas.chunk.occlusion.Constants.TILE_AXIS_SHIFT;
 import static grondag.canvas.chunk.occlusion.Data.a0;
@@ -91,16 +91,16 @@ abstract class Tile {
 		lowTileX = midTileX << TILE_AXIS_SHIFT;
 		lowTileY = midTileY << TILE_AXIS_SHIFT;
 
-		int highW = hiCornerW0 - ((position0 & OFFSET_A) == 0 ? 0 : hiSpanA0) - ((position0 & OFFSET_B) == 0 ? 0 : hiSpanB0);
-		lowCornerW0 = highW + ((position0 & OFFSET_A) == 0 ? 0 : lowSpanA0) + ((position0 & OFFSET_B) == 0 ? 0 : lowSpanB0);
+		int highW = hiCornerW0 - ((position0 & A_POSITIVE) == 0 ? 0 : hiSpanA0) - ((position0 & B_POSITIVE) == 0 ? 0 : hiSpanB0);
+		lowCornerW0 = highW + ((position0 & A_POSITIVE) == 0 ? 0 : lowSpanA0) + ((position0 & B_POSITIVE) == 0 ? 0 : lowSpanB0);
 		positionLow0 = lowCornerW0 < 0 ? OUTSIDE : lowCornerW0 >= lowExtent0 ? INSIDE : INTERSECTING;
 
-		highW = hiCornerW1 - ((position1 & OFFSET_A) == 0 ? 0 : hiSpanA1) - ((position1 & OFFSET_B) == 0 ? 0 : hiSpanB1);
-		lowCornerW1 = highW + ((position1 & OFFSET_A) == 0 ? 0 : lowSpanA1) + ((position1 & OFFSET_B) == 0 ? 0 : lowSpanB1);
+		highW = hiCornerW1 - ((position1 & A_POSITIVE) == 0 ? 0 : hiSpanA1) - ((position1 & B_POSITIVE) == 0 ? 0 : hiSpanB1);
+		lowCornerW1 = highW + ((position1 & A_POSITIVE) == 0 ? 0 : lowSpanA1) + ((position1 & B_POSITIVE) == 0 ? 0 : lowSpanB1);
 		positionLow1 = lowCornerW1 < 0 ? OUTSIDE : lowCornerW1 >= lowExtent1 ? INSIDE : INTERSECTING;
 
-		highW = hiCornerW2 - ((position2 & OFFSET_A) == 0 ? 0 : hiSpanA2) - ((position2 & OFFSET_B) == 0 ? 0 : hiSpanB2);
-		lowCornerW2 = highW + ((position2 & OFFSET_A) == 0 ? 0 : lowSpanA2) + ((position2 & OFFSET_B) == 0 ? 0 : lowSpanB2);
+		highW = hiCornerW2 - ((position2 & A_POSITIVE) == 0 ? 0 : hiSpanA2) - ((position2 & B_POSITIVE) == 0 ? 0 : hiSpanB2);
+		lowCornerW2 = highW + ((position2 & A_POSITIVE) == 0 ? 0 : lowSpanA2) + ((position2 & B_POSITIVE) == 0 ? 0 : lowSpanB2);
 		positionLow2 = lowCornerW2 < 0 ? OUTSIDE : lowCornerW2 >= lowExtent2 ? INSIDE : INTERSECTING;
 	}
 

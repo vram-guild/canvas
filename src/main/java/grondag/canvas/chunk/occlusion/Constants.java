@@ -84,42 +84,37 @@ public class Constants {
 	static final int COVERAGE_NONE_OR_SOME = 0;
 	static final int COVERAGE_FULL = 1;
 
-	static final int OFFSET_NONE = 0;
-	static final int OFFSET_A = 4;
-	static final int OFFSET_B = 8;
-	static final int OFFSET_AB = OFFSET_A | OFFSET_B;
 
 	// upper two bits determine offset
 	// lower two bits disambiguate within
 
-	static final int EDGE_TOP = OFFSET_NONE | 0;
-	static final int EDGE_RIGHT = OFFSET_NONE | 1;
-	static final int EDGE_TOP_RIGHT = OFFSET_NONE | 2;
-	static final int EDGE_LEFT = OFFSET_A | 0;
-	static final int EDGE_TOP_LEFT = OFFSET_A | 1;
-	static final int EDGE_BOTTOM = OFFSET_B | 0;
-	static final int EDGE_BOTTOM_RIGHT = OFFSET_B | 1;
-	static final int EDGE_BOTTOM_LEFT = OFFSET_AB | 0;
+	//	static final int EDGE_TOP = OFFSET_NONE | 0;
+	//	static final int EDGE_RIGHT = OFFSET_NONE | 1;
+	//	static final int EDGE_TOP_RIGHT = OFFSET_NONE | 2;
+	//	static final int EDGE_LEFT = OFFSET_A | 0;
+	//	static final int EDGE_TOP_LEFT = OFFSET_A | 1;
+	//	static final int EDGE_BOTTOM = OFFSET_B | 0;
+	//	static final int EDGE_BOTTOM_RIGHT = OFFSET_B | 1;
+	//	static final int EDGE_BOTTOM_LEFT = OFFSET_AB | 0;
 
-	// packed into single long indexed by a / b (signum + 1) for LOR
-	static final long POSITION_LOOKUP =
-			// b < 0
-			EDGE_TOP_RIGHT
-			| (EDGE_TOP  << 4)
-			| (EDGE_TOP_LEFT << 8)
-			// skip - max a value is 2
+	static final int B_NEGATIVE = 0;
+	static final int B_ZERO = 4;
+	static final int B_POSITIVE = 8;
 
-			// b == 0
-			| (EDGE_RIGHT << 16)
-			// skip - can't  have both a and b == 0
-			| (EDGE_LEFT << 24)
-			// skip - max a value is 2
+	static final int A_NEGATIVE = 0;
+	static final int A_ZERO = 1;
+	static final int A_POSITIVE = 2;
 
-			// b > 0
-			| ((long) EDGE_BOTTOM_RIGHT << 32)
-			| ((long) EDGE_BOTTOM << 36)
-			| ((long) EDGE_BOTTOM_LEFT << 40);
+	static final int EDGE_TOP = B_NEGATIVE | A_ZERO;
+	static final int EDGE_BOTTOM = B_POSITIVE | A_ZERO;
 
+	static final int EDGE_RIGHT = B_ZERO | A_NEGATIVE;
+	static final int EDGE_LEFT = B_ZERO | A_POSITIVE;
+
+	static final int EDGE_TOP_RIGHT = B_NEGATIVE | A_NEGATIVE;
+	static final int EDGE_TOP_LEFT = B_NEGATIVE | A_POSITIVE;
+	static final int EDGE_BOTTOM_RIGHT = B_POSITIVE | A_NEGATIVE;
+	static final int EDGE_BOTTOM_LEFT = B_POSITIVE | A_POSITIVE;
 
 	static final int EDGE_FLAGS_TOP = (1 << EDGE_TOP) | (1 << EDGE_TOP_LEFT) | (1 << EDGE_TOP_RIGHT);
 	static final int EDGE_FLAGS_BOTTOM = (1 << EDGE_BOTTOM) | (1 << EDGE_BOTTOM_LEFT) | (1 << EDGE_BOTTOM_RIGHT);

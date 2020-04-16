@@ -1,16 +1,10 @@
 package grondag.canvas.chunk.occlusion;
 
+import static grondag.canvas.chunk.occlusion.Constants.A_POSITIVE;
 import static grondag.canvas.chunk.occlusion.Constants.BOUNDS_IN;
 import static grondag.canvas.chunk.occlusion.Constants.BOUNDS_NEEDS_CLIP;
 import static grondag.canvas.chunk.occlusion.Constants.BOUNDS_OUTSIDE_OR_TOO_SMALL;
-import static grondag.canvas.chunk.occlusion.Constants.EDGE_BOTTOM;
-import static grondag.canvas.chunk.occlusion.Constants.EDGE_BOTTOM_LEFT;
-import static grondag.canvas.chunk.occlusion.Constants.EDGE_BOTTOM_RIGHT;
-import static grondag.canvas.chunk.occlusion.Constants.EDGE_LEFT;
-import static grondag.canvas.chunk.occlusion.Constants.EDGE_RIGHT;
-import static grondag.canvas.chunk.occlusion.Constants.EDGE_TOP;
-import static grondag.canvas.chunk.occlusion.Constants.EDGE_TOP_LEFT;
-import static grondag.canvas.chunk.occlusion.Constants.EDGE_TOP_RIGHT;
+import static grondag.canvas.chunk.occlusion.Constants.B_POSITIVE;
 import static grondag.canvas.chunk.occlusion.Constants.GUARD_HEIGHT;
 import static grondag.canvas.chunk.occlusion.Constants.GUARD_SIZE;
 import static grondag.canvas.chunk.occlusion.Constants.GUARD_WIDTH;
@@ -25,10 +19,7 @@ import static grondag.canvas.chunk.occlusion.Constants.MAX_PIXEL_Y;
 import static grondag.canvas.chunk.occlusion.Constants.MID_AXIS_MASK;
 import static grondag.canvas.chunk.occlusion.Constants.MID_AXIS_SHIFT;
 import static grondag.canvas.chunk.occlusion.Constants.MID_TILE_SPAN;
-import static grondag.canvas.chunk.occlusion.Constants.OFFSET_A;
-import static grondag.canvas.chunk.occlusion.Constants.OFFSET_B;
 import static grondag.canvas.chunk.occlusion.Constants.OUTSIDE;
-import static grondag.canvas.chunk.occlusion.Constants.POSITION_LOOKUP;
 import static grondag.canvas.chunk.occlusion.Constants.PRECISE_HEIGHT;
 import static grondag.canvas.chunk.occlusion.Constants.PRECISE_HEIGHT_CLAMP;
 import static grondag.canvas.chunk.occlusion.Constants.PRECISE_PIXEL_CENTER;
@@ -262,13 +253,11 @@ public final class Triangle {
 		final int a2 = (y2 - y0);
 		final int b2 = (x0 - x2);
 
-		position0 = edgePosition(a0, b0);
-		position1 = edgePosition(a1, b1);
-		position2 = edgePosition(a2, b2);
-
-		assert position0 == edgePosition2(a0, b0);
-		assert position1 == edgePosition2(a1, b1);
-		assert position2 == edgePosition2(a2, b2);
+		// signum of a and b, b is shifted left two bits to derive the edge constant directly
+		// the edge constants are specifically formulated to allow this, inline, avoids any pointer chases
+		position0 = ((((a0 >> 31) | (-a0 >>> 31)) + 1) | ((((b0 >> 31) | (-b0 >>> 31)) + 1) << 2));
+		position1 = ((((a1 >> 31) | (-a1 >>> 31)) + 1) | ((((b1 >> 31) | (-b1 >>> 31)) + 1) << 2));
+		position2 = ((((a2 >> 31) | (-a2 >>> 31)) + 1) | ((((b2 >> 31) | (-b2 >>> 31)) + 1) << 2));
 
 		// PERF: derive from position
 		final boolean isTopLeft0 = a0 > 0 || (a0 == 0 && b0 < 0);
@@ -298,18 +287,18 @@ public final class Triangle {
 			final int ox = (minPixelX & LOW_AXIS_MASK) << PRECISION_BITS;
 			final int oy = (minPixelY & LOW_AXIS_MASK) << PRECISION_BITS;
 
-			long x = x0 - ((position0 & OFFSET_A) == 0 ? ox : (ox + (7 << PRECISION_BITS)));
-			long y = y0 - ((position0 & OFFSET_B) == 0 ? oy : (oy + (7 << PRECISION_BITS)));
+			long x = x0 - ((position0 & A_POSITIVE) == 0 ? ox : (ox + (7 << PRECISION_BITS)));
+			long y = y0 - ((position0 & B_POSITIVE) == 0 ? oy : (oy + (7 << PRECISION_BITS)));
 			lowCornerW0 = (int) ((-a0 * x - b0 * y + (isTopLeft0 ? PRECISE_PIXEL_CENTER : (PRECISE_PIXEL_CENTER - 1))) >> PRECISION_BITS);
 			positionLow0 = lowCornerW0 < 0 ? OUTSIDE : lowCornerW0 >= lowExtent0 ? INSIDE : INTERSECTING;
 
-			x = x1 - ((position1 & OFFSET_A) == 0 ? ox : (ox + (7 << PRECISION_BITS)));
-			y = y1 - ((position1 & OFFSET_B) == 0 ? oy : (oy + (7 << PRECISION_BITS)));
+			x = x1 - ((position1 & A_POSITIVE) == 0 ? ox : (ox + (7 << PRECISION_BITS)));
+			y = y1 - ((position1 & B_POSITIVE) == 0 ? oy : (oy + (7 << PRECISION_BITS)));
 			lowCornerW1 = (int) ((-a1 * x - b1 * y + (isTopLeft1 ? PRECISE_PIXEL_CENTER : (PRECISE_PIXEL_CENTER - 1))) >> PRECISION_BITS);
 			positionLow1 = lowCornerW1 < 0 ? OUTSIDE : lowCornerW1 >= lowExtent1 ? INSIDE : INTERSECTING;
 
-			x = x2 - ((position2 & OFFSET_A) == 0 ? ox : (ox + (7 << PRECISION_BITS)));
-			y = y2 - ((position2 & OFFSET_B) == 0 ? oy : (oy + (7 << PRECISION_BITS)));
+			x = x2 - ((position2 & A_POSITIVE) == 0 ? ox : (ox + (7 << PRECISION_BITS)));
+			y = y2 - ((position2 & B_POSITIVE) == 0 ? oy : (oy + (7 << PRECISION_BITS)));
 			lowCornerW2 = (int) ((-a2 * x - b2 * y + (isTopLeft2 ? PRECISE_PIXEL_CENTER : (PRECISE_PIXEL_CENTER - 1))) >> PRECISION_BITS);
 			positionLow2 = lowCornerW2 < 0 ? OUTSIDE : lowCornerW2 >= lowExtent2 ? INSIDE : INTERSECTING;
 
@@ -340,18 +329,18 @@ public final class Triangle {
 			final int ox = (minPixelX & MID_AXIS_MASK) << PRECISION_BITS;
 			final int oy = (minPixelY & MID_AXIS_MASK) << PRECISION_BITS;
 
-			long x = x0 - ((position0 & OFFSET_A) == 0 ? ox : (ox + (63 << PRECISION_BITS)));
-			long y = y0 - ((position0 & OFFSET_B) == 0 ? oy : (oy + (63 << PRECISION_BITS)));
+			long x = x0 - ((position0 & A_POSITIVE) == 0 ? ox : (ox + (63 << PRECISION_BITS)));
+			long y = y0 - ((position0 & B_POSITIVE) == 0 ? oy : (oy + (63 << PRECISION_BITS)));
 			hiCornerW0 = (int) ((-a0 * x - b0 * y + (isTopLeft0 ? PRECISE_PIXEL_CENTER : (PRECISE_PIXEL_CENTER - 1))) >> PRECISION_BITS);
 			positionHi0 = hiCornerW0 < 0 ? OUTSIDE : hiCornerW0 >= hiExtent0 ? INSIDE : INTERSECTING;
 
-			x = x1 - ((position1 & OFFSET_A) == 0 ? ox : (ox + (63 << PRECISION_BITS)));
-			y = y1 - ((position1 & OFFSET_B) == 0 ? oy : (oy + (63 << PRECISION_BITS)));
+			x = x1 - ((position1 & A_POSITIVE) == 0 ? ox : (ox + (63 << PRECISION_BITS)));
+			y = y1 - ((position1 & B_POSITIVE) == 0 ? oy : (oy + (63 << PRECISION_BITS)));
 			hiCornerW1 = (int) ((-a1 * x - b1 * y + (isTopLeft1 ? PRECISE_PIXEL_CENTER : (PRECISE_PIXEL_CENTER - 1))) >> PRECISION_BITS);
 			positionHi1 = hiCornerW1 < 0 ? OUTSIDE : hiCornerW1 >= hiExtent1 ? INSIDE : INTERSECTING;
 
-			x = x2 - ((position2 & OFFSET_A) == 0 ? ox : (ox + (63 << PRECISION_BITS)));
-			y = y2 - ((position2 & OFFSET_B) == 0 ? oy : (oy + (63 << PRECISION_BITS)));
+			x = x2 - ((position2 & A_POSITIVE) == 0 ? ox : (ox + (63 << PRECISION_BITS)));
+			y = y2 - ((position2 & B_POSITIVE) == 0 ? oy : (oy + (63 << PRECISION_BITS)));
 			hiCornerW2 = (int) ((-a2 * x - b2 * y + (isTopLeft2 ? PRECISE_PIXEL_CENTER : (PRECISE_PIXEL_CENTER - 1))) >> PRECISION_BITS);
 			positionHi2 = hiCornerW2 < 0 ? OUTSIDE : hiCornerW2 >= hiExtent2 ? INSIDE : INTERSECTING;
 		}
@@ -366,23 +355,5 @@ public final class Triangle {
 
 	static boolean isCcw(long x0, long y0, long x1, long y1, long x2, long y2) {
 		return (x1 - x0) * (y2 - y0) - (x2 - x0) * (y1 - y0) > 0L;
-	}
-
-	static int edgePosition2(int a, int b) {
-		return (int) (POSITION_LOOKUP >> (((((a >> 31) | (-a >>> 31)) + 1) << 2) | ((((b >> 31) | (-b >>> 31)) + 1) <<  4))) & 0xF;
-	}
-
-	static int edgePosition(int a, int b) {
-		if (a == 0) {
-			return b > 0 ? EDGE_BOTTOM : EDGE_TOP;
-		} else if (b == 0) {
-			return a > 0 ? EDGE_LEFT : EDGE_RIGHT;
-		}
-
-		if (a > 0) {
-			return b > 0 ? EDGE_BOTTOM_LEFT : EDGE_TOP_LEFT;
-		}  else { // a < 0
-			return b > 0 ? EDGE_BOTTOM_RIGHT : EDGE_TOP_RIGHT;
-		}
 	}
 }
