@@ -47,17 +47,14 @@ public class Data {
 
 	static int a0;
 	static int b0;
-	static int c0;
 	static int position0;
 
 	static int a1;
 	static int b1;
-	static int c1;
 	static int position1;
 
 	static int a2;
 	static int b2;
-	static int c2;
 	static int position2;
 
 	static int midTileX;

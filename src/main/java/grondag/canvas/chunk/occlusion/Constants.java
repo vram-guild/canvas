@@ -10,7 +10,9 @@ public class Constants {
 	static final int TILE_PIXEL_INDEX_MASK = TILE_PIXEL_DIAMETER - 1;
 	static final int TILE_PIXEL_INVERSE_MASK = ~TILE_PIXEL_INDEX_MASK;
 	static final int LOW_AXIS_SHIFT = TILE_AXIS_SHIFT;
+	static final int LOW_AXIS_MASK = ~((1 << LOW_AXIS_SHIFT) - 1);
 	static final int MID_AXIS_SHIFT = TILE_AXIS_SHIFT * 2;
+	static final int MID_AXIS_MASK = ~((1 << MID_AXIS_SHIFT) - 1);
 	static final int MID_INDEX_SHIFT = LOW_AXIS_SHIFT * 2;
 	static final int TOP_INDEX_SHIFT = MID_INDEX_SHIFT * 2;
 

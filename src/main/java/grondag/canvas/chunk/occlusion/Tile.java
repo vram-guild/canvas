@@ -14,11 +14,6 @@ import static grondag.canvas.chunk.occlusion.Constants.EDGE_TOP_LEFT;
 import static grondag.canvas.chunk.occlusion.Constants.EDGE_TOP_RIGHT;
 import static grondag.canvas.chunk.occlusion.Constants.INSIDE;
 import static grondag.canvas.chunk.occlusion.Constants.INTERSECTING;
-import static grondag.canvas.chunk.occlusion.Constants.LOW_AXIS_SHIFT;
-import static grondag.canvas.chunk.occlusion.Constants.LOW_TILE_PIXEL_DIAMETER;
-import static grondag.canvas.chunk.occlusion.Constants.LOW_TILE_SPAN;
-import static grondag.canvas.chunk.occlusion.Constants.MID_AXIS_SHIFT;
-import static grondag.canvas.chunk.occlusion.Constants.MID_TILE_SPAN;
 import static grondag.canvas.chunk.occlusion.Constants.OFFSET_A;
 import static grondag.canvas.chunk.occlusion.Constants.OFFSET_B;
 import static grondag.canvas.chunk.occlusion.Constants.OUTSIDE;
@@ -29,9 +24,6 @@ import static grondag.canvas.chunk.occlusion.Data.a2;
 import static grondag.canvas.chunk.occlusion.Data.b0;
 import static grondag.canvas.chunk.occlusion.Data.b1;
 import static grondag.canvas.chunk.occlusion.Data.b2;
-import static grondag.canvas.chunk.occlusion.Data.c0;
-import static grondag.canvas.chunk.occlusion.Data.c1;
-import static grondag.canvas.chunk.occlusion.Data.c2;
 import static grondag.canvas.chunk.occlusion.Data.hiCornerW0;
 import static grondag.canvas.chunk.occlusion.Data.hiCornerW1;
 import static grondag.canvas.chunk.occlusion.Data.hiCornerW2;
@@ -94,101 +86,6 @@ import static grondag.canvas.chunk.occlusion.Data.save_positionLow2;
 
 abstract class Tile {
 	private Tile() {}
-
-	static void prepareLowTile() {
-		lowSpanA0 = a0 * LOW_TILE_SPAN;
-		lowSpanB0 = b0 * LOW_TILE_SPAN;
-		lowExtent0 = Math.abs(lowSpanA0) + Math.abs(lowSpanB0);
-
-		lowSpanA1 = a1 * LOW_TILE_SPAN;
-		lowSpanB1 = b1 * LOW_TILE_SPAN;
-		lowExtent1 = Math.abs(lowSpanA1) + Math.abs(lowSpanB1);
-
-		lowSpanA2 = a2 * LOW_TILE_SPAN;
-		lowSpanB2 = b2 * LOW_TILE_SPAN;
-		lowExtent2 = Math.abs(lowSpanA2) + Math.abs(lowSpanB2);
-	}
-
-	/**
-	 *
-	 * Edge functions are line equations: ax + by + c = 0 where c is the origin value
-	 * a and b are normal to the line/edge.
-	 *
-	 * Distance from point to line is given by (ax + by + c) / magnitude
-	 * where magnitude is sqrt(a^2 + b^2).
-	 *
-	 * A tile is fully outside the edge if signed distance less than -extent, where
-	 * extent is the 7x7 diagonal vector projected onto the edge normal.
-	 *
-	 * The length of the extent is given by  (|a| + |b|) * 7 / magnitude.
-	 *
-	 * Given that magnitude is a common denominator of both the signed distance and the extent
-	 * we can avoid computing square root and compare the weight directly with the un-normalized  extent.
-	 *
-	 * In summary,  if extent e = (|a| + |b|) * 7 and w = ax + by + c then
-	 *    when w < -e  tile is fully outside edge
-	 *    when w >= 0 tile is fully inside edge (or touching)
-	 *    else (-e <= w < 0) tile is intersection (at least one pixel is covered.
-	 *
-	 * For background, see Real Time Rendering, 4th Ed.  Sec 23.1 on Rasterization, esp. Figure 23.3
-	 */
-	static void prepareHiTile() {
-		hiSpanA0 = a0 * MID_TILE_SPAN;
-		hiSpanB0 = b0 * MID_TILE_SPAN;
-		hiStepA0 = a0 * LOW_TILE_PIXEL_DIAMETER;
-		hiStepB0 = b0 * LOW_TILE_PIXEL_DIAMETER;
-		hiExtent0 = Math.abs(hiSpanA0) + Math.abs(hiSpanB0);
-
-		hiSpanA1 = a1 * MID_TILE_SPAN;
-		hiSpanB1 = b1 * MID_TILE_SPAN;
-		hiStepA1 = a1 * LOW_TILE_PIXEL_DIAMETER;
-		hiStepB1 = b1 * LOW_TILE_PIXEL_DIAMETER;
-		hiExtent1 = Math.abs(hiSpanA1) + Math.abs(hiSpanB1);
-
-		hiSpanA2 = a2 * MID_TILE_SPAN;
-		hiSpanB2 = b2 * MID_TILE_SPAN;
-		hiStepA2 = a2 * LOW_TILE_PIXEL_DIAMETER;
-		hiStepB2 = b2 * LOW_TILE_PIXEL_DIAMETER;
-		hiExtent2 = Math.abs(hiSpanA2) + Math.abs(hiSpanB2);
-	}
-
-	static void moveLowTileTo(int tileX, int tileY) {
-		lowTileX = tileX;
-		lowTileY = tileY;
-
-		// PERF: if have a/b tile widths can avoid shift here and multiply by tile coordinates directly
-		final int x = tileX << LOW_AXIS_SHIFT;
-		final int y = tileY << LOW_AXIS_SHIFT;
-
-		lowCornerW0 = c0 + a0 * x + b0 * y + ((position0 & OFFSET_A) == 0 ? 0 : lowSpanA0) + ((position0 & OFFSET_B) == 0 ? 0 : lowSpanB0);
-		positionLow0 = lowCornerW0 < 0 ? OUTSIDE : lowCornerW0 >= lowExtent0 ? INSIDE : INTERSECTING;
-
-		lowCornerW1 = c1 + a1 * x + b1 * y + ((position1 & OFFSET_A) == 0 ? 0 : lowSpanA1) + ((position1 & OFFSET_B) == 0 ? 0 : lowSpanB1);
-		positionLow1 = lowCornerW1 < 0 ? OUTSIDE : lowCornerW1 >= lowExtent1 ? INSIDE : INTERSECTING;
-
-		lowCornerW2 = c2 + a2 * x + b2 * y + ((position2 & OFFSET_A) == 0 ? 0 : lowSpanA2) + ((position2 & OFFSET_B) == 0 ? 0 : lowSpanB2);
-		positionLow2 = lowCornerW2 < 0 ? OUTSIDE : lowCornerW2 >= lowExtent2 ? INSIDE : INTERSECTING;
-	}
-
-	// PERF: compute first tile origin as main origin, avoid another calc here
-
-	static void moveMidTileTo(int tileX, int tileY) {
-		midTileX = tileX;
-		midTileY = tileY;
-
-		// PERF: if have a/b tile widths can avoid shift here and multiply by tile coordinates directly
-		final int x = tileX << MID_AXIS_SHIFT;
-		final int y = tileY << MID_AXIS_SHIFT;
-
-		hiCornerW0 = c0 + a0 * x + b0 * y + ((position0 & OFFSET_A) == 0 ? 0 : hiSpanA0) + ((position0 & OFFSET_B) == 0 ? 0 : hiSpanB0);
-		positionHi0 = hiCornerW0 < 0 ? OUTSIDE : hiCornerW0 >= hiExtent0 ? INSIDE : INTERSECTING;
-
-		hiCornerW1 = c1 + a1 * x + b1 * y + ((position1 & OFFSET_A) == 0 ? 0 : hiSpanA1) + ((position1 & OFFSET_B) == 0 ? 0 : hiSpanB1);
-		positionHi1 = hiCornerW1 < 0 ? OUTSIDE : hiCornerW1 >= hiExtent1 ? INSIDE : INTERSECTING;
-
-		hiCornerW2 = c2 + a2 * x + b2 * y + ((position2 & OFFSET_A) == 0 ? 0 : hiSpanA2) + ((position2 & OFFSET_B) == 0 ? 0 : hiSpanB2);
-		positionHi2 = hiCornerW2 < 0 ? OUTSIDE : hiCornerW2 >= hiExtent2 ? INSIDE : INTERSECTING;
-	}
 
 	static void moveLowTileToParentOrigin() {
 		lowTileX = midTileX << TILE_AXIS_SHIFT;

@@ -31,16 +31,12 @@ import static grondag.canvas.chunk.occlusion.Tile.computeLowTileCoverage;
 import static grondag.canvas.chunk.occlusion.Tile.computeMidTileCoverage;
 import static grondag.canvas.chunk.occlusion.Tile.moveLowTileLeft;
 import static grondag.canvas.chunk.occlusion.Tile.moveLowTileRight;
-import static grondag.canvas.chunk.occlusion.Tile.moveLowTileTo;
 import static grondag.canvas.chunk.occlusion.Tile.moveLowTileToParentOrigin;
 import static grondag.canvas.chunk.occlusion.Tile.moveLowTileUp;
 import static grondag.canvas.chunk.occlusion.Tile.moveMidTileLeft;
 import static grondag.canvas.chunk.occlusion.Tile.moveMidTileRight;
-import static grondag.canvas.chunk.occlusion.Tile.moveMidTileTo;
 import static grondag.canvas.chunk.occlusion.Tile.moveMidTileUp;
 import static grondag.canvas.chunk.occlusion.Tile.popLowTile;
-import static grondag.canvas.chunk.occlusion.Tile.prepareHiTile;
-import static grondag.canvas.chunk.occlusion.Tile.prepareLowTile;
 import static grondag.canvas.chunk.occlusion.Tile.pushLowTile;
 import static grondag.canvas.chunk.occlusion.Triangle.prepareBounds;
 import static grondag.canvas.chunk.occlusion.Triangle.prepareScan;
@@ -151,15 +147,10 @@ abstract class Rasterizer  {
 	}
 
 	static boolean testTriMid() {
-		prepareHiTile();
-		prepareLowTile();
-
 		final int x0 = (minPixelX >> MID_AXIS_SHIFT);
 		final int x1 = (maxPixelX >> MID_AXIS_SHIFT);
-		final int y0 = (minPixelY >> MID_AXIS_SHIFT);
 		final int y1 = (maxPixelY >> MID_AXIS_SHIFT);
 
-		moveMidTileTo(x0, y0);
 		boolean goRight = true;
 
 		while(true) {
@@ -237,14 +228,10 @@ abstract class Rasterizer  {
 	}
 
 	static boolean testTriLow() {
-		prepareLowTile();
-
 		final int x0 = (minPixelX >> LOW_AXIS_SHIFT);
 		final int x1 = (maxPixelX >> LOW_AXIS_SHIFT);
 		final int y0 = (minPixelY >> LOW_AXIS_SHIFT);
 		final int y1 = (maxPixelY >> LOW_AXIS_SHIFT);
-
-		moveLowTileTo(x0, y0);
 
 		if (testTriLowInner()) {
 			return true;
@@ -289,14 +276,11 @@ abstract class Rasterizer  {
 	}
 
 	static void drawTriLow() {
-		prepareLowTile();
 
 		final int x0 = (minPixelX >> LOW_AXIS_SHIFT);
 		final int x1 = (maxPixelX >> LOW_AXIS_SHIFT);
 		final int y0 = (minPixelY >> LOW_AXIS_SHIFT);
 		final int y1 = (maxPixelY >> LOW_AXIS_SHIFT);
-
-		moveLowTileTo(x0, y0);
 
 		drawTriLowInner();
 
@@ -331,15 +315,10 @@ abstract class Rasterizer  {
 	}
 
 	static void drawTriMid() {
-		prepareHiTile();
-		prepareLowTile();
-
 		final int x0 = (minPixelX >> MID_AXIS_SHIFT);
 		final int x1 = (maxPixelX >> MID_AXIS_SHIFT);
-		final int y0 = (minPixelY >> MID_AXIS_SHIFT);
 		final int y1 = (maxPixelY >> MID_AXIS_SHIFT);
 
-		moveMidTileTo(x0, y0);
 		boolean goRight = true;
 
 		while(true) {
