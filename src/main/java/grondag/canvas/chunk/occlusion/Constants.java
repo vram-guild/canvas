@@ -101,6 +101,25 @@ public class Constants {
 	static final int EDGE_BOTTOM_RIGHT = OFFSET_B | 1;
 	static final int EDGE_BOTTOM_LEFT = OFFSET_AB | 0;
 
+	// packed into single long indexed by a / b (signum + 1) for LOR
+	static final long POSITION_LOOKUP =
+			// b < 0
+			EDGE_TOP_RIGHT
+			| (EDGE_TOP  << 4)
+			| (EDGE_TOP_LEFT << 8)
+			// skip - max a value is 2
+
+			// b == 0
+			| (EDGE_RIGHT << 16)
+			// skip - can't  have both a and b == 0
+			| (EDGE_LEFT << 24)
+			// skip - max a value is 2
+
+			// b > 0
+			| ((long) EDGE_BOTTOM_RIGHT << 32)
+			| ((long) EDGE_BOTTOM << 36)
+			| ((long) EDGE_BOTTOM_LEFT << 40);
+
 
 	static final int EDGE_FLAGS_TOP = (1 << EDGE_TOP) | (1 << EDGE_TOP_LEFT) | (1 << EDGE_TOP_RIGHT);
 	static final int EDGE_FLAGS_BOTTOM = (1 << EDGE_BOTTOM) | (1 << EDGE_BOTTOM_LEFT) | (1 << EDGE_BOTTOM_RIGHT);

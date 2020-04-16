@@ -28,6 +28,7 @@ import static grondag.canvas.chunk.occlusion.Constants.MID_TILE_SPAN;
 import static grondag.canvas.chunk.occlusion.Constants.OFFSET_A;
 import static grondag.canvas.chunk.occlusion.Constants.OFFSET_B;
 import static grondag.canvas.chunk.occlusion.Constants.OUTSIDE;
+import static grondag.canvas.chunk.occlusion.Constants.POSITION_LOOKUP;
 import static grondag.canvas.chunk.occlusion.Constants.PRECISE_HEIGHT;
 import static grondag.canvas.chunk.occlusion.Constants.PRECISE_HEIGHT_CLAMP;
 import static grondag.canvas.chunk.occlusion.Constants.PRECISE_PIXEL_CENTER;
@@ -265,6 +266,10 @@ public final class Triangle {
 		position1 = edgePosition(a1, b1);
 		position2 = edgePosition(a2, b2);
 
+		assert position0 == edgePosition2(a0, b0);
+		assert position1 == edgePosition2(a1, b1);
+		assert position2 == edgePosition2(a2, b2);
+
 		// PERF: derive from position
 		final boolean isTopLeft0 = a0 > 0 || (a0 == 0 && b0 < 0);
 		final boolean isTopLeft1 = a1 > 0 || (a1 == 0 && b1 < 0);
@@ -361,6 +366,10 @@ public final class Triangle {
 
 	static boolean isCcw(long x0, long y0, long x1, long y1, long x2, long y2) {
 		return (x1 - x0) * (y2 - y0) - (x2 - x0) * (y1 - y0) > 0L;
+	}
+
+	static int edgePosition2(int a, int b) {
+		return (int) (POSITION_LOOKUP >> (((((a >> 31) | (-a >>> 31)) + 1) << 2) | ((((b >> 31) | (-b >>> 31)) + 1) <<  4))) & 0xF;
 	}
 
 	static int edgePosition(int a, int b) {
