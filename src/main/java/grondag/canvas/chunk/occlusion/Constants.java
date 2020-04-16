@@ -27,6 +27,7 @@ public class Constants {
 	static final int PRECISE_INTEGER_MASK = ~PRECISE_FRACTION_MASK;
 	static final int PRECISE_PIXEL_SIZE = 1 << PRECISION_BITS;
 	static final int PRECISE_PIXEL_CENTER = PRECISE_PIXEL_SIZE / 2;
+	static final int SCANT_PRECISE_PIXEL_CENTER = PRECISE_PIXEL_CENTER - 1;
 
 	static final int LOW_WIDTH = MID_WIDTH * 8;
 	//static final int LOW_Y_SHIFT = Integer.bitCount(LOW_WIDTH - 1);
@@ -37,6 +38,8 @@ public class Constants {
 	static final int HALF_PRECISE_WIDTH = PRECISE_WIDTH / 2;
 	/** clamp to this to ensure value + half pixel rounds down to last pixel */
 	static final int PRECISE_WIDTH_CLAMP = PRECISE_WIDTH - PRECISE_PIXEL_CENTER;
+	static final int PRECISE_LOW_TILE_SPAN = 7 << PRECISION_BITS;
+	static final int PRECISE_MID_TILE_SPAN = 63 << PRECISION_BITS;
 
 	static final int LOW_HEIGHT = MIDDLE_HEIGHT * 8;
 	static final int PIXEL_HEIGHT = LOW_HEIGHT * TILE_PIXEL_DIAMETER;
@@ -97,13 +100,13 @@ public class Constants {
 	//	static final int EDGE_BOTTOM_RIGHT = OFFSET_B | 1;
 	//	static final int EDGE_BOTTOM_LEFT = OFFSET_AB | 0;
 
-	static final int B_NEGATIVE = 0;
-	static final int B_ZERO = 4;
-	static final int B_POSITIVE = 8;
+	static final int B_NEGATIVE = 8;
+	static final int B_ZERO = 16;
+	static final int B_POSITIVE = 32;
 
-	static final int A_NEGATIVE = 0;
-	static final int A_ZERO = 1;
-	static final int A_POSITIVE = 2;
+	static final int A_NEGATIVE = 1;
+	static final int A_ZERO = 2;
+	static final int A_POSITIVE = 4;
 
 	static final int EDGE_TOP = B_NEGATIVE | A_ZERO;
 	static final int EDGE_BOTTOM = B_POSITIVE | A_ZERO;
