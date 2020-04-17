@@ -87,19 +87,6 @@ public class Constants {
 	static final int COVERAGE_NONE_OR_SOME = 0;
 	static final int COVERAGE_FULL = 1;
 
-
-	// upper two bits determine offset
-	// lower two bits disambiguate within
-
-	//	static final int EDGE_TOP = OFFSET_NONE | 0;
-	//	static final int EDGE_RIGHT = OFFSET_NONE | 1;
-	//	static final int EDGE_TOP_RIGHT = OFFSET_NONE | 2;
-	//	static final int EDGE_LEFT = OFFSET_A | 0;
-	//	static final int EDGE_TOP_LEFT = OFFSET_A | 1;
-	//	static final int EDGE_BOTTOM = OFFSET_B | 0;
-	//	static final int EDGE_BOTTOM_RIGHT = OFFSET_B | 1;
-	//	static final int EDGE_BOTTOM_LEFT = OFFSET_AB | 0;
-
 	static final int B_NEGATIVE = 8;
 	static final int B_ZERO = 16;
 	static final int B_POSITIVE = 32;
@@ -110,18 +97,10 @@ public class Constants {
 
 	static final int EDGE_TOP = B_NEGATIVE | A_ZERO;
 	static final int EDGE_BOTTOM = B_POSITIVE | A_ZERO;
-
 	static final int EDGE_RIGHT = B_ZERO | A_NEGATIVE;
 	static final int EDGE_LEFT = B_ZERO | A_POSITIVE;
-
 	static final int EDGE_TOP_RIGHT = B_NEGATIVE | A_NEGATIVE;
 	static final int EDGE_TOP_LEFT = B_NEGATIVE | A_POSITIVE;
 	static final int EDGE_BOTTOM_RIGHT = B_POSITIVE | A_NEGATIVE;
 	static final int EDGE_BOTTOM_LEFT = B_POSITIVE | A_POSITIVE;
-
-	static final int EDGE_FLAGS_TOP = (1 << EDGE_TOP) | (1 << EDGE_TOP_LEFT) | (1 << EDGE_TOP_RIGHT);
-	static final int EDGE_FLAGS_BOTTOM = (1 << EDGE_BOTTOM) | (1 << EDGE_BOTTOM_LEFT) | (1 << EDGE_BOTTOM_RIGHT);
-	static final int EDGE_FLAGS_LEFT = (1 << EDGE_LEFT) | (1 << EDGE_BOTTOM_LEFT) | (1 << EDGE_TOP_LEFT);
-	static final int EDGE_FLAGS_RIGHT = (1 << EDGE_RIGHT) | (1 << EDGE_TOP_RIGHT) | (1 << EDGE_BOTTOM_RIGHT);
-
 }
