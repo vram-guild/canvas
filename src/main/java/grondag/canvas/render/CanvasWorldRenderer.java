@@ -215,6 +215,7 @@ public class CanvasWorldRenderer {
 			BuiltRenderRegion.advanceFrameIndex();
 
 			// PERF: find some more efficient distance-sorting mechanism - ideally persist sorting longer
+			// Use LongHeap instead - pack distance and array position into long  values
 			final ObjectHeapPriorityQueue<BuiltRenderRegion> regionQueue = this.regionQueue;
 			if (cameraChunk == null) {
 				// TODO: prime visible when above or below world and camera chunk is null

@@ -12,9 +12,23 @@ import static grondag.canvas.chunk.occlusion.Constants.EDGE_RIGHT;
 import static grondag.canvas.chunk.occlusion.Constants.EDGE_TOP;
 import static grondag.canvas.chunk.occlusion.Constants.EDGE_TOP_LEFT;
 import static grondag.canvas.chunk.occlusion.Constants.EDGE_TOP_RIGHT;
-import static grondag.canvas.chunk.occlusion.Constants.INSIDE;
-import static grondag.canvas.chunk.occlusion.Constants.INTERSECTING;
-import static grondag.canvas.chunk.occlusion.Constants.OUTSIDE;
+import static grondag.canvas.chunk.occlusion.Constants.INSIDE_0;
+import static grondag.canvas.chunk.occlusion.Constants.INSIDE_1;
+import static grondag.canvas.chunk.occlusion.Constants.INSIDE_2;
+import static grondag.canvas.chunk.occlusion.Constants.OUTSIDE_0;
+import static grondag.canvas.chunk.occlusion.Constants.OUTSIDE_1;
+import static grondag.canvas.chunk.occlusion.Constants.OUTSIDE_2;
+import static grondag.canvas.chunk.occlusion.Constants.POS_012_III;
+import static grondag.canvas.chunk.occlusion.Constants.POS_012_IIX;
+import static grondag.canvas.chunk.occlusion.Constants.POS_012_IXI;
+import static grondag.canvas.chunk.occlusion.Constants.POS_012_IXX;
+import static grondag.canvas.chunk.occlusion.Constants.POS_012_XII;
+import static grondag.canvas.chunk.occlusion.Constants.POS_012_XIX;
+import static grondag.canvas.chunk.occlusion.Constants.POS_012_XXI;
+import static grondag.canvas.chunk.occlusion.Constants.POS_012_XXX;
+import static grondag.canvas.chunk.occlusion.Constants.POS_INVERSE_MASK_0;
+import static grondag.canvas.chunk.occlusion.Constants.POS_INVERSE_MASK_1;
+import static grondag.canvas.chunk.occlusion.Constants.POS_INVERSE_MASK_2;
 import static grondag.canvas.chunk.occlusion.Constants.TILE_AXIS_SHIFT;
 import static grondag.canvas.chunk.occlusion.Data.a0;
 import static grondag.canvas.chunk.occlusion.Data.a1;
@@ -65,12 +79,8 @@ import static grondag.canvas.chunk.occlusion.Data.midTileY;
 import static grondag.canvas.chunk.occlusion.Data.position0;
 import static grondag.canvas.chunk.occlusion.Data.position1;
 import static grondag.canvas.chunk.occlusion.Data.position2;
-import static grondag.canvas.chunk.occlusion.Data.positionHi0;
-import static grondag.canvas.chunk.occlusion.Data.positionHi1;
-import static grondag.canvas.chunk.occlusion.Data.positionHi2;
-import static grondag.canvas.chunk.occlusion.Data.positionLow0;
-import static grondag.canvas.chunk.occlusion.Data.positionLow1;
-import static grondag.canvas.chunk.occlusion.Data.positionLow2;
+import static grondag.canvas.chunk.occlusion.Data.positionHi;
+import static grondag.canvas.chunk.occlusion.Data.positionLow;
 import static grondag.canvas.chunk.occlusion.Data.save_hiCornerW0;
 import static grondag.canvas.chunk.occlusion.Data.save_hiCornerW1;
 import static grondag.canvas.chunk.occlusion.Data.save_hiCornerW2;
@@ -81,12 +91,8 @@ import static grondag.canvas.chunk.occlusion.Data.save_lowTileX;
 import static grondag.canvas.chunk.occlusion.Data.save_lowTileY;
 import static grondag.canvas.chunk.occlusion.Data.save_midTileX;
 import static grondag.canvas.chunk.occlusion.Data.save_midTileY;
-import static grondag.canvas.chunk.occlusion.Data.save_positionHi0;
-import static grondag.canvas.chunk.occlusion.Data.save_positionHi1;
-import static grondag.canvas.chunk.occlusion.Data.save_positionHi2;
-import static grondag.canvas.chunk.occlusion.Data.save_positionLow0;
-import static grondag.canvas.chunk.occlusion.Data.save_positionLow1;
-import static grondag.canvas.chunk.occlusion.Data.save_positionLow2;
+import static grondag.canvas.chunk.occlusion.Data.save_positionHi;
+import static grondag.canvas.chunk.occlusion.Data.save_positionLow;
 
 abstract class Tile {
 	private Tile() {}
@@ -95,20 +101,24 @@ abstract class Tile {
 		lowTileX = midTileX << TILE_AXIS_SHIFT;
 		lowTileY = midTileY << TILE_AXIS_SHIFT;
 
+		int pos = 0;
+
 		lowCornerW0 = hiCornerW0;
 		if ((position0 & A_POSITIVE) != 0) lowCornerW0 += lowSpanA0 - hiSpanA0;
 		if ((position0 & B_POSITIVE) != 0) lowCornerW0 += lowSpanB0 - hiSpanB0;
-		positionLow0 = lowCornerW0 < 0 ? OUTSIDE : lowCornerW0 >= lowExtent0 ? INSIDE : INTERSECTING;
+		if (lowCornerW0 < 0) pos |= OUTSIDE_0; else if (lowCornerW0 >= lowExtent0) pos |= INSIDE_0;
 
 		lowCornerW1 = hiCornerW1;
 		if ((position1 & A_POSITIVE) != 0) lowCornerW1 += lowSpanA1 - hiSpanA1;
 		if ((position1 & B_POSITIVE) != 0) lowCornerW1 += lowSpanB1 - hiSpanB1;
-		positionLow1 = lowCornerW1 < 0 ? OUTSIDE : lowCornerW1 >= lowExtent1 ? INSIDE : INTERSECTING;
+		if (lowCornerW1 < 0) pos |= OUTSIDE_1; else if (lowCornerW1 >= lowExtent1) pos |= INSIDE_1;
 
 		lowCornerW2 = hiCornerW2;
 		if ((position2 & A_POSITIVE) != 0) lowCornerW2 += lowSpanA2 - hiSpanA2;
 		if ((position2 & B_POSITIVE) != 0) lowCornerW2 += lowSpanB2 - hiSpanB2;
-		positionLow2 = lowCornerW2 < 0 ? OUTSIDE : lowCornerW2 >= lowExtent2 ? INSIDE : INTERSECTING;
+		if (lowCornerW2 < 0) pos |= OUTSIDE_2; else if (lowCornerW2 >= lowExtent2) pos |= INSIDE_2;
+
+		positionLow = pos;
 	}
 
 	static void moveMidTileRight() {
@@ -118,17 +128,24 @@ abstract class Tile {
 		hiCornerW1 += hiTileA1;
 		hiCornerW2 += hiTileA2;
 
-		if ((positionHi0 != OUTSIDE && (position0 & A_NEGATIVE) != 0) || (positionHi0 != INSIDE && (position0 & A_POSITIVE) != 0)) {
-			positionHi0 = hiCornerW0 < 0 ? OUTSIDE : hiCornerW0 >= hiExtent0 ? INSIDE : INTERSECTING;
+		int pos = positionHi;
+
+		if (((pos & OUTSIDE_0) == 0 && (position0 & A_NEGATIVE) != 0) || ((pos & INSIDE_0) == 0 && (position0 & A_POSITIVE) != 0)) {
+			pos &= POS_INVERSE_MASK_0;
+			if (hiCornerW0 < 0) pos |= OUTSIDE_0; else if (hiCornerW0 >= hiExtent0) pos |= INSIDE_0;
 		}
 
-		if ((positionHi1 != OUTSIDE && (position1 & A_NEGATIVE) != 0) || (positionHi1 != INSIDE && (position1 & A_POSITIVE) != 0)) {
-			positionHi1 = hiCornerW1 < 0 ? OUTSIDE : hiCornerW1 >= hiExtent1 ? INSIDE : INTERSECTING;
+		if (((pos & OUTSIDE_1) == 0 && (position1 & A_NEGATIVE) != 0) || ((pos & INSIDE_1) == 0 && (position1 & A_POSITIVE) != 0)) {
+			pos &= POS_INVERSE_MASK_1;
+			if (hiCornerW1 < 0) pos |= OUTSIDE_1; else if (hiCornerW1 >= hiExtent1) pos |= INSIDE_1;
 		}
 
-		if ((positionHi2 != OUTSIDE && (position2 & A_NEGATIVE) != 0) || (positionHi2 != INSIDE && (position2 & A_POSITIVE) != 0)) {
-			positionHi2 = hiCornerW2 < 0 ? OUTSIDE : hiCornerW2 >= hiExtent2 ? INSIDE : INTERSECTING;
+		if (((pos & OUTSIDE_2) == 0 && (position2 & A_NEGATIVE) != 0) || ((pos & INSIDE_2) == 0 && (position2 & A_POSITIVE) != 0)) {
+			pos &= POS_INVERSE_MASK_2;
+			if (hiCornerW2 < 0) pos |= OUTSIDE_2; else if (hiCornerW2 >= hiExtent2) pos |= INSIDE_2;
 		}
+
+		positionHi = pos;
 	}
 
 	static void moveLowTileRight() {
@@ -138,17 +155,24 @@ abstract class Tile {
 		lowCornerW1 += lowTileA1;
 		lowCornerW2 += lowTileA2;
 
-		if ((positionLow0 != OUTSIDE && (position0 & A_NEGATIVE) != 0) || (positionLow0 != INSIDE && (position0 & A_POSITIVE) != 0)) {
-			positionLow0 = lowCornerW0 < 0 ? OUTSIDE : lowCornerW0 >= lowExtent0 ? INSIDE : INTERSECTING;
+		int pos = positionLow;
+
+		if (((pos & OUTSIDE_0) == 0 && (position0 & A_NEGATIVE) != 0) || ((pos & INSIDE_0) == 0 && (position0 & A_POSITIVE) != 0)) {
+			pos &= POS_INVERSE_MASK_0;
+			if (lowCornerW0 < 0) pos |= OUTSIDE_0; else if (lowCornerW0 >= lowExtent0) pos |= INSIDE_0;
 		}
 
-		if ((positionLow1 != OUTSIDE && (position1 & A_NEGATIVE) != 0) || (positionLow1 != INSIDE && (position1 & A_POSITIVE) != 0)) {
-			positionLow1 = lowCornerW1 < 0 ? OUTSIDE : lowCornerW1 >= lowExtent1 ? INSIDE : INTERSECTING;
+		if (((pos & OUTSIDE_1) == 0 && (position1 & A_NEGATIVE) != 0) || ((pos & INSIDE_1) == 0 && (position1 & A_POSITIVE) != 0)) {
+			pos &= POS_INVERSE_MASK_1;
+			if (lowCornerW1 < 0) pos |= OUTSIDE_1; else if (lowCornerW1 >= lowExtent1) pos |= INSIDE_1;
 		}
 
-		if ((positionLow2 != OUTSIDE && (position2 & A_NEGATIVE) != 0) || (positionLow2 != INSIDE && (position2 & A_POSITIVE) != 0)) {
-			positionLow2 = lowCornerW2 < 0 ? OUTSIDE : lowCornerW2 >= lowExtent2 ? INSIDE : INTERSECTING;
+		if (((pos & OUTSIDE_2) == 0 && (position2 & A_NEGATIVE) != 0) || ((pos & INSIDE_2) == 0 && (position2 & A_POSITIVE) != 0)) {
+			pos &= POS_INVERSE_MASK_2;
+			if (lowCornerW2 < 0) pos |= OUTSIDE_2; else if (lowCornerW2 >= lowExtent2) pos |= INSIDE_2;
 		}
+
+		positionLow = pos;
 	}
 
 	static void moveMidTileLeft() {
@@ -158,17 +182,24 @@ abstract class Tile {
 		hiCornerW1 -= hiTileA1;
 		hiCornerW2 -= hiTileA2;
 
-		if ((positionHi0 != OUTSIDE && (position0 & A_POSITIVE) != 0) || (positionHi0 != INSIDE && (position0 & A_NEGATIVE) != 0)) {
-			positionHi0 = hiCornerW0 < 0 ? OUTSIDE : hiCornerW0 >= hiExtent0 ? INSIDE : INTERSECTING;
+		int pos = positionHi;
+
+		if (((pos & OUTSIDE_0) == 0 && (position0 & A_POSITIVE) != 0) || ((pos & INSIDE_0) == 0 && (position0 & A_NEGATIVE) != 0)) {
+			pos &= POS_INVERSE_MASK_0;
+			if (hiCornerW0 < 0) pos |= OUTSIDE_0; else if (hiCornerW0 >= hiExtent0) pos |= INSIDE_0;
 		}
 
-		if ((positionHi1 != OUTSIDE && (position1 & A_POSITIVE) != 0) || (positionHi1 != INSIDE && (position1 & A_NEGATIVE) != 0)) {
-			positionHi1 = hiCornerW1 < 0 ? OUTSIDE : hiCornerW1 >= hiExtent1 ? INSIDE : INTERSECTING;
+		if (((pos & OUTSIDE_1) == 0 && (position1 & A_POSITIVE) != 0) || ((pos & INSIDE_1) == 0 && (position1 & A_NEGATIVE) != 0)) {
+			pos &= POS_INVERSE_MASK_1;
+			if (hiCornerW1 < 0) pos |= OUTSIDE_1; else if (hiCornerW1 >= hiExtent1) pos |= INSIDE_1;
 		}
 
-		if ((positionHi2 != OUTSIDE && (position2 & A_POSITIVE) != 0) || (positionHi2 != INSIDE && (position2 & A_NEGATIVE) != 0)) {
-			positionHi2 = hiCornerW2 < 0 ? OUTSIDE : hiCornerW2 >= hiExtent2 ? INSIDE : INTERSECTING;
+		if (((pos & OUTSIDE_2) == 0 && (position2 & A_POSITIVE) != 0) || ((pos & INSIDE_2) == 0 && (position2 & A_NEGATIVE) != 0)) {
+			pos &= POS_INVERSE_MASK_2;
+			if (hiCornerW2 < 0) pos |= OUTSIDE_2; else if (hiCornerW2 >= hiExtent2) pos |= INSIDE_2;
 		}
+
+		positionHi  = pos;
 	}
 
 	static void moveLowTileLeft() {
@@ -178,17 +209,24 @@ abstract class Tile {
 		lowCornerW1 -= lowTileA1;
 		lowCornerW2 -= lowTileA2;
 
-		if ((positionLow0 != OUTSIDE && (position0 & A_POSITIVE) != 0) || (positionLow0 != INSIDE && (position0 & A_NEGATIVE) != 0)) {
-			positionLow0 = lowCornerW0 < 0 ? OUTSIDE : lowCornerW0 >= lowExtent0 ? INSIDE : INTERSECTING;
+		int pos = positionLow;
+
+		if (((pos & OUTSIDE_0) == 0 && (position0 & A_POSITIVE) != 0) || ((pos & INSIDE_0) == 0 && (position0 & A_NEGATIVE) != 0)) {
+			pos &= POS_INVERSE_MASK_0;
+			if (lowCornerW0 < 0) pos |= OUTSIDE_0; else if (lowCornerW0 >= lowExtent0) pos |= INSIDE_0;
 		}
 
-		if ((positionLow1 != OUTSIDE && (position1 & A_POSITIVE) != 0) || (positionLow1 != INSIDE && (position1 & A_NEGATIVE) != 0)) {
-			positionLow1 = lowCornerW1 < 0 ? OUTSIDE : lowCornerW1 >= lowExtent1 ? INSIDE : INTERSECTING;
+		if (((pos & OUTSIDE_1) == 0 && (position1 & A_POSITIVE) != 0) || ((pos & INSIDE_1) == 0 && (position1 & A_NEGATIVE) != 0)) {
+			pos &= POS_INVERSE_MASK_1;
+			if (lowCornerW1 < 0) pos |= OUTSIDE_1; else if (lowCornerW1 >= lowExtent1) pos |= INSIDE_1;
 		}
 
-		if ((positionLow2 != OUTSIDE && (position2 & A_POSITIVE) != 0) || (positionLow2 != INSIDE && (position2 & A_NEGATIVE) != 0)) {
-			positionLow2 = lowCornerW2 < 0 ? OUTSIDE : lowCornerW2 >= lowExtent2 ? INSIDE : INTERSECTING;
+		if (((pos & OUTSIDE_2) == 0 && (position2 & A_POSITIVE) != 0) || ((pos & INSIDE_2) == 0 && (position2 & A_NEGATIVE) != 0)) {
+			pos &= POS_INVERSE_MASK_2;
+			if (lowCornerW2 < 0) pos |= OUTSIDE_2; else if (lowCornerW2 >= lowExtent2) pos |= INSIDE_2;
 		}
+
+		positionLow  = pos;
 	}
 
 	static void moveMidTileUp() {
@@ -198,17 +236,24 @@ abstract class Tile {
 		hiCornerW1 += hiTileB1;
 		hiCornerW2 += hiTileB2;
 
-		if ((positionHi0 != OUTSIDE && (position0 & B_NEGATIVE) != 0) || (positionHi0 != INSIDE && (position0 & B_POSITIVE) != 0)) {
-			positionHi0 = hiCornerW0 < 0 ? OUTSIDE : hiCornerW0 >= hiExtent0 ? INSIDE : INTERSECTING;
+		int pos = positionHi;
+
+		if (((pos & OUTSIDE_0) == 0 && (position0 & B_NEGATIVE) != 0) || ((pos & INSIDE_0) == 0 && (position0 & B_POSITIVE) != 0)) {
+			pos &= POS_INVERSE_MASK_0;
+			if (hiCornerW0 < 0) pos |= OUTSIDE_0; else if (hiCornerW0 >= hiExtent0) pos |= INSIDE_0;
 		}
 
-		if ((positionHi1 != OUTSIDE && (position1 & B_NEGATIVE) != 0) || (positionHi1 != INSIDE && (position1 & B_POSITIVE) != 0)) {
-			positionHi1 = hiCornerW1 < 0 ? OUTSIDE : hiCornerW1 >= hiExtent1 ? INSIDE : INTERSECTING;
+		if (((pos & OUTSIDE_1) == 0 && (position1 & B_NEGATIVE) != 0) || ((pos & INSIDE_1) == 0 && (position1 & B_POSITIVE) != 0)) {
+			pos &= POS_INVERSE_MASK_1;
+			if (hiCornerW1 < 0) pos |= OUTSIDE_1; else if (hiCornerW1 >= hiExtent1) pos |= INSIDE_1;
 		}
 
-		if ((positionHi2 != OUTSIDE && (position2 & B_NEGATIVE) != 0) || (positionHi2 != INSIDE && (position2 & B_POSITIVE) != 0)) {
-			positionHi2 = hiCornerW2 < 0 ? OUTSIDE : hiCornerW2 >= hiExtent2 ? INSIDE : INTERSECTING;
+		if (((pos & OUTSIDE_2) == 0 && (position2 & B_NEGATIVE) != 0) || ((pos & INSIDE_2) == 0 && (position2 & B_POSITIVE) != 0)) {
+			pos &= POS_INVERSE_MASK_2;
+			if (hiCornerW2 < 0) pos |= OUTSIDE_2; else if (hiCornerW2 >= hiExtent2) pos |= INSIDE_2;
 		}
+
+		positionHi = pos;
 	}
 
 	static void moveLowTileUp() {
@@ -218,98 +263,102 @@ abstract class Tile {
 		lowCornerW1 += (b1 + lowSpanB1);
 		lowCornerW2 += (b2 + lowSpanB2);
 
-		if ((positionLow0 != OUTSIDE && (position0 & B_NEGATIVE) != 0) || (positionLow0 != INSIDE && (position0 & B_POSITIVE) != 0)) {
-			positionLow0 = lowCornerW0 < 0 ? OUTSIDE : lowCornerW0 >= lowExtent0 ? INSIDE : INTERSECTING;
+		int pos = positionLow;
+
+		if (((pos & OUTSIDE_0) == 0 && (position0 & B_NEGATIVE) != 0) || ((pos & INSIDE_0) == 0 && (position0 & B_POSITIVE) != 0)) {
+			pos &= POS_INVERSE_MASK_0;
+			if (lowCornerW0 < 0) pos |= OUTSIDE_0; else if (lowCornerW0 >= lowExtent0) pos |= INSIDE_0;
 		}
 
-		if ((positionLow1 != OUTSIDE && (position1 & B_NEGATIVE) != 0) || (positionLow1 != INSIDE && (position1 & B_POSITIVE) != 0)) {
-			positionLow1 = lowCornerW1 < 0 ? OUTSIDE : lowCornerW1 >= lowExtent1 ? INSIDE : INTERSECTING;
+		if (((pos & OUTSIDE_1) == 0 && (position1 & B_NEGATIVE) != 0) || ((pos & INSIDE_1) == 0 && (position1 & B_POSITIVE) != 0)) {
+			pos &= POS_INVERSE_MASK_1;
+			if (lowCornerW1 < 0) pos |= OUTSIDE_1; else if (lowCornerW1 >= lowExtent1) pos |= INSIDE_1;
 		}
 
-		if ((positionLow2 != OUTSIDE && (position2 & B_NEGATIVE) != 0) || (positionLow2 != INSIDE && (position2 & B_POSITIVE) != 0)) {
-			positionLow2 = lowCornerW2 < 0 ? OUTSIDE : lowCornerW2 >= lowExtent2 ? INSIDE : INTERSECTING;
+		if (((pos & OUTSIDE_2) == 0 && (position2 & B_NEGATIVE) != 0) || ((pos & INSIDE_2) == 0 && (position2 & B_POSITIVE) != 0)) {
+			pos &= POS_INVERSE_MASK_2;
+			if (lowCornerW2 < 0) pos |= OUTSIDE_2; else if (lowCornerW2 >= lowExtent2) pos |= INSIDE_2;
 		}
+
+		positionLow = pos;
 	}
 
 	static long computeLowTileCoverage() {
-		// PERF: use switch somehow - only 27 possible outcomes
-		final int c0 = positionLow0;
+		switch(positionLow)  {
 
-		if (c0 == OUTSIDE) {
+		default:
+			// most cases have at least one outside edge
 			return 0L;
-		}
 
-		final int c1 = positionLow1;
-
-		if (c1 == OUTSIDE) {
-			return 0L;
-		}
-
-		final int c2 = positionLow2;
-
-		if (c2 == OUTSIDE) {
-			return 0L;
-		}
-
-		if ((c0 | c1 | c2) == INSIDE)  {
+		case POS_012_III:
+			// all inside
 			return -1L;
+
+		case POS_012_XII:
+			return buildMask(position0, a0, b0, lowCornerW0);
+
+		case POS_012_IXI:
+			return buildMask(position1, a1, b1, lowCornerW1);
+
+		case POS_012_IIX:
+			return buildMask(position2, a2, b2, lowCornerW2);
+
+		case POS_012_XIX:
+			return buildMask(position0, a0, b0, lowCornerW0)
+					& buildMask(position2, a2, b2, lowCornerW2);
+
+		case POS_012_XXI:
+			return buildMask(position0, a0, b0, lowCornerW0)
+					& buildMask(position1, a1, b1, lowCornerW1);
+
+		case POS_012_IXX:
+			return buildMask(position1, a1, b1, lowCornerW1)
+					& buildMask(position2, a2, b2, lowCornerW2);
+
+		case POS_012_XXX:
+			return buildMask(position0, a0, b0, lowCornerW0)
+					& buildMask(position1, a1, b1, lowCornerW1)
+					& buildMask(position2, a2, b2, lowCornerW2);
 		}
-
-		long result = -1L;
-
-		if (c0 == INTERSECTING) {
-			result &= buildMask(position0, a0, b0, lowCornerW0);
-		}
-
-		if (c1 == INTERSECTING) {
-			result &= buildMask(position1, a1, b1, lowCornerW1);
-		}
-
-		if (c2 == INTERSECTING) {
-			result &= buildMask(position2, a2, b2, lowCornerW2);
-		}
-
-		return result;
 	}
 
 	static long computeMidTileCoverage() {
-		final int c0 = positionHi0;
+		switch(positionHi)  {
 
-		if (c0 == OUTSIDE) {
+		default:
+			// most cases have at least one outside edge
 			return 0L;
-		}
 
-		final int c1 = positionHi1;
-
-		if (c1 == OUTSIDE) {
-			return 0L;
-		}
-
-		final int c2 = positionHi2;
-
-		if (c2 == OUTSIDE) {
-			return 0L;
-		}
-
-		if ((c0 | c1 | c2) == INSIDE)  {
+		case POS_012_III:
+			// all inside
 			return -1L;
+
+		case POS_012_XII:
+			return buildMask(position0, lowTileA0, lowTileB0, hiCornerW0);
+
+		case POS_012_IXI:
+			return buildMask(position1, lowTileA1, lowTileB1, hiCornerW1);
+
+		case POS_012_IIX:
+			return buildMask(position2, lowTileA2, lowTileB2, hiCornerW2);
+
+		case POS_012_XIX:
+			return buildMask(position0, lowTileA0, lowTileB0, hiCornerW0)
+					& buildMask(position2, lowTileA2, lowTileB2, hiCornerW2);
+
+		case POS_012_XXI:
+			return buildMask(position0, lowTileA0, lowTileB0, hiCornerW0)
+					& buildMask(position1, lowTileA1, lowTileB1, hiCornerW1);
+
+		case POS_012_IXX:
+			return buildMask(position1, lowTileA1, lowTileB1, hiCornerW1)
+					& buildMask(position2, lowTileA2, lowTileB2, hiCornerW2);
+
+		case POS_012_XXX:
+			return buildMask(position0, lowTileA0, lowTileB0, hiCornerW0)
+					& buildMask(position1, lowTileA1, lowTileB1, hiCornerW1)
+					& buildMask(position2, lowTileA2, lowTileB2, hiCornerW2);
 		}
-
-		long result = -1L;
-
-		if (c0 == INTERSECTING) {
-			result &= buildMask(position0, lowTileA0, lowTileB0, hiCornerW0);
-		}
-
-		if (c1 == INTERSECTING) {
-			result &= buildMask(position1, lowTileA1, lowTileB1, hiCornerW1);
-		}
-
-		if (c2 == INTERSECTING) {
-			result &= buildMask(position2, lowTileA2, lowTileB2, hiCornerW2);
-		}
-
-		return result;
 	}
 
 	static void pushMidTile() {
@@ -318,9 +367,7 @@ abstract class Tile {
 		save_hiCornerW0 = hiCornerW0;
 		save_hiCornerW1 = hiCornerW1;
 		save_hiCornerW2 = hiCornerW2;
-		save_positionHi0 = positionHi0;
-		save_positionHi1 = positionHi1;
-		save_positionHi2 = positionHi2;
+		save_positionHi = positionHi;
 	}
 
 	static void pushLowTile() {
@@ -329,9 +376,7 @@ abstract class Tile {
 		save_lowCornerW0 = lowCornerW0;
 		save_lowCornerW1 = lowCornerW1;
 		save_lowCornerW2 = lowCornerW2;
-		save_positionLow0 = positionLow0;
-		save_positionLow1 = positionLow1;
-		save_positionLow2 = positionLow2;
+		save_positionLow = positionLow;
 	}
 
 	static void popMidTile() {
@@ -340,9 +385,7 @@ abstract class Tile {
 		hiCornerW0 = save_hiCornerW0;
 		hiCornerW1 = save_hiCornerW1;
 		hiCornerW2 = save_hiCornerW2;
-		positionHi0 = save_positionHi0;
-		positionHi1 = save_positionHi1;
-		positionHi2 = save_positionHi2;
+		positionHi = save_positionHi;
 	}
 
 	static void popLowTile() {
@@ -351,9 +394,7 @@ abstract class Tile {
 		lowCornerW0 = save_lowCornerW0;
 		lowCornerW1 = save_lowCornerW1;
 		lowCornerW2 = save_lowCornerW2;
-		positionLow0 = save_positionLow0;
-		positionLow1 = save_positionLow1;
-		positionLow2 = save_positionLow2;
+		positionLow = save_positionLow;
 	}
 
 	static long buildMask(int pos, int stepA, int stepB, int wy) {

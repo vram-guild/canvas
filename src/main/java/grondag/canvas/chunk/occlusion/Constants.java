@@ -80,9 +80,47 @@ public class Constants {
 	static final int BOUNDS_OUTSIDE_OR_TOO_SMALL = 1;
 	static final int BOUNDS_NEEDS_CLIP = 2;
 
-	static final int OUTSIDE = 1;
-	static final int INTERSECTING = 2;
-	static final int INSIDE = 4;
+	static final int OUTSIDE_0 = 1;
+	static final int INSIDE_0 = 2;
+	static final int OUTSIDE_1 = 4;
+	static final int INSIDE_1 = 8;
+	static final int OUTSIDE_2 = 16;
+	static final int INSIDE_2 = 32;
+	static final int INTERSECT = 0;
+
+	static final int POS_INVERSE_MASK_0 =  ~(OUTSIDE_0 | INSIDE_0);
+	static final int POS_INVERSE_MASK_1 =  ~(OUTSIDE_1 | INSIDE_1);
+	static final int POS_INVERSE_MASK_2 =  ~(OUTSIDE_2 | INSIDE_2);
+
+	static final int POS_012_III = INSIDE_0 	| 	INSIDE_1 	| 	INSIDE_2;
+	static final int POS_012_OII = OUTSIDE_0 	| 	INSIDE_1 	| 	INSIDE_2;
+	static final int POS_012_XII = INTERSECT 	| 	INSIDE_1 	| 	INSIDE_2;
+	static final int POS_012_IOI = INSIDE_0 	| 	OUTSIDE_1 	| 	INSIDE_2;
+	static final int POS_012_OOI = OUTSIDE_0 	| 	OUTSIDE_1 	| 	INSIDE_2;
+	static final int POS_012_XOI = INTERSECT 	| 	OUTSIDE_1 	| 	INSIDE_2;
+	static final int POS_012_IXI = INSIDE_0 	| 	INTERSECT	|	INSIDE_2;
+	static final int POS_012_OXI = OUTSIDE_0 	|	INTERSECT	|	INSIDE_2;
+	static final int POS_012_XXI = INTERSECT	|	INTERSECT	|	INSIDE_2;
+
+	static final int POS_012_IIO = INSIDE_0 	| 	INSIDE_1 	| 	OUTSIDE_2;
+	static final int POS_012_OIO = OUTSIDE_0 	| 	INSIDE_1 	| 	OUTSIDE_2;
+	static final int POS_012_XIO = INTERSECT	|	INSIDE_1 	| 	OUTSIDE_2;
+	static final int POS_012_IOO = INSIDE_0 	| 	OUTSIDE_1 	| 	OUTSIDE_2;
+	static final int POS_012_OOO = OUTSIDE_0 	| 	OUTSIDE_1 	| 	OUTSIDE_2;
+	static final int POS_012_XOO = INTERSECT	|	OUTSIDE_1 	| 	OUTSIDE_2;
+	static final int POS_012_IXO = INSIDE_0 	| 	INTERSECT	|	OUTSIDE_2;
+	static final int POS_012_OXO = OUTSIDE_0 	|	INTERSECT	|	OUTSIDE_2;
+	static final int POS_012_XXO = INTERSECT	|	INTERSECT	|	OUTSIDE_2;
+
+	static final int POS_012_IIX = INSIDE_0 	| 	INSIDE_1	|	INTERSECT;
+	static final int POS_012_OIX = OUTSIDE_0 	| 	INSIDE_1	|	INTERSECT;
+	static final int POS_012_XIX = INTERSECT	|	INSIDE_1	|	INTERSECT;
+	static final int POS_012_IOX = INSIDE_0 	| 	OUTSIDE_1	|	INTERSECT;
+	static final int POS_012_OOX = OUTSIDE_0 	| 	OUTSIDE_1	|	INTERSECT;
+	static final int POS_012_XOX = INTERSECT	|	OUTSIDE_1	|	INTERSECT;
+	static final int POS_012_IXX = INSIDE_0		|	INTERSECT	|	INTERSECT;
+	static final int POS_012_OXX = OUTSIDE_0	|	INTERSECT	| 	INTERSECT;
+	static final int POS_012_XXX = INTERSECT	|	INTERSECT	|	INTERSECT;
 
 	static final int COVERAGE_NONE_OR_SOME = 0;
 	static final int COVERAGE_FULL = 1;

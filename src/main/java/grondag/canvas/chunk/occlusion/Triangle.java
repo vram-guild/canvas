@@ -9,15 +9,18 @@ import static grondag.canvas.chunk.occlusion.Constants.EDGE_TOP_LEFT;
 import static grondag.canvas.chunk.occlusion.Constants.GUARD_HEIGHT;
 import static grondag.canvas.chunk.occlusion.Constants.GUARD_SIZE;
 import static grondag.canvas.chunk.occlusion.Constants.GUARD_WIDTH;
-import static grondag.canvas.chunk.occlusion.Constants.INSIDE;
-import static grondag.canvas.chunk.occlusion.Constants.INTERSECTING;
+import static grondag.canvas.chunk.occlusion.Constants.INSIDE_0;
+import static grondag.canvas.chunk.occlusion.Constants.INSIDE_1;
+import static grondag.canvas.chunk.occlusion.Constants.INSIDE_2;
 import static grondag.canvas.chunk.occlusion.Constants.LOW_AXIS_MASK;
 import static grondag.canvas.chunk.occlusion.Constants.LOW_AXIS_SHIFT;
 import static grondag.canvas.chunk.occlusion.Constants.MAX_PIXEL_X;
 import static grondag.canvas.chunk.occlusion.Constants.MAX_PIXEL_Y;
 import static grondag.canvas.chunk.occlusion.Constants.MID_AXIS_MASK;
 import static grondag.canvas.chunk.occlusion.Constants.MID_AXIS_SHIFT;
-import static grondag.canvas.chunk.occlusion.Constants.OUTSIDE;
+import static grondag.canvas.chunk.occlusion.Constants.OUTSIDE_0;
+import static grondag.canvas.chunk.occlusion.Constants.OUTSIDE_1;
+import static grondag.canvas.chunk.occlusion.Constants.OUTSIDE_2;
 import static grondag.canvas.chunk.occlusion.Constants.PRECISE_HEIGHT;
 import static grondag.canvas.chunk.occlusion.Constants.PRECISE_HEIGHT_CLAMP;
 import static grondag.canvas.chunk.occlusion.Constants.PRECISE_LOW_TILE_SPAN;
@@ -78,12 +81,8 @@ import static grondag.canvas.chunk.occlusion.Data.minPixelY;
 import static grondag.canvas.chunk.occlusion.Data.position0;
 import static grondag.canvas.chunk.occlusion.Data.position1;
 import static grondag.canvas.chunk.occlusion.Data.position2;
-import static grondag.canvas.chunk.occlusion.Data.positionHi0;
-import static grondag.canvas.chunk.occlusion.Data.positionHi1;
-import static grondag.canvas.chunk.occlusion.Data.positionHi2;
-import static grondag.canvas.chunk.occlusion.Data.positionLow0;
-import static grondag.canvas.chunk.occlusion.Data.positionLow1;
-import static grondag.canvas.chunk.occlusion.Data.positionLow2;
+import static grondag.canvas.chunk.occlusion.Data.positionHi;
+import static grondag.canvas.chunk.occlusion.Data.positionLow;
 import static grondag.canvas.chunk.occlusion.Data.scale;
 import static grondag.canvas.chunk.occlusion.Data.vertexData;
 import static grondag.canvas.chunk.occlusion.ProjectedVertexData.PV_PX;
@@ -297,18 +296,20 @@ public final class Triangle {
 			long x = x0 - ((position0 & A_POSITIVE) == 0 ? ox : (ox + PRECISE_LOW_TILE_SPAN));
 			long y = y0 - ((position0 & B_POSITIVE) == 0 ? oy : (oy + PRECISE_LOW_TILE_SPAN));
 			lowCornerW0 = (int) ((-a0 * x - b0 * y + (((position0 & EDGE_TOP_LEFT) != 0) ? PRECISE_PIXEL_CENTER : SCANT_PRECISE_PIXEL_CENTER)) >> PRECISION_BITS);
-			positionLow0 = lowCornerW0 < 0 ? OUTSIDE : lowCornerW0 >= lowExtent0 ? INSIDE : INTERSECTING;
 
 			x = x1 - ((position1 & A_POSITIVE) == 0 ? ox : (ox + PRECISE_LOW_TILE_SPAN));
 			y = y1 - ((position1 & B_POSITIVE) == 0 ? oy : (oy + PRECISE_LOW_TILE_SPAN));
 			lowCornerW1 = (int) ((-a1 * x - b1 * y + (((position1 & EDGE_TOP_LEFT) != 0) ? PRECISE_PIXEL_CENTER : SCANT_PRECISE_PIXEL_CENTER)) >> PRECISION_BITS);
-			positionLow1 = lowCornerW1 < 0 ? OUTSIDE : lowCornerW1 >= lowExtent1 ? INSIDE : INTERSECTING;
 
 			x = x2 - ((position2 & A_POSITIVE) == 0 ? ox : (ox + PRECISE_LOW_TILE_SPAN));
 			y = y2 - ((position2 & B_POSITIVE) == 0 ? oy : (oy + PRECISE_LOW_TILE_SPAN));
 			lowCornerW2 = (int) ((-a2 * x - b2 * y + (((position2 & EDGE_TOP_LEFT) != 0) ? PRECISE_PIXEL_CENTER : SCANT_PRECISE_PIXEL_CENTER)) >> PRECISION_BITS);
-			positionLow2 = lowCornerW2 < 0 ? OUTSIDE : lowCornerW2 >= lowExtent2 ? INSIDE : INTERSECTING;
 
+			int pos = 0;
+			if (lowCornerW0 < 0) pos |= OUTSIDE_0; else if (lowCornerW0 >= lowExtent0) pos |= INSIDE_0;
+			if (lowCornerW1 < 0) pos |= OUTSIDE_1; else if (lowCornerW1 >= lowExtent1) pos |= INSIDE_1;
+			if (lowCornerW2 < 0) pos |= OUTSIDE_2; else if (lowCornerW2 >= lowExtent2) pos |= INSIDE_2;
+			positionLow = pos;
 		}  else {
 			assert scale == SCALE_MID;
 
@@ -339,17 +340,20 @@ public final class Triangle {
 			long x = x0 - ((position0 & A_POSITIVE) == 0 ? ox : (ox + PRECISE_MID_TILE_SPAN));
 			long y = y0 - ((position0 & B_POSITIVE) == 0 ? oy : (oy + PRECISE_MID_TILE_SPAN));
 			hiCornerW0 = (int) ((-a0 * x - b0 * y + (((position0 & EDGE_TOP_LEFT) != 0) ? PRECISE_PIXEL_CENTER : SCANT_PRECISE_PIXEL_CENTER)) >> PRECISION_BITS);
-			positionHi0 = hiCornerW0 < 0 ? OUTSIDE : hiCornerW0 >= hiExtent0 ? INSIDE : INTERSECTING;
 
 			x = x1 - ((position1 & A_POSITIVE) == 0 ? ox : (ox + PRECISE_MID_TILE_SPAN));
 			y = y1 - ((position1 & B_POSITIVE) == 0 ? oy : (oy + PRECISE_MID_TILE_SPAN));
 			hiCornerW1 = (int) ((-a1 * x - b1 * y + (((position1 & EDGE_TOP_LEFT) != 0) ? PRECISE_PIXEL_CENTER : SCANT_PRECISE_PIXEL_CENTER)) >> PRECISION_BITS);
-			positionHi1 = hiCornerW1 < 0 ? OUTSIDE : hiCornerW1 >= hiExtent1 ? INSIDE : INTERSECTING;
 
 			x = x2 - ((position2 & A_POSITIVE) == 0 ? ox : (ox + PRECISE_MID_TILE_SPAN));
 			y = y2 - ((position2 & B_POSITIVE) == 0 ? oy : (oy + PRECISE_MID_TILE_SPAN));
 			hiCornerW2 = (int) ((-a2 * x - b2 * y + (((position2 & EDGE_TOP_LEFT) != 0) ? PRECISE_PIXEL_CENTER : SCANT_PRECISE_PIXEL_CENTER)) >> PRECISION_BITS);
-			positionHi2 = hiCornerW2 < 0 ? OUTSIDE : hiCornerW2 >= hiExtent2 ? INSIDE : INTERSECTING;
+
+			int pos = 0;
+			if (hiCornerW0 < 0) pos |= OUTSIDE_0; else if (hiCornerW0 >= hiExtent0) pos |= INSIDE_0;
+			if (hiCornerW1 < 0) pos |= OUTSIDE_1; else if (hiCornerW1 >= hiExtent1) pos |= INSIDE_1;
+			if (hiCornerW2 < 0) pos |= OUTSIDE_2; else if (hiCornerW2 >= hiExtent2) pos |= INSIDE_2;
+			positionHi = pos;
 		}
 
 		Data.a0 = a0;
