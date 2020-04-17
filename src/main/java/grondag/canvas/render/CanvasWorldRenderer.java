@@ -213,6 +213,8 @@ public class CanvasWorldRenderer {
 		if (wr.canvas_checkNeedsTerrainUpdate(cameraPos, camera.getPitch(), camera.getYaw())) {
 			outerTimer.start();
 			BuiltRenderRegion.advanceFrameIndex();
+
+			// PERF: find some more efficient distance-sorting mechanism - ideally persist sorting longer
 			final ObjectHeapPriorityQueue<BuiltRenderRegion> regionQueue = this.regionQueue;
 			if (cameraChunk == null) {
 				// TODO: prime visible when above or below world and camera chunk is null

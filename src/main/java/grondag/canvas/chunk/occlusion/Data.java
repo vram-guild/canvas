@@ -68,6 +68,8 @@ public class Data {
 	static int save_lowTileY;
 
 	// all coordinates are full precision and corner-oriented unless otherwise noted
+	static int lowTileA0;
+	static int lowTileB0;
 	static int lowSpanA0;
 	static int lowSpanB0;
 	static int lowExtent0;
@@ -77,6 +79,8 @@ public class Data {
 	static int save_x0y0Low0;
 	static int save_positionLow0;
 
+	static int lowTileA1;
+	static int lowTileB1;
 	static int lowSpanA1;
 	static int lowSpanB1;
 	static int lowExtent1;
@@ -86,6 +90,8 @@ public class Data {
 	static int save_x0y0Low1;
 	static int save_positionLow1;
 
+	static int lowTileA2;
+	static int lowTileB2;
 	static int lowSpanA2;
 	static int lowSpanB2;
 	static int lowExtent2;
@@ -95,8 +101,8 @@ public class Data {
 	static int save_x0y0Low2;
 	static int save_positionLow2;
 
-	static int hiStepA0;
-	static int hiStepB0;
+	static int hiTileA0;
+	static int hiTileB0;
 	static int hiSpanA0;
 	static int hiSpanB0;
 	static int hiExtent0;
@@ -105,8 +111,8 @@ public class Data {
 	static int save_hiCornerW0;
 	static int save_positionHi0;
 
-	static int hiStepA1;
-	static int hiStepB1;
+	static int hiTileA1;
+	static int hiTileB1;
 	static int hiSpanA1;
 	static int hiSpanB1;
 	static int hiExtent1;
@@ -115,8 +121,8 @@ public class Data {
 	static int save_hiCornerW1;
 	static int save_positionHi1;
 
-	static int hiStepA2;
-	static int hiStepB2;
+	static int hiTileA2;
+	static int hiTileB2;
 	static int hiSpanA2;
 	static int hiSpanB2;
 	static int hiExtent2;

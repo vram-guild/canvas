@@ -13,13 +13,10 @@ import static grondag.canvas.chunk.occlusion.Constants.INSIDE;
 import static grondag.canvas.chunk.occlusion.Constants.INTERSECTING;
 import static grondag.canvas.chunk.occlusion.Constants.LOW_AXIS_MASK;
 import static grondag.canvas.chunk.occlusion.Constants.LOW_AXIS_SHIFT;
-import static grondag.canvas.chunk.occlusion.Constants.LOW_TILE_PIXEL_DIAMETER;
-import static grondag.canvas.chunk.occlusion.Constants.LOW_TILE_SPAN;
 import static grondag.canvas.chunk.occlusion.Constants.MAX_PIXEL_X;
 import static grondag.canvas.chunk.occlusion.Constants.MAX_PIXEL_Y;
 import static grondag.canvas.chunk.occlusion.Constants.MID_AXIS_MASK;
 import static grondag.canvas.chunk.occlusion.Constants.MID_AXIS_SHIFT;
-import static grondag.canvas.chunk.occlusion.Constants.MID_TILE_SPAN;
 import static grondag.canvas.chunk.occlusion.Constants.OUTSIDE;
 import static grondag.canvas.chunk.occlusion.Constants.PRECISE_HEIGHT;
 import static grondag.canvas.chunk.occlusion.Constants.PRECISE_HEIGHT_CLAMP;
@@ -46,12 +43,12 @@ import static grondag.canvas.chunk.occlusion.Data.hiSpanA2;
 import static grondag.canvas.chunk.occlusion.Data.hiSpanB0;
 import static grondag.canvas.chunk.occlusion.Data.hiSpanB1;
 import static grondag.canvas.chunk.occlusion.Data.hiSpanB2;
-import static grondag.canvas.chunk.occlusion.Data.hiStepA0;
-import static grondag.canvas.chunk.occlusion.Data.hiStepA1;
-import static grondag.canvas.chunk.occlusion.Data.hiStepA2;
-import static grondag.canvas.chunk.occlusion.Data.hiStepB0;
-import static grondag.canvas.chunk.occlusion.Data.hiStepB1;
-import static grondag.canvas.chunk.occlusion.Data.hiStepB2;
+import static grondag.canvas.chunk.occlusion.Data.hiTileA0;
+import static grondag.canvas.chunk.occlusion.Data.hiTileA1;
+import static grondag.canvas.chunk.occlusion.Data.hiTileA2;
+import static grondag.canvas.chunk.occlusion.Data.hiTileB0;
+import static grondag.canvas.chunk.occlusion.Data.hiTileB1;
+import static grondag.canvas.chunk.occlusion.Data.hiTileB2;
 import static grondag.canvas.chunk.occlusion.Data.lowCornerW0;
 import static grondag.canvas.chunk.occlusion.Data.lowCornerW1;
 import static grondag.canvas.chunk.occlusion.Data.lowCornerW2;
@@ -64,6 +61,12 @@ import static grondag.canvas.chunk.occlusion.Data.lowSpanA2;
 import static grondag.canvas.chunk.occlusion.Data.lowSpanB0;
 import static grondag.canvas.chunk.occlusion.Data.lowSpanB1;
 import static grondag.canvas.chunk.occlusion.Data.lowSpanB2;
+import static grondag.canvas.chunk.occlusion.Data.lowTileA0;
+import static grondag.canvas.chunk.occlusion.Data.lowTileA1;
+import static grondag.canvas.chunk.occlusion.Data.lowTileA2;
+import static grondag.canvas.chunk.occlusion.Data.lowTileB0;
+import static grondag.canvas.chunk.occlusion.Data.lowTileB1;
+import static grondag.canvas.chunk.occlusion.Data.lowTileB2;
 import static grondag.canvas.chunk.occlusion.Data.lowTileX;
 import static grondag.canvas.chunk.occlusion.Data.lowTileY;
 import static grondag.canvas.chunk.occlusion.Data.maxPixelX;
@@ -263,16 +266,22 @@ public final class Triangle {
 		position1 = (1 << (((a1 >> 31) | (-a1 >>> 31)) + 1)) | (1 << (((b1 >> 31) | (-b1 >>> 31)) + 4));
 		position2 = (1 << (((a2 >> 31) | (-a2 >>> 31)) + 1)) | (1 << (((b2 >> 31) | (-b2 >>> 31)) + 4));
 
-		lowSpanA0 = a0 * LOW_TILE_SPAN;
-		lowSpanB0 = b0 * LOW_TILE_SPAN;
+		lowTileA0 = a0 << LOW_AXIS_SHIFT;
+		lowTileB0 = b0 << LOW_AXIS_SHIFT;
+		lowSpanA0 = lowTileA0 - a0;
+		lowSpanB0 = lowTileB0 - b0;
 		lowExtent0 = ((lowSpanA0 < 0) ? -lowSpanA0 : lowSpanA0) + ((lowSpanB0 < 0) ? -lowSpanB0 : lowSpanB0);
 
-		lowSpanA1 = a1 * LOW_TILE_SPAN;
-		lowSpanB1 = b1 * LOW_TILE_SPAN;
+		lowTileA1 = a1 << LOW_AXIS_SHIFT;
+		lowTileB1 = b1 << LOW_AXIS_SHIFT;
+		lowSpanA1 = lowTileA1 - a1;
+		lowSpanB1 = lowTileB1 - b1;
 		lowExtent1 = ((lowSpanA1 < 0) ? -lowSpanA1 : lowSpanA1) + ((lowSpanB1 < 0) ? -lowSpanB1 : lowSpanB1);
 
-		lowSpanA2 = a2 * LOW_TILE_SPAN;
-		lowSpanB2 = b2 * LOW_TILE_SPAN;
+		lowTileA2 = a2 << LOW_AXIS_SHIFT;
+		lowTileB2 = b2 << LOW_AXIS_SHIFT;
+		lowSpanA2 = lowTileA2 - a2;
+		lowSpanB2 = lowTileB2 - b2;
 		lowExtent2 = ((lowSpanA2 < 0) ? -lowSpanA2 : lowSpanA2) + ((lowSpanB2 < 0) ? -lowSpanB2 : lowSpanB2);
 
 		// Compute barycentric coordinates at oriented corner of first tile
@@ -303,25 +312,25 @@ public final class Triangle {
 		}  else {
 			assert scale == SCALE_MID;
 
-			midTileX = minPixelX >> MID_AXIS_SHIFT;
-			midTileY = minPixelY >> MID_AXIS_SHIFT;
+			midTileX = (minPixelX >> MID_AXIS_SHIFT);
+			midTileY = (minPixelY >> MID_AXIS_SHIFT);
 
-			hiSpanA0 = a0 * MID_TILE_SPAN;
-			hiSpanB0 = b0 * MID_TILE_SPAN;
-			hiStepA0 = a0 * LOW_TILE_PIXEL_DIAMETER;
-			hiStepB0 = b0 * LOW_TILE_PIXEL_DIAMETER;
+			hiTileA0 = a0 << MID_AXIS_SHIFT;
+			hiTileB0 = b0 << MID_AXIS_SHIFT;
+			hiSpanA0 = hiTileA0 - a0;
+			hiSpanB0 = hiTileB0 - b0;
 			hiExtent0 = ((hiSpanA0 < 0) ? -hiSpanA0 : hiSpanA0) + ((hiSpanB0 < 0) ? -hiSpanB0 : hiSpanB0);
 
-			hiSpanA1 = a1 * MID_TILE_SPAN;
-			hiSpanB1 = b1 * MID_TILE_SPAN;
-			hiStepA1 = a1 * LOW_TILE_PIXEL_DIAMETER;
-			hiStepB1 = b1 * LOW_TILE_PIXEL_DIAMETER;
+			hiTileA1 = a1 << MID_AXIS_SHIFT;
+			hiTileB1 = b1 << MID_AXIS_SHIFT;
+			hiSpanA1 = hiTileA1 - a1;
+			hiSpanB1 = hiTileB1 - b1;
 			hiExtent1 = ((hiSpanA1 < 0) ? -hiSpanA1 : hiSpanA1) + ((hiSpanB1 < 0) ? -hiSpanB1 : hiSpanB1);
 
-			hiSpanA2 = a2 * MID_TILE_SPAN;
-			hiSpanB2 = b2 * MID_TILE_SPAN;
-			hiStepA2 = a2 * LOW_TILE_PIXEL_DIAMETER;
-			hiStepB2 = b2 * LOW_TILE_PIXEL_DIAMETER;
+			hiTileA2 = a2 << MID_AXIS_SHIFT;
+			hiTileB2 = b2 << MID_AXIS_SHIFT;
+			hiSpanA2 = hiTileA2 - a2;
+			hiSpanB2 = hiTileB2 - b2;
 			hiExtent2 = ((hiSpanA2 < 0) ? -hiSpanA2 : hiSpanA2) + ((hiSpanB2 < 0) ? -hiSpanB2 : hiSpanB2);
 
 			final int ox = (minPixelX & MID_AXIS_MASK) << PRECISION_BITS;

@@ -36,12 +36,12 @@ import static grondag.canvas.chunk.occlusion.Data.hiSpanA2;
 import static grondag.canvas.chunk.occlusion.Data.hiSpanB0;
 import static grondag.canvas.chunk.occlusion.Data.hiSpanB1;
 import static grondag.canvas.chunk.occlusion.Data.hiSpanB2;
-import static grondag.canvas.chunk.occlusion.Data.hiStepA0;
-import static grondag.canvas.chunk.occlusion.Data.hiStepA1;
-import static grondag.canvas.chunk.occlusion.Data.hiStepA2;
-import static grondag.canvas.chunk.occlusion.Data.hiStepB0;
-import static grondag.canvas.chunk.occlusion.Data.hiStepB1;
-import static grondag.canvas.chunk.occlusion.Data.hiStepB2;
+import static grondag.canvas.chunk.occlusion.Data.hiTileA0;
+import static grondag.canvas.chunk.occlusion.Data.hiTileA1;
+import static grondag.canvas.chunk.occlusion.Data.hiTileA2;
+import static grondag.canvas.chunk.occlusion.Data.hiTileB0;
+import static grondag.canvas.chunk.occlusion.Data.hiTileB1;
+import static grondag.canvas.chunk.occlusion.Data.hiTileB2;
 import static grondag.canvas.chunk.occlusion.Data.lowCornerW0;
 import static grondag.canvas.chunk.occlusion.Data.lowCornerW1;
 import static grondag.canvas.chunk.occlusion.Data.lowCornerW2;
@@ -54,6 +54,12 @@ import static grondag.canvas.chunk.occlusion.Data.lowSpanA2;
 import static grondag.canvas.chunk.occlusion.Data.lowSpanB0;
 import static grondag.canvas.chunk.occlusion.Data.lowSpanB1;
 import static grondag.canvas.chunk.occlusion.Data.lowSpanB2;
+import static grondag.canvas.chunk.occlusion.Data.lowTileA0;
+import static grondag.canvas.chunk.occlusion.Data.lowTileA1;
+import static grondag.canvas.chunk.occlusion.Data.lowTileA2;
+import static grondag.canvas.chunk.occlusion.Data.lowTileB0;
+import static grondag.canvas.chunk.occlusion.Data.lowTileB1;
+import static grondag.canvas.chunk.occlusion.Data.lowTileB2;
 import static grondag.canvas.chunk.occlusion.Data.lowTileX;
 import static grondag.canvas.chunk.occlusion.Data.lowTileY;
 import static grondag.canvas.chunk.occlusion.Data.midTileX;
@@ -107,9 +113,9 @@ abstract class Tile {
 	static void moveMidTileRight() {
 		++midTileX;
 
-		hiCornerW0 += a0 + hiSpanA0;
-		hiCornerW1 += a1 + hiSpanA1;
-		hiCornerW2 += a2 + hiSpanA2;
+		hiCornerW0 += hiTileA0;
+		hiCornerW1 += hiTileA1;
+		hiCornerW2 += hiTileA2;
 
 		if (updateRightPosition(position0, positionHi0)) {
 			positionHi0 = hiCornerW0 < 0 ? OUTSIDE : hiCornerW0 >= hiExtent0 ? INSIDE : INTERSECTING;
@@ -127,9 +133,9 @@ abstract class Tile {
 	static void moveLowTileRight() {
 		++lowTileX;
 
-		lowCornerW0 += a0 + lowSpanA0;
-		lowCornerW1 += a1 + lowSpanA1;
-		lowCornerW2 += a2 + lowSpanA2;
+		lowCornerW0 += lowTileA0;
+		lowCornerW1 += lowTileA1;
+		lowCornerW2 += lowTileA2;
 
 		if (updateRightPosition(position0, positionLow0)) {
 			positionLow0 = lowCornerW0 < 0 ? OUTSIDE : lowCornerW0 >= lowExtent0 ? INSIDE : INTERSECTING;
@@ -161,9 +167,9 @@ abstract class Tile {
 	static void moveMidTileLeft() {
 		--midTileX;
 
-		hiCornerW0 -= (a0 + hiSpanA0);
-		hiCornerW1 -= (a1 + hiSpanA1);
-		hiCornerW2 -= (a2 + hiSpanA2);
+		hiCornerW0 -= hiTileA0;
+		hiCornerW1 -= hiTileA1;
+		hiCornerW2 -= hiTileA2;
 
 		if (updateLeftPosition(position0, positionHi0)) {
 			positionHi0 = hiCornerW0 < 0 ? OUTSIDE : hiCornerW0 >= hiExtent0 ? INSIDE : INTERSECTING;
@@ -181,9 +187,9 @@ abstract class Tile {
 	static void moveLowTileLeft() {
 		--lowTileX;
 
-		lowCornerW0 -= (a0 + lowSpanA0);
-		lowCornerW1 -= (a1 + lowSpanA1);
-		lowCornerW2 -= (a2 + lowSpanA2);
+		lowCornerW0 -= lowTileA0;
+		lowCornerW1 -= lowTileA1;
+		lowCornerW2 -= lowTileA2;
 
 		if (updateLeftPosition(position0, positionLow0)) {
 			positionLow0 = lowCornerW0 < 0 ? OUTSIDE : lowCornerW0 >= lowExtent0 ? INSIDE : INTERSECTING;
@@ -215,9 +221,9 @@ abstract class Tile {
 	static void moveMidTileUp() {
 		++midTileY;
 
-		hiCornerW0 += (b0 + hiSpanB0);
-		hiCornerW1 += (b1 + hiSpanB1);
-		hiCornerW2 += (b2 + hiSpanB2);
+		hiCornerW0 += hiTileB0;
+		hiCornerW1 += hiTileB1;
+		hiCornerW2 += hiTileB2;
 
 		if (updateTopPosition(position0, positionHi0)) {
 			positionHi0 = hiCornerW0 < 0 ? OUTSIDE : hiCornerW0 >= hiExtent0 ? INSIDE : INTERSECTING;
@@ -333,15 +339,15 @@ abstract class Tile {
 		long result = -1L;
 
 		if (c0 == INTERSECTING) {
-			result &= buildMask(position0, hiStepA0, hiStepB0, hiCornerW0);
+			result &= buildMask(position0, lowTileA0, lowTileB0, hiCornerW0);
 		}
 
 		if (c1 == INTERSECTING) {
-			result &= buildMask(position1, hiStepA1, hiStepB1, hiCornerW1);
+			result &= buildMask(position1, lowTileA1, lowTileB1, hiCornerW1);
 		}
 
 		if (c2 == INTERSECTING) {
-			result &= buildMask(position2, hiStepA2, hiStepB2, hiCornerW2);
+			result &= buildMask(position2, lowTileA2, lowTileB2, hiCornerW2);
 		}
 
 		return result;
