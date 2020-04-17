@@ -95,16 +95,19 @@ abstract class Tile {
 		lowTileX = midTileX << TILE_AXIS_SHIFT;
 		lowTileY = midTileY << TILE_AXIS_SHIFT;
 
-		final int highW0 = hiCornerW0 - ((position0 & A_POSITIVE) == 0 ? 0 : hiSpanA0) - ((position0 & B_POSITIVE) == 0 ? 0 : hiSpanB0);
-		lowCornerW0 = highW0 + ((position0 & A_POSITIVE) == 0 ? 0 : lowSpanA0) + ((position0 & B_POSITIVE) == 0 ? 0 : lowSpanB0);
+		lowCornerW0 = hiCornerW0;
+		if ((position0 & A_POSITIVE) != 0) lowCornerW0 += lowSpanA0 - hiSpanA0;
+		if ((position0 & B_POSITIVE) != 0) lowCornerW0 += lowSpanB0 - hiSpanB0;
 		positionLow0 = lowCornerW0 < 0 ? OUTSIDE : lowCornerW0 >= lowExtent0 ? INSIDE : INTERSECTING;
 
-		final int highW1 = hiCornerW1 - ((position1 & A_POSITIVE) == 0 ? 0 : hiSpanA1) - ((position1 & B_POSITIVE) == 0 ? 0 : hiSpanB1);
-		lowCornerW1 = highW1 + ((position1 & A_POSITIVE) == 0 ? 0 : lowSpanA1) + ((position1 & B_POSITIVE) == 0 ? 0 : lowSpanB1);
+		lowCornerW1 = hiCornerW1;
+		if ((position1 & A_POSITIVE) != 0) lowCornerW1 += lowSpanA1 - hiSpanA1;
+		if ((position1 & B_POSITIVE) != 0) lowCornerW1 += lowSpanB1 - hiSpanB1;
 		positionLow1 = lowCornerW1 < 0 ? OUTSIDE : lowCornerW1 >= lowExtent1 ? INSIDE : INTERSECTING;
 
-		final int highW2 = hiCornerW2 - ((position2 & A_POSITIVE) == 0 ? 0 : hiSpanA2) - ((position2 & B_POSITIVE) == 0 ? 0 : hiSpanB2);
-		lowCornerW2 = highW2 + ((position2 & A_POSITIVE) == 0 ? 0 : lowSpanA2) + ((position2 & B_POSITIVE) == 0 ? 0 : lowSpanB2);
+		lowCornerW2 = hiCornerW2;
+		if ((position2 & A_POSITIVE) != 0) lowCornerW2 += lowSpanA2 - hiSpanA2;
+		if ((position2 & B_POSITIVE) != 0) lowCornerW2 += lowSpanB2 - hiSpanB2;
 		positionLow2 = lowCornerW2 < 0 ? OUTSIDE : lowCornerW2 >= lowExtent2 ? INSIDE : INTERSECTING;
 	}
 
