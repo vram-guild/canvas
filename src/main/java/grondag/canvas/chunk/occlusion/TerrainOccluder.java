@@ -5,7 +5,6 @@ import static grondag.canvas.chunk.occlusion.Constants.CAMERA_PRECISION_UNITY;
 import static grondag.canvas.chunk.occlusion.Constants.EMPTY_BITS;
 import static grondag.canvas.chunk.occlusion.Constants.ENABLE_RASTER_OUTPUT;
 import static grondag.canvas.chunk.occlusion.Constants.LOW_TILE_COUNT;
-import static grondag.canvas.chunk.occlusion.Constants.MID_TILE_COUNT;
 import static grondag.canvas.chunk.occlusion.Constants.PIXEL_HEIGHT;
 import static grondag.canvas.chunk.occlusion.Constants.PIXEL_WIDTH;
 import static grondag.canvas.chunk.occlusion.Data.cameraX;
@@ -40,7 +39,6 @@ public abstract class TerrainOccluder {
 
 	public static void clearScene() {
 		System.arraycopy(EMPTY_BITS, 0, Data.lowTiles, 0, LOW_TILE_COUNT);
-		System.arraycopy(EMPTY_BITS, 0, Data.midTiles, 0, MID_TILE_COUNT);
 	}
 
 	public static void prepareChunk(BlockPos origin, int occlusionRange) {

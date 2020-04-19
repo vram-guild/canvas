@@ -21,8 +21,6 @@ import static grondag.canvas.chunk.occlusion.Constants.LOW_AXIS_MASK;
 import static grondag.canvas.chunk.occlusion.Constants.LOW_AXIS_SHIFT;
 import static grondag.canvas.chunk.occlusion.Constants.MAX_PIXEL_X;
 import static grondag.canvas.chunk.occlusion.Constants.MAX_PIXEL_Y;
-import static grondag.canvas.chunk.occlusion.Constants.MID_AXIS_MASK;
-import static grondag.canvas.chunk.occlusion.Constants.MID_AXIS_SHIFT;
 import static grondag.canvas.chunk.occlusion.Constants.OUTSIDE_0;
 import static grondag.canvas.chunk.occlusion.Constants.OUTSIDE_1;
 import static grondag.canvas.chunk.occlusion.Constants.OUTSIDE_2;
@@ -40,24 +38,6 @@ import static grondag.canvas.chunk.occlusion.Constants.TILE_AXIS_SHIFT;
 import static grondag.canvas.chunk.occlusion.Data.event0;
 import static grondag.canvas.chunk.occlusion.Data.event1;
 import static grondag.canvas.chunk.occlusion.Data.event2;
-import static grondag.canvas.chunk.occlusion.Data.hiCornerW0;
-import static grondag.canvas.chunk.occlusion.Data.hiCornerW1;
-import static grondag.canvas.chunk.occlusion.Data.hiCornerW2;
-import static grondag.canvas.chunk.occlusion.Data.hiExtent0;
-import static grondag.canvas.chunk.occlusion.Data.hiExtent1;
-import static grondag.canvas.chunk.occlusion.Data.hiExtent2;
-import static grondag.canvas.chunk.occlusion.Data.hiSpanA0;
-import static grondag.canvas.chunk.occlusion.Data.hiSpanA1;
-import static grondag.canvas.chunk.occlusion.Data.hiSpanA2;
-import static grondag.canvas.chunk.occlusion.Data.hiSpanB0;
-import static grondag.canvas.chunk.occlusion.Data.hiSpanB1;
-import static grondag.canvas.chunk.occlusion.Data.hiSpanB2;
-import static grondag.canvas.chunk.occlusion.Data.hiTileA0;
-import static grondag.canvas.chunk.occlusion.Data.hiTileA1;
-import static grondag.canvas.chunk.occlusion.Data.hiTileA2;
-import static grondag.canvas.chunk.occlusion.Data.hiTileB0;
-import static grondag.canvas.chunk.occlusion.Data.hiTileB1;
-import static grondag.canvas.chunk.occlusion.Data.hiTileB2;
 import static grondag.canvas.chunk.occlusion.Data.lowCornerW0;
 import static grondag.canvas.chunk.occlusion.Data.lowCornerW1;
 import static grondag.canvas.chunk.occlusion.Data.lowCornerW2;
@@ -80,14 +60,11 @@ import static grondag.canvas.chunk.occlusion.Data.lowTileX;
 import static grondag.canvas.chunk.occlusion.Data.lowTileY;
 import static grondag.canvas.chunk.occlusion.Data.maxPixelX;
 import static grondag.canvas.chunk.occlusion.Data.maxPixelY;
-import static grondag.canvas.chunk.occlusion.Data.midTileX;
-import static grondag.canvas.chunk.occlusion.Data.midTileY;
 import static grondag.canvas.chunk.occlusion.Data.minPixelX;
 import static grondag.canvas.chunk.occlusion.Data.minPixelY;
 import static grondag.canvas.chunk.occlusion.Data.position0;
 import static grondag.canvas.chunk.occlusion.Data.position1;
 import static grondag.canvas.chunk.occlusion.Data.position2;
-import static grondag.canvas.chunk.occlusion.Data.positionHi;
 import static grondag.canvas.chunk.occlusion.Data.positionLow;
 import static grondag.canvas.chunk.occlusion.Data.px0;
 import static grondag.canvas.chunk.occlusion.Data.px1;
@@ -305,88 +282,34 @@ public final class Triangle {
 		lowSpanB2 = lowTileB2 - b2;
 		lowExtent2 = ((lowSpanA2 < 0) ? -lowSpanA2 : lowSpanA2) + ((lowSpanB2 < 0) ? -lowSpanB2 : lowSpanB2);
 
-		// PERF: remove? Interesting range should be written each tri
-		//		System.arraycopy(EMPTY_EVENT, 0, event0, 0, PIXEL_HEIGHT);
-		//		System.arraycopy(EMPTY_EVENT, 0, event1, 0, PIXEL_HEIGHT);
-		//		System.arraycopy(EMPTY_EVENT, 0, event2, 0, PIXEL_HEIGHT);
+		lowTileX = (minPixelX >> LOW_AXIS_SHIFT);
+		lowTileY = (minPixelY >> LOW_AXIS_SHIFT);
 
-		if (scale == SCALE_LOW) {
-			lowTileX = (minPixelX >> LOW_AXIS_SHIFT);
-			lowTileY = (minPixelY >> LOW_AXIS_SHIFT);
+		final int tileX = minPixelX & LOW_AXIS_MASK;
+		final int tileY = minPixelY & LOW_AXIS_MASK;
 
-			final int tileX = minPixelX & LOW_AXIS_MASK;
-			final int tileY = minPixelY & LOW_AXIS_MASK;
+		// Compute barycentric coordinates at oriented corner of first tile
+		// Can reduce precision (with accurate rounding) because increments will always be multiple of full pixel width
+		int cornerX = (position0 & A_POSITIVE) == 0 ? tileX : (tileX + 7);
+		int cornerY = (position0 & B_POSITIVE) == 0 ? tileY : (tileY + 7);
+		lowCornerW0 = (int) ((-a0 * (x0 - ((long) cornerX << PRECISION_BITS)) - b0 * (y0 - ((long) cornerY << PRECISION_BITS)) + (((position0 & EDGE_LEFT) != 0 || position0 == EDGE_TOP) ? PRECISE_PIXEL_CENTER : SCANT_PRECISE_PIXEL_CENTER)) >> PRECISION_BITS);
+		populateEvents(position0, lowCornerW0, cornerX, cornerY, a0, b0, event0);
 
-			// Compute barycentric coordinates at oriented corner of first tile
-			// Can reduce precision (with accurate rounding) because increments will always be multiple of full pixel width
-			int cornerX = (position0 & A_POSITIVE) == 0 ? tileX : (tileX + 7);
-			int cornerY = (position0 & B_POSITIVE) == 0 ? tileY : (tileY + 7);
-			lowCornerW0 = (int) ((-a0 * (x0 - ((long) cornerX << PRECISION_BITS)) - b0 * (y0 - ((long) cornerY << PRECISION_BITS)) + (((position0 & EDGE_LEFT) != 0 || position0 == EDGE_TOP) ? PRECISE_PIXEL_CENTER : SCANT_PRECISE_PIXEL_CENTER)) >> PRECISION_BITS);
-			populateEvents(position0, lowCornerW0, cornerX, cornerY, a0, b0, event0);
+		cornerX = (position1 & A_POSITIVE) == 0 ? tileX : (tileX + 7);
+		cornerY = (position1 & B_POSITIVE) == 0 ? tileY : (tileY + 7);
+		lowCornerW1 = (int) ((-a1 * (x1 - ((long) cornerX << PRECISION_BITS)) - b1 * (y1 - ((long) cornerY << PRECISION_BITS)) + (((position1 & EDGE_LEFT) != 0 || position1 == EDGE_TOP) ? PRECISE_PIXEL_CENTER : SCANT_PRECISE_PIXEL_CENTER)) >> PRECISION_BITS);
+		populateEvents(position1, lowCornerW1, cornerX, cornerY, a1, b1, event1);
 
-			cornerX = (position1 & A_POSITIVE) == 0 ? tileX : (tileX + 7);
-			cornerY = (position1 & B_POSITIVE) == 0 ? tileY : (tileY + 7);
-			lowCornerW1 = (int) ((-a1 * (x1 - ((long) cornerX << PRECISION_BITS)) - b1 * (y1 - ((long) cornerY << PRECISION_BITS)) + (((position1 & EDGE_LEFT) != 0 || position1 == EDGE_TOP) ? PRECISE_PIXEL_CENTER : SCANT_PRECISE_PIXEL_CENTER)) >> PRECISION_BITS);
-			populateEvents(position1, lowCornerW1, cornerX, cornerY, a1, b1, event1);
+		cornerX = (position2 & A_POSITIVE) == 0 ? tileX : (tileX + 7);
+		cornerY = (position2 & B_POSITIVE) == 0 ? tileY : (tileY + 7);
+		lowCornerW2 = (int) ((-a2 * (x2 - ((long) cornerX << PRECISION_BITS)) - b2 * (y2 - ((long) cornerY << PRECISION_BITS)) + (((position2 & EDGE_LEFT) != 0 || position2 == EDGE_TOP) ? PRECISE_PIXEL_CENTER : SCANT_PRECISE_PIXEL_CENTER)) >> PRECISION_BITS);
+		populateEvents(position2, lowCornerW2, cornerX, cornerY, a2, b2, event2);
 
-			cornerX = (position2 & A_POSITIVE) == 0 ? tileX : (tileX + 7);
-			cornerY = (position2 & B_POSITIVE) == 0 ? tileY : (tileY + 7);
-			lowCornerW2 = (int) ((-a2 * (x2 - ((long) cornerX << PRECISION_BITS)) - b2 * (y2 - ((long) cornerY << PRECISION_BITS)) + (((position2 & EDGE_LEFT) != 0 || position2 == EDGE_TOP) ? PRECISE_PIXEL_CENTER : SCANT_PRECISE_PIXEL_CENTER)) >> PRECISION_BITS);
-			populateEvents(position2, lowCornerW2, cornerX, cornerY, a2, b2, event2);
-
-			int pos = 0;
-			if (lowCornerW0 < 0) pos |= OUTSIDE_0; else if (lowCornerW0 >= lowExtent0) pos |= INSIDE_0;
-			if (lowCornerW1 < 0) pos |= OUTSIDE_1; else if (lowCornerW1 >= lowExtent1) pos |= INSIDE_1;
-			if (lowCornerW2 < 0) pos |= OUTSIDE_2; else if (lowCornerW2 >= lowExtent2) pos |= INSIDE_2;
-			positionLow = pos;
-		}  else {
-			assert scale == SCALE_MID;
-
-			midTileX = (minPixelX >> MID_AXIS_SHIFT);
-			midTileY = (minPixelY >> MID_AXIS_SHIFT);
-
-			hiTileA0 = a0 << MID_AXIS_SHIFT;
-			hiTileB0 = b0 << MID_AXIS_SHIFT;
-			hiSpanA0 = hiTileA0 - a0;
-			hiSpanB0 = hiTileB0 - b0;
-			hiExtent0 = ((hiSpanA0 < 0) ? -hiSpanA0 : hiSpanA0) + ((hiSpanB0 < 0) ? -hiSpanB0 : hiSpanB0);
-
-			hiTileA1 = a1 << MID_AXIS_SHIFT;
-			hiTileB1 = b1 << MID_AXIS_SHIFT;
-			hiSpanA1 = hiTileA1 - a1;
-			hiSpanB1 = hiTileB1 - b1;
-			hiExtent1 = ((hiSpanA1 < 0) ? -hiSpanA1 : hiSpanA1) + ((hiSpanB1 < 0) ? -hiSpanB1 : hiSpanB1);
-
-			hiTileA2 = a2 << MID_AXIS_SHIFT;
-			hiTileB2 = b2 << MID_AXIS_SHIFT;
-			hiSpanA2 = hiTileA2 - a2;
-			hiSpanB2 = hiTileB2 - b2;
-			hiExtent2 = ((hiSpanA2 < 0) ? -hiSpanA2 : hiSpanA2) + ((hiSpanB2 < 0) ? -hiSpanB2 : hiSpanB2);
-
-			final int tileX = minPixelX & MID_AXIS_MASK;
-			final int tileY = minPixelY & MID_AXIS_MASK;
-
-			int cornerX = (position0 & A_POSITIVE) == 0 ? tileX : (tileX + 63);
-			int cornerY = (position0 & B_POSITIVE) == 0 ? tileY : (tileY + 63);
-			hiCornerW0 = (int) ((-a0 * (x0 - ((long) cornerX << PRECISION_BITS)) - b0 * (y0 - ((long) cornerY << PRECISION_BITS)) + (((position0 & EDGE_LEFT) != 0 || position0 == EDGE_TOP) ? PRECISE_PIXEL_CENTER : SCANT_PRECISE_PIXEL_CENTER)) >> PRECISION_BITS);
-			populateEvents(position0, hiCornerW0, cornerX, cornerY, a0, b0, event0);
-
-			cornerX = (position1 & A_POSITIVE) == 0 ? tileX : (tileX + 63);
-			cornerY = (position1 & B_POSITIVE) == 0 ? tileY : (tileY + 63);
-			hiCornerW1 = (int) ((-a1 * (x1 - ((long) cornerX << PRECISION_BITS)) - b1 * (y1 - ((long) cornerY << PRECISION_BITS)) + (((position1 & EDGE_LEFT) != 0 || position1 == EDGE_TOP) ? PRECISE_PIXEL_CENTER : SCANT_PRECISE_PIXEL_CENTER)) >> PRECISION_BITS);
-			populateEvents(position1, hiCornerW1, cornerX, cornerY, a1, b1, event1);
-
-			cornerX = (position2 & A_POSITIVE) == 0 ? tileX : (tileX + 63);
-			cornerY = (position2 & B_POSITIVE) == 0 ? tileY : (tileY + 63);
-			hiCornerW2 = (int) ((-a2 * (x2 - ((long) cornerX << PRECISION_BITS)) - b2 * (y2 - ((long) cornerY << PRECISION_BITS)) + (((position2 & EDGE_LEFT) != 0 || position2 == EDGE_TOP) ? PRECISE_PIXEL_CENTER : SCANT_PRECISE_PIXEL_CENTER)) >> PRECISION_BITS);
-			populateEvents(position2, hiCornerW2, cornerX, cornerY, a2, b2, event2);
-
-			int pos = 0;
-			if (hiCornerW0 < 0) pos |= OUTSIDE_0; else if (hiCornerW0 >= hiExtent0) pos |= INSIDE_0;
-			if (hiCornerW1 < 0) pos |= OUTSIDE_1; else if (hiCornerW1 >= hiExtent1) pos |= INSIDE_1;
-			if (hiCornerW2 < 0) pos |= OUTSIDE_2; else if (hiCornerW2 >= hiExtent2) pos |= INSIDE_2;
-			positionHi = pos;
-		}
+		int pos = 0;
+		if (lowCornerW0 < 0) pos |= OUTSIDE_0; else if (lowCornerW0 >= lowExtent0) pos |= INSIDE_0;
+		if (lowCornerW1 < 0) pos |= OUTSIDE_1; else if (lowCornerW1 >= lowExtent1) pos |= INSIDE_1;
+		if (lowCornerW2 < 0) pos |= OUTSIDE_2; else if (lowCornerW2 >= lowExtent2) pos |= INSIDE_2;
+		positionLow = pos;
 
 		Data.a0 = a0;
 		Data.b0 = b0;

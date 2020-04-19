@@ -1,7 +1,6 @@
 package grondag.canvas.chunk.occlusion;
 
 import static grondag.canvas.chunk.occlusion.Constants.LOW_TILE_COUNT;
-import static grondag.canvas.chunk.occlusion.Constants.MID_TILE_COUNT;
 import static grondag.canvas.chunk.occlusion.Constants.PIXEL_HEIGHT;
 import static grondag.canvas.chunk.occlusion.ProjectedVertexData.PROJECTED_VERTEX_STRIDE;
 
@@ -16,7 +15,6 @@ public class Data {
 	static final Matrix4fExt mvpMatrixExt =  (Matrix4fExt)(Object) mvpMatrix;
 
 	static final long[] lowTiles = new long[LOW_TILE_COUNT];
-	static final long[] midTiles = new long[MID_TILE_COUNT];
 
 	static int xOrigin;
 	static int yOrigin;
@@ -65,11 +63,6 @@ public class Data {
 	static int b2;
 	static int position2;
 
-	static int midTileX;
-	static int midTileY;
-	static int save_midTileX;
-	static int save_midTileY;
-
 	static int lowTileX;
 	static int lowTileY;
 	static int save_lowTileX;
@@ -77,8 +70,6 @@ public class Data {
 
 	static int positionLow;
 	static int save_positionLow;
-	static int positionHi;
-	static int save_positionHi;
 
 	// all coordinates are full precision and corner-oriented unless otherwise noted
 	static int lowTileA0;
@@ -107,36 +98,6 @@ public class Data {
 	static int lowCornerW2;
 	static int save_lowCornerW2;
 	static int save_x0y0Low2;
-
-	static int hiTileA0;
-	static int hiTileB0;
-	static int hiSpanA0;
-	static int hiSpanB0;
-	static int hiExtent0;
-	static int hiCornerW0;
-	static int positionHi0;
-	static int save_hiCornerW0;
-	static int save_positionHi0;
-
-	static int hiTileA1;
-	static int hiTileB1;
-	static int hiSpanA1;
-	static int hiSpanB1;
-	static int hiExtent1;
-	static int hiCornerW1;
-	static int positionHi1;
-	static int save_hiCornerW1;
-	static int save_positionHi1;
-
-	static int hiTileA2;
-	static int hiTileB2;
-	static int hiSpanA2;
-	static int hiSpanB2;
-	static int hiExtent2;
-	static int hiCornerW2;
-	static int positionHi2;
-	static int save_hiCornerW2;
-	static int save_positionHi2;
 
 	static final int[] event0 = new int[PIXEL_HEIGHT];
 	static final int[] event1 = new int[PIXEL_HEIGHT];

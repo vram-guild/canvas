@@ -7,7 +7,6 @@ import static grondag.canvas.chunk.occlusion.Constants.BOUNDS_OUTSIDE_OR_TOO_SMA
 import static grondag.canvas.chunk.occlusion.Constants.COVERAGE_FULL;
 import static grondag.canvas.chunk.occlusion.Constants.COVERAGE_NONE_OR_SOME;
 import static grondag.canvas.chunk.occlusion.Constants.LOW_AXIS_SHIFT;
-import static grondag.canvas.chunk.occlusion.Constants.MID_AXIS_SHIFT;
 import static grondag.canvas.chunk.occlusion.Constants.PIXEL_HEIGHT;
 import static grondag.canvas.chunk.occlusion.Constants.PIXEL_WIDTH;
 import static grondag.canvas.chunk.occlusion.Constants.SCALE_LOW;
@@ -18,26 +17,15 @@ import static grondag.canvas.chunk.occlusion.Data.lowTileY;
 import static grondag.canvas.chunk.occlusion.Data.lowTiles;
 import static grondag.canvas.chunk.occlusion.Data.maxPixelX;
 import static grondag.canvas.chunk.occlusion.Data.maxPixelY;
-import static grondag.canvas.chunk.occlusion.Data.midTileX;
-import static grondag.canvas.chunk.occlusion.Data.midTileY;
-import static grondag.canvas.chunk.occlusion.Data.midTiles;
 import static grondag.canvas.chunk.occlusion.Data.minPixelX;
 import static grondag.canvas.chunk.occlusion.Data.minPixelY;
 import static grondag.canvas.chunk.occlusion.Data.scale;
 import static grondag.canvas.chunk.occlusion.Indexer.lowIndex;
-import static grondag.canvas.chunk.occlusion.Indexer.midIndex;
 import static grondag.canvas.chunk.occlusion.Indexer.testPixel;
 import static grondag.canvas.chunk.occlusion.Tile.computeLowTileCoverage;
-import static grondag.canvas.chunk.occlusion.Tile.computeMidTileCoverage;
 import static grondag.canvas.chunk.occlusion.Tile.moveLowTileLeft;
 import static grondag.canvas.chunk.occlusion.Tile.moveLowTileRight;
-import static grondag.canvas.chunk.occlusion.Tile.moveLowTileToParentOrigin;
 import static grondag.canvas.chunk.occlusion.Tile.moveLowTileUp;
-import static grondag.canvas.chunk.occlusion.Tile.moveMidTileLeft;
-import static grondag.canvas.chunk.occlusion.Tile.moveMidTileRight;
-import static grondag.canvas.chunk.occlusion.Tile.moveMidTileUp;
-import static grondag.canvas.chunk.occlusion.Tile.popLowTile;
-import static grondag.canvas.chunk.occlusion.Tile.pushLowTile;
 import static grondag.canvas.chunk.occlusion.Triangle.prepareBounds;
 import static grondag.canvas.chunk.occlusion.Triangle.prepareScan;
 
@@ -153,91 +141,6 @@ abstract class Rasterizer  {
 		}
 	}
 
-	static boolean testTriMid() {
-		final int x0 = (minPixelX >> MID_AXIS_SHIFT);
-		final int x1 = (maxPixelX >> MID_AXIS_SHIFT);
-		final int y1 = (maxPixelY >> MID_AXIS_SHIFT);
-
-		boolean goRight = true;
-
-		while(true) {
-			if (testTriMidInner()) {
-				return true;
-			}
-
-			if (goRight) {
-				if (midTileX == x1) {
-					if(midTileY == y1) {
-						return false;
-					} else {
-						moveMidTileUp();
-						goRight = !goRight;
-					}
-				} else {
-					moveMidTileRight();
-				}
-			} else {
-				if (midTileX == x0) {
-					if(midTileY == y1) {
-						return false;
-					} else {
-						moveMidTileUp();
-						goRight = !goRight;
-					}
-				} else {
-					moveMidTileLeft();
-				}
-			}
-		}
-	}
-
-	static boolean testTriMidInner() {
-		final long full = Data.midTiles[midIndex(midTileX,  midTileY)];
-
-		if (full == -1L) {
-			return false;
-		}
-
-		// don't check tiles known to be fully occluded
-		long coverage = computeMidTileCoverage() & ~full;
-
-		// nothing in this tile
-		if (coverage  == 0)  {
-			return false;
-		}
-
-		moveLowTileToParentOrigin();
-
-		do {
-			int row = (int) (coverage & 0xFFL);
-
-			// PERF: more efficient traversal
-			if (row != 0) {
-				pushLowTile();
-
-				do {
-					if  ((row & 1) == 1 && testTriLowInner()) {
-						return true;
-					}
-
-					row >>= 1;
-
-					if (row == 0) break;
-
-					moveLowTileRight();
-				} while (true);
-
-				popLowTile();
-			}
-
-			coverage >>>= 8;
-			if (coverage == 0)  break;
-			moveLowTileUp();
-		} while (true);
-
-		return false;
-	}
-
 	static boolean testTriLow() {
 		final int x0 = (minPixelX >> LOW_AXIS_SHIFT);
 		final int x1 = (maxPixelX >> LOW_AXIS_SHIFT);
@@ -274,43 +177,6 @@ abstract class Rasterizer  {
 				}
 			}
 		}
-	}
-
-	static boolean testTriLowOld() {
-		final int x0 = (minPixelX >> LOW_AXIS_SHIFT);
-		final int x1 = (maxPixelX >> LOW_AXIS_SHIFT);
-		final int y0 = (minPixelY >> LOW_AXIS_SHIFT);
-		final int y1 = (maxPixelY >> LOW_AXIS_SHIFT);
-
-		if (testTriLowInner()) {
-			return true;
-		}
-
-		if (x0 != x1) {
-			moveLowTileRight();
-
-			if (testTriLowInner()) {
-				return true;
-			}
-		}
-
-		if (y0 != y1) {
-			moveLowTileUp();
-
-			if (testTriLowInner()) {
-				return true;
-			}
-
-			if (x0 != x1) {
-				moveLowTileLeft();
-
-				if (testTriLowInner()) {
-					return true;
-				}
-			}
-		}
-
-		return false;
 	}
 
 	static boolean testTriLowInner() {
@@ -360,31 +226,6 @@ abstract class Rasterizer  {
 		}
 	}
 
-	static void drawTriLowOld() {
-
-		final int x0 = (minPixelX >> LOW_AXIS_SHIFT);
-		final int x1 = (maxPixelX >> LOW_AXIS_SHIFT);
-		final int y0 = (minPixelY >> LOW_AXIS_SHIFT);
-		final int y1 = (maxPixelY >> LOW_AXIS_SHIFT);
-
-		drawTriLowInner();
-
-		if (x0 != x1) {
-			moveLowTileRight();
-			drawTriLowInner();
-		}
-
-		if (y0 != y1) {
-			moveLowTileUp();
-			drawTriLowInner();
-
-			if (x0 != x1) {
-				moveLowTileLeft();
-				drawTriLowInner();
-			}
-		}
-	}
-
 	static int drawTriLowInner() {
 		final int index = lowIndex(lowTileX, lowTileY);
 		long word = Data.lowTiles[index];
@@ -397,111 +238,6 @@ abstract class Rasterizer  {
 			Data.lowTiles[index] = word;
 			return word == -1L ? COVERAGE_FULL : COVERAGE_NONE_OR_SOME;
 		}
-	}
-
-	static void drawTriMid() {
-		final int x0 = (minPixelX >> MID_AXIS_SHIFT);
-		final int x1 = (maxPixelX >> MID_AXIS_SHIFT);
-		final int y1 = (maxPixelY >> MID_AXIS_SHIFT);
-
-		boolean goRight = true;
-
-		while(true) {
-			drawTriMidInner();
-
-			if (goRight) {
-				if (midTileX == x1) {
-					if(midTileY == y1) {
-						return;
-					} else {
-						moveMidTileUp();
-						goRight = !goRight;
-					}
-				} else {
-					moveMidTileRight();
-				}
-			} else {
-				if (midTileX == x0) {
-					if(midTileY == y1) {
-						return;
-					} else {
-						moveMidTileUp();
-						goRight = !goRight;
-					}
-				} else {
-					moveMidTileLeft();
-				}
-			}
-		}
-	}
-
-	static void drawTriMidInner() {
-		final int index = midIndex(midTileX,  midTileY);
-		long word = midTiles[index];
-
-		if (word == -1L) {
-			return;
-		}
-
-		// TODO: remove
-		final long c = computeMidTileCoverage() & ~word;
-
-		// don't draw tiles known to be fully occluded
-		long coverage = c; // computeMidTileCoverage() & ~word;
-
-		// nothing to do
-		if (coverage == 0)  {
-			return;
-		}
-
-		moveLowTileToParentOrigin();
-
-		long yMask = 1L;
-
-		do {
-			int row = (int) (coverage & 0xFFL);
-
-			// PERF: more efficient traversal
-			if (row != 0) {
-				pushLowTile();
-				long mask = yMask;
-
-				do {
-					//  TODO: FIX and remove check - shuld  not be testing tiles out of range
-					//					if ((row & 1) == 1 && (lowTileY << 3) > maxPixelY) {
-					//						System.out.println();
-					//						printMask8x8(c);
-					//						computeMidTileCoverage();
-					//					}
-
-					if ((row & 1) == 1 && drawTriLowInner() == COVERAGE_FULL) {
-						word |= mask;
-					}
-
-					mask <<= 1;
-					row >>= 1;
-
-					if (row == 0) {
-						break;
-					}
-
-					moveLowTileRight();
-				} while (true);
-
-				popLowTile();
-			}
-
-			yMask <<= 8;
-			coverage >>>= 8;
-
-			if (coverage == 0) {
-				break;
-			}
-
-			moveLowTileUp();
-		} while (true);
-
-		Data.midTiles[index] = word;
 	}
 
 	static void printMask8x8(long mask) {
