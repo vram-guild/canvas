@@ -213,16 +213,20 @@ abstract class Rasterizer  {
 						return true;
 					}
 
-					moveLowTileRight();
 					row >>= 1;
-				} while (row != 0);
+
+					if (row == 0) break;
+
+					moveLowTileRight();
+				} while (true);
 
 				popLowTile();
 			}
 
-			moveLowTileUp();
 			coverage >>>= 8;
-		} while (coverage != 0L);
+			if (coverage == 0)  break;
+			moveLowTileUp();
+		} while (true);
 
 		return false;
 	}
@@ -358,8 +362,11 @@ abstract class Rasterizer  {
 			return;
 		}
 
+		// TODO: remove
+		final long c = computeMidTileCoverage() & ~word;
+
 		// don't draw tiles known to be fully occluded
-		long coverage = computeMidTileCoverage() & ~word;
+		long coverage = c; // computeMidTileCoverage() & ~word;
 
 		// nothing to do
 		if (coverage == 0)  {
@@ -379,22 +386,39 @@ abstract class Rasterizer  {
 				long mask = yMask;
 
 				do {
-					if  ((row & 1) == 1 && drawTriLowInner() == COVERAGE_FULL) {
+					//  TODO: FIX and remove check - shuld  not be testing tiles out of range
+					if ((row & 1) == 1 && (lowTileY << 3) > maxPixelY) {
+						System.out.println();
+						printMask8x8(c);
+						computeMidTileCoverage();
+					}
+
+					if ((row & 1) == 1 && drawTriLowInner() == COVERAGE_FULL) {
 						word |= mask;
 					}
 
 					mask <<= 1;
-					moveLowTileRight();
 					row >>= 1;
-				} while (row != 0);
+
+					if (row == 0) {
+						break;
+					}
+
+					moveLowTileRight();
+				} while (true);
 
 				popLowTile();
 			}
 
-			moveLowTileUp();
 			yMask <<= 8;
 			coverage >>>= 8;
-		} while (coverage != 0L);
+
+			if (coverage == 0) {
+				break;
+			}
+
+			moveLowTileUp();
+		} while (true);
 
 		Data.midTiles[index] = word;
 	}

@@ -2,6 +2,7 @@ package grondag.canvas.chunk.occlusion;
 
 import static grondag.canvas.chunk.occlusion.Constants.LOW_TILE_COUNT;
 import static grondag.canvas.chunk.occlusion.Constants.MID_TILE_COUNT;
+import static grondag.canvas.chunk.occlusion.Constants.PIXEL_HEIGHT;
 import static grondag.canvas.chunk.occlusion.ProjectedVertexData.PROJECTED_VERTEX_STRIDE;
 
 import net.minecraft.client.util.math.Matrix4f;
@@ -44,6 +45,13 @@ public class Data {
 	static int y1;
 	static int x2;
 	static int y2;
+
+	static int px0;
+	static int py0;
+	static int px1;
+	static int py1;
+	static int px2;
+	static int py2;
 
 	static int a0;
 	static int b0;
@@ -129,6 +137,11 @@ public class Data {
 	static int positionHi2;
 	static int save_hiCornerW2;
 	static int save_positionHi2;
+
+	static final short[] event0 = new short[PIXEL_HEIGHT];
+	static final short[] event1 = new short[PIXEL_HEIGHT];
+	static final short[] event2 = new short[PIXEL_HEIGHT];
+
 	//	static int px000;
 	//	static int py000;
 	//	static float x000;

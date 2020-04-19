@@ -1,5 +1,7 @@
 package grondag.canvas.chunk.occlusion;
 
+import java.util.Arrays;
+
 import grondag.canvas.Configurator;
 
 public class Constants {
@@ -18,7 +20,7 @@ public class Constants {
 
 	static final int MID_WIDTH = 16;
 	static final int MID_Y_SHIFT = Integer.bitCount(MID_WIDTH - 1);
-	static final int MIDDLE_HEIGHT = 8;
+	static final int MID_HEIGHT = 8;
 
 	static final int TOP_Y_SHIFT = Integer.bitCount(MID_WIDTH / 8 - 1);
 
@@ -41,7 +43,7 @@ public class Constants {
 	static final int PRECISE_LOW_TILE_SPAN = 7 << PRECISION_BITS;
 	static final int PRECISE_MID_TILE_SPAN = 63 << PRECISION_BITS;
 
-	static final int LOW_HEIGHT = MIDDLE_HEIGHT * 8;
+	static final int LOW_HEIGHT = MID_HEIGHT * 8;
 	static final int PIXEL_HEIGHT = LOW_HEIGHT * TILE_PIXEL_DIAMETER;
 	static final int MAX_PIXEL_Y = PIXEL_HEIGHT - 1;
 	static final int HALF_PIXEL_HEIGHT = PIXEL_HEIGHT / 2;
@@ -56,7 +58,7 @@ public class Constants {
 	static final int GUARD_HEIGHT = PRECISE_HEIGHT + GUARD_SIZE;
 
 	static final int LOW_TILE_COUNT = LOW_WIDTH * LOW_HEIGHT;
-	static final int MID_TILE_COUNT = MID_WIDTH * LOW_HEIGHT;
+	static final int MID_TILE_COUNT = MID_WIDTH * MID_HEIGHT;
 
 	static final int MID_TILE_PIXEL_DIAMETER = PIXEL_WIDTH / MID_WIDTH;
 	static final int MID_TILE_SPAN = MID_TILE_PIXEL_DIAMETER - 1;
@@ -141,4 +143,13 @@ public class Constants {
 	static final int EDGE_TOP_LEFT = B_NEGATIVE | A_POSITIVE;
 	static final int EDGE_BOTTOM_RIGHT = B_POSITIVE | A_NEGATIVE;
 	static final int EDGE_BOTTOM_LEFT = B_POSITIVE | A_POSITIVE;
+
+	static final int EVENT_EMPTY_ROW = -2;
+	static final int EVENT_FULL_ROW = -1;
+
+	static final short[] EMPTY_EVENT = new short[PIXEL_HEIGHT];
+
+	static {
+		Arrays.fill(EMPTY_EVENT, (short) EVENT_EMPTY_ROW);
+	}
 }
