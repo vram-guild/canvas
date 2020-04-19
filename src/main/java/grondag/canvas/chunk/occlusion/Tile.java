@@ -32,24 +32,9 @@ import static grondag.canvas.chunk.occlusion.Constants.POS_012_XXX;
 import static grondag.canvas.chunk.occlusion.Constants.POS_INVERSE_MASK_0;
 import static grondag.canvas.chunk.occlusion.Constants.POS_INVERSE_MASK_1;
 import static grondag.canvas.chunk.occlusion.Constants.POS_INVERSE_MASK_2;
-import static grondag.canvas.chunk.occlusion.Data.a0;
-import static grondag.canvas.chunk.occlusion.Data.a1;
-import static grondag.canvas.chunk.occlusion.Data.a2;
-import static grondag.canvas.chunk.occlusion.Data.b0;
-import static grondag.canvas.chunk.occlusion.Data.b1;
-import static grondag.canvas.chunk.occlusion.Data.b2;
 import static grondag.canvas.chunk.occlusion.Data.event0;
 import static grondag.canvas.chunk.occlusion.Data.event1;
 import static grondag.canvas.chunk.occlusion.Data.event2;
-import static grondag.canvas.chunk.occlusion.Data.lowCornerW0;
-import static grondag.canvas.chunk.occlusion.Data.lowCornerW1;
-import static grondag.canvas.chunk.occlusion.Data.lowCornerW2;
-import static grondag.canvas.chunk.occlusion.Data.lowSpanB0;
-import static grondag.canvas.chunk.occlusion.Data.lowSpanB1;
-import static grondag.canvas.chunk.occlusion.Data.lowSpanB2;
-import static grondag.canvas.chunk.occlusion.Data.lowTileA0;
-import static grondag.canvas.chunk.occlusion.Data.lowTileA1;
-import static grondag.canvas.chunk.occlusion.Data.lowTileA2;
 import static grondag.canvas.chunk.occlusion.Data.lowTileX;
 import static grondag.canvas.chunk.occlusion.Data.lowTileY;
 import static grondag.canvas.chunk.occlusion.Data.maxPixelX;
@@ -59,13 +44,10 @@ import static grondag.canvas.chunk.occlusion.Data.minPixelY;
 import static grondag.canvas.chunk.occlusion.Data.position0;
 import static grondag.canvas.chunk.occlusion.Data.position1;
 import static grondag.canvas.chunk.occlusion.Data.position2;
-import static grondag.canvas.chunk.occlusion.Data.positionLow;
-import static grondag.canvas.chunk.occlusion.Data.save_lowCornerW0;
-import static grondag.canvas.chunk.occlusion.Data.save_lowCornerW1;
-import static grondag.canvas.chunk.occlusion.Data.save_lowCornerW2;
+import static grondag.canvas.chunk.occlusion.Data.tileEdgeOutcomes;
 import static grondag.canvas.chunk.occlusion.Data.save_lowTileX;
 import static grondag.canvas.chunk.occlusion.Data.save_lowTileY;
-import static grondag.canvas.chunk.occlusion.Data.save_positionLow;
+import static grondag.canvas.chunk.occlusion.Data.save_tileEdgeOutcomes;
 import static grondag.canvas.chunk.occlusion.Rasterizer.printMask8x8;
 
 abstract class Tile {
@@ -76,11 +58,7 @@ abstract class Tile {
 
 		assert lowTileX < LOW_WIDTH;
 
-		lowCornerW0 += lowTileA0;
-		lowCornerW1 += lowTileA1;
-		lowCornerW2 += lowTileA2;
-
-		int pos = positionLow;
+		int pos = tileEdgeOutcomes;
 
 		if (((pos & OUTSIDE_0) == 0 && (position0 & A_NEGATIVE) != 0) || ((pos & INSIDE_0) == 0 && (position0 & A_POSITIVE) != 0)) {
 			pos = (pos & POS_INVERSE_MASK_0) | tilePosition(position0, event0);
@@ -94,7 +72,7 @@ abstract class Tile {
 			pos = (pos & POS_INVERSE_MASK_2) | (tilePosition(position2, event2) << 4);
 		}
 
-		positionLow = pos;
+		tileEdgeOutcomes = pos;
 	}
 
 	static void moveLowTileLeft() {
@@ -102,11 +80,7 @@ abstract class Tile {
 
 		assert lowTileX >= 0;
 
-		lowCornerW0 -= lowTileA0;
-		lowCornerW1 -= lowTileA1;
-		lowCornerW2 -= lowTileA2;
-
-		int pos = positionLow;
+		int pos = tileEdgeOutcomes;
 
 		if (((pos & OUTSIDE_0) == 0 && (position0 & A_POSITIVE) != 0) || ((pos & INSIDE_0) == 0 && (position0 & A_NEGATIVE) != 0)) {
 			pos = (pos & POS_INVERSE_MASK_0) | tilePosition(position0, event0);
@@ -120,7 +94,7 @@ abstract class Tile {
 			pos = (pos & POS_INVERSE_MASK_2) | (tilePosition(position2, event2) << 4);
 		}
 
-		positionLow  = pos;
+		tileEdgeOutcomes  = pos;
 	}
 
 	static void moveLowTileUp() {
@@ -128,11 +102,7 @@ abstract class Tile {
 
 		assert lowTileY < LOW_HEIGHT;
 
-		lowCornerW0 += (b0 + lowSpanB0);
-		lowCornerW1 += (b1 + lowSpanB1);
-		lowCornerW2 += (b2 + lowSpanB2);
-
-		int pos = positionLow;
+		int pos = tileEdgeOutcomes;
 
 		if (((pos & OUTSIDE_0) == 0 && (position0 & B_NEGATIVE) != 0) || ((pos & INSIDE_0) == 0 && (position0 & B_POSITIVE) != 0)) {
 			pos = (pos & POS_INVERSE_MASK_0) | tilePosition(position0, event0);
@@ -146,7 +116,7 @@ abstract class Tile {
 			pos = (pos & POS_INVERSE_MASK_2) | (tilePosition(position2, event2) << 4);
 		}
 
-		positionLow = pos;
+		tileEdgeOutcomes = pos;
 	}
 
 	static int tilePosition(int pos, int [] events) {
@@ -259,7 +229,7 @@ abstract class Tile {
 	}
 
 	static long computeTileCoverage() {
-		switch(positionLow)  {
+		switch(tileEdgeOutcomes)  {
 
 		default:
 			// most cases have at least one outside edge
@@ -270,30 +240,30 @@ abstract class Tile {
 			return -1L;
 
 		case POS_012_XII:
-			return buildTileMask(position0, a0, b0, lowCornerW0, event0);
+			return buildTileMask(position0, event0);
 
 		case POS_012_IXI:
-			return buildTileMask(position1, a1, b1, lowCornerW1, event1);
+			return buildTileMask(position1, event1);
 
 		case POS_012_IIX:
-			return buildTileMask(position2, a2, b2, lowCornerW2, event2);
+			return buildTileMask(position2, event2);
 
 		case POS_012_XIX:
-			return buildTileMask(position0, a0, b0, lowCornerW0, event0)
-					& buildTileMask(position2, a2, b2, lowCornerW2, event2);
+			return buildTileMask(position0, event0)
+					& buildTileMask(position2, event2);
 
 		case POS_012_XXI:
-			return buildTileMask(position0, a0, b0, lowCornerW0, event0)
-					& buildTileMask(position1, a1, b1, lowCornerW1, event1);
+			return buildTileMask(position0, event0)
+					& buildTileMask(position1, event1);
 
 		case POS_012_IXX:
-			return buildTileMask(position1, a1, b1, lowCornerW1, event1)
-					& buildTileMask(position2, a2, b2, lowCornerW2, event2);
+			return buildTileMask(position1, event1)
+					& buildTileMask(position2, event2);
 
 		case POS_012_XXX:
-			return buildTileMask(position0, a0, b0, lowCornerW0, event0)
-					& buildTileMask(position1, a1, b1, lowCornerW1, event1)
-					& buildTileMask(position2, a2, b2, lowCornerW2, event2);
+			return buildTileMask(position0, event0)
+					& buildTileMask(position1, event1)
+					& buildTileMask(position2, event2);
 		}
 	}
 
@@ -301,28 +271,22 @@ abstract class Tile {
 	static void pushLowTile() {
 		save_lowTileX = lowTileX;
 		save_lowTileY = lowTileY;
-		save_lowCornerW0 = lowCornerW0;
-		save_lowCornerW1 = lowCornerW1;
-		save_lowCornerW2 = lowCornerW2;
-		save_positionLow = positionLow;
+		save_tileEdgeOutcomes = tileEdgeOutcomes;
 	}
 
 	static void popLowTile() {
 		lowTileX = save_lowTileX;
 		lowTileY = save_lowTileY;
-		lowCornerW0 = save_lowCornerW0;
-		lowCornerW1 = save_lowCornerW1;
-		lowCornerW2 = save_lowCornerW2;
-		positionLow = save_positionLow;
+		tileEdgeOutcomes = save_tileEdgeOutcomes;
 
 		assert lowTileX < LOW_WIDTH;
 		assert lowTileY < LOW_HEIGHT;
 	}
 
 
-	static long buildTileMask(int pos, int stepA, int stepB, int wy, int[] event) {
-		final long  oldResult = buildTileMaskOld(pos, stepA, stepB, wy, event);
-		final long  newResult = buildTileMaskNew(pos, event);
+	static long buildTileMaskTest(int pos, int[] event) {
+		final long  oldResult = buildTileMaskOld(pos, event);
+		final long  newResult = buildTileMask(pos, event);
 
 		if (oldResult != newResult) {
 			System.out.println();
@@ -330,186 +294,14 @@ abstract class Tile {
 			printMask8x8(oldResult);
 			System.out.println("NEW");
 			printMask8x8(newResult);
-			buildTileMaskNew(pos, event);
+			buildTileMask(pos, event);
 		}
 
 		return oldResult;
 	}
 
-	static long buildTileMaskOld(int pos, int stepA, int stepB, int wy, int[] event) {
-		final int ty = Data.lowTileY << 3;
 
-		if (ty > maxPixelY || ty + 7 < minPixelY) {
-			return 0L;
-		}
-
-		final int tx = Data.lowTileX << 3;
-
-		if (tx > maxPixelX || tx + 7 < minPixelX) {
-			return 0L;
-		}
-
-		switch  (pos) {
-		case EDGE_TOP: {
-			assert wy >= 0;
-			assert stepB < 0;
-
-			long yMask = 0xFFL;
-			long mask = 0;
-
-			while (wy >= 0 && yMask != 0L) {
-				mask |= yMask;
-				yMask <<= 8;
-				wy += stepB; //NB: b will be negative
-			}
-
-			return mask;
-		}
-
-		case EDGE_BOTTOM: {
-			assert wy >= 0;
-			assert stepB > 0;
-
-			long yMask = 0xFF00000000000000L;
-			long mask = 0;
-
-			while (wy >= 0 && yMask != 0L) {
-				mask |= yMask;
-				yMask = (yMask >>> 8); // parens are to help eclipse auto-formatting
-				wy -= stepB;
-			}
-
-			return mask;
-		}
-
-		case EDGE_RIGHT: {
-			assert wy >= 0;
-			assert stepA < 0;
-
-			final int x = 7 - Math.min(7, -wy / stepA);
-			long mask = (0xFF >> x);
-
-			mask |= mask << 8;
-			mask |= mask << 16;
-			mask |= mask << 32;
-
-			return mask;
-		}
-
-		case EDGE_LEFT: {
-			assert wy >= 0;
-			assert stepA > 0;
-
-			final int x =  7 - Math.min(7, wy / stepA);
-			long mask = (0xFF << x) & 0xFF;
-
-			mask |= mask << 8;
-			mask |= mask << 16;
-			mask |= mask << 32;
-
-			return mask;
-		}
-
-		case EDGE_TOP_LEFT: {
-			// PERF: optimize case when shallow slope and several bottom rows are full
-
-			assert wy >= 0;
-			assert stepB < 0;
-			assert stepA > 0;
-
-			long mask = 0;
-			int yShift = 0;
-
-
-			while (yShift < 64 && wy >= 0) {
-				// x  here is first not last
-				final int x =  7 - Math.min(7, wy / stepA);
-				final int yMask = (0xFF << x) & 0xFF;
-				mask |= ((long) yMask) << yShift;
-				wy += stepB; //NB: b will be negative
-				yShift += 8;
-			}
-
-			return mask;
-		}
-
-		case EDGE_BOTTOM_LEFT: {
-			assert wy >= 0;
-			assert stepB > 0;
-			assert stepA > 0;
-
-			// min y will occur at x = 7;
-
-			int yShift = 8 * 7;
-			long mask = 0;
-
-			while (yShift >= 0 && wy >= 0) {
-				// x  here is first not last
-				final int x =  7 - Math.min(7, wy / stepA);
-				final int yMask = (0xFF << x) & 0xFF;
-				mask |= ((long) yMask) << yShift;
-				wy -= stepB;
-				yShift -= 8;
-			}
-
-			return mask;
-		}
-
-		case EDGE_TOP_RIGHT: {
-			// PERF: optimize case when shallow slope and several bottom rows are full
-
-			// max y will occur at x = 0
-			// Find highest y index of pixels filled at given x.
-			// All pixels with lower y value will also be filled in given x.
-			// ax + by + c = 0 so y at intersection will be y = -(ax + c) / b
-			// Exploit step-wise nature of a/b here to avoid computing the first term
-			// logic in other cases is similar
-			assert wy >= 0;
-			assert stepB < 0;
-			assert stepA < 0;
-
-			long mask = 0;
-			int yShift = 0;
-
-			while(yShift < 64 && wy >= 0) {
-				final int x =  7  - Math.min(7, -wy / stepA);
-				final int yMask = (0xFF >> x);
-				mask |= ((long) yMask) << yShift;
-				wy += stepB;
-				yShift +=  8;
-			}
-
-			return mask;
-		}
-
-		case EDGE_BOTTOM_RIGHT: {
-			// PERF: optimize case when shallow slope and several top rows are full
-
-			assert wy >= 0;
-			assert stepB > 0;
-			assert stepA < 0;
-
-			int yShift = 8 * 7;
-			long mask = 0;
-
-			while (yShift >= 0 && wy >= 0) {
-				final int x = 7 - Math.min(7, -wy / stepA);
-				final int yMask = (0xFF >> x);
-				mask |= ((long) yMask) << yShift;
-				wy -= stepB;
-				yShift -= 8;
-			}
-
-			return mask;
-		}
-
-		default:
-			assert false : "Edge flag out of bounds.";
-		return 0L;
-		}
-	}
-
-	static long buildTileMaskNew(int pos, int[] events) {
+	static long buildTileMask(int pos, int[] events) {
 		// PERF: check shouldn't be needed - shouldn't be called in this case
 		int ty = Data.lowTileY << 3;
 
@@ -675,4 +467,173 @@ abstract class Tile {
 		return 0L;
 		}
 	}
+
+	// TODO: remove - currently same - left for later
+	static long buildTileMaskOld(int pos, int[] events) {
+		// PERF: check shouldn't be needed - shouldn't be called in this case
+		int ty = Data.lowTileY << 3;
+
+		if (ty > maxPixelY || ty + 7 < minPixelY) {
+			return 0L;
+		}
+
+		final int tx = Data.lowTileX << 3;
+
+		if (tx > maxPixelX || tx + 7 < minPixelX) {
+			return 0L;
+		}
+
+		switch  (pos) {
+		case EDGE_TOP: {
+			final int py = events[0] - ty;
+
+			if (py < 0) {
+				return 0L;
+			} else if (py >= 7) {
+				return -1L;
+			} else {
+				return -1L >>> ((7 - py) << 3);
+			}
+		}
+
+		case EDGE_BOTTOM: {
+			final int py = events[0] - ty;
+
+			if (py > 7) {
+				return 0L;
+			} else if (py <= 0) {
+				return -1L;
+			} else {
+				return -1L << (py << 3);
+			}
+		}
+
+		case EDGE_RIGHT: {
+			final int px = events[0] - tx;
+
+			if (px < 0) {
+				return 0L;
+			} else if (px >= 7) {
+				return -1L;
+			} else {
+				long mask = (0xFF >> (7 - px));
+
+				mask |= mask << 8;
+				mask |= mask << 16;
+				mask |= mask << 32;
+
+				return mask;
+			}
+		}
+
+		case EDGE_LEFT: {
+			final int px = events[0] - tx;
+
+			if (px > 7) {
+				return 0L;
+			} else if (px <= 0) {
+				return -1L;
+			} else {
+				long mask = (0xFF << px) & 0xFF;
+
+				mask |= mask << 8;
+				mask |= mask << 16;
+				mask |= mask << 32;
+
+				return mask;
+			}
+		}
+
+		case EDGE_TOP_LEFT: {
+			long mask = 0;
+			int yShift = 0;
+
+			while (yShift < 64) {
+				final int x = events[ty++] - tx;
+
+				if(x > 7) return mask;
+
+				if (x <= 0) {
+					mask |= 0xFFL << yShift;
+				} else {
+					mask |= ((long) ((0xFF << x) & 0xFF)) << yShift;
+				}
+
+				yShift += 8;
+			}
+
+			return mask;
+		}
+
+		case EDGE_BOTTOM_LEFT: {
+			int yShift = 56;
+			long mask = 0;
+			ty += 7;
+
+			while (yShift >= 0) {
+				final int x = events[ty--] - tx;
+
+				if(x > 7) return mask;
+
+				if (x <= 0) {
+					mask |= 0xFFL << yShift;
+				} else {
+					mask |= ((long) ((0xFF << x) & 0xFF)) << yShift;
+				}
+
+				yShift -= 8;
+			}
+
+			return mask;
+		}
+
+		case EDGE_TOP_RIGHT: {
+			long mask = 0;
+			int yShift = 0;
+
+			while(yShift < 64) {
+				final int x = events[ty++] - tx;
+
+				if(x < 0) return mask;
+
+				if (x >= 7) {
+					mask |= 0xFFL << yShift;
+				} else {
+					mask |= ((long) (0xFF >> (7 - x))) << yShift;
+				}
+
+				yShift += 8;
+			}
+
+			return mask;
+		}
+
+		case EDGE_BOTTOM_RIGHT: {
+			int yShift = 56;
+			long mask = 0;
+			ty += 7;
+
+			while (yShift >= 0) {
+				final int x = events[ty--] - tx;
+
+				if(x < 0) return mask;
+
+				if (x >= 7) {
+					mask |= 0xFFL << yShift;
+				} else {
+					mask |= ((long) (0xFF >> (7 - x))) << yShift;
+				}
+
+				yShift -= 8;
+			}
+
+			return mask;
+		}
+
+		default:
+			assert false : "Edge flag out of bounds.";
+		return 0L;
+		}
+	}
+
 }

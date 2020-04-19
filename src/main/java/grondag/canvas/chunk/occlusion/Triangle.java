@@ -16,16 +16,10 @@ import static grondag.canvas.chunk.occlusion.Constants.EDGE_TOP_RIGHT;
 import static grondag.canvas.chunk.occlusion.Constants.GUARD_HEIGHT;
 import static grondag.canvas.chunk.occlusion.Constants.GUARD_SIZE;
 import static grondag.canvas.chunk.occlusion.Constants.GUARD_WIDTH;
-import static grondag.canvas.chunk.occlusion.Constants.INSIDE_0;
-import static grondag.canvas.chunk.occlusion.Constants.INSIDE_1;
-import static grondag.canvas.chunk.occlusion.Constants.INSIDE_2;
 import static grondag.canvas.chunk.occlusion.Constants.LOW_AXIS_MASK;
 import static grondag.canvas.chunk.occlusion.Constants.LOW_AXIS_SHIFT;
 import static grondag.canvas.chunk.occlusion.Constants.MAX_PIXEL_X;
 import static grondag.canvas.chunk.occlusion.Constants.MAX_PIXEL_Y;
-import static grondag.canvas.chunk.occlusion.Constants.OUTSIDE_0;
-import static grondag.canvas.chunk.occlusion.Constants.OUTSIDE_1;
-import static grondag.canvas.chunk.occlusion.Constants.OUTSIDE_2;
 import static grondag.canvas.chunk.occlusion.Constants.PRECISE_HEIGHT;
 import static grondag.canvas.chunk.occlusion.Constants.PRECISE_HEIGHT_CLAMP;
 import static grondag.canvas.chunk.occlusion.Constants.PRECISE_PIXEL_CENTER;
@@ -40,24 +34,6 @@ import static grondag.canvas.chunk.occlusion.Constants.TILE_AXIS_SHIFT;
 import static grondag.canvas.chunk.occlusion.Data.event0;
 import static grondag.canvas.chunk.occlusion.Data.event1;
 import static grondag.canvas.chunk.occlusion.Data.event2;
-import static grondag.canvas.chunk.occlusion.Data.lowCornerW0;
-import static grondag.canvas.chunk.occlusion.Data.lowCornerW1;
-import static grondag.canvas.chunk.occlusion.Data.lowCornerW2;
-import static grondag.canvas.chunk.occlusion.Data.lowExtent0;
-import static grondag.canvas.chunk.occlusion.Data.lowExtent1;
-import static grondag.canvas.chunk.occlusion.Data.lowExtent2;
-import static grondag.canvas.chunk.occlusion.Data.lowSpanA0;
-import static grondag.canvas.chunk.occlusion.Data.lowSpanA1;
-import static grondag.canvas.chunk.occlusion.Data.lowSpanA2;
-import static grondag.canvas.chunk.occlusion.Data.lowSpanB0;
-import static grondag.canvas.chunk.occlusion.Data.lowSpanB1;
-import static grondag.canvas.chunk.occlusion.Data.lowSpanB2;
-import static grondag.canvas.chunk.occlusion.Data.lowTileA0;
-import static grondag.canvas.chunk.occlusion.Data.lowTileA1;
-import static grondag.canvas.chunk.occlusion.Data.lowTileA2;
-import static grondag.canvas.chunk.occlusion.Data.lowTileB0;
-import static grondag.canvas.chunk.occlusion.Data.lowTileB1;
-import static grondag.canvas.chunk.occlusion.Data.lowTileB2;
 import static grondag.canvas.chunk.occlusion.Data.lowTileX;
 import static grondag.canvas.chunk.occlusion.Data.lowTileY;
 import static grondag.canvas.chunk.occlusion.Data.maxPixelX;
@@ -67,17 +43,12 @@ import static grondag.canvas.chunk.occlusion.Data.minPixelY;
 import static grondag.canvas.chunk.occlusion.Data.position0;
 import static grondag.canvas.chunk.occlusion.Data.position1;
 import static grondag.canvas.chunk.occlusion.Data.position2;
-import static grondag.canvas.chunk.occlusion.Data.positionLow;
-import static grondag.canvas.chunk.occlusion.Data.px0;
-import static grondag.canvas.chunk.occlusion.Data.px1;
-import static grondag.canvas.chunk.occlusion.Data.px2;
-import static grondag.canvas.chunk.occlusion.Data.py0;
-import static grondag.canvas.chunk.occlusion.Data.py1;
-import static grondag.canvas.chunk.occlusion.Data.py2;
+import static grondag.canvas.chunk.occlusion.Data.tileEdgeOutcomes;
 import static grondag.canvas.chunk.occlusion.Data.scale;
 import static grondag.canvas.chunk.occlusion.Data.vertexData;
 import static grondag.canvas.chunk.occlusion.ProjectedVertexData.PV_PX;
 import static grondag.canvas.chunk.occlusion.ProjectedVertexData.PV_PY;
+import static grondag.canvas.chunk.occlusion.Tile.tilePosition;
 
 public final class Triangle {
 	static int prepareBounds(int v0, int v1, int v2) {
@@ -250,12 +221,12 @@ public final class Triangle {
 		final int a2 = y2 - y0;
 		final int b2 = x0 - x2;
 
-		px0 = ((x0 + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS);
-		py0 = ((y0 + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS);
-		px1 = ((x1 + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS);
-		py1 = ((y1 + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS);
-		px2 = ((x2 + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS);
-		py2 = ((y2 + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS);
+		final int px0 = ((x0 + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS);
+		final int py0 = ((y0 + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS);
+		final int px1 = ((x1 + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS);
+		final int py1 = ((y1 + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS);
+		final int px2 = ((x2 + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS);
+		final int py2 = ((y2 + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS);
 
 		// signum of a and b, with shifted masks to derive the edge constant directly
 		// the edge constants are specifically formulated to allow this, inline, avoids any pointer chases
@@ -265,24 +236,6 @@ public final class Triangle {
 
 		// PERF: check for triangle outside framebuffer as soon as orientation is known
 		// for example if TOP-LEFT, then lower right screen corner must be inside edge
-
-		lowTileA0 = a0 << LOW_AXIS_SHIFT;
-		lowTileB0 = b0 << LOW_AXIS_SHIFT;
-		lowSpanA0 = lowTileA0 - a0;
-		lowSpanB0 = lowTileB0 - b0;
-		lowExtent0 = ((lowSpanA0 < 0) ? -lowSpanA0 : lowSpanA0) + ((lowSpanB0 < 0) ? -lowSpanB0 : lowSpanB0);
-
-		lowTileA1 = a1 << LOW_AXIS_SHIFT;
-		lowTileB1 = b1 << LOW_AXIS_SHIFT;
-		lowSpanA1 = lowTileA1 - a1;
-		lowSpanB1 = lowTileB1 - b1;
-		lowExtent1 = ((lowSpanA1 < 0) ? -lowSpanA1 : lowSpanA1) + ((lowSpanB1 < 0) ? -lowSpanB1 : lowSpanB1);
-
-		lowTileA2 = a2 << LOW_AXIS_SHIFT;
-		lowTileB2 = b2 << LOW_AXIS_SHIFT;
-		lowSpanA2 = lowTileA2 - a2;
-		lowSpanB2 = lowTileB2 - b2;
-		lowExtent2 = ((lowSpanA2 < 0) ? -lowSpanA2 : lowSpanA2) + ((lowSpanB2 < 0) ? -lowSpanB2 : lowSpanB2);
 
 		lowTileX = (minPixelX >> LOW_AXIS_SHIFT);
 		lowTileY = (minPixelY >> LOW_AXIS_SHIFT);
@@ -294,31 +247,22 @@ public final class Triangle {
 		// Can reduce precision (with accurate rounding) because increments will always be multiple of full pixel width
 		int cornerX = (position0 & A_POSITIVE) == 0 ? tileX : (tileX + 7);
 		int cornerY = (position0 & B_POSITIVE) == 0 ? tileY : (tileY + 7);
-		lowCornerW0 = (int) ((-a0 * (x0 - ((long) cornerX << PRECISION_BITS)) - b0 * (y0 - ((long) cornerY << PRECISION_BITS)) + (((position0 & EDGE_LEFT) != 0 || position0 == EDGE_TOP) ? PRECISE_PIXEL_CENTER : SCANT_PRECISE_PIXEL_CENTER)) >> PRECISION_BITS);
+		final int lowCornerW0 = (int) ((-a0 * (x0 - ((long) cornerX << PRECISION_BITS)) - b0 * (y0 - ((long) cornerY << PRECISION_BITS)) + (((position0 & EDGE_LEFT) != 0 || position0 == EDGE_TOP) ? PRECISE_PIXEL_CENTER : SCANT_PRECISE_PIXEL_CENTER)) >> PRECISION_BITS);
 		populateEvents(position0, lowCornerW0, cornerX, cornerY, a0, b0, px0, py0, event0);
 
 		cornerX = (position1 & A_POSITIVE) == 0 ? tileX : (tileX + 7);
 		cornerY = (position1 & B_POSITIVE) == 0 ? tileY : (tileY + 7);
-		lowCornerW1 = (int) ((-a1 * (x1 - ((long) cornerX << PRECISION_BITS)) - b1 * (y1 - ((long) cornerY << PRECISION_BITS)) + (((position1 & EDGE_LEFT) != 0 || position1 == EDGE_TOP) ? PRECISE_PIXEL_CENTER : SCANT_PRECISE_PIXEL_CENTER)) >> PRECISION_BITS);
+		final int lowCornerW1 = (int) ((-a1 * (x1 - ((long) cornerX << PRECISION_BITS)) - b1 * (y1 - ((long) cornerY << PRECISION_BITS)) + (((position1 & EDGE_LEFT) != 0 || position1 == EDGE_TOP) ? PRECISE_PIXEL_CENTER : SCANT_PRECISE_PIXEL_CENTER)) >> PRECISION_BITS);
 		populateEvents(position1, lowCornerW1, cornerX, cornerY, a1, b1, px1, py1, event1);
 
 		cornerX = (position2 & A_POSITIVE) == 0 ? tileX : (tileX + 7);
 		cornerY = (position2 & B_POSITIVE) == 0 ? tileY : (tileY + 7);
-		lowCornerW2 = (int) ((-a2 * (x2 - ((long) cornerX << PRECISION_BITS)) - b2 * (y2 - ((long) cornerY << PRECISION_BITS)) + (((position2 & EDGE_LEFT) != 0 || position2 == EDGE_TOP) ? PRECISE_PIXEL_CENTER : SCANT_PRECISE_PIXEL_CENTER)) >> PRECISION_BITS);
+		final int lowCornerW2 = (int) ((-a2 * (x2 - ((long) cornerX << PRECISION_BITS)) - b2 * (y2 - ((long) cornerY << PRECISION_BITS)) + (((position2 & EDGE_LEFT) != 0 || position2 == EDGE_TOP) ? PRECISE_PIXEL_CENTER : SCANT_PRECISE_PIXEL_CENTER)) >> PRECISION_BITS);
 		populateEvents(position2, lowCornerW2, cornerX, cornerY, a2, b2, px2, py2, event2);
 
-		int pos = 0;
-		if (lowCornerW0 < 0) pos |= OUTSIDE_0; else if (lowCornerW0 >= lowExtent0) pos |= INSIDE_0;
-		if (lowCornerW1 < 0) pos |= OUTSIDE_1; else if (lowCornerW1 >= lowExtent1) pos |= INSIDE_1;
-		if (lowCornerW2 < 0) pos |= OUTSIDE_2; else if (lowCornerW2 >= lowExtent2) pos |= INSIDE_2;
-		positionLow = pos;
-
-		Data.a0 = a0;
-		Data.b0 = b0;
-		Data.a1 = a1;
-		Data.b1 = b1;
-		Data.a2 = a2;
-		Data.b2 = b2;
+		tileEdgeOutcomes = tilePosition(position0, event0)
+				| (tilePosition(position1, event1) << 2)
+				| (tilePosition(position2, event2) << 4);
 	}
 
 	static void populateEvents(int position, int ow, int ox, int oy, int a, int b, int px, int py, int[] events) {

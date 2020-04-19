@@ -44,23 +44,8 @@ public class Data {
 	static int x2;
 	static int y2;
 
-	static int px0;
-	static int py0;
-	static int px1;
-	static int py1;
-	static int px2;
-	static int py2;
-
-	static int a0;
-	static int b0;
 	static int position0;
-
-	static int a1;
-	static int b1;
 	static int position1;
-
-	static int a2;
-	static int b2;
 	static int position2;
 
 	static int lowTileX;
@@ -68,36 +53,8 @@ public class Data {
 	static int save_lowTileX;
 	static int save_lowTileY;
 
-	static int positionLow;
-	static int save_positionLow;
-
-	// all coordinates are full precision and corner-oriented unless otherwise noted
-	static int lowTileA0;
-	static int lowTileB0;
-	static int lowSpanA0;
-	static int lowSpanB0;
-	static int lowExtent0;
-	static int lowCornerW0;
-	static int save_lowCornerW0;
-	static int save_x0y0Low0;
-
-	static int lowTileA1;
-	static int lowTileB1;
-	static int lowSpanA1;
-	static int lowSpanB1;
-	static int lowExtent1;
-	static int lowCornerW1;
-	static int save_lowCornerW1;
-	static int save_x0y0Low1;
-
-	static int lowTileA2;
-	static int lowTileB2;
-	static int lowSpanA2;
-	static int lowSpanB2;
-	static int lowExtent2;
-	static int lowCornerW2;
-	static int save_lowCornerW2;
-	static int save_x0y0Low2;
+	static int tileEdgeOutcomes;
+	static int save_tileEdgeOutcomes;
 
 	static final int[] event0 = new int[PIXEL_HEIGHT];
 	static final int[] event1 = new int[PIXEL_HEIGHT];
