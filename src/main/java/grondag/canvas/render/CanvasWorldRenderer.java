@@ -425,7 +425,7 @@ public class CanvasWorldRenderer {
 
 		boolean bl4 = false;
 		final VertexConsumerProvider.Immediate immediate = bufferBuilders.getEntityVertexConsumers();
-		final Iterator<Entity> var39 = world.getEntities().iterator();
+		final Iterator<Entity> entities = world.getEntities().iterator();
 		final ShaderEffect entityOutlineShader = wr.canvas_entityOutlineShader();
 		final BuiltRenderRegion[] visibleChunks = this.visibleChunks;
 
@@ -435,7 +435,7 @@ public class CanvasWorldRenderer {
 			do {
 				do {
 					do {
-						if (!var39.hasNext()) {
+						if (!entities.hasNext()) {
 							immediate.draw(RenderLayer.getEntitySolid(SpriteAtlasTexture.BLOCK_ATLAS_TEX));
 							immediate.draw(RenderLayer.getEntityCutout(SpriteAtlasTexture.BLOCK_ATLAS_TEX));
 							immediate.draw(RenderLayer.getEntityCutoutNoCull(SpriteAtlasTexture.BLOCK_ATLAS_TEX));
@@ -598,7 +598,7 @@ public class CanvasWorldRenderer {
 							}
 						}
 
-						entity = var39.next();
+						entity = entities.next();
 					} while(!entityRenderDispatcher.shouldRender(entity, frustum, cameraX, cameraY, cameraZ) && !entity.hasPassengerDeep(mc.player));
 				} while(entity == camera.getFocusedEntity() && !camera.isThirdPerson() && (!(camera.getFocusedEntity() instanceof LivingEntity) || !((LivingEntity)camera.getFocusedEntity()).isSleeping()));
 			} while(entity instanceof ClientPlayerEntity && camera.getFocusedEntity() != entity);
@@ -624,6 +624,7 @@ public class CanvasWorldRenderer {
 				vertexConsumerProvider2 = immediate;
 			}
 
+			// PERF: don't render entities if chunk is not visible and outlines are off
 			wr.canvas_renderEntity(entity, cameraX, cameraY, cameraZ, f, matrixStack, (VertexConsumerProvider)vertexConsumerProvider2);
 		}
 	}

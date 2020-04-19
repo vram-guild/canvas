@@ -63,6 +63,7 @@ import org.apache.commons.lang3.StringUtils;
 abstract class Rasterizer  {
 	private Rasterizer() { }
 
+	@SuppressWarnings("fallthrough")
 	static void drawTri(int v0, int v1, int v2) {
 		final int boundsResult  = prepareBounds(v0, v1, v2);
 
@@ -76,6 +77,8 @@ abstract class Rasterizer  {
 		}
 
 		switch(scale) {
+		case SCALE_MID:
+			scale = SCALE_LOW;
 
 		case SCALE_LOW:{
 			//CanvasWorldRenderer.innerTimer.start();
@@ -85,14 +88,14 @@ abstract class Rasterizer  {
 			return;
 		}
 
-		case SCALE_MID: {
-			//CanvasWorldRenderer.innerTimer.start();
-			prepareScan();
-			Rasterizer.drawTriMid();
-			//CanvasWorldRenderer.innerTimer.stop();
-
-			return;
-		}
+		//		case SCALE_MID: {
+		//			//CanvasWorldRenderer.innerTimer.start();
+		//			prepareScan();
+		//			Rasterizer.drawTriMid();
+		//			//CanvasWorldRenderer.innerTimer.stop();
+		//
+		//			return;
+		//		}
 
 		// skip drawing single points - can't get accurate coverage
 		case SCALE_POINT:
@@ -123,6 +126,17 @@ abstract class Rasterizer  {
 			return result;
 		}
 
+		case SCALE_MID:
+			scale = SCALE_LOW;
+			//		{
+			//			//CanvasWorldRenderer.innerTimer.start();
+			//			prepareScan();
+			//			final boolean result = testTriMid();
+			//			//CanvasWorldRenderer.innerTimer.stop();
+			//
+			//			return result;
+			//		}
+
 		case SCALE_LOW:{
 			//CanvasWorldRenderer.innerTimer.start();
 			prepareScan();
@@ -131,14 +145,7 @@ abstract class Rasterizer  {
 			return result;
 		}
 
-		case SCALE_MID: {
-			//CanvasWorldRenderer.innerTimer.start();
-			prepareScan();
-			final boolean result = testTriMid();
-			//CanvasWorldRenderer.innerTimer.stop();
 
-			return result;
-		}
 
 		default:
 			assert false : "Bad triangle scale";
@@ -234,6 +241,44 @@ abstract class Rasterizer  {
 	static boolean testTriLow() {
 		final int x0 = (minPixelX >> LOW_AXIS_SHIFT);
 		final int x1 = (maxPixelX >> LOW_AXIS_SHIFT);
+		final int y1 = (maxPixelY >> LOW_AXIS_SHIFT);
+
+		boolean goRight = true;
+
+		while(true) {
+			if(testTriLowInner()) {
+				return true;
+			}
+
+			if (goRight) {
+				if (lowTileX == x1) {
+					if(lowTileY == y1) {
+						return false;
+					} else {
+						moveLowTileUp();
+						goRight = !goRight;
+					}
+				} else {
+					moveLowTileRight();
+				}
+			} else {
+				if (lowTileX == x0) {
+					if(lowTileY == y1) {
+						return false;
+					} else {
+						moveLowTileUp();
+						goRight = !goRight;
+					}
+				} else {
+					moveLowTileLeft();
+				}
+			}
+		}
+	}
+
+	static boolean testTriLowOld() {
+		final int x0 = (minPixelX >> LOW_AXIS_SHIFT);
+		final int x1 = (maxPixelX >> LOW_AXIS_SHIFT);
 		final int y0 = (minPixelY >> LOW_AXIS_SHIFT);
 		final int y1 = (maxPixelY >> LOW_AXIS_SHIFT);
 
@@ -280,6 +325,42 @@ abstract class Rasterizer  {
 	}
 
 	static void drawTriLow() {
+		final int x0 = (minPixelX >> LOW_AXIS_SHIFT);
+		final int x1 = (maxPixelX >> LOW_AXIS_SHIFT);
+		final int y1 = (maxPixelY >> LOW_AXIS_SHIFT);
+
+		boolean goRight = true;
+
+		while(true) {
+			drawTriLowInner();
+
+			if (goRight) {
+				if (lowTileX == x1) {
+					if(lowTileY == y1) {
+						return;
+					} else {
+						moveLowTileUp();
+						goRight = !goRight;
+					}
+				} else {
+					moveLowTileRight();
+				}
+			} else {
+				if (lowTileX == x0) {
+					if(lowTileY == y1) {
+						return;
+					} else {
+						moveLowTileUp();
+						goRight = !goRight;
+					}
+				} else {
+					moveLowTileLeft();
+				}
+			}
+		}
+	}
+
+	static void drawTriLowOld() {
 
 		final int x0 = (minPixelX >> LOW_AXIS_SHIFT);
 		final int x1 = (maxPixelX >> LOW_AXIS_SHIFT);
