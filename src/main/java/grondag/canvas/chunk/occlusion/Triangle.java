@@ -29,6 +29,9 @@ import static grondag.canvas.chunk.occlusion.Constants.SCALE_MID;
 import static grondag.canvas.chunk.occlusion.Constants.SCALE_POINT;
 import static grondag.canvas.chunk.occlusion.Constants.SCANT_PRECISE_PIXEL_CENTER;
 import static grondag.canvas.chunk.occlusion.Constants.TILE_AXIS_SHIFT;
+import static grondag.canvas.chunk.occlusion.Data.e0;
+import static grondag.canvas.chunk.occlusion.Data.e1;
+import static grondag.canvas.chunk.occlusion.Data.e2;
 import static grondag.canvas.chunk.occlusion.Data.event0;
 import static grondag.canvas.chunk.occlusion.Data.event1;
 import static grondag.canvas.chunk.occlusion.Data.event2;
@@ -249,12 +252,24 @@ public final class Triangle {
 		// Can reduce precision (with accurate rounding) because increments will always be multiple of full pixel width
 		final int w0 = (int) ((-a0 * (x0 - ((long) minTileX << PRECISION_BITS)) - b0 * (y0 - ((long) minTileY << PRECISION_BITS)) + (((position0 & EDGE_LEFT) != 0 || position0 == EDGE_TOP) ? PRECISE_PIXEL_CENTER : SCANT_PRECISE_PIXEL_CENTER)) >> PRECISION_BITS);
 		populateEvents(position0, w0, a0, b0, px0, py0, event0);
+		populateEvents2(x0, y0, x1, y1, e0);
+		if(!compareEvents(event0, e0)) {
+			populateEvents2(x0, y0, x1, y1, e0);
+		}
 
 		final int w1 = (int) ((-a1 * (x1 - ((long) minTileX << PRECISION_BITS)) - b1 * (y1 - ((long) minTileY << PRECISION_BITS)) + (((position1 & EDGE_LEFT) != 0 || position1 == EDGE_TOP) ? PRECISE_PIXEL_CENTER : SCANT_PRECISE_PIXEL_CENTER)) >> PRECISION_BITS);
 		populateEvents(position1, w1, a1, b1, px1, py1, event1);
+		populateEvents2(x1, y1, x2, y2, e1);
+		if(!compareEvents(event1, e1)) {
+			populateEvents2(x1, y1, x2, y2, e1);
+		}
 
 		final int w2 = (int) ((-a2 * (x2 - ((long) minTileX << PRECISION_BITS)) - b2 * (y2 - ((long) minTileY << PRECISION_BITS)) + (((position2 & EDGE_LEFT) != 0 || position2 == EDGE_TOP) ? PRECISE_PIXEL_CENTER : SCANT_PRECISE_PIXEL_CENTER)) >> PRECISION_BITS);
 		populateEvents(position2, w2, a2, b2, px2, py2, event2);
+		populateEvents2(x2, y2, x0, y0, e2);
+		if(!compareEvents(event2, e2)) {
+			populateEvents2(x2, y2, x0, y0, e2);
+		}
 
 		tileEdgeOutcomes = tilePosition(position0, event0)
 				| (tilePosition(position1, event1) << 2)
@@ -264,7 +279,7 @@ public final class Triangle {
 	static boolean compareEvents(int[] a, int[] b) {
 		boolean result = true;
 		for (int i = 0; i < 512; ++i) {
-			if(a[i] != b[i])  {
+			if(a[i] >= 0 && Math.abs(a[i] - b[i]) > 1)  {
 				System.out.println("For y = " + i + " was " + a[i] +  " is now " + b[i]);
 				result = false;
 			}
@@ -329,8 +344,6 @@ public final class Triangle {
 		}
 
 		case EDGE_BOTTOM_LEFT: {
-			//			assert b > 0;
-			//			assert a > 0;
 			if (w < 0) {
 				final int dx = (-w + a - 1) / a;
 				w += dx * a;
@@ -352,9 +365,6 @@ public final class Triangle {
 		}
 
 		case EDGE_TOP_RIGHT: {
-			//			assert b < 0;
-			//			assert a < 0;
-
 			if (w >= -a) {
 				final int dx = w / -a;
 				w += a * dx;
@@ -376,9 +386,6 @@ public final class Triangle {
 		}
 
 		case EDGE_BOTTOM_RIGHT: {
-			//			assert b > 0;
-			//			assert a < 0;
-
 			if (w < 0) {
 				final int dx = (w + a + 1) / a;
 				w -= a * dx;
@@ -405,6 +412,90 @@ public final class Triangle {
 		}
 
 		//		CanvasWorldRenderer.innerTimer.stop();
+	}
+
+	static int populateEvents2(int x0In, int y0In, int x1In, int y1In, int[] events) {
+		final int a = y0In - y1In;
+		final int b = x1In - x0In;
+		final int position = (1 << (((a >> 31) | (-a >>> 31)) + 1)) | (1 << (((b >> 31) | (-b >>> 31)) + 4));
+
+		// using x = ny + c
+
+		// n = rise over run slope = dx / dy
+		final long n = y0In == y1In ?  0 : ((((long)(x1In - x0In)) << 16) / (y1In - y0In));
+
+		// c = x-intercept = x - ny
+		long c = (x0In << 16) - n * y0In;
+
+		// confirm against second coordinate
+		//		final long p_checkX = n * y1In + c;
+		//		final int checkX = (int) (p_checkX >= 0 ? ((p_checkX + 0x8000L) >> 16) : -((-p_checkX + 0x8000L) >> 16));
+		//
+		//		assert n == 0 || checkX == x1In;
+
+		// add rounding per edge - extra  four bits because input coordinates have four bits extra
+		c += (((position & EDGE_LEFT) != 0 || position == EDGE_TOP) ? 0x100000L : 0x7FFFFL);
+
+		final long nStep = n << PRECISION_BITS;
+		// compute starting x
+		long psx = nStep * minTileY + c;
+		//		final int sx = (int) (psx >= 0 ? (psx >> 20) : -(-psx >> 20));
+
+
+		//		CanvasWorldRenderer.innerTimer.start();
+		final int y0 = minTileY;
+		final int y1 = maxTileY;
+
+		switch (position) {
+		case EDGE_TOP: {
+			events[0] = ((y0In + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS);
+			break;
+		}
+
+		case EDGE_BOTTOM: {
+			// NB: in last rev this got shifted one down in some cases - more inclusive - should be more accurate
+			events[0] = y0In >> PRECISION_BITS;
+		break;
+		}
+
+		case EDGE_LEFT: {
+			// NB: in last rev this got shifted one to the left  in some cases - more inclusive - should be more accurate
+			events[0] = x0In >> PRECISION_BITS;
+		break;
+		}
+
+		case EDGE_RIGHT: {
+			events[0] = ((x0In + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS);
+			break;
+		}
+
+		case EDGE_TOP_RIGHT:
+		case EDGE_BOTTOM_RIGHT:
+		case EDGE_BOTTOM_LEFT:
+		case EDGE_TOP_LEFT: {
+			for (int y = y0; y <= y1; ++y) {
+				events[y] = (int) (psx >= 0 ? (psx >> 20) : -(-psx >> 20));
+				psx += nStep;
+			}
+
+			break;
+		}
+
+		default:
+			//NOOP;
+			break;
+		}
+
+		// TODO: remove
+		// negative rounding and precision probably not correct earlier
+		//		if (n != 0 && events[minTileY] >= 0 && Math.abs(events[minTileY] - sx) > 1) {
+		//			System.out.println("mismatch: was " + events[minTileY] + " now " + sx);
+		//			System.out.println((double)psx / 0x100000L);
+		//			System.out.println();
+		//		}
+		//		CanvasWorldRenderer.innerTimer.stop();
+
+		return position;
 	}
 
 	static boolean isCcw(long x0, long y0, long x1, long y1, long x2, long y2) {
