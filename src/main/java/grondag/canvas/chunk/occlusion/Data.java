@@ -138,9 +138,9 @@ public class Data {
 	static int save_hiCornerW2;
 	static int save_positionHi2;
 
-	static final short[] event0 = new short[PIXEL_HEIGHT];
-	static final short[] event1 = new short[PIXEL_HEIGHT];
-	static final short[] event2 = new short[PIXEL_HEIGHT];
+	static final int[] event0 = new int[PIXEL_HEIGHT];
+	static final int[] event1 = new int[PIXEL_HEIGHT];
+	static final int[] event2 = new int[PIXEL_HEIGHT];
 
 	//	static int px000;
 	//	static int py000;

@@ -33,7 +33,6 @@ import net.minecraft.util.math.Vec3d;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.chunk.occlusion.region.PackedBox;
-import grondag.canvas.render.CanvasWorldRenderer;
 
 public abstract class TerrainOccluder {
 	private  TerrainOccluder() {}
@@ -99,9 +98,9 @@ public abstract class TerrainOccluder {
 	}
 
 	public static boolean isChunkVisible() {
-		CanvasWorldRenderer.innerTimer.start();
+		//		CanvasWorldRenderer.innerTimer.start();
 		final boolean result = Indexer.isChunkVisibleInner();
-		CanvasWorldRenderer.innerTimer.stop();
+		//		CanvasWorldRenderer.innerTimer.stop();
 
 		//		if (CanvasWorldRenderer.innerTimer.last() > 200000) {
 		//			isChunkVisibleInner();

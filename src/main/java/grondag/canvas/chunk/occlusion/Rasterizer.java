@@ -387,11 +387,11 @@ abstract class Rasterizer  {
 
 				do {
 					//  TODO: FIX and remove check - shuld  not be testing tiles out of range
-					if ((row & 1) == 1 && (lowTileY << 3) > maxPixelY) {
-						System.out.println();
-						printMask8x8(c);
-						computeMidTileCoverage();
-					}
+					//					if ((row & 1) == 1 && (lowTileY << 3) > maxPixelY) {
+					//						System.out.println();
+					//						printMask8x8(c);
+					//						computeMidTileCoverage();
+					//					}
 
 					if ((row & 1) == 1 && drawTriLowInner() == COVERAGE_FULL) {
 						word |= mask;

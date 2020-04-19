@@ -11,7 +11,6 @@ import static grondag.canvas.chunk.occlusion.Constants.EDGE_LEFT;
 import static grondag.canvas.chunk.occlusion.Constants.EDGE_TOP;
 import static grondag.canvas.chunk.occlusion.Constants.EDGE_TOP_LEFT;
 import static grondag.canvas.chunk.occlusion.Constants.EDGE_TOP_RIGHT;
-import static grondag.canvas.chunk.occlusion.Constants.EMPTY_EVENT;
 import static grondag.canvas.chunk.occlusion.Constants.GUARD_HEIGHT;
 import static grondag.canvas.chunk.occlusion.Constants.GUARD_SIZE;
 import static grondag.canvas.chunk.occlusion.Constants.GUARD_WIDTH;
@@ -27,7 +26,6 @@ import static grondag.canvas.chunk.occlusion.Constants.MID_AXIS_SHIFT;
 import static grondag.canvas.chunk.occlusion.Constants.OUTSIDE_0;
 import static grondag.canvas.chunk.occlusion.Constants.OUTSIDE_1;
 import static grondag.canvas.chunk.occlusion.Constants.OUTSIDE_2;
-import static grondag.canvas.chunk.occlusion.Constants.PIXEL_HEIGHT;
 import static grondag.canvas.chunk.occlusion.Constants.PRECISE_HEIGHT;
 import static grondag.canvas.chunk.occlusion.Constants.PRECISE_HEIGHT_CLAMP;
 import static grondag.canvas.chunk.occlusion.Constants.PRECISE_PIXEL_CENTER;
@@ -101,6 +99,8 @@ import static grondag.canvas.chunk.occlusion.Data.scale;
 import static grondag.canvas.chunk.occlusion.Data.vertexData;
 import static grondag.canvas.chunk.occlusion.ProjectedVertexData.PV_PX;
 import static grondag.canvas.chunk.occlusion.ProjectedVertexData.PV_PY;
+
+import grondag.canvas.render.CanvasWorldRenderer;
 
 public final class Triangle {
 	static int prepareBounds(int v0, int v1, int v2) {
@@ -308,9 +308,9 @@ public final class Triangle {
 		lowExtent2 = ((lowSpanA2 < 0) ? -lowSpanA2 : lowSpanA2) + ((lowSpanB2 < 0) ? -lowSpanB2 : lowSpanB2);
 
 		// PERF: remove? Interesting range should be written each tri
-		System.arraycopy(EMPTY_EVENT, 0, event0, 0, PIXEL_HEIGHT);
-		System.arraycopy(EMPTY_EVENT, 0, event1, 0, PIXEL_HEIGHT);
-		System.arraycopy(EMPTY_EVENT, 0, event2, 0, PIXEL_HEIGHT);
+		//		System.arraycopy(EMPTY_EVENT, 0, event0, 0, PIXEL_HEIGHT);
+		//		System.arraycopy(EMPTY_EVENT, 0, event1, 0, PIXEL_HEIGHT);
+		//		System.arraycopy(EMPTY_EVENT, 0, event2, 0, PIXEL_HEIGHT);
 
 		if (scale == SCALE_LOW) {
 			lowTileX = (minPixelX >> LOW_AXIS_SHIFT);
@@ -398,36 +398,34 @@ public final class Triangle {
 		Data.b2 = b2;
 	}
 
-	static void populateEvents(int position, int ow, int ox, int oy, int a, int b, short[] events) {
+	static void populateEvents(int position, int ow, int ox, int oy, int a, int b, int[] events) {
+		CanvasWorldRenderer.innerTimer.start();
+		final int x0 = minPixelX & LOW_AXIS_MASK;
+		final int y0 = minPixelY & LOW_AXIS_MASK;
+		final int y1 = ((maxPixelY + 8) & LOW_AXIS_MASK) - 1;
 
 		switch (position) {
 		case EDGE_TOP_LEFT: {
-			// draw from bottom left
-			assert b < 0;
-			assert a > 0;
-
-			final int x0 = minPixelX & LOW_AXIS_MASK;
-			final int y0 = minPixelY & LOW_AXIS_MASK;
-			final int y1 = ((maxPixelY + 8) & LOW_AXIS_MASK) - 1;
+			//			assert b < 0;
+			//			assert a > 0;
 
 			int w = ow + (y0 - oy) * b + (x0 - ox) * a;
-
 			int x = x0;
 
-			while (w >= a) {
-				w -= a;
-				--x;
+			if (w >= a) {
+				final int dx = w / a;
+				w -= dx * a;
+				x -= dx;
 			}
 
-			assert w < a;
-
 			for (int y = y0; y <= y1; ++y) {
-				while (w < 0) {
-					++x;
-					w += a;
+				if (w < 0) {
+					final int dx = (-w + a - 1) / a;
+					x += dx;
+					w += a * dx;
 				}
 
-				events[y] = x < 0 ? 0 : (short) x;
+				events[y] = x;
 				w += b;
 			}
 
@@ -435,65 +433,94 @@ public final class Triangle {
 		}
 
 		case EDGE_BOTTOM_LEFT: {
-			//			assert wy >= 0;
-			//			assert stepB > 0;
-			//			assert stepA > 0;
-			//
-			//			// min y will occur at x = 7;
-			//
-			//			int yShift = 8 * 7;
-			//			long mask = 0;
-			//
-			//			while (yShift >= 0 && wy >= 0) {
-			//				// x  here is first not last
-			//				final int x =  7 - Math.min(7, wy / stepA);
-			//				final int yMask = (0xFF << x) & 0xFF;
-			//				mask |= ((long) yMask) << yShift;
-			//				wy -= stepB;
-			//				yShift -= 8;
-			//			}
+			//			assert b > 0;
+			//			assert a > 0;
+
+			int w = ow + (y1 - oy) * b + (x0 - ox) * a;
+
+			int x = x0;
+
+			if (w >= a) {
+				final int dx = w / a;
+				w -= dx * a;
+				x -= dx;
+			}
+
+			for (int y = y1; y >= y0; --y) {
+				if (w < 0) {
+					final int dx = (-w + a - 1) / a;
+					x += dx;
+					w += a * dx;
+				}
+
+				events[y] = x;
+				w -= b;
+			}
+
 			break;
 		}
 
 		case EDGE_TOP_RIGHT: {
-			//			assert wy >= 0;
-			//			assert stepB < 0;
-			//			assert stepA < 0;
-			//
-			//			long mask = 0;
-			//			int yShift = 0;
-			//
-			//			while(yShift < 64 && wy >= 0) {
-			//				final int x =  7  - Math.min(7, -wy / stepA);
-			//				final int yMask = (0xFF >> x);
-			//				mask |= ((long) yMask) << yShift;
-			//				wy += stepB;
-			//				yShift +=  8;
-			//			}
+			//			assert b < 0;
+			//			assert a < 0;
+
+			int w = ow + (y0 - oy) * b + (x0 - ox) * a;
+
+			int x = x0;
+
+			if (w >= -a) {
+				final int dx = w / -a;
+				w += a * dx;
+				x += dx;
+			}
+
+			for (int y = y0; y <= y1; ++y) {
+				if (w < 0) {
+					final int dx = (w + a + 1) / a;
+					x -= dx;
+					w -= a * dx;
+				}
+
+				events[y] = x;
+				w += b;
+			}
+
 			break;
 		}
 
 		case EDGE_BOTTOM_RIGHT: {
-			//			assert wy >= 0;
-			//			assert stepB > 0;
-			//			assert stepA < 0;
-			//
-			//			int yShift = 8 * 7;
-			//			long mask = 0;
-			//
-			//			while (yShift >= 0 && wy >= 0) {
-			//				final int x = 7 - Math.min(7, -wy / stepA);
-			//				final int yMask = (0xFF >> x);
-			//				mask |= ((long) yMask) << yShift;
-			//				wy -= stepB;
-			//				yShift -= 8;
-			//			}
+			//			assert b > 0;
+			//			assert a < 0;
+
+			int w = ow + (y1 - oy) * b + (x0 - ox) * a;
+			int x = x0;
+
+			if (w >= -a) {
+				final int dx = w / -a;
+				w += a * dx;
+				x += dx;
+			}
+
+			for (int y = y1; y >= y0; --y) {
+				if (w < 0) {
+					final int dx = (w + a + 1) / a;
+					x -= dx;
+					w -= a * dx;
+				}
+
+				events[y] = x;
+				w -= b;
+			}
+
 			break;
 		}
 
 		default:
-			return;
+			//NOOP;
+			break;
 		}
+
+		CanvasWorldRenderer.innerTimer.stop();
 	}
 
 	static boolean isCcw(long x0, long y0, long x1, long y1, long x2, long y2) {
