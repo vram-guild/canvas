@@ -311,8 +311,6 @@ abstract class Tile {
 	}
 
 	static long computeLowTileCoverage() {
-		isLow = true;
-
 		switch(positionLow)  {
 
 		default:
@@ -324,36 +322,34 @@ abstract class Tile {
 			return -1L;
 
 		case POS_012_XII:
-			return buildMask(position0, a0, b0, lowCornerW0, event0);
+			return buildLowMask(position0, a0, b0, lowCornerW0, event0);
 
 		case POS_012_IXI:
-			return buildMask(position1, a1, b1, lowCornerW1, event1);
+			return buildLowMask(position1, a1, b1, lowCornerW1, event1);
 
 		case POS_012_IIX:
-			return buildMask(position2, a2, b2, lowCornerW2, event2);
+			return buildLowMask(position2, a2, b2, lowCornerW2, event2);
 
 		case POS_012_XIX:
-			return buildMask(position0, a0, b0, lowCornerW0, event0)
-					& buildMask(position2, a2, b2, lowCornerW2, event2);
+			return buildLowMask(position0, a0, b0, lowCornerW0, event0)
+					& buildLowMask(position2, a2, b2, lowCornerW2, event2);
 
 		case POS_012_XXI:
-			return buildMask(position0, a0, b0, lowCornerW0, event0)
-					& buildMask(position1, a1, b1, lowCornerW1, event1);
+			return buildLowMask(position0, a0, b0, lowCornerW0, event0)
+					& buildLowMask(position1, a1, b1, lowCornerW1, event1);
 
 		case POS_012_IXX:
-			return buildMask(position1, a1, b1, lowCornerW1, event1)
-					& buildMask(position2, a2, b2, lowCornerW2, event2);
+			return buildLowMask(position1, a1, b1, lowCornerW1, event1)
+					& buildLowMask(position2, a2, b2, lowCornerW2, event2);
 
 		case POS_012_XXX:
-			return buildMask(position0, a0, b0, lowCornerW0, event0)
-					& buildMask(position1, a1, b1, lowCornerW1, event1)
-					& buildMask(position2, a2, b2, lowCornerW2, event2);
+			return buildLowMask(position0, a0, b0, lowCornerW0, event0)
+					& buildLowMask(position1, a1, b1, lowCornerW1, event1)
+					& buildLowMask(position2, a2, b2, lowCornerW2, event2);
 		}
 	}
 
 	static long computeMidTileCoverage() {
-		isLow = false;
-
 		switch(positionHi)  {
 
 		default:
@@ -365,30 +361,30 @@ abstract class Tile {
 			return -1L;
 
 		case POS_012_XII:
-			return buildMask(position0, lowTileA0, lowTileB0, hiCornerW0, event0);
+			return buildMidMask(position0, lowTileA0, lowTileB0, hiCornerW0, event0);
 
 		case POS_012_IXI:
-			return buildMask(position1, lowTileA1, lowTileB1, hiCornerW1, event1);
+			return buildMidMask(position1, lowTileA1, lowTileB1, hiCornerW1, event1);
 
 		case POS_012_IIX:
-			return buildMask(position2, lowTileA2, lowTileB2, hiCornerW2, event2);
+			return buildMidMask(position2, lowTileA2, lowTileB2, hiCornerW2, event2);
 
 		case POS_012_XIX:
-			return buildMask(position0, lowTileA0, lowTileB0, hiCornerW0, event0)
-					& buildMask(position2, lowTileA2, lowTileB2, hiCornerW2, event2);
+			return buildMidMask(position0, lowTileA0, lowTileB0, hiCornerW0, event0)
+					& buildMidMask(position2, lowTileA2, lowTileB2, hiCornerW2, event2);
 
 		case POS_012_XXI:
-			return buildMask(position0, lowTileA0, lowTileB0, hiCornerW0, event0)
-					& buildMask(position1, lowTileA1, lowTileB1, hiCornerW1, event1);
+			return buildMidMask(position0, lowTileA0, lowTileB0, hiCornerW0, event0)
+					& buildMidMask(position1, lowTileA1, lowTileB1, hiCornerW1, event1);
 
 		case POS_012_IXX:
-			return buildMask(position1, lowTileA1, lowTileB1, hiCornerW1, event1)
-					& buildMask(position2, lowTileA2, lowTileB2, hiCornerW2, event2);
+			return buildMidMask(position1, lowTileA1, lowTileB1, hiCornerW1, event1)
+					& buildMidMask(position2, lowTileA2, lowTileB2, hiCornerW2, event2);
 
 		case POS_012_XXX:
-			return buildMask(position0, lowTileA0, lowTileB0, hiCornerW0, event0)
-					& buildMask(position1, lowTileA1, lowTileB1, hiCornerW1, event1)
-					& buildMask(position2, lowTileA2, lowTileB2, hiCornerW2, event2);
+			return buildMidMask(position0, lowTileA0, lowTileB0, hiCornerW0, event0)
+					& buildMidMask(position1, lowTileA1, lowTileB1, hiCornerW1, event1)
+					& buildMidMask(position2, lowTileA2, lowTileB2, hiCornerW2, event2);
 		}
 	}
 
@@ -431,10 +427,169 @@ abstract class Tile {
 		assert lowTileY < LOW_HEIGHT;
 	}
 
-	//  TODO: remove
-	static boolean isLow = false;
+	static long buildMidMask(int pos, int stepA, int stepB, int wy, short[] event) {
 
-	static long buildMask(int pos, int stepA, int stepB, int wy, short[] event) {
+		switch  (pos) {
+		case EDGE_TOP: {
+			assert wy >= 0;
+			assert stepB < 0;
+
+			long yMask = 0xFFL;
+			long mask = 0;
+
+			while (wy >= 0 && yMask != 0L) {
+				mask |= yMask;
+				yMask <<= 8;
+				wy += stepB; //NB: b will be negative
+			}
+
+			return mask;
+		}
+
+		case EDGE_BOTTOM: {
+			assert wy >= 0;
+			assert stepB > 0;
+
+			long yMask = 0xFF00000000000000L;
+			long mask = 0;
+
+			while (wy >= 0 && yMask != 0L) {
+				mask |= yMask;
+				yMask = (yMask >>> 8); // parens are to help eclipse auto-formatting
+				wy -= stepB;
+			}
+
+			return mask;
+		}
+
+		case EDGE_RIGHT: {
+			assert wy >= 0;
+			assert stepA < 0;
+
+			final int x = 7 - Math.min(7, -wy / stepA);
+			long mask = (0xFF >> x);
+
+			mask |= mask << 8;
+			mask |= mask << 16;
+			mask |= mask << 32;
+
+			return mask;
+		}
+
+		case EDGE_LEFT: {
+			assert wy >= 0;
+			assert stepA > 0;
+
+			final int x =  7 - Math.min(7, wy / stepA);
+			long mask = (0xFF << x) & 0xFF;
+
+			mask |= mask << 8;
+			mask |= mask << 16;
+			mask |= mask << 32;
+
+			return mask;
+		}
+
+		case EDGE_TOP_LEFT: {
+			// PERF: optimize case when shallow slope and several bottom rows are full
+
+			assert wy >= 0;
+			assert stepB < 0;
+			assert stepA > 0;
+
+			// min y will occur at x = 0;
+			long mask = 0;
+			int yShift = 0;
+
+			while (yShift < 64 && wy >= 0) {
+				// x  here is first not last
+				final int x =  7 - Math.min(7, wy / stepA);
+				final int yMask = (0xFF << x) & 0xFF;
+				mask |= ((long) yMask) << yShift;
+				wy += stepB; //NB: b will be negative
+				yShift += 8;
+			}
+
+			return mask;
+		}
+
+		case EDGE_BOTTOM_LEFT: {
+			assert wy >= 0;
+			assert stepB > 0;
+			assert stepA > 0;
+
+			// min y will occur at x = 7;
+
+			int yShift = 8 * 7;
+			long mask = 0;
+
+			while (yShift >= 0 && wy >= 0) {
+				// x  here is first not last
+				final int x =  7 - Math.min(7, wy / stepA);
+				final int yMask = (0xFF << x) & 0xFF;
+				mask |= ((long) yMask) << yShift;
+				wy -= stepB;
+				yShift -= 8;
+			}
+
+			return mask;
+		}
+
+		case EDGE_TOP_RIGHT: {
+			// PERF: optimize case when shallow slope and several bottom rows are full
+
+			// max y will occur at x = 0
+			// Find highest y index of pixels filled at given x.
+			// All pixels with lower y value will also be filled in given x.
+			// ax + by + c = 0 so y at intersection will be y = -(ax + c) / b
+			// Exploit step-wise nature of a/b here to avoid computing the first term
+			// logic in other cases is similar
+			assert wy >= 0;
+			assert stepB < 0;
+			assert stepA < 0;
+
+			long mask = 0;
+			int yShift = 0;
+
+			while(yShift < 64 && wy >= 0) {
+				final int x =  7  - Math.min(7, -wy / stepA);
+				final int yMask = (0xFF >> x);
+				mask |= ((long) yMask) << yShift;
+				wy += stepB;
+				yShift +=  8;
+			}
+
+			return mask;
+		}
+
+		case EDGE_BOTTOM_RIGHT: {
+			// PERF: optimize case when shallow slope and several top rows are full
+
+			assert wy >= 0;
+			assert stepB > 0;
+			assert stepA < 0;
+
+			int yShift = 8 * 7;
+			long mask = 0;
+
+			while (yShift >= 0 && wy >= 0) {
+				final int x = 7 - Math.min(7, -wy / stepA);
+				final int yMask = (0xFF >> x);
+				mask |= ((long) yMask) << yShift;
+				wy -= stepB;
+				yShift -= 8;
+			}
+
+			return mask;
+		}
+
+		default:
+			assert false : "Edge flag out of bounds.";
+		return 0L;
+		}
+	}
+
+	static long buildLowMask(int pos, int stepA, int stepB, int wy, short[] event) {
 
 		switch  (pos) {
 		case EDGE_TOP: {
@@ -508,13 +663,12 @@ abstract class Tile {
 
 			int ty = Data.lowTileY << 3;
 
-			if (isLow && (ty > maxPixelY || ty + 7 < minPixelY)) {
+			if (ty > maxPixelY || ty + 7 < minPixelY) {
 				return 0L;
 			}
 
 			long mask = 0;
 			int yShift = 0;
-
 
 			final int tx = Data.lowTileX << 3;
 
@@ -523,17 +677,15 @@ abstract class Tile {
 				// x  here is first not last
 				final int x =  7 - Math.min(7, wy / stepA);
 
-				if (isLow) {
-					assert ty <= MAX_PIXEL_Y;
-					final int exraw = event[ty];
-					final int ex = MathHelper.clamp(exraw - tx, 0, 7);
+				assert ty <= MAX_PIXEL_Y;
+				final int exraw = event[ty];
+				final int ex = MathHelper.clamp(exraw - tx, 0, 7);
 
-					if (ex != x) {
-						System.out.println("old: " + (tx + x) + "  new:" + exraw);
-					}
-
-					++ty;
+				if (ex != x) {
+					System.out.println("old: " + (tx + x) + "  new:" + exraw);
 				}
+
+				++ty;
 
 				final int yMask = (0xFF << x) & 0xFF;
 				mask |= ((long) yMask) << yShift;

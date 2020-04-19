@@ -30,8 +30,6 @@ import static grondag.canvas.chunk.occlusion.Constants.OUTSIDE_2;
 import static grondag.canvas.chunk.occlusion.Constants.PIXEL_HEIGHT;
 import static grondag.canvas.chunk.occlusion.Constants.PRECISE_HEIGHT;
 import static grondag.canvas.chunk.occlusion.Constants.PRECISE_HEIGHT_CLAMP;
-import static grondag.canvas.chunk.occlusion.Constants.PRECISE_LOW_TILE_SPAN;
-import static grondag.canvas.chunk.occlusion.Constants.PRECISE_MID_TILE_SPAN;
 import static grondag.canvas.chunk.occlusion.Constants.PRECISE_PIXEL_CENTER;
 import static grondag.canvas.chunk.occlusion.Constants.PRECISE_WIDTH;
 import static grondag.canvas.chunk.occlusion.Constants.PRECISE_WIDTH_CLAMP;
@@ -309,6 +307,7 @@ public final class Triangle {
 		lowSpanB2 = lowTileB2 - b2;
 		lowExtent2 = ((lowSpanA2 < 0) ? -lowSpanA2 : lowSpanA2) + ((lowSpanB2 < 0) ? -lowSpanB2 : lowSpanB2);
 
+		// PERF: remove? Interesting range should be written each tri
 		System.arraycopy(EMPTY_EVENT, 0, event0, 0, PIXEL_HEIGHT);
 		System.arraycopy(EMPTY_EVENT, 0, event1, 0, PIXEL_HEIGHT);
 		System.arraycopy(EMPTY_EVENT, 0, event2, 0, PIXEL_HEIGHT);
@@ -317,48 +316,25 @@ public final class Triangle {
 			lowTileX = (minPixelX >> LOW_AXIS_SHIFT);
 			lowTileY = (minPixelY >> LOW_AXIS_SHIFT);
 
-			final int tox = minPixelX & LOW_AXIS_MASK;
-			final int toy = minPixelY & LOW_AXIS_MASK;
-
-			int ox2 = (position0 & A_POSITIVE) == 0 ? tox : (tox + 7);
-			int oy2 = (position0 & B_POSITIVE) == 0 ? toy : (toy + 7);
-
-			final int ox = (minPixelX & LOW_AXIS_MASK) << PRECISION_BITS;
-			final int oy = (minPixelY & LOW_AXIS_MASK) << PRECISION_BITS;
+			final int tileX = minPixelX & LOW_AXIS_MASK;
+			final int tileY = minPixelY & LOW_AXIS_MASK;
 
 			// Compute barycentric coordinates at oriented corner of first tile
 			// Can reduce precision (with accurate rounding) because increments will always be multiple of full pixel width
-			long x = x0 - ((position0 & A_POSITIVE) == 0 ? ox : (ox + PRECISE_LOW_TILE_SPAN));
-			long y = y0 - ((position0 & B_POSITIVE) == 0 ? oy : (oy + PRECISE_LOW_TILE_SPAN));
+			int cornerX = (position0 & A_POSITIVE) == 0 ? tileX : (tileX + 7);
+			int cornerY = (position0 & B_POSITIVE) == 0 ? tileY : (tileY + 7);
+			lowCornerW0 = (int) ((-a0 * (x0 - ((long) cornerX << PRECISION_BITS)) - b0 * (y0 - ((long) cornerY << PRECISION_BITS)) + (((position0 & EDGE_LEFT) != 0 || position0 == EDGE_TOP) ? PRECISE_PIXEL_CENTER : SCANT_PRECISE_PIXEL_CENTER)) >> PRECISION_BITS);
+			populateEvents(position0, lowCornerW0, cornerX, cornerY, a0, b0, event0);
 
-			lowCornerW0 = (int) ((-a0 * x - b0 * y + (((position0 & EDGE_LEFT) != 0 || position0 == EDGE_TOP) ? PRECISE_PIXEL_CENTER : SCANT_PRECISE_PIXEL_CENTER)) >> PRECISION_BITS);
+			cornerX = (position1 & A_POSITIVE) == 0 ? tileX : (tileX + 7);
+			cornerY = (position1 & B_POSITIVE) == 0 ? tileY : (tileY + 7);
+			lowCornerW1 = (int) ((-a1 * (x1 - ((long) cornerX << PRECISION_BITS)) - b1 * (y1 - ((long) cornerY << PRECISION_BITS)) + (((position1 & EDGE_LEFT) != 0 || position1 == EDGE_TOP) ? PRECISE_PIXEL_CENTER : SCANT_PRECISE_PIXEL_CENTER)) >> PRECISION_BITS);
+			populateEvents(position1, lowCornerW1, cornerX, cornerY, a1, b1, event1);
 
-			final int lowCornerW0t = (int) ((-a0 * (x0 - ((long) ox2 << PRECISION_BITS)) - b0 * (y0 - ((long) oy2 << PRECISION_BITS)) + (((position0 & EDGE_LEFT) != 0 || position0 == EDGE_TOP) ? PRECISE_PIXEL_CENTER : SCANT_PRECISE_PIXEL_CENTER)) >> PRECISION_BITS);
-			assert lowCornerW0 == lowCornerW0t;
-
-			populateEvents(position0, lowCornerW0, ox2, oy2, a0, b0, event0);
-
-			ox2 = (position1 & A_POSITIVE) == 0 ? tox : (tox + 7);
-			oy2 = (position1 & B_POSITIVE) == 0 ? toy : (toy + 7);
-			x = x1 - ((position1 & A_POSITIVE) == 0 ? ox : (ox + PRECISE_LOW_TILE_SPAN));
-			y = y1 - ((position1 & B_POSITIVE) == 0 ? oy : (oy + PRECISE_LOW_TILE_SPAN));
-			lowCornerW1 = (int) ((-a1 * x - b1 * y + (((position1 & EDGE_LEFT) != 0 || position1 == EDGE_TOP) ? PRECISE_PIXEL_CENTER : SCANT_PRECISE_PIXEL_CENTER)) >> PRECISION_BITS);
-
-			final int lowCornerW1t = (int) ((-a1 * (x1 - ((long) ox2 << PRECISION_BITS)) - b1 * (y1 - ((long) oy2 << PRECISION_BITS)) + (((position1 & EDGE_LEFT) != 0 || position1 == EDGE_TOP) ? PRECISE_PIXEL_CENTER : SCANT_PRECISE_PIXEL_CENTER)) >> PRECISION_BITS);
-			assert lowCornerW1 == lowCornerW1t;
-
-			populateEvents(position1, lowCornerW1, ox2, oy2, a1, b1, event1);
-
-			ox2 = (position2 & A_POSITIVE) == 0 ? tox : (tox + 7);
-			oy2 = (position2 & B_POSITIVE) == 0 ? toy : (toy + 7);
-			x = x2 - ((position2 & A_POSITIVE) == 0 ? ox : (ox + PRECISE_LOW_TILE_SPAN));
-			y = y2 - ((position2 & B_POSITIVE) == 0 ? oy : (oy + PRECISE_LOW_TILE_SPAN));
-			lowCornerW2 = (int) ((-a2 * x - b2 * y + (((position2 & EDGE_LEFT) != 0 || position2 == EDGE_TOP) ? PRECISE_PIXEL_CENTER : SCANT_PRECISE_PIXEL_CENTER)) >> PRECISION_BITS);
-
-			final int lowCornerW12 = (int) ((-a2 * (x2 - ((long) ox2 << PRECISION_BITS)) - b2 * (y2 - ((long) oy2 << PRECISION_BITS)) + (((position2 & EDGE_LEFT) != 0 || position2 == EDGE_TOP) ? PRECISE_PIXEL_CENTER : SCANT_PRECISE_PIXEL_CENTER)) >> PRECISION_BITS);
-			assert lowCornerW2 == lowCornerW12;
-
-			populateEvents(position2, lowCornerW2, ox2, oy2, a2, b2, event2);
+			cornerX = (position2 & A_POSITIVE) == 0 ? tileX : (tileX + 7);
+			cornerY = (position2 & B_POSITIVE) == 0 ? tileY : (tileY + 7);
+			lowCornerW2 = (int) ((-a2 * (x2 - ((long) cornerX << PRECISION_BITS)) - b2 * (y2 - ((long) cornerY << PRECISION_BITS)) + (((position2 & EDGE_LEFT) != 0 || position2 == EDGE_TOP) ? PRECISE_PIXEL_CENTER : SCANT_PRECISE_PIXEL_CENTER)) >> PRECISION_BITS);
+			populateEvents(position2, lowCornerW2, cornerX, cornerY, a2, b2, event2);
 
 			int pos = 0;
 			if (lowCornerW0 < 0) pos |= OUTSIDE_0; else if (lowCornerW0 >= lowExtent0) pos |= INSIDE_0;
@@ -389,39 +365,23 @@ public final class Triangle {
 			hiSpanB2 = hiTileB2 - b2;
 			hiExtent2 = ((hiSpanA2 < 0) ? -hiSpanA2 : hiSpanA2) + ((hiSpanB2 < 0) ? -hiSpanB2 : hiSpanB2);
 
-			final int tox = minPixelX & MID_AXIS_MASK;
-			final int toy = minPixelY & MID_AXIS_MASK;
+			final int tileX = minPixelX & MID_AXIS_MASK;
+			final int tileY = minPixelY & MID_AXIS_MASK;
 
-			int ox2 = (position0 & A_POSITIVE) == 0 ? tox : (tox + 63);
-			int oy2 = (position0 & B_POSITIVE) == 0 ? toy : (toy + 63);
-			final int ox = (minPixelX & MID_AXIS_MASK) << PRECISION_BITS;
-			final int oy = (minPixelY & MID_AXIS_MASK) << PRECISION_BITS;
+			int cornerX = (position0 & A_POSITIVE) == 0 ? tileX : (tileX + 63);
+			int cornerY = (position0 & B_POSITIVE) == 0 ? tileY : (tileY + 63);
+			hiCornerW0 = (int) ((-a0 * (x0 - ((long) cornerX << PRECISION_BITS)) - b0 * (y0 - ((long) cornerY << PRECISION_BITS)) + (((position0 & EDGE_LEFT) != 0 || position0 == EDGE_TOP) ? PRECISE_PIXEL_CENTER : SCANT_PRECISE_PIXEL_CENTER)) >> PRECISION_BITS);
+			populateEvents(position0, hiCornerW0, cornerX, cornerY, a0, b0, event0);
 
-			long x = x0 - ((position0 & A_POSITIVE) == 0 ? ox : (ox + PRECISE_MID_TILE_SPAN));
-			long y = y0 - ((position0 & B_POSITIVE) == 0 ? oy : (oy + PRECISE_MID_TILE_SPAN));
-			hiCornerW0 = (int) ((-a0 * x - b0 * y + (((position0 & EDGE_LEFT) != 0 || position0 == EDGE_TOP) ? PRECISE_PIXEL_CENTER : SCANT_PRECISE_PIXEL_CENTER)) >> PRECISION_BITS);
-			final int hiCornerW0t = (int) ((-a0 * (x0 - ((long) ox2 << PRECISION_BITS)) - b0 * (y0 - ((long) oy2 << PRECISION_BITS)) + (((position0 & EDGE_LEFT) != 0 || position0 == EDGE_TOP) ? PRECISE_PIXEL_CENTER : SCANT_PRECISE_PIXEL_CENTER)) >> PRECISION_BITS);
-			assert hiCornerW0 == hiCornerW0t;
+			cornerX = (position1 & A_POSITIVE) == 0 ? tileX : (tileX + 63);
+			cornerY = (position1 & B_POSITIVE) == 0 ? tileY : (tileY + 63);
+			hiCornerW1 = (int) ((-a1 * (x1 - ((long) cornerX << PRECISION_BITS)) - b1 * (y1 - ((long) cornerY << PRECISION_BITS)) + (((position1 & EDGE_LEFT) != 0 || position1 == EDGE_TOP) ? PRECISE_PIXEL_CENTER : SCANT_PRECISE_PIXEL_CENTER)) >> PRECISION_BITS);
+			populateEvents(position1, hiCornerW1, cornerX, cornerY, a1, b1, event1);
 
-			populateEvents(position0, hiCornerW0, ox2, oy2, a0, b0, event0);
-
-			ox2 = (position1 & A_POSITIVE) == 0 ? tox : (tox + 63);
-			oy2 = (position1 & B_POSITIVE) == 0 ? toy : (toy + 63);
-			x = x1 - ((position1 & A_POSITIVE) == 0 ? ox : (ox + PRECISE_MID_TILE_SPAN));
-			y = y1 - ((position1 & B_POSITIVE) == 0 ? oy : (oy + PRECISE_MID_TILE_SPAN));
-			hiCornerW1 = (int) ((-a1 * x - b1 * y + (((position1 & EDGE_LEFT) != 0 || position1 == EDGE_TOP) ? PRECISE_PIXEL_CENTER : SCANT_PRECISE_PIXEL_CENTER)) >> PRECISION_BITS);
-			final int hiCornerW1t = (int) ((-a1 * (x1 - ((long) ox2 << PRECISION_BITS)) - b1 * (y1 - ((long) oy2 << PRECISION_BITS)) + (((position1 & EDGE_LEFT) != 0 || position1 == EDGE_TOP) ? PRECISE_PIXEL_CENTER : SCANT_PRECISE_PIXEL_CENTER)) >> PRECISION_BITS);
-			assert hiCornerW1 == hiCornerW1t;
-			populateEvents(position1, hiCornerW1, ox2, oy2, a1, b1, event1);
-
-			ox2 = (position2 & A_POSITIVE) == 0 ? tox : (tox + 63);
-			oy2 = (position2 & B_POSITIVE) == 0 ? toy : (toy + 63);
-			x = x2 - ((position2 & A_POSITIVE) == 0 ? ox : (ox + PRECISE_MID_TILE_SPAN));
-			y = y2 - ((position2 & B_POSITIVE) == 0 ? oy : (oy + PRECISE_MID_TILE_SPAN));
-			hiCornerW2 = (int) ((-a2 * x - b2 * y + (((position2 & EDGE_LEFT) != 0 || position2 == EDGE_TOP) ? PRECISE_PIXEL_CENTER : SCANT_PRECISE_PIXEL_CENTER)) >> PRECISION_BITS);
-			final int hiCornerW2t = (int) ((-a2 * (x2 - ((long) ox2 << PRECISION_BITS)) - b2 * (y2 - ((long) oy2 << PRECISION_BITS)) + (((position2 & EDGE_LEFT) != 0 || position2 == EDGE_TOP) ? PRECISE_PIXEL_CENTER : SCANT_PRECISE_PIXEL_CENTER)) >> PRECISION_BITS);
-			assert hiCornerW2 == hiCornerW2t;
-			populateEvents(position2, hiCornerW2, ox2, oy2, a2, b2, event2);
+			cornerX = (position2 & A_POSITIVE) == 0 ? tileX : (tileX + 63);
+			cornerY = (position2 & B_POSITIVE) == 0 ? tileY : (tileY + 63);
+			hiCornerW2 = (int) ((-a2 * (x2 - ((long) cornerX << PRECISION_BITS)) - b2 * (y2 - ((long) cornerY << PRECISION_BITS)) + (((position2 & EDGE_LEFT) != 0 || position2 == EDGE_TOP) ? PRECISE_PIXEL_CENTER : SCANT_PRECISE_PIXEL_CENTER)) >> PRECISION_BITS);
+			populateEvents(position2, hiCornerW2, cornerX, cornerY, a2, b2, event2);
 
 			int pos = 0;
 			if (hiCornerW0 < 0) pos |= OUTSIDE_0; else if (hiCornerW0 >= hiExtent0) pos |= INSIDE_0;
