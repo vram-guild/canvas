@@ -15,6 +15,7 @@ import static grondag.canvas.chunk.occlusion.Constants.EDGE_TOP_RIGHT;
 import static grondag.canvas.chunk.occlusion.Constants.INSIDE_0;
 import static grondag.canvas.chunk.occlusion.Constants.INSIDE_1;
 import static grondag.canvas.chunk.occlusion.Constants.INSIDE_2;
+import static grondag.canvas.chunk.occlusion.Constants.INTERSECT;
 import static grondag.canvas.chunk.occlusion.Constants.LOW_HEIGHT;
 import static grondag.canvas.chunk.occlusion.Constants.LOW_WIDTH;
 import static grondag.canvas.chunk.occlusion.Constants.OUTSIDE_0;
@@ -43,9 +44,6 @@ import static grondag.canvas.chunk.occlusion.Data.event2;
 import static grondag.canvas.chunk.occlusion.Data.lowCornerW0;
 import static grondag.canvas.chunk.occlusion.Data.lowCornerW1;
 import static grondag.canvas.chunk.occlusion.Data.lowCornerW2;
-import static grondag.canvas.chunk.occlusion.Data.lowExtent0;
-import static grondag.canvas.chunk.occlusion.Data.lowExtent1;
-import static grondag.canvas.chunk.occlusion.Data.lowExtent2;
 import static grondag.canvas.chunk.occlusion.Data.lowSpanB0;
 import static grondag.canvas.chunk.occlusion.Data.lowSpanB1;
 import static grondag.canvas.chunk.occlusion.Data.lowSpanB2;
@@ -85,18 +83,15 @@ abstract class Tile {
 		int pos = positionLow;
 
 		if (((pos & OUTSIDE_0) == 0 && (position0 & A_NEGATIVE) != 0) || ((pos & INSIDE_0) == 0 && (position0 & A_POSITIVE) != 0)) {
-			pos &= POS_INVERSE_MASK_0;
-			if (lowCornerW0 < 0) pos |= OUTSIDE_0; else if (lowCornerW0 >= lowExtent0) pos |= INSIDE_0;
+			pos = (pos & POS_INVERSE_MASK_0) | tilePosition(position0, event0);
 		}
 
 		if (((pos & OUTSIDE_1) == 0 && (position1 & A_NEGATIVE) != 0) || ((pos & INSIDE_1) == 0 && (position1 & A_POSITIVE) != 0)) {
-			pos &= POS_INVERSE_MASK_1;
-			if (lowCornerW1 < 0) pos |= OUTSIDE_1; else if (lowCornerW1 >= lowExtent1) pos |= INSIDE_1;
+			pos = (pos & POS_INVERSE_MASK_1) | (tilePosition(position1, event1) << 2);
 		}
 
 		if (((pos & OUTSIDE_2) == 0 && (position2 & A_NEGATIVE) != 0) || ((pos & INSIDE_2) == 0 && (position2 & A_POSITIVE) != 0)) {
-			pos &= POS_INVERSE_MASK_2;
-			if (lowCornerW2 < 0) pos |= OUTSIDE_2; else if (lowCornerW2 >= lowExtent2) pos |= INSIDE_2;
+			pos = (pos & POS_INVERSE_MASK_2) | (tilePosition(position2, event2) << 4);
 		}
 
 		positionLow = pos;
@@ -114,18 +109,15 @@ abstract class Tile {
 		int pos = positionLow;
 
 		if (((pos & OUTSIDE_0) == 0 && (position0 & A_POSITIVE) != 0) || ((pos & INSIDE_0) == 0 && (position0 & A_NEGATIVE) != 0)) {
-			pos &= POS_INVERSE_MASK_0;
-			if (lowCornerW0 < 0) pos |= OUTSIDE_0; else if (lowCornerW0 >= lowExtent0) pos |= INSIDE_0;
+			pos = (pos & POS_INVERSE_MASK_0) | tilePosition(position0, event0);
 		}
 
 		if (((pos & OUTSIDE_1) == 0 && (position1 & A_POSITIVE) != 0) || ((pos & INSIDE_1) == 0 && (position1 & A_NEGATIVE) != 0)) {
-			pos &= POS_INVERSE_MASK_1;
-			if (lowCornerW1 < 0) pos |= OUTSIDE_1; else if (lowCornerW1 >= lowExtent1) pos |= INSIDE_1;
+			pos = (pos & POS_INVERSE_MASK_1) | (tilePosition(position1, event1) << 2);
 		}
 
 		if (((pos & OUTSIDE_2) == 0 && (position2 & A_POSITIVE) != 0) || ((pos & INSIDE_2) == 0 && (position2 & A_NEGATIVE) != 0)) {
-			pos &= POS_INVERSE_MASK_2;
-			if (lowCornerW2 < 0) pos |= OUTSIDE_2; else if (lowCornerW2 >= lowExtent2) pos |= INSIDE_2;
+			pos = (pos & POS_INVERSE_MASK_2) | (tilePosition(position2, event2) << 4);
 		}
 
 		positionLow  = pos;
@@ -143,21 +135,127 @@ abstract class Tile {
 		int pos = positionLow;
 
 		if (((pos & OUTSIDE_0) == 0 && (position0 & B_NEGATIVE) != 0) || ((pos & INSIDE_0) == 0 && (position0 & B_POSITIVE) != 0)) {
-			pos &= POS_INVERSE_MASK_0;
-			if (lowCornerW0 < 0) pos |= OUTSIDE_0; else if (lowCornerW0 >= lowExtent0) pos |= INSIDE_0;
+			pos = (pos & POS_INVERSE_MASK_0) | tilePosition(position0, event0);
 		}
 
 		if (((pos & OUTSIDE_1) == 0 && (position1 & B_NEGATIVE) != 0) || ((pos & INSIDE_1) == 0 && (position1 & B_POSITIVE) != 0)) {
-			pos &= POS_INVERSE_MASK_1;
-			if (lowCornerW1 < 0) pos |= OUTSIDE_1; else if (lowCornerW1 >= lowExtent1) pos |= INSIDE_1;
+			pos = (pos & POS_INVERSE_MASK_1) | (tilePosition(position1, event1) << 2);
 		}
 
 		if (((pos & OUTSIDE_2) == 0 && (position2 & B_NEGATIVE) != 0) || ((pos & INSIDE_2) == 0 && (position2 & B_POSITIVE) != 0)) {
-			pos &= POS_INVERSE_MASK_2;
-			if (lowCornerW2 < 0) pos |= OUTSIDE_2; else if (lowCornerW2 >= lowExtent2) pos |= INSIDE_2;
+			pos = (pos & POS_INVERSE_MASK_2) | (tilePosition(position2, event2) << 4);
 		}
 
 		positionLow = pos;
+	}
+
+	static int tilePosition(int pos, int [] events) {
+		// PERF: check shouldn't be needed - shouldn't be called in this case
+		final int ty = lowTileY << 3;
+
+		if (ty > maxPixelY || ty + 7 < minPixelY) {
+			return OUTSIDE_0;
+		}
+
+		final int tx = lowTileX << 3;
+
+		if (tx > maxPixelX || tx + 7 < minPixelX) {
+			return OUTSIDE_0;
+		}
+
+		switch  (pos) {
+		case EDGE_TOP: {
+			final int py = events[0] - ty;
+
+			if (py < 0) {
+				return OUTSIDE_0;
+			} else if (py >= 7) {
+				return INSIDE_0;
+			} else {
+				return INTERSECT;
+			}
+		}
+
+		case EDGE_BOTTOM: {
+			final int py = events[0] - ty;
+
+			if (py > 7) {
+				return OUTSIDE_0;
+			} else if (py <= 0) {
+				return INSIDE_0;
+			} else {
+				return INTERSECT;
+			}
+		}
+
+		case EDGE_RIGHT: {
+			final int px = events[0] - tx;
+
+			if (px < 0) {
+				return OUTSIDE_0;
+			} else if (px >= 7) {
+				return INSIDE_0;
+			} else {
+				return INTERSECT;
+			}
+		}
+
+		case EDGE_LEFT: {
+			final int px = events[0] - tx;
+
+			if (px > 7) {
+				return OUTSIDE_0;
+			} else if (px <= 0) {
+				return INSIDE_0;
+			} else {
+				return INTERSECT;
+			}
+		}
+
+		case EDGE_TOP_LEFT: {
+			if(events[ty] > tx + 7) {
+				return OUTSIDE_0;
+			} else if (events[ty + 7] <= tx) {
+				return INSIDE_0;
+			} else {
+				return INTERSECT;
+			}
+		}
+
+		case EDGE_BOTTOM_LEFT: {
+			if(events[ty + 7] > tx + 7) {
+				return OUTSIDE_0;
+			} else if (events[ty] <= tx) {
+				return INSIDE_0;
+			} else {
+				return INTERSECT;
+			}
+		}
+
+		case EDGE_TOP_RIGHT: {
+			if(events[ty] < tx) {
+				return OUTSIDE_0;
+			} else if (events[ty + 7] >= tx + 7) {
+				return INSIDE_0;
+			} else {
+				return INTERSECT;
+			}
+		}
+
+		case EDGE_BOTTOM_RIGHT: {
+			if(events[ty + 7] < tx) {
+				return OUTSIDE_0;
+			} else if (events[ty] >= tx + 7) {
+				return INSIDE_0;
+			} else {
+				return INTERSECT;
+			}
+		}
+
+		default:
+			assert false : "Edge flag out of bounds.";
+		return 0;
+		}
 	}
 
 	static long computeTileCoverage() {
@@ -411,7 +509,7 @@ abstract class Tile {
 		}
 	}
 
-	static long buildTileMaskNew(int pos, int[] event) {
+	static long buildTileMaskNew(int pos, int[] events) {
 		// PERF: check shouldn't be needed - shouldn't be called in this case
 		int ty = Data.lowTileY << 3;
 
@@ -427,7 +525,7 @@ abstract class Tile {
 
 		switch  (pos) {
 		case EDGE_TOP: {
-			final int py = event[0] - ty;
+			final int py = events[0] - ty;
 
 			if (py < 0) {
 				return 0L;
@@ -439,7 +537,7 @@ abstract class Tile {
 		}
 
 		case EDGE_BOTTOM: {
-			final int py = event[0] - ty;
+			final int py = events[0] - ty;
 
 			if (py > 7) {
 				return 0L;
@@ -451,7 +549,7 @@ abstract class Tile {
 		}
 
 		case EDGE_RIGHT: {
-			final int px = event[0] - tx;
+			final int px = events[0] - tx;
 
 			if (px < 0) {
 				return 0L;
@@ -469,7 +567,7 @@ abstract class Tile {
 		}
 
 		case EDGE_LEFT: {
-			final int px = event[0] - tx;
+			final int px = events[0] - tx;
 
 			if (px > 7) {
 				return 0L;
@@ -491,7 +589,7 @@ abstract class Tile {
 			int yShift = 0;
 
 			while (yShift < 64) {
-				final int x = event[ty++] - tx;
+				final int x = events[ty++] - tx;
 
 				if(x > 7) return mask;
 
@@ -513,7 +611,7 @@ abstract class Tile {
 			ty += 7;
 
 			while (yShift >= 0) {
-				final int x = event[ty--] - tx;
+				final int x = events[ty--] - tx;
 
 				if(x > 7) return mask;
 
@@ -534,7 +632,7 @@ abstract class Tile {
 			int yShift = 0;
 
 			while(yShift < 64) {
-				final int x = event[ty++] - tx;
+				final int x = events[ty++] - tx;
 
 				if(x < 0) return mask;
 
@@ -556,7 +654,7 @@ abstract class Tile {
 			ty += 7;
 
 			while (yShift >= 0) {
-				final int x = event[ty--] - tx;
+				final int x = events[ty--] - tx;
 
 				if(x < 0) return mask;
 
