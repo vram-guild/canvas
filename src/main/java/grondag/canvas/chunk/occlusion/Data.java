@@ -48,6 +48,10 @@ public class Data {
 	static int position1;
 	static int position2;
 
+	static int minTileX;
+	static int minTileY;
+	static int maxTileY;
+
 	static int lowTileX;
 	static int lowTileY;
 	static int save_lowTileX;
@@ -59,6 +63,10 @@ public class Data {
 	static final int[] event0 = new int[PIXEL_HEIGHT];
 	static final int[] event1 = new int[PIXEL_HEIGHT];
 	static final int[] event2 = new int[PIXEL_HEIGHT];
+
+	static final int[] e0 = new int[PIXEL_HEIGHT];
+	static final int[] e1 = new int[PIXEL_HEIGHT];
+	static final int[] e2 = new int[PIXEL_HEIGHT];
 
 	//	static int px000;
 	//	static int py000;

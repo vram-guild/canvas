@@ -1,10 +1,8 @@
 package grondag.canvas.chunk.occlusion;
 
-import static grondag.canvas.chunk.occlusion.Constants.A_POSITIVE;
 import static grondag.canvas.chunk.occlusion.Constants.BOUNDS_IN;
 import static grondag.canvas.chunk.occlusion.Constants.BOUNDS_NEEDS_CLIP;
 import static grondag.canvas.chunk.occlusion.Constants.BOUNDS_OUTSIDE_OR_TOO_SMALL;
-import static grondag.canvas.chunk.occlusion.Constants.B_POSITIVE;
 import static grondag.canvas.chunk.occlusion.Constants.EDGE_BOTTOM;
 import static grondag.canvas.chunk.occlusion.Constants.EDGE_BOTTOM_LEFT;
 import static grondag.canvas.chunk.occlusion.Constants.EDGE_BOTTOM_RIGHT;
@@ -38,13 +36,16 @@ import static grondag.canvas.chunk.occlusion.Data.lowTileX;
 import static grondag.canvas.chunk.occlusion.Data.lowTileY;
 import static grondag.canvas.chunk.occlusion.Data.maxPixelX;
 import static grondag.canvas.chunk.occlusion.Data.maxPixelY;
+import static grondag.canvas.chunk.occlusion.Data.maxTileY;
 import static grondag.canvas.chunk.occlusion.Data.minPixelX;
 import static grondag.canvas.chunk.occlusion.Data.minPixelY;
+import static grondag.canvas.chunk.occlusion.Data.minTileX;
+import static grondag.canvas.chunk.occlusion.Data.minTileY;
 import static grondag.canvas.chunk.occlusion.Data.position0;
 import static grondag.canvas.chunk.occlusion.Data.position1;
 import static grondag.canvas.chunk.occlusion.Data.position2;
-import static grondag.canvas.chunk.occlusion.Data.tileEdgeOutcomes;
 import static grondag.canvas.chunk.occlusion.Data.scale;
+import static grondag.canvas.chunk.occlusion.Data.tileEdgeOutcomes;
 import static grondag.canvas.chunk.occlusion.Data.vertexData;
 import static grondag.canvas.chunk.occlusion.ProjectedVertexData.PV_PX;
 import static grondag.canvas.chunk.occlusion.ProjectedVertexData.PV_PY;
@@ -237,61 +238,68 @@ public final class Triangle {
 		// PERF: check for triangle outside framebuffer as soon as orientation is known
 		// for example if TOP-LEFT, then lower right screen corner must be inside edge
 
+		minTileX = minPixelX & LOW_AXIS_MASK;
+		minTileY = minPixelY & LOW_AXIS_MASK;
+		maxTileY = ((maxPixelY + 8) & LOW_AXIS_MASK) - 1;
+
 		lowTileX = (minPixelX >> LOW_AXIS_SHIFT);
 		lowTileY = (minPixelY >> LOW_AXIS_SHIFT);
 
-		final int tileX = minPixelX & LOW_AXIS_MASK;
-		final int tileY = minPixelY & LOW_AXIS_MASK;
-
 		// Compute barycentric coordinates at oriented corner of first tile
 		// Can reduce precision (with accurate rounding) because increments will always be multiple of full pixel width
-		int cornerX = (position0 & A_POSITIVE) == 0 ? tileX : (tileX + 7);
-		int cornerY = (position0 & B_POSITIVE) == 0 ? tileY : (tileY + 7);
-		final int lowCornerW0 = (int) ((-a0 * (x0 - ((long) cornerX << PRECISION_BITS)) - b0 * (y0 - ((long) cornerY << PRECISION_BITS)) + (((position0 & EDGE_LEFT) != 0 || position0 == EDGE_TOP) ? PRECISE_PIXEL_CENTER : SCANT_PRECISE_PIXEL_CENTER)) >> PRECISION_BITS);
-		populateEvents(position0, lowCornerW0, cornerX, cornerY, a0, b0, px0, py0, event0);
+		final int w0 = (int) ((-a0 * (x0 - ((long) minTileX << PRECISION_BITS)) - b0 * (y0 - ((long) minTileY << PRECISION_BITS)) + (((position0 & EDGE_LEFT) != 0 || position0 == EDGE_TOP) ? PRECISE_PIXEL_CENTER : SCANT_PRECISE_PIXEL_CENTER)) >> PRECISION_BITS);
+		populateEvents(position0, w0, a0, b0, px0, py0, event0);
 
-		cornerX = (position1 & A_POSITIVE) == 0 ? tileX : (tileX + 7);
-		cornerY = (position1 & B_POSITIVE) == 0 ? tileY : (tileY + 7);
-		final int lowCornerW1 = (int) ((-a1 * (x1 - ((long) cornerX << PRECISION_BITS)) - b1 * (y1 - ((long) cornerY << PRECISION_BITS)) + (((position1 & EDGE_LEFT) != 0 || position1 == EDGE_TOP) ? PRECISE_PIXEL_CENTER : SCANT_PRECISE_PIXEL_CENTER)) >> PRECISION_BITS);
-		populateEvents(position1, lowCornerW1, cornerX, cornerY, a1, b1, px1, py1, event1);
+		final int w1 = (int) ((-a1 * (x1 - ((long) minTileX << PRECISION_BITS)) - b1 * (y1 - ((long) minTileY << PRECISION_BITS)) + (((position1 & EDGE_LEFT) != 0 || position1 == EDGE_TOP) ? PRECISE_PIXEL_CENTER : SCANT_PRECISE_PIXEL_CENTER)) >> PRECISION_BITS);
+		populateEvents(position1, w1, a1, b1, px1, py1, event1);
 
-		cornerX = (position2 & A_POSITIVE) == 0 ? tileX : (tileX + 7);
-		cornerY = (position2 & B_POSITIVE) == 0 ? tileY : (tileY + 7);
-		final int lowCornerW2 = (int) ((-a2 * (x2 - ((long) cornerX << PRECISION_BITS)) - b2 * (y2 - ((long) cornerY << PRECISION_BITS)) + (((position2 & EDGE_LEFT) != 0 || position2 == EDGE_TOP) ? PRECISE_PIXEL_CENTER : SCANT_PRECISE_PIXEL_CENTER)) >> PRECISION_BITS);
-		populateEvents(position2, lowCornerW2, cornerX, cornerY, a2, b2, px2, py2, event2);
+		final int w2 = (int) ((-a2 * (x2 - ((long) minTileX << PRECISION_BITS)) - b2 * (y2 - ((long) minTileY << PRECISION_BITS)) + (((position2 & EDGE_LEFT) != 0 || position2 == EDGE_TOP) ? PRECISE_PIXEL_CENTER : SCANT_PRECISE_PIXEL_CENTER)) >> PRECISION_BITS);
+		populateEvents(position2, w2, a2, b2, px2, py2, event2);
 
 		tileEdgeOutcomes = tilePosition(position0, event0)
 				| (tilePosition(position1, event1) << 2)
 				| (tilePosition(position2, event2) << 4);
 	}
 
-	static void populateEvents(int position, int ow, int ox, int oy, int a, int b, int px, int py, int[] events) {
+	static boolean compareEvents(int[] a, int[] b) {
+		boolean result = true;
+		for (int i = 0; i < 512; ++i) {
+			if(a[i] != b[i])  {
+				System.out.println("For y = " + i + " was " + a[i] +  " is now " + b[i]);
+				result = false;
+			}
+		}
+
+		return result;
+	}
+
+	static void populateEvents(int position, int w, int a, int b, int px, int py, int[] events) {
 		//		CanvasWorldRenderer.innerTimer.start();
-		int x0 = minPixelX & LOW_AXIS_MASK;
-		final int y0 = minPixelY & LOW_AXIS_MASK;
-		final int y1 = ((maxPixelY + 8) & LOW_AXIS_MASK) - 1;
+		int x0 = minTileX;
+		final int y0 = minTileY;
+		final int y1 = maxTileY;
 
 		switch (position) {
 		case EDGE_TOP: {
-			final int w = ow + (py - oy) * b;
+			w += (py - y0) * b;
 			events[0] = w >= 0 ? py : (py - 1);
 			break;
 		}
 
 		case EDGE_BOTTOM: {
-			final int w = ow + (py - oy) * b;
+			w += (py - y0) * b;
 			events[0] = w >= 0 ? py : (py + 1);
 			break;
 		}
 
 		case EDGE_LEFT: {
-			final int w = ow + (px - ox) * a;
+			w += (px - x0) * a;
 			events[0] = w >= 0 ? px : (px + 1);
 			break;
 		}
 
 		case EDGE_RIGHT: {
-			final int w = ow + (px - ox) * a;
+			w += (px - x0) * a;
 			events[0] = w >= 0 ? px : (px - 1);
 			break;
 		}
@@ -299,7 +307,6 @@ public final class Triangle {
 		case EDGE_TOP_LEFT: {
 			//			assert b < 0;
 			//			assert a > 0;
-			int w = ow + (y0 - oy) * b + (x0 - ox) * a;
 
 			if (w >= a) {
 				final int dx = w / a;
@@ -324,8 +331,6 @@ public final class Triangle {
 		case EDGE_BOTTOM_LEFT: {
 			//			assert b > 0;
 			//			assert a > 0;
-			int w = ow + (y0 - oy) * b + (x0 - ox) * a;
-
 			if (w < 0) {
 				final int dx = (-w + a - 1) / a;
 				w += dx * a;
@@ -349,7 +354,6 @@ public final class Triangle {
 		case EDGE_TOP_RIGHT: {
 			//			assert b < 0;
 			//			assert a < 0;
-			int w = ow + (y0 - oy) * b + (x0 - ox) * a;
 
 			if (w >= -a) {
 				final int dx = w / -a;
@@ -374,7 +378,6 @@ public final class Triangle {
 		case EDGE_BOTTOM_RIGHT: {
 			//			assert b > 0;
 			//			assert a < 0;
-			int w = ow + (y0 - oy) * b + (x0 - ox) * a;
 
 			if (w < 0) {
 				final int dx = (w + a + 1) / a;
