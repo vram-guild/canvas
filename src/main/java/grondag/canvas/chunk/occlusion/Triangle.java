@@ -100,8 +100,6 @@ import static grondag.canvas.chunk.occlusion.Data.vertexData;
 import static grondag.canvas.chunk.occlusion.ProjectedVertexData.PV_PX;
 import static grondag.canvas.chunk.occlusion.ProjectedVertexData.PV_PY;
 
-import grondag.canvas.render.CanvasWorldRenderer;
-
 public final class Triangle {
 	static int prepareBounds(int v0, int v1, int v2) {
 		final int x0 = vertexData[v0 + PV_PX];
@@ -399,18 +397,17 @@ public final class Triangle {
 	}
 
 	static void populateEvents(int position, int ow, int ox, int oy, int a, int b, int[] events) {
-		CanvasWorldRenderer.innerTimer.start();
+		//		CanvasWorldRenderer.innerTimer.start();
 		final int x0 = minPixelX & LOW_AXIS_MASK;
 		final int y0 = minPixelY & LOW_AXIS_MASK;
 		final int y1 = ((maxPixelY + 8) & LOW_AXIS_MASK) - 1;
+		int w = ow + (y0 - oy) * b + (x0 - ox) * a;
+		int x = x0;
 
 		switch (position) {
 		case EDGE_TOP_LEFT: {
 			//			assert b < 0;
 			//			assert a > 0;
-
-			int w = ow + (y0 - oy) * b + (x0 - ox) * a;
-			int x = x0;
 
 			if (w >= a) {
 				final int dx = w / a;
@@ -436,25 +433,21 @@ public final class Triangle {
 			//			assert b > 0;
 			//			assert a > 0;
 
-			int w = ow + (y1 - oy) * b + (x0 - ox) * a;
-
-			int x = x0;
-
-			if (w >= a) {
-				final int dx = w / a;
-				w -= dx * a;
-				x -= dx;
+			if (w < 0) {
+				final int dx = (-w + a - 1) / a;
+				w += dx * a;
+				x += dx;
 			}
 
-			for (int y = y1; y >= y0; --y) {
-				if (w < 0) {
-					final int dx = (-w + a - 1) / a;
-					x += dx;
-					w += a * dx;
+			for (int y = y0; y <= y1; ++y) {
+				if (w >= a) {
+					final int dx = w / a;
+					x -= dx;
+					w -= a * dx;
 				}
 
 				events[y] = x;
-				w -= b;
+				w += b;
 			}
 
 			break;
@@ -463,10 +456,6 @@ public final class Triangle {
 		case EDGE_TOP_RIGHT: {
 			//			assert b < 0;
 			//			assert a < 0;
-
-			int w = ow + (y0 - oy) * b + (x0 - ox) * a;
-
-			int x = x0;
 
 			if (w >= -a) {
 				final int dx = w / -a;
@@ -492,24 +481,21 @@ public final class Triangle {
 			//			assert b > 0;
 			//			assert a < 0;
 
-			int w = ow + (y1 - oy) * b + (x0 - ox) * a;
-			int x = x0;
-
-			if (w >= -a) {
-				final int dx = w / -a;
-				w += a * dx;
-				x += dx;
+			if (w < 0) {
+				final int dx = (w + a + 1) / a;
+				w -= a * dx;
+				x -= dx;
 			}
 
-			for (int y = y1; y >= y0; --y) {
-				if (w < 0) {
-					final int dx = (w + a + 1) / a;
-					x -= dx;
-					w -= a * dx;
+			for (int y = y0; y <= y1; ++y) {
+				if (w >= -a) {
+					final int dx = w / -a;
+					x += dx;
+					w += a * dx;
 				}
 
 				events[y] = x;
-				w -= b;
+				w += b;
 			}
 
 			break;
@@ -520,7 +506,7 @@ public final class Triangle {
 			break;
 		}
 
-		CanvasWorldRenderer.innerTimer.stop();
+		//		CanvasWorldRenderer.innerTimer.stop();
 	}
 
 	static boolean isCcw(long x0, long y0, long x1, long y1, long x2, long y2) {

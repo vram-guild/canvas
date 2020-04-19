@@ -589,9 +589,9 @@ abstract class Tile {
 		}
 	}
 
-	static long buildLowMask(int pos, int stepA, int stepB, int wy, int[] event) {
+	static long buildLowMaskTest(int pos, int stepA, int stepB, int wy, int[] event) {
 		final long  oldResult = buildLowMaskOld(pos, stepA, stepB, wy, event);
-		final long  newResult = buildLowMaskNew(pos, stepA, stepB, wy, event);
+		final long  newResult = buildLowMask(pos, stepA, stepB, wy, event);
 
 		if (oldResult != newResult) {
 			System.out.println();
@@ -599,7 +599,7 @@ abstract class Tile {
 			printMask8x8(oldResult);
 			System.out.println("NEW");
 			printMask8x8(newResult);
-			buildLowMaskNew(pos, stepA, stepB, wy, event);
+			buildLowMask(pos, stepA, stepB, wy, event);
 		}
 
 		return oldResult;
@@ -778,7 +778,7 @@ abstract class Tile {
 		}
 	}
 
-	static long buildLowMaskNew(int pos, int stepA, int stepB, int wy, int[] event) {
+	static long buildLowMask(int pos, int stepA, int stepB, int wy, int[] event) {
 		// PERF: check shouldn't be needed - shouldn't be called in this case
 		int ty = Data.lowTileY << 3;
 
