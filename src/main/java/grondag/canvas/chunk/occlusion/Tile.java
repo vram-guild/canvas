@@ -160,7 +160,7 @@ abstract class Tile {
 		positionLow = pos;
 	}
 
-	static long computeLowTileCoverage() {
+	static long computeTileCoverage() {
 		switch(positionLow)  {
 
 		default:
@@ -172,30 +172,30 @@ abstract class Tile {
 			return -1L;
 
 		case POS_012_XII:
-			return buildLowMask(position0, a0, b0, lowCornerW0, event0);
+			return buildTileMask(position0, a0, b0, lowCornerW0, event0);
 
 		case POS_012_IXI:
-			return buildLowMask(position1, a1, b1, lowCornerW1, event1);
+			return buildTileMask(position1, a1, b1, lowCornerW1, event1);
 
 		case POS_012_IIX:
-			return buildLowMask(position2, a2, b2, lowCornerW2, event2);
+			return buildTileMask(position2, a2, b2, lowCornerW2, event2);
 
 		case POS_012_XIX:
-			return buildLowMask(position0, a0, b0, lowCornerW0, event0)
-					& buildLowMask(position2, a2, b2, lowCornerW2, event2);
+			return buildTileMask(position0, a0, b0, lowCornerW0, event0)
+					& buildTileMask(position2, a2, b2, lowCornerW2, event2);
 
 		case POS_012_XXI:
-			return buildLowMask(position0, a0, b0, lowCornerW0, event0)
-					& buildLowMask(position1, a1, b1, lowCornerW1, event1);
+			return buildTileMask(position0, a0, b0, lowCornerW0, event0)
+					& buildTileMask(position1, a1, b1, lowCornerW1, event1);
 
 		case POS_012_IXX:
-			return buildLowMask(position1, a1, b1, lowCornerW1, event1)
-					& buildLowMask(position2, a2, b2, lowCornerW2, event2);
+			return buildTileMask(position1, a1, b1, lowCornerW1, event1)
+					& buildTileMask(position2, a2, b2, lowCornerW2, event2);
 
 		case POS_012_XXX:
-			return buildLowMask(position0, a0, b0, lowCornerW0, event0)
-					& buildLowMask(position1, a1, b1, lowCornerW1, event1)
-					& buildLowMask(position2, a2, b2, lowCornerW2, event2);
+			return buildTileMask(position0, a0, b0, lowCornerW0, event0)
+					& buildTileMask(position1, a1, b1, lowCornerW1, event1)
+					& buildTileMask(position2, a2, b2, lowCornerW2, event2);
 		}
 	}
 
@@ -222,9 +222,9 @@ abstract class Tile {
 	}
 
 
-	static long buildLowMaskTest(int pos, int stepA, int stepB, int wy, int[] event) {
-		final long  oldResult = buildLowMaskOld(pos, stepA, stepB, wy, event);
-		final long  newResult = buildLowMask(pos, stepA, stepB, wy, event);
+	static long buildTileMask(int pos, int stepA, int stepB, int wy, int[] event) {
+		final long  oldResult = buildTileMaskOld(pos, stepA, stepB, wy, event);
+		final long  newResult = buildTileMaskNew(pos, event);
 
 		if (oldResult != newResult) {
 			System.out.println();
@@ -232,13 +232,13 @@ abstract class Tile {
 			printMask8x8(oldResult);
 			System.out.println("NEW");
 			printMask8x8(newResult);
-			buildLowMask(pos, stepA, stepB, wy, event);
+			buildTileMaskNew(pos, event);
 		}
 
 		return oldResult;
 	}
 
-	static long buildLowMaskOld(int pos, int stepA, int stepB, int wy, int[] event) {
+	static long buildTileMaskOld(int pos, int stepA, int stepB, int wy, int[] event) {
 		final int ty = Data.lowTileY << 3;
 
 		if (ty > maxPixelY || ty + 7 < minPixelY) {
@@ -411,7 +411,7 @@ abstract class Tile {
 		}
 	}
 
-	static long buildLowMask(int pos, int stepA, int stepB, int wy, int[] event) {
+	static long buildTileMaskNew(int pos, int[] event) {
 		// PERF: check shouldn't be needed - shouldn't be called in this case
 		int ty = Data.lowTileY << 3;
 
@@ -427,69 +427,66 @@ abstract class Tile {
 
 		switch  (pos) {
 		case EDGE_TOP: {
-			assert wy >= 0;
-			assert stepB < 0;
+			final int py = event[0] - ty;
 
-			long yMask = 0xFFL;
-			long mask = 0;
-
-			while (wy >= 0 && yMask != 0L) {
-				mask |= yMask;
-				yMask <<= 8;
-				wy += stepB; //NB: b will be negative
+			if (py < 0) {
+				return 0L;
+			} else if (py >= 7) {
+				return -1L;
+			} else {
+				return -1L >>> ((7 - py) << 3);
 			}
-
-			return mask;
 		}
 
 		case EDGE_BOTTOM: {
-			assert wy >= 0;
-			assert stepB > 0;
+			final int py = event[0] - ty;
 
-			long yMask = 0xFF00000000000000L;
-			long mask = 0;
-
-			while (wy >= 0 && yMask != 0L) {
-				mask |= yMask;
-				yMask = (yMask >>> 8); // parens are to help eclipse auto-formatting
-				wy -= stepB;
+			if (py > 7) {
+				return 0L;
+			} else if (py <= 0) {
+				return -1L;
+			} else {
+				return -1L << (py << 3);
 			}
-
-			return mask;
 		}
 
 		case EDGE_RIGHT: {
-			assert wy >= 0;
-			assert stepA < 0;
+			final int px = event[0] - tx;
 
-			final int x = 7 - Math.min(7, -wy / stepA);
-			long mask = (0xFF >> x);
+			if (px < 0) {
+				return 0L;
+			} else if (px >= 7) {
+				return -1L;
+			} else {
+				long mask = (0xFF >> (7 - px));
 
-			mask |= mask << 8;
-			mask |= mask << 16;
-			mask |= mask << 32;
+				mask |= mask << 8;
+				mask |= mask << 16;
+				mask |= mask << 32;
 
-			return mask;
+				return mask;
+			}
 		}
 
 		case EDGE_LEFT: {
-			assert wy >= 0;
-			assert stepA > 0;
+			final int px = event[0] - tx;
 
-			final int x =  7 - Math.min(7, wy / stepA);
-			long mask = (0xFF << x) & 0xFF;
+			if (px > 7) {
+				return 0L;
+			} else if (px <= 0) {
+				return -1L;
+			} else {
+				long mask = (0xFF << px) & 0xFF;
 
-			mask |= mask << 8;
-			mask |= mask << 16;
-			mask |= mask << 32;
+				mask |= mask << 8;
+				mask |= mask << 16;
+				mask |= mask << 32;
 
-			return mask;
+				return mask;
+			}
 		}
 
 		case EDGE_TOP_LEFT: {
-			assert stepB < 0;
-			assert stepA > 0;
-
 			long mask = 0;
 			int yShift = 0;
 
@@ -511,9 +508,6 @@ abstract class Tile {
 		}
 
 		case EDGE_BOTTOM_LEFT: {
-			assert stepB > 0;
-			assert stepA > 0;
-
 			int yShift = 56;
 			long mask = 0;
 			ty += 7;
@@ -536,13 +530,10 @@ abstract class Tile {
 		}
 
 		case EDGE_TOP_RIGHT: {
-			assert stepB < 0;
-			assert stepA < 0;
-
 			long mask = 0;
 			int yShift = 0;
 
-			while(yShift < 64 && wy >= 0) {
+			while(yShift < 64) {
 				final int x = event[ty++] - tx;
 
 				if(x < 0) return mask;
@@ -560,9 +551,6 @@ abstract class Tile {
 		}
 
 		case EDGE_BOTTOM_RIGHT: {
-			assert stepB > 0;
-			assert stepA < 0;
-
 			int yShift = 56;
 			long mask = 0;
 			ty += 7;

@@ -22,7 +22,7 @@ import static grondag.canvas.chunk.occlusion.Data.minPixelY;
 import static grondag.canvas.chunk.occlusion.Data.scale;
 import static grondag.canvas.chunk.occlusion.Indexer.lowIndex;
 import static grondag.canvas.chunk.occlusion.Indexer.testPixel;
-import static grondag.canvas.chunk.occlusion.Tile.computeLowTileCoverage;
+import static grondag.canvas.chunk.occlusion.Tile.computeTileCoverage;
 import static grondag.canvas.chunk.occlusion.Tile.moveLowTileLeft;
 import static grondag.canvas.chunk.occlusion.Tile.moveLowTileRight;
 import static grondag.canvas.chunk.occlusion.Tile.moveLowTileUp;
@@ -187,7 +187,7 @@ abstract class Rasterizer  {
 			return false;
 		}
 
-		return (~word & computeLowTileCoverage()) != 0;
+		return (~word & computeTileCoverage()) != 0;
 	}
 
 	static void drawTriLow() {
@@ -234,7 +234,7 @@ abstract class Rasterizer  {
 		if  (word == -1L) {
 			return COVERAGE_FULL;
 		}  else {
-			word |= computeLowTileCoverage();
+			word |= computeTileCoverage();
 			Data.lowTiles[index] = word;
 			return word == -1L ? COVERAGE_FULL : COVERAGE_NONE_OR_SOME;
 		}

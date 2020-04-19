@@ -5,9 +5,11 @@ import static grondag.canvas.chunk.occlusion.Constants.BOUNDS_IN;
 import static grondag.canvas.chunk.occlusion.Constants.BOUNDS_NEEDS_CLIP;
 import static grondag.canvas.chunk.occlusion.Constants.BOUNDS_OUTSIDE_OR_TOO_SMALL;
 import static grondag.canvas.chunk.occlusion.Constants.B_POSITIVE;
+import static grondag.canvas.chunk.occlusion.Constants.EDGE_BOTTOM;
 import static grondag.canvas.chunk.occlusion.Constants.EDGE_BOTTOM_LEFT;
 import static grondag.canvas.chunk.occlusion.Constants.EDGE_BOTTOM_RIGHT;
 import static grondag.canvas.chunk.occlusion.Constants.EDGE_LEFT;
+import static grondag.canvas.chunk.occlusion.Constants.EDGE_RIGHT;
 import static grondag.canvas.chunk.occlusion.Constants.EDGE_TOP;
 import static grondag.canvas.chunk.occlusion.Constants.EDGE_TOP_LEFT;
 import static grondag.canvas.chunk.occlusion.Constants.EDGE_TOP_RIGHT;
@@ -293,17 +295,17 @@ public final class Triangle {
 		int cornerX = (position0 & A_POSITIVE) == 0 ? tileX : (tileX + 7);
 		int cornerY = (position0 & B_POSITIVE) == 0 ? tileY : (tileY + 7);
 		lowCornerW0 = (int) ((-a0 * (x0 - ((long) cornerX << PRECISION_BITS)) - b0 * (y0 - ((long) cornerY << PRECISION_BITS)) + (((position0 & EDGE_LEFT) != 0 || position0 == EDGE_TOP) ? PRECISE_PIXEL_CENTER : SCANT_PRECISE_PIXEL_CENTER)) >> PRECISION_BITS);
-		populateEvents(position0, lowCornerW0, cornerX, cornerY, a0, b0, event0);
+		populateEvents(position0, lowCornerW0, cornerX, cornerY, a0, b0, px0, py0, event0);
 
 		cornerX = (position1 & A_POSITIVE) == 0 ? tileX : (tileX + 7);
 		cornerY = (position1 & B_POSITIVE) == 0 ? tileY : (tileY + 7);
 		lowCornerW1 = (int) ((-a1 * (x1 - ((long) cornerX << PRECISION_BITS)) - b1 * (y1 - ((long) cornerY << PRECISION_BITS)) + (((position1 & EDGE_LEFT) != 0 || position1 == EDGE_TOP) ? PRECISE_PIXEL_CENTER : SCANT_PRECISE_PIXEL_CENTER)) >> PRECISION_BITS);
-		populateEvents(position1, lowCornerW1, cornerX, cornerY, a1, b1, event1);
+		populateEvents(position1, lowCornerW1, cornerX, cornerY, a1, b1, px1, py1, event1);
 
 		cornerX = (position2 & A_POSITIVE) == 0 ? tileX : (tileX + 7);
 		cornerY = (position2 & B_POSITIVE) == 0 ? tileY : (tileY + 7);
 		lowCornerW2 = (int) ((-a2 * (x2 - ((long) cornerX << PRECISION_BITS)) - b2 * (y2 - ((long) cornerY << PRECISION_BITS)) + (((position2 & EDGE_LEFT) != 0 || position2 == EDGE_TOP) ? PRECISE_PIXEL_CENTER : SCANT_PRECISE_PIXEL_CENTER)) >> PRECISION_BITS);
-		populateEvents(position2, lowCornerW2, cornerX, cornerY, a2, b2, event2);
+		populateEvents(position2, lowCornerW2, cornerX, cornerY, a2, b2, px2, py2, event2);
 
 		int pos = 0;
 		if (lowCornerW0 < 0) pos |= OUTSIDE_0; else if (lowCornerW0 >= lowExtent0) pos |= INSIDE_0;
@@ -319,33 +321,56 @@ public final class Triangle {
 		Data.b2 = b2;
 	}
 
-	static void populateEvents(int position, int ow, int ox, int oy, int a, int b, int[] events) {
+	static void populateEvents(int position, int ow, int ox, int oy, int a, int b, int px, int py, int[] events) {
 		//		CanvasWorldRenderer.innerTimer.start();
-		final int x0 = minPixelX & LOW_AXIS_MASK;
+		int x0 = minPixelX & LOW_AXIS_MASK;
 		final int y0 = minPixelY & LOW_AXIS_MASK;
 		final int y1 = ((maxPixelY + 8) & LOW_AXIS_MASK) - 1;
-		int w = ow + (y0 - oy) * b + (x0 - ox) * a;
-		int x = x0;
 
 		switch (position) {
+		case EDGE_TOP: {
+			final int w = ow + (py - oy) * b;
+			events[0] = w >= 0 ? py : (py - 1);
+			break;
+		}
+
+		case EDGE_BOTTOM: {
+			final int w = ow + (py - oy) * b;
+			events[0] = w >= 0 ? py : (py + 1);
+			break;
+		}
+
+		case EDGE_LEFT: {
+			final int w = ow + (px - ox) * a;
+			events[0] = w >= 0 ? px : (px + 1);
+			break;
+		}
+
+		case EDGE_RIGHT: {
+			final int w = ow + (px - ox) * a;
+			events[0] = w >= 0 ? px : (px - 1);
+			break;
+		}
+
 		case EDGE_TOP_LEFT: {
 			//			assert b < 0;
 			//			assert a > 0;
+			int w = ow + (y0 - oy) * b + (x0 - ox) * a;
 
 			if (w >= a) {
 				final int dx = w / a;
 				w -= dx * a;
-				x -= dx;
+				x0 -= dx;
 			}
 
 			for (int y = y0; y <= y1; ++y) {
 				if (w < 0) {
 					final int dx = (-w + a - 1) / a;
-					x += dx;
+					x0 += dx;
 					w += a * dx;
 				}
 
-				events[y] = x;
+				events[y] = x0;
 				w += b;
 			}
 
@@ -355,21 +380,22 @@ public final class Triangle {
 		case EDGE_BOTTOM_LEFT: {
 			//			assert b > 0;
 			//			assert a > 0;
+			int w = ow + (y0 - oy) * b + (x0 - ox) * a;
 
 			if (w < 0) {
 				final int dx = (-w + a - 1) / a;
 				w += dx * a;
-				x += dx;
+				x0 += dx;
 			}
 
 			for (int y = y0; y <= y1; ++y) {
 				if (w >= a) {
 					final int dx = w / a;
-					x -= dx;
+					x0 -= dx;
 					w -= a * dx;
 				}
 
-				events[y] = x;
+				events[y] = x0;
 				w += b;
 			}
 
@@ -379,21 +405,22 @@ public final class Triangle {
 		case EDGE_TOP_RIGHT: {
 			//			assert b < 0;
 			//			assert a < 0;
+			int w = ow + (y0 - oy) * b + (x0 - ox) * a;
 
 			if (w >= -a) {
 				final int dx = w / -a;
 				w += a * dx;
-				x += dx;
+				x0 += dx;
 			}
 
 			for (int y = y0; y <= y1; ++y) {
 				if (w < 0) {
 					final int dx = (w + a + 1) / a;
-					x -= dx;
+					x0 -= dx;
 					w -= a * dx;
 				}
 
-				events[y] = x;
+				events[y] = x0;
 				w += b;
 			}
 
@@ -403,21 +430,22 @@ public final class Triangle {
 		case EDGE_BOTTOM_RIGHT: {
 			//			assert b > 0;
 			//			assert a < 0;
+			int w = ow + (y0 - oy) * b + (x0 - ox) * a;
 
 			if (w < 0) {
 				final int dx = (w + a + 1) / a;
 				w -= a * dx;
-				x -= dx;
+				x0 -= dx;
 			}
 
 			for (int y = y0; y <= y1; ++y) {
 				if (w >= -a) {
 					final int dx = w / -a;
-					x += dx;
+					x0 += dx;
 					w += a * dx;
 				}
 
-				events[y] = x;
+				events[y] = x0;
 				w += b;
 			}
 
