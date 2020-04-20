@@ -8,14 +8,16 @@ import static grondag.canvas.chunk.occlusion.Constants.COVERAGE_FULL;
 import static grondag.canvas.chunk.occlusion.Constants.COVERAGE_NONE_OR_SOME;
 import static grondag.canvas.chunk.occlusion.Constants.PIXEL_HEIGHT;
 import static grondag.canvas.chunk.occlusion.Constants.PIXEL_WIDTH;
-import static grondag.canvas.chunk.occlusion.Constants.TILE_AXIS_SHIFT;
 import static grondag.canvas.chunk.occlusion.Data.maxPixelX;
 import static grondag.canvas.chunk.occlusion.Data.maxPixelY;
+import static grondag.canvas.chunk.occlusion.Data.maxTileOriginX;
+import static grondag.canvas.chunk.occlusion.Data.maxTileOriginY;
 import static grondag.canvas.chunk.occlusion.Data.minPixelX;
 import static grondag.canvas.chunk.occlusion.Data.minPixelY;
+import static grondag.canvas.chunk.occlusion.Data.minTileOriginX;
 import static grondag.canvas.chunk.occlusion.Data.tileIndex;
-import static grondag.canvas.chunk.occlusion.Data.tileX;
-import static grondag.canvas.chunk.occlusion.Data.tileY;
+import static grondag.canvas.chunk.occlusion.Data.tileOriginX;
+import static grondag.canvas.chunk.occlusion.Data.tileOriginY;
 import static grondag.canvas.chunk.occlusion.Data.tiles;
 import static grondag.canvas.chunk.occlusion.Indexer.testPixel;
 import static grondag.canvas.chunk.occlusion.Tile.computeTileCoverage;
@@ -90,10 +92,6 @@ abstract class Rasterizer  {
 	}
 
 	static boolean testTri() {
-		final int x0 = (minPixelX >> TILE_AXIS_SHIFT);
-		final int x1 = (maxPixelX >> TILE_AXIS_SHIFT);
-		final int y1 = (maxPixelY >> TILE_AXIS_SHIFT);
-
 		boolean goRight = true;
 
 		while(true) {
@@ -102,8 +100,8 @@ abstract class Rasterizer  {
 			}
 
 			if (goRight) {
-				if (tileX == x1) {
-					if(tileY == y1) {
+				if (tileOriginX == maxTileOriginX) {
+					if(tileOriginY == maxTileOriginY) {
 						return false;
 					} else {
 						moveTileUp();
@@ -113,8 +111,8 @@ abstract class Rasterizer  {
 					moveTileRight();
 				}
 			} else {
-				if (tileX == x0) {
-					if(tileY == y1) {
+				if (tileOriginX == minTileOriginX) {
+					if(tileOriginY == maxTileOriginY) {
 						return false;
 					} else {
 						moveTileUp();
@@ -139,18 +137,14 @@ abstract class Rasterizer  {
 	}
 
 	static void drawTri() {
-		final int x0 = (minPixelX >> TILE_AXIS_SHIFT);
-		final int x1 = (maxPixelX >> TILE_AXIS_SHIFT);
-		final int y1 = (maxPixelY >> TILE_AXIS_SHIFT);
-
 		boolean goRight = true;
 
 		while(true) {
 			drawTriInner();
 
 			if (goRight) {
-				if (tileX == x1) {
-					if(tileY == y1) {
+				if (tileOriginX == maxTileOriginX) {
+					if(tileOriginY == maxTileOriginY) {
 						return;
 					} else {
 						moveTileUp();
@@ -160,8 +154,8 @@ abstract class Rasterizer  {
 					moveTileRight();
 				}
 			} else {
-				if (tileX == x0) {
-					if(tileY == y1) {
+				if (tileOriginX == minTileOriginX) {
+					if(tileOriginY == maxTileOriginY) {
 						return;
 					} else {
 						moveTileUp();

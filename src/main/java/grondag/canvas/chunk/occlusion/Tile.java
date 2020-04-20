@@ -8,13 +8,14 @@ import static grondag.canvas.chunk.occlusion.Constants.EDGE_RIGHT;
 import static grondag.canvas.chunk.occlusion.Constants.EDGE_TOP;
 import static grondag.canvas.chunk.occlusion.Constants.EDGE_TOP_LEFT;
 import static grondag.canvas.chunk.occlusion.Constants.EDGE_TOP_RIGHT;
-import static grondag.canvas.chunk.occlusion.Constants.TILE_HEIGHT;
+import static grondag.canvas.chunk.occlusion.Constants.PIXEL_HEIGHT;
+import static grondag.canvas.chunk.occlusion.Constants.PIXEL_WIDTH;
+import static grondag.canvas.chunk.occlusion.Constants.TILE_AXIS_SHIFT;
 import static grondag.canvas.chunk.occlusion.Constants.TILE_INDEX_HIGH_X;
 import static grondag.canvas.chunk.occlusion.Constants.TILE_INDEX_HIGH_Y;
 import static grondag.canvas.chunk.occlusion.Constants.TILE_INDEX_LOW_X_MASK;
 import static grondag.canvas.chunk.occlusion.Constants.TILE_INDEX_LOW_Y;
 import static grondag.canvas.chunk.occlusion.Constants.TILE_INDEX_LOW_Y_MASK;
-import static grondag.canvas.chunk.occlusion.Constants.TILE_WIDTH;
 import static grondag.canvas.chunk.occlusion.Data.events;
 import static grondag.canvas.chunk.occlusion.Data.maxPixelX;
 import static grondag.canvas.chunk.occlusion.Data.maxPixelY;
@@ -24,12 +25,12 @@ import static grondag.canvas.chunk.occlusion.Data.position0;
 import static grondag.canvas.chunk.occlusion.Data.position1;
 import static grondag.canvas.chunk.occlusion.Data.position2;
 import static grondag.canvas.chunk.occlusion.Data.save_tileIndex;
-import static grondag.canvas.chunk.occlusion.Data.save_tileX;
-import static grondag.canvas.chunk.occlusion.Data.save_tileY;
+import static grondag.canvas.chunk.occlusion.Data.save_tileOriginX;
+import static grondag.canvas.chunk.occlusion.Data.save_tileOriginY;
 import static grondag.canvas.chunk.occlusion.Data.temp;
 import static grondag.canvas.chunk.occlusion.Data.tileIndex;
-import static grondag.canvas.chunk.occlusion.Data.tileX;
-import static grondag.canvas.chunk.occlusion.Data.tileY;
+import static grondag.canvas.chunk.occlusion.Data.tileOriginX;
+import static grondag.canvas.chunk.occlusion.Data.tileOriginY;
 import static grondag.canvas.chunk.occlusion.Indexer.tileIndex;
 import static grondag.canvas.chunk.occlusion.Rasterizer.printMask8x8;
 
@@ -37,7 +38,7 @@ abstract class Tile {
 	private Tile() {}
 
 	static void moveTileRight() {
-		++tileX;
+		tileOriginX += 8;
 
 		if ((tileIndex & TILE_INDEX_LOW_X_MASK) == TILE_INDEX_LOW_X_MASK) {
 			tileIndex = (tileIndex & ~TILE_INDEX_LOW_X_MASK) + TILE_INDEX_HIGH_X;
@@ -45,12 +46,12 @@ abstract class Tile {
 			tileIndex += 1;
 		}
 
-		assert tileIndex == tileIndex(tileX, tileY);
-		assert tileX < TILE_WIDTH;
+		assert tileIndex == tileIndex(tileOriginX >> TILE_AXIS_SHIFT, tileOriginY >> TILE_AXIS_SHIFT);
+		assert tileOriginX < PIXEL_WIDTH;
 	}
 
 	static void moveTileLeft() {
-		--tileX;
+		tileOriginX -= 8;
 
 		if ((tileIndex & TILE_INDEX_LOW_X_MASK) == 0) {
 			tileIndex |= TILE_INDEX_LOW_X_MASK;
@@ -59,12 +60,12 @@ abstract class Tile {
 			tileIndex -= 1;
 		}
 
-		assert tileIndex == tileIndex(tileX, tileY);
-		assert tileX >= 0;
+		assert tileIndex == tileIndex(tileOriginX >> TILE_AXIS_SHIFT, tileOriginY >> TILE_AXIS_SHIFT);
+		assert tileOriginX >= 0;
 	}
 
 	static void moveTileUp() {
-		++tileY;
+		tileOriginY += 8;
 
 		if ((tileIndex & TILE_INDEX_LOW_Y_MASK) == TILE_INDEX_LOW_Y_MASK) {
 			tileIndex = (tileIndex & ~TILE_INDEX_LOW_Y_MASK) + TILE_INDEX_HIGH_Y;
@@ -72,8 +73,8 @@ abstract class Tile {
 			tileIndex += TILE_INDEX_LOW_Y;
 		}
 
-		assert tileY < TILE_HEIGHT;
-		assert tileIndex == tileIndex(tileX, tileY);
+		assert tileIndex == tileIndex(tileOriginX >> TILE_AXIS_SHIFT, tileOriginY >> TILE_AXIS_SHIFT);
+		assert tileOriginY < PIXEL_HEIGHT;
 	}
 
 
@@ -84,18 +85,15 @@ abstract class Tile {
 	}
 
 	static void pushTile() {
-		save_tileX = tileX;
-		save_tileY = tileY;
+		save_tileOriginX = tileOriginX;
+		save_tileOriginY = tileOriginY;
 		save_tileIndex = tileIndex;
 	}
 
 	static void popTile() {
-		tileX = save_tileX;
-		tileY = save_tileY;
+		tileOriginX = save_tileOriginX;
+		tileOriginY = save_tileOriginY;
 		tileIndex = save_tileIndex;
-
-		assert tileX < TILE_WIDTH;
-		assert tileY < TILE_HEIGHT;
 	}
 
 
@@ -116,19 +114,8 @@ abstract class Tile {
 	}
 
 	static long buildTileMask(int pos, int index) {
-		// PERF: track pixel coordinates directly to avoid 2 shifts each tile
-		final int ty = tileY << 3;
-
-		if (ty > maxPixelY || ty + 7 < minPixelY) {
-			return 0L;
-		}
-
-		final int tx = tileX << 3;
-
-		if (tx > maxPixelX || tx + 7 < minPixelX) {
-			return 0L;
-		}
-
+		final int ty = tileOriginY;
+		final int tx = tileOriginX;
 		final int yIndex = (ty << 2) + index;
 
 		switch  (pos) {
@@ -229,17 +216,14 @@ abstract class Tile {
 	}
 
 	static long rightMask(int index) {
-		int ty = tileY << 3;
-		final int tx = tileX << 3;
+		final int y0 = (tileOriginY << 2) + index;
+		final int y1 = y0 + 32;
+		final int baseX = tileOriginX + 7;
+
 		long mask = 0;
 		int yShift = 0;
-		ty = (ty << 2) + index;
 
-		final int limit = ty + 32;
-
-		final int baseX = 7 + tx;
-
-		for (int y = ty; y < limit; y += 4) {
+		for (int y = y0; y < y1; y += 4) {
 			final int x = baseX - events[y];
 
 			if (x <= 0) {
@@ -255,16 +239,15 @@ abstract class Tile {
 	}
 
 	static long leftMask(int index) {
-		int ty = tileY << 3;
-		final int tx = tileX << 3;
+		final int y0 = (tileOriginY << 2) + index;
+		final int y1 = y0 + 32;
+		final int baseX = tileOriginX;
+
 		long mask = 0;
 		int yShift = 0;
-		ty = (ty << 2) + index;
 
-		final int limit = ty + 32;
-
-		for (int y = ty; y < limit; y += 4) {
-			final int x = events[y] - tx;
+		for (int y = y0; y < y1; y += 4) {
+			final int x = events[y] - baseX;
 
 			if (x <= 0) {
 				mask |= 0xFFL << yShift;
@@ -280,13 +263,13 @@ abstract class Tile {
 
 	// TODO: remove
 	static long buildTileMaskOld(int pos, int index) {
-		int ty = tileY << 3;
+		int ty = tileOriginY;
 
 		if (ty > maxPixelY || ty + 7 < minPixelY) {
 			return 0L;
 		}
 
-		final int tx = tileX << 3;
+		final int tx = tileOriginX;
 
 		if (tx > maxPixelX || tx + 7 < minPixelX) {
 			return 0L;

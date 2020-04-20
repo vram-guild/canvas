@@ -50,16 +50,16 @@ public class Data {
 	// TODO: remove
 	static int[] temp = new int[3];
 
-	static int minTileX;
-	static int minTileY;
-	static int maxTileY;
+	static int minTileOriginX;
+	static int maxTileOriginX;
+	static int maxTileOriginY;
 
 	static int tileIndex;
-	static int tileX;
-	static int tileY;
-	static int save_tileX;
-	static int save_tileY;
+	static int tileOriginX;
+	static int tileOriginY;
 	static int save_tileIndex;
+	static int save_tileOriginX;
+	static int save_tileOriginY;
 
 	static final int[] events = new int[PIXEL_HEIGHT * 4];
 

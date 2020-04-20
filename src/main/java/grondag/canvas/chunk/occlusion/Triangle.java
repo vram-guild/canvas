@@ -29,18 +29,18 @@ import static grondag.canvas.chunk.occlusion.Data.events;
 import static grondag.canvas.chunk.occlusion.Data.events2;
 import static grondag.canvas.chunk.occlusion.Data.maxPixelX;
 import static grondag.canvas.chunk.occlusion.Data.maxPixelY;
-import static grondag.canvas.chunk.occlusion.Data.maxTileY;
+import static grondag.canvas.chunk.occlusion.Data.maxTileOriginX;
+import static grondag.canvas.chunk.occlusion.Data.maxTileOriginY;
 import static grondag.canvas.chunk.occlusion.Data.minPixelX;
 import static grondag.canvas.chunk.occlusion.Data.minPixelY;
-import static grondag.canvas.chunk.occlusion.Data.minTileX;
-import static grondag.canvas.chunk.occlusion.Data.minTileY;
+import static grondag.canvas.chunk.occlusion.Data.minTileOriginX;
 import static grondag.canvas.chunk.occlusion.Data.position0;
 import static grondag.canvas.chunk.occlusion.Data.position1;
 import static grondag.canvas.chunk.occlusion.Data.position2;
 import static grondag.canvas.chunk.occlusion.Data.temp;
 import static grondag.canvas.chunk.occlusion.Data.tileIndex;
-import static grondag.canvas.chunk.occlusion.Data.tileX;
-import static grondag.canvas.chunk.occlusion.Data.tileY;
+import static grondag.canvas.chunk.occlusion.Data.tileOriginX;
+import static grondag.canvas.chunk.occlusion.Data.tileOriginY;
 import static grondag.canvas.chunk.occlusion.Data.vertexData;
 import static grondag.canvas.chunk.occlusion.Indexer.tileIndex;
 import static grondag.canvas.chunk.occlusion.ProjectedVertexData.PV_PX;
@@ -187,13 +187,13 @@ public final class Triangle {
 		// PERF: check for triangle outside framebuffer as soon as orientation is known
 		// for example if TOP-LEFT, then lower right screen corner must be inside edge
 
-		minTileX = minPixelX & TILE_AXIS_MASK;
-		minTileY = minPixelY & TILE_AXIS_MASK;
-		maxTileY = ((maxPixelY + 8) & TILE_AXIS_MASK) - 1;
+		minTileOriginX = minPixelX & TILE_AXIS_MASK;
+		maxTileOriginX = maxPixelX & TILE_AXIS_MASK;
+		maxTileOriginY = maxPixelY & TILE_AXIS_MASK;
 
-		tileX = (minPixelX >> TILE_AXIS_SHIFT);
-		tileY = (minPixelY >> TILE_AXIS_SHIFT);
-		tileIndex = tileIndex(tileX, tileY);
+		tileOriginX = minTileOriginX;
+		tileOriginY = minPixelY & TILE_AXIS_MASK;
+		tileIndex = tileIndex(minPixelX >> TILE_AXIS_SHIFT, minPixelY >> TILE_AXIS_SHIFT);
 
 		position0 = populateEvents(x0, y0, x1, y1, 0);
 		//		if(populateEvents2(x0, y0, x1, y1, 0) != position0 || !compareEvents(0)) {
@@ -214,7 +214,9 @@ public final class Triangle {
 	static boolean compareEvents(int index) {
 		boolean result = true;
 
-		for (int i = minTileY; i <= maxTileY; ++i) {
+		final int limit = maxTileOriginY + 7;
+
+		for (int i = minPixelY & TILE_AXIS_MASK; i <= limit; ++i) {
 			final int j = (i << 2) + index;
 
 			if(events[j] >= 0 && Math.abs(events[j] - events2[j]) > 1)  {
@@ -229,6 +231,8 @@ public final class Triangle {
 	static int populateEventsOld(int x0In, int y0In, int x1In, int y1In, int index) {
 		final int a = y0In - y1In;
 		final int b = x1In - x0In;
+		final int y0 = minPixelY & TILE_AXIS_MASK;
+		final int y1 = maxTileOriginY + 7;
 
 		// signum of a and b, with shifted masks to derive the edge constant directly
 		// the edge constants are specifically formulated to allow this, inline, avoids any pointer chases
@@ -247,11 +251,7 @@ public final class Triangle {
 
 		final long nStep = n << PRECISION_BITS;
 		// compute starting x
-		long psx = nStep * minTileY + c;
-
-
-		final int y0 = minTileY;
-		final int y1 = maxTileY;
+		long psx = nStep * y0 + c;
 
 		switch (position) {
 		case EDGE_TOP: {
@@ -302,6 +302,8 @@ public final class Triangle {
 	static int populateEvents(int x0In, int y0In, int x1In, int y1In, int index) {
 		final int dy = y1In - y0In;
 		final int dx = x1In - x0In;
+		final int y0 = minPixelY & TILE_AXIS_MASK;
+		final int y1 = maxTileOriginY + 7;
 		// signum of dx and dy, with shifted masks to derive the edge constant directly
 		// the edge constants are specifically formulated to allow this, inline, avoids any pointer chases
 		// sign of dy is inverted for historical reasons
@@ -314,7 +316,7 @@ public final class Triangle {
 			final int py = ((y0In + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS);
 			temp[index] = py;
 			nStep = -PIXEL_WIDTH << 20;
-			x = (py - minTileY + 1) * -nStep - (1 << 20);
+			x = (py - y0 + 1) * -nStep - (1 << 20);
 			break;
 		}
 
@@ -323,7 +325,7 @@ public final class Triangle {
 			final int py = y0In >> PRECISION_BITS;
 			temp[index] = py;
 			nStep = -PIXEL_WIDTH << 20;
-			x = (py - minTileY) * -nStep;
+			x = (py - y0) * -nStep;
 			break;
 		}
 
@@ -352,11 +354,10 @@ public final class Triangle {
 			// c = x intercept = x - ny, then add tile  minY * slope for starting X
 			// add rounding per edge - extra  four bits because input coordinates have four bits extra
 			// left edge (a > 0) is more inclusive as a tie-breaker, not sure if actually necessary/works
-			x = (x0In << 16) - n * y0In + nStep * minTileY + ((dx > 0) ? 0x100000L : 0x7FFFFL);
+			x = (x0In << 16) - n * y0In + nStep * y0 + ((dx > 0) ? 0x100000L : 0x7FFFFL);
 		}
 
-		final int y0 = minTileY;
-		final int y1 = maxTileY;
+
 		final int limit  = (y1 << 2) + index;
 
 		for (int y = (y0 << 2) + index; y <= limit; y += 4) {
