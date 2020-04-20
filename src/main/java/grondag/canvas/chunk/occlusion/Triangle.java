@@ -4,13 +4,9 @@ import static grondag.canvas.chunk.occlusion.Constants.BOUNDS_IN;
 import static grondag.canvas.chunk.occlusion.Constants.BOUNDS_NEEDS_CLIP;
 import static grondag.canvas.chunk.occlusion.Constants.BOUNDS_OUTSIDE_OR_TOO_SMALL;
 import static grondag.canvas.chunk.occlusion.Constants.EDGE_BOTTOM;
-import static grondag.canvas.chunk.occlusion.Constants.EDGE_BOTTOM_LEFT;
-import static grondag.canvas.chunk.occlusion.Constants.EDGE_BOTTOM_RIGHT;
 import static grondag.canvas.chunk.occlusion.Constants.EDGE_LEFT;
 import static grondag.canvas.chunk.occlusion.Constants.EDGE_RIGHT;
 import static grondag.canvas.chunk.occlusion.Constants.EDGE_TOP;
-import static grondag.canvas.chunk.occlusion.Constants.EDGE_TOP_LEFT;
-import static grondag.canvas.chunk.occlusion.Constants.EDGE_TOP_RIGHT;
 import static grondag.canvas.chunk.occlusion.Constants.GUARD_HEIGHT;
 import static grondag.canvas.chunk.occlusion.Constants.GUARD_SIZE;
 import static grondag.canvas.chunk.occlusion.Constants.GUARD_WIDTH;
@@ -26,7 +22,6 @@ import static grondag.canvas.chunk.occlusion.Constants.SCANT_PRECISE_PIXEL_CENTE
 import static grondag.canvas.chunk.occlusion.Constants.TILE_AXIS_MASK;
 import static grondag.canvas.chunk.occlusion.Constants.TILE_AXIS_SHIFT;
 import static grondag.canvas.chunk.occlusion.Data.events;
-import static grondag.canvas.chunk.occlusion.Data.events2;
 import static grondag.canvas.chunk.occlusion.Data.maxPixelX;
 import static grondag.canvas.chunk.occlusion.Data.maxPixelY;
 import static grondag.canvas.chunk.occlusion.Data.maxTileOriginX;
@@ -211,93 +206,23 @@ public final class Triangle {
 		//		}
 	}
 
-	static boolean compareEvents(int index) {
-		boolean result = true;
-
-		final int limit = maxTileOriginY + 7;
-
-		for (int i = minPixelY & TILE_AXIS_MASK; i <= limit; ++i) {
-			final int j = (i << 2) + index;
-
-			if(events[j] >= 0 && Math.abs(events[j] - events2[j]) > 1)  {
-				System.out.println("For y = " + i + " was " + events[j] +  " is now " + events[j]);
-				result = false;
-			}
-		}
-
-		return result;
-	}
-
-	static int populateEventsOld(int x0In, int y0In, int x1In, int y1In, int index) {
-		final int a = y0In - y1In;
-		final int b = x1In - x0In;
-		final int y0 = minPixelY & TILE_AXIS_MASK;
-		final int y1 = maxTileOriginY + 7;
-
-		// signum of a and b, with shifted masks to derive the edge constant directly
-		// the edge constants are specifically formulated to allow this, inline, avoids any pointer chases
-		final int position = (1 << (((a >> 31) | (-a >>> 31)) + 1)) | (1 << (((b >> 31) | (-b >>> 31)) + 4));
-
-		// equation of line: x = ny + c
-
-		// n = rise over run slope = dx / dy
-		final long n = y0In == y1In ?  0 : ((((long)(x1In - x0In)) << 16) / (y1In - y0In));
-
-		// c = x-intercept = x - ny
-		long c = (x0In << 16) - n * y0In;
-
-		// add rounding per edge - extra  four bits because input coordinates have four bits extra
-		c += (((position & EDGE_LEFT) != 0 || position == EDGE_TOP) ? 0x100000L : 0x7FFFFL);
-
-		final long nStep = n << PRECISION_BITS;
-		// compute starting x
-		long psx = nStep * y0 + c;
-
-		switch (position) {
-		case EDGE_TOP: {
-			temp[index] = ((y0In + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS);
-			break;
-		}
-
-		case EDGE_BOTTOM: {
-			// NB: in last rev this got shifted one down in some cases - more inclusive - should be more accurate
-			temp[index] = y0In >> PRECISION_BITS;
-		break;
-		}
-
-		case EDGE_LEFT: {
-			// NB: in last rev this got shifted one to the left  in some cases - more inclusive - should be more accurate
-			temp[index] = x0In >> PRECISION_BITS;
-		break;
-		}
-
-		case EDGE_RIGHT: {
-			temp[index] = ((x0In + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS);
-			break;
-		}
-
-		case EDGE_TOP_RIGHT:
-		case EDGE_BOTTOM_RIGHT:
-		case EDGE_BOTTOM_LEFT:
-		case EDGE_TOP_LEFT: {
-			// map to event index
-			final int limit  = (y1 << 2) + index;
-
-			for (int y = (y0 << 2) + index; y <= limit; y += 4) {
-				events[y] = (int) (psx >= 0 ? (psx >> 20) : -(-psx >> 20));
-				psx += nStep;
-			}
-
-			break;
-		}
-
-		default:
-			//NOOP;
-			break;
-		}
-
-		return position;
-	}
+	// TODO: remove if not used - doesn't work with new indexing
+	//	static boolean compareEvents(int index) {
+	//		boolean result = true;
+	//
+	//		final int limit = maxTileOriginY + 7;
+	//
+	//		for (int i = minPixelY & TILE_AXIS_MASK; i <= limit; ++i) {
+	//			final int j = (i << 2) + index;
+	//
+	//			if(events[j] >= 0 && Math.abs(events[j] - events2[j]) > 1)  {
+	//				System.out.println("For y = " + i + " was " + events[j] +  " is now " + events[j]);
+	//				result = false;
+	//			}
+	//		}
+	//
+	//		return result;
+	//	}
 
 	static int populateEvents(int x0In, int y0In, int x1In, int y1In, int index) {
 		final int dy = y1In - y0In;
@@ -358,15 +283,31 @@ public final class Triangle {
 		}
 
 
-		final int limit  = (y1 << 2) + index;
+		final int limit = ((y1 & ~7) << 2) + (index << 3) + (y1 & 7);
 
-		for (int y = (y0 << 2) + index; y <= limit; y += 4) {
-			events[y] = (int) (x >= 0 ? (x >> 20) : -(-x >> 20));
+		// one pass per tile
+		for (int y = ((y0 & ~7) << 2) + (index << 3) + (y0 & 7); y <= limit; y += 32) {
+			int i = y;
+
+			events[i] = (int) (x >= 0 ? (x >> 20) : -(-x >> 20));
+			x += nStep;
+			events[++i] = (int) (x >= 0 ? (x >> 20) : -(-x >> 20));
+			x += nStep;
+			events[++i] = (int) (x >= 0 ? (x >> 20) : -(-x >> 20));
+			x += nStep;
+			events[++i] = (int) (x >= 0 ? (x >> 20) : -(-x >> 20));
+			x += nStep;
+			events[++i] = (int) (x >= 0 ? (x >> 20) : -(-x >> 20));
+			x += nStep;
+			events[++i] = (int) (x >= 0 ? (x >> 20) : -(-x >> 20));
+			x += nStep;
+			events[++i] = (int) (x >= 0 ? (x >> 20) : -(-x >> 20));
+			x += nStep;
+			events[++i] = (int) (x >= 0 ? (x >> 20) : -(-x >> 20));
 			x += nStep;
 		}
 
 		return position;
-
 	}
 
 	static boolean isCcw(long x0, long y0, long x1, long y1, long x2, long y2) {
