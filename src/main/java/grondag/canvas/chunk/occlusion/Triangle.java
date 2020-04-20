@@ -16,6 +16,7 @@ import static grondag.canvas.chunk.occlusion.Constants.GUARD_SIZE;
 import static grondag.canvas.chunk.occlusion.Constants.GUARD_WIDTH;
 import static grondag.canvas.chunk.occlusion.Constants.MAX_PIXEL_X;
 import static grondag.canvas.chunk.occlusion.Constants.MAX_PIXEL_Y;
+import static grondag.canvas.chunk.occlusion.Constants.PIXEL_WIDTH;
 import static grondag.canvas.chunk.occlusion.Constants.PRECISE_HEIGHT;
 import static grondag.canvas.chunk.occlusion.Constants.PRECISE_HEIGHT_CLAMP;
 import static grondag.canvas.chunk.occlusion.Constants.PRECISE_WIDTH;
@@ -197,19 +198,19 @@ public final class Triangle {
 		tileIndex = tileIndex(tileX, tileY);
 
 		position0 = populateEvents(x0, y0, x1, y1, 0);
-		if(populateEvents2(x0, y0, x1, y1, 0) != position0 || !compareEvents(0)) {
-			populateEvents2(x0, y0, x1, y1, 0);
-		}
+		//		if(populateEvents2(x0, y0, x1, y1, 0) != position0 || !compareEvents(0)) {
+		//			populateEvents2(x0, y0, x1, y1, 0);
+		//		}
 
 		position1 = populateEvents(x1, y1, x2, y2, 1);
-		if(populateEvents2(x1, y1, x2, y2, 1) != position1 || !compareEvents(1)) {
-			populateEvents2(x1, y1, x2, y2, 1);
-		}
+		//		if(populateEvents2(x1, y1, x2, y2, 1) != position1 || !compareEvents(1)) {
+		//			populateEvents2(x1, y1, x2, y2, 1);
+		//		}
 
 		position2 = populateEvents(x2, y2, x0, y0, 2);
-		if(populateEvents2(x2, y2, x0, y0, 2) != position2 || !compareEvents(2)) {
-			populateEvents2(x2, y2, x0, y0, 2);
-		}
+		//		if(populateEvents2(x2, y2, x0, y0, 2) != position2 || !compareEvents(2)) {
+		//			populateEvents2(x2, y2, x0, y0, 2);
+		//		}
 
 		tileEdgeOutcomes = tilePosition(position0, 0)
 				| (tilePosition(position1, 1) << 2)
@@ -231,7 +232,7 @@ public final class Triangle {
 		return result;
 	}
 
-	static int populateEvents(int x0In, int y0In, int x1In, int y1In, int index) {
+	static int populateEventsOld(int x0In, int y0In, int x1In, int y1In, int index) {
 		final int a = y0In - y1In;
 		final int b = x1In - x0In;
 
@@ -304,52 +305,69 @@ public final class Triangle {
 		return position;
 	}
 
-	static int populateEvents2(int x0In, int y0In, int x1In, int y1In, int index) {
+	static int populateEvents(int x0In, int y0In, int x1In, int y1In, int index) {
 		final int dy = y1In - y0In;
 		final int dx = x1In - x0In;
 		// signum of dx and dy, with shifted masks to derive the edge constant directly
 		// the edge constants are specifically formulated to allow this, inline, avoids any pointer chases
 		// sign of dy is inverted for historical reasons
 		final int position = (1 << (((-dy >> 31) | (dy >>> 31)) + 1)) | (1 << (((dx >> 31) | (-dx >>> 31)) + 4));
+		final long nStep;
+		long x;
 
 		switch (position) {
-		case EDGE_TOP:
-			temp[index] = ((y0In + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS);
+		case EDGE_TOP: { // build mask as for right edge
+			final int px = ((y0In + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS);
+			temp[index] = px;
+			nStep = -PIXEL_WIDTH << 20;
+			x = (px - minTileY + 1) * -nStep;
 			break;
+		}
 
-		case EDGE_BOTTOM:
+		case EDGE_BOTTOM: {  // build mask as for left edge
 			// NB: in last rev this got shifted one down in some cases - more inclusive - should be more accurate
-			temp[index] = y0In >> PRECISION_BITS;
+			final int px = y0In >> PRECISION_BITS;
+			temp[index] = px;
+			nStep = PIXEL_WIDTH << 20;
+			x = (px - minTileY) * nStep;
 			break;
+		}
 
-		case EDGE_LEFT:
+		case EDGE_LEFT: {
 			// NB: in last rev this got shifted one to the left  in some cases - more inclusive - should be more accurate
-			temp[index] = x0In >> PRECISION_BITS;
+			final int px = ((x0In + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS);
+			temp[index] = px;
+			x = px << 20;
+			nStep = 0;
 			break;
+		}
 
-		case EDGE_RIGHT:
-			temp[index] = ((x0In + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS);
+		case EDGE_RIGHT: {
+			final int px = ((x0In + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS);
+			temp[index] = px;
+			x = px << 20;
+			nStep = 0;
 			break;
+		}
 
 		default:
 			// equation of line: x = ny + c
 			// n = rise over run slope = dx / dy
 			final long n = (((long)dx) << 16) / dy;
-			final long nStep = n << PRECISION_BITS;
-
+			nStep = n << PRECISION_BITS;
 			// c = x intercept = x - ny, then add tile  minY * slope for starting X
 			// add rounding per edge - extra  four bits because input coordinates have four bits extra
 			// left edge (a > 0) is more inclusive as a tie-breaker, not sure if actually necessary/works
-			long x = (x0In << 16) - n * y0In + nStep * minTileY + ((dx > 0) ? 0x100000L : 0x7FFFFL);
+			x = (x0In << 16) - n * y0In + nStep * minTileY + ((dx > 0) ? 0x100000L : 0x7FFFFL);
+		}
 
-			final int y0 = minTileY;
-			final int y1 = maxTileY;
-			final int limit  = (y1 << 2) + index;
+		final int y0 = minTileY;
+		final int y1 = maxTileY;
+		final int limit  = (y1 << 2) + index;
 
-			for (int y = (y0 << 2) + index; y <= limit; y += 4) {
-				events2[y] = (int) (x >= 0 ? (x >> 20) : -(-x >> 20));
-				x += nStep;
-			}
+		for (int y = (y0 << 2) + index; y <= limit; y += 4) {
+			events[y] = (int) (x >= 0 ? (x >> 20) : -(-x >> 20));
+			x += nStep;
 		}
 
 		return position;
