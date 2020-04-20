@@ -197,17 +197,17 @@ public final class Triangle {
 		tileIndex = tileIndex(tileX, tileY);
 
 		position0 = populateEvents(x0, y0, x1, y1, 0);
-		if(populateEvents2(x0, y0, x1, y1, 0) != position0 || !compareEvents()) {
+		if(populateEvents2(x0, y0, x1, y1, 0) != position0 || !compareEvents(0)) {
 			populateEvents2(x0, y0, x1, y1, 0);
 		}
 
 		position1 = populateEvents(x1, y1, x2, y2, 1);
-		if(populateEvents2(x1, y1, x2, y2, 1) != position1 || !compareEvents()) {
+		if(populateEvents2(x1, y1, x2, y2, 1) != position1 || !compareEvents(1)) {
 			populateEvents2(x1, y1, x2, y2, 1);
 		}
 
 		position2 = populateEvents(x2, y2, x0, y0, 2);
-		if(populateEvents2(x2, y2, x0, y0, 2) != position2 || !compareEvents()) {
+		if(populateEvents2(x2, y2, x0, y0, 2) != position2 || !compareEvents(2)) {
 			populateEvents2(x2, y2, x0, y0, 2);
 		}
 
@@ -216,11 +216,14 @@ public final class Triangle {
 				| (tilePosition(position2, 2) << 4);
 	}
 
-	static boolean compareEvents() {
+	static boolean compareEvents(int index) {
 		boolean result = true;
-		for (int i = 0; i < 2048; ++i) {
-			if(events[i] >= 0 && Math.abs(events[i] - events2[i]) > 1)  {
-				System.out.println("For y = " + i + " was " + events[i] +  " is now " + events[i]);
+
+		for (int i = minTileY; i <= maxTileY; ++i) {
+			final int j = (i << 2) + index;
+
+			if(events[j] >= 0 && Math.abs(events[j] - events2[j]) > 1)  {
+				System.out.println("For y = " + i + " was " + events[j] +  " is now " + events[j]);
 				result = false;
 			}
 		}
@@ -302,11 +305,12 @@ public final class Triangle {
 	}
 
 	static int populateEvents2(int x0In, int y0In, int x1In, int y1In, int index) {
-		final int b = y1In - y0In;
-		final int a = x1In - x0In;
-		// signum of a and b, with shifted masks to derive the edge constant directly
+		final int dy = y1In - y0In;
+		final int dx = x1In - x0In;
+		// signum of dx and dy, with shifted masks to derive the edge constant directly
 		// the edge constants are specifically formulated to allow this, inline, avoids any pointer chases
-		final int position = (1 << (((a >> 31) | (-a >>> 31)) + 1)) | (1 << (((b >> 31) | (-b >>> 31)) + 4));
+		// sign of dy is inverted for historical reasons
+		final int position = (1 << (((-dy >> 31) | (dy >>> 31)) + 1)) | (1 << (((dx >> 31) | (-dx >>> 31)) + 4));
 
 		switch (position) {
 		case EDGE_TOP:
@@ -330,20 +334,20 @@ public final class Triangle {
 		default:
 			// equation of line: x = ny + c
 			// n = rise over run slope = dx / dy
-			final long n = (((long)a) << 16) / b;
+			final long n = (((long)dx) << 16) / dy;
 			final long nStep = n << PRECISION_BITS;
 
 			// c = x intercept = x - ny, then add tile  minY * slope for starting X
 			// add rounding per edge - extra  four bits because input coordinates have four bits extra
 			// left edge (a > 0) is more inclusive as a tie-breaker, not sure if actually necessary/works
-			long x = (x0In << 16) - n * y0In + nStep * minTileY + ((a > 0) ? 0x100000L : 0x7FFFFL);
+			long x = (x0In << 16) - n * y0In + nStep * minTileY + ((dx > 0) ? 0x100000L : 0x7FFFFL);
 
 			final int y0 = minTileY;
 			final int y1 = maxTileY;
 			final int limit  = (y1 << 2) + index;
 
 			for (int y = (y0 << 2) + index; y <= limit; y += 4) {
-				events[y] = (int) (x >= 0 ? (x >> 20) : -(-x >> 20));
+				events2[y] = (int) (x >= 0 ? (x >> 20) : -(-x >> 20));
 				x += nStep;
 			}
 		}

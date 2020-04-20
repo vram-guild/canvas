@@ -164,7 +164,7 @@ abstract class Tile {
 
 		switch  (pos) {
 		case EDGE_TOP: {
-			final int py = events[index] - ty;
+			final int py = temp[index] - ty;
 
 			if (py < 0) {
 				return OUTSIDE_0;
@@ -176,7 +176,7 @@ abstract class Tile {
 		}
 
 		case EDGE_BOTTOM: {
-			final int py = events[index] - ty;
+			final int py = temp[index] - ty;
 
 			if (py > 7) {
 				return OUTSIDE_0;
@@ -188,7 +188,7 @@ abstract class Tile {
 		}
 
 		case EDGE_RIGHT: {
-			final int px = events[index] - tx;
+			final int px = temp[index] - tx;
 
 			if (px < 0) {
 				return OUTSIDE_0;
@@ -200,7 +200,7 @@ abstract class Tile {
 		}
 
 		case EDGE_LEFT: {
-			final int px = events[index] - tx;
+			final int px = temp[index] - tx;
 
 			if (px > 7) {
 				return OUTSIDE_0;
@@ -527,7 +527,7 @@ abstract class Tile {
 
 		switch  (pos) {
 		case EDGE_TOP: {
-			final int py = events[index] - ty;
+			final int py = temp[index] - ty;
 
 			if (py < 0) {
 				return 0L;
@@ -539,7 +539,7 @@ abstract class Tile {
 		}
 
 		case EDGE_BOTTOM: {
-			final int py = events[index] - ty;
+			final int py = temp[index] - ty;
 
 			if (py > 7) {
 				return 0L;
@@ -551,7 +551,7 @@ abstract class Tile {
 		}
 
 		case EDGE_RIGHT: {
-			final int px = events[index] - tx;
+			final int px = temp[index] - tx;
 
 			if (px < 0) {
 				return 0L;
@@ -569,7 +569,7 @@ abstract class Tile {
 		}
 
 		case EDGE_LEFT: {
-			final int px = events[index] - tx;
+			final int px = temp[index] - tx;
 
 			if (px > 7) {
 				return 0L;
