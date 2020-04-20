@@ -317,19 +317,19 @@ public final class Triangle {
 
 		switch (position) {
 		case EDGE_TOP: { // build mask as for right edge
-			final int px = ((y0In + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS);
-			temp[index] = px;
+			final int py = ((y0In + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS);
+			temp[index] = py;
 			nStep = -PIXEL_WIDTH << 20;
-			x = (px - minTileY + 1) * -nStep;
+			x = (py - minTileY + 1) * -nStep - (1 << 20);
 			break;
 		}
 
 		case EDGE_BOTTOM: {  // build mask as for left edge
 			// NB: in last rev this got shifted one down in some cases - more inclusive - should be more accurate
-			final int px = y0In >> PRECISION_BITS;
-			temp[index] = px;
-			nStep = PIXEL_WIDTH << 20;
-			x = (px - minTileY) * nStep;
+			final int py = y0In >> PRECISION_BITS;
+			temp[index] = py;
+			nStep = -PIXEL_WIDTH << 20;
+			x = (py - minTileY) * -nStep;
 			break;
 		}
 
