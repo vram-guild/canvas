@@ -264,7 +264,7 @@ abstract class Indexer {
 		Data.tiles[lowIndexFromPixelXY(x, y)] |= (1L << (pixelIndex(x, y)));
 	}
 
-	static long nextTime;
+	static long nextRasterOutputTime;
 
 	// only handle 0-7  values
 	static int mortonNumber(int x, int y) {

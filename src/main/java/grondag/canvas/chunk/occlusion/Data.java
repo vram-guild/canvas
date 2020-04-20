@@ -35,7 +35,6 @@ public class Data {
 	static int minPixelY;
 	static int maxPixelX;
 	static int maxPixelY;
-	static int scale;
 
 	static int x0;
 	static int y0;
@@ -52,10 +51,10 @@ public class Data {
 	static int minTileY;
 	static int maxTileY;
 
-	static int lowTileX;
-	static int lowTileY;
-	static int save_lowTileX;
-	static int save_lowTileY;
+	static int tileX;
+	static int tileY;
+	static int save_tileX;
+	static int save_tileY;
 
 	static int tileEdgeOutcomes;
 	static int save_tileEdgeOutcomes;

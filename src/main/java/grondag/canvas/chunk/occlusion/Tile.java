@@ -33,8 +33,6 @@ import static grondag.canvas.chunk.occlusion.Constants.POS_INVERSE_MASK_2;
 import static grondag.canvas.chunk.occlusion.Constants.TILE_HEIGHT;
 import static grondag.canvas.chunk.occlusion.Constants.TILE_WIDTH;
 import static grondag.canvas.chunk.occlusion.Data.events;
-import static grondag.canvas.chunk.occlusion.Data.lowTileX;
-import static grondag.canvas.chunk.occlusion.Data.lowTileY;
 import static grondag.canvas.chunk.occlusion.Data.maxPixelX;
 import static grondag.canvas.chunk.occlusion.Data.maxPixelY;
 import static grondag.canvas.chunk.occlusion.Data.minPixelX;
@@ -42,19 +40,21 @@ import static grondag.canvas.chunk.occlusion.Data.minPixelY;
 import static grondag.canvas.chunk.occlusion.Data.position0;
 import static grondag.canvas.chunk.occlusion.Data.position1;
 import static grondag.canvas.chunk.occlusion.Data.position2;
-import static grondag.canvas.chunk.occlusion.Data.save_lowTileX;
-import static grondag.canvas.chunk.occlusion.Data.save_lowTileY;
 import static grondag.canvas.chunk.occlusion.Data.save_tileEdgeOutcomes;
+import static grondag.canvas.chunk.occlusion.Data.save_tileX;
+import static grondag.canvas.chunk.occlusion.Data.save_tileY;
 import static grondag.canvas.chunk.occlusion.Data.tileEdgeOutcomes;
+import static grondag.canvas.chunk.occlusion.Data.tileX;
+import static grondag.canvas.chunk.occlusion.Data.tileY;
 import static grondag.canvas.chunk.occlusion.Rasterizer.printMask8x8;
 
 abstract class Tile {
 	private Tile() {}
 
-	static void moveLowTileRight() {
-		++lowTileX;
+	static void moveTileRight() {
+		++tileX;
 
-		assert lowTileX < TILE_WIDTH;
+		assert tileX < TILE_WIDTH;
 
 		int pos = tileEdgeOutcomes;
 
@@ -73,10 +73,10 @@ abstract class Tile {
 		tileEdgeOutcomes = pos;
 	}
 
-	static void moveLowTileLeft() {
-		--lowTileX;
+	static void moveTileLeft() {
+		--tileX;
 
-		assert lowTileX >= 0;
+		assert tileX >= 0;
 
 		int pos = tileEdgeOutcomes;
 
@@ -95,10 +95,10 @@ abstract class Tile {
 		tileEdgeOutcomes  = pos;
 	}
 
-	static void moveLowTileUp() {
-		++lowTileY;
+	static void moveTileUp() {
+		++tileY;
 
-		assert lowTileY < TILE_HEIGHT;
+		assert tileY < TILE_HEIGHT;
 
 		int pos = tileEdgeOutcomes;
 
@@ -119,13 +119,13 @@ abstract class Tile {
 
 	static int tilePosition(int pos, int index) {
 		// PERF: check shouldn't be needed - shouldn't be called in this case
-		final int ty = lowTileY << 3;
+		final int ty = tileY << 3;
 
 		if (ty > maxPixelY || ty + 7 < minPixelY) {
 			return OUTSIDE_0;
 		}
 
-		final int tx = lowTileX << 3;
+		final int tx = tileX << 3;
 
 		if (tx > maxPixelX || tx + 7 < minPixelX) {
 			return OUTSIDE_0;
@@ -265,20 +265,19 @@ abstract class Tile {
 		}
 	}
 
-
-	static void pushLowTile() {
-		save_lowTileX = lowTileX;
-		save_lowTileY = lowTileY;
+	static void pushTile() {
+		save_tileX = tileX;
+		save_tileY = tileY;
 		save_tileEdgeOutcomes = tileEdgeOutcomes;
 	}
 
-	static void popLowTile() {
-		lowTileX = save_lowTileX;
-		lowTileY = save_lowTileY;
+	static void popTile() {
+		tileX = save_tileX;
+		tileY = save_tileY;
 		tileEdgeOutcomes = save_tileEdgeOutcomes;
 
-		assert lowTileX < TILE_WIDTH;
-		assert lowTileY < TILE_HEIGHT;
+		assert tileX < TILE_WIDTH;
+		assert tileY < TILE_HEIGHT;
 	}
 
 
@@ -301,13 +300,13 @@ abstract class Tile {
 
 	static long buildTileMask(int pos, int index) {
 		// PERF: check shouldn't be needed - shouldn't be called in this case
-		int ty = Data.lowTileY << 3;
+		int ty = Data.tileY << 3;
 
 		if (ty > maxPixelY || ty + 7 < minPixelY) {
 			return 0L;
 		}
 
-		final int tx = Data.lowTileX << 3;
+		final int tx = Data.tileX << 3;
 
 		if (tx > maxPixelX || tx + 7 < minPixelX) {
 			return 0L;
@@ -481,13 +480,13 @@ abstract class Tile {
 	// TODO: remove - currently same - left for later
 	static long buildTileMaskOld(int pos, int index) {
 		// PERF: check shouldn't be needed - shouldn't be called in this case
-		int ty = Data.lowTileY << 3;
+		int ty = Data.tileY << 3;
 
 		if (ty > maxPixelY || ty + 7 < minPixelY) {
 			return 0L;
 		}
 
-		final int tx = Data.lowTileX << 3;
+		final int tx = Data.tileX << 3;
 
 		if (tx > maxPixelX || tx + 7 < minPixelX) {
 			return 0L;

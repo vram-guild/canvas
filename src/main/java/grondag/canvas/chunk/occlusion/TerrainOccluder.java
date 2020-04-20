@@ -68,8 +68,8 @@ public abstract class TerrainOccluder {
 
 		final long t = System.currentTimeMillis();
 
-		if (t >= Indexer.nextTime) {
-			Indexer.nextTime = t + 1000;
+		if (t >= Indexer.nextRasterOutputTime) {
+			Indexer.nextRasterOutputTime = t + 1000;
 
 			final NativeImage nativeImage = new NativeImage(PIXEL_WIDTH, PIXEL_HEIGHT, false);
 

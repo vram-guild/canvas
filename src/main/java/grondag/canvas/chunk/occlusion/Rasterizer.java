@@ -8,24 +8,20 @@ import static grondag.canvas.chunk.occlusion.Constants.COVERAGE_FULL;
 import static grondag.canvas.chunk.occlusion.Constants.COVERAGE_NONE_OR_SOME;
 import static grondag.canvas.chunk.occlusion.Constants.PIXEL_HEIGHT;
 import static grondag.canvas.chunk.occlusion.Constants.PIXEL_WIDTH;
-import static grondag.canvas.chunk.occlusion.Constants.SCALE_LOW;
-import static grondag.canvas.chunk.occlusion.Constants.SCALE_MID;
-import static grondag.canvas.chunk.occlusion.Constants.SCALE_POINT;
 import static grondag.canvas.chunk.occlusion.Constants.TILE_AXIS_SHIFT;
-import static grondag.canvas.chunk.occlusion.Data.lowTileX;
-import static grondag.canvas.chunk.occlusion.Data.lowTileY;
 import static grondag.canvas.chunk.occlusion.Data.maxPixelX;
 import static grondag.canvas.chunk.occlusion.Data.maxPixelY;
 import static grondag.canvas.chunk.occlusion.Data.minPixelX;
 import static grondag.canvas.chunk.occlusion.Data.minPixelY;
-import static grondag.canvas.chunk.occlusion.Data.scale;
+import static grondag.canvas.chunk.occlusion.Data.tileX;
+import static grondag.canvas.chunk.occlusion.Data.tileY;
 import static grondag.canvas.chunk.occlusion.Data.tiles;
 import static grondag.canvas.chunk.occlusion.Indexer.lowIndex;
 import static grondag.canvas.chunk.occlusion.Indexer.testPixel;
 import static grondag.canvas.chunk.occlusion.Tile.computeTileCoverage;
-import static grondag.canvas.chunk.occlusion.Tile.moveLowTileLeft;
-import static grondag.canvas.chunk.occlusion.Tile.moveLowTileRight;
-import static grondag.canvas.chunk.occlusion.Tile.moveLowTileUp;
+import static grondag.canvas.chunk.occlusion.Tile.moveTileLeft;
+import static grondag.canvas.chunk.occlusion.Tile.moveTileRight;
+import static grondag.canvas.chunk.occlusion.Tile.moveTileUp;
 import static grondag.canvas.chunk.occlusion.Triangle.prepareBounds;
 import static grondag.canvas.chunk.occlusion.Triangle.prepareScan;
 
@@ -51,7 +47,6 @@ import org.apache.commons.lang3.StringUtils;
 abstract class Rasterizer  {
 	private Rasterizer() { }
 
-	@SuppressWarnings("fallthrough")
 	static void drawTri(int v0, int v1, int v2) {
 		final int boundsResult  = prepareBounds(v0, v1, v2);
 
@@ -64,32 +59,13 @@ abstract class Rasterizer  {
 			return;
 		}
 
-		switch(scale) {
-		case SCALE_MID:
-			scale = SCALE_LOW;
-
-		case SCALE_LOW:{
-			//CanvasWorldRenderer.innerTimer.start();
-			prepareScan();
-			Rasterizer.drawTriLow();
-			//CanvasWorldRenderer.innerTimer.stop();
+		// Don't draw single points
+		if((minPixelX == maxPixelX && minPixelY == maxPixelY)) {
 			return;
 		}
 
-		//		case SCALE_MID: {
-		//			//CanvasWorldRenderer.innerTimer.start();
-		//			prepareScan();
-		//			Rasterizer.drawTriMid();
-		//			//CanvasWorldRenderer.innerTimer.stop();
-		//
-		//			return;
-		//		}
-
-		// skip drawing single points - can't get accurate coverage
-		case SCALE_POINT:
-		default:
-			return;
-		}
+		prepareScan();
+		Rasterizer.drawTri();
 	}
 
 	static boolean testTri(int v0, int v1, int v2) {
@@ -103,45 +79,17 @@ abstract class Rasterizer  {
 			return testClippedLowX(v0, v1, v2);
 		}
 
-		switch(scale) {
-		case SCALE_POINT: {
-			//			CanvasWorldRenderer.innerTimer.start();
+		if((minPixelX == maxPixelX && minPixelY == maxPixelY)) {
 			final int px = minPixelX;
 			final int py = minPixelY;
-			final boolean result = px >= 0 && py >= 0 && px < PIXEL_WIDTH && py < PIXEL_HEIGHT && testPixel(px, py);
-			//			CanvasWorldRenderer.innerTimer.stop();
-
-			return result;
-		}
-
-		case SCALE_MID:
-			scale = SCALE_LOW;
-			//		{
-			//			//CanvasWorldRenderer.innerTimer.start();
-			//			prepareScan();
-			//			final boolean result = testTriMid();
-			//			//CanvasWorldRenderer.innerTimer.stop();
-			//
-			//			return result;
-			//		}
-
-		case SCALE_LOW:{
-			//CanvasWorldRenderer.innerTimer.start();
+			return px >= 0 && py >= 0 && px < PIXEL_WIDTH && py < PIXEL_HEIGHT && testPixel(px, py);
+		} else {
 			prepareScan();
-			final boolean result = testTriLow();
-			//CanvasWorldRenderer.innerTimer.stop();
-			return result;
-		}
-
-
-
-		default:
-			assert false : "Bad triangle scale";
-		return false;
+			return testTri();
 		}
 	}
 
-	static boolean testTriLow() {
+	static boolean testTri() {
 		final int x0 = (minPixelX >> TILE_AXIS_SHIFT);
 		final int x1 = (maxPixelX >> TILE_AXIS_SHIFT);
 		final int y1 = (maxPixelY >> TILE_AXIS_SHIFT);
@@ -149,38 +97,38 @@ abstract class Rasterizer  {
 		boolean goRight = true;
 
 		while(true) {
-			if(testTriLowInner()) {
+			if(testTriInner()) {
 				return true;
 			}
 
 			if (goRight) {
-				if (lowTileX == x1) {
-					if(lowTileY == y1) {
+				if (tileX == x1) {
+					if(tileY == y1) {
 						return false;
 					} else {
-						moveLowTileUp();
+						moveTileUp();
 						goRight = !goRight;
 					}
 				} else {
-					moveLowTileRight();
+					moveTileRight();
 				}
 			} else {
-				if (lowTileX == x0) {
-					if(lowTileY == y1) {
+				if (tileX == x0) {
+					if(tileY == y1) {
 						return false;
 					} else {
-						moveLowTileUp();
+						moveTileUp();
 						goRight = !goRight;
 					}
 				} else {
-					moveLowTileLeft();
+					moveTileLeft();
 				}
 			}
 		}
 	}
 
-	static boolean testTriLowInner() {
-		final long word = tiles[lowIndex(lowTileX, lowTileY)];
+	static boolean testTriInner() {
+		final long word = tiles[lowIndex(tileX, tileY)];
 
 		// nothing to test if fully occluded
 		if  (word == -1L) {
@@ -190,7 +138,7 @@ abstract class Rasterizer  {
 		return (~word & computeTileCoverage()) != 0;
 	}
 
-	static void drawTriLow() {
+	static void drawTri() {
 		final int x0 = (minPixelX >> TILE_AXIS_SHIFT);
 		final int x1 = (maxPixelX >> TILE_AXIS_SHIFT);
 		final int y1 = (maxPixelY >> TILE_AXIS_SHIFT);
@@ -198,36 +146,36 @@ abstract class Rasterizer  {
 		boolean goRight = true;
 
 		while(true) {
-			drawTriLowInner();
+			drawTriInner();
 
 			if (goRight) {
-				if (lowTileX == x1) {
-					if(lowTileY == y1) {
+				if (tileX == x1) {
+					if(tileY == y1) {
 						return;
 					} else {
-						moveLowTileUp();
+						moveTileUp();
 						goRight = !goRight;
 					}
 				} else {
-					moveLowTileRight();
+					moveTileRight();
 				}
 			} else {
-				if (lowTileX == x0) {
-					if(lowTileY == y1) {
+				if (tileX == x0) {
+					if(tileY == y1) {
 						return;
 					} else {
-						moveLowTileUp();
+						moveTileUp();
 						goRight = !goRight;
 					}
 				} else {
-					moveLowTileLeft();
+					moveTileLeft();
 				}
 			}
 		}
 	}
 
-	static int drawTriLowInner() {
-		final int index = lowIndex(lowTileX, lowTileY);
+	static int drawTriInner() {
+		final int index = lowIndex(tileX, tileY);
 		long word = Data.tiles[index];
 
 		// nothing to test if fully occluded

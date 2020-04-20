@@ -21,15 +21,10 @@ import static grondag.canvas.chunk.occlusion.Constants.PRECISE_HEIGHT_CLAMP;
 import static grondag.canvas.chunk.occlusion.Constants.PRECISE_WIDTH;
 import static grondag.canvas.chunk.occlusion.Constants.PRECISE_WIDTH_CLAMP;
 import static grondag.canvas.chunk.occlusion.Constants.PRECISION_BITS;
-import static grondag.canvas.chunk.occlusion.Constants.SCALE_LOW;
-import static grondag.canvas.chunk.occlusion.Constants.SCALE_MID;
-import static grondag.canvas.chunk.occlusion.Constants.SCALE_POINT;
 import static grondag.canvas.chunk.occlusion.Constants.SCANT_PRECISE_PIXEL_CENTER;
 import static grondag.canvas.chunk.occlusion.Constants.TILE_AXIS_MASK;
 import static grondag.canvas.chunk.occlusion.Constants.TILE_AXIS_SHIFT;
 import static grondag.canvas.chunk.occlusion.Data.events;
-import static grondag.canvas.chunk.occlusion.Data.lowTileX;
-import static grondag.canvas.chunk.occlusion.Data.lowTileY;
 import static grondag.canvas.chunk.occlusion.Data.maxPixelX;
 import static grondag.canvas.chunk.occlusion.Data.maxPixelY;
 import static grondag.canvas.chunk.occlusion.Data.maxTileY;
@@ -40,8 +35,9 @@ import static grondag.canvas.chunk.occlusion.Data.minTileY;
 import static grondag.canvas.chunk.occlusion.Data.position0;
 import static grondag.canvas.chunk.occlusion.Data.position1;
 import static grondag.canvas.chunk.occlusion.Data.position2;
-import static grondag.canvas.chunk.occlusion.Data.scale;
 import static grondag.canvas.chunk.occlusion.Data.tileEdgeOutcomes;
+import static grondag.canvas.chunk.occlusion.Data.tileX;
+import static grondag.canvas.chunk.occlusion.Data.tileY;
 import static grondag.canvas.chunk.occlusion.Data.vertexData;
 import static grondag.canvas.chunk.occlusion.ProjectedVertexData.PV_PX;
 import static grondag.canvas.chunk.occlusion.ProjectedVertexData.PV_PY;
@@ -150,34 +146,7 @@ public final class Triangle {
 		Data.x2 = x2;
 		Data.y2 = y2;
 
-		computeScale();
-
 		return BOUNDS_IN;
-	}
-
-	static void computeScale() {
-		int x0 = minPixelX;
-		int y0 = minPixelY;
-		int x1 = maxPixelX;
-		int y1 = maxPixelY;
-
-		if (x0 == x1 && y0 == y1) {
-			scale = SCALE_POINT;
-			return;
-		}
-
-		//PERF: probably a better way - maybe save outputs?
-
-		x0  >>= TILE_AXIS_SHIFT;
-		y0  >>= TILE_AXIS_SHIFT;
-		x1  >>= TILE_AXIS_SHIFT;
-		y1  >>= TILE_AXIS_SHIFT;
-
-		if (x1 <= x0 + 1 && y1 <= y0 + 1) {
-			scale = SCALE_LOW;
-		}  else {
-			scale = SCALE_MID;
-		}
 	}
 
 	/**
@@ -218,8 +187,8 @@ public final class Triangle {
 		minTileY = minPixelY & TILE_AXIS_MASK;
 		maxTileY = ((maxPixelY + 8) & TILE_AXIS_MASK) - 1;
 
-		lowTileX = (minPixelX >> TILE_AXIS_SHIFT);
-		lowTileY = (minPixelY >> TILE_AXIS_SHIFT);
+		tileX = (minPixelX >> TILE_AXIS_SHIFT);
+		tileY = (minPixelY >> TILE_AXIS_SHIFT);
 
 		position0 = populateEvents(x0, y0, x1, y1, 0);
 		//		if(!compareEvents(event0, e0)) {
