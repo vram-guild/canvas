@@ -25,6 +25,7 @@ import static grondag.canvas.chunk.occlusion.Constants.SCANT_PRECISE_PIXEL_CENTE
 import static grondag.canvas.chunk.occlusion.Constants.TILE_AXIS_MASK;
 import static grondag.canvas.chunk.occlusion.Constants.TILE_AXIS_SHIFT;
 import static grondag.canvas.chunk.occlusion.Data.events;
+import static grondag.canvas.chunk.occlusion.Data.events2;
 import static grondag.canvas.chunk.occlusion.Data.maxPixelX;
 import static grondag.canvas.chunk.occlusion.Data.maxPixelY;
 import static grondag.canvas.chunk.occlusion.Data.maxTileY;
@@ -35,6 +36,7 @@ import static grondag.canvas.chunk.occlusion.Data.minTileY;
 import static grondag.canvas.chunk.occlusion.Data.position0;
 import static grondag.canvas.chunk.occlusion.Data.position1;
 import static grondag.canvas.chunk.occlusion.Data.position2;
+import static grondag.canvas.chunk.occlusion.Data.temp;
 import static grondag.canvas.chunk.occlusion.Data.tileEdgeOutcomes;
 import static grondag.canvas.chunk.occlusion.Data.tileIndex;
 import static grondag.canvas.chunk.occlusion.Data.tileX;
@@ -195,30 +197,30 @@ public final class Triangle {
 		tileIndex = tileIndex(tileX, tileY);
 
 		position0 = populateEvents(x0, y0, x1, y1, 0);
-		//		if(!compareEvents(event0, e0)) {
-		//			populateEvents2(x0, y0, x1, y1, e0);
-		//		}
+		if(populateEvents2(x0, y0, x1, y1, 0) != position0 || !compareEvents()) {
+			populateEvents2(x0, y0, x1, y1, 0);
+		}
 
 		position1 = populateEvents(x1, y1, x2, y2, 1);
-		//		if(!compareEvents(event1, e1)) {
-		//			populateEvents2(x1, y1, x2, y2, e1);
-		//		}
+		if(populateEvents2(x1, y1, x2, y2, 1) != position1 || !compareEvents()) {
+			populateEvents2(x1, y1, x2, y2, 1);
+		}
 
 		position2 = populateEvents(x2, y2, x0, y0, 2);
-		//		if(!compareEvents(event2, e2)) {
-		//			populateEvents2(x2, y2, x0, y0, e2);
-		//		}
+		if(populateEvents2(x2, y2, x0, y0, 2) != position2 || !compareEvents()) {
+			populateEvents2(x2, y2, x0, y0, 2);
+		}
 
 		tileEdgeOutcomes = tilePosition(position0, 0)
 				| (tilePosition(position1, 1) << 2)
 				| (tilePosition(position2, 2) << 4);
 	}
 
-	static boolean compareEvents(int[] a, int[] b) {
+	static boolean compareEvents() {
 		boolean result = true;
-		for (int i = 0; i < 512; ++i) {
-			if(a[i] >= 0 && Math.abs(a[i] - b[i]) > 1)  {
-				System.out.println("For y = " + i + " was " + a[i] +  " is now " + b[i]);
+		for (int i = 0; i < 2048; ++i) {
+			if(events[i] >= 0 && Math.abs(events[i] - events2[i]) > 1)  {
+				System.out.println("For y = " + i + " was " + events[i] +  " is now " + events[i]);
 				result = false;
 			}
 		}
@@ -255,24 +257,24 @@ public final class Triangle {
 
 		switch (position) {
 		case EDGE_TOP: {
-			events[index] = ((y0In + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS);
+			temp[index] = ((y0In + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS);
 			break;
 		}
 
 		case EDGE_BOTTOM: {
 			// NB: in last rev this got shifted one down in some cases - more inclusive - should be more accurate
-			events[index] = y0In >> PRECISION_BITS;
+			temp[index] = y0In >> PRECISION_BITS;
 		break;
 		}
 
 		case EDGE_LEFT: {
 			// NB: in last rev this got shifted one to the left  in some cases - more inclusive - should be more accurate
-			events[index] = x0In >> PRECISION_BITS;
+			temp[index] = x0In >> PRECISION_BITS;
 		break;
 		}
 
 		case EDGE_RIGHT: {
-			events[index] = ((x0In + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS);
+			temp[index] = ((x0In + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS);
 			break;
 		}
 
@@ -297,6 +299,57 @@ public final class Triangle {
 		}
 
 		return position;
+	}
+
+	static int populateEvents2(int x0In, int y0In, int x1In, int y1In, int index) {
+		final int b = y1In - y0In;
+		final int a = x1In - x0In;
+		// signum of a and b, with shifted masks to derive the edge constant directly
+		// the edge constants are specifically formulated to allow this, inline, avoids any pointer chases
+		final int position = (1 << (((a >> 31) | (-a >>> 31)) + 1)) | (1 << (((b >> 31) | (-b >>> 31)) + 4));
+
+		switch (position) {
+		case EDGE_TOP:
+			temp[index] = ((y0In + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS);
+			break;
+
+		case EDGE_BOTTOM:
+			// NB: in last rev this got shifted one down in some cases - more inclusive - should be more accurate
+			temp[index] = y0In >> PRECISION_BITS;
+			break;
+
+		case EDGE_LEFT:
+			// NB: in last rev this got shifted one to the left  in some cases - more inclusive - should be more accurate
+			temp[index] = x0In >> PRECISION_BITS;
+			break;
+
+		case EDGE_RIGHT:
+			temp[index] = ((x0In + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS);
+			break;
+
+		default:
+			// equation of line: x = ny + c
+			// n = rise over run slope = dx / dy
+			final long n = (((long)a) << 16) / b;
+			final long nStep = n << PRECISION_BITS;
+
+			// c = x intercept = x - ny, then add tile  minY * slope for starting X
+			// add rounding per edge - extra  four bits because input coordinates have four bits extra
+			// left edge (a > 0) is more inclusive as a tie-breaker, not sure if actually necessary/works
+			long x = (x0In << 16) - n * y0In + nStep * minTileY + ((a > 0) ? 0x100000L : 0x7FFFFL);
+
+			final int y0 = minTileY;
+			final int y1 = maxTileY;
+			final int limit  = (y1 << 2) + index;
+
+			for (int y = (y0 << 2) + index; y <= limit; y += 4) {
+				events[y] = (int) (x >= 0 ? (x >> 20) : -(-x >> 20));
+				x += nStep;
+			}
+		}
+
+		return position;
+
 	}
 
 	static boolean isCcw(long x0, long y0, long x1, long y1, long x2, long y2) {

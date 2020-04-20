@@ -47,6 +47,9 @@ public class Data {
 	static int position1;
 	static int position2;
 
+	// TODO: remove
+	static int[] temp = new int[3];
+
 	static int minTileX;
 	static int minTileY;
 	static int maxTileY;
