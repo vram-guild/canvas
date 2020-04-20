@@ -51,10 +51,12 @@ public class Data {
 	static int minTileY;
 	static int maxTileY;
 
+	static int tileIndex;
 	static int tileX;
 	static int tileY;
 	static int save_tileX;
 	static int save_tileY;
+	static int save_tileIndex;
 
 	static int tileEdgeOutcomes;
 	static int save_tileEdgeOutcomes;

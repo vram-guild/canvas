@@ -13,10 +13,10 @@ import static grondag.canvas.chunk.occlusion.Data.maxPixelX;
 import static grondag.canvas.chunk.occlusion.Data.maxPixelY;
 import static grondag.canvas.chunk.occlusion.Data.minPixelX;
 import static grondag.canvas.chunk.occlusion.Data.minPixelY;
+import static grondag.canvas.chunk.occlusion.Data.tileIndex;
 import static grondag.canvas.chunk.occlusion.Data.tileX;
 import static grondag.canvas.chunk.occlusion.Data.tileY;
 import static grondag.canvas.chunk.occlusion.Data.tiles;
-import static grondag.canvas.chunk.occlusion.Indexer.lowIndex;
 import static grondag.canvas.chunk.occlusion.Indexer.testPixel;
 import static grondag.canvas.chunk.occlusion.Tile.computeTileCoverage;
 import static grondag.canvas.chunk.occlusion.Tile.moveTileLeft;
@@ -128,7 +128,7 @@ abstract class Rasterizer  {
 	}
 
 	static boolean testTriInner() {
-		final long word = tiles[lowIndex(tileX, tileY)];
+		final long word = tiles[tileIndex];
 
 		// nothing to test if fully occluded
 		if  (word == -1L) {
@@ -175,15 +175,14 @@ abstract class Rasterizer  {
 	}
 
 	static int drawTriInner() {
-		final int index = lowIndex(tileX, tileY);
-		long word = Data.tiles[index];
+		long word = tiles[tileIndex];
 
 		// nothing to test if fully occluded
 		if  (word == -1L) {
 			return COVERAGE_FULL;
 		}  else {
 			word |= computeTileCoverage();
-			Data.tiles[index] = word;
+			tiles[tileIndex] = word;
 			return word == -1L ? COVERAGE_FULL : COVERAGE_NONE_OR_SOME;
 		}
 	}

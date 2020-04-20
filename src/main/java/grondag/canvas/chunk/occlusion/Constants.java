@@ -42,6 +42,12 @@ public class Constants {
 	/** clamp to this to ensure value + half pixel rounds down to last pixel */
 	static final int PRECISE_HEIGHT_CLAMP = PRECISE_HEIGHT - PRECISE_PIXEL_CENTER;
 
+	static final int TILE_INDEX_LOW_Y_MASK = TILE_PIXEL_INDEX_MASK << TILE_AXIS_SHIFT;
+	static final int TILE_INDEX_LOW_X_MASK = TILE_PIXEL_INDEX_MASK;
+	static final int TILE_INDEX_LOW_Y = 1 << TILE_AXIS_SHIFT;
+	static final int TILE_INDEX_HIGH_Y = TILE_INDEX_LOW_Y << TILE_ADDRESS_SHIFT_Y;
+	static final int TILE_INDEX_HIGH_X = TILE_INDEX_LOW_Y << TILE_ADDRESS_SHIFT_X;
+
 	static final int GUARD_SIZE = 512 << PRECISION_BITS;
 	static final int GUARD_WIDTH = PRECISE_WIDTH + GUARD_SIZE;
 	static final int GUARD_HEIGHT = PRECISE_HEIGHT + GUARD_SIZE;

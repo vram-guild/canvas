@@ -36,12 +36,15 @@ import static grondag.canvas.chunk.occlusion.Data.position0;
 import static grondag.canvas.chunk.occlusion.Data.position1;
 import static grondag.canvas.chunk.occlusion.Data.position2;
 import static grondag.canvas.chunk.occlusion.Data.tileEdgeOutcomes;
+import static grondag.canvas.chunk.occlusion.Data.tileIndex;
 import static grondag.canvas.chunk.occlusion.Data.tileX;
 import static grondag.canvas.chunk.occlusion.Data.tileY;
 import static grondag.canvas.chunk.occlusion.Data.vertexData;
+import static grondag.canvas.chunk.occlusion.Indexer.tileIndex;
 import static grondag.canvas.chunk.occlusion.ProjectedVertexData.PV_PX;
 import static grondag.canvas.chunk.occlusion.ProjectedVertexData.PV_PY;
 import static grondag.canvas.chunk.occlusion.Tile.tilePosition;
+
 
 public final class Triangle {
 	static int prepareBounds(int v0, int v1, int v2) {
@@ -189,6 +192,7 @@ public final class Triangle {
 
 		tileX = (minPixelX >> TILE_AXIS_SHIFT);
 		tileY = (minPixelY >> TILE_AXIS_SHIFT);
+		tileIndex = tileIndex(tileX, tileY);
 
 		position0 = populateEvents(x0, y0, x1, y1, 0);
 		//		if(!compareEvents(event0, e0)) {

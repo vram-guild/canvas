@@ -273,12 +273,12 @@ abstract class Indexer {
 		return z | ((x & 0b100) << 2) | ((y & 0b100) << 3);
 	}
 
-	static int lowIndex(int tileX, int tileY) {
+	static int tileIndex(int tileX, int tileY) {
 		return ((tileY & TILE_AXIS_MASK) << TILE_ADDRESS_SHIFT_Y) | ((tileX & TILE_AXIS_MASK) << TILE_ADDRESS_SHIFT_X) | ((tileY & TILE_PIXEL_INDEX_MASK) << TILE_AXIS_SHIFT) | (tileX & TILE_PIXEL_INDEX_MASK);
 	}
 
 	static int lowIndexFromPixelXY(int x, int y)  {
-		return lowIndex(x >>> TILE_AXIS_SHIFT, y >>> TILE_AXIS_SHIFT);
+		return tileIndex(x >>> TILE_AXIS_SHIFT, y >>> TILE_AXIS_SHIFT);
 	}
 
 	static int pixelIndex(int x, int y)  {
