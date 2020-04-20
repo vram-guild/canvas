@@ -61,9 +61,6 @@ public class Data {
 	static int save_tileY;
 	static int save_tileIndex;
 
-	static int tileEdgeOutcomes;
-	static int save_tileEdgeOutcomes;
-
 	static final int[] events = new int[PIXEL_HEIGHT * 4];
 
 	// TODO: remove
