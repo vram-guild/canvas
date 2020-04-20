@@ -7,15 +7,13 @@ import static grondag.canvas.chunk.occlusion.Constants.CAMERA_PRECISION_CHUNK_MA
 import static grondag.canvas.chunk.occlusion.Constants.CAMERA_PRECISION_UNITY;
 import static grondag.canvas.chunk.occlusion.Constants.HALF_PIXEL_HEIGHT;
 import static grondag.canvas.chunk.occlusion.Constants.HALF_PIXEL_WIDTH;
-import static grondag.canvas.chunk.occlusion.Constants.LOW_AXIS_SHIFT;
-import static grondag.canvas.chunk.occlusion.Constants.MID_AXIS_SHIFT;
-import static grondag.canvas.chunk.occlusion.Constants.MID_INDEX_SHIFT;
 import static grondag.canvas.chunk.occlusion.Constants.PIXEL_HEIGHT;
 import static grondag.canvas.chunk.occlusion.Constants.PIXEL_WIDTH;
+import static grondag.canvas.chunk.occlusion.Constants.TILE_ADDRESS_SHIFT_X;
+import static grondag.canvas.chunk.occlusion.Constants.TILE_ADDRESS_SHIFT_Y;
+import static grondag.canvas.chunk.occlusion.Constants.TILE_AXIS_MASK;
 import static grondag.canvas.chunk.occlusion.Constants.TILE_AXIS_SHIFT;
 import static grondag.canvas.chunk.occlusion.Constants.TILE_PIXEL_INDEX_MASK;
-import static grondag.canvas.chunk.occlusion.Constants.TOP_INDEX_SHIFT;
-import static grondag.canvas.chunk.occlusion.Constants.TOP_Y_SHIFT;
 import static grondag.canvas.chunk.occlusion.Data.V000;
 import static grondag.canvas.chunk.occlusion.Data.V001;
 import static grondag.canvas.chunk.occlusion.Data.V010;
@@ -259,43 +257,28 @@ abstract class Indexer {
 	}
 
 	static boolean testPixel(int x, int y) {
-		return (Data.lowTiles[lowIndexFromPixelXY(x, y)] & (1L << (pixelIndex(x, y)))) == 0;
+		return (Data.tiles[lowIndexFromPixelXY(x, y)] & (1L << (pixelIndex(x, y)))) == 0;
 	}
 
 	static void drawPixel(int x, int y) {
-		Data.lowTiles[lowIndexFromPixelXY(x, y)] |= (1L << (pixelIndex(x, y)));
+		Data.tiles[lowIndexFromPixelXY(x, y)] |= (1L << (pixelIndex(x, y)));
 	}
 
 	static long nextTime;
 
+	// only handle 0-7  values
 	static int mortonNumber(int x, int y) {
 		int z = (x & 0b001) | ((y & 0b001) << 1);
 		z |= ((x & 0b010) << 1) | ((y & 0b010) << 2);
 		return z | ((x & 0b100) << 2) | ((y & 0b100) << 3);
 	}
 
-	static int midIndex(int midX, int midY) {
-		final int topX = (midX >> LOW_AXIS_SHIFT);
-		final int topY = (midY >> LOW_AXIS_SHIFT);
-		return (topIndex(topX, topY) << MID_AXIS_SHIFT) | (mortonNumber(midX, midY));
-	}
-
-	static int topIndex(int topX, int topY) {
-		return (topY << TOP_Y_SHIFT) | topX;
-	}
-
-	static int lowIndex(int lowX, int lowY) {
-		final int midX = (lowX >> LOW_AXIS_SHIFT) & TILE_PIXEL_INDEX_MASK;
-		final int midY = (lowY >> LOW_AXIS_SHIFT) & TILE_PIXEL_INDEX_MASK;
-
-		final int topX = (lowX >> MID_AXIS_SHIFT);
-		final int topY = (lowY >> MID_AXIS_SHIFT);
-
-		return (topIndex(topX, topY) << TOP_INDEX_SHIFT) | (mortonNumber(midX, midY) << MID_INDEX_SHIFT) | mortonNumber(lowX & TILE_PIXEL_INDEX_MASK, lowY & TILE_PIXEL_INDEX_MASK);
+	static int lowIndex(int tileX, int tileY) {
+		return ((tileY & TILE_AXIS_MASK) << TILE_ADDRESS_SHIFT_Y) | ((tileX & TILE_AXIS_MASK) << TILE_ADDRESS_SHIFT_X) | ((tileY & TILE_PIXEL_INDEX_MASK) << TILE_AXIS_SHIFT) | (tileX & TILE_PIXEL_INDEX_MASK);
 	}
 
 	static int lowIndexFromPixelXY(int x, int y)  {
-		return lowIndex(x >>> LOW_AXIS_SHIFT, y >>> LOW_AXIS_SHIFT);
+		return lowIndex(x >>> TILE_AXIS_SHIFT, y >>> TILE_AXIS_SHIFT);
 	}
 
 	static int pixelIndex(int x, int y)  {

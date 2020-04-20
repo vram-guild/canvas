@@ -14,13 +14,10 @@ import static grondag.canvas.chunk.occlusion.Constants.EDGE_TOP_RIGHT;
 import static grondag.canvas.chunk.occlusion.Constants.GUARD_HEIGHT;
 import static grondag.canvas.chunk.occlusion.Constants.GUARD_SIZE;
 import static grondag.canvas.chunk.occlusion.Constants.GUARD_WIDTH;
-import static grondag.canvas.chunk.occlusion.Constants.LOW_AXIS_MASK;
-import static grondag.canvas.chunk.occlusion.Constants.LOW_AXIS_SHIFT;
 import static grondag.canvas.chunk.occlusion.Constants.MAX_PIXEL_X;
 import static grondag.canvas.chunk.occlusion.Constants.MAX_PIXEL_Y;
 import static grondag.canvas.chunk.occlusion.Constants.PRECISE_HEIGHT;
 import static grondag.canvas.chunk.occlusion.Constants.PRECISE_HEIGHT_CLAMP;
-import static grondag.canvas.chunk.occlusion.Constants.PRECISE_PIXEL_CENTER;
 import static grondag.canvas.chunk.occlusion.Constants.PRECISE_WIDTH;
 import static grondag.canvas.chunk.occlusion.Constants.PRECISE_WIDTH_CLAMP;
 import static grondag.canvas.chunk.occlusion.Constants.PRECISION_BITS;
@@ -28,10 +25,8 @@ import static grondag.canvas.chunk.occlusion.Constants.SCALE_LOW;
 import static grondag.canvas.chunk.occlusion.Constants.SCALE_MID;
 import static grondag.canvas.chunk.occlusion.Constants.SCALE_POINT;
 import static grondag.canvas.chunk.occlusion.Constants.SCANT_PRECISE_PIXEL_CENTER;
+import static grondag.canvas.chunk.occlusion.Constants.TILE_AXIS_MASK;
 import static grondag.canvas.chunk.occlusion.Constants.TILE_AXIS_SHIFT;
-import static grondag.canvas.chunk.occlusion.Data.e0;
-import static grondag.canvas.chunk.occlusion.Data.e1;
-import static grondag.canvas.chunk.occlusion.Data.e2;
 import static grondag.canvas.chunk.occlusion.Data.event0;
 import static grondag.canvas.chunk.occlusion.Data.event1;
 import static grondag.canvas.chunk.occlusion.Data.event2;
@@ -218,58 +213,30 @@ public final class Triangle {
 		final int x2 = Data.x2;
 		final int y2 = Data.y2;
 
-		final int a0 = y0 - y1;
-		final int b0 = x1 - x0;
-		final int a1 = y1 - y2;
-		final int b1 = x2 - x1;
-		final int a2 = y2 - y0;
-		final int b2 = x0 - x2;
-
-		final int px0 = ((x0 + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS);
-		final int py0 = ((y0 + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS);
-		final int px1 = ((x1 + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS);
-		final int py1 = ((y1 + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS);
-		final int px2 = ((x2 + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS);
-		final int py2 = ((y2 + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS);
-
-		// signum of a and b, with shifted masks to derive the edge constant directly
-		// the edge constants are specifically formulated to allow this, inline, avoids any pointer chases
-		position0 = (1 << (((a0 >> 31) | (-a0 >>> 31)) + 1)) | (1 << (((b0 >> 31) | (-b0 >>> 31)) + 4));
-		position1 = (1 << (((a1 >> 31) | (-a1 >>> 31)) + 1)) | (1 << (((b1 >> 31) | (-b1 >>> 31)) + 4));
-		position2 = (1 << (((a2 >> 31) | (-a2 >>> 31)) + 1)) | (1 << (((b2 >> 31) | (-b2 >>> 31)) + 4));
-
 		// PERF: check for triangle outside framebuffer as soon as orientation is known
 		// for example if TOP-LEFT, then lower right screen corner must be inside edge
 
-		minTileX = minPixelX & LOW_AXIS_MASK;
-		minTileY = minPixelY & LOW_AXIS_MASK;
-		maxTileY = ((maxPixelY + 8) & LOW_AXIS_MASK) - 1;
+		minTileX = minPixelX & TILE_AXIS_MASK;
+		minTileY = minPixelY & TILE_AXIS_MASK;
+		maxTileY = ((maxPixelY + 8) & TILE_AXIS_MASK) - 1;
 
-		lowTileX = (minPixelX >> LOW_AXIS_SHIFT);
-		lowTileY = (minPixelY >> LOW_AXIS_SHIFT);
+		lowTileX = (minPixelX >> TILE_AXIS_SHIFT);
+		lowTileY = (minPixelY >> TILE_AXIS_SHIFT);
 
-		// Compute barycentric coordinates at oriented corner of first tile
-		// Can reduce precision (with accurate rounding) because increments will always be multiple of full pixel width
-		final int w0 = (int) ((-a0 * (x0 - ((long) minTileX << PRECISION_BITS)) - b0 * (y0 - ((long) minTileY << PRECISION_BITS)) + (((position0 & EDGE_LEFT) != 0 || position0 == EDGE_TOP) ? PRECISE_PIXEL_CENTER : SCANT_PRECISE_PIXEL_CENTER)) >> PRECISION_BITS);
-		populateEvents(position0, w0, a0, b0, px0, py0, event0);
-		populateEvents2(x0, y0, x1, y1, e0);
-		if(!compareEvents(event0, e0)) {
-			populateEvents2(x0, y0, x1, y1, e0);
-		}
+		position0 = populateEvents(x0, y0, x1, y1, event0);
+		//		if(!compareEvents(event0, e0)) {
+		//			populateEvents2(x0, y0, x1, y1, e0);
+		//		}
 
-		final int w1 = (int) ((-a1 * (x1 - ((long) minTileX << PRECISION_BITS)) - b1 * (y1 - ((long) minTileY << PRECISION_BITS)) + (((position1 & EDGE_LEFT) != 0 || position1 == EDGE_TOP) ? PRECISE_PIXEL_CENTER : SCANT_PRECISE_PIXEL_CENTER)) >> PRECISION_BITS);
-		populateEvents(position1, w1, a1, b1, px1, py1, event1);
-		populateEvents2(x1, y1, x2, y2, e1);
-		if(!compareEvents(event1, e1)) {
-			populateEvents2(x1, y1, x2, y2, e1);
-		}
+		position1 = populateEvents(x1, y1, x2, y2, event1);
+		//		if(!compareEvents(event1, e1)) {
+		//			populateEvents2(x1, y1, x2, y2, e1);
+		//		}
 
-		final int w2 = (int) ((-a2 * (x2 - ((long) minTileX << PRECISION_BITS)) - b2 * (y2 - ((long) minTileY << PRECISION_BITS)) + (((position2 & EDGE_LEFT) != 0 || position2 == EDGE_TOP) ? PRECISE_PIXEL_CENTER : SCANT_PRECISE_PIXEL_CENTER)) >> PRECISION_BITS);
-		populateEvents(position2, w2, a2, b2, px2, py2, event2);
-		populateEvents2(x2, y2, x0, y0, e2);
-		if(!compareEvents(event2, e2)) {
-			populateEvents2(x2, y2, x0, y0, e2);
-		}
+		position2 = populateEvents(x2, y2, x0, y0, event2);
+		//		if(!compareEvents(event2, e2)) {
+		//			populateEvents2(x2, y2, x0, y0, e2);
+		//		}
 
 		tileEdgeOutcomes = tilePosition(position0, event0)
 				| (tilePosition(position1, event1) << 2)
@@ -288,138 +255,15 @@ public final class Triangle {
 		return result;
 	}
 
-	static void populateEvents(int position, int w, int a, int b, int px, int py, int[] events) {
-		//		CanvasWorldRenderer.innerTimer.start();
-		int x0 = minTileX;
-		final int y0 = minTileY;
-		final int y1 = maxTileY;
-
-		switch (position) {
-		case EDGE_TOP: {
-			w += (py - y0) * b;
-			events[0] = w >= 0 ? py : (py - 1);
-			break;
-		}
-
-		case EDGE_BOTTOM: {
-			w += (py - y0) * b;
-			events[0] = w >= 0 ? py : (py + 1);
-			break;
-		}
-
-		case EDGE_LEFT: {
-			w += (px - x0) * a;
-			events[0] = w >= 0 ? px : (px + 1);
-			break;
-		}
-
-		case EDGE_RIGHT: {
-			w += (px - x0) * a;
-			events[0] = w >= 0 ? px : (px - 1);
-			break;
-		}
-
-		case EDGE_TOP_LEFT: {
-			//			assert b < 0;
-			//			assert a > 0;
-
-			if (w >= a) {
-				final int dx = w / a;
-				w -= dx * a;
-				x0 -= dx;
-			}
-
-			for (int y = y0; y <= y1; ++y) {
-				if (w < 0) {
-					final int dx = (-w + a - 1) / a;
-					x0 += dx;
-					w += a * dx;
-				}
-
-				events[y] = x0;
-				w += b;
-			}
-
-			break;
-		}
-
-		case EDGE_BOTTOM_LEFT: {
-			if (w < 0) {
-				final int dx = (-w + a - 1) / a;
-				w += dx * a;
-				x0 += dx;
-			}
-
-			for (int y = y0; y <= y1; ++y) {
-				if (w >= a) {
-					final int dx = w / a;
-					x0 -= dx;
-					w -= a * dx;
-				}
-
-				events[y] = x0;
-				w += b;
-			}
-
-			break;
-		}
-
-		case EDGE_TOP_RIGHT: {
-			if (w >= -a) {
-				final int dx = w / -a;
-				w += a * dx;
-				x0 += dx;
-			}
-
-			for (int y = y0; y <= y1; ++y) {
-				if (w < 0) {
-					final int dx = (w + a + 1) / a;
-					x0 -= dx;
-					w -= a * dx;
-				}
-
-				events[y] = x0;
-				w += b;
-			}
-
-			break;
-		}
-
-		case EDGE_BOTTOM_RIGHT: {
-			if (w < 0) {
-				final int dx = (w + a + 1) / a;
-				w -= a * dx;
-				x0 -= dx;
-			}
-
-			for (int y = y0; y <= y1; ++y) {
-				if (w >= -a) {
-					final int dx = w / -a;
-					x0 += dx;
-					w += a * dx;
-				}
-
-				events[y] = x0;
-				w += b;
-			}
-
-			break;
-		}
-
-		default:
-			//NOOP;
-			break;
-		}
-
-		//		CanvasWorldRenderer.innerTimer.stop();
-	}
-
-	static int populateEvents2(int x0In, int y0In, int x1In, int y1In, int[] events) {
+	static int populateEvents(int x0In, int y0In, int x1In, int y1In, int[] events) {
 		final int a = y0In - y1In;
 		final int b = x1In - x0In;
+
+		// signum of a and b, with shifted masks to derive the edge constant directly
+		// the edge constants are specifically formulated to allow this, inline, avoids any pointer chases
 		final int position = (1 << (((a >> 31) | (-a >>> 31)) + 1)) | (1 << (((b >> 31) | (-b >>> 31)) + 4));
 
-		// using x = ny + c
+		// equation of line: x = ny + c
 
 		// n = rise over run slope = dx / dy
 		final long n = y0In == y1In ?  0 : ((((long)(x1In - x0In)) << 16) / (y1In - y0In));
@@ -427,22 +271,14 @@ public final class Triangle {
 		// c = x-intercept = x - ny
 		long c = (x0In << 16) - n * y0In;
 
-		// confirm against second coordinate
-		//		final long p_checkX = n * y1In + c;
-		//		final int checkX = (int) (p_checkX >= 0 ? ((p_checkX + 0x8000L) >> 16) : -((-p_checkX + 0x8000L) >> 16));
-		//
-		//		assert n == 0 || checkX == x1In;
-
 		// add rounding per edge - extra  four bits because input coordinates have four bits extra
 		c += (((position & EDGE_LEFT) != 0 || position == EDGE_TOP) ? 0x100000L : 0x7FFFFL);
 
 		final long nStep = n << PRECISION_BITS;
 		// compute starting x
 		long psx = nStep * minTileY + c;
-		//		final int sx = (int) (psx >= 0 ? (psx >> 20) : -(-psx >> 20));
 
 
-		//		CanvasWorldRenderer.innerTimer.start();
 		final int y0 = minTileY;
 		final int y1 = maxTileY;
 
@@ -485,15 +321,6 @@ public final class Triangle {
 			//NOOP;
 			break;
 		}
-
-		// TODO: remove
-		// negative rounding and precision probably not correct earlier
-		//		if (n != 0 && events[minTileY] >= 0 && Math.abs(events[minTileY] - sx) > 1) {
-		//			System.out.println("mismatch: was " + events[minTileY] + " now " + sx);
-		//			System.out.println((double)psx / 0x100000L);
-		//			System.out.println();
-		//		}
-		//		CanvasWorldRenderer.innerTimer.stop();
 
 		return position;
 	}

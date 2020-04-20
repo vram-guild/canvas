@@ -16,8 +16,6 @@ import static grondag.canvas.chunk.occlusion.Constants.INSIDE_0;
 import static grondag.canvas.chunk.occlusion.Constants.INSIDE_1;
 import static grondag.canvas.chunk.occlusion.Constants.INSIDE_2;
 import static grondag.canvas.chunk.occlusion.Constants.INTERSECT;
-import static grondag.canvas.chunk.occlusion.Constants.LOW_HEIGHT;
-import static grondag.canvas.chunk.occlusion.Constants.LOW_WIDTH;
 import static grondag.canvas.chunk.occlusion.Constants.OUTSIDE_0;
 import static grondag.canvas.chunk.occlusion.Constants.OUTSIDE_1;
 import static grondag.canvas.chunk.occlusion.Constants.OUTSIDE_2;
@@ -32,6 +30,8 @@ import static grondag.canvas.chunk.occlusion.Constants.POS_012_XXX;
 import static grondag.canvas.chunk.occlusion.Constants.POS_INVERSE_MASK_0;
 import static grondag.canvas.chunk.occlusion.Constants.POS_INVERSE_MASK_1;
 import static grondag.canvas.chunk.occlusion.Constants.POS_INVERSE_MASK_2;
+import static grondag.canvas.chunk.occlusion.Constants.TILE_HEIGHT;
+import static grondag.canvas.chunk.occlusion.Constants.TILE_WIDTH;
 import static grondag.canvas.chunk.occlusion.Data.event0;
 import static grondag.canvas.chunk.occlusion.Data.event1;
 import static grondag.canvas.chunk.occlusion.Data.event2;
@@ -44,10 +44,10 @@ import static grondag.canvas.chunk.occlusion.Data.minPixelY;
 import static grondag.canvas.chunk.occlusion.Data.position0;
 import static grondag.canvas.chunk.occlusion.Data.position1;
 import static grondag.canvas.chunk.occlusion.Data.position2;
-import static grondag.canvas.chunk.occlusion.Data.tileEdgeOutcomes;
 import static grondag.canvas.chunk.occlusion.Data.save_lowTileX;
 import static grondag.canvas.chunk.occlusion.Data.save_lowTileY;
 import static grondag.canvas.chunk.occlusion.Data.save_tileEdgeOutcomes;
+import static grondag.canvas.chunk.occlusion.Data.tileEdgeOutcomes;
 import static grondag.canvas.chunk.occlusion.Rasterizer.printMask8x8;
 
 abstract class Tile {
@@ -56,7 +56,7 @@ abstract class Tile {
 	static void moveLowTileRight() {
 		++lowTileX;
 
-		assert lowTileX < LOW_WIDTH;
+		assert lowTileX < TILE_WIDTH;
 
 		int pos = tileEdgeOutcomes;
 
@@ -100,7 +100,7 @@ abstract class Tile {
 	static void moveLowTileUp() {
 		++lowTileY;
 
-		assert lowTileY < LOW_HEIGHT;
+		assert lowTileY < TILE_HEIGHT;
 
 		int pos = tileEdgeOutcomes;
 
@@ -279,8 +279,8 @@ abstract class Tile {
 		lowTileY = save_lowTileY;
 		tileEdgeOutcomes = save_tileEdgeOutcomes;
 
-		assert lowTileX < LOW_WIDTH;
-		assert lowTileY < LOW_HEIGHT;
+		assert lowTileX < TILE_WIDTH;
+		assert lowTileY < TILE_HEIGHT;
 	}
 
 

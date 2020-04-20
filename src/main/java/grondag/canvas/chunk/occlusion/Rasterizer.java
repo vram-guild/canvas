@@ -6,20 +6,20 @@ import static grondag.canvas.chunk.occlusion.Constants.BOUNDS_NEEDS_CLIP;
 import static grondag.canvas.chunk.occlusion.Constants.BOUNDS_OUTSIDE_OR_TOO_SMALL;
 import static grondag.canvas.chunk.occlusion.Constants.COVERAGE_FULL;
 import static grondag.canvas.chunk.occlusion.Constants.COVERAGE_NONE_OR_SOME;
-import static grondag.canvas.chunk.occlusion.Constants.LOW_AXIS_SHIFT;
 import static grondag.canvas.chunk.occlusion.Constants.PIXEL_HEIGHT;
 import static grondag.canvas.chunk.occlusion.Constants.PIXEL_WIDTH;
 import static grondag.canvas.chunk.occlusion.Constants.SCALE_LOW;
 import static grondag.canvas.chunk.occlusion.Constants.SCALE_MID;
 import static grondag.canvas.chunk.occlusion.Constants.SCALE_POINT;
+import static grondag.canvas.chunk.occlusion.Constants.TILE_AXIS_SHIFT;
 import static grondag.canvas.chunk.occlusion.Data.lowTileX;
 import static grondag.canvas.chunk.occlusion.Data.lowTileY;
-import static grondag.canvas.chunk.occlusion.Data.lowTiles;
 import static grondag.canvas.chunk.occlusion.Data.maxPixelX;
 import static grondag.canvas.chunk.occlusion.Data.maxPixelY;
 import static grondag.canvas.chunk.occlusion.Data.minPixelX;
 import static grondag.canvas.chunk.occlusion.Data.minPixelY;
 import static grondag.canvas.chunk.occlusion.Data.scale;
+import static grondag.canvas.chunk.occlusion.Data.tiles;
 import static grondag.canvas.chunk.occlusion.Indexer.lowIndex;
 import static grondag.canvas.chunk.occlusion.Indexer.testPixel;
 import static grondag.canvas.chunk.occlusion.Tile.computeTileCoverage;
@@ -142,9 +142,9 @@ abstract class Rasterizer  {
 	}
 
 	static boolean testTriLow() {
-		final int x0 = (minPixelX >> LOW_AXIS_SHIFT);
-		final int x1 = (maxPixelX >> LOW_AXIS_SHIFT);
-		final int y1 = (maxPixelY >> LOW_AXIS_SHIFT);
+		final int x0 = (minPixelX >> TILE_AXIS_SHIFT);
+		final int x1 = (maxPixelX >> TILE_AXIS_SHIFT);
+		final int y1 = (maxPixelY >> TILE_AXIS_SHIFT);
 
 		boolean goRight = true;
 
@@ -180,7 +180,7 @@ abstract class Rasterizer  {
 	}
 
 	static boolean testTriLowInner() {
-		final long word = lowTiles[lowIndex(lowTileX, lowTileY)];
+		final long word = tiles[lowIndex(lowTileX, lowTileY)];
 
 		// nothing to test if fully occluded
 		if  (word == -1L) {
@@ -191,9 +191,9 @@ abstract class Rasterizer  {
 	}
 
 	static void drawTriLow() {
-		final int x0 = (minPixelX >> LOW_AXIS_SHIFT);
-		final int x1 = (maxPixelX >> LOW_AXIS_SHIFT);
-		final int y1 = (maxPixelY >> LOW_AXIS_SHIFT);
+		final int x0 = (minPixelX >> TILE_AXIS_SHIFT);
+		final int x1 = (maxPixelX >> TILE_AXIS_SHIFT);
+		final int y1 = (maxPixelY >> TILE_AXIS_SHIFT);
 
 		boolean goRight = true;
 
@@ -228,14 +228,14 @@ abstract class Rasterizer  {
 
 	static int drawTriLowInner() {
 		final int index = lowIndex(lowTileX, lowTileY);
-		long word = Data.lowTiles[index];
+		long word = Data.tiles[index];
 
 		// nothing to test if fully occluded
 		if  (word == -1L) {
 			return COVERAGE_FULL;
 		}  else {
 			word |= computeTileCoverage();
-			Data.lowTiles[index] = word;
+			Data.tiles[index] = word;
 			return word == -1L ? COVERAGE_FULL : COVERAGE_NONE_OR_SOME;
 		}
 	}

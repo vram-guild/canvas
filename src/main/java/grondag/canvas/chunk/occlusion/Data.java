@@ -1,6 +1,6 @@
 package grondag.canvas.chunk.occlusion;
 
-import static grondag.canvas.chunk.occlusion.Constants.LOW_TILE_COUNT;
+import static grondag.canvas.chunk.occlusion.Constants.TILE_COUNT;
 import static grondag.canvas.chunk.occlusion.Constants.PIXEL_HEIGHT;
 import static grondag.canvas.chunk.occlusion.ProjectedVertexData.PROJECTED_VERTEX_STRIDE;
 
@@ -14,7 +14,7 @@ public class Data {
 	static final Matrix4f mvpMatrix = new Matrix4f();
 	static final Matrix4fExt mvpMatrixExt =  (Matrix4fExt)(Object) mvpMatrix;
 
-	static final long[] lowTiles = new long[LOW_TILE_COUNT];
+	static final long[] tiles = new long[TILE_COUNT];
 
 	static int xOrigin;
 	static int yOrigin;
