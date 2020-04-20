@@ -27,9 +27,7 @@ import static grondag.canvas.chunk.occlusion.Constants.SCALE_POINT;
 import static grondag.canvas.chunk.occlusion.Constants.SCANT_PRECISE_PIXEL_CENTER;
 import static grondag.canvas.chunk.occlusion.Constants.TILE_AXIS_MASK;
 import static grondag.canvas.chunk.occlusion.Constants.TILE_AXIS_SHIFT;
-import static grondag.canvas.chunk.occlusion.Data.event0;
-import static grondag.canvas.chunk.occlusion.Data.event1;
-import static grondag.canvas.chunk.occlusion.Data.event2;
+import static grondag.canvas.chunk.occlusion.Data.events;
 import static grondag.canvas.chunk.occlusion.Data.lowTileX;
 import static grondag.canvas.chunk.occlusion.Data.lowTileY;
 import static grondag.canvas.chunk.occlusion.Data.maxPixelX;
@@ -223,24 +221,24 @@ public final class Triangle {
 		lowTileX = (minPixelX >> TILE_AXIS_SHIFT);
 		lowTileY = (minPixelY >> TILE_AXIS_SHIFT);
 
-		position0 = populateEvents(x0, y0, x1, y1, event0);
+		position0 = populateEvents(x0, y0, x1, y1, 0);
 		//		if(!compareEvents(event0, e0)) {
 		//			populateEvents2(x0, y0, x1, y1, e0);
 		//		}
 
-		position1 = populateEvents(x1, y1, x2, y2, event1);
+		position1 = populateEvents(x1, y1, x2, y2, 1);
 		//		if(!compareEvents(event1, e1)) {
 		//			populateEvents2(x1, y1, x2, y2, e1);
 		//		}
 
-		position2 = populateEvents(x2, y2, x0, y0, event2);
+		position2 = populateEvents(x2, y2, x0, y0, 2);
 		//		if(!compareEvents(event2, e2)) {
 		//			populateEvents2(x2, y2, x0, y0, e2);
 		//		}
 
-		tileEdgeOutcomes = tilePosition(position0, event0)
-				| (tilePosition(position1, event1) << 2)
-				| (tilePosition(position2, event2) << 4);
+		tileEdgeOutcomes = tilePosition(position0, 0)
+				| (tilePosition(position1, 1) << 2)
+				| (tilePosition(position2, 2) << 4);
 	}
 
 	static boolean compareEvents(int[] a, int[] b) {
@@ -255,7 +253,7 @@ public final class Triangle {
 		return result;
 	}
 
-	static int populateEvents(int x0In, int y0In, int x1In, int y1In, int[] events) {
+	static int populateEvents(int x0In, int y0In, int x1In, int y1In, int index) {
 		final int a = y0In - y1In;
 		final int b = x1In - x0In;
 
@@ -284,24 +282,24 @@ public final class Triangle {
 
 		switch (position) {
 		case EDGE_TOP: {
-			events[0] = ((y0In + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS);
+			events[index] = ((y0In + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS);
 			break;
 		}
 
 		case EDGE_BOTTOM: {
 			// NB: in last rev this got shifted one down in some cases - more inclusive - should be more accurate
-			events[0] = y0In >> PRECISION_BITS;
+			events[index] = y0In >> PRECISION_BITS;
 		break;
 		}
 
 		case EDGE_LEFT: {
 			// NB: in last rev this got shifted one to the left  in some cases - more inclusive - should be more accurate
-			events[0] = x0In >> PRECISION_BITS;
+			events[index] = x0In >> PRECISION_BITS;
 		break;
 		}
 
 		case EDGE_RIGHT: {
-			events[0] = ((x0In + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS);
+			events[index] = ((x0In + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS);
 			break;
 		}
 
@@ -309,7 +307,10 @@ public final class Triangle {
 		case EDGE_BOTTOM_RIGHT:
 		case EDGE_BOTTOM_LEFT:
 		case EDGE_TOP_LEFT: {
-			for (int y = y0; y <= y1; ++y) {
+			// map to event index
+			final int limit  = (y1 << 2) + index;
+
+			for (int y = (y0 << 2) + index; y <= limit; y += 4) {
 				events[y] = (int) (psx >= 0 ? (psx >> 20) : -(-psx >> 20));
 				psx += nStep;
 			}

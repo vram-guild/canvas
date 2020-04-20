@@ -1,7 +1,7 @@
 package grondag.canvas.chunk.occlusion;
 
-import static grondag.canvas.chunk.occlusion.Constants.TILE_COUNT;
 import static grondag.canvas.chunk.occlusion.Constants.PIXEL_HEIGHT;
+import static grondag.canvas.chunk.occlusion.Constants.TILE_COUNT;
 import static grondag.canvas.chunk.occlusion.ProjectedVertexData.PROJECTED_VERTEX_STRIDE;
 
 import net.minecraft.client.util.math.Matrix4f;
@@ -60,13 +60,10 @@ public class Data {
 	static int tileEdgeOutcomes;
 	static int save_tileEdgeOutcomes;
 
-	static final int[] event0 = new int[PIXEL_HEIGHT];
-	static final int[] event1 = new int[PIXEL_HEIGHT];
-	static final int[] event2 = new int[PIXEL_HEIGHT];
+	static final int[] events = new int[PIXEL_HEIGHT * 4];
 
-	static final int[] e0 = new int[PIXEL_HEIGHT];
-	static final int[] e1 = new int[PIXEL_HEIGHT];
-	static final int[] e2 = new int[PIXEL_HEIGHT];
+	// TODO: remove
+	static final int[] events2 = new int[PIXEL_HEIGHT * 4];
 
 	//	static int px000;
 	//	static int py000;
