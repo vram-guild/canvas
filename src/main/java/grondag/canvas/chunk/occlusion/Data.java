@@ -47,9 +47,6 @@ public class Data {
 	static int position1;
 	static int position2;
 
-	// TODO: remove
-	static int[] temp = new int[3];
-
 	static int minTileOriginX;
 	static int maxTileOriginX;
 	static int maxTileOriginY;
@@ -61,9 +58,7 @@ public class Data {
 	static int save_tileOriginX;
 	static int save_tileOriginY;
 
-	static final int[] events = new int[PIXEL_HEIGHT * 4];
-
-	static final int[] events2 = new int[PIXEL_HEIGHT * 2];
+	static final int[] events = new int[PIXEL_HEIGHT * 2];
 
 	//	static int px000;
 	//	static int py000;
