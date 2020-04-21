@@ -1,17 +1,5 @@
 package grondag.canvas.chunk.occlusion;
 
-import static grondag.canvas.chunk.occlusion.ProjectedVertexData.clipHighX;
-import static grondag.canvas.chunk.occlusion.ProjectedVertexData.clipHighY;
-import static grondag.canvas.chunk.occlusion.ProjectedVertexData.clipLowX;
-import static grondag.canvas.chunk.occlusion.ProjectedVertexData.clipLowY;
-import static grondag.canvas.chunk.occlusion.ProjectedVertexData.clipNear;
-import static grondag.canvas.chunk.occlusion.ProjectedVertexData.needsClipHighX;
-import static grondag.canvas.chunk.occlusion.ProjectedVertexData.needsClipHighY;
-import static grondag.canvas.chunk.occlusion.ProjectedVertexData.needsClipLowX;
-import static grondag.canvas.chunk.occlusion.ProjectedVertexData.needsClipLowY;
-import static grondag.canvas.chunk.occlusion.ProjectedVertexData.needsNearClip;
-import static grondag.canvas.chunk.occlusion.Rasterizer.drawTri;
-import static grondag.canvas.chunk.occlusion.Rasterizer.testTri;
 import static grondag.canvas.chunk.occlusion.Data.V_HIGH_X_CLIP_A;
 import static grondag.canvas.chunk.occlusion.Data.V_HIGH_X_CLIP_B;
 import static grondag.canvas.chunk.occlusion.Data.V_HIGH_Y_CLIP_A;
@@ -23,6 +11,19 @@ import static grondag.canvas.chunk.occlusion.Data.V_LOW_Y_CLIP_B;
 import static grondag.canvas.chunk.occlusion.Data.V_NEAR_CLIP_A;
 import static grondag.canvas.chunk.occlusion.Data.V_NEAR_CLIP_B;
 import static grondag.canvas.chunk.occlusion.Data.vertexData;
+import static grondag.canvas.chunk.occlusion.ProjectedVertexData.clipHighX;
+import static grondag.canvas.chunk.occlusion.ProjectedVertexData.clipHighY;
+import static grondag.canvas.chunk.occlusion.ProjectedVertexData.clipLowX;
+import static grondag.canvas.chunk.occlusion.ProjectedVertexData.clipLowY;
+import static grondag.canvas.chunk.occlusion.ProjectedVertexData.clipNear;
+import static grondag.canvas.chunk.occlusion.ProjectedVertexData.needsClipHighX;
+import static grondag.canvas.chunk.occlusion.ProjectedVertexData.needsClipHighY;
+import static grondag.canvas.chunk.occlusion.ProjectedVertexData.needsClipLowX;
+import static grondag.canvas.chunk.occlusion.ProjectedVertexData.needsClipLowY;
+import static grondag.canvas.chunk.occlusion.ProjectedVertexData.needsNearClip;
+import static grondag.canvas.chunk.occlusion.Rasterizer.drawTri;
+import static grondag.canvas.chunk.occlusion.Rasterizer.drawTriNew;
+import static grondag.canvas.chunk.occlusion.Rasterizer.testTri;
 
 abstract class Clipper {
 	private Clipper() { }
@@ -34,8 +35,8 @@ abstract class Clipper {
 
 		// nominal case, all inside
 		case 0b0000:
-			drawTri(v0, v1, v2);
-			drawTri(v0, v2, v3);
+			drawTriNew(v0, v1, v2);
+			drawTriNew(v0, v2, v3);
 			break;
 
 			// missing one corner, three tris

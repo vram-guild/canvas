@@ -50,9 +50,196 @@ import static grondag.canvas.chunk.occlusion.Data.vertexData;
 import static grondag.canvas.chunk.occlusion.Indexer.tileIndex;
 import static grondag.canvas.chunk.occlusion.ProjectedVertexData.PV_PX;
 import static grondag.canvas.chunk.occlusion.ProjectedVertexData.PV_PY;
+import static grondag.canvas.chunk.occlusion.ProjectedVertexData.needsNearClip;
 
 
 public final class Triangle {
+	static int prepareBoundsNew(int v0, int v1, int v2) {
+		final int split = needsNearClip(vertexData, v0) | (needsNearClip(vertexData, v1) << 1) | (needsNearClip(vertexData, v2) << 2);
+
+		int ax0 = 0, ay0 = 0, ax1 = 0, ay1 = 0;
+		int bx0 = 0, by0 = 0, bx1 = 0, by1 = 0;
+		int cx0 = 0, cy0 = 0, cx1 = 0, cy1 = 0;
+
+		int minY = 0, maxY = 0, minX = 0, maxX = 0;
+
+		switch (split) {
+		case 0b000:
+			ax0 = vertexData[v0 + PV_PX];
+			ay0 = vertexData[v0 + PV_PY];
+			bx0 = vertexData[v1 + PV_PX];
+			by0 = vertexData[v1 + PV_PY];
+			cx0 = vertexData[v2 + PV_PX];
+			cy0 = vertexData[v2 + PV_PY];
+			ax1 = bx0;
+			ay1 = by0;
+			bx1 = cx0;
+			by1 = cy0;
+			cx1 = ax0;
+			cy1 = ay0;
+
+			minX = ax0;
+			maxX = ax0;
+			if (bx0 < minX) minX = bx0; else if (bx0 > maxX) maxX = bx0;
+			if (cx0 < minX) minX = cx0; else if (cx0 > maxX) maxX = cx0;
+
+			minY = ay0;
+			maxY = ay0;
+			if (by0 < minY) minY = by0; else if (by0 > maxY) maxY = by0;
+			if (cy0 < minY) minY = cy0; else if (cy0 > maxY) maxY = cy0;
+
+			break;
+
+		case 0b001:
+		case 0b010:
+		case 0b011:
+		case 0b100:
+		case 0b101:
+		case 0b110:
+		case 0b111:
+			return BOUNDS_OUTSIDE_OR_TOO_SMALL;
+		}
+
+		if (maxY <= 0 || minY >= PRECISE_HEIGHT) {
+			return BOUNDS_OUTSIDE_OR_TOO_SMALL;
+		}
+
+		if (maxX <= 0 || minX >= PRECISE_WIDTH) {
+			return BOUNDS_OUTSIDE_OR_TOO_SMALL;
+		}
+
+		if (minX < -GUARD_SIZE || minY < -GUARD_SIZE || maxX > GUARD_WIDTH || maxY > GUARD_HEIGHT) {
+			return BOUNDS_NEEDS_CLIP;
+		}
+
+		if (minX < 0) {
+			minX = 0;
+		}
+
+		if (maxX >= PRECISE_WIDTH_CLAMP)  {
+			maxX = PRECISE_WIDTH_CLAMP;
+
+			if(minX > PRECISE_WIDTH_CLAMP) {
+				minX = PRECISE_WIDTH_CLAMP;
+			}
+		}
+
+		if (minY < 0) {
+			minY = 0;
+		}
+
+		if (maxY >= PRECISE_HEIGHT_CLAMP)  {
+			maxY = PRECISE_HEIGHT_CLAMP;
+
+			if(minY > PRECISE_HEIGHT_CLAMP) {
+				minY = PRECISE_HEIGHT_CLAMP;
+			}
+		}
+
+		minPixelX = ((minX + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS);
+		minPixelY = ((minY + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS);
+		maxPixelX = ((maxX + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS);
+		maxPixelY = ((maxY + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS);
+
+		assert minPixelX >= 0;
+		assert maxPixelX >= 0;
+		assert minPixelY >= 0;
+		assert maxPixelY >= 0;
+		assert minPixelX <= MAX_PIXEL_X;
+		assert maxPixelX <= MAX_PIXEL_X;
+		assert minPixelY <= MAX_PIXEL_Y;
+		assert maxPixelY <= MAX_PIXEL_Y;
+		assert minPixelX <= maxPixelX;
+		assert minPixelY <= maxPixelY;
+
+		minTileOriginX = minPixelX & TILE_AXIS_MASK;
+		maxTileOriginX = maxPixelX & TILE_AXIS_MASK;
+		maxTileOriginY = maxPixelY & TILE_AXIS_MASK;
+
+		tileOriginX = minTileOriginX;
+		tileOriginY = minPixelY & TILE_AXIS_MASK;
+		tileIndex = tileIndex(minPixelX >> TILE_AXIS_SHIFT, minPixelY >> TILE_AXIS_SHIFT);
+
+		position0 = edgePosition(ax0, ay0, ax1, ay1);
+		position1 = edgePosition(bx0, by0, bx1, by1);
+		position2 = edgePosition(cx0, cy0, cx1, cy1);
+
+		final int eventKey = (position0 - 1) & EVENT_POSITION_MASK | (((position1 - 1) & EVENT_POSITION_MASK) << 2) | (((position2 - 1) & EVENT_POSITION_MASK) << 4);
+
+		switch (eventKey) {
+		case EVENT_012_LLR:
+			populateLeftEvents2(ax0, ay0, ax1, ay1, bx0, by0, bx1, by1);
+			populateRightEvents(cx0, cy0, cx1, cy1);
+			break;
+
+		case EVENT_012_RLL:
+			populateLeftEvents2(bx0, by0, bx1, by1, cx0, cy0, cx1, cy1);
+			populateRightEvents(ax0, ay0, ax1, ay1);
+			break;
+
+		case EVENT_012_LRL:
+			populateLeftEvents2(ax0, ay0, ax1, ay1, cx0, cy0, cx1, cy1);
+			populateRightEvents(bx0, by0, bx1, by1);
+			break;
+
+		case EVENT_012_RRL:
+			populateRightEvents2(ax0, ay0, ax1, ay1, bx0, by0, bx1, by1);
+			populateLeftEvents(cx0, cy0, cx1, cy1);
+			break;
+
+		case EVENT_012_LRR:
+			populateRightEvents2(bx0, by0, bx1, by1, cx0, cy0, cx1, cy1);
+			populateLeftEvents(ax0, ay0, ax1, ay1);
+			break;
+
+		case EVENT_012_RLR:
+			populateRightEvents2(ax0, ay0, ax1, ay1, cx0, cy0, cx1, cy1);
+			populateLeftEvents(bx0, by0, bx1, by1);
+			break;
+
+		case EVENT_012_FLR:
+			populateLeftEvents(bx0, by0, bx1, by1);
+			populateRightEvents(cx0, cy0, cx1, cy1);
+			populateFlatEvents(position0, ax0, ay0, ax1, ay1);
+			break;
+
+		case EVENT_012_RFL:
+			populateRightEvents(ax0, ay0, ax1, ay1);
+			populateLeftEvents(cx0, cy0, cx1, cy1);
+			populateFlatEvents(position1, bx0, by0, bx1, by1);
+			break;
+
+		case EVENT_012_LRF:
+			populateLeftEvents(ax0, ay0, ax1, ay1);
+			populateRightEvents(bx0, by0, bx1, by1);
+			populateFlatEvents(position2, cx0, cy0, cx1, cy1);
+			break;
+
+		case EVENT_012_FRL:
+			populateRightEvents(bx0, by0, bx1, by1);
+			populateLeftEvents(cx0, cy0, cx1, cy1);
+			populateFlatEvents(position0, ax0, ay0, ax1, ay1);
+			break;
+
+		case EVENT_012_LFR:
+			populateLeftEvents(ax0, ay0, ax1, ay1);
+			populateRightEvents(cx0, cy0, cx1, cy1);
+			populateFlatEvents(position1, bx0, by0, bx1, by1);
+			break;
+
+		case EVENT_012_RLF:
+			populateRightEvents(ax0, ay0, ax1, ay1);
+			populateLeftEvents(bx0, by0, bx1, by1);
+			populateFlatEvents(position2, cx0, cy0, cx1, cy1);
+			break;
+
+		default:
+			assert false : "base edge combination";
+		}
+
+		return BOUNDS_IN;
+	}
+
 	static int prepareBounds(int v0, int v1, int v2) {
 		final int x0 = vertexData[v0 + PV_PX];
 		final int y0 = vertexData[v0 + PV_PY];

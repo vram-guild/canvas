@@ -23,6 +23,7 @@ import static grondag.canvas.chunk.occlusion.Tile.moveTileLeft;
 import static grondag.canvas.chunk.occlusion.Tile.moveTileRight;
 import static grondag.canvas.chunk.occlusion.Tile.moveTileUp;
 import static grondag.canvas.chunk.occlusion.Triangle.prepareBounds;
+import static grondag.canvas.chunk.occlusion.Triangle.prepareBoundsNew;
 import static grondag.canvas.chunk.occlusion.Triangle.prepareScan;
 
 import com.google.common.base.Strings;
@@ -46,6 +47,26 @@ import org.apache.commons.lang3.StringUtils;
 
 abstract class Rasterizer  {
 	private Rasterizer() { }
+
+	static void drawTriNew(int v0, int v1, int v2) {
+		final int boundsResult  = prepareBoundsNew(v0, v1, v2);
+
+		if (boundsResult == BOUNDS_OUTSIDE_OR_TOO_SMALL) {
+			return;
+		}
+
+		if (boundsResult == BOUNDS_NEEDS_CLIP) {
+			drawClippedLowX(v0, v1, v2);
+			return;
+		}
+
+		// Don't draw single points
+		if((minPixelX == maxPixelX && minPixelY == maxPixelY)) {
+			return;
+		}
+
+		Rasterizer.drawTri();
+	}
 
 	static void drawTri(int v0, int v1, int v2) {
 		final int boundsResult  = prepareBounds(v0, v1, v2);
