@@ -29,6 +29,11 @@ abstract class Clipper {
 	private Clipper() { }
 
 	static final void drawQuad(int v0, int v1, int v2, int v3) {
+		drawTriNew(v0, v1, v2);
+		drawTriNew(v0, v2, v3);
+	}
+
+	static final void drawQuadOld(int v0, int v1, int v2, int v3) {
 		final int split = needsNearClip(vertexData, v0) | (needsNearClip(vertexData, v1) << 1) | (needsNearClip(vertexData, v2) << 2) | (needsNearClip(vertexData, v3) << 3);
 
 		switch (split) {

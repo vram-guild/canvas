@@ -108,22 +108,39 @@ public final class Triangle {
 	}
 
 	static int prepareBoundsNew(int v0, int v1, int v2) {
-		final int split = needsNearClip(vertexData, v0) | (needsNearClip(vertexData, v1) << 1) | (needsNearClip(vertexData, v2) << 2);
+		// puts bits in lexical order
+		final int split = needsNearClip(vertexData, v2) | (needsNearClip(vertexData, v1) << 1) | (needsNearClip(vertexData, v0) << 2);
 
 		switch (split) {
 		case 0b000:
 			return prepareBounds000(v0, v1, v2);
 
-		default:
 		case 0b001:
+			return prepareBounds001(v0, v1, v2);
+
 		case 0b010:
-		case 0b011:
+			return prepareBounds001(v2, v0, v1);
+
 		case 0b100:
+			return prepareBounds001(v1, v2, v0);
+
+		case 0b011:
+			return prepareBounds011(v0, v1, v2);
+
 		case 0b101:
+			return prepareBounds011(v1, v2, v0);
+
 		case 0b110:
+			return prepareBounds011(v2, v0, v1);
+
 		case 0b111:
 			return BOUNDS_OUTSIDE_OR_TOO_SMALL;
+
+		default:
+			assert false : "Invalid split";
 		}
+
+		return BOUNDS_OUTSIDE_OR_TOO_SMALL;
 	}
 
 	static int prepareBounds000(int v0, int v1, int v2) {
@@ -169,6 +186,116 @@ public final class Triangle {
 		Data.cx0 = cx0;
 		Data.cy0 = cy0;
 
+		return prepareBoundsInner();
+	}
+
+	static int prepareBounds001(int v0, int v1, int ext) {
+		int ax0 = 0, ay0 = 0;
+		int bx0 = 0, by0 = 0;
+		int bx1 = 0, by1 = 0;
+		int cx0 = 0, cy0 = 0;
+		int minY = 0, maxY = 0, minX = 0, maxX = 0;
+
+		ax0 = vertexData[v0 + PV_PX];
+		ay0 = vertexData[v0 + PV_PY];
+		bx0 = vertexData[v1 + PV_PX];
+		by0 = vertexData[v1 + PV_PY];
+
+		clipNear(vertexData, v1, ext);
+		cx0 = clipOutputX;
+		cy0 = clipOutputY;
+
+		ax1 = bx0;
+		ay1 = by0;
+
+		clipNear(vertexData, v0, ext);
+		bx1 = clipOutputX;
+		by1 = clipOutputY;
+
+		cx1 = ax0;
+		cy1 = ay0;
+
+		minX = ax0;
+		maxX = ax0;
+
+		if (bx0 < minX) minX = bx0; else if (bx0 > maxX) maxX = bx0;
+		if (bx1 < minX) minX = bx1; else if (bx1 > maxX) maxX = bx1;
+		if (cx0 < minX) minX = cx0; else if (cx0 > maxX) maxX = cx0;
+
+		minY = ay0;
+		maxY = ay0;
+
+		if (by0 < minY) minY = by0; else if (by0 > maxY) maxY = by0;
+		if (by1 < minX) minX = by1; else if (by1 > maxX) maxX = by1;
+		if (cy0 < minY) minY = cy0; else if (cy0 > maxY) maxY = cy0;
+
+		Data.minX = minX;
+		Data.maxX = maxX;
+		Data.minY = minY;
+		Data.maxY = maxY;
+
+		Data.ax0 = ax0;
+		Data.ay0 = ay0;
+		Data.bx0 = bx0;
+		Data.by0 = by0;
+		Data.cx0 = cx0;
+		Data.cy0 = cy0;
+
+		return prepareBoundsInner();
+	}
+
+	static int prepareBounds011(int v0, int ext1, int ext2) {
+		int ax0 = 0, ay0 = 0;
+		int bx0 = 0, by0 = 0;
+		int cx0 = 0, cy0 = 0;
+		int minY = 0, maxY = 0, minX = 0, maxX = 0;
+
+		ax0 = vertexData[v0 + PV_PX];
+		ay0 = vertexData[v0 + PV_PY];
+
+		clipNear(vertexData, v0, ext1);
+		bx0 = clipOutputX;
+		by0 = clipOutputY;
+
+		clipNear(vertexData, v0, ext2);
+		cx0 = clipOutputX;
+		cy0 = clipOutputY;
+
+		ax1 = bx0;
+		ay1 = by0;
+		bx1 = cx0;
+		by1 = cy0;
+		cx1 = ax0;
+		cy1 = ay0;
+
+		minX = ax0;
+		maxX = ax0;
+
+		if (bx0 < minX) minX = bx0; else if (bx0 > maxX) maxX = bx0;
+		if (cx0 < minX) minX = cx0; else if (cx0 > maxX) maxX = cx0;
+
+		minY = ay0;
+		maxY = ay0;
+
+		if (by0 < minY) minY = by0; else if (by0 > maxY) maxY = by0;
+		if (cy0 < minY) minY = cy0; else if (cy0 > maxY) maxY = cy0;
+
+		Data.minX = minX;
+		Data.maxX = maxX;
+		Data.minY = minY;
+		Data.maxY = maxY;
+
+		Data.ax0 = ax0;
+		Data.ay0 = ay0;
+		Data.bx0 = bx0;
+		Data.by0 = by0;
+		Data.cx0 = cx0;
+		Data.cy0 = cy0;
+
+		return prepareBoundsInner();
+	}
+
+	static int prepareBounds111(int v0, int v1, int v2) {
 		return prepareBoundsInner();
 	}
 
