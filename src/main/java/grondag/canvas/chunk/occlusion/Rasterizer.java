@@ -4,8 +4,6 @@ import static grondag.canvas.chunk.occlusion.Clipper.drawClippedLowX;
 import static grondag.canvas.chunk.occlusion.Clipper.testClippedLowX;
 import static grondag.canvas.chunk.occlusion.Constants.BOUNDS_NEEDS_CLIP;
 import static grondag.canvas.chunk.occlusion.Constants.BOUNDS_OUTSIDE_OR_TOO_SMALL;
-import static grondag.canvas.chunk.occlusion.Constants.COVERAGE_FULL;
-import static grondag.canvas.chunk.occlusion.Constants.COVERAGE_NONE_OR_SOME;
 import static grondag.canvas.chunk.occlusion.Constants.PIXEL_HEIGHT;
 import static grondag.canvas.chunk.occlusion.Constants.PIXEL_WIDTH;
 import static grondag.canvas.chunk.occlusion.Data.maxPixelX;
@@ -168,16 +166,13 @@ abstract class Rasterizer  {
 		}
 	}
 
-	static int drawTriInner() {
+	static void drawTriInner() {
 		long word = tiles[tileIndex];
 
-		// nothing to test if fully occluded
-		if  (word == -1L) {
-			return COVERAGE_FULL;
-		}  else {
+		// nothing to do if fully occluded
+		if  (word != -1L) {
 			word |= computeTileCoverage();
 			tiles[tileIndex] = word;
-			return word == -1L ? COVERAGE_FULL : COVERAGE_NONE_OR_SOME;
 		}
 	}
 

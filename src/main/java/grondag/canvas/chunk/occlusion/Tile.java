@@ -17,6 +17,7 @@ import static grondag.canvas.chunk.occlusion.Constants.TILE_INDEX_LOW_X_MASK;
 import static grondag.canvas.chunk.occlusion.Constants.TILE_INDEX_LOW_Y;
 import static grondag.canvas.chunk.occlusion.Constants.TILE_INDEX_LOW_Y_MASK;
 import static grondag.canvas.chunk.occlusion.Data.events;
+import static grondag.canvas.chunk.occlusion.Data.events2;
 import static grondag.canvas.chunk.occlusion.Data.position0;
 import static grondag.canvas.chunk.occlusion.Data.position1;
 import static grondag.canvas.chunk.occlusion.Data.position2;
@@ -28,7 +29,6 @@ import static grondag.canvas.chunk.occlusion.Data.tileIndex;
 import static grondag.canvas.chunk.occlusion.Data.tileOriginX;
 import static grondag.canvas.chunk.occlusion.Data.tileOriginY;
 import static grondag.canvas.chunk.occlusion.Indexer.tileIndex;
-import static grondag.canvas.chunk.occlusion.Rasterizer.printMask8x8;
 
 abstract class Tile {
 	private Tile() {}
@@ -74,7 +74,7 @@ abstract class Tile {
 	}
 
 
-	static long computeTileCoverage() {
+	static long computeTileCoverageOld() {
 		return buildTileMask(position0, 0)
 				& buildTileMask(position1, 1)
 				& buildTileMask(position2, 2);
@@ -93,21 +93,27 @@ abstract class Tile {
 	}
 
 
-	static long buildTileMaskTest(int pos, int index) {
-		final long  oldResult = buildTileMaskOld(pos, index);
-		final long  newResult = buildTileMask(pos, index);
-
-		if (oldResult != newResult) {
-			System.out.println();
-			System.out.println("OLD - POSITION = " + pos);
-			printMask8x8(oldResult);
-			System.out.println("NEW");
-			printMask8x8(newResult);
-			buildTileMask(pos, index);
-		}
-
-		return oldResult;
-	}
+	//	static long computeTileCoverageTest() {
+	//		final long  oldResult = computeTileCoverageOld();
+	//		final long  newResult = computeTileCoverage();
+	//
+	//		if (oldResult != newResult) {
+	//			System.out.println();
+	//			System.out.println("OLD  0: " + position0);
+	//			printMask8x8(buildTileMask(position0, 0));
+	//			System.out.println("OLD  1: " + position1);
+	//			printMask8x8(buildTileMask(position1, 1));
+	//			System.out.println("OLD  2: " + position2);
+	//			printMask8x8(buildTileMask(position2, 2));
+	//			System.out.println("OLD  COMBINED");
+	//			printMask8x8(oldResult);
+	//			System.out.println("NEW");
+	//			printMask8x8(newResult);
+	//			computeTileCoverage();
+	//		}
+	//
+	//		return oldResult;
+	//	}
 
 	static long buildTileMask(int pos, int index) {
 		final int ty = tileOriginY;
@@ -356,8 +362,253 @@ abstract class Tile {
 		return mask;
 	}
 
-	// TODO: remove
-	static long buildTileMaskOld(int pos, int index) {
-		return 0L;
+	static long computeTileCoverageNew() {
+		final int[] e = events2;
+
+		int y = tileOriginY << 1;
+		final int tx = tileOriginX;
+
+		final int baseX = tileOriginX + 7;
+
+		long mask = 0;
+
+		int leftX = e[y] - tx;
+		int rightX = baseX - e[++y];
+
+		if (leftX < 8 && rightX < 8) {
+			long m = leftX <= 0 ? 0xFF : ((0xFF << leftX) & 0xFF);
+
+			if (rightX > 0) {
+				m &= (0xFF >> rightX);
+			}
+
+			mask = m;
+		}
+
+
+		leftX = e[++y] - tx;
+		rightX = baseX - e[++y];
+
+		if (leftX < 8 && rightX < 8) {
+			long m = leftX <= 0 ? 0xFF : ((0xFF << leftX) & 0xFF);
+
+			if (rightX > 0) {
+				m &= (0xFF >> rightX);
+			}
+
+			mask |= m << 8;
+		}
+
+
+		leftX = e[++y] - tx;
+		rightX = baseX - e[++y];
+
+		if (leftX < 8 && rightX < 8) {
+			long m = leftX <= 0 ? 0xFF : ((0xFF << leftX) & 0xFF);
+
+			if (rightX > 0) {
+				m &= (0xFF >> rightX);
+			}
+
+			mask |= m << 16;
+		}
+
+
+		leftX = e[++y] - tx;
+		rightX = baseX - e[++y];
+
+		if (leftX < 8 && rightX < 8) {
+			long m = leftX <= 0 ? 0xFF : ((0xFF << leftX) & 0xFF);
+
+			if (rightX > 0) {
+				m &= (0xFF >> rightX);
+			}
+
+			mask |= m << 24;
+		}
+
+
+		leftX = e[++y] - tx;
+		rightX = baseX - e[++y];
+
+		if (leftX < 8 && rightX < 8) {
+			long m = leftX <= 0 ? 0xFF : ((0xFF << leftX) & 0xFF);
+
+			if (rightX > 0) {
+				m &= (0xFF >> rightX);
+			}
+
+			mask |= m << 32;
+		}
+
+
+		leftX = e[++y] - tx;
+		rightX = baseX - e[++y];
+
+		if (leftX < 8 && rightX < 8) {
+			long m = leftX <= 0 ? 0xFF : ((0xFF << leftX) & 0xFF);
+
+			if (rightX > 0) {
+				m &= (0xFF >> rightX);
+			}
+
+			mask |= m << 40;
+		}
+
+
+		leftX = e[++y] - tx;
+		rightX = baseX - e[++y];
+
+		if (leftX < 8 && rightX < 8) {
+			long m = leftX <= 0 ? 0xFF : ((0xFF << leftX) & 0xFF);
+
+			if (rightX > 0) {
+				m &= (0xFF >> rightX);
+			}
+
+			mask |= m << 48;
+		}
+
+
+		leftX = e[++y] - tx;
+		rightX = baseX - e[++y];
+
+		if (leftX < 8 && rightX < 8) {
+			long m = leftX <= 0 ? 0xFF : ((0xFF << leftX) & 0xFF);
+
+			if (rightX > 0) {
+				m &= (0xFF >> rightX);
+			}
+
+			mask |= m << 56;
+		}
+
+
+		return mask;
+	}
+
+	static long computeTileCoverage() {
+		final int[] e = events2;
+
+		int y = tileOriginY << 1;
+		final int tx = tileOriginX;
+
+		final int baseX = tileOriginX + 7;
+
+		long mask = 0;
+
+		int leftX = e[y] - tx;
+		int rightX = baseX - e[++y];
+
+		if (leftX < 8 && rightX < 8) {
+			long m = leftX <= 0 ? 0xFF : ((0xFF << leftX) & 0xFF);
+
+			if (rightX > 0) {
+				m &= (0xFF >> rightX);
+			}
+
+			mask = m;
+		}
+
+
+		leftX = e[++y] - tx;
+		rightX = baseX - e[++y];
+
+		if (leftX < 8 && rightX < 8) {
+			long m = leftX <= 0 ? 0xFF : ((0xFF << leftX) & 0xFF);
+
+			if (rightX > 0) {
+				m &= (0xFF >> rightX);
+			}
+
+			mask |= m << 8;
+		}
+
+
+		leftX = e[++y] - tx;
+		rightX = baseX - e[++y];
+
+		if (leftX < 8 && rightX < 8) {
+			long m = leftX <= 0 ? 0xFF : ((0xFF << leftX) & 0xFF);
+
+			if (rightX > 0) {
+				m &= (0xFF >> rightX);
+			}
+
+			mask |= m << 16;
+		}
+
+
+		leftX = e[++y] - tx;
+		rightX = baseX - e[++y];
+
+		if (leftX < 8 && rightX < 8) {
+			long m = leftX <= 0 ? 0xFF : ((0xFF << leftX) & 0xFF);
+
+			if (rightX > 0) {
+				m &= (0xFF >> rightX);
+			}
+
+			mask |= m << 24;
+		}
+
+
+		leftX = e[++y] - tx;
+		rightX = baseX - e[++y];
+
+		if (leftX < 8 && rightX < 8) {
+			long m = leftX <= 0 ? 0xFF : ((0xFF << leftX) & 0xFF);
+
+			if (rightX > 0) {
+				m &= (0xFF >> rightX);
+			}
+
+			mask |= m << 32;
+		}
+
+
+		leftX = e[++y] - tx;
+		rightX = baseX - e[++y];
+
+		if (leftX < 8 && rightX < 8) {
+			long m = leftX <= 0 ? 0xFF : ((0xFF << leftX) & 0xFF);
+
+			if (rightX > 0) {
+				m &= (0xFF >> rightX);
+			}
+
+			mask |= m << 40;
+		}
+
+
+		leftX = e[++y] - tx;
+		rightX = baseX - e[++y];
+
+		if (leftX < 8 && rightX < 8) {
+			long m = leftX <= 0 ? 0xFF : ((0xFF << leftX) & 0xFF);
+
+			if (rightX > 0) {
+				m &= (0xFF >> rightX);
+			}
+
+			mask |= m << 48;
+		}
+
+
+		leftX = e[++y] - tx;
+		rightX = baseX - e[++y];
+
+		if (leftX < 8 && rightX < 8) {
+			long m = leftX <= 0 ? 0xFF : ((0xFF << leftX) & 0xFF);
+
+			if (rightX > 0) {
+				m &= (0xFF >> rightX);
+			}
+
+			mask |= m << 56;
+		}
+
+
+		return mask;
 	}
 }

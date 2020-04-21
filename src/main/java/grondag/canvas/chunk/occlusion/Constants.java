@@ -1,7 +1,5 @@
 package grondag.canvas.chunk.occlusion;
 
-import java.util.Arrays;
-
 import grondag.canvas.Configurator;
 
 public class Constants {
@@ -64,51 +62,6 @@ public class Constants {
 	static final int BOUNDS_OUTSIDE_OR_TOO_SMALL = 1;
 	static final int BOUNDS_NEEDS_CLIP = 2;
 
-	static final int OUTSIDE_0 = 1;
-	static final int INSIDE_0 = 2;
-	static final int OUTSIDE_1 = 4;
-	static final int INSIDE_1 = 8;
-	static final int OUTSIDE_2 = 16;
-	static final int INSIDE_2 = 32;
-	static final int INTERSECT = 0;
-
-	static final int POS_INVERSE_MASK_0 =  ~(OUTSIDE_0 | INSIDE_0);
-	static final int POS_INVERSE_MASK_1 =  ~(OUTSIDE_1 | INSIDE_1);
-	static final int POS_INVERSE_MASK_2 =  ~(OUTSIDE_2 | INSIDE_2);
-
-	static final int POS_012_III = INSIDE_0 	| 	INSIDE_1 	| 	INSIDE_2;
-	static final int POS_012_OII = OUTSIDE_0 	| 	INSIDE_1 	| 	INSIDE_2;
-	static final int POS_012_XII = INTERSECT 	| 	INSIDE_1 	| 	INSIDE_2;
-	static final int POS_012_IOI = INSIDE_0 	| 	OUTSIDE_1 	| 	INSIDE_2;
-	static final int POS_012_OOI = OUTSIDE_0 	| 	OUTSIDE_1 	| 	INSIDE_2;
-	static final int POS_012_XOI = INTERSECT 	| 	OUTSIDE_1 	| 	INSIDE_2;
-	static final int POS_012_IXI = INSIDE_0 	| 	INTERSECT	|	INSIDE_2;
-	static final int POS_012_OXI = OUTSIDE_0 	|	INTERSECT	|	INSIDE_2;
-	static final int POS_012_XXI = INTERSECT	|	INTERSECT	|	INSIDE_2;
-
-	static final int POS_012_IIO = INSIDE_0 	| 	INSIDE_1 	| 	OUTSIDE_2;
-	static final int POS_012_OIO = OUTSIDE_0 	| 	INSIDE_1 	| 	OUTSIDE_2;
-	static final int POS_012_XIO = INTERSECT	|	INSIDE_1 	| 	OUTSIDE_2;
-	static final int POS_012_IOO = INSIDE_0 	| 	OUTSIDE_1 	| 	OUTSIDE_2;
-	static final int POS_012_OOO = OUTSIDE_0 	| 	OUTSIDE_1 	| 	OUTSIDE_2;
-	static final int POS_012_XOO = INTERSECT	|	OUTSIDE_1 	| 	OUTSIDE_2;
-	static final int POS_012_IXO = INSIDE_0 	| 	INTERSECT	|	OUTSIDE_2;
-	static final int POS_012_OXO = OUTSIDE_0 	|	INTERSECT	|	OUTSIDE_2;
-	static final int POS_012_XXO = INTERSECT	|	INTERSECT	|	OUTSIDE_2;
-
-	static final int POS_012_IIX = INSIDE_0 	| 	INSIDE_1	|	INTERSECT;
-	static final int POS_012_OIX = OUTSIDE_0 	| 	INSIDE_1	|	INTERSECT;
-	static final int POS_012_XIX = INTERSECT	|	INSIDE_1	|	INTERSECT;
-	static final int POS_012_IOX = INSIDE_0 	| 	OUTSIDE_1	|	INTERSECT;
-	static final int POS_012_OOX = OUTSIDE_0 	| 	OUTSIDE_1	|	INTERSECT;
-	static final int POS_012_XOX = INTERSECT	|	OUTSIDE_1	|	INTERSECT;
-	static final int POS_012_IXX = INSIDE_0		|	INTERSECT	|	INTERSECT;
-	static final int POS_012_OXX = OUTSIDE_0	|	INTERSECT	| 	INTERSECT;
-	static final int POS_012_XXX = INTERSECT	|	INTERSECT	|	INTERSECT;
-
-	static final int COVERAGE_NONE_OR_SOME = 0;
-	static final int COVERAGE_FULL = 1;
-
 	static final int B_NEGATIVE = 8;
 	static final int B_ZERO = 16;
 	static final int B_POSITIVE = 32;
@@ -126,12 +79,33 @@ public class Constants {
 	static final int EDGE_BOTTOM_RIGHT = B_POSITIVE | A_NEGATIVE;
 	static final int EDGE_BOTTOM_LEFT = B_POSITIVE | A_POSITIVE;
 
-	static final int EVENT_EMPTY_ROW = -2;
-	static final int EVENT_FULL_ROW = -1;
+	// subtract 1 to fit in 2 bits
+	static final int EVENT_0_LEFT = A_POSITIVE - 1;
+	static final int EVENT_0_FLAT = A_ZERO - 1;
+	static final int EVENT_0_RIGHT = A_NEGATIVE - 1;
+	static final int EVENT_POSITION_MASK = 3;
 
-	static final short[] EMPTY_EVENT = new short[PIXEL_HEIGHT];
+	static final int EVENT_1_LEFT = EVENT_0_LEFT << 2;
+	static final int EVENT_1_FLAT = EVENT_0_FLAT << 2;
+	static final int EVENT_1_RIGHT = EVENT_0_RIGHT << 2;
 
-	static {
-		Arrays.fill(EMPTY_EVENT, (short) EVENT_EMPTY_ROW);
-	}
+	static final int EVENT_2_LEFT = EVENT_1_LEFT << 2;
+	static final int EVENT_2_FLAT = EVENT_1_FLAT << 2;
+	static final int EVENT_2_RIGHT = EVENT_1_RIGHT << 2;
+
+	static final int EVENT_012_LLR = EVENT_0_LEFT 		| EVENT_1_LEFT  	| EVENT_2_RIGHT;
+	static final int EVENT_012_RLL = EVENT_0_RIGHT 		| EVENT_1_LEFT  	| EVENT_2_LEFT;
+	static final int EVENT_012_LRL = EVENT_0_LEFT 		| EVENT_1_RIGHT 	| EVENT_2_LEFT;
+
+	static final int EVENT_012_RRL = EVENT_0_RIGHT 		| EVENT_1_RIGHT  	| EVENT_2_LEFT;
+	static final int EVENT_012_LRR = EVENT_0_LEFT 		| EVENT_1_RIGHT  	| EVENT_2_RIGHT;
+	static final int EVENT_012_RLR = EVENT_0_RIGHT 		| EVENT_1_LEFT  	| EVENT_2_RIGHT;
+
+	static final int EVENT_012_FLR = EVENT_0_FLAT 		| EVENT_1_LEFT  	| EVENT_2_RIGHT;
+	static final int EVENT_012_RFL = EVENT_0_RIGHT 		| EVENT_1_FLAT  	| EVENT_2_LEFT;
+	static final int EVENT_012_LRF = EVENT_0_LEFT 		| EVENT_1_RIGHT  	| EVENT_2_FLAT;
+
+	static final int EVENT_012_FRL = EVENT_0_FLAT 		| EVENT_1_RIGHT  	| EVENT_2_LEFT;
+	static final int EVENT_012_LFR = EVENT_0_LEFT 		| EVENT_1_FLAT  	| EVENT_2_RIGHT;
+	static final int EVENT_012_RLF = EVENT_0_RIGHT 		| EVENT_1_LEFT  	| EVENT_2_FLAT;
 }

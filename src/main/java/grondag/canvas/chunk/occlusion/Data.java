@@ -63,8 +63,7 @@ public class Data {
 
 	static final int[] events = new int[PIXEL_HEIGHT * 4];
 
-	// TODO: remove
-	static final int[] events2 = new int[PIXEL_HEIGHT * 4];
+	static final int[] events2 = new int[PIXEL_HEIGHT * 2];
 
 	//	static int px000;
 	//	static int py000;
