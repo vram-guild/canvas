@@ -43,6 +43,29 @@ public class Data {
 	static int x2;
 	static int y2;
 
+	static int clipOutputX;
+	static int clipOutputY;
+
+	static int minX;
+	static int maxX;
+	static int minY;
+	static int maxY;
+
+	static int ax0;
+	static int ay0;
+	static int ax1;
+	static int ay1;
+
+	static int bx0;
+	static int by0;
+	static int bx1;
+	static int by1;
+
+	static int cx0;
+	static int cy0;
+	static int cx1;
+	static int cy1;
+
 	static int position0;
 	static int position1;
 	static int position2;

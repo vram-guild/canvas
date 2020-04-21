@@ -65,6 +65,7 @@ abstract class Rasterizer  {
 			return;
 		}
 
+
 		Rasterizer.drawTri();
 	}
 

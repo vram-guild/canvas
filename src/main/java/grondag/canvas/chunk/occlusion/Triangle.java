@@ -21,6 +21,8 @@ import static grondag.canvas.chunk.occlusion.Constants.EVENT_POSITION_MASK;
 import static grondag.canvas.chunk.occlusion.Constants.GUARD_HEIGHT;
 import static grondag.canvas.chunk.occlusion.Constants.GUARD_SIZE;
 import static grondag.canvas.chunk.occlusion.Constants.GUARD_WIDTH;
+import static grondag.canvas.chunk.occlusion.Constants.HALF_PRECISE_HEIGHT;
+import static grondag.canvas.chunk.occlusion.Constants.HALF_PRECISE_WIDTH;
 import static grondag.canvas.chunk.occlusion.Constants.MAX_PIXEL_X;
 import static grondag.canvas.chunk.occlusion.Constants.MAX_PIXEL_Y;
 import static grondag.canvas.chunk.occlusion.Constants.PIXEL_WIDTH;
@@ -32,6 +34,20 @@ import static grondag.canvas.chunk.occlusion.Constants.PRECISION_BITS;
 import static grondag.canvas.chunk.occlusion.Constants.SCANT_PRECISE_PIXEL_CENTER;
 import static grondag.canvas.chunk.occlusion.Constants.TILE_AXIS_MASK;
 import static grondag.canvas.chunk.occlusion.Constants.TILE_AXIS_SHIFT;
+import static grondag.canvas.chunk.occlusion.Data.ax0;
+import static grondag.canvas.chunk.occlusion.Data.ax1;
+import static grondag.canvas.chunk.occlusion.Data.ay0;
+import static grondag.canvas.chunk.occlusion.Data.ay1;
+import static grondag.canvas.chunk.occlusion.Data.bx0;
+import static grondag.canvas.chunk.occlusion.Data.bx1;
+import static grondag.canvas.chunk.occlusion.Data.by0;
+import static grondag.canvas.chunk.occlusion.Data.by1;
+import static grondag.canvas.chunk.occlusion.Data.clipOutputX;
+import static grondag.canvas.chunk.occlusion.Data.clipOutputY;
+import static grondag.canvas.chunk.occlusion.Data.cx0;
+import static grondag.canvas.chunk.occlusion.Data.cx1;
+import static grondag.canvas.chunk.occlusion.Data.cy0;
+import static grondag.canvas.chunk.occlusion.Data.cy1;
 import static grondag.canvas.chunk.occlusion.Data.events;
 import static grondag.canvas.chunk.occlusion.Data.maxPixelX;
 import static grondag.canvas.chunk.occlusion.Data.maxPixelY;
@@ -50,46 +66,55 @@ import static grondag.canvas.chunk.occlusion.Data.vertexData;
 import static grondag.canvas.chunk.occlusion.Indexer.tileIndex;
 import static grondag.canvas.chunk.occlusion.ProjectedVertexData.PV_PX;
 import static grondag.canvas.chunk.occlusion.ProjectedVertexData.PV_PY;
+import static grondag.canvas.chunk.occlusion.ProjectedVertexData.PV_W;
+import static grondag.canvas.chunk.occlusion.ProjectedVertexData.PV_X;
+import static grondag.canvas.chunk.occlusion.ProjectedVertexData.PV_Y;
+import static grondag.canvas.chunk.occlusion.ProjectedVertexData.PV_Z;
 import static grondag.canvas.chunk.occlusion.ProjectedVertexData.needsNearClip;
 
 
 public final class Triangle {
+	static void clipNear(final int[] data, int internal, int external) {
+		final float intX = Float.intBitsToFloat(data[internal + PV_X]);
+		final float intY = Float.intBitsToFloat(data[internal + PV_Y]);
+		final float intZ = Float.intBitsToFloat(data[internal + PV_Z]);
+		final float intW = Float.intBitsToFloat(data[internal + PV_W]);
+
+		final float extX = Float.intBitsToFloat(data[external + PV_X]);
+		final float extY = Float.intBitsToFloat(data[external + PV_Y]);
+		final float extZ = Float.intBitsToFloat(data[external + PV_Z]);
+		final float extW = Float.intBitsToFloat(data[external + PV_W]);
+
+		// intersection point is the projection plane, at which point Z == 1
+		// and w will be 0 but projection division isn't needed, so force output to W = 1
+		// see https://www.cs.usfca.edu/~cruse/math202s11/homocoords.pdf
+
+		assert extZ < 0;
+		assert extZ < extW;
+		assert intZ > 0;
+		assert intZ < intW;
+
+		final float wt  = (intZ + intW) / (-(extW - intW) - (extZ - intZ));
+		//		final float wt  = (intZ - intW) / ((extW - intW) - (extZ - intZ));
+
+		// note again that projection division isn't needed
+		final float x = (intX + (extX - intX) * wt);
+		final float y = (intY + (extY - intY) * wt);
+		final float w = (intW + (extW - intW) * wt);
+		final float iw = 1f / w;
+
+		clipOutputX = Math.round(iw * x * HALF_PRECISE_WIDTH) + HALF_PRECISE_WIDTH;
+		clipOutputY = Math.round(iw * y * HALF_PRECISE_HEIGHT) + HALF_PRECISE_HEIGHT;
+	}
+
 	static int prepareBoundsNew(int v0, int v1, int v2) {
 		final int split = needsNearClip(vertexData, v0) | (needsNearClip(vertexData, v1) << 1) | (needsNearClip(vertexData, v2) << 2);
 
-		int ax0 = 0, ay0 = 0, ax1 = 0, ay1 = 0;
-		int bx0 = 0, by0 = 0, bx1 = 0, by1 = 0;
-		int cx0 = 0, cy0 = 0, cx1 = 0, cy1 = 0;
-
-		int minY = 0, maxY = 0, minX = 0, maxX = 0;
-
 		switch (split) {
 		case 0b000:
-			ax0 = vertexData[v0 + PV_PX];
-			ay0 = vertexData[v0 + PV_PY];
-			bx0 = vertexData[v1 + PV_PX];
-			by0 = vertexData[v1 + PV_PY];
-			cx0 = vertexData[v2 + PV_PX];
-			cy0 = vertexData[v2 + PV_PY];
-			ax1 = bx0;
-			ay1 = by0;
-			bx1 = cx0;
-			by1 = cy0;
-			cx1 = ax0;
-			cy1 = ay0;
+			return prepareBounds000(v0, v1, v2);
 
-			minX = ax0;
-			maxX = ax0;
-			if (bx0 < minX) minX = bx0; else if (bx0 > maxX) maxX = bx0;
-			if (cx0 < minX) minX = cx0; else if (cx0 > maxX) maxX = cx0;
-
-			minY = ay0;
-			maxY = ay0;
-			if (by0 < minY) minY = by0; else if (by0 > maxY) maxY = by0;
-			if (cy0 < minY) minY = cy0; else if (cy0 > maxY) maxY = cy0;
-
-			break;
-
+		default:
 		case 0b001:
 		case 0b010:
 		case 0b011:
@@ -99,6 +124,59 @@ public final class Triangle {
 		case 0b111:
 			return BOUNDS_OUTSIDE_OR_TOO_SMALL;
 		}
+	}
+
+	static int prepareBounds000(int v0, int v1, int v2) {
+		int ax0 = 0, ay0 = 0;
+		int bx0 = 0, by0 = 0;
+		int cx0 = 0, cy0 = 0;
+		int minY = 0, maxY = 0, minX = 0, maxX = 0;
+
+		ax0 = vertexData[v0 + PV_PX];
+		ay0 = vertexData[v0 + PV_PY];
+		bx0 = vertexData[v1 + PV_PX];
+		by0 = vertexData[v1 + PV_PY];
+		cx0 = vertexData[v2 + PV_PX];
+		cy0 = vertexData[v2 + PV_PY];
+		ax1 = bx0;
+		ay1 = by0;
+		bx1 = cx0;
+		by1 = cy0;
+		cx1 = ax0;
+		cy1 = ay0;
+
+		minX = ax0;
+		maxX = ax0;
+
+		if (bx0 < minX) minX = bx0; else if (bx0 > maxX) maxX = bx0;
+		if (cx0 < minX) minX = cx0; else if (cx0 > maxX) maxX = cx0;
+
+		minY = ay0;
+		maxY = ay0;
+
+		if (by0 < minY) minY = by0; else if (by0 > maxY) maxY = by0;
+		if (cy0 < minY) minY = cy0; else if (cy0 > maxY) maxY = cy0;
+
+		Data.minX = minX;
+		Data.maxX = maxX;
+		Data.minY = minY;
+		Data.maxY = maxY;
+
+		Data.ax0 = ax0;
+		Data.ay0 = ay0;
+		Data.bx0 = bx0;
+		Data.by0 = by0;
+		Data.cx0 = cx0;
+		Data.cy0 = cy0;
+
+		return prepareBoundsInner();
+	}
+
+	static int prepareBoundsInner()  {
+		int minX = Data.minX;
+		int maxX = Data.maxX;
+		int minY = Data.minY;
+		int maxY = Data.maxY;
 
 		if (maxY <= 0 || minY >= PRECISE_HEIGHT) {
 			return BOUNDS_OUTSIDE_OR_TOO_SMALL;
