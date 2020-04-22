@@ -1,7 +1,5 @@
 package grondag.canvas.chunk.occlusion;
 
-import static grondag.canvas.chunk.occlusion.Clipper.drawQuad;
-import static grondag.canvas.chunk.occlusion.Clipper.testQuad;
 import static grondag.canvas.chunk.occlusion.Constants.CAMERA_PRECISION_BITS;
 import static grondag.canvas.chunk.occlusion.Constants.CAMERA_PRECISION_CHUNK_MAX;
 import static grondag.canvas.chunk.occlusion.Constants.CAMERA_PRECISION_UNITY;
@@ -43,12 +41,12 @@ abstract class Indexer {
 	//	int extFalse;
 	//	int earlyExit;
 
-	static boolean testUp() { return testQuad(V110, V010, V011, V111); }
-	static boolean testDown() { return testQuad(V000, V100, V101, V001); }
-	static boolean testEast() { return testQuad(V101, V100, V110, V111); }
-	static boolean testWest() { return testQuad(V000, V001, V011, V010); }
-	static boolean testSouth() { return testQuad(V001, V101, V111, V011); }
-	static boolean testNorth() { return testQuad(V100, V000, V010, V110); }
+	static boolean testUp() { return Rasterizer.testQuad(V110, V010, V011, V111); }
+	static boolean testDown() { return Rasterizer.testQuad(V000, V100, V101, V001); }
+	static boolean testEast() { return Rasterizer.testQuad(V101, V100, V110, V111); }
+	static boolean testWest() { return Rasterizer.testQuad(V000, V001, V011, V010); }
+	static boolean testSouth() { return Rasterizer.testQuad(V001, V101, V111, V011); }
+	static boolean testNorth() { return Rasterizer.testQuad(V100, V000, V010, V110); }
 
 	static boolean isChunkVisibleInner()  {
 		if (isPointVisible(8, 8, 8)) {
@@ -207,12 +205,12 @@ abstract class Indexer {
 		computeProjectedBoxBounds(x0, y0, z0, x1, y1, z1);
 
 		// PERF use same techniques as view test?
-		if (offsetY < -(y1 << CAMERA_PRECISION_BITS)) drawQuad(V110, V010, V011, V111); // up
-		if (offsetY > -(y0 << CAMERA_PRECISION_BITS)) drawQuad(V000, V100, V101, V001); // down
-		if (offsetX < -(x1 << CAMERA_PRECISION_BITS)) drawQuad(V101, V100, V110, V111); // east
-		if (offsetX > -(x0 << CAMERA_PRECISION_BITS)) drawQuad(V000, V001, V011, V010); // west
-		if (offsetZ < -(z1 << CAMERA_PRECISION_BITS)) drawQuad(V001, V101, V111, V011); // south
-		if (offsetZ > -(z0 << CAMERA_PRECISION_BITS)) drawQuad(V100, V000, V010, V110); // north
+		if (offsetY < -(y1 << CAMERA_PRECISION_BITS)) Rasterizer.drawQuad(V110, V010, V011, V111); // up
+		if (offsetY > -(y0 << CAMERA_PRECISION_BITS)) Rasterizer.drawQuad(V000, V100, V101, V001); // down
+		if (offsetX < -(x1 << CAMERA_PRECISION_BITS)) Rasterizer.drawQuad(V101, V100, V110, V111); // east
+		if (offsetX > -(x0 << CAMERA_PRECISION_BITS)) Rasterizer.drawQuad(V000, V001, V011, V010); // west
+		if (offsetZ < -(z1 << CAMERA_PRECISION_BITS)) Rasterizer.drawQuad(V001, V101, V111, V011); // south
+		if (offsetZ > -(z0 << CAMERA_PRECISION_BITS)) Rasterizer.drawQuad(V100, V000, V010, V110); // north
 	}
 
 	/**

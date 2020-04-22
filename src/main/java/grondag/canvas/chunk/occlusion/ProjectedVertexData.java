@@ -47,10 +47,10 @@ public final class ProjectedVertexData {
 		if (w == 0) {
 			return 1;
 		} else if (w > 0) {
-			return z > 0 && z < w ? 0 : 1;
+			return z > 0 && z <= w ? 0 : 1;
 		} else {
 			// w < 0
-			return z < 0 && z > w ? 0 : 1;
+			return z < 0 && z >= w ? 0 : 1;
 		}
 	}
 

@@ -1,8 +1,5 @@
 package grondag.canvas.chunk.occlusion;
 
-import static grondag.canvas.chunk.occlusion.Clipper.drawClippedLowX;
-import static grondag.canvas.chunk.occlusion.Clipper.testClippedLowX;
-import static grondag.canvas.chunk.occlusion.Constants.BOUNDS_NEEDS_CLIP;
 import static grondag.canvas.chunk.occlusion.Constants.BOUNDS_OUTSIDE_OR_TOO_SMALL;
 import static grondag.canvas.chunk.occlusion.Constants.PIXEL_HEIGHT;
 import static grondag.canvas.chunk.occlusion.Constants.PIXEL_WIDTH;
@@ -23,8 +20,6 @@ import static grondag.canvas.chunk.occlusion.Tile.moveTileLeft;
 import static grondag.canvas.chunk.occlusion.Tile.moveTileRight;
 import static grondag.canvas.chunk.occlusion.Tile.moveTileUp;
 import static grondag.canvas.chunk.occlusion.Triangle.prepareBounds;
-import static grondag.canvas.chunk.occlusion.Triangle.prepareBoundsNew;
-import static grondag.canvas.chunk.occlusion.Triangle.prepareScan;
 
 import com.google.common.base.Strings;
 import org.apache.commons.lang3.StringUtils;
@@ -48,27 +43,6 @@ import org.apache.commons.lang3.StringUtils;
 abstract class Rasterizer  {
 	private Rasterizer() { }
 
-	static void drawTriNew(int v0, int v1, int v2) {
-		final int boundsResult  = prepareBoundsNew(v0, v1, v2);
-
-		if (boundsResult == BOUNDS_OUTSIDE_OR_TOO_SMALL) {
-			return;
-		}
-
-		if (boundsResult == BOUNDS_NEEDS_CLIP) {
-			drawClippedLowX(v0, v1, v2);
-			return;
-		}
-
-		// Don't draw single points
-		if((minPixelX == maxPixelX && minPixelY == maxPixelY)) {
-			return;
-		}
-
-
-		Rasterizer.drawTri();
-	}
-
 	static void drawTri(int v0, int v1, int v2) {
 		final int boundsResult  = prepareBounds(v0, v1, v2);
 
@@ -76,17 +50,11 @@ abstract class Rasterizer  {
 			return;
 		}
 
-		if (boundsResult == BOUNDS_NEEDS_CLIP) {
-			drawClippedLowX(v0, v1, v2);
-			return;
-		}
-
 		// Don't draw single points
 		if((minPixelX == maxPixelX && minPixelY == maxPixelY)) {
 			return;
 		}
 
-		prepareScan();
 		Rasterizer.drawTri();
 	}
 
@@ -97,16 +65,11 @@ abstract class Rasterizer  {
 			return false;
 		}
 
-		if (boundsResult == BOUNDS_NEEDS_CLIP) {
-			return testClippedLowX(v0, v1, v2);
-		}
-
 		if((minPixelX == maxPixelX && minPixelY == maxPixelY)) {
 			final int px = minPixelX;
 			final int py = minPixelY;
 			return px >= 0 && py >= 0 && px < PIXEL_WIDTH && py < PIXEL_HEIGHT && testPixel(px, py);
 		} else {
-			prepareScan();
 			return testTri();
 		}
 	}
@@ -210,5 +173,14 @@ abstract class Rasterizer  {
 		System.out.println(StringUtils.reverse(s.substring(56, 64)).replace("0", "- ").replace("1", "X "));
 
 		System.out.println();
+	}
+
+	static boolean testQuad(int v0, int v1, int v2, int v3) {
+		return testTri(v0, v1, v2) || testTri(v0, v2, v3);
+	}
+
+	static final void drawQuad(int v0, int v1, int v2, int v3) {
+		drawTri(v0, v1, v2);
+		drawTri(v0, v2, v3);
 	}
 }
