@@ -4,19 +4,35 @@ import static grondag.canvas.chunk.occlusion.Constants.BOUNDS_IN;
 import static grondag.canvas.chunk.occlusion.Constants.BOUNDS_NEEDS_CLIP;
 import static grondag.canvas.chunk.occlusion.Constants.BOUNDS_OUTSIDE_OR_TOO_SMALL;
 import static grondag.canvas.chunk.occlusion.Constants.EDGE_BOTTOM;
+import static grondag.canvas.chunk.occlusion.Constants.EDGE_POINT;
 import static grondag.canvas.chunk.occlusion.Constants.EDGE_TOP;
+import static grondag.canvas.chunk.occlusion.Constants.EVENT_012_FFF;
+import static grondag.canvas.chunk.occlusion.Constants.EVENT_012_FFL;
+import static grondag.canvas.chunk.occlusion.Constants.EVENT_012_FFR;
+import static grondag.canvas.chunk.occlusion.Constants.EVENT_012_FLF;
+import static grondag.canvas.chunk.occlusion.Constants.EVENT_012_FLL;
 import static grondag.canvas.chunk.occlusion.Constants.EVENT_012_FLR;
+import static grondag.canvas.chunk.occlusion.Constants.EVENT_012_FRF;
 import static grondag.canvas.chunk.occlusion.Constants.EVENT_012_FRL;
+import static grondag.canvas.chunk.occlusion.Constants.EVENT_012_FRR;
+import static grondag.canvas.chunk.occlusion.Constants.EVENT_012_LFF;
+import static grondag.canvas.chunk.occlusion.Constants.EVENT_012_LFL;
 import static grondag.canvas.chunk.occlusion.Constants.EVENT_012_LFR;
+import static grondag.canvas.chunk.occlusion.Constants.EVENT_012_LLF;
+import static grondag.canvas.chunk.occlusion.Constants.EVENT_012_LLL;
 import static grondag.canvas.chunk.occlusion.Constants.EVENT_012_LLR;
 import static grondag.canvas.chunk.occlusion.Constants.EVENT_012_LRF;
 import static grondag.canvas.chunk.occlusion.Constants.EVENT_012_LRL;
 import static grondag.canvas.chunk.occlusion.Constants.EVENT_012_LRR;
+import static grondag.canvas.chunk.occlusion.Constants.EVENT_012_RFF;
 import static grondag.canvas.chunk.occlusion.Constants.EVENT_012_RFL;
+import static grondag.canvas.chunk.occlusion.Constants.EVENT_012_RFR;
 import static grondag.canvas.chunk.occlusion.Constants.EVENT_012_RLF;
 import static grondag.canvas.chunk.occlusion.Constants.EVENT_012_RLL;
 import static grondag.canvas.chunk.occlusion.Constants.EVENT_012_RLR;
+import static grondag.canvas.chunk.occlusion.Constants.EVENT_012_RRF;
 import static grondag.canvas.chunk.occlusion.Constants.EVENT_012_RRL;
+import static grondag.canvas.chunk.occlusion.Constants.EVENT_012_RRR;
 import static grondag.canvas.chunk.occlusion.Constants.EVENT_POSITION_MASK;
 import static grondag.canvas.chunk.occlusion.Constants.GUARD_HEIGHT;
 import static grondag.canvas.chunk.occlusion.Constants.GUARD_SIZE;
@@ -155,6 +171,7 @@ public final class Triangle {
 		by0 = vertexData[v1 + PV_PY];
 		cx0 = vertexData[v2 + PV_PX];
 		cy0 = vertexData[v2 + PV_PY];
+
 		ax1 = bx0;
 		ay1 = by0;
 		bx1 = cx0;
@@ -189,28 +206,209 @@ public final class Triangle {
 		return prepareBoundsInner();
 	}
 
+	static void clipToGuards() {
+		// PERF: use fixed precision
+
+		if (ax0 < -GUARD_SIZE) {
+			if (ax1 < -GUARD_SIZE) {
+				ax1 = -GUARD_SIZE;
+			} else {
+				final float wt = (float) (-GUARD_SIZE - ax1) / (ax0 - ax1);
+				ay0 = Math.round(ay1 + wt * (ay0 - ay1));
+			}
+
+			ax0 = -GUARD_SIZE;
+		}  else if (ax0 > GUARD_WIDTH) {
+			if (ax1 > GUARD_WIDTH) {
+				ax1 = GUARD_WIDTH;
+			} else {
+				final float wt = (float) (GUARD_WIDTH - ax1) / (ax0 - ax1);
+				ay0 = Math.round(ay1 + wt * (ay0 - ay1));
+			}
+
+			ax0 = GUARD_WIDTH;
+		}
+
+		if (ay0 < -GUARD_SIZE) {
+			if (ay1 < -GUARD_SIZE) {
+				ay1 = -GUARD_SIZE;
+			} else {
+				final float wt = (float) (-GUARD_SIZE - ay1) / (ay0 - ay1);
+				ax0 = Math.round(ax1 + wt * (ax0 - ax1));
+			}
+
+			ay0 = -GUARD_SIZE;
+		}  else if (ay0 > GUARD_HEIGHT) {
+			if (ay1 > GUARD_HEIGHT) {
+				ay1 = GUARD_HEIGHT;
+			}  else {
+				final float wt = (float) (GUARD_HEIGHT - ay1) / (ay0 - ay1);
+				ax0 = Math.round(ax1 + wt * (ax0 - ax1));
+			}
+
+			ay0 = GUARD_HEIGHT;
+		}
+
+		if (ax1 < -GUARD_SIZE) {
+			final float wt = (float) (-GUARD_SIZE - ax0) / (ax1 - ax0);
+			ax1 = -GUARD_SIZE;
+			ay1 = Math.round(ay0 + wt * (ay1 - ay0));
+		}  else if (ax1 > GUARD_WIDTH) {
+			final float wt = (float) (GUARD_WIDTH - ax0) / (ax1 - ax0);
+			ax1 = GUARD_WIDTH;
+			ay1 = Math.round(ay0 + wt * (ay1 - ay0));
+		}
+
+		if (ay1 < -GUARD_SIZE) {
+			final float wt = (float) (-GUARD_SIZE - ay0) / (ay1 - ay0);
+			ax1 = Math.round(ax0 + wt * (ax1 - ax0));
+			ay1 = -GUARD_SIZE;
+		}  else if (ay1 > GUARD_HEIGHT) {
+			final float wt = (float) (GUARD_HEIGHT - ay0) / (ay1 - ay0);
+			ax1 = Math.round(ax0 + wt * (ax1 - ax0));
+			ay1 = GUARD_HEIGHT;
+		}
+
+		if (bx0 < -GUARD_SIZE) {
+			if (bx1 < -GUARD_SIZE) {
+				bx1 = -GUARD_SIZE;
+			} else {
+				final float wt = (float) (-GUARD_SIZE - bx1) / (bx0 - bx1);
+				by0 = Math.round(by1 + wt * (by0 - by1));
+			}
+
+			bx0 = -GUARD_SIZE;
+		}  else if (bx0 > GUARD_WIDTH) {
+			if (bx1 > GUARD_WIDTH) {
+				bx1 = GUARD_WIDTH;
+			} else {
+				final float wt = (float) (GUARD_WIDTH - bx1) / (bx0 - bx1);
+				by0 = Math.round(by1 + wt * (by0 - by1));
+			}
+
+			bx0 = GUARD_WIDTH;
+		}
+
+		if (by0 < -GUARD_SIZE) {
+			if (by1 < -GUARD_SIZE) {
+				by1 = -GUARD_SIZE;
+			} else {
+				final float wt = (float) (-GUARD_SIZE - by1) / (by0 - by1);
+				bx0 = Math.round(bx1 + wt * (bx0 - bx1));
+			}
+
+			by0 = -GUARD_SIZE;
+		}  else if (by0 > GUARD_HEIGHT) {
+			if (by1 > GUARD_HEIGHT) {
+				by1 = GUARD_HEIGHT;
+			}  else {
+				final float wt = (float) (GUARD_HEIGHT - by1) / (by0 - by1);
+				bx0 = Math.round(bx1 + wt * (bx0 - bx1));
+			}
+
+			by0 = GUARD_HEIGHT;
+		}
+
+		if (bx1 < -GUARD_SIZE) {
+			final float wt = (float) (-GUARD_SIZE - bx0) / (bx1 - bx0);
+			bx1 = -GUARD_SIZE;
+			by1 = Math.round(by0 + wt * (by1 - by0));
+		}  else if (bx1 > GUARD_WIDTH) {
+			final float wt = (float) (GUARD_WIDTH - bx0) / (bx1 - bx0);
+			bx1 = GUARD_WIDTH;
+			by1 = Math.round(by0 + wt * (by1 - by0));
+		}
+
+		if (by1 < -GUARD_SIZE) {
+			final float wt = (float) (-GUARD_SIZE - by0) / (by1 - by0);
+			bx1 = Math.round(bx0 + wt * (bx1 - bx0));
+			by1 = -GUARD_SIZE;
+		}  else if (by1 > GUARD_HEIGHT) {
+			final float wt = (float) (GUARD_HEIGHT - by0) / (by1 - by0);
+			bx1 = Math.round(bx0 + wt * (bx1 - bx0));
+			by1 = GUARD_HEIGHT;
+		}
+
+		if (cx0 < -GUARD_SIZE) {
+			if (cx1 < -GUARD_SIZE) {
+				cx1 = -GUARD_SIZE;
+			} else {
+				final float wt = (float) (-GUARD_SIZE - cx1) / (cx0 - cx1);
+				cy0 = Math.round(cy1 + wt * (cy0 - cy1));
+			}
+
+			cx0 = -GUARD_SIZE;
+		}  else if (cx0 > GUARD_WIDTH) {
+			if (cx1 > GUARD_WIDTH) {
+				cx1 = GUARD_WIDTH;
+			} else {
+				final float wt = (float) (GUARD_WIDTH - cx1) / (cx0 - cx1);
+				cy0 = Math.round(cy1 + wt * (cy0 - cy1));
+			}
+
+			cx0 = GUARD_WIDTH;
+		}
+
+		if (cy0 < -GUARD_SIZE) {
+			if (cy1 < -GUARD_SIZE) {
+				cy1 = -GUARD_SIZE;
+			} else {
+				final float wt = (float) (-GUARD_SIZE - cy1) / (cy0 - cy1);
+				cx0 = Math.round(cx1 + wt * (cx0 - cx1));
+			}
+
+			cy0 = -GUARD_SIZE;
+		}  else if (cy0 > GUARD_HEIGHT) {
+			if (cy1 > GUARD_HEIGHT) {
+				cy1 = GUARD_HEIGHT;
+			}  else {
+				final float wt = (float) (GUARD_HEIGHT - cy1) / (cy0 - cy1);
+				cx0 = Math.round(cx1 + wt * (cx0 - cx1));
+			}
+
+			cy0 = GUARD_HEIGHT;
+		}
+
+		if (cx1 < -GUARD_SIZE) {
+			final float wt = (float) (-GUARD_SIZE - cx0) / (cx1 - cx0);
+			cx1 = -GUARD_SIZE;
+			cy1 = Math.round(cy0 + wt * (cy1 - cy0));
+		}  else if (cx1 > GUARD_WIDTH) {
+			final float wt = (float) (GUARD_WIDTH - cx0) / (cx1 - cx0);
+			cx1 = GUARD_WIDTH;
+			cy1 = Math.round(cy0 + wt * (cy1 - cy0));
+		}
+
+		if (cy1 < -GUARD_SIZE) {
+			final float wt = (float) (-GUARD_SIZE - cy0) / (cy1 - cy0);
+			cx1 = Math.round(cx0 + wt * (cx1 - cx0));
+			cy1 = -GUARD_SIZE;
+		}  else if (cy1 > GUARD_HEIGHT) {
+			final float wt = (float) (GUARD_HEIGHT - cy0) / (cy1 - cy0);
+			cx1 = Math.round(cx0 + wt * (cx1 - cx0));
+			cy1 = GUARD_HEIGHT;
+		}
+	}
+
 	static int prepareBounds001(int v0, int v1, int ext) {
-		int ax0 = 0, ay0 = 0;
-		int bx0 = 0, by0 = 0;
-		int bx1 = 0, by1 = 0;
-		int cx0 = 0, cy0 = 0;
 		int minY = 0, maxY = 0, minX = 0, maxX = 0;
 
 		ax0 = vertexData[v0 + PV_PX];
 		ay0 = vertexData[v0 + PV_PY];
+
 		bx0 = vertexData[v1 + PV_PX];
 		by0 = vertexData[v1 + PV_PY];
-
-		clipNear(vertexData, v1, ext);
-		cx0 = clipOutputX;
-		cy0 = clipOutputY;
 
 		ax1 = bx0;
 		ay1 = by0;
 
-		clipNear(vertexData, v0, ext);
+		clipNear(vertexData, v1, ext);
 		bx1 = clipOutputX;
 		by1 = clipOutputY;
+
+		clipNear(vertexData, v0, ext);
+		cx0 = clipOutputX;
+		cy0 = clipOutputY;
 
 		cx1 = ax0;
 		cy1 = ay0;
@@ -218,6 +416,7 @@ public final class Triangle {
 		minX = ax0;
 		maxX = ax0;
 
+		// ax1 = bx0 and cx1 = ax0,  so no need to test those
 		if (bx0 < minX) minX = bx0; else if (bx0 > maxX) maxX = bx0;
 		if (bx1 < minX) minX = bx1; else if (bx1 > maxX) maxX = bx1;
 		if (cx0 < minX) minX = cx0; else if (cx0 > maxX) maxX = cx0;
@@ -234,20 +433,10 @@ public final class Triangle {
 		Data.minY = minY;
 		Data.maxY = maxY;
 
-		Data.ax0 = ax0;
-		Data.ay0 = ay0;
-		Data.bx0 = bx0;
-		Data.by0 = by0;
-		Data.cx0 = cx0;
-		Data.cy0 = cy0;
-
 		return prepareBoundsInner();
 	}
 
 	static int prepareBounds011(int v0, int ext1, int ext2) {
-		int ax0 = 0, ay0 = 0;
-		int bx0 = 0, by0 = 0;
-		int cx0 = 0, cy0 = 0;
 		int minY = 0, maxY = 0, minX = 0, maxX = 0;
 
 		ax0 = vertexData[v0 + PV_PX];
@@ -285,17 +474,6 @@ public final class Triangle {
 		Data.minY = minY;
 		Data.maxY = maxY;
 
-		Data.ax0 = ax0;
-		Data.ay0 = ay0;
-		Data.bx0 = bx0;
-		Data.by0 = by0;
-		Data.cx0 = cx0;
-		Data.cy0 = cy0;
-
-		return prepareBoundsInner();
-	}
-
-	static int prepareBounds111(int v0, int v1, int v2) {
 		return prepareBoundsInner();
 	}
 
@@ -314,7 +492,7 @@ public final class Triangle {
 		}
 
 		if (minX < -GUARD_SIZE || minY < -GUARD_SIZE || maxX > GUARD_WIDTH || maxY > GUARD_HEIGHT) {
-			return BOUNDS_NEEDS_CLIP;
+			clipToGuards();
 		}
 
 		if (minX < 0) {
@@ -438,8 +616,87 @@ public final class Triangle {
 			populateFlatEvents(position2, cx0, cy0, cx1, cy1);
 			break;
 
+		case EVENT_012_FFR:
+			populateRightEvents(cx0, cy0, cx1, cy1);
+			populateFlatEvents(position0, ax0, ay0, ax1, ay1);
+			populateFlatEvents(position1, bx0, by0, bx1, by1);
+			break;
+
+		case EVENT_012_FFL:
+			populateLeftEvents(cx0, cy0, cx1, cy1);
+			populateFlatEvents(position0, ax0, ay0, ax1, ay1);
+			populateFlatEvents(position1, bx0, by0, bx1, by1);
+			break;
+
+		case EVENT_012_FRF:
+			populateRightEvents(bx0, by0, bx1, by1);
+			populateFlatEvents(position0, ax0, ay0, ax1, ay1);
+			populateFlatEvents(position2, cx0, cy0, cx1, cy1);
+			break;
+
+		case EVENT_012_FLF:
+			populateLeftEvents(bx0, by0, bx1, by1);
+			populateFlatEvents(position0, ax0, ay0, ax1, ay1);
+			populateFlatEvents(position2, cx0, cy0, cx1, cy1);
+			break;
+
+		case EVENT_012_RFF:
+			populateRightEvents(ax0, ay0, ax1, ay1);
+			populateFlatEvents(position1, bx0, by0, bx1, by1);
+			populateFlatEvents(position2, cx0, cy0, cx1, cy1);
+			break;
+
+		case EVENT_012_LFF:
+			populateLeftEvents(ax0, ay0, ax1, ay1);
+			populateFlatEvents(position1, bx0, by0, bx1, by1);
+			populateFlatEvents(position2, cx0, cy0, cx1, cy1);
+			break;
+
+		case EVENT_012_FLL:
+			populateLeftEvents2(bx0, by0, bx1, by1, cx0, cy0, cx1, cy1);
+			populateFlatEvents(position0, ax0, ay0, ax1, ay1);
+			break;
+
+		case EVENT_012_LFL:
+			populateLeftEvents2(ax0, ay0, ax1, ay1, cx0, cy0, cx1, cy1);
+			populateFlatEvents(position1, bx0, by0, bx1, by1);
+			break;
+
+		case EVENT_012_LLF:
+			populateLeftEvents2(ax0, ay0, ax1, ay1, bx0, by0, bx1, by1);
+			populateFlatEvents(position2, cx0, cy0, cx1, cy1);
+			break;
+
+		case EVENT_012_FRR:
+			populateRightEvents2(bx0, by0, bx1, by1, cx0, cy0, cx1, cy1);
+			populateFlatEvents(position0, ax0, ay0, ax1, ay1);
+			break;
+
+		case EVENT_012_RFR:
+			populateRightEvents2(ax0, ay0, ax1, ay1, cx0, cy0, cx1, cy1);
+			populateFlatEvents(position1, bx0, by0, bx1, by1);
+			break;
+
+		case EVENT_012_RRF:
+			populateRightEvents2(ax0, ay0, ax1, ay1, bx0, by0, bx1, by1);
+			populateFlatEvents(position2, cx0, cy0, cx1, cy1);
+			break;
+
+		case EVENT_012_FFF:
+			// fill it
+			populateLeftEvents(0, 0, 0, MAX_PIXEL_Y);
+			populateFlatEvents(position0, ax0, ay0, ax1, ay1);
+			populateFlatEvents(position1, bx0, by0, bx1, by1);
+			populateFlatEvents(position2, cx0, cy0, cx1, cy1);
+			break;
+
+		case EVENT_012_RRR:
+		case EVENT_012_LLL:
+			return BOUNDS_OUTSIDE_OR_TOO_SMALL;
+
 		default:
-			assert false : "base edge combination";
+			assert false : "bad edge combination";
+		return BOUNDS_OUTSIDE_OR_TOO_SMALL;
 		}
 
 		return BOUNDS_IN;
@@ -734,30 +991,32 @@ public final class Triangle {
 			if (py == MAX_PIXEL_Y) return;
 
 			final int y1 = maxTileOriginY + 7;
-			final int start = (py << 1);
+			final int start = py < 0 ? 0 : (py << 1);
 			final int limit = (y1 << 1);
+
+			assert limit < events.length;
 
 			for (int y = start; y <= limit; ) {
 				events[y++] = PIXEL_WIDTH;
 				events[y++] = -1;
 			}
-		}  else {
-			assert position == EDGE_BOTTOM;
-
+		}  else if (position == EDGE_BOTTOM) {
 			final int py = (y0In >> PRECISION_BITS);
-
-			assert py <= MAX_PIXEL_Y;
 
 			if (py == 0) return;
 
 			final int y0 = minPixelY & TILE_AXIS_MASK;
 			final int start = (y0 << 1);
-			final int limit = (py << 1);
+			final int limit = py > MAX_PIXEL_Y ? (MAX_PIXEL_Y << 1) :(py << 1);
+
+			assert limit < events.length;
 
 			for (int y = start; y < limit; ) {
 				events[y++] = PIXEL_WIDTH;
 				events[y++] = -1;
 			}
+		} else {
+			assert position == EDGE_POINT;
 		}
 	}
 

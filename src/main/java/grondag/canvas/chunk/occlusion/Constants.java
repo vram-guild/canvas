@@ -78,6 +78,7 @@ public class Constants {
 	static final int EDGE_TOP_LEFT = B_NEGATIVE | A_POSITIVE;
 	static final int EDGE_BOTTOM_RIGHT = B_POSITIVE | A_NEGATIVE;
 	static final int EDGE_BOTTOM_LEFT = B_POSITIVE | A_POSITIVE;
+	static final int EDGE_POINT = A_ZERO | B_ZERO;
 
 	// subtract 1 to fit in 2 bits
 	static final int EVENT_0_LEFT = A_POSITIVE - 1;
@@ -93,19 +94,36 @@ public class Constants {
 	static final int EVENT_2_FLAT = EVENT_1_FLAT << 2;
 	static final int EVENT_2_RIGHT = EVENT_1_RIGHT << 2;
 
+
+
+
+	static final int EVENT_012_RRR = EVENT_0_RIGHT 		| EVENT_1_RIGHT  	| EVENT_2_RIGHT;
+	static final int EVENT_012_LRR = EVENT_0_LEFT 		| EVENT_1_RIGHT  	| EVENT_2_RIGHT;
+	static final int EVENT_012_FRR = EVENT_0_FLAT 		| EVENT_1_RIGHT  	| EVENT_2_RIGHT;
+	static final int EVENT_012_RLR = EVENT_0_RIGHT 		| EVENT_1_LEFT  	| EVENT_2_RIGHT;
 	static final int EVENT_012_LLR = EVENT_0_LEFT 		| EVENT_1_LEFT  	| EVENT_2_RIGHT;
-	static final int EVENT_012_RLL = EVENT_0_RIGHT 		| EVENT_1_LEFT  	| EVENT_2_LEFT;
-	static final int EVENT_012_LRL = EVENT_0_LEFT 		| EVENT_1_RIGHT 	| EVENT_2_LEFT;
+	static final int EVENT_012_FLR = EVENT_0_FLAT 		| EVENT_1_LEFT  	| EVENT_2_RIGHT;
+	static final int EVENT_012_RFR = EVENT_0_RIGHT 		| EVENT_1_FLAT  	| EVENT_2_RIGHT;
+	static final int EVENT_012_LFR = EVENT_0_LEFT 		| EVENT_1_FLAT  	| EVENT_2_RIGHT;
+	static final int EVENT_012_FFR = EVENT_0_FLAT 		| EVENT_1_FLAT  	| EVENT_2_RIGHT;
 
 	static final int EVENT_012_RRL = EVENT_0_RIGHT 		| EVENT_1_RIGHT  	| EVENT_2_LEFT;
-	static final int EVENT_012_LRR = EVENT_0_LEFT 		| EVENT_1_RIGHT  	| EVENT_2_RIGHT;
-	static final int EVENT_012_RLR = EVENT_0_RIGHT 		| EVENT_1_LEFT  	| EVENT_2_RIGHT;
-
-	static final int EVENT_012_FLR = EVENT_0_FLAT 		| EVENT_1_LEFT  	| EVENT_2_RIGHT;
-	static final int EVENT_012_RFL = EVENT_0_RIGHT 		| EVENT_1_FLAT  	| EVENT_2_LEFT;
-	static final int EVENT_012_LRF = EVENT_0_LEFT 		| EVENT_1_RIGHT  	| EVENT_2_FLAT;
-
+	static final int EVENT_012_LRL = EVENT_0_LEFT 		| EVENT_1_RIGHT 	| EVENT_2_LEFT;
 	static final int EVENT_012_FRL = EVENT_0_FLAT 		| EVENT_1_RIGHT  	| EVENT_2_LEFT;
-	static final int EVENT_012_LFR = EVENT_0_LEFT 		| EVENT_1_FLAT  	| EVENT_2_RIGHT;
+	static final int EVENT_012_RLL = EVENT_0_RIGHT 		| EVENT_1_LEFT  	| EVENT_2_LEFT;
+	static final int EVENT_012_LLL = EVENT_0_LEFT 		| EVENT_1_LEFT  	| EVENT_2_LEFT;
+	static final int EVENT_012_FLL = EVENT_0_FLAT 		| EVENT_1_LEFT  	| EVENT_2_LEFT;
+	static final int EVENT_012_RFL = EVENT_0_RIGHT 		| EVENT_1_FLAT  	| EVENT_2_LEFT;
+	static final int EVENT_012_LFL = EVENT_0_LEFT 		| EVENT_1_FLAT  	| EVENT_2_LEFT;
+	static final int EVENT_012_FFL = EVENT_0_FLAT 		| EVENT_1_FLAT  	| EVENT_2_LEFT;
+
+	static final int EVENT_012_LRF = EVENT_0_LEFT 		| EVENT_1_RIGHT  	| EVENT_2_FLAT;
+	static final int EVENT_012_RRF = EVENT_0_RIGHT 		| EVENT_1_RIGHT  	| EVENT_2_FLAT;
+	static final int EVENT_012_FRF = EVENT_0_FLAT 		| EVENT_1_RIGHT  	| EVENT_2_FLAT;
 	static final int EVENT_012_RLF = EVENT_0_RIGHT 		| EVENT_1_LEFT  	| EVENT_2_FLAT;
+	static final int EVENT_012_LLF = EVENT_0_LEFT 		| EVENT_1_LEFT  	| EVENT_2_FLAT;
+	static final int EVENT_012_FLF = EVENT_0_FLAT 		| EVENT_1_LEFT  	| EVENT_2_FLAT;
+	static final int EVENT_012_RFF = EVENT_0_RIGHT 		| EVENT_1_FLAT  	| EVENT_2_FLAT;
+	static final int EVENT_012_LFF = EVENT_0_LEFT 		| EVENT_1_FLAT  	| EVENT_2_FLAT;
+	static final int EVENT_012_FFF = EVENT_0_FLAT 		| EVENT_1_FLAT  	| EVENT_2_FLAT;
 }
