@@ -4,9 +4,9 @@ import static grondag.canvas.chunk.occlusion.Constants.CAMERA_PRECISION_BITS;
 import static grondag.canvas.chunk.occlusion.Constants.CAMERA_PRECISION_UNITY;
 import static grondag.canvas.chunk.occlusion.Constants.EMPTY_BITS;
 import static grondag.canvas.chunk.occlusion.Constants.ENABLE_RASTER_OUTPUT;
-import static grondag.canvas.chunk.occlusion.Constants.TILE_COUNT;
 import static grondag.canvas.chunk.occlusion.Constants.PIXEL_HEIGHT;
 import static grondag.canvas.chunk.occlusion.Constants.PIXEL_WIDTH;
+import static grondag.canvas.chunk.occlusion.Constants.TILE_COUNT;
 import static grondag.canvas.chunk.occlusion.Data.cameraX;
 import static grondag.canvas.chunk.occlusion.Data.cameraY;
 import static grondag.canvas.chunk.occlusion.Data.cameraZ;
@@ -111,6 +111,8 @@ public abstract class TerrainOccluder {
 	public static void occlude(int[] visData) {
 		final int occlusionRange = Data.occlusionRange;
 		final int limit= visData.length;
+
+
 
 		if (limit > 1) {
 			for (int i = 1; i < limit; i++) {

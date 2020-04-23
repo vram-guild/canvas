@@ -15,11 +15,11 @@ import static grondag.canvas.chunk.occlusion.Data.tileOriginX;
 import static grondag.canvas.chunk.occlusion.Data.tileOriginY;
 import static grondag.canvas.chunk.occlusion.Data.tiles;
 import static grondag.canvas.chunk.occlusion.Indexer.testPixel;
+import static grondag.canvas.chunk.occlusion.Quad.prepareBounds;
 import static grondag.canvas.chunk.occlusion.Tile.computeTileCoverage;
 import static grondag.canvas.chunk.occlusion.Tile.moveTileLeft;
 import static grondag.canvas.chunk.occlusion.Tile.moveTileRight;
 import static grondag.canvas.chunk.occlusion.Tile.moveTileUp;
-import static grondag.canvas.chunk.occlusion.Triangle.prepareBounds;
 
 import com.google.common.base.Strings;
 import org.apache.commons.lang3.StringUtils;
@@ -43,8 +43,8 @@ import org.apache.commons.lang3.StringUtils;
 abstract class Rasterizer  {
 	private Rasterizer() { }
 
-	static void drawTri(int v0, int v1, int v2) {
-		final int boundsResult  = prepareBounds(v0, v1, v2);
+	static final void drawQuad(int v0, int v1, int v2, int v3) {
+		final int boundsResult  = prepareBounds(v0, v1, v2, v3);
 
 		if (boundsResult == BOUNDS_OUTSIDE_OR_TOO_SMALL) {
 			return;
@@ -55,11 +55,11 @@ abstract class Rasterizer  {
 			return;
 		}
 
-		Rasterizer.drawTri();
+		Rasterizer.drawQuad();
 	}
 
-	static boolean testTri(int v0, int v1, int v2) {
-		final int boundsResult  = prepareBounds(v0, v1, v2);
+	static boolean testQuad(int v0, int v1, int v2, int v3) {
+		final int boundsResult  = prepareBounds(v0, v1, v2, v3);
 
 		if (boundsResult == BOUNDS_OUTSIDE_OR_TOO_SMALL) {
 			return false;
@@ -70,15 +70,15 @@ abstract class Rasterizer  {
 			final int py = minPixelY;
 			return px >= 0 && py >= 0 && px < PIXEL_WIDTH && py < PIXEL_HEIGHT && testPixel(px, py);
 		} else {
-			return testTri();
+			return testQuad();
 		}
 	}
 
-	static boolean testTri() {
+	static boolean testQuad() {
 		boolean goRight = true;
 
 		while(true) {
-			if(testTriInner()) {
+			if(testQuadInner()) {
 				return true;
 			}
 
@@ -108,7 +108,7 @@ abstract class Rasterizer  {
 		}
 	}
 
-	static boolean testTriInner() {
+	static boolean testQuadInner() {
 		final long word = tiles[tileIndex];
 
 		// nothing to test if fully occluded
@@ -119,11 +119,11 @@ abstract class Rasterizer  {
 		return (~word & computeTileCoverage()) != 0;
 	}
 
-	static void drawTri() {
+	static void drawQuad() {
 		boolean goRight = true;
 
 		while(true) {
-			drawTriInner();
+			drawQuadInner();
 
 			if (goRight) {
 				if (tileOriginX == maxTileOriginX) {
@@ -151,7 +151,7 @@ abstract class Rasterizer  {
 		}
 	}
 
-	static void drawTriInner() {
+	static void drawQuadInner() {
 		long word = tiles[tileIndex];
 
 		// nothing to do if fully occluded
@@ -173,14 +173,5 @@ abstract class Rasterizer  {
 		System.out.println(StringUtils.reverse(s.substring(56, 64)).replace("0", "- ").replace("1", "X "));
 
 		System.out.println();
-	}
-
-	static boolean testQuad(int v0, int v1, int v2, int v3) {
-		return testTri(v0, v1, v2) || testTri(v0, v2, v3);
-	}
-
-	static final void drawQuad(int v0, int v1, int v2, int v3) {
-		drawTri(v0, v1, v2);
-		drawTri(v0, v2, v3);
 	}
 }

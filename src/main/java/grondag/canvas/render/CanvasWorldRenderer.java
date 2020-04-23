@@ -342,10 +342,6 @@ public class CanvasWorldRenderer {
 	}
 
 	public void renderWorld(MatrixStack matrixStack, float f, long startTime, boolean bl, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f projectionMatrix) {
-		// TODO: remove
-		lastTranlsucentCount = 0;
-		lastSolidCount = 0;
-
 		final WorldRendererExt wr = this.wr;
 		final MinecraftClient mc = wr.canvas_mc();
 		updatePlayerLightmap(mc, f);

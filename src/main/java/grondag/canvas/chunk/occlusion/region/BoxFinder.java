@@ -175,10 +175,6 @@ public class BoxFinder {
 			final int dx = (area.x1 - area.x0 + 1);
 			final long vol = dx * dy * dz;
 
-			// TODO: remove
-			//			if (dz == 16) {
-			//				System.out.println("boop");
-			//			}
 			sortedBoxes.add((vol << 34) | (area.index << 10) | (16 << 5) | z0);
 		}
 	}

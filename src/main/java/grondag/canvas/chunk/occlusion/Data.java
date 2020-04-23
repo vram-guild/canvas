@@ -36,15 +36,10 @@ public class Data {
 	static int maxPixelX;
 	static int maxPixelY;
 
-	static int x0;
-	static int y0;
-	static int x1;
-	static int y1;
-	static int x2;
-	static int y2;
-
-	static int clipOutputX;
-	static int clipOutputY;
+	static int clipX0;
+	static int clipY0;
+	static int clipX1;
+	static int clipY1;
 
 	static int minX;
 	static int maxX;
@@ -66,9 +61,15 @@ public class Data {
 	static int cx1;
 	static int cy1;
 
+	static int dx0;
+	static int dy0;
+	static int dx1;
+	static int dy1;
+
 	static int position0;
 	static int position1;
 	static int position2;
+	static int position3;
 
 	static int minTileOriginX;
 	static int maxTileOriginX;
