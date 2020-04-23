@@ -20,7 +20,6 @@ import static grondag.canvas.chunk.occlusion.Data.V100;
 import static grondag.canvas.chunk.occlusion.Data.V101;
 import static grondag.canvas.chunk.occlusion.Data.V110;
 import static grondag.canvas.chunk.occlusion.Data.V111;
-import static grondag.canvas.chunk.occlusion.Data.mvpMatrixExt;
 import static grondag.canvas.chunk.occlusion.Data.offsetX;
 import static grondag.canvas.chunk.occlusion.Data.offsetY;
 import static grondag.canvas.chunk.occlusion.Data.offsetZ;
@@ -244,14 +243,14 @@ abstract class Indexer {
 	}
 
 	static final void computeProjectedBoxBounds(int x0, int y0, int z0, int x1, int y1, int z1) {
-		setupVertex(vertexData, V000, x0, y0, z0, mvpMatrixExt);
-		setupVertex(vertexData, V001, x0, y0, z1, mvpMatrixExt);
-		setupVertex(vertexData, V010, x0, y1, z0, mvpMatrixExt);
-		setupVertex(vertexData, V011, x0, y1, z1, mvpMatrixExt);
-		setupVertex(vertexData, V100, x1, y0, z0, mvpMatrixExt);
-		setupVertex(vertexData, V101, x1, y0, z1, mvpMatrixExt);
-		setupVertex(vertexData, V110, x1, y1, z0, mvpMatrixExt);
-		setupVertex(vertexData, V111, x1, y1, z1, mvpMatrixExt);
+		setupVertex(vertexData, V000, x0, y0, z0);
+		setupVertex(vertexData, V001, x0, y0, z1);
+		setupVertex(vertexData, V010, x0, y1, z0);
+		setupVertex(vertexData, V011, x0, y1, z1);
+		setupVertex(vertexData, V100, x1, y0, z0);
+		setupVertex(vertexData, V101, x1, y0, z1);
+		setupVertex(vertexData, V110, x1, y1, z0);
+		setupVertex(vertexData, V111, x1, y1, z1);
 	}
 
 	static boolean testPixel(int x, int y) {

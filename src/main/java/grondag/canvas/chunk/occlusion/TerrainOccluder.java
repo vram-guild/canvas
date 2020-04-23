@@ -8,11 +8,14 @@ import static grondag.canvas.chunk.occlusion.Constants.PIXEL_HEIGHT;
 import static grondag.canvas.chunk.occlusion.Constants.PIXEL_WIDTH;
 import static grondag.canvas.chunk.occlusion.Constants.TILE_COUNT;
 import static grondag.canvas.chunk.occlusion.Data.modelMatrix;
+import static grondag.canvas.chunk.occlusion.Data.modelMatrixL;
 import static grondag.canvas.chunk.occlusion.Data.mvpMatrix;
+import static grondag.canvas.chunk.occlusion.Data.mvpMatrixL;
 import static grondag.canvas.chunk.occlusion.Data.offsetX;
 import static grondag.canvas.chunk.occlusion.Data.offsetY;
 import static grondag.canvas.chunk.occlusion.Data.offsetZ;
 import static grondag.canvas.chunk.occlusion.Data.projectionMatrix;
+import static grondag.canvas.chunk.occlusion.Data.projectionMatrixL;
 import static grondag.canvas.chunk.occlusion.Data.viewX;
 import static grondag.canvas.chunk.occlusion.Data.viewY;
 import static grondag.canvas.chunk.occlusion.Data.viewZ;
@@ -52,6 +55,34 @@ public abstract class TerrainOccluder {
 		mvpMatrix.multiply(projectionMatrix);
 		mvpMatrix.multiply(modelMatrix);
 		mvpMatrix.multiply(Matrix4f.translate(offsetX * HACK, offsetY * HACK, offsetZ * HACK));
+
+		mvpMatrixL.loadIdentity();
+		mvpMatrixL.multiply(projectionMatrixL);
+		mvpMatrixL.multiply(modelMatrixL);
+		mvpMatrixL.translate(offsetX, offsetY, offsetZ, CAMERA_PRECISION_BITS);
+
+		// TODO: remove
+		//		if (!Float.isNaN(mvpMatrixExt.a00())) {
+		//			assert Math.abs(mvpMatrixExt.a00() - mvpMatrixL.a00f()) <= 0.002f;
+		//			assert Math.abs(mvpMatrixExt.a01() - mvpMatrixL.a01f()) <= 0.002f;
+		//			assert Math.abs(mvpMatrixExt.a02() - mvpMatrixL.a02f()) <= 0.002f;
+		//			assert Math.abs(mvpMatrixExt.a03() - mvpMatrixL.a03f()) <= 0.002f;
+		//
+		//			assert Math.abs(mvpMatrixExt.a10() - mvpMatrixL.a10f()) <= 0.002f;
+		//			assert Math.abs(mvpMatrixExt.a11() - mvpMatrixL.a11f()) <= 0.002f;
+		//			assert Math.abs(mvpMatrixExt.a12() - mvpMatrixL.a12f()) <= 0.002f;
+		//			assert Math.abs(mvpMatrixExt.a13() - mvpMatrixL.a13f()) <= 0.002f;
+		//
+		//			assert Math.abs(mvpMatrixExt.a20() - mvpMatrixL.a20f()) <= 0.002f;
+		//			assert Math.abs(mvpMatrixExt.a21() - mvpMatrixL.a21f()) <= 0.002f;
+		//			assert Math.abs(mvpMatrixExt.a22() - mvpMatrixL.a22f()) <= 0.002f;
+		//			assert Math.abs(mvpMatrixExt.a23() - mvpMatrixL.a23f()) <= 0.002f;
+		//
+		//			assert Math.abs(mvpMatrixExt.a30() - mvpMatrixL.a30f()) <= 0.002f;
+		//			assert Math.abs(mvpMatrixExt.a31() - mvpMatrixL.a31f()) <= 0.002f;
+		//			assert Math.abs(mvpMatrixExt.a32() - mvpMatrixL.a32f()) <= 0.002f;
+		//			assert Math.abs(mvpMatrixExt.a33() - mvpMatrixL.a33f()) <= 0.002f;
+		//		}
 	}
 
 	public static void outputRaster() {
@@ -133,6 +164,9 @@ public abstract class TerrainOccluder {
 		Data.projectionMatrix = projectionMatrix.copy();
 		Data.modelMatrix = modelMatrix.copy();
 		final Vec3d vec3d = camera.getPos();
+
+		projectionMatrixL.copyFrom(projectionMatrix);
+		modelMatrixL.copyFrom(modelMatrix);
 
 		viewX = Math.round(vec3d.getX() * CAMERA_PRECISION_UNITY);
 		viewY = Math.round(vec3d.getY() * CAMERA_PRECISION_UNITY);

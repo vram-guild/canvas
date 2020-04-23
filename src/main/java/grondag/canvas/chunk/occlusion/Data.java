@@ -14,6 +14,10 @@ public class Data {
 	static final Matrix4f mvpMatrix = new Matrix4f();
 	static final Matrix4fExt mvpMatrixExt =  (Matrix4fExt)(Object) mvpMatrix;
 
+	static Matrix4L projectionMatrixL = new Matrix4L();
+	static Matrix4L modelMatrixL = new Matrix4L();
+	static final Matrix4L mvpMatrixL = new Matrix4L();
+
 	static final long[] tiles = new long[TILE_COUNT];
 
 	static long viewX;

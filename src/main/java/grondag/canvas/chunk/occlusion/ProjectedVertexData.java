@@ -17,7 +17,9 @@ public final class ProjectedVertexData {
 
 	public static final int PROJECTED_VERTEX_STRIDE = 6;
 
-	public static void setupVertex(final int[] data, final int baseIndex, final float x, final float y, final float z, Matrix4fExt mvpMatrixExt) {
+	public static void setupVertex(final int[] data, final int baseIndex, final float x, final float y, final float z) {
+		final Matrix4fExt mvpMatrixExt = Data.mvpMatrixExt;
+
 		final float tx = mvpMatrixExt.a00() * x + mvpMatrixExt.a01() * y + mvpMatrixExt.a02() * z + mvpMatrixExt.a03();
 		final float ty = mvpMatrixExt.a10() * x + mvpMatrixExt.a11() * y + mvpMatrixExt.a12() * z + mvpMatrixExt.a13();
 		final float w = mvpMatrixExt.a30() * x + mvpMatrixExt.a31() * y + mvpMatrixExt.a32() * z + mvpMatrixExt.a33();
