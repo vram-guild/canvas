@@ -7,18 +7,15 @@ import static grondag.canvas.chunk.occlusion.Constants.ENABLE_RASTER_OUTPUT;
 import static grondag.canvas.chunk.occlusion.Constants.PIXEL_HEIGHT;
 import static grondag.canvas.chunk.occlusion.Constants.PIXEL_WIDTH;
 import static grondag.canvas.chunk.occlusion.Constants.TILE_COUNT;
-import static grondag.canvas.chunk.occlusion.Data.cameraX;
-import static grondag.canvas.chunk.occlusion.Data.cameraY;
-import static grondag.canvas.chunk.occlusion.Data.cameraZ;
 import static grondag.canvas.chunk.occlusion.Data.modelMatrix;
 import static grondag.canvas.chunk.occlusion.Data.mvpMatrix;
 import static grondag.canvas.chunk.occlusion.Data.offsetX;
 import static grondag.canvas.chunk.occlusion.Data.offsetY;
 import static grondag.canvas.chunk.occlusion.Data.offsetZ;
 import static grondag.canvas.chunk.occlusion.Data.projectionMatrix;
-import static grondag.canvas.chunk.occlusion.Data.xOrigin;
-import static grondag.canvas.chunk.occlusion.Data.yOrigin;
-import static grondag.canvas.chunk.occlusion.Data.zOrigin;
+import static grondag.canvas.chunk.occlusion.Data.viewX;
+import static grondag.canvas.chunk.occlusion.Data.viewY;
+import static grondag.canvas.chunk.occlusion.Data.viewZ;
 
 import java.io.File;
 
@@ -41,24 +38,20 @@ public abstract class TerrainOccluder {
 		System.arraycopy(EMPTY_BITS, 0, Data.tiles, 0, TILE_COUNT);
 	}
 
+	// TODO: remove
+	static final float HACK = 1f / CAMERA_PRECISION_UNITY;
+
 	public static void prepareChunk(BlockPos origin, int occlusionRange) {
 		Data.occlusionRange = occlusionRange;
-		xOrigin = origin.getX();
-		yOrigin = origin.getY();
-		zOrigin = origin.getZ();
 
-		final float offsetXf = (float) (xOrigin - cameraX);
-		final float offsetYf = (float) (yOrigin - cameraY);
-		final float offsetZf = (float) (zOrigin - cameraZ);
+		offsetX = (int) ((origin.getX() << CAMERA_PRECISION_BITS) - viewX);
+		offsetY = (int) ((origin.getY() << CAMERA_PRECISION_BITS) - viewY);
+		offsetZ = (int) ((origin.getZ() << CAMERA_PRECISION_BITS) - viewZ);
 
 		mvpMatrix.loadIdentity();
 		mvpMatrix.multiply(projectionMatrix);
 		mvpMatrix.multiply(modelMatrix);
-		mvpMatrix.multiply(Matrix4f.translate(offsetXf, offsetYf, offsetZf));
-
-		offsetX = Math.round(offsetXf * CAMERA_PRECISION_UNITY);
-		offsetY = Math.round(offsetYf * CAMERA_PRECISION_UNITY);
-		offsetZ = Math.round(offsetZf * CAMERA_PRECISION_UNITY);
+		mvpMatrix.multiply(Matrix4f.translate(offsetX * HACK, offsetY * HACK, offsetZ * HACK));
 	}
 
 	public static void outputRaster() {
@@ -140,9 +133,10 @@ public abstract class TerrainOccluder {
 		Data.projectionMatrix = projectionMatrix.copy();
 		Data.modelMatrix = modelMatrix.copy();
 		final Vec3d vec3d = camera.getPos();
-		cameraX = vec3d.getX();
-		cameraY = vec3d.getY();
-		cameraZ = vec3d.getZ();
+
+		viewX = Math.round(vec3d.getX() * CAMERA_PRECISION_UNITY);
+		viewY = Math.round(vec3d.getY() * CAMERA_PRECISION_UNITY);
+		viewZ = Math.round(vec3d.getZ() * CAMERA_PRECISION_UNITY);
 	}
 
 	public static boolean isBoxVisible(int packedBox) {

@@ -62,6 +62,8 @@ public class Constants {
 	static final int CAMERA_PRECISION_BITS = 12;
 	static final int CAMERA_PRECISION_UNITY = 1 << CAMERA_PRECISION_BITS;
 	static final int CAMERA_PRECISION_CHUNK_MAX = 16 * CAMERA_PRECISION_UNITY;
+	static final int CAMERA_PRECISION_HALF = CAMERA_PRECISION_UNITY / 2;
+
 
 	static final int BOUNDS_IN = 0;
 	static final int BOUNDS_OUTSIDE_OR_TOO_SMALL = 1;

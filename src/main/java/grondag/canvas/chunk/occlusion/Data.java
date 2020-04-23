@@ -16,13 +16,9 @@ public class Data {
 
 	static final long[] tiles = new long[TILE_COUNT];
 
-	static int xOrigin;
-	static int yOrigin;
-	static int zOrigin;
-
-	static double cameraX;
-	static double cameraY;
-	static double cameraZ;
+	static long viewX;
+	static long viewY;
+	static long viewZ;
 
 	static int offsetX;
 	static int offsetY;
