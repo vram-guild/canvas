@@ -24,12 +24,12 @@ import static grondag.canvas.chunk.occlusion.Data.offsetX;
 import static grondag.canvas.chunk.occlusion.Data.offsetY;
 import static grondag.canvas.chunk.occlusion.Data.offsetZ;
 import static grondag.canvas.chunk.occlusion.Data.vertexData;
+import static grondag.canvas.chunk.occlusion.Matrix4L.MATRIX_PRECISION_HALF;
 import static grondag.canvas.chunk.occlusion.ProjectedVertexData.setupVertex;
 
 import com.google.common.base.Strings;
 
 import grondag.canvas.chunk.occlusion.region.OcclusionBitPrinter;
-import grondag.canvas.mixinterface.Matrix4fExt;
 
 abstract class Indexer {
 	private  Indexer() {}
@@ -220,20 +220,17 @@ abstract class Indexer {
 	 * @return
 	 */
 	static boolean isPointVisible(int x, int y, int z) {
-		final Matrix4fExt mvpMatrixExt = Data.mvpMatrixExt;
+		final Matrix4L mvpMatrixL = Data.mvpMatrixL;
 
-		final float w = mvpMatrixExt.a30() * x + mvpMatrixExt.a31() * y + mvpMatrixExt.a32() * z + mvpMatrixExt.a33();
-		final float tz = mvpMatrixExt.a20() * x + mvpMatrixExt.a21() * y + mvpMatrixExt.a22() * z + mvpMatrixExt.a23();
+		final long w = mvpMatrixL.transformVec4W(x, y, z);
+		final long tz = mvpMatrixL.transformVec4Z(x, y, z);
 
 		if (w <= 0 || tz < 0 || tz > w) {
 			return false;
 		}
 
-		final float iw = 1f / w;
-		final float tx = HALF_PIXEL_WIDTH  * iw * (mvpMatrixExt.a00() * x + mvpMatrixExt.a01() * y + mvpMatrixExt.a02() * z + mvpMatrixExt.a03());
-		final float ty = HALF_PIXEL_HEIGHT * iw * (mvpMatrixExt.a10() * x + mvpMatrixExt.a11() * y + mvpMatrixExt.a12() * z + mvpMatrixExt.a13());
-		final int px = (int) tx + HALF_PIXEL_WIDTH;
-		final int py = (int) ty + HALF_PIXEL_HEIGHT;
+		final int px = (int) (HALF_PIXEL_WIDTH + (MATRIX_PRECISION_HALF + HALF_PIXEL_WIDTH  * mvpMatrixL.transformVec4X(x, y, z)) / w);
+		final int py = (int) (HALF_PIXEL_HEIGHT + (MATRIX_PRECISION_HALF + HALF_PIXEL_HEIGHT * mvpMatrixL.transformVec4Y(x, y, z)) / w);
 
 		if (px >= 0 && py >= 0 && px < PIXEL_WIDTH && py < PIXEL_HEIGHT && testPixel(px, py)) {
 			return true;

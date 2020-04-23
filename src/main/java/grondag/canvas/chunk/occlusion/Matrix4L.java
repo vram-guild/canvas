@@ -163,4 +163,36 @@ public class Matrix4L {
 	public long a31() { return a31; }
 	public long a32() { return a32; }
 	public long a33() { return a33; }
+
+	/**
+	 * Computes X component of transformed vector. Assumes input W is 1.
+	 * Result has standard precision.
+	 */
+	public long transformVec4X(int x, int y, int z) {
+		return a00 * x + a01 * y + a02 * z + a03;
+	}
+
+	/**
+	 * Computes Y component of transformed vector. Assumes input W is 1.
+	 * Result has standard precision.
+	 */
+	public long transformVec4Y(int x, int y, int z) {
+		return a10 * x + a11 * y + a12 * z + a13;
+	}
+
+	/**
+	 * Computes Z component of transformed vector. Assumes input W is 1.
+	 * Result has standard precision.
+	 */
+	public long transformVec4Z(int x, int y, int z) {
+		return a20 * x + a21 * y + a22 * z + a23;
+	}
+
+	/**
+	 * Computes W component of transformed vector. Assumes input W is 1.
+	 * Result has standard precision.
+	 */
+	public long transformVec4W(int x, int y, int z) {
+		return a30 * x + a31 * y + a32 * z + a33;
+	}
 }
