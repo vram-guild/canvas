@@ -250,14 +250,13 @@ public class CanvasWorldRenderer {
 				chunks determined to be in or out are marked with current pvs version
 				chunks with current pvs version do not need to be retested against occluder - only against frustum
 			occluder
-				fuzz occluders by 1 block all directions
+				DONE: fuzz occlusion test boxes by 1 block all directions
 				track pvs version
 				update occluder incrementally
 					if pvs version AND frustum are same, only need to draw and test new chunks
 					if pvs version is same but frustum is different, draw all occluders but only test new
 			frustum
-				only invalidate pvs 1x / block movement
-				ditch vanilla frustum and use optimized code in shouldRender
+				DONE: ditch vanilla frustum and use optimized code in shouldRender
 				add check for region visibility to shouldRender
 				cull particle rendering?
 			region
