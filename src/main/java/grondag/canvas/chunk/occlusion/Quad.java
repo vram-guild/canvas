@@ -445,10 +445,6 @@ public final class Quad {
 				| (((position2 - 1) & EVENT_POSITION_MASK) << 4)
 				| (((position3 - 1) & EVENT_POSITION_MASK) << 6);
 
-		// TODO: remove
-		//		if (xOrigin >> 4 == 3 && yOrigin >> 4 == 5 &&  zOrigin >> 4 == -2) {
-		//			System.out.println("boop");
-		//		}
 
 		switch (eventKey) {
 
@@ -900,54 +896,6 @@ public final class Quad {
 		return BOUNDS_IN;
 	}
 
-	// TODO: remove if not used - doesn't work with new indexing
-	//	static boolean compareEvents() {
-	//		boolean result = true;
-	//
-	//		final int limit = maxTileOriginY + 7;
-	//
-	//		for (int i = minPixelY & TILE_AXIS_MASK; i <= limit; ++i) {
-	//			int oldLeft = Integer.MIN_VALUE, oldRight = Integer.MAX_VALUE;
-	//
-	//			final int j = ((i & ~7) << 2) + (i & 7);
-	//
-	//			if ((position0 & A_NEGATIVE) != 0) {
-	//				oldRight =  events[j];
-	//			} else if ((position0 & A_POSITIVE) != 0) {
-	//				oldLeft =  events[j];
-	//			}
-	//
-	//			if ((position1 & A_NEGATIVE) != 0) {
-	//				oldRight =  Math.min(oldRight, events[j +  8]);
-	//			} else if ((position1 & A_POSITIVE) != 0) {
-	//				oldLeft =  Math.max(oldLeft, events[j + 8]);
-	//			}
-	//
-	//			if ((position2 & A_NEGATIVE) != 0) {
-	//				oldRight =  Math.min(oldRight, events[j +  16]);
-	//			} else if ((position2 & A_POSITIVE) != 0) {
-	//				oldLeft =  Math.max(oldLeft, events[j + 16]);
-	//			}
-	//
-	//			oldLeft = MathHelper.clamp(oldLeft, -1, 1024);
-	//			oldRight = MathHelper.clamp(oldRight, -1, 1024);
-	//			final int newLeft = MathHelper.clamp(events2[i << 1], -1, 1024);
-	//			final int newRight = MathHelper.clamp(events2[(i << 1) + 1], -1, 1024);
-	//
-	//			if(oldLeft != newLeft)  {
-	//				System.out.println("For y = " + i + " LEFT was " + oldLeft +  " and is now " + newLeft);
-	//				result = false;
-	//			}
-	//
-	//			if(oldRight != newRight)  {
-	//				System.out.println("For y = " + i + " RIGHT was " + oldRight +  " and is now " + newRight);
-	//				result = false;
-	//			}
-	//		}
-	//
-	//		return result;
-	//	}
-
 	private static int edgePosition(int x0In, int y0In, int x1In, int y1In) {
 		final int dy = y1In - y0In;
 		final int dx = x1In - x0In;
@@ -1245,6 +1193,7 @@ public final class Quad {
 		for (int y = (y0 << 1) + 1; y <= limit; y += 2) {
 			// difference from left: lower value wins
 			long x = ax < bx ? ax : bx;
+
 			if (cx < x) x = cx;
 
 			events[y] = (int) (x >= 0 ? (x >> 20) : -(-x >> 20));

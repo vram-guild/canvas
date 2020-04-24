@@ -6,8 +6,8 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import io.netty.util.internal.shaded.org.jctools.queues.MessagePassingQueue.Consumer;
+import it.unimi.dsi.fastutil.longs.LongHeapPriorityQueue;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import it.unimi.dsi.fastutil.objects.ObjectHeapPriorityQueue;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 
@@ -57,6 +57,10 @@ public class BuiltRenderRegion {
 	private boolean needsImportantRebuild;
 	private volatile RegionBuildState buildState = new RegionBuildState();
 	private final Consumer<TerrainRenderContext> buildTask = this::rebuildOnWorkerThread;
+	/**
+	 * Index of this instance in region array.
+	 */
+	private int regionIndex;
 	private final int[] neighborIndices = new int[6];
 	private Translucent translucentDrawable;
 	private Solid solidDrawable;
@@ -119,7 +123,8 @@ public class BuiltRenderRegion {
 		return areCornersLoadedCache;
 	}
 
-	public void setOrigin(int x, int y, int z) {
+	public void setOrigin(int x, int y, int z,  int myIndex) {
+		regionIndex = myIndex;
 		if (x != origin.getX() || y != origin.getY() || z != origin.getZ()) {
 			clear();
 			origin.set(x, y, z);
@@ -502,8 +507,20 @@ public class BuiltRenderRegion {
 		return squaredCameraDistance;
 	}
 
+	public boolean isVeryNear() {
+		return squaredCameraDistance < 128;
+	}
+
 	public boolean isNear() {
 		return squaredCameraDistance < 768;
+	}
+
+	public int regionIndex() {
+		return regionIndex;
+	}
+
+	public long queueKey() {
+		return (((long) squaredCameraDistance) << 32) | regionIndex;
 	}
 
 	private static int frameIndex;
@@ -512,7 +529,7 @@ public class BuiltRenderRegion {
 		++frameIndex;
 	}
 
-	public void enqueueUnvistedNeighbors(ObjectHeapPriorityQueue<BuiltRenderRegion> regionQueue) {
+	public void enqueueUnvistedNeighbors(LongHeapPriorityQueue regionQueue) {
 		final int index = frameIndex;
 		lastSeenFrameIndex = index;
 		final BuiltRenderRegion regions[] = storage.regions();
@@ -524,7 +541,7 @@ public class BuiltRenderRegion {
 
 				if (ri != index) {
 					r.lastSeenFrameIndex = index;
-					regionQueue.enqueue(r);
+					regionQueue.enqueue(r.queueKey());
 				}
 			}
 		}

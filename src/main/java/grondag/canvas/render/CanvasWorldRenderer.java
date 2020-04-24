@@ -1,6 +1,5 @@
 package grondag.canvas.render;
 
-import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -11,8 +10,8 @@ import javax.annotation.Nullable;
 import com.google.common.collect.Sets;
 import com.mojang.blaze3d.systems.RenderSystem;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap.Entry;
+import it.unimi.dsi.fastutil.longs.LongHeapPriorityQueue;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import it.unimi.dsi.fastutil.objects.ObjectHeapPriorityQueue;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import org.lwjgl.opengl.GL21;
 
@@ -81,12 +80,11 @@ public class CanvasWorldRenderer {
 		return instance;
 	}
 
-	private static final Comparator<BuiltRenderRegion> REGION_COMPARATOR = (a, b) -> Integer.compare(a.squaredCameraDistance(), b.squaredCameraDistance());
 	private int playerLightmap = 0;
 	private RenderRegionBuilder chunkBuilder;
 	private RenderRegionStorage renderRegionStorage;
 	private final CanvasFrustum frustum = new CanvasFrustum();
-	private final ObjectHeapPriorityQueue<BuiltRenderRegion> regionQueue = new ObjectHeapPriorityQueue<>(REGION_COMPARATOR);
+	private final LongHeapPriorityQueue regionQueue = new LongHeapPriorityQueue();
 
 	// TODO: redirect uses in MC WorldRenderer
 	public Set<BuiltRenderRegion> chunksToRebuild = Sets.newLinkedHashSet();
@@ -211,16 +209,14 @@ public class CanvasWorldRenderer {
 		int visibleChunkCount = this.visibleChunkCount;
 
 		if (wr.canvas_checkNeedsTerrainUpdate(cameraPos, camera.getPitch(), camera.getYaw())) {
-			outerTimer.start();
+			//outerTimer.start();
 			BuiltRenderRegion.advanceFrameIndex();
 
-			// PERF: find some more efficient distance-sorting mechanism - ideally persist sorting longer
-			// Use LongHeap instead - pack distance and array position into long  values
-			final ObjectHeapPriorityQueue<BuiltRenderRegion> regionQueue = this.regionQueue;
+			final LongHeapPriorityQueue regionQueue = this.regionQueue;
 			if (cameraChunk == null) {
 				// TODO: prime visible when above or below world and camera chunk is null
 			}  else {
-				regionQueue.enqueue(cameraChunk);
+				regionQueue.enqueue(cameraChunk.queueKey());
 			}
 
 			wr.canvas_setNeedsTerrainUpdate(false);
@@ -233,7 +229,7 @@ public class CanvasWorldRenderer {
 			mc.getProfiler().push("iteration");
 
 			while(!regionQueue.isEmpty()) {
-				final BuiltRenderRegion builtChunk = regionQueue.dequeue();
+				final BuiltRenderRegion builtChunk = regions[(int) regionQueue.dequeueLong()];
 
 				// don't visit if not in frustum
 				if(!builtChunk.isInFrustum(frustum)) {
@@ -247,11 +243,7 @@ public class CanvasWorldRenderer {
 
 				TerrainOccluder.prepareChunk(builtChunk.getOrigin(), builtChunk.occlusionRange);
 
-				//				if (builtChunk.getOrigin().getX() == (34 & ~0xF) && builtChunk.getOrigin().getY() == (79 & ~0xF) && builtChunk.getOrigin().getZ() == (-100 & ~0xF) && !occluder.isChunkVisible()) {
-				//					occluder.isChunkVisible();
-				//				}
-
-				if (!chunkCullingEnabled || builtChunk == cameraChunk || TerrainOccluder.isChunkVisible()) {
+				if (!chunkCullingEnabled || builtChunk == cameraChunk || builtChunk.isVeryNear() || TerrainOccluder.isChunkVisible()) {
 					builtChunk.enqueueUnvistedNeighbors(regionQueue);
 					visibleChunks[visibleChunkCount++] = builtChunk;
 					final RegionData regionData = builtChunk.getBuildData();
@@ -279,7 +271,7 @@ public class CanvasWorldRenderer {
 			this.visibleChunkCount = visibleChunkCount;
 			mc.getProfiler().pop();
 
-			stopOuterTimer();
+			//stopOuterTimer();
 		}
 
 		TerrainOccluder.outputRaster();
