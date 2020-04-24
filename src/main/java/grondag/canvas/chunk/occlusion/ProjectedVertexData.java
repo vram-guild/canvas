@@ -3,8 +3,6 @@ package grondag.canvas.chunk.occlusion;
 import static grondag.canvas.chunk.occlusion.Constants.HALF_PRECISE_HEIGHT;
 import static grondag.canvas.chunk.occlusion.Constants.HALF_PRECISE_WIDTH;
 
-import grondag.canvas.mixinterface.Matrix4fExt;
-
 public final class ProjectedVertexData {
 	private ProjectedVertexData() { }
 
@@ -17,16 +15,17 @@ public final class ProjectedVertexData {
 
 	public static final int PROJECTED_VERTEX_STRIDE = 6;
 
-	public static void setupVertex(final int[] data, final int baseIndex, final float x, final float y, final float z) {
-		final Matrix4fExt mvpMatrixExt = Data.mvpMatrixExt;
+	public static void setupVertex(final int baseIndex, final int x, final int y, final int z) {
+		final int[] data = Data.vertexData;
+		final Matrix4L mvpMatrix = Data.mvpMatrixL;
 
-		final float tx = mvpMatrixExt.a00() * x + mvpMatrixExt.a01() * y + mvpMatrixExt.a02() * z + mvpMatrixExt.a03();
-		final float ty = mvpMatrixExt.a10() * x + mvpMatrixExt.a11() * y + mvpMatrixExt.a12() * z + mvpMatrixExt.a13();
-		final float w = mvpMatrixExt.a30() * x + mvpMatrixExt.a31() * y + mvpMatrixExt.a32() * z + mvpMatrixExt.a33();
+		final float tx = mvpMatrix.transformVec4X(x, y, z) * Matrix4L.FLOAT_CONVERSION;
+		final float ty = mvpMatrix.transformVec4Y(x, y, z) * Matrix4L.FLOAT_CONVERSION;
+		final float w = mvpMatrix.transformVec4W(x, y, z) * Matrix4L.FLOAT_CONVERSION;
 
 		data[baseIndex + PV_X] = Float.floatToRawIntBits(tx);
 		data[baseIndex + PV_Y] = Float.floatToRawIntBits(ty);
-		data[baseIndex + PV_Z] = Float.floatToRawIntBits(mvpMatrixExt.a20() * x + mvpMatrixExt.a21() * y + mvpMatrixExt.a22() * z + mvpMatrixExt.a23());
+		data[baseIndex + PV_Z] = Float.floatToRawIntBits(mvpMatrix.transformVec4Z(x, y, z) * Matrix4L.FLOAT_CONVERSION);
 		data[baseIndex + PV_W] = Float.floatToRawIntBits(w);
 
 		if (w != 0)  {

@@ -4,16 +4,7 @@ import static grondag.canvas.chunk.occlusion.Constants.PIXEL_HEIGHT;
 import static grondag.canvas.chunk.occlusion.Constants.TILE_COUNT;
 import static grondag.canvas.chunk.occlusion.ProjectedVertexData.PROJECTED_VERTEX_STRIDE;
 
-import net.minecraft.client.util.math.Matrix4f;
-
-import grondag.canvas.mixinterface.Matrix4fExt;
-
 public class Data {
-	static Matrix4f projectionMatrix;
-	static Matrix4f modelMatrix;
-	static final Matrix4f mvpMatrix = new Matrix4f();
-	static final Matrix4fExt mvpMatrixExt =  (Matrix4fExt)(Object) mvpMatrix;
-
 	static Matrix4L projectionMatrixL = new Matrix4L();
 	static Matrix4L modelMatrixL = new Matrix4L();
 	static final Matrix4L mvpMatrixL = new Matrix4L();
