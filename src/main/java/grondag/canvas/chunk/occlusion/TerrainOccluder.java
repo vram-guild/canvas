@@ -1,7 +1,6 @@
 package grondag.canvas.chunk.occlusion;
 
 import static grondag.canvas.chunk.occlusion.Constants.CAMERA_PRECISION_BITS;
-import static grondag.canvas.chunk.occlusion.Constants.CAMERA_PRECISION_CHUNK_MAX;
 import static grondag.canvas.chunk.occlusion.Constants.CAMERA_PRECISION_UNITY;
 import static grondag.canvas.chunk.occlusion.Constants.EMPTY_BITS;
 import static grondag.canvas.chunk.occlusion.Constants.ENABLE_RASTER_OUTPUT;
@@ -37,9 +36,6 @@ public abstract class TerrainOccluder {
 	public static void clearScene() {
 		System.arraycopy(EMPTY_BITS, 0, Data.tiles, 0, TILE_COUNT);
 	}
-
-	// TODO: remove
-	static final float HACK = 1f / CAMERA_PRECISION_UNITY;
 
 	public static void prepareChunk(BlockPos origin, int occlusionRange) {
 		Data.occlusionRange = occlusionRange;
@@ -93,16 +89,10 @@ public abstract class TerrainOccluder {
 		final int occlusionRange = Data.occlusionRange;
 		final int limit= visData.length;
 
-
-
 		if (limit > 1) {
 			for (int i = 1; i < limit; i++) {
 				final int box  = visData[i];
 				if (occlusionRange > PackedBox.range(box)) {
-					//					if (i > 8) {
-					//						System.out.println(String.format("Occluded %d of %d at range %d", i - 1, limit - 1, range));
-					//					}
-
 					break;
 				}
 
@@ -270,158 +260,5 @@ public abstract class TerrainOccluder {
 				}
 			}
 		}
-	}
-
-	public static boolean isChunkVisible()  {
-		if (Indexer.isPointVisible(8, 8, 8)) {
-			return true;
-		}
-
-		Indexer.computeProjectedBoxBounds(-1, -1, -1, 17, 17, 17);
-
-		// rank tests by how directly they face - use distance from camera coordinates for this
-		final int offsetX = Data.offsetX;
-		final int offsetY = Data.offsetY;
-		final int offsetZ = Data.offsetZ;
-
-		int testBits = 0;
-		int nearBits  = 0;
-		int xTest =  0;
-		int yTest = 0;
-		int zTest = 0;
-
-		// if camera below top face can't be seen
-		if (offsetY < -CAMERA_PRECISION_CHUNK_MAX) {
-			// UP
-			if (offsetY > -CAMERA_PRECISION_CHUNK_MAX - CAMERA_PRECISION_UNITY) {
-				// if very close to plane then don't test - precision may give inconsistent results
-				nearBits |= 2;
-			}
-
-			yTest = -offsetY + CAMERA_PRECISION_CHUNK_MAX;
-			testBits |= 2;
-		} else if (offsetY > 0) {
-			// DOWN
-			if (offsetY < CAMERA_PRECISION_UNITY) {
-				nearBits |= 2;
-			}
-
-			yTest = offsetY;
-			testBits |= 2;
-		}
-
-		if (offsetX < -CAMERA_PRECISION_CHUNK_MAX) {
-			// EAST;
-			if (offsetX > -CAMERA_PRECISION_CHUNK_MAX - CAMERA_PRECISION_UNITY) {
-				nearBits |= 1;
-			}
-
-			xTest = -offsetX + CAMERA_PRECISION_CHUNK_MAX;
-			testBits |= 1;
-		} else if (offsetX > 0) {
-			// WEST
-			if (offsetX < CAMERA_PRECISION_UNITY) {
-				nearBits |= 1;
-			}
-
-			xTest = offsetX;
-			testBits |= 1;
-		}
-
-		if (offsetZ < -CAMERA_PRECISION_CHUNK_MAX) {
-			// SOUTH
-			if (offsetZ > -CAMERA_PRECISION_CHUNK_MAX - CAMERA_PRECISION_UNITY) {
-				nearBits |= 4;
-			}
-
-			zTest = -offsetZ + CAMERA_PRECISION_CHUNK_MAX;
-			testBits |= 4;
-		} else if (offsetZ > 0) {
-			// NORTH
-			if (offsetZ < CAMERA_PRECISION_UNITY) {
-				nearBits |= 4;
-			}
-
-			zTest = offsetZ;
-			testBits |= 4;
-		}
-
-		// if only valid tests are very near, assume visible to avoid false negatives due to precision
-		if (nearBits != 0 && (testBits & ~nearBits) == 0) {
-			return true;
-		} else {
-			switch (testBits)  {
-			default:
-			case 0b000:
-				return false;
-			case 0b001:
-				return offsetX > 0 ? Indexer.testWest() : Indexer.testEast();
-			case 0b010:
-				return offsetY > 0 ? Indexer.testDown() : Indexer.testUp();
-			case 0b011:
-				if (xTest > yTest) {
-					return (offsetX > 0 ? Indexer.testWest() : Indexer.testEast()) || (offsetY > 0 ? Indexer.testDown() : Indexer.testUp());
-				} else {
-					return (offsetY > 0 ? Indexer.testDown() : Indexer.testUp()) || (offsetX > 0 ? Indexer.testWest() : Indexer.testEast());
-				}
-			case 0b100:
-				return offsetZ > 0 ? Indexer.testNorth() : Indexer.testSouth();
-			case 0b101:
-				if (xTest > zTest) {
-					return (offsetX > 0 ? Indexer.testWest() : Indexer.testEast()) || (offsetZ > 0 ? Indexer.testNorth() : Indexer.testSouth());
-				} else {
-					return (offsetZ > 0 ? Indexer.testNorth() : Indexer.testSouth()) || (offsetX > 0 ? Indexer.testWest() : Indexer.testEast());
-				}
-			case 0b110:
-				if (yTest > zTest) {
-					return (offsetY > 0 ? Indexer.testDown() : Indexer.testUp()) || (offsetZ > 0 ? Indexer.testNorth() : Indexer.testSouth());
-				} else {
-					return (offsetZ > 0 ? Indexer.testNorth() : Indexer.testSouth()) || (offsetY > 0 ? Indexer.testDown() : Indexer.testUp());
-				}
-			case 0b111:
-				if (xTest > yTest) {
-					if  (zTest > xTest) {
-						// z first
-						return (offsetZ > 0 ? Indexer.testNorth() : Indexer.testSouth())
-								|| (offsetX > 0 ? Indexer.testWest() : Indexer.testEast())
-								|| (offsetY > 0 ? Indexer.testDown() : Indexer.testUp());
-					} else {
-						// x first
-						return (offsetX > 0 ? Indexer.testWest() : Indexer.testEast())
-								|| (offsetZ > 0 ? Indexer.testNorth() : Indexer.testSouth())
-								|| (offsetY > 0 ? Indexer.testDown() : Indexer.testUp());
-					}
-				} else if (zTest > yTest) {
-					// z first
-					return (offsetZ > 0 ? Indexer.testNorth() : Indexer.testSouth())
-							|| (offsetY > 0 ? Indexer.testDown() : Indexer.testUp())
-							|| (offsetX > 0 ? Indexer.testWest() : Indexer.testEast());
-				} else {
-					// y first
-					return (offsetY > 0 ? Indexer.testDown() : Indexer.testUp())
-							|| (offsetZ > 0 ? Indexer.testNorth() : Indexer.testSouth())
-							|| (offsetX > 0 ? Indexer.testWest() : Indexer.testEast());
-				}
-			}
-		}
-
-		//		// TODO: remove
-		//		if (occlusionRange == PackedBox.RANGE_EXTREME) {
-		//			if (result) {
-		//				++extTrue;
-		//			} else {
-		//				++extFalse;
-		//			}
-		//		}
-		//
-		//		if (++totalCount == 1000000) {
-		//			System.out.println(String.format("extreme true: %f  extreme false: %f", extTrue / 10000f, extFalse / 10000f));
-		//			System.out.println(String.format("Early exit: %f", earlyExit / 10000f));
-		//			System.out.println();
-		//			totalCount = 0;
-		//			extTrue = 0;
-		//			extFalse = 0;
-		//			earlyExit = 0;
-		//		}
 	}
 }

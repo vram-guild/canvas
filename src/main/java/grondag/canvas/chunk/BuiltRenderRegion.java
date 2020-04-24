@@ -64,8 +64,6 @@ public class BuiltRenderRegion {
 	private final int[] neighborIndices = new int[6];
 	private Translucent translucentDrawable;
 	private Solid solidDrawable;
-	// UGLY: encapsulate
-	public boolean canRenderTerrain;
 	private int frustumVersion;
 	private boolean frustumResult;
 	private int lastSeenFrameIndex;

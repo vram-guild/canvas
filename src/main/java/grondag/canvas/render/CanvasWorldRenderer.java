@@ -251,23 +251,28 @@ public class CanvasWorldRenderer {
 				chunks with current pvs version do not need to be retested against occluder - only against frustum
 			occluder
 				DONE: fuzz occlusion test boxes by 1 block all directions
+				DONE: test occlusion volumes, not whole chunk volume
 				track pvs version
 				update occluder incrementally
 					if pvs version AND frustum are same, only need to draw and test new chunks
 					if pvs version is same but frustum is different, draw all occluders but only test new
 			frustum
 				DONE: ditch vanilla frustum and use optimized code in shouldRender
-				add check for region visibility to shouldRender
+				unbork main render loop
+				add check for region visibility to entity shouldRender
 				cull particle rendering?
 			region
+				DONE: don't test vis of empty chunks and don't add them to visibles
 				track pvs version
 				track if visible in current pvs
 				check for occlusion state changes  - invalidate PVS only when it changes
 				backface culling
 				lod culling
-				fix small occluder boxes
+				fix small occluder box generation
 
 		 */
+		// TODO: integrate with sets used below, or come up with a better scheme
+		final ObjectArrayList<BuiltRenderRegion> buildList = new ObjectArrayList<>();
 
 		if (wr.canvas_checkNeedsTerrainUpdate(cameraPos, camera.getPitch(), camera.getYaw())) {
 			//outerTimer.start();
@@ -302,30 +307,30 @@ public class CanvasWorldRenderer {
 					continue;
 				}
 
+				final RegionData regionData = builtChunk.getBuildData();
+				final int[] visData =  regionData.getOcclusionData();
+
+				if (visData == null) {
+					buildList.add(builtChunk);
+					continue;
+				}
+
+				if (builtChunk.needsRebuild()) {
+					buildList.add(builtChunk);
+				}
+
+				// for empty regions, check neighbors but don't add to visible set
+				if (visData == OcclusionRegion.EMPTY_CULL_DATA) {
+					builtChunk.enqueueUnvistedNeighbors(regionQueue);
+					continue;
+				}
+
 				TerrainOccluder.prepareChunk(builtChunk.getOrigin(), builtChunk.occlusionRange);
 
-				if (!chunkCullingEnabled || builtChunk == cameraChunk || builtChunk.isVeryNear() || TerrainOccluder.isChunkVisible()) {
+				if (!chunkCullingEnabled || builtChunk == cameraChunk || builtChunk.isVeryNear() || TerrainOccluder.isBoxVisible(visData[OcclusionRegion.CULL_DATA_CHUNK_BOUNDS])) {
 					builtChunk.enqueueUnvistedNeighbors(regionQueue);
 					visibleChunks[visibleChunkCount++] = builtChunk;
-					final RegionData regionData = builtChunk.getBuildData();
-					final int[] visData =  regionData.getOcclusionData();
-
-					if (visData == null) {
-						builtChunk.canRenderTerrain = false;
-					} else {
-						final int chunkRenderBounds = visData[OcclusionRegion.CULL_DATA_CHUNK_BOUNDS];
-
-						if (chunkRenderBounds == PackedBox.EMPTY_BOX) {
-							builtChunk.canRenderTerrain = false;
-						} else if (chunkRenderBounds == PackedBox.FULL_BOX || TerrainOccluder.isBoxVisible(chunkRenderBounds) || builtChunk == cameraChunk) {
-							builtChunk.canRenderTerrain = true;
-							TerrainOccluder.occlude(visData);
-						} else {
-							builtChunk.canRenderTerrain = false;
-						}
-					}
-				} else {
-					continue;
+					TerrainOccluder.occlude(visData);
 				}
 			}
 
@@ -342,25 +347,26 @@ public class CanvasWorldRenderer {
 		final Set<BuiltRenderRegion> chunksToRebuild = Sets.newLinkedHashSet();
 		this.chunksToRebuild = chunksToRebuild;
 
-		boolean needsTerrainUpdate = false;
+		final boolean needsTerrainUpdate = !buildList.isEmpty();
 
-		for (int i = 0; i < visibleChunkCount; i++) {
-			final BuiltRenderRegion builtChunk = visibleChunks[i];
+		//		for (int i = 0; i < visibleChunkCount; i++) {
+		//			final BuiltRenderRegion builtChunk = visibleChunks[i];
 
-			if (builtChunk.needsRebuild() || oldChunksToRebuild.contains(builtChunk)) {
-				needsTerrainUpdate = true;
-
-				if (builtChunk.needsImportantRebuild() || builtChunk.isNear()) {
-					mc.getProfiler().push("build near");
-					builtChunk.rebuildOnMainThread();
-					builtChunk.markBuilt();
-					mc.getProfiler().pop();
-				} else {
-					chunksToRebuild.add(builtChunk);
-				}
+		for (final BuiltRenderRegion builtChunk : buildList) {
+			// FIX: why was this check here? Was it a concurrency thing?
+			//			if (builtChunk.needsRebuild() || oldChunksToRebuild.contains(builtChunk)) {
+			if (builtChunk.needsImportantRebuild() || builtChunk.isNear()) {
+				mc.getProfiler().push("build near");
+				builtChunk.rebuildOnMainThread();
+				builtChunk.markBuilt();
+				mc.getProfiler().pop();
+			} else {
+				chunksToRebuild.add(builtChunk);
 			}
+			//			}
 		}
 
+		// TODO: still needed in old WR?
 		if (needsTerrainUpdate) {
 			wr.canvas_setNeedsTerrainUpdate(true);
 		}
@@ -859,38 +865,36 @@ public class CanvasWorldRenderer {
 		for (int chunkIndex = startIndex; chunkIndex != endIndex; chunkIndex += step) {
 			final BuiltRenderRegion builtChunk = visibleChunks[chunkIndex];
 
-			if (builtChunk.canRenderTerrain) {
-				final DrawableChunk drawable = isTranslucent ? builtChunk.translucentDrawable() : builtChunk.solidDrawable();
+			final DrawableChunk drawable = isTranslucent ? builtChunk.translucentDrawable() : builtChunk.solidDrawable();
 
-				if (drawable != null && !drawable.isEmpty()) {
-					matrixStack.push();
-					final BlockPos blockPos = builtChunk.getOrigin();
-					matrixStack.translate(blockPos.getX() - x, blockPos.getY() - y, blockPos.getZ() - z);
-					RenderSystem.pushMatrix();
-					RenderSystem.loadIdentity();
-					RenderSystem.multMatrix(matrixStack.peek().getModel());
+			if (drawable != null && !drawable.isEmpty()) {
+				matrixStack.push();
+				final BlockPos blockPos = builtChunk.getOrigin();
+				matrixStack.translate(blockPos.getX() - x, blockPos.getY() - y, blockPos.getZ() - z);
+				RenderSystem.pushMatrix();
+				RenderSystem.loadIdentity();
+				RenderSystem.multMatrix(matrixStack.peek().getModel());
 
-					final ObjectArrayList<DrawableDelegate> delegates = drawable.delegates();
-					final int limit = delegates.size();
+				final ObjectArrayList<DrawableDelegate> delegates = drawable.delegates();
+				final int limit = delegates.size();
 
-					for(int i = 0; i < limit; i++) {
-						if (isTranslucent) {
-							++lastTranlsucentCount;
-						} else {
-							++lastSolidCount;
-						}
-
-						final DrawableDelegate d = delegates.get(i);
-						d.materialState().drawHandler.setup();
-						d.bind();
-						// TODO: confirm everything that used to happen below happens in bind above
-						vertexFormat.startDrawing(d.byteOffset());
-						d.draw();
+				for(int i = 0; i < limit; i++) {
+					if (isTranslucent) {
+						++lastTranlsucentCount;
+					} else {
+						++lastSolidCount;
 					}
 
-					RenderSystem.popMatrix();
-					matrixStack.pop();
+					final DrawableDelegate d = delegates.get(i);
+					d.materialState().drawHandler.setup();
+					d.bind();
+					// TODO: confirm everything that used to happen below happens in bind above
+					vertexFormat.startDrawing(d.byteOffset());
+					d.draw();
 				}
+
+				RenderSystem.popMatrix();
+				matrixStack.pop();
 			}
 		}
 
