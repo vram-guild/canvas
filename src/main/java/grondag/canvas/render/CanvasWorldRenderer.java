@@ -208,6 +208,68 @@ public class CanvasWorldRenderer {
 		mc.getProfiler().swap("update");
 		int visibleChunkCount = this.visibleChunkCount;
 
+		/**
+		TODO: temporal controls on rebuilds
+
+		Reasons terrain needs to be rebuilt
+			rotation
+				remain visible if in frustum
+			translation
+			occluder change (chunk load)
+
+		state components and dependencies
+			region sort order
+				camera position
+
+			potential visibility
+				camera position
+				occluders
+
+			actual visibility
+				potential visibility
+				rotation (frustum)
+
+		most impactful changes - most to least
+			camera position
+				only update 1x per block distance
+				fuzz vis boxes by 1 in each direction
+			occluders
+				track pvs version
+				only retest chunk visiblity when an already-drawn occluder changes
+				check for occlusion state changes when chunks rebuild - don't invalidate  state otherwise
+			frustum
+				rebuild occluder only when new chunks come into frustum without current pvs version
+				don't retest chunks that were already drawn with current pvs version
+
+		specific strategies / changes
+			track a pvs version
+				chunks are always tested in distance order
+				invalidated when...
+					camera moves more than 1 block
+					occluder already drawn into current pvs changes
+				chunks determined to be in or out are marked with current pvs version
+				chunks with current pvs version do not need to be retested against occluder - only against frustum
+			occluder
+				fuzz occluders by 1 block all directions
+				track pvs version
+				update occluder incrementally
+					if pvs version AND frustum are same, only need to draw and test new chunks
+					if pvs version is same but frustum is different, draw all occluders but only test new
+			frustum
+				only invalidate pvs 1x / block movement
+				ditch vanilla frustum and use optimized code in shouldRender
+				add check for region visibility to shouldRender
+				cull particle rendering?
+			region
+				track pvs version
+				track if visible in current pvs
+				check for occlusion state changes  - invalidate PVS only when it changes
+				backface culling
+				lod culling
+				fix small occluder boxes
+
+		 */
+
 		if (wr.canvas_checkNeedsTerrainUpdate(cameraPos, camera.getPitch(), camera.getYaw())) {
 			//outerTimer.start();
 			BuiltRenderRegion.advanceFrameIndex();
@@ -321,6 +383,7 @@ public class CanvasWorldRenderer {
 			chunks.updateRegionOrigins(mc.player.getX(), mc.player.getZ());
 		}
 
+		// PERF: really does this every time?
 		chunks.updateCameraDistance(cameraPos);
 		chunkBuilder.setCameraPosition(cameraPos);
 	}
