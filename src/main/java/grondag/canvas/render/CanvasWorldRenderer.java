@@ -184,67 +184,32 @@ public class CanvasWorldRenderer {
 	}
 
 	/**
-	TODO: temporal controls on rebuilds
+	FIX:
+		fix small occluder box generation
 
-	Reasons terrain needs to be rebuilt
-		rotation
-			remain visible if in frustum
-		translation
-		occluder change (chunk load)
+	 PERF: more things to try
+		more culling
+		backface culling
+		lod culling: don't render grass, cobwebs, flowers, etc. at longer ranges
+		render leaves as solid at distance - omit interior faces
+		unbork main render loop
+		cull particle rendering?
+		add check for visibility to entity shouldRender via Frustum check
+		single-draw solid layer via shaders
+		render larger cubes - avoid matrix state changes
+		shared buffers
+		retain vertex bindings when possible, use VAO
+	 */
 
-	state components and dependencies
-		region sort order
-			camera position
-
-		potential visibility
-			camera position
-			occluders
-
-		actual visibility
-			potential visibility
-			rotation (frustum)
-
-	most impactful changes - most to least
-		camera position
-			only update 1x per block distance
-			fuzz vis boxes by 1 in each direction
-		occluders
-			track pvs version
-			only retest chunk visiblity when an already-drawn occluder changes
-			check for occlusion state changes when chunks rebuild - don't invalidate  state otherwise
-		frustum
-			rebuild occluder only when new chunks come into frustum without current pvs version
-			don't retest chunks that were already drawn with current pvs version
-
-	specific strategies / changes
-		track a pvs version
-			chunks are always tested in distance order
-			invalidated when...
-				camera moves more than 1 block
-				occluder already drawn into current pvs changes
-			chunks determined to be in or out are marked with current pvs version
-			chunks with current pvs version do not need to be retested against occluder - only against frustum
-		occluder
-			DONE: fuzz occlusion test boxes by 1 block all directions
-			DONE: test occlusion volumes, not whole chunk volume
-			track pvs version
-			update occluder incrementally
-				if pvs version AND frustum are same, only need to draw and test new chunks
-				if pvs version is same but frustum is different, draw all occluders but only test new
-		frustum
-			DONE: ditch vanilla frustum and use optimized code in shouldRender
-			unbork main render loop
-			add check for region visibility to entity shouldRender
-			cull particle rendering?
-		region
-			DONE: don't test vis of empty chunks and don't add them to visibles
-			track pvs version
-			track if visible in current pvs
-			check for occlusion state changes  - invalidate PVS only when it changes
-			backface culling
-			lod culling
-			fix small occluder box generation
-
+	/**
+	 * Terrain rebuild is partly lazy/incremental
+	 * The occluder has a thread-safe version indicating visibility test validity.
+	 * The raster must be redrawn whenever the frustum view changes but prior visibility
+	 * checks remain valid until the player location changes more than 1 block
+	 * (regions are fuzzed one block to allow this) or a region that was already drawn into
+	 * the raster is updated with different visibility informaiton.  New occluders can
+	 * also  be added to the existing raster.
+	 * or
 	 */
 	public void setupTerrain(Camera camera, CanvasFrustum frustum, int frameCounter, boolean isSpectator) {
 		final WorldRendererExt wr = this.wr;
@@ -294,7 +259,7 @@ public class CanvasWorldRenderer {
 			}
 
 			int visibleChunkCount = 0;
-			final boolean redrawOccluder = TerrainOccluder.clearSceneIfNeeded(frustum.viewVersion(), frustumPositionVersion);
+			final boolean redrawOccluder = TerrainOccluder.needsRedraw();
 			final int occluderVersion = TerrainOccluder.version();
 
 			Entity.setRenderDistanceMultiplier(MathHelper.clamp(mc.options.viewDistance / 8.0D, 1.0D, 2.5D));
@@ -435,12 +400,12 @@ public class CanvasWorldRenderer {
 		final double cameraZ = vec3d.getZ();
 		final Matrix4f modelMatrix = matrixStack.peek().getModel();
 
-		TerrainOccluder.prepareScene(projectionMatrix, modelMatrix, camera);
-
 		profiler.swap("culling");
 
 		final CanvasFrustum frustum = this.frustum;
 		frustum.prepare(modelMatrix, projectionMatrix, camera);
+
+		TerrainOccluder.prepareScene(projectionMatrix, modelMatrix, camera, frustum);
 
 		profiler.swap("clear");
 		BackgroundRenderer.render(camera, f, mc.world, mc.options.viewDistance, gameRenderer.getSkyDarkness(f));
@@ -862,17 +827,6 @@ public class CanvasWorldRenderer {
 		}
 
 		mc.getProfiler().push("render_" + (isTranslucent ? "translucent" : "solid"));
-
-		// PERF: things to try
-		// more culling
-		// backface culling
-		// single-draw solid layer via shaders
-		// render larger cubes - avoid matrix state changes
-		// shared buffers
-		// render leaves as solid at distance - omit interior faces
-		// optimize frustum tests - consider skipping far plane test
-		// retain vertex bindings when possible, use VAO
-		// don't render grass, cobwebs, flowers, etc. at longer ranges
 
 		final int startIndex = isTranslucent ? visibleChunkCount - 1 : 0 ;
 		final int endIndex = isTranslucent ? -1 : visibleChunkCount;

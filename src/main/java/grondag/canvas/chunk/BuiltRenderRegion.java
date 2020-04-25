@@ -530,7 +530,7 @@ public class BuiltRenderRegion {
 	}
 
 	public boolean isVeryNear() {
-		return squaredCameraDistance < 128;
+		return squaredCameraDistance < 243;
 	}
 
 	public boolean isNear() {

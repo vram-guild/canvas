@@ -10,6 +10,7 @@ import static grondag.canvas.chunk.occlusion.Constants.TILE_COUNT;
 import static grondag.canvas.chunk.occlusion.Data.forceRedraw;
 import static grondag.canvas.chunk.occlusion.Data.modelMatrixL;
 import static grondag.canvas.chunk.occlusion.Data.mvpMatrixL;
+import static grondag.canvas.chunk.occlusion.Data.needsRedraw;
 import static grondag.canvas.chunk.occlusion.Data.occluderVersion;
 import static grondag.canvas.chunk.occlusion.Data.offsetX;
 import static grondag.canvas.chunk.occlusion.Data.offsetY;
@@ -31,41 +32,10 @@ import net.minecraft.util.math.Vec3d;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.chunk.occlusion.region.PackedBox;
+import grondag.canvas.render.CanvasFrustum;
 
 public abstract class TerrainOccluder {
 	private  TerrainOccluder() {}
-
-	/**
-	 * Check if needs redrawn and prep for redraw if  so.
-	 * When false, regions should be drawn only if their occluder version is not current.
-	 *
-	 * Also checks for invalidation of occluder version using positionVersion.
-	 *
-	 * @param viewVersion   from frustum
-	 * @param positionVersion from frustum
-	 * @return True if occluder should be redrawn. If false, can be reused for testing and additive drawing.
-	 */
-	public static boolean clearSceneIfNeeded(int viewVersion, int positionVersion) {
-		if (forceRedraw) {
-			Data.viewVersion = viewVersion;
-			Data.positionVersion = positionVersion;
-			System.arraycopy(EMPTY_BITS, 0, Data.tiles, 0, TILE_COUNT);
-			forceRedraw = false;
-			return true;
-		} else if (Data.positionVersion != positionVersion) {
-			occluderVersion.incrementAndGet();
-			Data.viewVersion = viewVersion;
-			Data.positionVersion = positionVersion;
-			System.arraycopy(EMPTY_BITS, 0, Data.tiles, 0, TILE_COUNT);
-			return true;
-		} else if (Data.viewVersion != viewVersion) {
-			Data.viewVersion = viewVersion;
-			System.arraycopy(EMPTY_BITS, 0, Data.tiles, 0, TILE_COUNT);
-			return true;
-		} else {
-			return false;
-		}
-	}
 
 	/**
 	 * Previously tested regions can reuse test results if their version matches.
@@ -163,14 +133,55 @@ public abstract class TerrainOccluder {
 		}
 	}
 
-	public static void prepareScene(Matrix4f projectionMatrix, Matrix4f modelMatrix, Camera camera) {
-		projectionMatrixL.copyFrom(projectionMatrix);
-		modelMatrixL.copyFrom(modelMatrix);
+	/**
+	 * Check if needs redrawn and prep for redraw if  so.
+	 * When false, regions should be drawn only if their occluder version is not current.
+	 *
+	 * Also checks for invalidation of occluder version using positionVersion.
+	 *
+	 * @param viewVersion   from frustum
+	 * @param positionVersion from frustum
+	 * @return True if occluder should be redrawn. If false, can be reused for testing and additive drawing.
+	 */
+	public static void prepareScene(Matrix4f projectionMatrix, Matrix4f modelMatrix, Camera camera, CanvasFrustum frustum) {
+		final int viewVersion = frustum.viewVersion();
+		final int positionVersion = frustum.positionVersion();
 
-		final Vec3d vec3d = camera.getPos();
-		viewX = Math.round(vec3d.getX() * CAMERA_PRECISION_UNITY);
-		viewY = Math.round(vec3d.getY() * CAMERA_PRECISION_UNITY);
-		viewZ = Math.round(vec3d.getZ() * CAMERA_PRECISION_UNITY);
+		if (Data.viewVersion != viewVersion) {
+			projectionMatrixL.copyFrom(projectionMatrix);
+			modelMatrixL.copyFrom(modelMatrix);
+
+			final Vec3d vec3d = camera.getPos();
+			viewX = Math.round(vec3d.getX() * CAMERA_PRECISION_UNITY);
+			viewY = Math.round(vec3d.getY() * CAMERA_PRECISION_UNITY);
+			viewZ = Math.round(vec3d.getZ() * CAMERA_PRECISION_UNITY);
+		}
+
+		if (forceRedraw) {
+			Data.viewVersion = viewVersion;
+			Data.positionVersion = positionVersion;
+			System.arraycopy(EMPTY_BITS, 0, Data.tiles, 0, TILE_COUNT);
+			forceRedraw = false;
+			needsRedraw = true;
+		} else if (Data.positionVersion != positionVersion) {
+			occluderVersion.incrementAndGet();
+			Data.viewVersion = viewVersion;
+			Data.positionVersion = positionVersion;
+			System.arraycopy(EMPTY_BITS, 0, Data.tiles, 0, TILE_COUNT);
+			needsRedraw = true;
+		} else if (Data.viewVersion != viewVersion) {
+			Data.viewVersion = viewVersion;
+			System.arraycopy(EMPTY_BITS, 0, Data.tiles, 0, TILE_COUNT);
+			needsRedraw = true;
+		} else {
+			needsRedraw = false;
+		}
+
+
+	}
+
+	public static boolean needsRedraw() {
+		return needsRedraw;
 	}
 
 	public static boolean isBoxVisible(int packedBox) {

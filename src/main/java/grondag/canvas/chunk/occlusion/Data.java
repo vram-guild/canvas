@@ -27,6 +27,7 @@ public class Data {
 	static int viewVersion = -1;
 	static AtomicInteger occluderVersion = new AtomicInteger();
 	static boolean forceRedraw = false;
+	static boolean needsRedraw = false;
 
 	// Boumds of current triangle - pixel coordinates
 	static int minPixelX;
