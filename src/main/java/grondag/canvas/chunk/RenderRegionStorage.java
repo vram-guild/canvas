@@ -10,9 +10,8 @@ public class RenderRegionStorage {
 	private int sizeX;
 	private int sizeZ;
 	private final BuiltRenderRegion[] regions;
-	private int lastCameraX;
-	private int lastCameraY;
-	private int lastCameraZ;
+
+	private int positionVersion;
 
 	// position of the player for last origin update
 	private double playerX;
@@ -151,26 +150,23 @@ public class RenderRegionStorage {
 		return getRegionIndexSafely(pos.getX(), pos.getY(), pos.getZ());
 	}
 
-	/** Called each frame. Avoids recalc on each lookup, which also happens every frame */
-	public void updateCameraDistance(Vec3d cameraPos) {
-		final double xExact = cameraPos.x;
-		final double yExact = cameraPos.y;
-		final double zExact = cameraPos.z;
-
-		final int x = (int) Math.round(xExact);
-		final int y = (int) Math.round(yExact);
-		final int z = (int) Math.round(zExact);
-
-		if (x == lastCameraX && y == lastCameraY && z == lastCameraZ) {
+	/**
+	 * Called each frame, but only updates when player has moved more than 1 block.
+	 * Uses position version to detect the movement.
+	 */
+	public void updateCameraDistance(Vec3d cameraPos, int positionVersion) {
+		if (this.positionVersion == positionVersion) {
 			return;
 		}
 
-		lastCameraX = x;
-		lastCameraY = y;
-		lastCameraZ = z;
+		this.positionVersion = positionVersion;
+
+		final double x = cameraPos.x;
+		final double y = cameraPos.y;
+		final double z = cameraPos.z;
 
 		for (final BuiltRenderRegion chunk : regions) {
-			chunk.updateCameraDistance(xExact, yExact, zExact);
+			chunk.updateCameraDistance(x, y, z);
 		}
 	}
 

@@ -179,11 +179,73 @@ public class CanvasWorldRenderer {
 		}
 	}
 
+	/**
+	TODO: temporal controls on rebuilds
+
+	Reasons terrain needs to be rebuilt
+		rotation
+			remain visible if in frustum
+		translation
+		occluder change (chunk load)
+
+	state components and dependencies
+		region sort order
+			camera position
+
+		potential visibility
+			camera position
+			occluders
+
+		actual visibility
+			potential visibility
+			rotation (frustum)
+
+	most impactful changes - most to least
+		camera position
+			only update 1x per block distance
+			fuzz vis boxes by 1 in each direction
+		occluders
+			track pvs version
+			only retest chunk visiblity when an already-drawn occluder changes
+			check for occlusion state changes when chunks rebuild - don't invalidate  state otherwise
+		frustum
+			rebuild occluder only when new chunks come into frustum without current pvs version
+			don't retest chunks that were already drawn with current pvs version
+
+	specific strategies / changes
+		track a pvs version
+			chunks are always tested in distance order
+			invalidated when...
+				camera moves more than 1 block
+				occluder already drawn into current pvs changes
+			chunks determined to be in or out are marked with current pvs version
+			chunks with current pvs version do not need to be retested against occluder - only against frustum
+		occluder
+			DONE: fuzz occlusion test boxes by 1 block all directions
+			DONE: test occlusion volumes, not whole chunk volume
+			track pvs version
+			update occluder incrementally
+				if pvs version AND frustum are same, only need to draw and test new chunks
+				if pvs version is same but frustum is different, draw all occluders but only test new
+		frustum
+			DONE: ditch vanilla frustum and use optimized code in shouldRender
+			unbork main render loop
+			add check for region visibility to entity shouldRender
+			cull particle rendering?
+		region
+			DONE: don't test vis of empty chunks and don't add them to visibles
+			track pvs version
+			track if visible in current pvs
+			check for occlusion state changes  - invalidate PVS only when it changes
+			backface culling
+			lod culling
+			fix small occluder box generation
+
+	 */
 	public void setupTerrain(Camera camera, CanvasFrustum frustum, int frameCounter, boolean isSpectator) {
 		final WorldRendererExt wr = this.wr;
 		final MinecraftClient mc = wr.canvas_mc();
 		final int renderDistance = wr.canvas_renderDistance();
-		final ClientWorld world = wr.canvas_world();
 		final RenderRegionBuilder chunkBuilder = this.chunkBuilder;
 		final RenderRegionStorage chunkStorage = renderRegionStorage;
 		final BuiltRenderRegion[] regions = chunkStorage.regions();
@@ -196,85 +258,15 @@ public class CanvasWorldRenderer {
 		resizeArraysIfNeeded(regions.length);
 		chunkStorage.updateRegionOriginsIfNeeded(mc);
 
-
 		mc.getProfiler().swap("camera");
 		final Vec3d cameraPos = camera.getPos();
 		chunkBuilder.setCameraPosition(cameraPos);
-		// PERF: do this only when translucent sort is needed
 		mc.getProfiler().swap("distance");
-		chunkStorage.updateCameraDistance(cameraPos);
-
+		chunkStorage.updateCameraDistance(cameraPos, frustum.positionVersion());
 
 		final BlockPos cameraBlockPos = camera.getBlockPos();
 		final int cameraChunkIndex = chunkStorage.getRegionIndexSafely(cameraBlockPos);
 		final BuiltRenderRegion cameraChunk = cameraChunkIndex == -1 ? null : regions[cameraChunkIndex];
-
-		int visibleChunkCount = this.visibleChunkCount;
-
-		/**
-		TODO: temporal controls on rebuilds
-
-		Reasons terrain needs to be rebuilt
-			rotation
-				remain visible if in frustum
-			translation
-			occluder change (chunk load)
-
-		state components and dependencies
-			region sort order
-				camera position
-
-			potential visibility
-				camera position
-				occluders
-
-			actual visibility
-				potential visibility
-				rotation (frustum)
-
-		most impactful changes - most to least
-			camera position
-				only update 1x per block distance
-				fuzz vis boxes by 1 in each direction
-			occluders
-				track pvs version
-				only retest chunk visiblity when an already-drawn occluder changes
-				check for occlusion state changes when chunks rebuild - don't invalidate  state otherwise
-			frustum
-				rebuild occluder only when new chunks come into frustum without current pvs version
-				don't retest chunks that were already drawn with current pvs version
-
-		specific strategies / changes
-			track a pvs version
-				chunks are always tested in distance order
-				invalidated when...
-					camera moves more than 1 block
-					occluder already drawn into current pvs changes
-				chunks determined to be in or out are marked with current pvs version
-				chunks with current pvs version do not need to be retested against occluder - only against frustum
-			occluder
-				DONE: fuzz occlusion test boxes by 1 block all directions
-				DONE: test occlusion volumes, not whole chunk volume
-				track pvs version
-				update occluder incrementally
-					if pvs version AND frustum are same, only need to draw and test new chunks
-					if pvs version is same but frustum is different, draw all occluders but only test new
-			frustum
-				DONE: ditch vanilla frustum and use optimized code in shouldRender
-				unbork main render loop
-				add check for region visibility to entity shouldRender
-				cull particle rendering?
-			region
-				DONE: don't test vis of empty chunks and don't add them to visibles
-				track pvs version
-				track if visible in current pvs
-				check for occlusion state changes  - invalidate PVS only when it changes
-				backface culling
-				lod culling
-				fix small occluder box generation
-
-		 */
-
 
 		// TODO: integrate with sets used below, or come up with a better scheme
 		final ObjectArrayList<BuiltRenderRegion> buildList = new ObjectArrayList<>();
@@ -294,7 +286,7 @@ public class CanvasWorldRenderer {
 			}
 
 			wr.canvas_setNeedsTerrainUpdate(false);
-			visibleChunkCount = 0;
+			int visibleChunkCount = 0;
 			TerrainOccluder.clearScene();
 
 			Entity.setRenderDistanceMultiplier(MathHelper.clamp(mc.options.viewDistance / 8.0D, 1.0D, 2.5D));

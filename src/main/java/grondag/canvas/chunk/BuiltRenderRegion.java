@@ -88,7 +88,7 @@ public class BuiltRenderRegion {
 	 * Assumes camera distance update has already happened
 	 */
 	public boolean isInFrustum(CanvasFrustum frustum) {
-		final int v = frustum.version();
+		final int v = frustum.viewVersion();
 
 		if (v == frustumVersion) {
 			return frustumResult;

@@ -29,11 +29,20 @@ public class CanvasFrustum extends Frustum {
 	private final Matrix4f mvpMatrix = new Matrix4f();
 	private final Matrix4fExt lastProjectionMatrix = (Matrix4fExt)(Object) new Matrix4f();
 	private final Matrix4fExt lastModelMatrix = (Matrix4fExt)(Object) new Matrix4f();
-	private int version;
+	private int viewVersion;
+	private int positionVersion;
 
-	private float lastCameraX;
-	private float lastCameraY;
-	private float lastCameraZ;
+	private double lastViewX;
+	private double lastViewY;
+	private double lastViewZ;
+
+	private float lastViewXf;
+	private float lastViewYf;
+	private float lastViewZf;
+
+	private double lastPositionX;
+	private double lastPositionY;
+	private double lastPositionZ;
 
 	// NB: distance (w) and subtraction are baked into region extents but must be done for other box tests
 	private float leftX, leftY, leftZ, leftW, leftXe, leftYe, leftZe, leftRegionExtent;
@@ -54,28 +63,44 @@ public class CanvasFrustum extends Frustum {
 		return dummt;
 	}
 
-	public int version() {
-		return version;
+	/**
+	 * Incremented when player moves more than 1 block.
+	 * Triggers visibility rebuild and translucency resort.
+	 */
+	public int positionVersion() {
+		return positionVersion;
+	}
+
+	/**
+	 * Incremented when frustum changes for any reason by any amount - movement, rotation, etc.
+	 */
+	public int viewVersion() {
+		return viewVersion;
 	}
 
 	public void prepare(Matrix4f modelMatrix, Matrix4f projectionMatrix, Camera camera) {
 		final Vec3d vec = camera.getPos();
-		final float cx = (float) vec.x;
-		final float cy = (float) vec.y;
-		final float cz = (float) vec.z;
+		final double x = vec.x;
+		final double y = vec.y;
+		final double z = vec.z;
 
-		if(cx == lastCameraX && cy == lastCameraY && cx == lastCameraZ
+		if(x == lastViewX && y == lastViewY && x == lastViewZ
 				&& lastModelMatrix.matches(modelMatrix)
 				&& lastProjectionMatrix.matches(projectionMatrix)) {
 			return;
 		}
 
-		lastCameraX = cx;
-		lastCameraY = cy;
-		lastCameraZ = cz;
+		lastViewX = x;
+		lastViewY = y;
+		lastViewZ = z;
+
+		lastViewXf = (float) x;
+		lastViewYf = (float) y;
+		lastViewZf = (float) z;
+
 		lastModelMatrix.set(modelMatrix);
 		lastProjectionMatrix.set(projectionMatrix);
-		++version;
+		++viewVersion;
 
 		mvpMatrix.loadIdentity();
 		mvpMatrix.multiply(projectionMatrix);
@@ -85,12 +110,18 @@ public class CanvasFrustum extends Frustum {
 
 		viewDistanceSquared = MinecraftClient.getInstance().options.viewDistance * 16;
 		viewDistanceSquared *= viewDistanceSquared;
-	}
 
-	static int testCount;
-	static int matchCount;
-	static int failOldTrueNewFalse;
-	static int failOldFalseNewTrue;
+		final double dx = x - lastPositionX;
+		final double dy = y - lastPositionY;
+		final double dz = z - lastPositionZ;
+
+		if (dx * dx + dy * dy + dz * dz > 1.0D) {
+			++positionVersion;
+			lastPositionX = x;
+			lastPositionY = y;
+			lastPositionZ = z;
+		}
+	}
 
 	@Override
 	public boolean isVisible(Box box) {
@@ -106,9 +137,9 @@ public class CanvasFrustum extends Frustum {
 		assert hdy > 0;
 		assert hdz > 0;
 
-		final float cx = (float) x1 + hdx - lastCameraX;
-		final float cy = (float) y1 + hdy - lastCameraY;
-		final float cz = (float) z1 + hdz - lastCameraZ;
+		final float cx = (float) x1 + hdx - lastViewXf;
+		final float cy = (float) y1 + hdy - lastViewYf;
+		final float cz = (float) z1 + hdz - lastViewZf;
 
 		if(cx * leftX + cy * leftY + cz * leftZ + leftW - (hdx * leftXe + hdy * leftYe + hdz * leftZe) > 0) {
 			return false;
