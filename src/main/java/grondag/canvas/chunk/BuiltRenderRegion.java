@@ -1,5 +1,6 @@
 package grondag.canvas.chunk;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
@@ -38,6 +39,7 @@ import grondag.canvas.buffer.packing.VertexCollectorImpl;
 import grondag.canvas.buffer.packing.VertexCollectorList;
 import grondag.canvas.chunk.DrawableChunk.Solid;
 import grondag.canvas.chunk.DrawableChunk.Translucent;
+import grondag.canvas.chunk.occlusion.TerrainOccluder;
 import grondag.canvas.chunk.occlusion.region.OcclusionRegion;
 import grondag.canvas.chunk.occlusion.region.PackedBox;
 import grondag.canvas.material.MaterialContext;
@@ -70,6 +72,8 @@ public class BuiltRenderRegion {
 
 	int squaredCameraDistance;
 	public int occlusionRange;
+	public int occluderVersion;
+	public boolean occluderResult;
 
 	public float cameraRelativeCenterX;
 	public float cameraRelativeCenterY;
@@ -250,7 +254,13 @@ public class BuiltRenderRegion {
 		if (region == ProtoRenderRegion.EMPTY) {
 			final RegionData chunkData = new RegionData();
 			chunkData.setOcclusionData(OcclusionRegion.EMPTY_CULL_DATA);
-			buildData.set(chunkData);
+
+			final int[] oldData = buildData.getAndSet(chunkData).occlusionData;
+
+			if (oldData != null && oldData != OcclusionRegion.EMPTY_CULL_DATA) {
+				TerrainOccluder.invalidate(occluderVersion);
+			}
+
 			renderData.set(chunkData);
 			return;
 		}
@@ -299,7 +309,12 @@ public class BuiltRenderRegion {
 		} else {
 			context.prepareRegion(region);
 			final RegionData chunkData = buildRegionData(context);
-			buildData.set(chunkData);
+
+			final int[] oldData = buildData.getAndSet(chunkData).occlusionData;
+
+			if (oldData != null && !Arrays.equals(oldData, chunkData.occlusionData)) {
+				TerrainOccluder.invalidate(occluderVersion);
+			}
 
 			final VertexCollectorList collectors = context.collectors;
 
@@ -452,13 +467,22 @@ public class BuiltRenderRegion {
 		if (region == ProtoRenderRegion.EMPTY) {
 			final RegionData regionData = new RegionData();
 			regionData.setOcclusionData(OcclusionRegion.EMPTY_CULL_DATA);
-			buildData.set(regionData);
+			final int[] oldData = buildData.getAndSet(regionData).occlusionData;
+
+			if (oldData != null && oldData != OcclusionRegion.EMPTY_CULL_DATA) {
+				TerrainOccluder.invalidate(occluderVersion);
+			}
+
 			return;
 		}
 
 		final TerrainRenderContext context = renderRegionBuilder.mainThreadContext.prepareRegion(region);
 		final RegionData regionData = buildRegionData(context);
-		buildData.set(regionData);
+		final int[] oldData = buildData.getAndSet(regionData).occlusionData;
+
+		if (oldData != null && !Arrays.equals(oldData, regionData.occlusionData)) {
+			TerrainOccluder.invalidate(occluderVersion);
+		}
 
 		buildTerrain(context, regionData);
 

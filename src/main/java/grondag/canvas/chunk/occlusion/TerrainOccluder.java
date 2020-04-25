@@ -7,8 +7,10 @@ import static grondag.canvas.chunk.occlusion.Constants.ENABLE_RASTER_OUTPUT;
 import static grondag.canvas.chunk.occlusion.Constants.PIXEL_HEIGHT;
 import static grondag.canvas.chunk.occlusion.Constants.PIXEL_WIDTH;
 import static grondag.canvas.chunk.occlusion.Constants.TILE_COUNT;
+import static grondag.canvas.chunk.occlusion.Data.forceRedraw;
 import static grondag.canvas.chunk.occlusion.Data.modelMatrixL;
 import static grondag.canvas.chunk.occlusion.Data.mvpMatrixL;
+import static grondag.canvas.chunk.occlusion.Data.occluderVersion;
 import static grondag.canvas.chunk.occlusion.Data.offsetX;
 import static grondag.canvas.chunk.occlusion.Data.offsetY;
 import static grondag.canvas.chunk.occlusion.Data.offsetZ;
@@ -33,8 +35,62 @@ import grondag.canvas.chunk.occlusion.region.PackedBox;
 public abstract class TerrainOccluder {
 	private  TerrainOccluder() {}
 
-	public static void clearScene() {
-		System.arraycopy(EMPTY_BITS, 0, Data.tiles, 0, TILE_COUNT);
+	/**
+	 * Check if needs redrawn and prep for redraw if  so.
+	 * When false, regions should be drawn only if their occluder version is not current.
+	 *
+	 * Also checks for invalidation of occluder version using positionVersion.
+	 *
+	 * @param viewVersion   from frustum
+	 * @param positionVersion from frustum
+	 * @return True if occluder should be redrawn. If false, can be reused for testing and additive drawing.
+	 */
+	public static boolean clearSceneIfNeeded(int viewVersion, int positionVersion) {
+		if (forceRedraw) {
+			Data.viewVersion = viewVersion;
+			Data.positionVersion = positionVersion;
+			System.arraycopy(EMPTY_BITS, 0, Data.tiles, 0, TILE_COUNT);
+			forceRedraw = false;
+			return true;
+		} else if (Data.positionVersion != positionVersion) {
+			occluderVersion.incrementAndGet();
+			Data.viewVersion = viewVersion;
+			Data.positionVersion = positionVersion;
+			System.arraycopy(EMPTY_BITS, 0, Data.tiles, 0, TILE_COUNT);
+			return true;
+		} else if (Data.viewVersion != viewVersion) {
+			Data.viewVersion = viewVersion;
+			System.arraycopy(EMPTY_BITS, 0, Data.tiles, 0, TILE_COUNT);
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	/**
+	 * Previously tested regions can reuse test results if their version matches.
+	 * However, they must still be drawn (if visible) if indicated by {@link #clearSceneIfNeeded(int, int)}.
+	 */
+	public static int version() {
+		return occluderVersion.get();
+	}
+
+	/**
+	 * Force update to new version if provided version matches current
+	 * @param occluderVersion
+	 */
+	public static void invalidate(int invalidVersion) {
+		if (occluderVersion.compareAndSet(invalidVersion, invalidVersion + 1))  {
+			forceRedraw = true;
+		}
+	}
+
+	/**
+	 * Force update to new version
+	 */
+	public static void invalidate() {
+		occluderVersion.incrementAndGet();
+		forceRedraw = true;
 	}
 
 	public static void prepareChunk(BlockPos origin, int occlusionRange) {

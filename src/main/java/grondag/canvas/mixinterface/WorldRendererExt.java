@@ -38,7 +38,6 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
 
 public interface WorldRendererExt {
 
@@ -49,14 +48,6 @@ public interface WorldRendererExt {
 	void canvas_reload();
 
 	ClientWorld canvas_world();
-
-	/** Updates stored values
-	 * @param yaw
-	 * @param pitch
-	 * @param cameraPos */
-	boolean canvas_checkNeedsTerrainUpdate(Vec3d cameraPos, float pitch, float yaw);
-
-	void canvas_setNeedsTerrainUpdate(boolean needsUpdate);
 
 	TextureManager canvas_textureManager();
 

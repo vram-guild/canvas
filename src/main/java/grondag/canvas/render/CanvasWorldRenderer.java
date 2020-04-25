@@ -86,6 +86,9 @@ public class CanvasWorldRenderer {
 	private final CanvasFrustum frustum = new CanvasFrustum();
 	private final LongHeapPriorityQueue regionQueue = new LongHeapPriorityQueue();
 	private int translucentSortPositionVersion;
+	private int viewVersion;
+	private int occluderVersion;
+	private boolean didUploadChunksAfterLastRebuild = false;
 
 	// TODO: redirect uses in MC WorldRenderer
 	public Set<BuiltRenderRegion> chunksToRebuild = Sets.newLinkedHashSet();
@@ -136,7 +139,7 @@ public class CanvasWorldRenderer {
 		}
 
 		clearChunkRenderers();
-
+		TerrainOccluder.invalidate();
 		renderRegionStorage = new RenderRegionStorage(chunkBuilder, wr.canvas_mc().options.viewDistance);
 
 		final Entity entity = wr.canvas_mc().getCameraEntity();
@@ -250,6 +253,7 @@ public class CanvasWorldRenderer {
 		final RenderRegionBuilder chunkBuilder = this.chunkBuilder;
 		final RenderRegionStorage chunkStorage = renderRegionStorage;
 		final BuiltRenderRegion[] regions = chunkStorage.regions();
+		final int frustumPositionVersion = frustum.positionVersion();
 
 		if (mc.options.viewDistance != renderDistance) {
 			wr.canvas_reload();
@@ -263,7 +267,7 @@ public class CanvasWorldRenderer {
 		final Vec3d cameraPos = camera.getPos();
 		chunkBuilder.setCameraPosition(cameraPos);
 		mc.getProfiler().swap("distance");
-		chunkStorage.updateCameraDistance(cameraPos, frustum.positionVersion());
+		chunkStorage.updateCameraDistance(cameraPos, frustumPositionVersion);
 
 		final BlockPos cameraBlockPos = camera.getBlockPos();
 		final int cameraChunkIndex = chunkStorage.getRegionIndexSafely(cameraBlockPos);
@@ -274,7 +278,10 @@ public class CanvasWorldRenderer {
 
 		mc.getProfiler().swap("update");
 
-		if (wr.canvas_checkNeedsTerrainUpdate(cameraPos, camera.getPitch(), camera.getYaw())) {
+		if (didUploadChunksAfterLastRebuild || viewVersion != frustum.viewVersion() || occluderVersion != TerrainOccluder.version()) {
+			viewVersion = frustum.viewVersion();
+			occluderVersion = TerrainOccluder.version();
+			didUploadChunksAfterLastRebuild = false;
 
 			//outerTimer.start();
 			BuiltRenderRegion.advanceFrameIndex();
@@ -286,9 +293,9 @@ public class CanvasWorldRenderer {
 				regionQueue.enqueue(cameraChunk.queueKey());
 			}
 
-			wr.canvas_setNeedsTerrainUpdate(false);
 			int visibleChunkCount = 0;
-			TerrainOccluder.clearScene();
+			final boolean redrawOccluder = TerrainOccluder.clearSceneIfNeeded(frustum.viewVersion(), frustumPositionVersion);
+			final int occluderVersion = TerrainOccluder.version();
 
 			Entity.setRenderDistanceMultiplier(MathHelper.clamp(mc.options.viewDistance / 8.0D, 1.0D, 2.5D));
 			final boolean chunkCullingEnabled = mc.chunkCullingEnabled;
@@ -321,15 +328,48 @@ public class CanvasWorldRenderer {
 				// for empty regions, check neighbors but don't add to visible set
 				if (visData == OcclusionRegion.EMPTY_CULL_DATA) {
 					builtChunk.enqueueUnvistedNeighbors(regionQueue);
+					builtChunk.occluderVersion = occluderVersion;
+					builtChunk.occluderResult = false;
 					continue;
 				}
 
-				TerrainOccluder.prepareChunk(builtChunk.getOrigin(), builtChunk.occlusionRange);
-
-				if (!chunkCullingEnabled || builtChunk == cameraChunk || builtChunk.isVeryNear() || TerrainOccluder.isBoxVisible(visData[OcclusionRegion.CULL_DATA_CHUNK_BOUNDS])) {
+				if (!chunkCullingEnabled || builtChunk == cameraChunk || builtChunk.isVeryNear()) {
 					builtChunk.enqueueUnvistedNeighbors(regionQueue);
 					visibleChunks[visibleChunkCount++] = builtChunk;
-					TerrainOccluder.occlude(visData);
+
+					if (redrawOccluder || builtChunk.occluderVersion != occluderVersion) {
+						TerrainOccluder.prepareChunk(builtChunk.getOrigin(), builtChunk.occlusionRange);
+						TerrainOccluder.occlude(visData);
+					}
+
+					builtChunk.occluderVersion = occluderVersion;
+					builtChunk.occluderResult = true;
+				} else if (builtChunk.occluderVersion == occluderVersion) {
+					// reuse prior test results
+					if (builtChunk.occluderResult) {
+						builtChunk.enqueueUnvistedNeighbors(regionQueue);
+						visibleChunks[visibleChunkCount++] = builtChunk;
+
+						// will already have been drawn if occluder view version hasn't changed
+						if (redrawOccluder) {
+							TerrainOccluder.prepareChunk(builtChunk.getOrigin(), builtChunk.occlusionRange);
+							TerrainOccluder.occlude(visData);
+						}
+					}
+				} else {
+					TerrainOccluder.prepareChunk(builtChunk.getOrigin(), builtChunk.occlusionRange);
+
+					if (TerrainOccluder.isBoxVisible(visData[OcclusionRegion.CULL_DATA_CHUNK_BOUNDS])) {
+						builtChunk.enqueueUnvistedNeighbors(regionQueue);
+						visibleChunks[visibleChunkCount++] = builtChunk;
+						builtChunk.occluderVersion = occluderVersion;
+						builtChunk.occluderResult = true;
+
+						// these must always be drawn - will be additive if view hasn't changed
+						TerrainOccluder.occlude(visData);
+					} else {
+						builtChunk.occluderResult = false;
+					}
 				}
 			}
 
@@ -345,8 +385,6 @@ public class CanvasWorldRenderer {
 		final Set<BuiltRenderRegion> chunksToRebuild = Sets.newLinkedHashSet();
 		this.chunksToRebuild = chunksToRebuild;
 
-		final boolean needsTerrainUpdate = !buildList.isEmpty();
-
 		//		for (int i = 0; i < visibleChunkCount; i++) {
 		//			final BuiltRenderRegion builtChunk = visibleChunks[i];
 
@@ -357,16 +395,12 @@ public class CanvasWorldRenderer {
 				//mc.getProfiler().push("build near");
 				builtChunk.rebuildOnMainThread();
 				builtChunk.markBuilt();
+				didUploadChunksAfterLastRebuild = true;
 				//				mc.getProfiler().pop();
 			} else {
 				chunksToRebuild.add(builtChunk);
 			}
 			//			}
-		}
-
-		// TODO: still needed in old WR?
-		if (needsTerrainUpdate) {
-			wr.canvas_setNeedsTerrainUpdate(true);
 		}
 
 		chunksToRebuild.addAll(oldChunksToRebuild);
@@ -889,13 +923,9 @@ public class CanvasWorldRenderer {
 	}
 
 	private void updateChunks(long endNanos) {
-		final WorldRendererExt wr = this.wr;
 		final Set<BuiltRenderRegion> chunksToRebuild  = this.chunksToRebuild;
 
-		// PERF: don't update terrain unless occlusion data changed and chunk was in view for at least one uploaded chunk
-		if (chunkBuilder.upload()) {
-			wr.canvas_setNeedsTerrainUpdate(true);
-		}
+		didUploadChunksAfterLastRebuild |= chunkBuilder.upload();
 
 		//final long start = Util.getMeasuringTimeNano();
 		//int builtCount = 0;

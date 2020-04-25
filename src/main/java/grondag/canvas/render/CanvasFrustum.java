@@ -84,7 +84,7 @@ public class CanvasFrustum extends Frustum {
 		final double y = vec.y;
 		final double z = vec.z;
 
-		if(x == lastViewX && y == lastViewY && x == lastViewZ
+		if(x == lastViewX && y == lastViewY && z == lastViewZ
 				&& lastModelMatrix.matches(modelMatrix)
 				&& lastProjectionMatrix.matches(projectionMatrix)) {
 			return;

@@ -4,6 +4,8 @@ import static grondag.canvas.chunk.occlusion.Constants.PIXEL_HEIGHT;
 import static grondag.canvas.chunk.occlusion.Constants.TILE_COUNT;
 import static grondag.canvas.chunk.occlusion.ProjectedVertexData.PROJECTED_VERTEX_STRIDE;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 public class Data {
 	static Matrix4L projectionMatrixL = new Matrix4L();
 	static Matrix4L modelMatrixL = new Matrix4L();
@@ -20,6 +22,11 @@ public class Data {
 	static int offsetZ;
 
 	static int occlusionRange;
+
+	static int positionVersion = -1;
+	static int viewVersion = -1;
+	static AtomicInteger occluderVersion = new AtomicInteger();
+	static boolean forceRedraw = false;
 
 	// Boumds of current triangle - pixel coordinates
 	static int minPixelX;

@@ -53,7 +53,6 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.chunk.RenderRegionBuilder;
@@ -65,13 +64,7 @@ public class MixinWorldRenderer implements WorldRendererExt {
 	@Shadow private MinecraftClient client;
 	@Shadow private int renderDistance;
 	@Shadow private ClientWorld world;
-	@Shadow private double lastCameraX;
-	@Shadow private double lastCameraY;
-	@Shadow private double lastCameraZ;
-	@Shadow private double lastCameraPitch;
-	@Shadow private double lastCameraYaw;
 	@Shadow private int frame;
-	@Shadow private boolean needsTerrainUpdate;
 	@Shadow private boolean cloudsDirty;
 	@Shadow private TextureManager textureManager;
 	@Shadow private EntityRenderDispatcher entityRenderDispatcher;
@@ -85,7 +78,6 @@ public class MixinWorldRenderer implements WorldRendererExt {
 	@Shadow private Long2ObjectMap<SortedSet<BlockBreakingInfo>> blockBreakingProgressions;
 	@Shadow private VertexFormat vertexFormat;
 
-	@Shadow private void captureFrustum(Matrix4f matrix4f, Matrix4f matrix4f2, double d, double e, double f, Frustum frustum) {}
 	@Shadow protected boolean canDrawEntityOutlines() { return false; }
 	@Shadow private void drawBlockOutline(MatrixStack matrixStack, VertexConsumer vertexConsumer, Entity entity, double d, double e, double f, BlockPos blockPos, BlockState blockState) {}
 	@Shadow private void renderWorldBorder(Camera camera) {}
@@ -164,7 +156,6 @@ public class MixinWorldRenderer implements WorldRendererExt {
 
 			canvasWorldRenderer.reload();
 
-			needsTerrainUpdate = true;
 			cloudsDirty = true;
 
 			synchronized(noCullingBlockEntities) {
@@ -218,23 +209,6 @@ public class MixinWorldRenderer implements WorldRendererExt {
 	@Override
 	public ClientWorld canvas_world() {
 		return world;
-	}
-
-	@Override
-	public boolean canvas_checkNeedsTerrainUpdate(Vec3d cameraPos, float pitch, float yaw) {
-		needsTerrainUpdate = needsTerrainUpdate || !canvasWorldRenderer.chunksToRebuild.isEmpty() || cameraPos.x != lastCameraX || cameraPos.y != lastCameraY || cameraPos.z != lastCameraZ || pitch != lastCameraPitch || yaw != lastCameraYaw;
-		lastCameraX = cameraPos.x;
-		lastCameraY = cameraPos.y;
-		lastCameraZ = cameraPos.z;
-		lastCameraPitch = pitch;
-		lastCameraYaw = yaw;
-
-		return needsTerrainUpdate;
-	}
-
-	@Override
-	public void canvas_setNeedsTerrainUpdate(boolean needsUpdate) {
-		needsTerrainUpdate = needsUpdate;
 	}
 
 	@Override
