@@ -1,5 +1,6 @@
 package grondag.canvas.chunk;
 
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
@@ -12,6 +13,16 @@ public class RenderRegionStorage {
 	private int lastCameraX;
 	private int lastCameraY;
 	private int lastCameraZ;
+
+	// position of the player for last origin update
+	private double playerX;
+	private double playerY;
+	private double playerZ;
+
+	// chunk coords of the player for last origin update
+	private int playerChunkX;
+	private int playerChunkY;
+	private int playerChunkZ;
 
 	public RenderRegionStorage(RenderRegionBuilder regionBuilder, int viewDistance) {
 		setViewDistance(viewDistance);
@@ -49,6 +60,37 @@ public class RenderRegionStorage {
 		sizeX = j;
 		sizeY = 16;
 		sizeZ = j;
+	}
+
+	private boolean needsRegionPositionUpdate(MinecraftClient client) {
+		final double x = client.player.getX();
+		final double y = client.player.getY();
+		final double z = client.player.getZ();
+		final double dx = playerX - x;
+		final double dy = playerY - y;
+		final double dz = playerZ - z;
+
+		final int cx = client.player.chunkX;
+		final int cy = client.player.chunkY;
+		final int cz = client.player.chunkZ;
+
+		if (playerChunkX != cx || playerChunkY != cy || playerChunkZ != cz || dx * dx + dy * dy + dz * dz > 16.0D) {
+			playerX = x;
+			playerY = y;
+			playerZ = z;
+			playerChunkX = cx;
+			playerChunkY = cy;
+			playerChunkZ = cz;
+			return true;
+		}  else {
+			return false;
+		}
+	}
+
+	public void updateRegionOriginsIfNeeded(MinecraftClient mc) {
+		if (needsRegionPositionUpdate(mc)) {
+			updateRegionOrigins(mc.player.getX(), mc.player.getZ());
+		}
 	}
 
 	public void updateRegionOrigins(double playerX, double playerZ) {

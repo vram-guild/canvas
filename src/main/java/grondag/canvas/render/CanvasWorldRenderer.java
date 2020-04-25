@@ -183,21 +183,26 @@ public class CanvasWorldRenderer {
 		final WorldRendererExt wr = this.wr;
 		final MinecraftClient mc = wr.canvas_mc();
 		final int renderDistance = wr.canvas_renderDistance();
+		final ClientWorld world = wr.canvas_world();
+		final RenderRegionBuilder chunkBuilder = this.chunkBuilder;
+		final RenderRegionStorage chunkStorage = renderRegionStorage;
+		final BuiltRenderRegion[] regions = chunkStorage.regions();
 
 		if (mc.options.viewDistance != renderDistance) {
 			wr.canvas_reload();
 		}
 
-		final RenderRegionStorage chunkStorage = renderRegionStorage;
-		final BuiltRenderRegion[] regions = chunkStorage.regions();
+		//mc.getProfiler().swap("region update");
 		resizeArraysIfNeeded(regions.length);
+		chunkStorage.updateRegionOriginsIfNeeded(mc);
 
-		final ClientWorld world = wr.canvas_world();
-		final RenderRegionBuilder chunkBuilder = this.chunkBuilder;
 
 		world.getProfiler().push("camera");
 		final Vec3d cameraPos = camera.getPos();
-		setupCamera(wr, mc, chunkBuilder, cameraPos);
+		chunkBuilder.setCameraPosition(cameraPos);
+		// PERF: do this only when translucent sort is needed
+		chunkStorage.updateCameraDistance(cameraPos);
+
 
 		world.getProfiler().swap("cull");
 		mc.getProfiler().swap("culling");
@@ -373,24 +378,6 @@ public class CanvasWorldRenderer {
 
 		chunksToRebuild.addAll(oldChunksToRebuild);
 		mc.getProfiler().pop();
-	}
-	private void setupCamera(WorldRendererExt wr, MinecraftClient mc, RenderRegionBuilder chunkBuilder, Vec3d cameraPos) {
-		final RenderRegionStorage chunks = renderRegionStorage;
-		final double dx = mc.player.getX() - wr.canvas_lastCameraChunkUpdateX();
-		final double dy = mc.player.getY() - wr.canvas_lastCameraChunkUpdateY();
-		final double dz = mc.player.getZ() - wr.canvas_lastCameraChunkUpdateZ();
-		final int cameraChunkX = wr.canvas_camereChunkX();
-		final int cameraChunkY = wr.canvas_camereChunkY();
-		final int cameraChunkZ = wr.canvas_camereChunkZ();
-
-		if (cameraChunkX != mc.player.chunkX || cameraChunkY != mc.player.chunkY || cameraChunkZ != mc.player.chunkZ || dx * dx + dy * dy + dz * dz > 16.0D) {
-			wr.canvas_updateLastCameraChunkPositions();
-			chunks.updateRegionOrigins(mc.player.getX(), mc.player.getZ());
-		}
-
-		// PERF: really does this every time?
-		chunks.updateCameraDistance(cameraPos);
-		chunkBuilder.setCameraPosition(cameraPos);
 	}
 
 	public static int playerLightmap() {
