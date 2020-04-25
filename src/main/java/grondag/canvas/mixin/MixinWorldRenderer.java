@@ -65,12 +65,6 @@ public class MixinWorldRenderer implements WorldRendererExt {
 	@Shadow private MinecraftClient client;
 	@Shadow private int renderDistance;
 	@Shadow private ClientWorld world;
-	@Shadow private double lastCameraChunkUpdateX;
-	@Shadow private double lastCameraChunkUpdateY;
-	@Shadow private double lastCameraChunkUpdateZ;
-	@Shadow private int cameraChunkX;
-	@Shadow private int cameraChunkY;
-	@Shadow private int cameraChunkZ;
 	@Shadow private double lastCameraX;
 	@Shadow private double lastCameraY;
 	@Shadow private double lastCameraZ;
@@ -227,46 +221,6 @@ public class MixinWorldRenderer implements WorldRendererExt {
 	@Override
 	public ClientWorld canvas_world() {
 		return world;
-	}
-
-	@Override
-	public double canvas_lastCameraChunkUpdateX() {
-		return lastCameraChunkUpdateX;
-	}
-
-	@Override
-	public double canvas_lastCameraChunkUpdateY() {
-		return lastCameraChunkUpdateY;
-	}
-
-	@Override
-	public double canvas_lastCameraChunkUpdateZ() {
-		return lastCameraChunkUpdateZ;
-	}
-
-	@Override
-	public void canvas_updateLastCameraChunkPositions() {
-		lastCameraChunkUpdateX = client.player.getX();
-		lastCameraChunkUpdateY = client.player.getY();
-		lastCameraChunkUpdateZ = client.player.getZ();
-		cameraChunkX = client.player.chunkX;
-		cameraChunkY = client.player.chunkY;
-		cameraChunkZ = client.player.chunkZ;
-	}
-
-	@Override
-	public int canvas_camereChunkX() {
-		return cameraChunkX;
-	}
-
-	@Override
-	public int canvas_camereChunkY() {
-		return cameraChunkY;
-	}
-
-	@Override
-	public int canvas_camereChunkZ() {
-		return cameraChunkZ;
 	}
 
 	@Override

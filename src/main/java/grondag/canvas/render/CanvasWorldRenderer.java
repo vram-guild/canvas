@@ -192,25 +192,23 @@ public class CanvasWorldRenderer {
 			wr.canvas_reload();
 		}
 
-		//mc.getProfiler().swap("region update");
+		mc.getProfiler().push("regions");
 		resizeArraysIfNeeded(regions.length);
 		chunkStorage.updateRegionOriginsIfNeeded(mc);
 
 
-		world.getProfiler().push("camera");
+		mc.getProfiler().swap("camera");
 		final Vec3d cameraPos = camera.getPos();
 		chunkBuilder.setCameraPosition(cameraPos);
 		// PERF: do this only when translucent sort is needed
+		mc.getProfiler().swap("distance");
 		chunkStorage.updateCameraDistance(cameraPos);
 
 
-		world.getProfiler().swap("cull");
-		mc.getProfiler().swap("culling");
 		final BlockPos cameraBlockPos = camera.getBlockPos();
 		final int cameraChunkIndex = chunkStorage.getRegionIndexSafely(cameraBlockPos);
 		final BuiltRenderRegion cameraChunk = cameraChunkIndex == -1 ? null : regions[cameraChunkIndex];
 
-		mc.getProfiler().swap("update");
 		int visibleChunkCount = this.visibleChunkCount;
 
 		/**
@@ -276,10 +274,15 @@ public class CanvasWorldRenderer {
 				fix small occluder box generation
 
 		 */
+
+
 		// TODO: integrate with sets used below, or come up with a better scheme
 		final ObjectArrayList<BuiltRenderRegion> buildList = new ObjectArrayList<>();
 
+		mc.getProfiler().swap("update");
+
 		if (wr.canvas_checkNeedsTerrainUpdate(cameraPos, camera.getPitch(), camera.getYaw())) {
+
 			//outerTimer.start();
 			BuiltRenderRegion.advanceFrameIndex();
 
@@ -296,8 +299,6 @@ public class CanvasWorldRenderer {
 
 			Entity.setRenderDistanceMultiplier(MathHelper.clamp(mc.options.viewDistance / 8.0D, 1.0D, 2.5D));
 			final boolean chunkCullingEnabled = mc.chunkCullingEnabled;
-
-			mc.getProfiler().push("iteration");
 
 			while(!regionQueue.isEmpty()) {
 				final BuiltRenderRegion builtChunk = regions[(int) regionQueue.dequeueLong()];
@@ -340,7 +341,6 @@ public class CanvasWorldRenderer {
 			}
 
 			this.visibleChunkCount = visibleChunkCount;
-			mc.getProfiler().pop();
 
 			//stopOuterTimer();
 		}
@@ -361,10 +361,10 @@ public class CanvasWorldRenderer {
 			// FIX: why was this check here? Was it a concurrency thing?
 			//			if (builtChunk.needsRebuild() || oldChunksToRebuild.contains(builtChunk)) {
 			if (builtChunk.needsImportantRebuild() || builtChunk.isNear()) {
-				mc.getProfiler().push("build near");
+				//mc.getProfiler().push("build near");
 				builtChunk.rebuildOnMainThread();
 				builtChunk.markBuilt();
-				mc.getProfiler().pop();
+				//				mc.getProfiler().pop();
 			} else {
 				chunksToRebuild.add(builtChunk);
 			}

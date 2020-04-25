@@ -50,20 +50,6 @@ public interface WorldRendererExt {
 
 	ClientWorld canvas_world();
 
-	double canvas_lastCameraChunkUpdateX();
-
-	double canvas_lastCameraChunkUpdateY();
-
-	double canvas_lastCameraChunkUpdateZ();
-
-	void canvas_updateLastCameraChunkPositions();
-
-	int canvas_camereChunkX();
-
-	int canvas_camereChunkY();
-
-	int canvas_camereChunkZ();
-
 	/** Updates stored values
 	 * @param yaw
 	 * @param pitch
