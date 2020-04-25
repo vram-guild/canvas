@@ -85,6 +85,7 @@ public class CanvasWorldRenderer {
 	private RenderRegionStorage renderRegionStorage;
 	private final CanvasFrustum frustum = new CanvasFrustum();
 	private final LongHeapPriorityQueue regionQueue = new LongHeapPriorityQueue();
+	private int translucentSortPositionVersion;
 
 	// TODO: redirect uses in MC WorldRenderer
 	public Set<BuiltRenderRegion> chunksToRebuild = Sets.newLinkedHashSet();
@@ -812,7 +813,9 @@ public class CanvasWorldRenderer {
 		if (isTranslucent) {
 			mc.getProfiler().push("translucent_sort");
 
-			if (wr.canvas_shouldSortTranslucent(x, y, z)) {
+			if (translucentSortPositionVersion != frustum.positionVersion()) {
+				translucentSortPositionVersion = frustum.positionVersion();
+
 				int j = 0;
 				for (int chunkIndex = 0; chunkIndex < visibleChunkCount; chunkIndex++) {
 					if (j < 15 && visibleChunks[chunkIndex].enqueueSort()) {

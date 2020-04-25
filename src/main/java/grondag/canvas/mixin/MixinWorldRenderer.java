@@ -70,9 +70,6 @@ public class MixinWorldRenderer implements WorldRendererExt {
 	@Shadow private double lastCameraZ;
 	@Shadow private double lastCameraPitch;
 	@Shadow private double lastCameraYaw;
-	@Shadow private double lastTranslucentSortX;
-	@Shadow private double lastTranslucentSortY;
-	@Shadow private double lastTranslucentSortZ;
 	@Shadow private int frame;
 	@Shadow private boolean needsTerrainUpdate;
 	@Shadow private boolean cloudsDirty;
@@ -313,22 +310,6 @@ public class MixinWorldRenderer implements WorldRendererExt {
 	@Override
 	public void canvas_setEntityCount(int count) {
 		regularEntityCount = count;
-	}
-
-	@Override
-	public boolean canvas_shouldSortTranslucent(double x, double y, double z) {
-		final double dx = x - lastTranslucentSortX;
-		final double dy = y - lastTranslucentSortY;
-		final double dz = z - lastTranslucentSortZ;
-
-		if (dx * dx + dy * dy + dz * dz > 1.0D) {
-			lastTranslucentSortX = x;
-			lastTranslucentSortY = y;
-			lastTranslucentSortZ = z;
-			return true;
-		} else {
-			return false;
-		}
 	}
 
 	@Override

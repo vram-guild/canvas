@@ -88,7 +88,5 @@ public interface WorldRendererExt {
 
 	void canvas_setEntityCount(int count);
 
-	boolean canvas_shouldSortTranslucent(double x, double y, double z);
-
 	VertexFormat canvas_vertexFormat();
 }
