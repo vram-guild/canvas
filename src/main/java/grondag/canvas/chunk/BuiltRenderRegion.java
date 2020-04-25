@@ -46,6 +46,7 @@ import grondag.canvas.material.MaterialContext;
 import grondag.canvas.material.MaterialState;
 import grondag.canvas.perf.ChunkRebuildCounters;
 import grondag.canvas.render.CanvasFrustum;
+import grondag.canvas.render.CanvasWorldRenderer;
 
 @Environment(EnvType.CLIENT)
 public class BuiltRenderRegion {
@@ -74,6 +75,8 @@ public class BuiltRenderRegion {
 	public int occlusionRange;
 	public int occluderVersion;
 	public boolean occluderResult;
+
+	private boolean isInsideRenderDistance;
 
 	public float cameraRelativeCenterX;
 	public float cameraRelativeCenterY;
@@ -105,8 +108,12 @@ public class BuiltRenderRegion {
 		}
 	}
 
+	/**
+	 * @return True if nearby.  If not nearby and not outside view distance true if neighbors are loaded.
+	 */
 	public boolean shouldBuild() {
-		return squaredCameraDistance <= 576 || (areCornersLoadedCache || areCornerChunksLoaded());
+		return squaredCameraDistance <= 576
+				|| (isInsideRenderDistance && (areCornersLoadedCache || areCornerChunksLoaded()));
 	}
 
 	private boolean areCornersLoadedCache = false;
@@ -141,17 +148,25 @@ public class BuiltRenderRegion {
 		}
 	}
 
-	void updateCameraDistance(double cameraX, double cameraY, double cameraZ) {
+	void updateCameraDistance(double cameraX, double cameraY, double cameraZ, int maxRenderDistance) {
 		final BlockPos.Mutable origin = this.origin;
 		final float dx = (float) (origin.getX() + 8 - cameraX);
 		final float dy = (float) (origin.getY() + 8 - cameraY);
 		final float dz = (float) (origin.getZ() + 8 - cameraZ);
-		squaredCameraDistance = (int) (dx * dx + dy * dy + dz * dz);
 		cameraRelativeCenterX = dx;
 		cameraRelativeCenterY = dy;
 		cameraRelativeCenterZ = dz;
 
+		final int idx = Math.round(dx);
+		final int idy = Math.round(dy);
+		final int idz = Math.round(dz);
+
+		final int horizontalDistance = idx * idx + idz * idz;
+		isInsideRenderDistance = horizontalDistance <= maxRenderDistance;
+
+		final int squaredCameraDistance = horizontalDistance + idy * idy;
 		occlusionRange = PackedBox.rangeFromSquareBlockDist(squaredCameraDistance);
+		this.squaredCameraDistance = squaredCameraDistance;
 	}
 
 	private static <E extends BlockEntity> void addBlockEntity(List<BlockEntity> chunkEntities, Set<BlockEntity> globalEntities, E blockEntity) {
@@ -259,6 +274,9 @@ public class BuiltRenderRegion {
 
 			if (oldData != null && oldData != OcclusionRegion.EMPTY_CULL_DATA) {
 				TerrainOccluder.invalidate(occluderVersion);
+			} else  {
+				// fact that chunk is empty may still be needed for visibility search to progress
+				CanvasWorldRenderer.instance().forceVisibilityUpdate();
 			}
 
 			renderData.set(chunkData);
@@ -472,6 +490,9 @@ public class BuiltRenderRegion {
 			if (oldData != null && oldData != OcclusionRegion.EMPTY_CULL_DATA) {
 				TerrainOccluder.invalidate(occluderVersion);
 			}
+
+			// Note we don't force Canvas world renderer to update visibility next pass
+			// because this is called from there and thus the WR can do that for us.
 
 			return;
 		}

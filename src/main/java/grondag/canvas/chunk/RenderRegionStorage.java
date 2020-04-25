@@ -154,11 +154,12 @@ public class RenderRegionStorage {
 	 * Called each frame, but only updates when player has moved more than 1 block.
 	 * Uses position version to detect the movement.
 	 */
-	public void updateCameraDistance(Vec3d cameraPos, int positionVersion) {
+	public void updateCameraDistance(Vec3d cameraPos, int positionVersion, int renderDistance) {
 		if (this.positionVersion == positionVersion) {
 			return;
 		}
 
+		final int maxRenderDistance = renderDistance * renderDistance * 256;
 		this.positionVersion = positionVersion;
 
 		final double x = cameraPos.x;
@@ -166,7 +167,7 @@ public class RenderRegionStorage {
 		final double z = cameraPos.z;
 
 		for (final BuiltRenderRegion chunk : regions) {
-			chunk.updateCameraDistance(x, y, z);
+			chunk.updateCameraDistance(x, y, z, maxRenderDistance);
 		}
 	}
 

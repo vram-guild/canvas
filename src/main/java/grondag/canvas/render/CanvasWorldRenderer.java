@@ -57,6 +57,7 @@ import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.Vec3i;
 import net.minecraft.util.profiler.Profiler;
 
 import grondag.canvas.buffer.allocation.VboBuffer;
@@ -72,6 +73,7 @@ import grondag.canvas.chunk.occlusion.region.PackedBox;
 import grondag.canvas.draw.DrawHandler;
 import grondag.canvas.mixinterface.WorldRendererExt;
 import grondag.canvas.perf.MicroTimer;
+import grondag.fermion.varia.Useful;
 
 public class CanvasWorldRenderer {
 	private static CanvasWorldRenderer instance;
@@ -88,7 +90,13 @@ public class CanvasWorldRenderer {
 	private int translucentSortPositionVersion;
 	private int viewVersion;
 	private int occluderVersion;
-	private boolean didUploadChunksAfterLastRebuild = false;
+
+	/**
+	 * Set true when chunks have been loaded or determined to be empty and visibility search can progress
+	 * or visibility might be changed. Distinct from occluder state, which indiciates if/when occluder must
+	 * be reset or redrawn.
+	 */
+	private boolean shouldUpdateVisibility = false;
 
 	// TODO: redirect uses in MC WorldRenderer
 	public Set<BuiltRenderRegion> chunksToRebuild = Sets.newLinkedHashSet();
@@ -125,6 +133,10 @@ public class CanvasWorldRenderer {
 	public void clearChunkRenderers() {
 		chunksToRebuild.clear();
 		chunkBuilder.reset();
+	}
+
+	public void forceVisibilityUpdate() {
+		shouldUpdateVisibility = true;
 	}
 
 	public void reload() {
@@ -232,7 +244,7 @@ public class CanvasWorldRenderer {
 		final Vec3d cameraPos = camera.getPos();
 		chunkBuilder.setCameraPosition(cameraPos);
 		mc.getProfiler().swap("distance");
-		chunkStorage.updateCameraDistance(cameraPos, frustumPositionVersion);
+		chunkStorage.updateCameraDistance(cameraPos, frustumPositionVersion, renderDistance);
 
 		final BlockPos cameraBlockPos = camera.getBlockPos();
 		final int cameraChunkIndex = chunkStorage.getRegionIndexSafely(cameraBlockPos);
@@ -243,17 +255,35 @@ public class CanvasWorldRenderer {
 
 		mc.getProfiler().swap("update");
 
-		if (didUploadChunksAfterLastRebuild || viewVersion != frustum.viewVersion() || occluderVersion != TerrainOccluder.version()) {
+		if (shouldUpdateVisibility || viewVersion != frustum.viewVersion() || occluderVersion != TerrainOccluder.version()) {
 			viewVersion = frustum.viewVersion();
 			occluderVersion = TerrainOccluder.version();
-			didUploadChunksAfterLastRebuild = false;
+			shouldUpdateVisibility = false;
 
 			//outerTimer.start();
 			BuiltRenderRegion.advanceFrameIndex();
 
 			final LongHeapPriorityQueue regionQueue = this.regionQueue;
 			if (cameraChunk == null) {
-				// TODO: prime visible when above or below world and camera chunk is null
+				// prime visible when above or below world and camera chunk is null
+				final int y = cameraBlockPos.getY() > 0 ? 248 : 8;
+				final int x = cameraBlockPos.getX();
+				final int z = cameraBlockPos.getZ();
+
+				final int limit = Useful.getLastDistanceSortedOffsetIndex(renderDistance);
+
+				for (int i = 0; i < limit; ++i) {
+					final Vec3i offset = Useful.getDistanceSortedCircularOffset(i);
+					final int regionIndex = chunkStorage.getRegionIndexSafely(offset.getX() << 4 + x, y, offset.getZ() << 4 + z);
+
+					if (regionIndex != -1) {
+						final BuiltRenderRegion region = regions[regionIndex];
+
+						if (region.isInFrustum(frustum)) {
+							regionQueue.enqueue(region.queueKey());
+						}
+					}
+				}
 			}  else {
 				regionQueue.enqueue(cameraChunk.queueKey());
 			}
@@ -274,6 +304,7 @@ public class CanvasWorldRenderer {
 				}
 
 				// don't visit if chunk is outside near distance and doesn't have all 4 neighbors loaded
+				// also checks for outside of render distance
 				if (!builtChunk.shouldBuild()) {
 					continue;
 				}
@@ -360,7 +391,7 @@ public class CanvasWorldRenderer {
 				//mc.getProfiler().push("build near");
 				builtChunk.rebuildOnMainThread();
 				builtChunk.markBuilt();
-				didUploadChunksAfterLastRebuild = true;
+				shouldUpdateVisibility = true;
 				//				mc.getProfiler().pop();
 			} else {
 				chunksToRebuild.add(builtChunk);
@@ -652,7 +683,7 @@ public class CanvasWorldRenderer {
 				vertexConsumerProvider2 = outlineVertexConsumerProvider;
 				final int k = entity.getTeamColorValue();
 				final int u = k >> 16 & 255;
-				final int v = k >> 8 & 255;
+					final int v = k >> 8 & 255;
 				x = k & 255;
 				outlineVertexConsumerProvider.setColor(u, v, x, 255);
 			} else {
@@ -879,7 +910,7 @@ public class CanvasWorldRenderer {
 	private void updateChunks(long endNanos) {
 		final Set<BuiltRenderRegion> chunksToRebuild  = this.chunksToRebuild;
 
-		didUploadChunksAfterLastRebuild |= chunkBuilder.upload();
+		shouldUpdateVisibility |= chunkBuilder.upload();
 
 		//final long start = Util.getMeasuringTimeNano();
 		//int builtCount = 0;
