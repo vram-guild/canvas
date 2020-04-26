@@ -1,15 +1,18 @@
 package grondag.canvas.chunk;
 
+import java.util.function.IntUnaryOperator;
+
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 
 public class RenderRegionStorage {
-	private int sizeY;
-	private int sizeX;
-	private int sizeZ;
+	private static final int SIZE_Y = 16;
+	private final int xySize;
+	private final IntUnaryOperator modFunc;
 	private final BuiltRenderRegion[] regions;
+	private final int regionCount;
 
 	private int positionVersion;
 
@@ -24,17 +27,19 @@ public class RenderRegionStorage {
 	private int playerChunkZ;
 
 	public RenderRegionStorage(RenderRegionBuilder regionBuilder, int viewDistance) {
-		setViewDistance(viewDistance);
-		final int i = sizeX * sizeY * sizeZ;
-		regions = new BuiltRenderRegion[i];
+		xySize = viewDistance * 2 + 1;
+		modFunc = FastFloorMod.get(viewDistance);
 
-		for(int j = 0; j < sizeX; ++j) {
-			for(int k = 0; k < sizeY; ++k) {
-				for(int l = 0; l < sizeZ; ++l) {
-					final int m = getRegionIndex(j, k, l);
+		regionCount = xySize * SIZE_Y * xySize;
+		regions = new BuiltRenderRegion[regionCount];
+
+		for(int x = 0; x < xySize; ++x) {
+			for(int y = 0; y < SIZE_Y; ++y) {
+				for(int z = 0; z < xySize; ++z) {
+					final int i = getRegionIndex(x, y, z);
 					final BuiltRenderRegion r = new BuiltRenderRegion(regionBuilder, this);
-					r.setOrigin(j * 16, k * 16, l * 16, m);
-					regions[m] = r;
+					r.setOrigin(x << 4, y << 4, z << 4, i);
+					regions[i] = r;
 				}
 			}
 		}
@@ -51,14 +56,7 @@ public class RenderRegionStorage {
 	}
 
 	public int getRegionIndex(int x, int y, int z) {
-		return (z * sizeY + y) * sizeX + x;
-	}
-
-	private void setViewDistance(int i) {
-		final int j = i * 2 + 1;
-		sizeX = j;
-		sizeY = 16;
-		sizeZ = j;
+		return (((z * xySize) + x) << 4) + y;
 	}
 
 	private boolean needsRegionPositionUpdate(MinecraftClient client) {
@@ -95,19 +93,19 @@ public class RenderRegionStorage {
 	public void updateRegionOrigins(double playerX, double playerZ) {
 		final int cx = MathHelper.floor(playerX);
 		final int cz = MathHelper.floor(playerZ);
+		final int xDist = xySize << 4;
+		final int dcx = cx - 8 - xDist / 2;
+		final int zDist = xySize << 4;
+		final int dcz = cz - 8 - zDist / 2;
 
-		for(int dx = 0; dx < sizeX; ++dx) {
-			final int xDist = sizeX * 16;
-			final int dcx = cx - 8 - xDist / 2;
-			final int x = dcx + Math.floorMod(dx * 16 - dcx, xDist);
+		for(int dx = 0; dx < xySize; ++dx) {
+			final int x = dcx + Math.floorMod((dx << 4) - dcx, xDist);
 
-			for(int dz = 0; dz < sizeZ; ++dz) {
-				final int zDist = sizeZ * 16;
-				final int dcz = cz - 8 - zDist / 2;
-				final int z = dcz + Math.floorMod(dz * 16 - dcz, zDist);
+			for(int dz = 0; dz < xySize; ++dz) {
+				final int z = dcz + Math.floorMod((dz << 4) - dcz, zDist);
 
-				for(int dy = 0; dy < sizeY; ++dy) {
-					final int y = dy * 16;
+				for(int dy = 0; dy < SIZE_Y; ++dy) {
+					final int y = dy << 4;
 					final int index = getRegionIndex(dx, dy, dz);
 					final BuiltRenderRegion builtChunk = regions[index];
 					builtChunk.setOrigin(x, y, z, index);
@@ -117,11 +115,9 @@ public class RenderRegionStorage {
 	}
 
 	public void scheduleRebuild(int x, int y, int z, boolean urgent) {
-		final int l = Math.floorMod(x, sizeX);
-		final int m = Math.floorMod(y, sizeY);
-		final int n = Math.floorMod(z, sizeZ);
-		final BuiltRenderRegion builtChunk = regions[getRegionIndex(l, m, n)];
-		builtChunk.markForBuild(urgent);
+		if ((y & 0xFFFFFFF0) == 0) {
+			regions[getRegionIndex(modFunc.applyAsInt(x), y, modFunc.applyAsInt(z))].markForBuild(urgent);
+		}
 	}
 
 	/**
@@ -133,17 +129,11 @@ public class RenderRegionStorage {
 	 * @return -1 if out of bounds
 	 */
 	public int getRegionIndexSafely(int x, int y, int z) {
-		int i = MathHelper.floorDiv(x, 16);
-		final int j = MathHelper.floorDiv(y, 16);
-		int k = MathHelper.floorDiv(z, 16);
-
-		if (j >= 0 && j < sizeY) {
-			i = MathHelper.floorMod(i, sizeX);
-			k = MathHelper.floorMod(k, sizeZ);
-			return getRegionIndex(i, j, k);
-		} else {
+		if ((y & 0xFFFFFF00) != 0) {
 			return -1;
 		}
+
+		return getRegionIndex(modFunc.applyAsInt(x >> 4), y >> 4, modFunc.applyAsInt(z >> 4));
 	}
 
 	public int getRegionIndexSafely(BlockPos pos) {
@@ -173,5 +163,23 @@ public class RenderRegionStorage {
 
 	public BuiltRenderRegion[] regions() {
 		return regions;
+	}
+
+	public int regionCount() {
+		return regionCount;
+	}
+
+	public BuiltRenderRegion getRegion(BlockPos pos) {
+		final int index = getRegionIndexSafely(pos);
+		return index == -1 ? null : regions[index];
+	}
+
+	static int fastFloorDiv(int x, int y) {
+		int r = x / y;
+		// if the signs are different and modulo not zero, round down
+		if ((x ^ y) < 0 && (r * y != x)) {
+			r--;
+		}
+		return r;
 	}
 }

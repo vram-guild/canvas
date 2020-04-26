@@ -121,7 +121,7 @@ public class MixinWorldRenderer implements WorldRendererExt {
 
 	@Inject(at = @At("HEAD"), method = "getChunksDebugString", cancellable = true)
 	private void onGetChunksDebugString(CallbackInfoReturnable<String> ci) {
-		final int len = canvasWorldRenderer.builtChunkStorage().regions().length;
+		final int len = canvasWorldRenderer.builtChunkStorage().regionCount();
 		final int count = canvasWorldRenderer.completedChunkCount();
 		final RenderRegionBuilder chunkBuilder = canvasWorldRenderer.chunkBuilder();
 		final String result = String.format("C: %d/%d %sD: %d, %s", count, len, client.chunkCullingEnabled ? "(s) " : "", renderDistance, chunkBuilder == null ? "null" : chunkBuilder.getDebugString());

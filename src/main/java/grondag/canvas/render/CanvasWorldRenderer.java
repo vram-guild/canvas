@@ -120,8 +120,7 @@ public class CanvasWorldRenderer {
 		}
 	}
 
-	private BuiltRenderRegion[] visibleChunks = new BuiltRenderRegion[69696];
-	private int visibleChunkCount = 0;
+	private final ObjectArrayList<BuiltRenderRegion> visibleChunks = new ObjectArrayList<>();
 
 	private final WorldRendererExt wr;
 
@@ -174,25 +173,7 @@ public class CanvasWorldRenderer {
 	}
 
 	public void setWorld(@Nullable ClientWorld clientWorld) {
-		final BuiltRenderRegion[] visibleChunks = this.visibleChunks;
-		final int limit = visibleChunkCount;
-
-		for (int i = 0; i < limit; i++) {
-			visibleChunks[i] = null;
-		}
-
-		visibleChunkCount = 0;
-	}
-
-	private void resizeArraysIfNeeded(int size) {
-		final int current = visibleChunks.length;
-
-		if (current < size) {
-			//			searchInfo = new int[size];
-			//			searchDist = new int[size];
-			visibleChunks = new BuiltRenderRegion[size];
-			visibleChunkCount = 0;
-		}
+		visibleChunks.clear();
 	}
 
 	/**
@@ -200,6 +181,9 @@ public class CanvasWorldRenderer {
 		fix small occluder box generation
 
 	 PERF: more things to try
+	 	avoid resorting
+	 	speed up region indexing
+	 	share frustum checks/loaded status at world chunk column level
 		more culling
 		backface culling
 		lod culling: don't render grass, cobwebs, flowers, etc. at longer ranges
@@ -209,7 +193,8 @@ public class CanvasWorldRenderer {
 		add check for visibility to entity shouldRender via Frustum check
 		single-draw solid layer via shaders
 		render larger cubes - avoid matrix state changes
-		shared buffers
+		shared buffers per world column, render order bottom to top
+		move iteration to its own thread
 		retain vertex bindings when possible, use VAO
 	 */
 
@@ -237,7 +222,6 @@ public class CanvasWorldRenderer {
 		}
 
 		mc.getProfiler().push("regions");
-		resizeArraysIfNeeded(regions.length);
 		chunkStorage.updateRegionOriginsIfNeeded(mc);
 
 		mc.getProfiler().swap("camera");
@@ -247,8 +231,7 @@ public class CanvasWorldRenderer {
 		chunkStorage.updateCameraDistance(cameraPos, frustumPositionVersion, renderDistance);
 
 		final BlockPos cameraBlockPos = camera.getBlockPos();
-		final int cameraChunkIndex = chunkStorage.getRegionIndexSafely(cameraBlockPos);
-		final BuiltRenderRegion cameraChunk = cameraChunkIndex == -1 ? null : regions[cameraChunkIndex];
+		final BuiltRenderRegion cameraChunk = chunkStorage.getRegion(cameraBlockPos);
 
 		// TODO: integrate with sets used below, or come up with a better scheme
 		final ObjectArrayList<BuiltRenderRegion> buildList = new ObjectArrayList<>();
@@ -274,7 +257,7 @@ public class CanvasWorldRenderer {
 
 				for (int i = 0; i < limit; ++i) {
 					final Vec3i offset = Useful.getDistanceSortedCircularOffset(i);
-					final int regionIndex = chunkStorage.getRegionIndexSafely(offset.getX() << 4 + x, y, offset.getZ() << 4 + z);
+					final int regionIndex = chunkStorage.getRegionIndex(offset.getX() << 4 + x, y, offset.getZ() << 4 + z);
 
 					if (regionIndex != -1) {
 						final BuiltRenderRegion region = regions[regionIndex];
@@ -288,9 +271,10 @@ public class CanvasWorldRenderer {
 				regionQueue.enqueue(cameraChunk.queueKey());
 			}
 
-			int visibleChunkCount = 0;
 			final boolean redrawOccluder = TerrainOccluder.needsRedraw();
 			final int occluderVersion = TerrainOccluder.version();
+			final ObjectArrayList<BuiltRenderRegion> visibleChunks = this.visibleChunks;
+			visibleChunks.clear();
 
 			Entity.setRenderDistanceMultiplier(MathHelper.clamp(mc.options.viewDistance / 8.0D, 1.0D, 2.5D));
 			final boolean chunkCullingEnabled = mc.chunkCullingEnabled;
@@ -331,7 +315,7 @@ public class CanvasWorldRenderer {
 
 				if (!chunkCullingEnabled || builtChunk == cameraChunk || builtChunk.isVeryNear()) {
 					builtChunk.enqueueUnvistedNeighbors(regionQueue);
-					visibleChunks[visibleChunkCount++] = builtChunk;
+					visibleChunks.add(builtChunk);
 
 					if (redrawOccluder || builtChunk.occluderVersion != occluderVersion) {
 						TerrainOccluder.prepareChunk(builtChunk.getOrigin(), builtChunk.occlusionRange);
@@ -344,7 +328,7 @@ public class CanvasWorldRenderer {
 					// reuse prior test results
 					if (builtChunk.occluderResult) {
 						builtChunk.enqueueUnvistedNeighbors(regionQueue);
-						visibleChunks[visibleChunkCount++] = builtChunk;
+						visibleChunks.add(builtChunk);
 
 						// will already have been drawn if occluder view version hasn't changed
 						if (redrawOccluder) {
@@ -357,7 +341,7 @@ public class CanvasWorldRenderer {
 
 					if (TerrainOccluder.isBoxVisible(visData[OcclusionRegion.CULL_DATA_CHUNK_BOUNDS])) {
 						builtChunk.enqueueUnvistedNeighbors(regionQueue);
-						visibleChunks[visibleChunkCount++] = builtChunk;
+						visibleChunks.add(builtChunk);
 						builtChunk.occluderVersion = occluderVersion;
 						builtChunk.occluderResult = true;
 
@@ -368,8 +352,6 @@ public class CanvasWorldRenderer {
 					}
 				}
 			}
-
-			this.visibleChunkCount = visibleChunkCount;
 
 			//stopOuterTimer();
 		}
@@ -493,7 +475,7 @@ public class CanvasWorldRenderer {
 		final VertexConsumerProvider.Immediate immediate = bufferBuilders.getEntityVertexConsumers();
 		final Iterator<Entity> entities = world.getEntities().iterator();
 		final ShaderEffect entityOutlineShader = wr.canvas_entityOutlineShader();
-		final BuiltRenderRegion[] visibleChunks = this.visibleChunks;
+		final ObjectArrayList<BuiltRenderRegion> visibleChunks = this.visibleChunks;
 
 		while(true) {
 			Entity entity;
@@ -508,7 +490,7 @@ public class CanvasWorldRenderer {
 							immediate.draw(RenderLayer.getEntitySmoothCutout(SpriteAtlasTexture.BLOCK_ATLAS_TEX));
 							profiler.swap("blockentities");
 
-							final int visibleChunkCount = this.visibleChunkCount;
+							final int visibleChunkCount = visibleChunks.size();
 							final Set<BlockEntity> noCullingBlockEntities = wr.canvas_noCullingBlockEntities();
 							int chunkIndex = 0;
 
@@ -634,7 +616,7 @@ public class CanvasWorldRenderer {
 										return;
 									}
 
-									list = visibleChunks[chunkIndex++].getRenderData().getBlockEntities();
+									list = visibleChunks.get(chunkIndex++).getRenderData().getBlockEntities();
 								} while(list.isEmpty());
 
 								final Iterator<BlockEntity> var60 = list.iterator();
@@ -705,14 +687,12 @@ public class CanvasWorldRenderer {
 		}
 
 		final BlockPos pos = ((BlockHitResult) (hit)).getBlockPos();
+		final BuiltRenderRegion region = renderRegionStorage.getRegion(pos);
 
-		final int regionIndex = renderRegionStorage.getRegionIndexSafely(pos);
-
-		if (regionIndex == -1) {
+		if (region == null) {
 			return;
 		}
 
-		final BuiltRenderRegion region = renderRegionStorage.regions()[regionIndex];
 		final int[] boxes = region.getRenderData().getOcclusionData();
 
 		if (boxes == null || boxes.length < OcclusionRegion.CULL_DATA_FIRST_BOX) {
@@ -829,7 +809,8 @@ public class CanvasWorldRenderer {
 	}
 
 	private void renderTerrainLayer(boolean isTranslucent, MatrixStack matrixStack, double x, double y, double z) {
-		final int visibleChunkCount = this.visibleChunkCount;
+		final ObjectArrayList<BuiltRenderRegion> visibleChunks = this.visibleChunks;
+		final int visibleChunkCount = visibleChunks.size();
 
 		if (visibleChunkCount == 0) {
 			return;
@@ -837,7 +818,6 @@ public class CanvasWorldRenderer {
 
 		final WorldRendererExt wr = this.wr;
 		final MinecraftClient mc = wr.canvas_mc();
-		final BuiltRenderRegion[] visibleChunks = this.visibleChunks;
 		final VertexFormat vertexFormat = wr.canvas_vertexFormat();
 
 		if (isTranslucent) {
@@ -848,7 +828,7 @@ public class CanvasWorldRenderer {
 
 				int j = 0;
 				for (int chunkIndex = 0; chunkIndex < visibleChunkCount; chunkIndex++) {
-					if (j < 15 && visibleChunks[chunkIndex].enqueueSort()) {
+					if (j < 15 && visibleChunks.get(chunkIndex).enqueueSort()) {
 						++j;
 					}
 				}
@@ -864,7 +844,7 @@ public class CanvasWorldRenderer {
 		final int step = isTranslucent ? -1 : 1;
 
 		for (int chunkIndex = startIndex; chunkIndex != endIndex; chunkIndex += step) {
-			final BuiltRenderRegion builtChunk = visibleChunks[chunkIndex];
+			final BuiltRenderRegion builtChunk = visibleChunks.get(chunkIndex);
 
 			final DrawableChunk drawable = isTranslucent ? builtChunk.translucentDrawable() : builtChunk.solidDrawable();
 
@@ -953,11 +933,11 @@ public class CanvasWorldRenderer {
 
 	public int completedChunkCount() {
 		int result = 0;
-		final BuiltRenderRegion[] visibleChunks = this.visibleChunks;
-		final int limit = visibleChunkCount;
+		final ObjectArrayList<BuiltRenderRegion> visibleChunks = this.visibleChunks;
+		final int limit = visibleChunks.size();
 
 		for (int i = 0; i < limit; i++) {
-			final BuiltRenderRegion chunk = visibleChunks[i];
+			final BuiltRenderRegion chunk = visibleChunks.get(i);
 
 			if (chunk.solidDrawable() != null || chunk.translucentDrawable() != null) {
 				++result;
