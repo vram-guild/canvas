@@ -226,4 +226,49 @@ public class Constants {
 	static final int EVENT_0123_RFFF = EVENT_0_RIGHT 	| EVENT_1_FLAT  	| EVENT_2_FLAT		| EVENT_3_FLAT;
 	static final int EVENT_0123_LFFF = EVENT_0_LEFT 	| EVENT_1_FLAT  	| EVENT_2_FLAT		| EVENT_3_FLAT;
 	static final int EVENT_0123_FFFF = EVENT_0_FLAT 	| EVENT_1_FLAT  	| EVENT_2_FLAT		| EVENT_3_FLAT;
+
+	static final int PV_PX = 0;
+	static final int PV_PY = 1;
+	static final int PV_X = 2;
+	static final int PV_Y = 3;
+	static final int PV_Z = 4;
+	static final int PV_W = 5;
+
+	static final int PROJECTED_VERTEX_STRIDE = 6;
+
+	static final int V000 = 0;
+	static final int V001 = V000 + PROJECTED_VERTEX_STRIDE;
+	static final int V010 = V001 + PROJECTED_VERTEX_STRIDE;
+	static final int V011 = V010 + PROJECTED_VERTEX_STRIDE;
+	static final int V100 = V011 + PROJECTED_VERTEX_STRIDE;
+	static final int V101 = V100 + PROJECTED_VERTEX_STRIDE;
+	static final int V110 = V101 + PROJECTED_VERTEX_STRIDE;
+	static final int V111 = V110 + PROJECTED_VERTEX_STRIDE;
+
+	static final int X0 = 0;
+	static final int Y0 = 1;
+	static final int X1 = 2;
+	static final int Y1 = 3;
+
+	static final int AX0 = V111 + 1;
+	static final int AY0 = AX0 + 1;
+	static final int AX1 = AY0 + 1;
+	static final int AY1 = AX1 + 1;
+
+	static final int BX0 = AY1 + 1;
+	static final int BY0 = BX0 + 1;
+	static final int BX1 = BY0 + 1;
+	static final int BY1 = BX1 + 1;
+
+	static final int CX0 = BY1 + 1;
+	static final int CY0 = CX0 + 1;
+	static final int CX1 = CY0 + 1;
+	static final int CY1 = CX1 + 1;
+
+	static final int DX0 = CY1 + 1;
+	static final int DY0 = DX0 + 1;
+	static final int DX1 = DY0 + 1;
+	static final int DY1 = DX1 + 1;
+
+	static final int VERTEX_DATA_LENGTH = DY1 + 1;
 }

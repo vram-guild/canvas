@@ -27,35 +27,28 @@ import static grondag.canvas.chunk.occlusion.Data.maxTileOriginY;
 import static grondag.canvas.chunk.occlusion.Data.minPixelX;
 import static grondag.canvas.chunk.occlusion.Data.minPixelY;
 import static grondag.canvas.chunk.occlusion.Data.minTileOriginX;
-import static grondag.canvas.chunk.occlusion.Data.position0;
-import static grondag.canvas.chunk.occlusion.Data.position1;
-import static grondag.canvas.chunk.occlusion.Data.position2;
-import static grondag.canvas.chunk.occlusion.Data.position3;
 import static grondag.canvas.chunk.occlusion.Data.tileIndex;
 import static grondag.canvas.chunk.occlusion.Data.tileOriginX;
 import static grondag.canvas.chunk.occlusion.Data.tileOriginY;
-import static grondag.canvas.chunk.occlusion.Data.vertexData;
 import static grondag.canvas.chunk.occlusion.Indexer.tileIndex;
-import static grondag.canvas.chunk.occlusion.ProjectedVertexData.PV_PX;
-import static grondag.canvas.chunk.occlusion.ProjectedVertexData.PV_PY;
-import static grondag.canvas.chunk.occlusion.ProjectedVertexData.PV_W;
-import static grondag.canvas.chunk.occlusion.ProjectedVertexData.PV_X;
-import static grondag.canvas.chunk.occlusion.ProjectedVertexData.PV_Y;
-import static grondag.canvas.chunk.occlusion.ProjectedVertexData.PV_Z;
 import static grondag.canvas.chunk.occlusion.ProjectedVertexData.needsNearClip;
+
+import grondag.canvas.perf.MicroTimer;
 
 
 public final class Quad {
-	private static void clipNear(final int[] data, int internal, int external) {
-		final float intX = Float.intBitsToFloat(data[internal + PV_X]);
-		final float intY = Float.intBitsToFloat(data[internal + PV_Y]);
-		final float intZ = Float.intBitsToFloat(data[internal + PV_Z]);
-		final float intW = Float.intBitsToFloat(data[internal + PV_W]);
+	private static void clipNear(int internal, int external) {
+		final int[] vertexData = Data.vertexData;
 
-		final float extX = Float.intBitsToFloat(data[external + PV_X]);
-		final float extY = Float.intBitsToFloat(data[external + PV_Y]);
-		final float extZ = Float.intBitsToFloat(data[external + PV_Z]);
-		final float extW = Float.intBitsToFloat(data[external + PV_W]);
+		final float intX = Float.intBitsToFloat(vertexData[internal + PV_X]);
+		final float intY = Float.intBitsToFloat(vertexData[internal + PV_Y]);
+		final float intZ = Float.intBitsToFloat(vertexData[internal + PV_Z]);
+		final float intW = Float.intBitsToFloat(vertexData[internal + PV_W]);
+
+		final float extX = Float.intBitsToFloat(vertexData[external + PV_X]);
+		final float extY = Float.intBitsToFloat(vertexData[external + PV_Y]);
+		final float extZ = Float.intBitsToFloat(vertexData[external + PV_Z]);
+		final float extW = Float.intBitsToFloat(vertexData[external + PV_W]);
 
 		// intersection point is the projection plane, at which point Z == 1
 		// and w will be 0 but projection division isn't needed, so force output to W = 1
@@ -63,8 +56,6 @@ public final class Quad {
 
 		assert extZ <= 0;
 		assert extZ < extW;
-		//assert intZ > 0;
-		//assert intZ < intW;
 
 		final float wt = intZ  / -(extZ - intZ);
 
@@ -80,7 +71,7 @@ public final class Quad {
 
 	static int prepareBounds(int v0, int v1, int v2, int v3) {
 		// puts bits in lexical order
-		final int split = needsNearClip(vertexData, v3) | (needsNearClip(vertexData, v2) << 1) | (needsNearClip(vertexData, v1) << 2) | (needsNearClip(vertexData, v0) << 3);
+		final int split = needsNearClip(v3) | (needsNearClip(v2) << 1) | (needsNearClip(v1) << 2) | (needsNearClip(v0) << 3);
 
 		switch (split) {
 		case 0b0000:
@@ -136,6 +127,8 @@ public final class Quad {
 	}
 
 	private static int prepareBounds0000(int v0, int v1, int v2, int v3) {
+		final int[] vertexData = Data.vertexData;
+
 		int ax0 = 0, ay0 = 0;
 		int bx0 = 0, by0 = 0;
 		int cx0 = 0, cy0 = 0;
@@ -227,6 +220,7 @@ public final class Quad {
 	//	}
 
 	private static int prepareBounds0001(int v0, int v1, int v2, int ext3) {
+		final int[] vertexData = Data.vertexData;
 		int minY = 0, maxY = 0, minX = 0, maxX = 0;
 
 		ax0 = vertexData[v0 + PV_PX];
@@ -241,11 +235,11 @@ public final class Quad {
 
 		cx0 = bx1;
 		cy0 = by1;
-		clipNear(vertexData, v2, ext3);
+		clipNear(v2, ext3);
 		cx1 = clipX0;
 		cy1 = clipY0;
 
-		clipNear(vertexData, v0, ext3);
+		clipNear(v0, ext3);
 		dx0 = clipX0;
 		dy0 = clipY0;
 		dx1 = ax0;
@@ -277,6 +271,8 @@ public final class Quad {
 	}
 
 	private static int prepareBounds0011(int v0, int v1, int ext2, int ext3) {
+		final int[] vertexData = Data.vertexData;
+
 		int minY = 0, maxY = 0, minX = 0, maxX = 0;
 
 		ax0 = vertexData[v0 + PV_PX];
@@ -286,7 +282,7 @@ public final class Quad {
 
 		bx0 = ax1;
 		by0 = ay1;
-		clipNear(vertexData, v1, ext2);
+		clipNear(v1, ext2);
 		bx1 = clipX0;
 		by1 = clipY0;
 
@@ -296,7 +292,7 @@ public final class Quad {
 		cx1 = ax0;
 		cy1 = ay0;
 
-		clipNear(vertexData, v0, ext3);
+		clipNear(v0, ext3);
 		dx0 = clipX0;
 		dy0 = clipY0;
 		dx1 = ax0;
@@ -325,11 +321,13 @@ public final class Quad {
 	}
 
 	private static int prepareBounds0111(int v0, int ext1, int ext2, int ext3) {
+		final int[] vertexData = Data.vertexData;
+
 		int minY = 0, maxY = 0, minX = 0, maxX = 0;
 
 		ax0 = vertexData[v0 + PV_PX];
 		ay0 = vertexData[v0 + PV_PY];
-		clipNear(vertexData, v0, ext1);
+		clipNear(v0, ext1);
 		ax1 = clipX0;
 		ay1 = clipY0;
 
@@ -343,7 +341,7 @@ public final class Quad {
 		cx1 = ax0;
 		cy1 = ay0;
 
-		clipNear(vertexData, v0, ext3);
+		clipNear(v0, ext3);
 		dx0 = clipX0;
 		dy0 = clipY0;
 		dx1 = ax0;
@@ -369,7 +367,11 @@ public final class Quad {
 		return prepareBoundsInner();
 	}
 
+	private static final MicroTimer timer = new MicroTimer("prepareBoundsInner", 4000000);
+
 	private static int prepareBoundsInner()  {
+		timer.start();
+
 		int minX = Data.minX;
 		int maxX = Data.maxX;
 		int minY = Data.minY;
@@ -383,9 +385,8 @@ public final class Quad {
 			return BOUNDS_OUTSIDE_OR_TOO_SMALL;
 		}
 
-		//		if (minX < GUARD_MIN || minY < GUARD_MIN || maxX > GUARD_MAX || maxY > GUARD_MAX) {
-		//			clipToGuards();
-		//		}
+		// bitwise clamp to zero
+		//		minX &= ~(minX >> 31);
 
 		if (minX < 0) {
 			minX = 0;
@@ -399,6 +400,7 @@ public final class Quad {
 			}
 		}
 
+		//		minY &= ~(minY >> 31);
 		if (minY < 0) {
 			minY = 0;
 		}
@@ -435,16 +437,35 @@ public final class Quad {
 		tileOriginY = minPixelY & TILE_AXIS_MASK;
 		tileIndex = tileIndex(minPixelX >> TILE_AXIS_SHIFT, minPixelY >> TILE_AXIS_SHIFT);
 
-		position0 = edgePosition(ax0, ay0, ax1, ay1);
-		position1 = edgePosition(bx0, by0, bx1, by1);
-		position2 = edgePosition(cx0, cy0, cx1, cy1);
-		position3 = edgePosition(dx0, dy0, dx1, dy1);
+		final int ax0 = Data.ax0;
+		final int ay0 = Data.ay0;
+		final int ax1 = Data.ax1;
+		final int ay1 = Data.ay1;
+
+		final int bx0 = Data.bx0;
+		final int by0 = Data.by0;
+		final int bx1 = Data.bx1;
+		final int by1 = Data.by1;
+
+		final int cx0 = Data.cx0;
+		final int cy0 = Data.cy0;
+		final int cx1 = Data.cx1;
+		final int cy1 = Data.cy1;
+
+		final int dx0 = Data.dx0;
+		final int dy0 = Data.dy0;
+		final int dx1 = Data.dx1;
+		final int dy1 = Data.dy1;
+
+		final int position0 = edgePosition(ax0, ay0, ax1, ay1);
+		final int position1 = edgePosition(bx0, by0, bx1, by1);
+		final int position2 = edgePosition(cx0, cy0, cx1, cy1);
+		final int position3 = edgePosition(dx0, dy0, dx1, dy1);
 
 		final int eventKey = (position0 - 1) & EVENT_POSITION_MASK
 				| (((position1 - 1) & EVENT_POSITION_MASK) << 2)
 				| (((position2 - 1) & EVENT_POSITION_MASK) << 4)
 				| (((position3 - 1) & EVENT_POSITION_MASK) << 6);
-
 
 		switch (eventKey) {
 
@@ -892,6 +913,8 @@ public final class Quad {
 			assert false : "bad edge combination";
 		return BOUNDS_OUTSIDE_OR_TOO_SMALL;
 		}
+
+		timer.stop();
 
 		return BOUNDS_IN;
 	}

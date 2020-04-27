@@ -2,18 +2,15 @@ package grondag.canvas.chunk.occlusion;
 
 import static grondag.canvas.chunk.occlusion.Constants.HALF_PRECISE_HEIGHT;
 import static grondag.canvas.chunk.occlusion.Constants.HALF_PRECISE_WIDTH;
+import static grondag.canvas.chunk.occlusion.Constants.PV_PX;
+import static grondag.canvas.chunk.occlusion.Constants.PV_PY;
+import static grondag.canvas.chunk.occlusion.Constants.PV_W;
+import static grondag.canvas.chunk.occlusion.Constants.PV_X;
+import static grondag.canvas.chunk.occlusion.Constants.PV_Y;
+import static grondag.canvas.chunk.occlusion.Constants.PV_Z;
 
 public final class ProjectedVertexData {
 	private ProjectedVertexData() { }
-
-	public static final int PV_PX = 0;
-	public static final int PV_PY = 1;
-	public static final int PV_X = 2;
-	public static final int PV_Y = 3;
-	public static final int PV_Z = 4;
-	public static final int PV_W = 5;
-
-	public static final int PROJECTED_VERTEX_STRIDE = 6;
 
 	public static void setupVertex(final int baseIndex, final int x, final int y, final int z) {
 		final int[] data = Data.vertexData;
@@ -38,11 +35,11 @@ public final class ProjectedVertexData {
 		}
 	}
 
-	public static int needsNearClip(final int[] data, final int baseIndex) {
+	public static int needsNearClip(final int baseIndex) {
+		final int[] data = Data.vertexData;
 		final float w = Float.intBitsToFloat(data[baseIndex + PV_W]);
 		final float z = Float.intBitsToFloat(data[baseIndex + PV_Z]);
 
-		//return w < 0.00001f ? 1 : 0;
 		if (w == 0) {
 			return 1;
 		} else if (w > 0) {
