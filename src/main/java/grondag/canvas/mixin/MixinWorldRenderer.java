@@ -135,6 +135,7 @@ public class MixinWorldRenderer implements WorldRendererExt {
 	@Overwrite
 	private void scheduleChunkRender(int x, int y, int z, boolean urgent) {
 		canvasWorldRenderer.builtChunkStorage().scheduleRebuild(x, y, z, urgent);
+		canvasWorldRenderer.forceVisibilityUpdate();
 	}
 
 	// circumvent vanilla logic by faking null world and then do our load after
