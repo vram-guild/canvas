@@ -20,13 +20,14 @@ import static grondag.canvas.chunk.occlusion.Data.dx1;
 import static grondag.canvas.chunk.occlusion.Data.dy0;
 import static grondag.canvas.chunk.occlusion.Data.dy1;
 import static grondag.canvas.chunk.occlusion.Data.events;
-import static grondag.canvas.chunk.occlusion.Data.maxPixelX;
-import static grondag.canvas.chunk.occlusion.Data.maxPixelY;
 import static grondag.canvas.chunk.occlusion.Data.maxTileOriginX;
 import static grondag.canvas.chunk.occlusion.Data.maxTileOriginY;
-import static grondag.canvas.chunk.occlusion.Data.minPixelX;
 import static grondag.canvas.chunk.occlusion.Data.minPixelY;
 import static grondag.canvas.chunk.occlusion.Data.minTileOriginX;
+import static grondag.canvas.chunk.occlusion.Data.position0;
+import static grondag.canvas.chunk.occlusion.Data.position1;
+import static grondag.canvas.chunk.occlusion.Data.position2;
+import static grondag.canvas.chunk.occlusion.Data.position3;
 import static grondag.canvas.chunk.occlusion.Data.tileIndex;
 import static grondag.canvas.chunk.occlusion.Data.tileOriginX;
 import static grondag.canvas.chunk.occlusion.Data.tileOriginY;
@@ -127,12 +128,13 @@ public final class Quad {
 	}
 
 	private static int prepareBounds0000(int v0, int v1, int v2, int v3) {
-		final int[] vertexData = Data.vertexData;
+		timer.start();
 
-		int ax0 = 0, ay0 = 0;
-		int bx0 = 0, by0 = 0;
-		int cx0 = 0, cy0 = 0;
-		int dx0 = 0, dy0 = 0;
+		final int[] vertexData = Data.vertexData;
+		int ax0, ay0, ax1, ay1;
+		int bx0, by0, bx1, by1;
+		int cx0, cy0, cx1, cy1;
+		int dx0, dy0, dx1, dy1;
 		int minY = 0, maxY = 0, minX = 0, maxX = 0;
 
 		ax0 = vertexData[v0 + PV_PX];
@@ -167,21 +169,95 @@ public final class Quad {
 		if (cy0 < minY) minY = cy0; else if (cy0 > maxY) maxY = cy0;
 		if (dy0 < minY) minY = dy0; else if (dy0 > maxY) maxY = dy0;
 
-		Data.minX = minX;
-		Data.maxX = maxX;
-		Data.minY = minY;
-		Data.maxY = maxY;
+		if (((maxY - 1) | (maxX - 1) | (PRECISE_HEIGHT - 1 - minY) | (PRECISE_WIDTH - 1 - minX)) < 0) {
 
+		}
+
+		if (maxY <= 0 || minY >= PRECISE_HEIGHT) {
+			return BOUNDS_OUTSIDE_OR_TOO_SMALL;
+		}
+
+		if (maxX <= 0 || minX >= PRECISE_WIDTH) {
+			return BOUNDS_OUTSIDE_OR_TOO_SMALL;
+		}
+
+		if (minX < 0) {
+			minX = 0;
+		}
+
+		if (maxX >= PRECISE_WIDTH_CLAMP)  {
+			maxX = PRECISE_WIDTH_CLAMP;
+
+			if(minX > PRECISE_WIDTH_CLAMP) {
+				minX = PRECISE_WIDTH_CLAMP;
+			}
+		}
+
+		if (minY < 0) {
+			minY = 0;
+		}
+
+		if (maxY >= PRECISE_HEIGHT_CLAMP)  {
+			maxY = PRECISE_HEIGHT_CLAMP;
+
+			if(minY > PRECISE_HEIGHT_CLAMP) {
+				minY = PRECISE_HEIGHT_CLAMP;
+			}
+		}
+
+		final int minPixelX = ((minX + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS);
+		final int minPixelY = ((minY + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS);
+		final int maxPixelX = ((maxX + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS);
+		final int maxPixelY = ((maxY + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS);
+
+		minTileOriginX = minPixelX & TILE_AXIS_MASK;
+		maxTileOriginX = maxPixelX & TILE_AXIS_MASK;
+		maxTileOriginY = maxPixelY & TILE_AXIS_MASK;
+
+		tileOriginX = minPixelX & TILE_AXIS_MASK;
+		tileOriginY = minPixelY & TILE_AXIS_MASK;
+		tileIndex = tileIndex(minPixelX >> TILE_AXIS_SHIFT, minPixelY >> TILE_AXIS_SHIFT);
+
+		final int position0 = edgePosition(ax0, ay0, ax1, ay1);
+		final int position1 = edgePosition(bx0, by0, bx1, by1);
+		final int position2 = edgePosition(cx0, cy0, cx1, cy1);
+		final int position3 = edgePosition(dx0, dy0, dx1, dy1);
+
+		Data.minPixelX = minPixelX;
+		Data.minPixelY = minPixelY;
+		Data.maxPixelX = maxPixelX;
+		Data.maxPixelY = maxPixelY;
 		Data.ax0 = ax0;
 		Data.ay0 = ay0;
+		Data.ax1 = ax1;
+		Data.ay1 = ay1;
 		Data.bx0 = bx0;
 		Data.by0 = by0;
+		Data.bx1 = bx1;
+		Data.by1 = by1;
 		Data.cx0 = cx0;
 		Data.cy0 = cy0;
+		Data.cx1 = cx1;
+		Data.cy1 = cy1;
 		Data.dx0 = dx0;
 		Data.dy0 = dy0;
+		Data.dx1 = dx1;
+		Data.dy1 = dy1;
+		Data.position0 = position0;
+		Data.position1 = position1;
+		Data.position2 = position2;
+		Data.position3 = position3;
 
-		return prepareBoundsInner();
+		final int eventKey = (position0 - 1) & EVENT_POSITION_MASK
+				| (((position1 - 1) & EVENT_POSITION_MASK) << 2)
+				| (((position2 - 1) & EVENT_POSITION_MASK) << 4)
+				| (((position3 - 1) & EVENT_POSITION_MASK) << 6);
+
+		timer.stop();
+
+		EVENT_FILLERS[eventKey].apply();
+
+		return BOUNDS_IN;
 	}
 
 
@@ -221,6 +297,10 @@ public final class Quad {
 
 	private static int prepareBounds0001(int v0, int v1, int v2, int ext3) {
 		final int[] vertexData = Data.vertexData;
+		int ax0, ay0, ax1, ay1;
+		int bx0, by0, bx1, by1;
+		int cx0, cy0, cx1, cy1;
+		int dx0, dy0, dx1, dy1;
 		int minY = 0, maxY = 0, minX = 0, maxX = 0;
 
 		ax0 = vertexData[v0 + PV_PX];
@@ -262,16 +342,97 @@ public final class Quad {
 		if (cy1 < minY) minY = cy1; else if (cy1 > maxY) maxY = cy1;
 		if (dy0 < minY) minY = dy0; else if (dy0 > maxY) maxY = dy0;
 
-		Data.minX = minX;
-		Data.maxX = maxX;
-		Data.minY = minY;
-		Data.maxY = maxY;
+		if (maxY <= 0 || minY >= PRECISE_HEIGHT) {
+			return BOUNDS_OUTSIDE_OR_TOO_SMALL;
+		}
 
-		return prepareBoundsInner();
+		if (maxX <= 0 || minX >= PRECISE_WIDTH) {
+			return BOUNDS_OUTSIDE_OR_TOO_SMALL;
+		}
+
+		if (minX < 0) {
+			minX = 0;
+		}
+
+		if (maxX >= PRECISE_WIDTH_CLAMP)  {
+			maxX = PRECISE_WIDTH_CLAMP;
+
+			if(minX > PRECISE_WIDTH_CLAMP) {
+				minX = PRECISE_WIDTH_CLAMP;
+			}
+		}
+
+		if (minY < 0) {
+			minY = 0;
+		}
+
+		if (maxY >= PRECISE_HEIGHT_CLAMP)  {
+			maxY = PRECISE_HEIGHT_CLAMP;
+
+			if(minY > PRECISE_HEIGHT_CLAMP) {
+				minY = PRECISE_HEIGHT_CLAMP;
+			}
+		}
+
+		final int minPixelX = ((minX + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS);
+		final int minPixelY = ((minY + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS);
+		final int maxPixelX = ((maxX + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS);
+		final int maxPixelY = ((maxY + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS);
+
+		minTileOriginX = minPixelX & TILE_AXIS_MASK;
+		maxTileOriginX = maxPixelX & TILE_AXIS_MASK;
+		maxTileOriginY = maxPixelY & TILE_AXIS_MASK;
+
+		tileOriginX = minPixelX & TILE_AXIS_MASK;
+		tileOriginY = minPixelY & TILE_AXIS_MASK;
+		tileIndex = tileIndex(minPixelX >> TILE_AXIS_SHIFT, minPixelY >> TILE_AXIS_SHIFT);
+
+		final int position0 = edgePosition(ax0, ay0, ax1, ay1);
+		final int position1 = edgePosition(bx0, by0, bx1, by1);
+		final int position2 = edgePosition(cx0, cy0, cx1, cy1);
+		final int position3 = edgePosition(dx0, dy0, dx1, dy1);
+
+		Data.minPixelX = minPixelX;
+		Data.minPixelY = minPixelY;
+		Data.maxPixelX = maxPixelX;
+		Data.maxPixelY = maxPixelY;
+		Data.ax0 = ax0;
+		Data.ay0 = ay0;
+		Data.ax1 = ax1;
+		Data.ay1 = ay1;
+		Data.bx0 = bx0;
+		Data.by0 = by0;
+		Data.bx1 = bx1;
+		Data.by1 = by1;
+		Data.cx0 = cx0;
+		Data.cy0 = cy0;
+		Data.cx1 = cx1;
+		Data.cy1 = cy1;
+		Data.dx0 = dx0;
+		Data.dy0 = dy0;
+		Data.dx1 = dx1;
+		Data.dy1 = dy1;
+		Data.position0 = position0;
+		Data.position1 = position1;
+		Data.position2 = position2;
+		Data.position3 = position3;
+
+		final int eventKey = (position0 - 1) & EVENT_POSITION_MASK
+				| (((position1 - 1) & EVENT_POSITION_MASK) << 2)
+				| (((position2 - 1) & EVENT_POSITION_MASK) << 4)
+				| (((position3 - 1) & EVENT_POSITION_MASK) << 6);
+
+		EVENT_FILLERS[eventKey].apply();
+
+		return BOUNDS_IN;
 	}
 
 	private static int prepareBounds0011(int v0, int v1, int ext2, int ext3) {
 		final int[] vertexData = Data.vertexData;
+		int ax0, ay0, ax1, ay1;
+		int bx0, by0, bx1, by1;
+		int cx0, cy0, cx1, cy1;
+		int dx0, dy0, dx1, dy1;
 
 		int minY = 0, maxY = 0, minX = 0, maxX = 0;
 
@@ -312,17 +473,100 @@ public final class Quad {
 		if (by1 < minY) minY = by1; else if (by1 > maxY) maxY = by1;
 		if (dy0 < minY) minY = dy0; else if (dy0 > maxY) maxY = dy0;
 
-		Data.minX = minX;
-		Data.maxX = maxX;
-		Data.minY = minY;
-		Data.maxY = maxY;
 
-		return prepareBoundsInner();
+		if (maxY <= 0 || minY >= PRECISE_HEIGHT) {
+			return BOUNDS_OUTSIDE_OR_TOO_SMALL;
+		}
+
+		if (maxX <= 0 || minX >= PRECISE_WIDTH) {
+			return BOUNDS_OUTSIDE_OR_TOO_SMALL;
+		}
+
+		if (minX < 0) {
+			minX = 0;
+		}
+
+		if (maxX >= PRECISE_WIDTH_CLAMP)  {
+			maxX = PRECISE_WIDTH_CLAMP;
+
+			if(minX > PRECISE_WIDTH_CLAMP) {
+				minX = PRECISE_WIDTH_CLAMP;
+			}
+		}
+
+		if (minY < 0) {
+			minY = 0;
+		}
+
+		if (maxY >= PRECISE_HEIGHT_CLAMP)  {
+			maxY = PRECISE_HEIGHT_CLAMP;
+
+			if(minY > PRECISE_HEIGHT_CLAMP) {
+				minY = PRECISE_HEIGHT_CLAMP;
+			}
+		}
+
+		final int minPixelX = ((minX + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS);
+		final int minPixelY = ((minY + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS);
+		final int maxPixelX = ((maxX + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS);
+		final int maxPixelY = ((maxY + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS);
+
+		minTileOriginX = minPixelX & TILE_AXIS_MASK;
+		maxTileOriginX = maxPixelX & TILE_AXIS_MASK;
+		maxTileOriginY = maxPixelY & TILE_AXIS_MASK;
+
+		tileOriginX = minPixelX & TILE_AXIS_MASK;
+		tileOriginY = minPixelY & TILE_AXIS_MASK;
+		tileIndex = tileIndex(minPixelX >> TILE_AXIS_SHIFT, minPixelY >> TILE_AXIS_SHIFT);
+
+		final int position0 = edgePosition(ax0, ay0, ax1, ay1);
+		final int position1 = edgePosition(bx0, by0, bx1, by1);
+		final int position2 = edgePosition(cx0, cy0, cx1, cy1);
+		final int position3 = edgePosition(dx0, dy0, dx1, dy1);
+
+		Data.minPixelX = minPixelX;
+		Data.minPixelY = minPixelY;
+		Data.maxPixelX = maxPixelX;
+		Data.maxPixelY = maxPixelY;
+		Data.ax0 = ax0;
+		Data.ay0 = ay0;
+		Data.ax1 = ax1;
+		Data.ay1 = ay1;
+		Data.bx0 = bx0;
+		Data.by0 = by0;
+		Data.bx1 = bx1;
+		Data.by1 = by1;
+		Data.cx0 = cx0;
+		Data.cy0 = cy0;
+		Data.cx1 = cx1;
+		Data.cy1 = cy1;
+		Data.dx0 = dx0;
+		Data.dy0 = dy0;
+		Data.dx1 = dx1;
+		Data.dy1 = dy1;
+		Data.position0 = position0;
+		Data.position1 = position1;
+		Data.position2 = position2;
+		Data.position3 = position3;
+
+		final int eventKey = (position0 - 1) & EVENT_POSITION_MASK
+				| (((position1 - 1) & EVENT_POSITION_MASK) << 2)
+				| (((position2 - 1) & EVENT_POSITION_MASK) << 4)
+				| (((position3 - 1) & EVENT_POSITION_MASK) << 6);
+
+		timer.stop();
+
+		EVENT_FILLERS[eventKey].apply();
+
+		return BOUNDS_IN;
 	}
 
 	private static int prepareBounds0111(int v0, int ext1, int ext2, int ext3) {
 		final int[] vertexData = Data.vertexData;
-
+		int ax0, ay0, ax1, ay1;
+		int bx0, by0, bx1, by1;
+		int cx0, cy0, cx1, cy1;
+		int dx0, dy0, dx1, dy1;
 		int minY = 0, maxY = 0, minX = 0, maxX = 0;
 
 		ax0 = vertexData[v0 + PV_PX];
@@ -359,34 +603,14 @@ public final class Quad {
 		if (ay1 < minY) minY = ay1; else if (ay1 > maxY) maxY = ay1;
 		if (dy0 < minY) minY = dy0; else if (dy0 > maxY) maxY = dy0;
 
-		Data.minX = minX;
-		Data.maxX = maxX;
-		Data.minY = minY;
-		Data.maxY = maxY;
-
-		return prepareBoundsInner();
-	}
-
-	private static final MicroTimer timer = new MicroTimer("prepareBoundsInner", 4000000);
-
-	private static int prepareBoundsInner()  {
-		timer.start();
-
-		int minX = Data.minX;
-		int maxX = Data.maxX;
-		int minY = Data.minY;
-		int maxY = Data.maxY;
-
 		if (maxY <= 0 || minY >= PRECISE_HEIGHT) {
 			return BOUNDS_OUTSIDE_OR_TOO_SMALL;
 		}
 
+
 		if (maxX <= 0 || minX >= PRECISE_WIDTH) {
 			return BOUNDS_OUTSIDE_OR_TOO_SMALL;
 		}
-
-		// bitwise clamp to zero
-		//		minX &= ~(minX >> 31);
 
 		if (minX < 0) {
 			minX = 0;
@@ -400,7 +624,6 @@ public final class Quad {
 			}
 		}
 
-		//		minY &= ~(minY >> 31);
 		if (minY < 0) {
 			minY = 0;
 		}
@@ -413,493 +636,501 @@ public final class Quad {
 			}
 		}
 
-		minPixelX = ((minX + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS);
-		minPixelY = ((minY + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS);
-		maxPixelX = ((maxX + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS);
-		maxPixelY = ((maxY + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS);
-
-		assert minPixelX >= 0;
-		assert maxPixelX >= 0;
-		assert minPixelY >= 0;
-		assert maxPixelY >= 0;
-		assert minPixelX <= MAX_PIXEL_X;
-		assert maxPixelX <= MAX_PIXEL_X;
-		assert minPixelY <= MAX_PIXEL_Y;
-		assert maxPixelY <= MAX_PIXEL_Y;
-		assert minPixelX <= maxPixelX;
-		assert minPixelY <= maxPixelY;
+		final int minPixelX = ((minX + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS);
+		final int minPixelY = ((minY + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS);
+		final int maxPixelX = ((maxX + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS);
+		final int maxPixelY = ((maxY + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS);
 
 		minTileOriginX = minPixelX & TILE_AXIS_MASK;
 		maxTileOriginX = maxPixelX & TILE_AXIS_MASK;
 		maxTileOriginY = maxPixelY & TILE_AXIS_MASK;
 
-		tileOriginX = minTileOriginX;
+		tileOriginX = minPixelX & TILE_AXIS_MASK;
 		tileOriginY = minPixelY & TILE_AXIS_MASK;
 		tileIndex = tileIndex(minPixelX >> TILE_AXIS_SHIFT, minPixelY >> TILE_AXIS_SHIFT);
-
-		final int ax0 = Data.ax0;
-		final int ay0 = Data.ay0;
-		final int ax1 = Data.ax1;
-		final int ay1 = Data.ay1;
-
-		final int bx0 = Data.bx0;
-		final int by0 = Data.by0;
-		final int bx1 = Data.bx1;
-		final int by1 = Data.by1;
-
-		final int cx0 = Data.cx0;
-		final int cy0 = Data.cy0;
-		final int cx1 = Data.cx1;
-		final int cy1 = Data.cy1;
-
-		final int dx0 = Data.dx0;
-		final int dy0 = Data.dy0;
-		final int dx1 = Data.dx1;
-		final int dy1 = Data.dy1;
 
 		final int position0 = edgePosition(ax0, ay0, ax1, ay1);
 		final int position1 = edgePosition(bx0, by0, bx1, by1);
 		final int position2 = edgePosition(cx0, cy0, cx1, cy1);
 		final int position3 = edgePosition(dx0, dy0, dx1, dy1);
 
+		Data.minPixelX = minPixelX;
+		Data.minPixelY = minPixelY;
+		Data.maxPixelX = maxPixelX;
+		Data.maxPixelY = maxPixelY;
+		Data.ax0 = ax0;
+		Data.ay0 = ay0;
+		Data.ax1 = ax1;
+		Data.ay1 = ay1;
+		Data.bx0 = bx0;
+		Data.by0 = by0;
+		Data.bx1 = bx1;
+		Data.by1 = by1;
+		Data.cx0 = cx0;
+		Data.cy0 = cy0;
+		Data.cx1 = cx1;
+		Data.cy1 = cy1;
+		Data.dx0 = dx0;
+		Data.dy0 = dy0;
+		Data.dx1 = dx1;
+		Data.dy1 = dy1;
+		Data.position0 = position0;
+		Data.position1 = position1;
+		Data.position2 = position2;
+		Data.position3 = position3;
+
 		final int eventKey = (position0 - 1) & EVENT_POSITION_MASK
 				| (((position1 - 1) & EVENT_POSITION_MASK) << 2)
 				| (((position2 - 1) & EVENT_POSITION_MASK) << 4)
 				| (((position3 - 1) & EVENT_POSITION_MASK) << 6);
 
-		switch (eventKey) {
+		timer.stop();
 
-		case EVENT_0123_RRRR:
-			// FIX: not  complete - need to handle 4 right edges - happens  with clipping
+		EVENT_FILLERS[eventKey].apply();
+
+		return BOUNDS_IN;
+	}
+
+	private static final MicroTimer timer = new MicroTimer("prepareBoundsInner", 4000000);
+
+	@FunctionalInterface interface EventFiller {
+		void apply();
+	}
+
+	private static EventFiller[] EVENT_FILLERS = new EventFiller[0x1000];
+
+	static  {
+		EVENT_FILLERS[EVENT_0123_RRRR] = () -> {
+			// FIX] = () -> { not  complete - need to handle 4 right edges - happens  with clipping
 			populateLeftEvents();
 			populateRightEvents();
-			break;
-		case EVENT_0123_LRRR:
+		};
+		EVENT_FILLERS[EVENT_0123_LRRR] = () -> {
 			populateLeftEvents(ax0, ay0, ax1, ay1);
 			populateRightEvents3(bx0, by0, bx1, by1, cx0, cy0, cx1, cy1, dx0, dy0, dx1, dy1);
-			break;
-		case EVENT_0123_FRRR:
+		};
+		EVENT_FILLERS[EVENT_0123_FRRR] = () -> {
 			populateLeftEvents();
 			populateRightEvents3(bx0, by0, bx1, by1, cx0, cy0, cx1, cy1, dx0, dy0, dx1, dy1);
 			populateFlatEvents(position0, ay0);
-			break;
-		case EVENT_0123_RLRR:
+		};
+		EVENT_FILLERS[EVENT_0123_RLRR] = () -> {
 			populateLeftEvents(bx0, by0, bx1, by1);
 			populateRightEvents3(ax0, ay0, ax1, ay1, cx0, cy0, cx1, cy1, dx0, dy0, dx1, dy1);
-			break;
-		case EVENT_0123_LLRR:
+		};
+		EVENT_FILLERS[EVENT_0123_LLRR] = () -> {
 			populateLeftEvents2(ax0, ay0, ax1, ay1, bx0, by0, bx1, by1);
 			populateRightEvents2(cx0, cy0, cx1, cy1, dx0, dy0, dx1, dy1);
-			break;
-		case EVENT_0123_FLRR:
+		};
+		EVENT_FILLERS[EVENT_0123_FLRR] = () -> {
 			populateLeftEvents(bx0, by0, bx1, by1);
 			populateRightEvents2(cx0, cy0, cx1, cy1, dx0, dy0, dx1, dy1);
 			populateFlatEvents(position0, ay0);
-			break;
-		case EVENT_0123_RFRR:
+		};
+		EVENT_FILLERS[EVENT_0123_RFRR] = () -> {
 			populateLeftEvents();
 			populateRightEvents3(ax0, ay0, ax1, ay1, cx0, cy0, cx1, cy1, dx0, dy0, dx1, dy1);
 			populateFlatEvents(position1, by0);
-			break;
-		case EVENT_0123_LFRR:
+		};
+		EVENT_FILLERS[EVENT_0123_LFRR] = () -> {
 			populateLeftEvents(ax0, ay0, ax1, ay1);
 			populateRightEvents2(cx0, cy0, cx1, cy1, dx0, dy0, dx1, dy1);
 			populateFlatEvents(position1, by0);
-			break;
-		case EVENT_0123_FFRR:
+		};
+		EVENT_FILLERS[EVENT_0123_FFRR] = () -> {
 			populateLeftEvents();
 			populateRightEvents2(cx0, cy0, cx1, cy1, dx0, dy0, dx1, dy1);
 			populateFlatEvents(position0, ay0);
 			populateFlatEvents(position1, by0);
-			break;
+		};
 
-		case EVENT_0123_RRLR:
+		EVENT_FILLERS[EVENT_0123_RRLR] = () -> {
 			populateLeftEvents(cx0, cy0, cx1, cy1);
 			populateRightEvents3(ax0, ay0, ax1, ay1, bx0, by0, bx1, by1, dx0, dy0, dx1, dy1);
-			break;
-		case EVENT_0123_LRLR:
+		};
+		EVENT_FILLERS[EVENT_0123_LRLR] = () -> {
 			populateLeftEvents2(ax0, ay0, ax1, ay1, cx0, cy0, cx1, cy1);
 			populateRightEvents2(bx0, by0, bx1, by1, dx0, dy0, dx1, dy1);
-			break;
-		case EVENT_0123_FRLR:
+		};
+		EVENT_FILLERS[EVENT_0123_FRLR] = () -> {
 			populateLeftEvents(cx0, cy0, cx1, cy1);
 			populateRightEvents2(bx0, by0, bx1, by1, dx0, dy0, dx1, dy1);
 			populateFlatEvents(position0, ay0);
-			break;
-		case EVENT_0123_RLLR:
+		};
+		EVENT_FILLERS[EVENT_0123_RLLR] = () -> {
 			populateLeftEvents2(bx0, by0, bx1, by1, cx0, cy0, cx1, cy1);
 			populateRightEvents2(ax0, ay0, ax1, ay1, dx0, dy0, dx1, dy1);
-			break;
-		case EVENT_0123_LLLR:
+		};
+		EVENT_FILLERS[EVENT_0123_LLLR] = () -> {
 			populateLeftEvents3(ax0, ay0, ax1, ay1, bx0, by0, bx1, by1, cx0, cy0, cx1, cy1);
 			populateRightEvents(dx0, dy0, dx1, dy1);
-			break;
-		case EVENT_0123_FLLR:
+		};
+		EVENT_FILLERS[EVENT_0123_FLLR] = () -> {
 			populateLeftEvents2(bx0, by0, bx1, by1, cx0, cy0, cx1, cy1);
 			populateRightEvents(dx0, dy0, dx1, dy1);
 			populateFlatEvents(position0, ay0);
-			break;
-		case EVENT_0123_RFLR:
+		};
+		EVENT_FILLERS[EVENT_0123_RFLR] = () -> {
 			populateLeftEvents(cx0, cy0, cx1, cy1);
 			populateRightEvents2(ax0, ay0, ax1, ay1, dx0, dy0, dx1, dy1);
 			populateFlatEvents(position1, by0);
-			break;
-		case EVENT_0123_LFLR:
+		};
+		EVENT_FILLERS[EVENT_0123_LFLR] = () -> {
 			populateLeftEvents2(ax0, ay0, ax1, ay1, cx0, cy0, cx1, cy1);
 			populateRightEvents(dx0, dy0, dx1, dy1);
 			populateFlatEvents(position1, by0);
-			break;
-		case EVENT_0123_FFLR:
+		};
+		EVENT_FILLERS[EVENT_0123_FFLR] = () -> {
 			populateLeftEvents(cx0, cy0, cx1, cy1);
 			populateRightEvents(dx0, dy0, dx1, dy1);
 			populateFlatEvents(position0, ay0);
 			populateFlatEvents(position1, by0);
-			break;
+		};
 
-		case EVENT_0123_LRFR:
+		EVENT_FILLERS[EVENT_0123_LRFR] = () -> {
 			populateLeftEvents(ax0, ay0, ax1, ay1);
 			populateRightEvents2(bx0, by0, bx1, by1, dx0, dy0, dx1, dy1);
 			populateFlatEvents(position2, cy0);
-			break;
-		case EVENT_0123_RRFR:
+		};
+		EVENT_FILLERS[EVENT_0123_RRFR] = () -> {
 			populateLeftEvents();
 			populateRightEvents3(ax0, ay0, ax1, ay1, bx0, by0, bx1, by1, dx0, dy0, dx1, dy1);
 			populateFlatEvents(position2, cy0);
-			break;
-		case EVENT_0123_FRFR:
+		};
+		EVENT_FILLERS[EVENT_0123_FRFR] = () -> {
 			populateLeftEvents();
 			populateRightEvents2(bx0, by0, bx1, by1, dx0, dy0, dx1, dy1);
 			populateFlatEvents(position0, ay0);
 			populateFlatEvents(position2, cy0);
-			break;
-		case EVENT_0123_RLFR:
+		};
+		EVENT_FILLERS[EVENT_0123_RLFR] = () -> {
 			populateLeftEvents(bx0, by0, bx1, by1);
 			populateRightEvents2(ax0, ay0, ax1, ay1, dx0, dy0, dx1, dy1);
 			populateFlatEvents(position2, cy0);
-			break;
-		case EVENT_0123_LLFR:
+		};
+		EVENT_FILLERS[EVENT_0123_LLFR] = () -> {
 			populateLeftEvents2(ax0, ay0, ax1, ay1, bx0, by0, bx1, by1);
 			populateRightEvents(dx0, dy0, dx1, dy1);
 			populateFlatEvents(position2, cy0);
-			break;
-		case EVENT_0123_FLFR:
+		};
+		EVENT_FILLERS[EVENT_0123_FLFR] = () -> {
 			populateLeftEvents(bx0, by0, bx1, by1);
 			populateRightEvents(dx0, dy0, dx1, dy1);
 			populateFlatEvents(position0, ay0);
 			populateFlatEvents(position2, cy0);
-			break;
-		case EVENT_0123_RFFR:
+		};
+		EVENT_FILLERS[EVENT_0123_RFFR] = () -> {
 			populateLeftEvents();
 			populateRightEvents2(ax0, ay0, ax1, ay1, dx0, dy0, dx1, dy1);
 			populateFlatEvents(position1, by0);
 			populateFlatEvents(position2, cy0);
-			break;
-		case EVENT_0123_LFFR:
+		};
+		EVENT_FILLERS[EVENT_0123_LFFR] = () -> {
 			populateLeftEvents(ax0, ay0, ax1, ay1);
 			populateRightEvents(dx0, dy0, dx1, dy1);
 			populateFlatEvents(position1, by0);
 			populateFlatEvents(position2, cy0);
-			break;
-		case EVENT_0123_FFFR:
+		};
+		EVENT_FILLERS[EVENT_0123_FFFR] = () -> {
 			populateLeftEvents();
 			populateRightEvents(dx0, dy0, dx1, dy1);
 			populateFlatEvents(position0, ay0);
 			populateFlatEvents(position1, by0);
 			populateFlatEvents(position2, cy0);
-			break;
+		};
 
 
-		case EVENT_0123_RRRL:
+		EVENT_FILLERS[EVENT_0123_RRRL] = () -> {
 			populateLeftEvents(dx0, dy0, dx1, dy1);
 			populateRightEvents3(ax0, ay0, ax1, ay1, bx0, by0, bx1, by1, cx0, cy0, cx1, cy1);
-			break;
-		case EVENT_0123_LRRL:
+		};
+		EVENT_FILLERS[EVENT_0123_LRRL] = () -> {
 			populateLeftEvents2(ax0, ay0, ax1, ay1, dx0, dy0, dx1, dy1);
 			populateRightEvents2(bx0, by0, bx1, by1, cx0, cy0, cx1, cy1);
-			break;
-		case EVENT_0123_FRRL:
+		};
+		EVENT_FILLERS[EVENT_0123_FRRL] = () -> {
 			populateLeftEvents(dx0, dy0, dx1, dy1);
 			populateRightEvents2(bx0, by0, bx1, by1, cx0, cy0, cx1, cy1);
 			populateFlatEvents(position0, ay0);
-			break;
-		case EVENT_0123_RLRL:
+		};
+		EVENT_FILLERS[EVENT_0123_RLRL] = () -> {
 			populateLeftEvents2(bx0, by0, bx1, by1, dx0, dy0, dx1, dy1);
 			populateRightEvents2(ax0, ay0, ax1, ay1, cx0, cy0, cx1, cy1);
-			break;
-		case EVENT_0123_LLRL:
+		};
+		EVENT_FILLERS[EVENT_0123_LLRL] = () -> {
 			populateLeftEvents3(ax0, ay0, ax1, ay1, bx0, by0, bx1, by1, dx0, dy0, dx1, dy1);
 			populateRightEvents(cx0, cy0, cx1, cy1);
-			break;
-		case EVENT_0123_FLRL:
+		};
+		EVENT_FILLERS[EVENT_0123_FLRL] = () -> {
 			populateLeftEvents2(bx0, by0, bx1, by1, dx0, dy0, dx1, dy1);
 			populateRightEvents(cx0, cy0, cx1, cy1);
 			populateFlatEvents(position0, ay0);
-			break;
-		case EVENT_0123_RFRL:
+		};
+		EVENT_FILLERS[EVENT_0123_RFRL] = () -> {
 			populateLeftEvents(dx0, dy0, dx1, dy1);
 			populateRightEvents2(ax0, ay0, ax1, ay1, cx0, cy0, cx1, cy1);
 			populateFlatEvents(position1, by0);
-			break;
-		case EVENT_0123_LFRL:
+		};
+		EVENT_FILLERS[EVENT_0123_LFRL] = () -> {
 			populateLeftEvents2(ax0, ay0, ax1, ay1, dx0, dy0, dx1, dy1);
 			populateRightEvents(cx0, cy0, cx1, cy1);
 			populateFlatEvents(position1, by0);
-			break;
-		case EVENT_0123_FFRL:
+		};
+		EVENT_FILLERS[EVENT_0123_FFRL] = () -> {
 			populateLeftEvents(dx0, dy0, dx1, dy1);
 			populateRightEvents(cx0, cy0, cx1, cy1);
 			populateFlatEvents(position0, ay0);
 			populateFlatEvents(position1, by0);
-			break;
-		case EVENT_0123_RRLL:
+		};
+		EVENT_FILLERS[EVENT_0123_RRLL] = () -> {
 			populateLeftEvents2(cx0, cy0, cx1, cy1, dx0, dy0, dx1, dy1);
 			populateRightEvents2(ax0, ay0, ax1, ay1, bx0, by0, bx1, by1);
-			break;
-		case EVENT_0123_LRLL:
+		};
+		EVENT_FILLERS[EVENT_0123_LRLL] = () -> {
 			populateLeftEvents3(ax0, ay0, ax1, ay1, cx0, cy0, cx1, cy1, dx0, dy0, dx1, dy1);
 			populateRightEvents(bx0, by0, bx1, by1);
-			break;
-		case EVENT_0123_FRLL:
+		};
+		EVENT_FILLERS[EVENT_0123_FRLL] = () -> {
 			populateLeftEvents2(cx0, cy0, cx1, cy1, dx0, dy0, dx1, dy1);
 			populateRightEvents(bx0, by0, bx1, by1);
 			populateFlatEvents(position0, ay0);
-			break;
-		case EVENT_0123_RLLL:
+		};
+		EVENT_FILLERS[EVENT_0123_RLLL] = () -> {
 			populateLeftEvents3(bx0, by0, bx1, by1, cx0, cy0, cx1, cy1, dx0, dy0, dx1, dy1);
 			populateRightEvents(ax0, ay0, ax1, ay1);
-			break;
-		case EVENT_0123_LLLL:
-			// FIX: not  complete - need to handle 4 right edges - happens  with clipping
+		};
+		EVENT_FILLERS[EVENT_0123_LLLL] = () -> {
+			// FIX] = () -> { not  complete - need to handle 4 right edges - happens  with clipping
 			populateLeftEvents();
 			populateRightEvents();
-			break;
-		case EVENT_0123_FLLL:
+		};
+		EVENT_FILLERS[EVENT_0123_FLLL] = () -> {
 			populateLeftEvents3(bx0, by0, bx1, by1, cx0, cy0, cx1, cy1, dx0, dy0, dx1, dy1);
 			populateRightEvents();
 			populateFlatEvents(position0, ay0);
-			break;
-		case EVENT_0123_RFLL:
+		};
+		EVENT_FILLERS[EVENT_0123_RFLL] = () -> {
 			populateLeftEvents2(cx0, cy0, cx1, cy1, dx0, dy0, dx1, dy1);
 			populateRightEvents(ax0, ay0, ax1, ay1);
 			populateFlatEvents(position1, by0);
-			break;
-		case EVENT_0123_LFLL:
+		};
+		EVENT_FILLERS[EVENT_0123_LFLL] = () -> {
 			populateLeftEvents3(ax0, ay0, ax1, ay1, cx0, cy0, cx1, cy1, dx0, dy0, dx1, dy1);
 			populateRightEvents();
 			populateFlatEvents(position1, by0);
-			break;
-		case EVENT_0123_FFLL:
+		};
+		EVENT_FILLERS[EVENT_0123_FFLL] = () -> {
 			populateLeftEvents2(cx0, cy0, cx1, cy1, dx0, dy0, dx1, dy1);
 			populateRightEvents();
 			populateFlatEvents(position0, ay0);
 			populateFlatEvents(position1, by0);
-			break;
-		case EVENT_0123_LRFL:
+		};
+		EVENT_FILLERS[EVENT_0123_LRFL] = () -> {
 			populateLeftEvents2(ax0, ay0, ax1, ay1, dx0, dy0, dx1, dy1);
 			populateRightEvents(bx0, by0, bx1, by1);
 			populateFlatEvents(position2, cy0);
-			break;
-		case EVENT_0123_RRFL:
+		};
+		EVENT_FILLERS[EVENT_0123_RRFL] = () -> {
 			populateLeftEvents(dx0, dy0, dx1, dy1);
 			populateRightEvents2(ax0, ay0, ax1, ay1, bx0, by0, bx1, by1);
 			populateFlatEvents(position2, cy0);
-			break;
-		case EVENT_0123_FRFL:
+		};
+		EVENT_FILLERS[EVENT_0123_FRFL] = () -> {
 			populateLeftEvents(dx0, dy0, dx1, dy1);
 			populateRightEvents(bx0, by0, bx1, by1);
 			populateFlatEvents(position0, ay0);
 			populateFlatEvents(position2, cy0);
-			break;
-		case EVENT_0123_RLFL:
+		};
+		EVENT_FILLERS[EVENT_0123_RLFL] = () -> {
 			populateLeftEvents2(bx0, by0, bx1, by1, dx0, dy0, dx1, dy1);
 			populateRightEvents(ax0, ay0, ax1, ay1);
 			populateFlatEvents(position2, cy0);
-			break;
-		case EVENT_0123_LLFL:
+		};
+		EVENT_FILLERS[EVENT_0123_LLFL] = () -> {
 			populateLeftEvents3(ax0, ay0, ax1, ay1, bx0, by0, bx1, by1, dx0, dy0, dx1, dy1);
 			populateRightEvents();
 			populateFlatEvents(position2, cy0);
-			break;
-		case EVENT_0123_FLFL:
+		};
+		EVENT_FILLERS[EVENT_0123_FLFL] = () -> {
 			populateLeftEvents2(bx0, by0, bx1, by1, dx0, dy0, dx1, dy1);
 			populateRightEvents();
 			populateFlatEvents(position0, ay0);
 			populateFlatEvents(position2, cy0);
-			break;
-		case EVENT_0123_RFFL:
+		};
+		EVENT_FILLERS[EVENT_0123_RFFL] = () -> {
 			populateLeftEvents(dx0, dy0, dx1, dy1);
 			populateRightEvents(ax0, ay0, ax1, ay1);
 			populateFlatEvents(position1, by0);
 			populateFlatEvents(position2, cy0);
-			break;
-		case EVENT_0123_LFFL:
+		};
+		EVENT_FILLERS[EVENT_0123_LFFL] = () -> {
 			populateLeftEvents2(ax0, ay0, ax1, ay1, dx0, dy0, dx1, dy1);
 			populateRightEvents();
 			populateFlatEvents(position1, by0);
 			populateFlatEvents(position2, cy0);
-			break;
-		case EVENT_0123_FFFL:
+		};
+		EVENT_FILLERS[EVENT_0123_FFFL] = () -> {
 			populateLeftEvents(dx0, dy0, dx1, dy1);
 			populateRightEvents();
 			populateFlatEvents(position0, ay0);
 			populateFlatEvents(position1, by0);
 			populateFlatEvents(position2, cy0);
-			break;
-		case EVENT_0123_RRRF:
+		};
+		EVENT_FILLERS[EVENT_0123_RRRF] = () -> {
 			populateLeftEvents();
 			populateRightEvents3(ax0, ay0, ax1, ay1, bx0, by0, bx1, by1, cx0, cy0, cx1, cy1);
 			populateFlatEvents(position3, dy0);
-			break;
-		case EVENT_0123_LRRF:
+		};
+		EVENT_FILLERS[EVENT_0123_LRRF] = () -> {
 			populateLeftEvents(ax0, ay0, ax1, ay1);
 			populateRightEvents2(bx0, by0, bx1, by1, cx0, cy0, cx1, cy1);
 			populateFlatEvents(position3, dy0);
-			break;
-		case EVENT_0123_FRRF:
+		};
+		EVENT_FILLERS[EVENT_0123_FRRF] = () -> {
 			populateLeftEvents();
 			populateRightEvents2(bx0, by0, bx1, by1, cx0, cy0, cx1, cy1);
 			populateFlatEvents(position0, ay0);
 			populateFlatEvents(position3, dy0);
-			break;
-		case EVENT_0123_RLRF:
+		};
+		EVENT_FILLERS[EVENT_0123_RLRF] = () -> {
 			populateLeftEvents(bx0, by0, bx1, by1);
 			populateRightEvents2(ax0, ay0, ax1, ay1, cx0, cy0, cx1, cy1);
 			populateFlatEvents(position3, dy0);
-			break;
-		case EVENT_0123_LLRF:
+		};
+		EVENT_FILLERS[EVENT_0123_LLRF] = () -> {
 			populateLeftEvents2(ax0, ay0, ax1, ay1, bx0, by0, bx1, by1);
 			populateRightEvents(cx0, cy0, cx1, cy1);
 			populateFlatEvents(position3, dy0);
-			break;
-		case EVENT_0123_FLRF:
+		};
+		EVENT_FILLERS[EVENT_0123_FLRF] = () -> {
 			populateLeftEvents(bx0, by0, bx1, by1);
 			populateRightEvents(cx0, cy0, cx1, cy1);
 			populateFlatEvents(position0, ay0);
 			populateFlatEvents(position3, dy0);
-			break;
-		case EVENT_0123_RFRF:
+		};
+		EVENT_FILLERS[EVENT_0123_RFRF] = () -> {
 			populateLeftEvents();
 			populateRightEvents2(ax0, ay0, ax1, ay1, cx0, cy0, cx1, cy1);
 			populateFlatEvents(position1, by0);
 			populateFlatEvents(position3, dy0);
-			break;
-		case EVENT_0123_LFRF:
+		};
+		EVENT_FILLERS[EVENT_0123_LFRF] = () -> {
 			populateLeftEvents(ax0, ay0, ax1, ay1);
 			populateRightEvents(cx0, cy0, cx1, cy1);
 			populateFlatEvents(position1, by0);
 			populateFlatEvents(position3, dy0);
-			break;
-		case EVENT_0123_FFRF:
+		};
+		EVENT_FILLERS[EVENT_0123_FFRF] = () -> {
 			populateLeftEvents();
 			populateRightEvents(cx0, cy0, cx1, cy1);
 			populateFlatEvents(position0, ay0);
 			populateFlatEvents(position1, by0);
 			populateFlatEvents(position3, dy0);
-			break;
-		case EVENT_0123_RRLF:
+		};
+		EVENT_FILLERS[EVENT_0123_RRLF] = () -> {
 			populateLeftEvents(cx0, cy0, cx1, cy1);
 			populateRightEvents2(ax0, ay0, ax1, ay1, bx0, by0, bx1, by1);
 			populateFlatEvents(position3, dy0);
-			break;
-		case EVENT_0123_LRLF:
+		};
+		EVENT_FILLERS[EVENT_0123_LRLF] = () -> {
 			populateLeftEvents2(ax0, ay0, ax1, ay1, cx0, cy0, cx1, cy1);
 			populateRightEvents(bx0, by0, bx1, by1);
 			populateFlatEvents(position3, dy0);
-			break;
-		case EVENT_0123_FRLF:
+		};
+		EVENT_FILLERS[EVENT_0123_FRLF] = () -> {
 			populateLeftEvents(cx0, cy0, cx1, cy1);
 			populateRightEvents(bx0, by0, bx1, by1);
 			populateFlatEvents(position0, ay0);
 			populateFlatEvents(position3, dy0);
-			break;
-		case EVENT_0123_RLLF:
+		};
+		EVENT_FILLERS[EVENT_0123_RLLF] = () -> {
 			populateLeftEvents2(bx0, by0, bx1, by1, cx0, cy0, cx1, cy1);
 			populateRightEvents(ax0, ay0, ax1, ay1);
 			populateFlatEvents(position3, dy0);
-			break;
-		case EVENT_0123_LLLF:
+		};
+		EVENT_FILLERS[EVENT_0123_LLLF] = () -> {
 			populateLeftEvents3(ax0, ay0, ax1, ay1, bx0, by0, bx1, by1, cx0, cy0, cx1, cy1);
 			populateRightEvents();
 			populateFlatEvents(position3, dy0);
-			break;
-		case EVENT_0123_FLLF:
+		};
+		EVENT_FILLERS[EVENT_0123_FLLF] = () -> {
 			populateLeftEvents2(bx0, by0, bx1, by1, cx0, cy0, cx1, cy1);
 			populateRightEvents();
 			populateFlatEvents(position0, ay0);
 			populateFlatEvents(position3, dy0);
-			break;
-		case EVENT_0123_RFLF:
+		};
+		EVENT_FILLERS[EVENT_0123_RFLF] = () -> {
 			populateLeftEvents(cx0, cy0, cx1, cy1);
 			populateRightEvents(ax0, ay0, ax1, ay1);
 			populateFlatEvents(position1, by0);
 			populateFlatEvents(position3, dy0);
-			break;
-		case EVENT_0123_LFLF:
+		};
+		EVENT_FILLERS[EVENT_0123_LFLF] = () -> {
 			populateLeftEvents2(ax0, ay0, ax1, ay1, cx0, cy0, cx1, cy1);
 			populateRightEvents();
 			populateFlatEvents(position1, by0);
 			populateFlatEvents(position3, dy0);
-			break;
-		case EVENT_0123_FFLF:
+		};
+		EVENT_FILLERS[EVENT_0123_FFLF] = () -> {
 			populateLeftEvents(cx0, cy0, cx1, cy1);
 			populateRightEvents();
 			populateFlatEvents(position0, ay0);
 			populateFlatEvents(position1, by0);
 			populateFlatEvents(position3, dy0);
-			break;
-		case EVENT_0123_LRFF:
+		};
+		EVENT_FILLERS[EVENT_0123_LRFF] = () -> {
 			populateLeftEvents(ax0, ay0, ax1, ay1);
 			populateRightEvents(bx0, by0, bx1, by1);
 			populateFlatEvents(position2, cy0);
 			populateFlatEvents(position3, dy0);
-			break;
-		case EVENT_0123_RRFF:
+		};
+		EVENT_FILLERS[EVENT_0123_RRFF] = () -> {
 			populateLeftEvents();
 			populateRightEvents2(ax0, ay0, ax1, ay1, bx0, by0, bx1, by1);
 			populateFlatEvents(position2, cy0);
 			populateFlatEvents(position3, dy0);
-			break;
-		case EVENT_0123_FRFF:
+		};
+		EVENT_FILLERS[EVENT_0123_FRFF] = () -> {
 			populateLeftEvents();
 			populateRightEvents(bx0, by0, bx1, by1);
 			populateFlatEvents(position0, ay0);
 			populateFlatEvents(position2, cy0);
 			populateFlatEvents(position3, dy0);
-			break;
-		case EVENT_0123_RLFF:
+		};
+		EVENT_FILLERS[EVENT_0123_RLFF] = () -> {
 			populateLeftEvents(bx0, by0, bx1, by1);
 			populateRightEvents(ax0, ay0, ax1, ay1);
 			populateFlatEvents(position2, cy0);
 			populateFlatEvents(position3, dy0);
-			break;
-		case EVENT_0123_LLFF:
+		};
+		EVENT_FILLERS[EVENT_0123_LLFF] = () -> {
 			populateLeftEvents2(ax0, ay0, ax1, ay1, bx0, by0, bx1, by1);
 			populateRightEvents();
 			populateFlatEvents(position2, cy0);
 			populateFlatEvents(position3, dy0);
-			break;
-		case EVENT_0123_FLFF:
+		};
+		EVENT_FILLERS[EVENT_0123_FLFF] = () -> {
 			populateLeftEvents(bx0, by0, bx1, by1);
 			populateRightEvents();
 			populateFlatEvents(position0, ay0);
 			populateFlatEvents(position2, cy0);
 			populateFlatEvents(position3, dy0);
-			break;
-		case EVENT_0123_RFFF:
+		};
+		EVENT_FILLERS[EVENT_0123_RFFF] = () -> {
 			populateLeftEvents();
 			populateRightEvents(ax0, ay0, ax1, ay1);
 			populateFlatEvents(position1, by0);
 			populateFlatEvents(position2, cy0);
 			populateFlatEvents(position3, dy0);
-			break;
-		case EVENT_0123_LFFF:
+		};
+		EVENT_FILLERS[EVENT_0123_LFFF] = () -> {
 			populateLeftEvents(ax0, ay0, ax1, ay1);
 			populateRightEvents();
 			populateFlatEvents(position1, by0);
 			populateFlatEvents(position2, cy0);
 			populateFlatEvents(position3, dy0);
-			break;
-		case EVENT_0123_FFFF:
+		};
+		EVENT_FILLERS[EVENT_0123_FFFF] = () -> {
 			// fill it
 			populateLeftEvents();
 			populateRightEvents();
@@ -907,16 +1138,8 @@ public final class Quad {
 			populateFlatEvents(position1, by0);
 			populateFlatEvents(position2, cy0);
 			populateFlatEvents(position3, dy0);
-			break;
+		};
 
-		default:
-			assert false : "bad edge combination";
-		return BOUNDS_OUTSIDE_OR_TOO_SMALL;
-		}
-
-		timer.stop();
-
-		return BOUNDS_IN;
 	}
 
 	private static int edgePosition(int x0In, int y0In, int x1In, int y1In) {

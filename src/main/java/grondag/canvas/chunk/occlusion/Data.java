@@ -10,6 +10,8 @@ public class Data {
 	static final Matrix4L baseMvpMatrix = new Matrix4L();
 	static final Matrix4L mvpMatrix = new Matrix4L();
 
+	static final int[] events = new int[PIXEL_HEIGHT * 2];
+	static final int[] vertexData = new int[VERTEX_DATA_LENGTH];
 	static final long[] tiles = new long[TILE_COUNT];
 
 	static long viewX;
@@ -41,10 +43,10 @@ public class Data {
 	static int clipX1;
 	static int clipY1;
 
-	static int minX;
-	static int maxX;
-	static int minY;
-	static int maxY;
+	static int position0;
+	static int position1;
+	static int position2;
+	static int position3;
 
 	static int ax0;
 	static int ay0;
@@ -76,10 +78,4 @@ public class Data {
 	static int save_tileIndex;
 	static int save_tileOriginX;
 	static int save_tileOriginY;
-
-	static final int[] events = new int[PIXEL_HEIGHT * 2];
-
-
-	static final int[] vertexData = new int[VERTEX_DATA_LENGTH];
-
 }
