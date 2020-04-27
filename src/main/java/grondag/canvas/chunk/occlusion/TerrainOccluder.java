@@ -195,7 +195,6 @@ public abstract class TerrainOccluder {
 		final int y1  = PackedBox.y1(packedBox) + 1;
 		final int z1  = PackedBox.z1(packedBox) + 1;
 
-
 		Indexer.computeProjectedBoxBounds(x0, y0, z0, x1, y1, z1);
 
 		// rank tests by how directly they face - use distance from camera coordinates for this
@@ -215,6 +214,8 @@ public abstract class TerrainOccluder {
 		final int by1 = -(y1 << CAMERA_PRECISION_BITS);
 		final int bz0 = -(z0 << CAMERA_PRECISION_BITS);
 		final int bz1 = -(z1 << CAMERA_PRECISION_BITS);
+
+		// PERF: improve branch prediction
 
 		// if camera below top face can't be seen
 		if (offsetY < by1) {

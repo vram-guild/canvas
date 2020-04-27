@@ -72,7 +72,6 @@ import grondag.canvas.chunk.occlusion.region.OcclusionRegion;
 import grondag.canvas.chunk.occlusion.region.PackedBox;
 import grondag.canvas.draw.DrawHandler;
 import grondag.canvas.mixinterface.WorldRendererExt;
-import grondag.canvas.perf.MicroTimer;
 import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
 import grondag.fermion.varia.Useful;
 
@@ -101,25 +100,6 @@ public class CanvasWorldRenderer {
 
 	// TODO: redirect uses in MC WorldRenderer
 	public final Set<BuiltRenderRegion> chunksToRebuild = Sets.newLinkedHashSet();
-
-	// TODO: remove
-	private static final MicroTimer outerTimer = new MicroTimer("outer", 200);
-	public static final MicroTimer innerTimer = new MicroTimer("inner", -1);
-	private int lastSolidCount;
-	private int lastTranlsucentCount;
-
-	public void stopOuterTimer() {
-		final long outerElapsed = outerTimer.elapsed();
-
-		if (outerTimer.stop()) {
-			System.out.println("Avg inner runs per frame = " + innerTimer.hits() / 100); // 100 because outer runs 2X per frame
-			System.out.println("Inner elapsed is " + 100 * innerTimer.elapsed() / outerElapsed + "% of outer");
-			System.out.println("Visible chunk count = " + completedChunkCount());
-			System.out.println("lastSolidCount = " + lastSolidCount + "   lastTranlsucentCount = " + lastTranlsucentCount);
-			innerTimer.reportAndClear();
-			System.out.println();
-		}
-	}
 
 	private final ObjectArrayList<BuiltRenderRegion> visibleChunks = new ObjectArrayList<>();
 
@@ -241,7 +221,6 @@ public class CanvasWorldRenderer {
 			SimpleUnorderedArrayList<BuiltRenderRegion> nextLevel  =  regionListB;
 			nextLevel.clear();
 
-			//outerTimer.start();
 			BuiltRenderRegion.advanceFrameIndex();
 
 			if (cameraChunk == null) {
@@ -276,6 +255,7 @@ public class CanvasWorldRenderer {
 			Entity.setRenderDistanceMultiplier(MathHelper.clamp(mc.options.viewDistance / 8.0D, 1.0D, 2.5D));
 			final boolean chunkCullingEnabled = mc.chunkCullingEnabled;
 
+			// PERF: look for ways to improve branch prediction
 			while (true) {
 				if (currentLevel.isEmpty()) {
 					if(nextLevel.isEmpty()) {
@@ -862,12 +842,6 @@ public class CanvasWorldRenderer {
 				final int limit = delegates.size();
 
 				for(int i = 0; i < limit; i++) {
-					if (isTranslucent) {
-						++lastTranlsucentCount;
-					} else {
-						++lastSolidCount;
-					}
-
 					final DrawableDelegate d = delegates.get(i);
 					d.materialState().drawHandler.setup();
 					d.bind();
