@@ -59,6 +59,7 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.Vec3i;
 import net.minecraft.util.profiler.Profiler;
 
+import grondag.canvas.Configurator;
 import grondag.canvas.buffer.allocation.VboBuffer;
 import grondag.canvas.chunk.BuiltRenderRegion;
 import grondag.canvas.chunk.DrawableChunk;
@@ -99,7 +100,7 @@ public class CanvasWorldRenderer {
 	private boolean shouldUpdateVisibility = false;
 
 	// TODO: redirect uses in MC WorldRenderer
-	public Set<BuiltRenderRegion> chunksToRebuild = Sets.newLinkedHashSet();
+	public final Set<BuiltRenderRegion> chunksToRebuild = Sets.newLinkedHashSet();
 
 	// TODO: remove
 	private static final MicroTimer outerTimer = new MicroTimer("outer", 200);
@@ -181,8 +182,6 @@ public class CanvasWorldRenderer {
 		fix small occluder box generation
 
 	 PERF: more things to try
-	 	avoid resorting
-	 	speed up region indexing
 	 	share frustum checks/loaded status at world chunk column level
 		more culling
 		backface culling
@@ -229,9 +228,6 @@ public class CanvasWorldRenderer {
 
 		final BlockPos cameraBlockPos = camera.getBlockPos();
 		final BuiltRenderRegion cameraChunk = regionStorage.getRegion(cameraBlockPos);
-
-		// TODO: integrate with sets used below, or come up with a better scheme
-		final ObjectArrayList<BuiltRenderRegion> buildList = new ObjectArrayList<>();
 
 		mc.getProfiler().swap("update");
 
@@ -293,10 +289,6 @@ public class CanvasWorldRenderer {
 				}
 
 				final BuiltRenderRegion builtRegion = currentLevel.removeLast();
-				// TODO: remove
-				//				if ((builtRegion.getOrigin().getX() >> 4) == (23 >> 4) && (builtRegion.getOrigin().getY() >> 4) == (69 >> 4) && (builtRegion.getOrigin().getZ() >> 4) == (0 >> 4)) {
-				//					System.out.println("gottem");
-				//				}
 
 				// don't visit if not in frustum
 				if(!builtRegion.isInFrustum(frustum)) {
@@ -313,12 +305,12 @@ public class CanvasWorldRenderer {
 				final int[] visData =  regionData.getOcclusionData();
 
 				if (visData == null) {
-					buildList.add(builtRegion);
+					scheduleOrBuild(builtRegion);
 					continue;
 				}
 
 				if (builtRegion.needsRebuild()) {
-					buildList.add(builtRegion);
+					scheduleOrBuild(builtRegion);
 				}
 
 				// for empty regions, check neighbors but don't add to visible set
@@ -372,33 +364,22 @@ public class CanvasWorldRenderer {
 			//stopOuterTimer();
 		}
 
-		TerrainOccluder.outputRaster();
-
-		mc.getProfiler().swap("rebuildNear");
-		final Set<BuiltRenderRegion> oldChunksToRebuild  = chunksToRebuild;
-		final Set<BuiltRenderRegion> chunksToRebuild = Sets.newLinkedHashSet();
-		this.chunksToRebuild = chunksToRebuild;
-
-		//		for (int i = 0; i < visibleChunkCount; i++) {
-		//			final BuiltRenderRegion builtChunk = visibleChunks[i];
-
-		for (final BuiltRenderRegion builtChunk : buildList) {
-			// FIX: why was this check here? Was it a concurrency thing?
-			//			if (builtChunk.needsRebuild() || oldChunksToRebuild.contains(builtChunk)) {
-			if (builtChunk.needsImportantRebuild() || builtChunk.isNear()) {
-				//mc.getProfiler().push("build near");
-				builtChunk.rebuildOnMainThread();
-				builtChunk.markBuilt();
-				shouldUpdateVisibility = true;
-				//				mc.getProfiler().pop();
-			} else {
-				chunksToRebuild.add(builtChunk);
-			}
-			//			}
+		if (Configurator.debugOcclusionRaster) {
+			TerrainOccluder.outputRaster();
 		}
 
-		chunksToRebuild.addAll(oldChunksToRebuild);
 		mc.getProfiler().pop();
+	}
+
+	private void scheduleOrBuild(BuiltRenderRegion region)  {
+		if (region.needsImportantRebuild() || region.isNear()) {
+			chunksToRebuild.remove(region);
+			region.rebuildOnMainThread();
+			region.markBuilt();
+			shouldUpdateVisibility = true;
+		} else {
+			chunksToRebuild.add(region);
+		}
 	}
 
 	public static int playerLightmap() {
@@ -610,7 +591,9 @@ public class CanvasWorldRenderer {
 										RenderSystem.pushMatrix();
 										RenderSystem.multMatrix(matrixStack.peek().getModel());
 
-										renderCullBoxes(matrixStack, immediate, cameraX, cameraY, cameraZ, f);
+										if (Configurator.debugOcclusionBoxes) {
+											renderCullBoxes(matrixStack, immediate, cameraX, cameraY, cameraZ, f);
+										}
 
 										profiler.swap("cloudsLayers");
 

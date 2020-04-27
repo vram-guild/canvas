@@ -3,7 +3,6 @@ package grondag.canvas.chunk.occlusion;
 import static grondag.canvas.chunk.occlusion.Constants.CAMERA_PRECISION_BITS;
 import static grondag.canvas.chunk.occlusion.Constants.CAMERA_PRECISION_UNITY;
 import static grondag.canvas.chunk.occlusion.Constants.EMPTY_BITS;
-import static grondag.canvas.chunk.occlusion.Constants.ENABLE_RASTER_OUTPUT;
 import static grondag.canvas.chunk.occlusion.Constants.PIXEL_HEIGHT;
 import static grondag.canvas.chunk.occlusion.Constants.PIXEL_WIDTH;
 import static grondag.canvas.chunk.occlusion.Constants.TILE_COUNT;
@@ -73,10 +72,6 @@ public abstract class TerrainOccluder {
 	}
 
 	public static void outputRaster() {
-		if (!ENABLE_RASTER_OUTPUT) {
-			return;
-		}
-
 		final long t = System.currentTimeMillis();
 
 		if (t >= Indexer.nextRasterOutputTime) {

@@ -452,6 +452,8 @@ public class Configurator {
 	// TODO: add real config for this
 	public static boolean debugOcclusionRaster = false;
 
+	public static boolean debugOcclusionBoxes = false;
+
 	// LEGACY STUFF
 
 	//    @LangKey("config.acuity_enable_vao")
