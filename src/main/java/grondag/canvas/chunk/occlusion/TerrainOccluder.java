@@ -273,6 +273,8 @@ public abstract class TerrainOccluder {
 			testBits |= 4;
 		}
 
+		// PERF: when three faces are visible, draw two quads instead of three.
+
 		// if only valid tests are very near, assume visible to avoid false negatives due to precision
 		if (nearBits != 0 && (testBits & ~nearBits) == 0) {
 			return true;
