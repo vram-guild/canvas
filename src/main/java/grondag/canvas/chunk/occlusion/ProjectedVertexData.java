@@ -17,7 +17,7 @@ public final class ProjectedVertexData {
 
 	public static void setupVertex(final int baseIndex, final int x, final int y, final int z) {
 		final int[] data = Data.vertexData;
-		final Matrix4L mvpMatrix = Data.mvpMatrixL;
+		final Matrix4L mvpMatrix = Data.mvpMatrix;
 
 		final float tx = mvpMatrix.transformVec4X(x, y, z) * Matrix4L.FLOAT_CONVERSION;
 		final float ty = mvpMatrix.transformVec4Y(x, y, z) * Matrix4L.FLOAT_CONVERSION;

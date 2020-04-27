@@ -12,14 +12,17 @@ public class RenderRegionStorage {
 	private final int xySize;
 	private final IntUnaryOperator modFunc;
 	private final BuiltRenderRegion[] regions;
+
 	private final int regionCount;
 
 	private int positionVersion;
 
+	private int regionVersion = -1;
+
 	// position of the player for last origin update
-	private double playerX;
-	private double playerY;
-	private double playerZ;
+	//	private double playerX;
+	//	private double playerY;
+	//	private double playerZ;
 
 	// chunk coords of the player for last origin update
 	private int playerChunkX;
@@ -29,7 +32,6 @@ public class RenderRegionStorage {
 	public RenderRegionStorage(RenderRegionBuilder regionBuilder, int viewDistance) {
 		xySize = viewDistance * 2 + 1;
 		modFunc = FastFloorMod.get(viewDistance);
-
 		regionCount = xySize * SIZE_Y * xySize;
 		regions = new BuiltRenderRegion[regionCount];
 
@@ -55,39 +57,43 @@ public class RenderRegionStorage {
 		}
 	}
 
-	public int getRegionIndex(int x, int y, int z) {
+	private int getRegionIndex(int x, int y, int z) {
 		return (((z * xySize) + x) << 4) + y;
 	}
 
-	private boolean needsRegionPositionUpdate(MinecraftClient client) {
-		final double x = client.player.getX();
-		final double y = client.player.getY();
-		final double z = client.player.getZ();
-		final double dx = playerX - x;
-		final double dy = playerY - y;
-		final double dz = playerZ - z;
 
-		final int cx = client.player.chunkX;
-		final int cy = client.player.chunkY;
-		final int cz = client.player.chunkZ;
+	public void updateRegionOriginsIfNeeded(MinecraftClient mc) {
+		final int cx = mc.player.chunkX;
+		final int cy = mc.player.chunkY;
+		final int cz = mc.player.chunkZ;
 
-		if (playerChunkX != cx || playerChunkY != cy || playerChunkZ != cz || dx * dx + dy * dy + dz * dz > 16.0D) {
-			playerX = x;
-			playerY = y;
-			playerZ = z;
+		if (playerChunkX != cx || playerChunkY != cy || playerChunkZ != cz) {
 			playerChunkX = cx;
 			playerChunkY = cy;
 			playerChunkZ = cz;
-			return true;
-		}  else {
-			return false;
-		}
-	}
-
-	public void updateRegionOriginsIfNeeded(MinecraftClient mc) {
-		if (needsRegionPositionUpdate(mc)) {
+			++regionVersion;
 			updateRegionOrigins(mc.player.getX(), mc.player.getZ());
 		}
+
+		// TODO: remove if not keeping (also field declarations)
+		//		final double x = mc.player.getX();
+		//		final double y = mc.player.getY();
+		//		final double z = mc.player.getZ();
+		//		final double dx = playerX - x;
+		//		final double dy = playerY - y;
+		//		final double dz = playerZ - z;
+
+
+		//		if (playerChunkX != cx || playerChunkY != cy || playerChunkZ != cz || dx * dx + dy * dy + dz * dz > 16.0D) {
+		//			playerX = x;
+		//			playerY = y;
+		//			playerZ = z;
+		//			playerChunkX = cx;
+		//			playerChunkY = cy;
+		//			playerChunkZ = cz;
+		//			updateRegionOrigins(mc.player.getX(), mc.player.getZ());
+		//		}
+
 	}
 
 	public void updateRegionOrigins(double playerX, double playerZ) {
@@ -112,6 +118,8 @@ public class RenderRegionStorage {
 				}
 			}
 		}
+
+
 	}
 
 	public void scheduleRebuild(int x, int y, int z, boolean urgent) {
@@ -128,7 +136,7 @@ public class RenderRegionStorage {
 	 * @param z
 	 * @return -1 if out of bounds
 	 */
-	public int getRegionIndexSafely(int x, int y, int z) {
+	public int getRegionIndexFromBlockPos(int x, int y, int z) {
 		if ((y & 0xFFFFFF00) != 0) {
 			return -1;
 		}
@@ -136,8 +144,8 @@ public class RenderRegionStorage {
 		return getRegionIndex(modFunc.applyAsInt(x >> 4), y >> 4, modFunc.applyAsInt(z >> 4));
 	}
 
-	public int getRegionIndexSafely(BlockPos pos) {
-		return getRegionIndexSafely(pos.getX(), pos.getY(), pos.getZ());
+	public int getRegionIndexFromBlockPos(BlockPos pos) {
+		return getRegionIndexFromBlockPos(pos.getX(), pos.getY(), pos.getZ());
 	}
 
 	/**
@@ -151,7 +159,6 @@ public class RenderRegionStorage {
 
 		final int maxRenderDistance = renderDistance * renderDistance * 256;
 		this.positionVersion = positionVersion;
-
 		final double x = cameraPos.x;
 		final double y = cameraPos.y;
 		final double z = cameraPos.z;
@@ -169,8 +176,12 @@ public class RenderRegionStorage {
 		return regionCount;
 	}
 
+	public int regionVersion() {
+		return regionVersion;
+	}
+
 	public BuiltRenderRegion getRegion(BlockPos pos) {
-		final int index = getRegionIndexSafely(pos);
+		final int index = getRegionIndexFromBlockPos(pos);
 		return index == -1 ? null : regions[index];
 	}
 

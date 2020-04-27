@@ -64,17 +64,17 @@ abstract class Indexer {
 	 * @return
 	 */
 	static boolean isPointVisible(int x, int y, int z) {
-		final Matrix4L mvpMatrixL = Data.mvpMatrixL;
+		final Matrix4L mvpMatrix = Data.mvpMatrix;
 
-		final long w = mvpMatrixL.transformVec4W(x, y, z);
-		final long tz = mvpMatrixL.transformVec4Z(x, y, z);
+		final long w = mvpMatrix.transformVec4W(x, y, z);
+		final long tz = mvpMatrix.transformVec4Z(x, y, z);
 
 		if (w <= 0 || tz < 0 || tz > w) {
 			return false;
 		}
 
-		final int px = (int) (HALF_PIXEL_WIDTH + (MATRIX_PRECISION_HALF + HALF_PIXEL_WIDTH  * mvpMatrixL.transformVec4X(x, y, z)) / w);
-		final int py = (int) (HALF_PIXEL_HEIGHT + (MATRIX_PRECISION_HALF + HALF_PIXEL_HEIGHT * mvpMatrixL.transformVec4Y(x, y, z)) / w);
+		final int px = (int) (HALF_PIXEL_WIDTH + (MATRIX_PRECISION_HALF + HALF_PIXEL_WIDTH  * mvpMatrix.transformVec4X(x, y, z)) / w);
+		final int py = (int) (HALF_PIXEL_HEIGHT + (MATRIX_PRECISION_HALF + HALF_PIXEL_HEIGHT * mvpMatrix.transformVec4Y(x, y, z)) / w);
 
 		if (px >= 0 && py >= 0 && px < PIXEL_WIDTH && py < PIXEL_HEIGHT && testPixel(px, py)) {
 			return true;

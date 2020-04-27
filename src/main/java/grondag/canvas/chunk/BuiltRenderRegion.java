@@ -7,7 +7,6 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import io.netty.util.internal.shaded.org.jctools.queues.MessagePassingQueue.Consumer;
-import it.unimi.dsi.fastutil.longs.LongHeapPriorityQueue;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
@@ -47,6 +46,7 @@ import grondag.canvas.material.MaterialState;
 import grondag.canvas.perf.ChunkRebuildCounters;
 import grondag.canvas.render.CanvasFrustum;
 import grondag.canvas.render.CanvasWorldRenderer;
+import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
 
 @Environment(EnvType.CLIENT)
 public class BuiltRenderRegion {
@@ -143,7 +143,7 @@ public class BuiltRenderRegion {
 			for(int i = 0; i < 6; ++i) {
 				final Direction face = ModelHelper.faceFromIndex(i);
 
-				neighborIndices[i] = storage.getRegionIndexSafely(x + face.getOffsetX() * 16, y + face.getOffsetY() * 16, z + face.getOffsetZ() * 16);
+				neighborIndices[i] = storage.getRegionIndexFromBlockPos(x + face.getOffsetX() * 16, y + face.getOffsetY() * 16, z + face.getOffsetZ() * 16);
 			}
 		}
 	}
@@ -157,6 +157,7 @@ public class BuiltRenderRegion {
 		cameraRelativeCenterY = dy;
 		cameraRelativeCenterZ = dz;
 
+		// PERF: consider moving below to setOrigin
 		final int idx = Math.round(dx);
 		final int idy = Math.round(dy);
 		final int idz = Math.round(dz);
@@ -228,7 +229,7 @@ public class BuiltRenderRegion {
 		return needsRebuild && needsImportantRebuild;
 	}
 
-	public void enqueuRebuild() {
+	public void scheduleRebuild() {
 		final ProtoRenderRegion region = ProtoRenderRegion.claim(renderRegionBuilder.world, origin);
 
 		// null region is signal to reschedule
@@ -237,7 +238,7 @@ public class BuiltRenderRegion {
 		}
 	}
 
-	public boolean enqueueSort() {
+	public boolean scheduleSort() {
 		final RegionData regionData = buildData.get();
 
 		if (regionData.translucentState == null) {
@@ -550,10 +551,6 @@ public class BuiltRenderRegion {
 		return squaredCameraDistance;
 	}
 
-	public boolean isVeryNear() {
-		return squaredCameraDistance < 243;
-	}
-
 	public boolean isNear() {
 		return squaredCameraDistance < 768;
 	}
@@ -562,17 +559,13 @@ public class BuiltRenderRegion {
 		return regionIndex;
 	}
 
-	public long queueKey() {
-		return (((long) squaredCameraDistance) << 32) | regionIndex;
-	}
-
 	private static int frameIndex;
 
 	public static void advanceFrameIndex() {
 		++frameIndex;
 	}
 
-	public void enqueueUnvistedNeighbors(LongHeapPriorityQueue regionQueue) {
+	public void enqueueUnvistedNeighbors(SimpleUnorderedArrayList<BuiltRenderRegion> queue) {
 		final int index = frameIndex;
 		lastSeenFrameIndex = index;
 		final BuiltRenderRegion regions[] = storage.regions();
@@ -584,7 +577,7 @@ public class BuiltRenderRegion {
 
 				if (ri != index) {
 					r.lastSeenFrameIndex = index;
-					regionQueue.enqueue(r.queueKey());
+					queue.add(r);
 				}
 			}
 		}

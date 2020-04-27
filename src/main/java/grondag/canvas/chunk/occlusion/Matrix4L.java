@@ -51,6 +51,50 @@ public class Matrix4L {
 		a33 = Math.round(ext.a33() * MATRIX_PRECISION_UNITY);
 	}
 
+	public void copyFrom(Matrix4L other) {
+		a00 = other.a00;
+		a01 = other.a01;
+		a02 = other.a02;
+		a03 = other.a03;
+
+		a10 = other.a10;
+		a11 = other.a11;
+		a12 = other.a12;
+		a13 = other.a13;
+
+		a20 = other.a20;
+		a21 = other.a21;
+		a22 = other.a22;
+		a23 = other.a23;
+
+		a30 = other.a30;
+		a31 = other.a31;
+		a32 = other.a32;
+		a33 = other.a33;
+	}
+
+	public boolean matches(Matrix4L other) {
+		return a00 == other.a00 &&
+				a01 == other.a01 &&
+				a02 == other.a02 &&
+				a03 == other.a03 &&
+
+				a10 == other.a10 &&
+				a11 == other.a11 &&
+				a12 == other.a12 &&
+				a13 == other.a13 &&
+
+				a20 == other.a20 &&
+				a21 == other.a21 &&
+				a22 == other.a22 &&
+				a23 == other.a23 &&
+
+				a30 == other.a30 &&
+				a31 == other.a31 &&
+				a32 == other.a32 &&
+				a33 == other.a33;
+	}
+
 	public void loadIdentity() {
 		a00 = MATRIX_PRECISION_UNITY;
 		a01 = 0;

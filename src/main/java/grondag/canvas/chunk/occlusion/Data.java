@@ -7,9 +7,8 @@ import static grondag.canvas.chunk.occlusion.ProjectedVertexData.PROJECTED_VERTE
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class Data {
-	static Matrix4L projectionMatrixL = new Matrix4L();
-	static Matrix4L modelMatrixL = new Matrix4L();
-	static final Matrix4L mvpMatrixL = new Matrix4L();
+	static final Matrix4L baseMvpMatrix = new Matrix4L();
+	static final Matrix4L mvpMatrix = new Matrix4L();
 
 	static final long[] tiles = new long[TILE_COUNT];
 
@@ -25,6 +24,8 @@ public class Data {
 
 	static int positionVersion = -1;
 	static int viewVersion = -1;
+	static int regionVersion = -1;
+
 	static AtomicInteger occluderVersion = new AtomicInteger();
 	static boolean forceRedraw = false;
 	static boolean needsRedraw = false;

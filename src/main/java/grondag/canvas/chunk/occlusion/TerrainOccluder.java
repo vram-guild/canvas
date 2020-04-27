@@ -8,14 +8,11 @@ import static grondag.canvas.chunk.occlusion.Constants.PIXEL_HEIGHT;
 import static grondag.canvas.chunk.occlusion.Constants.PIXEL_WIDTH;
 import static grondag.canvas.chunk.occlusion.Constants.TILE_COUNT;
 import static grondag.canvas.chunk.occlusion.Data.forceRedraw;
-import static grondag.canvas.chunk.occlusion.Data.modelMatrixL;
-import static grondag.canvas.chunk.occlusion.Data.mvpMatrixL;
 import static grondag.canvas.chunk.occlusion.Data.needsRedraw;
 import static grondag.canvas.chunk.occlusion.Data.occluderVersion;
 import static grondag.canvas.chunk.occlusion.Data.offsetX;
 import static grondag.canvas.chunk.occlusion.Data.offsetY;
 import static grondag.canvas.chunk.occlusion.Data.offsetZ;
-import static grondag.canvas.chunk.occlusion.Data.projectionMatrixL;
 import static grondag.canvas.chunk.occlusion.Data.viewX;
 import static grondag.canvas.chunk.occlusion.Data.viewY;
 import static grondag.canvas.chunk.occlusion.Data.viewZ;
@@ -70,10 +67,9 @@ public abstract class TerrainOccluder {
 		offsetY = (int) ((origin.getY() << CAMERA_PRECISION_BITS) - viewY);
 		offsetZ = (int) ((origin.getZ() << CAMERA_PRECISION_BITS) - viewZ);
 
-		mvpMatrixL.loadIdentity();
-		mvpMatrixL.multiply(projectionMatrixL);
-		mvpMatrixL.multiply(modelMatrixL);
-		mvpMatrixL.translate(offsetX, offsetY, offsetZ, CAMERA_PRECISION_BITS);
+		final Matrix4L mvpMatrix = Data.mvpMatrix;
+		mvpMatrix.copyFrom(Data.baseMvpMatrix);
+		mvpMatrix.translate(offsetX, offsetY, offsetZ, CAMERA_PRECISION_BITS);
 	}
 
 	public static void outputRaster() {
@@ -139,17 +135,27 @@ public abstract class TerrainOccluder {
 	 *
 	 * Also checks for invalidation of occluder version using positionVersion.
 	 *
-	 * @param viewVersion   from frustum
-	 * @param positionVersion from frustum
-	 * @return True if occluder should be redrawn. If false, can be reused for testing and additive drawing.
+	 * @param projectionMatrix
+	 * @param modelMatrix
+	 * @param camera
+	 * @param frustum
+	 * @param regionVersion  Needed because chunk camera position update whenever a chunk boundary is crossed by Frustum doesn't care.
 	 */
-	public static void prepareScene(Matrix4f projectionMatrix, Matrix4f modelMatrix, Camera camera, CanvasFrustum frustum) {
+	public static void prepareScene(Matrix4f projectionMatrix, Matrix4f modelMatrix, Camera camera, CanvasFrustum frustum, int regionVersion) {
 		final int viewVersion = frustum.viewVersion();
 		final int positionVersion = frustum.positionVersion();
 
 		if (Data.viewVersion != viewVersion) {
-			projectionMatrixL.copyFrom(projectionMatrix);
-			modelMatrixL.copyFrom(modelMatrix);
+			final Matrix4L baseMvpMatrix = Data.baseMvpMatrix;
+			final Matrix4L tempMatrix = Data.mvpMatrix;
+
+			baseMvpMatrix.loadIdentity();
+
+			tempMatrix.copyFrom(projectionMatrix);
+			baseMvpMatrix.multiply(tempMatrix);
+
+			tempMatrix.copyFrom(modelMatrix);
+			baseMvpMatrix.multiply(tempMatrix);
 
 			final Vec3d vec3d = camera.getPos();
 			viewX = Math.round(vec3d.getX() * CAMERA_PRECISION_UNITY);
@@ -160,13 +166,15 @@ public abstract class TerrainOccluder {
 		if (forceRedraw) {
 			Data.viewVersion = viewVersion;
 			Data.positionVersion = positionVersion;
+			Data.regionVersion = regionVersion;
 			System.arraycopy(EMPTY_BITS, 0, Data.tiles, 0, TILE_COUNT);
 			forceRedraw = false;
 			needsRedraw = true;
-		} else if (Data.positionVersion != positionVersion) {
+		} else if (Data.positionVersion != positionVersion || Data.regionVersion != regionVersion) {
 			occluderVersion.incrementAndGet();
 			Data.viewVersion = viewVersion;
 			Data.positionVersion = positionVersion;
+			Data.regionVersion = regionVersion;
 			System.arraycopy(EMPTY_BITS, 0, Data.tiles, 0, TILE_COUNT);
 			needsRedraw = true;
 		} else if (Data.viewVersion != viewVersion) {
