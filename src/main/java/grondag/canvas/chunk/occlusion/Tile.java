@@ -20,6 +20,8 @@ import static grondag.canvas.chunk.occlusion.Indexer.tileIndex;
 abstract class Tile {
 	private Tile() {}
 
+	// PERF: improve traversal
+
 	static void moveTileRight() {
 		tileOriginX += 8;
 

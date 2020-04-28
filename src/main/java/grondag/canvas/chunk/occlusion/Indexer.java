@@ -1,6 +1,5 @@
 package grondag.canvas.chunk.occlusion;
 
-import static grondag.canvas.chunk.occlusion.Constants.CAMERA_PRECISION_BITS;
 import static grondag.canvas.chunk.occlusion.Constants.HALF_PIXEL_HEIGHT;
 import static grondag.canvas.chunk.occlusion.Constants.HALF_PIXEL_WIDTH;
 import static grondag.canvas.chunk.occlusion.Constants.PIXEL_HEIGHT;
@@ -10,19 +9,7 @@ import static grondag.canvas.chunk.occlusion.Constants.TILE_ADDRESS_SHIFT_Y;
 import static grondag.canvas.chunk.occlusion.Constants.TILE_AXIS_MASK;
 import static grondag.canvas.chunk.occlusion.Constants.TILE_AXIS_SHIFT;
 import static grondag.canvas.chunk.occlusion.Constants.TILE_PIXEL_INDEX_MASK;
-import static grondag.canvas.chunk.occlusion.Constants.V000;
-import static grondag.canvas.chunk.occlusion.Constants.V001;
-import static grondag.canvas.chunk.occlusion.Constants.V010;
-import static grondag.canvas.chunk.occlusion.Constants.V011;
-import static grondag.canvas.chunk.occlusion.Constants.V100;
-import static grondag.canvas.chunk.occlusion.Constants.V101;
-import static grondag.canvas.chunk.occlusion.Constants.V110;
-import static grondag.canvas.chunk.occlusion.Constants.V111;
-import static grondag.canvas.chunk.occlusion.Data.offsetX;
-import static grondag.canvas.chunk.occlusion.Data.offsetY;
-import static grondag.canvas.chunk.occlusion.Data.offsetZ;
 import static grondag.canvas.chunk.occlusion.Matrix4L.MATRIX_PRECISION_HALF;
-import static grondag.canvas.chunk.occlusion.ProjectedVertexData.setupVertex;
 
 import com.google.common.base.Strings;
 
@@ -30,31 +17,6 @@ import grondag.canvas.chunk.occlusion.region.OcclusionBitPrinter;
 
 abstract class Indexer {
 	private  Indexer() {}
-
-	// TODO: remove
-	//	int totalCount;
-	//	int extTrue;
-	//	int extFalse;
-	//	int earlyExit;
-
-	static boolean testUp() { return Rasterizer.testQuad(V110, V010, V011, V111); }
-	static boolean testDown() { return Rasterizer.testQuad(V000, V100, V101, V001); }
-	static boolean testEast() { return Rasterizer.testQuad(V101, V100, V110, V111); }
-	static boolean testWest() { return Rasterizer.testQuad(V000, V001, V011, V010); }
-	static boolean testSouth() { return Rasterizer.testQuad(V001, V101, V111, V011); }
-	static boolean testNorth() { return Rasterizer.testQuad(V100, V000, V010, V110); }
-
-	static final void occlude(int x0, int y0, int z0, int x1, int y1, int z1) {
-		computeProjectedBoxBounds(x0, y0, z0, x1, y1, z1);
-
-		// PERF use same techniques as view test?
-		if (offsetY < -(y1 << CAMERA_PRECISION_BITS)) Rasterizer.drawQuad(V110, V010, V011, V111); // up
-		if (offsetY > -(y0 << CAMERA_PRECISION_BITS)) Rasterizer.drawQuad(V000, V100, V101, V001); // down
-		if (offsetX < -(x1 << CAMERA_PRECISION_BITS)) Rasterizer.drawQuad(V101, V100, V110, V111); // east
-		if (offsetX > -(x0 << CAMERA_PRECISION_BITS)) Rasterizer.drawQuad(V000, V001, V011, V010); // west
-		if (offsetZ < -(z1 << CAMERA_PRECISION_BITS)) Rasterizer.drawQuad(V001, V101, V111, V011); // south
-		if (offsetZ > -(z0 << CAMERA_PRECISION_BITS)) Rasterizer.drawQuad(V100, V000, V010, V110); // north
-	}
 
 	/**
 	 * For early exit testing
@@ -81,17 +43,6 @@ abstract class Indexer {
 		}
 
 		return false;
-	}
-
-	static final void computeProjectedBoxBounds(int x0, int y0, int z0, int x1, int y1, int z1) {
-		setupVertex(V000, x0, y0, z0);
-		setupVertex(V001, x0, y0, z1);
-		setupVertex(V010, x0, y1, z0);
-		setupVertex(V011, x0, y1, z1);
-		setupVertex(V100, x1, y0, z0);
-		setupVertex(V101, x1, y0, z1);
-		setupVertex(V110, x1, y1, z0);
-		setupVertex(V111, x1, y1, z1);
 	}
 
 	static boolean testPixel(int x, int y) {
@@ -152,7 +103,5 @@ abstract class Indexer {
 		OcclusionBitPrinter.printSpaced(s.substring(56, 64));
 		System.out.println();
 	}
-
-
 }
 

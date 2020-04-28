@@ -34,8 +34,6 @@ import static grondag.canvas.chunk.occlusion.Data.tileOriginY;
 import static grondag.canvas.chunk.occlusion.Indexer.tileIndex;
 import static grondag.canvas.chunk.occlusion.ProjectedVertexData.needsNearClip;
 
-import grondag.canvas.perf.MicroTimer;
-
 
 public final class Quad {
 	private static void clipNear(int internal, int external) {
@@ -128,8 +126,6 @@ public final class Quad {
 	}
 
 	private static int prepareBounds0000(int v0, int v1, int v2, int v3) {
-		timer.start();
-
 		final int[] vertexData = Data.vertexData;
 		int ax0, ay0, ax1, ay1;
 		int bx0, by0, bx1, by1;
@@ -252,8 +248,6 @@ public final class Quad {
 				| (((position1 - 1) & EVENT_POSITION_MASK) << 2)
 				| (((position2 - 1) & EVENT_POSITION_MASK) << 4)
 				| (((position3 - 1) & EVENT_POSITION_MASK) << 6);
-
-		timer.stop();
 
 		EVENT_FILLERS[eventKey].apply();
 
@@ -554,8 +548,6 @@ public final class Quad {
 				| (((position2 - 1) & EVENT_POSITION_MASK) << 4)
 				| (((position3 - 1) & EVENT_POSITION_MASK) << 6);
 
-		timer.stop();
-
 		EVENT_FILLERS[eventKey].apply();
 
 		return BOUNDS_IN;
@@ -684,14 +676,10 @@ public final class Quad {
 				| (((position2 - 1) & EVENT_POSITION_MASK) << 4)
 				| (((position3 - 1) & EVENT_POSITION_MASK) << 6);
 
-		timer.stop();
-
 		EVENT_FILLERS[eventKey].apply();
 
 		return BOUNDS_IN;
 	}
-
-	private static final MicroTimer timer = new MicroTimer("prepareBoundsInner", 4000000);
 
 	@FunctionalInterface interface EventFiller {
 		void apply();
@@ -701,9 +689,8 @@ public final class Quad {
 
 	static  {
 		EVENT_FILLERS[EVENT_0123_RRRR] = () -> {
-			// FIX] = () -> { not  complete - need to handle 4 right edges - happens  with clipping
 			populateLeftEvents();
-			populateRightEvents();
+			populateRightEvents4(ax0, ay0, ax1, ay1, bx0, by0, bx1, by1, cx0, cy0, cx1, cy1, dx0, dy0, dx1, dy1);
 		};
 		EVENT_FILLERS[EVENT_0123_LRRR] = () -> {
 			populateLeftEvents(ax0, ay0, ax1, ay1);
@@ -900,8 +887,7 @@ public final class Quad {
 			populateRightEvents(ax0, ay0, ax1, ay1);
 		};
 		EVENT_FILLERS[EVENT_0123_LLLL] = () -> {
-			// FIX] = () -> { not  complete - need to handle 4 right edges - happens  with clipping
-			populateLeftEvents();
+			populateLeftEvents4(ax0, ay0, ax1, ay1, bx0, by0, bx1, by1, cx0, cy0, cx1, cy1, dx0, dy0, dx1, dy1);
 			populateRightEvents();
 		};
 		EVENT_FILLERS[EVENT_0123_FLLL] = () -> {
@@ -1354,13 +1340,85 @@ public final class Quad {
 
 		for (int y = (y0 << 1); y <= limit; y += 2) {
 			long x = ax > bx ? ax : bx;
-			if (cx > ax) x = cx;
+			if (cx > x) x = cx;
 
 			events[y] = (int) (x >= 0 ? (x >> 20) : -(-x >> 20));
 
 			ax += aStep;
 			bx += bStep;
 			cx += cStep;
+		}
+	}
+
+	private static void populateLeftEvents4(int ax0, int ay0, int ax1, int ay1, int bx0, int by0, int bx1, int by1, int cx0, int cy0, int cx1, int cy1, int dx0, int dy0, int dx1, int dy1) {
+		final int y0 = minPixelY & TILE_AXIS_MASK;
+		final int y1 = maxTileOriginY + 7;
+		final int limit = (y1 << 1);
+
+		final long aStep;
+		long ax;
+		final long bStep;
+		long bx;
+		final long cStep;
+		long cx;
+		final long dStep;
+		long dx;
+
+		if (ax0 == ax1) {
+			ax = ((ax0 + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS) << 20;
+			aStep = 0;
+		} else {
+			final int ady = ay1 - ay0;
+			final int adx = ax1 - ax0;
+			final long an = (((long)adx) << 16) / ady;
+			aStep = an << PRECISION_BITS;
+			ax = ((long) ax0 << 16) - an * ay0 + aStep * y0 + 0x100000L;
+		}
+
+		if (bx0 == bx1) {
+			bx = ((bx0 + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS) << 20;
+			bStep = 0;
+		} else {
+			final int bdx = bx1 - bx0;
+			final int bdy = by1 - by0;
+			final long bn = (((long)bdx) << 16) / bdy;
+			bStep = bn << PRECISION_BITS;
+			bx = ((long) bx0 << 16) - bn * by0 + bStep * y0 + 0x100000L;
+		}
+
+		if (cx0 == cx1) {
+			cx = ((cx0 + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS) << 20;
+			cStep = 0;
+		} else {
+			final int cdx = cx1 - cx0;
+			final int cdy = cy1 - cy0;
+			final long cn = (((long)cdx) << 16) / cdy;
+			cStep = cn << PRECISION_BITS;
+			cx = ((long) cx0 << 16) - cn * cy0 + cStep * y0 + 0x100000L;
+		}
+
+		if (dx0 == dx1) {
+			dx = ((dx0 + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS) << 20;
+			dStep = 0;
+		} else {
+			final int ddx = dx1 - dx0;
+			final int ddy = dy1 - dy0;
+			final long dn = (((long)ddx) << 16) / ddy;
+			dStep = dn << PRECISION_BITS;
+			dx = ((long) dx0 << 16) - dn * dy0 + dStep * y0 + 0x100000L;
+		}
+
+		for (int y = (y0 << 1); y <= limit; y += 2) {
+			long x = ax > bx ? ax : bx;
+			if (cx > x) x = cx;
+			if (dx > x) x = dx;
+
+			events[y] = (int) (x >= 0 ? (x >> 20) : -(-x >> 20));
+
+			ax += aStep;
+			bx += bStep;
+			cx += cStep;
+			dx += dStep;
 		}
 	}
 
@@ -1472,6 +1530,86 @@ public final class Quad {
 			ax += aStep;
 			bx += bStep;
 			cx += cStep;
+		}
+	}
+
+	private static void populateRightEvents4(int ax0, int ay0, int ax1, int ay1, int bx0, int by0, int bx1, int by1, int cx0, int cy0, int cx1, int cy1, int dx0, int dy0, int dx1, int dy1) {
+		final int y0 = minPixelY & TILE_AXIS_MASK;
+		final int y1 = maxTileOriginY + 7;
+		// difference from left: is high index in pairs
+		final int limit = (y1 << 1) + 1;
+
+		final long aStep;
+		long ax;
+		final long bStep;
+		long bx;
+		final long cStep;
+		long cx;
+		final long dStep;
+		long dx;
+
+		if (ax0 == ax1) {
+			ax = ((ax0 + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS) << 20;
+			aStep = 0;
+		} else {
+			final int ady = ay1 - ay0;
+			final int adx = ax1 - ax0;
+			final long an = (((long)adx) << 16) / ady;
+			aStep = an << PRECISION_BITS;
+			// difference from left: rounding looses tie
+			ax = ((long) ax0 << 16) - an * ay0 + aStep * y0 + 0x7FFFFL;
+		}
+
+		if (bx0 == bx1) {
+			bx = ((bx0 + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS) << 20;
+			bStep = 0;
+		} else {
+			final int bdx = bx1 - bx0;
+			final int bdy = by1 - by0;
+			final long bn = (((long)bdx) << 16) / bdy;
+			bStep = bn << PRECISION_BITS;
+			// difference from left: rounding looses tie
+			bx = ((long) bx0 << 16) - bn * by0 + bStep * y0 + 0x7FFFFL;
+		}
+
+		if (cx0 == cx1) {
+			cx = ((cx0 + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS) << 20;
+			cStep = 0;
+		} else {
+			final int cdx = cx1 - cx0;
+			final int cdy = cy1 - cy0;
+			final long cn = (((long)cdx) << 16) / cdy;
+			cStep = cn << PRECISION_BITS;
+			// difference from left: rounding looses tie
+			cx = ((long) cx0 << 16) - cn * cy0 + cStep * y0 + 0x7FFFFL;
+		}
+
+		if (dx0 == dx1) {
+			dx = ((dx0 + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS) << 20;
+			dStep = 0;
+		} else {
+			final int ddx = dx1 - dx0;
+			final int ddy = dy1 - dy0;
+			final long dn = (((long)ddx) << 16) / ddy;
+			dStep = dn << PRECISION_BITS;
+			// difference from left: rounding looses tie
+			dx = ((long) dx0 << 16) - dn * dy0 + dStep * y0 + 0x7FFFFL;
+		}
+
+		// difference from left: is high index in pairs
+		for (int y = (y0 << 1) + 1; y <= limit; y += 2) {
+			// difference from left: lower value wins
+			long x = ax < bx ? ax : bx;
+
+			if (cx < x) x = cx;
+			if (dx < x) x = dx;
+
+			events[y] = (int) (x >= 0 ? (x >> 20) : -(-x >> 20));
+
+			ax += aStep;
+			bx += bStep;
+			cx += cStep;
+			dx += dStep;
 		}
 	}
 }
