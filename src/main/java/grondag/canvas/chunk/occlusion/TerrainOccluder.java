@@ -23,7 +23,7 @@ import static grondag.canvas.chunk.occlusion.Data.offsetZ;
 import static grondag.canvas.chunk.occlusion.Data.viewX;
 import static grondag.canvas.chunk.occlusion.Data.viewY;
 import static grondag.canvas.chunk.occlusion.Data.viewZ;
-import static grondag.canvas.chunk.occlusion.ProjectedVertexData.setupVertex;
+import static grondag.canvas.chunk.occlusion.Quad.setupVertex;
 import static grondag.canvas.chunk.occlusion.Rasterizer.drawQuad;
 import static grondag.canvas.chunk.occlusion.Rasterizer.testQuad;
 

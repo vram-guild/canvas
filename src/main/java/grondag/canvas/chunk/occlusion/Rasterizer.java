@@ -28,18 +28,6 @@ import org.apache.commons.lang3.StringUtils;
 // Some elements are adapted from content found at
 // https://fgiesen.wordpress.com/2013/02/17/optimizing-sw-occlusion-culling-index/
 // by Fabian “ryg” Giesen. That content is in the public domain.
-
-// PERF: temporal optimizations...
-//		Limit rebuilds to n/second or when scene is reset or has big rotation
-//		Track breaking changes to region occlusion data
-//			new renderable that expands chunk bounding box
-//			removal of occluder that has effect given region distance
-//		Track last distance/region added to occluder
-// 		Make occluder additive unless change nearer than last occluder happens (or movement)
-//		Without movement, when breaking change happens, invalidate specific tiles, only rebuild those tiles
-//		With movement, project from forecasted position and retain visible regions for n frames
-//			Above is to allow limit to frequency of rebuilds without too many visibility errors
-
 abstract class Rasterizer  {
 	private Rasterizer() { }
 
