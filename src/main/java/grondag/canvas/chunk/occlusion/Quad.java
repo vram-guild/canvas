@@ -1204,8 +1204,7 @@ public final class Quad {
 		}
 
 		for (int y = (y0 << 1); y <= limit; y += 2) {
-			// PERF: clamp negatives to zero
-			events[y] = (int) (x >= 0 ? (x >> 20) : -(-x >> 20));
+			events[y] = (int) (x > 0 ? (x >> 20) : 0);
 			x += nStep;
 		}
 	}
@@ -1246,7 +1245,7 @@ public final class Quad {
 
 		// difference from left: is high index in pairs
 		for (int y = (y0 << 1) + 1; y <= limit; y += 2) {
-			events[y] = (int) (x >= 0 ? (x >> 20) : -(-x >> 20));
+			events[y] = (int) (x >= 0 ? (x >> 20) : -1);
 			x += nStep;
 		}
 	}
@@ -1286,7 +1285,7 @@ public final class Quad {
 		for (int y = (y0 << 1); y <= limit; y += 2) {
 			final long x = ax > bx ? ax : bx;
 
-			events[y] = (int) (x >= 0 ? (x >> 20) : -(-x >> 20));
+			events[y] = (int) (x > 0 ? (x >> 20) : 0);
 
 			ax += aStep;
 			bx += bStep;
@@ -1342,7 +1341,7 @@ public final class Quad {
 			long x = ax > bx ? ax : bx;
 			if (cx > x) x = cx;
 
-			events[y] = (int) (x >= 0 ? (x >> 20) : -(-x >> 20));
+			events[y] = (int) (x > 0 ? (x >> 20) : 0);
 
 			ax += aStep;
 			bx += bStep;
@@ -1413,7 +1412,7 @@ public final class Quad {
 			if (cx > x) x = cx;
 			if (dx > x) x = dx;
 
-			events[y] = (int) (x >= 0 ? (x >> 20) : -(-x >> 20));
+			events[y] = (int) (x > 0 ? (x >> 20) : 0);
 
 			ax += aStep;
 			bx += bStep;
@@ -1462,7 +1461,7 @@ public final class Quad {
 			// difference from left: lower value wins
 			final long x = ax < bx ? ax : bx;
 
-			events[y] = (int) (x >= 0 ? (x >> 20) : -(-x >> 20));
+			events[y] = (int) (x >= 0 ? (x >> 20) : -1);
 
 			ax += aStep;
 			bx += bStep;
@@ -1525,7 +1524,7 @@ public final class Quad {
 
 			if (cx < x) x = cx;
 
-			events[y] = (int) (x >= 0 ? (x >> 20) : -(-x >> 20));
+			events[y] = (int) (x >= 0 ? (x >> 20) : -1);
 
 			ax += aStep;
 			bx += bStep;
@@ -1604,7 +1603,7 @@ public final class Quad {
 			if (cx < x) x = cx;
 			if (dx < x) x = dx;
 
-			events[y] = (int) (x >= 0 ? (x >> 20) : -(-x >> 20));
+			events[y] = (int) (x >= 0 ? (x >> 20) : -1);
 
 			ax += aStep;
 			bx += bStep;
