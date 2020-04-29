@@ -2,6 +2,7 @@ package grondag.canvas.chunk.occlusion;
 
 import static grondag.canvas.chunk.occlusion.Constants.PIXEL_HEIGHT;
 import static grondag.canvas.chunk.occlusion.Constants.TILE_COUNT;
+import static grondag.canvas.chunk.occlusion.Constants.TILE_HEIGHT;
 import static grondag.canvas.chunk.occlusion.Constants.VERTEX_DATA_LENGTH;
 
 import java.util.concurrent.atomic.AtomicInteger;
@@ -10,7 +11,10 @@ public class Data {
 	static final Matrix4L baseMvpMatrix = new Matrix4L();
 	static final Matrix4L mvpMatrix = new Matrix4L();
 
+	// PERF: consider packing into single int per row
 	static final int[] events = new int[PIXEL_HEIGHT * 2];
+	// PERF: consider packing into single int per row
+	static final int[] tileEvents = new int[TILE_HEIGHT * 2];
 	static final int[] vertexData = new int[VERTEX_DATA_LENGTH];
 	static final long[] tiles = new long[TILE_COUNT];
 
@@ -78,4 +82,8 @@ public class Data {
 	static int save_tileIndex;
 	static int save_tileOriginX;
 	static int save_tileOriginY;
+
+	//	static int upTileIndex;
+	//	static int upTileOriginX;
+	//	static int upTileOriginY;
 }

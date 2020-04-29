@@ -20,9 +20,15 @@ import static grondag.canvas.chunk.occlusion.Indexer.tileIndex;
 abstract class Tile {
 	private Tile() {}
 
-	// PERF: improve traversal
+	//	static boolean atRight() {
+	//		return tileOriginX >= maxTileOriginX;
+	//	}
 
 	static void moveTileRight() {
+		//		if (tileOriginX >= maxTileOriginX) {
+		//			return false;
+		//		}
+
 		tileOriginX += 8;
 
 		if ((tileIndex & TILE_INDEX_LOW_X_MASK) == TILE_INDEX_LOW_X_MASK) {
@@ -33,9 +39,19 @@ abstract class Tile {
 
 		assert tileIndex == tileIndex(tileOriginX >> TILE_AXIS_SHIFT, tileOriginY >> TILE_AXIS_SHIFT);
 		assert tileOriginX < PIXEL_WIDTH;
+
+		//		return true;
 	}
 
+	//	static boolean atLeft() {
+	//		return tileOriginX <= minTileOriginX;
+	//	}
+
 	static void moveTileLeft() {
+		//		if (tileOriginX <= minTileOriginX)  {
+		//			return false;
+		//		}
+
 		tileOriginX -= 8;
 
 		if ((tileIndex & TILE_INDEX_LOW_X_MASK) == 0) {
@@ -47,10 +63,21 @@ abstract class Tile {
 
 		assert tileIndex == tileIndex(tileOriginX >> TILE_AXIS_SHIFT, tileOriginY >> TILE_AXIS_SHIFT);
 		assert tileOriginX >= 0;
+
+		//		return true;
 	}
 
+	//	static boolean atTop() {
+	//		return tileOriginY >= maxTileOriginY;
+	//	}
+
 	static void moveTileUp() {
+		//		if (tileOriginY >= maxTileOriginY) {
+		//			return  false;
+		//		}
+
 		tileOriginY += 8;
+		//upTileIndex = -1;
 
 		if ((tileIndex & TILE_INDEX_LOW_Y_MASK) == TILE_INDEX_LOW_Y_MASK) {
 			tileIndex = (tileIndex & ~TILE_INDEX_LOW_Y_MASK) + TILE_INDEX_HIGH_Y;
@@ -60,6 +87,8 @@ abstract class Tile {
 
 		assert tileIndex == tileIndex(tileOriginX >> TILE_AXIS_SHIFT, tileOriginY >> TILE_AXIS_SHIFT);
 		assert tileOriginY < PIXEL_HEIGHT;
+
+		//		return  true;
 	}
 
 	static void pushTile() {
@@ -74,6 +103,27 @@ abstract class Tile {
 		tileIndex = save_tileIndex;
 	}
 
+	//	static void pushUp() {
+	//		upTileOriginY = tileOriginY + 8;
+	//		upTileOriginX = tileOriginX;
+	//
+	//		if ((tileIndex & TILE_INDEX_LOW_Y_MASK) == TILE_INDEX_LOW_Y_MASK) {
+	//			upTileIndex = (tileIndex & ~TILE_INDEX_LOW_Y_MASK) + TILE_INDEX_HIGH_Y;
+	//		} else {
+	//			upTileIndex = tileIndex + TILE_INDEX_LOW_Y;
+	//		}
+	//	}
+	//
+	//	static void popUp() {
+	//		tileOriginX = upTileOriginX;
+	//		tileOriginY = upTileOriginY;
+	//		tileIndex = upTileIndex;
+	//		upTileIndex = -1;
+	//	}
+	//
+	//	static boolean haveUp() {
+	//		return upTileIndex != -1;
+	//	}
 
 	//	static long computeTileCoverageTest() {
 	//		final long  oldResult = computeTileCoverageOld();

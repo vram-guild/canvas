@@ -1204,6 +1204,7 @@ public final class Quad {
 		}
 
 		for (int y = (y0 << 1); y <= limit; y += 2) {
+			// PERF: clamp negatives to zero
 			events[y] = (int) (x >= 0 ? (x >> 20) : -(-x >> 20));
 			x += nStep;
 		}
@@ -1611,6 +1612,88 @@ public final class Quad {
 			dx += dStep;
 		}
 	}
+
+	// For abandoned traversal scheme
+	//	static void populateTileEvents() {
+	//		final int[] events = Data.events;
+	//		final int[] tileEvents = Data.tileEvents;
+	//
+	//		int y = (minPixelY & TILE_AXIS_MASK) << 1;
+	//		final int ty0 = (y >> TILE_AXIS_SHIFT); //  NB: no left shift here because y already includes
+	//		final int ty1 = (maxTileOriginY >> TILE_AXIS_SHIFT) << 1;
+	//
+	//		for (int ty = ty0; ty <= ty1;) {
+	//			int l = Integer.MAX_VALUE;
+	//			int r = Integer.MIN_VALUE;
+	//
+	//			int tl = (events[y++] >> TILE_AXIS_SHIFT);
+	//			int tr = (events[y++] >> TILE_AXIS_SHIFT);
+	//			if (tr >= tl) {
+	//				if (tl < l) l = tl;
+	//				if (tr > r) r = tr;
+	//			}
+	//
+	//			tl = (events[y++] >> TILE_AXIS_SHIFT);
+	//			tr = (events[y++] >> TILE_AXIS_SHIFT);
+	//			if (tr >= tl) {
+	//				if (tl < l) l = tl;
+	//				if (tr > r) r = tr;
+	//			}
+	//
+	//			tl = (events[y++] >> TILE_AXIS_SHIFT);
+	//			tr = (events[y++] >> TILE_AXIS_SHIFT);
+	//			if (tr >= tl) {
+	//				if (tl < l) l = tl;
+	//				if (tr > r) r = tr;
+	//			}
+	//
+	//			tl = (events[y++] >> TILE_AXIS_SHIFT);
+	//			tr = (events[y++] >> TILE_AXIS_SHIFT);
+	//			if (tr >= tl) {
+	//				if (tl < l) l = tl;
+	//				if (tr > r) r = tr;
+	//			}
+	//
+	//			tl = (events[y++] >> TILE_AXIS_SHIFT);
+	//			tr = (events[y++] >> TILE_AXIS_SHIFT);
+	//			if (tr >= tl) {
+	//				if (tl < l) l = tl;
+	//				if (tr > r) r = tr;
+	//			}
+	//
+	//			tl = (events[y++] >> TILE_AXIS_SHIFT);
+	//			tr = (events[y++] >> TILE_AXIS_SHIFT);
+	//			if (tr >= tl) {
+	//				if (tl < l) l = tl;
+	//				if (tr > r) r = tr;
+	//			}
+	//
+	//			tl = (events[y++] >> TILE_AXIS_SHIFT);
+	//			tr = (events[y++] >> TILE_AXIS_SHIFT);
+	//			if (tr >= tl) {
+	//				if (tl < l) l = tl;
+	//				if (tr > r) r = tr;
+	//			}
+	//
+	//			tl = (events[y++] >> TILE_AXIS_SHIFT);
+	//			tr = (events[y++] >> TILE_AXIS_SHIFT);
+	//			if (tr >= tl) {
+	//				if (tl < l) l = tl;
+	//				if (tr > r) r = tr;
+	//			}
+	//
+	//			if (l < 0) l = 0;
+	//
+	//			if (r > MAX_TILE_X) r = MAX_TILE_X;
+	//
+	//			//assert l <= r;
+	//			//			assert l <= MAX_TILE_X;
+	//			//			assert r >= 0;
+	//
+	//			tileEvents[ty++] = l;
+	//			tileEvents[ty++] = r;
+	//		}
+	//	}
 
 	static void setupVertex(final int baseIndex, final int x, final int y, final int z) {
 		final int[] data = Data.vertexData;

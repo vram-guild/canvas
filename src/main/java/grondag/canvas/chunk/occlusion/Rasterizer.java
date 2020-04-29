@@ -107,6 +107,84 @@ abstract class Rasterizer  {
 		return (~word & computeTileCoverage()) != 0;
 	}
 
+
+	// attempt to improve traversal performance - not faster
+	//	private static void drawQuadNew() {
+	//		Quad.populateTileEvents();
+	//		final int[] tileEvents = Data.tileEvents;
+	//		int y = (tileOriginY >> TILE_AXIS_SHIFT) << 1;
+	//		int x = (tileOriginX >> TILE_AXIS_SHIFT);
+	//		int saveX;
+	//
+	//		while(true) {
+	//			final int l = tileEvents[y++];
+	//			final int r = tileEvents[y++];
+	//
+	//			if (l <= r) {
+	//				if (l < x) {
+	//					// right of the left edge
+	//					if (x < r) {
+	//						// inside span
+	//						pushTile();
+	//						saveX = x;
+	//
+	//						while (x > l) {
+	//							drawQuadInner();
+	//							moveTileLeft();
+	//							--x;
+	//						}
+	//
+	//						drawQuadInner();
+	//						popTile();
+	//						x = saveX;
+	//
+	//						while (x < r) {
+	//							drawQuadInner();
+	//							moveTileRight();
+	//							++x;
+	//						}
+	//
+	//						drawQuadInner();
+	//					} else {
+	//						// right of or at left edge
+	//						while (x > r) {
+	//							moveTileLeft();
+	//							--x;
+	//						}
+	//
+	//						while (x > l) {
+	//							drawQuadInner();
+	//							moveTileLeft();
+	//							--x;
+	//						}
+	//
+	//						drawQuadInner();
+	//					}
+	//				} else {
+	//					// left of or at left edge
+	//					while (x < l) {
+	//						moveTileRight();
+	//						++x;
+	//					}
+	//
+	//					while (x < r) {
+	//						drawQuadInner();
+	//						moveTileRight();
+	//						++x;
+	//					}
+	//
+	//					drawQuadInner();
+	//				}
+	//			}
+	//
+	//			if (tileOriginY < maxTileOriginY) {
+	//				moveTileUp();
+	//			} else {
+	//				return;
+	//			}
+	//		}
+	//	}
+
 	static void drawQuad() {
 		boolean goRight = true;
 
@@ -139,7 +217,28 @@ abstract class Rasterizer  {
 		}
 	}
 
+	//	static long drawQuadInnerNew() {
+	//		assert tileOriginY < PIXEL_HEIGHT;
+	//		assert tileOriginX < PIXEL_WIDTH;
+	//		assert tileOriginX >= 0;
+	//
+	//		final long coverage = computeTileCoverage();
+	//
+	//		// nothing to do if fully occluded
+	//		tiles[tileIndex] |= coverage;
+	//
+	//		if ((coverage & TILE_MASK_UP) != 0)  {
+	//			pushUp();
+	//		}
+	//
+	//		return coverage;
+	//	}
+
 	static void drawQuadInner() {
+		assert tileOriginY < PIXEL_HEIGHT;
+		assert tileOriginX < PIXEL_WIDTH;
+		assert tileOriginX >= 0;
+
 		long word = tiles[tileIndex];
 
 		// nothing to do if fully occluded

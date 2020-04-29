@@ -271,4 +271,12 @@ public class Constants {
 	static final int DY1 = DX1 + 1;
 
 	static final int VERTEX_DATA_LENGTH = DY1 + 1;
+
+	// For abandoned traversal scheme
+	//	static final int MAX_TILE_X = TILE_WIDTH - 1;
+	//	static final int MAX_TILE_ORIGIN_Y = PIXEL_HEIGHT - TILE_PIXEL_DIAMETER;
+	//	static final int MAX_TILE_ORIGIN_X = PIXEL_WIDTH - TILE_PIXEL_DIAMETER;
+	//	static final long TILE_MASK_UP = 0xFF00000000000000L;
+	//	static final long TILE_MASK_LEFT = 0x0101010101010101L;
+	//	static final long TILE_MASK_RIGHT = 0x8080808080808080L;
 }
