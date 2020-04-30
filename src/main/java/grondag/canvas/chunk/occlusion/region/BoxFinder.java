@@ -39,11 +39,18 @@ public class BoxFinder {
 		clearSectionBits();
 
 		voxelCount = voxelCount(sourceBits, sourceIndex);
-
 		markBoxSlices();
 		markBoxNeighborSlices();
 		buildSortedBoxes();
 		findDisjointBoxes();
+
+		if (voxelCount > 0) {
+			clearSectionBits();
+			markBoxSlices();
+			markBoxNeighborSlices();
+			buildSortedBoxes();
+			findDisjointBoxes();
+		}
 	}
 
 	private void buildSortedSections() {
@@ -286,7 +293,6 @@ public class BoxFinder {
 		}
 	}
 
-	@SuppressWarnings("unused")
 	private boolean intersects(Area a, int z0, int z1) {
 		final long[] filled = this.filled;
 		int index = z0 * SLICE_WORD_COUNT;

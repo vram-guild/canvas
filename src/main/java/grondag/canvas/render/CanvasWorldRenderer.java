@@ -158,9 +158,6 @@ public class CanvasWorldRenderer {
 	}
 
 	/**
-	FIX:
-		fix small occluder box generation
-
 	 PERF: more things to try
 	 	share frustum checks/loaded status at world chunk column level
 		more culling
