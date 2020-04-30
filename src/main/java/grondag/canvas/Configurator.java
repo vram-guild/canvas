@@ -26,10 +26,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import me.shedaniel.clothconfig2.api.ConfigBuilder;
 import me.shedaniel.clothconfig2.api.ConfigCategory;
-import me.shedaniel.clothconfig2.gui.entries.BooleanListEntry;
-import me.shedaniel.clothconfig2.gui.entries.EnumListEntry;
-import me.shedaniel.clothconfig2.gui.entries.IntegerSliderEntry;
-import me.shedaniel.clothconfig2.gui.entries.LongListEntry;
+import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
@@ -122,6 +119,12 @@ public class Configurator {
 
 		@Comment("Output performance trade data to log. Will have significant performance impact. Requires restart.")
 		boolean enablePerformanceTrace = false;
+
+		@Comment("Output periodic snapshots of terrain occlusion raster. Will have performance impact.")
+		boolean debugOcclusionRaster = false;
+
+		@Comment("Render active occlusion boxes of targeted render region. Will have performance impact and looks strange.")
+		boolean debugOcclusionBoxes = false;
 	}
 
 	static final ConfigData DEFAULTS = new ConfigData();
@@ -158,6 +161,8 @@ public class Configurator {
 	public static boolean debugNativeMemoryAllocation = DEFAULTS.debugNativeMemoryAllocation;
 	public static boolean safeNativeMemoryAllocation = DEFAULTS.safeNativeMemoryAllocation;
 	public static boolean enablePerformanceTrace = DEFAULTS.enablePerformanceTrace;
+	public static boolean debugOcclusionRaster = DEFAULTS.debugOcclusionRaster;
+	public static boolean debugOcclusionBoxes = DEFAULTS.debugOcclusionBoxes;
 
 	/** use to stash parent screen during display */
 	private static Screen screenIn;
@@ -291,7 +296,8 @@ public class Configurator {
 		}
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	private static ConfigEntryBuilder ENTRY_BUILDER = ConfigEntryBuilder.create();
+
 	private static Screen display() {
 		reloadTerrain = false;
 		reloadShaders = false;
@@ -302,60 +308,78 @@ public class Configurator {
 		// FEATURES
 		final ConfigCategory features = builder.getOrCreateCategory("config.canvas.category.features");
 
-		features.addEntry(new BooleanListEntry("config.canvas.value.item_render", itemShaderRender, "config.canvas.reset",
-				() -> DEFAULTS.itemShaderRender, b -> itemShaderRender = b,
-				() -> Optional.of(I18n.translate("config.canvas.help.item_render").split(";"))));
+		features.addEntry(ENTRY_BUILDER
+				.startBooleanToggle("config.canvas.value.item_render", itemShaderRender)
+				.setDefaultValue(DEFAULTS.itemShaderRender)
+				.setTooltip(I18n.translate("config.canvas.help.item_render").split(";"))
+				.setSaveConsumer(b -> itemShaderRender = b)
+				.build());
 
-		features.addEntry(new BooleanListEntry("config.canvas.value.hardcore_darkness", hardcoreDarkness, "config.canvas.reset",
-				() -> DEFAULTS.hardcoreDarkness, b -> {hardcoreDarkness = b; reloadShaders = true;},
-				() -> Optional.of(I18n.translate("config.canvas.help.hardcore_darkness").split(";"))));
+		features.addEntry(ENTRY_BUILDER
+				.startBooleanToggle("config.canvas.value.hardcore_darkness", hardcoreDarkness)
+				.setDefaultValue(DEFAULTS.hardcoreDarkness)
+				.setTooltip(I18n.translate("config.canvas.help.hardcore_darkness").split(";"))
+				.setSaveConsumer(b -> {hardcoreDarkness = b; reloadShaders = true;})
+				.build());
 
-		features.addEntry(new BooleanListEntry("config.canvas.value.subtle_fog", subtleFog, "config.canvas.reset",
-				() -> DEFAULTS.subtleFog, b -> {subtleFog = b; reloadShaders = true;},
-				() -> Optional.of(I18n.translate("config.canvas.help.subtle_fog").split(";"))));
+		features.addEntry(ENTRY_BUILDER
+				.startBooleanToggle("config.canvas.value.subtle_fog", subtleFog)
+				.setDefaultValue(DEFAULTS.subtleFog)
+				.setTooltip(I18n.translate("config.canvas.help.subtle_fog").split(";"))
+				.setSaveConsumer(b -> {subtleFog = b; reloadShaders = true;})
+				.build());
 
 		// LIGHTING
 		final ConfigCategory lighting = builder.getOrCreateCategory("config.canvas.category.lighting");
 
-		lighting.addEntry(new BooleanListEntry("config.canvas.value.light_smoothing", lightSmoothing, "config.canvas.reset",
-				() -> DEFAULTS.lightSmoothing, b -> {lightSmoothing = b; reloadTerrain = true;},
-				() -> Optional.of(I18n.translate("config.canvas.help.light_smoothing").split(";"))));
+		lighting.addEntry(ENTRY_BUILDER
+				.startBooleanToggle("config.canvas.value.light_smoothing", lightSmoothing)
+				.setDefaultValue(DEFAULTS.lightSmoothing)
+				.setTooltip(I18n.translate("config.canvas.help.light_smoothing").split(";"))
+				.setSaveConsumer(b -> {lightSmoothing = b; reloadShaders = true;})
+				.build());
 
-		lighting.addEntry(new BooleanListEntry("config.canvas.value.hd_lightmaps", hdLightmaps, "config.canvas.reset",
-				() -> DEFAULTS.hdLightmaps, b -> {hdLightmaps = b; reloadTerrain = true;},
-				() -> Optional.of(I18n.translate("config.canvas.help.hd_lightmaps").split(";"))));
+		lighting.addEntry(ENTRY_BUILDER
+				.startBooleanToggle("config.canvas.value.hd_lightmaps", hdLightmaps)
+				.setDefaultValue(DEFAULTS.hdLightmaps)
+				.setTooltip(I18n.translate("config.canvas.help.hd_lightmaps").split(";"))
+				.setSaveConsumer(b -> {hdLightmaps = b; reloadShaders = true;})
+				.build());
 
-		lighting.addEntry(new BooleanListEntry("config.canvas.value.more_lightmap", moreLightmap, "config.canvas.reset",
-				() -> DEFAULTS.moreLightmap, b -> moreLightmap = b,
-				() -> Optional.of(I18n.translate("config.canvas.help.more_lightmap").split(";"))));
+		lighting.addEntry(ENTRY_BUILDER
+				.startBooleanToggle("config.canvas.value.more_lightmap", moreLightmap)
+				.setDefaultValue(DEFAULTS.moreLightmap)
+				.setTooltip(I18n.translate("config.canvas.help.more_lightmap").split(";"))
+				.setSaveConsumer(b -> moreLightmap = b)
+				.build());
 
-		lighting.addEntry(new BooleanListEntry("config.canvas.value.lightmap_noise", lightmapNoise, "config.canvas.reset",
-				() -> DEFAULTS.lightmapNoise, b -> {lightmapNoise = b; reloadShaders = true;},
-				() -> Optional.of(I18n.translate("config.canvas.help.lightmap_noise").split(";"))));
+		lighting.addEntry(ENTRY_BUILDER
+				.startBooleanToggle("config.canvas.value.lightmap_noise", lightmapNoise)
+				.setDefaultValue(DEFAULTS.lightmapNoise)
+				.setTooltip(I18n.translate("config.canvas.help.lightmap_noise").split(";"))
+				.setSaveConsumer(b -> {lightmapNoise = b; reloadShaders = true;})
+				.build());
 
-		lighting.addEntry(new EnumListEntry(
-				"config.canvas.value.diffuse_shading",
-				DiffuseMode.class,
-				diffuseShadingMode,
-				"config.canvas.reset",
-				() -> DEFAULTS.diffuseShadingMode,
-				(b) -> {diffuseShadingMode = (DiffuseMode) b; reloadShaders = true;},
-				a -> a.toString(),
-				() -> Optional.of(I18n.translate("config.canvas.help.diffuse_shading").split(";"))));
+		lighting.addEntry(ENTRY_BUILDER
+				.startEnumSelector("config.canvas.value.diffuse_shading", DiffuseMode.class, diffuseShadingMode)
+				.setDefaultValue(DEFAULTS.diffuseShadingMode)
+				.setTooltip(I18n.translate("config.canvas.help.diffuse_shading").split(";"))
+				.setSaveConsumer(b -> {diffuseShadingMode = b; reloadShaders = true;})
+				.build());
 
-		lighting.addEntry(new EnumListEntry(
-				"config.canvas.value.ao_shading",
-				AoMode.class,
-				aoShadingMode,
-				"config.canvas.reset",
-				() -> DEFAULTS.aoShadingMode,
-				(b) -> {aoShadingMode = (AoMode) b; reloadShaders = true;},
-				a -> a.toString(),
-				() -> Optional.of(I18n.translate("config.canvas.help.ao_shading").split(";"))));
+		lighting.addEntry(ENTRY_BUILDER
+				.startEnumSelector("config.canvas.value.ao_shading", AoMode.class, aoShadingMode)
+				.setDefaultValue(DEFAULTS.aoShadingMode)
+				.setTooltip(I18n.translate("config.canvas.help.ao_shading").split(";"))
+				.setSaveConsumer(b -> {aoShadingMode = b; reloadShaders = true;})
+				.build());
 
-		lighting.addEntry(new IntegerSliderEntry("config.canvas.value.lightmap_delay_frames", 0, 20, maxLightmapDelayFrames, "config.canvas.reset",
-				() -> DEFAULTS.maxLightmapDelayFrames, b -> maxLightmapDelayFrames = b,
-				() -> Optional.of(I18n.translate("config.canvas.help.lightmap_delay_frames").split(";"))));
+		lighting.addEntry(ENTRY_BUILDER
+				.startIntSlider("config.canvas.value.lightmap_delay_frames", maxLightmapDelayFrames, 0, 20)
+				.setDefaultValue(DEFAULTS.maxLightmapDelayFrames)
+				.setTooltip(I18n.translate("config.canvas.help.lightmap_delay_frames").split(";"))
+				.setSaveConsumer(b -> maxLightmapDelayFrames = b)
+				.build());
 
 		// TWEAKS
 		final ConfigCategory tweaks = builder.getOrCreateCategory("config.canvas.category.tweaks");
@@ -364,65 +388,117 @@ public class Configurator {
 		//                () -> DEFAULTS.enableCompactGPUFormats, b -> enableCompactGPUFormats = b,
 		//                () -> Optional.of(I18n.translate("config.canvas.help.compact_gpu_formats").split(";"))));
 
-		tweaks.addEntry(new LongListEntry("config.canvas.value.min_chunk_budget", minChunkBudgetNanos, "config.canvas.reset",
-				() -> DEFAULTS.minChunkBudgetNanos, l -> minChunkBudgetNanos = l,
-				() -> Optional.of(I18n.translate("config.canvas.help.min_chunk_budget").split(";"))));
+		tweaks.addEntry(ENTRY_BUILDER
+				.startLongField("config.canvas.value.min_chunk_budget", minChunkBudgetNanos)
+				.setDefaultValue(DEFAULTS.minChunkBudgetNanos)
+				.setTooltip(I18n.translate("config.canvas.help.min_chunk_budget").split(";"))
+				.setSaveConsumer(b -> minChunkBudgetNanos = b)
+				.build());
 
-		tweaks.addEntry(new BooleanListEntry("config.canvas.value.chunk_occlusion", fastChunkOcclusion, "config.canvas.reset",
-				() -> DEFAULTS.fastChunkOcclusion, b -> fastChunkOcclusion = b,
-				() -> Optional.of(I18n.translate("config.canvas.help.chunk_occlusion").split(";"))));
+		tweaks.addEntry(ENTRY_BUILDER
+				.startBooleanToggle("config.canvas.value.chunk_occlusion", fastChunkOcclusion)
+				.setDefaultValue(DEFAULTS.fastChunkOcclusion)
+				.setTooltip(I18n.translate("config.canvas.help.chunk_occlusion").split(";"))
+				.setSaveConsumer(b -> fastChunkOcclusion = b)
+				.build());
 
-		tweaks.addEntry(new BooleanListEntry("config.canvas.value.batch_chunk_render", batchedChunkRender, "config.canvas.reset",
-				() -> DEFAULTS.batchedChunkRender, b -> batchedChunkRender = b,
-				() -> Optional.of(I18n.translate("config.canvas.help.batch_chunk_render").split(";"))));
+		tweaks.addEntry(ENTRY_BUILDER
+				.startBooleanToggle("config.canvas.value.batch_chunk_render", batchedChunkRender)
+				.setDefaultValue(DEFAULTS.batchedChunkRender)
+				.setTooltip(I18n.translate("config.canvas.help.batch_chunk_render").split(";"))
+				.setSaveConsumer(b -> batchedChunkRender = b)
+				.build());
 
 		//        tweaks.addOption(new BooleanListEntry("config.canvas.value.vanilla_chunk_matrix", disableVanillaChunkMatrix, "config.canvas.reset",
 		//                () -> DEFAULTS.disableVanillaChunkMatrix, b -> disableVanillaChunkMatrix = b,
 		//                () -> Optional.of(I18n.translate("config.canvas.help.vanilla_chunk_matrix").split(";"))));
 
-		tweaks.addEntry(new BooleanListEntry("config.canvas.value.adjust_vanilla_geometry", preventDepthFighting, "config.canvas.reset",
-				() -> DEFAULTS.preventDepthFighting, b -> {preventDepthFighting = b; reloadTerrain = true;},
-				() -> Optional.of(I18n.translate("config.canvas.help.adjust_vanilla_geometry").split(";"))));
+		tweaks.addEntry(ENTRY_BUILDER
+				.startBooleanToggle("config.canvas.value.adjust_vanilla_geometry", preventDepthFighting)
+				.setDefaultValue(DEFAULTS.preventDepthFighting)
+				.setTooltip(I18n.translate("config.canvas.help.adjust_vanilla_geometry").split(";"))
+				.setSaveConsumer(b -> {preventDepthFighting = b; reloadShaders = true;})
+				.build());
 
-		tweaks.addEntry(new BooleanListEntry("config.canvas.value.clamp_exterior_vertices", clampExteriorVertices, "config.canvas.reset",
-				() -> DEFAULTS.clampExteriorVertices, b -> {clampExteriorVertices = b; reloadTerrain = true;},
-				() -> Optional.of(I18n.translate("config.canvas.help.clamp_exterior_vertices").split(";"))));
+		tweaks.addEntry(ENTRY_BUILDER
+				.startBooleanToggle("config.canvas.value.clamp_exterior_vertices", clampExteriorVertices)
+				.setDefaultValue(DEFAULTS.clampExteriorVertices)
+				.setTooltip(I18n.translate("config.canvas.help.clamp_exterior_vertices").split(";"))
+				.setSaveConsumer(b -> {clampExteriorVertices = b; reloadShaders = true;})
+				.build());
 
-		tweaks.addEntry(new BooleanListEntry("config.canvas.value.fix_luminous_block_shade", fixLuminousBlockShading, "config.canvas.reset",
-				() -> DEFAULTS.fixLuminousBlockShading, b -> {fixLuminousBlockShading = b; reloadTerrain = true;},
-				() -> Optional.of(I18n.translate("config.canvas.help.fix_luminous_block_shade").split(";"))));
+		tweaks.addEntry(ENTRY_BUILDER
+				.startBooleanToggle("config.canvas.value.fix_luminous_block_shade", fixLuminousBlockShading)
+				.setDefaultValue(DEFAULTS.fixLuminousBlockShading)
+				.setTooltip(I18n.translate("config.canvas.help.fix_luminous_block_shade").split(";"))
+				.setSaveConsumer(b -> {fixLuminousBlockShading = b; reloadShaders = true;})
+				.build());
 
 		// DEBUG
 		final ConfigCategory debug = builder.getOrCreateCategory("config.canvas.category.debug");
 
-		debug.addEntry(new BooleanListEntry("config.canvas.value.shader_debug", shaderDebug, "config.canvas.reset",
-				() -> DEFAULTS.shaderDebug, b -> shaderDebug = b,
-				() -> Optional.of(I18n.translate("config.canvas.help.shader_debug").split(";"))));
+		debug.addEntry(ENTRY_BUILDER
+				.startBooleanToggle("config.canvas.value.shader_debug", shaderDebug)
+				.setDefaultValue(DEFAULTS.shaderDebug)
+				.setTooltip(I18n.translate("config.canvas.help.shader_debug").split(";"))
+				.setSaveConsumer(b -> shaderDebug = b)
+				.build());
 
-		debug.addEntry(new BooleanListEntry("config.canvas.value.shader_debug_lightmap", lightmapDebug, "config.canvas.reset",
-				() -> DEFAULTS.lightmapDebug, b -> lightmapDebug = b,
-				() -> Optional.of(I18n.translate("config.canvas.help.shader_debug_lightmap").split(";"))));
+		debug.addEntry(ENTRY_BUILDER
+				.startBooleanToggle("config.canvas.value.shader_debug_lightmap", lightmapDebug)
+				.setDefaultValue(DEFAULTS.lightmapDebug)
+				.setTooltip(I18n.translate("config.canvas.help.shader_debug_lightmap").split(";"))
+				.setSaveConsumer(b -> lightmapDebug = b)
+				.build());
 
-		debug.addEntry(new BooleanListEntry("config.canvas.value.concise_errors", conciseErrors, "config.canvas.reset",
-				() -> DEFAULTS.conciseErrors, b -> conciseErrors = b,
-				() -> Optional.of(I18n.translate("config.canvas.help.concise_errors").split(";"))));
+		debug.addEntry(ENTRY_BUILDER
+				.startBooleanToggle("config.canvas.value.concise_errors", conciseErrors)
+				.setDefaultValue(DEFAULTS.conciseErrors)
+				.setTooltip(I18n.translate("config.canvas.help.concise_errors").split(";"))
+				.setSaveConsumer(b -> conciseErrors = b)
+				.build());
 
-		debug.addEntry(new BooleanListEntry("config.canvas.value.log_machine_info", logMachineInfo, "config.canvas.reset",
-				() -> DEFAULTS.logMachineInfo, b -> logMachineInfo = b,
-				() -> Optional.of(I18n.translate("config.canvas.help.log_machine_info").split(";"))));
+		debug.addEntry(ENTRY_BUILDER
+				.startBooleanToggle("config.canvas.value.log_machine_info", logMachineInfo)
+				.setDefaultValue(DEFAULTS.logMachineInfo)
+				.setTooltip(I18n.translate("config.canvas.help.log_machine_info").split(";"))
+				.setSaveConsumer(b -> logMachineInfo = b)
+				.build());
 
-		debug.addEntry(new BooleanListEntry("config.canvas.value.log_gl_state_changes", logGlStateChanges, "config.canvas.reset",
-				() -> DEFAULTS.logGlStateChanges, b -> logGlStateChanges = b,
-				() -> Optional.of(I18n.translate("config.canvas.help.log_gl_state_changes").split(";"))));
+		debug.addEntry(ENTRY_BUILDER
+				.startBooleanToggle("config.canvas.value.log_gl_state_changes", logGlStateChanges)
+				.setDefaultValue(DEFAULTS.logGlStateChanges)
+				.setTooltip(I18n.translate("config.canvas.help.log_gl_state_changes").split(";"))
+				.setSaveConsumer(b -> logGlStateChanges = b)
+				.build());
 
-		debug.addEntry(new BooleanListEntry("config.canvas.value.debug_native_allocation", debugNativeMemoryAllocation, "config.canvas.reset",
-				() -> DEFAULTS.debugNativeMemoryAllocation, b -> debugNativeMemoryAllocation = b,
-				() -> Optional.of(I18n.translate("config.canvas.help.debug_native_allocation").split(";"))));
+		debug.addEntry(ENTRY_BUILDER
+				.startBooleanToggle("config.canvas.value.debug_native_allocation", debugNativeMemoryAllocation)
+				.setDefaultValue(DEFAULTS.debugNativeMemoryAllocation)
+				.setTooltip(I18n.translate("config.canvas.help.debug_native_allocation").split(";"))
+				.setSaveConsumer(b -> debugNativeMemoryAllocation = b)
+				.build());
 
-		debug.addEntry(new BooleanListEntry("config.canvas.value.safe_native_allocation", safeNativeMemoryAllocation, "config.canvas.reset",
-				() -> DEFAULTS.safeNativeMemoryAllocation, b -> safeNativeMemoryAllocation = b,
-				() -> Optional.of(I18n.translate("config.canvas.help.safe_native_allocation").split(";"))));
+		debug.addEntry(ENTRY_BUILDER
+				.startBooleanToggle("config.canvas.value.safe_native_allocation", safeNativeMemoryAllocation)
+				.setDefaultValue(DEFAULTS.safeNativeMemoryAllocation)
+				.setTooltip(I18n.translate("config.canvas.help.safe_native_allocation").split(";"))
+				.setSaveConsumer(b -> safeNativeMemoryAllocation = b)
+				.build());
 
+		debug.addEntry(ENTRY_BUILDER
+				.startBooleanToggle("config.canvas.value.debug_occlusion_raster", debugOcclusionRaster)
+				.setDefaultValue(DEFAULTS.debugOcclusionRaster)
+				.setTooltip(I18n.translate("config.canvas.help.debug_occlusion_raster").split(";"))
+				.setSaveConsumer(b -> debugOcclusionRaster = b)
+				.build());
+
+		debug.addEntry(ENTRY_BUILDER
+				.startBooleanToggle("config.canvas.value.debug_occlusion_boxes", debugOcclusionBoxes)
+				.setDefaultValue(DEFAULTS.debugOcclusionBoxes)
+				.setTooltip(I18n.translate("config.canvas.help.debug_occlusion_boxes").split(";"))
+				.setSaveConsumer(b -> debugOcclusionBoxes = b)
+				.build());
 		builder.setDoesConfirmSave(false);
 
 		return builder.build();
@@ -449,10 +525,6 @@ public class Configurator {
 		}
 	}
 
-	// TODO: add real config for this
-	public static boolean debugOcclusionRaster = true;
-
-	public static boolean debugOcclusionBoxes = false;
 
 	// LEGACY STUFF
 

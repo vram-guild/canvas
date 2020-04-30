@@ -147,7 +147,6 @@ abstract class Tile {
 	//		return oldResult;
 	//	}
 
-	// PERF: reduce branching?
 	static long computeTileCoverage() {
 		final int[] e = events;
 

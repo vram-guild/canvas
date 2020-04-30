@@ -11,6 +11,8 @@ import it.unimi.dsi.fastutil.longs.LongArrayList;
 public class BoxFinder {
 	final long[] source = new long[INTERIOR_CACHE_WORDS];
 	final long[] filled = new long[INTERIOR_CACHE_WORDS];
+
+	/** bits 0-15 indicate which slices contain the area with the same index of the value */
 	final int[] areaSlices = new int[AreaFinder.AREA_COUNT];
 
 	public final IntArrayList boxes = new IntArrayList();
@@ -81,7 +83,7 @@ public class BoxFinder {
 			if (slice != 0) {
 				final Area area  = areaFinder.get(i);
 
-				if ((slice & 1) == 1  && (slice & 2) == 0) {
+				if ((slice & 1) == 1 && (slice & 2) == 0) {
 					// special case first slice - can only transfer up
 					if (area.isIncludedBySample(source, SLICE_WORD_COUNT)) {
 						slice |= 2;
@@ -151,7 +153,7 @@ public class BoxFinder {
 			if((slice & mask) == 0) {
 				// no bit, end run if started
 				if(z0 != -1) {
-					final int dz  = (z - z0);
+					final int dz = (z - z0);
 					final int dy = (area.y1 - area.y0 + 1);
 					final int dx = (area.x1 - area.x0 + 1);
 					final long vol = dx * dy * dz;
@@ -170,7 +172,7 @@ public class BoxFinder {
 
 		// handle case when run extends to last bit
 		if (z0 != -1)  {
-			final int dz  = (16 - z0);
+			final int dz = (16 - z0);
 			final int dy = (area.y1 - area.y0 + 1);
 			final int dx = (area.x1 - area.x0 + 1);
 			final long vol = dx * dy * dz;
@@ -222,7 +224,7 @@ public class BoxFinder {
 
 		for (int i = 0; i < limit; i++) {
 			final long box = sortedBoxes.getLong(i);
-			final Area area =  areaFinder.get((int) (box >> 10) & 0xFFFFFF);
+			final Area area = areaFinder.get((int) (box >> 10) & 0xFFFFFF);
 			final int z0 = (int) box & 31;
 			final int z1 = (int) (box >> 5) & 31;
 
@@ -241,7 +243,7 @@ public class BoxFinder {
 
 		for (int i = 0; i < limit; i++) {
 			final long box = sortedBoxes.getLong(i);
-			final Area area =  areaFinder.get((int) (box >> 10) & 0xFFFFFF);
+			final Area area = areaFinder.get((int) (box >> 10) & 0xFFFFFF);
 			final int z0 = (int) box & 31;
 			final int z1 = (int) (box >> 5) & 31;
 
