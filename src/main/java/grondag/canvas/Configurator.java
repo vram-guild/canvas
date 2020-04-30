@@ -217,6 +217,8 @@ public class Configurator {
 		debugNativeMemoryAllocation = config.debugNativeMemoryAllocation;
 		safeNativeMemoryAllocation = config.safeNativeMemoryAllocation;
 		enablePerformanceTrace = config.enablePerformanceTrace;
+		debugOcclusionBoxes = config.debugOcclusionBoxes;
+		debugOcclusionRaster = config.debugOcclusionRaster;
 	}
 
 	private static void saveConfig() {
@@ -249,6 +251,8 @@ public class Configurator {
 		config.debugNativeMemoryAllocation = debugNativeMemoryAllocation;
 		config.safeNativeMemoryAllocation = safeNativeMemoryAllocation;
 		config.enablePerformanceTrace = enablePerformanceTrace;
+		config.debugOcclusionBoxes = debugOcclusionBoxes;
+		config.debugOcclusionRaster = debugOcclusionRaster;
 
 		try {
 			final String result = JANKSON.toJson(config).toJson(true, true, 0);
