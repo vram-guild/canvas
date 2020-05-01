@@ -164,6 +164,7 @@ public class CanvasWorldRenderer {
 		render leaves as solid at distance - omit interior faces
 		unbork main render loop
 		cull particle rendering?
+		reduce garbage generation
 		add check for visibility to entity shouldRender via Frustum check
 		single-draw solid layer via shaders
 		render larger cubes - avoid matrix state changes
