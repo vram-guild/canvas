@@ -44,6 +44,7 @@ import grondag.canvas.chunk.occlusion.region.PackedBox;
 import grondag.canvas.material.MaterialContext;
 import grondag.canvas.material.MaterialState;
 import grondag.canvas.perf.ChunkRebuildCounters;
+import grondag.canvas.perf.MicroTimer;
 import grondag.canvas.render.CanvasFrustum;
 import grondag.canvas.render.CanvasWorldRenderer;
 import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
@@ -60,6 +61,8 @@ public class BuiltRenderRegion {
 	private boolean needsImportantRebuild;
 	private volatile RegionBuildState buildState = new RegionBuildState();
 	private final Consumer<TerrainRenderContext> buildTask = this::rebuildOnWorkerThread;
+	private final RegionChunkReference chunkReference;
+	private final boolean isBottom;
 	/**
 	 * Index of this instance in region array.
 	 */
@@ -82,19 +85,53 @@ public class BuiltRenderRegion {
 	public float cameraRelativeCenterY;
 	public float cameraRelativeCenterZ;
 
-	public BuiltRenderRegion(RenderRegionBuilder renderRegionBuilder, RenderRegionStorage storage) {
+	public BuiltRenderRegion(RenderRegionBuilder renderRegionBuilder, RenderRegionStorage storage, RegionChunkReference chunkReference, boolean bottom) {
 		this.renderRegionBuilder = renderRegionBuilder;
 		this.storage = storage;
+		this.chunkReference = chunkReference;
+		isBottom = bottom;
 		buildData = new AtomicReference<>(RegionData.EMPTY);
 		renderData = new AtomicReference<>(RegionData.EMPTY);
 		needsRebuild = true;
 		origin = new BlockPos.Mutable(-1, -1, -1);
 	}
 
-	/**
-	 * Assumes camera distance update has already happened
-	 */
+	static final MicroTimer timer = new MicroTimer("frustum", 1000000);
+
+	//  prior
+	//	[14:08:48] [main/INFO]: Avg frustum duration = 63 ns, min = 6, max = 47719, total duration = 63, total runs = 1,000,000
+	//	[14:08:51] [main/INFO]: Avg frustum duration = 64 ns, min = 1, max = 47622, total duration = 64, total runs = 1,000,000
+	//	[14:08:53] [main/INFO]: Avg frustum duration = 64 ns, min = 7, max = 48845, total duration = 64, total runs = 1,000,000
+	//	[14:08:56] [main/INFO]: Avg frustum duration = 64 ns, min = 8, max = 48829, total duration = 64, total runs = 1,000,000
+
+
+	// revised
+	//	[15:01:34] [main/INFO]: Avg frustum duration = 97 ns, min = 11, max = 142026, total duration = 97, total runs = 1,000,000
+	//	[15:01:37] [main/INFO]: Avg frustum duration = 95 ns, min = 11, max = 48080, total duration = 95, total runs = 1,000,000
+	//	[15:01:41] [main/INFO]: Avg frustum duration = 98 ns, min = 11, max = 240326, total duration = 98, total runs = 1,000,000
+	//	[15:01:49] [main/INFO]: Avg frustum duration = 97 ns, min = 14, max = 48752, total duration = 97, total runs = 1,000,000
+
 	public boolean isInFrustum(CanvasFrustum frustum) {
+		timer.start();
+		final boolean result = isInFrustumNew(frustum);
+		timer.stop();
+
+		//		if  (result != isInFrustumOld(frustum)) {
+		//			isInFrustumOld(frustum);
+		//		}
+
+		return result;
+	}
+
+	/**
+	 * Assumes camera distance update has already happened.
+	 *
+	 * NB: tried a crude hierarchical scheme of checking chunk columns first
+	 * but didn't pay off.  Would probably  need to propagate per-plane results
+	 * over a more efficient region but that might not even help. Is already
+	 * quite fast and typically only one or a few regions per chunk must be tested.
+	 */
+	private boolean isInFrustumOld(CanvasFrustum frustum) {
 		final int v = frustum.viewVersion();
 
 		if (v == frustumVersion) {
@@ -102,9 +139,28 @@ public class BuiltRenderRegion {
 		} else {
 			frustumVersion = v;
 			//  PERF: implement hierarchical tests with propagation of per-plane inside test results
-			final boolean result = frustum.isChunkVisible(this);
+			final boolean result = frustum.isRegionVisible(this);
 			frustumResult = result;
 			return result;
+		}
+	}
+
+	private boolean isInFrustumNew(CanvasFrustum frustum) {
+		final int v = frustum.viewVersion();
+
+		if (v == frustumVersion) {
+			return frustumResult;
+		} else {
+			frustumVersion = v;
+
+			if (chunkReference.isInFrustum(frustum)) {
+				final boolean result = frustum.isRegionVisible(this);
+				frustumResult = result;
+				return result;
+			} else {
+				frustumResult = false;
+				return false;
+			}
 		}
 	}
 
@@ -133,6 +189,10 @@ public class BuiltRenderRegion {
 	}
 
 	public void setOrigin(int x, int y, int z,  int myIndex) {
+		if (isBottom) {
+			chunkReference.setOrigin(x, z);
+		}
+
 		regionIndex = myIndex;
 		if (x != origin.getX() || y != origin.getY() || z != origin.getZ()) {
 			clear();
@@ -149,6 +209,10 @@ public class BuiltRenderRegion {
 	}
 
 	void updateCameraDistance(double cameraX, double cameraY, double cameraZ, int maxRenderDistance) {
+		if (isBottom) {
+			chunkReference.updateCameraDistance(cameraX, cameraY, cameraZ);
+		}
+
 		final BlockPos.Mutable origin = this.origin;
 		final float dx = (float) (origin.getX() + 8 - cameraX);
 		final float dy = (float) (origin.getY() + 8 - cameraY);

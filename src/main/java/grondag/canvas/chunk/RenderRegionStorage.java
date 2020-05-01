@@ -36,10 +36,12 @@ public class RenderRegionStorage {
 		regions = new BuiltRenderRegion[regionCount];
 
 		for(int x = 0; x < xySize; ++x) {
-			for(int y = 0; y < SIZE_Y; ++y) {
-				for(int z = 0; z < xySize; ++z) {
+			for(int z = 0; z < xySize; ++z) {
+				final RegionChunkReference chunkReference = new RegionChunkReference();
+
+				for(int y = 0; y < SIZE_Y; ++y) {
 					final int i = getRegionIndex(x, y, z);
-					final BuiltRenderRegion r = new BuiltRenderRegion(regionBuilder, this);
+					final BuiltRenderRegion r = new BuiltRenderRegion(regionBuilder, this, chunkReference, y == 0);
 					r.setOrigin(x << 4, y << 4, z << 4, i);
 					regions[i] = r;
 				}

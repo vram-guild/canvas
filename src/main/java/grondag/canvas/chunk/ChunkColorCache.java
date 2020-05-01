@@ -33,6 +33,7 @@ import net.fabricmc.api.Environment;
 import grondag.canvas.mixinterface.BiomeAccessExt;
 import grondag.canvas.mixinterface.WorldChunkExt;
 
+//TODO: per-vertex blending (quality)
 @Environment(value = EnvType.CLIENT)
 public class ChunkColorCache implements BiomeAccess.Storage {
 	private static int VERSION = 0;
