@@ -37,7 +37,7 @@ public class RenderRegionStorage {
 
 		for(int x = 0; x < xySize; ++x) {
 			for(int z = 0; z < xySize; ++z) {
-				final RegionChunkReference chunkReference = new RegionChunkReference();
+				final RegionChunkReference chunkReference = new RegionChunkReference(regionBuilder.world);
 
 				for(int y = 0; y < SIZE_Y; ++y) {
 					final int i = getRegionIndex(x, y, z);
