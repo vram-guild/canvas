@@ -159,8 +159,6 @@ public class CanvasWorldRenderer {
 
 	/**
 	 PERF: more things to try
-	 	share frustum checks/loaded status at world chunk column level
-		more culling
 		backface culling
 		lod culling: don't render grass, cobwebs, flowers, etc. at longer ranges
 		render leaves as solid at distance - omit interior faces

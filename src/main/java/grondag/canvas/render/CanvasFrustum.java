@@ -12,7 +12,6 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 
 import grondag.canvas.chunk.BuiltRenderRegion;
-import grondag.canvas.chunk.RegionChunkReference;
 import grondag.canvas.mixinterface.Matrix4fExt;
 
 /**
@@ -46,11 +45,11 @@ public class CanvasFrustum extends Frustum {
 	private double lastPositionZ;
 
 	// NB: distance (w) and subtraction are baked into region extents but must be done for other box tests
-	private float leftX, leftY, leftZ, leftW, leftXe, leftYe, leftZe, leftRegionExtent, leftChunkExtent;
-	private float rightX, rightY, rightZ, rightW, rightXe, rightYe, rightZe, rightRegionExtent, rightChunkExtent;
-	private float topX, topY, topZ, topW, topXe, topYe, topZe, topRegionExtent, topChunkExtent;
-	private float bottomX, bottomY, bottomZ, bottomW, bottomXe, bottomYe, bottomZe, bottomRegionExtent, bottomChunkExtent;
-	private float nearX, nearY, nearZ, nearW, nearXe, nearYe, nearZe, nearRegionExtent, nearChunkExtent;
+	private float leftX, leftY, leftZ, leftW, leftXe, leftYe, leftZe, leftRegionExtent;
+	private float rightX, rightY, rightZ, rightW, rightXe, rightYe, rightZe, rightRegionExtent;
+	private float topX, topY, topZ, topW, topXe, topYe, topZe, topRegionExtent;
+	private float bottomX, bottomY, bottomZ, bottomW, bottomXe, bottomYe, bottomZe, bottomRegionExtent;
+	private float nearX, nearY, nearZ, nearW, nearXe, nearYe, nearZe, nearRegionExtent;
 
 	private int viewDistanceSquared;
 
@@ -193,34 +192,6 @@ public class CanvasFrustum extends Frustum {
 		return true;
 	}
 
-	public boolean isChunkVisible(RegionChunkReference chunk) {
-		final float cx = chunk.cameraRelativeCenterX;
-		final float cy = chunk.cameraRelativeCenterY;
-		final float cz = chunk.cameraRelativeCenterZ;
-
-		if(cx * leftX + cy * leftY + cz * leftZ + leftChunkExtent > 0) {
-			return false;
-		}
-
-		if(cx * rightX + cy * rightY + cz * rightZ + rightChunkExtent > 0) {
-			return false;
-		}
-
-		if(cx * nearX + cy * nearY + cz * nearZ + nearChunkExtent > 0) {
-			return false;
-		}
-
-		if(cx * topX + cy * topY + cz * topZ + topChunkExtent > 0) {
-			return false;
-		}
-
-		if(cx * bottomX + cy * bottomY + cz * bottomZ + bottomChunkExtent > 0) {
-			return false;
-		}
-
-		return true;
-	}
-
 	private void extractPlanes() {
 		final Matrix4fExt matrix = (Matrix4fExt)(Object) mvpMatrix;
 		final float a00 = matrix.a00();
@@ -256,7 +227,6 @@ public class CanvasFrustum extends Frustum {
 		leftYe = ye;
 		leftZe = ze;
 		leftRegionExtent = w - 8 * (xe + ye + ze);
-		leftChunkExtent =  w - 8 * (xe + ze) - 128 * ye;
 
 		x  = a30 - a00;
 		y  = a31 - a01;
@@ -278,7 +248,6 @@ public class CanvasFrustum extends Frustum {
 		rightYe = ye;
 		rightZe = ze;
 		rightRegionExtent = w - 8 * (xe + ye + ze);
-		rightChunkExtent = w - 8 * (xe + ze) - 128 * ye;
 
 		x  = a30 - a10;
 		y  = a31 - a11;
@@ -300,7 +269,6 @@ public class CanvasFrustum extends Frustum {
 		topYe = ye;
 		topZe = ze;
 		topRegionExtent = w - 8 * (xe + ye + ze);
-		topChunkExtent =  w - 8 * (xe + ze) - 128 * ye;
 
 		x  = a30 + a10;
 		y  = a31 + a11;
@@ -322,7 +290,6 @@ public class CanvasFrustum extends Frustum {
 		bottomYe = ye;
 		bottomZe = ze;
 		bottomRegionExtent = w - 8 * (xe + ye + ze);
-		bottomChunkExtent =  w - 8 * (xe + ze) - 128 * ye;
 
 		x  = a30 + matrix.a20();
 		y  = a31 + matrix.a21();
@@ -344,6 +311,5 @@ public class CanvasFrustum extends Frustum {
 		nearYe = ye;
 		nearZe = ze;
 		nearRegionExtent = w - 8 * (xe + ye + ze);
-		nearChunkExtent = w - 8 * (xe + ze) - 128 * ye;
 	}
 }
