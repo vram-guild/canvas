@@ -162,8 +162,7 @@ public class CanvasWorldRenderer {
 	}
 
 	/**
-	 PERF: more things to try
-		move iteration to its own thread
+	 PERF:
 		unbork main render loop
 		add check for visibility to entity shouldRender via Frustum check
 		single-draw solid layer via shaders
@@ -174,6 +173,10 @@ public class CanvasWorldRenderer {
 		lod culling: don't render grass, cobwebs, flowers, etc. at longer ranges
 		render leaves as solid at distance - omit interior faces
 		retain vertex bindings when possible, use VAO
+
+
+	FIX:
+		fix missing edges with off-thread iteration - try frustum check on thread but leave potentially visible set off
 	 */
 
 	/**
