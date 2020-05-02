@@ -2,10 +2,15 @@ package grondag.canvas.chunk.occlusion;
 
 import static grondag.canvas.chunk.occlusion.Constants.CAMERA_PRECISION_BITS;
 import static grondag.canvas.chunk.occlusion.Constants.CAMERA_PRECISION_UNITY;
+import static grondag.canvas.chunk.occlusion.Constants.DOWN;
+import static grondag.canvas.chunk.occlusion.Constants.EAST;
 import static grondag.canvas.chunk.occlusion.Constants.EMPTY_BITS;
+import static grondag.canvas.chunk.occlusion.Constants.NORTH;
 import static grondag.canvas.chunk.occlusion.Constants.PIXEL_HEIGHT;
 import static grondag.canvas.chunk.occlusion.Constants.PIXEL_WIDTH;
+import static grondag.canvas.chunk.occlusion.Constants.SOUTH;
 import static grondag.canvas.chunk.occlusion.Constants.TILE_COUNT;
+import static grondag.canvas.chunk.occlusion.Constants.UP;
 import static grondag.canvas.chunk.occlusion.Constants.V000;
 import static grondag.canvas.chunk.occlusion.Constants.V001;
 import static grondag.canvas.chunk.occlusion.Constants.V010;
@@ -14,6 +19,7 @@ import static grondag.canvas.chunk.occlusion.Constants.V100;
 import static grondag.canvas.chunk.occlusion.Constants.V101;
 import static grondag.canvas.chunk.occlusion.Constants.V110;
 import static grondag.canvas.chunk.occlusion.Constants.V111;
+import static grondag.canvas.chunk.occlusion.Constants.WEST;
 import static grondag.canvas.chunk.occlusion.Data.forceRedraw;
 import static grondag.canvas.chunk.occlusion.Data.needsRedraw;
 import static grondag.canvas.chunk.occlusion.Data.occluderVersion;
@@ -38,6 +44,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 
 import grondag.canvas.CanvasMod;
+import grondag.canvas.chunk.BuiltRenderRegion;
 import grondag.canvas.chunk.occlusion.region.PackedBox;
 import grondag.canvas.render.CanvasFrustum;
 
@@ -73,6 +80,7 @@ public abstract class TerrainOccluder {
 	public static void prepareChunk(BlockPos origin, int occlusionRange) {
 		Data.occlusionRange = occlusionRange;
 
+		// PERF: could perhaps reuse CameraRelativeCenter values in BuildRenderRegion that are used by Frustum
 		offsetX = (int) ((origin.getX() << CAMERA_PRECISION_BITS) - viewX);
 		offsetY = (int) ((origin.getY() << CAMERA_PRECISION_BITS) - viewY);
 		offsetZ = (int) ((origin.getZ() << CAMERA_PRECISION_BITS) - viewZ);
@@ -177,6 +185,10 @@ public abstract class TerrainOccluder {
 		return needsRedraw;
 	}
 
+	/**
+	 * Does not rely on winding order but instead the distance from
+	 * plane with known facing to camera position.
+	 */
 	public static boolean isBoxVisible(int packedBox) {
 		final int x0  = PackedBox.x0(packedBox) - 1;
 		final int y0  = PackedBox.y0(packedBox) - 1;
@@ -213,6 +225,10 @@ public abstract class TerrainOccluder {
 		return BOX_TESTS[outcome].apply(x0, y0, z0, x1, y1, z1);
 	}
 
+	/**
+	 * Does not rely on winding order but instead the distance from
+	 * plane with known facing to camera position.
+	 */
 	private static void occludeInner(int packedBox) {
 		final int x0  = PackedBox.x0(packedBox);
 		final int y0  = PackedBox.y0(packedBox);
@@ -265,6 +281,81 @@ public abstract class TerrainOccluder {
 		}
 	}
 
+	/**
+	 * Returns value with face flags set when all such
+	 * faces in the region are at least 64 blocks away camera.
+	 * @param region
+	 * @return
+	 */
+	static int backfaceVisibilityFlags(BuiltRenderRegion region) {
+		final int offsetX = Data.offsetX;
+		final int offsetY = Data.offsetY;
+		final int offsetZ = Data.offsetZ;
+
+		int outcome = 0;
+
+		// if offsetY is positive, chunk origin is above camera
+		// if offsetY is negative, chunk origin is below camera;
+		/**
+		 * offsets are origin - camera
+		 * if looking directly at chunk center, two values will be -8
+		 *
+		 * pos face check: -8 < -(16) == false
+		 * neg face check: -8 > -(0) == false
+		 *
+		 * if 32 blocks above/positive to origin two values will be -32
+		 *
+		 * pos face check: -32 < -(16) == true
+		 * neg face check: -32 > -(0) == false
+		 *
+		 * if 32 blocks below/positive to origin two values will be 32
+		 *
+		 * pos face check: 32 < -(16) == false
+		 * neg face check: 32 > -(0) == true
+		 *
+		 *
+		 * if looking directly at chunk center, two values will be -8
+		 *
+		 * pos face check: -8 < -(16) == false
+		 * neg face check: -8 > -(0) == false
+		 *
+		 * if 64 blocks above/positive to origin two values will be -64
+		 * neg face check: -64 > -(16) == false
+		 *
+		 * neg face > -64
+		 *
+		 * if 64 blocks below/positive to origin two values will be 64
+		 *
+		 * pos face check: 64 < -16 == false
+		 *
+		 * pos face culled when offset > 48
+		 * neg face culled when offset < -72
+		 *
+		 *
+		 * pos face visible when offset <= 48
+		 * neg face visible when offset >= -72
+		 */
+		if (offsetY < (48 << CAMERA_PRECISION_BITS)) {
+			outcome |= UP;
+		} else if (offsetY > -(72 << CAMERA_PRECISION_BITS)) {
+			outcome |= DOWN;
+		}
+
+		if (offsetX < (48 << CAMERA_PRECISION_BITS)) {
+			outcome |= EAST;
+		} else if (offsetX > -(72 << CAMERA_PRECISION_BITS)) {
+			outcome |= WEST;
+		}
+
+		if (offsetZ < (48 << CAMERA_PRECISION_BITS)) {
+			outcome |= SOUTH;
+		} else if (offsetZ > -(72 << CAMERA_PRECISION_BITS)) {
+			outcome |= NORTH;
+		}
+
+		return outcome;
+	}
+
 	@FunctionalInterface interface BoxTest {
 		boolean apply(int x0, int y0, int z0, int x1, int y1, int z1);
 	}
@@ -272,13 +363,6 @@ public abstract class TerrainOccluder {
 	@FunctionalInterface interface BoxDraw {
 		void apply(int x0, int y0, int z0, int x1, int y1, int z1);
 	}
-
-	static final int UP = 1;
-	static final int DOWN = 2;
-	static final int EAST = 4;
-	static final int WEST = 8;
-	static final int NORTH = 16;
-	static final int SOUTH = 32;
 
 	private static BoxTest[] BOX_TESTS = new BoxTest[128];
 	private static BoxDraw[] BOX_DRAWS = new BoxDraw[128];

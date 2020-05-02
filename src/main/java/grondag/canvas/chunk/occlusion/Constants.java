@@ -1,5 +1,6 @@
 package grondag.canvas.chunk.occlusion;
 
+import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.MathHelper;
 
 import grondag.canvas.Configurator;
@@ -271,6 +272,13 @@ public class Constants {
 	static final int DY1 = DX1 + 1;
 
 	static final int VERTEX_DATA_LENGTH = DY1 + 1;
+
+	public static final int UP = 1 << Direction.UP.getId();
+	public static final int DOWN = 1 << Direction.DOWN.getId();
+	public static final int EAST = 1 << Direction.EAST.getId();
+	public static final int WEST = 1 << Direction.WEST.getId();
+	public static final int NORTH = 1 << Direction.NORTH.getId();
+	public static final int SOUTH = 1 << Direction.SOUTH.getId();
 
 	// For abandoned traversal scheme
 	//	static final int MAX_TILE_X = TILE_WIDTH - 1;

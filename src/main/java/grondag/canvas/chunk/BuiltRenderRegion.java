@@ -1,5 +1,12 @@
 package grondag.canvas.chunk;
 
+import static grondag.canvas.chunk.occlusion.Constants.DOWN;
+import static grondag.canvas.chunk.occlusion.Constants.EAST;
+import static grondag.canvas.chunk.occlusion.Constants.NORTH;
+import static grondag.canvas.chunk.occlusion.Constants.SOUTH;
+import static grondag.canvas.chunk.occlusion.Constants.UP;
+import static grondag.canvas.chunk.occlusion.Constants.WEST;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -31,6 +38,7 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 
+import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
 import grondag.canvas.buffer.packing.VertexCollectorImpl;
 import grondag.canvas.buffer.packing.VertexCollectorList;
@@ -81,6 +89,12 @@ public class BuiltRenderRegion {
 	public float cameraRelativeCenterX;
 	public float cameraRelativeCenterY;
 	public float cameraRelativeCenterZ;
+
+	/**
+	 * Holds value with face flags set for faces in the region that
+	 * are back-facing for at least 64 blocks away from camera.
+	 */
+	public int backfaceCullFlags;
 
 	public BuiltRenderRegion(RenderRegionBuilder renderRegionBuilder, RenderRegionStorage storage, RegionChunkReference chunkReference, boolean bottom) {
 		this.renderRegionBuilder = renderRegionBuilder;
@@ -157,6 +171,49 @@ public class BuiltRenderRegion {
 		final int idy = Math.round(dy);
 		final int idz = Math.round(dz);
 
+
+		if (Configurator.terrainBackfaceCulling) {
+			int backfaceCullFlags = 0b111111;
+
+			if (idy < 64) {
+				backfaceCullFlags &= ~UP;
+			}
+
+			if (idy > -64) {
+				backfaceCullFlags &= ~DOWN;
+			}
+
+			if (idx < 64) {
+				backfaceCullFlags &= ~EAST;
+			}
+
+			if (idx > -64) {
+				backfaceCullFlags &= ~WEST;
+			}
+
+			if (idz < 64) {
+				backfaceCullFlags &= ~SOUTH;
+			}
+
+			if (idz > -64) {
+				backfaceCullFlags &= ~NORTH;
+			}
+
+			if (!needsRebuild && backfaceCullFlags != this.backfaceCullFlags) {
+				final int oldFlags = renderData.get().backfaceCullFlags();
+
+				// if old flags cull more than current, need to rebuild
+				if  (oldFlags != backfaceCullFlags &&  (oldFlags | backfaceCullFlags) != backfaceCullFlags) {
+					needsRebuild = true;
+				}
+			}
+
+			this.backfaceCullFlags = backfaceCullFlags;
+		} else {
+			backfaceCullFlags = 0;
+		}
+
+
 		final int horizontalDistance = idx * idx + idz * idz;
 		isInsideRenderDistance = horizontalDistance <= maxRenderDistance;
 
@@ -224,7 +281,7 @@ public class BuiltRenderRegion {
 	}
 
 	public void scheduleRebuild() {
-		final ProtoRenderRegion region = ProtoRenderRegion.claim(renderRegionBuilder.world, origin);
+		final ProtoRenderRegion region = ProtoRenderRegion.claim(renderRegionBuilder.world, origin, backfaceCullFlags);
 
 		// null region is signal to reschedule
 		if(buildState.protoRegion.getAndSet(region) == ProtoRenderRegion.IDLE) {
@@ -263,7 +320,7 @@ public class BuiltRenderRegion {
 
 		if (region == ProtoRenderRegion.EMPTY) {
 			final RegionData chunkData = new RegionData();
-			chunkData.setOcclusionData(OcclusionRegion.EMPTY_CULL_DATA);
+			chunkData.complete(OcclusionRegion.EMPTY_CULL_DATA, 0);
 
 			final int[] oldData = buildData.getAndSet(chunkData).occlusionData;
 
@@ -368,7 +425,7 @@ public class BuiltRenderRegion {
 	private RegionData buildRegionData(TerrainRenderContext context) {
 		final RegionData regionData = new RegionData();
 
-		regionData.setOcclusionData(context.region.occlusion.build());
+		regionData.complete(context.region.occlusion.build(), context.backfaceCullFlags());
 		handleBlockEntities(regionData, context);
 		buildData.set(regionData);
 		return regionData;
@@ -475,11 +532,11 @@ public class BuiltRenderRegion {
 	}
 
 	public void rebuildOnMainThread() {
-		final ProtoRenderRegion region = ProtoRenderRegion.claim(renderRegionBuilder.world, origin);
+		final ProtoRenderRegion region = ProtoRenderRegion.claim(renderRegionBuilder.world, origin, backfaceCullFlags);
 
 		if (region == ProtoRenderRegion.EMPTY) {
 			final RegionData regionData = new RegionData();
-			regionData.setOcclusionData(OcclusionRegion.EMPTY_CULL_DATA);
+			regionData.complete(OcclusionRegion.EMPTY_CULL_DATA, 0);
 			final int[] oldData = buildData.getAndSet(regionData).occlusionData;
 
 			if (oldData != null && oldData != OcclusionRegion.EMPTY_CULL_DATA) {

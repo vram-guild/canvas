@@ -159,17 +159,16 @@ public class CanvasWorldRenderer {
 
 	/**
 	 PERF: more things to try
-		backface culling
-		lod culling: don't render grass, cobwebs, flowers, etc. at longer ranges
-		render leaves as solid at distance - omit interior faces
+		move iteration to its own thread
 		unbork main render loop
-		cull particle rendering?
-		reduce garbage generation
 		add check for visibility to entity shouldRender via Frustum check
 		single-draw solid layer via shaders
 		render larger cubes - avoid matrix state changes
+		cull particle rendering?
+		reduce garbage generation
 		shared buffers per world column, render order bottom to top
-		move iteration to its own thread
+		lod culling: don't render grass, cobwebs, flowers, etc. at longer ranges
+		render leaves as solid at distance - omit interior faces
 		retain vertex bindings when possible, use VAO
 	 */
 

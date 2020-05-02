@@ -95,6 +95,9 @@ public class Configurator {
 		@Comment("Prevent Glowstone and other blocks that emit light from casting shade on nearby blocks.")
 		boolean fixLuminousBlockShading = true;
 
+		@Comment("Distant terrain will omit back-facing polygonss. Experimental.  May or may not improve performance.")
+		boolean terrainBackfaceCulling = false;
+
 		// DEBUG
 		@Comment("Output runtime per-material shader source. For shader development debugging.")
 		boolean shaderDebug = false;
@@ -153,6 +156,7 @@ public class Configurator {
 	public static boolean preventDepthFighting = DEFAULTS.preventDepthFighting;
 	public static boolean clampExteriorVertices = DEFAULTS.clampExteriorVertices;
 	public static boolean fixLuminousBlockShading = DEFAULTS.fixLuminousBlockShading;
+	public static boolean terrainBackfaceCulling = DEFAULTS.terrainBackfaceCulling;
 
 	public static boolean lightmapDebug = DEFAULTS.lightmapDebug;
 	public static boolean conciseErrors = DEFAULTS.conciseErrors;
@@ -209,6 +213,7 @@ public class Configurator {
 		preventDepthFighting = config.preventDepthFighting;
 		clampExteriorVertices = config.clampExteriorVertices;
 		fixLuminousBlockShading = config.fixLuminousBlockShading;
+		terrainBackfaceCulling = config.terrainBackfaceCulling;
 
 		lightmapDebug = config.lightmapDebug;
 		conciseErrors = config.conciseErrors;
@@ -243,6 +248,8 @@ public class Configurator {
 		//        config.disableVanillaChunkMatrix = disableVanillaChunkMatrix;
 		config.preventDepthFighting = preventDepthFighting;
 		config.clampExteriorVertices = clampExteriorVertices;
+		config.fixLuminousBlockShading = fixLuminousBlockShading;
+		config.terrainBackfaceCulling = terrainBackfaceCulling;
 
 		config.lightmapDebug = lightmapDebug;
 		config.conciseErrors = conciseErrors;
@@ -436,6 +443,13 @@ public class Configurator {
 				.setDefaultValue(DEFAULTS.fixLuminousBlockShading)
 				.setTooltip(I18n.translate("config.canvas.help.fix_luminous_block_shade").split(";"))
 				.setSaveConsumer(b -> {fixLuminousBlockShading = b; reloadShaders = true;})
+				.build());
+
+		tweaks.addEntry(ENTRY_BUILDER
+				.startBooleanToggle("config.canvas.value.terrain_backface_culling", terrainBackfaceCulling)
+				.setDefaultValue(DEFAULTS.terrainBackfaceCulling)
+				.setTooltip(I18n.translate("config.canvas.help.terrain_backface_culling").split(";"))
+				.setSaveConsumer(b -> {terrainBackfaceCulling = b; reloadShaders = true;})
 				.build());
 
 		// DEBUG

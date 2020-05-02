@@ -83,6 +83,8 @@
 	"config.canvas.value.debug_occlusion_raster" : "Output Occlusion Raster",
 	"config.canvas.help.debug_occlusion_raster" : "Output periodic snapshots of terrain occlusion raster.;Will have performance impact.",
 	"config.canvas.value.debug_occlusion_boxes" : "Render Occlusion Boxes",
-	"config.canvas.help.debug_occlusion_boxes" : "Render active occlusion boxes of targeted render region.;Will have performance impact and looks strange."
+	"config.canvas.help.debug_occlusion_boxes" : "Render active occlusion boxes of targeted render region.;Will have performance impact and looks strange.",
+	"config.canvas.value.terrain_backface_culling" : "Terrain Backface Culling",
+	"config.canvas.help.terrain_backface_culling" : "Distant terrain will omit polygons facing away from player.;Experimental. May or may not improve performance."
 	
 }

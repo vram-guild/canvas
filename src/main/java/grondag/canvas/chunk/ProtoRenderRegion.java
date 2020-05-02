@@ -34,8 +34,8 @@ import it.unimi.dsi.fastutil.shorts.ShortArrayList;
 
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.client.world.ClientWorld;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
 import net.minecraft.world.chunk.ChunkSection;
 import net.minecraft.world.chunk.WorldChunk;
 
@@ -52,22 +52,37 @@ public class ProtoRenderRegion extends AbstractRenderRegion {
 	final ShortArrayList blockEntityPos = new ShortArrayList();
 	public final ObjectArrayList<BlockEntity> blockEntities = new ObjectArrayList<>();
 
+	/**
+	 * See {@link BuiltRenderRegion#backfaceCullFlags}
+	 */
+	public int backfaceCullFlags;
+
 	PaletteCopy mainSectionCopy;
 
-	private ProtoRenderRegion prepare(World world, BlockPos origin) {
+	private ProtoRenderRegion prepare(ClientWorld world, BlockPos origin, int backfaceCullFlags) {
 		if(ChunkRebuildCounters.ENABLED) {
 			ChunkRebuildCounters.startCopy();
 		}
 
 		this.world = world;
 
-		originX = origin.getX();
-		originY = origin.getY();
-		originZ = origin.getZ();
+		final int originX = origin.getX();
+		final int originY = origin.getY();
+		final int originZ = origin.getZ();
 
-		chunkBaseX = (originX >> 4) - 1;
-		chunkBaseY = (originY >> 4) - 1;
-		chunkBaseZ = (originZ >> 4) - 1;
+		this.originX = originX;
+		this.originY = originY;
+		this.originZ = originZ;
+
+		final int chunkBaseX = (originX >> 4) - 1;
+		final int chunkBaseY = (originY >> 4) - 1;
+		final int chunkBaseZ = (originZ >> 4) - 1;
+
+		this.chunkBaseX = chunkBaseX;
+		this.chunkBaseY = chunkBaseY;
+		this.chunkBaseZ = chunkBaseZ;
+
+		this.backfaceCullFlags = backfaceCullFlags;
 
 		final WorldChunk mainChunk = world.getChunk(chunkBaseX + 1, chunkBaseZ + 1);
 		mainSectionCopy = ChunkPaletteCopier.captureCopy(mainChunk, 1 + chunkBaseY);
@@ -225,9 +240,9 @@ public class ProtoRenderRegion extends AbstractRenderRegion {
 
 	private static final ArrayBlockingQueue<ProtoRenderRegion> POOL = new ArrayBlockingQueue<>(256);
 
-	public static ProtoRenderRegion claim(World world, BlockPos origin) {
+	public static ProtoRenderRegion claim(ClientWorld world, BlockPos origin, int backfaceCullFlags) {
 		final ProtoRenderRegion result = POOL.poll();
-		return (result == null ? new ProtoRenderRegion() : result).prepare(world, origin);
+		return (result == null ? new ProtoRenderRegion() : result).prepare(world, origin, backfaceCullFlags);
 	}
 
 	private static void release(ProtoRenderRegion region) {
