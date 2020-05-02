@@ -77,7 +77,7 @@ public abstract class TerrainOccluder {
 		forceRedraw = true;
 	}
 
-	public static void prepareChunk(BlockPos origin, int occlusionRange) {
+	public static void prepareRegion(BlockPos origin, int occlusionRange) {
 		Data.occlusionRange = occlusionRange;
 
 		// PERF: could perhaps reuse CameraRelativeCenter values in BuildRenderRegion that are used by Frustum

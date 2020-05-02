@@ -95,7 +95,7 @@ public class MixinWorldRenderer implements WorldRendererExt {
 
 	@Inject(at = @At("HEAD"), method = "getCompletedChunkCount", cancellable = true)
 	private void onGetCompletedChunkCount(CallbackInfoReturnable<Integer> ci) {
-		ci.setReturnValue(canvasWorldRenderer.completedChunkCount());
+		ci.setReturnValue(canvasWorldRenderer.completedRegionCount());
 	}
 
 	@Inject(at = @At("HEAD"), method = "renderChunkDebugInfo", cancellable = true)
@@ -105,7 +105,7 @@ public class MixinWorldRenderer implements WorldRendererExt {
 
 	@Inject(at = @At("HEAD"), method = "clearChunkRenderers", cancellable = true)
 	private void onClearChunkRenderers(CallbackInfo ci) {
-		canvasWorldRenderer.clearChunkRenderers();
+		canvasWorldRenderer.clearRegions();
 		ci.cancel();
 	}
 
@@ -121,9 +121,9 @@ public class MixinWorldRenderer implements WorldRendererExt {
 
 	@Inject(at = @At("HEAD"), method = "getChunksDebugString", cancellable = true)
 	private void onGetChunksDebugString(CallbackInfoReturnable<String> ci) {
-		final int len = canvasWorldRenderer.builtChunkStorage().regionCount();
-		final int count = canvasWorldRenderer.completedChunkCount();
-		final RenderRegionBuilder chunkBuilder = canvasWorldRenderer.chunkBuilder();
+		final int len = canvasWorldRenderer.regionStorage().regionCount();
+		final int count = canvasWorldRenderer.completedRegionCount();
+		final RenderRegionBuilder chunkBuilder = canvasWorldRenderer.regionBuilder();
 		final String result = String.format("C: %d/%d %sD: %d, %s", count, len, client.chunkCullingEnabled ? "(s) " : "", renderDistance, chunkBuilder == null ? "null" : chunkBuilder.getDebugString());
 		ci.setReturnValue(result);
 	}
@@ -134,7 +134,7 @@ public class MixinWorldRenderer implements WorldRendererExt {
 	 */
 	@Overwrite
 	private void scheduleChunkRender(int x, int y, int z, boolean urgent) {
-		canvasWorldRenderer.builtChunkStorage().scheduleRebuild(x, y, z, urgent);
+		canvasWorldRenderer.regionStorage().scheduleRebuild(x, y, z, urgent);
 		canvasWorldRenderer.forceVisibilityUpdate();
 	}
 

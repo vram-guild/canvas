@@ -95,8 +95,11 @@ public class Configurator {
 		@Comment("Prevent Glowstone and other blocks that emit light from casting shade on nearby blocks.")
 		boolean fixLuminousBlockShading = true;
 
-		@Comment("Distant terrain will omit back-facing polygonss. Experimental.  May or may not improve performance.")
+		@Comment("Distant terrain will omit back-facing polygons. Experimental.  May or may not improve performance.")
 		boolean terrainBackfaceCulling = false;
+
+		@Comment("Terrain setup done off the main render thread. Increases FPS when moving. May see occasional flashes of blank chunks")
+		boolean terrainSetupOffThread = true;
 
 		// DEBUG
 		@Comment("Output runtime per-material shader source. For shader development debugging.")
@@ -157,6 +160,7 @@ public class Configurator {
 	public static boolean clampExteriorVertices = DEFAULTS.clampExteriorVertices;
 	public static boolean fixLuminousBlockShading = DEFAULTS.fixLuminousBlockShading;
 	public static boolean terrainBackfaceCulling = DEFAULTS.terrainBackfaceCulling;
+	public static boolean terrainSetupOffThread = DEFAULTS.terrainSetupOffThread;
 
 	public static boolean lightmapDebug = DEFAULTS.lightmapDebug;
 	public static boolean conciseErrors = DEFAULTS.conciseErrors;
@@ -214,6 +218,7 @@ public class Configurator {
 		clampExteriorVertices = config.clampExteriorVertices;
 		fixLuminousBlockShading = config.fixLuminousBlockShading;
 		terrainBackfaceCulling = config.terrainBackfaceCulling;
+		terrainSetupOffThread = config.terrainSetupOffThread;
 
 		lightmapDebug = config.lightmapDebug;
 		conciseErrors = config.conciseErrors;
@@ -250,6 +255,7 @@ public class Configurator {
 		config.clampExteriorVertices = clampExteriorVertices;
 		config.fixLuminousBlockShading = fixLuminousBlockShading;
 		config.terrainBackfaceCulling = terrainBackfaceCulling;
+		config.terrainSetupOffThread = terrainSetupOffThread;
 
 		config.lightmapDebug = lightmapDebug;
 		config.conciseErrors = conciseErrors;
@@ -450,6 +456,13 @@ public class Configurator {
 				.setDefaultValue(DEFAULTS.terrainBackfaceCulling)
 				.setTooltip(I18n.translate("config.canvas.help.terrain_backface_culling").split(";"))
 				.setSaveConsumer(b -> {terrainBackfaceCulling = b; reloadShaders = true;})
+				.build());
+
+		tweaks.addEntry(ENTRY_BUILDER
+				.startBooleanToggle("config.canvas.value.terrain_setup_off_thread", terrainSetupOffThread)
+				.setDefaultValue(DEFAULTS.terrainSetupOffThread)
+				.setTooltip(I18n.translate("config.canvas.help.terrain_setup_off_thread").split(";"))
+				.setSaveConsumer(b -> {terrainSetupOffThread = b; reloadShaders = true;})
 				.build());
 
 		// DEBUG

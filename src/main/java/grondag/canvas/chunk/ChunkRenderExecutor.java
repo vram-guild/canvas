@@ -21,7 +21,7 @@ public class ChunkRenderExecutor {
 	private final PriorityBlockingQueue<ChunkBuildTask> queue = new  PriorityBlockingQueue<>(1024, new Comparator<ChunkBuildTask>() {
 		@Override
 		public int compare(ChunkBuildTask o1, ChunkBuildTask o2) {
-			return Integer.compare(o1.squaredDistance, o2.squaredDistance);
+			return Integer.compare(o1.priority, o2.priority);
 		}
 	});
 
@@ -66,12 +66,12 @@ public class ChunkRenderExecutor {
 	private class ChunkBuildTask {
 		final Consumer<TerrainRenderContext> task;
 
-		/** use -1 for privileged execution */
-		final int squaredDistance;
+		/** Normally squared distance. Use -1 for privileged execution */
+		final int priority;
 
-		ChunkBuildTask(Consumer<TerrainRenderContext> task, int squaredDistance) {
+		ChunkBuildTask(Consumer<TerrainRenderContext> task, int priority) {
 			this.task = task;
-			this.squaredDistance = squaredDistance;
+			this.priority = priority;
 		}
 	}
 

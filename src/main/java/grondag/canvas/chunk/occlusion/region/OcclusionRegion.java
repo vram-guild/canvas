@@ -351,12 +351,12 @@ public abstract class OcclusionRegion {
 		}
 
 		if (minRenderableX == Integer.MAX_VALUE) {
-			result[CULL_DATA_CHUNK_BOUNDS] = PackedBox.EMPTY_BOX;
+			result[CULL_DATA_REGION_BOUNDS] = PackedBox.EMPTY_BOX;
 		} else {
 			if ((minRenderableX | minRenderableY | minRenderableZ) == 0 && (maxRenderableX & maxRenderableY & maxRenderableZ) == 15) {
-				result[CULL_DATA_CHUNK_BOUNDS] = PackedBox.FULL_BOX;
+				result[CULL_DATA_REGION_BOUNDS] = PackedBox.FULL_BOX;
 			} else {
-				result[CULL_DATA_CHUNK_BOUNDS] = PackedBox.pack(minRenderableX, minRenderableY, minRenderableZ,
+				result[CULL_DATA_REGION_BOUNDS] = PackedBox.pack(minRenderableX, minRenderableY, minRenderableZ,
 						maxRenderableX + 1, maxRenderableY + 1, maxRenderableZ + 1, PackedBox.RANGE_EXTREME);
 			}
 		}
@@ -373,7 +373,7 @@ public abstract class OcclusionRegion {
 			adjustSurfaceVisbility();
 
 			final int[] result = new int[2];
-			result[CULL_DATA_CHUNK_BOUNDS] = PackedBox.FULL_BOX;
+			result[CULL_DATA_REGION_BOUNDS] = PackedBox.FULL_BOX;
 			result[CULL_DATA_FIRST_BOX] = PackedBox.FULL_BOX;
 			return result;
 		} else {
@@ -468,7 +468,7 @@ public abstract class OcclusionRegion {
 		}
 	}
 
-	public static final int CULL_DATA_CHUNK_BOUNDS = 0;
+	public static final int CULL_DATA_REGION_BOUNDS = 0;
 	public static final int CULL_DATA_FIRST_BOX = 1;
 
 	public static final int[] EMPTY_CULL_DATA = {PackedBox.EMPTY_BOX};

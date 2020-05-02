@@ -58,9 +58,9 @@ public class CanvasFrustum extends Frustum {
 	}
 
 	private static Matrix4f dummyMatrix() {
-		final Matrix4f dummt = new Matrix4f();
-		dummt.loadIdentity();
-		return dummt;
+		final Matrix4f dummy = new Matrix4f();
+		dummy.loadIdentity();
+		return dummy;
 	}
 
 	/**
@@ -76,6 +76,70 @@ public class CanvasFrustum extends Frustum {
 	 */
 	public int viewVersion() {
 		return viewVersion;
+	}
+
+	public void copy(CanvasFrustum src) {
+		viewVersion = src.viewVersion;
+		positionVersion = src.positionVersion;
+
+		lastViewX = src.lastViewX;
+		lastViewY = src.lastViewY;
+		lastViewZ = src.lastViewZ;
+
+		lastViewXf = src.lastViewXf;
+		lastViewYf = src.lastViewYf;
+		lastViewZf = src.lastViewZf;
+
+		lastPositionX = src.lastPositionX;
+		lastPositionY = src.lastPositionY;
+		lastPositionZ = src.lastPositionZ;
+
+		viewDistanceSquared = src.viewDistanceSquared;
+
+		leftX = src.leftX;
+		leftY = src.leftY;
+		leftZ = src.leftZ;
+		leftW = src.leftW;
+		leftXe = src.leftXe;
+		leftYe = src.leftYe;
+		leftZe = src.leftZe;
+		leftRegionExtent = src.leftRegionExtent;
+
+		rightX = src.rightX;
+		rightY = src.rightY;
+		rightZ = src.rightZ;
+		rightW = src.rightW;
+		rightXe = src.rightXe;
+		rightYe = src.rightYe;
+		rightZe = src.rightZe;
+		rightRegionExtent = src.rightRegionExtent;
+
+		topX = src.topX;
+		topY = src.topY;
+		topZ = src.topZ;
+		topW = src.topW;
+		topXe = src.topXe;
+		topYe = src.topYe;
+		topZe = src.topZe;
+		topRegionExtent = src.topRegionExtent;
+
+		bottomX = src.bottomX;
+		bottomY = src.bottomY;
+		bottomZ = src.bottomZ;
+		bottomW = src.bottomW;
+		bottomXe = src.bottomXe;
+		bottomYe = src.bottomYe;
+		bottomZe = src.bottomZe;
+		bottomRegionExtent = src.bottomRegionExtent;
+
+		nearX = src.nearX;
+		nearY = src.nearY;
+		nearZ = src.nearZ;
+		nearW = src.nearW;
+		nearXe = src.nearXe;
+		nearYe = src.nearYe;
+		nearZe = src.nearZe;
+		nearRegionExtent = src.nearRegionExtent;
 	}
 
 	public void prepare(Matrix4f modelMatrix, Matrix4f projectionMatrix, Camera camera) {
