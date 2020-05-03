@@ -115,6 +115,7 @@ public final class Quad {
 			return BOUNDS_OUTSIDE_OR_TOO_SMALL;
 
 		default:
+			// FIX: happens in rare cases - maybe rounding?   Try  with  iron fence or glass panes.
 			assert false : "Invalid split";
 		}
 

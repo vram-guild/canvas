@@ -1,9 +1,5 @@
 package grondag.canvas.draw;
 
-import javax.annotation.Nullable;
-
-import net.minecraft.client.render.RenderLayer;
-
 import grondag.canvas.apiimpl.MaterialConditionImpl;
 import grondag.canvas.apiimpl.MaterialShaderImpl;
 import grondag.canvas.material.MaterialVertexFormat;
@@ -19,13 +15,10 @@ public abstract class DrawHandler {
 	public final MaterialConditionImpl condition;
 	public final MaterialVertexFormat format;
 
-	public @Nullable RenderLayer renderLayer;
-
-	DrawHandler (MaterialVertexFormat format, MaterialShaderImpl shader,  MaterialConditionImpl condition, @Nullable RenderLayer renderLayer) {
+	DrawHandler (MaterialVertexFormat format, MaterialShaderImpl shader,  MaterialConditionImpl condition) {
 		this.format = format;
 		this.shader = shader;
 		this.condition = condition;
-		this.renderLayer = renderLayer;
 	}
 
 	public final void setup() {

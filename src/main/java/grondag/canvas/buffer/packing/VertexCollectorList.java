@@ -174,6 +174,7 @@ public class VertexCollectorList {
 
 	private static final VertexCollectorImpl[] EMPTY = new VertexCollectorImpl[MaterialState.MAX_MATERIAL_STATES];
 
+	// TODO: use blend mode instead of renderlayer
 	public VertexCollectorImpl get(MaterialContext context, RenderLayer layer) {
 		return get(MaterialState.get(context, layer));
 	}

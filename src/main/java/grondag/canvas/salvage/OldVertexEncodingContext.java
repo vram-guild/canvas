@@ -1,4 +1,4 @@
-package grondag.canvas.material;
+package grondag.canvas.salvage;
 
 import net.minecraft.util.math.BlockPos;
 

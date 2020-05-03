@@ -1,4 +1,4 @@
-package grondag.canvas.material;
+package grondag.canvas.salvage;
 
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.util.ColorHelper;

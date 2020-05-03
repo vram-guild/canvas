@@ -22,8 +22,6 @@ import org.lwjgl.opengl.GL20;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
-import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
-import grondag.canvas.buffer.packing.VertexCollectorImpl;
 import grondag.canvas.varia.CanvasGlHelper;
 
 public class MaterialVertexFormat {
@@ -53,15 +51,6 @@ public class MaterialVertexFormat {
 		attributeCount = count;
 		vertexStrideBytes = bytes;
 		vertexStrideInts = bytes / 4;
-	}
-
-	public void encode(MutableQuadViewImpl q, OldVertexEncodingContext context, VertexCollectorImpl output) {
-		final MaterialVertextFormatElement[] elements = this.elements;
-		for(int i = 0; i < 4; i++) {
-			for(final MaterialVertextFormatElement e : elements) {
-				e.encoder.encode(q, i, context, output);
-			}
-		}
 	}
 
 	/**
