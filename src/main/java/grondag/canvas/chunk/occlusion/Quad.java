@@ -52,9 +52,6 @@ public final class Quad {
 		// and w will be 0 but projection division isn't needed, so force output to W = 1
 		// see https://www.cs.usfca.edu/~cruse/math202s11/homocoords.pdf
 
-		assert extZ <= 0;
-		assert extZ < extW;
-
 		final float wt = intZ  / -(extZ - intZ);
 
 		// note again that projection division isn't needed

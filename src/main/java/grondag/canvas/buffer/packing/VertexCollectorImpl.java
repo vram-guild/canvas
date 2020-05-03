@@ -9,8 +9,6 @@ import it.unimi.dsi.fastutil.ints.IntComparator;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.util.math.MathHelper;
 
-import net.fabricmc.fabric.impl.client.indigo.renderer.helper.NormalHelper;
-
 import grondag.canvas.material.MaterialState;
 import grondag.canvas.material.MaterialVertexFormats;
 import grondag.fermion.intstream.IntStreamProvider;
@@ -266,14 +264,17 @@ public class VertexCollectorImpl implements VertexCollector {
 		}
 	};
 
+	@Override
 	public final void add(final int i) {
 		data.set(integerSize++, i);
 	}
 
+	@Override
 	public final void add(final float f) {
 		data.set(integerSize++, Float.floatToRawIntBits(f));
 	}
 
+	@Override
 	public final void add(int[] appendData, int length) {
 		data.copyFrom(integerSize, appendData, 0, length);
 		integerSize += length;
@@ -281,54 +282,43 @@ public class VertexCollectorImpl implements VertexCollector {
 
 	@Override
 	public VertexConsumer vertex(double x, double y, double z) {
-		add((float) x);
-		add((float) y);
-		add((float) z);
+		materialState.encoder.vertex(this, x, y, z);
 		return this;
 	}
 
 	@Override
 	public void vertex(float x, float y, float z, float i, float j, float k, float l, float m, float n, int o, int p, float q, float r, float s) {
-		add(x);
-		add(y);
-		add(z);
-		this.color(i, j, k, l);
-		texture(m, n);
-		this.overlay(o);
-		this.light(p);
-		this.normal(q, r, s);
+		materialState.encoder.vertex(this, x, y, z, i, j, k, l, m, n, o, p, q, r, s);
 		next();
 	}
 
 	@Override
 	public VertexConsumer color(int r, int g, int b, int a) {
-		add((r & 0xFF) | ((g & 0xFF) << 8) | ((b & 0xFF) << 16) | ((a & 0xFF) << 24));
+		materialState.encoder.color(this, r, g, b, a);
 		return this;
 	}
 
 	@Override
 	public VertexConsumer texture(float u, float v) {
-		add(u);
-		add(v);
+		materialState.encoder.texture(this, u, v);
 		return this;
 	}
 
 	@Override
 	public VertexConsumer overlay(int s, int t) {
-		// TODO: disabled for now - needs to be controlled by format because is called when not present
-		//add((s & 0xFFFF) | ((t & 0xFFFF) << 16));
+		materialState.encoder.overlay(this, s, t);
 		return this;
 	}
-
+	w
 	@Override
 	public VertexConsumer light(int s, int t) {
-		add((s & 0xFFFF) | ((t & 0xFFFF) << 16));
+		materialState.encoder.light(this, s, t);
 		return this;
 	}
 
 	@Override
 	public VertexConsumer normal(float x, float y, float z) {
-		add(NormalHelper.packNormal(x, y, z, 0));
+		materialState.encoder.normal(this, x, y, z);
 		return this;
 	}
 

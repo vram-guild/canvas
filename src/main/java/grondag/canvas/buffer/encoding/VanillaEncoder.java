@@ -8,6 +8,7 @@ import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.rendercontext.AbstractRenderContext;
 import grondag.canvas.apiimpl.util.ColorHelper;
 import grondag.canvas.apiimpl.util.NormalHelper;
+import grondag.canvas.buffer.packing.VertexCollectorImpl;
 import grondag.canvas.material.MaterialVertexFormats;
 import grondag.canvas.mixinterface.Matrix3fExt;
 
@@ -86,4 +87,49 @@ abstract class VanillaEncoder extends VertexEncoder {
 	}
 
 
+	@Override
+	public void vertex(VertexCollectorImpl collector, double x, double y, double z) {
+		collector.add((float) x);
+		collector.add((float) y);
+		collector.add((float) z);
+	}
+
+	@Override
+	public void vertex(VertexCollectorImpl collector, float x, float y, float z, float i, float j, float k, float l, float m, float n, int o, int p, float q, float r, float s) {
+		collector.add(x);
+		collector.add(y);
+		collector.add(z);
+		collector.color(i, j, k, l);
+		collector.texture(m, n);
+		collector.overlay(o);
+		collector.light(p);
+		collector.normal(q, r, s);
+	}
+
+	@Override
+	public void color(VertexCollectorImpl collector, int r, int g, int b, int a) {
+		collector.add((r & 0xFF) | ((g & 0xFF) << 8) | ((b & 0xFF) << 16) | ((a & 0xFF) << 24));
+	}
+
+	@Override
+	public void texture(VertexCollectorImpl collector, float u, float v) {
+		collector.add(u);
+		collector.add(v);
+	}
+
+	@Override
+	public void overlay(VertexCollectorImpl collector, int s, int t) {
+		// TODO: disabled for now - needs to be controlled by format because is called when not present
+		//add((s & 0xFFFF) | ((t & 0xFFFF) << 16));
+	}
+
+	@Override
+	public void light(VertexCollectorImpl collector, int s, int t) {
+		collector.add((s & 0xFFFF) | ((t & 0xFFFF) << 16));
+	}
+
+	@Override
+	public void normal(VertexCollectorImpl collector, float x, float y, float z) {
+		collector.add(NormalHelper.packNormal(x, y, z, 0));
+	}
 }

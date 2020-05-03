@@ -6,6 +6,7 @@ import grondag.canvas.buffer.packing.VertexCollectorImpl;
 import grondag.canvas.render.CanvasWorldRenderer;
 import grondag.canvas.shader.old.OldShaderContext;
 
+@Deprecated
 @FunctionalInterface
 public interface VertexAttributeEncoder {
 	void encode(MutableQuadViewImpl quad, int vertexIndex, OldVertexEncodingContext context, VertexCollectorImpl output);
