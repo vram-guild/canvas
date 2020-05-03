@@ -36,6 +36,7 @@ public class DelegateLists {
 		if (!list.isEmpty()) {
 			list.clear();
 		}
+
 		delegateLists.offer(list);
 	}
 }

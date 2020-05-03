@@ -4,6 +4,10 @@ import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.rendercontext.AbstractRenderContext;
 import grondag.canvas.material.MaterialVertexFormat;
 
+/**
+ * Encodes quads according to a specific GPU-side vertex format/shader/lighting scheme.
+ * Also provides compatibility handlers for Mojang's vertex consumer interface.
+ */
 public abstract class VertexEncoder {
 	public static final int FULL_BRIGHTNESS = 0xF000F0;
 

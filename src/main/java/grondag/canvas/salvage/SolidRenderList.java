@@ -14,7 +14,7 @@
  * the License.
  ******************************************************************************/
 
-package grondag.canvas.chunk.draw;
+package grondag.canvas.salvage;
 
 import java.util.ArrayDeque;
 import java.util.function.Consumer;
@@ -27,6 +27,7 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.lwjgl.opengl.GL11;
 
 import grondag.canvas.buffer.allocation.BindStateManager;
+import grondag.canvas.chunk.draw.DrawableDelegate;
 import grondag.canvas.draw.DrawHandler;
 import grondag.canvas.shader.GlProgram;
 import grondag.canvas.shader.ShaderManager;

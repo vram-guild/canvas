@@ -14,7 +14,7 @@
  * the License.
  ******************************************************************************/
 
-package grondag.canvas.chunk.draw;
+package grondag.canvas.salvage;
 
 import java.nio.FloatBuffer;
 
