@@ -309,7 +309,7 @@ public class VertexCollectorImpl implements VertexCollector {
 		materialState.encoder.overlay(this, s, t);
 		return this;
 	}
-	w
+
 	@Override
 	public VertexConsumer light(int s, int t) {
 		materialState.encoder.light(this, s, t);
