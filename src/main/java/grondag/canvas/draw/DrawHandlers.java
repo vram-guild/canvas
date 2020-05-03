@@ -57,8 +57,6 @@ public class DrawHandlers {
 	public static final DrawHandler CUTOUT = new DrawHandler(MaterialVertexFormats.VANILLA_BLOCKS_AND_ITEMS, null, MaterialConditionImpl.ALWAYS) {
 		@Override
 		protected void setupInner() {
-			//			RenderLayer.getCutout().startDrawing();
-
 			RenderSystem.enableTexture();
 			final TextureManager textureManager = MinecraftClient.getInstance().getTextureManager();
 			textureManager.bindTexture(SpriteAtlasTexture.BLOCK_ATLAS_TEX);
@@ -77,7 +75,6 @@ public class DrawHandlers {
 
 		@Override
 		protected void teardownInner() {
-			//			RenderLayer.getCutout().endDrawing();
 			RenderSystem.disableAlphaTest();
 			RenderSystem.defaultAlphaFunc();
 			RenderSystem.disableCull();
@@ -89,8 +86,6 @@ public class DrawHandlers {
 	public static final DrawHandler CUTOUT_MIPPED = new DrawHandler(MaterialVertexFormats.VANILLA_BLOCKS_AND_ITEMS, null, MaterialConditionImpl.ALWAYS) {
 		@Override
 		protected void setupInner() {
-			//			RenderLayer.getCutoutMipped().startDrawing();
-
 			RenderSystem.enableTexture();
 			final TextureManager textureManager = MinecraftClient.getInstance().getTextureManager();
 			textureManager.bindTexture(SpriteAtlasTexture.BLOCK_ATLAS_TEX);
@@ -109,7 +104,6 @@ public class DrawHandlers {
 
 		@Override
 		protected void teardownInner() {
-			//			RenderLayer.getCutoutMipped().endDrawing();
 			RenderSystem.disableAlphaTest();
 			RenderSystem.defaultAlphaFunc();
 			RenderSystem.disableCull();
@@ -121,18 +115,6 @@ public class DrawHandlers {
 	public static final DrawHandler TRANSLUCENT = new DrawHandler(MaterialVertexFormats.VANILLA_BLOCKS_AND_ITEMS, null, MaterialConditionImpl.ALWAYS) {
 		@Override
 		protected void setupInner() {
-			//			RenderLayer.getTranslucent().startDrawing();
-			//			RenderSystem.shadeModel(GL21.GL_SMOOTH);
-			//			MinecraftClient.getInstance().gameRenderer.getLightmapTextureManager().enable();
-			//			RenderSystem.enableTexture();
-			//			final TextureManager textureManager = MinecraftClient.getInstance().getTextureManager();
-			//			textureManager.bindTexture(SpriteAtlasTexture.BLOCK_ATLAS_TEX);
-			//			textureManager.getTexture(SpriteAtlasTexture.BLOCK_ATLAS_TEX).setFilter(false, true);
-			//			RenderSystem.enableBlend();
-			//			RenderSystem.defaultBlendFunc();
-			//			RenderSystem.enableDepthTest();
-
-
 			RenderSystem.enableTexture();
 			final TextureManager textureManager = MinecraftClient.getInstance().getTextureManager();
 			textureManager.bindTexture(SpriteAtlasTexture.BLOCK_ATLAS_TEX);
@@ -140,8 +122,6 @@ public class DrawHandlers {
 			RenderSystem.enableBlend();
 			RenderSystem.defaultBlendFunc();
 			RenderSystem.shadeModel(GL21.GL_SMOOTH);
-			//			RenderSystem.enableAlphaTest();
-			//			RenderSystem.alphaFunc(516, 0.5f);
 			RenderSystem.enableDepthTest();
 			RenderSystem.depthFunc(515);
 			RenderSystem.enableCull();
@@ -152,7 +132,6 @@ public class DrawHandlers {
 
 		@Override
 		protected void teardownInner() {
-			//			RenderLayer.getTranslucent().endDrawing();
 			RenderSystem.disableCull();
 			MinecraftClient.getInstance().gameRenderer.getLightmapTextureManager().disable();
 			RenderSystem.disableFog();
