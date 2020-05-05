@@ -35,7 +35,6 @@ import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
 import grondag.canvas.buffer.packing.RenderCube;
 import grondag.canvas.chunk.BuiltRenderRegion;
-import grondag.canvas.chunk.DrawableChunk;
 import grondag.canvas.light.LightmapHdTexture;
 import grondag.canvas.varia.CanvasGlHelper;
 
@@ -100,10 +99,10 @@ public class CanvasChunkRenderList {
 	}
 
 	private void addSolidChunkInner(BuiltRenderRegion renderChunkIn, SolidRenderList solidList) {
-		final DrawableChunk.Solid solidDrawable = renderChunkIn.solidDrawable();
-		if (solidDrawable != null) {
-			solidDrawable.prepareSolidRender(solidList);
-		}
+		//		final DrawableChunk.Solid solidDrawable = renderChunkIn.solidDrawable();
+		//		if (solidDrawable != null) {
+		//			solidDrawable.prepareSolidRender(solidList);
+		//		}
 	}
 
 	public void renderChunkLayer(RenderLayer layer) {
@@ -225,12 +224,12 @@ public class CanvasChunkRenderList {
 
 		for (int i = 0; i < chunkCount; i++) {
 			final BuiltRenderRegion renderchunk = chunks.get(i);
-			final DrawableChunk.Translucent drawable = renderchunk.translucentDrawable();
-			if (drawable == null) {
-				continue;
-			}
+			//			final DrawableChunk.Translucent drawable = renderchunk.translucentDrawable();
+			//			if (drawable == null) {
+			//				continue;
+			//			}
 			updateViewMatrix(renderchunk.getOrigin());
-			drawable.renderChunkTranslucent();
+			//			drawable.renderChunkTranslucent();
 		}
 
 		chunks.clear();

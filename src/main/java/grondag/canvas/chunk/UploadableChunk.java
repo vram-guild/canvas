@@ -24,7 +24,7 @@ import grondag.canvas.buffer.packing.BufferPackingList;
 import grondag.canvas.buffer.packing.VertexCollectorList;
 import grondag.canvas.chunk.draw.DrawableDelegate;
 
-public abstract class UploadableChunk<V extends DrawableChunk> {
+public abstract class UploadableChunk {
 	protected final ObjectArrayList<DrawableDelegate> delegates;
 
 	/** Does not retain packing list reference */
@@ -35,7 +35,7 @@ public abstract class UploadableChunk<V extends DrawableChunk> {
 	/**
 	 * Will be called from client thread - is where flush/unmap needs to happen.
 	 */
-	public abstract V produceDrawable();
+	public abstract DrawableChunk produceDrawable();
 
 	/**
 	 * Called if {@link #produceDrawable()} will not be called, so can release
@@ -50,35 +50,35 @@ public abstract class UploadableChunk<V extends DrawableChunk> {
 		delegates.clear();
 	}
 
-	public static class Solid extends UploadableChunk<DrawableChunk.Solid> {
+	public static class Solid extends UploadableChunk {
 		public Solid(BufferPackingList packing, VertexCollectorList collectorList) {
 			super(packing, collectorList);
 		}
 
 		@Override
-		public DrawableChunk.Solid produceDrawable() {
+		public DrawableChunk produceDrawable() {
 			final int limit = delegates.size();
 
 			for (int i = 0; i < limit; i++) {
 				delegates.get(i).flush();
 			}
 
-			return new DrawableChunk.Solid(delegates);
+			return new DrawableChunk(delegates);
 		}
 	}
 
-	public static class Translucent extends UploadableChunk<DrawableChunk.Translucent> {
+	public static class Translucent extends UploadableChunk {
 		public Translucent(BufferPackingList packing, VertexCollectorList collectorList) {
 			super(packing, collectorList);
 		}
 
 		@Override
-		public DrawableChunk.Translucent produceDrawable() {
+		public DrawableChunk produceDrawable() {
 			final int limit = delegates.size();
 			for (int i = 0; i < limit; i++) {
 				delegates.get(i).flush();
 			}
-			return new DrawableChunk.Translucent(delegates);
+			return new DrawableChunk(delegates);
 		}
 	}
 }

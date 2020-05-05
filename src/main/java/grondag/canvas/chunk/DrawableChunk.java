@@ -16,14 +16,10 @@
 
 package grondag.canvas.chunk;
 
-import java.util.function.Consumer;
-
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import grondag.canvas.chunk.draw.DelegateLists;
 import grondag.canvas.chunk.draw.DrawableDelegate;
-import grondag.canvas.draw.DrawHandler;
-import grondag.canvas.shader.ShaderManager;
 
 /**
  * Plays same role as VertexBuffer in RenderChunk but implementation is much
@@ -50,7 +46,7 @@ import grondag.canvas.shader.ShaderManager;
  *
  *
  */
-public abstract class DrawableChunk {
+public class DrawableChunk {
 	protected boolean isCleared = false;
 
 	private int quadCount = -1;
@@ -110,60 +106,6 @@ public abstract class DrawableChunk {
 
 			DelegateLists.releaseDelegateList(delegates);
 			delegates = null;
-		}
-	}
-
-	public static class Solid extends DrawableChunk {
-		public Solid(ObjectArrayList<DrawableDelegate> delegates) {
-			super(delegates);
-		}
-
-		/**
-		 * Prepares for iteration and handles any internal housekeeping. Called each
-		 * frame from client thread before any call to {@link #renderSolidNext()}.
-		 */
-		public void prepareSolidRender(Consumer<ObjectArrayList<DrawableDelegate>> consumer) {
-			if (isCleared) {
-				return;
-			}
-
-			consumer.accept(delegates);
-		}
-	}
-
-	public static class Translucent extends DrawableChunk {
-		public Translucent(ObjectArrayList<DrawableDelegate> delegates) {
-			super(delegates);
-		}
-
-		public void renderChunkTranslucent() {
-			if (isCleared) {
-				return;
-			}
-
-			final int limit = delegates.size();
-
-			if (limit == 0) {
-				return;
-			}
-
-			final Object[] draws = delegates.elements();
-
-			final int frameIndex = ShaderManager.INSTANCE.frameIndex();
-
-			// using conventional loop here to prevent iterator garbage in hot loop
-			// profiling shows it matters
-			for (int i = 0; i < limit; i++) {
-				final DrawableDelegate delegate = (DrawableDelegate) draws[i];
-				final DrawHandler handler = delegate.materialState().drawHandler;
-
-				// UGLY - check probably belongs in draw handler
-				if (!handler.condition.affectBlocks || handler.condition.compute(frameIndex)) {
-					handler.setup();
-					delegate.bind();
-					delegate.draw();
-				}
-			}
 		}
 	}
 }
