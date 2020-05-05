@@ -58,13 +58,13 @@ vec2 lightCoord() {
 
 vec4 diffuseColor() {
 
-    #if CONTEXT != CONTEXT_ITEM_GUI
+    #if !CONTEXT_IS_GUI
         vec2 lightCoord = lightCoord();
     #endif
 
     #if CONTEXT_IS_BLOCK
         vec4 light = texture2D(u_lightmap, lightCoord);
-    #elif CONTEXT == CONTEXT_ITEM_GUI
+    #elif CONTEXT_IS_GUI
         vec4 light = vec4(1.0, 1.0, 1.0, 1.0);
     #else
         vec4 light = texture2D(u_lightmap, v_lightcoord);
@@ -220,7 +220,7 @@ float fogFactor() {
 }
 
 vec4 fog(vec4 diffuseColor) {
-#if CONTEXT == CONTEXT_ITEM_GUI
+#if CONTEXT_IS_GUI
 	return diffuseColor;
 #elif SUBTLE_FOG
 	float f = 1.0 - fogFactor();

@@ -31,7 +31,6 @@ import grondag.canvas.chunk.draw.DrawableDelegate;
 import grondag.canvas.draw.DrawHandler;
 import grondag.canvas.shader.GlProgram;
 import grondag.canvas.shader.ShaderManager;
-import grondag.canvas.shader.old.OldShaderContext;
 import grondag.canvas.varia.CanvasGlHelper;
 
 /**

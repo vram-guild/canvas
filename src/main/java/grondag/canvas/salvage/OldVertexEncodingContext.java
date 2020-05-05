@@ -3,7 +3,6 @@ package grondag.canvas.salvage;
 import net.minecraft.util.math.BlockPos;
 
 import grondag.canvas.apiimpl.RenderMaterialImpl;
-import grondag.canvas.shader.old.OldShaderContext;
 
 public final class OldVertexEncodingContext {
 	RenderMaterialImpl.Value mat;

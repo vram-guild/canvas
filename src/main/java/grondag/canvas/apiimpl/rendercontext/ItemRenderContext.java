@@ -65,6 +65,8 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 	private Mode transformMode;
 	private int lightmap;
 	private ItemStack itemStack;
+	private MaterialContext context = MaterialContext.ITEM_GUI;
+
 
 	private final Supplier<Random> randomSupplier = () -> {
 		final Random result = random;
@@ -74,6 +76,34 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 
 	public ItemRenderContext(ItemColors colorMap) {
 		this.colorMap = colorMap;
+	}
+
+	public ItemRenderContext prepare(ModelTransformation.Mode mode) {
+		switch (mode) {
+		case NONE:
+		case THIRD_PERSON_LEFT_HAND:
+		case THIRD_PERSON_RIGHT_HAND:
+		case FIRST_PERSON_LEFT_HAND:
+		case FIRST_PERSON_RIGHT_HAND:
+			context = MaterialContext.ITEM_HELD;
+			break;
+		case FIXED:
+			context = MaterialContext.ITEM_FIXED;
+			break;
+		case GROUND:
+			context = MaterialContext.ITEM_GROUND;
+			break;
+		default:
+		case GUI:
+			context = MaterialContext.ITEM_GUI;
+			break;
+		case HEAD:
+			context = MaterialContext.ITEM_HEAD;
+			break;
+
+		}
+
+		return this;
 	}
 
 	public void renderModel(ItemStack itemStack, Mode transformMode, boolean invert, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int lightmap, int overlay, FabricBakedModel model) {
@@ -145,7 +175,7 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 
 	@Override
 	public MaterialContext materialContext() {
-		return MaterialContext.ITEM;
+		return context;
 	}
 
 	@Override

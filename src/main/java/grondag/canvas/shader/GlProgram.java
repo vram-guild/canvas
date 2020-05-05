@@ -33,7 +33,6 @@ import net.minecraft.client.resource.language.I18n;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.MaterialShaderImpl.UniformMatrix4f;
 import grondag.canvas.material.MaterialVertexFormat;
-import grondag.canvas.shader.old.OldShaderProps;
 import grondag.canvas.varia.CanvasGlHelper;
 import grondag.frex.api.material.Uniform;
 import grondag.frex.api.material.Uniform.Uniform1f;
@@ -484,10 +483,10 @@ public class GlProgram {
 		return addUniform(new UniformArrayiImpl(name, initializer, frequency, size));
 	}
 
-	public GlProgram(GlVertexShader vertexShader, GlFragmentShader fragmentShader, MaterialVertexFormat format, int shaderProps, boolean isSolidLayer) {
+	public GlProgram(GlVertexShader vertexShader, GlFragmentShader fragmentShader, MaterialVertexFormat format, ShaderContext shaderContext, boolean isSolidLayer) {
 		this.vertexShader = vertexShader;
 		this.fragmentShader = fragmentShader;
-		spriteDepth = OldShaderProps.spriteDepth(shaderProps);
+		spriteDepth = shaderContext.spriteDepth;
 		pipelineVertexFormat = format;
 		this.isSolidLayer = isSolidLayer;
 	}

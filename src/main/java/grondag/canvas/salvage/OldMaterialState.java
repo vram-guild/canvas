@@ -14,18 +14,16 @@
  * the License.
  ******************************************************************************/
 
-package grondag.canvas.material.old;
+package grondag.canvas.salvage;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 
 import grondag.canvas.apiimpl.MaterialConditionImpl;
 import grondag.canvas.apiimpl.MaterialShaderImpl;
 import grondag.canvas.material.MaterialVertexFormat;
-import grondag.canvas.shader.old.OldShaderContext;
-import grondag.canvas.shader.old.OldShaderProps;
 import grondag.fermion.varia.Useful;
 
-public class OldMaterialState {
+class OldMaterialState {
 	private static final int SHADER_SHIFT = Useful.bitLength(MaterialConditionImpl.MAX_CONDITIONS) + OldShaderProps.BITLENGTH;
 
 	private static int computeIndex(MaterialShaderImpl shader, MaterialConditionImpl condition, int shaderProps) {
@@ -73,7 +71,7 @@ public class OldMaterialState {
 	}
 
 	public void activate(OldShaderContext context) {
-		shader.activate(context, format, shaderProps);
+		//shader.activate(context, format, shaderProps);
 	}
 
 	public MaterialVertexFormat materialVertexFormat() {

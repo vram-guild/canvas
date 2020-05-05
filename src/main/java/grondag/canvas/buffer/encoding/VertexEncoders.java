@@ -18,7 +18,11 @@ public class VertexEncoders {
 		switch (context) {
 		case BLOCK:
 			return VANILLA_BLOCK;
-		case ITEM:
+
+		case ITEM_HELD:
+		case ITEM_GUI:
+		case ITEM_GROUND:
+		case ITEM_FIXED:
 			return VANILLA_ITEM;
 		case TERRAIN:
 		default:
@@ -30,7 +34,10 @@ public class VertexEncoders {
 		switch (context) {
 		case BLOCK:
 			return VANILLA_BLOCK;
-		case ITEM:
+		case ITEM_HELD:
+		case ITEM_GUI:
+		case ITEM_GROUND:
+		case ITEM_FIXED:
 			return VANILLA_ITEM;
 		case TERRAIN:
 		default:

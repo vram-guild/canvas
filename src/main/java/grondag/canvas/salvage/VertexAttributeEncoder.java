@@ -4,7 +4,6 @@ import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.util.ColorHelper;
 import grondag.canvas.buffer.packing.VertexCollectorImpl;
 import grondag.canvas.render.CanvasWorldRenderer;
-import grondag.canvas.shader.old.OldShaderContext;
 
 @Deprecated
 @FunctionalInterface

@@ -1,6 +1,6 @@
-package grondag.canvas.shader.old;
+package grondag.canvas.salvage;
 
-public enum OldShaderContext {
+enum OldShaderContext {
 	BLOCK_SOLID(true, false),
 	BLOCK_TRANSLUCENT(true, false),
 	ITEM_WORLD(false, true),

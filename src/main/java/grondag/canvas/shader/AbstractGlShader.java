@@ -38,8 +38,6 @@ import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
 import grondag.canvas.Configurator.AoMode;
 import grondag.canvas.Configurator.DiffuseMode;
-import grondag.canvas.shader.old.OldShaderContext;
-import grondag.canvas.shader.old.OldShaderProps;
 import grondag.canvas.varia.CanvasGlHelper;
 
 abstract class AbstractGlShader {
@@ -48,17 +46,15 @@ abstract class AbstractGlShader {
 	public final Identifier shaderSource;
 
 	private final int shaderType;
-	private final int shaderProps;
-	private final OldShaderContext context;
+	private final ShaderContext context;
 
 	private int glId = -1;
 	private boolean needsLoad = true;
 	private boolean isErrored = false;
 
-	AbstractGlShader(Identifier shaderSource, int shaderType, int shaderProps, OldShaderContext context) {
+	AbstractGlShader(Identifier shaderSource, int shaderType, ShaderContext context) {
 		this.shaderSource = shaderSource;
 		this.shaderType = shaderType;
-		this.shaderProps = shaderProps;
 		this.context = context;
 	}
 
@@ -123,7 +119,7 @@ abstract class AbstractGlShader {
 					isErrorNoticeComplete = true;
 				}
 			} else {
-				CanvasMod.LOG.error(I18n.translate("error.canvas.fail_create_shader", shaderSource.toString(), Integer.toString(shaderProps), error));
+				CanvasMod.LOG.error(I18n.translate("error.canvas.fail_create_shader", shaderSource.toString(), context.name, error));
 			}
 			outputDebugSource(source, error);
 
@@ -166,7 +162,7 @@ abstract class AbstractGlShader {
 	}
 
 	private void outputDebugSource(String source, String error) {
-		final String key = shaderSource.toString().replace("/", "-") + "."  + context.toString() +  "." + shaderProps;
+		final String key = shaderSource.toString().replace("/", "-") + "."  + context.name;
 		final File gameDir = FabricLoader.getInstance().getGameDirectory();
 		File shaderDir = new File(gameDir.getAbsolutePath().replace(".", "canvas_shader_debug"));
 		if(!shaderDir.exists()) {
@@ -197,9 +193,9 @@ abstract class AbstractGlShader {
 		result = result.replaceAll("#version\\s+120", "");
 		result = librarySource + result;
 
-		final int spriteDepth = OldShaderProps.spriteDepth(shaderProps);
+		final int spriteDepth = context.spriteDepth;
 
-		if(OldShaderProps.cutout(shaderProps)) {
+		if(context.isCutout) {
 			result = result.replaceAll("#define CUTOUT FALSE", "#define CUTOUT TRUE");
 		}
 
@@ -207,25 +203,27 @@ abstract class AbstractGlShader {
 			result = result.replaceAll("#define LAYER_COUNT 1", String.format("#define LAYER_COUNT %d", spriteDepth));
 		}
 
-		result = result.replaceAll("#define CONTEXT 0", "#define CONTEXT " + context.ordinal());
-
-		if(!context.isBlock) {
+		if(!context.materialContext.isBlock) {
 			result = result.replaceAll("#define CONTEXT_IS_BLOCK TRUE", "#define CONTEXT_IS_BLOCK FALSE");
 		}
 
-		if(Configurator.hardcoreDarkness && context != OldShaderContext.ITEM_GUI) {
+		if(context.materialContext.isGui) {
+			result = result.replaceAll("#define CONTEXT_IS_GUI FALSE", "#define CONTEXT_IS_GUI TRUE");
+		}
+
+		if(Configurator.hardcoreDarkness && !context.materialContext.isGui) {
 			result = result.replaceAll("#define HARDCORE_DARKNESS FALSE", "#define HARDCORE_DARKNESS TRUE");
 		}
 
-		if(Configurator.subtleFog && context != OldShaderContext.ITEM_GUI) {
+		if(Configurator.subtleFog && !context.materialContext.isGui) {
 			result = result.replaceAll("#define SUBTLE_FOG FALSE", "#define SUBTLE_FOG TRUE");
 		}
 
-		if(!context.isBlock) {
+		if(!context.materialContext.isBlock) {
 			result = result.replaceAll("#define CONTEXT_IS_BLOCK TRUE", "#define CONTEXT_IS_BLOCK FALSE");
 		}
 
-		if(!Configurator.hdLightmaps || ((shaderProps & OldShaderProps.SMOOTH_LIGHTMAPS) == 0)) {
+		if(!Configurator.hdLightmaps || !context.hdLightmaps) {
 			result = result.replaceAll("#define ENABLE_SMOOTH_LIGHT TRUE", "#define ENABLE_SMOOTH_LIGHT FALSE");
 		}
 
@@ -249,9 +247,10 @@ abstract class AbstractGlShader {
 			result = result.replaceAll("#extension GL_EXT_gpu_shader4 : enable", "");
 		}
 
-		if((shaderProps & OldShaderProps.WHITE_0) != 0) {
-			result = result.replaceAll("#define WHITE_0 FALSE", "#define WHITE_0 TRUE");
-		}
+		// TODO: remove or use (including from shader)
+		//		if((shaderProps & OldShaderProps.WHITE_0) != 0) {
+		//			result = result.replaceAll("#define WHITE_0 FALSE", "#define WHITE_0 TRUE");
+		//		}
 
 		return result;
 	}

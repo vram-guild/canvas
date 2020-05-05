@@ -25,12 +25,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.Tessellator;
 
-import grondag.canvas.salvage.TessellatorExt;
-import grondag.canvas.shader.old.OldShaderContext;
-
 //TODO: Remove or Restore
 @Mixin(Tessellator.class)
-public class MixinTessellator implements TessellatorExt {
+public class MixinTessellator {
 	@Shadow private BufferBuilder buffer;
 
 	//	@Redirect(method = "<init>*", require = 1, at = @At(value = "NEW", args = "class=net/minecraft/client/render/BufferBuilder"))
@@ -40,15 +37,9 @@ public class MixinTessellator implements TessellatorExt {
 
 	@Inject(method = "draw", at = @At("RETURN"), require = 1)
 	private void afterDraw(CallbackInfo ci) {
-		canvas_draw();
-	}
-
-	private OldShaderContext context = OldShaderContext.BLOCK_SOLID;
-
-	@Override
-	public void canvas_draw() {
 		//		final CanvasBufferBuilder buffer = (CanvasBufferBuilder)this.buffer;
 		//		final VertexCollectorList vcList = buffer.vcList;
+
 		//		if(!vcList.isEmpty()) {
 		//			final BufferPackingList packingList = vcList.packingListSolid();
 		//			final SolidRenderList renderList = SolidRenderList.claim();
@@ -71,15 +62,5 @@ public class MixinTessellator implements TessellatorExt {
 		//			vcList.clear();
 		//			buffer.clearAllocations();
 		//		}
-	}
-
-	@Override
-	public void canvas_context(OldShaderContext context) {
-		this.context = context;
-	}
-
-	@Override
-	public OldShaderContext canvas_context() {
-		return context;
 	}
 }

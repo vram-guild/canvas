@@ -20,8 +20,6 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
 import net.minecraft.util.Identifier;
 
-import grondag.canvas.shader.old.OldShaderContext;
-
 public final class GlShaderManager {
 	public final static GlShaderManager INSTANCE = new GlShaderManager();
 	private final Object2ObjectOpenHashMap<String, GlVertexShader> vertexShaders = new Object2ObjectOpenHashMap<>();
@@ -47,30 +45,30 @@ public final class GlShaderManager {
 		fragmentLibrarySource = commonSource + AbstractGlShader.getShaderSource(COMMON_FRAGMENT_SOURCE);
 	}
 
-	public static String shaderKey(Identifier shaderSource, int spriteDepth, OldShaderContext context) {
-		return String.format("%s.%s.%s", shaderSource.toString(), spriteDepth, context.ordinal());
+	public static String shaderKey(Identifier shaderSource, ShaderContext context) {
+		return String.format("%s.%s", shaderSource.toString(), context.name);
 	}
 
-	public GlVertexShader getOrCreateVertexShader(Identifier shaderSource, int shaderProps, OldShaderContext context) {
-		final String shaderKey = shaderKey(shaderSource, shaderProps, context);
+	public GlVertexShader getOrCreateVertexShader(Identifier shaderSource, ShaderContext context) {
+		final String shaderKey = shaderKey(shaderSource, context);
 
 		synchronized (vertexShaders) {
 			GlVertexShader result = vertexShaders.get(shaderKey);
 			if (result == null) {
-				result = new GlVertexShader(shaderSource, shaderProps, context);
+				result = new GlVertexShader(shaderSource, context);
 				vertexShaders.put(shaderKey, result);
 			}
 			return result;
 		}
 	}
 
-	public GlFragmentShader getOrCreateFragmentShader(Identifier shaderSourceId, int shaderProps, OldShaderContext context) {
-		final String shaderKey = shaderKey(shaderSourceId, shaderProps, context);
+	public GlFragmentShader getOrCreateFragmentShader(Identifier shaderSourceId, ShaderContext context) {
+		final String shaderKey = shaderKey(shaderSourceId, context);
 
 		synchronized (fragmentShaders) {
 			GlFragmentShader result = fragmentShaders.get(shaderKey);
 			if (result == null) {
-				result = new GlFragmentShader(shaderSourceId, shaderProps, context);
+				result = new GlFragmentShader(shaderSourceId, context);
 				fragmentShaders.put(shaderKey, result);
 			}
 			return result;

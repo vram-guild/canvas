@@ -30,8 +30,7 @@ import grondag.canvas.shader.GlFragmentShader;
 import grondag.canvas.shader.GlProgram;
 import grondag.canvas.shader.GlShaderManager;
 import grondag.canvas.shader.GlVertexShader;
-import grondag.canvas.shader.old.OldShaderContext;
-import grondag.canvas.shader.old.OldShaderProps;
+import grondag.canvas.shader.ShaderContext;
 import grondag.frex.api.material.MaterialShader;
 import grondag.frex.api.material.Uniform;
 import grondag.frex.api.material.Uniform.Uniform1f;
@@ -62,19 +61,15 @@ public final class MaterialShaderImpl implements MaterialShader {
 		this.index = index;
 	}
 
-	private static int key(OldShaderContext context, int shaderProps) {
-		return context.ordinal() | (shaderProps << 3);
-	}
-
-	private GlProgram getOrCreate(OldShaderContext context,  MaterialVertexFormat format, int shaderProps) {
-		final int key = key(context, shaderProps);
+	private GlProgram getOrCreate(ShaderContext context,  MaterialVertexFormat format) {
+		final int key = context.index;
 		final GlProgram result = programMap.get(key);
 		if(result == null) {
-			final int spriteDepth = OldShaderProps.spriteDepth(shaderProps);
+			final int spriteDepth = context.spriteDepth;
 			assert spriteDepth > 0;
-			final GlVertexShader vs = GlShaderManager.INSTANCE.getOrCreateVertexShader(vertexShader, shaderProps, context);
-			final GlFragmentShader fs = GlShaderManager.INSTANCE.getOrCreateFragmentShader(fragmentShader, shaderProps, context);
-			final GlProgram newProgram = new GlProgram(vs, fs, format, shaderProps, true);
+			final GlVertexShader vs = GlShaderManager.INSTANCE.getOrCreateVertexShader(vertexShader, context);
+			final GlFragmentShader fs = GlShaderManager.INSTANCE.getOrCreateFragmentShader(fragmentShader, context);
+			final GlProgram newProgram = new GlProgram(vs, fs, format, context, true);
 			uniforms.forEach(u -> u.accept(newProgram));
 			newProgram.load();
 			programMap.put(key, newProgram);
@@ -85,8 +80,8 @@ public final class MaterialShaderImpl implements MaterialShader {
 		}
 	}
 
-	public void activate(OldShaderContext context, MaterialVertexFormat format, int shaderProps) {
-		getOrCreate(context, format, shaderProps).activate();
+	public void activate(ShaderContext context, MaterialVertexFormat format) {
+		getOrCreate(context, format).activate();
 	}
 
 	public void forceReload() {

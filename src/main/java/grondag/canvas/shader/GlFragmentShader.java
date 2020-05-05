@@ -20,11 +20,9 @@ import org.lwjgl.opengl.GL21;
 
 import net.minecraft.util.Identifier;
 
-import grondag.canvas.shader.old.OldShaderContext;
-
 public final class GlFragmentShader extends AbstractGlShader {
-	GlFragmentShader(Identifier shaderSource, int shaderProps, OldShaderContext context) {
-		super(shaderSource, GL21.GL_FRAGMENT_SHADER, shaderProps, context);
+	GlFragmentShader(Identifier shaderSource, ShaderContext context) {
+		super(shaderSource, GL21.GL_FRAGMENT_SHADER, context);
 	}
 
 	@Override

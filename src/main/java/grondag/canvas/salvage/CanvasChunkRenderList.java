@@ -37,7 +37,6 @@ import grondag.canvas.buffer.packing.RenderCube;
 import grondag.canvas.chunk.BuiltRenderRegion;
 import grondag.canvas.chunk.DrawableChunk;
 import grondag.canvas.light.LightmapHdTexture;
-import grondag.canvas.shader.old.OldShaderContext;
 import grondag.canvas.varia.CanvasGlHelper;
 
 public class CanvasChunkRenderList {

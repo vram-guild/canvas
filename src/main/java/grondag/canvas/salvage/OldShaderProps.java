@@ -13,7 +13,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  ******************************************************************************/
-package grondag.canvas.shader.old;
+package grondag.canvas.salvage;
 
 import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.RenderMaterialImpl;
@@ -22,7 +22,7 @@ import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 /**
  * Identifies and encodes shader properties needed for a given material and quad.
  */
-public abstract class OldShaderProps {
+abstract class OldShaderProps {
 	OldShaderProps() {}
 
 	public static final int WHITE_0 = 1;

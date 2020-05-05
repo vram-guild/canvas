@@ -43,16 +43,11 @@
 // true if this is an item context
 #define CONTEXT_IS_ITEM TRUE
 
+// true if this is a GUI context
+#define CONTEXT_IS_GUI FALSE
+
 #define HARDCORE_DARKNESS FALSE
 #define SUBTLE_FOG FALSE
-
-#define CONTEXT_BLOCK_SOLID 0
-#define CONTEXT_BLOCK_TRANSLUCENT 1
-#define CONTEXT_ITEM_WORLD 2
-#define CONTEXT_ITEM_GUI 3
-
-// will be changed to one of the context values defined above
-#define CONTEXT 0
 
 #define WORLD_EFFECT_MODIFIER 0
 #define WORLD_NIGHT_VISION 1
@@ -217,9 +212,9 @@ float diffuseWorld(vec3 normal) {
 }
 
 float diffuse (vec3 normal) {
-#if CONTEXT == CONTEXT_ITEM_GUI
+#if CONTEXT_IS_GUI
     return diffuseGui(normal);
-#elif CONTEXT == CONTEXT_ITEM_WORLD
+#elif CONTEXT_IS_ITEM
     return diffuseGui(normal);
 //    return diffuseWorld(normal);
 #else

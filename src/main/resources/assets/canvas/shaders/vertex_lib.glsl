@@ -29,14 +29,14 @@ vec2 textureCoord(vec2 coordIn, int matrixIndex) {
 }
 
 vec3 diffuseNormal(vec4 viewCoord, vec3 normal) {
-#if CONTEXT == CONTEXT_ITEM_WORLD
-    // TODO: Need to transform normals for in-world items to get directionally correct shading.
-    // Problem is that we don't have a MVM for the lights. Will need to capture that
-    // or transform the lights on CPU side, which is probably the better deal.
+//#if CONTEXT == CONTEXT_ITEM_WORLD
+//    // TODO: Need to transform normals for in-world items to get directionally correct shading.
+//    // Problem is that we don't have a MVM for the lights. Will need to capture that
+//    // or transform the lights on CPU side, which is probably the better deal.
+//    return normal;
+//#else
     return normal;
-#else
-    return normal;
-#endif
+//#endif
 }
 
 void setupVertex() {
@@ -61,7 +61,7 @@ void setupVertex() {
         v_diffuse = diffuse(diffuseNormal(viewCoord, in_normal_ao.xyz));
     #endif
 
-    #if CONTEXT != CONTEXT_ITEM_GUI
+    #if !CONTEXT_IS_GUI
         // the lightmap texture matrix is scaled to 1/256 and then offset + 8
         // it is also clamped to repeat and has linear min/mag
         v_lightcoord = in_lightmap.rg * 0.00390625 + 0.03125;
