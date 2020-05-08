@@ -25,9 +25,13 @@ import grondag.canvas.CanvasMod;
 
 @Mixin(ChunkBuilder.class)
 public abstract class MixinChunkBuilder {
+	private static boolean shouldWarn = true;
+
 	@Inject(at = @At("RETURN"), method = "<init>*")
 	private void onNew(CallbackInfo ci) {
-		// TODO: suppress repeat warnings
-		CanvasMod.LOG.warn("[Canvas] ChunkBuilder instantiated unexpectedly.");
+		if (shouldWarn) {
+			CanvasMod.LOG.warn("[Canvas] ChunkBuilder instantiated unexpectedly. This probably indicates a mod incompatibility.");
+			shouldWarn = false;
+		}
 	}
 }

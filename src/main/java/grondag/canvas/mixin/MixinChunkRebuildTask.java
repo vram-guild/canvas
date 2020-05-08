@@ -39,9 +39,13 @@ import grondag.canvas.CanvasMod;
 
 @Mixin(targets = "net.minecraft.client.render.chunk.ChunkBuilder$BuiltChunk$RebuildTask")
 public abstract class MixinChunkRebuildTask {
+	private static boolean shouldWarn = true;
+
 	@Inject(at = @At("RETURN"), method = "<init>*")
 	private void onNew(CallbackInfo ci) {
-		// TODO: suppress repeat warnings
-		CanvasMod.LOG.warn("[Canvas] Chunk RebuildTask instantiated unexpectedly.");
+		if (shouldWarn) {
+			CanvasMod.LOG.warn("[Canvas] ChunkBuilder.BuiltChunk.RebuildTask instantiated unexpectedly. This probably indicates a mod incompatibility.");
+			shouldWarn = false;
+		}
 	}
 }

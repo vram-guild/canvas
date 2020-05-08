@@ -25,9 +25,13 @@ import grondag.canvas.CanvasMod;
 
 @Mixin(BuiltChunkStorage.class)
 public class MixinBuiltChunkStorage {
+	private static boolean shouldWarn = true;
+
 	@Inject(at = @At("RETURN"), method = "<init>*")
 	private void onNew(CallbackInfo ci) {
-		// TODO: suppress repeat warnings
-		CanvasMod.LOG.warn("[Canvas] BuiltChunkStorage instantiated unexpectedly.");
+		if (shouldWarn) {
+			CanvasMod.LOG.warn("[Canvas] BuiltChunkStorage instantiated unexpectedly. This probably indicates a mod incompatibility.");
+			shouldWarn = false;
+		}
 	}
 }

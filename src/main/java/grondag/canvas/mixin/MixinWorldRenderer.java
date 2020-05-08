@@ -86,11 +86,15 @@ public class MixinWorldRenderer implements WorldRendererExt {
 
 	private final CanvasWorldRenderer canvasWorldRenderer = new CanvasWorldRenderer(this);
 
+	private static boolean shouldWarnOnSetupTerrain = true;
+
 	@Inject(at = @At("HEAD"), method = "setupTerrain", cancellable = true)
 	private void onSetupTerrain(Camera camera, Frustum frustum, boolean bl, int i, boolean bl2, CallbackInfo ci) {
-		// TODO: suppress repeat warnings
-		CanvasMod.LOG.warn("[Canvas] WorldRendererer.setupTerrain() called unexpectedly.");
-		ci.cancel();
+		if (shouldWarnOnSetupTerrain) {
+			CanvasMod.LOG.warn("[Canvas] WorldRendererer.setupTerrain() called unexpectedly. This probably indicates a mod incompatibility.");
+			ci.cancel();
+			shouldWarnOnSetupTerrain = false;
+		}
 	}
 
 	@Inject(at = @At("HEAD"), method = "getCompletedChunkCount", cancellable = true)
@@ -165,25 +169,37 @@ public class MixinWorldRenderer implements WorldRendererExt {
 		}
 	}
 
+	private static boolean shouldWarnOnRenderLayer = true;
+
 	@Inject(at = @At("HEAD"), method = "renderLayer", cancellable = true)
 	private void onRenderLayer(CallbackInfo ci) {
-		// TODO: suppress repeat warnings
-		CanvasMod.LOG.warn("[Canvas] WorldRendererer.renderLayer() called unexpectedly.");
-		ci.cancel();
+		if (shouldWarnOnRenderLayer) {
+			CanvasMod.LOG.warn("[Canvas] WorldRendererer.renderLayer() called unexpectedly. This probably indicates a mod incompatibility.");
+			ci.cancel();
+			shouldWarnOnRenderLayer = false;
+		}
 	}
+
+	private static boolean shouldWarnGetAdjacentChunk = true;
 
 	@Inject(at = @At("HEAD"), method = "getAdjacentChunk", cancellable = true)
 	private void onGetAdjacentChunk(CallbackInfoReturnable<BuiltChunk> ci) {
-		// TODO: suppress repeat warnings
-		CanvasMod.LOG.warn("[Canvas] WorldRendererer.getAdjacentChunk() called unexpectedly.");
-		ci.setReturnValue(null);
+		if (shouldWarnGetAdjacentChunk) {
+			CanvasMod.LOG.warn("[Canvas] WorldRendererer.getAdjacentChunk() called unexpectedly. This probably indicates a mod incompatibility.");
+			ci.setReturnValue(null);
+			shouldWarnGetAdjacentChunk = false;
+		}
 	}
+
+	private static boolean shouldWarnOnUpdateChunks = true;
 
 	@Inject(at = @At("HEAD"), method = "updateChunks", cancellable = true)
 	private void onUpdateChunks(CallbackInfo ci) {
-		// TODO: suppress repeat warnings
-		CanvasMod.LOG.warn("[Canvas] WorldRendererer.udpateChunks() called unexpectedly.");
-		ci.cancel();
+		if (shouldWarnOnUpdateChunks) {
+			CanvasMod.LOG.warn("[Canvas] WorldRendererer.udpateChunks() called unexpectedly. This probably indicates a mod incompatibility.");
+			ci.cancel();
+			shouldWarnOnUpdateChunks = false;
+		}
 	}
 
 	@Inject(at = @At("HEAD"), method = "render", cancellable = true)
