@@ -23,7 +23,6 @@
     "MixinPackedIntegerArray",
     "MixinPalettedContainer",
     "MixinRenderLayer",
-    "MixinTessellator",
     "MixinVideoOptionsScreen",
     "MixinWorldChunk",
     "MixinWorldRenderer"

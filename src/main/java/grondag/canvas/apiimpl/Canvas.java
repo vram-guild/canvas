@@ -96,8 +96,7 @@ public class Canvas implements Renderer {
 
 	@Override
 	public ShaderBuilder shaderBuilder() {
-		// TODO Auto-generated method stub
-		return null;
+		return new ShaderBuilderImpl();
 	}
 
 	@Override

@@ -20,9 +20,7 @@ import org.spongepowered.asm.mixin.Mixin;
 
 import net.minecraft.client.render.model.BakedQuad;
 
-import grondag.canvas.varia.BakedQuadExt;
-
-//TODO: Enable
+import grondag.canvas.mixinterface.BakedQuadExt;
 
 /**
  * Canvas does shading in GPU, so we need to avoid modifying colors

@@ -28,10 +28,8 @@ import net.minecraft.text.Text;
 
 import grondag.canvas.varia.CanvasButtonWidget;
 
-//TODO: Enable
 @Mixin(VideoOptionsScreen.class)
 public class MixinVideoOptionsScreen extends Screen {
-
 	public MixinVideoOptionsScreen(Text title) {
 		super(title);
 	}

@@ -28,7 +28,6 @@ import net.minecraft.client.gui.hud.DebugHud;
 import grondag.canvas.Configurator;
 import grondag.canvas.light.LightmapHd;
 
-//TODO: Enable
 @Mixin(DebugHud.class)
 public class MixinDebugHud {
 	@Inject(method = "getLeftText", at = @At("RETURN"), cancellable = false, require = 1)

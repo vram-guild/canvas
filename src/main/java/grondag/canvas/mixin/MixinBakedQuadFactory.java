@@ -32,7 +32,7 @@ import net.minecraft.client.util.math.Vector3f;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Direction;
 
-import grondag.canvas.varia.BakedQuadExt;
+import grondag.canvas.mixinterface.BakedQuadExt;
 
 @Mixin(BakedQuadFactory.class)
 public abstract class MixinBakedQuadFactory {

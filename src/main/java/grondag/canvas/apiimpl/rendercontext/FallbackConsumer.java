@@ -33,7 +33,7 @@ import grondag.canvas.apiimpl.RenderMaterialImpl.Value;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.util.MeshEncodingHelper;
 import grondag.canvas.material.MaterialState;
-import grondag.canvas.varia.BakedQuadExt;
+import grondag.canvas.mixinterface.BakedQuadExt;
 
 /**
  * Consumer for vanilla baked models. Generally intended to give visual results matching a vanilla render,

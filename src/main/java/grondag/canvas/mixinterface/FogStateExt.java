@@ -16,15 +16,6 @@
 
 package grondag.canvas.mixinterface;
 
-//TODO: Enable or Remove
-public interface BufferBuilderExt {
-	void canvas_putVanillaData(int[] data, int start);
-
-	double canvas_offsetX();
-
-	double canvas_offsetY();
-
-	double canvas_offsetZ();
-
-	boolean canvas_isBuilding();
+public interface FogStateExt {
+	int getMode();
 }

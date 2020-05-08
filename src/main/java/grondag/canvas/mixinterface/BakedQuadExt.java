@@ -16,7 +16,6 @@
 
 package grondag.canvas.mixinterface;
 
-//TODO: Enable or Remove
 public interface BakedQuadExt {
 	boolean canvas_disableDiffuse();
 	void canvas_disableDiffuse(boolean disable);

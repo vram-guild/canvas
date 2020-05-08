@@ -17,14 +17,11 @@
 package grondag.canvas.mixin;
 
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.util.profiler.DisableableProfiler;
-import net.minecraft.util.profiler.Profiler;
 import net.minecraft.util.thread.ReentrantThreadExecutor;
 
 import grondag.canvas.light.LightmapHdTexture;
@@ -32,17 +29,9 @@ import grondag.canvas.shader.ShaderManager;
 import grondag.canvas.varia.CanvasGlHelper;
 
 @Mixin(MinecraftClient.class)
-public abstract class MixinMinecraftClient extends ReentrantThreadExecutor<Runnable> implements grondag.canvas.mixinterface.MinecraftClientExt {
+public abstract class MixinMinecraftClient extends ReentrantThreadExecutor<Runnable> {
 	protected MixinMinecraftClient(String dummy) {
 		super(dummy);
-	}
-
-	@Shadow
-	DisableableProfiler profiler;
-
-	@Override
-	public Profiler canvas_profiler() {
-		return profiler;
 	}
 
 	@Inject(at = @At("RETURN"), method = "<init>*")
