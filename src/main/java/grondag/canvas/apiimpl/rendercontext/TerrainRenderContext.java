@@ -40,6 +40,7 @@ import grondag.canvas.chunk.FastRenderRegion;
 import grondag.canvas.chunk.ProtoRenderRegion;
 import grondag.canvas.chunk.RenderRegionAddressHelper;
 import grondag.canvas.light.AoCalculator;
+import grondag.canvas.light.LightSmoother;
 import grondag.canvas.material.MaterialContext;
 import grondag.canvas.mixinterface.Matrix3fExt;
 
@@ -94,10 +95,9 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<FastRenderR
 		region.prepare(protoRegion);
 		backfaceCullFlags = protoRegion.backfaceCullFlags;
 
-		// TODO: renable smooth lighting
 		if(Configurator.lightSmoothing) {
 			//            final long start = counter.startRun();
-			//LightSmoother.computeSmoothedBrightness(null, null, null); // chunkOrigin, blockView, blockView.brightnessCache);
+			LightSmoother.computeSmoothedBrightness(region);
 		}
 
 		return this;
