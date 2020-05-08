@@ -188,6 +188,13 @@ public class FastRenderRegion extends AbstractRenderRegion implements RenderAtta
 		return result;
 	}
 
+	/**
+	 * For light smoothing.
+	 */
+	public void setLightCache(int x, int y, int z, int val) {
+		lightCache[blockIndex(x, y, z)] = val;
+	}
+
 	public int directBrightness(BlockPos pos) {
 		return WorldRenderer.getLightmapCoordinates(world, getBlockState(pos), pos);
 	}
@@ -254,5 +261,17 @@ public class FastRenderRegion extends AbstractRenderRegion implements RenderAtta
 	static {
 		Arrays.fill(EMPTY_AO_CACHE, Float.MAX_VALUE);
 		Arrays.fill(EMPTY_LIGHT_CACHE, Integer.MAX_VALUE);
+	}
+
+	public int originX() {
+		return originX;
+	}
+
+	public int originY() {
+		return originY;
+	}
+
+	public int originZ() {
+		return originZ;
 	}
 }

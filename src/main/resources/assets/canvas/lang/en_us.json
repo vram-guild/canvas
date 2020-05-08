@@ -44,8 +44,6 @@
 	"config.canvas.enum.diffuse_mode.none" : "None",
 	
 	"config.canvas.category.tweaks" : "Tweaks",
-	"config.canvas.value.compact_gpu_formats" : "Compact GPU Formats",
-	"config.canvas.help.compact_gpu_formats" : "WIP",
 	"config.canvas.value.min_chunk_budget" : "Minimum Chunk Budget",
 	"config.canvas.help.min_chunk_budget" : "Forces game to allow up to this;many nanoseconds for chunk;loading each frame.;May prevent chunk load delay at high FPS.",
 	"config.canvas.value.single_pass_cutout" : "Single Pass Cutout",

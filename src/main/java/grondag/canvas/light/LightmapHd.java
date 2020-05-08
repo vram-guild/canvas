@@ -3,9 +3,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
  * of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
@@ -23,7 +23,7 @@ import net.minecraft.client.resource.language.I18n;
 import net.minecraft.util.math.MathHelper;
 
 import grondag.canvas.CanvasMod;
-import grondag.canvas.apiimpl.mesh.QuadViewImpl;
+import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 
 public class LightmapHd {
 	private static boolean errorNoticeNeeded = true;
@@ -155,19 +155,17 @@ public class LightmapHd {
 		return light[v * LightmapSizer.paddedSize + u];
 	}
 
-	public int coord(QuadViewImpl q, int i) {
-		//TODO: restore
-		//		final int u, v;
-		//
-		//		if(isAo) {
-		//			u = Math.round((uMinImg + 0.5f  + q.u[i] * LightmapSizer.aoSize) * LightmapSizer.textureToBuffer);
-		//			v = Math.round((vMinImg + 0.5f  + q.v[i] * LightmapSizer.aoSize) * LightmapSizer.textureToBuffer);
-		//		} else {
-		//			u = Math.round((uMinImg + 1  + q.u[i] * LightmapSizer.lightmapSize) * LightmapSizer.textureToBuffer);
-		//			v = Math.round((vMinImg + 1  + q.v[i] * LightmapSizer.lightmapSize) * LightmapSizer.textureToBuffer);
-		//		}
-		//
-		//		return u | (v << 16);
-		return 0;
+	public int coord(MutableQuadViewImpl q, int i) {
+		final int u, v;
+
+		if(isAo) {
+			u = Math.round((uMinImg + 0.5f  + q.u[i] * LightmapSizer.aoSize) * LightmapSizer.textureToBuffer);
+			v = Math.round((vMinImg + 0.5f  + q.v[i] * LightmapSizer.aoSize) * LightmapSizer.textureToBuffer);
+		} else {
+			u = Math.round((uMinImg + 1  + q.u[i] * LightmapSizer.lightmapSize) * LightmapSizer.textureToBuffer);
+			v = Math.round((vMinImg + 1  + q.v[i] * LightmapSizer.lightmapSize) * LightmapSizer.textureToBuffer);
+		}
+
+		return u | (v << 16);
 	}
 }

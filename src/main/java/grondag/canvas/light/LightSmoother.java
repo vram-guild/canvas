@@ -3,9 +3,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
  * of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
@@ -14,15 +14,11 @@
  ******************************************************************************/
 package grondag.canvas.light;
 
-import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
-
 import net.minecraft.block.BlockState;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.world.BlockRenderView;
 
 import grondag.canvas.chunk.FastRenderRegion;
-import grondag.fermion.position.PackedBlockPos;
 
 
 // TODO: look at VoxelShapes.method_1080 as a way to not propagate thru slabs
@@ -46,17 +42,15 @@ public class LightSmoother {
 
 	private static final ThreadLocal<Helper> helpers = ThreadLocal.withInitial(Helper::new);
 
-	public static void computeSmoothedBrightness(BlockPos chunkOrigin, BlockRenderView blockViewIn, Long2IntOpenHashMap output) {
+	public static void computeSmoothedBrightness(FastRenderRegion region) {
 		final Helper help = helpers.get();
 		final BlockPos.Mutable smoothPos = help.smoothPos;
 		final int[] sky = help.a;
 		final int[] block = help.b;
 
-		final int minX = chunkOrigin.getX() - MARGIN;
-		final int minY = chunkOrigin.getY() - MARGIN;
-		final int minZ = chunkOrigin.getZ() - MARGIN;
-
-		final FastRenderRegion view = (FastRenderRegion) blockViewIn;
+		final int minX = region.originX() - MARGIN;
+		final int minY = region.originY() - MARGIN;
+		final int minZ = region.originZ() - MARGIN;
 
 		for(int x = 0; x < POS_DIAMETER; x++) {
 			for(int y = 0; y < POS_DIAMETER; y++) {
@@ -66,14 +60,11 @@ public class LightSmoother {
 					final int bz = z + minZ;
 					smoothPos.set(bx, by, bz);
 
-					final BlockState state = view.getBlockState(bx, by, bz);
-					//PERF: consider packed pos
+					final BlockState state = region.getBlockState(bx, by, bz);
 					// don't use cache here because we are populating the cache
-					final int packedLight = view.directBrightness(smoothPos);
+					final int packedLight = region.directBrightness(smoothPos);
 
-					//PERF: use cache
-					final boolean opaque = state.isFullOpaque(view, smoothPos);
-					//                    //                    subtractedCache.put(packedPos, (short) subtracted);
+					final boolean opaque = state.isFullOpaque(region, smoothPos);
 
 					final int i = index(x, y , z);
 					if(opaque) {
@@ -110,11 +101,10 @@ public class LightSmoother {
 		for(int x = MARGIN - 2; x < limit; x++) {
 			for(int y = MARGIN - 2; y < limit; y++) {
 				for(int z = MARGIN - 2; z < limit; z++) {
-					final long packedPos = PackedBlockPos.pack(x + minX, y + minY, z + minZ);
 					final int i = index(x, y , z);
 					final int b = MathHelper.clamp(((block[i]) * 104 + 51) / 100, 0, 240);
 					final int k = MathHelper.clamp(((sky[i]) * 104 + 51) / 100, 0, 240);
-					output.put(packedPos, ((b + 2) & 0b11111100) | (((k + 2) & 0b11111100)  << 16));
+					region.setLightCache(x + minX, y + minY, z + minZ, ((b + 2) & 0b11111100) | (((k + 2) & 0b11111100)  << 16));
 				}
 			}
 		}

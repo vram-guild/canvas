@@ -50,9 +50,6 @@ public class Configurator {
 		@Comment("Makes terrain fog a little less foggy.")
 		boolean subtleFog = false;
 
-		//        @Comment("TODO")
-		//        boolean enableCompactGPUFormats = false;
-
 		@Comment("Truly smoothh lighting. Some impact to memory use, chunk loading and frame rate.")
 		boolean hdLightmaps = false;
 
@@ -148,7 +145,6 @@ public class Configurator {
 	public static boolean moreLightmap = DEFAULTS.moreLightmap;
 
 	public static long minChunkBudgetNanos = DEFAULTS.minChunkBudgetNanos;
-	public static boolean enableCompactGPUFormats = false; //DEFAULTS.enableCompactGPUFormats;
 
 	public static boolean batchedChunkRender = DEFAULTS.batchedChunkRender;
 	public static boolean disableVanillaChunkMatrix = false; //DEFAULTS.disableVanillaChunkMatrix;
@@ -196,7 +192,6 @@ public class Configurator {
 		hardcoreDarkness = config.hardcoreDarkness;
 		subtleFog = config.subtleFog;
 		shaderDebug = config.shaderDebug;
-		//        enableCompactGPUFormats = config.enableCompactGPUFormats;
 		minChunkBudgetNanos = config.minChunkBudgetNanos;
 		maxLightmapDelayFrames = config.maxLightmapDelayFrames;
 		moreLightmap = config.moreLightmap;
@@ -232,7 +227,6 @@ public class Configurator {
 		config.hardcoreDarkness = hardcoreDarkness;
 		config.subtleFog = subtleFog;
 		config.shaderDebug = shaderDebug;
-		//        config.enableCompactGPUFormats = enableCompactGPUFormats;
 		config.minChunkBudgetNanos = minChunkBudgetNanos;
 		config.maxLightmapDelayFrames = maxLightmapDelayFrames;
 
@@ -394,10 +388,6 @@ public class Configurator {
 
 		// TWEAKS
 		final ConfigCategory tweaks = builder.getOrCreateCategory("config.canvas.category.tweaks");
-
-		//        tweaks.addOption(new BooleanListEntry("config.canvas.value.compact_gpu_formats", enableCompactGPUFormats, "config.canvas.reset",
-		//                () -> DEFAULTS.enableCompactGPUFormats, b -> enableCompactGPUFormats = b,
-		//                () -> Optional.of(I18n.translate("config.canvas.help.compact_gpu_formats").split(";"))));
 
 		tweaks.addEntry(ENTRY_BUILDER
 				.startLongField("config.canvas.value.min_chunk_budget", minChunkBudgetNanos)

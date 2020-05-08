@@ -44,18 +44,18 @@ abstract class OldShaderProps {
 		int flags = 0;
 		final boolean isBlock = context.isBlock;
 
-		if(isBlock && Configurator.enableCompactGPUFormats) {
-			boolean white0 = true;
-			for(int i = 0; i < 4; i++) {
-				if(white0 && quad.spriteColor(i, 0) != -1) {
-					white0 = false;
-					break;
-				}
-			}
-			if(white0) {
-				flags |= WHITE_0;
-			}
-		}
+		//		if(isBlock && Configurator.enableCompactGPUFormats) {
+		//			boolean white0 = true;
+		//			for(int i = 0; i < 4; i++) {
+		//				if(white0 && quad.spriteColor(i, 0) != -1) {
+		//					white0 = false;
+		//					break;
+		//				}
+		//			}
+		//			if(white0) {
+		//				flags |= WHITE_0;
+		//			}
+		//		}
 
 		if(material.isCutout) {
 			flags |= CUTOUT;
