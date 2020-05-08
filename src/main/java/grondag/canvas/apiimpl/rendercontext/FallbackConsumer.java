@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
 import net.minecraft.client.render.model.BakedModel;
 import net.minecraft.client.render.model.BakedQuad;
 import net.minecraft.util.math.Direction;
@@ -32,6 +33,7 @@ import grondag.canvas.apiimpl.RenderMaterialImpl.Value;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.util.MeshEncodingHelper;
 import grondag.canvas.material.MaterialState;
+import grondag.canvas.varia.BakedQuadExt;
 
 /**
  * Consumer for vanilla baked models. Generally intended to give visual results matching a vanilla render,
@@ -53,8 +55,10 @@ import grondag.canvas.material.MaterialState;
  *  manipulating the data via NIO.
  */
 public class FallbackConsumer implements Consumer<BakedModel> {
-	private static Value MATERIAL_FLAT = Canvas.INSTANCE.materialFinder().disableAo(0, true).find();
-	private static Value MATERIAL_SHADED = Canvas.INSTANCE.materialFinder().find();
+	protected static Value MATERIAL_FLAT = Canvas.INSTANCE.materialFinder().disableDiffuse(0, true).disableAo(0, true).find();
+	protected static Value MATERIAL_SHADED = Canvas.INSTANCE.materialFinder().disableAo(0, true).find();
+	protected static Value MATERIAL_AO_FLAT = Canvas.INSTANCE.materialFinder().disableDiffuse(0, true).find();
+	protected static Value MATERIAL_AO_SHADED = Canvas.INSTANCE.materialFinder().find();
 
 	protected final AbstractRenderContext context;
 
@@ -79,43 +83,51 @@ public class FallbackConsumer implements Consumer<BakedModel> {
 
 	@Override
 	public void accept(BakedModel model) {
-		final Value defaultMaterial = context.defaultAo() && model.useAmbientOcclusion() ? MATERIAL_SHADED : MATERIAL_FLAT;
+		final boolean useAo =  context.defaultAo() && model.useAmbientOcclusion();
 		final BlockState blockState = context.blockState();
 
-		acceptFaceQuads(Direction.DOWN, defaultMaterial, model.getQuads(blockState, Direction.DOWN, context.random()));
-		acceptFaceQuads(Direction.UP, defaultMaterial, model.getQuads(blockState, Direction.UP, context.random()));
-		acceptFaceQuads(Direction.NORTH, defaultMaterial, model.getQuads(blockState, Direction.NORTH, context.random()));
-		acceptFaceQuads(Direction.SOUTH, defaultMaterial, model.getQuads(blockState, Direction.SOUTH, context.random()));
-		acceptFaceQuads(Direction.WEST, defaultMaterial, model.getQuads(blockState, Direction.WEST, context.random()));
-		acceptFaceQuads(Direction.EAST, defaultMaterial, model.getQuads(blockState, Direction.EAST, context.random()));
+		// TODO: remove
+		if (blockState != null && blockState.getBlock()  == Blocks.GRASS) {
+			context.boop = true;
+		}
 
-		acceptInsideQuads(defaultMaterial, model.getQuads(blockState, null, context.random()));
+		acceptFaceQuads(Direction.DOWN, useAo, model.getQuads(blockState, Direction.DOWN, context.random()));
+		acceptFaceQuads(Direction.UP, useAo, model.getQuads(blockState, Direction.UP, context.random()));
+		acceptFaceQuads(Direction.NORTH, useAo, model.getQuads(blockState, Direction.NORTH, context.random()));
+		acceptFaceQuads(Direction.SOUTH, useAo, model.getQuads(blockState, Direction.SOUTH, context.random()));
+		acceptFaceQuads(Direction.WEST, useAo, model.getQuads(blockState, Direction.WEST, context.random()));
+		acceptFaceQuads(Direction.EAST, useAo, model.getQuads(blockState, Direction.EAST, context.random()));
+
+		acceptInsideQuads(useAo, model.getQuads(blockState, null, context.random()));
+
+		// TODO: remove
+		context.boop = false;
 	}
 
-	private void acceptFaceQuads(Direction face, Value defaultMaterial, List<BakedQuad> quads) {
+	private void acceptFaceQuads(Direction face, boolean useAo, List<BakedQuad> quads) {
 		final int count = quads.size();
 		if (count != 0 && context.cullTest(face)) {
 			if (count == 1) {
 				final BakedQuad q = quads.get(0);
-				renderQuad(q, face.ordinal(), defaultMaterial);
+				renderQuad(q, face.ordinal(), ((BakedQuadExt)q).canvas_disableDiffuse() ? (useAo ? MATERIAL_AO_FLAT : MATERIAL_FLAT) : (useAo ? MATERIAL_AO_SHADED : MATERIAL_SHADED));
 			} else { // > 1
 				for (int j = 0; j < count; j++) {
 					final BakedQuad q = quads.get(j);
-					renderQuad(q, face.ordinal(), defaultMaterial);
+					renderQuad(q, face.ordinal(), ((BakedQuadExt)q).canvas_disableDiffuse() ? (useAo ? MATERIAL_AO_FLAT : MATERIAL_FLAT) : (useAo ? MATERIAL_AO_SHADED : MATERIAL_SHADED));
 				}
 			}
 		}
 	}
 
-	private void acceptInsideQuads(Value defaultMaterial, List<BakedQuad> quads) {
+	private void acceptInsideQuads(boolean useAo, List<BakedQuad> quads) {
 		final int count = quads.size();
 		if (count == 1) {
 			final BakedQuad q = quads.get(0);
-			renderQuad(q, ModelHelper.NULL_FACE_ID, defaultMaterial);
+			renderQuad(q, ModelHelper.NULL_FACE_ID, ((BakedQuadExt)q).canvas_disableDiffuse() ? (useAo ? MATERIAL_AO_FLAT : MATERIAL_FLAT) : (useAo ? MATERIAL_AO_SHADED : MATERIAL_SHADED));
 		} else if (count > 1) {
 			for (int j = 0; j < count; j++) {
 				final BakedQuad q = quads.get(j);
-				renderQuad(q, ModelHelper.NULL_FACE_ID, defaultMaterial);
+				renderQuad(q, ModelHelper.NULL_FACE_ID, ((BakedQuadExt)q).canvas_disableDiffuse() ? (useAo ? MATERIAL_AO_FLAT : MATERIAL_FLAT) : (useAo ? MATERIAL_AO_SHADED : MATERIAL_SHADED));
 			}
 		}
 	}
@@ -139,6 +151,6 @@ public class FallbackConsumer implements Consumer<BakedModel> {
 		// Can't rely on lazy computation in tesselate because needs to happen before offsets are applied
 		editorQuad.geometryFlags();
 
-		MaterialState.get(context.materialContext(), editorQuad).encoder.encodeQuad(editorQuad, context);
+		MaterialState.get(context.materialContext(), editorQuad.material().forBlendMode(context.defaultBlendModeIndex())).encoder.encodeQuad(editorQuad, context);
 	}
 }

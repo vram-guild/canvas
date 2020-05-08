@@ -217,4 +217,9 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 	public int flatBrightness(MutableQuadViewImpl quad) {
 		return 0;
 	}
+
+	@Override
+	protected int defaultBlendModeIndex() {
+		return BlendMode.TRANSLUCENT.ordinal();
+	}
 }

@@ -7,7 +7,6 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.color.block.BlockColors;
-import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.RenderLayers;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.BlockRenderView;
@@ -38,7 +37,7 @@ public abstract class AbstractBlockRenderContext<T extends BlockRenderView > ext
 	public BlockState blockState;
 	public long seed;
 	public boolean defaultAo;
-	public RenderLayer defaultLayer;
+	public int defaultBlendModeIndex;
 
 	public final Supplier<Random> randomSupplier = () -> {
 		final Random result = random;
@@ -73,7 +72,7 @@ public abstract class AbstractBlockRenderContext<T extends BlockRenderView > ext
 		fullCubeCache = 0;
 		this.seed = seed;
 		defaultAo = modelAO && MinecraftClient.isAmbientOcclusionEnabled() && blockState.getLuminance() == 0;
-		defaultLayer = RenderLayers.getBlockLayer(blockState);
+		defaultBlendModeIndex = BlendMode.fromRenderLayer(RenderLayers.getBlockLayer(blockState)).ordinal();
 	}
 
 	@Override
@@ -88,10 +87,6 @@ public abstract class AbstractBlockRenderContext<T extends BlockRenderView > ext
 			blockColor = result;
 			return result;
 		}
-	}
-
-	public RenderLayer effectiveRenderLayer(BlendMode blendMode) {
-		return blendMode == BlendMode.DEFAULT ? defaultLayer : blendMode.blockRenderLayer;
 	}
 
 	public boolean isFullCube() {
@@ -135,6 +130,11 @@ public abstract class AbstractBlockRenderContext<T extends BlockRenderView > ext
 		}
 
 		return fastBrightness(blockState, internalSearchPos);
+	}
+
+	@Override
+	protected int defaultBlendModeIndex() {
+		return defaultBlendModeIndex;
 	}
 
 	protected abstract int fastBrightness(BlockState blockState, BlockPos pos);

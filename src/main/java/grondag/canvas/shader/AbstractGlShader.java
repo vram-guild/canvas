@@ -195,16 +195,20 @@ abstract class AbstractGlShader {
 
 		final int spriteDepth = context.spriteDepth;
 
-		if(context.isCutout) {
-			result = result.replaceAll("#define CUTOUT FALSE", "#define CUTOUT TRUE");
-		}
+		//		if(context.isCutout) {
+		//			result = result.replaceAll("#define CUTOUT FALSE", "#define CUTOUT TRUE");
+		//		}
 
 		if (spriteDepth > 1) {
 			result = result.replaceAll("#define LAYER_COUNT 1", String.format("#define LAYER_COUNT %d", spriteDepth));
 		}
 
-		if(!context.materialContext.isBlock) {
-			result = result.replaceAll("#define CONTEXT_IS_BLOCK TRUE", "#define CONTEXT_IS_BLOCK FALSE");
+		if(context.materialContext.isBlock) {
+			result = result.replaceAll("#define CONTEXT_IS_BLOCK FALSE", "#define CONTEXT_IS_BLOCK TRUE");
+		}
+
+		if(context.materialContext.isItem) {
+			result = result.replaceAll("#define CONTEXT_IS_ITEM FALSE", "#define CONTEXT_IS_ITEM TRUE");
 		}
 
 		if(context.materialContext.isGui) {
@@ -223,12 +227,12 @@ abstract class AbstractGlShader {
 			result = result.replaceAll("#define CONTEXT_IS_BLOCK TRUE", "#define CONTEXT_IS_BLOCK FALSE");
 		}
 
-		if(!Configurator.hdLightmaps || !context.hdLightmaps) {
-			result = result.replaceAll("#define ENABLE_SMOOTH_LIGHT TRUE", "#define ENABLE_SMOOTH_LIGHT FALSE");
+		if(Configurator.hdLightmaps && context.hdLightmaps) {
+			result = result.replaceAll("#define ENABLE_SMOOTH_LIGHT FALSE", "#define ENABLE_SMOOTH_LIGHT TRUE");
 		}
 
-		if(!Configurator.lightmapNoise || !Configurator.hdLightmaps) {
-			result = result.replaceAll("#define ENABLE_LIGHT_NOISE TRUE", "#define ENABLE_LIGHT_NOISE FALSE");
+		if(Configurator.lightmapNoise && Configurator.hdLightmaps) {
+			result = result.replaceAll("#define ENABLE_LIGHT_NOISE FALSE", "#define ENABLE_LIGHT_NOISE TRUE");
 		}
 
 		if(Configurator.aoShadingMode != AoMode.NORMAL) {

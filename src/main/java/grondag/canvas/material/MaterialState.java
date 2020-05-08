@@ -1,8 +1,5 @@
 package grondag.canvas.material;
 
-import javax.annotation.Nullable;
-
-import net.minecraft.client.render.RenderLayer;
 import net.minecraft.util.math.MathHelper;
 
 import grondag.canvas.apiimpl.RenderMaterialImpl.Value;
@@ -11,7 +8,6 @@ import grondag.canvas.buffer.encoding.VertexEncoder;
 import grondag.canvas.buffer.encoding.VertexEncoders;
 import grondag.canvas.draw.DrawHandler;
 import grondag.canvas.draw.DrawHandlers;
-import grondag.canvas.mixinterface.RenderLayerExt;
 import grondag.fermion.varia.Useful;
 
 public class MaterialState {
@@ -28,23 +24,19 @@ public class MaterialState {
 
 	public final MaterialVertexFormat bufferFormat;
 
-	@Deprecated
-	public final @Nullable RenderLayer renderLayer;
-
 	public final int index;
 
 	public final long sortIndex;
 
 	public final boolean isTranslucent;
 
-	private MaterialState(MaterialContext context, VertexEncoder encoder, DrawHandler drawHandler, int index, boolean isTranslucent, RenderLayer renderLayer) {
+	private MaterialState(MaterialContext context, VertexEncoder encoder, DrawHandler drawHandler, int index, boolean isTranslucent) {
 		this.context = context;
 		this.encoder = encoder;
 		bufferFormat = encoder.format;
 		this.drawHandler = drawHandler;
 		this.index = index;
 		this.isTranslucent = isTranslucent;
-		this.renderLayer = renderLayer;
 		sortIndex = (bufferFormat.vertexStrideBytes << 24) | index;
 	}
 
@@ -56,26 +48,16 @@ public class MaterialState {
 
 	private static final MaterialState[] VALUES = new MaterialState[0xFFFF];
 
-	public static MaterialState get(MaterialContext context, RenderLayer layer) {
-		return get(context, VertexEncoders.get(context, layer), DrawHandlers.get(context, layer), ((RenderLayerExt) layer).canvas_isTranslucent(), null);
+	public static MaterialState get(MaterialContext context, Value mat) {
+		return get(context, VertexEncoders.get(context, mat), DrawHandlers.get(context, mat), mat.isTranslucent);
 	}
 
 	public static MaterialState get(MaterialContext context, MutableQuadViewImpl quad) {
-		// analyze quad for lighting/color/texture content to allow for compact encoding, subject to material constraints
-		final Value mat = quad.material();
-
-		final MaterialVertexFormat format = MaterialVertexFormats.get(context, mat, quad);
-
-		final VertexEncoder encoder = VertexEncoders.get(context, format, mat);
-
-		final DrawHandler drawHandler = DrawHandlers.get(context, format, mat);
-
-		assert encoder.format == drawHandler.format;
-
-		return get(context, encoder, drawHandler, mat.isTranslucent, null);
+		return get(context, quad.material());
 	}
 
-	private static MaterialState get(MaterialContext context, VertexEncoder encoder,  DrawHandler drawHandler, boolean isTranslucent, RenderLayer layer) {
+
+	private static MaterialState get(MaterialContext context, VertexEncoder encoder,  DrawHandler drawHandler, boolean isTranslucent) {
 		// UGLY: confirm not having translucent flag in index doesn't cause inconsistency - shouldn't because other factors will align
 		final int index = index(context, encoder, drawHandler);
 
@@ -86,7 +68,7 @@ public class MaterialState {
 				result = VALUES[index];
 
 				if (result == null) {
-					result = new MaterialState(context, encoder, drawHandler, index, isTranslucent, layer);
+					result = new MaterialState(context, encoder, drawHandler, index, isTranslucent);
 					VALUES[index] = result;
 				}
 			}

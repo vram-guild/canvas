@@ -19,7 +19,6 @@ package grondag.canvas.apiimpl.rendercontext;
 import static grondag.canvas.chunk.RenderRegionAddressHelper.cacheIndexToXyz5;
 
 import net.minecraft.block.BlockState;
-import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.client.render.block.BlockModelRenderer;
@@ -100,11 +99,6 @@ public class BlockRenderContext extends AbstractBlockRenderContext<BlockRenderVi
 	private VertexConsumer bufferBuilder;
 	private boolean didOutput = false;
 
-	private VertexConsumer outputBuffer(RenderLayer renderLayer) {
-		didOutput = true;
-		return bufferBuilder;
-	}
-
 	public boolean tesselate(BlockModelRenderer vanillaRenderer, BlockRenderView blockView, BakedModel model, BlockState state, BlockPos pos, MatrixStack matrixStack, VertexConsumer buffer, boolean checkSides, long seed, int overlay) {
 		bufferBuilder = buffer;
 		matrix = matrixStack.peek().getModel();
@@ -130,8 +124,8 @@ public class BlockRenderContext extends AbstractBlockRenderContext<BlockRenderVi
 
 	@Override
 	public VertexConsumer consumer(MutableQuadViewImpl quad) {
-		final RenderLayer layer = effectiveRenderLayer(quad.material().blendMode(0));
-		return outputBuffer(layer);
+		didOutput = true;
+		return bufferBuilder;
 	}
 
 	@Override

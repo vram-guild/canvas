@@ -42,6 +42,10 @@ import grondag.canvas.material.MaterialContext;
 import grondag.canvas.mixinterface.Matrix3fExt;
 
 public abstract class AbstractRenderContext implements RenderContext {
+
+	// TODO: remove
+	public boolean boop = false;
+
 	/** for use in encoders without a threadlocal */
 	public final Vector4f transformVector = new Vector4f();
 
@@ -157,4 +161,5 @@ public abstract class AbstractRenderContext implements RenderContext {
 		return normalMatrix;
 	}
 
+	protected abstract int defaultBlendModeIndex();
 }

@@ -32,7 +32,17 @@ import grondag.frex.api.material.MaterialShader;
 public abstract class RenderMaterialImpl {
 	private static final BitPacker64<RenderMaterialImpl> BITPACKER = new BitPacker64<>(RenderMaterialImpl::getBits, RenderMaterialImpl::setBits);
 	public static final int MAX_SPRITE_DEPTH = 3;
-	private static final BlendMode[] LAYERS = BlendMode.values();
+	private static final BlendMode[] LAYERS = new BlendMode[4];
+
+	static {
+		final BlendMode[] layers = BlendMode.values();
+		assert layers[0] == BlendMode.DEFAULT;
+		assert layers.length == 5;
+
+		for (int i = 0; i < 4; ++i) {
+			LAYERS[i] = layers[i + 1];
+		}
+	}
 
 	// Following are indexes into the array of boolean elements.
 	// They are NOT the index of the bits themselves.  Used to
@@ -201,7 +211,7 @@ public abstract class RenderMaterialImpl {
 
 		public MaterialShaderImpl shader;
 
-		private final Value[] blockLayerVariants = new Value[4];
+		private final Value[] blendModeVariants = new Value[4];
 
 		protected Value(int index, long bits, MaterialShaderImpl shader) {
 			this.index = index;
@@ -231,13 +241,14 @@ public abstract class RenderMaterialImpl {
 
 		private static final ThreadLocal<Finder> variantFinder = ThreadLocal.withInitial(Finder::new);
 
-		private void setupBlockLayerVariants() {
-			boolean needsVariant = blendMode(0) == null;
+		private void setupBlendModeVariants() {
+			boolean needsVariant = blendMode(0) == BlendMode.DEFAULT;
+
 			final int depth = spriteDepth();
 			if(!needsVariant && depth > 1) {
-				needsVariant = blendMode(1) == null;
+				needsVariant = blendMode(1) == BlendMode.DEFAULT;
 				if(!needsVariant && depth == 3) {
-					needsVariant = blendMode(2) == null;
+					needsVariant = blendMode(2) == BlendMode.DEFAULT;
 				}
 			}
 
@@ -247,23 +258,26 @@ public abstract class RenderMaterialImpl {
 					final BlendMode layer = LAYERS[i];
 					finder.bits = bits;
 					finder.shader = shader;
-					if(finder.blendMode(0) == null) {
+
+					if(finder.blendMode(0) == BlendMode.DEFAULT) {
 						finder.blendMode(0, layer);
 					}
+
 					if(depth > 1) {
-						if(finder.blendMode(1) == null) {
+						if(finder.blendMode(1) == BlendMode.DEFAULT) {
 							finder.blendMode(1, layer);
 						}
-						if(depth == 3 && finder.blendMode(2) == null) {
+						if(depth == 3 && finder.blendMode(2) == BlendMode.DEFAULT) {
 							finder.blendMode(2, layer);
 						}
 					}
-					blockLayerVariants[i] = finder.find();
+
+					blendModeVariants[i] = finder.find();
 				}
 			} else {
 				// we are a renderable material, so set up control flags needed by shader
 				for(int i = 0; i < 4; i++) {
-					blockLayerVariants[i] = this;
+					blendModeVariants[i] = this;
 				}
 			}
 		}
@@ -282,8 +296,8 @@ public abstract class RenderMaterialImpl {
 		 * and we need that to be fast, and we also want the buffering logic to
 		 * remain simple.  This solves all those problems.<p>
 		 */
-		public Value forRenderLayer(int layerIndex) {
-			return blockLayerVariants[layerIndex];
+		public Value forBlendMode(int modeIndex) {
+			return blendModeVariants[modeIndex - 1];
 		}
 
 		public int index() {
@@ -304,8 +318,10 @@ public abstract class RenderMaterialImpl {
 				result = new Value(LIST.size(), bits, s);
 				LIST.add(result);
 				MAP.put(result.bits, result);
-				result.setupBlockLayerVariants();
+				result.setupBlendModeVariants();
 			}
+
+			assert result.blendMode(0) != BlendMode.CUTOUT || (FLAGS[CUTOUT_INDEX_START].getValue(this) &&  FLAGS[UNMIPPED_INDEX_START].getValue(this));
 
 			return result;
 		}
@@ -319,6 +335,10 @@ public abstract class RenderMaterialImpl {
 
 		@Override
 		public Finder blendMode(int spriteIndex, BlendMode blendMode) {
+			if (blendMode == null)  {
+				blendMode = BlendMode.DEFAULT;
+			}
+
 			BLEND_MODES[spriteIndex].setValue(blendMode, this);
 
 			switch(blendMode) {

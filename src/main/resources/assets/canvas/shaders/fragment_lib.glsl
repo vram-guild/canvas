@@ -186,11 +186,9 @@ vec4 diffuseColor() {
         }
     #endif
 
-    #if CUTOUT
         if (!didOutput) {
             discard;
         }
-    #endif
 
 	return a;
 }

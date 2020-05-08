@@ -33,6 +33,7 @@ import grondag.canvas.apiimpl.rendercontext.BlockRenderContext;
 import grondag.canvas.chunk.ChunkColorCache;
 import grondag.canvas.chunk.ProtoRenderRegion;
 import grondag.canvas.perf.ChunkRebuildCounters;
+import grondag.canvas.shader.ShaderManager;
 import grondag.frex.api.Renderer;
 import grondag.frex.api.material.MaterialCondition;
 import grondag.frex.api.material.MaterialShader;
@@ -85,6 +86,7 @@ public class Canvas implements Renderer {
 		BlockRenderContext.forceReload();
 		ChunkRebuildCounters.reset();
 		ChunkColorCache.invalidate();
+		ShaderManager.INSTANCE.forceReload();
 	}
 
 	@Override

@@ -33,6 +33,8 @@ import static grondag.canvas.chunk.occlusion.Data.tileOriginX;
 import static grondag.canvas.chunk.occlusion.Data.tileOriginY;
 import static grondag.canvas.chunk.occlusion.Indexer.tileIndex;
 
+import grondag.canvas.CanvasMod;
+
 
 public final class Quad {
 	private static void clipNear(int internal, int external) {
@@ -116,7 +118,7 @@ public final class Quad {
 
 		default:
 			// FIX: happens in rare cases - maybe rounding?   Try  with  iron fence or glass panes.
-			assert false : "Invalid split";
+			CanvasMod.LOG.warn("Invalid occlusion quad  split. This is a bug");
 		}
 
 		return BOUNDS_OUTSIDE_OR_TOO_SMALL;

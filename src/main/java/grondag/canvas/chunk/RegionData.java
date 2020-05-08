@@ -7,11 +7,11 @@ import javax.annotation.Nullable;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.client.render.RenderLayer;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 
+import grondag.canvas.apiimpl.StandardMaterials;
 import grondag.canvas.buffer.packing.VertexCollectorImpl;
 import grondag.canvas.buffer.packing.VertexCollectorList;
 import grondag.canvas.material.MaterialContext;
@@ -32,7 +32,7 @@ public class RegionData {
 	}
 
 	public void endBuffering(float x, float y, float z, VertexCollectorList buffers) {
-		final MaterialState translucent = MaterialState.get(MaterialContext.TERRAIN, RenderLayer.getTranslucent());
+		final MaterialState translucent = MaterialState.get(MaterialContext.TERRAIN, StandardMaterials.BLOCK_TRANSLUCENT);
 
 		if (buffers.contains(translucent)) {
 			final VertexCollectorImpl buffer = buffers.get(translucent);

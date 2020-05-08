@@ -40,9 +40,7 @@ public abstract class MixinBakedQuadFactory {
 	@ModifyArg(method = "bake", at = @At(value = "INVOKE",
 			target = "Lnet/minecraft/client/render/model/BakedQuadFactory;packVertexData(Lnet/minecraft/client/render/model/json/ModelElementTexture;Lnet/minecraft/client/texture/Sprite;Lnet/minecraft/util/math/Direction;[FLnet/minecraft/client/util/math/Rotation3;Lnet/minecraft/client/render/model/json/ModelRotation;Z)[I"))
 	private boolean disableShade(boolean shade) {
-		return shade;
-		// TODO: re-enable when doing lighting in gpu
-		//return false;
+		return false;
 	}
 
 	@Inject(method = "bake", at = @At(value = "RETURN"))

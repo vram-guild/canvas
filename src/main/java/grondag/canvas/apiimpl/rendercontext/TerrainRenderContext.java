@@ -21,7 +21,6 @@ import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.model.BakedModel;
 import net.minecraft.client.util.math.MatrixStack;
@@ -130,8 +129,7 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<FastRenderR
 
 	@Override
 	public VertexConsumer consumer(MutableQuadViewImpl quad) {
-		final RenderLayer layer = effectiveRenderLayer(quad.material().blendMode(0));
-		return collectors.get(MaterialContext.TERRAIN, layer);
+		return collectors.get(MaterialContext.TERRAIN, quad.material());
 	}
 
 	@Override

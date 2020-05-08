@@ -42,6 +42,7 @@ public class ShaderContext {
 			return this;
 		}
 
+		// TODO: remove?
 		Builder isCutout(boolean isCutout) {
 			this.isCutout = isCutout;
 			return this;
@@ -51,10 +52,20 @@ public class ShaderContext {
 			this.hdLightmaps = hdLightmaps;
 			return this;
 		}
+
+		ShaderContext build() {
+			return new ShaderContext(this);
+		}
 	}
 
 	public static Builder builder() {
 		return new Builder();
 	}
+
+	public static final ShaderContext VANILLA_TERRAIN = builder()
+			.hdLightmaps(false)
+			.isCutout(false)
+			.materialContext(MaterialContext.TERRAIN)
+			.build();
 
 }

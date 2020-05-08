@@ -91,6 +91,6 @@ public class MeshConsumer implements Consumer<Mesh> {
 			return;
 		}
 
-		MaterialState.get(context.materialContext(), quad).encoder.encodeQuad(quad, context);
+		MaterialState.get(context.materialContext(), quad.material().forBlendMode(context.defaultBlendModeIndex())).encoder.encodeQuad(quad, context);
 	}
 }

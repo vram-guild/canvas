@@ -7,9 +7,6 @@
 // will be changed to sprite depth (1, 2 or 3) before compile
 #define LAYER_COUNT 1
 
-// will be true all layers are cutout layers and fragment discard is possible
-#define CUTOUT FALSE
-
 // true if first sprite color is all white and will not be sent
 // false if first sprite is colorized or compact formats are disabled
 #define WHITE_0 FALSE
@@ -31,17 +28,17 @@
 
 // true if using smooth lightmaps
 // currently only enabled in block contexts
-#define ENABLE_SMOOTH_LIGHT TRUE
+#define ENABLE_SMOOTH_LIGHT FALSE
 
 // true if lighting should be noised to prevent mach banding
 // will only be enabled if smooth light is also enabled
-#define ENABLE_LIGHT_NOISE TRUE
+#define ENABLE_LIGHT_NOISE FALSE
 
 // true if this is a block context
-#define CONTEXT_IS_BLOCK TRUE
+#define CONTEXT_IS_BLOCK FALSE
 
 // true if this is an item context
-#define CONTEXT_IS_ITEM TRUE
+#define CONTEXT_IS_ITEM FALSE
 
 // true if this is a GUI context
 #define CONTEXT_IS_GUI FALSE

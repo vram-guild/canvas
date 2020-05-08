@@ -74,9 +74,6 @@ public class Configurator {
 		@Comment("Extra lightmap capacity. Ensure enabled if you are getting `unable to create HD lightmap(s) - out of space' messages.")
 		boolean moreLightmap = true;
 
-		@Comment("Helps with chunk rebuild and also rendering when player is moving or many blocks update.")
-		boolean fastChunkOcclusion = true;
-
 		@Comment("Draws multiple chunks with same view transformation. Much faster, but try without if you see visual defects.")
 		boolean batchedChunkRender = true;
 
@@ -153,7 +150,6 @@ public class Configurator {
 	public static long minChunkBudgetNanos = DEFAULTS.minChunkBudgetNanos;
 	public static boolean enableCompactGPUFormats = false; //DEFAULTS.enableCompactGPUFormats;
 
-	public static boolean fastChunkOcclusion = DEFAULTS.fastChunkOcclusion;
 	public static boolean batchedChunkRender = DEFAULTS.batchedChunkRender;
 	public static boolean disableVanillaChunkMatrix = false; //DEFAULTS.disableVanillaChunkMatrix;
 	public static boolean preventDepthFighting = DEFAULTS.preventDepthFighting;
@@ -211,7 +207,6 @@ public class Configurator {
 		lightSmoothing = config.lightSmoothing;
 		aoShadingMode = config.aoShadingMode;
 
-		fastChunkOcclusion = config.fastChunkOcclusion;
 		batchedChunkRender = config.batchedChunkRender;
 		//        disableVanillaChunkMatrix = config.disableVanillaChunkMatrix;
 		preventDepthFighting = config.preventDepthFighting;
@@ -248,7 +243,6 @@ public class Configurator {
 		config.aoShadingMode = aoShadingMode;
 		config.moreLightmap = moreLightmap;
 
-		config.fastChunkOcclusion = fastChunkOcclusion;
 		config.batchedChunkRender = batchedChunkRender;
 		//        config.disableVanillaChunkMatrix = disableVanillaChunkMatrix;
 		config.preventDepthFighting = preventDepthFighting;
@@ -410,13 +404,6 @@ public class Configurator {
 				.setDefaultValue(DEFAULTS.minChunkBudgetNanos)
 				.setTooltip(I18n.translate("config.canvas.help.min_chunk_budget").split(";"))
 				.setSaveConsumer(b -> minChunkBudgetNanos = b)
-				.build());
-
-		tweaks.addEntry(ENTRY_BUILDER
-				.startBooleanToggle("config.canvas.value.chunk_occlusion", fastChunkOcclusion)
-				.setDefaultValue(DEFAULTS.fastChunkOcclusion)
-				.setTooltip(I18n.translate("config.canvas.help.chunk_occlusion").split(";"))
-				.setSaveConsumer(b -> fastChunkOcclusion = b)
 				.build());
 
 		tweaks.addEntry(ENTRY_BUILDER

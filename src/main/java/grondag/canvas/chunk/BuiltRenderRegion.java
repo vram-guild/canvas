@@ -23,7 +23,6 @@ import net.minecraft.block.BlockRenderType;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.RenderLayers;
 import net.minecraft.client.render.block.BlockRenderManager;
 import net.minecraft.client.render.block.entity.BlockEntityRenderDispatcher;
@@ -39,6 +38,8 @@ import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 
 import grondag.canvas.Configurator;
+import grondag.canvas.apiimpl.RenderMaterialImpl.Value;
+import grondag.canvas.apiimpl.StandardMaterials;
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
 import grondag.canvas.buffer.packing.VertexCollectorImpl;
 import grondag.canvas.buffer.packing.VertexCollectorList;
@@ -347,7 +348,8 @@ public class BuiltRenderRegion {
 			if (state != null) {
 				final Vec3d cameraPos = renderRegionBuilder.getCameraPosition();
 				final VertexCollectorList collectors = context.collectors;
-				final MaterialState translucentState = MaterialState.get(MaterialContext.TERRAIN, RenderLayer.getTranslucent());
+				// FIX: won't work with multi-layer materials
+				final MaterialState translucentState = MaterialState.get(MaterialContext.TERRAIN, StandardMaterials.BLOCK_TRANSLUCENT);
 				final VertexCollectorImpl collector = collectors.get(translucentState);
 
 				collector.loadState(state);
@@ -396,7 +398,7 @@ public class BuiltRenderRegion {
 
 			if(runningState.protoRegion.get() != ProtoRenderRegion.INVALID) {
 				final UploadableChunk solidUpload = collectors.packUploadSolid();
-				final UploadableChunk translucentUpload = collectors.packUploadTranslucent(MaterialState.get(MaterialContext.TERRAIN, RenderLayer.getTranslucent()));
+				final UploadableChunk translucentUpload = collectors.packUploadTranslucent(MaterialState.get(MaterialContext.TERRAIN, StandardMaterials.BLOCK_TRANSLUCENT));
 
 				if (solidUpload != null || translucentUpload != null) {
 					renderRegionBuilder.scheduleUpload(() -> {
@@ -456,7 +458,7 @@ public class BuiltRenderRegion {
 				searchPos.set(xOrigin + x, yOrigin + y, zOrigin + z);
 
 				if (!fluidState.isEmpty()) {
-					final RenderLayer fluidLayer = RenderLayers.getFluidLayer(fluidState);
+					final Value fluidLayer = StandardMaterials.get(RenderLayers.getFluidLayer(fluidState));
 					final VertexCollectorImpl fluidBuffer = collectors.get(MaterialContext.TERRAIN, fluidLayer);
 
 					blockRenderManager.renderFluid(searchPos, region, fluidBuffer, fluidState);
@@ -563,7 +565,7 @@ public class BuiltRenderRegion {
 
 		final VertexCollectorList collectors = context.collectors;
 		final UploadableChunk solidUpload = collectors.packUploadSolid();
-		final UploadableChunk translucentUpload = collectors.packUploadTranslucent(MaterialState.get(MaterialContext.TERRAIN, RenderLayer.getTranslucent()));
+		final UploadableChunk translucentUpload = collectors.packUploadTranslucent(MaterialState.get(MaterialContext.TERRAIN, StandardMaterials.BLOCK_TRANSLUCENT));
 		solidDrawable = solidUpload == null ? null : solidUpload.produceDrawable();
 		translucentDrawable = translucentUpload == null ? null : translucentUpload.produceDrawable();
 

@@ -9,10 +9,12 @@ import java.util.SortedSet;
 import javax.annotation.Nullable;
 
 import com.google.common.collect.Sets;
+import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap.Entry;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
+import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL21;
 
 import net.minecraft.block.BlockState;
@@ -60,6 +62,8 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.profiler.Profiler;
 
 import grondag.canvas.Configurator;
+import grondag.canvas.apiimpl.MaterialConditionImpl;
+import grondag.canvas.buffer.allocation.BindStateManager;
 import grondag.canvas.buffer.allocation.VboBuffer;
 import grondag.canvas.chunk.BuiltRenderRegion;
 import grondag.canvas.chunk.DrawableChunk;
@@ -71,6 +75,9 @@ import grondag.canvas.chunk.occlusion.region.OcclusionRegion;
 import grondag.canvas.chunk.occlusion.region.PackedBox;
 import grondag.canvas.draw.DrawHandler;
 import grondag.canvas.mixinterface.WorldRendererExt;
+import grondag.canvas.shader.GlProgram;
+import grondag.canvas.shader.ShaderManager;
+import grondag.canvas.varia.CanvasGlHelper;
 import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
 
 public class CanvasWorldRenderer {
@@ -760,9 +767,17 @@ public class CanvasWorldRenderer {
 		final int startIndex = isTranslucent ? visibleRegionCount - 1 : 0 ;
 		final int endIndex = isTranslucent ? -1 : visibleRegionCount;
 		final int step = isTranslucent ? -1 : 1;
+		final int frameIndex = ShaderManager.INSTANCE.frameIndex();
+
+		// PERF: consider rendering solid layers in program order vs. region/buffer order
+		// alternatively, consider deferred shading or ubershaders - needs testing
 
 		for (int regionIndex = startIndex; regionIndex != endIndex; regionIndex += step) {
 			final BuiltRenderRegion builtRegion = visibleRegions[regionIndex];
+
+			if (builtRegion == null) {
+				continue;
+			}
 
 			final DrawableChunk drawable = isTranslucent ? builtRegion.translucentDrawable() : builtRegion.solidDrawable();
 
@@ -779,11 +794,19 @@ public class CanvasWorldRenderer {
 
 				for(int i = 0; i < limit; i++) {
 					final DrawableDelegate d = delegates.get(i);
-					d.materialState().drawHandler.setup();
-					d.bind();
-					// TODO: confirm everything that used to happen below happens in bind above
-					vertexFormat.startDrawing(d.byteOffset());
-					d.draw();
+					final DrawHandler h = d.materialState().drawHandler;
+
+					final MaterialConditionImpl condition = h.condition;
+
+					if(!condition.affectBlocks || condition.compute(frameIndex)) {
+						h.setup();
+
+						d.bind();
+
+						//vertexFormat.startDrawing(d.byteOffset());
+						d.draw();
+					}
+
 				}
 
 				RenderSystem.popMatrix();
@@ -795,6 +818,16 @@ public class CanvasWorldRenderer {
 		RenderSystem.clearCurrentColor();
 		vertexFormat.endDrawing();
 		DrawHandler.teardown();
+
+		// UGLY:  some of this probably belongs elsewhere
+		if (CanvasGlHelper.isVaoEnabled()) {
+			CanvasGlHelper.glBindVertexArray(0);
+		}
+
+		GlStateManager.disableClientState(GL11.GL_VERTEX_ARRAY);
+		CanvasGlHelper.enableAttributes(0, true);
+		BindStateManager.unbind();
+		GlProgram.deactivate();
 
 		mc.getProfiler().pop();
 	}

@@ -6,8 +6,7 @@ import java.util.function.Consumer;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
-import net.minecraft.client.render.RenderLayer;
-
+import grondag.canvas.apiimpl.RenderMaterialImpl.Value;
 import grondag.canvas.chunk.UploadableChunk;
 import grondag.canvas.material.MaterialContext;
 import grondag.canvas.material.MaterialState;
@@ -175,8 +174,8 @@ public class VertexCollectorList {
 	private static final VertexCollectorImpl[] EMPTY = new VertexCollectorImpl[MaterialState.MAX_MATERIAL_STATES];
 
 	// TODO: use blend mode instead of renderlayer
-	public VertexCollectorImpl get(MaterialContext context, RenderLayer layer) {
-		return get(MaterialState.get(context, layer));
+	public VertexCollectorImpl get(MaterialContext context, Value material) {
+		return get(MaterialState.get(context, material));
 	}
 
 	public boolean contains(MaterialState materialState) {

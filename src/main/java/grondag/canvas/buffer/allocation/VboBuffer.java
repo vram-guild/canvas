@@ -80,15 +80,15 @@ public class VboBuffer implements AllocationProvider, AutoCloseable {
 		return result;
 	}
 
-	public void bind() {
+	/**
+	 * @return true if bound buffer changed
+	 */
+	public boolean bind() {
 		assert RenderSystem.isOnRenderThread();
 
-		if (isClosed) {
-			return;
-		}
 		final int glBufferId = glBufferId();
 
-		BindStateManager.bind(glBufferId);
+		return BindStateManager.bind(glBufferId);
 	}
 
 	public boolean isClosed() {

@@ -3,19 +3,31 @@ package grondag.canvas.buffer.encoding;
 import net.minecraft.client.util.math.Matrix4f;
 import net.minecraft.client.util.math.Vector4f;
 
+import grondag.canvas.apiimpl.RenderMaterialImpl;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.rendercontext.AbstractRenderContext;
 import grondag.canvas.buffer.packing.VertexCollectorImpl;
 import grondag.canvas.mixinterface.Matrix3fExt;
 
 public class VanillaTerrainEncoder extends VanillaBlockEncoder {
+
 	@Override
 	protected void bufferQuad(MutableQuadViewImpl quad, AbstractRenderContext context) {
+		//TODO: remove
+		if (context.boop) {
+			context.boop = true;
+		}
+
 		final Matrix4f matrix = context.matrix();
 		final Vector4f transformVector = context.transformVector;
 		final Matrix3fExt normalMatrix = context.normalMatrix();
 		final VertexCollectorImpl buff = (VertexCollectorImpl) context.consumer(quad);
 		final int[] appendData = buff.appendData;
+		final float[] aoData = quad.ao;
+		final RenderMaterialImpl.Value mat = quad.material();
+		final int shaderFlags = mat.shaderFlags() << 16;
+		// FIX: was this needed (was different in v0)
+		//		final int shaderFlags = (context.defaultAo() ? mat.shaderFlags() : mat.shaderFlags() | RenderMaterialImpl.SHADER_FLAGS_DISABLE_AO) << 16;
 
 		int packedNormal = 0;
 		int transformedNormal = 0;
@@ -42,7 +54,10 @@ public class VanillaTerrainEncoder extends VanillaBlockEncoder {
 			appendData[k++] = Float.floatToRawIntBits(quad.spriteU(i, 0));
 			appendData[k++] = Float.floatToRawIntBits(quad.spriteV(i, 0));
 
-			appendData[k++] = quad.lightmap(i);
+			final int packedLight = quad.lightmap(i);
+			final int blockLight = (packedLight & 0xFF);
+			final int skyLight = ((packedLight >> 16) & 0xFF);
+			appendData[k++] = blockLight | (skyLight << 8) | shaderFlags;
 
 			if (useNormals) {
 				final int p = quad.packedNormal(i);
@@ -53,7 +68,8 @@ public class VanillaTerrainEncoder extends VanillaBlockEncoder {
 				}
 			}
 
-			appendData[k++] = transformedNormal;
+			final int ao = aoData == null ? 0xFF000000 : ((Math.round(aoData[i] * 254) - 127) << 24);
+			appendData[k++] = transformedNormal | ao;
 		}
 
 		buff.add(appendData, k);
