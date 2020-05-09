@@ -74,4 +74,10 @@ public class VanillaTerrainEncoder extends VanillaBlockEncoder {
 
 		buff.add(appendData, k);
 	}
+
+	@Override
+	public void light(VertexCollectorImpl collector, int blockLight, int skyLight) {
+		// flags disable diffuse and AO in shader - mainly meant for fluids
+		collector.add(blockLight | (skyLight << 8) | 0b00110000);
+	}
 }

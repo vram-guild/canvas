@@ -124,12 +124,12 @@ abstract class VanillaEncoder extends VertexEncoder {
 	}
 
 	@Override
-	public void light(VertexCollectorImpl collector, int s, int t) {
-		collector.add((s & 0xFFFF) | ((t & 0xFFFF) << 16));
+	public void light(VertexCollectorImpl collector, int blockLight, int skyLight) {
+		collector.add((blockLight & 0xFFFF) | ((skyLight & 0xFFFF) << 16));
 	}
 
 	@Override
 	public void normal(VertexCollectorImpl collector, float x, float y, float z) {
-		collector.add(NormalHelper.packNormal(x, y, z, 0));
+		collector.add(NormalHelper.packNormal(x, y, z, 1));
 	}
 }
