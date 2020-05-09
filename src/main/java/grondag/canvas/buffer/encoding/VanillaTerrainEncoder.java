@@ -3,6 +3,8 @@ package grondag.canvas.buffer.encoding;
 import net.minecraft.client.util.math.Matrix4f;
 import net.minecraft.client.util.math.Vector4f;
 
+import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
+
 import grondag.canvas.apiimpl.RenderMaterialImpl;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.rendercontext.AbstractRenderContext;
@@ -13,11 +15,6 @@ public class VanillaTerrainEncoder extends VanillaBlockEncoder {
 
 	@Override
 	protected void bufferQuad(MutableQuadViewImpl quad, AbstractRenderContext context) {
-		//TODO: remove
-		if (context.boop) {
-			context.boop = true;
-		}
-
 		final Matrix4f matrix = context.matrix();
 		final Vector4f transformVector = context.transformVector;
 		final Matrix3fExt normalMatrix = context.normalMatrix();
@@ -25,6 +22,9 @@ public class VanillaTerrainEncoder extends VanillaBlockEncoder {
 		final int[] appendData = buff.appendData;
 		final float[] aoData = quad.ao;
 		final RenderMaterialImpl.Value mat = quad.material();
+
+		assert mat.blendMode(0) != BlendMode.DEFAULT;
+
 		final int shaderFlags = mat.shaderFlags() << 16;
 		// FIX: was this needed (was different in v0)
 		//		final int shaderFlags = (context.defaultAo() ? mat.shaderFlags() : mat.shaderFlags() | RenderMaterialImpl.SHADER_FLAGS_DISABLE_AO) << 16;

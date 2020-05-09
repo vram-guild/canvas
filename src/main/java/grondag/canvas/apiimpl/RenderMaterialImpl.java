@@ -256,6 +256,9 @@ public abstract class RenderMaterialImpl {
 				final Finder finder = variantFinder.get();
 				for(int i = 0; i < 4; i++) {
 					final BlendMode layer = LAYERS[i];
+
+					assert layer != BlendMode.DEFAULT;
+
 					finder.bits = bits;
 					finder.shader = shader;
 
@@ -273,6 +276,8 @@ public abstract class RenderMaterialImpl {
 					}
 
 					blendModeVariants[i] = finder.find();
+
+					assert blendModeVariants[i].blendMode(0) !=  BlendMode.DEFAULT;
 				}
 			} else {
 				// we are a renderable material, so set up control flags needed by shader
@@ -297,6 +302,7 @@ public abstract class RenderMaterialImpl {
 		 * remain simple.  This solves all those problems.<p>
 		 */
 		public Value forBlendMode(int modeIndex) {
+			assert blendModeVariants[modeIndex - 1].blendMode(0) != BlendMode.DEFAULT;
 			return blendModeVariants[modeIndex - 1];
 		}
 

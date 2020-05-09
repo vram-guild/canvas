@@ -20,7 +20,6 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
 import net.minecraft.client.render.model.BakedModel;
 import net.minecraft.client.render.model.BakedQuad;
 import net.minecraft.util.math.Direction;
@@ -86,11 +85,6 @@ public class FallbackConsumer implements Consumer<BakedModel> {
 		final boolean useAo =  context.defaultAo() && model.useAmbientOcclusion();
 		final BlockState blockState = context.blockState();
 
-		// TODO: remove
-		if (blockState != null && blockState.getBlock()  == Blocks.GRASS) {
-			context.boop = true;
-		}
-
 		acceptFaceQuads(Direction.DOWN, useAo, model.getQuads(blockState, Direction.DOWN, context.random()));
 		acceptFaceQuads(Direction.UP, useAo, model.getQuads(blockState, Direction.UP, context.random()));
 		acceptFaceQuads(Direction.NORTH, useAo, model.getQuads(blockState, Direction.NORTH, context.random()));
@@ -99,9 +93,6 @@ public class FallbackConsumer implements Consumer<BakedModel> {
 		acceptFaceQuads(Direction.EAST, useAo, model.getQuads(blockState, Direction.EAST, context.random()));
 
 		acceptInsideQuads(useAo, model.getQuads(blockState, null, context.random()));
-
-		// TODO: remove
-		context.boop = false;
 	}
 
 	private void acceptFaceQuads(Direction face, boolean useAo, List<BakedQuad> quads) {
@@ -151,6 +142,8 @@ public class FallbackConsumer implements Consumer<BakedModel> {
 		// Can't rely on lazy computation in tesselate because needs to happen before offsets are applied
 		editorQuad.geometryFlags();
 
-		MaterialState.get(context.materialContext(), editorQuad.material().forBlendMode(context.defaultBlendModeIndex())).encoder.encodeQuad(editorQuad, context);
+		final Value mat = editorQuad.material().forBlendMode(context.defaultBlendModeIndex());
+		editorQuad.material(mat);
+		MaterialState.get(context.materialContext(), mat).encoder.encodeQuad(editorQuad, context);
 	}
 }
