@@ -34,6 +34,7 @@ import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.mesh.QuadViewImpl;
+import grondag.canvas.apiimpl.util.ColorHelper;
 import grondag.canvas.light.AoFace.Vertex2Float;
 import grondag.canvas.light.AoFace.WeightFunction;
 
@@ -186,11 +187,10 @@ public abstract class AoCalculator {
 		final WeightFunction wFunc = face.weightFunc;
 		final float[] w = this.w;
 		final float[] ao = quad.ao;
-		final int[] light = quad.light;
 
 		for (int i = 0; i < 4; i++) {
 			wFunc.apply(quad, i, w);
-			light[i] = faceData.weightedCombinedLight(w);
+			quad.lightmap(i, ColorHelper.maxBrightness(quad.lightmap(i), faceData.weightedCombinedLight(w)));
 			ao[i] = faceData.weigtedAo(w) * DIVIDE_BY_255;
 		}
 	}
@@ -245,11 +245,10 @@ public abstract class AoCalculator {
 		final WeightFunction wFunc = face.weightFunc;
 		final float[] w = this.w;
 		final float[] ao = quad.ao;
-		final int[] light = quad.light;
 
 		for (int i = 0; i < 4; i++) {
 			wFunc.apply(quad, i, w);
-			light[i] = faceData.weightedCombinedLight(w);
+			quad.lightmap(i, ColorHelper.maxBrightness(quad.lightmap(i), faceData.weightedCombinedLight(w)));
 			ao[i] = faceData.weigtedAo(w) * DIVIDE_BY_255;
 		}
 	}
@@ -290,7 +289,6 @@ public abstract class AoCalculator {
 		Vector3f normal;
 		final float[] w = this.w;
 		final float aoResult[] = quad.ao;
-		final int[] lightResult = quad.light;
 
 		//TODO: currently no way to handle 3d interpolation shader-side
 		quad.blockLight = null;
@@ -356,8 +354,8 @@ public abstract class AoCalculator {
 			}
 
 			aoResult[i] = (ao + maxAo) * (0.5f * DIVIDE_BY_255);
-			lightResult[i] = (((int) ((sky + maxSky) * 0.5f) & 0xFF) << 16)
-					| ((int)((block + maxBlock) * 0.5f) & 0xFF);
+			quad.lightmap(i, ColorHelper.maxBrightness(quad.lightmap(i), (((int) ((sky + maxSky) * 0.5f) & 0xFF) << 16)
+					| ((int)((block + maxBlock) * 0.5f) & 0xFF)));
 		}
 	}
 

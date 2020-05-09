@@ -59,7 +59,6 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 	public final float[] v = new float[4];
 	// vanilla light outputs
 	public final float[] ao = new float[4];
-	public final int[] light = new int[4];
 
 	public final void begin(int[] data, int baseIndex) {
 		this.data = data;
