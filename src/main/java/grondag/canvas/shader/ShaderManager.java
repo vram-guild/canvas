@@ -171,10 +171,12 @@ public final class ShaderManager implements ClientTickCallback {
 
 		shader.uniformSampler2d("u_textures", UniformRefreshFrequency.ON_LOAD, u -> u.set(0));
 
-		shader.uniformSampler2d("u_lightmap", UniformRefreshFrequency.ON_LOAD, u -> u.set(1));
+		shader.uniformSampler2d("u_lightmap", UniformRefreshFrequency.ON_LOAD, u -> u.set(2));
 
+		// FIX: may need to move because of lightmap move
 		shader.uniformSampler2d("u_dither", UniformRefreshFrequency.ON_LOAD, u -> u.set(5));
 
+		// FIX: may need to move because of lightmap move
 		//UGLY: needs a better GLSL name
 		shader.uniformSampler2d("u_utility", UniformRefreshFrequency.ON_LOAD, u -> u.set(4));
 
