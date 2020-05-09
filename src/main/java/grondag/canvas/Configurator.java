@@ -31,6 +31,7 @@ import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.resource.language.I18n;
+import net.minecraft.util.math.MathHelper;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -95,6 +96,9 @@ public class Configurator {
 		@Comment("Terrain setup done off the main render thread. Increases FPS when moving. May see occasional flashes of blank chunks")
 		boolean terrainSetupOffThread = true;
 
+		@Comment("Max number of unique render material states. Change only if errors occur without. Causes small amount of memory use.")
+		int maxMaterialStates = 0x10000;
+
 		// DEBUG
 		@Comment("Output runtime per-material shader source. For shader development debugging.")
 		boolean shaderDebug = false;
@@ -153,6 +157,7 @@ public class Configurator {
 	public static boolean fixLuminousBlockShading = DEFAULTS.fixLuminousBlockShading;
 	public static boolean terrainBackfaceCulling = DEFAULTS.terrainBackfaceCulling;
 	public static boolean terrainSetupOffThread = DEFAULTS.terrainSetupOffThread;
+	public static int maxMaterialStates = DEFAULTS.maxMaterialStates;
 
 	public static boolean lightmapDebug = DEFAULTS.lightmapDebug;
 	public static boolean conciseErrors = DEFAULTS.conciseErrors;
@@ -209,6 +214,7 @@ public class Configurator {
 		fixLuminousBlockShading = config.fixLuminousBlockShading;
 		terrainBackfaceCulling = config.terrainBackfaceCulling;
 		terrainSetupOffThread = config.terrainSetupOffThread;
+		maxMaterialStates =  MathHelper.clamp(config.maxMaterialStates, 0x10000, 0x100000);
 
 		lightmapDebug = config.lightmapDebug;
 		conciseErrors = config.conciseErrors;
@@ -244,6 +250,7 @@ public class Configurator {
 		config.fixLuminousBlockShading = fixLuminousBlockShading;
 		config.terrainBackfaceCulling = terrainBackfaceCulling;
 		config.terrainSetupOffThread = terrainSetupOffThread;
+		config.maxMaterialStates = maxMaterialStates;
 
 		config.lightmapDebug = lightmapDebug;
 		config.conciseErrors = conciseErrors;
@@ -442,6 +449,13 @@ public class Configurator {
 				.setSaveConsumer(b -> {terrainSetupOffThread = b; reloadShaders = true;})
 				.build());
 
+		lighting.addEntry(ENTRY_BUILDER
+				.startIntSlider("config.canvas.value.max_material_states", maxMaterialStates, 0x10000, 0x100000)
+				.setDefaultValue(DEFAULTS.maxMaterialStates)
+				.setTooltip(I18n.translate("config.canvas.help.max_material_states").split(";"))
+				.setSaveConsumer(b -> maxMaterialStates = b)
+				.build());
+
 		// DEBUG
 		final ConfigCategory debug = builder.getOrCreateCategory("config.canvas.category.debug");
 
@@ -545,7 +559,6 @@ public class Configurator {
 	//    @Comment({"Enable fancy water and lava rendering.",
 	//        " This feature is currently work in progress and has no visible effect if enabled."})
 	public static boolean fancyFluids = false;
-
 
 
 	//    @LangKey("config.disable_yield")

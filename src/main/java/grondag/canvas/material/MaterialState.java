@@ -2,6 +2,7 @@ package grondag.canvas.material;
 
 import net.minecraft.util.math.MathHelper;
 
+import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.RenderMaterialImpl.Value;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.buffer.encoding.VertexEncoder;
@@ -43,10 +44,9 @@ public class MaterialState {
 	private static final int ENCODER_SHIFT = Useful.bitLength(MathHelper.smallestEncompassingPowerOfTwo(MaterialContext.values().length));
 	private static final int DRAW_HANDLER_SHIFT = ENCODER_SHIFT + Useful.bitLength(VertexEncoders.MAX_ENCODERS);
 
-	// TODO: make configurable
-	public static int MAX_MATERIAL_STATES = 0xFFFF;
+	public static int MAX_MATERIAL_STATES = Configurator.maxMaterialStates;
 
-	private static final MaterialState[] VALUES = new MaterialState[0xFFFF];
+	private static final MaterialState[] VALUES = new MaterialState[MAX_MATERIAL_STATES];
 
 	public static MaterialState get(MaterialContext context, Value mat) {
 		return get(context, VertexEncoders.get(context, mat), DrawHandlers.get(context, mat), mat.isTranslucent);
@@ -56,11 +56,8 @@ public class MaterialState {
 		return get(context, quad.material());
 	}
 
-
 	private static MaterialState get(MaterialContext context, VertexEncoder encoder,  DrawHandler drawHandler, boolean isTranslucent) {
-		// UGLY: confirm not having translucent flag in index doesn't cause inconsistency - shouldn't because other factors will align
 		final int index = index(context, encoder, drawHandler);
-
 		MaterialState result = VALUES[index];
 
 		if (result == null) {
