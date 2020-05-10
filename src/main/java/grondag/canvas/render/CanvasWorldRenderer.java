@@ -250,6 +250,7 @@ public class CanvasWorldRenderer {
 				viewVersion = frustum.viewVersion();
 				occluderVersion = TerrainOccluder.version();
 				shouldUpdateVisibility = false;
+				TerrainOccluder.prepareScene(camera, frustum, renderRegionStorage.regionVersion());
 				terrainIterator.prepare(cameraRegion, cameraBlockPos, frustum, renderDistance);
 				this.regionBuilder.executor.execute(terrainIterator, -1);
 			}
@@ -259,6 +260,7 @@ public class CanvasWorldRenderer {
 				occluderVersion = TerrainOccluder.version();
 				shouldUpdateVisibility = false;
 
+				TerrainOccluder.prepareScene(camera, frustum, renderRegionStorage.regionVersion());
 				terrainIterator.prepare(cameraRegion, cameraBlockPos, frustum, renderDistance);
 				terrainIterator.accept(null);
 
@@ -340,8 +342,6 @@ public class CanvasWorldRenderer {
 
 		mc.getProfiler().swap("regions");
 		renderRegionStorage.updateRegionOriginsIfNeeded(mc);
-
-		TerrainOccluder.prepareScene(projectionMatrix, modelMatrix, camera, frustum, renderRegionStorage.regionVersion());
 
 		profiler.swap("clear");
 		BackgroundRenderer.render(camera, f, mc.world, mc.options.viewDistance, gameRenderer.getSkyDarkness(f));

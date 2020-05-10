@@ -78,6 +78,14 @@ public class CanvasFrustum extends Frustum {
 		return viewVersion;
 	}
 
+	public Matrix4fExt projectionMatrix() {
+		return lastProjectionMatrix;
+	}
+
+	public Matrix4fExt modelMatrix() {
+		return lastModelMatrix;
+	}
+
 	public void copy(CanvasFrustum src) {
 		viewVersion = src.viewVersion;
 		positionVersion = src.positionVersion;

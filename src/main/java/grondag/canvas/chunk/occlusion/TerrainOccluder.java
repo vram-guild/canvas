@@ -38,7 +38,6 @@ import java.io.File;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.Camera;
 import net.minecraft.client.texture.NativeImage;
-import net.minecraft.client.util.math.Matrix4f;
 import net.minecraft.resource.ResourceImpl;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
@@ -46,6 +45,7 @@ import net.minecraft.util.math.Vec3d;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.chunk.BuiltRenderRegion;
 import grondag.canvas.chunk.occlusion.region.PackedBox;
+import grondag.canvas.mixinterface.Matrix4fExt;
 import grondag.canvas.render.CanvasFrustum;
 
 public abstract class TerrainOccluder {
@@ -134,13 +134,15 @@ public abstract class TerrainOccluder {
 	 * @param frustum
 	 * @param regionVersion  Needed because chunk camera position update whenever a chunk boundary is crossed by Frustum doesn't care.
 	 */
-	public static void prepareScene(Matrix4f projectionMatrix, Matrix4f modelMatrix, Camera camera, CanvasFrustum frustum, int regionVersion) {
+	public static void prepareScene(Camera camera, CanvasFrustum frustum, int regionVersion) {
 		final int viewVersion = frustum.viewVersion();
 		final int positionVersion = frustum.positionVersion();
 
 		if (Data.viewVersion != viewVersion) {
 			final Matrix4L baseMvpMatrix = Data.baseMvpMatrix;
 			final Matrix4L tempMatrix = Data.mvpMatrix;
+			final Matrix4fExt projectionMatrix = frustum.projectionMatrix();
+			final Matrix4fExt modelMatrix = frustum.modelMatrix();
 
 			baseMvpMatrix.loadIdentity();
 

@@ -41,6 +41,14 @@ public interface Matrix4fExt {
 	void a32(float val);
 	void a33(float val);
 
+	default void multiply(Matrix4fExt val) {
+		((Matrix4f)(Object) this).multiply((Matrix4f)(Object) val);
+	}
+
+	default void loadIdentity() {
+		((Matrix4f)(Object) this).loadIdentity();
+	}
+
 	default void set(Matrix4fExt val) {
 		a00(val.a00());
 		a01(val.a01());

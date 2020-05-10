@@ -28,7 +28,10 @@ public class Matrix4L {
 	private long a33;
 
 	public void copyFrom(Matrix4f matrix) {
-		final Matrix4fExt ext = (Matrix4fExt)(Object) matrix;
+		copyFrom((Matrix4fExt)(Object) matrix);
+	}
+
+	public void copyFrom(Matrix4fExt ext) {
 
 		a00 = Math.round(ext.a00() * MATRIX_PRECISION_UNITY);
 		a01 = Math.round(ext.a01() * MATRIX_PRECISION_UNITY);
