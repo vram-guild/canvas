@@ -26,9 +26,9 @@ public class WorldDataManager {
 		final ClientWorld world = client.world;
 
 		if (world != null) {
-			final boolean hasSkyLight = world.dimension.hasSkyLight();
+			final boolean hasSkyLight = world.getDimension().getType().hasSkyLight();
 			final boolean nightVision = client.player.hasStatusEffect(StatusEffects.NIGHT_VISION);
-			UNIFORM_DATA[DIMENSION_ID] = world.dimension.getType().getRawId();
+			UNIFORM_DATA[DIMENSION_ID] = world.getDimension().getType().getRawId();
 			UNIFORM_DATA[HAS_SKYLIGHT] = hasSkyLight ? 1 : 0;
 			UNIFORM_DATA[AMBIENT_INTENSITY] = world.method_23783(1.0F);
 			UNIFORM_DATA[EFFECTIVE_INTENSITY] = hasSkyLight && !nightVision ? UNIFORM_DATA[AMBIENT_INTENSITY] : 1;
