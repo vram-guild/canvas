@@ -3,9 +3,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
  * of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
@@ -47,7 +47,7 @@ public class SimpleTexture implements AutoCloseable {
 
 	public int getGlId() {
 		if (glId == -1) {
-			glId = TextureUtil.generateTextureId();
+			glId = TextureUtil.method_24956();
 		}
 
 		return glId;
@@ -55,7 +55,7 @@ public class SimpleTexture implements AutoCloseable {
 
 	public void clearGlId() {
 		if (glId != -1) {
-			TextureUtil.releaseTextureId(glId);
+			TextureUtil.method_24957(glId);
 			glId = -1;
 		}
 	}

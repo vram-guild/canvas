@@ -16,7 +16,6 @@
 
 package grondag.canvas.apiimpl.rendercontext;
 
-import java.util.Objects;
 import java.util.Random;
 import java.util.function.Supplier;
 
@@ -62,7 +61,6 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 	private BlendMode quadBlendMode;
 	private VertexConsumer quadVertexConsumer;
 
-	private Mode transformMode;
 	private int lightmap;
 	private ItemStack itemStack;
 	private MaterialContext context = MaterialContext.ITEM_GUI;
@@ -111,7 +109,6 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 		this.overlay = overlay;
 		this.itemStack = itemStack;
 		this.vertexConsumerProvider = vertexConsumerProvider;
-		this.transformMode = transformMode;
 
 		quadBlendMode = BlendMode.DEFAULT;
 		modelVertexConsumer = selectVertexConsumer(RenderLayers.getItemLayer(itemStack));
@@ -136,8 +133,7 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 	 * coplanar polygons this means we will render the glint more than once. Indigo doesn't
 	 * support sprite layers, so this can't be helped in this implementation.
 	 */
-	private VertexConsumer selectVertexConsumer(RenderLayer layerIn) {
-		final RenderLayer layer = transformMode == ModelTransformation.Mode.GUI && Objects.equals(layerIn, TexturedRenderLayers.getEntityTranslucent()) ? TexturedRenderLayers.getEntityTranslucentCull() : layerIn;
+	private VertexConsumer selectVertexConsumer(RenderLayer layer) {
 		return ItemRenderer.getArmorVertexConsumer(vertexConsumerProvider, layer, true, itemStack.hasEnchantmentGlint());
 	}
 
@@ -158,7 +154,7 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 		if (blendMode == quadBlendMode) {
 			return quadVertexConsumer;
 		} else if (blendMode == BlendMode.TRANSLUCENT) {
-			quadVertexConsumer = selectVertexConsumer(TexturedRenderLayers.getEntityTranslucent());
+			quadVertexConsumer = selectVertexConsumer(TexturedRenderLayers.getEntityTranslucentCull());
 			quadBlendMode = BlendMode.TRANSLUCENT;
 		} else {
 			quadVertexConsumer = selectVertexConsumer(TexturedRenderLayers.getEntityCutout());

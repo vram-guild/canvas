@@ -15,11 +15,9 @@
 package grondag.canvas.mixin;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
+import net.minecraft.util.collection.PackedIntegerArray;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
-
-import net.minecraft.util.PackedIntegerArray;
-
 import grondag.canvas.mixinterface.PackedIntegerArrayExt;
 
 @Mixin(PackedIntegerArray.class)

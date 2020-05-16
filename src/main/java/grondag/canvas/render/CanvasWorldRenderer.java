@@ -48,7 +48,6 @@ import net.minecraft.client.render.block.entity.BlockEntityRenderDispatcher;
 import net.minecraft.client.render.entity.EntityRenderDispatcher;
 import net.minecraft.client.render.model.ModelLoader;
 import net.minecraft.client.texture.SpriteAtlasTexture;
-import net.minecraft.client.util.math.Matrix4f;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.Entity;
@@ -58,6 +57,7 @@ import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.Matrix4f;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.profiler.Profiler;
 
@@ -496,7 +496,7 @@ public class CanvasWorldRenderer {
 										mc.debugRenderer.render(matrixStack, immediate, cameraX, cameraY, cameraZ);
 										wr.canvas_renderWorldBorder(camera);
 										RenderSystem.popMatrix();
-										immediate.draw(TexturedRenderLayers.getEntityTranslucent());
+										immediate.draw(TexturedRenderLayers.getEntityTranslucentCull());
 										immediate.draw(TexturedRenderLayers.getBannerPatterns());
 										immediate.draw(TexturedRenderLayers.getShieldPatterns());
 										immediate.draw(RenderLayer.getGlint());
@@ -560,7 +560,7 @@ public class CanvasWorldRenderer {
 											final VertexConsumer vertexConsumer = new TransformingVertexConsumer(bufferBuilders.getEffectVertexConsumers().getBuffer(ModelLoader.BLOCK_DESTRUCTION_RENDER_LAYERS.get(x)), matrixStack.peek());
 											vertexConsumerProvider3 = (renderLayer) -> {
 												final VertexConsumer vertexConsumer2 = immediate.getBuffer(renderLayer);
-												return renderLayer.method_23037() ? VertexConsumers.dual(vertexConsumer, vertexConsumer2) : vertexConsumer2;
+												return renderLayer.hasCrumbling() ? VertexConsumers.dual(vertexConsumer, vertexConsumer2) : vertexConsumer2;
 											};
 										}
 									}

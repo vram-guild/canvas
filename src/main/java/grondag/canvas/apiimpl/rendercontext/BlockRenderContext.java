@@ -92,7 +92,7 @@ public class BlockRenderContext extends AbstractBlockRenderContext<BlockRenderVi
 			final int z = (packedXyz5 >> 10) - 1+ pos.getZ();
 			internalSearchPos.set(x, y, z);
 			final BlockState state = blockView.getBlockState(internalSearchPos);
-			return state.isFullOpaque(blockView, internalSearchPos);
+			return state.isOpaqueFullCube(blockView, internalSearchPos);
 		}
 	};
 

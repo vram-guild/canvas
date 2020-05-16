@@ -1,4 +1,4 @@
-package canvas1;
+package grondag.canvas;
 
 import org.junit.jupiter.api.Test;
 

@@ -1,9 +1,8 @@
 package grondag.canvas.buffer.encoding;
 
 import net.minecraft.client.render.VertexConsumer;
-import net.minecraft.client.util.math.Matrix4f;
 import net.minecraft.client.util.math.Vector4f;
-
+import net.minecraft.util.math.Matrix4f;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.rendercontext.AbstractRenderContext;
 import grondag.canvas.apiimpl.util.ColorHelper;

@@ -1,4 +1,4 @@
-package canvas1;
+package grondag.canvas;
 
 import java.util.Arrays;
 

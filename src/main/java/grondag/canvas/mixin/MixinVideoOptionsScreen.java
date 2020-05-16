@@ -23,8 +23,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.VideoOptionsScreen;
-import net.minecraft.client.resource.language.I18n;
 import net.minecraft.text.Text;
+import net.minecraft.text.TranslatableText;
 
 import grondag.canvas.varia.CanvasButtonWidget;
 
@@ -36,6 +36,6 @@ public class MixinVideoOptionsScreen extends Screen {
 
 	@Inject(at = @At("RETURN"), method = "init()V")
 	public void drawMenuButton(CallbackInfo info) {
-		addButton(new CanvasButtonWidget(width - 100, 5, 90, 20, (I18n.translate("config.canvas.button")), this));
+		addButton(new CanvasButtonWidget(width - 100, 5, 90, 20, new TranslatableText("config.canvas.button"), this));
 	}
 }

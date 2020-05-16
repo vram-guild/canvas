@@ -37,7 +37,7 @@ public class WorldDataManager {
 			UNIFORM_DATA[NIGHT_VISION_ACTIVE] = nightVision ? 1 : 0;
 
 
-			final float fluidModifier = client.player.method_3140();
+			final float fluidModifier = client.player.getUnderwaterVisibility();
 			if (nightVision) {
 				UNIFORM_DATA[WORLD_EFFECT_MODIFIER] = GameRenderer.getNightVisionStrength(client.player, tick);
 			} else if (fluidModifier > 0.0F && client.player.hasStatusEffect(StatusEffects.CONDUIT_POWER)) {

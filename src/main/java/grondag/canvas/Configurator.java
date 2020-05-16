@@ -16,8 +16,10 @@ package grondag.canvas;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.util.Arrays;
 import java.util.Optional;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import blue.endless.jankson.Comment;
 import blue.endless.jankson.Jankson;
@@ -31,6 +33,9 @@ import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.resource.language.I18n;
+import net.minecraft.text.LiteralText;
+import net.minecraft.text.Text;
+import net.minecraft.text.TranslatableText;
 import net.minecraft.util.math.MathHelper;
 
 import net.fabricmc.api.EnvType;
@@ -310,215 +315,219 @@ public class Configurator {
 
 	private static ConfigEntryBuilder ENTRY_BUILDER = ConfigEntryBuilder.create();
 
+	static Text[] parse(String key) {
+		return Arrays.stream(I18n.translate(key).split(";")).map(s ->  new LiteralText(s)).collect(Collectors.toList()).toArray(new Text[0]);
+	}
+
 	private static Screen display() {
 		reloadTerrain = false;
 		reloadShaders = false;
 
 		final ConfigBuilder builder = ConfigBuilder.create()
-				.setParentScreen(screenIn).setTitle("config.canvas.title").setSavingRunnable(Configurator::saveUserInput);
+				.setParentScreen(screenIn).setTitle(new TranslatableText("config.canvas.title")).setSavingRunnable(Configurator::saveUserInput);
 
 		// FEATURES
-		final ConfigCategory features = builder.getOrCreateCategory("config.canvas.category.features");
+		final ConfigCategory features = builder.getOrCreateCategory(new TranslatableText("config.canvas.category.features"));
 
 		features.addEntry(ENTRY_BUILDER
-				.startBooleanToggle("config.canvas.value.item_render", itemShaderRender)
+				.startBooleanToggle(new TranslatableText("config.canvas.value.item_render"), itemShaderRender)
 				.setDefaultValue(DEFAULTS.itemShaderRender)
-				.setTooltip(I18n.translate("config.canvas.help.item_render").split(";"))
+				.setTooltip(parse("config.canvas.help.item_render"))
 				.setSaveConsumer(b -> itemShaderRender = b)
 				.build());
 
 		features.addEntry(ENTRY_BUILDER
-				.startBooleanToggle("config.canvas.value.hardcore_darkness", hardcoreDarkness)
+				.startBooleanToggle(new TranslatableText("config.canvas.value.hardcore_darkness"), hardcoreDarkness)
 				.setDefaultValue(DEFAULTS.hardcoreDarkness)
-				.setTooltip(I18n.translate("config.canvas.help.hardcore_darkness").split(";"))
+				.setTooltip(parse("config.canvas.help.hardcore_darkness"))
 				.setSaveConsumer(b -> {hardcoreDarkness = b; reloadShaders = true;})
 				.build());
 
 		features.addEntry(ENTRY_BUILDER
-				.startBooleanToggle("config.canvas.value.subtle_fog", subtleFog)
+				.startBooleanToggle(new TranslatableText("config.canvas.value.subtle_fog"), subtleFog)
 				.setDefaultValue(DEFAULTS.subtleFog)
-				.setTooltip(I18n.translate("config.canvas.help.subtle_fog").split(";"))
+				.setTooltip(parse("config.canvas.help.subtle_fog"))
 				.setSaveConsumer(b -> {subtleFog = b; reloadShaders = true;})
 				.build());
 
 		// LIGHTING
-		final ConfigCategory lighting = builder.getOrCreateCategory("config.canvas.category.lighting");
+		final ConfigCategory lighting = builder.getOrCreateCategory(new TranslatableText("config.canvas.category.lighting"));
 
 		lighting.addEntry(ENTRY_BUILDER
-				.startBooleanToggle("config.canvas.value.light_smoothing", lightSmoothing)
+				.startBooleanToggle(new TranslatableText("config.canvas.value.light_smoothing"), lightSmoothing)
 				.setDefaultValue(DEFAULTS.lightSmoothing)
-				.setTooltip(I18n.translate("config.canvas.help.light_smoothing").split(";"))
+				.setTooltip(parse("config.canvas.help.light_smoothing"))
 				.setSaveConsumer(b -> {lightSmoothing = b; reloadShaders = true;})
 				.build());
 
 		lighting.addEntry(ENTRY_BUILDER
-				.startBooleanToggle("config.canvas.value.hd_lightmaps", hdLightmaps)
+				.startBooleanToggle(new TranslatableText("config.canvas.value.hd_lightmaps"), hdLightmaps)
 				.setDefaultValue(DEFAULTS.hdLightmaps)
-				.setTooltip(I18n.translate("config.canvas.help.hd_lightmaps").split(";"))
+				.setTooltip(parse("config.canvas.help.hd_lightmaps"))
 				.setSaveConsumer(b -> {hdLightmaps = b; reloadShaders = true;})
 				.build());
 
 		lighting.addEntry(ENTRY_BUILDER
-				.startBooleanToggle("config.canvas.value.more_lightmap", moreLightmap)
+				.startBooleanToggle(new TranslatableText("config.canvas.value.more_lightmap"), moreLightmap)
 				.setDefaultValue(DEFAULTS.moreLightmap)
-				.setTooltip(I18n.translate("config.canvas.help.more_lightmap").split(";"))
+				.setTooltip(parse("config.canvas.help.more_lightmap"))
 				.setSaveConsumer(b -> moreLightmap = b)
 				.build());
 
 		lighting.addEntry(ENTRY_BUILDER
-				.startBooleanToggle("config.canvas.value.lightmap_noise", lightmapNoise)
+				.startBooleanToggle(new TranslatableText("config.canvas.value.lightmap_noise"), lightmapNoise)
 				.setDefaultValue(DEFAULTS.lightmapNoise)
-				.setTooltip(I18n.translate("config.canvas.help.lightmap_noise").split(";"))
+				.setTooltip(parse("config.canvas.help.lightmap_noise"))
 				.setSaveConsumer(b -> {lightmapNoise = b; reloadShaders = true;})
 				.build());
 
 		lighting.addEntry(ENTRY_BUILDER
-				.startEnumSelector("config.canvas.value.diffuse_shading", DiffuseMode.class, diffuseShadingMode)
+				.startEnumSelector(new TranslatableText("config.canvas.value.diffuse_shading"), DiffuseMode.class, diffuseShadingMode)
 				.setDefaultValue(DEFAULTS.diffuseShadingMode)
-				.setTooltip(I18n.translate("config.canvas.help.diffuse_shading").split(";"))
+				.setTooltip(parse("config.canvas.help.diffuse_shading"))
 				.setSaveConsumer(b -> {diffuseShadingMode = b; reloadShaders = true;})
 				.build());
 
 		lighting.addEntry(ENTRY_BUILDER
-				.startEnumSelector("config.canvas.value.ao_shading", AoMode.class, aoShadingMode)
+				.startEnumSelector(new TranslatableText("config.canvas.value.ao_shading"), AoMode.class, aoShadingMode)
 				.setDefaultValue(DEFAULTS.aoShadingMode)
-				.setTooltip(I18n.translate("config.canvas.help.ao_shading").split(";"))
+				.setTooltip(parse("config.canvas.help.ao_shading"))
 				.setSaveConsumer(b -> {aoShadingMode = b; reloadShaders = true;})
 				.build());
 
 		lighting.addEntry(ENTRY_BUILDER
-				.startIntSlider("config.canvas.value.lightmap_delay_frames", maxLightmapDelayFrames, 0, 20)
+				.startIntSlider(new TranslatableText("config.canvas.value.lightmap_delay_frames"), maxLightmapDelayFrames, 0, 20)
 				.setDefaultValue(DEFAULTS.maxLightmapDelayFrames)
-				.setTooltip(I18n.translate("config.canvas.help.lightmap_delay_frames").split(";"))
+				.setTooltip(parse("config.canvas.help.lightmap_delay_frames"))
 				.setSaveConsumer(b -> maxLightmapDelayFrames = b)
 				.build());
 
 		// TWEAKS
-		final ConfigCategory tweaks = builder.getOrCreateCategory("config.canvas.category.tweaks");
+		final ConfigCategory tweaks = builder.getOrCreateCategory(new TranslatableText("config.canvas.category.tweaks"));
 
 		tweaks.addEntry(ENTRY_BUILDER
-				.startLongField("config.canvas.value.min_chunk_budget", minChunkBudgetNanos)
+				.startLongField(new TranslatableText("config.canvas.value.min_chunk_budget"), minChunkBudgetNanos)
 				.setDefaultValue(DEFAULTS.minChunkBudgetNanos)
-				.setTooltip(I18n.translate("config.canvas.help.min_chunk_budget").split(";"))
+				.setTooltip(parse("config.canvas.help.min_chunk_budget"))
 				.setSaveConsumer(b -> minChunkBudgetNanos = b)
 				.build());
 
 		tweaks.addEntry(ENTRY_BUILDER
-				.startBooleanToggle("config.canvas.value.batch_chunk_render", batchedChunkRender)
+				.startBooleanToggle(new TranslatableText("config.canvas.value.batch_chunk_render"), batchedChunkRender)
 				.setDefaultValue(DEFAULTS.batchedChunkRender)
-				.setTooltip(I18n.translate("config.canvas.help.batch_chunk_render").split(";"))
+				.setTooltip(parse("config.canvas.help.batch_chunk_render"))
 				.setSaveConsumer(b -> batchedChunkRender = b)
 				.build());
 
 		//        tweaks.addOption(new BooleanListEntry("config.canvas.value.vanilla_chunk_matrix", disableVanillaChunkMatrix, "config.canvas.reset",
 		//                () -> DEFAULTS.disableVanillaChunkMatrix, b -> disableVanillaChunkMatrix = b,
-		//                () -> Optional.of(I18n.translate("config.canvas.help.vanilla_chunk_matrix").split(";"))));
+		//                () -> Optional.of(parse("config.canvas.help.vanilla_chunk_matrix"))));
 
 		tweaks.addEntry(ENTRY_BUILDER
-				.startBooleanToggle("config.canvas.value.adjust_vanilla_geometry", preventDepthFighting)
+				.startBooleanToggle(new TranslatableText("config.canvas.value.adjust_vanilla_geometry"), preventDepthFighting)
 				.setDefaultValue(DEFAULTS.preventDepthFighting)
-				.setTooltip(I18n.translate("config.canvas.help.adjust_vanilla_geometry").split(";"))
+				.setTooltip(parse("config.canvas.help.adjust_vanilla_geometry"))
 				.setSaveConsumer(b -> {preventDepthFighting = b; reloadShaders = true;})
 				.build());
 
 		tweaks.addEntry(ENTRY_BUILDER
-				.startBooleanToggle("config.canvas.value.clamp_exterior_vertices", clampExteriorVertices)
+				.startBooleanToggle(new TranslatableText("config.canvas.value.clamp_exterior_vertices"), clampExteriorVertices)
 				.setDefaultValue(DEFAULTS.clampExteriorVertices)
-				.setTooltip(I18n.translate("config.canvas.help.clamp_exterior_vertices").split(";"))
+				.setTooltip(parse("config.canvas.help.clamp_exterior_vertices"))
 				.setSaveConsumer(b -> {clampExteriorVertices = b; reloadShaders = true;})
 				.build());
 
 		tweaks.addEntry(ENTRY_BUILDER
-				.startBooleanToggle("config.canvas.value.fix_luminous_block_shade", fixLuminousBlockShading)
+				.startBooleanToggle(new TranslatableText("config.canvas.value.fix_luminous_block_shade"), fixLuminousBlockShading)
 				.setDefaultValue(DEFAULTS.fixLuminousBlockShading)
-				.setTooltip(I18n.translate("config.canvas.help.fix_luminous_block_shade").split(";"))
+				.setTooltip(parse("config.canvas.help.fix_luminous_block_shade"))
 				.setSaveConsumer(b -> {fixLuminousBlockShading = b; reloadShaders = true;})
 				.build());
 
 		tweaks.addEntry(ENTRY_BUILDER
-				.startBooleanToggle("config.canvas.value.terrain_backface_culling", terrainBackfaceCulling)
+				.startBooleanToggle(new TranslatableText("config.canvas.value.terrain_backface_culling"), terrainBackfaceCulling)
 				.setDefaultValue(DEFAULTS.terrainBackfaceCulling)
-				.setTooltip(I18n.translate("config.canvas.help.terrain_backface_culling").split(";"))
+				.setTooltip(parse("config.canvas.help.terrain_backface_culling"))
 				.setSaveConsumer(b -> {terrainBackfaceCulling = b; reloadShaders = true;})
 				.build());
 
 		tweaks.addEntry(ENTRY_BUILDER
-				.startBooleanToggle("config.canvas.value.terrain_setup_off_thread", terrainSetupOffThread)
+				.startBooleanToggle(new TranslatableText("config.canvas.value.terrain_setup_off_thread"), terrainSetupOffThread)
 				.setDefaultValue(DEFAULTS.terrainSetupOffThread)
-				.setTooltip(I18n.translate("config.canvas.help.terrain_setup_off_thread").split(";"))
+				.setTooltip(parse("config.canvas.help.terrain_setup_off_thread"))
 				.setSaveConsumer(b -> {terrainSetupOffThread = b; reloadShaders = true;})
 				.build());
 
 		lighting.addEntry(ENTRY_BUILDER
-				.startIntSlider("config.canvas.value.max_material_states", maxMaterialStates, 0x10000, 0x100000)
+				.startIntSlider(new TranslatableText("config.canvas.value.max_material_states"), maxMaterialStates, 0x10000, 0x100000)
 				.setDefaultValue(DEFAULTS.maxMaterialStates)
-				.setTooltip(I18n.translate("config.canvas.help.max_material_states").split(";"))
+				.setTooltip(parse("config.canvas.help.max_material_states"))
 				.setSaveConsumer(b -> maxMaterialStates = b)
 				.build());
 
 		// DEBUG
-		final ConfigCategory debug = builder.getOrCreateCategory("config.canvas.category.debug");
+		final ConfigCategory debug = builder.getOrCreateCategory(new TranslatableText("config.canvas.category.debug"));
 
 		debug.addEntry(ENTRY_BUILDER
-				.startBooleanToggle("config.canvas.value.shader_debug", shaderDebug)
+				.startBooleanToggle(new TranslatableText("config.canvas.value.shader_debug"), shaderDebug)
 				.setDefaultValue(DEFAULTS.shaderDebug)
-				.setTooltip(I18n.translate("config.canvas.help.shader_debug").split(";"))
+				.setTooltip(parse("config.canvas.help.shader_debug"))
 				.setSaveConsumer(b -> shaderDebug = b)
 				.build());
 
 		debug.addEntry(ENTRY_BUILDER
-				.startBooleanToggle("config.canvas.value.shader_debug_lightmap", lightmapDebug)
+				.startBooleanToggle(new TranslatableText("config.canvas.value.shader_debug_lightmap"), lightmapDebug)
 				.setDefaultValue(DEFAULTS.lightmapDebug)
-				.setTooltip(I18n.translate("config.canvas.help.shader_debug_lightmap").split(";"))
+				.setTooltip(parse("config.canvas.help.shader_debug_lightmap"))
 				.setSaveConsumer(b -> lightmapDebug = b)
 				.build());
 
 		debug.addEntry(ENTRY_BUILDER
-				.startBooleanToggle("config.canvas.value.concise_errors", conciseErrors)
+				.startBooleanToggle(new TranslatableText("config.canvas.value.concise_errors"), conciseErrors)
 				.setDefaultValue(DEFAULTS.conciseErrors)
-				.setTooltip(I18n.translate("config.canvas.help.concise_errors").split(";"))
+				.setTooltip(parse("config.canvas.help.concise_errors"))
 				.setSaveConsumer(b -> conciseErrors = b)
 				.build());
 
 		debug.addEntry(ENTRY_BUILDER
-				.startBooleanToggle("config.canvas.value.log_machine_info", logMachineInfo)
+				.startBooleanToggle(new TranslatableText("config.canvas.value.log_machine_info"), logMachineInfo)
 				.setDefaultValue(DEFAULTS.logMachineInfo)
-				.setTooltip(I18n.translate("config.canvas.help.log_machine_info").split(";"))
+				.setTooltip(parse("config.canvas.help.log_machine_info"))
 				.setSaveConsumer(b -> logMachineInfo = b)
 				.build());
 
 		debug.addEntry(ENTRY_BUILDER
-				.startBooleanToggle("config.canvas.value.log_gl_state_changes", logGlStateChanges)
+				.startBooleanToggle(new TranslatableText("config.canvas.value.log_gl_state_changes"), logGlStateChanges)
 				.setDefaultValue(DEFAULTS.logGlStateChanges)
-				.setTooltip(I18n.translate("config.canvas.help.log_gl_state_changes").split(";"))
+				.setTooltip(parse("config.canvas.help.log_gl_state_changes"))
 				.setSaveConsumer(b -> logGlStateChanges = b)
 				.build());
 
 		debug.addEntry(ENTRY_BUILDER
-				.startBooleanToggle("config.canvas.value.debug_native_allocation", debugNativeMemoryAllocation)
+				.startBooleanToggle(new TranslatableText("config.canvas.value.debug_native_allocation"), debugNativeMemoryAllocation)
 				.setDefaultValue(DEFAULTS.debugNativeMemoryAllocation)
-				.setTooltip(I18n.translate("config.canvas.help.debug_native_allocation").split(";"))
+				.setTooltip(parse("config.canvas.help.debug_native_allocation"))
 				.setSaveConsumer(b -> debugNativeMemoryAllocation = b)
 				.build());
 
 		debug.addEntry(ENTRY_BUILDER
-				.startBooleanToggle("config.canvas.value.safe_native_allocation", safeNativeMemoryAllocation)
+				.startBooleanToggle(new TranslatableText("config.canvas.value.safe_native_allocation"), safeNativeMemoryAllocation)
 				.setDefaultValue(DEFAULTS.safeNativeMemoryAllocation)
-				.setTooltip(I18n.translate("config.canvas.help.safe_native_allocation").split(";"))
+				.setTooltip(parse("config.canvas.help.safe_native_allocation"))
 				.setSaveConsumer(b -> safeNativeMemoryAllocation = b)
 				.build());
 
 		debug.addEntry(ENTRY_BUILDER
-				.startBooleanToggle("config.canvas.value.debug_occlusion_raster", debugOcclusionRaster)
+				.startBooleanToggle(new TranslatableText("config.canvas.value.debug_occlusion_raster"), debugOcclusionRaster)
 				.setDefaultValue(DEFAULTS.debugOcclusionRaster)
-				.setTooltip(I18n.translate("config.canvas.help.debug_occlusion_raster").split(";"))
+				.setTooltip(parse("config.canvas.help.debug_occlusion_raster"))
 				.setSaveConsumer(b -> debugOcclusionRaster = b)
 				.build());
 
 		debug.addEntry(ENTRY_BUILDER
-				.startBooleanToggle("config.canvas.value.debug_occlusion_boxes", debugOcclusionBoxes)
+				.startBooleanToggle(new TranslatableText("config.canvas.value.debug_occlusion_boxes"), debugOcclusionBoxes)
 				.setDefaultValue(DEFAULTS.debugOcclusionBoxes)
-				.setTooltip(I18n.translate("config.canvas.help.debug_occlusion_boxes").split(";"))
+				.setTooltip(parse("config.canvas.help.debug_occlusion_boxes"))
 				.setSaveConsumer(b -> debugOcclusionBoxes = b)
 				.build());
 		builder.setDoesConfirmSave(false);
@@ -546,7 +555,6 @@ public class Configurator {
 			//ShaderManager.INSTANCE.forceReload();
 		}
 	}
-
 
 	// LEGACY STUFF
 

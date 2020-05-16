@@ -19,7 +19,7 @@ import org.apache.commons.lang3.ObjectUtils;
 
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
-import net.minecraft.util.PackedIntegerArray;
+import net.minecraft.util.collection.PackedIntegerArray;
 import net.minecraft.world.chunk.ChunkSection;
 import net.minecraft.world.chunk.Palette;
 import net.minecraft.world.chunk.WorldChunk;

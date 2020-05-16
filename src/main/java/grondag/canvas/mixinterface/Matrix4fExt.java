@@ -1,9 +1,8 @@
 package grondag.canvas.mixinterface;
 
-import net.minecraft.client.util.math.Matrix4f;
-
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.minecraft.util.math.Matrix4f;
 
 @Environment(EnvType.CLIENT)
 public interface Matrix4fExt {

@@ -16,12 +16,9 @@ package grondag.canvas.mixin;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
-
-import net.minecraft.client.util.math.Matrix4f;
-
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-
+import net.minecraft.util.math.Matrix4f;
 import grondag.canvas.mixinterface.Matrix4fExt;
 
 @Environment(EnvType.CLIENT)

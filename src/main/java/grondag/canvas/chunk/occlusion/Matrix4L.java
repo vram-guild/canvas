@@ -1,8 +1,7 @@
 package grondag.canvas.chunk.occlusion;
 
-import net.minecraft.client.util.math.Matrix4f;
-
 import grondag.canvas.mixinterface.Matrix4fExt;
+import net.minecraft.util.math.Matrix4f;
 
 public class Matrix4L {
 	static final int MATRIX_PRECISION_BITS = 16;

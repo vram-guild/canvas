@@ -469,7 +469,7 @@ public class BuiltRenderRegion {
 					matrixStack.translate(x, y, z);
 
 					if (blockState.getBlock().getOffsetType() != Block.OffsetType.NONE) {
-						final Vec3d vec3d = blockState.getOffsetPos(region, searchPos);
+						final Vec3d vec3d = blockState.getModelOffset(region, searchPos);
 
 						if (vec3d != Vec3d.ZERO) {
 							matrixStack.translate(vec3d.x, vec3d.y, vec3d.z);

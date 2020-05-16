@@ -118,7 +118,7 @@ public abstract class AbstractBlockRenderContext<T extends BlockRenderView > ext
 		 * Handles geometry-based check for using self brightness or neighbor brightness.
 		 * That logic only applies in flat lighting.
 		 */
-		if (blockState.hasEmissiveLighting()) {
+		if (blockState.hasEmissiveLighting(region, blockPos)) {
 			return VertexEncoder.FULL_BRIGHTNESS;
 		}
 
@@ -126,7 +126,7 @@ public abstract class AbstractBlockRenderContext<T extends BlockRenderView > ext
 
 		// vanilla hack - with flat lighting offset to neighbor for cull faces or when block is a full cube
 		if ((quad.geometryFlags() & GeometryHelper.LIGHT_FACE_FLAG) != 0 || isFullCube()) {
-			internalSearchPos.setOffset(quad.lightFace());
+			internalSearchPos.move(quad.lightFace());
 		}
 
 		return fastBrightness(blockState, internalSearchPos);

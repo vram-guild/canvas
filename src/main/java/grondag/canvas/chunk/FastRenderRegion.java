@@ -32,6 +32,7 @@ import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
 import net.minecraft.world.LightType;
 import net.minecraft.world.chunk.light.LightingProvider;
 import net.minecraft.world.level.ColorResolver;
@@ -199,6 +200,12 @@ public class FastRenderRegion extends AbstractRenderRegion implements RenderAtta
 		return WorldRenderer.getLightmapCoordinates(world, getBlockState(pos), pos);
 	}
 
+	// TODO: apply in AO calc - see new vanilla usage
+	@Override
+	public float getBrightness(Direction direction, boolean shaded) {
+		return world.getBrightness(direction, shaded);
+	}
+
 	public float cachedAoLevel(int cacheIndex) {
 		float result = aoCache[cacheIndex];
 
@@ -249,7 +256,7 @@ public class FastRenderRegion extends AbstractRenderRegion implements RenderAtta
 
 		@Override
 		protected boolean closedAtRelativePos(BlockState blockState, int x, int y, int z) {
-			return blockState.isFullOpaque(world, searchPos.set(originX + x, originY + y, originZ + z));
+			return blockState.isOpaqueFullCube(world, searchPos.set(originX + x, originY + y, originZ + z));
 		}
 	};
 

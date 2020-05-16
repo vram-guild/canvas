@@ -64,7 +64,7 @@ public class LightSmoother {
 					// don't use cache here because we are populating the cache
 					final int packedLight = region.directBrightness(smoothPos);
 
-					final boolean opaque = state.isFullOpaque(region, smoothPos);
+					final boolean opaque = state.isOpaqueFullCube(region, smoothPos);
 
 					final int i = index(x, y , z);
 					if(opaque) {
