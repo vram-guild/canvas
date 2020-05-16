@@ -106,6 +106,7 @@ public abstract class TerrainOccluder {
 
 			nativeImage.mirrorVertically();
 
+			@SuppressWarnings("resource")
 			final File file = new File(MinecraftClient.getInstance().runDirectory, "canvas_occlusion_raster.png");
 
 			ResourceImpl.RESOURCE_IO_EXECUTOR.execute(() -> {

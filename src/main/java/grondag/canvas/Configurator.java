@@ -545,6 +545,7 @@ public class Configurator {
 		return display();
 	}
 
+	@SuppressWarnings("resource")
 	private static void saveUserInput() {
 		saveConfig();
 

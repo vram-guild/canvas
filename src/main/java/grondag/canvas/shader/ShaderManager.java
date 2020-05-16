@@ -185,6 +185,7 @@ public final class ShaderManager implements ClientTickCallback {
 		});
 
 		shader.uniform3f("u_eye_position", UniformRefreshFrequency.PER_FRAME, u -> {
+			@SuppressWarnings("resource")
 			final Vec3d eyePos = MinecraftClient.getInstance().player.getCameraPosVec(fractionalTicks);
 			u.set((float) eyePos.x, (float) eyePos.y, (float) eyePos.z);
 		});

@@ -125,6 +125,7 @@ public class CanvasWorldRenderer {
 		shouldUpdateVisibility = true;
 	}
 
+	@SuppressWarnings("resource")
 	public void reload() {
 		if (regionBuilder == null) {
 			regionBuilder = new RenderRegionBuilder(wr.canvas_world(), (WorldRenderer) wr, wr.canvas_mc().is64Bit());
@@ -603,6 +604,7 @@ public class CanvasWorldRenderer {
 	}
 
 	private void renderCullBoxes(MatrixStack matrixStack, Immediate immediate, double cameraX, double cameraY, double cameraZ,  float tickDelta) {
+		@SuppressWarnings("resource")
 		final Entity entity = MinecraftClient.getInstance().gameRenderer.getCamera().getFocusedEntity();
 
 		final HitResult hit = entity.rayTrace(12 * 16, tickDelta, true);

@@ -150,6 +150,7 @@ public class CanvasFrustum extends Frustum {
 		nearRegionExtent = src.nearRegionExtent;
 	}
 
+	@SuppressWarnings("resource")
 	public void prepare(Matrix4f modelMatrix, Matrix4f projectionMatrix, Camera camera) {
 		final Vec3d vec = camera.getPos();
 		final double x = vec.x;

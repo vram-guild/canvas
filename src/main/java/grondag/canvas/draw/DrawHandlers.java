@@ -27,6 +27,7 @@ public class DrawHandlers {
 	private static final DrawHandler[] BLEND_MAP = new DrawHandler[5];
 
 	public static final DrawHandler SOLID = new DrawHandler(MaterialVertexFormats.VANILLA_BLOCKS_AND_ITEMS, ShaderManager.INSTANCE.getDefault(), MaterialConditionImpl.ALWAYS) {
+		@SuppressWarnings("resource")
 		@Override
 		protected void setupInner() {
 			RenderSystem.enableTexture();
@@ -45,6 +46,7 @@ public class DrawHandlers {
 			shader.activate(ShaderContext.VANILLA_TERRAIN, format);
 		}
 
+		@SuppressWarnings("resource")
 		@Override
 		protected void teardownInner() {
 			RenderSystem.disableCull();
@@ -113,6 +115,7 @@ public class DrawHandlers {
 	//	};
 
 	public static final DrawHandler TRANSLUCENT = new DrawHandler(MaterialVertexFormats.VANILLA_BLOCKS_AND_ITEMS, ShaderManager.INSTANCE.getDefault(), MaterialConditionImpl.ALWAYS) {
+		@SuppressWarnings("resource")
 		@Override
 		protected void setupInner() {
 			RenderSystem.enableTexture();
@@ -132,6 +135,7 @@ public class DrawHandlers {
 			shader.activate(ShaderContext.VANILLA_TERRAIN, format);
 		}
 
+		@SuppressWarnings("resource")
 		@Override
 		protected void teardownInner() {
 			RenderSystem.disableCull();
