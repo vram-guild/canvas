@@ -67,7 +67,7 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 	}
 
 	public void clear() {
-		System.arraycopy(EMPTY, 0, data, baseIndex, MeshEncodingHelper.TOTAL_QUAD_STRIDE);
+		System.arraycopy(EMPTY, 0, data, baseIndex, MeshEncodingHelper.MAX_QUAD_STRIDE);
 		isFaceNormalInvalid = true;
 		isGeometryInvalid = true;
 		nominalFaceId = ModelHelper.NULL_FACE_ID;
@@ -85,6 +85,9 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 		}
 
 		data[baseIndex + HEADER_MATERIAL] = ((RenderMaterialImpl.Value)material).index();
+
+		assert RenderMaterialImpl.byIndex(data[baseIndex + HEADER_MATERIAL]) == material;
+
 		return this;
 	}
 

@@ -52,7 +52,7 @@ public abstract class MeshEncodingHelper {
 	public static final int BASE_VERTEX_STRIDE;
 
 	public static final int BASE_QUAD_STRIDE_BYTES;
-	public static final int TOTAL_QUAD_STRIDE;
+	public static final int MIN_QUAD_STRIDE;
 	public static final int VERTEX_START;
 	public static final int BASE_QUAD_STRIDE;
 
@@ -81,7 +81,7 @@ public abstract class MeshEncodingHelper {
 		BASE_VERTEX_STRIDE = format.getVertexSizeInteger();
 		BASE_QUAD_STRIDE = BASE_VERTEX_STRIDE * 4;
 		BASE_QUAD_STRIDE_BYTES = BASE_QUAD_STRIDE * 4;
-		TOTAL_QUAD_STRIDE = HEADER_STRIDE + BASE_QUAD_STRIDE;
+		MIN_QUAD_STRIDE = HEADER_STRIDE + BASE_QUAD_STRIDE;
 
 		Preconditions.checkState(BASE_VERTEX_STRIDE == QuadView.VANILLA_VERTEX_STRIDE, "Canvas vertex stride (%s) mismatched with rendering API (%s)", BASE_VERTEX_STRIDE, QuadView.VANILLA_VERTEX_STRIDE);
 		Preconditions.checkState(BASE_QUAD_STRIDE == QuadView.VANILLA_QUAD_STRIDE, "Canvas quad stride (%s) mismatched with rendering API (%s)", BASE_QUAD_STRIDE, QuadView.VANILLA_QUAD_STRIDE);
@@ -95,10 +95,10 @@ public abstract class MeshEncodingHelper {
 		/**
 		 * is one tex stride less than the actual base, because when used tex index is >= 1
 		 */
-		TEXTURE_OFFSET_MINUS = TOTAL_QUAD_STRIDE - TEXTURE_QUAD_STRIDE;
-		SECOND_TEXTURE_OFFSET = TOTAL_QUAD_STRIDE;
+		TEXTURE_OFFSET_MINUS = MIN_QUAD_STRIDE - TEXTURE_QUAD_STRIDE;
+		SECOND_TEXTURE_OFFSET = MIN_QUAD_STRIDE;
 		THIRD_TEXTURE_OFFSET = SECOND_TEXTURE_OFFSET + TEXTURE_QUAD_STRIDE;
-		MAX_QUAD_STRIDE = TOTAL_QUAD_STRIDE + TEXTURE_QUAD_STRIDE * (RenderMaterialImpl.MAX_SPRITE_DEPTH - 1);
+		MAX_QUAD_STRIDE = MIN_QUAD_STRIDE + TEXTURE_QUAD_STRIDE * (RenderMaterialImpl.MAX_SPRITE_DEPTH - 1);
 	}
 
 	/** used for quick clearing of quad buffers */

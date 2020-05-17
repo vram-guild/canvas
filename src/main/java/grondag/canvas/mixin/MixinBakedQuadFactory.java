@@ -38,15 +38,15 @@ import grondag.canvas.mixinterface.BakedQuadExt;
 public abstract class MixinBakedQuadFactory {
 
 	@ModifyArg(method = "bake", at = @At(value = "INVOKE",
-			target = "Lnet/minecraft/client/render/model/BakedQuadFactory;packVertexData(Lnet/minecraft/client/render/model/json/ModelElementTexture;Lnet/minecraft/client/texture/Sprite;Lnet/minecraft/util/math/Direction;[FLnet/minecraft/client/util/math/Rotation3;Lnet/minecraft/client/render/model/json/ModelRotation;Z)[I"))
+			target = "Lnet/minecraft/client/render/model/BakedQuadFactory;packVertexData(Lnet/minecraft/client/render/model/json/ModelElementTexture;Lnet/minecraft/client/texture/Sprite;Lnet/minecraft/util/math/Direction;[FLnet/minecraft/client/util/math/AffineTransformation;Lnet/minecraft/client/render/model/json/ModelRotation;Z)[I"))
 	private boolean disableShade(boolean shade) {
 		return false;
 	}
 
 	@Inject(method = "bake", at = @At(value = "RETURN"))
 	private void hookBake(
-			Vector3f vec1,
-			Vector3f vec2,
+			Vector3f from,
+			Vector3f to,
 			ModelElementFace modelElementFace,
 			Sprite sprite,
 			Direction direction,

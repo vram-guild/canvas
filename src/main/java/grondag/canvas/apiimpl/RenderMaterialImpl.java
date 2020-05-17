@@ -134,6 +134,9 @@ public abstract class RenderMaterialImpl {
 	}
 
 	public static RenderMaterialImpl.Value byIndex(int index) {
+		assert index < LIST.size();
+		assert index >= 0;
+
 		return LIST.get(index);
 	}
 

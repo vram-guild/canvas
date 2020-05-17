@@ -61,7 +61,7 @@ public class FallbackConsumer implements Consumer<BakedModel> {
 
 	protected final AbstractRenderContext context;
 
-	private final int[] editorBuffer = new int[MeshEncodingHelper.TOTAL_QUAD_STRIDE];
+	private final int[] editorBuffer = new int[MeshEncodingHelper.MAX_QUAD_STRIDE];
 
 	public FallbackConsumer(AbstractRenderContext context) {
 		this.context = context;

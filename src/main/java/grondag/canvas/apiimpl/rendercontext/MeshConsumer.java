@@ -21,6 +21,8 @@ import net.fabricmc.fabric.api.renderer.v1.mesh.Mesh;
 import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
 
 import grondag.canvas.apiimpl.Canvas;
+import grondag.canvas.apiimpl.RenderMaterialImpl;
+import grondag.canvas.apiimpl.RenderMaterialImpl.Value;
 import grondag.canvas.apiimpl.mesh.MeshImpl;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.util.ColorHelper;
@@ -45,7 +47,7 @@ public class MeshConsumer implements Consumer<Mesh> {
 	 */
 	private class Maker extends MutableQuadViewImpl implements QuadEmitter {
 		{
-			data = new int[MeshEncodingHelper.TOTAL_QUAD_STRIDE];
+			data = new int[MeshEncodingHelper.MAX_QUAD_STRIDE];
 			material(Canvas.MATERIAL_STANDARD);
 		}
 
@@ -70,9 +72,10 @@ public class MeshConsumer implements Consumer<Mesh> {
 		int index = 0;
 
 		while (index < limit) {
-			System.arraycopy(data, index, editorQuad.data(), 0, MeshEncodingHelper.TOTAL_QUAD_STRIDE);
+			final int stride = MeshEncodingHelper.stride(RenderMaterialImpl.byIndex(data[index]).spriteDepth());
+			System.arraycopy(data, index, editorQuad.data(), 0, stride);
 			editorQuad.load();
-			index += MeshEncodingHelper.TOTAL_QUAD_STRIDE;
+			index += stride;
 			renderQuad(editorQuad);
 		}
 	}
@@ -91,6 +94,8 @@ public class MeshConsumer implements Consumer<Mesh> {
 			return;
 		}
 
+		final Value mat = editorQuad.material().forBlendMode(context.defaultBlendModeIndex());
+		editorQuad.material(mat);
 		MaterialState.get(context.materialContext(), quad.material().forBlendMode(context.defaultBlendModeIndex())).encoder.encodeQuad(quad, context);
 	}
 }

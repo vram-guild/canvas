@@ -16,6 +16,8 @@
 
 package grondag.canvas.apiimpl.mesh;
 
+import static grondag.canvas.apiimpl.util.MeshEncodingHelper.BASE_QUAD_STRIDE;
+import static grondag.canvas.apiimpl.util.MeshEncodingHelper.BASE_VERTEX_STRIDE;
 import static grondag.canvas.apiimpl.util.MeshEncodingHelper.HEADER_BITS;
 import static grondag.canvas.apiimpl.util.MeshEncodingHelper.HEADER_COLOR_INDEX;
 import static grondag.canvas.apiimpl.util.MeshEncodingHelper.HEADER_MATERIAL;
@@ -24,12 +26,10 @@ import static grondag.canvas.apiimpl.util.MeshEncodingHelper.HEADER_TAG;
 import static grondag.canvas.apiimpl.util.MeshEncodingHelper.TEXTURE_OFFSET_MINUS;
 import static grondag.canvas.apiimpl.util.MeshEncodingHelper.TEXTURE_QUAD_STRIDE;
 import static grondag.canvas.apiimpl.util.MeshEncodingHelper.TEXTURE_VERTEX_STRIDE;
-import static grondag.canvas.apiimpl.util.MeshEncodingHelper.BASE_QUAD_STRIDE;
 import static grondag.canvas.apiimpl.util.MeshEncodingHelper.VERTEX_COLOR;
 import static grondag.canvas.apiimpl.util.MeshEncodingHelper.VERTEX_LIGHTMAP;
 import static grondag.canvas.apiimpl.util.MeshEncodingHelper.VERTEX_NORMAL;
 import static grondag.canvas.apiimpl.util.MeshEncodingHelper.VERTEX_START;
-import static grondag.canvas.apiimpl.util.MeshEncodingHelper.BASE_VERTEX_STRIDE;
 import static grondag.canvas.apiimpl.util.MeshEncodingHelper.VERTEX_X;
 import static grondag.canvas.apiimpl.util.MeshEncodingHelper.VERTEX_Y;
 import static grondag.canvas.apiimpl.util.MeshEncodingHelper.VERTEX_Z;
@@ -117,7 +117,7 @@ public class QuadViewImpl implements QuadView {
 	}
 
 	/** Length of encoded quad in array, including header. */
-	final int stride() {
+	public final int stride() {
 		return MeshEncodingHelper.stride(material().spriteDepth());
 	}
 

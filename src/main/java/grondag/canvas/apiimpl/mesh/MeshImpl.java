@@ -21,8 +21,6 @@ import java.util.function.Consumer;
 import net.fabricmc.fabric.api.renderer.v1.mesh.Mesh;
 import net.fabricmc.fabric.api.renderer.v1.mesh.QuadView;
 
-import grondag.canvas.apiimpl.util.MeshEncodingHelper;
-
 /**
  * Implementation of {@link Mesh}.
  * The way we encode meshes makes it very simple.
@@ -58,7 +56,7 @@ public class MeshImpl implements Mesh {
 		while (index < limit) {
 			cursor.load(data, index);
 			consumer.accept(cursor);
-			index += MeshEncodingHelper.TOTAL_QUAD_STRIDE;
+			index += cursor.stride();
 		}
 	}
 }
