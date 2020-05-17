@@ -127,6 +127,8 @@ public class CanvasWorldRenderer {
 
 	@SuppressWarnings("resource")
 	public void reload() {
+		terrainIterator.reset();
+
 		if (regionBuilder == null) {
 			regionBuilder = new RenderRegionBuilder(wr.canvas_world(), (WorldRenderer) wr, wr.canvas_mc().is64Bit());
 		} else {
@@ -141,8 +143,8 @@ public class CanvasWorldRenderer {
 		TerrainOccluder.invalidate();
 		renderRegionStorage = new RenderRegionStorage(regionBuilder, wr.canvas_mc().options.viewDistance);
 		terrainIterator.setRegionStorage(renderRegionStorage);
-		visibleRegions = new BuiltRenderRegion[renderRegionStorage.regionCount()];
 		visibleRegionCount = 0;
+		visibleRegions = new BuiltRenderRegion[renderRegionStorage.regionCount()];
 
 		final Entity entity = wr.canvas_mc().getCameraEntity();
 
@@ -166,6 +168,7 @@ public class CanvasWorldRenderer {
 	public void setWorld(@Nullable ClientWorld clientWorld) {
 		visibleRegionCount = 0;
 		Arrays.fill(visibleRegions, null);
+		terrainIterator.reset();
 		Arrays.fill(terrainIterator.visibleRegions, null);
 	}
 
@@ -235,15 +238,16 @@ public class CanvasWorldRenderer {
 		mc.getProfiler().swap("update");
 
 		if (Configurator.terrainSetupOffThread) {
-			int state = terrainIterator.state;
+			int state = terrainIterator.state();
 
 			if (state == TerrainIterator.COMPLETE) {
 				final BuiltRenderRegion[] visibleRegions = this.visibleRegions;
 				final int size = terrainIterator.visibleRegionCount;
 				visibleRegionCount = size;
 				System.arraycopy(terrainIterator.visibleRegions, 0, visibleRegions, 0, size);
+				assert size == 0 || visibleRegions[0] != null;
 				scheduleOrBuild(terrainIterator.updateRegions);
-				terrainIterator.state = TerrainIterator.IDLE;
+				terrainIterator.reset();
 				state = TerrainIterator.IDLE;
 			}
 
@@ -301,7 +305,7 @@ public class CanvasWorldRenderer {
 	}
 
 	private void buildNearRegion(BuiltRenderRegion region)  {
-		if(region != null && region.needsRebuild())  {
+		if(region.needsRebuild())  {
 			regionsToRebuild.remove(region);
 			region.rebuildOnMainThread();
 			region.markBuilt();

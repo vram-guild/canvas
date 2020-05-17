@@ -1,5 +1,7 @@
 package grondag.canvas.render;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 import javax.annotation.Nullable;
 
 import io.netty.util.internal.shaded.org.jctools.queues.MessagePassingQueue.Consumer;
@@ -34,9 +36,10 @@ public class TerrainIterator implements  Consumer<TerrainRenderContext> {
 	public static final int RUNNING = 2;
 	public static final int COMPLETE = 3;
 
-	public volatile int state = IDLE;
+	private final AtomicInteger state = new AtomicInteger(IDLE);
 	public BuiltRenderRegion[] visibleRegions = new BuiltRenderRegion[4096];
-	public int visibleRegionCount;
+	public volatile int visibleRegionCount;
+	private volatile boolean cancelled = false;
 
 	public void setRegionStorage(RenderRegionStorage renderRegionStorage) {
 		this.renderRegionStorage = renderRegionStorage;
@@ -44,18 +47,28 @@ public class TerrainIterator implements  Consumer<TerrainRenderContext> {
 	}
 
 	public void prepare(@Nullable BuiltRenderRegion cameraRegion,  BlockPos cameraBlockPos, CanvasFrustum frustum, int renderDistance)  {
-		//assert state == IDLE;
+		assert state.get() == IDLE;
 		this.cameraRegion = cameraRegion;
 		this.cameraBlockPos = cameraBlockPos;
 		this.frustum.copy(frustum);
 		this.renderDistance = renderDistance;
-		state = READY;
+		state.set(READY);
+		cancelled = false;
+	}
+
+	int state() {
+		return state.get();
+	}
+
+	public void reset() {
+		cancelled = true;
+		state.compareAndSet(COMPLETE, IDLE);
 	}
 
 	@Override
 	public void accept(TerrainRenderContext ignored) {
-		assert state == READY;
-		state = RUNNING;
+		assert state.get() == READY;
+		state.set(RUNNING);
 
 		final CanvasFrustum frustum = this.frustum;
 		final int renderDistance = this.renderDistance;
@@ -102,7 +115,7 @@ public class TerrainIterator implements  Consumer<TerrainRenderContext> {
 		final boolean chunkCullingEnabled = mc.chunkCullingEnabled;
 
 		// PERF: look for ways to improve branch prediction
-		while (true) {
+		while (!cancelled) {
 			if (currentLevel.isEmpty()) {
 				if(nextLevel.isEmpty()) {
 					break;
@@ -187,11 +200,17 @@ public class TerrainIterator implements  Consumer<TerrainRenderContext> {
 			}
 		}
 
-		state = COMPLETE;
-		this.visibleRegionCount = visibleRegionCount;
+		if (cancelled) {
+			state.set(IDLE);
+			this.visibleRegionCount = 0;
+		} else {
+			assert state.get() == RUNNING;
+			state.set(COMPLETE);
+			this.visibleRegionCount = visibleRegionCount;
 
-		if (Configurator.debugOcclusionRaster) {
-			TerrainOccluder.outputRaster();
+			if (Configurator.debugOcclusionRaster) {
+				TerrainOccluder.outputRaster();
+			}
 		}
 	}
 }
