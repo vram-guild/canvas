@@ -1,10 +1,14 @@
 package grondag.canvas.buffer.encoding;
 
-import static grondag.canvas.buffer.encoding.vanilla.VanillaEncoders.VANILLA_BLOCK;
+import static grondag.canvas.buffer.encoding.vanilla.VanillaEncoders.VANILLA_BLOCK_1;
+import static grondag.canvas.buffer.encoding.vanilla.VanillaEncoders.VANILLA_BLOCK_2;
+import static grondag.canvas.buffer.encoding.vanilla.VanillaEncoders.VANILLA_BLOCK_3;
 import static grondag.canvas.buffer.encoding.vanilla.VanillaEncoders.VANILLA_ITEM_1;
 import static grondag.canvas.buffer.encoding.vanilla.VanillaEncoders.VANILLA_ITEM_2;
 import static grondag.canvas.buffer.encoding.vanilla.VanillaEncoders.VANILLA_ITEM_3;
-import static grondag.canvas.buffer.encoding.vanilla.VanillaEncoders.VANILLA_TERRAIN;
+import static grondag.canvas.buffer.encoding.vanilla.VanillaEncoders.VANILLA_TERRAIN_1;
+import static grondag.canvas.buffer.encoding.vanilla.VanillaEncoders.VANILLA_TERRAIN_2;
+import static grondag.canvas.buffer.encoding.vanilla.VanillaEncoders.VANILLA_TERRAIN_3;
 import static grondag.canvas.material.MaterialContext.BLOCK;
 import static grondag.canvas.material.MaterialContext.ITEM_FIXED;
 import static grondag.canvas.material.MaterialContext.ITEM_GROUND;
@@ -46,19 +50,19 @@ public class VertexEncoders {
 	}
 
 	public static void reload() {
-		ENCODERS[lookupIndex(BLOCK, 1, false)] = VANILLA_BLOCK;
-		ENCODERS[lookupIndex(BLOCK, 2, false)] = VANILLA_BLOCK;
-		ENCODERS[lookupIndex(BLOCK, 3, false)] = VANILLA_BLOCK;
-		ENCODERS[lookupIndex(BLOCK, 1, true)] = VANILLA_BLOCK;
-		ENCODERS[lookupIndex(BLOCK, 2, true)] = VANILLA_BLOCK;
-		ENCODERS[lookupIndex(BLOCK, 3, true)] = VANILLA_BLOCK;
+		ENCODERS[lookupIndex(BLOCK, 1, false)] = VANILLA_BLOCK_1;
+		ENCODERS[lookupIndex(BLOCK, 2, false)] = VANILLA_BLOCK_2;
+		ENCODERS[lookupIndex(BLOCK, 3, false)] = VANILLA_BLOCK_3;
+		ENCODERS[lookupIndex(BLOCK, 1, true)] = VANILLA_BLOCK_1;
+		ENCODERS[lookupIndex(BLOCK, 2, true)] = VANILLA_BLOCK_2;
+		ENCODERS[lookupIndex(BLOCK, 3, true)] = VANILLA_BLOCK_3;
 
-		ENCODERS[lookupIndex(TERRAIN, 1, false)] = VANILLA_TERRAIN;
-		ENCODERS[lookupIndex(TERRAIN, 2, false)] = VANILLA_TERRAIN;
-		ENCODERS[lookupIndex(TERRAIN, 3, false)] = VANILLA_TERRAIN;
-		ENCODERS[lookupIndex(TERRAIN, 1, true)] = VANILLA_TERRAIN;
-		ENCODERS[lookupIndex(TERRAIN, 2, true)] = VANILLA_TERRAIN;
-		ENCODERS[lookupIndex(TERRAIN, 3, true)] = VANILLA_TERRAIN;
+		ENCODERS[lookupIndex(TERRAIN, 1, false)] = VANILLA_TERRAIN_1;
+		ENCODERS[lookupIndex(TERRAIN, 2, false)] = VANILLA_TERRAIN_2;
+		ENCODERS[lookupIndex(TERRAIN, 3, false)] = VANILLA_TERRAIN_3;
+		ENCODERS[lookupIndex(TERRAIN, 1, true)] = VANILLA_TERRAIN_1;
+		ENCODERS[lookupIndex(TERRAIN, 2, true)] = VANILLA_TERRAIN_2;
+		ENCODERS[lookupIndex(TERRAIN, 3, true)] = VANILLA_TERRAIN_3;
 
 		ENCODERS[lookupIndex(ITEM_HELD, 1, false)] = VANILLA_ITEM_1;
 		ENCODERS[lookupIndex(ITEM_HELD, 2, false)] = VANILLA_ITEM_2;
