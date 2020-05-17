@@ -7,6 +7,10 @@ import grondag.canvas.apiimpl.rendercontext.AbstractRenderContext;
 import grondag.canvas.apiimpl.util.ColorHelper;
 
 public class VanillaBlockEncoder extends VanillaEncoder {
+	VanillaBlockEncoder(int index) {
+		super(index);
+	}
+
 	@Override
 	public void encodeQuad(MutableQuadViewImpl quad, AbstractRenderContext context) {
 		if (!quad.material().disableAo(0) && MinecraftClient.isAmbientOcclusionEnabled()) {

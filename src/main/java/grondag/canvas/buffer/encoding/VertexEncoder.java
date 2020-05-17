@@ -12,14 +12,14 @@ import grondag.canvas.material.MaterialVertexFormat;
 public abstract class VertexEncoder {
 	public static final int FULL_BRIGHTNESS = 0xF000F0;
 
-	private static int nextEncoderIndex = 0;
-
-	public final int index = nextEncoderIndex++;
+	/** Two encoders can share the same index but only one will ever be active (based on config) */
+	public final int index;
 
 	public final MaterialVertexFormat format;
 
-	VertexEncoder(MaterialVertexFormat format) {
+	VertexEncoder(MaterialVertexFormat format, int index) {
 		this.format = format;
+		this.index = index;
 	}
 
 	/**

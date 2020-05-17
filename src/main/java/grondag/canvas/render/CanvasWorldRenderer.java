@@ -542,6 +542,9 @@ public class CanvasWorldRenderer {
 										return;
 									}
 
+									assert visibleRegions[regionIndex] != null;
+									assert visibleRegions[regionIndex].getRenderData() != null;
+
 									list = visibleRegions[regionIndex++].getRenderData().getBlockEntities();
 								} while(list.isEmpty());
 

@@ -2,6 +2,7 @@ package grondag.canvas.buffer.encoding;
 
 import net.minecraft.client.util.math.Vector4f;
 import net.minecraft.util.math.Matrix4f;
+
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 
 import grondag.canvas.apiimpl.RenderMaterialImpl;
@@ -11,6 +12,9 @@ import grondag.canvas.buffer.packing.VertexCollectorImpl;
 import grondag.canvas.mixinterface.Matrix3fExt;
 
 public class VanillaTerrainEncoder extends VanillaBlockEncoder {
+	VanillaTerrainEncoder(int index) {
+		super(index);
+	}
 
 	@Override
 	protected void bufferQuad(MutableQuadViewImpl quad, AbstractRenderContext context) {

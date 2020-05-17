@@ -1,5 +1,7 @@
 package grondag.canvas.material;
 
+import java.util.Arrays;
+
 import net.minecraft.util.math.MathHelper;
 
 import grondag.canvas.Configurator;
@@ -42,7 +44,7 @@ public class MaterialState {
 	}
 
 	private static final int ENCODER_SHIFT = Useful.bitLength(MathHelper.smallestEncompassingPowerOfTwo(MaterialContext.values().length));
-	private static final int DRAW_HANDLER_SHIFT = ENCODER_SHIFT + Useful.bitLength(VertexEncoders.MAX_ENCODERS);
+	private static final int DRAW_HANDLER_SHIFT = ENCODER_SHIFT + Useful.bitLength(VertexEncoders.ENCODER_KEY_SPACE_SIZE);
 
 	public static int MAX_MATERIAL_STATES = Configurator.maxMaterialStates;
 
@@ -80,5 +82,9 @@ public class MaterialState {
 
 	private static int index(MaterialContext context, VertexEncoder encoder, DrawHandler drawHandler) {
 		return context.ordinal() | (encoder.index << ENCODER_SHIFT) | (drawHandler.index << DRAW_HANDLER_SHIFT);
+	}
+
+	public static void reload() {
+		Arrays.fill(VALUES, null);
 	}
 }

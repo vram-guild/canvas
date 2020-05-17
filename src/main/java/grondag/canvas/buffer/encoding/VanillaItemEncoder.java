@@ -5,6 +5,10 @@ import grondag.canvas.apiimpl.rendercontext.AbstractRenderContext;
 import grondag.canvas.apiimpl.util.ColorHelper;
 
 public class VanillaItemEncoder extends VanillaEncoder {
+	VanillaItemEncoder(int index) {
+		super(index);
+	}
+
 	@Override
 	public void encodeQuad(MutableQuadViewImpl quad, AbstractRenderContext context) {
 		// needs to happen before offsets are applied
