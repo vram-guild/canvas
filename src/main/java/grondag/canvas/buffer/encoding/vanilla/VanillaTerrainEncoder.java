@@ -1,4 +1,4 @@
-package grondag.canvas.buffer.encoding;
+package grondag.canvas.buffer.encoding.vanilla;
 
 import net.minecraft.client.util.math.Vector4f;
 import net.minecraft.util.math.Matrix4f;
@@ -11,7 +11,7 @@ import grondag.canvas.apiimpl.rendercontext.AbstractRenderContext;
 import grondag.canvas.buffer.packing.VertexCollectorImpl;
 import grondag.canvas.mixinterface.Matrix3fExt;
 
-public class VanillaTerrainEncoder extends VanillaBlockEncoder {
+class VanillaTerrainEncoder extends VanillaBlockEncoder {
 	VanillaTerrainEncoder(int index) {
 		super(index);
 	}
@@ -21,7 +21,7 @@ public class VanillaTerrainEncoder extends VanillaBlockEncoder {
 		final Matrix4f matrix = context.matrix();
 		final Vector4f transformVector = context.transformVector;
 		final Matrix3fExt normalMatrix = context.normalMatrix();
-		final VertexCollectorImpl buff = (VertexCollectorImpl) context.consumer(quad);
+		final VertexCollectorImpl buff = (VertexCollectorImpl) context.consumer(quad.material());
 		final int[] appendData = buff.appendData;
 		final float[] aoData = quad.ao;
 		final RenderMaterialImpl.Value mat = quad.material();

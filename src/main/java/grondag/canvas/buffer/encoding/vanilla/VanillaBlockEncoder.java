@@ -1,4 +1,4 @@
-package grondag.canvas.buffer.encoding;
+package grondag.canvas.buffer.encoding.vanilla;
 
 import net.minecraft.client.MinecraftClient;
 
@@ -6,8 +6,8 @@ import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.rendercontext.AbstractRenderContext;
 import grondag.canvas.apiimpl.util.ColorHelper;
 
-public class VanillaBlockEncoder extends VanillaEncoder {
-	VanillaBlockEncoder(int index) {
+class VanillaBlockEncoder extends VanillaEncoder {
+	public VanillaBlockEncoder(int index) {
 		super(index);
 	}
 

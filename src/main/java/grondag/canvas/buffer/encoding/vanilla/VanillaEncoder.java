@@ -1,4 +1,4 @@
-package grondag.canvas.buffer.encoding;
+package grondag.canvas.buffer.encoding.vanilla;
 
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.util.math.Vector4f;
@@ -8,6 +8,7 @@ import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.rendercontext.AbstractRenderContext;
 import grondag.canvas.apiimpl.util.ColorHelper;
 import grondag.canvas.apiimpl.util.NormalHelper;
+import grondag.canvas.buffer.encoding.VertexEncoder;
 import grondag.canvas.buffer.packing.VertexCollectorImpl;
 import grondag.canvas.material.MaterialVertexFormats;
 import grondag.canvas.mixinterface.Matrix3fExt;
@@ -22,7 +23,7 @@ abstract class VanillaEncoder extends VertexEncoder {
 		final Vector4f transformVector = context.transformVector;
 		final int overlay = context.overlay();
 		final Matrix3fExt normalMatrix = context.normalMatrix();
-		final VertexConsumer buff = context.consumer(quad);
+		final VertexConsumer buff = context.consumer(quad.material());
 
 		int packedNormal = 0;
 		float nx = 0, ny = 0, nz = 0;

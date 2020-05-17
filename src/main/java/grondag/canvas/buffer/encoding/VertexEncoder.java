@@ -17,7 +17,7 @@ public abstract class VertexEncoder {
 
 	public final MaterialVertexFormat format;
 
-	VertexEncoder(MaterialVertexFormat format, int index) {
+	protected VertexEncoder(MaterialVertexFormat format, int index) {
 		this.format = format;
 		this.index = index;
 	}

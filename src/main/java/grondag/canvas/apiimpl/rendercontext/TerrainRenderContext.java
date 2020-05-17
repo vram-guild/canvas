@@ -34,7 +34,7 @@ import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 
 import grondag.canvas.Configurator;
-import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
+import grondag.canvas.apiimpl.RenderMaterialImpl.Value;
 import grondag.canvas.chunk.BuiltRenderRegion;
 import grondag.canvas.chunk.FastRenderRegion;
 import grondag.canvas.chunk.ProtoRenderRegion;
@@ -128,8 +128,8 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<FastRenderR
 	}
 
 	@Override
-	public VertexConsumer consumer(MutableQuadViewImpl quad) {
-		return collectors.get(MaterialContext.TERRAIN, quad.material());
+	public VertexConsumer consumer(Value mat) {
+		return collectors.get(MaterialContext.TERRAIN, mat);
 	}
 
 	@Override

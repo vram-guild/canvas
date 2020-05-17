@@ -29,11 +29,13 @@ import net.minecraft.client.render.model.BakedModel;
 import net.minecraft.client.util.math.Vector4f;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Matrix4f;
+
 import net.fabricmc.fabric.api.renderer.v1.mesh.Mesh;
 import net.fabricmc.fabric.api.renderer.v1.mesh.MutableQuadView;
 import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 
+import grondag.canvas.apiimpl.RenderMaterialImpl.Value;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.buffer.packing.VertexCollectorList;
 import grondag.canvas.light.AoCalculator;
@@ -128,7 +130,7 @@ public abstract class AbstractRenderContext implements RenderContext {
 
 	public abstract MaterialContext materialContext();
 
-	public abstract VertexConsumer consumer(MutableQuadViewImpl quad);
+	public abstract VertexConsumer consumer(Value mat);
 
 	public abstract int indexedColor(int colorIndex);
 

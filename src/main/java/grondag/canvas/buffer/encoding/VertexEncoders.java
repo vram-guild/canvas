@@ -1,5 +1,8 @@
 package grondag.canvas.buffer.encoding;
 
+import static grondag.canvas.buffer.encoding.vanilla.VanillaEncoders.VANILLA_BLOCK;
+import static grondag.canvas.buffer.encoding.vanilla.VanillaEncoders.VANILLA_ITEM;
+import static grondag.canvas.buffer.encoding.vanilla.VanillaEncoders.VANILLA_TERRAIN;
 import static grondag.canvas.material.MaterialContext.BLOCK;
 import static grondag.canvas.material.MaterialContext.ITEM_FIXED;
 import static grondag.canvas.material.MaterialContext.ITEM_GROUND;
@@ -35,10 +38,6 @@ public class VertexEncoders {
 	private static final int lookupIndex(MaterialContext context, int spriteDepth, boolean isTranslucent) {
 		return isTranslucent  ? (TRANSLUCENT_FLAG | (context.ordinal() << CONTEXT_SHIFT) | spriteDepth) : ((context.ordinal() << CONTEXT_SHIFT) | spriteDepth);
 	}
-
-	private static final VanillaBlockEncoder VANILLA_BLOCK = new VanillaBlockEncoder(0);
-	private static final VanillaItemEncoder VANILLA_ITEM = new VanillaItemEncoder(1);
-	private static final VanillaTerrainEncoder VANILLA_TERRAIN = new VanillaTerrainEncoder(2);
 
 	public static VertexEncoder get(MaterialContext context, Value mat) {
 		return ENCODERS[lookupIndex(context, mat.spriteDepth(), mat.isTranslucent)];

@@ -1,10 +1,11 @@
-package grondag.canvas.buffer.encoding;
+package grondag.canvas.buffer.encoding.vanilla;
 
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.rendercontext.AbstractRenderContext;
 import grondag.canvas.apiimpl.util.ColorHelper;
+import grondag.canvas.buffer.encoding.VertexEncoder;
 
-public class VanillaItemEncoder extends VanillaEncoder {
+class VanillaItemEncoder extends VanillaEncoder {
 	VanillaItemEncoder(int index) {
 		super(index);
 	}
