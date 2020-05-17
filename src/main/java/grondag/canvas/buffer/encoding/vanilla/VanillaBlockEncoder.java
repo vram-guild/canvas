@@ -5,10 +5,11 @@ import net.minecraft.client.MinecraftClient;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.rendercontext.AbstractRenderContext;
 import grondag.canvas.apiimpl.util.ColorHelper;
+import grondag.canvas.material.MaterialVertexFormats;
 
 class VanillaBlockEncoder extends VanillaEncoder {
-	public VanillaBlockEncoder(int index) {
-		super(index);
+	public VanillaBlockEncoder() {
+		super(MaterialVertexFormats.VANILLA_BLOCKS_AND_ITEMS);
 	}
 
 	@Override
@@ -23,7 +24,7 @@ class VanillaBlockEncoder extends VanillaEncoder {
 			quad.lightmap(3, ColorHelper.maxBrightness(quad.lightmap(3), brightness));
 		}
 
-		colorizeQuad(quad, context);
-		bufferQuad(quad, context);
+		colorizeQuad(quad, context, 0);
+		bufferQuad1(quad, context);
 	}
 }

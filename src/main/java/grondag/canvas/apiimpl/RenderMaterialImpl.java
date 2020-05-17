@@ -16,6 +16,8 @@
 
 package grondag.canvas.apiimpl;
 
+import javax.annotation.Nullable;
+
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
@@ -216,6 +218,8 @@ public abstract class RenderMaterialImpl {
 
 		private final Value[] blendModeVariants = new Value[4];
 
+		private final Value[] depthVariants = new Value[MAX_SPRITE_DEPTH];
+
 		protected Value(int index, long bits, MaterialShaderImpl shader) {
 			this.index = index;
 			this.bits = bits;
@@ -244,19 +248,20 @@ public abstract class RenderMaterialImpl {
 
 		private static final ThreadLocal<Finder> variantFinder = ThreadLocal.withInitial(Finder::new);
 
-		private void setupBlendModeVariants() {
-			boolean needsVariant = blendMode(0) == BlendMode.DEFAULT;
+		private void setupVariants() {
+			boolean needsBlendModeVariant = blendMode(0) == BlendMode.DEFAULT;
 
 			final int depth = spriteDepth();
-			if(!needsVariant && depth > 1) {
-				needsVariant = blendMode(1) == BlendMode.DEFAULT;
-				if(!needsVariant && depth == 3) {
-					needsVariant = blendMode(2) == BlendMode.DEFAULT;
+			if(!needsBlendModeVariant && depth > 1) {
+				needsBlendModeVariant = blendMode(1) == BlendMode.DEFAULT;
+				if(!needsBlendModeVariant && depth == 3) {
+					needsBlendModeVariant = blendMode(2) == BlendMode.DEFAULT;
 				}
 			}
 
-			if(needsVariant) {
-				final Finder finder = variantFinder.get();
+			final Finder finder = variantFinder.get();
+
+			if(needsBlendModeVariant) {
 				for(int i = 0; i < 4; i++) {
 					final BlendMode layer = LAYERS[i];
 
@@ -278,7 +283,7 @@ public abstract class RenderMaterialImpl {
 						}
 					}
 
-					blendModeVariants[i] = finder.find();
+					blendModeVariants[i] = finder.findInternal(true);
 
 					assert blendModeVariants[i].blendMode(0) !=  BlendMode.DEFAULT;
 				}
@@ -286,6 +291,40 @@ public abstract class RenderMaterialImpl {
 				// we are a renderable material, so set up control flags needed by shader
 				for(int i = 0; i < 4; i++) {
 					blendModeVariants[i] = this;
+				}
+
+				if (depth == 1) {
+					depthVariants[0] = this;
+				}  else {
+					finder.bits = bits;
+					finder.shader = shader;
+					finder.spriteDepth(1);
+					depthVariants[0] = finder.findInternal(false);
+					depthVariants[0].depthVariants[0] = depthVariants[0];
+
+					finder.bits = bits;
+					finder.shader = shader;
+					finder.blendMode(0, BlendMode.TRANSLUCENT);
+					finder.disableAo(0, finder.disableAo(1));
+					finder.disableColorIndex(0, finder.disableColorIndex(1));
+					finder.disableDiffuse(0, finder.disableDiffuse(1));
+					finder.emissive(0, finder.emissive(1));
+					finder.spriteDepth(1);
+					depthVariants[1] = finder.findInternal(false);
+					depthVariants[1].depthVariants[0] = depthVariants[1];
+
+					if (depth > 2) {
+						finder.bits = bits;
+						finder.shader = shader;
+						finder.blendMode(0, BlendMode.TRANSLUCENT);
+						finder.disableAo(0, finder.disableAo(2));
+						finder.disableColorIndex(0, finder.disableColorIndex(2));
+						finder.disableDiffuse(0, finder.disableDiffuse(2));
+						finder.emissive(0, finder.emissive(2));
+						finder.spriteDepth(1);
+						depthVariants[2] = finder.findInternal(false);
+						depthVariants[2].depthVariants[0] = depthVariants[2];
+					}
 				}
 			}
 		}
@@ -309,6 +348,16 @@ public abstract class RenderMaterialImpl {
 			return blendModeVariants[modeIndex - 1];
 		}
 
+		/**
+		 * Returns a single-layer material appropriate for the base layer or overlay/decal layer given.
+		 * @param spriteIndex
+		 * @return
+		 */
+		public @Nullable Value forDepth(int spriteIndex) {
+			assert spriteIndex < spriteDepth();
+			return depthVariants[spriteIndex];
+		}
+
 		public int index() {
 			return index;
 		}
@@ -318,7 +367,11 @@ public abstract class RenderMaterialImpl {
 		private MaterialShaderImpl shader = null;
 
 		@Override
-		public synchronized Value find() {
+		public Value find() {
+			return findInternal(true);
+		}
+
+		private synchronized Value findInternal(boolean setupVariants) {
 			final MaterialShaderImpl s = shader == null ? ShaderManager.INSTANCE.getDefault() : shader;
 			SHADER.setValue(s.getIndex(), this);
 			Value result = MAP.get(bits);
@@ -327,10 +380,13 @@ public abstract class RenderMaterialImpl {
 				result = new Value(LIST.size(), bits, s);
 				LIST.add(result);
 				MAP.put(result.bits, result);
-				result.setupBlendModeVariants();
+
+				if (setupVariants) {
+					result.setupVariants();
+				}
 			}
 
-			assert result.blendMode(0) != BlendMode.CUTOUT || (FLAGS[CUTOUT_INDEX_START].getValue(this) &&  FLAGS[UNMIPPED_INDEX_START].getValue(this));
+			assert result.blendMode(0) != BlendMode.CUTOUT || (FLAGS[CUTOUT_INDEX_START].getValue(result) &&  FLAGS[UNMIPPED_INDEX_START].getValue(result));
 
 			return result;
 		}

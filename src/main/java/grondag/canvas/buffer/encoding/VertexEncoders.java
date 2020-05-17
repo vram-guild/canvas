@@ -1,7 +1,9 @@
 package grondag.canvas.buffer.encoding;
 
 import static grondag.canvas.buffer.encoding.vanilla.VanillaEncoders.VANILLA_BLOCK;
-import static grondag.canvas.buffer.encoding.vanilla.VanillaEncoders.VANILLA_ITEM;
+import static grondag.canvas.buffer.encoding.vanilla.VanillaEncoders.VANILLA_ITEM_1;
+import static grondag.canvas.buffer.encoding.vanilla.VanillaEncoders.VANILLA_ITEM_2;
+import static grondag.canvas.buffer.encoding.vanilla.VanillaEncoders.VANILLA_ITEM_3;
 import static grondag.canvas.buffer.encoding.vanilla.VanillaEncoders.VANILLA_TERRAIN;
 import static grondag.canvas.material.MaterialContext.BLOCK;
 import static grondag.canvas.material.MaterialContext.ITEM_FIXED;
@@ -58,32 +60,32 @@ public class VertexEncoders {
 		ENCODERS[lookupIndex(TERRAIN, 2, true)] = VANILLA_TERRAIN;
 		ENCODERS[lookupIndex(TERRAIN, 3, true)] = VANILLA_TERRAIN;
 
-		ENCODERS[lookupIndex(ITEM_HELD, 1, false)] = VANILLA_ITEM;
-		ENCODERS[lookupIndex(ITEM_HELD, 2, false)] = VANILLA_ITEM;
-		ENCODERS[lookupIndex(ITEM_HELD, 3, false)] = VANILLA_ITEM;
-		ENCODERS[lookupIndex(ITEM_HELD, 1, true)] = VANILLA_ITEM;
-		ENCODERS[lookupIndex(ITEM_HELD, 2, true)] = VANILLA_ITEM;
-		ENCODERS[lookupIndex(ITEM_HELD, 3, true)] = VANILLA_ITEM;
+		ENCODERS[lookupIndex(ITEM_HELD, 1, false)] = VANILLA_ITEM_1;
+		ENCODERS[lookupIndex(ITEM_HELD, 2, false)] = VANILLA_ITEM_2;
+		ENCODERS[lookupIndex(ITEM_HELD, 3, false)] = VANILLA_ITEM_3;
+		ENCODERS[lookupIndex(ITEM_HELD, 1, true)] = VANILLA_ITEM_1;
+		ENCODERS[lookupIndex(ITEM_HELD, 2, true)] = VANILLA_ITEM_2;
+		ENCODERS[lookupIndex(ITEM_HELD, 3, true)] = VANILLA_ITEM_3;
 
-		ENCODERS[lookupIndex(ITEM_GUI, 1, false)] = VANILLA_ITEM;
-		ENCODERS[lookupIndex(ITEM_GUI, 2, false)] = VANILLA_ITEM;
-		ENCODERS[lookupIndex(ITEM_GUI, 3, false)] = VANILLA_ITEM;
-		ENCODERS[lookupIndex(ITEM_GUI, 1, true)] = VANILLA_ITEM;
-		ENCODERS[lookupIndex(ITEM_GUI, 2, true)] = VANILLA_ITEM;
-		ENCODERS[lookupIndex(ITEM_GUI, 3, true)] = VANILLA_ITEM;
+		ENCODERS[lookupIndex(ITEM_GUI, 1, false)] = VANILLA_ITEM_1;
+		ENCODERS[lookupIndex(ITEM_GUI, 2, false)] = VANILLA_ITEM_2;
+		ENCODERS[lookupIndex(ITEM_GUI, 3, false)] = VANILLA_ITEM_3;
+		ENCODERS[lookupIndex(ITEM_GUI, 1, true)] = VANILLA_ITEM_1;
+		ENCODERS[lookupIndex(ITEM_GUI, 2, true)] = VANILLA_ITEM_2;
+		ENCODERS[lookupIndex(ITEM_GUI, 3, true)] = VANILLA_ITEM_3;
 
-		ENCODERS[lookupIndex(ITEM_GROUND, 1, false)] = VANILLA_ITEM;
-		ENCODERS[lookupIndex(ITEM_GROUND, 2, false)] = VANILLA_ITEM;
-		ENCODERS[lookupIndex(ITEM_GROUND, 3, false)] = VANILLA_ITEM;
-		ENCODERS[lookupIndex(ITEM_GROUND, 1, true)] = VANILLA_ITEM;
-		ENCODERS[lookupIndex(ITEM_GROUND, 2, true)] = VANILLA_ITEM;
-		ENCODERS[lookupIndex(ITEM_GROUND, 3, true)] = VANILLA_ITEM;
+		ENCODERS[lookupIndex(ITEM_GROUND, 1, false)] = VANILLA_ITEM_1;
+		ENCODERS[lookupIndex(ITEM_GROUND, 2, false)] = VANILLA_ITEM_2;
+		ENCODERS[lookupIndex(ITEM_GROUND, 3, false)] = VANILLA_ITEM_3;
+		ENCODERS[lookupIndex(ITEM_GROUND, 1, true)] = VANILLA_ITEM_1;
+		ENCODERS[lookupIndex(ITEM_GROUND, 2, true)] = VANILLA_ITEM_2;
+		ENCODERS[lookupIndex(ITEM_GROUND, 3, true)] = VANILLA_ITEM_3;
 
-		ENCODERS[lookupIndex(ITEM_FIXED, 1, false)] = VANILLA_ITEM;
-		ENCODERS[lookupIndex(ITEM_FIXED, 2, false)] = VANILLA_ITEM;
-		ENCODERS[lookupIndex(ITEM_FIXED, 3, false)] = VANILLA_ITEM;
-		ENCODERS[lookupIndex(ITEM_FIXED, 1, true)] = VANILLA_ITEM;
-		ENCODERS[lookupIndex(ITEM_FIXED, 2, true)] = VANILLA_ITEM;
-		ENCODERS[lookupIndex(ITEM_FIXED, 3, true)] = VANILLA_ITEM;
+		ENCODERS[lookupIndex(ITEM_FIXED, 1, false)] = VANILLA_ITEM_1;
+		ENCODERS[lookupIndex(ITEM_FIXED, 2, false)] = VANILLA_ITEM_2;
+		ENCODERS[lookupIndex(ITEM_FIXED, 3, false)] = VANILLA_ITEM_3;
+		ENCODERS[lookupIndex(ITEM_FIXED, 1, true)] = VANILLA_ITEM_1;
+		ENCODERS[lookupIndex(ITEM_FIXED, 2, true)] = VANILLA_ITEM_2;
+		ENCODERS[lookupIndex(ITEM_FIXED, 3, true)] = VANILLA_ITEM_3;
 	}
 }

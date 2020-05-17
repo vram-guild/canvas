@@ -12,12 +12,8 @@ import grondag.canvas.buffer.packing.VertexCollectorImpl;
 import grondag.canvas.mixinterface.Matrix3fExt;
 
 class VanillaTerrainEncoder extends VanillaBlockEncoder {
-	VanillaTerrainEncoder(int index) {
-		super(index);
-	}
-
 	@Override
-	protected void bufferQuad(MutableQuadViewImpl quad, AbstractRenderContext context) {
+	protected void bufferQuad1(MutableQuadViewImpl quad, AbstractRenderContext context) {
 		final Matrix4f matrix = context.matrix();
 		final Vector4f transformVector = context.transformVector;
 		final Matrix3fExt normalMatrix = context.normalMatrix();
