@@ -3,9 +3,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
  * of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
@@ -15,9 +15,11 @@
 package grondag.canvas.mixin;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
-import net.minecraft.util.collection.PackedIntegerArray;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+
+import net.minecraft.util.collection.PackedIntegerArray;
+
 import grondag.canvas.mixinterface.PackedIntegerArrayExt;
 
 @Mixin(PackedIntegerArray.class)
@@ -26,41 +28,26 @@ public abstract class MixinPackedIntegerArray implements PackedIntegerArrayExt {
 	@Shadow private int elementBits;
 	@Shadow private long maxValue;
 	@Shadow private int size;
+	@Shadow private int field_24079;
 
 	@Override
 	public void canvas_fastForEach(IntArrayList list) {
+		int i = 0;
+		final long[] bits = storage;
+		final int wordLimit = bits.length;
+		final int elementsPerWord = field_24079;
 
-		final int len = storage.length;
+		for (int wordIndex = 0; wordIndex < wordLimit; ++wordIndex) {
+			long l = bits[wordIndex];
 
-		if (len != 0) {
-			int lastWordIndex = 0;
-			long currentWord = storage[0];
-			long nextWord = len > 1 ? storage[1] : 0L;
-			int currentBitIndex = 0;
+			for(int j = 0; j < elementsPerWord; ++j) {
+				list.add((int)(l & maxValue));
+				l = (l >> elementBits);
 
-			for(int i = 0; i < size; ++i) {
-				final int nextBitIndex = currentBitIndex + elementBits;
-				final int lowWordIndex = currentBitIndex >> 6;
-			final int highWordIndex = (nextBitIndex - 1) >> 6;
-			final int lowShift = currentBitIndex ^ lowWordIndex << 6;
-
-			if (lowWordIndex != lastWordIndex) {
-				currentWord = nextWord;
-				final int nextWorldIndex = lowWordIndex + 1;
-				nextWord = nextWorldIndex < len ? storage[nextWorldIndex] : 0L;
-				lastWordIndex = lowWordIndex;
-			}
-
-			if (lowWordIndex == highWordIndex) {
-				list.add((int)(currentWord >>> lowShift & maxValue));
-			} else {
-				final int highShift = 64 - lowShift;
-				list.add((int)((currentWord >>> lowShift | nextWord << highShift) & maxValue));
-			}
-
-			currentBitIndex = nextBitIndex;
+				if (++i >= size) {
+					return;
+				}
 			}
 		}
-
 	}
 }
