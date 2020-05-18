@@ -22,13 +22,13 @@ import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
 
 import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.apiimpl.RenderMaterialImpl;
-import grondag.canvas.apiimpl.RenderMaterialImpl.Value;
+import grondag.canvas.apiimpl.RenderMaterialImpl.CompositeMaterial;
 import grondag.canvas.apiimpl.mesh.MeshImpl;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.util.ColorHelper;
 import grondag.canvas.apiimpl.util.GeometryHelper;
 import grondag.canvas.apiimpl.util.MeshEncodingHelper;
-import grondag.canvas.material.MaterialState;
+import grondag.canvas.buffer.encoding.VertexEncoders;
 
 /**
  * Consumer for pre-baked meshes.  Works by copying the mesh data to a
@@ -94,8 +94,8 @@ public class MeshConsumer implements Consumer<Mesh> {
 			return;
 		}
 
-		final Value mat = editorQuad.material().forBlendMode(context.defaultBlendModeIndex());
+		final CompositeMaterial mat = editorQuad.material().forBlendMode(context.defaultBlendModeIndex());
 		editorQuad.material(mat);
-		MaterialState.get(context.materialContext(), quad.material().forBlendMode(context.defaultBlendModeIndex())).encoder.encodeQuad(quad, context);
+		VertexEncoders.get(context.materialContext(), mat).encodeQuad(quad, context);
 	}
 }

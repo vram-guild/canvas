@@ -3,28 +3,33 @@ package grondag.canvas.shader;
 import grondag.canvas.material.MaterialContext;
 
 public class ShaderContext {
+	public enum Type  {
+		SOLID,
+		DECAL,
+		TRANSLUCENT
+	}
 	private static int indexCounter;
 
 	public final int index = ++indexCounter;
 	public final String name;
+
 	public final MaterialContext materialContext;
-	public final int spriteDepth;
-	public final boolean isCutout;
+
+	public final Type type;
+
 	public final boolean hdLightmaps;
 
 	private ShaderContext(Builder builder) {
 		name = builder.name;
 		materialContext = builder.materialContext;
-		spriteDepth = builder.spriteDepth;
-		isCutout = builder.isCutout;
+		type = builder.type;
 		hdLightmaps = builder.hdLightmaps;
 	}
 
 	public static class Builder {
 		private String name;
 		private MaterialContext materialContext;
-		private int spriteDepth = 1;
-		private boolean isCutout = false;
+		private Type type = Type.SOLID;
 		private boolean hdLightmaps = false;
 
 		Builder name(String name) {
@@ -37,14 +42,8 @@ public class ShaderContext {
 			return this;
 		}
 
-		Builder spriteDepth(int spriteDepth) {
-			this.spriteDepth = spriteDepth;
-			return this;
-		}
-
-		// TODO: remove?
-		Builder isCutout(boolean isCutout) {
-			this.isCutout = isCutout;
+		Builder type(Type type) {
+			this.type = type == null ? Type.SOLID : type;
 			return this;
 		}
 
@@ -62,10 +61,21 @@ public class ShaderContext {
 		return new Builder();
 	}
 
-	public static final ShaderContext VANILLA_TERRAIN = builder()
+	public static final ShaderContext VANILLA_TERRAIN_SOLID = builder()
 			.hdLightmaps(false)
-			.isCutout(false)
+			.type(Type.SOLID)
 			.materialContext(MaterialContext.TERRAIN)
 			.build();
 
+	public static final ShaderContext VANILLA_TERRAIN_DECAL = builder()
+			.hdLightmaps(false)
+			.type(Type.DECAL)
+			.materialContext(MaterialContext.TERRAIN)
+			.build();
+
+	public static final ShaderContext VANILLA_TERRAIN_TRANSLUCENT = builder()
+			.hdLightmaps(false)
+			.type(Type.TRANSLUCENT)
+			.materialContext(MaterialContext.TERRAIN)
+			.build();
 }

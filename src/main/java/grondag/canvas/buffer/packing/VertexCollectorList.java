@@ -6,10 +6,11 @@ import java.util.function.Consumer;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
-import grondag.canvas.apiimpl.RenderMaterialImpl.Value;
+import grondag.canvas.apiimpl.RenderMaterialImpl.CompositeMaterial.DrawableMaterial;
 import grondag.canvas.chunk.UploadableChunk;
 import grondag.canvas.material.MaterialContext;
 import grondag.canvas.material.MaterialState;
+import grondag.canvas.shader.ShaderContext;
 
 public class VertexCollectorList {
 	private final VertexCollectorImpl[] collectors = new VertexCollectorImpl[MaterialState.MAX_MATERIAL_STATES];
@@ -47,6 +48,10 @@ public class VertexCollectorList {
 		}
 
 		return true;
+	}
+
+	public final VertexCollectorImpl getIfExists(MaterialState materialState) {
+		return collectors[materialState.index];
 	}
 
 	public final VertexCollectorImpl get(MaterialState materialState) {
@@ -100,7 +105,7 @@ public class VertexCollectorList {
 			final int vertexCount = vertexCollector.vertexCount();
 			final MaterialState matState = vertexCollector.materialState();
 
-			if (vertexCount != 0 && !matState.isTranslucent) {
+			if (vertexCount != 0 && matState.shaderType != ShaderContext.Type.TRANSLUCENT) {
 				packing.addPacking(matState, 0, vertexCount);
 			}
 		}
@@ -173,7 +178,7 @@ public class VertexCollectorList {
 
 	private static final VertexCollectorImpl[] EMPTY = new VertexCollectorImpl[MaterialState.MAX_MATERIAL_STATES];
 
-	public VertexCollectorImpl get(MaterialContext context, Value material) {
+	public VertexCollectorImpl getDirect(MaterialContext context, DrawableMaterial material) {
 		return get(MaterialState.get(context, material));
 	}
 

@@ -9,15 +9,24 @@ import it.unimi.dsi.fastutil.ints.IntComparator;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.util.math.MathHelper;
 
+import grondag.canvas.buffer.encoding.VertexEncoder;
+import grondag.canvas.buffer.encoding.VertexEncoders;
 import grondag.canvas.material.MaterialState;
 import grondag.canvas.material.MaterialVertexFormats;
+import grondag.canvas.shader.ShaderContext;
 import grondag.fermion.intstream.IntStreamProvider;
 import grondag.fermion.intstream.IntStreamProvider.IntStreamImpl;
 
 public class VertexCollectorImpl implements VertexCollector {
 	private final IntStreamImpl data = INT_STREAM_PROVIDER.claim();
 	private int integerSize = 0;
+	/**
+	 * Used for vanilla quads
+	 */
+	private VertexEncoder defaultEncoder;
+
 	private MaterialState materialState;
+
 	public final VertexCollectorList parent;
 	public final int[] appendData  = new int[MaterialVertexFormats.MAX_QUAD_INT_STRIDE];
 
@@ -43,6 +52,7 @@ public class VertexCollectorImpl implements VertexCollector {
 	}
 
 	public VertexCollectorImpl prepare(MaterialState materialState) {
+		defaultEncoder = VertexEncoders.getDefault(materialState.context, materialState.shaderType == ShaderContext.Type.TRANSLUCENT);
 		this.materialState = materialState;
 		return this;
 	}
@@ -282,43 +292,44 @@ public class VertexCollectorImpl implements VertexCollector {
 
 	@Override
 	public VertexConsumer vertex(double x, double y, double z) {
-		materialState.encoder.vertex(this, x, y, z);
+		assert defaultEncoder != null;
+		defaultEncoder.vertex(this, x, y, z);
 		return this;
 	}
 
 	@Override
 	public void vertex(float x, float y, float z, float i, float j, float k, float l, float m, float n, int o, int p, float q, float r, float s) {
-		materialState.encoder.vertex(this, x, y, z, i, j, k, l, m, n, o, p, q, r, s);
+		defaultEncoder.vertex(this, x, y, z, i, j, k, l, m, n, o, p, q, r, s);
 		next();
 	}
 
 	@Override
 	public VertexConsumer color(int r, int g, int b, int a) {
-		materialState.encoder.color(this, r, g, b, a);
+		defaultEncoder.color(this, r, g, b, a);
 		return this;
 	}
 
 	@Override
 	public VertexConsumer texture(float u, float v) {
-		materialState.encoder.texture(this, u, v);
+		defaultEncoder.texture(this, u, v);
 		return this;
 	}
 
 	@Override
 	public VertexConsumer overlay(int s, int t) {
-		materialState.encoder.overlay(this, s, t);
+		defaultEncoder.overlay(this, s, t);
 		return this;
 	}
 
 	@Override
 	public VertexConsumer light(int s, int t) {
-		materialState.encoder.light(this, s, t);
+		defaultEncoder.light(this, s, t);
 		return this;
 	}
 
 	@Override
 	public VertexConsumer normal(float x, float y, float z) {
-		materialState.encoder.normal(this, x, y, z);
+		defaultEncoder.normal(this, x, y, z);
 		return this;
 	}
 

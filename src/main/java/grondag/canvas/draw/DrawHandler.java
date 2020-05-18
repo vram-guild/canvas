@@ -3,6 +3,7 @@ package grondag.canvas.draw;
 import grondag.canvas.apiimpl.MaterialConditionImpl;
 import grondag.canvas.apiimpl.MaterialShaderImpl;
 import grondag.canvas.material.MaterialVertexFormat;
+import grondag.canvas.shader.ShaderContext;
 
 public abstract class DrawHandler {
 	private static DrawHandler current = null;
@@ -14,11 +15,13 @@ public abstract class DrawHandler {
 	public final MaterialShaderImpl shader;
 	public final MaterialConditionImpl condition;
 	public final MaterialVertexFormat format;
+	public final ShaderContext.Type shaderType;
 
-	DrawHandler (MaterialVertexFormat format, MaterialShaderImpl shader,  MaterialConditionImpl condition) {
+	DrawHandler (MaterialVertexFormat format, MaterialShaderImpl shader,  MaterialConditionImpl condition, ShaderContext.Type shaderType) {
 		this.format = format;
 		this.shader = shader;
 		this.condition = condition;
+		this.shaderType = shaderType;
 	}
 
 	public final void setup() {

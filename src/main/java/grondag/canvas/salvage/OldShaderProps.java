@@ -40,7 +40,7 @@ abstract class OldShaderProps {
 
 	public static final int BITLENGTH = FLAGS_LENGTH + 2;
 
-	public static int classify(RenderMaterialImpl.Value material, MutableQuadViewImpl quad, OldShaderContext context) {
+	public static int classify(RenderMaterialImpl.CompositeMaterial material, MutableQuadViewImpl quad, OldShaderContext context) {
 		int flags = 0;
 		final boolean isBlock = context.isBlock;
 
@@ -57,9 +57,9 @@ abstract class OldShaderProps {
 		//			}
 		//		}
 
-		if(material.isCutout) {
-			flags |= CUTOUT;
-		}
+		//		if(material.isCutout) {
+		//			flags |= CUTOUT;
+		//		}
 
 		if(isBlock && Configurator.hdLightmaps && quad.blockLight != null && quad.skyLight != null && quad.aoShade != null) {
 			flags |= SMOOTH_LIGHTMAPS;

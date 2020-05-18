@@ -6,16 +6,16 @@ import net.minecraft.client.render.RenderLayer;
 
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 
-import grondag.canvas.apiimpl.RenderMaterialImpl.Value;
+import grondag.canvas.apiimpl.RenderMaterialImpl.CompositeMaterial;
 
 // TODO: expose in API as alternate for render layer
 public class StandardMaterials {
-	public static final Value BLOCK_TRANSLUCENT = Canvas.INSTANCE.materialFinder().blendMode(0, BlendMode.TRANSLUCENT).find();
-	public static final Value BLOCK_SOLID = Canvas.INSTANCE.materialFinder().blendMode(0, BlendMode.SOLID).find();
-	public static final Value BLOCK_CUTOUT = Canvas.INSTANCE.materialFinder().blendMode(0, BlendMode.CUTOUT).find();
-	public static final Value BLOCK_CUTOUT_MIPPED = Canvas.INSTANCE.materialFinder().blendMode(0, BlendMode.CUTOUT_MIPPED).find();
+	public static final CompositeMaterial BLOCK_TRANSLUCENT = Canvas.INSTANCE.materialFinder().blendMode(0, BlendMode.TRANSLUCENT).find();
+	public static final CompositeMaterial BLOCK_SOLID = Canvas.INSTANCE.materialFinder().blendMode(0, BlendMode.SOLID).find();
+	public static final CompositeMaterial BLOCK_CUTOUT = Canvas.INSTANCE.materialFinder().blendMode(0, BlendMode.CUTOUT).find();
+	public static final CompositeMaterial BLOCK_CUTOUT_MIPPED = Canvas.INSTANCE.materialFinder().blendMode(0, BlendMode.CUTOUT_MIPPED).find();
 
-	private  static final IdentityHashMap<RenderLayer, RenderMaterialImpl.Value> LAYER_MAP = new IdentityHashMap<>();
+	private  static final IdentityHashMap<RenderLayer, RenderMaterialImpl.CompositeMaterial> LAYER_MAP = new IdentityHashMap<>();
 
 	static {
 		LAYER_MAP.put(RenderLayer.getSolid(), BLOCK_SOLID);
@@ -24,7 +24,7 @@ public class StandardMaterials {
 		LAYER_MAP.put(RenderLayer.getTranslucent(), BLOCK_TRANSLUCENT);
 	}
 
-	public static Value get(RenderLayer layer) {
+	public static CompositeMaterial get(RenderLayer layer) {
 		return LAYER_MAP.get(layer);
 	}
 }

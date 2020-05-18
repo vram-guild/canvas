@@ -28,10 +28,10 @@ import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
 import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 
 import grondag.canvas.apiimpl.Canvas;
-import grondag.canvas.apiimpl.RenderMaterialImpl.Value;
+import grondag.canvas.apiimpl.RenderMaterialImpl.CompositeMaterial;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.util.MeshEncodingHelper;
-import grondag.canvas.material.MaterialState;
+import grondag.canvas.buffer.encoding.VertexEncoders;
 import grondag.canvas.mixinterface.BakedQuadExt;
 
 /**
@@ -54,10 +54,10 @@ import grondag.canvas.mixinterface.BakedQuadExt;
  *  manipulating the data via NIO.
  */
 public class FallbackConsumer implements Consumer<BakedModel> {
-	protected static Value MATERIAL_FLAT = Canvas.INSTANCE.materialFinder().disableDiffuse(0, true).disableAo(0, true).find();
-	protected static Value MATERIAL_SHADED = Canvas.INSTANCE.materialFinder().disableAo(0, true).find();
-	protected static Value MATERIAL_AO_FLAT = Canvas.INSTANCE.materialFinder().disableDiffuse(0, true).find();
-	protected static Value MATERIAL_AO_SHADED = Canvas.INSTANCE.materialFinder().find();
+	protected static CompositeMaterial MATERIAL_FLAT = Canvas.INSTANCE.materialFinder().disableDiffuse(0, true).disableAo(0, true).find();
+	protected static CompositeMaterial MATERIAL_SHADED = Canvas.INSTANCE.materialFinder().disableAo(0, true).find();
+	protected static CompositeMaterial MATERIAL_AO_FLAT = Canvas.INSTANCE.materialFinder().disableDiffuse(0, true).find();
+	protected static CompositeMaterial MATERIAL_AO_SHADED = Canvas.INSTANCE.materialFinder().find();
 
 	protected final AbstractRenderContext context;
 
@@ -123,7 +123,7 @@ public class FallbackConsumer implements Consumer<BakedModel> {
 		}
 	}
 
-	private void renderQuad(BakedQuad quad, int cullFaceId, Value defaultMaterial) {
+	private void renderQuad(BakedQuad quad, int cullFaceId, CompositeMaterial defaultMaterial) {
 		final MutableQuadViewImpl editorQuad = this.editorQuad;
 		final int[] editorBuffer = this.editorBuffer;
 
@@ -142,8 +142,8 @@ public class FallbackConsumer implements Consumer<BakedModel> {
 		// Can't rely on lazy computation in tesselate because needs to happen before offsets are applied
 		editorQuad.geometryFlags();
 
-		final Value mat = editorQuad.material().forBlendMode(context.defaultBlendModeIndex());
+		final CompositeMaterial mat = editorQuad.material().forBlendMode(context.defaultBlendModeIndex());
 		editorQuad.material(mat);
-		MaterialState.get(context.materialContext(), mat).encoder.encodeQuad(editorQuad, context);
+		VertexEncoders.get(context.materialContext(), mat).encodeQuad(editorQuad, context);
 	}
 }

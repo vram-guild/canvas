@@ -4,9 +4,6 @@
 #define TRUE 1
 #define FALSE 0
 
-// will be changed to sprite depth (1, 2 or 3) before compile
-#define LAYER_COUNT 1
-
 // true if first sprite color is all white and will not be sent
 // false if first sprite is colorized or compact formats are disabled
 #define WHITE_0 FALSE
@@ -87,8 +84,8 @@ uniform int u_fogMode;
 #endif
 
 //TODO - disable when not used
-varying vec4 v_color_0;
-varying vec2 v_texcoord_0;
+varying vec4 v_color;
+varying vec2 v_texcoord;
 
 //TODO - disable when not used
 varying vec2 v_lightcoord;
@@ -104,38 +101,28 @@ varying vec2 v_lightcoord;
     invariant varying vec2 v_flags;
 #endif
 
-#if LAYER_COUNT > 1
-varying vec4 v_color_1;
-varying vec2 v_texcoord_1;
-#endif
-
-#if LAYER_COUNT > 2
-varying vec4 v_color_2;
-varying vec2 v_texcoord_2;
-#endif
-
 #define PI    3.1415926535897932384626433832795
 #define PI_2  1.57079632679489661923
 
 // packed in first flag octet
-#define FLAG_EMISSIVE_0         0
-#define FLAG_EMISSIVE_1         1
-#define FLAG_EMISSIVE_2         2
-#define FLAG_PADDING            3
-#define FLAG_DISABLE_DIFFUSE_0  4
-#define FLAG_DISABLE_AO_0       5
-#define FLAG_CUTOUT_0           6
-#define FLAG_UNMIPPED_0         7
+#define FLAG_EMISSIVE           0
+#define FLAG_DISABLE_DIFFUSE    1
+#define FLAG_DISABLE_AO         2
+#define FLAG_CUTOUT             3
+#define FLAG_UNMIPPED		    4
+#define FLAG_RESERVED_5         5
+#define FLAG_RESERVED_6         6
+#define FLAG_RESERVED_7         7
 
 // packed in second flag octet
-#define FLAG_DISABLE_DIFFUSE_1  0
-#define FLAG_DISABLE_AO_1       1
-#define FLAG_CUTOUT_1           2
-#define FLAG_UNMIPPED_1         3
-#define FLAG_DISABLE_DIFFUSE_2  4
-#define FLAG_DISABLE_AO_2       5
-#define FLAG_CUTOUT_2           6
-#define FLAG_UNMIPPED_2         7
+#define FLAG_RESERVED_8  		0
+#define FLAG_RESERVED_9         1
+#define FLAG_RESERVED_A         2
+#define FLAG_RESERVED_B         3
+#define FLAG_RESERVED_C  		4
+#define FLAG_RESERVED_D       	5
+#define FLAG_RESERVED_E         6
+#define FLAG_RESERVED_F         7
 
 #define  FACE_DOWN  0
 #define  FACE_UP    1

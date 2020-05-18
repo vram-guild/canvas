@@ -19,7 +19,7 @@ import static grondag.canvas.material.MaterialContext.TERRAIN;
 import net.minecraft.util.math.MathHelper;
 
 import grondag.canvas.apiimpl.RenderMaterialImpl;
-import grondag.canvas.apiimpl.RenderMaterialImpl.Value;
+import grondag.canvas.apiimpl.RenderMaterialImpl.CompositeMaterial;
 import grondag.canvas.material.MaterialContext;
 
 public class VertexEncoders {
@@ -45,8 +45,12 @@ public class VertexEncoders {
 		return isTranslucent  ? (TRANSLUCENT_FLAG | (context.ordinal() << CONTEXT_SHIFT) | spriteDepth) : ((context.ordinal() << CONTEXT_SHIFT) | spriteDepth);
 	}
 
-	public static VertexEncoder get(MaterialContext context, Value mat) {
+	public static VertexEncoder get(MaterialContext context, CompositeMaterial mat) {
 		return ENCODERS[lookupIndex(context, mat.spriteDepth(), mat.isTranslucent)];
+	}
+
+	public static VertexEncoder getDefault(MaterialContext context, boolean isTranslucent) {
+		return ENCODERS[lookupIndex(context, 1, isTranslucent)];
 	}
 
 	public static void reload() {

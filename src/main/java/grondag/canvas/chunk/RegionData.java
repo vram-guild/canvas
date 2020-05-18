@@ -11,9 +11,9 @@ import net.minecraft.block.entity.BlockEntity;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 
-import grondag.canvas.apiimpl.StandardMaterials;
 import grondag.canvas.buffer.packing.VertexCollectorImpl;
 import grondag.canvas.buffer.packing.VertexCollectorList;
+import grondag.canvas.draw.DrawHandlers;
 import grondag.canvas.material.MaterialContext;
 import grondag.canvas.material.MaterialState;
 
@@ -32,10 +32,9 @@ public class RegionData {
 	}
 
 	public void endBuffering(float x, float y, float z, VertexCollectorList buffers) {
-		final MaterialState translucent = MaterialState.get(MaterialContext.TERRAIN, StandardMaterials.BLOCK_TRANSLUCENT);
+		final VertexCollectorImpl buffer = buffers.getIfExists(MaterialState.get(MaterialContext.TERRAIN, DrawHandlers.TRANSLUCENT));
 
-		if (buffers.contains(translucent)) {
-			final VertexCollectorImpl buffer = buffers.get(translucent);
+		if (buffer != null) {
 			buffer.sortQuads(x, y, z);
 			translucentState = buffer.saveState(translucentState);
 		}

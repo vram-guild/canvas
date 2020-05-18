@@ -54,7 +54,7 @@ public class BufferPacker {
 	}
 
 	public void accept(MaterialState materialState, int vertexStart, int vertexCount) {
-		final VertexCollectorImpl collector = collectorList.get(materialState);
+		final VertexCollectorImpl collector = collectorList.getIfExists(materialState);
 		final MaterialVertexFormat format = collector.materialState().bufferFormat;
 		final int stride = format.vertexStrideBytes;
 

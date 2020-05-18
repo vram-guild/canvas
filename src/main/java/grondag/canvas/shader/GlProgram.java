@@ -60,8 +60,7 @@ public class GlProgram {
 
 	public final GlVertexShader vertexShader;
 	public final GlFragmentShader fragmentShader;
-	public final int spriteDepth;
-	public final boolean isSolidLayer;
+	public final ShaderContext.Type type;
 	public final MaterialVertexFormat pipelineVertexFormat;
 
 	private final ObjectArrayList<UniformImpl<?>> uniforms = new ObjectArrayList<>();
@@ -483,12 +482,11 @@ public class GlProgram {
 		return addUniform(new UniformArrayiImpl(name, initializer, frequency, size));
 	}
 
-	public GlProgram(GlVertexShader vertexShader, GlFragmentShader fragmentShader, MaterialVertexFormat format, ShaderContext shaderContext, boolean isSolidLayer) {
+	public GlProgram(GlVertexShader vertexShader, GlFragmentShader fragmentShader, MaterialVertexFormat format, ShaderContext shaderContext) {
 		this.vertexShader = vertexShader;
 		this.fragmentShader = fragmentShader;
-		spriteDepth = shaderContext.spriteDepth;
 		pipelineVertexFormat = format;
-		this.isSolidLayer = isSolidLayer;
+		type = shaderContext.type;
 	}
 
 	public final void activate() {

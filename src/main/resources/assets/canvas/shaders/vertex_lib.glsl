@@ -1,26 +1,16 @@
 attribute vec4 in_normal_ao;
 
 #if !(WHITE_0)
-    attribute vec4 in_color_0;
+    attribute vec4 in_color;
 #endif
 
-attribute vec2 in_uv_0;
+attribute vec2 in_uv;
 attribute vec4 in_lightmap;
 
 #if ENABLE_SMOOTH_LIGHT
 attribute vec2 in_hd_blocklight;
 attribute vec2 in_hd_skylight;
 attribute vec2 in_hd_ao;
-#endif
-
-#if LAYER_COUNT > 1
-attribute vec4 in_color_1;
-attribute vec2 in_uv_1;
-#endif
-
-#if LAYER_COUNT > 2
-attribute vec4 in_color_2;
-attribute vec2 in_uv_2;
 #endif
 
 vec2 textureCoord(vec2 coordIn, int matrixIndex) {
@@ -45,7 +35,7 @@ void setupVertex() {
     vec4 viewCoord = gl_ModelViewMatrix * gl_Vertex;
     gl_ClipVertex = viewCoord;
     gl_FogFragCoord = length(viewCoord.xyz);
-    v_texcoord_0 = textureCoord(in_uv_0, 0);
+    v_texcoord = textureCoord(in_uv, 0);
 
     #if CONTEXT_IS_BLOCK
         #if ENABLE_SMOOTH_LIGHT
@@ -73,19 +63,10 @@ void setupVertex() {
     v_flags =  in_lightmap.ba + 0.5;
 
     #if WHITE_0
-        v_color_0 = vec4(1.0, 1.0, 1.0, 1.0);
+        v_color = vec4(1.0, 1.0, 1.0, 1.0);
     #else
-        v_color_0 = in_color_0;
+        v_color = in_color;
     #endif
 
-    #if LAYER_COUNT > 1
-        v_color_1 = in_color_1;
-        v_texcoord_1 = textureCoord(in_uv_1, 0);
-    #endif
-
-    #if LAYER_COUNT > 2
-        v_color_2 = in_color_2;
-        v_texcoord_2 = textureCoord(in_uv_2, 0);
-    #endif
 }
 

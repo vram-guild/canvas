@@ -30,7 +30,7 @@ import net.minecraft.world.BlockRenderView;
 
 import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
 
-import grondag.canvas.apiimpl.RenderMaterialImpl.Value;
+import grondag.canvas.apiimpl.RenderMaterialImpl.CompositeMaterial.DrawableMaterial;
 import grondag.canvas.light.AoCalculator;
 import grondag.canvas.material.MaterialContext;
 import grondag.canvas.mixinterface.Matrix3fExt;
@@ -123,7 +123,7 @@ public class BlockRenderContext extends AbstractBlockRenderContext<BlockRenderVi
 	}
 
 	@Override
-	public VertexConsumer consumer(Value mat) {
+	public VertexConsumer consumer(DrawableMaterial mat) {
 		didOutput = true;
 		return bufferBuilder;
 	}

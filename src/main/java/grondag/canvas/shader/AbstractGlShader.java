@@ -193,15 +193,15 @@ abstract class AbstractGlShader {
 		result = result.replaceAll("#version\\s+120", "");
 		result = librarySource + result;
 
-		final int spriteDepth = context.spriteDepth;
+		//		final int spriteDepth = context.spriteDepth;
 
 		//		if(context.isCutout) {
 		//			result = result.replaceAll("#define CUTOUT FALSE", "#define CUTOUT TRUE");
 		//		}
 
-		if (spriteDepth > 1) {
-			result = result.replaceAll("#define LAYER_COUNT 1", String.format("#define LAYER_COUNT %d", spriteDepth));
-		}
+		//		if (spriteDepth > 1) {
+		//			result = result.replaceAll("#define LAYER_COUNT 1", String.format("#define LAYER_COUNT %d", spriteDepth));
+		//		}
 
 		if(context.materialContext.isBlock) {
 			result = result.replaceAll("#define CONTEXT_IS_BLOCK FALSE", "#define CONTEXT_IS_BLOCK TRUE");

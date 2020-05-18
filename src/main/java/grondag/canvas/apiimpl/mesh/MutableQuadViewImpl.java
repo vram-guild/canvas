@@ -84,7 +84,7 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 			material = Canvas.MATERIAL_STANDARD;
 		}
 
-		data[baseIndex + HEADER_MATERIAL] = ((RenderMaterialImpl.Value)material).index();
+		data[baseIndex + HEADER_MATERIAL] = ((RenderMaterialImpl.CompositeMaterial)material).index();
 
 		assert RenderMaterialImpl.byIndex(data[baseIndex + HEADER_MATERIAL]) == material;
 

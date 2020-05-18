@@ -88,6 +88,7 @@ public class BufferPackingList {
 
 	public final void forEach(BufferPacker consumer) {
 		final int size = this.size;
+
 		for (int i = 0; i < size; i++) {
 			consumer.accept(materialStates[i], starts[i], counts[i]);
 		}
@@ -95,6 +96,7 @@ public class BufferPackingList {
 
 	public final void forEachMaterialState(Consumer<MaterialState> consumer) {
 		final int size = this.size;
+
 		for (int i = 0; i < size; i++) {
 			consumer.accept(materialStates[i]);
 		}

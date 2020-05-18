@@ -64,12 +64,11 @@ public final class MaterialShaderImpl implements MaterialShader {
 	private GlProgram getOrCreate(ShaderContext context,  MaterialVertexFormat format) {
 		final int key = context.index;
 		final GlProgram result = programMap.get(key);
+
 		if(result == null) {
-			final int spriteDepth = context.spriteDepth;
-			assert spriteDepth > 0;
 			final GlVertexShader vs = GlShaderManager.INSTANCE.getOrCreateVertexShader(vertexShader, context);
 			final GlFragmentShader fs = GlShaderManager.INSTANCE.getOrCreateFragmentShader(fragmentShader, context);
-			final GlProgram newProgram = new GlProgram(vs, fs, format, context, true);   // FIX: last param always true?
+			final GlProgram newProgram = new GlProgram(vs, fs, format, context);
 			uniforms.forEach(u -> u.accept(newProgram));
 			newProgram.load();
 			programMap.put(key, newProgram);

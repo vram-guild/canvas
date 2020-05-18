@@ -27,7 +27,7 @@ import net.fabricmc.fabric.api.renderer.v1.mesh.MeshBuilder;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.RenderMaterialImpl.Finder;
-import grondag.canvas.apiimpl.RenderMaterialImpl.Value;
+import grondag.canvas.apiimpl.RenderMaterialImpl.CompositeMaterial;
 import grondag.canvas.apiimpl.mesh.MeshBuilderImpl;
 import grondag.canvas.apiimpl.rendercontext.BlockRenderContext;
 import grondag.canvas.buffer.encoding.VertexEncoders;
@@ -44,13 +44,13 @@ import grondag.frex.api.material.ShaderBuilder;
 public class Canvas implements Renderer {
 	public static final Canvas INSTANCE = new Canvas();
 
-	public static final RenderMaterialImpl.Value MATERIAL_STANDARD = INSTANCE.materialFinder().find();
+	public static final RenderMaterialImpl.CompositeMaterial MATERIAL_STANDARD = INSTANCE.materialFinder().find();
 
 	static {
 		INSTANCE.registerMaterial(RenderMaterial.MATERIAL_STANDARD, MATERIAL_STANDARD);
 	}
 
-	private final HashMap<Identifier, Value> materialMap = new HashMap<>();
+	private final HashMap<Identifier, CompositeMaterial> materialMap = new HashMap<>();
 	private final HashMap<Identifier, MaterialShaderImpl> shaderMap = new HashMap<>();
 	private final HashMap<Identifier, MaterialConditionImpl> conditionMap = new HashMap<>();
 
@@ -67,7 +67,7 @@ public class Canvas implements Renderer {
 	}
 
 	@Override
-	public Value materialById(Identifier id) {
+	public CompositeMaterial materialById(Identifier id) {
 		return materialMap.get(id);
 	}
 
@@ -78,7 +78,7 @@ public class Canvas implements Renderer {
 		}
 
 		// cast to prevent acceptance of impostor implementations
-		materialMap.put(id, (Value) material);
+		materialMap.put(id, (CompositeMaterial) material);
 		return true;
 	}
 

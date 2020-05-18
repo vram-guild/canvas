@@ -24,11 +24,7 @@ import static grondag.canvas.salvage.VertexAttributeEncoder.NORMAL_AO;
 import static grondag.canvas.salvage.VertexAttributeEncoder.OVERLAY;
 import static grondag.canvas.salvage.VertexAttributeEncoder.POS;
 import static grondag.canvas.salvage.VertexAttributeEncoder.SPRITE_COLOR_0;
-import static grondag.canvas.salvage.VertexAttributeEncoder.SPRITE_COLOR_1;
-import static grondag.canvas.salvage.VertexAttributeEncoder.SPRITE_COLOR_2;
 import static grondag.canvas.salvage.VertexAttributeEncoder.SPRITE_UV_0;
-import static grondag.canvas.salvage.VertexAttributeEncoder.SPRITE_UV_1;
-import static grondag.canvas.salvage.VertexAttributeEncoder.SPRITE_UV_2;
 
 import net.minecraft.client.render.VertexFormatElement;
 
@@ -41,9 +37,9 @@ public class MaterialVertextFormatElement {
 	public static final MaterialVertextFormatElement POSITION_3F = new MaterialVertextFormatElement(
 			VertexFormatElement.Format.FLOAT, 3, null, POS);
 	public static final MaterialVertextFormatElement BASE_RGBA_4UB = new MaterialVertextFormatElement(
-			VertexFormatElement.Format.UBYTE, 4, "in_color_0", SPRITE_COLOR_0);
+			VertexFormatElement.Format.UBYTE, 4, "in_color", SPRITE_COLOR_0);
 	public static final MaterialVertextFormatElement BASE_TEX_2F = new MaterialVertextFormatElement(
-			VertexFormatElement.Format.FLOAT, 2, "in_uv_0", SPRITE_UV_0);
+			VertexFormatElement.Format.FLOAT, 2, "in_uv", SPRITE_UV_0);
 
 	/**
 	 * Format varies by model.<p>
@@ -68,18 +64,6 @@ public class MaterialVertextFormatElement {
 
 	public static final MaterialVertextFormatElement NORMAL_AO_4UB = new MaterialVertextFormatElement(
 			VertexFormatElement.Format.BYTE, 4, "in_normal_ao", NORMAL_AO, true);
-
-	public static final MaterialVertextFormatElement SECONDARY_RGBA_4UB = new MaterialVertextFormatElement(
-			VertexFormatElement.Format.UBYTE, 4, "in_color_1", SPRITE_COLOR_1);
-
-	public static final MaterialVertextFormatElement SECONDARY_TEX_2F = new MaterialVertextFormatElement(
-			VertexFormatElement.Format.FLOAT, 2, "in_uv_1", SPRITE_UV_1);
-
-	public static final MaterialVertextFormatElement TERTIARY_RGBA_4UB = new MaterialVertextFormatElement(
-			VertexFormatElement.Format.UBYTE, 4, "in_color_2", SPRITE_COLOR_2);
-
-	public static final MaterialVertextFormatElement TERTIARY_TEX_2F = new MaterialVertextFormatElement(
-			VertexFormatElement.Format.FLOAT, 2, "in_uv_2", SPRITE_UV_2);
 
 	public final String attributeName;
 	public final int elementCount;

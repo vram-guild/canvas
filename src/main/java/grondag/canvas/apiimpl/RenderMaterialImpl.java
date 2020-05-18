@@ -24,6 +24,7 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 import net.fabricmc.fabric.api.renderer.v1.material.RenderMaterial;
 
+import grondag.canvas.shader.ShaderContext;
 import grondag.canvas.shader.ShaderManager;
 import grondag.fermion.bits.BitPacker64;
 import grondag.fermion.bits.BitPacker64.BooleanElement;
@@ -73,34 +74,30 @@ public abstract class RenderMaterialImpl {
 
 	private static final long DEFAULT_BITS;
 
-	private static final ObjectArrayList<Value> LIST = new ObjectArrayList<>();
-	private static final Long2ObjectOpenHashMap<Value> MAP = new Long2ObjectOpenHashMap<>();
+	private static final ObjectArrayList<CompositeMaterial> LIST = new ObjectArrayList<>();
+	private static final Long2ObjectOpenHashMap<CompositeMaterial> MAP = new Long2ObjectOpenHashMap<>();
 
 	public static final int SHADER_FLAGS_DISABLE_AO;
 
 	static {
-		// First 16 bits of material bits are sent directly to the shader as control flags.
+		// Beginning material bits are sent directly to the shader as control flags.
+		// Currently 5 bits per layer
 		// Bit order is optimized for shader usage. In particular, representation
 		// of cutout and mipped handling is redundant of blend mode but is easier
 		// to consume in the shader as simple on/off flags.
 		FLAGS[EMISSIVE_INDEX_START + 0] = BITPACKER.createBooleanElement();
-		FLAGS[EMISSIVE_INDEX_START + 1] = BITPACKER.createBooleanElement();
-		FLAGS[EMISSIVE_INDEX_START + 2] = BITPACKER.createBooleanElement();
-
-		// this one is padding, reserved for future use
-		// needed to ensure other flags align to convenient boundaries
-		FLAGS[EMISSIVE_INDEX_START + 3] = BITPACKER.createBooleanElement();
-
 		FLAGS[DIFFUSE_INDEX_START + 0] = BITPACKER.createBooleanElement();
 		FLAGS[AO_INDEX_START + 0] = BITPACKER.createBooleanElement();
 		FLAGS[CUTOUT_INDEX_START + 0] = BITPACKER.createBooleanElement();
 		FLAGS[UNMIPPED_INDEX_START + 0] = BITPACKER.createBooleanElement();
 
+		FLAGS[EMISSIVE_INDEX_START + 1] = BITPACKER.createBooleanElement();
 		FLAGS[DIFFUSE_INDEX_START + 1] = BITPACKER.createBooleanElement();
 		FLAGS[AO_INDEX_START + 1] = BITPACKER.createBooleanElement();
 		FLAGS[CUTOUT_INDEX_START + 1] = BITPACKER.createBooleanElement();
 		FLAGS[UNMIPPED_INDEX_START + 1] = BITPACKER.createBooleanElement();
 
+		FLAGS[EMISSIVE_INDEX_START + 2] = BITPACKER.createBooleanElement();
 		FLAGS[DIFFUSE_INDEX_START + 2] = BITPACKER.createBooleanElement();
 		FLAGS[AO_INDEX_START + 2] = BITPACKER.createBooleanElement();
 		FLAGS[CUTOUT_INDEX_START + 2] = BITPACKER.createBooleanElement();
@@ -135,7 +132,7 @@ public abstract class RenderMaterialImpl {
 		SHADER_FLAGS_DISABLE_AO = (int)aoDisableBits;
 	}
 
-	public static RenderMaterialImpl.Value byIndex(int index) {
+	public static RenderMaterialImpl.CompositeMaterial byIndex(int index) {
 		assert index < LIST.size();
 		assert index >= 0;
 
@@ -180,7 +177,7 @@ public abstract class RenderMaterialImpl {
 		return (int) (bits & 0xFFFF);
 	}
 
-	public static class Value extends RenderMaterialImpl implements RenderMaterial {
+	public static class CompositeMaterial extends RenderMaterialImpl implements RenderMaterial {
 		private final int index;
 
 		/**
@@ -190,59 +187,42 @@ public abstract class RenderMaterialImpl {
 		public final boolean hasAo;
 
 		/**
-		 * Sprite index ordinal flags indicating texture wants emissive lighting.
-		 */
-		public final int emissiveFlags;
-
-		/**
 		 * Determine which buffer we use - derived from base layer.
 		 * If base layer is solid, then any additional sprites are handled
 		 * as decals and render in solid pass.  If base layer is translucent
 		 * then all sprite layers render as translucent.
 		 */
-		public final BlendMode renderLayer;
-
-		/**
-		 * True if base layer is a cutout layer. Implies renderLayer == SOLID.
-		 */
-		public final boolean isCutout;
+		//public final BlendMode renderLayer;
 
 		/**
 		 * True if base layer is translucent.
 		 */
 		public final boolean isTranslucent;
 
-		public final MaterialConditionImpl condition;
+		private final MaterialShaderImpl shader;
 
-		public MaterialShaderImpl shader;
+		private final MaterialConditionImpl condition;
 
-		private final Value[] blendModeVariants = new Value[4];
+		private final CompositeMaterial[] blendModeVariants = new CompositeMaterial[4];
 
-		private final Value[] depthVariants = new Value[MAX_SPRITE_DEPTH];
+		private final DrawableMaterial[] drawables = new DrawableMaterial[MAX_SPRITE_DEPTH];
 
-		protected Value(int index, long bits, MaterialShaderImpl shader) {
+		protected CompositeMaterial(int index, long bits, MaterialShaderImpl shader) {
 			this.index = index;
 			this.bits = bits;
 			this.shader = shader;
 			condition = MaterialConditionImpl.fromIndex(CONDITION.getValue(bits));
 			hasAo = !disableAo(0) || (spriteDepth() > 1 && !disableAo(1)) || (spriteDepth() == 3 && !disableAo(2));
-			emissiveFlags = (emissive(0) ? 1 : 0) | (emissive(1) ? 2 : 0) | (emissive(2) ? 4 : 0);
 			final BlendMode baseLayer = blendMode(0);
 			final int depth = spriteDepth();
 
 			if(baseLayer == BlendMode.SOLID) {
 				isTranslucent = false;
-				renderLayer = BlendMode.SOLID;
-				isCutout = false;
 			} else {
 				// if there is no solid base layer and any layer is translucent then whole material must render on translucent pass
 				isTranslucent = (baseLayer == BlendMode.TRANSLUCENT)
 						|| (depth > 1 && blendMode(1) == BlendMode.TRANSLUCENT)
 						|| (depth == 3 && blendMode(2) == BlendMode.TRANSLUCENT);
-
-				// not solid and not translucent so must be cutout
-				isCutout = !isTranslucent;
-				renderLayer = isTranslucent ? BlendMode.TRANSLUCENT : BlendMode.SOLID;
 			}
 		}
 
@@ -293,37 +273,13 @@ public abstract class RenderMaterialImpl {
 					blendModeVariants[i] = this;
 				}
 
-				if (depth == 1) {
-					depthVariants[0] = this;
-				}  else {
-					finder.bits = bits;
-					finder.shader = shader;
-					finder.spriteDepth(1);
-					depthVariants[0] = finder.findInternal(false);
-					depthVariants[0].depthVariants[0] = depthVariants[0];
+				drawables[0] = new DrawableMaterial(0);
 
-					finder.bits = bits;
-					finder.shader = shader;
-					finder.blendMode(0, BlendMode.TRANSLUCENT);
-					finder.disableAo(0, finder.disableAo(1));
-					finder.disableColorIndex(0, finder.disableColorIndex(1));
-					finder.disableDiffuse(0, finder.disableDiffuse(1));
-					finder.emissive(0, finder.emissive(1));
-					finder.spriteDepth(1);
-					depthVariants[1] = finder.findInternal(false);
-					depthVariants[1].depthVariants[0] = depthVariants[1];
+				if (depth > 1) {
+					drawables[1] = new DrawableMaterial(1);
 
 					if (depth > 2) {
-						finder.bits = bits;
-						finder.shader = shader;
-						finder.blendMode(0, BlendMode.TRANSLUCENT);
-						finder.disableAo(0, finder.disableAo(2));
-						finder.disableColorIndex(0, finder.disableColorIndex(2));
-						finder.disableDiffuse(0, finder.disableDiffuse(2));
-						finder.emissive(0, finder.emissive(2));
-						finder.spriteDepth(1);
-						depthVariants[2] = finder.findInternal(false);
-						depthVariants[2].depthVariants[0] = depthVariants[2];
+						drawables[2] = new DrawableMaterial(2);
 					}
 				}
 			}
@@ -343,7 +299,7 @@ public abstract class RenderMaterialImpl {
 		 * and we need that to be fast, and we also want the buffering logic to
 		 * remain simple.  This solves all those problems.<p>
 		 */
-		public Value forBlendMode(int modeIndex) {
+		public CompositeMaterial forBlendMode(int modeIndex) {
 			assert blendModeVariants[modeIndex - 1].blendMode(0) != BlendMode.DEFAULT;
 			return blendModeVariants[modeIndex - 1];
 		}
@@ -353,13 +309,30 @@ public abstract class RenderMaterialImpl {
 		 * @param spriteIndex
 		 * @return
 		 */
-		public @Nullable Value forDepth(int spriteIndex) {
+		public @Nullable DrawableMaterial forDepth(int spriteIndex) {
 			assert spriteIndex < spriteDepth();
-			return depthVariants[spriteIndex];
+			return drawables[spriteIndex];
 		}
 
 		public int index() {
 			return index;
+		}
+
+		public class DrawableMaterial {
+			public MaterialShaderImpl shader() {
+				return shader;
+			}
+
+			public MaterialConditionImpl condition() {
+				return condition;
+			}
+
+			public final ShaderContext.Type shaderType;
+
+			public DrawableMaterial(int depth) {
+				shaderType = depth == 0 ? (blendMode(0) == BlendMode.TRANSLUCENT ? ShaderContext.Type.TRANSLUCENT : ShaderContext.Type.SOLID) : ShaderContext.Type.DECAL;
+			}
+
 		}
 	}
 
@@ -367,17 +340,17 @@ public abstract class RenderMaterialImpl {
 		private MaterialShaderImpl shader = null;
 
 		@Override
-		public Value find() {
+		public CompositeMaterial find() {
 			return findInternal(true);
 		}
 
-		private synchronized Value findInternal(boolean setupVariants) {
+		private synchronized CompositeMaterial findInternal(boolean setupVariants) {
 			final MaterialShaderImpl s = shader == null ? ShaderManager.INSTANCE.getDefault() : shader;
 			SHADER.setValue(s.getIndex(), this);
-			Value result = MAP.get(bits);
+			CompositeMaterial result = MAP.get(bits);
 
 			if (result == null) {
-				result = new Value(LIST.size(), bits, s);
+				result = new CompositeMaterial(LIST.size(), bits, s);
 				LIST.add(result);
 				MAP.put(result.bits, result);
 

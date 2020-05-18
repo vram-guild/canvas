@@ -38,11 +38,12 @@ import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 
-import grondag.canvas.apiimpl.RenderMaterialImpl.Value;
+import grondag.canvas.apiimpl.RenderMaterialImpl.CompositeMaterial.DrawableMaterial;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.light.AoCalculator;
 import grondag.canvas.material.MaterialContext;
 import grondag.canvas.mixinterface.Matrix3fExt;
+import grondag.canvas.shader.ShaderContext;
 
 /**
  * The render context used for item rendering.
@@ -191,8 +192,8 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 	}
 
 	@Override
-	public VertexConsumer consumer(Value mat) {
-		return quadVertexConsumer(mat.blendMode(0));
+	public VertexConsumer consumer(DrawableMaterial mat) {
+		return quadVertexConsumer(mat.shaderType == ShaderContext.Type.SOLID ? BlendMode.CUTOUT : BlendMode.TRANSLUCENT);
 	}
 
 	@Override

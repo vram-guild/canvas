@@ -34,7 +34,7 @@ import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 
 import grondag.canvas.Configurator;
-import grondag.canvas.apiimpl.RenderMaterialImpl.Value;
+import grondag.canvas.apiimpl.RenderMaterialImpl.CompositeMaterial.DrawableMaterial;
 import grondag.canvas.chunk.BuiltRenderRegion;
 import grondag.canvas.chunk.FastRenderRegion;
 import grondag.canvas.chunk.ProtoRenderRegion;
@@ -42,6 +42,7 @@ import grondag.canvas.chunk.RenderRegionAddressHelper;
 import grondag.canvas.light.AoCalculator;
 import grondag.canvas.light.LightSmoother;
 import grondag.canvas.material.MaterialContext;
+import grondag.canvas.material.MaterialState;
 import grondag.canvas.mixinterface.Matrix3fExt;
 
 /**
@@ -128,8 +129,8 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<FastRenderR
 	}
 
 	@Override
-	public VertexConsumer consumer(Value mat) {
-		return collectors.get(MaterialContext.TERRAIN, mat);
+	public VertexConsumer consumer(DrawableMaterial mat) {
+		return collectors.get(MaterialState.get(MaterialContext.TERRAIN, mat));
 	}
 
 	@Override

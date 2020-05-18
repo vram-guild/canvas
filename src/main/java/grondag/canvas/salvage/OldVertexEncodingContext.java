@@ -5,13 +5,13 @@ import net.minecraft.util.math.BlockPos;
 import grondag.canvas.apiimpl.RenderMaterialImpl;
 
 public final class OldVertexEncodingContext {
-	RenderMaterialImpl.Value mat;
+	RenderMaterialImpl.CompositeMaterial mat;
 	OldShaderContext context;
 	BlockPos pos;
 	float[] aoData;
 	int shaderFlags;
 
-	public OldVertexEncodingContext prepare(RenderMaterialImpl.Value mat, OldShaderContext context, BlockPos pos, float[] aoData, int shaderFlags) {
+	public OldVertexEncodingContext prepare(RenderMaterialImpl.CompositeMaterial mat, OldShaderContext context, BlockPos pos, float[] aoData, int shaderFlags) {
 		this.mat = mat;
 		this.context = context;
 		this.pos = pos;

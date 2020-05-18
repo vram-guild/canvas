@@ -8,13 +8,14 @@ import net.minecraft.util.math.Matrix4f;
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 
 import grondag.canvas.apiimpl.RenderMaterialImpl;
-import grondag.canvas.apiimpl.RenderMaterialImpl.Value;
+import grondag.canvas.apiimpl.RenderMaterialImpl.CompositeMaterial;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.rendercontext.AbstractRenderContext;
 import grondag.canvas.apiimpl.util.ColorHelper;
 import grondag.canvas.apiimpl.util.NormalHelper;
 import grondag.canvas.buffer.encoding.VertexEncoder;
 import grondag.canvas.buffer.packing.VertexCollectorImpl;
+import grondag.canvas.material.MaterialContext;
 import grondag.canvas.material.MaterialVertexFormat;
 import grondag.canvas.material.MaterialVertexFormats;
 import grondag.canvas.mixinterface.Matrix3fExt;
@@ -77,7 +78,7 @@ abstract class VanillaEncoder extends VertexEncoder {
 		final Vector4f transformVector = context.transformVector;
 		final int overlay = context.overlay();
 		final Matrix3fExt normalMatrix = context.normalMatrix();
-		final VertexConsumer buff = context.consumer(quad.material());
+		final VertexConsumer buff = context.consumer(quad.material().forDepth(0));
 
 		int packedNormal = 0;
 		float nx = 0, ny = 0, nz = 0;
@@ -127,8 +128,8 @@ abstract class VanillaEncoder extends VertexEncoder {
 		final Vector4f transformVector = context.transformVector;
 		final int overlay = context.overlay();
 		final Matrix3fExt normalMatrix = context.normalMatrix();
-		final Value mat = quad.material();
-		final VertexConsumer buff1  = context.consumer(mat);
+		final CompositeMaterial mat = quad.material();
+		final VertexConsumer buff1  = context.consumer(mat.forDepth(0));
 		final VertexConsumer buff2  = context.consumer(mat.forDepth(1));
 
 		final float nx0, ny0, nz0;
@@ -271,8 +272,8 @@ abstract class VanillaEncoder extends VertexEncoder {
 		final Vector4f transformVector = context.transformVector;
 		final int overlay = context.overlay();
 		final Matrix3fExt normalMatrix = context.normalMatrix();
-		final Value mat = quad.material();
-		final VertexConsumer buff1 = context.consumer(mat);
+		final CompositeMaterial mat = quad.material();
+		final VertexConsumer buff1 = context.consumer(mat.forDepth(0));
 		final VertexConsumer buff2 = context.consumer(mat.forDepth(1));
 		final VertexConsumer buff3 = context.consumer(mat.forDepth(2));
 
@@ -470,10 +471,10 @@ abstract class VanillaEncoder extends VertexEncoder {
 		final Matrix4f matrix = context.matrix();
 		final Vector4f transformVector = context.transformVector;
 		final Matrix3fExt normalMatrix = context.normalMatrix();
-		final VertexCollectorImpl buff = (VertexCollectorImpl) context.consumer(quad.material());
+		final VertexCollectorImpl buff = context.collectors.getDirect(MaterialContext.TERRAIN, quad.material().forDepth(0));
 		final int[] appendData = buff.appendData;
 		final float[] aoData = quad.ao;
-		final RenderMaterialImpl.Value mat = quad.material();
+		final RenderMaterialImpl.CompositeMaterial mat = quad.material();
 
 		assert mat.blendMode(0) != BlendMode.DEFAULT;
 
@@ -531,9 +532,9 @@ abstract class VanillaEncoder extends VertexEncoder {
 		final Matrix4f matrix = context.matrix();
 		final Vector4f transformVector = context.transformVector;
 		final Matrix3fExt normalMatrix = context.normalMatrix();
-		final Value mat = quad.material();
-		final VertexCollectorImpl buff1  = (VertexCollectorImpl) context.consumer(mat);
-		final VertexCollectorImpl buff2  = (VertexCollectorImpl) context.consumer(mat.forDepth(1));
+		final CompositeMaterial mat = quad.material();
+		final VertexCollectorImpl buff1  = context.collectors.getDirect(MaterialContext.TERRAIN, mat.forDepth(0));
+		final VertexCollectorImpl buff2  = context.collectors.getDirect(MaterialContext.TERRAIN, mat.forDepth(1));
 		final int[] appendData = buff1.appendData;
 		final float[] aoData = quad.ao;
 
@@ -541,9 +542,7 @@ abstract class VanillaEncoder extends VertexEncoder {
 
 		final int rawFlags = mat.shaderFlags();
 		final int shaderFlags0 = rawFlags << 16;
-
-		// TODO: restructure flags so not needed
-		final int shaderFlags1 = (((rawFlags & 2) >> 1) | ((rawFlags >> 4) & 0xF0)) << 16;
+		final int shaderFlags1 = (rawFlags >> 5) << 16;
 		// FIX ?: this was needed in v0
 		//		final int shaderFlags = (context.defaultAo() ? mat.shaderFlags() : mat.shaderFlags() | RenderMaterialImpl.SHADER_FLAGS_DISABLE_AO) << 16;
 
@@ -659,10 +658,10 @@ abstract class VanillaEncoder extends VertexEncoder {
 		final Matrix4f matrix = context.matrix();
 		final Vector4f transformVector = context.transformVector;
 		final Matrix3fExt normalMatrix = context.normalMatrix();
-		final Value mat = quad.material();
-		final VertexCollectorImpl buff1  = (VertexCollectorImpl) context.consumer(mat);
-		final VertexCollectorImpl buff2  = (VertexCollectorImpl) context.consumer(mat.forDepth(1));
-		final VertexCollectorImpl buff3  = (VertexCollectorImpl) context.consumer(mat.forDepth(2));
+		final CompositeMaterial mat = quad.material();
+		final VertexCollectorImpl buff1  = context.collectors.getDirect(MaterialContext.TERRAIN, mat.forDepth(0));
+		final VertexCollectorImpl buff2  = context.collectors.getDirect(MaterialContext.TERRAIN, mat.forDepth(1));
+		final VertexCollectorImpl buff3  = context.collectors.getDirect(MaterialContext.TERRAIN, mat.forDepth(2));
 
 		final int[] appendData = buff1.appendData;
 		final float[] aoData = quad.ao;
@@ -671,10 +670,8 @@ abstract class VanillaEncoder extends VertexEncoder {
 
 		final int rawFlags = mat.shaderFlags();
 		final int shaderFlags0 = rawFlags << 16;
-
-		// TODO: restructure flags so not needed
-		final int shaderFlags1 = (((rawFlags & 2) >> 1) | ((rawFlags >> 4) & 0xF0)) << 16;
-		final int shaderFlags2 = (((rawFlags & 4) >> 2) | ((rawFlags >> 8) & 0xF0)) << 16;
+		final int shaderFlags1 = (rawFlags >> 5) << 16;
+		final int shaderFlags2 = (rawFlags >> 10) << 16;
 
 		// FIX ?: this was needed in v0
 		//		final int shaderFlags = (context.defaultAo() ? mat.shaderFlags() : mat.shaderFlags() | RenderMaterialImpl.SHADER_FLAGS_DISABLE_AO) << 16;
@@ -687,7 +684,6 @@ abstract class VanillaEncoder extends VertexEncoder {
 			n1 = normalMatrix.canvas_transform(quad.packedNormal(1));
 			n2 = normalMatrix.canvas_transform(quad.packedNormal(2));
 			n3 = normalMatrix.canvas_transform(quad.packedNormal(3));
-
 		} else {
 			n0 = n1 = n2 = n3 = normalMatrix.canvas_transform(quad.packedFaceNormal());
 		}

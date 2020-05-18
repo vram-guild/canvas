@@ -147,7 +147,7 @@ public class QuadViewImpl implements QuadView {
 	}
 
 	@Override
-	public final RenderMaterialImpl.Value material() {
+	public final RenderMaterialImpl.CompositeMaterial material() {
 		return RenderMaterialImpl.byIndex(data[baseIndex + HEADER_MATERIAL]);
 	}
 
