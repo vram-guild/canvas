@@ -86,7 +86,7 @@ public class MeshConsumer implements Consumer<Mesh> {
 	}
 
 	private void renderQuad(MutableQuadViewImpl quad) {
-		if (!context.transform(editorQuad)) {
+		if (!context.transform(quad)) {
 			return;
 		}
 
@@ -94,8 +94,8 @@ public class MeshConsumer implements Consumer<Mesh> {
 			return;
 		}
 
-		final CompositeMaterial mat = editorQuad.material().forBlendMode(context.defaultBlendModeIndex());
-		editorQuad.material(mat);
+		final CompositeMaterial mat = quad.material().forBlendMode(context.defaultBlendModeIndex());
+		quad.material(mat);
 		VertexEncoders.get(context.materialContext(), mat).encodeQuad(quad, context);
 	}
 }
