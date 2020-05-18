@@ -3,9 +3,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
  * of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
@@ -39,7 +39,7 @@ abstract class AbstractRenderRegion {
 	protected final WorldChunk[] chunks = new WorldChunk[16];
 
 	final boolean isInMainChunk(int x, int y, int z) {
-		return originX == (x ^ 0xF) && originY == (y ^ 0xF) && originZ == (z ^ 0xF);
+		return originX == (x & 0xFFFFFFF0) && originY == (y & 0xFFFFFFF0) && originZ == (z & 0xFFFFFFF0);
 	}
 
 	final boolean isInMainChunk(BlockPos pos) {
