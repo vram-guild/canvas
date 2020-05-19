@@ -160,7 +160,6 @@ abstract class VanillaEncoder extends VertexEncoder {
 			nx3 = NormalHelper.getPackedNormalComponent(transformedNormal, 0);
 			ny3 = NormalHelper.getPackedNormalComponent(transformedNormal, 1);
 			nz3 = NormalHelper.getPackedNormalComponent(transformedNormal, 2);
-
 		} else {
 			final int packedNormal = quad.packedFaceNormal();
 			final int transformedNormal = normalMatrix.canvas_transform(packedNormal);
@@ -814,14 +813,7 @@ abstract class VanillaEncoder extends VertexEncoder {
 		buff2.add(appendData, 32);
 	}
 
-	static void computeItemLighting(MutableQuadViewImpl quad) {
-		// UGLY: for vanilla lighting need to undo diffuse shading
-
-		// TODO: still needed in 1.16?
-		ColorHelper.applyDiffuseShading(quad, true);
-	}
-
-	static void computeBlockLighting(MutableQuadViewImpl quad, AbstractRenderContext context) {
+	static void applyBlockLighting(MutableQuadViewImpl quad, AbstractRenderContext context) {
 		if (!quad.material().disableAo(0) && MinecraftClient.isAmbientOcclusionEnabled()) {
 			context.aoCalc().compute(quad);
 		} else {

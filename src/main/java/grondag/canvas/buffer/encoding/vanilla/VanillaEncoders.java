@@ -10,7 +10,7 @@ public class VanillaEncoders {
 		@Override
 		public void encodeQuad(MutableQuadViewImpl quad, AbstractRenderContext context) {
 			// needs to happen before offsets are applied
-			computeBlockLighting(quad, context);
+			applyBlockLighting(quad, context);
 			colorizeQuad(quad, context, 0);
 			bufferQuad1(quad, context);
 		}
@@ -20,7 +20,7 @@ public class VanillaEncoders {
 		@Override
 		public void encodeQuad(MutableQuadViewImpl quad, AbstractRenderContext context) {
 			// needs to happen before offsets are applied
-			computeBlockLighting(quad, context);
+			applyBlockLighting(quad, context);
 			colorizeQuad(quad, context, 0);
 			colorizeQuad(quad, context, 1);
 			bufferQuad2(quad, context);
@@ -31,7 +31,7 @@ public class VanillaEncoders {
 		@Override
 		public void encodeQuad(MutableQuadViewImpl quad, AbstractRenderContext context) {
 			// needs to happen before offsets are applied
-			computeBlockLighting(quad, context);
+			applyBlockLighting(quad, context);
 			colorizeQuad(quad, context, 0);
 			colorizeQuad(quad, context, 1);
 			colorizeQuad(quad, context, 2);
@@ -43,7 +43,7 @@ public class VanillaEncoders {
 		@Override
 		public void encodeQuad(MutableQuadViewImpl quad, AbstractRenderContext context) {
 			// needs to happen before offsets are applied
-			computeBlockLighting(quad, context);
+			applyBlockLighting(quad, context);
 			colorizeQuad(quad, context, 0);
 			bufferQuadDirect1(quad, context);
 		}
@@ -53,7 +53,7 @@ public class VanillaEncoders {
 		@Override
 		public void encodeQuad(MutableQuadViewImpl quad, AbstractRenderContext context) {
 			// needs to happen before offsets are applied
-			computeBlockLighting(quad, context);
+			applyBlockLighting(quad, context);
 			colorizeQuad(quad, context, 0);
 			colorizeQuad(quad, context, 1);
 			bufferQuadDirect2(quad, context);
@@ -64,7 +64,7 @@ public class VanillaEncoders {
 		@Override
 		public void encodeQuad(MutableQuadViewImpl quad, AbstractRenderContext context) {
 			// needs to happen before offsets are applied
-			computeBlockLighting(quad, context);
+			applyBlockLighting(quad, context);
 			colorizeQuad(quad, context, 0);
 			colorizeQuad(quad, context, 1);
 			colorizeQuad(quad, context, 2);
@@ -76,8 +76,6 @@ public class VanillaEncoders {
 	public static final VertexEncoder VANILLA_ITEM_1 = new VanillaEncoder(MaterialVertexFormats.VANILLA_BLOCKS_AND_ITEMS) {
 		@Override
 		public void encodeQuad(MutableQuadViewImpl quad, AbstractRenderContext context) {
-			// needs to happen before offsets are applied
-			computeItemLighting(quad);
 			colorizeQuad(quad, context, 0);
 			applyItemLighting(quad, context);
 			bufferQuad1(quad, context);
@@ -87,8 +85,6 @@ public class VanillaEncoders {
 	public static final VertexEncoder VANILLA_ITEM_2 = new VanillaEncoder(MaterialVertexFormats.VANILLA_BLOCKS_AND_ITEMS) {
 		@Override
 		public void encodeQuad(MutableQuadViewImpl quad, AbstractRenderContext context) {
-			// needs to happen before offsets are applied
-			computeItemLighting(quad);
 			colorizeQuad(quad, context, 0);
 			colorizeQuad(quad, context, 1);
 			applyItemLighting(quad, context);
@@ -99,8 +95,6 @@ public class VanillaEncoders {
 	public static final VertexEncoder VANILLA_ITEM_3 = new VanillaEncoder(MaterialVertexFormats.VANILLA_BLOCKS_AND_ITEMS) {
 		@Override
 		public void encodeQuad(MutableQuadViewImpl quad, AbstractRenderContext context) {
-			// needs to happen before offsets are applied
-			computeItemLighting(quad);
 			colorizeQuad(quad, context, 0);
 			colorizeQuad(quad, context, 1);
 			colorizeQuad(quad, context, 2);

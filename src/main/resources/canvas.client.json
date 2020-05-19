@@ -3,8 +3,6 @@
   "package": "grondag.canvas.mixin",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
-    "MixinBakedQuad",
-    "MixinBakedQuadFactory",
     "MixinBiomeAccess",
     "MixinBlockModelRenderer",
     "MixinBuiltChunk",

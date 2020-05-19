@@ -21,7 +21,6 @@ import net.fabricmc.fabric.api.renderer.v1.mesh.MeshBuilder;
 import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
 import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 
-import grondag.canvas.apiimpl.util.ColorHelper;
 import grondag.canvas.apiimpl.util.GeometryHelper;
 import grondag.canvas.apiimpl.util.MeshEncodingHelper;
 
@@ -78,9 +77,6 @@ public class MeshBuilderImpl implements MeshBuilder {
 			if (isGeometryInvalid) {
 				geometryFlags(GeometryHelper.computeShapeFlags(this));
 			}
-
-			// TODO: remove or configure based on lighting model
-			ColorHelper.applyDiffuseShading(this, false);
 
 			index += maker.stride();
 			ensureCapacity(MeshEncodingHelper.MAX_QUAD_STRIDE);

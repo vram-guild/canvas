@@ -200,7 +200,8 @@ public class FastRenderRegion extends AbstractRenderRegion implements RenderAtta
 		return WorldRenderer.getLightmapCoordinates(world, getBlockState(pos), pos);
 	}
 
-	// TODO: apply in AO calc - see new vanilla usage
+	// TODO: do anything with this?
+	// Vanilla now computes diffuse shading at chunk bake time and consumes this value in AO calc
 	@Override
 	public float getBrightness(Direction direction, boolean shaded) {
 		return world.getBrightness(direction, shaded);

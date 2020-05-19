@@ -12,6 +12,7 @@ abstract class VanillaTerrainEncoder extends VanillaEncoder {
 	@Override
 	public void light(VertexCollectorImpl collector, int blockLight, int skyLight) {
 		// flags disable diffuse and AO in shader - mainly meant for fluids
-		collector.add(blockLight | (skyLight << 8) | 0b00110000);
+		// TODO: toggle/remove this when do smooth fluid lighting
+		collector.add(blockLight | (skyLight << 8) | (0b00000110 << 16));
 	}
 }

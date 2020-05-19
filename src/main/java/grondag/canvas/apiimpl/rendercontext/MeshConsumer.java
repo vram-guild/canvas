@@ -25,7 +25,6 @@ import grondag.canvas.apiimpl.RenderMaterialImpl;
 import grondag.canvas.apiimpl.RenderMaterialImpl.CompositeMaterial;
 import grondag.canvas.apiimpl.mesh.MeshImpl;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
-import grondag.canvas.apiimpl.util.ColorHelper;
 import grondag.canvas.apiimpl.util.GeometryHelper;
 import grondag.canvas.apiimpl.util.MeshEncodingHelper;
 import grondag.canvas.buffer.encoding.VertexEncoders;
@@ -55,7 +54,6 @@ public class MeshConsumer implements Consumer<Mesh> {
 		@Override
 		public Maker emit() {
 			lightFace(GeometryHelper.lightFace(this));
-			ColorHelper.applyDiffuseShading(this, false);
 			renderQuad(this);
 			clear();
 			return this;

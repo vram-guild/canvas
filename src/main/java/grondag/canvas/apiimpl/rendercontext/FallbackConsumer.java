@@ -32,7 +32,6 @@ import grondag.canvas.apiimpl.RenderMaterialImpl.CompositeMaterial;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.util.MeshEncodingHelper;
 import grondag.canvas.buffer.encoding.VertexEncoders;
-import grondag.canvas.mixinterface.BakedQuadExt;
 
 /**
  * Consumer for vanilla baked models. Generally intended to give visual results matching a vanilla render,
@@ -100,11 +99,11 @@ public class FallbackConsumer implements Consumer<BakedModel> {
 		if (count != 0 && context.cullTest(face)) {
 			if (count == 1) {
 				final BakedQuad q = quads.get(0);
-				renderQuad(q, face.ordinal(), ((BakedQuadExt)q).canvas_disableDiffuse() ? (useAo ? MATERIAL_AO_FLAT : MATERIAL_FLAT) : (useAo ? MATERIAL_AO_SHADED : MATERIAL_SHADED));
+				renderQuad(q, face.ordinal(), q.hasShade() ? (useAo ? MATERIAL_AO_SHADED : MATERIAL_SHADED) : (useAo ? MATERIAL_AO_FLAT : MATERIAL_FLAT));
 			} else { // > 1
 				for (int j = 0; j < count; j++) {
 					final BakedQuad q = quads.get(j);
-					renderQuad(q, face.ordinal(), ((BakedQuadExt)q).canvas_disableDiffuse() ? (useAo ? MATERIAL_AO_FLAT : MATERIAL_FLAT) : (useAo ? MATERIAL_AO_SHADED : MATERIAL_SHADED));
+					renderQuad(q, face.ordinal(), q.hasShade() ? (useAo ? MATERIAL_AO_SHADED : MATERIAL_SHADED) : (useAo ? MATERIAL_AO_FLAT : MATERIAL_FLAT));
 				}
 			}
 		}
@@ -114,11 +113,11 @@ public class FallbackConsumer implements Consumer<BakedModel> {
 		final int count = quads.size();
 		if (count == 1) {
 			final BakedQuad q = quads.get(0);
-			renderQuad(q, ModelHelper.NULL_FACE_ID, ((BakedQuadExt)q).canvas_disableDiffuse() ? (useAo ? MATERIAL_AO_FLAT : MATERIAL_FLAT) : (useAo ? MATERIAL_AO_SHADED : MATERIAL_SHADED));
+			renderQuad(q, ModelHelper.NULL_FACE_ID, q.hasShade() ? (useAo ? MATERIAL_AO_SHADED : MATERIAL_SHADED) : (useAo ? MATERIAL_AO_FLAT : MATERIAL_FLAT));
 		} else if (count > 1) {
 			for (int j = 0; j < count; j++) {
 				final BakedQuad q = quads.get(j);
-				renderQuad(q, ModelHelper.NULL_FACE_ID, ((BakedQuadExt)q).canvas_disableDiffuse() ? (useAo ? MATERIAL_AO_FLAT : MATERIAL_FLAT) : (useAo ? MATERIAL_AO_SHADED : MATERIAL_SHADED));
+				renderQuad(q, ModelHelper.NULL_FACE_ID, q.hasShade() ? (useAo ? MATERIAL_AO_SHADED : MATERIAL_SHADED) : (useAo ? MATERIAL_AO_FLAT : MATERIAL_FLAT));
 			}
 		}
 	}
