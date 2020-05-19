@@ -28,7 +28,7 @@ import grondag.canvas.apiimpl.util.NormalHelper;
 import grondag.canvas.buffer.packing.VertexCollector;
 
 public class FluidBufferBuilder extends BufferBuilder {
-	private static final int DEFAULT_SHADER_FLAGS = Canvas.INSTANCE.materialFinder().disableAo(0, true).find().shaderFlags() << 16;
+	private static final int DEFAULT_SHADER_FLAGS = Canvas.INSTANCE.materialFinder().disableAo(0, true).find().forDepth(0).shaderFlags << 16;
 
 	public FluidBufferBuilder() {
 		super(256);

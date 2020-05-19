@@ -9,6 +9,7 @@ import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 
 import grondag.canvas.apiimpl.RenderMaterialImpl;
 import grondag.canvas.apiimpl.RenderMaterialImpl.CompositeMaterial;
+import grondag.canvas.apiimpl.RenderMaterialImpl.CompositeMaterial.DrawableMaterial;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.rendercontext.AbstractRenderContext;
 import grondag.canvas.apiimpl.util.ColorHelper;
@@ -471,14 +472,15 @@ abstract class VanillaEncoder extends VertexEncoder {
 		final Matrix4f matrix = context.matrix();
 		final Vector4f transformVector = context.transformVector;
 		final Matrix3fExt normalMatrix = context.normalMatrix();
-		final VertexCollectorImpl buff = context.collectors.getDirect(MaterialContext.TERRAIN, quad.material().forDepth(0));
-		final int[] appendData = buff.appendData;
 		final float[] aoData = quad.ao;
 		final RenderMaterialImpl.CompositeMaterial mat = quad.material();
+		final DrawableMaterial mat0 = mat.forDepth(0);
+		final VertexCollectorImpl buff0  = context.collectors.getDirect(MaterialContext.TERRAIN, mat0);
+		final int[] appendData = context.appendData;
 
-		assert mat.blendMode(0) != BlendMode.DEFAULT;
+		assert mat.blendMode() != BlendMode.DEFAULT;
 
-		final int shaderFlags = mat.shaderFlags() << 16;
+		final int shaderFlags = mat0.shaderFlags << 16;
 		// FIX: was this needed (was different in v0)
 		//		final int shaderFlags = (context.defaultAo() ? mat.shaderFlags() : mat.shaderFlags() | RenderMaterialImpl.SHADER_FLAGS_DISABLE_AO) << 16;
 
@@ -525,7 +527,7 @@ abstract class VanillaEncoder extends VertexEncoder {
 			appendData[k++] = transformedNormal | ao;
 		}
 
-		buff.add(appendData, k);
+		buff0.add(appendData, k);
 	}
 
 	static void bufferQuadDirect2(MutableQuadViewImpl quad, AbstractRenderContext context) {
@@ -533,18 +535,14 @@ abstract class VanillaEncoder extends VertexEncoder {
 		final Vector4f transformVector = context.transformVector;
 		final Matrix3fExt normalMatrix = context.normalMatrix();
 		final CompositeMaterial mat = quad.material();
-		final VertexCollectorImpl buff1  = context.collectors.getDirect(MaterialContext.TERRAIN, mat.forDepth(0));
-		final VertexCollectorImpl buff2  = context.collectors.getDirect(MaterialContext.TERRAIN, mat.forDepth(1));
-		final int[] appendData = buff1.appendData;
+		final DrawableMaterial mat0 = mat.forDepth(0);
+		final VertexCollectorImpl buff0  = context.collectors.getDirect(MaterialContext.TERRAIN, mat0);
+		final int shaderFlags0 = mat0.shaderFlags << 16;
+
+		final int[] appendData = context.appendData;
 		final float[] aoData = quad.ao;
 
-		assert mat.blendMode(0) != BlendMode.DEFAULT;
-
-		final int rawFlags = mat.shaderFlags();
-		final int shaderFlags0 = rawFlags << 16;
-		final int shaderFlags1 = (rawFlags >> 5) << 16;
-		// FIX ?: this was needed in v0
-		//		final int shaderFlags = (context.defaultAo() ? mat.shaderFlags() : mat.shaderFlags() | RenderMaterialImpl.SHADER_FLAGS_DISABLE_AO) << 16;
+		assert mat.blendMode() != BlendMode.DEFAULT;
 
 		final int n0, n1, n2, n3;
 
@@ -625,7 +623,11 @@ abstract class VanillaEncoder extends VertexEncoder {
 		appendData[30] = l3 | shaderFlags0;
 		appendData[31] = n3 | ao3;
 
-		buff1.add(appendData, 32);
+		buff0.add(appendData, 32);
+
+		final DrawableMaterial mat1 = mat.forDepth(1);
+		final VertexCollectorImpl buff1  = context.collectors.getDirect(MaterialContext.TERRAIN, mat1);
+		final int shaderFlags1 = mat1.shaderFlags << 16;
 
 		appendData[3] = quad.spriteColor(0, 1);
 		appendData[4] = Float.floatToRawIntBits(quad.spriteU(0, 1));
@@ -651,7 +653,7 @@ abstract class VanillaEncoder extends VertexEncoder {
 		appendData[30] = l3 | shaderFlags1;
 		appendData[31] = n3 | ao3;
 
-		buff2.add(appendData, 32);
+		buff1.add(appendData, 32);
 	}
 
 	static void bufferQuadDirect3(MutableQuadViewImpl quad, AbstractRenderContext context) {
@@ -659,22 +661,17 @@ abstract class VanillaEncoder extends VertexEncoder {
 		final Vector4f transformVector = context.transformVector;
 		final Matrix3fExt normalMatrix = context.normalMatrix();
 		final CompositeMaterial mat = quad.material();
-		final VertexCollectorImpl buff1  = context.collectors.getDirect(MaterialContext.TERRAIN, mat.forDepth(0));
-		final VertexCollectorImpl buff2  = context.collectors.getDirect(MaterialContext.TERRAIN, mat.forDepth(1));
-		final VertexCollectorImpl buff3  = context.collectors.getDirect(MaterialContext.TERRAIN, mat.forDepth(2));
 
-		final int[] appendData = buff1.appendData;
+
+		final DrawableMaterial mat0 = mat.forDepth(0);
+		final VertexCollectorImpl buff0  = context.collectors.getDirect(MaterialContext.TERRAIN, mat0);
+		final int shaderFlags0 = mat0.shaderFlags << 16;
+
+		final int[] appendData = context.appendData;
 		final float[] aoData = quad.ao;
 
-		assert mat.blendMode(0) != BlendMode.DEFAULT;
+		assert mat.blendMode() != BlendMode.DEFAULT;
 
-		final int rawFlags = mat.shaderFlags();
-		final int shaderFlags0 = rawFlags << 16;
-		final int shaderFlags1 = (rawFlags >> 5) << 16;
-		final int shaderFlags2 = (rawFlags >> 10) << 16;
-
-		// FIX ?: this was needed in v0
-		//		final int shaderFlags = (context.defaultAo() ? mat.shaderFlags() : mat.shaderFlags() | RenderMaterialImpl.SHADER_FLAGS_DISABLE_AO) << 16;
 
 		final int n0, n1, n2, n3;
 
@@ -754,7 +751,11 @@ abstract class VanillaEncoder extends VertexEncoder {
 		appendData[30] = l3 | shaderFlags0;
 		appendData[31] = n3 | ao3;
 
-		buff1.add(appendData, 32);
+		buff0.add(appendData, 32);
+
+		final DrawableMaterial mat1 = mat.forDepth(1);
+		final VertexCollectorImpl buff1  = context.collectors.getDirect(MaterialContext.TERRAIN, mat1);
+		final int shaderFlags1 = mat1.shaderFlags << 16;
 
 		appendData[3] = quad.spriteColor(0, 1);
 		appendData[4] = Float.floatToRawIntBits(quad.spriteU(0, 1));
@@ -780,7 +781,11 @@ abstract class VanillaEncoder extends VertexEncoder {
 		appendData[30] = l3 | shaderFlags1;
 		appendData[31] = n3 | ao3;
 
-		buff2.add(appendData, 32);
+		buff1.add(appendData, 32);
+
+		final DrawableMaterial mat2 = mat.forDepth(2);
+		final VertexCollectorImpl buff2  = context.collectors.getDirect(MaterialContext.TERRAIN, mat2);
+		final int shaderFlags2 = mat2.shaderFlags << 16;
 
 		appendData[3] = quad.spriteColor(0, 2);
 		appendData[4] = Float.floatToRawIntBits(quad.spriteU(0, 2));
@@ -806,7 +811,7 @@ abstract class VanillaEncoder extends VertexEncoder {
 		appendData[30] = l3 | shaderFlags2;
 		appendData[31] = n3 | ao3;
 
-		buff3.add(appendData, 32);
+		buff2.add(appendData, 32);
 	}
 
 	static void computeItemLighting(MutableQuadViewImpl quad) {

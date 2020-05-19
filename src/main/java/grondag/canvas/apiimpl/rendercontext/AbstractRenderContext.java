@@ -40,12 +40,14 @@ import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.buffer.packing.VertexCollectorList;
 import grondag.canvas.light.AoCalculator;
 import grondag.canvas.material.MaterialContext;
+import grondag.canvas.material.MaterialVertexFormats;
 import grondag.canvas.mixinterface.Matrix3fExt;
 
 public abstract class AbstractRenderContext implements RenderContext {
 	/** for use in encoders without a threadlocal */
 	public final Vector4f transformVector = new Vector4f();
 
+	public final int[] appendData  = new int[MaterialVertexFormats.MAX_QUAD_INT_STRIDE];
 	public final VertexCollectorList collectors = new VertexCollectorList();
 	private final ObjectArrayList<QuadTransform> transformStack = new ObjectArrayList<>();
 	private static final QuadTransform NO_TRANSFORM = (q) -> true;

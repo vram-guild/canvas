@@ -12,7 +12,6 @@ import net.minecraft.util.math.MathHelper;
 import grondag.canvas.buffer.encoding.VertexEncoder;
 import grondag.canvas.buffer.encoding.VertexEncoders;
 import grondag.canvas.material.MaterialState;
-import grondag.canvas.material.MaterialVertexFormats;
 import grondag.canvas.shader.ShaderContext;
 import grondag.fermion.intstream.IntStreamProvider;
 import grondag.fermion.intstream.IntStreamProvider.IntStreamImpl;
@@ -28,7 +27,6 @@ public class VertexCollectorImpl implements VertexCollector {
 	private MaterialState materialState;
 
 	public final VertexCollectorList parent;
-	public final int[] appendData  = new int[MaterialVertexFormats.MAX_QUAD_INT_STRIDE];
 
 	/**
 	 * Holds per-quad distance after {@link #sortQuads(double, double, double)} is
