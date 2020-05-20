@@ -98,9 +98,10 @@ public class LightSmoother {
 		//        work = swap;
 
 		final int limit = 16 + MARGIN + 1;
-		for(int x = MARGIN - 2; x < limit; x++) {
-			for(int y = MARGIN - 2; y < limit; y++) {
-				for(int z = MARGIN - 2; z < limit; z++) {
+
+		for(int x = MARGIN - 1; x < limit; x++) {
+			for(int y = MARGIN - 1; y < limit; y++) {
+				for(int z = MARGIN - 1; z < limit; z++) {
 					final int i = index(x, y , z);
 					final int b = MathHelper.clamp(((block[i]) * 104 + 51) / 100, 0, 240);
 					final int k = MathHelper.clamp(((sky[i]) * 104 + 51) / 100, 0, 240);

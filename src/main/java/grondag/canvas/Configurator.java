@@ -42,6 +42,8 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.loader.api.FabricLoader;
 
+import grondag.canvas.apiimpl.Canvas;
+
 @Environment(EnvType.CLIENT)
 public class Configurator {
 
@@ -287,8 +289,7 @@ public class Configurator {
 		}
 	}
 
-	static boolean reloadTerrain = false;
-	static boolean reloadShaders = false;
+	static boolean reload = false;
 
 	public enum AoMode {
 		NORMAL,
@@ -320,8 +321,7 @@ public class Configurator {
 	}
 
 	private static Screen display() {
-		reloadTerrain = false;
-		reloadShaders = false;
+		reload = false;
 
 		final ConfigBuilder builder = ConfigBuilder.create()
 				.setParentScreen(screenIn).setTitle(new TranslatableText("config.canvas.title")).setSavingRunnable(Configurator::saveUserInput);
@@ -340,14 +340,14 @@ public class Configurator {
 				.startBooleanToggle(new TranslatableText("config.canvas.value.hardcore_darkness"), hardcoreDarkness)
 				.setDefaultValue(DEFAULTS.hardcoreDarkness)
 				.setTooltip(parse("config.canvas.help.hardcore_darkness"))
-				.setSaveConsumer(b -> {hardcoreDarkness = b; reloadShaders = true;})
+				.setSaveConsumer(b -> {hardcoreDarkness = b; reload = true;})
 				.build());
 
 		features.addEntry(ENTRY_BUILDER
 				.startBooleanToggle(new TranslatableText("config.canvas.value.subtle_fog"), subtleFog)
 				.setDefaultValue(DEFAULTS.subtleFog)
 				.setTooltip(parse("config.canvas.help.subtle_fog"))
-				.setSaveConsumer(b -> {subtleFog = b; reloadShaders = true;})
+				.setSaveConsumer(b -> {subtleFog = b; reload = true;})
 				.build());
 
 		// LIGHTING
@@ -357,14 +357,14 @@ public class Configurator {
 				.startBooleanToggle(new TranslatableText("config.canvas.value.light_smoothing"), lightSmoothing)
 				.setDefaultValue(DEFAULTS.lightSmoothing)
 				.setTooltip(parse("config.canvas.help.light_smoothing"))
-				.setSaveConsumer(b -> {lightSmoothing = b; reloadShaders = true;})
+				.setSaveConsumer(b -> {lightSmoothing = b; reload = true;})
 				.build());
 
 		lighting.addEntry(ENTRY_BUILDER
 				.startBooleanToggle(new TranslatableText("config.canvas.value.hd_lightmaps"), hdLightmaps)
 				.setDefaultValue(DEFAULTS.hdLightmaps)
 				.setTooltip(parse("config.canvas.help.hd_lightmaps"))
-				.setSaveConsumer(b -> {hdLightmaps = b; reloadShaders = true;})
+				.setSaveConsumer(b -> {hdLightmaps = b; reload = true;})
 				.build());
 
 		lighting.addEntry(ENTRY_BUILDER
@@ -378,21 +378,21 @@ public class Configurator {
 				.startBooleanToggle(new TranslatableText("config.canvas.value.lightmap_noise"), lightmapNoise)
 				.setDefaultValue(DEFAULTS.lightmapNoise)
 				.setTooltip(parse("config.canvas.help.lightmap_noise"))
-				.setSaveConsumer(b -> {lightmapNoise = b; reloadShaders = true;})
+				.setSaveConsumer(b -> {lightmapNoise = b; reload = true;})
 				.build());
 
 		lighting.addEntry(ENTRY_BUILDER
 				.startEnumSelector(new TranslatableText("config.canvas.value.diffuse_shading"), DiffuseMode.class, diffuseShadingMode)
 				.setDefaultValue(DEFAULTS.diffuseShadingMode)
 				.setTooltip(parse("config.canvas.help.diffuse_shading"))
-				.setSaveConsumer(b -> {diffuseShadingMode = b; reloadShaders = true;})
+				.setSaveConsumer(b -> {diffuseShadingMode = b; reload = true;})
 				.build());
 
 		lighting.addEntry(ENTRY_BUILDER
 				.startEnumSelector(new TranslatableText("config.canvas.value.ao_shading"), AoMode.class, aoShadingMode)
 				.setDefaultValue(DEFAULTS.aoShadingMode)
 				.setTooltip(parse("config.canvas.help.ao_shading"))
-				.setSaveConsumer(b -> {aoShadingMode = b; reloadShaders = true;})
+				.setSaveConsumer(b -> {aoShadingMode = b; reload = true;})
 				.build());
 
 		lighting.addEntry(ENTRY_BUILDER
@@ -427,35 +427,35 @@ public class Configurator {
 				.startBooleanToggle(new TranslatableText("config.canvas.value.adjust_vanilla_geometry"), preventDepthFighting)
 				.setDefaultValue(DEFAULTS.preventDepthFighting)
 				.setTooltip(parse("config.canvas.help.adjust_vanilla_geometry"))
-				.setSaveConsumer(b -> {preventDepthFighting = b; reloadShaders = true;})
+				.setSaveConsumer(b -> {preventDepthFighting = b; reload = true;})
 				.build());
 
 		tweaks.addEntry(ENTRY_BUILDER
 				.startBooleanToggle(new TranslatableText("config.canvas.value.clamp_exterior_vertices"), clampExteriorVertices)
 				.setDefaultValue(DEFAULTS.clampExteriorVertices)
 				.setTooltip(parse("config.canvas.help.clamp_exterior_vertices"))
-				.setSaveConsumer(b -> {clampExteriorVertices = b; reloadShaders = true;})
+				.setSaveConsumer(b -> {clampExteriorVertices = b; reload = true;})
 				.build());
 
 		tweaks.addEntry(ENTRY_BUILDER
 				.startBooleanToggle(new TranslatableText("config.canvas.value.fix_luminous_block_shade"), fixLuminousBlockShading)
 				.setDefaultValue(DEFAULTS.fixLuminousBlockShading)
 				.setTooltip(parse("config.canvas.help.fix_luminous_block_shade"))
-				.setSaveConsumer(b -> {fixLuminousBlockShading = b; reloadShaders = true;})
+				.setSaveConsumer(b -> {fixLuminousBlockShading = b; reload = true;})
 				.build());
 
 		tweaks.addEntry(ENTRY_BUILDER
 				.startBooleanToggle(new TranslatableText("config.canvas.value.terrain_backface_culling"), terrainBackfaceCulling)
 				.setDefaultValue(DEFAULTS.terrainBackfaceCulling)
 				.setTooltip(parse("config.canvas.help.terrain_backface_culling"))
-				.setSaveConsumer(b -> {terrainBackfaceCulling = b; reloadShaders = true;})
+				.setSaveConsumer(b -> {terrainBackfaceCulling = b; reload = true;})
 				.build());
 
 		tweaks.addEntry(ENTRY_BUILDER
 				.startBooleanToggle(new TranslatableText("config.canvas.value.terrain_setup_off_thread"), terrainSetupOffThread)
 				.setDefaultValue(DEFAULTS.terrainSetupOffThread)
 				.setTooltip(parse("config.canvas.help.terrain_setup_off_thread"))
-				.setSaveConsumer(b -> {terrainSetupOffThread = b; reloadShaders = true;})
+				.setSaveConsumer(b -> {terrainSetupOffThread = b; reload = true;})
 				.build());
 
 		lighting.addEntry(ENTRY_BUILDER
@@ -549,11 +549,9 @@ public class Configurator {
 	private static void saveUserInput() {
 		saveConfig();
 
-		if(reloadTerrain) {
+		if(reload) {
+			Canvas.INSTANCE.reload();
 			MinecraftClient.getInstance().worldRenderer.reload();
-		} else if(reloadShaders) {
-			// TODO: put back
-			//ShaderManager.INSTANCE.forceReload();
 		}
 	}
 
