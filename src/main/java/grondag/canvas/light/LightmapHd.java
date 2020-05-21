@@ -15,7 +15,6 @@
 package grondag.canvas.light;
 
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.ToLongFunction;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 
@@ -45,15 +44,40 @@ public class LightmapHd {
 	static final Long2ObjectOpenHashMap<LightmapHd> MAP = new Long2ObjectOpenHashMap<>(MathHelper.smallestEncompassingPowerOfTwo(LightmapSizer.maxCount), LightmapSizer.maxCount / (float)MathHelper.smallestEncompassingPowerOfTwo(LightmapSizer.maxCount));
 
 	public static LightmapHd findBlock(AoFaceData faceData) {
-		return find(faceData, LightmapHd::mapBlock);
+		return find(mapBlock(faceData));
 	}
 
 	public static LightmapHd findSky(AoFaceData faceData) {
-		return find(faceData, LightmapHd::mapSky);
+		return find(mapSky(faceData));
 	}
 
 	public static LightmapHd findAo(AoFaceData faceData) {
-		return find(faceData, LightmapHd::mapAo);
+		return find(mapAo(faceData));
+	}
+
+	public static LightmapHd findFlatLight(int light) {
+		return find(LightKey.toLightmapKey(
+				light,
+				light,
+				light,
+				light,
+				light,
+				light,
+				light,
+				light,
+				light
+				));
+	}
+
+	public static LightmapHd findAo(float[] ao) {
+		// FIX: corrrect rotation relative to face
+		return find(LightKey.toAoKey(
+				Math.round(ao[0] * 255),
+				Math.round(ao[1] * 255),
+				Math.round(ao[2] * 255),
+				Math.round(ao[3] * 255)
+				));
+
 	}
 
 	private static long mapBlock(AoFaceData faceData) {
@@ -98,9 +122,7 @@ public class LightmapHd {
 	}
 
 	// PERF: can reduce texture consumption 8X by reusing rotations/inversions
-	private static LightmapHd find(AoFaceData faceData, ToLongFunction<AoFaceData> mapper) {
-		final long key = mapper.applyAsLong(faceData);
-
+	private static LightmapHd find(long key) {
 		LightmapHd result = MAP.get(key);
 
 		if(result == null) {

@@ -1,14 +1,17 @@
 package grondag.canvas.buffer.encoding;
 
-import static grondag.canvas.buffer.encoding.vanilla.VanillaEncoders.VANILLA_BLOCK_1;
-import static grondag.canvas.buffer.encoding.vanilla.VanillaEncoders.VANILLA_BLOCK_2;
-import static grondag.canvas.buffer.encoding.vanilla.VanillaEncoders.VANILLA_BLOCK_3;
-import static grondag.canvas.buffer.encoding.vanilla.VanillaEncoders.VANILLA_ITEM_1;
-import static grondag.canvas.buffer.encoding.vanilla.VanillaEncoders.VANILLA_ITEM_2;
-import static grondag.canvas.buffer.encoding.vanilla.VanillaEncoders.VANILLA_ITEM_3;
-import static grondag.canvas.buffer.encoding.vanilla.VanillaEncoders.VANILLA_TERRAIN_1;
-import static grondag.canvas.buffer.encoding.vanilla.VanillaEncoders.VANILLA_TERRAIN_2;
-import static grondag.canvas.buffer.encoding.vanilla.VanillaEncoders.VANILLA_TERRAIN_3;
+import static grondag.canvas.buffer.encoding.HdEncoders.HD_TERRAIN_1;
+import static grondag.canvas.buffer.encoding.HdEncoders.HD_TERRAIN_2;
+import static grondag.canvas.buffer.encoding.HdEncoders.HD_TERRAIN_3;
+import static grondag.canvas.buffer.encoding.VanillaEncoders.VANILLA_BLOCK_1;
+import static grondag.canvas.buffer.encoding.VanillaEncoders.VANILLA_BLOCK_2;
+import static grondag.canvas.buffer.encoding.VanillaEncoders.VANILLA_BLOCK_3;
+import static grondag.canvas.buffer.encoding.VanillaEncoders.VANILLA_ITEM_1;
+import static grondag.canvas.buffer.encoding.VanillaEncoders.VANILLA_ITEM_2;
+import static grondag.canvas.buffer.encoding.VanillaEncoders.VANILLA_ITEM_3;
+import static grondag.canvas.buffer.encoding.VanillaEncoders.VANILLA_TERRAIN_1;
+import static grondag.canvas.buffer.encoding.VanillaEncoders.VANILLA_TERRAIN_2;
+import static grondag.canvas.buffer.encoding.VanillaEncoders.VANILLA_TERRAIN_3;
 import static grondag.canvas.material.MaterialContext.BLOCK;
 import static grondag.canvas.material.MaterialContext.ITEM_FIXED;
 import static grondag.canvas.material.MaterialContext.ITEM_GROUND;
@@ -18,13 +21,14 @@ import static grondag.canvas.material.MaterialContext.TERRAIN;
 
 import net.minecraft.util.math.MathHelper;
 
+import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.RenderMaterialImpl;
 import grondag.canvas.apiimpl.RenderMaterialImpl.CompositeMaterial;
 import grondag.canvas.material.MaterialContext;
 
 public class VertexEncoders {
 	/**
-	 * Largest possible number of active encoder indices.  Actual will generally be much fewer.
+	 * Largest possible number of active encoder indices.
 	 */
 	public static final int ENCODER_KEY_SPACE_SIZE = 2 * MathHelper.smallestEncompassingPowerOfTwo(RenderMaterialImpl.MAX_SPRITE_DEPTH)
 			* MathHelper.smallestEncompassingPowerOfTwo(MaterialContext.values().length);
@@ -61,12 +65,12 @@ public class VertexEncoders {
 		ENCODERS[lookupIndex(BLOCK, 2, true)] = VANILLA_BLOCK_2;
 		ENCODERS[lookupIndex(BLOCK, 3, true)] = VANILLA_BLOCK_3;
 
-		ENCODERS[lookupIndex(TERRAIN, 1, false)] = VANILLA_TERRAIN_1;
-		ENCODERS[lookupIndex(TERRAIN, 2, false)] = VANILLA_TERRAIN_2;
-		ENCODERS[lookupIndex(TERRAIN, 3, false)] = VANILLA_TERRAIN_3;
-		ENCODERS[lookupIndex(TERRAIN, 1, true)] = VANILLA_TERRAIN_1;
-		ENCODERS[lookupIndex(TERRAIN, 2, true)] = VANILLA_TERRAIN_2;
-		ENCODERS[lookupIndex(TERRAIN, 3, true)] = VANILLA_TERRAIN_3;
+		ENCODERS[lookupIndex(TERRAIN, 1, false)] = Configurator.hdLightmaps ? HD_TERRAIN_1 : VANILLA_TERRAIN_1;
+		ENCODERS[lookupIndex(TERRAIN, 2, false)] = Configurator.hdLightmaps ? HD_TERRAIN_2 : VANILLA_TERRAIN_2;
+		ENCODERS[lookupIndex(TERRAIN, 3, false)] = Configurator.hdLightmaps ? HD_TERRAIN_3 : VANILLA_TERRAIN_3;
+		ENCODERS[lookupIndex(TERRAIN, 1, true)] = Configurator.hdLightmaps ? HD_TERRAIN_1 : VANILLA_TERRAIN_1;
+		ENCODERS[lookupIndex(TERRAIN, 2, true)] = Configurator.hdLightmaps ? HD_TERRAIN_2 : VANILLA_TERRAIN_2;
+		ENCODERS[lookupIndex(TERRAIN, 3, true)] = Configurator.hdLightmaps ? HD_TERRAIN_3 : VANILLA_TERRAIN_3;
 
 		ENCODERS[lookupIndex(ITEM_HELD, 1, false)] = VANILLA_ITEM_1;
 		ENCODERS[lookupIndex(ITEM_HELD, 2, false)] = VANILLA_ITEM_2;

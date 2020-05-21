@@ -3,9 +3,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
  * of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
@@ -41,7 +41,7 @@ public class AoFaceData {
 
 	public final AoFaceCalc calc = new AoFaceCalc();
 
-	public static AoFaceData weightedBlend(AoFaceData in0, float w0, AoFaceData in1, float w1, AoFaceData out) {
+	public static void blendTo(AoFaceData in0, float w0, AoFaceData in1, float w1, AoFaceData out) {
 		out.top = lightBlend(in0.top, w0, in1.top, w1);
 		out.left = lightBlend(in0.left, w0, in1.left, w1);
 		out.right = lightBlend(in0.right, w0, in1.right, w1);
@@ -58,8 +58,6 @@ public class AoFaceData {
 		out.aoTopRight = Math.round(in0.aoTopRight * w0 + in1.aoTopRight * w1);
 		out.aoBottomLeft = Math.round(in0.aoBottomLeft * w0 + in1.aoBottomLeft * w1);
 		out.aoBottomRight = Math.round(in0.aoBottomRight * w0 + in1.aoBottomRight * w1);
-
-		return out;
 	}
 
 	private static int lightBlend(int l0, float w0, int l1, float w1) {

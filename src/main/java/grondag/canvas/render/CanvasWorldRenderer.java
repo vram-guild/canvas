@@ -74,6 +74,7 @@ import grondag.canvas.chunk.occlusion.TerrainOccluder;
 import grondag.canvas.chunk.occlusion.region.OcclusionRegion;
 import grondag.canvas.chunk.occlusion.region.PackedBox;
 import grondag.canvas.draw.DrawHandler;
+import grondag.canvas.light.LightmapHdTexture;
 import grondag.canvas.mixinterface.WorldRendererExt;
 import grondag.canvas.shader.GlProgram;
 import grondag.canvas.shader.ShaderManager;
@@ -778,6 +779,10 @@ public class CanvasWorldRenderer {
 		final int step = isTranslucent ? -1 : 1;
 		final int frameIndex = ShaderManager.INSTANCE.frameIndex();
 
+		if (Configurator.hdLightmaps) {
+			LightmapHdTexture.instance().enable();
+		}
+
 		// PERF: consider rendering solid layers in program order vs. region/buffer order
 		// alternatively, consider deferred shading or ubershaders - needs testing
 
@@ -821,6 +826,10 @@ public class CanvasWorldRenderer {
 				RenderSystem.popMatrix();
 				matrixStack.pop();
 			}
+		}
+
+		if (Configurator.hdLightmaps) {
+			LightmapHdTexture.instance().disable();
 		}
 
 		VboBuffer.unbind();

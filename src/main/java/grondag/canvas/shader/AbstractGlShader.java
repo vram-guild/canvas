@@ -38,6 +38,7 @@ import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
 import grondag.canvas.Configurator.AoMode;
 import grondag.canvas.Configurator.DiffuseMode;
+import grondag.canvas.material.MaterialContext;
 import grondag.canvas.varia.CanvasGlHelper;
 
 abstract class AbstractGlShader {
@@ -193,16 +194,6 @@ abstract class AbstractGlShader {
 		result = result.replaceAll("#version\\s+120", "");
 		result = librarySource + result;
 
-		//		final int spriteDepth = context.spriteDepth;
-
-		//		if(context.isCutout) {
-		//			result = result.replaceAll("#define CUTOUT FALSE", "#define CUTOUT TRUE");
-		//		}
-
-		//		if (spriteDepth > 1) {
-		//			result = result.replaceAll("#define LAYER_COUNT 1", String.format("#define LAYER_COUNT %d", spriteDepth));
-		//		}
-
 		if(context.materialContext.isBlock) {
 			result = result.replaceAll("#define CONTEXT_IS_BLOCK FALSE", "#define CONTEXT_IS_BLOCK TRUE");
 		}
@@ -227,7 +218,7 @@ abstract class AbstractGlShader {
 			result = result.replaceAll("#define CONTEXT_IS_BLOCK TRUE", "#define CONTEXT_IS_BLOCK FALSE");
 		}
 
-		if(Configurator.hdLightmaps && context.hdLightmaps) {
+		if(Configurator.hdLightmaps && context.materialContext == MaterialContext.TERRAIN) {
 			result = result.replaceAll("#define ENABLE_SMOOTH_LIGHT FALSE", "#define ENABLE_SMOOTH_LIGHT TRUE");
 		}
 

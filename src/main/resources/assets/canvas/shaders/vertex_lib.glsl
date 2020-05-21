@@ -39,9 +39,9 @@ void setupVertex() {
 
     #if CONTEXT_IS_BLOCK
         #if ENABLE_SMOOTH_LIGHT
-            v_hd_blocklight = in_hd_blocklight / 32768.0;
-            v_hd_skylight = in_hd_skylight / 32768.0;
-            v_hd_ao = in_hd_ao / 32768.0;
+			v_hd_blocklight = in_hd_blocklight / 32768.0;
+			v_hd_skylight = in_hd_skylight / 32768.0;
+			v_hd_ao = in_hd_ao / 32768.0;
         #else
             v_ao = (in_normal_ao.w + 1.0) * 0.5;
         #endif
@@ -51,16 +51,16 @@ void setupVertex() {
         v_diffuse = diffuse(diffuseNormal(viewCoord, in_normal_ao.xyz));
     #endif
 
-    #if !CONTEXT_IS_GUI
-        // the lightmap texture matrix is scaled to 1/256 and then offset + 8
-        // it is also clamped to repeat and has linear min/mag
-        v_lightcoord = in_lightmap.rg * 0.00390625 + 0.03125;
-    #endif
+	#if !CONTEXT_IS_GUI && !ENABLE_SMOOTH_LIGHT
+		// the lightmap texture matrix is scaled to 1/256 and then offset + 8
+		// it is also clamped to repeat and has linear min/mag
+		v_lightcoord = in_lightmap.rg * 0.00390625 + 0.03125;
+	#endif
 
-    // Fixes Acuity #5
-    // Adding +0.5 prevents striping or other strangeness in flag-dependent rendering
-    // due to FP error on some cards/drivers.  Also made varying attribute invariant (rolls eyes at OpenGL)
-    v_flags =  in_lightmap.ba + 0.5;
+	// Fixes Acuity #5
+	// Adding +0.5 prevents striping or other strangeness in flag-dependent rendering
+	// due to FP error on some cards/drivers.  Also made varying attribute invariant (rolls eyes at OpenGL)
+	v_flags =  in_lightmap.ba + 0.5;
 
     #if WHITE_0
         v_color = vec4(1.0, 1.0, 1.0, 1.0);

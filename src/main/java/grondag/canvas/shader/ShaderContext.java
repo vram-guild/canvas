@@ -17,20 +17,16 @@ public class ShaderContext {
 
 	public final Type type;
 
-	public final boolean hdLightmaps;
-
 	private ShaderContext(Builder builder) {
 		name = builder.name;
 		materialContext = builder.materialContext;
 		type = builder.type;
-		hdLightmaps = builder.hdLightmaps;
 	}
 
 	public static class Builder {
 		private String name;
 		private MaterialContext materialContext;
 		private Type type = Type.SOLID;
-		private boolean hdLightmaps = false;
 
 		Builder name(String name) {
 			this.name = name;
@@ -47,11 +43,6 @@ public class ShaderContext {
 			return this;
 		}
 
-		Builder hdLightmaps(boolean hdLightmaps) {
-			this.hdLightmaps = hdLightmaps;
-			return this;
-		}
-
 		ShaderContext build() {
 			return new ShaderContext(this);
 		}
@@ -61,20 +52,17 @@ public class ShaderContext {
 		return new Builder();
 	}
 
-	public static final ShaderContext VANILLA_TERRAIN_SOLID = builder()
-			.hdLightmaps(false)
+	public static final ShaderContext TERRAIN_SOLID = builder()
 			.type(Type.SOLID)
 			.materialContext(MaterialContext.TERRAIN)
 			.build();
 
-	public static final ShaderContext VANILLA_TERRAIN_DECAL = builder()
-			.hdLightmaps(false)
+	public static final ShaderContext TERRAIN_DECAL = builder()
 			.type(Type.DECAL)
 			.materialContext(MaterialContext.TERRAIN)
 			.build();
 
-	public static final ShaderContext VANILLA_TERRAIN_TRANSLUCENT = builder()
-			.hdLightmaps(false)
+	public static final ShaderContext TERRAIN_TRANSLUCENT = builder()
 			.type(Type.TRANSLUCENT)
 			.materialContext(MaterialContext.TERRAIN)
 			.build();

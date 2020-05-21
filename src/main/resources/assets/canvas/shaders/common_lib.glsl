@@ -77,6 +77,8 @@ uniform int u_fogMode;
     #if ENABLE_LIGHT_NOISE
         uniform sampler2D u_dither;
     #endif
+#else
+    varying vec2 v_lightcoord;
 #endif
 
 #if DIFFUSE_SHADING_MODE != DIFFUSE_MODE_NONE
@@ -86,9 +88,6 @@ uniform int u_fogMode;
 //TODO - disable when not used
 varying vec4 v_color;
 varying vec2 v_texcoord;
-
-//TODO - disable when not used
-varying vec2 v_lightcoord;
 
 #define USE_FLAT_VARYING FALSE
 

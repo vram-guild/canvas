@@ -257,11 +257,15 @@ public abstract class AoCalculator {
 		final int lightFace = quad.lightFaceId();
 		final float w1 = AoFace.get(lightFace).depthFunc.apply(quad, 0);
 		final float w0 = 1 - w1;
+		final AoFaceData faceData = blender;
+
 		// PERF: cache recent results somehow
-		final AoFaceData faceData = AoFaceData.weightedBlend(gatherFace(lightFace, true), w0, gatherFace(lightFace, false), w1, blender);
+		AoFaceData.blendTo(gatherFace(lightFace, true), w0, gatherFace(lightFace, false), w1, faceData);
+
 		final AoFace face = AoFace.get(lightFace);
 		final Vertex2Float uFunc = face.uFunc;
 		final Vertex2Float vFunc = face.vFunc;
+
 		for (int i = 0; i < 4; i++) {
 			quad.u[i] = uFunc.apply(quad, i);
 			quad.v[i] = vFunc.apply(quad, i);
