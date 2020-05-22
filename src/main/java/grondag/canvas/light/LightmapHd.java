@@ -55,6 +55,8 @@ public class LightmapHd {
 		return find(mapAo(faceData));
 	}
 
+	// TODO: remove
+	@Deprecated
 	public static LightmapHd findFlatLight(int light) {
 		return find(LightKey.toLightmapKey(
 				light,

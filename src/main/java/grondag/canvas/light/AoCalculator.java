@@ -66,7 +66,7 @@ public abstract class AoCalculator {
 	private final AoFaceCalc[] blendCache = new AoFaceCalc[BLEND_CACHE_ARRAY_SIZE];
 
 	// PERF: need to cache these vs only the calc results due to mixed use
-	private final AoFaceData blender = new AoFaceData();
+	private final AoFaceData localData = new AoFaceData();
 
 	/**
 	 * caches results of {@link #gatherFace(Direction, boolean)} for the current
@@ -132,10 +132,17 @@ public abstract class AoCalculator {
 		blendCacheCompletionHighFlags = 0;
 	}
 
+	public void computeFlat(MutableQuadViewImpl quad, int flatBrightness) {
+		if(Configurator.hdLightmaps) {
+			flatFaceSmooth(quad, flatBrightness);
+		} else {
+			assert false : "Called block lighter for flat lighting outside HD lighting model";
+		}
+	}
+
 	public void compute(MutableQuadViewImpl quad) {
 		if(quad.hasVertexNormals()) {
 			// these can only be lit this way
-			// FIX: add same logic in Indigo
 			irregularFace(quad);
 			return;
 		}
@@ -212,6 +219,24 @@ public abstract class AoCalculator {
 		quad.skyLight = LightmapHd.findSky(faceData);
 	}
 
+	private void flatFaceSmooth(MutableQuadViewImpl quad, int flatBrightness) {
+		final int lightFace = quad.lightFaceId();
+		final AoFaceData faceData = localData;
+		faceData.setFlat(flatBrightness);
+		final AoFace face = AoFace.get(lightFace);
+		final Vertex2Float uFunc = face.uFunc;
+		final Vertex2Float vFunc = face.vFunc;
+
+		for (int i = 0; i < 4; i++) {
+			quad.u[i] = uFunc.apply(quad, i);
+			quad.v[i] = vFunc.apply(quad, i);
+		}
+
+		quad.aoShade = LightmapHd.findAo(faceData);
+		quad.blockLight = LightmapHd.findBlock(faceData);
+		quad.skyLight = LightmapHd.findSky(faceData);
+	}
+
 	/**
 	 * Returns linearly interpolated blend of outer and inner face based on depth of
 	 * vertex in face
@@ -257,7 +282,7 @@ public abstract class AoCalculator {
 		final int lightFace = quad.lightFaceId();
 		final float w1 = AoFace.get(lightFace).depthFunc.apply(quad, 0);
 		final float w0 = 1 - w1;
-		final AoFaceData faceData = blender;
+		final AoFaceData faceData = localData;
 
 		// PERF: cache recent results somehow
 		AoFaceData.blendTo(gatherFace(lightFace, true), w0, gatherFace(lightFace, false), w1, faceData);
@@ -463,7 +488,7 @@ public abstract class AoCalculator {
 		if (!(leftClear || topClear)) {
 			// both not clear
 			fd.aoTopLeft = (Math.min(aoLeft, aoTop) + aoTop + aoLeft + 1 + aoCenter) >> 2;
-			fd.topLeft = OPAQUE;
+		fd.topLeft = OPAQUE;
 		} else { // at least one clear
 			offset = aoFace.topLeftVec;
 			cacheIndex = fastRelativeCacheIndex(x + offset.getX() , y + offset.getY(), z + offset.getZ());

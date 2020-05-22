@@ -91,4 +91,21 @@ public class AoFaceData {
 		final int sky = ((light >> 16) & 0xFF) - 16;
 		return Math.max(0, block) | (Math.max(0, sky) << 16);
 	}
+
+	public void setFlat(int flatBrightness) {
+		bottom = flatBrightness;
+		top = flatBrightness;
+		left = flatBrightness;
+		right = flatBrightness;
+		bottomLeft = flatBrightness;
+		bottomRight = flatBrightness;
+		topLeft = flatBrightness;
+		topRight = flatBrightness;
+		center = flatBrightness;
+
+		aoBottomLeft = 255;
+		aoBottomRight = 255;
+		aoTopLeft = 255;
+		aoTopRight = 255;
+	}
 }

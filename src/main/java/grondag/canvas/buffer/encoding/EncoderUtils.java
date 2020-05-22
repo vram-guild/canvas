@@ -757,6 +757,9 @@ abstract class EncoderUtils {
 	}
 
 	static void applyBlockLighting(MutableQuadViewImpl quad, AbstractRenderContext context) {
+		// FIX: per-vertex light maps will be ignored unless we bake a custom HD map
+		// or retain vertex light maps in buffer format and logic in shader to take max
+
 		if (!quad.material().disableAo(0) && MinecraftClient.isAmbientOcclusionEnabled()) {
 			context.aoCalc().compute(quad);
 		} else {
@@ -765,6 +768,8 @@ abstract class EncoderUtils {
 			quad.lightmap(1, ColorHelper.maxBrightness(quad.lightmap(1), brightness));
 			quad.lightmap(2, ColorHelper.maxBrightness(quad.lightmap(2), brightness));
 			quad.lightmap(3, ColorHelper.maxBrightness(quad.lightmap(3), brightness));
+
+			context.aoCalc().computeFlat(quad, brightness);
 		}
 	}
 
