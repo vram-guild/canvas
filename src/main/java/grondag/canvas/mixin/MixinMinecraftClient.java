@@ -24,7 +24,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.util.thread.ReentrantThreadExecutor;
 
-import grondag.canvas.light.LightmapHdTexture;
 import grondag.canvas.shader.ShaderManager;
 import grondag.canvas.varia.CanvasGlHelper;
 
@@ -38,14 +37,5 @@ public abstract class MixinMinecraftClient extends ReentrantThreadExecutor<Runna
 	private void hookInit(CallbackInfo info) {
 		CanvasGlHelper.init();
 		ShaderManager.INSTANCE.forceReload();
-	}
-
-	/**
-	 * Per-frame tick outside of render state setup
-	 */
-	@Override
-	protected void runTasks() {
-		LightmapHdTexture.instance().onRenderTick();
-		super.runTasks();
 	}
 }

@@ -384,6 +384,8 @@ public class CanvasWorldRenderer {
 
 		updateRegions(startTime + clampedBudget);
 
+		LightmapHdTexture.instance().onRenderTick();
+
 		profiler.swap("terrain");
 		renderTerrainLayer(false, matrixStack, cameraX, cameraY, cameraZ);
 		DiffuseLighting.enableForLevel(matrixStack.peek().getModel());
