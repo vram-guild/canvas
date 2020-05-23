@@ -69,9 +69,7 @@ uniform int u_fogMode;
 
 #if ENABLE_SMOOTH_LIGHT
     uniform sampler2D u_utility;
-    varying vec2 v_hd_blocklight;
-    varying vec2 v_hd_skylight;
-    varying vec2 v_hd_ao;
+    varying vec2 v_hd_lightmap;
 
     //TODO: make this depend on shader props
     #if ENABLE_LIGHT_NOISE

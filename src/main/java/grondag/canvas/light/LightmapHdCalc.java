@@ -3,9 +3,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
  * of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
@@ -19,21 +19,21 @@ import static grondag.canvas.light.LightmapHd.lightIndex;
 import it.unimi.dsi.fastutil.ints.Int2IntFunction;
 
 final class LightmapHdCalc {
-	static float input(int b) {
-		return b == AoFaceData.OPAQUE ? AoFaceData.OPAQUE : b / 16f;
+	static float input(int b, boolean isSky) {
+		return b == AoFaceData.OPAQUE ? AoFaceData.OPAQUE : (isSky ? (b >> 16) & 0xFF : b & 0xFF) / 16f;
 	}
 
-	static void computeLight(int[] light, long key, int index) {
+	static void computeLight(int[] light, AoFaceData faceData, boolean isSky) {
 		// PERF: use integer math
-		final float center = input(LightKey.center(key));
-		final float top = input(LightKey.top(key));
-		final float bottom = input(LightKey.bottom(key));
-		final float right = input(LightKey.right(key));
-		final float left = input(LightKey.left(key));
-		final float topLeft = input(LightKey.topLeft(key));
-		final float topRight = input(LightKey.topRight(key));
-		final float bottomRight = input(LightKey.bottomRight(key));
-		final float bottomLeft = input(LightKey.bottomLeft(key));
+		final float center = input(faceData.center, isSky);
+		final float top = input(faceData.top, isSky);
+		final float bottom = input(faceData.bottom, isSky);
+		final float right = input(faceData.right, isSky);
+		final float left = input(faceData.left, isSky);
+		final float topLeft = input(faceData.topLeft, isSky);
+		final float topRight = input(faceData.topRight, isSky);
+		final float bottomRight = input(faceData.bottomRight, isSky);
+		final float bottomLeft = input(faceData.bottomLeft, isSky);
 
 		// Note: won't work for other than 4x4 interior, 6x6 padded
 		computeQuadrant(center, left, top, topLeft, light, LightmapSizer.NEG, LightmapSizer.NEG);
@@ -50,23 +50,54 @@ final class LightmapHdCalc {
 				computeOpen(center, center - 0.5f, center - 0.5f, center - 0.5f, light, uFunc, vFunc);
 			} else if (corner == AoFaceData.OPAQUE) {
 				// U + corner enclosing
-				computeOpen(center, center - 0.5f, vSide, vSide - 0.5f, light, uFunc, vFunc);
+				final float min = (center < vSide ? center : vSide) - 0.5f;
+				computeOpen(center, center - 0.5f, vSide, min, light, uFunc, vFunc);
+				//computeOpen(center, center - 0.5f, vSide, vSide - 0.5f, light, uFunc, vFunc);
 			} else {
 				// U side enclosing
-				computeOpaqueU(center, vSide, corner, light, uFunc, vFunc);
+				//				float min = (center < vSide ? center : vSide);
+				//
+				//				if (corner < min) {
+				//					min = corner;
+				//				}
+				//
+				//				min -= 0.5f;
+
+				computeOpen(center, center - 0.5f, vSide, corner, light, uFunc, vFunc);
+				//computeOpaqueU(center, vSide, corner, light, uFunc, vFunc);
 			}
 		} else if(vSide == AoFaceData.OPAQUE) {
 			if(corner == AoFaceData.OPAQUE) {
 				// V + corner enclosing
-				computeOpen(center, uSide, center - 0.5f, uSide - 0.5f, light, uFunc, vFunc);
+				final float min = (center < uSide ? center : uSide) - 0.5f;
+				computeOpen(center, uSide, center - 0.5f, min, light, uFunc, vFunc);
+				//computeOpen(center, uSide, center - 0.5f, uSide - 0.5f, light, uFunc, vFunc);
 			} else {
 				// V side enclosing
-				computeOpaqueV(center, uSide, corner, light, uFunc, vFunc);
+				//				float min = (center < uSide ? center : uSide);
+				//
+				//				if (corner < min) {
+				//					min = corner;
+				//				}
+				//
+				//				min -= 0.5f;
+
+				//computeOpaqueV(center, uSide, corner, light, uFunc, vFunc);
+				computeOpen(center, uSide, center - 0.5f, corner, light, uFunc, vFunc);
 			}
 
 		} else if(corner == AoFaceData.OPAQUE) {
 			// opaque corner
-			computeOpaqueCorner(center, uSide, vSide, light, uFunc, vFunc);
+			float min = (center < uSide ? center : uSide);
+
+			if (vSide < min) {
+				min = vSide;
+			}
+
+			min -= 0.5f;
+
+			computeOpen(center, uSide, vSide, min, light, uFunc, vFunc);
+			//			computeOpaqueCorner(center, uSide, vSide, light, uFunc, vFunc);
 
 		} else {
 			// all open
@@ -75,10 +106,10 @@ final class LightmapHdCalc {
 	}
 
 	static void computeOpen(float center, float uSide, float vSide, float corner, int light[], Int2IntFunction uFunc, Int2IntFunction vFunc) {
-		for(int u = 0; u <= LightmapSizer.radius; u++) {
-			for(int v = 0; v <= LightmapSizer.radius; v++) {
-				final float uLinear = 1f - (u + 0.5f) / LightmapSizer.lightmapSize;
-				final float vLinear = 1f - (v + 0.5f) / LightmapSizer.lightmapSize;
+		for(int u = 0; u < LightmapSizer.radius; u++) {
+			for(int v = 0; v < LightmapSizer.radius; v++) {
+				final float uLinear = 1f - LightmapSizer.centralPixelDistance - u * LightmapSizer.pixelUnitFraction;
+				final float vLinear = 1f - LightmapSizer.centralPixelDistance - v * LightmapSizer.pixelUnitFraction;
 
 				assert uLinear >= 0 && uLinear <= 1f;
 				assert vLinear >= 0 && vLinear <= 1f;

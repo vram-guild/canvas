@@ -3,9 +3,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
  * of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
@@ -55,13 +55,13 @@ public class LightmapHdTexture implements AutoCloseable {
 	private final SimpleImage image;
 
 	private LightmapHdTexture() {
-		texture = new SimpleTexture(new SimpleImage(1, GL11.GL_RED, LightmapSizer.texSize, LightmapSizer.texSize, false), GL11.GL_RED);
+		texture = new SimpleTexture(new SimpleImage(4, GL11.GL_RGBA, LightmapSizer.texSize, LightmapSizer.texSize, false), GL11.GL_RGBA);
 		image = texture.getImage();
 		clear();
 	}
 
 	private void clear() {
-		image.clearLuminance((byte)255);
+		image.clear((byte)255);
 		texture.upload();
 	}
 
@@ -74,9 +74,10 @@ public class LightmapHdTexture implements AutoCloseable {
 
 		for(int u = 0; u < LightmapSizer.paddedSize; u++) {
 			for(int v = 0; v < LightmapSizer.paddedSize; v++) {
-				image.setLuminance(uMap + u, vMap + v, (byte)lightmap.pixel(u,v));
+				image.setPixelRGBA(uMap + u, vMap + v, lightmap.pixel(u,v));
 			}
 		}
+
 		updates.add(lightmap);
 	}
 

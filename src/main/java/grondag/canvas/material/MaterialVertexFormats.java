@@ -2,9 +2,7 @@ package grondag.canvas.material;
 
 import static grondag.canvas.material.MaterialVertextFormatElement.BASE_RGBA_4UB;
 import static grondag.canvas.material.MaterialVertextFormatElement.BASE_TEX_2F;
-import static grondag.canvas.material.MaterialVertextFormatElement.HD_AO_SHADEMAP_2US;
-import static grondag.canvas.material.MaterialVertextFormatElement.HD_BLOCK_LIGHTMAP_2US;
-import static grondag.canvas.material.MaterialVertextFormatElement.HD_SKY_LIGHTMAP_2US;
+import static grondag.canvas.material.MaterialVertextFormatElement.HD_LIGHTMAP_2US;
 import static grondag.canvas.material.MaterialVertextFormatElement.LIGHTMAPS_4UB;
 import static grondag.canvas.material.MaterialVertextFormatElement.NORMAL_AO_4UB;
 import static grondag.canvas.material.MaterialVertextFormatElement.POSITION_3F;
@@ -26,9 +24,7 @@ public final class MaterialVertexFormats {
 			BASE_RGBA_4UB,
 			BASE_TEX_2F,
 			LIGHTMAPS_4UB,
-			HD_AO_SHADEMAP_2US,
-			HD_BLOCK_LIGHTMAP_2US,
-			HD_SKY_LIGHTMAP_2US,
+			HD_LIGHTMAP_2US,
 			NORMAL_AO_4UB);
 
 	// UGLY: derive this from formats

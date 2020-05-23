@@ -8,9 +8,7 @@ attribute vec2 in_uv;
 attribute vec4 in_lightmap;
 
 #if ENABLE_SMOOTH_LIGHT
-attribute vec2 in_hd_blocklight;
-attribute vec2 in_hd_skylight;
-attribute vec2 in_hd_ao;
+attribute vec2 in_hd_lightmap;
 #endif
 
 vec2 textureCoord(vec2 coordIn, int matrixIndex) {
@@ -39,9 +37,7 @@ void setupVertex() {
 
     #if CONTEXT_IS_BLOCK
         #if ENABLE_SMOOTH_LIGHT
-			v_hd_blocklight = in_hd_blocklight / 32768.0;
-			v_hd_skylight = in_hd_skylight / 32768.0;
-			v_hd_ao = in_hd_ao / 32768.0;
+			v_hd_lightmap = in_hd_lightmap / 32768.0;
         #else
             v_ao = (in_normal_ao.w + 1.0) * 0.5;
         #endif

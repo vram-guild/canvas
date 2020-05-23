@@ -43,11 +43,11 @@ public interface VertexAttributeEncoder {
 		o.add(c.overlay());
 	};
 
-	VertexAttributeEncoder HD_BLOCK_LIGHTMAP = (q, i, c, o) -> o.add(q.blockLight == null ? 0 : q.blockLight.coord(q, i));
-
-	VertexAttributeEncoder HD_SKY_LIGHTMAP = (q, i, c, o) -> o.add(q.skyLight == null ? 0 : q.skyLight.coord(q, i));
-
-	VertexAttributeEncoder HD_AO_SHADEMAP = (q, i, c, o) -> o.add(q.aoShade == null ? 0 : q.aoShade.coord(q, i));
+	//	VertexAttributeEncoder HD_BLOCK_LIGHTMAP = (q, i, c, o) -> o.add(q.blockLight == null ? 0 : q.blockLight.coord(q, i));
+	//
+	//	VertexAttributeEncoder HD_SKY_LIGHTMAP = (q, i, c, o) -> o.add(q.skyLight == null ? 0 : q.skyLight.coord(q, i));
+	//
+	//	VertexAttributeEncoder HD_AO_SHADEMAP = (q, i, c, o) -> o.add(q.aoShade == null ? 0 : q.aoShade.coord(q, i));
 
 	VertexAttributeEncoder NORMAL_AO = (q, i, c, o) -> {
 		if(c.context.isItem) {

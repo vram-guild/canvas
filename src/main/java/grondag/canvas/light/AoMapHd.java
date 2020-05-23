@@ -3,9 +3,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
  * of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
@@ -20,18 +20,16 @@ import net.minecraft.util.math.MathHelper;
 
 final class AoMapHd {
 
-	static void computeAo(int[] light, long key, int index) {
-
-		final float topLeft = LightKey.topLeftAo(key) / 255f;
-		final float topRight = LightKey.topRightAo(key) / 255f;
-		final float bottomRight = LightKey.bottomRightAo(key) / 255f;
-		final float bottomLeft = LightKey.bottomLeftAo(key) / 255f;
-
+	static void computeAo(int[] light, AoFaceData faceData) {
+		final float topLeft = faceData.aoTopLeft / 255f;
+		final float topRight = faceData.aoTopRight / 255f;
+		final float bottomRight = faceData.aoBottomRight / 255f;
+		final float bottomLeft = faceData.aoBottomLeft / 255f;
 
 		for(int u = 0; u < LightmapSizer.paddedSize; u++) {
 			for(int v = 0; v < LightmapSizer.paddedSize; v++) {
-				final float uDist = (float)u / LightmapSizer.aoSize;
-				final float vDist = (float)v / LightmapSizer.aoSize;
+				final float uDist = (float)u / LightmapSizer.centerToCenterPixelDistance;
+				final float vDist = (float)v / LightmapSizer.centerToCenterPixelDistance;
 
 				final float tl = (1 - uDist) * (1 - vDist) * topLeft;
 				final float tr = uDist * (1 - vDist) * topRight;

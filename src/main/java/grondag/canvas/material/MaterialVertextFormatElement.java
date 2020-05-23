@@ -40,14 +40,8 @@ public class MaterialVertextFormatElement {
 	public static final MaterialVertextFormatElement OVERLAY_4UB = new MaterialVertextFormatElement(
 			VertexFormatElement.Format.UBYTE, 4, "in_overlay", false);
 
-	public static final MaterialVertextFormatElement HD_BLOCK_LIGHTMAP_2US = new MaterialVertextFormatElement(
-			VertexFormatElement.Format.USHORT, 2, "in_hd_blocklight", false);
-
-	public static final MaterialVertextFormatElement HD_SKY_LIGHTMAP_2US = new MaterialVertextFormatElement(
-			VertexFormatElement.Format.USHORT, 2, "in_hd_skylight", false);
-
-	public static final MaterialVertextFormatElement HD_AO_SHADEMAP_2US = new MaterialVertextFormatElement(
-			VertexFormatElement.Format.USHORT, 2, "in_hd_ao", false);
+	public static final MaterialVertextFormatElement HD_LIGHTMAP_2US = new MaterialVertextFormatElement(
+			VertexFormatElement.Format.USHORT, 2, "in_hd_lightmap", false);
 
 	public static final MaterialVertextFormatElement NORMAL_AO_4UB = new MaterialVertextFormatElement(
 			VertexFormatElement.Format.BYTE, 4, "in_normal_ao", true);

@@ -159,16 +159,12 @@ public abstract class AoCalculator {
 			} else {
 				// currently can't handle these
 				irregularFace(quad);
-				quad.aoShade = null;
-				quad.blockLight = null;
-				quad.skyLight = null;
+				quad.hdLight = null;
 			}
 			return;
 		}
 
-		quad.aoShade = null;
-		quad.blockLight = null;
-		quad.skyLight = null;
+		quad.hdLight = null;
 
 		switch (flags) {
 		case AXIS_ALIGNED_FLAG | CUBIC_FLAG | LIGHT_FACE_FLAG:
@@ -214,9 +210,7 @@ public abstract class AoCalculator {
 			quad.v[i] = vFunc.apply(quad, i);
 		}
 
-		quad.aoShade = LightmapHd.findAo(faceData);
-		quad.blockLight = LightmapHd.findBlock(faceData);
-		quad.skyLight = LightmapHd.findSky(faceData);
+		quad.hdLight = LightmapHd.find(faceData);
 	}
 
 	private void flatFaceSmooth(MutableQuadViewImpl quad, int flatBrightness) {
@@ -232,9 +226,7 @@ public abstract class AoCalculator {
 			quad.v[i] = vFunc.apply(quad, i);
 		}
 
-		quad.aoShade = LightmapHd.findAo(faceData);
-		quad.blockLight = LightmapHd.findBlock(faceData);
-		quad.skyLight = LightmapHd.findSky(faceData);
+		quad.hdLight = LightmapHd.find(faceData);
 	}
 
 	/**
@@ -296,9 +288,7 @@ public abstract class AoCalculator {
 			quad.v[i] = vFunc.apply(quad, i);
 		}
 
-		quad.aoShade = LightmapHd.findAo(faceData);
-		quad.skyLight = LightmapHd.findSky(faceData);
-		quad.blockLight = LightmapHd.findBlock(faceData);
+		quad.hdLight = LightmapHd.find(faceData);
 	}
 
 	/**
@@ -320,9 +310,7 @@ public abstract class AoCalculator {
 		final float aoResult[] = quad.ao;
 
 		//TODO: currently no way to handle 3d interpolation shader-side
-		quad.blockLight = null;
-		quad.skyLight = null;
-		quad.aoShade = null;
+		quad.hdLight = null;
 
 		for (int i = 0; i < 4; i++) {
 			normal = quad.hasNormal(i) ? quad.copyNormal(i, vertexNormal) : faceNorm;
@@ -509,6 +497,7 @@ public abstract class AoCalculator {
 			fd.aoTopRight = (Math.round(ao(cacheIndex) * 255) + aoTop + aoCenter + aoRight + 1) >> 2;
 		}
 
+		fd.updateHash();
 		fd.calc.compute(fd);
 	}
 }

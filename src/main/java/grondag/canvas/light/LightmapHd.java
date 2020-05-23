@@ -16,7 +16,7 @@ package grondag.canvas.light;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
 import net.minecraft.client.resource.language.I18n;
 import net.minecraft.util.math.MathHelper;
@@ -41,98 +41,22 @@ public class LightmapHd {
 	}
 
 	// PERF: use Fermion cache
-	static final Long2ObjectOpenHashMap<LightmapHd> MAP = new Long2ObjectOpenHashMap<>(MathHelper.smallestEncompassingPowerOfTwo(LightmapSizer.maxCount), LightmapSizer.maxCount / (float)MathHelper.smallestEncompassingPowerOfTwo(LightmapSizer.maxCount));
-
-	public static LightmapHd findBlock(AoFaceData faceData) {
-		return find(mapBlock(faceData));
-	}
-
-	public static LightmapHd findSky(AoFaceData faceData) {
-		return find(mapSky(faceData));
-	}
-
-	public static LightmapHd findAo(AoFaceData faceData) {
-		return find(mapAo(faceData));
-	}
-
-	// TODO: remove
-	@Deprecated
-	public static LightmapHd findFlatLight(int light) {
-		return find(LightKey.toLightmapKey(
-				light,
-				light,
-				light,
-				light,
-				light,
-				light,
-				light,
-				light,
-				light
-				));
-	}
-
-	public static LightmapHd findAo(float[] ao) {
-		// FIX: corrrect rotation relative to face
-		return find(LightKey.toAoKey(
-				Math.round(ao[0] * 255),
-				Math.round(ao[1] * 255),
-				Math.round(ao[2] * 255),
-				Math.round(ao[3] * 255)
-				));
-
-	}
-
-	private static long mapBlock(AoFaceData faceData) {
-		return LightKey.toLightmapKey(
-				faceData.top & 0xFF,
-				faceData.left & 0xFF,
-				faceData.right & 0xFF,
-				faceData.bottom & 0xFF,
-				faceData.topLeft & 0xFF,
-				faceData.topRight & 0xFF,
-				faceData.bottomLeft & 0xFF,
-				faceData.bottomRight & 0xFF,
-				faceData.center & 0xFF
-				);
-	}
-
-	private static long mapSky(AoFaceData faceData) {
-		return LightKey.toLightmapKey(
-				(faceData.top >>> 16) & 0xFF,
-				(faceData.left >>> 16) & 0xFF,
-				(faceData.right >>> 16) & 0xFF,
-				(faceData.bottom >>> 16) & 0xFF,
-				(faceData.topLeft >>> 16) & 0xFF,
-				(faceData.topRight >>> 16) & 0xFF,
-				(faceData.bottomLeft >>> 16) & 0xFF,
-				(faceData.bottomRight >>> 16) & 0xFF,
-				(faceData.center >>> 16) & 0xFF
-				);
-	}
-
-	private static long mapAo(AoFaceData faceData) {
-		return LightKey.toAoKey(
-				faceData.aoTopLeft,
-				faceData.aoTopRight,
-				faceData.aoBottomLeft,
-				faceData.aoBottomRight
-				);
-	}
+	static final Object2ObjectOpenHashMap<AoFaceData, LightmapHd> MAP = new Object2ObjectOpenHashMap<>(MathHelper.smallestEncompassingPowerOfTwo(LightmapSizer.maxCount), LightmapSizer.maxCount / (float)MathHelper.smallestEncompassingPowerOfTwo(LightmapSizer.maxCount));
 
 	static int lightIndex(int u, int v) {
 		return v * LightmapSizer.paddedSize + u;
 	}
 
 	// PERF: can reduce texture consumption 8X by reusing rotations/inversions
-	private static LightmapHd find(long key) {
-		LightmapHd result = MAP.get(key);
+	public static LightmapHd find(AoFaceData faceData) {
+		LightmapHd result = MAP.get(faceData);
 
 		if(result == null) {
 			synchronized(MAP) {
-				result = MAP.get(key);
+				result = MAP.get(faceData);
 				if(result == null) {
-					result = new LightmapHd(key);
-					MAP.put(key, result);
+					result = new LightmapHd(faceData);
+					MAP.put(faceData.clone(), result);
 				}
 			}
 		}
@@ -143,18 +67,15 @@ public class LightmapHd {
 	public final int uMinImg;
 	public final int vMinImg;
 	private final int[] light;
-	public final boolean isAo;
 
-	private LightmapHd(long key) {
+	private LightmapHd(AoFaceData faceData) {
 		final int index = nextIndex.getAndIncrement();
 		final int s = index % LightmapSizer.mapsPerAxis;
 		final int t = index / LightmapSizer.mapsPerAxis;
 		uMinImg = s * LightmapSizer.paddedSize;
 		vMinImg = t * LightmapSizer.paddedSize;
-		// PERF: light data could be repooled once uploaded - not needed after
-		// or simply output to the texture directly
 		light = new int[LightmapSizer.lightmapPixels];
-		isAo = LightKey.isAo(key);
+
 
 		if(index >= LightmapSizer.maxCount) {
 			if(errorNoticeNeeded) {
@@ -162,10 +83,21 @@ public class LightmapHd {
 				errorNoticeNeeded = false;
 			}
 		} else {
-			if(isAo) {
-				AoMapHd.computeAo(light, key, index);
-			} else {
-				LightmapHdCalc.computeLight(light, key, index);
+			// PERF: pool these and the main array - not needed after upload
+
+			final int [] aoLight = new int[LightmapSizer.lightmapPixels];
+			final int [] skyLight = new int[LightmapSizer.lightmapPixels];
+			final int [] blockLight = new int[LightmapSizer.lightmapPixels];
+
+			AoMapHd.computeAo(aoLight, faceData);
+			LightmapHdCalc.computeLight(blockLight, faceData, false);
+			LightmapHdCalc.computeLight(skyLight, faceData, true);
+
+			for (int i = 0; i < LightmapSizer.lightmapPixels; ++i) {
+				final int ao = 256; //aoLight[i];
+				final int sky = ((skyLight[i] * ao) >> 8);
+				final int block = ((blockLight[i] * ao) >> 8);
+				light[i] = (sky << 24) | (block << 16) | (block << 8) | block;
 			}
 
 			LightmapHdTexture.instance().enque(this);
@@ -182,13 +114,8 @@ public class LightmapHd {
 	public int coord(MutableQuadViewImpl q, int i) {
 		final int u, v;
 
-		if(isAo) {
-			u = Math.round((uMinImg + 0.5f  + q.u[i] * LightmapSizer.aoSize) * LightmapSizer.textureToBuffer);
-			v = Math.round((vMinImg + 0.5f  + q.v[i] * LightmapSizer.aoSize) * LightmapSizer.textureToBuffer);
-		} else {
-			u = Math.round((uMinImg + 1  + q.u[i] * LightmapSizer.lightmapSize) * LightmapSizer.textureToBuffer);
-			v = Math.round((vMinImg + 1  + q.v[i] * LightmapSizer.lightmapSize) * LightmapSizer.textureToBuffer);
-		}
+		u = Math.round((uMinImg + 0.5f  + q.u[i] * LightmapSizer.centerToCenterPixelDistance) * LightmapSizer.textureToBuffer);
+		v = Math.round((vMinImg + 0.5f  + q.v[i] * LightmapSizer.centerToCenterPixelDistance) * LightmapSizer.textureToBuffer);
 
 		return u | (v << 16);
 	}

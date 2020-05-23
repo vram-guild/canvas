@@ -61,7 +61,7 @@ abstract class OldShaderProps {
 		//			flags |= CUTOUT;
 		//		}
 
-		if(isBlock && Configurator.hdLightmaps && quad.blockLight != null && quad.skyLight != null && quad.aoShade != null) {
+		if(isBlock && Configurator.hdLightmaps && quad.hdLight != null) {
 			flags |= SMOOTH_LIGHTMAPS;
 		}
 

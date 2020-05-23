@@ -3,9 +3,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
  * of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
@@ -104,10 +104,18 @@ public final class SimpleImage implements AutoCloseable {
 		byteBuffer.put(u + v * width, value);
 	}
 
-	public void clearLuminance(byte value) {
-		assert bytesPerPixel == 1;
+	public void clear(byte value) {
 		assert pointer != 0L : "Image not allocated.";
-		final int limit = width * height;
+
+		final int limit;
+		if (bytesPerPixel == 1) {
+			limit = width * height;
+		} else {
+			assert bytesPerPixel == 4;
+			limit = width * height * 4;
+
+		}
+
 		for(int i = 0; i < limit; i++) {
 			byteBuffer.put(i, value);
 		}

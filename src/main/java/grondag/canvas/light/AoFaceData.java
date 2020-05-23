@@ -34,10 +34,12 @@ public class AoFaceData {
 	public int center;
 
 	// these values are fully computed at gather time
-	int aoBottomLeft;
-	int aoBottomRight;
-	int aoTopLeft;
-	int aoTopRight;
+	public int aoBottomLeft;
+	public int aoBottomRight;
+	public int aoTopLeft;
+	public int aoTopRight;
+
+	private int hashCode;
 
 	public final AoFaceCalc calc = new AoFaceCalc();
 
@@ -58,6 +60,8 @@ public class AoFaceData {
 		out.aoTopRight = Math.round(in0.aoTopRight * w0 + in1.aoTopRight * w1);
 		out.aoBottomLeft = Math.round(in0.aoBottomLeft * w0 + in1.aoBottomLeft * w1);
 		out.aoBottomRight = Math.round(in0.aoBottomRight * w0 + in1.aoBottomRight * w1);
+
+		out.updateHash();
 	}
 
 	private static int lightBlend(int l0, float w0, int l1, float w1) {
@@ -107,5 +111,77 @@ public class AoFaceData {
 		aoBottomRight = 255;
 		aoTopLeft = 255;
 		aoTopRight = 255;
+
+		updateHash();
+	}
+
+	@Override
+	public int hashCode() {
+		return hashCode;
+	}
+
+	@Override
+	public boolean equals(Object other) {
+		if (other == null || !(other instanceof AoFaceData)) {
+			return false;
+		}
+
+		final AoFaceData o = (AoFaceData) other;
+
+		return 	o.bottom == bottom &&
+				o.top == top &&
+				o.left == left &&
+				o.right == right &&
+				o.bottomLeft == bottomLeft &&
+				o.bottomRight == bottomRight &&
+				o.topLeft == topLeft &&
+				o.topRight == topRight &&
+				o.center == center &&
+
+				o.aoBottomLeft == aoBottomLeft &&
+				o.aoBottomRight == aoBottomRight &&
+				o.aoTopLeft == aoTopLeft &&
+				o.aoTopRight == aoTopRight;
+	}
+
+	@Override
+	public AoFaceData clone() {
+		final AoFaceData result = new AoFaceData();
+
+		result.bottom = bottom;
+		result.top = top;
+		result.left = left;
+		result.right = right;
+		result.bottomLeft = bottomLeft;
+		result.bottomRight = bottomRight;
+		result.topLeft = topLeft;
+		result.topRight = topRight;
+		result.center = center;
+
+		result.aoBottomLeft = aoBottomLeft;
+		result.aoBottomRight = aoBottomRight;
+		result.aoTopLeft = aoTopLeft;
+		result.aoTopRight = aoTopRight;
+
+		result.hashCode = hashCode;
+
+		return result;
+	}
+
+	public void updateHash() {
+		int h = bottom;
+		h = 31 * h + top;
+		h = 31 * h + left;
+		h = 31 * h + right;
+		h = 31 * h + bottomLeft;
+		h = 31 * h + bottomRight;
+		h = 31 * h + topLeft;
+		h = 31 * h + topRight;
+		h = 31 * h + center;
+		h = 31 * h + aoBottomLeft;
+		h = 31 * h + aoBottomRight;
+		h = 31 * h + aoTopLeft;
+		h = 31 * h + aoTopRight;
+		hashCode = h;
 	}
 }
