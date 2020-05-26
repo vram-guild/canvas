@@ -198,13 +198,13 @@ public class CanvasFrustum extends Frustum {
 
 	@Override
 	public boolean isVisible(Box box) {
-		final double x1 = box.x1;
-		final double y1 = box.y1;
-		final double z1 = box.z1;
+		final double x1 = box.minX;
+		final double y1 = box.minY;
+		final double z1 = box.minZ;
 
-		final float hdx = (float) (0.5 * (box.x2 - x1));
-		final float hdy = (float) (0.5 * (box.y2 - y1));
-		final float hdz = (float) (0.5 * (box.z2 - z1));
+		final float hdx = (float) (0.5 * (box.maxX - x1));
+		final float hdy = (float) (0.5 * (box.maxY - y1));
+		final float hdz = (float) (0.5 * (box.maxZ - z1));
 
 		assert hdx > 0;
 		assert hdy > 0;

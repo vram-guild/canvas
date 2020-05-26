@@ -18,9 +18,11 @@ import static grondag.canvas.light.LightmapHd.lightIndex;
 
 import it.unimi.dsi.fastutil.ints.Int2IntFunction;
 
+import net.minecraft.util.math.MathHelper;
+
 final class LightmapHdCalc {
 	static float input(int b, boolean isSky) {
-		return b == AoFaceData.OPAQUE ? AoFaceData.OPAQUE : (isSky ? (b >> 16) & 0xFF : b & 0xFF) / 16f;
+		return b == AoFaceData.OPAQUE ? AoFaceData.OPAQUE : (isSky ? (b >> 16) & 0xFF : b & 0xFF);
 	}
 
 	static void computeLight(int[] light, AoFaceData faceData, boolean isSky) {
@@ -47,64 +49,38 @@ final class LightmapHdCalc {
 		if(uSide == AoFaceData.OPAQUE) {
 			if(vSide == AoFaceData.OPAQUE) {
 				// fully enclosed
-				computeOpen(center, center - 0.5f, center - 0.5f, center - 0.5f, light, uFunc, vFunc);
+				computeOpen(center, center - 8f, center - 8f, center - 8f, light, uFunc, vFunc);
 			} else if (corner == AoFaceData.OPAQUE) {
 				// U + corner enclosing
-				final float min = (center < vSide ? center : vSide) - 0.5f;
-				computeOpen(center, center - 0.5f, vSide, min, light, uFunc, vFunc);
-				//computeOpen(center, center - 0.5f, vSide, vSide - 0.5f, light, uFunc, vFunc);
+				uSide = center - 4f;
+				computeClamped(center, uSide, (vSide + center) * 0.5f, (uSide + vSide - 4f) * 0.5f, light, uFunc, vFunc);
 			} else {
 				// U side enclosing
-				//				float min = (center < vSide ? center : vSide);
-				//
-				//				if (corner < min) {
-				//					min = corner;
-				//				}
-				//
-				//				min -= 0.5f;
-
-				computeOpen(center, center - 0.5f, vSide, corner, light, uFunc, vFunc);
-				//computeOpaqueU(center, vSide, corner, light, uFunc, vFunc);
+				final float join = (center + vSide + corner) / 3f;
+				computeClamped(center, center - 4f, (vSide + center) * 0.5f, join, light, uFunc, vFunc);
 			}
 		} else if(vSide == AoFaceData.OPAQUE) {
 			if(corner == AoFaceData.OPAQUE) {
 				// V + corner enclosing
-				final float min = (center < uSide ? center : uSide) - 0.5f;
-				computeOpen(center, uSide, center - 0.5f, min, light, uFunc, vFunc);
-				//computeOpen(center, uSide, center - 0.5f, uSide - 0.5f, light, uFunc, vFunc);
+				vSide = center - 4f;
+				computeClamped(center, (uSide + center) * 0.5f, vSide, (uSide + vSide - 4f) * 0.5f, light, uFunc, vFunc);
 			} else {
 				// V side enclosing
-				//				float min = (center < uSide ? center : uSide);
-				//
-				//				if (corner < min) {
-				//					min = corner;
-				//				}
-				//
-				//				min -= 0.5f;
-
-				//computeOpaqueV(center, uSide, corner, light, uFunc, vFunc);
-				computeOpen(center, uSide, center - 0.5f, corner, light, uFunc, vFunc);
+				final float join = (center + uSide + corner) / 3f;
+				computeClamped(center, (uSide + center) * 0.5f, center - 4f, join, light, uFunc, vFunc);
 			}
 
 		} else if(corner == AoFaceData.OPAQUE) {
 			// opaque corner
-			float min = (center < uSide ? center : uSide);
-
-			if (vSide < min) {
-				min = vSide;
-			}
-
-			min -= 0.5f;
-
-			computeOpen(center, uSide, vSide, min, light, uFunc, vFunc);
-			//			computeOpaqueCorner(center, uSide, vSide, light, uFunc, vFunc);
-
+			final float join = (center + uSide + vSide) / 3f;
+			computeClamped(center, (uSide + center) * 0.5f, (vSide + center) * 0.5f, join, light, uFunc, vFunc);
 		} else {
 			// all open
 			computeOpen(center, uSide, vSide, corner, light, uFunc, vFunc);
 		}
 	}
 
+	/* interpolates center-to-center */
 	static void computeOpen(float center, float uSide, float vSide, float corner, int light[], Int2IntFunction uFunc, Int2IntFunction vFunc) {
 		for(int u = 0; u < LightmapSizer.radius; u++) {
 			for(int v = 0; v < LightmapSizer.radius; v++) {
@@ -124,80 +100,28 @@ final class LightmapHdCalc {
 		}
 	}
 
-	static void computeOpaqueU(float center, float vSide, float corner, int light[], Int2IntFunction uFunc, Int2IntFunction vFunc) {
-		//  Layout  S = self, C = corner
-		//  V C V
-		//  S x S
-		//  V C V
+	/* interpolates center-to-corner */
+	static void computeClamped(float center, float uSide, float vSide, float corner, int light[], Int2IntFunction uFunc, Int2IntFunction vFunc) {
+		for(int u = 0; u < LightmapSizer.radius; u++) {
+			for(int v = 0; v < LightmapSizer.radius; v++) {
+				final float uLinear = 1f - LightmapSizer.pixelUnitFraction - u * LightmapSizer.pixelUnitFraction * 2f;
+				final float vLinear = 1f - LightmapSizer.pixelUnitFraction - v * LightmapSizer.pixelUnitFraction * 2f;
 
-		final LightmapCornerHelper help = LightmapCornerHelper.prepareThreadlocal(corner, center, vSide);
+				assert uLinear >= 0 && uLinear <= 1f;
+				assert vLinear >= 0 && vLinear <= 1f;
 
-		//  F G H
-		//  J K L
-		//  M N O
-		light[lightIndex(uFunc.applyAsInt(0), vFunc.applyAsInt(0))] = output(help.o());
-		light[lightIndex(uFunc.applyAsInt(1), vFunc.applyAsInt(0))] = output(help.n());
-		light[lightIndex(uFunc.applyAsInt(2), vFunc.applyAsInt(0))] = output(help.m());
+				final float linear = center * (uLinear * vLinear)
+						+ corner * (1 - uLinear) * (1 - vLinear)
+						+ uSide * ((1 - uLinear) * (vLinear))
+						+ vSide * ((uLinear) * (1 - vLinear));
 
-		light[lightIndex(uFunc.applyAsInt(0), vFunc.applyAsInt(1))] = output(help.l());
-		light[lightIndex(uFunc.applyAsInt(1), vFunc.applyAsInt(1))] = output(help.k());
-		light[lightIndex(uFunc.applyAsInt(2), vFunc.applyAsInt(1))] = output(help.j());
-
-		light[lightIndex(uFunc.applyAsInt(0), vFunc.applyAsInt(2))] = output(help.h());
-		light[lightIndex(uFunc.applyAsInt(1), vFunc.applyAsInt(2))] = output(help.g());
-		light[lightIndex(uFunc.applyAsInt(2), vFunc.applyAsInt(2))] = output(help.f());
-
-	}
-
-	static void computeOpaqueV(float center, float uSide, float corner, int light[], Int2IntFunction uFunc, Int2IntFunction vFunc) {
-		//  Layout  S = self, C = corner
-		//  U S U
-		//  C x C
-		//  U S U
-		//
-		final LightmapCornerHelper help = LightmapCornerHelper.prepareThreadlocal(center, corner, uSide);
-
-		//  A B C
-		//  E F G
-		//  I J K
-		light[lightIndex(uFunc.applyAsInt(0), vFunc.applyAsInt(0))] = output(help.a());
-		light[lightIndex(uFunc.applyAsInt(1), vFunc.applyAsInt(0))] = output(help.b());
-		light[lightIndex(uFunc.applyAsInt(2), vFunc.applyAsInt(0))] = output(help.c());
-
-		light[lightIndex(uFunc.applyAsInt(0), vFunc.applyAsInt(1))] = output(help.e());
-		light[lightIndex(uFunc.applyAsInt(1), vFunc.applyAsInt(1))] = output(help.f());
-		light[lightIndex(uFunc.applyAsInt(2), vFunc.applyAsInt(1))] = output(help.g());
-
-		light[lightIndex(uFunc.applyAsInt(0), vFunc.applyAsInt(2))] = output(help.i());
-		light[lightIndex(uFunc.applyAsInt(1), vFunc.applyAsInt(2))] = output(help.j());
-		light[lightIndex(uFunc.applyAsInt(2), vFunc.applyAsInt(2))] = output(help.k());
-	}
-
-	static void computeOpaqueCorner(float center, float uSide, float vSide, int light[], Int2IntFunction uFunc, Int2IntFunction vFunc) {
-		final LightmapCornerHelper help = LightmapCornerHelper.prepareThreadlocal(uSide, vSide, center);
-
-		//  Layout
-		//  U C
-		//  x V
-
-		//  B C D
-		//  F G H
-		//  J K L
-		light[lightIndex(uFunc.applyAsInt(0), vFunc.applyAsInt(0))] = output(help.d());
-		light[lightIndex(uFunc.applyAsInt(1), vFunc.applyAsInt(0))] = output(help.c());
-		light[lightIndex(uFunc.applyAsInt(2), vFunc.applyAsInt(0))] = output(help.b());
-
-		light[lightIndex(uFunc.applyAsInt(0), vFunc.applyAsInt(1))] = output(help.h());
-		light[lightIndex(uFunc.applyAsInt(1), vFunc.applyAsInt(1))] = output(help.g());
-		light[lightIndex(uFunc.applyAsInt(2), vFunc.applyAsInt(1))] = output(help.f());
-
-		light[lightIndex(uFunc.applyAsInt(0), vFunc.applyAsInt(2))] = output(help.l());
-		light[lightIndex(uFunc.applyAsInt(1), vFunc.applyAsInt(2))] = output(help.k());
-		light[lightIndex(uFunc.applyAsInt(2), vFunc.applyAsInt(2))] = output(help.j());
+				light[lightIndex(uFunc.applyAsInt(u), vFunc.applyAsInt(v))] = output(linear);
+			}
+		}
 	}
 
 	static int output(float in) {
-		int result = Math.round(in * 17f);
+		int result = Math.round(in);
 
 		if(result < 0) {
 			result = 0;
@@ -205,5 +129,98 @@ final class LightmapHdCalc {
 			result = 255;
 		}
 		return result;
+	}
+
+	static void computeAo(int[] light, AoFaceData faceData) {
+		final float FACTOR = 0.6f;
+		final float topLeft = faceData.aoTopLeft; //FACTOR * (255f - faceData.aoTopLeft);
+		final float topRight = faceData.aoTopRight; //FACTOR * (255f - faceData.aoTopRight);
+		final float bottomRight = faceData.aoBottomRight; //FACTOR * (255f - faceData.aoBottomRight);
+		final float bottomLeft = faceData.aoBottomLeft; //FACTOR * (255f - faceData.aoBottomLeft);
+
+		final float top = faceData.aoTop; //FACTOR * (255f - faceData.aoTop);
+		final float right = faceData.aoRight; //FACTOR * (255f - faceData.aoRight);
+		final float bottom = faceData.aoBottom; //FACTOR * (255f - faceData.aoBottom);
+		final float left = faceData.aoLeft; //FACTOR * (255f - faceData.aoLeft);
+
+		final float center = faceData.aoCenter;
+
+		computeOpen(center, left, top, topLeft, light, LightmapSizer.NEG, LightmapSizer.NEG);
+		computeOpen(center, right, top, topRight, light, LightmapSizer.POS, LightmapSizer.NEG);
+		computeOpen(center, left, bottom, bottomLeft, light, LightmapSizer.NEG, LightmapSizer.POS);
+		computeOpen(center, right, bottom, bottomRight, light, LightmapSizer.POS, LightmapSizer.POS);
+
+		//		for(int u = 0; u < LightmapSizer.paddedSize; u++) {
+		//			for(int v = 0; v < LightmapSizer.paddedSize; v++) {
+		//				final float uDist = (float)u / LightmapSizer.centerToCenterPixelDistance;
+		//				final float vDist = (float)v / LightmapSizer.centerToCenterPixelDistance;
+		//				final float uInvDist = 1 - uDist;
+		//				final float uInvSq  = uInvDist * uInvDist;
+		//
+		//				final float uSq = uDist * uDist;
+		//				final float vSq = vDist * vDist;
+		//
+		//
+		//				final float vInvDist = 1 - vDist;
+		//				final float vInvSq  = vInvDist;// * vInvDist;
+		//
+		//				float ao = 1;
+		//
+		//				//				ao -= topRight * (uSq + vInvSq);
+		//				//				ao -= bottomRight * (uSq + vSq);
+		//				//				ao -= bottomLeft * (uInvSq + vSq);
+		//				ao -= top * vInvSq;
+		//				//				ao -= bottom * vSq;
+		//				//				ao -= left * uSq;
+		//				//				ao -= right * uInvSq;
+		//
+		//				//				final float tl = (1 - uDist) * (1 - vDist) * topLeft;
+		//				//				final float tr = uDist * (1 - vDist) * topRight;
+		//				//				final float br = uDist * vDist * bottomRight;
+		//				//				final float bl = (1 - uDist) * vDist * bottomLeft;
+		//				light[lightIndex(u, v)] = outputAo(ao < 0 ? 0 : ao);
+		//			}
+		//		}
+	}
+
+	private static void computeQuadrantAo(float center, float uSide, float vSide, float corner, int light[], Int2IntFunction uFunc, Int2IntFunction vFunc) {
+		//FIX: handle error case when center is missing
+		if(uSide == AoFaceData.OPAQUE) {
+			if(vSide == AoFaceData.OPAQUE) {
+				// fully enclosed
+				computeOpen(center, center - 0.5f, center - 0.5f, center - 0.5f, light, uFunc, vFunc);
+			} else if (corner == AoFaceData.OPAQUE) {
+				// U + corner enclosing
+				uSide = center - 0.25f;
+				computeClamped(center, uSide, (vSide + center) * 0.5f, (uSide + vSide - 0.25f) * 0.5f, light, uFunc, vFunc);
+			} else {
+				// U side enclosing
+				final float join = (center + vSide + corner) / 3f;
+				computeClamped(center, center - 0.25f, (vSide + center) * 0.5f, join, light, uFunc, vFunc);
+			}
+		} else if(vSide == AoFaceData.OPAQUE) {
+			if(corner == AoFaceData.OPAQUE) {
+				// V + corner enclosing
+				vSide = center - 0.25f;
+				computeClamped(center, (uSide + center) * 0.5f, vSide, (uSide + vSide - 0.25f) * 0.5f, light, uFunc, vFunc);
+			} else {
+				// V side enclosing
+				final float join = (center + uSide + corner) / 3f;
+				computeClamped(center, (uSide + center) * 0.5f, center - 0.25f, join, light, uFunc, vFunc);
+			}
+
+		} else if(corner == AoFaceData.OPAQUE) {
+			// opaque corner
+			final float join = (center + uSide + vSide) / 3f;
+			computeClamped(center, (uSide + center) * 0.5f, (vSide + center) * 0.5f, join, light, uFunc, vFunc);
+		} else {
+			// all open
+			computeOpen(center, uSide, vSide, corner, light, uFunc, vFunc);
+		}
+	}
+
+	static int outputAo(float in) {
+		if (in < 0) in = 0;
+		return MathHelper.clamp(Math.round(in * 255), 0, 255);
 	}
 }

@@ -420,6 +420,7 @@ public abstract class AoCalculator {
 
 		fd.center = brightness(index);
 		final int aoCenter = Math.round(ao(index) * 255);
+		fd.aoCenter = aoCenter;
 
 		final AoFace aoFace = AoFace.get(lightFace);
 
@@ -430,71 +431,114 @@ public abstract class AoCalculator {
 		final boolean bottomClear = !isOpaque(cacheIndex);
 		fd.bottom = bottomClear ? brightness(cacheIndex) : OPAQUE;
 		final int aoBottom = Math.round(ao(cacheIndex) * 255);
+		fd.aoBottom = aoBottom;
 
 		offset = aoFace.topVec;
 		cacheIndex = fastRelativeCacheIndex(x + offset.getX() , y + offset.getY(), z + offset.getZ());
 		final boolean topClear = !isOpaque(cacheIndex);
 		fd.top = topClear ? brightness(cacheIndex) : OPAQUE;
 		final int aoTop = Math.round(ao(cacheIndex) * 255);
+		fd.aoTop = aoTop;
 
 		offset = aoFace.leftVec;
 		cacheIndex = fastRelativeCacheIndex(x + offset.getX() , y + offset.getY(), z + offset.getZ());
 		final boolean leftClear = !isOpaque(cacheIndex);
 		fd.left = leftClear ? brightness(cacheIndex) : OPAQUE;
 		final int aoLeft = Math.round(ao(cacheIndex) * 255);
+		fd.aoLeft = aoLeft;
 
 		offset = aoFace.rightVec;
 		cacheIndex = fastRelativeCacheIndex(x + offset.getX() , y + offset.getY(), z + offset.getZ());
 		final boolean rightClear = !isOpaque(cacheIndex);
 		fd.right = rightClear ? brightness(cacheIndex) : OPAQUE;
 		final int aoRight = Math.round(ao(cacheIndex) * 255);
+		fd.aoRight = aoRight;
 
 		if (!(leftClear || bottomClear)) {
 			// both not clear
-			fd.aoBottomLeft = (Math.min(aoLeft, aoBottom) + aoBottom + aoLeft + 1 + aoCenter) >> 2;
-		fd.bottomLeft = OPAQUE;
+			if (Configurator.hdLightmaps) {
+				fd.aoBottomLeft = (aoLeft + aoBottom) / 2;
+			} else {
+				fd.aoBottomLeft = (Math.min(aoLeft, aoBottom) + aoBottom + aoLeft + 1 + aoCenter) >> 2;
+			}
+			fd.bottomLeft = OPAQUE;
 		} else { // at least one clear
 			offset = aoFace.bottomLeftVec;
 			cacheIndex = fastRelativeCacheIndex(x + offset.getX() , y + offset.getY(), z + offset.getZ());
 			final boolean cornerClear = !isOpaque(cacheIndex);
 			fd.bottomLeft = cornerClear ? brightness(cacheIndex) : OPAQUE;
-			fd.aoBottomLeft = (Math.round(ao(cacheIndex) * 255) + aoBottom + aoCenter + aoLeft + 1) >> 2;  // bitwise divide by four, rounding up
+			// PERF: branching
+			if (Configurator.hdLightmaps) {
+				fd.aoBottomLeft = Math.round(ao(cacheIndex) * 255);
+			} else {
+				fd.aoBottomLeft = (Math.round(ao(cacheIndex) * 255) + aoBottom + aoCenter + aoLeft + 1) >> 2;  // bitwise divide by four, rounding up
+			}
 		}
 
 		if (!(rightClear || bottomClear)) {
 			// both not clear
-			fd.aoBottomRight = (Math.min(aoRight, aoBottom) + aoBottom + aoRight + 1 + aoCenter) >> 2;
+			if (Configurator.hdLightmaps) {
+				fd.aoBottomRight = (aoRight + aoBottom) / 2;
+			} else {
+				fd.aoBottomRight = (Math.min(aoRight, aoBottom) + aoBottom + aoRight + 1 + aoCenter) >> 2;
+			}
+
 			fd.bottomRight = OPAQUE;
 		} else { // at least one clear
 			offset = aoFace.bottomRightVec;
 			cacheIndex = fastRelativeCacheIndex(x + offset.getX() , y + offset.getY(), z + offset.getZ());
 			final boolean cornerClear = !isOpaque(cacheIndex);
 			fd.bottomRight = cornerClear ? brightness(cacheIndex) : OPAQUE;
-			fd.aoBottomRight = (Math.round(ao(cacheIndex) * 255) + aoBottom + aoCenter + aoRight + 1) >> 2;
+
+			if (Configurator.hdLightmaps) {
+				fd.aoBottomRight = Math.round(ao(cacheIndex) * 255);
+			} else {
+				fd.aoBottomRight = (Math.round(ao(cacheIndex) * 255) + aoBottom + aoCenter + aoRight + 1) >> 2;
+			}
 		}
 
 		if (!(leftClear || topClear)) {
 			// both not clear
-			fd.aoTopLeft = (Math.min(aoLeft, aoTop) + aoTop + aoLeft + 1 + aoCenter) >> 2;
-		fd.topLeft = OPAQUE;
+			if (Configurator.hdLightmaps) {
+				fd.aoTopLeft = (aoLeft + aoTop) / 2;
+			} else {
+				fd.aoTopLeft = (Math.min(aoLeft, aoTop) + aoTop + aoLeft + 1 + aoCenter) >> 2;
+			}
+
+			fd.topLeft = OPAQUE;
 		} else { // at least one clear
 			offset = aoFace.topLeftVec;
 			cacheIndex = fastRelativeCacheIndex(x + offset.getX() , y + offset.getY(), z + offset.getZ());
 			final boolean cornerClear = !isOpaque(cacheIndex);
 			fd.topLeft = cornerClear ? brightness(cacheIndex) : OPAQUE;
-			fd.aoTopLeft = (Math.round(ao(cacheIndex) * 255) + aoTop + aoCenter + aoLeft + 1) >> 2;
+
+			if (Configurator.hdLightmaps) {
+				fd.aoTopLeft = Math.round(ao(cacheIndex) * 255);
+			} else {
+				fd.aoTopLeft = (Math.round(ao(cacheIndex) * 255) + aoTop + aoCenter + aoLeft + 1) >> 2;
+			}
 		}
 
 		if (!(rightClear || topClear)) {
 			// both not clear
-			fd.aoTopRight = (Math.min(aoRight, aoTop) + aoTop+ aoRight + 1 + aoCenter) >> 2;
+			if (Configurator.hdLightmaps) {
+				fd.aoTopRight = (aoRight + aoTop) / 2;
+			} else {
+				fd.aoTopRight = (Math.min(aoRight, aoTop) + aoTop+ aoRight + 1 + aoCenter) >> 2;
+			}
+
 			fd.topRight = OPAQUE;
 		} else { // at least one clear
 			offset = aoFace.topRightVec;
 			cacheIndex = fastRelativeCacheIndex(x + offset.getX() , y + offset.getY(), z + offset.getZ());
 			final boolean cornerClear = !isOpaque(cacheIndex);
 			fd.topRight = cornerClear ? brightness(cacheIndex) : OPAQUE;
-			fd.aoTopRight = (Math.round(ao(cacheIndex) * 255) + aoTop + aoCenter + aoRight + 1) >> 2;
+
+			if (Configurator.hdLightmaps) {
+				fd.aoTopRight = Math.round(ao(cacheIndex) * 255);
+			} else {
+				fd.aoTopRight = (Math.round(ao(cacheIndex) * 255) + aoTop + aoCenter + aoRight + 1) >> 2;
+			}
 		}
 
 		fd.updateHash();

@@ -16,12 +16,11 @@ package grondag.canvas.mixin;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
+
 import net.minecraft.util.math.Matrix4f;
+
 import grondag.canvas.mixinterface.Matrix4fExt;
 
-@Environment(EnvType.CLIENT)
 @Mixin(Matrix4f.class)
 public class MixinMatrix4f implements Matrix4fExt {
 	@Shadow protected float a00;

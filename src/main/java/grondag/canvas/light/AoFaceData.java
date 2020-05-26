@@ -34,10 +34,15 @@ public class AoFaceData {
 	public int center;
 
 	// these values are fully computed at gather time
+	public int aoBottom;
+	public int aoTop;
+	public int aoLeft;
+	public int aoRight;
 	public int aoBottomLeft;
 	public int aoBottomRight;
 	public int aoTopLeft;
 	public int aoTopRight;
+	public int aoCenter;
 
 	private int hashCode;
 
@@ -60,6 +65,11 @@ public class AoFaceData {
 		out.aoTopRight = Math.round(in0.aoTopRight * w0 + in1.aoTopRight * w1);
 		out.aoBottomLeft = Math.round(in0.aoBottomLeft * w0 + in1.aoBottomLeft * w1);
 		out.aoBottomRight = Math.round(in0.aoBottomRight * w0 + in1.aoBottomRight * w1);
+		out.aoTop = Math.round(in0.aoTop * w0 + in1.aoTop * w1);
+		out.aoRight = Math.round(in0.aoRight * w0 + in1.aoRight * w1);
+		out.aoLeft = Math.round(in0.aoLeft * w0 + in1.aoLeft * w1);
+		out.aoBottom = Math.round(in0.aoBottom * w0 + in1.aoBottom * w1);
+		out.aoCenter = Math.round(in0.aoCenter * w0 + in1.aoCenter * w1);
 
 		out.updateHash();
 	}
@@ -111,6 +121,11 @@ public class AoFaceData {
 		aoBottomRight = 255;
 		aoTopLeft = 255;
 		aoTopRight = 255;
+		aoBottom = 255;
+		aoRight = 255;
+		aoLeft = 255;
+		aoTop = 255;
+		aoCenter = 255;
 
 		updateHash();
 	}
@@ -141,7 +156,12 @@ public class AoFaceData {
 				o.aoBottomLeft == aoBottomLeft &&
 				o.aoBottomRight == aoBottomRight &&
 				o.aoTopLeft == aoTopLeft &&
-				o.aoTopRight == aoTopRight;
+				o.aoTopRight == aoTopRight &&
+				o.aoLeft == aoLeft &&
+				o.aoBottom == aoBottom &&
+				o.aoTop == aoTop &&
+				o.aoRight == aoRight &&
+				o.aoCenter == aoCenter;
 	}
 
 	@Override
@@ -162,6 +182,11 @@ public class AoFaceData {
 		result.aoBottomRight = aoBottomRight;
 		result.aoTopLeft = aoTopLeft;
 		result.aoTopRight = aoTopRight;
+		result.aoBottom = aoBottom;
+		result.aoRight = aoRight;
+		result.aoLeft = aoLeft;
+		result.aoTop = aoTop;
+		result.aoCenter = aoCenter;
 
 		result.hashCode = hashCode;
 
@@ -182,6 +207,11 @@ public class AoFaceData {
 		h = 31 * h + aoBottomRight;
 		h = 31 * h + aoTopLeft;
 		h = 31 * h + aoTopRight;
+		h = 31 * h + aoBottom;
+		h = 31 * h + aoRight;
+		h = 31 * h + aoLeft;
+		h = 31 * h + aoTop;
+		h = 31 * h + aoCenter;
 		hashCode = h;
 	}
 }

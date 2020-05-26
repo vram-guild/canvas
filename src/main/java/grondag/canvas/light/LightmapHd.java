@@ -14,6 +14,7 @@
  ******************************************************************************/
 package grondag.canvas.light;
 
+import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
@@ -89,14 +90,17 @@ public class LightmapHd {
 			final int [] skyLight = new int[LightmapSizer.lightmapPixels];
 			final int [] blockLight = new int[LightmapSizer.lightmapPixels];
 
-			AoMapHd.computeAo(aoLight, faceData);
-			LightmapHdCalc.computeLight(blockLight, faceData, false);
-			LightmapHdCalc.computeLight(skyLight, faceData, true);
+			// TODO: make this an option for AO debugging
+			Arrays.fill(skyLight, 255);
+			Arrays.fill(blockLight, 255);
+			LightmapHdCalc.computeAo(aoLight, faceData);
+			//			LightmapHdCalc.computeLight(blockLight, faceData, false);
+			//			LightmapHdCalc.computeLight(skyLight, faceData, true);
 
 			for (int i = 0; i < LightmapSizer.lightmapPixels; ++i) {
-				final int ao = 256; //aoLight[i];
-				final int sky = ((skyLight[i] * ao) >> 8);
-				final int block = ((blockLight[i] * ao) >> 8);
+				final int ao = aoLight[i];
+				final int sky = skyLight[i] * ao / 255;
+				final int block = blockLight[i] * ao / 255;
 				light[i] = (sky << 24) | (block << 16) | (block << 8) | block;
 			}
 

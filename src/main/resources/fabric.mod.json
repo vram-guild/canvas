@@ -25,7 +25,7 @@
     "canvas.client.json"
   ],
   "depends": {
-    "fabricloader": "\u003e\u003d0.8.2",
+    "fabricloader": "\u003e\u003d0.8.4",
     "fabric-api-base": "*",
     "fabric-renderer-api-v1": "*",
     "fabric-rendering-data-attachment-v1": "*"

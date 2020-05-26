@@ -12,7 +12,7 @@ public class WorldDataManager {
 	public static int EFFECTIVE_INTENSITY = 2;
 	public static int AMBIENT_INTENSITY = 3;
 	public static int HAS_SKYLIGHT = 4;
-	public static int DIMENSION_ID = 5;
+	public static int RESERVED = 5;
 	public static int MOON_SIZE = 6;
 
 	static float[] UNIFORM_DATA = new float[LENGTH];
@@ -26,9 +26,8 @@ public class WorldDataManager {
 		final ClientWorld world = client.world;
 
 		if (world != null) {
-			final boolean hasSkyLight = world.getDimension().getType().hasSkyLight();
+			final boolean hasSkyLight = world.getDimension().hasSkyLight();
 			final boolean nightVision = client.player.hasStatusEffect(StatusEffects.NIGHT_VISION);
-			UNIFORM_DATA[DIMENSION_ID] = world.getDimension().getType().getRawId();
 			UNIFORM_DATA[HAS_SKYLIGHT] = hasSkyLight ? 1 : 0;
 			UNIFORM_DATA[AMBIENT_INTENSITY] = world.method_23783(1.0F);
 			UNIFORM_DATA[EFFECTIVE_INTENSITY] = hasSkyLight && !nightVision ? UNIFORM_DATA[AMBIENT_INTENSITY] : 1;

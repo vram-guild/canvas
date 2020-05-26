@@ -7,6 +7,7 @@ import net.minecraft.util.math.Matrix4f;
 
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 
+import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.RenderMaterialImpl;
 import grondag.canvas.apiimpl.RenderMaterialImpl.CompositeMaterial;
 import grondag.canvas.apiimpl.RenderMaterialImpl.CompositeMaterial.DrawableMaterial;
@@ -769,7 +770,9 @@ abstract class EncoderUtils {
 			quad.lightmap(2, ColorHelper.maxBrightness(quad.lightmap(2), brightness));
 			quad.lightmap(3, ColorHelper.maxBrightness(quad.lightmap(3), brightness));
 
-			context.aoCalc().computeFlat(quad, brightness);
+			if (Configurator.hdLightmaps) {
+				context.aoCalc().computeFlat(quad, brightness);
+			}
 		}
 	}
 

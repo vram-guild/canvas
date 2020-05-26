@@ -353,7 +353,7 @@ public class CanvasWorldRenderer {
 		BackgroundRenderer.render(camera, f, mc.world, mc.options.viewDistance, gameRenderer.getSkyDarkness(f));
 		RenderSystem.clear(16640, MinecraftClient.IS_SYSTEM_MAC);
 		final float h = gameRenderer.getViewDistance();
-		final boolean bl3 = mc.world.method_28103().method_28110(MathHelper.floor(cameraX), MathHelper.floor(cameraY)) || mc.inGameHud.getBossBarHud().shouldThickenFog();
+		final boolean bl3 = mc.world.getSkyProperties().useThickFog(MathHelper.floor(cameraX), MathHelper.floor(cameraY)) || mc.inGameHud.getBossBarHud().shouldThickenFog();
 		if (mc.options.viewDistance >= 4) {
 			BackgroundRenderer.applyFog(camera, BackgroundRenderer.FogType.FOG_SKY, h, bl3);
 			profiler.swap("sky");
