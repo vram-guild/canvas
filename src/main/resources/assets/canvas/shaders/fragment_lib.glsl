@@ -4,8 +4,19 @@ vec4 colorAndLightmap(vec4 fragmentColor,  int layerIndex, vec4 light) {
 
 vec4 aoFactor(vec2 lightCoord) {
 // Don't apply AO for item renders
-#if CONTEXT_IS_BLOCK && !ENABLE_SMOOTH_LIGHT
-    float ao = v_ao;
+#if CONTEXT_IS_BLOCK
+
+	#if ENABLE_SMOOTH_LIGHT
+		vec4 hd = texture2D(u_utility, v_hd_lightmap);
+    	float ao = hd.r;
+
+//		#if ENABLE_LIGHT_NOISE
+//			vec4 dither = texture2D(u_dither, gl_FragCoord.xy / 16.0);
+//			ao += dither.r / 16.0 - (1.0 / 32.0);
+//		#endif
+	#else
+    	float ao = v_ao;
+	#endif
 
     #if AO_SHADING_MODE == AO_MODE_SUBTLE_BLOCK_LIGHT || AO_SHADING_MODE == AO_MODE_SUBTLE_ALWAYS
         // accelerate the transition from 0.4 (should be the minimum) to 1.0
@@ -37,7 +48,7 @@ vec2 lightCoord() {
 #if ENABLE_SMOOTH_LIGHT
     vec4 hd = texture2D(u_utility, v_hd_lightmap);
     // PERF: return directly vs extra math below
-    vec2 lightCoord = vec2(hd.r, hd.a) * 15.0;
+    vec2 lightCoord = vec2(hd.g, hd.a) * 15.0;
 
     #if ENABLE_LIGHT_NOISE
         vec4 dither = texture2D(u_dither, gl_FragCoord.xy / 8.0);
@@ -73,7 +84,7 @@ vec4 diffuseColor() {
         }
     #endif
 
-    #if !ENABLE_SMOOTH_LIGHT && AO_SHADING_MODE != AO_MODE_NONE && CONTEXT_IS_BLOCK
+    #if AO_SHADING_MODE != AO_MODE_NONE && CONTEXT_IS_BLOCK
         vec4 aoFactor = aoFactor(lightCoord);
     #endif
 
@@ -100,7 +111,7 @@ vec4 diffuseColor() {
     if (a.a >= 0.5 || (bitValue(v_flags.x, FLAG_CUTOUT) != 1.0)) {
         a *= colorAndLightmap(v_color, 0, light);
 
-        #if !ENABLE_SMOOTH_LIGHT && AO_SHADING_MODE != AO_MODE_NONE && CONTEXT_IS_BLOCK
+        #if AO_SHADING_MODE != AO_MODE_NONE && CONTEXT_IS_BLOCK
             if(bitValue(v_flags.x, FLAG_DISABLE_AO) == 0.0) {
                 a *= aoFactor;
             }

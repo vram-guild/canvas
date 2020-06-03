@@ -457,7 +457,7 @@ public abstract class AoCalculator {
 		if (!(leftClear || bottomClear)) {
 			// both not clear
 			if (Configurator.hdLightmaps) {
-				fd.aoBottomLeft = (aoLeft + aoBottom) / 2;
+				fd.aoBottomLeft = Math.min(aoLeft, aoBottom);
 			} else {
 				fd.aoBottomLeft = (Math.min(aoLeft, aoBottom) + aoBottom + aoLeft + 1 + aoCenter) >> 2;
 			}
@@ -478,7 +478,7 @@ public abstract class AoCalculator {
 		if (!(rightClear || bottomClear)) {
 			// both not clear
 			if (Configurator.hdLightmaps) {
-				fd.aoBottomRight = (aoRight + aoBottom) / 2;
+				fd.aoBottomRight = Math.min(aoRight, aoBottom);
 			} else {
 				fd.aoBottomRight = (Math.min(aoRight, aoBottom) + aoBottom + aoRight + 1 + aoCenter) >> 2;
 			}
@@ -500,7 +500,7 @@ public abstract class AoCalculator {
 		if (!(leftClear || topClear)) {
 			// both not clear
 			if (Configurator.hdLightmaps) {
-				fd.aoTopLeft = (aoLeft + aoTop) / 2;
+				fd.aoTopLeft = Math.min(aoLeft, aoTop);
 			} else {
 				fd.aoTopLeft = (Math.min(aoLeft, aoTop) + aoTop + aoLeft + 1 + aoCenter) >> 2;
 			}
@@ -522,7 +522,7 @@ public abstract class AoCalculator {
 		if (!(rightClear || topClear)) {
 			// both not clear
 			if (Configurator.hdLightmaps) {
-				fd.aoTopRight = (aoRight + aoTop) / 2;
+				fd.aoTopRight = Math.min(aoRight, aoTop);
 			} else {
 				fd.aoTopRight = (Math.min(aoRight, aoTop) + aoTop+ aoRight + 1 + aoCenter) >> 2;
 			}
@@ -542,6 +542,8 @@ public abstract class AoCalculator {
 		}
 
 		fd.updateHash();
+
+		//PERF: skip if not needed in HD model
 		fd.calc.compute(fd);
 	}
 }

@@ -23,7 +23,7 @@ public final class MaterialVertexFormats {
 			POSITION_3F,
 			BASE_RGBA_4UB,
 			BASE_TEX_2F,
-			LIGHTMAPS_4UB,
+			LIGHTMAPS_4UB, // PERF: remove and bundle flags with normal
 			HD_LIGHTMAP_2US,
 			NORMAL_AO_4UB);
 

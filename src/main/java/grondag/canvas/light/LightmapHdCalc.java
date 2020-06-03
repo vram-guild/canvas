@@ -18,8 +18,6 @@ import static grondag.canvas.light.LightmapHd.lightIndex;
 
 import it.unimi.dsi.fastutil.ints.Int2IntFunction;
 
-import net.minecraft.util.math.MathHelper;
-
 final class LightmapHdCalc {
 	static float input(int b, boolean isSky) {
 		return b == AoFaceData.OPAQUE ? AoFaceData.OPAQUE : (isSky ? (b >> 16) & 0xFF : b & 0xFF);
@@ -101,7 +99,7 @@ final class LightmapHdCalc {
 	}
 
 	/* interpolates center-to-corner */
-	static void computeClamped(float center, float uSide, float vSide, float corner, int light[], Int2IntFunction uFunc, Int2IntFunction vFunc) {
+	private static void computeClamped(float center, float uSide, float vSide, float corner, int light[], Int2IntFunction uFunc, Int2IntFunction vFunc) {
 		for(int u = 0; u < LightmapSizer.radius; u++) {
 			for(int v = 0; v < LightmapSizer.radius; v++) {
 				final float uLinear = 1f - LightmapSizer.pixelUnitFraction - u * LightmapSizer.pixelUnitFraction * 2f;
@@ -131,24 +129,97 @@ final class LightmapHdCalc {
 		return result;
 	}
 
+	/* interpolates center-to-corner */
+	private static void computeClampedAo(int center, int uSide, int vSide, int corner, int light[], Int2IntFunction uFunc, Int2IntFunction vFunc) {
+		for(int u = 0; u < LightmapSizer.radius; u++) {
+			for(int v = 0; v < LightmapSizer.radius; v++) {
+				final float uLinear = 1f - LightmapSizer.pixelUnitFraction - u * LightmapSizer.pixelUnitFraction * 2f;
+				final float vLinear = 1f - LightmapSizer.pixelUnitFraction - v * LightmapSizer.pixelUnitFraction * 2f;
+
+				assert uLinear >= 0 && uLinear <= 1f;
+				assert vLinear >= 0 && vLinear <= 1f;
+
+				final float linear = center * (uLinear * vLinear)
+						+ corner * (1 - uLinear) * (1 - vLinear)
+						+ uSide * ((1 - uLinear) * (vLinear))
+						+ vSide * ((uLinear) * (1 - vLinear));
+
+				light[lightIndex(uFunc.applyAsInt(u), vFunc.applyAsInt(v))] = outputAo(Math.round(linear));
+			}
+		}
+	}
+
+	static int outputAo(int in) {
+		// non-linear curve towards dark
+		//		in = (in + ((in * in) >> 8) >> 1);
+
+		if(in < 0) {
+			in = 0;
+		} else if(in > 255) {
+			in = 255;
+		}
+
+		return in;
+	}
+
+	static int aoCorner(int a, int b, int c, int d) {
+
+		if (a < 0xFF) {
+			if (b < 0xFF || c < 0xFF || d < 0xFF) {
+				return (a + b  + c + d +  1) >> 2;
+			} else {
+				return (a + a + b + c + d) / 5;
+			}
+		} else if (b < 0xFF)  {
+			if (c < 0xFF || d < 0xFF) {
+				return (a + b  + c + d + 1) >> 2;
+			} else {
+				return (a + b + b + c + d) / 5;
+			}
+		} else if (c < 0xFF) {
+			if (d < 0xFF) {
+				return (a + b  + c + d + 1) >> 2;
+			} else {
+				return (a + b + c + c + d) / 5;
+			}
+		} else if (d < 0xFF) {
+			return (a + b + c + d + d) / 5;
+		} else {
+			return 0xFF;
+		}
+	}
+
 	static void computeAo(int[] light, AoFaceData faceData) {
-		final float FACTOR = 0.6f;
-		final float topLeft = faceData.aoTopLeft; //FACTOR * (255f - faceData.aoTopLeft);
-		final float topRight = faceData.aoTopRight; //FACTOR * (255f - faceData.aoTopRight);
-		final float bottomRight = faceData.aoBottomRight; //FACTOR * (255f - faceData.aoBottomRight);
-		final float bottomLeft = faceData.aoBottomLeft; //FACTOR * (255f - faceData.aoBottomLeft);
+		// final float FACTOR = 0.6f;
+		//		final float topLeft = faceData.aoTopLeft; //FACTOR * (255f - faceData.aoTopLeft);
+		//		final float topRight = faceData.aoTopRight; //FACTOR * (255f - faceData.aoTopRight);
+		//		final float bottomRight = faceData.aoBottomRight; //FACTOR * (255f - faceData.aoBottomRight);
+		//		final float bottomLeft = faceData.aoBottomLeft; //FACTOR * (255f - faceData.aoBottomLeft);
+		//
+		//		final float top = faceData.aoTop; //FACTOR * (255f - faceData.aoTop);
+		//		final float right = faceData.aoRight; //FACTOR * (255f - faceData.aoRight);
+		//		final float bottom = faceData.aoBottom; //FACTOR * (255f - faceData.aoBottom);
+		//		final float left = faceData.aoLeft; //FACTOR * (255f - faceData.aoLeft);
+		//
+		//		final float center = faceData.aoCenter;
 
-		final float top = faceData.aoTop; //FACTOR * (255f - faceData.aoTop);
-		final float right = faceData.aoRight; //FACTOR * (255f - faceData.aoRight);
-		final float bottom = faceData.aoBottom; //FACTOR * (255f - faceData.aoBottom);
-		final float left = faceData.aoLeft; //FACTOR * (255f - faceData.aoLeft);
+		final int topLeft = aoCorner(faceData.aoTop, faceData.aoTopLeft, faceData.aoLeft, faceData.aoCenter);
+		final int topRight = aoCorner(faceData.aoTop,  faceData.aoTopRight, faceData.aoRight, faceData.aoCenter);
+		final int bottomRight = aoCorner(faceData.aoBottom,  faceData.aoBottomRight, faceData.aoRight, faceData.aoCenter);
+		final int bottomLeft = aoCorner(faceData.aoBottom, faceData.aoBottomLeft, faceData.aoLeft, faceData.aoCenter);
 
-		final float center = faceData.aoCenter;
+		final int center = faceData.aoCenter; //(topLeft + topRight + bottomRight + bottomLeft) * 0.25f;
 
-		computeOpen(center, left, top, topLeft, light, LightmapSizer.NEG, LightmapSizer.NEG);
-		computeOpen(center, right, top, topRight, light, LightmapSizer.POS, LightmapSizer.NEG);
-		computeOpen(center, left, bottom, bottomLeft, light, LightmapSizer.NEG, LightmapSizer.POS);
-		computeOpen(center, right, bottom, bottomRight, light, LightmapSizer.POS, LightmapSizer.POS);
+		final int top = ((faceData.aoTop + center + 1) >> 1); //FACTOR * (255f - faceData.aoTop);
+		final int right = ((faceData.aoRight + center + 1) >> 1); //FACTOR * (255f - faceData.aoRight);
+		final int bottom = ((faceData.aoBottom + center + 1) >> 1); //FACTOR * (255f - faceData.aoBottom);
+		final int left = ((faceData.aoLeft + center + 1) >> 1); //FACTOR * (255f - faceData.aoLeft);
+
+
+		computeClampedAo(center, left, top, topLeft, light, LightmapSizer.NEG, LightmapSizer.NEG);
+		computeClampedAo(center, right, top, topRight, light, LightmapSizer.POS, LightmapSizer.NEG);
+		computeClampedAo(center, left, bottom, bottomLeft, light, LightmapSizer.NEG, LightmapSizer.POS);
+		computeClampedAo(center, right, bottom, bottomRight, light, LightmapSizer.POS, LightmapSizer.POS);
 
 		//		for(int u = 0; u < LightmapSizer.paddedSize; u++) {
 		//			for(int v = 0; v < LightmapSizer.paddedSize; v++) {
@@ -217,10 +288,5 @@ final class LightmapHdCalc {
 			// all open
 			computeOpen(center, uSide, vSide, corner, light, uFunc, vFunc);
 		}
-	}
-
-	static int outputAo(float in) {
-		if (in < 0) in = 0;
-		return MathHelper.clamp(Math.round(in * 255), 0, 255);
 	}
 }
