@@ -17,58 +17,39 @@
 package grondag.canvas.shader;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import org.lwjgl.opengl.GL21;
 
 import net.minecraft.util.Identifier;
 
 public final class GlShaderManager {
 	public final static GlShaderManager INSTANCE = new GlShaderManager();
-	private final Object2ObjectOpenHashMap<String, GlVertexShader> vertexShaders = new Object2ObjectOpenHashMap<>();
-	private final Object2ObjectOpenHashMap<String, GlFragmentShader> fragmentShaders = new Object2ObjectOpenHashMap<>();
-
-	String vertexLibrarySource;
-	String fragmentLibrarySource;
-
-	public static final Identifier DEFAULT_VERTEX_SOURCE = new Identifier("canvas", "shaders/default.vert");
-	public static final Identifier DEFAULT_FRAGMENT_SOURCE = new Identifier("canvas", "shaders/default.frag");
-	public static final Identifier WATER_VERTEX_SOURCE = new Identifier("canvas", "shaders/water.vert");
-	public static final Identifier WATER_FRAGMENT_SOURCE = new Identifier("canvas", "shaders/water.frag");
-	public static final Identifier LAVA_VERTEX_SOURCE = new Identifier("canvas", "shaders/lava.vert");
-	public static final Identifier LAVA_FRAGMENT_SOURCE = new Identifier("canvas", "shaders/lava.frag");
-
-	public static final Identifier COMMON_SOURCE = new Identifier("canvas", "shaders/common_lib.glsl");
-	public static final Identifier COMMON_VERTEX_SOURCE = new Identifier("canvas", "shaders/vertex_lib.glsl");
-	public static final Identifier COMMON_FRAGMENT_SOURCE = new Identifier("canvas", "shaders/fragment_lib.glsl");
-
-	private void loadLibrarySources() {
-		final String commonSource = AbstractGlShader.getShaderSource(COMMON_SOURCE);
-		vertexLibrarySource = commonSource + AbstractGlShader.getShaderSource(COMMON_VERTEX_SOURCE);
-		fragmentLibrarySource = commonSource + AbstractGlShader.getShaderSource(COMMON_FRAGMENT_SOURCE);
-	}
+	private final Object2ObjectOpenHashMap<String, GlShader> vertexShaders = new Object2ObjectOpenHashMap<>();
+	private final Object2ObjectOpenHashMap<String, GlShader> fragmentShaders = new Object2ObjectOpenHashMap<>();
 
 	public static String shaderKey(Identifier shaderSource, ShaderContext context) {
 		return String.format("%s.%s", shaderSource.toString(), context.name);
 	}
 
-	public GlVertexShader getOrCreateVertexShader(Identifier shaderSource, ShaderContext context) {
+	public GlShader getOrCreateVertexShader(Identifier shaderSource, ShaderContext context) {
 		final String shaderKey = shaderKey(shaderSource, context);
 
 		synchronized (vertexShaders) {
-			GlVertexShader result = vertexShaders.get(shaderKey);
+			GlShader result = vertexShaders.get(shaderKey);
 			if (result == null) {
-				result = new GlVertexShader(shaderSource, context);
+				result = new GlShader(shaderSource, GL21.GL_VERTEX_SHADER, context);
 				vertexShaders.put(shaderKey, result);
 			}
 			return result;
 		}
 	}
 
-	public GlFragmentShader getOrCreateFragmentShader(Identifier shaderSourceId, ShaderContext context) {
+	public GlShader getOrCreateFragmentShader(Identifier shaderSourceId, ShaderContext context) {
 		final String shaderKey = shaderKey(shaderSourceId, context);
 
 		synchronized (fragmentShaders) {
-			GlFragmentShader result = fragmentShaders.get(shaderKey);
+			GlShader result = fragmentShaders.get(shaderKey);
 			if (result == null) {
-				result = new GlFragmentShader(shaderSourceId, context);
+				result = new GlShader(shaderSourceId, GL21.GL_FRAGMENT_SHADER, context);
 				fragmentShaders.put(shaderKey, result);
 			}
 			return result;
@@ -76,8 +57,7 @@ public final class GlShaderManager {
 	}
 
 	public void forceReload() {
-		AbstractGlShader.forceReloadErrors();
-		loadLibrarySources();
+		GlShader.forceReloadErrors();
 		fragmentShaders.values().forEach(s -> s.forceReload());
 		vertexShaders.values().forEach(s -> s.forceReload());
 	}

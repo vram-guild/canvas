@@ -21,8 +21,12 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.util.HashSet;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.google.common.io.CharStreams;
+import org.apache.commons.lang3.StringUtils;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL21;
 
@@ -38,10 +42,9 @@ import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
 import grondag.canvas.Configurator.AoMode;
 import grondag.canvas.Configurator.DiffuseMode;
-import grondag.canvas.material.MaterialContext;
 import grondag.canvas.varia.CanvasGlHelper;
 
-abstract class AbstractGlShader {
+public class GlShader {
 	private static boolean isErrorNoticeComplete = false;
 
 	public final Identifier shaderSource;
@@ -53,7 +56,7 @@ abstract class AbstractGlShader {
 	private boolean needsLoad = true;
 	private boolean isErrored = false;
 
-	AbstractGlShader(Identifier shaderSource, int shaderType, ShaderContext context) {
+	GlShader(Identifier shaderSource, int shaderType, ShaderContext context) {
 		this.shaderSource = shaderSource;
 		this.shaderType = shaderType;
 		this.context = context;
@@ -189,10 +192,8 @@ abstract class AbstractGlShader {
 		}
 	}
 
-	public String buildSource(String librarySource) {
+	public String getSource() {
 		String result = getShaderSource(shaderSource);
-		result = result.replaceAll("#version\\s+120", "");
-		result = librarySource + result;
 
 		if(context.materialContext.isBlock) {
 			result = result.replaceAll("#define CONTEXT_IS_BLOCK FALSE", "#define CONTEXT_IS_BLOCK TRUE");
@@ -216,10 +217,6 @@ abstract class AbstractGlShader {
 
 		if(!context.materialContext.isBlock) {
 			result = result.replaceAll("#define CONTEXT_IS_BLOCK TRUE", "#define CONTEXT_IS_BLOCK FALSE");
-		}
-
-		if(Configurator.hdLightmaps && context.materialContext == MaterialContext.TERRAIN) {
-			result = result.replaceAll("#define ENABLE_SMOOTH_LIGHT FALSE", "#define ENABLE_SMOOTH_LIGHT TRUE");
 		}
 
 		if(Configurator.lightmapNoise && Configurator.hdLightmaps) {
@@ -250,16 +247,58 @@ abstract class AbstractGlShader {
 		return result;
 	}
 
-	abstract String getSource();
+	private static final HashSet<String> INCLUDED = new HashSet<>();
+	static final Pattern PATTERN = Pattern.compile("^#include\\s+([\\w]+:[\\w/\\.]+)[ \\t]*.*", Pattern.MULTILINE);
 
 	public static String getShaderSource(Identifier shaderSource) {
 		final ResourceManager resourceManager = MinecraftClient.getInstance().getResourceManager();
 
+		INCLUDED.clear();
+
+		return getShaderSourceInner(resourceManager, shaderSource);
+	}
+
+	private static Identifier remapLibraryId(Identifier id) {
+
+		if (id.equals(ShaderData.STD_FRAGMENT_LIB)) {
+			return Configurator.hdLightmaps ? ShaderData.HD_FRAGMENT_LIB : ShaderData.VANILLA_FRAGMENT_LIB;
+		} else if (id.equals(ShaderData.STD_VERTEX_LIB)) {
+			return Configurator.hdLightmaps ? ShaderData.HD_VERTEX_LIB : ShaderData.VANILLA_VERTEX_LIB;
+		} else {
+			return id;
+		}
+	}
+
+	private static String getShaderSourceInner(ResourceManager resourceManager, Identifier shaderSource) {
+		shaderSource  = remapLibraryId(shaderSource);
+
 		try(Resource resource = resourceManager.getResource(shaderSource)) {
 			try (Reader reader = new InputStreamReader(resource.getInputStream())) {
-				return CharStreams.toString(reader);
+				String result = CharStreams.toString(reader);
+				final Matcher m = PATTERN.matcher(result);
+
+				while(m.find()) {
+					final String id = m.group(1);
+
+					if (INCLUDED.contains(id)) {
+						result = StringUtils.replace(result, m.group(0), "");
+					} else {
+						INCLUDED.add(id);
+						final String src = getShaderSourceInner(resourceManager, new Identifier(id));
+						result = StringUtils.replace(result, m.group(0), src);
+					}
+				}
+
+				//				System.out.println();
+				//				System.out.println("=========================================");
+				//				System.out.println(shaderSource.toString());
+				//				System.out.println("=========================================");
+				//				System.out.println(result);
+
+				return result;
 			}
 		} catch (final IOException e) {
+			CanvasMod.LOG.warn("Unable to load shader resource " + shaderSource.toString() + " due to exception.", e);
 			return "";
 		}
 	}

@@ -1,31 +1,5 @@
 attribute vec4 in_normal_ao;
-
-#if !(WHITE_0)
-    attribute vec4 in_color;
-#endif
-
-attribute vec2 in_uv;
-attribute vec4 in_lightmap;
-
-#if ENABLE_SMOOTH_LIGHT
 attribute vec2 in_hd_lightmap;
-#endif
-
-vec2 textureCoord(vec2 coordIn, int matrixIndex) {
-	vec4 temp = gl_TextureMatrix[matrixIndex] * coordIn.xyxy;
-	return temp.xy;
-}
-
-vec3 diffuseNormal(vec4 viewCoord, vec3 normal) {
-//#if CONTEXT == CONTEXT_ITEM_WORLD
-//    // TODO: Need to transform normals for in-world items to get directionally correct shading.
-//    // Problem is that we don't have a MVM for the lights. Will need to capture that
-//    // or transform the lights on CPU side, which is probably the better deal.
-//    return normal;
-//#else
-    return normal;
-//#endif
-}
 
 void setupVertex() {
     gl_Position = ftransform();
@@ -36,11 +10,7 @@ void setupVertex() {
     v_texcoord = textureCoord(in_uv, 0);
 
     #if CONTEXT_IS_BLOCK
-        #if ENABLE_SMOOTH_LIGHT
-			v_hd_lightmap = in_hd_lightmap / 32768.0;
-        #else
-            v_ao = (in_normal_ao.w + 1.0) * 0.5;
-        #endif
+		v_hd_lightmap = in_hd_lightmap / 32768.0;
     #endif
 
     #if DIFFUSE_SHADING_MODE != DIFFUSE_MODE_NONE
@@ -58,11 +28,7 @@ void setupVertex() {
 	// due to FP error on some cards/drivers.  Also made varying attribute invariant (rolls eyes at OpenGL)
 	v_flags =  in_lightmap.ba + 0.5;
 
-    #if WHITE_0
-        v_color = vec4(1.0, 1.0, 1.0, 1.0);
-    #else
-        v_color = in_color;
-    #endif
+	v_color = in_color;
 
 }
 

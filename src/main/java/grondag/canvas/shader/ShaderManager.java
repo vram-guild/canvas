@@ -93,9 +93,9 @@ public final class ShaderManager implements ClientTickCallback {
 		ClientTickCallback.EVENT.register(this);
 
 		// add default shaders
-		defaultShader= create(GlShaderManager.DEFAULT_VERTEX_SOURCE, GlShaderManager.DEFAULT_FRAGMENT_SOURCE);
-		waterShader = create(GlShaderManager.WATER_VERTEX_SOURCE, GlShaderManager.WATER_FRAGMENT_SOURCE);
-		lavaShader = create(GlShaderManager.LAVA_VERTEX_SOURCE, GlShaderManager.LAVA_FRAGMENT_SOURCE);
+		defaultShader= create(ShaderData.DEFAULT_VERTEX_SOURCE, ShaderData.DEFAULT_FRAGMENT_SOURCE);
+		waterShader = create(ShaderData.WATER_VERTEX_SOURCE, ShaderData.WATER_FRAGMENT_SOURCE);
+		lavaShader = create(ShaderData.LAVA_VERTEX_SOURCE, ShaderData.LAVA_FRAGMENT_SOURCE);
 	}
 
 	public void updateEmissiveColor(int color) {
@@ -118,11 +118,11 @@ public final class ShaderManager implements ClientTickCallback {
 	public synchronized MaterialShaderImpl create(Identifier vertexShaderSource, Identifier fragmentShaderSource) {
 
 		if(vertexShaderSource == null) {
-			vertexShaderSource = GlShaderManager.DEFAULT_VERTEX_SOURCE;
+			vertexShaderSource = ShaderData.DEFAULT_VERTEX_SOURCE;
 		}
 
 		if(fragmentShaderSource == null) {
-			fragmentShaderSource = GlShaderManager.DEFAULT_FRAGMENT_SOURCE;
+			fragmentShaderSource = ShaderData.DEFAULT_FRAGMENT_SOURCE;
 		}
 
 		final MaterialShaderImpl result = new MaterialShaderImpl(shaders.size(), vertexShaderSource, fragmentShaderSource);

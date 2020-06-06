@@ -26,10 +26,9 @@ import org.joml.Matrix4f;
 import net.minecraft.util.Identifier;
 
 import grondag.canvas.material.MaterialVertexFormat;
-import grondag.canvas.shader.GlFragmentShader;
 import grondag.canvas.shader.GlProgram;
+import grondag.canvas.shader.GlShader;
 import grondag.canvas.shader.GlShaderManager;
-import grondag.canvas.shader.GlVertexShader;
 import grondag.canvas.shader.ShaderContext;
 import grondag.frex.api.material.MaterialShader;
 import grondag.frex.api.material.Uniform;
@@ -66,8 +65,8 @@ public final class MaterialShaderImpl implements MaterialShader {
 		final GlProgram result = programMap.get(key);
 
 		if(result == null) {
-			final GlVertexShader vs = GlShaderManager.INSTANCE.getOrCreateVertexShader(vertexShader, context);
-			final GlFragmentShader fs = GlShaderManager.INSTANCE.getOrCreateFragmentShader(fragmentShader, context);
+			final GlShader vs = GlShaderManager.INSTANCE.getOrCreateVertexShader(vertexShader, context);
+			final GlShader fs = GlShaderManager.INSTANCE.getOrCreateFragmentShader(fragmentShader, context);
 			final GlProgram newProgram = new GlProgram(vs, fs, format, context);
 			uniforms.forEach(u -> u.accept(newProgram));
 			newProgram.load();

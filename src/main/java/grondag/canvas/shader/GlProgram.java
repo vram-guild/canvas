@@ -58,8 +58,8 @@ public class GlProgram {
 	private int progID = -1;
 	private boolean isErrored = false;
 
-	public final GlVertexShader vertexShader;
-	public final GlFragmentShader fragmentShader;
+	public final GlShader vertexShader;
+	public final GlShader fragmentShader;
 	public final ShaderContext.Type type;
 	public final MaterialVertexFormat pipelineVertexFormat;
 
@@ -482,7 +482,7 @@ public class GlProgram {
 		return addUniform(new UniformArrayiImpl(name, initializer, frequency, size));
 	}
 
-	public GlProgram(GlVertexShader vertexShader, GlFragmentShader fragmentShader, MaterialVertexFormat format, ShaderContext shaderContext) {
+	public GlProgram(GlShader vertexShader, GlShader fragmentShader, MaterialVertexFormat format, ShaderContext shaderContext) {
 		this.vertexShader = vertexShader;
 		this.fragmentShader = fragmentShader;
 		pipelineVertexFormat = format;

@@ -497,7 +497,6 @@ abstract class EncoderUtils {
 			normalAo1 = normalMatrix.canvas_transform(quad.packedNormal(1));
 			normalAo2 = normalMatrix.canvas_transform(quad.packedNormal(2));
 			normalAo3 = normalMatrix.canvas_transform(quad.packedNormal(3));
-
 		} else {
 			normalAo0 = normalAo1 = normalAo2 = normalAo3 = normalMatrix.canvas_transform(quad.packedFaceNormal());
 		}
