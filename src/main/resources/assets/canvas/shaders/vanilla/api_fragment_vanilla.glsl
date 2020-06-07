@@ -1,9 +1,13 @@
+#include canvas:shaders/lib/common_header.glsl
+#include canvas:shaders/lib/common_varying.glsl
+#include canvas:shaders/lib/diffuse.glsl
+#include canvas:shaders/lib/bitwise.glsl
+#include canvas:shaders/lib/fog.glsl
+#include canvas:shaders/vanilla/vanilla_varying.glsl
+#include canvas:shaders/vanilla/vanilla_light.glsl
+
 vec4 colorAndLightmap(vec4 fragmentColor, vec4 light) {
     return bitValue(v_flags, FLAG_EMISSIVE) == 0 ? light * fragmentColor : u_emissiveColor * fragmentColor;
-}
-
-float effectModifier() {
-    return u_world[WORLD_EFFECT_MODIFIER];
 }
 
 vec4 diffuseColor() {
@@ -21,7 +25,8 @@ vec4 diffuseColor() {
     #endif
 
     #if HARDCORE_DARKNESS
-        if(u_world[WORLD_HAS_SKYLIGHT] == 1.0 && u_world[WORLD_NIGHT_VISION] == 0.0) {
+        // TODO: encapsulate
+        if (u_world[WORLD_HAS_SKYLIGHT] == 1.0 && u_world[WORLD_NIGHT_VISION] == 0.0) {
             float floor = u_world[WOLRD_MOON_SIZE] * lightCoord.y;
             float dark = 1.0 - smoothstep(0.0, 0.8, 1.0 - luminance(light.rgb));
             dark = max(floor, dark);
@@ -35,7 +40,8 @@ vec4 diffuseColor() {
 
     #if DIFFUSE_SHADING_MODE == DIFFUSE_MODE_SKY_ONLY && CONTEXT_IS_BLOCK
         vec4 diffuse;
-        if(u_world[WORLD_HAS_SKYLIGHT] == 1.0 && u_world[WORLD_NIGHT_VISION] == 0) {
+
+        if (u_world[WORLD_HAS_SKYLIGHT] == 1.0 && u_world[WORLD_NIGHT_VISION] == 0) {
             float d = 1.0 - v_diffuse;
             d *= u_world[WORLD_EFFECTIVE_INTENSITY];
             d *= lightCoord.y;
@@ -57,13 +63,13 @@ vec4 diffuseColor() {
         a *= colorAndLightmap(v_color, light);
 
         #if AO_SHADING_MODE != AO_MODE_NONE && CONTEXT_IS_BLOCK
-            if(bitValue(v_flags, FLAG_DISABLE_AO) == 0.0) {
+            if (bitValue(v_flags, FLAG_DISABLE_AO) == 0.0) {
                 a *= aoFactor;
             }
         #endif
 
         #if DIFFUSE_SHADING_MODE != DIFFUSE_MODE_NONE
-            if(bitValue(v_flags, FLAG_DISABLE_DIFFUSE) == 0.0) {
+            if (bitValue(v_flags, FLAG_DISABLE_DIFFUSE) == 0.0) {
                 a *= diffuse;
             }
         #endif
@@ -74,39 +80,4 @@ vec4 diffuseColor() {
 	return a;
 }
 
-/**
- * Linear fog.  Is an inverse factor - 0 means full fog.
- */
-float linearFogFactor() {
-	float fogFactor = (gl_Fog.end - gl_FogFragCoord) * gl_Fog.scale;
-	return clamp( fogFactor, 0.0, 1.0 );
-}
-
-/**
- * Exponential fog.  Is really an inverse factor - 0 means full fog.
- */
-float expFogFactor() {
-	float f = gl_FogFragCoord * gl_Fog.density;
-    float fogFactor = u_fogMode == FOG_EXP ? exp(f) : exp(f * f);
-    return clamp( 1.0 / fogFactor, 0.0, 1.0 );
-}
-
-/**
- * Returns either linear or exponential fog depending on current uniform value.
- */
-float fogFactor() {
-	return u_fogMode == FOG_LINEAR ? linearFogFactor() : expFogFactor();
-}
-
-vec4 fog(vec4 diffuseColor) {
-#if CONTEXT_IS_GUI
-	return diffuseColor;
-#elif SUBTLE_FOG
-	float f = 1.0 - fogFactor();
-	f *= f;
-	return mix(vec4(gl_Fog.color.rgb, diffuseColor.a), diffuseColor, 1.0 - f);
-#else
-	return mix(vec4(gl_Fog.color.rgb, diffuseColor.a), diffuseColor, fogFactor());
-#endif
-}
 

@@ -1,5 +1,14 @@
+#include canvas:shaders/lib/common_header.glsl
+#include canvas:shaders/lib/common_varying.glsl
+#include canvas:shaders/lib/common_vertex_lib.glsl
+#include canvas:shaders/lib/bitwise.glsl
+#include canvas:shaders/lib/diffuse.glsl
+#include canvas:shaders/vanilla/vanilla_varying.glsl
+
+attribute vec4 in_color;
+attribute vec2 in_uv;
 attribute vec4 in_normal_ao;
-attribute vec2 in_hd_lightmap;
+attribute vec4 in_lightmap;
 
 void setupVertex() {
     gl_Position = ftransform();
@@ -10,14 +19,14 @@ void setupVertex() {
     v_texcoord = textureCoord(in_uv, 0);
 
     #if CONTEXT_IS_BLOCK
-		v_hd_lightmap = in_hd_lightmap / 32768.0;
+		v_ao = (in_normal_ao.w + 1.0) * 0.5;
     #endif
 
     #if DIFFUSE_SHADING_MODE != DIFFUSE_MODE_NONE
         v_diffuse = diffuse(diffuseNormal(viewCoord, in_normal_ao.xyz));
     #endif
 
-	#if !CONTEXT_IS_GUI && !ENABLE_SMOOTH_LIGHT
+	#if !CONTEXT_IS_GUI
 		// the lightmap texture matrix is scaled to 1/256 and then offset + 8
 		// it is also clamped to repeat and has linear min/mag
 		v_lightcoord = in_lightmap.rg * 0.00390625 + 0.03125;
@@ -26,7 +35,7 @@ void setupVertex() {
 	// Fixes Acuity #5
 	// Adding +0.5 prevents striping or other strangeness in flag-dependent rendering
 	// due to FP error on some cards/drivers.  Also made varying attribute invariant (rolls eyes at OpenGL)
-	v_flags =  in_lightmap.ba + 0.5;
+	v_flags =  in_lightmap.a + 0.5;
 
 	v_color = in_color;
 

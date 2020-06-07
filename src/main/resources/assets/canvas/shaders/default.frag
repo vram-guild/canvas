@@ -1,5 +1,4 @@
-#version 120
-#include canvas:shaders/std_fragment_lib.glsl
+#include canvas:api_lib
 
 void main() {
     gl_FragColor = fog(diffuseColor());

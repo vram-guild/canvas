@@ -1,6 +1,5 @@
-#include canvas:shaders/static_lib.glsl
-#include canvas:shaders/common_header.glsl
-#include canvas:shaders/vanilla_header.glsl
+#include canvas:shaders/lib/context.glsl
+#include canvas:shaders/vanilla/vanilla_varying.glsl
 
 vec4 aoFactor(vec2 lightCoord) {
 // Don't apply AO for item renders

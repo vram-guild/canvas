@@ -17,6 +17,7 @@
 package grondag.canvas.shader;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -161,7 +162,7 @@ public class GlShader {
 				}
 			}
 		} catch(final Exception e){
-			// eat it
+			// TODO: log failure to output source
 		}
 	}
 
@@ -169,25 +170,27 @@ public class GlShader {
 		final String key = shaderSource.toString().replace("/", "-") + "."  + context.name;
 		final File gameDir = FabricLoader.getInstance().getGameDirectory();
 		File shaderDir = new File(gameDir.getAbsolutePath().replace(".", "canvas_shader_debug"));
-		if(!shaderDir.exists()) {
+
+		if (!shaderDir.exists()) {
 			shaderDir.mkdir();
 		}
+
 		if(error != null) {
 			shaderDir = new File(gameDir.getAbsolutePath().replace(".", "canvas_shader_debug/failed"));
-			if(!shaderDir.exists()) {
+
+			if (!shaderDir.exists()) {
 				shaderDir.mkdir();
 			}
-			source = "///////// ERROR ////////\n" + error + "\n////////////////////////\n\n" + source;
+
+			source += "\n\n///////// ERROR ////////\n" + error + "\n////////////////////////\n";
 		}
 
-		if(shaderDir.exists()) {
-			try(
-					FileWriter writer = new FileWriter(shaderDir.getAbsolutePath() + File.separator + key + ".glsl", false);
-					) {
+		if (shaderDir.exists()) {
+			try(FileWriter writer = new FileWriter(shaderDir.getAbsolutePath() + File.separator + key + ".glsl", false)) {
 				writer.write(source);
 				writer.close();
 			} catch (final IOException e) {
-				// eat it
+				// TODO: log failure to output source
 			}
 		}
 	}
@@ -239,18 +242,13 @@ public class GlShader {
 			result = result.replaceAll("#extension GL_EXT_gpu_shader4 : enable", "");
 		}
 
-		// TODO: remove or use (including from shader)
-		//		if((shaderProps & OldShaderProps.WHITE_0) != 0) {
-		//			result = result.replaceAll("#define WHITE_0 FALSE", "#define WHITE_0 TRUE");
-		//		}
-
 		return result;
 	}
 
 	private static final HashSet<String> INCLUDED = new HashSet<>();
 	static final Pattern PATTERN = Pattern.compile("^#include\\s+([\\w]+:[\\w/\\.]+)[ \\t]*.*", Pattern.MULTILINE);
 
-	public static String getShaderSource(Identifier shaderSource) {
+	public String getShaderSource(Identifier shaderSource) {
 		final ResourceManager resourceManager = MinecraftClient.getInstance().getResourceManager();
 
 		INCLUDED.clear();
@@ -258,18 +256,19 @@ public class GlShader {
 		return getShaderSourceInner(resourceManager, shaderSource);
 	}
 
-	private static Identifier remapLibraryId(Identifier id) {
-
-		if (id.equals(ShaderData.STD_FRAGMENT_LIB)) {
-			return Configurator.hdLightmaps ? ShaderData.HD_FRAGMENT_LIB : ShaderData.VANILLA_FRAGMENT_LIB;
-		} else if (id.equals(ShaderData.STD_VERTEX_LIB)) {
-			return Configurator.hdLightmaps ? ShaderData.HD_VERTEX_LIB : ShaderData.VANILLA_VERTEX_LIB;
+	private Identifier remapLibraryId(Identifier id) {
+		if (id.equals(ShaderData.API_LIB)) {
+			if (shaderType == GL21.GL_FRAGMENT_SHADER) {
+				return Configurator.hdLightmaps ? ShaderData.HD_FRAGMENT_LIB : ShaderData.VANILLA_FRAGMENT_LIB;
+			} else {
+				return Configurator.hdLightmaps ? ShaderData.HD_VERTEX_LIB : ShaderData.VANILLA_VERTEX_LIB;
+			}
 		} else {
 			return id;
 		}
 	}
 
-	private static String getShaderSourceInner(ResourceManager resourceManager, Identifier shaderSource) {
+	private String getShaderSourceInner(ResourceManager resourceManager, Identifier shaderSource) {
 		shaderSource  = remapLibraryId(shaderSource);
 
 		try(Resource resource = resourceManager.getResource(shaderSource)) {
@@ -289,14 +288,11 @@ public class GlShader {
 					}
 				}
 
-				//				System.out.println();
-				//				System.out.println("=========================================");
-				//				System.out.println(shaderSource.toString());
-				//				System.out.println("=========================================");
-				//				System.out.println(result);
-
 				return result;
 			}
+		} catch (final FileNotFoundException e) {
+			CanvasMod.LOG.warn("Unable to load shader resource " + shaderSource.toString() + ". File was not found.");
+			return "";
 		} catch (final IOException e) {
 			CanvasMod.LOG.warn("Unable to load shader resource " + shaderSource.toString() + " due to exception.", e);
 			return "";
