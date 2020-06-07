@@ -1,3 +1,10 @@
+#include canvas:shaders/lib/common_header.glsl
+#include canvas:shaders/lib/common_varying.glsl
+#include canvas:shaders/lib/common_vertex_lib.glsl
+#include canvas:shaders/lib/bitwise.glsl
+#include canvas:shaders/lib/diffuse.glsl
+#include canvas:shaders/hd/hd_header.glsl
+
 attribute vec4 in_color;
 attribute vec2 in_uv;
 attribute vec4 in_normal_ao;
@@ -19,18 +26,17 @@ void setupVertex() {
         v_diffuse = diffuse(diffuseNormal(viewCoord, in_normal_ao.xyz));
     #endif
 
-	#if !CONTEXT_IS_GUI && !ENABLE_SMOOTH_LIGHT
-		// the lightmap texture matrix is scaled to 1/256 and then offset + 8
-		// it is also clamped to repeat and has linear min/mag
-		v_lightcoord = in_lightmap.rg * 0.00390625 + 0.03125;
-	#endif
-
 	// Fixes Acuity #5
 	// Adding +0.5 prevents striping or other strangeness in flag-dependent rendering
 	// due to FP error on some cards/drivers.  Also made varying attribute invariant (rolls eyes at OpenGL)
 	v_flags =  in_lightmap.ba + 0.5;
 
-	v_color = in_color;
+	#if !CONTEXT_IS_GUI
+		// the lightmap texture matrix is scaled to 1/256 and then offset + 8
+		// it is also clamped to repeat and has linear min/mag
+		v_lightcoord = in_lightmap.rg * 0.00390625 + 0.03125;
+	#endif
 
+	v_color = in_color;
 }
 

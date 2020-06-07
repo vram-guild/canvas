@@ -198,6 +198,10 @@ public class GlShader {
 	public String getSource() {
 		String result = getShaderSource(shaderSource);
 
+		if (shaderType == GL21.GL_FRAGMENT_SHADER) {
+			result = result.replaceAll("#define SHADER_TYPE SHADER_TYPE_VERTEX", "#define SHADER_TYPE SHADER_TYPE_FRAGMENT");
+		}
+
 		if(context.materialContext.isBlock) {
 			result = result.replaceAll("#define CONTEXT_IS_BLOCK FALSE", "#define CONTEXT_IS_BLOCK TRUE");
 		}

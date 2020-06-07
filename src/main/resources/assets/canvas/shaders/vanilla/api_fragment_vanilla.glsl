@@ -1,13 +1,12 @@
 #include canvas:shaders/lib/common_header.glsl
 #include canvas:shaders/lib/common_varying.glsl
 #include canvas:shaders/lib/diffuse.glsl
-#include canvas:shaders/lib/bitwise.glsl
+#include canvas:shaders/lib/flags.glsl
 #include canvas:shaders/lib/fog.glsl
-#include canvas:shaders/vanilla/vanilla_varying.glsl
 #include canvas:shaders/vanilla/vanilla_light.glsl
 
 vec4 colorAndLightmap(vec4 fragmentColor, vec4 light) {
-    return bitValue(v_flags, FLAG_EMISSIVE) == 0 ? light * fragmentColor : u_emissiveColor * fragmentColor;
+    return cv_getFlag(FLAG_EMISSIVE) == 0 ? light * fragmentColor : u_emissiveColor * fragmentColor;
 }
 
 vec4 diffuseColor() {
@@ -56,20 +55,20 @@ vec4 diffuseColor() {
         vec4 diffuse = vec4(v_diffuse, v_diffuse, v_diffuse, 1.0);
     #endif
 
-    float non_mipped = bitValue(v_flags, FLAG_UNMIPPED) * -4.0;
+    float non_mipped = cv_getFlag(FLAG_UNMIPPED) * -4.0;
     vec4 a = texture2D(u_textures, v_texcoord, non_mipped);
 
-    if (a.a >= 0.5 || (bitValue(v_flags, FLAG_CUTOUT) != 1.0)) {
+    if (a.a >= 0.5 || cv_getFlag(FLAG_CUTOUT) != 1.0) {
         a *= colorAndLightmap(v_color, light);
 
         #if AO_SHADING_MODE != AO_MODE_NONE && CONTEXT_IS_BLOCK
-            if (bitValue(v_flags, FLAG_DISABLE_AO) == 0.0) {
+            if (cv_getFlag(FLAG_DISABLE_AO) == 0.0) {
                 a *= aoFactor;
             }
         #endif
 
         #if DIFFUSE_SHADING_MODE != DIFFUSE_MODE_NONE
-            if (bitValue(v_flags, FLAG_DISABLE_DIFFUSE) == 0.0) {
+            if (cv_getFlag(FLAG_DISABLE_DIFFUSE) == 0.0) {
                 a *= diffuse;
             }
         #endif

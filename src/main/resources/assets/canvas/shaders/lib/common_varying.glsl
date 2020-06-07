@@ -13,14 +13,4 @@
 //TODO - disable when not used
 varying vec4 v_color;
 varying vec2 v_texcoord;
-
-#define USE_FLAT_VARYING FALSE
-
-#if USE_FLAT_VARYING
-    // may be faster when available and
-    // prevents problems on some NVidia cards/drives
-    flat varying float v_flags;
-#else
-    // flat no available on mesa drivers
-    invariant varying float v_flags;
-#endif
+varying vec2 v_lightcoord;

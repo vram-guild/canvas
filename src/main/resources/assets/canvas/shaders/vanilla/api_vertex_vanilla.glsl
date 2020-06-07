@@ -1,9 +1,8 @@
 #include canvas:shaders/lib/common_header.glsl
 #include canvas:shaders/lib/common_varying.glsl
 #include canvas:shaders/lib/common_vertex_lib.glsl
-#include canvas:shaders/lib/bitwise.glsl
+#include canvas:shaders/lib/flags.glsl
 #include canvas:shaders/lib/diffuse.glsl
-#include canvas:shaders/vanilla/vanilla_varying.glsl
 
 attribute vec4 in_color;
 attribute vec2 in_uv;
@@ -35,7 +34,7 @@ void setupVertex() {
 	// Fixes Acuity #5
 	// Adding +0.5 prevents striping or other strangeness in flag-dependent rendering
 	// due to FP error on some cards/drivers.  Also made varying attribute invariant (rolls eyes at OpenGL)
-	v_flags =  in_lightmap.a + 0.5;
+	__cv_setFlags(in_lightmap.a + 0.5);
 
 	v_color = in_color;
 

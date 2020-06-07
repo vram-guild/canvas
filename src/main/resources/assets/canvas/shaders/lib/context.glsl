@@ -30,6 +30,14 @@
 
 #define HARDCORE_DARKNESS FALSE
 
+#define USE_FLAT_VARYING FALSE
+
+
+#define SHADER_TYPE_VERTEX 		0
+#define SHADER_TYPE_FRAGMENT 	1
+
+#define SHADER_TYPE SHADER_TYPE_VERTEX
+
 uniform float u_time;
 uniform sampler2D u_textures;
 uniform sampler2D u_lightmap;
