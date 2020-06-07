@@ -196,7 +196,7 @@ public class GlShader {
 	}
 
 	public String getSource() {
-		String result = getShaderSource(shaderSource);
+		String result = getShaderSource();
 
 		if (shaderType == GL21.GL_FRAGMENT_SHADER) {
 			result = result.replaceAll("#define SHADER_TYPE SHADER_TYPE_VERTEX", "#define SHADER_TYPE SHADER_TYPE_FRAGMENT");
@@ -212,10 +212,6 @@ public class GlShader {
 
 		if(context.materialContext.isGui) {
 			result = result.replaceAll("#define CONTEXT_IS_GUI FALSE", "#define CONTEXT_IS_GUI TRUE");
-		}
-
-		if(Configurator.hardcoreDarkness && !context.materialContext.isGui) {
-			result = result.replaceAll("#define HARDCORE_DARKNESS FALSE", "#define HARDCORE_DARKNESS TRUE");
 		}
 
 		if(Configurator.subtleFog && !context.materialContext.isGui) {
@@ -252,28 +248,25 @@ public class GlShader {
 	private static final HashSet<String> INCLUDED = new HashSet<>();
 	static final Pattern PATTERN = Pattern.compile("^#include\\s+([\\w]+:[\\w/\\.]+)[ \\t]*.*", Pattern.MULTILINE);
 
-	public String getShaderSource(Identifier shaderSource) {
+	private String getShaderSource() {
 		final ResourceManager resourceManager = MinecraftClient.getInstance().getResourceManager();
 
 		INCLUDED.clear();
 
-		return getShaderSourceInner(resourceManager, shaderSource);
-	}
 
-	private Identifier remapLibraryId(Identifier id) {
-		if (id.equals(ShaderData.API_LIB)) {
-			if (shaderType == GL21.GL_FRAGMENT_SHADER) {
-				return Configurator.hdLightmaps ? ShaderData.HD_FRAGMENT_LIB : ShaderData.VANILLA_FRAGMENT_LIB;
-			} else {
-				return Configurator.hdLightmaps ? ShaderData.HD_VERTEX_LIB : ShaderData.VANILLA_VERTEX_LIB;
-			}
+		if (shaderType == GL21.GL_FRAGMENT_SHADER) {
+			return getShaderSourceInner(resourceManager, Configurator.hdLightmaps ? ShaderData.HD_FRAGMENT : ShaderData.VANILLA_FRAGMENT);
 		} else {
-			return id;
+			return getShaderSourceInner(resourceManager, Configurator.hdLightmaps ? ShaderData.HD_VERTEX : ShaderData.VANILLA_VERTEX);
 		}
 	}
 
+	private Identifier remapTargetId(Identifier id) {
+		return id.equals(ShaderData.API_TARGET) ? shaderSource : id;
+	}
+
 	private String getShaderSourceInner(ResourceManager resourceManager, Identifier shaderSource) {
-		shaderSource  = remapLibraryId(shaderSource);
+		shaderSource  = remapTargetId(shaderSource);
 
 		try(Resource resource = resourceManager.getResource(shaderSource)) {
 			try (Reader reader = new InputStreamReader(resource.getInputStream())) {

@@ -28,10 +28,7 @@
 // true if this is a GUI context
 #define CONTEXT_IS_GUI FALSE
 
-#define HARDCORE_DARKNESS FALSE
-
 #define USE_FLAT_VARYING FALSE
-
 
 #define SHADER_TYPE_VERTEX 		0
 #define SHADER_TYPE_FRAGMENT 	1

@@ -13,8 +13,6 @@
 	"config.canvas.category.features" : "Features",
 	"config.canvas.value.item_render" : "Shader-Based Item Render (WIP)",
 	"config.canvas.help.item_render" : "Applies material properties;and shaders to items.;Mostly works but not complete.",
-	"config.canvas.value.hardcore_darkness" : "Hardcore Darkness",
-	"config.canvas.help.hardcore_darkness" : "Reduces terrain lighting to full;darkness in absence of moon/torch light",
 	"config.canvas.value.subtle_fog" : "Subtle Fog",
 	"config.canvas.help.subtle_fog" : "Makes terrain fog a;little less foggy.",
 	

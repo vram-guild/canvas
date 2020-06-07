@@ -52,9 +52,6 @@ public class Configurator {
 		@Comment("Applies material properties and shaders to items. (WIP)")
 		boolean itemShaderRender = false;
 
-		@Comment("Reduces terrain lighting to full darkness in absence of moon/torch light.")
-		boolean hardcoreDarkness = false;
-
 		@Comment("Makes terrain fog a little less foggy.")
 		boolean subtleFog = false;
 
@@ -143,7 +140,6 @@ public class Configurator {
 	private static final Jankson JANKSON = Jankson.builder().build();
 
 	public static boolean itemShaderRender = DEFAULTS.itemShaderRender;
-	public static boolean hardcoreDarkness = DEFAULTS.hardcoreDarkness;
 	public static boolean subtleFog = DEFAULTS.subtleFog;
 	public static boolean shaderDebug = DEFAULTS.shaderDebug;
 	public static int maxLightmapDelayFrames = DEFAULTS.maxLightmapDelayFrames;
@@ -201,7 +197,6 @@ public class Configurator {
 			CanvasMod.LOG.error("Unable to load config. Using default values.");
 		}
 		itemShaderRender = config.itemShaderRender;
-		hardcoreDarkness = config.hardcoreDarkness;
 		subtleFog = config.subtleFog;
 		shaderDebug = config.shaderDebug;
 		minChunkBudgetNanos = config.minChunkBudgetNanos;
@@ -237,7 +232,6 @@ public class Configurator {
 	private static void saveConfig() {
 		final ConfigData config = new ConfigData();
 		config.itemShaderRender = itemShaderRender;
-		config.hardcoreDarkness = hardcoreDarkness;
 		config.subtleFog = subtleFog;
 		config.shaderDebug = shaderDebug;
 		config.minChunkBudgetNanos = minChunkBudgetNanos;
@@ -334,13 +328,6 @@ public class Configurator {
 				.setDefaultValue(DEFAULTS.itemShaderRender)
 				.setTooltip(parse("config.canvas.help.item_render"))
 				.setSaveConsumer(b -> itemShaderRender = b)
-				.build());
-
-		features.addEntry(ENTRY_BUILDER
-				.startBooleanToggle(new TranslatableText("config.canvas.value.hardcore_darkness"), hardcoreDarkness)
-				.setDefaultValue(DEFAULTS.hardcoreDarkness)
-				.setTooltip(parse("config.canvas.help.hardcore_darkness"))
-				.setSaveConsumer(b -> {hardcoreDarkness = b; reload = true;})
 				.build());
 
 		features.addEntry(ENTRY_BUILDER
