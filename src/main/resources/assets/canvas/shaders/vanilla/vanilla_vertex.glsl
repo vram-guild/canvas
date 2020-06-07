@@ -1,4 +1,5 @@
 #include canvas:shaders/lib/common_header.glsl
+#include canvas:shaders/lib/context.glsl
 #include canvas:shaders/lib/common_varying.glsl
 #include canvas:shaders/lib/common_vertex_lib.glsl
 #include canvas:shaders/lib/flags.glsl
@@ -25,7 +26,6 @@ void main() {
 	__cv_setFlags(in_lightmap.a + 0.5);
 
 	cv_startVertex(data);
-
 
 	vec4 viewCoord = gl_ModelViewMatrix * data.vertex;
 	gl_ClipVertex = viewCoord;

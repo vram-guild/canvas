@@ -220,7 +220,7 @@ public class CanvasWorldRenderer {
 		regionBuilder.setCameraPosition(cameraPos);
 		mc.getProfiler().swap("distance");
 		regionStorage.updateCameraDistance(cameraPos, frustumPositionVersion, renderDistance);
-
+		ShaderManager.INSTANCE.prepareForFrame(camera);
 		final BlockPos cameraBlockPos = camera.getBlockPos();
 		final BuiltRenderRegion cameraRegion = regionStorage.getRegion(cameraBlockPos);
 
