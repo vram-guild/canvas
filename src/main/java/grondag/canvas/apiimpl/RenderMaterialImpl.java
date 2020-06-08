@@ -18,7 +18,7 @@ package grondag.canvas.apiimpl;
 
 import javax.annotation.Nullable;
 
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
@@ -28,12 +28,15 @@ import grondag.canvas.shader.ShaderContext;
 import grondag.canvas.shader.ShaderManager;
 import grondag.fermion.bits.BitPacker64;
 import grondag.fermion.bits.BitPacker64.BooleanElement;
+import grondag.fermion.bits.BitPacker64.IntElement;
 import grondag.frex.api.material.MaterialCondition;
 import grondag.frex.api.material.MaterialFinder;
 import grondag.frex.api.material.MaterialShader;
 
-public abstract class RenderMaterialImpl {
-	private static final BitPacker64<RenderMaterialImpl> BITPACKER = new BitPacker64<>(RenderMaterialImpl::getBits, RenderMaterialImpl::setBits);
+public abstract class RenderMaterialImpl extends RenderMaterialKey {
+	private static final BitPacker64<RenderMaterialImpl> BITPACKER_0 = new BitPacker64<>(m -> m.bits0, (m, b) -> m.bits0 = b);
+	private static final BitPacker64<RenderMaterialImpl> BITPACKER_1 = new BitPacker64<>(m -> m.bits1, (m, b) -> m.bits1 = b);
+
 	public static final int MAX_SPRITE_DEPTH = 3;
 	private static final BlendMode[] LAYERS = new BlendMode[4];
 
@@ -64,50 +67,54 @@ public abstract class RenderMaterialImpl {
 
 	private static final BitPacker64<RenderMaterialImpl>.IntElement SPRITE_DEPTH;
 
-	private static final BitPacker64<RenderMaterialImpl>.IntElement SHADER;
+	@SuppressWarnings("unchecked")
+	private static final BitPacker64<RenderMaterialImpl>.IntElement [] SHADERS = new IntElement[MAX_SPRITE_DEPTH];
 
 	private static final BitPacker64<RenderMaterialImpl>.IntElement CONDITION;
 
-	private static final long DEFAULT_BITS;
+	private static final long DEFAULT_BITS_0;
+	private static final long DEFAULT_BITS_1;
 
 	private static final ObjectArrayList<CompositeMaterial> LIST = new ObjectArrayList<>();
-	private static final Long2ObjectOpenHashMap<CompositeMaterial> MAP = new Long2ObjectOpenHashMap<>();
+	private static final Object2ObjectOpenHashMap<RenderMaterialKey, CompositeMaterial> MAP = new Object2ObjectOpenHashMap<>();
 
 	public static final int SHADER_FLAGS_DISABLE_AO;
 
 	static {
-		FLAGS[EMISSIVE_INDEX_START + 0] = BITPACKER.createBooleanElement();
-		FLAGS[DIFFUSE_INDEX_START + 0] = BITPACKER.createBooleanElement();
-		FLAGS[AO_INDEX_START + 0] = BITPACKER.createBooleanElement();
+		for (int i = 0; i < MAX_SPRITE_DEPTH; ++i) {
+			FLAGS[EMISSIVE_INDEX_START + i] = BITPACKER_0.createBooleanElement();
+			FLAGS[DIFFUSE_INDEX_START + i] = BITPACKER_0.createBooleanElement();
+			FLAGS[AO_INDEX_START + i] = BITPACKER_0.createBooleanElement();
+			FLAGS[COLOR_DISABLE_INDEX_START + i] = BITPACKER_0.createBooleanElement();
+			SHADERS[i] = BITPACKER_1.createIntElement(ShaderManager.MAX_SHADERS);
+		}
 
-		FLAGS[EMISSIVE_INDEX_START + 1] = BITPACKER.createBooleanElement();
-		FLAGS[DIFFUSE_INDEX_START + 1] = BITPACKER.createBooleanElement();
-		FLAGS[AO_INDEX_START + 1] = BITPACKER.createBooleanElement();
+		BLEND_MODE = BITPACKER_0.createEnumElement(BlendMode.class);
 
-		FLAGS[EMISSIVE_INDEX_START + 2] = BITPACKER.createBooleanElement();
-		FLAGS[DIFFUSE_INDEX_START + 2] = BITPACKER.createBooleanElement();
-		FLAGS[AO_INDEX_START + 2] = BITPACKER.createBooleanElement();
+		SPRITE_DEPTH = BITPACKER_0.createIntElement(1, MAX_SPRITE_DEPTH);
 
-		FLAGS[COLOR_DISABLE_INDEX_START + 0] = BITPACKER.createBooleanElement();
-		FLAGS[COLOR_DISABLE_INDEX_START + 1] = BITPACKER.createBooleanElement();
-		FLAGS[COLOR_DISABLE_INDEX_START + 2] = BITPACKER.createBooleanElement();
+		CONDITION = BITPACKER_0.createIntElement(MaterialConditionImpl.MAX_CONDITIONS);
 
-		BLEND_MODE = BITPACKER.createEnumElement(BlendMode.class);
+		assert BITPACKER_0.bitLength() <= 64;
+		assert BITPACKER_1.bitLength() <= 64;
 
-		SPRITE_DEPTH = BITPACKER.createIntElement(1, MAX_SPRITE_DEPTH);
-		SHADER = BITPACKER.createIntElement(ShaderManager.MAX_SHADERS);
-		CONDITION = BITPACKER.createIntElement(MaterialConditionImpl.MAX_CONDITIONS);
-
-		assert BITPACKER.bitLength() <= 64;
+		DEFAULT_BITS_0 = BLEND_MODE.setValue(BlendMode.DEFAULT, 0);
 
 		long defaultBits = 0;
-		defaultBits = BLEND_MODE.setValue(BlendMode.DEFAULT, defaultBits);
-		DEFAULT_BITS = defaultBits;
+		final int defaultShaderIndex = ShaderManager.INSTANCE.getDefault().getIndex();
+
+		for (int i = 0; i < MAX_SPRITE_DEPTH; ++i) {
+			defaultBits = SHADERS[i].setValue(defaultShaderIndex, defaultBits);
+		}
+
+		DEFAULT_BITS_1 = defaultBits;
 
 		long aoDisableBits = 0;
-		aoDisableBits = FLAGS[AO_INDEX_START + 0].setValue(true, aoDisableBits);
-		aoDisableBits = FLAGS[AO_INDEX_START + 1].setValue(true, aoDisableBits);
-		aoDisableBits = FLAGS[AO_INDEX_START + 2].setValue(true, aoDisableBits);
+
+		for (int i = 0; i < MAX_SPRITE_DEPTH; ++i) {
+			aoDisableBits = FLAGS[AO_INDEX_START + i].setValue(true, aoDisableBits);
+		}
+
 		SHADER_FLAGS_DISABLE_AO = (int)aoDisableBits;
 	}
 
@@ -118,14 +125,8 @@ public abstract class RenderMaterialImpl {
 		return LIST.get(index);
 	}
 
-	protected long bits = DEFAULT_BITS;
-
-	private long getBits() {
-		return bits;
-	}
-
-	private void setBits(long bits) {
-		this.bits = bits;
+	RenderMaterialImpl() {
+		super(DEFAULT_BITS_0, DEFAULT_BITS_1);
 	}
 
 	public BlendMode blendMode() {
@@ -161,32 +162,23 @@ public abstract class RenderMaterialImpl {
 		 */
 		public final boolean hasAo;
 
-		/**
-		 * Determine which buffer we use - derived from base layer.
-		 * If base layer is solid, then any additional sprites are handled
-		 * as decals and render in solid pass.  If base layer is translucent
-		 * then all sprite layers render as translucent.
-		 */
-		//public final BlendMode renderLayer;
+		private final MaterialConditionImpl condition;
 
 		/**
 		 * True if base layer is translucent.
 		 */
 		public final boolean isTranslucent;
 
-		private final MaterialShaderImpl shader;
-
-		private final MaterialConditionImpl condition;
-
 		private final CompositeMaterial[] blendModeVariants = new CompositeMaterial[4];
 
 		private final DrawableMaterial[] drawables = new DrawableMaterial[MAX_SPRITE_DEPTH];
 
-		protected CompositeMaterial(int index, long bits, MaterialShaderImpl shader) {
+		protected CompositeMaterial(int index, long bits0, long bits1) {
 			this.index = index;
-			this.bits = bits;
-			this.shader = shader;
-			condition = MaterialConditionImpl.fromIndex(CONDITION.getValue(bits));
+			this.bits0 = bits0;
+			this.bits1 = bits1;
+			condition = MaterialConditionImpl.fromIndex(CONDITION.getValue(bits0));
+
 			final int depth = spriteDepth();
 			hasAo = !disableAo(0) || (depth > 1 && !disableAo(1)) || (depth == 3 && !disableAo(2));
 			final BlendMode baseLayer = blendMode();
@@ -213,8 +205,8 @@ public abstract class RenderMaterialImpl {
 
 					assert layer != BlendMode.DEFAULT;
 
-					finder.bits = bits;
-					finder.shader = shader;
+					finder.bits0 = bits0;
+					finder.bits1 = bits1;
 
 					if(finder.blendMode() == BlendMode.DEFAULT) {
 						finder.blendMode(layer);
@@ -278,9 +270,11 @@ public abstract class RenderMaterialImpl {
 		public class DrawableMaterial {
 			public final int shaderFlags;
 			public final ShaderContext.Type shaderType;
+			private final MaterialShaderImpl shader;
 
 			public DrawableMaterial(int depth) {
 				shaderType = depth == 0 ? (blendMode() == BlendMode.TRANSLUCENT ? ShaderContext.Type.TRANSLUCENT : ShaderContext.Type.SOLID) : ShaderContext.Type.DECAL;
+				shader = ShaderManager.INSTANCE.get(SHADERS[depth].getValue(bits1));
 				int flags = emissive(depth) ? 1 : 0;
 
 				if (disableDiffuse(depth)) {
@@ -318,22 +312,18 @@ public abstract class RenderMaterialImpl {
 	}
 
 	public static class Finder extends RenderMaterialImpl implements MaterialFinder {
-		private MaterialShaderImpl shader = null;
-
 		@Override
 		public CompositeMaterial find() {
 			return findInternal(true);
 		}
 
 		private synchronized CompositeMaterial findInternal(boolean setupVariants) {
-			final MaterialShaderImpl s = shader == null ? ShaderManager.INSTANCE.getDefault() : shader;
-			SHADER.setValue(s.getIndex(), this);
-			CompositeMaterial result = MAP.get(bits);
+			CompositeMaterial result = MAP.get(this);
 
 			if (result == null) {
-				result = new CompositeMaterial(LIST.size(), bits, s);
+				result = new CompositeMaterial(LIST.size(), bits0, bits1);
 				LIST.add(result);
-				MAP.put(result.bits, result);
+				MAP.put(new RenderMaterialKey(bits0, bits1), result);
 
 				if (setupVariants) {
 					result.setupVariants();
@@ -345,8 +335,8 @@ public abstract class RenderMaterialImpl {
 
 		@Override
 		public Finder clear() {
-			bits = DEFAULT_BITS;
-			shader = null;
+			bits0 = DEFAULT_BITS_0;
+			bits1 = DEFAULT_BITS_0;
 			return this;
 		}
 
@@ -400,8 +390,8 @@ public abstract class RenderMaterialImpl {
 
 		@Deprecated
 		@Override
-		public Finder shader(MaterialShader shader) {
-			this.shader = (MaterialShaderImpl) shader;
+		public Finder shader(int spriteIndex, MaterialShader shader) {
+			SHADERS[spriteIndex].setValue(((MaterialShaderImpl) shader).getIndex(), this);
 			return this;
 		}
 
@@ -415,12 +405,6 @@ public abstract class RenderMaterialImpl {
 		public Finder blendMode(BlendMode blendMode) {
 			BLEND_MODE.setValue(blendMode, this);
 			return this;
-		}
-
-		@Override
-		public MaterialFinder shader(int spriteIndex, MaterialShader pipeline) {
-			// TODO Auto-generated method stub
-			return null;
 		}
 	}
 }

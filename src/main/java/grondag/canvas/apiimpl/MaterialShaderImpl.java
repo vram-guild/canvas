@@ -87,12 +87,6 @@ public final class MaterialShaderImpl implements MaterialShader {
 		programMap.clear();
 	}
 
-	@Override
-	@Deprecated
-	public int spriteDepth() {
-		return 1;
-	}
-
 	public int getIndex() {
 		return index;
 	}

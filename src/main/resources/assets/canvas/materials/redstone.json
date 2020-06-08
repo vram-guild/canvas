@@ -1,0 +1,13 @@
+{
+	"layers": [
+		{
+			"vertexSource": "canvas:shaders/material/redstone.vert",
+			"fragmentSource": "canvas:shaders/material/redstone.frag",
+			"disableAo": false,
+			"disableColorIndex": false,
+			"disableDiffuse": false,
+			"blendMode": "solid",
+			"emissive": false
+		}
+	]
+}

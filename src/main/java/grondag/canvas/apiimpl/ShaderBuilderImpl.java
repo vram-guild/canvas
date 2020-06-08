@@ -64,13 +64,6 @@ public class ShaderBuilderImpl implements ShaderBuilder {
 		return this;
 	}
 
-
-	@Override
-	@Deprecated // will have no effect
-	public ShaderBuilderImpl spriteDepth(int depth) {
-		return this;
-	}
-
 	@Override
 	public ShaderBuilderImpl uniform1f(String name, UniformRefreshFrequency frequency, Consumer<Uniform1f> initializer) {
 		uniforms.add(p -> p.uniform1f(name, frequency, initializer));
