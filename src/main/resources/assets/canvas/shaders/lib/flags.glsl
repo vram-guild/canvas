@@ -23,9 +23,3 @@
 float cv_getFlag(int flagId) {
 	return bitValue(__cv_flags, flagId);
 }
-
-#if SHADER_TYPE == SHADER_TYPE_VERTEX
-void __cv_setFlags(float flags) {
-	__cv_flags = flags;
-}
-#endif

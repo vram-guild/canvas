@@ -23,7 +23,7 @@ void main() {
 
 	// Adding +0.5 prevents striping or other strangeness in flag-dependent rendering
 	// due to FP error on some cards/drivers.  Also made varying attribute invariant (rolls eyes at OpenGL)
-	__cv_setFlags(in_lightmap.a + 0.5);
+	__cv_flags = in_lightmap.b + 0.5;
 
 	cv_startVertex(data);
 
