@@ -35,6 +35,7 @@ import net.minecraft.util.math.Vec3d;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 
 import grondag.canvas.Configurator;
@@ -460,7 +461,8 @@ public class BuiltRenderRegion {
 
 				if (!fluidState.isEmpty()) {
 					final CompositeMaterial fluidLayer = StandardMaterials.get(RenderLayers.getFluidLayer(fluidState));
-					final VertexCollectorImpl fluidBuffer = collectors.get(MaterialState.get(MaterialContext.TERRAIN, fluidLayer.isTranslucent ? DrawHandlers.TRANSLUCENT : DrawHandlers.SOLID));
+					// PERF: material lookup sucks
+					final VertexCollectorImpl fluidBuffer = collectors.get(MaterialState.get(MaterialContext.TERRAIN, fluidLayer.isTranslucent ? DrawHandlers.TRANSLUCENT : DrawHandlers.get(MaterialContext.TERRAIN, fluidLayer.forBlendMode(BlendMode.SOLID.ordinal()).forDepth(0))));
 
 					blockRenderManager.renderFluid(searchPos, region, fluidBuffer, fluidState);
 				}

@@ -2,6 +2,7 @@ package grondag.canvas.draw;
 
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import org.lwjgl.opengl.GL21;
 
 import net.minecraft.client.MinecraftClient;
@@ -21,12 +22,6 @@ import grondag.canvas.shader.ShaderContext.Type;
 import grondag.canvas.shader.ShaderManager;
 
 public class DrawHandlers {
-	private static int nextHandlerIndex = 0;
-
-	public final int index = nextHandlerIndex++;
-
-	public static final DrawHandler SOLID = new SolidHandler(MaterialVertexFormats.VANILLA_BLOCKS_AND_ITEMS, ShaderManager.INSTANCE.getDefault(), MaterialConditionImpl.ALWAYS, ShaderContext.Type.SOLID);
-	public static final DrawHandler SOLID_HD = new SolidHandler(MaterialVertexFormats.HD_TERRAIN, ShaderManager.INSTANCE.getDefault(), MaterialConditionImpl.ALWAYS, ShaderContext.Type.SOLID);
 
 	private static class SolidHandler extends DrawHandler {
 		SolidHandler(MaterialVertexFormat format, MaterialShaderImpl shader, MaterialConditionImpl condition, Type shaderType) {
@@ -62,9 +57,6 @@ public class DrawHandlers {
 		}
 
 	}
-
-	public static final DrawHandler DECAL = new DecalHandler(MaterialVertexFormats.VANILLA_BLOCKS_AND_ITEMS, ShaderManager.INSTANCE.getDefault(), MaterialConditionImpl.ALWAYS, ShaderContext.Type.DECAL);
-	public static final DrawHandler DECAL_HD = new DecalHandler(MaterialVertexFormats.HD_TERRAIN, ShaderManager.INSTANCE.getDefault(), MaterialConditionImpl.ALWAYS, ShaderContext.Type.DECAL);
 
 	private static class DecalHandler extends DrawHandler {
 		DecalHandler(MaterialVertexFormat format, MaterialShaderImpl shader, MaterialConditionImpl condition, Type shaderType) {
@@ -140,27 +132,34 @@ public class DrawHandlers {
 		}
 	}
 
+	private static final Long2ObjectOpenHashMap<DrawHandler> MAP = new Long2ObjectOpenHashMap<>();
+
+	private static long lookupIndex(MaterialContext context, MaterialVertexFormat format, MaterialShaderImpl shader,  MaterialConditionImpl condition, ShaderContext.Type shaderType) {
+		return shaderType.ordinal() | ((long) context.ordinal() << 2) | ((long) format.index << 10) | ((long) condition.index << 16) | ((long) shader.getIndex() << 32);
+	}
+
+	// PERF: cache in the drawable material
 	public static DrawHandler get(MaterialContext context, DrawableMaterial mat) {
-		if  (context == MaterialContext.TERRAIN && Configurator.hdLightmaps) {
-			switch (mat.shaderType) {
-			case DECAL:
-				return DECAL_HD;
-			case TRANSLUCENT:
-				return TRANSLUCENT_HD;
-			default:
-			case SOLID:
-				return SOLID_HD;
-			}
-		} else {
-			switch (mat.shaderType) {
-			case DECAL:
-				return DECAL;
-			case TRANSLUCENT:
-				return TRANSLUCENT;
-			default:
-			case SOLID:
-				return SOLID;
-			}
+		final boolean isHD = context == MaterialContext.TERRAIN && Configurator.hdLightmaps;
+
+		if (mat.shaderType == ShaderContext.Type.TRANSLUCENT) {
+			return isHD ? TRANSLUCENT_HD : TRANSLUCENT;
 		}
+
+		final MaterialVertexFormat format = isHD ? MaterialVertexFormats.HD_TERRAIN : MaterialVertexFormats.VANILLA_BLOCKS_AND_ITEMS;
+
+		final long index = lookupIndex(context, format, mat.shader(), mat.condition(), mat.shaderType);
+
+		DrawHandler result = MAP.get(index);
+
+		if (result == null) {
+			result = mat.shaderType == ShaderContext.Type.DECAL
+					? new DecalHandler(format, mat.shader(), mat.condition(), ShaderContext.Type.DECAL)
+							: new SolidHandler(format, mat.shader(), mat.condition(), ShaderContext.Type.SOLID);
+
+					MAP.put(index, result);
+		}
+
+		return result;
 	}
 }

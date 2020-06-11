@@ -17,6 +17,7 @@ import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.util.GeometryHelper;
 import grondag.canvas.buffer.encoding.VertexEncoder;
+import grondag.frex.api.material.MaterialMap;
 
 public abstract class AbstractBlockRenderContext<T extends BlockRenderView > extends AbstractRenderContext implements RenderContext {
 	/** for use by chunk builder - avoids another threadlocal */
@@ -38,6 +39,7 @@ public abstract class AbstractBlockRenderContext<T extends BlockRenderView > ext
 	public long seed;
 	public boolean defaultAo;
 	public int defaultBlendModeIndex;
+
 
 	public final Supplier<Random> randomSupplier = () -> {
 		final Random result = random;
@@ -67,6 +69,8 @@ public abstract class AbstractBlockRenderContext<T extends BlockRenderView > ext
 	public void prepareForBlock(BlockState blockState, BlockPos blockPos, boolean modelAO, long seed) {
 		this.blockPos = blockPos;
 		this.blockState = blockState;
+
+		materialMap = MaterialMap.get(blockState);
 		lastColorIndex = -1;
 		needsRandomRefresh = true;
 		fullCubeCache = 0;

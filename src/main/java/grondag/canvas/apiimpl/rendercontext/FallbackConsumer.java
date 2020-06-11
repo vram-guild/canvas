@@ -134,6 +134,8 @@ public class FallbackConsumer implements Consumer<BakedModel> {
 
 		System.arraycopy(quad.getVertexData(), 0, editorBuffer, MeshEncodingHelper.HEADER_STRIDE, MeshEncodingHelper.BASE_QUAD_STRIDE);
 
+		context.mapMaterials(editorQuad);
+
 		if (!context.transform(editorQuad)) {
 			return;
 		}

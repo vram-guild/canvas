@@ -24,8 +24,11 @@ import javax.annotation.Nullable;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import net.minecraft.block.BlockState;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.model.BakedModel;
+import net.minecraft.client.texture.Sprite;
+import net.minecraft.client.texture.SpriteAtlasTexture;
 import net.minecraft.client.util.math.Vector4f;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Matrix4f;
@@ -33,6 +36,7 @@ import net.minecraft.util.math.Matrix4f;
 import net.fabricmc.fabric.api.renderer.v1.mesh.Mesh;
 import net.fabricmc.fabric.api.renderer.v1.mesh.MutableQuadView;
 import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
+import net.fabricmc.fabric.api.renderer.v1.model.SpriteFinder;
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 
 import grondag.canvas.apiimpl.RenderMaterialImpl.CompositeMaterial.DrawableMaterial;
@@ -42,6 +46,7 @@ import grondag.canvas.light.AoCalculator;
 import grondag.canvas.material.MaterialContext;
 import grondag.canvas.material.MaterialVertexFormats;
 import grondag.canvas.mixinterface.Matrix3fExt;
+import grondag.frex.api.material.MaterialMap;
 
 public abstract class AbstractRenderContext implements RenderContext {
 	/** for use in encoders without a threadlocal */
@@ -51,9 +56,13 @@ public abstract class AbstractRenderContext implements RenderContext {
 	public final VertexCollectorList collectors = new VertexCollectorList();
 	private final ObjectArrayList<QuadTransform> transformStack = new ObjectArrayList<>();
 	private static final QuadTransform NO_TRANSFORM = (q) -> true;
+	private final SpriteAtlasTexture atlas = MinecraftClient.getInstance().getBakedModelManager().method_24153(SpriteAtlasTexture.BLOCK_ATLAS_TEX);
+	private final SpriteFinder spriteFinder = SpriteFinder.get(atlas);
+
 	protected Matrix4f matrix;
 	protected Matrix3fExt normalMatrix;
 	protected int overlay;
+	protected MaterialMap materialMap = MaterialMap.DEFAULT_MATERIAL_MAP;
 
 	private final QuadTransform stackTransform = (q) -> {
 		int i = transformStack.size() - 1;
@@ -75,6 +84,15 @@ public abstract class AbstractRenderContext implements RenderContext {
 
 	protected boolean hasTransform() {
 		return activeTransform != NO_TRANSFORM;
+	}
+
+	void mapMaterials(MutableQuadView quad) {
+		if (materialMap == MaterialMap.DEFAULT_MATERIAL_MAP) {
+			return;
+		}
+
+		final Sprite sprite = materialMap.needsSprite() ? spriteFinder.find(quad, 0) : null;
+		quad.material(materialMap.getMapped(sprite));
 	}
 
 	@Override

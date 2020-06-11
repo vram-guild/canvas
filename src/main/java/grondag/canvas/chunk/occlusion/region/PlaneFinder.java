@@ -179,11 +179,6 @@ public class PlaneFinder {
 			}
 
 			if (d != -1) {
-				// TODO: remove
-				if (planeFunc == Z_FUNC) {
-					System.out.println("boop");
-				}
-
 				planes.add(planeFunc.apply(a, d));
 				openCount -= a.areaSize;
 

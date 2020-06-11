@@ -2,6 +2,7 @@ struct cv_FragmentInput {
 	vec4 spriteColor;
 	vec4 vertexColor;
 	bool emissive;
+	bool diffuse;
 	//vec3 vertexNormal;
 };
 

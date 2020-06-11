@@ -270,9 +270,12 @@ public abstract class RenderMaterialImpl extends RenderMaterialKey {
 		public class DrawableMaterial {
 			public final int shaderFlags;
 			public final ShaderContext.Type shaderType;
+			public final int drawbleMaterialIndex;
+
 			private final MaterialShaderImpl shader;
 
 			public DrawableMaterial(int depth) {
+				drawbleMaterialIndex = (index << 2) | depth;
 				shaderType = depth == 0 ? (blendMode() == BlendMode.TRANSLUCENT ? ShaderContext.Type.TRANSLUCENT : ShaderContext.Type.SOLID) : ShaderContext.Type.DECAL;
 				shader = ShaderManager.INSTANCE.get(SHADERS[depth].getValue(bits1));
 				int flags = emissive(depth) ? 1 : 0;
@@ -388,7 +391,6 @@ public abstract class RenderMaterialImpl extends RenderMaterialKey {
 			return this;
 		}
 
-		@Deprecated
 		@Override
 		public Finder shader(int spriteIndex, MaterialShader shader) {
 			SHADERS[spriteIndex].setValue(((MaterialShaderImpl) shader).getIndex(), this);

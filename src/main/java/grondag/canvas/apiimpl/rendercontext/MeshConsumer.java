@@ -84,6 +84,8 @@ public class MeshConsumer implements Consumer<Mesh> {
 	}
 
 	private void renderQuad(MutableQuadViewImpl quad) {
+		context.mapMaterials(editorQuad);
+
 		if (!context.transform(quad)) {
 			return;
 		}

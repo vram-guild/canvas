@@ -1,0 +1,14 @@
+{
+	"defaultMap": {
+		"spriteMap": [
+			{
+				"sprite": "minecraft:block/repeater_on",
+				"material": "canvas:redstone"
+			},
+			{
+				"sprite": "minecraft:block/redstone_torch",
+				"material": "canvas:redstone"
+			}
+		]
+	}
+}

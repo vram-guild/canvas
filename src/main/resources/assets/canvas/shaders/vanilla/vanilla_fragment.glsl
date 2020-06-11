@@ -65,7 +65,8 @@ void main() {
 	cv_FragmentInput fragInput = cv_FragmentInput (
 		texture2D(u_textures, v_texcoord, cv_getFlag(FLAG_UNMIPPED) * -4.0),
 		v_color,
-		cv_getFlag(FLAG_EMISSIVE) == 1.0
+		cv_getFlag(FLAG_EMISSIVE) == 1.0,
+		cv_getFlag(FLAG_DISABLE_DIFFUSE) == 0.0
 	);
 
 	cv_startFragment(fragInput);
@@ -89,7 +90,7 @@ void main() {
 		#endif
 
 		#if DIFFUSE_SHADING_MODE != DIFFUSE_MODE_NONE
-			if (cv_getFlag(FLAG_DISABLE_DIFFUSE) == 0.0) {
+			if (fragInput.diffuse) {
 				a *= diffuse();
 			}
 		#endif
