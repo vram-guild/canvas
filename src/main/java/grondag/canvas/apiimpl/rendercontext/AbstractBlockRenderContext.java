@@ -26,7 +26,7 @@ public abstract class AbstractBlockRenderContext<T extends BlockRenderView > ext
 	/** for internal use */
 	protected final BlockPos.Mutable internalSearchPos = new BlockPos.Mutable();
 
-	private final BlockColors blockColorMap = MinecraftClient.getInstance().getBlockColorMap();
+	private final BlockColors blockColorMap = MinecraftClient.getInstance().getBlockColors();
 	private boolean needsRandomRefresh = true;
 	private int lastColorIndex = -1;
 	private int blockColor = -1;

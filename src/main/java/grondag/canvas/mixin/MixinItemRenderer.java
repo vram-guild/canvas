@@ -62,7 +62,7 @@ public abstract class MixinItemRenderer {
 				matrixStack.push();
 				model.getTransformation().getTransformation(transformMode).apply(invert, matrixStack);
 				matrixStack.translate(-0.5D, -0.5D, -0.5D);
-				BuiltinModelItemRenderer.INSTANCE.render(stack, matrixStack, vertexConsumerProvider, light, overlay);
+				BuiltinModelItemRenderer.INSTANCE.render(stack, transformMode, matrixStack, vertexConsumerProvider, light, overlay);
 				matrixStack.pop();
 			}
 

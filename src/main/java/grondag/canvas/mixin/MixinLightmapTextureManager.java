@@ -35,7 +35,7 @@ public abstract class MixinLightmapTextureManager {
 	private float field_21528; //was prevFlicker - still same meaning?
 
 	@ModifyArg(method = "update", index = 2, at = @At(value = "INVOKE",
-			target = "Lnet/minecraft/client/texture/NativeImage;setPixelRgba(III)V"))
+			target = "Lnet/minecraft/client/texture/NativeImage;setPixelColor(III)V"))
 	private int onSetPixelRgba(int i, int j, int color) {
 		if(i == 15 && j == 15) {
 			ShaderManager.INSTANCE.updateEmissiveColor(color);

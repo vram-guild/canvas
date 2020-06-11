@@ -47,7 +47,7 @@ public class SimpleTexture implements AutoCloseable {
 
 	public int getGlId() {
 		if (glId == -1) {
-			glId = TextureUtil.method_24956();
+			glId = TextureUtil.generateId();
 		}
 
 		return glId;
@@ -55,7 +55,7 @@ public class SimpleTexture implements AutoCloseable {
 
 	public void clearGlId() {
 		if (glId != -1) {
-			TextureUtil.method_24957(glId);
+			TextureUtil.deleteId(glId);
 			glId = -1;
 		}
 	}

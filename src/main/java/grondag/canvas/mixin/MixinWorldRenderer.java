@@ -53,6 +53,7 @@ import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Matrix4f;
+
 import grondag.canvas.CanvasMod;
 import grondag.canvas.chunk.RenderRegionBuilder;
 import grondag.canvas.mixinterface.WorldRendererExt;
@@ -155,7 +156,7 @@ public class MixinWorldRenderer implements WorldRendererExt {
 		world = saveWorld;
 		if (world != null) {
 			world.reloadColor();
-			RenderLayers.setFancyGraphics(client.options.fancyGraphics);
+			RenderLayers.setFancyGraphicsOrBetter(MinecraftClient.isFancyGraphicsOrBetter());
 			renderDistance = client.options.viewDistance;
 
 			canvasWorldRenderer.reload();

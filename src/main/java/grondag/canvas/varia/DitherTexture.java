@@ -3,9 +3,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
  * of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
@@ -102,7 +102,7 @@ public class DitherTexture implements AutoCloseable {
 
 				for(int u = 0; u < 8; u++) {
 					for(int v = 0; v < 8; v++) {
-						image.setPixelRgba(u, v, pattern[v * 8 + u]);
+						image.setPixelColor(u, v, pattern[v * 8 + u]);
 					}
 				}
 				needsInitialized = false;

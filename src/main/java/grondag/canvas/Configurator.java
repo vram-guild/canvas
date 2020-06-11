@@ -17,8 +17,6 @@ package grondag.canvas;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.util.Arrays;
-import java.util.Optional;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import blue.endless.jankson.Comment;
@@ -314,7 +312,8 @@ public class Configurator {
 		return Arrays.stream(I18n.translate(key).split(";")).map(s ->  new LiteralText(s)).collect(Collectors.toList()).toArray(new Text[0]);
 	}
 
-	private static Screen display() {
+	public static Screen display(Screen screen) {
+		screenIn = screen;
 		reload = false;
 
 		final ConfigBuilder builder = ConfigBuilder.create()
@@ -520,16 +519,6 @@ public class Configurator {
 		builder.setDoesConfirmSave(false);
 
 		return builder.build();
-	}
-
-	public static Optional<Supplier<Screen>> getConfigScreen(Screen screen) {
-		screenIn = screen;
-		return Optional.of(Configurator::display);
-	}
-
-	public static Screen getRawConfigScreen(Screen screen) {
-		screenIn = screen;
-		return display();
 	}
 
 	@SuppressWarnings("resource")

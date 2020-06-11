@@ -38,7 +38,7 @@ import java.io.File;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.Camera;
 import net.minecraft.client.texture.NativeImage;
-import net.minecraft.resource.ResourceImpl;
+import net.minecraft.util.Util;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 
@@ -100,7 +100,7 @@ public abstract class TerrainOccluder {
 
 			for (int x = 0; x < PIXEL_WIDTH; x++) {
 				for (int y = 0; y < PIXEL_HEIGHT; y++) {
-					nativeImage.setPixelRgba(x, y, Indexer.testPixel(x, y) ? -1 :0xFF000000);
+					nativeImage.setPixelColor(x, y, Indexer.testPixel(x, y) ? -1 :0xFF000000);
 				}
 			}
 
@@ -109,7 +109,7 @@ public abstract class TerrainOccluder {
 			@SuppressWarnings("resource")
 			final File file = new File(MinecraftClient.getInstance().runDirectory, "canvas_occlusion_raster.png");
 
-			ResourceImpl.RESOURCE_IO_EXECUTOR.execute(() -> {
+			Util.method_27958().execute(() -> {
 				try {
 					nativeImage.writeFile(file);
 				} catch (final Exception e) {
