@@ -1,69 +1,79 @@
 repositories {
-	mavenLocal()
-  maven { url "https://tehnut.info/maven"}
-  maven { url "http://maven.sargunv.s3-website-us-west-2.amazonaws.com/" }
-  maven { url "https://minecraft.curseforge.com/api/maven" }
-  maven { url "https://maven.fabricmc.net/io/github/prospector/modmenu/ModMenu/" }
-
+mavenLocal()
+  mavenLocal()
+    jcenter();
+    maven { 
+    	name = "Fabric"
+    	url "https://maven.fabricmc.net/"
+	}
  	maven {
-  	name = "grondag"
-  	url = "https://grondag-repo.appspot.com"
-  	credentials {
-          username "guest"
-          password ""
-	  }
-  }
+    	name = "grondag"
+    	url = "https://grondag-repo.appspot.com"
+    	credentials {
+            username "guest"
+            password ""
+		}
+    }
+    maven {
+      name = "Cotton"
+      url = "http://server.bbkr.space:8081/artifactory/libs-release/"
+    }
+	maven {
+		name = "CurseForge"
+		url = "https://minecraft.curseforge.com/api/maven"
+	}
 }
 
 dependencies {
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
 	mappings "net.fabricmc:yarn:${project.yarn_mappings}"
-	modCompile "net.fabricmc:fabric-loader:${project.loader_version}"
-	modCompile "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
-
-	modRuntime "grondag:fermion-${project.mc_tag}:${project.fermion_version}.+"
-  include "grondag:fermion-${project.mc_tag}:${project.fermion_version}.+"
-
-  modImplementation ("grondag:fermion-varia-${project.mc_tag}:${project.fermion_varia_version}.+") {
-    exclude group :"grondag"
-    exclude group :"net.fabricmc.fabric-api"
-  }
-  include "grondag:fermion-varia-${project.mc_tag}:${project.fermion_varia_version}.+"
-
-	modImplementation ("grondag:special-circumstances-${project.mc_tag}:${project.special_circumstances_version}.+") {
-    exclude group :"grondag"
-    exclude group :"net.fabricmc.fabric-api"
-  }
-  include "grondag:special-circumstances-${project.mc_tag}:${project.special_circumstances_version}.+"
-
-	modImplementation ("grondag:frex-${project.mc_tag}:${project.frex_version}.+") {
-    exclude group :"grondag"
-    exclude group :"net.fabricmc.fabric-api"
-  }
-  include "grondag:frex-${project.mc_tag}:${project.frex_version}.+"
+	modApi "net.fabricmc:fabric-loader:${project.loader_version}"
+	modApi "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+	
+	// dev env annotation support
+	compileOnly "org.apiguardian:apiguardian-api:1.0.0"
+	compileOnly "com.google.code.findbugs:jsr305:3.0.2"
+	
+	modImplementation ("grondag:frex-${project.mc_tag}:${project.frex_version}.+") { transitive = false }
+	modImplementation ("grondag:fermion-${project.mc_tag}:${project.fermion_version}.+") { transitive = false }
+	modImplementation ("grondag:fermion-varia-${project.mc_tag}:${project.fermion_varia_version}.+") { transitive = false }
+	modImplementation ("grondag:fermion-orientation-${project.mc_tag}:${project.fermion_orientation_version}.+") { transitive = false }
+    modImplementation ("grondag:special-circumstances-${project.mc_tag}:${project.special_circumstances_version}.+") { transitive = false }
 
 	modImplementation ("grondag:joml-mod:1.0+") {
-    exclude group :"grondag"
-    exclude group :"net.fabricmc"
-  }
-  include "grondag:joml-mod:1.0+"
-
-	modImplementation ("blue.endless:jankson:1.1.2") {
-    exclude group :"net.fabricmc.fabric-api"
-  }
-	include "blue.endless:jankson:1.1.2"
-
+		exclude group :"grondag"
+	    exclude group :"net.fabricmc"
+	}
+	
+	modImplementation ("io.github.cottonmc:Jankson-Fabric:${jankson_version}") {
+        exclude group :"net.fabricmc.fabric-api"
+        exclude group :"net.fabricmc.fabric-loader"
+    }
+	
 	modImplementation ("me.shedaniel.cloth:config-2:${clothconfig_version}") {
-    exclude group :"io.github.prospector.modmenu"
-    exclude group :"net.fabricmc.fabric-api"
-  }
-	include "me.shedaniel.cloth:config-2:${clothconfig_version}"
-
+        exclude group :"io.github.prospector.modmenu"
+        exclude group :"net.fabricmc.fabric-api"
+        exclude group :"net.fabricmc.fabric-loader"
+    }
+	
 	modImplementation ("io.github.prospector:modmenu:${project.modmenu_version}") {
-    exclude group :"net.fabricmc.fabric-api"
-  }
+        exclude group :"net.fabricmc.fabric-api"
+        exclude group :"net.fabricmc.fabric-loader"
+    }
+    
+	modImplementation ("blue.endless:jankson:1.1.2") {
+		exclude group :"net.fabricmc.fabric-api"
+	}
 
-	// dev env annotation support
-	compile "org.apiguardian:apiguardian-api:1.0.0"
-	compile "com.google.code.findbugs:jsr305:3.0.2"
+    if (!(gradle.startParameter.taskNames.contains("publish") || gradle.startParameter.taskNames.contains("publishToMavenLocal"))) {
+		include "grondag:fermion-${project.mc_tag}:${project.fermion_version}.+"
+		include "grondag:fermion-modkeys-${project.mc_tag}:${project.fermion_modkeys_version}.+"
+	    include "grondag:fermion-varia-${project.mc_tag}:${project.fermion_varia_version}.+"
+	    include "grondag:fermion-orientation-${project.mc_tag}:${project.fermion_orientation_version}.+"
+	    include "grondag:special-circumstances-${project.mc_tag}:${project.special_circumstances_version}.+"
+		include "io.github.cottonmc:Jankson-Fabric:${jankson_version}"
+		include "me.shedaniel.cloth:config-2:${clothconfig_version}"
+  		include "grondag:joml-mod:1.0+"
+		include "blue.endless:jankson:1.1.2"
+ 	}
 }
