@@ -58,11 +58,12 @@ public abstract class AbstractRenderContext implements RenderContext {
 	private static final QuadTransform NO_TRANSFORM = (q) -> true;
 	private final SpriteAtlasTexture atlas = MinecraftClient.getInstance().getBakedModelManager().method_24153(SpriteAtlasTexture.BLOCK_ATLAS_TEX);
 	private final SpriteFinder spriteFinder = SpriteFinder.get(atlas);
+	private static final MaterialMap defaultMap = MaterialMap.defaultMaterialMap();
 
 	protected Matrix4f matrix;
 	protected Matrix3fExt normalMatrix;
 	protected int overlay;
-	protected MaterialMap materialMap = MaterialMap.DEFAULT_MATERIAL_MAP;
+	protected MaterialMap materialMap = defaultMap;
 
 	private final QuadTransform stackTransform = (q) -> {
 		int i = transformStack.size() - 1;
@@ -87,7 +88,7 @@ public abstract class AbstractRenderContext implements RenderContext {
 	}
 
 	void mapMaterials(MutableQuadView quad) {
-		if (materialMap == MaterialMap.DEFAULT_MATERIAL_MAP) {
+		if (materialMap == defaultMap) {
 			return;
 		}
 

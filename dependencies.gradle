@@ -66,8 +66,8 @@ dependencies {
 	}
 
     if (!(gradle.startParameter.taskNames.contains("publish") || gradle.startParameter.taskNames.contains("publishToMavenLocal"))) {
+		include "grondag:frex-${project.mc_tag}:${project.frex_version}.+"
 		include "grondag:fermion-${project.mc_tag}:${project.fermion_version}.+"
-		include "grondag:fermion-modkeys-${project.mc_tag}:${project.fermion_modkeys_version}.+"
 	    include "grondag:fermion-varia-${project.mc_tag}:${project.fermion_varia_version}.+"
 	    include "grondag:fermion-orientation-${project.mc_tag}:${project.fermion_orientation_version}.+"
 	    include "grondag:special-circumstances-${project.mc_tag}:${project.special_circumstances_version}.+"
