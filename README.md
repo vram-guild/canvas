@@ -101,35 +101,21 @@ repositories {
     	credentials {
             username "guest"
             password ""
-		}
+			}
+  	}
+    maven {
+      name = "Cotton"
+      url = "http://server.bbkr.space:8081/artifactory/libs-release/"
     }
 }
 ```
 
-And add FREX and Canvas to your dependencies
+And add Canvas to your dependencies
 
 ```gradle
 dependencies {
-	modCompile "grondag:frex:0.4.+"
-	modCompile "grondag:canvas:0.5.+"
-	
-	// part of FREX but shadowed dependencies aren't handled in dev
-	compile "org.joml:joml:1.9.14"
-
-	// needed for config - shadowed dependencies aren't handled in dev
-	compile "blue.endless:jankson:1.1.0"
-	
-	// recommended but not required
-	compile "org.apiguardian:apiguardian-api:1.0.0"
-	compile "com.google.code.findbugs:jsr305:3.0.2"
-	
-	// nested with canvas so should not be needed
-	// but uncomment if you get errors indicating it wasn't provided in dev
-	// modCompile "grondag:fermion:0.4.+"
+	modCompile "grondag:canvas-mc116:1.0.+"
 }
-
-
-	
 
 
 ```
