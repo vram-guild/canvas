@@ -254,39 +254,39 @@ final class LightmapHdCalc {
 		//		}
 	}
 
-	private static void computeQuadrantAo(float center, float uSide, float vSide, float corner, int light[], Int2IntFunction uFunc, Int2IntFunction vFunc) {
-		//FIX: handle error case when center is missing
-		if(uSide == AoFaceData.OPAQUE) {
-			if(vSide == AoFaceData.OPAQUE) {
-				// fully enclosed
-				computeOpen(center, center - 0.5f, center - 0.5f, center - 0.5f, light, uFunc, vFunc);
-			} else if (corner == AoFaceData.OPAQUE) {
-				// U + corner enclosing
-				uSide = center - 0.25f;
-				computeClamped(center, uSide, (vSide + center) * 0.5f, (uSide + vSide - 0.25f) * 0.5f, light, uFunc, vFunc);
-			} else {
-				// U side enclosing
-				final float join = (center + vSide + corner) / 3f;
-				computeClamped(center, center - 0.25f, (vSide + center) * 0.5f, join, light, uFunc, vFunc);
-			}
-		} else if(vSide == AoFaceData.OPAQUE) {
-			if(corner == AoFaceData.OPAQUE) {
-				// V + corner enclosing
-				vSide = center - 0.25f;
-				computeClamped(center, (uSide + center) * 0.5f, vSide, (uSide + vSide - 0.25f) * 0.5f, light, uFunc, vFunc);
-			} else {
-				// V side enclosing
-				final float join = (center + uSide + corner) / 3f;
-				computeClamped(center, (uSide + center) * 0.5f, center - 0.25f, join, light, uFunc, vFunc);
-			}
-
-		} else if(corner == AoFaceData.OPAQUE) {
-			// opaque corner
-			final float join = (center + uSide + vSide) / 3f;
-			computeClamped(center, (uSide + center) * 0.5f, (vSide + center) * 0.5f, join, light, uFunc, vFunc);
-		} else {
-			// all open
-			computeOpen(center, uSide, vSide, corner, light, uFunc, vFunc);
-		}
-	}
+	//	private static void computeQuadrantAo(float center, float uSide, float vSide, float corner, int light[], Int2IntFunction uFunc, Int2IntFunction vFunc) {
+	//		//FIX: handle error case when center is missing
+	//		if(uSide == AoFaceData.OPAQUE) {
+	//			if(vSide == AoFaceData.OPAQUE) {
+	//				// fully enclosed
+	//				computeOpen(center, center - 0.5f, center - 0.5f, center - 0.5f, light, uFunc, vFunc);
+	//			} else if (corner == AoFaceData.OPAQUE) {
+	//				// U + corner enclosing
+	//				uSide = center - 0.25f;
+	//				computeClamped(center, uSide, (vSide + center) * 0.5f, (uSide + vSide - 0.25f) * 0.5f, light, uFunc, vFunc);
+	//			} else {
+	//				// U side enclosing
+	//				final float join = (center + vSide + corner) / 3f;
+	//				computeClamped(center, center - 0.25f, (vSide + center) * 0.5f, join, light, uFunc, vFunc);
+	//			}
+	//		} else if(vSide == AoFaceData.OPAQUE) {
+	//			if(corner == AoFaceData.OPAQUE) {
+	//				// V + corner enclosing
+	//				vSide = center - 0.25f;
+	//				computeClamped(center, (uSide + center) * 0.5f, vSide, (uSide + vSide - 0.25f) * 0.5f, light, uFunc, vFunc);
+	//			} else {
+	//				// V side enclosing
+	//				final float join = (center + uSide + corner) / 3f;
+	//				computeClamped(center, (uSide + center) * 0.5f, center - 0.25f, join, light, uFunc, vFunc);
+	//			}
+	//
+	//		} else if(corner == AoFaceData.OPAQUE) {
+	//			// opaque corner
+	//			final float join = (center + uSide + vSide) / 3f;
+	//			computeClamped(center, (uSide + center) * 0.5f, (vSide + center) * 0.5f, join, light, uFunc, vFunc);
+	//		} else {
+	//			// all open
+	//			computeOpen(center, uSide, vSide, corner, light, uFunc, vFunc);
+	//		}
+	//	}
 }

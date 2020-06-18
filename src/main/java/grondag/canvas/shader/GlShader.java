@@ -166,6 +166,8 @@ public class GlShader {
 		}
 	}
 
+	private static boolean needsDebugOutputWarning = true;
+
 	private void outputDebugSource(String source, String error) {
 		final String key = shaderSource.toString().replace("/", "-") + "."  + context.name;
 		final File gameDir = FabricLoader.getInstance().getGameDirectory();
@@ -190,7 +192,10 @@ public class GlShader {
 				writer.write(source);
 				writer.close();
 			} catch (final IOException e) {
-				// TODO: log failure to output source
+				if (needsDebugOutputWarning) {
+					CanvasMod.LOG.error(I18n.translate("error.canvas.fail_create_shader_output", shaderDir), e);
+					needsDebugOutputWarning = false;
+				}
 			}
 		}
 	}
