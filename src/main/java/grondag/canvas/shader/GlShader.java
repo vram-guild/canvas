@@ -175,6 +175,7 @@ public class GlShader {
 
 		if (!shaderDir.exists()) {
 			shaderDir.mkdir();
+			CanvasMod.LOG.info("Created shader debug output folder" + shaderDir.toString());
 		}
 
 		if(error != null) {
@@ -182,6 +183,7 @@ public class GlShader {
 
 			if (!shaderDir.exists()) {
 				shaderDir.mkdir();
+				CanvasMod.LOG.info("Created shader debug output failure folder" + shaderDir.toString());
 			}
 
 			source += "\n\n///////// ERROR ////////\n" + error + "\n////////////////////////\n";
