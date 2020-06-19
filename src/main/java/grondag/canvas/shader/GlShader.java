@@ -171,7 +171,11 @@ public class GlShader {
 	private void outputDebugSource(String source, String error) {
 		final String key = shaderSource.toString().replace("/", "-") + "."  + context.name;
 		final File gameDir = FabricLoader.getInstance().getGameDirectory();
-		File shaderDir = new File(gameDir.getAbsolutePath().replace(".", "canvas_shader_debug"));
+		final String path = new StringBuilder()
+				.append(gameDir.getAbsolutePath(), 0, gameDir.getAbsolutePath().length()-1)
+				.append("canvas_shader_debug").toString();
+
+		File shaderDir = new File(path);
 
 		if (!shaderDir.exists()) {
 			shaderDir.mkdir();
@@ -179,7 +183,7 @@ public class GlShader {
 		}
 
 		if(error != null) {
-			shaderDir = new File(gameDir.getAbsolutePath().replace(".", "canvas_shader_debug/failed"));
+			shaderDir = new File(path + "/failed");
 
 			if (!shaderDir.exists()) {
 				shaderDir.mkdir();
