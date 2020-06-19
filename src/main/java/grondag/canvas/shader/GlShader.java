@@ -162,7 +162,7 @@ public class GlShader {
 				}
 			}
 
-			shaderDir = new File(path + "/failed");
+			shaderDir = new File(path + File.separator + "failed");
 
 			if(shaderDir.exists()) {
 				final File files[] = shaderDir.listFiles();
@@ -183,7 +183,8 @@ public class GlShader {
 	private static boolean needsDebugOutputWarning = true;
 
 	private void outputDebugSource(String source, String error) {
-		final String key = shaderSource.toString().replace("/", "-") + "."  + context.name;
+		final String key = shaderSource.toString()
+				.replace("/", "-").replace(":", "-") + "."  + context.name;
 		final String path = shaderDebugPath();
 		File shaderDir = new File(path);
 
@@ -193,7 +194,7 @@ public class GlShader {
 		}
 
 		if(error != null) {
-			shaderDir = new File(path + "/failed");
+			shaderDir = new File(path + File.separator + "failed");
 
 			if (!shaderDir.exists()) {
 				shaderDir.mkdir();
