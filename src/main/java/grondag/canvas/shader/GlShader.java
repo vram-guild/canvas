@@ -138,10 +138,20 @@ public class GlShader {
 		clearDebugSource();
 	}
 
+	private static boolean needsClearDebugOutputWarning = true;
+
+	private static String shaderDebugPath() {
+		final File gameDir = FabricLoader.getInstance().getGameDirectory();
+		return new StringBuilder()
+				.append(gameDir.getAbsolutePath(), 0, gameDir.getAbsolutePath().length()-1)
+				.append("canvas_shader_debug").toString();
+	}
+
 	private static void clearDebugSource() {
+		final String path = shaderDebugPath();
+
 		try {
-			final File gameDir = FabricLoader.getInstance().getGameDirectory();
-			File shaderDir = new File(gameDir.getAbsolutePath().replace(".", "canvas_shader_debug"));
+			File shaderDir = new File(path);
 
 			if(shaderDir.exists()) {
 				final File files[] = shaderDir.listFiles();
@@ -152,7 +162,8 @@ public class GlShader {
 				}
 			}
 
-			shaderDir = new File(gameDir.getAbsolutePath().replace(".", "canvas_shader_debug/failed"));
+			shaderDir = new File(path + "/failed");
+
 			if(shaderDir.exists()) {
 				final File files[] = shaderDir.listFiles();
 				for(final File f : files) {
@@ -162,7 +173,10 @@ public class GlShader {
 				}
 			}
 		} catch(final Exception e){
-			// TODO: log failure to output source
+			if (needsClearDebugOutputWarning) {
+				CanvasMod.LOG.error(I18n.translate("error.canvas.fail_clear_shader_output", path), e);
+				needsClearDebugOutputWarning = false;
+			}
 		}
 	}
 
@@ -170,11 +184,7 @@ public class GlShader {
 
 	private void outputDebugSource(String source, String error) {
 		final String key = shaderSource.toString().replace("/", "-") + "."  + context.name;
-		final File gameDir = FabricLoader.getInstance().getGameDirectory();
-		final String path = new StringBuilder()
-				.append(gameDir.getAbsolutePath(), 0, gameDir.getAbsolutePath().length()-1)
-				.append("canvas_shader_debug").toString();
-
+		final String path = shaderDebugPath();
 		File shaderDir = new File(path);
 
 		if (!shaderDir.exists()) {
@@ -199,7 +209,7 @@ public class GlShader {
 				writer.close();
 			} catch (final IOException e) {
 				if (needsDebugOutputWarning) {
-					CanvasMod.LOG.error(I18n.translate("error.canvas.fail_create_shader_output", shaderDir), e);
+					CanvasMod.LOG.error(I18n.translate("error.canvas.fail_create_shader_output", path), e);
 					needsDebugOutputWarning = false;
 				}
 			}

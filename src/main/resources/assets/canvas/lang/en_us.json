@@ -3,6 +3,7 @@
 	"info.canvas.reloading" : "Canvas Renderer is initializing.",
 	"error.canvas.fail_create_shader" : "Canvas unable to create shader %s with property index %d due to unexpected error: %s.",
 	"error.canvas.fail_create_shader_output" : "Canvas unable to create shader output folder %s due to unexpected error.",
+	"error.canvas.fail_clear_shader_output" : "Canvas unable to clear shader output folder %s due to unexpected error.",
 	"error.canvas.fail_create_any_shader" : "Canvas unable to create one or more shaders due to compilation errors. See canvas_shader_debug folder for details.",
 	"error.canvas.program_link_failure" : "Canvas unable to create linked shader due to unexpected error.",
 	"error.canvas.fail_create_lightmap" : "Canvas unable to create HD lightmap(s) - out of space. \nSome blocks will not render with proper lighting. \nReduce view distance or disable HD lightmaps. F3+A will temporarily clear this problem.",
