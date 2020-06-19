@@ -475,10 +475,11 @@ public class CanvasWorldRenderer {
 												final SortedSet<BlockBreakingInfo> sortedSet2 = entry.getValue();
 
 												if (sortedSet2 != null && !sortedSet2.isEmpty()) {
-													final int ab = sortedSet2.last().getStage();
+													final int stage = sortedSet2.last().getStage();
 													matrixStack.push();
 													matrixStack.translate(blockPos3.getX() - cameraX, blockPos3.getY() - cameraY, blockPos3.getZ() - cameraZ);
-													final VertexConsumer vertexConsumer2 = new TransformingVertexConsumer(bufferBuilders.getEffectVertexConsumers().getBuffer(ModelLoader.BLOCK_DESTRUCTION_RENDER_LAYERS.get(ab)), matrixStack.peek());
+													final MatrixStack.Entry xform = matrixStack.peek();
+													final VertexConsumer vertexConsumer2 = new TransformingVertexConsumer(bufferBuilders.getEffectVertexConsumers().getBuffer(ModelLoader.BLOCK_DESTRUCTION_RENDER_LAYERS.get(stage)), xform.getModel(), xform.getNormal());
 													mc.getBlockRenderManager().renderDamage(world.getBlockState(blockPos3), blockPos3, world, matrixStack, vertexConsumer2);
 													matrixStack.pop();
 												}
@@ -566,9 +567,11 @@ public class CanvasWorldRenderer {
 									final SortedSet<BlockBreakingInfo> sortedSet = wr.canvas_blockBreakingProgressions().get(blockPos.asLong());
 
 									if (sortedSet != null && !sortedSet.isEmpty()) {
-										x = sortedSet.last().getStage();
-										if (x >= 0) {
-											final VertexConsumer vertexConsumer = new TransformingVertexConsumer(bufferBuilders.getEffectVertexConsumers().getBuffer(ModelLoader.BLOCK_DESTRUCTION_RENDER_LAYERS.get(x)), matrixStack.peek());
+										final int stage = sortedSet.last().getStage();
+
+										if (stage >= 0) {
+											final MatrixStack.Entry xform = matrixStack.peek();
+											final VertexConsumer vertexConsumer = new TransformingVertexConsumer(bufferBuilders.getEffectVertexConsumers().getBuffer(ModelLoader.BLOCK_DESTRUCTION_RENDER_LAYERS.get(stage)), xform.getModel(), xform.getNormal());
 											vertexConsumerProvider3 = (renderLayer) -> {
 												final VertexConsumer vertexConsumer2 = immediate.getBuffer(renderLayer);
 												return renderLayer.hasCrumbling() ? VertexConsumers.dual(vertexConsumer, vertexConsumer2) : vertexConsumer2;
