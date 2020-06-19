@@ -10,6 +10,10 @@ plugins {
 sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
 
+if(JavaVersion.current() != JavaVersion.VERSION_1_8){
+    throw new GradleException("This build must be run with java 8")
+}
+
 def ENV = System.getenv()
 
 def version_tag = project.mod_name.replaceAll('-', '_') + '_version'

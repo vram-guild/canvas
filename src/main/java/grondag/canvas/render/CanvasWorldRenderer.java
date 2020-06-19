@@ -88,6 +88,7 @@ public class CanvasWorldRenderer {
 		return instance;
 	}
 
+	private boolean terrainSetupOffThread = Configurator.terrainSetupOffThread;
 	private int playerLightmap = 0;
 	private RenderRegionBuilder regionBuilder;
 	private RenderRegionStorage renderRegionStorage;
@@ -129,6 +130,7 @@ public class CanvasWorldRenderer {
 	@SuppressWarnings("resource")
 	public void reload() {
 		terrainIterator.reset();
+		terrainSetupOffThread = Configurator.terrainSetupOffThread;
 
 		if (regionBuilder == null) {
 			regionBuilder = new RenderRegionBuilder(wr.canvas_world(), (WorldRenderer) wr, wr.canvas_mc().is64Bit());
@@ -238,7 +240,7 @@ public class CanvasWorldRenderer {
 
 		mc.getProfiler().swap("update");
 
-		if (Configurator.terrainSetupOffThread) {
+		if (terrainSetupOffThread) {
 			int state = terrainIterator.state();
 
 			if (state == TerrainIterator.COMPLETE) {
@@ -275,6 +277,7 @@ public class CanvasWorldRenderer {
 				visibleRegionCount = size;
 				System.arraycopy(terrainIterator.visibleRegions, 0, visibleRegions, 0, size);
 				scheduleOrBuild(terrainIterator.updateRegions);
+				terrainIterator.reset();
 			}
 		}
 
