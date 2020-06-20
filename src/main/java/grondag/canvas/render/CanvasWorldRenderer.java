@@ -8,15 +8,35 @@ import java.util.SortedSet;
 
 import javax.annotation.Nullable;
 
-import com.google.common.collect.Sets;
-import com.mojang.blaze3d.platform.GlStateManager;
-import com.mojang.blaze3d.systems.RenderSystem;
-import it.unimi.dsi.fastutil.longs.Long2ObjectMap.Entry;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL21;
 
+import com.google.common.collect.Sets;
+import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.systems.RenderSystem;
+
+import grondag.canvas.Configurator;
+import grondag.canvas.apiimpl.MaterialConditionImpl;
+import grondag.canvas.buffer.allocation.BindStateManager;
+import grondag.canvas.buffer.allocation.VboBuffer;
+import grondag.canvas.chunk.BuiltRenderRegion;
+import grondag.canvas.chunk.DrawableChunk;
+import grondag.canvas.chunk.RenderRegionBuilder;
+import grondag.canvas.chunk.RenderRegionStorage;
+import grondag.canvas.chunk.draw.DrawableDelegate;
+import grondag.canvas.chunk.occlusion.TerrainOccluder;
+import grondag.canvas.chunk.occlusion.region.OcclusionRegion;
+import grondag.canvas.chunk.occlusion.region.PackedBox;
+import grondag.canvas.draw.DrawHandler;
+import grondag.canvas.light.LightmapHdTexture;
+import grondag.canvas.mixinterface.WorldRendererExt;
+import grondag.canvas.shader.GlProgram;
+import grondag.canvas.shader.ShaderManager;
+import grondag.canvas.varia.CanvasGlHelper;
+import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap.Entry;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.MinecraftClient;
@@ -41,7 +61,6 @@ import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.VertexConsumerProvider.Immediate;
 import net.minecraft.client.render.VertexConsumers;
-import net.minecraft.client.render.VertexFormat;
 import net.minecraft.client.render.VertexFormats;
 import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.client.render.block.entity.BlockEntityRenderDispatcher;
@@ -60,26 +79,6 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Matrix4f;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.profiler.Profiler;
-
-import grondag.canvas.Configurator;
-import grondag.canvas.apiimpl.MaterialConditionImpl;
-import grondag.canvas.buffer.allocation.BindStateManager;
-import grondag.canvas.buffer.allocation.VboBuffer;
-import grondag.canvas.chunk.BuiltRenderRegion;
-import grondag.canvas.chunk.DrawableChunk;
-import grondag.canvas.chunk.RenderRegionBuilder;
-import grondag.canvas.chunk.RenderRegionStorage;
-import grondag.canvas.chunk.draw.DrawableDelegate;
-import grondag.canvas.chunk.occlusion.TerrainOccluder;
-import grondag.canvas.chunk.occlusion.region.OcclusionRegion;
-import grondag.canvas.chunk.occlusion.region.PackedBox;
-import grondag.canvas.draw.DrawHandler;
-import grondag.canvas.light.LightmapHdTexture;
-import grondag.canvas.mixinterface.WorldRendererExt;
-import grondag.canvas.shader.GlProgram;
-import grondag.canvas.shader.ShaderManager;
-import grondag.canvas.varia.CanvasGlHelper;
-import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
 
 public class CanvasWorldRenderer {
 	private static CanvasWorldRenderer instance;
@@ -842,7 +841,7 @@ public class CanvasWorldRenderer {
 		VboBuffer.unbind();
 
 		RenderSystem.clearCurrentColor();
-		
+
 		DrawHandler.teardown();
 
 		GlStateManager.disableClientState(GL11.GL_VERTEX_ARRAY);

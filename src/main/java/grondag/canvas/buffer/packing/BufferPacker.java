@@ -18,13 +18,12 @@ package grondag.canvas.buffer.packing;
 
 import java.nio.IntBuffer;
 
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-
 import grondag.canvas.buffer.allocation.AllocationProvider;
 import grondag.canvas.chunk.draw.DelegateLists;
 import grondag.canvas.chunk.draw.DrawableDelegate;
 import grondag.canvas.material.MaterialState;
 import grondag.canvas.material.MaterialVertexFormat;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 public class BufferPacker {
 
@@ -55,7 +54,7 @@ public class BufferPacker {
 
 	public void accept(MaterialState materialState, int vertexStart, int vertexCount) {
 		final VertexCollectorImpl collector = collectorList.getIfExists(materialState);
-		final MaterialVertexFormat format = collector.materialState().bufferFormat;
+		final MaterialVertexFormat format = materialState.bufferFormat;
 		final int stride = format.vertexStrideBytes;
 
 		allocator.claimAllocation(vertexCount * stride, ref -> {
@@ -72,7 +71,7 @@ public class BufferPacker {
 			// or make it actually work.
 			collector.toBuffer(intBuffer, vertexStart * stride / 4, intLength);
 
-			delegates.add(DrawableDelegate.claim(ref, materialState, byteCount / stride, format));
+			delegates.add(DrawableDelegate.claim(ref, materialState, byteCount / stride));
 		});
 	}
 }
