@@ -761,7 +761,6 @@ public class CanvasWorldRenderer {
 
 		final WorldRendererExt wr = this.wr;
 		final MinecraftClient mc = wr.canvas_mc();
-		final VertexFormat vertexFormat = wr.canvas_vertexFormat();
 
 		if (isTranslucent) {
 			mc.getProfiler().push("translucent_sort");
@@ -817,18 +816,13 @@ public class CanvasWorldRenderer {
 				for(int i = 0; i < limit; i++) {
 					final DrawableDelegate d = delegates.get(i);
 					final DrawHandler h = d.materialState().drawHandler;
-
 					final MaterialConditionImpl condition = h.condition;
 
 					if(!condition.affectBlocks || condition.compute(frameIndex)) {
 						h.setup();
-
 						d.bind();
-
-						//vertexFormat.startDrawing(d.byteOffset());
 						d.draw();
 					}
-
 				}
 
 				RenderSystem.popMatrix();
@@ -836,22 +830,23 @@ public class CanvasWorldRenderer {
 			}
 		}
 
+		// Important this happens BEFORE anything that could affect vertex state
+		if (CanvasGlHelper.isVaoEnabled()) {
+			CanvasGlHelper.glBindVertexArray(0);
+		}
+
 		if (Configurator.hdLightmaps) {
 			LightmapHdTexture.instance().disable();
 		}
 
 		VboBuffer.unbind();
+
 		RenderSystem.clearCurrentColor();
-		vertexFormat.endDrawing();
+		
 		DrawHandler.teardown();
 
-		// UGLY:  some of this probably belongs elsewhere
-		if (CanvasGlHelper.isVaoEnabled()) {
-			CanvasGlHelper.glBindVertexArray(0);
-		}
-
 		GlStateManager.disableClientState(GL11.GL_VERTEX_ARRAY);
-		CanvasGlHelper.enableAttributes(0, true);
+		CanvasGlHelper.enableAttributes(0);
 		BindStateManager.unbind();
 		GlProgram.deactivate();
 

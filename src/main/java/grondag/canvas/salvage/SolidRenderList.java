@@ -128,7 +128,7 @@ public class SolidRenderList implements Consumer<ObjectArrayList<DrawableDelegat
 			CanvasGlHelper.glBindVertexArray(0);
 		}
 		GlStateManager.disableClientState(GL11.GL_VERTEX_ARRAY);
-		CanvasGlHelper.enableAttributes(0, true);
+		CanvasGlHelper.enableAttributes(0);
 		BindStateManager.unbind();
 		GlProgram.deactivate();
 	}

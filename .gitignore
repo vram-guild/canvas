@@ -12,6 +12,7 @@ bin
 .metadata
 .classpath
 .project
+.gradle
 eclipse
 
 build

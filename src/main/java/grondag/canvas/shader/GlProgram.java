@@ -496,18 +496,36 @@ public class GlProgram {
 
 		if (activeProgram != this) {
 			activeProgram = this;
-			GL21.glUseProgram(progID);
+			activateInner();
+		}
+	}
+	
+	private final void activateInner() {
+		if (isErrored) {
+			return;
+		}
 
-			final int count = dirtyCount;
-			if (count != 0) {
-				for (int i = 0; i < count; i++) {
-					dirtyUniforms[i].upload();
-				}
-				dirtyCount = 0;
+		GL21.glUseProgram(progID);
+
+		final int count = dirtyCount;
+		if (count != 0) {
+			for (int i = 0; i < count; i++) {
+				dirtyUniforms[i].upload();
 			}
+			dirtyCount = 0;
 		}
 	}
 
+	// TODO: remove if not needed for Vao
+	public static int activeProgram() {
+		return activeProgram.progID;
+	}
+	
+	// TODO: remove if not needed for Vao
+	public static void reactivateCurent() {
+		activeProgram.activateInner();
+	}
+	
 	public class UniformMatrix4fImpl extends UniformImpl<UniformMatrix4f> implements UniformMatrix4f {
 		protected final FloatBuffer uniformFloatBuffer;
 		protected final long bufferAddress;

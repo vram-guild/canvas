@@ -4,6 +4,7 @@ import grondag.canvas.apiimpl.MaterialConditionImpl;
 import grondag.canvas.apiimpl.MaterialShaderImpl;
 import grondag.canvas.material.MaterialVertexFormat;
 import grondag.canvas.shader.ShaderContext;
+import grondag.canvas.varia.CanvasGlHelper;
 
 public abstract class DrawHandler {
 	private static DrawHandler current = null;
@@ -28,9 +29,20 @@ public abstract class DrawHandler {
 		final DrawHandler d = current;
 
 		if (d == null) {
+			// PERF: really needed?  Doesn't seem to help or hurt
+			// Important this happens BEFORE anything that could affect vertex state
+			if (CanvasGlHelper.isVaoEnabled()) {
+				CanvasGlHelper.glBindVertexArray(0);
+			}
+
 			setupInner();
 			current = this;
 		} else if (d != this) {
+			// Important this happens BEFORE anything that could affect vertex state
+			if (CanvasGlHelper.isVaoEnabled()) {
+				CanvasGlHelper.glBindVertexArray(0);
+			}
+
 			d.teardownInner();
 			setupInner();
 			current = this;

@@ -106,30 +106,26 @@ public class CanvasGlHelper {
 	 * Using 1-based numbering for attribute slots because GL (on my machine at
 	 * least) not liking slot 0.<p>
 	 *
-	 * For non-VAO setups, pass shouldReduce = false and bind unused attributes to dummy indices.
-	 * This is generally more performant than disabling and re-enabling for each format.
-	 *
-	 * @param enabledCount  Minimum number of needed attributes.
-	 * @param shouldReduce  If true, enabled attributes above enabled count will be disabled.
-	 * @return  Count of attributes currently enabled.
+	 * @param enabledCount  Number of needed attributes.
 	 */
-	public static int enableAttributes(int enabledCount, boolean shouldReduce) {
+	public static void enableAttributes(int enabledCount) {
 		if (enabledCount > attributeEnabledCount) {
 			while (enabledCount > attributeEnabledCount) {
 				if(Configurator.logGlStateChanges) {
 					CanvasMod.LOG.info(String.format("GlState: glEnableVertexAttribArray(%d)", attributeEnabledCount + 1));
 				}
+				
 				GL20.glEnableVertexAttribArray(++attributeEnabledCount);
 			}
-		} else if (shouldReduce && enabledCount < attributeEnabledCount) {
+		} else if (enabledCount < attributeEnabledCount) {
 			while (enabledCount < attributeEnabledCount) {
 				if(Configurator.logGlStateChanges) {
 					CanvasMod.LOG.info(String.format("GlState: glDisableVertexAttribArray(%d)", attributeEnabledCount));
 				}
+				
 				GL20.glDisableVertexAttribArray(attributeEnabledCount--);
 			}
 		}
-		return attributeEnabledCount;
 	}
 
 	public static String getProgramInfoLog(int obj) {
@@ -141,7 +137,7 @@ public class CanvasGlHelper {
 	}
 
 	public static boolean isVaoEnabled() {
-		return vaoEnabled && Configurator.enable_vao;
+		return vaoEnabled && Configurator.enableVao;
 	}
 
 	public static void glGenVertexArrays(IntBuffer arrays) {

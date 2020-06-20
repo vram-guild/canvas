@@ -18,6 +18,8 @@ package grondag.canvas.varia;
 
 import java.nio.IntBuffer;
 
+import com.mojang.blaze3d.systems.RenderSystem;
+
 import it.unimi.dsi.fastutil.ints.IntArrayFIFOQueue;
 
 import net.minecraft.client.util.GlAllocationUtils;
@@ -26,17 +28,10 @@ public class VaoStore {
 	private static final IntArrayFIFOQueue queue = new IntArrayFIFOQueue();
 	private static final IntBuffer buff = GlAllocationUtils.allocateByteBuffer(128 * 4).asIntBuffer();
 
-	public static int[] claimVertexArrays(int howMany) {
-		final int[] result = new int[howMany];
-		for (int i = 0; i < howMany; i++) {
-			result[i] = claimVertexArray();
-		}
-		return result;
-	}
-
 	public static int claimVertexArray() {
+		assert RenderSystem.isOnRenderThread();
+		
 		if (queue.isEmpty()) {
-
 			CanvasGlHelper.glGenVertexArrays(buff);
 
 			for (int i = 0; i < 128; i++) {
@@ -50,30 +45,8 @@ public class VaoStore {
 	}
 
 	public static void releaseVertexArray(int vaoBufferId) {
+		assert RenderSystem.isOnRenderThread();
+		
 		queue.enqueue(vaoBufferId);
 	}
-
-	public static void releaseVertexArrays(int[] vaoBufferId) {
-		for (final int b : vaoBufferId) {
-			releaseVertexArray(b);
-		}
-	}
-
-	// should not be needed - Gl resources are destroyed when the context is
-	// destroyed
-	//    public static void deleteAll()
-	//    {
-	//        while(!queue.isEmpty())
-	//        {
-	//            while(!queue.isEmpty() && buff.position() < 128)
-	//                buff.put(queue.dequeueInt());
-	//
-	//            if(OpenGlHelper.arbVbo)
-	//                ARBVertexBufferObject.glDeleteBuffersARB(buff);
-	//            else
-	//                GL15.glDeleteBuffers(buff);
-	//
-	//            buff.clear();
-	//        }
-	//    }
 }

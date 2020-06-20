@@ -19,6 +19,8 @@ package grondag.canvas.chunk.draw;
 import java.util.concurrent.ArrayBlockingQueue;
 
 import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.systems.RenderSystem;
+
 import org.lwjgl.opengl.GL11;
 
 import net.minecraft.client.render.VertexFormatElement;
@@ -28,6 +30,7 @@ import grondag.canvas.Configurator;
 import grondag.canvas.buffer.allocation.BufferDelegate;
 import grondag.canvas.material.MaterialState;
 import grondag.canvas.material.MaterialVertexFormat;
+import grondag.canvas.shader.GlProgram;
 import grondag.canvas.varia.CanvasGlHelper;
 import grondag.canvas.varia.VaoStore;
 
@@ -48,6 +51,7 @@ public class DrawableDelegate {
 	 */
 	private static int boundByteOffset = 0;
 
+	// TODO: remove support for mixed formats
 	/**
 	 * Last format bound
 	 */
@@ -55,7 +59,7 @@ public class DrawableDelegate {
 
 	@FunctionalInterface
 	private interface VertexBinder {
-		void bind(boolean isNewBuffer);
+		void bind();
 	}
 
 	public static DrawableDelegate claim(BufferDelegate bufferDelegate, MaterialState renderState, int vertexCount, MaterialVertexFormat format) {
@@ -71,7 +75,7 @@ public class DrawableDelegate {
 		result.isReleased = false;
 		result.vertexBinder = CanvasGlHelper.isVaoEnabled() ? result::bindVao : result::bindVbo;
 		result.format = format;
-
+		
 		return result;
 	}
 
@@ -79,13 +83,8 @@ public class DrawableDelegate {
 	private MaterialState materialState;
 	private int vertexCount;
 	private boolean isReleased = false;
-
-	// TODO: remove or restore use of these next two
-	@SuppressWarnings("unused")
 	private VertexBinder vertexBinder;
 
-
-	@SuppressWarnings("unused")
 	/** With translucency chunks may be different (padded) vs what material state would normally dictate - avoids attribute re-binding when VAO not an option */
 	private MaterialVertexFormat format = null;
 
@@ -123,12 +122,8 @@ public class DrawableDelegate {
 	 * attributes.
 	 */
 	public void bind() {
-		vertexBinder.bind(bufferDelegate.buffer().bind());
-	}
-
-	// TODO: remove when vanilla hacks are done
-	public int byteOffset() {
-		return bufferDelegate.byteOffset();
+		assert RenderSystem.isOnRenderThread();
+		vertexBinder.bind();
 	}
 
 	/**
@@ -146,11 +141,13 @@ public class DrawableDelegate {
 	}
 
 	public void release() {
+		assert RenderSystem.isOnRenderThread();
+		
 		if (!isReleased) {
 			isReleased = true;
 			bufferDelegate = null;
 
-			if (vaoBufferId != -1) {
+			if (vaoBufferId > 0) {
 				VaoStore.releaseVertexArray(vaoBufferId);
 				vaoBufferId = -1;
 			}
@@ -165,48 +162,68 @@ public class DrawableDelegate {
 		bufferDelegate.buffer().upload();
 	}
 
-	void bindVao(boolean isNewBuffer) {
+	void bindVao() {
 		final MaterialVertexFormat format = this.format;
-
+		
 		if (vaoBufferId == -1) {
+			// Important this happens BEFORE anything that could affect vertex state
+			CanvasGlHelper.glBindVertexArray(0);
+
+			boolean newBuffer = bufferDelegate.buffer().bind();
+			final int byteOffset = bufferDelegate.byteOffset();
+			
+			// reuse bind if possible
+			if (newBuffer || format != lastFormat) {
+				lastFormat = format;
+				vertexOffset = 0;
+				boundByteOffset = byteOffset;
+			} else {
+				// reuse vertex binding with offset
+				final int gap = byteOffset - boundByteOffset;
+				vertexOffset = gap / format.vertexStrideBytes;
+			}
+			
 			vaoBufferId = VaoStore.claimVertexArray();
 			CanvasGlHelper.glBindVertexArray(vaoBufferId);
-
+			
 			if (Configurator.logGlStateChanges) {
 				CanvasMod.LOG.info(String.format("GlState: GlStateManager.enableClientState(%d)", GL11.GL_VERTEX_ARRAY));
 			}
-
+			
 			GlStateManager.enableClientState(GL11.GL_VERTEX_ARRAY);
-			CanvasGlHelper.enableAttributesVao(format.attributeCount);
 
 			if (Configurator.logGlStateChanges) {
-				CanvasMod.LOG.info(String.format("GlState: GlStateManager.vertexPointer(%d, %d, %d, %d)", 3, VertexFormatElement.Format.FLOAT.getGlId(), format.vertexStrideBytes, bufferDelegate.byteOffset()));
+				CanvasMod.LOG.info(String.format("GlState: GlStateManager.vertexPointer(%d, %d, %d, %d)", 3, VertexFormatElement.Format.FLOAT.getGlId(), format.vertexStrideBytes, boundByteOffset));
 			}
-
-			GlStateManager.vertexPointer(3, VertexFormatElement.Format.FLOAT.getGlId(), format.vertexStrideBytes, bufferDelegate.byteOffset());
-			format.bindAttributeLocations(bufferDelegate.byteOffset(), format.attributeCount);
+			
+			GlStateManager.vertexPointer(3, VertexFormatElement.Format.FLOAT.getGlId(), format.vertexStrideBytes, boundByteOffset);
+			
+			CanvasGlHelper.enableAttributesVao(format.attributeCount);
+			format.bindAttributeLocations(boundByteOffset);
 		} else {
 			CanvasGlHelper.glBindVertexArray(vaoBufferId);
 		}
 	}
 
-	void bindVbo(boolean isNewBuffer) {
+	void bindVbo() {
 		final MaterialVertexFormat format = this.format;
 
-		// don't check for bind reuse if not possible due to new buffer
+		boolean newBuffer = bufferDelegate.buffer().bind();
 		final int byteOffset = bufferDelegate.byteOffset();
-
-		if (isNewBuffer || format != lastFormat) {
+		
+		// reuse bind if possible
+		if (newBuffer || format != lastFormat) {
 			lastFormat = format;
 			vertexOffset = 0;
 			boundByteOffset = byteOffset;
-
+			
 			if (Configurator.logGlStateChanges) {
-				CanvasMod.LOG.info(String.format("GlState: GlStateManager.vertexPointer(%d, %d, %d, %d)", 3, VertexFormatElement.Format.FLOAT.getGlId(), format.vertexStrideBytes, byteOffset));
+				CanvasMod.LOG.info(String.format("GlState: GlStateManager.vertexPointer(%d, %d, %d, %d)", 3, VertexFormatElement.Format.FLOAT.getGlId(), format.vertexStrideBytes, boundByteOffset));
 			}
 
 			GlStateManager.enableClientState(GL11.GL_VERTEX_ARRAY);
-			GlStateManager.vertexPointer(3, VertexFormatElement.Format.FLOAT.getGlId(), format.vertexStrideBytes, byteOffset);
+			GlStateManager.vertexPointer(3, VertexFormatElement.Format.FLOAT.getGlId(), format.vertexStrideBytes, boundByteOffset);
+			
 			format.enableAndBindAttributes(boundByteOffset);
 		} else {
 			// reuse vertex binding with offset

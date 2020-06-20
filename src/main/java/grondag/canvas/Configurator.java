@@ -101,6 +101,9 @@ public class Configurator {
 		@Comment("Max number of unique render material states. Change only if errors occur without. Causes small amount of memory use.")
 		int maxMaterialStates = 0x10000;
 
+	    @Comment("Use Vertex Array Objects if available. VAOs generally improve performance when they are supported.")
+	    boolean enableVao = true;
+	    
 		// DEBUG
 		@Comment("Output runtime per-material shader source. For shader development debugging.")
 		boolean shaderDebug = false;
@@ -159,7 +162,8 @@ public class Configurator {
 	public static boolean terrainBackfaceCulling = DEFAULTS.terrainBackfaceCulling;
 	public static boolean terrainSetupOffThread = DEFAULTS.terrainSetupOffThread;
 	public static int maxMaterialStates = DEFAULTS.maxMaterialStates;
-
+	public static boolean enableVao = DEFAULTS.enableVao;
+	
 	public static boolean lightmapDebug = DEFAULTS.lightmapDebug;
 	public static boolean conciseErrors = DEFAULTS.conciseErrors;
 	public static boolean logMachineInfo = DEFAULTS.logMachineInfo;
@@ -215,7 +219,8 @@ public class Configurator {
 		terrainBackfaceCulling = config.terrainBackfaceCulling;
 		terrainSetupOffThread = config.terrainSetupOffThread;
 		maxMaterialStates =  MathHelper.clamp(config.maxMaterialStates, 0x10000, 0x100000);
-
+		enableVao = config.enableVao;
+		
 		lightmapDebug = config.lightmapDebug;
 		conciseErrors = config.conciseErrors;
 		logMachineInfo = config.logMachineInfo;
@@ -250,7 +255,8 @@ public class Configurator {
 		config.terrainBackfaceCulling = terrainBackfaceCulling;
 		config.terrainSetupOffThread = terrainSetupOffThread;
 		config.maxMaterialStates = maxMaterialStates;
-
+		config.enableVao = enableVao;
+		
 		config.lightmapDebug = lightmapDebug;
 		config.conciseErrors = conciseErrors;
 		config.logMachineInfo = logMachineInfo;
@@ -450,6 +456,13 @@ public class Configurator {
 				.setTooltip(parse("config.canvas.help.max_material_states"))
 				.setSaveConsumer(b -> maxMaterialStates = b)
 				.build());
+		
+		tweaks.addEntry(ENTRY_BUILDER
+				.startBooleanToggle(new TranslatableText("config.canvas.value.enable_vao"), enableVao)
+				.setDefaultValue(DEFAULTS.enableVao)
+				.setTooltip(parse("config.canvas.help.enable_vao"))
+				.setSaveConsumer(b -> {enableVao = b; reload = true;})
+				.build());
 
 		// DEBUG
 		final ConfigCategory debug = builder.getOrCreateCategory(new TranslatableText("config.canvas.category.debug"));
@@ -532,11 +545,6 @@ public class Configurator {
 	}
 
 	// LEGACY STUFF
-
-	//    @LangKey("config.acuity_enable_vao")
-	//    @Comment({"Use Vertex Array Objects if available.",
-	//        " VAOs generally improve performance when they are supported."})
-	public static boolean enable_vao = true;
 
 	//    @LangKey("config.acuity_fancy_fluids")
 	//    @Comment({"Enable fancy water and lava rendering.",
