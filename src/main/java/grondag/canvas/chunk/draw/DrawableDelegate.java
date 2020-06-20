@@ -78,7 +78,10 @@ public class DrawableDelegate {
 	/**
 	 * VAO Buffer name if enabled and initialized.
 	 */
-	private int vaoBufferId = -1;
+	private int vaoBufferId = VAO_NONE;
+
+	private static final int VAO_USE_PRIOR = -2;
+	private static final int VAO_NONE = -1;
 
 	private DrawableDelegate() {
 		super();
@@ -136,7 +139,7 @@ public class DrawableDelegate {
 
 			if (vaoBufferId > 0) {
 				VaoStore.releaseVertexArray(vaoBufferId);
-				vaoBufferId = -1;
+				vaoBufferId = VAO_NONE;
 			}
 
 			materialState =  null;
@@ -152,7 +155,7 @@ public class DrawableDelegate {
 	void bindVao() {
 		final MaterialVertexFormat format = materialState.bufferFormat;
 
-		if (vaoBufferId == -1) {
+		if (vaoBufferId == VAO_NONE) {
 			// Important this happens BEFORE anything that could affect vertex state
 			CanvasGlHelper.glBindVertexArray(0);
 
@@ -163,30 +166,31 @@ public class DrawableDelegate {
 			if (newBuffer) {
 				vertexOffset = 0;
 				boundByteOffset = byteOffset;
+
+				vaoBufferId = VaoStore.claimVertexArray();
+				CanvasGlHelper.glBindVertexArray(vaoBufferId);
+
+				if (Configurator.logGlStateChanges) {
+					CanvasMod.LOG.info(String.format("GlState: GlStateManager.enableClientState(%d)", GL11.GL_VERTEX_ARRAY));
+				}
+
+				GlStateManager.enableClientState(GL11.GL_VERTEX_ARRAY);
+
+				if (Configurator.logGlStateChanges) {
+					CanvasMod.LOG.info(String.format("GlState: GlStateManager.vertexPointer(%d, %d, %d, %d)", 3, VertexFormatElement.Format.FLOAT.getGlId(), format.vertexStrideBytes, boundByteOffset));
+				}
+
+				GlStateManager.vertexPointer(3, VertexFormatElement.Format.FLOAT.getGlId(), format.vertexStrideBytes, boundByteOffset);
+
+				CanvasGlHelper.enableAttributesVao(format.attributeCount);
+				format.bindAttributeLocations(boundByteOffset);
 			} else {
 				// reuse vertex binding with offset
+				vaoBufferId = VAO_USE_PRIOR;
 				final int gap = byteOffset - boundByteOffset;
 				vertexOffset = gap / format.vertexStrideBytes;
 			}
-
-			vaoBufferId = VaoStore.claimVertexArray();
-			CanvasGlHelper.glBindVertexArray(vaoBufferId);
-
-			if (Configurator.logGlStateChanges) {
-				CanvasMod.LOG.info(String.format("GlState: GlStateManager.enableClientState(%d)", GL11.GL_VERTEX_ARRAY));
-			}
-
-			GlStateManager.enableClientState(GL11.GL_VERTEX_ARRAY);
-
-			if (Configurator.logGlStateChanges) {
-				CanvasMod.LOG.info(String.format("GlState: GlStateManager.vertexPointer(%d, %d, %d, %d)", 3, VertexFormatElement.Format.FLOAT.getGlId(), format.vertexStrideBytes, boundByteOffset));
-			}
-
-			GlStateManager.vertexPointer(3, VertexFormatElement.Format.FLOAT.getGlId(), format.vertexStrideBytes, boundByteOffset);
-
-			CanvasGlHelper.enableAttributesVao(format.attributeCount);
-			format.bindAttributeLocations(boundByteOffset);
-		} else {
+		} else if (vaoBufferId != VAO_USE_PRIOR){
 			CanvasGlHelper.glBindVertexArray(vaoBufferId);
 		}
 	}
