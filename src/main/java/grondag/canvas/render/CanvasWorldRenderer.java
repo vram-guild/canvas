@@ -808,6 +808,7 @@ public class CanvasWorldRenderer {
 				RenderSystem.pushMatrix();
 				RenderSystem.loadIdentity();
 				RenderSystem.multMatrix(matrixStack.peek().getModel());
+				drawable.vboBuffer.bind();
 
 				final ObjectArrayList<DrawableDelegate> delegates = drawable.delegates();
 				final int limit = delegates.size();
@@ -819,7 +820,6 @@ public class CanvasWorldRenderer {
 
 					if(!condition.affectBlocks || condition.compute(frameIndex)) {
 						h.setup();
-						d.bind();
 						d.draw();
 					}
 				}

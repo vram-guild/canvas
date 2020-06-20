@@ -11,32 +11,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import io.netty.util.internal.shaded.org.jctools.queues.MessagePassingQueue.Consumer;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import it.unimi.dsi.fastutil.objects.ObjectIterator;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
-
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockRenderType;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.RenderLayers;
-import net.minecraft.client.render.block.BlockRenderManager;
-import net.minecraft.client.render.block.entity.BlockEntityRenderDispatcher;
-import net.minecraft.client.render.block.entity.BlockEntityRenderer;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.fluid.FluidState;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.Vec3d;
-
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
-import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 
 import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.RenderMaterialImpl.CompositeMaterial;
@@ -54,6 +31,27 @@ import grondag.canvas.perf.ChunkRebuildCounters;
 import grondag.canvas.render.CanvasFrustum;
 import grondag.canvas.render.CanvasWorldRenderer;
 import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import it.unimi.dsi.fastutil.objects.ObjectIterator;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
+import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
+import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockRenderType;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.render.RenderLayers;
+import net.minecraft.client.render.block.BlockRenderManager;
+import net.minecraft.client.render.block.entity.BlockEntityRenderDispatcher;
+import net.minecraft.client.render.block.entity.BlockEntityRenderer;
+import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.fluid.FluidState;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.Vec3d;
 
 @Environment(EnvType.CLIENT)
 public class BuiltRenderRegion {
@@ -235,7 +233,7 @@ public class BuiltRenderRegion {
 		}
 	}
 
-	private void clear() {
+	void clear() {
 		assert RenderSystem.isOnRenderThread();
 
 		cancel();
@@ -244,18 +242,14 @@ public class BuiltRenderRegion {
 		needsRebuild = true;
 
 		if (solidDrawable != null) {
-			solidDrawable.clear();
+			solidDrawable.close();
 			solidDrawable = null;
 		}
 
 		if (translucentDrawable != null) {
-			translucentDrawable.clear();
+			translucentDrawable.close();
 			translucentDrawable = null;
 		}
-	}
-
-	public void delete() {
-		clear();
 	}
 
 	public BlockPos getOrigin() {
@@ -350,7 +344,6 @@ public class BuiltRenderRegion {
 			if (state != null) {
 				final Vec3d cameraPos = renderRegionBuilder.getCameraPosition();
 				final VertexCollectorList collectors = context.collectors;
-				// FIX: won't work with multi-layer materials
 				final MaterialState translucentState = MaterialState.get(MaterialContext.TERRAIN, DrawHandlers.TRANSLUCENT);
 				final VertexCollectorImpl collector = collectors.get(translucentState);
 

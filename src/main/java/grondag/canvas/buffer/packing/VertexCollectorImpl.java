@@ -3,11 +3,6 @@ package grondag.canvas.buffer.packing;
 import java.nio.IntBuffer;
 
 import com.google.common.primitives.Doubles;
-import it.unimi.dsi.fastutil.Swapper;
-import it.unimi.dsi.fastutil.ints.IntComparator;
-
-import net.minecraft.client.render.VertexConsumer;
-import net.minecraft.util.math.MathHelper;
 
 import grondag.canvas.buffer.encoding.VertexEncoder;
 import grondag.canvas.buffer.encoding.VertexEncoders;
@@ -15,6 +10,10 @@ import grondag.canvas.material.MaterialState;
 import grondag.canvas.shader.ShaderContext;
 import grondag.fermion.intstream.IntStreamProvider;
 import grondag.fermion.intstream.IntStreamProvider.IntStreamImpl;
+import it.unimi.dsi.fastutil.Swapper;
+import it.unimi.dsi.fastutil.ints.IntComparator;
+import net.minecraft.client.render.VertexConsumer;
+import net.minecraft.util.math.MathHelper;
 
 public class VertexCollectorImpl implements VertexCollector {
 	private final IntStreamImpl data = INT_STREAM_PROVIDER.claim();
@@ -197,11 +196,8 @@ public class VertexCollectorImpl implements VertexCollector {
 		return this;
 	}
 
-	/**
-	 * Offset was used when packing mixed translucency - should not be needed now
-	 */
-	public void toBuffer(IntBuffer intBuffer, int offset, int length) {
-		data.copyTo(offset, intBuffer, length);
+	public void toBuffer(IntBuffer intBuffer, int length) {
+		data.copyTo(0, intBuffer, length);
 	}
 
 	// TODO: make parameters dynamic based on system specs / config

@@ -5,11 +5,10 @@ import java.util.Queue;
 import com.google.common.collect.Queues;
 import com.mojang.blaze3d.systems.RenderSystem;
 
+import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
 import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.util.math.Vec3d;
-
-import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
 
 public class RenderRegionBuilder {
 	private final Queue<Runnable> uploadQueue = Queues.newConcurrentLinkedQueue();
@@ -66,24 +65,15 @@ public class RenderRegionBuilder {
 	}
 
 	public void reset() {
-		clear();
+		executor.clear();
 	}
 
 	public void scheduleUpload(Runnable task) {
 		uploadQueue.offer(task);
 	}
 
-
-	private void clear() {
-		executor.clear();
-	}
-
 	public boolean isEmpty() {
 		return executor.isEmpty() && uploadQueue.isEmpty();
-	}
-
-	public void stop() {
-		clear();
 	}
 }
 

@@ -16,69 +16,29 @@
 
 package grondag.canvas.chunk;
 
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-
 import grondag.canvas.buffer.allocation.VboBuffer;
 import grondag.canvas.buffer.packing.BufferPacker;
 import grondag.canvas.buffer.packing.BufferPackingList;
 import grondag.canvas.buffer.packing.VertexCollectorList;
 import grondag.canvas.chunk.draw.DrawableDelegate;
+import grondag.canvas.material.MaterialVertexFormat;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
-public abstract class UploadableChunk {
+public class UploadableChunk {
 	protected final ObjectArrayList<DrawableDelegate> delegates;
+	protected final VboBuffer vboBuffer;
 
 	/** Does not retain packing list reference */
-	protected UploadableChunk(BufferPackingList packingList, VertexCollectorList collectorList) {
-		delegates = BufferPacker.pack(packingList, collectorList, new VboBuffer(packingList.totalBytes()));
+	public UploadableChunk(BufferPackingList packingList, VertexCollectorList collectorList, MaterialVertexFormat format) {
+		vboBuffer = new VboBuffer(packingList.totalBytes(), format);
+		delegates = BufferPacker.pack(packingList, collectorList, vboBuffer);
 	}
 
 	/**
 	 * Will be called from client thread - is where flush/unmap needs to happen.
 	 */
-	public abstract DrawableChunk produceDrawable();
-
-	/**
-	 * Called if {@link #produceDrawable()} will not be called, so can release
-	 * MappedBuffer(s).
-	 */
-	public final void cancel() {
-		final int limit = delegates.size();
-		for (int i = 0; i < limit; i++) {
-			delegates.get(i).release();
-		}
-
-		delegates.clear();
-	}
-
-	public static class Solid extends UploadableChunk {
-		public Solid(BufferPackingList packing, VertexCollectorList collectorList) {
-			super(packing, collectorList);
-		}
-
-		@Override
-		public DrawableChunk produceDrawable() {
-			final int limit = delegates.size();
-
-			for (int i = 0; i < limit; i++) {
-				delegates.get(i).flush();
-			}
-
-			return new DrawableChunk(delegates);
-		}
-	}
-
-	public static class Translucent extends UploadableChunk {
-		public Translucent(BufferPackingList packing, VertexCollectorList collectorList) {
-			super(packing, collectorList);
-		}
-
-		@Override
-		public DrawableChunk produceDrawable() {
-			final int limit = delegates.size();
-			for (int i = 0; i < limit; i++) {
-				delegates.get(i).flush();
-			}
-			return new DrawableChunk(delegates);
-		}
+	public DrawableChunk produceDrawable() {
+		vboBuffer.upload();
+		return new DrawableChunk(delegates, vboBuffer);
 	}
 }

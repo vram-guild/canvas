@@ -8,8 +8,6 @@ import static grondag.canvas.material.MaterialVertextFormatElement.NORMAL_AO_4UB
 import static grondag.canvas.material.MaterialVertextFormatElement.POSITION_3F;
 
 import grondag.canvas.Configurator;
-import grondag.canvas.apiimpl.RenderMaterialImpl.CompositeMaterial;
-import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 
 public final class MaterialVertexFormats {
 	public static final MaterialVertexFormat VANILLA_BLOCKS_AND_ITEMS = new MaterialVertexFormat(
@@ -30,7 +28,7 @@ public final class MaterialVertexFormats {
 	// UGLY: derive this from formats
 	public static final int MAX_QUAD_INT_STRIDE = 128;
 
-	public static MaterialVertexFormat get(MaterialContext context, CompositeMaterial mat, MutableQuadViewImpl quad) {
+	public static MaterialVertexFormat get(MaterialContext context, boolean translucent) {
 		return context == MaterialContext.TERRAIN && Configurator.hdLightmaps ? HD_TERRAIN : VANILLA_BLOCKS_AND_ITEMS;
 	}
 }

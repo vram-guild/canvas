@@ -1,14 +1,9 @@
 package grondag.canvas.render;
 
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 
 import javax.annotation.Nullable;
-
-import io.netty.util.internal.shaded.org.jctools.queues.MessagePassingQueue.Consumer;
-
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3i;
 
 import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
@@ -19,6 +14,9 @@ import grondag.canvas.chunk.occlusion.TerrainOccluder;
 import grondag.canvas.chunk.occlusion.region.OcclusionRegion;
 import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
 import grondag.fermion.varia.Useful;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3i;
 
 public class TerrainIterator implements  Consumer<TerrainRenderContext> {
 	private final SimpleUnorderedArrayList<BuiltRenderRegion> regionListA = new SimpleUnorderedArrayList<>();

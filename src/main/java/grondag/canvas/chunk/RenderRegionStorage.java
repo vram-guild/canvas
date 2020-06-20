@@ -55,7 +55,7 @@ public class RenderRegionStorage {
 
 		for(int i = 0; i < limit; ++i) {
 			final BuiltRenderRegion region = regions[i];
-			region.delete();
+			region.clear();
 		}
 	}
 

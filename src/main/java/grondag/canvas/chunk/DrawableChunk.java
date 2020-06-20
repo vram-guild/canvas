@@ -16,10 +16,10 @@
 
 package grondag.canvas.chunk;
 
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-
+import grondag.canvas.buffer.allocation.VboBuffer;
 import grondag.canvas.chunk.draw.DelegateLists;
 import grondag.canvas.chunk.draw.DrawableDelegate;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 /**
  * Plays same role as VertexBuffer in RenderChunk but implementation is much
@@ -47,14 +47,16 @@ import grondag.canvas.chunk.draw.DrawableDelegate;
  *
  */
 public class DrawableChunk {
-	protected boolean isCleared = false;
+	protected boolean isClosed = false;
 
 	private int quadCount = -1;
 
 	protected ObjectArrayList<DrawableDelegate> delegates;
+	public final VboBuffer vboBuffer;
 
-	public DrawableChunk(ObjectArrayList<DrawableDelegate> delegates) {
+	public DrawableChunk(ObjectArrayList<DrawableDelegate> delegates, VboBuffer vboBuffer) {
 		this.delegates = delegates;
+		this.vboBuffer = vboBuffer;
 	}
 
 	public ObjectArrayList<DrawableDelegate> delegates() {
@@ -74,24 +76,25 @@ public class DrawableChunk {
 
 			for(int i = 0; i < limit; i++) {
 				final DrawableDelegate d = delegates.get(i);
-				result += d.bufferDelegate().byteCount() / d.materialState().bufferFormat.vertexStrideBytes / 4;
+				result += d.vertexCount() / 4;
 			}
 
 			quadCount = result;
 		}
+
 		return result;
 	}
 
 	public boolean isEmpty() {
-		return isCleared && delegates != null && !delegates.isEmpty();
+		return isClosed && delegates != null && !delegates.isEmpty();
 	}
 
 	/**
 	 * Called when buffer content is no longer current and will not be rendered.
 	 */
-	public final void clear() {
-		if (!isCleared) {
-			isCleared = true;
+	public final void close() {
+		if (!isClosed) {
+			isClosed = true;
 			assert delegates != null;
 
 			if (!delegates.isEmpty()) {
@@ -106,6 +109,8 @@ public class DrawableChunk {
 
 			DelegateLists.releaseDelegateList(delegates);
 			delegates = null;
+
+			vboBuffer.close();
 		}
 	}
 }

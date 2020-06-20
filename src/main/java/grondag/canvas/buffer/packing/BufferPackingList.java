@@ -20,11 +20,12 @@ import java.util.function.Consumer;
 
 import grondag.canvas.material.MaterialState;
 
+// TODO: shouldn't be needed any more
+
 /**
  * Tracks number of vertices, pipeline and sequence thereof within a buffer.
  */
 public class BufferPackingList {
-	private int[] starts = new int[16];
 	private int[] counts = new int[16];
 	private MaterialState[] materialStates = new MaterialState[16];
 
@@ -64,15 +65,11 @@ public class BufferPackingList {
 		return totalBytes;
 	}
 
-	public void addPacking(MaterialState materialState, int startVertex, int vertexCount) {
+	public void addPacking(MaterialState materialState, int vertexCount) {
 		if (size == materialStates.length) {
 			final int cCopy[] = new int[size * 2];
 			System.arraycopy(counts, 0, cCopy, 0, size);
 			counts = cCopy;
-
-			final int sCopy[] = new int[size * 2];
-			System.arraycopy(starts, 0, sCopy, 0, size);
-			starts = sCopy;
 
 			final MaterialState pCopy[] = new MaterialState[size * 2];
 			System.arraycopy(materialStates, 0, pCopy, 0, size);
@@ -80,18 +77,9 @@ public class BufferPackingList {
 		}
 
 		materialStates[size] = materialState;
-		starts[size] = startVertex;
 		counts[size] = vertexCount;
 		totalBytes += materialState.bufferFormat.vertexStrideBytes * vertexCount;
 		size++;
-	}
-
-	public final void forEach(BufferPacker consumer) {
-		final int size = this.size;
-
-		for (int i = 0; i < size; i++) {
-			consumer.accept(materialStates[i], starts[i], counts[i]);
-		}
 	}
 
 	public final void forEachMaterialState(Consumer<MaterialState> consumer) {
@@ -108,9 +96,5 @@ public class BufferPackingList {
 
 	public final int getCount(int index) {
 		return counts[index];
-	}
-
-	public final int getStart(int index) {
-		return starts[index];
 	}
 }

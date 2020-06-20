@@ -17,26 +17,49 @@
 package grondag.canvas.buffer.allocation;
 
 import java.nio.ByteBuffer;
-import java.util.function.Consumer;
+import java.nio.IntBuffer;
 
-import com.mojang.blaze3d.systems.RenderSystem;
+import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL21;
 import org.lwjgl.system.MemoryUtil;
 
+import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.systems.RenderSystem;
+
+import grondag.canvas.CanvasMod;
+import grondag.canvas.Configurator;
+import grondag.canvas.material.MaterialVertexFormat;
+import grondag.canvas.varia.CanvasGlHelper;
 import grondag.canvas.varia.GLBufferStore;
+import grondag.canvas.varia.VaoStore;
+import net.minecraft.client.render.VertexFormatElement;
 
-public class VboBuffer implements AllocationProvider, AutoCloseable {
+public class VboBuffer implements AutoCloseable {
 	ByteBuffer uploadBuffer;
-
-	int byteOffset = 0;
-
 	private int glBufferId = -1;
-
 	private boolean isClosed = false;
 
-	public VboBuffer(int bytes) {
+	public final MaterialVertexFormat format;
+
+	private final VertexBinder vertexBinder;
+
+	@FunctionalInterface
+	private interface VertexBinder {
+		void bind();
+	}
+
+	/**
+	 * VAO Buffer name if enabled and initialized.
+	 */
+	private int vaoBufferId = VAO_NONE;
+
+	private static final int VAO_NONE = -1;
+
+	public VboBuffer(int bytes, MaterialVertexFormat format) {
 		// TODO: get rid of BufferAllocator if it won't be faster
 		uploadBuffer = MemoryUtil.memAlloc(bytes); //BufferUtils.createByteBuffer(bytes); //BufferAllocator.claim(bytes);
+		this.format = format;
+		vertexBinder = CanvasGlHelper.isVaoEnabled() ? this::bindVao : this::bindVbo;
 	}
 
 	public void upload() {
@@ -45,27 +68,17 @@ public class VboBuffer implements AllocationProvider, AutoCloseable {
 		final ByteBuffer uploadBuffer = this.uploadBuffer;
 
 		if(uploadBuffer != null) {
-			bind();
 			uploadBuffer.rewind();
+			BindStateManager.bind(glBufferId());
 			GL21.glBufferData(GL21.GL_ARRAY_BUFFER, uploadBuffer, GL21.GL_STATIC_DRAW);
-			unbind();
+			BindStateManager.unbind();
 			MemoryUtil.memFree(uploadBuffer);
 			//BufferAllocator.release(uploadBuffer);
 			this.uploadBuffer = null;
 		}
 	}
 
-	public ByteBuffer byteBuffer() {
-		return uploadBuffer;
-	}
-
-	@Override
-	public void claimAllocation(int byteCount, Consumer<BufferDelegate> consumer) {
-		consumer.accept(new BufferDelegate(this, byteOffset, byteCount));
-		byteOffset += byteCount;
-	}
-
-	public int glBufferId() {
+	private int glBufferId() {
 		int result = glBufferId;
 
 		if(result == -1) {
@@ -80,15 +93,53 @@ public class VboBuffer implements AllocationProvider, AutoCloseable {
 		return result;
 	}
 
-	/**
-	 * @return true if bound buffer changed
-	 */
-	public boolean bind() {
+	public void bind() {
 		assert RenderSystem.isOnRenderThread();
+		vertexBinder.bind();
+	}
 
-		final int glBufferId = glBufferId();
+	private void bindVao() {
+		final MaterialVertexFormat format = this.format;
 
-		return BindStateManager.bind(glBufferId);
+		if (vaoBufferId == VAO_NONE) {
+			// Important this happens BEFORE anything that could affect vertex state
+			CanvasGlHelper.glBindVertexArray(0);
+
+			BindStateManager.bind(glBufferId());
+
+			vaoBufferId = VaoStore.claimVertexArray();
+			CanvasGlHelper.glBindVertexArray(vaoBufferId);
+
+			if (Configurator.logGlStateChanges) {
+				CanvasMod.LOG.info(String.format("GlState: GlStateManager.enableClientState(%d)", GL11.GL_VERTEX_ARRAY));
+			}
+
+			GlStateManager.enableClientState(GL11.GL_VERTEX_ARRAY);
+
+			if (Configurator.logGlStateChanges) {
+				CanvasMod.LOG.info(String.format("GlState: GlStateManager.vertexPointer(%d, %d, %d, %d)", 3, VertexFormatElement.Format.FLOAT.getGlId(), format.vertexStrideBytes, 0));
+			}
+
+			GlStateManager.vertexPointer(3, VertexFormatElement.Format.FLOAT.getGlId(), format.vertexStrideBytes, 0);
+
+			CanvasGlHelper.enableAttributesVao(format.attributeCount);
+			format.bindAttributeLocations(0);
+		} else {
+			CanvasGlHelper.glBindVertexArray(vaoBufferId);
+		}
+	}
+
+	private void bindVbo() {
+		final MaterialVertexFormat format = this.format;
+		BindStateManager.bind(glBufferId());
+
+		if (Configurator.logGlStateChanges) {
+			CanvasMod.LOG.info(String.format("GlState: GlStateManager.vertexPointer(%d, %d, %d, %d)", 3, VertexFormatElement.Format.FLOAT.getGlId(), format.vertexStrideBytes, 0));
+		}
+
+		GlStateManager.enableClientState(GL11.GL_VERTEX_ARRAY);
+		GlStateManager.vertexPointer(3, VertexFormatElement.Format.FLOAT.getGlId(), format.vertexStrideBytes, 0);
+		format.enableAndBindAttributes(0);
 	}
 
 	public boolean isClosed() {
@@ -96,7 +147,7 @@ public class VboBuffer implements AllocationProvider, AutoCloseable {
 	}
 
 	@Override
-	public void close() throws Exception {
+	public void close() {
 		if (RenderSystem.isOnRenderThread()) {
 			onClose();
 		} else {
@@ -122,10 +173,19 @@ public class VboBuffer implements AllocationProvider, AutoCloseable {
 				//BufferUtils.BufferAllocator.release(uploadBuffer);
 				this.uploadBuffer = null;
 			}
+
+			if (vaoBufferId > 0) {
+				VaoStore.releaseVertexArray(vaoBufferId);
+				vaoBufferId = VAO_NONE;
+			}
 		}
 	}
 
 	public static void unbind() {
 		BindStateManager.unbind();
+	}
+
+	public IntBuffer intBuffer() {
+		return uploadBuffer.asIntBuffer();
 	}
 }

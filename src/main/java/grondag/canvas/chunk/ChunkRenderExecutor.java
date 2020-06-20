@@ -2,14 +2,13 @@ package grondag.canvas.chunk;
 
 import java.util.Comparator;
 import java.util.concurrent.PriorityBlockingQueue;
+import java.util.function.Consumer;
 
 import com.google.common.collect.ImmutableList;
-import io.netty.util.internal.shaded.org.jctools.queues.MessagePassingQueue.Consumer;
-
-import net.minecraft.client.MinecraftClient;
 
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
 import grondag.fermion.sc.Sc;
+import net.minecraft.client.MinecraftClient;
 
 /**
  * Simple executor service with ability to submit privileged tasks

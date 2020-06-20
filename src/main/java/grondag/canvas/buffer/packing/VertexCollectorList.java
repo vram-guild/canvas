@@ -4,13 +4,13 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.function.Consumer;
 
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-
 import grondag.canvas.apiimpl.RenderMaterialImpl.CompositeMaterial.DrawableMaterial;
 import grondag.canvas.chunk.UploadableChunk;
 import grondag.canvas.material.MaterialContext;
 import grondag.canvas.material.MaterialState;
+import grondag.canvas.material.MaterialVertexFormats;
 import grondag.canvas.shader.ShaderContext;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 public class VertexCollectorList {
 	private final VertexCollectorImpl[] collectors = new VertexCollectorImpl[MaterialState.MAX_MATERIAL_STATES];
@@ -106,21 +106,21 @@ public class VertexCollectorList {
 			final MaterialState matState = vertexCollector.materialState();
 
 			if (vertexCount != 0 && matState.shaderType != ShaderContext.Type.TRANSLUCENT) {
-				packing.addPacking(matState, 0, vertexCount);
+				packing.addPacking(matState, vertexCount);
 			}
 		}
 
 		return packing;
 	}
 
-	public final UploadableChunk.Solid packUploadSolid() {
+	public final UploadableChunk packUploadSolid() {
 		final BufferPackingList packing = packingListSolid();
 
 		// NB: for solid render, relying on pipelines being added to packing in
 		// numerical order so that
 		// all chunks can iterate pipelines independently while maintaining same
 		// pipeline order within chunk
-		return packing.size() == 0 ? null : new UploadableChunk.Solid(packing, this);
+		return packing.size() == 0 ? null : new UploadableChunk(packing, this, MaterialVertexFormats.get(MaterialContext.TERRAIN, false));
 	}
 
 	/**
@@ -134,15 +134,15 @@ public class VertexCollectorList {
 		final VertexCollectorImpl vertexCollector = collectors[translucentState.index];
 
 		if  (vertexCollector != null && vertexCollector.vertexCount() > 0) {
-			packing.addPacking(translucentState, 0, vertexCollector.vertexCount());
+			packing.addPacking(translucentState, vertexCollector.vertexCount());
 		}
 
 		return packing;
 	}
 
-	public final UploadableChunk.Translucent packUploadTranslucent(MaterialState translucentState) {
+	public final UploadableChunk packUploadTranslucent(MaterialState translucentState) {
 		final BufferPackingList packing = packingListTranslucent(translucentState);
-		return packing.size() == 0 ? null : new UploadableChunk.Translucent(packing, this);
+		return packing.size() == 0 ? null : new UploadableChunk(packing, this, MaterialVertexFormats.get(MaterialContext.TERRAIN, true));
 	}
 
 	public int[][] getCollectorState(int[][] priorState) {
