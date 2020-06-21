@@ -101,9 +101,9 @@ public class Configurator {
 		@Comment("Max number of unique render material states. Change only if errors occur without. Causes small amount of memory use.")
 		int maxMaterialStates = 0x10000;
 
-	    @Comment("Use Vertex Array Objects if available. VAOs generally improve performance when they are supported.")
-	    boolean enableVao = true;
-	    
+		@Comment("Use Vertex Array Objects if available. VAOs generally improve performance when they are supported.")
+		boolean enableVao = true;
+
 		// DEBUG
 		@Comment("Output runtime per-material shader source. For shader development debugging.")
 		boolean shaderDebug = false;
@@ -145,7 +145,7 @@ public class Configurator {
 	public static boolean shaderDebug = DEFAULTS.shaderDebug;
 	public static int maxLightmapDelayFrames = DEFAULTS.maxLightmapDelayFrames;
 
-	public static boolean hdLightmaps = DEFAULTS.hdLightmaps;
+	private static boolean hdLightmaps = DEFAULTS.hdLightmaps;
 	public static boolean lightmapNoise = DEFAULTS.lightmapNoise;
 	public static DiffuseMode diffuseShadingMode = DEFAULTS.diffuseShadingMode;
 	public static boolean lightSmoothing = DEFAULTS.lightSmoothing;
@@ -162,8 +162,8 @@ public class Configurator {
 	public static boolean terrainBackfaceCulling = DEFAULTS.terrainBackfaceCulling;
 	public static boolean terrainSetupOffThread = DEFAULTS.terrainSetupOffThread;
 	public static int maxMaterialStates = DEFAULTS.maxMaterialStates;
-	public static boolean enableVao = DEFAULTS.enableVao;
-	
+	private static boolean enableVao = DEFAULTS.enableVao;
+
 	public static boolean lightmapDebug = DEFAULTS.lightmapDebug;
 	public static boolean conciseErrors = DEFAULTS.conciseErrors;
 	public static boolean logMachineInfo = DEFAULTS.logMachineInfo;
@@ -173,6 +173,14 @@ public class Configurator {
 	public static boolean enablePerformanceTrace = DEFAULTS.enablePerformanceTrace;
 	public static boolean debugOcclusionRaster = DEFAULTS.debugOcclusionRaster;
 	public static boolean debugOcclusionBoxes = DEFAULTS.debugOcclusionBoxes;
+
+	public static boolean hdLightmaps() {
+		return false;
+	}
+
+	public static boolean enableVao() {
+		return false;
+	}
 
 	/** use to stash parent screen during display */
 	private static Screen screenIn;
@@ -220,7 +228,7 @@ public class Configurator {
 		terrainSetupOffThread = config.terrainSetupOffThread;
 		maxMaterialStates =  MathHelper.clamp(config.maxMaterialStates, 0x10000, 0x100000);
 		enableVao = config.enableVao;
-		
+
 		lightmapDebug = config.lightmapDebug;
 		conciseErrors = config.conciseErrors;
 		logMachineInfo = config.logMachineInfo;
@@ -256,7 +264,7 @@ public class Configurator {
 		config.terrainSetupOffThread = terrainSetupOffThread;
 		config.maxMaterialStates = maxMaterialStates;
 		config.enableVao = enableVao;
-		
+
 		config.lightmapDebug = lightmapDebug;
 		config.conciseErrors = conciseErrors;
 		config.logMachineInfo = logMachineInfo;
@@ -456,7 +464,7 @@ public class Configurator {
 				.setTooltip(parse("config.canvas.help.max_material_states"))
 				.setSaveConsumer(b -> maxMaterialStates = b)
 				.build());
-		
+
 		tweaks.addEntry(ENTRY_BUILDER
 				.startBooleanToggle(new TranslatableText("config.canvas.value.enable_vao"), enableVao)
 				.setDefaultValue(DEFAULTS.enableVao)

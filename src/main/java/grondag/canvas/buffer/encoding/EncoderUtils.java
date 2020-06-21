@@ -769,7 +769,7 @@ abstract class EncoderUtils {
 			quad.lightmap(2, ColorHelper.maxBrightness(quad.lightmap(2), brightness));
 			quad.lightmap(3, ColorHelper.maxBrightness(quad.lightmap(3), brightness));
 
-			if (Configurator.hdLightmaps) {
+			if (Configurator.hdLightmaps()) {
 				context.aoCalc().computeFlat(quad, brightness);
 			}
 		}

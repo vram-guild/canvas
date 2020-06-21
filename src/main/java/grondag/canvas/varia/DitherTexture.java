@@ -85,7 +85,7 @@ public class DitherTexture implements AutoCloseable {
 	}
 
 	public void tick() {
-		if(needsInitialized && Configurator.hdLightmaps) {
+		if(needsInitialized && Configurator.hdLightmaps()) {
 			final NativeImage image = this.image;
 
 			if(needsInitialized) {

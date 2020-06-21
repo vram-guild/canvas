@@ -114,7 +114,7 @@ public class CanvasGlHelper {
 				if(Configurator.logGlStateChanges) {
 					CanvasMod.LOG.info(String.format("GlState: glEnableVertexAttribArray(%d)", attributeEnabledCount + 1));
 				}
-				
+
 				GL20.glEnableVertexAttribArray(++attributeEnabledCount);
 			}
 		} else if (enabledCount < attributeEnabledCount) {
@@ -122,7 +122,7 @@ public class CanvasGlHelper {
 				if(Configurator.logGlStateChanges) {
 					CanvasMod.LOG.info(String.format("GlState: glDisableVertexAttribArray(%d)", attributeEnabledCount));
 				}
-				
+
 				GL20.glDisableVertexAttribArray(attributeEnabledCount--);
 			}
 		}
@@ -137,7 +137,7 @@ public class CanvasGlHelper {
 	}
 
 	public static boolean isVaoEnabled() {
-		return vaoEnabled && Configurator.enableVao;
+		return vaoEnabled && Configurator.enableVao();
 	}
 
 	public static void glGenVertexArrays(IntBuffer arrays) {

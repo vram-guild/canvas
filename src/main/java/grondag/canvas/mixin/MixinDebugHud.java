@@ -32,7 +32,7 @@ import grondag.canvas.light.LightmapHd;
 public class MixinDebugHud {
 	@Inject(method = "getLeftText", at = @At("RETURN"), cancellable = false, require = 1)
 	private void onGetBufferBuilders(CallbackInfoReturnable<List<String>> ci) {
-		if(Configurator.hdLightmaps) {
+		if(Configurator.hdLightmaps()) {
 			ci.getReturnValue().add("Canvas HD Lightmap Occupancy: " + LightmapHd.occupancyReport());
 		}
 	}

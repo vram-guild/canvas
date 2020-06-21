@@ -89,7 +89,8 @@ public class LightmapHdTexture implements AutoCloseable {
 	public void disable() {
 		//UGLY doesn't belong here
 		DitherTexture.instance().disable();
-		if(!Configurator.hdLightmaps) {
+
+		if(!Configurator.hdLightmaps()) {
 			return;
 		}
 
@@ -101,7 +102,8 @@ public class LightmapHdTexture implements AutoCloseable {
 	public void enable() {
 		//UGLY doesn't belong here
 		DitherTexture.instance().enable();
-		if(!Configurator.hdLightmaps) {
+
+		if(!Configurator.hdLightmaps()) {
 			return;
 		}
 

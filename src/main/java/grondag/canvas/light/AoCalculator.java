@@ -133,7 +133,7 @@ public abstract class AoCalculator {
 	}
 
 	public void computeFlat(MutableQuadViewImpl quad, int flatBrightness) {
-		if(Configurator.hdLightmaps) {
+		if(Configurator.hdLightmaps()) {
 			flatFaceSmooth(quad, flatBrightness);
 		} else {
 			assert false : "Called block lighter for flat lighting outside HD lighting model";
@@ -149,7 +149,7 @@ public abstract class AoCalculator {
 
 		final int flags = quad.geometryFlags();
 
-		if(Configurator.hdLightmaps) {
+		if(Configurator.hdLightmaps()) {
 			if((flags & AXIS_ALIGNED_FLAG) == AXIS_ALIGNED_FLAG) {
 				if((flags & LIGHT_FACE_FLAG) == LIGHT_FACE_FLAG) {
 					vanillaPartialFaceSmooth(quad, true);
@@ -398,6 +398,8 @@ public abstract class AoCalculator {
 	}
 
 	private void updateFace(AoFaceData fd, final int lightFace, boolean isOnBlockFace) {
+		final boolean hd = Configurator.hdLightmaps();
+
 		int index = regionRelativeCacheIndex;
 
 		// Overall this is different from vanilla, which seems to be buggy
@@ -456,7 +458,7 @@ public abstract class AoCalculator {
 
 		if (!(leftClear || bottomClear)) {
 			// both not clear
-			if (Configurator.hdLightmaps) {
+			if (hd) {
 				fd.aoBottomLeft = Math.min(aoLeft, aoBottom);
 			} else {
 				fd.aoBottomLeft = (Math.min(aoLeft, aoBottom) + aoBottom + aoLeft + 1 + aoCenter) >> 2;
@@ -468,7 +470,7 @@ public abstract class AoCalculator {
 			final boolean cornerClear = !isOpaque(cacheIndex);
 			fd.bottomLeft = cornerClear ? brightness(cacheIndex) : OPAQUE;
 			// PERF: branching
-			if (Configurator.hdLightmaps) {
+			if (hd) {
 				fd.aoBottomLeft = Math.round(ao(cacheIndex) * 255);
 			} else {
 				fd.aoBottomLeft = (Math.round(ao(cacheIndex) * 255) + aoBottom + aoCenter + aoLeft + 1) >> 2;  // bitwise divide by four, rounding up
@@ -477,7 +479,7 @@ public abstract class AoCalculator {
 
 		if (!(rightClear || bottomClear)) {
 			// both not clear
-			if (Configurator.hdLightmaps) {
+			if (hd) {
 				fd.aoBottomRight = Math.min(aoRight, aoBottom);
 			} else {
 				fd.aoBottomRight = (Math.min(aoRight, aoBottom) + aoBottom + aoRight + 1 + aoCenter) >> 2;
@@ -490,7 +492,7 @@ public abstract class AoCalculator {
 			final boolean cornerClear = !isOpaque(cacheIndex);
 			fd.bottomRight = cornerClear ? brightness(cacheIndex) : OPAQUE;
 
-			if (Configurator.hdLightmaps) {
+			if (hd) {
 				fd.aoBottomRight = Math.round(ao(cacheIndex) * 255);
 			} else {
 				fd.aoBottomRight = (Math.round(ao(cacheIndex) * 255) + aoBottom + aoCenter + aoRight + 1) >> 2;
@@ -499,7 +501,7 @@ public abstract class AoCalculator {
 
 		if (!(leftClear || topClear)) {
 			// both not clear
-			if (Configurator.hdLightmaps) {
+			if (hd) {
 				fd.aoTopLeft = Math.min(aoLeft, aoTop);
 			} else {
 				fd.aoTopLeft = (Math.min(aoLeft, aoTop) + aoTop + aoLeft + 1 + aoCenter) >> 2;
@@ -512,7 +514,7 @@ public abstract class AoCalculator {
 			final boolean cornerClear = !isOpaque(cacheIndex);
 			fd.topLeft = cornerClear ? brightness(cacheIndex) : OPAQUE;
 
-			if (Configurator.hdLightmaps) {
+			if (hd) {
 				fd.aoTopLeft = Math.round(ao(cacheIndex) * 255);
 			} else {
 				fd.aoTopLeft = (Math.round(ao(cacheIndex) * 255) + aoTop + aoCenter + aoLeft + 1) >> 2;
@@ -521,7 +523,7 @@ public abstract class AoCalculator {
 
 		if (!(rightClear || topClear)) {
 			// both not clear
-			if (Configurator.hdLightmaps) {
+			if (hd) {
 				fd.aoTopRight = Math.min(aoRight, aoTop);
 			} else {
 				fd.aoTopRight = (Math.min(aoRight, aoTop) + aoTop+ aoRight + 1 + aoCenter) >> 2;
@@ -534,7 +536,7 @@ public abstract class AoCalculator {
 			final boolean cornerClear = !isOpaque(cacheIndex);
 			fd.topRight = cornerClear ? brightness(cacheIndex) : OPAQUE;
 
-			if (Configurator.hdLightmaps) {
+			if (hd) {
 				fd.aoTopRight = Math.round(ao(cacheIndex) * 255);
 			} else {
 				fd.aoTopRight = (Math.round(ao(cacheIndex) * 255) + aoTop + aoCenter + aoRight + 1) >> 2;

@@ -244,7 +244,7 @@ public class GlShader {
 			result = result.replaceAll("#define CONTEXT_IS_BLOCK TRUE", "#define CONTEXT_IS_BLOCK FALSE");
 		}
 
-		if(Configurator.lightmapNoise && Configurator.hdLightmaps) {
+		if(Configurator.lightmapNoise && Configurator.hdLightmaps()) {
 			result = result.replaceAll("#define ENABLE_LIGHT_NOISE FALSE", "#define ENABLE_LIGHT_NOISE TRUE");
 		}
 
@@ -277,9 +277,9 @@ public class GlShader {
 
 
 		if (shaderType == GL21.GL_FRAGMENT_SHADER) {
-			return getShaderSourceInner(resourceManager, Configurator.hdLightmaps ? ShaderData.HD_FRAGMENT : ShaderData.VANILLA_FRAGMENT);
+			return getShaderSourceInner(resourceManager, Configurator.hdLightmaps() ? ShaderData.HD_FRAGMENT : ShaderData.VANILLA_FRAGMENT);
 		} else {
-			return getShaderSourceInner(resourceManager, Configurator.hdLightmaps ? ShaderData.HD_VERTEX : ShaderData.VANILLA_VERTEX);
+			return getShaderSourceInner(resourceManager, Configurator.hdLightmaps() ? ShaderData.HD_VERTEX : ShaderData.VANILLA_VERTEX);
 		}
 	}
 

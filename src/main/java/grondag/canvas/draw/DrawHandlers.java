@@ -140,7 +140,7 @@ public class DrawHandlers {
 
 	// PERF: cache in the drawable material
 	public static DrawHandler get(MaterialContext context, DrawableMaterial mat) {
-		final boolean isHD = context == MaterialContext.TERRAIN && Configurator.hdLightmaps;
+		final boolean isHD = context == MaterialContext.TERRAIN && Configurator.hdLightmaps();
 
 		if (mat.shaderType == ShaderContext.Type.TRANSLUCENT) {
 			return isHD ? TRANSLUCENT_HD : TRANSLUCENT;

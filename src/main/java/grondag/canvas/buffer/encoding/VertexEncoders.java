@@ -65,12 +65,12 @@ public class VertexEncoders {
 		ENCODERS[lookupIndex(BLOCK, 2, true)] = VANILLA_BLOCK_2;
 		ENCODERS[lookupIndex(BLOCK, 3, true)] = VANILLA_BLOCK_3;
 
-		ENCODERS[lookupIndex(TERRAIN, 1, false)] = Configurator.hdLightmaps ? HD_TERRAIN_1 : VANILLA_TERRAIN_1;
-		ENCODERS[lookupIndex(TERRAIN, 2, false)] = Configurator.hdLightmaps ? HD_TERRAIN_2 : VANILLA_TERRAIN_2;
-		ENCODERS[lookupIndex(TERRAIN, 3, false)] = Configurator.hdLightmaps ? HD_TERRAIN_3 : VANILLA_TERRAIN_3;
-		ENCODERS[lookupIndex(TERRAIN, 1, true)] = Configurator.hdLightmaps ? HD_TERRAIN_1 : VANILLA_TERRAIN_1;
-		ENCODERS[lookupIndex(TERRAIN, 2, true)] = Configurator.hdLightmaps ? HD_TERRAIN_2 : VANILLA_TERRAIN_2;
-		ENCODERS[lookupIndex(TERRAIN, 3, true)] = Configurator.hdLightmaps ? HD_TERRAIN_3 : VANILLA_TERRAIN_3;
+		ENCODERS[lookupIndex(TERRAIN, 1, false)] = Configurator.hdLightmaps() ? HD_TERRAIN_1 : VANILLA_TERRAIN_1;
+		ENCODERS[lookupIndex(TERRAIN, 2, false)] = Configurator.hdLightmaps() ? HD_TERRAIN_2 : VANILLA_TERRAIN_2;
+		ENCODERS[lookupIndex(TERRAIN, 3, false)] = Configurator.hdLightmaps() ? HD_TERRAIN_3 : VANILLA_TERRAIN_3;
+		ENCODERS[lookupIndex(TERRAIN, 1, true)] = Configurator.hdLightmaps() ? HD_TERRAIN_1 : VANILLA_TERRAIN_1;
+		ENCODERS[lookupIndex(TERRAIN, 2, true)] = Configurator.hdLightmaps() ? HD_TERRAIN_2 : VANILLA_TERRAIN_2;
+		ENCODERS[lookupIndex(TERRAIN, 3, true)] = Configurator.hdLightmaps() ? HD_TERRAIN_3 : VANILLA_TERRAIN_3;
 
 		ENCODERS[lookupIndex(ITEM_HELD, 1, false)] = VANILLA_ITEM_1;
 		ENCODERS[lookupIndex(ITEM_HELD, 2, false)] = VANILLA_ITEM_2;
