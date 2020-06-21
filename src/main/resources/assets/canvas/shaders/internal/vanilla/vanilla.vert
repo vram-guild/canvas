@@ -1,15 +1,15 @@
-#include canvas:shaders/internal/common_header.glsl
+#include canvas:shaders/internal/header.glsl
 #include canvas:shaders/api/context.glsl
 #include canvas:shaders/internal/varying.glsl
-#include canvas:shaders/internal/vertex_lib.glsl
+#include canvas:shaders/internal/vertex.glsl
 #include canvas:shaders/internal/flags.glsl
-#include canvas:shaders/api/vertex_data.glsl
+#include canvas:shaders/api/vertex.glsl
 #include canvas:shaders/internal/diffuse.glsl
 
 #include canvas:apitarget
 
 /******************************************************
-  canvas:shaders/internal/vanilla/vanilla_vertex.glsl
+  canvas:shaders/internal/vanilla/vanilla.vert
 ******************************************************/
 
 attribute vec4 in_color;

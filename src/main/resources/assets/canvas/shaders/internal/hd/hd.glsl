@@ -1,5 +1,5 @@
 /******************************************************
-  canvas:shaders/internal/hd/hd_header.glsl
+  canvas:shaders/internal/hd/hd.glsl
 ******************************************************/
 
 uniform sampler2D u_utility;

@@ -1,6 +1,7 @@
 /******************************************************
   canvas:shaders/internal/world.glsl
 ******************************************************/
+
 #define _CV_WORLD_EFFECT_MODIFIER 0
 #define _CV_RENDER_SECONDS 1
 #define _CV_AMBIENT_INTENSITY 2

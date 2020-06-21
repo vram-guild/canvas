@@ -1,4 +1,4 @@
-#include canvas:shaders/api/vertex_data.glsl
+#include canvas:shaders/api/vertex.glsl
 
 /******************************************************
   canvas:shaders/material/default.vert

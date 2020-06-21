@@ -2,6 +2,11 @@
 
 /******************************************************
   canvas:shaders/api/context.glsl
+
+  Definitions to inicate operating mode of renderer.
+  Typical usage is to control conditional compilation of
+  features that may not work or work differently in,
+  for example, GUI vs world rendering.
 ******************************************************/
 
 // true if this is a block context

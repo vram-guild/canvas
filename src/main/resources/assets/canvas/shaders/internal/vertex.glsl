@@ -1,5 +1,5 @@
 /******************************************************
-  canvas:shaders/internal/vertex_lib.glsl
+  canvas:shaders/internal/vertex.glsl
 ******************************************************/
 
 vec2 _cv_textureCoord(vec2 coordIn, int matrixIndex) {

@@ -1,5 +1,7 @@
+#include canvas:shaders/internal/hd/hd.glsl
+
 /******************************************************
-  canvas:shaders/internal/hd/hd_fragment.glsl
+  canvas:shaders/internal/hd/hd.frag
 ******************************************************/
 
 vec4 aoFactor(vec2 lightCoord) {

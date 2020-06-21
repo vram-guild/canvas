@@ -1,16 +1,16 @@
-#include canvas:shaders/internal/common_header.glsl
+#include canvas:shaders/internal/header.glsl
 #include canvas:shaders/internal/varying.glsl
 #include canvas:shaders/internal/diffuse.glsl
 #include canvas:shaders/internal/flags.glsl
 #include canvas:shaders/internal/fog.glsl
 #include canvas:shaders/api/world.glsl
 #include canvas:shaders/api/player.glsl
-#include canvas:shaders/api/fragment_data.glsl
+#include canvas:shaders/api/fragment.glsl
 
 #include canvas:apitarget
 
 /******************************************************
-  canvas:shaders/internal/vanilla/vanilla_fragment.glsl
+  canvas:shaders/internal/vanilla/vanilla.frag
 ******************************************************/
 
 vec4 aoFactor(vec2 lightCoord) {

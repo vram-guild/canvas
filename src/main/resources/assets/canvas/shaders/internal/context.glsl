@@ -1,5 +1,5 @@
 /******************************************************
-  canvas:shaders/internal/internal_context.glsl
+  canvas:shaders/internal/context.glsl
 ******************************************************/
 
 #define AO_MODE_NORMAL 0

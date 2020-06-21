@@ -1,7 +1,7 @@
 
 #include canvas:shaders/api/context.glsl
 #include canvas:shaders/lib/constant.glsl
-#include canvas:shaders/internal/internal_context.glsl
+#include canvas:shaders/internal/context.glsl
 
 /******************************************************
   canvas:shaders/internal/common_varying.glsl

@@ -1,4 +1,4 @@
-#include canvas:shaders/api/fragment_data.glsl
+#include canvas:shaders/api/fragment.glsl
 #include canvas:shaders/lib/math.glsl
 
 /******************************************************
