@@ -16,13 +16,10 @@
 
 package grondag.canvas.shader;
 
-import org.joml.Vector3f;
-
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.Camera;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.math.Vec3d;
 
 import net.fabricmc.fabric.api.event.client.ClientTickCallback;
 
@@ -32,7 +29,6 @@ import grondag.canvas.light.AoVertexClampFunction;
 import grondag.canvas.light.LightmapHd;
 import grondag.canvas.light.LightmapHdTexture;
 import grondag.canvas.varia.DitherTexture;
-import grondag.canvas.varia.FogStateExtHolder;
 import grondag.canvas.varia.WorldDataManager;
 import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
 import grondag.frex.api.material.UniformRefreshFrequency;
@@ -46,16 +42,6 @@ public final class ShaderManager implements ClientTickCallback {
 	private final SimpleUnorderedArrayList<MaterialShaderImpl> shaders = new SimpleUnorderedArrayList<>();
 
 	private final MaterialShaderImpl defaultShader;
-
-	/**
-	 * The number of seconds this world has been rendering since the last render
-	 * reload, including fractional seconds.
-	 * <p>
-	 *
-	 * Based on total world time, but shifted to originate from start of this game
-	 * session.
-	 */
-	private float renderSeconds;
 
 	/**
 	 * World time ticks at last render reload..
@@ -78,12 +64,6 @@ public final class ShaderManager implements ClientTickCallback {
 	 */
 	private int frameIndex = 0;
 
-	/**
-	 * Gamma-corrected max light from lightmap texture.
-	 * Updated whenever lightmap texture is updated.
-	 */
-	private final Vector3f emissiveColor = new Vector3f(1f, 1f, 1f);
-
 	private ShaderManager() {
 		super();
 
@@ -91,10 +71,6 @@ public final class ShaderManager implements ClientTickCallback {
 
 		// add default shaders
 		defaultShader= create(ShaderData.DEFAULT_VERTEX_SOURCE, ShaderData.DEFAULT_FRAGMENT_SOURCE);
-	}
-
-	public void updateEmissiveColor(int color) {
-		emissiveColor.set((color & 0xFF) / 255f, ((color >> 8) & 0xFF) / 255f, ((color >> 16) & 0xFF) / 255f);
 	}
 
 	// UGLY: probably doesn't all belong here
@@ -152,9 +128,7 @@ public final class ShaderManager implements ClientTickCallback {
 	}
 
 	private void addStandardUniforms(MaterialShaderImpl shader) {
-		shader.uniformArrayf("_cvu_world", UniformRefreshFrequency.PER_TICK, u -> u.set(WorldDataManager.uniformData()), WorldDataManager.LENGTH);
-
-		shader.uniform1f("_cvu_time", UniformRefreshFrequency.PER_FRAME, u -> u.set(renderSeconds));
+		shader.uniformArrayf("_cvu_world", UniformRefreshFrequency.PER_TICK, u -> u.set(WorldDataManager.data()), WorldDataManager.LENGTH);
 
 		shader.uniformSampler2d("_cvu_textures", UniformRefreshFrequency.ON_LOAD, u -> u.set(0));
 
@@ -166,20 +140,6 @@ public final class ShaderManager implements ClientTickCallback {
 		// FIX: may need to move because of lightmap move
 		//UGLY: needs a better GLSL name
 		shader.uniformSampler2d("_cvu_utility", UniformRefreshFrequency.ON_LOAD, u -> u.set(4));
-
-		shader.uniform4f("_cvu_emissiveColor", UniformRefreshFrequency.PER_FRAME, u -> {
-			u.set(emissiveColor.x, emissiveColor.y, emissiveColor.z, 1f);
-		});
-
-		shader.uniform3f("_cvu_eye_position", UniformRefreshFrequency.PER_FRAME, u -> {
-			@SuppressWarnings("resource")
-			final Vec3d eyePos = MinecraftClient.getInstance().player.getCameraPosVec(fractionalTicks);
-			u.set((float) eyePos.x, (float) eyePos.y, (float) eyePos.z);
-		});
-
-		shader.uniform1i("_cvu_fogMode", UniformRefreshFrequency.PER_FRAME, u -> {
-			u.set(FogStateExtHolder.INSTANCE.getMode());
-		});
 	}
 
 	/**
@@ -197,13 +157,9 @@ public final class ShaderManager implements ClientTickCallback {
 			return;
 		}
 
-		computeRenderSeconds(cameraEntity);
+		WorldDataManager.setRenderSeconds((cameraEntity.getEntityWorld().getTime() - baseWorldTime + fractionalTicks) / 20);
 
 		onRenderTick();
-	}
-
-	private void computeRenderSeconds(Entity cameraEntity) {
-		renderSeconds = (cameraEntity.getEntityWorld().getTime() - baseWorldTime + fractionalTicks) / 20;
 	}
 
 	@Override
@@ -224,9 +180,5 @@ public final class ShaderManager implements ClientTickCallback {
 		for (int i = 0; i < limit; i++) {
 			shaders.get(i).onRenderTick();
 		}
-	}
-
-	public float renderSeconds() {
-		return renderSeconds;
 	}
 }

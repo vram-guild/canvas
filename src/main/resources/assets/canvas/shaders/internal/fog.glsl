@@ -1,4 +1,5 @@
 #include canvas:shaders/api/context.glsl
+#include canvas:shaders/internal/world.glsl
 
 /******************************************************
   canvas:shaders/internal/fog.glsl
@@ -9,8 +10,6 @@
 #define  _CV_FOG_EXP2   2049
 
 #define _CV_SUBTLE_FOG FALSE
-
-uniform int _cvu_fogMode;
 
 /**
  * Linear fog.  Is an inverse factor - 0 means full fog.
@@ -25,7 +24,7 @@ float _cv_linearFogFactor() {
  */
 float _cv_expFogFactor() {
 	float f = gl_FogFragCoord * gl_Fog.density;
-    float fogFactor = _cvu_fogMode == _CV_FOG_EXP ? exp(f) : exp(f * f);
+    float fogFactor = _cvu_world[_CV_FOG_MODE] == _CV_FOG_EXP ? exp(f) : exp(f * f);
     return clamp( 1.0 / fogFactor, 0.0, 1.0 );
 }
 
@@ -33,7 +32,7 @@ float _cv_expFogFactor() {
  * Returns either linear or exponential fog depending on current uniform value.
  */
 float _cv_fogFactor() {
-	return _cvu_fogMode == _CV_FOG_LINEAR ? _cv_linearFogFactor() : _cv_expFogFactor();
+	return _cvu_world[_CV_FOG_MODE] == _CV_FOG_LINEAR ? _cv_linearFogFactor() : _cv_expFogFactor();
 }
 
 vec4 _cv_fog(vec4 diffuseColor) {

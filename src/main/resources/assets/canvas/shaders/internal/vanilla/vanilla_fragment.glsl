@@ -4,6 +4,7 @@
 #include canvas:shaders/internal/flags.glsl
 #include canvas:shaders/internal/fog.glsl
 #include canvas:shaders/api/world.glsl
+#include canvas:shaders/api/player.glsl
 #include canvas:shaders/api/fragment_data.glsl
 
 #include canvas:apitarget
@@ -50,9 +51,9 @@ vec4 light() {
 
 vec4 _cv_diffuse() {
 	#if DIFFUSE_SHADING_MODE == DIFFUSE_MODE_SKY_ONLY && CONTEXT_IS_BLOCK
-		if (_cvu_world[WORLD_HAS_SKYLIGHT] == 1.0 && _cvu_world[WORLD_NIGHT_VISION] == 0) {
+		if (cv_worldHasSkylight() && !cv_playerHasNightVision()) {
 			float d = 1.0 - _cvv_diffuse;
-			d *= _cvu_world[WORLD_EFFECTIVE_INTENSITY];
+			d *= cv_effectModifier();
 			d *= _cvv_lightcoord.y;
 			d += 0.03125;
 			d = clamp(1.0 - d, 0.0, 1.0);
@@ -90,7 +91,7 @@ void main() {
     vec4 a = fragOutput.baseColor;
 
     if (a.a >= 0.5 || _cv_getFlag(_CV_FLAG_CUTOUT) != 1.0) {
-    	a *= fragOutput.emissive ? _cvu_emissiveColor : light();
+    	a *= fragOutput.emissive ? cv_emissiveColor() : light();
 
 		#if AO_SHADING_MODE != AO_MODE_NONE && CONTEXT_IS_BLOCK
 			if (_cv_getFlag(_CV_FLAG_DISABLE_AO) == 0.0) {

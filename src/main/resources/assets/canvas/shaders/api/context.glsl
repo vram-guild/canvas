@@ -23,5 +23,3 @@
 
 uniform sampler2D _cvu_textures;
 uniform sampler2D _cvu_lightmap;
-uniform vec4 _cvu_emissiveColor;
-uniform vec3 _cvu_eye_position;

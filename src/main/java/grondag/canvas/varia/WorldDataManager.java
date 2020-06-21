@@ -1,49 +1,109 @@
 package grondag.canvas.varia;
 
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.effect.StatusEffects;
+import net.minecraft.item.Items;
+import net.minecraft.world.dimension.DimensionType;
 
 public class WorldDataManager {
-	public static int LENGTH = 8;
-	public static int WORLD_EFFECT_MODIFIER = 0;
-	public static int NIGHT_VISION_ACTIVE = 1;
-	public static int EFFECTIVE_INTENSITY = 2;
-	public static int AMBIENT_INTENSITY = 3;
-	public static int HAS_SKYLIGHT = 4;
-	public static int RESERVED = 5;
-	public static int MOON_SIZE = 6;
+	public static final int LENGTH = 16;
 
-	static float[] UNIFORM_DATA = new float[LENGTH];
+	private static final int WORLD_EFFECT_MODIFIER = 0;
+	private static final int RENDER_SECONDS = 1;
+	private static final int AMBIENT_INTENSITY = 2;
+	private static final int MOON_SIZE = 3;
+	private static final int WORLD_TIME = 4;
+	private static final int WORLD_DAYS = 5;
+	private static final int FLAGS_0 = 6;
+	private static final int FOG_MODE = 7;
+	private static final int EMISSIVE_COLOR_RED = 8;
+	private static final int EMISSIVE_COLOR_GREEN = 9;
+	private static final int EMISSIVE_COLOR_BLUE = 10;
+	private static final int HELD_LIGHT_RED = 11;
+	private static final int HELD_LIGHT_GREEN = 12;
+	private static final int HELD_LIGHT_BLUE = 13;
+	private static final int HELD_LIGHT_INTENSITY = 14;
 
-	public static float[] uniformData() {
-		return UNIFORM_DATA;
+	private static final int FLAG0_NIGHT_VISTION_ACTIVE = 1;
+	private static final int FLAG0_HAS_SKYLIGHT = 2;
+	private static final int FLAG0_IS_OVERWORLD = 4;
+	private static final int FLAG0_IS_NETHER = 8;
+	private static final int FLAG0_IS_END = 16;
+
+	private static final float[] DATA = new float[LENGTH];
+
+	public static float[] data() {
+		return DATA;
 	}
 
 	public static void updateLight(float tick, float flicker) {
 		final MinecraftClient client = MinecraftClient.getInstance();
 		final ClientWorld world = client.world;
-
 		if (world != null) {
-			final boolean hasSkyLight = world.getDimension().hasSkyLight();
-			final boolean nightVision = client.player.hasStatusEffect(StatusEffects.NIGHT_VISION);
-			UNIFORM_DATA[HAS_SKYLIGHT] = hasSkyLight ? 1 : 0;
-			UNIFORM_DATA[AMBIENT_INTENSITY] = world.method_23783(1.0F);
-			UNIFORM_DATA[EFFECTIVE_INTENSITY] = hasSkyLight && !nightVision ? UNIFORM_DATA[AMBIENT_INTENSITY] : 1;
-			UNIFORM_DATA[MOON_SIZE] = world.getMoonSize();
+			final long days = world.getTimeOfDay() / 24000L;
+			DATA[WORLD_DAYS] = (int) (days % 2147483647L);
+			DATA[WORLD_TIME] = (float) ((world.getTimeOfDay() - days * 24000L) / 24000.0);
 
-			UNIFORM_DATA[NIGHT_VISION_ACTIVE] = nightVision ? 1 : 0;
+			final ClientPlayerEntity player = client.player;
 
+			int flags = world.getDimension().hasSkyLight() ? FLAG0_HAS_SKYLIGHT : 0;
+
+			final boolean nightVision = player != null && client.player.hasStatusEffect(StatusEffects.NIGHT_VISION);
+
+			if (nightVision) {
+				flags |= FLAG0_NIGHT_VISTION_ACTIVE;
+			}
+
+			if (world.getDimensionRegistryKey() == DimensionType.OVERWORLD_REGISTRY_KEY) {
+				flags |= FLAG0_IS_OVERWORLD;
+			} else if (world.getDimensionRegistryKey() == DimensionType.THE_NETHER_REGISTRY_KEY) {
+				flags |= FLAG0_IS_NETHER;
+			} else if (world.getDimensionRegistryKey() == DimensionType.THE_END_REGISTRY_KEY) {
+				flags |= FLAG0_IS_END;
+			}
+
+			DATA[FLAGS_0] = flags;
+
+			// TODO: use item tags
+			if (player != null && player.isHolding(Items.TORCH)) {
+				DATA[HELD_LIGHT_RED] = 1f;
+				DATA[HELD_LIGHT_GREEN] = 1f;
+				DATA[HELD_LIGHT_BLUE] = 0.8f;
+				DATA[HELD_LIGHT_INTENSITY] = 1f;
+			} else  {
+				DATA[HELD_LIGHT_RED] = 0f;
+				DATA[HELD_LIGHT_GREEN] = 0f;
+				DATA[HELD_LIGHT_BLUE] = 0f;
+				DATA[HELD_LIGHT_INTENSITY] = 0f;
+			}
+
+			DATA[AMBIENT_INTENSITY] = world.method_23783(1.0F);
+			DATA[MOON_SIZE] = world.getMoonSize();
 
 			final float fluidModifier = client.player.getUnderwaterVisibility();
+
 			if (nightVision) {
-				UNIFORM_DATA[WORLD_EFFECT_MODIFIER] = GameRenderer.getNightVisionStrength(client.player, tick);
+				DATA[WORLD_EFFECT_MODIFIER] = GameRenderer.getNightVisionStrength(client.player, tick);
 			} else if (fluidModifier > 0.0F && client.player.hasStatusEffect(StatusEffects.CONDUIT_POWER)) {
-				UNIFORM_DATA[WORLD_EFFECT_MODIFIER] = fluidModifier;
+				DATA[WORLD_EFFECT_MODIFIER] = fluidModifier;
 			} else {
-				UNIFORM_DATA[WORLD_EFFECT_MODIFIER] = 0.0F;
+				DATA[WORLD_EFFECT_MODIFIER] = 0.0F;
 			}
+
+			DATA[FOG_MODE] = FogStateExtHolder.INSTANCE.getMode();
 		}
+	}
+
+	public static void setRenderSeconds(float renderSeconds) {
+		DATA[RENDER_SECONDS] = renderSeconds;
+	}
+
+	public static void updateEmissiveColor(int color) {
+		DATA[EMISSIVE_COLOR_RED] = ((color >> 24) &  0xFF) / 255f;
+		DATA[EMISSIVE_COLOR_GREEN] = ((color >> 16) &  0xFF) / 255f;
+		DATA[EMISSIVE_COLOR_BLUE] = (color &  0xFF) / 255f;
 	}
 }
