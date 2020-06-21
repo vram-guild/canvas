@@ -67,10 +67,10 @@ vec4 diffuse() {
 
 void main() {
 	cv_FragmentInput fragInput = cv_FragmentInput (
-		texture2D(u_textures, v_texcoord, cv_getFlag(FLAG_UNMIPPED) * -4.0),
+		texture2D(u_textures, v_texcoord, _cv_getFlag(_CV_FLAG_UNMIPPED) * -4.0),
 		v_color,
-		cv_getFlag(FLAG_EMISSIVE) == 1.0,
-		cv_getFlag(FLAG_DISABLE_DIFFUSE) == 0.0,
+		_cv_getFlag(_CV_FLAG_EMISSIVE) == 1.0,
+		_cv_getFlag(_CV_FLAG_DISABLE_DIFFUSE) == 0.0,
 		v_normal
 	);
 
@@ -86,11 +86,11 @@ void main() {
 
     vec4 a = fragOutput.baseColor;
 
-    if (a.a >= 0.5 || cv_getFlag(FLAG_CUTOUT) != 1.0) {
+    if (a.a >= 0.5 || _cv_getFlag(_CV_FLAG_CUTOUT) != 1.0) {
     	a *= fragOutput.emissive ? u_emissiveColor : light();
 
 		#if AO_SHADING_MODE != AO_MODE_NONE && CONTEXT_IS_BLOCK
-			if (cv_getFlag(FLAG_DISABLE_AO) == 0.0) {
+			if (_cv_getFlag(_CV_FLAG_DISABLE_AO) == 0.0) {
 				a *= aoFactor(v_lightcoord);
 			}
 		#endif
