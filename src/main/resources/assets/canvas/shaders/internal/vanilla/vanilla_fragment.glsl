@@ -3,6 +3,7 @@
 #include canvas:shaders/internal/diffuse.glsl
 #include canvas:shaders/internal/flags.glsl
 #include canvas:shaders/internal/fog.glsl
+#include canvas:shaders/api/world.glsl
 #include canvas:shaders/api/fragment_data.glsl
 
 #include canvas:apitarget
@@ -43,16 +44,16 @@ vec4 light() {
 	#if CONTEXT_IS_GUI
 		return vec4(1.0, 1.0, 1.0, 1.0);
 	#else
-		return texture2D(u_lightmap, _cvv_lightcoord);
+		return texture2D(_cvu_lightmap, _cvv_lightcoord);
 	#endif
 }
 
-vec4 diffuse() {
+vec4 _cv_diffuse() {
 	#if DIFFUSE_SHADING_MODE == DIFFUSE_MODE_SKY_ONLY && CONTEXT_IS_BLOCK
-		if (u_world[WORLD_HAS_SKYLIGHT] == 1.0 && u_world[WORLD_NIGHT_VISION] == 0) {
-			float d = 1.0 - v_diffuse;
-			d *= u_world[WORLD_EFFECTIVE_INTENSITY];
-			d *= v_lightCoord.y;
+		if (_cvu_world[WORLD_HAS_SKYLIGHT] == 1.0 && _cvu_world[WORLD_NIGHT_VISION] == 0) {
+			float d = 1.0 - _cvv_diffuse;
+			d *= _cvu_world[WORLD_EFFECTIVE_INTENSITY];
+			d *= _cvv_lightcoord.y;
 			d += 0.03125;
 			d = clamp(1.0 - d, 0.0, 1.0);
 			return vec4(d, d, d, 1.0);
@@ -62,12 +63,14 @@ vec4 diffuse() {
 
 	#elif DIFFUSE_SHADING_MODE != DIFFUSE_MODE_NONE
 		return vec4(_cvv_diffuse, _cvv_diffuse, _cvv_diffuse, 1.0);
+	#else
+		return vec4(1.0, 1.0, 1.0, 1.0);
 	#endif
 }
 
 void main() {
 	cv_FragmentInput fragInput = cv_FragmentInput (
-		texture2D(u_textures, _cvv_texcoord, _cv_getFlag(_CV_FLAG_UNMIPPED) * -4.0),
+		texture2D(_cvu_textures, _cvv_texcoord, _cv_getFlag(_CV_FLAG_UNMIPPED) * -4.0),
 		_cvv_color,
 		_cv_getFlag(_CV_FLAG_EMISSIVE) == 1.0,
 		_cv_getFlag(_CV_FLAG_DISABLE_DIFFUSE) == 0.0,
@@ -87,7 +90,7 @@ void main() {
     vec4 a = fragOutput.baseColor;
 
     if (a.a >= 0.5 || _cv_getFlag(_CV_FLAG_CUTOUT) != 1.0) {
-    	a *= fragOutput.emissive ? u_emissiveColor : light();
+    	a *= fragOutput.emissive ? _cvu_emissiveColor : light();
 
 		#if AO_SHADING_MODE != AO_MODE_NONE && CONTEXT_IS_BLOCK
 			if (_cv_getFlag(_CV_FLAG_DISABLE_AO) == 0.0) {
@@ -97,12 +100,12 @@ void main() {
 
 		#if DIFFUSE_SHADING_MODE != DIFFUSE_MODE_NONE
 			if (fragInput.diffuse) {
-				a *= diffuse();
+				a *= _cv_diffuse();
 			}
 		#endif
     } else {
 		discard;
 	}
 
-	gl_FragColor = fog(a);
+	gl_FragColor = _cv_fog(a);
 }

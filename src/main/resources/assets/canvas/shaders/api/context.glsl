@@ -21,8 +21,7 @@
 // When set to false, lightmaps and other vanilla-specific data may not be valid or present
 #define VANILLA_LIGHTING = TRUE
 
-uniform float u_time;
-uniform sampler2D u_textures;
-uniform sampler2D u_lightmap;
-uniform vec4 u_emissiveColor;
-uniform vec3 u_eye_position;
+uniform sampler2D _cvu_textures;
+uniform sampler2D _cvu_lightmap;
+uniform vec4 _cvu_emissiveColor;
+uniform vec3 _cvu_eye_position;

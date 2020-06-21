@@ -152,32 +152,32 @@ public final class ShaderManager implements ClientTickCallback {
 	}
 
 	private void addStandardUniforms(MaterialShaderImpl shader) {
-		shader.uniformArrayf("u_world", UniformRefreshFrequency.PER_TICK, u -> u.set(WorldDataManager.uniformData()), WorldDataManager.LENGTH);
+		shader.uniformArrayf("_cvu_world", UniformRefreshFrequency.PER_TICK, u -> u.set(WorldDataManager.uniformData()), WorldDataManager.LENGTH);
 
-		shader.uniform1f("u_time", UniformRefreshFrequency.PER_FRAME, u -> u.set(renderSeconds));
+		shader.uniform1f("_cvu_time", UniformRefreshFrequency.PER_FRAME, u -> u.set(renderSeconds));
 
-		shader.uniformSampler2d("u_textures", UniformRefreshFrequency.ON_LOAD, u -> u.set(0));
+		shader.uniformSampler2d("_cvu_textures", UniformRefreshFrequency.ON_LOAD, u -> u.set(0));
 
-		shader.uniformSampler2d("u_lightmap", UniformRefreshFrequency.ON_LOAD, u -> u.set(2));
+		shader.uniformSampler2d("_cvu_lightmap", UniformRefreshFrequency.ON_LOAD, u -> u.set(2));
 
 		// FIX: may need to move because of lightmap move
-		shader.uniformSampler2d("u_dither", UniformRefreshFrequency.ON_LOAD, u -> u.set(5));
+		shader.uniformSampler2d("_cvu_dither", UniformRefreshFrequency.ON_LOAD, u -> u.set(5));
 
 		// FIX: may need to move because of lightmap move
 		//UGLY: needs a better GLSL name
-		shader.uniformSampler2d("u_utility", UniformRefreshFrequency.ON_LOAD, u -> u.set(4));
+		shader.uniformSampler2d("_cvu_utility", UniformRefreshFrequency.ON_LOAD, u -> u.set(4));
 
-		shader.uniform4f("u_emissiveColor", UniformRefreshFrequency.PER_FRAME, u -> {
+		shader.uniform4f("_cvu_emissiveColor", UniformRefreshFrequency.PER_FRAME, u -> {
 			u.set(emissiveColor.x, emissiveColor.y, emissiveColor.z, 1f);
 		});
 
-		shader.uniform3f("u_eye_position", UniformRefreshFrequency.PER_FRAME, u -> {
+		shader.uniform3f("_cvu_eye_position", UniformRefreshFrequency.PER_FRAME, u -> {
 			@SuppressWarnings("resource")
 			final Vec3d eyePos = MinecraftClient.getInstance().player.getCameraPosVec(fractionalTicks);
 			u.set((float) eyePos.x, (float) eyePos.y, (float) eyePos.z);
 		});
 
-		shader.uniform1i("u_fogMode", UniformRefreshFrequency.PER_FRAME, u -> {
+		shader.uniform1i("_cvu_fogMode", UniformRefreshFrequency.PER_FRAME, u -> {
 			u.set(FogStateExtHolder.INSTANCE.getMode());
 		});
 	}

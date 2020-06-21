@@ -237,7 +237,7 @@ public class GlShader {
 		}
 
 		if(Configurator.subtleFog && !context.materialContext.isGui) {
-			result = result.replaceAll("#define SUBTLE_FOG FALSE", "#define SUBTLE_FOG TRUE");
+			result = result.replaceAll("#define _CV_SUBTLE_FOG FALSE", "#define _CV_SUBTLE_FOG TRUE");
 		}
 
 		if(!context.materialContext.isBlock) {

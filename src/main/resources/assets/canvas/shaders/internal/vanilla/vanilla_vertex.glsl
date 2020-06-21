@@ -49,7 +49,7 @@ void main() {
 #endif
 
 #if DIFFUSE_SHADING_MODE != DIFFUSE_MODE_NONE
-	_cvv_diffuse = diffuse(_cv_diffuseNormal(viewCoord, data.vertexNormal));
+	_cvv_diffuse = _cv_diffuse(_cv_diffuseNormal(viewCoord, data.vertexNormal));
 #endif
 
 #if !CONTEXT_IS_GUI

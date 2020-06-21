@@ -14,8 +14,8 @@
 #define DIMENSION_NETHER 0
 #define DIMENSION_END 2
 
-uniform float[8] u_world;
+uniform float[8] _cvu_world;
 
 float effectModifier() {
-    return u_world[WORLD_EFFECT_MODIFIER];
+    return _cvu_world[WORLD_EFFECT_MODIFIER];
 }

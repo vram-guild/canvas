@@ -8,14 +8,14 @@
  * Formula mimics vanilla lighting for plane-aligned quads and is vaguely
  * consistent with Phong lighting ambient + diffuse for others.
  */
-float diffuseBaked(vec3 normal) {
+float _cv_diffuseBaked(vec3 normal) {
     return 0.5 + clamp(abs(normal.x) * 0.1 + (normal.y > 0 ? 0.5 * normal.y : 0.0) + abs(normal.z) * 0.3, 0.0, 0.5);
 }
 
 /**
  * Offers results simular to vanilla in Gui, assumes a fixed transform.
  */
-float diffuseGui(vec3 normal) {
+float _cv_diffuseGui(vec3 normal) {
     // Note that vanilla rendering normally sends item models with raw colors and
     // canvas sends colors unmodified, so we do not need to compensate for any pre-buffer shading
     float light = 0.4
@@ -29,7 +29,7 @@ float diffuseGui(vec3 normal) {
  * Unrotated, non-gui lights.  But not transformed into eye space.
  * Not sure how I want to do that yet.
  */
-float diffuseWorld(vec3 normal) {
+float _cv_diffuseWorld(vec3 normal) {
     float light = 0.4
             + 0.6 * clamp(dot(normal.xyz, vec3(0.16169, 0.808452, -0.565916)), 0.0, 1.0)
             + 0.6 * clamp(dot(normal.xyz, vec3(-0.16169, 0.808452, 0.565916)), 0.0, 1.0);
@@ -37,13 +37,13 @@ float diffuseWorld(vec3 normal) {
     return min(light, 1.0);
 }
 
-float diffuse (vec3 normal) {
+float _cv_diffuse (vec3 normal) {
 #if CONTEXT_IS_GUI
-    return diffuseGui(normal);
+    return _cv_diffuseGui(normal);
 #elif CONTEXT_IS_ITEM
-    return diffuseGui(normal);
+    return _cv_diffuseGui(normal);
 //    return diffuseWorld(normal);
 #else
-    return diffuseBaked(normal);
+    return _cv_diffuseBaked(normal);
 #endif
 }
