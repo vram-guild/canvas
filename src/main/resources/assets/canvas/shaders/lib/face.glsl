@@ -1,3 +1,7 @@
+/******************************************************
+  canvas:shaders/lib/face.glsl
+******************************************************/
+
 #define  FACE_DOWN  0
 #define  FACE_UP    1
 #define  FACE_NORTH 2
@@ -24,8 +28,7 @@ int face(vec3 normal) {
 }
 
 
-// TODO: rename to faceUv
-vec2 uv(vec3 pos, vec3 normal) {
+vec2 faceUv(vec3 pos, vec3 normal) {
     mat3 m = UV_MATRIX[face(normal)];
     vec3 result = m * pos;
     return result.xy;

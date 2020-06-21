@@ -1,3 +1,7 @@
+/******************************************************
+  canvas:shaders/api/world.glsl
+******************************************************/
+
 #define WORLD_EFFECT_MODIFIER 0
 #define WORLD_NIGHT_VISION 1
 #define WORLD_EFFECTIVE_INTENSITY 2

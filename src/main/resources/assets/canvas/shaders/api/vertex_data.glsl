@@ -1,3 +1,7 @@
+/******************************************************
+  canvas:shaders/api/vertex_data.glsl
+******************************************************/
+
 struct cv_VertexData {
 	vec4 vertex; // world space at start, view space at end
 	vec2 spriteUV;

@@ -1,4 +1,8 @@
-#include canvas:shaders/lib/context.glsl
+#include canvas:shaders/api/context.glsl
+
+/******************************************************
+  canvas:shaders/internal/fog.glsl
+******************************************************/
 
 #define  FOG_LINEAR 9729
 #define  FOG_EXP    2048

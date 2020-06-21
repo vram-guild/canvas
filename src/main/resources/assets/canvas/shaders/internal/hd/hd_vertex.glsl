@@ -1,9 +1,13 @@
-#include canvas:shaders/lib/common_header.glsl
-#include canvas:shaders/lib/common_varying.glsl
-#include canvas:shaders/lib/common_vertex_lib.glsl
+#include canvas:shaders/internal/common_header.glsl
+#include canvas:shaders/internal/common_varying.glsl
+#include canvas:shaders/internal/common_vertex_lib.glsl
 #include canvas:shaders/lib/bitwise.glsl
-#include canvas:shaders/lib/diffuse.glsl
-#include canvas:shaders/hd/hd_header.glsl
+#include canvas:shaders/internal/diffuse.glsl
+#include canvas:shaders/internal/hd/hd_header.glsl
+
+/******************************************************
+  canvas:shaders/internal/hd/hd_vertex.glsl
+******************************************************/
 
 attribute vec4 in_color;
 attribute vec2 in_uv;

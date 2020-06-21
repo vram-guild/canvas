@@ -1,3 +1,7 @@
+/******************************************************
+  canvas:shaders/internal/common_vertex.glsl
+******************************************************/
+
 vec2 textureCoord(vec2 coordIn, int matrixIndex) {
 	vec4 temp = gl_TextureMatrix[matrixIndex] * coordIn.xyxy;
 	return temp.xy;

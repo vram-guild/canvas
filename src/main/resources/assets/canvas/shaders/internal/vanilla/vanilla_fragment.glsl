@@ -7,6 +7,10 @@
 
 #include canvas:apitarget
 
+/******************************************************
+  canvas:shaders/internal/vanilla/vanilla_fragment.glsl
+******************************************************/
+
 vec4 aoFactor(vec2 lightCoord) {
 // Don't apply AO for item renders
 #if CONTEXT_IS_BLOCK
@@ -66,14 +70,16 @@ void main() {
 		texture2D(u_textures, v_texcoord, cv_getFlag(FLAG_UNMIPPED) * -4.0),
 		v_color,
 		cv_getFlag(FLAG_EMISSIVE) == 1.0,
-		cv_getFlag(FLAG_DISABLE_DIFFUSE) == 0.0
+		cv_getFlag(FLAG_DISABLE_DIFFUSE) == 0.0,
+		v_normal
 	);
 
 	cv_startFragment(fragInput);
 
 	cv_FragmentOutput fragOutput = cv_FragmentOutput (
 		fragInput.spriteColor  * fragInput.vertexColor,
-		fragInput.emissive
+		fragInput.emissive,
+		v_normal
 	);
 
 	cv_endFragment(fragOutput);

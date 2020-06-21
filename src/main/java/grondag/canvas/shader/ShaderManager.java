@@ -26,7 +26,6 @@ import net.minecraft.util.math.Vec3d;
 
 import net.fabricmc.fabric.api.event.client.ClientTickCallback;
 
-import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.MaterialShaderImpl;
 import grondag.canvas.buffer.packing.RenderCube;
 import grondag.canvas.light.AoVertexClampFunction;
@@ -47,8 +46,6 @@ public final class ShaderManager implements ClientTickCallback {
 	private final SimpleUnorderedArrayList<MaterialShaderImpl> shaders = new SimpleUnorderedArrayList<>();
 
 	private final MaterialShaderImpl defaultShader;
-	private final MaterialShaderImpl waterShader;
-	private final MaterialShaderImpl lavaShader;
 
 	/**
 	 * The number of seconds this world has been rendering since the last render
@@ -94,8 +91,6 @@ public final class ShaderManager implements ClientTickCallback {
 
 		// add default shaders
 		defaultShader= create(ShaderData.DEFAULT_VERTEX_SOURCE, ShaderData.DEFAULT_FRAGMENT_SOURCE);
-		waterShader = create(ShaderData.WATER_VERTEX_SOURCE, ShaderData.WATER_FRAGMENT_SOURCE);
-		lavaShader = create(ShaderData.LAVA_VERTEX_SOURCE, ShaderData.LAVA_FRAGMENT_SOURCE);
 	}
 
 	public void updateEmissiveColor(int color) {
@@ -139,14 +134,6 @@ public final class ShaderManager implements ClientTickCallback {
 
 	public MaterialShaderImpl getDefault() {
 		return defaultShader;
-	}
-
-	public MaterialShaderImpl getWater() {
-		return Configurator.fancyFluids ? waterShader : defaultShader;
-	}
-
-	public MaterialShaderImpl getLava() {
-		return Configurator.fancyFluids ? lavaShader : defaultShader;
 	}
 
 	/**

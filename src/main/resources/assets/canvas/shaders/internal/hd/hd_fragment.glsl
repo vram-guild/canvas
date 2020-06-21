@@ -1,3 +1,7 @@
+/******************************************************
+  canvas:shaders/internal/hd/hd_fragment.glsl
+******************************************************/
+
 vec4 aoFactor(vec2 lightCoord) {
 // Don't apply AO for item renders
 #if CONTEXT_IS_BLOCK

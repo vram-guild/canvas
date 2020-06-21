@@ -1,7 +1,7 @@
 {
 	"layers": [
 		{
-			"vertexSource": "canvas:shaders/default.vert",
+			"vertexSource": "canvas:shaders/material/default.vert",
 			"fragmentSource": "canvas:shaders/material/redstone.frag",
 			"disableAo": false,
 			"disableColorIndex": false,

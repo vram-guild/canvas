@@ -1,4 +1,8 @@
-#include canvas:shaders/lib/context.glsl
+#include canvas:shaders/api/context.glsl
+
+/******************************************************
+  canvas:shaders/internal/diffuse.glsl
+******************************************************/
 
 /**
  * Formula mimics vanilla lighting for plane-aligned quads and is vaguely

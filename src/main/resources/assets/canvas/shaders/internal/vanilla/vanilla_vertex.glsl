@@ -1,12 +1,16 @@
-#include canvas:shaders/lib/common_header.glsl
-#include canvas:shaders/lib/context.glsl
-#include canvas:shaders/lib/common_varying.glsl
-#include canvas:shaders/lib/common_vertex_lib.glsl
-#include canvas:shaders/lib/flags.glsl
-#include canvas:shaders/lib/vertex_data.glsl
-#include canvas:shaders/lib/diffuse.glsl
+#include canvas:shaders/internal/common_header.glsl
+#include canvas:shaders/api/context.glsl
+#include canvas:shaders/internal/common_varying.glsl
+#include canvas:shaders/internal/common_vertex_lib.glsl
+#include canvas:shaders/internal/flags.glsl
+#include canvas:shaders/api/vertex_data.glsl
+#include canvas:shaders/internal/diffuse.glsl
 
 #include canvas:apitarget
+
+/******************************************************
+  canvas:shaders/internal/vanilla/vanilla_vertex.glsl
+******************************************************/
 
 attribute vec4 in_color;
 attribute vec2 in_uv;
@@ -38,6 +42,7 @@ void main() {
 
 	v_texcoord = data.spriteUV;
 	v_color = data.vertexColor;
+	v_normal = data.vertexNormal;
 
 #if CONTEXT_IS_BLOCK
 	v_ao = (in_normal_ao.w + 1.0) * 0.5;

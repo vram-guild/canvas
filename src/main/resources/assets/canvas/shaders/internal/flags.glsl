@@ -1,6 +1,9 @@
-
-#include canvas:shaders/lib/context.glsl
+#include canvas:shaders/api/context.glsl
 #include canvas:shaders/lib/bitwise.glsl
+
+/******************************************************
+  canvas:shaders/internal/flags.glsl
+******************************************************/
 
 #define FLAG_EMISSIVE           0 // 1 for emissive material
 #define FLAG_DISABLE_DIFFUSE    1 // 1 if diffuse shade should not be applied

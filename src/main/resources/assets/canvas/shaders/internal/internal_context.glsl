@@ -1,4 +1,6 @@
-#include canvas:shaders/lib/constant.glsl
+/******************************************************
+  canvas:shaders/internal/internal_context.glsl
+******************************************************/
 
 #define AO_MODE_NORMAL 0
 #define AO_MODE_SUBTLE_ALWAYS 1
@@ -19,24 +21,6 @@
 // will only be enabled if smooth light is also enabled
 #define ENABLE_LIGHT_NOISE FALSE
 
-// true if this is a block context
-#define CONTEXT_IS_BLOCK FALSE
-
-// true if this is an item context
-#define CONTEXT_IS_ITEM FALSE
-
-// true if this is a GUI context
-#define CONTEXT_IS_GUI FALSE
 
 #define USE_FLAT_VARYING FALSE
 
-#define SHADER_TYPE_VERTEX 		0
-#define SHADER_TYPE_FRAGMENT 	1
-
-#define SHADER_TYPE SHADER_TYPE_VERTEX
-
-uniform float u_time;
-uniform sampler2D u_textures;
-uniform sampler2D u_lightmap;
-uniform vec4 u_emissiveColor;
-uniform vec3 u_eye_position;
