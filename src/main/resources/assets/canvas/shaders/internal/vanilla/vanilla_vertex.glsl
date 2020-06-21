@@ -1,7 +1,7 @@
 #include canvas:shaders/internal/common_header.glsl
 #include canvas:shaders/api/context.glsl
-#include canvas:shaders/internal/common_varying.glsl
-#include canvas:shaders/internal/common_vertex_lib.glsl
+#include canvas:shaders/internal/varying.glsl
+#include canvas:shaders/internal/vertex_lib.glsl
 #include canvas:shaders/internal/flags.glsl
 #include canvas:shaders/api/vertex_data.glsl
 #include canvas:shaders/internal/diffuse.glsl
@@ -20,7 +20,7 @@ attribute vec4 in_lightmap;
 void main() {
 	cv_VertexData data = cv_VertexData(
 		gl_Vertex,
-		textureCoord(in_uv, 0),
+		_cv_textureCoord(in_uv, 0),
 		in_color,
 		in_normal_ao.xyz
 	);
@@ -49,7 +49,7 @@ void main() {
 #endif
 
 #if DIFFUSE_SHADING_MODE != DIFFUSE_MODE_NONE
-	_cvv_diffuse = diffuse(diffuseNormal(viewCoord, data.vertexNormal));
+	_cvv_diffuse = diffuse(_cv_diffuseNormal(viewCoord, data.vertexNormal));
 #endif
 
 #if !CONTEXT_IS_GUI

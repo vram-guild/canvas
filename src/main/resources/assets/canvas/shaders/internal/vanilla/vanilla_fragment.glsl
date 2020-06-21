@@ -1,5 +1,5 @@
 #include canvas:shaders/internal/common_header.glsl
-#include canvas:shaders/internal/common_varying.glsl
+#include canvas:shaders/internal/varying.glsl
 #include canvas:shaders/internal/diffuse.glsl
 #include canvas:shaders/internal/flags.glsl
 #include canvas:shaders/internal/fog.glsl
