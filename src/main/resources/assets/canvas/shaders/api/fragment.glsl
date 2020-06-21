@@ -35,12 +35,12 @@ struct cv_FragmentData {
 	vec4 vertexColor;
 
 	/*
-	 * True if the this fragment is emissive. Currently this will be true
-	 * only if the model material is marked emissive before buffering.
+	 * Emissivity of this fragment is emissive. Currently this will be 1.0
+	 * if the model material is marked emissive before buffering and zero otherwise.
 	 *
 	 * Future enhancements will allow for emissive texture maps also.
 	 */
-	bool emissive;
+	float emissivity;
 
 	/*
 	 * True if the this fragment should receive diffuse shading.

@@ -59,7 +59,7 @@ void main() {
 	cv_FragmentData fragData = cv_FragmentData (
 		texture2D(_cvu_textures, _cvv_texcoord, _cv_getFlag(_CV_FLAG_UNMIPPED) * -4.0),
 		_cvv_color,
-		cv_matEmissive(),
+		cv_matEmissive() ? 1.0 : 0.0,
 		!cv_matDisableDiffuse(),
 		!cv_matDisableAo(),
 		_cvv_normal,
@@ -71,7 +71,7 @@ void main() {
     vec4 a = fragData.spriteColor * fragData.vertexColor;
 
     if (a.a >= 0.5 || _cv_getFlag(_CV_FLAG_CUTOUT) != 1.0) {
-    	a *= fragData.emissive ? cv_emissiveColor() : light(fragData);
+    	a *= mix(light(fragData), cv_emissiveColor(), fragData.emissivity);
 
 		#if AO_SHADING_MODE != AO_MODE_NONE && CONTEXT_IS_BLOCK
 			if (fragData.ao) {
