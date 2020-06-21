@@ -13,6 +13,12 @@
 // true if this is a GUI context
 #define CONTEXT_IS_GUI FALSE
 
+#define SHADER_PASS_SOLID 		0
+#define SHADER_PASS_DECAL 		1
+#define SHADER_PASS_TRANSLUCENT	2
+
+#define SHADER_PASS SHADER_PASS_SOLID
+
 #define SHADER_TYPE_VERTEX 		0
 #define SHADER_TYPE_FRAGMENT 	1
 

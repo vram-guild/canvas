@@ -5,12 +5,8 @@
   canvas:shaders/material/redstone.frag
 ******************************************************/
 
-void cv_startFragment(inout cv_FragmentInput inputData) {
-	bool lit = (inputData.spriteColor.r - inputData.spriteColor.g) > 0.15f || luminance(inputData.spriteColor.rgb) > 0.9;
-	inputData.emissive = lit;
-	inputData.diffuse = !lit;
-}
-
-void cv_endFragment(inout cv_FragmentOutput outputData) {
-	// NOOP
+void cv_startFragment(inout cv_FragmentData fragData) {
+	bool lit = (fragData.spriteColor.r - fragData.spriteColor.g) > 0.15f || luminance(fragData.spriteColor.rgb) > 0.9;
+	fragData.emissive = lit;
+	fragData.diffuse = !lit;
 }

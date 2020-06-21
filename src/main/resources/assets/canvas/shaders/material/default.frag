@@ -4,10 +4,6 @@
   canvas:shaders/material/default.frag
 ******************************************************/
 
-void cv_startFragment(inout cv_FragmentInput inputData) {
-	// NOOP
-}
-
-void cv_endFragment(inout cv_FragmentOutput outputData) {
+void cv_startFragment(inout cv_FragmentData fragData) {
 	// NOOP
 }

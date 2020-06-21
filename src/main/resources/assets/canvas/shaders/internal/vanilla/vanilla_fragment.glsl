@@ -70,7 +70,7 @@ vec4 _cv_diffuse() {
 }
 
 void main() {
-	cv_FragmentInput fragInput = cv_FragmentInput (
+	cv_FragmentData fragData = cv_FragmentData (
 		texture2D(_cvu_textures, _cvv_texcoord, _cv_getFlag(_CV_FLAG_UNMIPPED) * -4.0),
 		_cvv_color,
 		_cv_getFlag(_CV_FLAG_EMISSIVE) == 1.0,
@@ -78,20 +78,12 @@ void main() {
 		_cvv_normal
 	);
 
-	cv_startFragment(fragInput);
+	cv_startFragment(fragData);
 
-	cv_FragmentOutput fragOutput = cv_FragmentOutput (
-		fragInput.spriteColor  * fragInput.vertexColor,
-		fragInput.emissive,
-		_cvv_normal
-	);
-
-	cv_endFragment(fragOutput);
-
-    vec4 a = fragOutput.baseColor;
+    vec4 a = fragData.spriteColor * fragData.vertexColor;
 
     if (a.a >= 0.5 || _cv_getFlag(_CV_FLAG_CUTOUT) != 1.0) {
-    	a *= fragOutput.emissive ? cv_emissiveColor() : light();
+    	a *= fragData.emissive ? cv_emissiveColor() : light();
 
 		#if AO_SHADING_MODE != AO_MODE_NONE && CONTEXT_IS_BLOCK
 			if (_cv_getFlag(_CV_FLAG_DISABLE_AO) == 0.0) {
@@ -100,7 +92,7 @@ void main() {
 		#endif
 
 		#if DIFFUSE_SHADING_MODE != DIFFUSE_MODE_NONE
-			if (fragInput.diffuse) {
+			if (fragData.diffuse) {
 				a *= _cv_diffuse();
 			}
 		#endif

@@ -221,51 +221,56 @@ public class GlShader {
 		String result = getShaderSource();
 
 		if (shaderType == GL21.GL_FRAGMENT_SHADER) {
-			result = result.replaceAll("#define SHADER_TYPE SHADER_TYPE_VERTEX", "#define SHADER_TYPE SHADER_TYPE_FRAGMENT");
+			result = StringUtils.replace(result, "#define SHADER_TYPE SHADER_TYPE_VERTEX", "#define SHADER_TYPE SHADER_TYPE_FRAGMENT");
+		}
+
+		if (context.type != ShaderContext.Type.SOLID) {
+			final String sub = context.type == ShaderContext.Type.DECAL ? "#define SHADER_PASS SHADER_PASS_DECAL" : "#define SHADER_PASS SHADER_PASS_TRANSLUCENT";
+			result = StringUtils.replace(result, "#define SHADER_PASS SHADER_PASS_SOLID", sub);
 		}
 
 		if(context.materialContext.isBlock) {
-			result = result.replaceAll("#define CONTEXT_IS_BLOCK FALSE", "#define CONTEXT_IS_BLOCK TRUE");
+			result = StringUtils.replace(result, "#define CONTEXT_IS_BLOCK FALSE", "#define CONTEXT_IS_BLOCK TRUE");
 		}
 
 		if(context.materialContext.isItem) {
-			result = result.replaceAll("#define CONTEXT_IS_ITEM FALSE", "#define CONTEXT_IS_ITEM TRUE");
+			result = StringUtils.replace(result, "#define CONTEXT_IS_ITEM FALSE", "#define CONTEXT_IS_ITEM TRUE");
 		}
 
 		if(context.materialContext.isGui) {
-			result = result.replaceAll("#define CONTEXT_IS_GUI FALSE", "#define CONTEXT_IS_GUI TRUE");
+			result = StringUtils.replace(result, "#define CONTEXT_IS_GUI FALSE", "#define CONTEXT_IS_GUI TRUE");
 		}
 
 		if(Configurator.subtleFog && !context.materialContext.isGui) {
-			result = result.replaceAll("#define _CV_SUBTLE_FOG FALSE", "#define _CV_SUBTLE_FOG TRUE");
+			result = StringUtils.replace(result, "#define _CV_SUBTLE_FOG FALSE", "#define _CV_SUBTLE_FOG TRUE");
 		}
 
 		if(!context.materialContext.isBlock) {
-			result = result.replaceAll("#define CONTEXT_IS_BLOCK TRUE", "#define CONTEXT_IS_BLOCK FALSE");
+			result = StringUtils.replace(result, "#define CONTEXT_IS_BLOCK TRUE", "#define CONTEXT_IS_BLOCK FALSE");
 		}
 
 		if(Configurator.hdLightmaps()) {
-			result = result.replaceAll("#define VANILLA_LIGHTING TRUE", "#define VANILLA_LIGHTING FALSE");
+			result = StringUtils.replace(result, "#define VANILLA_LIGHTING TRUE", "#define VANILLA_LIGHTING FALSE");
 
 			if (Configurator.lightmapNoise) {
-				result = result.replaceAll("#define ENABLE_LIGHT_NOISE FALSE", "#define ENABLE_LIGHT_NOISE TRUE");
+				result = StringUtils.replace(result, "#define ENABLE_LIGHT_NOISE FALSE", "#define ENABLE_LIGHT_NOISE TRUE");
 			}
 		}
 
 		if(Configurator.aoShadingMode != AoMode.NORMAL) {
-			result = result.replaceAll("#define AO_SHADING_MODE AO_MODE_NORMAL",
+			result = StringUtils.replace(result, "#define AO_SHADING_MODE AO_MODE_NORMAL",
 					"#define AO_SHADING_MODE AO_MODE_" + Configurator.aoShadingMode.name());
 		}
 
 		if(Configurator.diffuseShadingMode != DiffuseMode.NORMAL) {
-			result = result.replaceAll("#define DIFFUSE_SHADING_MODE DIFFUSE_MODE_NORMAL",
+			result = StringUtils.replace(result, "#define DIFFUSE_SHADING_MODE DIFFUSE_MODE_NORMAL",
 					"#define DIFFUSE_SHADING_MODE DIFFUSE_MODE_" + Configurator.diffuseShadingMode.name());
 		}
 
 		if(CanvasGlHelper.useGpuShader4() ) {
-			result = result.replaceAll("#define USE_FLAT_VARYING FALSE", "#define USE_FLAT_VARYING TRUE");
+			result = StringUtils.replace(result, "#define USE_FLAT_VARYING FALSE", "#define USE_FLAT_VARYING TRUE");
 		} else {
-			result = result.replaceAll("#extension GL_EXT_gpu_shader4 : enable", "");
+			result = StringUtils.replace(result, "#extension GL_EXT_gpu_shader4 : enable", "");
 		}
 
 		return result;
