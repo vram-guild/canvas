@@ -51,6 +51,14 @@ struct cv_FragmentData {
 	bool diffuse;
 
 	/*
+	 * True if the this fragment should receive ambient occlusion shading.
+	 * Typical use is to disable ao shading on emissve surfaces.
+	 *
+	 * Note this may be ignored with non-vanilla lighting models and settings.
+	 */
+	bool ao;
+
+	/*
 	 * Interpolated vertex normal for this fragment.
 	 * Renderer will use this to compute lighting.
 	 *

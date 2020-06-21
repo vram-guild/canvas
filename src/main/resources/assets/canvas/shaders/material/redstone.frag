@@ -6,7 +6,8 @@
 ******************************************************/
 
 void cv_startFragment(inout cv_FragmentData fragData) {
-	bool lit = (fragData.spriteColor.r - fragData.spriteColor.g) > 0.15f || luminance(fragData.spriteColor.rgb) > 0.9;
+	bool lit = (fragData.spriteColor.r - fragData.spriteColor.g) > 0.15f || cv_luminance(fragData.spriteColor.rgb) > 0.9;
 	fragData.emissive = lit;
 	fragData.diffuse = !lit;
+	fragData.ao = !lit;
 }

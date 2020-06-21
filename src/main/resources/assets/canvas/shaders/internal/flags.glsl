@@ -24,5 +24,5 @@
 #endif
 
 float _cv_getFlag(int flagId) {
-	return bitValue(_cvv_flags, flagId);
+	return cv_bitValue(_cvv_flags, flagId);
 }

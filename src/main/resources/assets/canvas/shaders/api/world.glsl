@@ -74,27 +74,27 @@ float cv_moonSize() {
  * True when the currently rendering world has a sky with a light source.
  */
 bool cv_worldHasSkylight() {
-	return bitValue(_cvu_world[_CV_FLAGS_0], _CV_FLAG0_HAS_SKYLIGHT) == 1;
+	return cv_bitValue(_cvu_world[_CV_FLAGS_0], _CV_FLAG0_HAS_SKYLIGHT) == 1.0;
 }
 
 /*
  * True when the currently rendering world is the Overworld.
  */
 bool cv_isWorldTheOverworld() {
-	return bitValue(_cvu_world[_CV_FLAGS_0], _CV_FLAG0_IS_OVERWORLD) == 1;
+	return cv_bitValue(_cvu_world[_CV_FLAGS_0], _CV_FLAG0_IS_OVERWORLD) == 1.0;
 }
 
 /*
  * True when the currently rendering world is the Nether.
  */
 bool cv_isWorldTheNether() {
-	return bitValue(_cvu_world[_CV_FLAGS_0], _CV_FLAG0_IS_NETHER) == 1;
+	return cv_bitValue(_cvu_world[_CV_FLAGS_0], _CV_FLAG0_IS_NETHER) == 1.0;
 }
 
 /*
  * True when the currently rendering world is the End.
  */
 bool cv_isWorldTheEnd() {
-	return bitValue(_cvu_world[_CV_FLAGS_0], _CV_FLAG0_IS_END) == 1;
+	return cv_bitValue(_cvu_world[_CV_FLAGS_0], _CV_FLAG0_IS_END) == 1.0;
 }
 

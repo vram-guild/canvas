@@ -1,5 +1,7 @@
 /******************************************************
   canvas:shaders/lib/face.glsl
+
+  Utilities for deriving facing and face-related attributes.
 ******************************************************/
 
 #define  FACE_DOWN  0
@@ -9,7 +11,7 @@
 #define  FACE_WEST  4
 #define  FACE_EAST  5
 
-const mat3[6] UV_MATRIX = mat3[6](
+const mat3[6] CV_UV_MATRIX = mat3[6](
         mat3(1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0),
         mat3(1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0),
         mat3(1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0),
@@ -18,7 +20,13 @@ const mat3[6] UV_MATRIX = mat3[6](
         mat3(0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0)
 );
 
-int face(vec3 normal) {
+/*
+ * Returns the FACE_ constant most consistent with the
+ * provided world-space normal.
+ *
+ * Will return garbage for normals in screen space.
+ */
+int cv_face(vec3 normal) {
     vec3 a = abs(normal);
     float m = max(max(a.x, a.y), a.z);
 
@@ -27,8 +35,17 @@ int face(vec3 normal) {
                     : (normal.z > 0 ? FACE_SOUTH : FACE_NORTH);
 }
 
-
-vec2 faceUv(vec3 pos, vec3 normal) {
+/*
+ * Estimates UV coordinates for a world-space position
+ * and world-space normal, assuming texture coordinates
+ * are from the 0,0 face corner to the opposite corner.
+ *
+ * The result is similar to "locked-uv" coordinate mapping
+ * in block/item models.
+ *
+ * Will return garbage for vertex or normals in screen space.
+ */
+vec2 cv_faceUv(vec3 pos, vec3 normal) {
     mat3 m = UV_MATRIX[face(normal)];
     vec3 result = m * pos;
     return result.xy;
