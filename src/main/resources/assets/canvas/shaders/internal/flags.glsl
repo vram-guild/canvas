@@ -17,12 +17,12 @@
 #if USE_FLAT_VARYING
     // may be faster when available and
     // prevents problems on some NVidia cards/drives
-    flat varying float _cv_flags;
+    flat varying float _cvv_flags;
 #else
     // flat no available on mesa drivers
-    invariant varying float _cv_flags;
+    invariant varying float _cvv_flags;
 #endif
 
 float _cv_getFlag(int flagId) {
-	return bitValue(_cv_flags, flagId);
+	return bitValue(_cvv_flags, flagId);
 }

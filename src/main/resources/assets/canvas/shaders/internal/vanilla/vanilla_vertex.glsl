@@ -27,7 +27,7 @@ void main() {
 
 	// Adding +0.5 prevents striping or other strangeness in flag-dependent rendering
 	// due to FP error on some cards/drivers.  Also made varying attribute invariant (rolls eyes at OpenGL)
-	_cv_flags = in_lightmap.b + 0.5;
+	_cvv_flags = in_lightmap.b + 0.5;
 
 	cv_startVertex(data);
 
@@ -40,21 +40,21 @@ void main() {
 
 	cv_endVertex(data);
 
-	v_texcoord = data.spriteUV;
-	v_color = data.vertexColor;
-	v_normal = data.vertexNormal;
+	_cvv_texcoord = data.spriteUV;
+	_cvv_color = data.vertexColor;
+	_cvv_normal = data.vertexNormal;
 
 #if CONTEXT_IS_BLOCK
-	v_ao = (in_normal_ao.w + 1.0) * 0.5;
+	_cvv_ao = (in_normal_ao.w + 1.0) * 0.5;
 #endif
 
 #if DIFFUSE_SHADING_MODE != DIFFUSE_MODE_NONE
-   v_diffuse = diffuse(diffuseNormal(viewCoord, data.vertexNormal));
+	_cvv_diffuse = diffuse(diffuseNormal(viewCoord, data.vertexNormal));
 #endif
 
 #if !CONTEXT_IS_GUI
 	// the lightmap texture matrix is scaled to 1/256 and then offset + 8
 	// it is also clamped to repeat and has linear min/mag
-	v_lightcoord = in_lightmap.rg * 0.00390625 + 0.03125;
+	_cvv_lightcoord = in_lightmap.rg * 0.00390625 + 0.03125;
 #endif
 }

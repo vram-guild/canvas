@@ -15,7 +15,7 @@ vec4 aoFactor(vec2 lightCoord) {
 // Don't apply AO for item renders
 #if CONTEXT_IS_BLOCK
 
-	float ao = v_ao;
+	float ao = _cvv_ao;
 
     #if AO_SHADING_MODE == AO_MODE_SUBTLE_BLOCK_LIGHT || AO_SHADING_MODE == AO_MODE_SUBTLE_ALWAYS
         // accelerate the transition from 0.4 (should be the minimum) to 1.0
@@ -43,7 +43,7 @@ vec4 light() {
 	#if CONTEXT_IS_GUI
 		return vec4(1.0, 1.0, 1.0, 1.0);
 	#else
-		return texture2D(u_lightmap, v_lightcoord);
+		return texture2D(u_lightmap, _cvv_lightcoord);
 	#endif
 }
 
@@ -57,21 +57,21 @@ vec4 diffuse() {
 			d = clamp(1.0 - d, 0.0, 1.0);
 			return vec4(d, d, d, 1.0);
 		} else {
-			return vec4(v_diffuse, v_diffuse, v_diffuse, 1.0);
+			return vec4(_cvv_diffuse, _cvv_diffuse, _cvv_diffuse, 1.0);
 		}
 
 	#elif DIFFUSE_SHADING_MODE != DIFFUSE_MODE_NONE
-		return vec4(v_diffuse, v_diffuse, v_diffuse, 1.0);
+		return vec4(_cvv_diffuse, _cvv_diffuse, _cvv_diffuse, 1.0);
 	#endif
 }
 
 void main() {
 	cv_FragmentInput fragInput = cv_FragmentInput (
-		texture2D(u_textures, v_texcoord, _cv_getFlag(_CV_FLAG_UNMIPPED) * -4.0),
-		v_color,
+		texture2D(u_textures, _cvv_texcoord, _cv_getFlag(_CV_FLAG_UNMIPPED) * -4.0),
+		_cvv_color,
 		_cv_getFlag(_CV_FLAG_EMISSIVE) == 1.0,
 		_cv_getFlag(_CV_FLAG_DISABLE_DIFFUSE) == 0.0,
-		v_normal
+		_cvv_normal
 	);
 
 	cv_startFragment(fragInput);
@@ -79,7 +79,7 @@ void main() {
 	cv_FragmentOutput fragOutput = cv_FragmentOutput (
 		fragInput.spriteColor  * fragInput.vertexColor,
 		fragInput.emissive,
-		v_normal
+		_cvv_normal
 	);
 
 	cv_endFragment(fragOutput);
@@ -91,7 +91,7 @@ void main() {
 
 		#if AO_SHADING_MODE != AO_MODE_NONE && CONTEXT_IS_BLOCK
 			if (_cv_getFlag(_CV_FLAG_DISABLE_AO) == 0.0) {
-				a *= aoFactor(v_lightcoord);
+				a *= aoFactor(_cvv_lightcoord);
 			}
 		#endif
 
