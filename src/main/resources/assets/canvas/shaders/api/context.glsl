@@ -31,6 +31,3 @@
 
 // When set to false, lightmaps and other vanilla-specific data may not be valid or present
 #define VANILLA_LIGHTING = TRUE
-
-uniform sampler2D _cvu_textures;
-uniform sampler2D _cvu_lightmap;

@@ -20,9 +20,13 @@ attribute vec4 in_lightmap;
 void main() {
 	cv_VertexData data = cv_VertexData(
 		gl_Vertex,
-		_cv_textureCoord(in_uv, 0),
+		in_uv,
 		in_color,
-		in_normal_ao.xyz
+		in_normal_ao.xyz,
+		// Lightmap texture coorinates come in as 0-256.
+		// Scale and offset slightly to hit center pixels
+		// vanilla does this with a texture matrix
+		in_lightmap.rg * 0.00390625 + 0.03125
 	);
 
 	// Adding +0.5 prevents striping or other strangeness in flag-dependent rendering
@@ -31,11 +35,14 @@ void main() {
 
 	cv_startVertex(data);
 
+	data.spriteUV = _cv_textureCoord(data.spriteUV, 0);
+
 	vec4 viewCoord = gl_ModelViewMatrix * data.vertex;
 	gl_ClipVertex = viewCoord;
 	gl_FogFragCoord = length(viewCoord.xyz);
 
 	data.vertex = gl_ModelViewProjectionMatrix * data.vertex;
+
 	gl_Position = data.vertex;
 
 	cv_endVertex(data);
@@ -53,8 +60,7 @@ void main() {
 #endif
 
 #if !CONTEXT_IS_GUI
-	// the lightmap texture matrix is scaled to 1/256 and then offset + 8
-	// it is also clamped to repeat and has linear min/mag
-	_cvv_lightcoord = in_lightmap.rg * 0.00390625 + 0.03125;
+	_cvv_lightcoord = data.light;
 #endif
+
 }

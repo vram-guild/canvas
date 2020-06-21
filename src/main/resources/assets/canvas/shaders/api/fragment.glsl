@@ -1,5 +1,5 @@
 /******************************************************
-  canvas:shaders/api/fragment_data.glsl
+  canvas:shaders/api/fragment.glsl
 ******************************************************/
 
 /*
@@ -57,4 +57,19 @@ struct cv_FragmentData {
 	 * Future enhancements will allow for normal texture maps also.
 	 */
 	vec3 vertexNormal;
+
+	/*
+	 * Block and sky light intensity for this fragment as 0 to 1 values.
+	 * Block is X and sky is Y.
+	 *
+	 * Depending on the context or lighting model in effect, this
+	 * may be an interpolated vertex value, a value from
+	 * a texture lookup, or it may not be populated or used.
+	 *
+	 * Recommendation is to avoid using or modifying this value
+	 * unless VANILLA_LIGHTING = TRUE.
+	 *
+	 * The emissive flag is generally a better alternative.
+	 */
+	vec2 light;
 };

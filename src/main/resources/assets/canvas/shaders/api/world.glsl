@@ -53,7 +53,7 @@ float cv_ambientIntensity() {
  * Gamma-corrected max light color from lightmap texture.
  * Updated whenever lightmap texture is updated.
  *
- * Multiply full-brightness outputs by this to be consistent
+ * Multiply emissive outputs by this to be consistent
  * with the game's brightness settings.
  *
  * Note that Canvas normally handles this automatically.

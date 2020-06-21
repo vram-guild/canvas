@@ -41,20 +41,20 @@ vec4 aoFactor(vec2 lightCoord) {
 #endif
 }
 
-vec4 light() {
+vec4 light(vec2 lightCoord) {
 	#if CONTEXT_IS_GUI
 		return vec4(1.0, 1.0, 1.0, 1.0);
 	#else
-		return texture2D(_cvu_lightmap, _cvv_lightcoord);
+		return texture2D(_cvu_lightmap, lightCoord);
 	#endif
 }
 
-vec4 _cv_diffuse() {
+vec4 _cv_diffuse(vec2 lightCoord) {
 	#if DIFFUSE_SHADING_MODE == DIFFUSE_MODE_SKY_ONLY && CONTEXT_IS_BLOCK
 		if (cv_worldHasSkylight() && !cv_playerHasNightVision()) {
 			float d = 1.0 - _cvv_diffuse;
 			d *= cv_effectModifier();
-			d *= _cvv_lightcoord.y;
+			d *= lightCoord.y;
 			d += 0.03125;
 			d = clamp(1.0 - d, 0.0, 1.0);
 			return vec4(d, d, d, 1.0);
@@ -75,7 +75,8 @@ void main() {
 		_cvv_color,
 		_cv_getFlag(_CV_FLAG_EMISSIVE) == 1.0,
 		_cv_getFlag(_CV_FLAG_DISABLE_DIFFUSE) == 0.0,
-		_cvv_normal
+		_cvv_normal,
+		_cvv_lightcoord
 	);
 
 	cv_startFragment(fragData);
@@ -83,17 +84,17 @@ void main() {
     vec4 a = fragData.spriteColor * fragData.vertexColor;
 
     if (a.a >= 0.5 || _cv_getFlag(_CV_FLAG_CUTOUT) != 1.0) {
-    	a *= fragData.emissive ? cv_emissiveColor() : light();
+    	a *= fragData.emissive ? cv_emissiveColor() : light(fragData.light);
 
 		#if AO_SHADING_MODE != AO_MODE_NONE && CONTEXT_IS_BLOCK
 			if (_cv_getFlag(_CV_FLAG_DISABLE_AO) == 0.0) {
-				a *= aoFactor(_cvv_lightcoord);
+				a *= aoFactor(fragData.light);
 			}
 		#endif
 
 		#if DIFFUSE_SHADING_MODE != DIFFUSE_MODE_NONE
 			if (fragData.diffuse) {
-				a *= _cv_diffuse();
+				a *= _cv_diffuse(fragData.light);
 			}
 		#endif
     } else {
