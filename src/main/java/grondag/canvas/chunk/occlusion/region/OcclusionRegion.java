@@ -31,7 +31,6 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 
 import net.minecraft.block.BlockRenderType;
 import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
 
 public abstract class OcclusionRegion {
 	private final IntArrayFIFOQueue queue = new IntArrayFIFOQueue();
@@ -85,11 +84,11 @@ public abstract class OcclusionRegion {
 		final BlockState blockState = blockStateAtIndex(index);
 
 		// TODO: remove or make configurable
-		final boolean isHack = blockState.getBlock() == Blocks.WHITE_STAINED_GLASS;
+		//		final boolean isHack = blockState.getBlock() == Blocks.WHITE_STAINED_GLASS;
 
 		if(blockState.getRenderType() != BlockRenderType.INVISIBLE || !blockState.getFluidState().isEmpty()) {
-			setVisibility(index, true, closedAtRelativePos(blockState, x, y, z) || isHack);
-			//setVisibility(index, true, closedAtRelativePos(blockState, x, y, z));
+			//			setVisibility(index, true, closedAtRelativePos(blockState, x, y, z) || isHack);
+			setVisibility(index, true, closedAtRelativePos(blockState, x, y, z));
 		}
 	}
 

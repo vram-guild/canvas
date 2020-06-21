@@ -3,9 +3,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
  * of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
@@ -24,20 +24,13 @@ import net.fabricmc.fabric.api.renderer.v1.RendererAccess;
 
 import grondag.canvas.apiimpl.Canvas;
 
-
-//TODO: allow for shaders to be defined based on Block materials. Apply only to default material.
-
 //FIX: lighting on dodecs (again)
 //FIX: depth for campfire smoke / water
 //FIX: track lightmap occupancy
-//TODO: #include preprocessor directive for glsl
 //TODO: separate all uniform/variant-dependent elements to separate glsl libs
 //TODO: configurable disable chunk matrix
-//TODO: configurable compact vertex formats - GPU side  white, face, unlit, pixel-aligned, etc.
-//TODO: configurable cutout single pass, separate pass may give early cull in solid
 //FEAT: complete item rendering
 //FEAT: custom samplers
-//FEAT: GLSL pre-processor
 //FEAT: fancy water
 //FEAT: fancy lava
 //PERF: disable lava/water texture animation (configurable)
