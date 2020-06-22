@@ -52,14 +52,9 @@ public class ProtoRenderRegion extends AbstractRenderRegion {
 	final ShortArrayList blockEntityPos = new ShortArrayList();
 	public final ObjectArrayList<BlockEntity> blockEntities = new ObjectArrayList<>();
 
-	/**
-	 * See {@link BuiltRenderRegion#backfaceCullFlags}
-	 */
-	public int backfaceCullFlags;
-
 	PaletteCopy mainSectionCopy;
 
-	private ProtoRenderRegion prepare(ClientWorld world, BlockPos origin, int backfaceCullFlags) {
+	private ProtoRenderRegion prepare(ClientWorld world, BlockPos origin) {
 		if(ChunkRebuildCounters.ENABLED) {
 			ChunkRebuildCounters.startCopy();
 		}
@@ -81,8 +76,6 @@ public class ProtoRenderRegion extends AbstractRenderRegion {
 		this.chunkBaseX = chunkBaseX;
 		this.chunkBaseY = chunkBaseY;
 		this.chunkBaseZ = chunkBaseZ;
-
-		this.backfaceCullFlags = backfaceCullFlags;
 
 		final WorldChunk mainChunk = world.getChunk(chunkBaseX + 1, chunkBaseZ + 1);
 		mainSectionCopy = ChunkPaletteCopier.captureCopy(mainChunk, 1 + chunkBaseY);
@@ -240,9 +233,9 @@ public class ProtoRenderRegion extends AbstractRenderRegion {
 
 	private static final ArrayBlockingQueue<ProtoRenderRegion> POOL = new ArrayBlockingQueue<>(256);
 
-	public static ProtoRenderRegion claim(ClientWorld world, BlockPos origin, int backfaceCullFlags) {
+	public static ProtoRenderRegion claim(ClientWorld world, BlockPos origin) {
 		final ProtoRenderRegion result = POOL.poll();
-		return (result == null ? new ProtoRenderRegion() : result).prepare(world, origin, backfaceCullFlags);
+		return (result == null ? new ProtoRenderRegion() : result).prepare(world, origin);
 	}
 
 	private static void release(ProtoRenderRegion region) {

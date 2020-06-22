@@ -23,7 +23,6 @@ public class RegionData {
 
 	final ObjectArrayList<BlockEntity> blockEntities = new ObjectArrayList<>();
 	int[] occlusionData = null;
-	int backfaceCullFlags;
 
 	@Nullable int[] translucentState;
 
@@ -44,12 +43,7 @@ public class RegionData {
 		return occlusionData;
 	}
 
-	public int backfaceCullFlags() {
-		return backfaceCullFlags;
-	}
-
-	public void complete(int[] occlusionData, int backfaceCullFlags) {
+	public void complete(int[] occlusionData) {
 		this.occlusionData = occlusionData;
-		this.backfaceCullFlags = backfaceCullFlags;
 	}
 }

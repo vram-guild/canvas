@@ -35,7 +35,6 @@ import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 
 import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.RenderMaterialImpl.CompositeMaterial.DrawableMaterial;
-import grondag.canvas.chunk.BuiltRenderRegion;
 import grondag.canvas.chunk.FastRenderRegion;
 import grondag.canvas.chunk.ProtoRenderRegion;
 import grondag.canvas.chunk.RenderRegionAddressHelper;
@@ -58,15 +57,6 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<FastRenderR
 
 	private int cullCompletionFlags;
 	private int cullResultFlags;
-
-	/**
-	 * See {@link BuiltRenderRegion#backfaceCullFlags}
-	 */
-	private int backfaceCullFlags;
-
-	public int backfaceCullFlags() {
-		return backfaceCullFlags;
-	}
 
 	public TerrainRenderContext() {
 		region = new FastRenderRegion(this);
@@ -95,7 +85,6 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<FastRenderR
 		addedBlockEntities.clear();
 		removedBlockEntities.clear();
 		region.prepare(protoRegion);
-		backfaceCullFlags = protoRegion.backfaceCullFlags;
 
 		if(Configurator.lightSmoothing) {
 			//            final long start = counter.startRun();
@@ -113,7 +102,7 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<FastRenderR
 		try {
 			aoCalc.prepare(RenderRegionAddressHelper.interiorIndex(blockPos));
 			prepareForBlock(blockState, blockPos, model.useAmbientOcclusion(), -1);
-			cullCompletionFlags = backfaceCullFlags;
+			cullCompletionFlags = 0;
 			cullResultFlags = 0;
 			((FabricBakedModel) model).emitBlockQuads(region, blockState, blockPos, randomSupplier, this);
 		} catch (final Throwable var9) {

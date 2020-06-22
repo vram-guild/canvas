@@ -54,8 +54,6 @@
 	"config.canvas.help.pad_translucent_formats" : "Pad vertex data in chunks with multiple;formats. Significantly increases frame rate;at cost of some wasted memory.",
 	"config.canvas.value.fix_luminous_block_shade": "Prevent Luminous Block Shading",
 	"config.canvas.help.fix_luminous_block_shade": "Prevent Glowstone and other blocks that emit;light from casting shade on nearby blocks.",
-	"config.canvas.value.terrain_backface_culling" : "Terrain Backface Culling",
-	"config.canvas.help.terrain_backface_culling" : "Distant terrain will omit polygons facing away from player. Experimental.;May or may not improve performance.",
 	"config.canvas.value.terrain_setup_off_thread" : "Parallel Terrain Setup",
 	"config.canvas.help.terrain_setup_off_thread" : "Terrain setup done off the main render thread. Increases FPS when moving.;May see occasional flashes of blank chunks",
 	"config.canvas.value.enable_vao" : "Use Vertex Array Objects",

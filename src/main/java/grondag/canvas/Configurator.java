@@ -82,9 +82,6 @@ public class Configurator {
 		@Comment("Prevent Glowstone and other blocks that emit light from casting shade on nearby blocks.")
 		boolean fixLuminousBlockShading = true;
 
-		@Comment("Distant terrain will omit back-facing polygons. Experimental.  May or may not improve performance.")
-		boolean terrainBackfaceCulling = false;
-
 		@Comment("Terrain setup done off the main render thread. Increases FPS when moving. May see occasional flashes of blank chunks")
 		boolean terrainSetupOffThread = true;
 
@@ -142,7 +139,6 @@ public class Configurator {
 	public static boolean preventDepthFighting = DEFAULTS.preventDepthFighting;
 	public static boolean clampExteriorVertices = DEFAULTS.clampExteriorVertices;
 	public static boolean fixLuminousBlockShading = DEFAULTS.fixLuminousBlockShading;
-	public static boolean terrainBackfaceCulling = DEFAULTS.terrainBackfaceCulling;
 	public static boolean terrainSetupOffThread = DEFAULTS.terrainSetupOffThread;
 	private static boolean enableVao = DEFAULTS.enableVao;
 
@@ -204,7 +200,6 @@ public class Configurator {
 		preventDepthFighting = config.preventDepthFighting;
 		clampExteriorVertices = config.clampExteriorVertices;
 		fixLuminousBlockShading = config.fixLuminousBlockShading;
-		terrainBackfaceCulling = config.terrainBackfaceCulling;
 		terrainSetupOffThread = config.terrainSetupOffThread;
 		enableVao = config.enableVao;
 
@@ -236,7 +231,6 @@ public class Configurator {
 		config.preventDepthFighting = preventDepthFighting;
 		config.clampExteriorVertices = clampExteriorVertices;
 		config.fixLuminousBlockShading = fixLuminousBlockShading;
-		config.terrainBackfaceCulling = terrainBackfaceCulling;
 		config.terrainSetupOffThread = terrainSetupOffThread;
 		config.enableVao = enableVao;
 
@@ -403,13 +397,6 @@ public class Configurator {
 				.setDefaultValue(DEFAULTS.fixLuminousBlockShading)
 				.setTooltip(parse("config.canvas.help.fix_luminous_block_shade"))
 				.setSaveConsumer(b -> {fixLuminousBlockShading = b; reload = true;})
-				.build());
-
-		tweaks.addEntry(ENTRY_BUILDER
-				.startBooleanToggle(new TranslatableText("config.canvas.value.terrain_backface_culling"), terrainBackfaceCulling)
-				.setDefaultValue(DEFAULTS.terrainBackfaceCulling)
-				.setTooltip(parse("config.canvas.help.terrain_backface_culling"))
-				.setSaveConsumer(b -> {terrainBackfaceCulling = b; reload = true;})
 				.build());
 
 		tweaks.addEntry(ENTRY_BUILDER
