@@ -4,16 +4,19 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.function.Consumer;
 
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+
+import net.minecraft.util.math.MathHelper;
+
 import grondag.canvas.apiimpl.RenderMaterialImpl.CompositeMaterial.DrawableMaterial;
 import grondag.canvas.chunk.UploadableChunk;
 import grondag.canvas.material.MaterialContext;
 import grondag.canvas.material.MaterialState;
 import grondag.canvas.material.MaterialVertexFormats;
-import grondag.canvas.shader.ShaderContext;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import grondag.canvas.shader.ShaderPass;
 
 public class VertexCollectorList {
-	private final VertexCollectorImpl[] collectors = new VertexCollectorImpl[MaterialState.MAX_MATERIAL_STATES];
+	private VertexCollectorImpl[] collectors = new VertexCollectorImpl[4096];
 
 	private final BufferPackingList packingList = new BufferPackingList();
 
@@ -31,7 +34,8 @@ public class VertexCollectorList {
 		}
 
 		usedCount = 0;
-		System.arraycopy(EMPTY, 0, collectors, 0, MaterialState.MAX_MATERIAL_STATES);
+
+		Arrays.fill(collectors, null);
 	}
 
 	public final boolean isEmpty() {
@@ -55,12 +59,24 @@ public class VertexCollectorList {
 	}
 
 	public final VertexCollectorImpl get(MaterialState materialState) {
-		final int materialIndex = materialState.index;
-		VertexCollectorImpl result = collectors[materialIndex];
+		final int index = materialState.index;
+		VertexCollectorImpl[] collectors = this.collectors;
+
+		VertexCollectorImpl result;
+
+		if (index < collectors.length) {
+			result = collectors[index];
+		} else {
+			result = null;
+			final VertexCollectorImpl[] newCollectors = new VertexCollectorImpl[MathHelper.smallestEncompassingPowerOfTwo(index)];
+			System.arraycopy(collectors, 0, newCollectors, 0, collectors.length);
+			collectors = newCollectors;
+			this.collectors = collectors;
+		}
 
 		if(result == null) {
 			result = emptyCollector().prepare(materialState);
-			collectors[materialIndex] = result;
+			collectors[index] = result;
 		}
 
 		return result;
@@ -105,7 +121,7 @@ public class VertexCollectorList {
 			final int vertexCount = vertexCollector.vertexCount();
 			final MaterialState matState = vertexCollector.materialState();
 
-			if (vertexCount != 0 && matState.shaderType != ShaderContext.Type.TRANSLUCENT) {
+			if (vertexCount != 0 && matState.shaderPass != ShaderPass.TRANSLUCENT) {
 				packing.addPacking(matState, vertexCount);
 			}
 		}
@@ -172,17 +188,16 @@ public class VertexCollectorList {
 	private static final Comparator<Object> solidComparator = new Comparator<Object>() {
 		@Override
 		public int compare(Object o1, Object o2) {
-			return Long.compare(((VertexCollectorImpl)o1).materialState().sortIndex, ((VertexCollectorImpl)o2).materialState().sortIndex);
+			return Long.compare(((VertexCollectorImpl)o1).materialState().index, ((VertexCollectorImpl)o2).materialState().index);
 		}
 	};
-
-	private static final VertexCollectorImpl[] EMPTY = new VertexCollectorImpl[MaterialState.MAX_MATERIAL_STATES];
 
 	public VertexCollectorImpl getDirect(MaterialContext context, DrawableMaterial material) {
 		return get(MaterialState.get(context, material));
 	}
 
 	public boolean contains(MaterialState materialState) {
-		return collectors[materialState.index] != null;
+		final int index = materialState.index;
+		return index < collectors.length && collectors[index] != null;
 	}
 }

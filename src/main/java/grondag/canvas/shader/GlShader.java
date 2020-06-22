@@ -235,8 +235,8 @@ public class GlShader {
 			}
 		}
 
-		if (context.type != ShaderContext.Type.SOLID) {
-			final String sub = context.type == ShaderContext.Type.DECAL ? "#define SHADER_PASS SHADER_PASS_DECAL" : "#define SHADER_PASS SHADER_PASS_TRANSLUCENT";
+		if (context.pass != ShaderPass.SOLID) {
+			final String sub = context.pass == ShaderPass.DECAL ? "#define SHADER_PASS SHADER_PASS_DECAL" : "#define SHADER_PASS SHADER_PASS_TRANSLUCENT";
 			result = StringUtils.replace(result, "#define SHADER_PASS SHADER_PASS_SOLID", sub);
 		}
 

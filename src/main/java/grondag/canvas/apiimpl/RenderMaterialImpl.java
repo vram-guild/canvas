@@ -24,8 +24,8 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 import net.fabricmc.fabric.api.renderer.v1.material.RenderMaterial;
 
-import grondag.canvas.shader.ShaderContext;
 import grondag.canvas.shader.ShaderManager;
+import grondag.canvas.shader.ShaderPass;
 import grondag.fermion.bits.BitPacker64;
 import grondag.fermion.bits.BitPacker64.BooleanElement;
 import grondag.fermion.bits.BitPacker64.IntElement;
@@ -269,14 +269,14 @@ public abstract class RenderMaterialImpl extends RenderMaterialKey {
 
 		public class DrawableMaterial {
 			public final int shaderFlags;
-			public final ShaderContext.Type shaderType;
+			public final ShaderPass shaderType;
 			public final int drawbleMaterialIndex;
 
 			private final MaterialShaderImpl shader;
 
 			public DrawableMaterial(int depth) {
 				drawbleMaterialIndex = (index << 2) | depth;
-				shaderType = depth == 0 ? (blendMode() == BlendMode.TRANSLUCENT ? ShaderContext.Type.TRANSLUCENT : ShaderContext.Type.SOLID) : ShaderContext.Type.DECAL;
+				shaderType = depth == 0 ? (blendMode() == BlendMode.TRANSLUCENT ? ShaderPass.TRANSLUCENT : ShaderPass.SOLID) : ShaderPass.DECAL;
 				shader = ShaderManager.INSTANCE.get(SHADERS[depth].getValue(bits1));
 				int flags = emissive(depth) ? 1 : 0;
 

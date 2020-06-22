@@ -3,11 +3,6 @@ package grondag.canvas.shader;
 import grondag.canvas.material.MaterialContext;
 
 public class ShaderContext {
-	public enum Type  {
-		SOLID,
-		DECAL,
-		TRANSLUCENT
-	}
 	private static int indexCounter;
 
 	public final int index = ++indexCounter;
@@ -15,18 +10,18 @@ public class ShaderContext {
 
 	public final MaterialContext materialContext;
 
-	public final Type type;
+	public final ShaderPass pass;
 
 	private ShaderContext(Builder builder) {
 		name = builder.name;
 		materialContext = builder.materialContext;
-		type = builder.type;
+		pass = builder.pass;
 	}
 
 	public static class Builder {
 		private String name;
 		private MaterialContext materialContext;
-		private Type type = Type.SOLID;
+		private ShaderPass pass = ShaderPass.SOLID;
 
 		Builder name(String name) {
 			this.name = name;
@@ -38,8 +33,8 @@ public class ShaderContext {
 			return this;
 		}
 
-		Builder type(Type type) {
-			this.type = type == null ? Type.SOLID : type;
+		Builder pass(ShaderPass pass) {
+			this.pass = pass == null ? ShaderPass.SOLID : pass;
 			return this;
 		}
 
@@ -53,17 +48,17 @@ public class ShaderContext {
 	}
 
 	public static final ShaderContext TERRAIN_SOLID = builder()
-			.type(Type.SOLID)
+			.pass(ShaderPass.SOLID)
 			.materialContext(MaterialContext.TERRAIN)
 			.build();
 
 	public static final ShaderContext TERRAIN_DECAL = builder()
-			.type(Type.DECAL)
+			.pass(ShaderPass.DECAL)
 			.materialContext(MaterialContext.TERRAIN)
 			.build();
 
 	public static final ShaderContext TERRAIN_TRANSLUCENT = builder()
-			.type(Type.TRANSLUCENT)
+			.pass(ShaderPass.TRANSLUCENT)
 			.materialContext(MaterialContext.TERRAIN)
 			.build();
 }

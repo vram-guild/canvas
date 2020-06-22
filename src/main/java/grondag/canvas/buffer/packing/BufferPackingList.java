@@ -78,7 +78,7 @@ public class BufferPackingList {
 
 		materialStates[size] = materialState;
 		counts[size] = vertexCount;
-		totalBytes += materialState.bufferFormat.vertexStrideBytes * vertexCount;
+		totalBytes += materialState.format.vertexStrideBytes * vertexCount;
 		size++;
 	}
 

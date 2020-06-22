@@ -25,6 +25,8 @@ import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.RenderMaterialImpl;
 import grondag.canvas.apiimpl.RenderMaterialImpl.CompositeMaterial;
 import grondag.canvas.material.MaterialContext;
+import grondag.canvas.material.MaterialState;
+import grondag.canvas.shader.ShaderPass;
 
 public class VertexEncoders {
 	/**
@@ -55,6 +57,10 @@ public class VertexEncoders {
 
 	public static VertexEncoder getDefault(MaterialContext context, boolean isTranslucent) {
 		return ENCODERS[lookupIndex(context, 1, isTranslucent)];
+	}
+
+	public static VertexEncoder getDefault(MaterialState materialState) {
+		return getDefault(materialState.context, materialState.shaderPass == ShaderPass.TRANSLUCENT);
 	}
 
 	public static void reload() {

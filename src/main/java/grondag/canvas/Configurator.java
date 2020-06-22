@@ -34,7 +34,6 @@ import net.minecraft.client.resource.language.I18n;
 import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
-import net.minecraft.util.math.MathHelper;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -88,9 +87,6 @@ public class Configurator {
 
 		@Comment("Terrain setup done off the main render thread. Increases FPS when moving. May see occasional flashes of blank chunks")
 		boolean terrainSetupOffThread = true;
-
-		@Comment("Max number of unique render material states. Change only if errors occur without. Causes small amount of memory use.")
-		int maxMaterialStates = 0x10000;
 
 		@Comment("Use Vertex Array Objects if available. VAOs generally improve performance when they are supported.")
 		boolean enableVao = true;
@@ -148,7 +144,6 @@ public class Configurator {
 	public static boolean fixLuminousBlockShading = DEFAULTS.fixLuminousBlockShading;
 	public static boolean terrainBackfaceCulling = DEFAULTS.terrainBackfaceCulling;
 	public static boolean terrainSetupOffThread = DEFAULTS.terrainSetupOffThread;
-	public static int maxMaterialStates = DEFAULTS.maxMaterialStates;
 	private static boolean enableVao = DEFAULTS.enableVao;
 
 	public static boolean lightmapDebug = DEFAULTS.lightmapDebug;
@@ -211,7 +206,6 @@ public class Configurator {
 		fixLuminousBlockShading = config.fixLuminousBlockShading;
 		terrainBackfaceCulling = config.terrainBackfaceCulling;
 		terrainSetupOffThread = config.terrainSetupOffThread;
-		maxMaterialStates =  MathHelper.clamp(config.maxMaterialStates, 0x10000, 0x100000);
 		enableVao = config.enableVao;
 
 		lightmapDebug = config.lightmapDebug;
@@ -244,7 +238,6 @@ public class Configurator {
 		config.fixLuminousBlockShading = fixLuminousBlockShading;
 		config.terrainBackfaceCulling = terrainBackfaceCulling;
 		config.terrainSetupOffThread = terrainSetupOffThread;
-		config.maxMaterialStates = maxMaterialStates;
 		config.enableVao = enableVao;
 
 		config.lightmapDebug = lightmapDebug;
@@ -424,13 +417,6 @@ public class Configurator {
 				.setDefaultValue(DEFAULTS.terrainSetupOffThread)
 				.setTooltip(parse("config.canvas.help.terrain_setup_off_thread"))
 				.setSaveConsumer(b -> {terrainSetupOffThread = b; reload = true;})
-				.build());
-
-		lighting.addEntry(ENTRY_BUILDER
-				.startIntSlider(new TranslatableText("config.canvas.value.max_material_states"), maxMaterialStates, 0x10000, 0x100000)
-				.setDefaultValue(DEFAULTS.maxMaterialStates)
-				.setTooltip(parse("config.canvas.help.max_material_states"))
-				.setSaveConsumer(b -> maxMaterialStates = b)
 				.build());
 
 		tweaks.addEntry(ENTRY_BUILDER

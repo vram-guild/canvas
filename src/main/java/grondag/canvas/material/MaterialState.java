@@ -1,63 +1,79 @@
 package grondag.canvas.material;
 
-import java.util.Arrays;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
-import net.minecraft.util.math.MathHelper;
-
-import grondag.canvas.Configurator;
+import grondag.canvas.apiimpl.MaterialConditionImpl;
+import grondag.canvas.apiimpl.MaterialShaderImpl;
 import grondag.canvas.apiimpl.RenderMaterialImpl.CompositeMaterial.DrawableMaterial;
-import grondag.canvas.draw.DrawHandler;
-import grondag.canvas.draw.DrawHandlers;
-import grondag.canvas.shader.ShaderContext;
-import grondag.fermion.varia.Useful;
+import grondag.canvas.shader.ShaderManager;
+import grondag.canvas.shader.ShaderPass;
+import grondag.fermion.bits.BitPacker32;
 
 public class MaterialState {
 	// vertices with the same target can share the same buffer
 	public final MaterialContext context;
 
-	// sets up gl state, updates uniforms and does draw.  For shaders, handles vertex attributes and same handler implies same shader.
-	// input format must match output format of draw handler
-	public final DrawHandler drawHandler;
-
-	public final MaterialVertexFormat bufferFormat;
-
 	public final int index;
 
-	public final long sortIndex;
+	public final ShaderPass shaderPass;
 
-	public final ShaderContext.Type shaderType;
+	public final MaterialShaderImpl shader;
 
-	private MaterialState(MaterialContext context, DrawHandler drawHandler, int index) {
+	public final MaterialConditionImpl condition;
+
+	public final MaterialVertexFormat format;
+
+	private static int nextIndex = 0;
+
+	private MaterialState(MaterialContext context, MaterialShaderImpl shader, MaterialConditionImpl condition, ShaderPass shaderType) {
 		this.context = context;
-		bufferFormat = drawHandler.format;
-		this.drawHandler = drawHandler;
-		this.index = index;
-		shaderType = drawHandler.shaderType;
-		sortIndex = (bufferFormat.vertexStrideBytes << 24) | index;
+		this.shader = shader;
+		this.condition = condition;
+		index = nextIndex++;
+		this.shaderPass = shaderType;
+		format = MaterialVertexFormats.get(context, shaderType == ShaderPass.TRANSLUCENT);
 	}
 
-	private static final int DRAW_HANDLER_SHIFT = Useful.bitLength(MathHelper.smallestEncompassingPowerOfTwo(MaterialContext.values().length));
-
-	public static int MAX_MATERIAL_STATES = Configurator.maxMaterialStates;
-
-	private static final MaterialState[] VALUES = new MaterialState[MAX_MATERIAL_STATES];
+	private static final Int2ObjectOpenHashMap<MaterialState> MAP = new Int2ObjectOpenHashMap<>(4096);
+	private static final ObjectArrayList<MaterialState> LIST = new ObjectArrayList<>(4096);
 
 	// UGLY: decal probably doesn't belong here
 	public static MaterialState get(MaterialContext context, DrawableMaterial mat) {
-		return get(context, DrawHandlers.get(context, mat));
+		return get(context, mat.shader(), mat.condition(), mat.shaderType);
 	}
 
-	public static MaterialState get(MaterialContext context, DrawHandler drawHandler) {
-		final int index = index(context, drawHandler);
-		MaterialState result = VALUES[index];
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	private static final BitPacker32<Void> PACKER = new BitPacker32(null, null);
+	private static final  BitPacker32<Void>.EnumElement<MaterialContext> CONTEXT_PACKER = PACKER.createEnumElement(MaterialContext.class);
+	private static final  BitPacker32<Void>.EnumElement<ShaderPass> SHADER_TYPE_PACKER = PACKER.createEnumElement(ShaderPass.class);
+	private static final  BitPacker32<Void>.IntElement CONDITION_PACKER = PACKER.createIntElement(MaterialConditionImpl.MAX_CONDITIONS);
+	private static final  BitPacker32<Void>.IntElement SHADER_PACKER = PACKER.createIntElement(1 << (32 - PACKER.bitLength()));
+
+	static {
+		assert  PACKER.bitLength() == 32;
+	}
+
+	public static MaterialState get(MaterialContext context, MaterialShaderImpl shader, MaterialConditionImpl condition, ShaderPass shaderType) {
+		// translucent must be done with ubershader
+		if (shaderType == ShaderPass.TRANSLUCENT) {
+			shader = ShaderManager.INSTANCE.getDefault();
+			condition = MaterialConditionImpl.ALWAYS;
+		}
+
+		final int lookupIndex = CONTEXT_PACKER.getBits(context) | SHADER_TYPE_PACKER.getBits(shaderType)
+				| CONDITION_PACKER.getBits(condition.index) | SHADER_PACKER.getBits(shader.getIndex());
+
+		MaterialState result = MAP.get(lookupIndex);
 
 		if (result == null) {
-			synchronized(VALUES) {
-				result = VALUES[index];
+			synchronized(MAP) {
+				result = MAP.get(lookupIndex);
 
 				if (result == null) {
-					result = new MaterialState(context, drawHandler, index);
-					VALUES[index] = result;
+					result = new MaterialState(context, shader, condition, shaderType);
+					MAP.put(lookupIndex, result);
+					LIST.add(result);
 				}
 			}
 		}
@@ -65,15 +81,17 @@ public class MaterialState {
 		return result;
 	}
 
-	public static MaterialState get(int index) {
-		return  VALUES[index];
+	public static MaterialState getDefault(MaterialContext context, ShaderPass shaderType) {
+		return get(context, ShaderManager.INSTANCE.getDefault(), MaterialConditionImpl.ALWAYS, shaderType);
 	}
 
-	private static int index(MaterialContext context, DrawHandler drawHandler) {
-		return context.ordinal() | (drawHandler.index << DRAW_HANDLER_SHIFT);
+	public static MaterialState get(int index) {
+		return  LIST.get(index);
 	}
 
 	public static void reload() {
-		Arrays.fill(VALUES, null);
+		nextIndex = 0;
+		MAP.clear();
+		LIST.clear();
 	}
 }

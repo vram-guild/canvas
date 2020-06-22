@@ -58,8 +58,6 @@
 	"config.canvas.help.terrain_backface_culling" : "Distant terrain will omit polygons facing away from player. Experimental.;May or may not improve performance.",
 	"config.canvas.value.terrain_setup_off_thread" : "Parallel Terrain Setup",
 	"config.canvas.help.terrain_setup_off_thread" : "Terrain setup done off the main render thread. Increases FPS when moving.;May see occasional flashes of blank chunks",
-	"config.canvas.value.max_material_states" : "Max Material States",
-	"config.canvas.help.max_material_states" : "Max number of unique render material states. Change only if errors occur without.;Causes small amount of memory use. Requires restart.",
 	"config.canvas.value.enable_vao" : "Use Vertex Array Objects",
 	"config.canvas.help.enable_vao" : "VAOs improve performance when supported.;Disable if causing problems.",
 	

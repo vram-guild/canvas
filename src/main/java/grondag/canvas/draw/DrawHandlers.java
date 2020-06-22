@@ -2,30 +2,25 @@ package grondag.canvas.draw;
 
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import org.lwjgl.opengl.GL21;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.BackgroundRenderer;
 import net.minecraft.client.texture.SpriteAtlasTexture;
 import net.minecraft.client.texture.TextureManager;
+import net.minecraft.util.math.MathHelper;
 
 import grondag.canvas.Configurator;
-import grondag.canvas.apiimpl.MaterialConditionImpl;
-import grondag.canvas.apiimpl.MaterialShaderImpl;
-import grondag.canvas.apiimpl.RenderMaterialImpl.CompositeMaterial.DrawableMaterial;
 import grondag.canvas.material.MaterialContext;
 import grondag.canvas.material.MaterialVertexFormat;
 import grondag.canvas.material.MaterialVertexFormats;
-import grondag.canvas.shader.ShaderContext;
-import grondag.canvas.shader.ShaderContext.Type;
-import grondag.canvas.shader.ShaderManager;
+import grondag.canvas.shader.ShaderPass;
 
 public class DrawHandlers {
 
 	private static class SolidHandler extends DrawHandler {
-		SolidHandler(MaterialVertexFormat format, MaterialShaderImpl shader, MaterialConditionImpl condition, Type shaderType) {
-			super(format, shader, condition, shaderType);
+		SolidHandler(MaterialVertexFormat format,  ShaderPass shaderType) {
+			super(format, shaderType);
 		}
 
 		@SuppressWarnings("resource")
@@ -44,7 +39,6 @@ public class DrawHandlers {
 			MinecraftClient.getInstance().gameRenderer.getLightmapTextureManager().enable();
 			BackgroundRenderer.setFogBlack();
 			RenderSystem.enableFog(); // TODO:  needed?
-			shader.activate(ShaderContext.TERRAIN_SOLID, format);
 		}
 
 		@SuppressWarnings("resource")
@@ -59,8 +53,8 @@ public class DrawHandlers {
 	}
 
 	private static class DecalHandler extends DrawHandler {
-		DecalHandler(MaterialVertexFormat format, MaterialShaderImpl shader, MaterialConditionImpl condition, Type shaderType) {
-			super(format, shader, condition, shaderType);
+		DecalHandler(MaterialVertexFormat format, ShaderPass shaderType) {
+			super(format, shaderType);
 		}
 
 		@SuppressWarnings("resource")
@@ -80,7 +74,6 @@ public class DrawHandlers {
 			MinecraftClient.getInstance().gameRenderer.getLightmapTextureManager().enable();
 			BackgroundRenderer.setFogBlack();
 			RenderSystem.enableFog();
-			shader.activate(ShaderContext.TERRAIN_DECAL, format);
 		}
 
 		@SuppressWarnings("resource")
@@ -92,14 +85,10 @@ public class DrawHandlers {
 			RenderSystem.disableBlend();
 		}
 	}
-
-
-	public static final DrawHandler TRANSLUCENT = new TranslucentHandler(MaterialVertexFormats.VANILLA_BLOCKS_AND_ITEMS, ShaderManager.INSTANCE.getDefault(), MaterialConditionImpl.ALWAYS, ShaderContext.Type.TRANSLUCENT);
-	public static final DrawHandler TRANSLUCENT_HD = new TranslucentHandler(MaterialVertexFormats.HD_TERRAIN, ShaderManager.INSTANCE.getDefault(), MaterialConditionImpl.ALWAYS, ShaderContext.Type.TRANSLUCENT);
 
 	private static class TranslucentHandler extends DrawHandler {
-		TranslucentHandler(MaterialVertexFormat format, MaterialShaderImpl shader, MaterialConditionImpl condition, Type shaderType) {
-			super(format, shader, condition, shaderType);
+		TranslucentHandler(MaterialVertexFormat format, ShaderPass shaderType) {
+			super(format, shaderType);
 		}
 
 		@SuppressWarnings("resource")
@@ -119,7 +108,6 @@ public class DrawHandlers {
 			MinecraftClient.getInstance().gameRenderer.getLightmapTextureManager().enable();
 			BackgroundRenderer.setFogBlack();
 			RenderSystem.enableFog();
-			shader.activate(ShaderContext.TERRAIN_TRANSLUCENT, format);
 		}
 
 		@SuppressWarnings("resource")
@@ -132,34 +120,26 @@ public class DrawHandlers {
 		}
 	}
 
-	private static final Long2ObjectOpenHashMap<DrawHandler> MAP = new Long2ObjectOpenHashMap<>();
+	private static final DrawHandler[] HANDLERS = new DrawHandler[MathHelper.smallestEncompassingPowerOfTwo(MaterialContext.values().length) * MathHelper.smallestEncompassingPowerOfTwo(ShaderPass.values().length)];
+	private static final DrawHandler[] HD_HANDLERS = new DrawHandler[MathHelper.smallestEncompassingPowerOfTwo(MaterialContext.values().length) * MathHelper.smallestEncompassingPowerOfTwo(ShaderPass.values().length)];
 
-	private static long lookupIndex(MaterialContext context, MaterialVertexFormat format, MaterialShaderImpl shader,  MaterialConditionImpl condition, ShaderContext.Type shaderType) {
-		return shaderType.ordinal() | ((long) context.ordinal() << 2) | ((long) format.index << 10) | ((long) condition.index << 16) | ((long) shader.getIndex() << 32);
+	private static int lookupIndex(MaterialContext context, ShaderPass shaderType) {
+		return shaderType.ordinal() | (context.ordinal() << 2);
 	}
 
-	// PERF: cache in the drawable material
-	public static DrawHandler get(MaterialContext context, DrawableMaterial mat) {
+	static {
+		HANDLERS[lookupIndex(MaterialContext.TERRAIN, ShaderPass.SOLID)] = new SolidHandler(MaterialVertexFormats.VANILLA_BLOCKS_AND_ITEMS, ShaderPass.SOLID);
+		HANDLERS[lookupIndex(MaterialContext.TERRAIN, ShaderPass.DECAL)] = new DecalHandler(MaterialVertexFormats.VANILLA_BLOCKS_AND_ITEMS, ShaderPass.DECAL);
+		HANDLERS[lookupIndex(MaterialContext.TERRAIN, ShaderPass.TRANSLUCENT)] = new TranslucentHandler(MaterialVertexFormats.VANILLA_BLOCKS_AND_ITEMS, ShaderPass.TRANSLUCENT);
+
+		HD_HANDLERS[lookupIndex(MaterialContext.TERRAIN, ShaderPass.SOLID)] = new SolidHandler(MaterialVertexFormats.HD_TERRAIN, ShaderPass.SOLID);
+		HD_HANDLERS[lookupIndex(MaterialContext.TERRAIN, ShaderPass.DECAL)] = new DecalHandler(MaterialVertexFormats.HD_TERRAIN, ShaderPass.DECAL);
+		HD_HANDLERS[lookupIndex(MaterialContext.TERRAIN, ShaderPass.TRANSLUCENT)] = new TranslucentHandler(MaterialVertexFormats.HD_TERRAIN, ShaderPass.TRANSLUCENT);
+	}
+
+	public static DrawHandler get(MaterialContext context, ShaderPass shaderType) {
 		final boolean isHD = context == MaterialContext.TERRAIN && Configurator.hdLightmaps();
-
-		if (mat.shaderType == ShaderContext.Type.TRANSLUCENT) {
-			return isHD ? TRANSLUCENT_HD : TRANSLUCENT;
-		}
-
-		final MaterialVertexFormat format = isHD ? MaterialVertexFormats.HD_TERRAIN : MaterialVertexFormats.VANILLA_BLOCKS_AND_ITEMS;
-
-		final long index = lookupIndex(context, format, mat.shader(), mat.condition(), mat.shaderType);
-
-		DrawHandler result = MAP.get(index);
-
-		if (result == null) {
-			result = mat.shaderType == ShaderContext.Type.DECAL
-					? new DecalHandler(format, mat.shader(), mat.condition(), ShaderContext.Type.DECAL)
-							: new SolidHandler(format, mat.shader(), mat.condition(), ShaderContext.Type.SOLID);
-
-					MAP.put(index, result);
-		}
-
-		return result;
+		final int index = lookupIndex(context, shaderType);
+		return isHD ? HD_HANDLERS[index] : HANDLERS[index];
 	}
 }

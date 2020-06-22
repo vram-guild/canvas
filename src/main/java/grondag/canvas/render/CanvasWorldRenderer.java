@@ -73,9 +73,13 @@ import grondag.canvas.chunk.occlusion.TerrainOccluder;
 import grondag.canvas.chunk.occlusion.region.OcclusionRegion;
 import grondag.canvas.chunk.occlusion.region.PackedBox;
 import grondag.canvas.draw.DrawHandler;
+import grondag.canvas.draw.DrawHandlers;
 import grondag.canvas.light.LightmapHdTexture;
+import grondag.canvas.material.MaterialContext;
+import grondag.canvas.material.MaterialVertexFormat;
 import grondag.canvas.mixinterface.WorldRendererExt;
 import grondag.canvas.shader.GlProgram;
+import grondag.canvas.shader.ShaderContext;
 import grondag.canvas.shader.ShaderManager;
 import grondag.canvas.varia.CanvasGlHelper;
 import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
@@ -789,8 +793,10 @@ public class CanvasWorldRenderer {
 			LightmapHdTexture.instance().enable();
 		}
 
-		// PERF: consider rendering solid layers in program order vs. region/buffer order
-		// alternatively, consider deferred shading or ubershaders - needs testing
+		final ShaderContext shaderContext = isTranslucent ? ShaderContext.TERRAIN_TRANSLUCENT : ShaderContext.TERRAIN_SOLID;
+		final DrawHandler h = DrawHandlers.get(MaterialContext.TERRAIN, shaderContext.pass);
+		final MaterialVertexFormat format = h.format;
+		h.setup();
 
 		for (int regionIndex = startIndex; regionIndex != endIndex; regionIndex += step) {
 			final BuiltRenderRegion builtRegion = visibleRegions[regionIndex];
@@ -815,11 +821,10 @@ public class CanvasWorldRenderer {
 
 				for(int i = 0; i < limit; i++) {
 					final DrawableDelegate d = delegates.get(i);
-					final DrawHandler h = d.materialState().drawHandler;
-					final MaterialConditionImpl condition = h.condition;
+					final MaterialConditionImpl condition = d.materialState().condition;
 
 					if(!condition.affectBlocks || condition.compute(frameIndex)) {
-						h.setup();
+						d.materialState().shader.activate(shaderContext, format);
 						d.draw();
 					}
 				}

@@ -14,30 +14,10 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-
-import grondag.canvas.Configurator;
-import grondag.canvas.apiimpl.RenderMaterialImpl.CompositeMaterial;
-import grondag.canvas.apiimpl.StandardMaterials;
-import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
-import grondag.canvas.buffer.packing.VertexCollectorImpl;
-import grondag.canvas.buffer.packing.VertexCollectorList;
-import grondag.canvas.chunk.occlusion.TerrainOccluder;
-import grondag.canvas.chunk.occlusion.region.OcclusionRegion;
-import grondag.canvas.chunk.occlusion.region.PackedBox;
-import grondag.canvas.draw.DrawHandlers;
-import grondag.canvas.material.MaterialContext;
-import grondag.canvas.material.MaterialState;
-import grondag.canvas.perf.ChunkRebuildCounters;
-import grondag.canvas.render.CanvasFrustum;
-import grondag.canvas.render.CanvasWorldRenderer;
-import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
-import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
+
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockRenderType;
 import net.minecraft.block.BlockState;
@@ -52,6 +32,27 @@ import net.minecraft.fluid.FluidState;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
+
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
+import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
+
+import grondag.canvas.Configurator;
+import grondag.canvas.apiimpl.RenderMaterialImpl.CompositeMaterial;
+import grondag.canvas.apiimpl.StandardMaterials;
+import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
+import grondag.canvas.buffer.packing.VertexCollectorImpl;
+import grondag.canvas.buffer.packing.VertexCollectorList;
+import grondag.canvas.chunk.occlusion.TerrainOccluder;
+import grondag.canvas.chunk.occlusion.region.OcclusionRegion;
+import grondag.canvas.chunk.occlusion.region.PackedBox;
+import grondag.canvas.material.MaterialContext;
+import grondag.canvas.material.MaterialState;
+import grondag.canvas.perf.ChunkRebuildCounters;
+import grondag.canvas.render.CanvasFrustum;
+import grondag.canvas.render.CanvasWorldRenderer;
+import grondag.canvas.shader.ShaderPass;
+import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
 
 @Environment(EnvType.CLIENT)
 public class BuiltRenderRegion {
@@ -344,7 +345,7 @@ public class BuiltRenderRegion {
 			if (state != null) {
 				final Vec3d cameraPos = renderRegionBuilder.getCameraPosition();
 				final VertexCollectorList collectors = context.collectors;
-				final MaterialState translucentState = MaterialState.get(MaterialContext.TERRAIN, DrawHandlers.TRANSLUCENT);
+				final MaterialState translucentState = MaterialState.getDefault(MaterialContext.TERRAIN, ShaderPass.TRANSLUCENT);
 				final VertexCollectorImpl collector = collectors.get(translucentState);
 
 				collector.loadState(state);
@@ -393,7 +394,7 @@ public class BuiltRenderRegion {
 
 			if(runningState.protoRegion.get() != ProtoRenderRegion.INVALID) {
 				final UploadableChunk solidUpload = collectors.packUploadSolid();
-				final UploadableChunk translucentUpload = collectors.packUploadTranslucent(MaterialState.get(MaterialContext.TERRAIN, DrawHandlers.TRANSLUCENT));
+				final UploadableChunk translucentUpload = collectors.packUploadTranslucent(MaterialState.getDefault(MaterialContext.TERRAIN, ShaderPass.TRANSLUCENT));
 
 				if (solidUpload != null || translucentUpload != null) {
 					renderRegionBuilder.scheduleUpload(() -> {
@@ -455,7 +456,7 @@ public class BuiltRenderRegion {
 				if (!fluidState.isEmpty()) {
 					final CompositeMaterial fluidLayer = StandardMaterials.get(RenderLayers.getFluidLayer(fluidState));
 					// PERF: material lookup sucks
-					final VertexCollectorImpl fluidBuffer = collectors.get(MaterialState.get(MaterialContext.TERRAIN, fluidLayer.isTranslucent ? DrawHandlers.TRANSLUCENT : DrawHandlers.get(MaterialContext.TERRAIN, fluidLayer.forBlendMode(BlendMode.SOLID.ordinal()).forDepth(0))));
+					final VertexCollectorImpl fluidBuffer = collectors.get(MaterialState.getDefault(MaterialContext.TERRAIN, fluidLayer.isTranslucent ? ShaderPass.TRANSLUCENT : ShaderPass.SOLID));
 
 					blockRenderManager.renderFluid(searchPos, region, fluidBuffer, fluidState);
 				}
@@ -561,7 +562,7 @@ public class BuiltRenderRegion {
 
 		final VertexCollectorList collectors = context.collectors;
 		final UploadableChunk solidUpload = collectors.packUploadSolid();
-		final UploadableChunk translucentUpload = collectors.packUploadTranslucent(MaterialState.get(MaterialContext.TERRAIN, DrawHandlers.TRANSLUCENT));
+		final UploadableChunk translucentUpload = collectors.packUploadTranslucent(MaterialState.getDefault(MaterialContext.TERRAIN, ShaderPass.TRANSLUCENT));
 		solidDrawable = solidUpload == null ? null : solidUpload.produceDrawable();
 		translucentDrawable = translucentUpload == null ? null : translucentUpload.produceDrawable();
 

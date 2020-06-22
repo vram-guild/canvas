@@ -13,9 +13,9 @@ import net.fabricmc.api.Environment;
 
 import grondag.canvas.buffer.packing.VertexCollectorImpl;
 import grondag.canvas.buffer.packing.VertexCollectorList;
-import grondag.canvas.draw.DrawHandlers;
 import grondag.canvas.material.MaterialContext;
 import grondag.canvas.material.MaterialState;
+import grondag.canvas.shader.ShaderPass;
 
 @Environment(EnvType.CLIENT)
 public class RegionData {
@@ -32,7 +32,7 @@ public class RegionData {
 	}
 
 	public void endBuffering(float x, float y, float z, VertexCollectorList buffers) {
-		final VertexCollectorImpl buffer = buffers.getIfExists(MaterialState.get(MaterialContext.TERRAIN, DrawHandlers.TRANSLUCENT));
+		final VertexCollectorImpl buffer = buffers.getIfExists(MaterialState.getDefault(MaterialContext.TERRAIN, ShaderPass.TRANSLUCENT));
 
 		if (buffer != null) {
 			buffer.sortQuads(x, y, z);

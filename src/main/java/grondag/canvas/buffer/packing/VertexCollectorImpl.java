@@ -3,17 +3,17 @@ package grondag.canvas.buffer.packing;
 import java.nio.IntBuffer;
 
 import com.google.common.primitives.Doubles;
+import it.unimi.dsi.fastutil.Swapper;
+import it.unimi.dsi.fastutil.ints.IntComparator;
+
+import net.minecraft.client.render.VertexConsumer;
+import net.minecraft.util.math.MathHelper;
 
 import grondag.canvas.buffer.encoding.VertexEncoder;
 import grondag.canvas.buffer.encoding.VertexEncoders;
 import grondag.canvas.material.MaterialState;
-import grondag.canvas.shader.ShaderContext;
 import grondag.fermion.intstream.IntStreamProvider;
 import grondag.fermion.intstream.IntStreamProvider.IntStreamImpl;
-import it.unimi.dsi.fastutil.Swapper;
-import it.unimi.dsi.fastutil.ints.IntComparator;
-import net.minecraft.client.render.VertexConsumer;
-import net.minecraft.util.math.MathHelper;
 
 public class VertexCollectorImpl implements VertexCollector {
 	private final IntStreamImpl data = INT_STREAM_PROVIDER.claim();
@@ -49,7 +49,7 @@ public class VertexCollectorImpl implements VertexCollector {
 	}
 
 	public VertexCollectorImpl prepare(MaterialState materialState) {
-		defaultEncoder = VertexEncoders.getDefault(materialState.context, materialState.shaderType == ShaderContext.Type.TRANSLUCENT);
+		defaultEncoder = VertexEncoders.getDefault(materialState);
 		this.materialState = materialState;
 		return this;
 	}
@@ -68,7 +68,7 @@ public class VertexCollectorImpl implements VertexCollector {
 	}
 
 	public int vertexCount() {
-		return integerSize / materialState.bufferFormat.vertexStrideInts;
+		return integerSize / materialState.format.vertexStrideInts;
 	}
 
 	public int quadCount() {
@@ -234,7 +234,7 @@ public class VertexCollectorImpl implements VertexCollector {
 			data = caller.data;
 
 			// works because 4 bytes per int
-			quadIntStride = caller.materialState.bufferFormat.vertexStrideBytes;
+			quadIntStride = caller.materialState.format.vertexStrideBytes;
 			final int vertexIntStride = quadIntStride / 4;
 			final int quadCount = caller.vertexCount() / 4;
 

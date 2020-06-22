@@ -43,7 +43,7 @@ import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.light.AoCalculator;
 import grondag.canvas.material.MaterialContext;
 import grondag.canvas.mixinterface.Matrix3fExt;
-import grondag.canvas.shader.ShaderContext;
+import grondag.canvas.shader.ShaderPass;
 
 /**
  * The render context used for item rendering.
@@ -193,7 +193,7 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 
 	@Override
 	public VertexConsumer consumer(DrawableMaterial mat) {
-		return quadVertexConsumer(mat.shaderType == ShaderContext.Type.SOLID ? BlendMode.CUTOUT : BlendMode.TRANSLUCENT);
+		return quadVertexConsumer(mat.shaderType == ShaderPass.SOLID ? BlendMode.CUTOUT : BlendMode.TRANSLUCENT);
 	}
 
 	@Override

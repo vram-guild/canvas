@@ -42,7 +42,6 @@ public class BufferPacker {
 
 		for (int i = 0; i < size; i++) {
 			final MaterialState materialState = packingList.getMaterialState(i);
-			assert materialState.bufferFormat == buffer.format;
 
 			final VertexCollectorImpl collector = collectorList.getIfExists(materialState);
 			assert collector != null;
