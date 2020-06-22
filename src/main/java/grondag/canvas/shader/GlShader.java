@@ -56,6 +56,8 @@ public class GlShader {
 	private int glId = -1;
 	private boolean needsLoad = true;
 	private boolean isErrored = false;
+	private boolean hasVertexStart = false;
+	private boolean hasVertexEnd = false;
 
 	GlShader(Identifier shaderSource, int shaderType, ShaderContext context) {
 		this.shaderSource = shaderSource;
@@ -222,6 +224,15 @@ public class GlShader {
 
 		if (shaderType == GL21.GL_FRAGMENT_SHADER) {
 			result = StringUtils.replace(result, "#define SHADER_TYPE SHADER_TYPE_VERTEX", "#define SHADER_TYPE SHADER_TYPE_FRAGMENT");
+		} else {
+			// vertex
+			if (!hasVertexStart) {
+				result = StringUtils.replace(result, "#define _CV_HAS_VERTEX_START TRUE", "#define _CV_HAS_VERTEX_START FALSE");
+			}
+
+			if (!hasVertexEnd) {
+				result = StringUtils.replace(result, "#define _CV_HAS_VERTEX_END TRUE", "#define _CV_HAS_VERTEX_END FALSE");
+			}
 		}
 
 		if (context.type != ShaderContext.Type.SOLID) {
@@ -302,6 +313,12 @@ public class GlShader {
 		try(Resource resource = resourceManager.getResource(shaderSource)) {
 			try (Reader reader = new InputStreamReader(resource.getInputStream())) {
 				String result = CharStreams.toString(reader);
+
+				if (shaderType == GL21.GL_VERTEX_SHADER && shaderSource == this.shaderSource) {
+					hasVertexStart = result.contains("cv_startVertex");
+					hasVertexEnd = result.contains("cv_endVertex");
+				}
+
 				final Matcher m = PATTERN.matcher(result);
 
 				while(m.find()) {

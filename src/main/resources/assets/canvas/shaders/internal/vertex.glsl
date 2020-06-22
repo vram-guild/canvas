@@ -2,6 +2,9 @@
   canvas:shaders/internal/vertex.glsl
 ******************************************************/
 
+#define _CV_HAS_VERTEX_START TRUE
+#define _CV_HAS_VERTEX_END TRUE
+
 vec2 _cv_textureCoord(vec2 coordIn, int matrixIndex) {
 	vec4 temp = gl_TextureMatrix[matrixIndex] * coordIn.xyxy;
 	return temp.xy;

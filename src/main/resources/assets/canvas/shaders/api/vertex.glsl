@@ -60,7 +60,7 @@ struct cv_VertexData {
 	 *
 	 * Vertex color is not transformed by the renderer.
 	 */
-	vec4 vertexColor;
+	vec4 color;
 
 	/*
 	 * Vertex normal. Transformation during cv_startVertex
@@ -71,7 +71,7 @@ struct cv_VertexData {
 	 * Will be in world space during cv_startVertex and in
 	 * screen space during cv_endVertex.
 	 */
-	vec3 vertexNormal;
+	vec3 normal;
 
 	/*
 	 * Block and sky light intensity for this vertex as 0 to 1 values.

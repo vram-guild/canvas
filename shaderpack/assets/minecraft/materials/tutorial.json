@@ -1,0 +1,8 @@
+{
+	"layers": [
+		{
+			"vertexSource": "minecraft:shaders/material/tutorial.vert",
+			"fragmentSource": "minecraft:shaders/material/tutorial.frag"
+		}
+	]
+}

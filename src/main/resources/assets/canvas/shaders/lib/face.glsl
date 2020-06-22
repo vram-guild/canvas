@@ -46,7 +46,7 @@ int cv_face(vec3 normal) {
  * Will return garbage for vertex or normals in screen space.
  */
 vec2 cv_faceUv(vec3 pos, vec3 normal) {
-    mat3 m = UV_MATRIX[face(normal)];
+    mat3 m = CV_UV_MATRIX[cv_face(normal)];
     vec3 result = m * pos;
     return result.xy;
 }
