@@ -41,6 +41,10 @@ import grondag.canvas.mixinterface.Matrix3fExt;
 public class BlockRenderContext extends AbstractBlockRenderContext<BlockRenderView> {
 	public static ThreadLocal<BlockRenderContext> POOL = ThreadLocal.withInitial(BlockRenderContext::new);
 
+	public BlockRenderContext() {
+		collectors.setContext(MaterialContext.BLOCK);
+	}
+
 	public static void forceReload() {
 		POOL = ThreadLocal.withInitial(BlockRenderContext::new);
 	}

@@ -63,6 +63,10 @@ public class VertexCollectorImpl implements VertexCollector {
 		return integerSize;
 	}
 
+	public boolean isEmpty() {
+		return integerSize == 0;
+	}
+
 	public MaterialState materialState() {
 		return materialState;
 	}
@@ -162,35 +166,32 @@ public class VertexCollectorImpl implements VertexCollector {
 			return null;
 		}
 
-		final int outputSize = integerSize + 1;
 		int[] result = priorState;
 
-		if (result == null || result.length != outputSize) {
-			result = new int[outputSize];
+		if (result == null || result.length != integerSize) {
+			result = new int[integerSize];
 		}
 
-		result[0] = materialState.index;
-
 		if (integerSize > 0) {
-			data.copyTo(0, result, 1, integerSize);
+			data.copyTo(0, result, 0, integerSize);
 		}
 
 		return result;
 	}
 
-	public VertexCollectorImpl loadState(int[] stateData) {
+	public VertexCollectorImpl loadState(MaterialState state, int[] stateData) {
 		if (stateData == null) {
 			clear();
 			return this;
 		}
 
-		materialState = MaterialState.get(stateData[0]);
-		final int newSize = stateData.length - 1;
+		materialState = state;
+		final int newSize = stateData.length;
 		integerSize = 0;
 
 		if (newSize > 0) {
 			integerSize = newSize;
-			data.copyFrom(0, stateData, 1, newSize);
+			data.copyFrom(0, stateData, 0, newSize);
 		}
 
 		return this;

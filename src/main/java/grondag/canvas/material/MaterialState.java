@@ -1,7 +1,8 @@
 package grondag.canvas.material;
 
+import java.util.Arrays;
+
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import grondag.canvas.apiimpl.MaterialConditionImpl;
 import grondag.canvas.apiimpl.MaterialShaderImpl;
@@ -14,7 +15,13 @@ public class MaterialState {
 	// vertices with the same target can share the same buffer
 	public final MaterialContext context;
 
-	public final int index;
+	/*
+	 *  unique across all states within a context - for vertex collectors
+	 *  position 0 is reserved for translucent
+	 */
+	public final int collectorIndex;
+
+	public static final int TRANSLUCENT_INDEX = 0;
 
 	public final ShaderPass shaderPass;
 
@@ -24,19 +31,18 @@ public class MaterialState {
 
 	public final MaterialVertexFormat format;
 
-	private static int nextIndex = 0;
+	private static final int[] nextCollectorIndex = new int[MaterialContext.values().length];
 
-	private MaterialState(MaterialContext context, MaterialShaderImpl shader, MaterialConditionImpl condition, ShaderPass shaderType) {
+	private MaterialState(MaterialContext context, MaterialShaderImpl shader, MaterialConditionImpl condition, ShaderPass shaderPass) {
 		this.context = context;
 		this.shader = shader;
 		this.condition = condition;
-		index = nextIndex++;
-		this.shaderPass = shaderType;
-		format = MaterialVertexFormats.get(context, shaderType == ShaderPass.TRANSLUCENT);
+		this.shaderPass = shaderPass;
+		collectorIndex = shaderPass == ShaderPass.TRANSLUCENT ? TRANSLUCENT_INDEX : ++nextCollectorIndex[context.ordinal()];
+		format = MaterialVertexFormats.get(context, shaderPass == ShaderPass.TRANSLUCENT);
 	}
 
 	private static final Int2ObjectOpenHashMap<MaterialState> MAP = new Int2ObjectOpenHashMap<>(4096);
-	private static final ObjectArrayList<MaterialState> LIST = new ObjectArrayList<>(4096);
 
 	// UGLY: decal probably doesn't belong here
 	public static MaterialState get(MaterialContext context, DrawableMaterial mat) {
@@ -73,7 +79,6 @@ public class MaterialState {
 				if (result == null) {
 					result = new MaterialState(context, shader, condition, shaderType);
 					MAP.put(lookupIndex, result);
-					LIST.add(result);
 				}
 			}
 		}
@@ -85,13 +90,8 @@ public class MaterialState {
 		return get(context, ShaderManager.INSTANCE.getDefault(), MaterialConditionImpl.ALWAYS, shaderType);
 	}
 
-	public static MaterialState get(int index) {
-		return  LIST.get(index);
-	}
-
 	public static void reload() {
-		nextIndex = 0;
+		Arrays.fill(nextCollectorIndex, 0);
 		MAP.clear();
-		LIST.clear();
 	}
 }

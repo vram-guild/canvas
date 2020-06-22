@@ -75,6 +75,7 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 	};
 
 	public ItemRenderContext(ItemColors colorMap) {
+		super();
 		this.colorMap = colorMap;
 	}
 
@@ -100,9 +101,9 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 		case HEAD:
 			context = MaterialContext.ITEM_HEAD;
 			break;
-
 		}
 
+		collectors.setContext(context);
 		return this;
 	}
 

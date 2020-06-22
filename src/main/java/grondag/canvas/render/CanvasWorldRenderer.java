@@ -12,7 +12,6 @@ import com.google.common.collect.Sets;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap.Entry;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL21;
@@ -61,22 +60,16 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.profiler.Profiler;
 
 import grondag.canvas.Configurator;
-import grondag.canvas.apiimpl.MaterialConditionImpl;
 import grondag.canvas.buffer.allocation.BindStateManager;
 import grondag.canvas.buffer.allocation.VboBuffer;
 import grondag.canvas.chunk.BuiltRenderRegion;
-import grondag.canvas.chunk.DrawableChunk;
 import grondag.canvas.chunk.RenderRegionBuilder;
 import grondag.canvas.chunk.RenderRegionStorage;
-import grondag.canvas.chunk.draw.DrawableDelegate;
 import grondag.canvas.chunk.occlusion.TerrainOccluder;
 import grondag.canvas.chunk.occlusion.region.OcclusionRegion;
 import grondag.canvas.chunk.occlusion.region.PackedBox;
 import grondag.canvas.draw.DrawHandler;
-import grondag.canvas.draw.DrawHandlers;
 import grondag.canvas.light.LightmapHdTexture;
-import grondag.canvas.material.MaterialContext;
-import grondag.canvas.material.MaterialVertexFormat;
 import grondag.canvas.mixinterface.WorldRendererExt;
 import grondag.canvas.shader.GlProgram;
 import grondag.canvas.shader.ShaderContext;
@@ -754,6 +747,29 @@ public class CanvasWorldRenderer {
 		bufferBuilder.vertex(x1, y1, z1).color(r, g, b, a).next();
 	}
 
+	private void sortTranslucentTerrain() {
+		final MinecraftClient mc = MinecraftClient.getInstance();
+
+		mc.getProfiler().push("translucent_sort");
+
+		if (translucentSortPositionVersion != frustum.positionVersion()) {
+			translucentSortPositionVersion = frustum.positionVersion();
+
+			int j = 0;
+			for (int regionIndex = 0; regionIndex < visibleRegionCount; regionIndex++) {
+				if (j < 15 && visibleRegions[regionIndex].scheduleSort()) {
+					++j;
+				}
+			}
+		}
+
+		mc.getProfiler().pop();
+	}
+
+	final TerrainLayerRenderer SOLID = new TerrainLayerRenderer("solid", ShaderContext.TERRAIN_SOLID, null);
+	final TerrainLayerRenderer DECAL = new TerrainLayerRenderer("decal", ShaderContext.TERRAIN_DECAL, null);
+	final TerrainLayerRenderer TRANSLUCENT = new TerrainLayerRenderer("translucemt", ShaderContext.TERRAIN_TRANSLUCENT, this::sortTranslucentTerrain);
+
 	private void renderTerrainLayer(boolean isTranslucent, MatrixStack matrixStack, double x, double y, double z) {
 		final BuiltRenderRegion[] visibleRegions = this.visibleRegions;
 		final int visibleRegionCount = this.visibleRegionCount;
@@ -762,76 +778,11 @@ public class CanvasWorldRenderer {
 			return;
 		}
 
-		final WorldRendererExt wr = this.wr;
-		final MinecraftClient mc = wr.canvas_mc();
-
 		if (isTranslucent) {
-			mc.getProfiler().push("translucent_sort");
-
-			if (translucentSortPositionVersion != frustum.positionVersion()) {
-				translucentSortPositionVersion = frustum.positionVersion();
-
-				int j = 0;
-				for (int regionIndex = 0; regionIndex < visibleRegionCount; regionIndex++) {
-					if (j < 15 && visibleRegions[regionIndex].scheduleSort()) {
-						++j;
-					}
-				}
-			}
-
-			mc.getProfiler().pop();
-		}
-
-		mc.getProfiler().push("render_" + (isTranslucent ? "translucent" : "solid"));
-
-		final int startIndex = isTranslucent ? visibleRegionCount - 1 : 0 ;
-		final int endIndex = isTranslucent ? -1 : visibleRegionCount;
-		final int step = isTranslucent ? -1 : 1;
-		final int frameIndex = ShaderManager.INSTANCE.frameIndex();
-
-		if (Configurator.hdLightmaps()) {
-			LightmapHdTexture.instance().enable();
-		}
-
-		final ShaderContext shaderContext = isTranslucent ? ShaderContext.TERRAIN_TRANSLUCENT : ShaderContext.TERRAIN_SOLID;
-		final DrawHandler h = DrawHandlers.get(MaterialContext.TERRAIN, shaderContext.pass);
-		final MaterialVertexFormat format = h.format;
-		h.setup();
-
-		for (int regionIndex = startIndex; regionIndex != endIndex; regionIndex += step) {
-			final BuiltRenderRegion builtRegion = visibleRegions[regionIndex];
-
-			if (builtRegion == null) {
-				continue;
-			}
-
-			final DrawableChunk drawable = isTranslucent ? builtRegion.translucentDrawable() : builtRegion.solidDrawable();
-
-			if (drawable != null && !drawable.isEmpty()) {
-				matrixStack.push();
-				final BlockPos blockPos = builtRegion.getOrigin();
-				matrixStack.translate(blockPos.getX() - x, blockPos.getY() - y, blockPos.getZ() - z);
-				RenderSystem.pushMatrix();
-				RenderSystem.loadIdentity();
-				RenderSystem.multMatrix(matrixStack.peek().getModel());
-				drawable.vboBuffer.bind();
-
-				final ObjectArrayList<DrawableDelegate> delegates = drawable.delegates();
-				final int limit = delegates.size();
-
-				for(int i = 0; i < limit; i++) {
-					final DrawableDelegate d = delegates.get(i);
-					final MaterialConditionImpl condition = d.materialState().condition;
-
-					if(!condition.affectBlocks || condition.compute(frameIndex)) {
-						d.materialState().shader.activate(shaderContext, format);
-						d.draw();
-					}
-				}
-
-				RenderSystem.popMatrix();
-				matrixStack.pop();
-			}
+			TRANSLUCENT.render(visibleRegions, visibleRegionCount, matrixStack, x, y, z);
+		} else {
+			SOLID.render(visibleRegions, visibleRegionCount, matrixStack, x, y, z);
+			DECAL.render(visibleRegions, visibleRegionCount, matrixStack, x, y, z);
 		}
 
 		// Important this happens BEFORE anything that could affect vertex state
@@ -853,8 +804,6 @@ public class CanvasWorldRenderer {
 		CanvasGlHelper.enableAttributes(0);
 		BindStateManager.unbind();
 		GlProgram.deactivate();
-
-		mc.getProfiler().pop();
 	}
 
 	private void updateRegions(long endNanos) {

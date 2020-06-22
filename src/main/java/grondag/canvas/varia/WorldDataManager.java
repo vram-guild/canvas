@@ -27,6 +27,10 @@ public class WorldDataManager {
 	private static final int HELD_LIGHT_BLUE = 13;
 	private static final int HELD_LIGHT_INTENSITY = 14;
 
+
+	// TODO: add player eye position (for 3rd-person views)
+	// TODO: add model origin to allow converting to world coordinates - or confirm view coordinates do that
+	// update shader docs in that case to make clear vertex coordinates are model, not world
 	private static final int FLAG0_NIGHT_VISTION_ACTIVE = 1;
 	private static final int FLAG0_HAS_SKYLIGHT = 2;
 	private static final int FLAG0_IS_OVERWORLD = 4;

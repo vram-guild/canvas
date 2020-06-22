@@ -348,12 +348,12 @@ public class BuiltRenderRegion {
 				final MaterialState translucentState = MaterialState.getDefault(MaterialContext.TERRAIN, ShaderPass.TRANSLUCENT);
 				final VertexCollectorImpl collector = collectors.get(translucentState);
 
-				collector.loadState(state);
+				collector.loadState(translucentState, state);
 				collector.sortQuads((float)cameraPos.x - origin.getX(), (float)cameraPos.y - origin.getY(), (float)cameraPos.z - origin.getZ());
 				regionData.translucentState = collector.saveState(state);
 
 				if(runningState.protoRegion.get() != ProtoRenderRegion.INVALID) {
-					final UploadableChunk upload = collectors.packUploadTranslucent(translucentState);
+					final UploadableChunk upload = collectors.toUploadableChunk(MaterialContext.TERRAIN, true);
 
 					if (upload != null) {
 						renderRegionBuilder.scheduleUpload(() -> {
@@ -393,8 +393,8 @@ public class BuiltRenderRegion {
 			buildTerrain(context, chunkData);
 
 			if(runningState.protoRegion.get() != ProtoRenderRegion.INVALID) {
-				final UploadableChunk solidUpload = collectors.packUploadSolid();
-				final UploadableChunk translucentUpload = collectors.packUploadTranslucent(MaterialState.getDefault(MaterialContext.TERRAIN, ShaderPass.TRANSLUCENT));
+				final UploadableChunk solidUpload = collectors.toUploadableChunk(MaterialContext.TERRAIN, false);
+				final UploadableChunk translucentUpload = collectors.toUploadableChunk(MaterialContext.TERRAIN, true);
 
 				if (solidUpload != null || translucentUpload != null) {
 					renderRegionBuilder.scheduleUpload(() -> {
@@ -561,8 +561,8 @@ public class BuiltRenderRegion {
 		}
 
 		final VertexCollectorList collectors = context.collectors;
-		final UploadableChunk solidUpload = collectors.packUploadSolid();
-		final UploadableChunk translucentUpload = collectors.packUploadTranslucent(MaterialState.getDefault(MaterialContext.TERRAIN, ShaderPass.TRANSLUCENT));
+		final UploadableChunk solidUpload = collectors.toUploadableChunk(MaterialContext.TERRAIN, false);
+		final UploadableChunk translucentUpload = collectors.toUploadableChunk(MaterialContext.TERRAIN, true);
 		solidDrawable = solidUpload == null ? null : solidUpload.produceDrawable();
 		translucentDrawable = translucentUpload == null ? null : translucentUpload.produceDrawable();
 

@@ -271,7 +271,6 @@ public abstract class RenderMaterialImpl extends RenderMaterialKey {
 			public final int shaderFlags;
 			public final ShaderPass shaderType;
 			public final int drawbleMaterialIndex;
-
 			private final MaterialShaderImpl shader;
 
 			public DrawableMaterial(int depth) {

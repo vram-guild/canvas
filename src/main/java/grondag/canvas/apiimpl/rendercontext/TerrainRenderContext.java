@@ -70,6 +70,7 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<FastRenderR
 
 	public TerrainRenderContext() {
 		region = new FastRenderRegion(this);
+		collectors.setContext(MaterialContext.TERRAIN);
 	}
 
 	private final AoCalculator aoCalc = new AoCalculator() {

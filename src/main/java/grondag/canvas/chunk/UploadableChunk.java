@@ -17,21 +17,16 @@
 package grondag.canvas.chunk;
 
 import grondag.canvas.buffer.allocation.VboBuffer;
-import grondag.canvas.buffer.packing.BufferPacker;
-import grondag.canvas.buffer.packing.BufferPackingList;
 import grondag.canvas.buffer.packing.VertexCollectorList;
-import grondag.canvas.chunk.draw.DrawableDelegate;
 import grondag.canvas.material.MaterialVertexFormat;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 public class UploadableChunk {
-	protected final ObjectArrayList<DrawableDelegate> delegates;
 	protected final VboBuffer vboBuffer;
+	protected final DrawableChunk drawable;
 
-	/** Does not retain packing list reference */
-	public UploadableChunk(BufferPackingList packingList, VertexCollectorList collectorList, MaterialVertexFormat format) {
-		vboBuffer = new VboBuffer(packingList.totalBytes(), format);
-		delegates = BufferPacker.pack(packingList, collectorList, vboBuffer);
+	public UploadableChunk(VertexCollectorList collectorList, MaterialVertexFormat format, boolean translucent, int bytes) {
+		vboBuffer = new VboBuffer(bytes, format);
+		drawable = DrawableChunk.pack(collectorList, vboBuffer, translucent);
 	}
 
 	/**
@@ -39,6 +34,6 @@ public class UploadableChunk {
 	 */
 	public DrawableChunk produceDrawable() {
 		vboBuffer.upload();
-		return new DrawableChunk(delegates, vboBuffer);
+		return drawable;
 	}
 }
