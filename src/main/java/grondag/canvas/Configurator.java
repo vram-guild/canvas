@@ -47,9 +47,6 @@ public class Configurator {
 
 	@SuppressWarnings("hiding")
 	static class ConfigData {
-		@Comment("Applies material properties and shaders to items. (WIP)")
-		boolean itemShaderRender = false;
-
 		@Comment("Makes terrain fog a little less foggy.")
 		boolean subtleFog = false;
 
@@ -77,14 +74,8 @@ public class Configurator {
 		@Comment("Draws multiple chunks with same view transformation. Much faster, but try without if you see visual defects.")
 		boolean batchedChunkRender = true;
 
-		//        @Comment("TODO")
-		//        boolean disableVanillaChunkMatrix = true;
-
 		@Comment("Adjusts quads on some vanilla models (like iron bars) to avoid z-fighting with neighbor blocks.")
 		boolean preventDepthFighting = true;
-
-		@Comment("Forces game to allow up to this many nanoseconds for chunk loading each frame. May prevent chunk load delay at high FPS.")
-		long minChunkBudgetNanos = 100000;
 
 		@Comment("Treats model geometry outside of block boundaries as on the block for lighting purposes. Helps prevent bad lighting outcomes.")
 		boolean clampExteriorVertices = true;
@@ -140,7 +131,6 @@ public class Configurator {
 	private static final Gson GSON = new GsonBuilder().create();
 	private static final Jankson JANKSON = Jankson.builder().build();
 
-	public static boolean itemShaderRender = DEFAULTS.itemShaderRender;
 	public static boolean subtleFog = DEFAULTS.subtleFog;
 	public static boolean shaderDebug = DEFAULTS.shaderDebug;
 	public static int maxLightmapDelayFrames = DEFAULTS.maxLightmapDelayFrames;
@@ -152,10 +142,7 @@ public class Configurator {
 	public static AoMode aoShadingMode = DEFAULTS.aoShadingMode;
 	public static boolean moreLightmap = DEFAULTS.moreLightmap;
 
-	public static long minChunkBudgetNanos = DEFAULTS.minChunkBudgetNanos;
-
 	public static boolean batchedChunkRender = DEFAULTS.batchedChunkRender;
-	public static boolean disableVanillaChunkMatrix = false; //DEFAULTS.disableVanillaChunkMatrix;
 	public static boolean preventDepthFighting = DEFAULTS.preventDepthFighting;
 	public static boolean clampExteriorVertices = DEFAULTS.clampExteriorVertices;
 	public static boolean fixLuminousBlockShading = DEFAULTS.fixLuminousBlockShading;
@@ -206,10 +193,8 @@ public class Configurator {
 			e.printStackTrace();
 			CanvasMod.LOG.error("Unable to load config. Using default values.");
 		}
-		itemShaderRender = config.itemShaderRender;
 		subtleFog = config.subtleFog;
 		shaderDebug = config.shaderDebug;
-		minChunkBudgetNanos = config.minChunkBudgetNanos;
 		maxLightmapDelayFrames = config.maxLightmapDelayFrames;
 		moreLightmap = config.moreLightmap;
 
@@ -242,10 +227,8 @@ public class Configurator {
 
 	private static void saveConfig() {
 		final ConfigData config = new ConfigData();
-		config.itemShaderRender = itemShaderRender;
 		config.subtleFog = subtleFog;
 		config.shaderDebug = shaderDebug;
-		config.minChunkBudgetNanos = minChunkBudgetNanos;
 		config.maxLightmapDelayFrames = maxLightmapDelayFrames;
 
 		config.hdLightmaps = hdLightmaps;
@@ -256,7 +239,6 @@ public class Configurator {
 		config.moreLightmap = moreLightmap;
 
 		config.batchedChunkRender = batchedChunkRender;
-		//        config.disableVanillaChunkMatrix = disableVanillaChunkMatrix;
 		config.preventDepthFighting = preventDepthFighting;
 		config.clampExteriorVertices = clampExteriorVertices;
 		config.fixLuminousBlockShading = fixLuminousBlockShading;
@@ -337,13 +319,6 @@ public class Configurator {
 		final ConfigCategory features = builder.getOrCreateCategory(new TranslatableText("config.canvas.category.features"));
 
 		features.addEntry(ENTRY_BUILDER
-				.startBooleanToggle(new TranslatableText("config.canvas.value.item_render"), itemShaderRender)
-				.setDefaultValue(DEFAULTS.itemShaderRender)
-				.setTooltip(parse("config.canvas.help.item_render"))
-				.setSaveConsumer(b -> itemShaderRender = b)
-				.build());
-
-		features.addEntry(ENTRY_BUILDER
 				.startBooleanToggle(new TranslatableText("config.canvas.value.subtle_fog"), subtleFog)
 				.setDefaultValue(DEFAULTS.subtleFog)
 				.setTooltip(parse("config.canvas.help.subtle_fog"))
@@ -404,13 +379,6 @@ public class Configurator {
 
 		// TWEAKS
 		final ConfigCategory tweaks = builder.getOrCreateCategory(new TranslatableText("config.canvas.category.tweaks"));
-
-		tweaks.addEntry(ENTRY_BUILDER
-				.startLongField(new TranslatableText("config.canvas.value.min_chunk_budget"), minChunkBudgetNanos)
-				.setDefaultValue(DEFAULTS.minChunkBudgetNanos)
-				.setTooltip(parse("config.canvas.help.min_chunk_budget"))
-				.setSaveConsumer(b -> minChunkBudgetNanos = b)
-				.build());
 
 		tweaks.addEntry(ENTRY_BUILDER
 				.startBooleanToggle(new TranslatableText("config.canvas.value.batch_chunk_render"), batchedChunkRender)

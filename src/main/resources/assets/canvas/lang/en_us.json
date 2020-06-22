@@ -13,8 +13,6 @@
 	"config.canvas.reset" : "Reset",
 	
 	"config.canvas.category.features" : "Features",
-	"config.canvas.value.item_render" : "Shader-Based Item Render (WIP)",
-	"config.canvas.help.item_render" : "Applies material properties;and shaders to items.;Mostly works but not complete.",
 	"config.canvas.value.subtle_fog" : "Subtle Fog",
 	"config.canvas.help.subtle_fog" : "Makes terrain fog a;little less foggy.",
 	
@@ -44,10 +42,6 @@
 	"config.canvas.enum.diffuse_mode.none" : "None",
 	
 	"config.canvas.category.tweaks" : "Tweaks",
-	"config.canvas.value.min_chunk_budget" : "Minimum Chunk Budget",
-	"config.canvas.help.min_chunk_budget" : "Forces game to allow up to this;many nanoseconds for chunk;loading each frame.;May prevent chunk load delay at high FPS.",
-	"config.canvas.value.single_pass_cutout" : "Single Pass Cutout",
-	"config.canvas.help.single_pass_cutout" : "Solid and cutout layer render;in a single pass. May or may;not be faster - depends on hardware.",
 	"config.canvas.value.batch_chunk_render" : "Batched Chunk Render",
 	"config.canvas.help.batch_chunk_render" : "Draws multiple chunks with;same view transformation.;Much faster, but try without;if you see visual defects.",
 	"config.canvas.value.vanilla_chunk_matrix" : "Vanilla Chunk Scaling",
