@@ -230,6 +230,7 @@ public abstract class OcclusionRegion {
 
 	/**
 	 * Removes renderable flag and marks closed if position has no open neighbors and is not visible from exterior.
+	 * Should not be called if camera may be inside the chunk!
 	 */
 	private void hideInteriorClosedPositions() {
 		int minX = Integer.MAX_VALUE;
@@ -248,18 +249,13 @@ public abstract class OcclusionRegion {
 			final int y = (i >> 4) & 0xF;
 			final int z = (i >> 8) & 0xF;
 
-			//  TODO: disable in near chunks
 			if ((bits[wordIndex + EXTERIOR_VISIBLE_OFFSET] & mask) == 0 && x != 0 && y != 0 && z != 0 && x != 15 && y != 15 && z != 15) {
-
-				//				if((bits[wordIndex + EXTERIOR_VISIBLE_OFFSET] & mask) == 0 && isClosed(fastRelativeCacheIndex(x - 1, y, z)) && isClosed(fastRelativeCacheIndex(x + 1, y, z))
-				//						&& isClosed(fastRelativeCacheIndex(x, y - 1, z)) && isClosed(fastRelativeCacheIndex(x, y + 1, z))
-				//						&& isClosed(fastRelativeCacheIndex(x, y, z - 1)) && isClosed(fastRelativeCacheIndex(x, y, z + 1))) {
 				bits[wordIndex + RENDERABLE_OFFSET] &= ~mask;
 				// mark it opaque
 				bits[wordIndex] |= mask;
 			} else if ((bits[wordIndex + RENDERABLE_OFFSET] & mask) != 0){
 
-				// PERF: probably faster to do bit-wise analysis of words after the face
+				// PERF: probably faster to do bit-wise analysis of words after the fact
 				if (x < minX) {
 					minX = x;
 				} else if (x > maxX) {
@@ -297,10 +293,8 @@ public abstract class OcclusionRegion {
 		}
 	}
 
-	private int[] computeOcclusion() {
-		//		final RegionOcclusionData result = new RegionOcclusionData(null);
-		//
-		//		// determine which blocks are visible
+	private int[] computeOcclusion(boolean isNear) {
+		// determine which blocks are visible
 
 		for (int i = 0; i < 16; i++) {
 			for (int j = 0; j < 16; j++) {
@@ -330,7 +324,10 @@ public abstract class OcclusionRegion {
 			}
 		}
 
-		hideInteriorClosedPositions();
+		// don't hide inside positin if we may be inside the chunk!
+		if (!isNear) {
+			hideInteriorClosedPositions();
+		}
 
 		final BoxFinder boxFinder = this.boxFinder;
 		final IntArrayList boxes = boxFinder.boxes;
@@ -363,7 +360,7 @@ public abstract class OcclusionRegion {
 		return result;
 	}
 
-	public int[] build() {
+	public int[] build(boolean isNear) {
 		if (openCount == 0) {
 			// only surface blocks are visible, and only if not covered
 
@@ -376,7 +373,7 @@ public abstract class OcclusionRegion {
 			result[CULL_DATA_FIRST_BOX] = PackedBox.FULL_BOX;
 			return result;
 		} else {
-			return computeOcclusion();
+			return computeOcclusion(isNear);
 		}
 	}
 

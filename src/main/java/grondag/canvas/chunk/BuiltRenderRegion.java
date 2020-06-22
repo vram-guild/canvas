@@ -317,7 +317,7 @@ public class BuiltRenderRegion {
 			}
 		} else {
 			context.prepareRegion(region);
-			final RegionData chunkData = buildRegionData(context);
+			final RegionData chunkData = buildRegionData(context, isNear());
 
 			final int[] oldData = buildData.getAndSet(chunkData).occlusionData;
 
@@ -361,10 +361,9 @@ public class BuiltRenderRegion {
 		}
 	}
 
-	private RegionData buildRegionData(TerrainRenderContext context) {
+	private RegionData buildRegionData(TerrainRenderContext context, boolean isNear) {
 		final RegionData regionData = new RegionData();
-
-		regionData.complete(context.region.occlusion.build());
+		regionData.complete(context.region.occlusion.build(isNear));
 		handleBlockEntities(regionData, context);
 		buildData.set(regionData);
 		return regionData;
@@ -398,7 +397,7 @@ public class BuiltRenderRegion {
 
 				if (!fluidState.isEmpty()) {
 					final CompositeMaterial fluidLayer = StandardMaterials.get(RenderLayers.getFluidLayer(fluidState));
-					// PERF: material lookup sucks
+					// FEAT: explicit fluid materials/models, make this lookup suck less
 					final VertexCollectorImpl fluidBuffer = collectors.get(MaterialState.getDefault(MaterialContext.TERRAIN, fluidLayer.isTranslucent ? ShaderPass.TRANSLUCENT : ShaderPass.SOLID));
 
 					blockRenderManager.renderFluid(searchPos, region, fluidBuffer, fluidState);
@@ -490,7 +489,7 @@ public class BuiltRenderRegion {
 		}
 
 		final TerrainRenderContext context = renderRegionBuilder.mainThreadContext.prepareRegion(region);
-		final RegionData regionData = buildRegionData(context);
+		final RegionData regionData = buildRegionData(context, isNear());
 		final int[] oldData = buildData.getAndSet(regionData).occlusionData;
 
 		if (oldData != null && !Arrays.equals(oldData, regionData.occlusionData)) {

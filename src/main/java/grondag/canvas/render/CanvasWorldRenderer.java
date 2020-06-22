@@ -171,23 +171,15 @@ public class CanvasWorldRenderer {
 		Arrays.fill(terrainIterator.visibleRegions, null);
 	}
 
-	/**
-	 PERF:
-		unbork main render loop
-		add check for visibility to entity shouldRender via Frustum check
-		single-draw solid layer via shaders
-		render larger cubes - avoid matrix state changes
-		cull particle rendering?
-		reduce garbage generation
-		shared buffers per world column, render order bottom to top
-		lod culling: don't render grass, cobwebs, flowers, etc. at longer ranges
-		render leaves as solid at distance - omit interior faces
-		retain vertex bindings when possible, use VAO
-
-
-	FIX:
-		fix missing edges with off-thread iteration - try frustum check on thread but leave potentially visible set off
-	 */
+	// FIX: missing edges with off-thread iteration - try frustum check on thread but leave potentially visible set off
+	// UGLY: unbork main render loop
+	// PERF: add check for visibility to entity shouldRender via Frustum check
+	// PERF: render larger cubes - avoid matrix state changes
+	// PERF: cull particle rendering?
+	// PERF: reduce garbage generation
+	// PERF: lod culling: don't render grass, cobwebs, flowers, etc. at longer ranges
+	// PERF: render leaves as solid at distance - omit interior faces
+	// PERF: get VAO working again
 
 	/**
 	 * Terrain rebuild is partly lazy/incremental

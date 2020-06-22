@@ -24,11 +24,7 @@ import net.fabricmc.fabric.api.renderer.v1.RendererAccess;
 
 import grondag.canvas.apiimpl.Canvas;
 
-//FIX: lighting on dodecs (again)
-//FIX: depth for campfire smoke / water
-//FIX: track lightmap occupancy
-//TODO: separate all uniform/variant-dependent elements to separate glsl libs
-//TODO: configurable disable chunk matrix
+//FEAT: configurable disable chunk matrix
 //FEAT: complete item rendering
 //FEAT: custom samplers
 //FEAT: fancy water
