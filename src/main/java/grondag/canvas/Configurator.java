@@ -118,6 +118,9 @@ public class Configurator {
 
 		@Comment("Render active occlusion boxes of targeted render region. Will have performance impact and looks strange.")
 		boolean debugOcclusionBoxes = false;
+
+		@Comment("Log clipping or other non-critical failures detected by terrain occluder. May spam the log.")
+		boolean traceOcclusionEdgeCases = false;
 	}
 
 	static final ConfigData DEFAULTS = new ConfigData();
@@ -151,6 +154,7 @@ public class Configurator {
 	public static boolean enablePerformanceTrace = DEFAULTS.enablePerformanceTrace;
 	public static boolean debugOcclusionRaster = DEFAULTS.debugOcclusionRaster;
 	public static boolean debugOcclusionBoxes = DEFAULTS.debugOcclusionBoxes;
+	public static boolean traceOcclusionEdgeCases = DEFAULTS.traceOcclusionEdgeCases;
 
 	public static boolean hdLightmaps() {
 		return false;
@@ -212,6 +216,8 @@ public class Configurator {
 		enablePerformanceTrace = config.enablePerformanceTrace;
 		debugOcclusionBoxes = config.debugOcclusionBoxes;
 		debugOcclusionRaster = config.debugOcclusionRaster;
+		traceOcclusionEdgeCases = config.traceOcclusionEdgeCases;
+
 	}
 
 	private static void saveConfig() {
@@ -243,6 +249,7 @@ public class Configurator {
 		config.enablePerformanceTrace = enablePerformanceTrace;
 		config.debugOcclusionBoxes = debugOcclusionBoxes;
 		config.debugOcclusionRaster = debugOcclusionRaster;
+		config.traceOcclusionEdgeCases = traceOcclusionEdgeCases;
 
 		try {
 			final String result = JANKSON.toJson(config).toJson(true, true, 0);
@@ -478,7 +485,16 @@ public class Configurator {
 				.setTooltip(parse("config.canvas.help.debug_occlusion_boxes"))
 				.setSaveConsumer(b -> debugOcclusionBoxes = b)
 				.build());
-		builder.setDoesConfirmSave(false);
+
+		debug.addEntry(ENTRY_BUILDER
+				.startBooleanToggle(new TranslatableText("config.canvas.value.trace_occlusion_edge_cases"), traceOcclusionEdgeCases)
+				.setDefaultValue(DEFAULTS.traceOcclusionEdgeCases)
+				.setTooltip(parse("config.canvas.help.trace_occlusion_edge_cases"))
+				.setSaveConsumer(b -> traceOcclusionEdgeCases = b)
+				.build());
+
+
+		builder.setAlwaysShowTabs(false).setDoesConfirmSave(false);
 
 		return builder.build();
 	}
@@ -499,6 +515,7 @@ public class Configurator {
 	//    @Comment({"Enable fancy water and lava rendering.",
 	//        " This feature is currently work in progress and has no visible effect if enabled."})
 	public static boolean fancyFluids = false;
+
 
 
 	//    @LangKey("config.disable_yield")

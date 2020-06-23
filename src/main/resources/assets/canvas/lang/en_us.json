@@ -77,5 +77,7 @@
 	"config.canvas.value.debug_occlusion_raster" : "Output Occlusion Raster",
 	"config.canvas.help.debug_occlusion_raster" : "Output periodic snapshots of terrain occlusion raster.;Will have performance impact.",
 	"config.canvas.value.debug_occlusion_boxes" : "Render Occlusion Boxes",
-	"config.canvas.help.debug_occlusion_boxes" : "Render active occlusion boxes of targeted render region.;Will have performance impact and looks strange."
+	"config.canvas.help.debug_occlusion_boxes" : "Render active occlusion boxes of targeted render region.;Will have performance impact and looks strange.",
+	"config.canvas.value.trace_occlusion_edge_cases" : "Trace Occlusion Edge Cases",
+	"config.canvas.help.trace_occlusion_edge_cases" : "Log clipping or other non-critical failures detected;by terrain occluder. May spam the log."
 }

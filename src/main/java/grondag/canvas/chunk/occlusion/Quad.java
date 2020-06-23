@@ -34,6 +34,7 @@ import static grondag.canvas.chunk.occlusion.Data.tileOriginY;
 import static grondag.canvas.chunk.occlusion.Indexer.tileIndex;
 
 import grondag.canvas.CanvasMod;
+import grondag.canvas.Configurator;
 
 
 public final class Quad {
@@ -117,8 +118,31 @@ public final class Quad {
 			return BOUNDS_OUTSIDE_OR_TOO_SMALL;
 
 		default:
-			// FIX: happens in rare cases - maybe rounding?   Try  with  iron fence or glass panes.
-			CanvasMod.LOG.warn("Invalid occlusion quad  split. This is a bug");
+			if (Configurator.traceOcclusionEdgeCases) {
+				// Note: happens in rare cases that opposite corners are clipped.
+				// Appears to be edge cases, possibly caused by rounding.
+				// Does't seem to have
+				CanvasMod.LOG.info("Invalid occlusion quad split. Printing z, w, z / w for each vertex.");
+
+				final int[] data = Data.vertexData;
+				float w = Float.intBitsToFloat(data[v0 + PV_W]);
+				float z = Float.intBitsToFloat(data[v0 + PV_Z]);
+				CanvasMod.LOG.info(z + ",    " + w + ",   " + (z / w));
+
+				w = Float.intBitsToFloat(data[v1 + PV_W]);
+				z = Float.intBitsToFloat(data[v1 + PV_Z]);
+				CanvasMod.LOG.info(z + ",    " + w + ",   " + (z / w));
+
+				w = Float.intBitsToFloat(data[v2 + PV_W]);
+				z = Float.intBitsToFloat(data[v2 + PV_Z]);
+				CanvasMod.LOG.info(z + ",    " + w + ",   " + (z / w));
+
+				w = Float.intBitsToFloat(data[v3 + PV_W]);
+				z = Float.intBitsToFloat(data[v3 + PV_Z]);
+				CanvasMod.LOG.info(z + ",    " + w + ",   " + (z / w));
+
+				CanvasMod.LOG.info("");
+			}
 		}
 
 		return BOUNDS_OUTSIDE_OR_TOO_SMALL;
