@@ -16,10 +16,10 @@ import net.minecraft.block.BlockRenderType;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.RenderLayers;
 import net.minecraft.client.render.block.BlockRenderManager;
 import net.minecraft.client.render.block.entity.BlockEntityRenderDispatcher;
 import net.minecraft.client.render.block.entity.BlockEntityRenderer;
+import net.minecraft.client.render.model.BakedModel;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.util.math.BlockPos;
@@ -28,10 +28,11 @@ import net.minecraft.util.math.Vec3d;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
 import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 
-import grondag.canvas.apiimpl.RenderMaterialImpl.CompositeMaterial;
-import grondag.canvas.apiimpl.StandardMaterials;
+import grondag.canvas.Configurator;
+import grondag.canvas.apiimpl.fluid.FluidModel;
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
 import grondag.canvas.buffer.encoding.VertexCollectorImpl;
 import grondag.canvas.buffer.encoding.VertexCollectorList;
@@ -382,6 +383,19 @@ public class BuiltRenderRegion {
 		final int xOrigin = origin.getX();
 		final int yOrigin = origin.getY();
 		final int zOrigin = origin.getZ();
+
+		final int xModelOffset, yModelOffset, zModelOffset;
+
+		if (Configurator.batchedChunkRender) {
+			xModelOffset = TerrainModelSpace.renderCubeRelative(xOrigin);
+			yModelOffset = TerrainModelSpace.renderCubeRelative(yOrigin);
+			zModelOffset = TerrainModelSpace.renderCubeRelative(zOrigin);
+		} else {
+			xModelOffset = 0;
+			yModelOffset = 0;
+			zModelOffset = 0;
+		}
+
 		final FastRenderRegion region = context.region;
 		final Vec3d cameraPos = renderRegionBuilder.getCameraPosition();
 		final MatrixStack matrixStack = new MatrixStack();
@@ -398,16 +412,23 @@ public class BuiltRenderRegion {
 				searchPos.set(xOrigin + x, yOrigin + y, zOrigin + z);
 
 				if (!fluidState.isEmpty()) {
-					final CompositeMaterial fluidLayer = StandardMaterials.get(RenderLayers.getFluidLayer(fluidState));
-					// FEAT: explicit fluid materials/models, make this lookup suck less
-					final VertexCollectorImpl fluidBuffer = collectors.get(MaterialState.getDefault(MaterialContext.TERRAIN, fluidLayer.isTranslucent ? ShaderPass.TRANSLUCENT : ShaderPass.SOLID));
+					matrixStack.push();
+					matrixStack.translate(x + xModelOffset, y + yModelOffset, z + zModelOffset);
 
-					blockRenderManager.renderFluid(searchPos, region, fluidBuffer, fluidState);
+					context.tesselateBlock(blockState, searchPos, false, FluidModel.INSTANCE, matrixStack);
+
+					matrixStack.pop();
+
+					//					final CompositeMaterial fluidLayer = StandardMaterials.get(RenderLayers.getFluidLayer(fluidState));
+					//					// FEAT: explicit fluid materials/models, make this lookup suck less
+					//					final VertexCollectorImpl fluidBuffer = collectors.get(MaterialState.getDefault(MaterialContext.TERRAIN, fluidLayer.isTranslucent ? ShaderPass.TRANSLUCENT : ShaderPass.SOLID));
+					//
+					//					blockRenderManager.renderFluid(searchPos, region, fluidBuffer, fluidState);
 				}
 
 				if (blockState.getRenderType() != BlockRenderType.INVISIBLE) {
 					matrixStack.push();
-					matrixStack.translate(x, y, z);
+					matrixStack.translate(x + xModelOffset, y + yModelOffset, z + zModelOffset);
 
 					if (blockState.getBlock().getOffsetType() != Block.OffsetType.NONE) {
 						final Vec3d vec3d = blockState.getModelOffset(region, searchPos);
@@ -417,14 +438,15 @@ public class BuiltRenderRegion {
 						}
 					}
 
-					context.tesselateBlock(blockState, searchPos, blockRenderManager.getModel(blockState), matrixStack);
+					final BakedModel model = blockRenderManager.getModel(blockState);
+					context.tesselateBlock(blockState, searchPos, model.useAmbientOcclusion(), (FabricBakedModel) model, matrixStack);
 
 					matrixStack.pop();
 				}
 			}
 		}
 
-		regionData.endBuffering((float) (cameraPos.x - xOrigin), (float) (cameraPos.y - yOrigin), (float) (cameraPos.z - zOrigin), collectors);
+		regionData.endBuffering((float) (cameraPos.x - xOrigin + xModelOffset), (float) (cameraPos.y - yOrigin + yModelOffset), (float) (cameraPos.z - zOrigin + zModelOffset), collectors);
 
 		if(ChunkRebuildCounters.ENABLED) {
 			ChunkRebuildCounters.completeChunk();

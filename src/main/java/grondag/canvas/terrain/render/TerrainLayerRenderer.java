@@ -21,6 +21,7 @@ import grondag.canvas.shader.ShaderContext;
 import grondag.canvas.shader.ShaderManager;
 import grondag.canvas.shader.ShaderPass;
 import grondag.canvas.terrain.BuiltRenderRegion;
+import grondag.canvas.terrain.TerrainModelSpace;
 
 public class TerrainLayerRenderer {
 	private final String profileString;
@@ -54,6 +55,8 @@ public class TerrainLayerRenderer {
 			LightmapHdTexture.instance().enable();
 		}
 
+		long lastRelativeOrigin = -1;
+
 		final DrawHandler h = DrawHandlers.get(MaterialContext.TERRAIN, shaderContext.pass);
 		final MaterialVertexFormat format = h.format;
 		h.setup();
@@ -71,12 +74,36 @@ public class TerrainLayerRenderer {
 				final ObjectArrayList<DrawableDelegate> delegates = drawable.delegates(pass);
 
 				if (delegates != null) {
-					matrixStack.push();
-					final BlockPos blockPos = builtRegion.getOrigin();
-					matrixStack.translate(blockPos.getX() - x, blockPos.getY() - y, blockPos.getZ() - z);
-					RenderSystem.pushMatrix();
-					RenderSystem.loadIdentity();
-					RenderSystem.multMatrix(matrixStack.peek().getModel());
+					final BlockPos modelOrigin = builtRegion.getOrigin();
+
+					if (Configurator.batchedChunkRender) {
+						final long newRelativeOrigin = TerrainModelSpace.getPackedOrigin(modelOrigin);
+
+						if (newRelativeOrigin != lastRelativeOrigin) {
+
+							if (lastRelativeOrigin != -1) {
+								RenderSystem.popMatrix();
+								matrixStack.pop();
+							}
+
+							lastRelativeOrigin = newRelativeOrigin;
+							matrixStack.push();
+							matrixStack.translate(
+									TerrainModelSpace.renderCubeOrigin(modelOrigin.getX()) - x,
+									TerrainModelSpace.renderCubeOrigin(modelOrigin.getY()) - y,
+									TerrainModelSpace.renderCubeOrigin(modelOrigin.getZ()) - z);
+							RenderSystem.pushMatrix();
+							RenderSystem.loadIdentity();
+							RenderSystem.multMatrix(matrixStack.peek().getModel());
+						}
+					} else {
+						matrixStack.push();
+						matrixStack.translate(modelOrigin.getX() - x, modelOrigin.getY() - y, modelOrigin.getZ() - z);
+						RenderSystem.pushMatrix();
+						RenderSystem.loadIdentity();
+						RenderSystem.multMatrix(matrixStack.peek().getModel());
+					}
+
 					drawable.vboBuffer.bind();
 
 					final int limit = delegates.size();
@@ -91,10 +118,17 @@ public class TerrainLayerRenderer {
 						}
 					}
 
-					RenderSystem.popMatrix();
-					matrixStack.pop();
+					if (!Configurator.batchedChunkRender) {
+						RenderSystem.popMatrix();
+						matrixStack.pop();
+					}
 				}
 			}
+		}
+
+		if (lastRelativeOrigin != -1) {
+			RenderSystem.popMatrix();
+			matrixStack.pop();
 		}
 
 		mc.getProfiler().pop();
