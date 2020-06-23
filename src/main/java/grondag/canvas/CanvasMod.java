@@ -24,7 +24,6 @@ import net.fabricmc.fabric.api.renderer.v1.RendererAccess;
 
 import grondag.canvas.apiimpl.Canvas;
 
-//FIX: What happened to fog?
 //FEAT: configurable disable chunk matrix
 //FEAT: complete item rendering
 //FEAT: custom samplers

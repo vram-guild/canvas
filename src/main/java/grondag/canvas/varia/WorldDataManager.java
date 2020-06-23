@@ -43,7 +43,9 @@ public class WorldDataManager {
 		return DATA;
 	}
 
-	public static void updateLight(float tick, float flicker) {
+	public static void update(float tickDelta, float renderSeconds) {
+		DATA[RENDER_SECONDS] = renderSeconds;
+
 		final MinecraftClient client = MinecraftClient.getInstance();
 		final ClientWorld world = client.world;
 		if (world != null) {
@@ -90,19 +92,28 @@ public class WorldDataManager {
 			final float fluidModifier = client.player.getUnderwaterVisibility();
 
 			if (nightVision) {
-				DATA[WORLD_EFFECT_MODIFIER] = GameRenderer.getNightVisionStrength(client.player, tick);
+				DATA[WORLD_EFFECT_MODIFIER] = GameRenderer.getNightVisionStrength(client.player, tickDelta);
 			} else if (fluidModifier > 0.0F && client.player.hasStatusEffect(StatusEffects.CONDUIT_POWER)) {
 				DATA[WORLD_EFFECT_MODIFIER] = fluidModifier;
 			} else {
 				DATA[WORLD_EFFECT_MODIFIER] = 0.0F;
 			}
 
-			DATA[FOG_MODE] = FogStateExtHolder.INSTANCE.getMode();
-		}
-	}
+			final int fogMode = FogStateExtHolder.INSTANCE.getMode();
 
-	public static void setRenderSeconds(float renderSeconds) {
-		DATA[RENDER_SECONDS] = renderSeconds;
+			// Convert to values more reliably read as floats
+			if (fogMode == 2048) {
+				// EXP
+				DATA[FOG_MODE] = 1.0f;
+			} else if (fogMode  == 2049) {
+				// EXP2
+				DATA[FOG_MODE] = 2.0f;
+			} else {
+				assert fogMode == 9729;
+				// LINEAR
+				DATA[FOG_MODE] = 0.0f;
+			}
+		}
 	}
 
 	public static void updateEmissiveColor(int color) {

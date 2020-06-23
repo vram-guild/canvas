@@ -17,11 +17,8 @@
 package grondag.canvas.mixin;
 
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import net.minecraft.client.render.LightmapTextureManager;
 
@@ -29,10 +26,6 @@ import grondag.canvas.varia.WorldDataManager;
 
 @Mixin(LightmapTextureManager.class)
 public abstract class MixinLightmapTextureManager {
-
-	@Shadow
-	private float field_21528; //was prevFlicker - still same meaning?
-
 	@ModifyArg(method = "update", index = 2, at = @At(value = "INVOKE",
 			target = "Lnet/minecraft/client/texture/NativeImage;setPixelColor(III)V"))
 	private int onSetPixelRgba(int i, int j, int color) {
@@ -41,10 +34,5 @@ public abstract class MixinLightmapTextureManager {
 		}
 
 		return color;
-	}
-
-	@Inject(at = @At("RETURN"), method = "update")
-	private void afterUpdate(float tick, CallbackInfo info) {
-		WorldDataManager.updateLight(tick, field_21528);
 	}
 }

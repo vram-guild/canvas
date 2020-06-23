@@ -157,7 +157,7 @@ public final class ShaderManager implements ClientTickCallback {
 			return;
 		}
 
-		WorldDataManager.setRenderSeconds((cameraEntity.getEntityWorld().getTime() - baseWorldTime + fractionalTicks) / 20);
+		WorldDataManager.update(fractionalTicks, (cameraEntity.getEntityWorld().getTime() - baseWorldTime + fractionalTicks) / 20);
 
 		onRenderTick();
 	}

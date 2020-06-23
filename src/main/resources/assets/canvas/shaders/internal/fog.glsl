@@ -5,9 +5,9 @@
   canvas:shaders/internal/fog.glsl
 ******************************************************/
 
-#define  _CV_FOG_LINEAR 9729
-#define  _CV_FOG_EXP    2048
-#define  _CV_FOG_EXP2   2049
+#define  _CV_FOG_LINEAR 0.0
+#define  _CV_FOG_EXP    1.0
+#define  _CV_FOG_EXP2   2.0
 
 #define _CV_SUBTLE_FOG FALSE
 
