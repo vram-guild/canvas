@@ -22,7 +22,6 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.render.VertexConsumer;
-import net.minecraft.client.render.model.BakedModel;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.crash.CrashException;
 import net.minecraft.util.crash.CrashReport;
@@ -95,16 +94,16 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<FastRenderR
 	}
 
 	/** Called from chunk renderer hook. */
-	public void tesselateBlock(BlockState blockState, BlockPos blockPos, final BakedModel model, MatrixStack matrixStack) {
+	public void tesselateBlock(BlockState blockState, BlockPos blockPos, boolean defaultAo, final FabricBakedModel model, MatrixStack matrixStack) {
 		matrix = matrixStack.peek().getModel();
 		normalMatrix = (Matrix3fExt)(Object) matrixStack.peek().getNormal();
 
 		try {
 			aoCalc.prepare(RenderRegionAddressHelper.interiorIndex(blockPos));
-			prepareForBlock(blockState, blockPos, model.useAmbientOcclusion(), -1);
+			prepareForBlock(blockState, blockPos, defaultAo, -1);
 			cullCompletionFlags = 0;
 			cullResultFlags = 0;
-			((FabricBakedModel) model).emitBlockQuads(region, blockState, blockPos, randomSupplier, this);
+			model.emitBlockQuads(region, blockState, blockPos, randomSupplier, this);
 		} catch (final Throwable var9) {
 			final CrashReport crashReport_1 = CrashReport.create(var9, "Tesselating block in world - Indigo Renderer");
 			final CrashReportSection crashReportElement_1 = crashReport_1.addElement("Block being tesselated");
