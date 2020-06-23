@@ -17,7 +17,7 @@
 package grondag.canvas.terrain.render;
 
 import grondag.canvas.buffer.allocation.VboBuffer;
-import grondag.canvas.buffer.packing.VertexCollectorList;
+import grondag.canvas.buffer.encoding.VertexCollectorList;
 import grondag.canvas.material.MaterialVertexFormat;
 
 public class UploadableChunk {

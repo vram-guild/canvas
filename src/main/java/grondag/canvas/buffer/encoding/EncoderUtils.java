@@ -15,7 +15,6 @@ import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.rendercontext.AbstractRenderContext;
 import grondag.canvas.apiimpl.util.ColorHelper;
 import grondag.canvas.apiimpl.util.NormalHelper;
-import grondag.canvas.buffer.packing.VertexCollectorImpl;
 import grondag.canvas.material.MaterialContext;
 import grondag.canvas.mixinterface.Matrix3fExt;
 

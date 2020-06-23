@@ -13,7 +13,6 @@ import grondag.canvas.apiimpl.RenderMaterialImpl.CompositeMaterial;
 import grondag.canvas.apiimpl.RenderMaterialImpl.CompositeMaterial.DrawableMaterial;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.rendercontext.AbstractRenderContext;
-import grondag.canvas.buffer.packing.VertexCollectorImpl;
 import grondag.canvas.light.LightmapHd;
 import grondag.canvas.material.MaterialContext;
 import grondag.canvas.material.MaterialVertexFormats;

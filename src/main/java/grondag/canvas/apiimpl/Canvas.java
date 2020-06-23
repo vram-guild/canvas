@@ -31,7 +31,6 @@ import grondag.canvas.apiimpl.RenderMaterialImpl.Finder;
 import grondag.canvas.apiimpl.mesh.MeshBuilderImpl;
 import grondag.canvas.apiimpl.rendercontext.BlockRenderContext;
 import grondag.canvas.buffer.encoding.VertexEncoders;
-import grondag.canvas.buffer.packing.RenderCube;
 import grondag.canvas.light.AoVertexClampFunction;
 import grondag.canvas.light.LightmapHd;
 import grondag.canvas.light.LightmapHdTexture;
@@ -41,6 +40,7 @@ import grondag.canvas.shader.GlShaderManager;
 import grondag.canvas.shader.ShaderManager;
 import grondag.canvas.terrain.ChunkColorCache;
 import grondag.canvas.terrain.ProtoRenderRegion;
+import grondag.canvas.terrain.TerrainModelSpace;
 import grondag.frex.api.Renderer;
 import grondag.frex.api.material.MaterialCondition;
 import grondag.frex.api.material.MaterialShader;
@@ -100,7 +100,7 @@ public class Canvas implements Renderer {
 		ShaderManager.INSTANCE.reload();
 		MaterialState.reload();
 		VertexEncoders.reload();
-		RenderCube.reload();
+		TerrainModelSpace.reload();
 	}
 
 	@Override

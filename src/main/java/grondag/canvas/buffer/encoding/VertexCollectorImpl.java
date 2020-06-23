@@ -1,4 +1,4 @@
-package grondag.canvas.buffer.packing;
+package grondag.canvas.buffer.encoding;
 
 import java.nio.IntBuffer;
 
@@ -9,8 +9,6 @@ import it.unimi.dsi.fastutil.ints.IntComparator;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.util.math.MathHelper;
 
-import grondag.canvas.buffer.encoding.VertexEncoder;
-import grondag.canvas.buffer.encoding.VertexEncoders;
 import grondag.canvas.material.MaterialState;
 import grondag.fermion.intstream.IntStreamProvider;
 import grondag.fermion.intstream.IntStreamProvider.IntStreamImpl;

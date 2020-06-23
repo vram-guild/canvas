@@ -14,7 +14,7 @@
  * the License.
  ******************************************************************************/
 
-package grondag.canvas.buffer.packing;
+package grondag.canvas.terrain;
 
 import static grondag.fermion.position.PackedBlockPos.WORLD_BOUNDARY;
 import static grondag.fermion.position.PackedBlockPos.X_MASK;
@@ -28,7 +28,7 @@ import net.minecraft.util.math.MathHelper;
 
 import grondag.canvas.Configurator;
 
-public class RenderCube {
+public class TerrainModelSpace {
 	public static void reload() {
 		CUBE_MASK = Configurator.batchedChunkRender ? 0xFFFFFF00 : 0xFFFFFFF0;
 	}

@@ -41,7 +41,7 @@ import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 
 import grondag.canvas.apiimpl.RenderMaterialImpl.CompositeMaterial.DrawableMaterial;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
-import grondag.canvas.buffer.packing.VertexCollectorList;
+import grondag.canvas.buffer.encoding.VertexCollectorList;
 import grondag.canvas.light.AoCalculator;
 import grondag.canvas.material.MaterialContext;
 import grondag.canvas.material.MaterialVertexFormats;

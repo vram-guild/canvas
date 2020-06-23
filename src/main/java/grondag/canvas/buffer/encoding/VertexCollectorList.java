@@ -1,4 +1,4 @@
-package grondag.canvas.buffer.packing;
+package grondag.canvas.buffer.encoding;
 
 import java.util.Arrays;
 

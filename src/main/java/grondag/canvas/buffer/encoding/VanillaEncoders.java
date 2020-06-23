@@ -11,7 +11,6 @@ import static grondag.canvas.buffer.encoding.EncoderUtils.colorizeQuad;
 
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.rendercontext.AbstractRenderContext;
-import grondag.canvas.buffer.packing.VertexCollectorImpl;
 import grondag.canvas.material.MaterialVertexFormats;
 
 public class VanillaEncoders {

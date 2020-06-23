@@ -11,8 +11,8 @@ import net.minecraft.block.entity.BlockEntity;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 
-import grondag.canvas.buffer.packing.VertexCollectorImpl;
-import grondag.canvas.buffer.packing.VertexCollectorList;
+import grondag.canvas.buffer.encoding.VertexCollectorImpl;
+import grondag.canvas.buffer.encoding.VertexCollectorList;
 import grondag.canvas.material.MaterialContext;
 import grondag.canvas.material.MaterialState;
 import grondag.canvas.shader.ShaderPass;

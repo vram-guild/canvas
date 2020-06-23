@@ -21,8 +21,8 @@ import java.nio.IntBuffer;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import grondag.canvas.buffer.allocation.VboBuffer;
-import grondag.canvas.buffer.packing.VertexCollectorImpl;
-import grondag.canvas.buffer.packing.VertexCollectorList;
+import grondag.canvas.buffer.encoding.VertexCollectorImpl;
+import grondag.canvas.buffer.encoding.VertexCollectorList;
 import grondag.canvas.shader.ShaderPass;
 
 
