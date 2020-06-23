@@ -24,7 +24,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.util.thread.ReentrantThreadExecutor;
 
-import grondag.canvas.shader.ShaderManager;
 import grondag.canvas.varia.CanvasGlHelper;
 
 @Mixin(MinecraftClient.class)
@@ -36,6 +35,5 @@ public abstract class MixinMinecraftClient extends ReentrantThreadExecutor<Runna
 	@Inject(at = @At("RETURN"), method = "<init>*")
 	private void hookInit(CallbackInfo info) {
 		CanvasGlHelper.init();
-		ShaderManager.INSTANCE.forceReload();
 	}
 }

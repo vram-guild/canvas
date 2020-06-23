@@ -82,7 +82,7 @@ public final class MaterialShaderImpl implements MaterialShader {
 		getOrCreate(context, format).activate();
 	}
 
-	public void forceReload() {
+	public void reload() {
 		programList.clear();
 		programMap.clear();
 	}

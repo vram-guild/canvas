@@ -45,7 +45,7 @@ public class BlockRenderContext extends AbstractBlockRenderContext<BlockRenderVi
 		collectors.setContext(MaterialContext.BLOCK);
 	}
 
-	public static void forceReload() {
+	public static void reload() {
 		POOL = ThreadLocal.withInitial(BlockRenderContext::new);
 	}
 

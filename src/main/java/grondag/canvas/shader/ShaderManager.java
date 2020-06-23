@@ -24,10 +24,6 @@ import net.minecraft.util.Identifier;
 import net.fabricmc.fabric.api.event.client.ClientTickCallback;
 
 import grondag.canvas.apiimpl.MaterialShaderImpl;
-import grondag.canvas.buffer.packing.RenderCube;
-import grondag.canvas.light.AoVertexClampFunction;
-import grondag.canvas.light.LightmapHd;
-import grondag.canvas.light.LightmapHdTexture;
 import grondag.canvas.varia.DitherTexture;
 import grondag.canvas.varia.WorldDataManager;
 import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
@@ -73,16 +69,11 @@ public final class ShaderManager implements ClientTickCallback {
 		defaultShader= create(ShaderData.DEFAULT_VERTEX_SOURCE, ShaderData.DEFAULT_FRAGMENT_SOURCE);
 	}
 
-	// UGLY: probably doesn't all belong here
-	public void forceReload() {
-		AoVertexClampFunction.forceReload();
-		RenderCube.forceReload();
-		GlShaderManager.INSTANCE.forceReload();
-		LightmapHdTexture.forceReload();
-		LightmapHd.forceReload();
+	public void reload() {
 		final int limit = shaders.size();
+
 		for (int i = 0; i < limit; i++) {
-			shaders.get(i).forceReload();
+			shaders.get(i).reload();
 		}
 	}
 

@@ -34,7 +34,7 @@ public class LightmapHd {
 		return String.format("%d of %d ( %d percent )", i, LightmapSizer.maxCount, i * 100 / LightmapSizer.maxCount);
 	}
 
-	public static void forceReload() {
+	public static void reload() {
 		nextIndex.set(0);
 		MAP.clear();
 		errorNoticeNeeded = true;

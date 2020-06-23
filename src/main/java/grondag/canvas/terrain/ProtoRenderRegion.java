@@ -242,7 +242,7 @@ public class ProtoRenderRegion extends AbstractRenderRegion {
 		POOL.offer(region);
 	}
 
-	public static void forceReload() {
+	public static void reload() {
 		// ensure current AoFix rule or other config-dependent lambdas are used
 		POOL.clear();
 	}

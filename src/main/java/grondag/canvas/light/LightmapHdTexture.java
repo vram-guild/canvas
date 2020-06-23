@@ -41,7 +41,7 @@ public class LightmapHdTexture implements AutoCloseable {
 		return result;
 	}
 
-	public static void forceReload() {
+	public static void reload() {
 		// just clear image if size is same
 		if(instance != null && instance.texture.getImage().width == LightmapSizer.texSize) {
 			instance.clear();

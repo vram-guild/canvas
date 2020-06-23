@@ -29,7 +29,7 @@ import net.minecraft.util.math.MathHelper;
 import grondag.canvas.Configurator;
 
 public class RenderCube {
-	public static void forceReload() {
+	public static void reload() {
 		CUBE_MASK = Configurator.batchedChunkRender ? 0xFFFFFF00 : 0xFFFFFFF0;
 	}
 

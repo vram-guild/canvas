@@ -29,10 +29,10 @@ public final class AoVertexClampFunction {
 	static ClampFunc func;
 
 	static {
-		forceReload();
+		reload();
 	}
 
-	public static void forceReload() {
+	public static void reload() {
 		func = Configurator.clampExteriorVertices ? x -> x < 0f ? 0f : (x > 1f ? 1f : x) : x -> x;
 	}
 

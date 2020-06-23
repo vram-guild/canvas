@@ -26,13 +26,18 @@ import net.fabricmc.fabric.api.renderer.v1.material.RenderMaterial;
 import net.fabricmc.fabric.api.renderer.v1.mesh.MeshBuilder;
 
 import grondag.canvas.CanvasMod;
-import grondag.canvas.apiimpl.RenderMaterialImpl.Finder;
 import grondag.canvas.apiimpl.RenderMaterialImpl.CompositeMaterial;
+import grondag.canvas.apiimpl.RenderMaterialImpl.Finder;
 import grondag.canvas.apiimpl.mesh.MeshBuilderImpl;
 import grondag.canvas.apiimpl.rendercontext.BlockRenderContext;
 import grondag.canvas.buffer.encoding.VertexEncoders;
+import grondag.canvas.buffer.packing.RenderCube;
+import grondag.canvas.light.AoVertexClampFunction;
+import grondag.canvas.light.LightmapHd;
+import grondag.canvas.light.LightmapHdTexture;
 import grondag.canvas.material.MaterialState;
 import grondag.canvas.perf.ChunkRebuildCounters;
+import grondag.canvas.shader.GlShaderManager;
 import grondag.canvas.shader.ShaderManager;
 import grondag.canvas.terrain.ChunkColorCache;
 import grondag.canvas.terrain.ProtoRenderRegion;
@@ -84,13 +89,18 @@ public class Canvas implements Renderer {
 
 	public void reload() {
 		CanvasMod.LOG.info(I18n.translate("info.canvas.reloading"));
-		ProtoRenderRegion.forceReload();
-		BlockRenderContext.forceReload();
+		ProtoRenderRegion.reload();
+		BlockRenderContext.reload();
 		ChunkRebuildCounters.reset();
 		ChunkColorCache.invalidate();
-		ShaderManager.INSTANCE.forceReload();
+		AoVertexClampFunction.reload();
+		GlShaderManager.INSTANCE.reload();
+		LightmapHdTexture.reload();
+		LightmapHd.reload();
+		ShaderManager.INSTANCE.reload();
 		MaterialState.reload();
 		VertexEncoders.reload();
+		RenderCube.reload();
 	}
 
 	@Override
