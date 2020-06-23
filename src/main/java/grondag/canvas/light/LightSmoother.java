@@ -18,7 +18,7 @@ import net.minecraft.block.BlockState;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 
-import grondag.canvas.chunk.FastRenderRegion;
+import grondag.canvas.terrain.FastRenderRegion;
 
 
 // TODO: look at VoxelShapes.method_1080 as a way to not propagate thru slabs

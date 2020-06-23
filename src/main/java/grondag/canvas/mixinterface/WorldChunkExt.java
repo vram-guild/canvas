@@ -14,7 +14,7 @@
  ******************************************************************************/
 package grondag.canvas.mixinterface;
 
-import grondag.canvas.chunk.ChunkColorCache;
+import grondag.canvas.terrain.ChunkColorCache;
 
 public interface WorldChunkExt {
 	ChunkColorCache canvas_colorCache();

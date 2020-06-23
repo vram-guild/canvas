@@ -1,5 +1,6 @@
 /*******************************************************************************
- * Copyright 2019, 2020 grondag
+ * Copyright 2019 grondag
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
  * of the License at
@@ -12,10 +13,30 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  ******************************************************************************/
-package grondag.canvas.mixinterface;
 
-import grondag.canvas.terrain.ChunkPaletteCopier.PaletteCopy;
+package grondag.canvas.terrain.render;
 
-public interface PalettedContainerExt {
-	PaletteCopy canvas_paletteCopy();
+import java.util.concurrent.ArrayBlockingQueue;
+
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+
+public class DelegateLists {
+	private static final ArrayBlockingQueue<ObjectArrayList<DrawableDelegate>> delegateLists = new ArrayBlockingQueue<>(
+			4096);
+
+	public static ObjectArrayList<DrawableDelegate> getReadyDelegateList() {
+		ObjectArrayList<DrawableDelegate> result = delegateLists.poll();
+		if (result == null) {
+			result = new ObjectArrayList<>();
+		}
+		return result;
+	}
+
+	public static void releaseDelegateList(ObjectArrayList<DrawableDelegate> list) {
+		if (!list.isEmpty()) {
+			list.clear();
+		}
+
+		delegateLists.offer(list);
+	}
 }

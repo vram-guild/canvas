@@ -7,11 +7,11 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.util.math.MathHelper;
 
 import grondag.canvas.apiimpl.RenderMaterialImpl.CompositeMaterial.DrawableMaterial;
-import grondag.canvas.chunk.UploadableChunk;
 import grondag.canvas.material.MaterialContext;
 import grondag.canvas.material.MaterialState;
 import grondag.canvas.material.MaterialVertexFormats;
 import grondag.canvas.shader.ShaderPass;
+import grondag.canvas.terrain.render.UploadableChunk;
 
 /**
  * MUST ALWAYS BE USED WITHIN SAME MATERIAL CONTEXT

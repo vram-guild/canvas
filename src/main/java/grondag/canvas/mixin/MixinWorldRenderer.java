@@ -55,9 +55,9 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Matrix4f;
 
 import grondag.canvas.CanvasMod;
-import grondag.canvas.chunk.RenderRegionBuilder;
 import grondag.canvas.mixinterface.WorldRendererExt;
 import grondag.canvas.render.CanvasWorldRenderer;
+import grondag.canvas.terrain.RenderRegionBuilder;
 
 @Mixin(WorldRenderer.class)
 public class MixinWorldRenderer implements WorldRendererExt {

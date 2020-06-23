@@ -35,14 +35,14 @@ import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 
 import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.RenderMaterialImpl.CompositeMaterial.DrawableMaterial;
-import grondag.canvas.chunk.FastRenderRegion;
-import grondag.canvas.chunk.ProtoRenderRegion;
-import grondag.canvas.chunk.RenderRegionAddressHelper;
 import grondag.canvas.light.AoCalculator;
 import grondag.canvas.light.LightSmoother;
 import grondag.canvas.material.MaterialContext;
 import grondag.canvas.material.MaterialState;
 import grondag.canvas.mixinterface.Matrix3fExt;
+import grondag.canvas.terrain.FastRenderRegion;
+import grondag.canvas.terrain.ProtoRenderRegion;
+import grondag.canvas.terrain.RenderRegionAddressHelper;
 
 /**
  * Implementation of {@link RenderContext} used during terrain rendering.

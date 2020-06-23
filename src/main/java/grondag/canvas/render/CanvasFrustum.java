@@ -11,8 +11,8 @@ import net.minecraft.util.math.Vec3d;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 
-import grondag.canvas.chunk.BuiltRenderRegion;
 import grondag.canvas.mixinterface.Matrix4fExt;
+import grondag.canvas.terrain.BuiltRenderRegion;
 
 /**
  * Plane equation derivations based on:

@@ -16,7 +16,7 @@
 
 package grondag.canvas.apiimpl.rendercontext;
 
-import static grondag.canvas.chunk.RenderRegionAddressHelper.cacheIndexToXyz5;
+import static grondag.canvas.terrain.RenderRegionAddressHelper.cacheIndexToXyz5;
 
 import net.minecraft.block.BlockState;
 import net.minecraft.client.render.VertexConsumer;
