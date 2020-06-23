@@ -233,13 +233,6 @@ public abstract class OcclusionRegion {
 	 * Should not be called if camera may be inside the chunk!
 	 */
 	private void hideInteriorClosedPositions() {
-		int minX = Integer.MAX_VALUE;
-		int minY = Integer.MAX_VALUE;
-		int minZ = Integer.MAX_VALUE;
-		int maxX = Integer.MIN_VALUE;
-		int maxY = Integer.MIN_VALUE;
-		int maxZ = Integer.MIN_VALUE;
-
 		for (int i = 0; i < INTERIOR_CACHE_SIZE; i++) {
 			// PERF: iterate by word vs recomputing mask each time
 			final long mask = (1L << (i & 63));
@@ -253,35 +246,77 @@ public abstract class OcclusionRegion {
 				bits[wordIndex + RENDERABLE_OFFSET] &= ~mask;
 				// mark it opaque
 				bits[wordIndex] |= mask;
-			} else if ((bits[wordIndex + RENDERABLE_OFFSET] & mask) != 0){
+			}
+		}
+	}
 
-				// PERF: probably faster to do bit-wise analysis of words after the fact
-				if (x < minX) {
-					minX = x;
-				} else if (x > maxX) {
-					maxX = x;
-				}
+	private void computeRenderableBounds() {
+		int worldIndex = RENDERABLE_OFFSET;
 
-				if (y < minY) {
-					minY = y;
-				} else if (y > maxY) {
-					maxY = y;
-				}
+		long combined0 = 0;
+		long combined1 = 0;
+		long combined2 = 0;
+		long combined3 = 0;
+
+		int minZ = Integer.MAX_VALUE;
+		int maxZ = Integer.MIN_VALUE;
+
+		for (int z = 0; z < 16; ++z) {
+			final long w0 = bits[worldIndex++];
+			final long w1 = bits[worldIndex++];
+			final long w2 = bits[worldIndex++];
+			final long w3 = bits[worldIndex++];
+
+			if ((w0 | w1 | w2 | w3) != 0)  {
+				combined0 |= w0;
+				combined1 |= w1;
+				combined2 |= w2;
+				combined3 |= w3;
 
 				if (z < minZ) {
 					minZ = z;
-				} else if (z > maxZ) {
+				}
+
+				if (z > maxZ) {
 					maxZ = z;
 				}
 			}
 		}
 
-		minRenderableX = minX;
-		minRenderableY = minY;
+		int yBits = 0;
+
+		if ((combined0 & 0x000000000000FFFFL) != 0) yBits |= 0x0001;
+		if ((combined0 & 0x00000000FFFF0000L) != 0) yBits |= 0x0002;
+		if ((combined0 & 0x0000FFFF00000000L) != 0) yBits |= 0x0004;
+		if ((combined0 & 0xFFFF000000000000L) != 0) yBits |= 0x0008;
+
+		if ((combined1 & 0x000000000000FFFFL) != 0) yBits |= 0x0010;
+		if ((combined1 & 0x00000000FFFF0000L) != 0) yBits |= 0x0020;
+		if ((combined1 & 0x0000FFFF00000000L) != 0) yBits |= 0x0040;
+		if ((combined1 & 0xFFFF000000000000L) != 0) yBits |= 0x0080;
+
+		if ((combined2 & 0x000000000000FFFFL) != 0) yBits |= 0x0100;
+		if ((combined2 & 0x00000000FFFF0000L) != 0) yBits |= 0x0200;
+		if ((combined2 & 0x0000FFFF00000000L) != 0) yBits |= 0x0400;
+		if ((combined2 & 0xFFFF000000000000L) != 0) yBits |= 0x0800;
+
+		if ((combined3 & 0x000000000000FFFFL) != 0) yBits |= 0x1000;
+		if ((combined3 & 0x00000000FFFF0000L) != 0) yBits |= 0x2000;
+		if ((combined3 & 0x0000FFFF00000000L) != 0) yBits |= 0x4000;
+		if ((combined3 & 0xFFFF000000000000L) != 0) yBits |= 0x8000;
+
+		long xBits = combined0 | combined1 | combined2 | combined3;
+
+		xBits |= (xBits >> 32);
+		xBits |= (xBits >> 16);
+
+		final int ixBits = (int) (xBits & 0xFFFFL);
+
+		minRenderableX = Integer.numberOfTrailingZeros(ixBits);
+		minRenderableY = Integer.numberOfTrailingZeros(yBits);
 		minRenderableZ = minZ;
-		// handle cases when min and max are same - logic in loop won't catch
-		maxRenderableX = maxX < minX ? minX : maxX;
-		maxRenderableY = maxY < minY ? minY : maxY;
+		maxRenderableX = 31 - Integer.numberOfLeadingZeros(ixBits);
+		maxRenderableY = 31 - Integer.numberOfLeadingZeros(yBits);
 		maxRenderableZ = maxZ < minZ ? minZ : maxZ;
 	}
 
@@ -324,10 +359,12 @@ public abstract class OcclusionRegion {
 			}
 		}
 
-		// don't hide inside positin if we may be inside the chunk!
+		// don't hide inside position if we may be inside the chunk!
 		if (!isNear) {
 			hideInteriorClosedPositions();
 		}
+
+		computeRenderableBounds();
 
 		final BoxFinder boxFinder = this.boxFinder;
 		final IntArrayList boxes = boxFinder.boxes;
