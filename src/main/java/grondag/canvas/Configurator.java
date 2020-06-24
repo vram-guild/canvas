@@ -49,6 +49,9 @@ public class Configurator {
 		@Comment("Makes terrain fog a little less foggy.")
 		boolean subtleFog = false;
 
+		@Comment("Fluid biome colors are blended at block corners to avoid patchy appearance. Slight peformance impact to chunk loading.")
+		boolean blendFluidColors = true;
+
 		@Comment("Truly smoothh lighting. Some impact to memory use, chunk loading and frame rate.")
 		boolean hdLightmaps = false;
 
@@ -132,8 +135,7 @@ public class Configurator {
 	private static final Jankson JANKSON = Jankson.builder().build();
 
 	public static boolean subtleFog = DEFAULTS.subtleFog;
-	public static boolean shaderDebug = DEFAULTS.shaderDebug;
-	public static int maxLightmapDelayFrames = DEFAULTS.maxLightmapDelayFrames;
+	public static boolean blendFluidColors = DEFAULTS.blendFluidColors;
 
 	private static boolean hdLightmaps = DEFAULTS.hdLightmaps;
 	public static boolean lightmapNoise = DEFAULTS.lightmapNoise;
@@ -141,6 +143,7 @@ public class Configurator {
 	public static boolean lightSmoothing = DEFAULTS.lightSmoothing;
 	public static AoMode aoShadingMode = DEFAULTS.aoShadingMode;
 	public static boolean moreLightmap = DEFAULTS.moreLightmap;
+	public static int maxLightmapDelayFrames = DEFAULTS.maxLightmapDelayFrames;
 	public static boolean semiFlatLighting = DEFAULTS.semiFlatLighting;
 
 	public static boolean batchedChunkRender = DEFAULTS.batchedChunkRender;
@@ -150,6 +153,7 @@ public class Configurator {
 	public static boolean terrainSetupOffThread = DEFAULTS.terrainSetupOffThread;
 	private static boolean enableVao = DEFAULTS.enableVao;
 
+	public static boolean shaderDebug = DEFAULTS.shaderDebug;
 	public static boolean lightmapDebug = DEFAULTS.lightmapDebug;
 	public static boolean conciseErrors = DEFAULTS.conciseErrors;
 	public static boolean logMachineInfo = DEFAULTS.logMachineInfo;
@@ -194,6 +198,8 @@ public class Configurator {
 			CanvasMod.LOG.error("Unable to load config. Using default values.");
 		}
 		subtleFog = config.subtleFog;
+		blendFluidColors = config.blendFluidColors;
+
 		shaderDebug = config.shaderDebug;
 		maxLightmapDelayFrames = config.maxLightmapDelayFrames;
 		moreLightmap = config.moreLightmap;
@@ -229,6 +235,8 @@ public class Configurator {
 	private static void saveConfig() {
 		final ConfigData config = new ConfigData();
 		config.subtleFog = subtleFog;
+		config.blendFluidColors = blendFluidColors;
+
 		config.shaderDebug = shaderDebug;
 		config.maxLightmapDelayFrames = maxLightmapDelayFrames;
 
@@ -325,6 +333,14 @@ public class Configurator {
 				.setTooltip(parse("config.canvas.help.subtle_fog"))
 				.setSaveConsumer(b -> {subtleFog = b; reload = true;})
 				.build());
+
+		features.addEntry(ENTRY_BUILDER
+				.startBooleanToggle(new TranslatableText("config.canvas.value.blend_fluid_colors"), blendFluidColors)
+				.setDefaultValue(DEFAULTS.blendFluidColors)
+				.setTooltip(parse("config.canvas.help.blend_fluid_colors"))
+				.setSaveConsumer(b -> {blendFluidColors = b; reload = true;})
+				.build());
+
 
 		// LIGHTING
 		final ConfigCategory lighting = builder.getOrCreateCategory(new TranslatableText("config.canvas.category.lighting"));
@@ -529,7 +545,6 @@ public class Configurator {
 	//    @Comment({"Enable fancy water and lava rendering.",
 	//        " This feature is currently work in progress and has no visible effect if enabled."})
 	public static boolean fancyFluids = false;
-
 
 
 	//    @LangKey("config.disable_yield")

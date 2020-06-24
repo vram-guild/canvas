@@ -15,6 +15,8 @@
 	"config.canvas.category.features" : "Features",
 	"config.canvas.value.subtle_fog" : "Subtle Fog",
 	"config.canvas.help.subtle_fog" : "Makes terrain fog a;little less foggy.",
+	"config.canvas.value.blend_fluid_colors" : "Blend Fluid Colors",
+	"config.canvas.help.blend_fluid_colors" : "Fluid biome colors are blended at block corners to avoid patchy; appearance. Slight peformance impact to chunk loading.",
 	
 	"config.canvas.category.lighting" : "Lighting",
 	"config.canvas.value.light_smoothing" : "Light Smoothing",

@@ -28,7 +28,6 @@ import net.fabricmc.fabric.api.renderer.v1.mesh.MeshBuilder;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.RenderMaterialImpl.CompositeMaterial;
 import grondag.canvas.apiimpl.RenderMaterialImpl.Finder;
-import grondag.canvas.apiimpl.fluid.FluidModel;
 import grondag.canvas.apiimpl.mesh.MeshBuilderImpl;
 import grondag.canvas.apiimpl.rendercontext.BlockRenderContext;
 import grondag.canvas.buffer.encoding.VertexEncoders;
@@ -102,7 +101,6 @@ public class Canvas implements Renderer {
 		MaterialState.reload();
 		VertexEncoders.reload();
 		TerrainModelSpace.reload();
-		FluidModel.INSTANCE.onResourceReload();
 	}
 
 	@Override

@@ -32,7 +32,6 @@ import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
 import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 
 import grondag.canvas.Configurator;
-import grondag.canvas.apiimpl.fluid.FluidModel;
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
 import grondag.canvas.buffer.encoding.VertexCollectorImpl;
 import grondag.canvas.buffer.encoding.VertexCollectorList;
@@ -48,6 +47,7 @@ import grondag.canvas.terrain.occlusion.region.PackedBox;
 import grondag.canvas.terrain.render.DrawableChunk;
 import grondag.canvas.terrain.render.UploadableChunk;
 import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
+import grondag.frex.api.fkuid.FluidQuadSupplier;
 
 @Environment(EnvType.CLIENT)
 public class BuiltRenderRegion {
@@ -415,7 +415,7 @@ public class BuiltRenderRegion {
 					matrixStack.push();
 					matrixStack.translate(x + xModelOffset, y + yModelOffset, z + zModelOffset);
 
-					context.tesselateBlock(blockState, searchPos, false, FluidModel.INSTANCE, matrixStack);
+					context.tesselateBlock(blockState, searchPos, false, FluidQuadSupplier.get(fluidState.getFluid()), matrixStack);
 
 					matrixStack.pop();
 

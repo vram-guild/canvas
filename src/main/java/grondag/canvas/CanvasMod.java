@@ -23,6 +23,8 @@ import net.fabricmc.fabric.api.client.rendering.v1.InvalidateRenderStateCallback
 import net.fabricmc.fabric.api.renderer.v1.RendererAccess;
 
 import grondag.canvas.apiimpl.Canvas;
+import grondag.canvas.apiimpl.fluid.FluidHandler;
+import grondag.frex.api.fkuid.FluidQuadSupplier;
 
 //FEAT: configurable disable chunk matrix
 //FEAT: complete item rendering
@@ -46,6 +48,7 @@ public class CanvasMod implements ClientModInitializer {
 	public void onInitializeClient() {
 		Configurator.init();
 		RendererAccess.INSTANCE.registerRenderer(Canvas.INSTANCE);
+		FluidQuadSupplier.setReloadHandler(FluidHandler.HANDLER);
 		InvalidateRenderStateCallback.EVENT.register(Canvas.INSTANCE::reload);
 
 		if(Configurator.debugNativeMemoryAllocation) {
