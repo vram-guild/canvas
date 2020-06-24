@@ -132,9 +132,9 @@ public abstract class AoCalculator {
 		blendCacheCompletionHighFlags = 0;
 	}
 
-	public void computeFlat(MutableQuadViewImpl quad, int flatBrightness) {
+	public void computeFlatHd(MutableQuadViewImpl quad, int flatBrightness) {
 		if(Configurator.hdLightmaps()) {
-			flatFaceSmooth(quad, flatBrightness);
+			flatFaceSmoothHd(quad, flatBrightness);
 		} else {
 			assert false : "Called block lighter for flat lighting outside HD lighting model";
 		}
@@ -183,6 +183,29 @@ public abstract class AoCalculator {
 		}
 	}
 
+	public void computeFlat(MutableQuadViewImpl quad) {
+
+		final int flags = quad.geometryFlags();
+
+		quad.hdLight = null;
+
+		switch (flags) {
+		case AXIS_ALIGNED_FLAG | CUBIC_FLAG | LIGHT_FACE_FLAG:
+		case AXIS_ALIGNED_FLAG | LIGHT_FACE_FLAG:
+			blockFaceFlat(quad, true);
+			break;
+
+		case AXIS_ALIGNED_FLAG | CUBIC_FLAG:
+		case AXIS_ALIGNED_FLAG:
+			blendedFaceFlat(quad);
+			break;
+
+		default:
+			irregularFaceFlat(quad);
+			break;
+		}
+	}
+
 	private void blockFace(MutableQuadViewImpl quad, boolean isOnLightFace) {
 		final int lightFace = quad.lightFaceId();
 		final AoFaceCalc faceData = gatherFace(lightFace, isOnLightFace).calc;
@@ -195,6 +218,19 @@ public abstract class AoCalculator {
 			wFunc.apply(quad, i, w);
 			quad.lightmap(i, ColorHelper.maxBrightness(quad.lightmap(i), faceData.weightedCombinedLight(w)));
 			ao[i] = faceData.weigtedAo(w) * DIVIDE_BY_255;
+		}
+	}
+
+	private void blockFaceFlat(MutableQuadViewImpl quad, boolean isOnLightFace) {
+		final int lightFace = quad.lightFaceId();
+		final AoFaceCalc faceData = gatherFace(lightFace, isOnLightFace).calc;
+		final AoFace face = AoFace.get(lightFace);
+		final WeightFunction wFunc = face.weightFunc;
+		final float[] w = this.w;
+
+		for (int i = 0; i < 4; i++) {
+			wFunc.apply(quad, i, w);
+			quad.lightmap(i, ColorHelper.maxBrightness(quad.lightmap(i), faceData.weightedCombinedLight(w)));
 		}
 	}
 
@@ -213,7 +249,7 @@ public abstract class AoCalculator {
 		quad.hdLight = LightmapHd.find(faceData);
 	}
 
-	private void flatFaceSmooth(MutableQuadViewImpl quad, int flatBrightness) {
+	private void flatFaceSmoothHd(MutableQuadViewImpl quad, int flatBrightness) {
 		final int lightFace = quad.lightFaceId();
 		final AoFaceData faceData = localData;
 		faceData.setFlat(flatBrightness);
@@ -255,6 +291,7 @@ public abstract class AoCalculator {
 		}
 	}
 
+
 	private void blendedFace(MutableQuadViewImpl quad) {
 		final int lightFace = quad.lightFaceId();
 		final AoFaceCalc faceData = blendedInsetData(quad, 0, lightFace);
@@ -267,6 +304,19 @@ public abstract class AoCalculator {
 			wFunc.apply(quad, i, w);
 			quad.lightmap(i, ColorHelper.maxBrightness(quad.lightmap(i), faceData.weightedCombinedLight(w)));
 			ao[i] = faceData.weigtedAo(w) * DIVIDE_BY_255;
+		}
+	}
+
+	private void blendedFaceFlat(MutableQuadViewImpl quad) {
+		final int lightFace = quad.lightFaceId();
+		final AoFaceCalc faceData = blendedInsetData(quad, 0, lightFace);
+		final AoFace face = AoFace.get(lightFace);
+		final WeightFunction wFunc = face.weightFunc;
+		final float[] w = this.w;
+
+		for (int i = 0; i < 4; i++) {
+			wFunc.apply(quad, i, w);
+			quad.lightmap(i, ColorHelper.maxBrightness(quad.lightmap(i), faceData.weightedCombinedLight(w)));
 		}
 	}
 
@@ -371,6 +421,67 @@ public abstract class AoCalculator {
 			}
 
 			aoResult[i] = (ao + maxAo) * (0.5f * DIVIDE_BY_255);
+			quad.lightmap(i, ColorHelper.maxBrightness(quad.lightmap(i), (((int) ((sky + maxSky) * 0.5f) & 0xFF) << 16)
+					| ((int)((block + maxBlock) * 0.5f) & 0xFF)));
+		}
+	}
+
+	private void irregularFaceFlat(MutableQuadViewImpl quad) {
+		final Vector3f faceNorm = quad.faceNormal();
+		Vector3f normal;
+		final float[] w = this.w;
+
+		//TODO: currently no way to handle 3d interpolation shader-side
+		quad.hdLight = null;
+
+		for (int i = 0; i < 4; i++) {
+			normal = quad.hasNormal(i) ? quad.copyNormal(i, vertexNormal) : faceNorm;
+			float sky = 0, block = 0;
+			int maxSky = 0, maxBlock = 0;
+
+			final float x = normal.getX();
+			if (!MathHelper.approximatelyEquals(0f, x)) {
+				final int face = x > 0 ? EAST : WEST;
+				// PERF: really need to cache these
+				final AoFaceCalc fd = blendedInsetData(quad, i, face);
+				AoFace.get(face).weightFunc.apply(quad, i, w);
+				final float n = x * x;
+				final int s = fd.weigtedSkyLight(w);
+				final int b = fd.weigtedBlockLight(w);
+				sky += n * s;
+				block += n * b;
+				maxSky = s;
+				maxBlock = b;
+			}
+
+			final float y = normal.getY();
+			if (!MathHelper.approximatelyEquals(0f, y)) {
+				final int face = y > 0 ? UP : DOWN;
+				final AoFaceCalc fd = blendedInsetData(quad, i, face);
+				AoFace.get(face).weightFunc.apply(quad, i, w);
+				final float n = y * y;
+				final int s = fd.weigtedSkyLight(w);
+				final int b = fd.weigtedBlockLight(w);
+				sky += n * s;
+				block += n * b;
+				maxSky = Math.max(s, maxSky);
+				maxBlock = Math.max(b, maxBlock);
+			}
+
+			final float z = normal.getZ();
+			if (!MathHelper.approximatelyEquals(0f, z)) {
+				final int face = z > 0 ? SOUTH : NORTH;
+				final AoFaceCalc fd = blendedInsetData(quad, i, face);
+				AoFace.get(face).weightFunc.apply(quad, i, w);
+				final float n = z * z;
+				final int s = fd.weigtedSkyLight(w);
+				final int b = fd.weigtedBlockLight(w);
+				sky += n * s;
+				block += n * b;
+				maxSky = Math.max(s, maxSky);
+				maxBlock = Math.max(b, maxBlock);
+			}
+
 			quad.lightmap(i, ColorHelper.maxBrightness(quad.lightmap(i), (((int) ((sky + maxSky) * 0.5f) & 0xFF) << 16)
 					| ((int)((block + maxBlock) * 0.5f) & 0xFF)));
 		}

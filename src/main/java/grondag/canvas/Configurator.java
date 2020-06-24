@@ -70,6 +70,10 @@ public class Configurator {
 		@Comment("Extra lightmap capacity. Ensure enabled if you are getting `unable to create HD lightmap(s) - out of space' messages.")
 		boolean moreLightmap = true;
 
+		@Comment("Models with flat lighting have smoother lighting (but no ambient occlusion).")
+		boolean semiFlatLighting = true;
+
+		// TWEAKS
 		@Comment("Draws multiple chunks with same view transformation. Much faster, but try without if you see visual defects.")
 		boolean batchedChunkRender = true;
 
@@ -137,6 +141,7 @@ public class Configurator {
 	public static boolean lightSmoothing = DEFAULTS.lightSmoothing;
 	public static AoMode aoShadingMode = DEFAULTS.aoShadingMode;
 	public static boolean moreLightmap = DEFAULTS.moreLightmap;
+	public static boolean semiFlatLighting = DEFAULTS.semiFlatLighting;
 
 	public static boolean batchedChunkRender = DEFAULTS.batchedChunkRender;
 	public static boolean preventDepthFighting = DEFAULTS.preventDepthFighting;
@@ -198,6 +203,7 @@ public class Configurator {
 		diffuseShadingMode = config.diffuseShadingMode;
 		lightSmoothing = config.lightSmoothing;
 		aoShadingMode = config.aoShadingMode;
+		semiFlatLighting = config.semiFlatLighting;
 
 		batchedChunkRender = config.batchedChunkRender;
 		//        disableVanillaChunkMatrix = config.disableVanillaChunkMatrix;
@@ -232,6 +238,7 @@ public class Configurator {
 		config.lightSmoothing = lightSmoothing;
 		config.aoShadingMode = aoShadingMode;
 		config.moreLightmap = moreLightmap;
+		config.semiFlatLighting = semiFlatLighting;
 
 		config.batchedChunkRender = batchedChunkRender;
 		config.preventDepthFighting = preventDepthFighting;
@@ -369,6 +376,13 @@ public class Configurator {
 				.setDefaultValue(DEFAULTS.maxLightmapDelayFrames)
 				.setTooltip(parse("config.canvas.help.lightmap_delay_frames"))
 				.setSaveConsumer(b -> maxLightmapDelayFrames = b)
+				.build());
+
+		lighting.addEntry(ENTRY_BUILDER
+				.startBooleanToggle(new TranslatableText("config.canvas.value.semi_smooth_flat_lighting"), semiFlatLighting)
+				.setDefaultValue(DEFAULTS.semiFlatLighting)
+				.setTooltip(parse("config.canvas.help.semi_smooth_flat_lighting"))
+				.setSaveConsumer(b -> {semiFlatLighting = b; reload = true;})
 				.build());
 
 		// TWEAKS

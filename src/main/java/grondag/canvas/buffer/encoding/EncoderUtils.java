@@ -762,14 +762,19 @@ abstract class EncoderUtils {
 		if (!quad.material().disableAo(0) && MinecraftClient.isAmbientOcclusionEnabled()) {
 			context.aoCalc().compute(quad);
 		} else {
-			final int brightness = context.flatBrightness(quad);
-			quad.lightmap(0, ColorHelper.maxBrightness(quad.lightmap(0), brightness));
-			quad.lightmap(1, ColorHelper.maxBrightness(quad.lightmap(1), brightness));
-			quad.lightmap(2, ColorHelper.maxBrightness(quad.lightmap(2), brightness));
-			quad.lightmap(3, ColorHelper.maxBrightness(quad.lightmap(3), brightness));
+			if (Configurator.semiFlatLighting) {
+				context.aoCalc().computeFlat(quad);
+			} else {
+				// TODO: in HD path don't do this
+				final int brightness = context.flatBrightness(quad);
+				quad.lightmap(0, ColorHelper.maxBrightness(quad.lightmap(0), brightness));
+				quad.lightmap(1, ColorHelper.maxBrightness(quad.lightmap(1), brightness));
+				quad.lightmap(2, ColorHelper.maxBrightness(quad.lightmap(2), brightness));
+				quad.lightmap(3, ColorHelper.maxBrightness(quad.lightmap(3), brightness));
 
-			if (Configurator.hdLightmaps()) {
-				context.aoCalc().computeFlat(quad, brightness);
+				if (Configurator.hdLightmaps()) {
+					context.aoCalc().computeFlatHd(quad, brightness);
+				}
 			}
 		}
 	}

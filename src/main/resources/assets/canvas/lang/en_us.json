@@ -31,6 +31,8 @@
 	"config.canvas.help.ao_shading" : "Mimics light blocked;by nearby objects.",
 	"config.canvas.value.lightmap_delay_frames" : "Max Lightmap Delay",
 	"config.canvas.help.lightmap_delay_frames" : "Setting > 0 may give slightly;better FPS at cost of potential;flickering when lighting changes.",
+	"config.canvas.value.semi_flat_lighting" : "Semi-Flat Lightmap",
+	"config.canvas.help.semi_flat_lighting" : "Models with flat lighting have smoother lighting;(but no ambient occlusion).",
 	
 	"config.canvas.enum.ao_mode.normal" : "Vanilla",
 	"config.canvas.enum.ao_mode.subtle_always" : "Subtle",
