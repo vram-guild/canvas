@@ -46,8 +46,8 @@ public class Configurator {
 
 	@SuppressWarnings("hiding")
 	static class ConfigData {
-		@Comment("Makes terrain fog a little less foggy.")
-		boolean subtleFog = false;
+		@Comment("Makes terrain fog a little less foggy or turns it off.")
+		FogMode fogMode = FogMode.VANILLA;
 
 		@Comment("Fluid biome colors are blended at block corners to avoid patchy appearance. Slight peformance impact to chunk loading.")
 		boolean blendFluidColors = true;
@@ -134,7 +134,7 @@ public class Configurator {
 	private static final Gson GSON = new GsonBuilder().create();
 	private static final Jankson JANKSON = Jankson.builder().build();
 
-	public static boolean subtleFog = DEFAULTS.subtleFog;
+	public static FogMode fogMode = DEFAULTS.fogMode;
 	public static boolean blendFluidColors = DEFAULTS.blendFluidColors;
 
 	private static boolean hdLightmaps = DEFAULTS.hdLightmaps;
@@ -197,7 +197,8 @@ public class Configurator {
 			e.printStackTrace();
 			CanvasMod.LOG.error("Unable to load config. Using default values.");
 		}
-		subtleFog = config.subtleFog;
+
+		fogMode = config.fogMode;
 		blendFluidColors = config.blendFluidColors;
 
 		shaderDebug = config.shaderDebug;
@@ -234,7 +235,7 @@ public class Configurator {
 
 	private static void saveConfig() {
 		final ConfigData config = new ConfigData();
-		config.subtleFog = subtleFog;
+		config.fogMode = fogMode;
 		config.blendFluidColors = blendFluidColors;
 
 		config.shaderDebug = shaderDebug;
@@ -311,6 +312,17 @@ public class Configurator {
 		}
 	}
 
+	public enum FogMode {
+		VANILLA,
+		SUBTLE,
+		NONE;
+
+		@Override
+		public String toString() {
+			return I18n.translate("config.canvas.enum.fog_mode." + name().toLowerCase());
+		}
+	}
+
 	private static ConfigEntryBuilder ENTRY_BUILDER = ConfigEntryBuilder.create();
 
 	static Text[] parse(String key) {
@@ -328,10 +340,10 @@ public class Configurator {
 		final ConfigCategory features = builder.getOrCreateCategory(new TranslatableText("config.canvas.category.features"));
 
 		features.addEntry(ENTRY_BUILDER
-				.startBooleanToggle(new TranslatableText("config.canvas.value.subtle_fog"), subtleFog)
-				.setDefaultValue(DEFAULTS.subtleFog)
-				.setTooltip(parse("config.canvas.help.subtle_fog"))
-				.setSaveConsumer(b -> {subtleFog = b; reload = true;})
+				.startEnumSelector(new TranslatableText("config.canvas.value.fog_mode"), FogMode.class, fogMode)
+				.setDefaultValue(DEFAULTS.fogMode)
+				.setTooltip(parse("config.canvas.help.fog_mode"))
+				.setSaveConsumer(b -> {fogMode = b; reload = true;})
 				.build());
 
 		features.addEntry(ENTRY_BUILDER

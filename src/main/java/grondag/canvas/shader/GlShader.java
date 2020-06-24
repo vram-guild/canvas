@@ -43,6 +43,7 @@ import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
 import grondag.canvas.Configurator.AoMode;
 import grondag.canvas.Configurator.DiffuseMode;
+import grondag.canvas.Configurator.FogMode;
 import grondag.canvas.varia.CanvasGlHelper;
 
 public class GlShader {
@@ -252,8 +253,9 @@ public class GlShader {
 			result = StringUtils.replace(result, "#define CONTEXT_IS_GUI FALSE", "#define CONTEXT_IS_GUI TRUE");
 		}
 
-		if(Configurator.subtleFog && !context.materialContext.isGui) {
-			result = StringUtils.replace(result, "#define _CV_SUBTLE_FOG FALSE", "#define _CV_SUBTLE_FOG TRUE");
+		if(Configurator.fogMode != FogMode.VANILLA && !context.materialContext.isGui) {
+			result = StringUtils.replace(result, "#define _CV_FOG_CONFIG _CV_FOG_CONFIG_VANILLA",
+					"#define _CV_FOG_CONFIG _CV_FOG_CONFIG_" + Configurator.fogMode.name());
 		}
 
 		if(!context.materialContext.isBlock) {

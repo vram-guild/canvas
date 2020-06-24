@@ -9,7 +9,11 @@
 #define  _CV_FOG_EXP    1.0
 #define  _CV_FOG_EXP2   2.0
 
-#define _CV_SUBTLE_FOG FALSE
+#define _CV_FOG_CONFIG_VANILLA 	0
+#define _CV_FOG_CONFIG_SUBTLE 	1
+#define _CV_FOG_CONFIG_NONE 		2
+
+#define _CV_FOG_CONFIG _CV_FOG_CONFIG_VANILLA
 
 /**
  * Linear fog.  Is an inverse factor - 0 means full fog.
@@ -36,9 +40,9 @@ float _cv_fogFactor() {
 }
 
 vec4 _cv_fog(vec4 diffuseColor) {
-#if CONTEXT_IS_GUI
+#if CONTEXT_IS_GUI || _CV_FOG_CONFIG == _CV_FOG_CONFIG_NONE
 	return diffuseColor;
-#elif _CV_SUBTLE_FOG
+#elif _CV_FOG_CONFIG == _CV_FOG_CONFIG_SUBTLE
 	float f = 1.0 - _cv_fogFactor();
 	f *= f;
 	return mix(vec4(gl_Fog.color.rgb, diffuseColor.a), diffuseColor, 1.0 - f);

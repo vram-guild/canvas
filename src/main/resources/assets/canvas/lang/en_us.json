@@ -13,8 +13,8 @@
 	"config.canvas.reset" : "Reset",
 	
 	"config.canvas.category.features" : "Features",
-	"config.canvas.value.subtle_fog" : "Subtle Fog",
-	"config.canvas.help.subtle_fog" : "Makes terrain fog a;little less foggy.",
+	"config.canvas.value.fog_mode" : "Fog",
+	"config.canvas.help.fog_mode" : "Makes terrain fog a little less foggy or turns it off.",
 	"config.canvas.value.blend_fluid_colors" : "Blend Fluid Colors",
 	"config.canvas.help.blend_fluid_colors" : "Fluid biome colors are blended at block corners to avoid patchy; appearance. Slight peformance impact to chunk loading.",
 	
@@ -44,6 +44,10 @@
 	"config.canvas.enum.diffuse_mode.normal" : "Vanilla",
 	"config.canvas.enum.diffuse_mode.sky_only" : "Skylight Only",
 	"config.canvas.enum.diffuse_mode.none" : "None",
+	
+	"config.canvas.enum.fog_mode.vanilla" : "Vanilla",
+	"config.canvas.enum.fog_mode.subtle" : "Subtle",
+	"config.canvas.enum.fog_mode.none" : "None",
 	
 	"config.canvas.category.tweaks" : "Tweaks",
 	"config.canvas.value.batch_chunk_render" : "Batched Chunk Render",
