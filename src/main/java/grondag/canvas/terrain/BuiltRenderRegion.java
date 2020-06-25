@@ -47,7 +47,7 @@ import grondag.canvas.terrain.occlusion.region.PackedBox;
 import grondag.canvas.terrain.render.DrawableChunk;
 import grondag.canvas.terrain.render.UploadableChunk;
 import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
-import grondag.frex.api.fkuid.FluidQuadSupplier;
+import grondag.frex.api.fluid.FluidQuadSupplier;
 
 @Environment(EnvType.CLIENT)
 public class BuiltRenderRegion {

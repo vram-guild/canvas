@@ -26,14 +26,14 @@ import net.minecraft.world.BlockRenderView;
 import net.fabricmc.fabric.api.client.render.fluid.v1.FluidRenderHandler;
 
 import grondag.canvas.Configurator;
-import grondag.frex.api.fkuid.AbstractFluidModel;
+import grondag.frex.api.fluid.AbstractFluidModel;
 
 public class FluidHandlerModel extends AbstractFluidModel {
 	protected final FluidRenderHandler handler;
 	protected final Sprite overlaySprite = ModelLoader.WATER_OVERLAY.getSprite();
 
 	public FluidHandlerModel(Fluid fluid, FluidRenderHandler handler) {
-		super(fluid, fluid.isIn(FluidTags.LAVA) ? LAVA_MATERIAL : WATER_MATERIAL, Configurator.blendFluidColors);
+		super(fluid.isIn(FluidTags.LAVA) ? FluidHandler.LAVA_MATERIAL : FluidHandler.WATER_MATERIAL, Configurator.blendFluidColors);
 		this.handler = handler;
 	}
 

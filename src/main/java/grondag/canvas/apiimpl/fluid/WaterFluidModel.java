@@ -18,20 +18,19 @@ package grondag.canvas.apiimpl.fluid;
 import net.minecraft.client.color.world.BiomeColors;
 import net.minecraft.client.render.model.ModelLoader;
 import net.minecraft.client.texture.Sprite;
-import net.minecraft.fluid.Fluid;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.BlockRenderView;
 
 import grondag.canvas.Configurator;
-import grondag.frex.api.fkuid.AbstractFluidModel;
+import grondag.frex.api.fluid.AbstractFluidModel;
 
 public class WaterFluidModel extends AbstractFluidModel {
-	public WaterFluidModel(Fluid fluid) {
-		super(fluid, WATER_MATERIAL, Configurator.blendFluidColors);
+	public WaterFluidModel() {
+		super(FluidHandler.WATER_MATERIAL, Configurator.blendFluidColors);
 	}
 
-	protected final Sprite[] sprites = waterSprites();
+	protected final Sprite[] sprites = FluidHandler.waterSprites();
 	protected final Sprite overlaySprite = ModelLoader.WATER_OVERLAY.getSprite();
 
 	@Override

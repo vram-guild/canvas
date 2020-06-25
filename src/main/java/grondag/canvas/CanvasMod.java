@@ -24,7 +24,7 @@ import net.fabricmc.fabric.api.renderer.v1.RendererAccess;
 
 import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.apiimpl.fluid.FluidHandler;
-import grondag.frex.api.fkuid.FluidQuadSupplier;
+import grondag.frex.api.fluid.FluidQuadSupplier;
 
 //FEAT: configurable disable chunk matrix
 //FEAT: complete item rendering
