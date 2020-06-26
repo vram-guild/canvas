@@ -203,7 +203,7 @@ public class MixinWorldRenderer implements WorldRendererExt {
 	}
 
 	@Inject(at = @At("HEAD"), method = "render", cancellable = true)
-	public void render(MatrixStack matrixStack, float f, long startTime, boolean bl, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f matrix4f, CallbackInfo ci) {
+	private void render(MatrixStack matrixStack, float f, long startTime, boolean bl, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f matrix4f, CallbackInfo ci) {
 		canvasWorldRenderer.renderWorld(matrixStack, f, startTime, bl, camera, gameRenderer, lightmapTextureManager, matrix4f);
 		ci.cancel();
 	}

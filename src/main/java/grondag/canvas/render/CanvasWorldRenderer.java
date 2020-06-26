@@ -62,6 +62,7 @@ import net.minecraft.util.profiler.Profiler;
 import grondag.canvas.Configurator;
 import grondag.canvas.buffer.allocation.BindStateManager;
 import grondag.canvas.buffer.allocation.VboBuffer;
+import grondag.canvas.compat.ClothHolder;
 import grondag.canvas.light.LightmapHdTexture;
 import grondag.canvas.mixinterface.WorldRendererExt;
 import grondag.canvas.shader.GlProgram;
@@ -494,6 +495,7 @@ public class CanvasWorldRenderer {
 
 										RenderSystem.pushMatrix();
 										RenderSystem.multMatrix(matrixStack.peek().getModel());
+										ClothHolder.clothDebugPreEvent.run();
 										mc.debugRenderer.render(matrixStack, immediate, cameraX, cameraY, cameraZ);
 										wr.canvas_renderWorldBorder(camera);
 										RenderSystem.popMatrix();

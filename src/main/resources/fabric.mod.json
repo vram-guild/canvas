@@ -19,7 +19,7 @@
   "environment": "client",
   "entrypoints": {
     "client": [ "grondag.canvas.CanvasMod" ],
-    "modmenu": [ "grondag.canvas.ModMenuHelper" ]
+    "modmenu": [ "grondag.canvas.compat.ModMenuHelper" ]
   },
   "mixins": [
     "canvas.client.json"

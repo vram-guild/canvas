@@ -50,6 +50,8 @@ dependencies {
         exclude group :"net.fabricmc.fabric-loader"
     }
 	
+	modImplementation "me.shedaniel.cloth.api:cloth-api:${cloth_api_version}";
+	
 	modImplementation ("me.shedaniel.cloth:config-2:${clothconfig_version}") {
         exclude group :"io.github.prospector.modmenu"
         exclude group :"net.fabricmc.fabric-api"

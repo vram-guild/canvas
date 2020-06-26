@@ -12,10 +12,13 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  ******************************************************************************/
-package grondag.canvas;
+package grondag.canvas.compat;
 
 import io.github.prospector.modmenu.api.ConfigScreenFactory;
 import io.github.prospector.modmenu.api.ModMenuApi;
+
+import grondag.canvas.CanvasMod;
+import grondag.canvas.Configurator;
 
 public class ModMenuHelper implements ModMenuApi {
 	@Override
