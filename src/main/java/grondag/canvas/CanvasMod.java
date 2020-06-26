@@ -18,30 +18,36 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.lwjgl.system.Configuration;
 
+import net.minecraft.client.render.RenderLayer;
+
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.rendering.v1.InvalidateRenderStateCallback;
 import net.fabricmc.fabric.api.renderer.v1.RendererAccess;
+import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 
 import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.apiimpl.fluid.FluidHandler;
+import grondag.canvas.mixinterface.RenderLayerExt;
 import grondag.frex.api.fluid.FluidQuadSupplier;
 
-//FEAT: configurable disable chunk matrix
-//FEAT: complete item rendering
-//FEAT: custom samplers
 //FEAT: fancy water
 //FEAT: fancy lava
+//FEAT: item rendering
+//FEAT: block entity rendering
+//FEAT: entity rendering
+//FEAT: particle rendering
+//FEAT: weather rendering
+//FEAT: sky rendering
+//FEAT: pbr textures
 //PERF: disable lava/water texture animation (configurable)
 //FEAT: GLSL library and docs
 //PERF: improve light smoothing performance
-//PERF: manage buffers to avoid heap fragmentation
 //FEAT: colored lights
-//FEAT: gen purpose tessellator
-//FEAT: configurable compressed vertex formats - CPU side (maybe wait for Brocade Mesh)
 //FEAT: per chunk occlusion mesh - for sky shadow mask
 //FEAT: per chunk depth mesh - addendum to occlusion mesh to render for depth pass - includes translucent cutout
 //FEAT: first person dynamic light
-//FEAT: weather/season/biome(?) uniforms/attributes
+//FEAT: weather uniforms
+//FEAT: biome texture in shader
 
 public class CanvasMod implements ClientModInitializer {
 	@Override
@@ -55,6 +61,12 @@ public class CanvasMod implements ClientModInitializer {
 			LOG.warn("Canvas is configured to enable native memory debug. This WILL cause slow performance and other issues.  Debug output will print at game exit.");
 			Configuration.DEBUG_MEMORY_ALLOCATOR.set(true);
 		}
+
+		((RenderLayerExt) RenderLayer.getTranslucent()).canvas_blendModeIndex(BlendMode.TRANSLUCENT.ordinal());
+		((RenderLayerExt) RenderLayer.getTripwire()).canvas_blendModeIndex(BlendMode.TRANSLUCENT.ordinal());
+		((RenderLayerExt) RenderLayer.getSolid()).canvas_blendModeIndex(BlendMode.SOLID.ordinal());
+		((RenderLayerExt) RenderLayer.getCutout()).canvas_blendModeIndex(BlendMode.CUTOUT.ordinal());
+		((RenderLayerExt) RenderLayer.getCutoutMipped()).canvas_blendModeIndex(BlendMode.CUTOUT_MIPPED.ordinal());
 	}
 
 	public static final String MODID = "canvas";

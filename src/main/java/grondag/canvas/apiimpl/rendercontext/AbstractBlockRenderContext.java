@@ -11,12 +11,12 @@ import net.minecraft.client.render.RenderLayers;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.BlockRenderView;
 
-import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.util.GeometryHelper;
 import grondag.canvas.buffer.encoding.VertexEncoder;
+import grondag.canvas.mixinterface.RenderLayerExt;
 import grondag.frex.api.material.MaterialMap;
 
 public abstract class AbstractBlockRenderContext<T extends BlockRenderView > extends AbstractRenderContext implements RenderContext {
@@ -76,7 +76,7 @@ public abstract class AbstractBlockRenderContext<T extends BlockRenderView > ext
 		fullCubeCache = 0;
 		this.seed = seed;
 		defaultAo = modelAO && MinecraftClient.isAmbientOcclusionEnabled() && blockState.getLuminance() == 0;
-		defaultBlendModeIndex = BlendMode.fromRenderLayer(RenderLayers.getBlockLayer(blockState)).ordinal();
+		defaultBlendModeIndex = ((RenderLayerExt) RenderLayers.getBlockLayer(blockState)).canvas_blendModeIndex();
 	}
 
 	@Override
