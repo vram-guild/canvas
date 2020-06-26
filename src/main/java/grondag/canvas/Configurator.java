@@ -407,9 +407,9 @@ public class Configurator {
 				.build());
 
 		lighting.addEntry(ENTRY_BUILDER
-				.startBooleanToggle(new TranslatableText("config.canvas.value.semi_smooth_flat_lighting"), semiFlatLighting)
+				.startBooleanToggle(new TranslatableText("config.canvas.value.semi_flat_lighting"), semiFlatLighting)
 				.setDefaultValue(DEFAULTS.semiFlatLighting)
-				.setTooltip(parse("config.canvas.help.semi_smooth_flat_lighting"))
+				.setTooltip(parse("config.canvas.help.semi_flat_lighting"))
 				.setSaveConsumer(b -> {semiFlatLighting = b; reload = true;})
 				.build());
 
