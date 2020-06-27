@@ -98,3 +98,16 @@ bool cv_isWorldTheEnd() {
 	return cv_bitValue(_cvu_world[_CV_FLAGS_0], _CV_FLAG0_IS_END) == 1.0;
 }
 
+/*
+ * True when world.isRaining() is true for the currently rendering world.
+ */
+bool cv_isRaining() {
+	return cv_bitValue(_cvu_world[_CV_FLAGS_0], _CV_FLAG0_IS_RAINING) == 1.0;
+}
+
+/*
+ * True when world.isThundering() is true for the currently rendering world.
+ */
+bool cv_isThundering() {
+	return cv_bitValue(_cvu_world[_CV_FLAGS_0], _CV_FLAG0_IS_THUNDERING) == 1.0;
+}

@@ -36,6 +36,8 @@ public class WorldDataManager {
 	private static final int FLAG0_IS_OVERWORLD = 4;
 	private static final int FLAG0_IS_NETHER = 8;
 	private static final int FLAG0_IS_END = 16;
+	private static final int FLAG0_IS_RAINING = 32;
+	private static final int FLAG0_IS_THUNDERING = 64;
 
 	private static final float[] DATA = new float[LENGTH];
 
@@ -52,7 +54,6 @@ public class WorldDataManager {
 			final long days = world.getTimeOfDay() / 24000L;
 			DATA[WORLD_DAYS] = (int) (days % 2147483647L);
 			DATA[WORLD_TIME] = (float) ((world.getTimeOfDay() - days * 24000L) / 24000.0);
-
 			final ClientPlayerEntity player = client.player;
 
 			int flags = world.getDimension().hasSkyLight() ? FLAG0_HAS_SKYLIGHT : 0;
@@ -69,6 +70,14 @@ public class WorldDataManager {
 				flags |= FLAG0_IS_NETHER;
 			} else if (world.getDimensionRegistryKey() == DimensionType.THE_END_REGISTRY_KEY) {
 				flags |= FLAG0_IS_END;
+			}
+
+			if (world.isRaining()) {
+				flags  |= FLAG0_IS_RAINING;
+			}
+
+			if (world.isThundering()) {
+				flags |= FLAG0_IS_THUNDERING;
 			}
 
 			DATA[FLAGS_0] = flags;

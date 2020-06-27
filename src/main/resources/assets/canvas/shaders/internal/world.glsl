@@ -23,5 +23,7 @@
 #define _CV_FLAG0_IS_OVERWORLD 			2
 #define _CV_FLAG0_IS_NETHER 			3
 #define _CV_FLAG0_IS_END 				4
+#define _CV_FLAG0_IS_RAINING 			5
+#define _CV_FLAG0_IS_THUNDERING 		6
 
 uniform float[16] _cvu_world;
