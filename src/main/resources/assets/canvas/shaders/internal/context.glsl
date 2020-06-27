@@ -24,3 +24,8 @@
 
 #define USE_FLAT_VARYING FALSE
 
+#define MULTI_TARGET TRUE
+
+#define TARGET_BASECOLOR 	0
+#define TARGET_BLOOM  		1
+
