@@ -12,11 +12,12 @@ public abstract class DrawHandler {
 	public final int index = nextHandlerIndex++;
 
 	public final MaterialVertexFormat format;
-	public final ShaderPass shaderType;
+	public final ShaderPass shaderPass;
 
-	DrawHandler (MaterialVertexFormat format, ShaderPass shaderType) {
+	DrawHandler (MaterialVertexFormat format, ShaderPass shaderPass) {
+		assert shaderPass != ShaderPass.PROCESS;
 		this.format = format;
-		this.shaderType = shaderType;
+		this.shaderPass = shaderPass;
 	}
 
 	public final void setup() {

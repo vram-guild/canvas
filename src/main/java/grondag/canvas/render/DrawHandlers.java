@@ -19,8 +19,8 @@ import grondag.canvas.shader.ShaderPass;
 public class DrawHandlers {
 
 	private static class SolidHandler extends DrawHandler {
-		SolidHandler(MaterialVertexFormat format,  ShaderPass shaderType) {
-			super(format, shaderType);
+		SolidHandler(MaterialVertexFormat format,  ShaderPass shaderPass) {
+			super(format, shaderPass);
 		}
 
 		@SuppressWarnings("resource")
@@ -87,8 +87,8 @@ public class DrawHandlers {
 	}
 
 	private static class TranslucentHandler extends DrawHandler {
-		TranslucentHandler(MaterialVertexFormat format, ShaderPass shaderType) {
-			super(format, shaderType);
+		TranslucentHandler(MaterialVertexFormat format, ShaderPass shaderPass) {
+			super(format, shaderPass);
 		}
 
 		@SuppressWarnings("resource")
@@ -137,9 +137,11 @@ public class DrawHandlers {
 		HD_HANDLERS[lookupIndex(MaterialContext.TERRAIN, ShaderPass.TRANSLUCENT)] = new TranslucentHandler(MaterialVertexFormats.HD_TERRAIN, ShaderPass.TRANSLUCENT);
 	}
 
-	public static DrawHandler get(MaterialContext context, ShaderPass shaderType) {
+	public static DrawHandler get(MaterialContext context, ShaderPass shaderPass) {
+		assert shaderPass != ShaderPass.PROCESS;
+
 		final boolean isHD = context == MaterialContext.TERRAIN && Configurator.hdLightmaps();
-		final int index = lookupIndex(context, shaderType);
+		final int index = lookupIndex(context, shaderPass);
 		return isHD ? HD_HANDLERS[index] : HANDLERS[index];
 	}
 }

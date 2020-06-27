@@ -237,8 +237,8 @@ public class GlShader {
 		}
 
 		if (context.pass != ShaderPass.SOLID) {
-			final String sub = context.pass == ShaderPass.DECAL ? "#define SHADER_PASS SHADER_PASS_DECAL" : "#define SHADER_PASS SHADER_PASS_TRANSLUCENT";
-			result = StringUtils.replace(result, "#define SHADER_PASS SHADER_PASS_SOLID", sub);
+			result = StringUtils.replace(result, "#define SHADER_PASS SHADER_PASS_SOLID",
+					"#define SHADER_PASS SHADER_PASS_" + context.pass.name());
 		}
 
 		if(context.materialContext.isBlock) {

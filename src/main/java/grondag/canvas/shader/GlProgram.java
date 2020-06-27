@@ -60,7 +60,7 @@ public class GlProgram {
 
 	public final GlShader vertexShader;
 	public final GlShader fragmentShader;
-	public final ShaderPass type;
+	public final ShaderPass pass;
 	public final MaterialVertexFormat pipelineVertexFormat;
 
 	private final ObjectArrayList<UniformImpl<?>> uniforms = new ObjectArrayList<>();
@@ -486,7 +486,7 @@ public class GlProgram {
 		this.vertexShader = vertexShader;
 		this.fragmentShader = fragmentShader;
 		pipelineVertexFormat = format;
-		type = shaderContext.pass;
+		pass = shaderContext.pass;
 	}
 
 	public final void activate() {

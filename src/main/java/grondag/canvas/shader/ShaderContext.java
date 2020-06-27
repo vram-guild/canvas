@@ -61,4 +61,9 @@ public class ShaderContext {
 			.pass(ShaderPass.TRANSLUCENT)
 			.materialContext(MaterialContext.TERRAIN)
 			.build();
+
+	public static final ShaderContext PROCESS = builder()
+			.pass(ShaderPass.PROCESS)
+			.materialContext(MaterialContext.PROCESS)
+			.build();
 }

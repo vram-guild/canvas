@@ -34,6 +34,8 @@ public class MaterialState {
 	private static final int[] nextCollectorIndex = new int[MaterialContext.values().length];
 
 	private MaterialState(MaterialContext context, MaterialShaderImpl shader, MaterialConditionImpl condition, ShaderPass shaderPass) {
+		assert shaderPass != ShaderPass.PROCESS;
+
 		this.context = context;
 		this.shader = shader;
 		this.condition = condition;
@@ -60,14 +62,16 @@ public class MaterialState {
 		assert  PACKER.bitLength() == 32;
 	}
 
-	public static MaterialState get(MaterialContext context, MaterialShaderImpl shader, MaterialConditionImpl condition, ShaderPass shaderType) {
+	public static MaterialState get(MaterialContext context, MaterialShaderImpl shader, MaterialConditionImpl condition, ShaderPass pass) {
+		assert pass != ShaderPass.PROCESS;
+
 		// translucent must be done with ubershader
-		if (shaderType == ShaderPass.TRANSLUCENT) {
+		if (pass == ShaderPass.TRANSLUCENT) {
 			shader = ShaderManager.INSTANCE.getDefault();
 			condition = MaterialConditionImpl.ALWAYS;
 		}
 
-		final int lookupIndex = CONTEXT_PACKER.getBits(context) | SHADER_TYPE_PACKER.getBits(shaderType)
+		final int lookupIndex = CONTEXT_PACKER.getBits(context) | SHADER_TYPE_PACKER.getBits(pass)
 				| CONDITION_PACKER.getBits(condition.index) | SHADER_PACKER.getBits(shader.getIndex());
 
 		MaterialState result = MAP.get(lookupIndex);
@@ -77,7 +81,7 @@ public class MaterialState {
 				result = MAP.get(lookupIndex);
 
 				if (result == null) {
-					result = new MaterialState(context, shader, condition, shaderType);
+					result = new MaterialState(context, shader, condition, pass);
 					MAP.put(lookupIndex, result);
 				}
 			}
@@ -86,8 +90,8 @@ public class MaterialState {
 		return result;
 	}
 
-	public static MaterialState getDefault(MaterialContext context, ShaderPass shaderType) {
-		return get(context, ShaderManager.INSTANCE.getDefault(), MaterialConditionImpl.ALWAYS, shaderType);
+	public static MaterialState getDefault(MaterialContext context, ShaderPass pass) {
+		return get(context, ShaderManager.INSTANCE.getDefault(), MaterialConditionImpl.ALWAYS, pass);
 	}
 
 	public static void reload() {

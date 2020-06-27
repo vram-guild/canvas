@@ -64,6 +64,7 @@ public class Bloom {
 		bufferBuilder.end();
 		BufferRenderer.draw(bufferBuilder);
 	}
+
 	private static void sync() {
 		final Framebuffer fbo = MinecraftClient.getInstance().getFramebuffer();
 		final int main = fbo.fbo;

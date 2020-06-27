@@ -7,7 +7,8 @@ public enum MaterialContext {
 	ITEM_HEAD(false, true, false),
 	ITEM_GUI(false, true, true),
 	ITEM_GROUND(false, true, false),
-	ITEM_FIXED(false, true, false);
+	ITEM_FIXED(false, true, false),
+	PROCESS(false, false, false);
 
 	public final boolean isBlock;
 	public final boolean isItem;
