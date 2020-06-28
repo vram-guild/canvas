@@ -42,7 +42,7 @@ public class RenderRegionStorage {
 				for(int y = 0; y < SIZE_Y; ++y) {
 					final int i = getRegionIndex(x, y, z);
 					final BuiltRenderRegion r = new BuiltRenderRegion(regionBuilder, this, chunkReference, y == 0);
-					r.setOrigin(x << 4, y << 4, z << 4, i);
+					r.setOrigin(x << 4, y << 4, z << 4);
 					regions[i] = r;
 				}
 			}
@@ -116,7 +116,7 @@ public class RenderRegionStorage {
 					final int y = dy << 4;
 					final int index = getRegionIndex(dx, dy, dz);
 					final BuiltRenderRegion builtChunk = regions[index];
-					builtChunk.setOrigin(x, y, z, index);
+					builtChunk.setOrigin(x, y, z);
 				}
 			}
 		}

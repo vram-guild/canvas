@@ -123,9 +123,17 @@ public class ProtoRenderRegion extends AbstractRenderRegion {
 		renderData.clear();
 		blockEntityPos.clear();
 		blockEntities.clear();
+		final int yCheck = (originY >> 4);
 
 		for(final Map.Entry<BlockPos, BlockEntity> entry : mainChunk.getBlockEntities().entrySet()) {
-			final short key = (short) interiorIndex(entry.getKey());
+			final BlockPos pos = entry.getKey();
+
+			// only those in this chunk
+			if (pos.getY() >> 4 != yCheck) {
+				continue;
+			}
+
+			final short key = (short) interiorIndex(pos);
 			final BlockEntity be = entry.getValue();
 
 			blockEntityPos.add(key);

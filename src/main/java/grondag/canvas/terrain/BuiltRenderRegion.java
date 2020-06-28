@@ -63,10 +63,6 @@ public class BuiltRenderRegion {
 	private final Consumer<TerrainRenderContext> buildTask = this::rebuildOnWorkerThread;
 	private final RegionChunkReference chunkReference;
 	private final boolean isBottom;
-	/**
-	 * Index of this instance in region array.
-	 */
-	private int regionIndex;
 	private final int[] neighborIndices = new int[6];
 	private DrawableChunk translucentDrawable;
 	private DrawableChunk solidDrawable;
@@ -126,12 +122,11 @@ public class BuiltRenderRegion {
 				|| (isInsideRenderDistance && chunkReference.areCornersLoaded());
 	}
 
-	public void setOrigin(int x, int y, int z,  int myIndex) {
+	public void setOrigin(int x, int y, int z) {
 		if (isBottom) {
 			chunkReference.setOrigin(x, z);
 		}
 
-		regionIndex = myIndex;
 		if (x != origin.getX() || y != origin.getY() || z != origin.getZ()) {
 			clear();
 			origin.set(x, y, z);
@@ -251,6 +246,7 @@ public class BuiltRenderRegion {
 		buildState.protoRegion.set(ProtoRenderRegion.INVALID);
 		buildState = new RegionBuildState();
 	}
+
 
 	private void rebuildOnWorkerThread(TerrainRenderContext context) {
 		final RegionBuildState runningState = buildState;
@@ -457,6 +453,7 @@ public class BuiltRenderRegion {
 		final ObjectOpenHashSet<BlockEntity> nonCullBlockEntities = context.nonCullBlockEntities;
 		final ObjectArrayList<BlockEntity> regionDataBlockEntities = regionData.blockEntities;
 
+		// PERF: benchmark vs list, empty indicator, or some other structure
 		for(final BlockEntity blockEntity : context.region.blockEntities) {
 			if (blockEntity != null) {
 				addBlockEntity(regionDataBlockEntities, nonCullBlockEntities, blockEntity);
@@ -567,10 +564,6 @@ public class BuiltRenderRegion {
 
 	public boolean isNear() {
 		return squaredCameraDistance < 768;
-	}
-
-	public int regionIndex() {
-		return regionIndex;
 	}
 
 	private static int frameIndex;
