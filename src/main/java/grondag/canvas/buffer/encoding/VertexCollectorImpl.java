@@ -23,8 +23,6 @@ public class VertexCollectorImpl implements VertexCollector {
 
 	private MaterialState materialState;
 
-	public final VertexCollectorList parent;
-
 	/**
 	 * Holds per-quad distance after {@link #sortQuads(double, double, double)} is
 	 * called
@@ -42,8 +40,7 @@ public class VertexCollectorImpl implements VertexCollector {
 	 */
 	private int sortMaxIndex = 0;
 
-	public VertexCollectorImpl(VertexCollectorList parent) {
-		this.parent = parent;
+	public VertexCollectorImpl() {
 	}
 
 	public VertexCollectorImpl prepare(MaterialState materialState) {
@@ -59,6 +56,10 @@ public class VertexCollectorImpl implements VertexCollector {
 
 	public int integerSize() {
 		return integerSize;
+	}
+
+	public int byteSize() {
+		return integerSize  * 4;
 	}
 
 	public boolean isEmpty() {
@@ -195,8 +196,8 @@ public class VertexCollectorImpl implements VertexCollector {
 		return this;
 	}
 
-	public void toBuffer(IntBuffer intBuffer, int length) {
-		data.copyTo(0, intBuffer, length);
+	public void toBuffer(IntBuffer intBuffer) {
+		data.copyTo(0, intBuffer, integerSize);
 	}
 
 	// TODO: make parameters dynamic based on system specs / config
@@ -268,13 +269,33 @@ public class VertexCollectorImpl implements VertexCollector {
 	};
 
 	@Override
-	public final void add(final int i) {
+	public final void addi(final int i) {
 		data.set(integerSize++, i);
 	}
 
 	@Override
-	public final void add(final float f) {
+	public final void addf(final float f) {
 		data.set(integerSize++, Float.floatToRawIntBits(f));
+	}
+
+	@Override
+	public final void addf(final float u, float v) {
+		data.set(integerSize++, Float.floatToRawIntBits(u));
+		data.set(integerSize++, Float.floatToRawIntBits(v));
+	}
+
+	@Override
+	public final void addf(final float x, float y, float z) {
+		data.set(integerSize++, Float.floatToRawIntBits(x));
+		data.set(integerSize++, Float.floatToRawIntBits(y));
+		data.set(integerSize++, Float.floatToRawIntBits(z));
+	}
+
+	@Override
+	public final void addf(final float... fArray) {
+		for (final float f : fArray) {
+			data.set(integerSize++, Float.floatToRawIntBits(f));
+		}
 	}
 
 	@Override

@@ -51,8 +51,10 @@ public class GlProgram {
 	private static GlProgram activeProgram;
 
 	public static void deactivate() {
-		activeProgram = null;
-		GL21.glUseProgram(0);
+		if (activeProgram != null) {
+			activeProgram = null;
+			GL21.glUseProgram(0);
+		}
 	}
 
 	private int progID = -1;
@@ -499,7 +501,7 @@ public class GlProgram {
 			activateInner();
 		}
 	}
-	
+
 	private final void activateInner() {
 		if (isErrored) {
 			return;
@@ -520,12 +522,12 @@ public class GlProgram {
 	public static int activeProgram() {
 		return activeProgram.progID;
 	}
-	
+
 	// TODO: remove if not needed for Vao
 	public static void reactivateCurent() {
 		activeProgram.activateInner();
 	}
-	
+
 	public class UniformMatrix4fImpl extends UniformImpl<UniformMatrix4f> implements UniformMatrix4f {
 		protected final FloatBuffer uniformFloatBuffer;
 		protected final long bufferAddress;
@@ -609,6 +611,13 @@ public class GlProgram {
 			}
 		}
 
+	}
+
+	public final void unload() {
+		if  (progID > 0) {
+			GL21.glDeleteProgram(progID);
+			progID = -1;
+		}
 	}
 
 	/**

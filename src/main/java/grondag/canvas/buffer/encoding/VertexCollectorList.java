@@ -26,7 +26,7 @@ public class VertexCollectorList {
 	private MaterialContext context = null;
 
 	public VertexCollectorList() {
-		collectors[MaterialState.TRANSLUCENT_INDEX] = new VertexCollectorImpl(this);
+		collectors[MaterialState.TRANSLUCENT_INDEX] = new VertexCollectorImpl();
 	}
 
 	/**
@@ -87,7 +87,7 @@ public class VertexCollectorList {
 		VertexCollectorImpl result;
 
 		if(solidCount == solidCollectors.size()) {
-			result = new VertexCollectorImpl(this);
+			result = new VertexCollectorImpl();
 			solidCollectors.add(result);
 		} else {
 			result = solidCollectors.get(solidCount);

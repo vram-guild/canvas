@@ -78,7 +78,7 @@ public abstract class DrawableChunk {
 
 				if (collector.materialState().shaderPass == ShaderPass.SOLID) {
 					final int vertexCount = collector.vertexCount();
-					collector.toBuffer(intBuffer, collector.integerSize());
+					collector.toBuffer(intBuffer);
 					solid.add(DrawableDelegate.claim(collector.materialState(), position, vertexCount));
 					position += vertexCount;
 				}
@@ -100,7 +100,7 @@ public abstract class DrawableChunk {
 
 				if (collector.materialState().shaderPass == ShaderPass.DECAL) {
 					final int vertexCount = collector.vertexCount();
-					collector.toBuffer(intBuffer, collector.integerSize());
+					collector.toBuffer(intBuffer);
 					decal.add(DrawableDelegate.claim(collector.materialState(), position, vertexCount));
 					position += vertexCount;
 				}
@@ -150,7 +150,7 @@ public abstract class DrawableChunk {
 			intBuffer.position(0);
 
 			final VertexCollectorImpl collector = collectorList.getTranslucent();
-			collector.toBuffer(intBuffer, collector.integerSize());
+			collector.toBuffer(intBuffer);
 
 			final ObjectArrayList<DrawableDelegate> delegates = DelegateLists.getReadyDelegateList();
 			delegates.add(DrawableDelegate.claim(collector.materialState(), 0, collector.vertexCount()));

@@ -21,7 +21,7 @@ import net.minecraft.client.render.Camera;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.Identifier;
 
-import net.fabricmc.fabric.api.event.client.ClientTickCallback;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 
 import grondag.canvas.apiimpl.MaterialShaderImpl;
 import grondag.canvas.varia.DitherTexture;
@@ -30,10 +30,11 @@ import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
 import grondag.frex.api.material.UniformRefreshFrequency;
 
 
-public final class ShaderManager implements ClientTickCallback {
+public final class MaterialShaderManager implements ClientTickEvents.EndTick {
+
 	public static final int MAX_SHADERS = 0xFFFF;
 
-	public static final ShaderManager INSTANCE = new ShaderManager();
+	public static final MaterialShaderManager INSTANCE = new MaterialShaderManager();
 
 	private final SimpleUnorderedArrayList<MaterialShaderImpl> shaders = new SimpleUnorderedArrayList<>();
 
@@ -60,10 +61,10 @@ public final class ShaderManager implements ClientTickCallback {
 	 */
 	private int frameIndex = 0;
 
-	private ShaderManager() {
+	private MaterialShaderManager() {
 		super();
 
-		ClientTickCallback.EVENT.register(this);
+		ClientTickEvents.END_CLIENT_TICK.register(this);
 
 		// add default shaders
 		defaultShader= create(ShaderData.DEFAULT_VERTEX_SOURCE, ShaderData.DEFAULT_FRAGMENT_SOURCE);
@@ -154,7 +155,7 @@ public final class ShaderManager implements ClientTickCallback {
 	}
 
 	@Override
-	public void tick(MinecraftClient client) {
+	public void onEndTick(MinecraftClient client) {
 		tickIndex++;
 		final int limit = shaders.size();
 		for (int i = 0; i < limit; i++) {

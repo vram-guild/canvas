@@ -24,7 +24,7 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 import net.fabricmc.fabric.api.renderer.v1.material.RenderMaterial;
 
-import grondag.canvas.shader.ShaderManager;
+import grondag.canvas.shader.MaterialShaderManager;
 import grondag.canvas.shader.ShaderPass;
 import grondag.fermion.bits.BitPacker64;
 import grondag.fermion.bits.BitPacker64.BooleanElement;
@@ -86,7 +86,7 @@ public abstract class RenderMaterialImpl extends RenderMaterialKey {
 			FLAGS[DIFFUSE_INDEX_START + i] = BITPACKER_0.createBooleanElement();
 			FLAGS[AO_INDEX_START + i] = BITPACKER_0.createBooleanElement();
 			FLAGS[COLOR_DISABLE_INDEX_START + i] = BITPACKER_0.createBooleanElement();
-			SHADERS[i] = BITPACKER_1.createIntElement(ShaderManager.MAX_SHADERS);
+			SHADERS[i] = BITPACKER_1.createIntElement(MaterialShaderManager.MAX_SHADERS);
 		}
 
 		BLEND_MODE = BITPACKER_0.createEnumElement(BlendMode.class);
@@ -101,7 +101,7 @@ public abstract class RenderMaterialImpl extends RenderMaterialKey {
 		DEFAULT_BITS_0 = BLEND_MODE.setValue(BlendMode.DEFAULT, 0);
 
 		long defaultBits = 0;
-		final int defaultShaderIndex = ShaderManager.INSTANCE.getDefault().getIndex();
+		final int defaultShaderIndex = MaterialShaderManager.INSTANCE.getDefault().getIndex();
 
 		for (int i = 0; i < MAX_SPRITE_DEPTH; ++i) {
 			defaultBits = SHADERS[i].setValue(defaultShaderIndex, defaultBits);
@@ -276,7 +276,7 @@ public abstract class RenderMaterialImpl extends RenderMaterialKey {
 			public DrawableMaterial(int depth) {
 				drawbleMaterialIndex = (index << 2) | depth;
 				shaderType = depth == 0 ? (blendMode() == BlendMode.TRANSLUCENT ? ShaderPass.TRANSLUCENT : ShaderPass.SOLID) : ShaderPass.DECAL;
-				shader = ShaderManager.INSTANCE.get(SHADERS[depth].getValue(bits1));
+				shader = MaterialShaderManager.INSTANCE.get(SHADERS[depth].getValue(bits1));
 				int flags = emissive(depth) ? 1 : 0;
 
 				if (disableDiffuse(depth)) {

@@ -22,7 +22,7 @@ import java.util.function.Consumer;
 import net.minecraft.util.Identifier;
 
 import grondag.canvas.apiimpl.MaterialShaderImpl.UniformMatrix4f;
-import grondag.canvas.shader.ShaderManager;
+import grondag.canvas.shader.MaterialShaderManager;
 import grondag.frex.api.material.MaterialShader;
 import grondag.frex.api.material.ShaderBuilder;
 import grondag.frex.api.material.Uniform.Uniform1f;
@@ -44,7 +44,7 @@ public class ShaderBuilderImpl implements ShaderBuilder {
 
 	@Override
 	public MaterialShader build() {
-		final MaterialShaderImpl result = ShaderManager.INSTANCE.create(vertexSource, fragmentSource);
+		final MaterialShaderImpl result = MaterialShaderManager.INSTANCE.create(vertexSource, fragmentSource);
 		uniforms.forEach(u -> u.accept(result));
 		vertexSource = null;
 		fragmentSource = null;

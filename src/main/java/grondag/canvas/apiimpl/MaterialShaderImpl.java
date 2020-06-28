@@ -83,6 +83,7 @@ public final class MaterialShaderImpl implements MaterialShader {
 	}
 
 	public void reload() {
+		programList.forEach(p -> p.unload());
 		programList.clear();
 		programMap.clear();
 	}

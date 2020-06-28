@@ -7,7 +7,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import grondag.canvas.apiimpl.MaterialConditionImpl;
 import grondag.canvas.apiimpl.MaterialShaderImpl;
 import grondag.canvas.apiimpl.RenderMaterialImpl.CompositeMaterial.DrawableMaterial;
-import grondag.canvas.shader.ShaderManager;
+import grondag.canvas.shader.MaterialShaderManager;
 import grondag.canvas.shader.ShaderPass;
 import grondag.fermion.bits.BitPacker32;
 
@@ -67,7 +67,7 @@ public class MaterialState {
 
 		// translucent must be done with ubershader
 		if (pass == ShaderPass.TRANSLUCENT) {
-			shader = ShaderManager.INSTANCE.getDefault();
+			shader = MaterialShaderManager.INSTANCE.getDefault();
 			condition = MaterialConditionImpl.ALWAYS;
 		}
 
@@ -91,7 +91,7 @@ public class MaterialState {
 	}
 
 	public static MaterialState getDefault(MaterialContext context, ShaderPass pass) {
-		return get(context, ShaderManager.INSTANCE.getDefault(), MaterialConditionImpl.ALWAYS, pass);
+		return get(context, MaterialShaderManager.INSTANCE.getDefault(), MaterialConditionImpl.ALWAYS, pass);
 	}
 
 	public static void reload() {

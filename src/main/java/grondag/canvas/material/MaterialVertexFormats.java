@@ -25,6 +25,10 @@ public final class MaterialVertexFormats {
 			HD_LIGHTMAP_2US,
 			NORMAL_AO_4UB);
 
+	public static final MaterialVertexFormat PROCESS_VERTEX_UV = new MaterialVertexFormat(
+			POSITION_3F,
+			BASE_TEX_2F);
+
 	// UGLY: derive this from formats
 	public static final int MAX_QUAD_INT_STRIDE = 128;
 

@@ -18,7 +18,7 @@ import grondag.canvas.material.MaterialVertexFormat;
 import grondag.canvas.render.DrawHandler;
 import grondag.canvas.render.DrawHandlers;
 import grondag.canvas.shader.ShaderContext;
-import grondag.canvas.shader.ShaderManager;
+import grondag.canvas.shader.MaterialShaderManager;
 import grondag.canvas.shader.ShaderPass;
 import grondag.canvas.terrain.BuiltRenderRegion;
 import grondag.canvas.terrain.TerrainModelSpace;
@@ -48,7 +48,7 @@ public class TerrainLayerRenderer {
 		final int startIndex = isTranslucent ? visibleRegionCount - 1 : 0 ;
 		final int endIndex = isTranslucent ? -1 : visibleRegionCount;
 		final int step = isTranslucent ? -1 : 1;
-		final int frameIndex = ShaderManager.INSTANCE.frameIndex();
+		final int frameIndex = MaterialShaderManager.INSTANCE.frameIndex();
 		final ShaderPass pass = shaderContext.pass;
 
 		if (Configurator.hdLightmaps()) {

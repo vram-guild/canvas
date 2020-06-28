@@ -297,11 +297,14 @@ public class GlShader {
 
 		INCLUDED.clear();
 
-
-		if (shaderType == GL21.GL_FRAGMENT_SHADER) {
-			return getShaderSourceInner(resourceManager, Configurator.hdLightmaps() ? ShaderData.HD_FRAGMENT : ShaderData.VANILLA_FRAGMENT);
+		if (context == ShaderContext.PROCESS) {
+			return getShaderSourceInner(resourceManager, shaderSource);
 		} else {
-			return getShaderSourceInner(resourceManager, Configurator.hdLightmaps() ? ShaderData.HD_VERTEX : ShaderData.VANILLA_VERTEX);
+			if (shaderType == GL21.GL_FRAGMENT_SHADER) {
+				return getShaderSourceInner(resourceManager, Configurator.hdLightmaps() ? ShaderData.HD_FRAGMENT : ShaderData.VANILLA_FRAGMENT);
+			} else {
+				return getShaderSourceInner(resourceManager, Configurator.hdLightmaps() ? ShaderData.HD_VERTEX : ShaderData.VANILLA_VERTEX);
+			}
 		}
 	}
 
