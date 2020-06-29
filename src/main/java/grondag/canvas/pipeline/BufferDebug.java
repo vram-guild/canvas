@@ -21,10 +21,10 @@ import grondag.canvas.CanvasMod;
 
 public enum BufferDebug {
 	NORMAL(Runnables.doNothing()),
-	BLOOM_BASE(Bloom::debugBase),
-	BLOOM_BASE_CASCADE(Runnables.doNothing()),
-	BLOOM_BLUR(Runnables.doNothing()),
-	BLOOM_BLUR_CASCADE(Runnables.doNothing());
+	EMISSIVE(CanvasFrameBufferHacks::debugEmissive),
+	EMISSIVE_CASCADE(Runnables.doNothing()),
+	BLOOM(Runnables.doNothing()),
+	BLOOM_CASCADE(Runnables.doNothing());
 
 	private final Runnable task;
 

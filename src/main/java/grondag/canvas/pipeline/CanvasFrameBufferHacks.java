@@ -20,7 +20,6 @@ import java.nio.IntBuffer;
 import com.mojang.blaze3d.platform.FramebufferInfo;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
-import org.lwjgl.opengl.ARBFramebufferObject;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL21;
 
@@ -34,7 +33,7 @@ import grondag.canvas.material.MaterialVertexFormats;
 import grondag.canvas.shader.GlProgram;
 import grondag.canvas.shader.ProcessShaders;
 
-public class Bloom {
+public class CanvasFrameBufferHacks {
 
 	// TODO: tear down
 	static Framebuffer fbo;
@@ -54,33 +53,54 @@ public class Bloom {
 	static int h;
 	static int w;
 
-	static final int[] captureBuffers = {FramebufferInfo.COLOR_ATTACHMENT, FramebufferInfo.COLOR_ATTACHMENT + 1};
+	static final int[] ATTACHMENTS_DOUBLE = {FramebufferInfo.COLOR_ATTACHMENT, FramebufferInfo.COLOR_ATTACHMENT + 1};
 
-	private static void clearBloom() {
+	private static void clearAttachments() {
 		GlStateManager.bindFramebuffer(FramebufferInfo.FRAME_BUFFER, clearFbo);
 		GlStateManager.clearColor(0, 0, 0, 0);
+		//		GL21.glDrawBuffers(ATTACHMENTS_DOUBLE);
+
+		GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT, GL21.GL_TEXTURE_2D, full, 0);
+		//		GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT + 1, GL21.GL_TEXTURE_2D, fullBlur, 0);
+		//		GlStateManager.viewport(0, 0, w, h);
 		GlStateManager.clear(GL21.GL_COLOR_BUFFER_BIT, MinecraftClient.IS_SYSTEM_MAC);
+
+		//		GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT, GL21.GL_TEXTURE_2D, half, 0);
+		//		GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT + 1, GL21.GL_TEXTURE_2D, halfBlur, 0);
+		//		GlStateManager.viewport(0, 0, w / 2, h / 2);
+		//		GlStateManager.clear(GL21.GL_COLOR_BUFFER_BIT, MinecraftClient.IS_SYSTEM_MAC);
+		//
+		//		GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT, GL21.GL_TEXTURE_2D, quarter, 0);
+		//		GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT + 1, GL21.GL_TEXTURE_2D, quarterBlur, 0);
+		//		GlStateManager.viewport(0, 0, w / 4, h / 4);
+		//		GlStateManager.clear(GL21.GL_COLOR_BUFFER_BIT, MinecraftClient.IS_SYSTEM_MAC);
+		//
+		//		GL21.glDrawBuffers(FramebufferInfo.COLOR_ATTACHMENT);
+		//		GlStateManager.viewport(0, 0, w, h);
 		GlStateManager.bindFramebuffer(FramebufferInfo.FRAME_BUFFER, mainFbo);
 	}
 
-	public static void startBloom(boolean first) {
+	public static void startEmissiveCapture(boolean first) {
 		if (first) {
 			sync();
-			clearBloom();
+			clearAttachments();
 		}
 
-		GL21.glDrawBuffers(captureBuffers);
+		GL21.glDrawBuffers(ATTACHMENTS_DOUBLE);
 		GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT + 1, GL21.GL_TEXTURE_2D, full, 0);
 	}
 
-	public static void endBloom() {
+	public static void endEmissiveCapture() {
 		GL21.glDrawBuffers(FramebufferInfo.COLOR_ATTACHMENT);
 		GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT + 1, GL21.GL_TEXTURE_2D, 0, 0);
-		//		debugBase();
 	}
 
-	// TODO: remove or make it a config option for testing
-	public static void debugBase() {
+	public static void applyBloom() {
+		GL21.glDrawBuffers(FramebufferInfo.COLOR_ATTACHMENT);
+		GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT + 1, GL21.GL_TEXTURE_2D, 0, 0);
+	}
+
+	public static void debugEmissive() {
 		final int oldTex = GlStateManager.getActiveBoundTexture();
 
 		RenderSystem.viewport(w / 2, h / 2, w / 2, h / 2);
@@ -92,7 +112,6 @@ public class Bloom {
 		GlStateManager.matrixMode(GL11.GL_PROJECTION);
 		RenderSystem.pushMatrix();
 		RenderSystem.loadIdentity();
-		//		RenderSystem.shadeModel(GL21.GL_FLAT);
 		GlStateManager.ortho(0.0D, w, h, 0.0D, 1000.0, 3000.0);
 
 		// FIX: handle VAO properly here before re-enabling
@@ -104,7 +123,6 @@ public class Bloom {
 		GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
 		VboBuffer.unbind();
 		GlStateManager.bindTexture(0);
-		//		GlStateManager.disableTexture();
 
 		GlStateManager.bindTexture(oldTex);
 		GlProgram.deactivate();
@@ -125,12 +143,6 @@ public class Bloom {
 		if (fbo.colorAttachment != mainColor || fbo.textureHeight != h || fbo.textureWidth != w) {
 			tearDown();
 			mainFbo = fbo.fbo;
-			full = TextureUtil.generateId();
-			fullBlur = TextureUtil.generateId();
-			half = TextureUtil.generateId();
-			halfBlur = TextureUtil.generateId();
-			quarter = TextureUtil.generateId();
-			quarterBlur = TextureUtil.generateId();
 
 			clearFbo = GlStateManager.genFramebuffers();
 
@@ -140,33 +152,12 @@ public class Bloom {
 			w = fbo.textureWidth;
 			h = fbo.textureHeight;
 
-			GlStateManager.bindTexture(full);
-			GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MIN_FILTER, GL21.GL_NEAREST);
-			GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MAG_FILTER, GL21.GL_NEAREST);
-			GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_WRAP_S, GL21.GL_CLAMP);
-			GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_WRAP_T, GL21.GL_CLAMP);
-			GlStateManager.texImage2D(GL21.GL_TEXTURE_2D, 0, GL21.GL_RGBA8, w, h, 0, GL21.GL_RGBA, GL21.GL_UNSIGNED_BYTE, (IntBuffer)null);
-
-			GlStateManager.bindFramebuffer(FramebufferInfo.FRAME_BUFFER, clearFbo);
-			GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, ARBFramebufferObject.GL_COLOR_ATTACHMENT0, GL21.GL_TEXTURE_2D, full, 0);
-
-			GlStateManager.viewport(0, 0, w, h);
-			GlStateManager.clearColor(0, 0, 0, 0);
-			GlStateManager.clear(GL21.GL_COLOR_BUFFER_BIT, MinecraftClient.IS_SYSTEM_MAC);
-			GlStateManager.bindFramebuffer(FramebufferInfo.FRAME_BUFFER, mainFbo);
-
-			GlStateManager.bindTexture(fullBlur);
-			GlStateManager.texImage2D(GL21.GL_TEXTURE_2D, 0, GL21.GL_RGBA8, w, h, 0, GL21.GL_RGBA, GL21.GL_UNSIGNED_BYTE, (IntBuffer)null);
-
-			GlStateManager.bindTexture(half);
-			GlStateManager.texImage2D(GL21.GL_TEXTURE_2D, 0, GL21.GL_RGBA8, w / 2, h / 2, 0, GL21.GL_RGBA, GL21.GL_UNSIGNED_BYTE, (IntBuffer)null);
-			GlStateManager.bindTexture(halfBlur);
-			GlStateManager.texImage2D(GL21.GL_TEXTURE_2D, 0, GL21.GL_RGBA8, w / 2, h / 2, 0, GL21.GL_RGBA, GL21.GL_UNSIGNED_BYTE, (IntBuffer)null);
-
-			GlStateManager.bindTexture(quarter);
-			GlStateManager.texImage2D(GL21.GL_TEXTURE_2D, 0, GL21.GL_RGBA8, w / 4, h / 4, 0, GL21.GL_RGBA, GL21.GL_UNSIGNED_BYTE, (IntBuffer)null);
-			GlStateManager.bindTexture(quarterBlur);
-			GlStateManager.texImage2D(GL21.GL_TEXTURE_2D, 0, GL21.GL_RGBA8, w / 4, h / 4, 0, GL21.GL_RGBA, GL21.GL_UNSIGNED_BYTE, (IntBuffer)null);
+			full = createColorAttachment(w, h);
+			fullBlur = createColorAttachment(w, h);
+			half = createColorAttachment(w / 2, h / 2);
+			halfBlur = createColorAttachment(w / 2, h / 2);
+			quarter = createColorAttachment(w / 4, h / 4);
+			quarterBlur = createColorAttachment(w / 4, h / 4);
 
 			GlStateManager.bindTexture(0);
 
@@ -180,6 +171,17 @@ public class Bloom {
 			collector.toBuffer(drawBuffer.intBuffer());
 			drawBuffer.upload();
 		}
+	}
+
+	private static int createColorAttachment(int width, int height) {
+		final int result = TextureUtil.generateId();
+		GlStateManager.bindTexture(result);
+		GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MIN_FILTER, GL21.GL_NEAREST);
+		GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MAG_FILTER, GL21.GL_NEAREST);
+		GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_WRAP_S, GL21.GL_CLAMP);
+		GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_WRAP_T, GL21.GL_CLAMP);
+		GlStateManager.texImage2D(GL21.GL_TEXTURE_2D, 0, GL21.GL_RGBA8, width, height, 0, GL21.GL_RGBA, GL21.GL_UNSIGNED_BYTE, (IntBuffer)null);
+		return result;
 	}
 
 	private static void tearDown() {
