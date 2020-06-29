@@ -23,8 +23,8 @@ public enum BufferDebug {
 	NORMAL(Runnables.doNothing()),
 	EMISSIVE(CanvasFrameBufferHacks::debugEmissive),
 	EMISSIVE_CASCADE(CanvasFrameBufferHacks::debugEmissiveCascade),
-	BLOOM(Runnables.doNothing()),
-	BLOOM_CASCADE(Runnables.doNothing());
+	BLOOM(CanvasFrameBufferHacks::debugEmissive),
+	BLOOM_CASCADE(CanvasFrameBufferHacks::debugEmissiveCascade);
 
 	private final Runnable task;
 
@@ -33,6 +33,10 @@ public enum BufferDebug {
 	}
 
 	private static BufferDebug current = NORMAL;
+
+	public static boolean shouldSkipBlur() {
+		return current ==  EMISSIVE  || current == EMISSIVE_CASCADE;
+	}
 
 	public static void advance() {
 		final BufferDebug[] values = values();

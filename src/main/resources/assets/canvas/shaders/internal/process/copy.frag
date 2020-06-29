@@ -4,8 +4,7 @@
   canvas:shaders/internal/process/copy.frag
 ******************************************************/
 uniform sampler2D _cvu_input;
-uniform int _cvu_width;
-uniform int _cvu_height;
+uniform ivec2 _cvu_size;
 
 varying vec2 _cvv_texcoord;
 

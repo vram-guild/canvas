@@ -110,6 +110,7 @@ public class CanvasFrameBufferHacks {
 		GlStateManager.activeTexture(GL21.GL_TEXTURE0);
 		GlStateManager.enableTexture();
 	}
+
 	private static void endCopy() {
 		VboBuffer.unbind();
 		GlStateManager.bindTexture(0);
@@ -126,12 +127,12 @@ public class CanvasFrameBufferHacks {
 
 	public static void applyBloom() {
 		GlStateManager.bindFramebuffer(FramebufferInfo.FRAME_BUFFER, canvasFbo);
-		GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT, GL21.GL_TEXTURE_2D, half, 0);
 		startCopy();
 
 		// FIX: handle VAO properly here before re-enabling
 		copyVbo.bind();
 
+		GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT, GL21.GL_TEXTURE_2D, half, 0);
 		RenderSystem.viewport(0, 0, w / 2, h / 2);
 		GlStateManager.bindTexture(full);
 		ProcessShaders.copy(w, h).activate();
@@ -139,9 +140,49 @@ public class CanvasFrameBufferHacks {
 
 		GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT, GL21.GL_TEXTURE_2D, quarter, 0);
 		RenderSystem.viewport(0, 0, w / 4, h / 4);
-		GlStateManager.bindTexture(full);
-		//		ProcessShaders.copyResize(w / 4, h / 4);
 		GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
+
+		final float d = 10.2f;
+
+		if (!BufferDebug.shouldSkipBlur()) {
+			GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT, GL21.GL_TEXTURE_2D, fullBlur, 0);
+			RenderSystem.viewport(0, 0, w, h);
+			GlStateManager.bindTexture(full);
+			ProcessShaders.blur(d / w, 0, w, h).activate();
+			GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
+
+			GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT, GL21.GL_TEXTURE_2D, full, 0);
+			GlStateManager.clear(GL21.GL_COLOR_BUFFER_BIT, MinecraftClient.IS_SYSTEM_MAC);
+			GlStateManager.bindTexture(fullBlur);
+			ProcessShaders.blurResize(0, d / h, w, h);
+			GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
+
+
+			GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT, GL21.GL_TEXTURE_2D, halfBlur, 0);
+			RenderSystem.viewport(0, 0, w / 2, h / 2);
+			GlStateManager.bindTexture(half);
+			ProcessShaders.blurResize(d / w, 0, w, h);
+			GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
+
+			GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT, GL21.GL_TEXTURE_2D, half, 0);
+			GlStateManager.clear(GL21.GL_COLOR_BUFFER_BIT, MinecraftClient.IS_SYSTEM_MAC);
+			GlStateManager.bindTexture(halfBlur);
+			ProcessShaders.blurResize(0, d / h, w, h);
+			GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
+
+
+			GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT, GL21.GL_TEXTURE_2D, quarterBlur, 0);
+			RenderSystem.viewport(0, 0, w / 4, h / 4);
+			GlStateManager.bindTexture(half);
+			ProcessShaders.blurResize(d / w, 0, w, h);
+			GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
+
+			GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT, GL21.GL_TEXTURE_2D, quarter, 0);
+			GlStateManager.clear(GL21.GL_COLOR_BUFFER_BIT, MinecraftClient.IS_SYSTEM_MAC);
+			GlStateManager.bindTexture(quarterBlur);
+			ProcessShaders.blurResize(0, d / h, w, h);
+			GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
+		}
 
 		endCopy();
 
@@ -227,8 +268,8 @@ public class CanvasFrameBufferHacks {
 	private static int createColorAttachment(int width, int height) {
 		final int result = TextureUtil.generateId();
 		GlStateManager.bindTexture(result);
-		GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MIN_FILTER, GL21.GL_NEAREST);
-		GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MAG_FILTER, GL21.GL_NEAREST);
+		GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MIN_FILTER, GL21.GL_LINEAR);
+		GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MAG_FILTER, GL21.GL_LINEAR);
 		GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_WRAP_S, GL21.GL_CLAMP);
 		GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_WRAP_T, GL21.GL_CLAMP);
 		GlStateManager.texImage2D(GL21.GL_TEXTURE_2D, 0, GL21.GL_RGBA8, width, height, 0, GL21.GL_RGBA, GL21.GL_UNSIGNED_BYTE, (IntBuffer)null);

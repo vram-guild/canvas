@@ -1,18 +1,15 @@
 #include canvas:shaders/internal/process/header.glsl
 
 /******************************************************
-  canvas:shaders/internal/process/copy.vert
+  canvas:shaders/internal/process/copy.frag
 ******************************************************/
-
 uniform sampler2D _cvu_input;
 uniform ivec2 _cvu_size;
-
-attribute vec2 in_uv;
+uniform vec2 _cvu_distance;
 
 varying vec2 _cvv_texcoord;
 
 void main() {
-	vec4 outPos = gl_ProjectionMatrix * vec4(gl_Vertex.xy * _cvu_size, 0.0, 1.0);
-	gl_Position = vec4(outPos.xy, 0.2, 1.0);
-	_cvv_texcoord = in_uv;
+	gl_FragData[0] = 0.375 * texture2D(_cvu_input, _cvv_texcoord)
+		+ 0.3125 * (texture2D(_cvu_input, _cvv_texcoord - _cvu_distance) + texture2D(_cvu_input, _cvv_texcoord + _cvu_distance));
 }

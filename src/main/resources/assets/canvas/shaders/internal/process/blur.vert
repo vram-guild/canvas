@@ -6,6 +6,7 @@
 
 uniform sampler2D _cvu_input;
 uniform ivec2 _cvu_size;
+uniform vec2 _cvu_distance;
 
 attribute vec2 in_uv;
 
