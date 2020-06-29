@@ -22,7 +22,7 @@ import grondag.canvas.CanvasMod;
 public enum BufferDebug {
 	NORMAL(Runnables.doNothing()),
 	EMISSIVE(CanvasFrameBufferHacks::debugEmissive),
-	EMISSIVE_CASCADE(Runnables.doNothing()),
+	EMISSIVE_CASCADE(CanvasFrameBufferHacks::debugEmissiveCascade),
 	BLOOM(Runnables.doNothing()),
 	BLOOM_CASCADE(Runnables.doNothing());
 

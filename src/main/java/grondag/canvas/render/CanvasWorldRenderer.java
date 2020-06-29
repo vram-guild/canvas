@@ -65,8 +65,8 @@ import grondag.canvas.buffer.allocation.VboBuffer;
 import grondag.canvas.compat.ClothHolder;
 import grondag.canvas.light.LightmapHdTexture;
 import grondag.canvas.mixinterface.WorldRendererExt;
-import grondag.canvas.pipeline.CanvasFrameBufferHacks;
 import grondag.canvas.pipeline.BufferDebug;
+import grondag.canvas.pipeline.CanvasFrameBufferHacks;
 import grondag.canvas.shader.GlProgram;
 import grondag.canvas.shader.MaterialShaderManager;
 import grondag.canvas.shader.ShaderContext;
@@ -385,8 +385,13 @@ public class CanvasWorldRenderer {
 		profiler.swap("terrain");
 
 		if (Configurator.enableBloom) CanvasFrameBufferHacks.startEmissiveCapture(true);
+
 		renderTerrainLayer(false, matrixStack, cameraX, cameraY, cameraZ);
-		if (Configurator.enableBloom) CanvasFrameBufferHacks.endEmissiveCapture();
+
+		if (Configurator.enableBloom) {
+			CanvasFrameBufferHacks.endEmissiveCapture();
+			CanvasFrameBufferHacks.applyBloom();
+		}
 
 		DiffuseLighting.enableForLevel(matrixStack.peek().getModel());
 

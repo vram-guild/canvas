@@ -45,7 +45,7 @@ public class CanvasFrameBufferHacks {
 	static int quarter;
 	static int quarterBlur;
 
-	static int clearFbo = -1;
+	static int canvasFbo = -1;
 
 	static VboBuffer copyVbo;
 
@@ -55,7 +55,7 @@ public class CanvasFrameBufferHacks {
 	static final int[] ATTACHMENTS_DOUBLE = {FramebufferInfo.COLOR_ATTACHMENT, FramebufferInfo.COLOR_ATTACHMENT + 1};
 
 	private static void clearAttachments() {
-		GlStateManager.bindFramebuffer(FramebufferInfo.FRAME_BUFFER, clearFbo);
+		GlStateManager.bindFramebuffer(FramebufferInfo.FRAME_BUFFER, canvasFbo);
 		GlStateManager.clearColor(0, 0, 0, 0);
 		//		GL21.glDrawBuffers(ATTACHMENTS_DOUBLE);
 
@@ -94,15 +94,10 @@ public class CanvasFrameBufferHacks {
 		GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT + 1, GL21.GL_TEXTURE_2D, 0, 0);
 	}
 
-	public static void applyBloom() {
-		GL21.glDrawBuffers(FramebufferInfo.COLOR_ATTACHMENT);
-		GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT + 1, GL21.GL_TEXTURE_2D, 0, 0);
-	}
+	private static int oldTex;
 
-	public static void debugEmissive() {
-		final int oldTex = GlStateManager.getActiveBoundTexture();
-
-		RenderSystem.viewport(w / 2, h / 2, w / 2, h / 2);
+	private static void startCopy() {
+		oldTex = GlStateManager.getActiveBoundTexture();
 		RenderSystem.depthMask(false);
 		RenderSystem.disableBlend();
 		RenderSystem.disableCull();
@@ -112,6 +107,50 @@ public class CanvasFrameBufferHacks {
 		RenderSystem.pushMatrix();
 		RenderSystem.loadIdentity();
 		GlStateManager.ortho(0.0D, w, h, 0.0D, 1000.0, 3000.0);
+		GlStateManager.activeTexture(GL21.GL_TEXTURE0);
+		GlStateManager.enableTexture();
+	}
+	private static void endCopy() {
+		VboBuffer.unbind();
+		GlStateManager.bindTexture(0);
+		GlStateManager.bindTexture(oldTex);
+		GlProgram.deactivate();
+		RenderSystem.popMatrix();
+		GlStateManager.matrixMode(GL11.GL_MODELVIEW);
+		RenderSystem.depthMask(true);
+		RenderSystem.enableDepthTest();
+		RenderSystem.enableCull();
+		RenderSystem.viewport(0, 0, w, h);
+	}
+
+
+	public static void applyBloom() {
+		GlStateManager.bindFramebuffer(FramebufferInfo.FRAME_BUFFER, canvasFbo);
+		GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT, GL21.GL_TEXTURE_2D, half, 0);
+		startCopy();
+
+		// FIX: handle VAO properly here before re-enabling
+		copyVbo.bind();
+
+		RenderSystem.viewport(0, 0, w / 2, h / 2);
+		GlStateManager.bindTexture(full);
+		ProcessShaders.copy(w, h).activate();
+		GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
+
+		GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT, GL21.GL_TEXTURE_2D, quarter, 0);
+		RenderSystem.viewport(0, 0, w / 4, h / 4);
+		GlStateManager.bindTexture(full);
+		//		ProcessShaders.copyResize(w / 4, h / 4);
+		GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
+
+		endCopy();
+
+		GlStateManager.bindFramebuffer(FramebufferInfo.FRAME_BUFFER, mainFbo);
+	}
+
+	public static void debugEmissive() {
+		startCopy();
+		RenderSystem.viewport(w / 2, h / 2, w / 2, h / 2);
 
 		// FIX: handle VAO properly here before re-enabling
 		copyVbo.bind();
@@ -120,18 +159,31 @@ public class CanvasFrameBufferHacks {
 		GlStateManager.bindTexture(full);
 		ProcessShaders.copy(w, h).activate();
 		GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
-		VboBuffer.unbind();
-		GlStateManager.bindTexture(0);
 
-		GlStateManager.bindTexture(oldTex);
-		GlProgram.deactivate();
-		RenderSystem.popMatrix();
-		GlStateManager.matrixMode(GL11.GL_MODELVIEW);
-		RenderSystem.depthMask(true);
-		RenderSystem.enableDepthTest();
-		RenderSystem.enableCull();
+		endCopy();
+	}
 
-		RenderSystem.viewport(0, 0, w, h);
+	public static void debugEmissiveCascade() {
+		startCopy();
+
+		// FIX: handle VAO properly here before re-enabling
+		copyVbo.bind();
+		GlStateManager.activeTexture(GL21.GL_TEXTURE0);
+		GlStateManager.enableTexture();
+		GlStateManager.bindTexture(full);
+		ProcessShaders.copy(w, h).activate();
+		RenderSystem.viewport(w / 2, h / 2, w / 2, h / 2);
+		GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
+
+		RenderSystem.viewport(w * 3 / 4, h * 3 / 4, w / 4, h / 4);
+		GlStateManager.bindTexture(half);
+		GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
+
+		RenderSystem.viewport(w * 7 / 8, h * 7 / 8, w / 8, h / 8);
+		GlStateManager.bindTexture(quarter);
+		GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
+
+		endCopy();
 	}
 
 	private static void sync() {
@@ -143,7 +195,7 @@ public class CanvasFrameBufferHacks {
 			tearDown();
 			mainFbo = fbo.fbo;
 
-			clearFbo = GlStateManager.genFramebuffers();
+			canvasFbo = GlStateManager.genFramebuffers();
 
 
 			mainColor = fbo.colorAttachment;
@@ -199,9 +251,9 @@ public class CanvasFrameBufferHacks {
 			copyVbo = null;
 		}
 
-		if (clearFbo > -1) {
-			GlStateManager.deleteFramebuffers(clearFbo);
-			clearFbo = -1;
+		if (canvasFbo > -1) {
+			GlStateManager.deleteFramebuffers(canvasFbo);
+			canvasFbo = -1;
 		}
 	}
 }
