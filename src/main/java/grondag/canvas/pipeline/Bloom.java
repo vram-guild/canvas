@@ -1,3 +1,18 @@
+/*******************************************************************************
+ * Copyright 2020 grondag
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License.  You may obtain a copy
+ * of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ ******************************************************************************/
+
 package grondag.canvas.pipeline;
 
 import java.nio.IntBuffer;
@@ -48,9 +63,12 @@ public class Bloom {
 		GlStateManager.bindFramebuffer(FramebufferInfo.FRAME_BUFFER, mainFbo);
 	}
 
-	public static void startBloom() {
-		sync();
-		clearBloom();
+	public static void startBloom(boolean first) {
+		if (first) {
+			sync();
+			clearBloom();
+		}
+
 		GL21.glDrawBuffers(captureBuffers);
 		GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT + 1, GL21.GL_TEXTURE_2D, full, 0);
 	}
@@ -58,21 +76,24 @@ public class Bloom {
 	public static void endBloom() {
 		GL21.glDrawBuffers(FramebufferInfo.COLOR_ATTACHMENT);
 		GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT + 1, GL21.GL_TEXTURE_2D, 0, 0);
-		//		copyToMain();
+		//		debugBase();
 	}
 
 	// TODO: remove or make it a config option for testing
-	@SuppressWarnings("unused")
-	private static void copyToMain() {
+	public static void debugBase() {
 		final int oldTex = GlStateManager.getActiveBoundTexture();
 
+		RenderSystem.viewport(w / 2, h / 2, w / 2, h / 2);
 		RenderSystem.depthMask(false);
+		RenderSystem.disableBlend();
+		RenderSystem.disableCull();
+		RenderSystem.disableAlphaTest();
 		RenderSystem.disableDepthTest();
 		GlStateManager.matrixMode(GL11.GL_PROJECTION);
 		RenderSystem.pushMatrix();
 		RenderSystem.loadIdentity();
+		//		RenderSystem.shadeModel(GL21.GL_FLAT);
 		GlStateManager.ortho(0.0D, w, h, 0.0D, 1000.0, 3000.0);
-		RenderSystem.disableBlend();
 
 		// FIX: handle VAO properly here before re-enabling
 		drawBuffer.bind();
@@ -81,9 +102,9 @@ public class Bloom {
 		GlStateManager.bindTexture(full);
 		ProcessShaders.copy().activate();
 		GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
-
+		VboBuffer.unbind();
 		GlStateManager.bindTexture(0);
-		GlStateManager.disableTexture();
+		//		GlStateManager.disableTexture();
 
 		GlStateManager.bindTexture(oldTex);
 		GlProgram.deactivate();
@@ -91,6 +112,9 @@ public class Bloom {
 		GlStateManager.matrixMode(GL11.GL_MODELVIEW);
 		RenderSystem.depthMask(true);
 		RenderSystem.enableDepthTest();
+		RenderSystem.enableCull();
+
+		RenderSystem.viewport(0, 0, w, h);
 	}
 
 	private static void sync() {

@@ -159,9 +159,7 @@ public class GlShader {
 			if(shaderDir.exists()) {
 				final File files[] = shaderDir.listFiles();
 				for(final File f : files) {
-					if (f.toString().endsWith(".glsl")) {
-						f.delete();
-					}
+					f.delete();
 				}
 			}
 
@@ -186,8 +184,8 @@ public class GlShader {
 	private static boolean needsDebugOutputWarning = true;
 
 	private void outputDebugSource(String source, String error) {
-		final String key = shaderSource.toString()
-				.replace("/", "-").replace(":", "-") + "."  + context.name;
+		final String key = context.name + "-" + shaderSource.toString()
+		.replace("/", "-").replace(":", "-");
 		final String path = shaderDebugPath();
 		File shaderDir = new File(path);
 
@@ -208,7 +206,7 @@ public class GlShader {
 		}
 
 		if (shaderDir.exists()) {
-			try(FileWriter writer = new FileWriter(shaderDir.getAbsolutePath() + File.separator + key + ".glsl", false)) {
+			try(FileWriter writer = new FileWriter(shaderDir.getAbsolutePath() + File.separator + key, false)) {
 				writer.write(source);
 				writer.close();
 			} catch (final IOException e) {
@@ -260,6 +258,10 @@ public class GlShader {
 
 		if(!context.materialContext.isBlock) {
 			result = StringUtils.replace(result, "#define CONTEXT_IS_BLOCK TRUE", "#define CONTEXT_IS_BLOCK FALSE");
+		}
+
+		if(context.pass == ShaderPass.SOLID && Configurator.enableBloom) {
+			result = StringUtils.replace(result, "#define TARGET_EMISSIVE -1", "#define TARGET_EMISSIVE 1");
 		}
 
 		if(Configurator.hdLightmaps()) {

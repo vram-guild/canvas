@@ -66,9 +66,10 @@ import grondag.canvas.compat.ClothHolder;
 import grondag.canvas.light.LightmapHdTexture;
 import grondag.canvas.mixinterface.WorldRendererExt;
 import grondag.canvas.pipeline.Bloom;
+import grondag.canvas.pipeline.BufferDebug;
 import grondag.canvas.shader.GlProgram;
-import grondag.canvas.shader.ShaderContext;
 import grondag.canvas.shader.MaterialShaderManager;
+import grondag.canvas.shader.ShaderContext;
 import grondag.canvas.terrain.BuiltRenderRegion;
 import grondag.canvas.terrain.RenderRegionBuilder;
 import grondag.canvas.terrain.RenderRegionStorage;
@@ -175,7 +176,6 @@ public class CanvasWorldRenderer {
 	}
 
 	// FIX: missing edges with off-thread iteration - try frustum check on thread but leave potentially visible set off
-	// UGLY: unbork main render loop
 	// PERF: add check for visibility to entity shouldRender via Frustum check
 	// PERF: render larger cubes - avoid matrix state changes
 	// PERF: cull particle rendering?
@@ -183,6 +183,7 @@ public class CanvasWorldRenderer {
 	// PERF: lod culling: don't render grass, cobwebs, flowers, etc. at longer ranges
 	// PERF: render leaves as solid at distance - omit interior faces
 	// PERF: get VAO working again
+	// PERF: consider trying backface culling again but at draw time w/ glMultiDrawArrays
 
 	/**
 	 * Terrain rebuild is partly lazy/incremental
@@ -315,10 +316,10 @@ public class CanvasWorldRenderer {
 		playerLightmap = mc.getEntityRenderManager().getLight(mc.player, f);
 	}
 
-	public void renderWorld(MatrixStack matrixStack, float f, long startTime, boolean bl, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f projectionMatrix) {
+	public void renderWorld(MatrixStack matrixStack, float tickDelta, long limitTime, boolean blockOutlines, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f projectionMatrix) {
 		final WorldRendererExt wr = this.wr;
 		final MinecraftClient mc = wr.canvas_mc();
-		updatePlayerLightmap(mc, f);
+		updatePlayerLightmap(mc, tickDelta);
 		final ClientWorld world = wr.canvas_world();
 		final BufferBuilderStorage bufferBuilders = wr.canvas_bufferBuilders();
 
@@ -329,10 +330,10 @@ public class CanvasWorldRenderer {
 		final Profiler profiler = world.getProfiler();
 		profiler.swap("light_updates");
 		mc.world.getChunkManager().getLightingProvider().doLightUpdates(Integer.MAX_VALUE, true, true);
-		final Vec3d vec3d = camera.getPos();
-		final double cameraX = vec3d.getX();
-		final double cameraY = vec3d.getY();
-		final double cameraZ = vec3d.getZ();
+		final Vec3d cameraVec3d = camera.getPos();
+		final double cameraX = cameraVec3d.getX();
+		final double cameraY = cameraVec3d.getY();
+		final double cameraZ = cameraVec3d.getZ();
 		final Matrix4f modelMatrix = matrixStack.peek().getModel();
 
 		profiler.swap("culling");
@@ -344,18 +345,19 @@ public class CanvasWorldRenderer {
 		renderRegionStorage.updateRegionOriginsIfNeeded(mc);
 
 		profiler.swap("clear");
-		BackgroundRenderer.render(camera, f, mc.world, mc.options.viewDistance, gameRenderer.getSkyDarkness(f));
+		BackgroundRenderer.render(camera, tickDelta, mc.world, mc.options.viewDistance, gameRenderer.getSkyDarkness(tickDelta));
 		RenderSystem.clear(16640, MinecraftClient.IS_SYSTEM_MAC);
-		final float h = gameRenderer.getViewDistance();
-		final boolean bl3 = mc.world.getSkyProperties().useThickFog(MathHelper.floor(cameraX), MathHelper.floor(cameraY)) || mc.inGameHud.getBossBarHud().shouldThickenFog();
+		final float viewDistance = gameRenderer.getViewDistance();
+		final boolean thickFog = mc.world.getSkyProperties().useThickFog(MathHelper.floor(cameraX), MathHelper.floor(cameraY)) || mc.inGameHud.getBossBarHud().shouldThickenFog();
+
 		if (mc.options.viewDistance >= 4) {
-			BackgroundRenderer.applyFog(camera, BackgroundRenderer.FogType.FOG_SKY, h, bl3);
+			BackgroundRenderer.applyFog(camera, BackgroundRenderer.FogType.FOG_SKY, viewDistance, thickFog);
 			profiler.swap("sky");
-			((WorldRenderer) wr).renderSky(matrixStack, f);
+			((WorldRenderer) wr).renderSky(matrixStack, tickDelta);
 		}
 
 		profiler.swap("fog");
-		BackgroundRenderer.applyFog(camera, BackgroundRenderer.FogType.FOG_TERRAIN, Math.max(h - 16.0F, 32.0F), bl3);
+		BackgroundRenderer.applyFog(camera, BackgroundRenderer.FogType.FOG_TERRAIN, Math.max(viewDistance - 16.0F, 32.0F), thickFog);
 		profiler.swap("terrain_setup");
 
 		setupTerrain(camera, frustum, wr.canvas_getAndIncrementFrameIndex(), mc.player.isSpectator());
@@ -370,21 +372,21 @@ public class CanvasWorldRenderer {
 			maxFpsLimit = 1000000000 / maxFps;
 		}
 
-		final long budget = Util.getMeasuringTimeNano() - startTime;
+		final long budget = Util.getMeasuringTimeNano() - limitTime;
 
 		// No idea wtg the 3/2 is for - looks like a hack
 		final long updateBudget = wr.canvas_chunkUpdateSmoother().getTargetUsedTime(budget) * 3L / 2L;
 		final long clampedBudget = MathHelper.clamp(updateBudget, maxFpsLimit, 33333333L);
 
-		updateRegions(startTime + clampedBudget);
+		updateRegions(limitTime + clampedBudget);
 
 		LightmapHdTexture.instance().onRenderTick();
 
 		profiler.swap("terrain");
 
-		Bloom.startBloom();
+		if (Configurator.enableBloom) Bloom.startBloom(true);
 		renderTerrainLayer(false, matrixStack, cameraX, cameraY, cameraZ);
-		Bloom.endBloom();
+		if (Configurator.enableBloom) Bloom.endBloom();
 
 		DiffuseLighting.enableForLevel(matrixStack.peek().getModel());
 
@@ -400,194 +402,19 @@ public class CanvasWorldRenderer {
 			mc.getFramebuffer().beginWrite(false);
 		}
 
-		boolean bl4 = false;
+		boolean didRenderOutlines = false;
 		final VertexConsumerProvider.Immediate immediate = bufferBuilders.getEntityVertexConsumers();
 		final Iterator<Entity> entities = world.getEntities().iterator();
 		final ShaderEffect entityOutlineShader = wr.canvas_entityOutlineShader();
 		final BuiltRenderRegion[] visibleRegions = this.visibleRegions;
 
-		while(true) {
-			Entity entity;
-			int x;
-			do {
-				do {
-					do {
-						if (!entities.hasNext()) {
-							immediate.draw(RenderLayer.getEntitySolid(SpriteAtlasTexture.BLOCK_ATLAS_TEX));
-							immediate.draw(RenderLayer.getEntityCutout(SpriteAtlasTexture.BLOCK_ATLAS_TEX));
-							immediate.draw(RenderLayer.getEntityCutoutNoCull(SpriteAtlasTexture.BLOCK_ATLAS_TEX));
-							immediate.draw(RenderLayer.getEntitySmoothCutout(SpriteAtlasTexture.BLOCK_ATLAS_TEX));
-							profiler.swap("blockentities");
-
-							final int visibleRegionCount = this.visibleRegionCount;
-							final Set<BlockEntity> noCullingBlockEntities = wr.canvas_noCullingBlockEntities();
-							int regionIndex = 0;
-
-							while(true) {
-								List<BlockEntity> list;
-								do {
-									if (regionIndex == visibleRegionCount) {
-										// exits here
-										synchronized(noCullingBlockEntities) {
-											final Iterator<BlockEntity> var56 = noCullingBlockEntities.iterator();
-
-											while(true) {
-												if (!var56.hasNext()) {
-													break;
-												}
-
-												final BlockEntity blockEntity2 = var56.next();
-												final BlockPos blockPos2 = blockEntity2.getPos();
-												matrixStack.push();
-												matrixStack.translate(blockPos2.getX() - cameraX, blockPos2.getY() - cameraY, blockPos2.getZ() - cameraZ);
-												BlockEntityRenderDispatcher.INSTANCE.render(blockEntity2, f, matrixStack, immediate);
-												matrixStack.pop();
-											}
-										}
-
-										immediate.draw(RenderLayer.getSolid());
-										immediate.draw(TexturedRenderLayers.getEntitySolid());
-										immediate.draw(TexturedRenderLayers.getEntityCutout());
-										immediate.draw(TexturedRenderLayers.getBeds());
-										immediate.draw(TexturedRenderLayers.getShulkerBoxes());
-										immediate.draw(TexturedRenderLayers.getSign());
-										immediate.draw(TexturedRenderLayers.getChest());
-										bufferBuilders.getOutlineVertexConsumers().draw();
-
-										if (bl4) {
-											entityOutlineShader.render(f);
-											mc.getFramebuffer().beginWrite(false);
-										}
-
-										profiler.swap("destroyProgress");
-										final ObjectIterator<Entry<SortedSet<BlockBreakingInfo>>> var53 = wr.canvas_blockBreakingProgressions().long2ObjectEntrySet().iterator();
-
-										while(var53.hasNext()) {
-											final Entry<SortedSet<BlockBreakingInfo>> entry = var53.next();
-											final BlockPos blockPos3 = BlockPos.fromLong(entry.getLongKey());
-											final double y = blockPos3.getX() - cameraX;
-											final double z = blockPos3.getY() - cameraY;
-											final double aa = blockPos3.getZ() - cameraZ;
-
-											if (y * y + z * z + aa * aa <= 1024.0D) {
-												final SortedSet<BlockBreakingInfo> sortedSet2 = entry.getValue();
-
-												if (sortedSet2 != null && !sortedSet2.isEmpty()) {
-													final int stage = sortedSet2.last().getStage();
-													matrixStack.push();
-													matrixStack.translate(blockPos3.getX() - cameraX, blockPos3.getY() - cameraY, blockPos3.getZ() - cameraZ);
-													final MatrixStack.Entry xform = matrixStack.peek();
-													final VertexConsumer vertexConsumer2 = new TransformingVertexConsumer(bufferBuilders.getEffectVertexConsumers().getBuffer(ModelLoader.BLOCK_DESTRUCTION_RENDER_LAYERS.get(stage)), xform.getModel(), xform.getNormal());
-													mc.getBlockRenderManager().renderDamage(world.getBlockState(blockPos3), blockPos3, world, matrixStack, vertexConsumer2);
-													matrixStack.pop();
-												}
-											}
-										}
-
-										profiler.pop();
-										final HitResult hitResult = mc.crosshairTarget;
-
-										if (bl && hitResult != null && hitResult.getType() == HitResult.Type.BLOCK) {
-											profiler.swap("outline");
-											final BlockPos blockPos4 = ((BlockHitResult)hitResult).getBlockPos();
-											final BlockState blockState = world.getBlockState(blockPos4);
-
-											if (!blockState.isAir() && world.getWorldBorder().contains(blockPos4)) {
-												final VertexConsumer vertexConsumer3 = immediate.getBuffer(RenderLayer.getLines());
-												wr.canvas_drawBlockOutline(matrixStack, vertexConsumer3, camera.getFocusedEntity(), cameraX, cameraY, cameraZ, blockPos4, blockState);
-											}
-										}
-
-										RenderSystem.pushMatrix();
-										RenderSystem.multMatrix(matrixStack.peek().getModel());
-										ClothHolder.clothDebugPreEvent.run();
-										mc.debugRenderer.render(matrixStack, immediate, cameraX, cameraY, cameraZ);
-										wr.canvas_renderWorldBorder(camera);
-										RenderSystem.popMatrix();
-										immediate.draw(TexturedRenderLayers.getEntityTranslucentCull());
-										immediate.draw(TexturedRenderLayers.getBannerPatterns());
-										immediate.draw(TexturedRenderLayers.getShieldPatterns());
-										immediate.draw(RenderLayer.getGlint());
-										immediate.draw(RenderLayer.getEntityGlint());
-										immediate.draw(RenderLayer.getWaterMask());
-										bufferBuilders.getEffectVertexConsumers().draw();
-										immediate.draw(RenderLayer.getLines());
-										immediate.draw();
-
-										profiler.swap("translucent");
-										renderTerrainLayer(true, matrixStack, cameraX, cameraY, cameraZ);
-
-										profiler.swap("particles");
-										mc.particleManager.renderParticles(matrixStack, immediate, lightmapTextureManager, camera, f);
-										RenderSystem.pushMatrix();
-										RenderSystem.multMatrix(matrixStack.peek().getModel());
-
-										if (Configurator.debugOcclusionBoxes) {
-											renderCullBoxes(matrixStack, immediate, cameraX, cameraY, cameraZ, f);
-										}
-
-										profiler.swap("cloudsLayers");
-
-										if (mc.options.getCloudRenderMode() != CloudRenderMode.OFF) {
-											profiler.swap("clouds");
-											((WorldRenderer) wr).renderClouds(matrixStack, f, cameraX, cameraY, cameraZ);
-										}
-
-										RenderSystem.depthMask(false);
-										profiler.swap("weather");
-										wr.canvas_renderWeather(lightmapTextureManager, f, cameraX, cameraY, cameraZ);
-										RenderSystem.depthMask(true);
-										//this.renderChunkDebugInfo(camera);
-										RenderSystem.shadeModel(7424);
-										RenderSystem.depthMask(true);
-										RenderSystem.disableBlend();
-										RenderSystem.popMatrix();
-										BackgroundRenderer.method_23792();
-
-										wr.canvas_setEntityCount(entityCount);
-
-										return;
-									}
-
-									assert visibleRegions[regionIndex] != null;
-									assert visibleRegions[regionIndex].getRenderData() != null;
-
-									list = visibleRegions[regionIndex++].getRenderData().getBlockEntities();
-								} while(list.isEmpty());
-
-								final Iterator<BlockEntity> var60 = list.iterator();
-
-								while(var60.hasNext()) {
-									final BlockEntity blockEntity = var60.next();
-									final BlockPos blockPos = blockEntity.getPos();
-									VertexConsumerProvider vertexConsumerProvider3 = immediate;
-									matrixStack.push();
-									matrixStack.translate(blockPos.getX() - cameraX, blockPos.getY() - cameraY, blockPos.getZ() - cameraZ);
-									final SortedSet<BlockBreakingInfo> sortedSet = wr.canvas_blockBreakingProgressions().get(blockPos.asLong());
-
-									if (sortedSet != null && !sortedSet.isEmpty()) {
-										final int stage = sortedSet.last().getStage();
-
-										if (stage >= 0) {
-											final MatrixStack.Entry xform = matrixStack.peek();
-											final VertexConsumer vertexConsumer = new TransformingVertexConsumer(bufferBuilders.getEffectVertexConsumers().getBuffer(ModelLoader.BLOCK_DESTRUCTION_RENDER_LAYERS.get(stage)), xform.getModel(), xform.getNormal());
-											vertexConsumerProvider3 = (renderLayer) -> {
-												final VertexConsumer vertexConsumer2 = immediate.getBuffer(renderLayer);
-												return renderLayer.hasCrumbling() ? VertexConsumers.dual(vertexConsumer, vertexConsumer2) : vertexConsumer2;
-											};
-										}
-									}
-
-									BlockEntityRenderDispatcher.INSTANCE.render(blockEntity, f, matrixStack, vertexConsumerProvider3);
-									matrixStack.pop();
-								}
-							}
-						}
-
-						entity = entities.next();
-					} while(!entityRenderDispatcher.shouldRender(entity, frustum, cameraX, cameraY, cameraZ) && !entity.hasPassengerDeep(mc.player));
-				} while(entity == camera.getFocusedEntity() && !camera.isThirdPerson() && (!(camera.getFocusedEntity() instanceof LivingEntity) || !((LivingEntity)camera.getFocusedEntity()).isSleeping()));
-			} while(entity instanceof ClientPlayerEntity && camera.getFocusedEntity() != entity);
+		while (entities.hasNext()) {
+			final Entity entity = entities.next();
+			if((!entityRenderDispatcher.shouldRender(entity, frustum, cameraX, cameraY, cameraZ) && !entity.hasPassengerDeep(mc.player))
+					|| (entity == camera.getFocusedEntity() && !camera.isThirdPerson() && (!(camera.getFocusedEntity() instanceof LivingEntity) || !((LivingEntity)camera.getFocusedEntity()).isSleeping()))
+					|| (entity instanceof ClientPlayerEntity && camera.getFocusedEntity() != entity)) {
+				continue;
+			}
 
 			++entityCount;
 			if (entity.age == 0) {
@@ -596,23 +423,191 @@ public class CanvasWorldRenderer {
 				entity.lastRenderZ = entity.getZ();
 			}
 
-			Object vertexConsumerProvider2;
+			VertexConsumerProvider renderProvider;
 			if (canDrawEntityOutlines && entity.isGlowing()) {
-				bl4 = true;
+				didRenderOutlines = true;
 				final OutlineVertexConsumerProvider outlineVertexConsumerProvider = bufferBuilders.getOutlineVertexConsumers();
-				vertexConsumerProvider2 = outlineVertexConsumerProvider;
-				final int k = entity.getTeamColorValue();
-				final int u = k >> 16 & 255;
-				final int v = k >> 8 & 255;
-				x = k & 255;
-				outlineVertexConsumerProvider.setColor(u, v, x, 255);
+				renderProvider = outlineVertexConsumerProvider;
+				final int teamColor = entity.getTeamColorValue();
+				final int red = teamColor >> 16 & 255;
+				final int green = teamColor >> 8 & 255;
+				final int blue = teamColor & 255;
+				outlineVertexConsumerProvider.setColor(red, green, blue, 255);
 			} else {
-				vertexConsumerProvider2 = immediate;
+				renderProvider = immediate;
 			}
 
 			// PERF: don't render entities if region is not visible and outlines are off
-			wr.canvas_renderEntity(entity, cameraX, cameraY, cameraZ, f, matrixStack, (VertexConsumerProvider)vertexConsumerProvider2);
+			wr.canvas_renderEntity(entity, cameraX, cameraY, cameraZ, tickDelta, matrixStack, renderProvider);
 		}
+
+
+
+		immediate.draw(RenderLayer.getEntitySolid(SpriteAtlasTexture.BLOCK_ATLAS_TEX));
+		immediate.draw(RenderLayer.getEntityCutout(SpriteAtlasTexture.BLOCK_ATLAS_TEX));
+		immediate.draw(RenderLayer.getEntityCutoutNoCull(SpriteAtlasTexture.BLOCK_ATLAS_TEX));
+		immediate.draw(RenderLayer.getEntitySmoothCutout(SpriteAtlasTexture.BLOCK_ATLAS_TEX));
+		profiler.swap("blockentities");
+
+		final int visibleRegionCount = this.visibleRegionCount;
+		final Set<BlockEntity> noCullingBlockEntities = wr.canvas_noCullingBlockEntities();
+
+		for (int regionIndex = 0; regionIndex < visibleRegionCount; ++regionIndex) {
+			assert visibleRegions[regionIndex] != null;
+			assert visibleRegions[regionIndex].getRenderData() != null;
+
+			final List<BlockEntity> list = visibleRegions[regionIndex++].getRenderData().getBlockEntities();
+
+			final Iterator<BlockEntity> var60 = list.iterator();
+
+			while(var60.hasNext()) {
+				final BlockEntity blockEntity = var60.next();
+				final BlockPos blockPos = blockEntity.getPos();
+				VertexConsumerProvider vertexConsumerProvider3 = immediate;
+				matrixStack.push();
+				matrixStack.translate(blockPos.getX() - cameraX, blockPos.getY() - cameraY, blockPos.getZ() - cameraZ);
+				final SortedSet<BlockBreakingInfo> sortedSet = wr.canvas_blockBreakingProgressions().get(blockPos.asLong());
+
+				if (sortedSet != null && !sortedSet.isEmpty()) {
+					final int stage = sortedSet.last().getStage();
+
+					if (stage >= 0) {
+						final MatrixStack.Entry xform = matrixStack.peek();
+						final VertexConsumer vertexConsumer = new TransformingVertexConsumer(bufferBuilders.getEffectVertexConsumers().getBuffer(ModelLoader.BLOCK_DESTRUCTION_RENDER_LAYERS.get(stage)), xform.getModel(), xform.getNormal());
+						vertexConsumerProvider3 = (renderLayer) -> {
+							final VertexConsumer vertexConsumer2 = immediate.getBuffer(renderLayer);
+							return renderLayer.hasCrumbling() ? VertexConsumers.dual(vertexConsumer, vertexConsumer2) : vertexConsumer2;
+						};
+					}
+				}
+
+				BlockEntityRenderDispatcher.INSTANCE.render(blockEntity, tickDelta, matrixStack, vertexConsumerProvider3);
+				matrixStack.pop();
+			}
+		}
+
+		synchronized(noCullingBlockEntities) {
+			final Iterator<BlockEntity> globalBERs = noCullingBlockEntities.iterator();
+
+			while(globalBERs.hasNext()) {
+				final BlockEntity blockEntity2 = globalBERs.next();
+				final BlockPos blockPos2 = blockEntity2.getPos();
+				matrixStack.push();
+				matrixStack.translate(blockPos2.getX() - cameraX, blockPos2.getY() - cameraY, blockPos2.getZ() - cameraZ);
+				BlockEntityRenderDispatcher.INSTANCE.render(blockEntity2, tickDelta, matrixStack, immediate);
+				matrixStack.pop();
+			}
+		}
+
+		immediate.draw(RenderLayer.getSolid());
+		immediate.draw(TexturedRenderLayers.getEntitySolid());
+		immediate.draw(TexturedRenderLayers.getEntityCutout());
+		immediate.draw(TexturedRenderLayers.getBeds());
+		immediate.draw(TexturedRenderLayers.getShulkerBoxes());
+		immediate.draw(TexturedRenderLayers.getSign());
+		immediate.draw(TexturedRenderLayers.getChest());
+		bufferBuilders.getOutlineVertexConsumers().draw();
+
+		if (didRenderOutlines) {
+			entityOutlineShader.render(tickDelta);
+			mc.getFramebuffer().beginWrite(false);
+		}
+
+		profiler.swap("destroyProgress");
+		final ObjectIterator<Entry<SortedSet<BlockBreakingInfo>>> breakings = wr.canvas_blockBreakingProgressions().long2ObjectEntrySet().iterator();
+
+		while(breakings.hasNext()) {
+			final Entry<SortedSet<BlockBreakingInfo>> entry = breakings.next();
+			final BlockPos breakPos = BlockPos.fromLong(entry.getLongKey());
+			final double y = breakPos.getX() - cameraX;
+			final double z = breakPos.getY() - cameraY;
+			final double aa = breakPos.getZ() - cameraZ;
+
+			if (y * y + z * z + aa * aa <= 1024.0D) {
+				final SortedSet<BlockBreakingInfo> breakSet = entry.getValue();
+
+				if (breakSet != null && !breakSet.isEmpty()) {
+					final int stage = breakSet.last().getStage();
+					matrixStack.push();
+					matrixStack.translate(breakPos.getX() - cameraX, breakPos.getY() - cameraY, breakPos.getZ() - cameraZ);
+					final MatrixStack.Entry xform = matrixStack.peek();
+					final VertexConsumer vertexConsumer2 = new TransformingVertexConsumer(bufferBuilders.getEffectVertexConsumers().getBuffer(ModelLoader.BLOCK_DESTRUCTION_RENDER_LAYERS.get(stage)), xform.getModel(), xform.getNormal());
+					mc.getBlockRenderManager().renderDamage(world.getBlockState(breakPos), breakPos, world, matrixStack, vertexConsumer2);
+					matrixStack.pop();
+				}
+			}
+		}
+
+		profiler.pop();
+		final HitResult hitResult = mc.crosshairTarget;
+
+		if (blockOutlines && hitResult != null && hitResult.getType() == HitResult.Type.BLOCK) {
+			profiler.swap("outline");
+			final BlockPos blockPos4 = ((BlockHitResult)hitResult).getBlockPos();
+			final BlockState blockState = world.getBlockState(blockPos4);
+
+			if (!blockState.isAir() && world.getWorldBorder().contains(blockPos4)) {
+				final VertexConsumer vertexConsumer3 = immediate.getBuffer(RenderLayer.getLines());
+				wr.canvas_drawBlockOutline(matrixStack, vertexConsumer3, camera.getFocusedEntity(), cameraX, cameraY, cameraZ, blockPos4, blockState);
+			}
+		}
+
+		RenderSystem.pushMatrix();
+		RenderSystem.multMatrix(matrixStack.peek().getModel());
+		ClothHolder.clothDebugPreEvent.run();
+		mc.debugRenderer.render(matrixStack, immediate, cameraX, cameraY, cameraZ);
+		wr.canvas_renderWorldBorder(camera);
+		RenderSystem.popMatrix();
+
+
+		immediate.draw(TexturedRenderLayers.getEntityTranslucentCull());
+		immediate.draw(TexturedRenderLayers.getBannerPatterns());
+		immediate.draw(TexturedRenderLayers.getShieldPatterns());
+		immediate.draw(RenderLayer.getGlint());
+		immediate.draw(RenderLayer.getEntityGlint());
+		immediate.draw(RenderLayer.getWaterMask());
+		bufferBuilders.getEffectVertexConsumers().draw();
+		immediate.draw(RenderLayer.getLines());
+		immediate.draw();
+
+		profiler.swap("translucent");
+		renderTerrainLayer(true, matrixStack, cameraX, cameraY, cameraZ);
+
+		profiler.swap("particles");
+		mc.particleManager.renderParticles(matrixStack, immediate, lightmapTextureManager, camera, tickDelta);
+		RenderSystem.pushMatrix();
+		RenderSystem.multMatrix(matrixStack.peek().getModel());
+
+		if (Configurator.debugOcclusionBoxes) {
+			renderCullBoxes(matrixStack, immediate, cameraX, cameraY, cameraZ, tickDelta);
+		}
+
+		profiler.swap("cloudsLayers");
+
+		if (mc.options.getCloudRenderMode() != CloudRenderMode.OFF) {
+			profiler.swap("clouds");
+			((WorldRenderer) wr).renderClouds(matrixStack, tickDelta, cameraX, cameraY, cameraZ);
+		}
+
+		RenderSystem.depthMask(false);
+		profiler.swap("weather");
+		wr.canvas_renderWeather(lightmapTextureManager, tickDelta, cameraX, cameraY, cameraZ);
+		RenderSystem.depthMask(true);
+
+		if (Configurator.enableBufferDebug) {
+			BufferDebug.render();
+		}
+
+
+		//this.renderChunkDebugInfo(camera);
+		RenderSystem.shadeModel(7424);
+		RenderSystem.depthMask(true);
+		RenderSystem.disableBlend();
+		RenderSystem.popMatrix();
+		BackgroundRenderer.method_23792();
+
+		wr.canvas_setEntityCount(entityCount);
+
 	}
 
 	private void renderCullBoxes(MatrixStack matrixStack, Immediate immediate, double cameraX, double cameraY, double cameraZ,  float tickDelta) {

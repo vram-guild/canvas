@@ -19,13 +19,9 @@
 
 // true if lighting should be noised to prevent mach banding
 // will only be enabled if smooth light is also enabled
-#define ENABLE_LIGHT_NOISE FALSE
+#define ENABLE_LIGHT_NOISE 	FALSE
 
+#define USE_FLAT_VARYING 	FALSE
 
-#define USE_FLAT_VARYING FALSE
-
-#define MULTI_TARGET TRUE
-
-#define TARGET_BASECOLOR 	0
-#define TARGET_BLOOM  		1
-
+#define TARGET_BASECOLOR 0
+#define TARGET_EMISSIVE -1

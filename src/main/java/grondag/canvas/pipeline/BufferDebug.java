@@ -13,25 +13,37 @@
  * the License.
  ******************************************************************************/
 
-package grondag.canvas.render;
+package grondag.canvas.pipeline;
 
-// TODO: implement draw strategies
-public enum DrawStrategy {
-	/**
-	 * Each shader or conditional has a separate draw call and (if necessary) program activation.
-	 * Can only be used for non-translucent.
-	 */
-	MULTI_DRAW_MULTI_PROGRAM,
+import com.google.common.util.concurrent.Runnables;
 
-	/**
-	 * Ubershader controlled by a uniform. Uniform is set before each draw call. Probably most optimal.
-	 * Can only be used for non-translucent.
-	 */
-	MULTI_DRAW_SINGLE_PROGRAM,
+import grondag.canvas.CanvasMod;
 
-	/**
-	 * Ubershader controlled by vertex attributes. Requires extra vertex data and shader performance may suffer.
-	 * Only option for mixed translucency that doesn't require frequent resorting or exotic approaches.
-	 */
-	SINGLE_DRAW_MULTI_PROGRAM
+public enum BufferDebug {
+	NORMAL(Runnables.doNothing()),
+	BLOOM_BASE(Bloom::debugBase),
+	BLOOM_BASE_CASCADE(Runnables.doNothing()),
+	BLOOM_BLUR(Runnables.doNothing()),
+	BLOOM_BLUR_CASCADE(Runnables.doNothing());
+
+	private final Runnable task;
+
+	private BufferDebug(Runnable task) {
+		this.task = task;
+	}
+
+	private static BufferDebug current = NORMAL;
+
+	public static void advance() {
+		final BufferDebug[] values = values();
+		current = values[(current.ordinal() + 1) % values.length];
+	}
+
+	public static void render() {
+		while (CanvasMod.BUFFER_KEY.wasPressed()) {
+			advance();
+		}
+
+		current.task.run();
+	}
 }

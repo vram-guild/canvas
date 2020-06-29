@@ -52,6 +52,9 @@ public class Configurator {
 		@Comment("Fluid biome colors are blended at block corners to avoid patchy appearance. Slight peformance impact to chunk loading.")
 		boolean blendFluidColors = true;
 
+		@Comment("Glow effect around light sources. Work-in-Progress")
+		public boolean enableBloom = false;
+
 		@Comment("Truly smoothh lighting. Some impact to memory use, chunk loading and frame rate.")
 		boolean hdLightmaps = false;
 
@@ -128,6 +131,9 @@ public class Configurator {
 
 		@Comment("Log clipping or other non-critical failures detected by terrain occluder. May spam the log.")
 		boolean traceOcclusionEdgeCases = false;
+
+		@Comment("Enable rendering of internal buffers for debug purposes. Off by default to prevent accidental activation.")
+		public boolean enableBufferDebug;
 	}
 
 	static final ConfigData DEFAULTS = new ConfigData();
@@ -136,6 +142,7 @@ public class Configurator {
 
 	public static FogMode fogMode = DEFAULTS.fogMode;
 	public static boolean blendFluidColors = DEFAULTS.blendFluidColors;
+	public static boolean enableBloom = DEFAULTS.enableBloom;
 
 	private static boolean hdLightmaps = DEFAULTS.hdLightmaps;
 	public static boolean lightmapNoise = DEFAULTS.lightmapNoise;
@@ -164,6 +171,7 @@ public class Configurator {
 	public static boolean debugOcclusionRaster = DEFAULTS.debugOcclusionRaster;
 	public static boolean debugOcclusionBoxes = DEFAULTS.debugOcclusionBoxes;
 	public static boolean traceOcclusionEdgeCases = DEFAULTS.traceOcclusionEdgeCases;
+	public static boolean enableBufferDebug = DEFAULTS.enableBufferDebug;
 
 	public static boolean hdLightmaps() {
 		return false;
@@ -200,6 +208,7 @@ public class Configurator {
 
 		fogMode = config.fogMode;
 		blendFluidColors = config.blendFluidColors;
+		enableBloom = config.enableBloom;
 
 		shaderDebug = config.shaderDebug;
 		maxLightmapDelayFrames = config.maxLightmapDelayFrames;
@@ -230,13 +239,14 @@ public class Configurator {
 		debugOcclusionBoxes = config.debugOcclusionBoxes;
 		debugOcclusionRaster = config.debugOcclusionRaster;
 		traceOcclusionEdgeCases = config.traceOcclusionEdgeCases;
-
+		enableBufferDebug = config.enableBufferDebug;
 	}
 
 	private static void saveConfig() {
 		final ConfigData config = new ConfigData();
 		config.fogMode = fogMode;
 		config.blendFluidColors = blendFluidColors;
+		config.enableBloom = enableBloom;
 
 		config.shaderDebug = shaderDebug;
 		config.maxLightmapDelayFrames = maxLightmapDelayFrames;
@@ -266,6 +276,7 @@ public class Configurator {
 		config.debugOcclusionBoxes = debugOcclusionBoxes;
 		config.debugOcclusionRaster = debugOcclusionRaster;
 		config.traceOcclusionEdgeCases = traceOcclusionEdgeCases;
+		config.enableBufferDebug = enableBufferDebug;
 
 		try {
 			final String result = JANKSON.toJson(config).toJson(true, true, 0);
@@ -353,6 +364,12 @@ public class Configurator {
 				.setSaveConsumer(b -> {blendFluidColors = b; reload = true;})
 				.build());
 
+		features.addEntry(ENTRY_BUILDER
+				.startBooleanToggle(new TranslatableText("config.canvas.value.bloom"), enableBloom)
+				.setDefaultValue(DEFAULTS.enableBloom)
+				.setTooltip(parse("config.canvas.help.bloom"))
+				.setSaveConsumer(b -> {enableBloom = b; reload = true;})
+				.build());
 
 		// LIGHTING
 		final ConfigCategory lighting = builder.getOrCreateCategory(new TranslatableText("config.canvas.category.lighting"));
@@ -535,6 +552,12 @@ public class Configurator {
 				.setSaveConsumer(b -> traceOcclusionEdgeCases = b)
 				.build());
 
+		debug.addEntry(ENTRY_BUILDER
+				.startBooleanToggle(new TranslatableText("config.canvas.value.buffer_debug"), enableBufferDebug)
+				.setDefaultValue(DEFAULTS.enableBufferDebug)
+				.setTooltip(parse("config.canvas.help.buffer_debug"))
+				.setSaveConsumer(b -> enableBufferDebug = b)
+				.build());
 
 		builder.setAlwaysShowTabs(false).setDoesConfirmSave(false);
 

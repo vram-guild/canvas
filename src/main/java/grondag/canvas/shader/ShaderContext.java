@@ -6,27 +6,22 @@ public class ShaderContext {
 	private static int indexCounter;
 
 	public final int index = ++indexCounter;
-	public final String name;
 
 	public final MaterialContext materialContext;
 
 	public final ShaderPass pass;
 
+	public final String name;
+
 	private ShaderContext(Builder builder) {
-		name = builder.name;
 		materialContext = builder.materialContext;
 		pass = builder.pass;
+		name = materialContext == MaterialContext.PROCESS && pass == ShaderPass.PROCESS ? "process" : materialContext.name().toLowerCase() + "-" + pass.name().toLowerCase();
 	}
 
 	public static class Builder {
-		private String name;
 		private MaterialContext materialContext;
 		private ShaderPass pass = ShaderPass.SOLID;
-
-		Builder name(String name) {
-			this.name = name;
-			return this;
-		}
 
 		Builder materialContext(MaterialContext materialContext) {
 			this.materialContext = materialContext;

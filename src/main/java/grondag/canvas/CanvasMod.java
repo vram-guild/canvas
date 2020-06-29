@@ -18,9 +18,11 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.lwjgl.system.Configuration;
 
+import net.minecraft.client.options.KeyBinding;
 import net.minecraft.client.render.RenderLayer;
 
 import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.rendering.v1.InvalidateRenderStateCallback;
 import net.fabricmc.fabric.api.renderer.v1.RendererAccess;
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
@@ -67,8 +69,11 @@ public class CanvasMod implements ClientModInitializer {
 		((RenderLayerExt) RenderLayer.getSolid()).canvas_blendModeIndex(BlendMode.SOLID.ordinal());
 		((RenderLayerExt) RenderLayer.getCutout()).canvas_blendModeIndex(BlendMode.CUTOUT.ordinal());
 		((RenderLayerExt) RenderLayer.getCutoutMipped()).canvas_blendModeIndex(BlendMode.CUTOUT_MIPPED.ordinal());
+
+		KeyBindingHelper.registerKeyBinding(BUFFER_KEY);
 	}
 
+	public static KeyBinding BUFFER_KEY = new KeyBinding("key.canvas.next_buffer", Character.valueOf('`'), "key.canvas.category");
 	public static final String MODID = "canvas";
 
 	public static final Logger LOG = LogManager.getLogger("Canvas");

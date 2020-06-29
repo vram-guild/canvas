@@ -88,11 +88,10 @@ void main() {
 		discard;
 	}
 
-#if MULTI_TARGET
     // TODO: need a separate fog pass?
     gl_FragData[TARGET_BASECOLOR] = _cv_fog(a);
-    gl_FragData[TARGET_BLOOM] = a * fragData.emissivity;
-#else
-	gl_FragColor = _cv_fog(a);
-#endif
+
+	#if TARGET_EMISSIVE > 0
+		gl_FragData[TARGET_EMISSIVE] = a * fragData.emissivity;
+	#endif
 }

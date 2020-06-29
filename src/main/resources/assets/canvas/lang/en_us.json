@@ -7,7 +7,8 @@
 	"error.canvas.fail_create_any_shader" : "Canvas unable to create one or more shaders due to compilation errors. See canvas_shader_debug folder for details.",
 	"error.canvas.program_link_failure" : "Canvas unable to create linked shader due to unexpected error.",
 	"error.canvas.fail_create_lightmap" : "Canvas unable to create HD lightmap(s) - out of space. \nSome blocks will not render with proper lighting. \nReduce view distance or disable HD lightmaps. F3+A will temporarily clear this problem.",
-	
+	"key.canvas.category": "Canvas",
+	"key.canvas.next_buffer": "Cycle Buffer Debug Render",
 	"config.canvas.button" : "Canvas",
 	"config.canvas.title" : "Canvas Renderer Configuration",
 	"config.canvas.reset" : "Reset",
@@ -17,6 +18,8 @@
 	"config.canvas.help.fog_mode" : "Makes terrain fog a little less foggy or turns it off.",
 	"config.canvas.value.blend_fluid_colors" : "Blend Fluid Colors",
 	"config.canvas.help.blend_fluid_colors" : "Fluid biome colors are blended at block corners to avoid patchy; appearance. Slight peformance impact to chunk loading.",
+	"config.canvas.value.bloom" : "Bloom",
+	"config.canvas.help.bloom" : "Glow effect around light sources. Work-in-Progress.",
 	
 	"config.canvas.category.lighting" : "Lighting",
 	"config.canvas.value.light_smoothing" : "Light Smoothing",
@@ -87,5 +90,7 @@
 	"config.canvas.value.debug_occlusion_boxes" : "Render Occlusion Boxes",
 	"config.canvas.help.debug_occlusion_boxes" : "Render active occlusion boxes of targeted render region.;Will have performance impact and looks strange.",
 	"config.canvas.value.trace_occlusion_edge_cases" : "Trace Occlusion Edge Cases",
-	"config.canvas.help.trace_occlusion_edge_cases" : "Log clipping or other non-critical failures detected;by terrain occluder. May spam the log."
+	"config.canvas.help.trace_occlusion_edge_cases" : "Log clipping or other non-critical failures detected;by terrain occluder. May spam the log.",
+	"config.canvas.value.buffer_debug" : "Enable Buffer Debug Render",
+	"config.canvas.help.buffer_debug" : "Enable rendering of internal buffers for debug purposes.;Off by default to prevent accidental activation."
 }
