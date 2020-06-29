@@ -72,6 +72,10 @@ public class GlProgram {
 	protected int dirtyCount = 0;
 	protected final UniformImpl<?>[] dirtyUniforms = new UniformImpl[32];
 
+	public int programId() {
+		return progID;
+	}
+
 	public abstract class UniformImpl<T extends Uniform> {
 		protected static final int FLAG_NEEDS_UPLOAD = 1;
 		protected static final int FLAG_NEEDS_INITIALIZATION = 2;
@@ -121,7 +125,7 @@ public class GlProgram {
 		}
 
 		@SuppressWarnings("unchecked")
-		protected final void upload() {
+		public final void upload() {
 			if (this.flags == 0) {
 				return;
 			}
@@ -510,10 +514,12 @@ public class GlProgram {
 		GL21.glUseProgram(progID);
 
 		final int count = dirtyCount;
+
 		if (count != 0) {
 			for (int i = 0; i < count; i++) {
 				dirtyUniforms[i].upload();
 			}
+
 			dirtyCount = 0;
 		}
 	}

@@ -29,6 +29,9 @@ public final class MaterialVertexFormats {
 			POSITION_3F,
 			BASE_TEX_2F);
 
+	public static final MaterialVertexFormat PROCESS_VERTEX = new MaterialVertexFormat(
+			POSITION_3F);
+
 	// UGLY: derive this from formats
 	public static final int MAX_QUAD_INT_STRIDE = 128;
 

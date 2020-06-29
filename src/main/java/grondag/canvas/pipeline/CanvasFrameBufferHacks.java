@@ -31,7 +31,6 @@ import grondag.canvas.buffer.allocation.VboBuffer;
 import grondag.canvas.buffer.encoding.VertexCollectorImpl;
 import grondag.canvas.material.MaterialVertexFormats;
 import grondag.canvas.shader.GlProgram;
-import grondag.canvas.shader.ProcessShaders;
 
 public class CanvasFrameBufferHacks {
 
@@ -48,7 +47,7 @@ public class CanvasFrameBufferHacks {
 
 	static int clearFbo = -1;
 
-	static VboBuffer drawBuffer;
+	static VboBuffer copyVbo;
 
 	static int h;
 	static int w;
@@ -115,11 +114,11 @@ public class CanvasFrameBufferHacks {
 		GlStateManager.ortho(0.0D, w, h, 0.0D, 1000.0, 3000.0);
 
 		// FIX: handle VAO properly here before re-enabling
-		drawBuffer.bind();
+		copyVbo.bind();
 		GlStateManager.activeTexture(GL21.GL_TEXTURE0);
 		GlStateManager.enableTexture();
 		GlStateManager.bindTexture(full);
-		ProcessShaders.copy().activate();
+		ProcessShaders.copy(w, h).activate();
 		GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
 		VboBuffer.unbind();
 		GlStateManager.bindTexture(0);
@@ -163,13 +162,13 @@ public class CanvasFrameBufferHacks {
 
 			final VertexCollectorImpl collector = new VertexCollectorImpl();
 			collector.addf(0, 0, 0.2f, 0, 1f);
-			collector.addf(w, 0, 0.2f, 1f, 1f);
-			collector.addf(w, h, 0.2f, 1f, 0f);
-			collector.addf(0, h, 0.2f, 0, 0f);
+			collector.addf(1f, 0, 0.2f, 1f, 1f);
+			collector.addf(1f, 1f, 0.2f, 1f, 0f);
+			collector.addf(0, 1f, 0.2f, 0, 0f);
 
-			drawBuffer = new VboBuffer(collector.byteSize(), MaterialVertexFormats.PROCESS_VERTEX_UV);
-			collector.toBuffer(drawBuffer.intBuffer());
-			drawBuffer.upload();
+			copyVbo = new VboBuffer(collector.byteSize(), MaterialVertexFormats.PROCESS_VERTEX_UV);
+			collector.toBuffer(copyVbo.intBuffer());
+			copyVbo.upload();
 		}
 	}
 
@@ -195,9 +194,9 @@ public class CanvasFrameBufferHacks {
 			full = -1;
 		}
 
-		if (drawBuffer != null) {
-			drawBuffer.close();
-			drawBuffer = null;
+		if (copyVbo != null) {
+			copyVbo.close();
+			copyVbo = null;
 		}
 
 		if (clearFbo > -1) {
