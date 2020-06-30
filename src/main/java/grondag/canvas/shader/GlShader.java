@@ -168,9 +168,7 @@ public class GlShader {
 			if(shaderDir.exists()) {
 				final File files[] = shaderDir.listFiles();
 				for(final File f : files) {
-					if (f.toString().endsWith(".glsl")) {
-						f.delete();
-					}
+					f.delete();
 				}
 			}
 		} catch(final Exception e){

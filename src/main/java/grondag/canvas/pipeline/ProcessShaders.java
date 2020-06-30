@@ -29,10 +29,12 @@ import grondag.frex.api.material.UniformRefreshFrequency;
 public class ProcessShaders {
 	private static GlProgram copy;
 	private static GlProgram blur;
+	private static GlProgram bloom;
 
 	static Uniform2iImpl copySize;
 	static Uniform2iImpl blurSize;
 	static Uniform2fImpl blurDist;
+	static Uniform2iImpl bloomSize;
 
 	static {
 		reload();
@@ -44,17 +46,17 @@ public class ProcessShaders {
 			copy = null;
 		}
 
-		if (blur != null) {
-			blur.unload();
-			blur = null;
-		}
-
 		GlShader vs = GlShaderManager.INSTANCE.getOrCreateVertexShader(ShaderData.COPY_VERTEX, ShaderContext.PROCESS);
 		GlShader fs = GlShaderManager.INSTANCE.getOrCreateFragmentShader(ShaderData.COPY_FRAGMENT, ShaderContext.PROCESS);
 		copy = new GlProgram(vs, fs, MaterialVertexFormats.PROCESS_VERTEX_UV, ShaderContext.PROCESS);
 		copy.uniform1i("_cvu_input", UniformRefreshFrequency.ON_LOAD, u -> u.set(0));
 		copySize = (Uniform2iImpl) copy.uniform2i("_cvu_size", UniformRefreshFrequency.ON_LOAD, u -> {});
 		copy.load();
+
+		if (blur != null) {
+			blur.unload();
+			blur = null;
+		}
 
 		vs = GlShaderManager.INSTANCE.getOrCreateVertexShader(ShaderData.BLUR_VERTEX, ShaderContext.PROCESS);
 		fs = GlShaderManager.INSTANCE.getOrCreateFragmentShader(ShaderData.BLUR_FRAGMENT, ShaderContext.PROCESS);
@@ -63,6 +65,21 @@ public class ProcessShaders {
 		blurSize = (Uniform2iImpl) blur.uniform2i("_cvu_size", UniformRefreshFrequency.ON_LOAD, u -> {});
 		blurDist = (Uniform2fImpl) blur.uniform2f("_cvu_distance", UniformRefreshFrequency.ON_LOAD, u -> {});
 		blur.load();
+
+		if (bloom != null) {
+			bloom.unload();
+			bloom = null;
+		}
+
+		vs = GlShaderManager.INSTANCE.getOrCreateVertexShader(ShaderData.BLOOM_VERTEX, ShaderContext.PROCESS);
+		fs = GlShaderManager.INSTANCE.getOrCreateFragmentShader(ShaderData.BLOOM_FRAGMENT, ShaderContext.PROCESS);
+		bloom = new GlProgram(vs, fs, MaterialVertexFormats.PROCESS_VERTEX_UV, ShaderContext.PROCESS);
+		bloom.uniform1i("_cvu_base", UniformRefreshFrequency.ON_LOAD, u -> u.set(0));
+		bloom.uniform1i("_cvu_bloom0", UniformRefreshFrequency.ON_LOAD, u -> u.set(1));
+		bloom.uniform1i("_cvu_bloom1", UniformRefreshFrequency.ON_LOAD, u -> u.set(2));
+		bloom.uniform1i("_cvu_bloom2", UniformRefreshFrequency.ON_LOAD, u -> u.set(3));
+		bloomSize = (Uniform2iImpl) bloom.uniform2i("_cvu_size", UniformRefreshFrequency.ON_LOAD, u -> {});
+		bloom.load();
 	}
 
 	public static GlProgram copy(int width, int height) {
@@ -99,5 +116,13 @@ public class ProcessShaders {
 		blurDist.upload();
 		blurSize.set(width, height);
 		blurSize.upload();
+	}
+
+	public static GlProgram bloom(int width, int height) {
+		assert width > 0;
+		assert height > 0;
+
+		bloomSize.set(width, height);
+		return bloom;
 	}
 }
