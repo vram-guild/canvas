@@ -58,6 +58,7 @@ import grondag.canvas.CanvasMod;
 import grondag.canvas.mixinterface.WorldRendererExt;
 import grondag.canvas.render.CanvasWorldRenderer;
 import grondag.canvas.terrain.RenderRegionBuilder;
+import grondag.frex.api.event.WorldRenderEvent;
 
 @Mixin(WorldRenderer.class)
 public class MixinWorldRenderer implements WorldRendererExt {
@@ -203,8 +204,10 @@ public class MixinWorldRenderer implements WorldRendererExt {
 	}
 
 	@Inject(at = @At("HEAD"), method = "render", cancellable = true)
-	private void render(MatrixStack matrixStack, float f, long startTime, boolean bl, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f matrix4f, CallbackInfo ci) {
-		canvasWorldRenderer.renderWorld(matrixStack, f, startTime, bl, camera, gameRenderer, lightmapTextureManager, matrix4f);
+	private void render(MatrixStack matrices, float tickDelta, long limitTime, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f matrix4f, CallbackInfo ci) {
+		WorldRenderEvent.BEFORE_WORLD_RENDER.invoker().beforeWorldRender(matrices, tickDelta, limitTime, renderBlockOutline, camera, gameRenderer, lightmapTextureManager, matrix4f);
+		canvasWorldRenderer.renderWorld(matrices, tickDelta, limitTime, renderBlockOutline, camera, gameRenderer, lightmapTextureManager, matrix4f);
+		WorldRenderEvent.AFTER_WORLD_RENDER.invoker().afterWorldRender(matrices, tickDelta, limitTime, renderBlockOutline, camera, gameRenderer, lightmapTextureManager, matrix4f);
 		ci.cancel();
 	}
 
