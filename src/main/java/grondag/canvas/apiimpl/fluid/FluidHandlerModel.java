@@ -19,7 +19,7 @@ import net.minecraft.client.render.model.ModelLoader;
 import net.minecraft.client.texture.Sprite;
 import net.minecraft.fluid.Fluid;
 import net.minecraft.fluid.FluidState;
-import net.minecraft.tag.FluidTags;
+import net.minecraft.fluid.Fluids;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.BlockRenderView;
 
@@ -33,7 +33,7 @@ public class FluidHandlerModel extends AbstractFluidModel {
 	protected final Sprite overlaySprite = ModelLoader.WATER_OVERLAY.getSprite();
 
 	public FluidHandlerModel(Fluid fluid, FluidRenderHandler handler) {
-		super(fluid.isIn(FluidTags.LAVA) ? FluidHandler.LAVA_MATERIAL : FluidHandler.WATER_MATERIAL, Configurator.blendFluidColors);
+		super(fluid  == Fluids.FLOWING_LAVA || fluid == Fluids.LAVA ? FluidHandler.LAVA_MATERIAL : FluidHandler.WATER_MATERIAL, Configurator.blendFluidColors);
 		this.handler = handler;
 	}
 
