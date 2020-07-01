@@ -30,11 +30,13 @@ public class ProcessShaders {
 	private static GlProgram copy;
 	private static GlProgram blur;
 	private static GlProgram bloom;
+	private static GlProgram bloomSample;
 
 	static Uniform2iImpl copySize;
 	static Uniform2iImpl blurSize;
 	static Uniform2fImpl blurDist;
 	static Uniform2iImpl bloomSize;
+	static Uniform2iImpl bloomSampleSize;
 
 	static {
 		reload();
@@ -80,6 +82,18 @@ public class ProcessShaders {
 		bloom.uniform1i("_cvu_bloom2", UniformRefreshFrequency.ON_LOAD, u -> u.set(3));
 		bloomSize = (Uniform2iImpl) bloom.uniform2i("_cvu_size", UniformRefreshFrequency.ON_LOAD, u -> {});
 		bloom.load();
+
+		if (bloomSample != null) {
+			bloomSample.unload();
+			bloomSample = null;
+		}
+
+		vs = GlShaderManager.INSTANCE.getOrCreateVertexShader(ShaderData.COPY_VERTEX, ShaderContext.PROCESS);
+		fs = GlShaderManager.INSTANCE.getOrCreateFragmentShader(ShaderData.BLOOM_SAMPLE_FRAGMENT, ShaderContext.PROCESS);
+		bloomSample = new GlProgram(vs, fs, MaterialVertexFormats.PROCESS_VERTEX_UV, ShaderContext.PROCESS);
+		bloomSample.uniform1i("_cvu_input", UniformRefreshFrequency.ON_LOAD, u -> u.set(0));
+		bloomSampleSize = (Uniform2iImpl) bloomSample.uniform2i("_cvu_size", UniformRefreshFrequency.ON_LOAD, u -> {});
+		bloomSample.load();
 	}
 
 	public static GlProgram copy(int width, int height) {
@@ -111,7 +125,7 @@ public class ProcessShaders {
 	 * Call after program is active
 	 */
 	public static void blurResize(float dx, float dy, int width, int height) {
-		assert GlProgram.activeProgram() == blur.programId();
+		//assert GlProgram.activeProgram() == blur.programId();
 		blurDist.set(dx, dy);
 		blurDist.upload();
 		blurSize.set(width, height);
@@ -124,5 +138,22 @@ public class ProcessShaders {
 
 		bloomSize.set(width, height);
 		return bloom;
+	}
+
+	public static GlProgram bloomSample(int width, int height) {
+		assert width > 0;
+		assert height > 0;
+
+		bloomSampleSize.set(width, height);
+		return bloomSample;
+	}
+
+	/**
+	 * Call after program is active
+	 */
+	public static void bloomSampleResize(int width, int height) {
+		assert GlProgram.activeProgram() == bloomSample.programId();
+		bloomSampleSize.set(width, height);
+		bloomSampleSize.upload();
 	}
 }

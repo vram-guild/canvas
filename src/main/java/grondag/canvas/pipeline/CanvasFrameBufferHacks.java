@@ -50,6 +50,8 @@ public class CanvasFrameBufferHacks {
 	static int eighth;
 	static int eighthBlur;
 
+	static int bloomSample;
+	static int bloomBlur;
 
 	static int canvasFbo = -1;
 
@@ -138,8 +140,14 @@ public class CanvasFrameBufferHacks {
 		// FIX: handle VAO properly here before re-enabling
 		vboFull.bind();
 
-		GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT, GL21.GL_TEXTURE_2D, mainCopy, 0);
 		RenderSystem.viewport(0, 0, w, h);
+
+		GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT, GL21.GL_TEXTURE_2D, bloomSample, 0);
+		GlStateManager.bindTexture(emissive);
+		ProcessShaders.bloomSample(w, h).activate();
+		GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
+
+		GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT, GL21.GL_TEXTURE_2D, mainCopy, 0);
 		GlStateManager.bindTexture(mainColor);
 		ProcessShaders.copy(w, h).activate();
 		GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
@@ -165,6 +173,19 @@ public class CanvasFrameBufferHacks {
 
 
 		if (!BufferDebug.shouldSkipBlur()) {
+
+			GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT, GL21.GL_TEXTURE_2D, bloomBlur, 0);
+			RenderSystem.viewport(0, 0, w, h);
+			GlStateManager.bindTexture(bloomSample);
+			ProcessShaders.blur(0.5f, 0, w, h).activate();
+			GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
+
+			GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT, GL21.GL_TEXTURE_2D, bloomSample, 0);
+			RenderSystem.viewport(0, 0, w, h);
+			GlStateManager.bindTexture(bloomBlur);
+			ProcessShaders.blurResize(0, 0.5f, w, h);
+			GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
+
 			final float xStep = 0.02f;
 			final float yStep = xStep * h / w;
 			final float dx = xStep;
@@ -172,7 +193,7 @@ public class CanvasFrameBufferHacks {
 			GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT, GL21.GL_TEXTURE_2D, halfBlur, 0);
 			RenderSystem.viewport(0, 0, w / 2, h / 2);
 			GlStateManager.bindTexture(half);
-			ProcessShaders.blur(dx, 0, w, h).activate();
+			ProcessShaders.blurResize(dx, 0, w, h);
 			GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
 
 			GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT, GL21.GL_TEXTURE_2D, half, 0);
@@ -221,7 +242,8 @@ public class CanvasFrameBufferHacks {
 
 			GlStateManager.activeTexture(GL21.GL_TEXTURE1);
 			GlStateManager.enableTexture();
-			GlStateManager.bindTexture(half);
+			GlStateManager.bindTexture(bloomSample);
+			//			GlStateManager.bindTexture(half);
 
 			GlStateManager.activeTexture(GL21.GL_TEXTURE2);
 			GlStateManager.enableTexture();
@@ -257,15 +279,26 @@ public class CanvasFrameBufferHacks {
 
 	public static void debugEmissive() {
 		startCopy();
-		RenderSystem.viewport(w / 2, h / 2, w / 2, h / 2);
+		//		RenderSystem.viewport(w / 2, h / 2, w / 2, h / 2);
+		//
+		//		// FIX: handle VAO properly here before re-enabling
+		//		vboFull.bind();
+		//		GlStateManager.activeTexture(GL21.GL_TEXTURE0);
+		//		GlStateManager.enableTexture();
+		//		GlStateManager.bindTexture(emissive);
+		//		ProcessShaders.copy(w, h).activate();
+		//		GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
+
+		RenderSystem.viewport(0, 0, w, h);
 
 		// FIX: handle VAO properly here before re-enabling
 		vboFull.bind();
 		GlStateManager.activeTexture(GL21.GL_TEXTURE0);
 		GlStateManager.enableTexture();
-		GlStateManager.bindTexture(emissive);
+		GlStateManager.bindTexture(bloomSample);
 		ProcessShaders.copy(w, h).activate();
 		GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
+
 
 		endCopy();
 	}
@@ -299,14 +332,24 @@ public class CanvasFrameBufferHacks {
 
 	public static void debugBlur() {
 		startCopy();
-		RenderSystem.viewport(w / 2, h / 2, w / 2, h / 2);
+		//		RenderSystem.viewport(w / 2, h / 2, w / 2, h / 2);
+		//
+		//		// FIX: handle VAO properly here before re-enabling
+		//		vboFull.bind();
+		//		GlStateManager.activeTexture(GL21.GL_TEXTURE0);
+		//		GlStateManager.enableTexture();
+		//		GlStateManager.bindTexture(half);
+		//		//		GlStateManager.bindTexture(bloomsample);
+		//		ProcessShaders.copy(w, h).activate();
+		//		GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
+
+		RenderSystem.viewport(0, 0, w, h);
 
 		// FIX: handle VAO properly here before re-enabling
 		vboFull.bind();
 		GlStateManager.activeTexture(GL21.GL_TEXTURE0);
 		GlStateManager.enableTexture();
-		GlStateManager.bindTexture(half);
-		//		GlStateManager.bindTexture(bloomsample);
+		GlStateManager.bindTexture(bloomSample);
 		ProcessShaders.copy(w, h).activate();
 		GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
 
@@ -361,6 +404,8 @@ public class CanvasFrameBufferHacks {
 			quarterBlur = createColorAttachment(w / 4, h / 4);
 			eighth = createColorAttachment(w / 8, h / 8);
 			eighthBlur = createColorAttachment(w / 8, h / 8);
+			bloomSample = createColorAttachment(w, h);
+			bloomBlur = createColorAttachment(w, h);
 
 			// don't want filtering when copy back from main
 			GlStateManager.bindTexture(mainCopy);
