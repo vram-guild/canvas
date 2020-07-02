@@ -46,6 +46,7 @@ public class CanvasFrameBufferHacks {
 
 	static int bloomSample;
 	static int bloomBlur;
+	static int bloomCascade;
 
 	static int canvasFbo = -1;
 
@@ -134,8 +135,26 @@ public class CanvasFrameBufferHacks {
 		// FIX: handle VAO properly here before re-enabling
 		vboFull.bind();
 
+
+		GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT, GL21.GL_TEXTURE_2D, bloomCascade, 0);
+		GlStateManager.bindTexture(emissive);
+		int d = 0;
+		ProcessShaders.copyLod(w, h, d++).activate();
+		RenderSystem.viewport(0, 0, w >> d, h >> d);
+		GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
+
+		GlStateManager.bindTexture(bloomCascade);
+
+		while (d <= 7) {
+			ProcessShaders.copyLodResize(d++);
+			RenderSystem.viewport(0, 0, w >> d, h >> d);
+			GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT, GL21.GL_TEXTURE_2D, bloomCascade, 1);
+			GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
+		}
+
 		RenderSystem.viewport(0, 0, w, h);
 
+		// Slow way
 		GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT, GL21.GL_TEXTURE_2D, bloomSample, 0);
 		GlStateManager.bindTexture(emissive);
 		ProcessShaders.bloomSample(w, h).activate();
@@ -201,15 +220,39 @@ public class CanvasFrameBufferHacks {
 
 	public static void debugEmissiveCascade() {
 		startCopy();
-		RenderSystem.viewport(w / 2, h / 2, w / 2, h / 2);
 
-		// FIX: handle VAO properly here before re-enabling
 		vboFull.bind();
 		GlStateManager.activeTexture(GL21.GL_TEXTURE0);
 		GlStateManager.enableTexture();
-		GlStateManager.bindTexture(bloomSample);
-		ProcessShaders.copy(w, h).activate();
-		GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
+		GlStateManager.bindTexture(bloomCascade);
+		ProcessShaders.copyLod(w, h, 0).activate();
+
+		int lod = 1;
+		int dw = w >> 1;
+		int dh = h >> 1;
+
+		while (true) {
+			RenderSystem.viewport(w - dw, h -  dh, dw, dh);
+			GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
+
+			if  (lod >= 7) {
+				break;
+			}
+
+			ProcessShaders.copyLodResize(++lod);
+			dw >>= 1;
+			dh >>= 1;
+		}
+
+		//		RenderSystem.viewport(w / 2, h / 2, w / 2, h / 2);
+		//
+		//		// FIX: handle VAO properly here before re-enabling
+		//		vboFull.bind();
+		//		GlStateManager.activeTexture(GL21.GL_TEXTURE0);
+		//		GlStateManager.enableTexture();
+		//		GlStateManager.bindTexture(bloomSample);
+		//		ProcessShaders.copy(w, h).activate();
+		//		GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
 
 		endCopy();
 	}
@@ -239,8 +282,23 @@ public class CanvasFrameBufferHacks {
 			mainCopy = createColorAttachment(w, h);
 			bloomSample = createColorAttachment(w, h);
 			bloomBlur = createColorAttachment(w, h);
+			bloomCascade = createColorAttachment(w / 2, h / 2);
 
-			// don't want filtering when copy back from main
+			GlStateManager.bindTexture(bloomCascade);
+			GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MAX_LEVEL, 7);
+			GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MIN_LOD, 0);
+			GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MAX_LOD, 7);
+			GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_LOD_BIAS, 0.0F);
+
+			GlStateManager.texImage2D(GL21.GL_TEXTURE_2D, 1, GL21.GL_RGBA8, w >> 2, w >> 2, 0, GL21.GL_RGBA, GL21.GL_UNSIGNED_BYTE, (IntBuffer)null);
+			GlStateManager.texImage2D(GL21.GL_TEXTURE_2D, 2, GL21.GL_RGBA8, w >> 3, w >> 3, 0, GL21.GL_RGBA, GL21.GL_UNSIGNED_BYTE, (IntBuffer)null);
+			GlStateManager.texImage2D(GL21.GL_TEXTURE_2D, 3, GL21.GL_RGBA8, w >> 4, w >> 4, 0, GL21.GL_RGBA, GL21.GL_UNSIGNED_BYTE, (IntBuffer)null);
+			GlStateManager.texImage2D(GL21.GL_TEXTURE_2D, 4, GL21.GL_RGBA8, w >> 5, w >> 5, 0, GL21.GL_RGBA, GL21.GL_UNSIGNED_BYTE, (IntBuffer)null);
+			GlStateManager.texImage2D(GL21.GL_TEXTURE_2D, 5, GL21.GL_RGBA8, w >> 6, w >> 6, 0, GL21.GL_RGBA, GL21.GL_UNSIGNED_BYTE, (IntBuffer)null);
+			GlStateManager.texImage2D(GL21.GL_TEXTURE_2D, 6, GL21.GL_RGBA8, w >> 7, w >> 7, 0, GL21.GL_RGBA, GL21.GL_UNSIGNED_BYTE, (IntBuffer)null);
+			GlStateManager.texImage2D(GL21.GL_TEXTURE_2D, 7, GL21.GL_RGBA8, w >> 8, w >> 8, 0, GL21.GL_RGBA, GL21.GL_UNSIGNED_BYTE, (IntBuffer)null);
+
+			// don't want filtering when copy back from main   TODO: confirm
 			GlStateManager.bindTexture(mainCopy);
 			GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MIN_FILTER, GL21.GL_NEAREST);
 			GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MAG_FILTER, GL21.GL_NEAREST);
@@ -287,6 +345,7 @@ public class CanvasFrameBufferHacks {
 			TextureUtil.deleteId(mainCopy);
 			TextureUtil.deleteId(bloomSample);
 			TextureUtil.deleteId(bloomBlur);
+			TextureUtil.deleteId(bloomCascade);
 			emissive = -1;
 		}
 

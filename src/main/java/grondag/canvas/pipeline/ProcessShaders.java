@@ -18,6 +18,7 @@ package grondag.canvas.pipeline;
 
 import grondag.canvas.material.MaterialVertexFormats;
 import grondag.canvas.shader.GlProgram;
+import grondag.canvas.shader.GlProgram.Uniform1iImpl;
 import grondag.canvas.shader.GlProgram.Uniform2fImpl;
 import grondag.canvas.shader.GlProgram.Uniform2iImpl;
 import grondag.canvas.shader.GlShader;
@@ -31,12 +32,15 @@ public class ProcessShaders {
 	private static GlProgram blur;
 	private static GlProgram bloom;
 	private static GlProgram bloomSample;
+	private static GlProgram copyLod;
 
-	static Uniform2iImpl copySize;
-	static Uniform2iImpl blurSize;
-	static Uniform2fImpl blurDist;
-	static Uniform2iImpl bloomSize;
-	static Uniform2iImpl bloomSampleSize;
+	private static Uniform2iImpl copySize;
+	private static Uniform2iImpl copyLodSize;
+	private static Uniform1iImpl copyLodLod;
+	private static Uniform2iImpl blurSize;
+	private static Uniform2fImpl blurDist;
+	private static Uniform2iImpl bloomSize;
+	private static Uniform2iImpl bloomSampleSize;
 
 	static {
 		reload();
@@ -94,6 +98,20 @@ public class ProcessShaders {
 		bloomSample.uniform1i("_cvu_input", UniformRefreshFrequency.ON_LOAD, u -> u.set(0));
 		bloomSampleSize = (Uniform2iImpl) bloomSample.uniform2i("_cvu_size", UniformRefreshFrequency.ON_LOAD, u -> {});
 		bloomSample.load();
+
+
+		if (copyLod != null) {
+			copyLod.unload();
+			copyLod = null;
+		}
+
+		vs = GlShaderManager.INSTANCE.getOrCreateVertexShader(ShaderData.COPY_LOD_VERTEX, ShaderContext.PROCESS);
+		fs = GlShaderManager.INSTANCE.getOrCreateFragmentShader(ShaderData.COPY_LOD_FRAGMENT, ShaderContext.PROCESS);
+		copyLod = new GlProgram(vs, fs, MaterialVertexFormats.PROCESS_VERTEX_UV, ShaderContext.PROCESS);
+		copyLod.uniform1i("_cvu_input", UniformRefreshFrequency.ON_LOAD, u -> u.set(0));
+		copyLodSize = (Uniform2iImpl) copyLod.uniform2i("_cvu_size", UniformRefreshFrequency.ON_LOAD, u -> {});
+		copyLodLod = (Uniform1iImpl) copyLod.uniform1i("_cvu_lod", UniformRefreshFrequency.ON_LOAD, u -> u.set(0));
+		copyLod.load();
 	}
 
 	public static GlProgram copy(int width, int height) {
@@ -155,5 +173,20 @@ public class ProcessShaders {
 		assert GlProgram.activeProgram() == bloomSample.programId();
 		bloomSampleSize.set(width, height);
 		bloomSampleSize.upload();
+	}
+
+	public static GlProgram copyLod(int width, int height, int lod) {
+		assert width > 0;
+		assert height > 0;
+
+		copyLodSize.set(width, height);
+		copyLodLod.set(lod);
+		return copyLod;
+	}
+
+	public static void copyLodResize(int lod) {
+		assert GlProgram.activeProgram() == copyLod.programId();
+		copyLodLod.set(lod);
+		copyLodLod.upload();
 	}
 }
