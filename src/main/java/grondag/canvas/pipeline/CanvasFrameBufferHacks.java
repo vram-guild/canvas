@@ -127,7 +127,6 @@ public class CanvasFrameBufferHacks {
 		RenderSystem.viewport(0, 0, w, h);
 	}
 
-
 	public static void applyBloom() {
 		GlStateManager.bindFramebuffer(FramebufferInfo.FRAME_BUFFER, canvasFbo);
 		startCopy();

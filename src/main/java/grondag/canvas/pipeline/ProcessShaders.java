@@ -33,6 +33,7 @@ public class ProcessShaders {
 	private static GlProgram bloom;
 	private static GlProgram bloomSample;
 	private static GlProgram copyLod;
+	private static GlProgram blurLod;
 
 	private static Uniform2iImpl copySize;
 	private static Uniform2iImpl copyLodSize;
@@ -41,6 +42,9 @@ public class ProcessShaders {
 	private static Uniform2fImpl blurDist;
 	private static Uniform2iImpl bloomSize;
 	private static Uniform2iImpl bloomSampleSize;
+	private static Uniform2iImpl blurLodSize;
+	private static Uniform2fImpl blurLodDist;
+	private static Uniform1iImpl blurLodLod;
 
 	static {
 		reload();
@@ -112,6 +116,21 @@ public class ProcessShaders {
 		copyLodSize = (Uniform2iImpl) copyLod.uniform2i("_cvu_size", UniformRefreshFrequency.ON_LOAD, u -> {});
 		copyLodLod = (Uniform1iImpl) copyLod.uniform1i("_cvu_lod", UniformRefreshFrequency.ON_LOAD, u -> u.set(0));
 		copyLod.load();
+
+		if (blurLod != null) {
+			blurLod.unload();
+			blurLod = null;
+		}
+
+		vs = GlShaderManager.INSTANCE.getOrCreateVertexShader(ShaderData.BLUR_LOD_VERTEX, ShaderContext.PROCESS);
+		fs = GlShaderManager.INSTANCE.getOrCreateFragmentShader(ShaderData.BLUR_LOD_FRAGMENT, ShaderContext.PROCESS);
+		blurLod = new GlProgram(vs, fs, MaterialVertexFormats.PROCESS_VERTEX_UV, ShaderContext.PROCESS);
+		blurLod.uniform1i("_cvu_input", UniformRefreshFrequency.ON_LOAD, u -> u.set(0));
+		blurLodSize = (Uniform2iImpl) blurLod.uniform2i("_cvu_size", UniformRefreshFrequency.ON_LOAD, u -> {});
+		blurLodDist = (Uniform2fImpl) blurLod.uniform2f("_cvu_distance", UniformRefreshFrequency.ON_LOAD, u -> {});
+		blurLodLod = (Uniform1iImpl) blurLod.uniform1i("_cvu_lod", UniformRefreshFrequency.ON_LOAD, u -> u.set(0));
+		blurLod.load();
+
 	}
 
 	public static GlProgram copy(int width, int height) {
@@ -188,5 +207,27 @@ public class ProcessShaders {
 		assert GlProgram.activeProgram() == copyLod.programId();
 		copyLodLod.set(lod);
 		copyLodLod.upload();
+	}
+
+	public static GlProgram blurLod(float dx, float dy, int width, int height, int lod) {
+		assert width >= 0;
+		assert height >= 0;
+		blurLodDist.set(dx, dy);
+		blurLodSize.set(width, height);
+		blurLodLod.set(lod);
+		return blurLod;
+	}
+
+	/**
+	 * Call after program is active
+	 */
+	public static void blurLodResize(float dx, float dy, int width, int height, int lod) {
+		//assert GlProgram.activeProgram() == blur.programId();
+		blurLodDist.set(dx, dy);
+		blurLodDist.upload();
+		blurLodSize.set(width, height);
+		blurLodSize.upload();
+		blurLodLod.set(lod);
+		blurLodLod.upload();
 	}
 }
