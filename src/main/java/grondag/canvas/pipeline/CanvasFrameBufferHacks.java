@@ -33,6 +33,7 @@ import grondag.canvas.buffer.encoding.VertexCollectorImpl;
 import grondag.canvas.material.MaterialVertexFormats;
 import grondag.canvas.shader.GlProgram;
 
+//FIX: handle VAO properly here before re-enabling VAO
 public class CanvasFrameBufferHacks {
 
 	// TODO: tear down
@@ -108,10 +109,13 @@ public class CanvasFrameBufferHacks {
 		RenderSystem.disableDepthTest();
 		GlStateManager.matrixMode(GL11.GL_PROJECTION);
 		RenderSystem.pushMatrix();
-		RenderSystem.loadIdentity();
-		GlStateManager.ortho(0.0D, w, h, 0.0D, 1000.0, 3000.0);
 		GlStateManager.activeTexture(GL21.GL_TEXTURE0);
 		GlStateManager.enableTexture();
+	}
+
+	private static void setProjection(int pixelWidth, int pixelHeight) {
+		RenderSystem.loadIdentity();
+		GlStateManager.ortho(0.0D, pixelWidth, pixelHeight, 0.0D, 1000.0, 3000.0);
 	}
 
 	private static void endCopy() {
@@ -137,20 +141,24 @@ public class CanvasFrameBufferHacks {
 
 		GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT, GL21.GL_TEXTURE_2D, bloomCascade, 0);
 		GlStateManager.bindTexture(emissive);
-		int d = 0;
-		ProcessShaders.copyLod(w, h, d++).activate();
-		RenderSystem.viewport(0, 0, w >> d, h >> d);
+		ProcessShaders.copyLod(w >> 1, h >> 1, 0).activate();
+		setProjection(w >> 1, h >> 1);
+		RenderSystem.viewport(0, 0, w >> 1, h >> 1);
 		GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
 
 		GlStateManager.bindTexture(bloomCascade);
 
-		while (d <= 7) {
-			ProcessShaders.copyLodResize(d++);
-			RenderSystem.viewport(0, 0, w >> d, h >> d);
+		for (int d = 1; d <= 7; ++d) {
+			final int sw = (w >> (d + 1));
+			final int sh = (h >> (d + 1));
+			ProcessShaders.copyLodResize(sw, sh, d);
+			setProjection(sw, sh);
+			RenderSystem.viewport(0, 0, sw, sh);
 			GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT, GL21.GL_TEXTURE_2D, bloomCascade, 1);
 			GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
 		}
 
+		setProjection(w, h);
 		RenderSystem.viewport(0, 0, w, h);
 
 		// Slow way
@@ -204,14 +212,13 @@ public class CanvasFrameBufferHacks {
 
 	public static void debugEmissive() {
 		startCopy();
-		RenderSystem.viewport(w / 2, h / 2, w / 2, h / 2);
-
-		// FIX: handle VAO properly here before re-enabling
 		vboFull.bind();
+		RenderSystem.viewport(w / 2, h / 2, w / 2, h / 2);
 		GlStateManager.activeTexture(GL21.GL_TEXTURE0);
 		GlStateManager.enableTexture();
-		GlStateManager.bindTexture(emissive);
-		ProcessShaders.copy(w, h).activate();
+		GlStateManager.bindTexture(bloomCascade);
+		setProjection(w >> 1, h >> 1);
+		ProcessShaders.copyLod(w >> 1, h >> 1, 0).activate();
 		GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
 
 		endCopy();
@@ -219,40 +226,20 @@ public class CanvasFrameBufferHacks {
 
 	public static void debugEmissiveCascade() {
 		startCopy();
-
 		vboFull.bind();
 		GlStateManager.activeTexture(GL21.GL_TEXTURE0);
 		GlStateManager.enableTexture();
 		GlStateManager.bindTexture(bloomCascade);
 		ProcessShaders.copyLod(w, h, 0).activate();
 
-		int lod = 1;
-		int dw = w >> 1;
-		int dh = h >> 1;
-
-		while (true) {
+		for (int lod = 0; lod <= 7; ++lod) {
+			final int dw = (w >> (lod + 1));
+			final int dh = (h >> (lod + 1));
 			RenderSystem.viewport(w - dw, h -  dh, dw, dh);
+			setProjection(dw, dh);
+			ProcessShaders.copyLodResize(dw, dh, lod);
 			GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
-
-			if  (lod >= 7) {
-				break;
-			}
-
-			ProcessShaders.copyLodResize(++lod);
-			dw >>= 1;
-			dh >>= 1;
 		}
-
-		//		RenderSystem.viewport(w / 2, h / 2, w / 2, h / 2);
-		//
-		//		// FIX: handle VAO properly here before re-enabling
-		//		vboFull.bind();
-		//		GlStateManager.activeTexture(GL21.GL_TEXTURE0);
-		//		GlStateManager.enableTexture();
-		//		GlStateManager.bindTexture(bloomSample);
-		//		ProcessShaders.copy(w, h).activate();
-		//		GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
-
 		endCopy();
 	}
 

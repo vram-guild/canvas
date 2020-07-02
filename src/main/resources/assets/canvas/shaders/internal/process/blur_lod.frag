@@ -18,6 +18,8 @@ const float offsets[5] = float[5](0.00000000, 1.41176471, 3.29411765, 5.17647059
 
 void main() {
     vec4 color = texture2D(_cvu_input, _cvv_texcoord, _cvu_lod) * weights[0];
+
+    // TODO: send this in directly
     vec2 f = _cvu_distance / _cvu_size;
 
 	for(int i = 1; i < 5; i++) {
