@@ -8,6 +8,8 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 
 public class RenderRegionStorage {
+
+	// PERF: replace all of this with Long2Ref hash map
 	private static final int SIZE_Y = 16;
 	private final int xySize;
 	private final IntUnaryOperator modFunc;
