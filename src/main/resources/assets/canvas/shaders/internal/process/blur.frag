@@ -12,45 +12,18 @@ varying vec2 _cvv_texcoord;
 // approach adapted from sonicether
 // https://www.shadertoy.com/view/lstSRS
 
-vec3 ColorFetch(vec2 coord) {
-	vec4 c = texture2D(_cvu_input, coord);
- 	return c.rgb;
-}
-
-float weights[5];
-float offsets[5];
+const float weights[5] = float[5](0.19638062, 0.29675293, 0.09442139, 0.01037598, 0.00025940);
+const float offsets[5] = float[5](0.00000000, 1.41176471, 3.29411765, 5.17647059, 7.05882353);
 
 void main() {
-    weights[0] = 0.19638062;
-    weights[1] = 0.29675293;
-    weights[2] = 0.09442139;
-    weights[3] = 0.01037598;
-    weights[4] = 0.00025940;
+    vec4 color = texture2D(_cvu_input, _cvv_texcoord) * weights[0];
+    vec2 f = _cvu_distance / _cvu_size;
 
-    offsets[0] = 0.00000000;
-    offsets[1] = 1.41176471;
-    offsets[2] = 3.29411765;
-    offsets[3] = 5.17647059;
-    offsets[4] = 7.05882353;
+	for(int i = 1; i < 5; i++) {
+		vec2 offset = vec2(offsets[i]) * f;
+		color += texture2D(_cvu_input, _cvv_texcoord + offset) * weights[i];
+		color += texture2D(_cvu_input, _cvv_texcoord - offset) * weights[i];
+	}
 
-    vec2 uv = _cvv_texcoord;
-
-    vec3 color = vec3(0.0);
-    float weightSum = 0.0;
-
-    if (uv.x < 0.52) {
-        color += ColorFetch(uv) * weights[0];
-        weightSum += weights[0];
-
-        for(int i = 1; i < 5; i++) {
-            vec2 offset = vec2(offsets[i]) / _cvu_size;
-            color += ColorFetch(uv + offset * _cvu_distance) * weights[i];
-            color += ColorFetch(uv - offset * _cvu_distance) * weights[i];
-            weightSum += weights[i] * 2.0;
-        }
-
-        color /= weightSum;
-    }
-
-    gl_FragData[0] = vec4(color, 1.0);
+    gl_FragData[0] = vec4(color.rgb, 1.0);
 }
