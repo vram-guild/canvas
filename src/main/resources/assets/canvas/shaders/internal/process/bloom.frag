@@ -11,25 +11,24 @@ uniform ivec2 _cvu_size;
 
 varying vec2 _cvv_texcoord;
 
-vec3 saturate(vec3 x)
-{
+// approach adapted from sonicether
+// https://www.shadertoy.com/view/lstSRS
+vec3 saturate(vec3 x) {
     return clamp(x, vec3(0.0), vec3(1.0));
 }
 
-vec4 cubic(float x)
-{
+vec4 cubic(float x) {
     float x2 = x * x;
     float x3 = x2 * x;
     vec4 w;
-    w.x =   -x3 + 3.0*x2 - 3.0*x + 1.0;
-    w.y =  3.0*x3 - 6.0*x2       + 4.0;
-    w.z = -3.0*x3 + 3.0*x2 + 3.0*x + 1.0;
-    w.w =  x3;
+    w.x =  -x3 + 3.0 * x2 - 3.0 * x + 1.0;
+    w.y =  3.0 * x3 - 6.0 * x2 + 4.0;
+    w.z = -3.0 * x3 + 3.0 * x2 + 3.0 * x + 1.0;
+    w.w = x3;
     return w / 6.0;
 }
 
-vec4 BicubicTexture(in sampler2D tex, in vec2 coord)
-{
+vec4 BicubicTexture(in sampler2D tex, in vec2 coord) {
 	vec2 resolution = _cvu_size;
 
 	coord *= resolution;
@@ -60,20 +59,17 @@ vec4 BicubicTexture(in sampler2D tex, in vec2 coord)
     return mix( mix(sample3, sample2, sx), mix(sample1, sample0, sx), sy);
 }
 
-vec3 ColorFetch(vec2 coord)
-{
+vec3 ColorFetch(vec2 coord) {
 	vec4 c = BicubicTexture(_cvu_base, coord);
 	return c.rgb;
 }
 
-vec3 BloomFetch(vec2 coord)
-{
+vec3 BloomFetch(vec2 coord) {
 	vec4 c = BicubicTexture(_cvu_bloom0, coord);
  	return c.rgb;
 }
 
-vec3 Grab(vec2 coord, const float octave, const vec2 offset)
-{
+vec3 Grab(vec2 coord, const float octave, const vec2 offset) {
  	float scale = exp2(octave);
 
     coord /= scale;
@@ -82,11 +78,10 @@ vec3 Grab(vec2 coord, const float octave, const vec2 offset)
     return BloomFetch(coord);
 }
 
-vec2 CalcOffset(float octave)
-{
+vec2 CalcOffset(float octave) {
     vec2 offset = vec2(0.0);
 
-    vec2 padding = vec2(10.0) / _cvu_size; //iResolution.xy;
+    vec2 padding = vec2(10.0) / _cvu_size;
 
     offset.x = -min(1.0, floor(octave / 3.0)) * (0.25 + padding.x);
 
@@ -97,8 +92,7 @@ vec2 CalcOffset(float octave)
  	return offset;
 }
 
-vec3 GetBloom(vec2 coord)
-{
+vec3 GetBloom(vec2 coord) {
  	vec3 bloom = vec3(0.0);
 
     //Reconstruct bloom from multiple blurred images
@@ -114,44 +108,12 @@ vec3 GetBloom(vec2 coord)
 	return bloom;
 }
 
-void main()
-{
-
+void main() {
     vec2 uv = _cvv_texcoord;
 
     vec3 color = ColorFetch(uv);
 
-
     color += clamp(GetBloom(uv) * 0.12, 0.0, 1.0);
 
-//    color *= 200.0;
-
-
-    //Tonemapping and color grading
-//    color = pow(color, vec3(1.5));
-//    color = color / (1.0 + color);
-//    color = pow(color, vec3(1.0 / 1.5));
-//
-//
-//    color = mix(color, color * color * (3.0 - 2.0 * color), vec3(1.0));
-//    color = pow(color, vec3(1.3, 1.20, 1.0));
-//
-//	color = saturate(color * 1.01);
-//
-//    color = pow(color, vec3(0.7 / 2.2));
-
     gl_FragData[0] = vec4(color, 1.0);
-
 }
-//
-//#define F 0.2
-//
-//void main() {
-//	vec4 base = texture2D(_cvu_base, _cvv_texcoord);
-//	vec4 b0 = texture2D(_cvu_bloom0, _cvv_texcoord) * F;
-//	vec4 b1 = texture2D(_cvu_bloom1, _cvv_texcoord) * F;
-//	vec4 b2 = texture2D(_cvu_bloom2, _cvv_texcoord) * F;                                                                                                                                                                                           ;
-//
-//	vec3 c = clamp(base.rgb + b0.rgb + b1.rgb + b2.rgb, 0.0, 1.0);
-//	gl_FragData[0] = vec4(c, base.a);
-//}
