@@ -20,17 +20,9 @@ public class ShaderData {
 	public static final Identifier COPY_LOD_VERTEX = new Identifier("canvas:shaders/internal/process/copy_lod.vert");
 	public static final Identifier COPY_LOD_FRAGMENT = new Identifier("canvas:shaders/internal/process/copy_lod.frag");
 
-	public static final Identifier BLUR_VERTEX = new Identifier("canvas:shaders/internal/process/blur.vert");
-	public static final Identifier BLUR_FRAGMENT = new Identifier("canvas:shaders/internal/process/blur.frag");
-
 	public static final Identifier BLUR_LOD_VERTEX = new Identifier("canvas:shaders/internal/process/blur_lod.vert");
 	public static final Identifier BLUR_LOD_FRAGMENT = new Identifier("canvas:shaders/internal/process/blur_lod.frag");
 
 	public static final Identifier BLOOM_VERTEX = new Identifier("canvas:shaders/internal/process/bloom.vert");
 	public static final Identifier BLOOM_FRAGMENT = new Identifier("canvas:shaders/internal/process/bloom.frag");
-
-	public static final Identifier BLOOM_VERTEX2 = new Identifier("canvas:shaders/internal/process/bloom2.vert");
-	public static final Identifier BLOOM_FRAGMENT2 = new Identifier("canvas:shaders/internal/process/bloom2.frag");
-
-	public static final Identifier BLOOM_SAMPLE_FRAGMENT = new Identifier("canvas:shaders/internal/process/bloomsample.frag");
 }

@@ -4,9 +4,7 @@
   canvas:shaders/internal/process/bloom.vert
 ******************************************************/
 uniform sampler2D _cvu_base;
-uniform sampler2D _cvu_bloom0;
-uniform sampler2D _cvu_bloom1;
-uniform sampler2D _cvu_bloom2;
+uniform sampler2D _cvu_bloom;
 uniform ivec2 _cvu_size;
 
 attribute vec2 in_uv;

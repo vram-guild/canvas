@@ -4,9 +4,7 @@
   canvas:shaders/internal/process/bloom.frag
 ******************************************************/
 uniform sampler2D _cvu_base;
-uniform sampler2D _cvu_bloom0;
-uniform sampler2D _cvu_bloom1;
-uniform sampler2D _cvu_bloom2;
+uniform sampler2D _cvu_bloom;
 uniform ivec2 _cvu_size;
 
 varying vec2 _cvv_texcoord;
@@ -28,10 +26,8 @@ vec4 cubic(float x) {
     return w / 6.0;
 }
 
-vec4 BicubicTexture(in sampler2D tex, in vec2 coord) {
-	vec2 resolution = _cvu_size;
-
-	coord *= resolution;
+vec4 bloom() {
+	vec2 coord = _cvv_texcoord * _cvu_size;
 
 	float fx = fract(coord.x);
     float fy = fract(coord.y);
@@ -48,10 +44,50 @@ vec4 BicubicTexture(in sampler2D tex, in vec2 coord) {
     vec4 s = vec4(xcubic.x + xcubic.y, xcubic.z + xcubic.w, ycubic.x + ycubic.y, ycubic.z + ycubic.w);
     vec4 offset = c + vec4(xcubic.y, xcubic.w, ycubic.y, ycubic.w) / s;
 
-    vec4 sample0 = texture2D(tex, vec2(offset.x, offset.z) / resolution);
-    vec4 sample1 = texture2D(tex, vec2(offset.y, offset.z) / resolution);
-    vec4 sample2 = texture2D(tex, vec2(offset.x, offset.w) / resolution);
-    vec4 sample3 = texture2D(tex, vec2(offset.y, offset.w) / resolution);
+    vec2 p0 = vec2(offset.x, offset.z) / _cvu_size;
+    vec2 p1 = vec2(offset.y, offset.z) / _cvu_size;
+    vec2 p2 = vec2(offset.x, offset.w) / _cvu_size;
+    vec2 p3 = vec2(offset.y, offset.w) / _cvu_size;
+
+    vec4 sample0 = texture2DLod(_cvu_bloom, p0, 0.0);
+    vec4 sample1 = texture2DLod(_cvu_bloom, p1, 0.0);
+    vec4 sample2 = texture2DLod(_cvu_bloom, p2, 0.0);
+    vec4 sample3 = texture2DLod(_cvu_bloom, p3, 0.0);
+
+    sample0 += texture2DLod(_cvu_bloom, p0, 1.0) * 1.5;
+    sample1 += texture2DLod(_cvu_bloom, p1, 1.0) * 1.5;
+    sample2 += texture2DLod(_cvu_bloom, p2, 1.0) * 1.5;
+    sample3 += texture2DLod(_cvu_bloom, p3, 1.0) * 1.5;
+
+    sample0 += texture2DLod(_cvu_bloom, p0, 2.0);
+    sample1 += texture2DLod(_cvu_bloom, p1, 2.0);
+    sample2 += texture2DLod(_cvu_bloom, p2, 2.0);
+    sample3 += texture2DLod(_cvu_bloom, p3, 2.0);
+
+    sample0 += texture2DLod(_cvu_bloom, p0, 3.0) * 1.5;
+    sample1 += texture2DLod(_cvu_bloom, p1, 3.0) * 1.5;
+    sample2 += texture2DLod(_cvu_bloom, p2, 3.0) * 1.5;
+    sample3 += texture2DLod(_cvu_bloom, p3, 3.0) * 1.5;
+
+    sample0 += texture2DLod(_cvu_bloom, p0, 4.0) * 1.8;
+    sample1 += texture2DLod(_cvu_bloom, p1, 4.0) * 1.8;
+    sample2 += texture2DLod(_cvu_bloom, p2, 4.0) * 1.8;
+    sample3 += texture2DLod(_cvu_bloom, p3, 4.0) * 1.8;
+
+    sample0 += texture2DLod(_cvu_bloom, p0, 5.0);
+	sample1 += texture2DLod(_cvu_bloom, p1, 5.0);
+	sample2 += texture2DLod(_cvu_bloom, p2, 5.0);
+	sample3 += texture2DLod(_cvu_bloom, p3, 5.0);
+
+    sample0 += texture2DLod(_cvu_bloom, p0, 6.0);
+	sample1 += texture2DLod(_cvu_bloom, p1, 6.0);
+	sample2 += texture2DLod(_cvu_bloom, p2, 6.0);
+	sample3 += texture2DLod(_cvu_bloom, p3, 6.0);
+
+    sample0 += texture2DLod(_cvu_bloom, p0, 7.0);
+	sample1 += texture2DLod(_cvu_bloom, p1, 7.0);
+	sample2 += texture2DLod(_cvu_bloom, p2, 7.0);
+	sample3 += texture2DLod(_cvu_bloom, p3, 7.0);
 
     float sx = s.x / (s.x + s.y);
     float sy = s.z / (s.z + s.w);
@@ -59,61 +95,23 @@ vec4 BicubicTexture(in sampler2D tex, in vec2 coord) {
     return mix( mix(sample3, sample2, sx), mix(sample1, sample0, sx), sy);
 }
 
-vec3 ColorFetch(vec2 coord) {
-	vec4 c = BicubicTexture(_cvu_base, coord);
-	return c.rgb;
-}
-
-vec3 BloomFetch(vec2 coord) {
-	vec4 c = BicubicTexture(_cvu_bloom0, coord);
- 	return c.rgb;
-}
-
-vec3 Grab(vec2 coord, const float octave, const vec2 offset) {
- 	float scale = exp2(octave);
-
-    coord /= scale;
-    coord -= offset;
-
-    return BloomFetch(coord);
-}
-
-vec2 CalcOffset(float octave) {
-    vec2 offset = vec2(0.0);
-
-    vec2 padding = vec2(10.0) / _cvu_size;
-
-    offset.x = -min(1.0, floor(octave / 3.0)) * (0.25 + padding.x);
-
-    offset.y = -(1.0 - (1.0 / exp2(octave))) - padding.y * octave;
-
-	offset.y += min(1.0, floor(octave / 3.0)) * 0.35;
-
- 	return offset;
-}
-
-vec3 GetBloom(vec2 coord) {
- 	vec3 bloom = vec3(0.0);
-
-    //Reconstruct bloom from multiple blurred images
-    bloom += Grab(coord, 1.0, vec2(CalcOffset(0.0))) * 1.0;
-    bloom += Grab(coord, 2.0, vec2(CalcOffset(1.0))) * 1.5;
-	bloom += Grab(coord, 3.0, vec2(CalcOffset(2.0))) * 1.0;
-    bloom += Grab(coord, 4.0, vec2(CalcOffset(3.0))) * 1.5;
-    bloom += Grab(coord, 5.0, vec2(CalcOffset(4.0))) * 1.8;
-    bloom += Grab(coord, 6.0, vec2(CalcOffset(5.0))) * 1.0;
-    bloom += Grab(coord, 7.0, vec2(CalcOffset(6.0))) * 1.0;
-    bloom += Grab(coord, 8.0, vec2(CalcOffset(7.0))) * 1.0;
-
-	return bloom;
+vec4 fastBloom() {
+    return texture2DLod(_cvu_bloom, _cvv_texcoord, 0.0)
+    	+ texture2DLod(_cvu_bloom, _cvv_texcoord, 1.0) * 1.5
+    	+ texture2DLod(_cvu_bloom, _cvv_texcoord, 2.0)
+    	+ texture2DLod(_cvu_bloom, _cvv_texcoord, 3.0) * 1.5
+    	+ texture2DLod(_cvu_bloom, _cvv_texcoord, 4.0) * 1.8
+    	+ texture2DLod(_cvu_bloom, _cvv_texcoord, 5.0)
+    	+ texture2DLod(_cvu_bloom, _cvv_texcoord, 6.0)
+    	+ texture2DLod(_cvu_bloom, _cvv_texcoord, 7.0);
 }
 
 void main() {
-    vec2 uv = _cvv_texcoord;
+    vec4 color = texture2D(_cvu_base, _cvv_texcoord);
 
-    vec3 color = ColorFetch(uv);
+    color += clamp(bloom() * 0.12, 0.0, 1.0);
 
-    color += clamp(GetBloom(uv) * 0.12, 0.0, 1.0);
+//    color += clamp(fastBloom() * 0.12, 0.0, 1.0);
 
-    gl_FragData[0] = vec4(color, 1.0);
+    gl_FragData[0] = vec4(color.rgb, 1.0);
 }

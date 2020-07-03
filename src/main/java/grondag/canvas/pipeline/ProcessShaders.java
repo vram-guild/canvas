@@ -29,24 +29,17 @@ import grondag.frex.api.material.UniformRefreshFrequency;
 
 public class ProcessShaders {
 	private static GlProgram copy;
-	private static GlProgram blur;
 	private static GlProgram bloom;
-	private static GlProgram bloomSample;
 	private static GlProgram copyLod;
 	private static GlProgram blurLod;
-	private static GlProgram bloom2;
 
 	private static Uniform2iImpl copySize;
 	private static Uniform2iImpl copyLodSize;
 	private static Uniform1iImpl copyLodLod;
-	private static Uniform2iImpl blurSize;
-	private static Uniform2fImpl blurDist;
 	private static Uniform2iImpl bloomSize;
-	private static Uniform2iImpl bloomSampleSize;
 	private static Uniform2iImpl blurLodSize;
 	private static Uniform2fImpl blurLodDist;
 	private static Uniform1iImpl blurLodLod;
-	private static Uniform2iImpl bloomSize2;
 
 	static {
 		reload();
@@ -65,19 +58,6 @@ public class ProcessShaders {
 		copySize = (Uniform2iImpl) copy.uniform2i("_cvu_size", UniformRefreshFrequency.ON_LOAD, u -> {});
 		copy.load();
 
-		if (blur != null) {
-			blur.unload();
-			blur = null;
-		}
-
-		vs = GlShaderManager.INSTANCE.getOrCreateVertexShader(ShaderData.BLUR_VERTEX, ShaderContext.PROCESS);
-		fs = GlShaderManager.INSTANCE.getOrCreateFragmentShader(ShaderData.BLUR_FRAGMENT, ShaderContext.PROCESS);
-		blur = new GlProgram(vs, fs, MaterialVertexFormats.PROCESS_VERTEX_UV, ShaderContext.PROCESS);
-		blur.uniform1i("_cvu_input", UniformRefreshFrequency.ON_LOAD, u -> u.set(0));
-		blurSize = (Uniform2iImpl) blur.uniform2i("_cvu_size", UniformRefreshFrequency.ON_LOAD, u -> {});
-		blurDist = (Uniform2fImpl) blur.uniform2f("_cvu_distance", UniformRefreshFrequency.ON_LOAD, u -> {});
-		blur.load();
-
 		if (bloom != null) {
 			bloom.unload();
 			bloom = null;
@@ -87,37 +67,9 @@ public class ProcessShaders {
 		fs = GlShaderManager.INSTANCE.getOrCreateFragmentShader(ShaderData.BLOOM_FRAGMENT, ShaderContext.PROCESS);
 		bloom = new GlProgram(vs, fs, MaterialVertexFormats.PROCESS_VERTEX_UV, ShaderContext.PROCESS);
 		bloom.uniform1i("_cvu_base", UniformRefreshFrequency.ON_LOAD, u -> u.set(0));
-		bloom.uniform1i("_cvu_bloom0", UniformRefreshFrequency.ON_LOAD, u -> u.set(1));
-		bloom.uniform1i("_cvu_bloom1", UniformRefreshFrequency.ON_LOAD, u -> u.set(2));
-		bloom.uniform1i("_cvu_bloom2", UniformRefreshFrequency.ON_LOAD, u -> u.set(3));
+		bloom.uniform1i("_cvu_bloom", UniformRefreshFrequency.ON_LOAD, u -> u.set(1));
 		bloomSize = (Uniform2iImpl) bloom.uniform2i("_cvu_size", UniformRefreshFrequency.ON_LOAD, u -> {});
 		bloom.load();
-
-		if (bloom2 != null) {
-			bloom2.unload();
-			bloom2 = null;
-		}
-
-		vs = GlShaderManager.INSTANCE.getOrCreateVertexShader(ShaderData.BLOOM_VERTEX2, ShaderContext.PROCESS);
-		fs = GlShaderManager.INSTANCE.getOrCreateFragmentShader(ShaderData.BLOOM_FRAGMENT2, ShaderContext.PROCESS);
-		bloom2 = new GlProgram(vs, fs, MaterialVertexFormats.PROCESS_VERTEX_UV, ShaderContext.PROCESS);
-		bloom2.uniform1i("_cvu_base", UniformRefreshFrequency.ON_LOAD, u -> u.set(0));
-		bloom2.uniform1i("_cvu_bloom", UniformRefreshFrequency.ON_LOAD, u -> u.set(1));
-		bloomSize2 = (Uniform2iImpl) bloom2.uniform2i("_cvu_size", UniformRefreshFrequency.ON_LOAD, u -> {});
-		bloom2.load();
-
-		if (bloomSample != null) {
-			bloomSample.unload();
-			bloomSample = null;
-		}
-
-		vs = GlShaderManager.INSTANCE.getOrCreateVertexShader(ShaderData.COPY_VERTEX, ShaderContext.PROCESS);
-		fs = GlShaderManager.INSTANCE.getOrCreateFragmentShader(ShaderData.BLOOM_SAMPLE_FRAGMENT, ShaderContext.PROCESS);
-		bloomSample = new GlProgram(vs, fs, MaterialVertexFormats.PROCESS_VERTEX_UV, ShaderContext.PROCESS);
-		bloomSample.uniform1i("_cvu_input", UniformRefreshFrequency.ON_LOAD, u -> u.set(0));
-		bloomSampleSize = (Uniform2iImpl) bloomSample.uniform2i("_cvu_size", UniformRefreshFrequency.ON_LOAD, u -> {});
-		bloomSample.load();
-
 
 		if (copyLod != null) {
 			copyLod.unload();
@@ -167,56 +119,12 @@ public class ProcessShaders {
 		copySize.upload();
 	}
 
-	public static GlProgram blur(float dx, float dy, int width, int height) {
-		assert width >= 0;
-		assert height >= 0;
-		blurDist.set(dx, dy);
-		blurSize.set(width, height);
-		return blur;
-	}
-
-	/**
-	 * Call after program is active
-	 */
-	public static void blurResize(float dx, float dy, int width, int height) {
-		//assert GlProgram.activeProgram() == blur.programId();
-		blurDist.set(dx, dy);
-		blurDist.upload();
-		blurSize.set(width, height);
-		blurSize.upload();
-	}
-
 	public static GlProgram bloom(int width, int height) {
 		assert width > 0;
 		assert height > 0;
 
 		bloomSize.set(width, height);
 		return bloom;
-	}
-
-	public static GlProgram bloom2(int width, int height) {
-		assert width > 0;
-		assert height > 0;
-
-		bloomSize2.set(width, height);
-		return bloom2;
-	}
-
-	public static GlProgram bloomSample(int width, int height) {
-		assert width > 0;
-		assert height > 0;
-
-		bloomSampleSize.set(width, height);
-		return bloomSample;
-	}
-
-	/**
-	 * Call after program is active
-	 */
-	public static void bloomSampleResize(int width, int height) {
-		assert GlProgram.activeProgram() == bloomSample.programId();
-		bloomSampleSize.set(width, height);
-		bloomSampleSize.upload();
 	}
 
 	public static GlProgram copyLod(int width, int height, int lod) {

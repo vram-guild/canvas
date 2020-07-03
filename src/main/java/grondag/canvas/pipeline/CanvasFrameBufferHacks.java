@@ -45,9 +45,6 @@ public class CanvasFrameBufferHacks {
 	static int emissive  = -1;
 	static int mainCopy;
 
-	static int bloomSample;
-	static int bloomBlur;
-
 	static int bloomCascade;
 	static int bloomCascadeSwap;
 
@@ -117,14 +114,6 @@ public class CanvasFrameBufferHacks {
 	}
 
 	public static void applyBloom() {
-		if (BufferDebug.current() == BufferDebug.NEW_NORMAL) {
-			applyBloomFast();
-		} else {
-			applyBloomSlow();
-		}
-	}
-
-	public static void applyBloomFast() {
 		GlStateManager.bindFramebuffer(FramebufferInfo.FRAME_BUFFER, canvasFbo);
 		startCopy();
 
@@ -186,7 +175,7 @@ public class CanvasFrameBufferHacks {
 
 			GlStateManager.bindFramebuffer(FramebufferInfo.FRAME_BUFFER, mainFbo);
 			RenderSystem.viewport(0, 0, w, h);
-			ProcessShaders.bloom2(w, h).activate();
+			ProcessShaders.bloom(w, h).activate();
 			setProjection(w, h);
 
 			GlStateManager.activeTexture(GL21.GL_TEXTURE0);
@@ -196,63 +185,6 @@ public class CanvasFrameBufferHacks {
 			GlStateManager.activeTexture(GL21.GL_TEXTURE1);
 			GlStateManager.enableTexture();
 			GlStateManager.bindTexture(bloomCascade);
-
-			GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
-
-			GlStateManager.activeTexture(GL21.GL_TEXTURE0);
-		} else {
-			GlStateManager.bindFramebuffer(FramebufferInfo.FRAME_BUFFER, mainFbo);
-			RenderSystem.viewport(0, 0, w, h);
-		}
-
-		endCopy();
-
-	}
-
-	public static void applyBloomSlow() {
-		GlStateManager.bindFramebuffer(FramebufferInfo.FRAME_BUFFER, canvasFbo);
-		startCopy();
-
-		vboFull.bind();
-
-		setProjection(w, h);
-		RenderSystem.viewport(0, 0, w, h);
-
-		GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT, GL21.GL_TEXTURE_2D, bloomSample, 0);
-		GlStateManager.bindTexture(emissive);
-		ProcessShaders.bloomSample(w, h).activate();
-		GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
-
-		GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT, GL21.GL_TEXTURE_2D, mainCopy, 0);
-		GlStateManager.bindTexture(mainColor);
-		ProcessShaders.copy(w, h).activate();
-		GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
-
-		if (!BufferDebug.shouldSkipBlur()) {
-
-			GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT, GL21.GL_TEXTURE_2D, bloomBlur, 0);
-			RenderSystem.viewport(0, 0, w, h);
-			GlStateManager.bindTexture(bloomSample);
-			ProcessShaders.blur(0.5f, 0, w, h).activate();
-			GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
-
-			GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT, GL21.GL_TEXTURE_2D, bloomSample, 0);
-			RenderSystem.viewport(0, 0, w, h);
-			GlStateManager.bindTexture(bloomBlur);
-			ProcessShaders.blurResize(0, 0.5f, w, h);
-			GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
-
-			GlStateManager.bindFramebuffer(FramebufferInfo.FRAME_BUFFER, mainFbo);
-			RenderSystem.viewport(0, 0, w, h);
-			ProcessShaders.bloom(w, h).activate();
-
-			GlStateManager.activeTexture(GL21.GL_TEXTURE0);
-			GlStateManager.enableTexture();
-			GlStateManager.bindTexture(mainCopy);
-
-			GlStateManager.activeTexture(GL21.GL_TEXTURE1);
-			GlStateManager.enableTexture();
-			GlStateManager.bindTexture(bloomSample);
 
 			GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
 
@@ -349,8 +281,6 @@ public class CanvasFrameBufferHacks {
 			//			mainHDR = createColorAttachment(w, h, true);
 			emissive = createColorAttachment(w, h);
 			mainCopy = createColorAttachment(w, h);
-			bloomSample = createColorAttachment(w, h);
-			bloomBlur = createColorAttachment(w, h);
 
 			bloomCascade = createColorAttachment(w / 2, h / 2);
 			GlStateManager.bindTexture(bloomCascade);
@@ -406,8 +336,6 @@ public class CanvasFrameBufferHacks {
 			TextureUtil.deleteId(emissive);
 			//			TextureUtil.deleteId(mainHDR);
 			TextureUtil.deleteId(mainCopy);
-			TextureUtil.deleteId(bloomSample);
-			TextureUtil.deleteId(bloomBlur);
 			TextureUtil.deleteId(bloomCascade);
 			TextureUtil.deleteId(bloomCascadeSwap);
 			emissive = -1;
