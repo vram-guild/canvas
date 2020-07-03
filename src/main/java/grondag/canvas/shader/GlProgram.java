@@ -514,8 +514,8 @@ public class GlProgram {
 		}
 	}
 
-	public static int activeProgram() {
-		return activeProgram.progID;
+	public static GlProgram activeProgram() {
+		return activeProgram;
 	}
 
 	public class UniformMatrix4fImpl extends UniformImpl<UniformMatrix4f> implements UniformMatrix4f {

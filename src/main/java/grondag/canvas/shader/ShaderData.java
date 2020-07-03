@@ -13,16 +13,4 @@ public class ShaderData {
 
 	public static final Identifier VANILLA_VERTEX = new Identifier("canvas:shaders/internal/vanilla/vanilla.vert");
 	public static final Identifier VANILLA_FRAGMENT = new Identifier("canvas:shaders/internal/vanilla/vanilla.frag");
-
-	public static final Identifier COPY_VERTEX = new Identifier("canvas:shaders/internal/process/copy.vert");
-	public static final Identifier COPY_FRAGMENT = new Identifier("canvas:shaders/internal/process/copy.frag");
-
-	public static final Identifier COPY_LOD_VERTEX = new Identifier("canvas:shaders/internal/process/copy_lod.vert");
-	public static final Identifier COPY_LOD_FRAGMENT = new Identifier("canvas:shaders/internal/process/copy_lod.frag");
-
-	public static final Identifier BLUR_LOD_VERTEX = new Identifier("canvas:shaders/internal/process/blur_lod.vert");
-	public static final Identifier BLUR_LOD_FRAGMENT = new Identifier("canvas:shaders/internal/process/blur_lod.frag");
-
-	public static final Identifier BLOOM_VERTEX = new Identifier("canvas:shaders/internal/process/bloom.vert");
-	public static final Identifier BLOOM_FRAGMENT = new Identifier("canvas:shaders/internal/process/bloom.frag");
 }

@@ -36,6 +36,11 @@ import grondag.canvas.shader.GlProgram;
 //FIX: handle VAO properly here before re-enabling VAO
 public class CanvasFrameBufferHacks {
 
+	static final ProcessShader copy = ProcessShaders.create("canvas:shaders/internal/process/copy", "_cvu_input");
+	static final ProcessShader bloom = ProcessShaders.create("canvas:shaders/internal/process/bloom", "_cvu_base", "_cvu_bloom");
+	static final ProcessShader copyLod = ProcessShaders.create("canvas:shaders/internal/process/copy_lod", "_cvu_input");
+	static final ProcessShader blurLod = ProcessShaders.create("canvas:shaders/internal/process/blur_lod", "_cvu_input");
+
 	// TODO: tear down
 	static Framebuffer fbo;
 	static int mainFbo = -1;
@@ -124,13 +129,13 @@ public class CanvasFrameBufferHacks {
 
 		GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT, GL21.GL_TEXTURE_2D, mainCopy, 0);
 		GlStateManager.bindTexture(mainColor);
-		ProcessShaders.copy(w, h).activate();
+		copy.activate().size(w, h);
 		GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
 
 		// build mip map
 		GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT, GL21.GL_TEXTURE_2D, bloomCascade, 0);
 		GlStateManager.bindTexture(emissive);
-		ProcessShaders.copyLod(w >> 1, h >> 1, 0).activate();
+		copyLod.activate().size(w >> 1, h >> 1).lod(0);
 		setProjection(w >> 1, h >> 1);
 		RenderSystem.viewport(0, 0, w >> 1, h >> 1);
 		GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
@@ -140,7 +145,7 @@ public class CanvasFrameBufferHacks {
 		for (int d = 1; d <= 7; ++d) {
 			final int sw = (w >> (d + 1));
 			final int sh = (h >> (d + 1));
-			ProcessShaders.copyLodResize(sw, sh, d - 1);
+			copyLod.size(sw, sh).lod(d - 1);
 			setProjection(sw, sh);
 			RenderSystem.viewport(0, 0, sw, sh);
 			GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT, GL21.GL_TEXTURE_2D, bloomCascade, d);
@@ -149,16 +154,16 @@ public class CanvasFrameBufferHacks {
 
 		if (!BufferDebug.shouldSkipBlur()) {
 
-			ProcessShaders.blurLod(0.5f, 0, w / 2, h / 2, 0).activate();
+			blurLod.activate().distance(0.5f, 0).size(w / 2, h / 2).lod(0).activate();
 
 			for (int d = 0; d <= 7; ++d) {
 				final int sw = (w >> (d + 1));
 				final int sh = (h >> (d + 1));
-				ProcessShaders.blurLodResize(0.5f, 0, sw, sh, d);
+				blurLod.distance(0.5f, 0).size(sw, sh).lod(d);
 				setProjection(sw, sh);
 				RenderSystem.viewport(0, 0, sw, sh);
 				GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT, GL21.GL_TEXTURE_2D, bloomCascadeSwap, d);
-				GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
+				//				GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
 			}
 
 			GlStateManager.bindTexture(bloomCascadeSwap);
@@ -166,16 +171,16 @@ public class CanvasFrameBufferHacks {
 			for (int d = 0; d <= 7; ++d) {
 				final int sw = (w >> (d + 1));
 				final int sh = (h >> (d + 1));
-				ProcessShaders.blurLodResize(0, 0.5f, sw, sh, d);
+				blurLod.distance(0, 0.5f).size(sw, sh).lod(d);
 				setProjection(sw, sh);
 				RenderSystem.viewport(0, 0, sw, sh);
 				GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT, GL21.GL_TEXTURE_2D, bloomCascade, d);
-				GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
+				//				GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
 			}
 
 			GlStateManager.bindFramebuffer(FramebufferInfo.FRAME_BUFFER, mainFbo);
 			RenderSystem.viewport(0, 0, w, h);
-			ProcessShaders.bloom(w, h).activate();
+			bloom.activate().size(w, h);
 			setProjection(w, h);
 
 			GlStateManager.activeTexture(GL21.GL_TEXTURE0);
@@ -206,7 +211,7 @@ public class CanvasFrameBufferHacks {
 		GlStateManager.enableTexture();
 		GlStateManager.bindTexture(bloomCascade);
 		setProjection(w >> 1, h >> 1);
-		ProcessShaders.copyLod(w >> 1, h >> 1, 0).activate();
+		copyLod.activate().size(w >> 1, h >> 1).lod(0).activate();
 		GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
 
 		endCopy();
@@ -218,14 +223,14 @@ public class CanvasFrameBufferHacks {
 		GlStateManager.activeTexture(GL21.GL_TEXTURE0);
 		GlStateManager.enableTexture();
 		GlStateManager.bindTexture(bloomCascade);
-		ProcessShaders.copyLod(w, h, 0).activate();
+		copyLod.activate().size(w, h).lod(0).activate();
 
 		for (int lod = 0; lod <= 7; ++lod) {
 			final int dw = (w >> (lod + 1));
 			final int dh = (h >> (lod + 1));
 			RenderSystem.viewport(w - dw, h -  dh, dw, dh);
 			setProjection(dw, dh);
-			ProcessShaders.copyLodResize(dw, dh, lod);
+			copyLod.size(dw, dh).lod(lod);
 			GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
 		}
 		endCopy();
@@ -239,7 +244,7 @@ public class CanvasFrameBufferHacks {
 		GlStateManager.enableTexture();
 		GlStateManager.bindTexture(bloomCascade);
 		setProjection(w, h);
-		ProcessShaders.copyLod(w, h, level).activate();
+		copyLod.activate().size(w, h).lod(level);
 		GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
 
 		endCopy();

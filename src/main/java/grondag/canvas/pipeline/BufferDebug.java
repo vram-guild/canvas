@@ -16,6 +16,10 @@
 package grondag.canvas.pipeline;
 
 import com.google.common.util.concurrent.Runnables;
+import org.lwjgl.glfw.GLFW;
+
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.util.InputUtil;
 
 import grondag.canvas.CanvasMod;
 
@@ -57,7 +61,12 @@ public enum BufferDebug {
 
 	public static void render() {
 		while (CanvasMod.BUFFER_KEY.wasPressed()) {
-			advance();
+			final long handle = MinecraftClient.getInstance().getWindow().getHandle();
+
+			final int i = (InputUtil.isKeyPressed(handle, GLFW.GLFW_KEY_LEFT_SHIFT) || InputUtil.isKeyPressed(handle, GLFW.GLFW_KEY_RIGHT_SHIFT)) ? -1 : 1;
+			final BufferDebug[] values = values();
+			final int count =  values.length;
+			current = values[(current.ordinal() + count + i) % values.length];
 		}
 
 		current.task.run();
