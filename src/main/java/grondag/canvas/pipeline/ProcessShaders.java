@@ -34,6 +34,7 @@ public class ProcessShaders {
 	private static GlProgram bloomSample;
 	private static GlProgram copyLod;
 	private static GlProgram blurLod;
+	private static GlProgram bloom2;
 
 	private static Uniform2iImpl copySize;
 	private static Uniform2iImpl copyLodSize;
@@ -45,6 +46,7 @@ public class ProcessShaders {
 	private static Uniform2iImpl blurLodSize;
 	private static Uniform2fImpl blurLodDist;
 	private static Uniform1iImpl blurLodLod;
+	private static Uniform2iImpl bloomSize2;
 
 	static {
 		reload();
@@ -91,6 +93,19 @@ public class ProcessShaders {
 		bloomSize = (Uniform2iImpl) bloom.uniform2i("_cvu_size", UniformRefreshFrequency.ON_LOAD, u -> {});
 		bloom.load();
 
+		if (bloom2 != null) {
+			bloom2.unload();
+			bloom2 = null;
+		}
+
+		vs = GlShaderManager.INSTANCE.getOrCreateVertexShader(ShaderData.BLOOM_VERTEX2, ShaderContext.PROCESS);
+		fs = GlShaderManager.INSTANCE.getOrCreateFragmentShader(ShaderData.BLOOM_FRAGMENT2, ShaderContext.PROCESS);
+		bloom2 = new GlProgram(vs, fs, MaterialVertexFormats.PROCESS_VERTEX_UV, ShaderContext.PROCESS);
+		bloom2.uniform1i("_cvu_base", UniformRefreshFrequency.ON_LOAD, u -> u.set(0));
+		bloom2.uniform1i("_cvu_bloom", UniformRefreshFrequency.ON_LOAD, u -> u.set(1));
+		bloomSize2 = (Uniform2iImpl) bloom2.uniform2i("_cvu_size", UniformRefreshFrequency.ON_LOAD, u -> {});
+		bloom2.load();
+
 		if (bloomSample != null) {
 			bloomSample.unload();
 			bloomSample = null;
@@ -130,6 +145,8 @@ public class ProcessShaders {
 		blurLodDist = (Uniform2fImpl) blurLod.uniform2f("_cvu_distance", UniformRefreshFrequency.ON_LOAD, u -> {});
 		blurLodLod = (Uniform1iImpl) blurLod.uniform1i("_cvu_lod", UniformRefreshFrequency.ON_LOAD, u -> u.set(0));
 		blurLod.load();
+
+
 
 	}
 
@@ -175,6 +192,14 @@ public class ProcessShaders {
 
 		bloomSize.set(width, height);
 		return bloom;
+	}
+
+	public static GlProgram bloom2(int width, int height) {
+		assert width > 0;
+		assert height > 0;
+
+		bloomSize2.set(width, height);
+		return bloom2;
 	}
 
 	public static GlProgram bloomSample(int width, int height) {

@@ -21,6 +21,7 @@ import grondag.canvas.CanvasMod;
 
 public enum BufferDebug {
 	NORMAL(Runnables.doNothing()),
+	NEW_NORMAL(Runnables.doNothing()),
 	EMISSIVE(CanvasFrameBufferHacks::debugEmissive),
 	EMISSIVE_CASCADE(CanvasFrameBufferHacks::debugEmissiveCascade),
 	BLOOM_BLUR(CanvasFrameBufferHacks::debugEmissive),
@@ -42,13 +43,18 @@ public enum BufferDebug {
 
 	private static BufferDebug current = NORMAL;
 
+	public static BufferDebug current() {
+		return current;
+	}
+
 	public static boolean shouldSkipBlur() {
 		return current ==  EMISSIVE  || current == EMISSIVE_CASCADE;
 	}
 
 	public static void advance() {
-		final BufferDebug[] values = values();
-		current = values[(current.ordinal() + 1) % values.length];
+		current  = current == NORMAL ? NEW_NORMAL : NORMAL;
+		//		final BufferDebug[] values = values();
+		//		current = values[(current.ordinal() + 1) % values.length];
 	}
 
 	public static void render() {
