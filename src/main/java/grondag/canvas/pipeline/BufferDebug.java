@@ -23,7 +23,16 @@ public enum BufferDebug {
 	NORMAL(Runnables.doNothing()),
 	EMISSIVE(CanvasFrameBufferHacks::debugEmissive),
 	EMISSIVE_CASCADE(CanvasFrameBufferHacks::debugEmissiveCascade),
-	BLOOM_BLUR(CanvasFrameBufferHacks::debugBlur);
+	BLOOM_BLUR(CanvasFrameBufferHacks::debugEmissive),
+	BLOOM_BLUR_CASCADE(CanvasFrameBufferHacks::debugEmissiveCascade),
+	BLOOM_0(() -> CanvasFrameBufferHacks.debugBlur(0)),
+	BLOOM_1(() -> CanvasFrameBufferHacks.debugBlur(1)),
+	BLOOM_2(() -> CanvasFrameBufferHacks.debugBlur(2)),
+	BLOOM_3(() -> CanvasFrameBufferHacks.debugBlur(3)),
+	BLOOM_4(() -> CanvasFrameBufferHacks.debugBlur(4)),
+	BLOOM_5(() -> CanvasFrameBufferHacks.debugBlur(5)),
+	BLOOM_6(() -> CanvasFrameBufferHacks.debugBlur(6)),
+	BLOOM_7(() -> CanvasFrameBufferHacks.debugBlur(7));
 
 	private final Runnable task;
 

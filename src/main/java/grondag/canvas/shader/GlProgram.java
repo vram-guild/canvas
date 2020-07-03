@@ -69,8 +69,7 @@ public class GlProgram {
 	private final ObjectArrayList<UniformImpl<?>> renderTickUpdates = new ObjectArrayList<>();
 	private final ObjectArrayList<UniformImpl<?>> gameTickUpdates = new ObjectArrayList<>();
 
-	protected int dirtyCount = 0;
-	protected final UniformImpl<?>[] dirtyUniforms = new UniformImpl[32];
+	protected boolean hasDirty = false;
 
 	public int programId() {
 		return progID;
@@ -93,22 +92,13 @@ public class GlProgram {
 		}
 
 		public final void setDirty() {
-			final int flags = this.flags;
-			if (flags == 0) {
-				dirtyUniforms[dirtyCount++] = this;
-			}
-
-			this.flags = flags | FLAG_NEEDS_UPLOAD;
+			hasDirty = true;
+			flags |= FLAG_NEEDS_UPLOAD;
 		}
 
 		protected final void markForInitialization() {
-			final int flags = this.flags;
-
-			if (flags == 0) {
-				dirtyUniforms[dirtyCount++] = this;
-			}
-
-			this.flags = flags | FLAG_NEEDS_INITIALIZATION;
+			hasDirty = true;
+			flags |= FLAG_NEEDS_INITIALIZATION;
 		}
 
 		private final void load(int programID) {
@@ -118,8 +108,8 @@ public class GlProgram {
 						vertexShader.shaderSource.toString(), fragmentShader.shaderSource.toString()));
 				this.flags = 0;
 			} else {
-				// dirty count will be reset to 0 before uniforms are loaded
-				dirtyUniforms[dirtyCount++] = this;
+				// dirty flag will be reset before uniforms are loaded
+				hasDirty = true;
 				this.flags = FLAG_NEEDS_INITIALIZATION | FLAG_NEEDS_UPLOAD;
 			}
 		}
@@ -513,25 +503,19 @@ public class GlProgram {
 
 		GL21.glUseProgram(progID);
 
-		final int count = dirtyCount;
+		if (hasDirty) {
+			final int count = uniforms.size();
 
-		if (count != 0) {
 			for (int i = 0; i < count; i++) {
-				dirtyUniforms[i].upload();
+				uniforms.get(i).upload();
 			}
 
-			dirtyCount = 0;
+			hasDirty = false;
 		}
 	}
 
-	// TODO: remove if not needed for Vao
 	public static int activeProgram() {
 		return activeProgram.progID;
-	}
-
-	// TODO: remove if not needed for Vao
-	public static void reactivateCurent() {
-		activeProgram.activateInner();
 	}
 
 	public class UniformMatrix4fImpl extends UniformImpl<UniformMatrix4f> implements UniformMatrix4f {
@@ -592,7 +576,8 @@ public class GlProgram {
 
 		// prevent accumulation of uniforms in programs that aren't activated after
 		// multiple reloads
-		dirtyCount = 0;
+		hasDirty = false;
+
 		try {
 			if (progID > 0) {
 				GL21.glDeleteProgram(progID);

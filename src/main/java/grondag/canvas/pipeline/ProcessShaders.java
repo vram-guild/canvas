@@ -204,7 +204,7 @@ public class ProcessShaders {
 	}
 
 	public static void copyLodResize(int width, int height, int lod) {
-		assert GlProgram.activeProgram() == copyLod.programId();
+		//		assert GlProgram.activeProgram() == copyLod.programId();
 		copyLodSize.set(width, height);
 		copyLodSize.upload();
 		copyLodLod.set(lod);

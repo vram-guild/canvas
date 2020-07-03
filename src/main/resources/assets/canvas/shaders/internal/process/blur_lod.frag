@@ -24,8 +24,8 @@ void main() {
 
 	for(int i = 1; i < 5; i++) {
 		vec2 offset = vec2(offsets[i]) * f;
-		color += texture2D(_cvu_input, _cvv_texcoord + offset, _cvu_lod) * weights[i];
-		color += texture2D(_cvu_input, _cvv_texcoord - offset, _cvu_lod) * weights[i];
+		color += texture2DLod(_cvu_input, _cvv_texcoord + offset, _cvu_lod) * weights[i];
+		color += texture2DLod(_cvu_input, _cvv_texcoord - offset, _cvu_lod) * weights[i];
 	}
 
     gl_FragData[0] = vec4(color.rgb, 1.0);
