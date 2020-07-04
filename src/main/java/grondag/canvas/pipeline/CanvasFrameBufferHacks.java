@@ -116,6 +116,7 @@ public class CanvasFrameBufferHacks {
 		VboBuffer.unbind();
 		GlStateManager.activeTexture(GL21.GL_TEXTURE1);
 		GlStateManager.bindTexture(oldTex1);
+		GlStateManager.disableTexture();
 		GlStateManager.activeTexture(GL21.GL_TEXTURE0);
 		GlStateManager.bindTexture(oldTex0);
 		GlProgram.deactivate();
