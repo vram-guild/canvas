@@ -70,10 +70,19 @@ public class CanvasMod implements ClientModInitializer {
 		((RenderLayerExt) RenderLayer.getCutout()).canvas_blendModeIndex(BlendMode.CUTOUT.ordinal());
 		((RenderLayerExt) RenderLayer.getCutoutMipped()).canvas_blendModeIndex(BlendMode.CUTOUT_MIPPED.ordinal());
 
-		KeyBindingHelper.registerKeyBinding(BUFFER_KEY);
+		KeyBindingHelper.registerKeyBinding(VIEW_KEY);
+		KeyBindingHelper.registerKeyBinding(DECREMENT_A);
+		KeyBindingHelper.registerKeyBinding(INCREMENT_A);
+		KeyBindingHelper.registerKeyBinding(DECREMENT_B);
+		KeyBindingHelper.registerKeyBinding(INCREMENT_B);
 	}
 
-	public static KeyBinding BUFFER_KEY = new KeyBinding("key.canvas.next_buffer", Character.valueOf('`'), "key.canvas.category");
+	public static KeyBinding VIEW_KEY = new KeyBinding("key.canvas.cycle_view", Character.valueOf('`'), "key.canvas.category");
+	public static KeyBinding DECREMENT_A = new KeyBinding("key.canvas.decrement_a", Character.valueOf('-'), "key.canvas.category");
+	public static KeyBinding INCREMENT_A = new KeyBinding("key.canvas.increment_a", Character.valueOf('='), "key.canvas.category");
+	public static KeyBinding DECREMENT_B = new KeyBinding("key.canvas.decrement_b", Character.valueOf('['), "key.canvas.category");
+	public static KeyBinding INCREMENT_B = new KeyBinding("key.canvas.increment_b", Character.valueOf(']'), "key.canvas.category");
+
 	public static final String MODID = "canvas";
 
 	public static final Logger LOG = LogManager.getLogger("Canvas");

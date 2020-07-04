@@ -53,7 +53,13 @@ public class Configurator {
 		boolean blendFluidColors = true;
 
 		@Comment("Glow effect around light sources. Work-in-Progress")
-		public boolean enableBloom = false;
+		public boolean enableBloom = true;
+
+		@Comment("Intensity of glow effect around light sources. 0.0 to 0.25, default is 0.09.")
+		public float bloomIntensity = 0.09f;
+
+		@Comment("Size of bloom effect around light sources. 0.0 to 2.0, default is 0.5.")
+		public float bloomScale = 0.5f;
 
 		@Comment("Truly smoothh lighting. Some impact to memory use, chunk loading and frame rate.")
 		boolean hdLightmaps = false;
@@ -143,6 +149,8 @@ public class Configurator {
 	public static FogMode fogMode = DEFAULTS.fogMode;
 	public static boolean blendFluidColors = DEFAULTS.blendFluidColors;
 	public static boolean enableBloom = DEFAULTS.enableBloom;
+	public static float bloomIntensity = DEFAULTS.bloomIntensity;
+	public static float bloomScale = DEFAULTS.bloomScale;
 
 	private static boolean hdLightmaps = DEFAULTS.hdLightmaps;
 	public static boolean lightmapNoise = DEFAULTS.lightmapNoise;
@@ -209,6 +217,8 @@ public class Configurator {
 		fogMode = config.fogMode;
 		blendFluidColors = config.blendFluidColors;
 		enableBloom = config.enableBloom;
+		bloomIntensity = config.bloomIntensity;
+		bloomScale = config.bloomScale;
 
 		shaderDebug = config.shaderDebug;
 		maxLightmapDelayFrames = config.maxLightmapDelayFrames;
@@ -247,6 +257,8 @@ public class Configurator {
 		config.fogMode = fogMode;
 		config.blendFluidColors = blendFluidColors;
 		config.enableBloom = enableBloom;
+		config.bloomIntensity = bloomIntensity;
+		config.bloomScale = bloomScale;
 
 		config.shaderDebug = shaderDebug;
 		config.maxLightmapDelayFrames = maxLightmapDelayFrames;
@@ -354,21 +366,39 @@ public class Configurator {
 				.startEnumSelector(new TranslatableText("config.canvas.value.fog_mode"), FogMode.class, fogMode)
 				.setDefaultValue(DEFAULTS.fogMode)
 				.setTooltip(parse("config.canvas.help.fog_mode"))
-				.setSaveConsumer(b -> {fogMode = b; reload = true;})
+				.setSaveConsumer(b -> {reload |= fogMode != b; fogMode = b;})
 				.build());
 
 		features.addEntry(ENTRY_BUILDER
 				.startBooleanToggle(new TranslatableText("config.canvas.value.blend_fluid_colors"), blendFluidColors)
 				.setDefaultValue(DEFAULTS.blendFluidColors)
 				.setTooltip(parse("config.canvas.help.blend_fluid_colors"))
-				.setSaveConsumer(b -> {blendFluidColors = b; reload = true;})
+				.setSaveConsumer(b -> {reload |= blendFluidColors != b; blendFluidColors = b;})
 				.build());
 
 		features.addEntry(ENTRY_BUILDER
 				.startBooleanToggle(new TranslatableText("config.canvas.value.bloom"), enableBloom)
 				.setDefaultValue(DEFAULTS.enableBloom)
 				.setTooltip(parse("config.canvas.help.bloom"))
-				.setSaveConsumer(b -> {enableBloom = b; reload = true;})
+				.setSaveConsumer(b -> {enableBloom = b;})
+				.build());
+
+		features.addEntry(ENTRY_BUILDER
+				.startIntSlider(new TranslatableText("config.canvas.value.bloom_intensity"), (int)(bloomIntensity * 400), 0, 100)
+				.setDefaultValue((int) (DEFAULTS.bloomIntensity * 400))
+				.setMax(100)
+				.setMin(0)
+				.setTooltip(parse("config.canvas.help.bloom_intensity"))
+				.setSaveConsumer(b -> bloomIntensity = b / 400f)
+				.build());
+
+		features.addEntry(ENTRY_BUILDER
+				.startIntSlider(new TranslatableText("config.canvas.value.bloom_scale"), (int) (bloomScale * 100), 0, 200)
+				.setDefaultValue((int) (DEFAULTS.bloomScale * 100))
+				.setMax(200)
+				.setMin(0)
+				.setTooltip(parse("config.canvas.help.bloom_scale"))
+				.setSaveConsumer(b -> bloomScale = b / 100f)
 				.build());
 
 		// LIGHTING
@@ -378,14 +408,14 @@ public class Configurator {
 				.startBooleanToggle(new TranslatableText("config.canvas.value.light_smoothing"), lightSmoothing)
 				.setDefaultValue(DEFAULTS.lightSmoothing)
 				.setTooltip(parse("config.canvas.help.light_smoothing"))
-				.setSaveConsumer(b -> {lightSmoothing = b; reload = true;})
+				.setSaveConsumer(b -> {reload |= lightSmoothing != b; lightSmoothing = b;})
 				.build());
 
 		lighting.addEntry(ENTRY_BUILDER
 				.startBooleanToggle(new TranslatableText("config.canvas.value.hd_lightmaps"), hdLightmaps)
 				.setDefaultValue(DEFAULTS.hdLightmaps)
 				.setTooltip(parse("config.canvas.help.hd_lightmaps"))
-				.setSaveConsumer(b -> {hdLightmaps = b; reload = true;})
+				.setSaveConsumer(b -> {reload |= hdLightmaps != b; hdLightmaps = b;})
 				.build());
 
 		lighting.addEntry(ENTRY_BUILDER
@@ -399,21 +429,21 @@ public class Configurator {
 				.startBooleanToggle(new TranslatableText("config.canvas.value.lightmap_noise"), lightmapNoise)
 				.setDefaultValue(DEFAULTS.lightmapNoise)
 				.setTooltip(parse("config.canvas.help.lightmap_noise"))
-				.setSaveConsumer(b -> {lightmapNoise = b; reload = true;})
+				.setSaveConsumer(b -> {reload |= lightmapNoise != b; lightmapNoise = b;})
 				.build());
 
 		lighting.addEntry(ENTRY_BUILDER
 				.startEnumSelector(new TranslatableText("config.canvas.value.diffuse_shading"), DiffuseMode.class, diffuseShadingMode)
 				.setDefaultValue(DEFAULTS.diffuseShadingMode)
 				.setTooltip(parse("config.canvas.help.diffuse_shading"))
-				.setSaveConsumer(b -> {diffuseShadingMode = b; reload = true;})
+				.setSaveConsumer(b -> {reload |= diffuseShadingMode != b; diffuseShadingMode = b;})
 				.build());
 
 		lighting.addEntry(ENTRY_BUILDER
 				.startEnumSelector(new TranslatableText("config.canvas.value.ao_shading"), AoMode.class, aoShadingMode)
 				.setDefaultValue(DEFAULTS.aoShadingMode)
 				.setTooltip(parse("config.canvas.help.ao_shading"))
-				.setSaveConsumer(b -> {aoShadingMode = b; reload = true;})
+				.setSaveConsumer(b -> {reload |= aoShadingMode != b; aoShadingMode = b;})
 				.build());
 
 		lighting.addEntry(ENTRY_BUILDER
@@ -427,7 +457,7 @@ public class Configurator {
 				.startBooleanToggle(new TranslatableText("config.canvas.value.semi_flat_lighting"), semiFlatLighting)
 				.setDefaultValue(DEFAULTS.semiFlatLighting)
 				.setTooltip(parse("config.canvas.help.semi_flat_lighting"))
-				.setSaveConsumer(b -> {semiFlatLighting = b; reload = true;})
+				.setSaveConsumer(b -> {reload |= semiFlatLighting != b; semiFlatLighting = b;})
 				.build());
 
 		// TWEAKS
@@ -448,35 +478,35 @@ public class Configurator {
 				.startBooleanToggle(new TranslatableText("config.canvas.value.adjust_vanilla_geometry"), preventDepthFighting)
 				.setDefaultValue(DEFAULTS.preventDepthFighting)
 				.setTooltip(parse("config.canvas.help.adjust_vanilla_geometry"))
-				.setSaveConsumer(b -> {preventDepthFighting = b; reload = true;})
+				.setSaveConsumer(b -> {reload |= preventDepthFighting != b; preventDepthFighting = b;})
 				.build());
 
 		tweaks.addEntry(ENTRY_BUILDER
 				.startBooleanToggle(new TranslatableText("config.canvas.value.clamp_exterior_vertices"), clampExteriorVertices)
 				.setDefaultValue(DEFAULTS.clampExteriorVertices)
 				.setTooltip(parse("config.canvas.help.clamp_exterior_vertices"))
-				.setSaveConsumer(b -> {clampExteriorVertices = b; reload = true;})
+				.setSaveConsumer(b -> {reload |= clampExteriorVertices != b; clampExteriorVertices = b;})
 				.build());
 
 		tweaks.addEntry(ENTRY_BUILDER
 				.startBooleanToggle(new TranslatableText("config.canvas.value.fix_luminous_block_shade"), fixLuminousBlockShading)
 				.setDefaultValue(DEFAULTS.fixLuminousBlockShading)
 				.setTooltip(parse("config.canvas.help.fix_luminous_block_shade"))
-				.setSaveConsumer(b -> {fixLuminousBlockShading = b; reload = true;})
+				.setSaveConsumer(b -> {reload |= fixLuminousBlockShading != b; fixLuminousBlockShading = b;})
 				.build());
 
 		tweaks.addEntry(ENTRY_BUILDER
 				.startBooleanToggle(new TranslatableText("config.canvas.value.terrain_setup_off_thread"), terrainSetupOffThread)
 				.setDefaultValue(DEFAULTS.terrainSetupOffThread)
 				.setTooltip(parse("config.canvas.help.terrain_setup_off_thread"))
-				.setSaveConsumer(b -> {terrainSetupOffThread = b; reload = true;})
+				.setSaveConsumer(b -> {reload |= terrainSetupOffThread != b; terrainSetupOffThread = b;})
 				.build());
 
 		tweaks.addEntry(ENTRY_BUILDER
 				.startBooleanToggle(new TranslatableText("config.canvas.value.enable_vao"), enableVao)
 				.setDefaultValue(DEFAULTS.enableVao)
 				.setTooltip(parse("config.canvas.help.enable_vao"))
-				.setSaveConsumer(b -> {enableVao = b; reload = true;})
+				.setSaveConsumer(b -> {reload |= enableVao != b; enableVao = b;})
 				.build());
 
 		// DEBUG
@@ -580,8 +610,6 @@ public class Configurator {
 	//    @Comment({"Enable fancy water and lava rendering.",
 	//        " This feature is currently work in progress and has no visible effect if enabled."})
 	public static boolean fancyFluids = false;
-	public static float bloomIntensity = 0.2f;
-	public static float bloomScale = 1.2f;
 
 
 	//    @LangKey("config.disable_yield")

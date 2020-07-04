@@ -42,7 +42,6 @@ public class CanvasFrameBufferHacks {
 	static final ProcessShader copy = ProcessShaders.create("canvas:shaders/internal/process/copy", "_cvu_input");
 	static final ProcessShader bloom = ProcessShaders.create("canvas:shaders/internal/process/bloom", "_cvu_base", "_cvu_bloom");
 	static final ProcessShader copyLod = ProcessShaders.create("canvas:shaders/internal/process/copy_lod", "_cvu_input");
-	static final ProcessShader blurLod = ProcessShaders.create("canvas:shaders/internal/process/blur_lod", "_cvu_input");
 	static final ProcessShader downsample = ProcessShaders.create("canvas:shaders/internal/process/downsample", "_cvu_input");
 	static final ProcessShader upsample = ProcessShaders.create("canvas:shaders/internal/process/upsample", "cvu_input", "cvu_prior");
 

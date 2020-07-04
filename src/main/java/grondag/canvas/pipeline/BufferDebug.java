@@ -20,8 +20,10 @@ import org.lwjgl.glfw.GLFW;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.util.InputUtil;
+import net.minecraft.text.LiteralText;
 
 import grondag.canvas.CanvasMod;
+import grondag.canvas.Configurator;
 
 public enum BufferDebug {
 	NORMAL(Runnables.doNothing()),
@@ -54,14 +56,38 @@ public enum BufferDebug {
 	/**
 	 * Don't call unless enabled - doesn't check.
 	 */
+	@SuppressWarnings("resource")
 	public static void render() {
-		while (CanvasMod.BUFFER_KEY.wasPressed()) {
+		while (CanvasMod.VIEW_KEY.wasPressed()) {
 			final long handle = MinecraftClient.getInstance().getWindow().getHandle();
 
 			final int i = (InputUtil.isKeyPressed(handle, GLFW.GLFW_KEY_LEFT_SHIFT) || InputUtil.isKeyPressed(handle, GLFW.GLFW_KEY_RIGHT_SHIFT)) ? -1 : 1;
 			final BufferDebug[] values = values();
 			final int count =  values.length;
+
 			current = values[(current.ordinal() + count + i) % values.length];
+
+			MinecraftClient.getInstance().player.sendMessage(new LiteralText("Buffer Debug Mode: " + current.name()), true);
+		}
+
+		while (CanvasMod.DECREMENT_A.wasPressed()) {
+			Configurator.bloomIntensity = Math.max(0, Configurator.bloomIntensity - 0.01f);
+			MinecraftClient.getInstance().player.sendMessage(new LiteralText("Bloom Intensity = " + Configurator.bloomIntensity), true);
+		}
+
+		while (CanvasMod.INCREMENT_A.wasPressed()) {
+			Configurator.bloomIntensity += 0.01f;
+			MinecraftClient.getInstance().player.sendMessage(new LiteralText("Bloom Intensity = " + Configurator.bloomIntensity), true);
+		}
+
+		while (CanvasMod.DECREMENT_B.wasPressed()) {
+			Configurator.bloomScale = Math.max(0, Configurator.bloomScale - 0.05f);
+			MinecraftClient.getInstance().player.sendMessage(new LiteralText("Bloom Scale = " + Configurator.bloomScale), true);
+		}
+
+		while (CanvasMod.INCREMENT_B.wasPressed()) {
+			Configurator.bloomScale += 0.05f;
+			MinecraftClient.getInstance().player.sendMessage(new LiteralText("Bloom Scale = " + Configurator.bloomScale), true);
 		}
 
 		current.task.run();
