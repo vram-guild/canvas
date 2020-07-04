@@ -461,7 +461,7 @@ public class CanvasWorldRenderer {
 			assert visibleRegions[regionIndex] != null;
 			assert visibleRegions[regionIndex].getRenderData() != null;
 
-			final List<BlockEntity> list = visibleRegions[regionIndex++].getRenderData().getBlockEntities();
+			final List<BlockEntity> list = visibleRegions[regionIndex].getRenderData().getBlockEntities();
 
 			final Iterator<BlockEntity> var60 = list.iterator();
 
