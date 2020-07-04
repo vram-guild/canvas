@@ -28,10 +28,20 @@ float cv_noise2d(vec2 st) {
  *  Ken Perlin's improved smoothstep
  */
 float cv_smootherstep(float edge0, float edge1, float x) {
-    // Scale, and clamp x to 0..1 range
+    // Scale, and clamp to 0..1 range
     x = clamp((x - edge0) / (edge1 - edge0), 0.0, 1.0);
     // Evaluate polynomial
     return x * x * x * (x * (x * 6 - 15) + 10);
+}
+
+/**
+ *  Ken Perlin's improved smoothstep
+ */
+vec3 cv_smootherstep(float edge0, float edge1, vec3 value) {
+    // Scale, and clamp to 0..1 range
+    vec3 r = clamp((value - edge0) / (edge1 - edge0), 0.0, 1.0);
+    // Evaluate polynomial
+    return r * r * r * (r * (r * 6 - 15) + 10);
 }
 
 /*
