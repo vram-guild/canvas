@@ -580,6 +580,8 @@ public class Configurator {
 	//    @Comment({"Enable fancy water and lava rendering.",
 	//        " This feature is currently work in progress and has no visible effect if enabled."})
 	public static boolean fancyFluids = false;
+	public static float bloomIntensity = 0.2f;
+	public static float bloomScale = 1.2f;
 
 
 	//    @LangKey("config.disable_yield")

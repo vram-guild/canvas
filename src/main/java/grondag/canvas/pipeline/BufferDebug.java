@@ -26,17 +26,13 @@ import grondag.canvas.CanvasMod;
 public enum BufferDebug {
 	NORMAL(Runnables.doNothing()),
 	EMISSIVE(CanvasFrameBufferHacks::debugEmissive),
-	EMISSIVE_CASCADE(CanvasFrameBufferHacks::debugEmissiveCascade),
-	BLOOM_BLUR(CanvasFrameBufferHacks::debugEmissive),
-	BLOOM_BLUR_CASCADE(CanvasFrameBufferHacks::debugEmissiveCascade),
 	BLOOM_0(() -> CanvasFrameBufferHacks.debugBlur(0)),
 	BLOOM_1(() -> CanvasFrameBufferHacks.debugBlur(1)),
 	BLOOM_2(() -> CanvasFrameBufferHacks.debugBlur(2)),
 	BLOOM_3(() -> CanvasFrameBufferHacks.debugBlur(3)),
 	BLOOM_4(() -> CanvasFrameBufferHacks.debugBlur(4)),
 	BLOOM_5(() -> CanvasFrameBufferHacks.debugBlur(5)),
-	BLOOM_6(() -> CanvasFrameBufferHacks.debugBlur(6)),
-	BLOOM_7(() -> CanvasFrameBufferHacks.debugBlur(7));
+	BLOOM_6(() -> CanvasFrameBufferHacks.debugBlur(6));
 
 	private final Runnable task;
 
@@ -50,15 +46,14 @@ public enum BufferDebug {
 		return current;
 	}
 
-	public static boolean shouldSkipBlur() {
-		return current ==  EMISSIVE  || current == EMISSIVE_CASCADE;
-	}
-
 	public static void advance() {
 		final BufferDebug[] values = values();
 		current = values[(current.ordinal() + 1) % values.length];
 	}
 
+	/**
+	 * Don't call unless enabled - doesn't check.
+	 */
 	public static void render() {
 		while (CanvasMod.BUFFER_KEY.wasPressed()) {
 			final long handle = MinecraftClient.getInstance().getWindow().getHandle();

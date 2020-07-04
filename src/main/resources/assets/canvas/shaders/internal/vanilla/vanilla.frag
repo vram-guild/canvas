@@ -8,6 +8,7 @@
 #include canvas:shaders/api/material.glsl
 #include canvas:shaders/api/fragment.glsl
 #include canvas:shaders/lib/math.glsl
+#include canvas:shaders/lib/color.glsl
 
 #include canvas:apitarget
 
@@ -92,6 +93,6 @@ void main() {
     gl_FragData[TARGET_BASECOLOR] = _cv_fog(a);
 
 	#if TARGET_EMISSIVE > 0
-		gl_FragData[TARGET_EMISSIVE] = a * fragData.emissivity;
+		gl_FragData[TARGET_EMISSIVE] = cv_fromGamma(a * fragData.emissivity);
 	#endif
 }

@@ -19,6 +19,7 @@ import net.minecraft.util.Identifier;
 
 import grondag.canvas.material.MaterialVertexFormats;
 import grondag.canvas.shader.GlProgram;
+import grondag.canvas.shader.GlProgram.Uniform1fImpl;
 import grondag.canvas.shader.GlProgram.Uniform1iImpl;
 import grondag.canvas.shader.GlProgram.Uniform2fImpl;
 import grondag.canvas.shader.GlProgram.Uniform2iImpl;
@@ -32,6 +33,8 @@ public class ProcessShader {
 	private Uniform2iImpl size;
 	private Uniform2fImpl distance;
 	private Uniform1iImpl lod;
+	private Uniform1fImpl intensity;
+
 	private final Identifier fragmentId;
 	private final Identifier vertexId;
 	private final String[] samplers;
@@ -57,6 +60,7 @@ public class ProcessShader {
 			size = (Uniform2iImpl) program.uniform2i("_cvu_size", UniformRefreshFrequency.ON_LOAD, u -> u.set(1, 1));
 			lod = (Uniform1iImpl) program.uniform1i("_cvu_lod", UniformRefreshFrequency.ON_LOAD, u -> u.set(0));
 			distance = (Uniform2fImpl) program.uniform2f("_cvu_distance", UniformRefreshFrequency.ON_LOAD, u -> u.set(0, 0));
+			intensity = (Uniform1fImpl) program.uniform1f("cvu_intensity", UniformRefreshFrequency.ON_LOAD, u -> u.set(0));
 
 			int tex = 0;
 
@@ -95,6 +99,15 @@ public class ProcessShader {
 		if  (program != null && GlProgram.activeProgram() == program) {
 			this.lod.set(lod);
 			this.lod.upload();
+		}
+
+		return this;
+	}
+
+	public ProcessShader intensity(float intensity) {
+		if  (program != null && GlProgram.activeProgram() == program) {
+			this.intensity.set(intensity);
+			this.intensity.upload();
 		}
 
 		return this;

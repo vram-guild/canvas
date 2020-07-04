@@ -1,12 +1,11 @@
 #include canvas:shaders/internal/process/header.glsl
 
 /******************************************************
-  canvas:shaders/internal/process/bloom.vert
+  canvas:shaders/internal/process/downsample.vert
 ******************************************************/
-uniform sampler2D _cvu_base;
-uniform sampler2D _cvu_bloom;
+
 uniform ivec2 _cvu_size;
-uniform vec2 _cvu_distance;
+uniform int _cvu_lod;
 
 attribute vec2 in_uv;
 
