@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.annotation.Nullable;
 
@@ -99,11 +100,12 @@ public class CanvasWorldRenderer {
 	private int occluderVersion;
 
 	/**
-	 * Set true when regions have been loaded or determined to be empty and visibility search can progress
-	 * or visibility might be changed. Distinct from occluder state, which indiciates if/when occluder must
-	 * be reset or redrawn.
+	 * Incremented whenever regions are built so visibility search can progress or to indicate visibility might be changed.
+	 * Distinct from occluder state, which indiciates if/when occluder must be reset or redrawn.
 	 */
-	private boolean shouldUpdateVisibility = false;
+	private final AtomicInteger regionDataVersion = new AtomicInteger();
+
+	private int lastRegionDataVersion = -1;
 
 	// TODO: redirect uses in MC WorldRenderer
 	public final Set<BuiltRenderRegion> regionsToRebuild = Sets.newLinkedHashSet();
@@ -124,7 +126,7 @@ public class CanvasWorldRenderer {
 	}
 
 	public void forceVisibilityUpdate() {
-		shouldUpdateVisibility = true;
+		regionDataVersion.incrementAndGet();
 	}
 
 	@SuppressWarnings("resource")
@@ -165,7 +167,7 @@ public class CanvasWorldRenderer {
 	}
 
 	public boolean isTerrainRenderComplete() {
-		return regionsToRebuild.isEmpty() && regionBuilder.isEmpty();
+		return regionsToRebuild.isEmpty() && regionBuilder.isEmpty() && regionDataVersion.get() == lastRegionDataVersion;
 	}
 
 	public void setWorld(@Nullable ClientWorld clientWorld) {
@@ -232,6 +234,7 @@ public class CanvasWorldRenderer {
 
 		mc.getProfiler().swap("update");
 
+
 		if (terrainSetupOffThread) {
 			int state = terrainIterator.state();
 
@@ -246,19 +249,23 @@ public class CanvasWorldRenderer {
 				state = TerrainIterator.IDLE;
 			}
 
-			if (state == TerrainIterator.IDLE && (shouldUpdateVisibility || viewVersion != frustum.viewVersion() || occluderVersion != TerrainOccluder.version())) {
+			final int newRegionDataVersion = regionDataVersion.get();
+
+			if (state == TerrainIterator.IDLE && (newRegionDataVersion != lastRegionDataVersion || viewVersion != frustum.viewVersion() || occluderVersion != TerrainOccluder.version())) {
 				viewVersion = frustum.viewVersion();
 				occluderVersion = TerrainOccluder.version();
-				shouldUpdateVisibility = false;
+				lastRegionDataVersion = newRegionDataVersion;
 				TerrainOccluder.prepareScene(camera, frustum, renderRegionStorage.regionVersion());
 				terrainIterator.prepare(cameraRegion, cameraBlockPos, frustum, renderDistance);
 				this.regionBuilder.executor.execute(terrainIterator, -1);
 			}
 		} else {
-			if (shouldUpdateVisibility || viewVersion != frustum.viewVersion() || occluderVersion != TerrainOccluder.version()) {
+			final int newRegionDataVersion = regionDataVersion.get();
+
+			if (newRegionDataVersion != lastRegionDataVersion || viewVersion != frustum.viewVersion() || occluderVersion != TerrainOccluder.version()) {
 				viewVersion = frustum.viewVersion();
 				occluderVersion = TerrainOccluder.version();
-				shouldUpdateVisibility = false;
+				lastRegionDataVersion = newRegionDataVersion;
 
 				TerrainOccluder.prepareScene(camera, frustum, renderRegionStorage.regionVersion());
 				terrainIterator.prepare(cameraRegion, cameraBlockPos, frustum, renderDistance);
@@ -807,9 +814,9 @@ public class CanvasWorldRenderer {
 	}
 
 	private void updateRegions(long endNanos) {
-		final Set<BuiltRenderRegion> regionsToRebuild = this.regionsToRebuild;
+		regionBuilder.upload();
 
-		shouldUpdateVisibility |= regionBuilder.upload();
+		final Set<BuiltRenderRegion> regionsToRebuild = this.regionsToRebuild;
 
 		//final long start = Util.getMeasuringTimeNano();
 		//int builtCount = 0;

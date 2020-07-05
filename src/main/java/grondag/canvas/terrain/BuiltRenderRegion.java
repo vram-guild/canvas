@@ -263,11 +263,11 @@ public class BuiltRenderRegion {
 			final int[] oldData = buildData.getAndSet(chunkData).occlusionData;
 
 			if (oldData != null && oldData != OcclusionRegion.EMPTY_CULL_DATA) {
-				TerrainOccluder.invalidate(occluderVersion);
-			} else  {
-				// fact that chunk is empty may still be needed for visibility search to progress
-				CanvasWorldRenderer.instance().forceVisibilityUpdate();
+				TerrainOccluder.invalidate();
 			}
+
+			// Even if empty the chunk may still be needed for visibility search to progress
+			CanvasWorldRenderer.instance().forceVisibilityUpdate();
 
 			renderData.set(chunkData);
 			return;
@@ -277,6 +277,7 @@ public class BuiltRenderRegion {
 		if (!shouldBuild()) {
 			markForBuild(false);
 			region.release();
+			CanvasWorldRenderer.instance().forceVisibilityUpdate();
 			return;
 		}
 
@@ -323,6 +324,8 @@ public class BuiltRenderRegion {
 			if (oldData != null && !Arrays.equals(oldData, chunkData.occlusionData)) {
 				TerrainOccluder.invalidate(occluderVersion);
 			}
+
+			CanvasWorldRenderer.instance().forceVisibilityUpdate();
 
 			final VertexCollectorList collectors = context.collectors;
 
@@ -503,8 +506,10 @@ public class BuiltRenderRegion {
 				TerrainOccluder.invalidate(occluderVersion);
 			}
 
-			// Note we don't force Canvas world renderer to update visibility next pass
-			// because this is called from there and thus the WR can do that for us.
+			renderData.set(regionData);
+
+			// Even if empty the chunk may still be needed for visibility search to progress
+			CanvasWorldRenderer.instance().forceVisibilityUpdate();
 
 			return;
 		}
@@ -516,6 +521,8 @@ public class BuiltRenderRegion {
 		if (oldData != null && !Arrays.equals(oldData, regionData.occlusionData)) {
 			TerrainOccluder.invalidate(occluderVersion);
 		}
+
+		CanvasWorldRenderer.instance().forceVisibilityUpdate();
 
 		buildTerrain(context, regionData);
 
