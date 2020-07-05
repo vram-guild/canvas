@@ -16,7 +16,7 @@
 
 package grondag.canvas.terrain.render;
 
-import grondag.canvas.buffer.allocation.VboBuffer;
+import grondag.canvas.buffer.VboBuffer;
 import grondag.canvas.buffer.encoding.VertexCollectorList;
 import grondag.canvas.material.MaterialVertexFormat;
 
@@ -29,6 +29,11 @@ public class UploadableChunk {
 		drawable = DrawableChunk.pack(collectorList, vboBuffer, translucent);
 	}
 
+	private UploadableChunk() {
+		vboBuffer = null;
+		drawable = DrawableChunk.EMPTY_DRAWABLE;
+	}
+
 	/**
 	 * Will be called from client thread - is where flush/unmap needs to happen.
 	 */
@@ -36,4 +41,11 @@ public class UploadableChunk {
 		vboBuffer.upload();
 		return drawable;
 	}
+
+	public static final UploadableChunk EMPTY_UPLOADABLE = new UploadableChunk() {
+		@Override
+		public DrawableChunk produceDrawable() {
+			return DrawableChunk.EMPTY_DRAWABLE;
+		}
+	};
 }

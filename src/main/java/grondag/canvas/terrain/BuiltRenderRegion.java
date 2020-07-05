@@ -57,18 +57,21 @@ public class BuiltRenderRegion {
 	private final AtomicReference<RegionData> buildData;
 	private final ObjectOpenHashSet<BlockEntity> localNoCullingBlockEntities = new ObjectOpenHashSet<>();
 	private boolean needsRebuild;
-	private final BlockPos.Mutable origin;
+	private final BlockPos origin;
 	private boolean needsImportantRebuild;
 	private volatile RegionBuildState buildState = new RegionBuildState();
 	private final Consumer<TerrainRenderContext> buildTask = this::rebuildOnWorkerThread;
 	private final RegionChunkReference chunkReference;
+	private final CanvasWorldRenderer cwr;
 	private final boolean isBottom;
-	private final int[] neighborIndices = new int[6];
-	private DrawableChunk translucentDrawable;
-	private DrawableChunk solidDrawable;
+	private final boolean isTop;
+	private final BuiltRenderRegion[] neighbors = new BuiltRenderRegion[6];
+	private DrawableChunk translucentDrawable = DrawableChunk.EMPTY_DRAWABLE;
+	private DrawableChunk solidDrawable = DrawableChunk.EMPTY_DRAWABLE;
 	private int frustumVersion;
 	private boolean frustumResult;
 	private int lastSeenFrameIndex;
+	private boolean isClosed = false;
 
 	int squaredCameraDistance;
 	public int occlusionRange;
@@ -81,16 +84,20 @@ public class BuiltRenderRegion {
 	public float cameraRelativeCenterY;
 	public float cameraRelativeCenterZ;
 
-	public BuiltRenderRegion(RenderRegionBuilder renderRegionBuilder, RenderRegionStorage storage, RegionChunkReference chunkReference, boolean bottom) {
-		this.renderRegionBuilder = renderRegionBuilder;
-		this.storage = storage;
-		this.chunkReference = chunkReference;
-		isBottom = bottom;
+	public BuiltRenderRegion(CanvasWorldRenderer cwr, RegionChunkReference chunkRef, long packedPos) {
+		this.cwr = cwr;
+		renderRegionBuilder = cwr.regionBuilder();
+		storage = cwr.regionStorage();
+		chunkReference = chunkRef;
+		chunkReference.retain(this);
 		buildData = new AtomicReference<>(RegionData.EMPTY);
 		renderData = new AtomicReference<>(RegionData.EMPTY);
 		needsRebuild = true;
-		origin = new BlockPos.Mutable(-1, -1, -1);
+		origin = BlockPos.fromLong(packedPos);
+		isBottom = origin.getY() == 0;
+		isTop = origin.getY() == 240;
 	}
+
 
 	/**
 	 * Assumes camera distance update has already happened.
@@ -122,45 +129,33 @@ public class BuiltRenderRegion {
 				|| (isInsideRenderDistance && chunkReference.areCornersLoaded());
 	}
 
-	public void setOrigin(int x, int y, int z) {
-		if (isBottom) {
-			chunkReference.setOrigin(x, z);
-		}
+	// PERF: make this lazy?
+	/**
+	 * Returns true if inside retentiom distance;
+	 */
+	boolean updateCameraDistance() {
+		final BlockPos origin = this.origin;
+		final Vec3d cameraPos = cwr.cameraPos();
 
-		if (x != origin.getX() || y != origin.getY() || z != origin.getZ()) {
-			clear();
-			origin.set(x, y, z);
-
-			final int[] neighborIndices = this.neighborIndices;
-
-			for(int i = 0; i < 6; ++i) {
-				final Direction face = ModelHelper.faceFromIndex(i);
-
-				neighborIndices[i] = storage.getRegionIndexFromBlockPos(x + face.getOffsetX() * 16, y + face.getOffsetY() * 16, z + face.getOffsetZ() * 16);
-			}
-		}
-	}
-
-	void updateCameraDistance(double cameraX, double cameraY, double cameraZ, int maxRenderDistance) {
-		final BlockPos.Mutable origin = this.origin;
-		final float dx = (float) (origin.getX() + 8 - cameraX);
-		final float dy = (float) (origin.getY() + 8 - cameraY);
-		final float dz = (float) (origin.getZ() + 8 - cameraZ);
+		final float dx = (float) (origin.getX() + 8 - cameraPos.x);
+		final float dy = (float) (origin.getY() + 8 - cameraPos.y);
+		final float dz = (float) (origin.getZ() + 8 - cameraPos.z);
 		cameraRelativeCenterX = dx;
 		cameraRelativeCenterY = dy;
 		cameraRelativeCenterZ = dz;
 
-		// PERF: consider moving below to setOrigin
 		final int idx = Math.round(dx);
 		final int idy = Math.round(dy);
 		final int idz = Math.round(dz);
 
-		final int horizontalDistance = idx * idx + idz * idz;
-		isInsideRenderDistance = horizontalDistance <= maxRenderDistance;
+		final int horizontalSquaredDistance = idx * idx + idz * idz;
+		isInsideRenderDistance = horizontalSquaredDistance <= cwr.maxSquaredDistance();
 
-		final int squaredCameraDistance = horizontalDistance + idy * idy;
+		final int squaredCameraDistance = horizontalSquaredDistance + idy * idy;
 		occlusionRange = PackedBox.rangeFromSquareBlockDist(squaredCameraDistance);
 		this.squaredCameraDistance = squaredCameraDistance;
+
+		return horizontalSquaredDistance < cwr.maxRetentionDistance();
 	}
 
 	private static <E extends BlockEntity> void addBlockEntity(List<BlockEntity> chunkEntities, Set<BlockEntity> globalEntities, E blockEntity) {
@@ -175,23 +170,28 @@ public class BuiltRenderRegion {
 		}
 	}
 
-	void clear() {
+	void close() {
 		assert RenderSystem.isOnRenderThread();
 
-		cancel();
-		buildData.set(RegionData.EMPTY);
-		renderData.set(RegionData.EMPTY);
-		needsRebuild = true;
+		releaseDrawables();
 
-		if (solidDrawable != null) {
-			solidDrawable.close();
-			solidDrawable = null;
-		}
+		if (!isClosed) {
+			isClosed = true;
+			chunkReference.release(this);
 
-		if (translucentDrawable != null) {
-			translucentDrawable.close();
-			translucentDrawable = null;
+			cancel();
+			buildData.set(RegionData.EMPTY);
+			renderData.set(RegionData.EMPTY);
+			needsRebuild = true;
 		}
+	}
+
+	private void releaseDrawables() {
+		solidDrawable.close();
+		solidDrawable = DrawableChunk.EMPTY_DRAWABLE;
+
+		translucentDrawable.close();
+		translucentDrawable = DrawableChunk.EMPTY_DRAWABLE;
 	}
 
 	public BlockPos getOrigin() {
@@ -218,7 +218,7 @@ public class BuiltRenderRegion {
 	}
 
 	public void scheduleRebuild() {
-		final ProtoRenderRegion region = ProtoRenderRegion.claim(renderRegionBuilder.world, origin);
+		final ProtoRenderRegion region = ProtoRenderRegion.claim(cwr.getWorld(), origin);
 
 		// null region is signal to reschedule
 		if(buildState.protoRegion.getAndSet(region) == ProtoRenderRegion.IDLE) {
@@ -267,7 +267,7 @@ public class BuiltRenderRegion {
 			}
 
 			// Even if empty the chunk may still be needed for visibility search to progress
-			CanvasWorldRenderer.instance().forceVisibilityUpdate();
+			cwr.forceVisibilityUpdate();
 
 			renderData.set(chunkData);
 			return;
@@ -277,7 +277,7 @@ public class BuiltRenderRegion {
 		if (!shouldBuild()) {
 			markForBuild(false);
 			region.release();
-			CanvasWorldRenderer.instance().forceVisibilityUpdate();
+			cwr.forceVisibilityUpdate();
 			return;
 		}
 
@@ -286,7 +286,7 @@ public class BuiltRenderRegion {
 			final int[] state = regionData.translucentState;
 
 			if (state != null) {
-				final Vec3d cameraPos = renderRegionBuilder.getCameraPosition();
+				final Vec3d cameraPos = cwr.cameraPos();
 				final VertexCollectorList collectors = context.collectors;
 				final MaterialState translucentState = MaterialState.getDefault(MaterialContext.TERRAIN, ShaderPass.TRANSLUCENT);
 				final VertexCollectorImpl collector = collectors.get(translucentState);
@@ -298,12 +298,13 @@ public class BuiltRenderRegion {
 				if(runningState.protoRegion.get() != ProtoRenderRegion.INVALID) {
 					final UploadableChunk upload = collectors.toUploadableChunk(MaterialContext.TERRAIN, true);
 
-					if (upload != null) {
+					if (upload != UploadableChunk.EMPTY_UPLOADABLE) {
 						renderRegionBuilder.scheduleUpload(() -> {
 							if (ChunkRebuildCounters.ENABLED) {
 								ChunkRebuildCounters.startUpload();
 							}
 
+							translucentDrawable.close();
 							translucentDrawable = upload.produceDrawable();
 
 							if (ChunkRebuildCounters.ENABLED) {
@@ -325,7 +326,7 @@ public class BuiltRenderRegion {
 				TerrainOccluder.invalidate(occluderVersion);
 			}
 
-			CanvasWorldRenderer.instance().forceVisibilityUpdate();
+			cwr.forceVisibilityUpdate();
 
 			final VertexCollectorList collectors = context.collectors;
 
@@ -341,14 +342,15 @@ public class BuiltRenderRegion {
 				final UploadableChunk solidUpload = collectors.toUploadableChunk(MaterialContext.TERRAIN, false);
 				final UploadableChunk translucentUpload = collectors.toUploadableChunk(MaterialContext.TERRAIN, true);
 
-				if (solidUpload != null || translucentUpload != null) {
+				if (solidUpload != UploadableChunk.EMPTY_UPLOADABLE || translucentUpload != UploadableChunk.EMPTY_UPLOADABLE) {
 					renderRegionBuilder.scheduleUpload(() -> {
 						if (ChunkRebuildCounters.ENABLED) {
 							ChunkRebuildCounters.startUpload();
 						}
 
-						solidDrawable = solidUpload == null ? null : solidUpload.produceDrawable();
-						translucentDrawable = translucentUpload == null ? null : translucentUpload.produceDrawable();
+						releaseDrawables();
+						solidDrawable = solidUpload.produceDrawable();
+						translucentDrawable = translucentUpload.produceDrawable();
 						renderData.set(chunkData);
 
 						if (ChunkRebuildCounters.ENABLED) {
@@ -396,7 +398,7 @@ public class BuiltRenderRegion {
 		}
 
 		final FastRenderRegion region = context.region;
-		final Vec3d cameraPos = renderRegionBuilder.getCameraPosition();
+		final Vec3d cameraPos = cwr.cameraPos();
 		final MatrixStack matrixStack = new MatrixStack();
 		final BlockRenderManager blockRenderManager = MinecraftClient.getInstance().getBlockRenderManager();
 		final OcclusionRegion occlusionRegion = region.occlusion;
@@ -491,11 +493,11 @@ public class BuiltRenderRegion {
 			}
 		}
 
-		renderRegionBuilder.worldRenderer.updateNoCullingBlockEntities(removedBlockEntities, addedBlockEntities);
+		cwr.updateNoCullingBlockEntities(removedBlockEntities, addedBlockEntities);
 	}
 
 	public void rebuildOnMainThread() {
-		final ProtoRenderRegion region = ProtoRenderRegion.claim(renderRegionBuilder.world, origin);
+		final ProtoRenderRegion region = ProtoRenderRegion.claim(cwr.getWorld(), origin);
 
 		if (region == ProtoRenderRegion.EMPTY) {
 			final RegionData regionData = new RegionData();
@@ -509,7 +511,7 @@ public class BuiltRenderRegion {
 			renderData.set(regionData);
 
 			// Even if empty the chunk may still be needed for visibility search to progress
-			CanvasWorldRenderer.instance().forceVisibilityUpdate();
+			cwr.forceVisibilityUpdate();
 
 			return;
 		}
@@ -522,7 +524,7 @@ public class BuiltRenderRegion {
 			TerrainOccluder.invalidate(occluderVersion);
 		}
 
-		CanvasWorldRenderer.instance().forceVisibilityUpdate();
+		cwr.forceVisibilityUpdate();
 
 		buildTerrain(context, regionData);
 
@@ -533,8 +535,10 @@ public class BuiltRenderRegion {
 		final VertexCollectorList collectors = context.collectors;
 		final UploadableChunk solidUpload = collectors.toUploadableChunk(MaterialContext.TERRAIN, false);
 		final UploadableChunk translucentUpload = collectors.toUploadableChunk(MaterialContext.TERRAIN, true);
-		solidDrawable = solidUpload == null ? null : solidUpload.produceDrawable();
-		translucentDrawable = translucentUpload == null ? null : translucentUpload.produceDrawable();
+
+		releaseDrawables();
+		solidDrawable = solidUpload.produceDrawable();
+		translucentDrawable = translucentUpload.produceDrawable();
 
 		if (ChunkRebuildCounters.ENABLED) {
 			ChunkRebuildCounters.completeUpload();
@@ -545,8 +549,16 @@ public class BuiltRenderRegion {
 		region.release();
 	}
 
-	public int[] getNeighborIndices() {
-		return neighborIndices;
+	public BuiltRenderRegion getNeighbor(int faceIndex) {
+		BuiltRenderRegion region = neighbors[faceIndex];
+
+		if (region == null || region.isClosed) {
+			final Direction face = ModelHelper.faceFromIndex(faceIndex);
+			region = storage.getOrCreateRegion(origin.getX() + face.getOffsetX() * 16, origin.getY() + face.getOffsetY() * 16, origin.getZ() + face.getOffsetZ() * 16);
+			neighbors[faceIndex] = region;
+		}
+
+		return region;
 	}
 
 	public RegionData getBuildData() {
@@ -582,18 +594,32 @@ public class BuiltRenderRegion {
 	public void enqueueUnvistedNeighbors(SimpleUnorderedArrayList<BuiltRenderRegion> queue) {
 		final int index = frameIndex;
 		lastSeenFrameIndex = index;
-		final BuiltRenderRegion regions[] = storage.regions();
 
-		for (final int i : neighborIndices) {
-			if (i != -1) {
-				final BuiltRenderRegion r = regions[i];
-				final int ri = r.lastSeenFrameIndex;
+		enqueNeighbor(index, getNeighbor(EAST_INDEX), queue);
+		enqueNeighbor(index, getNeighbor(WEST_INDEX), queue);
+		enqueNeighbor(index, getNeighbor(NORTH_INDEX), queue);
+		enqueNeighbor(index, getNeighbor(SOUTH_INDEX), queue);
 
-				if (ri != index) {
-					r.lastSeenFrameIndex = index;
-					queue.add(r);
-				}
-			}
+		if (!isTop) {
+			enqueNeighbor(index, getNeighbor(UP_INDEX), queue);
+		}
+
+		if (!isBottom) {
+			enqueNeighbor(index, getNeighbor(DOWN_INDEX), queue);
 		}
 	}
+
+	private void enqueNeighbor(int index, BuiltRenderRegion r, SimpleUnorderedArrayList<BuiltRenderRegion> queue) {
+		if (r.lastSeenFrameIndex != index) {
+			r.lastSeenFrameIndex = index;
+			queue.add(r);
+		}
+	}
+
+	final static int NORTH_INDEX = ModelHelper.toFaceIndex(Direction.NORTH);
+	final static int SOUTH_INDEX = ModelHelper.toFaceIndex(Direction.SOUTH);
+	final static int EAST_INDEX = ModelHelper.toFaceIndex(Direction.EAST);
+	final static int WEST_INDEX = ModelHelper.toFaceIndex(Direction.WEST);
+	final static int UP_INDEX = ModelHelper.toFaceIndex(Direction.UP);
+	final static int DOWN_INDEX = ModelHelper.toFaceIndex(Direction.DOWN);
 }

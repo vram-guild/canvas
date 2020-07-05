@@ -14,7 +14,7 @@
  * the License.
  ******************************************************************************/
 
-package grondag.canvas.varia;
+package grondag.canvas.buffer;
 
 import java.nio.IntBuffer;
 
@@ -24,7 +24,9 @@ import it.unimi.dsi.fastutil.ints.IntArrayFIFOQueue;
 
 import net.minecraft.client.util.GlAllocationUtils;
 
-public class VaoStore {
+import grondag.canvas.varia.CanvasGlHelper;
+
+public class VaoAllocator {
 	private static final IntArrayFIFOQueue queue = new IntArrayFIFOQueue();
 	private static final IntBuffer buff = GlAllocationUtils.allocateByteBuffer(128 * 4).asIntBuffer();
 

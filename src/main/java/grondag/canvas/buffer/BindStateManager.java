@@ -1,4 +1,4 @@
-package grondag.canvas.buffer.allocation;
+package grondag.canvas.buffer;
 
 import org.lwjgl.opengl.GL21;
 

@@ -17,8 +17,8 @@ import grondag.canvas.material.MaterialContext;
 import grondag.canvas.material.MaterialVertexFormat;
 import grondag.canvas.render.DrawHandler;
 import grondag.canvas.render.DrawHandlers;
-import grondag.canvas.shader.ShaderContext;
 import grondag.canvas.shader.MaterialShaderManager;
+import grondag.canvas.shader.ShaderContext;
 import grondag.canvas.shader.ShaderPass;
 import grondag.canvas.terrain.BuiltRenderRegion;
 import grondag.canvas.terrain.TerrainModelSpace;
@@ -70,7 +70,7 @@ public class TerrainLayerRenderer {
 
 			final DrawableChunk drawable = isTranslucent ? builtRegion.translucentDrawable() : builtRegion.solidDrawable();
 
-			if (drawable != null && !drawable.isClosed()) {
+			if (!drawable.isClosed()) {
 				final ObjectArrayList<DrawableDelegate> delegates = drawable.delegates(pass);
 
 				if (delegates != null) {

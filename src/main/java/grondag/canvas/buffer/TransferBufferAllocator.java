@@ -14,7 +14,7 @@
  * the License.
  ******************************************************************************/
 
-package grondag.canvas.buffer.allocation;
+package grondag.canvas.buffer;
 
 import java.nio.ByteBuffer;
 import java.util.Collections;
@@ -34,7 +34,7 @@ import grondag.canvas.Configurator;
  * Tracks all allocations, ensures deallocation on render reload.
  * Implements configuration of allocation method.
  */
-public class BufferAllocator {
+public class TransferBufferAllocator {
 	private static final IntFunction<ByteBuffer> SUPPLIER = Configurator.safeNativeMemoryAllocation ? BufferUtils::createByteBuffer : MemoryUtil::memAlloc;
 	private static final Consumer<ByteBuffer> CONSUMER = Configurator.safeNativeMemoryAllocation ? b -> {} : MemoryUtil::memFree;
 	private static final Set<ByteBuffer> OPEN = Collections.newSetFromMap(new IdentityHashMap<ByteBuffer, Boolean>());
@@ -86,7 +86,7 @@ public class BufferAllocator {
 				peakSize = size;
 			}
 		}
-		return String.format("Peak allocated buffers: %03d @ %03dMB - %s mode", peakSize, peakBytes / 0x100000,
+		return String.format("Peak transfer buffers: %03d @ %03dMB - %s mode", peakSize, peakBytes / 0x100000,
 				Configurator.safeNativeMemoryAllocation ? "safe" : "fast");
 	}
 }

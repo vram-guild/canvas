@@ -20,16 +20,13 @@ import java.nio.IntBuffer;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
-import grondag.canvas.buffer.allocation.VboBuffer;
+import grondag.canvas.buffer.VboBuffer;
 import grondag.canvas.buffer.encoding.VertexCollectorImpl;
 import grondag.canvas.buffer.encoding.VertexCollectorList;
 import grondag.canvas.shader.ShaderPass;
 
-
 public abstract class DrawableChunk {
-
 	protected boolean isClosed = false;
-	protected int quadCount = -1;
 	public final VboBuffer vboBuffer;
 
 	protected DrawableChunk(VboBuffer vboBuffer) {
@@ -170,6 +167,26 @@ public abstract class DrawableChunk {
 			delegates = null;
 		}
 	}
+
+	private static class Dummy extends DrawableChunk {
+		private final ObjectArrayList<DrawableDelegate> nothing = new ObjectArrayList<>();
+		protected Dummy() {
+			super(null);
+			isClosed = true;
+		}
+
+		@Override
+		public ObjectArrayList<DrawableDelegate> delegates(ShaderPass pass) {
+			return nothing;
+		}
+
+		@Override
+		protected void closeInner() {
+			// NOOP
+		}
+	}
+
+	public static DrawableChunk EMPTY_DRAWABLE = new DrawableChunk.Dummy();
 
 	private static void clearDelegateList(ObjectArrayList<DrawableDelegate> delegates) {
 		if (!delegates.isEmpty()) {

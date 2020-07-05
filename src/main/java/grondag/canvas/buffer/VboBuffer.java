@@ -14,7 +14,7 @@
  * the License.
  ******************************************************************************/
 
-package grondag.canvas.buffer.allocation;
+package grondag.canvas.buffer;
 
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
@@ -30,11 +30,10 @@ import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
 import grondag.canvas.material.MaterialVertexFormat;
 import grondag.canvas.varia.CanvasGlHelper;
-import grondag.canvas.varia.GLBufferStore;
-import grondag.canvas.varia.VaoStore;
 
-public class VboBuffer implements AutoCloseable {
+public class VboBuffer {
 	ByteBuffer uploadBuffer;
+	private final int byteCount;
 	private int glBufferId = -1;
 	private boolean isClosed = false;
 
@@ -55,8 +54,9 @@ public class VboBuffer implements AutoCloseable {
 	private static final int VAO_NONE = -1;
 
 	public VboBuffer(int bytes, MaterialVertexFormat format) {
-		uploadBuffer = BufferAllocator.claim(bytes);
+		uploadBuffer = TransferBufferAllocator.claim(bytes);
 		this.format = format;
+		byteCount = bytes;
 		vertexBinder = CanvasGlHelper.isVaoEnabled() ? this::bindVao : this::bindVbo;
 	}
 
@@ -70,7 +70,7 @@ public class VboBuffer implements AutoCloseable {
 			BindStateManager.bind(glBufferId());
 			GL21.glBufferData(GL21.GL_ARRAY_BUFFER, uploadBuffer, GL21.GL_STATIC_DRAW);
 			BindStateManager.unbind();
-			BufferAllocator.release(uploadBuffer);
+			TransferBufferAllocator.release(uploadBuffer);
 			this.uploadBuffer = null;
 		}
 	}
@@ -80,7 +80,7 @@ public class VboBuffer implements AutoCloseable {
 
 		if(result == -1) {
 			assert RenderSystem.isOnGameThread();
-			result = GLBufferStore.claimBuffer();
+			result = GlBufferAllocator.claimBuffer(byteCount);
 
 			assert result > 0;
 
@@ -104,7 +104,7 @@ public class VboBuffer implements AutoCloseable {
 
 			BindStateManager.bind(glBufferId());
 
-			vaoBufferId = VaoStore.claimVertexArray();
+			vaoBufferId = VaoAllocator.claimVertexArray();
 			CanvasGlHelper.glBindVertexArray(vaoBufferId);
 
 			if (Configurator.logGlStateChanges) {
@@ -143,7 +143,6 @@ public class VboBuffer implements AutoCloseable {
 		return isClosed;
 	}
 
-	@Override
 	public void close() {
 		if (RenderSystem.isOnRenderThread()) {
 			onClose();
@@ -159,19 +158,19 @@ public class VboBuffer implements AutoCloseable {
 			final int glBufferId = this.glBufferId;
 
 			if(glBufferId != -1) {
-				GLBufferStore.releaseBuffer(glBufferId);
+				GlBufferAllocator.releaseBuffer(glBufferId, byteCount);
 				this.glBufferId = -1;
 			}
 
 			final ByteBuffer uploadBuffer = this.uploadBuffer;
 
 			if(uploadBuffer != null) {
-				BufferAllocator.release(uploadBuffer);
+				TransferBufferAllocator.release(uploadBuffer);
 				this.uploadBuffer = null;
 			}
 
 			if (vaoBufferId > 0) {
-				VaoStore.releaseVertexArray(vaoBufferId);
+				VaoAllocator.releaseVertexArray(vaoBufferId);
 				vaoBufferId = VAO_NONE;
 			}
 		}

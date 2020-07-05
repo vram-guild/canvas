@@ -26,7 +26,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import net.minecraft.client.gui.hud.DebugHud;
 
 import grondag.canvas.Configurator;
-import grondag.canvas.buffer.allocation.BufferAllocator;
+import grondag.canvas.buffer.GlBufferAllocator;
+import grondag.canvas.buffer.TransferBufferAllocator;
 import grondag.canvas.light.LightmapHd;
 
 @Mixin(DebugHud.class)
@@ -39,6 +40,7 @@ public class MixinDebugHud {
 			list.add("HD Lightmap Occupancy: " + LightmapHd.occupancyReport());
 		}
 
-		list.add(BufferAllocator.debugString());
+		list.add(TransferBufferAllocator.debugString());
+		list.add(GlBufferAllocator.debugString());
 	}
 }

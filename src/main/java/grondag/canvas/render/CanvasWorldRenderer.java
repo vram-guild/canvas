@@ -14,6 +14,7 @@ import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap.Entry;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL21;
 
@@ -61,8 +62,8 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.profiler.Profiler;
 
 import grondag.canvas.Configurator;
-import grondag.canvas.buffer.allocation.BindStateManager;
-import grondag.canvas.buffer.allocation.VboBuffer;
+import grondag.canvas.buffer.BindStateManager;
+import grondag.canvas.buffer.VboBuffer;
 import grondag.canvas.compat.ClothHolder;
 import grondag.canvas.light.LightmapHdTexture;
 import grondag.canvas.mixinterface.WorldRendererExt;
@@ -85,19 +86,22 @@ import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
 public class CanvasWorldRenderer {
 	private static CanvasWorldRenderer instance;
 
-	public static CanvasWorldRenderer instance() {
-		return instance;
-	}
+	public static final int MAX_REGION_COUNT = (32 * 2 + 1) * (32 * 2 + 1) * 16;
 
 	private boolean terrainSetupOffThread = Configurator.terrainSetupOffThread;
 	private int playerLightmap = 0;
 	private RenderRegionBuilder regionBuilder;
-	private RenderRegionStorage renderRegionStorage;
-	private final TerrainIterator terrainIterator = new TerrainIterator();
+	private final RenderRegionStorage renderRegionStorage = new RenderRegionStorage(this);
+	private final TerrainIterator terrainIterator = new TerrainIterator(renderRegionStorage);
 	private final CanvasFrustum frustum = new CanvasFrustum();
 	private int translucentSortPositionVersion;
 	private int viewVersion;
 	private int occluderVersion;
+	private ClientWorld world;
+	private int squaredRenderDistance;
+	private int squaredRetentionDistance;
+
+	private Vec3d cameraPos;
 
 	/**
 	 * Incremented whenever regions are built so visibility search can progress or to indicate visibility might be changed.
@@ -110,7 +114,7 @@ public class CanvasWorldRenderer {
 	// TODO: redirect uses in MC WorldRenderer
 	public final Set<BuiltRenderRegion> regionsToRebuild = Sets.newLinkedHashSet();
 
-	private BuiltRenderRegion[] visibleRegions = new BuiltRenderRegion[4096];
+	private final BuiltRenderRegion[] visibleRegions = new BuiltRenderRegion[MAX_REGION_COUNT];
 	private int visibleRegionCount = 0;
 
 	private final WorldRendererExt wr;
@@ -118,44 +122,29 @@ public class CanvasWorldRenderer {
 	public CanvasWorldRenderer(WorldRendererExt wr) {
 		this.wr = wr;
 		instance = this;
+		computeDistances();
 	}
 
-	public void clearRegions() {
-		regionsToRebuild.clear();
-		regionBuilder.reset();
+	private void computeDistances() {
+		int renderDistance = wr.canvas_renderDistance();
+		squaredRenderDistance = renderDistance * renderDistance * 256;
+		renderDistance += 2;
+		squaredRetentionDistance = renderDistance * renderDistance * 256;
 	}
 
 	public void forceVisibilityUpdate() {
 		regionDataVersion.incrementAndGet();
 	}
 
-	@SuppressWarnings("resource")
 	public void reload() {
+		computeDistances();
 		terrainIterator.reset();
 		terrainSetupOffThread = Configurator.terrainSetupOffThread;
-
-		if (regionBuilder == null) {
-			regionBuilder = new RenderRegionBuilder(wr.canvas_world(), (WorldRenderer) wr, wr.canvas_mc().is64Bit());
-		} else {
-			regionBuilder.setWorld(wr.canvas_world());
-		}
-
-		if (renderRegionStorage != null) {
-			renderRegionStorage.clear();
-		}
-
-		clearRegions();
+		regionsToRebuild.clear();
+		regionBuilder.reset();
+		renderRegionStorage.clear();
 		TerrainOccluder.invalidate();
-		renderRegionStorage = new RenderRegionStorage(regionBuilder, wr.canvas_mc().options.viewDistance);
-		terrainIterator.setRegionStorage(renderRegionStorage);
 		visibleRegionCount = 0;
-		visibleRegions = new BuiltRenderRegion[renderRegionStorage.regionCount()];
-
-		final Entity entity = wr.canvas_mc().getCameraEntity();
-
-		if (entity != null) {
-			renderRegionStorage.updateRegionOrigins(entity.getX(), entity.getZ());
-		}
 	}
 
 	public RenderRegionBuilder regionBuilder() {
@@ -171,10 +160,22 @@ public class CanvasWorldRenderer {
 	}
 
 	public void setWorld(@Nullable ClientWorld clientWorld) {
+		// happens here to avoid creating before renderer is initialized
+		if (regionBuilder == null) {
+			regionBuilder = new RenderRegionBuilder();
+		}
+
+		world = clientWorld;
 		visibleRegionCount = 0;
+		renderRegionStorage.clear();
 		Arrays.fill(visibleRegions, null);
 		terrainIterator.reset();
+		renderRegionStorage.clear();
 		Arrays.fill(terrainIterator.visibleRegions, null);
+	}
+
+	public ClientWorld getWorld() {
+		return world;
 	}
 
 	// FIX: missing edges with off-thread iteration - try frustum check on thread but leave potentially visible set off
@@ -197,13 +198,11 @@ public class CanvasWorldRenderer {
 	 * also  be added to the existing raster.
 	 * or
 	 */
-	public void setupTerrain(Camera camera, CanvasFrustum frustum, int frameCounter, boolean isSpectator) {
+	public void setupTerrain(Camera camera, int frameCounter, boolean isSpectator) {
 		final WorldRendererExt wr = this.wr;
 		final MinecraftClient mc = wr.canvas_mc();
 		final int renderDistance = wr.canvas_renderDistance();
-		final RenderRegionBuilder regionBuilder = this.regionBuilder;
 		final RenderRegionStorage regionStorage = renderRegionStorage;
-		final BuiltRenderRegion[] regions = regionStorage.regions();
 		final TerrainIterator terrainIterator = this.terrainIterator;
 		final int frustumPositionVersion = frustum.positionVersion();
 
@@ -212,20 +211,22 @@ public class CanvasWorldRenderer {
 		}
 
 		mc.getProfiler().push("camera");
-		final Vec3d cameraPos = camera.getPos();
-		regionBuilder.setCameraPosition(cameraPos);
+		final Vec3d cameraPos = this.cameraPos;
+
 		mc.getProfiler().swap("distance");
 		regionStorage.updateCameraDistance(cameraPos, frustumPositionVersion, renderDistance);
 		MaterialShaderManager.INSTANCE.prepareForFrame(camera);
 		final BlockPos cameraBlockPos = camera.getBlockPos();
-		final BuiltRenderRegion cameraRegion = regionStorage.getRegion(cameraBlockPos);
+		final BuiltRenderRegion cameraRegion = cameraBlockPos.getY() < 0 || cameraBlockPos.getY() > 255 ? null : regionStorage.getOrCreateRegion(cameraBlockPos);
 
 		if (cameraRegion != null)  {
 			buildNearRegion(cameraRegion);
 
-			for (final int i : cameraRegion.getNeighborIndices()) {
-				if (i != -1) {
-					buildNearRegion(regions[i]);
+			for (int i = 0; i < 6; ++i) {
+				final BuiltRenderRegion r = cameraRegion.getNeighbor(i);
+
+				if (r != null) {
+					buildNearRegion(r);
 				}
 			}
 		}
@@ -257,7 +258,7 @@ public class CanvasWorldRenderer {
 				lastRegionDataVersion = newRegionDataVersion;
 				TerrainOccluder.prepareScene(camera, frustum, renderRegionStorage.regionVersion());
 				terrainIterator.prepare(cameraRegion, cameraBlockPos, frustum, renderDistance);
-				this.regionBuilder.executor.execute(terrainIterator, -1);
+				regionBuilder.executor.execute(terrainIterator, -1);
 			}
 		} else {
 			final int newRegionDataVersion = regionDataVersion.get();
@@ -327,9 +328,8 @@ public class CanvasWorldRenderer {
 		final WorldRendererExt wr = this.wr;
 		final MinecraftClient mc = wr.canvas_mc();
 		updatePlayerLightmap(mc, tickDelta);
-		final ClientWorld world = wr.canvas_world();
+		final ClientWorld world = this.world;
 		final BufferBuilderStorage bufferBuilders = wr.canvas_bufferBuilders();
-
 		final EntityRenderDispatcher entityRenderDispatcher = wr.canvas_entityRenderDispatcher();
 
 		BlockEntityRenderDispatcher.INSTANCE.configure(world, mc.getTextureManager(), mc.textRenderer, camera, mc.crosshairTarget);
@@ -338,6 +338,8 @@ public class CanvasWorldRenderer {
 		profiler.swap("light_updates");
 		mc.world.getChunkManager().getLightingProvider().doLightUpdates(Integer.MAX_VALUE, true, true);
 		final Vec3d cameraVec3d = camera.getPos();
+		cameraPos = cameraVec3d;
+
 		final double cameraX = cameraVec3d.getX();
 		final double cameraY = cameraVec3d.getY();
 		final double cameraZ = cameraVec3d.getZ();
@@ -349,7 +351,6 @@ public class CanvasWorldRenderer {
 		frustum.prepare(modelMatrix, projectionMatrix, camera);
 
 		mc.getProfiler().swap("regions");
-		renderRegionStorage.updateRegionOriginsIfNeeded(mc);
 
 		profiler.swap("clear");
 		BackgroundRenderer.render(camera, tickDelta, mc.world, mc.options.viewDistance, gameRenderer.getSkyDarkness(tickDelta));
@@ -367,7 +368,7 @@ public class CanvasWorldRenderer {
 		BackgroundRenderer.applyFog(camera, BackgroundRenderer.FogType.FOG_TERRAIN, Math.max(viewDistance - 16.0F, 32.0F), thickFog);
 		profiler.swap("terrain_setup");
 
-		setupTerrain(camera, frustum, wr.canvas_getAndIncrementFrameIndex(), mc.player.isSpectator());
+		setupTerrain(camera, wr.canvas_getAndIncrementFrameIndex(), mc.player.isSpectator());
 
 		profiler.swap("updatechunks");
 		final int maxFps = mc.options.maxFps;
@@ -442,9 +443,9 @@ public class CanvasWorldRenderer {
 				renderProvider = outlineVertexConsumerProvider;
 				final int teamColor = entity.getTeamColorValue();
 				final int red = teamColor >> 16 & 255;
-				final int green = teamColor >> 8 & 255;
-				final int blue = teamColor & 255;
-				outlineVertexConsumerProvider.setColor(red, green, blue, 255);
+			final int green = teamColor >> 8 & 255;
+			final int blue = teamColor & 255;
+			outlineVertexConsumerProvider.setColor(red, green, blue, 255);
 			} else {
 				renderProvider = immediate;
 			}
@@ -633,7 +634,7 @@ public class CanvasWorldRenderer {
 		}
 
 		final BlockPos pos = ((BlockHitResult) (hit)).getBlockPos();
-		final BuiltRenderRegion region = renderRegionStorage.getRegion(pos);
+		final BuiltRenderRegion region = renderRegionStorage.getRegionIfExists(pos);
 
 		if (region == null) {
 			return;
@@ -865,11 +866,31 @@ public class CanvasWorldRenderer {
 		for (int i = 0; i < limit; i++) {
 			final BuiltRenderRegion region = visibleRegions[i];
 
-			if (region.solidDrawable() != null || region.translucentDrawable() != null) {
+			if (!region.solidDrawable().isClosed() || !region.translucentDrawable().isClosed()) {
 				++result;
 			}
 		}
 
 		return result;
+	}
+
+	public CanvasFrustum frustum() {
+		return frustum;
+	}
+
+	public Vec3d cameraPos() {
+		return cameraPos;
+	}
+
+	public int maxSquaredDistance() {
+		return squaredRenderDistance;
+	}
+
+	public int maxRetentionDistance() {
+		return squaredRetentionDistance;
+	}
+
+	public void updateNoCullingBlockEntities(ObjectOpenHashSet<BlockEntity> removedBlockEntities, ObjectOpenHashSet<BlockEntity> addedBlockEntities) {
+		((WorldRenderer) wr).updateNoCullingBlockEntities(removedBlockEntities, addedBlockEntities);
 	}
 }

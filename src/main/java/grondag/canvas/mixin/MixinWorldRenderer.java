@@ -108,12 +108,6 @@ public class MixinWorldRenderer implements WorldRendererExt {
 		ci.cancel();
 	}
 
-	@Inject(at = @At("HEAD"), method = "clearChunkRenderers", cancellable = true)
-	private void onClearChunkRenderers(CallbackInfo ci) {
-		canvasWorldRenderer.clearRegions();
-		ci.cancel();
-	}
-
 	@Inject(at = @At("HEAD"), method = "setWorld")
 	private void onSetWorld(@Nullable ClientWorld clientWorld, CallbackInfo ci) {
 		canvasWorldRenderer.setWorld(clientWorld);

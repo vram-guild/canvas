@@ -252,28 +252,30 @@ public class CanvasFrustum extends Frustum {
 		return true;
 	}
 
+	private static final float MIN_GAP = 0.0001f;
+
 	public boolean isRegionVisible(BuiltRenderRegion region) {
 		final float cx = region.cameraRelativeCenterX;
 		final float cy = region.cameraRelativeCenterY;
 		final float cz = region.cameraRelativeCenterZ;
 
-		if(cx * leftX + cy * leftY + cz * leftZ + leftRegionExtent > 0) {
+		if(cx * leftX + cy * leftY + cz * leftZ + leftRegionExtent > MIN_GAP) {
 			return false;
 		}
 
-		if(cx * rightX + cy * rightY + cz * rightZ + rightRegionExtent > 0) {
+		if(cx * rightX + cy * rightY + cz * rightZ + rightRegionExtent > MIN_GAP) {
 			return false;
 		}
 
-		if(cx * nearX + cy * nearY + cz * nearZ + nearRegionExtent > 0) {
+		if(cx * nearX + cy * nearY + cz * nearZ + nearRegionExtent > MIN_GAP) {
 			return false;
 		}
 
-		if(cx * topX + cy * topY + cz * topZ + topRegionExtent > 0) {
+		if(cx * topX + cy * topY + cz * topZ + topRegionExtent > MIN_GAP) {
 			return false;
 		}
 
-		if(cx * bottomX + cy * bottomY + cz * bottomZ + bottomRegionExtent > 0) {
+		if(cx * bottomX + cy * bottomY + cz * bottomZ + bottomRegionExtent > MIN_GAP) {
 			return false;
 		}
 

@@ -126,7 +126,7 @@ public class VertexCollectorList {
 
 	public UploadableChunk toUploadableChunk(MaterialContext context, boolean isTranslucent) {
 		final int bytes = totalBytes(isTranslucent);
-		return bytes == 0 ? null : new UploadableChunk(this, MaterialVertexFormats.get(context, isTranslucent), isTranslucent, bytes);
+		return bytes == 0 ? UploadableChunk.EMPTY_UPLOADABLE : new UploadableChunk(this, MaterialVertexFormats.get(context, isTranslucent), isTranslucent, bytes);
 	}
 
 	public VertexCollectorImpl getTranslucent() {

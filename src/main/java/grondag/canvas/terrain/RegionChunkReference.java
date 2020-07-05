@@ -1,23 +1,21 @@
 package grondag.canvas.terrain;
 
 import net.minecraft.client.world.ClientWorld;
+import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.chunk.ChunkStatus;
 
 public class RegionChunkReference {
 	private final ClientWorld world;
 
-	private int chunkX;
-	private int chunkZ;
+	private final int chunkX;
+	private final int chunkZ;
 	private boolean areCornersLoadedCache = false;
+	private int refCount = 0;
 
-	public  RegionChunkReference(ClientWorld world) {
+	public  RegionChunkReference(ClientWorld world, long chunkPos) {
 		this.world = world;
-	}
-
-	public void setOrigin(int x, int z) {
-		areCornersLoadedCache = false;
-		chunkX = x >> 4;
-		chunkZ = z >> 4;
+		chunkX = ChunkPos.getPackedX(chunkPos);
+		chunkZ = ChunkPos.getPackedZ(chunkPos);
 	}
 
 	public boolean areCornersLoaded() {
@@ -35,5 +33,17 @@ public class RegionChunkReference {
 		areCornersLoadedCache = result;
 
 		return result;
+	}
+
+	public void retain(BuiltRenderRegion region) {
+		++refCount;
+	}
+
+	public void release(BuiltRenderRegion region) {
+		--refCount;
+	}
+
+	public boolean isEmpty() {
+		return refCount == 0;
 	}
 }
