@@ -133,7 +133,7 @@ public class MixinWorldRenderer implements WorldRendererExt {
 	 */
 	@Overwrite
 	private void scheduleChunkRender(int x, int y, int z, boolean urgent) {
-		canvasWorldRenderer.regionStorage().scheduleRebuild(x, y, z, urgent);
+		canvasWorldRenderer.regionStorage().scheduleRebuild(x << 4, y << 4, z << 4, urgent);
 		canvasWorldRenderer.forceVisibilityUpdate();
 	}
 

@@ -110,9 +110,9 @@ public class TerrainIterator implements  Consumer<TerrainRenderContext> {
 
 			if (visData != OcclusionRegion.EMPTY_CULL_DATA && visData != null) {
 				visibleRegions[visibleRegionCount++] = cameraRegion;
-				cameraRegion.occluderResult = false;
-			} else {
 				cameraRegion.occluderResult = true;
+			} else {
+				cameraRegion.occluderResult = false;
 			}
 
 			cameraRegion.enqueueUnvistedNeighbors(currentLevel);
