@@ -53,7 +53,7 @@ public class Configurator {
 		boolean blendFluidColors = true;
 
 		@Comment("Glow effect around light sources. Work-in-Progress")
-		public boolean enableBloom = true;
+		public boolean enableBloom = false;
 
 		@Comment("Intensity of glow effect around light sources. 0.0 to 0.25, default is 0.09.")
 		public float bloomIntensity = 0.09f;
@@ -237,6 +237,7 @@ public class Configurator {
 		clampExteriorVertices = config.clampExteriorVertices;
 		fixLuminousBlockShading = config.fixLuminousBlockShading;
 		terrainSetupOffThread = config.terrainSetupOffThread;
+		safeNativeMemoryAllocation = config.safeNativeMemoryAllocation;
 		enableVao = config.enableVao;
 
 		lightmapDebug = config.lightmapDebug;
@@ -244,7 +245,6 @@ public class Configurator {
 		logMachineInfo = config.logMachineInfo;
 		logGlStateChanges = config.logGlStateChanges;
 		debugNativeMemoryAllocation = config.debugNativeMemoryAllocation;
-		safeNativeMemoryAllocation = config.safeNativeMemoryAllocation;
 		enablePerformanceTrace = config.enablePerformanceTrace;
 		debugOcclusionBoxes = config.debugOcclusionBoxes;
 		debugOcclusionRaster = config.debugOcclusionRaster;
@@ -276,6 +276,7 @@ public class Configurator {
 		config.clampExteriorVertices = clampExteriorVertices;
 		config.fixLuminousBlockShading = fixLuminousBlockShading;
 		config.terrainSetupOffThread = terrainSetupOffThread;
+		config.safeNativeMemoryAllocation = safeNativeMemoryAllocation;
 		config.enableVao = enableVao;
 
 		config.lightmapDebug = lightmapDebug;
@@ -283,7 +284,6 @@ public class Configurator {
 		config.logMachineInfo = logMachineInfo;
 		config.logGlStateChanges = logGlStateChanges;
 		config.debugNativeMemoryAllocation = debugNativeMemoryAllocation;
-		config.safeNativeMemoryAllocation = safeNativeMemoryAllocation;
 		config.enablePerformanceTrace = enablePerformanceTrace;
 		config.debugOcclusionBoxes = debugOcclusionBoxes;
 		config.debugOcclusionRaster = debugOcclusionRaster;
@@ -357,7 +357,15 @@ public class Configurator {
 		reload = false;
 
 		final ConfigBuilder builder = ConfigBuilder.create()
-				.setParentScreen(screenIn).setTitle(new TranslatableText("config.canvas.title")).setSavingRunnable(Configurator::saveUserInput);
+				.setParentScreen(screenIn)
+				.setTitle(new TranslatableText("config.canvas.title"))
+				.setSavingRunnable(Configurator::saveUserInput)
+				.setAlwaysShowTabs(false)
+				.setShouldListSmoothScroll(true)
+				.setShouldListSmoothScroll(true);
+
+		builder.setGlobalized(true);
+		builder.setGlobalizedExpanded(false);
 
 		// FEATURES
 		final ConfigCategory features = builder.getOrCreateCategory(new TranslatableText("config.canvas.category.features"));
@@ -503,6 +511,13 @@ public class Configurator {
 				.build());
 
 		tweaks.addEntry(ENTRY_BUILDER
+				.startBooleanToggle(new TranslatableText("config.canvas.value.safe_native_allocation"), safeNativeMemoryAllocation)
+				.setDefaultValue(DEFAULTS.safeNativeMemoryAllocation)
+				.setTooltip(parse("config.canvas.help.safe_native_allocation"))
+				.setSaveConsumer(b -> safeNativeMemoryAllocation = b)
+				.build());
+
+		tweaks.addEntry(ENTRY_BUILDER
 				.startBooleanToggle(new TranslatableText("config.canvas.value.enable_vao"), enableVao)
 				.setDefaultValue(DEFAULTS.enableVao)
 				.setTooltip(parse("config.canvas.help.enable_vao"))
@@ -552,13 +567,6 @@ public class Configurator {
 				.setDefaultValue(DEFAULTS.debugNativeMemoryAllocation)
 				.setTooltip(parse("config.canvas.help.debug_native_allocation"))
 				.setSaveConsumer(b -> debugNativeMemoryAllocation = b)
-				.build());
-
-		debug.addEntry(ENTRY_BUILDER
-				.startBooleanToggle(new TranslatableText("config.canvas.value.safe_native_allocation"), safeNativeMemoryAllocation)
-				.setDefaultValue(DEFAULTS.safeNativeMemoryAllocation)
-				.setTooltip(parse("config.canvas.help.safe_native_allocation"))
-				.setSaveConsumer(b -> safeNativeMemoryAllocation = b)
 				.build());
 
 		debug.addEntry(ENTRY_BUILDER
