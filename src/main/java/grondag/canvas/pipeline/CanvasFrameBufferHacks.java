@@ -17,24 +17,24 @@ package grondag.canvas.pipeline;
 
 import java.nio.IntBuffer;
 
-import com.mojang.blaze3d.platform.FramebufferInfo;
-import com.mojang.blaze3d.platform.GlStateManager;
-import com.mojang.blaze3d.systems.RenderSystem;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.ARBTextureFloat;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL21;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gl.Framebuffer;
-import net.minecraft.client.texture.TextureUtil;
-import net.minecraft.client.util.InputUtil;
+import com.mojang.blaze3d.platform.FramebufferInfo;
+import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.systems.RenderSystem;
 
 import grondag.canvas.Configurator;
 import grondag.canvas.buffer.allocation.VboBuffer;
 import grondag.canvas.buffer.encoding.VertexCollectorImpl;
 import grondag.canvas.material.MaterialVertexFormats;
 import grondag.canvas.shader.GlProgram;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gl.Framebuffer;
+import net.minecraft.client.texture.TextureUtil;
+import net.minecraft.client.util.InputUtil;
 
 //PERF: handle VAO properly here before re-enabling VAO
 public class CanvasFrameBufferHacks {
@@ -247,7 +247,7 @@ public class CanvasFrameBufferHacks {
 		GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MAX_LOD, 6);
 		GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_LOD_BIAS, 0.0F);
 		GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MIN_FILTER, GL21.GL_LINEAR_MIPMAP_NEAREST);
-		GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MAG_FILTER, GL21.GL_LINEAR_MIPMAP_NEAREST);
+		GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MAG_FILTER, GL21.GL_LINEAR);
 
 		GlStateManager.texImage2D(GL21.GL_TEXTURE_2D, 1, GL21.GL_RGBA8, w >> 1, h >> 1, 0, GL21.GL_RGBA, GL21.GL_UNSIGNED_BYTE, (IntBuffer)null);
 		GlStateManager.texImage2D(GL21.GL_TEXTURE_2D, 2, GL21.GL_RGBA8, w >> 2, h >> 2, 0, GL21.GL_RGBA, GL21.GL_UNSIGNED_BYTE, (IntBuffer)null);
