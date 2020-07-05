@@ -38,12 +38,16 @@ public class BufferAllocator {
 	private static final IntFunction<ByteBuffer> SUPPLIER = Configurator.safeNativeMemoryAllocation ? BufferUtils::createByteBuffer : MemoryUtil::memAlloc;
 	private static final Consumer<ByteBuffer> CONSUMER = Configurator.safeNativeMemoryAllocation ? b -> {} : MemoryUtil::memFree;
 	private static final Set<ByteBuffer> OPEN = Collections.newSetFromMap(new IdentityHashMap<ByteBuffer, Boolean>());
+	private static int allocatedBytes = 0;
 
 	public static synchronized  ByteBuffer claim(int bytes) {
 		if(bytes < 4096) {
 			bytes = 4096;
 		}
+
 		bytes = MathHelper.smallestEncompassingPowerOfTwo(bytes);
+		allocatedBytes += bytes;
+
 		final ByteBuffer result =SUPPLIER.apply(bytes);
 		OPEN.add(result);
 		return result;
@@ -51,6 +55,7 @@ public class BufferAllocator {
 
 	public static synchronized void release(ByteBuffer uploadBuffer) {
 		if(OPEN.remove(uploadBuffer)) {
+			allocatedBytes -= uploadBuffer.capacity();
 			CONSUMER.accept(uploadBuffer);
 		}
 	}
@@ -58,6 +63,30 @@ public class BufferAllocator {
 	public static synchronized void forceReload() {
 		OPEN.forEach(CONSUMER);
 		OPEN.clear();
+		allocatedBytes = 0;
 	}
 
+	private static int peakBytes = 0;
+	private static int peakSize = 0;
+	private static int zeroCount = 0;
+
+	public static String debugString() {
+		final int size = OPEN.size();
+
+		if (size == 0 && ++zeroCount >= 10) {
+			peakBytes = 0;
+			peakSize = 0;
+			zeroCount = 0;
+		} else {
+			if (allocatedBytes > peakBytes) {
+				peakBytes = allocatedBytes;
+			}
+
+			if (size > peakSize) {
+				peakSize = size;
+			}
+		}
+		return String.format("Peak allocated buffers: %03d @ %03dMB - %s mode", peakSize, peakBytes / 0x100000,
+				Configurator.safeNativeMemoryAllocation ? "safe" : "fast");
+	}
 }

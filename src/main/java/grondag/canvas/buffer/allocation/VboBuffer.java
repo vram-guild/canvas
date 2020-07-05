@@ -19,12 +19,12 @@ package grondag.canvas.buffer.allocation;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 
-import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL21;
-import org.lwjgl.system.MemoryUtil;
-
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL21;
+
+import net.minecraft.client.render.VertexFormatElement;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
@@ -32,7 +32,6 @@ import grondag.canvas.material.MaterialVertexFormat;
 import grondag.canvas.varia.CanvasGlHelper;
 import grondag.canvas.varia.GLBufferStore;
 import grondag.canvas.varia.VaoStore;
-import net.minecraft.client.render.VertexFormatElement;
 
 public class VboBuffer implements AutoCloseable {
 	ByteBuffer uploadBuffer;
@@ -56,8 +55,7 @@ public class VboBuffer implements AutoCloseable {
 	private static final int VAO_NONE = -1;
 
 	public VboBuffer(int bytes, MaterialVertexFormat format) {
-		// TODO: get rid of BufferAllocator if it won't be faster
-		uploadBuffer = MemoryUtil.memAlloc(bytes); //BufferUtils.createByteBuffer(bytes); //BufferAllocator.claim(bytes);
+		uploadBuffer = BufferAllocator.claim(bytes);
 		this.format = format;
 		vertexBinder = CanvasGlHelper.isVaoEnabled() ? this::bindVao : this::bindVbo;
 	}
@@ -72,8 +70,7 @@ public class VboBuffer implements AutoCloseable {
 			BindStateManager.bind(glBufferId());
 			GL21.glBufferData(GL21.GL_ARRAY_BUFFER, uploadBuffer, GL21.GL_STATIC_DRAW);
 			BindStateManager.unbind();
-			MemoryUtil.memFree(uploadBuffer);
-			//BufferAllocator.release(uploadBuffer);
+			BufferAllocator.release(uploadBuffer);
 			this.uploadBuffer = null;
 		}
 	}
@@ -169,8 +166,7 @@ public class VboBuffer implements AutoCloseable {
 			final ByteBuffer uploadBuffer = this.uploadBuffer;
 
 			if(uploadBuffer != null) {
-				MemoryUtil.memFree(uploadBuffer);
-				//BufferUtils.BufferAllocator.release(uploadBuffer);
+				BufferAllocator.release(uploadBuffer);
 				this.uploadBuffer = null;
 			}
 

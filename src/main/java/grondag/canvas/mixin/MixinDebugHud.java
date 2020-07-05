@@ -26,14 +26,19 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import net.minecraft.client.gui.hud.DebugHud;
 
 import grondag.canvas.Configurator;
+import grondag.canvas.buffer.allocation.BufferAllocator;
 import grondag.canvas.light.LightmapHd;
 
 @Mixin(DebugHud.class)
 public class MixinDebugHud {
 	@Inject(method = "getLeftText", at = @At("RETURN"), cancellable = false, require = 1)
 	private void onGetBufferBuilders(CallbackInfoReturnable<List<String>> ci) {
+		final List<String> list = ci.getReturnValue();
+
 		if(Configurator.hdLightmaps()) {
-			ci.getReturnValue().add("Canvas HD Lightmap Occupancy: " + LightmapHd.occupancyReport());
+			list.add("HD Lightmap Occupancy: " + LightmapHd.occupancyReport());
 		}
+
+		list.add(BufferAllocator.debugString());
 	}
 }
