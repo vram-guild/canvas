@@ -388,7 +388,7 @@ public class Configurator {
 				.startBooleanToggle(new TranslatableText("config.canvas.value.bloom"), enableBloom)
 				.setDefaultValue(DEFAULTS.enableBloom)
 				.setTooltip(parse("config.canvas.help.bloom"))
-				.setSaveConsumer(b -> {enableBloom = b;})
+				.setSaveConsumer(b -> {reload |= enableBloom != b; enableBloom = b;})
 				.build());
 
 		features.addEntry(ENTRY_BUILDER
