@@ -6,8 +6,7 @@
 ******************************************************/
 
 void cv_startFragment(inout cv_FragmentData fragData) {
-	bool lit = (fragData.spriteColor.r - fragData.spriteColor.b) > 0.3f;
-	fragData.emissivity = lit ? fragData.spriteColor.r * fragData.spriteColor.r : 0.0;
-	fragData.diffuse = !lit;
-	fragData.ao = !lit;
+	float r = cv_smootherstep(0.1, 0.5, dot(fragData.spriteColor.rgb, vec3(1.0, 0.0, -1.0)));
+	float l = cv_smootherstep(0.8, 1.0, cv_luminance(fragData.spriteColor.rgb));
+	fragData.emissivity = max(r, l);
 }

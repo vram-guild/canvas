@@ -69,7 +69,8 @@ void main() {
 
 	cv_startFragment(fragData);
 
-    vec4 a = fragData.spriteColor * fragData.vertexColor;
+	vec4 raw = fragData.spriteColor * fragData.vertexColor;
+    vec4 a = raw;
 
     if (a.a >= 0.5 || _cv_getFlag(_CV_FLAG_CUTOUT) != 1.0) {
     	a *= mix(light(fragData), cv_emissiveColor(), fragData.emissivity);
@@ -82,7 +83,9 @@ void main() {
 
 		#if DIFFUSE_SHADING_MODE == DIFFUSE_MODE_NORMAL
 			if (fragData.diffuse) {
-				a *= vec4(_cvv_diffuse, _cvv_diffuse, _cvv_diffuse, 1.0);
+				float df = _cvv_diffuse + (1.0 - _cvv_diffuse) * fragData.emissivity;
+
+				a *= vec4(df, df, df, 1.0);
 			}
 		#endif
     } else {
@@ -93,6 +96,6 @@ void main() {
     gl_FragData[TARGET_BASECOLOR] = _cv_fog(a);
 
 	#if TARGET_EMISSIVE > 0
-		gl_FragData[TARGET_EMISSIVE] = cv_fromGamma(a * fragData.emissivity);
+		gl_FragData[TARGET_EMISSIVE] = raw * fragData.emissivity;
 	#endif
 }
