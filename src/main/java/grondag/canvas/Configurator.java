@@ -56,7 +56,7 @@ public class Configurator {
 		public boolean enableBloom = false;
 
 		@Comment("Intensity of glow effect around light sources. 0.0 to 0.25, default is 0.09.")
-		public float bloomIntensity = 0.09f;
+		public float bloomIntensity = 0.06f;
 
 		@Comment("Size of bloom effect around light sources. 0.0 to 2.0, default is 0.5.")
 		public float bloomScale = 0.5f;
