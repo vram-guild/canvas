@@ -617,8 +617,6 @@ public class CanvasWorldRenderer {
 			fb.beginWrite(false);
 
 			profiler.swap("translucent");
-			// TODO: needed?  Added as experiment
-			RenderSystem.depthMask(true);
 			renderTerrainLayer(true, matrixStack, cameraX, cameraY, cameraZ);
 
 			fb = mcwr.getParticlesFramebuffer();

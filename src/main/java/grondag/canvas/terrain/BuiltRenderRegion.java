@@ -292,7 +292,16 @@ public class BuiltRenderRegion {
 				final VertexCollectorImpl collector = collectors.get(translucentState);
 
 				collector.loadState(translucentState, state);
-				collector.sortQuads((float)cameraPos.x - origin.getX(), (float)cameraPos.y - origin.getY(), (float)cameraPos.z - origin.getZ());
+
+				if (Configurator.batchedChunkRender) {
+					collector.sortQuads(
+							(float)cameraPos.x - TerrainModelSpace.renderCubeOrigin(origin.getX()),
+							(float)cameraPos.y - TerrainModelSpace.renderCubeOrigin(origin.getY()),
+							(float)cameraPos.z - TerrainModelSpace.renderCubeOrigin(origin.getZ()));
+				} else {
+					collector.sortQuads((float)cameraPos.x - origin.getX(), (float)cameraPos.y - origin.getY(), (float)cameraPos.z - origin.getZ());
+				}
+
 				regionData.translucentState = collector.saveState(state);
 
 				if(runningState.protoRegion.get() != ProtoRenderRegion.INVALID) {

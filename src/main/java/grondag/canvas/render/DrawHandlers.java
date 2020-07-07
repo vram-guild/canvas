@@ -15,6 +15,7 @@
 
 package grondag.canvas.render;
 
+import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import org.lwjgl.opengl.GL21;
 
@@ -113,7 +114,7 @@ public class DrawHandlers {
 			textureManager.bindTexture(SpriteAtlasTexture.BLOCK_ATLAS_TEX);
 			textureManager.getTexture(SpriteAtlasTexture.BLOCK_ATLAS_TEX).setFilter(false, true);
 			RenderSystem.enableBlend();
-			RenderSystem.defaultBlendFunc();
+			RenderSystem.blendFuncSeparate(GlStateManager.SrcFactor.SRC_ALPHA, GlStateManager.DstFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SrcFactor.ONE, GlStateManager.DstFactor.ONE_MINUS_SRC_ALPHA);
 			RenderSystem.shadeModel(GL21.GL_SMOOTH);
 			RenderSystem.disableAlphaTest();
 			RenderSystem.enableDepthTest();
@@ -131,6 +132,7 @@ public class DrawHandlers {
 			MinecraftClient.getInstance().gameRenderer.getLightmapTextureManager().disable();
 			RenderSystem.disableFog();
 			RenderSystem.disableBlend();
+			RenderSystem.defaultBlendFunc();
 		}
 	}
 
