@@ -145,13 +145,25 @@ public class GlShader {
 
 	private static String shaderDebugPath() {
 		final File gameDir = FabricLoader.getInstance().getGameDirectory();
-		return new StringBuilder()
-				.append(gameDir.getAbsolutePath(), 0, gameDir.getAbsolutePath().length()-1)
-				.append("canvas_shader_debug").toString();
+
+		try {
+			return new StringBuilder()
+					.append(gameDir.getCanonicalPath())
+					.append(File.pathSeparator)
+					.append("canvas_shader_debug").toString();
+		} catch (final Exception e) {
+			CanvasMod.LOG.error(I18n.translate("error.canvas.fail_create_shader_output", gameDir.getAbsolutePath()), e);
+			needsDebugOutputWarning = false;
+			return null;
+		}
 	}
 
 	private static void clearDebugSource() {
 		final String path = shaderDebugPath();
+
+		if (path == null) {
+			return;
+		}
 
 		try {
 			File shaderDir = new File(path);
@@ -182,9 +194,13 @@ public class GlShader {
 	private static boolean needsDebugOutputWarning = true;
 
 	private void outputDebugSource(String source, String error) {
-		final String key = context.name + "-" + shaderSource.toString()
-		.replace("/", "-").replace(":", "-");
+		final String key = context.name + "-" + shaderSource.toString().replace("/", "-").replace(":", "-");
 		final String path = shaderDebugPath();
+
+		if (path == null) {
+			return;
+		}
+
 		File shaderDir = new File(path);
 
 		if (!shaderDir.exists()) {
