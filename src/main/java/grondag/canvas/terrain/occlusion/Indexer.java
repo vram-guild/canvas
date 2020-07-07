@@ -1,15 +1,10 @@
 package grondag.canvas.terrain.occlusion;
 
-import static grondag.canvas.terrain.occlusion.Constants.HALF_PIXEL_HEIGHT;
-import static grondag.canvas.terrain.occlusion.Constants.HALF_PIXEL_WIDTH;
-import static grondag.canvas.terrain.occlusion.Constants.PIXEL_HEIGHT;
-import static grondag.canvas.terrain.occlusion.Constants.PIXEL_WIDTH;
 import static grondag.canvas.terrain.occlusion.Constants.TILE_ADDRESS_SHIFT_X;
 import static grondag.canvas.terrain.occlusion.Constants.TILE_ADDRESS_SHIFT_Y;
 import static grondag.canvas.terrain.occlusion.Constants.TILE_AXIS_MASK;
 import static grondag.canvas.terrain.occlusion.Constants.TILE_AXIS_SHIFT;
 import static grondag.canvas.terrain.occlusion.Constants.TILE_PIXEL_INDEX_MASK;
-import static grondag.canvas.terrain.occlusion.Matrix4L.MATRIX_PRECISION_HALF;
 
 import com.google.common.base.Strings;
 
@@ -17,43 +12,6 @@ import grondag.canvas.terrain.occlusion.region.OcclusionBitPrinter;
 
 abstract class Indexer {
 	private  Indexer() {}
-
-	/**
-	 * For early exit testing
-	 * @param x
-	 * @param y
-	 * @param z
-	 * @return
-	 */
-	static boolean isPointVisible(int x, int y, int z) {
-		final Matrix4L mvpMatrix = Data.mvpMatrix;
-
-		final long w = mvpMatrix.transformVec4W(x, y, z);
-		final long tz = mvpMatrix.transformVec4Z(x, y, z);
-
-		if (w <= 0 || tz < 0 || tz > w) {
-			return false;
-		}
-
-		final int px = (int) (HALF_PIXEL_WIDTH + (MATRIX_PRECISION_HALF + HALF_PIXEL_WIDTH  * mvpMatrix.transformVec4X(x, y, z)) / w);
-		final int py = (int) (HALF_PIXEL_HEIGHT + (MATRIX_PRECISION_HALF + HALF_PIXEL_HEIGHT * mvpMatrix.transformVec4Y(x, y, z)) / w);
-
-		if (px >= 0 && py >= 0 && px < PIXEL_WIDTH && py < PIXEL_HEIGHT && testPixel(px, py)) {
-			return true;
-		}
-
-		return false;
-	}
-
-	static boolean testPixel(int x, int y) {
-		return (Data.tiles[lowIndexFromPixelXY(x, y)] & (1L << (pixelIndex(x, y)))) == 0;
-	}
-
-	static void drawPixel(int x, int y) {
-		Data.tiles[lowIndexFromPixelXY(x, y)] |= (1L << (pixelIndex(x, y)));
-	}
-
-	static long nextRasterOutputTime;
 
 	// only handle 0-7  values
 	static int mortonNumber(int x, int y) {

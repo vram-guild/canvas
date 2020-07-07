@@ -29,7 +29,6 @@ import static grondag.canvas.terrain.occlusion.Data.offsetZ;
 import static grondag.canvas.terrain.occlusion.Data.viewX;
 import static grondag.canvas.terrain.occlusion.Data.viewY;
 import static grondag.canvas.terrain.occlusion.Data.viewZ;
-import static grondag.canvas.terrain.occlusion.Quad.setupVertex;
 import static grondag.canvas.terrain.occlusion.Rasterizer.drawQuad;
 import static grondag.canvas.terrain.occlusion.Rasterizer.testQuad;
 
@@ -93,14 +92,14 @@ public class TerrainOccluder {
 	public void outputRaster() {
 		final long t = System.currentTimeMillis();
 
-		if (t >= Indexer.nextRasterOutputTime) {
-			Indexer.nextRasterOutputTime = t + 1000;
+		if (t >= Rasterizer.nextRasterOutputTime) {
+			Rasterizer.nextRasterOutputTime = t + 1000;
 
 			final NativeImage nativeImage = new NativeImage(PIXEL_WIDTH, PIXEL_HEIGHT, false);
 
 			for (int x = 0; x < PIXEL_WIDTH; x++) {
 				for (int y = 0; y < PIXEL_HEIGHT; y++) {
-					nativeImage.setPixelColor(x, y, Indexer.testPixel(x, y) ? -1 :0xFF000000);
+					nativeImage.setPixelColor(x, y, Rasterizer.testPixel(x, y) ? -1 :0xFF000000);
 				}
 			}
 
@@ -376,182 +375,182 @@ public class TerrainOccluder {
 		};
 
 		BOX_TESTS[UP] = (x0, y0, z0, x1, y1, z1) -> {
-			setupVertex(V010, x0, y1, z0);
-			setupVertex(V011, x0, y1, z1);
-			setupVertex(V110, x1, y1, z0);
-			setupVertex(V111, x1, y1, z1);
+			Rasterizer.setupVertex(V010, x0, y1, z0);
+			Rasterizer.setupVertex(V011, x0, y1, z1);
+			Rasterizer.setupVertex(V110, x1, y1, z0);
+			Rasterizer.setupVertex(V111, x1, y1, z1);
 			return testQuad(V110, V010, V011, V111);
 		};
 
 		BOX_TESTS[DOWN] = (x0, y0, z0, x1, y1, z1) -> {
-			setupVertex(V000, x0, y0, z0);
-			setupVertex(V001, x0, y0, z1);
-			setupVertex(V100, x1, y0, z0);
-			setupVertex(V101, x1, y0, z1);
+			Rasterizer.setupVertex(V000, x0, y0, z0);
+			Rasterizer.setupVertex(V001, x0, y0, z1);
+			Rasterizer.setupVertex(V100, x1, y0, z0);
+			Rasterizer.setupVertex(V101, x1, y0, z1);
 			return testQuad(V000, V100, V101, V001);
 		};
 
 		BOX_TESTS[EAST] = (x0, y0, z0, x1, y1, z1) -> {
-			setupVertex(V100, x1, y0, z0);
-			setupVertex(V101, x1, y0, z1);
-			setupVertex(V110, x1, y1, z0);
-			setupVertex(V111, x1, y1, z1);
+			Rasterizer.setupVertex(V100, x1, y0, z0);
+			Rasterizer.setupVertex(V101, x1, y0, z1);
+			Rasterizer.setupVertex(V110, x1, y1, z0);
+			Rasterizer.setupVertex(V111, x1, y1, z1);
 			return testQuad(V101, V100, V110, V111);
 		};
 
 		BOX_TESTS[WEST] = (x0, y0, z0, x1, y1, z1) -> {
-			setupVertex(V000, x0, y0, z0);
-			setupVertex(V001, x0, y0, z1);
-			setupVertex(V010, x0, y1, z0);
-			setupVertex(V011, x0, y1, z1);
+			Rasterizer.setupVertex(V000, x0, y0, z0);
+			Rasterizer.setupVertex(V001, x0, y0, z1);
+			Rasterizer.setupVertex(V010, x0, y1, z0);
+			Rasterizer.setupVertex(V011, x0, y1, z1);
 			return testQuad(V000, V001, V011, V010);
 		};
 
 		BOX_TESTS[NORTH] = (x0, y0, z0, x1, y1, z1) -> {
-			setupVertex(V000, x0, y0, z0);
-			setupVertex(V010, x0, y1, z0);
-			setupVertex(V100, x1, y0, z0);
-			setupVertex(V110, x1, y1, z0);
+			Rasterizer.setupVertex(V000, x0, y0, z0);
+			Rasterizer.setupVertex(V010, x0, y1, z0);
+			Rasterizer.setupVertex(V100, x1, y0, z0);
+			Rasterizer.setupVertex(V110, x1, y1, z0);
 			return testQuad(V100, V000, V010, V110);
 		};
 
 		BOX_TESTS[SOUTH] = (x0, y0, z0, x1, y1, z1) -> {
-			setupVertex(V001, x0, y0, z1);
-			setupVertex(V011, x0, y1, z1);
-			setupVertex(V101, x1, y0, z1);
-			setupVertex(V111, x1, y1, z1);
+			Rasterizer.setupVertex(V001, x0, y0, z1);
+			Rasterizer.setupVertex(V011, x0, y1, z1);
+			Rasterizer.setupVertex(V101, x1, y0, z1);
+			Rasterizer.setupVertex(V111, x1, y1, z1);
 			return testQuad(V001, V101, V111, V011);
 		};
 
 		// NB: Split across two quads to give more evenly-sized test regions vs potentially one big and one very small
 		BOX_TESTS[UP | EAST] = (x0, y0, z0, x1, y1, z1) -> {
-			setupVertex(V010, x0, y1, z0);
-			setupVertex(V011, x0, y1, z1);
-			setupVertex(V100, x1, y0, z0);
-			setupVertex(V101, x1, y0, z1);
-			setupVertex(V110, x1, y1, z0);
-			setupVertex(V111, x1, y1, z1);
+			Rasterizer.setupVertex(V010, x0, y1, z0);
+			Rasterizer.setupVertex(V011, x0, y1, z1);
+			Rasterizer.setupVertex(V100, x1, y0, z0);
+			Rasterizer.setupVertex(V101, x1, y0, z1);
+			Rasterizer.setupVertex(V110, x1, y1, z0);
+			Rasterizer.setupVertex(V111, x1, y1, z1);
 			return testQuad(V010, V011, V111, V101) ||
 					testQuad(V101, V100, V110, V010);
 		};
 
 		BOX_TESTS[UP | WEST] = (x0, y0, z0, x1, y1, z1) -> {
-			setupVertex(V000, x0, y0, z0);
-			setupVertex(V001, x0, y0, z1);
-			setupVertex(V010, x0, y1, z0);
-			setupVertex(V011, x0, y1, z1);
-			setupVertex(V110, x1, y1, z0);
-			setupVertex(V111, x1, y1, z1);
+			Rasterizer.setupVertex(V000, x0, y0, z0);
+			Rasterizer.setupVertex(V001, x0, y0, z1);
+			Rasterizer.setupVertex(V010, x0, y1, z0);
+			Rasterizer.setupVertex(V011, x0, y1, z1);
+			Rasterizer.setupVertex(V110, x1, y1, z0);
+			Rasterizer.setupVertex(V111, x1, y1, z1);
 			return testQuad(V111, V110, V010, V000) ||
 					testQuad(V000, V001, V011, V111);
 		};
 
 		BOX_TESTS[UP | NORTH] = (x0, y0, z0, x1, y1, z1) -> {
-			setupVertex(V000, x0, y0, z0);
-			setupVertex(V010, x0, y1, z0);
-			setupVertex(V011, x0, y1, z1);
-			setupVertex(V100, x1, y0, z0);
-			setupVertex(V110, x1, y1, z0);
-			setupVertex(V111, x1, y1, z1);
+			Rasterizer.setupVertex(V000, x0, y0, z0);
+			Rasterizer.setupVertex(V010, x0, y1, z0);
+			Rasterizer.setupVertex(V011, x0, y1, z1);
+			Rasterizer.setupVertex(V100, x1, y0, z0);
+			Rasterizer.setupVertex(V110, x1, y1, z0);
+			Rasterizer.setupVertex(V111, x1, y1, z1);
 			return testQuad(V011, V111, V110, V100) ||
 					testQuad(V100, V000, V010, V011);
 		};
 
 		BOX_TESTS[UP | SOUTH] = (x0, y0, z0, x1, y1, z1) -> {
-			setupVertex(V001, x0, y0, z1);
-			setupVertex(V010, x0, y1, z0);
-			setupVertex(V011, x0, y1, z1);
-			setupVertex(V101, x1, y0, z1);
-			setupVertex(V110, x1, y1, z0);
-			setupVertex(V111, x1, y1, z1);
+			Rasterizer.setupVertex(V001, x0, y0, z1);
+			Rasterizer.setupVertex(V010, x0, y1, z0);
+			Rasterizer.setupVertex(V011, x0, y1, z1);
+			Rasterizer.setupVertex(V101, x1, y0, z1);
+			Rasterizer.setupVertex(V110, x1, y1, z0);
+			Rasterizer.setupVertex(V111, x1, y1, z1);
 			return testQuad(V110, V010, V011, V001) ||
 					testQuad(V001, V101, V111, V110);
 		};
 
 		BOX_TESTS[DOWN | EAST] = (x0, y0, z0, x1, y1, z1) -> {
-			setupVertex(V000, x0, y0, z0);
-			setupVertex(V001, x0, y0, z1);
-			setupVertex(V100, x1, y0, z0);
-			setupVertex(V101, x1, y0, z1);
-			setupVertex(V110, x1, y1, z0);
-			setupVertex(V111, x1, y1, z1);
+			Rasterizer.setupVertex(V000, x0, y0, z0);
+			Rasterizer.setupVertex(V001, x0, y0, z1);
+			Rasterizer.setupVertex(V100, x1, y0, z0);
+			Rasterizer.setupVertex(V101, x1, y0, z1);
+			Rasterizer.setupVertex(V110, x1, y1, z0);
+			Rasterizer.setupVertex(V111, x1, y1, z1);
 			return testQuad(V001, V000, V100, V110) ||
 					testQuad(V110, V111, V101, V001);
 		};
 
 		BOX_TESTS[DOWN | WEST] = (x0, y0, z0, x1, y1, z1) -> {
-			setupVertex(V000, x0, y0, z0);
-			setupVertex(V001, x0, y0, z1);
-			setupVertex(V010, x0, y1, z0);
-			setupVertex(V011, x0, y1, z1);
-			setupVertex(V100, x1, y0, z0);
-			setupVertex(V101, x1, y0, z1);
+			Rasterizer.setupVertex(V000, x0, y0, z0);
+			Rasterizer.setupVertex(V001, x0, y0, z1);
+			Rasterizer.setupVertex(V010, x0, y1, z0);
+			Rasterizer.setupVertex(V011, x0, y1, z1);
+			Rasterizer.setupVertex(V100, x1, y0, z0);
+			Rasterizer.setupVertex(V101, x1, y0, z1);
 			return testQuad(V100, V101, V001, V011) ||
 					testQuad(V011, V010, V000, V100);
 		};
 
 		BOX_TESTS[DOWN | NORTH] = (x0, y0, z0, x1, y1, z1) -> {
-			setupVertex(V000, x0, y0, z0);
-			setupVertex(V001, x0, y0, z1);
-			setupVertex(V010, x0, y1, z0);
-			setupVertex(V100, x1, y0, z0);
-			setupVertex(V101, x1, y0, z1);
-			setupVertex(V110, x1, y1, z0);
+			Rasterizer.setupVertex(V000, x0, y0, z0);
+			Rasterizer.setupVertex(V001, x0, y0, z1);
+			Rasterizer.setupVertex(V010, x0, y1, z0);
+			Rasterizer.setupVertex(V100, x1, y0, z0);
+			Rasterizer.setupVertex(V101, x1, y0, z1);
+			Rasterizer.setupVertex(V110, x1, y1, z0);
 			return testQuad(V101, V001, V000, V010) ||
 					testQuad(V010, V110, V100, V101);
 		};
 
 		BOX_TESTS[DOWN | SOUTH] = (x0, y0, z0, x1, y1, z1) -> {
-			setupVertex(V000, x0, y0, z0);
-			setupVertex(V001, x0, y0, z1);
-			setupVertex(V011, x0, y1, z1);
-			setupVertex(V100, x1, y0, z0);
-			setupVertex(V101, x1, y0, z1);
-			setupVertex(V111, x1, y1, z1);
+			Rasterizer.setupVertex(V000, x0, y0, z0);
+			Rasterizer.setupVertex(V001, x0, y0, z1);
+			Rasterizer.setupVertex(V011, x0, y1, z1);
+			Rasterizer.setupVertex(V100, x1, y0, z0);
+			Rasterizer.setupVertex(V101, x1, y0, z1);
+			Rasterizer.setupVertex(V111, x1, y1, z1);
 			return testQuad(V000, V100, V101, V111) ||
 					testQuad(V111, V011, V001, V000);
 		};
 
 		BOX_TESTS[NORTH | EAST] = (x0, y0, z0, x1, y1, z1) -> {
-			setupVertex(V000, x0, y0, z0);
-			setupVertex(V010, x0, y1, z0);
-			setupVertex(V100, x1, y0, z0);
-			setupVertex(V101, x1, y0, z1);
-			setupVertex(V110, x1, y1, z0);
-			setupVertex(V111, x1, y1, z1);
+			Rasterizer.setupVertex(V000, x0, y0, z0);
+			Rasterizer.setupVertex(V010, x0, y1, z0);
+			Rasterizer.setupVertex(V100, x1, y0, z0);
+			Rasterizer.setupVertex(V101, x1, y0, z1);
+			Rasterizer.setupVertex(V110, x1, y1, z0);
+			Rasterizer.setupVertex(V111, x1, y1, z1);
 			return testQuad(V000, V010, V110, V111) ||
 					testQuad(V111, V101, V100, V000);
 		};
 
 		BOX_TESTS[NORTH | WEST] = (x0, y0, z0, x1, y1, z1) -> {
-			setupVertex(V000, x0, y0, z0);
-			setupVertex(V001, x0, y0, z1);
-			setupVertex(V010, x0, y1, z0);
-			setupVertex(V011, x0, y1, z1);
-			setupVertex(V100, x1, y0, z0);
-			setupVertex(V110, x1, y1, z0);
+			Rasterizer.setupVertex(V000, x0, y0, z0);
+			Rasterizer.setupVertex(V001, x0, y0, z1);
+			Rasterizer.setupVertex(V010, x0, y1, z0);
+			Rasterizer.setupVertex(V011, x0, y1, z1);
+			Rasterizer.setupVertex(V100, x1, y0, z0);
+			Rasterizer.setupVertex(V110, x1, y1, z0);
 			return testQuad(V110, V100, V000, V001) ||
 					testQuad(V001, V011, V010, V110);
 		};
 
 		BOX_TESTS[SOUTH | EAST] = (x0, y0, z0, x1, y1, z1) -> {
-			setupVertex(V001, x0, y0, z1);
-			setupVertex(V011, x0, y1, z1);
-			setupVertex(V100, x1, y0, z0);
-			setupVertex(V101, x1, y0, z1);
-			setupVertex(V110, x1, y1, z0);
-			setupVertex(V111, x1, y1, z1);
+			Rasterizer.setupVertex(V001, x0, y0, z1);
+			Rasterizer.setupVertex(V011, x0, y1, z1);
+			Rasterizer.setupVertex(V100, x1, y0, z0);
+			Rasterizer.setupVertex(V101, x1, y0, z1);
+			Rasterizer.setupVertex(V110, x1, y1, z0);
+			Rasterizer.setupVertex(V111, x1, y1, z1);
 			return testQuad(V011, V001, V101, V100) ||
 					testQuad(V100, V110, V111, V011);
 		};
 
 		BOX_TESTS[SOUTH | WEST] = (x0, y0, z0, x1, y1, z1) -> {
-			setupVertex(V000, x0, y0, z0);
-			setupVertex(V001, x0, y0, z1);
-			setupVertex(V010, x0, y1, z0);
-			setupVertex(V011, x0, y1, z1);
-			setupVertex(V101, x1, y0, z1);
-			setupVertex(V111, x1, y1, z1);
+			Rasterizer.setupVertex(V000, x0, y0, z0);
+			Rasterizer.setupVertex(V001, x0, y0, z1);
+			Rasterizer.setupVertex(V010, x0, y1, z0);
+			Rasterizer.setupVertex(V011, x0, y1, z1);
+			Rasterizer.setupVertex(V101, x1, y0, z1);
+			Rasterizer.setupVertex(V111, x1, y1, z1);
 			return testQuad(V101, V111, V011, V010) ||
 					testQuad(V010, V000, V001, V101);
 		};
@@ -559,23 +558,23 @@ public class TerrainOccluder {
 		// NB: When three faces are visible, omit nearest vertex and draw two quads instead of three.
 
 		BOX_TESTS[UP | EAST | NORTH] = (x0, y0, z0, x1, y1, z1) -> {
-			setupVertex(V000, x0, y0, z0);
-			setupVertex(V010, x0, y1, z0);
-			setupVertex(V011, x0, y1, z1);
-			setupVertex(V100, x1, y0, z0);
-			setupVertex(V101, x1, y0, z1);
-			setupVertex(V111, x1, y1, z1);
+			Rasterizer.setupVertex(V000, x0, y0, z0);
+			Rasterizer.setupVertex(V010, x0, y1, z0);
+			Rasterizer.setupVertex(V011, x0, y1, z1);
+			Rasterizer.setupVertex(V100, x1, y0, z0);
+			Rasterizer.setupVertex(V101, x1, y0, z1);
+			Rasterizer.setupVertex(V111, x1, y1, z1);
 			return testQuad(V011, V111, V101, V100 ) ||
 					testQuad(V100, V000, V010, V011);
 		};
 
 		BOX_TESTS[UP | WEST | NORTH] = (x0, y0, z0, x1, y1, z1) -> {
-			setupVertex(V000, x0, y0, z0);
-			setupVertex(V001, x0, y0, z1);
-			setupVertex(V011, x0, y1, z1);
-			setupVertex(V100, x1, y0, z0);
-			setupVertex(V110, x1, y1, z0);
-			setupVertex(V111, x1, y1, z1);
+			Rasterizer.setupVertex(V000, x0, y0, z0);
+			Rasterizer.setupVertex(V001, x0, y0, z1);
+			Rasterizer.setupVertex(V011, x0, y1, z1);
+			Rasterizer.setupVertex(V100, x1, y0, z0);
+			Rasterizer.setupVertex(V110, x1, y1, z0);
+			Rasterizer.setupVertex(V111, x1, y1, z1);
 			return testQuad(V111, V110, V100, V000) ||
 					testQuad(V000, V001, V011, V111);
 
@@ -583,67 +582,67 @@ public class TerrainOccluder {
 		};
 
 		BOX_TESTS[UP | EAST | SOUTH] = (x0, y0, z0, x1, y1, z1) -> {
-			setupVertex(V001, x0, y0, z1);
-			setupVertex(V010, x0, y1, z0);
-			setupVertex(V011, x0, y1, z1);
-			setupVertex(V100, x1, y0, z0);
-			setupVertex(V101, x1, y0, z1);
-			setupVertex(V110, x1, y1, z0);
+			Rasterizer.setupVertex(V001, x0, y0, z1);
+			Rasterizer.setupVertex(V010, x0, y1, z0);
+			Rasterizer.setupVertex(V011, x0, y1, z1);
+			Rasterizer.setupVertex(V100, x1, y0, z0);
+			Rasterizer.setupVertex(V101, x1, y0, z1);
+			Rasterizer.setupVertex(V110, x1, y1, z0);
 			return testQuad(V010, V011, V001, V101) ||
 					testQuad(V101, V100, V110, V010);
 		};
 
 		BOX_TESTS[UP | WEST | SOUTH] = (x0, y0, z0, x1, y1, z1) -> {
-			setupVertex(V000, x0, y0, z0);
-			setupVertex(V001, x0, y0, z1);
-			setupVertex(V010, x0, y1, z0);
-			setupVertex(V101, x1, y0, z1);
-			setupVertex(V110, x1, y1, z0);
-			setupVertex(V111, x1, y1, z1);
+			Rasterizer.setupVertex(V000, x0, y0, z0);
+			Rasterizer.setupVertex(V001, x0, y0, z1);
+			Rasterizer.setupVertex(V010, x0, y1, z0);
+			Rasterizer.setupVertex(V101, x1, y0, z1);
+			Rasterizer.setupVertex(V110, x1, y1, z0);
+			Rasterizer.setupVertex(V111, x1, y1, z1);
 			return testQuad(V110, V010, V000, V001) ||
 					testQuad(V001, V101, V111, V110);
 		};
 
 		BOX_TESTS[DOWN | EAST | NORTH] = (x0, y0, z0, x1, y1, z1) -> {
-			setupVertex(V000, x0, y0, z0);
-			setupVertex(V001, x0, y0, z1);
-			setupVertex(V010, x0, y1, z0);
-			setupVertex(V101, x1, y0, z1);
-			setupVertex(V110, x1, y1, z0);
-			setupVertex(V111, x1, y1, z1);
+			Rasterizer.setupVertex(V000, x0, y0, z0);
+			Rasterizer.setupVertex(V001, x0, y0, z1);
+			Rasterizer.setupVertex(V010, x0, y1, z0);
+			Rasterizer.setupVertex(V101, x1, y0, z1);
+			Rasterizer.setupVertex(V110, x1, y1, z0);
+			Rasterizer.setupVertex(V111, x1, y1, z1);
 			return testQuad(V001, V000, V010, V110) ||
 					testQuad(V110, V111, V101, V001);
 		};
 
 		BOX_TESTS[DOWN | WEST | NORTH] = (x0, y0, z0, x1, y1, z1) -> {
-			setupVertex(V001, x0, y0, z1);
-			setupVertex(V010, x0, y1, z0);
-			setupVertex(V011, x0, y1, z1);
-			setupVertex(V100, x1, y0, z0);
-			setupVertex(V101, x1, y0, z1);
-			setupVertex(V110, x1, y1, z0);
+			Rasterizer.setupVertex(V001, x0, y0, z1);
+			Rasterizer.setupVertex(V010, x0, y1, z0);
+			Rasterizer.setupVertex(V011, x0, y1, z1);
+			Rasterizer.setupVertex(V100, x1, y0, z0);
+			Rasterizer.setupVertex(V101, x1, y0, z1);
+			Rasterizer.setupVertex(V110, x1, y1, z0);
 			return testQuad(V101, V001, V011, V010) ||
 					testQuad(V010, V110, V100, V101);
 		};
 
 		BOX_TESTS[DOWN | EAST | SOUTH] = (x0, y0, z0, x1, y1, z1) -> {
-			setupVertex(V000, x0, y0, z0);
-			setupVertex(V001, x0, y0, z1);
-			setupVertex(V011, x0, y1, z1);
-			setupVertex(V100, x1, y0, z0);
-			setupVertex(V110, x1, y1, z0);
-			setupVertex(V111, x1, y1, z1);
+			Rasterizer.setupVertex(V000, x0, y0, z0);
+			Rasterizer.setupVertex(V001, x0, y0, z1);
+			Rasterizer.setupVertex(V011, x0, y1, z1);
+			Rasterizer.setupVertex(V100, x1, y0, z0);
+			Rasterizer.setupVertex(V110, x1, y1, z0);
+			Rasterizer.setupVertex(V111, x1, y1, z1);
 			return testQuad(V000, V100, V110, V111) ||
 					testQuad(V111, V011, V001, V000);
 		};
 
 		BOX_TESTS[DOWN | WEST | SOUTH] = (x0, y0, z0, x1, y1, z1) -> {
-			setupVertex(V000, x0, y0, z0);
-			setupVertex(V010, x0, y1, z0);
-			setupVertex(V011, x0, y1, z1);
-			setupVertex(V100, x1, y0, z0);
-			setupVertex(V101, x1, y0, z1);
-			setupVertex(V111, x1, y1, z1);
+			Rasterizer.setupVertex(V000, x0, y0, z0);
+			Rasterizer.setupVertex(V010, x0, y1, z0);
+			Rasterizer.setupVertex(V011, x0, y1, z1);
+			Rasterizer.setupVertex(V100, x1, y0, z0);
+			Rasterizer.setupVertex(V101, x1, y0, z1);
+			Rasterizer.setupVertex(V111, x1, y1, z1);
 			return testQuad(V100, V101, V111, V011) ||
 					testQuad(V011, V010, V000, V100);
 		};
@@ -655,181 +654,181 @@ public class TerrainOccluder {
 		};
 
 		BOX_DRAWS[UP] = (x0, y0, z0, x1, y1, z1) -> {
-			setupVertex(V010, x0, y1, z0);
-			setupVertex(V011, x0, y1, z1);
-			setupVertex(V110, x1, y1, z0);
-			setupVertex(V111, x1, y1, z1);
+			Rasterizer.setupVertex(V010, x0, y1, z0);
+			Rasterizer.setupVertex(V011, x0, y1, z1);
+			Rasterizer.setupVertex(V110, x1, y1, z0);
+			Rasterizer.setupVertex(V111, x1, y1, z1);
 			drawQuad(V110, V010, V011, V111);
 		};
 
 		BOX_DRAWS[DOWN] = (x0, y0, z0, x1, y1, z1) -> {
-			setupVertex(V000, x0, y0, z0);
-			setupVertex(V001, x0, y0, z1);
-			setupVertex(V100, x1, y0, z0);
-			setupVertex(V101, x1, y0, z1);
+			Rasterizer.setupVertex(V000, x0, y0, z0);
+			Rasterizer.setupVertex(V001, x0, y0, z1);
+			Rasterizer.setupVertex(V100, x1, y0, z0);
+			Rasterizer.setupVertex(V101, x1, y0, z1);
 			drawQuad(V000, V100, V101, V001);
 		};
 
 		BOX_DRAWS[EAST] = (x0, y0, z0, x1, y1, z1) -> {
-			setupVertex(V100, x1, y0, z0);
-			setupVertex(V101, x1, y0, z1);
-			setupVertex(V110, x1, y1, z0);
-			setupVertex(V111, x1, y1, z1);
+			Rasterizer.setupVertex(V100, x1, y0, z0);
+			Rasterizer.setupVertex(V101, x1, y0, z1);
+			Rasterizer.setupVertex(V110, x1, y1, z0);
+			Rasterizer.setupVertex(V111, x1, y1, z1);
 			drawQuad(V101, V100, V110, V111);
 		};
 
 		BOX_DRAWS[WEST] = (x0, y0, z0, x1, y1, z1) -> {
-			setupVertex(V000, x0, y0, z0);
-			setupVertex(V001, x0, y0, z1);
-			setupVertex(V010, x0, y1, z0);
-			setupVertex(V011, x0, y1, z1);
+			Rasterizer.setupVertex(V000, x0, y0, z0);
+			Rasterizer.setupVertex(V001, x0, y0, z1);
+			Rasterizer.setupVertex(V010, x0, y1, z0);
+			Rasterizer.setupVertex(V011, x0, y1, z1);
 			drawQuad(V000, V001, V011, V010);
 		};
 
 		BOX_DRAWS[NORTH] = (x0, y0, z0, x1, y1, z1) -> {
-			setupVertex(V000, x0, y0, z0);
-			setupVertex(V010, x0, y1, z0);
-			setupVertex(V100, x1, y0, z0);
-			setupVertex(V110, x1, y1, z0);
+			Rasterizer.setupVertex(V000, x0, y0, z0);
+			Rasterizer.setupVertex(V010, x0, y1, z0);
+			Rasterizer.setupVertex(V100, x1, y0, z0);
+			Rasterizer.setupVertex(V110, x1, y1, z0);
 			drawQuad(V100, V000, V010, V110);
 		};
 
 		BOX_DRAWS[SOUTH] = (x0, y0, z0, x1, y1, z1) -> {
-			setupVertex(V001, x0, y0, z1);
-			setupVertex(V011, x0, y1, z1);
-			setupVertex(V101, x1, y0, z1);
-			setupVertex(V111, x1, y1, z1);
+			Rasterizer.setupVertex(V001, x0, y0, z1);
+			Rasterizer.setupVertex(V011, x0, y1, z1);
+			Rasterizer.setupVertex(V101, x1, y0, z1);
+			Rasterizer.setupVertex(V111, x1, y1, z1);
 			drawQuad(V001, V101, V111, V011);
 		};
 
 		// NB: Split across two quads to give more evenly-sized test regions vs potentially one big and one very small
 		BOX_DRAWS[UP | EAST] = (x0, y0, z0, x1, y1, z1) -> {
-			setupVertex(V010, x0, y1, z0);
-			setupVertex(V011, x0, y1, z1);
-			setupVertex(V100, x1, y0, z0);
-			setupVertex(V101, x1, y0, z1);
-			setupVertex(V110, x1, y1, z0);
-			setupVertex(V111, x1, y1, z1);
+			Rasterizer.setupVertex(V010, x0, y1, z0);
+			Rasterizer.setupVertex(V011, x0, y1, z1);
+			Rasterizer.setupVertex(V100, x1, y0, z0);
+			Rasterizer.setupVertex(V101, x1, y0, z1);
+			Rasterizer.setupVertex(V110, x1, y1, z0);
+			Rasterizer.setupVertex(V111, x1, y1, z1);
 			drawQuad(V010, V011, V111, V101); drawQuad(V101, V100, V110, V010);
 		};
 
 		BOX_DRAWS[UP | WEST] = (x0, y0, z0, x1, y1, z1) -> {
-			setupVertex(V000, x0, y0, z0);
-			setupVertex(V001, x0, y0, z1);
-			setupVertex(V010, x0, y1, z0);
-			setupVertex(V011, x0, y1, z1);
-			setupVertex(V110, x1, y1, z0);
-			setupVertex(V111, x1, y1, z1);
+			Rasterizer.setupVertex(V000, x0, y0, z0);
+			Rasterizer.setupVertex(V001, x0, y0, z1);
+			Rasterizer.setupVertex(V010, x0, y1, z0);
+			Rasterizer.setupVertex(V011, x0, y1, z1);
+			Rasterizer.setupVertex(V110, x1, y1, z0);
+			Rasterizer.setupVertex(V111, x1, y1, z1);
 			drawQuad(V111, V110, V010, V000);
 			drawQuad(V000, V001, V011, V111);
 		};
 
 		BOX_DRAWS[UP | NORTH] = (x0, y0, z0, x1, y1, z1) -> {
-			setupVertex(V000, x0, y0, z0);
-			setupVertex(V010, x0, y1, z0);
-			setupVertex(V011, x0, y1, z1);
-			setupVertex(V100, x1, y0, z0);
-			setupVertex(V110, x1, y1, z0);
-			setupVertex(V111, x1, y1, z1);
+			Rasterizer.setupVertex(V000, x0, y0, z0);
+			Rasterizer.setupVertex(V010, x0, y1, z0);
+			Rasterizer.setupVertex(V011, x0, y1, z1);
+			Rasterizer.setupVertex(V100, x1, y0, z0);
+			Rasterizer.setupVertex(V110, x1, y1, z0);
+			Rasterizer.setupVertex(V111, x1, y1, z1);
 			drawQuad(V011, V111, V110, V100);
 			drawQuad(V100, V000, V010, V011);
 		};
 
 		BOX_DRAWS[UP | SOUTH] = (x0, y0, z0, x1, y1, z1) -> {
-			setupVertex(V001, x0, y0, z1);
-			setupVertex(V010, x0, y1, z0);
-			setupVertex(V011, x0, y1, z1);
-			setupVertex(V101, x1, y0, z1);
-			setupVertex(V110, x1, y1, z0);
-			setupVertex(V111, x1, y1, z1);
+			Rasterizer.setupVertex(V001, x0, y0, z1);
+			Rasterizer.setupVertex(V010, x0, y1, z0);
+			Rasterizer.setupVertex(V011, x0, y1, z1);
+			Rasterizer.setupVertex(V101, x1, y0, z1);
+			Rasterizer.setupVertex(V110, x1, y1, z0);
+			Rasterizer.setupVertex(V111, x1, y1, z1);
 			drawQuad(V110, V010, V011, V001);
 			drawQuad(V001, V101, V111, V110);
 		};
 
 		BOX_DRAWS[DOWN | EAST] = (x0, y0, z0, x1, y1, z1) -> {
-			setupVertex(V000, x0, y0, z0);
-			setupVertex(V001, x0, y0, z1);
-			setupVertex(V100, x1, y0, z0);
-			setupVertex(V101, x1, y0, z1);
-			setupVertex(V110, x1, y1, z0);
-			setupVertex(V111, x1, y1, z1);
+			Rasterizer.setupVertex(V000, x0, y0, z0);
+			Rasterizer.setupVertex(V001, x0, y0, z1);
+			Rasterizer.setupVertex(V100, x1, y0, z0);
+			Rasterizer.setupVertex(V101, x1, y0, z1);
+			Rasterizer.setupVertex(V110, x1, y1, z0);
+			Rasterizer.setupVertex(V111, x1, y1, z1);
 			drawQuad(V001, V000, V100, V110);
 			drawQuad(V110, V111, V101, V001);
 		};
 
 		BOX_DRAWS[DOWN | WEST] = (x0, y0, z0, x1, y1, z1) -> {
-			setupVertex(V000, x0, y0, z0);
-			setupVertex(V001, x0, y0, z1);
-			setupVertex(V010, x0, y1, z0);
-			setupVertex(V011, x0, y1, z1);
-			setupVertex(V100, x1, y0, z0);
-			setupVertex(V101, x1, y0, z1);
+			Rasterizer.setupVertex(V000, x0, y0, z0);
+			Rasterizer.setupVertex(V001, x0, y0, z1);
+			Rasterizer.setupVertex(V010, x0, y1, z0);
+			Rasterizer.setupVertex(V011, x0, y1, z1);
+			Rasterizer.setupVertex(V100, x1, y0, z0);
+			Rasterizer.setupVertex(V101, x1, y0, z1);
 			drawQuad(V100, V101, V001, V011);
 			drawQuad(V011, V010, V000, V100);
 		};
 
 		BOX_DRAWS[DOWN | NORTH] = (x0, y0, z0, x1, y1, z1) -> {
-			setupVertex(V000, x0, y0, z0);
-			setupVertex(V001, x0, y0, z1);
-			setupVertex(V010, x0, y1, z0);
-			setupVertex(V100, x1, y0, z0);
-			setupVertex(V101, x1, y0, z1);
-			setupVertex(V110, x1, y1, z0);
+			Rasterizer.setupVertex(V000, x0, y0, z0);
+			Rasterizer.setupVertex(V001, x0, y0, z1);
+			Rasterizer.setupVertex(V010, x0, y1, z0);
+			Rasterizer.setupVertex(V100, x1, y0, z0);
+			Rasterizer.setupVertex(V101, x1, y0, z1);
+			Rasterizer.setupVertex(V110, x1, y1, z0);
 			drawQuad(V101, V001, V000, V010);
 			drawQuad(V010, V110, V100, V101);
 		};
 
 		BOX_DRAWS[DOWN | SOUTH] = (x0, y0, z0, x1, y1, z1) -> {
-			setupVertex(V000, x0, y0, z0);
-			setupVertex(V001, x0, y0, z1);
-			setupVertex(V011, x0, y1, z1);
-			setupVertex(V100, x1, y0, z0);
-			setupVertex(V101, x1, y0, z1);
-			setupVertex(V111, x1, y1, z1);
+			Rasterizer.setupVertex(V000, x0, y0, z0);
+			Rasterizer.setupVertex(V001, x0, y0, z1);
+			Rasterizer.setupVertex(V011, x0, y1, z1);
+			Rasterizer.setupVertex(V100, x1, y0, z0);
+			Rasterizer.setupVertex(V101, x1, y0, z1);
+			Rasterizer.setupVertex(V111, x1, y1, z1);
 			drawQuad(V000, V100, V101, V111);
 			drawQuad(V111, V011, V001, V000);
 		};
 
 		BOX_DRAWS[NORTH | EAST] = (x0, y0, z0, x1, y1, z1) -> {
-			setupVertex(V000, x0, y0, z0);
-			setupVertex(V010, x0, y1, z0);
-			setupVertex(V100, x1, y0, z0);
-			setupVertex(V101, x1, y0, z1);
-			setupVertex(V110, x1, y1, z0);
-			setupVertex(V111, x1, y1, z1);
+			Rasterizer.setupVertex(V000, x0, y0, z0);
+			Rasterizer.setupVertex(V010, x0, y1, z0);
+			Rasterizer.setupVertex(V100, x1, y0, z0);
+			Rasterizer.setupVertex(V101, x1, y0, z1);
+			Rasterizer.setupVertex(V110, x1, y1, z0);
+			Rasterizer.setupVertex(V111, x1, y1, z1);
 			drawQuad(V000, V010, V110, V111);
 			drawQuad(V111, V101, V100, V000);
 		};
 
 		BOX_DRAWS[NORTH | WEST] = (x0, y0, z0, x1, y1, z1) -> {
-			setupVertex(V000, x0, y0, z0);
-			setupVertex(V001, x0, y0, z1);
-			setupVertex(V010, x0, y1, z0);
-			setupVertex(V011, x0, y1, z1);
-			setupVertex(V100, x1, y0, z0);
-			setupVertex(V110, x1, y1, z0);
+			Rasterizer.setupVertex(V000, x0, y0, z0);
+			Rasterizer.setupVertex(V001, x0, y0, z1);
+			Rasterizer.setupVertex(V010, x0, y1, z0);
+			Rasterizer.setupVertex(V011, x0, y1, z1);
+			Rasterizer.setupVertex(V100, x1, y0, z0);
+			Rasterizer.setupVertex(V110, x1, y1, z0);
 			drawQuad(V110, V100, V000, V001);
 			drawQuad(V001, V011, V010, V110);
 		};
 
 		BOX_DRAWS[SOUTH | EAST] = (x0, y0, z0, x1, y1, z1) -> {
-			setupVertex(V001, x0, y0, z1);
-			setupVertex(V011, x0, y1, z1);
-			setupVertex(V100, x1, y0, z0);
-			setupVertex(V101, x1, y0, z1);
-			setupVertex(V110, x1, y1, z0);
-			setupVertex(V111, x1, y1, z1);
+			Rasterizer.setupVertex(V001, x0, y0, z1);
+			Rasterizer.setupVertex(V011, x0, y1, z1);
+			Rasterizer.setupVertex(V100, x1, y0, z0);
+			Rasterizer.setupVertex(V101, x1, y0, z1);
+			Rasterizer.setupVertex(V110, x1, y1, z0);
+			Rasterizer.setupVertex(V111, x1, y1, z1);
 			drawQuad(V011, V001, V101, V100);
 			drawQuad(V100, V110, V111, V011);
 		};
 
 		BOX_DRAWS[SOUTH | WEST] = (x0, y0, z0, x1, y1, z1) -> {
-			setupVertex(V000, x0, y0, z0);
-			setupVertex(V001, x0, y0, z1);
-			setupVertex(V010, x0, y1, z0);
-			setupVertex(V011, x0, y1, z1);
-			setupVertex(V101, x1, y0, z1);
-			setupVertex(V111, x1, y1, z1);
+			Rasterizer.setupVertex(V000, x0, y0, z0);
+			Rasterizer.setupVertex(V001, x0, y0, z1);
+			Rasterizer.setupVertex(V010, x0, y1, z0);
+			Rasterizer.setupVertex(V011, x0, y1, z1);
+			Rasterizer.setupVertex(V101, x1, y0, z1);
+			Rasterizer.setupVertex(V111, x1, y1, z1);
 			drawQuad(V101, V111, V011, V010);
 			drawQuad(V010, V000, V001, V101);
 		};
@@ -837,23 +836,23 @@ public class TerrainOccluder {
 		// NB: When three faces are visible, omit nearest vertex and draw two quads instead of three.
 
 		BOX_DRAWS[UP | EAST | NORTH] = (x0, y0, z0, x1, y1, z1) -> {
-			setupVertex(V000, x0, y0, z0);
-			setupVertex(V010, x0, y1, z0);
-			setupVertex(V011, x0, y1, z1);
-			setupVertex(V100, x1, y0, z0);
-			setupVertex(V101, x1, y0, z1);
-			setupVertex(V111, x1, y1, z1);
+			Rasterizer.setupVertex(V000, x0, y0, z0);
+			Rasterizer.setupVertex(V010, x0, y1, z0);
+			Rasterizer.setupVertex(V011, x0, y1, z1);
+			Rasterizer.setupVertex(V100, x1, y0, z0);
+			Rasterizer.setupVertex(V101, x1, y0, z1);
+			Rasterizer.setupVertex(V111, x1, y1, z1);
 			drawQuad(V011, V111, V101, V100 );
 			drawQuad(V100, V000, V010, V011);
 		};
 
 		BOX_DRAWS[UP | WEST | NORTH] = (x0, y0, z0, x1, y1, z1) -> {
-			setupVertex(V000, x0, y0, z0);
-			setupVertex(V001, x0, y0, z1);
-			setupVertex(V011, x0, y1, z1);
-			setupVertex(V100, x1, y0, z0);
-			setupVertex(V110, x1, y1, z0);
-			setupVertex(V111, x1, y1, z1);
+			Rasterizer.setupVertex(V000, x0, y0, z0);
+			Rasterizer.setupVertex(V001, x0, y0, z1);
+			Rasterizer.setupVertex(V011, x0, y1, z1);
+			Rasterizer.setupVertex(V100, x1, y0, z0);
+			Rasterizer.setupVertex(V110, x1, y1, z0);
+			Rasterizer.setupVertex(V111, x1, y1, z1);
 			drawQuad(V111, V110, V100, V000);
 			drawQuad(V000, V001, V011, V111);
 
@@ -861,67 +860,67 @@ public class TerrainOccluder {
 		};
 
 		BOX_DRAWS[UP | EAST | SOUTH] = (x0, y0, z0, x1, y1, z1) -> {
-			setupVertex(V001, x0, y0, z1);
-			setupVertex(V010, x0, y1, z0);
-			setupVertex(V011, x0, y1, z1);
-			setupVertex(V100, x1, y0, z0);
-			setupVertex(V101, x1, y0, z1);
-			setupVertex(V110, x1, y1, z0);
+			Rasterizer.setupVertex(V001, x0, y0, z1);
+			Rasterizer.setupVertex(V010, x0, y1, z0);
+			Rasterizer.setupVertex(V011, x0, y1, z1);
+			Rasterizer.setupVertex(V100, x1, y0, z0);
+			Rasterizer.setupVertex(V101, x1, y0, z1);
+			Rasterizer.setupVertex(V110, x1, y1, z0);
 			drawQuad(V010, V011, V001, V101);
 			drawQuad(V101, V100, V110, V010);
 		};
 
 		BOX_DRAWS[UP | WEST | SOUTH] = (x0, y0, z0, x1, y1, z1) -> {
-			setupVertex(V000, x0, y0, z0);
-			setupVertex(V001, x0, y0, z1);
-			setupVertex(V010, x0, y1, z0);
-			setupVertex(V101, x1, y0, z1);
-			setupVertex(V110, x1, y1, z0);
-			setupVertex(V111, x1, y1, z1);
+			Rasterizer.setupVertex(V000, x0, y0, z0);
+			Rasterizer.setupVertex(V001, x0, y0, z1);
+			Rasterizer.setupVertex(V010, x0, y1, z0);
+			Rasterizer.setupVertex(V101, x1, y0, z1);
+			Rasterizer.setupVertex(V110, x1, y1, z0);
+			Rasterizer.setupVertex(V111, x1, y1, z1);
 			drawQuad(V110, V010, V000, V001);
 			drawQuad(V001, V101, V111, V110);
 		};
 
 		BOX_DRAWS[DOWN | EAST | NORTH] = (x0, y0, z0, x1, y1, z1) -> {
-			setupVertex(V000, x0, y0, z0);
-			setupVertex(V001, x0, y0, z1);
-			setupVertex(V010, x0, y1, z0);
-			setupVertex(V101, x1, y0, z1);
-			setupVertex(V110, x1, y1, z0);
-			setupVertex(V111, x1, y1, z1);
+			Rasterizer.setupVertex(V000, x0, y0, z0);
+			Rasterizer.setupVertex(V001, x0, y0, z1);
+			Rasterizer.setupVertex(V010, x0, y1, z0);
+			Rasterizer.setupVertex(V101, x1, y0, z1);
+			Rasterizer.setupVertex(V110, x1, y1, z0);
+			Rasterizer.setupVertex(V111, x1, y1, z1);
 			drawQuad(V001, V000, V010, V110);
 			drawQuad(V110, V111, V101, V001);
 		};
 
 		BOX_DRAWS[DOWN | WEST | NORTH] = (x0, y0, z0, x1, y1, z1) -> {
-			setupVertex(V001, x0, y0, z1);
-			setupVertex(V010, x0, y1, z0);
-			setupVertex(V011, x0, y1, z1);
-			setupVertex(V100, x1, y0, z0);
-			setupVertex(V101, x1, y0, z1);
-			setupVertex(V110, x1, y1, z0);
+			Rasterizer.setupVertex(V001, x0, y0, z1);
+			Rasterizer.setupVertex(V010, x0, y1, z0);
+			Rasterizer.setupVertex(V011, x0, y1, z1);
+			Rasterizer.setupVertex(V100, x1, y0, z0);
+			Rasterizer.setupVertex(V101, x1, y0, z1);
+			Rasterizer.setupVertex(V110, x1, y1, z0);
 			drawQuad(V101, V001, V011, V010);
 			drawQuad(V010, V110, V100, V101);
 		};
 
 		BOX_DRAWS[DOWN | EAST | SOUTH] = (x0, y0, z0, x1, y1, z1) -> {
-			setupVertex(V000, x0, y0, z0);
-			setupVertex(V001, x0, y0, z1);
-			setupVertex(V011, x0, y1, z1);
-			setupVertex(V100, x1, y0, z0);
-			setupVertex(V110, x1, y1, z0);
-			setupVertex(V111, x1, y1, z1);
+			Rasterizer.setupVertex(V000, x0, y0, z0);
+			Rasterizer.setupVertex(V001, x0, y0, z1);
+			Rasterizer.setupVertex(V011, x0, y1, z1);
+			Rasterizer.setupVertex(V100, x1, y0, z0);
+			Rasterizer.setupVertex(V110, x1, y1, z0);
+			Rasterizer.setupVertex(V111, x1, y1, z1);
 			drawQuad(V000, V100, V110, V111);
 			drawQuad(V111, V011, V001, V000);
 		};
 
 		BOX_DRAWS[DOWN | WEST | SOUTH] = (x0, y0, z0, x1, y1, z1) -> {
-			setupVertex(V000, x0, y0, z0);
-			setupVertex(V010, x0, y1, z0);
-			setupVertex(V011, x0, y1, z1);
-			setupVertex(V100, x1, y0, z0);
-			setupVertex(V101, x1, y0, z1);
-			setupVertex(V111, x1, y1, z1);
+			Rasterizer.setupVertex(V000, x0, y0, z0);
+			Rasterizer.setupVertex(V010, x0, y1, z0);
+			Rasterizer.setupVertex(V011, x0, y1, z1);
+			Rasterizer.setupVertex(V100, x1, y0, z0);
+			Rasterizer.setupVertex(V101, x1, y0, z1);
+			Rasterizer.setupVertex(V111, x1, y1, z1);
 			drawQuad(V100, V101, V111, V011);
 			drawQuad(V011, V010, V000, V100);
 		};
