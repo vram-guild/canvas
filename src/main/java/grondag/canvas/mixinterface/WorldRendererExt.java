@@ -77,7 +77,9 @@ public interface WorldRendererExt {
 
 	void canvas_renderWeather(LightmapTextureManager lightmapTextureManager, float f, double d, double e, double g);
 
-	void canvas_setEntityCount(int count);
-
 	VertexFormat canvas_vertexFormat();
+
+	ShaderEffect canvas_transparencyShader();
+
+	void canvas_setEntityCounts(int regularEntityCount, int blockEntityCount);
 }

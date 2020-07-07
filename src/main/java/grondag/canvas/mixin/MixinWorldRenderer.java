@@ -72,12 +72,14 @@ public class MixinWorldRenderer implements WorldRendererExt {
 	// PERF: prevent wasteful allocation of these - they are not all used with Canvas and take a lot of space
 	@Shadow private BufferBuilderStorage bufferBuilders;
 	@Shadow private int regularEntityCount;
+	@Shadow private int blockEntityCount;
 	@Shadow private FpsSmoother chunkUpdateSmoother;
 	@Shadow private Framebuffer entityOutlinesFramebuffer;
 	@Shadow private ShaderEffect entityOutlineShader;
 	@Shadow private Set<BlockEntity> noCullingBlockEntities;
 	@Shadow private Long2ObjectMap<SortedSet<BlockBreakingInfo>> blockBreakingProgressions;
 	@Shadow private VertexFormat vertexFormat;
+	@Shadow private ShaderEffect transparencyShader;
 
 	@Shadow protected boolean canDrawEntityOutlines() { return false; }
 	@Shadow private void drawBlockOutline(MatrixStack matrixStack, VertexConsumer vertexConsumer, Entity entity, double d, double e, double f, BlockPos blockPos, BlockState blockState) {}
@@ -296,12 +298,18 @@ public class MixinWorldRenderer implements WorldRendererExt {
 	}
 
 	@Override
-	public void canvas_setEntityCount(int count) {
-		regularEntityCount = count;
+	public void canvas_setEntityCounts(int regularEntityCountIn, int blockEntityCountIn) {
+		regularEntityCount = regularEntityCountIn;
+		blockEntityCount = blockEntityCountIn;
 	}
 
 	@Override
 	public VertexFormat canvas_vertexFormat() {
 		return vertexFormat;
+	}
+
+	@Override
+	public ShaderEffect canvas_transparencyShader() {
+		return transparencyShader;
 	}
 }

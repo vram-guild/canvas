@@ -117,7 +117,7 @@ public class DrawHandlers {
 			RenderSystem.shadeModel(GL21.GL_SMOOTH);
 			RenderSystem.disableAlphaTest();
 			RenderSystem.enableDepthTest();
-			RenderSystem.depthFunc(515);
+			RenderSystem.depthFunc(GL21.GL_LEQUAL);
 			RenderSystem.enableCull();
 			MinecraftClient.getInstance().gameRenderer.getLightmapTextureManager().enable();
 			BackgroundRenderer.setFogBlack();

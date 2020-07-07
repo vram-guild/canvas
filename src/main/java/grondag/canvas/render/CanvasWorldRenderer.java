@@ -21,6 +21,7 @@ import org.lwjgl.opengl.GL21;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gl.Framebuffer;
 import net.minecraft.client.gl.ShaderEffect;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.options.CloudRenderMode;
@@ -324,13 +325,17 @@ public class CanvasWorldRenderer {
 		playerLightmap = mc.getEntityRenderManager().getLight(mc.player, f);
 	}
 
+
 	public void renderWorld(MatrixStack matrixStack, float tickDelta, long limitTime, boolean blockOutlines, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f projectionMatrix) {
 		final WorldRendererExt wr = this.wr;
 		final MinecraftClient mc = wr.canvas_mc();
+		final WorldRenderer mcwr = mc.worldRenderer;
+		final Framebuffer mcfb = mc.getFramebuffer();
 		updatePlayerLightmap(mc, tickDelta);
 		final ClientWorld world = this.world;
 		final BufferBuilderStorage bufferBuilders = wr.canvas_bufferBuilders();
 		final EntityRenderDispatcher entityRenderDispatcher = wr.canvas_entityRenderDispatcher();
+		final boolean advancedTranslucency = wr.canvas_transparencyShader() != null;
 
 		BlockEntityRenderDispatcher.INSTANCE.configure(world, mc.getTextureManager(), mc.textRenderer, camera, mc.crosshairTarget);
 		entityRenderDispatcher.configure(world, camera, mc.targetedEntity);
@@ -401,19 +406,35 @@ public class CanvasWorldRenderer {
 			CanvasFrameBufferHacks.applyBloom();
 		}
 
-		DiffuseLighting.enableForLevel(matrixStack.peek().getModel());
+		if (this.world.getSkyProperties().isDarkened()) {
+			DiffuseLighting.enableForLevel(matrixStack.peek().getModel());
+		} else {
+			DiffuseLighting.method_27869(matrixStack.peek().getModel());
+		}
 
 		profiler.swap("entities");
 		profiler.push("prepare");
 		int entityCount = 0;
+		final int blockEntityCount = 0;
+
 		profiler.swap("entities");
+
+		if (advancedTranslucency) {
+			final Framebuffer entityFramebuffer = mcwr.getEntityFramebuffer();
+			entityFramebuffer.clear(MinecraftClient.IS_SYSTEM_MAC);
+			entityFramebuffer.copyDepthFrom(mcfb);
+
+			final Framebuffer weatherFramebuffer = mcwr.getWeatherFramebuffer();
+			weatherFramebuffer.clear(MinecraftClient.IS_SYSTEM_MAC);
+		}
 
 		final boolean canDrawEntityOutlines = wr.canvas_canDrawEntityOutlines();
 
 		if (canDrawEntityOutlines) {
 			wr.canvas_entityOutlinesFramebuffer().clear(MinecraftClient.IS_SYSTEM_MAC);
-			mc.getFramebuffer().beginWrite(false);
 		}
+
+		mcfb.beginWrite(false);
 
 		boolean didRenderOutlines = false;
 		final VertexConsumerProvider.Immediate immediate = bufferBuilders.getEntityVertexConsumers();
@@ -430,6 +451,7 @@ public class CanvasWorldRenderer {
 			}
 
 			++entityCount;
+
 			if (entity.age == 0) {
 				entity.lastRenderX = entity.getX();
 				entity.lastRenderY = entity.getY();
@@ -437,15 +459,16 @@ public class CanvasWorldRenderer {
 			}
 
 			VertexConsumerProvider renderProvider;
-			if (canDrawEntityOutlines && entity.isGlowing()) {
+
+			if (canDrawEntityOutlines && mc.method_27022(entity)) {
 				didRenderOutlines = true;
 				final OutlineVertexConsumerProvider outlineVertexConsumerProvider = bufferBuilders.getOutlineVertexConsumers();
 				renderProvider = outlineVertexConsumerProvider;
 				final int teamColor = entity.getTeamColorValue();
-				final int red = teamColor >> 16 & 255;
-			final int green = teamColor >> 8 & 255;
-			final int blue = teamColor & 255;
-			outlineVertexConsumerProvider.setColor(red, green, blue, 255);
+				final int red = (teamColor >> 16 & 255);
+				final int green = (teamColor >> 8 & 255);
+				final int blue = teamColor & 255;
+				outlineVertexConsumerProvider.setColor(red, green, blue, 255);
 			} else {
 				renderProvider = immediate;
 			}
@@ -454,12 +477,11 @@ public class CanvasWorldRenderer {
 			wr.canvas_renderEntity(entity, cameraX, cameraY, cameraZ, tickDelta, matrixStack, renderProvider);
 		}
 
-
-
 		immediate.draw(RenderLayer.getEntitySolid(SpriteAtlasTexture.BLOCK_ATLAS_TEX));
 		immediate.draw(RenderLayer.getEntityCutout(SpriteAtlasTexture.BLOCK_ATLAS_TEX));
 		immediate.draw(RenderLayer.getEntityCutoutNoCull(SpriteAtlasTexture.BLOCK_ATLAS_TEX));
 		immediate.draw(RenderLayer.getEntitySmoothCutout(SpriteAtlasTexture.BLOCK_ATLAS_TEX));
+
 		profiler.swap("blockentities");
 
 		final int visibleRegionCount = this.visibleRegionCount;
@@ -471,10 +493,10 @@ public class CanvasWorldRenderer {
 
 			final List<BlockEntity> list = visibleRegions[regionIndex].getRenderData().getBlockEntities();
 
-			final Iterator<BlockEntity> var60 = list.iterator();
+			final Iterator<BlockEntity> itBER = list.iterator();
 
-			while(var60.hasNext()) {
-				final BlockEntity blockEntity = var60.next();
+			while(itBER.hasNext()) {
+				final BlockEntity blockEntity = itBER.next();
 				final BlockPos blockPos = blockEntity.getPos();
 				VertexConsumerProvider vertexConsumerProvider3 = immediate;
 				matrixStack.push();
@@ -512,6 +534,8 @@ public class CanvasWorldRenderer {
 			}
 		}
 
+		assert matrixStack.isEmpty() : "Matrix stack not empty in world render when expected";
+
 		immediate.draw(RenderLayer.getSolid());
 		immediate.draw(TexturedRenderLayers.getEntitySolid());
 		immediate.draw(TexturedRenderLayers.getEntityCutout());
@@ -523,7 +547,7 @@ public class CanvasWorldRenderer {
 
 		if (didRenderOutlines) {
 			entityOutlineShader.render(tickDelta);
-			mc.getFramebuffer().beginWrite(false);
+			mcfb.beginWrite(false);
 		}
 
 		profiler.swap("destroyProgress");
@@ -551,6 +575,8 @@ public class CanvasWorldRenderer {
 			}
 		}
 
+		assert matrixStack.isEmpty() : "Matrix stack not empty in world render when expected";
+
 		profiler.pop();
 		final HitResult hitResult = mc.crosshairTarget;
 
@@ -569,13 +595,14 @@ public class CanvasWorldRenderer {
 		RenderSystem.multMatrix(matrixStack.peek().getModel());
 		ClothHolder.clothDebugPreEvent.run();
 		mc.debugRenderer.render(matrixStack, immediate, cameraX, cameraY, cameraZ);
-		wr.canvas_renderWorldBorder(camera);
 		RenderSystem.popMatrix();
 
 
 		immediate.draw(TexturedRenderLayers.getEntityTranslucentCull());
 		immediate.draw(TexturedRenderLayers.getBannerPatterns());
 		immediate.draw(TexturedRenderLayers.getShieldPatterns());
+		immediate.draw(RenderLayer.getArmorGlint());
+		immediate.draw(RenderLayer.getArmorEntityGlint());
 		immediate.draw(RenderLayer.getGlint());
 		immediate.draw(RenderLayer.getEntityGlint());
 		immediate.draw(RenderLayer.getWaterMask());
@@ -583,11 +610,34 @@ public class CanvasWorldRenderer {
 		immediate.draw(RenderLayer.getLines());
 		immediate.draw();
 
-		profiler.swap("translucent");
-		renderTerrainLayer(true, matrixStack, cameraX, cameraY, cameraZ);
+		if (advancedTranslucency) {
+			Framebuffer fb = mcwr.getTranslucentFramebuffer();
+			fb.clear(MinecraftClient.IS_SYSTEM_MAC);
+			fb.copyDepthFrom(mcfb);
+			fb.beginWrite(false);
 
-		profiler.swap("particles");
-		mc.particleManager.renderParticles(matrixStack, immediate, lightmapTextureManager, camera, tickDelta);
+			profiler.swap("translucent");
+			// TODO: needed?  Added as experiment
+			RenderSystem.depthMask(true);
+			renderTerrainLayer(true, matrixStack, cameraX, cameraY, cameraZ);
+
+			fb = mcwr.getParticlesFramebuffer();
+			fb.clear(MinecraftClient.IS_SYSTEM_MAC);
+			fb.copyDepthFrom(mcfb);
+			fb.beginWrite(false);
+
+			profiler.swap("particles");
+			mc.particleManager.renderParticles(matrixStack, immediate, lightmapTextureManager, camera, tickDelta);
+
+			mcfb.beginWrite(false);
+		}  else  {
+			profiler.swap("translucent");
+			renderTerrainLayer(true, matrixStack, cameraX, cameraY, cameraZ);
+
+			profiler.swap("particles");
+			mc.particleManager.renderParticles(matrixStack, immediate, lightmapTextureManager, camera, tickDelta);
+		}
+
 		RenderSystem.pushMatrix();
 		RenderSystem.multMatrix(matrixStack.peek().getModel());
 
@@ -595,22 +645,42 @@ public class CanvasWorldRenderer {
 			renderCullBoxes(matrixStack, immediate, cameraX, cameraY, cameraZ, tickDelta);
 		}
 
-		profiler.swap("cloudsLayers");
-
 		if (mc.options.getCloudRenderMode() != CloudRenderMode.OFF) {
 			profiler.swap("clouds");
-			((WorldRenderer) wr).renderClouds(matrixStack, tickDelta, cameraX, cameraY, cameraZ);
+
+			if (advancedTranslucency) {
+				final Framebuffer fb = mcwr.getCloudsFramebuffer();
+				fb.clear(MinecraftClient.IS_SYSTEM_MAC);
+				fb.copyDepthFrom(mcfb);
+				fb.beginWrite(false);
+				((WorldRenderer) wr).renderClouds(matrixStack, tickDelta, cameraX, cameraY, cameraZ);
+				mcfb.beginWrite(false);
+			} else {
+				((WorldRenderer) wr).renderClouds(matrixStack, tickDelta, cameraX, cameraY, cameraZ);
+			}
 		}
 
-		RenderSystem.depthMask(false);
 		profiler.swap("weather");
-		wr.canvas_renderWeather(lightmapTextureManager, tickDelta, cameraX, cameraY, cameraZ);
-		RenderSystem.depthMask(true);
+
+		if (advancedTranslucency) {
+			final Framebuffer fb = mcwr.getWeatherFramebuffer();
+			fb.clear(MinecraftClient.IS_SYSTEM_MAC);
+			fb.copyDepthFrom(mcfb);
+			fb.beginWrite(false);
+			wr.canvas_renderWeather(lightmapTextureManager, tickDelta, cameraX, cameraY, cameraZ);
+			wr.canvas_renderWorldBorder(camera);
+			wr.canvas_transparencyShader().render(tickDelta);
+			mcfb.beginWrite(false);
+		} else {
+			RenderSystem.depthMask(false);
+			wr.canvas_renderWeather(lightmapTextureManager, tickDelta, cameraX, cameraY, cameraZ);
+			wr.canvas_renderWorldBorder(camera);
+			RenderSystem.depthMask(true);
+		}
 
 		if (Configurator.enableBufferDebug) {
 			BufferDebug.render();
 		}
-
 
 		//this.renderChunkDebugInfo(camera);
 		RenderSystem.shadeModel(7424);
@@ -619,8 +689,7 @@ public class CanvasWorldRenderer {
 		RenderSystem.popMatrix();
 		BackgroundRenderer.method_23792();
 
-		wr.canvas_setEntityCount(entityCount);
-
+		wr.canvas_setEntityCounts(entityCount, blockEntityCount);
 	}
 
 	private void renderCullBoxes(MatrixStack matrixStack, Immediate immediate, double cameraX, double cameraY, double cameraZ,  float tickDelta) {
