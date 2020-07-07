@@ -27,6 +27,7 @@ public class TerrainIterator implements  Consumer<TerrainRenderContext> {
 	private final CanvasFrustum frustum = new CanvasFrustum();
 	private final RenderRegionStorage renderRegionStorage;
 	public final SimpleUnorderedArrayList<BuiltRenderRegion> updateRegions = new SimpleUnorderedArrayList<>();
+	private final TerrainOccluder terrainOccluder;
 
 	private BuiltRenderRegion cameraRegion;
 	private BlockPos cameraBlockPos;
@@ -42,8 +43,9 @@ public class TerrainIterator implements  Consumer<TerrainRenderContext> {
 	public volatile int visibleRegionCount;
 	private volatile boolean cancelled = false;
 
-	public TerrainIterator(RenderRegionStorage renderRegionStorage) {
-		this.renderRegionStorage = renderRegionStorage;
+	public TerrainIterator(CanvasWorldRenderer cwr) {
+		renderRegionStorage = cwr.regionStorage();
+		terrainOccluder = cwr.terrainOccluder;
 	}
 
 	public void prepare(@Nullable BuiltRenderRegion cameraRegion,  BlockPos cameraBlockPos, CanvasFrustum frustum, int renderDistance)  {
@@ -74,8 +76,8 @@ public class TerrainIterator implements  Consumer<TerrainRenderContext> {
 		final CanvasFrustum frustum = this.frustum;
 		final RenderRegionStorage regionStorage = renderRegionStorage;
 		final MinecraftClient mc = MinecraftClient.getInstance();
-		final boolean redrawOccluder = TerrainOccluder.needsRedraw();
-		final int occluderVersion = TerrainOccluder.version();
+		final boolean redrawOccluder = terrainOccluder.needsRedraw();
+		final int occluderVersion = terrainOccluder.version();
 		final BuiltRenderRegion[] visibleRegions = this.visibleRegions;
 		int visibleRegionCount = 0;
 		updateRegions.clear();
@@ -118,8 +120,8 @@ public class TerrainIterator implements  Consumer<TerrainRenderContext> {
 			cameraRegion.enqueueUnvistedNeighbors(currentLevel);
 
 			if (redrawOccluder || cameraRegion.occluderVersion != occluderVersion) {
-				TerrainOccluder.prepareRegion(cameraRegion.getOrigin(), cameraRegion.occlusionRange);
-				TerrainOccluder.occlude(visData);
+				terrainOccluder.prepareRegion(cameraRegion.getOrigin(), cameraRegion.occlusionRange);
+				terrainOccluder.occlude(visData);
 			}
 
 			cameraRegion.occluderVersion = occluderVersion;
@@ -180,8 +182,8 @@ public class TerrainIterator implements  Consumer<TerrainRenderContext> {
 				visibleRegions[visibleRegionCount++] = builtRegion;
 
 				if (redrawOccluder || builtRegion.occluderVersion != occluderVersion) {
-					TerrainOccluder.prepareRegion(builtRegion.getOrigin(), builtRegion.occlusionRange);
-					TerrainOccluder.occlude(visData);
+					terrainOccluder.prepareRegion(builtRegion.getOrigin(), builtRegion.occlusionRange);
+					terrainOccluder.occlude(visData);
 				}
 
 				builtRegion.occluderVersion = occluderVersion;
@@ -194,21 +196,21 @@ public class TerrainIterator implements  Consumer<TerrainRenderContext> {
 
 					// will already have been drawn if occluder view version hasn't changed
 					if (redrawOccluder) {
-						TerrainOccluder.prepareRegion(builtRegion.getOrigin(), builtRegion.occlusionRange);
-						TerrainOccluder.occlude(visData);
+						terrainOccluder.prepareRegion(builtRegion.getOrigin(), builtRegion.occlusionRange);
+						terrainOccluder.occlude(visData);
 					}
 				}
 			} else {
-				TerrainOccluder.prepareRegion(builtRegion.getOrigin(), builtRegion.occlusionRange);
+				terrainOccluder.prepareRegion(builtRegion.getOrigin(), builtRegion.occlusionRange);
 
-				if (TerrainOccluder.isBoxVisible(visData[OcclusionRegion.CULL_DATA_REGION_BOUNDS])) {
+				if (terrainOccluder.isBoxVisible(visData[OcclusionRegion.CULL_DATA_REGION_BOUNDS])) {
 					builtRegion.enqueueUnvistedNeighbors(nextLevel);
 					visibleRegions[visibleRegionCount++] = builtRegion;
 					builtRegion.occluderVersion = occluderVersion;
 					builtRegion.occluderResult = true;
 
 					// these must always be drawn - will be additive if view hasn't changed
-					TerrainOccluder.occlude(visData);
+					terrainOccluder.occlude(visData);
 				} else {
 					builtRegion.occluderResult = false;
 				}
@@ -224,7 +226,7 @@ public class TerrainIterator implements  Consumer<TerrainRenderContext> {
 			this.visibleRegionCount = visibleRegionCount;
 
 			if (Configurator.debugOcclusionRaster) {
-				TerrainOccluder.outputRaster();
+				terrainOccluder.outputRaster();
 			}
 		}
 	}

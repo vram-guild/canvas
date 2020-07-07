@@ -12,6 +12,7 @@
     "MixinChunkRenderData",
     "MixinClientChunkManager",
     "MixinDebugHud",
+    "MixinEntityRenderer",
     "MixinFogState",
     "MixinItemRenderer",
     "MixinLightmapTextureManager",

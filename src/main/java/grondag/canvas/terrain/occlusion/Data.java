@@ -7,7 +7,6 @@ import static grondag.canvas.terrain.occlusion.Constants.VERTEX_DATA_LENGTH;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class Data {
-	static final Matrix4L baseMvpMatrix = new Matrix4L();
 	static final Matrix4L mvpMatrix = new Matrix4L();
 
 	static final int[] events = new int[PIXEL_HEIGHT * 2];

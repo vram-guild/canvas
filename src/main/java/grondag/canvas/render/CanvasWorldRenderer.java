@@ -57,6 +57,7 @@ import net.minecraft.util.Util;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Box;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Matrix4f;
 import net.minecraft.util.math.Vec3d;
@@ -85,15 +86,12 @@ import grondag.canvas.varia.CanvasGlHelper;
 import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
 
 public class CanvasWorldRenderer {
-	private static CanvasWorldRenderer instance;
-
-	public static final int MAX_REGION_COUNT = (32 * 2 + 1) * (32 * 2 + 1) * 16;
-
 	private boolean terrainSetupOffThread = Configurator.terrainSetupOffThread;
 	private int playerLightmap = 0;
 	private RenderRegionBuilder regionBuilder;
 	private final RenderRegionStorage renderRegionStorage = new RenderRegionStorage(this);
-	private final TerrainIterator terrainIterator = new TerrainIterator(renderRegionStorage);
+	public final TerrainOccluder terrainOccluder = new TerrainOccluder();
+	private final TerrainIterator terrainIterator = new TerrainIterator(this);
 	private final CanvasFrustum frustum = new CanvasFrustum();
 	private int translucentSortPositionVersion;
 	private int viewVersion;
@@ -144,7 +142,7 @@ public class CanvasWorldRenderer {
 		regionsToRebuild.clear();
 		regionBuilder.reset();
 		renderRegionStorage.clear();
-		TerrainOccluder.invalidate();
+		terrainOccluder.invalidate();
 		visibleRegionCount = 0;
 	}
 
@@ -253,23 +251,23 @@ public class CanvasWorldRenderer {
 
 			final int newRegionDataVersion = regionDataVersion.get();
 
-			if (state == TerrainIterator.IDLE && (newRegionDataVersion != lastRegionDataVersion || viewVersion != frustum.viewVersion() || occluderVersion != TerrainOccluder.version())) {
+			if (state == TerrainIterator.IDLE && (newRegionDataVersion != lastRegionDataVersion || viewVersion != frustum.viewVersion() || occluderVersion != terrainOccluder.version())) {
 				viewVersion = frustum.viewVersion();
-				occluderVersion = TerrainOccluder.version();
+				occluderVersion = terrainOccluder.version();
 				lastRegionDataVersion = newRegionDataVersion;
-				TerrainOccluder.prepareScene(camera, frustum, renderRegionStorage.regionVersion());
+				terrainOccluder.prepareScene(camera, frustum, renderRegionStorage.regionVersion());
 				terrainIterator.prepare(cameraRegion, cameraBlockPos, frustum, renderDistance);
 				regionBuilder.executor.execute(terrainIterator, -1);
 			}
 		} else {
 			final int newRegionDataVersion = regionDataVersion.get();
 
-			if (newRegionDataVersion != lastRegionDataVersion || viewVersion != frustum.viewVersion() || occluderVersion != TerrainOccluder.version()) {
+			if (newRegionDataVersion != lastRegionDataVersion || viewVersion != frustum.viewVersion() || occluderVersion != terrainOccluder.version()) {
 				viewVersion = frustum.viewVersion();
-				occluderVersion = TerrainOccluder.version();
+				occluderVersion = terrainOccluder.version();
 				lastRegionDataVersion = newRegionDataVersion;
 
-				TerrainOccluder.prepareScene(camera, frustum, renderRegionStorage.regionVersion());
+				terrainOccluder.prepareScene(camera, frustum, renderRegionStorage.regionVersion());
 				terrainIterator.prepare(cameraRegion, cameraBlockPos, frustum, renderDistance);
 				terrainIterator.accept(null);
 
@@ -596,7 +594,6 @@ public class CanvasWorldRenderer {
 		ClothHolder.clothDebugPreEvent.run();
 		mc.debugRenderer.render(matrixStack, immediate, cameraX, cameraY, cameraZ);
 		RenderSystem.popMatrix();
-
 
 		immediate.draw(TexturedRenderLayers.getEntityTranslucentCull());
 		immediate.draw(TexturedRenderLayers.getBannerPatterns());
@@ -960,4 +957,43 @@ public class CanvasWorldRenderer {
 	public void updateNoCullingBlockEntities(ObjectOpenHashSet<BlockEntity> removedBlockEntities, ObjectOpenHashSet<BlockEntity> addedBlockEntities) {
 		((WorldRenderer) wr).updateNoCullingBlockEntities(removedBlockEntities, addedBlockEntities);
 	}
+
+	// PERF: stash frustum version and terrain version in entity - only retest when changed
+	public <T extends Entity> boolean isEntityVisible(T entity) {
+		// TODO
+		final Box box = entity.getVisibilityBoundingBox();
+
+		final double x0, y0, z0, x1, y1, z1;
+
+		// NB: this method is mis-named
+		if (box.isValid()) {
+			x0 = entity.getX() - 2.0D;
+			y0 = entity.getY() - 2.0D;
+			z0 = entity.getZ() - 2.0D;
+			x1 = x0 + 4.0;
+			y1 = y0 + 4.0;
+			z1 = z0 + 4.0;
+		} else {
+			x0 = box.minX - 0.5D;
+			y0 = box.minY - 0.5D;
+			z0 = box.minZ - 0.5D;
+			x1 = box.maxX + 0.5D;
+			y1 = box.maxY + 0.5D;
+			z1 = box.maxZ + 0.5D;
+		}
+
+		if (!frustum.isVisible(x0, y0, z0, x1, y1, z1)) {
+			return false;
+		}
+
+		return true;
+	}
+
+	private static CanvasWorldRenderer instance;
+
+	public static CanvasWorldRenderer instance() {
+		return instance;
+	}
+
+	public static final int MAX_REGION_COUNT = (32 * 2 + 1) * (32 * 2 + 1) * 16;
 }

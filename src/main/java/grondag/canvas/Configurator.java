@@ -104,6 +104,9 @@ public class Configurator {
 		@Comment("Use Vertex Array Objects if available. VAOs generally improve performance when they are supported.")
 		boolean enableVao = true;
 
+		@Comment("Use more efficient entity culling. Improves framerate in most scenes.")
+		boolean cullEntityRender = true;
+
 		// DEBUG
 		@Comment("Output runtime per-material shader source. For shader development debugging.")
 		boolean shaderDebug = false;
@@ -167,6 +170,7 @@ public class Configurator {
 	public static boolean fixLuminousBlockShading = DEFAULTS.fixLuminousBlockShading;
 	public static boolean terrainSetupOffThread = DEFAULTS.terrainSetupOffThread;
 	private static boolean enableVao = DEFAULTS.enableVao;
+	public static boolean cullEntityRender = DEFAULTS.cullEntityRender;
 
 	public static boolean shaderDebug = DEFAULTS.shaderDebug;
 	public static boolean lightmapDebug = DEFAULTS.lightmapDebug;
@@ -239,6 +243,7 @@ public class Configurator {
 		terrainSetupOffThread = config.terrainSetupOffThread;
 		safeNativeMemoryAllocation = config.safeNativeMemoryAllocation;
 		enableVao = config.enableVao;
+		cullEntityRender = config.cullEntityRender;
 
 		lightmapDebug = config.lightmapDebug;
 		conciseErrors = config.conciseErrors;
@@ -278,6 +283,7 @@ public class Configurator {
 		config.terrainSetupOffThread = terrainSetupOffThread;
 		config.safeNativeMemoryAllocation = safeNativeMemoryAllocation;
 		config.enableVao = enableVao;
+		config.cullEntityRender = cullEntityRender;
 
 		config.lightmapDebug = lightmapDebug;
 		config.conciseErrors = conciseErrors;
@@ -522,6 +528,13 @@ public class Configurator {
 				.setDefaultValue(DEFAULTS.enableVao)
 				.setTooltip(parse("config.canvas.help.enable_vao"))
 				.setSaveConsumer(b -> {reload |= enableVao != b; enableVao = b;})
+				.build());
+
+		tweaks.addEntry(ENTRY_BUILDER
+				.startBooleanToggle(new TranslatableText("config.canvas.value.cull_entity_render"), cullEntityRender)
+				.setDefaultValue(DEFAULTS.cullEntityRender)
+				.setTooltip(parse("config.canvas.help.enable_vao"))
+				.setSaveConsumer(b -> {cullEntityRender = b;})
 				.build());
 
 		// DEBUG

@@ -77,6 +77,8 @@
 	"config.canvas.help.terrain_setup_off_thread" : "Terrain setup done off the main render thread. Increases FPS when moving.;May see occasional flashes of blank chunks",
 	"config.canvas.value.enable_vao" : "Use Vertex Array Objects (DISABLED)",
 	"config.canvas.help.enable_vao" : "VAOs improve performance when supported.;Disable if causing problems.",
+	"config.canvas.value.cull_entity_render" : "Better Entity Culling",
+	"config.canvas.help.cull_entity_render" : "Use more accurate logic to decide which entities to render.;Improves framerate in most scenes.",
 	
 	"config.canvas.category.debug" : "Debug",
 	"config.canvas.value.shader_debug" : "Enable Shader Debug Output",

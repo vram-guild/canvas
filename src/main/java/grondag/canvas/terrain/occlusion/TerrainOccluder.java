@@ -48,14 +48,14 @@ import grondag.canvas.render.CanvasFrustum;
 import grondag.canvas.terrain.BuiltRenderRegion;
 import grondag.canvas.terrain.occlusion.region.PackedBox;
 
-public abstract class TerrainOccluder {
-	private  TerrainOccluder() {}
+public class TerrainOccluder {
+	private final Matrix4L baseMvpMatrix = new Matrix4L();
 
 	/**
 	 * Previously tested regions can reuse test results if their version matches.
 	 * However, they must still be drawn (if visible) if indicated by {@link #clearSceneIfNeeded(int, int)}.
 	 */
-	public static int version() {
+	public int version() {
 		return occluderVersion.get();
 	}
 
@@ -63,7 +63,7 @@ public abstract class TerrainOccluder {
 	 * Force update to new version if provided version matches current
 	 * @param occluderVersion
 	 */
-	public static void invalidate(int invalidVersion) {
+	public void invalidate(int invalidVersion) {
 		if (occluderVersion.compareAndSet(invalidVersion, invalidVersion + 1))  {
 			forceRedraw = true;
 		}
@@ -72,12 +72,12 @@ public abstract class TerrainOccluder {
 	/**
 	 * Force update to new version
 	 */
-	public static void invalidate() {
+	public void invalidate() {
 		occluderVersion.incrementAndGet();
 		forceRedraw = true;
 	}
 
-	public static void prepareRegion(BlockPos origin, int occlusionRange) {
+	public void prepareRegion(BlockPos origin, int occlusionRange) {
 		Data.occlusionRange = occlusionRange;
 
 		// PERF: could perhaps reuse CameraRelativeCenter values in BuildRenderRegion that are used by Frustum
@@ -86,11 +86,11 @@ public abstract class TerrainOccluder {
 		offsetZ = (int) ((origin.getZ() << CAMERA_PRECISION_BITS) - viewZ);
 
 		final Matrix4L mvpMatrix = Data.mvpMatrix;
-		mvpMatrix.copyFrom(Data.baseMvpMatrix);
+		mvpMatrix.copyFrom(baseMvpMatrix);
 		mvpMatrix.translate(offsetX, offsetY, offsetZ, CAMERA_PRECISION_BITS);
 	}
 
-	public static void outputRaster() {
+	public void outputRaster() {
 		final long t = System.currentTimeMillis();
 
 		if (t >= Indexer.nextRasterOutputTime) {
@@ -135,12 +135,12 @@ public abstract class TerrainOccluder {
 	 * @param frustum
 	 * @param regionVersion  Needed because chunk camera position update whenever a chunk boundary is crossed by Frustum doesn't care.
 	 */
-	public static void prepareScene(Camera camera, CanvasFrustum frustum, int regionVersion) {
+	public void prepareScene(Camera camera, CanvasFrustum frustum, int regionVersion) {
 		final int viewVersion = frustum.viewVersion();
 		final int positionVersion = frustum.positionVersion();
 
 		if (Data.viewVersion != viewVersion) {
-			final Matrix4L baseMvpMatrix = Data.baseMvpMatrix;
+			final Matrix4L baseMvpMatrix = this.baseMvpMatrix;
 			final Matrix4L tempMatrix = Data.mvpMatrix;
 			final Matrix4fExt projectionMatrix = frustum.projectionMatrix();
 			final Matrix4fExt modelMatrix = frustum.modelMatrix();
@@ -184,7 +184,7 @@ public abstract class TerrainOccluder {
 
 	}
 
-	public static boolean needsRedraw() {
+	public boolean needsRedraw() {
 		return needsRedraw;
 	}
 
@@ -192,7 +192,7 @@ public abstract class TerrainOccluder {
 	 * Does not rely on winding order but instead the distance from
 	 * plane with known facing to camera position.
 	 */
-	public static boolean isBoxVisible(int packedBox) {
+	public boolean isBoxVisible(int packedBox) {
 		final int x0  = PackedBox.x0(packedBox) - 1;
 		final int y0  = PackedBox.y0(packedBox) - 1;
 		final int z0  = PackedBox.z0(packedBox) - 1;
@@ -232,7 +232,7 @@ public abstract class TerrainOccluder {
 	 * Does not rely on winding order but instead the distance from
 	 * plane with known facing to camera position.
 	 */
-	private static void occludeInner(int packedBox) {
+	private void occludeInner(int packedBox) {
 		final int x0  = PackedBox.x0(packedBox);
 		final int y0  = PackedBox.y0(packedBox);
 		final int z0  = PackedBox.z0(packedBox);
@@ -268,7 +268,7 @@ public abstract class TerrainOccluder {
 		BOX_DRAWS[outcome].apply(x0, y0, z0, x1, y1, z1);
 	}
 
-	public static void occlude(int[] visData) {
+	public void occlude(int[] visData) {
 		final int occlusionRange = Data.occlusionRange;
 		final int limit= visData.length;
 
@@ -290,7 +290,7 @@ public abstract class TerrainOccluder {
 	 * @param region
 	 * @return
 	 */
-	static int backfaceVisibilityFlags(BuiltRenderRegion region) {
+	int backfaceVisibilityFlags(BuiltRenderRegion region) {
 		final int offsetX = Data.offsetX;
 		final int offsetY = Data.offsetY;
 		final int offsetZ = Data.offsetZ;
