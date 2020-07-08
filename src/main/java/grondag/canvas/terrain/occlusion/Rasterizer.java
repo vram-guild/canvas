@@ -17,15 +17,13 @@ import grondag.canvas.Configurator;
 class Rasterizer  {
 	final Matrix4L mvpMatrix = new Matrix4L();
 	final int[] data = new int[DATA_LENGTH];
-	//	final int[] events = new int[PIXEL_HEIGHT * 2];
-	final int[] vertexData = new int[VERTEX_DATA_LENGTH];
 	final long[] tiles = new long[TILE_COUNT];
 
 	// Boumds of current triangle - pixel coordinates
-	int minPixelX;
-	int minPixelY;
-	int maxPixelX;
-	int maxPixelY;
+	//	int minPixelX;
+	//	int minPixelY;
+	//	int maxPixelX;
+	//	int maxPixelY;
 
 	int clipX0;
 	int clipY0;
@@ -76,7 +74,7 @@ class Rasterizer  {
 		}
 
 		// Don't draw single points
-		if((minPixelX == maxPixelX && minPixelY == maxPixelY)) {
+		if((data[IDX_MIN_PIX_X] == data[IDX_MAX_PIX_X] && data[IDX_MIN_PIX_Y] == data[IDX_MAX_PIX_Y])) {
 			return;
 		}
 
@@ -90,9 +88,9 @@ class Rasterizer  {
 			return false;
 		}
 
-		if((minPixelX == maxPixelX && minPixelY == maxPixelY)) {
-			final int px = minPixelX;
-			final int py = minPixelY;
+		if((data[IDX_MIN_PIX_X] == data[IDX_MAX_PIX_X] && data[IDX_MIN_PIX_Y] == data[IDX_MAX_PIX_Y])) {
+			final int px = data[IDX_MIN_PIX_X];
+			final int py = data[IDX_MIN_PIX_Y];
 			return px >= 0 && py >= 0 && px < PIXEL_WIDTH && py < PIXEL_HEIGHT && testPixel(px, py);
 		} else {
 			return testQuad();
@@ -205,17 +203,17 @@ class Rasterizer  {
 	}
 
 	private void clipNear(int internal, int external) {
-		final int[] vertexData = this.vertexData;
+		final int[] data = this.data;
 
-		final float intX = Float.intBitsToFloat(vertexData[internal + PV_X]);
-		final float intY = Float.intBitsToFloat(vertexData[internal + PV_Y]);
-		final float intZ = Float.intBitsToFloat(vertexData[internal + PV_Z]);
-		final float intW = Float.intBitsToFloat(vertexData[internal + PV_W]);
+		final float intX = Float.intBitsToFloat(data[internal + PV_X + IDX_VERTEX_DATA]);
+		final float intY = Float.intBitsToFloat(data[internal + PV_Y + IDX_VERTEX_DATA]);
+		final float intZ = Float.intBitsToFloat(data[internal + PV_Z + IDX_VERTEX_DATA]);
+		final float intW = Float.intBitsToFloat(data[internal + PV_W + IDX_VERTEX_DATA]);
 
-		final float extX = Float.intBitsToFloat(vertexData[external + PV_X]);
-		final float extY = Float.intBitsToFloat(vertexData[external + PV_Y]);
-		final float extZ = Float.intBitsToFloat(vertexData[external + PV_Z]);
-		final float extW = Float.intBitsToFloat(vertexData[external + PV_W]);
+		final float extX = Float.intBitsToFloat(data[external + PV_X + IDX_VERTEX_DATA]);
+		final float extY = Float.intBitsToFloat(data[external + PV_Y + IDX_VERTEX_DATA]);
+		final float extZ = Float.intBitsToFloat(data[external + PV_Z + IDX_VERTEX_DATA]);
+		final float extW = Float.intBitsToFloat(data[external + PV_W + IDX_VERTEX_DATA]);
 
 		// intersection point is the projection plane, at which point Z == 1
 		// and w will be 0 but projection division isn't needed, so force output to W = 1
@@ -290,21 +288,21 @@ class Rasterizer  {
 				// Does't seem to have
 				CanvasMod.LOG.info("Invalid occlusion quad split. Printing z, w, z / w for each vertex.");
 
-				final int[] data = vertexData;
-				float w = Float.intBitsToFloat(data[v0 + PV_W]);
-				float z = Float.intBitsToFloat(data[v0 + PV_Z]);
+				final int[] data = this.data;
+				float w = Float.intBitsToFloat(data[v0 + PV_W + IDX_VERTEX_DATA]);
+				float z = Float.intBitsToFloat(data[v0 + PV_Z + IDX_VERTEX_DATA]);
 				CanvasMod.LOG.info(z + ",    " + w + ",   " + (z / w));
 
-				w = Float.intBitsToFloat(data[v1 + PV_W]);
-				z = Float.intBitsToFloat(data[v1 + PV_Z]);
+				w = Float.intBitsToFloat(data[v1 + PV_W + IDX_VERTEX_DATA]);
+				z = Float.intBitsToFloat(data[v1 + PV_Z + IDX_VERTEX_DATA]);
 				CanvasMod.LOG.info(z + ",    " + w + ",   " + (z / w));
 
-				w = Float.intBitsToFloat(data[v2 + PV_W]);
-				z = Float.intBitsToFloat(data[v2 + PV_Z]);
+				w = Float.intBitsToFloat(data[v2 + PV_W + IDX_VERTEX_DATA]);
+				z = Float.intBitsToFloat(data[v2 + PV_Z + IDX_VERTEX_DATA]);
 				CanvasMod.LOG.info(z + ",    " + w + ",   " + (z / w));
 
-				w = Float.intBitsToFloat(data[v3 + PV_W]);
-				z = Float.intBitsToFloat(data[v3 + PV_Z]);
+				w = Float.intBitsToFloat(data[v3 + PV_W + IDX_VERTEX_DATA]);
+				z = Float.intBitsToFloat(data[v3 + PV_Z + IDX_VERTEX_DATA]);
 				CanvasMod.LOG.info(z + ",    " + w + ",   " + (z / w));
 
 				CanvasMod.LOG.info("");
@@ -315,21 +313,21 @@ class Rasterizer  {
 	}
 
 	private int prepareBounds0000(int v0, int v1, int v2, int v3) {
-		final int[] vertexData = this.vertexData;
+		final int[] data = this.data;
 		int ax0, ay0, ax1, ay1;
 		int bx0, by0, bx1, by1;
 		int cx0, cy0, cx1, cy1;
 		int dx0, dy0, dx1, dy1;
 		int minY = 0, maxY = 0, minX = 0, maxX = 0;
 
-		ax0 = vertexData[v0 + PV_PX];
-		ay0 = vertexData[v0 + PV_PY];
-		bx0 = vertexData[v1 + PV_PX];
-		by0 = vertexData[v1 + PV_PY];
-		cx0 = vertexData[v2 + PV_PX];
-		cy0 = vertexData[v2 + PV_PY];
-		dx0 = vertexData[v3 + PV_PX];
-		dy0 = vertexData[v3 + PV_PY];
+		ax0 = data[v0 + PV_PX + IDX_VERTEX_DATA];
+		ay0 = data[v0 + PV_PY + IDX_VERTEX_DATA];
+		bx0 = data[v1 + PV_PX + IDX_VERTEX_DATA];
+		by0 = data[v1 + PV_PY + IDX_VERTEX_DATA];
+		cx0 = data[v2 + PV_PX + IDX_VERTEX_DATA];
+		cy0 = data[v2 + PV_PY + IDX_VERTEX_DATA];
+		dx0 = data[v3 + PV_PX + IDX_VERTEX_DATA];
+		dy0 = data[v3 + PV_PY + IDX_VERTEX_DATA];
 
 		ax1 = bx0;
 		ay1 = by0;
@@ -408,10 +406,10 @@ class Rasterizer  {
 		final int position2 = edgePosition(cx0, cy0, cx1, cy1);
 		final int position3 = edgePosition(dx0, dy0, dx1, dy1);
 
-		this.minPixelX = minPixelX;
-		this.minPixelY = minPixelY;
-		this.maxPixelX = maxPixelX;
-		this.maxPixelY = maxPixelY;
+		data[IDX_MIN_PIX_X] = minPixelX;
+		data[IDX_MIN_PIX_Y] = minPixelY;
+		data[IDX_MAX_PIX_X] = maxPixelX;
+		data[IDX_MAX_PIX_Y] = maxPixelY;
 		this.ax0 = ax0;
 		this.ay0 = ay0;
 		this.ax1 = ax1;
@@ -479,22 +477,22 @@ class Rasterizer  {
 	//	}
 
 	private int prepareBounds0001(int v0, int v1, int v2, int ext3) {
-		final int[] vertexData = this.vertexData;
+		final int[] data = this.data;
 		int ax0, ay0, ax1, ay1;
 		int bx0, by0, bx1, by1;
 		int cx0, cy0, cx1, cy1;
 		int dx0, dy0, dx1, dy1;
 		int minY = 0, maxY = 0, minX = 0, maxX = 0;
 
-		ax0 = vertexData[v0 + PV_PX];
-		ay0 = vertexData[v0 + PV_PY];
-		ax1 = vertexData[v1 + PV_PX];
-		ay1 = vertexData[v1 + PV_PY];
+		ax0 = data[v0 + PV_PX + IDX_VERTEX_DATA];
+		ay0 = data[v0 + PV_PY + IDX_VERTEX_DATA];
+		ax1 = data[v1 + PV_PX + IDX_VERTEX_DATA];
+		ay1 = data[v1 + PV_PY + IDX_VERTEX_DATA];
 
 		bx0 = ax1;
 		by0 = ay1;
-		bx1 = vertexData[v2 + PV_PX];
-		by1 = vertexData[v2 + PV_PY];
+		bx1 = data[v2 + PV_PX + IDX_VERTEX_DATA];
+		by1 = data[v2 + PV_PY + IDX_VERTEX_DATA];
 
 		cx0 = bx1;
 		cy0 = by1;
@@ -575,10 +573,10 @@ class Rasterizer  {
 		final int position2 = edgePosition(cx0, cy0, cx1, cy1);
 		final int position3 = edgePosition(dx0, dy0, dx1, dy1);
 
-		this.minPixelX = minPixelX;
-		this.minPixelY = minPixelY;
-		this.maxPixelX = maxPixelX;
-		this.maxPixelY = maxPixelY;
+		data[IDX_MIN_PIX_X] = minPixelX;
+		data[IDX_MIN_PIX_Y] = minPixelY;
+		data[IDX_MAX_PIX_X] = maxPixelX;
+		data[IDX_MAX_PIX_Y] = maxPixelY;
 		this.ax0 = ax0;
 		this.ay0 = ay0;
 		this.ax1 = ax1;
@@ -611,7 +609,7 @@ class Rasterizer  {
 	}
 
 	private int prepareBounds0011(int v0, int v1, int ext2, int ext3) {
-		final int[] vertexData = this.vertexData;
+		final int[] data = this.data;
 		int ax0, ay0, ax1, ay1;
 		int bx0, by0, bx1, by1;
 		int cx0, cy0, cx1, cy1;
@@ -619,10 +617,10 @@ class Rasterizer  {
 
 		int minY = 0, maxY = 0, minX = 0, maxX = 0;
 
-		ax0 = vertexData[v0 + PV_PX];
-		ay0 = vertexData[v0 + PV_PY];
-		ax1 = vertexData[v1 + PV_PX];
-		ay1 = vertexData[v1 + PV_PY];
+		ax0 = data[v0 + PV_PX + IDX_VERTEX_DATA];
+		ay0 = data[v0 + PV_PY + IDX_VERTEX_DATA];
+		ax1 = data[v1 + PV_PX + IDX_VERTEX_DATA];
+		ay1 = data[v1 + PV_PY + IDX_VERTEX_DATA];
 
 		bx0 = ax1;
 		by0 = ay1;
@@ -707,10 +705,10 @@ class Rasterizer  {
 		final int position2 = edgePosition(cx0, cy0, cx1, cy1);
 		final int position3 = edgePosition(dx0, dy0, dx1, dy1);
 
-		this.minPixelX = minPixelX;
-		this.minPixelY = minPixelY;
-		this.maxPixelX = maxPixelX;
-		this.maxPixelY = maxPixelY;
+		data[IDX_MIN_PIX_X] = minPixelX;
+		data[IDX_MIN_PIX_Y] = minPixelY;
+		data[IDX_MAX_PIX_X] = maxPixelX;
+		data[IDX_MAX_PIX_Y] = maxPixelY;
 		this.ax0 = ax0;
 		this.ay0 = ay0;
 		this.ax1 = ax1;
@@ -743,15 +741,15 @@ class Rasterizer  {
 	}
 
 	private int prepareBounds0111(int v0, int ext1, int ext2, int ext3) {
-		final int[] vertexData = this.vertexData;
+		final int[] data = this.data;
 		int ax0, ay0, ax1, ay1;
 		int bx0, by0, bx1, by1;
 		int cx0, cy0, cx1, cy1;
 		int dx0, dy0, dx1, dy1;
 		int minY = 0, maxY = 0, minX = 0, maxX = 0;
 
-		ax0 = vertexData[v0 + PV_PX];
-		ay0 = vertexData[v0 + PV_PY];
+		ax0 = data[v0 + PV_PX + IDX_VERTEX_DATA];
+		ay0 = data[v0 + PV_PY + IDX_VERTEX_DATA];
 		clipNear(v0, ext1);
 		ax1 = clipX0;
 		ay1 = clipY0;
@@ -835,10 +833,10 @@ class Rasterizer  {
 		final int position2 = edgePosition(cx0, cy0, cx1, cy1);
 		final int position3 = edgePosition(dx0, dy0, dx1, dy1);
 
-		this.minPixelX = minPixelX;
-		this.minPixelY = minPixelY;
-		this.maxPixelX = maxPixelX;
-		this.maxPixelY = maxPixelY;
+		data[IDX_MIN_PIX_X] = minPixelX;
+		data[IDX_MIN_PIX_Y] = minPixelY;
+		data[IDX_MAX_PIX_X] = maxPixelX;
+		data[IDX_MAX_PIX_Y] = maxPixelY;
 		this.ax0 = ax0;
 		this.ay0 = ay0;
 		this.ax1 = ax1;
@@ -1327,9 +1325,10 @@ class Rasterizer  {
 	}
 
 	private void populateFlatEvents(int position, int y0In) {
+		final int[] data = this.data;
+
 		if (position == EDGE_TOP) {
 			final int py = ((y0In + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS) + 1;
-			final int[] data = this.data;
 
 			if (py == MAX_PIXEL_Y) return;
 
@@ -1348,7 +1347,7 @@ class Rasterizer  {
 
 			if (py == 0) return;
 
-			final int y0 = minPixelY & TILE_AXIS_MASK;
+			final int y0 = data[IDX_MIN_PIX_Y] & TILE_AXIS_MASK;
 			final int start = IDX_EVENTS + (y0 << 1);
 			final int limit = IDX_EVENTS + (py > MAX_PIXEL_Y ? (MAX_PIXEL_Y << 1) : (py << 1));
 
@@ -1366,7 +1365,7 @@ class Rasterizer  {
 	/** Puts left edge at screen boundary */
 	private void populateLeftEvents() {
 		final int[] data = this.data;
-		final int y0 = minPixelY & TILE_AXIS_MASK;
+		final int y0 = data[IDX_MIN_PIX_Y] & TILE_AXIS_MASK;
 		final int y1 = maxTileOriginY + 7;
 		final int limit = IDX_EVENTS + (y1 << 1);
 
@@ -1376,11 +1375,11 @@ class Rasterizer  {
 	}
 
 	private void populateLeftEvents(int x0In, int y0In, int x1In, int y1In) {
-		final int y0 = minPixelY & TILE_AXIS_MASK;
+		final int[] data = this.data;
+		final int y0 = data[IDX_MIN_PIX_Y] & TILE_AXIS_MASK;
 		final int y1 = maxTileOriginY + 7;
 		final int limit = (y1 << 1);
 		final int dx = x1In - x0In;
-		final int[] data = this.data;
 
 		final long nStep;
 		long x;
@@ -1403,7 +1402,7 @@ class Rasterizer  {
 
 	private void populateRightEvents() {
 		final int[] data = this.data;
-		final int y0 = minPixelY & TILE_AXIS_MASK;
+		final int y0 = data[IDX_MIN_PIX_Y] & TILE_AXIS_MASK;
 		final int y1 = maxTileOriginY + 7;
 		// difference from left: is high index in pairs
 		final int limit = (y1 << 1) + 1;
@@ -1415,12 +1414,12 @@ class Rasterizer  {
 	}
 
 	private void populateRightEvents(int x0In, int y0In, int x1In, int y1In) {
-		final int y0 = minPixelY & TILE_AXIS_MASK;
+		final int[] data = this.data;
+		final int y0 = data[IDX_MIN_PIX_Y] & TILE_AXIS_MASK;
 		final int y1 = maxTileOriginY + 7;
 		// difference from left: is high index in pairs
 		final int limit = (y1 << 1) + 1;
 		final int dx = x1In - x0In;
-		final int[] data = this.data;
 
 		final long nStep;
 		long x;
@@ -1444,10 +1443,10 @@ class Rasterizer  {
 	}
 
 	private void populateLeftEvents2(int ax0, int ay0, int ax1, int ay1, int bx0, int by0, int bx1, int by1) {
-		final int y0 = minPixelY & TILE_AXIS_MASK;
+		final int[] data = this.data;
+		final int y0 = data[IDX_MIN_PIX_Y] & TILE_AXIS_MASK;
 		final int y1 = maxTileOriginY + 7;
 		final int limit = (y1 << 1);
-		final int[] data = this.data;
 
 		final long aStep;
 		long ax;
@@ -1487,10 +1486,10 @@ class Rasterizer  {
 	}
 
 	private void populateLeftEvents3(int ax0, int ay0, int ax1, int ay1, int bx0, int by0, int bx1, int by1, int cx0, int cy0, int cx1, int cy1) {
-		final int y0 = minPixelY & TILE_AXIS_MASK;
+		final int[] data = this.data;
+		final int y0 = data[IDX_MIN_PIX_Y] & TILE_AXIS_MASK;
 		final int y1 = maxTileOriginY + 7;
 		final int limit = (y1 << 1);
-		final int[] data = this.data;
 
 		final long aStep;
 		long ax;
@@ -1545,10 +1544,10 @@ class Rasterizer  {
 	}
 
 	private void populateLeftEvents4(int ax0, int ay0, int ax1, int ay1, int bx0, int by0, int bx1, int by1, int cx0, int cy0, int cx1, int cy1, int dx0, int dy0, int dx1, int dy1) {
-		final int y0 = minPixelY & TILE_AXIS_MASK;
+		final int[] data = this.data;
+		final int y0 = data[IDX_MIN_PIX_Y] & TILE_AXIS_MASK;
 		final int y1 = maxTileOriginY + 7;
 		final int limit = (y1 << 1);
-		final int[] data = this.data;
 
 		final long aStep;
 		long ax;
@@ -1618,11 +1617,11 @@ class Rasterizer  {
 	}
 
 	private void populateRightEvents2(int ax0, int ay0, int ax1, int ay1, int bx0, int by0, int bx1, int by1) {
-		final int y0 = minPixelY & TILE_AXIS_MASK;
+		final int[] data = this.data;
+		final int y0 = data[IDX_MIN_PIX_Y] & TILE_AXIS_MASK;
 		final int y1 = maxTileOriginY + 7;
 		// difference from left: is high index in pairs
 		final int limit = (y1 << 1) + 1;
-		final int[] data = this.data;
 
 		final long aStep;
 		long ax;
@@ -1666,11 +1665,11 @@ class Rasterizer  {
 	}
 
 	private void populateRightEvents3(int ax0, int ay0, int ax1, int ay1, int bx0, int by0, int bx1, int by1, int cx0, int cy0, int cx1, int cy1) {
-		final int y0 = minPixelY & TILE_AXIS_MASK;
+		final int[] data = this.data;
+		final int y0 = data[IDX_MIN_PIX_Y] & TILE_AXIS_MASK;
 		final int y1 = maxTileOriginY + 7;
 		// difference from left: is high index in pairs
 		final int limit = (y1 << 1) + 1;
-		final int[] data = this.data;
 
 		final long aStep;
 		long ax;
@@ -1731,11 +1730,11 @@ class Rasterizer  {
 	}
 
 	private void populateRightEvents4(int ax0, int ay0, int ax1, int ay1, int bx0, int by0, int bx1, int by1, int cx0, int cy0, int cx1, int cy1, int dx0, int dy0, int dx1, int dy1) {
-		final int y0 = minPixelY & TILE_AXIS_MASK;
+		final int[] data = this.data;
+		final int y0 = data[IDX_MIN_PIX_Y] & TILE_AXIS_MASK;
 		final int y1 = maxTileOriginY + 7;
 		// difference from left: is high index in pairs
 		final int limit = (y1 << 1) + 1;
-		final int[] data = this.data;
 
 		final long aStep;
 		long ax;
@@ -1894,32 +1893,32 @@ class Rasterizer  {
 	//	}
 
 	void setupVertex(final int baseIndex, final int x, final int y, final int z) {
-		final int[] data = vertexData;
+		final int[] data = this.data;
 		final Matrix4L mvpMatrix = this.mvpMatrix;
 
 		final float tx = mvpMatrix.transformVec4X(x, y, z) * Matrix4L.FLOAT_CONVERSION;
 		final float ty = mvpMatrix.transformVec4Y(x, y, z) * Matrix4L.FLOAT_CONVERSION;
 		final float w = mvpMatrix.transformVec4W(x, y, z) * Matrix4L.FLOAT_CONVERSION;
 
-		data[baseIndex + PV_X] = Float.floatToRawIntBits(tx);
-		data[baseIndex + PV_Y] = Float.floatToRawIntBits(ty);
-		data[baseIndex + PV_Z] = Float.floatToRawIntBits(mvpMatrix.transformVec4Z(x, y, z) * Matrix4L.FLOAT_CONVERSION);
-		data[baseIndex + PV_W] = Float.floatToRawIntBits(w);
+		data[baseIndex + PV_X + IDX_VERTEX_DATA] = Float.floatToRawIntBits(tx);
+		data[baseIndex + PV_Y + IDX_VERTEX_DATA] = Float.floatToRawIntBits(ty);
+		data[baseIndex + PV_Z + IDX_VERTEX_DATA] = Float.floatToRawIntBits(mvpMatrix.transformVec4Z(x, y, z) * Matrix4L.FLOAT_CONVERSION);
+		data[baseIndex + PV_W + IDX_VERTEX_DATA] = Float.floatToRawIntBits(w);
 
 		if (w != 0)  {
 			final float iw = 1f / w;
 			final int px = Math.round(tx * iw * HALF_PRECISE_WIDTH) + HALF_PRECISE_WIDTH;
 			final int py = Math.round(ty * iw * HALF_PRECISE_HEIGHT) + HALF_PRECISE_HEIGHT;
 
-			data[baseIndex + PV_PX] = px;
-			data[baseIndex + PV_PY] = py;
+			data[baseIndex + PV_PX + IDX_VERTEX_DATA] = px;
+			data[baseIndex + PV_PY + IDX_VERTEX_DATA] = py;
 		}
 	}
 
 	int needsNearClip(final int baseIndex) {
-		final int[] data = vertexData;
-		final float w = Float.intBitsToFloat(data[baseIndex + PV_W]);
-		final float z = Float.intBitsToFloat(data[baseIndex + PV_Z]);
+		final int[] data = this.data;
+		final float w = Float.intBitsToFloat(data[baseIndex + PV_W + IDX_VERTEX_DATA]);
+		final float z = Float.intBitsToFloat(data[baseIndex + PV_Z + IDX_VERTEX_DATA]);
 
 		if (w == 0) {
 			return 1;

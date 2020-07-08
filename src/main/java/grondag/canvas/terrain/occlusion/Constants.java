@@ -285,6 +285,7 @@ public class Constants {
 	static final int EVENTS_LENGTH = PIXEL_HEIGHT * 2;
 	static final int IDX_VERTEX_DATA = IDX_EVENTS + EVENTS_LENGTH;
 
+	// Boumds of current triangle - pixel coordinates
 	static final int IDX_MIN_PIX_X = IDX_VERTEX_DATA + VERTEX_DATA_LENGTH;
 	static final int IDX_MIN_PIX_Y = IDX_MIN_PIX_X + 1;
 	static final int IDX_MAX_PIX_X = IDX_MIN_PIX_Y + 1;
