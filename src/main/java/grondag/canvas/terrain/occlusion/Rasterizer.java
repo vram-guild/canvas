@@ -700,7 +700,7 @@ class Rasterizer  {
 
 		clipNear(v0, ext3);
 		dx0 = data[IDX_CLIP_X];
-		dy0 = data[IDX_CLIP_X];
+		dy0 = data[IDX_CLIP_Y];
 		dx1 = ax0;
 		dy1 = ay0;
 
