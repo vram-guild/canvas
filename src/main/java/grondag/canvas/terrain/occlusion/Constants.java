@@ -291,12 +291,10 @@ public class Constants {
 	static final int IDX_MAX_PIX_X = IDX_MIN_PIX_Y + 1;
 	static final int IDX_MAX_PIX_Y = IDX_MAX_PIX_X + 1;
 
-	static final int IDX_CLIP_X0 = IDX_MAX_PIX_Y + 1;
-	static final int IDX_CLIP_Y0 = IDX_CLIP_X0 + 1;
-	static final int IDX_CLIP_X1 = IDX_CLIP_Y0 + 1;
-	static final int IDX_CLIP_Y1 = IDX_CLIP_X1 + 1;
+	static final int IDX_CLIP_X = IDX_MAX_PIX_Y + 1;
+	static final int IDX_CLIP_Y = IDX_CLIP_X + 1;
 
-	static final int IDX_POS0 = IDX_CLIP_Y1 + 1;
+	static final int IDX_POS0 = IDX_CLIP_Y + 1;
 	static final int IDX_POS1 = IDX_POS0 + 1;
 	static final int IDX_POS2 = IDX_POS1 + 1;
 	static final int IDX_POS3 = IDX_POS2 + 1;
