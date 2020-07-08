@@ -1,43 +1,6 @@
 package grondag.canvas.terrain.occlusion;
 
 import static grondag.canvas.terrain.occlusion.Constants.*;
-import static grondag.canvas.terrain.occlusion.Data.ax0;
-import static grondag.canvas.terrain.occlusion.Data.ax1;
-import static grondag.canvas.terrain.occlusion.Data.ay0;
-import static grondag.canvas.terrain.occlusion.Data.ay1;
-import static grondag.canvas.terrain.occlusion.Data.bx0;
-import static grondag.canvas.terrain.occlusion.Data.bx1;
-import static grondag.canvas.terrain.occlusion.Data.by0;
-import static grondag.canvas.terrain.occlusion.Data.by1;
-import static grondag.canvas.terrain.occlusion.Data.clipX0;
-import static grondag.canvas.terrain.occlusion.Data.clipY0;
-import static grondag.canvas.terrain.occlusion.Data.cx0;
-import static grondag.canvas.terrain.occlusion.Data.cx1;
-import static grondag.canvas.terrain.occlusion.Data.cy0;
-import static grondag.canvas.terrain.occlusion.Data.cy1;
-import static grondag.canvas.terrain.occlusion.Data.dx0;
-import static grondag.canvas.terrain.occlusion.Data.dx1;
-import static grondag.canvas.terrain.occlusion.Data.dy0;
-import static grondag.canvas.terrain.occlusion.Data.dy1;
-import static grondag.canvas.terrain.occlusion.Data.events;
-import static grondag.canvas.terrain.occlusion.Data.maxPixelX;
-import static grondag.canvas.terrain.occlusion.Data.maxPixelY;
-import static grondag.canvas.terrain.occlusion.Data.maxTileOriginX;
-import static grondag.canvas.terrain.occlusion.Data.maxTileOriginY;
-import static grondag.canvas.terrain.occlusion.Data.minPixelX;
-import static grondag.canvas.terrain.occlusion.Data.minPixelY;
-import static grondag.canvas.terrain.occlusion.Data.minTileOriginX;
-import static grondag.canvas.terrain.occlusion.Data.position0;
-import static grondag.canvas.terrain.occlusion.Data.position1;
-import static grondag.canvas.terrain.occlusion.Data.position2;
-import static grondag.canvas.terrain.occlusion.Data.position3;
-import static grondag.canvas.terrain.occlusion.Data.save_tileIndex;
-import static grondag.canvas.terrain.occlusion.Data.save_tileOriginX;
-import static grondag.canvas.terrain.occlusion.Data.save_tileOriginY;
-import static grondag.canvas.terrain.occlusion.Data.tileIndex;
-import static grondag.canvas.terrain.occlusion.Data.tileOriginX;
-import static grondag.canvas.terrain.occlusion.Data.tileOriginY;
-import static grondag.canvas.terrain.occlusion.Data.tiles;
 import static grondag.canvas.terrain.occlusion.Indexer.tileIndex;
 import static grondag.canvas.terrain.occlusion.Matrix4L.MATRIX_PRECISION_HALF;
 
@@ -51,10 +14,61 @@ import grondag.canvas.Configurator;
 // Some elements are adapted from content found at
 // https://fgiesen.wordpress.com/2013/02/17/optimizing-sw-occlusion-culling-index/
 // by Fabian “ryg” Giesen. That content is in the public domain.
-abstract class Rasterizer  {
-	private Rasterizer() { }
+class Rasterizer  {
+	final Matrix4L mvpMatrix = new Matrix4L();
 
-	static final void drawQuad(int v0, int v1, int v2, int v3) {
+	final int[] events = new int[PIXEL_HEIGHT * 2];
+	final int[] vertexData = new int[VERTEX_DATA_LENGTH];
+	final long[] tiles = new long[TILE_COUNT];
+
+	// Boumds of current triangle - pixel coordinates
+	int minPixelX;
+	int minPixelY;
+	int maxPixelX;
+	int maxPixelY;
+
+	int clipX0;
+	int clipY0;
+	int clipX1;
+	int clipY1;
+
+	int position0;
+	int position1;
+	int position2;
+	int position3;
+
+	int ax0;
+	int ay0;
+	int ax1;
+	int ay1;
+
+	int bx0;
+	int by0;
+	int bx1;
+	int by1;
+
+	int cx0;
+	int cy0;
+	int cx1;
+	int cy1;
+
+	int dx0;
+	int dy0;
+	int dx1;
+	int dy1;
+
+	int minTileOriginX;
+	int maxTileOriginX;
+	int maxTileOriginY;
+
+	int tileIndex;
+	int tileOriginX;
+	int tileOriginY;
+	int save_tileIndex;
+	int save_tileOriginX;
+	int save_tileOriginY;
+
+	final void drawQuad(int v0, int v1, int v2, int v3) {
 		final int boundsResult  = prepareBounds(v0, v1, v2, v3);
 
 		if (boundsResult == BOUNDS_OUTSIDE_OR_TOO_SMALL) {
@@ -66,10 +80,10 @@ abstract class Rasterizer  {
 			return;
 		}
 
-		Rasterizer.drawQuad();
+		drawQuad();
 	}
 
-	static boolean testQuad(int v0, int v1, int v2, int v3) {
+	boolean testQuad(int v0, int v1, int v2, int v3) {
 		final int boundsResult  = prepareBounds(v0, v1, v2, v3);
 
 		if (boundsResult == BOUNDS_OUTSIDE_OR_TOO_SMALL) {
@@ -85,7 +99,7 @@ abstract class Rasterizer  {
 		}
 	}
 
-	static boolean testQuad() {
+	boolean testQuad() {
 		boolean goRight = true;
 
 		while(true) {
@@ -119,7 +133,7 @@ abstract class Rasterizer  {
 		}
 	}
 
-	static boolean testQuadInner() {
+	boolean testQuadInner() {
 		final long word = tiles[tileIndex];
 
 		// nothing to test if fully occluded
@@ -130,7 +144,7 @@ abstract class Rasterizer  {
 		return (~word & computeTileCoverage()) != 0;
 	}
 
-	static void drawQuad() {
+	void drawQuad() {
 		boolean goRight = true;
 
 		while(true) {
@@ -162,7 +176,7 @@ abstract class Rasterizer  {
 		}
 	}
 
-	static void drawQuadInner() {
+	void drawQuadInner() {
 		assert tileOriginY < PIXEL_HEIGHT;
 		assert tileOriginX < PIXEL_WIDTH;
 		assert tileOriginX >= 0;
@@ -176,7 +190,7 @@ abstract class Rasterizer  {
 		}
 	}
 
-	static void printMask8x8(long mask) {
+	void printMask8x8(long mask) {
 		final String s = Strings.padStart(Long.toBinaryString(mask), 64, '0');
 		System.out.println(StringUtils.reverse(s.substring(0, 8)).replace("0", "- ").replace("1", "X "));
 		System.out.println(StringUtils.reverse(s.substring(8, 16)).replace("0", "- ").replace("1", "X "));
@@ -190,8 +204,8 @@ abstract class Rasterizer  {
 		System.out.println();
 	}
 
-	private static void clipNear(int internal, int external) {
-		final int[] vertexData = Data.vertexData;
+	private void clipNear(int internal, int external) {
+		final int[] vertexData = this.vertexData;
 
 		final float intX = Float.intBitsToFloat(vertexData[internal + PV_X]);
 		final float intY = Float.intBitsToFloat(vertexData[internal + PV_Y]);
@@ -219,7 +233,7 @@ abstract class Rasterizer  {
 		clipY0 = Math.round(iw * y * HALF_PRECISE_HEIGHT) + HALF_PRECISE_HEIGHT;
 	}
 
-	static int prepareBounds(int v0, int v1, int v2, int v3) {
+	int prepareBounds(int v0, int v1, int v2, int v3) {
 		// puts bits in lexical order
 		final int split = needsNearClip(v3) | (needsNearClip(v2) << 1) | (needsNearClip(v1) << 2) | (needsNearClip(v0) << 3);
 
@@ -276,7 +290,7 @@ abstract class Rasterizer  {
 				// Does't seem to have
 				CanvasMod.LOG.info("Invalid occlusion quad split. Printing z, w, z / w for each vertex.");
 
-				final int[] data = Data.vertexData;
+				final int[] data = vertexData;
 				float w = Float.intBitsToFloat(data[v0 + PV_W]);
 				float z = Float.intBitsToFloat(data[v0 + PV_Z]);
 				CanvasMod.LOG.info(z + ",    " + w + ",   " + (z / w));
@@ -300,8 +314,8 @@ abstract class Rasterizer  {
 		return BOUNDS_OUTSIDE_OR_TOO_SMALL;
 	}
 
-	private static int prepareBounds0000(int v0, int v1, int v2, int v3) {
-		final int[] vertexData = Data.vertexData;
+	private int prepareBounds0000(int v0, int v1, int v2, int v3) {
+		final int[] vertexData = this.vertexData;
 		int ax0, ay0, ax1, ay1;
 		int bx0, by0, bx1, by1;
 		int cx0, cy0, cx1, cy1;
@@ -394,30 +408,30 @@ abstract class Rasterizer  {
 		final int position2 = edgePosition(cx0, cy0, cx1, cy1);
 		final int position3 = edgePosition(dx0, dy0, dx1, dy1);
 
-		Data.minPixelX = minPixelX;
-		Data.minPixelY = minPixelY;
-		Data.maxPixelX = maxPixelX;
-		Data.maxPixelY = maxPixelY;
-		Data.ax0 = ax0;
-		Data.ay0 = ay0;
-		Data.ax1 = ax1;
-		Data.ay1 = ay1;
-		Data.bx0 = bx0;
-		Data.by0 = by0;
-		Data.bx1 = bx1;
-		Data.by1 = by1;
-		Data.cx0 = cx0;
-		Data.cy0 = cy0;
-		Data.cx1 = cx1;
-		Data.cy1 = cy1;
-		Data.dx0 = dx0;
-		Data.dy0 = dy0;
-		Data.dx1 = dx1;
-		Data.dy1 = dy1;
-		Data.position0 = position0;
-		Data.position1 = position1;
-		Data.position2 = position2;
-		Data.position3 = position3;
+		this.minPixelX = minPixelX;
+		this.minPixelY = minPixelY;
+		this.maxPixelX = maxPixelX;
+		this.maxPixelY = maxPixelY;
+		this.ax0 = ax0;
+		this.ay0 = ay0;
+		this.ax1 = ax1;
+		this.ay1 = ay1;
+		this.bx0 = bx0;
+		this.by0 = by0;
+		this.bx1 = bx1;
+		this.by1 = by1;
+		this.cx0 = cx0;
+		this.cy0 = cy0;
+		this.cx1 = cx1;
+		this.cy1 = cy1;
+		this.dx0 = dx0;
+		this.dy0 = dy0;
+		this.dx1 = dx1;
+		this.dy1 = dy1;
+		this.position0 = position0;
+		this.position1 = position1;
+		this.position2 = position2;
+		this.position3 = position3;
 
 		final int eventKey = (position0 - 1) & EVENT_POSITION_MASK
 				| (((position1 - 1) & EVENT_POSITION_MASK) << 2)
@@ -430,7 +444,7 @@ abstract class Rasterizer  {
 	}
 
 
-	//	private static void clipToGuards() {
+	//	private void clipToGuards() {
 	//		if ((((ax0 + GUARD_SIZE) | (ay0 + GUARD_SIZE) | (ax1 + GUARD_SIZE) | (ay1 + GUARD_SIZE)) & CLIP_MASK) != 0) {
 	//			clipLine(ax0, ay0, ax1, ay1);
 	//			ax0 = clipX0;
@@ -464,8 +478,8 @@ abstract class Rasterizer  {
 	//		}
 	//	}
 
-	private static int prepareBounds0001(int v0, int v1, int v2, int ext3) {
-		final int[] vertexData = Data.vertexData;
+	private int prepareBounds0001(int v0, int v1, int v2, int ext3) {
+		final int[] vertexData = this.vertexData;
 		int ax0, ay0, ax1, ay1;
 		int bx0, by0, bx1, by1;
 		int cx0, cy0, cx1, cy1;
@@ -561,30 +575,30 @@ abstract class Rasterizer  {
 		final int position2 = edgePosition(cx0, cy0, cx1, cy1);
 		final int position3 = edgePosition(dx0, dy0, dx1, dy1);
 
-		Data.minPixelX = minPixelX;
-		Data.minPixelY = minPixelY;
-		Data.maxPixelX = maxPixelX;
-		Data.maxPixelY = maxPixelY;
-		Data.ax0 = ax0;
-		Data.ay0 = ay0;
-		Data.ax1 = ax1;
-		Data.ay1 = ay1;
-		Data.bx0 = bx0;
-		Data.by0 = by0;
-		Data.bx1 = bx1;
-		Data.by1 = by1;
-		Data.cx0 = cx0;
-		Data.cy0 = cy0;
-		Data.cx1 = cx1;
-		Data.cy1 = cy1;
-		Data.dx0 = dx0;
-		Data.dy0 = dy0;
-		Data.dx1 = dx1;
-		Data.dy1 = dy1;
-		Data.position0 = position0;
-		Data.position1 = position1;
-		Data.position2 = position2;
-		Data.position3 = position3;
+		this.minPixelX = minPixelX;
+		this.minPixelY = minPixelY;
+		this.maxPixelX = maxPixelX;
+		this.maxPixelY = maxPixelY;
+		this.ax0 = ax0;
+		this.ay0 = ay0;
+		this.ax1 = ax1;
+		this.ay1 = ay1;
+		this.bx0 = bx0;
+		this.by0 = by0;
+		this.bx1 = bx1;
+		this.by1 = by1;
+		this.cx0 = cx0;
+		this.cy0 = cy0;
+		this.cx1 = cx1;
+		this.cy1 = cy1;
+		this.dx0 = dx0;
+		this.dy0 = dy0;
+		this.dx1 = dx1;
+		this.dy1 = dy1;
+		this.position0 = position0;
+		this.position1 = position1;
+		this.position2 = position2;
+		this.position3 = position3;
 
 		final int eventKey = (position0 - 1) & EVENT_POSITION_MASK
 				| (((position1 - 1) & EVENT_POSITION_MASK) << 2)
@@ -596,8 +610,8 @@ abstract class Rasterizer  {
 		return BOUNDS_IN;
 	}
 
-	private static int prepareBounds0011(int v0, int v1, int ext2, int ext3) {
-		final int[] vertexData = Data.vertexData;
+	private int prepareBounds0011(int v0, int v1, int ext2, int ext3) {
+		final int[] vertexData = this.vertexData;
 		int ax0, ay0, ax1, ay1;
 		int bx0, by0, bx1, by1;
 		int cx0, cy0, cx1, cy1;
@@ -693,30 +707,30 @@ abstract class Rasterizer  {
 		final int position2 = edgePosition(cx0, cy0, cx1, cy1);
 		final int position3 = edgePosition(dx0, dy0, dx1, dy1);
 
-		Data.minPixelX = minPixelX;
-		Data.minPixelY = minPixelY;
-		Data.maxPixelX = maxPixelX;
-		Data.maxPixelY = maxPixelY;
-		Data.ax0 = ax0;
-		Data.ay0 = ay0;
-		Data.ax1 = ax1;
-		Data.ay1 = ay1;
-		Data.bx0 = bx0;
-		Data.by0 = by0;
-		Data.bx1 = bx1;
-		Data.by1 = by1;
-		Data.cx0 = cx0;
-		Data.cy0 = cy0;
-		Data.cx1 = cx1;
-		Data.cy1 = cy1;
-		Data.dx0 = dx0;
-		Data.dy0 = dy0;
-		Data.dx1 = dx1;
-		Data.dy1 = dy1;
-		Data.position0 = position0;
-		Data.position1 = position1;
-		Data.position2 = position2;
-		Data.position3 = position3;
+		this.minPixelX = minPixelX;
+		this.minPixelY = minPixelY;
+		this.maxPixelX = maxPixelX;
+		this.maxPixelY = maxPixelY;
+		this.ax0 = ax0;
+		this.ay0 = ay0;
+		this.ax1 = ax1;
+		this.ay1 = ay1;
+		this.bx0 = bx0;
+		this.by0 = by0;
+		this.bx1 = bx1;
+		this.by1 = by1;
+		this.cx0 = cx0;
+		this.cy0 = cy0;
+		this.cx1 = cx1;
+		this.cy1 = cy1;
+		this.dx0 = dx0;
+		this.dy0 = dy0;
+		this.dx1 = dx1;
+		this.dy1 = dy1;
+		this.position0 = position0;
+		this.position1 = position1;
+		this.position2 = position2;
+		this.position3 = position3;
 
 		final int eventKey = (position0 - 1) & EVENT_POSITION_MASK
 				| (((position1 - 1) & EVENT_POSITION_MASK) << 2)
@@ -728,8 +742,8 @@ abstract class Rasterizer  {
 		return BOUNDS_IN;
 	}
 
-	private static int prepareBounds0111(int v0, int ext1, int ext2, int ext3) {
-		final int[] vertexData = Data.vertexData;
+	private int prepareBounds0111(int v0, int ext1, int ext2, int ext3) {
+		final int[] vertexData = this.vertexData;
 		int ax0, ay0, ax1, ay1;
 		int bx0, by0, bx1, by1;
 		int cx0, cy0, cx1, cy1;
@@ -821,30 +835,30 @@ abstract class Rasterizer  {
 		final int position2 = edgePosition(cx0, cy0, cx1, cy1);
 		final int position3 = edgePosition(dx0, dy0, dx1, dy1);
 
-		Data.minPixelX = minPixelX;
-		Data.minPixelY = minPixelY;
-		Data.maxPixelX = maxPixelX;
-		Data.maxPixelY = maxPixelY;
-		Data.ax0 = ax0;
-		Data.ay0 = ay0;
-		Data.ax1 = ax1;
-		Data.ay1 = ay1;
-		Data.bx0 = bx0;
-		Data.by0 = by0;
-		Data.bx1 = bx1;
-		Data.by1 = by1;
-		Data.cx0 = cx0;
-		Data.cy0 = cy0;
-		Data.cx1 = cx1;
-		Data.cy1 = cy1;
-		Data.dx0 = dx0;
-		Data.dy0 = dy0;
-		Data.dx1 = dx1;
-		Data.dy1 = dy1;
-		Data.position0 = position0;
-		Data.position1 = position1;
-		Data.position2 = position2;
-		Data.position3 = position3;
+		this.minPixelX = minPixelX;
+		this.minPixelY = minPixelY;
+		this.maxPixelX = maxPixelX;
+		this.maxPixelY = maxPixelY;
+		this.ax0 = ax0;
+		this.ay0 = ay0;
+		this.ax1 = ax1;
+		this.ay1 = ay1;
+		this.bx0 = bx0;
+		this.by0 = by0;
+		this.bx1 = bx1;
+		this.by1 = by1;
+		this.cx0 = cx0;
+		this.cy0 = cy0;
+		this.cx1 = cx1;
+		this.cy1 = cy1;
+		this.dx0 = dx0;
+		this.dy0 = dy0;
+		this.dx1 = dx1;
+		this.dy1 = dy1;
+		this.position0 = position0;
+		this.position1 = position1;
+		this.position2 = position2;
+		this.position3 = position3;
 
 		final int eventKey = (position0 - 1) & EVENT_POSITION_MASK
 				| (((position1 - 1) & EVENT_POSITION_MASK) << 2)
@@ -860,9 +874,9 @@ abstract class Rasterizer  {
 		void apply();
 	}
 
-	private static EventFiller[] EVENT_FILLERS = new EventFiller[0x1000];
+	private final EventFiller[] EVENT_FILLERS = new EventFiller[0x1000];
 
-	static  {
+	{
 		EVENT_FILLERS[EVENT_0123_RRRR] = () -> {
 			populateLeftEvents();
 			populateRightEvents4(ax0, ay0, ax1, ay1, bx0, by0, bx1, by1, cx0, cy0, cx1, cy1, dx0, dy0, dx1, dy1);
@@ -1303,7 +1317,7 @@ abstract class Rasterizer  {
 
 	}
 
-	private static int edgePosition(int x0In, int y0In, int x1In, int y1In) {
+	private int edgePosition(int x0In, int y0In, int x1In, int y1In) {
 		final int dy = y1In - y0In;
 		final int dx = x1In - x0In;
 		// signum of dx and dy, with shifted masks to derive the edge constant directly
@@ -1312,7 +1326,7 @@ abstract class Rasterizer  {
 		return (1 << (((-dy >> 31) | (dy >>> 31)) + 1)) | (1 << (((dx >> 31) | (-dx >>> 31)) + 4));
 	}
 
-	private static void populateFlatEvents(int position, int y0In) {
+	private void populateFlatEvents(int position, int y0In) {
 		if (position == EDGE_TOP) {
 			final int py = ((y0In + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS) + 1;
 
@@ -1349,8 +1363,8 @@ abstract class Rasterizer  {
 	}
 
 	/** Puts left edge at screen boundary */
-	private static void populateLeftEvents() {
-		final int[] events = Data.events;
+	private void populateLeftEvents() {
+		final int[] events = this.events;
 		final int y0 = minPixelY & TILE_AXIS_MASK;
 		final int y1 = maxTileOriginY + 7;
 		final int limit = (y1 << 1);
@@ -1360,7 +1374,7 @@ abstract class Rasterizer  {
 		}
 	}
 
-	private static void populateLeftEvents(int x0In, int y0In, int x1In, int y1In) {
+	private void populateLeftEvents(int x0In, int y0In, int x1In, int y1In) {
 		final int y0 = minPixelY & TILE_AXIS_MASK;
 		final int y1 = maxTileOriginY + 7;
 		final int limit = (y1 << 1);
@@ -1385,8 +1399,8 @@ abstract class Rasterizer  {
 		}
 	}
 
-	private static void populateRightEvents() {
-		final int[] events = Data.events;
+	private void populateRightEvents() {
+		final int[] events = this.events;
 		final int y0 = minPixelY & TILE_AXIS_MASK;
 		final int y1 = maxTileOriginY + 7;
 		// difference from left: is high index in pairs
@@ -1398,7 +1412,7 @@ abstract class Rasterizer  {
 		}
 	}
 
-	private static void populateRightEvents(int x0In, int y0In, int x1In, int y1In) {
+	private void populateRightEvents(int x0In, int y0In, int x1In, int y1In) {
 		final int y0 = minPixelY & TILE_AXIS_MASK;
 		final int y1 = maxTileOriginY + 7;
 		// difference from left: is high index in pairs
@@ -1426,7 +1440,7 @@ abstract class Rasterizer  {
 		}
 	}
 
-	private static void populateLeftEvents2(int ax0, int ay0, int ax1, int ay1, int bx0, int by0, int bx1, int by1) {
+	private void populateLeftEvents2(int ax0, int ay0, int ax1, int ay1, int bx0, int by0, int bx1, int by1) {
 		final int y0 = minPixelY & TILE_AXIS_MASK;
 		final int y1 = maxTileOriginY + 7;
 		final int limit = (y1 << 1);
@@ -1468,7 +1482,7 @@ abstract class Rasterizer  {
 		}
 	}
 
-	private static void populateLeftEvents3(int ax0, int ay0, int ax1, int ay1, int bx0, int by0, int bx1, int by1, int cx0, int cy0, int cx1, int cy1) {
+	private void populateLeftEvents3(int ax0, int ay0, int ax1, int ay1, int bx0, int by0, int bx1, int by1, int cx0, int cy0, int cx1, int cy1) {
 		final int y0 = minPixelY & TILE_AXIS_MASK;
 		final int y1 = maxTileOriginY + 7;
 		final int limit = (y1 << 1);
@@ -1525,7 +1539,7 @@ abstract class Rasterizer  {
 		}
 	}
 
-	private static void populateLeftEvents4(int ax0, int ay0, int ax1, int ay1, int bx0, int by0, int bx1, int by1, int cx0, int cy0, int cx1, int cy1, int dx0, int dy0, int dx1, int dy1) {
+	private void populateLeftEvents4(int ax0, int ay0, int ax1, int ay1, int bx0, int by0, int bx1, int by1, int cx0, int cy0, int cx1, int cy1, int dx0, int dy0, int dx1, int dy1) {
 		final int y0 = minPixelY & TILE_AXIS_MASK;
 		final int y1 = maxTileOriginY + 7;
 		final int limit = (y1 << 1);
@@ -1597,7 +1611,7 @@ abstract class Rasterizer  {
 		}
 	}
 
-	private static void populateRightEvents2(int ax0, int ay0, int ax1, int ay1, int bx0, int by0, int bx1, int by1) {
+	private void populateRightEvents2(int ax0, int ay0, int ax1, int ay1, int bx0, int by0, int bx1, int by1) {
 		final int y0 = minPixelY & TILE_AXIS_MASK;
 		final int y1 = maxTileOriginY + 7;
 		// difference from left: is high index in pairs
@@ -1644,7 +1658,7 @@ abstract class Rasterizer  {
 		}
 	}
 
-	private static void populateRightEvents3(int ax0, int ay0, int ax1, int ay1, int bx0, int by0, int bx1, int by1, int cx0, int cy0, int cx1, int cy1) {
+	private void populateRightEvents3(int ax0, int ay0, int ax1, int ay1, int bx0, int by0, int bx1, int by1, int cx0, int cy0, int cx1, int cy1) {
 		final int y0 = minPixelY & TILE_AXIS_MASK;
 		final int y1 = maxTileOriginY + 7;
 		// difference from left: is high index in pairs
@@ -1708,7 +1722,7 @@ abstract class Rasterizer  {
 		}
 	}
 
-	private static void populateRightEvents4(int ax0, int ay0, int ax1, int ay1, int bx0, int by0, int bx1, int by1, int cx0, int cy0, int cx1, int cy1, int dx0, int dy0, int dx1, int dy1) {
+	private void populateRightEvents4(int ax0, int ay0, int ax1, int ay1, int bx0, int by0, int bx1, int by1, int cx0, int cy0, int cx1, int cy1, int dx0, int dy0, int dx1, int dy1) {
 		final int y0 = minPixelY & TILE_AXIS_MASK;
 		final int y1 = maxTileOriginY + 7;
 		// difference from left: is high index in pairs
@@ -1789,9 +1803,9 @@ abstract class Rasterizer  {
 	}
 
 	// For abandoned traversal scheme
-	//	static void populateTileEvents() {
-	//		final int[] events = Data.events;
-	//		final int[] tileEvents = Data.tileEvents;
+	//	void populateTileEvents() {
+	//		final int[] events = this.events;
+	//		final int[] tileEvents = this.tileEvents;
 	//
 	//		int y = (minPixelY & TILE_AXIS_MASK) << 1;
 	//		final int ty0 = (y >> TILE_AXIS_SHIFT); //  NB: no left shift here because y already includes
@@ -1870,9 +1884,9 @@ abstract class Rasterizer  {
 	//		}
 	//	}
 
-	static void setupVertex(final int baseIndex, final int x, final int y, final int z) {
-		final int[] data = Data.vertexData;
-		final Matrix4L mvpMatrix = Data.mvpMatrix;
+	void setupVertex(final int baseIndex, final int x, final int y, final int z) {
+		final int[] data = vertexData;
+		final Matrix4L mvpMatrix = this.mvpMatrix;
 
 		final float tx = mvpMatrix.transformVec4X(x, y, z) * Matrix4L.FLOAT_CONVERSION;
 		final float ty = mvpMatrix.transformVec4Y(x, y, z) * Matrix4L.FLOAT_CONVERSION;
@@ -1893,8 +1907,8 @@ abstract class Rasterizer  {
 		}
 	}
 
-	static int needsNearClip(final int baseIndex) {
-		final int[] data = Data.vertexData;
+	int needsNearClip(final int baseIndex) {
+		final int[] data = vertexData;
 		final float w = Float.intBitsToFloat(data[baseIndex + PV_W]);
 		final float z = Float.intBitsToFloat(data[baseIndex + PV_Z]);
 
@@ -1908,7 +1922,7 @@ abstract class Rasterizer  {
 		}
 	}
 
-	static void moveTileRight() {
+	void moveTileRight() {
 		tileOriginX += 8;
 
 		if ((tileIndex & TILE_INDEX_LOW_X_MASK) == TILE_INDEX_LOW_X_MASK) {
@@ -1921,7 +1935,7 @@ abstract class Rasterizer  {
 		assert tileOriginX < PIXEL_WIDTH;
 	}
 
-	static void moveTileLeft() {
+	void moveTileLeft() {
 		tileOriginX -= 8;
 
 		if ((tileIndex & TILE_INDEX_LOW_X_MASK) == 0) {
@@ -1935,7 +1949,7 @@ abstract class Rasterizer  {
 		assert tileOriginX >= 0;
 	}
 
-	static void moveTileUp() {
+	void moveTileUp() {
 		tileOriginY += 8;
 
 		if ((tileIndex & TILE_INDEX_LOW_Y_MASK) == TILE_INDEX_LOW_Y_MASK) {
@@ -1948,19 +1962,19 @@ abstract class Rasterizer  {
 		assert tileOriginY < PIXEL_HEIGHT;
 	}
 
-	static void pushTile() {
+	void pushTile() {
 		save_tileOriginX = tileOriginX;
 		save_tileOriginY = tileOriginY;
 		save_tileIndex = tileIndex;
 	}
 
-	static void popTile() {
+	void popTile() {
 		tileOriginX = save_tileOriginX;
 		tileOriginY = save_tileOriginY;
 		tileIndex = save_tileIndex;
 	}
 
-	static long computeTileCoverage() {
+	long computeTileCoverage() {
 		final int[] e = events;
 
 		int y = tileOriginY << 1;
@@ -2092,8 +2106,8 @@ abstract class Rasterizer  {
 	 * @param z
 	 * @return
 	 */
-	static boolean isPointVisible(int x, int y, int z) {
-		final Matrix4L mvpMatrix = Data.mvpMatrix;
+	boolean isPointVisible(int x, int y, int z) {
+		final Matrix4L mvpMatrix = this.mvpMatrix;
 
 		final long w = mvpMatrix.transformVec4W(x, y, z);
 		final long tz = mvpMatrix.transformVec4Z(x, y, z);
@@ -2112,13 +2126,13 @@ abstract class Rasterizer  {
 		return false;
 	}
 
-	static boolean testPixel(int x, int y) {
-		return (Data.tiles[Indexer.lowIndexFromPixelXY(x, y)] & (1L << (Indexer.pixelIndex(x, y)))) == 0;
+	boolean testPixel(int x, int y) {
+		return (tiles[Indexer.lowIndexFromPixelXY(x, y)] & (1L << (Indexer.pixelIndex(x, y)))) == 0;
 	}
 
-	static void drawPixel(int x, int y) {
-		Data.tiles[Indexer.lowIndexFromPixelXY(x, y)] |= (1L << (Indexer.pixelIndex(x, y)));
+	void drawPixel(int x, int y) {
+		tiles[Indexer.lowIndexFromPixelXY(x, y)] |= (1L << (Indexer.pixelIndex(x, y)));
 	}
 
-	static long nextRasterOutputTime;
+	long nextRasterOutputTime;
 }
