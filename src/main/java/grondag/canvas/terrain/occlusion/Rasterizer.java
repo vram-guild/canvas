@@ -19,16 +19,11 @@ class Rasterizer  {
 	final int[] data = new int[DATA_LENGTH];
 	final long[] tiles = new long[TILE_COUNT];
 
-	int minTileOriginX;
-	int maxTileOriginX;
-	int maxTileOriginY;
-
-	int tileIndex;
-	int tileOriginX;
-	int tileOriginY;
-	int save_tileIndex;
-	int save_tileOriginX;
-	int save_tileOriginY;
+	final void copyFrom(Rasterizer source) {
+		mvpMatrix.copyFrom(source.mvpMatrix);
+		System.arraycopy(source.data, 0, data, 0, DATA_LENGTH);
+		System.arraycopy(source.tiles, 0, tiles, 0, TILE_COUNT);
+	}
 
 	final void drawQuad(int v0, int v1, int v2, int v3) {
 		final int boundsResult  = prepareBounds(v0, v1, v2, v3);
@@ -62,6 +57,10 @@ class Rasterizer  {
 	}
 
 	boolean testQuad() {
+		final int[] data = this.data;
+		final int minTileOriginX = data[IDX_MIN_TILE_ORIGIN_X];
+		final int maxTileOriginX = data[IDX_MAX_TILE_ORIGIN_X];
+		final int maxTileOriginY = data[IDX_MAX_TILE_ORIGIN_Y];
 		boolean goRight = true;
 
 		while(true) {
@@ -70,8 +69,8 @@ class Rasterizer  {
 			}
 
 			if (goRight) {
-				if (tileOriginX == maxTileOriginX) {
-					if(tileOriginY == maxTileOriginY) {
+				if (data[IDX_TILE_ORIGIN_X] == maxTileOriginX) {
+					if(data[IDX_TILE_ORIGIN_Y] == maxTileOriginY) {
 						return false;
 					} else {
 						moveTileUp();
@@ -81,8 +80,8 @@ class Rasterizer  {
 					moveTileRight();
 				}
 			} else {
-				if (tileOriginX == minTileOriginX) {
-					if(tileOriginY == maxTileOriginY) {
+				if (data[IDX_TILE_ORIGIN_X] == minTileOriginX) {
+					if(data[IDX_TILE_ORIGIN_Y] == maxTileOriginY) {
 						return false;
 					} else {
 						moveTileUp();
@@ -96,7 +95,7 @@ class Rasterizer  {
 	}
 
 	boolean testQuadInner() {
-		final long word = tiles[tileIndex];
+		final long word = tiles[data[IDX_TILE_INDEX]];
 
 		// nothing to test if fully occluded
 		if  (word == -1L) {
@@ -107,14 +106,18 @@ class Rasterizer  {
 	}
 
 	void drawQuad() {
+		final int[] data = this.data;
+		final int minTileOriginX = data[IDX_MIN_TILE_ORIGIN_X];
+		final int maxTileOriginX = data[IDX_MAX_TILE_ORIGIN_X];
+		final int maxTileOriginY = data[IDX_MAX_TILE_ORIGIN_Y];
 		boolean goRight = true;
 
 		while(true) {
 			drawQuadInner();
 
 			if (goRight) {
-				if (tileOriginX == maxTileOriginX) {
-					if(tileOriginY == maxTileOriginY) {
+				if (data[IDX_TILE_ORIGIN_X] == maxTileOriginX) {
+					if(data[IDX_TILE_ORIGIN_Y] == maxTileOriginY) {
 						return;
 					} else {
 						moveTileUp();
@@ -124,8 +127,8 @@ class Rasterizer  {
 					moveTileRight();
 				}
 			} else {
-				if (tileOriginX == minTileOriginX) {
-					if(tileOriginY == maxTileOriginY) {
+				if (data[IDX_TILE_ORIGIN_X] == minTileOriginX) {
+					if(data[IDX_TILE_ORIGIN_Y] == maxTileOriginY) {
 						return;
 					} else {
 						moveTileUp();
@@ -139,9 +142,11 @@ class Rasterizer  {
 	}
 
 	void drawQuadInner() {
-		assert tileOriginY < PIXEL_HEIGHT;
-		assert tileOriginX < PIXEL_WIDTH;
-		assert tileOriginX >= 0;
+		assert data[IDX_TILE_ORIGIN_Y] < PIXEL_HEIGHT;
+		assert data[IDX_TILE_ORIGIN_X] < PIXEL_WIDTH;
+		assert data[IDX_TILE_ORIGIN_X] >= 0;
+
+		final int tileIndex = data[IDX_TILE_INDEX];
 
 		long word = tiles[tileIndex];
 
@@ -357,13 +362,13 @@ class Rasterizer  {
 		final int maxPixelX = ((maxX + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS);
 		final int maxPixelY = ((maxY + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS);
 
-		minTileOriginX = minPixelX & TILE_AXIS_MASK;
-		maxTileOriginX = maxPixelX & TILE_AXIS_MASK;
-		maxTileOriginY = maxPixelY & TILE_AXIS_MASK;
+		data[IDX_MIN_TILE_ORIGIN_X] = minPixelX & TILE_AXIS_MASK;
+		data[IDX_MAX_TILE_ORIGIN_X] = maxPixelX & TILE_AXIS_MASK;
+		data[IDX_MAX_TILE_ORIGIN_Y] = maxPixelY & TILE_AXIS_MASK;
 
-		tileOriginX = minPixelX & TILE_AXIS_MASK;
-		tileOriginY = minPixelY & TILE_AXIS_MASK;
-		tileIndex = tileIndex(minPixelX >> TILE_AXIS_SHIFT, minPixelY >> TILE_AXIS_SHIFT);
+		data[IDX_TILE_ORIGIN_X] = minPixelX & TILE_AXIS_MASK;
+		data[IDX_TILE_ORIGIN_Y] = minPixelY & TILE_AXIS_MASK;
+		data[IDX_TILE_INDEX] = tileIndex(minPixelX >> TILE_AXIS_SHIFT, minPixelY >> TILE_AXIS_SHIFT);
 
 		final int position0 = edgePosition(ax0, ay0, ax1, ay1);
 		final int position1 = edgePosition(bx0, by0, bx1, by1);
@@ -489,13 +494,13 @@ class Rasterizer  {
 		final int maxPixelX = ((maxX + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS);
 		final int maxPixelY = ((maxY + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS);
 
-		minTileOriginX = minPixelX & TILE_AXIS_MASK;
-		maxTileOriginX = maxPixelX & TILE_AXIS_MASK;
-		maxTileOriginY = maxPixelY & TILE_AXIS_MASK;
+		data[IDX_MIN_TILE_ORIGIN_X] = minPixelX & TILE_AXIS_MASK;
+		data[IDX_MAX_TILE_ORIGIN_X] = maxPixelX & TILE_AXIS_MASK;
+		data[IDX_MAX_TILE_ORIGIN_Y] = maxPixelY & TILE_AXIS_MASK;
 
-		tileOriginX = minPixelX & TILE_AXIS_MASK;
-		tileOriginY = minPixelY & TILE_AXIS_MASK;
-		tileIndex = tileIndex(minPixelX >> TILE_AXIS_SHIFT, minPixelY >> TILE_AXIS_SHIFT);
+		data[IDX_TILE_ORIGIN_X] = minPixelX & TILE_AXIS_MASK;
+		data[IDX_TILE_ORIGIN_Y] = minPixelY & TILE_AXIS_MASK;
+		data[IDX_TILE_INDEX] = tileIndex(minPixelX >> TILE_AXIS_SHIFT, minPixelY >> TILE_AXIS_SHIFT);
 
 		final int position0 = edgePosition(ax0, ay0, ax1, ay1);
 		final int position1 = edgePosition(bx0, by0, bx1, by1);
@@ -621,13 +626,13 @@ class Rasterizer  {
 		final int maxPixelX = ((maxX + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS);
 		final int maxPixelY = ((maxY + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS);
 
-		minTileOriginX = minPixelX & TILE_AXIS_MASK;
-		maxTileOriginX = maxPixelX & TILE_AXIS_MASK;
-		maxTileOriginY = maxPixelY & TILE_AXIS_MASK;
+		data[IDX_MIN_TILE_ORIGIN_X] = minPixelX & TILE_AXIS_MASK;
+		data[IDX_MAX_TILE_ORIGIN_X] = maxPixelX & TILE_AXIS_MASK;
+		data[IDX_MAX_TILE_ORIGIN_Y] = maxPixelY & TILE_AXIS_MASK;
 
-		tileOriginX = minPixelX & TILE_AXIS_MASK;
-		tileOriginY = minPixelY & TILE_AXIS_MASK;
-		tileIndex = tileIndex(minPixelX >> TILE_AXIS_SHIFT, minPixelY >> TILE_AXIS_SHIFT);
+		data[IDX_TILE_ORIGIN_X] = minPixelX & TILE_AXIS_MASK;
+		data[IDX_TILE_ORIGIN_Y] = minPixelY & TILE_AXIS_MASK;
+		data[IDX_TILE_INDEX] = tileIndex(minPixelX >> TILE_AXIS_SHIFT, minPixelY >> TILE_AXIS_SHIFT);
 
 		final int position0 = edgePosition(ax0, ay0, ax1, ay1);
 		final int position1 = edgePosition(bx0, by0, bx1, by1);
@@ -749,13 +754,13 @@ class Rasterizer  {
 		final int maxPixelX = ((maxX + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS);
 		final int maxPixelY = ((maxY + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS);
 
-		minTileOriginX = minPixelX & TILE_AXIS_MASK;
-		maxTileOriginX = maxPixelX & TILE_AXIS_MASK;
-		maxTileOriginY = maxPixelY & TILE_AXIS_MASK;
+		data[IDX_MIN_TILE_ORIGIN_X] = minPixelX & TILE_AXIS_MASK;
+		data[IDX_MAX_TILE_ORIGIN_X] = maxPixelX & TILE_AXIS_MASK;
+		data[IDX_MAX_TILE_ORIGIN_Y] = maxPixelY & TILE_AXIS_MASK;
 
-		tileOriginX = minPixelX & TILE_AXIS_MASK;
-		tileOriginY = minPixelY & TILE_AXIS_MASK;
-		tileIndex = tileIndex(minPixelX >> TILE_AXIS_SHIFT, minPixelY >> TILE_AXIS_SHIFT);
+		data[IDX_TILE_ORIGIN_X] = minPixelX & TILE_AXIS_MASK;
+		data[IDX_TILE_ORIGIN_Y] = minPixelY & TILE_AXIS_MASK;
+		data[IDX_TILE_INDEX] = tileIndex(minPixelX >> TILE_AXIS_SHIFT, minPixelY >> TILE_AXIS_SHIFT);
 
 		final int position0 = edgePosition(ax0, ay0, ax1, ay1);
 		final int position1 = edgePosition(bx0, by0, bx1, by1);
@@ -1261,7 +1266,7 @@ class Rasterizer  {
 
 			if (py == MAX_PIXEL_Y) return;
 
-			final int y1 = maxTileOriginY + 7;
+			final int y1 = data[IDX_MAX_TILE_ORIGIN_Y] + 7;
 			final int start = IDX_EVENTS + (py < 0 ? 0 : (py << 1));
 			final int limit = IDX_EVENTS + (y1 << 1);
 
@@ -1295,7 +1300,7 @@ class Rasterizer  {
 	private void populateLeftEvents() {
 		final int[] data = this.data;
 		final int y0 = data[IDX_MIN_PIX_Y] & TILE_AXIS_MASK;
-		final int y1 = maxTileOriginY + 7;
+		final int y1 = data[IDX_MAX_TILE_ORIGIN_Y] + 7;
 		final int limit = IDX_EVENTS + (y1 << 1);
 
 		for (int y = IDX_EVENTS + (y0 << 1); y <= limit; y += 2) {
@@ -1311,7 +1316,7 @@ class Rasterizer  {
 		final int ay1 = data[a + 3];
 
 		final int y0 = data[IDX_MIN_PIX_Y] & TILE_AXIS_MASK;
-		final int y1 = maxTileOriginY + 7;
+		final int y1 = data[IDX_MAX_TILE_ORIGIN_Y] + 7;
 		final int limit = (y1 << 1);
 		final int dx = ax1 - ax0;
 
@@ -1337,7 +1342,7 @@ class Rasterizer  {
 	private void populateRightEvents() {
 		final int[] data = this.data;
 		final int y0 = data[IDX_MIN_PIX_Y] & TILE_AXIS_MASK;
-		final int y1 = maxTileOriginY + 7;
+		final int y1 = data[IDX_MAX_TILE_ORIGIN_Y] + 7;
 		// difference from left: is high index in pairs
 		final int limit = (y1 << 1) + 1;
 
@@ -1356,7 +1361,7 @@ class Rasterizer  {
 		final int ay1 = data[a + 3];
 
 		final int y0 = data[IDX_MIN_PIX_Y] & TILE_AXIS_MASK;
-		final int y1 = maxTileOriginY + 7;
+		final int y1 = data[IDX_MAX_TILE_ORIGIN_Y] + 7;
 		// difference from left: is high index in pairs
 		final int limit = (y1 << 1) + 1;
 		final int dx = ax1 - ax0;
@@ -1395,7 +1400,7 @@ class Rasterizer  {
 		final int by1 = data[b + 3];
 
 		final int y0 = data[IDX_MIN_PIX_Y] & TILE_AXIS_MASK;
-		final int y1 = maxTileOriginY + 7;
+		final int y1 = data[IDX_MAX_TILE_ORIGIN_Y] + 7;
 		final int limit = (y1 << 1);
 
 		final long aStep;
@@ -1454,7 +1459,7 @@ class Rasterizer  {
 		final int cy1 = data[c + 3];
 
 		final int y0 = data[IDX_MIN_PIX_Y] & TILE_AXIS_MASK;
-		final int y1 = maxTileOriginY + 7;
+		final int y1 = data[IDX_MAX_TILE_ORIGIN_Y] + 7;
 		final int limit = (y1 << 1);
 
 		final long aStep;
@@ -1533,7 +1538,7 @@ class Rasterizer  {
 		final int dy1 = data[d + 3];
 
 		final int y0 = data[IDX_MIN_PIX_Y] & TILE_AXIS_MASK;
-		final int y1 = maxTileOriginY + 7;
+		final int y1 = data[IDX_MAX_TILE_ORIGIN_Y] + 7;
 		final int limit = (y1 << 1);
 
 		final long aStep;
@@ -1617,7 +1622,7 @@ class Rasterizer  {
 		final int by1 = data[b + 3];
 
 		final int y0 = data[IDX_MIN_PIX_Y] & TILE_AXIS_MASK;
-		final int y1 = maxTileOriginY + 7;
+		final int y1 = data[IDX_MAX_TILE_ORIGIN_Y] + 7;
 		// difference from left: is high index in pairs
 		final int limit = (y1 << 1) + 1;
 
@@ -1681,7 +1686,7 @@ class Rasterizer  {
 		final int cy1 = data[c + 3];
 
 		final int y0 = data[IDX_MIN_PIX_Y] & TILE_AXIS_MASK;
-		final int y1 = maxTileOriginY + 7;
+		final int y1 = data[IDX_MAX_TILE_ORIGIN_Y] + 7;
 		// difference from left: is high index in pairs
 		final int limit = (y1 << 1) + 1;
 
@@ -1767,7 +1772,7 @@ class Rasterizer  {
 		final int dy1 = data[d + 3];
 
 		final int y0 = data[IDX_MIN_PIX_Y] & TILE_AXIS_MASK;
-		final int y1 = maxTileOriginY + 7;
+		final int y1 = data[IDX_MAX_TILE_ORIGIN_Y] + 7;
 		// difference from left: is high index in pairs
 		final int limit = (y1 << 1) + 1;
 
@@ -1966,64 +1971,64 @@ class Rasterizer  {
 	}
 
 	void moveTileRight() {
-		tileOriginX += 8;
+		data[IDX_TILE_ORIGIN_X] += 8;
 
-		if ((tileIndex & TILE_INDEX_LOW_X_MASK) == TILE_INDEX_LOW_X_MASK) {
-			tileIndex = (tileIndex & ~TILE_INDEX_LOW_X_MASK) + TILE_INDEX_HIGH_X;
+		if ((data[IDX_TILE_INDEX] & TILE_INDEX_LOW_X_MASK) == TILE_INDEX_LOW_X_MASK) {
+			data[IDX_TILE_INDEX] = (data[IDX_TILE_INDEX] & ~TILE_INDEX_LOW_X_MASK) + TILE_INDEX_HIGH_X;
 		} else {
-			tileIndex += 1;
+			data[IDX_TILE_INDEX] += 1;
 		}
 
-		assert tileIndex == tileIndex(tileOriginX >> TILE_AXIS_SHIFT, tileOriginY >> TILE_AXIS_SHIFT);
-		assert tileOriginX < PIXEL_WIDTH;
+		assert data[IDX_TILE_INDEX] == tileIndex(data[IDX_TILE_ORIGIN_X] >> TILE_AXIS_SHIFT, data[IDX_TILE_ORIGIN_Y] >> TILE_AXIS_SHIFT);
+		assert data[IDX_TILE_ORIGIN_X] < PIXEL_WIDTH;
 	}
 
 	void moveTileLeft() {
-		tileOriginX -= 8;
+		data[IDX_TILE_ORIGIN_X] -= 8;
 
-		if ((tileIndex & TILE_INDEX_LOW_X_MASK) == 0) {
-			tileIndex |= TILE_INDEX_LOW_X_MASK;
-			tileIndex -= TILE_INDEX_HIGH_X;
+		if ((data[IDX_TILE_INDEX] & TILE_INDEX_LOW_X_MASK) == 0) {
+			data[IDX_TILE_INDEX] |= TILE_INDEX_LOW_X_MASK;
+			data[IDX_TILE_INDEX] -= TILE_INDEX_HIGH_X;
 		} else {
-			tileIndex -= 1;
+			data[IDX_TILE_INDEX] -= 1;
 		}
 
-		assert tileIndex == tileIndex(tileOriginX >> TILE_AXIS_SHIFT, tileOriginY >> TILE_AXIS_SHIFT);
-		assert tileOriginX >= 0;
+		assert data[IDX_TILE_INDEX] == tileIndex(data[IDX_TILE_ORIGIN_X] >> TILE_AXIS_SHIFT, data[IDX_TILE_ORIGIN_Y] >> TILE_AXIS_SHIFT);
+		assert data[IDX_TILE_ORIGIN_X] >= 0;
 	}
 
 	void moveTileUp() {
-		tileOriginY += 8;
+		data[IDX_TILE_ORIGIN_Y] += 8;
 
-		if ((tileIndex & TILE_INDEX_LOW_Y_MASK) == TILE_INDEX_LOW_Y_MASK) {
-			tileIndex = (tileIndex & ~TILE_INDEX_LOW_Y_MASK) + TILE_INDEX_HIGH_Y;
+		if ((data[IDX_TILE_INDEX] & TILE_INDEX_LOW_Y_MASK) == TILE_INDEX_LOW_Y_MASK) {
+			data[IDX_TILE_INDEX] = (data[IDX_TILE_INDEX] & ~TILE_INDEX_LOW_Y_MASK) + TILE_INDEX_HIGH_Y;
 		} else {
-			tileIndex += TILE_INDEX_LOW_Y;
+			data[IDX_TILE_INDEX] += TILE_INDEX_LOW_Y;
 		}
 
-		assert tileIndex == tileIndex(tileOriginX >> TILE_AXIS_SHIFT, tileOriginY >> TILE_AXIS_SHIFT);
-		assert tileOriginY < PIXEL_HEIGHT;
+		assert data[IDX_TILE_INDEX] == tileIndex(data[IDX_TILE_ORIGIN_X] >> TILE_AXIS_SHIFT, data[IDX_TILE_ORIGIN_Y] >> TILE_AXIS_SHIFT);
+		assert data[IDX_TILE_ORIGIN_Y] < PIXEL_HEIGHT;
 	}
 
 	void pushTile() {
-		save_tileOriginX = tileOriginX;
-		save_tileOriginY = tileOriginY;
-		save_tileIndex = tileIndex;
+		data[IDX_SAVE_TILE_ORIGIN_X] = data[IDX_TILE_ORIGIN_X];
+		data[IDX_SAVE_TILE_ORIGIN_Y] = data[IDX_TILE_ORIGIN_Y];
+		data[IDX_SAVE_TILE_INDEX] = data[IDX_TILE_INDEX];
 	}
 
 	void popTile() {
-		tileOriginX = save_tileOriginX;
-		tileOriginY = save_tileOriginY;
-		tileIndex = save_tileIndex;
+		data[IDX_TILE_ORIGIN_X] = data[IDX_SAVE_TILE_ORIGIN_X];
+		data[IDX_TILE_ORIGIN_Y] = data[IDX_SAVE_TILE_ORIGIN_Y];
+		data[IDX_TILE_INDEX] = data[IDX_SAVE_TILE_INDEX];
 	}
 
 	long computeTileCoverage() {
 		final int[] data = this.data;
 
-		int y = tileOriginY << 1;
-		final int tx = tileOriginX;
+		int y = data[IDX_TILE_ORIGIN_Y] << 1;
+		final int tx = data[IDX_TILE_ORIGIN_X];
 
-		final int baseX = tileOriginX + 7;
+		final int baseX = data[IDX_TILE_ORIGIN_X] + 7;
 
 		long mask = 0;
 

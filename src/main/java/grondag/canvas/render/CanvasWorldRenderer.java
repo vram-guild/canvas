@@ -960,34 +960,78 @@ public class CanvasWorldRenderer {
 
 	// PERF: stash frustum version and terrain version in entity - only retest when changed
 	public <T extends Entity> boolean isEntityVisible(T entity) {
-		// TODO
 		final Box box = entity.getVisibilityBoundingBox();
 
 		final double x0, y0, z0, x1, y1, z1;
 
 		// NB: this method is mis-named
 		if (box.isValid()) {
-			x0 = entity.getX() - 2.0D;
-			y0 = entity.getY() - 2.0D;
-			z0 = entity.getZ() - 2.0D;
-			x1 = x0 + 4.0;
-			y1 = y0 + 4.0;
-			z1 = z0 + 4.0;
+			x0 = entity.getX() - 1.5;
+			y0 = entity.getY() - 1.5;
+			z0 = entity.getZ() - 1.5;
+			x1 = x0 + 3.0;
+			y1 = y0 + 3.0;
+			z1 = z0 + 3.0;
 		} else {
-			x0 = box.minX - 0.5D;
-			y0 = box.minY - 0.5D;
-			z0 = box.minZ - 0.5D;
-			x1 = box.maxX + 0.5D;
-			y1 = box.maxY + 0.5D;
-			z1 = box.maxZ + 0.5D;
+			x0 = box.minX;
+			y0 = box.minY;
+			z0 = box.minZ;
+			x1 = box.maxX;
+			y1 = box.maxY;
+			z1 = box.maxZ;
 		}
 
-		if (!frustum.isVisible(x0, y0, z0, x1, y1, z1)) {
+		if (!frustum.isVisible(x0 - 0.5, y0 - 0.5, z0 - 0.5, x1 + 0.5, y1 + 0.5, z1 + 0.5)) {
 			return false;
+		}
+
+		final int rx0 = MathHelper.floor(x0) & 0xFFFFFFF0;
+		final int ry0 = MathHelper.floor(y0) & 0xFFFFFFF0;
+		final int rz0 = MathHelper.floor(z0) & 0xFFFFFFF0;
+		final int rx1 = MathHelper.floor(x1) & 0xFFFFFFF0;
+		final int ry1 = MathHelper.floor(y1) & 0xFFFFFFF0;
+		final int rz1 = MathHelper.floor(z1) & 0xFFFFFFF0;
+
+		int flags = rx0 == rz1 ? 0 : 1;
+		if (ry0 != ry1) flags |= 2;
+		if (rz0 != rz1) flags |= 4;
+
+		final RenderRegionStorage regions = renderRegionStorage;
+
+		switch (flags) {
+		case 0b000:
+			return regions.wasSeen(rx0, ry0, rz0);
+
+		case 0b001:
+			return regions.wasSeen(rx0, ry0, rz0) || regions.wasSeen(rx1, ry0, rz0);
+
+		case 0b010:
+			return regions.wasSeen(rx0, ry0, rz0) || regions.wasSeen(rx0, ry1, rz0);
+
+		case 0b011:
+			return regions.wasSeen(rx0, ry0, rz0) || regions.wasSeen(rx1, ry0, rz0)
+					|| regions.wasSeen(rx0, ry1, rz0) || regions.wasSeen(rx1, ry1, rz0);
+		case 0b100:
+			return regions.wasSeen(rx0, ry0, rz0) || regions.wasSeen(rx0, ry0, rz1);
+
+		case 0b101:
+			return regions.wasSeen(rx0, ry0, rz0) || regions.wasSeen(rx1, ry0, rz0)
+					|| regions.wasSeen(rx0, ry0, rz1) || regions.wasSeen(rx1, ry0, rz1);
+
+		case 0b110:
+			return regions.wasSeen(rx0, ry0, rz0) || regions.wasSeen(rx0, ry1, rz0)
+					|| regions.wasSeen(rx0, ry0, rz1) || regions.wasSeen(rx0, ry1, rz1);
+
+		case 0b111:
+			return regions.wasSeen(rx0, ry0, rz0) || regions.wasSeen(rx1, ry0, rz0)
+					|| regions.wasSeen(rx0, ry1, rz0) || regions.wasSeen(rx1, ry1, rz0)
+					|| regions.wasSeen(rx0, ry0, rz1) || regions.wasSeen(rx1, ry0, rz1)
+					|| regions.wasSeen(rx0, ry1, rz1) || regions.wasSeen(rx1, ry1, rz1);
 		}
 
 		return true;
 	}
+
 
 	private static CanvasWorldRenderer instance;
 

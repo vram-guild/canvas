@@ -60,6 +60,29 @@ public class TerrainOccluder {
 	private boolean forceRedraw = false;
 	private boolean needsRedraw = false;
 
+	public void copyFrom(TerrainOccluder source) {
+		baseMvpMatrix.copyFrom(source.baseMvpMatrix);
+		raster.copyFrom(source.raster);
+		viewX = source.viewX;
+		viewY = source.viewY;
+		viewZ = source.viewZ;
+
+		offsetX = source.offsetX;
+		offsetY = source.offsetY;
+		offsetZ = source.offsetZ;
+
+		occlusionRange = source.occlusionRange;
+
+		positionVersion = source.positionVersion;
+		viewVersion = source.viewVersion;
+		regionVersion = source.regionVersion;
+
+		occluderVersion.set(source.occluderVersion.get());
+
+		forceRedraw = source.forceRedraw;
+		needsRedraw = source.needsRedraw;
+	}
+
 	/**
 	 * Previously tested regions can reuse test results if their version matches.
 	 * However, they must still be drawn (if visible) if indicated by {@link #clearSceneIfNeeded(int, int)}.

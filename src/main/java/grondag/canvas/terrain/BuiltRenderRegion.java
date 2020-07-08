@@ -123,6 +123,10 @@ public class BuiltRenderRegion {
 		}
 	}
 
+	public boolean wasRecentlySeen() {
+		return frameIndex - lastSeenFrameIndex < 2;
+	}
+
 	/**
 	 * @return True if nearby.  If not nearby and not outside view distance true if neighbors are loaded.
 	 */

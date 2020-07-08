@@ -124,4 +124,9 @@ public class RenderRegionStorage {
 	public BuiltRenderRegion getRegionIfExists(int x, int y, int z) {
 		return regions.get(BlockPos.asLong(x & 0xFFFFFFF0, y & 0xFFFFFFF0, z & 0xFFFFFFF0));
 	}
+
+	public boolean wasSeen(int x, int y, int z) {
+		final BuiltRenderRegion r = getRegionIfExists(x, y, z);
+		return r == null ? false : r.wasRecentlySeen();
+	}
 }
