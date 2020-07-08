@@ -16,8 +16,8 @@ import grondag.canvas.Configurator;
 // by Fabian “ryg” Giesen. That content is in the public domain.
 class Rasterizer  {
 	final Matrix4L mvpMatrix = new Matrix4L();
-
-	final int[] events = new int[PIXEL_HEIGHT * 2];
+	final int[] data = new int[DATA_LENGTH];
+	//	final int[] events = new int[PIXEL_HEIGHT * 2];
 	final int[] vertexData = new int[VERTEX_DATA_LENGTH];
 	final long[] tiles = new long[TILE_COUNT];
 
@@ -1329,18 +1329,19 @@ class Rasterizer  {
 	private void populateFlatEvents(int position, int y0In) {
 		if (position == EDGE_TOP) {
 			final int py = ((y0In + SCANT_PRECISE_PIXEL_CENTER) >> PRECISION_BITS) + 1;
+			final int[] data = this.data;
 
 			if (py == MAX_PIXEL_Y) return;
 
 			final int y1 = maxTileOriginY + 7;
-			final int start = py < 0 ? 0 : (py << 1);
-			final int limit = (y1 << 1);
+			final int start = IDX_EVENTS + (py < 0 ? 0 : (py << 1));
+			final int limit = IDX_EVENTS + (y1 << 1);
 
-			assert limit < events.length;
+			assert limit < EVENTS_LENGTH + IDX_EVENTS;
 
 			for (int y = start; y <= limit; ) {
-				events[y++] = PIXEL_WIDTH;
-				events[y++] = -1;
+				data[y++] = PIXEL_WIDTH;
+				data[y++] = -1;
 			}
 		}  else if (position == EDGE_BOTTOM) {
 			final int py = (y0In >> PRECISION_BITS);
@@ -1348,14 +1349,14 @@ class Rasterizer  {
 			if (py == 0) return;
 
 			final int y0 = minPixelY & TILE_AXIS_MASK;
-			final int start = (y0 << 1);
-			final int limit = py > MAX_PIXEL_Y ? (MAX_PIXEL_Y << 1) :(py << 1);
+			final int start = IDX_EVENTS + (y0 << 1);
+			final int limit = IDX_EVENTS + (py > MAX_PIXEL_Y ? (MAX_PIXEL_Y << 1) : (py << 1));
 
-			assert limit < events.length;
+			assert limit < EVENTS_LENGTH + IDX_EVENTS;
 
 			for (int y = start; y < limit; ) {
-				events[y++] = PIXEL_WIDTH;
-				events[y++] = -1;
+				data[y++] = PIXEL_WIDTH;
+				data[y++] = -1;
 			}
 		} else {
 			assert position == EDGE_POINT;
@@ -1364,13 +1365,13 @@ class Rasterizer  {
 
 	/** Puts left edge at screen boundary */
 	private void populateLeftEvents() {
-		final int[] events = this.events;
+		final int[] data = this.data;
 		final int y0 = minPixelY & TILE_AXIS_MASK;
 		final int y1 = maxTileOriginY + 7;
-		final int limit = (y1 << 1);
+		final int limit = IDX_EVENTS + (y1 << 1);
 
-		for (int y = (y0 << 1); y <= limit; y += 2) {
-			events[y] = 0;
+		for (int y = IDX_EVENTS + (y0 << 1); y <= limit; y += 2) {
+			data[y] = 0;
 		}
 	}
 
@@ -1379,6 +1380,7 @@ class Rasterizer  {
 		final int y1 = maxTileOriginY + 7;
 		final int limit = (y1 << 1);
 		final int dx = x1In - x0In;
+		final int[] data = this.data;
 
 		final long nStep;
 		long x;
@@ -1394,13 +1396,13 @@ class Rasterizer  {
 		}
 
 		for (int y = (y0 << 1); y <= limit; y += 2) {
-			events[y] = (int) (x > 0 ? (x >> 20) : 0);
+			data[IDX_EVENTS + y] = (int) (x > 0 ? (x >> 20) : 0);
 			x += nStep;
 		}
 	}
 
 	private void populateRightEvents() {
-		final int[] events = this.events;
+		final int[] data = this.data;
 		final int y0 = minPixelY & TILE_AXIS_MASK;
 		final int y1 = maxTileOriginY + 7;
 		// difference from left: is high index in pairs
@@ -1408,7 +1410,7 @@ class Rasterizer  {
 
 		// difference from left: is high index in pairs
 		for (int y = (y0 << 1) + 1; y <= limit; y += 2) {
-			events[y] = PIXEL_WIDTH;
+			data[IDX_EVENTS + y] = PIXEL_WIDTH;
 		}
 	}
 
@@ -1418,6 +1420,7 @@ class Rasterizer  {
 		// difference from left: is high index in pairs
 		final int limit = (y1 << 1) + 1;
 		final int dx = x1In - x0In;
+		final int[] data = this.data;
 
 		final long nStep;
 		long x;
@@ -1435,7 +1438,7 @@ class Rasterizer  {
 
 		// difference from left: is high index in pairs
 		for (int y = (y0 << 1) + 1; y <= limit; y += 2) {
-			events[y] = (int) (x >= 0 ? (x >> 20) : -1);
+			data[IDX_EVENTS + y] = (int) (x >= 0 ? (x >> 20) : -1);
 			x += nStep;
 		}
 	}
@@ -1444,6 +1447,7 @@ class Rasterizer  {
 		final int y0 = minPixelY & TILE_AXIS_MASK;
 		final int y1 = maxTileOriginY + 7;
 		final int limit = (y1 << 1);
+		final int[] data = this.data;
 
 		final long aStep;
 		long ax;
@@ -1475,7 +1479,7 @@ class Rasterizer  {
 		for (int y = (y0 << 1); y <= limit; y += 2) {
 			final long x = ax > bx ? ax : bx;
 
-			events[y] = (int) (x > 0 ? (x >> 20) : 0);
+			data[IDX_EVENTS + y] = (int) (x > 0 ? (x >> 20) : 0);
 
 			ax += aStep;
 			bx += bStep;
@@ -1486,6 +1490,7 @@ class Rasterizer  {
 		final int y0 = minPixelY & TILE_AXIS_MASK;
 		final int y1 = maxTileOriginY + 7;
 		final int limit = (y1 << 1);
+		final int[] data = this.data;
 
 		final long aStep;
 		long ax;
@@ -1531,7 +1536,7 @@ class Rasterizer  {
 			long x = ax > bx ? ax : bx;
 			if (cx > x) x = cx;
 
-			events[y] = (int) (x > 0 ? (x >> 20) : 0);
+			data[IDX_EVENTS + y] = (int) (x > 0 ? (x >> 20) : 0);
 
 			ax += aStep;
 			bx += bStep;
@@ -1543,6 +1548,7 @@ class Rasterizer  {
 		final int y0 = minPixelY & TILE_AXIS_MASK;
 		final int y1 = maxTileOriginY + 7;
 		final int limit = (y1 << 1);
+		final int[] data = this.data;
 
 		final long aStep;
 		long ax;
@@ -1602,7 +1608,7 @@ class Rasterizer  {
 			if (cx > x) x = cx;
 			if (dx > x) x = dx;
 
-			events[y] = (int) (x > 0 ? (x >> 20) : 0);
+			data[IDX_EVENTS + y] = (int) (x > 0 ? (x >> 20) : 0);
 
 			ax += aStep;
 			bx += bStep;
@@ -1616,6 +1622,7 @@ class Rasterizer  {
 		final int y1 = maxTileOriginY + 7;
 		// difference from left: is high index in pairs
 		final int limit = (y1 << 1) + 1;
+		final int[] data = this.data;
 
 		final long aStep;
 		long ax;
@@ -1651,7 +1658,7 @@ class Rasterizer  {
 			// difference from left: lower value wins
 			final long x = ax < bx ? ax : bx;
 
-			events[y] = (int) (x >= 0 ? (x >> 20) : -1);
+			data[IDX_EVENTS + y] = (int) (x >= 0 ? (x >> 20) : -1);
 
 			ax += aStep;
 			bx += bStep;
@@ -1663,6 +1670,7 @@ class Rasterizer  {
 		final int y1 = maxTileOriginY + 7;
 		// difference from left: is high index in pairs
 		final int limit = (y1 << 1) + 1;
+		final int[] data = this.data;
 
 		final long aStep;
 		long ax;
@@ -1714,7 +1722,7 @@ class Rasterizer  {
 
 			if (cx < x) x = cx;
 
-			events[y] = (int) (x >= 0 ? (x >> 20) : -1);
+			data[IDX_EVENTS + y] = (int) (x >= 0 ? (x >> 20) : -1);
 
 			ax += aStep;
 			bx += bStep;
@@ -1727,6 +1735,7 @@ class Rasterizer  {
 		final int y1 = maxTileOriginY + 7;
 		// difference from left: is high index in pairs
 		final int limit = (y1 << 1) + 1;
+		final int[] data = this.data;
 
 		final long aStep;
 		long ax;
@@ -1793,7 +1802,7 @@ class Rasterizer  {
 			if (cx < x) x = cx;
 			if (dx < x) x = dx;
 
-			events[y] = (int) (x >= 0 ? (x >> 20) : -1);
+			data[IDX_EVENTS + y] = (int) (x >= 0 ? (x >> 20) : -1);
 
 			ax += aStep;
 			bx += bStep;
@@ -1975,7 +1984,7 @@ class Rasterizer  {
 	}
 
 	long computeTileCoverage() {
-		final int[] e = events;
+		final int[] data = this.data;
 
 		int y = tileOriginY << 1;
 		final int tx = tileOriginX;
@@ -1984,8 +1993,8 @@ class Rasterizer  {
 
 		long mask = 0;
 
-		int leftX = e[y] - tx;
-		int rightX = baseX - e[++y];
+		int leftX = data[y + IDX_EVENTS] - tx;
+		int rightX = baseX - data[++y + IDX_EVENTS];
 
 		if (leftX < 8 && rightX < 8) {
 			long m = leftX <= 0 ? 0xFF : ((0xFF << leftX) & 0xFF);
@@ -1998,8 +2007,8 @@ class Rasterizer  {
 		}
 
 
-		leftX = e[++y] - tx;
-		rightX = baseX - e[++y];
+		leftX = data[++y + IDX_EVENTS] - tx;
+		rightX = baseX - data[++y + IDX_EVENTS];
 
 		if (leftX < 8 && rightX < 8) {
 			long m = leftX <= 0 ? 0xFF : ((0xFF << leftX) & 0xFF);
@@ -2012,8 +2021,8 @@ class Rasterizer  {
 		}
 
 
-		leftX = e[++y] - tx;
-		rightX = baseX - e[++y];
+		leftX = data[++y + IDX_EVENTS] - tx;
+		rightX = baseX - data[++y + IDX_EVENTS];
 
 		if (leftX < 8 && rightX < 8) {
 			long m = leftX <= 0 ? 0xFF : ((0xFF << leftX) & 0xFF);
@@ -2026,8 +2035,8 @@ class Rasterizer  {
 		}
 
 
-		leftX = e[++y] - tx;
-		rightX = baseX - e[++y];
+		leftX = data[++y + IDX_EVENTS] - tx;
+		rightX = baseX - data[++y + IDX_EVENTS];
 
 		if (leftX < 8 && rightX < 8) {
 			long m = leftX <= 0 ? 0xFF : ((0xFF << leftX) & 0xFF);
@@ -2040,8 +2049,8 @@ class Rasterizer  {
 		}
 
 
-		leftX = e[++y] - tx;
-		rightX = baseX - e[++y];
+		leftX = data[++y + IDX_EVENTS] - tx;
+		rightX = baseX - data[++y + IDX_EVENTS];
 
 		if (leftX < 8 && rightX < 8) {
 			long m = leftX <= 0 ? 0xFF : ((0xFF << leftX) & 0xFF);
@@ -2054,8 +2063,8 @@ class Rasterizer  {
 		}
 
 
-		leftX = e[++y] - tx;
-		rightX = baseX - e[++y];
+		leftX = data[++y + IDX_EVENTS] - tx;
+		rightX = baseX - data[++y + IDX_EVENTS];
 
 		if (leftX < 8 && rightX < 8) {
 			long m = leftX <= 0 ? 0xFF : ((0xFF << leftX) & 0xFF);
@@ -2068,8 +2077,8 @@ class Rasterizer  {
 		}
 
 
-		leftX = e[++y] - tx;
-		rightX = baseX - e[++y];
+		leftX = data[++y + IDX_EVENTS] - tx;
+		rightX = baseX - data[++y + IDX_EVENTS];
 
 		if (leftX < 8 && rightX < 8) {
 			long m = leftX <= 0 ? 0xFF : ((0xFF << leftX) & 0xFF);
@@ -2082,8 +2091,8 @@ class Rasterizer  {
 		}
 
 
-		leftX = e[++y] - tx;
-		rightX = baseX - e[++y];
+		leftX = data[++y + IDX_EVENTS] - tx;
+		rightX = baseX - data[++y + IDX_EVENTS];
 
 		if (leftX < 8 && rightX < 8) {
 			long m = leftX <= 0 ? 0xFF : ((0xFF << leftX) & 0xFF);

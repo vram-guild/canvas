@@ -280,6 +280,60 @@ public class Constants {
 	public static final int NORTH = 1 << Direction.NORTH.getId();
 	public static final int SOUTH = 1 << Direction.SOUTH.getId();
 
+
+	static final int IDX_EVENTS = 0;
+	static final int EVENTS_LENGTH = PIXEL_HEIGHT * 2;
+	static final int IDX_VERTEX_DATA = IDX_EVENTS + EVENTS_LENGTH;
+
+	static final int IDX_MIN_PIX_X = IDX_VERTEX_DATA + VERTEX_DATA_LENGTH;
+	static final int IDX_MIN_PIX_Y = IDX_MIN_PIX_X + 1;
+	static final int IDX_MAX_PIX_X = IDX_MIN_PIX_Y + 1;
+	static final int IDX_MAX_PIX_Y = IDX_MAX_PIX_X + 1;
+
+	static final int IDX_CLIP_X0 = IDX_MAX_PIX_Y + 1;
+	static final int IDX_CLIP_Y0 = IDX_CLIP_X0 + 1;
+	static final int IDX_CLIP_X1 = IDX_CLIP_Y0 + 1;
+	static final int IDX_CLIP_Y1 = IDX_CLIP_X1 + 1;
+
+	static final int IDX_POS0 = IDX_CLIP_Y1 + 1;
+	static final int IDX_POS1 = IDX_POS0 + 1;
+	static final int IDX_POS2 = IDX_POS1 + 1;
+	static final int IDX_POS3 = IDX_POS2 + 1;
+
+	static final int IDX_AX0 = IDX_POS3 + 1;
+	static final int IDX_AY0 = IDX_AX0 + 1;
+	static final int IDX_AX1 = IDX_AY0 + 1;
+	static final int IDX_AY1 = IDX_AX1 + 1;
+
+	static final int IDX_BX0 = IDX_AY1 + 1;
+	static final int IDX_BY0 = IDX_BX0 + 1;
+	static final int IDX_BX1 = IDX_BY0 + 1;
+	static final int IDX_BY1 = IDX_BX1 + 1;
+
+	static final int IDX_CX0 = IDX_BY1 + 1;
+	static final int IDX_CY0 = IDX_CX0 + 1;
+	static final int IDX_CX1 = IDX_CY0 + 1;
+	static final int IDX_CY1 = IDX_CX1 + 1;
+
+	static final int IDX_DX0 = IDX_CY1 + 1;
+	static final int IDX_DY0 = IDX_DX0 + 1;
+	static final int IDX_DX1 = IDX_DY0 + 1;
+	static final int IDX_DY1 = IDX_DX1 + 1;
+
+	static final int IDX_MIN_TILE_ORIGIN_X = IDX_DY1 + 1;
+	static final int IDX_MAX_TILE_ORIGIN_X = IDX_MIN_TILE_ORIGIN_X + 1;
+	static final int IDX_MAX_TILE_ORIGIN_Y = IDX_MAX_TILE_ORIGIN_X + 1;
+
+	static final int IDX_TILE_INDEX = IDX_MAX_TILE_ORIGIN_Y + 1;
+	static final int IDX_TILE_ORIGIN_X = IDX_TILE_INDEX + 1;
+	static final int IDX_TILE_ORIGIN_Y = IDX_TILE_ORIGIN_X + 1;
+
+	static final int IDX_SAVE_TILE_INDEX = IDX_TILE_ORIGIN_Y + 1;
+	static final int IDX_SAVE_TILE_ORIGIN_X = IDX_SAVE_TILE_INDEX + 1;
+	static final int IDX_SAVE_TILE_ORIGIN_Y = IDX_SAVE_TILE_ORIGIN_X + 1;
+
+	static final int DATA_LENGTH = IDX_SAVE_TILE_ORIGIN_Y + 1;
+
 	// For abandoned traversal scheme
 	//	static final int MAX_TILE_X = TILE_WIDTH - 1;
 	//	static final int MAX_TILE_ORIGIN_Y = PIXEL_HEIGHT - TILE_PIXEL_DIAMETER;
