@@ -1,5 +1,6 @@
 package grondag.canvas.terrain;
 
+import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap.Entry;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
@@ -16,8 +17,8 @@ import grondag.canvas.render.CanvasWorldRenderer;
 public class RenderRegionStorage {
 	// Hat tip to JellySquid for the suggestion
 	// PERF: lock-free implementation
-	private final Long2ObjectMap<BuiltRenderRegion> regions = Long2ObjectMaps.synchronize(new Long2ObjectOpenHashMap<BuiltRenderRegion>(8192, 0.5f));
-	private final Long2ObjectMap<RegionChunkReference> chunkRefs = Long2ObjectMaps.synchronize(new Long2ObjectOpenHashMap<RegionChunkReference>(2048, 0.5f));
+	private final Long2ObjectMap<BuiltRenderRegion> regions = Long2ObjectMaps.synchronize(new Long2ObjectOpenHashMap<BuiltRenderRegion>(8192, Hash.VERY_FAST_LOAD_FACTOR));
+	private final Long2ObjectMap<RegionChunkReference> chunkRefs = Long2ObjectMaps.synchronize(new Long2ObjectOpenHashMap<RegionChunkReference>(2048, Hash.VERY_FAST_LOAD_FACTOR));
 	private int positionVersion;
 	private final CanvasWorldRenderer cwr;
 

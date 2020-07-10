@@ -260,6 +260,11 @@ public class TerrainOccluder {
 		return boxTests[outcome].apply(x0, y0, z0, x1, y1, z1);
 	}
 
+	public boolean isEmptyRegionVisible(BlockPos origin) {
+		prepareRegion(origin, 0);
+		return isBoxVisible(PackedBox.FULL_BOX);
+	}
+
 	/**
 	 * Does not rely on winding order but instead the distance from
 	 * plane with known facing to camera position.

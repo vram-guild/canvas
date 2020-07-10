@@ -36,4 +36,10 @@ public abstract class MixinMinecraftClient extends ReentrantThreadExecutor<Runna
 	private void hookInit(CallbackInfo info) {
 		CanvasGlHelper.init();
 	}
+
+	// PERF: revisit
+	//	@Redirect(at = @At(value = "INVOKE", target = "Ljava/lang/Thread;yield()V"), method = "render", require = 1, allow = 1)
+	//	private void onYield() {
+	//		// NOOP
+	//	}
 }

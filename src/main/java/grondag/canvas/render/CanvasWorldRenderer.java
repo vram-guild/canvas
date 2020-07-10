@@ -1011,6 +1011,7 @@ public class CanvasWorldRenderer {
 		case 0b011:
 			return regions.wasSeen(rx0, ry0, rz0) || regions.wasSeen(rx1, ry0, rz0)
 					|| regions.wasSeen(rx0, ry1, rz0) || regions.wasSeen(rx1, ry1, rz0);
+
 		case 0b100:
 			return regions.wasSeen(rx0, ry0, rz0) || regions.wasSeen(rx0, ry0, rz1);
 

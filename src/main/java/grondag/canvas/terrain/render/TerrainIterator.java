@@ -169,11 +169,29 @@ public class TerrainIterator implements  Consumer<TerrainRenderContext> {
 				updateRegions.add(builtRegion);
 			}
 
-			// for empty regions, check neighbors but don't add to visible set
+			// for empty regions, check neighbors if visible but don't add to visible set
 			if (visData == OcclusionRegion.EMPTY_CULL_DATA) {
-				builtRegion.enqueueUnvistedNeighbors(nextLevel);
-				builtRegion.occluderVersion = occluderVersion;
-				builtRegion.occluderResult = false;
+				if (Configurator.cullEntityRender) {
+					if (builtRegion.occluderVersion == occluderVersion) {
+						// reuse prior test results
+						if (builtRegion.occluderResult) {
+							builtRegion.enqueueUnvistedNeighbors(nextLevel);
+						}
+					} else {
+						builtRegion.occluderVersion = occluderVersion;
+						if (!chunkCullingEnabled || builtRegion.isNear() || terrainOccluder.isEmptyRegionVisible(builtRegion.getOrigin())) {
+							builtRegion.enqueueUnvistedNeighbors(nextLevel);
+							builtRegion.occluderResult = true;
+						} else {
+							builtRegion.occluderResult = false;
+						}
+					}
+				} else {
+					builtRegion.enqueueUnvistedNeighbors(nextLevel);
+					builtRegion.occluderVersion = occluderVersion;
+					builtRegion.occluderResult = false;
+				}
+
 				continue;
 			}
 
@@ -212,6 +230,9 @@ public class TerrainIterator implements  Consumer<TerrainRenderContext> {
 					// these must always be drawn - will be additive if view hasn't changed
 					terrainOccluder.occlude(visData);
 				} else {
+					// note that we don't update occluder version in this case
+					// casues some chunks not to render if set - reason doesn't seem clear but
+					// didn't actually contribute any information to occluder and should not be tied to it
 					builtRegion.occluderResult = false;
 				}
 			}
