@@ -140,6 +140,17 @@ publishing {
 				}
 			}
         }
+        maven {
+            url 'sftp://dblsaiko.net:22/srv/http/maven/'
+            credentials {
+				if (project.hasProperty('maven_user_2')){
+					username = project.getProperty('maven_user_2')
+				}
+				if (project.hasProperty('maven_password_2')){
+					password = project.getProperty('maven_password_2')
+				}
+			}
+        }
 	}
 }
 
