@@ -8,7 +8,7 @@ mavenLocal()
 	}
  	maven {
     	name = "dblsaiko"
-    	uril = "https://maven.dblsaiko.net/"
+    	url = "https://maven.dblsaiko.net/"
     }
     maven {
       name = "Cotton"
