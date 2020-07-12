@@ -22,6 +22,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -143,45 +144,36 @@ public class GlShader {
 
 	private static boolean needsClearDebugOutputWarning = true;
 
-	private static String shaderDebugPath() {
+	private static Path shaderDebugPath() {
 		final File gameDir = FabricLoader.getInstance().getGameDirectory();
 
-		try {
-			return new StringBuilder()
-					.append(gameDir.getCanonicalPath())
-					.append(File.pathSeparator)
-					.append("canvas_shader_debug").toString();
-		} catch (final Exception e) {
-			CanvasMod.LOG.error(I18n.translate("error.canvas.fail_create_shader_output", gameDir.getAbsolutePath()), e);
-			needsDebugOutputWarning = false;
-			return null;
-		}
+		return gameDir.toPath().normalize().resolve("canvas_shader_debug");
 	}
 
 	private static void clearDebugSource() {
-		final String path = shaderDebugPath();
-
-		if (path == null) {
-			return;
-		}
+		final Path path = shaderDebugPath();
 
 		try {
-			File shaderDir = new File(path);
+			File shaderDir = path.toFile();
 
 			if(shaderDir.exists()) {
 				final File files[] = shaderDir.listFiles();
+
 				for(final File f : files) {
 					f.delete();
 				}
 			}
 
-			shaderDir = new File(path + File.separator + "failed");
+			shaderDir = path.resolve("failed").toFile();
 
 			if(shaderDir.exists()) {
 				final File files[] = shaderDir.listFiles();
+
 				for(final File f : files) {
 					f.delete();
 				}
+
+				shaderDir.delete();
 			}
 		} catch(final Exception e){
 			if (needsClearDebugOutputWarning) {
@@ -195,13 +187,9 @@ public class GlShader {
 
 	private void outputDebugSource(String source, String error) {
 		final String key = context.name + "-" + shaderSource.toString().replace("/", "-").replace(":", "-");
-		final String path = shaderDebugPath();
+		final Path path = shaderDebugPath();
 
-		if (path == null) {
-			return;
-		}
-
-		File shaderDir = new File(path);
+		File shaderDir = path.toFile();
 
 		if (!shaderDir.exists()) {
 			shaderDir.mkdir();
@@ -209,7 +197,7 @@ public class GlShader {
 		}
 
 		if(error != null) {
-			shaderDir = new File(path + File.separator + "failed");
+			shaderDir = path.resolve("failed").toFile();
 
 			if (!shaderDir.exists()) {
 				shaderDir.mkdir();
