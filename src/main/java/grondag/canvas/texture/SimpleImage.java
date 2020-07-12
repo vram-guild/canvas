@@ -12,7 +12,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  ******************************************************************************/
-package grondag.canvas.varia;
+package grondag.canvas.texture;
 
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;

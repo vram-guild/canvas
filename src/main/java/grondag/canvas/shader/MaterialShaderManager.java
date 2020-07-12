@@ -16,6 +16,8 @@
 
 package grondag.canvas.shader;
 
+import org.lwjgl.opengl.GL21;
+
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.Camera;
 import net.minecraft.entity.Entity;
@@ -24,7 +26,7 @@ import net.minecraft.util.Identifier;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 
 import grondag.canvas.apiimpl.MaterialShaderImpl;
-import grondag.canvas.varia.DitherTexture;
+import grondag.canvas.texture.TextureData;
 import grondag.canvas.varia.WorldDataManager;
 import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
 import grondag.frex.api.material.UniformRefreshFrequency;
@@ -122,16 +124,15 @@ public final class MaterialShaderManager implements ClientTickEvents.EndTick {
 	private void addStandardUniforms(MaterialShaderImpl shader) {
 		shader.uniformArrayf("_cvu_world", UniformRefreshFrequency.PER_TICK, u -> u.set(WorldDataManager.data()), WorldDataManager.LENGTH);
 
-		shader.uniformSampler2d("_cvu_textures", UniformRefreshFrequency.ON_LOAD, u -> u.set(0));
+		shader.uniformSampler2d("cvs_spriteAltas", UniformRefreshFrequency.ON_LOAD, u -> u.set(TextureData.MC_SPRITE_ATLAS - GL21.GL_TEXTURE0));
 
-		shader.uniformSampler2d("_cvu_lightmap", UniformRefreshFrequency.ON_LOAD, u -> u.set(2));
+		shader.uniformSampler2d("cvs_overlay", UniformRefreshFrequency.ON_LOAD, u -> u.set(TextureData.MC_OVELAY - GL21.GL_TEXTURE0));
 
-		// FIX: may need to move because of lightmap move
-		shader.uniformSampler2d("_cvu_dither", UniformRefreshFrequency.ON_LOAD, u -> u.set(5));
+		shader.uniformSampler2d("cvs_lightmap", UniformRefreshFrequency.ON_LOAD, u -> u.set(TextureData.MC_LIGHTMAP - GL21.GL_TEXTURE0));
 
-		// FIX: may need to move because of lightmap move
-		//UGLY: needs a better GLSL name
-		shader.uniformSampler2d("_cvu_utility", UniformRefreshFrequency.ON_LOAD, u -> u.set(4));
+		shader.uniformSampler2d("cvs_dither", UniformRefreshFrequency.ON_LOAD, u -> u.set(TextureData.DITHER - GL21.GL_TEXTURE0));
+
+		shader.uniformSampler2d("cvs_hdLightmap", UniformRefreshFrequency.ON_LOAD, u -> u.set(TextureData.HD_LIGHTMAP - GL21.GL_TEXTURE0));
 	}
 
 	/**
@@ -161,9 +162,6 @@ public final class MaterialShaderManager implements ClientTickEvents.EndTick {
 		for (int i = 0; i < limit; i++) {
 			shaders.get(i).onGameTick();
 		}
-
-		//UGLY: need central tick handler
-		DitherTexture.instance().tick();
 	}
 
 	public void onRenderTick() {

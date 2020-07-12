@@ -18,15 +18,14 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import com.mojang.blaze3d.platform.GlStateManager;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL21;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 
 import grondag.canvas.Configurator;
-import grondag.canvas.varia.DitherTexture;
-import grondag.canvas.varia.SimpleImage;
-import grondag.canvas.varia.SimpleTexture;
+import grondag.canvas.texture.SimpleImage;
+import grondag.canvas.texture.SimpleTexture;
+import grondag.canvas.texture.TextureData;
 
 @Environment(EnvType.CLIENT)
 public class LightmapHdTexture implements AutoCloseable {
@@ -87,28 +86,21 @@ public class LightmapHdTexture implements AutoCloseable {
 	}
 
 	public void disable() {
-		//UGLY doesn't belong here
-		DitherTexture.instance().disable();
-
 		if(!Configurator.hdLightmaps()) {
 			return;
 		}
 
-		GlStateManager.activeTexture(GL21.GL_TEXTURE4);
+		GlStateManager.activeTexture(TextureData.HD_LIGHTMAP);
 		GlStateManager.disableTexture();
-		GlStateManager.activeTexture(GL21.GL_TEXTURE0);
+		GlStateManager.activeTexture(TextureData.MC_SPRITE_ATLAS);
 	}
 
 	public void enable() {
-		//UGLY doesn't belong here
-		DitherTexture.instance().enable();
-
 		if(!Configurator.hdLightmaps()) {
 			return;
 		}
 
-		//TODO: make this dynamically assigned by Shader uniform manager
-		GlStateManager.activeTexture(GL21.GL_TEXTURE4);
+		GlStateManager.activeTexture(TextureData.HD_LIGHTMAP);
 		texture.bindTexture();
 
 		final int mode = Configurator.lightmapDebug ? GL11.GL_NEAREST : GL11.GL_LINEAR;
@@ -116,7 +108,7 @@ public class LightmapHdTexture implements AutoCloseable {
 		GlStateManager.texParameter(GL11.GL_TEXTURE_2D,  GL11.GL_TEXTURE_MAG_FILTER, mode);
 		GlStateManager.color4f(1.0F, 1.0F, 1.0F, 1.0F);
 		GlStateManager.enableTexture();
-		GlStateManager.activeTexture(GL21.GL_TEXTURE0);
+		GlStateManager.activeTexture(TextureData.MC_SPRITE_ATLAS);
 	}
 
 	private int frameCounter = 0;

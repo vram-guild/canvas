@@ -7,6 +7,7 @@
 #include canvas:shaders/api/player.glsl
 #include canvas:shaders/api/material.glsl
 #include canvas:shaders/api/fragment.glsl
+#include canvas:shaders/api/sampler.glsl
 #include canvas:shaders/lib/math.glsl
 #include canvas:shaders/lib/color.glsl
 
@@ -30,7 +31,7 @@ vec4 aoFactor(vec2 lightCoord) {
         #if AO_SHADING_MODE == AO_MODE_SUBTLE_ALWAYS
             return vec4(bao, bao, bao, 1.0);
         #else
-            vec4 sky = texture2D(_cvu_lightmap, vec2(0.03125, lightCoord.y));
+            vec4 sky = texture2D(cvs_lightmap, vec2(0.03125, lightCoord.y));
             ao = mix(bao, ao, cv_luminance(sky.rgb));
             return vec4(ao, ao, ao, 1.0);
         #endif
@@ -46,19 +47,19 @@ vec4 light(cv_FragmentData fragData) {
 
 		#if DIFFUSE_SHADING_MODE == DIFFUSE_MODE_SKY_ONLY && CONTEXT_IS_BLOCK
 			if (fragData.diffuse) {
-				vec4 block = texture2D(_cvu_lightmap, vec2(fragData.light.x, 0.03125));
-				vec4 sky = texture2D(_cvu_lightmap, vec2(0.03125, fragData.light.y));
+				vec4 block = texture2D(cvs_lightmap, vec2(fragData.light.x, 0.03125));
+				vec4 sky = texture2D(cvs_lightmap, vec2(0.03125, fragData.light.y));
 				return max(block, sky * _cvv_diffuse);
 			}
 		#endif
 
-		return texture2D(_cvu_lightmap, fragData.light);
+		return texture2D(cvs_lightmap, fragData.light);
 	#endif
 }
 
 void main() {
 	cv_FragmentData fragData = cv_FragmentData (
-		texture2D(_cvu_textures, _cvv_texcoord, _cv_getFlag(_CV_FLAG_UNMIPPED) * -4.0),
+		texture2D(cvs_spriteAltas, _cvv_texcoord, _cv_getFlag(_CV_FLAG_UNMIPPED) * -4.0),
 		_cvv_color,
 		cv_matEmissive() ? 1.0 : 0.0,
 		!cv_matDisableDiffuse(),

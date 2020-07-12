@@ -85,6 +85,7 @@ import grondag.canvas.terrain.occlusion.region.OcclusionRegion;
 import grondag.canvas.terrain.occlusion.region.PackedBox;
 import grondag.canvas.terrain.render.TerrainIterator;
 import grondag.canvas.terrain.render.TerrainLayerRenderer;
+import grondag.canvas.texture.DitherTexture;
 import grondag.canvas.varia.CanvasGlHelper;
 import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
 
@@ -167,6 +168,7 @@ public class CanvasWorldRenderer {
 			regionBuilder = new RenderRegionBuilder();
 		}
 
+		DitherTexture.instance().initializeIfNeeded();
 		world = clientWorld;
 		visibleRegionCount = 0;
 		renderRegionStorage.clear();
@@ -879,6 +881,7 @@ public class CanvasWorldRenderer {
 
 		if (Configurator.hdLightmaps()) {
 			LightmapHdTexture.instance().disable();
+			DitherTexture.instance().disable();
 		}
 
 		VboBuffer.unbind();

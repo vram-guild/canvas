@@ -31,4 +31,4 @@
 #define SHADER_TYPE SHADER_TYPE_VERTEX
 
 // When set to false, lightmaps and other vanilla-specific data may not be valid or present
-#define VANILLA_LIGHTING = TRUE
+#define VANILLA_LIGHTING TRUE

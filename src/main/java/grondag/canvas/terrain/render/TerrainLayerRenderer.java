@@ -22,6 +22,7 @@ import grondag.canvas.shader.ShaderContext;
 import grondag.canvas.shader.ShaderPass;
 import grondag.canvas.terrain.BuiltRenderRegion;
 import grondag.canvas.terrain.TerrainModelSpace;
+import grondag.canvas.texture.DitherTexture;
 
 public class TerrainLayerRenderer {
 	private final String profileString;
@@ -53,6 +54,7 @@ public class TerrainLayerRenderer {
 
 		if (Configurator.hdLightmaps()) {
 			LightmapHdTexture.instance().enable();
+			DitherTexture.instance().enable();
 		}
 
 		long lastRelativeOrigin = -1;
