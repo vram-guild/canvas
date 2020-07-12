@@ -18,6 +18,10 @@ mavenLocal()
 		name = "CurseForge"
 		url = "https://minecraft.curseforge.com/api/maven"
 	}
+	maven {
+		name = "JitPack"
+		url = "https://jitpack.io"
+	}
 }
 
 dependencies {
@@ -74,4 +78,9 @@ dependencies {
   		include "grondag:joml-mod:1.0+"
 		include "blue.endless:jankson:1.1.2"
  	}
+ 	
+ 	modApi ("com.github.Ladysnake:Satin:${satin_version}") {
+    	transitive = false
+    }
+ 	
 }

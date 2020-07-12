@@ -67,6 +67,8 @@ import grondag.canvas.Configurator;
 import grondag.canvas.buffer.BindStateManager;
 import grondag.canvas.buffer.VboBuffer;
 import grondag.canvas.compat.ClothHolder;
+import grondag.canvas.compat.LitematicaHolder;
+import grondag.canvas.compat.MaliLibHolder;
 import grondag.canvas.compat.SatinHolder;
 import grondag.canvas.light.LightmapHdTexture;
 import grondag.canvas.mixinterface.WorldRendererExt;
@@ -373,6 +375,7 @@ public class CanvasWorldRenderer {
 		profiler.swap("terrain_setup");
 
 		setupTerrain(camera, wr.canvas_getAndIncrementFrameIndex(), mc.player.isSpectator());
+		LitematicaHolder.litematicaTerrainSetup.accept(frustum);
 
 		profiler.swap("updatechunks");
 		final int maxFps = mc.options.maxFps;
@@ -404,6 +407,8 @@ public class CanvasWorldRenderer {
 			CanvasFrameBufferHacks.endEmissiveCapture();
 			CanvasFrameBufferHacks.applyBloom();
 		}
+
+		LitematicaHolder.litematicaRenderSolids.accept(matrixStack);
 
 		if (this.world.getSkyProperties().isDarkened()) {
 			DiffuseLighting.enableForLevel(matrixStack.peek().getModel());
@@ -483,6 +488,7 @@ public class CanvasWorldRenderer {
 		immediate.draw(RenderLayer.getEntitySmoothCutout(SpriteAtlasTexture.BLOCK_ATLAS_TEX));
 
 		SatinHolder.onEntitiesRenderedEvent.onEntitiesRendered(camera, frustum, tickDelta);
+		LitematicaHolder.litematicaEntityHandler.handle(matrixStack, tickDelta);
 
 		profiler.swap("blockentities");
 
@@ -619,6 +625,7 @@ public class CanvasWorldRenderer {
 
 			profiler.swap("translucent");
 			renderTerrainLayer(true, matrixStack, cameraX, cameraY, cameraZ);
+			LitematicaHolder.litematicaRenderTranslucent.accept(matrixStack);
 
 			fb = mcwr.getParticlesFramebuffer();
 			fb.clear(MinecraftClient.IS_SYSTEM_MAC);
@@ -632,6 +639,7 @@ public class CanvasWorldRenderer {
 		}  else  {
 			profiler.swap("translucent");
 			renderTerrainLayer(true, matrixStack, cameraX, cameraY, cameraZ);
+			LitematicaHolder.litematicaRenderTranslucent.accept(matrixStack);
 
 			profiler.swap("particles");
 			mc.particleManager.renderParticles(matrixStack, immediate, lightmapTextureManager, camera, tickDelta);
@@ -677,6 +685,7 @@ public class CanvasWorldRenderer {
 			RenderSystem.depthMask(true);
 		}
 
+		MaliLibHolder.litematicaRenderWorldLast.render(matrixStack, mc, tickDelta);
 		SatinHolder.onWorldRenderedEvent.onWorldRendered(matrixStack, camera, tickDelta, limitTime);
 
 		if (Configurator.enableBufferDebug) {
