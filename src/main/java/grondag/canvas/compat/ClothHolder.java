@@ -28,7 +28,6 @@ public class ClothHolder {
 			CanvasMod.LOG.info("Found Cloth Client Events - compatibility hook enabled");
 			return ClothHelper.clothDebugRenderPre();
 		} else {
-			CanvasMod.LOG.info("Cloth Client Events not present- compatibility hook disabled");
 			return Runnables.doNothing();
 		}
 	}

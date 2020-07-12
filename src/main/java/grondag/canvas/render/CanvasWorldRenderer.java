@@ -67,6 +67,7 @@ import grondag.canvas.Configurator;
 import grondag.canvas.buffer.BindStateManager;
 import grondag.canvas.buffer.VboBuffer;
 import grondag.canvas.compat.ClothHolder;
+import grondag.canvas.compat.SatinHolder;
 import grondag.canvas.light.LightmapHdTexture;
 import grondag.canvas.mixinterface.WorldRendererExt;
 import grondag.canvas.pipeline.BufferDebug;
@@ -411,6 +412,7 @@ public class CanvasWorldRenderer {
 		}
 
 		profiler.swap("entities");
+		SatinHolder.beforeEntitiesRenderEvent.beforeEntitiesRender(camera, frustum, tickDelta);
 		profiler.push("prepare");
 		int entityCount = 0;
 		final int blockEntityCount = 0;
@@ -479,6 +481,8 @@ public class CanvasWorldRenderer {
 		immediate.draw(RenderLayer.getEntityCutout(SpriteAtlasTexture.BLOCK_ATLAS_TEX));
 		immediate.draw(RenderLayer.getEntityCutoutNoCull(SpriteAtlasTexture.BLOCK_ATLAS_TEX));
 		immediate.draw(RenderLayer.getEntitySmoothCutout(SpriteAtlasTexture.BLOCK_ATLAS_TEX));
+
+		SatinHolder.onEntitiesRenderedEvent.onEntitiesRendered(camera, frustum, tickDelta);
 
 		profiler.swap("blockentities");
 
@@ -672,6 +676,8 @@ public class CanvasWorldRenderer {
 			wr.canvas_renderWorldBorder(camera);
 			RenderSystem.depthMask(true);
 		}
+
+		SatinHolder.onWorldRenderedEvent.onWorldRendered(matrixStack, camera, tickDelta, limitTime);
 
 		if (Configurator.enableBufferDebug) {
 			BufferDebug.render();
