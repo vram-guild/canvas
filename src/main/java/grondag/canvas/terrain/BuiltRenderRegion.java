@@ -124,7 +124,7 @@ public class BuiltRenderRegion {
 	}
 
 	public boolean wasRecentlySeen() {
-		return frameIndex == lastSeenFrameIndex && occluderResult;
+		return frameIndex - lastSeenFrameIndex < 4 && occluderResult;
 	}
 
 	/**
