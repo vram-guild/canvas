@@ -23,6 +23,8 @@ import net.minecraft.client.texture.TextureUtil;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 
+import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
+
 @Environment(EnvType.CLIENT)
 public class SpriteInfoTexture implements AutoCloseable {
 	protected int glId = -1;
@@ -78,5 +80,10 @@ public class SpriteInfoTexture implements AutoCloseable {
 		}
 
 		instance = null;
+	}
+
+	public static int lookup(MutableQuadViewImpl quad, float spriteV) {
+		// TODO Auto-generated method stub
+		return 0;
 	}
 }

@@ -18,9 +18,6 @@ package grondag.canvas.apiimpl.util;
 
 import com.google.common.base.Preconditions;
 
-import net.minecraft.client.render.VertexFormat;
-import net.minecraft.client.render.VertexFormats;
-
 import net.fabricmc.fabric.api.renderer.v1.mesh.QuadView;
 import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 
@@ -69,7 +66,6 @@ public abstract class MeshEncodingHelper {
 	public static final int MAX_QUAD_STRIDE;
 
 	static {
-		final VertexFormat format = VertexFormats.POSITION_COLOR_TEXTURE_LIGHT_NORMAL;
 		VERTEX_X = HEADER_STRIDE + 0;
 		VERTEX_Y = HEADER_STRIDE + 1;
 		VERTEX_Z = HEADER_STRIDE + 2;
@@ -78,7 +74,7 @@ public abstract class MeshEncodingHelper {
 		VERTEX_V = VERTEX_U + 1;
 		VERTEX_LIGHTMAP = HEADER_STRIDE + 6;
 		VERTEX_NORMAL = HEADER_STRIDE + 7;
-		BASE_VERTEX_STRIDE = format.getVertexSizeInteger();
+		BASE_VERTEX_STRIDE = 8;
 		BASE_QUAD_STRIDE = BASE_VERTEX_STRIDE * 4;
 		BASE_QUAD_STRIDE_BYTES = BASE_QUAD_STRIDE * 4;
 		MIN_QUAD_STRIDE = HEADER_STRIDE + BASE_QUAD_STRIDE;

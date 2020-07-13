@@ -4,18 +4,22 @@ import static grondag.canvas.material.MaterialVertextFormatElement.BASE_RGBA_4UB
 import static grondag.canvas.material.MaterialVertextFormatElement.BASE_TEX_2F;
 import static grondag.canvas.material.MaterialVertextFormatElement.HD_LIGHTMAP_2US;
 import static grondag.canvas.material.MaterialVertextFormatElement.LIGHTMAPS_4UB;
+import static grondag.canvas.material.MaterialVertextFormatElement.MATERIAL_2US;
 import static grondag.canvas.material.MaterialVertextFormatElement.NORMAL_AO_4UB;
 import static grondag.canvas.material.MaterialVertextFormatElement.POSITION_3F;
 
 import grondag.canvas.Configurator;
 
 public final class MaterialVertexFormats {
+	// PERF: try quantized vertex format
 	public static final MaterialVertexFormat VANILLA_BLOCKS_AND_ITEMS = new MaterialVertexFormat(
 			POSITION_3F,
 			BASE_RGBA_4UB,
+			// TODO: switch to 2US format when material lookup done
 			BASE_TEX_2F,
 			LIGHTMAPS_4UB,
-			NORMAL_AO_4UB);
+			NORMAL_AO_4UB,
+			MATERIAL_2US);
 
 	public static final MaterialVertexFormat HD_TERRAIN = new MaterialVertexFormat(
 			POSITION_3F,

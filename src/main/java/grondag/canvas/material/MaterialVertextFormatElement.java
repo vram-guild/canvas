@@ -46,6 +46,9 @@ public class MaterialVertextFormatElement {
 	public static final MaterialVertextFormatElement NORMAL_AO_4UB = new MaterialVertextFormatElement(
 			VertexFormatElement.Format.BYTE, 4, "in_normal_ao", true);
 
+	public static final MaterialVertextFormatElement MATERIAL_2US = new MaterialVertextFormatElement(
+			VertexFormatElement.Format.USHORT, 2, "in_material", false);
+
 	public final String attributeName;
 	public final int elementCount;
 	public final int glConstant;
