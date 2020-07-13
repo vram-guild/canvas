@@ -21,6 +21,8 @@
     "MixinMinecraftClient",
     "MixinPackedIntegerArray",
     "MixinPalettedContainer",
+    "MixinSprite",
+    "MixinSpriteAtlasTexture",
     "MixinRenderLayer",
     "MixinVideoOptionsScreen",
     "MixinWorldChunk",

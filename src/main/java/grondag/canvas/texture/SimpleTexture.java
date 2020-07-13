@@ -23,7 +23,6 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 import org.lwjgl.opengl.GL21;
 
-import net.minecraft.client.texture.AbstractTexture;
 import net.minecraft.client.texture.TextureUtil;
 
 /**
@@ -32,7 +31,6 @@ import net.minecraft.client.texture.TextureUtil;
 public class SimpleTexture implements AutoCloseable {
 	private SimpleImage image;
 	protected int glId = -1;
-	AbstractTexture tex;
 
 	public SimpleTexture(SimpleImage image, int internalFormat) {
 		this.image = image;

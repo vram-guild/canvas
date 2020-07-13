@@ -133,6 +133,8 @@ public final class MaterialShaderManager implements ClientTickEvents.EndTick {
 		shader.uniformSampler2d("cvs_dither", UniformRefreshFrequency.ON_LOAD, u -> u.set(TextureData.DITHER - GL21.GL_TEXTURE0));
 
 		shader.uniformSampler2d("cvs_hdLightmap", UniformRefreshFrequency.ON_LOAD, u -> u.set(TextureData.HD_LIGHTMAP - GL21.GL_TEXTURE0));
+
+		shader.uniformSampler2d("cvs_spriteInfo", UniformRefreshFrequency.ON_LOAD, u -> u.set(TextureData.SPRITE_INFO - GL21.GL_TEXTURE0));
 	}
 
 	/**
