@@ -70,6 +70,9 @@ void main() {
 
 	cv_startFragment(fragData);
 
+    vec4 bounds = texture1D(cvs_spriteInfo, _cvv_material.x);
+	vec2 normalizedUV = (_cvv_texcoord - bounds.xy) / bounds.zw;
+
 	vec4 raw = fragData.spriteColor * fragData.vertexColor;
     vec4 a = raw;
 

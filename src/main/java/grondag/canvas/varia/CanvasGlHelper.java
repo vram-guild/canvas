@@ -19,6 +19,7 @@ package grondag.canvas.varia;
 import java.nio.IntBuffer;
 
 import com.mojang.blaze3d.platform.GLX;
+import com.mojang.blaze3d.platform.GlStateManager;
 import org.apache.logging.log4j.Logger;
 import org.lwjgl.opengl.ARBVertexArrayObject;
 import org.lwjgl.opengl.GL;
@@ -153,6 +154,16 @@ public class CanvasGlHelper {
 			ARBVertexArrayObject.glBindVertexArray(vaoBufferId);
 		} else {
 			GL30.glBindVertexArray(vaoBufferId);
+		}
+	}
+
+	public static boolean checkError() {
+		final int error = GlStateManager.getError();
+		if (error == 0) {
+			return true;
+		} else {
+			CanvasMod.LOG.warn("OpenGL Error detected: " + error);
+			return false;
 		}
 	}
 }

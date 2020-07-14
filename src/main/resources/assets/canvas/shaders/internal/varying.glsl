@@ -19,3 +19,12 @@ varying vec4 _cvv_color;
 varying vec2 _cvv_texcoord;
 varying vec2 _cvv_lightcoord;
 varying vec3 _cvv_normal;
+
+#if USE_FLAT_VARYING
+    // may be faster when available and
+    // prevents problems on some NVidia cards/drives
+    flat varying vec4 _cvv_material;
+#else
+    // flat no available on mesa drivers
+    invariant varying vec4 _cvv_material;
+#endif

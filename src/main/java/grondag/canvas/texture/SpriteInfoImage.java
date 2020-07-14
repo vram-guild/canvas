@@ -23,12 +23,14 @@ import org.lwjgl.system.MemoryUtil;
 
 import net.minecraft.client.texture.Sprite;
 import net.minecraft.client.texture.SpriteAtlasTexture;
+import net.minecraft.util.math.MathHelper;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 
 import grondag.canvas.mixinterface.SpriteAtlasTextureExt;
 import grondag.canvas.mixinterface.SpriteExt;
+import grondag.canvas.varia.CanvasGlHelper;
 
 @Environment(EnvType.CLIENT)
 public final class SpriteInfoImage implements AutoCloseable {
@@ -40,7 +42,7 @@ public final class SpriteInfoImage implements AutoCloseable {
 	public SpriteInfoImage(SpriteAtlasTexture atlas) {
 		final Collection<Sprite> sprites = ((SpriteAtlasTextureExt) atlas).canvas_sprites().values();
 
-		size = sprites.size();
+		size = MathHelper.smallestEncompassingPowerOfTwo(sprites.size());
 		sizeBytes = size * 8;
 		pointer = MemoryUtil.nmemAlloc(sizeBytes);
 		intBuffer = MemoryUtil.memIntBuffer(pointer, sizeBytes / 4);
@@ -76,5 +78,6 @@ public final class SpriteInfoImage implements AutoCloseable {
 	public void upload() {
 		assert pointer != 0L : "Image not allocated.";
 		GL21.glTexImage1D(GL11.GL_TEXTURE_1D, 0, GL21.GL_RGBA16, size, 0, GL21.GL_RGBA, GL21.GL_UNSIGNED_SHORT, pointer);
+		assert CanvasGlHelper.checkError();
 	}
 }

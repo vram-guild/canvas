@@ -4,6 +4,7 @@
 #include canvas:shaders/internal/vertex.glsl
 #include canvas:shaders/internal/flags.glsl
 #include canvas:shaders/api/vertex.glsl
+#include canvas:shaders/api/sampler.glsl
 #include canvas:shaders/internal/diffuse.glsl
 
 #include canvas:apitarget
@@ -16,6 +17,7 @@ attribute vec4 in_color;
 attribute vec2 in_uv;
 attribute vec4 in_normal_ao;
 attribute vec4 in_lightmap;
+attribute vec2 in_material;
 
 void main() {
 	cv_VertexData data = cv_VertexData(
@@ -32,6 +34,8 @@ void main() {
 	// Adding +0.5 prevents striping or other strangeness in flag-dependent rendering
 	// due to FP error on some cards/drivers.  Also made varying attribute invariant (rolls eyes at OpenGL)
 	_cvv_flags = in_lightmap.b + 0.5;
+
+	_cvv_material = in_material;
 
 #if _CV_HAS_VERTEX_START
 	cv_startVertex(data);

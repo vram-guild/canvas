@@ -100,6 +100,14 @@ public final class MaterialShaderImpl implements MaterialShader {
 		});
 	}
 
+	public void uniformSampler1d(String name, UniformRefreshFrequency frequency, Consumer<Uniform1i> initializer) {
+		uniforms.add(p -> {
+			if (p.containsUniformSpec("sampler1D", name)) {
+				p.uniform1i(name, frequency, initializer);
+			}
+		});
+	}
+
 	public void uniform1f(String name, UniformRefreshFrequency frequency, Consumer<Uniform1f> initializer) {
 		uniforms.add(p -> {
 			if (p.containsUniformSpec("float", name)) {

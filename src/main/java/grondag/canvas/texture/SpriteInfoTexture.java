@@ -14,31 +14,57 @@
  ******************************************************************************/
 package grondag.canvas.texture;
 
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL12;
 import org.lwjgl.opengl.GL21;
 
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.texture.Sprite;
 import net.minecraft.client.texture.SpriteAtlasTexture;
 import net.minecraft.client.texture.TextureUtil;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.fabricmc.fabric.api.renderer.v1.model.SpriteFinder;
 
+import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
+import grondag.canvas.mixinterface.SpriteExt;
+import grondag.canvas.varia.CanvasGlHelper;
 
 @Environment(EnvType.CLIENT)
 public class SpriteInfoTexture implements AutoCloseable {
 	protected int glId = -1;
+	private final SpriteFinder spriteFinder;
+	private final int textureSize;
 
 	private SpriteInfoTexture() {
 		glId = TextureUtil.generateId();
 		final SpriteAtlasTexture atlas = MinecraftClient.getInstance().getBakedModelManager().method_24153(SpriteAtlasTexture.BLOCK_ATLAS_TEX);
-
+		spriteFinder = SpriteFinder.get(atlas);
+		int size = 1;
 		try(final SpriteInfoImage image = new SpriteInfoImage(atlas)) {
+			size = image.size;
 			GL21.glActiveTexture(TextureData.SPRITE_INFO);
+			assert CanvasGlHelper.checkError();
 			GL21.glBindTexture(GL21.GL_TEXTURE_1D, glId);
+			assert CanvasGlHelper.checkError();
+			GL21.glTexParameteri(GL11.GL_TEXTURE_1D, GL12.GL_TEXTURE_MAX_LEVEL, 0);
+			assert CanvasGlHelper.checkError();
+			GL21.glTexParameteri(GL11.GL_TEXTURE_1D, GL12.GL_TEXTURE_MIN_LOD, 0);
+			assert CanvasGlHelper.checkError();
+			GL21.glTexParameteri(GL21.GL_TEXTURE_1D, GL21.GL_TEXTURE_MIN_FILTER, GL21.GL_NEAREST);
+			assert CanvasGlHelper.checkError();
+			GL21.glTexParameteri(GL21.GL_TEXTURE_1D, GL21.GL_TEXTURE_MAG_FILTER, GL21.GL_NEAREST);
+			assert CanvasGlHelper.checkError();
 			image.upload();
+			image.close();
 			GL21.glActiveTexture(TextureData.MC_SPRITE_ATLAS);
+		} catch (final Exception e) {
+			CanvasMod.LOG.warn("Unable to create sprite info texture due to error:", e);
 		}
+
+		textureSize = size;
 	}
 
 	@Override
@@ -61,6 +87,13 @@ public class SpriteInfoTexture implements AutoCloseable {
 		GL21.glActiveTexture(TextureData.MC_SPRITE_ATLAS);
 	}
 
+	public int lookup(MutableQuadViewImpl quad, int textureIndex) {
+		final Sprite sprite = spriteFinder.find(quad, textureIndex);
+		final int raw = ((SpriteExt) sprite).canvas_id();
+		// PERF: shifts here - textureSize always a power of 2
+		return (raw * 0x10000 + 1) / textureSize;
+	}
+
 	private static SpriteInfoTexture instance;
 
 	public static SpriteInfoTexture instance() {
@@ -80,10 +113,5 @@ public class SpriteInfoTexture implements AutoCloseable {
 		}
 
 		instance = null;
-	}
-
-	public static int lookup(MutableQuadViewImpl quad, float spriteV) {
-		// TODO Auto-generated method stub
-		return 0;
 	}
 }

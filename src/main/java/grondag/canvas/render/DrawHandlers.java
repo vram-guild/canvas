@@ -30,6 +30,7 @@ import grondag.canvas.material.MaterialContext;
 import grondag.canvas.material.MaterialVertexFormat;
 import grondag.canvas.material.MaterialVertexFormats;
 import grondag.canvas.shader.ShaderPass;
+import grondag.canvas.texture.SpriteInfoTexture;
 
 public class DrawHandlers {
 
@@ -41,6 +42,7 @@ public class DrawHandlers {
 		@SuppressWarnings("resource")
 		@Override
 		protected void setupInner() {
+			SpriteInfoTexture.instance().enable();
 			RenderSystem.enableTexture();
 			final TextureManager textureManager = MinecraftClient.getInstance().getTextureManager();
 			textureManager.bindTexture(SpriteAtlasTexture.BLOCK_ATLAS_TEX);
@@ -62,6 +64,7 @@ public class DrawHandlers {
 			RenderSystem.disableCull();
 			MinecraftClient.getInstance().gameRenderer.getLightmapTextureManager().disable();
 			RenderSystem.disableFog();
+			SpriteInfoTexture.instance().disable();
 
 		}
 
@@ -75,6 +78,7 @@ public class DrawHandlers {
 		@SuppressWarnings("resource")
 		@Override
 		protected void setupInner() {
+			SpriteInfoTexture.instance().enable();
 			RenderSystem.enableTexture();
 			final TextureManager textureManager = MinecraftClient.getInstance().getTextureManager();
 			textureManager.bindTexture(SpriteAtlasTexture.BLOCK_ATLAS_TEX);
@@ -98,6 +102,7 @@ public class DrawHandlers {
 			MinecraftClient.getInstance().gameRenderer.getLightmapTextureManager().disable();
 			RenderSystem.disableFog();
 			RenderSystem.disableBlend();
+			SpriteInfoTexture.instance().disable();
 		}
 	}
 
@@ -109,6 +114,7 @@ public class DrawHandlers {
 		@SuppressWarnings("resource")
 		@Override
 		protected void setupInner() {
+			SpriteInfoTexture.instance().enable();
 			RenderSystem.enableTexture();
 			final TextureManager textureManager = MinecraftClient.getInstance().getTextureManager();
 			textureManager.bindTexture(SpriteAtlasTexture.BLOCK_ATLAS_TEX);
@@ -133,6 +139,7 @@ public class DrawHandlers {
 			RenderSystem.disableFog();
 			RenderSystem.disableBlend();
 			RenderSystem.defaultBlendFunc();
+			SpriteInfoTexture.instance().disable();
 		}
 	}
 

@@ -424,6 +424,7 @@ abstract class EncoderUtils {
 		final DrawableMaterial mat0 = mat.forDepth(0);
 		final VertexCollectorImpl buff0  = context.collectors.get(MaterialContext.TERRAIN, mat0);
 		final int[] appendData = context.appendData;
+		final SpriteInfoTexture spriteInfo = SpriteInfoTexture.instance();
 
 		assert mat.blendMode() != BlendMode.DEFAULT;
 
@@ -443,7 +444,9 @@ abstract class EncoderUtils {
 		// PERF: capture and track sprite ID at bake time - will require
 		// special handling to not break when receiving pre-baked coordinates
 		// Need to do for multi-layer also.
-		final int spriteId = SpriteInfoTexture.lookup(quad, 0);
+		final int spriteId = spriteInfo.lookup(quad, 0);
+
+		assert spriteId <= 0xFFFF;
 
 		int k = 0;
 
@@ -490,6 +493,7 @@ abstract class EncoderUtils {
 		final DrawableMaterial mat0 = mat.forDepth(0);
 		final VertexCollectorImpl buff0  = context.collectors.get(MaterialContext.TERRAIN, mat0);
 		final int shaderFlags0 = mat0.shaderFlags << 16;
+		final SpriteInfoTexture spriteInfo = SpriteInfoTexture.instance();
 
 		final int[] appendData = context.appendData;
 		final float[] aoData = quad.ao;
@@ -549,7 +553,7 @@ abstract class EncoderUtils {
 		normalAo2 |= aoData == null ? NO_AO_SHADE : ((Math.round(aoData[2] * 254) - 127) << 24);
 		normalAo3 |= aoData == null ? NO_AO_SHADE : ((Math.round(aoData[3] * 254) - 127) << 24);
 
-		final int spriteId0 = SpriteInfoTexture.lookup(quad, 0);
+		final int spriteId0 = spriteInfo.lookup(quad, 0);
 
 		appendData[3] = quad.spriteColor(0, 0);
 		appendData[4] = Float.floatToRawIntBits(quad.spriteU(0, 0));
@@ -585,7 +589,7 @@ abstract class EncoderUtils {
 		final DrawableMaterial mat1 = mat.forDepth(1);
 		final VertexCollectorImpl buff1  = context.collectors.get(MaterialContext.TERRAIN, mat1);
 		final int shaderFlags1 = mat1.shaderFlags << 16;
-		final int spriteId1 = SpriteInfoTexture.lookup(quad, 1);
+		final int spriteId1 = spriteInfo.lookup(quad, 1);
 
 		appendData[3] = quad.spriteColor(0, 1);
 		appendData[4] = Float.floatToRawIntBits(quad.spriteU(0, 1));
@@ -623,7 +627,7 @@ abstract class EncoderUtils {
 		final Vector4f transformVector = context.transformVector;
 		final Matrix3fExt normalMatrix = context.normalMatrix();
 		final CompositeMaterial mat = quad.material();
-
+		final SpriteInfoTexture spriteInfo = SpriteInfoTexture.instance();
 
 		final DrawableMaterial mat0 = mat.forDepth(0);
 		final VertexCollectorImpl buff0  = context.collectors.get(MaterialContext.TERRAIN, mat0);
@@ -688,7 +692,7 @@ abstract class EncoderUtils {
 		normalAo2 |= aoData == null ? NO_AO_SHADE : ((Math.round(aoData[2] * 254) - 127) << 24);
 		normalAo3 |= aoData == null ? NO_AO_SHADE : ((Math.round(aoData[3] * 254) - 127) << 24);
 
-		final int spriteId0 = SpriteInfoTexture.lookup(quad, 0);
+		final int spriteId0 = spriteInfo.lookup(quad, 0);
 
 		appendData[3] = quad.spriteColor(0, 0);
 		appendData[4] = Float.floatToRawIntBits(quad.spriteU(0, 0));
@@ -723,7 +727,7 @@ abstract class EncoderUtils {
 		final DrawableMaterial mat1 = mat.forDepth(1);
 		final VertexCollectorImpl buff1  = context.collectors.get(MaterialContext.TERRAIN, mat1);
 		final int shaderFlags1 = mat1.shaderFlags << 16;
-		final int spriteId1 = SpriteInfoTexture.lookup(quad, 1);
+		final int spriteId1 = spriteInfo.lookup(quad, 1);
 
 		appendData[3] = quad.spriteColor(0, 1);
 		appendData[4] = Float.floatToRawIntBits(quad.spriteU(0, 1));
@@ -758,7 +762,7 @@ abstract class EncoderUtils {
 		final DrawableMaterial mat2 = mat.forDepth(2);
 		final VertexCollectorImpl buff2  = context.collectors.get(MaterialContext.TERRAIN, mat2);
 		final int shaderFlags2 = mat2.shaderFlags << 16;
-		final int spriteId2 = SpriteInfoTexture.lookup(quad, 2);
+		final int spriteId2 = spriteInfo.lookup(quad, 2);
 
 		appendData[3] = quad.spriteColor(0, 2);
 		appendData[4] = Float.floatToRawIntBits(quad.spriteU(0, 2));

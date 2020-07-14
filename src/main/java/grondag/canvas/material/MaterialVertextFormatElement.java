@@ -47,7 +47,7 @@ public class MaterialVertextFormatElement {
 			VertexFormatElement.Format.BYTE, 4, "in_normal_ao", true);
 
 	public static final MaterialVertextFormatElement MATERIAL_2US = new MaterialVertextFormatElement(
-			VertexFormatElement.Format.USHORT, 2, "in_material", false);
+			VertexFormatElement.Format.USHORT, 2, "in_material", true);
 
 	public final String attributeName;
 	public final int elementCount;
