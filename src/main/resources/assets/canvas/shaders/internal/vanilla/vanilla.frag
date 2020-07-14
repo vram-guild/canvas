@@ -70,8 +70,6 @@ void main() {
 
 	cv_startFragment(fragData);
 
-	vec2 normalizedUV = (_cvv_texcoord - _cvv_spriteBounds.xy) / _cvv_spriteBounds.zw;
-
 	vec4 raw = fragData.spriteColor * fragData.vertexColor;
     vec4 a = raw;
 

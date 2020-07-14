@@ -87,9 +87,19 @@ public class SpriteInfoTexture implements AutoCloseable {
 		GL21.glActiveTexture(TextureData.MC_SPRITE_ATLAS);
 	}
 
-	public int lookup(MutableQuadViewImpl quad, int textureIndex) {
+	public int unbake(MutableQuadViewImpl quad, int textureIndex) {
 		final Sprite sprite = spriteFinder.find(quad, textureIndex);
 		final int raw = ((SpriteExt) sprite).canvas_id();
+		final float u0 = sprite.getMinU();
+		final float v0 = sprite.getMinV();
+		final float uSpanInv = 1f / (sprite.getMaxU() - u0);
+		final float vSpanInv = 1f / (sprite.getMaxV() - v0);
+
+		quad.sprite(0, textureIndex, (quad.spriteU(0, textureIndex) - u0) * uSpanInv, (quad.spriteV(0, textureIndex) - v0) * vSpanInv);
+		quad.sprite(1, textureIndex, (quad.spriteU(1, textureIndex) - u0) * uSpanInv, (quad.spriteV(1, textureIndex) - v0) * vSpanInv);
+		quad.sprite(2, textureIndex, (quad.spriteU(2, textureIndex) - u0) * uSpanInv, (quad.spriteV(2, textureIndex) - v0) * vSpanInv);
+		quad.sprite(3, textureIndex, (quad.spriteU(3, textureIndex) - u0) * uSpanInv, (quad.spriteV(3, textureIndex) - v0) * vSpanInv);
+
 		// PERF: shifts here - textureSize always a power of 2
 		return (raw * 0x10000 + 1) / textureSize;
 	}

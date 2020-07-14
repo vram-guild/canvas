@@ -29,6 +29,8 @@ public class MaterialVertextFormatElement {
 	public static final MaterialVertextFormatElement BASE_TEX_2F = new MaterialVertextFormatElement(
 			VertexFormatElement.Format.FLOAT, 2, "in_uv");
 
+	public static final MaterialVertextFormatElement BASE_TEX_2US = new MaterialVertextFormatElement(
+			VertexFormatElement.Format.USHORT, 2, "in_uv", true);
 	/**
 	 * In vanilla lighting model, Bytes 1-2 are sky and block lightmap
 	 * coordinates. 3rd and 4th bytes are control flags. <p>

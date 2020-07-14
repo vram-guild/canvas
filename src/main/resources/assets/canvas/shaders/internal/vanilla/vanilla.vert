@@ -35,12 +35,13 @@ void main() {
 	// due to FP error on some cards/drivers.  Also made varying attribute invariant (rolls eyes at OpenGL)
 	_cvv_flags = in_lightmap.b + 0.5;
 
-	_cvv_spriteBounds = texture1D(cvs_spriteInfo, in_material.x);
 
 #if _CV_HAS_VERTEX_START
 	cv_startVertex(data);
 #endif
 
+	vec4 spriteBounds = texture1D(cvs_spriteInfo, in_material.x);
+	data.spriteUV = spriteBounds.xy + data.spriteUV * spriteBounds.zw;
 	data.spriteUV = _cv_textureCoord(data.spriteUV, 0);
 
 	vec4 viewCoord = gl_ModelViewMatrix * data.vertex;

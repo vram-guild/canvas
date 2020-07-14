@@ -152,7 +152,7 @@ public final class MaterialShaderManager implements ClientTickEvents.EndTick {
 			return;
 		}
 
-		WorldDataManager.update(fractionalTicks, (cameraEntity.getEntityWorld().getTime() - baseWorldTime + fractionalTicks) / 20);
+		WorldDataManager.update(fractionalTicks);
 
 		onRenderTick();
 	}

@@ -45,8 +45,10 @@ public class WorldDataManager {
 		return DATA;
 	}
 
-	public static void update(float tickDelta, float renderSeconds) {
-		DATA[RENDER_SECONDS] = renderSeconds;
+	private static final long baseRenderTime = System.currentTimeMillis();
+
+	public static void update(float tickDelta) {
+		DATA[RENDER_SECONDS] = (System.currentTimeMillis() - baseRenderTime) / 1000f;
 
 		final MinecraftClient client = MinecraftClient.getInstance();
 		final ClientWorld world = client.world;

@@ -444,7 +444,7 @@ abstract class EncoderUtils {
 		// PERF: capture and track sprite ID at bake time - will require
 		// special handling to not break when receiving pre-baked coordinates
 		// Need to do for multi-layer also.
-		final int spriteId = spriteInfo.lookup(quad, 0);
+		final int spriteId = spriteInfo.unbake(quad, 0);
 
 		assert spriteId <= 0xFFFF;
 
@@ -458,9 +458,7 @@ abstract class EncoderUtils {
 			appendData[k++] = Float.floatToRawIntBits(transformVector.getZ());
 
 			appendData[k++] = quad.spriteColor(i, 0);
-
-			appendData[k++] = Float.floatToRawIntBits(quad.spriteU(i, 0));
-			appendData[k++] = Float.floatToRawIntBits(quad.spriteV(i, 0));
+			appendData[k++] = Math.round(quad.spriteU(i, 0) * 0xFFFF) | (Math.round(quad.spriteV(i, 0) * 0xFFFF) << 16);
 
 			final int packedLight = quad.lightmap(i);
 			final int blockLight = (packedLight & 0xFF);
@@ -520,21 +518,21 @@ abstract class EncoderUtils {
 
 		transformVector.set(quad.x(1), quad.y(1), quad.z(1), 1.0F);
 		transformVector.transform(matrix);
-		appendData[9] = Float.floatToRawIntBits(transformVector.getX());
-		appendData[10] = Float.floatToRawIntBits(transformVector.getY());
-		appendData[11] =Float.floatToRawIntBits( transformVector.getZ());
+		appendData[8] = Float.floatToRawIntBits(transformVector.getX());
+		appendData[9] = Float.floatToRawIntBits(transformVector.getY());
+		appendData[10] =Float.floatToRawIntBits( transformVector.getZ());
 
 		transformVector.set(quad.x(2), quad.y(2), quad.z(2), 1.0F);
 		transformVector.transform(matrix);
-		appendData[18] = Float.floatToRawIntBits(transformVector.getX());
-		appendData[19] = Float.floatToRawIntBits(transformVector.getY());
-		appendData[20] = Float.floatToRawIntBits(transformVector.getZ());
+		appendData[16] = Float.floatToRawIntBits(transformVector.getX());
+		appendData[17] = Float.floatToRawIntBits(transformVector.getY());
+		appendData[18] = Float.floatToRawIntBits(transformVector.getZ());
 
 		transformVector.set(quad.x(3), quad.y(3), quad.z(3), 1.0F);
 		transformVector.transform(matrix);
-		appendData[27] = Float.floatToRawIntBits(transformVector.getX());
-		appendData[28] = Float.floatToRawIntBits(transformVector.getY());
-		appendData[29] = Float.floatToRawIntBits(transformVector.getZ());
+		appendData[24] = Float.floatToRawIntBits(transformVector.getX());
+		appendData[25] = Float.floatToRawIntBits(transformVector.getY());
+		appendData[26] = Float.floatToRawIntBits(transformVector.getZ());
 
 		int packedLight = quad.lightmap(0);
 		final int l0 = (packedLight & 0xFF) | (((packedLight >> 16) & 0xFF) << 8);
@@ -553,73 +551,64 @@ abstract class EncoderUtils {
 		normalAo2 |= aoData == null ? NO_AO_SHADE : ((Math.round(aoData[2] * 254) - 127) << 24);
 		normalAo3 |= aoData == null ? NO_AO_SHADE : ((Math.round(aoData[3] * 254) - 127) << 24);
 
-		final int spriteId0 = spriteInfo.lookup(quad, 0);
+		final int spriteId0 = spriteInfo.unbake(quad, 0);
 
 		appendData[3] = quad.spriteColor(0, 0);
-		appendData[4] = Float.floatToRawIntBits(quad.spriteU(0, 0));
-		appendData[5] = Float.floatToRawIntBits(quad.spriteV(0, 0));
-		appendData[6] = l0 | shaderFlags0;
-		appendData[7] = normalAo0;
-		appendData[8] = spriteId0;
+		appendData[4] = Math.round(quad.spriteU(0, 0) * 0xFFFF) | (Math.round(quad.spriteV(0, 0) * 0xFFFF) << 16);
+		appendData[5] = l0 | shaderFlags0;
+		appendData[6] = normalAo0;
+		appendData[7] = spriteId0;
 
-		appendData[12] = quad.spriteColor(1, 0);
-		appendData[13] = Float.floatToRawIntBits(quad.spriteU(1, 0));
-		appendData[14] = Float.floatToRawIntBits(quad.spriteV(1, 0));
-		appendData[15] = l1 | shaderFlags0;
-		appendData[16] = normalAo1;
-		appendData[17] = spriteId0;
+		appendData[11] = quad.spriteColor(1, 0);
+		appendData[12] = Math.round(quad.spriteU(1, 0) * 0xFFFF) | (Math.round(quad.spriteV(1, 0) * 0xFFFF) << 16);
+		appendData[13] = l1 | shaderFlags0;
+		appendData[14] = normalAo1;
+		appendData[15] = spriteId0;
 
-		appendData[21] = quad.spriteColor(2, 0);
-		appendData[22] = Float.floatToRawIntBits(quad.spriteU(2, 0));
-		appendData[23] = Float.floatToRawIntBits(quad.spriteV(2, 0));
-		appendData[24] = l2 | shaderFlags0;
-		appendData[25] = normalAo2;
-		appendData[26] = spriteId0;
+		appendData[19] = quad.spriteColor(2, 0);
+		appendData[20] = Math.round(quad.spriteU(2, 0) * 0xFFFF) | (Math.round(quad.spriteV(2, 0) * 0xFFFF) << 16);
+		appendData[21] = l2 | shaderFlags0;
+		appendData[22] = normalAo2;
+		appendData[23] = spriteId0;
 
-		appendData[30] = quad.spriteColor(3, 0);
-		appendData[31] = Float.floatToRawIntBits(quad.spriteU(3, 0));
-		appendData[32] = Float.floatToRawIntBits(quad.spriteV(3, 0));
-		appendData[33] = l3 | shaderFlags0;
-		appendData[34] = normalAo3;
-		appendData[35] = spriteId0;
+		appendData[27] = quad.spriteColor(3, 0);
+		appendData[28] = Math.round(quad.spriteU(3, 0) * 0xFFFF) | (Math.round(quad.spriteV(3, 0) * 0xFFFF) << 16);
+		appendData[29] = l3 | shaderFlags0;
+		appendData[30] = normalAo3;
+		appendData[31] = spriteId0;
 
-
-		buff0.add(appendData, 36);
+		buff0.add(appendData, 32);
 
 		final DrawableMaterial mat1 = mat.forDepth(1);
 		final VertexCollectorImpl buff1  = context.collectors.get(MaterialContext.TERRAIN, mat1);
 		final int shaderFlags1 = mat1.shaderFlags << 16;
-		final int spriteId1 = spriteInfo.lookup(quad, 1);
+		final int spriteId1 = spriteInfo.unbake(quad, 1);
 
 		appendData[3] = quad.spriteColor(0, 1);
-		appendData[4] = Float.floatToRawIntBits(quad.spriteU(0, 1));
-		appendData[5] = Float.floatToRawIntBits(quad.spriteV(0, 1));
-		appendData[6] = l0 | shaderFlags1;
-		appendData[7] = normalAo0;
-		appendData[8] = spriteId1;
+		appendData[4] = Math.round(quad.spriteU(0, 1) * 0xFFFF) | (Math.round(quad.spriteV(0, 1) * 0xFFFF) << 16);
+		appendData[5] = l0 | shaderFlags1;
+		appendData[6] = normalAo0;
+		appendData[7] = spriteId1;
 
-		appendData[12] = quad.spriteColor(1, 1);
-		appendData[13] = Float.floatToRawIntBits(quad.spriteU(1, 1));
-		appendData[14] = Float.floatToRawIntBits(quad.spriteV(1, 1));
-		appendData[15] = l1 | shaderFlags1;
-		appendData[16] = normalAo1;
-		appendData[17] = spriteId1;
+		appendData[11] = quad.spriteColor(1, 1);
+		appendData[12] = Math.round(quad.spriteU(1, 1) * 0xFFFF) | (Math.round(quad.spriteV(1, 1) * 0xFFFF) << 16);
+		appendData[13] = l1 | shaderFlags1;
+		appendData[14] = normalAo1;
+		appendData[15] = spriteId1;
 
-		appendData[21] = quad.spriteColor(2, 1);
-		appendData[22] = Float.floatToRawIntBits(quad.spriteU(2, 1));
-		appendData[23] = Float.floatToRawIntBits(quad.spriteV(2, 1));
-		appendData[24] = l2 | shaderFlags1;
-		appendData[25] = normalAo2;
-		appendData[26] = spriteId1;
+		appendData[19] = quad.spriteColor(2, 1);
+		appendData[20] = Math.round(quad.spriteU(2, 1) * 0xFFFF) | (Math.round(quad.spriteV(2, 1) * 0xFFFF) << 16);
+		appendData[21] = l2 | shaderFlags1;
+		appendData[22] = normalAo2;
+		appendData[23] = spriteId1;
 
-		appendData[30] = quad.spriteColor(3, 1);
-		appendData[31] = Float.floatToRawIntBits(quad.spriteU(3, 1));
-		appendData[32] = Float.floatToRawIntBits(quad.spriteV(3, 1));
-		appendData[33] = l3 | shaderFlags1;
-		appendData[34] = normalAo3;
-		appendData[35] = spriteId1;
+		appendData[27] = quad.spriteColor(3, 1);
+		appendData[28] = Math.round(quad.spriteU(3, 1) * 0xFFFF) | (Math.round(quad.spriteV(3, 1) * 0xFFFF) << 16);
+		appendData[29] = l3 | shaderFlags1;
+		appendData[30] = normalAo3;
+		appendData[31] = spriteId1;
 
-		buff1.add(appendData, 36);
+		buff1.add(appendData, 32);
 	}
 
 	static void bufferQuadDirect3(MutableQuadViewImpl quad, AbstractRenderContext context) {
@@ -659,21 +648,21 @@ abstract class EncoderUtils {
 
 		transformVector.set(quad.x(1), quad.y(1), quad.z(1), 1.0F);
 		transformVector.transform(matrix);
-		appendData[9] = Float.floatToRawIntBits(transformVector.getX());
-		appendData[10] = Float.floatToRawIntBits(transformVector.getY());
-		appendData[11] =Float.floatToRawIntBits( transformVector.getZ());
+		appendData[8] = Float.floatToRawIntBits(transformVector.getX());
+		appendData[9] = Float.floatToRawIntBits(transformVector.getY());
+		appendData[10] =Float.floatToRawIntBits( transformVector.getZ());
 
 		transformVector.set(quad.x(2), quad.y(2), quad.z(2), 1.0F);
 		transformVector.transform(matrix);
-		appendData[18] = Float.floatToRawIntBits(transformVector.getX());
-		appendData[19] = Float.floatToRawIntBits(transformVector.getY());
-		appendData[20] = Float.floatToRawIntBits(transformVector.getZ());
+		appendData[16] = Float.floatToRawIntBits(transformVector.getX());
+		appendData[17] = Float.floatToRawIntBits(transformVector.getY());
+		appendData[18] = Float.floatToRawIntBits(transformVector.getZ());
 
 		transformVector.set(quad.x(3), quad.y(3), quad.z(3), 1.0F);
 		transformVector.transform(matrix);
-		appendData[27] = Float.floatToRawIntBits(transformVector.getX());
-		appendData[28] = Float.floatToRawIntBits(transformVector.getY());
-		appendData[29] = Float.floatToRawIntBits(transformVector.getZ());
+		appendData[24] = Float.floatToRawIntBits(transformVector.getX());
+		appendData[25] = Float.floatToRawIntBits(transformVector.getY());
+		appendData[26] = Float.floatToRawIntBits(transformVector.getZ());
 
 		int packedLight = quad.lightmap(0);
 		final int l0 = (packedLight & 0xFF) | (((packedLight >> 16) & 0xFF) << 8);
@@ -692,107 +681,95 @@ abstract class EncoderUtils {
 		normalAo2 |= aoData == null ? NO_AO_SHADE : ((Math.round(aoData[2] * 254) - 127) << 24);
 		normalAo3 |= aoData == null ? NO_AO_SHADE : ((Math.round(aoData[3] * 254) - 127) << 24);
 
-		final int spriteId0 = spriteInfo.lookup(quad, 0);
+		final int spriteId0 = spriteInfo.unbake(quad, 0);
 
 		appendData[3] = quad.spriteColor(0, 0);
-		appendData[4] = Float.floatToRawIntBits(quad.spriteU(0, 0));
-		appendData[5] = Float.floatToRawIntBits(quad.spriteV(0, 0));
-		appendData[6] = l0 | shaderFlags0;
-		appendData[7] = normalAo0;
-		appendData[8] = spriteId0;
+		appendData[4] = Math.round(quad.spriteU(0, 0) * 0xFFFF) | (Math.round(quad.spriteV(0, 0) * 0xFFFF) << 16);
+		appendData[5] = l0 | shaderFlags0;
+		appendData[6] = normalAo0;
+		appendData[7] = spriteId0;
 
-		appendData[12] = quad.spriteColor(1, 0);
-		appendData[13] = Float.floatToRawIntBits(quad.spriteU(1, 0));
-		appendData[14] = Float.floatToRawIntBits(quad.spriteV(1, 0));
-		appendData[15] = l1 | shaderFlags0;
-		appendData[16] = normalAo1;
-		appendData[17] = spriteId0;
+		appendData[11] = quad.spriteColor(1, 0);
+		appendData[12] = Math.round(quad.spriteU(1, 0) * 0xFFFF) | (Math.round(quad.spriteV(1, 0) * 0xFFFF) << 16);
+		appendData[13] = l1 | shaderFlags0;
+		appendData[14] = normalAo1;
+		appendData[15] = spriteId0;
 
-		appendData[21] = quad.spriteColor(2, 0);
-		appendData[22] = Float.floatToRawIntBits(quad.spriteU(2, 0));
-		appendData[23] = Float.floatToRawIntBits(quad.spriteV(2, 0));
-		appendData[24] = l2 | shaderFlags0;
-		appendData[25] = normalAo2;
-		appendData[26] = spriteId0;
+		appendData[19] = quad.spriteColor(2, 0);
+		appendData[20] = Math.round(quad.spriteU(2, 0) * 0xFFFF) | (Math.round(quad.spriteV(2, 0) * 0xFFFF) << 16);
+		appendData[21] = l2 | shaderFlags0;
+		appendData[22] = normalAo2;
+		appendData[23] = spriteId0;
 
-		appendData[30] = quad.spriteColor(3, 0);
-		appendData[31] = Float.floatToRawIntBits(quad.spriteU(3, 0));
-		appendData[32] = Float.floatToRawIntBits(quad.spriteV(3, 0));
-		appendData[33] = l3 | shaderFlags0;
-		appendData[34] = normalAo3;
-		appendData[35] = spriteId0;
+		appendData[27] = quad.spriteColor(3, 0);
+		appendData[28] = Math.round(quad.spriteU(3, 0) * 0xFFFF) | (Math.round(quad.spriteV(3, 0) * 0xFFFF) << 16);
+		appendData[29] = l3 | shaderFlags0;
+		appendData[30] = normalAo3;
+		appendData[31] = spriteId0;
 
-		buff0.add(appendData, 36);
+		buff0.add(appendData, 32);
 
 		final DrawableMaterial mat1 = mat.forDepth(1);
 		final VertexCollectorImpl buff1  = context.collectors.get(MaterialContext.TERRAIN, mat1);
 		final int shaderFlags1 = mat1.shaderFlags << 16;
-		final int spriteId1 = spriteInfo.lookup(quad, 1);
+		final int spriteId1 = spriteInfo.unbake(quad, 1);
 
 		appendData[3] = quad.spriteColor(0, 1);
-		appendData[4] = Float.floatToRawIntBits(quad.spriteU(0, 1));
-		appendData[5] = Float.floatToRawIntBits(quad.spriteV(0, 1));
-		appendData[6] = l0 | shaderFlags1;
-		appendData[7] = normalAo0;
-		appendData[8] = spriteId1;
+		appendData[4] = Math.round(quad.spriteU(0, 1) * 0xFFFF) | (Math.round(quad.spriteV(0, 1) * 0xFFFF) << 16);
+		appendData[5] = l0 | shaderFlags1;
+		appendData[6] = normalAo0;
+		appendData[7] = spriteId1;
 
-		appendData[12] = quad.spriteColor(1, 1);
-		appendData[13] = Float.floatToRawIntBits(quad.spriteU(1, 1));
-		appendData[14] = Float.floatToRawIntBits(quad.spriteV(1, 1));
-		appendData[15] = l1 | shaderFlags1;
-		appendData[16] = normalAo1;
-		appendData[17] = spriteId1;
+		appendData[11] = quad.spriteColor(1, 1);
+		appendData[12] = Math.round(quad.spriteU(1, 1) * 0xFFFF) | (Math.round(quad.spriteV(1, 1) * 0xFFFF) << 16);
+		appendData[13] = l1 | shaderFlags1;
+		appendData[14] = normalAo1;
+		appendData[15] = spriteId1;
 
-		appendData[21] = quad.spriteColor(2, 1);
-		appendData[22] = Float.floatToRawIntBits(quad.spriteU(2, 1));
-		appendData[23] = Float.floatToRawIntBits(quad.spriteV(2, 1));
-		appendData[24] = l2 | shaderFlags1;
-		appendData[25] = normalAo2;
-		appendData[26] = spriteId1;
+		appendData[19] = quad.spriteColor(2, 1);
+		appendData[20] = Math.round(quad.spriteU(2, 1) * 0xFFFF) | (Math.round(quad.spriteV(2, 1) * 0xFFFF) << 16);
+		appendData[21] = l2 | shaderFlags1;
+		appendData[22] = normalAo2;
+		appendData[23] = spriteId1;
 
-		appendData[30] = quad.spriteColor(3, 1);
-		appendData[31] = Float.floatToRawIntBits(quad.spriteU(3, 1));
-		appendData[32] = Float.floatToRawIntBits(quad.spriteV(3, 1));
-		appendData[33] = l3 | shaderFlags1;
-		appendData[34] = normalAo3;
-		appendData[35] = spriteId1;
+		appendData[27] = quad.spriteColor(3, 1);
+		appendData[28] = Math.round(quad.spriteU(3, 1) * 0xFFFF) | (Math.round(quad.spriteV(3, 1) * 0xFFFF) << 16);
+		appendData[29] = l3 | shaderFlags1;
+		appendData[30] = normalAo3;
+		appendData[31] = spriteId1;
 
-		buff1.add(appendData, 36);
+		buff1.add(appendData, 32);
 
 		final DrawableMaterial mat2 = mat.forDepth(2);
 		final VertexCollectorImpl buff2  = context.collectors.get(MaterialContext.TERRAIN, mat2);
 		final int shaderFlags2 = mat2.shaderFlags << 16;
-		final int spriteId2 = spriteInfo.lookup(quad, 2);
+		final int spriteId2 = spriteInfo.unbake(quad, 2);
 
 		appendData[3] = quad.spriteColor(0, 2);
-		appendData[4] = Float.floatToRawIntBits(quad.spriteU(0, 2));
-		appendData[5] = Float.floatToRawIntBits(quad.spriteV(0, 2));
-		appendData[6] = l0 | shaderFlags2;
-		appendData[7] = normalAo0;
-		appendData[8] = spriteId2;
+		appendData[4] = Math.round(quad.spriteU(0, 2) * 0xFFFF) | (Math.round(quad.spriteV(0, 2) * 0xFFFF) << 16);
+		appendData[5] = l0 | shaderFlags2;
+		appendData[6] = normalAo0;
+		appendData[7] = spriteId2;
 
-		appendData[12] = quad.spriteColor(1, 2);
-		appendData[13] = Float.floatToRawIntBits(quad.spriteU(1, 2));
-		appendData[14] = Float.floatToRawIntBits(quad.spriteV(1, 2));
-		appendData[15] = l1 | shaderFlags2;
-		appendData[16] = normalAo1;
-		appendData[17] = spriteId2;
+		appendData[11] = quad.spriteColor(1, 2);
+		appendData[12] = Math.round(quad.spriteU(1, 2) * 0xFFFF) | (Math.round(quad.spriteV(1, 2) * 0xFFFF) << 16);
+		appendData[13] = l1 | shaderFlags2;
+		appendData[14] = normalAo1;
+		appendData[15] = spriteId2;
 
-		appendData[21] = quad.spriteColor(2, 2);
-		appendData[22] = Float.floatToRawIntBits(quad.spriteU(2, 2));
-		appendData[23] = Float.floatToRawIntBits(quad.spriteV(2, 2));
-		appendData[24] = l2 | shaderFlags2;
-		appendData[25] = normalAo2;
-		appendData[26] = spriteId2;
+		appendData[19] = quad.spriteColor(2, 2);
+		appendData[20] = Math.round(quad.spriteU(2, 2) * 0xFFFF) | (Math.round(quad.spriteV(2, 2) * 0xFFFF) << 16);
+		appendData[21] = l2 | shaderFlags2;
+		appendData[22] = normalAo2;
+		appendData[23] = spriteId2;
 
-		appendData[30] = quad.spriteColor(3, 2);
-		appendData[31] = Float.floatToRawIntBits(quad.spriteU(3, 2));
-		appendData[32] = Float.floatToRawIntBits(quad.spriteV(3, 2));
-		appendData[33] = l3 | shaderFlags2;
-		appendData[34] = normalAo3;
-		appendData[35] = spriteId2;
+		appendData[27] = quad.spriteColor(3, 2);
+		appendData[28] = Math.round(quad.spriteU(3, 2) * 0xFFFF) | (Math.round(quad.spriteV(3, 2) * 0xFFFF) << 16);
+		appendData[29] = l3 | shaderFlags2;
+		appendData[30] = normalAo3;
+		appendData[31] = spriteId2;
 
-		buff2.add(appendData, 36);
+		buff2.add(appendData, 32);
 	}
 
 	static void applyBlockLighting(MutableQuadViewImpl quad, AbstractRenderContext context) {
