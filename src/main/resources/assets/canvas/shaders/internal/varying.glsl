@@ -23,8 +23,8 @@ varying vec3 _cvv_normal;
 #if USE_FLAT_VARYING
     // may be faster when available and
     // prevents problems on some NVidia cards/drives
-    flat varying vec4 _cvv_material;
+    flat varying vec4 _cvv_spriteBounds;
 #else
     // flat no available on mesa drivers
-    invariant varying vec4 _cvv_material;
+    invariant varying vec4 _cvv_spriteBounds;
 #endif

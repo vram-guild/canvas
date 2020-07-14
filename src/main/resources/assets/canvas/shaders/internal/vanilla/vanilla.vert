@@ -35,7 +35,7 @@ void main() {
 	// due to FP error on some cards/drivers.  Also made varying attribute invariant (rolls eyes at OpenGL)
 	_cvv_flags = in_lightmap.b + 0.5;
 
-	_cvv_material = in_material;
+	_cvv_spriteBounds = texture1D(cvs_spriteInfo, in_material.x);
 
 #if _CV_HAS_VERTEX_START
 	cv_startVertex(data);
