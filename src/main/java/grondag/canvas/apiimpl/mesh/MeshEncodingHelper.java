@@ -14,7 +14,7 @@
  * the License.
  ******************************************************************************/
 
-package grondag.canvas.apiimpl.util;
+package grondag.canvas.apiimpl.mesh;
 
 import com.google.common.base.Preconditions;
 
@@ -36,7 +36,9 @@ public abstract class MeshEncodingHelper {
 	public static final int HEADER_COLOR_INDEX = 1;
 	public static final int HEADER_BITS = 2;
 	public static final int HEADER_TAG = 3;
-	public static final int HEADER_STRIDE = 4;
+	public static final int HEADER_SPRITE_LOW = 4;
+	public static final int HEADER_SPRITE_HIGH = 5;
+	public static final int HEADER_STRIDE = 6;
 
 	public static final int VERTEX_X;
 	public static final int VERTEX_Y;

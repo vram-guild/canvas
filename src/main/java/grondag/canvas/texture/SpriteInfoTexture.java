@@ -14,6 +14,7 @@
  ******************************************************************************/
 package grondag.canvas.texture;
 
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 import org.lwjgl.opengl.GL21;
@@ -37,13 +38,14 @@ public class SpriteInfoTexture implements AutoCloseable {
 	protected int glId = -1;
 	private final SpriteFinder spriteFinder;
 	private final int textureSize;
+	private final ObjectArrayList<Sprite> indexed = new ObjectArrayList<>();
 
 	private SpriteInfoTexture() {
 		glId = TextureUtil.generateId();
 		final SpriteAtlasTexture atlas = MinecraftClient.getInstance().getBakedModelManager().method_24153(SpriteAtlasTexture.BLOCK_ATLAS_TEX);
 		spriteFinder = SpriteFinder.get(atlas);
 		int size = 1;
-		try(final SpriteInfoImage image = new SpriteInfoImage(atlas)) {
+		try(final SpriteInfoImage image = new SpriteInfoImage(atlas, indexed)) {
 			size = image.size;
 			GL21.glActiveTexture(TextureData.SPRITE_INFO);
 			assert CanvasGlHelper.checkError();
@@ -87,21 +89,36 @@ public class SpriteInfoTexture implements AutoCloseable {
 		GL21.glActiveTexture(TextureData.MC_SPRITE_ATLAS);
 	}
 
-	public int unbake(MutableQuadViewImpl quad, int textureIndex) {
+	public void normalize(MutableQuadViewImpl quad, int textureIndex) {
 		final Sprite sprite = spriteFinder.find(quad, textureIndex);
-		final int raw = ((SpriteExt) sprite).canvas_id();
+		final int spriteId = ((SpriteExt) sprite).canvas_id();
 		final float u0 = sprite.getMinU();
 		final float v0 = sprite.getMinV();
 		final float uSpanInv = 1f / (sprite.getMaxU() - u0);
 		final float vSpanInv = 1f / (sprite.getMaxV() - v0);
 
-		quad.sprite(0, textureIndex, (quad.spriteU(0, textureIndex) - u0) * uSpanInv, (quad.spriteV(0, textureIndex) - v0) * vSpanInv);
-		quad.sprite(1, textureIndex, (quad.spriteU(1, textureIndex) - u0) * uSpanInv, (quad.spriteV(1, textureIndex) - v0) * vSpanInv);
-		quad.sprite(2, textureIndex, (quad.spriteU(2, textureIndex) - u0) * uSpanInv, (quad.spriteV(2, textureIndex) - v0) * vSpanInv);
-		quad.sprite(3, textureIndex, (quad.spriteU(3, textureIndex) - u0) * uSpanInv, (quad.spriteV(3, textureIndex) - v0) * vSpanInv);
+		quad.spriteRaw(0, textureIndex, (quad.spriteRawU(0, textureIndex) - u0) * uSpanInv, (quad.spriteRawV(0, textureIndex) - v0) * vSpanInv);
+		quad.spriteRaw(1, textureIndex, (quad.spriteRawU(1, textureIndex) - u0) * uSpanInv, (quad.spriteRawV(1, textureIndex) - v0) * vSpanInv);
+		quad.spriteRaw(2, textureIndex, (quad.spriteRawU(2, textureIndex) - u0) * uSpanInv, (quad.spriteRawV(2, textureIndex) - v0) * vSpanInv);
+		quad.spriteRaw(3, textureIndex, (quad.spriteRawU(3, textureIndex) - u0) * uSpanInv, (quad.spriteRawV(3, textureIndex) - v0) * vSpanInv);
+		quad.spriteId(textureIndex, spriteId);
+	}
 
+	public int coordinate(int spriteId) {
 		// PERF: shifts here - textureSize always a power of 2
-		return (raw * 0x10000 + 1) / textureSize;
+		return (spriteId * 0x10000 + 1) / textureSize;
+	}
+
+	public float denormalizeU(int spriteId, float spriteU) {
+		final Sprite sprite = indexed.get(spriteId);
+		final float u0 = sprite.getMinU();
+		return u0 + spriteU * (sprite.getMaxU() - u0);
+	}
+
+	public float denormalizeV(int spriteId, float spriteV) {
+		final Sprite sprite = indexed.get(spriteId);
+		final float v0 = sprite.getMinV();
+		return v0 + spriteV * (sprite.getMaxV() - v0);
 	}
 
 	private static SpriteInfoTexture instance;

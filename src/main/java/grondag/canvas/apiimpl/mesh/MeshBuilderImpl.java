@@ -19,10 +19,8 @@ package grondag.canvas.apiimpl.mesh;
 import net.fabricmc.fabric.api.renderer.v1.mesh.Mesh;
 import net.fabricmc.fabric.api.renderer.v1.mesh.MeshBuilder;
 import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
-import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 
 import grondag.canvas.apiimpl.util.GeometryHelper;
-import grondag.canvas.apiimpl.util.MeshEncodingHelper;
 
 /**
  * Our implementation of {@link MeshBuilder}, used for static mesh creation and baking.
@@ -72,7 +70,7 @@ public class MeshBuilderImpl implements MeshBuilder {
 	private class Maker extends MutableQuadViewImpl implements QuadEmitter {
 		@Override
 		public Maker emit() {
-			lightFace(ModelHelper.toFaceIndex(GeometryHelper.lightFace(this)));
+			complete();
 
 			if (isGeometryInvalid) {
 				geometryFlags(GeometryHelper.computeShapeFlags(this));

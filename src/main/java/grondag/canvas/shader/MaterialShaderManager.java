@@ -43,11 +43,6 @@ public final class MaterialShaderManager implements ClientTickEvents.EndTick {
 	private final MaterialShaderImpl defaultShader;
 
 	/**
-	 * World time ticks at last render reload..
-	 */
-	private long baseWorldTime;
-
-	/**
 	 * Frames are (hopefully) shorter than a client tick. This is the fraction of a
 	 * tick that has elapsed since the last complete client tick.
 	 */

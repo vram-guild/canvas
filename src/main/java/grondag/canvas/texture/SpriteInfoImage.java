@@ -17,6 +17,7 @@ package grondag.canvas.texture;
 import java.nio.IntBuffer;
 import java.util.Collection;
 
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL21;
 import org.lwjgl.system.MemoryUtil;
@@ -39,8 +40,9 @@ public final class SpriteInfoImage implements AutoCloseable {
 	private final int sizeBytes;
 	private IntBuffer intBuffer;
 
-	public SpriteInfoImage(SpriteAtlasTexture atlas) {
+	public SpriteInfoImage(SpriteAtlasTexture atlas, ObjectArrayList<Sprite> indexed) {
 		final Collection<Sprite> sprites = ((SpriteAtlasTextureExt) atlas).canvas_sprites().values();
+		indexed.clear();
 
 		size = MathHelper.smallestEncompassingPowerOfTwo(sprites.size());
 		sizeBytes = size * 8;
@@ -50,6 +52,8 @@ public final class SpriteInfoImage implements AutoCloseable {
 		int id = 0;
 
 		for (final Sprite s : sprites) {
+			indexed.add(s);
+
 			setPixelUnsignedShort(id, Math.round(s.getMinU() * 0xFFFF), Math.round(s.getMinV() * 0xFFFF),
 					Math.round((s.getMaxU() - s.getMinU()) * 0xFFFF), Math.round((s.getMaxV() - s.getMinV()) * 0xFFFF));
 

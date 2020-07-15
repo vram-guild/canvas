@@ -23,10 +23,9 @@ import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
 import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.apiimpl.RenderMaterialImpl;
 import grondag.canvas.apiimpl.RenderMaterialImpl.CompositeMaterial;
+import grondag.canvas.apiimpl.mesh.MeshEncodingHelper;
 import grondag.canvas.apiimpl.mesh.MeshImpl;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
-import grondag.canvas.apiimpl.util.GeometryHelper;
-import grondag.canvas.apiimpl.util.MeshEncodingHelper;
 import grondag.canvas.buffer.encoding.VertexEncoders;
 
 /**
@@ -53,7 +52,7 @@ public class MeshConsumer implements Consumer<Mesh> {
 		// only used via RenderContext.getEmitter()
 		@Override
 		public Maker emit() {
-			lightFace(GeometryHelper.lightFace(this));
+			complete();
 			renderQuad(this);
 			clear();
 			return this;

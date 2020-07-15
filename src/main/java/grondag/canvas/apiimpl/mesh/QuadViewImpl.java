@@ -16,23 +16,24 @@
 
 package grondag.canvas.apiimpl.mesh;
 
-import static grondag.canvas.apiimpl.util.MeshEncodingHelper.BASE_QUAD_STRIDE;
-import static grondag.canvas.apiimpl.util.MeshEncodingHelper.BASE_VERTEX_STRIDE;
-import static grondag.canvas.apiimpl.util.MeshEncodingHelper.HEADER_BITS;
-import static grondag.canvas.apiimpl.util.MeshEncodingHelper.HEADER_COLOR_INDEX;
-import static grondag.canvas.apiimpl.util.MeshEncodingHelper.HEADER_MATERIAL;
-import static grondag.canvas.apiimpl.util.MeshEncodingHelper.HEADER_STRIDE;
-import static grondag.canvas.apiimpl.util.MeshEncodingHelper.HEADER_TAG;
-import static grondag.canvas.apiimpl.util.MeshEncodingHelper.TEXTURE_OFFSET_MINUS;
-import static grondag.canvas.apiimpl.util.MeshEncodingHelper.TEXTURE_QUAD_STRIDE;
-import static grondag.canvas.apiimpl.util.MeshEncodingHelper.TEXTURE_VERTEX_STRIDE;
-import static grondag.canvas.apiimpl.util.MeshEncodingHelper.VERTEX_COLOR;
-import static grondag.canvas.apiimpl.util.MeshEncodingHelper.VERTEX_LIGHTMAP;
-import static grondag.canvas.apiimpl.util.MeshEncodingHelper.VERTEX_NORMAL;
-import static grondag.canvas.apiimpl.util.MeshEncodingHelper.VERTEX_START;
-import static grondag.canvas.apiimpl.util.MeshEncodingHelper.VERTEX_X;
-import static grondag.canvas.apiimpl.util.MeshEncodingHelper.VERTEX_Y;
-import static grondag.canvas.apiimpl.util.MeshEncodingHelper.VERTEX_Z;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.BASE_QUAD_STRIDE;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.BASE_VERTEX_STRIDE;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_BITS;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_COLOR_INDEX;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_MATERIAL;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_SPRITE_LOW;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_STRIDE;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_TAG;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.TEXTURE_OFFSET_MINUS;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.TEXTURE_QUAD_STRIDE;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.TEXTURE_VERTEX_STRIDE;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_COLOR;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_LIGHTMAP;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_NORMAL;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_START;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_X;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_Y;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_Z;
 
 import net.minecraft.client.util.math.Vector3f;
 import net.minecraft.util.math.Direction;
@@ -43,8 +44,8 @@ import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 
 import grondag.canvas.apiimpl.RenderMaterialImpl;
 import grondag.canvas.apiimpl.util.GeometryHelper;
-import grondag.canvas.apiimpl.util.MeshEncodingHelper;
 import grondag.canvas.apiimpl.util.NormalHelper;
+import grondag.canvas.texture.SpriteInfoTexture;
 
 /**
  * Base class for all quads / quad makers. Handles the ugly bits
@@ -56,6 +57,9 @@ public class QuadViewImpl implements QuadView {
 	protected final Vector3f faceNormal = new Vector3f();
 	protected int packedFaceNormal = -1;
 	protected boolean isFaceNormalInvalid = true;
+
+	/** flag true when sprite is assumed to be interpolated and need normalization */
+	protected int spriteInterpolationFlags = 0;
 
 	/** Size and where it comes from will vary in subtypes. But in all cases quad is fully encoded to array. */
 	protected int[] data;
@@ -144,6 +148,16 @@ public class QuadViewImpl implements QuadView {
 	@Override
 	public final void toVanilla(int textureIndex, int[] target, int targetIndex, boolean isItem) {
 		System.arraycopy(data, baseIndex + VERTEX_START, target, targetIndex, BASE_QUAD_STRIDE);
+
+		if (isSpriteNormalized(0)) {
+			int index = targetIndex + 4;
+
+			for (int i = 0; i < 4; ++i)  {
+				target[index] = Float.floatToRawIntBits(spriteU(i, 0));
+				target[index + 1] = Float.floatToRawIntBits(spriteV(i, 0));
+				index += 8;
+			}
+		}
 	}
 
 	@Override
@@ -213,6 +227,7 @@ public class QuadViewImpl implements QuadView {
 
 		// copy everything except the header/material
 		System.arraycopy(data, baseIndex + 1, quad.data, quad.baseIndex + 1, len - 1);
+		quad.spriteInterpolationFlags = spriteInterpolationFlags;
 
 		quad.isFaceNormalInvalid = isFaceNormalInvalid;
 
@@ -318,13 +333,51 @@ public class QuadViewImpl implements QuadView {
 		return data[baseIndex + colorOffset(vertexIndex, spriteIndex)];
 	}
 
+	protected final boolean isSpriteNormalized(int spriteIndex) {
+		return (spriteInterpolationFlags & (1 << spriteIndex)) == 0;
+	}
+
+	public final float spriteRawU(int vertexIndex, int spriteIndex) {
+		return Float.intBitsToFloat(data[baseIndex + colorOffset(vertexIndex, spriteIndex) + 1]);
+	}
+
+	public final float spriteRawV(int vertexIndex, int spriteIndex) {
+		return Float.intBitsToFloat(data[baseIndex + colorOffset(vertexIndex, spriteIndex) + 2]);
+	}
+
 	@Override
 	public float spriteU(int vertexIndex, int spriteIndex) {
-		return Float.intBitsToFloat(data[baseIndex + colorOffset(vertexIndex, spriteIndex) + 1]);
+		return isSpriteNormalized(spriteIndex)
+				? SpriteInfoTexture.instance().denormalizeU(spriteId(spriteIndex), spriteRawU(vertexIndex, spriteIndex))
+						: spriteRawU(vertexIndex, spriteIndex);
 	}
 
 	@Override
 	public float spriteV(int vertexIndex, int spriteIndex) {
-		return Float.intBitsToFloat(data[baseIndex + colorOffset(vertexIndex, spriteIndex) + 2]);
+		return isSpriteNormalized(spriteIndex)
+				? SpriteInfoTexture.instance().denormalizeV(spriteId(spriteIndex), spriteRawV(vertexIndex, spriteIndex))
+						: spriteRawV(vertexIndex, spriteIndex);
+	}
+
+	// PERF: store as fixed point value and return as bitwise-rounded short
+	public float spriteNormalizedU(int vertexIndex, int spriteIndex) {
+		return isSpriteNormalized(spriteIndex)
+				? spriteRawU(vertexIndex, spriteIndex) :
+					SpriteInfoTexture.instance().denormalizeU(spriteId(spriteIndex), spriteRawU(vertexIndex, spriteIndex));
+	}
+
+	// PERF: store as fixed point value and return as bitwise-rounded short
+	public float spriteNormalizedV(int vertexIndex, int spriteIndex) {
+		return isSpriteNormalized(spriteIndex)
+				? spriteRawV(vertexIndex, spriteIndex) :
+					SpriteInfoTexture.instance().denormalizeV(spriteId(spriteIndex), spriteRawV(vertexIndex, spriteIndex));
+	}
+
+	protected  int spriteIdOffset(int spriteIndex) {
+		return baseIndex + HEADER_SPRITE_LOW + (spriteIndex >> 1);
+	}
+
+	public int spriteId(int spriteIndex) {
+		return (spriteIndex & 1) == 0 ? data[spriteIdOffset(spriteIndex)] & 0xFFFF : (data[spriteIdOffset(spriteIndex)] >> 16) & 0xFFFF;
 	}
 }

@@ -16,17 +16,17 @@
 
 package grondag.canvas.apiimpl.mesh;
 
-import static grondag.canvas.apiimpl.util.MeshEncodingHelper.BASE_QUAD_STRIDE;
-import static grondag.canvas.apiimpl.util.MeshEncodingHelper.BASE_VERTEX_STRIDE;
-import static grondag.canvas.apiimpl.util.MeshEncodingHelper.EMPTY;
-import static grondag.canvas.apiimpl.util.MeshEncodingHelper.HEADER_BITS;
-import static grondag.canvas.apiimpl.util.MeshEncodingHelper.HEADER_COLOR_INDEX;
-import static grondag.canvas.apiimpl.util.MeshEncodingHelper.HEADER_MATERIAL;
-import static grondag.canvas.apiimpl.util.MeshEncodingHelper.HEADER_STRIDE;
-import static grondag.canvas.apiimpl.util.MeshEncodingHelper.HEADER_TAG;
-import static grondag.canvas.apiimpl.util.MeshEncodingHelper.VERTEX_LIGHTMAP;
-import static grondag.canvas.apiimpl.util.MeshEncodingHelper.VERTEX_NORMAL;
-import static grondag.canvas.apiimpl.util.MeshEncodingHelper.VERTEX_X;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.BASE_QUAD_STRIDE;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.BASE_VERTEX_STRIDE;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.EMPTY;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_BITS;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_COLOR_INDEX;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_MATERIAL;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_STRIDE;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_TAG;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_LIGHTMAP;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_NORMAL;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_X;
 
 import com.google.common.base.Preconditions;
 
@@ -40,10 +40,10 @@ import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.apiimpl.RenderMaterialImpl;
 import grondag.canvas.apiimpl.util.GeometryHelper;
-import grondag.canvas.apiimpl.util.MeshEncodingHelper;
 import grondag.canvas.apiimpl.util.NormalHelper;
 import grondag.canvas.apiimpl.util.TextureHelper;
 import grondag.canvas.light.LightmapHd;
+import grondag.canvas.texture.SpriteInfoTexture;
 
 /**
  * Almost-concrete implementation of a mutable quad. The only missing part is {@link #emit()},
@@ -64,6 +64,34 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 		clear();
 	}
 
+	/**
+	 * Call before emit or mesh incorporation.
+	 */
+	public final void complete() {
+		lightFace(ModelHelper.toFaceIndex(GeometryHelper.lightFace(this)));
+		normalizeSpritesIfNeeded();
+	}
+
+	public void normalizeSpritesIfNeeded() {
+		if (spriteInterpolationFlags != 0) {
+			final SpriteInfoTexture sit = SpriteInfoTexture.instance();
+
+			if ((spriteInterpolationFlags & 1) == 1) {
+				sit.normalize(this, 0);
+			}
+
+			if ((spriteInterpolationFlags & 2) == 2) {
+				sit.normalize(this, 1);
+			}
+
+			if ((spriteInterpolationFlags & 4) == 4) {
+				sit.normalize(this, 2);
+			}
+
+			spriteInterpolationFlags = 0;
+		}
+	}
+
 	public void clear() {
 		System.arraycopy(EMPTY, 0, data, baseIndex, MeshEncodingHelper.MAX_QUAD_STRIDE);
 		isFaceNormalInvalid = true;
@@ -74,6 +102,7 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 		colorIndex(-1);
 		cullFace(null);
 		material(Canvas.MATERIAL_STANDARD);
+		spriteInterpolationFlags = 0;
 	}
 
 	@Override
@@ -138,6 +167,7 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 	@Override
 	public final MutableQuadViewImpl fromVanilla(int[] quadData, int startIndex, boolean isItem) {
 		System.arraycopy(quadData, startIndex, data, baseIndex + HEADER_STRIDE, BASE_QUAD_STRIDE);
+		setSpriteNormalized(0, false);
 		invalidateShape();
 		return this;
 	}
@@ -227,17 +257,63 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 		return this;
 	}
 
-	@Override
-	public MutableQuadViewImpl sprite(int vertexIndex, int spriteIndex, float u, float v) {
+	public final void setSpriteNormalized(int spriteIndex, boolean isNormalized) {
+		final int mask = 1 << spriteIndex;
+
+		if (isNormalized) {
+			spriteInterpolationFlags &= ~mask;
+		} else {
+			spriteInterpolationFlags |= mask;
+		}
+	}
+
+	public MutableQuadViewImpl spriteRaw(int vertexIndex, int spriteIndex, float u, float v) {
 		final int i = baseIndex + colorOffset(vertexIndex, spriteIndex) + 1;
 		data[i] = Float.floatToRawIntBits(u);
 		data[i + 1] = Float.floatToRawIntBits(v);
 		return this;
 	}
 
+	/**
+	 * Must call {@link #spriteId(int, int)} separately.
+	 */
+	public MutableQuadViewImpl spriteNormalized(int vertexIndex, int spriteIndex, float u, float v) {
+		spriteRaw(vertexIndex, spriteIndex, u, v);
+
+		// true for whole quad so only need for one vertex
+		if (vertexIndex == 0) {
+			setSpriteNormalized(spriteIndex, true);
+		} else {
+			assert isSpriteNormalized(spriteIndex);
+		}
+
+		return this;
+	}
+
+	@Override
+	public MutableQuadViewImpl sprite(int vertexIndex, int spriteIndex, float u, float v) {
+		spriteRaw(vertexIndex, spriteIndex, u, v);
+
+		// true for whole quad so only need for one vertex
+		if (vertexIndex == 0) {
+			setSpriteNormalized(spriteIndex, false);
+		} else {
+			assert !isSpriteNormalized(spriteIndex);
+		}
+
+		return this;
+	}
+
 	@Override
 	public MutableQuadViewImpl spriteBake(int spriteIndex, Sprite sprite, int bakeFlags) {
 		TextureHelper.bakeSprite(this, spriteIndex, sprite, bakeFlags);
+		return this;
+	}
+
+	public MutableQuadViewImpl spriteId(int spriteIndex, int spriteId) {
+		final int index  = spriteIdOffset(spriteIndex);
+		final int d = data[index];
+		data[index] = (spriteIndex & 1) == 0 ? (d & 0xFFFF0000) | spriteId : (d & 0xFFFF) | (spriteId << 16);
 		return this;
 	}
 

@@ -29,8 +29,8 @@ import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 
 import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.apiimpl.RenderMaterialImpl.CompositeMaterial;
+import grondag.canvas.apiimpl.mesh.MeshEncodingHelper;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
-import grondag.canvas.apiimpl.util.MeshEncodingHelper;
 import grondag.canvas.buffer.encoding.VertexEncoders;
 
 /**
@@ -133,7 +133,7 @@ public class FallbackConsumer implements Consumer<BakedModel> {
 		editorBuffer[MeshEncodingHelper.HEADER_TAG] = 0;
 
 		System.arraycopy(quad.getVertexData(), 0, editorBuffer, MeshEncodingHelper.HEADER_STRIDE, MeshEncodingHelper.BASE_QUAD_STRIDE);
-
+		editorQuad.setSpriteNormalized(0, false);
 		context.mapMaterials(editorQuad);
 
 		if (!context.transform(editorQuad)) {
@@ -142,6 +142,8 @@ public class FallbackConsumer implements Consumer<BakedModel> {
 
 		// Can't rely on lazy computation in tesselate because needs to happen before offsets are applied
 		editorQuad.geometryFlags();
+
+		editorQuad.normalizeSpritesIfNeeded();
 
 		final CompositeMaterial mat = editorQuad.material().forBlendMode(context.defaultBlendModeIndex());
 		editorQuad.material(mat);
