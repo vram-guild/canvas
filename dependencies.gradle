@@ -67,6 +67,8 @@ dependencies {
 		exclude group :"net.fabricmc.fabric-api"
 	}
 
+  modImplementation ("grondag:jmx-${project.mc_tag}:${project.jmx_version}.+") { transitive = false}
+  
     if (!(gradle.startParameter.taskNames.contains("publish") || gradle.startParameter.taskNames.contains("publishToMavenLocal"))) {
 		include "grondag:frex-${project.mc_tag}:${project.frex_version}.+"
 		include "grondag:fermion-${project.mc_tag}:${project.fermion_version}.+"
@@ -77,6 +79,7 @@ dependencies {
 		include "me.shedaniel.cloth:config-2:${clothconfig_version}"
   		include "grondag:joml-mod:1.0+"
 		include "blue.endless:jankson:1.1.2"
+		include "grondag:jmx-${project.mc_tag}:${project.jmx_version}.+"
  	}
  	
  	modApi ("com.github.Ladysnake:Satin:${satin_version}") {

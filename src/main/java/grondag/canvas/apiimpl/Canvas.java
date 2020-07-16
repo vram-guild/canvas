@@ -43,7 +43,6 @@ import grondag.canvas.shader.MaterialShaderManager;
 import grondag.canvas.terrain.ChunkColorCache;
 import grondag.canvas.terrain.ProtoRenderRegion;
 import grondag.canvas.terrain.TerrainModelSpace;
-import grondag.canvas.texture.SpriteInfoTexture;
 import grondag.frex.api.Renderer;
 import grondag.frex.api.material.MaterialCondition;
 import grondag.frex.api.material.MaterialShader;
@@ -106,7 +105,6 @@ public class Canvas implements Renderer {
 		TerrainModelSpace.reload();
 		ProcessShaders.reload();
 		LitematicaHolder.litematicaReload.run();
-		SpriteInfoTexture.reload();
 	}
 
 	@Override

@@ -15,7 +15,6 @@
 package grondag.canvas.texture;
 
 import java.nio.IntBuffer;
-import java.util.Collection;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.lwjgl.opengl.GL11;
@@ -23,14 +22,11 @@ import org.lwjgl.opengl.GL21;
 import org.lwjgl.system.MemoryUtil;
 
 import net.minecraft.client.texture.Sprite;
-import net.minecraft.client.texture.SpriteAtlasTexture;
 import net.minecraft.util.math.MathHelper;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 
-import grondag.canvas.mixinterface.SpriteAtlasTextureExt;
-import grondag.canvas.mixinterface.SpriteExt;
 import grondag.canvas.varia.CanvasGlHelper;
 
 @Environment(EnvType.CLIENT)
@@ -40,24 +36,17 @@ public final class SpriteInfoImage implements AutoCloseable {
 	private final int sizeBytes;
 	private IntBuffer intBuffer;
 
-	public SpriteInfoImage(SpriteAtlasTexture atlas, ObjectArrayList<Sprite> indexed) {
-		final Collection<Sprite> sprites = ((SpriteAtlasTextureExt) atlas).canvas_sprites().values();
-		indexed.clear();
-
-		size = MathHelper.smallestEncompassingPowerOfTwo(sprites.size());
+	public SpriteInfoImage(ObjectArrayList<Sprite> spriteIndex) {
+		final int spriteCount = spriteIndex.size();
+		size = MathHelper.smallestEncompassingPowerOfTwo(spriteCount);
 		sizeBytes = size * 8;
 		pointer = MemoryUtil.nmemAlloc(sizeBytes);
 		intBuffer = MemoryUtil.memIntBuffer(pointer, sizeBytes / 4);
 
-		int id = 0;
-
-		for (final Sprite s : sprites) {
-			indexed.add(s);
-
-			setPixelUnsignedShort(id, Math.round(s.getMinU() * 0xFFFF), Math.round(s.getMinV() * 0xFFFF),
+		for (int i = 0;  i < spriteCount; ++i) {
+			final Sprite s = spriteIndex.get(i);
+			setPixelUnsignedShort(i, Math.round(s.getMinU() * 0xFFFF), Math.round(s.getMinV() * 0xFFFF),
 					Math.round((s.getMaxU() - s.getMinU()) * 0xFFFF), Math.round((s.getMaxV() - s.getMinV()) * 0xFFFF));
-
-			((SpriteExt) s).canvas_id(id++);
 		}
 	}
 

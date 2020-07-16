@@ -19,7 +19,8 @@
   "environment": "client",
   "entrypoints": {
     "client": [ "grondag.canvas.CanvasMod" ],
-    "modmenu": [ "grondag.canvas.compat.ModMenuHelper" ]
+    "modmenu": [ "grondag.canvas.compat.ModMenuHelper" ],
+    "jmx": [ "grondag.canvas.CanvasJmxInit" ]
   },
   "mixins": [
     "canvas.client.json"
@@ -29,6 +30,9 @@
     "fabric-api-base": "*",
     "fabric-renderer-api-v1": "*",
     "fabric-rendering-data-attachment-v1": "*"
+  },
+  "breaks": {
+  	"sodium": "*"
   },
   "custom": {
     "modmenu:api": false,

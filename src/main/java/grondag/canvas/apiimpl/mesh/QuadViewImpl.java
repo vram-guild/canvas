@@ -337,11 +337,11 @@ public class QuadViewImpl implements QuadView {
 		return (spriteInterpolationFlags & (1 << spriteIndex)) == 0;
 	}
 
-	public final float spriteRawU(int vertexIndex, int spriteIndex) {
+	protected final float spriteRawU(int vertexIndex, int spriteIndex) {
 		return Float.intBitsToFloat(data[baseIndex + colorOffset(vertexIndex, spriteIndex) + 1]);
 	}
 
-	public final float spriteRawV(int vertexIndex, int spriteIndex) {
+	protected final float spriteRawV(int vertexIndex, int spriteIndex) {
 		return Float.intBitsToFloat(data[baseIndex + colorOffset(vertexIndex, spriteIndex) + 2]);
 	}
 

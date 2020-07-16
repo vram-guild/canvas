@@ -43,6 +43,7 @@ import grondag.canvas.apiimpl.util.GeometryHelper;
 import grondag.canvas.apiimpl.util.NormalHelper;
 import grondag.canvas.apiimpl.util.TextureHelper;
 import grondag.canvas.light.LightmapHd;
+import grondag.canvas.mixinterface.SpriteExt;
 import grondag.canvas.texture.SpriteInfoTexture;
 
 /**
@@ -70,26 +71,6 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 	public final void complete() {
 		lightFace(ModelHelper.toFaceIndex(GeometryHelper.lightFace(this)));
 		normalizeSpritesIfNeeded();
-	}
-
-	public void normalizeSpritesIfNeeded() {
-		if (spriteInterpolationFlags != 0) {
-			final SpriteInfoTexture sit = SpriteInfoTexture.instance();
-
-			if ((spriteInterpolationFlags & 1) == 1) {
-				sit.normalize(this, 0);
-			}
-
-			if ((spriteInterpolationFlags & 2) == 2) {
-				sit.normalize(this, 1);
-			}
-
-			if ((spriteInterpolationFlags & 4) == 4) {
-				sit.normalize(this, 2);
-			}
-
-			spriteInterpolationFlags = 0;
-		}
 	}
 
 	public void clear() {
@@ -170,16 +151,6 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 		setSpriteNormalized(0, false);
 		invalidateShape();
 		return this;
-	}
-
-	// TODO: remove?
-	public boolean isFaceAligned() {
-		return (geometryFlags() & GeometryHelper.AXIS_ALIGNED_FLAG) != 0;
-	}
-
-	// TODO: remove?
-	public boolean needsDiffuseShading(int textureIndex) {
-		return textureIndex == 0 && !material().disableDiffuse(textureIndex);
 	}
 
 	@Override
@@ -267,7 +238,7 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 		}
 	}
 
-	public MutableQuadViewImpl spriteRaw(int vertexIndex, int spriteIndex, float u, float v) {
+	protected MutableQuadViewImpl spriteRaw(int vertexIndex, int spriteIndex, float u, float v) {
 		final int i = baseIndex + colorOffset(vertexIndex, spriteIndex) + 1;
 		data[i] = Float.floatToRawIntBits(u);
 		data[i + 1] = Float.floatToRawIntBits(v);
@@ -288,6 +259,40 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 		}
 
 		return this;
+	}
+
+	public void normalizeSpritesIfNeeded() {
+		if (spriteInterpolationFlags != 0) {
+			if ((spriteInterpolationFlags & 1) == 1) {
+				normalizeSprite(0);
+			}
+
+			if ((spriteInterpolationFlags & 2) == 2) {
+				normalizeSprite(1);
+			}
+
+			if ((spriteInterpolationFlags & 4) == 4) {
+				normalizeSprite(2);
+			}
+
+			spriteInterpolationFlags = 0;
+		}
+	}
+
+	private void normalizeSprite(int textureIndex) {
+		@SuppressWarnings("resource")
+		final Sprite sprite = SpriteInfoTexture.instance().spriteFinder.find(this, textureIndex);
+		final int spriteId = ((SpriteExt) sprite).canvas_id();
+		final float u0 = sprite.getMinU();
+		final float v0 = sprite.getMinV();
+		final float uSpanInv = 1f / (sprite.getMaxU() - u0);
+		final float vSpanInv = 1f / (sprite.getMaxV() - v0);
+
+		spriteRaw(0, textureIndex, (spriteRawU(0, textureIndex) - u0) * uSpanInv, (spriteRawV(0, textureIndex) - v0) * vSpanInv);
+		spriteRaw(1, textureIndex, (spriteRawU(1, textureIndex) - u0) * uSpanInv, (spriteRawV(1, textureIndex) - v0) * vSpanInv);
+		spriteRaw(2, textureIndex, (spriteRawU(2, textureIndex) - u0) * uSpanInv, (spriteRawV(2, textureIndex) - v0) * vSpanInv);
+		spriteRaw(3, textureIndex, (spriteRawU(3, textureIndex) - u0) * uSpanInv, (spriteRawV(3, textureIndex) - v0) * vSpanInv);
+		spriteId(textureIndex, spriteId);
 	}
 
 	@Override

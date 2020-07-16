@@ -632,6 +632,8 @@ public class Configurator {
 	//        " This feature is currently work in progress and has no visible effect if enabled."})
 	public static boolean fancyFluids = false;
 
+	public static boolean forceJmxModelLoading = true;
+
 
 	//    @LangKey("config.disable_yield")
 	//    @RequiresMcRestart
