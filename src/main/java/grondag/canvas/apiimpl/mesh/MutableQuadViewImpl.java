@@ -71,7 +71,7 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 	 */
 	public final void complete() {
 		lightFace(ModelHelper.toFaceIndex(GeometryHelper.lightFace(this)));
-		normalizeSpritesIfNeeded();
+		unmapSpritesIfNeeded();
 	}
 
 	public void clear() {
@@ -84,7 +84,7 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 		colorIndex(-1);
 		cullFace(null);
 		material(Canvas.MATERIAL_STANDARD);
-		spriteInterpolationFlags = 0;
+		spriteMappedFlags = 0;
 	}
 
 	@Override
@@ -149,7 +149,7 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 	@Override
 	public final MutableQuadViewImpl fromVanilla(int[] quadData, int startIndex, boolean isItem) {
 		System.arraycopy(quadData, startIndex, data, baseIndex + HEADER_STRIDE, BASE_QUAD_STRIDE);
-		setSpriteNormalized(0, false);
+		setSpriteUnmapped(0, false);
 
 		// Convert sprite data from float to fixed precision
 		int index = baseIndex + colorOffset(0, 0) + 1;
@@ -239,17 +239,17 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 		return this;
 	}
 
-	public final void setSpriteNormalized(int spriteIndex, boolean isNormalized) {
+	public final void setSpriteUnmapped(int spriteIndex, boolean isNormalized) {
 		final int mask = 1 << spriteIndex;
 
 		if (isNormalized) {
-			spriteInterpolationFlags &= ~mask;
+			spriteMappedFlags &= ~mask;
 		} else {
-			spriteInterpolationFlags |= mask;
+			spriteMappedFlags |= mask;
 		}
 	}
 
-	protected MutableQuadViewImpl spriteRaw(int vertexIndex, int spriteIndex, float u, float v) {
+	public MutableQuadViewImpl spriteFloat(int vertexIndex, int spriteIndex, float u, float v) {
 		final int i = baseIndex + colorOffset(vertexIndex, spriteIndex) + 1;
 		data[i] = (int) (u * UV_PRECISE_UNIT_VALUE);
 		data[i + 1] = (int) (v * UV_PRECISE_UNIT_VALUE);
@@ -259,38 +259,33 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 	/**
 	 * Must call {@link #spriteId(int, int)} separately.
 	 */
-	public MutableQuadViewImpl spriteNormalized(int vertexIndex, int spriteIndex, float u, float v) {
-		spriteRaw(vertexIndex, spriteIndex, u, v);
-
-		// true for whole quad so only need for one vertex
-		if (vertexIndex == 0) {
-			setSpriteNormalized(spriteIndex, true);
-		} else {
-			assert isSpriteNormalized(spriteIndex);
-		}
-
+	public MutableQuadViewImpl spritePrecise(int vertexIndex, int spriteIndex, int u, int v) {
+		final int i = baseIndex + colorOffset(vertexIndex, spriteIndex) + 1;
+		data[i] = u;
+		data[i + 1] = v;
+		assert isSpriteUnmapped(spriteIndex);
 		return this;
 	}
 
-	public void normalizeSpritesIfNeeded() {
-		if (spriteInterpolationFlags != 0) {
-			if ((spriteInterpolationFlags & 1) == 1) {
-				normalizeSprite(0);
+	public void unmapSpritesIfNeeded() {
+		if (spriteMappedFlags != 0) {
+			if ((spriteMappedFlags & 1) == 1) {
+				unmapSprite(0);
 			}
 
-			if ((spriteInterpolationFlags & 2) == 2) {
-				normalizeSprite(1);
+			if ((spriteMappedFlags & 2) == 2) {
+				unmapSprite(1);
 			}
 
-			if ((spriteInterpolationFlags & 4) == 4) {
-				normalizeSprite(2);
+			if ((spriteMappedFlags & 4) == 4) {
+				unmapSprite(2);
 			}
 
-			spriteInterpolationFlags = 0;
+			spriteMappedFlags = 0;
 		}
 	}
 
-	private void normalizeSprite(int textureIndex) {
+	private void unmapSprite(int textureIndex) {
 		@SuppressWarnings("resource")
 		final Sprite sprite = SpriteInfoTexture.instance().spriteFinder.find(this, textureIndex);
 		final int spriteId = ((SpriteExt) sprite).canvas_id();
@@ -299,22 +294,22 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 		final float uSpanInv = 1f / (sprite.getMaxU() - u0);
 		final float vSpanInv = 1f / (sprite.getMaxV() - v0);
 
-		spriteRaw(0, textureIndex, (spriteRawU(0, textureIndex) - u0) * uSpanInv, (spriteRawV(0, textureIndex) - v0) * vSpanInv);
-		spriteRaw(1, textureIndex, (spriteRawU(1, textureIndex) - u0) * uSpanInv, (spriteRawV(1, textureIndex) - v0) * vSpanInv);
-		spriteRaw(2, textureIndex, (spriteRawU(2, textureIndex) - u0) * uSpanInv, (spriteRawV(2, textureIndex) - v0) * vSpanInv);
-		spriteRaw(3, textureIndex, (spriteRawU(3, textureIndex) - u0) * uSpanInv, (spriteRawV(3, textureIndex) - v0) * vSpanInv);
+		spriteFloat(0, textureIndex, (spriteFloatU(0, textureIndex) - u0) * uSpanInv, (spriteFloatV(0, textureIndex) - v0) * vSpanInv);
+		spriteFloat(1, textureIndex, (spriteFloatU(1, textureIndex) - u0) * uSpanInv, (spriteFloatV(1, textureIndex) - v0) * vSpanInv);
+		spriteFloat(2, textureIndex, (spriteFloatU(2, textureIndex) - u0) * uSpanInv, (spriteFloatV(2, textureIndex) - v0) * vSpanInv);
+		spriteFloat(3, textureIndex, (spriteFloatU(3, textureIndex) - u0) * uSpanInv, (spriteFloatV(3, textureIndex) - v0) * vSpanInv);
 		spriteId(textureIndex, spriteId);
 	}
 
 	@Override
 	public MutableQuadViewImpl sprite(int vertexIndex, int spriteIndex, float u, float v) {
-		spriteRaw(vertexIndex, spriteIndex, u, v);
+		spriteFloat(vertexIndex, spriteIndex, u, v);
 
 		// true for whole quad so only need for one vertex
 		if (vertexIndex == 0) {
-			setSpriteNormalized(spriteIndex, false);
+			setSpriteUnmapped(spriteIndex, false);
 		} else {
-			assert !isSpriteNormalized(spriteIndex);
+			assert !isSpriteUnmapped(spriteIndex);
 		}
 
 		return this;

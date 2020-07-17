@@ -142,7 +142,7 @@ public class FallbackConsumer implements Consumer<BakedModel> {
 		// Can't rely on lazy computation in tesselate because needs to happen before offsets are applied
 		editorQuad.geometryFlags();
 
-		editorQuad.normalizeSpritesIfNeeded();
+		editorQuad.unmapSpritesIfNeeded();
 
 		final CompositeMaterial mat = editorQuad.material().forBlendMode(context.defaultBlendModeIndex());
 		editorQuad.material(mat);

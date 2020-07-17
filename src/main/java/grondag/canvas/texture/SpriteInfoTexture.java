@@ -99,16 +99,16 @@ public class SpriteInfoTexture implements AutoCloseable {
 		return (spriteId * 0x10000 + 1) / textureSize;
 	}
 
-	public float denormalizeU(int spriteId, float spriteU) {
+	public float mapU(int spriteId, float unmappedU) {
 		final Sprite sprite = spriteIndex.get(spriteId);
 		final float u0 = sprite.getMinU();
-		return u0 + spriteU * (sprite.getMaxU() - u0);
+		return u0 + unmappedU * (sprite.getMaxU() - u0);
 	}
 
-	public float denormalizeV(int spriteId, float spriteV) {
+	public float mapV(int spriteId, float unmappedV) {
 		final Sprite sprite = spriteIndex.get(spriteId);
 		final float v0 = sprite.getMinV();
-		return v0 + spriteV * (sprite.getMaxV() - v0);
+		return v0 + unmappedV * (sprite.getMaxV() - v0);
 	}
 
 	private static SpriteInfoTexture instance;

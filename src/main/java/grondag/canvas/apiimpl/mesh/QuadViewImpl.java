@@ -27,7 +27,9 @@ import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_TAG;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.TEXTURE_OFFSET_MINUS;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.TEXTURE_QUAD_STRIDE;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.TEXTURE_VERTEX_STRIDE;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.UV_EXTRA_PRECISION;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.UV_PRECISE_TO_FLOAT_CONVERSION;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.UV_ROUNDING_BIT;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_COLOR;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_LIGHTMAP;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_NORMAL;
@@ -60,7 +62,7 @@ public class QuadViewImpl implements QuadView {
 	protected boolean isFaceNormalInvalid = true;
 
 	/** flag true when sprite is assumed to be interpolated and need normalization */
-	protected int spriteInterpolationFlags = 0;
+	protected int spriteMappedFlags = 0;
 
 	/** Size and where it comes from will vary in subtypes. But in all cases quad is fully encoded to array. */
 	protected int[] data;
@@ -227,7 +229,7 @@ public class QuadViewImpl implements QuadView {
 
 		// copy everything except the header/material
 		System.arraycopy(data, baseIndex + 1, quad.data, quad.baseIndex + 1, len - 1);
-		quad.spriteInterpolationFlags = spriteInterpolationFlags;
+		quad.spriteMappedFlags = spriteMappedFlags;
 
 		quad.isFaceNormalInvalid = isFaceNormalInvalid;
 
@@ -333,44 +335,54 @@ public class QuadViewImpl implements QuadView {
 		return data[baseIndex + colorOffset(vertexIndex, spriteIndex)];
 	}
 
-	protected final boolean isSpriteNormalized(int spriteIndex) {
-		return (spriteInterpolationFlags & (1 << spriteIndex)) == 0;
+	protected final boolean isSpriteUnmapped(int spriteIndex) {
+		return (spriteMappedFlags & (1 << spriteIndex)) == 0;
 	}
 
-	protected final float spriteRawU(int vertexIndex, int spriteIndex) {
+	protected final float spriteFloatU(int vertexIndex, int spriteIndex) {
 		return data[baseIndex + colorOffset(vertexIndex, spriteIndex) + 1] * UV_PRECISE_TO_FLOAT_CONVERSION;
 	}
 
-	protected final float spriteRawV(int vertexIndex, int spriteIndex) {
+	protected final float spriteFloatV(int vertexIndex, int spriteIndex) {
 		return data[baseIndex + colorOffset(vertexIndex, spriteIndex) + 2] * UV_PRECISE_TO_FLOAT_CONVERSION;
 	}
 
 	@Override
 	public float spriteU(int vertexIndex, int spriteIndex) {
-		return isSpriteNormalized(spriteIndex)
-				? SpriteInfoTexture.instance().denormalizeU(spriteId(spriteIndex), spriteRawU(vertexIndex, spriteIndex))
-						: spriteRawU(vertexIndex, spriteIndex);
+		return isSpriteUnmapped(spriteIndex)
+				? SpriteInfoTexture.instance().mapU(spriteId(spriteIndex), spriteFloatU(vertexIndex, spriteIndex))
+						: spriteFloatU(vertexIndex, spriteIndex);
 	}
 
 	@Override
 	public float spriteV(int vertexIndex, int spriteIndex) {
-		return isSpriteNormalized(spriteIndex)
-				? SpriteInfoTexture.instance().denormalizeV(spriteId(spriteIndex), spriteRawV(vertexIndex, spriteIndex))
-						: spriteRawV(vertexIndex, spriteIndex);
+		return isSpriteUnmapped(spriteIndex)
+				? SpriteInfoTexture.instance().mapV(spriteId(spriteIndex), spriteFloatV(vertexIndex, spriteIndex))
+						: spriteFloatV(vertexIndex, spriteIndex);
 	}
 
-	// PERF: store as fixed point value and return as bitwise-rounded short
-	public float spriteNormalizedU(int vertexIndex, int spriteIndex) {
-		return isSpriteNormalized(spriteIndex)
-				? spriteRawU(vertexIndex, spriteIndex) :
-					SpriteInfoTexture.instance().denormalizeU(spriteId(spriteIndex), spriteRawU(vertexIndex, spriteIndex));
+	/** Fixed precision value suitable for transformations */
+	public int spritePreciseU(int vertexIndex, int spriteIndex) {
+		assert isSpriteUnmapped(spriteIndex);
+		return data[baseIndex + colorOffset(vertexIndex, spriteIndex) + 1];
 	}
 
-	// PERF: store as fixed point value and return as bitwise-rounded short
-	public float spriteNormalizedV(int vertexIndex, int spriteIndex) {
-		return isSpriteNormalized(spriteIndex)
-				? spriteRawV(vertexIndex, spriteIndex) :
-					SpriteInfoTexture.instance().denormalizeV(spriteId(spriteIndex), spriteRawV(vertexIndex, spriteIndex));
+	/** Fixed precision value suitable for transformations */
+	public int spritePreciseV(int vertexIndex, int spriteIndex) {
+		assert isSpriteUnmapped(spriteIndex);
+		return data[baseIndex + colorOffset(vertexIndex, spriteIndex) + 2];
+	}
+
+	/** Rounded, unsigned short value suitable for vertex buffer */
+	public int spriteBufferU(int vertexIndex, int spriteIndex) {
+		assert isSpriteUnmapped(spriteIndex);
+		return (data[baseIndex + colorOffset(vertexIndex, spriteIndex) + 1] + UV_ROUNDING_BIT) >> UV_EXTRA_PRECISION;
+	}
+
+	/** Rounded, unsigned short value suitable for vertex buffer */
+	public int spriteBufferV(int vertexIndex, int spriteIndex) {
+		assert isSpriteUnmapped(spriteIndex);
+		return (data[baseIndex + colorOffset(vertexIndex, spriteIndex) + 2] + UV_ROUNDING_BIT) >> UV_EXTRA_PRECISION;
 	}
 
 	protected  int spriteIdOffset(int spriteIndex) {
