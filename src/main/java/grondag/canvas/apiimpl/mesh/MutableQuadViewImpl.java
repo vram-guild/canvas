@@ -24,6 +24,7 @@ import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_COLOR_INDEX;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_MATERIAL;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_STRIDE;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_TAG;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.UV_PRECISE_UNIT_VALUE;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_LIGHTMAP;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_NORMAL;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_X;
@@ -149,6 +150,16 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 	public final MutableQuadViewImpl fromVanilla(int[] quadData, int startIndex, boolean isItem) {
 		System.arraycopy(quadData, startIndex, data, baseIndex + HEADER_STRIDE, BASE_QUAD_STRIDE);
 		setSpriteNormalized(0, false);
+
+		// Convert sprite data from float to fixed precision
+		int index = baseIndex + colorOffset(0, 0) + 1;
+
+		for (int i = 0; i < 4; ++i)  {
+			data[index] = (int) (Float.intBitsToFloat(data[index]) * UV_PRECISE_UNIT_VALUE);
+			data[index + 1] = (int) (Float.intBitsToFloat(data[index + 1]) * UV_PRECISE_UNIT_VALUE);
+			index += BASE_VERTEX_STRIDE;
+		}
+
 		invalidateShape();
 		return this;
 	}
@@ -240,8 +251,8 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 
 	protected MutableQuadViewImpl spriteRaw(int vertexIndex, int spriteIndex, float u, float v) {
 		final int i = baseIndex + colorOffset(vertexIndex, spriteIndex) + 1;
-		data[i] = Float.floatToRawIntBits(u);
-		data[i + 1] = Float.floatToRawIntBits(v);
+		data[i] = (int) (u * UV_PRECISE_UNIT_VALUE);
+		data[i + 1] = (int) (v * UV_PRECISE_UNIT_VALUE);
 		return this;
 	}
 

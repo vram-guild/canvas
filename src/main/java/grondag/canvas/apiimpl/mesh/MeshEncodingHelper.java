@@ -116,6 +116,12 @@ public abstract class MeshEncodingHelper {
 
 	public static final int DEFAULT_HEADER_BITS;
 
+	public static final int UV_UNIT_VALUE = 0xFFFF;
+	public static final int UV_EXTRA_PRECISION = 8;
+	public static final int UV_PRECISE_UNIT_VALUE = UV_UNIT_VALUE << UV_EXTRA_PRECISION;
+	public static final int UV_ROUNDING_BIT = 1 << (UV_EXTRA_PRECISION - 1);
+	public static final float UV_PRECISE_TO_FLOAT_CONVERSION = 1f / UV_PRECISE_UNIT_VALUE;
+
 	static {
 		int defaultHeader = 0;
 		defaultHeader = cullFace(defaultHeader, ModelHelper.NULL_FACE_ID);

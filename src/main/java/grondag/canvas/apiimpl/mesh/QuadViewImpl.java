@@ -27,6 +27,7 @@ import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_TAG;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.TEXTURE_OFFSET_MINUS;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.TEXTURE_QUAD_STRIDE;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.TEXTURE_VERTEX_STRIDE;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.UV_PRECISE_TO_FLOAT_CONVERSION;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_COLOR;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_LIGHTMAP;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_NORMAL;
@@ -149,14 +150,13 @@ public class QuadViewImpl implements QuadView {
 	public final void toVanilla(int textureIndex, int[] target, int targetIndex, boolean isItem) {
 		System.arraycopy(data, baseIndex + VERTEX_START, target, targetIndex, BASE_QUAD_STRIDE);
 
-		if (isSpriteNormalized(0)) {
-			int index = targetIndex + 4;
+		// Convert sprite data from fixed precision to float
+		int index = targetIndex + 4;
 
-			for (int i = 0; i < 4; ++i)  {
-				target[index] = Float.floatToRawIntBits(spriteU(i, 0));
-				target[index + 1] = Float.floatToRawIntBits(spriteV(i, 0));
-				index += 8;
-			}
+		for (int i = 0; i < 4; ++i)  {
+			target[index] = Float.floatToRawIntBits(spriteU(i, 0));
+			target[index + 1] = Float.floatToRawIntBits(spriteV(i, 0));
+			index += 8;
 		}
 	}
 
@@ -338,11 +338,11 @@ public class QuadViewImpl implements QuadView {
 	}
 
 	protected final float spriteRawU(int vertexIndex, int spriteIndex) {
-		return Float.intBitsToFloat(data[baseIndex + colorOffset(vertexIndex, spriteIndex) + 1]);
+		return data[baseIndex + colorOffset(vertexIndex, spriteIndex) + 1] * UV_PRECISE_TO_FLOAT_CONVERSION;
 	}
 
 	protected final float spriteRawV(int vertexIndex, int spriteIndex) {
-		return Float.intBitsToFloat(data[baseIndex + colorOffset(vertexIndex, spriteIndex) + 2]);
+		return data[baseIndex + colorOffset(vertexIndex, spriteIndex) + 2] * UV_PRECISE_TO_FLOAT_CONVERSION;
 	}
 
 	@Override

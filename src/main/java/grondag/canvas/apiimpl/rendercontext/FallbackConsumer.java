@@ -132,8 +132,7 @@ public class FallbackConsumer implements Consumer<BakedModel> {
 		editorBuffer[MeshEncodingHelper.HEADER_MATERIAL] = defaultMaterial.index();
 		editorBuffer[MeshEncodingHelper.HEADER_TAG] = 0;
 
-		System.arraycopy(quad.getVertexData(), 0, editorBuffer, MeshEncodingHelper.HEADER_STRIDE, MeshEncodingHelper.BASE_QUAD_STRIDE);
-		editorQuad.setSpriteNormalized(0, false);
+		editorQuad.fromVanilla(quad.getVertexData(), 0, false);
 		context.mapMaterials(editorQuad);
 
 		if (!context.transform(editorQuad)) {
