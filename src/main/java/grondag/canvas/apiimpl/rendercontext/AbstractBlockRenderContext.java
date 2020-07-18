@@ -128,8 +128,12 @@ public abstract class AbstractBlockRenderContext<T extends BlockRenderView > ext
 
 		internalSearchPos.set(blockPos);
 
-		// vanilla hack - with flat lighting offset to neighbor for cull faces or when block is a full cube
-		if ((quad.geometryFlags() & GeometryHelper.LIGHT_FACE_FLAG) != 0 || isFullCube()) {
+		// To mirror Vanilla's behavior, if the face has a cull-face, always sample the light value
+		// offset in that direction. See net.minecraft.client.render.block.BlockModelRenderer.renderFlat
+		// for reference.
+		if (quad.cullFace() != null) {
+			internalSearchPos.move(quad.cullFace());
+		} else if ((quad.geometryFlags() & GeometryHelper.LIGHT_FACE_FLAG) != 0 || isFullCube()) {
 			internalSearchPos.move(quad.lightFace());
 		}
 
