@@ -1,18 +1,32 @@
 #include canvas:shaders/api/vertex.glsl
 #include canvas:shaders/api/world.glsl
+#include canvas:shaders/lib/math.glsl
+#include frex:shaders/lib/noise/noise4d.glsl
 
 /******************************************************
-  canvas:shaders/material/default.vert
+  canvas:shaders/material/leaves.vert
 ******************************************************/
 
-#define hash(p) fract(mod(p.x, 1.0) * 73758.23f - p.y)
+#define NOISE_SCALE 0.125
 
 void cv_startVertex(inout cv_VertexData data) {
-	float rand_ang = hash(data.vertex.xz);
-	float time = cv_renderSeconds();
-	float rainStrength = 0.5;
-	float maxStrength = 1.0;
-	float reset = cos(rand_ang * 10.0 + time * 0.1);
-	reset = max( reset * reset, max(rainStrength, 0.1));
-	data.vertex.x += (sin(rand_ang * 10.0 + time) * 0.2) * (reset * maxStrength) * (1.0 - data.spriteUV.y);
+	float rain = cv_rainGradient();
+	float globalWind = 0.2 + rain * 0.2;
+
+	// wind gets stronger higher in the world
+	globalWind *= (0.5 + smoothstep(64.0, 255.0, data.vertex.y));
+
+	float t = cv_renderSeconds() * 0.05;
+
+	// NB: with batched matrix the precision seems to be off enough at
+	// batch region boundaries to cause discontinuities if we don't
+	// multiply the components before adding.
+	// Doesn't seem like it should be that inaccurate.
+	vec3 modelOrigin = cv_modelOriginWorldPos()* NOISE_SCALE;
+
+	vec3 pos = data.vertex.xyz * NOISE_SCALE + modelOrigin;
+	float wind = snoise(vec4(pos, t)) * globalWind;
+
+	data.vertex.x += (cos(t) * cos(t * 3) * cos(t * 5) * cos(t * 7) + sin(t * 25)) * wind;
+	data.vertex.z += sin(t * 19) * wind;
 }

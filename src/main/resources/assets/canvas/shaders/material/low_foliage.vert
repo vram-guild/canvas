@@ -1,18 +1,20 @@
 #include canvas:shaders/api/vertex.glsl
 #include canvas:shaders/api/world.glsl
+#include canvas:shaders/lib/math.glsl
+#include frex:shaders/lib/noise/noise3d.glsl
 
 /******************************************************
-  canvas:shaders/material/default.vert
+  canvas:shaders/material/low_foliage.vert
 ******************************************************/
 
-#define hash(p) fract(mod(p.x, 1.0) * 73758.23f - p.y)
-
 void cv_startVertex(inout cv_VertexData data) {
-	float rand_ang = hash(data.vertex.xz);
-	float time = cv_renderSeconds();
-	float rainStrength = 0.5;
-	float maxStrength = 1.0;
-	float reset = cos(rand_ang * 10.0 + time * 0.1);
-	reset = max( reset * reset, max(rainStrength, 0.1));
-	data.vertex.x += (sin(rand_ang * 10.0 + time) * 0.2) * (reset * maxStrength) * (1.0 - data.spriteUV.y);
+	float rain = cv_rainGradient();
+	float globalWind = 0.2 + rain * 0.2;
+	float t = cv_renderSeconds() * 0.05;
+	vec3 modelOrigin = cv_modelOriginWorldPos();
+
+	float wind = snoise(vec3((data.vertex.xz + modelOrigin.xz) * 0.0625, t)) * (1.0 - data.spriteUV.y) * globalWind;
+
+	data.vertex.x += (cos(t) * cos(t * 3) * cos(t * 5) * cos(t * 7) + sin(t * 25)) * wind;
+	data.vertex.z += sin(t * 19) * wind;
 }
