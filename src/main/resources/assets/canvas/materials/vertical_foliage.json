@@ -1,9 +1,0 @@
-{
-	"layers": [
-		{
-			"vertexSource": "canvas:shaders/material/vertical_foliage.vert",
-			"fragmentSource": "canvas:shaders/material/default.frag",
-			"disableAo": true
-		}
-	]
-}

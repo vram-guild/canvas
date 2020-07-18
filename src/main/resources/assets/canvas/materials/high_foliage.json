@@ -3,7 +3,8 @@
 		{
 			"vertexSource": "canvas:shaders/material/high_foliage.vert",
 			"fragmentSource": "canvas:shaders/material/default.frag",
-			"disableAo": true
+			"disableAo": true,
+			"disableDiffuse": true
 		}
 	]
 }

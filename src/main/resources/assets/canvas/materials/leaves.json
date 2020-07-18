@@ -3,7 +3,8 @@
 		{
 			"vertexSource": "canvas:shaders/material/leaves.vert",
 			"fragmentSource": "canvas:shaders/material/default.frag",
-			"disableAo": true
+			"disableAo": false,
+			"disableDiffuse": false
 		}
 	]
 }
