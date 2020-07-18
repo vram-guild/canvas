@@ -11,6 +11,7 @@ import net.minecraft.client.render.RenderLayers;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.BlockRenderView;
 
+import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
@@ -131,7 +132,7 @@ public abstract class AbstractBlockRenderContext<T extends BlockRenderView > ext
 		// To mirror Vanilla's behavior, if the face has a cull-face, always sample the light value
 		// offset in that direction. See net.minecraft.client.render.block.BlockModelRenderer.renderFlat
 		// for reference.
-		if (quad.cullFace() != null) {
+		if (quad.cullFaceId() != ModelHelper.NULL_FACE_ID) {
 			internalSearchPos.move(quad.cullFace());
 		} else if ((quad.geometryFlags() & GeometryHelper.LIGHT_FACE_FLAG) != 0 || isFullCube()) {
 			internalSearchPos.move(quad.lightFace());
