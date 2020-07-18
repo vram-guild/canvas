@@ -1,0 +1,14 @@
+{
+	"defaultMap": {
+		"spriteMap": [
+			{
+				"sprite": "minecraft:block/lilac_bottom",
+				"material": "canvas:low_foliage"
+			},
+			{
+				"sprite": "minecraft:block/lilac_top",
+				"material": "canvas:high_foliage"
+			}
+		]
+	}
+}

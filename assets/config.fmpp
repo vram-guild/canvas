@@ -1,0 +1,7 @@
+recommendedDefaults: 0.9.16
+sourceRoot: src
+outputRoot: ../src/main/resources
+data: {
+    block_materials: csv(../data/block_materials.csv, {separator:'|', trimCells:true})
+    sprite_materials: csv(../data/sprite_materials.csv, {separator:'|', trimCells:true})
+}

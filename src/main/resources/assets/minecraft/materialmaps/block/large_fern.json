@@ -1,0 +1,14 @@
+{
+	"defaultMap": {
+		"spriteMap": [
+			{
+				"sprite": "minecraft:block/large_fern_bottom",
+				"material": "canvas:low_foliage"
+			},
+			{
+				"sprite": "minecraft:block/large_fern_top",
+				"material": "canvas:high_foliage"
+			}
+		]
+	}
+}
