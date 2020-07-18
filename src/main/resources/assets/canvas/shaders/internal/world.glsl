@@ -17,6 +17,7 @@
 #define _CV_HELD_LIGHT_GREEN 12
 #define _CV_HELD_LIGHT_BLUE 13
 #define _CV_HELD_LIGHT_INTENSITY 14
+#define _CV_RAIN_GRADIENT 15
 
 #define _CV_FLAG0_NIGHT_VISTION_ACTIVE  0
 #define _CV_FLAG0_HAS_SKYLIGHT			1
@@ -27,3 +28,4 @@
 #define _CV_FLAG0_IS_THUNDERING 		6
 
 uniform float[16] _cvu_world;
+uniform vec3 _cvu_modelOrigin;

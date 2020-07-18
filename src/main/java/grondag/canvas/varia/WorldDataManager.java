@@ -26,7 +26,7 @@ public class WorldDataManager {
 	private static final int HELD_LIGHT_GREEN = 12;
 	private static final int HELD_LIGHT_BLUE = 13;
 	private static final int HELD_LIGHT_INTENSITY = 14;
-
+	private static final int RAIN_STRENGTH = 15;
 
 	// TODO: add player eye position (for 3rd-person views)
 	// TODO: add model origin to allow converting to world coordinates - or confirm view coordinates do that
@@ -78,11 +78,14 @@ public class WorldDataManager {
 				flags  |= FLAG0_IS_RAINING;
 			}
 
+
 			if (world.isThundering()) {
 				flags |= FLAG0_IS_THUNDERING;
 			}
 
 			DATA[FLAGS_0] = flags;
+
+			DATA[RAIN_STRENGTH] = world.getRainGradient(tickDelta);
 
 			// TODO: use item tags
 			if (player != null && player.isHolding(Items.TORCH)) {

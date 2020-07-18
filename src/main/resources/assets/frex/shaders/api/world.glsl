@@ -118,3 +118,11 @@ float cv_rainGradient() {
 bool cv_isThundering() {
 	return cv_bitValue(_cvu_world[_CV_FLAGS_0], _CV_FLAG0_IS_THUNDERING) == 1.0;
 }
+
+/*
+ * World coordinates for model space origin in the current invocation.
+ * Add this to vertex position to get world position.
+ */
+vec3 cv_modelOriginWorldPos() {
+	return _cvu_modelOrigin;
+}

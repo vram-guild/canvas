@@ -65,6 +65,9 @@ public class GlProgram {
 	public final ShaderPass pass;
 	public final MaterialVertexFormat pipelineVertexFormat;
 
+	// UGLY: special casing, public
+	public Uniform3fImpl modelOrigin;
+
 	private final ObjectArrayList<UniformImpl<?>> uniforms = new ObjectArrayList<>();
 	private final ObjectArrayList<UniformImpl<?>> renderTickUpdates = new ObjectArrayList<>();
 	private final ObjectArrayList<UniformImpl<?>> gameTickUpdates = new ObjectArrayList<>();
@@ -73,6 +76,12 @@ public class GlProgram {
 
 	public int programId() {
 		return progID;
+	}
+
+	public void actvateWithiModelOrigin(int x, int y, int z) {
+		activate();
+		modelOrigin.set(x, y, z);
+		modelOrigin.upload();
 	}
 
 	public abstract class UniformImpl<T extends Uniform> {

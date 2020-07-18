@@ -27,6 +27,7 @@ import net.minecraft.util.Identifier;
 
 import grondag.canvas.material.MaterialVertexFormat;
 import grondag.canvas.shader.GlProgram;
+import grondag.canvas.shader.GlProgram.Uniform3fImpl;
 import grondag.canvas.shader.GlShader;
 import grondag.canvas.shader.GlShaderManager;
 import grondag.canvas.shader.ShaderContext;
@@ -69,6 +70,7 @@ public final class MaterialShaderImpl implements MaterialShader {
 			final GlShader fs = GlShaderManager.INSTANCE.getOrCreateFragmentShader(fragmentShader, context);
 			final GlProgram newProgram = new GlProgram(vs, fs, format, context);
 			uniforms.forEach(u -> u.accept(newProgram));
+			newProgram.modelOrigin = (Uniform3fImpl) newProgram.uniform3f("_cvu_modelOrigin", UniformRefreshFrequency.ON_LOAD, u -> u.set(0, 0, 0));
 			newProgram.load();
 			programMap.put(key, newProgram);
 			programList.add(newProgram);
@@ -78,8 +80,8 @@ public final class MaterialShaderImpl implements MaterialShader {
 		}
 	}
 
-	public void activate(ShaderContext context, MaterialVertexFormat format) {
-		getOrCreate(context, format).activate();
+	public void activate(ShaderContext context, MaterialVertexFormat format, int x, int y, int z) {
+		getOrCreate(context, format).actvateWithiModelOrigin(x, y, z);
 	}
 
 	public void reload() {

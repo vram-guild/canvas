@@ -78,6 +78,8 @@ public class TerrainLayerRenderer {
 				if (delegates != null) {
 					final BlockPos modelOrigin = builtRegion.getOrigin();
 
+					int ox = 0, oy = 0, oz = 0;
+
 					if (Configurator.batchedChunkRender) {
 						final long newRelativeOrigin = TerrainModelSpace.getPackedOrigin(modelOrigin);
 
@@ -89,18 +91,24 @@ public class TerrainLayerRenderer {
 							}
 
 							lastRelativeOrigin = newRelativeOrigin;
+
+							ox = TerrainModelSpace.renderCubeOrigin(modelOrigin.getX());
+							oy = TerrainModelSpace.renderCubeOrigin(modelOrigin.getY());
+							oz = TerrainModelSpace.renderCubeOrigin(modelOrigin.getZ());
+
 							matrixStack.push();
-							matrixStack.translate(
-									TerrainModelSpace.renderCubeOrigin(modelOrigin.getX()) - x,
-									TerrainModelSpace.renderCubeOrigin(modelOrigin.getY()) - y,
-									TerrainModelSpace.renderCubeOrigin(modelOrigin.getZ()) - z);
+							matrixStack.translate(ox - x, oy - y, oz - z);
 							RenderSystem.pushMatrix();
 							RenderSystem.loadIdentity();
 							RenderSystem.multMatrix(matrixStack.peek().getModel());
 						}
 					} else {
+						ox = modelOrigin.getX();
+						oy = modelOrigin.getY();
+						oz = modelOrigin.getZ();
+
 						matrixStack.push();
-						matrixStack.translate(modelOrigin.getX() - x, modelOrigin.getY() - y, modelOrigin.getZ() - z);
+						matrixStack.translate(ox - x, oy - y, oz - z);
 						RenderSystem.pushMatrix();
 						RenderSystem.loadIdentity();
 						RenderSystem.multMatrix(matrixStack.peek().getModel());
@@ -115,7 +123,7 @@ public class TerrainLayerRenderer {
 						final MaterialConditionImpl condition = d.materialState().condition;
 
 						if(!condition.affectBlocks || condition.compute(frameIndex)) {
-							d.materialState().shader.activate(shaderContext, format);
+							d.materialState().shader.activate(shaderContext, format, ox, oy, oz);
 							d.draw();
 						}
 					}
