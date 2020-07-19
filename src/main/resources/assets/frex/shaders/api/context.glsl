@@ -32,3 +32,6 @@
 
 // When set to false, lightmaps and other vanilla-specific data may not be valid or present
 #define VANILLA_LIGHTING TRUE
+
+// present in world context only when feature is enabled - if not present then foliage shaders should NOOP
+#define ANIMATED_FOLIAGE

@@ -253,6 +253,10 @@ public class GlShader {
 			result = StringUtils.replace(result, "#define CONTEXT_IS_GUI FALSE", "#define CONTEXT_IS_GUI TRUE");
 		}
 
+		if(!context.materialContext.isWorld || !Configurator.wavyGrass) {
+			result = StringUtils.replace(result, "#define ANIMATED_FOLIAGE", "//#define ANIMATED_FOLIAGE");
+		}
+
 		if(Configurator.fogMode != FogMode.VANILLA && !context.materialContext.isGui) {
 			result = StringUtils.replace(result, "#define _CV_FOG_CONFIG _CV_FOG_CONFIG_VANILLA",
 					"#define _CV_FOG_CONFIG _CV_FOG_CONFIG_" + Configurator.fogMode.name());

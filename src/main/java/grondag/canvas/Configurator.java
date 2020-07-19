@@ -53,13 +53,16 @@ public class Configurator {
 		boolean blendFluidColors = true;
 
 		@Comment("Glow effect around light sources. Work-in-Progress")
-		public boolean enableBloom = false;
+		public boolean enableBloom = true;
 
 		@Comment("Intensity of glow effect around light sources. 0.0 to 0.25, default is 0.09.")
 		public float bloomIntensity = 0.06f;
 
 		@Comment("Size of bloom effect around light sources. 0.0 to 2.0, default is 0.5.")
 		public float bloomScale = 0.5f;
+
+		@Comment("Animated foliage")
+		public boolean wavyGrass = true;
 
 		@Comment("Truly smoothh lighting. Some impact to memory use, chunk loading and frame rate.")
 		boolean hdLightmaps = false;
@@ -154,6 +157,7 @@ public class Configurator {
 	public static boolean enableBloom = DEFAULTS.enableBloom;
 	public static float bloomIntensity = DEFAULTS.bloomIntensity;
 	public static float bloomScale = DEFAULTS.bloomScale;
+	public static boolean wavyGrass = DEFAULTS.wavyGrass;
 
 	private static boolean hdLightmaps = DEFAULTS.hdLightmaps;
 	public static boolean lightmapNoise = DEFAULTS.lightmapNoise;
@@ -223,6 +227,7 @@ public class Configurator {
 		enableBloom = config.enableBloom;
 		bloomIntensity = config.bloomIntensity;
 		bloomScale = config.bloomScale;
+		wavyGrass = config.wavyGrass;
 
 		shaderDebug = config.shaderDebug;
 		maxLightmapDelayFrames = config.maxLightmapDelayFrames;
@@ -264,6 +269,7 @@ public class Configurator {
 		config.enableBloom = enableBloom;
 		config.bloomIntensity = bloomIntensity;
 		config.bloomScale = bloomScale;
+		config.wavyGrass = wavyGrass;
 
 		config.shaderDebug = shaderDebug;
 		config.maxLightmapDelayFrames = maxLightmapDelayFrames;
@@ -413,6 +419,13 @@ public class Configurator {
 				.setMin(0)
 				.setTooltip(parse("config.canvas.help.bloom_scale"))
 				.setSaveConsumer(b -> bloomScale = b / 100f)
+				.build());
+
+		features.addEntry(ENTRY_BUILDER
+				.startBooleanToggle(new TranslatableText("config.canvas.value.wavy_grass"), wavyGrass)
+				.setDefaultValue(DEFAULTS.wavyGrass)
+				.setTooltip(parse("config.canvas.help.wavyGrass"))
+				.setSaveConsumer(b -> {reload |= wavyGrass != b; wavyGrass = b;})
 				.build());
 
 		// LIGHTING
