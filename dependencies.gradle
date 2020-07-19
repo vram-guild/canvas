@@ -40,7 +40,7 @@ dependencies {
 	modImplementation ("grondag:fermion-orientation-${project.mc_tag}:${project.fermion_orientation_version}.+") { transitive = false }
     modImplementation ("grondag:special-circumstances-${project.mc_tag}:${project.special_circumstances_version}.+") { transitive = false }
 
-	modImplementation ("grondag:joml-mod:1.0+") {
+	modImplementation ("grondag:joml-mod:1.4.20") {
 		exclude group :"grondag"
 	    exclude group :"net.fabricmc"
 	}
@@ -77,7 +77,7 @@ dependencies {
 	    include "grondag:special-circumstances-${project.mc_tag}:${project.special_circumstances_version}.+"
 		include "io.github.cottonmc:Jankson-Fabric:${jankson_version}"
 		include "me.shedaniel.cloth:config-2:${clothconfig_version}"
-  		include "grondag:joml-mod:1.0+"
+  		include "grondag:joml-mod:1.4.20"
 		include "blue.endless:jankson:1.1.2"
 		include "grondag:jmx-${project.mc_tag}:${project.jmx_version}.+"
  	}
