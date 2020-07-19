@@ -1,7 +1,7 @@
 #include canvas:shaders/internal/world.glsl
 
 /******************************************************
-  canvas:shaders/api/player.glsl
+  frex:shaders/api/player.glsl
 
   Utilities for querying player information.
 ******************************************************/
@@ -10,7 +10,7 @@
  * Magnitude of effects that affect vision: night vision, being in fluid, etc.
  * Experimental, likely to change.
  */
-float cv_effectModifier() {
+float frx_effectModifier() {
     return _cvu_world[_CV_WORLD_EFFECT_MODIFIER];
 }
 
@@ -23,14 +23,14 @@ float cv_effectModifier() {
  *
  *  If the player is not holding a light source, all values are zero.
  */
-vec4 cv_heldLight() {
+vec4 frx_heldLight() {
 	return vec4(_cvu_world[_CV_HELD_LIGHT_RED], _cvu_world[_CV_HELD_LIGHT_GREEN], _cvu_world[_CV_HELD_LIGHT_BLUE],  _cvu_world[_CV_HELD_LIGHT_INTENSITY]);
 }
 
 /*
  * True when player has the night vision effect.
  */
-bool cv_playerHasNightVision() {
-	return cv_bitValue(_cvu_world[_CV_FLAGS_0], _CV_FLAG0_NIGHT_VISTION_ACTIVE) == 1;
+bool frx_playerHasNightVision() {
+	return frx_bitValue(_cvu_world[_CV_FLAGS_0], _CV_FLAG0_NIGHT_VISTION_ACTIVE) == 1;
 }
 

@@ -20,14 +20,14 @@
  * https://thebookofshaders.com/10/
  * https://stackoverflow.com/questions/12964279/whats-the-origin-of-this-glsl-rand-one-liner
  */
-float cv_noise2d(vec2 st) {
+float frx_noise2d(vec2 st) {
     return fract(sin(dot(st.xy,vec2(12.9898,78.233)))*43758.5453123);
 }
 
 /**
  *  Ken Perlin's improved smoothstep
  */
-float cv_smootherstep(float edge0, float edge1, float x) {
+float frx_smootherstep(float edge0, float edge1, float x) {
     // Scale, and clamp to 0..1 range
     x = clamp((x - edge0) / (edge1 - edge0), 0.0, 1.0);
     // Evaluate polynomial
@@ -37,7 +37,7 @@ float cv_smootherstep(float edge0, float edge1, float x) {
 /**
  *  Ken Perlin's improved smoothstep
  */
-vec3 cv_smootherstep(float edge0, float edge1, vec3 value) {
+vec3 frx_smootherstep(float edge0, float edge1, vec3 value) {
     // Scale, and clamp to 0..1 range
     vec3 r = clamp((value - edge0) / (edge1 - edge0), 0.0, 1.0);
     // Evaluate polynomial
@@ -51,15 +51,15 @@ vec3 cv_smootherstep(float edge0, float edge1, vec3 value) {
  * Based in part on 2D Noise by Morgan McGuire @morgan3d
  * https://www.shadertoy.com/view/4dS3Wd
  */
-float cv_noise2dt (in vec2 st, float t) {
+float frx_noise2dt (in vec2 st, float t) {
     vec2 i = floor(st);
     vec2 f = fract(st);
 
     // Compute values for four corners
-    float a = cv_noise2d(i);
-    float b = cv_noise2d(i + vec2(1.0, 0.0));
-    float c = cv_noise2d(i + vec2(0.0, 1.0));
-    float d = cv_noise2d(i + vec2(1.0, 1.0));
+    float a = frx_noise2d(i);
+    float b = frx_noise2d(i + vec2(1.0, 0.0));
+    float c = frx_noise2d(i + vec2(0.0, 1.0));
+    float d = frx_noise2d(i + vec2(1.0, 1.0));
 
     a =  0.5 + sin((0.5 + a) * t) * 0.5;
     b =  0.5 + sin((0.5 + b) * t) * 0.5;
@@ -75,6 +75,6 @@ float cv_noise2dt (in vec2 st, float t) {
 /*
  * Converts RGB to grayscale.
  */
-float cv_luminance(vec3 color) {
+float frx_luminance(vec3 color) {
     return dot(color.rgb, vec3(0.299, 0.587, 0.114));
 }

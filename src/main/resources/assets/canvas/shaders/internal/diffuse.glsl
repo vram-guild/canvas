@@ -1,4 +1,4 @@
-#include canvas:shaders/api/context.glsl
+#include frex:shaders/api/context.glsl
 
 /******************************************************
   canvas:shaders/internal/diffuse.glsl

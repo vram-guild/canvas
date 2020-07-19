@@ -1,7 +1,7 @@
 #include canvas:shaders/internal/world.glsl
 
 /******************************************************
-  canvas:shaders/api/world.glsl
+  frex:shaders/api/world.glsl
 
   Utilities for querying world information.
 ******************************************************/
@@ -12,7 +12,7 @@
  *
  * Use this for effects that need a smoothly increasing counter.
  */
-float cv_renderSeconds() {
+float frx_renderSeconds() {
 	return _cvu_world[_CV_RENDER_SECONDS];
 }
 
@@ -24,7 +24,7 @@ float cv_renderSeconds() {
  * Use this for effects that depend somehow on the season or age of the world.
  * Received from server - may not be smoothly incremented.
  */
-float cv_worldDay() {
+float frx_worldDay() {
 	return _cvu_world[_CV_WORLD_DAYS];
 }
 
@@ -35,7 +35,7 @@ float cv_worldDay() {
  * Use this for effects that depend on the time of day.
  * Received from server - may not be smoothly incremented.
  */
-float cv_worldTime() {
+float frx_worldTime() {
 	return _cvu_world[_CV_WORLD_TIME];
 }
 
@@ -45,7 +45,7 @@ float cv_worldTime() {
  *
  * Experimental, likely to change.
  */
-float cv_ambientIntensity() {
+float frx_ambientIntensity() {
 	return _cvu_world[_CV_AMBIENT_INTENSITY];
 }
 
@@ -59,70 +59,70 @@ float cv_ambientIntensity() {
  * Note that Canvas normally handles this automatically.
  * It is exposed for exotic use cases.
  */
-vec4 cv_emissiveColor() {
+vec4 frx_emissiveColor() {
 	return vec4(_cvu_world[_CV_EMISSIVE_COLOR_RED], _cvu_world[_CV_EMISSIVE_COLOR_GREEN], _cvu_world[_CV_EMISSIVE_COLOR_BLUE], 1.0);
 }
 
 /*
  * Size of the moon the currently rendering world. Values are 0 to 1.
  */
-float cv_moonSize() {
+float frx_moonSize() {
 	return _cvu_world[_CV_MOON_SIZE];
 }
 
 /*
  * True when the currently rendering world has a sky with a light source.
  */
-bool cv_worldHasSkylight() {
-	return cv_bitValue(_cvu_world[_CV_FLAGS_0], _CV_FLAG0_HAS_SKYLIGHT) == 1.0;
+bool frx_worldHasSkylight() {
+	return frx_bitValue(_cvu_world[_CV_FLAGS_0], _CV_FLAG0_HAS_SKYLIGHT) == 1.0;
 }
 
 /*
  * True when the currently rendering world is the Overworld.
  */
-bool cv_isWorldTheOverworld() {
-	return cv_bitValue(_cvu_world[_CV_FLAGS_0], _CV_FLAG0_IS_OVERWORLD) == 1.0;
+bool frx_isWorldTheOverworld() {
+	return frx_bitValue(_cvu_world[_CV_FLAGS_0], _CV_FLAG0_IS_OVERWORLD) == 1.0;
 }
 
 /*
  * True when the currently rendering world is the Nether.
  */
-bool cv_isWorldTheNether() {
-	return cv_bitValue(_cvu_world[_CV_FLAGS_0], _CV_FLAG0_IS_NETHER) == 1.0;
+bool frx_isWorldTheNether() {
+	return frx_bitValue(_cvu_world[_CV_FLAGS_0], _CV_FLAG0_IS_NETHER) == 1.0;
 }
 
 /*
  * True when the currently rendering world is the End.
  */
-bool cv_isWorldTheEnd() {
-	return cv_bitValue(_cvu_world[_CV_FLAGS_0], _CV_FLAG0_IS_END) == 1.0;
+bool frx_isWorldTheEnd() {
+	return frx_bitValue(_cvu_world[_CV_FLAGS_0], _CV_FLAG0_IS_END) == 1.0;
 }
 
 /*
  * True when world.isRaining() is true for the currently rendering world.
  */
-bool cv_isRaining() {
-	return cv_bitValue(_cvu_world[_CV_FLAGS_0], _CV_FLAG0_IS_RAINING) == 1.0;
+bool frx_isRaining() {
+	return frx_bitValue(_cvu_world[_CV_FLAGS_0], _CV_FLAG0_IS_RAINING) == 1.0;
 }
 
 /*
  * MC rain gradient. Values 0 to 1.
  */
-float cv_rainGradient() {
+float frx_rainGradient() {
 	return _cvu_world[_CV_RAIN_GRADIENT];
 }
 
 /*
  * True when world.isThundering() is true for the currently rendering world.
  */
-bool cv_isThundering() {
-	return cv_bitValue(_cvu_world[_CV_FLAGS_0], _CV_FLAG0_IS_THUNDERING) == 1.0;
+bool frx_isThundering() {
+	return frx_bitValue(_cvu_world[_CV_FLAGS_0], _CV_FLAG0_IS_THUNDERING) == 1.0;
 }
 
 /*
  * World coordinates for model space origin in the current invocation.
  * Add this to vertex position to get world position.
  */
-vec3 cv_modelOriginWorldPos() {
+vec3 frx_modelOriginWorldPos() {
 	return _cvu_modelOrigin;
 }

@@ -1,15 +1,15 @@
 /******************************************************
-  canvas:shaders/api/vertex.glsl
+  frex:shaders/api/vertex.glsl
 ******************************************************/
 
 /*
  * Usage in API:
- * 	  void cv_startVertex(inout cv_VertexData data)
- * 	  void cv_endVertex(inout cv_VertexData data)
+ * 	  void frx_startVertex(inout frx_VertexData data)
+ * 	  void frx_endVertex(inout frx_VertexData data)
  *
- * Passed to cv_startFragment at start of fragment shader processing
+ * Passed to frx_startFragment at start of fragment shader processing
  * before any transformations are performed and passed
- * to cv_endVertex after all transformations are complete.
+ * to frx_endVertex after all transformations are complete.
  *
  * Note that any changes made during cv_endVertex WILL affect
  * renderer output but changes here are generally tricky
@@ -18,7 +18,7 @@
  *
  * The exception to the above is vertex. See notes below.
  */
-struct cv_VertexData {
+struct frx_VertexData {
 	/*
 	 * Vertex position. Transformation during cv_startVertex
 	 * is the primary means for achieving animation effects.

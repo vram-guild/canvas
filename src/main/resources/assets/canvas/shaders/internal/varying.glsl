@@ -1,6 +1,6 @@
 
-#include canvas:shaders/api/context.glsl
-#include canvas:shaders/lib/constant.glsl
+#include frex:shaders/api/context.glsl
+#include frex:shaders/lib/constant.glsl
 #include canvas:shaders/internal/context.glsl
 
 /******************************************************

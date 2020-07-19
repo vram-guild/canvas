@@ -1,9 +1,9 @@
-#include canvas:shaders/api/fragment.glsl
+#include frex:shaders/api/fragment.glsl
 
 /******************************************************
   canvas:shaders/material/default.frag
 ******************************************************/
 
-void cv_startFragment(inout cv_FragmentData fragData) {
+void frx_startFragment(inout frx_FragmentData fragData) {
 	// NOOP
 }

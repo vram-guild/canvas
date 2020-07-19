@@ -324,8 +324,8 @@ public class GlShader {
 				String result = CharStreams.toString(reader);
 
 				if (shaderType == GL21.GL_VERTEX_SHADER && shaderSource == this.shaderSource) {
-					hasVertexStart = result.contains("cv_startVertex");
-					hasVertexEnd = result.contains("cv_endVertex");
+					hasVertexStart = result.contains("frx_startVertex");
+					hasVertexEnd = result.contains("frx_endVertex");
 				}
 
 				final Matcher m = PATTERN.matcher(result);

@@ -6,7 +6,7 @@
 
 // Temporally stable box filter, as described by Jorge Jiminez, 2014
 // http://www.iryoku.com/next-generation-post-processing-in-call-of-duty-advanced-warfare
-vec4 cv_sample13(sampler2D tex, vec2 uv, vec2 distance, int lod) {
+vec4 frx_sample13(sampler2D tex, vec2 uv, vec2 distance, int lod) {
     vec4 a = texture2DLod(tex, uv + distance * vec2(-1.0, -1.0), lod);
     vec4 b = texture2DLod(tex, uv + distance * vec2( 0.0, -1.0), lod);
     vec4 c = texture2DLod(tex, uv + distance * vec2( 1.0, -1.0), lod);
@@ -33,7 +33,7 @@ vec4 cv_sample13(sampler2D tex, vec2 uv, vec2 distance, int lod) {
 }
 
 // non-LOD version of above
-vec4 cv_sample13(sampler2D tex, vec2 uv, vec2 distance) {
+vec4 frx_sample13(sampler2D tex, vec2 uv, vec2 distance) {
     vec4 a = texture2D(tex, uv + distance * vec2(-1.0, -1.0));
     vec4 b = texture2D(tex, uv + distance * vec2( 0.0, -1.0));
     vec4 c = texture2D(tex, uv + distance * vec2( 1.0, -1.0));
@@ -61,7 +61,7 @@ vec4 cv_sample13(sampler2D tex, vec2 uv, vec2 distance) {
 
 // Used for bloom upsample, as described by Jorge Jiminez, 2014
 // http://www.iryoku.com/next-generation-post-processing-in-call-of-duty-advanced-warfare
-vec4 cv_sampleTent(sampler2D tex, vec2 uv, vec2 distance, int lod) {
+vec4 frx_sampleTent(sampler2D tex, vec2 uv, vec2 distance, int lod) {
     vec4 d = distance.xyxy * vec4(1.0, 1.0, -1.0, 0.0);
 
     vec4 sum = texture2DLod(tex, uv - d.xy, lod)
@@ -78,7 +78,7 @@ vec4 cv_sampleTent(sampler2D tex, vec2 uv, vec2 distance, int lod) {
 }
 
 // non-LOD version of above
-vec4 cv_sampleTent(sampler2D tex, vec2 uv, vec2 distance) {
+vec4 frx_sampleTent(sampler2D tex, vec2 uv, vec2 distance) {
     vec4 d = distance.xyxy * vec4(1.0, 1.0, -1.0, 0.0);
 
     vec4 sum = texture2D(tex, uv - d.xy)

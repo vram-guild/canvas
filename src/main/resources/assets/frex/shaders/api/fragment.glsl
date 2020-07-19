@@ -1,15 +1,15 @@
 /******************************************************
-  canvas:shaders/api/fragment.glsl
+  frex:shaders/api/fragment.glsl
 ******************************************************/
 
 /*
  * Usage in API:
- * 	  void cv_startFragment(inout cv_FragmentData fragData)
+ * 	  void frx_startFragment(inout frx_FragmentData fragData)
  *
- * Passed to cv_startFragment at start of fragment shader processing
+ * Passed to frx_startFragment at start of fragment shader processing
  * before any computations or derivations are performed.
  */
-struct cv_FragmentData {
+struct frx_FragmentData {
 	/*
 	 * RGB color from primary texture, with alpha.
 	 *

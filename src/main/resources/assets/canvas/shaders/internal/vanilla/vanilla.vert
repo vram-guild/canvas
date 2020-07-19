@@ -1,10 +1,10 @@
 #include canvas:shaders/internal/header.glsl
-#include canvas:shaders/api/context.glsl
+#include frex:shaders/api/context.glsl
 #include canvas:shaders/internal/varying.glsl
 #include canvas:shaders/internal/vertex.glsl
 #include canvas:shaders/internal/flags.glsl
-#include canvas:shaders/api/vertex.glsl
-#include canvas:shaders/api/sampler.glsl
+#include frex:shaders/api/vertex.glsl
+#include frex:shaders/api/sampler.glsl
 #include canvas:shaders/internal/diffuse.glsl
 
 #include canvas:apitarget
@@ -20,7 +20,7 @@ attribute vec4 in_lightmap;
 attribute vec2 in_material;
 
 void main() {
-	cv_VertexData data = cv_VertexData(
+	frx_VertexData data = frx_VertexData(
 		gl_Vertex,
 		in_uv,
 		in_color,
@@ -37,10 +37,10 @@ void main() {
 
 
 #if _CV_HAS_VERTEX_START
-	cv_startVertex(data);
+	frx_startVertex(data);
 #endif
 
-	vec4 spriteBounds = texture1D(cvs_spriteInfo, in_material.x);
+	vec4 spriteBounds = texture1D(frxs_spriteInfo, in_material.x);
 	data.spriteUV = spriteBounds.xy + data.spriteUV * spriteBounds.zw;
 	data.spriteUV = _cv_textureCoord(data.spriteUV, 0);
 
@@ -53,7 +53,7 @@ void main() {
 	gl_Position = data.vertex;
 
 #if _CV_HAS_VERTEX_END
-	cv_endVertex(data);
+	frx_endVertex(data);
 #endif
 
 	_cvv_texcoord = data.spriteUV;

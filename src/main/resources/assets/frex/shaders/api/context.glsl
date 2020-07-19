@@ -1,7 +1,7 @@
-#include canvas:shaders/lib/constant.glsl
+#include frex:shaders/lib/constant.glsl
 
 /******************************************************
-  canvas:shaders/api/context.glsl
+  frex:shaders/api/context.glsl
 
   Definitions to inicate operating mode of renderer.
   Typical usage is to control conditional compilation of

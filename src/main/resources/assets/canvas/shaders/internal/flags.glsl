@@ -1,5 +1,5 @@
-#include canvas:shaders/api/context.glsl
-#include canvas:shaders/lib/bitwise.glsl
+#include frex:shaders/api/context.glsl
+#include frex:shaders/lib/bitwise.glsl
 
 /******************************************************
   canvas:shaders/internal/flags.glsl
@@ -24,5 +24,5 @@
 #endif
 
 float _cv_getFlag(int flagId) {
-	return cv_bitValue(_cvv_flags, flagId);
+	return frx_bitValue(_cvv_flags, flagId);
 }

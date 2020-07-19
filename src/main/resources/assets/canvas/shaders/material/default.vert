@@ -1,13 +1,13 @@
-#include canvas:shaders/api/vertex.glsl
+#include frex:shaders/api/vertex.glsl
 
 /******************************************************
   canvas:shaders/material/default.vert
 ******************************************************/
 
-void cv_startVertex(inout cv_VertexData data) {
+void frx_startVertex(inout frx_VertexData data) {
 	// NOOP
 }
 
-void cv_endVertex(inout cv_VertexData data) {
+void frx_endVertex(inout frx_VertexData data) {
 	// NOOP
 }

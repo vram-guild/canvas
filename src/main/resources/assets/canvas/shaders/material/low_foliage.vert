@@ -1,6 +1,6 @@
-#include canvas:shaders/api/vertex.glsl
-#include canvas:shaders/api/world.glsl
-#include canvas:shaders/lib/math.glsl
+#include frex:shaders/api/vertex.glsl
+#include frex:shaders/api/world.glsl
+#include frex:shaders/lib/math.glsl
 #include frex:shaders/lib/noise/noise3d.glsl
 
 /******************************************************
@@ -11,11 +11,11 @@
   https://developer.nvidia.com/gpugems/gpugems3/part-i-geometry/chapter-6-gpu-generated-procedural-wind-animations-trees
 ******************************************************/
 
-void cv_startVertex(inout cv_VertexData data) {
-	float rain = cv_rainGradient();
+void frx_startVertex(inout frx_VertexData data) {
+	float rain = frx_rainGradient();
 	float globalWind = 0.2 + rain * 0.2;
-	float t = cv_renderSeconds() * 0.05;
-	vec3 modelOrigin = cv_modelOriginWorldPos();
+	float t = frx_renderSeconds() * 0.05;
+	vec3 modelOrigin = frx_modelOriginWorldPos();
 
 	float wind = snoise(vec3((data.vertex.xz + modelOrigin.xz) * 0.0625, t)) * (1.0 - data.spriteUV.y) * globalWind;
 
