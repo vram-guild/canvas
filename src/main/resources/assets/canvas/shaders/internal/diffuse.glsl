@@ -38,9 +38,9 @@ float _cv_diffuseWorld(vec3 normal) {
 }
 
 float _cv_diffuse (vec3 normal) {
-#if CONTEXT_IS_GUI
+#if defined(CONTEXT_IS_GUI)
     return _cv_diffuseGui(normal);
-#elif CONTEXT_IS_ITEM
+#elif defined(CONTEXT_IS_ITEM)
     return _cv_diffuseGui(normal);
 //    return diffuseWorld(normal);
 #else

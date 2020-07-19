@@ -14,7 +14,7 @@
 #define _CV_FLAG_RESERVED_6         6
 #define _CV_FLAG_RESERVED_7         7
 
-#if USE_FLAT_VARYING
+#ifdef USE_FLAT_VARYING
     // may be faster when available and
     // prevents problems on some NVidia cards/drives
     flat varying float _cvv_flags;

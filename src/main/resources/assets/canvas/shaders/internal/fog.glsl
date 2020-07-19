@@ -40,7 +40,7 @@ float _cv_fogFactor() {
 }
 
 vec4 _cv_fog(vec4 diffuseColor) {
-#if CONTEXT_IS_GUI || _CV_FOG_CONFIG == _CV_FOG_CONFIG_NONE
+#if defined(CONTEXT_IS_GUI) || _CV_FOG_CONFIG == _CV_FOG_CONFIG_NONE
 	return diffuseColor;
 #elif _CV_FOG_CONFIG == _CV_FOG_CONFIG_SUBTLE
 	float f = 1.0 - _cv_fogFactor();

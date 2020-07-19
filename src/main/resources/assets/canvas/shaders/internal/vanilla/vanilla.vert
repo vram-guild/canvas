@@ -36,7 +36,7 @@ void main() {
 	_cvv_flags = in_lightmap.b + 0.5;
 
 
-#if _CV_HAS_VERTEX_START
+#ifdef _CV_HAS_VERTEX_START
 	frx_startVertex(data);
 #endif
 
@@ -52,7 +52,7 @@ void main() {
 
 	gl_Position = data.vertex;
 
-#if _CV_HAS_VERTEX_END
+#ifdef _CV_HAS_VERTEX_END
 	frx_endVertex(data);
 #endif
 
@@ -60,7 +60,7 @@ void main() {
 	_cvv_color = data.color;
 	_cvv_normal = data.normal;
 
-#if CONTEXT_IS_BLOCK
+#ifdef CONTEXT_IS_BLOCK
 	_cvv_ao = (in_normal_ao.w + 1.0) * 0.5;
 #endif
 
@@ -68,7 +68,7 @@ void main() {
 	_cvv_diffuse = _cv_diffuse(_cv_diffuseNormal(viewCoord, data.normal));
 #endif
 
-#if !CONTEXT_IS_GUI
+#ifndef CONTEXT_IS_GUI
 	_cvv_lightcoord = data.light;
 #endif
 

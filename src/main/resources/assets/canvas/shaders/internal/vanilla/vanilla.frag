@@ -41,11 +41,10 @@ vec4 aoFactor(vec2 lightCoord) {
 }
 
 vec4 light(frx_FragmentData fragData) {
-	#if CONTEXT_IS_GUI
+	#ifdef CONTEXT_IS_GUI
 		return vec4(1.0, 1.0, 1.0, 1.0);
 	#else
-
-		#if DIFFUSE_SHADING_MODE == DIFFUSE_MODE_SKY_ONLY && CONTEXT_IS_BLOCK
+		#if DIFFUSE_SHADING_MODE == DIFFUSE_MODE_SKY_ONLY && defined(CONTEXT_IS_BLOCK)
 			if (fragData.diffuse) {
 				vec4 block = texture2D(frxs_lightmap, vec2(fragData.light.x, 0.03125));
 				vec4 sky = texture2D(frxs_lightmap, vec2(0.03125, fragData.light.y));
@@ -76,7 +75,7 @@ void main() {
     if (a.a >= 0.5 || _cv_getFlag(_CV_FLAG_CUTOUT) != 1.0) {
     	a *= mix(light(fragData), frx_emissiveColor(), fragData.emissivity);
 
-		#if AO_SHADING_MODE != AO_MODE_NONE && CONTEXT_IS_BLOCK
+		#if AO_SHADING_MODE != AO_MODE_NONE && defined(CONTEXT_IS_BLOCK)
 			if (fragData.ao) {
 				a *= aoFactor(fragData.light);
 			}

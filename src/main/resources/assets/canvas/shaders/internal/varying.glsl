@@ -1,13 +1,12 @@
 
 #include frex:shaders/api/context.glsl
-#include frex:shaders/lib/constant.glsl
 #include canvas:shaders/internal/context.glsl
 
 /******************************************************
   canvas:shaders/internal/common_varying.glsl
 ******************************************************/
 
-#if CONTEXT_IS_BLOCK
+#ifdef CONTEXT_IS_BLOCK
     varying float _cvv_ao;
 #endif
 

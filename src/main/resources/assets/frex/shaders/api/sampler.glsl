@@ -9,7 +9,7 @@ uniform sampler2D frxs_overlay;
 uniform sampler2D frxs_lightmap;
 uniform sampler1D frxs_spriteInfo;
 
-#if VANILLA_LIGHTING != TRUE
+#ifndef VANILLA_LIGHTING
 	uniform sampler2D frxs_dither;
 	uniform sampler2D frxs_hdLightmap;
 #endif

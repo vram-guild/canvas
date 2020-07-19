@@ -228,11 +228,11 @@ public class GlShader {
 		} else {
 			// vertex
 			if (!hasVertexStart) {
-				result = StringUtils.replace(result, "#define _CV_HAS_VERTEX_START TRUE", "#define _CV_HAS_VERTEX_START FALSE");
+				result = StringUtils.replace(result, "#define _CV_HAS_VERTEX_START", "//#define _CV_HAS_VERTEX_START");
 			}
 
 			if (!hasVertexEnd) {
-				result = StringUtils.replace(result, "#define _CV_HAS_VERTEX_END TRUE", "#define _CV_HAS_VERTEX_END FALSE");
+				result = StringUtils.replace(result, "#define _CV_HAS_VERTEX_END", "//#define _CV_HAS_VERTEX_END");
 			}
 		}
 
@@ -242,15 +242,15 @@ public class GlShader {
 		}
 
 		if(context.materialContext.isBlock) {
-			result = StringUtils.replace(result, "#define CONTEXT_IS_BLOCK FALSE", "#define CONTEXT_IS_BLOCK TRUE");
+			result = StringUtils.replace(result, "//#define CONTEXT_IS_BLOCK", "#define CONTEXT_IS_BLOCK");
 		}
 
 		if(context.materialContext.isItem) {
-			result = StringUtils.replace(result, "#define CONTEXT_IS_ITEM FALSE", "#define CONTEXT_IS_ITEM TRUE");
+			result = StringUtils.replace(result, "//#define CONTEXT_IS_ITEM", "#define CONTEXT_IS_ITEM");
 		}
 
 		if(context.materialContext.isGui) {
-			result = StringUtils.replace(result, "#define CONTEXT_IS_GUI FALSE", "#define CONTEXT_IS_GUI TRUE");
+			result = StringUtils.replace(result, "//#define CONTEXT_IS_GUI", "#define CONTEXT_IS_GUI");
 		}
 
 		if(!context.materialContext.isWorld || !Configurator.wavyGrass) {
@@ -262,19 +262,15 @@ public class GlShader {
 					"#define _CV_FOG_CONFIG _CV_FOG_CONFIG_" + Configurator.fogMode.name());
 		}
 
-		if(!context.materialContext.isBlock) {
-			result = StringUtils.replace(result, "#define CONTEXT_IS_BLOCK TRUE", "#define CONTEXT_IS_BLOCK FALSE");
-		}
-
 		if(context.pass == ShaderPass.SOLID && Configurator.enableBloom) {
 			result = StringUtils.replace(result, "#define TARGET_EMISSIVE -1", "#define TARGET_EMISSIVE 1");
 		}
 
 		if(Configurator.hdLightmaps()) {
-			result = StringUtils.replace(result, "#define VANILLA_LIGHTING TRUE", "#define VANILLA_LIGHTING FALSE");
+			result = StringUtils.replace(result, "#define VANILLA_LIGHTING", "//#define VANILLA_LIGHTING");
 
 			if (Configurator.lightmapNoise) {
-				result = StringUtils.replace(result, "#define ENABLE_LIGHT_NOISE FALSE", "#define ENABLE_LIGHT_NOISE TRUE");
+				result = StringUtils.replace(result, "//#define ENABLE_LIGHT_NOISE", "#define ENABLE_LIGHT_NOISE");
 			}
 		}
 
@@ -289,7 +285,7 @@ public class GlShader {
 		}
 
 		if(CanvasGlHelper.useGpuShader4() ) {
-			result = StringUtils.replace(result, "#define USE_FLAT_VARYING FALSE", "#define USE_FLAT_VARYING TRUE");
+			result = StringUtils.replace(result, "//#define USE_FLAT_VARYING", "#define USE_FLAT_VARYING");
 		} else {
 			result = StringUtils.replace(result, "#extension GL_EXT_gpu_shader4 : enable", "");
 		}

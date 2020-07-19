@@ -1,5 +1,3 @@
-#include frex:shaders/lib/constant.glsl
-
 /******************************************************
   frex:shaders/api/context.glsl
 
@@ -9,14 +7,14 @@
   for example, GUI vs world rendering.
 ******************************************************/
 
-// true if this is a block context
-#define CONTEXT_IS_BLOCK FALSE
+// present if this is a block context
+//#define CONTEXT_IS_BLOCK
 
-// true if this is an item context
-#define CONTEXT_IS_ITEM FALSE
+// present if this is an item context
+//#define CONTEXT_IS_ITEM
 
-// true if this is a GUI context
-#define CONTEXT_IS_GUI FALSE
+// present if this is a GUI context
+//#define CONTEXT_IS_GUI
 
 #define SHADER_PASS_SOLID 		0
 #define SHADER_PASS_DECAL 		1
@@ -30,8 +28,8 @@
 
 #define SHADER_TYPE SHADER_TYPE_VERTEX
 
-// When set to false, lightmaps and other vanilla-specific data may not be valid or present
-#define VANILLA_LIGHTING TRUE
+// If not present, lightmaps and other vanilla-specific data may not be valid or present
+#define VANILLA_LIGHTING
 
 // present in world context only when feature is enabled - if not present then foliage shaders should NOOP
 #define ANIMATED_FOLIAGE
