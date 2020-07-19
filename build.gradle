@@ -163,13 +163,7 @@ githubRelease {
 		repo project.github_repository
 	}
 
-	body {
-    	changelog().call()
-	      .readLines()
-	      .stream()
-	      .map{ "- $it" }
-	      .collect(Collectors.joining('\n', '## Changelog\n', ''))
-  	}	
+	body changelog()
   
 	tagName project.version + "-unstable"
 	targetCommitish { org.ajoberstar.grgit.Grgit.open(dir: ".").branch.current().name }
