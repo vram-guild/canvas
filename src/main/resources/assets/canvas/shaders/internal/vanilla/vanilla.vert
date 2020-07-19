@@ -40,7 +40,7 @@ void main() {
 	frx_startVertex(data);
 #endif
 
-	vec4 spriteBounds = texture1D(frxs_spriteInfo, in_material.x);
+	vec4 spriteBounds = texture1DLod(frxs_spriteInfo, in_material.x, 0);
 	data.spriteUV = spriteBounds.xy + data.spriteUV * spriteBounds.zw;
 	data.spriteUV = _cv_textureCoord(data.spriteUV, 0);
 
