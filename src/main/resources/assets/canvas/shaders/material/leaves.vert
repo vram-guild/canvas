@@ -23,13 +23,7 @@ void frx_startVertex(inout frx_VertexData data) {
 
 	float t = frx_renderSeconds() * 0.05;
 
-	// NB: with batched matrix the precision seems to be off enough at
-	// batch region boundaries to cause discontinuities if we don't
-	// multiply the components before adding.
-	// Doesn't seem like it should be that inaccurate.
-	vec3 modelOrigin = frx_modelOriginWorldPos()* NOISE_SCALE;
-
-	vec3 pos = data.vertex.xyz * NOISE_SCALE + modelOrigin;
+	vec3 pos = (data.vertex.xyz + frx_modelOriginWorldPos()) * NOISE_SCALE;
 	float wind = snoise(vec4(pos, t)) * globalWind;
 
 	data.vertex.x += (cos(t) * cos(t * 3) * cos(t * 5) * cos(t * 7) + sin(t * 25)) * wind;

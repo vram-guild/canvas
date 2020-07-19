@@ -63,6 +63,8 @@ public class TerrainLayerRenderer {
 		final MaterialVertexFormat format = h.format;
 		h.setup();
 
+		int ox = 0, oy = 0, oz = 0;
+
 		for (int regionIndex = startIndex; regionIndex != endIndex; regionIndex += step) {
 			final BuiltRenderRegion builtRegion = visibleRegions[regionIndex];
 
@@ -78,7 +80,6 @@ public class TerrainLayerRenderer {
 				if (delegates != null) {
 					final BlockPos modelOrigin = builtRegion.getOrigin();
 
-					int ox = 0, oy = 0, oz = 0;
 
 					if (Configurator.batchedChunkRender) {
 						final long newRelativeOrigin = TerrainModelSpace.getPackedOrigin(modelOrigin);
