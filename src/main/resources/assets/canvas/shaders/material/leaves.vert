@@ -5,6 +5,10 @@
 
 /******************************************************
   canvas:shaders/material/leaves.vert
+
+  Based on "GPU-Generated Procedural Wind Animations for Trees"
+  by Renaldas Zioma in GPU Gems 3, 2007
+  https://developer.nvidia.com/gpugems/gpugems3/part-i-geometry/chapter-6-gpu-generated-procedural-wind-animations-trees
 ******************************************************/
 
 #define NOISE_SCALE 0.125

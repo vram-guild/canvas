@@ -5,6 +5,10 @@
 
 /******************************************************
   canvas:shaders/material/low_foliage.vert
+
+  Based on "GPU-Generated Procedural Wind Animations for Trees"
+  by Renaldas Zioma in GPU Gems 3, 2007
+  https://developer.nvidia.com/gpugems/gpugems3/part-i-geometry/chapter-6-gpu-generated-procedural-wind-animations-trees
 ******************************************************/
 
 void cv_startVertex(inout cv_VertexData data) {
