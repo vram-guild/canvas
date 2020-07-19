@@ -39,7 +39,8 @@ public final class SpriteInfoImage implements AutoCloseable {
 	public SpriteInfoImage(ObjectArrayList<Sprite> spriteIndex) {
 		final int spriteCount = spriteIndex.size();
 		size = MathHelper.smallestEncompassingPowerOfTwo(spriteCount);
-		sizeBytes = size * 8;
+		// 8 because 4 shorts per vector, 4 because 4 samples per sprite
+		sizeBytes = size * 8 * 4;
 		pointer = MemoryUtil.nmemAlloc(sizeBytes);
 		intBuffer = MemoryUtil.memIntBuffer(pointer, sizeBytes / 4);
 
@@ -63,14 +64,14 @@ public final class SpriteInfoImage implements AutoCloseable {
 	private void setPixelUnsignedShort(int n, int x, int y, int z, int w) {
 		assert n <= size;
 		assert pointer != 0L : "Image not allocated.";
-		n *= 2;
+		n *= 8;
 		intBuffer.put(n, x | (y << 16));
 		intBuffer.put(n + 1, z | (w << 16));
 	}
 
 	public void upload() {
 		assert pointer != 0L : "Image not allocated.";
-		GL21.glTexImage1D(GL11.GL_TEXTURE_1D, 0, GL21.GL_RGBA16, size, 0, GL21.GL_RGBA, GL21.GL_UNSIGNED_SHORT, pointer);
+		GL21.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL21.GL_RGBA16, 4, size, 0, GL21.GL_RGBA, GL21.GL_UNSIGNED_SHORT, pointer);
 		assert CanvasGlHelper.checkError();
 	}
 }

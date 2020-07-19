@@ -7,7 +7,7 @@
 uniform sampler2D frxs_spriteAltas;
 uniform sampler2D frxs_overlay;
 uniform sampler2D frxs_lightmap;
-uniform sampler1D frxs_spriteInfo;
+uniform sampler2D frxs_spriteInfo;
 
 #ifndef VANILLA_LIGHTING
 	uniform sampler2D frxs_dither;

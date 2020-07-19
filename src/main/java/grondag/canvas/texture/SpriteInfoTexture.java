@@ -54,15 +54,15 @@ public class SpriteInfoTexture implements AutoCloseable {
 			size = image.size;
 			GL21.glActiveTexture(TextureData.SPRITE_INFO);
 			assert CanvasGlHelper.checkError();
-			GL21.glBindTexture(GL21.GL_TEXTURE_1D, glId);
+			GL21.glBindTexture(GL21.GL_TEXTURE_2D, glId);
 			assert CanvasGlHelper.checkError();
-			GL21.glTexParameteri(GL11.GL_TEXTURE_1D, GL12.GL_TEXTURE_MAX_LEVEL, 0);
+			GL21.glTexParameteri(GL11.GL_TEXTURE_2D, GL12.GL_TEXTURE_MAX_LEVEL, 0);
 			assert CanvasGlHelper.checkError();
-			GL21.glTexParameteri(GL11.GL_TEXTURE_1D, GL12.GL_TEXTURE_MIN_LOD, 0);
+			GL21.glTexParameteri(GL11.GL_TEXTURE_2D, GL12.GL_TEXTURE_MIN_LOD, 0);
 			assert CanvasGlHelper.checkError();
-			GL21.glTexParameteri(GL21.GL_TEXTURE_1D, GL21.GL_TEXTURE_MIN_FILTER, GL21.GL_NEAREST);
+			GL21.glTexParameteri(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MIN_FILTER, GL21.GL_NEAREST);
 			assert CanvasGlHelper.checkError();
-			GL21.glTexParameteri(GL21.GL_TEXTURE_1D, GL21.GL_TEXTURE_MAG_FILTER, GL21.GL_NEAREST);
+			GL21.glTexParameteri(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MAG_FILTER, GL21.GL_NEAREST);
 			assert CanvasGlHelper.checkError();
 			image.upload();
 			image.close();
@@ -84,13 +84,13 @@ public class SpriteInfoTexture implements AutoCloseable {
 
 	public void disable() {
 		GL21.glActiveTexture(TextureData.SPRITE_INFO);
-		GL21.glBindTexture(GL21.GL_TEXTURE_1D, 0);
+		GL21.glBindTexture(GL21.GL_TEXTURE_2D, 0);
 		GL21.glActiveTexture(TextureData.MC_SPRITE_ATLAS);
 	}
 
 	public void enable() {
 		GL21.glActiveTexture(TextureData.SPRITE_INFO);
-		GL21.glBindTexture(GL21.GL_TEXTURE_1D, glId);
+		GL21.glBindTexture(GL21.GL_TEXTURE_2D, glId);
 		GL21.glActiveTexture(TextureData.MC_SPRITE_ATLAS);
 	}
 
