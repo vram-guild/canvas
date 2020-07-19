@@ -2,7 +2,7 @@ plugins {
 	id "fabric-loom" version "0.4-SNAPSHOT"
 	id "eclipse"
 	id "maven-publish"
-	id "com.github.breadmoirai.github-release" version "2.2.9"
+	id "com.github.breadmoirai.github-release" version "2.2.12"
 	id "org.ajoberstar.grgit" version "3.1.1"
 	id "com.matthewprenger.cursegradle" version "1.4.0"
 }
@@ -163,9 +163,18 @@ githubRelease {
 		repo project.github_repository
 	}
 
-	tagName project.version
+	body {
+    	changelog().call()
+	      .readLines()
+	      .stream()
+	      .map{ "- $it" }
+	      .collect(Collectors.joining('\n', '## Changelog\n', ''))
+  	}	
+  
+	tagName project.version + "-unstable"
 	targetCommitish { org.ajoberstar.grgit.Grgit.open(dir: ".").branch.current().name }
-	releaseName project.version
+	releaseName project.version + " Unstable"
+	prerelease true
 
 	FilenameFilter filter = { dir, filename -> filename.contains(project.version) && !filename.contains("-dev.jar") }
 	releaseAssets = jar.destinationDir.listFiles filter
