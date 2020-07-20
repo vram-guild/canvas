@@ -62,6 +62,7 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Matrix4f;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.profiler.Profiler;
+import net.minecraft.world.World;
 
 import grondag.canvas.Configurator;
 import grondag.canvas.buffer.BindStateManager;
@@ -202,7 +203,7 @@ public class CanvasWorldRenderer {
 	 * also  be added to the existing raster.
 	 * or
 	 */
-	public void setupTerrain(Camera camera, int frameCounter, boolean isSpectator) {
+	public void setupTerrain(Camera camera, int frameCounter, boolean shouldCullChunks) {
 		final WorldRendererExt wr = this.wr;
 		final MinecraftClient mc = wr.canvas_mc();
 		final int renderDistance = wr.canvas_renderDistance();
@@ -261,7 +262,7 @@ public class CanvasWorldRenderer {
 				occluderVersion = terrainOccluder.version();
 				lastRegionDataVersion = newRegionDataVersion;
 				terrainOccluder.prepareScene(camera, frustum, renderRegionStorage.regionVersion());
-				terrainIterator.prepare(cameraRegion, cameraBlockPos, frustum, renderDistance);
+				terrainIterator.prepare(cameraRegion, cameraBlockPos, frustum, renderDistance, shouldCullChunks);
 				regionBuilder.executor.execute(terrainIterator, -1);
 			}
 		} else {
@@ -273,7 +274,7 @@ public class CanvasWorldRenderer {
 				lastRegionDataVersion = newRegionDataVersion;
 
 				terrainOccluder.prepareScene(camera, frustum, renderRegionStorage.regionVersion());
-				terrainIterator.prepare(cameraRegion, cameraBlockPos, frustum, renderDistance);
+				terrainIterator.prepare(cameraRegion, cameraBlockPos, frustum, renderDistance, shouldCullChunks);
 				terrainIterator.accept(null);
 
 				final BuiltRenderRegion[] visibleRegions = this.visibleRegions;
@@ -328,6 +329,17 @@ public class CanvasWorldRenderer {
 		playerLightmap = mc.getEntityRenderManager().getLight(mc.player, f);
 	}
 
+	@SuppressWarnings("resource")
+	private boolean shouldCullChunks(BlockPos pos)  {
+		final MinecraftClient mc = wr.canvas_mc();
+		boolean result = wr.canvas_mc().chunkCullingEnabled;
+
+		if (mc.player.isSpectator() && !World.isHeightInvalid(pos.getY()) && world.getBlockState(pos).isOpaqueFullCube(world, pos)) {
+			result = false;
+		}
+
+		return result;
+	}
 
 	public void renderWorld(MatrixStack matrixStack, float tickDelta, long limitTime, boolean blockOutlines, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f projectionMatrix) {
 		final WorldRendererExt wr = this.wr;
@@ -376,7 +388,7 @@ public class CanvasWorldRenderer {
 		BackgroundRenderer.applyFog(camera, BackgroundRenderer.FogType.FOG_TERRAIN, Math.max(viewDistance - 16.0F, 32.0F), thickFog);
 		profiler.swap("terrain_setup");
 
-		setupTerrain(camera, wr.canvas_getAndIncrementFrameIndex(), mc.player.isSpectator());
+		setupTerrain(camera, wr.canvas_getAndIncrementFrameIndex(), shouldCullChunks(camera.getBlockPos()));
 		LitematicaHolder.litematicaTerrainSetup.accept(frustum);
 
 		profiler.swap("updatechunks");

@@ -5,7 +5,6 @@ import java.util.function.Consumer;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3i;
 
@@ -32,6 +31,7 @@ public class TerrainIterator implements  Consumer<TerrainRenderContext> {
 	private BuiltRenderRegion cameraRegion;
 	private BlockPos cameraBlockPos;
 	private int renderDistance;
+	private boolean chunkCullingEnabled = true;
 
 	public static final int IDLE = 0;
 	public static final int READY = 1;
@@ -48,12 +48,14 @@ public class TerrainIterator implements  Consumer<TerrainRenderContext> {
 		terrainOccluder = cwr.terrainOccluder;
 	}
 
-	public void prepare(@Nullable BuiltRenderRegion cameraRegion,  BlockPos cameraBlockPos, CanvasFrustum frustum, int renderDistance)  {
+	public void prepare(@Nullable BuiltRenderRegion cameraRegion,  BlockPos cameraBlockPos, CanvasFrustum frustum, int renderDistance, boolean chunkCullingEnabled)  {
 		assert state.get() == IDLE;
 		this.cameraRegion = cameraRegion;
 		this.cameraBlockPos = cameraBlockPos;
 		this.frustum.copy(frustum);
 		this.renderDistance = renderDistance;
+		this.chunkCullingEnabled = chunkCullingEnabled;
+
 		state.set(READY);
 		cancelled = false;
 	}
@@ -72,10 +74,10 @@ public class TerrainIterator implements  Consumer<TerrainRenderContext> {
 		assert state.get() == READY;
 		state.set(RUNNING);
 
+		final boolean chunkCullingEnabled = this.chunkCullingEnabled;
 		final int renderDistance = this.renderDistance;
 		final CanvasFrustum frustum = this.frustum;
 		final RenderRegionStorage regionStorage = renderRegionStorage;
-		final MinecraftClient mc = MinecraftClient.getInstance();
 		final boolean redrawOccluder = terrainOccluder.needsRedraw();
 		final int occluderVersion = terrainOccluder.version();
 		final BuiltRenderRegion[] visibleRegions = this.visibleRegions;
@@ -88,7 +90,6 @@ public class TerrainIterator implements  Consumer<TerrainRenderContext> {
 		nextLevel.clear();
 
 		BuiltRenderRegion.advanceFrameIndex();
-
 		if (cameraRegion == null) {
 			// prime visible when above or below world and camera region is null
 			final int y = cameraBlockPos.getY() > 0 ? 248 : 8;
@@ -129,7 +130,6 @@ public class TerrainIterator implements  Consumer<TerrainRenderContext> {
 
 		assert !currentLevel.isEmpty();
 
-		final boolean chunkCullingEnabled = mc.chunkCullingEnabled;
 
 		// PERF: look for ways to improve branch prediction
 		while (!cancelled) {
