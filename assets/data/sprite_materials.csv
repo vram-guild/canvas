@@ -1,0 +1,15 @@
+name | matDefault | sprite0 | mat0 | sprite1 | mat1 |
+large_fern | | minecraft:block/large_fern_bottom | canvas:low_foliage | minecraft:block/large_fern_top | canvas:high_foliage |
+blast_furnace | | minecraft:block/blast_furnace_front_on | canvas:warm_glow | | |
+campfire | | minecraft:block/campfire_fire | canvas:emissive_no_diffuse | minecraft:block/campfire_log_lit | canvas:warm_glow |
+comparator | | minecraft:block/comparator_on | canvas:redstone | minecraft:block/redstone_torch | canvas:redstone |
+blast_furnace | | minecraft:block/furnace_front_on | canvas:warm_glow | | |
+observer | | minecraft:block/observer_back_on | canvas:redstone | | |
+redstone_torch | | minecraft:block/redstone_torch | canvas:redstone | | |
+redstone_wall_torch | | minecraft:block/redstone_torch | canvas:redstone | | |
+repeater | | minecraft:block/repeater_on | canvas:redstone | minecraft:block/redstone_torch | canvas:redstone |
+soul_campfire | | minecraft:block/soul_campfire_fire | canvas:emissive_no_diffuse | minecraft:block/soul_campfire_log_lit | canvas:luminance_glow |
+tall_grass | | minecraft:block/tall_grass_bottom | canvas:low_foliage | minecraft:block/tall_grass_top | canvas:high_foliage |
+lilac | | minecraft:block/lilac_bottom | canvas:low_foliage | minecraft:block/lilac_top | canvas:high_foliage |
+peony | | minecraft:block/peony_bottom | canvas:low_foliage | minecraft:block/peony_top | canvas:high_foliage |
+rose_bush | | minecraft:block/rose_bush_bottom | canvas:low_foliage | minecraft:block/rose_bush_top | canvas:high_foliage |
