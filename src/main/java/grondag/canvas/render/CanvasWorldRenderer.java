@@ -145,7 +145,9 @@ public class CanvasWorldRenderer {
 		terrainIterator.reset();
 		terrainSetupOffThread = Configurator.terrainSetupOffThread;
 		regionsToRebuild.clear();
-		regionBuilder.reset();
+		if (regionBuilder != null) {
+			regionBuilder.reset();
+		}
 		renderRegionStorage.clear();
 		terrainOccluder.invalidate();
 		visibleRegionCount = 0;
@@ -639,7 +641,6 @@ public class CanvasWorldRenderer {
 
 			profiler.swap("translucent");
 			renderTerrainLayer(true, matrixStack, cameraX, cameraY, cameraZ);
-			LitematicaHolder.litematicaRenderTranslucent.accept(matrixStack);
 
 			fb = mcwr.getParticlesFramebuffer();
 			fb.clear(MinecraftClient.IS_SYSTEM_MAC);
@@ -653,11 +654,12 @@ public class CanvasWorldRenderer {
 		}  else  {
 			profiler.swap("translucent");
 			renderTerrainLayer(true, matrixStack, cameraX, cameraY, cameraZ);
-			LitematicaHolder.litematicaRenderTranslucent.accept(matrixStack);
-
 			profiler.swap("particles");
 			mc.particleManager.renderParticles(matrixStack, immediate, lightmapTextureManager, camera, tickDelta);
 		}
+
+		LitematicaHolder.litematicaRenderTranslucent.accept(matrixStack);
+		LitematicaHolder.litematicaRenderOverlay.accept(matrixStack);
 
 		RenderSystem.pushMatrix();
 		RenderSystem.multMatrix(matrixStack.peek().getModel());

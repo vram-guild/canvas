@@ -20,6 +20,14 @@ public class LitematicaHolder {
 	private static boolean warnSolid = true;
 	private static boolean warnTranslucent = true;
 	private static boolean warnEntities = true;
+	private static boolean warnOverlay = true;
+
+	public static Runnable litematicaReload = Runnables.doNothing();
+	public static Consumer<Frustum> litematicaTerrainSetup = f -> {};
+	public static Consumer<MatrixStack> litematicaRenderSolids = s -> {};
+	public static Consumer<MatrixStack> litematicaRenderTranslucent = s -> {};
+	public static Consumer<MatrixStack> litematicaRenderOverlay = s -> {};
+	public static EntityHandler litematicaEntityHandler = (s, t) -> {};
 
 	static {
 		if (FabricLoader.getInstance().isModLoaded("litematica")) {
@@ -54,6 +62,10 @@ public class LitematicaHolder {
 				final Method translucent = clazz.getDeclaredMethod("piecewiseRenderTranslucent", MatrixStack.class);
 				final MethodHandle translucentHandler = lookup.unreflect(translucent);
 				final MethodHandle boundTranslucentHandler = translucentHandler.bindTo(instance);
+
+				final Method overlay = clazz.getDeclaredMethod("piecewiseRenderOverlay", MatrixStack.class);
+				final MethodHandle overlayHandler = lookup.unreflect(overlay);
+				final MethodHandle boundOverlayHandler = overlayHandler.bindTo(instance);
 
 				final Method entities = clazz.getDeclaredMethod("piecewiseRenderEntities", MatrixStack.class, float.class);
 				final MethodHandle entitiesHandler = lookup.unreflect(entities);
@@ -109,6 +121,18 @@ public class LitematicaHolder {
 					}
 				};
 
+				litematicaRenderOverlay = (s) -> {
+					try  {
+						boundOverlayHandler.invokeExact(s);
+					} catch (final Throwable e) {
+						if (warnOverlay) {
+							CanvasMod.LOG.warn("Unable to call Litematica overlay hook due to exception:", e);
+							CanvasMod.LOG.warn("Subsequent errors will be suppressed");
+							warnOverlay = false;
+						}
+					}
+				};
+
 				litematicaEntityHandler = (s, t) -> {
 					try  {
 						boundEntitiesHandler.invokeExact(s, t);
@@ -127,12 +151,6 @@ public class LitematicaHolder {
 			}
 		}
 	}
-
-	public static Runnable litematicaReload = Runnables.doNothing();
-	public static Consumer<Frustum> litematicaTerrainSetup = f -> {};
-	public static Consumer<MatrixStack> litematicaRenderSolids = s -> {};
-	public static Consumer<MatrixStack> litematicaRenderTranslucent = s -> {};
-	public static EntityHandler litematicaEntityHandler = (s, t) -> {};
 
 	public interface EntityHandler {
 		void handle(MatrixStack matrices, float partialTicks);

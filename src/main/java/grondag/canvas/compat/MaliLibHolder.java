@@ -14,6 +14,7 @@ import grondag.canvas.CanvasMod;
 public class MaliLibHolder {
 	private static boolean warnRender = true;
 
+	public static HandleRenderWorldLast litematicaRenderWorldLast = (s, mc, t) -> {};
 
 	static {
 		if (FabricLoader.getInstance().isModLoaded("malilib")) {
@@ -47,8 +48,6 @@ public class MaliLibHolder {
 			}
 		}
 	}
-
-	public static HandleRenderWorldLast litematicaRenderWorldLast = (s, mc, t) -> {};
 
 	public interface HandleRenderWorldLast {
 		void render(MatrixStack matrixStack, MinecraftClient mc, float partialTicks);
