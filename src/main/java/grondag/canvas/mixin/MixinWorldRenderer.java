@@ -25,6 +25,7 @@ import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
@@ -33,6 +34,7 @@ import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.Framebuffer;
 import net.minecraft.client.gl.ShaderEffect;
+import net.minecraft.client.options.GameOptions;
 import net.minecraft.client.render.BlockBreakingInfo;
 import net.minecraft.client.render.BufferBuilderStorage;
 import net.minecraft.client.render.Camera;
@@ -40,7 +42,6 @@ import net.minecraft.client.render.FpsSmoother;
 import net.minecraft.client.render.Frustum;
 import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.render.LightmapTextureManager;
-import net.minecraft.client.render.RenderLayers;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.VertexFormat;
@@ -139,31 +140,14 @@ public class MixinWorldRenderer implements WorldRendererExt {
 		canvasWorldRenderer.forceVisibilityUpdate();
 	}
 
-	// circumvent vanilla logic by faking null world and then do our load after
-	ClientWorld saveWorld = null;
-
-	@Inject(at = @At("HEAD"), method = "reload")
-	private void beforeReload(CallbackInfo ci) {
-		saveWorld = world;
-		world = null;
+	@Redirect(method = "reload", at = @At(value = "FIELD", target = "Lnet/minecraft/client/options/GameOptions;viewDistance:I", ordinal = 1))
+	private int onReloadZeroChunkStorage(GameOptions options) {
+		return 0;
 	}
 
 	@Inject(at = @At("RETURN"), method = "reload")
 	private void afterReload(CallbackInfo ci) {
-		world = saveWorld;
-		if (world != null) {
-			world.reloadColor();
-			RenderLayers.setFancyGraphicsOrBetter(MinecraftClient.isFancyGraphicsOrBetter());
-			renderDistance = client.options.viewDistance;
-
-			canvasWorldRenderer.reload();
-
-			cloudsDirty = true;
-
-			synchronized(noCullingBlockEntities) {
-				noCullingBlockEntities.clear();
-			}
-		}
+		canvasWorldRenderer.reload();
 	}
 
 	private static boolean shouldWarnOnRenderLayer = true;

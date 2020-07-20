@@ -16,22 +16,15 @@ package grondag.canvas.mixin;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.ModifyVariable;
 
 import net.minecraft.client.render.chunk.ChunkBuilder;
 
-import grondag.canvas.CanvasMod;
-
 @Mixin(ChunkBuilder.class)
 public abstract class MixinChunkBuilder {
-	private static boolean shouldWarn = true;
-
-	@Inject(at = @At("RETURN"), method = "<init>*")
-	private void onNew(CallbackInfo ci) {
-		if (shouldWarn) {
-			CanvasMod.LOG.warn("[Canvas] ChunkBuilder instantiated unexpectedly. This probably indicates a mod incompatibility.");
-			shouldWarn = false;
-		}
+	@ModifyVariable(method = "<init>", index = 9, at = @At(value = "INVOKE", target = "Lcom/google/common/collect/Lists;newArrayListWithExpectedSize(I)Ljava/util/ArrayList;", remap = false))
+	private int onInitZeroListSize(int ignored) {
+		return 0;
 	}
+
 }
