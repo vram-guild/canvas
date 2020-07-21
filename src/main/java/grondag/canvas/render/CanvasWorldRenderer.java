@@ -67,6 +67,7 @@ import net.minecraft.world.World;
 import grondag.canvas.Configurator;
 import grondag.canvas.buffer.BindStateManager;
 import grondag.canvas.buffer.VboBuffer;
+import grondag.canvas.compat.BborHolder;
 import grondag.canvas.compat.ClothHolder;
 import grondag.canvas.compat.LitematicaHolder;
 import grondag.canvas.compat.MaliLibHolder;
@@ -710,6 +711,8 @@ public class CanvasWorldRenderer {
 		}
 
 		//this.renderChunkDebugInfo(camera);
+		BborHolder.bborHandler.render(matrixStack, tickDelta, mc.player);
+
 		RenderSystem.shadeModel(7424);
 		RenderSystem.depthMask(true);
 		RenderSystem.disableBlend();
