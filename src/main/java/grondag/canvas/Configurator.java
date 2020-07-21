@@ -55,11 +55,11 @@ public class Configurator {
 		@Comment("Glow effect around light sources. Work-in-Progress")
 		public boolean enableBloom = true;
 
-		@Comment("Intensity of glow effect around light sources. 0.0 to 0.25, default is 0.09.")
-		public float bloomIntensity = 0.06f;
+		@Comment("Intensity of glow effect around light sources. 0.0 to 0.5, default is 0.1.")
+		public float bloomIntensity = 0.1f;
 
-		@Comment("Size of bloom effect around light sources. 0.0 to 2.0, default is 0.5.")
-		public float bloomScale = 0.5f;
+		@Comment("Size of bloom effect around light sources. 0.0 to 2.0, default is 0.25.")
+		public float bloomScale = 0.25f;
 
 		@Comment("Animated foliage")
 		public boolean wavyGrass = true;
@@ -404,12 +404,12 @@ public class Configurator {
 				.build());
 
 		features.addEntry(ENTRY_BUILDER
-				.startIntSlider(new TranslatableText("config.canvas.value.bloom_intensity"), (int)(bloomIntensity * 400), 0, 100)
-				.setDefaultValue((int) (DEFAULTS.bloomIntensity * 400))
+				.startIntSlider(new TranslatableText("config.canvas.value.bloom_intensity"), (int)(bloomIntensity * 200), 0, 100)
+				.setDefaultValue((int) (DEFAULTS.bloomIntensity * 200))
 				.setMax(100)
 				.setMin(0)
 				.setTooltip(parse("config.canvas.help.bloom_intensity"))
-				.setSaveConsumer(b -> bloomIntensity = b / 400f)
+				.setSaveConsumer(b -> bloomIntensity = b / 200f)
 				.build());
 
 		features.addEntry(ENTRY_BUILDER

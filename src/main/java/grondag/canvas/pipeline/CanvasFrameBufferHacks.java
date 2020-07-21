@@ -17,29 +17,30 @@ package grondag.canvas.pipeline;
 
 import java.nio.IntBuffer;
 
+import com.mojang.blaze3d.platform.FramebufferInfo;
+import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.systems.RenderSystem;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.ARBTextureFloat;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL21;
 
-import com.mojang.blaze3d.platform.FramebufferInfo;
-import com.mojang.blaze3d.platform.GlStateManager;
-import com.mojang.blaze3d.systems.RenderSystem;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gl.Framebuffer;
+import net.minecraft.client.texture.TextureUtil;
+import net.minecraft.client.util.InputUtil;
 
 import grondag.canvas.Configurator;
 import grondag.canvas.buffer.VboBuffer;
 import grondag.canvas.buffer.encoding.VertexCollectorImpl;
 import grondag.canvas.material.MaterialVertexFormats;
 import grondag.canvas.shader.GlProgram;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gl.Framebuffer;
-import net.minecraft.client.texture.TextureUtil;
-import net.minecraft.client.util.InputUtil;
 
 //PERF: handle VAO properly here before re-enabling VAO
 public class CanvasFrameBufferHacks {
 
 	static final ProcessShader copy = ProcessShaders.create("canvas:shaders/internal/process/copy", "_cvu_input");
+	static final ProcessShader emissiveColor = ProcessShaders.create("canvas:shaders/internal/process/emissive_color", "_cvu_base", "_cvu_emissive");
 	static final ProcessShader bloom = ProcessShaders.create("canvas:shaders/internal/process/bloom", "_cvu_base", "_cvu_bloom");
 	static final ProcessShader copyLod = ProcessShaders.create("canvas:shaders/internal/process/copy_lod", "_cvu_input");
 	static final ProcessShader downsample = ProcessShaders.create("canvas:shaders/internal/process/downsample", "_cvu_input");
@@ -51,6 +52,7 @@ public class CanvasFrameBufferHacks {
 
 	//	static int mainHDR;
 	static int texEmissive  = -1;
+	static int texEmissiveColor;
 	static int texMainCopy;
 
 	static int texBloomDownsample;
@@ -153,9 +155,20 @@ public class CanvasFrameBufferHacks {
 		copy.activate().size(w, h);
 		GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
 
+		// select emissive portions for blur
+		GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT, GL21.GL_TEXTURE_2D, texEmissiveColor, 0);
+		GlStateManager.activeTexture(GL21.GL_TEXTURE1);
+		GlStateManager.enableTexture();
+		GlStateManager.bindTexture(texEmissive);
+		emissiveColor.activate().size(w, h);
+		GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
+		GlStateManager.bindTexture(0);
+		GlStateManager.disableTexture();
+		GlStateManager.activeTexture(GL21.GL_TEXTURE0);
+
 		// build bloom mipmaps, blurring as part of downscale
 		GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT, GL21.GL_TEXTURE_2D, texBloomDownsample, 0);
-		GlStateManager.bindTexture(texEmissive);
+		GlStateManager.bindTexture(texEmissiveColor);
 		downsample.activate().distance(1f, 1f).size(w, h).lod(0);
 		setProjection(w, h);
 		RenderSystem.viewport(0, 0, w, h);
@@ -197,6 +210,10 @@ public class CanvasFrameBufferHacks {
 		bloom.activate().size(w, h).distance(bloomScale, bloomScale).intensity(Configurator.bloomIntensity);
 		setProjection(w, h);
 
+		GlStateManager.activeTexture(GL21.GL_TEXTURE1);
+		GlStateManager.enableTexture();
+		GlStateManager.bindTexture(texBloomUpsample);
+
 		// Framebuffer attachment shouldn't draw to self so use copy created earlier
 		GlStateManager.activeTexture(GL21.GL_TEXTURE0);
 		GlStateManager.bindTexture(texMainCopy);
@@ -213,6 +230,15 @@ public class CanvasFrameBufferHacks {
 		GlStateManager.activeTexture(GL21.GL_TEXTURE0);
 		GlStateManager.enableTexture();
 		GlStateManager.bindTexture(texBloomDownsample);
+
+		final long handle = MinecraftClient.getInstance().getWindow().getHandle();
+
+		if ((InputUtil.isKeyPressed(handle, GLFW.GLFW_KEY_LEFT_SHIFT) || InputUtil.isKeyPressed(handle, GLFW.GLFW_KEY_RIGHT_SHIFT))) {
+			GlStateManager.bindTexture(texEmissiveColor);
+		} else {
+			GlStateManager.bindTexture(texEmissive);
+		}
+
 		setProjection(w, h);
 		copyLod.activate().size(w, h).lod(0).activate();
 		GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
@@ -224,6 +250,7 @@ public class CanvasFrameBufferHacks {
 		startCopy();
 		drawBuffer.bind();
 		RenderSystem.viewport(0, 0, w, h);
+
 		GlStateManager.activeTexture(GL21.GL_TEXTURE0);
 		GlStateManager.enableTexture();
 		final long handle = MinecraftClient.getInstance().getWindow().getHandle();
@@ -275,6 +302,7 @@ public class CanvasFrameBufferHacks {
 
 			//			mainHDR = createColorAttachment(w, h, true);
 			texEmissive = createColorAttachment(w, h);
+			texEmissiveColor = createColorAttachment(w, h);
 			texMainCopy = createColorAttachment(w, h);
 
 			texBloomDownsample = createColorAttachment(w, h);
@@ -317,18 +345,19 @@ public class CanvasFrameBufferHacks {
 		GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_WRAP_S, GL21.GL_CLAMP);
 		GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_WRAP_T, GL21.GL_CLAMP);
 
-
 		if  (hdr) {
 			GlStateManager.texImage2D(GL21.GL_TEXTURE_2D, 0, ARBTextureFloat.GL_RGBA16F_ARB, width, height, 0, GL21.GL_RGBA, GL21.GL_FLOAT, (IntBuffer)null);
 		} else {
 			GlStateManager.texImage2D(GL21.GL_TEXTURE_2D, 0, GL21.GL_RGBA8, width, height, 0, GL21.GL_RGBA, GL21.GL_UNSIGNED_BYTE, (IntBuffer)null);
 		}
+
 		return result;
 	}
 
 	private static void tearDown() {
 		if (texEmissive != -1) {
 			TextureUtil.deleteId(texEmissive);
+			TextureUtil.deleteId(texEmissiveColor);
 			//			TextureUtil.deleteId(mainHDR);
 			TextureUtil.deleteId(texMainCopy);
 			TextureUtil.deleteId(texBloomDownsample);

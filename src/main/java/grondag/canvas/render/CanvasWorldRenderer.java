@@ -419,10 +419,7 @@ public class CanvasWorldRenderer {
 
 		renderTerrainLayer(false, matrixStack, cameraX, cameraY, cameraZ);
 
-		if (Configurator.enableBloom) {
-			CanvasFrameBufferHacks.endEmissiveCapture();
-			CanvasFrameBufferHacks.applyBloom();
-		}
+		if (Configurator.enableBloom) CanvasFrameBufferHacks.endEmissiveCapture();
 
 		LitematicaHolder.litematicaRenderSolids.accept(matrixStack);
 
@@ -656,6 +653,10 @@ public class CanvasWorldRenderer {
 			renderTerrainLayer(true, matrixStack, cameraX, cameraY, cameraZ);
 			profiler.swap("particles");
 			mc.particleManager.renderParticles(matrixStack, immediate, lightmapTextureManager, camera, tickDelta);
+		}
+
+		if (Configurator.enableBloom) {
+			CanvasFrameBufferHacks.applyBloom();
 		}
 
 		LitematicaHolder.litematicaRenderTranslucent.accept(matrixStack);
