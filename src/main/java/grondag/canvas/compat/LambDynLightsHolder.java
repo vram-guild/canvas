@@ -28,7 +28,7 @@ public class LambDynLightsHolder {
 	static Consumer<WorldRenderer> init() {
 		if (FabricLoader.getInstance().isModLoaded("lambdynlights")) {
 			CanvasMod.LOG.info("Found LambDynLights - compatibility hook enabled");
-			return LambDynLightsHolder.updateAll;
+			return LambDynLightsHelper.updateAll();
 		} else {
 			return w -> {};
 		}
