@@ -110,6 +110,9 @@ public class Configurator {
 		@Comment("Use more efficient entity culling. Improves framerate in most scenes.")
 		boolean cullEntityRender = true;
 
+		@Comment("When true, render thread does not yield to other threads every frame. Vanilla behavior is false (yields).")
+		boolean greedyRenderThread = true;
+
 		// DEBUG
 		@Comment("Output runtime per-material shader source. For shader development debugging.")
 		boolean shaderDebug = false;
@@ -175,6 +178,7 @@ public class Configurator {
 	public static boolean terrainSetupOffThread = DEFAULTS.terrainSetupOffThread;
 	private static boolean enableVao = DEFAULTS.enableVao;
 	public static boolean cullEntityRender = DEFAULTS.cullEntityRender;
+	public static boolean greedyRenderThread = DEFAULTS.greedyRenderThread;
 
 	public static boolean shaderDebug = DEFAULTS.shaderDebug;
 	public static boolean lightmapDebug = DEFAULTS.lightmapDebug;
@@ -249,6 +253,7 @@ public class Configurator {
 		safeNativeMemoryAllocation = config.safeNativeMemoryAllocation;
 		enableVao = config.enableVao;
 		cullEntityRender = config.cullEntityRender;
+		greedyRenderThread = config.greedyRenderThread;
 
 		lightmapDebug = config.lightmapDebug;
 		conciseErrors = config.conciseErrors;
@@ -290,6 +295,7 @@ public class Configurator {
 		config.safeNativeMemoryAllocation = safeNativeMemoryAllocation;
 		config.enableVao = enableVao;
 		config.cullEntityRender = cullEntityRender;
+		config.greedyRenderThread = greedyRenderThread;
 
 		config.lightmapDebug = lightmapDebug;
 		config.conciseErrors = conciseErrors;
@@ -548,6 +554,13 @@ public class Configurator {
 				.setDefaultValue(DEFAULTS.cullEntityRender)
 				.setTooltip(parse("config.canvas.help.enable_vao"))
 				.setSaveConsumer(b -> {cullEntityRender = b;})
+				.build());
+
+		tweaks.addEntry(ENTRY_BUILDER
+				.startBooleanToggle(new TranslatableText("config.canvas.value.greedy_render_thread"), greedyRenderThread)
+				.setDefaultValue(DEFAULTS.greedyRenderThread)
+				.setTooltip(parse("config.canvas.help.greedy_render_thread"))
+				.setSaveConsumer(b -> {greedyRenderThread = b;})
 				.build());
 
 		// DEBUG

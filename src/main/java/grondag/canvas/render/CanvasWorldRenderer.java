@@ -15,6 +15,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap.Entry;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import me.lambdaurora.lambdynlights.LambDynLights;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL21;
 
@@ -90,8 +91,9 @@ import grondag.canvas.terrain.render.TerrainLayerRenderer;
 import grondag.canvas.texture.DitherTexture;
 import grondag.canvas.varia.CanvasGlHelper;
 import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
+import grondag.frex.api.event.WorldRenderEvent;
 
-public class CanvasWorldRenderer {
+public class CanvasWorldRenderer extends WorldRenderer {
 	private boolean terrainSetupOffThread = Configurator.terrainSetupOffThread;
 	private int playerLightmap = 0;
 	private RenderRegionBuilder regionBuilder;
@@ -124,8 +126,9 @@ public class CanvasWorldRenderer {
 
 	private final WorldRendererExt wr;
 
-	public CanvasWorldRenderer(WorldRendererExt wr) {
-		this.wr = wr;
+	public CanvasWorldRenderer(MinecraftClient client, BufferBuilderStorage bufferBuilders) {
+		super(client, bufferBuilders);
+		wr = (WorldRendererExt) this;
 		instance = this;
 		computeDistances();
 	}
@@ -141,45 +144,12 @@ public class CanvasWorldRenderer {
 		regionDataVersion.incrementAndGet();
 	}
 
-	public void reload() {
-		computeDistances();
-		terrainIterator.reset();
-		terrainSetupOffThread = Configurator.terrainSetupOffThread;
-		regionsToRebuild.clear();
-		if (regionBuilder != null) {
-			regionBuilder.reset();
-		}
-		renderRegionStorage.clear();
-		terrainOccluder.invalidate();
-		visibleRegionCount = 0;
-	}
-
 	public RenderRegionBuilder regionBuilder() {
 		return regionBuilder;
 	}
 
 	public RenderRegionStorage regionStorage() {
 		return renderRegionStorage;
-	}
-
-	public boolean isTerrainRenderComplete() {
-		return regionsToRebuild.isEmpty() && regionBuilder.isEmpty() && regionDataVersion.get() == lastRegionDataVersion;
-	}
-
-	public void setWorld(@Nullable ClientWorld clientWorld) {
-		// happens here to avoid creating before renderer is initialized
-		if (regionBuilder == null) {
-			regionBuilder = new RenderRegionBuilder();
-		}
-
-		DitherTexture.instance().initializeIfNeeded();
-		world = clientWorld;
-		visibleRegionCount = 0;
-		renderRegionStorage.clear();
-		Arrays.fill(visibleRegions, null);
-		terrainIterator.reset();
-		renderRegionStorage.clear();
-		Arrays.fill(terrainIterator.visibleRegions, null);
 	}
 
 	public ClientWorld getWorld() {
@@ -195,6 +165,7 @@ public class CanvasWorldRenderer {
 	// PERF: render leaves as solid at distance - omit interior faces
 	// PERF: get VAO working again
 	// PERF: consider trying backface culling again but at draw time w/ glMultiDrawArrays
+
 
 	/**
 	 * Terrain rebuild is partly lazy/incremental
@@ -227,6 +198,7 @@ public class CanvasWorldRenderer {
 		final BlockPos cameraBlockPos = camera.getBlockPos();
 		final BuiltRenderRegion cameraRegion = cameraBlockPos.getY() < 0 || cameraBlockPos.getY() > 255 ? null : regionStorage.getOrCreateRegion(cameraBlockPos);
 
+		mc.getProfiler().swap("buildnear");
 		if (cameraRegion != null)  {
 			buildNearRegion(cameraRegion);
 
@@ -963,22 +935,6 @@ public class CanvasWorldRenderer {
 
 	//	private static final Direction[] DIRECTIONS = Direction.values();
 
-	public int completedRegionCount() {
-		int result = 0;
-		final BuiltRenderRegion[] visibleRegions = this.visibleRegions;
-		final int limit = visibleRegionCount;
-
-		for (int i = 0; i < limit; i++) {
-			final BuiltRenderRegion region = visibleRegions[i];
-
-			if (!region.solidDrawable().isClosed() || !region.translucentDrawable().isClosed()) {
-				++result;
-			}
-		}
-
-		return result;
-	}
-
 	public CanvasFrustum frustum() {
 		return frustum;
 	}
@@ -1074,6 +1030,88 @@ public class CanvasWorldRenderer {
 		return true;
 	}
 
+
+	public void scheduleRegionRender(int x, int y, int z, boolean urgent) {
+		regionStorage().scheduleRebuild(x << 4, y << 4, z << 4, urgent);
+		forceVisibilityUpdate();
+	}
+
+	@Override
+	public void render(MatrixStack matrices, float tickDelta, long limitTime, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f matrix4f) {
+		wr.canvas_mc().getProfiler().swap("dynamic_lighting");
+		LambDynLights.get().updateAll(this);
+
+		WorldRenderEvent.BEFORE_WORLD_RENDER.invoker().beforeWorldRender(matrices, tickDelta, limitTime, renderBlockOutline, camera, gameRenderer, lightmapTextureManager, matrix4f);
+		renderWorld(matrices, tickDelta, limitTime, renderBlockOutline, camera, gameRenderer, lightmapTextureManager, matrix4f);
+		WorldRenderEvent.AFTER_WORLD_RENDER.invoker().afterWorldRender(matrices, tickDelta, limitTime, renderBlockOutline, camera, gameRenderer, lightmapTextureManager, matrix4f);
+	}
+
+	@Override
+	public void reload() {
+		super.reload();
+
+		computeDistances();
+		terrainIterator.reset();
+		terrainSetupOffThread = Configurator.terrainSetupOffThread;
+		regionsToRebuild.clear();
+		if (regionBuilder != null) {
+			regionBuilder.reset();
+		}
+		renderRegionStorage.clear();
+		terrainOccluder.invalidate();
+		visibleRegionCount = 0;
+	}
+
+	@Override
+	public boolean isTerrainRenderComplete() {
+		return regionsToRebuild.isEmpty() && regionBuilder.isEmpty() && regionDataVersion.get() == lastRegionDataVersion;
+	}
+
+	@Override
+	public int getCompletedChunkCount() {
+		int result = 0;
+		final BuiltRenderRegion[] visibleRegions = this.visibleRegions;
+		final int limit = visibleRegionCount;
+
+		for (int i = 0; i < limit; i++) {
+			final BuiltRenderRegion region = visibleRegions[i];
+
+			if (!region.solidDrawable().isClosed() || !region.translucentDrawable().isClosed()) {
+				++result;
+			}
+		}
+
+		return result;
+	}
+
+	@Override
+	public void setWorld(@Nullable ClientWorld clientWorld) {
+		// happens here to avoid creating before renderer is initialized
+		if (regionBuilder == null) {
+			regionBuilder = new RenderRegionBuilder();
+		}
+
+		DitherTexture.instance().initializeIfNeeded();
+		world = clientWorld;
+		visibleRegionCount = 0;
+		renderRegionStorage.clear();
+		Arrays.fill(visibleRegions, null);
+		terrainIterator.reset();
+		renderRegionStorage.clear();
+		Arrays.fill(terrainIterator.visibleRegions, null);
+
+		// Mixins mostly disable what this does
+		super.setWorld(clientWorld);
+	}
+
+	@Override
+	@SuppressWarnings("resource")
+	public String getChunksDebugString() {
+		final int len = regionStorage().regionCount();
+		final int count = getCompletedChunkCount();
+		final RenderRegionBuilder chunkBuilder = regionBuilder();
+		return String.format("C: %d/%d %sD: %d, %s", count, len, wr.canvas_mc().chunkCullingEnabled ? "(s) " : "", wr.canvas_renderDistance(), chunkBuilder == null ? "null" : chunkBuilder.getDebugString());
+	}
 
 	private static CanvasWorldRenderer instance;
 

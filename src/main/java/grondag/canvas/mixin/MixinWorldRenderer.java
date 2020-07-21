@@ -17,8 +17,6 @@ package grondag.canvas.mixin;
 import java.util.Set;
 import java.util.SortedSet;
 
-import javax.annotation.Nullable;
-
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
@@ -40,7 +38,6 @@ import net.minecraft.client.render.BufferBuilderStorage;
 import net.minecraft.client.render.Camera;
 import net.minecraft.client.render.FpsSmoother;
 import net.minecraft.client.render.Frustum;
-import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.render.LightmapTextureManager;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
@@ -53,13 +50,10 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Matrix4f;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.mixinterface.WorldRendererExt;
 import grondag.canvas.render.CanvasWorldRenderer;
-import grondag.canvas.terrain.RenderRegionBuilder;
-import grondag.frex.api.event.WorldRenderEvent;
 
 @Mixin(WorldRenderer.class)
 public class MixinWorldRenderer implements WorldRendererExt {
@@ -88,8 +82,6 @@ public class MixinWorldRenderer implements WorldRendererExt {
 	@Shadow private void renderEntity(Entity entity, double d, double e, double f, float g, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider) {}
 	@Shadow private void renderWeather(LightmapTextureManager lightmapTextureManager, float f, double d, double e, double g) {}
 
-	private final CanvasWorldRenderer canvasWorldRenderer = new CanvasWorldRenderer(this);
-
 	private static boolean shouldWarnOnSetupTerrain = true;
 
 	@Inject(at = @At("HEAD"), method = "setupTerrain", cancellable = true)
@@ -101,34 +93,11 @@ public class MixinWorldRenderer implements WorldRendererExt {
 		}
 	}
 
-	@Inject(at = @At("HEAD"), method = "getCompletedChunkCount", cancellable = true)
-	private void onGetCompletedChunkCount(CallbackInfoReturnable<Integer> ci) {
-		ci.setReturnValue(canvasWorldRenderer.completedRegionCount());
-	}
-
 	@Inject(at = @At("HEAD"), method = "renderChunkDebugInfo", cancellable = true)
 	private void onRenderChunkDebugInfo(Camera camera, CallbackInfo ci) {
 		ci.cancel();
 	}
 
-	@Inject(at = @At("HEAD"), method = "setWorld")
-	private void onSetWorld(@Nullable ClientWorld clientWorld, CallbackInfo ci) {
-		canvasWorldRenderer.setWorld(clientWorld);
-	}
-
-	@Inject(at = @At("HEAD"), method = "isTerrainRenderComplete", cancellable = true)
-	private void onIsTerrainRenderComplete(CallbackInfoReturnable<Boolean> ci) {
-		ci.setReturnValue(canvasWorldRenderer.isTerrainRenderComplete());
-	}
-
-	@Inject(at = @At("HEAD"), method = "getChunksDebugString", cancellable = true)
-	private void onGetChunksDebugString(CallbackInfoReturnable<String> ci) {
-		final int len = canvasWorldRenderer.regionStorage().regionCount();
-		final int count = canvasWorldRenderer.completedRegionCount();
-		final RenderRegionBuilder chunkBuilder = canvasWorldRenderer.regionBuilder();
-		final String result = String.format("C: %d/%d %sD: %d, %s", count, len, client.chunkCullingEnabled ? "(s) " : "", renderDistance, chunkBuilder == null ? "null" : chunkBuilder.getDebugString());
-		ci.setReturnValue(result);
-	}
 
 	/**
 	 * @reason performance
@@ -136,18 +105,12 @@ public class MixinWorldRenderer implements WorldRendererExt {
 	 */
 	@Overwrite
 	private void scheduleChunkRender(int x, int y, int z, boolean urgent) {
-		canvasWorldRenderer.regionStorage().scheduleRebuild(x << 4, y << 4, z << 4, urgent);
-		canvasWorldRenderer.forceVisibilityUpdate();
+		((CanvasWorldRenderer)(Object) this).scheduleRegionRender(x, y, z, urgent);
 	}
 
 	@Redirect(method = "reload", at = @At(value = "FIELD", target = "Lnet/minecraft/client/options/GameOptions;viewDistance:I", ordinal = 1))
 	private int onReloadZeroChunkStorage(GameOptions options) {
 		return 0;
-	}
-
-	@Inject(at = @At("RETURN"), method = "reload")
-	private void afterReload(CallbackInfo ci) {
-		canvasWorldRenderer.reload();
 	}
 
 	private static boolean shouldWarnOnRenderLayer = true;
@@ -181,14 +144,6 @@ public class MixinWorldRenderer implements WorldRendererExt {
 			ci.cancel();
 			shouldWarnOnUpdateChunks = false;
 		}
-	}
-
-	@Inject(at = @At("HEAD"), method = "render", cancellable = true)
-	private void render(MatrixStack matrices, float tickDelta, long limitTime, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f matrix4f, CallbackInfo ci) {
-		WorldRenderEvent.BEFORE_WORLD_RENDER.invoker().beforeWorldRender(matrices, tickDelta, limitTime, renderBlockOutline, camera, gameRenderer, lightmapTextureManager, matrix4f);
-		canvasWorldRenderer.renderWorld(matrices, tickDelta, limitTime, renderBlockOutline, camera, gameRenderer, lightmapTextureManager, matrix4f);
-		WorldRenderEvent.AFTER_WORLD_RENDER.invoker().afterWorldRender(matrices, tickDelta, limitTime, renderBlockOutline, camera, gameRenderer, lightmapTextureManager, matrix4f);
-		ci.cancel();
 	}
 
 	@Override

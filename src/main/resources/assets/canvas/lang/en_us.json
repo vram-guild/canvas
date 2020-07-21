@@ -81,6 +81,8 @@
 	"config.canvas.help.enable_vao" : "VAOs improve performance when supported.;Disable if causing problems.",
 	"config.canvas.value.cull_entity_render" : "Better Entity Culling",
 	"config.canvas.help.cull_entity_render" : "Use more accurate logic to decide which entities to render.;Improves framerate in most scenes.",
+	"config.canvas.value.greedy_render_thread" : "Greedy Render Thread",
+	"config.canvas.help.greedy_render_thread" : "When true, render thread does not yield to other threads every frame.;Vanilla behavior is false (yields).",
 	
 	"config.canvas.category.debug" : "Debug",
 	"config.canvas.value.shader_debug" : "Enable Shader Debug Output",
