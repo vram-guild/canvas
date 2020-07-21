@@ -694,6 +694,10 @@ public class CanvasWorldRenderer {
 			fb.beginWrite(false);
 			wr.canvas_renderWeather(lightmapTextureManager, tickDelta, cameraX, cameraY, cameraZ);
 			wr.canvas_renderWorldBorder(camera);
+
+			// litematica overlay uses fabulous buffer so much run before translucent shader
+			MaliLibHolder.litematicaRenderWorldLast.render(matrixStack, mc, tickDelta);
+
 			wr.canvas_transparencyShader().render(tickDelta);
 			mcfb.beginWrite(false);
 		} else {
@@ -701,9 +705,10 @@ public class CanvasWorldRenderer {
 			wr.canvas_renderWeather(lightmapTextureManager, tickDelta, cameraX, cameraY, cameraZ);
 			wr.canvas_renderWorldBorder(camera);
 			RenderSystem.depthMask(true);
+
+			MaliLibHolder.litematicaRenderWorldLast.render(matrixStack, mc, tickDelta);
 		}
 
-		MaliLibHolder.litematicaRenderWorldLast.render(matrixStack, mc, tickDelta);
 		SatinHolder.onWorldRenderedEvent.onWorldRendered(matrixStack, camera, tickDelta, limitTime);
 
 		if (Configurator.enableBufferDebug) {
