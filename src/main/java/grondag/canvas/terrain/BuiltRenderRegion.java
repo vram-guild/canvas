@@ -427,35 +427,30 @@ public class BuiltRenderRegion {
 				final int z = (i >> 8) & 0xF;
 				searchPos.set(xOrigin + x, yOrigin + y, zOrigin + z);
 
-				if (!fluidState.isEmpty()) {
+				final boolean hasFluid = !fluidState.isEmpty();
+				final boolean hasBlock = blockState.getRenderType() != BlockRenderType.INVISIBLE;
+
+				if (hasFluid || hasBlock) {
+					// PERF: allocation, speed
 					matrixStack.push();
 					matrixStack.translate(x + xModelOffset, y + yModelOffset, z + zModelOffset);
 
-					context.tesselateBlock(blockState, searchPos, false, FluidQuadSupplier.get(fluidState.getFluid()), matrixStack);
-
-					matrixStack.pop();
-
-					//					final CompositeMaterial fluidLayer = StandardMaterials.get(RenderLayers.getFluidLayer(fluidState));
-					//					// FEAT: explicit fluid materials/models, make this lookup suck less
-					//					final VertexCollectorImpl fluidBuffer = collectors.get(MaterialState.getDefault(MaterialContext.TERRAIN, fluidLayer.isTranslucent ? ShaderPass.TRANSLUCENT : ShaderPass.SOLID));
-					//
-					//					blockRenderManager.renderFluid(searchPos, region, fluidBuffer, fluidState);
-				}
-
-				if (blockState.getRenderType() != BlockRenderType.INVISIBLE) {
-					matrixStack.push();
-					matrixStack.translate(x + xModelOffset, y + yModelOffset, z + zModelOffset);
-
-					if (blockState.getBlock().getOffsetType() != Block.OffsetType.NONE) {
-						final Vec3d vec3d = blockState.getModelOffset(region, searchPos);
-
-						if (vec3d != Vec3d.ZERO) {
-							matrixStack.translate(vec3d.x, vec3d.y, vec3d.z);
-						}
+					if (hasFluid) {
+						context.tesselateFluid(blockState, searchPos, false, FluidQuadSupplier.get(fluidState.getFluid()), matrixStack);
 					}
 
-					final BakedModel model = blockRenderManager.getModel(blockState);
-					context.tesselateBlock(blockState, searchPos, model.useAmbientOcclusion(), (FabricBakedModel) model, matrixStack);
+					if (hasBlock) {
+						if (blockState.getBlock().getOffsetType() != Block.OffsetType.NONE) {
+							final Vec3d vec3d = blockState.getModelOffset(region, searchPos);
+
+							if (vec3d != Vec3d.ZERO) {
+								matrixStack.translate(vec3d.x, vec3d.y, vec3d.z);
+							}
+						}
+
+						final BakedModel model = blockRenderManager.getModel(blockState);
+						context.tesselateBlock(blockState, searchPos, model.useAmbientOcclusion(), (FabricBakedModel) model, matrixStack);
+					}
 
 					matrixStack.pop();
 				}

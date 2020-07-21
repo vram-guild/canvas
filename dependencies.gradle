@@ -22,6 +22,11 @@ mavenLocal()
 		name = "JitPack"
 		url = "https://jitpack.io"
 	}
+	
+   	maven {
+        name = "AperLambda"
+        url = 'https://aperlambda.github.io/maven'
+    }
 }
 
 dependencies {
@@ -86,4 +91,5 @@ dependencies {
     	transitive = false
     }
  	
+ 	modApi "com.github.lambdaurora:lambdynamiclights:1.2.1"
 }

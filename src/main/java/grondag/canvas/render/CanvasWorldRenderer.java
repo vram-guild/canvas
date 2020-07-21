@@ -15,7 +15,6 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap.Entry;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
-import me.lambdaurora.lambdynlights.LambDynLights;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL21;
 
@@ -70,6 +69,7 @@ import grondag.canvas.buffer.BindStateManager;
 import grondag.canvas.buffer.VboBuffer;
 import grondag.canvas.compat.BborHolder;
 import grondag.canvas.compat.ClothHolder;
+import grondag.canvas.compat.LambDynLightsHolder;
 import grondag.canvas.compat.LitematicaHolder;
 import grondag.canvas.compat.MaliLibHolder;
 import grondag.canvas.compat.SatinHolder;
@@ -1039,7 +1039,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	@Override
 	public void render(MatrixStack matrices, float tickDelta, long limitTime, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f matrix4f) {
 		wr.canvas_mc().getProfiler().swap("dynamic_lighting");
-		LambDynLights.get().updateAll(this);
+		LambDynLightsHolder.updateAll.accept(this);
 
 		WorldRenderEvent.BEFORE_WORLD_RENDER.invoker().beforeWorldRender(matrices, tickDelta, limitTime, renderBlockOutline, camera, gameRenderer, lightmapTextureManager, matrix4f);
 		renderWorld(matrices, tickDelta, limitTime, renderBlockOutline, camera, gameRenderer, lightmapTextureManager, matrix4f);

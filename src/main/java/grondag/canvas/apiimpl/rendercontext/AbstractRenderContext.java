@@ -33,6 +33,7 @@ import net.minecraft.client.util.math.Vector4f;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Matrix4f;
 
+import net.fabricmc.fabric.api.renderer.v1.material.RenderMaterial;
 import net.fabricmc.fabric.api.renderer.v1.mesh.Mesh;
 import net.fabricmc.fabric.api.renderer.v1.mesh.MutableQuadView;
 import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
@@ -64,6 +65,7 @@ public abstract class AbstractRenderContext implements RenderContext {
 	protected Matrix3fExt normalMatrix;
 	protected int overlay;
 	protected MaterialMap materialMap = defaultMap;
+	protected boolean isFluidModel = false;
 
 	private final QuadTransform stackTransform = (q) -> {
 		int i = transformStack.size() - 1;
@@ -88,12 +90,16 @@ public abstract class AbstractRenderContext implements RenderContext {
 	}
 
 	void mapMaterials(MutableQuadView quad) {
-		if (materialMap == defaultMap) {
+		if (isFluidModel || materialMap == defaultMap) {
 			return;
 		}
 
 		final Sprite sprite = materialMap.needsSprite() ? spriteFinder.find(quad, 0) : null;
-		quad.material(materialMap.getMapped(sprite));
+		final RenderMaterial mapped = materialMap.getMapped(sprite);
+
+		if (mapped != null) {
+			quad.material(mapped);
+		}
 	}
 
 	@Override
