@@ -113,6 +113,9 @@ public class Configurator {
 		@Comment("When true, render thread does not yield to other threads every frame. Vanilla behavior is false (yields).")
 		boolean greedyRenderThread = true;
 
+		@Comment("Use more efficient model loading. Improves chunk rebuild speed and reduces memory use.")
+		boolean forceJmxModelLoading = true;
+
 		// DEBUG
 		@Comment("Output runtime per-material shader source. For shader development debugging.")
 		boolean shaderDebug = false;
@@ -179,6 +182,7 @@ public class Configurator {
 	private static boolean enableVao = DEFAULTS.enableVao;
 	public static boolean cullEntityRender = DEFAULTS.cullEntityRender;
 	public static boolean greedyRenderThread = DEFAULTS.greedyRenderThread;
+	public static boolean forceJmxModelLoading = DEFAULTS.forceJmxModelLoading;
 
 	public static boolean shaderDebug = DEFAULTS.shaderDebug;
 	public static boolean lightmapDebug = DEFAULTS.lightmapDebug;
@@ -254,6 +258,7 @@ public class Configurator {
 		enableVao = config.enableVao;
 		cullEntityRender = config.cullEntityRender;
 		greedyRenderThread = config.greedyRenderThread;
+		forceJmxModelLoading = config.forceJmxModelLoading;
 
 		lightmapDebug = config.lightmapDebug;
 		conciseErrors = config.conciseErrors;
@@ -296,6 +301,7 @@ public class Configurator {
 		config.enableVao = enableVao;
 		config.cullEntityRender = cullEntityRender;
 		config.greedyRenderThread = greedyRenderThread;
+		config.forceJmxModelLoading = forceJmxModelLoading;
 
 		config.lightmapDebug = lightmapDebug;
 		config.conciseErrors = conciseErrors;
@@ -563,6 +569,14 @@ public class Configurator {
 				.setSaveConsumer(b -> {greedyRenderThread = b;})
 				.build());
 
+		tweaks.addEntry(ENTRY_BUILDER
+				.startBooleanToggle(new TranslatableText("config.canvas.value.force_jmx_loading"), forceJmxModelLoading)
+				.setDefaultValue(DEFAULTS.forceJmxModelLoading)
+				.setTooltip(parse("config.canvas.help.force_jmx_loading"))
+				.setSaveConsumer(b -> {forceJmxModelLoading = b;})
+				.build());
+
+
 		// DEBUG
 		final ConfigCategory debug = builder.getOrCreateCategory(new TranslatableText("config.canvas.category.debug"));
 
@@ -657,8 +671,6 @@ public class Configurator {
 	//    @Comment({"Enable fancy water and lava rendering.",
 	//        " This feature is currently work in progress and has no visible effect if enabled."})
 	public static boolean fancyFluids = false;
-
-	public static boolean forceJmxModelLoading = true;
 
 
 	//    @LangKey("config.disable_yield")
