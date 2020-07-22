@@ -37,6 +37,7 @@ import net.minecraft.item.Items;
 import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
 
 import grondag.canvas.apiimpl.rendercontext.ItemRenderContext;
+import grondag.canvas.compat.SimpleDrawersHolder;
 
 @Mixin(ItemRenderer.class)
 public abstract class MixinItemRenderer {
@@ -47,6 +48,8 @@ public abstract class MixinItemRenderer {
 
 	@Inject(at = @At("HEAD"), method = "renderItem(Lnet/minecraft/item/ItemStack;Lnet/minecraft/client/render/model/json/ModelTransformation$Mode;ZLnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;IILnet/minecraft/client/render/model/BakedModel;)V", cancellable = true)
 	private void onRenderItem(ItemStack stack, ModelTransformation.Mode transformMode, boolean invert, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int light, int overlay, BakedModel model, CallbackInfo ci) {
+		model = SimpleDrawersHolder.itemCallbackHandler.onRender(stack, transformMode, invert, model);
+
 		if (!(stack.isEmpty())) {
 			// reproduce vanilla  hard-coded hack for trident
 			final boolean isGuiGroundOrFixed = transformMode == ModelTransformation.Mode.GUI || transformMode == ModelTransformation.Mode.GROUND || transformMode == ModelTransformation.Mode.FIXED;
