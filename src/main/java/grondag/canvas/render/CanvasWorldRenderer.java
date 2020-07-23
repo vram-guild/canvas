@@ -69,6 +69,7 @@ import grondag.canvas.buffer.BindStateManager;
 import grondag.canvas.buffer.VboBuffer;
 import grondag.canvas.compat.BborHolder;
 import grondag.canvas.compat.ClothHolder;
+import grondag.canvas.compat.JustMapHolder;
 import grondag.canvas.compat.LambDynLightsHolder;
 import grondag.canvas.compat.LitematicaHolder;
 import grondag.canvas.compat.MaliLibHolder;
@@ -632,6 +633,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			CanvasFrameBufferHacks.applyBloom();
 		}
 
+		JustMapHolder.justMapRender.renderWaypoints(matrixStack, mc, camera, tickDelta);
 		LitematicaHolder.litematicaRenderTranslucent.accept(matrixStack);
 		LitematicaHolder.litematicaRenderOverlay.accept(matrixStack);
 
