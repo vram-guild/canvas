@@ -5,11 +5,7 @@ import com.google.common.base.Strings;
 import grondag.canvas.terrain.occlusion.region.OcclusionBitPrinter;
 
 public class Area {
-	final int areaKey;
-	public final int x0;
-	public final int y0;
-	public final int x1;
-	public final int y1;
+	public final int areaKey;
 	public final int areaSize;
 	public final int edgeCount;
 	public final long areaHash;
@@ -72,10 +68,10 @@ public class Area {
 	public Area(int rectKey, int index) {
 		areaKey = rectKey;
 		this.index = index;
-		x0 = AreaUtil.x0(rectKey);
-		y0 = AreaUtil.y0(rectKey);
-		x1 = AreaUtil.x1(rectKey);
-		y1 = AreaUtil.y1(rectKey);
+		final int x0 = AreaUtil.x0(rectKey);
+		final int y0 = AreaUtil.y0(rectKey);
+		final int x1 = AreaUtil.x1(rectKey);
+		final int y1 = AreaUtil.y1(rectKey);
 
 		final int x = x1 - x0 + 1;
 		final int y = y1 - y0 + 1;
@@ -92,6 +88,11 @@ public class Area {
 	}
 
 	private void populateBits() {
+		final int x0 = AreaUtil.x0(areaKey);
+		final int y0 = AreaUtil.y0(areaKey);
+		final int x1 = AreaUtil.x1(areaKey);
+		final int y1 = AreaUtil.y1(areaKey);
+
 		for (int x = x0; x <= x1; x++) {
 			for (int y = y0; y <= y1; y++) {
 				final int key = (y << 4) | x;

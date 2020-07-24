@@ -7,9 +7,14 @@ import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 public class AreaFinder {
-	private static final Area[] AREA;
+	@Deprecated
+	private static final Area[] AREA_BY_INDEX;
 
+	@Deprecated
 	private static final Area[] AREA_BY_KEY = new Area[0x10000];
+
+	private static final int[] AREA_KEY_TO_INDEX = new int[0x10000];
+	private static final int[] AREA_INDEX_TO_KEY;
 
 	public static final int AREA_COUNT;
 
@@ -20,7 +25,7 @@ public class AreaFinder {
 	//private static final ConcurrentMicroTimer timer = new ConcurrentMicroTimer("AreaFinder.find", 10000);
 
 	public Area get(int index) {
-		return AREA[index];
+		return AREA_BY_INDEX[index];
 	}
 
 	public Area getSection(int sectionIndex) {
@@ -48,16 +53,18 @@ public class AreaFinder {
 		}
 
 		AREA_COUNT = areas.size();
+		AREA_INDEX_TO_KEY = new int[AREA_COUNT];
 
-		AREA = new Area[AREA_COUNT];
+
+		AREA_BY_INDEX = new Area[AREA_COUNT];
 
 		int i = 0;
 
 		for(final int k : areas) {
-			AREA[i++] = new Area(k, 0);
+			AREA_BY_INDEX[i++] = new Area(k, 0);
 		}
 
-		Arrays.sort(AREA, (a, b) -> {
+		Arrays.sort(AREA_BY_INDEX, (a, b) -> {
 			final int result = Integer.compare(b.areaSize, a.areaSize);
 
 			// within same area size, prefer more compact rectangles
@@ -66,16 +73,21 @@ public class AreaFinder {
 
 		// PERF: minor, but sort keys instead array to avoid extra alloc at startup
 		for (int j = 0; j < AREA_COUNT; j++) {
-			final Area a = new Area(AREA[j].areaKey, j);
-			AREA[j] = a;
+			final Area a = new Area(AREA_BY_INDEX[j].areaKey, j);
+			AREA_BY_INDEX[j] = a;
 			AREA_BY_KEY[a.areaKey] = a;
+
+			AREA_INDEX_TO_KEY[j] = a.areaKey;
+			AREA_KEY_TO_INDEX[a.areaKey] = j;
 		}
 
 		final ObjectArrayList<Area> sections = new ObjectArrayList<>();
 
-		for (final Area a : AREA) {
-			if ((a.x0 == 0  &&  a.x1 == 15) || (a.y0 == 0  &&  a.y1 == 15)) {
-				sections.add(a);
+		for (int j = 0; j < AREA_COUNT; ++j) {
+			final int a = AREA_INDEX_TO_KEY[j];
+
+			if ((AreaUtil.x0(a) == 0  &&  AreaUtil.x1(a) == 15) || (AreaUtil.y0(a) == 0  &&  AreaUtil.y1(a) == 15)) {
+				sections.add(AREA_BY_INDEX[j]);
 			}
 		}
 

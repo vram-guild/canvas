@@ -10,6 +10,7 @@ import it.unimi.dsi.fastutil.longs.LongArrayList;
 
 import grondag.canvas.terrain.occlusion.region.area.Area;
 import grondag.canvas.terrain.occlusion.region.area.AreaFinder;
+import grondag.canvas.terrain.occlusion.region.area.AreaUtil;
 
 public class BoxFinder {
 	final long[] source = new long[INTERIOR_CACHE_WORDS];
@@ -70,11 +71,12 @@ public class BoxFinder {
 
 		for (int i = 1; i < AreaFinder.SECTION_COUNT; ++i) {
 			final Area area  =  areaFinder.getSection(i);
+			final int a = area.areaKey;
 			final int slice = areaSlices[area.index];
 
 			if (slice == 0xFFFF) {
-				final int dy = (area.y1 - area.y0 + 1);
-				final int dx = (area.x1 - area.x0 + 1);
+				final int dy = (AreaUtil.y1(a) - AreaUtil.y0(a) + 1);
+				final int dx = (AreaUtil.x1(a) - AreaUtil.x0(a) + 1);
 				final long vol = (dx * dy * 16);
 				sortedBoxes.add((vol << 34) | (area.index << 10) | (16 << 5) | 0);
 			}
@@ -158,14 +160,19 @@ public class BoxFinder {
 	private void addBoxesFromSlice(Area area, int slice) {
 		int z0 = -1;
 		int mask = 1;
+		final int a = area.areaKey;
+		final int x0 = AreaUtil.x0(a);
+		final int y0 = AreaUtil.y0(a);
+		final int x1 = AreaUtil.x1(a);
+		final int y1 = AreaUtil.y1(a);
 
 		for (int z = 0; z < 16; z++) {
 			if((slice & mask) == 0) {
 				// no bit, end run if started
 				if(z0 != -1) {
 					final int dz = (z - z0);
-					final int dy = (area.y1 - area.y0 + 1);
-					final int dx = (area.x1 - area.x0 + 1);
+					final int dy = (y1 - y0 + 1);
+					final int dx = (x1 - x0 + 1);
 					final long vol = dx * dy * dz;
 					sortedBoxes.add((vol << 34) | (area.index << 10) | (z << 5) | z0);
 					z0 = -1;
@@ -183,8 +190,8 @@ public class BoxFinder {
 		// handle case when run extends to last bit
 		if (z0 != -1)  {
 			final int dz = (16 - z0);
-			final int dy = (area.y1 - area.y0 + 1);
-			final int dx = (area.x1 - area.x0 + 1);
+			final int dy = (y1 - y0 + 1);
+			final int dx = (x1 - x0 + 1);
 			final long vol = dx * dy * dz;
 
 			sortedBoxes.add((vol << 34) | (area.index << 10) | (16 << 5) | z0);
@@ -235,12 +242,14 @@ public class BoxFinder {
 		for (int i = 0; i < limit; i++) {
 			final long box = sortedBoxes.getLong(i);
 			final Area area = areaFinder.get((int) (box >> 10) & 0xFFFFFF);
+			final int a = area.areaKey;
+
 			final int z0 = (int) box & 31;
 			final int z1 = (int) (box >> 5) & 31;
 
 			if (isAdditive(area, z0, z1)) {
 				fill(area, z0, z1);
-				boxes.add(PackedBox.pack(area.x0, area.y0, z0, area.x1 + 1, area.y1 + 1, z1, PackedBox.RANGE_EXTREME));
+				boxes.add(PackedBox.pack(AreaUtil.x0(a), AreaUtil.y0(a), z0, AreaUtil.x1(a) + 1, AreaUtil.y1(a) + 1, z1, PackedBox.RANGE_EXTREME));
 			}
 		}
 	}
@@ -254,13 +263,14 @@ public class BoxFinder {
 		for (int i = 0; i < limit; i++) {
 			final long box = sortedBoxes.getLong(i);
 			final Area area = areaFinder.get((int) (box >> 10) & 0xFFFFFF);
+			final int a = area.areaKey;
 			final int z0 = (int) box & 31;
 			final int z1 = (int) (box >> 5) & 31;
 
 			if (!intersects(area, z0, z1)) {
 				fill(area, z0, z1);
 				final int vol = (int) (box >>> 34);
-				boxes.add(PackedBox.pack(area.x0, area.y0, z0, area.x1 + 1, area.y1 + 1, z1, rangeFromVolume(vol)));
+				boxes.add(PackedBox.pack(AreaUtil.x0(a), AreaUtil.y0(a), z0, AreaUtil.x1(a) + 1, AreaUtil.y1(a) + 1, z1, rangeFromVolume(vol)));
 				voxelCount -= vol;
 
 				if (voxelCount == 0) {
