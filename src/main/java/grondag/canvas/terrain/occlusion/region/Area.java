@@ -70,10 +70,10 @@ public class Area {
 	public Area(int rectKey, int index) {
 		areaKey = rectKey;
 		this.index = index;
-		x0 = rectKey & 31;
-		y0 = (rectKey >> 5) & 31;
-		x1 = (rectKey >> 10) & 31;
-		y1 = (rectKey >> 15) & 31;
+		x0 = AreaUtil.x0(rectKey);
+		y0 = AreaUtil.y0(rectKey);
+		x1 = AreaUtil.x1(rectKey);
+		y1 = AreaUtil.y1(rectKey);
 
 		final int x = x1 - x0 + 1;
 		final int y = y1 - y0 + 1;

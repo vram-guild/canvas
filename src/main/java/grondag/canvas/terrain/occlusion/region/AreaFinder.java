@@ -6,10 +6,10 @@ import java.util.function.Consumer;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
-import grondag.canvas.perf.ConcurrentMicroTimer;
-
 public class AreaFinder {
 	private static final Area[] AREA;
+
+	private static final Area[] AREA_BY_KEY = new Area[0x10000];
 
 	public static final int AREA_COUNT;
 
@@ -17,7 +17,7 @@ public class AreaFinder {
 
 	public static final int SECTION_COUNT;
 
-	private static final ConcurrentMicroTimer timer = new ConcurrentMicroTimer("AreaFinder.find", 10000);
+	//private static final ConcurrentMicroTimer timer = new ConcurrentMicroTimer("AreaFinder.find", 10000);
 
 	public Area get(int index) {
 		return AREA[index];
@@ -66,7 +66,9 @@ public class AreaFinder {
 
 		// PERF: minor, but sort keys instead array to avoid extra alloc at startup
 		for (int j = 0; j < AREA_COUNT; j++) {
-			AREA[j] = new Area(AREA[j].areaKey, j);
+			final Area a = new Area(AREA[j].areaKey, j);
+			AREA[j] = a;
+			AREA_BY_KEY[a.areaKey] = a;
 		}
 
 		final ObjectArrayList<Area> sections = new ObjectArrayList<>();
@@ -90,8 +92,12 @@ public class AreaFinder {
 	//	[12:21:20] [Canvas Render Thread - 4/INFO] (Canvas) Avg AreaFinder.find duration = 128,970 ns, total duration = 1,289, total runs = 10,000
 	//	[12:21:32] [Canvas Render Thread - 2/INFO] (Canvas) Avg AreaFinder.find duration = 117,787 ns, total duration = 1,177, total runs = 10,000
 
+	//	[21:29:06] [Canvas Render Thread - 4/INFO] (Canvas) Avg AreaFinder.find duration = 2,459 ns, total duration = 24, total runs = 10,000
+	//	[21:29:08] [Canvas Render Thread - 4/INFO] (Canvas) Avg AreaFinder.find duration = 3,512 ns, total duration = 35, total runs = 10,000
+	//	[21:29:15] [Canvas Render Thread - 2/INFO] (Canvas) Avg AreaFinder.find duration = 2,721 ns, total duration = 27, total runs = 10,000
+	//	[21:29:22] [Canvas Render Thread - 2/INFO] (Canvas) Avg AreaFinder.find duration = 3,087 ns, total duration = 30, total runs = 10,000
 	public void find(long[] bitsIn, int sourceIndex, Consumer<Area> consumer) {
-		timer.start();
+		//		timer.start();
 
 		areas.clear();
 		final long[] bits = this.bits;
@@ -99,40 +105,15 @@ public class AreaFinder {
 
 		int bitCount = bitCount(bits[0]) +  bitCount(bits[1]) +  bitCount(bits[2]) +  bitCount(bits[3]);
 
-		if (bitCount == 0) {
-			return;
+		while(bitCount > 0) {
+			final int key = findLargest(bits);
+			final Area a = AREA_BY_KEY[key];
+			consumer.accept(a);
+			a.clearBits(bits, 0);
+			bitCount -= a.areaSize;
 		}
 
-		final long hash = AreaUtil.areaHash(bits);
-
-		final Area[] all = AREA;
-
-		for (int i = 0; i < AREA_COUNT; ++i) {
-			final Area r = all[i];
-
-			if (r.matchesHash(hash) && r.isIncludedBySample(bits, 0)) {
-				final int l = findLargest(bits);
-				if (r.areaSize != AreaUtil.size(l)) {
-					System.out.println();
-					OcclusionBitPrinter.printShape(bits, 0);
-					System.out.println();
-					AreaUtil.printArea(r.areaKey);
-					System.out.println();
-					AreaUtil.printArea(l);
-					findLargest(bits);
-				}
-
-				consumer.accept(r);
-				r.clearBits(bits, 0);
-				bitCount -= r.areaSize;
-
-				if (bitCount == 0) {
-					break;
-				}
-			}
-		}
-
-		timer.stop();
+		//		timer.stop();
 	}
 
 	private static int bitCount(long bits) {
@@ -159,6 +140,10 @@ public class AreaFinder {
 		}
 	}
 
+	// based on approach described here:
+	// 	https://stackoverflow.com/a/7497967
+	// 	https://stackoverflow.com/a/7773870
+	//  https://www.drdobbs.com/database/the-maximal-rectangle-problem/184410529
 	public int findLargest(long[] bitsIn) {
 		int bestX0 = 0;
 		int bestY0 = 0;
@@ -266,131 +251,25 @@ public class AreaFinder {
 		return AreaUtil.areaKey(bestX0, bestY0, bestX1, bestY1);
 	}
 
+	/** 1-16 values */
 	private static int getVal16(long packed, int x) {
 		return 1 + getVal15(packed, x);
 	}
 
+	/** 1-16 values */
 	private static long setVal16(long packed, int x, int val) {
-		assert val >= 1;
-		assert val <= 16;
 		return setVal15(packed, x, val -1);
 	}
 
+	/** 0-15 values */
 	private static int getVal15(long packed, int x) {
 		return (int) ((packed >>> (x << 2)) & 0xF);
 	}
 
+	/** 0-15 values */
 	private static long setVal15(long packed, int x, int val) {
-		assert val >= 0;
-		assert val <= 15;
 		final int shift = x << 2;
 		final long mask = 0xFL << shift;
-
-		//TODO: remove
-		final long result = (packed & ~mask) | (((long) val) << shift);
-		assert getVal15(result, x) == val;
-
 		return (packed & ~mask) | (((long) val) << shift);
 	}
-
-
-	//	private final int[] slices = new int[16];
-	//	private final int cache[] = new int[16];
-	//	private final IntArrayList stack = new IntArrayList();
-	//
-	//	public int findLargestOld(long[] bitsIn) {
-	//		final int[] slices = this.slices;
-	//		final int[] cache = this.cache;
-	//
-	//		for (int i = 0; i < 16; ++i) {
-	//			cache[i] = 0;
-	//		}
-	//
-	//		final long b0 = bitsIn[0];
-	//		slices[0] = (int) (b0 & 0xFFFF);
-	//		slices[1] = (int) ((b0 >> 16) & 0xFFFF);
-	//		slices[2] = (int) ((b0 >> 32) & 0xFFFF);
-	//		slices[3] = (int) ((b0 >> 48) & 0xFFFF);
-	//
-	//		final long b1 = bitsIn[1];
-	//		slices[4] = (int) (b1 & 0xFFFF);
-	//		slices[5] = (int) ((b1 >> 16) & 0xFFFF);
-	//		slices[6] = (int) ((b1 >> 32) & 0xFFFF);
-	//		slices[7] = (int) ((b1 >> 48) & 0xFFFF);
-	//
-	//		final long b2 = bitsIn[2];
-	//		slices[8] = (int) (b2 & 0xFFFF);
-	//		slices[9] = (int) ((b2 >> 16) & 0xFFFF);
-	//		slices[10] = (int) ((b2 >> 32) & 0xFFFF);
-	//		slices[11] = (int) ((b2 >> 48) & 0xFFFF);
-	//
-	//		final long b3 = bitsIn[3];
-	//		slices[12] = (int) (b3 & 0xFFFF);
-	//		slices[13] = (int) ((b3 >> 16) & 0xFFFF);
-	//		slices[14] = (int) ((b3 >> 32) & 0xFFFF);
-	//		slices[15] = (int) ((b3 >> 48) & 0xFFFF);
-	//
-	//		int bestX0 = 0;
-	//		int bestY0 = 0;
-	//
-	//		int bestX1 = -1;
-	//		int bestY1 = -1;
-	//
-	//		int bestArea = 0;
-	//
-	//		for (int y = 15; y >= 0; --y) {
-	//			updateCache(slices[y]);
-	//			int width = 0; // Width of widest opened rectangle
-	//
-	//			for (int x = 0; x < 16; ++x) {
-	//				if (cache[x]> width) { // Opening new rectangle(s)?
-	//					stack.push(x | (width << 16));
-	//					width = cache[x];
-	//				} else if (cache[x] < width) { // Closing rectangle(s)?
-	//					while (!stack.isEmpty()) {
-	//						final int val = stack.popInt();
-	//						final int x0 = val & 0xFFFF;
-	//						final int w0 = (val >>> 16) & 0xFFFF;
-	//
-	//						if (width * (x - x0) > bestArea) {
-	//							bestX0 = x0;
-	//							bestY0 = y;
-	//
-	//							bestX1 = x - 1;
-	//							bestY1 = y + width - 1;
-	//							width = w0;
-	//
-	//							bestArea = (bestX1 - bestX0 + 1) * (bestY1 - bestY0 +1);
-	//						}
-	//
-	//						if (cache[x] >= width) {
-	//							break;
-	//						}
-	//					}
-	//
-	//					width = cache[x];
-	//
-	//					if (width != 0) {
-	//						// Popped an active "opening"?
-	//						stack.push(x | (width << 16));
-	//					}
-	//				}
-	//			}
-	//		}
-	//
-	//		return AreaUtil.areaKey(bestX0, bestY0, bestX1, bestY1);
-	//	}
-
-	//	private void updateCache(int slice) {
-	//		final int[] cache = this.cache;
-	//		for (int x = 0; x < 16; ++x) {
-	//			final int mask = 1 << x;
-	//			if ((slice & mask) != 0) {
-	//				cache[x]++;
-	//			} else {
-	//				cache[x] = 0;
-	//			}
-	//		}
-	//	}
-
 }

@@ -3,23 +3,23 @@ package grondag.canvas.terrain.occlusion.region;
 public class AreaUtil {
 
 	public static int areaKey(int x0, int y0, int x1, int y1) {
-		return x0 | (y0 << 5) | (x1 << 10) | (y1 << 15);
+		return x0 | (y0 << 4) | (x1 << 8) | (y1 << 12);
 	}
 
 	public static int x0(int areaKey) {
-		return areaKey & 31;
+		return areaKey & 15;
 	}
 
 	public static int y0(int areaKey) {
-		return (areaKey >> 5) & 31;
+		return (areaKey >> 4) & 15;
 	}
 
 	public static int x1(int areaKey) {
-		return (areaKey >> 10) & 31;
+		return (areaKey >> 8) & 15;
 	}
 
 	public static int y1(int areaKey) {
-		return (areaKey >> 15) & 31;
+		return (areaKey >> 12) & 15;
 	}
 
 	public static int size(int areaKey) {
