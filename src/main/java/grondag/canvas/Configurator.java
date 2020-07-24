@@ -436,7 +436,7 @@ public class Configurator {
 		features.addEntry(ENTRY_BUILDER
 				.startBooleanToggle(new TranslatableText("config.canvas.value.wavy_grass"), wavyGrass)
 				.setDefaultValue(DEFAULTS.wavyGrass)
-				.setTooltip(parse("config.canvas.help.wavyGrass"))
+				.setTooltip(parse("config.canvas.help.wavy_grass"))
 				.setSaveConsumer(b -> {reload |= wavyGrass != b; wavyGrass = b;})
 				.build());
 
