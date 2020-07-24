@@ -87,13 +87,7 @@ dependencies {
 		include "grondag:jmx-${project.mc_tag}:${project.jmx_version}.+"
  	}
  	
- 	modApi ("com.github.Ladysnake:Satin:${satin_version}") {
+ 	modImplementation ("com.github.Ladysnake:Satin:${satin_version}") {
     	transitive = false
-    }
- 	
- 	modApi ("com.github.lambdaurora:lambdynamiclights:1.2.1") {
-        exclude group :"me.jellysquid.mods"
-        exclude group :"net.fabricmc.fabric-api"
-        exclude group :"net.fabricmc.fabric-loader"
     }
 }
