@@ -4,7 +4,6 @@ import grondag.canvas.terrain.occlusion.region.OcclusionBitPrinter;
 
 public class Area {
 	public final int areaKey;
-	public final int areaSize;
 	public final int edgeCount;
 	public final int index;
 
@@ -68,7 +67,6 @@ public class Area {
 
 		final int x = x1 - x0 + 1;
 		final int y = y1 - y0 + 1;
-		areaSize = x * y;
 		edgeCount =  x + y;
 
 		populateBits();

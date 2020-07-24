@@ -154,7 +154,7 @@ public class PlaneFinder {
 		for (int i = 0; i < AreaFinder.AREA_COUNT; ++i) {
 			final Area a = areas.get(i);
 
-			if (a.areaSize < 16) {
+			if (AreaUtil.size(a.areaKey) < 16) {
 				return;
 			}
 
@@ -184,7 +184,7 @@ public class PlaneFinder {
 
 			if (d != -1) {
 				planes.add(planeFunc.apply(a.areaKey, d));
-				openCount -= a.areaSize;
+				openCount -= AreaUtil.size(a.areaKey);
 
 				if (openCount < 16) {
 					return;

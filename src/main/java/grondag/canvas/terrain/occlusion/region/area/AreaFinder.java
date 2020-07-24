@@ -65,7 +65,7 @@ public class AreaFinder {
 		}
 
 		Arrays.sort(AREA_BY_INDEX, (a, b) -> {
-			final int result = Integer.compare(b.areaSize, a.areaSize);
+			final int result = Integer.compare(AreaUtil.size(b.areaKey), AreaUtil.size(a.areaKey));
 
 			// within same area size, prefer more compact rectangles
 			return result == 0 ? Integer.compare(a.edgeCount, b.edgeCount) : result;
@@ -122,7 +122,7 @@ public class AreaFinder {
 			final Area a = AREA_BY_KEY[key];
 			consumer.accept(a);
 			a.clearBits(bits, 0);
-			bitCount -= a.areaSize;
+			bitCount -= AreaUtil.size(a.areaKey);
 		}
 
 		//		timer.stop();
