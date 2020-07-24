@@ -6,77 +6,92 @@ public class Area {
 	public final int areaKey;
 	public final int index;
 
-	private final long[] bits = new long[4];
-
 	public boolean isIncludedBySample(long[] sample, int sampleStart) {
-		final long[] myBits = bits;
+		final long template = bits(areaKey, 0);
+		final long template1 = bits(areaKey, 1);
+		final long template2 = bits(areaKey, 2);
+		final long template3 = bits(areaKey, 3);
 
-		return AreaUtil.sampleIncludes(myBits[0], sample[sampleStart])
-				&& AreaUtil.sampleIncludes(myBits[1], sample[sampleStart + 1])
-				&& AreaUtil.sampleIncludes(myBits[2], sample[sampleStart + 2])
-				&& AreaUtil.sampleIncludes(myBits[3], sample[sampleStart + 3]);
+		return (template & sample[sampleStart]) == template
+				&& (template1 & sample[sampleStart + 1]) == template1
+				&& (template2 & sample[sampleStart + 2]) == template2
+				&& (template3 & sample[sampleStart + 3]) == template3;
 	}
 
 	public boolean intersects(Area other) {
-		final long[] myBits = bits;
-		final long[] otherBits = other.bits;
-		return (myBits[0] & otherBits[0]) != 0
-				|| (myBits[1] & otherBits[1]) != 0
-				|| (myBits[2] & otherBits[2]) != 0
-				|| (myBits[3] & otherBits[3]) != 0;
+		return (bits(areaKey, 0) & bits(other.areaKey, 0)) != 0
+				|| (bits(areaKey, 1) & bits(other.areaKey, 1)) != 0
+				|| (bits(areaKey, 2) & bits(other.areaKey, 2)) != 0
+				|| (bits(areaKey, 3) & bits(other.areaKey, 3)) != 0;
 	}
 
 	public boolean intersectsWithSample(long[] sample, int sampleStart) {
-		final long[] myBits = bits;
-		return (myBits[0] & sample[sampleStart]) != 0
-				|| (myBits[1] & sample[++sampleStart]) != 0
-				|| (myBits[2] & sample[++sampleStart]) != 0
-				|| (myBits[3] & sample[++sampleStart]) != 0;
+		return (bits(areaKey, 0) & sample[sampleStart]) != 0
+				|| (bits(areaKey, 1) & sample[++sampleStart]) != 0
+				|| (bits(areaKey, 2) & sample[++sampleStart]) != 0
+				|| (bits(areaKey, 3) & sample[++sampleStart]) != 0;
 	}
 
 	public boolean isAdditive(long[] sample, int sampleStart) {
-		final long[] myBits = bits;
-		return (myBits[0] | sample[sampleStart]) != sample[sampleStart]
-				|| (myBits[1] | sample[++sampleStart]) != sample[sampleStart]
-						|| (myBits[2] | sample[++sampleStart]) != sample[sampleStart]
-								|| (myBits[3] | sample[++sampleStart]) != sample[sampleStart];
+		return (bits(areaKey, 0) | sample[sampleStart]) != sample[sampleStart]
+				|| (bits(areaKey, 1) | sample[++sampleStart]) != sample[sampleStart]
+						|| (bits(areaKey, 2) | sample[++sampleStart]) != sample[sampleStart]
+								|| (bits(areaKey, 3) | sample[++sampleStart]) != sample[sampleStart];
 	}
 
 	public void setBits(long[] targetBits, int startIndex) {
-		targetBits[startIndex] |= bits[0];
-		targetBits[++startIndex] |= bits[1];
-		targetBits[++startIndex] |= bits[2];
-		targetBits[++startIndex] |= bits[3];
+		targetBits[startIndex] |= bits(areaKey, 0);
+		targetBits[++startIndex] |= bits(areaKey, 1);
+		targetBits[++startIndex] |= bits(areaKey, 2);
+		targetBits[++startIndex] |= bits(areaKey, 3);
 	}
 
 	public void clearBits(long[] targetBits, int startIndex) {
-		targetBits[startIndex] &= ~bits[0];
-		targetBits[++startIndex] &= ~bits[1];
-		targetBits[++startIndex] &= ~bits[2];
-		targetBits[++startIndex] &= ~bits[3];
+		targetBits[startIndex] &= ~bits(areaKey, 0);
+		targetBits[++startIndex] &= ~bits(areaKey, 1);
+		targetBits[++startIndex] &= ~bits(areaKey, 2);
+		targetBits[++startIndex] &= ~bits(areaKey, 3);
 	}
 
 	public Area(int rectKey, int index) {
 		areaKey = rectKey;
 		this.index = index;
-		populateBits();
 	}
 
-	private void populateBits() {
-		final int x0 = AreaUtil.x0(areaKey);
-		final int y0 = AreaUtil.y0(areaKey);
-		final int x1 = AreaUtil.x1(areaKey);
-		final int y1 = AreaUtil.y1(areaKey);
+	private static int rowMask(int areaKey) {
+		return (0xFFFF << AreaUtil.x0(areaKey)) & (0xFFFF >> (15 - AreaUtil.x1(areaKey)));
+	}
 
-		for (int x = x0; x <= x1; x++) {
-			for (int y = y0; y <= y1; y++) {
-				final int key = (y << 4) | x;
-				bits[key >> 6] |= (1L << (key & 63));
-			}
+	private static long bits(int areaKey, int y) {
+		final int yMin = y << 2;
+		final int yMax = yMin + 3;
+
+		final int y0 = Math.max(yMin, AreaUtil.y0(areaKey));
+		final int y1 = Math.min(yMax, AreaUtil.y1(areaKey));
+
+		if (y0 > y1) {
+			return 0L;
 		}
+
+		long result = 0;
+		final long mask = rowMask(areaKey);
+
+		final int limit = y1 & 3;
+
+		for (int i = y0 & 3; i <= limit; ++i) {
+			result |= (mask << (i <<4));
+		}
+
+		return result;
 	}
 
 	public void printShape() {
+		final long[] bits = new long[4];
+		bits[0] = bits(areaKey, 0);
+		bits[1] = bits(areaKey, 1);
+		bits[2] = bits(areaKey, 2);
+		bits[3] = bits(areaKey, 3);
+
 		OcclusionBitPrinter.printShape(bits, 0);
 	}
 }

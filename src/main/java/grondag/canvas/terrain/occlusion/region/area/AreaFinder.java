@@ -92,7 +92,6 @@ public class AreaFinder {
 
 		SECTION_COUNT = sections.size();
 		SECTION = sections.toArray(new Area[SECTION_COUNT]);
-
 	}
 
 	final long[] bits = new long[4];
