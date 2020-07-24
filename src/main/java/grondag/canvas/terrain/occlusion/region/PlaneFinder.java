@@ -5,6 +5,9 @@ import static grondag.canvas.terrain.RenderRegionAddressHelper.SLICE_WORD_COUNT;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 
+import grondag.canvas.terrain.occlusion.region.area.Area;
+import grondag.canvas.terrain.occlusion.region.area.AreaFinder;
+
 /**
  * Copies data from a render region and finds occluding rectangles for each axis.<p>
  *

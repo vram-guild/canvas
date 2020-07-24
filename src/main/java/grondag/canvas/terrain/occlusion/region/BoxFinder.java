@@ -8,6 +8,9 @@ import java.util.function.Consumer;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 
+import grondag.canvas.terrain.occlusion.region.area.Area;
+import grondag.canvas.terrain.occlusion.region.area.AreaFinder;
+
 public class BoxFinder {
 	final long[] source = new long[INTERIOR_CACHE_WORDS];
 	final long[] filled = new long[INTERIOR_CACHE_WORDS];

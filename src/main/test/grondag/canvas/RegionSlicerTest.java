@@ -2,9 +2,9 @@ package grondag.canvas;
 
 import org.junit.jupiter.api.Test;
 
-import grondag.canvas.terrain.occlusion.region.AreaFinder;
 import grondag.canvas.terrain.occlusion.region.OcclusionBitPrinter;
 import grondag.canvas.terrain.occlusion.region.PlaneFinder;
+import grondag.canvas.terrain.occlusion.region.area.AreaFinder;
 
 public class RegionSlicerTest {
 	@Test

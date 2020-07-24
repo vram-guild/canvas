@@ -1,4 +1,4 @@
-package grondag.canvas.terrain.occlusion.region;
+package grondag.canvas.terrain.occlusion.region.area;
 
 public class AreaSample {
 	public final long[] bits = new long[4];

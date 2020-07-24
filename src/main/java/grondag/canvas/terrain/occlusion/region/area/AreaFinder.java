@@ -1,4 +1,4 @@
-package grondag.canvas.terrain.occlusion.region;
+package grondag.canvas.terrain.occlusion.region.area;
 
 import java.util.Arrays;
 import java.util.function.Consumer;

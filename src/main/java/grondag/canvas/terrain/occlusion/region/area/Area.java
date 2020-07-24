@@ -1,9 +1,11 @@
-package grondag.canvas.terrain.occlusion.region;
+package grondag.canvas.terrain.occlusion.region.area;
 
 import com.google.common.base.Strings;
 
+import grondag.canvas.terrain.occlusion.region.OcclusionBitPrinter;
+
 public class Area {
-	public final int areaKey;
+	final int areaKey;
 	public final int x0;
 	public final int y0;
 	public final int x1;
@@ -15,7 +17,7 @@ public class Area {
 
 	private final long[] bits = new long[4];
 
-	boolean isIncludedBySample(long[] sample, int sampleStart) {
+	public boolean isIncludedBySample(long[] sample, int sampleStart) {
 		final long[] myBits = bits;
 
 		return AreaUtil.sampleIncludes(myBits[0], sample[sampleStart])
