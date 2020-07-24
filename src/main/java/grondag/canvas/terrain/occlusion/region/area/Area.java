@@ -1,14 +1,11 @@
 package grondag.canvas.terrain.occlusion.region.area;
 
-import com.google.common.base.Strings;
-
 import grondag.canvas.terrain.occlusion.region.OcclusionBitPrinter;
 
 public class Area {
 	public final int areaKey;
 	public final int areaSize;
 	public final int edgeCount;
-	public final long areaHash;
 	public final int index;
 
 	private final long[] bits = new long[4];
@@ -47,10 +44,6 @@ public class Area {
 								|| (myBits[3] | sample[++sampleStart]) != sample[sampleStart];
 	}
 
-	public boolean matchesHash(long hash) {
-		return (areaHash & hash) == areaHash;
-	}
-
 	public void setBits(long[] targetBits, int startIndex) {
 		targetBits[startIndex] |= bits[0];
 		targetBits[++startIndex] |= bits[1];
@@ -79,12 +72,6 @@ public class Area {
 		edgeCount =  x + y;
 
 		populateBits();
-
-		//			printShape();
-
-		areaHash = AreaUtil.areaHash(bits);
-
-		//			printHash();
 	}
 
 	private void populateBits() {
@@ -99,19 +86,6 @@ public class Area {
 				bits[key >> 6] |= (1L << (key & 63));
 			}
 		}
-	}
-
-	public void printHash() {
-		final String s = Strings.padStart(Long.toBinaryString(areaHash), 64, '0');
-		System.out.println(s.substring(0, 8));
-		System.out.println(s.substring(8, 16));
-		System.out.println(s.substring(16, 24));
-		System.out.println(s.substring(24, 32));
-		System.out.println(s.substring(32, 40));
-		System.out.println(s.substring(40, 48));
-		System.out.println(s.substring(48, 56));
-		System.out.println(s.substring(56, 64));
-		System.out.println();
 	}
 
 	public void printShape() {

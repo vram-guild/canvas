@@ -9,25 +9,11 @@ import grondag.canvas.terrain.occlusion.region.OcclusionBitPrinter;
 import grondag.canvas.terrain.occlusion.region.area.Area;
 import grondag.canvas.terrain.occlusion.region.area.AreaFinder;
 import grondag.canvas.terrain.occlusion.region.area.AreaSample;
-import grondag.canvas.terrain.occlusion.region.area.AreaUtil;
 
 class AreaFinderTest {
 
 	@Test
 	void test() {
-		Area rect = new Area(AreaUtil.areaKey(0, 0, 15, 15), 0);
-		assert(rect.areaHash == -1L);
-
-		rect = new Area(AreaUtil.areaKey(0, 0, 0, 0), 0);
-		assert(rect.areaHash == 1);
-
-		rect = new Area(AreaUtil.areaKey(4, 4, 5, 5), 0);
-		assert rect.areaHash == AreaUtil.areaWordHashMask(2, 2);
-
-		rect = new Area(AreaUtil.areaKey(11, 11, 13, 13), 0);
-		assert rect.areaHash == (AreaUtil.areaWordHashMask(5, 5) | AreaUtil.areaWordHashMask(5, 6) | AreaUtil.areaWordHashMask(6, 5) | AreaUtil.areaWordHashMask(6, 6));
-
-
 		final AreaFinder finder = new AreaFinder();
 		final AreaSample sample = new AreaSample();
 

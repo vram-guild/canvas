@@ -143,10 +143,8 @@ public class AreaFinder {
 			return;
 		}
 
-		final long hash = AreaUtil.areaHash(bits);
-
 		for(final Area r : SECTION) {
-			if (r.matchesHash(hash) && r.isIncludedBySample(bits, 0)) {
+			if (r.isIncludedBySample(bits, 0)) {
 				consumer.accept(r);
 			}
 		}
