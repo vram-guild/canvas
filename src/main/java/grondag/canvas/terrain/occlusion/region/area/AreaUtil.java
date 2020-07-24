@@ -31,6 +31,17 @@ public class AreaUtil {
 		return (x1 - x0 + 1) * (y1 - y0 + 1);
 	}
 
+	public static int edgeCount(int areaKey) {
+		final int x0 = x0(areaKey);
+		final int y0 = y0(areaKey);
+		final int x1 = x1(areaKey);
+		final int y1 = y1(areaKey);
+
+		final int x = x1 - x0 + 1;
+		final int y = y1 - y0 + 1;
+		return x + y;
+	}
+
 	public static void printArea(int areaKey) {
 		final int x0 = x0(areaKey);
 		final int y0 = y0(areaKey);

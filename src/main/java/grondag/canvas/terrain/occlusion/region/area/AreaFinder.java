@@ -55,7 +55,6 @@ public class AreaFinder {
 		AREA_COUNT = areas.size();
 		AREA_INDEX_TO_KEY = new int[AREA_COUNT];
 
-
 		AREA_BY_INDEX = new Area[AREA_COUNT];
 
 		int i = 0;
@@ -68,7 +67,7 @@ public class AreaFinder {
 			final int result = Integer.compare(AreaUtil.size(b.areaKey), AreaUtil.size(a.areaKey));
 
 			// within same area size, prefer more compact rectangles
-			return result == 0 ? Integer.compare(a.edgeCount, b.edgeCount) : result;
+			return result == 0 ? Integer.compare(AreaUtil.edgeCount(a.areaKey), AreaUtil.edgeCount(b.areaKey)) : result;
 		});
 
 		// PERF: minor, but sort keys instead array to avoid extra alloc at startup
