@@ -44,7 +44,7 @@ class AreaFinderTest {
 
 		System.out.println();
 		System.out.println("OUTPUT");
-		finder.find(sample.bits, 0);
+		finder.find(sample.bits, 0, a -> {});
 
 		for (final Area a : finder.areas) {
 			a.printShape();

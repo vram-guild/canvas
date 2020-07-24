@@ -6,11 +6,36 @@ public class AreaUtil {
 		return x0 | (y0 << 5) | (x1 << 10) | (y1 << 15);
 	}
 
+	public static int x0(int areaKey) {
+		return areaKey & 31;
+	}
+
+	public static int y0(int areaKey) {
+		return (areaKey >> 5) & 31;
+	}
+
+	public static int x1(int areaKey) {
+		return (areaKey >> 10) & 31;
+	}
+
+	public static int y1(int areaKey) {
+		return (areaKey >> 15) & 31;
+	}
+
+	public static int size(int areaKey) {
+		final int x0 = x0(areaKey);
+		final int y0 = y0(areaKey);
+		final int x1 = x1(areaKey);
+		final int y1 = y1(areaKey);
+
+		return (x1 - x0 + 1) * (y1 - y0 + 1);
+	}
+
 	public static void printArea(int areaKey) {
-		final int x0 = areaKey & 31;
-		final int y0 = (areaKey >> 5) & 31;
-		final int x1 = (areaKey >> 10) & 31;
-		final int y1 = (areaKey >> 15) & 31;
+		final int x0 = x0(areaKey);
+		final int y0 = y0(areaKey);
+		final int x1 = x1(areaKey);
+		final int y1 = y1(areaKey);
 
 		final int x = x1 - x0 + 1;
 		final int y = y1 - y0 + 1;
