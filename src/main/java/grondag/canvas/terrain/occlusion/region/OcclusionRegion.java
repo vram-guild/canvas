@@ -32,8 +32,6 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 import net.minecraft.block.BlockRenderType;
 import net.minecraft.block.BlockState;
 
-import grondag.canvas.terrain.occlusion.region.area.AreaFinder;
-
 public abstract class OcclusionRegion {
 	private final IntArrayFIFOQueue queue = new IntArrayFIFOQueue();
 	private final long[] bits = new long[WORD_COUNT];

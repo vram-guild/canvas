@@ -1,20 +1,9 @@
-package grondag.canvas.terrain.occlusion.region.area;
+package grondag.canvas.terrain.occlusion.region;
 
 import it.unimi.dsi.fastutil.ints.IntConsumer;
 
-import grondag.canvas.perf.ConcurrentMicroTimer;
-
 public class AreaFinder {
-	private static final ConcurrentMicroTimer timer = new ConcurrentMicroTimer("AreaFinder.find", 10000);
-
 	final long[] bits = new long[4];
-
-	//[08:57:13] [Canvas Render Thread - 3/INFO] (Canvas) Avg AreaFinder.find duration = 3,287 ns, total duration = 32, total runs = 10,000
-	//[08:57:20] [Canvas Render Thread - 3/INFO] (Canvas) Avg AreaFinder.find duration = 2,569 ns, total duration = 25, total runs = 10,000
-	//[08:57:30] [Canvas Render Thread - 6/INFO] (Canvas) Avg AreaFinder.find duration = 2,676 ns, total duration = 26, total runs = 10,000
-	//[08:57:42] [Canvas Render Thread - 1/INFO] (Canvas) Avg AreaFinder.find duration = 2,457 ns, total duration = 24, total runs = 10,000
-	//[08:57:49] [Canvas Render Thread - 5/INFO] (Canvas) Avg AreaFinder.find duration = 2,679 ns, total duration = 26, total runs = 10,000
-	//[08:57:54] [Canvas Render Thread - 2/INFO] (Canvas) Avg AreaFinder.find duration = 2,814 ns, total duration = 28, total runs = 10,000
 
 	public long[] bitsFromIndex(int areaIndex) {
 		final long[] result = bits;
@@ -28,7 +17,6 @@ public class AreaFinder {
 	}
 
 	public void find(long[] bitsIn, int sourceIndex, IntConsumer areaIndexConsumer) {
-		timer.start();
 		final long[] bits = this.bits;
 		System.arraycopy(bitsIn, sourceIndex, bits, 0, 4);
 
@@ -41,8 +29,6 @@ public class AreaFinder {
 			Area.clearBits(bits, 0, index);
 			bitCount -= Area.size(key);
 		}
-
-		timer.stop();
 	}
 
 	private static int bitCount(long bits) {

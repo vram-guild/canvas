@@ -7,9 +7,6 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntConsumer;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 
-import grondag.canvas.terrain.occlusion.region.area.Area;
-import grondag.canvas.terrain.occlusion.region.area.AreaFinder;
-
 public class BoxFinder {
 	final long[] source = new long[INTERIOR_CACHE_WORDS];
 	final long[] filled = new long[INTERIOR_CACHE_WORDS];
@@ -234,13 +231,13 @@ public class BoxFinder {
 		for (int i = 0; i < limit; i++) {
 			final long box = sortedBoxes.getLong(i);
 			final int areaIndex = (int) (box >> 10) & 0xFFFFFF;
-			final int areaKey = Area.indexToKey(areaIndex);
 
 			final int z0 = (int) box & 31;
 			final int z1 = (int) (box >> 5) & 31;
 
-			if (isAdditive(areaKey, z0, z1)) {
+			if (isAdditive(areaIndex, z0, z1)) {
 				fill(areaIndex, z0, z1);
+				final int areaKey = Area.indexToKey(areaIndex);
 				boxes.add(PackedBox.pack(Area.x0(areaKey), Area.y0(areaKey), z0, Area.x1(areaKey) + 1, Area.y1(areaKey) + 1, z1, PackedBox.RANGE_EXTREME));
 			}
 		}
@@ -256,12 +253,11 @@ public class BoxFinder {
 			final int areaIndex = (int) (box >> 10) & 0xFFFFFF;
 			final int z0 = (int) box & 31;
 			final int z1 = (int) (box >> 5) & 31;
-			final int areaKey = Area.indexToKey(areaIndex);
 
-			if (!intersects(areaKey, z0, z1)) {
-
+			if (!intersects(areaIndex, z0, z1)) {
 				fill(areaIndex, z0, z1);
 				final int vol = (int) (box >>> 34);
+				final int areaKey = Area.indexToKey(areaIndex);
 				boxes.add(PackedBox.pack(Area.x0(areaKey), Area.y0(areaKey), z0, Area.x1(areaKey) + 1, Area.y1(areaKey) + 1, z1, rangeFromVolume(vol)));
 				voxelCount -= vol;
 
@@ -302,12 +298,12 @@ public class BoxFinder {
 		}
 	}
 
-	private boolean intersects(int areaKey, int z0, int z1) {
+	private boolean intersects(int areaIndex, int z0, int z1) {
 		final long[] filled = this.filled;
 		int index = z0 * SLICE_WORD_COUNT;
 
 		for  (int z = z0; z < z1; ++z) {
-			if (Area.intersectsWithSample(filled, index, areaKey)) {
+			if (Area.intersectsWithSample(filled, index, areaIndex)) {
 				return true;
 			}
 
@@ -317,16 +313,19 @@ public class BoxFinder {
 		return false;
 	}
 
-	private boolean isAdditive(int areaKey, int z0, int z1) {
+	private boolean isAdditive(int areaIndex, int z0, int z1) {
 		final long[] filled = this.filled;
 		int index = z0 * SLICE_WORD_COUNT;
 
+		final long a0 = Area.bitsFromIndex(areaIndex, 0);
+		final long a1 = Area.bitsFromIndex(areaIndex, 1);
+		final long a2 = Area.bitsFromIndex(areaIndex, 2);
+		final long a3 = Area.bitsFromIndex(areaIndex, 3);
+
 		for  (int z = z0; z < z1; ++z) {
-			if (Area.isAdditive(filled, index, areaKey)) {
+			if (((~filled[index++] & a0) | (~filled[index++] & a1) | (~filled[index++] & a2) | (~filled[index++] & a3)) != 0) {
 				return true;
 			}
-
-			index += SLICE_WORD_COUNT;
 		}
 
 		return false;

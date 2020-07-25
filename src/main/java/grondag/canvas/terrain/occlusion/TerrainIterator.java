@@ -1,4 +1,4 @@
-package grondag.canvas.terrain.render;
+package grondag.canvas.terrain.occlusion;
 
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
@@ -15,7 +15,6 @@ import grondag.canvas.render.CanvasWorldRenderer;
 import grondag.canvas.terrain.BuiltRenderRegion;
 import grondag.canvas.terrain.RegionData;
 import grondag.canvas.terrain.RenderRegionStorage;
-import grondag.canvas.terrain.occlusion.TerrainOccluder;
 import grondag.canvas.terrain.occlusion.region.OcclusionRegion;
 import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
 import grondag.fermion.varia.Useful;

@@ -1,10 +1,8 @@
-package grondag.canvas.terrain.occlusion.region.area;
+package grondag.canvas.terrain.occlusion.region;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntArrays;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
-
-import grondag.canvas.terrain.occlusion.region.OcclusionBitPrinter;
 
 public class Area {
 	private static final int[] AREA_KEY_TO_INDEX = new int[0x10000];
@@ -131,10 +129,12 @@ public class Area {
 	}
 
 	public static boolean isIncludedBySample(long[] sample, int sampleStart, int areaIndex) {
-		final long template = bitsFromIndex(areaIndex, 0);
-		final long template1 = bitsFromIndex(areaIndex, 1);
-		final long template2 = bitsFromIndex(areaIndex, 2);
-		final long template3 = bitsFromIndex(areaIndex, 3);
+		areaIndex <<= 2;
+
+		final long template = AREA_BITS[areaIndex];
+		final long template1 = AREA_BITS[++areaIndex];
+		final long template2 = AREA_BITS[++areaIndex];
+		final long template3 = AREA_BITS[++areaIndex];
 
 		return (template & sample[sampleStart]) == template
 				&& (template1 & sample[sampleStart + 1]) == template1
@@ -142,42 +142,43 @@ public class Area {
 				&& (template3 & sample[sampleStart + 3]) == template3;
 	}
 
-	public static boolean intersectsWithSample(long[] sample, int sampleStart, int areaKey) {
-		return (bitsFromKey(areaKey, 0) & sample[sampleStart]) != 0
-				|| (bitsFromKey(areaKey, 1) & sample[++sampleStart]) != 0
-				|| (bitsFromKey(areaKey, 2) & sample[++sampleStart]) != 0
-				|| (bitsFromKey(areaKey, 3) & sample[++sampleStart]) != 0;
+	public static boolean intersectsWithSample(long[] sample, int sampleStart, int areaIndex) {
+		areaIndex <<= 2;
+
+		return (AREA_BITS[areaIndex] & sample[sampleStart]) != 0
+				|| (AREA_BITS[++areaIndex] & sample[++sampleStart]) != 0
+				|| (AREA_BITS[++areaIndex] & sample[++sampleStart]) != 0
+				|| (AREA_BITS[++areaIndex] & sample[++sampleStart]) != 0;
 	}
 
-	public static boolean isAdditive(long[] sample, int sampleStart, int areaKey) {
-		return (bitsFromKey(areaKey, 0) | sample[sampleStart]) != sample[sampleStart]
-				|| (bitsFromKey(areaKey, 1) | sample[++sampleStart]) != sample[sampleStart]
-						|| (bitsFromKey(areaKey, 2) | sample[++sampleStart]) != sample[sampleStart]
-								|| (bitsFromKey(areaKey, 3) | sample[++sampleStart]) != sample[sampleStart];
+	public static boolean isAdditive(long[] sample, int sampleStart, int areaIndex) {
+		areaIndex <<= 2;
+
+		return (AREA_BITS[areaIndex] | sample[sampleStart]) != sample[sampleStart]
+				|| (AREA_BITS[++areaIndex] | sample[++sampleStart]) != sample[sampleStart]
+						|| (AREA_BITS[++areaIndex] | sample[++sampleStart]) != sample[sampleStart]
+								|| (AREA_BITS[++areaIndex] | sample[++sampleStart]) != sample[sampleStart];
 	}
 
 	public static void clearBits(long[] targetBits, int startIndex, int areaIndex) {
 		areaIndex <<= 2;
-		targetBits[startIndex] &= ~AREA_BITS[areaIndex++];
-		targetBits[++startIndex] &= ~AREA_BITS[areaIndex++];
-		targetBits[++startIndex] &= ~AREA_BITS[areaIndex++];
-		targetBits[++startIndex] &= ~AREA_BITS[areaIndex++];
+
+		targetBits[startIndex] &= ~AREA_BITS[areaIndex];
+		targetBits[++startIndex] &= ~AREA_BITS[++areaIndex];
+		targetBits[++startIndex] &= ~AREA_BITS[++areaIndex];
+		targetBits[++startIndex] &= ~AREA_BITS[++areaIndex];
 	}
 
-	static long bitsFromKey(int areaKey, int y) {
-		return AREA_BITS[(keyToIndex(areaKey) << 2) + y];
-	}
-
-	static long bitsFromIndex(int areaIndex, int y) {
+	public static long bitsFromIndex(int areaIndex, int y) {
 		return AREA_BITS[(areaIndex << 2) + y];
 	}
 
-	public static void printShape(int areaKey) {
+	public static void printShape(int areaIndex) {
 		final long[] bits = new long[4];
-		bits[0] = bitsFromKey(areaKey, 0);
-		bits[1] = bitsFromKey(areaKey, 1);
-		bits[2] = bitsFromKey(areaKey, 2);
-		bits[3] = bitsFromKey(areaKey, 3);
+		bits[0] = bitsFromIndex(areaIndex, 0);
+		bits[1] = bitsFromIndex(areaIndex, 1);
+		bits[2] = bitsFromIndex(areaIndex, 2);
+		bits[3] = bitsFromIndex(areaIndex, 3);
 
 		OcclusionBitPrinter.printShape(bits, 0);
 	}
