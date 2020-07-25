@@ -2,9 +2,9 @@ package grondag.canvas.terrain.occlusion.region.area;
 
 import java.util.Arrays;
 
+import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntConsumer;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 public class AreaFinder {
 	@Deprecated
@@ -18,7 +18,7 @@ public class AreaFinder {
 
 	public static final int AREA_COUNT;
 
-	private static final Area[] SECTION;
+	private static final int[] SECTION_KEYS;
 
 	public static final int SECTION_COUNT;
 
@@ -36,8 +36,8 @@ public class AreaFinder {
 		return AREA_BY_INDEX[index];
 	}
 
-	public Area getSection(int sectionIndex) {
-		return SECTION[sectionIndex];
+	public int getSectionKey(int sectionIndex) {
+		return SECTION_KEYS[sectionIndex];
 	}
 
 	static {
@@ -88,18 +88,18 @@ public class AreaFinder {
 			AREA_KEY_TO_INDEX[a.areaKey] = j;
 		}
 
-		final ObjectArrayList<Area> sections = new ObjectArrayList<>();
+		final IntArrayList sections = new IntArrayList();
 
 		for (int j = 0; j < AREA_COUNT; ++j) {
 			final int a = AREA_INDEX_TO_KEY[j];
 
 			if ((Area.x0(a) == 0  &&  Area.x1(a) == 15) || (Area.y0(a) == 0  &&  Area.y1(a) == 15)) {
-				sections.add(AREA_BY_INDEX[j]);
+				sections.add(indexToKey(j));
 			}
 		}
 
 		SECTION_COUNT = sections.size();
-		SECTION = sections.toArray(new Area[SECTION_COUNT]);
+		SECTION_KEYS = sections.toArray(new int[SECTION_COUNT]);
 	}
 
 	final long[] bits = new long[4];
@@ -144,9 +144,11 @@ public class AreaFinder {
 			return;
 		}
 
-		for(final Area r : SECTION) {
-			if (Area.isIncludedBySample(bits, 0, r.areaKey)) {
-				areaIndexConsumer.accept(keyToIndex(r.areaKey));
+		for(int i = 0; i < SECTION_COUNT; ++i) {
+			final int sectionKey = SECTION_KEYS[i];
+
+			if (Area.isIncludedBySample(bits, 0, sectionKey)) {
+				areaIndexConsumer.accept(keyToIndex(sectionKey));
 			}
 		}
 	}

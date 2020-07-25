@@ -68,15 +68,15 @@ public class BoxFinder {
 		}
 
 		for (int i = 1; i < AreaFinder.SECTION_COUNT; ++i) {
-			final Area area  =  areaFinder.getSection(i);
-			final int a = area.areaKey;
-			final int slice = areaSlices[area.index];
+			final int areaKey  =  areaFinder.getSectionKey(i);
+			final int areaIndex = AreaFinder.keyToIndex(areaKey);
+			final int slice = areaSlices[areaIndex];
 
 			if (slice == 0xFFFF) {
-				final int dy = (Area.y1(a) - Area.y0(a) + 1);
-				final int dx = (Area.x1(a) - Area.x0(a) + 1);
+				final int dy = (Area.y1(areaKey) - Area.y0(areaKey) + 1);
+				final int dx = (Area.x1(areaKey) - Area.x0(areaKey) + 1);
 				final long vol = (dx * dy * 16);
-				sortedBoxes.add((vol << 34) | (area.index << 10) | (16 << 5) | 0);
+				sortedBoxes.add((vol << 34) | (areaIndex << 10) | (16 << 5) | 0);
 			}
 		}
 
