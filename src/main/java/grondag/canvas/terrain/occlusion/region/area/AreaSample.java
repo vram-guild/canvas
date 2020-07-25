@@ -13,11 +13,11 @@ public class AreaSample {
 	}
 
 	public void remove(Area r) {
-		r.clearBits(bits, 0);
+		Area.clearBits(bits, 0, r.areaKey);
 	}
 
 	public void fill(Area r) {
-		r.setBits(bits, 0);
+		Area.setBits(bits, 0, r.areaKey);
 	}
 
 	void clear() {

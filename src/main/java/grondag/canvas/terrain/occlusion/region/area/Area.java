@@ -6,7 +6,7 @@ public class Area {
 	public final int areaKey;
 	public final int index;
 
-	public boolean isIncludedBySample(long[] sample, int sampleStart) {
+	public static boolean isIncludedBySample(long[] sample, int sampleStart, int areaKey) {
 		final long template = bits(areaKey, 0);
 		final long template1 = bits(areaKey, 1);
 		final long template2 = bits(areaKey, 2);
@@ -18,35 +18,35 @@ public class Area {
 				&& (template3 & sample[sampleStart + 3]) == template3;
 	}
 
-	public boolean intersects(Area other) {
-		return (bits(areaKey, 0) & bits(other.areaKey, 0)) != 0
-				|| (bits(areaKey, 1) & bits(other.areaKey, 1)) != 0
-				|| (bits(areaKey, 2) & bits(other.areaKey, 2)) != 0
-				|| (bits(areaKey, 3) & bits(other.areaKey, 3)) != 0;
+	public static boolean intersects(int areaKeyA, int areaKeyB) {
+		return (bits(areaKeyA, 0) & bits(areaKeyB, 0)) != 0
+				|| (bits(areaKeyA, 1) & bits(areaKeyB, 1)) != 0
+				|| (bits(areaKeyA, 2) & bits(areaKeyB, 2)) != 0
+				|| (bits(areaKeyA, 3) & bits(areaKeyB, 3)) != 0;
 	}
 
-	public boolean intersectsWithSample(long[] sample, int sampleStart) {
+	public static boolean intersectsWithSample(long[] sample, int sampleStart, int areaKey) {
 		return (bits(areaKey, 0) & sample[sampleStart]) != 0
 				|| (bits(areaKey, 1) & sample[++sampleStart]) != 0
 				|| (bits(areaKey, 2) & sample[++sampleStart]) != 0
 				|| (bits(areaKey, 3) & sample[++sampleStart]) != 0;
 	}
 
-	public boolean isAdditive(long[] sample, int sampleStart) {
+	public static boolean isAdditive(long[] sample, int sampleStart, int areaKey) {
 		return (bits(areaKey, 0) | sample[sampleStart]) != sample[sampleStart]
 				|| (bits(areaKey, 1) | sample[++sampleStart]) != sample[sampleStart]
 						|| (bits(areaKey, 2) | sample[++sampleStart]) != sample[sampleStart]
 								|| (bits(areaKey, 3) | sample[++sampleStart]) != sample[sampleStart];
 	}
 
-	public void setBits(long[] targetBits, int startIndex) {
+	public static void setBits(long[] targetBits, int startIndex, int areaKey) {
 		targetBits[startIndex] |= bits(areaKey, 0);
 		targetBits[++startIndex] |= bits(areaKey, 1);
 		targetBits[++startIndex] |= bits(areaKey, 2);
 		targetBits[++startIndex] |= bits(areaKey, 3);
 	}
 
-	public void clearBits(long[] targetBits, int startIndex) {
+	public static void clearBits(long[] targetBits, int startIndex, int areaKey) {
 		targetBits[startIndex] &= ~bits(areaKey, 0);
 		targetBits[++startIndex] &= ~bits(areaKey, 1);
 		targetBits[++startIndex] &= ~bits(areaKey, 2);
@@ -85,7 +85,7 @@ public class Area {
 		return result;
 	}
 
-	public void printShape() {
+	public static void printShape(int areaKey) {
 		final long[] bits = new long[4];
 		bits[0] = bits(areaKey, 0);
 		bits[1] = bits(areaKey, 1);

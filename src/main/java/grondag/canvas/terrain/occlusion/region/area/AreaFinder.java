@@ -119,7 +119,7 @@ public class AreaFinder {
 			final int key = findLargest(bits);
 			final Area a = AREA_BY_KEY[key];
 			consumer.accept(a);
-			a.clearBits(bits, 0);
+			Area.clearBits(bits, 0, key);
 			bitCount -= AreaUtil.size(a.areaKey);
 		}
 
@@ -142,7 +142,7 @@ public class AreaFinder {
 		}
 
 		for(final Area r : SECTION) {
-			if (r.isIncludedBySample(bits, 0)) {
+			if (Area.isIncludedBySample(bits, 0, r.areaKey)) {
 				consumer.accept(r);
 			}
 		}

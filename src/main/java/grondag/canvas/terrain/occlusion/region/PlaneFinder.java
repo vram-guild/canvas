@@ -158,22 +158,22 @@ public class PlaneFinder {
 				return;
 			}
 
-			if (a.intersectsWithSample(fillBits, 0)) {
+			if (Area.intersectsWithSample(fillBits, 0, a.areaKey)) {
 				continue;
 			}
 
 			int d = -1;
 
-			if (a.isIncludedBySample(outputBits, MIDDLE_PLANE)) {
+			if (Area.isIncludedBySample(outputBits, MIDDLE_PLANE, a.areaKey)) {
 				d = 8;
 			} else {
 				int indexOffset = SLICE_WORD_COUNT;
 
 				for (int offset = 1; offset <= 8; ++offset) {
-					if (a.isIncludedBySample(outputBits, MIDDLE_PLANE + indexOffset)) {
+					if (Area.isIncludedBySample(outputBits, MIDDLE_PLANE + indexOffset, a.areaKey)) {
 						d = 8 + offset;
 						break;
-					} else if (a.isIncludedBySample(outputBits, MIDDLE_PLANE - indexOffset)) {
+					} else if (Area.isIncludedBySample(outputBits, MIDDLE_PLANE - indexOffset, a.areaKey)) {
 						d = 8 - offset;
 						break;
 					}
@@ -190,7 +190,7 @@ public class PlaneFinder {
 					return;
 				}
 
-				a.setBits(fillBits, 0);
+				Area.setBits(fillBits, 0, a.areaKey);
 			}
 		}
 	}

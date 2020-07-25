@@ -97,7 +97,7 @@ public class BoxFinder {
 
 				if ((slice & 1) == 1 && (slice & 2) == 0) {
 					// special case first slice - can only transfer up
-					if (area.isIncludedBySample(source, SLICE_WORD_COUNT)) {
+					if (Area.isIncludedBySample(source, SLICE_WORD_COUNT, area.areaKey)) {
 						slice |= 2;
 					}
 				}
@@ -110,7 +110,7 @@ public class BoxFinder {
 						final int lowMask = (mask >> 1);
 
 						if ((slice & lowMask) == 0) {
-							if (area.isIncludedBySample(source, (z - 1) * SLICE_WORD_COUNT)) {
+							if (Area.isIncludedBySample(source, (z - 1) * SLICE_WORD_COUNT, area.areaKey)) {
 								slice |= lowMask;
 							}
 						}
@@ -119,7 +119,7 @@ public class BoxFinder {
 						final int highMask = (mask << 1);
 
 						if ((slice & highMask) == 0) {
-							if (area.isIncludedBySample(source, (z + 1) * SLICE_WORD_COUNT)) {
+							if (Area.isIncludedBySample(source, (z + 1) * SLICE_WORD_COUNT, area.areaKey)) {
 								slice |= highMask;
 							}
 						}
@@ -129,7 +129,7 @@ public class BoxFinder {
 				}
 
 				if ((slice & 0b1000000000000000) == 0b1000000000000000  && (slice & 0b0100000000000000) == 0) {
-					if (area.isIncludedBySample(source, SLICE_WORD_COUNT * 14)) {
+					if (Area.isIncludedBySample(source, SLICE_WORD_COUNT * 14, area.areaKey)) {
 						slice |= 0b0100000000000000;
 					}
 				}
@@ -301,7 +301,7 @@ public class BoxFinder {
 		int index = z0 * SLICE_WORD_COUNT;
 
 		for  (int z = z0; z < z1; ++z) {
-			a.setBits(filled, index);
+			Area.setBits(filled, index, a.areaKey);
 			index += SLICE_WORD_COUNT;
 		}
 	}
@@ -311,7 +311,7 @@ public class BoxFinder {
 		int index = z0 * SLICE_WORD_COUNT;
 
 		for  (int z = z0; z < z1; ++z) {
-			if (a.intersectsWithSample(filled, index)) {
+			if (Area.intersectsWithSample(filled, index, a.areaKey)) {
 				return true;
 			}
 
@@ -326,7 +326,7 @@ public class BoxFinder {
 		int index = z0 * SLICE_WORD_COUNT;
 
 		for  (int z = z0; z < z1; ++z) {
-			if (a.isAdditive(filled, index)) {
+			if (Area.isAdditive(filled, index, a.areaKey)) {
 				return true;
 			}
 

@@ -33,7 +33,7 @@ class AreaFinderTest {
 		finder.find(sample.bits, 0, a -> {});
 
 		for (final Area a : finder.areas) {
-			a.printShape();
+			Area.printShape(a.areaKey);
 		}
 	}
 }
