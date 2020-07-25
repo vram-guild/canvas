@@ -3,9 +3,8 @@ package grondag.canvas.terrain.occlusion.region;
 import static grondag.canvas.terrain.RenderRegionAddressHelper.INTERIOR_CACHE_WORDS;
 import static grondag.canvas.terrain.RenderRegionAddressHelper.SLICE_WORD_COUNT;
 
-import java.util.function.Consumer;
-
 import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntConsumer;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 
 import grondag.canvas.terrain.occlusion.region.area.Area;
@@ -159,11 +158,11 @@ public class BoxFinder {
 	private void addBoxesFromSlice(Area area, int slice) {
 		int z0 = -1;
 		int mask = 1;
-		final int a = area.areaKey;
-		final int x0 = Area.x0(a);
-		final int y0 = Area.y0(a);
-		final int x1 = Area.x1(a);
-		final int y1 = Area.y1(a);
+		final int areaKey = area.areaKey;
+		final int x0 = Area.x0(areaKey);
+		final int y0 = Area.y0(areaKey);
+		final int x1 = Area.x1(areaKey);
+		final int y1 = Area.y1(areaKey);
 
 		for (int z = 0; z < 16; z++) {
 			if((slice & mask) == 0) {
@@ -199,7 +198,7 @@ public class BoxFinder {
 
 	int mask;
 
-	private final Consumer<Area> markSliceConsumer = a -> areaSlices[a.index] |= mask;
+	private final IntConsumer markSliceConsumer = areaIndex -> areaSlices[areaIndex] |= mask;
 
 	// PERF: still slow on relative basis to rest of chunk baking
 	private void markBoxSlices() {

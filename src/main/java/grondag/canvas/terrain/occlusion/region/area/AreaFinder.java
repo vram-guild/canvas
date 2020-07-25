@@ -1,8 +1,8 @@
 package grondag.canvas.terrain.occlusion.region.area;
 
 import java.util.Arrays;
-import java.util.function.Consumer;
 
+import it.unimi.dsi.fastutil.ints.IntConsumer;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
@@ -23,6 +23,14 @@ public class AreaFinder {
 	public static final int SECTION_COUNT;
 
 	//private static final ConcurrentMicroTimer timer = new ConcurrentMicroTimer("AreaFinder.find", 10000);
+
+	public static int keyToIndex(int key) {
+		return AREA_KEY_TO_INDEX[key];
+	}
+
+	public static int indexToKey(int index) {
+		return AREA_INDEX_TO_KEY[index];
+	}
 
 	public Area get(int index) {
 		return AREA_BY_INDEX[index];
@@ -96,8 +104,6 @@ public class AreaFinder {
 
 	final long[] bits = new long[4];
 
-	public final ObjectArrayList<Area> areas =  new ObjectArrayList<>();
-
 	//	[12:21:16] [Canvas Render Thread - 3/INFO] (Canvas) Avg AreaFinder.find duration = 124,536 ns, total duration = 1,245, total runs = 10,000
 	//	[12:21:20] [Canvas Render Thread - 4/INFO] (Canvas) Avg AreaFinder.find duration = 128,970 ns, total duration = 1,289, total runs = 10,000
 	//	[12:21:32] [Canvas Render Thread - 2/INFO] (Canvas) Avg AreaFinder.find duration = 117,787 ns, total duration = 1,177, total runs = 10,000
@@ -106,10 +112,9 @@ public class AreaFinder {
 	//	[21:29:08] [Canvas Render Thread - 4/INFO] (Canvas) Avg AreaFinder.find duration = 3,512 ns, total duration = 35, total runs = 10,000
 	//	[21:29:15] [Canvas Render Thread - 2/INFO] (Canvas) Avg AreaFinder.find duration = 2,721 ns, total duration = 27, total runs = 10,000
 	//	[21:29:22] [Canvas Render Thread - 2/INFO] (Canvas) Avg AreaFinder.find duration = 3,087 ns, total duration = 30, total runs = 10,000
-	public void find(long[] bitsIn, int sourceIndex, Consumer<Area> consumer) {
+	public void find(long[] bitsIn, int sourceIndex, IntConsumer areaIndexConsumer) {
 		//		timer.start();
 
-		areas.clear();
 		final long[] bits = this.bits;
 		System.arraycopy(bitsIn, sourceIndex, bits, 0, 4);
 
@@ -117,10 +122,9 @@ public class AreaFinder {
 
 		while(bitCount > 0) {
 			final int key = findLargest(bits);
-			final Area a = AREA_BY_KEY[key];
-			consumer.accept(a);
+			areaIndexConsumer.accept(keyToIndex(key));
 			Area.clearBits(bits, 0, key);
-			bitCount -= Area.size(a.areaKey);
+			bitCount -= Area.size(key);
 		}
 
 		//		timer.stop();
@@ -130,8 +134,7 @@ public class AreaFinder {
 		return bits == 0 ? 0 : Long.bitCount(bits);
 	}
 
-	public void findSections(long[] bitsIn, int sourceIndex, Consumer<Area> consumer) {
-		areas.clear();
+	public void findSections(long[] bitsIn, int sourceIndex, IntConsumer areaIndexConsumer) {
 		final long[] bits = this.bits;
 		System.arraycopy(bitsIn, sourceIndex, bits, 0, 4);
 
@@ -143,7 +146,7 @@ public class AreaFinder {
 
 		for(final Area r : SECTION) {
 			if (Area.isIncludedBySample(bits, 0, r.areaKey)) {
-				consumer.accept(r);
+				areaIndexConsumer.accept(keyToIndex(r.areaKey));
 			}
 		}
 	}
