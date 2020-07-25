@@ -59,15 +59,15 @@ public class Area {
 	}
 
 	private static int rowMask(int areaKey) {
-		return (0xFFFF << AreaUtil.x0(areaKey)) & (0xFFFF >> (15 - AreaUtil.x1(areaKey)));
+		return (0xFFFF << Area.x0(areaKey)) & (0xFFFF >> (15 - Area.x1(areaKey)));
 	}
 
 	private static long bits(int areaKey, int y) {
 		final int yMin = y << 2;
 		final int yMax = yMin + 3;
 
-		final int y0 = Math.max(yMin, AreaUtil.y0(areaKey));
-		final int y1 = Math.min(yMax, AreaUtil.y1(areaKey));
+		final int y0 = Math.max(yMin, Area.y0(areaKey));
+		final int y1 = Math.min(yMax, Area.y1(areaKey));
 
 		if (y0 > y1) {
 			return 0L;
@@ -93,5 +93,57 @@ public class Area {
 		bits[3] = bits(areaKey, 3);
 
 		OcclusionBitPrinter.printShape(bits, 0);
+	}
+
+	public static int areaKey(int x0, int y0, int x1, int y1) {
+		return x0 | (y0 << 4) | (x1 << 8) | (y1 << 12);
+	}
+
+	public static int x0(int areaKey) {
+		return areaKey & 15;
+	}
+
+	public static int y0(int areaKey) {
+		return (areaKey >> 4) & 15;
+	}
+
+	public static int x1(int areaKey) {
+		return (areaKey >> 8) & 15;
+	}
+
+	public static int y1(int areaKey) {
+		return (areaKey >> 12) & 15;
+	}
+
+	public static int size(int areaKey) {
+		final int x0 = x0(areaKey);
+		final int y0 = y0(areaKey);
+		final int x1 = x1(areaKey);
+		final int y1 = y1(areaKey);
+	
+		return (x1 - x0 + 1) * (y1 - y0 + 1);
+	}
+
+	public static int edgeCount(int areaKey) {
+		final int x0 = x0(areaKey);
+		final int y0 = y0(areaKey);
+		final int x1 = x1(areaKey);
+		final int y1 = y1(areaKey);
+	
+		final int x = x1 - x0 + 1;
+		final int y = y1 - y0 + 1;
+		return x + y;
+	}
+
+	public static void printArea(int areaKey) {
+		final int x0 = x0(areaKey);
+		final int y0 = y0(areaKey);
+		final int x1 = x1(areaKey);
+		final int y1 = y1(areaKey);
+	
+		final int x = x1 - x0 + 1;
+		final int y = y1 - y0 + 1;
+		final int a = x * y;
+		System.out.println(String.format("%d x %d, area %d, (%d, %d) to (%d, %d)", x, y, a, x0, y0, x1, y1));
 	}
 }

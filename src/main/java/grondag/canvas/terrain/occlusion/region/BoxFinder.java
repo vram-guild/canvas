@@ -10,7 +10,6 @@ import it.unimi.dsi.fastutil.longs.LongArrayList;
 
 import grondag.canvas.terrain.occlusion.region.area.Area;
 import grondag.canvas.terrain.occlusion.region.area.AreaFinder;
-import grondag.canvas.terrain.occlusion.region.area.AreaUtil;
 
 public class BoxFinder {
 	final long[] source = new long[INTERIOR_CACHE_WORDS];
@@ -75,8 +74,8 @@ public class BoxFinder {
 			final int slice = areaSlices[area.index];
 
 			if (slice == 0xFFFF) {
-				final int dy = (AreaUtil.y1(a) - AreaUtil.y0(a) + 1);
-				final int dx = (AreaUtil.x1(a) - AreaUtil.x0(a) + 1);
+				final int dy = (Area.y1(a) - Area.y0(a) + 1);
+				final int dx = (Area.x1(a) - Area.x0(a) + 1);
 				final long vol = (dx * dy * 16);
 				sortedBoxes.add((vol << 34) | (area.index << 10) | (16 << 5) | 0);
 			}
@@ -161,10 +160,10 @@ public class BoxFinder {
 		int z0 = -1;
 		int mask = 1;
 		final int a = area.areaKey;
-		final int x0 = AreaUtil.x0(a);
-		final int y0 = AreaUtil.y0(a);
-		final int x1 = AreaUtil.x1(a);
-		final int y1 = AreaUtil.y1(a);
+		final int x0 = Area.x0(a);
+		final int y0 = Area.y0(a);
+		final int x1 = Area.x1(a);
+		final int y1 = Area.y1(a);
 
 		for (int z = 0; z < 16; z++) {
 			if((slice & mask) == 0) {
@@ -249,7 +248,7 @@ public class BoxFinder {
 
 			if (isAdditive(area, z0, z1)) {
 				fill(area, z0, z1);
-				boxes.add(PackedBox.pack(AreaUtil.x0(a), AreaUtil.y0(a), z0, AreaUtil.x1(a) + 1, AreaUtil.y1(a) + 1, z1, PackedBox.RANGE_EXTREME));
+				boxes.add(PackedBox.pack(Area.x0(a), Area.y0(a), z0, Area.x1(a) + 1, Area.y1(a) + 1, z1, PackedBox.RANGE_EXTREME));
 			}
 		}
 	}
@@ -270,7 +269,7 @@ public class BoxFinder {
 			if (!intersects(area, z0, z1)) {
 				fill(area, z0, z1);
 				final int vol = (int) (box >>> 34);
-				boxes.add(PackedBox.pack(AreaUtil.x0(a), AreaUtil.y0(a), z0, AreaUtil.x1(a) + 1, AreaUtil.y1(a) + 1, z1, rangeFromVolume(vol)));
+				boxes.add(PackedBox.pack(Area.x0(a), Area.y0(a), z0, Area.x1(a) + 1, Area.y1(a) + 1, z1, rangeFromVolume(vol)));
 				voxelCount -= vol;
 
 				if (voxelCount == 0) {

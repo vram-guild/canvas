@@ -7,7 +7,6 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 
 import grondag.canvas.terrain.occlusion.region.area.Area;
 import grondag.canvas.terrain.occlusion.region.area.AreaFinder;
-import grondag.canvas.terrain.occlusion.region.area.AreaUtil;
 
 /**
  * Copies data from a render region and finds occluding rectangles for each axis.<p>
@@ -138,9 +137,9 @@ public class PlaneFinder {
 		int apply(int areaKey, int d);
 	}
 
-	private static final PlaneFunction Z_FUNC = (a, d) -> PackedBox.pack(AreaUtil.x0(a), AreaUtil.y0(a), d, AreaUtil.x1(a) + 1, AreaUtil.y1(a) + 1, d, 0);
-	private static final PlaneFunction X_FUNC = (a, d) -> PackedBox.pack(d, AreaUtil.y0(a), AreaUtil.x0(a), d, AreaUtil.y1(a) + 1, AreaUtil.x1(a) + 1, 0);
-	private static final PlaneFunction Y_FUNC = (a, d) -> PackedBox.pack(AreaUtil.x0(a), d, AreaUtil.y0(a), AreaUtil.x1(a) + 1, d, AreaUtil.y1(a) + 1, 0);
+	private static final PlaneFunction Z_FUNC = (a, d) -> PackedBox.pack(Area.x0(a), Area.y0(a), d, Area.x1(a) + 1, Area.y1(a) + 1, d, 0);
+	private static final PlaneFunction X_FUNC = (a, d) -> PackedBox.pack(d, Area.y0(a), Area.x0(a), d, Area.y1(a) + 1, Area.x1(a) + 1, 0);
+	private static final PlaneFunction Y_FUNC = (a, d) -> PackedBox.pack(Area.x0(a), d, Area.y0(a), Area.x1(a) + 1, d, Area.y1(a) + 1, 0);
 
 	private void findPlanes(PlaneFunction planeFunc) {
 		final long[] fillBits =  this.fillBits;
@@ -154,7 +153,7 @@ public class PlaneFinder {
 		for (int i = 0; i < AreaFinder.AREA_COUNT; ++i) {
 			final Area a = areas.get(i);
 
-			if (AreaUtil.size(a.areaKey) < 16) {
+			if (Area.size(a.areaKey) < 16) {
 				return;
 			}
 
@@ -184,7 +183,7 @@ public class PlaneFinder {
 
 			if (d != -1) {
 				planes.add(planeFunc.apply(a.areaKey, d));
-				openCount -= AreaUtil.size(a.areaKey);
+				openCount -= Area.size(a.areaKey);
 
 				if (openCount < 16) {
 					return;

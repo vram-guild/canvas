@@ -35,18 +35,18 @@ public class AreaFinder {
 	static {
 		final IntOpenHashSet areas = new IntOpenHashSet();
 
-		areas.add(AreaUtil.areaKey(0, 0, 15, 15));
+		areas.add(Area.areaKey(0, 0, 15, 15));
 
-		areas.add(AreaUtil.areaKey(1, 0, 15, 15));
-		areas.add(AreaUtil.areaKey(0, 0, 14, 15));
-		areas.add(AreaUtil.areaKey(0, 1, 15, 15));
-		areas.add(AreaUtil.areaKey(0, 0, 15, 14));
+		areas.add(Area.areaKey(1, 0, 15, 15));
+		areas.add(Area.areaKey(0, 0, 14, 15));
+		areas.add(Area.areaKey(0, 1, 15, 15));
+		areas.add(Area.areaKey(0, 0, 15, 14));
 
 		for (int x0 = 0; x0 <= 15; x0++) {
 			for (int x1 = x0; x1 <= 15; x1++) {
 				for (int y0 = 0; y0 <= 15; y0++) {
 					for(int y1 = y0; y1 <= 15; y1++) {
-						areas.add(AreaUtil.areaKey(x0, y0, x1, y1));
+						areas.add(Area.areaKey(x0, y0, x1, y1));
 					}
 				}
 			}
@@ -64,10 +64,10 @@ public class AreaFinder {
 		}
 
 		Arrays.sort(AREA_BY_INDEX, (a, b) -> {
-			final int result = Integer.compare(AreaUtil.size(b.areaKey), AreaUtil.size(a.areaKey));
+			final int result = Integer.compare(Area.size(b.areaKey), Area.size(a.areaKey));
 
 			// within same area size, prefer more compact rectangles
-			return result == 0 ? Integer.compare(AreaUtil.edgeCount(a.areaKey), AreaUtil.edgeCount(b.areaKey)) : result;
+			return result == 0 ? Integer.compare(Area.edgeCount(a.areaKey), Area.edgeCount(b.areaKey)) : result;
 		});
 
 		// PERF: minor, but sort keys instead array to avoid extra alloc at startup
@@ -85,7 +85,7 @@ public class AreaFinder {
 		for (int j = 0; j < AREA_COUNT; ++j) {
 			final int a = AREA_INDEX_TO_KEY[j];
 
-			if ((AreaUtil.x0(a) == 0  &&  AreaUtil.x1(a) == 15) || (AreaUtil.y0(a) == 0  &&  AreaUtil.y1(a) == 15)) {
+			if ((Area.x0(a) == 0  &&  Area.x1(a) == 15) || (Area.y0(a) == 0  &&  Area.y1(a) == 15)) {
 				sections.add(AREA_BY_INDEX[j]);
 			}
 		}
@@ -120,7 +120,7 @@ public class AreaFinder {
 			final Area a = AREA_BY_KEY[key];
 			consumer.accept(a);
 			Area.clearBits(bits, 0, key);
-			bitCount -= AreaUtil.size(a.areaKey);
+			bitCount -= Area.size(a.areaKey);
 		}
 
 		//		timer.stop();
@@ -256,7 +256,7 @@ public class AreaFinder {
 			}
 		}
 
-		return AreaUtil.areaKey(bestX0, bestY0, bestX1, bestY1);
+		return Area.areaKey(bestX0, bestY0, bestX1, bestY1);
 	}
 
 	/** 1-16 values */
