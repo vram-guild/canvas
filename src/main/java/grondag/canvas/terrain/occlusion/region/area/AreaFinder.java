@@ -16,6 +16,17 @@ public class AreaFinder {
 	//[08:57:49] [Canvas Render Thread - 5/INFO] (Canvas) Avg AreaFinder.find duration = 2,679 ns, total duration = 26, total runs = 10,000
 	//[08:57:54] [Canvas Render Thread - 2/INFO] (Canvas) Avg AreaFinder.find duration = 2,814 ns, total duration = 28, total runs = 10,000
 
+	public long[] bitsFromIndex(int areaIndex) {
+		final long[] result = bits;
+
+		result[0] = Area.bitsFromIndex(areaIndex, 0);
+		result[1] = Area.bitsFromIndex(areaIndex, 1);
+		result[2] = Area.bitsFromIndex(areaIndex, 2);
+		result[3] = Area.bitsFromIndex(areaIndex, 3);
+
+		return result;
+	}
+
 	public void find(long[] bitsIn, int sourceIndex, IntConsumer areaIndexConsumer) {
 		timer.start();
 		final long[] bits = this.bits;
@@ -25,10 +36,12 @@ public class AreaFinder {
 
 		while(bitCount > 0) {
 			final int key = findLargest(bits);
-			areaIndexConsumer.accept(Area.keyToIndex(key));
-			Area.clearBits(bits, 0, key);
+			final int index = Area.keyToIndex(key);
+			areaIndexConsumer.accept(index);
+			Area.clearBits(bits, 0, index);
 			bitCount -= Area.size(key);
 		}
+
 		timer.stop();
 	}
 
@@ -47,10 +60,10 @@ public class AreaFinder {
 		}
 
 		for(int i = 0; i < Area.SECTION_COUNT; ++i) {
-			final int sectionKey = Area.sectionKey(i);
+			final int areaIndex = Area.sectionToAreaIndex(i);
 
-			if (Area.isIncludedBySample(bits, 0, sectionKey)) {
-				areaIndexConsumer.accept(Area.keyToIndex(sectionKey));
+			if (Area.isIncludedBySample(bits, 0, areaIndex)) {
+				areaIndexConsumer.accept(areaIndex);
 			}
 		}
 	}

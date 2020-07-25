@@ -67,11 +67,11 @@ public class BoxFinder {
 		}
 
 		for (int i = 1; i < Area.SECTION_COUNT; ++i) {
-			final int areaKey  =  Area.sectionKey(i);
-			final int areaIndex = Area.keyToIndex(areaKey);
+			final int areaIndex  =  Area.sectionToAreaIndex(i);
 			final int slice = areaSlices[areaIndex];
 
 			if (slice == 0xFFFF) {
+				final int areaKey = Area.indexToKey(areaIndex);
 				final int dy = (Area.y1(areaKey) - Area.y0(areaKey) + 1);
 				final int dx = (Area.x1(areaKey) - Area.x0(areaKey) + 1);
 				final long vol = (dx * dy * 16);
@@ -89,11 +89,9 @@ public class BoxFinder {
 			int slice = areaSlices[areaIndex];
 
 			if (slice != 0) {
-				final int areaKey  = Area.indexToKey(areaIndex);
-
 				if ((slice & 1) == 1 && (slice & 2) == 0) {
 					// special case first slice - can only transfer up
-					if (Area.isIncludedBySample(source, SLICE_WORD_COUNT, areaKey)) {
+					if (Area.isIncludedBySample(source, SLICE_WORD_COUNT, areaIndex)) {
 						slice |= 2;
 					}
 				}
@@ -106,7 +104,7 @@ public class BoxFinder {
 						final int lowMask = (mask >> 1);
 
 						if ((slice & lowMask) == 0) {
-							if (Area.isIncludedBySample(source, (z - 1) * SLICE_WORD_COUNT, areaKey)) {
+							if (Area.isIncludedBySample(source, (z - 1) * SLICE_WORD_COUNT, areaIndex)) {
 								slice |= lowMask;
 							}
 						}
@@ -115,7 +113,7 @@ public class BoxFinder {
 						final int highMask = (mask << 1);
 
 						if ((slice & highMask) == 0) {
-							if (Area.isIncludedBySample(source, (z + 1) * SLICE_WORD_COUNT, areaKey)) {
+							if (Area.isIncludedBySample(source, (z + 1) * SLICE_WORD_COUNT, areaIndex)) {
 								slice |= highMask;
 							}
 						}
@@ -125,7 +123,7 @@ public class BoxFinder {
 				}
 
 				if ((slice & 0b1000000000000000) == 0b1000000000000000  && (slice & 0b0100000000000000) == 0) {
-					if (Area.isIncludedBySample(source, SLICE_WORD_COUNT * 14, areaKey)) {
+					if (Area.isIncludedBySample(source, SLICE_WORD_COUNT * 14, areaIndex)) {
 						slice |= 0b0100000000000000;
 					}
 				}
@@ -235,13 +233,14 @@ public class BoxFinder {
 
 		for (int i = 0; i < limit; i++) {
 			final long box = sortedBoxes.getLong(i);
-			final int areaKey = Area.indexToKey((int) (box >> 10) & 0xFFFFFF);
+			final int areaIndex = (int) (box >> 10) & 0xFFFFFF;
+			final int areaKey = Area.indexToKey(areaIndex);
 
 			final int z0 = (int) box & 31;
 			final int z1 = (int) (box >> 5) & 31;
 
 			if (isAdditive(areaKey, z0, z1)) {
-				fill(areaKey, z0, z1);
+				fill(areaIndex, z0, z1);
 				boxes.add(PackedBox.pack(Area.x0(areaKey), Area.y0(areaKey), z0, Area.x1(areaKey) + 1, Area.y1(areaKey) + 1, z1, PackedBox.RANGE_EXTREME));
 			}
 		}
@@ -254,12 +253,14 @@ public class BoxFinder {
 
 		for (int i = 0; i < limit; i++) {
 			final long box = sortedBoxes.getLong(i);
-			final int areaKey = Area.indexToKey((int) (box >> 10) & 0xFFFFFF);
+			final int areaIndex = (int) (box >> 10) & 0xFFFFFF;
 			final int z0 = (int) box & 31;
 			final int z1 = (int) (box >> 5) & 31;
+			final int areaKey = Area.indexToKey(areaIndex);
 
 			if (!intersects(areaKey, z0, z1)) {
-				fill(areaKey, z0, z1);
+
+				fill(areaIndex, z0, z1);
 				final int vol = (int) (box >>> 34);
 				boxes.add(PackedBox.pack(Area.x0(areaKey), Area.y0(areaKey), z0, Area.x1(areaKey) + 1, Area.y1(areaKey) + 1, z1, rangeFromVolume(vol)));
 				voxelCount -= vol;
@@ -287,12 +288,16 @@ public class BoxFinder {
 		return result;
 	}
 
-	private void fill(int areaKey, int z0, int z1) {
+	private void fill(int areaIndex, int z0, int z1) {
 		final long[] filled = this.filled;
 		int index = z0 * SLICE_WORD_COUNT;
+		final long[] bits = areaFinder.bitsFromIndex(areaIndex);
 
 		for  (int z = z0; z < z1; ++z) {
-			Area.setBits(filled, index, areaKey);
+			filled[index] |= bits[0];
+			filled[index + 1] |= bits[1];
+			filled[index + 2] |= bits[2];
+			filled[index + 3] |= bits[3];
 			index += SLICE_WORD_COUNT;
 		}
 	}
