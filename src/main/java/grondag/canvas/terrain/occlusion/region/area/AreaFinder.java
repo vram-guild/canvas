@@ -1,120 +1,11 @@
 package grondag.canvas.terrain.occlusion.region.area;
 
-import java.util.Arrays;
-
-import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntConsumer;
-import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 
 public class AreaFinder {
-	@Deprecated
-	private static final Area[] AREA_BY_INDEX;
-
-	@Deprecated
-	private static final Area[] AREA_BY_KEY = new Area[0x10000];
-
-	private static final int[] AREA_KEY_TO_INDEX = new int[0x10000];
-	private static final int[] AREA_INDEX_TO_KEY;
-
-	public static final int AREA_COUNT;
-
-	private static final int[] SECTION_KEYS;
-
-	public static final int SECTION_COUNT;
-
-	//private static final ConcurrentMicroTimer timer = new ConcurrentMicroTimer("AreaFinder.find", 10000);
-
-	public static int keyToIndex(int key) {
-		return AREA_KEY_TO_INDEX[key];
-	}
-
-	public static int indexToKey(int index) {
-		return AREA_INDEX_TO_KEY[index];
-	}
-
-	public Area get(int index) {
-		return AREA_BY_INDEX[index];
-	}
-
-	public int getSectionKey(int sectionIndex) {
-		return SECTION_KEYS[sectionIndex];
-	}
-
-	static {
-		final IntOpenHashSet areas = new IntOpenHashSet();
-
-		areas.add(Area.areaKey(0, 0, 15, 15));
-
-		areas.add(Area.areaKey(1, 0, 15, 15));
-		areas.add(Area.areaKey(0, 0, 14, 15));
-		areas.add(Area.areaKey(0, 1, 15, 15));
-		areas.add(Area.areaKey(0, 0, 15, 14));
-
-		for (int x0 = 0; x0 <= 15; x0++) {
-			for (int x1 = x0; x1 <= 15; x1++) {
-				for (int y0 = 0; y0 <= 15; y0++) {
-					for(int y1 = y0; y1 <= 15; y1++) {
-						areas.add(Area.areaKey(x0, y0, x1, y1));
-					}
-				}
-			}
-		}
-
-		AREA_COUNT = areas.size();
-		AREA_INDEX_TO_KEY = new int[AREA_COUNT];
-
-		AREA_BY_INDEX = new Area[AREA_COUNT];
-
-		int i = 0;
-
-		for(final int k : areas) {
-			AREA_BY_INDEX[i++] = new Area(k, 0);
-		}
-
-		Arrays.sort(AREA_BY_INDEX, (a, b) -> {
-			final int result = Integer.compare(Area.size(b.areaKey), Area.size(a.areaKey));
-
-			// within same area size, prefer more compact rectangles
-			return result == 0 ? Integer.compare(Area.edgeCount(a.areaKey), Area.edgeCount(b.areaKey)) : result;
-		});
-
-		// PERF: minor, but sort keys instead array to avoid extra alloc at startup
-		for (int j = 0; j < AREA_COUNT; j++) {
-			final Area a = new Area(AREA_BY_INDEX[j].areaKey, j);
-			AREA_BY_INDEX[j] = a;
-			AREA_BY_KEY[a.areaKey] = a;
-
-			AREA_INDEX_TO_KEY[j] = a.areaKey;
-			AREA_KEY_TO_INDEX[a.areaKey] = j;
-		}
-
-		final IntArrayList sections = new IntArrayList();
-
-		for (int j = 0; j < AREA_COUNT; ++j) {
-			final int a = AREA_INDEX_TO_KEY[j];
-
-			if ((Area.x0(a) == 0  &&  Area.x1(a) == 15) || (Area.y0(a) == 0  &&  Area.y1(a) == 15)) {
-				sections.add(indexToKey(j));
-			}
-		}
-
-		SECTION_COUNT = sections.size();
-		SECTION_KEYS = sections.toArray(new int[SECTION_COUNT]);
-	}
-
 	final long[] bits = new long[4];
 
-	//	[12:21:16] [Canvas Render Thread - 3/INFO] (Canvas) Avg AreaFinder.find duration = 124,536 ns, total duration = 1,245, total runs = 10,000
-	//	[12:21:20] [Canvas Render Thread - 4/INFO] (Canvas) Avg AreaFinder.find duration = 128,970 ns, total duration = 1,289, total runs = 10,000
-	//	[12:21:32] [Canvas Render Thread - 2/INFO] (Canvas) Avg AreaFinder.find duration = 117,787 ns, total duration = 1,177, total runs = 10,000
-
-	//	[21:29:06] [Canvas Render Thread - 4/INFO] (Canvas) Avg AreaFinder.find duration = 2,459 ns, total duration = 24, total runs = 10,000
-	//	[21:29:08] [Canvas Render Thread - 4/INFO] (Canvas) Avg AreaFinder.find duration = 3,512 ns, total duration = 35, total runs = 10,000
-	//	[21:29:15] [Canvas Render Thread - 2/INFO] (Canvas) Avg AreaFinder.find duration = 2,721 ns, total duration = 27, total runs = 10,000
-	//	[21:29:22] [Canvas Render Thread - 2/INFO] (Canvas) Avg AreaFinder.find duration = 3,087 ns, total duration = 30, total runs = 10,000
 	public void find(long[] bitsIn, int sourceIndex, IntConsumer areaIndexConsumer) {
-		//		timer.start();
-
 		final long[] bits = this.bits;
 		System.arraycopy(bitsIn, sourceIndex, bits, 0, 4);
 
@@ -122,12 +13,10 @@ public class AreaFinder {
 
 		while(bitCount > 0) {
 			final int key = findLargest(bits);
-			areaIndexConsumer.accept(keyToIndex(key));
+			areaIndexConsumer.accept(Area.keyToIndex(key));
 			Area.clearBits(bits, 0, key);
 			bitCount -= Area.size(key);
 		}
-
-		//		timer.stop();
 	}
 
 	private static int bitCount(long bits) {
@@ -144,11 +33,11 @@ public class AreaFinder {
 			return;
 		}
 
-		for(int i = 0; i < SECTION_COUNT; ++i) {
-			final int sectionKey = SECTION_KEYS[i];
+		for(int i = 0; i < Area.SECTION_COUNT; ++i) {
+			final int sectionKey = Area.sectionKey(i);
 
 			if (Area.isIncludedBySample(bits, 0, sectionKey)) {
-				areaIndexConsumer.accept(keyToIndex(sectionKey));
+				areaIndexConsumer.accept(Area.keyToIndex(sectionKey));
 			}
 		}
 	}
@@ -157,7 +46,7 @@ public class AreaFinder {
 	// 	https://stackoverflow.com/a/7497967
 	// 	https://stackoverflow.com/a/7773870
 	//  https://www.drdobbs.com/database/the-maximal-rectangle-problem/184410529
-	public int findLargest(long[] bitsIn) {
+	public static int findLargest(long[] bitsIn) {
 		int bestX0 = 0;
 		int bestY0 = 0;
 		int bestX1 = -1;

@@ -15,7 +15,7 @@ public class BoxFinder {
 	final long[] filled = new long[INTERIOR_CACHE_WORDS];
 
 	/** bits 0-15 indicate which slices contain the area with the same index of the value */
-	final int[] areaSlices = new int[AreaFinder.AREA_COUNT];
+	final int[] areaSlices = new int[Area.AREA_COUNT];
 
 	public final IntArrayList boxes = new IntArrayList();
 	private final LongArrayList sortedBoxes = new LongArrayList();
@@ -59,17 +59,16 @@ public class BoxFinder {
 		final LongArrayList sortedBoxes = this.sortedBoxes;
 		sortedBoxes.clear();
 
-		final AreaFinder areaFinder = this.areaFinder;
 		final int[] areaSlices = this.areaSlices;
 
 		if (areaSlices[0] != 0) {
 			// handle special case of full Z-plane
-			addBoxesFromSlice(areaFinder.get(0), areaSlices[0]);
+			addBoxesFromSlice(Area.indexToKey(0), areaSlices[0]);
 		}
 
-		for (int i = 1; i < AreaFinder.SECTION_COUNT; ++i) {
-			final int areaKey  =  areaFinder.getSectionKey(i);
-			final int areaIndex = AreaFinder.keyToIndex(areaKey);
+		for (int i = 1; i < Area.SECTION_COUNT; ++i) {
+			final int areaKey  =  Area.sectionKey(i);
+			final int areaIndex = Area.keyToIndex(areaKey);
 			final int slice = areaSlices[areaIndex];
 
 			if (slice == 0xFFFF) {
@@ -84,18 +83,17 @@ public class BoxFinder {
 	}
 
 	private void markBoxNeighborSlices() {
-		final AreaFinder areaFinder = this.areaFinder;
 		final int[] areaSlices = this.areaSlices;
 
-		for (int i = 0; i < AreaFinder.AREA_COUNT; ++i) {
-			int slice = areaSlices[i];
+		for (int areaIndex = 0; areaIndex < Area.AREA_COUNT; ++areaIndex) {
+			int slice = areaSlices[areaIndex];
 
 			if (slice != 0) {
-				final Area area  = areaFinder.get(i);
+				final int areaKey  = Area.indexToKey(areaIndex);
 
 				if ((slice & 1) == 1 && (slice & 2) == 0) {
 					// special case first slice - can only transfer up
-					if (Area.isIncludedBySample(source, SLICE_WORD_COUNT, area.areaKey)) {
+					if (Area.isIncludedBySample(source, SLICE_WORD_COUNT, areaKey)) {
 						slice |= 2;
 					}
 				}
@@ -108,7 +106,7 @@ public class BoxFinder {
 						final int lowMask = (mask >> 1);
 
 						if ((slice & lowMask) == 0) {
-							if (Area.isIncludedBySample(source, (z - 1) * SLICE_WORD_COUNT, area.areaKey)) {
+							if (Area.isIncludedBySample(source, (z - 1) * SLICE_WORD_COUNT, areaKey)) {
 								slice |= lowMask;
 							}
 						}
@@ -117,7 +115,7 @@ public class BoxFinder {
 						final int highMask = (mask << 1);
 
 						if ((slice & highMask) == 0) {
-							if (Area.isIncludedBySample(source, (z + 1) * SLICE_WORD_COUNT, area.areaKey)) {
+							if (Area.isIncludedBySample(source, (z + 1) * SLICE_WORD_COUNT, areaKey)) {
 								slice |= highMask;
 							}
 						}
@@ -127,12 +125,12 @@ public class BoxFinder {
 				}
 
 				if ((slice & 0b1000000000000000) == 0b1000000000000000  && (slice & 0b0100000000000000) == 0) {
-					if (Area.isIncludedBySample(source, SLICE_WORD_COUNT * 14, area.areaKey)) {
+					if (Area.isIncludedBySample(source, SLICE_WORD_COUNT * 14, areaKey)) {
 						slice |= 0b0100000000000000;
 					}
 				}
 
-				areaSlices[i] = slice;
+				areaSlices[areaIndex] = slice;
 			}
 		}
 	}
@@ -141,28 +139,27 @@ public class BoxFinder {
 		final LongArrayList sortedBoxes = this.sortedBoxes;
 		sortedBoxes.clear();
 
-		final AreaFinder areaFinder = this.areaFinder;
 		final int[] areaSlices = this.areaSlices;
 
-		for (int i = 0; i < AreaFinder.AREA_COUNT; ++i) {
-			final int slice = areaSlices[i];
+		for (int areaIndex = 0; areaIndex < Area.AREA_COUNT; ++areaIndex) {
+			final int slice = areaSlices[areaIndex];
 
 			if (slice != 0) {
-				addBoxesFromSlice(areaFinder.get(i), slice);
+				addBoxesFromSlice(Area.indexToKey(areaIndex), slice);
 			}
 		}
 
 		sortedBoxes.sort((a,b) -> Long.compare(b, a));
 	}
 
-	private void addBoxesFromSlice(Area area, int slice) {
+	private void addBoxesFromSlice(int areaKey, int slice) {
 		int z0 = -1;
 		int mask = 1;
-		final int areaKey = area.areaKey;
 		final int x0 = Area.x0(areaKey);
 		final int y0 = Area.y0(areaKey);
 		final int x1 = Area.x1(areaKey);
 		final int y1 = Area.y1(areaKey);
+		final int areaIndex = Area.keyToIndex(areaKey);
 
 		for (int z = 0; z < 16; z++) {
 			if((slice & mask) == 0) {
@@ -172,7 +169,7 @@ public class BoxFinder {
 					final int dy = (y1 - y0 + 1);
 					final int dx = (x1 - x0 + 1);
 					final long vol = dx * dy * dz;
-					sortedBoxes.add((vol << 34) | (area.index << 10) | (z << 5) | z0);
+					sortedBoxes.add((vol << 34) | (areaIndex << 10) | (z << 5) | z0);
 					z0 = -1;
 				}
 			} else {
@@ -192,7 +189,7 @@ public class BoxFinder {
 			final int dx = (x1 - x0 + 1);
 			final long vol = dx * dy * dz;
 
-			sortedBoxes.add((vol << 34) | (area.index << 10) | (16 << 5) | z0);
+			sortedBoxes.add((vol << 34) | (areaIndex << 10) | (16 << 5) | z0);
 		}
 	}
 
@@ -205,7 +202,7 @@ public class BoxFinder {
 		final long[] sourceBits = source;
 		final AreaFinder areaFinder = this.areaFinder;
 		final int[] areaSlices = this.areaSlices;
-		System.arraycopy(EMPTY_AREA_SLICES, 0, areaSlices, 0, AreaFinder.AREA_COUNT);
+		System.arraycopy(EMPTY_AREA_SLICES, 0, areaSlices, 0, Area.AREA_COUNT);
 		mask = 1;
 		int sourceIndex = 0;
 
@@ -220,7 +217,7 @@ public class BoxFinder {
 		final long[] sourceBits = source;
 		final AreaFinder areaFinder = this.areaFinder;
 		final int[] areaSlices = this.areaSlices;
-		System.arraycopy(EMPTY_AREA_SLICES, 0, areaSlices, 0, AreaFinder.AREA_COUNT);
+		System.arraycopy(EMPTY_AREA_SLICES, 0, areaSlices, 0, Area.AREA_COUNT);
 		mask = 1;
 		int sourceIndex = 0;
 
@@ -232,43 +229,39 @@ public class BoxFinder {
 	}
 
 	private void findSections() {
-		final AreaFinder areaFinder = this.areaFinder;
 		final LongArrayList sortedBoxes = this.sortedBoxes;
 		final int limit = sortedBoxes.size();
 		final IntArrayList boxes = this.boxes;
 
 		for (int i = 0; i < limit; i++) {
 			final long box = sortedBoxes.getLong(i);
-			final Area area = areaFinder.get((int) (box >> 10) & 0xFFFFFF);
-			final int a = area.areaKey;
+			final int areaKey = Area.indexToKey((int) (box >> 10) & 0xFFFFFF);
 
 			final int z0 = (int) box & 31;
 			final int z1 = (int) (box >> 5) & 31;
 
-			if (isAdditive(area, z0, z1)) {
-				fill(area, z0, z1);
-				boxes.add(PackedBox.pack(Area.x0(a), Area.y0(a), z0, Area.x1(a) + 1, Area.y1(a) + 1, z1, PackedBox.RANGE_EXTREME));
+			if (isAdditive(areaKey, z0, z1)) {
+				fill(areaKey, z0, z1);
+				boxes.add(PackedBox.pack(Area.x0(areaKey), Area.y0(areaKey), z0, Area.x1(areaKey) + 1, Area.y1(areaKey) + 1, z1, PackedBox.RANGE_EXTREME));
 			}
 		}
 	}
 
 	private void findDisjointBoxes() {
-		final AreaFinder areaFinder = this.areaFinder;
 		final LongArrayList sortedBoxes = this.sortedBoxes;
 		final int limit = sortedBoxes.size();
 		final IntArrayList boxes = this.boxes;
 
 		for (int i = 0; i < limit; i++) {
 			final long box = sortedBoxes.getLong(i);
-			final Area area = areaFinder.get((int) (box >> 10) & 0xFFFFFF);
-			final int a = area.areaKey;
+			final int areaKey = Area.indexToKey((int) (box >> 10) & 0xFFFFFF);
 			final int z0 = (int) box & 31;
 			final int z1 = (int) (box >> 5) & 31;
 
-			if (!intersects(area, z0, z1)) {
-				fill(area, z0, z1);
+			if (!intersects(areaKey, z0, z1)) {
+				fill(areaKey, z0, z1);
 				final int vol = (int) (box >>> 34);
-				boxes.add(PackedBox.pack(Area.x0(a), Area.y0(a), z0, Area.x1(a) + 1, Area.y1(a) + 1, z1, rangeFromVolume(vol)));
+				boxes.add(PackedBox.pack(Area.x0(areaKey), Area.y0(areaKey), z0, Area.x1(areaKey) + 1, Area.y1(areaKey) + 1, z1, rangeFromVolume(vol)));
 				voxelCount -= vol;
 
 				if (voxelCount == 0) {
@@ -294,22 +287,22 @@ public class BoxFinder {
 		return result;
 	}
 
-	private void fill(Area a, int z0, int z1) {
+	private void fill(int areaKey, int z0, int z1) {
 		final long[] filled = this.filled;
 		int index = z0 * SLICE_WORD_COUNT;
 
 		for  (int z = z0; z < z1; ++z) {
-			Area.setBits(filled, index, a.areaKey);
+			Area.setBits(filled, index, areaKey);
 			index += SLICE_WORD_COUNT;
 		}
 	}
 
-	private boolean intersects(Area a, int z0, int z1) {
+	private boolean intersects(int areaKey, int z0, int z1) {
 		final long[] filled = this.filled;
 		int index = z0 * SLICE_WORD_COUNT;
 
 		for  (int z = z0; z < z1; ++z) {
-			if (Area.intersectsWithSample(filled, index, a.areaKey)) {
+			if (Area.intersectsWithSample(filled, index, areaKey)) {
 				return true;
 			}
 
@@ -319,12 +312,12 @@ public class BoxFinder {
 		return false;
 	}
 
-	private boolean isAdditive(Area a, int z0, int z1) {
+	private boolean isAdditive(int areaKey, int z0, int z1) {
 		final long[] filled = this.filled;
 		int index = z0 * SLICE_WORD_COUNT;
 
 		for  (int z = z0; z < z1; ++z) {
-			if (Area.isAdditive(filled, index, a.areaKey)) {
+			if (Area.isAdditive(filled, index, areaKey)) {
 				return true;
 			}
 
@@ -340,6 +333,5 @@ public class BoxFinder {
 		}
 	}
 
-	private final int[] EMPTY_AREA_SLICES = new int[AreaFinder.AREA_COUNT];
-
+	private final int[] EMPTY_AREA_SLICES = new int[Area.AREA_COUNT];
 }
