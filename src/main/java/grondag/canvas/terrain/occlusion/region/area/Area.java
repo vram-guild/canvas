@@ -129,31 +129,39 @@ public class Area {
 		targetBits[++startIndex] &= ~bits(areaKey, 3);
 	}
 
-	private static int rowMask(int areaKey) {
-		return (0xFFFF << Area.x0(areaKey)) & (0xFFFF >> (15 - Area.x1(areaKey)));
+	private static final long[] X_MASKS = new long[256];
+	private static final int[] Y_BITS = new int[256];
+	private static final long[] Y_MASKS = new long[16];
+
+	static {
+		for (int x0 = 0; x0 <= 15; ++x0) {
+			for (int x1 = x0; x1 <= 15; ++x1) {
+				final long template  = (0xFFFF << x0) & (0xFFFF >> (15 - x1));
+				X_MASKS[x0 | (x1 << 4)] = template | (template << 16) | (template << 32) | (template << 48);
+			}
+		}
+
+		for (int y0 = 0; y0 <= 15; ++y0) {
+			for (int y1 = y0; y1 <= 15; ++y1) {
+				Y_BITS[y0 | (y1 << 4)] = (0xFFFF << y0) & (0xFFFF >> (15 - y1));
+			}
+		}
+
+		Y_MASKS[0b0000] = 0L;
+		Y_MASKS[0b0001] = 0x000000000000FFFFL;
+		Y_MASKS[0b0010] = 0x00000000FFFF0000L;
+		Y_MASKS[0b0100] = 0x0000FFFF00000000L;
+		Y_MASKS[0b1000] = 0xFFFF000000000000L;
+		Y_MASKS[0b0011] = 0x00000000FFFFFFFFL;
+		Y_MASKS[0b0110] = 0x0000FFFFFFFF0000L;
+		Y_MASKS[0b1100] = 0xFFFFFFFF00000000L;
+		Y_MASKS[0b0111] = 0x0000FFFFFFFFFFFFL;
+		Y_MASKS[0b1110] = 0xFFFFFFFFFFFF0000L;
+		Y_MASKS[0b1111] = 0xFFFFFFFFFFFFFFFFL;
 	}
 
 	private static long bits(int areaKey, int y) {
-		final int yMin = y << 2;
-		final int yMax = yMin + 3;
-
-		final int y0 = Math.max(yMin, Area.y0(areaKey));
-		final int y1 = Math.min(yMax, Area.y1(areaKey));
-
-		if (y0 > y1) {
-			return 0L;
-		}
-
-		long result = 0;
-		final long mask = rowMask(areaKey);
-
-		final int limit = y1 & 3;
-
-		for (int i = y0 & 3; i <= limit; ++i) {
-			result |= (mask << (i <<4));
-		}
-
-		return result;
+		return Y_MASKS[(Y_BITS[areaKey >> 8] >> (y << 2)) & 0xF] & X_MASKS[areaKey & 0xFF];
 	}
 
 	public static void printShape(int areaKey) {
@@ -167,7 +175,7 @@ public class Area {
 	}
 
 	public static int areaKey(int x0, int y0, int x1, int y1) {
-		return x0 | (y0 << 4) | (x1 << 8) | (y1 << 12);
+		return x0 | (x1 << 4) | (y0 << 8) | (y1 << 12);
 	}
 
 	public static int x0(int areaKey) {
@@ -175,11 +183,11 @@ public class Area {
 	}
 
 	public static int y0(int areaKey) {
-		return (areaKey >> 4) & 15;
+		return (areaKey >> 8) & 15;
 	}
 
 	public static int x1(int areaKey) {
-		return (areaKey >> 8) & 15;
+		return (areaKey >> 4) & 15;
 	}
 
 	public static int y1(int areaKey) {
