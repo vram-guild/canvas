@@ -427,67 +427,12 @@ public abstract class AoCalculator {
 	}
 
 	private void irregularFaceFlat(MutableQuadViewImpl quad) {
-		final Vector3f faceNorm = quad.faceNormal();
-		Vector3f normal;
-		final float[] w = this.w;
-
-		//TODO: currently no way to handle 3d interpolation shader-side
-		quad.hdLight = null;
-
-		for (int i = 0; i < 4; i++) {
-			normal = quad.hasNormal(i) ? quad.copyNormal(i, vertexNormal) : faceNorm;
-			float sky = 0, block = 0;
-			int maxSky = 0, maxBlock = 0;
-
-			final float x = normal.getX();
-
-			if (!MathHelper.approximatelyEquals(0f, x)) {
-				final int face = x > 0 ? EAST : WEST;
-				// PERF: really need to cache these
-				final AoFaceCalc fd = blendedInsetData(quad, i, face);
-				AoFace.get(face).weightFunc.apply(quad, i, w);
-				final float n = x * x;
-				final int s = fd.weigtedSkyLight(w);
-				final int b = fd.weigtedBlockLight(w);
-				sky += n * s;
-				block += n * b;
-				maxSky = s;
-				maxBlock = b;
-			}
-
-			final float y = normal.getY();
-
-			if (!MathHelper.approximatelyEquals(0f, y)) {
-				final int face = y > 0 ? UP : DOWN;
-				final AoFaceCalc fd = blendedInsetData(quad, i, face);
-				AoFace.get(face).weightFunc.apply(quad, i, w);
-				final float n = y * y;
-				final int s = fd.weigtedSkyLight(w);
-				final int b = fd.weigtedBlockLight(w);
-				sky += n * s;
-				block += n * b;
-				maxSky = Math.max(s, maxSky);
-				maxBlock = Math.max(b, maxBlock);
-			}
-
-			final float z = normal.getZ();
-
-			if (!MathHelper.approximatelyEquals(0f, z)) {
-				final int face = z > 0 ? SOUTH : NORTH;
-				final AoFaceCalc fd = blendedInsetData(quad, i, face);
-				AoFace.get(face).weightFunc.apply(quad, i, w);
-				final float n = z * z;
-				final int s = fd.weigtedSkyLight(w);
-				final int b = fd.weigtedBlockLight(w);
-				sky += n * s;
-				block += n * b;
-				maxSky = Math.max(s, maxSky);
-				maxBlock = Math.max(b, maxBlock);
-			}
-
-			quad.lightmap(i, ColorHelper.maxBrightness(quad.lightmap(i), (((int) ((sky + maxSky) * 0.5f) & 0xFF) << 16)
-					| ((int)((block + maxBlock) * 0.5f) & 0xFF)));
-		}
+		// use center light - interpolatino too expensive given how often this happen for foliage, etc.
+		final int brightness = brightness(regionRelativeCacheIndex);
+		quad.lightmap(0, ColorHelper.maxBrightness(quad.lightmap(0), brightness));
+		quad.lightmap(1, ColorHelper.maxBrightness(quad.lightmap(1), brightness));
+		quad.lightmap(2, ColorHelper.maxBrightness(quad.lightmap(2), brightness));
+		quad.lightmap(3, ColorHelper.maxBrightness(quad.lightmap(3), brightness));
 	}
 
 	/**

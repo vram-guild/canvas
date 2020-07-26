@@ -216,16 +216,16 @@ public abstract class AbstractRenderContext implements RenderContext {
 	private final MicroTimer timer = new MicroTimer("renderQuad", 100000);
 
 	public final void renderQuad(MutableQuadViewImpl quad) {
+		timer.start();
 
 		mapMaterials(quad);
 
 		if (transform(quad) && cullTest(quad)) {
 			final CompositeMaterial mat = quad.material().forBlendMode(defaultBlendModeIndex());
 			quad.material(mat);
-			timer.start();
 			VertexEncoders.get(materialContext(), mat).encodeQuad(quad, this);
-			timer.stop();
 		}
 
+		timer.stop();
 	}
 }
