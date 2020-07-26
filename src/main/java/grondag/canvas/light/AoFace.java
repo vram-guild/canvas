@@ -15,6 +15,7 @@
 package grondag.canvas.light;
 
 import static grondag.canvas.light.AoVertexClampFunction.clamp;
+import static grondag.canvas.terrain.RenderRegionAddressHelper.signedXyzOffset5;
 import static net.minecraft.util.math.Direction.DOWN;
 import static net.minecraft.util.math.Direction.EAST;
 import static net.minecraft.util.math.Direction.NORTH;
@@ -115,14 +116,15 @@ enum AoFace {
 	final Vertex2Float depthFunc;
 	final Vertex2Float uFunc;
 	final Vertex2Float vFunc;
-	final Vec3i bottomVec;
-	final Vec3i leftVec;
-	final Vec3i topVec;
-	final Vec3i rightVec;
-	final Vec3i bottomLeftVec;
-	final Vec3i bottomRightVec;
-	final Vec3i topLeftVec;
-	final Vec3i topRightVec;
+
+	final int bottomOffset;
+	final int leftOffset;
+	final int topOffset;
+	final int rightOffset;
+	final int bottomLeftOffset;
+	final int bottomRightOffset;
+	final int topLeftOffset;
+	final int topRightOffset;
 
 	private AoFace(Direction bottom, Direction top, Direction left, Direction right, Vertex2Float depthFunc,
 			Vertex2Float uFunc, Vertex2Float vFunc, WeightFunction weightFunc) {
@@ -132,15 +134,20 @@ enum AoFace {
 		neighbors[2] = left.ordinal();
 		neighbors[3] = right.ordinal();
 
-		bottomVec = bottom.getVector();
-		leftVec = left.getVector();
-		topVec = top.getVector();
-		rightVec = right.getVector();
+		final Vec3i bottomVec = bottom.getVector();
+		final Vec3i leftVec = left.getVector();
+		final Vec3i topVec = top.getVector();
+		final Vec3i rightVec = right.getVector();
 
-		bottomLeftVec = new Vec3i(bottomVec.getX() + leftVec.getX(), bottomVec.getY() + leftVec.getY(), bottomVec.getZ() + leftVec.getZ());
-		bottomRightVec = new Vec3i(bottomVec.getX() + rightVec.getX(), bottomVec.getY() + rightVec.getY(), bottomVec.getZ() + rightVec.getZ());
-		topLeftVec = new Vec3i(topVec.getX() + leftVec.getX(), topVec.getY() + leftVec.getY(), topVec.getZ() + leftVec.getZ());
-		topRightVec = new Vec3i(topVec.getX() + rightVec.getX(), topVec.getY() + rightVec.getY(), topVec.getZ() + rightVec.getZ());
+		bottomOffset = signedXyzOffset5(bottomVec);
+		leftOffset = signedXyzOffset5(leftVec);
+		topOffset = signedXyzOffset5(topVec);
+		rightOffset = signedXyzOffset5(rightVec);
+
+		bottomLeftOffset = bottomOffset + leftOffset - 0b000010000100001;
+		bottomRightOffset = bottomOffset + rightOffset - 0b000010000100001;
+		topLeftOffset = topOffset + leftOffset - 0b000010000100001;
+		topRightOffset = topOffset + rightOffset - 0b000010000100001;
 
 		this.depthFunc = depthFunc;
 		this.weightFunc = weightFunc;

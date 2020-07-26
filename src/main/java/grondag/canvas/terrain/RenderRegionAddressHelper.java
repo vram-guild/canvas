@@ -122,6 +122,17 @@ public abstract class RenderRegionAddressHelper {
 		return INDEX_LOOKUP[lookupIndex];
 	}
 
+	/**
+	 * inputs must ensure result of addition is in  -1 to 16 range
+	 *
+	 * @param packedXyz5  must be in  -1 to 16 range (packed values 0-17)
+	 * @param signedXyzOffset5 must be in -1 to 1 (packed values 0-2)
+	 * @return equivalent to {@link #fastRelativeCacheIndex(int, int, int)} with added values
+	 */
+	public static int fastOffsetRelativeCacheIndex(int packedXyz5, int signedXyzOffset5) {
+		return INDEX_LOOKUP[packedXyz5 + signedXyzOffset5 - 0b000010000100001];
+	}
+
 	private static int computeRelativeBlockIndex(int x, int y, int z) {
 		final int scenario = ((x & 0xF) == x ? 1 : 0) | ((y & 0xF) == y ? 2 : 0) | ((z & 0xF) == z ? 4 : 0);
 
@@ -255,6 +266,23 @@ public abstract class RenderRegionAddressHelper {
 	 */
 	public static int cacheIndexToXyz5(int cacheIndex) {
 		return REVERSE_INDEX_LOOKUP[cacheIndex];
+	}
+
+	/**
+	 * Packs values in -1 to 1 range with 5 bit encoding
+	 * Reduces call overhead by passing xyz5 and packed
+	 * offset vs adding component-wise and passing each component.
+	 * @param x -1 to 1
+	 * @param y -1 to 1
+	 * @param z -1 to 1
+	 * @return
+	 */
+	public static int signedXyzOffset5(int x, int y, int z) {
+		return (x + 1) | ((y + 1) << 5) | ((z + 1) << 10);
+	}
+
+	public static int signedXyzOffset5(Vec3i vec) {
+		return signedXyzOffset5(vec.getX(), vec.getY(), vec.getZ());
 	}
 
 	protected static final BlockState AIR = Blocks.AIR.getDefaultState();
