@@ -29,7 +29,6 @@ import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.model.BakedModel;
 import net.minecraft.client.texture.Sprite;
 import net.minecraft.client.texture.SpriteAtlasTexture;
-import net.minecraft.client.util.math.Vector4f;
 import net.minecraft.util.math.Matrix4f;
 
 import net.fabricmc.fabric.api.renderer.v1.material.RenderMaterial;
@@ -48,13 +47,10 @@ import grondag.canvas.light.AoCalculator;
 import grondag.canvas.material.MaterialContext;
 import grondag.canvas.material.MaterialVertexFormats;
 import grondag.canvas.mixinterface.Matrix3fExt;
-import grondag.canvas.perf.MicroTimer;
 import grondag.frex.api.material.MaterialMap;
 
 public abstract class AbstractRenderContext implements RenderContext {
-	/** for use in encoders without a threadlocal */
-	public final Vector4f transformVector = new Vector4f();
-
+	public final float[] vecData = new float[3];
 	public final int[] appendData  = new int[MaterialVertexFormats.MAX_QUAD_INT_STRIDE];
 	public final VertexCollectorList collectors = new VertexCollectorList();
 	private final ObjectArrayList<QuadTransform> transformStack = new ObjectArrayList<>();
@@ -212,11 +208,22 @@ public abstract class AbstractRenderContext implements RenderContext {
 	//[18:49:20] [main/INFO] (Canvas) Avg renderQuad duration = 1,556 ns, min = 659, max = 56858, total duration = 155, total runs = 100,000
 	//[18:49:27] [main/INFO] (Canvas) Avg renderQuad duration = 1,628 ns, min = 583, max = 82779, total duration = 162, total runs = 100,000
 
+	//[10:45:07] [main/INFO] (Canvas) Avg renderQuad duration = 3,666 ns, min = 1332, max = 165333, total duration = 366, total runs = 100,000
+	//[10:45:08] [Canvas Render Thread - 6/INFO] (Canvas) Avg renderQuad duration = 1,164 ns, min = 4, max = 5060948, total duration = 116, total runs = 100,000
+	//[10:45:08] [Canvas Render Thread - 5/INFO] (Canvas) Avg renderQuad duration = 1,167 ns, min = 9, max = 6202852, total duration = 116, total runs = 100,000
+	//[10:45:08] [Canvas Render Thread - 4/INFO] (Canvas) Avg renderQuad duration = 1,100 ns, min = 5, max = 5377311, total duration = 110, total runs = 100,000
+	//[10:45:09] [Canvas Render Thread - 2/INFO] (Canvas) Avg renderQuad duration = 892 ns, min = 15, max = 1766698, total duration = 89, total runs = 100,000
+	//[10:45:10] [Canvas Render Thread - 1/INFO] (Canvas) Avg renderQuad duration = 1,282 ns, min = 3, max = 6586611, total duration = 128, total runs = 100,000
+	//[10:45:10] [Canvas Render Thread - 0/INFO] (Canvas) Avg renderQuad duration = 1,249 ns, min = 5, max = 4150995, total duration = 124, total runs = 100,000
+	//[10:45:10] [Canvas Render Thread - 3/INFO] (Canvas) Avg renderQuad duration = 1,269 ns, min = 2, max = 4476963, total duration = 126, total runs = 100,000
+	//[10:45:10] [Canvas Render Thread - 4/INFO] (Canvas) Avg renderQuad duration = 897 ns, min = 21, max = 7570932, total duration = 89, total runs = 100,000
+	//[10:45:10] [Canvas Render Thread - 6/INFO] (Canvas) Avg renderQuad duration = 1,398 ns, min = 2, max = 5779330, total duration = 139, total runs = 100,000
+
 	// TODO: remove
-	private final MicroTimer timer = new MicroTimer("renderQuad", 100000);
+	//	private final MicroTimer timer = new MicroTimer("renderQuad", 100000);
 
 	public final void renderQuad(MutableQuadViewImpl quad) {
-		timer.start();
+		//		timer.start();
 
 		mapMaterials(quad);
 
@@ -226,6 +233,6 @@ public abstract class AbstractRenderContext implements RenderContext {
 			VertexEncoders.get(materialContext(), mat).encodeQuad(quad, this);
 		}
 
-		timer.stop();
+		//		timer.stop();
 	}
 }
