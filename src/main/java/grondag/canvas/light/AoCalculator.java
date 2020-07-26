@@ -93,7 +93,8 @@ public abstract class AoCalculator {
 		}
 	}
 
-	protected abstract float ao(int cacheIndex);
+	/* 0 to 255 */
+	protected abstract int ao(int cacheIndex);
 
 	protected abstract int brightness(int cacheIndex);
 
@@ -480,7 +481,7 @@ public abstract class AoCalculator {
 		final int z = (packedXyz5 >> 10) - 1;
 
 		fd.center = brightness(index);
-		final int aoCenter = Math.round(ao(index) * 255);
+		final int aoCenter = ao(index);
 		fd.aoCenter = aoCenter;
 
 		final AoFace aoFace = AoFace.get(lightFace);
@@ -491,28 +492,28 @@ public abstract class AoCalculator {
 		int cacheIndex = fastRelativeCacheIndex(x + offset.getX() , y + offset.getY(), z + offset.getZ());
 		final boolean bottomClear = !isOpaque(cacheIndex);
 		fd.bottom = bottomClear ? brightness(cacheIndex) : OPAQUE;
-		final int aoBottom = Math.round(ao(cacheIndex) * 255);
+		final int aoBottom = ao(cacheIndex);
 		fd.aoBottom = aoBottom;
 
 		offset = aoFace.topVec;
 		cacheIndex = fastRelativeCacheIndex(x + offset.getX() , y + offset.getY(), z + offset.getZ());
 		final boolean topClear = !isOpaque(cacheIndex);
 		fd.top = topClear ? brightness(cacheIndex) : OPAQUE;
-		final int aoTop = Math.round(ao(cacheIndex) * 255);
+		final int aoTop = ao(cacheIndex);
 		fd.aoTop = aoTop;
 
 		offset = aoFace.leftVec;
 		cacheIndex = fastRelativeCacheIndex(x + offset.getX() , y + offset.getY(), z + offset.getZ());
 		final boolean leftClear = !isOpaque(cacheIndex);
 		fd.left = leftClear ? brightness(cacheIndex) : OPAQUE;
-		final int aoLeft = Math.round(ao(cacheIndex) * 255);
+		final int aoLeft = ao(cacheIndex);
 		fd.aoLeft = aoLeft;
 
 		offset = aoFace.rightVec;
 		cacheIndex = fastRelativeCacheIndex(x + offset.getX() , y + offset.getY(), z + offset.getZ());
 		final boolean rightClear = !isOpaque(cacheIndex);
 		fd.right = rightClear ? brightness(cacheIndex) : OPAQUE;
-		final int aoRight = Math.round(ao(cacheIndex) * 255);
+		final int aoRight = ao(cacheIndex);
 		fd.aoRight = aoRight;
 
 		if (!(leftClear || bottomClear)) {
@@ -528,11 +529,11 @@ public abstract class AoCalculator {
 			cacheIndex = fastRelativeCacheIndex(x + offset.getX() , y + offset.getY(), z + offset.getZ());
 			final boolean cornerClear = !isOpaque(cacheIndex);
 			fd.bottomLeft = cornerClear ? brightness(cacheIndex) : OPAQUE;
-			// PERF: branching
+
 			if (hd) {
-				fd.aoBottomLeft = Math.round(ao(cacheIndex) * 255);
+				fd.aoBottomLeft = ao(cacheIndex);
 			} else {
-				fd.aoBottomLeft = (Math.round(ao(cacheIndex) * 255) + aoBottom + aoCenter + aoLeft + 1) >> 2;  // bitwise divide by four, rounding up
+				fd.aoBottomLeft = (ao(cacheIndex) + aoBottom + aoCenter + aoLeft + 1) >> 2;  // bitwise divide by four, rounding up
 			}
 		}
 
@@ -552,9 +553,9 @@ public abstract class AoCalculator {
 			fd.bottomRight = cornerClear ? brightness(cacheIndex) : OPAQUE;
 
 			if (hd) {
-				fd.aoBottomRight = Math.round(ao(cacheIndex) * 255);
+				fd.aoBottomRight = ao(cacheIndex);
 			} else {
-				fd.aoBottomRight = (Math.round(ao(cacheIndex) * 255) + aoBottom + aoCenter + aoRight + 1) >> 2;
+				fd.aoBottomRight = (ao(cacheIndex) + aoBottom + aoCenter + aoRight + 1) >> 2;
 			}
 		}
 
@@ -574,9 +575,9 @@ public abstract class AoCalculator {
 			fd.topLeft = cornerClear ? brightness(cacheIndex) : OPAQUE;
 
 			if (hd) {
-				fd.aoTopLeft = Math.round(ao(cacheIndex) * 255);
+				fd.aoTopLeft = ao(cacheIndex);
 			} else {
-				fd.aoTopLeft = (Math.round(ao(cacheIndex) * 255) + aoTop + aoCenter + aoLeft + 1) >> 2;
+				fd.aoTopLeft = (ao(cacheIndex) + aoTop + aoCenter + aoLeft + 1) >> 2;
 			}
 		}
 
@@ -596,13 +597,15 @@ public abstract class AoCalculator {
 			fd.topRight = cornerClear ? brightness(cacheIndex) : OPAQUE;
 
 			if (hd) {
-				fd.aoTopRight = Math.round(ao(cacheIndex) * 255);
+				fd.aoTopRight = ao(cacheIndex);
 			} else {
-				fd.aoTopRight = (Math.round(ao(cacheIndex) * 255) + aoTop + aoCenter + aoRight + 1) >> 2;
+				fd.aoTopRight = (ao(cacheIndex) + aoTop + aoCenter + aoRight + 1) >> 2;
 			}
 		}
 
-		fd.updateHash();
+		if (hd) {
+			fd.updateHash();
+		}
 
 		//PERF: skip if not needed in HD model
 		fd.calc.compute(fd);

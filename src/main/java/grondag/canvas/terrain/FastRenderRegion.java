@@ -50,7 +50,8 @@ public class FastRenderRegion extends AbstractRenderRegion implements RenderAtta
 	public final BlockEntity[] blockEntities = new BlockEntity[INTERIOR_CACHE_SIZE];
 
 	private final BlockState[] states = new BlockState[TOTAL_CACHE_SIZE];
-	private final float[] aoCache = new float[TOTAL_CACHE_SIZE];
+	// PERF: pack for reduced memory, better LOC
+	private final int[] aoCache = new int[TOTAL_CACHE_SIZE];
 	private final int[] lightCache = new int[TOTAL_CACHE_SIZE];
 
 
@@ -207,10 +208,10 @@ public class FastRenderRegion extends AbstractRenderRegion implements RenderAtta
 		return world.getBrightness(direction, shaded);
 	}
 
-	public float cachedAoLevel(int cacheIndex) {
-		float result = aoCache[cacheIndex];
+	public int cachedAoLevel(int cacheIndex) {
+		int result = aoCache[cacheIndex];
 
-		if (result == Float.MAX_VALUE) {
+		if (result == Integer.MAX_VALUE) {
 			final BlockState state = states[cacheIndex];
 
 			if(state.getLuminance() == 0) {
@@ -218,9 +219,9 @@ public class FastRenderRegion extends AbstractRenderRegion implements RenderAtta
 				final int x = (packedXyz5 & 31) - 1 + originX;
 				final int y = ((packedXyz5 >> 5) & 31) - 1 + originY;
 				final int z = (packedXyz5 >> 10) - 1 + originZ;
-				result = state.getAmbientOcclusionLightLevel(this, searchPos.set(x, y, z));
+				result = Math.round(255f * state.getAmbientOcclusionLightLevel(this, searchPos.set(x, y, z)));
 			} else {
-				result = 1F;
+				result = 255;
 			}
 
 			aoCache[cacheIndex] = result;
@@ -261,13 +262,13 @@ public class FastRenderRegion extends AbstractRenderRegion implements RenderAtta
 		}
 	};
 
-	private static final float[] EMPTY_AO_CACHE = new float[TOTAL_CACHE_SIZE];
+	private static final int[] EMPTY_AO_CACHE = new int[TOTAL_CACHE_SIZE];
 	private static final int[] EMPTY_LIGHT_CACHE = new int[TOTAL_CACHE_SIZE];
 	private static final Object[] EMPTY_RENDER_DATA = new Object[INTERIOR_CACHE_SIZE];
 	private static final BlockEntity[] EMPTY_BLOCK_ENTITIES = new BlockEntity[INTERIOR_CACHE_SIZE];
 
 	static {
-		Arrays.fill(EMPTY_AO_CACHE, Float.MAX_VALUE);
+		Arrays.fill(EMPTY_AO_CACHE, Integer.MAX_VALUE);
 		Arrays.fill(EMPTY_LIGHT_CACHE, Integer.MAX_VALUE);
 	}
 

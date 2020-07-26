@@ -65,7 +65,7 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<FastRenderR
 
 	private final AoCalculator aoCalc = new AoCalculator() {
 		@Override
-		protected float ao(int cacheIndex) {
+		protected int ao(int cacheIndex) {
 			return region.cachedAoLevel(cacheIndex);
 		}
 
