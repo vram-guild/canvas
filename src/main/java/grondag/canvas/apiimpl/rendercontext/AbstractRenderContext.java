@@ -151,6 +151,7 @@ public abstract class AbstractRenderContext implements RenderContext {
 
 	protected boolean cullTest(MutableQuadViewImpl quad) {
 		return true;
+	}
 
 	protected abstract Random random();
 
@@ -210,20 +211,21 @@ public abstract class AbstractRenderContext implements RenderContext {
 	//[18:49:19] [Canvas Render Thread - 4/INFO] (Canvas) Avg renderQuad duration = 2,071 ns, min = 343, max = 8764804, total duration = 207, total runs = 100,000
 	//[18:49:20] [main/INFO] (Canvas) Avg renderQuad duration = 1,556 ns, min = 659, max = 56858, total duration = 155, total runs = 100,000
 	//[18:49:27] [main/INFO] (Canvas) Avg renderQuad duration = 1,628 ns, min = 583, max = 82779, total duration = 162, total runs = 100,000
+
 	// TODO: remove
 	private final MicroTimer timer = new MicroTimer("renderQuad", 100000);
 
 	public final void renderQuad(MutableQuadViewImpl quad) {
-		timer.start();
 
 		mapMaterials(quad);
 
 		if (transform(quad) && cullTest(quad)) {
 			final CompositeMaterial mat = quad.material().forBlendMode(defaultBlendModeIndex());
 			quad.material(mat);
+			timer.start();
 			VertexEncoders.get(materialContext(), mat).encodeQuad(quad, this);
+			timer.stop();
 		}
 
-		timer.stop();
 	}
 }

@@ -43,7 +43,7 @@ import grondag.canvas.light.AoFace.WeightFunction;
  * purpose.
  */
 @Environment(EnvType.CLIENT)
-public abstract class AoCalculator {
+public abstract class AoCalculator2 {
 	public static final float DIVIDE_BY_255 = 1f / 255f;
 
 	//PERF: could be better - or wait for a diff Ao model
@@ -83,7 +83,7 @@ public abstract class AoCalculator {
 	/** holds per-corner weights - used locally to avoid new allocation. */
 	private final float[] w = new float[4];
 
-	public AoCalculator() {
+	public AoCalculator2() {
 		for (int i = 0; i < 12; i++) {
 			faceData[i] = new AoFaceData();
 		}
@@ -149,21 +149,6 @@ public abstract class AoCalculator {
 
 		final int flags = quad.geometryFlags();
 
-		if(Configurator.hdLightmaps()) {
-			if((flags & AXIS_ALIGNED_FLAG) == AXIS_ALIGNED_FLAG) {
-				if((flags & LIGHT_FACE_FLAG) == LIGHT_FACE_FLAG) {
-					vanillaPartialFaceSmooth(quad, true);
-				} else {
-					blendedPartialFaceSmooth(quad);
-				}
-			} else {
-				// currently can't handle these
-				irregularFace(quad);
-				quad.hdLight = null;
-			}
-			return;
-		}
-
 		quad.hdLight = null;
 
 		switch (flags) {
@@ -184,26 +169,37 @@ public abstract class AoCalculator {
 	}
 
 	public void computeFlat(MutableQuadViewImpl quad) {
+		final Vector3f faceNorm = quad.faceNormal();
+		Vector3f normal;
 
-		final int flags = quad.geometryFlags();
-
+		//TODO: currently no way to handle 3d interpolation shader-side
 		quad.hdLight = null;
 
-		switch (flags) {
-		case AXIS_ALIGNED_FLAG | CUBIC_FLAG | LIGHT_FACE_FLAG:
-		case AXIS_ALIGNED_FLAG | LIGHT_FACE_FLAG:
-			blockFaceFlat(quad, true);
-			break;
+		for (int i = 0; i < 4; i++) {
+			normal = quad.hasNormal(i) ? quad.copyNormal(i, vertexNormal) : faceNorm;
 
-		case AXIS_ALIGNED_FLAG | CUBIC_FLAG:
-		case AXIS_ALIGNED_FLAG:
-			blendedFaceFlat(quad);
-			break;
+			final float x = quad.x(i) + normal.getX() * 0.5f;
+			final float y = quad.y(i) + normal.getY() * 0.5f;
+			final float z = quad.z(i) + normal.getZ() * 0.5f;
 
-		default:
-			irregularFaceFlat(quad);
-			break;
+			quad.lightmap(i, ColorHelper.maxBrightness(quad.lightmap(i), sampleLight(x, y, z)));
 		}
+	}
+
+	private int sampleLight(float x, float y, float z) {
+		x -= 0.5f;
+
+
+		if (x < -0.02f) {
+			//			return sampleX()
+		}
+
+		return 0;
+
+	}
+
+	private int sampleX(int x, float y, float z) {
+		return 0;
 	}
 
 	private void blockFace(MutableQuadViewImpl quad, boolean isOnLightFace) {
