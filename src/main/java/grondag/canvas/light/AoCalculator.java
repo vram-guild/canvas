@@ -19,13 +19,12 @@ import static grondag.canvas.apiimpl.util.GeometryHelper.CUBIC_FLAG;
 import static grondag.canvas.apiimpl.util.GeometryHelper.LIGHT_FACE_FLAG;
 import static grondag.canvas.light.AoFaceData.OPAQUE;
 import static grondag.canvas.terrain.RenderRegionAddressHelper.cacheIndexToXyz5;
-import static grondag.canvas.terrain.RenderRegionAddressHelper.fastRelativeCacheIndex;
+import static grondag.canvas.terrain.RenderRegionAddressHelper.fastOffsetRelativeCacheIndex;
 import static grondag.canvas.terrain.RenderRegionAddressHelper.offsetMainChunkBlockIndex;
 
 import net.minecraft.client.util.math.Vector3f;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3i;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -93,7 +92,8 @@ public abstract class AoCalculator {
 		}
 	}
 
-	protected abstract float ao(int cacheIndex);
+	/* 0 to 255 */
+	protected abstract int ao(int cacheIndex);
 
 	protected abstract int brightness(int cacheIndex);
 
@@ -427,64 +427,12 @@ public abstract class AoCalculator {
 	}
 
 	private void irregularFaceFlat(MutableQuadViewImpl quad) {
-		final Vector3f faceNorm = quad.faceNormal();
-		Vector3f normal;
-		final float[] w = this.w;
-
-		//TODO: currently no way to handle 3d interpolation shader-side
-		quad.hdLight = null;
-
-		for (int i = 0; i < 4; i++) {
-			normal = quad.hasNormal(i) ? quad.copyNormal(i, vertexNormal) : faceNorm;
-			float sky = 0, block = 0;
-			int maxSky = 0, maxBlock = 0;
-
-			final float x = normal.getX();
-			if (!MathHelper.approximatelyEquals(0f, x)) {
-				final int face = x > 0 ? EAST : WEST;
-				// PERF: really need to cache these
-				final AoFaceCalc fd = blendedInsetData(quad, i, face);
-				AoFace.get(face).weightFunc.apply(quad, i, w);
-				final float n = x * x;
-				final int s = fd.weigtedSkyLight(w);
-				final int b = fd.weigtedBlockLight(w);
-				sky += n * s;
-				block += n * b;
-				maxSky = s;
-				maxBlock = b;
-			}
-
-			final float y = normal.getY();
-			if (!MathHelper.approximatelyEquals(0f, y)) {
-				final int face = y > 0 ? UP : DOWN;
-				final AoFaceCalc fd = blendedInsetData(quad, i, face);
-				AoFace.get(face).weightFunc.apply(quad, i, w);
-				final float n = y * y;
-				final int s = fd.weigtedSkyLight(w);
-				final int b = fd.weigtedBlockLight(w);
-				sky += n * s;
-				block += n * b;
-				maxSky = Math.max(s, maxSky);
-				maxBlock = Math.max(b, maxBlock);
-			}
-
-			final float z = normal.getZ();
-			if (!MathHelper.approximatelyEquals(0f, z)) {
-				final int face = z > 0 ? SOUTH : NORTH;
-				final AoFaceCalc fd = blendedInsetData(quad, i, face);
-				AoFace.get(face).weightFunc.apply(quad, i, w);
-				final float n = z * z;
-				final int s = fd.weigtedSkyLight(w);
-				final int b = fd.weigtedBlockLight(w);
-				sky += n * s;
-				block += n * b;
-				maxSky = Math.max(s, maxSky);
-				maxBlock = Math.max(b, maxBlock);
-			}
-
-			quad.lightmap(i, ColorHelper.maxBrightness(quad.lightmap(i), (((int) ((sky + maxSky) * 0.5f) & 0xFF) << 16)
-					| ((int)((block + maxBlock) * 0.5f) & 0xFF)));
-		}
+		// use center light - interpolatino too expensive given how often this happen for foliage, etc.
+		final int brightness = brightness(regionRelativeCacheIndex);
+		quad.lightmap(0, ColorHelper.maxBrightness(quad.lightmap(0), brightness));
+		quad.lightmap(1, ColorHelper.maxBrightness(quad.lightmap(1), brightness));
+		quad.lightmap(2, ColorHelper.maxBrightness(quad.lightmap(2), brightness));
+		quad.lightmap(3, ColorHelper.maxBrightness(quad.lightmap(3), brightness));
 	}
 
 	/**
@@ -527,44 +475,37 @@ public abstract class AoCalculator {
 		}
 
 		final int packedXyz5 = cacheIndexToXyz5(index);
-		final int x = (packedXyz5 & 31) - 1;
-		final int y = ((packedXyz5 >> 5) & 31) - 1;
-		final int z = (packedXyz5 >> 10) - 1;
 
 		fd.center = brightness(index);
-		final int aoCenter = Math.round(ao(index) * 255);
+		final int aoCenter = ao(index);
 		fd.aoCenter = aoCenter;
 
 		final AoFace aoFace = AoFace.get(lightFace);
 
 		// vanilla was further offsetting these in the direction of the light face
 		// but it was actually mis-sampling and causing visible artifacts in certain situation
-		Vec3i offset = aoFace.bottomVec;
-		int cacheIndex = fastRelativeCacheIndex(x + offset.getX() , y + offset.getY(), z + offset.getZ());
+		int cacheIndex = fastOffsetRelativeCacheIndex(packedXyz5, aoFace.bottomOffset);
 		final boolean bottomClear = !isOpaque(cacheIndex);
 		fd.bottom = bottomClear ? brightness(cacheIndex) : OPAQUE;
-		final int aoBottom = Math.round(ao(cacheIndex) * 255);
+		final int aoBottom = ao(cacheIndex);
 		fd.aoBottom = aoBottom;
 
-		offset = aoFace.topVec;
-		cacheIndex = fastRelativeCacheIndex(x + offset.getX() , y + offset.getY(), z + offset.getZ());
+		cacheIndex = fastOffsetRelativeCacheIndex(packedXyz5, aoFace.topOffset);
 		final boolean topClear = !isOpaque(cacheIndex);
 		fd.top = topClear ? brightness(cacheIndex) : OPAQUE;
-		final int aoTop = Math.round(ao(cacheIndex) * 255);
+		final int aoTop = ao(cacheIndex);
 		fd.aoTop = aoTop;
 
-		offset = aoFace.leftVec;
-		cacheIndex = fastRelativeCacheIndex(x + offset.getX() , y + offset.getY(), z + offset.getZ());
+		cacheIndex = fastOffsetRelativeCacheIndex(packedXyz5, aoFace.leftOffset);
 		final boolean leftClear = !isOpaque(cacheIndex);
 		fd.left = leftClear ? brightness(cacheIndex) : OPAQUE;
-		final int aoLeft = Math.round(ao(cacheIndex) * 255);
+		final int aoLeft = ao(cacheIndex);
 		fd.aoLeft = aoLeft;
 
-		offset = aoFace.rightVec;
-		cacheIndex = fastRelativeCacheIndex(x + offset.getX() , y + offset.getY(), z + offset.getZ());
+		cacheIndex = fastOffsetRelativeCacheIndex(packedXyz5, aoFace.rightOffset);
 		final boolean rightClear = !isOpaque(cacheIndex);
 		fd.right = rightClear ? brightness(cacheIndex) : OPAQUE;
-		final int aoRight = Math.round(ao(cacheIndex) * 255);
+		final int aoRight = ao(cacheIndex);
 		fd.aoRight = aoRight;
 
 		if (!(leftClear || bottomClear)) {
@@ -576,15 +517,14 @@ public abstract class AoCalculator {
 			}
 			fd.bottomLeft = OPAQUE;
 		} else { // at least one clear
-			offset = aoFace.bottomLeftVec;
-			cacheIndex = fastRelativeCacheIndex(x + offset.getX() , y + offset.getY(), z + offset.getZ());
+			cacheIndex = fastOffsetRelativeCacheIndex(packedXyz5, aoFace.bottomLeftOffset);
 			final boolean cornerClear = !isOpaque(cacheIndex);
 			fd.bottomLeft = cornerClear ? brightness(cacheIndex) : OPAQUE;
-			// PERF: branching
+
 			if (hd) {
-				fd.aoBottomLeft = Math.round(ao(cacheIndex) * 255);
+				fd.aoBottomLeft = ao(cacheIndex);
 			} else {
-				fd.aoBottomLeft = (Math.round(ao(cacheIndex) * 255) + aoBottom + aoCenter + aoLeft + 1) >> 2;  // bitwise divide by four, rounding up
+				fd.aoBottomLeft = (ao(cacheIndex) + aoBottom + aoCenter + aoLeft + 1) >> 2;  // bitwise divide by four, rounding up
 			}
 		}
 
@@ -598,15 +538,14 @@ public abstract class AoCalculator {
 
 			fd.bottomRight = OPAQUE;
 		} else { // at least one clear
-			offset = aoFace.bottomRightVec;
-			cacheIndex = fastRelativeCacheIndex(x + offset.getX() , y + offset.getY(), z + offset.getZ());
+			cacheIndex = fastOffsetRelativeCacheIndex(packedXyz5, aoFace.bottomRightOffset);
 			final boolean cornerClear = !isOpaque(cacheIndex);
 			fd.bottomRight = cornerClear ? brightness(cacheIndex) : OPAQUE;
 
 			if (hd) {
-				fd.aoBottomRight = Math.round(ao(cacheIndex) * 255);
+				fd.aoBottomRight = ao(cacheIndex);
 			} else {
-				fd.aoBottomRight = (Math.round(ao(cacheIndex) * 255) + aoBottom + aoCenter + aoRight + 1) >> 2;
+				fd.aoBottomRight = (ao(cacheIndex) + aoBottom + aoCenter + aoRight + 1) >> 2;
 			}
 		}
 
@@ -620,15 +559,14 @@ public abstract class AoCalculator {
 
 			fd.topLeft = OPAQUE;
 		} else { // at least one clear
-			offset = aoFace.topLeftVec;
-			cacheIndex = fastRelativeCacheIndex(x + offset.getX() , y + offset.getY(), z + offset.getZ());
+			cacheIndex = fastOffsetRelativeCacheIndex(packedXyz5, aoFace.topLeftOffset);
 			final boolean cornerClear = !isOpaque(cacheIndex);
 			fd.topLeft = cornerClear ? brightness(cacheIndex) : OPAQUE;
 
 			if (hd) {
-				fd.aoTopLeft = Math.round(ao(cacheIndex) * 255);
+				fd.aoTopLeft = ao(cacheIndex);
 			} else {
-				fd.aoTopLeft = (Math.round(ao(cacheIndex) * 255) + aoTop + aoCenter + aoLeft + 1) >> 2;
+				fd.aoTopLeft = (ao(cacheIndex) + aoTop + aoCenter + aoLeft + 1) >> 2;
 			}
 		}
 
@@ -642,19 +580,20 @@ public abstract class AoCalculator {
 
 			fd.topRight = OPAQUE;
 		} else { // at least one clear
-			offset = aoFace.topRightVec;
-			cacheIndex = fastRelativeCacheIndex(x + offset.getX() , y + offset.getY(), z + offset.getZ());
+			cacheIndex = fastOffsetRelativeCacheIndex(packedXyz5, aoFace.topRightOffset);
 			final boolean cornerClear = !isOpaque(cacheIndex);
 			fd.topRight = cornerClear ? brightness(cacheIndex) : OPAQUE;
 
 			if (hd) {
-				fd.aoTopRight = Math.round(ao(cacheIndex) * 255);
+				fd.aoTopRight = ao(cacheIndex);
 			} else {
-				fd.aoTopRight = (Math.round(ao(cacheIndex) * 255) + aoTop + aoCenter + aoRight + 1) >> 2;
+				fd.aoTopRight = (ao(cacheIndex) + aoTop + aoCenter + aoRight + 1) >> 2;
 			}
 		}
 
-		fd.updateHash();
+		if (hd) {
+			fd.updateHash();
+		}
 
 		//PERF: skip if not needed in HD model
 		fd.calc.compute(fd);

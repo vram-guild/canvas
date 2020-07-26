@@ -3,9 +3,6 @@ package grondag.canvas.buffer.encoding;
 import static grondag.canvas.buffer.encoding.EncoderUtils.applyBlockLighting;
 import static grondag.canvas.buffer.encoding.EncoderUtils.colorizeQuad;
 
-import net.minecraft.client.util.math.Vector4f;
-import net.minecraft.util.math.Matrix4f;
-
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 
 import grondag.canvas.apiimpl.RenderMaterialImpl;
@@ -17,6 +14,7 @@ import grondag.canvas.light.LightmapHd;
 import grondag.canvas.material.MaterialContext;
 import grondag.canvas.material.MaterialVertexFormats;
 import grondag.canvas.mixinterface.Matrix3fExt;
+import grondag.canvas.mixinterface.Matrix4fExt;
 
 public abstract class HdEncoders {
 	private static final int QUAD_STRIDE = MaterialVertexFormats.HD_TERRAIN.vertexStrideInts * 4;
@@ -55,8 +53,7 @@ public abstract class HdEncoders {
 	};
 
 	static void bufferQuadHd1(MutableQuadViewImpl quad, AbstractRenderContext context) {
-		final Matrix4f matrix = context.matrix();
-		final Vector4f transformVector = context.transformVector;
+		final Matrix4fExt matrix = (Matrix4fExt)(Object) context.matrix();
 		final Matrix3fExt normalMatrix = context.normalMatrix();
 		final float[] aoData = quad.ao;
 		final RenderMaterialImpl.CompositeMaterial mat = quad.material();
@@ -84,11 +81,8 @@ public abstract class HdEncoders {
 		int k = 0;
 
 		for (int i = 0; i < 4; i++) {
-			transformVector.set(quad.x(i), quad.y(i), quad.z(i), 1.0F);
-			transformVector.transform(matrix);
-			appendData[k++] = Float.floatToRawIntBits(transformVector.getX());
-			appendData[k++] = Float.floatToRawIntBits(transformVector.getY());
-			appendData[k++] = Float.floatToRawIntBits(transformVector.getZ());
+			quad.transformAndAppend(i, matrix, appendData, k);
+			k += 3;
 
 			appendData[k++] = quad.spriteColor(i, 0);
 
@@ -120,8 +114,7 @@ public abstract class HdEncoders {
 	}
 
 	static void bufferQuadHd2(MutableQuadViewImpl quad, AbstractRenderContext context) {
-		final Matrix4f matrix = context.matrix();
-		final Vector4f transformVector = context.transformVector;
+		final Matrix4fExt matrix = (Matrix4fExt)(Object) context.matrix();
 		final Matrix3fExt normalMatrix = context.normalMatrix();
 		final CompositeMaterial mat = quad.material();
 		final DrawableMaterial mat0 = mat.forDepth(0);
@@ -154,35 +147,19 @@ public abstract class HdEncoders {
 		normalAo2 |= aoData == null ? 0x7F000000 : ((Math.round(aoData[2] * 254) - 127) << 24);
 		normalAo3 |= aoData == null ? 0x7F000000 : ((Math.round(aoData[3] * 254) - 127) << 24);
 
-		transformVector.set(quad.x(0), quad.y(0), quad.z(0), 1.0F);
-		transformVector.transform(matrix);
-		appendData[0] = Float.floatToRawIntBits(transformVector.getX());
-		appendData[1] = Float.floatToRawIntBits(transformVector.getY());
-		appendData[2] = Float.floatToRawIntBits(transformVector.getZ());
+		quad.transformAndAppend(0, matrix, appendData, 0);
 		appendData[7] = hdLight.coord(quad, 0);
 		appendData[8] = normalAo0;
 
-		transformVector.set(quad.x(1), quad.y(1), quad.z(1), 1.0F);
-		transformVector.transform(matrix);
-		appendData[9] = Float.floatToRawIntBits(transformVector.getX());
-		appendData[10] = Float.floatToRawIntBits(transformVector.getY());
-		appendData[11] =Float.floatToRawIntBits( transformVector.getZ());
+		quad.transformAndAppend(1, matrix, appendData, 9);
 		appendData[16] = hdLight.coord(quad, 1);
 		appendData[17] = normalAo1;
 
-		transformVector.set(quad.x(2), quad.y(2), quad.z(2), 1.0F);
-		transformVector.transform(matrix);
-		appendData[18] = Float.floatToRawIntBits(transformVector.getX());
-		appendData[19] = Float.floatToRawIntBits(transformVector.getY());
-		appendData[20] = Float.floatToRawIntBits(transformVector.getZ());
+		quad.transformAndAppend(2, matrix, appendData, 18);
 		appendData[25] = hdLight.coord(quad, 2);
 		appendData[26] = normalAo2;
 
-		transformVector.set(quad.x(3), quad.y(3), quad.z(3), 1.0F);
-		transformVector.transform(matrix);
-		appendData[27] = Float.floatToRawIntBits(transformVector.getX());
-		appendData[28] = Float.floatToRawIntBits(transformVector.getY());
-		appendData[29] = Float.floatToRawIntBits(transformVector.getZ());
+		quad.transformAndAppend(3, matrix, appendData, 27);
 		appendData[34] = hdLight.coord(quad, 3);
 		appendData[35] = normalAo3;
 
@@ -248,8 +225,7 @@ public abstract class HdEncoders {
 	}
 
 	static void bufferQuadHd3(MutableQuadViewImpl quad, AbstractRenderContext context) {
-		final Matrix4f matrix = context.matrix();
-		final Vector4f transformVector = context.transformVector;
+		final Matrix4fExt matrix = (Matrix4fExt)(Object) context.matrix();
 		final Matrix3fExt normalMatrix = context.normalMatrix();
 		final CompositeMaterial mat = quad.material();
 
@@ -283,35 +259,19 @@ public abstract class HdEncoders {
 		normalAo2 |= aoData == null ? 0xFF000000 : ((Math.round(aoData[2] * 254) - 127) << 24);
 		normalAo3 |= aoData == null ? 0xFF000000 : ((Math.round(aoData[3] * 254) - 127) << 24);
 
-		transformVector.set(quad.x(0), quad.y(0), quad.z(0), 1.0F);
-		transformVector.transform(matrix);
-		appendData[0] = Float.floatToRawIntBits(transformVector.getX());
-		appendData[1] = Float.floatToRawIntBits(transformVector.getY());
-		appendData[2] = Float.floatToRawIntBits(transformVector.getZ());
+		quad.transformAndAppend(0, matrix, appendData, 0);
 		appendData[7] = hdLight.coord(quad, 0);
 		appendData[8] = normalAo0;
 
-		transformVector.set(quad.x(1), quad.y(1), quad.z(1), 1.0F);
-		transformVector.transform(matrix);
-		appendData[9] = Float.floatToRawIntBits(transformVector.getX());
-		appendData[10] = Float.floatToRawIntBits(transformVector.getY());
-		appendData[11] =Float.floatToRawIntBits( transformVector.getZ());
+		quad.transformAndAppend(1, matrix, appendData, 9);
 		appendData[16] = hdLight.coord(quad, 1);
 		appendData[17] = normalAo1;
 
-		transformVector.set(quad.x(2), quad.y(2), quad.z(2), 1.0F);
-		transformVector.transform(matrix);
-		appendData[18] = Float.floatToRawIntBits(transformVector.getX());
-		appendData[19] = Float.floatToRawIntBits(transformVector.getY());
-		appendData[20] = Float.floatToRawIntBits(transformVector.getZ());
+		quad.transformAndAppend(2, matrix, appendData, 18);
 		appendData[25] = hdLight.coord(quad, 2);
 		appendData[26] = normalAo2;
 
-		transformVector.set(quad.x(3), quad.y(3), quad.z(3), 1.0F);
-		transformVector.transform(matrix);
-		appendData[27] = Float.floatToRawIntBits(transformVector.getX());
-		appendData[28] = Float.floatToRawIntBits(transformVector.getY());
-		appendData[29] = Float.floatToRawIntBits(transformVector.getZ());
+		quad.transformAndAppend(3, matrix, appendData, 27);
 		appendData[34] = hdLight.coord(quad, 3);
 		appendData[35] = normalAo3;
 

@@ -29,7 +29,6 @@ import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.model.BakedModel;
 import net.minecraft.client.texture.Sprite;
 import net.minecraft.client.texture.SpriteAtlasTexture;
-import net.minecraft.client.util.math.Vector4f;
 import net.minecraft.util.math.Matrix4f;
 
 import net.fabricmc.fabric.api.renderer.v1.material.RenderMaterial;
@@ -51,9 +50,7 @@ import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.frex.api.material.MaterialMap;
 
 public abstract class AbstractRenderContext implements RenderContext {
-	/** for use in encoders without a threadlocal */
-	public final Vector4f transformVector = new Vector4f();
-
+	public final float[] vecData = new float[3];
 	public final int[] appendData  = new int[MaterialVertexFormats.MAX_QUAD_INT_STRIDE];
 	public final VertexCollectorList collectors = new VertexCollectorList();
 	private final ObjectArrayList<QuadTransform> transformStack = new ObjectArrayList<>();
@@ -130,6 +127,7 @@ public abstract class AbstractRenderContext implements RenderContext {
 	}
 
 	protected final MeshConsumer meshConsumer = new MeshConsumer(this);
+	protected final MutableQuadViewImpl makerQuad = meshConsumer.editorQuad;
 
 	@Override
 	public final Consumer<Mesh> meshConsumer() {
@@ -190,7 +188,9 @@ public abstract class AbstractRenderContext implements RenderContext {
 
 	protected abstract int defaultBlendModeIndex();
 
-	public final void renderQuad(MutableQuadViewImpl quad) {
+	public final void renderQuad() {
+		final MutableQuadViewImpl quad = makerQuad;
+
 		mapMaterials(quad);
 
 		if (transform(quad) && cullTest(quad)) {

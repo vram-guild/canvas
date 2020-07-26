@@ -2,8 +2,6 @@ package grondag.canvas.buffer.encoding;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.VertexConsumer;
-import net.minecraft.client.util.math.Vector4f;
-import net.minecraft.util.math.Matrix4f;
 
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 
@@ -17,14 +15,14 @@ import grondag.canvas.apiimpl.util.ColorHelper;
 import grondag.canvas.apiimpl.util.NormalHelper;
 import grondag.canvas.material.MaterialContext;
 import grondag.canvas.mixinterface.Matrix3fExt;
+import grondag.canvas.mixinterface.Matrix4fExt;
 import grondag.canvas.texture.SpriteInfoTexture;
 
 abstract class EncoderUtils {
 	private static final int NO_AO_SHADE = 0x7F000000;
 
 	static void bufferQuad1(MutableQuadViewImpl quad, AbstractRenderContext context) {
-		final Matrix4f matrix = context.matrix();
-		final Vector4f transformVector = context.transformVector;
+		final Matrix4fExt matrix = (Matrix4fExt)(Object) context.matrix();
 		final int overlay = context.overlay();
 		final Matrix3fExt normalMatrix = context.normalMatrix();
 		final VertexConsumer buff = context.consumer(quad.material().forDepth(0));
@@ -44,9 +42,7 @@ abstract class EncoderUtils {
 		}
 
 		for (int i = 0; i < 4; i++) {
-			transformVector.set(quad.x(i), quad.y(i), quad.z(i), 1.0F);
-			transformVector.transform(matrix);
-			buff.vertex(transformVector.getX(), transformVector.getY(), transformVector.getZ());
+			quad.transformAndAppend(i, matrix, buff);
 
 			final int color = quad.spriteColor(i, 0);
 			buff.color(color & 0xFF, (color >> 8) & 0xFF, (color >> 16) & 0xFF, (color >> 24) & 0xFF);
@@ -73,8 +69,8 @@ abstract class EncoderUtils {
 	}
 
 	static void bufferQuad2(MutableQuadViewImpl quad, AbstractRenderContext context) {
-		final Matrix4f matrix = context.matrix();
-		final Vector4f transformVector = context.transformVector;
+		final float[] vecData = context.vecData;
+		final Matrix4fExt matrix = (Matrix4fExt)(Object) context.matrix();
 		final int overlay = context.overlay();
 		final Matrix3fExt normalMatrix = context.normalMatrix();
 		final CompositeMaterial mat = quad.material();
@@ -116,29 +112,25 @@ abstract class EncoderUtils {
 			nz0 = nz1 = nz2 = nz3 = NormalHelper.getPackedNormalComponent(transformedNormal, 2);
 		}
 
-		transformVector.set(quad.x(0), quad.y(0), quad.z(0), 1.0F);
-		transformVector.transform(matrix);
-		final float x0 = transformVector.getX();
-		final float y0 = transformVector.getY();
-		final float z0 = transformVector.getZ();
+		quad.transformAndAppend(0, matrix, vecData);
+		final float x0 = vecData[0];
+		final float y0 = vecData[1];
+		final float z0 = vecData[2];
 
-		transformVector.set(quad.x(1), quad.y(1), quad.z(1), 1.0F);
-		transformVector.transform(matrix);
-		final float x1 = transformVector.getX();
-		final float y1 = transformVector.getY();
-		final float z1 = transformVector.getZ();
+		quad.transformAndAppend(1, matrix, vecData);
+		final float x1 = vecData[0];
+		final float y1 = vecData[1];
+		final float z1 = vecData[2];
 
-		transformVector.set(quad.x(2), quad.y(2), quad.z(2), 1.0F);
-		transformVector.transform(matrix);
-		final float x2 = transformVector.getX();
-		final float y2 = transformVector.getY();
-		final float z2 = transformVector.getZ();
+		quad.transformAndAppend(2, matrix, vecData);
+		final float x2 = vecData[0];
+		final float y2 = vecData[1];
+		final float z2 = vecData[2];
 
-		transformVector.set(quad.x(3), quad.y(3), quad.z(3), 1.0F);
-		transformVector.transform(matrix);
-		final float x3 = transformVector.getX();
-		final float y3 = transformVector.getY();
-		final float z3 = transformVector.getZ();
+		quad.transformAndAppend(3, matrix, vecData);
+		final float x3 = vecData[0];
+		final float y3 = vecData[1];
+		final float z3 = vecData[2];
 
 		buff1.vertex(x0, y0, z0);
 		int color = quad.spriteColor(0, 0);
@@ -216,8 +208,8 @@ abstract class EncoderUtils {
 	}
 
 	static void bufferQuad3(MutableQuadViewImpl quad, AbstractRenderContext context) {
-		final Matrix4f matrix = context.matrix();
-		final Vector4f transformVector = context.transformVector;
+		final float[] vecData = context.vecData;
+		final Matrix4fExt matrix = (Matrix4fExt)(Object) context.matrix();
 		final int overlay = context.overlay();
 		final Matrix3fExt normalMatrix = context.normalMatrix();
 		final CompositeMaterial mat = quad.material();
@@ -261,29 +253,25 @@ abstract class EncoderUtils {
 			nz0 = nz1 = nz2 = nz3 = NormalHelper.getPackedNormalComponent(transformedNormal, 2);
 		}
 
-		transformVector.set(quad.x(0), quad.y(0), quad.z(0), 1.0F);
-		transformVector.transform(matrix);
-		final float x0 = transformVector.getX();
-		final float y0 = transformVector.getY();
-		final float z0 = transformVector.getZ();
+		quad.transformAndAppend(0, matrix, vecData);
+		final float x0 = vecData[0];
+		final float y0 = vecData[1];
+		final float z0 = vecData[2];
 
-		transformVector.set(quad.x(1), quad.y(1), quad.z(1), 1.0F);
-		transformVector.transform(matrix);
-		final float x1 = transformVector.getX();
-		final float y1 = transformVector.getY();
-		final float z1 = transformVector.getZ();
+		quad.transformAndAppend(1, matrix, vecData);
+		final float x1 = vecData[0];
+		final float y1 = vecData[1];
+		final float z1 = vecData[2];
 
-		transformVector.set(quad.x(2), quad.y(2), quad.z(2), 1.0F);
-		transformVector.transform(matrix);
-		final float x2 = transformVector.getX();
-		final float y2 = transformVector.getY();
-		final float z2 = transformVector.getZ();
+		quad.transformAndAppend(2, matrix, vecData);
+		final float x2 = vecData[0];
+		final float y2 = vecData[1];
+		final float z2 = vecData[2];
 
-		transformVector.set(quad.x(3), quad.y(3), quad.z(3), 1.0F);
-		transformVector.transform(matrix);
-		final float x3 = transformVector.getX();
-		final float y3 = transformVector.getY();
-		final float z3 = transformVector.getZ();
+		quad.transformAndAppend(3, matrix, vecData);
+		final float x3 = vecData[0];
+		final float y3 = vecData[1];
+		final float z3 = vecData[2];
 
 		buff1.vertex(x0, y0, z0);
 		int color = quad.spriteColor(0, 0);
@@ -416,8 +404,7 @@ abstract class EncoderUtils {
 	}
 
 	static void bufferQuadDirect1(MutableQuadViewImpl quad, AbstractRenderContext context) {
-		final Matrix4f matrix = context.matrix();
-		final Vector4f transformVector = context.transformVector;
+		final Matrix4fExt matrix = (Matrix4fExt)(Object) context.matrix();
 		final Matrix3fExt normalMatrix = context.normalMatrix();
 		final float[] aoData = quad.ao;
 		final RenderMaterialImpl.CompositeMaterial mat = quad.material();
@@ -448,11 +435,8 @@ abstract class EncoderUtils {
 		int k = 0;
 
 		for (int i = 0; i < 4; i++) {
-			transformVector.set(quad.x(i), quad.y(i), quad.z(i), 1.0F);
-			transformVector.transform(matrix);
-			appendData[k++] = Float.floatToRawIntBits(transformVector.getX());
-			appendData[k++] = Float.floatToRawIntBits(transformVector.getY());
-			appendData[k++] = Float.floatToRawIntBits(transformVector.getZ());
+			quad.transformAndAppend(i, matrix, appendData, k);
+			k += 3;
 
 			appendData[k++] = quad.spriteColor(i, 0);
 			appendData[k++] = quad.spriteBufferU(i, 0) | (quad.spriteBufferV(i, 0) << 16);
@@ -481,8 +465,7 @@ abstract class EncoderUtils {
 	}
 
 	static void bufferQuadDirect2(MutableQuadViewImpl quad, AbstractRenderContext context) {
-		final Matrix4f matrix = context.matrix();
-		final Vector4f transformVector = context.transformVector;
+		final Matrix4fExt matrix = (Matrix4fExt)(Object) context.matrix();
 		final Matrix3fExt normalMatrix = context.normalMatrix();
 		final CompositeMaterial mat = quad.material();
 		final DrawableMaterial mat0 = mat.forDepth(0);
@@ -507,29 +490,10 @@ abstract class EncoderUtils {
 			normalAo0 = normalAo1 = normalAo2 = normalAo3 = normalMatrix.canvas_transform(quad.packedFaceNormal());
 		}
 
-		transformVector.set(quad.x(0), quad.y(0), quad.z(0), 1.0F);
-		transformVector.transform(matrix);
-		appendData[0] = Float.floatToRawIntBits(transformVector.getX());
-		appendData[1] = Float.floatToRawIntBits(transformVector.getY());
-		appendData[2] = Float.floatToRawIntBits(transformVector.getZ());
-
-		transformVector.set(quad.x(1), quad.y(1), quad.z(1), 1.0F);
-		transformVector.transform(matrix);
-		appendData[8] = Float.floatToRawIntBits(transformVector.getX());
-		appendData[9] = Float.floatToRawIntBits(transformVector.getY());
-		appendData[10] =Float.floatToRawIntBits( transformVector.getZ());
-
-		transformVector.set(quad.x(2), quad.y(2), quad.z(2), 1.0F);
-		transformVector.transform(matrix);
-		appendData[16] = Float.floatToRawIntBits(transformVector.getX());
-		appendData[17] = Float.floatToRawIntBits(transformVector.getY());
-		appendData[18] = Float.floatToRawIntBits(transformVector.getZ());
-
-		transformVector.set(quad.x(3), quad.y(3), quad.z(3), 1.0F);
-		transformVector.transform(matrix);
-		appendData[24] = Float.floatToRawIntBits(transformVector.getX());
-		appendData[25] = Float.floatToRawIntBits(transformVector.getY());
-		appendData[26] = Float.floatToRawIntBits(transformVector.getZ());
+		quad.transformAndAppend(0, matrix, appendData, 0);
+		quad.transformAndAppend(1, matrix, appendData, 8);
+		quad.transformAndAppend(2, matrix, appendData, 16);
+		quad.transformAndAppend(3, matrix, appendData, 24);
 
 		int packedLight = quad.lightmap(0);
 		final int l0 = (packedLight & 0xFF) | (((packedLight >> 16) & 0xFF) << 8);
@@ -609,8 +573,7 @@ abstract class EncoderUtils {
 	}
 
 	static void bufferQuadDirect3(MutableQuadViewImpl quad, AbstractRenderContext context) {
-		final Matrix4f matrix = context.matrix();
-		final Vector4f transformVector = context.transformVector;
+		final Matrix4fExt matrix = (Matrix4fExt)(Object) context.matrix();
 		final Matrix3fExt normalMatrix = context.normalMatrix();
 		final CompositeMaterial mat = quad.material();
 		final SpriteInfoTexture spriteInfo = SpriteInfoTexture.instance();
@@ -637,29 +600,10 @@ abstract class EncoderUtils {
 			normalAo0 = normalAo1 = normalAo2 = normalAo3 = normalMatrix.canvas_transform(quad.packedFaceNormal());
 		}
 
-		transformVector.set(quad.x(0), quad.y(0), quad.z(0), 1.0F);
-		transformVector.transform(matrix);
-		appendData[0] = Float.floatToRawIntBits(transformVector.getX());
-		appendData[1] = Float.floatToRawIntBits(transformVector.getY());
-		appendData[2] = Float.floatToRawIntBits(transformVector.getZ());
-
-		transformVector.set(quad.x(1), quad.y(1), quad.z(1), 1.0F);
-		transformVector.transform(matrix);
-		appendData[8] = Float.floatToRawIntBits(transformVector.getX());
-		appendData[9] = Float.floatToRawIntBits(transformVector.getY());
-		appendData[10] =Float.floatToRawIntBits( transformVector.getZ());
-
-		transformVector.set(quad.x(2), quad.y(2), quad.z(2), 1.0F);
-		transformVector.transform(matrix);
-		appendData[16] = Float.floatToRawIntBits(transformVector.getX());
-		appendData[17] = Float.floatToRawIntBits(transformVector.getY());
-		appendData[18] = Float.floatToRawIntBits(transformVector.getZ());
-
-		transformVector.set(quad.x(3), quad.y(3), quad.z(3), 1.0F);
-		transformVector.transform(matrix);
-		appendData[24] = Float.floatToRawIntBits(transformVector.getX());
-		appendData[25] = Float.floatToRawIntBits(transformVector.getY());
-		appendData[26] = Float.floatToRawIntBits(transformVector.getZ());
+		quad.transformAndAppend(0, matrix, appendData, 0);
+		quad.transformAndAppend(1, matrix, appendData, 8);
+		quad.transformAndAppend(2, matrix, appendData, 16);
+		quad.transformAndAppend(3, matrix, appendData, 24);
 
 		int packedLight = quad.lightmap(0);
 		final int l0 = (packedLight & 0xFF) | (((packedLight >> 16) & 0xFF) << 8);

@@ -50,9 +50,9 @@ public class BlockRenderContext extends AbstractBlockRenderContext<BlockRenderVi
 
 	private final AoCalculator aoCalc = new AoCalculator() {
 		@Override
-		protected float ao(int cacheIndex) {
+		protected int ao(int cacheIndex) {
 			if (region == null) {
-				return 1f;
+				return 255;
 			}
 
 			final int packedXyz5 = cacheIndexToXyz5(cacheIndex);
@@ -62,7 +62,7 @@ public class BlockRenderContext extends AbstractBlockRenderContext<BlockRenderVi
 			final int z = (packedXyz5 >> 10) - 1+ pos.getZ();
 			internalSearchPos.set(x, y, z);
 			final BlockState state = region.getBlockState(internalSearchPos);
-			return state.getLuminance() == 0 ? state.getAmbientOcclusionLightLevel(region, internalSearchPos) : 1F;
+			return state.getLuminance() == 0 ? Math.round(state.getAmbientOcclusionLightLevel(region, internalSearchPos) * 255f) : 255;
 		}
 
 		@Override
