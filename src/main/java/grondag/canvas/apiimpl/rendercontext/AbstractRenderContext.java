@@ -30,7 +30,6 @@ import net.minecraft.client.render.model.BakedModel;
 import net.minecraft.client.texture.Sprite;
 import net.minecraft.client.texture.SpriteAtlasTexture;
 import net.minecraft.client.util.math.Vector4f;
-import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Matrix4f;
 
 import net.fabricmc.fabric.api.renderer.v1.material.RenderMaterial;
@@ -40,13 +39,16 @@ import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
 import net.fabricmc.fabric.api.renderer.v1.model.SpriteFinder;
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 
+import grondag.canvas.apiimpl.RenderMaterialImpl.CompositeMaterial;
 import grondag.canvas.apiimpl.RenderMaterialImpl.CompositeMaterial.DrawableMaterial;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.buffer.encoding.VertexCollectorList;
+import grondag.canvas.buffer.encoding.VertexEncoders;
 import grondag.canvas.light.AoCalculator;
 import grondag.canvas.material.MaterialContext;
 import grondag.canvas.material.MaterialVertexFormats;
 import grondag.canvas.mixinterface.Matrix3fExt;
+import grondag.canvas.perf.MicroTimer;
 import grondag.frex.api.material.MaterialMap;
 
 public abstract class AbstractRenderContext implements RenderContext {
@@ -147,7 +149,8 @@ public abstract class AbstractRenderContext implements RenderContext {
 		return meshConsumer.getEmitter();
 	}
 
-	protected abstract boolean cullTest(Direction face);
+	protected boolean cullTest(MutableQuadViewImpl quad) {
+		return true;
 
 	protected abstract Random random();
 
@@ -186,4 +189,41 @@ public abstract class AbstractRenderContext implements RenderContext {
 	}
 
 	protected abstract int defaultBlendModeIndex();
+
+	//[17:37:00] [Canvas Render Thread - 6/INFO] (Canvas) Avg renderQuad duration = 2,345 ns, min = 416, max = 6961433, total duration = 234, total runs = 100,000
+	//[17:37:01] [Canvas Render Thread - 4/INFO] (Canvas) Avg renderQuad duration = 2,378 ns, min = 423, max = 5694429, total duration = 237, total runs = 100,000
+	//[17:37:01] [Canvas Render Thread - 5/INFO] (Canvas) Avg renderQuad duration = 2,452 ns, min = 421, max = 15324840, total duration = 245, total runs = 100,000
+	//[17:37:01] [Canvas Render Thread - 2/INFO] (Canvas) Avg renderQuad duration = 2,356 ns, min = 410, max = 8633303, total duration = 235, total runs = 100,000
+	//[17:37:01] [Canvas Render Thread - 0/INFO] (Canvas) Avg renderQuad duration = 2,455 ns, min = 412, max = 4284955, total duration = 245, total runs = 100,000
+	//[17:37:01] [Canvas Render Thread - 1/INFO] (Canvas) Avg renderQuad duration = 2,393 ns, min = 448, max = 4877397, total duration = 239, total runs = 100,000
+	//[17:37:02] [Canvas Render Thread - 3/INFO] (Canvas) Avg renderQuad duration = 2,541 ns, min = 460, max = 9922941, total duration = 254, total runs = 100,000
+	//[17:37:03] [Canvas Render Thread - 5/INFO] (Canvas) Avg renderQuad duration = 2,939 ns, min = 442, max = 59084081, total duration = 293, total runs = 100,000
+	//[17:37:03] [Canvas Render Thread - 4/INFO] (Canvas) Avg renderQuad duration = 2,640 ns, min = 437, max = 7593792, total duration = 264, total runs = 100,000
+	//[17:37:04] [main/INFO] (Canvas) Avg renderQuad duration = 1,702 ns, min = 838, max = 47463, total duration = 170, total runs = 100,000
+
+	//[18:49:14] [Canvas Render Thread - 3/INFO] (Canvas) Avg renderQuad duration = 2,479 ns, min = 352, max = 14515039, total duration = 247, total runs = 100,000
+	//[18:49:14] [Canvas Render Thread - 1/INFO] (Canvas) Avg renderQuad duration = 2,472 ns, min = 352, max = 11971371, total duration = 247, total runs = 100,000
+	//[18:49:14] [Canvas Render Thread - 5/INFO] (Canvas) Avg renderQuad duration = 2,202 ns, min = 345, max = 12305123, total duration = 220, total runs = 100,000
+	//[18:49:16] [Canvas Render Thread - 6/INFO] (Canvas) Avg renderQuad duration = 2,534 ns, min = 365, max = 12819764, total duration = 253, total runs = 100,000
+	//[18:49:16] [Canvas Render Thread - 2/INFO] (Canvas) Avg renderQuad duration = 2,059 ns, min = 369, max = 7602219, total duration = 205, total runs = 100,000
+	//[18:49:18] [Canvas Render Thread - 0/INFO] (Canvas) Avg renderQuad duration = 2,141 ns, min = 365, max = 5758216, total duration = 214, total runs = 100,000
+	//[18:49:19] [Canvas Render Thread - 4/INFO] (Canvas) Avg renderQuad duration = 2,071 ns, min = 343, max = 8764804, total duration = 207, total runs = 100,000
+	//[18:49:20] [main/INFO] (Canvas) Avg renderQuad duration = 1,556 ns, min = 659, max = 56858, total duration = 155, total runs = 100,000
+	//[18:49:27] [main/INFO] (Canvas) Avg renderQuad duration = 1,628 ns, min = 583, max = 82779, total duration = 162, total runs = 100,000
+	// TODO: remove
+	private final MicroTimer timer = new MicroTimer("renderQuad", 100000);
+
+	public final void renderQuad(MutableQuadViewImpl quad) {
+		timer.start();
+
+		mapMaterials(quad);
+
+		if (transform(quad) && cullTest(quad)) {
+			final CompositeMaterial mat = quad.material().forBlendMode(defaultBlendModeIndex());
+			quad.material(mat);
+			VertexEncoders.get(materialContext(), mat).encodeQuad(quad, this);
+		}
+
+		timer.stop();
+	}
 }

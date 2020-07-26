@@ -31,6 +31,7 @@ import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.apiimpl.RenderMaterialImpl.CompositeMaterial;
 import grondag.canvas.apiimpl.mesh.MeshEncodingHelper;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
+import grondag.canvas.apiimpl.util.FaceConstants;
 import grondag.canvas.buffer.encoding.VertexEncoders;
 
 /**
@@ -84,26 +85,27 @@ public class FallbackConsumer implements Consumer<BakedModel> {
 		final boolean useAo =  context.defaultAo() && model.useAmbientOcclusion();
 		final BlockState blockState = context.blockState();
 
-		acceptFaceQuads(Direction.DOWN, useAo, model.getQuads(blockState, Direction.DOWN, context.random()));
-		acceptFaceQuads(Direction.UP, useAo, model.getQuads(blockState, Direction.UP, context.random()));
-		acceptFaceQuads(Direction.NORTH, useAo, model.getQuads(blockState, Direction.NORTH, context.random()));
-		acceptFaceQuads(Direction.SOUTH, useAo, model.getQuads(blockState, Direction.SOUTH, context.random()));
-		acceptFaceQuads(Direction.WEST, useAo, model.getQuads(blockState, Direction.WEST, context.random()));
-		acceptFaceQuads(Direction.EAST, useAo, model.getQuads(blockState, Direction.EAST, context.random()));
+		acceptFaceQuads(FaceConstants.DOWN_INDEX, useAo, model.getQuads(blockState, Direction.DOWN, context.random()));
+		acceptFaceQuads(FaceConstants.UP_INDEX, useAo, model.getQuads(blockState, Direction.UP, context.random()));
+		acceptFaceQuads(FaceConstants.NORTH_INDEX, useAo, model.getQuads(blockState, Direction.NORTH, context.random()));
+		acceptFaceQuads(FaceConstants.SOUTH_INDEX, useAo, model.getQuads(blockState, Direction.SOUTH, context.random()));
+		acceptFaceQuads(FaceConstants.WEST_INDEX, useAo, model.getQuads(blockState, Direction.WEST, context.random()));
+		acceptFaceQuads(FaceConstants.EAST_INDEX, useAo, model.getQuads(blockState, Direction.EAST, context.random()));
 
 		acceptInsideQuads(useAo, model.getQuads(blockState, null, context.random()));
 	}
 
-	private void acceptFaceQuads(Direction face, boolean useAo, List<BakedQuad> quads) {
+	private void acceptFaceQuads(int faceIndex, boolean useAo, List<BakedQuad> quads) {
 		final int count = quads.size();
-		if (count != 0 && context.cullTest(face)) {
+
+		if (count != 0) {
 			if (count == 1) {
 				final BakedQuad q = quads.get(0);
-				renderQuad(q, face.ordinal(), q.hasShade() ? (useAo ? MATERIAL_AO_SHADED : MATERIAL_SHADED) : (useAo ? MATERIAL_AO_FLAT : MATERIAL_FLAT));
+				renderQuad(q, faceIndex, q.hasShade() ? (useAo ? MATERIAL_AO_SHADED : MATERIAL_SHADED) : (useAo ? MATERIAL_AO_FLAT : MATERIAL_FLAT));
 			} else { // > 1
 				for (int j = 0; j < count; j++) {
 					final BakedQuad q = quads.get(j);
-					renderQuad(q, face.ordinal(), q.hasShade() ? (useAo ? MATERIAL_AO_SHADED : MATERIAL_SHADED) : (useAo ? MATERIAL_AO_FLAT : MATERIAL_FLAT));
+					renderQuad(q, faceIndex, q.hasShade() ? (useAo ? MATERIAL_AO_SHADED : MATERIAL_SHADED) : (useAo ? MATERIAL_AO_FLAT : MATERIAL_FLAT));
 				}
 			}
 		}

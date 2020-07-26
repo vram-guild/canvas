@@ -22,11 +22,9 @@ import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
 
 import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.apiimpl.RenderMaterialImpl;
-import grondag.canvas.apiimpl.RenderMaterialImpl.CompositeMaterial;
 import grondag.canvas.apiimpl.mesh.MeshEncodingHelper;
 import grondag.canvas.apiimpl.mesh.MeshImpl;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
-import grondag.canvas.buffer.encoding.VertexEncoders;
 
 /**
  * Consumer for pre-baked meshes.  Works by copying the mesh data to a
@@ -53,7 +51,7 @@ public class MeshConsumer implements Consumer<Mesh> {
 		@Override
 		public Maker emit() {
 			complete();
-			renderQuad(this);
+			context.renderQuad(this);
 			clear();
 			return this;
 		}
@@ -67,13 +65,14 @@ public class MeshConsumer implements Consumer<Mesh> {
 		final int[] data = m.data();
 		final int limit = data.length;
 		int index = 0;
+		final MutableQuadViewImpl quad = editorQuad;
 
 		while (index < limit) {
 			final int stride = MeshEncodingHelper.stride(RenderMaterialImpl.byIndex(data[index]).spriteDepth());
-			System.arraycopy(data, index, editorQuad.data(), 0, stride);
-			editorQuad.load();
+			System.arraycopy(data, index, quad.data(), 0, stride);
+			quad.load();
 			index += stride;
-			renderQuad(editorQuad);
+			context.renderQuad(quad);
 		}
 	}
 
@@ -82,19 +81,4 @@ public class MeshConsumer implements Consumer<Mesh> {
 		return editorQuad;
 	}
 
-	private void renderQuad(MutableQuadViewImpl quad) {
-		context.mapMaterials(editorQuad);
-
-		if (!context.transform(quad)) {
-			return;
-		}
-
-		if (!context.cullTest(quad.cullFace())) {
-			return;
-		}
-
-		final CompositeMaterial mat = quad.material().forBlendMode(context.defaultBlendModeIndex());
-		quad.material(mat);
-		VertexEncoders.get(context.materialContext(), mat).encodeQuad(quad, context);
-	}
 }

@@ -25,7 +25,6 @@ import net.minecraft.client.render.block.BlockModelRenderer;
 import net.minecraft.client.render.model.BakedModel;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
 import net.minecraft.world.BlockRenderView;
 
 import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
@@ -140,11 +139,6 @@ public class BlockRenderContext extends AbstractBlockRenderContext<BlockRenderVi
 	@Override
 	public AoCalculator aoCalc() {
 		return aoCalc;
-	}
-
-	@Override
-	public boolean cullTest(Direction face) {
-		return true;
 	}
 
 	@Override

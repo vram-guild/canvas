@@ -32,7 +32,6 @@ import net.minecraft.client.render.model.json.ModelTransformation;
 import net.minecraft.client.render.model.json.ModelTransformation.Mode;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.math.Direction;
 
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
@@ -165,11 +164,6 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 		}
 
 		return quadVertexConsumer;
-	}
-
-	@Override
-	protected boolean cullTest(Direction face) {
-		return true;
 	}
 
 	@Override

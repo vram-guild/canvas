@@ -27,13 +27,14 @@ import net.minecraft.util.crash.CrashException;
 import net.minecraft.util.crash.CrashReport;
 import net.minecraft.util.crash.CrashReportSection;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
 
 import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
+import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 
 import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.RenderMaterialImpl.CompositeMaterial.DrawableMaterial;
+import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.light.AoCalculator;
 import grondag.canvas.light.LightSmoother;
 import grondag.canvas.material.MaterialContext;
@@ -150,17 +151,19 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<FastRenderR
 	}
 
 	@Override
-	public boolean cullTest(Direction face) {
-		if (face == null) {
+	protected boolean cullTest(MutableQuadViewImpl quad) {
+		final int faceIndex = quad.cullFaceId();
+
+		if (faceIndex == ModelHelper.NULL_FACE_ID) {
 			return true;
 		}
 
-		final int mask = 1 << face.getId();
+		final int mask = 1 << faceIndex;
 
 		if ((cullCompletionFlags & mask) == 0) {
 			cullCompletionFlags |= mask;
 
-			if (Block.shouldDrawSide(blockState, region, blockPos, face)) {
+			if (Block.shouldDrawSide(blockState, region, blockPos, ModelHelper.faceFromIndex(faceIndex))) {
 				cullResultFlags |= mask;
 				return true;
 			} else {

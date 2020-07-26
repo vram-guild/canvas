@@ -33,6 +33,7 @@ import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 
 import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
+import grondag.canvas.apiimpl.util.FaceConstants;
 import grondag.canvas.buffer.encoding.VertexCollectorImpl;
 import grondag.canvas.buffer.encoding.VertexCollectorList;
 import grondag.canvas.material.MaterialContext;
@@ -605,17 +606,17 @@ public class BuiltRenderRegion {
 		final int index = frameIndex;
 		lastSeenFrameIndex = index;
 
-		enqueNeighbor(index, getNeighbor(EAST_INDEX), queue);
-		enqueNeighbor(index, getNeighbor(WEST_INDEX), queue);
-		enqueNeighbor(index, getNeighbor(NORTH_INDEX), queue);
-		enqueNeighbor(index, getNeighbor(SOUTH_INDEX), queue);
+		enqueNeighbor(index, getNeighbor(FaceConstants.EAST_INDEX), queue);
+		enqueNeighbor(index, getNeighbor(FaceConstants.WEST_INDEX), queue);
+		enqueNeighbor(index, getNeighbor(FaceConstants.NORTH_INDEX), queue);
+		enqueNeighbor(index, getNeighbor(FaceConstants.SOUTH_INDEX), queue);
 
 		if (!isTop) {
-			enqueNeighbor(index, getNeighbor(UP_INDEX), queue);
+			enqueNeighbor(index, getNeighbor(FaceConstants.UP_INDEX), queue);
 		}
 
 		if (!isBottom) {
-			enqueNeighbor(index, getNeighbor(DOWN_INDEX), queue);
+			enqueNeighbor(index, getNeighbor(FaceConstants.DOWN_INDEX), queue);
 		}
 	}
 
@@ -625,11 +626,4 @@ public class BuiltRenderRegion {
 			queue.add(r);
 		}
 	}
-
-	final static int NORTH_INDEX = ModelHelper.toFaceIndex(Direction.NORTH);
-	final static int SOUTH_INDEX = ModelHelper.toFaceIndex(Direction.SOUTH);
-	final static int EAST_INDEX = ModelHelper.toFaceIndex(Direction.EAST);
-	final static int WEST_INDEX = ModelHelper.toFaceIndex(Direction.WEST);
-	final static int UP_INDEX = ModelHelper.toFaceIndex(Direction.UP);
-	final static int DOWN_INDEX = ModelHelper.toFaceIndex(Direction.DOWN);
 }
