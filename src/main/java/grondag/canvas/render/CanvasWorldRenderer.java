@@ -629,10 +629,6 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			mc.particleManager.renderParticles(matrixStack, immediate, lightmapTextureManager, camera, tickDelta);
 		}
 
-		if (Configurator.enableBloom) {
-			CanvasFrameBufferHacks.applyBloom();
-		}
-
 		JustMapHolder.justMapRender.renderWaypoints(matrixStack, mc, camera, tickDelta);
 		LitematicaHolder.litematicaRenderTranslucent.accept(matrixStack);
 		LitematicaHolder.litematicaRenderOverlay.accept(matrixStack);
@@ -681,6 +677,10 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			RenderSystem.depthMask(true);
 
 			MaliLibHolder.litematicaRenderWorldLast.render(matrixStack, mc, tickDelta);
+		}
+
+		if (Configurator.enableBloom) {
+			CanvasFrameBufferHacks.applyBloom();
 		}
 
 		SatinHolder.onWorldRenderedEvent.onWorldRendered(matrixStack, camera, tickDelta, limitTime);
