@@ -83,6 +83,14 @@ public class QuadViewImpl implements QuadView {
 	}
 
 	/**
+	 * Copies data from source, leaves baseIndex unchanged. For mesh iteration.
+	 */
+	public final void copyAndload(int[] source, int sourceIndex, int stride) {
+		System.arraycopy(source, sourceIndex, data, baseIndex, stride);
+		load();
+	}
+
+	/**
 	 * Used on vanilla quads or other quads that don't have encoded shape info
 	 * to signal that such should be computed when requested.
 	 */

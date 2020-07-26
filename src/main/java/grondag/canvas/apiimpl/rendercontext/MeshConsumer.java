@@ -51,13 +51,13 @@ public class MeshConsumer implements Consumer<Mesh> {
 		@Override
 		public Maker emit() {
 			complete();
-			context.renderQuad(this);
+			context.renderQuad();
 			clear();
 			return this;
 		}
 	}
 
-	private final Maker editorQuad = new Maker();
+	public final Maker editorQuad = new Maker();
 
 	@Override
 	public void accept(Mesh mesh) {
@@ -69,10 +69,9 @@ public class MeshConsumer implements Consumer<Mesh> {
 
 		while (index < limit) {
 			final int stride = MeshEncodingHelper.stride(RenderMaterialImpl.byIndex(data[index]).spriteDepth());
-			System.arraycopy(data, index, quad.data(), 0, stride);
-			quad.load();
+			quad.copyAndload(data, index, stride);
 			index += stride;
-			context.renderQuad(quad);
+			context.renderQuad();
 		}
 	}
 
