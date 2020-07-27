@@ -98,7 +98,7 @@ public class FallbackConsumer implements Consumer<BakedModel> {
 	private void acceptFaceQuads(int faceIndex, boolean useAo, List<BakedQuad> quads) {
 		final int count = quads.size();
 
-		if (count != 0) {
+		if (count != 0 && context.cullTest(faceIndex)) {
 			if (count == 1) {
 				final BakedQuad q = quads.get(0);
 				renderQuad(q, faceIndex, q.hasShade() ? (useAo ? MATERIAL_AO_SHADED : MATERIAL_SHADED) : (useAo ? MATERIAL_AO_FLAT : MATERIAL_FLAT));

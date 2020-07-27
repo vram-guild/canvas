@@ -146,8 +146,13 @@ public abstract class AbstractRenderContext implements RenderContext {
 		return meshConsumer.getEmitter();
 	}
 
-	protected boolean cullTest(MutableQuadViewImpl quad) {
+	// for use by fallback consumer
+	protected boolean cullTest(int faceIndex) {
 		return true;
+	}
+
+	protected final boolean cullTest(MutableQuadViewImpl quad) {
+		return cullTest(quad.cullFaceId());
 	}
 
 	protected abstract Random random();

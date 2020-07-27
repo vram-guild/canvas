@@ -34,7 +34,6 @@ import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 
 import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.RenderMaterialImpl.CompositeMaterial.DrawableMaterial;
-import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.light.AoCalculator;
 import grondag.canvas.light.LightSmoother;
 import grondag.canvas.material.MaterialContext;
@@ -151,9 +150,7 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<FastRenderR
 	}
 
 	@Override
-	protected boolean cullTest(MutableQuadViewImpl quad) {
-		final int faceIndex = quad.cullFaceId();
-
+	protected boolean cullTest(int faceIndex) {
 		if (faceIndex == ModelHelper.NULL_FACE_ID) {
 			return true;
 		}
