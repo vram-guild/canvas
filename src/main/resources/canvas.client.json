@@ -21,6 +21,7 @@
     "MixinPalettedContainer",
     "MixinSprite",
     "MixinSpriteAtlasTexture",
+    "MixinSpriteAtlasTextureData",
     "MixinRenderLayer",
     "MixinVideoOptionsScreen",
     "MixinWorldChunk",

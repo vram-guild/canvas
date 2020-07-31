@@ -14,7 +14,7 @@
  ******************************************************************************/
 package grondag.canvas.texture;
 
-import java.nio.IntBuffer;
+import java.nio.FloatBuffer;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.lwjgl.opengl.GL11;
@@ -34,44 +34,47 @@ public final class SpriteInfoImage implements AutoCloseable {
 	public final int size;
 	private long pointer;
 	private final int sizeBytes;
-	private IntBuffer intBuffer;
+	//	private IntBuffer intBuffer;
+	private FloatBuffer floatBuffer;
 
 	public SpriteInfoImage(ObjectArrayList<Sprite> spriteIndex) {
 		final int spriteCount = spriteIndex.size();
 		size = MathHelper.smallestEncompassingPowerOfTwo(spriteCount);
-		// 8 because 4 shorts per vector, 4 because 4 samples per sprite
-		sizeBytes = size * 8 * 4;
+
+		// 16 because 4 floats per vector, 4 because 4 samples per sprite
+		sizeBytes = size * 16 * 4;
 		pointer = MemoryUtil.nmemAlloc(sizeBytes);
-		intBuffer = MemoryUtil.memIntBuffer(pointer, sizeBytes / 4);
+		floatBuffer = MemoryUtil.memFloatBuffer(pointer, sizeBytes / 4);
 
 		for (int i = 0;  i < spriteCount; ++i) {
 			final Sprite s = spriteIndex.get(i);
-			setPixelUnsignedShort(i, Math.round(s.getMinU() * 0xFFFF), Math.round(s.getMinV() * 0xFFFF),
-					Math.round((s.getMaxU() - s.getMinU()) * 0xFFFF), Math.round((s.getMaxV() - s.getMinV()) * 0xFFFF));
+			setPixel(i, s.getMinU(),s.getMinV(), s.getMaxU() - s.getMinU(), s.getMaxV() - s.getMinV());
 		}
 	}
 
 	@Override
 	public void close() {
 		if (pointer != 0L) {
-			intBuffer = null;
+			floatBuffer = null;
 			MemoryUtil.nmemFree(pointer);
 		}
 
 		pointer = 0L;
 	}
 
-	private void setPixelUnsignedShort(int n, int x, int y, int z, int w) {
+	private void setPixel(int n, float x, float y, float z, float w) {
 		assert n <= size;
 		assert pointer != 0L : "Image not allocated.";
-		n *= 8;
-		intBuffer.put(n, x | (y << 16));
-		intBuffer.put(n + 1, z | (w << 16));
+		n *= 16;
+		floatBuffer.put(n, x);
+		floatBuffer.put(n + 1, y);
+		floatBuffer.put(n + 2, z);
+		floatBuffer.put(n + 3, w);
 	}
 
 	public void upload() {
 		assert pointer != 0L : "Image not allocated.";
-		GL21.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL21.GL_RGBA16, 4, size, 0, GL21.GL_RGBA, GL21.GL_UNSIGNED_SHORT, pointer);
+		GL21.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL21.GL_RGBA16, 4, size, 0, GL21.GL_RGBA, GL21.GL_FLOAT, pointer);
 		assert CanvasGlHelper.checkError();
 	}
 }

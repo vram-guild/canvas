@@ -45,6 +45,7 @@ import grondag.canvas.Configurator;
 import grondag.canvas.Configurator.AoMode;
 import grondag.canvas.Configurator.DiffuseMode;
 import grondag.canvas.Configurator.FogMode;
+import grondag.canvas.texture.SpriteInfoTexture;
 import grondag.canvas.varia.CanvasGlHelper;
 
 public class GlShader {
@@ -234,6 +235,12 @@ public class GlShader {
 			if (!hasVertexEnd) {
 				result = StringUtils.replace(result, "#define _CV_HAS_VERTEX_END", "//#define _CV_HAS_VERTEX_END");
 			}
+
+			final SpriteInfoTexture sit = SpriteInfoTexture.instance();
+
+			result = StringUtils.replace(result, "#define _CV_SPRITE_INFO_TEXTURE_SIZE 1024", "#define _CV_SPRITE_INFO_TEXTURE_SIZE " + sit.textureSize());
+			result = StringUtils.replace(result, "#define _CV_ATLAS_WIDTH 1024", "#define _CV_ATLAS_WIDTH " + sit.atlasWidth);
+			result = StringUtils.replace(result, "#define _CV_ATLAS_HEIGHT 1024", "#define _CV_ATLAS_HEIGHT " + sit.atlasHeight);
 		}
 
 		if (context.pass != ShaderPass.SOLID) {

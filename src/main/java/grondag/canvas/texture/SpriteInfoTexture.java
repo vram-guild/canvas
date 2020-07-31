@@ -22,6 +22,7 @@ import org.lwjgl.opengl.GL21;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.texture.Sprite;
 import net.minecraft.client.texture.SpriteAtlasTexture;
+import net.minecraft.client.texture.SpriteAtlasTexture.Data;
 import net.minecraft.client.texture.TextureUtil;
 
 import net.fabricmc.api.EnvType;
@@ -29,6 +30,7 @@ import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.renderer.v1.model.SpriteFinder;
 
 import grondag.canvas.CanvasMod;
+import grondag.canvas.mixinterface.SpriteAtlasTextureDataExt;
 import grondag.canvas.mixinterface.SpriteAtlasTextureExt;
 import grondag.canvas.varia.CanvasGlHelper;
 
@@ -38,12 +40,17 @@ public class SpriteInfoTexture implements AutoCloseable {
 	private final int textureSize;
 	final ObjectArrayList<Sprite> spriteIndex;
 	public final SpriteAtlasTexture atlas;
+	public final int atlasWidth;
+	public final int atlasHeight;
+
 	public final SpriteFinder spriteFinder;
 
-	private SpriteInfoTexture() {
+	private SpriteInfoTexture(Data atlasData) {
 		glId = TextureUtil.generateId();
 		final SpriteAtlasTexture atlas = (SpriteAtlasTexture) MinecraftClient.getInstance().getTextureManager().getTexture(SpriteAtlasTexture.BLOCK_ATLAS_TEX);
 		this.atlas = atlas;
+		atlasWidth = ((SpriteAtlasTextureDataExt)atlasData).canvas_atlasWidth();
+		atlasHeight = ((SpriteAtlasTextureDataExt)atlasData).canvas_atlasHeight();
 		spriteFinder = SpriteFinder.get(atlas);
 
 		final ObjectArrayList<Sprite> spriteIndex = ((SpriteAtlasTextureExt) atlas).canvas_spriteIndex();
@@ -95,8 +102,7 @@ public class SpriteInfoTexture implements AutoCloseable {
 	}
 
 	public int coordinate(int spriteId) {
-		// PERF: shifts here - textureSize always a power of 2
-		return (spriteId * 0x10000 + 1) / textureSize;
+		return spriteId;
 	}
 
 	public float mapU(int spriteId, float unmappedU) {
@@ -112,23 +118,30 @@ public class SpriteInfoTexture implements AutoCloseable {
 	}
 
 	private static SpriteInfoTexture instance;
+	private static Data atlasData;
 
 	public static SpriteInfoTexture instance() {
 		SpriteInfoTexture result = instance;
 
 		if(result == null) {
-			result = new SpriteInfoTexture();
+			result = new SpriteInfoTexture(atlasData);
 			instance = result;
+			atlasData = null;
 		}
 
 		return result;
 	}
 
-	public static void reset() {
+	public static void reset(Data input) {
 		if(instance != null) {
 			instance.close();
 		}
 
 		instance = null;
+		atlasData = input;
+	}
+
+	public int textureSize() {
+		return textureSize;
 	}
 }

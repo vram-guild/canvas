@@ -251,8 +251,8 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 
 	public MutableQuadViewImpl spriteFloat(int vertexIndex, int spriteIndex, float u, float v) {
 		final int i = baseIndex + colorOffset(vertexIndex, spriteIndex) + 1;
-		data[i] = (int) (u * UV_PRECISE_UNIT_VALUE);
-		data[i + 1] = (int) (v * UV_PRECISE_UNIT_VALUE);
+		data[i] = (int) (u * UV_PRECISE_UNIT_VALUE + 0.5f);
+		data[i + 1] = (int) (v * UV_PRECISE_UNIT_VALUE + 0.5f);
 		return this;
 	}
 

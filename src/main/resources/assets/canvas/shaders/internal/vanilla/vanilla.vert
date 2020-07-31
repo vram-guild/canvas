@@ -9,6 +9,7 @@
 
 #include canvas:apitarget
 
+
 /******************************************************
   canvas:shaders/internal/vanilla/vanilla.vert
 ******************************************************/
@@ -40,7 +41,14 @@ void main() {
 	frx_startVertex(data);
 #endif
 
-	vec4 spriteBounds = texture2DLod(frxs_spriteInfo, vec2(0, in_material.x), 0);
+	vec4 spriteBounds = texture2DLod(frxs_spriteInfo, vec2(0, in_material.x / _CV_SPRITE_INFO_TEXTURE_SIZE), 0);
+
+	// snap sprite bounds to integer coordinates to correct for floating point error
+	spriteBounds *= vec4(_CV_ATLAS_WIDTH, _CV_ATLAS_HEIGHT, _CV_ATLAS_WIDTH, _CV_ATLAS_HEIGHT);
+	spriteBounds += vec4(0.5, 0.5, 0.5, 0.5);
+	spriteBounds -= fract(spriteBounds);
+	spriteBounds /= vec4(_CV_ATLAS_WIDTH, _CV_ATLAS_HEIGHT, _CV_ATLAS_WIDTH, _CV_ATLAS_HEIGHT);
+
 	data.spriteUV = spriteBounds.xy + data.spriteUV * spriteBounds.zw;
 	data.spriteUV = _cv_textureCoord(data.spriteUV, 0);
 

@@ -37,7 +37,7 @@ public class MixinSpriteAtlasTexture implements SpriteAtlasTextureExt {
 	@Inject(at = @At("RETURN"), method = "upload")
 	private void afterUpload(SpriteAtlasTexture.Data input, CallbackInfo info) {
 		if (id.equals(SpriteAtlasTexture.BLOCK_ATLAS_TEX)) {
-			SpriteInfoTexture.reset();
+			SpriteInfoTexture.reset(input);
 			int index = 0;
 
 			for (final Sprite sprite : sprites.values()) {
