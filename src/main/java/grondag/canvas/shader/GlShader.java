@@ -262,7 +262,7 @@ public class GlShader {
 					"#define _CV_FOG_CONFIG _CV_FOG_CONFIG_" + Configurator.fogMode.name());
 		}
 
-		if(context.pass == ShaderPass.SOLID && Configurator.enableBloom) {
+		if((context.pass == ShaderPass.SOLID || context.pass == ShaderPass.DECAL) && Configurator.enableBloom) {
 			result = StringUtils.replace(result, "#define TARGET_EMISSIVE -1", "#define TARGET_EMISSIVE 1");
 		}
 
