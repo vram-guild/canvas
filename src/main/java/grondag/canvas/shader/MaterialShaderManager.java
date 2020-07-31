@@ -116,6 +116,8 @@ public final class MaterialShaderManager implements ClientTickEvents.EndTick {
 		return frameIndex;
 	}
 
+	private static final float[] BITWISE_DIVISORS = {0.5f, 0.25f, 0.125f, 0.0625f, 0.03125f, 0.015625f, 0.0078125f, 0.00390625f};
+
 	private void addStandardUniforms(MaterialShaderImpl shader) {
 		shader.uniformArrayf("_cvu_world", UniformRefreshFrequency.PER_TICK, u -> u.set(WorldDataManager.data()), WorldDataManager.LENGTH);
 
@@ -130,6 +132,8 @@ public final class MaterialShaderManager implements ClientTickEvents.EndTick {
 		shader.uniformSampler2d("frxs_hdLightmap", UniformRefreshFrequency.ON_LOAD, u -> u.set(TextureData.HD_LIGHTMAP - GL21.GL_TEXTURE0));
 
 		shader.uniformSampler2d("frxs_spriteInfo", UniformRefreshFrequency.ON_LOAD, u -> u.set(TextureData.SPRITE_INFO - GL21.GL_TEXTURE0));
+
+		shader.uniformArrayf("_fru_bitwise_divisors", UniformRefreshFrequency.ON_LOAD, u -> u.set(BITWISE_DIVISORS), 8);
 	}
 
 	/**
