@@ -275,7 +275,16 @@ public abstract class RenderMaterialImpl extends RenderMaterialKey {
 
 			public DrawableMaterial(int depth) {
 				drawbleMaterialIndex = (index << 2) | depth;
-				shaderType = depth == 0 ? (blendMode() == BlendMode.TRANSLUCENT ? ShaderPass.TRANSLUCENT : ShaderPass.SOLID) : ShaderPass.DECAL;
+
+				// determine how to buffer
+				if (depth == 0) {
+					shaderType = blendMode() == BlendMode.TRANSLUCENT ? ShaderPass.TRANSLUCENT : ShaderPass.SOLID;
+				} else {
+					// +1 layers with cutout are expected to not share pixels with lower layers! Otherwise Z-fighting over overwrite will happen
+					// anything other than cutout handled as non-sorting, no-depth translucent decal
+					shaderType = blendMode() == BlendMode.CUTOUT || blendMode() == BlendMode.CUTOUT_MIPPED ? ShaderPass.SOLID : ShaderPass.DECAL;
+				}
+
 				shader = MaterialShaderManager.INSTANCE.get(SHADERS[depth].getValue(bits1));
 				int flags = emissive(depth) ? 1 : 0;
 
@@ -287,17 +296,15 @@ public abstract class RenderMaterialImpl extends RenderMaterialKey {
 					flags |= 4;
 				}
 
-				if (depth == 0) {
-					switch(blendMode()) {
-					case CUTOUT:
-						flags |= 16; // disable LOD
-						//$FALL-THROUGH$
-					case CUTOUT_MIPPED:
-						flags |= 8; // cutout
-						break;
-					default:
-						break;
-					}
+				switch(blendMode()) {
+				case CUTOUT:
+					flags |= 16; // disable LOD
+					//$FALL-THROUGH$
+				case CUTOUT_MIPPED:
+					flags |= 8; // cutout
+					break;
+				default:
+					break;
 				}
 
 				shaderFlags = flags;

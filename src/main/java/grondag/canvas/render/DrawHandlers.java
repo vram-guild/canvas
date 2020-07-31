@@ -84,6 +84,7 @@ public class DrawHandlers {
 			textureManager.bindTexture(SpriteAtlasTexture.BLOCK_ATLAS_TEX);
 			textureManager.getTexture(SpriteAtlasTexture.BLOCK_ATLAS_TEX).setFilter(false, true);
 			RenderSystem.enableBlend();
+			RenderSystem.depthMask(false);
 			RenderSystem.defaultBlendFunc();
 			RenderSystem.shadeModel(GL21.GL_SMOOTH);
 			RenderSystem.disableAlphaTest();
@@ -102,6 +103,7 @@ public class DrawHandlers {
 			MinecraftClient.getInstance().gameRenderer.getLightmapTextureManager().disable();
 			RenderSystem.disableFog();
 			RenderSystem.disableBlend();
+			RenderSystem.depthMask(true);
 			SpriteInfoTexture.instance().disable();
 		}
 	}
