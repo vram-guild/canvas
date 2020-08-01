@@ -14,6 +14,7 @@
  ******************************************************************************/
 package grondag.canvas.texture;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
@@ -24,6 +25,7 @@ import net.minecraft.client.texture.Sprite;
 import net.minecraft.client.texture.SpriteAtlasTexture;
 import net.minecraft.client.texture.SpriteAtlasTexture.Data;
 import net.minecraft.client.texture.TextureUtil;
+import net.minecraft.util.math.MathHelper;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -46,7 +48,6 @@ public class SpriteInfoTexture implements AutoCloseable {
 	public final SpriteFinder spriteFinder;
 
 	private SpriteInfoTexture(Data atlasData) {
-		glId = TextureUtil.generateId();
 		final SpriteAtlasTexture atlas = (SpriteAtlasTexture) MinecraftClient.getInstance().getTextureManager().getTexture(SpriteAtlasTexture.BLOCK_ATLAS_TEX);
 		this.atlas = atlas;
 		atlasWidth = ((SpriteAtlasTextureDataExt)atlasData).canvas_atlasWidth();
@@ -56,9 +57,22 @@ public class SpriteInfoTexture implements AutoCloseable {
 		final ObjectArrayList<Sprite> spriteIndex = ((SpriteAtlasTextureExt) atlas).canvas_spriteIndex();
 		this.spriteIndex = spriteIndex;
 
-		int size = 1;
-		try(final SpriteInfoImage image = new SpriteInfoImage(spriteIndex)) {
-			size = image.size;
+
+		final int spriteCount = spriteIndex.size();
+		textureSize = MathHelper.smallestEncompassingPowerOfTwo(spriteCount);
+
+		if (!RenderSystem.isOnRenderThread()) {
+			RenderSystem.recordRenderCall(() -> {
+				createImage(spriteCount);
+			});
+		} else {
+			createImage(spriteCount);
+		}
+	}
+
+	private void createImage(int spriteCount) {
+		try(final SpriteInfoImage image = new SpriteInfoImage(spriteIndex, spriteCount, textureSize)) {
+			glId = TextureUtil.generateId();
 			GL21.glActiveTexture(TextureData.SPRITE_INFO);
 			assert CanvasGlHelper.checkError();
 			GL21.glBindTexture(GL21.GL_TEXTURE_2D, glId);
@@ -76,9 +90,12 @@ public class SpriteInfoTexture implements AutoCloseable {
 			GL21.glActiveTexture(TextureData.MC_SPRITE_ATLAS);
 		} catch (final Exception e) {
 			CanvasMod.LOG.warn("Unable to create sprite info texture due to error:", e);
-		}
 
-		textureSize = size;
+			if (glId != -1) {
+				TextureUtil.deleteId(glId);
+				glId = -1;
+			}
+		}
 	}
 
 	@Override

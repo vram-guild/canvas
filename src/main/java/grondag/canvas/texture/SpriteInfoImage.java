@@ -22,7 +22,6 @@ import org.lwjgl.opengl.GL21;
 import org.lwjgl.system.MemoryUtil;
 
 import net.minecraft.client.texture.Sprite;
-import net.minecraft.util.math.MathHelper;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -37,9 +36,8 @@ public final class SpriteInfoImage implements AutoCloseable {
 	//	private IntBuffer intBuffer;
 	private FloatBuffer floatBuffer;
 
-	public SpriteInfoImage(ObjectArrayList<Sprite> spriteIndex) {
-		final int spriteCount = spriteIndex.size();
-		size = MathHelper.smallestEncompassingPowerOfTwo(spriteCount);
+	public SpriteInfoImage(ObjectArrayList<Sprite> spriteIndex, int spriteCount, int size) {
+		this.size = size;
 
 		// 16 because 4 floats per vector, 4 because 4 samples per sprite
 		sizeBytes = size * 16 * 4;
