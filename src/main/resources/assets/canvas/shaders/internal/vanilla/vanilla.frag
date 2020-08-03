@@ -72,6 +72,12 @@ void main() {
 	vec4 raw = fragData.spriteColor * fragData.vertexColor;
     vec4 a = raw;
 
+	#if SHADER_PASS == SHADER_PASS_DECAL
+		if (a.a == 0) {
+			discard;
+		}
+	#endif
+
     if (a.a >= 0.5 || _cv_getFlag(_CV_FLAG_CUTOUT) != 1.0) {
     	a *= mix(light(fragData), frx_emissiveColor(), fragData.emissivity);
 
