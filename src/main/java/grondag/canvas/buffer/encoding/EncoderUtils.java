@@ -41,6 +41,8 @@ abstract class EncoderUtils {
 			nz = NormalHelper.getPackedNormalComponent(transformedNormal, 2);
 		}
 
+		final boolean emissive = quad.material().emissive(0);
+
 		for (int i = 0; i < 4; i++) {
 			quad.transformAndAppend(i, matrix, buff);
 
@@ -49,7 +51,7 @@ abstract class EncoderUtils {
 
 			buff.texture(quad.spriteU(i, 0), quad.spriteV(i, 0));
 			buff.overlay(overlay);
-			buff.light(quad.lightmap(i));
+			buff.light(emissive ? VertexEncoder.FULL_BRIGHTNESS : quad.lightmap(i));
 
 			if (useNormals) {
 				final int p = quad.packedNormal(i);
@@ -132,12 +134,26 @@ abstract class EncoderUtils {
 		final float y3 = vecData[1];
 		final float z3 = vecData[2];
 
+		int lm0, lm1, lm2, lm3;
+
+		if (mat.emissive(0)) {
+			lm0 = VertexEncoder.FULL_BRIGHTNESS;
+			lm1 = VertexEncoder.FULL_BRIGHTNESS;
+			lm2 = VertexEncoder.FULL_BRIGHTNESS;
+			lm3 = VertexEncoder.FULL_BRIGHTNESS;
+		} else {
+			lm0 = quad.lightmap(0);
+			lm1 = quad.lightmap(1);
+			lm2 = quad.lightmap(2);
+			lm3 = quad.lightmap(3);
+		}
+
 		buff1.vertex(x0, y0, z0);
 		int color = quad.spriteColor(0, 0);
 		buff1.color(color & 0xFF, (color >> 8) & 0xFF, (color >> 16) & 0xFF, (color >> 24) & 0xFF);
 		buff1.texture(quad.spriteU(0, 0), quad.spriteV(0, 0));
 		buff1.overlay(overlay);
-		buff1.light(quad.lightmap(0));
+		buff1.light(lm0);
 		buff1.normal(nx0, ny0, nz0);
 		buff1.next();
 
@@ -146,7 +162,7 @@ abstract class EncoderUtils {
 		buff1.color(color & 0xFF, (color >> 8) & 0xFF, (color >> 16) & 0xFF, (color >> 24) & 0xFF);
 		buff1.texture(quad.spriteU(1, 0), quad.spriteV(1, 0));
 		buff1.overlay(overlay);
-		buff1.light(quad.lightmap(1));
+		buff1.light(lm1);
 		buff1.normal(nx1, ny1, nz1);
 		buff1.next();
 
@@ -155,7 +171,7 @@ abstract class EncoderUtils {
 		buff1.color(color & 0xFF, (color >> 8) & 0xFF, (color >> 16) & 0xFF, (color >> 24) & 0xFF);
 		buff1.texture(quad.spriteU(2, 0), quad.spriteV(2, 0));
 		buff1.overlay(overlay);
-		buff1.light(quad.lightmap(2));
+		buff1.light(lm2);
 		buff1.normal(nx2, ny2, nz2);
 		buff1.next();
 
@@ -164,18 +180,28 @@ abstract class EncoderUtils {
 		buff1.color(color & 0xFF, (color >> 8) & 0xFF, (color >> 16) & 0xFF, (color >> 24) & 0xFF);
 		buff1.texture(quad.spriteU(3, 0), quad.spriteV(3, 0));
 		buff1.overlay(overlay);
-		buff1.light(quad.lightmap(3));
+		buff1.light(lm3);
 		buff1.normal(nx3, ny3, nz3);
 		buff1.next();
 
-
+		if (mat.emissive(1)) {
+			lm0 = VertexEncoder.FULL_BRIGHTNESS;
+			lm1 = VertexEncoder.FULL_BRIGHTNESS;
+			lm2 = VertexEncoder.FULL_BRIGHTNESS;
+			lm3 = VertexEncoder.FULL_BRIGHTNESS;
+		} else {
+			lm0 = quad.lightmap(0);
+			lm1 = quad.lightmap(1);
+			lm2 = quad.lightmap(2);
+			lm3 = quad.lightmap(3);
+		}
 
 		buff2.vertex(x0, y0, z0);
 		color = quad.spriteColor(0, 1);
 		buff2.color(color & 0xFF, (color >> 8) & 0xFF, (color >> 16) & 0xFF, (color >> 24) & 0xFF);
 		buff2.texture(quad.spriteU(0, 1), quad.spriteV(0, 1));
 		buff2.overlay(overlay);
-		buff2.light(quad.lightmap(0));
+		buff2.light(lm0);
 		buff2.normal(nx0, ny0, nz0);
 		buff2.next();
 
@@ -184,7 +210,7 @@ abstract class EncoderUtils {
 		buff2.color(color & 0xFF, (color >> 8) & 0xFF, (color >> 16) & 0xFF, (color >> 24) & 0xFF);
 		buff2.texture(quad.spriteU(1, 1), quad.spriteV(1, 1));
 		buff2.overlay(overlay);
-		buff2.light(quad.lightmap(1));
+		buff2.light(lm1);
 		buff2.normal(nx1, ny1, nz1);
 		buff2.next();
 
@@ -193,7 +219,7 @@ abstract class EncoderUtils {
 		buff2.color(color & 0xFF, (color >> 8) & 0xFF, (color >> 16) & 0xFF, (color >> 24) & 0xFF);
 		buff2.texture(quad.spriteU(2, 1), quad.spriteV(2, 1));
 		buff2.overlay(overlay);
-		buff2.light(quad.lightmap(2));
+		buff2.light(lm2);
 		buff2.normal(nx2, ny2, nz2);
 		buff2.next();
 
@@ -202,7 +228,7 @@ abstract class EncoderUtils {
 		buff2.color(color & 0xFF, (color >> 8) & 0xFF, (color >> 16) & 0xFF, (color >> 24) & 0xFF);
 		buff2.texture(quad.spriteU(3, 1), quad.spriteV(3, 1));
 		buff2.overlay(overlay);
-		buff2.light(quad.lightmap(3));
+		buff2.light(lm3);
 		buff2.normal(nx3, ny3, nz3);
 		buff2.next();
 	}
@@ -273,12 +299,26 @@ abstract class EncoderUtils {
 		final float y3 = vecData[1];
 		final float z3 = vecData[2];
 
+		int lm0, lm1, lm2, lm3;
+
+		if (mat.emissive(0)) {
+			lm0 = VertexEncoder.FULL_BRIGHTNESS;
+			lm1 = VertexEncoder.FULL_BRIGHTNESS;
+			lm2 = VertexEncoder.FULL_BRIGHTNESS;
+			lm3 = VertexEncoder.FULL_BRIGHTNESS;
+		} else {
+			lm0 = quad.lightmap(0);
+			lm1 = quad.lightmap(1);
+			lm2 = quad.lightmap(2);
+			lm3 = quad.lightmap(3);
+		}
+
 		buff1.vertex(x0, y0, z0);
 		int color = quad.spriteColor(0, 0);
 		buff1.color(color & 0xFF, (color >> 8) & 0xFF, (color >> 16) & 0xFF, (color >> 24) & 0xFF);
 		buff1.texture(quad.spriteU(0, 0), quad.spriteV(0, 0));
 		buff1.overlay(overlay);
-		buff1.light(quad.lightmap(0));
+		buff1.light(lm0);
 		buff1.normal(nx0, ny0, nz0);
 		buff1.next();
 
@@ -287,7 +327,7 @@ abstract class EncoderUtils {
 		buff1.color(color & 0xFF, (color >> 8) & 0xFF, (color >> 16) & 0xFF, (color >> 24) & 0xFF);
 		buff1.texture(quad.spriteU(1, 0), quad.spriteV(1, 0));
 		buff1.overlay(overlay);
-		buff1.light(quad.lightmap(1));
+		buff1.light(lm1);
 		buff1.normal(nx1, ny1, nz1);
 		buff1.next();
 
@@ -296,7 +336,7 @@ abstract class EncoderUtils {
 		buff1.color(color & 0xFF, (color >> 8) & 0xFF, (color >> 16) & 0xFF, (color >> 24) & 0xFF);
 		buff1.texture(quad.spriteU(2, 0), quad.spriteV(2, 0));
 		buff1.overlay(overlay);
-		buff1.light(quad.lightmap(2));
+		buff1.light(lm2);
 		buff1.normal(nx2, ny2, nz2);
 		buff1.next();
 
@@ -305,18 +345,28 @@ abstract class EncoderUtils {
 		buff1.color(color & 0xFF, (color >> 8) & 0xFF, (color >> 16) & 0xFF, (color >> 24) & 0xFF);
 		buff1.texture(quad.spriteU(3, 0), quad.spriteV(3, 0));
 		buff1.overlay(overlay);
-		buff1.light(quad.lightmap(3));
+		buff1.light(lm3);
 		buff1.normal(nx3, ny3, nz3);
 		buff1.next();
 
-
+		if (mat.emissive(1)) {
+			lm0 = VertexEncoder.FULL_BRIGHTNESS;
+			lm1 = VertexEncoder.FULL_BRIGHTNESS;
+			lm2 = VertexEncoder.FULL_BRIGHTNESS;
+			lm3 = VertexEncoder.FULL_BRIGHTNESS;
+		} else {
+			lm0 = quad.lightmap(0);
+			lm1 = quad.lightmap(1);
+			lm2 = quad.lightmap(2);
+			lm3 = quad.lightmap(3);
+		}
 
 		buff2.vertex(x0, y0, z0);
 		color = quad.spriteColor(0, 1);
 		buff2.color(color & 0xFF, (color >> 8) & 0xFF, (color >> 16) & 0xFF, (color >> 24) & 0xFF);
 		buff2.texture(quad.spriteU(0, 1), quad.spriteV(0, 1));
 		buff2.overlay(overlay);
-		buff2.light(quad.lightmap(0));
+		buff2.light(lm0);
 		buff2.normal(nx0, ny0, nz0);
 		buff2.next();
 
@@ -325,7 +375,7 @@ abstract class EncoderUtils {
 		buff2.color(color & 0xFF, (color >> 8) & 0xFF, (color >> 16) & 0xFF, (color >> 24) & 0xFF);
 		buff2.texture(quad.spriteU(1, 1), quad.spriteV(1, 1));
 		buff2.overlay(overlay);
-		buff2.light(quad.lightmap(1));
+		buff2.light(lm1);
 		buff2.normal(nx1, ny1, nz1);
 		buff2.next();
 
@@ -334,7 +384,7 @@ abstract class EncoderUtils {
 		buff2.color(color & 0xFF, (color >> 8) & 0xFF, (color >> 16) & 0xFF, (color >> 24) & 0xFF);
 		buff2.texture(quad.spriteU(2, 1), quad.spriteV(2, 1));
 		buff2.overlay(overlay);
-		buff2.light(quad.lightmap(2));
+		buff2.light(lm2);
 		buff2.normal(nx2, ny2, nz2);
 		buff2.next();
 
@@ -343,17 +393,28 @@ abstract class EncoderUtils {
 		buff2.color(color & 0xFF, (color >> 8) & 0xFF, (color >> 16) & 0xFF, (color >> 24) & 0xFF);
 		buff2.texture(quad.spriteU(3, 1), quad.spriteV(3, 1));
 		buff2.overlay(overlay);
-		buff2.light(quad.lightmap(3));
+		buff2.light(lm3);
 		buff2.normal(nx3, ny3, nz3);
 		buff2.next();
 
+		if (mat.emissive(2)) {
+			lm0 = VertexEncoder.FULL_BRIGHTNESS;
+			lm1 = VertexEncoder.FULL_BRIGHTNESS;
+			lm2 = VertexEncoder.FULL_BRIGHTNESS;
+			lm3 = VertexEncoder.FULL_BRIGHTNESS;
+		} else {
+			lm0 = quad.lightmap(0);
+			lm1 = quad.lightmap(1);
+			lm2 = quad.lightmap(2);
+			lm3 = quad.lightmap(3);
+		}
 
 		buff3.vertex(x0, y0, z0);
 		color = quad.spriteColor(0, 2);
 		buff3.color(color & 0xFF, (color >> 8) & 0xFF, (color >> 16) & 0xFF, (color >> 24) & 0xFF);
 		buff3.texture(quad.spriteU(0, 2), quad.spriteV(0, 2));
 		buff3.overlay(overlay);
-		buff3.light(quad.lightmap(0));
+		buff3.light(lm0);
 		buff3.normal(nx0, ny0, nz0);
 		buff3.next();
 
@@ -362,7 +423,7 @@ abstract class EncoderUtils {
 		buff3.color(color & 0xFF, (color >> 8) & 0xFF, (color >> 16) & 0xFF, (color >> 24) & 0xFF);
 		buff3.texture(quad.spriteU(1, 2), quad.spriteV(1, 2));
 		buff3.overlay(overlay);
-		buff3.light(quad.lightmap(1));
+		buff3.light(lm1);
 		buff3.normal(nx1, ny1, nz1);
 		buff3.next();
 
@@ -371,7 +432,7 @@ abstract class EncoderUtils {
 		buff3.color(color & 0xFF, (color >> 8) & 0xFF, (color >> 16) & 0xFF, (color >> 24) & 0xFF);
 		buff3.texture(quad.spriteU(2, 2), quad.spriteV(2, 2));
 		buff3.overlay(overlay);
-		buff3.light(quad.lightmap(2));
+		buff3.light(lm2);
 		buff3.normal(nx2, ny2, nz2);
 		buff3.next();
 
@@ -380,7 +441,7 @@ abstract class EncoderUtils {
 		buff3.color(color & 0xFF, (color >> 8) & 0xFF, (color >> 16) & 0xFF, (color >> 24) & 0xFF);
 		buff3.texture(quad.spriteU(3, 2), quad.spriteV(3, 2));
 		buff3.overlay(overlay);
-		buff3.light(quad.lightmap(3));
+		buff3.light(lm3);
 		buff3.normal(nx3, ny3, nz3);
 		buff3.next();
 	}
@@ -738,7 +799,7 @@ abstract class EncoderUtils {
 	}
 
 	static void applyItemLighting(MutableQuadViewImpl quad, AbstractRenderContext context) {
-		final int lightmap = quad.material().emissive(0) ? VertexEncoder.FULL_BRIGHTNESS : context.brightness();
+		final int lightmap = context.brightness();
 		quad.lightmap(0, ColorHelper.maxBrightness(quad.lightmap(0), lightmap));
 		quad.lightmap(1, ColorHelper.maxBrightness(quad.lightmap(1), lightmap));
 		quad.lightmap(2, ColorHelper.maxBrightness(quad.lightmap(2), lightmap));
