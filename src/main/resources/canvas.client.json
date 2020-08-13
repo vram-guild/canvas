@@ -12,6 +12,7 @@
     "MixinDebugHud",
     "MixinEntityRenderer",
     "MixinFogState",
+    "MixinFrameBuffer",
     "MixinItemRenderer",
     "MixinLightmapTextureManager",
     "MixinMatrix3f",

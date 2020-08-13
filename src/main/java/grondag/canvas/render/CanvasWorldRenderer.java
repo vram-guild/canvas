@@ -35,10 +35,10 @@ import net.minecraft.client.render.DiffuseLighting;
 import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.render.LightmapTextureManager;
 import net.minecraft.client.render.OutlineVertexConsumerProvider;
+import net.minecraft.client.render.OverlayVertexConsumer;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.Tessellator;
 import net.minecraft.client.render.TexturedRenderLayers;
-import net.minecraft.client.render.TransformingVertexConsumer;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.VertexConsumerProvider.Immediate;
@@ -302,7 +302,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	}
 
 	private void updatePlayerLightmap(MinecraftClient mc, float f) {
-		playerLightmap = mc.getEntityRenderManager().getLight(mc.player, f);
+		playerLightmap = mc.getEntityRenderDispatcher().getLight(mc.player, f);
 	}
 
 	@SuppressWarnings("resource")
@@ -452,7 +452,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 			VertexConsumerProvider renderProvider;
 
-			if (canDrawEntityOutlines && mc.method_27022(entity)) {
+			if (canDrawEntityOutlines && mc.hasOutline(entity)) {
 				didRenderOutlines = true;
 				final OutlineVertexConsumerProvider outlineVertexConsumerProvider = bufferBuilders.getOutlineVertexConsumers();
 				renderProvider = outlineVertexConsumerProvider;
@@ -503,7 +503,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 					if (stage >= 0) {
 						final MatrixStack.Entry xform = matrixStack.peek();
-						final VertexConsumer vertexConsumer = new TransformingVertexConsumer(bufferBuilders.getEffectVertexConsumers().getBuffer(ModelLoader.BLOCK_DESTRUCTION_RENDER_LAYERS.get(stage)), xform.getModel(), xform.getNormal());
+						final VertexConsumer vertexConsumer = new OverlayVertexConsumer(bufferBuilders.getEffectVertexConsumers().getBuffer(ModelLoader.BLOCK_DESTRUCTION_RENDER_LAYERS.get(stage)), xform.getModel(), xform.getNormal());
 						vertexConsumerProvider3 = (renderLayer) -> {
 							final VertexConsumer vertexConsumer2 = immediate.getBuffer(renderLayer);
 							return renderLayer.hasCrumbling() ? VertexConsumers.dual(vertexConsumer, vertexConsumer2) : vertexConsumer2;
@@ -563,7 +563,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 					matrixStack.push();
 					matrixStack.translate(breakPos.getX() - cameraX, breakPos.getY() - cameraY, breakPos.getZ() - cameraZ);
 					final MatrixStack.Entry xform = matrixStack.peek();
-					final VertexConsumer vertexConsumer2 = new TransformingVertexConsumer(bufferBuilders.getEffectVertexConsumers().getBuffer(ModelLoader.BLOCK_DESTRUCTION_RENDER_LAYERS.get(stage)), xform.getModel(), xform.getNormal());
+					final VertexConsumer vertexConsumer2 = new OverlayVertexConsumer(bufferBuilders.getEffectVertexConsumers().getBuffer(ModelLoader.BLOCK_DESTRUCTION_RENDER_LAYERS.get(stage)), xform.getModel(), xform.getNormal());
 					mc.getBlockRenderManager().renderDamage(world.getBlockState(breakPos), breakPos, world, matrixStack, vertexConsumer2);
 					matrixStack.pop();
 				}

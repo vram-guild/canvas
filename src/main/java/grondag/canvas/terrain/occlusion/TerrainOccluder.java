@@ -141,7 +141,7 @@ public class TerrainOccluder {
 			@SuppressWarnings("resource")
 			final File file = new File(MinecraftClient.getInstance().runDirectory, "canvas_occlusion_raster.png");
 
-			Util.method_27958().execute(() -> {
+			Util.getIoWorkerExecutor().execute(() -> {
 				try {
 					nativeImage.writeFile(file);
 				} catch (final Exception e) {

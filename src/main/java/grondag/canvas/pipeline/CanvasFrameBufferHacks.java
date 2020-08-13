@@ -34,6 +34,7 @@ import grondag.canvas.Configurator;
 import grondag.canvas.buffer.VboBuffer;
 import grondag.canvas.buffer.encoding.VertexCollectorImpl;
 import grondag.canvas.material.MaterialVertexFormats;
+import grondag.canvas.mixinterface.FrameBufferExt;
 import grondag.canvas.shader.GlProgram;
 
 //PERF: handle VAO properly here before re-enabling VAO
@@ -47,6 +48,7 @@ public class CanvasFrameBufferHacks {
 	static final ProcessShader upsample = ProcessShaders.create("canvas:shaders/internal/process/upsample", "cvu_input", "cvu_prior");
 
 	static Framebuffer mcFbo;
+	static FrameBufferExt mcFboExt;
 	static int mainFbo = -1;
 	static int mainColor;
 
@@ -288,14 +290,15 @@ public class CanvasFrameBufferHacks {
 		assert RenderSystem.isOnRenderThread();
 
 		mcFbo = MinecraftClient.getInstance().getFramebuffer();
+		mcFboExt = ((FrameBufferExt)mcFbo);
 
-		if (mcFbo.colorAttachment != mainColor || mcFbo.textureHeight != h || mcFbo.textureWidth != w) {
+		if (mcFboExt.canvas_colorAttachment() != mainColor || mcFbo.textureHeight != h || mcFbo.textureWidth != w) {
 			tearDown();
 			mainFbo = mcFbo.fbo;
 
 			canvasFboId = GlStateManager.genFramebuffers();
 
-			mainColor = mcFbo.colorAttachment;
+			mainColor = mcFboExt.canvas_colorAttachment();
 
 			w = mcFbo.textureWidth;
 			h = mcFbo.textureHeight;

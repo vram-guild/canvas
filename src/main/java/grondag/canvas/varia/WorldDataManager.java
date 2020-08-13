@@ -6,7 +6,7 @@ import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.item.Items;
-import net.minecraft.world.dimension.DimensionType;
+import net.minecraft.world.World;
 
 public class WorldDataManager {
 	public static final int LENGTH = 16;
@@ -66,11 +66,11 @@ public class WorldDataManager {
 				flags |= FLAG0_NIGHT_VISTION_ACTIVE;
 			}
 
-			if (world.getDimensionRegistryKey() == DimensionType.OVERWORLD_REGISTRY_KEY) {
+			if (world.getRegistryKey() == World.OVERWORLD) {
 				flags |= FLAG0_IS_OVERWORLD;
-			} else if (world.getDimensionRegistryKey() == DimensionType.THE_NETHER_REGISTRY_KEY) {
+			} else if (world.getRegistryKey() == World.NETHER) {
 				flags |= FLAG0_IS_NETHER;
-			} else if (world.getDimensionRegistryKey() == DimensionType.THE_END_REGISTRY_KEY) {
+			} else if (world.getRegistryKey() == World.END) {
 				flags |= FLAG0_IS_END;
 			}
 
