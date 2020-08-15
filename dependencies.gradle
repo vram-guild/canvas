@@ -33,14 +33,23 @@ dependencies {
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
 	mappings "net.fabricmc:yarn:${project.yarn_mappings}"
 	modApi "net.fabricmc:fabric-loader:${project.loader_version}"
-	modApi "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+	modApi ("net.fabricmc.fabric-api:fabric-api:${project.fabric_version}") {
+    	exclude(module: "fabric-biomes-v1")
+    	exclude(module: "fabric-dimensions-v1")
+    }
 	
 	// dev env annotation support
 	compileOnly "org.apiguardian:apiguardian-api:1.0.0"
 	compileOnly "com.google.code.findbugs:jsr305:3.0.2"
 	
 	modImplementation ("grondag:frex-${project.mc_tag}:${project.frex_version}.+") { transitive = false }
-	modImplementation ("grondag:fermion-${project.mc_tag}:${project.fermion_version}.+") { transitive = false }
+	
+	modImplementation ("grondag:fermion-${project.mc_tag}:${project.fermion_version}.+") { 
+		transitive = false
+		exclude(module: "grondag:fermion-simulator")
+		exclude(module: "grondag:fermion-modkeys")
+	}
+	
 	modImplementation ("grondag:fermion-varia-${project.mc_tag}:${project.fermion_varia_version}.+") { transitive = false }
 	modImplementation ("grondag:fermion-orientation-${project.mc_tag}:${project.fermion_orientation_version}.+") { transitive = false }
     modImplementation ("grondag:special-circumstances-${project.mc_tag}:${project.special_circumstances_version}.+") { transitive = false }
@@ -55,8 +64,10 @@ dependencies {
         exclude group :"net.fabricmc.fabric-loader"
     }
 	
-	modImplementation "me.shedaniel.cloth.api:cloth-api:${cloth_api_version}";
-	
+    modImplementation("me.shedaniel.cloth.api:cloth-client-events-v0:${cloth_client_events_v0_version}") {
+            transitive(false)
+    }
+    
 	modImplementation ("me.shedaniel.cloth:config-2:${clothconfig_version}") {
         exclude group :"io.github.prospector.modmenu"
         exclude group :"net.fabricmc.fabric-api"
