@@ -3,6 +3,7 @@
   "package": "grondag.canvas.mixin",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
+    "AccessMultiPhaseParameters",
     "MixinBiomeAccess",
     "MixinBlockModelRenderer",
     "MixinChunkBuilder",
@@ -18,6 +19,7 @@
     "MixinMatrix3f",
     "MixinMatrix4f",
     "MixinMinecraftClient",
+    "MixinMultiPhase",
     "MixinPackedIntegerArray",
     "MixinPalettedContainer",
     "MixinSprite",

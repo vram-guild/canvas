@@ -1,0 +1,50 @@
+accessWidener	v1	named
+
+accessible   field   net/minecraft/client/render/RenderPhase   NO_TRANSPARENCY   Lnet/minecraft/client/render/RenderPhase$Transparency;  
+accessible   field   net/minecraft/client/render/RenderPhase   ADDITIVE_TRANSPARENCY   Lnet/minecraft/client/render/RenderPhase$Transparency;   
+accessible   field   net/minecraft/client/render/RenderPhase   LIGHTNING_TRANSPARENCY   Lnet/minecraft/client/render/RenderPhase$Transparency;   
+accessible   field   net/minecraft/client/render/RenderPhase   GLINT_TRANSPARENCY   Lnet/minecraft/client/render/RenderPhase$Transparency;   
+accessible   field   net/minecraft/client/render/RenderPhase   CRUMBLING_TRANSPARENCY   Lnet/minecraft/client/render/RenderPhase$Transparency;   
+accessible   field   net/minecraft/client/render/RenderPhase   TRANSLUCENT_TRANSPARENCY   Lnet/minecraft/client/render/RenderPhase$Transparency;   
+accessible   field   net/minecraft/client/render/RenderPhase   ZERO_ALPHA   Lnet/minecraft/client/render/RenderPhase$Alpha;   
+accessible   field   net/minecraft/client/render/RenderPhase   ONE_TENTH_ALPHA   Lnet/minecraft/client/render/RenderPhase$Alpha;   
+accessible   field   net/minecraft/client/render/RenderPhase   HALF_ALPHA   Lnet/minecraft/client/render/RenderPhase$Alpha;   
+accessible   field   net/minecraft/client/render/RenderPhase   SHADE_MODEL   Lnet/minecraft/client/render/RenderPhase$ShadeModel;   
+accessible   field   net/minecraft/client/render/RenderPhase   SMOOTH_SHADE_MODEL   Lnet/minecraft/client/render/RenderPhase$ShadeModel;   
+accessible   field   net/minecraft/client/render/RenderPhase   MIPMAP_BLOCK_ATLAS_TEXTURE   Lnet/minecraft/client/render/RenderPhase$Texture;   
+accessible   field   net/minecraft/client/render/RenderPhase   BLOCK_ATLAS_TEXTURE   Lnet/minecraft/client/render/RenderPhase$Texture;   
+accessible   field   net/minecraft/client/render/RenderPhase   NO_TEXTURE   Lnet/minecraft/client/render/RenderPhase$Texture;   
+accessible   field   net/minecraft/client/render/RenderPhase   DEFAULT_TEXTURING   Lnet/minecraft/client/render/RenderPhase$Texturing;   
+accessible   field   net/minecraft/client/render/RenderPhase   OUTLINE_TEXTURING   Lnet/minecraft/client/render/RenderPhase$Texturing;   
+accessible   field   net/minecraft/client/render/RenderPhase   GLINT_TEXTURING   Lnet/minecraft/client/render/RenderPhase$Texturing;   
+accessible   field   net/minecraft/client/render/RenderPhase   ENTITY_GLINT_TEXTURING   Lnet/minecraft/client/render/RenderPhase$Texturing;   
+accessible   field   net/minecraft/client/render/RenderPhase   ENABLE_LIGHTMAP   Lnet/minecraft/client/render/RenderPhase$Lightmap;   
+accessible   field   net/minecraft/client/render/RenderPhase   DISABLE_LIGHTMAP   Lnet/minecraft/client/render/RenderPhase$Lightmap;   
+accessible   field   net/minecraft/client/render/RenderPhase   ENABLE_OVERLAY_COLOR   Lnet/minecraft/client/render/RenderPhase$Overlay;   
+accessible   field   net/minecraft/client/render/RenderPhase   DISABLE_OVERLAY_COLOR   Lnet/minecraft/client/render/RenderPhase$Overlay;   
+accessible   field   net/minecraft/client/render/RenderPhase   ENABLE_DIFFUSE_LIGHTING   Lnet/minecraft/client/render/RenderPhase$DiffuseLighting;   
+accessible   field   net/minecraft/client/render/RenderPhase   DISABLE_DIFFUSE_LIGHTING   Lnet/minecraft/client/render/RenderPhase$DiffuseLighting;   
+accessible   field   net/minecraft/client/render/RenderPhase   ENABLE_CULLING   Lnet/minecraft/client/render/RenderPhase$Cull;   
+accessible   field   net/minecraft/client/render/RenderPhase   DISABLE_CULLING   Lnet/minecraft/client/render/RenderPhase$Cull;   
+accessible   field   net/minecraft/client/render/RenderPhase   ALWAYS_DEPTH_TEST   Lnet/minecraft/client/render/RenderPhase$DepthTest;   
+accessible   field   net/minecraft/client/render/RenderPhase   EQUAL_DEPTH_TEST   Lnet/minecraft/client/render/RenderPhase$DepthTest;   
+accessible   field   net/minecraft/client/render/RenderPhase   LEQUAL_DEPTH_TEST   Lnet/minecraft/client/render/RenderPhase$DepthTest;   
+accessible   field   net/minecraft/client/render/RenderPhase   ALL_MASK   Lnet/minecraft/client/render/RenderPhase$WriteMaskState;   
+accessible   field   net/minecraft/client/render/RenderPhase   COLOR_MASK   Lnet/minecraft/client/render/RenderPhase$WriteMaskState;   
+accessible   field   net/minecraft/client/render/RenderPhase   DEPTH_MASK   Lnet/minecraft/client/render/RenderPhase$WriteMaskState;   
+accessible   field   net/minecraft/client/render/RenderPhase   NO_LAYERING   Lnet/minecraft/client/render/RenderPhase$Layering;   
+accessible   field   net/minecraft/client/render/RenderPhase   POLYGON_OFFSET_LAYERING   Lnet/minecraft/client/render/RenderPhase$Layering;   
+accessible   field   net/minecraft/client/render/RenderPhase   VIEW_OFFSET_Z_LAYERING   Lnet/minecraft/client/render/RenderPhase$Layering;   
+accessible   field   net/minecraft/client/render/RenderPhase   NO_FOG   Lnet/minecraft/client/render/RenderPhase$Fog;   
+accessible   field   net/minecraft/client/render/RenderPhase   FOG   Lnet/minecraft/client/render/RenderPhase$Fog;   
+accessible   field   net/minecraft/client/render/RenderPhase   BLACK_FOG   Lnet/minecraft/client/render/RenderPhase$Fog;   
+accessible   field   net/minecraft/client/render/RenderPhase   MAIN_TARGET   Lnet/minecraft/client/render/RenderPhase$Target;   
+accessible   field   net/minecraft/client/render/RenderPhase   OUTLINE_TARGET   Lnet/minecraft/client/render/RenderPhase$Target;
+accessible   field   net/minecraft/client/render/RenderPhase   TRANSLUCENT_TARGET   Lnet/minecraft/client/render/RenderPhase$Target;
+accessible   field   net/minecraft/client/render/RenderPhase   PARTICLES_TARGET   Lnet/minecraft/client/render/RenderPhase$Target;
+accessible   field   net/minecraft/client/render/RenderPhase   WEATHER_TARGET   Lnet/minecraft/client/render/RenderPhase$Target;
+accessible   field   net/minecraft/client/render/RenderPhase   CLOUDS_TARGET   Lnet/minecraft/client/render/RenderPhase$Target;
+accessible   field   net/minecraft/client/render/RenderPhase   ITEM_TARGET   Lnet/minecraft/client/render/RenderPhase$Target;
+accessible   field   net/minecraft/client/render/RenderPhase   FULL_LINE_WIDTH   Lnet/minecraft/client/render/RenderPhase$LineWidth;
+
+accessible class net/minecraft/client/render/RenderLayer$OutlineMode

@@ -158,7 +158,6 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	}
 
 	// FIX: missing edges with off-thread iteration - try frustum check on thread but leave potentially visible set off
-	// PERF: add check for visibility to entity shouldRender via Frustum check
 	// PERF: render larger cubes - avoid matrix state changes
 	// PERF: cull particle rendering?
 	// PERF: reduce garbage generation
@@ -465,7 +464,6 @@ public class CanvasWorldRenderer extends WorldRenderer {
 				renderProvider = immediate;
 			}
 
-			// PERF: don't render entities if region is not visible and outlines are off
 			wr.canvas_renderEntity(entity, cameraX, cameraY, cameraZ, tickDelta, matrixStack, renderProvider);
 		}
 
@@ -493,7 +491,8 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			while(itBER.hasNext()) {
 				final BlockEntity blockEntity = itBER.next();
 				final BlockPos blockPos = blockEntity.getPos();
-				VertexConsumerProvider vertexConsumerProvider3 = immediate;
+				VertexConsumerProvider outputConsumer = immediate;
+
 				matrixStack.push();
 				matrixStack.translate(blockPos.getX() - cameraX, blockPos.getY() - cameraY, blockPos.getZ() - cameraZ);
 				final SortedSet<BlockBreakingInfo> sortedSet = wr.canvas_blockBreakingProgressions().get(blockPos.asLong());
@@ -503,15 +502,16 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 					if (stage >= 0) {
 						final MatrixStack.Entry xform = matrixStack.peek();
-						final VertexConsumer vertexConsumer = new OverlayVertexConsumer(bufferBuilders.getEffectVertexConsumers().getBuffer(ModelLoader.BLOCK_DESTRUCTION_RENDER_LAYERS.get(stage)), xform.getModel(), xform.getNormal());
-						vertexConsumerProvider3 = (renderLayer) -> {
-							final VertexConsumer vertexConsumer2 = immediate.getBuffer(renderLayer);
-							return renderLayer.hasCrumbling() ? VertexConsumers.dual(vertexConsumer, vertexConsumer2) : vertexConsumer2;
+						final VertexConsumer overlayConsumer = new OverlayVertexConsumer(bufferBuilders.getEffectVertexConsumers().getBuffer(ModelLoader.BLOCK_DESTRUCTION_RENDER_LAYERS.get(stage)), xform.getModel(), xform.getNormal());
+
+						outputConsumer = (renderLayer) -> {
+							final VertexConsumer baseConsumer = immediate.getBuffer(renderLayer);
+							return renderLayer.hasCrumbling() ? VertexConsumers.dual(overlayConsumer, baseConsumer) : baseConsumer;
 						};
 					}
 				}
 
-				BlockEntityRenderDispatcher.INSTANCE.render(blockEntity, tickDelta, matrixStack, vertexConsumerProvider3);
+				BlockEntityRenderDispatcher.INSTANCE.render(blockEntity, tickDelta, matrixStack, outputConsumer);
 				matrixStack.pop();
 			}
 		}
@@ -535,7 +535,9 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		immediate.draw(TexturedRenderLayers.getEntitySolid());
 		immediate.draw(TexturedRenderLayers.getEntityCutout());
 		immediate.draw(TexturedRenderLayers.getBeds());
+		RenderLayerHandler.enableShaderDraw(true);
 		immediate.draw(TexturedRenderLayers.getShulkerBoxes());
+		RenderLayerHandler.enableShaderDraw(false);
 		immediate.draw(TexturedRenderLayers.getSign());
 		immediate.draw(TexturedRenderLayers.getChest());
 		bufferBuilders.getOutlineVertexConsumers().draw();
