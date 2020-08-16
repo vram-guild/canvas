@@ -4,6 +4,8 @@ import java.util.Optional;
 
 import net.minecraft.client.render.RenderLayer;
 
+import grondag.canvas.mixin.AccessMultiPhaseParameters;
+
 public interface MultiPhaseExt {
 
 	Optional<RenderLayer> canvas_affectedOutline();
@@ -13,4 +15,6 @@ public interface MultiPhaseExt {
 	void canvas_startDrawing();
 
 	void canvas_endDrawing();
+
+	AccessMultiPhaseParameters canvas_phases();
 }

@@ -12,7 +12,7 @@ import grondag.canvas.mixinterface.MultiPhaseExt;
 import grondag.canvas.render.RenderLayerHandler;
 
 @Mixin(targets = "net.minecraft.client.render.RenderLayer$MultiPhase")
-public abstract class MixinMultiPhase extends RenderLayer implements MultiPhaseExt {
+abstract class MixinMultiPhase extends RenderLayer implements MultiPhaseExt {
 	private MixinMultiPhase(String name, VertexFormat vertexFormat, int drawMode, int expectedBufferSize, boolean hasCrumbling, boolean translucent, Runnable startAction, Runnable endAction) {
 		super(name, vertexFormat, drawMode, expectedBufferSize, hasCrumbling, translucent, startAction, endAction);
 	}
@@ -31,6 +31,7 @@ public abstract class MixinMultiPhase extends RenderLayer implements MultiPhaseE
 		return outline;
 	}
 
+	@Override
 	public AccessMultiPhaseParameters canvas_phases() {
 		return (AccessMultiPhaseParameters)(Object) phases;
 	}
@@ -47,11 +48,13 @@ public abstract class MixinMultiPhase extends RenderLayer implements MultiPhaseE
 
 	@Override
 	public void startDrawing() {
+		super.startDrawing();
 		RenderLayerHandler.startDrawing(this);
 	}
 
 	@Override
 	public void endDrawing() {
 		RenderLayerHandler.endDrawing(this);
+		super.endDrawing();
 	}
 }
