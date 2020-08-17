@@ -38,6 +38,7 @@ import grondag.canvas.light.LightmapHdTexture;
 import grondag.canvas.material.MaterialState;
 import grondag.canvas.perf.ChunkRebuildCounters;
 import grondag.canvas.pipeline.ProcessShaders;
+import grondag.canvas.shader.EntityShader;
 import grondag.canvas.shader.GlShaderManager;
 import grondag.canvas.shader.MaterialShaderManager;
 import grondag.canvas.terrain.ChunkColorCache;
@@ -104,6 +105,7 @@ public class Canvas implements Renderer {
 		VertexEncoders.reload();
 		TerrainModelSpace.reload();
 		ProcessShaders.reload();
+		EntityShader.reload();
 		LitematicaHolder.litematicaReload.run();
 	}
 

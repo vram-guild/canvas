@@ -61,4 +61,9 @@ public class ShaderContext {
 			.pass(ShaderPass.PROCESS)
 			.materialContext(MaterialContext.PROCESS)
 			.build();
+
+	public static final ShaderContext ENTITY_BLOCK_SOLID = builder()
+			.pass(ShaderPass.SOLID)
+			.materialContext(MaterialContext.ENTITY_BLOCK)
+			.build();
 }

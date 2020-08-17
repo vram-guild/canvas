@@ -308,14 +308,16 @@ public class GlShader {
 
 		INCLUDED.clear();
 
-		if (context == ShaderContext.PROCESS) {
-			return getShaderSourceInner(resourceManager, shaderSource);
-		} else {
+		// UGLY - too many ifs
+		if (context == ShaderContext.TERRAIN_SOLID || context == ShaderContext.TERRAIN_TRANSLUCENT || context == ShaderContext.TERRAIN_DECAL) {
 			if (shaderType == GL21.GL_FRAGMENT_SHADER) {
 				return getShaderSourceInner(resourceManager, Configurator.hdLightmaps() ? ShaderData.HD_FRAGMENT : ShaderData.VANILLA_FRAGMENT);
 			} else {
 				return getShaderSourceInner(resourceManager, Configurator.hdLightmaps() ? ShaderData.HD_VERTEX : ShaderData.VANILLA_VERTEX);
 			}
+		}
+		else {
+			return getShaderSourceInner(resourceManager, shaderSource);
 		}
 	}
 

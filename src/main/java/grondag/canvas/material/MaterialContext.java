@@ -8,6 +8,9 @@ public enum MaterialContext {
 	ITEM_GUI(false, true, true),
 	ITEM_GROUND(false, true, false),
 	ITEM_FIXED(false, true, false),
+	ENTITY_BLOCK(true, false, false),
+	ENTITY_ITEM(false, true, false),
+	ENTITY_ENTITY(false, false, false),
 	PROCESS(false, false, false);
 
 	public final boolean isBlock;
