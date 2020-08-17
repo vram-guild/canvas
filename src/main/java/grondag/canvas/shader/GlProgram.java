@@ -31,7 +31,6 @@ import org.lwjgl.system.MemoryUtil;
 import net.minecraft.client.resource.language.I18n;
 
 import grondag.canvas.CanvasMod;
-import grondag.canvas.apiimpl.MaterialShaderImpl.UniformMatrix4f;
 import grondag.canvas.material.MaterialVertexFormat;
 import grondag.canvas.varia.CanvasGlHelper;
 import grondag.frex.api.material.Uniform;
@@ -45,6 +44,7 @@ import grondag.frex.api.material.Uniform.Uniform4f;
 import grondag.frex.api.material.Uniform.Uniform4i;
 import grondag.frex.api.material.Uniform.UniformArrayf;
 import grondag.frex.api.material.Uniform.UniformArrayi;
+import grondag.frex.api.material.Uniform.UniformMatrix4f;
 import grondag.frex.api.material.UniformRefreshFrequency;
 
 public class GlProgram {
@@ -290,34 +290,63 @@ public class GlProgram {
 		}
 	}
 
-	private <T extends UniformImpl<?>> T addUniform(T toAdd) {
+	private <T extends UniformImpl<?>> void addUniform(T toAdd) {
 		uniforms.add(toAdd);
 		if (toAdd.frequency == UniformRefreshFrequency.PER_FRAME) {
 			renderTickUpdates.add(toAdd);
 		} else if (toAdd.frequency == UniformRefreshFrequency.PER_TICK) {
 			gameTickUpdates.add(toAdd);
 		}
-		return toAdd;
 	}
 
 	public Uniform1f uniform1f(String name, UniformRefreshFrequency frequency, Consumer<Uniform1f> initializer) {
-		return addUniform(new Uniform1fImpl(name, initializer, frequency));
+		final Uniform1fImpl result = new Uniform1fImpl(name, initializer, frequency);
+
+		if (containsUniformSpec("float", name)) {
+			addUniform(result);
+		}
+
+		return result;
 	}
 
 	public Uniform2f uniform2f(String name, UniformRefreshFrequency frequency, Consumer<Uniform2f> initializer) {
-		return addUniform(new Uniform2fImpl(name, initializer, frequency));
+		final Uniform2fImpl result = new Uniform2fImpl(name, initializer, frequency);
+
+		if (containsUniformSpec("vec2", name)) {
+			addUniform(result);
+		}
+
+		return result;
 	}
 
 	public Uniform3f uniform3f(String name, UniformRefreshFrequency frequency, Consumer<Uniform3f> initializer) {
-		return addUniform(new Uniform3fImpl(name, initializer, frequency));
+		final Uniform3fImpl result = new Uniform3fImpl(name, initializer, frequency);
+
+		if (containsUniformSpec("vec3", name)) {
+			addUniform(result);
+		}
+
+		return result;
 	}
 
 	public Uniform4f uniform4f(String name, UniformRefreshFrequency frequency, Consumer<Uniform4f> initializer) {
-		return addUniform(new Uniform4fImpl(name, initializer, frequency));
+		final Uniform4fImpl result = new Uniform4fImpl(name, initializer, frequency);
+
+		if (containsUniformSpec("vec4", name)) {
+			addUniform(result);
+		}
+
+		return result;
 	}
 
 	public UniformArrayf uniformArrayf(String name, UniformRefreshFrequency frequency, Consumer<UniformArrayf> initializer, int size) {
-		return addUniform(new UniformArrayfImpl(name, initializer, frequency, size));
+		final UniformArrayfImpl result = new UniformArrayfImpl(name, initializer, frequency, size);
+
+		if (containsUniformSpec("float\\s*\\[\\s*[0-9]+\\s*]", name)) {
+			addUniform(result);
+		}
+
+		return result;
 	}
 
 	protected abstract class UniformInt<T extends Uniform> extends UniformImpl<T> {
@@ -467,24 +496,64 @@ public class GlProgram {
 		}
 	}
 
+	public Uniform1i uniformSampler2d(String name, UniformRefreshFrequency frequency, Consumer<Uniform1i> initializer) {
+		final Uniform1iImpl result = new Uniform1iImpl(name, initializer, frequency);
+
+		if (containsUniformSpec("sampler2D", name)) {
+			addUniform(result);
+		}
+
+		return result;
+	}
+
 	public Uniform1i uniform1i(String name, UniformRefreshFrequency frequency, Consumer<Uniform1i> initializer) {
-		return addUniform(new Uniform1iImpl(name, initializer, frequency));
+		final Uniform1iImpl result = new Uniform1iImpl(name, initializer, frequency);
+
+		if (containsUniformSpec("int", name)) {
+			addUniform(result);
+		}
+
+		return result;
 	}
 
 	public Uniform2i uniform2i(String name, UniformRefreshFrequency frequency, Consumer<Uniform2i> initializer) {
-		return addUniform(new Uniform2iImpl(name, initializer, frequency));
+		final Uniform2iImpl result = new Uniform2iImpl(name, initializer, frequency);
+
+		if (containsUniformSpec("ivec2", name)) {
+			addUniform(result);
+		}
+
+		return result;
 	}
 
 	public Uniform3i uniform3i(String name, UniformRefreshFrequency frequency, Consumer<Uniform3i> initializer) {
-		return addUniform(new Uniform3iImpl(name, initializer, frequency));
+		final Uniform3iImpl result = new Uniform3iImpl(name, initializer, frequency);
+
+		if (containsUniformSpec("ivec3", name)) {
+			addUniform(result);
+		}
+
+		return result;
 	}
 
 	public Uniform4i uniform4i(String name, UniformRefreshFrequency frequency, Consumer<Uniform4i> initializer) {
-		return addUniform(new Uniform4iImpl(name, initializer, frequency));
+		final Uniform4iImpl result = new Uniform4iImpl(name, initializer, frequency);
+
+		if (containsUniformSpec("ivec4", name)) {
+			addUniform(result);
+		}
+
+		return result;
 	}
 
 	public UniformArrayi uniformArrayi(String name, UniformRefreshFrequency frequency, Consumer<UniformArrayi> initializer, int size) {
-		return addUniform(new UniformArrayiImpl(name, initializer, frequency, size));
+		final UniformArrayiImpl result = new UniformArrayiImpl(name, initializer, frequency, size);
+
+		if (containsUniformSpec("int\\s*\\[\\s*[0-9]+\\s*]", name)) {
+			addUniform(result);
+		}
+
+		return result;
 	}
 
 	public GlProgram(GlShader vertexShader, GlShader fragmentShader, MaterialVertexFormat format, ShaderContext shaderContext) {
@@ -570,14 +639,24 @@ public class GlProgram {
 		}
 	}
 
-	public UniformMatrix4fImpl uniformMatrix4f(String name, UniformRefreshFrequency frequency,
-			Consumer<UniformMatrix4f> initializer) {
-		return addUniform(new UniformMatrix4fImpl(name, initializer, frequency));
+	public UniformMatrix4fImpl uniformMatrix4f(String name, UniformRefreshFrequency frequency, Consumer<UniformMatrix4f> initializer) {
+		final UniformMatrix4fImpl result = new UniformMatrix4fImpl(name, initializer, frequency);
+
+		if (containsUniformSpec("mat4", name)) {
+			addUniform(result);
+		}
+
+		return result;
 	}
 
-	public UniformMatrix4fImpl uniformMatrix4f(String name, UniformRefreshFrequency frequency, FloatBuffer floatBuffer,
-			Consumer<UniformMatrix4f> initializer) {
-		return addUniform(new UniformMatrix4fImpl(name, initializer, frequency, floatBuffer));
+	public UniformMatrix4fImpl uniformMatrix4f(String name, UniformRefreshFrequency frequency, FloatBuffer floatBuffer, Consumer<UniformMatrix4f> initializer) {
+		final UniformMatrix4fImpl result = new UniformMatrix4fImpl(name, initializer, frequency);
+
+		if (containsUniformSpec("mat4", name)) {
+			addUniform(result);
+		}
+
+		return result;
 	}
 
 	public final void load() {

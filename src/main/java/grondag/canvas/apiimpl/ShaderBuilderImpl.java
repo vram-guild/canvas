@@ -21,7 +21,7 @@ import java.util.function.Consumer;
 
 import net.minecraft.util.Identifier;
 
-import grondag.canvas.apiimpl.MaterialShaderImpl.UniformMatrix4f;
+import grondag.canvas.shader.GlProgram;
 import grondag.canvas.shader.MaterialShaderManager;
 import grondag.frex.api.material.MaterialShader;
 import grondag.frex.api.material.ShaderBuilder;
@@ -35,17 +35,18 @@ import grondag.frex.api.material.Uniform.Uniform4f;
 import grondag.frex.api.material.Uniform.Uniform4i;
 import grondag.frex.api.material.Uniform.UniformArrayf;
 import grondag.frex.api.material.Uniform.UniformArrayi;
+import grondag.frex.api.material.Uniform.UniformMatrix4f;
 import grondag.frex.api.material.UniformRefreshFrequency;
 
 public class ShaderBuilderImpl implements ShaderBuilder {
 	private Identifier vertexSource;
 	private Identifier fragmentSource;
-	private final ArrayList<Consumer<MaterialShaderImpl>> uniforms = new ArrayList<>();
+	private final ArrayList<Consumer<GlProgram>> uniforms = new ArrayList<>();
 
 	@Override
 	public MaterialShader build() {
 		final MaterialShaderImpl result = MaterialShaderManager.INSTANCE.create(vertexSource, fragmentSource);
-		uniforms.forEach(u -> u.accept(result));
+		uniforms.forEach(u -> result.addProgramSetup(u));
 		vertexSource = null;
 		fragmentSource = null;
 		uniforms.clear();

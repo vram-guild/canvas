@@ -16,8 +16,6 @@
 
 package grondag.canvas.shader;
 
-import org.lwjgl.opengl.GL21;
-
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.Camera;
 import net.minecraft.entity.Entity;
@@ -26,10 +24,8 @@ import net.minecraft.util.Identifier;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 
 import grondag.canvas.apiimpl.MaterialShaderImpl;
-import grondag.canvas.texture.TextureData;
 import grondag.canvas.varia.WorldDataManager;
 import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
-import grondag.frex.api.material.UniformRefreshFrequency;
 
 
 public final class MaterialShaderManager implements ClientTickEvents.EndTick {
@@ -88,7 +84,7 @@ public final class MaterialShaderManager implements ClientTickEvents.EndTick {
 		final MaterialShaderImpl result = new MaterialShaderImpl(shaders.size(), vertexShaderSource, fragmentShaderSource);
 		shaders.add(result);
 
-		addStandardUniforms(result);
+		result.addProgramSetup(ShaderData.STANDARD_UNIFORM_SETUP);
 
 		return result;
 	}
@@ -114,26 +110,6 @@ public final class MaterialShaderManager implements ClientTickEvents.EndTick {
 
 	public int frameIndex() {
 		return frameIndex;
-	}
-
-	private static final float[] BITWISE_DIVISORS = {0.5f, 0.25f, 0.125f, 0.0625f, 0.03125f, 0.015625f, 0.0078125f, 0.00390625f};
-
-	private void addStandardUniforms(MaterialShaderImpl shader) {
-		shader.uniformArrayf("_cvu_world", UniformRefreshFrequency.PER_TICK, u -> u.set(WorldDataManager.data()), WorldDataManager.LENGTH);
-
-		shader.uniformSampler2d("frxs_spriteAltas", UniformRefreshFrequency.ON_LOAD, u -> u.set(TextureData.MC_SPRITE_ATLAS - GL21.GL_TEXTURE0));
-
-		shader.uniformSampler2d("frxs_overlay", UniformRefreshFrequency.ON_LOAD, u -> u.set(TextureData.MC_OVELAY - GL21.GL_TEXTURE0));
-
-		shader.uniformSampler2d("frxs_lightmap", UniformRefreshFrequency.ON_LOAD, u -> u.set(TextureData.MC_LIGHTMAP - GL21.GL_TEXTURE0));
-
-		shader.uniformSampler2d("frxs_dither", UniformRefreshFrequency.ON_LOAD, u -> u.set(TextureData.DITHER - GL21.GL_TEXTURE0));
-
-		shader.uniformSampler2d("frxs_hdLightmap", UniformRefreshFrequency.ON_LOAD, u -> u.set(TextureData.HD_LIGHTMAP - GL21.GL_TEXTURE0));
-
-		shader.uniformSampler2d("frxs_spriteInfo", UniformRefreshFrequency.ON_LOAD, u -> u.set(TextureData.SPRITE_INFO - GL21.GL_TEXTURE0));
-
-		shader.uniformArrayf("_fru_bitwise_divisors", UniformRefreshFrequency.ON_LOAD, u -> u.set(BITWISE_DIVISORS), 8);
 	}
 
 	/**
