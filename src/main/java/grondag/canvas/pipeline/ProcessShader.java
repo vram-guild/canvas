@@ -66,7 +66,7 @@ public class ProcessShader {
 
 			for (final String samplerName : samplers) {
 				final int n  = tex++;
-				program.uniform1i(samplerName, UniformRefreshFrequency.ON_LOAD, u -> u.set(n));
+				program.uniformSampler2d(samplerName, UniformRefreshFrequency.ON_LOAD, u -> u.set(n));
 			}
 
 			program.load();

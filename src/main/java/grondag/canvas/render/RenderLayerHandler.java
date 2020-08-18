@@ -2,6 +2,8 @@ package grondag.canvas.render;
 
 import net.minecraft.client.render.RenderLayer;
 
+import grondag.canvas.Configurator;
+import grondag.canvas.pipeline.CanvasFrameBufferHacks;
 import grondag.canvas.shader.EntityShader;
 import grondag.canvas.shader.GlProgram;
 
@@ -98,10 +100,12 @@ public enum RenderLayerHandler {
 		// default is FULL_LINE_WIDTH, set to Optional.empty() for line drawing
 		// unknown if/how interacts with shader - leave for now
 
+		if (Configurator.enableBloom) CanvasFrameBufferHacks.startEmissiveCapture(false);
 		EntityShader.DEFAULT_SOLID.activate();
 	}
 
 	private static void endShaderDraw(RenderLayer renderLayer) {
 		GlProgram.deactivate();
+		if (Configurator.enableBloom) CanvasFrameBufferHacks.endEmissiveCapture();
 	}
 }
