@@ -19,12 +19,15 @@ package grondag.canvas.apiimpl;
 import java.util.ArrayList;
 import java.util.function.Consumer;
 
+import org.joml.Matrix4f;
+
 import net.minecraft.util.Identifier;
 
 import grondag.canvas.shader.GlProgram;
 import grondag.canvas.shader.MaterialShaderManager;
 import grondag.frex.api.material.MaterialShader;
 import grondag.frex.api.material.ShaderBuilder;
+import grondag.frex.api.material.Uniform;
 import grondag.frex.api.material.Uniform.Uniform1f;
 import grondag.frex.api.material.Uniform.Uniform1i;
 import grondag.frex.api.material.Uniform.Uniform2f;
@@ -35,7 +38,6 @@ import grondag.frex.api.material.Uniform.Uniform4f;
 import grondag.frex.api.material.Uniform.Uniform4i;
 import grondag.frex.api.material.Uniform.UniformArrayf;
 import grondag.frex.api.material.Uniform.UniformArrayi;
-import grondag.frex.api.material.Uniform.UniformMatrix4f;
 import grondag.frex.api.material.UniformRefreshFrequency;
 
 public class ShaderBuilderImpl implements ShaderBuilder {
@@ -129,5 +131,10 @@ public class ShaderBuilderImpl implements ShaderBuilder {
 	public ShaderBuilderImpl uniformMatrix4f(String name, UniformRefreshFrequency frequency, Consumer<UniformMatrix4f> initializer) {
 		uniforms.add(p -> p.uniformMatrix4f(name, frequency, initializer));
 		return this;
+	}
+
+	@FunctionalInterface
+	public interface UniformMatrix4f extends Uniform {
+		void set(Matrix4f matrix);
 	}
 }

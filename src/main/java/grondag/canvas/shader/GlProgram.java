@@ -31,6 +31,7 @@ import org.lwjgl.system.MemoryUtil;
 import net.minecraft.client.resource.language.I18n;
 
 import grondag.canvas.CanvasMod;
+import grondag.canvas.apiimpl.ShaderBuilderImpl.UniformMatrix4f;
 import grondag.canvas.material.MaterialVertexFormat;
 import grondag.canvas.varia.CanvasGlHelper;
 import grondag.frex.api.material.Uniform;
@@ -44,7 +45,6 @@ import grondag.frex.api.material.Uniform.Uniform4f;
 import grondag.frex.api.material.Uniform.Uniform4i;
 import grondag.frex.api.material.Uniform.UniformArrayf;
 import grondag.frex.api.material.Uniform.UniformArrayi;
-import grondag.frex.api.material.Uniform.UniformMatrix4f;
 import grondag.frex.api.material.UniformRefreshFrequency;
 
 public class GlProgram {
