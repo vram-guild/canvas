@@ -6,8 +6,10 @@ import static grondag.canvas.material.MaterialVertextFormatElement.BASE_TEX_2US;
 import static grondag.canvas.material.MaterialVertextFormatElement.HD_LIGHTMAP_2US;
 import static grondag.canvas.material.MaterialVertextFormatElement.LIGHTMAPS_4UB;
 import static grondag.canvas.material.MaterialVertextFormatElement.MATERIAL_2US;
-import static grondag.canvas.material.MaterialVertextFormatElement.NORMAL_AO_4UB;
+import static grondag.canvas.material.MaterialVertextFormatElement.NORMAL_AO_4B;
 import static grondag.canvas.material.MaterialVertextFormatElement.POSITION_3F;
+import static grondag.canvas.material.MaterialVertextFormatElement.TEMP_LIGHTMAP;
+import static grondag.canvas.material.MaterialVertextFormatElement.TEMP_OVERLAY;
 
 import grondag.canvas.Configurator;
 
@@ -18,8 +20,16 @@ public final class MaterialVertexFormats {
 			BASE_RGBA_4UB,
 			BASE_TEX_2US,
 			LIGHTMAPS_4UB,
-			NORMAL_AO_4UB,
+			NORMAL_AO_4B,
 			MATERIAL_2US);
+
+	public static final MaterialVertexFormat TEMPORARY_ENTITY_FORMAT = new MaterialVertexFormat(
+			POSITION_3F,
+			BASE_RGBA_4UB,
+			BASE_TEX_2F,
+			TEMP_OVERLAY,
+			TEMP_LIGHTMAP,
+			NORMAL_AO_4B);
 
 	public static final MaterialVertexFormat HD_TERRAIN = new MaterialVertexFormat(
 			POSITION_3F,
@@ -27,7 +37,7 @@ public final class MaterialVertexFormats {
 			BASE_TEX_2F,
 			LIGHTMAPS_4UB, // PERF: remove and bundle flags with normal
 			HD_LIGHTMAP_2US,
-			NORMAL_AO_4UB);
+			NORMAL_AO_4B);
 
 	public static final MaterialVertexFormat PROCESS_VERTEX_UV = new MaterialVertexFormat(
 			POSITION_3F,

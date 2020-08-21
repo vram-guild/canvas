@@ -39,13 +39,16 @@ public class MaterialVertextFormatElement {
 	public static final MaterialVertextFormatElement LIGHTMAPS_4UB = new MaterialVertextFormatElement(
 			VertexFormatElement.Format.UBYTE, 4, "in_lightmap", false);
 
+	public static final MaterialVertextFormatElement TEMP_OVERLAY = new MaterialVertextFormatElement(VertexFormatElement.Format.SHORT, 2, "in_overlay", false);
+	public static final MaterialVertextFormatElement TEMP_LIGHTMAP = new MaterialVertextFormatElement(VertexFormatElement.Format.SHORT, 2, "in_lightmap", false);
+
 	public static final MaterialVertextFormatElement OVERLAY_4UB = new MaterialVertextFormatElement(
 			VertexFormatElement.Format.UBYTE, 4, "in_overlay", false);
 
 	public static final MaterialVertextFormatElement HD_LIGHTMAP_2US = new MaterialVertextFormatElement(
 			VertexFormatElement.Format.USHORT, 2, "in_hd_lightmap", false);
 
-	public static final MaterialVertextFormatElement NORMAL_AO_4UB = new MaterialVertextFormatElement(
+	public static final MaterialVertextFormatElement NORMAL_AO_4B = new MaterialVertextFormatElement(
 			VertexFormatElement.Format.BYTE, 4, "in_normal_ao", true);
 
 	public static final MaterialVertextFormatElement MATERIAL_2US = new MaterialVertextFormatElement(

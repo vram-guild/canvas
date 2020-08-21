@@ -14,24 +14,32 @@
   canvas:shaders/internal/entity/default.vert
 ******************************************************/
 
-//attribute vec4 in_color;
-//attribute vec2 in_uv;
-//attribute vec4 in_normal_ao;
-//attribute vec4 in_lightmap;
+attribute vec4 in_color;
+attribute vec2 in_uv;
+attribute vec4 in_normal_ao;
+attribute vec2 in_lightmap;
+attribute vec2 in_overlay;
 //attribute vec2 in_material;
 
 varying vec2 _cvv_overlay;
 
 void main() {
+	// vanilla consumer sends as signed short with max value of 240
+	// we change the vertex binding to be an unsigned, non-normalized short
+	// so we need to convert to the 0-256 range we expect
+	// will eventually encode it ourselves
+	vec2 rescaledLightMap = in_lightmap / 240.0 * 256.0;
+
 	frx_VertexData data = frx_VertexData(
 		gl_Vertex,
-		gl_MultiTexCoord0.xy, //in_uv,
-		gl_Color, //in_color,
-		gl_Normal, //in_normal_ao.xyz,
-		// Lightmap texture coorinates come in as 0-256.
+		in_uv,
+		in_color,
+		in_normal_ao.xyz,
+
+		// Lightmap texture coordinates come in as 0-256.
 		// Scale and offset slightly to hit center pixels
 		// vanilla does this with a texture matrix
-		gl_MultiTexCoord2.xy //in_lightmap.rg * 0.00390625 + 0.03125
+		rescaledLightMap * 0.00390625 + 0.03125
 	);
 
 	// Adding +0.5 prevents striping or other strangeness in flag-dependent rendering
@@ -52,7 +60,7 @@ void main() {
 //	spriteBounds /= vec4(_CV_ATLAS_WIDTH, _CV_ATLAS_HEIGHT, _CV_ATLAS_WIDTH, _CV_ATLAS_HEIGHT);
 //
 //	data.spriteUV = spriteBounds.xy + data.spriteUV * spriteBounds.zw;
-//	data.spriteUV = _cv_textureCoord(data.spriteUV, 0);
+	data.spriteUV = _cv_textureCoord(data.spriteUV, 0);
 
 	vec4 viewCoord = gl_ModelViewMatrix * data.vertex;
 	gl_ClipVertex = viewCoord;
@@ -69,11 +77,11 @@ void main() {
 	_cvv_texcoord = data.spriteUV;
 	_cvv_color = data.color;
 	_cvv_normal = data.normal;
-	_cvv_overlay = gl_MultiTexCoord1.xy;
-
-#ifdef CONTEXT_IS_BLOCK
+	_cvv_overlay = in_overlay;
+    _cvv_flags = 0.0;
+//#ifdef CONTEXT_IS_BLOCK
 	_cvv_ao = 1.0; //(in_normal_ao.w + 1.0) * 0.5;
-#endif
+//#endif
 
 #if DIFFUSE_SHADING_MODE != DIFFUSE_MODE_NONE
 	_cvv_diffuse = _cv_diffuse(_cv_diffuseNormal(viewCoord, data.normal));

@@ -1,11 +1,18 @@
 package grondag.canvas.render;
 
+import com.mojang.blaze3d.platform.GlStateManager;
+import org.lwjgl.opengl.GL11;
+
 import net.minecraft.client.render.RenderLayer;
+import net.minecraft.client.render.VertexFormat;
+import net.minecraft.client.render.VertexFormatElement;
 
 import grondag.canvas.Configurator;
+import grondag.canvas.material.MaterialVertexFormats;
 import grondag.canvas.pipeline.CanvasFrameBufferHacks;
 import grondag.canvas.shader.EntityShader;
 import grondag.canvas.shader.GlProgram;
+import grondag.canvas.varia.CanvasGlHelper;
 
 public enum RenderLayerHandler {
 	INSTANCE;
@@ -100,12 +107,33 @@ public enum RenderLayerHandler {
 		// default is FULL_LINE_WIDTH, set to Optional.empty() for line drawing
 		// unknown if/how interacts with shader - leave for now
 
+
 		if (Configurator.enableBloom) CanvasFrameBufferHacks.startEmissiveCapture(false);
 		EntityShader.DEFAULT_SOLID.activate();
 	}
 
 	private static void endShaderDraw(RenderLayer renderLayer) {
+
 		GlProgram.deactivate();
 		if (Configurator.enableBloom) CanvasFrameBufferHacks.endEmissiveCapture();
+	}
+
+	public static void onFormatStart(VertexFormat format, long address) {
+		if (enableShaderDraw) {
+			GlStateManager.enableClientState(GL11.GL_VERTEX_ARRAY);
+			GlStateManager.vertexPointer(3, VertexFormatElement.Format.FLOAT.getGlId(), MaterialVertexFormats.TEMPORARY_ENTITY_FORMAT.vertexStrideBytes, address);
+			MaterialVertexFormats.TEMPORARY_ENTITY_FORMAT.enableAndBindAttributes(address);
+		} else {
+			format.startDrawing(address);
+		}
+	}
+
+	public static void onFormatEnd(VertexFormat format) {
+		if (enableShaderDraw) {
+			GlStateManager.disableClientState(GL11.GL_VERTEX_ARRAY);
+			CanvasGlHelper.enableAttributes(0);
+		} else {
+			format.endDrawing();
+		}
 	}
 }

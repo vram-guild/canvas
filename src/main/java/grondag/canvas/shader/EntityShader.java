@@ -30,7 +30,7 @@ public enum EntityShader {
 		if (program == null) {
 			final GlShader vs = GlShaderManager.INSTANCE.getOrCreateVertexShader(vertexId, context);
 			final GlShader fs = GlShaderManager.INSTANCE.getOrCreateFragmentShader(fragmentId, context);
-			program = new GlProgram(vs, fs, MaterialVertexFormats.PROCESS_VERTEX_UV, context);
+			program = new GlProgram(vs, fs, MaterialVertexFormats.TEMPORARY_ENTITY_FORMAT, context);
 			ShaderData.STANDARD_UNIFORM_SETUP.accept(program);
 			program.load();
 		}

@@ -724,6 +724,7 @@ public class GlProgram {
 		pipelineVertexFormat.bindProgramAttributes(programID);
 
 		GL21.glLinkProgram(programID);
+
 		if (GL21.glGetProgrami(programID, GL21.GL_LINK_STATUS) == GL11.GL_FALSE) {
 			CanvasMod.LOG.error(CanvasGlHelper.getProgramInfoLog(programID));
 			return false;

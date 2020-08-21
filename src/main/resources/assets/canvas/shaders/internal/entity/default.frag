@@ -102,6 +102,10 @@ void main() {
 
     // TODO: need a separate fog pass?
     gl_FragData[TARGET_BASECOLOR] = _cv_fog(a);
+//    gl_FragData[TARGET_BASECOLOR] = texture2D(frxs_spriteAltas, _cvv_texcoord);
+//    float c = _cvv_texcoord.y == 0.0 ? 0.0 : 1.0;
+//    gl_FragData[TARGET_BASECOLOR] = vec4(c, c, c, 1.0);
+    //gl_FragData[TARGET_BASECOLOR] = vec4(1.0, 1.0, 1.0, 1.0);
 
 	#if TARGET_EMISSIVE > 0
 		gl_FragData[TARGET_EMISSIVE] = vec4(fragData.emissivity, 0.0, 0.0, 1.0);

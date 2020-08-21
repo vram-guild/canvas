@@ -6,6 +6,7 @@
     "AccessMultiPhaseParameters",
     "MixinBiomeAccess",
     "MixinBlockModelRenderer",
+    "MixinBufferRenderer",
     "MixinChunkBuilder",
     "MixinChunkRebuildTask",
     "MixinChunkRenderData",
