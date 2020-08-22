@@ -7,7 +7,7 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.util.math.MathHelper;
 
 import grondag.canvas.apiimpl.material.MeshMaterialLayer;
-import grondag.canvas.material.MaterialContext;
+import grondag.canvas.material.EncodingContext;
 import grondag.canvas.material.MaterialState;
 import grondag.canvas.material.MaterialVertexFormats;
 import grondag.canvas.shader.ShaderPass;
@@ -23,7 +23,7 @@ public class VertexCollectorList {
 
 	private final ObjectArrayList<VertexCollectorImpl> solidCollectors = new ObjectArrayList<>();
 
-	private MaterialContext context = null;
+	private EncodingContext context = null;
 
 	public VertexCollectorList() {
 		collectors[MaterialState.TRANSLUCENT_INDEX] = new VertexCollectorImpl();
@@ -32,9 +32,9 @@ public class VertexCollectorList {
 	/**
 	 * Used for assertions and to set material state for translucent collector .
 	 */
-	public void setContext(MaterialContext context) {
+	public void setContext(EncodingContext context) {
 		this.context = context;
-		collectors[MaterialState.TRANSLUCENT_INDEX].prepare(MaterialState.getDefault(context, ShaderPass.TRANSLUCENT));
+		collectors[MaterialState.TRANSLUCENT_INDEX].prepare(context, MaterialState.getDefault(ShaderPass.TRANSLUCENT));
 	}
 
 	/**
@@ -53,12 +53,10 @@ public class VertexCollectorList {
 	}
 
 	public final VertexCollectorImpl getIfExists(MaterialState materialState) {
-		assert materialState.context == context;
 		return collectors[materialState.collectorIndex];
 	}
 
 	public final VertexCollectorImpl get(MaterialState materialState) {
-		assert materialState.context == context;
 		final int index = materialState.collectorIndex;
 		VertexCollectorImpl[] collectors = this.collectors;
 
@@ -76,7 +74,7 @@ public class VertexCollectorList {
 
 		if(result == null) {
 			assert materialState.collectorIndex != MaterialState.TRANSLUCENT_INDEX;
-			result = emptySolidCollector().prepare(materialState);
+			result = emptySolidCollector().prepare(context, materialState);
 			collectors[index] = result;
 		}
 
@@ -98,7 +96,6 @@ public class VertexCollectorList {
 	}
 
 	public boolean contains(MaterialState materialState) {
-		assert materialState.context == context;
 		final int index = materialState.collectorIndex;
 		return index < collectors.length && collectors[index] != null;
 	}
@@ -120,11 +117,11 @@ public class VertexCollectorList {
 		}
 	}
 
-	public VertexCollectorImpl get(MaterialContext terrain, MeshMaterialLayer mat) {
-		return get(MaterialState.get(terrain, mat));
+	public VertexCollectorImpl get(MeshMaterialLayer mat) {
+		return get(MaterialState.get(mat));
 	}
 
-	public UploadableChunk toUploadableChunk(MaterialContext context, boolean isTranslucent) {
+	public UploadableChunk toUploadableChunk(EncodingContext context, boolean isTranslucent) {
 		final int bytes = totalBytes(isTranslucent);
 		return bytes == 0 ? UploadableChunk.EMPTY_UPLOADABLE : new UploadableChunk(this, MaterialVertexFormats.get(context, isTranslucent), isTranslucent, bytes);
 	}

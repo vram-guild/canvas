@@ -52,7 +52,7 @@ public final class MaterialVertexFormats {
 	// UGLY: derive this from formats
 	public static final int MAX_QUAD_INT_STRIDE = 128;
 
-	public static MaterialVertexFormat get(MaterialContext context, boolean translucent) {
-		return context == MaterialContext.TERRAIN && Configurator.hdLightmaps() ? HD_TERRAIN : VANILLA_BLOCKS_AND_ITEMS;
+	public static MaterialVertexFormat get(EncodingContext context, boolean translucent) {
+		return context == EncodingContext.TERRAIN && Configurator.hdLightmaps() ? HD_TERRAIN : VANILLA_BLOCKS_AND_ITEMS;
 	}
 }

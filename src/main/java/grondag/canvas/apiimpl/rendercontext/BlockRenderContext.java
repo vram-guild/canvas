@@ -31,7 +31,7 @@ import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
 
 import grondag.canvas.apiimpl.material.MeshMaterialLayer;
 import grondag.canvas.light.AoCalculator;
-import grondag.canvas.material.MaterialContext;
+import grondag.canvas.material.EncodingContext;
 import grondag.canvas.mixinterface.Matrix3fExt;
 
 /**
@@ -41,7 +41,7 @@ public class BlockRenderContext extends AbstractBlockRenderContext<BlockRenderVi
 	public static ThreadLocal<BlockRenderContext> POOL = ThreadLocal.withInitial(BlockRenderContext::new);
 
 	public BlockRenderContext() {
-		collectors.setContext(MaterialContext.BLOCK);
+		collectors.setContext(EncodingContext.BLOCK);
 	}
 
 	public static void reload() {
@@ -121,8 +121,8 @@ public class BlockRenderContext extends AbstractBlockRenderContext<BlockRenderVi
 	}
 
 	@Override
-	public MaterialContext materialContext() {
-		return MaterialContext.BLOCK;
+	public EncodingContext materialContext() {
+		return EncodingContext.BLOCK;
 	}
 
 	@Override

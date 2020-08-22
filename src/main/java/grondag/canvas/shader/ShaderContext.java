@@ -1,13 +1,13 @@
 package grondag.canvas.shader;
 
-import grondag.canvas.material.MaterialContext;
+import grondag.canvas.material.EncodingContext;
 
 public class ShaderContext {
 	private static int indexCounter;
 
 	public final int index = ++indexCounter;
 
-	public final MaterialContext materialContext;
+	public final EncodingContext materialContext;
 
 	public final ShaderPass pass;
 
@@ -16,14 +16,14 @@ public class ShaderContext {
 	private ShaderContext(Builder builder) {
 		materialContext = builder.materialContext;
 		pass = builder.pass;
-		name = materialContext == MaterialContext.PROCESS && pass == ShaderPass.PROCESS ? "process" : materialContext.name().toLowerCase() + "-" + pass.name().toLowerCase();
+		name = materialContext == EncodingContext.PROCESS && pass == ShaderPass.PROCESS ? "process" : materialContext.name().toLowerCase() + "-" + pass.name().toLowerCase();
 	}
 
 	public static class Builder {
-		private MaterialContext materialContext;
+		private EncodingContext materialContext;
 		private ShaderPass pass = ShaderPass.SOLID;
 
-		Builder materialContext(MaterialContext materialContext) {
+		Builder materialContext(EncodingContext materialContext) {
 			this.materialContext = materialContext;
 			return this;
 		}
@@ -44,26 +44,26 @@ public class ShaderContext {
 
 	public static final ShaderContext TERRAIN_SOLID = builder()
 			.pass(ShaderPass.SOLID)
-			.materialContext(MaterialContext.TERRAIN)
+			.materialContext(EncodingContext.TERRAIN)
 			.build();
 
 	public static final ShaderContext TERRAIN_DECAL = builder()
 			.pass(ShaderPass.DECAL)
-			.materialContext(MaterialContext.TERRAIN)
+			.materialContext(EncodingContext.TERRAIN)
 			.build();
 
 	public static final ShaderContext TERRAIN_TRANSLUCENT = builder()
 			.pass(ShaderPass.TRANSLUCENT)
-			.materialContext(MaterialContext.TERRAIN)
+			.materialContext(EncodingContext.TERRAIN)
 			.build();
 
 	public static final ShaderContext PROCESS = builder()
 			.pass(ShaderPass.PROCESS)
-			.materialContext(MaterialContext.PROCESS)
+			.materialContext(EncodingContext.PROCESS)
 			.build();
 
 	public static final ShaderContext ENTITY_BLOCK_SOLID = builder()
 			.pass(ShaderPass.SOLID)
-			.materialContext(MaterialContext.ENTITY_BLOCK)
+			.materialContext(EncodingContext.ENTITY_BLOCK)
 			.build();
 }

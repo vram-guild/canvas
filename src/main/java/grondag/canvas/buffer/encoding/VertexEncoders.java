@@ -12,12 +12,9 @@ import static grondag.canvas.buffer.encoding.VanillaEncoders.VANILLA_ITEM_3;
 import static grondag.canvas.buffer.encoding.VanillaEncoders.VANILLA_TERRAIN_1;
 import static grondag.canvas.buffer.encoding.VanillaEncoders.VANILLA_TERRAIN_2;
 import static grondag.canvas.buffer.encoding.VanillaEncoders.VANILLA_TERRAIN_3;
-import static grondag.canvas.material.MaterialContext.BLOCK;
-import static grondag.canvas.material.MaterialContext.ITEM_FIXED;
-import static grondag.canvas.material.MaterialContext.ITEM_GROUND;
-import static grondag.canvas.material.MaterialContext.ITEM_GUI;
-import static grondag.canvas.material.MaterialContext.ITEM_HELD;
-import static grondag.canvas.material.MaterialContext.TERRAIN;
+import static grondag.canvas.material.EncodingContext.BLOCK;
+import static grondag.canvas.material.EncodingContext.ITEM;
+import static grondag.canvas.material.EncodingContext.TERRAIN;
 
 import net.minecraft.util.math.MathHelper;
 
@@ -25,7 +22,7 @@ import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.material.AbstractMeshMaterial;
 import grondag.canvas.apiimpl.material.MeshMaterial;
 import grondag.canvas.apiimpl.material.MeshMaterialLocator;
-import grondag.canvas.material.MaterialContext;
+import grondag.canvas.material.EncodingContext;
 import grondag.canvas.material.MaterialState;
 import grondag.canvas.shader.ShaderPass;
 
@@ -34,7 +31,7 @@ public class VertexEncoders {
 	 * Largest possible number of active encoder indices.
 	 */
 	public static final int ENCODER_KEY_SPACE_SIZE = 2 * MathHelper.smallestEncompassingPowerOfTwo(AbstractMeshMaterial.MAX_SPRITE_DEPTH)
-			* MathHelper.smallestEncompassingPowerOfTwo(MaterialContext.values().length);
+			* MathHelper.smallestEncompassingPowerOfTwo(EncodingContext.values().length);
 
 	private static final int CONTEXT_SHIFT = Integer.bitCount(MathHelper.smallestEncompassingPowerOfTwo(AbstractMeshMaterial.MAX_SPRITE_DEPTH) - 1);
 	private static final int TRANSLUCENT_FLAG = ENCODER_KEY_SPACE_SIZE / 2;
@@ -48,21 +45,21 @@ public class VertexEncoders {
 	/**
 	 * Not related to encoder index.
 	 */
-	private static final int lookupIndex(MaterialContext context, int spriteDepth, boolean isTranslucent) {
+	private static final int lookupIndex(EncodingContext context, int spriteDepth, boolean isTranslucent) {
 		return isTranslucent  ? (TRANSLUCENT_FLAG | (context.ordinal() << CONTEXT_SHIFT) | spriteDepth) : ((context.ordinal() << CONTEXT_SHIFT) | spriteDepth);
 	}
 
-	public static VertexEncoder get(MaterialContext context, MeshMaterialLocator matLocator) {
+	public static VertexEncoder get(EncodingContext context, MeshMaterialLocator matLocator) {
 		final MeshMaterial mat = matLocator.get();
 		return ENCODERS[lookupIndex(context, mat.spriteDepth(), mat.isTranslucent)];
 	}
 
-	public static VertexEncoder getDefault(MaterialContext context, boolean isTranslucent) {
+	public static VertexEncoder getDefault(EncodingContext context, boolean isTranslucent) {
 		return ENCODERS[lookupIndex(context, 1, isTranslucent)];
 	}
 
-	public static VertexEncoder getDefault(MaterialState materialState) {
-		return getDefault(materialState.context, materialState.shaderPass == ShaderPass.TRANSLUCENT);
+	public static VertexEncoder getDefault(EncodingContext context, MaterialState materialState) {
+		return getDefault(context, materialState.shaderPass == ShaderPass.TRANSLUCENT);
 	}
 
 	public static void reload() {
@@ -80,32 +77,11 @@ public class VertexEncoders {
 		ENCODERS[lookupIndex(TERRAIN, 2, true)] = Configurator.hdLightmaps() ? HD_TERRAIN_2 : VANILLA_TERRAIN_2;
 		ENCODERS[lookupIndex(TERRAIN, 3, true)] = Configurator.hdLightmaps() ? HD_TERRAIN_3 : VANILLA_TERRAIN_3;
 
-		ENCODERS[lookupIndex(ITEM_HELD, 1, false)] = VANILLA_ITEM_1;
-		ENCODERS[lookupIndex(ITEM_HELD, 2, false)] = VANILLA_ITEM_2;
-		ENCODERS[lookupIndex(ITEM_HELD, 3, false)] = VANILLA_ITEM_3;
-		ENCODERS[lookupIndex(ITEM_HELD, 1, true)] = VANILLA_ITEM_1;
-		ENCODERS[lookupIndex(ITEM_HELD, 2, true)] = VANILLA_ITEM_2;
-		ENCODERS[lookupIndex(ITEM_HELD, 3, true)] = VANILLA_ITEM_3;
-
-		ENCODERS[lookupIndex(ITEM_GUI, 1, false)] = VANILLA_ITEM_1;
-		ENCODERS[lookupIndex(ITEM_GUI, 2, false)] = VANILLA_ITEM_2;
-		ENCODERS[lookupIndex(ITEM_GUI, 3, false)] = VANILLA_ITEM_3;
-		ENCODERS[lookupIndex(ITEM_GUI, 1, true)] = VANILLA_ITEM_1;
-		ENCODERS[lookupIndex(ITEM_GUI, 2, true)] = VANILLA_ITEM_2;
-		ENCODERS[lookupIndex(ITEM_GUI, 3, true)] = VANILLA_ITEM_3;
-
-		ENCODERS[lookupIndex(ITEM_GROUND, 1, false)] = VANILLA_ITEM_1;
-		ENCODERS[lookupIndex(ITEM_GROUND, 2, false)] = VANILLA_ITEM_2;
-		ENCODERS[lookupIndex(ITEM_GROUND, 3, false)] = VANILLA_ITEM_3;
-		ENCODERS[lookupIndex(ITEM_GROUND, 1, true)] = VANILLA_ITEM_1;
-		ENCODERS[lookupIndex(ITEM_GROUND, 2, true)] = VANILLA_ITEM_2;
-		ENCODERS[lookupIndex(ITEM_GROUND, 3, true)] = VANILLA_ITEM_3;
-
-		ENCODERS[lookupIndex(ITEM_FIXED, 1, false)] = VANILLA_ITEM_1;
-		ENCODERS[lookupIndex(ITEM_FIXED, 2, false)] = VANILLA_ITEM_2;
-		ENCODERS[lookupIndex(ITEM_FIXED, 3, false)] = VANILLA_ITEM_3;
-		ENCODERS[lookupIndex(ITEM_FIXED, 1, true)] = VANILLA_ITEM_1;
-		ENCODERS[lookupIndex(ITEM_FIXED, 2, true)] = VANILLA_ITEM_2;
-		ENCODERS[lookupIndex(ITEM_FIXED, 3, true)] = VANILLA_ITEM_3;
+		ENCODERS[lookupIndex(ITEM, 1, false)] = VANILLA_ITEM_1;
+		ENCODERS[lookupIndex(ITEM, 2, false)] = VANILLA_ITEM_2;
+		ENCODERS[lookupIndex(ITEM, 3, false)] = VANILLA_ITEM_3;
+		ENCODERS[lookupIndex(ITEM, 1, true)] = VANILLA_ITEM_1;
+		ENCODERS[lookupIndex(ITEM, 2, true)] = VANILLA_ITEM_2;
+		ENCODERS[lookupIndex(ITEM, 3, true)] = VANILLA_ITEM_3;
 	}
 }

@@ -9,19 +9,25 @@ import it.unimi.dsi.fastutil.ints.IntComparator;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.util.math.MathHelper;
 
+import grondag.canvas.material.EncodingContext;
 import grondag.canvas.material.MaterialState;
+import grondag.canvas.material.MaterialVertexFormat;
+import grondag.canvas.material.MaterialVertexFormats;
 import grondag.fermion.intstream.IntStreamProvider;
 import grondag.fermion.intstream.IntStreamProvider.IntStreamImpl;
 
 public class VertexCollectorImpl implements VertexCollector {
 	private final IntStreamImpl data = INT_STREAM_PROVIDER.claim();
 	private int integerSize = 0;
+
 	/**
 	 * Used for vanilla quads
 	 */
 	private VertexEncoder defaultEncoder;
 
 	private MaterialState materialState;
+
+	private MaterialVertexFormat format;
 
 	/**
 	 * Holds per-quad distance after {@link #sortQuads(double, double, double)} is
@@ -43,9 +49,10 @@ public class VertexCollectorImpl implements VertexCollector {
 	public VertexCollectorImpl() {
 	}
 
-	public VertexCollectorImpl prepare(MaterialState materialState) {
-		defaultEncoder = VertexEncoders.getDefault(materialState);
+	public VertexCollectorImpl prepare(EncodingContext context, MaterialState materialState) {
+		defaultEncoder = VertexEncoders.getDefault(context, materialState);
 		this.materialState = materialState;
+		format =  MaterialVertexFormats.get(context, materialState.isTranslucent);
 		return this;
 	}
 
@@ -71,7 +78,7 @@ public class VertexCollectorImpl implements VertexCollector {
 	}
 
 	public int vertexCount() {
-		return integerSize / materialState.format.vertexStrideInts;
+		return integerSize / format.vertexStrideInts;
 	}
 
 	public int quadCount() {
@@ -234,7 +241,7 @@ public class VertexCollectorImpl implements VertexCollector {
 			data = caller.data;
 
 			// works because 4 bytes per int
-			quadIntStride = caller.materialState.format.vertexStrideBytes;
+			quadIntStride = caller.format.vertexStrideBytes;
 			final int vertexIntStride = quadIntStride / 4;
 			final int quadCount = caller.vertexCount() / 4;
 

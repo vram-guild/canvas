@@ -36,7 +36,7 @@ import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
 import grondag.canvas.apiimpl.util.FaceConstants;
 import grondag.canvas.buffer.encoding.VertexCollectorImpl;
 import grondag.canvas.buffer.encoding.VertexCollectorList;
-import grondag.canvas.material.MaterialContext;
+import grondag.canvas.material.EncodingContext;
 import grondag.canvas.material.MaterialState;
 import grondag.canvas.perf.ChunkRebuildCounters;
 import grondag.canvas.render.CanvasFrustum;
@@ -295,7 +295,7 @@ public class BuiltRenderRegion {
 			if (state != null) {
 				final Vec3d cameraPos = cwr.cameraPos();
 				final VertexCollectorList collectors = context.collectors;
-				final MaterialState translucentState = MaterialState.getDefault(MaterialContext.TERRAIN, ShaderPass.TRANSLUCENT);
+				final MaterialState translucentState = MaterialState.getDefault(ShaderPass.TRANSLUCENT);
 				final VertexCollectorImpl collector = collectors.get(translucentState);
 
 				collector.loadState(translucentState, state);
@@ -312,7 +312,7 @@ public class BuiltRenderRegion {
 				regionData.translucentState = collector.saveState(state);
 
 				if(runningState.protoRegion.get() != ProtoRenderRegion.INVALID) {
-					final UploadableChunk upload = collectors.toUploadableChunk(MaterialContext.TERRAIN, true);
+					final UploadableChunk upload = collectors.toUploadableChunk(EncodingContext.TERRAIN, true);
 
 					if (upload != UploadableChunk.EMPTY_UPLOADABLE) {
 						renderRegionBuilder.scheduleUpload(() -> {
@@ -355,8 +355,8 @@ public class BuiltRenderRegion {
 			buildTerrain(context, chunkData);
 
 			if(runningState.protoRegion.get() != ProtoRenderRegion.INVALID) {
-				final UploadableChunk solidUpload = collectors.toUploadableChunk(MaterialContext.TERRAIN, false);
-				final UploadableChunk translucentUpload = collectors.toUploadableChunk(MaterialContext.TERRAIN, true);
+				final UploadableChunk solidUpload = collectors.toUploadableChunk(EncodingContext.TERRAIN, false);
+				final UploadableChunk translucentUpload = collectors.toUploadableChunk(EncodingContext.TERRAIN, true);
 
 				if (solidUpload != UploadableChunk.EMPTY_UPLOADABLE || translucentUpload != UploadableChunk.EMPTY_UPLOADABLE) {
 					renderRegionBuilder.scheduleUpload(() -> {
@@ -544,8 +544,8 @@ public class BuiltRenderRegion {
 		}
 
 		final VertexCollectorList collectors = context.collectors;
-		final UploadableChunk solidUpload = collectors.toUploadableChunk(MaterialContext.TERRAIN, false);
-		final UploadableChunk translucentUpload = collectors.toUploadableChunk(MaterialContext.TERRAIN, true);
+		final UploadableChunk solidUpload = collectors.toUploadableChunk(EncodingContext.TERRAIN, false);
+		final UploadableChunk translucentUpload = collectors.toUploadableChunk(EncodingContext.TERRAIN, true);
 
 		releaseDrawables();
 		solidDrawable = solidUpload.produceDrawable();

@@ -13,7 +13,7 @@ import net.minecraft.util.math.BlockPos;
 import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.MaterialConditionImpl;
 import grondag.canvas.light.LightmapHdTexture;
-import grondag.canvas.material.MaterialContext;
+import grondag.canvas.material.EncodingContext;
 import grondag.canvas.material.MaterialVertexFormat;
 import grondag.canvas.render.DrawHandler;
 import grondag.canvas.render.DrawHandlers;
@@ -59,7 +59,7 @@ public class TerrainLayerRenderer {
 
 		long lastRelativeOrigin = -1;
 
-		final DrawHandler h = DrawHandlers.get(MaterialContext.TERRAIN, shaderContext.pass);
+		final DrawHandler h = DrawHandlers.get(EncodingContext.TERRAIN, shaderContext.pass);
 		final MaterialVertexFormat format = h.format;
 		h.setup();
 

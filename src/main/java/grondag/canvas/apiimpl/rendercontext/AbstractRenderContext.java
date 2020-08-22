@@ -44,7 +44,7 @@ import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.buffer.encoding.VertexCollectorList;
 import grondag.canvas.buffer.encoding.VertexEncoders;
 import grondag.canvas.light.AoCalculator;
-import grondag.canvas.material.MaterialContext;
+import grondag.canvas.material.EncodingContext;
 import grondag.canvas.material.MaterialVertexFormats;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.frex.api.material.MaterialMap;
@@ -161,7 +161,7 @@ public abstract class AbstractRenderContext implements RenderContext {
 
 	protected abstract BlockState blockState();
 
-	public abstract MaterialContext materialContext();
+	public abstract EncodingContext materialContext();
 
 	public abstract VertexConsumer consumer(MeshMaterialLayer mat);
 

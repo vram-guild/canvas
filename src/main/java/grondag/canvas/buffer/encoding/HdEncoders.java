@@ -10,7 +10,6 @@ import grondag.canvas.apiimpl.material.MeshMaterialLayer;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.rendercontext.AbstractRenderContext;
 import grondag.canvas.light.LightmapHd;
-import grondag.canvas.material.MaterialContext;
 import grondag.canvas.material.MaterialVertexFormats;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.Matrix4fExt;
@@ -57,7 +56,7 @@ public abstract class HdEncoders {
 		final float[] aoData = quad.ao;
 		final MeshMaterial mat = quad.material().get();
 		final MeshMaterialLayer mat0 = mat.getLayer(0);
-		final VertexCollectorImpl buff0  = context.collectors.get(MaterialContext.TERRAIN, mat0);
+		final VertexCollectorImpl buff0  = context.collectors.get(mat0);
 		final int[] appendData = context.appendData;
 
 		final LightmapHd hdLight = quad.hdLight;
@@ -117,7 +116,7 @@ public abstract class HdEncoders {
 		final Matrix3fExt normalMatrix = context.normalMatrix();
 		final MeshMaterial mat = quad.material().get();
 		final MeshMaterialLayer mat0 = mat.getLayer(0);
-		final VertexCollectorImpl buff0  = context.collectors.get(MaterialContext.TERRAIN, mat0);
+		final VertexCollectorImpl buff0  = context.collectors.get(mat0);
 		final int shaderFlags0 = mat0.shaderFlags << 16;
 
 		final int[] appendData = context.appendData;
@@ -197,7 +196,7 @@ public abstract class HdEncoders {
 		buff0.add(appendData, QUAD_STRIDE);
 
 		final MeshMaterialLayer mat1 = mat.getLayer(1);
-		final VertexCollectorImpl buff1  = context.collectors.get(MaterialContext.TERRAIN, mat1);
+		final VertexCollectorImpl buff1  = context.collectors.get(mat1);
 		final int shaderFlags1 = mat1.shaderFlags << 16;
 
 		appendData[3] = quad.spriteColor(0, 1);
@@ -230,7 +229,7 @@ public abstract class HdEncoders {
 
 
 		final MeshMaterialLayer mat0 = mat.getLayer(0);
-		final VertexCollectorImpl buff0  = context.collectors.get(MaterialContext.TERRAIN, mat0);
+		final VertexCollectorImpl buff0  = context.collectors.get(mat0);
 		final int shaderFlags0 = mat0.shaderFlags << 16;
 
 		final int[] appendData = context.appendData;
@@ -309,7 +308,7 @@ public abstract class HdEncoders {
 		buff0.add(appendData, QUAD_STRIDE);
 
 		final MeshMaterialLayer mat1 = mat.getLayer(1);
-		final VertexCollectorImpl buff1  = context.collectors.get(MaterialContext.TERRAIN, mat1);
+		final VertexCollectorImpl buff1  = context.collectors.get(mat1);
 		final int shaderFlags1 = mat1.shaderFlags << 16;
 
 		appendData[3] = quad.spriteColor(0, 1);
@@ -335,7 +334,7 @@ public abstract class HdEncoders {
 		buff1.add(appendData, QUAD_STRIDE);
 
 		final MeshMaterialLayer mat2 = mat.getLayer(2);
-		final VertexCollectorImpl buff2  = context.collectors.get(MaterialContext.TERRAIN, mat2);
+		final VertexCollectorImpl buff2  = context.collectors.get(mat2);
 		final int shaderFlags2 = mat2.shaderFlags << 16;
 
 		appendData[3] = quad.spriteColor(0, 2);

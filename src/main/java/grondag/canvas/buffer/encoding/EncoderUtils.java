@@ -12,7 +12,6 @@ import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.rendercontext.AbstractRenderContext;
 import grondag.canvas.apiimpl.util.ColorHelper;
 import grondag.canvas.apiimpl.util.NormalHelper;
-import grondag.canvas.material.MaterialContext;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.Matrix4fExt;
 import grondag.canvas.texture.SpriteInfoTexture;
@@ -469,7 +468,7 @@ abstract class EncoderUtils {
 		final float[] aoData = quad.ao;
 		final MeshMaterial mat = quad.material().get();
 		final MeshMaterialLayer mat0 = mat.getLayer(0);
-		final VertexCollectorImpl buff0  = context.collectors.get(MaterialContext.TERRAIN, mat0);
+		final VertexCollectorImpl buff0  = context.collectors.get(mat0);
 		final int[] appendData = context.appendData;
 		final SpriteInfoTexture spriteInfo = SpriteInfoTexture.instance();
 
@@ -529,7 +528,7 @@ abstract class EncoderUtils {
 		final Matrix3fExt normalMatrix = context.normalMatrix();
 		final MeshMaterial mat = quad.material().get();
 		final MeshMaterialLayer mat0 = mat.getLayer(0);
-		final VertexCollectorImpl buff0  = context.collectors.get(MaterialContext.TERRAIN, mat0);
+		final VertexCollectorImpl buff0  = context.collectors.get(mat0);
 		final int shaderFlags0 = mat0.shaderFlags << 16;
 		final SpriteInfoTexture spriteInfo = SpriteInfoTexture.instance();
 
@@ -601,7 +600,7 @@ abstract class EncoderUtils {
 		buff0.add(appendData, 32);
 
 		final MeshMaterialLayer mat1 = mat.getLayer(1);
-		final VertexCollectorImpl buff1  = context.collectors.get(MaterialContext.TERRAIN, mat1);
+		final VertexCollectorImpl buff1  = context.collectors.get(mat1);
 		final int shaderFlags1 = mat1.shaderFlags << 16;
 		final int spriteIdCoord1 =spriteInfo.coordinate(quad.spriteId(1));
 
@@ -639,7 +638,7 @@ abstract class EncoderUtils {
 		final SpriteInfoTexture spriteInfo = SpriteInfoTexture.instance();
 
 		final MeshMaterialLayer mat0 = mat.getLayer(0);
-		final VertexCollectorImpl buff0  = context.collectors.get(MaterialContext.TERRAIN, mat0);
+		final VertexCollectorImpl buff0  = context.collectors.get(mat0);
 		final int shaderFlags0 = mat0.shaderFlags << 16;
 
 		final int[] appendData = context.appendData;
@@ -711,7 +710,7 @@ abstract class EncoderUtils {
 		buff0.add(appendData, 32);
 
 		final MeshMaterialLayer mat1 = mat.getLayer(1);
-		final VertexCollectorImpl buff1  = context.collectors.get(MaterialContext.TERRAIN, mat1);
+		final VertexCollectorImpl buff1  = context.collectors.get(mat1);
 		final int shaderFlags1 = mat1.shaderFlags << 16;
 		final int spriteIdCoord1 = spriteInfo.coordinate(quad.spriteId(1));
 
@@ -742,7 +741,7 @@ abstract class EncoderUtils {
 		buff1.add(appendData, 32);
 
 		final MeshMaterialLayer mat2 = mat.getLayer(2);
-		final VertexCollectorImpl buff2  = context.collectors.get(MaterialContext.TERRAIN, mat2);
+		final VertexCollectorImpl buff2  = context.collectors.get(mat2);
 		final int shaderFlags2 = mat2.shaderFlags << 16;
 		final int spriteIdCoord2 = spriteInfo.coordinate(quad.spriteId(2));
 

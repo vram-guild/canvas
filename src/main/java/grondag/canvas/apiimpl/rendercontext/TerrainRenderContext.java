@@ -36,8 +36,7 @@ import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.material.MeshMaterialLayer;
 import grondag.canvas.light.AoCalculator;
 import grondag.canvas.light.LightSmoother;
-import grondag.canvas.material.MaterialContext;
-import grondag.canvas.material.MaterialState;
+import grondag.canvas.material.EncodingContext;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.terrain.FastRenderRegion;
 import grondag.canvas.terrain.ProtoRenderRegion;
@@ -59,7 +58,7 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<FastRenderR
 
 	public TerrainRenderContext() {
 		region = new FastRenderRegion(this);
-		collectors.setContext(MaterialContext.TERRAIN);
+		collectors.setContext(EncodingContext.TERRAIN);
 	}
 
 	private final AoCalculator aoCalc = new AoCalculator() {
@@ -125,13 +124,13 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<FastRenderR
 	}
 
 	@Override
-	public MaterialContext materialContext() {
-		return MaterialContext.TERRAIN;
+	public EncodingContext materialContext() {
+		return EncodingContext.TERRAIN;
 	}
 
 	@Override
 	public VertexConsumer consumer(MeshMaterialLayer mat) {
-		return collectors.get(MaterialState.get(MaterialContext.TERRAIN, mat));
+		return collectors.get(mat);
 	}
 
 	@Override

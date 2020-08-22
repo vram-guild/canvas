@@ -26,7 +26,7 @@ import net.minecraft.client.texture.TextureManager;
 import net.minecraft.util.math.MathHelper;
 
 import grondag.canvas.Configurator;
-import grondag.canvas.material.MaterialContext;
+import grondag.canvas.material.EncodingContext;
 import grondag.canvas.material.MaterialVertexFormat;
 import grondag.canvas.material.MaterialVertexFormats;
 import grondag.canvas.shader.ShaderPass;
@@ -145,27 +145,27 @@ public class DrawHandlers {
 		}
 	}
 
-	private static final DrawHandler[] HANDLERS = new DrawHandler[MathHelper.smallestEncompassingPowerOfTwo(MaterialContext.values().length) * MathHelper.smallestEncompassingPowerOfTwo(ShaderPass.values().length)];
-	private static final DrawHandler[] HD_HANDLERS = new DrawHandler[MathHelper.smallestEncompassingPowerOfTwo(MaterialContext.values().length) * MathHelper.smallestEncompassingPowerOfTwo(ShaderPass.values().length)];
+	private static final DrawHandler[] HANDLERS = new DrawHandler[MathHelper.smallestEncompassingPowerOfTwo(EncodingContext.values().length) * MathHelper.smallestEncompassingPowerOfTwo(ShaderPass.values().length)];
+	private static final DrawHandler[] HD_HANDLERS = new DrawHandler[MathHelper.smallestEncompassingPowerOfTwo(EncodingContext.values().length) * MathHelper.smallestEncompassingPowerOfTwo(ShaderPass.values().length)];
 
-	private static int lookupIndex(MaterialContext context, ShaderPass shaderType) {
+	private static int lookupIndex(EncodingContext context, ShaderPass shaderType) {
 		return shaderType.ordinal() | (context.ordinal() << 2);
 	}
 
 	static {
-		HANDLERS[lookupIndex(MaterialContext.TERRAIN, ShaderPass.SOLID)] = new SolidHandler(MaterialVertexFormats.VANILLA_BLOCKS_AND_ITEMS, ShaderPass.SOLID);
-		HANDLERS[lookupIndex(MaterialContext.TERRAIN, ShaderPass.DECAL)] = new DecalHandler(MaterialVertexFormats.VANILLA_BLOCKS_AND_ITEMS, ShaderPass.DECAL);
-		HANDLERS[lookupIndex(MaterialContext.TERRAIN, ShaderPass.TRANSLUCENT)] = new TranslucentHandler(MaterialVertexFormats.VANILLA_BLOCKS_AND_ITEMS, ShaderPass.TRANSLUCENT);
+		HANDLERS[lookupIndex(EncodingContext.TERRAIN, ShaderPass.SOLID)] = new SolidHandler(MaterialVertexFormats.VANILLA_BLOCKS_AND_ITEMS, ShaderPass.SOLID);
+		HANDLERS[lookupIndex(EncodingContext.TERRAIN, ShaderPass.DECAL)] = new DecalHandler(MaterialVertexFormats.VANILLA_BLOCKS_AND_ITEMS, ShaderPass.DECAL);
+		HANDLERS[lookupIndex(EncodingContext.TERRAIN, ShaderPass.TRANSLUCENT)] = new TranslucentHandler(MaterialVertexFormats.VANILLA_BLOCKS_AND_ITEMS, ShaderPass.TRANSLUCENT);
 
-		HD_HANDLERS[lookupIndex(MaterialContext.TERRAIN, ShaderPass.SOLID)] = new SolidHandler(MaterialVertexFormats.HD_TERRAIN, ShaderPass.SOLID);
-		HD_HANDLERS[lookupIndex(MaterialContext.TERRAIN, ShaderPass.DECAL)] = new DecalHandler(MaterialVertexFormats.HD_TERRAIN, ShaderPass.DECAL);
-		HD_HANDLERS[lookupIndex(MaterialContext.TERRAIN, ShaderPass.TRANSLUCENT)] = new TranslucentHandler(MaterialVertexFormats.HD_TERRAIN, ShaderPass.TRANSLUCENT);
+		HD_HANDLERS[lookupIndex(EncodingContext.TERRAIN, ShaderPass.SOLID)] = new SolidHandler(MaterialVertexFormats.HD_TERRAIN, ShaderPass.SOLID);
+		HD_HANDLERS[lookupIndex(EncodingContext.TERRAIN, ShaderPass.DECAL)] = new DecalHandler(MaterialVertexFormats.HD_TERRAIN, ShaderPass.DECAL);
+		HD_HANDLERS[lookupIndex(EncodingContext.TERRAIN, ShaderPass.TRANSLUCENT)] = new TranslucentHandler(MaterialVertexFormats.HD_TERRAIN, ShaderPass.TRANSLUCENT);
 	}
 
-	public static DrawHandler get(MaterialContext context, ShaderPass shaderPass) {
+	public static DrawHandler get(EncodingContext context, ShaderPass shaderPass) {
 		assert shaderPass != ShaderPass.PROCESS;
 
-		final boolean isHD = context == MaterialContext.TERRAIN && Configurator.hdLightmaps();
+		final boolean isHD = context == EncodingContext.TERRAIN && Configurator.hdLightmaps();
 		final int index = lookupIndex(context, shaderPass);
 		return isHD ? HD_HANDLERS[index] : HANDLERS[index];
 	}

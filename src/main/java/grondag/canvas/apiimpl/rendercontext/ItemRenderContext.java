@@ -40,7 +40,7 @@ import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 import grondag.canvas.apiimpl.material.MeshMaterialLayer;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.light.AoCalculator;
-import grondag.canvas.material.MaterialContext;
+import grondag.canvas.material.EncodingContext;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.shader.ShaderPass;
 
@@ -64,7 +64,7 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 
 	private int lightmap;
 	private ItemStack itemStack;
-	private MaterialContext context = MaterialContext.ITEM_GUI;
+	private final EncodingContext context = EncodingContext.ITEM;
 
 
 	private final Supplier<Random> randomSupplier = () -> {
@@ -76,34 +76,7 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 	public ItemRenderContext(ItemColors colorMap) {
 		super();
 		this.colorMap = colorMap;
-	}
-
-	public ItemRenderContext prepare(ModelTransformation.Mode mode) {
-		switch (mode) {
-		case NONE:
-		case THIRD_PERSON_LEFT_HAND:
-		case THIRD_PERSON_RIGHT_HAND:
-		case FIRST_PERSON_LEFT_HAND:
-		case FIRST_PERSON_RIGHT_HAND:
-			context = MaterialContext.ITEM_HELD;
-			break;
-		case FIXED:
-			context = MaterialContext.ITEM_FIXED;
-			break;
-		case GROUND:
-			context = MaterialContext.ITEM_GROUND;
-			break;
-		default:
-		case GUI:
-			context = MaterialContext.ITEM_GUI;
-			break;
-		case HEAD:
-			context = MaterialContext.ITEM_HEAD;
-			break;
-		}
-
-		collectors.setContext(context);
-		return this;
+		collectors.setContext(EncodingContext.ITEM);
 	}
 
 	public void renderModel(ItemStack itemStack, Mode transformMode, boolean invert, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int lightmap, int overlay, FabricBakedModel model) {
@@ -167,7 +140,7 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 	}
 
 	@Override
-	public MaterialContext materialContext() {
+	public EncodingContext materialContext() {
 		return context;
 	}
 
