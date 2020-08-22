@@ -38,8 +38,8 @@ import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
 import net.fabricmc.fabric.api.renderer.v1.model.SpriteFinder;
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 
-import grondag.canvas.apiimpl.CompositeMaterial;
-import grondag.canvas.apiimpl.DrawableMaterial;
+import grondag.canvas.apiimpl.material.CompositeMaterial;
+import grondag.canvas.apiimpl.material.MeshMaterialLayer;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.buffer.encoding.VertexCollectorList;
 import grondag.canvas.buffer.encoding.VertexEncoders;
@@ -163,7 +163,7 @@ public abstract class AbstractRenderContext implements RenderContext {
 
 	public abstract MaterialContext materialContext();
 
-	public abstract VertexConsumer consumer(DrawableMaterial mat);
+	public abstract VertexConsumer consumer(MeshMaterialLayer mat);
 
 	public abstract int indexedColor(int colorIndex);
 

@@ -21,7 +21,7 @@ import net.fabricmc.fabric.api.renderer.v1.mesh.Mesh;
 import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
 
 import grondag.canvas.apiimpl.Canvas;
-import grondag.canvas.apiimpl.RenderMaterialImpl;
+import grondag.canvas.apiimpl.material.RenderMaterialImpl;
 import grondag.canvas.apiimpl.mesh.MeshEncodingHelper;
 import grondag.canvas.apiimpl.mesh.MeshImpl;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;

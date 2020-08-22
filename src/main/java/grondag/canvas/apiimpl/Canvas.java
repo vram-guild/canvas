@@ -26,7 +26,10 @@ import net.fabricmc.fabric.api.renderer.v1.material.RenderMaterial;
 import net.fabricmc.fabric.api.renderer.v1.mesh.MeshBuilder;
 
 import grondag.canvas.CanvasMod;
-import grondag.canvas.apiimpl.RenderMaterialImpl.Finder;
+import grondag.canvas.apiimpl.material.CompositeMaterial;
+import grondag.canvas.apiimpl.material.MaterialShaderImpl;
+import grondag.canvas.apiimpl.material.RenderMaterialImpl;
+import grondag.canvas.apiimpl.material.RenderMaterialImpl.Finder;
 import grondag.canvas.apiimpl.mesh.MeshBuilderImpl;
 import grondag.canvas.apiimpl.rendercontext.BlockRenderContext;
 import grondag.canvas.buffer.encoding.VertexEncoders;

@@ -6,8 +6,8 @@ import net.minecraft.client.render.VertexConsumer;
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 
 import grondag.canvas.Configurator;
-import grondag.canvas.apiimpl.CompositeMaterial;
-import grondag.canvas.apiimpl.DrawableMaterial;
+import grondag.canvas.apiimpl.material.CompositeMaterial;
+import grondag.canvas.apiimpl.material.MeshMaterialLayer;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.rendercontext.AbstractRenderContext;
 import grondag.canvas.apiimpl.util.ColorHelper;
@@ -468,7 +468,7 @@ abstract class EncoderUtils {
 		final Matrix3fExt normalMatrix = context.normalMatrix();
 		final float[] aoData = quad.ao;
 		final CompositeMaterial mat = quad.material();
-		final DrawableMaterial mat0 = mat.forDepth(0);
+		final MeshMaterialLayer mat0 = mat.forDepth(0);
 		final VertexCollectorImpl buff0  = context.collectors.get(MaterialContext.TERRAIN, mat0);
 		final int[] appendData = context.appendData;
 		final SpriteInfoTexture spriteInfo = SpriteInfoTexture.instance();
@@ -528,7 +528,7 @@ abstract class EncoderUtils {
 		final Matrix4fExt matrix = (Matrix4fExt)(Object) context.matrix();
 		final Matrix3fExt normalMatrix = context.normalMatrix();
 		final CompositeMaterial mat = quad.material();
-		final DrawableMaterial mat0 = mat.forDepth(0);
+		final MeshMaterialLayer mat0 = mat.forDepth(0);
 		final VertexCollectorImpl buff0  = context.collectors.get(MaterialContext.TERRAIN, mat0);
 		final int shaderFlags0 = mat0.shaderFlags << 16;
 		final SpriteInfoTexture spriteInfo = SpriteInfoTexture.instance();
@@ -600,7 +600,7 @@ abstract class EncoderUtils {
 
 		buff0.add(appendData, 32);
 
-		final DrawableMaterial mat1 = mat.forDepth(1);
+		final MeshMaterialLayer mat1 = mat.forDepth(1);
 		final VertexCollectorImpl buff1  = context.collectors.get(MaterialContext.TERRAIN, mat1);
 		final int shaderFlags1 = mat1.shaderFlags << 16;
 		final int spriteIdCoord1 =spriteInfo.coordinate(quad.spriteId(1));
@@ -638,7 +638,7 @@ abstract class EncoderUtils {
 		final CompositeMaterial mat = quad.material();
 		final SpriteInfoTexture spriteInfo = SpriteInfoTexture.instance();
 
-		final DrawableMaterial mat0 = mat.forDepth(0);
+		final MeshMaterialLayer mat0 = mat.forDepth(0);
 		final VertexCollectorImpl buff0  = context.collectors.get(MaterialContext.TERRAIN, mat0);
 		final int shaderFlags0 = mat0.shaderFlags << 16;
 
@@ -710,7 +710,7 @@ abstract class EncoderUtils {
 
 		buff0.add(appendData, 32);
 
-		final DrawableMaterial mat1 = mat.forDepth(1);
+		final MeshMaterialLayer mat1 = mat.forDepth(1);
 		final VertexCollectorImpl buff1  = context.collectors.get(MaterialContext.TERRAIN, mat1);
 		final int shaderFlags1 = mat1.shaderFlags << 16;
 		final int spriteIdCoord1 = spriteInfo.coordinate(quad.spriteId(1));
@@ -741,7 +741,7 @@ abstract class EncoderUtils {
 
 		buff1.add(appendData, 32);
 
-		final DrawableMaterial mat2 = mat.forDepth(2);
+		final MeshMaterialLayer mat2 = mat.forDepth(2);
 		final VertexCollectorImpl buff2  = context.collectors.get(MaterialContext.TERRAIN, mat2);
 		final int shaderFlags2 = mat2.shaderFlags << 16;
 		final int spriteIdCoord2 = spriteInfo.coordinate(quad.spriteId(2));

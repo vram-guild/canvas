@@ -1,9 +1,11 @@
-package grondag.canvas.apiimpl;
+package grondag.canvas.apiimpl.material;
 
 import javax.annotation.Nullable;
 
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 import net.fabricmc.fabric.api.renderer.v1.material.RenderMaterial;
+
+import grondag.canvas.apiimpl.MaterialConditionImpl;
 
 /**
  * Container for ambiguous blend mode variant OR (when blend mod not ambiguous)
@@ -24,7 +26,7 @@ public class CompositeMaterial extends RenderMaterialImpl implements RenderMater
 
 	private final CompositeMaterial[] blendModeVariants = new CompositeMaterial[4];
 
-	private final DrawableMaterial[] drawables = new DrawableMaterial[MAX_SPRITE_DEPTH];
+	private final MeshMaterialLayer[] drawables = new MeshMaterialLayer[MAX_SPRITE_DEPTH];
 
 	protected CompositeMaterial(int index, long bits0, long bits1) {
 		this.index = index;
@@ -73,13 +75,13 @@ public class CompositeMaterial extends RenderMaterialImpl implements RenderMater
 				blendModeVariants[i] = this;
 			}
 
-			drawables[0] = new DrawableMaterial(this, 0);
+			drawables[0] = new MeshMaterialLayer(this, 0);
 
 			if (depth > 1) {
-				drawables[1] = new DrawableMaterial(this, 1);
+				drawables[1] = new MeshMaterialLayer(this, 1);
 
 				if (depth > 2) {
-					drawables[2] = new DrawableMaterial(this, 2);
+					drawables[2] = new MeshMaterialLayer(this, 2);
 				}
 			}
 		}
@@ -109,7 +111,7 @@ public class CompositeMaterial extends RenderMaterialImpl implements RenderMater
 	 * @param spriteIndex
 	 * @return
 	 */
-	public @Nullable DrawableMaterial forDepth(int spriteIndex) {
+	public @Nullable MeshMaterialLayer forDepth(int spriteIndex) {
 		assert spriteIndex < spriteDepth();
 		return drawables[spriteIndex];
 	}

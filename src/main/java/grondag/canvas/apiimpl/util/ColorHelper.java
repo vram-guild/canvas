@@ -20,7 +20,7 @@ import java.nio.ByteOrder;
 
 import it.unimi.dsi.fastutil.ints.Int2IntFunction;
 
-import grondag.canvas.apiimpl.RenderMaterialImpl;
+import grondag.canvas.apiimpl.material.RenderMaterialImpl;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 
 /**

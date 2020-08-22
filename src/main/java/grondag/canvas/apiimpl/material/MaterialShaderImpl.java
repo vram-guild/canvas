@@ -14,7 +14,7 @@
  * the License.
  ******************************************************************************/
 
-package grondag.canvas.apiimpl;
+package grondag.canvas.apiimpl.material;
 
 import java.util.ArrayList;
 import java.util.function.Consumer;

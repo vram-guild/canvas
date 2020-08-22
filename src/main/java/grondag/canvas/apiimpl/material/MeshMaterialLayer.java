@@ -1,27 +1,24 @@
-package grondag.canvas.apiimpl;
+package grondag.canvas.apiimpl.material;
 
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 
+import grondag.canvas.apiimpl.MaterialConditionImpl;
 import grondag.canvas.shader.MaterialShaderManager;
 import grondag.canvas.shader.ShaderPass;
 
 /**
- * Potentially multi-layer material that can be encoded in a mesh and maps
- * to one or more bufferable and renderable materials.
+ * Describes a single layer of a mesh material and all of the information
+ * needed to buffer and draw that layer.  Analogous to vanilla RenderLayer.
  *
- *
- * WIP: name is bad
  */
-public class DrawableMaterial {
+public class MeshMaterialLayer {
 	private final CompositeMaterial compositeMaterial;
 	public final int shaderFlags;
 	public final ShaderPass shaderType;
-	public final int drawbleMaterialIndex;
 	private final MaterialShaderImpl shader;
 
-	public DrawableMaterial(CompositeMaterial compositeMaterial, int depth) {
+	public MeshMaterialLayer(CompositeMaterial compositeMaterial, int depth) {
 		this.compositeMaterial = compositeMaterial;
-		drawbleMaterialIndex = (this.compositeMaterial.index << 2) | depth;
 
 		// determine how to buffer
 		if (depth == 0) {

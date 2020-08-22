@@ -23,7 +23,7 @@ import net.minecraft.util.Identifier;
 
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 
-import grondag.canvas.apiimpl.MaterialShaderImpl;
+import grondag.canvas.apiimpl.material.MaterialShaderImpl;
 import grondag.canvas.varia.WorldDataManager;
 import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
 

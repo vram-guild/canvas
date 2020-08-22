@@ -1,4 +1,4 @@
-package grondag.canvas.apiimpl;
+package grondag.canvas.apiimpl.material;
 
 class RenderMaterialKey {
 	protected long bits0;

@@ -3,6 +3,9 @@ package grondag.canvas.apiimpl;
 import java.util.IdentityHashMap;
 
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
+
+import grondag.canvas.apiimpl.material.CompositeMaterial;
+
 import net.minecraft.client.render.RenderLayer;
 
 // TODO: expose in API as alternate for render layer

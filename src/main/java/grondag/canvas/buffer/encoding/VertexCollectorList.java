@@ -6,7 +6,7 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import net.minecraft.util.math.MathHelper;
 
-import grondag.canvas.apiimpl.DrawableMaterial;
+import grondag.canvas.apiimpl.material.MeshMaterialLayer;
 import grondag.canvas.material.MaterialContext;
 import grondag.canvas.material.MaterialState;
 import grondag.canvas.material.MaterialVertexFormats;
@@ -120,7 +120,7 @@ public class VertexCollectorList {
 		}
 	}
 
-	public VertexCollectorImpl get(MaterialContext terrain, DrawableMaterial mat) {
+	public VertexCollectorImpl get(MaterialContext terrain, MeshMaterialLayer mat) {
 		return get(MaterialState.get(terrain, mat));
 	}
 

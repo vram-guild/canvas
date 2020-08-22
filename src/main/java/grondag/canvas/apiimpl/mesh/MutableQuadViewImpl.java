@@ -39,8 +39,8 @@ import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
 import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 
 import grondag.canvas.apiimpl.Canvas;
-import grondag.canvas.apiimpl.CompositeMaterial;
-import grondag.canvas.apiimpl.RenderMaterialImpl;
+import grondag.canvas.apiimpl.material.CompositeMaterial;
+import grondag.canvas.apiimpl.material.RenderMaterialImpl;
 import grondag.canvas.apiimpl.util.GeometryHelper;
 import grondag.canvas.apiimpl.util.NormalHelper;
 import grondag.canvas.apiimpl.util.TextureHelper;

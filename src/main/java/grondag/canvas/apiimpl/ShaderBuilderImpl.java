@@ -23,6 +23,7 @@ import org.joml.Matrix4f;
 
 import net.minecraft.util.Identifier;
 
+import grondag.canvas.apiimpl.material.MaterialShaderImpl;
 import grondag.canvas.shader.GlProgram;
 import grondag.canvas.shader.MaterialShaderManager;
 import grondag.frex.api.material.MaterialShader;

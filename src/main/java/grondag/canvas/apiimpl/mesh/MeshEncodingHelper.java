@@ -21,7 +21,7 @@ import com.google.common.base.Preconditions;
 import net.fabricmc.fabric.api.renderer.v1.mesh.QuadView;
 import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 
-import grondag.canvas.apiimpl.RenderMaterialImpl;
+import grondag.canvas.apiimpl.material.RenderMaterialImpl;
 
 /**
  * Holds all the array offsets and bit-wise encoders/decoders for

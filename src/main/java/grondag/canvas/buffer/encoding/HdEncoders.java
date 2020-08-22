@@ -5,8 +5,8 @@ import static grondag.canvas.buffer.encoding.EncoderUtils.colorizeQuad;
 
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 
-import grondag.canvas.apiimpl.CompositeMaterial;
-import grondag.canvas.apiimpl.DrawableMaterial;
+import grondag.canvas.apiimpl.material.CompositeMaterial;
+import grondag.canvas.apiimpl.material.MeshMaterialLayer;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.rendercontext.AbstractRenderContext;
 import grondag.canvas.light.LightmapHd;
@@ -56,7 +56,7 @@ public abstract class HdEncoders {
 		final Matrix3fExt normalMatrix = context.normalMatrix();
 		final float[] aoData = quad.ao;
 		final CompositeMaterial mat = quad.material();
-		final DrawableMaterial mat0 = mat.forDepth(0);
+		final MeshMaterialLayer mat0 = mat.forDepth(0);
 		final VertexCollectorImpl buff0  = context.collectors.get(MaterialContext.TERRAIN, mat0);
 		final int[] appendData = context.appendData;
 
@@ -116,7 +116,7 @@ public abstract class HdEncoders {
 		final Matrix4fExt matrix = (Matrix4fExt)(Object) context.matrix();
 		final Matrix3fExt normalMatrix = context.normalMatrix();
 		final CompositeMaterial mat = quad.material();
-		final DrawableMaterial mat0 = mat.forDepth(0);
+		final MeshMaterialLayer mat0 = mat.forDepth(0);
 		final VertexCollectorImpl buff0  = context.collectors.get(MaterialContext.TERRAIN, mat0);
 		final int shaderFlags0 = mat0.shaderFlags << 16;
 
@@ -196,7 +196,7 @@ public abstract class HdEncoders {
 
 		buff0.add(appendData, QUAD_STRIDE);
 
-		final DrawableMaterial mat1 = mat.forDepth(1);
+		final MeshMaterialLayer mat1 = mat.forDepth(1);
 		final VertexCollectorImpl buff1  = context.collectors.get(MaterialContext.TERRAIN, mat1);
 		final int shaderFlags1 = mat1.shaderFlags << 16;
 
@@ -229,7 +229,7 @@ public abstract class HdEncoders {
 		final CompositeMaterial mat = quad.material();
 
 
-		final DrawableMaterial mat0 = mat.forDepth(0);
+		final MeshMaterialLayer mat0 = mat.forDepth(0);
 		final VertexCollectorImpl buff0  = context.collectors.get(MaterialContext.TERRAIN, mat0);
 		final int shaderFlags0 = mat0.shaderFlags << 16;
 
@@ -308,7 +308,7 @@ public abstract class HdEncoders {
 
 		buff0.add(appendData, QUAD_STRIDE);
 
-		final DrawableMaterial mat1 = mat.forDepth(1);
+		final MeshMaterialLayer mat1 = mat.forDepth(1);
 		final VertexCollectorImpl buff1  = context.collectors.get(MaterialContext.TERRAIN, mat1);
 		final int shaderFlags1 = mat1.shaderFlags << 16;
 
@@ -334,7 +334,7 @@ public abstract class HdEncoders {
 
 		buff1.add(appendData, QUAD_STRIDE);
 
-		final DrawableMaterial mat2 = mat.forDepth(2);
+		final MeshMaterialLayer mat2 = mat.forDepth(2);
 		final VertexCollectorImpl buff2  = context.collectors.get(MaterialContext.TERRAIN, mat2);
 		final int shaderFlags2 = mat2.shaderFlags << 16;
 

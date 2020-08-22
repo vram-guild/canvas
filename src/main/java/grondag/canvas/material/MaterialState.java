@@ -4,9 +4,9 @@ import java.util.Arrays;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 
-import grondag.canvas.apiimpl.DrawableMaterial;
 import grondag.canvas.apiimpl.MaterialConditionImpl;
-import grondag.canvas.apiimpl.MaterialShaderImpl;
+import grondag.canvas.apiimpl.material.MaterialShaderImpl;
+import grondag.canvas.apiimpl.material.MeshMaterialLayer;
 import grondag.canvas.shader.MaterialShaderManager;
 import grondag.canvas.shader.ShaderPass;
 import grondag.fermion.bits.BitPacker32;
@@ -65,7 +65,7 @@ public class MaterialState {
 	private static final Int2ObjectOpenHashMap<MaterialState> MAP = new Int2ObjectOpenHashMap<>(4096);
 
 	// UGLY: decal probably doesn't belong here
-	public static MaterialState get(MaterialContext context, DrawableMaterial mat) {
+	public static MaterialState get(MaterialContext context, MeshMaterialLayer mat) {
 		return get(context, mat.shader(), mat.condition(), mat.shaderType);
 	}
 

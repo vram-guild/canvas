@@ -22,8 +22,8 @@ import static grondag.canvas.material.MaterialContext.TERRAIN;
 import net.minecraft.util.math.MathHelper;
 
 import grondag.canvas.Configurator;
-import grondag.canvas.apiimpl.CompositeMaterial;
-import grondag.canvas.apiimpl.RenderMaterialImpl;
+import grondag.canvas.apiimpl.material.CompositeMaterial;
+import grondag.canvas.apiimpl.material.RenderMaterialImpl;
 import grondag.canvas.material.MaterialContext;
 import grondag.canvas.material.MaterialState;
 import grondag.canvas.shader.ShaderPass;

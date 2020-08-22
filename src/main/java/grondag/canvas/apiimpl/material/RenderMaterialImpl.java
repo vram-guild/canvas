@@ -14,13 +14,14 @@
  * the License.
  ******************************************************************************/
 
-package grondag.canvas.apiimpl;
+package grondag.canvas.apiimpl.material;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 
+import grondag.canvas.apiimpl.MaterialConditionImpl;
 import grondag.canvas.shader.MaterialShaderManager;
 import grondag.fermion.bits.BitPacker64;
 import grondag.fermion.bits.BitPacker64.BooleanElement;
