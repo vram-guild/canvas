@@ -33,6 +33,12 @@ import grondag.frex.api.material.MaterialCondition;
 import grondag.frex.api.material.MaterialFinder;
 import grondag.frex.api.material.MaterialShader;
 
+/**
+
+ WIP Needs to be parallel to RenderLayer and also have a simpler mapping to material state and shaders
+ Ideally shaders should not be context sensitive - contexts should instead expose attributes that shader depends on
+
+ */
 public abstract class RenderMaterialImpl extends RenderMaterialKey {
 	private static final BitPacker64<RenderMaterialImpl> BITPACKER_0 = new BitPacker64<>(m -> m.bits0, (m, b) -> m.bits0 = b);
 	private static final BitPacker64<RenderMaterialImpl> BITPACKER_1 = new BitPacker64<>(m -> m.bits1, (m, b) -> m.bits1 = b);
@@ -156,12 +162,6 @@ public abstract class RenderMaterialImpl extends RenderMaterialKey {
 	public static class CompositeMaterial extends RenderMaterialImpl implements RenderMaterial {
 		private final int index;
 
-		/**
-		 * True if any texture wants AO shading. Simplifies check made by renderer at
-		 * buffer-time.
-		 */
-		public final boolean hasAo;
-
 		private final MaterialConditionImpl condition;
 
 		/**
@@ -179,8 +179,6 @@ public abstract class RenderMaterialImpl extends RenderMaterialKey {
 			this.bits1 = bits1;
 			condition = MaterialConditionImpl.fromIndex(CONDITION.getValue(bits0));
 
-			final int depth = spriteDepth();
-			hasAo = !disableAo(0) || (depth > 1 && !disableAo(1)) || (depth == 3 && !disableAo(2));
 			final BlendMode baseLayer = blendMode();
 
 			if(baseLayer == BlendMode.SOLID) {

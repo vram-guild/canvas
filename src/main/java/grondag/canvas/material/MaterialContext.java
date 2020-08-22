@@ -1,5 +1,6 @@
 package grondag.canvas.material;
 
+// WIP: remove this
 public enum MaterialContext {
 	TERRAIN(true, false, false),
 	BLOCK(true, false, false),

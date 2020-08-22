@@ -13,6 +13,9 @@ import static grondag.canvas.material.MaterialVertextFormatElement.TEMP_OVERLAY;
 
 import grondag.canvas.Configurator;
 
+// WIP: make these fully parallel to vanilla formats
+// encoding may be different and may depend on feature configuration
+
 public final class MaterialVertexFormats {
 	// PERF: try quantized vertex format
 	public static final MaterialVertexFormat VANILLA_BLOCKS_AND_ITEMS = new MaterialVertexFormat(
