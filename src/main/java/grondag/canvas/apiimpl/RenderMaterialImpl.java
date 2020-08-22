@@ -16,16 +16,12 @@
 
 package grondag.canvas.apiimpl;
 
-import javax.annotation.Nullable;
-
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
-import net.fabricmc.fabric.api.renderer.v1.material.RenderMaterial;
 
 import grondag.canvas.shader.MaterialShaderManager;
-import grondag.canvas.shader.ShaderPass;
 import grondag.fermion.bits.BitPacker64;
 import grondag.fermion.bits.BitPacker64.BooleanElement;
 import grondag.fermion.bits.BitPacker64.IntElement;
@@ -44,7 +40,7 @@ public abstract class RenderMaterialImpl extends RenderMaterialKey {
 	private static final BitPacker64<RenderMaterialImpl> BITPACKER_1 = new BitPacker64<>(m -> m.bits1, (m, b) -> m.bits1 = b);
 
 	public static final int MAX_SPRITE_DEPTH = 3;
-	private static final BlendMode[] LAYERS = new BlendMode[4];
+	static final BlendMode[] LAYERS = new BlendMode[4];
 
 	static {
 		final BlendMode[] layers = BlendMode.values();
@@ -74,9 +70,9 @@ public abstract class RenderMaterialImpl extends RenderMaterialKey {
 	private static final BitPacker64<RenderMaterialImpl>.IntElement SPRITE_DEPTH;
 
 	@SuppressWarnings("unchecked")
-	private static final BitPacker64<RenderMaterialImpl>.IntElement [] SHADERS = new IntElement[MAX_SPRITE_DEPTH];
+	static final BitPacker64<RenderMaterialImpl>.IntElement [] SHADERS = new IntElement[MAX_SPRITE_DEPTH];
 
-	private static final BitPacker64<RenderMaterialImpl>.IntElement CONDITION;
+	static final BitPacker64<RenderMaterialImpl>.IntElement CONDITION;
 
 	private static final long DEFAULT_BITS_0;
 	private static final long DEFAULT_BITS_1;
@@ -124,7 +120,7 @@ public abstract class RenderMaterialImpl extends RenderMaterialKey {
 		SHADER_FLAGS_DISABLE_AO = (int)aoDisableBits;
 	}
 
-	public static RenderMaterialImpl.CompositeMaterial byIndex(int index) {
+	public static CompositeMaterial byIndex(int index) {
 		assert index < LIST.size();
 		assert index >= 0;
 
@@ -159,172 +155,13 @@ public abstract class RenderMaterialImpl extends RenderMaterialKey {
 		return FLAGS[AO_INDEX_START + spriteIndex].getValue(this);
 	}
 
-	public static class CompositeMaterial extends RenderMaterialImpl implements RenderMaterial {
-		private final int index;
-
-		private final MaterialConditionImpl condition;
-
-		/**
-		 * True if base layer is translucent.
-		 */
-		public final boolean isTranslucent;
-
-		private final CompositeMaterial[] blendModeVariants = new CompositeMaterial[4];
-
-		private final DrawableMaterial[] drawables = new DrawableMaterial[MAX_SPRITE_DEPTH];
-
-		protected CompositeMaterial(int index, long bits0, long bits1) {
-			this.index = index;
-			this.bits0 = bits0;
-			this.bits1 = bits1;
-			condition = MaterialConditionImpl.fromIndex(CONDITION.getValue(bits0));
-
-			final BlendMode baseLayer = blendMode();
-
-			if(baseLayer == BlendMode.SOLID) {
-				isTranslucent = false;
-			} else {
-				isTranslucent = (baseLayer == BlendMode.TRANSLUCENT);
-			}
-		}
-
-		private static final ThreadLocal<Finder> variantFinder = ThreadLocal.withInitial(Finder::new);
-
-		private void setupVariants() {
-			final boolean needsBlendModeVariant = blendMode() == BlendMode.DEFAULT;
-
-			final int depth = spriteDepth();
-
-			final Finder finder = variantFinder.get();
-
-			if(needsBlendModeVariant) {
-				for(int i = 0; i < 4; i++) {
-					final BlendMode layer = LAYERS[i];
-
-					assert layer != BlendMode.DEFAULT;
-
-					finder.bits0 = bits0;
-					finder.bits1 = bits1;
-
-					if(finder.blendMode() == BlendMode.DEFAULT) {
-						finder.blendMode(layer);
-					}
-
-					blendModeVariants[i] = finder.findInternal(true);
-
-					assert blendModeVariants[i].blendMode() !=  BlendMode.DEFAULT;
-				}
-			} else {
-				// we are a renderable material, so set up control flags needed by shader
-				for(int i = 0; i < 4; i++) {
-					blendModeVariants[i] = this;
-				}
-
-				drawables[0] = new DrawableMaterial(0);
-
-				if (depth > 1) {
-					drawables[1] = new DrawableMaterial(1);
-
-					if (depth > 2) {
-						drawables[2] = new DrawableMaterial(2);
-					}
-				}
-			}
-		}
-
-		/**
-		 * If this material has one or more null blend modes, this returns
-		 * a material with any such blend modes set to the given input. Typically
-		 * this is only used for vanilla default materials that derive their
-		 * blend mode from the block render layer, but it is also possible to
-		 * specify materials with null blend modes to achieve the same behavior.<p>
-		 *
-		 * If a non-null blend mode is specified for every sprite layer, this
-		 * will always return the current instance.<p>
-		 *
-		 * We need shader flags to accurately reflect the effective blend mode
-		 * and we need that to be fast, and we also want the buffering logic to
-		 * remain simple.  This solves all those problems.<p>
-		 */
-		public CompositeMaterial forBlendMode(int modeIndex) {
-			assert blendModeVariants[modeIndex - 1].blendMode() != BlendMode.DEFAULT;
-			return blendModeVariants[modeIndex - 1];
-		}
-
-		/**
-		 * Returns a single-layer material appropriate for the base layer or overlay/decal layer given.
-		 * @param spriteIndex
-		 * @return
-		 */
-		public @Nullable DrawableMaterial forDepth(int spriteIndex) {
-			assert spriteIndex < spriteDepth();
-			return drawables[spriteIndex];
-		}
-
-		public int index() {
-			return index;
-		}
-
-		public class DrawableMaterial {
-			public final int shaderFlags;
-			public final ShaderPass shaderType;
-			public final int drawbleMaterialIndex;
-			private final MaterialShaderImpl shader;
-
-			public DrawableMaterial(int depth) {
-				drawbleMaterialIndex = (index << 2) | depth;
-
-				// determine how to buffer
-				if (depth == 0) {
-					shaderType = blendMode() == BlendMode.TRANSLUCENT ? ShaderPass.TRANSLUCENT : ShaderPass.SOLID;
-				} else {
-					// +1 layers with cutout are expected to not share pixels with lower layers! Otherwise Z-fighting over overwrite will happen
-					// anything other than cutout handled as non-sorting, no-depth translucent decal
-					shaderType = blendMode() == BlendMode.CUTOUT || blendMode() == BlendMode.CUTOUT_MIPPED ? ShaderPass.SOLID : ShaderPass.DECAL;
-				}
-
-				shader = MaterialShaderManager.INSTANCE.get(SHADERS[depth].getValue(bits1));
-				int flags = emissive(depth) ? 1 : 0;
-
-				if (disableDiffuse(depth)) {
-					flags |= 2;
-				}
-
-				if (disableAo(depth)) {
-					flags |= 4;
-				}
-
-				switch(blendMode()) {
-				case CUTOUT:
-					flags |= 16; // disable LOD
-					//$FALL-THROUGH$
-				case CUTOUT_MIPPED:
-					flags |= 8; // cutout
-					break;
-				default:
-					break;
-				}
-
-				shaderFlags = flags;
-			}
-
-			public MaterialShaderImpl shader() {
-				return shader;
-			}
-
-			public MaterialConditionImpl condition() {
-				return condition;
-			}
-		}
-	}
-
 	public static class Finder extends RenderMaterialImpl implements MaterialFinder {
 		@Override
 		public CompositeMaterial find() {
 			return findInternal(true);
 		}
 
-		private synchronized CompositeMaterial findInternal(boolean setupVariants) {
+		synchronized CompositeMaterial findInternal(boolean setupVariants) {
 			CompositeMaterial result = MAP.get(this);
 
 			if (result == null) {

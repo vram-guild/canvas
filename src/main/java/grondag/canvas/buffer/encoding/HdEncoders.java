@@ -5,9 +5,8 @@ import static grondag.canvas.buffer.encoding.EncoderUtils.colorizeQuad;
 
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 
-import grondag.canvas.apiimpl.RenderMaterialImpl;
-import grondag.canvas.apiimpl.RenderMaterialImpl.CompositeMaterial;
-import grondag.canvas.apiimpl.RenderMaterialImpl.CompositeMaterial.DrawableMaterial;
+import grondag.canvas.apiimpl.CompositeMaterial;
+import grondag.canvas.apiimpl.DrawableMaterial;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.rendercontext.AbstractRenderContext;
 import grondag.canvas.light.LightmapHd;
@@ -56,7 +55,7 @@ public abstract class HdEncoders {
 		final Matrix4fExt matrix = (Matrix4fExt)(Object) context.matrix();
 		final Matrix3fExt normalMatrix = context.normalMatrix();
 		final float[] aoData = quad.ao;
-		final RenderMaterialImpl.CompositeMaterial mat = quad.material();
+		final CompositeMaterial mat = quad.material();
 		final DrawableMaterial mat0 = mat.forDepth(0);
 		final VertexCollectorImpl buff0  = context.collectors.get(MaterialContext.TERRAIN, mat0);
 		final int[] appendData = context.appendData;

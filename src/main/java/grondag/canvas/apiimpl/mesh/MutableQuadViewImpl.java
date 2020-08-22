@@ -39,6 +39,7 @@ import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
 import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 
 import grondag.canvas.apiimpl.Canvas;
+import grondag.canvas.apiimpl.CompositeMaterial;
 import grondag.canvas.apiimpl.RenderMaterialImpl;
 import grondag.canvas.apiimpl.util.GeometryHelper;
 import grondag.canvas.apiimpl.util.NormalHelper;
@@ -93,7 +94,7 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 			material = Canvas.MATERIAL_STANDARD;
 		}
 
-		data[baseIndex + HEADER_MATERIAL] = ((RenderMaterialImpl.CompositeMaterial)material).index();
+		data[baseIndex + HEADER_MATERIAL] = ((CompositeMaterial)material).index();
 
 		assert RenderMaterialImpl.byIndex(data[baseIndex + HEADER_MATERIAL]) == material;
 
