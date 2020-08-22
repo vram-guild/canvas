@@ -6,7 +6,7 @@ import net.minecraft.client.render.VertexConsumer;
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 
 import grondag.canvas.Configurator;
-import grondag.canvas.apiimpl.material.CompositeMaterial;
+import grondag.canvas.apiimpl.material.MeshMaterial;
 import grondag.canvas.apiimpl.material.MeshMaterialLayer;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.rendercontext.AbstractRenderContext;
@@ -24,7 +24,7 @@ abstract class EncoderUtils {
 		final Matrix4fExt matrix = (Matrix4fExt)(Object) context.matrix();
 		final int overlay = context.overlay();
 		final Matrix3fExt normalMatrix = context.normalMatrix();
-		final VertexConsumer buff = context.consumer(quad.material().forDepth(0));
+		final VertexConsumer buff = context.consumer(quad.material().get().getLayer(0));
 
 		int packedNormal = 0;
 		float nx = 0, ny = 0, nz = 0;
@@ -74,9 +74,9 @@ abstract class EncoderUtils {
 		final Matrix4fExt matrix = (Matrix4fExt)(Object) context.matrix();
 		final int overlay = context.overlay();
 		final Matrix3fExt normalMatrix = context.normalMatrix();
-		final CompositeMaterial mat = quad.material();
-		final VertexConsumer buff1  = context.consumer(mat.forDepth(0));
-		final VertexConsumer buff2  = context.consumer(mat.forDepth(1));
+		final MeshMaterial mat = quad.material().get();
+		final VertexConsumer buff1  = context.consumer(mat.getLayer(0));
+		final VertexConsumer buff2  = context.consumer(mat.getLayer(1));
 
 		final float nx0, ny0, nz0;
 		final float nx1, ny1, nz1;
@@ -237,10 +237,10 @@ abstract class EncoderUtils {
 		final Matrix4fExt matrix = (Matrix4fExt)(Object) context.matrix();
 		final int overlay = context.overlay();
 		final Matrix3fExt normalMatrix = context.normalMatrix();
-		final CompositeMaterial mat = quad.material();
-		final VertexConsumer buff1 = context.consumer(mat.forDepth(0));
-		final VertexConsumer buff2 = context.consumer(mat.forDepth(1));
-		final VertexConsumer buff3 = context.consumer(mat.forDepth(2));
+		final MeshMaterial mat = quad.material().get();
+		final VertexConsumer buff1 = context.consumer(mat.getLayer(0));
+		final VertexConsumer buff2 = context.consumer(mat.getLayer(1));
+		final VertexConsumer buff3 = context.consumer(mat.getLayer(2));
 
 		final float nx0, ny0, nz0;
 		final float nx1, ny1, nz1;
@@ -467,8 +467,8 @@ abstract class EncoderUtils {
 		final Matrix4fExt matrix = (Matrix4fExt)(Object) context.matrix();
 		final Matrix3fExt normalMatrix = context.normalMatrix();
 		final float[] aoData = quad.ao;
-		final CompositeMaterial mat = quad.material();
-		final MeshMaterialLayer mat0 = mat.forDepth(0);
+		final MeshMaterial mat = quad.material().get();
+		final MeshMaterialLayer mat0 = mat.getLayer(0);
 		final VertexCollectorImpl buff0  = context.collectors.get(MaterialContext.TERRAIN, mat0);
 		final int[] appendData = context.appendData;
 		final SpriteInfoTexture spriteInfo = SpriteInfoTexture.instance();
@@ -527,8 +527,8 @@ abstract class EncoderUtils {
 	static void bufferQuadDirect2(MutableQuadViewImpl quad, AbstractRenderContext context) {
 		final Matrix4fExt matrix = (Matrix4fExt)(Object) context.matrix();
 		final Matrix3fExt normalMatrix = context.normalMatrix();
-		final CompositeMaterial mat = quad.material();
-		final MeshMaterialLayer mat0 = mat.forDepth(0);
+		final MeshMaterial mat = quad.material().get();
+		final MeshMaterialLayer mat0 = mat.getLayer(0);
 		final VertexCollectorImpl buff0  = context.collectors.get(MaterialContext.TERRAIN, mat0);
 		final int shaderFlags0 = mat0.shaderFlags << 16;
 		final SpriteInfoTexture spriteInfo = SpriteInfoTexture.instance();
@@ -600,7 +600,7 @@ abstract class EncoderUtils {
 
 		buff0.add(appendData, 32);
 
-		final MeshMaterialLayer mat1 = mat.forDepth(1);
+		final MeshMaterialLayer mat1 = mat.getLayer(1);
 		final VertexCollectorImpl buff1  = context.collectors.get(MaterialContext.TERRAIN, mat1);
 		final int shaderFlags1 = mat1.shaderFlags << 16;
 		final int spriteIdCoord1 =spriteInfo.coordinate(quad.spriteId(1));
@@ -635,10 +635,10 @@ abstract class EncoderUtils {
 	static void bufferQuadDirect3(MutableQuadViewImpl quad, AbstractRenderContext context) {
 		final Matrix4fExt matrix = (Matrix4fExt)(Object) context.matrix();
 		final Matrix3fExt normalMatrix = context.normalMatrix();
-		final CompositeMaterial mat = quad.material();
+		final MeshMaterial mat = quad.material().get();
 		final SpriteInfoTexture spriteInfo = SpriteInfoTexture.instance();
 
-		final MeshMaterialLayer mat0 = mat.forDepth(0);
+		final MeshMaterialLayer mat0 = mat.getLayer(0);
 		final VertexCollectorImpl buff0  = context.collectors.get(MaterialContext.TERRAIN, mat0);
 		final int shaderFlags0 = mat0.shaderFlags << 16;
 
@@ -710,7 +710,7 @@ abstract class EncoderUtils {
 
 		buff0.add(appendData, 32);
 
-		final MeshMaterialLayer mat1 = mat.forDepth(1);
+		final MeshMaterialLayer mat1 = mat.getLayer(1);
 		final VertexCollectorImpl buff1  = context.collectors.get(MaterialContext.TERRAIN, mat1);
 		final int shaderFlags1 = mat1.shaderFlags << 16;
 		final int spriteIdCoord1 = spriteInfo.coordinate(quad.spriteId(1));
@@ -741,7 +741,7 @@ abstract class EncoderUtils {
 
 		buff1.add(appendData, 32);
 
-		final MeshMaterialLayer mat2 = mat.forDepth(2);
+		final MeshMaterialLayer mat2 = mat.getLayer(2);
 		final VertexCollectorImpl buff2  = context.collectors.get(MaterialContext.TERRAIN, mat2);
 		final int shaderFlags2 = mat2.shaderFlags << 16;
 		final int spriteIdCoord2 = spriteInfo.coordinate(quad.spriteId(2));

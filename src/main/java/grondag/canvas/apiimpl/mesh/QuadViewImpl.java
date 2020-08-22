@@ -46,8 +46,8 @@ import net.fabricmc.fabric.api.renderer.v1.mesh.MutableQuadView;
 import net.fabricmc.fabric.api.renderer.v1.mesh.QuadView;
 import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 
-import grondag.canvas.apiimpl.material.CompositeMaterial;
-import grondag.canvas.apiimpl.material.RenderMaterialImpl;
+import grondag.canvas.apiimpl.material.MeshMaterialLocator;
+import grondag.canvas.apiimpl.material.AbstractMeshMaterial;
 import grondag.canvas.apiimpl.util.GeometryHelper;
 import grondag.canvas.apiimpl.util.NormalHelper;
 import grondag.canvas.mixinterface.Matrix4fExt;
@@ -174,8 +174,8 @@ public class QuadViewImpl implements QuadView {
 	}
 
 	@Override
-	public final CompositeMaterial material() {
-		return RenderMaterialImpl.byIndex(data[baseIndex + HEADER_MATERIAL]);
+	public final MeshMaterialLocator material() {
+		return AbstractMeshMaterial.byIndex(data[baseIndex + HEADER_MATERIAL]);
 	}
 
 	@Override

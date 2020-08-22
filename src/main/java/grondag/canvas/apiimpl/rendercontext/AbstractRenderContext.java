@@ -38,7 +38,7 @@ import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
 import net.fabricmc.fabric.api.renderer.v1.model.SpriteFinder;
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 
-import grondag.canvas.apiimpl.material.CompositeMaterial;
+import grondag.canvas.apiimpl.material.MeshMaterialLocator;
 import grondag.canvas.apiimpl.material.MeshMaterialLayer;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.buffer.encoding.VertexCollectorList;
@@ -199,7 +199,7 @@ public abstract class AbstractRenderContext implements RenderContext {
 		mapMaterials(quad);
 
 		if (transform(quad) && cullTest(quad)) {
-			final CompositeMaterial mat = quad.material().forBlendMode(defaultBlendModeIndex());
+			final MeshMaterialLocator mat = quad.material().withDefaultBlendMode(defaultBlendModeIndex());
 			quad.material(mat);
 			VertexEncoders.get(materialContext(), mat).encodeQuad(quad, this);
 		}

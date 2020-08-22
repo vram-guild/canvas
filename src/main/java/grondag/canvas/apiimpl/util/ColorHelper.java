@@ -20,7 +20,7 @@ import java.nio.ByteOrder;
 
 import it.unimi.dsi.fastutil.ints.Int2IntFunction;
 
-import grondag.canvas.apiimpl.material.RenderMaterialImpl;
+import grondag.canvas.apiimpl.material.AbstractMeshMaterial;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 
 /**
@@ -144,7 +144,7 @@ public abstract class ColorHelper {
 	}
 
 	public static void colorizeQuad(MutableQuadViewImpl quad, int color) {
-		final RenderMaterialImpl mat = quad.material();
+		final AbstractMeshMaterial mat = quad.material();
 		final int depth = mat.spriteDepth();
 		int flags = 0;
 

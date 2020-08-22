@@ -7,40 +7,41 @@ import grondag.canvas.shader.MaterialShaderManager;
 import grondag.canvas.shader.ShaderPass;
 
 /**
- * Describes a single layer of a mesh material and all of the information
+ * Describes a single layer of a mesh material, containing all of the information
  * needed to buffer and draw that layer.  Analogous to vanilla RenderLayer.
- *
  */
 public class MeshMaterialLayer {
-	private final CompositeMaterial compositeMaterial;
+	private final MeshMaterial meshMaterial;
 	public final int shaderFlags;
 	public final ShaderPass shaderType;
 	private final MaterialShaderImpl shader;
 
-	public MeshMaterialLayer(CompositeMaterial compositeMaterial, int depth) {
-		this.compositeMaterial = compositeMaterial;
+	public MeshMaterialLayer(MeshMaterial meshMaterial, int depth) {
+		this.meshMaterial = meshMaterial;
 
 		// determine how to buffer
 		if (depth == 0) {
-			shaderType = this.compositeMaterial.blendMode() == BlendMode.TRANSLUCENT ? ShaderPass.TRANSLUCENT : ShaderPass.SOLID;
+			shaderType = this.meshMaterial.blendMode() == BlendMode.TRANSLUCENT ? ShaderPass.TRANSLUCENT : ShaderPass.SOLID;
 		} else {
 			// +1 layers with cutout are expected to not share pixels with lower layers! Otherwise Z-fighting over overwrite will happen
 			// anything other than cutout handled as non-sorting, no-depth translucent decal
-			shaderType = this.compositeMaterial.blendMode() == BlendMode.CUTOUT || this.compositeMaterial.blendMode() == BlendMode.CUTOUT_MIPPED ? ShaderPass.SOLID : ShaderPass.DECAL;
+
+			// FIX: should be reading layer-specific blend mode, no?
+			shaderType = this.meshMaterial.blendMode() == BlendMode.CUTOUT || this.meshMaterial.blendMode() == BlendMode.CUTOUT_MIPPED ? ShaderPass.SOLID : ShaderPass.DECAL;
 		}
 
-		shader = MaterialShaderManager.INSTANCE.get(CompositeMaterial.SHADERS[depth].getValue(this.compositeMaterial.bits1));
-		int flags = this.compositeMaterial.emissive(depth) ? 1 : 0;
+		shader = MaterialShaderManager.INSTANCE.get(MeshMaterialLocator.SHADERS[depth].getValue(this.meshMaterial.bits1));
+		int flags = this.meshMaterial.emissive(depth) ? 1 : 0;
 
-		if (this.compositeMaterial.disableDiffuse(depth)) {
+		if (this.meshMaterial.disableDiffuse(depth)) {
 			flags |= 2;
 		}
 
-		if (this.compositeMaterial.disableAo(depth)) {
+		if (this.meshMaterial.disableAo(depth)) {
 			flags |= 4;
 		}
 
-		switch(this.compositeMaterial.blendMode()) {
+		switch(this.meshMaterial.blendMode()) {
 		case CUTOUT:
 			flags |= 16; // disable LOD
 			//$FALL-THROUGH$
@@ -59,6 +60,6 @@ public class MeshMaterialLayer {
 	}
 
 	public MaterialConditionImpl condition() {
-		return compositeMaterial.condition;
+		return meshMaterial.condition;
 	}
 }

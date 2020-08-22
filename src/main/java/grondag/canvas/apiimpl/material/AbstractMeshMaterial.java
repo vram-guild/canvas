@@ -26,9 +26,6 @@ import grondag.canvas.shader.MaterialShaderManager;
 import grondag.fermion.bits.BitPacker64;
 import grondag.fermion.bits.BitPacker64.BooleanElement;
 import grondag.fermion.bits.BitPacker64.IntElement;
-import grondag.frex.api.material.MaterialCondition;
-import grondag.frex.api.material.MaterialFinder;
-import grondag.frex.api.material.MaterialShader;
 
 /**
 
@@ -36,9 +33,9 @@ import grondag.frex.api.material.MaterialShader;
  Ideally shaders should not be context sensitive - contexts should instead expose attributes that shader depends on
 
  */
-public abstract class RenderMaterialImpl extends RenderMaterialKey {
-	private static final BitPacker64<RenderMaterialImpl> BITPACKER_0 = new BitPacker64<>(m -> m.bits0, (m, b) -> m.bits0 = b);
-	private static final BitPacker64<RenderMaterialImpl> BITPACKER_1 = new BitPacker64<>(m -> m.bits1, (m, b) -> m.bits1 = b);
+public abstract class AbstractMeshMaterial extends MeshMaterialKey {
+	private static final BitPacker64<AbstractMeshMaterial> BITPACKER_0 = new BitPacker64<>(m -> m.bits0, (m, b) -> m.bits0 = b);
+	private static final BitPacker64<AbstractMeshMaterial> BITPACKER_1 = new BitPacker64<>(m -> m.bits1, (m, b) -> m.bits1 = b);
 
 	public static final int MAX_SPRITE_DEPTH = 3;
 	static final BlendMode[] LAYERS = new BlendMode[4];
@@ -58,28 +55,28 @@ public abstract class RenderMaterialImpl extends RenderMaterialKey {
 	// efficiently access flags based on sprite layer. "_START"
 	// index is the flag for sprite layer 0, with additional layers
 	// offset additively by sprite index.
-	private static final int EMISSIVE_INDEX_START = 0;
-	private static final int DIFFUSE_INDEX_START = EMISSIVE_INDEX_START + MAX_SPRITE_DEPTH;
-	private static final int AO_INDEX_START = DIFFUSE_INDEX_START + MAX_SPRITE_DEPTH;
-	private static final int COLOR_DISABLE_INDEX_START = AO_INDEX_START + MAX_SPRITE_DEPTH;
+	static final int EMISSIVE_INDEX_START = 0;
+	static final int DIFFUSE_INDEX_START = EMISSIVE_INDEX_START + MAX_SPRITE_DEPTH;
+	static final int AO_INDEX_START = DIFFUSE_INDEX_START + MAX_SPRITE_DEPTH;
+	static final int COLOR_DISABLE_INDEX_START = AO_INDEX_START + MAX_SPRITE_DEPTH;
 
 	@SuppressWarnings("unchecked")
-	private static final BitPacker64<RenderMaterialImpl>.BooleanElement[] FLAGS = new BooleanElement[COLOR_DISABLE_INDEX_START + MAX_SPRITE_DEPTH];
+	static final BitPacker64<AbstractMeshMaterial>.BooleanElement[] FLAGS = new BooleanElement[COLOR_DISABLE_INDEX_START + MAX_SPRITE_DEPTH];
 
-	private static final BitPacker64<RenderMaterialImpl>.EnumElement<BlendMode> BLEND_MODE;
+	static final BitPacker64<AbstractMeshMaterial>.EnumElement<BlendMode> BLEND_MODE;
 
-	private static final BitPacker64<RenderMaterialImpl>.IntElement SPRITE_DEPTH;
+	static final BitPacker64<AbstractMeshMaterial>.IntElement SPRITE_DEPTH;
 
 	@SuppressWarnings("unchecked")
-	static final BitPacker64<RenderMaterialImpl>.IntElement [] SHADERS = new IntElement[MAX_SPRITE_DEPTH];
+	static final BitPacker64<AbstractMeshMaterial>.IntElement [] SHADERS = new IntElement[MAX_SPRITE_DEPTH];
 
-	static final BitPacker64<RenderMaterialImpl>.IntElement CONDITION;
+	static final BitPacker64<AbstractMeshMaterial>.IntElement CONDITION;
 
-	private static final long DEFAULT_BITS_0;
+	static final long DEFAULT_BITS_0;
 	private static final long DEFAULT_BITS_1;
 
-	private static final ObjectArrayList<CompositeMaterial> LIST = new ObjectArrayList<>();
-	private static final Object2ObjectOpenHashMap<RenderMaterialKey, CompositeMaterial> MAP = new Object2ObjectOpenHashMap<>();
+	static final ObjectArrayList<MeshMaterialLocator> LIST = new ObjectArrayList<>();
+	static final Object2ObjectOpenHashMap<MeshMaterialKey, MeshMaterialLocator> MAP = new Object2ObjectOpenHashMap<>();
 
 	public static final int SHADER_FLAGS_DISABLE_AO;
 
@@ -121,14 +118,14 @@ public abstract class RenderMaterialImpl extends RenderMaterialKey {
 		SHADER_FLAGS_DISABLE_AO = (int)aoDisableBits;
 	}
 
-	public static CompositeMaterial byIndex(int index) {
+	public static MeshMaterialLocator byIndex(int index) {
 		assert index < LIST.size();
 		assert index >= 0;
 
 		return LIST.get(index);
 	}
 
-	RenderMaterialImpl() {
+	AbstractMeshMaterial() {
 		super(DEFAULT_BITS_0, DEFAULT_BITS_1);
 	}
 
@@ -154,101 +151,5 @@ public abstract class RenderMaterialImpl extends RenderMaterialKey {
 
 	public boolean disableAo(int spriteIndex) {
 		return FLAGS[AO_INDEX_START + spriteIndex].getValue(this);
-	}
-
-	public static class Finder extends RenderMaterialImpl implements MaterialFinder {
-		@Override
-		public CompositeMaterial find() {
-			return findInternal(true);
-		}
-
-		synchronized CompositeMaterial findInternal(boolean setupVariants) {
-			CompositeMaterial result = MAP.get(this);
-
-			if (result == null) {
-				result = new CompositeMaterial(LIST.size(), bits0, bits1);
-				LIST.add(result);
-				MAP.put(new RenderMaterialKey(bits0, bits1), result);
-
-				if (setupVariants) {
-					result.setupVariants();
-				}
-			}
-
-			return result;
-		}
-
-		@Override
-		public Finder clear() {
-			bits0 = DEFAULT_BITS_0;
-			bits1 = DEFAULT_BITS_0;
-			return this;
-		}
-
-		@Deprecated
-		@Override
-		public Finder blendMode(int spriteIndex, BlendMode blendMode) {
-			if (spriteIndex == 0) {
-				if (blendMode == null)  {
-					blendMode = BlendMode.DEFAULT;
-				}
-
-				blendMode(blendMode);
-			}
-
-			return this;
-		}
-
-		@Override
-		public Finder disableColorIndex(int spriteIndex, boolean disable) {
-			FLAGS[COLOR_DISABLE_INDEX_START + spriteIndex].setValue(disable, this);
-			return this;
-		}
-
-		@Override
-		public Finder spriteDepth(int depth) {
-			if (depth < 1 || depth > MAX_SPRITE_DEPTH) {
-				throw new IndexOutOfBoundsException("Invalid sprite depth: " + depth);
-			}
-
-			SPRITE_DEPTH.setValue(depth, this);
-			return this;
-		}
-
-		@Override
-		public Finder emissive(int spriteIndex, boolean isEmissive) {
-			FLAGS[EMISSIVE_INDEX_START + spriteIndex].setValue(isEmissive, this);
-			return this;
-		}
-
-		@Override
-		public Finder disableDiffuse(int spriteIndex, boolean disable) {
-			FLAGS[DIFFUSE_INDEX_START + spriteIndex].setValue(disable, this);
-			return this;
-		}
-
-		@Override
-		public Finder disableAo(int spriteIndex, boolean disable) {
-			FLAGS[AO_INDEX_START + spriteIndex].setValue(disable, this);
-			return this;
-		}
-
-		@Override
-		public Finder shader(int spriteIndex, MaterialShader shader) {
-			SHADERS[spriteIndex].setValue(((MaterialShaderImpl) shader).getIndex(), this);
-			return this;
-		}
-
-		@Override
-		public Finder condition(MaterialCondition condition) {
-			CONDITION.setValue(((MaterialConditionImpl)condition).index, this);
-			return this;
-		}
-
-		@Override
-		public Finder blendMode(BlendMode blendMode) {
-			BLEND_MODE.setValue(blendMode, this);
-			return this;
-		}
 	}
 }

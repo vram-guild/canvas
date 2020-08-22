@@ -21,7 +21,7 @@ import com.google.common.base.Preconditions;
 import net.fabricmc.fabric.api.renderer.v1.mesh.QuadView;
 import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 
-import grondag.canvas.apiimpl.material.RenderMaterialImpl;
+import grondag.canvas.apiimpl.material.AbstractMeshMaterial;
 
 /**
  * Holds all the array offsets and bit-wise encoders/decoders for
@@ -96,7 +96,7 @@ public abstract class MeshEncodingHelper {
 		TEXTURE_OFFSET_MINUS = MIN_QUAD_STRIDE - TEXTURE_QUAD_STRIDE;
 		SECOND_TEXTURE_OFFSET = MIN_QUAD_STRIDE;
 		THIRD_TEXTURE_OFFSET = SECOND_TEXTURE_OFFSET + TEXTURE_QUAD_STRIDE;
-		MAX_QUAD_STRIDE = MIN_QUAD_STRIDE + TEXTURE_QUAD_STRIDE * (RenderMaterialImpl.MAX_SPRITE_DEPTH - 1);
+		MAX_QUAD_STRIDE = MIN_QUAD_STRIDE + TEXTURE_QUAD_STRIDE * (AbstractMeshMaterial.MAX_SPRITE_DEPTH - 1);
 	}
 
 	/** used for quick clearing of quad buffers */

@@ -22,8 +22,9 @@ import static grondag.canvas.material.MaterialContext.TERRAIN;
 import net.minecraft.util.math.MathHelper;
 
 import grondag.canvas.Configurator;
-import grondag.canvas.apiimpl.material.CompositeMaterial;
-import grondag.canvas.apiimpl.material.RenderMaterialImpl;
+import grondag.canvas.apiimpl.material.AbstractMeshMaterial;
+import grondag.canvas.apiimpl.material.MeshMaterial;
+import grondag.canvas.apiimpl.material.MeshMaterialLocator;
 import grondag.canvas.material.MaterialContext;
 import grondag.canvas.material.MaterialState;
 import grondag.canvas.shader.ShaderPass;
@@ -32,10 +33,10 @@ public class VertexEncoders {
 	/**
 	 * Largest possible number of active encoder indices.
 	 */
-	public static final int ENCODER_KEY_SPACE_SIZE = 2 * MathHelper.smallestEncompassingPowerOfTwo(RenderMaterialImpl.MAX_SPRITE_DEPTH)
+	public static final int ENCODER_KEY_SPACE_SIZE = 2 * MathHelper.smallestEncompassingPowerOfTwo(AbstractMeshMaterial.MAX_SPRITE_DEPTH)
 			* MathHelper.smallestEncompassingPowerOfTwo(MaterialContext.values().length);
 
-	private static final int CONTEXT_SHIFT = Integer.bitCount(MathHelper.smallestEncompassingPowerOfTwo(RenderMaterialImpl.MAX_SPRITE_DEPTH) - 1);
+	private static final int CONTEXT_SHIFT = Integer.bitCount(MathHelper.smallestEncompassingPowerOfTwo(AbstractMeshMaterial.MAX_SPRITE_DEPTH) - 1);
 	private static final int TRANSLUCENT_FLAG = ENCODER_KEY_SPACE_SIZE / 2;
 
 	private static VertexEncoder[] ENCODERS = new VertexEncoder[ENCODER_KEY_SPACE_SIZE];
@@ -51,7 +52,8 @@ public class VertexEncoders {
 		return isTranslucent  ? (TRANSLUCENT_FLAG | (context.ordinal() << CONTEXT_SHIFT) | spriteDepth) : ((context.ordinal() << CONTEXT_SHIFT) | spriteDepth);
 	}
 
-	public static VertexEncoder get(MaterialContext context, CompositeMaterial mat) {
+	public static VertexEncoder get(MaterialContext context, MeshMaterialLocator matLocator) {
+		final MeshMaterial mat = matLocator.get();
 		return ENCODERS[lookupIndex(context, mat.spriteDepth(), mat.isTranslucent)];
 	}
 

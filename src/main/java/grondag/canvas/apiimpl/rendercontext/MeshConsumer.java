@@ -21,7 +21,7 @@ import net.fabricmc.fabric.api.renderer.v1.mesh.Mesh;
 import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
 
 import grondag.canvas.apiimpl.Canvas;
-import grondag.canvas.apiimpl.material.RenderMaterialImpl;
+import grondag.canvas.apiimpl.material.AbstractMeshMaterial;
 import grondag.canvas.apiimpl.mesh.MeshEncodingHelper;
 import grondag.canvas.apiimpl.mesh.MeshImpl;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
@@ -68,7 +68,7 @@ public class MeshConsumer implements Consumer<Mesh> {
 		final MutableQuadViewImpl quad = editorQuad;
 
 		while (index < limit) {
-			final int stride = MeshEncodingHelper.stride(RenderMaterialImpl.byIndex(data[index]).spriteDepth());
+			final int stride = MeshEncodingHelper.stride(AbstractMeshMaterial.byIndex(data[index]).spriteDepth());
 			quad.copyAndload(data, index, stride);
 			index += stride;
 			context.renderQuad();

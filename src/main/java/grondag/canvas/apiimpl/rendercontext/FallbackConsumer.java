@@ -28,7 +28,7 @@ import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
 import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 
 import grondag.canvas.apiimpl.Canvas;
-import grondag.canvas.apiimpl.material.CompositeMaterial;
+import grondag.canvas.apiimpl.material.MeshMaterialLocator;
 import grondag.canvas.apiimpl.mesh.MeshEncodingHelper;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.util.FaceConstants;
@@ -54,10 +54,10 @@ import grondag.canvas.buffer.encoding.VertexEncoders;
  *  manipulating the data via NIO.
  */
 public class FallbackConsumer implements Consumer<BakedModel> {
-	protected static CompositeMaterial MATERIAL_FLAT = Canvas.INSTANCE.materialFinder().disableDiffuse(0, true).disableAo(0, true).find();
-	protected static CompositeMaterial MATERIAL_SHADED = Canvas.INSTANCE.materialFinder().disableAo(0, true).find();
-	protected static CompositeMaterial MATERIAL_AO_FLAT = Canvas.INSTANCE.materialFinder().disableDiffuse(0, true).find();
-	protected static CompositeMaterial MATERIAL_AO_SHADED = Canvas.INSTANCE.materialFinder().find();
+	protected static MeshMaterialLocator MATERIAL_FLAT = Canvas.INSTANCE.materialFinder().disableDiffuse(0, true).disableAo(0, true).find();
+	protected static MeshMaterialLocator MATERIAL_SHADED = Canvas.INSTANCE.materialFinder().disableAo(0, true).find();
+	protected static MeshMaterialLocator MATERIAL_AO_FLAT = Canvas.INSTANCE.materialFinder().disableDiffuse(0, true).find();
+	protected static MeshMaterialLocator MATERIAL_AO_SHADED = Canvas.INSTANCE.materialFinder().find();
 
 	protected final AbstractRenderContext context;
 
@@ -124,7 +124,7 @@ public class FallbackConsumer implements Consumer<BakedModel> {
 		}
 	}
 
-	private void renderQuad(BakedQuad quad, int cullFaceId, CompositeMaterial defaultMaterial) {
+	private void renderQuad(BakedQuad quad, int cullFaceId, MeshMaterialLocator defaultMaterial) {
 		final MutableQuadViewImpl editorQuad = this.editorQuad;
 		final int[] editorBuffer = this.editorBuffer;
 
@@ -146,7 +146,7 @@ public class FallbackConsumer implements Consumer<BakedModel> {
 
 		editorQuad.unmapSpritesIfNeeded();
 
-		final CompositeMaterial mat = editorQuad.material().forBlendMode(context.defaultBlendModeIndex());
+		final MeshMaterialLocator mat = editorQuad.material().withDefaultBlendMode(context.defaultBlendModeIndex());
 		editorQuad.material(mat);
 		VertexEncoders.get(context.materialContext(), mat).encodeQuad(editorQuad, context);
 	}

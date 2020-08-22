@@ -1,56 +1,44 @@
 package grondag.canvas.apiimpl.material;
 
-import javax.annotation.Nullable;
-
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 import net.fabricmc.fabric.api.renderer.v1.material.RenderMaterial;
 
-import grondag.canvas.apiimpl.MaterialConditionImpl;
-
 /**
- * Container for ambiguous blend mode variant OR (when blend mod not ambiguous)
- * specific-depth "drawable" materials.
- *
- * WIP: Ugly AF - ditch this somehow
- *
+ * Pointer to a specific mesh material that allows for an ambiguous "default"
+ * blend mode.  If blend mode is ambiguous, then {@link #withDefaultBlendMode(int)}
+ * MUST be called before the mesh material is retrieved with {@link #get()}.
  */
-public class CompositeMaterial extends RenderMaterialImpl implements RenderMaterial {
+public class MeshMaterialLocator extends AbstractMeshMaterial implements RenderMaterial {
 	final int index;
 
-	final MaterialConditionImpl condition;
+	private final MeshMaterialLocator[] blendModeVariants = new MeshMaterialLocator[4];
+	private final MeshMaterial material;
 
-	/**
-	 * True if base layer is translucent.
-	 */
-	public final boolean isTranslucent;
-
-	private final CompositeMaterial[] blendModeVariants = new CompositeMaterial[4];
-
-	private final MeshMaterialLayer[] drawables = new MeshMaterialLayer[MAX_SPRITE_DEPTH];
-
-	protected CompositeMaterial(int index, long bits0, long bits1) {
+	protected MeshMaterialLocator(int index, long bits0, long bits1) {
 		this.index = index;
 		this.bits0 = bits0;
 		this.bits1 = bits1;
-		condition = MaterialConditionImpl.fromIndex(CONDITION.getValue(bits0));
 
 		final BlendMode baseLayer = blendMode();
-
-		if(baseLayer == BlendMode.SOLID) {
-			isTranslucent = false;
-		} else {
-			isTranslucent = (baseLayer == BlendMode.TRANSLUCENT);
-		}
+		material = baseLayer == BlendMode.DEFAULT ? null : new MeshMaterial(this);
 	}
 
-	private static final ThreadLocal<Finder> variantFinder = ThreadLocal.withInitial(Finder::new);
+	/**
+	 * Get mesh material with specific blend mode. If this locator has a default blend mode
+	 * then will return null (and code will fail). Call {@link #withDefaultBlendMode(int)} and
+	 * call this on the result.
+	 */
+	public MeshMaterial get() {
+		assert material != null : "Attempt to get mesh material for default blend mode.";
+		return material;
+	}
+
+	private static final ThreadLocal<MeshMaterialFinder> variantFinder = ThreadLocal.withInitial(MeshMaterialFinder::new);
 
 	void setupVariants() {
 		final boolean needsBlendModeVariant = blendMode() == BlendMode.DEFAULT;
 
-		final int depth = spriteDepth();
-
-		final Finder finder = variantFinder.get();
+		final MeshMaterialFinder finder = variantFinder.get();
 
 		if(needsBlendModeVariant) {
 			for(int i = 0; i < 4; i++) {
@@ -70,19 +58,8 @@ public class CompositeMaterial extends RenderMaterialImpl implements RenderMater
 				assert blendModeVariants[i].blendMode() !=  BlendMode.DEFAULT;
 			}
 		} else {
-			// we are a renderable material, so set up control flags needed by shader
 			for(int i = 0; i < 4; i++) {
 				blendModeVariants[i] = this;
-			}
-
-			drawables[0] = new MeshMaterialLayer(this, 0);
-
-			if (depth > 1) {
-				drawables[1] = new MeshMaterialLayer(this, 1);
-
-				if (depth > 2) {
-					drawables[2] = new MeshMaterialLayer(this, 2);
-				}
 			}
 		}
 	}
@@ -101,19 +78,9 @@ public class CompositeMaterial extends RenderMaterialImpl implements RenderMater
 	 * and we need that to be fast, and we also want the buffering logic to
 	 * remain simple.  This solves all those problems.<p>
 	 */
-	public CompositeMaterial forBlendMode(int modeIndex) {
+	public MeshMaterialLocator withDefaultBlendMode(int modeIndex) {
 		assert blendModeVariants[modeIndex - 1].blendMode() != BlendMode.DEFAULT;
 		return blendModeVariants[modeIndex - 1];
-	}
-
-	/**
-	 * Returns a single-layer material appropriate for the base layer or overlay/decal layer given.
-	 * @param spriteIndex
-	 * @return
-	 */
-	public @Nullable MeshMaterialLayer forDepth(int spriteIndex) {
-		assert spriteIndex < spriteDepth();
-		return drawables[spriteIndex];
 	}
 
 	public int index() {
