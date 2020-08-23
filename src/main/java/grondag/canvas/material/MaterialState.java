@@ -9,22 +9,7 @@ import grondag.canvas.shader.MaterialShaderManager;
 import grondag.canvas.shader.ShaderPass;
 import grondag.fermion.bits.BitPacker32;
 
-/**
-   WIP: simplify - make parallel to RenderLayer
-
-   state with same shader and same quad sorting (yes or no) can share the same buffer/collector
-   there are three types of buffer/shader sharing
-
-   1 - gl state changes required
-   2 - uniform changes
-   3 - vertex data control
-
-   For the first two types, buffer data must be segregated by material state
-
-   When the material requires sorted translucency, then only type 3 is allowed (vertex data)
-
-   Relationship between this, render material and shaders must be simplified and made consistent with above
- */
+//   WIP: replace with MaterialDrawState
 
 
 public class MaterialState {

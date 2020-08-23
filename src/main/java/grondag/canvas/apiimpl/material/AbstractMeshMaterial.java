@@ -27,12 +27,6 @@ import grondag.fermion.bits.BitPacker64;
 import grondag.fermion.bits.BitPacker64.BooleanElement;
 import grondag.fermion.bits.BitPacker64.IntElement;
 
-/**
-
- WIP Needs to be parallel to RenderLayer and also have a simpler mapping to material state and shaders
- Ideally shaders should not be context sensitive - contexts should instead expose attributes that shader depends on
-
- */
 public abstract class AbstractMeshMaterial extends MeshMaterialKey {
 	private static final BitPacker64<AbstractMeshMaterial> BITPACKER_0 = new BitPacker64<>(m -> m.bits0, (m, b) -> m.bits0 = b);
 	private static final BitPacker64<AbstractMeshMaterial> BITPACKER_1 = new BitPacker64<>(m -> m.bits1, (m, b) -> m.bits1 = b);

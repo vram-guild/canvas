@@ -31,6 +31,8 @@ public class MeshMaterialLayer {
 		}
 
 		shader = MaterialShaderManager.INSTANCE.get(MeshMaterialLocator.SHADERS[depth].getValue(this.meshMaterial.bits1));
+
+		// WIP: flags get conveyed via MaterialVertexState instead
 		int flags = this.meshMaterial.emissive(depth) ? 1 : 0;
 
 		if (this.meshMaterial.disableDiffuse(depth)) {

@@ -3,6 +3,8 @@ package grondag.canvas.material;
 /**
  * Describes the type of render context
  * and controls how materials are packed to buffers.
+ *
+ * WIP: still needed?
  */
 public enum EncodingContext {
 	TERRAIN(true, false, false),

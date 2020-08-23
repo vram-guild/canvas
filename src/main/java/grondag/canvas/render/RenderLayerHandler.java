@@ -45,17 +45,23 @@ public enum RenderLayerHandler {
 		// for item/block controls mipped or non-mipped
 		// can also be non-textured - for non-textured probably best to stay with fixed pipeline for now
 		//		final boolean hasTexture = params.getTexture() != RenderPhase.NO_TEXTURE;
+		//
+		// mipped -> MaterialVertexState
+		// texture binding -> MaterialGlState
 
 		//transparency
 		// shader probably doesn't care but would be useful to expose different types in material builder
 		//		final boolean hasTranslucent = params.getTransparency() !=  RenderPhase.NO_TRANSPARENCY;
-
+		//
+		// -> MaterialGlState
 
 		//diffuseLighting
 		// when active, lighting will need to be applied in the shader
 		// light setup is different for in-world (and varies by dimension) and GUI contexts.
 		// see DiffuseLighting and the calls it makes to RenderSystem for details
 		//		final boolean enableDiffuse = params.getDiffuseLighting() == RenderPhase.ENABLE_DIFFUSE_LIGHTING;
+		//
+		// -> MaterialVertexState
 
 		//shadeModel
 		// not applicable in core profile but still seems to disable interpolation in 2.1
@@ -63,20 +69,30 @@ public enum RenderLayerHandler {
 		// should work as-is?
 		// need to handle if/when consolidating non-terrain passes
 		//		final boolean isFlat = params.getShadeModel() == RenderPhase.SHADE_MODEL;
+		//
+		// -> MaterialVertexState
 
 		//alpha (AKA cutout)
 		// still works so don't need to handle until we want to consolidate non-terrain render passes
 		// has 50% and 10% cutout variants
+		//
+		// -> MaterialVertexState
 
 		//depthTest
 		// currently no need to handle in shader
+		//
+		// -> MaterialGlState
 
 		//cull
 		// currently no need to handle in shader
+		//
+		// -> MaterialGlState
 
 		//lightmap
 		// true when lightmap texture/application is enabled
 		//		final boolean enableLightmap = params.getLightmap() == RenderPhase.ENABLE_LIGHTMAP;
+		//
+		// -> MaterialGlState
 
 		//overlay
 		// overlay texture is either white flashing (TNT) or a red color (mob damage)
