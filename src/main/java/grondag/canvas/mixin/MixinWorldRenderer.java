@@ -19,7 +19,6 @@ import java.util.SortedSet;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -35,6 +34,7 @@ import net.minecraft.client.gl.ShaderEffect;
 import net.minecraft.client.options.GameOptions;
 import net.minecraft.client.render.BlockBreakingInfo;
 import net.minecraft.client.render.BufferBuilderStorage;
+import net.minecraft.client.render.BuiltChunkStorage;
 import net.minecraft.client.render.Camera;
 import net.minecraft.client.render.FpsSmoother;
 import net.minecraft.client.render.Frustum;
@@ -98,13 +98,8 @@ public class MixinWorldRenderer implements WorldRendererExt {
 		ci.cancel();
 	}
 
-
-	/**
-	 * @reason performance
-	 * @author grondag
-	 */
-	@Overwrite
-	private void scheduleChunkRender(int x, int y, int z, boolean urgent) {
+	@Redirect(method = "scheduleChunkRender", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/BuiltChunkStorage;scheduleRebuild(IIIZ)V"), require = 1)
+	private void onScheduleChunkRender(BuiltChunkStorage storage, int x, int y, int z, boolean urgent) {
 		((CanvasWorldRenderer)(Object) this).scheduleRegionRender(x, y, z, urgent);
 	}
 
