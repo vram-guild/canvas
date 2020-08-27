@@ -10,7 +10,7 @@ public class MaterialGlState {
 		// WIP: cull
 		// WIP: enable lightmap
 
-		private boolean sorted = false;
+		protected boolean sorted = false;
 
 		public Builder sorted(boolean sorted) {
 			this.sorted = sorted;

@@ -19,6 +19,7 @@ package grondag.canvas.apiimpl.util;
 import static net.minecraft.util.math.MathHelper.approximatelyEquals;
 
 import net.minecraft.client.render.model.BakedQuad;
+import net.minecraft.client.render.model.CubeFace.DirectionIds;
 import net.minecraft.client.util.math.Vector3f;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Direction.Axis;
@@ -190,21 +191,21 @@ public abstract class GeometryHelper {
 	 *
 	 * <p>Derived from the quad face normal and expects convex quads with all points co-planar.
 	 */
-	public static Direction lightFace(QuadView quad) {
+	public static int lightFaceId(QuadView quad) {
 		final Vector3f normal = quad.faceNormal();
 		switch (GeometryHelper.longestAxis(normal)) {
 		case X:
-			return normal.getX() > 0 ? Direction.EAST : Direction.WEST;
+			return normal.getX() > 0 ? DirectionIds.EAST : DirectionIds.WEST;
 
 		case Y:
-			return normal.getY() > 0 ? Direction.UP : Direction.DOWN;
+			return normal.getY() > 0 ? DirectionIds.UP : DirectionIds.DOWN;
 
 		case Z:
-			return normal.getZ() > 0 ? Direction.SOUTH : Direction.NORTH;
+			return normal.getZ() > 0 ? DirectionIds.SOUTH : DirectionIds.NORTH;
 
 		default:
 			// handle WTF case
-			return Direction.UP;
+			return DirectionIds.UP;
 		}
 	}
 

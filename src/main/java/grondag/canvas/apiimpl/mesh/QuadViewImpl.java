@@ -46,8 +46,8 @@ import net.fabricmc.fabric.api.renderer.v1.mesh.MutableQuadView;
 import net.fabricmc.fabric.api.renderer.v1.mesh.QuadView;
 import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 
-import grondag.canvas.apiimpl.material.MeshMaterialLocator;
 import grondag.canvas.apiimpl.material.AbstractMeshMaterial;
+import grondag.canvas.apiimpl.material.MeshMaterialLocator;
 import grondag.canvas.apiimpl.util.GeometryHelper;
 import grondag.canvas.apiimpl.util.NormalHelper;
 import grondag.canvas.mixinterface.Matrix4fExt;
@@ -62,7 +62,6 @@ public class QuadViewImpl implements QuadView {
 	protected boolean isGeometryInvalid = true;
 	protected final Vector3f faceNormal = new Vector3f();
 	protected int packedFaceNormal = -1;
-	protected boolean isFaceNormalInvalid = true;
 
 	/** flag true when sprite is assumed to be interpolated and need normalization */
 	protected int spriteMappedFlags = 0;
@@ -92,25 +91,15 @@ public class QuadViewImpl implements QuadView {
 	}
 
 	/**
-	 * Used on vanilla quads or other quads that don't have encoded shape info
-	 * to signal that such should be computed when requested.
-	 */
-	public final void invalidateShape() {
-		isFaceNormalInvalid = true;
-		isGeometryInvalid = true;
-		packedFaceNormal = -1;
-	}
-
-	/**
 	 * Like {@link #load(int[], int)} but assumes array and index already set.
 	 * Only does the decoding part.
 	 */
 	public final void load() {
-		// face normal isn't encoded but geometry flags are
-		isFaceNormalInvalid = true;
-		packedFaceNormal = -1;
 		isGeometryInvalid = false;
 		nominalFaceId = lightFace().ordinal();
+		// face normal isn't encoded
+		NormalHelper.computeFaceNormal(faceNormal, this);
+		packedFaceNormal = -1;
 	}
 
 	/** Reference to underlying array. Use with caution. Meant for fast renderer access */
@@ -141,13 +130,24 @@ public class QuadViewImpl implements QuadView {
 
 	/** gets flags used for lighting - lazily computed via {@link GeometryHelper#computeShapeFlags(QuadView)}. */
 	public int geometryFlags() {
+		computeGeometry();
+		return MeshEncodingHelper.geometryFlags(data[baseIndex + HEADER_BITS]);
+	}
+
+	protected void computeGeometry() {
 		if (isGeometryInvalid) {
 			isGeometryInvalid = false;
-			final int result = GeometryHelper.computeShapeFlags(this);
-			data[baseIndex + HEADER_BITS] = MeshEncodingHelper.geometryFlags(data[baseIndex + HEADER_BITS], result);
-			return result;
-		} else {
-			return MeshEncodingHelper.geometryFlags(data[baseIndex + HEADER_BITS]);
+
+			NormalHelper.computeFaceNormal(faceNormal, this);
+			packedFaceNormal = -1;
+
+			int header = data[baseIndex + HEADER_BITS];
+
+			// depends on face normal
+			header = MeshEncodingHelper.lightFace(header, GeometryHelper.lightFaceId(this));
+
+			// depends on light face
+			data[baseIndex + HEADER_BITS] = MeshEncodingHelper.geometryFlags(header, GeometryHelper.computeShapeFlags(this));
 		}
 	}
 
@@ -189,6 +189,7 @@ public class QuadViewImpl implements QuadView {
 	}
 
 	public final int lightFaceId() {
+		computeGeometry();
 		return MeshEncodingHelper.lightFace(data[baseIndex + HEADER_BITS]);
 	}
 
@@ -215,46 +216,38 @@ public class QuadViewImpl implements QuadView {
 
 	@Override
 	public final Vector3f faceNormal() {
-		if (isFaceNormalInvalid) {
-			NormalHelper.computeFaceNormal(faceNormal, this);
-			isFaceNormalInvalid = false;
-		}
-
+		computeGeometry();
 		return faceNormal;
 	}
 
 	public int packedFaceNormal() {
+		computeGeometry();
 		int result = packedFaceNormal;
+
 		if(result == -1) {
-			result = NormalHelper.packNormal(faceNormal(), 0);
+			result = NormalHelper.packNormal(faceNormal, 0);
 			packedFaceNormal = result;
 		}
+
 		return result;
 	}
 
 	@Override
 	public void copyTo(MutableQuadView target) {
+		// forces geometry compute
+		final int packedNormal = packedFaceNormal();
+
 		final MutableQuadViewImpl quad = (MutableQuadViewImpl) target;
 
 		final int len = Math.min(stride(), quad.stride());
 
-		// copy everything except the header/material
+		// copy everything except the material
 		System.arraycopy(data, baseIndex + 1, quad.data, quad.baseIndex + 1, len - 1);
 		quad.spriteMappedFlags = spriteMappedFlags;
-
-		quad.isFaceNormalInvalid = isFaceNormalInvalid;
-
-		if (!isFaceNormalInvalid) {
-			quad.faceNormal.set(faceNormal.getX(), faceNormal.getY(), faceNormal.getZ());
-			quad.packedFaceNormal = packedFaceNormal;
-		}
-
-		quad.lightFace(lightFaceId());
-		quad.colorIndex(colorIndex());
-		quad.tag(tag());
-		quad.cullFace(cullFaceId());
+		quad.faceNormal.set(faceNormal.getX(), faceNormal.getY(), faceNormal.getZ());
+		quad.packedFaceNormal = packedNormal;
 		quad.nominalFaceId = nominalFaceId;
-		quad.normalFlags(normalFlags());
+		quad.isGeometryInvalid = false;
 	}
 
 	@Override

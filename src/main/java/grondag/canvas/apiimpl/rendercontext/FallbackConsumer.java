@@ -126,15 +126,7 @@ public class FallbackConsumer implements Consumer<BakedModel> {
 
 	private void renderQuad(BakedQuad quad, int cullFaceId, MeshMaterialLocator defaultMaterial) {
 		final MutableQuadViewImpl editorQuad = this.editorQuad;
-		final int[] editorBuffer = this.editorBuffer;
-
-		editorQuad.setupVanillaFace(cullFaceId, quad.getFace().ordinal());
-
-		editorBuffer[MeshEncodingHelper.HEADER_COLOR_INDEX] = quad.getColorIndex();
-		editorBuffer[MeshEncodingHelper.HEADER_MATERIAL] = defaultMaterial.index();
-		editorBuffer[MeshEncodingHelper.HEADER_TAG] = 0;
-
-		editorQuad.fromVanilla(quad.getVertexData(), 0, false);
+		editorQuad.fromVanilla(quad, defaultMaterial, cullFaceId);
 		context.mapMaterials(editorQuad);
 
 		if (!context.transform(editorQuad)) {

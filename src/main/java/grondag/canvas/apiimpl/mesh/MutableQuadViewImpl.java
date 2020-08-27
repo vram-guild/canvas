@@ -29,8 +29,7 @@ import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_LIGHTMAP;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_NORMAL;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_X;
 
-import com.google.common.base.Preconditions;
-
+import net.minecraft.client.render.model.BakedQuad;
 import net.minecraft.client.texture.Sprite;
 import net.minecraft.util.math.Direction;
 
@@ -39,9 +38,8 @@ import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
 import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 
 import grondag.canvas.apiimpl.Canvas;
-import grondag.canvas.apiimpl.material.MeshMaterialLocator;
 import grondag.canvas.apiimpl.material.AbstractMeshMaterial;
-import grondag.canvas.apiimpl.util.GeometryHelper;
+import grondag.canvas.apiimpl.material.MeshMaterialLocator;
 import grondag.canvas.apiimpl.util.NormalHelper;
 import grondag.canvas.apiimpl.util.TextureHelper;
 import grondag.canvas.light.LightmapHd;
@@ -71,14 +69,14 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 	 * Call before emit or mesh incorporation.
 	 */
 	public final void complete() {
-		lightFace(ModelHelper.toFaceIndex(GeometryHelper.lightFace(this)));
+		computeGeometry();
 		unmapSpritesIfNeeded();
 	}
 
 	public void clear() {
 		System.arraycopy(EMPTY, 0, data, baseIndex, MeshEncodingHelper.MAX_QUAD_STRIDE);
-		isFaceNormalInvalid = true;
 		isGeometryInvalid = true;
+		packedFaceNormal = -1;
 		nominalFaceId = ModelHelper.NULL_FACE_ID;
 		normalFlags(0);
 		// tag(0); seems redundant - handled by array copy
@@ -111,17 +109,6 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 	@Deprecated
 	public final MutableQuadViewImpl cullFace(Direction face) {
 		return cullFace(ModelHelper.toFaceIndex(face));
-	}
-
-	public final MutableQuadViewImpl lightFace(int faceId) {
-		data[baseIndex + HEADER_BITS] = MeshEncodingHelper.lightFace(data[baseIndex + HEADER_BITS], faceId);
-		return this;
-	}
-
-	@Deprecated
-	public final MutableQuadViewImpl lightFace(Direction face) {
-		Preconditions.checkNotNull(face);
-		return lightFace(ModelHelper.toFaceIndex(face));
 	}
 
 	public final MutableQuadViewImpl nominalFace(int faceId) {
@@ -161,7 +148,25 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 			index += BASE_VERTEX_STRIDE;
 		}
 
-		invalidateShape();
+		isGeometryInvalid = true;
+		packedFaceNormal = -1;
+		return this;
+	}
+
+	public final MutableQuadViewImpl fromVanilla(BakedQuad quad, RenderMaterial material, Direction cullFace) {
+		return fromVanilla(quad, material, ModelHelper.toFaceIndex(cullFace));
+	}
+
+	public final MutableQuadViewImpl fromVanilla(BakedQuad quad, RenderMaterial material, int cullFaceId) {
+		System.arraycopy(quad.getVertexData(), 0, data, baseIndex + HEADER_STRIDE, BASE_QUAD_STRIDE);
+		cullFace(cullFaceId);
+		nominalFace(quad.getFace());
+		colorIndex(quad.getColorIndex());
+		material(material);
+		tag(0);
+		setSpriteUnmapped(0, false);
+		isGeometryInvalid = true;
+		packedFaceNormal = -1;
 		return this;
 	}
 
@@ -171,28 +176,8 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 		data[index] = Float.floatToRawIntBits(x);
 		data[index + 1] = Float.floatToRawIntBits(y);
 		data[index + 2] = Float.floatToRawIntBits(z);
-		invalidateShape();
-		return this;
-	}
-
-	public MutableQuadViewImpl x(int vertexIndex, float x) {
-		final int index = baseIndex + vertexIndex * BASE_VERTEX_STRIDE + VERTEX_X;
-		data[index] = Float.floatToRawIntBits(x);
-		invalidateShape();
-		return this;
-	}
-
-	public MutableQuadViewImpl y(int vertexIndex, float y) {
-		final int index = baseIndex + vertexIndex * BASE_VERTEX_STRIDE + VERTEX_X;
-		data[index + 1] = Float.floatToRawIntBits(y);
-		invalidateShape();
-		return this;
-	}
-
-	public MutableQuadViewImpl z(int vertexIndex, float z) {
-		final int index = baseIndex + vertexIndex * BASE_VERTEX_STRIDE + VERTEX_X;
-		data[index + 2] = Float.floatToRawIntBits(z);
-		invalidateShape();
+		isGeometryInvalid = true;
+		packedFaceNormal = -1;
 		return this;
 	}
 
@@ -327,16 +312,5 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 		final int d = data[index];
 		data[index] = (spriteIndex & 1) == 0 ? (d & 0xFFFF0000) | spriteId : (d & 0xFFFF) | (spriteId << 16);
 		return this;
-	}
-
-	/** avoids call overhead in fallback consumer */
-	public void setupVanillaFace(int cullFaceId, int lightFaceId) {
-		final int bits = MeshEncodingHelper.cullFace(data[baseIndex + HEADER_BITS], cullFaceId);
-		data[baseIndex + HEADER_BITS] = MeshEncodingHelper.lightFace(bits, lightFaceId);
-
-		nominalFaceId = lightFaceId;
-		isFaceNormalInvalid = true;
-		isGeometryInvalid = true;
-		packedFaceNormal = -1;
 	}
 }
