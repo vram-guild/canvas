@@ -164,7 +164,8 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 		colorIndex(quad.getColorIndex());
 		material(material);
 		tag(0);
-		setSpriteUnmapped(0, false);
+		unmapSprite(0);
+		spriteMappedFlags = 0;
 		isGeometryInvalid = true;
 		packedFaceNormal = -1;
 		return this;

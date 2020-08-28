@@ -129,14 +129,15 @@ public class FallbackConsumer implements Consumer<BakedModel> {
 		editorQuad.fromVanilla(quad, defaultMaterial, cullFaceId);
 		context.mapMaterials(editorQuad);
 
-		if (!context.transform(editorQuad)) {
-			return;
+		if (context.hasTransform()) {
+			if (!context.transform(editorQuad)) {
+				return;
+			}
+
+			// Can't rely on lazy computation in tesselate because needs to happen before offsets are applied
+			editorQuad.geometryFlags();
+			editorQuad.unmapSpritesIfNeeded();
 		}
-
-		// Can't rely on lazy computation in tesselate because needs to happen before offsets are applied
-		editorQuad.geometryFlags();
-
-		editorQuad.unmapSpritesIfNeeded();
 
 		final MeshMaterialLocator mat = editorQuad.material().withDefaultBlendMode(context.defaultBlendModeIndex());
 		editorQuad.material(mat);
