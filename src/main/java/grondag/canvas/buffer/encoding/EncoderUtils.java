@@ -448,6 +448,7 @@ abstract class EncoderUtils {
 	static void colorizeQuad(MutableQuadViewImpl quad, AbstractRenderContext context, int spriteIndex) {
 		final int colorIndex = quad.colorIndex();
 
+		// PERF: don't swap red blue on white quad (most of em)
 		if (colorIndex == -1 || quad.material().disableColorIndex(spriteIndex)) {
 			quad.spriteColor(0, spriteIndex, ColorHelper.swapRedBlueIfNeeded(quad.spriteColor(0, spriteIndex)));
 			quad.spriteColor(1, spriteIndex, ColorHelper.swapRedBlueIfNeeded(quad.spriteColor(1, spriteIndex)));

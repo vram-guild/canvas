@@ -281,7 +281,10 @@ public class GlShader {
 			}
 		}
 
-		if(Configurator.aoShadingMode != AoMode.NORMAL) {
+		if (!MinecraftClient.isAmbientOcclusionEnabled()) {
+			result = StringUtils.replace(result, "#define AO_SHADING_MODE AO_MODE_NORMAL",
+					"#define AO_SHADING_MODE AO_MODE_" + AoMode.NONE.name());
+		} else if(Configurator.aoShadingMode != AoMode.NORMAL) {
 			result = StringUtils.replace(result, "#define AO_SHADING_MODE AO_MODE_NORMAL",
 					"#define AO_SHADING_MODE AO_MODE_" + Configurator.aoShadingMode.name());
 		}

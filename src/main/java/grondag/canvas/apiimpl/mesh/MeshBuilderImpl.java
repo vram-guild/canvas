@@ -20,8 +20,6 @@ import net.fabricmc.fabric.api.renderer.v1.mesh.Mesh;
 import net.fabricmc.fabric.api.renderer.v1.mesh.MeshBuilder;
 import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
 
-import grondag.canvas.apiimpl.util.GeometryHelper;
-
 /**
  * Our implementation of {@link MeshBuilder}, used for static mesh creation and baking.
  * Not much to it - mainly it just needs to grow the int[] array as quads are appended
@@ -71,11 +69,6 @@ public class MeshBuilderImpl implements MeshBuilder {
 		@Override
 		public Maker emit() {
 			complete();
-
-			if (isGeometryInvalid) {
-				geometryFlags(GeometryHelper.computeShapeFlags(this));
-			}
-
 			index += maker.stride();
 			ensureCapacity(MeshEncodingHelper.MAX_QUAD_STRIDE);
 			baseIndex = index;

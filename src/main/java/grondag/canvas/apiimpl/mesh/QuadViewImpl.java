@@ -96,7 +96,7 @@ public class QuadViewImpl implements QuadView {
 	 */
 	public final void load() {
 		isGeometryInvalid = false;
-		nominalFaceId = lightFace().ordinal();
+		nominalFaceId = lightFaceId();
 		// face normal isn't encoded
 		NormalHelper.computeFaceNormal(faceNormal, this);
 		packedFaceNormal = -1;
@@ -149,14 +149,6 @@ public class QuadViewImpl implements QuadView {
 			// depends on light face
 			data[baseIndex + HEADER_BITS] = MeshEncodingHelper.geometryFlags(header, GeometryHelper.computeShapeFlags(this));
 		}
-	}
-
-	/**
-	 * Used to override geometric analysis for compatibility edge case.
-	 */
-	public void geometryFlags(int flags) {
-		isGeometryInvalid = false;
-		data[baseIndex + HEADER_BITS] = MeshEncodingHelper.geometryFlags(data[baseIndex + HEADER_BITS], flags);
 	}
 
 	@Override
