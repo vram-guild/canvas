@@ -24,22 +24,20 @@ import javax.annotation.Nullable;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import net.minecraft.block.BlockState;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.model.BakedModel;
 import net.minecraft.client.texture.Sprite;
-import net.minecraft.client.texture.SpriteAtlasTexture;
 import net.minecraft.util.math.Matrix4f;
 
 import net.fabricmc.fabric.api.renderer.v1.material.RenderMaterial;
 import net.fabricmc.fabric.api.renderer.v1.mesh.Mesh;
-import net.fabricmc.fabric.api.renderer.v1.mesh.MutableQuadView;
 import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
-import net.fabricmc.fabric.api.renderer.v1.model.SpriteFinder;
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 
-import grondag.canvas.apiimpl.material.MeshMaterialLocator;
+import grondag.canvas.CanvasMod;
+import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.material.MeshMaterialLayer;
+import grondag.canvas.apiimpl.material.MeshMaterialLocator;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.buffer.encoding.VertexCollectorList;
 import grondag.canvas.buffer.encoding.VertexEncoders;
@@ -47,6 +45,7 @@ import grondag.canvas.light.AoCalculator;
 import grondag.canvas.material.EncodingContext;
 import grondag.canvas.material.MaterialVertexFormats;
 import grondag.canvas.mixinterface.Matrix3fExt;
+import grondag.canvas.texture.SpriteInfoTexture;
 import grondag.frex.api.material.MaterialMap;
 
 public abstract class AbstractRenderContext implements RenderContext {
@@ -55,8 +54,6 @@ public abstract class AbstractRenderContext implements RenderContext {
 	public final VertexCollectorList collectors = new VertexCollectorList();
 	private final ObjectArrayList<QuadTransform> transformStack = new ObjectArrayList<>();
 	private static final QuadTransform NO_TRANSFORM = (q) -> true;
-	private final SpriteAtlasTexture atlas = MinecraftClient.getInstance().getBakedModelManager().method_24153(SpriteAtlasTexture.BLOCK_ATLAS_TEX);
-	private final SpriteFinder spriteFinder = SpriteFinder.get(atlas);
 	private static final MaterialMap defaultMap = MaterialMap.defaultMaterialMap();
 
 	protected Matrix4f matrix;
@@ -64,6 +61,22 @@ public abstract class AbstractRenderContext implements RenderContext {
 	protected int overlay;
 	protected MaterialMap materialMap = defaultMap;
 	protected boolean isFluidModel = false;
+
+	protected final String name;
+
+	protected AbstractRenderContext(String name) {
+		this.name = name;
+
+		if (Configurator.enableLifeCycleDebug) {
+			CanvasMod.LOG.info("Lifecycle Event: create render context " + name);
+		}
+	}
+
+	public void close() {
+		if (Configurator.enableLifeCycleDebug) {
+			CanvasMod.LOG.info("Lifecycle Event: close render context " + name);
+		}
+	}
 
 	private final QuadTransform stackTransform = (q) -> {
 		int i = transformStack.size() - 1;
@@ -79,7 +92,7 @@ public abstract class AbstractRenderContext implements RenderContext {
 
 	private QuadTransform activeTransform = NO_TRANSFORM;
 
-	protected final boolean transform(MutableQuadView q) {
+	protected final boolean transform(MutableQuadViewImpl q) {
 		return activeTransform.transform(q);
 	}
 
@@ -87,12 +100,12 @@ public abstract class AbstractRenderContext implements RenderContext {
 		return activeTransform != NO_TRANSFORM;
 	}
 
-	void mapMaterials(MutableQuadView quad) {
+	void mapMaterials(MutableQuadViewImpl quad) {
 		if (isFluidModel || materialMap == defaultMap) {
 			return;
 		}
 
-		final Sprite sprite = materialMap.needsSprite() ? spriteFinder.find(quad, 0) : null;
+		final Sprite sprite = materialMap.needsSprite() ? SpriteInfoTexture.instance().fromId(quad.spriteId(0)) : null;
 		final RenderMaterial mapped = materialMap.getMapped(sprite);
 
 		if (mapped != null) {

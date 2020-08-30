@@ -101,6 +101,7 @@ public class SpriteInfoTexture implements AutoCloseable {
 	@Override
 	public void close() {
 		if (glId != -1) {
+			disable();
 			TextureUtil.deleteId(glId);
 			glId = -1;
 		}
@@ -120,6 +121,10 @@ public class SpriteInfoTexture implements AutoCloseable {
 
 	public int coordinate(int spriteId) {
 		return spriteId;
+	}
+
+	public Sprite fromId(int spriteId) {
+		return spriteIndex.get(spriteId);
 	}
 
 	public float mapU(int spriteId, float unmappedU) {

@@ -6,9 +6,10 @@ import java.util.function.Consumer;
 
 import com.google.common.collect.ImmutableList;
 
+import net.minecraft.client.MinecraftClient;
+
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
 import grondag.fermion.sc.Sc;
-import net.minecraft.client.MinecraftClient;
 
 /**
  * Simple executor service with ability to submit privileged tasks
@@ -26,26 +27,25 @@ public class ChunkRenderExecutor {
 
 	private final int poolSize = threadCount();
 
-	/**
-	 * Keep references to worker threads for debugging.
-	 */
 	@SuppressWarnings("unused")
-	private final ImmutableList<Thread> threads;
+	private final ImmutableList<Worker> workers;
 
 	public ChunkRenderExecutor() {
-		final ImmutableList.Builder<Thread> builder = ImmutableList.builder();
+		final ImmutableList.Builder<Worker> builder = ImmutableList.builder();
 
 		for(int i = 0; i < poolSize; i++)
 		{
+			final Worker w = new Worker();
+			builder.add(w);
+
 			final Thread thread = new Thread(
 					new Worker(),
 					"Canvas Render Thread - " + i);
 			thread.setDaemon(true);
-			builder.add(thread);
 			thread.start();
 		}
 
-		threads = builder.build();
+		workers = builder.build();
 	}
 
 	private static int threadCount() {
@@ -76,6 +76,11 @@ public class ChunkRenderExecutor {
 
 	public void clear() {
 		queue.clear();
+
+		for (final Worker w : workers) {
+			w.context.close();
+			w.context = new TerrainRenderContext();
+		}
 	}
 
 	public boolean isEmpty() {
@@ -83,7 +88,7 @@ public class ChunkRenderExecutor {
 	}
 
 	private class Worker implements Runnable {
-		private final TerrainRenderContext context = new TerrainRenderContext();
+		private TerrainRenderContext context = new TerrainRenderContext();
 
 		@Override
 		public void run()  {

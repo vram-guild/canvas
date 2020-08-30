@@ -38,6 +38,6 @@ public abstract class MixinBlockModelRenderer {
 	 */
 	@Overwrite
 	public boolean render(BlockRenderView blockView, BakedModel model, BlockState state, BlockPos pos, MatrixStack matrix, VertexConsumer buffer, boolean checkSides, Random rand, long seed, int overlay) {
-		return BlockRenderContext.POOL.get().tesselate((BlockModelRenderer) (Object) this, blockView, model, state, pos, matrix, buffer, checkSides, seed, overlay);
+		return BlockRenderContext.get().tesselate((BlockModelRenderer) (Object) this, blockView, model, state, pos, matrix, buffer, checkSides, seed, overlay);
 	}
 }

@@ -22,7 +22,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import net.minecraft.client.color.item.ItemColors;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.item.BuiltinModelItemRenderer;
 import net.minecraft.client.render.item.ItemModels;
@@ -41,10 +40,7 @@ import grondag.canvas.compat.SimpleDrawersHolder;
 
 @Mixin(ItemRenderer.class)
 public abstract class MixinItemRenderer {
-	@Shadow protected ItemColors colorMap;
 	@Shadow private ItemModels models;
-
-	private final ThreadLocal<ItemRenderContext> CONTEXTS = ThreadLocal.withInitial(() -> new ItemRenderContext(colorMap));
 
 	@Inject(at = @At("HEAD"), method = "renderItem(Lnet/minecraft/item/ItemStack;Lnet/minecraft/client/render/model/json/ModelTransformation$Mode;ZLnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;IILnet/minecraft/client/render/model/BakedModel;)V", cancellable = true)
 	private void onRenderItem(ItemStack stack, ModelTransformation.Mode transformMode, boolean invert, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int light, int overlay, BakedModel model, CallbackInfo ci) {
@@ -60,7 +56,7 @@ public abstract class MixinItemRenderer {
 			}
 
 			if (!model.isBuiltin() && (!isTrident || isGuiGroundOrFixed)) {
-				CONTEXTS.get().renderModel(stack, transformMode, invert, matrixStack, vertexConsumerProvider, light, overlay, (FabricBakedModel) model);
+				ItemRenderContext.get().renderModel(stack, transformMode, invert, matrixStack, vertexConsumerProvider, light, overlay, (FabricBakedModel) model);
 			} else {
 				matrixStack.push();
 				model.getTransformation().getTransformation(transformMode).apply(invert, matrixStack);

@@ -20,6 +20,7 @@ import java.util.Random;
 import java.util.function.Supplier;
 
 import net.minecraft.block.BlockState;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.color.item.ItemColors;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.RenderLayers;
@@ -42,7 +43,9 @@ import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.light.AoCalculator;
 import grondag.canvas.material.EncodingContext;
 import grondag.canvas.mixinterface.Matrix3fExt;
+import grondag.canvas.mixinterface.MinecraftClientExt;
 import grondag.canvas.shader.ShaderPass;
+import grondag.fermion.sc.concurrency.SimpleConcurrentList;
 
 /**
  * The render context used for item rendering.
@@ -52,6 +55,26 @@ import grondag.canvas.shader.ShaderPass;
 public class ItemRenderContext extends AbstractRenderContext implements RenderContext {
 	/** Value vanilla uses for item rendering.  The only sensible choice, of course.  */
 	private static final long ITEM_RANDOM_SEED = 42L;
+
+	private static final SimpleConcurrentList<AbstractRenderContext> LOADED = new SimpleConcurrentList<>(AbstractRenderContext.class);
+
+	private static final Supplier<ThreadLocal<ItemRenderContext>> POOL_FACTORY = () -> ThreadLocal.withInitial(() -> {
+		final ItemRenderContext result = new ItemRenderContext(((MinecraftClientExt) MinecraftClient.getInstance()).canvas_itemColors());
+		LOADED.add(result);
+		return result;
+	});
+
+	private static ThreadLocal<ItemRenderContext> POOL = POOL_FACTORY.get();
+
+	public static void reload() {
+		LOADED.forEach(c -> c.close());
+		LOADED.clear();
+		POOL = POOL_FACTORY.get();
+	}
+
+	public static ItemRenderContext get() {
+		return POOL.get();
+	}
 
 	private final ItemColors colorMap;
 	private final Random random = new Random();
@@ -74,7 +97,7 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 	};
 
 	public ItemRenderContext(ItemColors colorMap) {
-		super();
+		super("ItemRenderContext");
 		this.colorMap = colorMap;
 		collectors.setContext(EncodingContext.ITEM);
 	}

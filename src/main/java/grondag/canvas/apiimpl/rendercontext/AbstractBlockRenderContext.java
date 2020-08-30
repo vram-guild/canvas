@@ -21,6 +21,10 @@ import grondag.canvas.mixinterface.RenderLayerExt;
 import grondag.frex.api.material.MaterialMap;
 
 public abstract class AbstractBlockRenderContext<T extends BlockRenderView > extends AbstractRenderContext implements RenderContext {
+	protected AbstractBlockRenderContext(String name) {
+		super(name);
+	}
+
 	/** for use by chunk builder - avoids another threadlocal */
 	public final BlockPos.Mutable searchPos = new BlockPos.Mutable();
 

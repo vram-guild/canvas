@@ -138,7 +138,7 @@ public class Configurator {
 		@Comment("Uses slower and safer memory allocation method for GL buffers.  Use only if having problems. Requires restart.")
 		boolean safeNativeMemoryAllocation = false;
 
-		@Comment("Output performance trade data to log. Will have significant performance impact. Requires restart.")
+		@Comment("Output performance trace data to log. Will have significant performance impact. Requires restart.")
 		boolean enablePerformanceTrace = false;
 
 		@Comment("Output periodic snapshots of terrain occlusion raster. Will have performance impact.")
@@ -151,7 +151,10 @@ public class Configurator {
 		boolean traceOcclusionEdgeCases = false;
 
 		@Comment("Enable rendering of internal buffers for debug purposes. Off by default to prevent accidental activation.")
-		public boolean enableBufferDebug;
+		public boolean enableBufferDebug = false;
+
+		@Comment("Output load/reload trace data to log. Will have performance impact.")
+		public boolean enableLifeCycleDebug = false;
 	}
 
 	static final ConfigData DEFAULTS = new ConfigData();
@@ -196,6 +199,7 @@ public class Configurator {
 	public static boolean debugOcclusionBoxes = DEFAULTS.debugOcclusionBoxes;
 	public static boolean traceOcclusionEdgeCases = DEFAULTS.traceOcclusionEdgeCases;
 	public static boolean enableBufferDebug = DEFAULTS.enableBufferDebug;
+	public static boolean enableLifeCycleDebug = DEFAULTS.enableLifeCycleDebug;
 
 	public static boolean hdLightmaps() {
 		return false;
@@ -270,6 +274,7 @@ public class Configurator {
 		debugOcclusionRaster = config.debugOcclusionRaster;
 		traceOcclusionEdgeCases = config.traceOcclusionEdgeCases;
 		enableBufferDebug = config.enableBufferDebug;
+		enableLifeCycleDebug = config.enableLifeCycleDebug;
 	}
 
 	private static void saveConfig() {
@@ -313,6 +318,7 @@ public class Configurator {
 		config.debugOcclusionRaster = debugOcclusionRaster;
 		config.traceOcclusionEdgeCases = traceOcclusionEdgeCases;
 		config.enableBufferDebug = enableBufferDebug;
+		config.enableLifeCycleDebug = enableLifeCycleDebug;
 
 		try {
 			final String result = JANKSON.toJson(config).toJson(true, true, 0);
@@ -648,6 +654,13 @@ public class Configurator {
 				.setDefaultValue(DEFAULTS.enableBufferDebug)
 				.setTooltip(parse("config.canvas.help.buffer_debug"))
 				.setSaveConsumer(b -> enableBufferDebug = b)
+				.build());
+
+		debug.addEntry(ENTRY_BUILDER
+				.startBooleanToggle(new TranslatableText("config.canvas.value.lifecycle_debug"), enableLifeCycleDebug)
+				.setDefaultValue(DEFAULTS.enableLifeCycleDebug)
+				.setTooltip(parse("config.canvas.help.lifecycle_debug"))
+				.setSaveConsumer(b -> enableLifeCycleDebug = b)
 				.build());
 
 		builder.setAlwaysShowTabs(false).setDoesConfirmSave(false);

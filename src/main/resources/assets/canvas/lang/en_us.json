@@ -97,7 +97,7 @@
 	"config.canvas.help.log_machine_info" : "Writes information useful for bug;reports to the game log;at startup.",
 	"config.canvas.value.log_gl_state_changes" : "Log GL State Changes",
 	"config.canvas.help.log_gl_state_changes" : "Writes OpenGL state changes to log.;*VERY SPAMMY - KILLS FRAME RATE*;Used only for debugging.",
-	"config.canvas.value.debug_native_allocation" : "Enable LWJGL memory tracking",
+	"config.canvas.value.debug_native_allocation" : "Enable LWJGL Memory Tracking",
 	"config.canvas.help.debug_native_allocation" : "Used for debugging memory leaks. Will harm performance;and cause other errors. Requires restart.",
 	"config.canvas.value.safe_native_allocation" : "Safe Memory Allocation",
 	"config.canvas.help.safe_native_allocation" : "Uses slower/safer memory allocation for GL buffers.;Use only if having problems. Requires restart.",
@@ -108,5 +108,7 @@
 	"config.canvas.value.trace_occlusion_edge_cases" : "Trace Occlusion Edge Cases",
 	"config.canvas.help.trace_occlusion_edge_cases" : "Log clipping or other non-critical failures detected;by terrain occluder. May spam the log.",
 	"config.canvas.value.buffer_debug" : "Enable Buffer Debug Render",
-	"config.canvas.help.buffer_debug" : "Enable rendering of internal buffers for debug purposes.;Off by default to prevent accidental activation."
+	"config.canvas.help.buffer_debug" : "Enable rendering of internal buffers for debug purposes.;Off by default to prevent accidental activation.",
+	"config.canvas.value.lifecycle_debug" : "Log Lifecycle Events",
+	"config.canvas.help.lifecycle_debug" : "Output load/reload trace data to log;Will have performance impact."
 }

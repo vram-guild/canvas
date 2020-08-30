@@ -57,6 +57,7 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<FastRenderR
 	private int cullResultFlags;
 
 	public TerrainRenderContext() {
+		super("TerrainRenderContext");
 		region = new FastRenderRegion(this);
 		collectors.setContext(EncodingContext.TERRAIN);
 	}

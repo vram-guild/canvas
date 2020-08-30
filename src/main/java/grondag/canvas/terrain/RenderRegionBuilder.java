@@ -12,7 +12,7 @@ public class RenderRegionBuilder {
 	public final ChunkRenderExecutor executor = new ChunkRenderExecutor();
 
 	// for use by render thread rebuilds
-	final TerrainRenderContext mainThreadContext = new TerrainRenderContext();
+	TerrainRenderContext mainThreadContext = new TerrainRenderContext();
 
 	public RenderRegionBuilder() {
 		// PERF: limit vertex collectors similarly, somehow
@@ -44,6 +44,8 @@ public class RenderRegionBuilder {
 
 	public void reset() {
 		executor.clear();
+		mainThreadContext.close();
+		mainThreadContext = new TerrainRenderContext();
 	}
 
 	public void scheduleUpload(Runnable task) {

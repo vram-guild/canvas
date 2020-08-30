@@ -18,6 +18,8 @@ package grondag.canvas.apiimpl.rendercontext;
 
 import static grondag.canvas.terrain.RenderRegionAddressHelper.cacheIndexToXyz5;
 
+import java.util.function.Supplier;
+
 import net.minecraft.block.BlockState;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.WorldRenderer;
@@ -33,19 +35,35 @@ import grondag.canvas.apiimpl.material.MeshMaterialLayer;
 import grondag.canvas.light.AoCalculator;
 import grondag.canvas.material.EncodingContext;
 import grondag.canvas.mixinterface.Matrix3fExt;
+import grondag.fermion.sc.concurrency.SimpleConcurrentList;
 
 /**
  * Context for non-terrain block rendering.
  */
 public class BlockRenderContext extends AbstractBlockRenderContext<BlockRenderView> {
-	public static ThreadLocal<BlockRenderContext> POOL = ThreadLocal.withInitial(BlockRenderContext::new);
+	private static final SimpleConcurrentList<AbstractRenderContext> LOADED = new SimpleConcurrentList<>(AbstractRenderContext.class);
 
-	public BlockRenderContext() {
-		collectors.setContext(EncodingContext.BLOCK);
-	}
+	private static final Supplier<ThreadLocal<BlockRenderContext>> POOL_FACTORY = () -> ThreadLocal.withInitial(() -> {
+		final BlockRenderContext result = new BlockRenderContext();
+		LOADED.add(result);
+		return result;
+	});
+
+	private static ThreadLocal<BlockRenderContext> POOL = POOL_FACTORY.get();
 
 	public static void reload() {
-		POOL = ThreadLocal.withInitial(BlockRenderContext::new);
+		LOADED.forEach(c -> c.close());
+		LOADED.clear();
+		POOL = POOL_FACTORY.get();
+	}
+
+	public static BlockRenderContext get() {
+		return POOL.get();
+	}
+
+	public BlockRenderContext() {
+		super("BlockRenderContext");
+		collectors.setContext(EncodingContext.BLOCK);
 	}
 
 	private final AoCalculator aoCalc = new AoCalculator() {

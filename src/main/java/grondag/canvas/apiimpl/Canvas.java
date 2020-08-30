@@ -26,12 +26,13 @@ import net.fabricmc.fabric.api.renderer.v1.material.RenderMaterial;
 import net.fabricmc.fabric.api.renderer.v1.mesh.MeshBuilder;
 
 import grondag.canvas.CanvasMod;
-import grondag.canvas.apiimpl.material.MeshMaterialLocator;
-import grondag.canvas.apiimpl.material.MeshMaterialFinder;
-import grondag.canvas.apiimpl.material.MaterialShaderImpl;
 import grondag.canvas.apiimpl.material.AbstractMeshMaterial;
+import grondag.canvas.apiimpl.material.MaterialShaderImpl;
+import grondag.canvas.apiimpl.material.MeshMaterialFinder;
+import grondag.canvas.apiimpl.material.MeshMaterialLocator;
 import grondag.canvas.apiimpl.mesh.MeshBuilderImpl;
 import grondag.canvas.apiimpl.rendercontext.BlockRenderContext;
+import grondag.canvas.apiimpl.rendercontext.ItemRenderContext;
 import grondag.canvas.buffer.encoding.VertexEncoders;
 import grondag.canvas.compat.LitematicaHolder;
 import grondag.canvas.light.AoVertexClampFunction;
@@ -96,6 +97,7 @@ public class Canvas implements Renderer {
 		CanvasMod.LOG.info(I18n.translate("info.canvas.reloading"));
 		ProtoRenderRegion.reload();
 		BlockRenderContext.reload();
+		ItemRenderContext.reload();
 		ChunkRebuildCounters.reset();
 		ChunkColorCache.invalidate();
 		AoVertexClampFunction.reload();
