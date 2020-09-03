@@ -17,6 +17,7 @@ package grondag.canvas.texture;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL21;
 
 import net.minecraft.client.MinecraftClient;
@@ -74,6 +75,10 @@ public class SpriteInfoTexture implements AutoCloseable {
 			GlStateManager.activeTexture(TextureData.SPRITE_INFO);
 			GlStateManager.bindTexture(glId);
 
+			GlStateManager.pixelStore(GL11.GL_UNPACK_ROW_LENGTH, 0);
+			GlStateManager.pixelStore(GL11.GL_UNPACK_SKIP_ROWS, 0);
+			GlStateManager.pixelStore(GL11.GL_UNPACK_SKIP_PIXELS, 0);
+			GlStateManager.pixelStore(GL11.GL_UNPACK_ALIGNMENT, 4);
 
 			image.upload();
 			image.close();
