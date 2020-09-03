@@ -75,6 +75,10 @@ public class SpriteInfoTexture implements AutoCloseable {
 			GlStateManager.activeTexture(TextureData.SPRITE_INFO);
 			GlStateManager.bindTexture(glId);
 
+			// Bragging rights and eternal gratitude to Wyn Price (https://github.com/Wyn-Price)
+			// for reminding me pixelStore exists, thus fixing #92 and preserving a tattered
+			// remnant of my sanity. I owe you a favor!
+
 			GlStateManager.pixelStore(GL11.GL_UNPACK_ROW_LENGTH, 0);
 			GlStateManager.pixelStore(GL11.GL_UNPACK_SKIP_ROWS, 0);
 			GlStateManager.pixelStore(GL11.GL_UNPACK_SKIP_PIXELS, 0);
