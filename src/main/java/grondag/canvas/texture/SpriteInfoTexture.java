@@ -14,10 +14,9 @@
  ******************************************************************************/
 package grondag.canvas.texture;
 
+import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL12;
 import org.lwjgl.opengl.GL21;
 
 import net.minecraft.client.MinecraftClient;
@@ -34,7 +33,6 @@ import net.fabricmc.fabric.api.renderer.v1.model.SpriteFinder;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.mixinterface.SpriteAtlasTextureDataExt;
 import grondag.canvas.mixinterface.SpriteAtlasTextureExt;
-import grondag.canvas.varia.CanvasGlHelper;
 
 @Environment(EnvType.CLIENT)
 public class SpriteInfoTexture implements AutoCloseable {
@@ -57,7 +55,6 @@ public class SpriteInfoTexture implements AutoCloseable {
 		final ObjectArrayList<Sprite> spriteIndex = ((SpriteAtlasTextureExt) atlas).canvas_spriteIndex();
 		this.spriteIndex = spriteIndex;
 
-
 		final int spriteCount = spriteIndex.size();
 		textureSize = MathHelper.smallestEncompassingPowerOfTwo(spriteCount);
 
@@ -73,21 +70,31 @@ public class SpriteInfoTexture implements AutoCloseable {
 	private void createImage(int spriteCount) {
 		try(final SpriteInfoImage image = new SpriteInfoImage(spriteIndex, spriteCount, textureSize)) {
 			glId = TextureUtil.generateId();
-			GL21.glActiveTexture(TextureData.SPRITE_INFO);
-			assert CanvasGlHelper.checkError();
-			GL21.glBindTexture(GL21.GL_TEXTURE_2D, glId);
-			assert CanvasGlHelper.checkError();
-			GL21.glTexParameteri(GL11.GL_TEXTURE_2D, GL12.GL_TEXTURE_MAX_LEVEL, 0);
-			assert CanvasGlHelper.checkError();
-			GL21.glTexParameteri(GL11.GL_TEXTURE_2D, GL12.GL_TEXTURE_MIN_LOD, 0);
-			assert CanvasGlHelper.checkError();
-			GL21.glTexParameteri(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MIN_FILTER, GL21.GL_NEAREST);
-			assert CanvasGlHelper.checkError();
-			GL21.glTexParameteri(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MAG_FILTER, GL21.GL_NEAREST);
-			assert CanvasGlHelper.checkError();
+
+			GlStateManager.activeTexture(TextureData.SPRITE_INFO);
+			GlStateManager.bindTexture(glId);
+
+
 			image.upload();
 			image.close();
-			GL21.glActiveTexture(TextureData.MC_SPRITE_ATLAS);
+
+			GlStateManager.enableTexture();
+			RenderSystem.matrixMode(GL21.GL_TEXTURE);
+			RenderSystem.loadIdentity();
+			RenderSystem.matrixMode(GL21.GL_MODELVIEW);
+			GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MAX_LEVEL, 0);
+			GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MIN_LOD, 0);
+			GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MAX_LOD, 0);
+			GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_LOD_BIAS, 0.0F);
+			GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MIN_FILTER, GL21.GL_NEAREST);
+			GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MAG_FILTER, GL21.GL_NEAREST);
+			GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_WRAP_S, GL21.GL_REPEAT);
+			GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_WRAP_T, GL21.GL_REPEAT);
+			GlStateManager.activeTexture(TextureData.MC_SPRITE_ATLAS);
+
+			GlStateManager.bindTexture(0);
+			GlStateManager.disableTexture();
+			GlStateManager.activeTexture(TextureData.MC_SPRITE_ATLAS);
 		} catch (final Exception e) {
 			CanvasMod.LOG.warn("Unable to create sprite info texture due to error:", e);
 
@@ -108,15 +115,17 @@ public class SpriteInfoTexture implements AutoCloseable {
 	}
 
 	public void disable() {
-		GL21.glActiveTexture(TextureData.SPRITE_INFO);
-		GL21.glBindTexture(GL21.GL_TEXTURE_2D, 0);
-		GL21.glActiveTexture(TextureData.MC_SPRITE_ATLAS);
+		GlStateManager.activeTexture(TextureData.SPRITE_INFO);
+		GlStateManager.bindTexture(0);
+		GlStateManager.disableTexture();
+		GlStateManager.activeTexture(TextureData.MC_SPRITE_ATLAS);
 	}
 
 	public void enable() {
-		GL21.glActiveTexture(TextureData.SPRITE_INFO);
-		GL21.glBindTexture(GL21.GL_TEXTURE_2D, glId);
-		GL21.glActiveTexture(TextureData.MC_SPRITE_ATLAS);
+		GlStateManager.activeTexture(TextureData.SPRITE_INFO);
+		GlStateManager.bindTexture(glId);
+		GlStateManager.enableTexture();
+		GlStateManager.activeTexture(TextureData.MC_SPRITE_ATLAS);
 	}
 
 	public int coordinate(int spriteId) {

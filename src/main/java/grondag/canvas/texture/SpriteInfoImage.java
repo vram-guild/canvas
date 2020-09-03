@@ -33,8 +33,9 @@ public final class SpriteInfoImage implements AutoCloseable {
 	public final int size;
 	private long pointer;
 	private final int sizeBytes;
-	//	private IntBuffer intBuffer;
 	private FloatBuffer floatBuffer;
+
+	// FIX: make texture square to reduce chance of overrun/driver strangeness
 
 	public SpriteInfoImage(ObjectArrayList<Sprite> spriteIndex, int spriteCount, int size) {
 		this.size = size;
