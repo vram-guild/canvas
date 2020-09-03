@@ -150,7 +150,6 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 	public final MutableQuadViewImpl fromVanilla(int[] quadData, int startIndex, boolean isItem) {
 		System.arraycopy(quadData, startIndex, data, baseIndex + HEADER_STRIDE, BASE_QUAD_STRIDE);
 		convertVanillaUvPrecision();
-		convertVanillaUvPrecision();
 		unmapSprite(0);
 		spriteMappedFlags = 0;
 
