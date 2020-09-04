@@ -1066,6 +1066,8 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		renderRegionStorage.clear();
 		terrainOccluder.invalidate();
 		visibleRegionCount = 0;
+
+		//ClassInspector.inspect();
 	}
 
 	@Override
