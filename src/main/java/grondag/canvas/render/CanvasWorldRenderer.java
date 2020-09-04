@@ -69,6 +69,7 @@ import grondag.canvas.buffer.BindStateManager;
 import grondag.canvas.buffer.VboBuffer;
 import grondag.canvas.compat.BborHolder;
 import grondag.canvas.compat.ClothHolder;
+import grondag.canvas.compat.DynocapsHolder;
 import grondag.canvas.compat.JustMapHolder;
 import grondag.canvas.compat.LambDynLightsHolder;
 import grondag.canvas.compat.LitematicaHolder;
@@ -474,6 +475,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		SatinHolder.onEntitiesRenderedEvent.onEntitiesRendered(camera, frustum, tickDelta);
 		LitematicaHolder.litematicaEntityHandler.handle(matrixStack, tickDelta);
+		DynocapsHolder.handler.render(profiler, matrixStack, immediate, cameraVec3d);
 
 		profiler.swap("blockentities");
 
