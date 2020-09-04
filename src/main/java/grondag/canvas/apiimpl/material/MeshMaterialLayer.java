@@ -13,15 +13,18 @@ import grondag.canvas.shader.ShaderPass;
 public class MeshMaterialLayer {
 	private final MeshMaterial meshMaterial;
 	public final int shaderFlags;
+	public final boolean isTranslucent;
+	// WIP: remove
+	@Deprecated
 	public final ShaderPass shaderType;
 	private final MaterialShaderImpl shader;
 
 	public MeshMaterialLayer(MeshMaterial meshMaterial, int depth) {
 		this.meshMaterial = meshMaterial;
-
+		isTranslucent = meshMaterial.isTranslucent;
 		// determine how to buffer
 		if (depth == 0) {
-			shaderType = this.meshMaterial.blendMode() == BlendMode.TRANSLUCENT ? ShaderPass.TRANSLUCENT : ShaderPass.SOLID;
+			shaderType = isTranslucent ? ShaderPass.TRANSLUCENT : ShaderPass.SOLID;
 		} else {
 			// +1 layers with cutout are expected to not share pixels with lower layers! Otherwise Z-fighting over overwrite will happen
 			// anything other than cutout handled as non-sorting, no-depth translucent decal

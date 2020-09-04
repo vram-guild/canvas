@@ -22,14 +22,8 @@ import java.util.function.Supplier;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.color.item.ItemColors;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.RenderLayers;
-import net.minecraft.client.render.TexturedRenderLayers;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.render.item.ItemRenderer;
-import net.minecraft.client.render.model.BakedModel;
-import net.minecraft.client.render.model.json.ModelTransformation;
 import net.minecraft.client.render.model.json.ModelTransformation.Mode;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.item.ItemStack;
@@ -44,7 +38,6 @@ import grondag.canvas.light.AoCalculator;
 import grondag.canvas.material.EncodingContext;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.MinecraftClientExt;
-import grondag.canvas.shader.ShaderPass;
 import grondag.fermion.sc.concurrency.SimpleConcurrentList;
 
 /**
@@ -79,12 +72,7 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 	private final ItemColors colorMap;
 	private final Random random = new Random();
 
-	private VertexConsumerProvider vertexConsumerProvider;
 	private VertexConsumer modelVertexConsumer;
-
-	private BlendMode quadBlendMode;
-	private VertexConsumer quadVertexConsumer;
-
 	private int lightmap;
 	private ItemStack itemStack;
 	private final EncodingContext context = EncodingContext.ITEM;
@@ -102,18 +90,13 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 		collectors.setContext(EncodingContext.ITEM);
 	}
 
-	public void renderModel(ItemStack itemStack, Mode transformMode, boolean invert, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int lightmap, int overlay, FabricBakedModel model) {
+	public void renderModel(ItemStack itemStack, Mode transformMode, boolean invert, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, VertexConsumer modelConsumer, int lightmap, int overlay, FabricBakedModel model) {
 		this.lightmap = lightmap;
 		this.overlay = overlay;
 		this.itemStack = itemStack;
-		this.vertexConsumerProvider = vertexConsumerProvider;
-
-		quadBlendMode = BlendMode.DEFAULT;
-		modelVertexConsumer = selectVertexConsumer(RenderLayers.getItemLayer(itemStack, transformMode != ModelTransformation.Mode.GROUND));
+		modelVertexConsumer = modelConsumer;
 		matrixStack.push();
 
-		((BakedModel) model).getTransformation().getTransformation(transformMode).apply(invert, matrixStack);
-		matrixStack.translate(-0.5D, -0.5D, -0.5D);
 		matrix = matrixStack.peek().getModel();
 		normalMatrix = (Matrix3fExt)(Object) matrixStack.peek().getNormal();
 
@@ -125,42 +108,6 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 		modelVertexConsumer = null;
 	}
 
-	/**
-	 * Use non-culling translucent material in GUI to match vanilla behavior. If the item
-	 * is enchanted then also select a dual-output vertex consumer. For models with layered
-	 * coplanar polygons this means we will render the glint more than once. Indigo doesn't
-	 * support sprite layers, so this can't be helped in this implementation.
-	 */
-	private VertexConsumer selectVertexConsumer(RenderLayer layer) {
-		return ItemRenderer.getArmorVertexConsumer(vertexConsumerProvider, layer, true, itemStack.hasGlint());
-	}
-
-	/**
-	 * Caches custom blend mode / vertex consumers and mimics the logic
-	 * in {@code RenderLayers.getEntityBlockLayer}. Layers other than
-	 * translucent are mapped to cutout.
-	 */
-	private VertexConsumer quadVertexConsumer(BlendMode blendMode) {
-		if (blendMode == BlendMode.DEFAULT) {
-			return modelVertexConsumer;
-		}
-
-		if (blendMode != BlendMode.TRANSLUCENT) {
-			blendMode = BlendMode.CUTOUT;
-		}
-
-		if (blendMode == quadBlendMode) {
-			return quadVertexConsumer;
-		} else if (blendMode == BlendMode.TRANSLUCENT) {
-			quadVertexConsumer = selectVertexConsumer(TexturedRenderLayers.getEntityTranslucentCull());
-			quadBlendMode = BlendMode.TRANSLUCENT;
-		} else {
-			quadVertexConsumer = selectVertexConsumer(TexturedRenderLayers.getEntityCutout());
-			quadBlendMode = BlendMode.CUTOUT;
-		}
-
-		return quadVertexConsumer;
-	}
 
 	@Override
 	public EncodingContext materialContext() {
@@ -184,7 +131,12 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 
 	@Override
 	public VertexConsumer consumer(MeshMaterialLayer mat) {
-		return quadVertexConsumer(mat.shaderType == ShaderPass.SOLID ? BlendMode.CUTOUT : BlendMode.TRANSLUCENT);
+		// WIP: really can't honor per-quad materials in the current setup
+		// and also honor default model render layer because default blend mode
+		// is transformed to something specific before we get here, and the
+		// vanilla logic for model default layer is monstrous - see ItemRenderer
+		// For now, always use the model default
+		return modelVertexConsumer;
 	}
 
 	@Override
