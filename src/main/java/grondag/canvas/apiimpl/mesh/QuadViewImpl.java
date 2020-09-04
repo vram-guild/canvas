@@ -141,13 +141,14 @@ public class QuadViewImpl implements QuadView {
 			NormalHelper.computeFaceNormal(faceNormal, this);
 			packedFaceNormal = -1;
 
-			int header = data[baseIndex + HEADER_BITS];
+			final int headerIndex = baseIndex + HEADER_BITS;
 
 			// depends on face normal
-			header = MeshEncodingHelper.lightFace(header, GeometryHelper.lightFaceId(this));
+			// NB: important to save back to array because used by geometry helper
+			data[headerIndex] = MeshEncodingHelper.lightFace(data[headerIndex], GeometryHelper.lightFaceId(this));
 
 			// depends on light face
-			data[baseIndex + HEADER_BITS] = MeshEncodingHelper.geometryFlags(header, GeometryHelper.computeShapeFlags(this));
+			data[baseIndex + HEADER_BITS] = MeshEncodingHelper.geometryFlags(data[headerIndex], GeometryHelper.computeShapeFlags(this));
 		}
 	}
 
