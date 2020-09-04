@@ -707,7 +707,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		@SuppressWarnings("resource")
 		final Entity entity = MinecraftClient.getInstance().gameRenderer.getCamera().getFocusedEntity();
 
-		final HitResult hit = entity.rayTrace(12 * 16, tickDelta, true);
+		final HitResult hit = entity.raycast(12 * 16, tickDelta, true);
 
 		if (hit.getType() != HitResult.Type.BLOCK) {
 			return;
