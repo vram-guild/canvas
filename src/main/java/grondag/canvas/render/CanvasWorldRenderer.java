@@ -631,7 +631,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			mc.particleManager.renderParticles(matrixStack, immediate, lightmapTextureManager, camera, tickDelta);
 		}
 
-		JustMapHolder.justMapRender.renderWaypoints(matrixStack, mc, camera, tickDelta);
+		JustMapHolder.justMapRender.renderWaypoints(matrixStack, camera, tickDelta);
 		LitematicaHolder.litematicaRenderTranslucent.accept(matrixStack);
 		LitematicaHolder.litematicaRenderOverlay.accept(matrixStack);
 
