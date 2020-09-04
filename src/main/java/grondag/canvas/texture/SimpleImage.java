@@ -138,6 +138,12 @@ public final class SimpleImage implements AutoCloseable {
 		GlStateManager.pixelStore(GL21.GL_UNPACK_SKIP_PIXELS, skipPixels);
 		GlStateManager.pixelStore(GL21.GL_UNPACK_SKIP_ROWS, skipRows);
 		GlStateManager.texSubImage2D(GL11.GL_TEXTURE_2D, lod, x, y, width, height, pixelDataFormat, pixelDataType, pointer);
+
+		// reset defaults to avoid leaking unexpected / unhandled state
+		GlStateManager.pixelStore(GL21.GL_UNPACK_ALIGNMENT, 4);
+		GlStateManager.pixelStore(GL21.GL_UNPACK_ROW_LENGTH, 0);
+		GlStateManager.pixelStore(GL21.GL_UNPACK_SKIP_PIXELS, 0);
+		GlStateManager.pixelStore(GL21.GL_UNPACK_SKIP_ROWS, 0);
 	}
 
 	public void untrack() {
