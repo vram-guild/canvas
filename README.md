@@ -91,10 +91,11 @@ Future versions of the fragment library will give more granular options for gett
 
 
 ## Adding Canvas to your project
-Add the maven repo where my repos live to your build.gradle
+Add these maven repos to your build if not already present
 
 ```gradle
 repositories {
+    // where grondag's mods live
     maven {
     	name = "dblsaiko"
     	url = "https://maven.dblsaiko.net/"
@@ -102,6 +103,16 @@ repositories {
     maven {
       name = "Cotton"
       url = "http://server.bbkr.space:8081/artifactory/libs-release/"
+    }
+    // REI, odds and ends
+    maven {
+      name = "CurseForge"
+      url = "https://minecraft.curseforge.com/api/maven"
+    }
+    // Satin
+    maven {
+      name = "JitPack"
+      url = "https://jitpack.io"
     }
 }
 ```
