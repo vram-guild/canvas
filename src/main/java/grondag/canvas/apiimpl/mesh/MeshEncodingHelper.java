@@ -60,7 +60,7 @@ public abstract class MeshEncodingHelper {
 	/**
 	 * used for quick clearing of quad buffers
 	 */
-	public static final int[] EMPTY = new int[MAX_QUAD_STRIDE];
+	public static final int[] EMPTY;
 	public static final int DEFAULT_HEADER_BITS;
 	public static final int UV_UNIT_VALUE = 0xFFFF;
 	public static final int UV_EXTRA_PRECISION = 8;
@@ -109,6 +109,7 @@ public abstract class MeshEncodingHelper {
 		SECOND_TEXTURE_OFFSET = MIN_QUAD_STRIDE;
 		THIRD_TEXTURE_OFFSET = SECOND_TEXTURE_OFFSET + TEXTURE_QUAD_STRIDE;
 		MAX_QUAD_STRIDE = MIN_QUAD_STRIDE + TEXTURE_QUAD_STRIDE * (AbstractMeshMaterial.MAX_SPRITE_DEPTH - 1);
+		EMPTY = new int[MAX_QUAD_STRIDE];
 	}
 
 	static {

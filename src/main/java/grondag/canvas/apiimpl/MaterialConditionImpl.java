@@ -22,9 +22,9 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import java.util.function.BooleanSupplier;
 
 public class MaterialConditionImpl implements MaterialCondition {
+	private static final ObjectArrayList<MaterialConditionImpl> ALL_BY_INDEX = new ObjectArrayList<>();
 	public static final int MAX_CONDITIONS = 64;
 	public static final MaterialConditionImpl ALWAYS = new MaterialConditionImpl(() -> true, false, false);
-	private static final ObjectArrayList<MaterialConditionImpl> ALL_BY_INDEX = new ObjectArrayList<>();
 	public final BooleanSupplier supplier;
 	public final boolean affectItems;
 	public final boolean affectBlocks;
