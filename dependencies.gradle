@@ -18,10 +18,6 @@ repositories {
 		name = "CurseForge"
 		url = "https://minecraft.curseforge.com/api/maven"
 	}
-	maven {
-		name = "JitPack"
-		url = "https://jitpack.io"
-	}
 }
 
 dependencies {
@@ -93,7 +89,7 @@ dependencies {
 		include "grondag:jmx-${project.mc_tag}:${project.jmx_version}.+"
 	}
 
-	modImplementation("com.github.Ladysnake:Satin:${satin_version}") {
+	modImplementation("io.github.ladysnake:Satin:${satin_version}") {
 		transitive = false
 	}
 }
