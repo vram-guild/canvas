@@ -22,11 +22,6 @@ repositories {
 		name = "JitPack"
 		url = "https://jitpack.io"
 	}
-
-	maven {
-		name = "AperLambda"
-		url = 'https://aperlambda.github.io/maven'
-	}
 }
 
 dependencies {
