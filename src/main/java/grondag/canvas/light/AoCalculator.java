@@ -588,4 +588,3 @@ public abstract class AoCalculator {
 		fd.calc.compute(fd);
 	}
 }
-

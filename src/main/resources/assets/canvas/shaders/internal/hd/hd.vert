@@ -43,4 +43,3 @@ void setupVertex() {
 
 	v_color = in_color;
 }
-

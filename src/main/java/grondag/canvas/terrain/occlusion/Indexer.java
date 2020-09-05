@@ -76,4 +76,3 @@ abstract class Indexer {
 		System.out.println();
 	}
 }
-

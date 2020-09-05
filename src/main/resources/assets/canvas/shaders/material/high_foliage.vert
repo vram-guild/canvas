@@ -25,4 +25,3 @@ void frx_startVertex(inout frx_VertexData data) {
 	data.vertex.z += sin(t * 19) * wind;
 	#endif
 }
-

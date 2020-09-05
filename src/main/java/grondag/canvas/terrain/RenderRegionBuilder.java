@@ -70,4 +70,3 @@ public class RenderRegionBuilder {
 		return executor.isEmpty() && uploadQueue.isEmpty();
 	}
 }
-
