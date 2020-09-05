@@ -109,11 +109,6 @@ repositories {
       name = "CurseForge"
       url = "https://minecraft.curseforge.com/api/maven"
     }
-    // Satin
-    maven {
-      name = "JitPack"
-      url = "https://jitpack.io"
-    }
 }
 ```
 
