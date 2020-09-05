@@ -1,16 +1,30 @@
-package grondag.canvas.terrain;
+/*
+ * Copyright 2019, 2020 grondag
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License.  You may obtain a copy
+ * of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ */
 
-import java.util.Queue;
+package grondag.canvas.terrain;
 
 import com.google.common.collect.Queues;
 import com.mojang.blaze3d.systems.RenderSystem;
-
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
 
-public class RenderRegionBuilder {
-	private final Queue<Runnable> uploadQueue = Queues.newConcurrentLinkedQueue();
-	public final ChunkRenderExecutor executor = new ChunkRenderExecutor();
+import java.util.Queue;
 
+public class RenderRegionBuilder {
+	public final ChunkRenderExecutor executor = new ChunkRenderExecutor();
+	private final Queue<Runnable> uploadQueue = Queues.newConcurrentLinkedQueue();
 	// for use by render thread rebuilds
 	TerrainRenderContext mainThreadContext = new TerrainRenderContext();
 
@@ -56,4 +70,3 @@ public class RenderRegionBuilder {
 		return executor.isEmpty() && uploadQueue.isEmpty();
 	}
 }
-

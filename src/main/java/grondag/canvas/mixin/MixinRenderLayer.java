@@ -1,5 +1,6 @@
-/*******************************************************************************
+/*
  * Copyright 2019, 2020 grondag
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
  * of the License at
@@ -11,21 +12,20 @@
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
  * License for the specific language governing permissions and limitations under
  * the License.
- ******************************************************************************/
+ */
+
 package grondag.canvas.mixin;
 
+import grondag.canvas.mixinterface.RenderLayerExt;
+import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
+import net.minecraft.client.render.RenderLayer;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
-import net.minecraft.client.render.RenderLayer;
-
-import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
-
-import grondag.canvas.mixinterface.RenderLayerExt;
-
 @Mixin(RenderLayer.class)
 public class MixinRenderLayer implements RenderLayerExt {
-	@Shadow private boolean translucent;
+	@Shadow
+	private boolean translucent;
 
 	private int blendModeIndex = BlendMode.DEFAULT.ordinal();
 

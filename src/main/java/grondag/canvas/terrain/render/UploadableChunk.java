@@ -1,5 +1,5 @@
-/*******************************************************************************
- * Copyright 2019 grondag
+/*
+ * Copyright 2019, 2020 grondag
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
@@ -12,7 +12,7 @@
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
  * License for the specific language governing permissions and limitations under
  * the License.
- ******************************************************************************/
+ */
 
 package grondag.canvas.terrain.render;
 
@@ -21,6 +21,12 @@ import grondag.canvas.buffer.encoding.VertexCollectorList;
 import grondag.canvas.material.MaterialVertexFormat;
 
 public class UploadableChunk {
+	public static final UploadableChunk EMPTY_UPLOADABLE = new UploadableChunk() {
+		@Override
+		public DrawableChunk produceDrawable() {
+			return DrawableChunk.EMPTY_DRAWABLE;
+		}
+	};
 	protected final VboBuffer vboBuffer;
 	protected final DrawableChunk drawable;
 
@@ -41,11 +47,4 @@ public class UploadableChunk {
 		vboBuffer.upload();
 		return drawable;
 	}
-
-	public static final UploadableChunk EMPTY_UPLOADABLE = new UploadableChunk() {
-		@Override
-		public DrawableChunk produceDrawable() {
-			return DrawableChunk.EMPTY_DRAWABLE;
-		}
-	};
 }

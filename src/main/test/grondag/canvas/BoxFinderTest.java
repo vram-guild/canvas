@@ -13,7 +13,7 @@ class BoxFinderTest {
 	final long[] words = new long[4096];
 
 	final BoxFinder finder = new BoxFinder(new AreaFinder());
-	final IntArrayList boxes =  finder.boxes;
+	final IntArrayList boxes = finder.boxes;
 
 	@Test
 	void test() {
@@ -48,12 +48,12 @@ class BoxFinderTest {
 		assert boxes.size() == 1 && boxes.getInt(0) == PackedBox.pack(0, 0, 0, 3, 3, 3, 0);
 	}
 
-	void fill (int x0, int y0, int z0, int x1, int y1, int z1) {
+	void fill(int x0, int y0, int z0, int x1, int y1, int z1) {
 		for (int x = x0; x < x1; x++) {
 			for (int y = y0; y < y1; y++) {
 				for (int z = z0; z < z1; z++) {
 					final int index = x | (y << 4) | (z << 8);
-					words[index >> 6] |=  (1L << (index & 63));
+					words[index >> 6] |= (1L << (index & 63));
 				}
 			}
 		}

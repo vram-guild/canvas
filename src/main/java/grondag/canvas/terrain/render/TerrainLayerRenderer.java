@@ -1,15 +1,23 @@
-package grondag.canvas.terrain.render;
+/*
+ * Copyright 2019, 2020 grondag
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License.  You may obtain a copy
+ * of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ */
 
-import javax.annotation.Nullable;
+package grondag.canvas.terrain.render;
 
 import com.google.common.util.concurrent.Runnables;
 import com.mojang.blaze3d.systems.RenderSystem;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.util.math.BlockPos;
-
 import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.MaterialConditionImpl;
 import grondag.canvas.light.LightmapHdTexture;
@@ -23,6 +31,12 @@ import grondag.canvas.shader.ShaderPass;
 import grondag.canvas.terrain.BuiltRenderRegion;
 import grondag.canvas.terrain.TerrainModelSpace;
 import grondag.canvas.texture.DitherTexture;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.util.math.BlockPos;
+
+import javax.annotation.Nullable;
 
 public class TerrainLayerRenderer {
 	private final String profileString;
@@ -46,7 +60,7 @@ public class TerrainLayerRenderer {
 
 		mc.getProfiler().push(profileString);
 
-		final int startIndex = isTranslucent ? visibleRegionCount - 1 : 0 ;
+		final int startIndex = isTranslucent ? visibleRegionCount - 1 : 0;
 		final int endIndex = isTranslucent ? -1 : visibleRegionCount;
 		final int step = isTranslucent ? -1 : 1;
 		final int frameIndex = MaterialShaderManager.INSTANCE.frameIndex();
@@ -119,11 +133,11 @@ public class TerrainLayerRenderer {
 
 					final int limit = delegates.size();
 
-					for(int i = 0; i < limit; ++i) {
+					for (int i = 0; i < limit; ++i) {
 						final DrawableDelegate d = delegates.get(i);
 						final MaterialConditionImpl condition = d.materialState().condition;
 
-						if(!condition.affectBlocks || condition.compute(frameIndex)) {
+						if (!condition.affectBlocks || condition.compute(frameIndex)) {
 							d.materialState().shader.activate(shaderContext, format, ox, oy, oz);
 							d.draw();
 						}

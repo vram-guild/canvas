@@ -1,5 +1,6 @@
-/*******************************************************************************
- * Copyright 2020 grondag
+/*
+ * Copyright 2019, 2020 grondag
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
  * of the License at
@@ -11,16 +12,16 @@
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
  * License for the specific language governing permissions and limitations under
  * the License.
- ******************************************************************************/
-package grondag.canvas.compat;
+ */
 
-import ladysnake.satin.api.event.EntitiesPostRenderCallback;
-import ladysnake.satin.api.event.EntitiesPreRenderCallback;
-import ladysnake.satin.api.event.PostWorldRenderCallbackV2;
+package grondag.canvas.compat;
 
 import grondag.canvas.compat.SatinHolder.SatinBeforeEntitiesRendered;
 import grondag.canvas.compat.SatinHolder.SatinOnEntitiesRendered;
 import grondag.canvas.compat.SatinHolder.SatinOnWorldRendered;
+import ladysnake.satin.api.event.EntitiesPostRenderCallback;
+import ladysnake.satin.api.event.EntitiesPreRenderCallback;
+import ladysnake.satin.api.event.PostWorldRenderCallbackV2;
 
 public class SatinHelper {
 	static SatinOnWorldRendered onWorldRenderedEvent() {

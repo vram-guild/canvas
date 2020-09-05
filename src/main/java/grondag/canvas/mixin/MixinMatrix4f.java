@@ -1,5 +1,6 @@
-/*******************************************************************************
+/*
  * Copyright 2019, 2020 grondag
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
  * of the License at
@@ -11,34 +12,49 @@
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
  * License for the specific language governing permissions and limitations under
  * the License.
- ******************************************************************************/
+ */
+
 package grondag.canvas.mixin;
 
+import grondag.canvas.mixinterface.Matrix4fExt;
+import net.minecraft.util.math.Matrix4f;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
-import net.minecraft.util.math.Matrix4f;
-
-import grondag.canvas.mixinterface.Matrix4fExt;
-
 @Mixin(Matrix4f.class)
 public class MixinMatrix4f implements Matrix4fExt {
-	@Shadow protected float a00;
-	@Shadow protected float a01;
-	@Shadow protected float a02;
-	@Shadow protected float a03;
-	@Shadow protected float a10;
-	@Shadow protected float a11;
-	@Shadow protected float a12;
-	@Shadow protected float a13;
-	@Shadow protected float a20;
-	@Shadow protected float a21;
-	@Shadow protected float a22;
-	@Shadow protected float a23;
-	@Shadow protected float a30;
-	@Shadow protected float a31;
-	@Shadow protected float a32;
-	@Shadow protected float a33;
+	@Shadow
+	protected float a00;
+	@Shadow
+	protected float a01;
+	@Shadow
+	protected float a02;
+	@Shadow
+	protected float a03;
+	@Shadow
+	protected float a10;
+	@Shadow
+	protected float a11;
+	@Shadow
+	protected float a12;
+	@Shadow
+	protected float a13;
+	@Shadow
+	protected float a20;
+	@Shadow
+	protected float a21;
+	@Shadow
+	protected float a22;
+	@Shadow
+	protected float a23;
+	@Shadow
+	protected float a30;
+	@Shadow
+	protected float a31;
+	@Shadow
+	protected float a32;
+	@Shadow
+	protected float a33;
 
 	@Override
 	public float a00() {

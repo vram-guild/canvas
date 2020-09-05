@@ -1,5 +1,5 @@
-/*******************************************************************************
- * Copyright 2019 grondag
+/*
+ * Copyright 2019, 2020 grondag
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
@@ -12,20 +12,18 @@
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
  * License for the specific language governing permissions and limitations under
  * the License.
- ******************************************************************************/
+ */
 
 package grondag.canvas.shader;
-
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.Camera;
-import net.minecraft.entity.Entity;
-import net.minecraft.util.Identifier;
-
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 
 import grondag.canvas.apiimpl.material.MaterialShaderImpl;
 import grondag.canvas.varia.WorldDataManager;
 import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.render.Camera;
+import net.minecraft.entity.Entity;
+import net.minecraft.util.Identifier;
 
 
 public final class MaterialShaderManager implements ClientTickEvents.EndTick {
@@ -60,7 +58,7 @@ public final class MaterialShaderManager implements ClientTickEvents.EndTick {
 		ClientTickEvents.END_CLIENT_TICK.register(this);
 
 		// add default shaders
-		defaultShader= create(ShaderData.DEFAULT_VERTEX_SOURCE, ShaderData.DEFAULT_FRAGMENT_SOURCE);
+		defaultShader = create(ShaderData.DEFAULT_VERTEX_SOURCE, ShaderData.DEFAULT_FRAGMENT_SOURCE);
 	}
 
 	public void reload() {
@@ -73,11 +71,11 @@ public final class MaterialShaderManager implements ClientTickEvents.EndTick {
 
 	public synchronized MaterialShaderImpl create(Identifier vertexShaderSource, Identifier fragmentShaderSource) {
 
-		if(vertexShaderSource == null) {
+		if (vertexShaderSource == null) {
 			vertexShaderSource = ShaderData.DEFAULT_VERTEX_SOURCE;
 		}
 
-		if(fragmentShaderSource == null) {
+		if (fragmentShaderSource == null) {
 			fragmentShaderSource = ShaderData.DEFAULT_FRAGMENT_SOURCE;
 		}
 

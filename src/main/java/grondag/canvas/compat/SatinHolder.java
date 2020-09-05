@@ -1,5 +1,6 @@
-/*******************************************************************************
- * Copyright 2020 grondag
+/*
+ * Copyright 2019, 2020 grondag
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
  * of the License at
@@ -11,18 +12,21 @@
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
  * License for the specific language governing permissions and limitations under
  * the License.
- ******************************************************************************/
+ */
+
 package grondag.canvas.compat;
 
+import grondag.canvas.CanvasMod;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.render.Camera;
 import net.minecraft.client.render.Frustum;
 import net.minecraft.client.util.math.MatrixStack;
 
-import net.fabricmc.loader.api.FabricLoader;
-
-import grondag.canvas.CanvasMod;
-
 public class SatinHolder {
+	public static SatinOnWorldRendered onWorldRenderedEvent;
+	public static SatinOnEntitiesRendered onEntitiesRenderedEvent;
+	public static SatinBeforeEntitiesRendered beforeEntitiesRenderEvent;
+
 	static {
 		if (FabricLoader.getInstance().isModLoaded("satin")) {
 			CanvasMod.LOG.info("Found Satin - compatibility hook enabled");
@@ -30,15 +34,14 @@ public class SatinHolder {
 			onEntitiesRenderedEvent = SatinHelper.onEntitiesRenderedEvent();
 			beforeEntitiesRenderEvent = SatinHelper.beforeEntitiesRenderEvent();
 		} else {
-			onWorldRenderedEvent = (m, c, t, n) -> {};
-			onEntitiesRenderedEvent = (c, f, t) -> {};
-			beforeEntitiesRenderEvent = (c, f, t) -> {};
+			onWorldRenderedEvent = (m, c, t, n) -> {
+			};
+			onEntitiesRenderedEvent = (c, f, t) -> {
+			};
+			beforeEntitiesRenderEvent = (c, f, t) -> {
+			};
 		}
 	}
-
-	public static SatinOnWorldRendered onWorldRenderedEvent;
-	public static SatinOnEntitiesRendered onEntitiesRenderedEvent;
-	public static SatinBeforeEntitiesRendered beforeEntitiesRenderEvent;
 
 
 	@FunctionalInterface

@@ -14,5 +14,5 @@ varying vec2 _cvv_texcoord;
 
 void main() {
 	vec4 sample = _cvu_lod == 6 ? vec4(0) : frx_sampleTent(cvu_prior, _cvv_texcoord, _cvu_distance / _cvu_size, _cvu_lod + 1);
-	gl_FragData[0] = texture2DLod(cvu_input, _cvv_texcoord, _cvu_lod) + sample;
+gl_FragData[0] = texture2DLod(cvu_input, _cvv_texcoord, _cvu_lod) + sample;
 }

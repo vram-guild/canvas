@@ -1,5 +1,6 @@
-/*******************************************************************************
+/*
  * Copyright 2019, 2020 grondag
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
  * of the License at
@@ -11,32 +12,30 @@
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
  * License for the specific language governing permissions and limitations under
  * the License.
- ******************************************************************************/
-package grondag.canvas.terrain;
+ */
 
-import static grondag.canvas.terrain.RenderRegionAddressHelper.relativeCacheIndex;
+package grondag.canvas.terrain;
 
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.ChunkSection;
 import net.minecraft.world.chunk.WorldChunk;
 
+import static grondag.canvas.terrain.RenderRegionAddressHelper.relativeCacheIndex;
+
 /**
  * Tries to prevent FastRenderRegion from being unreadably big. Fails.
  */
 abstract class AbstractRenderRegion {
+	// larger than needed to speed up indexing
+	protected final WorldChunk[] chunks = new WorldChunk[16];
 	protected int originX;
 	protected int originY;
 	protected int originZ;
-
 	protected int chunkBaseX;
 	protected int chunkBaseY;
 	protected int chunkBaseZ;
-
 	protected World world;
-
-	// larger than needed to speed up indexing
-	protected final WorldChunk[] chunks = new WorldChunk[16];
 
 	final boolean isInMainChunk(int x, int y, int z) {
 		return originX == (x & 0xFFFFFFF0) && originY == (y & 0xFFFFFFF0) && originZ == (z & 0xFFFFFFF0);

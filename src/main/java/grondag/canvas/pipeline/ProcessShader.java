@@ -1,5 +1,5 @@
-/*******************************************************************************
- * Copyright 2020 grondag
+/*
+ * Copyright 2019, 2020 grondag
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
@@ -12,10 +12,9 @@
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
  * License for the specific language governing permissions and limitations under
  * the License.
- ******************************************************************************/
-package grondag.canvas.pipeline;
+ */
 
-import net.minecraft.util.Identifier;
+package grondag.canvas.pipeline;
 
 import grondag.canvas.material.MaterialVertexFormats;
 import grondag.canvas.shader.GlProgram;
@@ -27,17 +26,17 @@ import grondag.canvas.shader.GlShader;
 import grondag.canvas.shader.GlShaderManager;
 import grondag.canvas.shader.ShaderContext;
 import grondag.frex.api.material.UniformRefreshFrequency;
+import net.minecraft.util.Identifier;
 
 public class ProcessShader {
+	private final Identifier fragmentId;
+	private final Identifier vertexId;
+	private final String[] samplers;
 	private GlProgram program;
 	private Uniform2iImpl size;
 	private Uniform2fImpl distance;
 	private Uniform1iImpl lod;
 	private Uniform1fImpl intensity;
-
-	private final Identifier fragmentId;
-	private final Identifier vertexId;
-	private final String[] samplers;
 
 	ProcessShader(Identifier vertexId, Identifier fragmentId, String... samplers) {
 		this.fragmentId = fragmentId;
@@ -65,7 +64,7 @@ public class ProcessShader {
 			int tex = 0;
 
 			for (final String samplerName : samplers) {
-				final int n  = tex++;
+				final int n = tex++;
 				program.uniformSampler2d(samplerName, UniformRefreshFrequency.ON_LOAD, u -> u.set(n));
 			}
 
@@ -78,7 +77,7 @@ public class ProcessShader {
 	}
 
 	public ProcessShader size(int w, int h) {
-		if  (program != null && GlProgram.activeProgram() == program) {
+		if (program != null && GlProgram.activeProgram() == program) {
 			size.set(w, h);
 			size.upload();
 		}
@@ -87,7 +86,7 @@ public class ProcessShader {
 	}
 
 	public ProcessShader distance(float x, float y) {
-		if  (program != null && GlProgram.activeProgram() == program) {
+		if (program != null && GlProgram.activeProgram() == program) {
 			distance.set(x, y);
 			distance.upload();
 		}
@@ -96,7 +95,7 @@ public class ProcessShader {
 	}
 
 	public ProcessShader lod(int lod) {
-		if  (program != null && GlProgram.activeProgram() == program) {
+		if (program != null && GlProgram.activeProgram() == program) {
 			this.lod.set(lod);
 			this.lod.upload();
 		}
@@ -105,7 +104,7 @@ public class ProcessShader {
 	}
 
 	public ProcessShader intensity(float intensity) {
-		if  (program != null && GlProgram.activeProgram() == program) {
+		if (program != null && GlProgram.activeProgram() == program) {
 			this.intensity.set(intensity);
 			this.intensity.upload();
 		}

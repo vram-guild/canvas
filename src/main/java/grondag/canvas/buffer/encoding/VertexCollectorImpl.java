@@ -1,46 +1,62 @@
+/*
+ * Copyright 2019, 2020 grondag
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License.  You may obtain a copy
+ * of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
 package grondag.canvas.buffer.encoding;
 
-import java.nio.IntBuffer;
-
 import com.google.common.primitives.Doubles;
-import it.unimi.dsi.fastutil.Swapper;
-import it.unimi.dsi.fastutil.ints.IntComparator;
-
-import net.minecraft.client.render.VertexConsumer;
-import net.minecraft.util.math.MathHelper;
-
 import grondag.canvas.material.EncodingContext;
 import grondag.canvas.material.MaterialState;
 import grondag.canvas.material.MaterialVertexFormat;
 import grondag.canvas.material.MaterialVertexFormats;
 import grondag.fermion.intstream.IntStreamProvider;
 import grondag.fermion.intstream.IntStreamProvider.IntStreamImpl;
+import it.unimi.dsi.fastutil.Swapper;
+import it.unimi.dsi.fastutil.ints.IntComparator;
+import net.minecraft.client.render.VertexConsumer;
+import net.minecraft.util.math.MathHelper;
+
+import java.nio.IntBuffer;
 
 public class VertexCollectorImpl implements VertexCollector {
+	private static final ThreadLocal<QuadSorter> quadSorter = new ThreadLocal<QuadSorter>() {
+		@Override
+		protected QuadSorter initialValue() {
+			return new QuadSorter();
+		}
+	};
+	// TODO: make parameters dynamic based on system specs / config
+	private static final IntStreamProvider INT_STREAM_PROVIDER = new IntStreamProvider(0x10000, 16, 4096);
 	private final IntStreamImpl data = INT_STREAM_PROVIDER.claim();
 	private int integerSize = 0;
-
 	/**
 	 * Used for vanilla quads
 	 */
 	private VertexEncoder defaultEncoder;
-
 	private MaterialState materialState;
-
 	private MaterialVertexFormat format;
-
 	/**
 	 * Holds per-quad distance after {@link #sortQuads(double, double, double)} is
 	 * called
 	 */
 	private double[] perQuadDistance;
-
 	/**
 	 * Pointer to next sorted quad in sort iteration methods.<br>
 	 * After {@link #sortQuads(float, float, float)} is called this will be zero.
 	 */
 	private int sortReadIndex = 0;
-
 	/**
 	 * Cached value of {@link #quadCount()}, set when quads are sorted by distance.
 	 */
@@ -52,7 +68,7 @@ public class VertexCollectorImpl implements VertexCollector {
 	public VertexCollectorImpl prepare(EncodingContext context, MaterialState materialState) {
 		defaultEncoder = VertexEncoders.getDefault(context, materialState);
 		this.materialState = materialState;
-		format =  MaterialVertexFormats.get(context, materialState.isTranslucent);
+		format = MaterialVertexFormats.get(context, materialState.isTranslucent);
 		return this;
 	}
 
@@ -66,7 +82,7 @@ public class VertexCollectorImpl implements VertexCollector {
 	}
 
 	public int byteSize() {
-		return integerSize  * 4;
+		return integerSize * 4;
 	}
 
 	public boolean isEmpty() {
@@ -150,7 +166,7 @@ public class VertexCollectorImpl implements VertexCollector {
 	 * {@link #firstUnpackedDistance()} will return the distance to the next quad
 	 * after that.
 	 * <p>
-	 *
+	 * <p>
 	 * (All distances are actually squared distances, to be clear.)
 	 */
 	public int unpackUntilDistance(double minDistanceSquared) {
@@ -206,74 +222,6 @@ public class VertexCollectorImpl implements VertexCollector {
 	public void toBuffer(IntBuffer intBuffer) {
 		data.copyTo(0, intBuffer, integerSize);
 	}
-
-	// TODO: make parameters dynamic based on system specs / config
-	private static IntStreamProvider INT_STREAM_PROVIDER = new IntStreamProvider(0x10000, 16, 4096);
-
-	private static class QuadSorter {
-		double[] perQuadDistance = new double[512];
-		int[] quadSwap = new int[128];
-
-		IntStreamImpl data;
-		int quadIntStride;
-
-		private final IntComparator comparator = new IntComparator() {
-			@Override
-			public int compare(int a, int b) {
-				return Doubles.compare(perQuadDistance[b], perQuadDistance[a]);
-			}
-		};
-
-		private final Swapper swapper = new Swapper() {
-			@Override
-			public void swap(int a, int b) {
-				final double distSwap = perQuadDistance[a];
-				perQuadDistance[a] = perQuadDistance[b];
-				perQuadDistance[b] = distSwap;
-
-				data.copyTo(a * quadIntStride, quadSwap, 0, quadIntStride);
-				data.copyFromDirect(a * quadIntStride, data, b * quadIntStride, quadIntStride);
-				data.copyFrom(b * quadIntStride, quadSwap, 0, quadIntStride);
-			}
-		};
-
-		private void doSort(VertexCollectorImpl caller, double x, double y, double z) {
-			data = caller.data;
-
-			// works because 4 bytes per int
-			quadIntStride = caller.format.vertexStrideBytes;
-			final int vertexIntStride = quadIntStride / 4;
-			final int quadCount = caller.vertexCount() / 4;
-
-			if (perQuadDistance.length < quadCount) {
-				perQuadDistance = new double[MathHelper.smallestEncompassingPowerOfTwo(quadCount)];
-			}
-
-			if (quadSwap.length < quadIntStride) {
-				quadSwap = new int[MathHelper.smallestEncompassingPowerOfTwo(quadIntStride)];
-			}
-
-			for (int j = 0; j < quadCount; ++j) {
-				perQuadDistance[j] = caller.getDistanceSq(x, y, z, vertexIntStride, j);
-			}
-
-			// sort the indexes by distance - farthest first
-			it.unimi.dsi.fastutil.Arrays.quickSort(0, quadCount, comparator, swapper);
-
-			if (caller.perQuadDistance == null || caller.perQuadDistance.length < quadCount) {
-				caller.perQuadDistance = new double[perQuadDistance.length];
-			}
-
-			System.arraycopy(perQuadDistance, 0, caller.perQuadDistance, 0, quadCount);
-		}
-	}
-
-	private static final ThreadLocal<QuadSorter> quadSorter = new ThreadLocal<QuadSorter>() {
-		@Override
-		protected QuadSorter initialValue() {
-			return new QuadSorter();
-		}
-	};
 
 	@Override
 	public final void addi(final int i) {
@@ -357,5 +305,60 @@ public class VertexCollectorImpl implements VertexCollector {
 	@Override
 	public void next() {
 		// NOOP
+	}
+
+	private static class QuadSorter {
+		double[] perQuadDistance = new double[512];
+		private final IntComparator comparator = new IntComparator() {
+			@Override
+			public int compare(int a, int b) {
+				return Doubles.compare(perQuadDistance[b], perQuadDistance[a]);
+			}
+		};
+		int[] quadSwap = new int[128];
+		IntStreamImpl data;
+		int quadIntStride;
+		private final Swapper swapper = new Swapper() {
+			@Override
+			public void swap(int a, int b) {
+				final double distSwap = perQuadDistance[a];
+				perQuadDistance[a] = perQuadDistance[b];
+				perQuadDistance[b] = distSwap;
+
+				data.copyTo(a * quadIntStride, quadSwap, 0, quadIntStride);
+				data.copyFromDirect(a * quadIntStride, data, b * quadIntStride, quadIntStride);
+				data.copyFrom(b * quadIntStride, quadSwap, 0, quadIntStride);
+			}
+		};
+
+		private void doSort(VertexCollectorImpl caller, double x, double y, double z) {
+			data = caller.data;
+
+			// works because 4 bytes per int
+			quadIntStride = caller.format.vertexStrideBytes;
+			final int vertexIntStride = quadIntStride / 4;
+			final int quadCount = caller.vertexCount() / 4;
+
+			if (perQuadDistance.length < quadCount) {
+				perQuadDistance = new double[MathHelper.smallestEncompassingPowerOfTwo(quadCount)];
+			}
+
+			if (quadSwap.length < quadIntStride) {
+				quadSwap = new int[MathHelper.smallestEncompassingPowerOfTwo(quadIntStride)];
+			}
+
+			for (int j = 0; j < quadCount; ++j) {
+				perQuadDistance[j] = caller.getDistanceSq(x, y, z, vertexIntStride, j);
+			}
+
+			// sort the indexes by distance - farthest first
+			it.unimi.dsi.fastutil.Arrays.quickSort(0, quadCount, comparator, swapper);
+
+			if (caller.perQuadDistance == null || caller.perQuadDistance.length < quadCount) {
+				caller.perQuadDistance = new double[perQuadDistance.length];
+			}
+
+			System.arraycopy(perQuadDistance, 0, caller.perQuadDistance, 0, quadCount);
+		}
 	}
 }

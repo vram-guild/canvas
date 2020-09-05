@@ -1,5 +1,6 @@
-/*******************************************************************************
+/*
  * Copyright 2019, 2020 grondag
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
  * of the License at
@@ -11,24 +12,9 @@
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
  * License for the specific language governing permissions and limitations under
  * the License.
- ******************************************************************************/
+ */
+
 package grondag.canvas.light;
-
-import static grondag.canvas.apiimpl.util.GeometryHelper.AXIS_ALIGNED_FLAG;
-import static grondag.canvas.apiimpl.util.GeometryHelper.CUBIC_FLAG;
-import static grondag.canvas.apiimpl.util.GeometryHelper.LIGHT_FACE_FLAG;
-import static grondag.canvas.light.AoFaceData.OPAQUE;
-import static grondag.canvas.terrain.RenderRegionAddressHelper.cacheIndexToXyz5;
-import static grondag.canvas.terrain.RenderRegionAddressHelper.fastOffsetRelativeCacheIndex;
-import static grondag.canvas.terrain.RenderRegionAddressHelper.offsetMainChunkBlockIndex;
-
-import net.minecraft.client.util.math.Vector3f;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.MathHelper;
-
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 
 import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
@@ -36,6 +22,16 @@ import grondag.canvas.apiimpl.mesh.QuadViewImpl;
 import grondag.canvas.apiimpl.util.ColorHelper;
 import grondag.canvas.light.AoFace.Vertex2Float;
 import grondag.canvas.light.AoFace.WeightFunction;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
+import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
+import net.minecraft.client.util.math.Vector3f;
+import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.MathHelper;
+
+import static grondag.canvas.apiimpl.util.GeometryHelper.*;
+import static grondag.canvas.light.AoFaceData.OPAQUE;
+import static grondag.canvas.terrain.RenderRegionAddressHelper.*;
 
 /**
  * Adaptation of inner, non-static class in BlockModelRenderer that serves same
@@ -51,36 +47,36 @@ public abstract class AoCalculator {
 	static final int BLEND_CACHE_ARRAY_SIZE = BLEND_CACHE_DEPTH * 6;
 	static final int BLEND_INDEX_NO_DEPTH = -1;
 	static final int BLEND_INDEX_FULL_DEPTH = BLEND_CACHE_DIVISION - 1;
-
-	static int blendIndex(int face, float depth) {
-		final int depthIndex = MathHelper.clamp((((int)(depth * BLEND_CACHE_DIVISION * 2 + 1)) >> 1), 1, 15) - 1;
-		return face * BLEND_CACHE_DEPTH + depthIndex;
-	}
-
-	private long blendCacheCompletionLowFlags;
-	private long blendCacheCompletionHighFlags;
-
-	private int regionRelativeCacheIndex;
-
+	private static final int UP = Direction.UP.ordinal();
+	private static final int DOWN = Direction.DOWN.ordinal();
+	private static final int EAST = Direction.EAST.ordinal();
+	private static final int WEST = Direction.WEST.ordinal();
+	private static final int NORTH = Direction.NORTH.ordinal();
+	private static final int SOUTH = Direction.SOUTH.ordinal();
 	private final AoFaceCalc[] blendCache = new AoFaceCalc[BLEND_CACHE_ARRAY_SIZE];
-
 	// PERF: need to cache these vs only the calc results due to mixed use
 	private final AoFaceData localData = new AoFaceData();
-
 	/**
 	 * caches results of {@link #gatherFace(Direction, boolean)} for the current
 	 * block
 	 */
 	private final AoFaceData[] faceData = new AoFaceData[12];
-
+	/**
+	 * holds per-corner weights - used locally to avoid new allocation.
+	 */
+	private final float[] w = new float[4];
+	/**
+	 * used exclusively in irregular face to avoid new heap allocations each call.
+	 */
+	private final Vector3f vertexNormal = new Vector3f();
+	private long blendCacheCompletionLowFlags;
+	private long blendCacheCompletionHighFlags;
+	private int regionRelativeCacheIndex;
 	/**
 	 * indicates which elements of {@link #faceData} have been computed for the
 	 * current block
 	 */
 	private int completionFlags = 0;
-
-	/** holds per-corner weights - used locally to avoid new allocation. */
-	private final float[] w = new float[4];
 
 	public AoCalculator() {
 		for (int i = 0; i < 12; i++) {
@@ -92,6 +88,11 @@ public abstract class AoCalculator {
 		}
 	}
 
+	static int blendIndex(int face, float depth) {
+		final int depthIndex = MathHelper.clamp((((int) (depth * BLEND_CACHE_DIVISION * 2 + 1)) >> 1), 1, 15) - 1;
+		return face * BLEND_CACHE_DEPTH + depthIndex;
+	}
+
 	/* 0 to 255 */
 	protected abstract int ao(int cacheIndex);
 
@@ -100,7 +101,7 @@ public abstract class AoCalculator {
 	protected abstract boolean isOpaque(int cacheIndex);
 
 	private boolean checkBlendDirty(int blendIndex) {
-		if((blendIndex & 63) == 0) {
+		if ((blendIndex & 63) == 0) {
 			final long mask = 1L << blendIndex;
 
 			if ((blendCacheCompletionLowFlags & mask) == 0) {
@@ -123,6 +124,7 @@ public abstract class AoCalculator {
 
 	/**
 	 * call at start of each new block
+	 *
 	 * @param index region-relative index - must be an interior index - for block context, will always be 0
 	 */
 	public void prepare(int index) {
@@ -133,7 +135,7 @@ public abstract class AoCalculator {
 	}
 
 	public void computeFlatHd(MutableQuadViewImpl quad, int flatBrightness) {
-		if(Configurator.hdLightmaps()) {
+		if (Configurator.hdLightmaps()) {
 			flatFaceSmoothHd(quad, flatBrightness);
 		} else {
 			assert false : "Called block lighter for flat lighting outside HD lighting model";
@@ -141,7 +143,7 @@ public abstract class AoCalculator {
 	}
 
 	public void compute(MutableQuadViewImpl quad) {
-		if(quad.hasVertexNormals()) {
+		if (quad.hasVertexNormals()) {
 			// these can only be lit this way
 			irregularFace(quad);
 			return;
@@ -149,9 +151,9 @@ public abstract class AoCalculator {
 
 		final int flags = quad.geometryFlags();
 
-		if(Configurator.hdLightmaps()) {
-			if((flags & AXIS_ALIGNED_FLAG) == AXIS_ALIGNED_FLAG) {
-				if((flags & LIGHT_FACE_FLAG) == LIGHT_FACE_FLAG) {
+		if (Configurator.hdLightmaps()) {
+			if ((flags & AXIS_ALIGNED_FLAG) == AXIS_ALIGNED_FLAG) {
+				if ((flags & LIGHT_FACE_FLAG) == LIGHT_FACE_FLAG) {
 					vanillaPartialFaceSmooth(quad, true);
 				} else {
 					blendedPartialFaceSmooth(quad);
@@ -167,19 +169,19 @@ public abstract class AoCalculator {
 		quad.hdLight = null;
 
 		switch (flags) {
-		case AXIS_ALIGNED_FLAG | CUBIC_FLAG | LIGHT_FACE_FLAG:
-		case AXIS_ALIGNED_FLAG | LIGHT_FACE_FLAG:
-			blockFace(quad, true);
-			break;
+			case AXIS_ALIGNED_FLAG | CUBIC_FLAG | LIGHT_FACE_FLAG:
+			case AXIS_ALIGNED_FLAG | LIGHT_FACE_FLAG:
+				blockFace(quad, true);
+				break;
 
-		case AXIS_ALIGNED_FLAG | CUBIC_FLAG:
-		case AXIS_ALIGNED_FLAG:
-			blendedFace(quad);
-			break;
+			case AXIS_ALIGNED_FLAG | CUBIC_FLAG:
+			case AXIS_ALIGNED_FLAG:
+				blendedFace(quad);
+				break;
 
-		default:
-			irregularFace(quad);
-			break;
+			default:
+				irregularFace(quad);
+				break;
 		}
 	}
 
@@ -190,19 +192,19 @@ public abstract class AoCalculator {
 		quad.hdLight = null;
 
 		switch (flags) {
-		case AXIS_ALIGNED_FLAG | CUBIC_FLAG | LIGHT_FACE_FLAG:
-		case AXIS_ALIGNED_FLAG | LIGHT_FACE_FLAG:
-			blockFaceFlat(quad, true);
-			break;
+			case AXIS_ALIGNED_FLAG | CUBIC_FLAG | LIGHT_FACE_FLAG:
+			case AXIS_ALIGNED_FLAG | LIGHT_FACE_FLAG:
+				blockFaceFlat(quad, true);
+				break;
 
-		case AXIS_ALIGNED_FLAG | CUBIC_FLAG:
-		case AXIS_ALIGNED_FLAG:
-			blendedFaceFlat(quad);
-			break;
+			case AXIS_ALIGNED_FLAG | CUBIC_FLAG:
+			case AXIS_ALIGNED_FLAG:
+				blendedFaceFlat(quad);
+				break;
 
-		default:
-			irregularFaceFlat(quad);
-			break;
+			default:
+				irregularFaceFlat(quad);
+				break;
 		}
 	}
 
@@ -291,7 +293,6 @@ public abstract class AoCalculator {
 		}
 	}
 
-
 	private void blendedFace(MutableQuadViewImpl quad) {
 		final int lightFace = quad.lightFaceId();
 		final AoFaceCalc faceData = blendedInsetData(quad, 0, lightFace);
@@ -341,23 +342,11 @@ public abstract class AoCalculator {
 		quad.hdLight = LightmapHd.find(faceData);
 	}
 
-	/**
-	 * used exclusively in irregular face to avoid new heap allocations each call.
-	 */
-	private final Vector3f vertexNormal = new Vector3f();
-
-	private static final int UP = Direction.UP.ordinal();
-	private static final int DOWN = Direction.DOWN.ordinal();
-	private static final int EAST = Direction.EAST.ordinal();
-	private static final int WEST = Direction.WEST.ordinal();
-	private static final int NORTH = Direction.NORTH.ordinal();
-	private static final int SOUTH = Direction.SOUTH.ordinal();
-
 	private void irregularFace(MutableQuadViewImpl quad) {
 		final Vector3f faceNorm = quad.faceNormal();
 		Vector3f normal;
 		final float[] w = this.w;
-		final float aoResult[] = quad.ao;
+		final float[] aoResult = quad.ao;
 
 		//TODO: currently no way to handle 3d interpolation shader-side
 		quad.hdLight = null;
@@ -422,7 +411,7 @@ public abstract class AoCalculator {
 
 			aoResult[i] = (ao + maxAo) * (0.5f * DIVIDE_BY_255);
 			quad.lightmap(i, ColorHelper.maxBrightness(quad.lightmap(i), (((int) ((sky + maxSky) * 0.5f) & 0xFF) << 16)
-					| ((int)((block + maxBlock) * 0.5f) & 0xFF)));
+					| ((int) ((block + maxBlock) * 0.5f) & 0xFF)));
 		}
 	}
 
@@ -469,7 +458,7 @@ public abstract class AoCalculator {
 		if (isOnBlockFace) {
 			final int offsetIndex = offsetMainChunkBlockIndex(index, ModelHelper.faceFromIndex(lightFace));
 
-			if(!isOpaque(offsetIndex)) {
+			if (!isOpaque(offsetIndex)) {
 				index = offsetIndex;
 			}
 		}
@@ -575,7 +564,7 @@ public abstract class AoCalculator {
 			if (hd) {
 				fd.aoTopRight = Math.min(aoRight, aoTop);
 			} else {
-				fd.aoTopRight = (Math.min(aoRight, aoTop) + aoTop+ aoRight + 1 + aoCenter) >> 2;
+				fd.aoTopRight = (Math.min(aoRight, aoTop) + aoTop + aoRight + 1 + aoCenter) >> 2;
 			}
 
 			fd.topRight = OPAQUE;
@@ -599,4 +588,3 @@ public abstract class AoCalculator {
 		fd.calc.compute(fd);
 	}
 }
-

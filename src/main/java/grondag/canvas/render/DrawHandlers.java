@@ -1,5 +1,6 @@
-/*******************************************************************************
- * Copyright 2020 grondag
+/*
+ * Copyright 2019, 2020 grondag
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
  * of the License at
@@ -11,31 +12,54 @@
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
  * License for the specific language governing permissions and limitations under
  * the License.
- ******************************************************************************/
+ */
 
 package grondag.canvas.render;
 
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
-import org.lwjgl.opengl.GL21;
-
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.BackgroundRenderer;
-import net.minecraft.client.texture.SpriteAtlasTexture;
-import net.minecraft.client.texture.TextureManager;
-import net.minecraft.util.math.MathHelper;
-
 import grondag.canvas.Configurator;
 import grondag.canvas.material.EncodingContext;
 import grondag.canvas.material.MaterialVertexFormat;
 import grondag.canvas.material.MaterialVertexFormats;
 import grondag.canvas.shader.ShaderPass;
 import grondag.canvas.texture.SpriteInfoTexture;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.render.BackgroundRenderer;
+import net.minecraft.client.texture.SpriteAtlasTexture;
+import net.minecraft.client.texture.TextureManager;
+import net.minecraft.util.math.MathHelper;
+import org.lwjgl.opengl.GL21;
 
 public class DrawHandlers {
 
+	private static final DrawHandler[] HANDLERS = new DrawHandler[MathHelper.smallestEncompassingPowerOfTwo(EncodingContext.values().length) * MathHelper.smallestEncompassingPowerOfTwo(ShaderPass.values().length)];
+	private static final DrawHandler[] HD_HANDLERS = new DrawHandler[MathHelper.smallestEncompassingPowerOfTwo(EncodingContext.values().length) * MathHelper.smallestEncompassingPowerOfTwo(ShaderPass.values().length)];
+
+	static {
+		HANDLERS[lookupIndex(EncodingContext.TERRAIN, ShaderPass.SOLID)] = new SolidHandler(MaterialVertexFormats.VANILLA_BLOCKS_AND_ITEMS, ShaderPass.SOLID);
+		HANDLERS[lookupIndex(EncodingContext.TERRAIN, ShaderPass.DECAL)] = new DecalHandler(MaterialVertexFormats.VANILLA_BLOCKS_AND_ITEMS, ShaderPass.DECAL);
+		HANDLERS[lookupIndex(EncodingContext.TERRAIN, ShaderPass.TRANSLUCENT)] = new TranslucentHandler(MaterialVertexFormats.VANILLA_BLOCKS_AND_ITEMS, ShaderPass.TRANSLUCENT);
+
+		HD_HANDLERS[lookupIndex(EncodingContext.TERRAIN, ShaderPass.SOLID)] = new SolidHandler(MaterialVertexFormats.HD_TERRAIN, ShaderPass.SOLID);
+		HD_HANDLERS[lookupIndex(EncodingContext.TERRAIN, ShaderPass.DECAL)] = new DecalHandler(MaterialVertexFormats.HD_TERRAIN, ShaderPass.DECAL);
+		HD_HANDLERS[lookupIndex(EncodingContext.TERRAIN, ShaderPass.TRANSLUCENT)] = new TranslucentHandler(MaterialVertexFormats.HD_TERRAIN, ShaderPass.TRANSLUCENT);
+	}
+
+	private static int lookupIndex(EncodingContext context, ShaderPass shaderType) {
+		return shaderType.ordinal() | (context.ordinal() << 2);
+	}
+
+	public static DrawHandler get(EncodingContext context, ShaderPass shaderPass) {
+		assert shaderPass != ShaderPass.PROCESS;
+
+		final boolean isHD = context == EncodingContext.TERRAIN && Configurator.hdLightmaps();
+		final int index = lookupIndex(context, shaderPass);
+		return isHD ? HD_HANDLERS[index] : HANDLERS[index];
+	}
+
 	private static class SolidHandler extends DrawHandler {
-		SolidHandler(MaterialVertexFormat format,  ShaderPass shaderPass) {
+		SolidHandler(MaterialVertexFormat format, ShaderPass shaderPass) {
 			super(format, shaderPass);
 		}
 
@@ -143,30 +167,5 @@ public class DrawHandlers {
 			RenderSystem.defaultBlendFunc();
 			SpriteInfoTexture.instance().disable();
 		}
-	}
-
-	private static final DrawHandler[] HANDLERS = new DrawHandler[MathHelper.smallestEncompassingPowerOfTwo(EncodingContext.values().length) * MathHelper.smallestEncompassingPowerOfTwo(ShaderPass.values().length)];
-	private static final DrawHandler[] HD_HANDLERS = new DrawHandler[MathHelper.smallestEncompassingPowerOfTwo(EncodingContext.values().length) * MathHelper.smallestEncompassingPowerOfTwo(ShaderPass.values().length)];
-
-	private static int lookupIndex(EncodingContext context, ShaderPass shaderType) {
-		return shaderType.ordinal() | (context.ordinal() << 2);
-	}
-
-	static {
-		HANDLERS[lookupIndex(EncodingContext.TERRAIN, ShaderPass.SOLID)] = new SolidHandler(MaterialVertexFormats.VANILLA_BLOCKS_AND_ITEMS, ShaderPass.SOLID);
-		HANDLERS[lookupIndex(EncodingContext.TERRAIN, ShaderPass.DECAL)] = new DecalHandler(MaterialVertexFormats.VANILLA_BLOCKS_AND_ITEMS, ShaderPass.DECAL);
-		HANDLERS[lookupIndex(EncodingContext.TERRAIN, ShaderPass.TRANSLUCENT)] = new TranslucentHandler(MaterialVertexFormats.VANILLA_BLOCKS_AND_ITEMS, ShaderPass.TRANSLUCENT);
-
-		HD_HANDLERS[lookupIndex(EncodingContext.TERRAIN, ShaderPass.SOLID)] = new SolidHandler(MaterialVertexFormats.HD_TERRAIN, ShaderPass.SOLID);
-		HD_HANDLERS[lookupIndex(EncodingContext.TERRAIN, ShaderPass.DECAL)] = new DecalHandler(MaterialVertexFormats.HD_TERRAIN, ShaderPass.DECAL);
-		HD_HANDLERS[lookupIndex(EncodingContext.TERRAIN, ShaderPass.TRANSLUCENT)] = new TranslucentHandler(MaterialVertexFormats.HD_TERRAIN, ShaderPass.TRANSLUCENT);
-	}
-
-	public static DrawHandler get(EncodingContext context, ShaderPass shaderPass) {
-		assert shaderPass != ShaderPass.PROCESS;
-
-		final boolean isHD = context == EncodingContext.TERRAIN && Configurator.hdLightmaps();
-		final int index = lookupIndex(context, shaderPass);
-		return isHD ? HD_HANDLERS[index] : HANDLERS[index];
 	}
 }

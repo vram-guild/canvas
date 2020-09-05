@@ -1,5 +1,6 @@
-/*******************************************************************************
+/*
  * Copyright 2019, 2020 grondag
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
  * of the License at
@@ -11,14 +12,20 @@
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
  * License for the specific language governing permissions and limitations under
  * the License.
- ******************************************************************************/
-
+ */
 
 package grondag.canvas.apiimpl.rendercontext;
 
-import java.util.Random;
-import java.util.function.Supplier;
-
+import grondag.canvas.apiimpl.material.MeshMaterialLayer;
+import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
+import grondag.canvas.light.AoCalculator;
+import grondag.canvas.material.EncodingContext;
+import grondag.canvas.mixinterface.Matrix3fExt;
+import grondag.canvas.mixinterface.MinecraftClientExt;
+import grondag.fermion.sc.concurrency.SimpleConcurrentList;
+import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
+import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
+import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.color.item.ItemColors;
@@ -28,17 +35,8 @@ import net.minecraft.client.render.model.json.ModelTransformation.Mode;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.item.ItemStack;
 
-import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
-import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
-import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
-
-import grondag.canvas.apiimpl.material.MeshMaterialLayer;
-import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
-import grondag.canvas.light.AoCalculator;
-import grondag.canvas.material.EncodingContext;
-import grondag.canvas.mixinterface.Matrix3fExt;
-import grondag.canvas.mixinterface.MinecraftClientExt;
-import grondag.fermion.sc.concurrency.SimpleConcurrentList;
+import java.util.Random;
+import java.util.function.Supplier;
 
 /**
  * The render context used for item rendering.
@@ -46,7 +44,9 @@ import grondag.fermion.sc.concurrency.SimpleConcurrentList;
  * of simplicity in the default renderer.
  */
 public class ItemRenderContext extends AbstractRenderContext implements RenderContext {
-	/** Value vanilla uses for item rendering.  The only sensible choice, of course.  */
+	/**
+	 * Value vanilla uses for item rendering.  The only sensible choice, of course.
+	 */
 	private static final long ITEM_RANDOM_SEED = 42L;
 
 	private static final SimpleConcurrentList<AbstractRenderContext> LOADED = new SimpleConcurrentList<>(AbstractRenderContext.class);
@@ -58,6 +58,23 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 	});
 
 	private static ThreadLocal<ItemRenderContext> POOL = POOL_FACTORY.get();
+	private final ItemColors colorMap;
+	private final Random random = new Random();
+	private final EncodingContext context = EncodingContext.ITEM;
+	private final Supplier<Random> randomSupplier = () -> {
+		final Random result = random;
+		result.setSeed(ITEM_RANDOM_SEED);
+		return random;
+	};
+	private VertexConsumer modelVertexConsumer;
+	private int lightmap;
+	private ItemStack itemStack;
+
+	public ItemRenderContext(ItemColors colorMap) {
+		super("ItemRenderContext");
+		this.colorMap = colorMap;
+		collectors.setContext(EncodingContext.ITEM);
+	}
 
 	public static void reload() {
 		LOADED.forEach(c -> c.close());
@@ -69,27 +86,6 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 		return POOL.get();
 	}
 
-	private final ItemColors colorMap;
-	private final Random random = new Random();
-
-	private VertexConsumer modelVertexConsumer;
-	private int lightmap;
-	private ItemStack itemStack;
-	private final EncodingContext context = EncodingContext.ITEM;
-
-
-	private final Supplier<Random> randomSupplier = () -> {
-		final Random result = random;
-		result.setSeed(ITEM_RANDOM_SEED);
-		return random;
-	};
-
-	public ItemRenderContext(ItemColors colorMap) {
-		super("ItemRenderContext");
-		this.colorMap = colorMap;
-		collectors.setContext(EncodingContext.ITEM);
-	}
-
 	public void renderModel(ItemStack itemStack, Mode transformMode, boolean invert, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, VertexConsumer modelConsumer, int lightmap, int overlay, FabricBakedModel model) {
 		this.lightmap = lightmap;
 		this.overlay = overlay;
@@ -98,7 +94,7 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 		matrixStack.push();
 
 		matrix = matrixStack.peek().getModel();
-		normalMatrix = (Matrix3fExt)(Object) matrixStack.peek().getNormal();
+		normalMatrix = (Matrix3fExt) (Object) matrixStack.peek().getNormal();
 
 		model.emitItemQuads(itemStack, randomSupplier, this);
 

@@ -1,5 +1,6 @@
-/*******************************************************************************
+/*
  * Copyright 2019, 2020 grondag
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
  * of the License at
@@ -11,7 +12,8 @@
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
  * License for the specific language governing permissions and limitations under
  * the License.
- ******************************************************************************/
+ */
+
 package grondag.canvas.perf;
 
 import grondag.canvas.CanvasMod;
@@ -21,14 +23,14 @@ import grondag.canvas.CanvasMod;
  * where JMH would be more than I want
  */
 public class MicroTimer {
+	private final int sampleSize;
+	private final String label;
 	private int hits;
 	private long elapsed;
 	private long min;
 	private long max;
 	private long last;
-	private final int sampleSize;
-	private final String label;
-	private long started ;
+	private long started;
 
 	public MicroTimer(String label, int sampleSize) {
 		this.label = label;
@@ -47,7 +49,7 @@ public class MicroTimer {
 		started = System.nanoTime();
 	}
 
-	public long last()  {
+	public long last() {
 		return last;
 	}
 
@@ -78,7 +80,7 @@ public class MicroTimer {
 		}
 	}
 
-	public void reportAndClear(){
+	public void reportAndClear() {
 		if (hits == 0) {
 			hits = 1;
 		}

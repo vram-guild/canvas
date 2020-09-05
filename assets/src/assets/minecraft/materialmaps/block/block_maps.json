@@ -2,6 +2,6 @@
 <#list block_materials as mat>
 <@pp.changeOutputFile name=mat.name + ".json" />
 {
-	"defaultMaterial": "${mat.defaultMaterial}"
+"defaultMaterial": "${mat.defaultMaterial}"
 }
 </#list>

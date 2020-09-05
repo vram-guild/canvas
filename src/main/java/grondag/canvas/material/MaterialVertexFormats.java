@@ -1,17 +1,24 @@
+/*
+ * Copyright 2019, 2020 grondag
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License.  You may obtain a copy
+ * of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
 package grondag.canvas.material;
 
-import static grondag.canvas.material.MaterialVertextFormatElement.BASE_RGBA_4UB;
-import static grondag.canvas.material.MaterialVertextFormatElement.BASE_TEX_2F;
-import static grondag.canvas.material.MaterialVertextFormatElement.BASE_TEX_2US;
-import static grondag.canvas.material.MaterialVertextFormatElement.HD_LIGHTMAP_2US;
-import static grondag.canvas.material.MaterialVertextFormatElement.LIGHTMAPS_4UB;
-import static grondag.canvas.material.MaterialVertextFormatElement.MATERIAL_2US;
-import static grondag.canvas.material.MaterialVertextFormatElement.NORMAL_AO_4B;
-import static grondag.canvas.material.MaterialVertextFormatElement.POSITION_3F;
-import static grondag.canvas.material.MaterialVertextFormatElement.TEMP_LIGHTMAP;
-import static grondag.canvas.material.MaterialVertextFormatElement.TEMP_OVERLAY;
-
 import grondag.canvas.Configurator;
+
+import static grondag.canvas.material.MaterialVertextFormatElement.*;
 
 // WIP: make these fully parallel to vanilla formats
 // encoding may be different and may depend on feature configuration

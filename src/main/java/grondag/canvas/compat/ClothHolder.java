@@ -1,5 +1,6 @@
-/*******************************************************************************
- * Copyright 2020 grondag
+/*
+ * Copyright 2019, 2020 grondag
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
  * of the License at
@@ -11,14 +12,13 @@
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
  * License for the specific language governing permissions and limitations under
  * the License.
- ******************************************************************************/
+ */
+
 package grondag.canvas.compat;
 
 import com.google.common.util.concurrent.Runnables;
-
-import net.fabricmc.loader.api.FabricLoader;
-
 import grondag.canvas.CanvasMod;
+import net.fabricmc.loader.api.FabricLoader;
 
 public class ClothHolder {
 	public static Runnable clothDebugPreEvent = init(); //FabricLoader.getInstance().isModLoaded("cloth-client-events-v0") ? ClothHelper.clothDebugRenderPre() : Runnables.doNothing();

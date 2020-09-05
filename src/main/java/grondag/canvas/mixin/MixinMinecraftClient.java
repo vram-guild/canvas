@@ -1,5 +1,5 @@
-/*******************************************************************************
- * Copyright 2019 grondag
+/*
+ * Copyright 2019, 2020 grondag
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
@@ -12,10 +12,19 @@
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
  * License for the specific language governing permissions and limitations under
  * the License.
- ******************************************************************************/
+ */
 
 package grondag.canvas.mixin;
 
+import grondag.canvas.Configurator;
+import grondag.canvas.mixinterface.MinecraftClientExt;
+import grondag.canvas.render.CanvasWorldRenderer;
+import grondag.canvas.varia.CanvasGlHelper;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.color.item.ItemColors;
+import net.minecraft.client.render.BufferBuilderStorage;
+import net.minecraft.client.render.WorldRenderer;
+import net.minecraft.util.thread.ReentrantThreadExecutor;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -23,20 +32,10 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.color.item.ItemColors;
-import net.minecraft.client.render.BufferBuilderStorage;
-import net.minecraft.client.render.WorldRenderer;
-import net.minecraft.util.thread.ReentrantThreadExecutor;
-
-import grondag.canvas.Configurator;
-import grondag.canvas.mixinterface.MinecraftClientExt;
-import grondag.canvas.render.CanvasWorldRenderer;
-import grondag.canvas.varia.CanvasGlHelper;
-
 @Mixin(MinecraftClient.class)
 public abstract class MixinMinecraftClient extends ReentrantThreadExecutor<Runnable> implements MinecraftClientExt {
-	@Shadow ItemColors itemColors;
+	@Shadow
+	ItemColors itemColors;
 
 	protected MixinMinecraftClient(String dummy) {
 		super(dummy);

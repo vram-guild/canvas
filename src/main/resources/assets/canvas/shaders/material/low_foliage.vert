@@ -12,7 +12,7 @@
 ******************************************************/
 
 void frx_startVertex(inout frx_VertexData data) {
-#ifdef ANIMATED_FOLIAGE
+	#ifdef ANIMATED_FOLIAGE
 	float rain = frx_rainGradient();
 	float globalWind = 0.2 + rain * 0.2;
 	float t = frx_renderSeconds() * 0.05;
@@ -22,5 +22,5 @@ void frx_startVertex(inout frx_VertexData data) {
 
 	data.vertex.x += (cos(t) * cos(t * 3) * cos(t * 5) * cos(t * 7) + sin(t * 25)) * wind;
 	data.vertex.z += sin(t * 19) * wind;
-#endif
+	#endif
 }

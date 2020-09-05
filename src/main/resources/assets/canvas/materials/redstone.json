@@ -1,8 +1,8 @@
 {
-	"layers": [
-		{
-			"vertexSource": "canvas:shaders/material/default.vert",
-			"fragmentSource": "canvas:shaders/material/redstone.frag"
-		}
-	]
+  "layers": [
+	{
+	  "vertexSource": "canvas:shaders/material/default.vert",
+	  "fragmentSource": "canvas:shaders/material/redstone.frag"
+	}
+  ]
 }

@@ -1,4 +1,3 @@
-
 #include frex:shaders/api/context.glsl
 #include canvas:shaders/internal/context.glsl
 
@@ -7,11 +6,11 @@
 ******************************************************/
 
 #ifdef CONTEXT_IS_BLOCK
-    varying float _cvv_ao;
+varying float _cvv_ao;
 #endif
 
 #if DIFFUSE_SHADING_MODE != DIFFUSE_MODE_NONE
-     varying float _cvv_diffuse;
+varying float _cvv_diffuse;
 #endif
 
 varying vec4 _cvv_color;

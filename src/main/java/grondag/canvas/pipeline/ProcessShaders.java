@@ -1,5 +1,5 @@
-/*******************************************************************************
- * Copyright 2020 grondag
+/*
+ * Copyright 2019, 2020 grondag
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
@@ -12,13 +12,12 @@
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
  * License for the specific language governing permissions and limitations under
  * the License.
- ******************************************************************************/
+ */
 
 package grondag.canvas.pipeline;
 
-import net.minecraft.util.Identifier;
-
 import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
+import net.minecraft.util.Identifier;
 
 public class ProcessShaders {
 	private static final SimpleUnorderedArrayList<ProcessShader> ALL = new SimpleUnorderedArrayList<>();
@@ -30,7 +29,7 @@ public class ProcessShaders {
 	}
 
 	public static void reload() {
-		for (final ProcessShader shader :  ALL) {
+		for (final ProcessShader shader : ALL) {
 			shader.unload();
 		}
 	}

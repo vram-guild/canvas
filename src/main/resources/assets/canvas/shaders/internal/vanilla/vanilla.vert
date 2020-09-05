@@ -22,14 +22,14 @@ attribute vec2 in_material;
 
 void main() {
 	frx_VertexData data = frx_VertexData(
-		gl_Vertex,
-		in_uv,
-		in_color,
-		in_normal_ao.xyz,
-		// Lightmap texture coorinates come in as 0-256.
-		// Scale and offset slightly to hit center pixels
-		// vanilla does this with a texture matrix
-		in_lightmap.rg * 0.00390625 + 0.03125
+	gl_Vertex,
+	in_uv,
+	in_color,
+	in_normal_ao.xyz,
+	// Lightmap texture coorinates come in as 0-256.
+	// Scale and offset slightly to hit center pixels
+	// vanilla does this with a texture matrix
+	in_lightmap.rg * 0.00390625 + 0.03125
 	);
 
 	// Adding +0.5 prevents striping or other strangeness in flag-dependent rendering
@@ -37,9 +37,9 @@ void main() {
 	_cvv_flags = in_lightmap.b + 0.5;
 
 
-#ifdef _CV_HAS_VERTEX_START
+	#ifdef _CV_HAS_VERTEX_START
 	frx_startVertex(data);
-#endif
+	#endif
 
 	vec4 spriteBounds = texture2DLod(frxs_spriteInfo, vec2(0, in_material.x / _CV_SPRITE_INFO_TEXTURE_SIZE), 0);
 
@@ -60,24 +60,24 @@ void main() {
 
 	gl_Position = data.vertex;
 
-#ifdef _CV_HAS_VERTEX_END
+	#ifdef _CV_HAS_VERTEX_END
 	frx_endVertex(data);
-#endif
+	#endif
 
 	_cvv_texcoord = data.spriteUV;
 	_cvv_color = data.color;
 	_cvv_normal = data.normal;
 
-#ifdef CONTEXT_IS_BLOCK
+	#ifdef CONTEXT_IS_BLOCK
 	_cvv_ao = (in_normal_ao.w + 1.0) * 0.5;
-#endif
+	#endif
 
-#if DIFFUSE_SHADING_MODE != DIFFUSE_MODE_NONE
+	#if DIFFUSE_SHADING_MODE != DIFFUSE_MODE_NONE
 	_cvv_diffuse = _cv_diffuse(_cv_diffuseNormal(viewCoord, data.normal));
-#endif
+	#endif
 
-#ifndef CONTEXT_IS_GUI
+	#ifndef CONTEXT_IS_GUI
 	_cvv_lightcoord = data.light;
-#endif
+	#endif
 
 }

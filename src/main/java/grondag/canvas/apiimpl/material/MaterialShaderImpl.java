@@ -1,5 +1,5 @@
-/*******************************************************************************
- * Copyright 2019 grondag
+/*
+ * Copyright 2019, 2020 grondag
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
@@ -12,17 +12,9 @@
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
  * License for the specific language governing permissions and limitations under
  * the License.
- ******************************************************************************/
+ */
 
 package grondag.canvas.apiimpl.material;
-
-import java.util.ArrayList;
-import java.util.function.Consumer;
-
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-
-import net.minecraft.util.Identifier;
 
 import grondag.canvas.material.MaterialVertexFormat;
 import grondag.canvas.shader.GlProgram;
@@ -32,6 +24,12 @@ import grondag.canvas.shader.GlShaderManager;
 import grondag.canvas.shader.ShaderContext;
 import grondag.frex.api.material.MaterialShader;
 import grondag.frex.api.material.UniformRefreshFrequency;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import net.minecraft.util.Identifier;
+
+import java.util.ArrayList;
+import java.util.function.Consumer;
 
 public final class MaterialShaderImpl implements MaterialShader {
 	private final int index;
@@ -49,11 +47,11 @@ public final class MaterialShaderImpl implements MaterialShader {
 		this.index = index;
 	}
 
-	private GlProgram getOrCreate(ShaderContext context,  MaterialVertexFormat format) {
+	private GlProgram getOrCreate(ShaderContext context, MaterialVertexFormat format) {
 		final int key = context.index;
 		final GlProgram result = programMap.get(key);
 
-		if(result == null) {
+		if (result == null) {
 			final GlShader vs = GlShaderManager.INSTANCE.getOrCreateVertexShader(vertexShader, context);
 			final GlShader fs = GlShaderManager.INSTANCE.getOrCreateFragmentShader(fragmentShader, context);
 			final GlProgram newProgram = new GlProgram(vs, fs, format, context);
@@ -91,7 +89,7 @@ public final class MaterialShaderImpl implements MaterialShader {
 	public void onRenderTick() {
 		final int limit = programList.size();
 
-		for(int i = 0; i < limit; i++) {
+		for (int i = 0; i < limit; i++) {
 			programList.get(i).onRenderTick();
 		}
 	}
@@ -99,7 +97,7 @@ public final class MaterialShaderImpl implements MaterialShader {
 	//PERF: hmmm....
 	public void onGameTick() {
 		final int limit = programList.size();
-		for(int i = 0; i < limit; i++) {
+		for (int i = 0; i < limit; i++) {
 			programList.get(i).onGameTick();
 		}
 	}

@@ -1,5 +1,6 @@
-/*******************************************************************************
- * Copyright 2020 grondag
+/*
+ * Copyright 2019, 2020 grondag
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
  * of the License at
@@ -11,19 +12,17 @@
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
  * License for the specific language governing permissions and limitations under
  * the License.
- ******************************************************************************/
+ */
 
 package grondag.canvas.pipeline;
 
 import com.google.common.util.concurrent.Runnables;
-import org.lwjgl.glfw.GLFW;
-
+import grondag.canvas.CanvasMod;
+import grondag.canvas.Configurator;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.text.LiteralText;
-
-import grondag.canvas.CanvasMod;
-import grondag.canvas.Configurator;
+import org.lwjgl.glfw.GLFW;
 
 public enum BufferDebug {
 	NORMAL(Runnables.doNothing()),
@@ -36,13 +35,12 @@ public enum BufferDebug {
 	BLOOM_5(() -> CanvasFrameBufferHacks.debugBlur(5)),
 	BLOOM_6(() -> CanvasFrameBufferHacks.debugBlur(6));
 
+	private static BufferDebug current = NORMAL;
 	private final Runnable task;
 
-	private BufferDebug(Runnable task) {
+	BufferDebug(Runnable task) {
 		this.task = task;
 	}
-
-	private static BufferDebug current = NORMAL;
 
 	public static BufferDebug current() {
 		return current;
@@ -63,7 +61,7 @@ public enum BufferDebug {
 
 			final int i = (InputUtil.isKeyPressed(handle, GLFW.GLFW_KEY_LEFT_SHIFT) || InputUtil.isKeyPressed(handle, GLFW.GLFW_KEY_RIGHT_SHIFT)) ? -1 : 1;
 			final BufferDebug[] values = values();
-			final int count =  values.length;
+			final int count = values.length;
 
 			current = values[(current.ordinal() + count + i) % values.length];
 

@@ -1,22 +1,37 @@
-package grondag.canvas.apiimpl.material;
+/*
+ * Copyright 2019, 2020 grondag
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License.  You may obtain a copy
+ * of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ */
 
-import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
+package grondag.canvas.apiimpl.material;
 
 import grondag.canvas.apiimpl.MaterialConditionImpl;
 import grondag.canvas.shader.MaterialShaderManager;
 import grondag.canvas.shader.ShaderPass;
+import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 
 /**
  * Describes a single layer of a mesh material, containing all of the information
  * needed to buffer and draw that layer.  Analogous to vanilla RenderLayer.
  */
 public class MeshMaterialLayer {
-	private final MeshMaterial meshMaterial;
 	public final int shaderFlags;
 	public final boolean isTranslucent;
 	// WIP: remove
 	@Deprecated
 	public final ShaderPass shaderType;
+	private final MeshMaterial meshMaterial;
 	private final MaterialShaderImpl shader;
 
 	public MeshMaterialLayer(MeshMaterial meshMaterial, int depth) {
@@ -46,15 +61,15 @@ public class MeshMaterialLayer {
 			flags |= 4;
 		}
 
-		switch(this.meshMaterial.blendMode()) {
-		case CUTOUT:
-			flags |= 16; // disable LOD
-			//$FALL-THROUGH$
-		case CUTOUT_MIPPED:
-			flags |= 8; // cutout
-			break;
-		default:
-			break;
+		switch (this.meshMaterial.blendMode()) {
+			case CUTOUT:
+				flags |= 16; // disable LOD
+				//$FALL-THROUGH$
+			case CUTOUT_MIPPED:
+				flags |= 8; // cutout
+				break;
+			default:
+				break;
 		}
 
 		shaderFlags = flags;

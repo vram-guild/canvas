@@ -2,17 +2,17 @@
 <#list sprite_materials as mat>
 <@pp.changeOutputFile name=mat.name + ".json" />
 {
-	"defaultMap": {
-		"spriteMap": [
-			{
-				"sprite": "${mat.sprite0}",
-				"material": "${mat.mat0}"
-			}<#if mat.sprite1 != "">,
-			{
-				"sprite": "${mat.sprite1}",
-				"material": "${mat.mat1}"
-			}</#if>
-		]
-	}
+"defaultMap": {
+"spriteMap": [
+{
+"sprite": "${mat.sprite0}",
+"material": "${mat.mat0}"
+}<#if mat.sprite1 != "">,
+{
+"sprite": "${mat.sprite1}",
+"material": "${mat.mat1}"
+}</#if>
+]
+}
 }
 </#list>

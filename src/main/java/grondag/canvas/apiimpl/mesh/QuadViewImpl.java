@@ -1,5 +1,6 @@
-/*******************************************************************************
+/*
  * Copyright 2019, 2020 grondag
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
  * of the License at
@@ -11,40 +12,9 @@
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
  * License for the specific language governing permissions and limitations under
  * the License.
- ******************************************************************************/
-
+ */
 
 package grondag.canvas.apiimpl.mesh;
-
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.BASE_QUAD_STRIDE;
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.BASE_VERTEX_STRIDE;
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_BITS;
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_COLOR_INDEX;
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_MATERIAL;
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_SPRITE_LOW;
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_STRIDE;
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_TAG;
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.TEXTURE_OFFSET_MINUS;
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.TEXTURE_QUAD_STRIDE;
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.TEXTURE_VERTEX_STRIDE;
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.UV_EXTRA_PRECISION;
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.UV_PRECISE_TO_FLOAT_CONVERSION;
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.UV_ROUNDING_BIT;
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_COLOR;
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_LIGHTMAP;
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_NORMAL;
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_START;
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_X;
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_Y;
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_Z;
-
-import net.minecraft.client.render.VertexConsumer;
-import net.minecraft.client.util.math.Vector3f;
-import net.minecraft.util.math.Direction;
-
-import net.fabricmc.fabric.api.renderer.v1.mesh.MutableQuadView;
-import net.fabricmc.fabric.api.renderer.v1.mesh.QuadView;
-import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 
 import grondag.canvas.apiimpl.material.AbstractMeshMaterial;
 import grondag.canvas.apiimpl.material.MeshMaterialLocator;
@@ -52,24 +22,38 @@ import grondag.canvas.apiimpl.util.GeometryHelper;
 import grondag.canvas.apiimpl.util.NormalHelper;
 import grondag.canvas.mixinterface.Matrix4fExt;
 import grondag.canvas.texture.SpriteInfoTexture;
+import net.fabricmc.fabric.api.renderer.v1.mesh.MutableQuadView;
+import net.fabricmc.fabric.api.renderer.v1.mesh.QuadView;
+import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
+import net.minecraft.client.render.VertexConsumer;
+import net.minecraft.client.util.math.Vector3f;
+import net.minecraft.util.math.Direction;
+
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.*;
 
 /**
  * Base class for all quads / quad makers. Handles the ugly bits
  * of maintaining and encoding the quad state.
  */
 public class QuadViewImpl implements QuadView {
+	protected final Vector3f faceNormal = new Vector3f();
 	protected int nominalFaceId = ModelHelper.NULL_FACE_ID;
 	protected boolean isGeometryInvalid = true;
-	protected final Vector3f faceNormal = new Vector3f();
 	protected int packedFaceNormal = -1;
 
-	/** flag true when sprite is assumed to be interpolated and need normalization */
+	/**
+	 * flag true when sprite is assumed to be interpolated and need normalization
+	 */
 	protected int spriteMappedFlags = 0;
 
-	/** Size and where it comes from will vary in subtypes. But in all cases quad is fully encoded to array. */
+	/**
+	 * Size and where it comes from will vary in subtypes. But in all cases quad is fully encoded to array.
+	 */
 	protected int[] data;
 
-	/** Beginning of the quad. Also the header index. */
+	/**
+	 * Beginning of the quad. Also the header index.
+	 */
 	protected int baseIndex = 0;
 
 	/**
@@ -102,7 +86,9 @@ public class QuadViewImpl implements QuadView {
 		packedFaceNormal = -1;
 	}
 
-	/** Reference to underlying array. Use with caution. Meant for fast renderer access */
+	/**
+	 * Reference to underlying array. Use with caution. Meant for fast renderer access
+	 */
 	public int[] data() {
 		return data;
 	}
@@ -111,7 +97,9 @@ public class QuadViewImpl implements QuadView {
 		return MeshEncodingHelper.normalFlags(data[baseIndex + HEADER_BITS]);
 	}
 
-	/** True if any vertex normal has been set. */
+	/**
+	 * True if any vertex normal has been set.
+	 */
 	public boolean hasVertexNormals() {
 		return normalFlags() != 0;
 	}
@@ -123,12 +111,16 @@ public class QuadViewImpl implements QuadView {
 		return baseIndex + HEADER_STRIDE;
 	}
 
-	/** Length of encoded quad in array, including header. */
+	/**
+	 * Length of encoded quad in array, including header.
+	 */
 	public final int stride() {
 		return MeshEncodingHelper.stride(material().spriteDepth());
 	}
 
-	/** gets flags used for lighting - lazily computed via {@link GeometryHelper#computeShapeFlags(QuadView)}. */
+	/**
+	 * gets flags used for lighting - lazily computed via {@link GeometryHelper#computeShapeFlags(QuadView)}.
+	 */
 	public int geometryFlags() {
 		computeGeometry();
 		return MeshEncodingHelper.geometryFlags(data[baseIndex + HEADER_BITS]);
@@ -159,7 +151,7 @@ public class QuadViewImpl implements QuadView {
 		// Convert sprite data from fixed precision to float
 		int index = targetIndex + 4;
 
-		for (int i = 0; i < 4; ++i)  {
+		for (int i = 0; i < 4; ++i) {
 			target[index] = Float.floatToRawIntBits(spriteU(i, 0));
 			target[index + 1] = Float.floatToRawIntBits(spriteV(i, 0));
 			index += 8;
@@ -217,7 +209,7 @@ public class QuadViewImpl implements QuadView {
 		computeGeometry();
 		int result = packedFaceNormal;
 
-		if(result == -1) {
+		if (result == -1) {
 			result = NormalHelper.packNormal(faceNormal, 0);
 			packedFaceNormal = result;
 		}
@@ -348,41 +340,49 @@ public class QuadViewImpl implements QuadView {
 	public float spriteU(int vertexIndex, int spriteIndex) {
 		return isSpriteUnmapped(spriteIndex)
 				? SpriteInfoTexture.instance().mapU(spriteId(spriteIndex), spriteFloatU(vertexIndex, spriteIndex))
-						: spriteFloatU(vertexIndex, spriteIndex);
+				: spriteFloatU(vertexIndex, spriteIndex);
 	}
 
 	@Override
 	public float spriteV(int vertexIndex, int spriteIndex) {
 		return isSpriteUnmapped(spriteIndex)
 				? SpriteInfoTexture.instance().mapV(spriteId(spriteIndex), spriteFloatV(vertexIndex, spriteIndex))
-						: spriteFloatV(vertexIndex, spriteIndex);
+				: spriteFloatV(vertexIndex, spriteIndex);
 	}
 
-	/** Fixed precision value suitable for transformations */
+	/**
+	 * Fixed precision value suitable for transformations
+	 */
 	public int spritePreciseU(int vertexIndex, int spriteIndex) {
 		assert isSpriteUnmapped(spriteIndex);
 		return data[baseIndex + colorOffset(vertexIndex, spriteIndex) + 1];
 	}
 
-	/** Fixed precision value suitable for transformations */
+	/**
+	 * Fixed precision value suitable for transformations
+	 */
 	public int spritePreciseV(int vertexIndex, int spriteIndex) {
 		assert isSpriteUnmapped(spriteIndex);
 		return data[baseIndex + colorOffset(vertexIndex, spriteIndex) + 2];
 	}
 
-	/** Rounded, unsigned short value suitable for vertex buffer */
+	/**
+	 * Rounded, unsigned short value suitable for vertex buffer
+	 */
 	public int spriteBufferU(int vertexIndex, int spriteIndex) {
 		assert isSpriteUnmapped(spriteIndex);
 		return (data[baseIndex + colorOffset(vertexIndex, spriteIndex) + 1] + UV_ROUNDING_BIT) >> UV_EXTRA_PRECISION;
 	}
 
-	/** Rounded, unsigned short value suitable for vertex buffer */
+	/**
+	 * Rounded, unsigned short value suitable for vertex buffer
+	 */
 	public int spriteBufferV(int vertexIndex, int spriteIndex) {
 		assert isSpriteUnmapped(spriteIndex);
 		return (data[baseIndex + colorOffset(vertexIndex, spriteIndex) + 2] + UV_ROUNDING_BIT) >> UV_EXTRA_PRECISION;
 	}
 
-	protected  int spriteIdOffset(int spriteIndex) {
+	protected int spriteIdOffset(int spriteIndex) {
 		return baseIndex + HEADER_SPRITE_LOW + (spriteIndex >> 1);
 	}
 

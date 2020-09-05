@@ -1,33 +1,50 @@
+/*
+ * Copyright 2019, 2020 grondag
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License.  You may obtain a copy
+ * of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
 package grondag.canvas.compat;
+
+import com.google.common.util.concurrent.Runnables;
+import grondag.canvas.CanvasMod;
+import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.client.render.Frustum;
+import net.minecraft.client.util.math.MatrixStack;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
 import java.util.function.Consumer;
 
-import com.google.common.util.concurrent.Runnables;
-
-import net.minecraft.client.render.Frustum;
-import net.minecraft.client.util.math.MatrixStack;
-
-import net.fabricmc.loader.api.FabricLoader;
-
-import grondag.canvas.CanvasMod;
-
 public class LitematicaHolder {
+	public static Runnable litematicaReload = Runnables.doNothing();
+	public static Consumer<Frustum> litematicaTerrainSetup = f -> {
+	};
+	public static Consumer<MatrixStack> litematicaRenderSolids = s -> {
+	};
+	public static Consumer<MatrixStack> litematicaRenderTranslucent = s -> {
+	};
+	public static Consumer<MatrixStack> litematicaRenderOverlay = s -> {
+	};
+	public static EntityHandler litematicaEntityHandler = (s, t) -> {
+	};
 	private static boolean warnLoad = true;
 	private static boolean warnPrepare = true;
 	private static boolean warnSolid = true;
 	private static boolean warnTranslucent = true;
 	private static boolean warnEntities = true;
 	private static boolean warnOverlay = true;
-
-	public static Runnable litematicaReload = Runnables.doNothing();
-	public static Consumer<Frustum> litematicaTerrainSetup = f -> {};
-	public static Consumer<MatrixStack> litematicaRenderSolids = s -> {};
-	public static Consumer<MatrixStack> litematicaRenderTranslucent = s -> {};
-	public static Consumer<MatrixStack> litematicaRenderOverlay = s -> {};
-	public static EntityHandler litematicaEntityHandler = (s, t) -> {};
 
 	static {
 		if (FabricLoader.getInstance().isModLoaded("litematica")) {
@@ -37,7 +54,7 @@ public class LitematicaHolder {
 			try {
 				final Class<?> clazz = Class.forName("fi.dy.masa.litematica.render.LitematicaRenderer");
 				final Method getInstance = clazz.getDeclaredMethod("getInstance");
-				final Object instance =  getInstance.invoke(null);
+				final Object instance = getInstance.invoke(null);
 
 				final Method reload = clazz.getDeclaredMethod("loadRenderers");
 				final MethodHandle reloadHandler = lookup.unreflect(reload);
@@ -72,7 +89,7 @@ public class LitematicaHolder {
 				final MethodHandle boundEntitiesHandler = entitiesHandler.bindTo(instance);
 
 				litematicaReload = () -> {
-					try  {
+					try {
 						boundReloadHandler.invokeExact();
 					} catch (final Throwable e) {
 						if (warnLoad) {
@@ -84,7 +101,7 @@ public class LitematicaHolder {
 				};
 
 				litematicaTerrainSetup = (f) -> {
-					try  {
+					try {
 						boundPrepHandler.invokeExact(f);
 					} catch (final Throwable e) {
 						if (warnPrepare) {
@@ -96,7 +113,7 @@ public class LitematicaHolder {
 				};
 
 				litematicaRenderSolids = (s) -> {
-					try  {
+					try {
 						boundSolidHandler.invokeExact(s);
 						boundCutoutHandler.invokeExact(s);
 						boundMippedHandler.invokeExact(s);
@@ -110,7 +127,7 @@ public class LitematicaHolder {
 				};
 
 				litematicaRenderTranslucent = (s) -> {
-					try  {
+					try {
 						boundTranslucentHandler.invokeExact(s);
 					} catch (final Throwable e) {
 						if (warnTranslucent) {
@@ -122,7 +139,7 @@ public class LitematicaHolder {
 				};
 
 				litematicaRenderOverlay = (s) -> {
-					try  {
+					try {
 						boundOverlayHandler.invokeExact(s);
 					} catch (final Throwable e) {
 						if (warnOverlay) {
@@ -134,7 +151,7 @@ public class LitematicaHolder {
 				};
 
 				litematicaEntityHandler = (s, t) -> {
-					try  {
+					try {
 						boundEntitiesHandler.invokeExact(s, t);
 					} catch (final Throwable e) {
 						if (warnEntities) {
@@ -146,7 +163,7 @@ public class LitematicaHolder {
 				};
 
 				CanvasMod.LOG.info("Found Litematica - compatibility hook enabled");
-			} catch (final Exception e)  {
+			} catch (final Exception e) {
 				CanvasMod.LOG.warn("Unable to find Litematica reload hook due to exception:", e);
 			}
 		}

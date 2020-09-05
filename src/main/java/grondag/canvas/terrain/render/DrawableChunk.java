@@ -1,5 +1,5 @@
-/*******************************************************************************
- * Copyright 2019 grondag
+/*
+ * Copyright 2019, 2020 grondag
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
@@ -12,25 +12,43 @@
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
  * License for the specific language governing permissions and limitations under
  * the License.
- ******************************************************************************/
+ */
 
 package grondag.canvas.terrain.render;
-
-import java.nio.IntBuffer;
-
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import grondag.canvas.buffer.VboBuffer;
 import grondag.canvas.buffer.encoding.VertexCollectorImpl;
 import grondag.canvas.buffer.encoding.VertexCollectorList;
 import grondag.canvas.shader.ShaderPass;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+
+import java.nio.IntBuffer;
 
 public abstract class DrawableChunk {
-	protected boolean isClosed = false;
+	public static DrawableChunk EMPTY_DRAWABLE = new DrawableChunk.Dummy();
 	public final VboBuffer vboBuffer;
+	protected boolean isClosed = false;
 
 	protected DrawableChunk(VboBuffer vboBuffer) {
 		this.vboBuffer = vboBuffer;
+	}
+
+	private static void clearDelegateList(ObjectArrayList<DrawableDelegate> delegates) {
+		if (!delegates.isEmpty()) {
+			final int limit = delegates.size();
+
+			for (int i = 0; i < limit; i++) {
+				delegates.get(i).release();
+			}
+
+			delegates.clear();
+		}
+
+		DelegateLists.releaseDelegateList(delegates);
+	}
+
+	public static DrawableChunk pack(VertexCollectorList collectorList, VboBuffer vboBuffer, boolean translucent) {
+		return translucent ? new Translucent(collectorList, vboBuffer) : new Solid(collectorList, vboBuffer);
 	}
 
 	abstract public ObjectArrayList<DrawableDelegate> delegates(ShaderPass pass);
@@ -170,6 +188,7 @@ public abstract class DrawableChunk {
 
 	private static class Dummy extends DrawableChunk {
 		private final ObjectArrayList<DrawableDelegate> nothing = new ObjectArrayList<>();
+
 		protected Dummy() {
 			super(null);
 			isClosed = true;
@@ -184,26 +203,6 @@ public abstract class DrawableChunk {
 		protected void closeInner() {
 			// NOOP
 		}
-	}
-
-	public static DrawableChunk EMPTY_DRAWABLE = new DrawableChunk.Dummy();
-
-	private static void clearDelegateList(ObjectArrayList<DrawableDelegate> delegates) {
-		if (!delegates.isEmpty()) {
-			final int limit = delegates.size();
-
-			for (int i = 0; i < limit; i++) {
-				delegates.get(i).release();
-			}
-
-			delegates.clear();
-		}
-
-		DelegateLists.releaseDelegateList(delegates);
-	}
-
-	public static DrawableChunk pack(VertexCollectorList collectorList, VboBuffer vboBuffer, boolean translucent) {
-		return translucent ? new Translucent(collectorList, vboBuffer) : new Solid(collectorList, vboBuffer);
 	}
 
 }

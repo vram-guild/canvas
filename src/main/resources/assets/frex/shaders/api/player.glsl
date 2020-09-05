@@ -11,7 +11,7 @@
  * Experimental, likely to change.
  */
 float frx_effectModifier() {
-    return _cvu_world[_CV_WORLD_EFFECT_MODIFIER];
+	return _cvu_world[_CV_WORLD_EFFECT_MODIFIER];
 }
 
 /*
@@ -24,7 +24,7 @@ float frx_effectModifier() {
  *  If the player is not holding a light source, all values are zero.
  */
 vec4 frx_heldLight() {
-	return vec4(_cvu_world[_CV_HELD_LIGHT_RED], _cvu_world[_CV_HELD_LIGHT_GREEN], _cvu_world[_CV_HELD_LIGHT_BLUE],  _cvu_world[_CV_HELD_LIGHT_INTENSITY]);
+	return vec4(_cvu_world[_CV_HELD_LIGHT_RED], _cvu_world[_CV_HELD_LIGHT_GREEN], _cvu_world[_CV_HELD_LIGHT_BLUE], _cvu_world[_CV_HELD_LIGHT_INTENSITY]);
 }
 
 /*
@@ -33,4 +33,3 @@ vec4 frx_heldLight() {
 bool frx_playerHasNightVision() {
 	return frx_bitValue(_cvu_world[_CV_FLAGS_0], _CV_FLAG0_NIGHT_VISTION_ACTIVE) == 1;
 }
-

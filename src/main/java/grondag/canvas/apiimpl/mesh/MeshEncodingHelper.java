@@ -1,5 +1,5 @@
-/*******************************************************************************
- * Copyright 2019 grondag
+/*
+ * Copyright 2019, 2020 grondag
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
@@ -12,16 +12,14 @@
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
  * License for the specific language governing permissions and limitations under
  * the License.
- ******************************************************************************/
+ */
 
 package grondag.canvas.apiimpl.mesh;
 
 import com.google.common.base.Preconditions;
-
+import grondag.canvas.apiimpl.material.AbstractMeshMaterial;
 import net.fabricmc.fabric.api.renderer.v1.mesh.QuadView;
 import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
-
-import grondag.canvas.apiimpl.material.AbstractMeshMaterial;
 
 /**
  * Holds all the array offsets and bit-wise encoders/decoders for
@@ -29,9 +27,6 @@ import grondag.canvas.apiimpl.material.AbstractMeshMaterial;
  * implementation-specific - that's why it isn't a "helper" class.
  */
 public abstract class MeshEncodingHelper {
-	private MeshEncodingHelper() {
-	}
-
 	public static final int HEADER_MATERIAL = 0;
 	public static final int HEADER_COLOR_INDEX = 1;
 	public static final int HEADER_BITS = 2;
@@ -39,7 +34,6 @@ public abstract class MeshEncodingHelper {
 	public static final int HEADER_SPRITE_LOW = 4;
 	public static final int HEADER_SPRITE_HIGH = 5;
 	public static final int HEADER_STRIDE = 6;
-
 	public static final int VERTEX_X;
 	public static final int VERTEX_Y;
 	public static final int VERTEX_Z;
@@ -49,16 +43,13 @@ public abstract class MeshEncodingHelper {
 	public static final int VERTEX_LIGHTMAP;
 	public static final int VERTEX_NORMAL;
 	public static final int BASE_VERTEX_STRIDE;
-
 	public static final int BASE_QUAD_STRIDE_BYTES;
 	public static final int MIN_QUAD_STRIDE;
 	public static final int VERTEX_START;
 	public static final int BASE_QUAD_STRIDE;
-
 	// normals are followed by 0-2 sets of color/uv coordinates
 	public static final int TEXTURE_VERTEX_STRIDE;
 	public static final int TEXTURE_QUAD_STRIDE;
-
 	/**
 	 * is one tex stride less than the actual base, because when used tex index is >= 1
 	 */
@@ -66,6 +57,27 @@ public abstract class MeshEncodingHelper {
 	public static final int SECOND_TEXTURE_OFFSET;
 	public static final int THIRD_TEXTURE_OFFSET;
 	public static final int MAX_QUAD_STRIDE;
+	/**
+	 * used for quick clearing of quad buffers
+	 */
+	public static final int[] EMPTY;
+	public static final int DEFAULT_HEADER_BITS;
+	public static final int UV_UNIT_VALUE = 0xFFFF;
+	public static final int UV_EXTRA_PRECISION = 8;
+	public static final int UV_PRECISE_UNIT_VALUE = UV_UNIT_VALUE << UV_EXTRA_PRECISION;
+	public static final int UV_ROUNDING_BIT = 1 << (UV_EXTRA_PRECISION - 1);
+	public static final float UV_PRECISE_TO_FLOAT_CONVERSION = 1f / UV_PRECISE_UNIT_VALUE;
+	private static final int DIRECTION_MASK = 7;
+	private static final int CULL_SHIFT = 0;
+	private static final int CULL_INVERSE_MASK = ~(DIRECTION_MASK << CULL_SHIFT);
+	private static final int LIGHT_SHIFT = CULL_SHIFT + Integer.bitCount(DIRECTION_MASK);
+	private static final int LIGHT_INVERSE_MASK = ~(DIRECTION_MASK << LIGHT_SHIFT);
+	private static final int NORMALS_SHIFT = LIGHT_SHIFT + Integer.bitCount(DIRECTION_MASK);
+	private static final int NORMALS_MASK = 0b1111;
+	private static final int NORMALS_INVERSE_MASK = ~(NORMALS_MASK << NORMALS_SHIFT);
+	private static final int GEOMETRY_SHIFT = NORMALS_SHIFT + Integer.bitCount(NORMALS_MASK);
+	private static final int GEOMETRY_MASK = 0b111;
+	private static final int GEOMETRY_INVERSE_MASK = ~(GEOMETRY_MASK << GEOMETRY_SHIFT);
 
 	static {
 		VERTEX_X = HEADER_STRIDE + 0;
@@ -97,36 +109,17 @@ public abstract class MeshEncodingHelper {
 		SECOND_TEXTURE_OFFSET = MIN_QUAD_STRIDE;
 		THIRD_TEXTURE_OFFSET = SECOND_TEXTURE_OFFSET + TEXTURE_QUAD_STRIDE;
 		MAX_QUAD_STRIDE = MIN_QUAD_STRIDE + TEXTURE_QUAD_STRIDE * (AbstractMeshMaterial.MAX_SPRITE_DEPTH - 1);
+		EMPTY = new int[MAX_QUAD_STRIDE];
 	}
-
-	/** used for quick clearing of quad buffers */
-	public static final int[] EMPTY = new int[MAX_QUAD_STRIDE];
-
-	private static final int DIRECTION_MASK = 7;
-	private static final int CULL_SHIFT = 0;
-	private static final int CULL_INVERSE_MASK = ~(DIRECTION_MASK << CULL_SHIFT);
-	private static final int LIGHT_SHIFT = CULL_SHIFT + Integer.bitCount(DIRECTION_MASK);
-	private static final int LIGHT_INVERSE_MASK = ~(DIRECTION_MASK << LIGHT_SHIFT);
-	private static final int NORMALS_SHIFT = LIGHT_SHIFT + Integer.bitCount(DIRECTION_MASK);
-	private static final int NORMALS_MASK = 0b1111;
-	private static final int NORMALS_INVERSE_MASK = ~(NORMALS_MASK << NORMALS_SHIFT);
-	private static final int GEOMETRY_SHIFT = NORMALS_SHIFT + Integer.bitCount(NORMALS_MASK);
-	private static final int GEOMETRY_MASK = 0b111;
-	private static final int GEOMETRY_INVERSE_MASK = ~(GEOMETRY_MASK << GEOMETRY_SHIFT);
-
-	public static final int DEFAULT_HEADER_BITS;
-
-	public static final int UV_UNIT_VALUE = 0xFFFF;
-	public static final int UV_EXTRA_PRECISION = 8;
-	public static final int UV_PRECISE_UNIT_VALUE = UV_UNIT_VALUE << UV_EXTRA_PRECISION;
-	public static final int UV_ROUNDING_BIT = 1 << (UV_EXTRA_PRECISION - 1);
-	public static final float UV_PRECISE_TO_FLOAT_CONVERSION = 1f / UV_PRECISE_UNIT_VALUE;
 
 	static {
 		int defaultHeader = 0;
 		defaultHeader = cullFace(defaultHeader, ModelHelper.NULL_FACE_ID);
 		defaultHeader = lightFace(defaultHeader, ModelHelper.NULL_FACE_ID);
 		DEFAULT_HEADER_BITS = defaultHeader;
+	}
+
+	private MeshEncodingHelper() {
 	}
 
 	public static int cullFace(int bits) {

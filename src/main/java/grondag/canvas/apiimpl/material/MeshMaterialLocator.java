@@ -1,3 +1,19 @@
+/*
+ * Copyright 2019, 2020 grondag
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License.  You may obtain a copy
+ * of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
 package grondag.canvas.apiimpl.material;
 
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
@@ -9,8 +25,8 @@ import net.fabricmc.fabric.api.renderer.v1.material.RenderMaterial;
  * MUST be called before the mesh material is retrieved with {@link #get()}.
  */
 public class MeshMaterialLocator extends AbstractMeshMaterial implements RenderMaterial {
+	private static final ThreadLocal<MeshMaterialFinder> variantFinder = ThreadLocal.withInitial(MeshMaterialFinder::new);
 	final int index;
-
 	private final MeshMaterialLocator[] blendModeVariants = new MeshMaterialLocator[4];
 	private final MeshMaterial material;
 
@@ -33,15 +49,13 @@ public class MeshMaterialLocator extends AbstractMeshMaterial implements RenderM
 		return material;
 	}
 
-	private static final ThreadLocal<MeshMaterialFinder> variantFinder = ThreadLocal.withInitial(MeshMaterialFinder::new);
-
 	void setupVariants() {
 		final boolean needsBlendModeVariant = blendMode() == BlendMode.DEFAULT;
 
 		final MeshMaterialFinder finder = variantFinder.get();
 
-		if(needsBlendModeVariant) {
-			for(int i = 0; i < 4; i++) {
+		if (needsBlendModeVariant) {
+			for (int i = 0; i < 4; i++) {
 				final BlendMode layer = LAYERS[i];
 
 				assert layer != BlendMode.DEFAULT;
@@ -49,16 +63,16 @@ public class MeshMaterialLocator extends AbstractMeshMaterial implements RenderM
 				finder.bits0 = bits0;
 				finder.bits1 = bits1;
 
-				if(finder.blendMode() == BlendMode.DEFAULT) {
+				if (finder.blendMode() == BlendMode.DEFAULT) {
 					finder.blendMode(layer);
 				}
 
 				blendModeVariants[i] = finder.findInternal(true);
 
-				assert blendModeVariants[i].blendMode() !=  BlendMode.DEFAULT;
+				assert blendModeVariants[i].blendMode() != BlendMode.DEFAULT;
 			}
 		} else {
-			for(int i = 0; i < 4; i++) {
+			for (int i = 0; i < 4; i++) {
 				blendModeVariants[i] = this;
 			}
 		}
@@ -70,10 +84,10 @@ public class MeshMaterialLocator extends AbstractMeshMaterial implements RenderM
 	 * this is only used for vanilla default materials that derive their
 	 * blend mode from the block render layer, but it is also possible to
 	 * specify materials with null blend modes to achieve the same behavior.<p>
-	 *
+	 * <p>
 	 * If a non-null blend mode is specified for every sprite layer, this
 	 * will always return the current instance.<p>
-	 *
+	 * <p>
 	 * We need shader flags to accurately reflect the effective blend mode
 	 * and we need that to be fast, and we also want the buffering logic to
 	 * remain simple.  This solves all those problems.<p>

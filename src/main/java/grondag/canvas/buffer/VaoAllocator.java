@@ -1,5 +1,5 @@
-/*******************************************************************************
- * Copyright 2019 grondag
+/*
+ * Copyright 2019, 2020 grondag
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
@@ -12,19 +12,16 @@
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
  * License for the specific language governing permissions and limitations under
  * the License.
- ******************************************************************************/
+ */
 
 package grondag.canvas.buffer;
 
-import java.nio.IntBuffer;
-
 import com.mojang.blaze3d.systems.RenderSystem;
-
+import grondag.canvas.varia.CanvasGlHelper;
 import it.unimi.dsi.fastutil.ints.IntArrayFIFOQueue;
-
 import net.minecraft.client.util.GlAllocationUtils;
 
-import grondag.canvas.varia.CanvasGlHelper;
+import java.nio.IntBuffer;
 
 public class VaoAllocator {
 	private static final IntArrayFIFOQueue queue = new IntArrayFIFOQueue();
@@ -32,7 +29,7 @@ public class VaoAllocator {
 
 	public static int claimVertexArray() {
 		assert RenderSystem.isOnRenderThread();
-		
+
 		if (queue.isEmpty()) {
 			CanvasGlHelper.glGenVertexArrays(buff);
 
@@ -48,7 +45,7 @@ public class VaoAllocator {
 
 	public static void releaseVertexArray(int vaoBufferId) {
 		assert RenderSystem.isOnRenderThread();
-		
+
 		queue.enqueue(vaoBufferId);
 	}
 }

@@ -17,12 +17,12 @@ varying vec2 _cvv_texcoord;
 // Based on approach described by Jorge Jiminez, 2014
 // http://www.iryoku.com/next-generation-post-processing-in-call-of-duty-advanced-warfare
 void main() {
-    vec4 base = frx_fromGamma(texture2D(_cvu_base, _cvv_texcoord));
+	vec4 base = frx_fromGamma(texture2D(_cvu_base, _cvv_texcoord));
 
-    vec4 bloom = texture2DLod(_cvu_bloom, _cvv_texcoord, 0);
+	vec4 bloom = texture2DLod(_cvu_bloom, _cvv_texcoord, 0);
 
-    // chop off very low end to avoid halo banding
-    vec3 color = base.rgb + (max(bloom.rgb - vec3(0.01), vec3(0))) / vec3(0.99) * cvu_intensity;
+	// chop off very low end to avoid halo banding
+	vec3 color = base.rgb + (max(bloom.rgb - vec3(0.01), vec3(0))) / vec3(0.99) * cvu_intensity;
 
-    gl_FragData[0] = clamp(frx_toGamma(vec4(color, 1.0)), 0.0, 1.0);
+	gl_FragData[0] = clamp(frx_toGamma(vec4(color, 1.0)), 0.0, 1.0);
 }

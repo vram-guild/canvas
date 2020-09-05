@@ -1,5 +1,6 @@
-/*******************************************************************************
+/*
  * Copyright 2019, 2020 grondag
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
  * of the License at
@@ -11,31 +12,9 @@
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
  * License for the specific language governing permissions and limitations under
  * the License.
- ******************************************************************************/
-
+ */
 
 package grondag.canvas.apiimpl.mesh;
-
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.BASE_QUAD_STRIDE;
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.BASE_VERTEX_STRIDE;
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.EMPTY;
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_BITS;
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_COLOR_INDEX;
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_MATERIAL;
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_STRIDE;
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_TAG;
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.UV_PRECISE_UNIT_VALUE;
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_LIGHTMAP;
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_NORMAL;
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_X;
-
-import net.minecraft.client.render.model.BakedQuad;
-import net.minecraft.client.texture.Sprite;
-import net.minecraft.util.math.Direction;
-
-import net.fabricmc.fabric.api.renderer.v1.material.RenderMaterial;
-import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
-import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 
 import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.apiimpl.material.AbstractMeshMaterial;
@@ -45,19 +24,27 @@ import grondag.canvas.apiimpl.util.TextureHelper;
 import grondag.canvas.light.LightmapHd;
 import grondag.canvas.mixinterface.SpriteExt;
 import grondag.canvas.texture.SpriteInfoTexture;
+import net.fabricmc.fabric.api.renderer.v1.material.RenderMaterial;
+import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
+import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
+import net.minecraft.client.render.model.BakedQuad;
+import net.minecraft.client.texture.Sprite;
+import net.minecraft.util.math.Direction;
+
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.*;
 
 /**
  * Almost-concrete implementation of a mutable quad. The only missing part is {@link #emit()},
  * because that depends on where/how it is used. (Mesh encoding vs. render-time transformation).
  */
 public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEmitter {
-	// UGLY - need a lighting result class?
-	public LightmapHd hdLight = null;
 	// PERF: pack into one array for LOR?
 	public final float[] u = new float[4];
 	public final float[] v = new float[4];
 	// vanilla light outputs
 	public final float[] ao = new float[4];
+	// UGLY - need a lighting result class?
+	public LightmapHd hdLight = null;
 
 	public final void begin(int[] data, int baseIndex) {
 		this.data = data;
@@ -92,7 +79,7 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 			material = Canvas.MATERIAL_STANDARD;
 		}
 
-		data[baseIndex + HEADER_MATERIAL] = ((MeshMaterialLocator)material).index();
+		data[baseIndex + HEADER_MATERIAL] = ((MeshMaterialLocator) material).index();
 
 		assert AbstractMeshMaterial.byIndex(data[baseIndex + HEADER_MATERIAL]) == material;
 
@@ -138,7 +125,7 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 		// Convert sprite data from float to fixed precision
 		int index = baseIndex + colorOffset(0, 0) + 1;
 
-		for (int i = 0; i < 4; ++i)  {
+		for (int i = 0; i < 4; ++i) {
 			data[index] = (int) (Float.intBitsToFloat(data[index]) * UV_PRECISE_UNIT_VALUE);
 			data[index + 1] = (int) (Float.intBitsToFloat(data[index + 1]) * UV_PRECISE_UNIT_VALUE);
 			index += BASE_VERTEX_STRIDE;
@@ -330,7 +317,7 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 	}
 
 	public MutableQuadViewImpl spriteId(int spriteIndex, int spriteId) {
-		final int index  = spriteIdOffset(spriteIndex);
+		final int index = spriteIdOffset(spriteIndex);
 		final int d = data[index];
 		data[index] = (spriteIndex & 1) == 0 ? (d & 0xFFFF0000) | spriteId : (d & 0xFFFF) | (spriteId << 16);
 		return this;

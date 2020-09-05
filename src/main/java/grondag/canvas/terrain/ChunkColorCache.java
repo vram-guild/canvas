@@ -1,5 +1,6 @@
-/*******************************************************************************
+/*
  * Copyright 2019, 2020 grondag
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
  * of the License at
@@ -11,11 +12,14 @@
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
  * License for the specific language governing permissions and limitations under
  * the License.
- ******************************************************************************/
+ */
+
 package grondag.canvas.terrain;
 
-import java.util.function.Function;
-
+import grondag.canvas.mixinterface.BiomeAccessExt;
+import grondag.canvas.mixinterface.WorldChunkExt;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.color.world.BiomeColors;
 import net.minecraft.client.world.ClientWorld;
@@ -27,23 +31,21 @@ import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.WorldChunk;
 import net.minecraft.world.level.ColorResolver;
 
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-
-import grondag.canvas.mixinterface.BiomeAccessExt;
-import grondag.canvas.mixinterface.WorldChunkExt;
+import java.util.function.Function;
 
 //TODO: per-vertex blending (quality)
 @Environment(value = EnvType.CLIENT)
 public class ChunkColorCache implements BiomeAccess.Storage {
-	private static int VERSION = 0;
 	private static final MinecraftClient mc = MinecraftClient.getInstance();
-
+	private static int VERSION = 0;
 	private final WorldChunk chunk;
 	private final ClientWorld world;
 	private final int chunkX;
 	private final int chunkZ;
 	private final int version;
+	private final BiomeColorCache grassCache = new BiomeColorCache(BiomeColors.GRASS_COLOR, c -> c.grassCache);
+	private final BiomeColorCache foliageCache = new BiomeColorCache(BiomeColors.FOLIAGE_COLOR, c -> c.foliageCache);
+	private final BiomeColorCache waterCache = new BiomeColorCache(BiomeColors.WATER_COLOR, c -> c.waterCache);
 
 	public ChunkColorCache(ClientWorld world, WorldChunk chunk) {
 		this.world = world;
@@ -52,6 +54,14 @@ public class ChunkColorCache implements BiomeAccess.Storage {
 		final ChunkPos pos = chunk.getPos();
 		chunkX = pos.x;
 		chunkZ = pos.z;
+	}
+
+	public static ChunkColorCache get(WorldChunk chunk) {
+		return ((WorldChunkExt) chunk).canvas_colorCache();
+	}
+
+	public static void invalidate() {
+		VERSION++;
 	}
 
 	public boolean isInvalid() {
@@ -85,10 +95,6 @@ public class ChunkColorCache implements BiomeAccess.Storage {
 		return world.getGeneratorStoredBiome(x, y, z);
 	}
 
-	private final BiomeColorCache grassCache = new BiomeColorCache(BiomeColors.GRASS_COLOR, c -> c.grassCache);
-	private final BiomeColorCache foliageCache = new BiomeColorCache(BiomeColors.FOLIAGE_COLOR, c -> c.foliageCache);
-	private final BiomeColorCache waterCache = new BiomeColorCache(BiomeColors.WATER_COLOR, c -> c.waterCache);
-
 	public int getColor(int x, int y, int z, ColorResolver colorResolver) {
 		if (colorResolver == BiomeColors.GRASS_COLOR) {
 			return grassCache.getColor(x, y, z);
@@ -102,16 +108,15 @@ public class ChunkColorCache implements BiomeAccess.Storage {
 	}
 
 	private class BiomeColorCache {
-		private final ColorResolver colorResolver;
-		private final Function<ChunkColorCache, BiomeColorCache> cacheFunc;
-		private final int[] data = new int [512 + 16];
-
 		private static final int BASE_INDEX = 0;
 		private static final int BASE_CONTROL = BASE_INDEX + 256;
 		private static final int BLENDED_INDEX = BASE_CONTROL + 8;
 		private static final int BLENDED_CONTROL = BLENDED_INDEX + 256;
+		private final ColorResolver colorResolver;
+		private final Function<ChunkColorCache, BiomeColorCache> cacheFunc;
+		private final int[] data = new int[512 + 16];
 
-		private BiomeColorCache (ColorResolver colorResolver, Function<ChunkColorCache, BiomeColorCache> cacheFunc) {
+		private BiomeColorCache(ColorResolver colorResolver, Function<ChunkColorCache, BiomeColorCache> cacheFunc) {
 			this.colorResolver = colorResolver;
 			this.cacheFunc = cacheFunc;
 		}
@@ -120,7 +125,7 @@ public class ChunkColorCache implements BiomeAccess.Storage {
 			final int cx = x >> 4;
 			final int cz = z >> 4;
 
-			if(cx == chunkX && cz == chunkZ) {
+			if (cx == chunkX && cz == chunkZ) {
 				return getLocalBaseColor(x, y, z);
 			} else {
 				return cacheFunc.apply(get(world.getChunk(cx, cz))).getLocalBaseColor(x, y, z);
@@ -150,7 +155,7 @@ public class ChunkColorCache implements BiomeAccess.Storage {
 			final int cx = x >> 4;
 			final int cz = z >> 4;
 
-			if(cx == chunkX && cz == chunkZ) {
+			if (cx == chunkX && cz == chunkZ) {
 				return getLocalBlendedColor(x, y, z);
 			} else {
 				return cacheFunc.apply(get(world.getChunk(cx, cz))).getLocalBlendedColor(x, y, z);
@@ -186,8 +191,8 @@ public class ChunkColorCache implements BiomeAccess.Storage {
 				final int xMax = xIn + radius;
 				final int zMax = zIn + radius;
 
-				for(int x = xIn - radius; x <= xMax; x++) {
-					for(int z = zIn - radius; z <= zMax; z++) {
+				for (int x = xIn - radius; x <= xMax; x++) {
+					for (int z = zIn - radius; z <= zMax; z++) {
 						final int color = getBaseColor(x, yIn, z);
 						g += (color >> 8) & 255;
 						r += (color >> 16) & 255;
@@ -198,13 +203,5 @@ public class ChunkColorCache implements BiomeAccess.Storage {
 				return (r / sampleCount & 255) << 16 | (g / sampleCount & 255) << 8 | b / sampleCount & 255;
 			}
 		}
-	}
-
-	public static ChunkColorCache get(WorldChunk chunk) {
-		return ((WorldChunkExt) chunk).canvas_colorCache();
-	}
-
-	public static void invalidate() {
-		VERSION++;
 	}
 }

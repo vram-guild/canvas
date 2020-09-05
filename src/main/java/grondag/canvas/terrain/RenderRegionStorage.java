@@ -1,24 +1,48 @@
+/*
+ * Copyright 2019, 2020 grondag
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License.  You may obtain a copy
+ * of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
 package grondag.canvas.terrain;
 
-import java.util.function.Predicate;
-
+import grondag.canvas.render.CanvasWorldRenderer;
 import it.unimi.dsi.fastutil.Hash;
-
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.Vec3d;
 
-import grondag.canvas.render.CanvasWorldRenderer;
+import java.util.function.Predicate;
 
 public class RenderRegionStorage {
+	private static final Predicate<BuiltRenderRegion> REGION_PRUNER = r -> {
+		// TODO: confirm not creating/removing due to mismatch in distances
+		if (!r.updateCameraDistance()) {
+			r.close();
+			return true;
+		} else {
+			return false;
+		}
+	};
+	private static final Predicate<RegionChunkReference> CHUNK_REF_PRUNER = RegionChunkReference::isEmpty;
 	// Hat tip to JellySquid for the suggestion of using a hashmap
 	// PERF: lock-free implementation
 	private final HackedLong2ObjectMap<BuiltRenderRegion> regionMap = new HackedLong2ObjectMap<>(8192, Hash.VERY_FAST_LOAD_FACTOR, r -> r.close());
-	private final HackedLong2ObjectMap<RegionChunkReference> chunkRefMap = new HackedLong2ObjectMap<>(2048, Hash.VERY_FAST_LOAD_FACTOR, r -> {});
-	private int positionVersion;
+	private final HackedLong2ObjectMap<RegionChunkReference> chunkRefMap = new HackedLong2ObjectMap<>(2048, Hash.VERY_FAST_LOAD_FACTOR, r -> {
+	});
 	private final CanvasWorldRenderer cwr;
-
 	private final int regionVersion = -1;
+	private int positionVersion;
 
 	public RenderRegionStorage(CanvasWorldRenderer cwr) {
 		this.cwr = cwr;
@@ -43,18 +67,6 @@ public class RenderRegionStorage {
 			}
 		}
 	}
-
-	private static final Predicate<BuiltRenderRegion> REGION_PRUNER = r -> {
-		// TODO: confirm not creating/removing due to mismatch in distances
-		if (!r.updateCameraDistance()) {
-			r.close();
-			return true;
-		} else {
-			return false;
-		}
-	};
-
-	private static final Predicate<RegionChunkReference> CHUNK_REF_PRUNER = RegionChunkReference::isEmpty;
 
 	/**
 	 * Called each frame, but only updates when player has moved more than 1 block.
@@ -105,6 +117,6 @@ public class RenderRegionStorage {
 
 	public boolean wasSeen(int x, int y, int z) {
 		final BuiltRenderRegion r = getRegionIfExists(x, y, z);
-		return r == null ? false : r.wasRecentlySeen();
+		return r != null && r.wasRecentlySeen();
 	}
 }

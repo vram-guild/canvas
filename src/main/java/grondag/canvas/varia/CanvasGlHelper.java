@@ -1,5 +1,5 @@
-/*******************************************************************************
- * Copyright 2019 grondag
+/*
+ * Copyright 2019, 2020 grondag
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
@@ -12,32 +12,26 @@
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
  * License for the specific language governing permissions and limitations under
  * the License.
- ******************************************************************************/
+ */
 
 package grondag.canvas.varia;
 
-import java.nio.IntBuffer;
-
 import com.mojang.blaze3d.platform.GLX;
 import com.mojang.blaze3d.platform.GlStateManager;
-import org.apache.logging.log4j.Logger;
-import org.lwjgl.opengl.ARBVertexArrayObject;
-import org.lwjgl.opengl.GL;
-import org.lwjgl.opengl.GL20;
-import org.lwjgl.opengl.GL21;
-import org.lwjgl.opengl.GL30;
-import org.lwjgl.opengl.GLCapabilities;
-
-import net.minecraft.client.MinecraftClient;
-
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
+import net.minecraft.client.MinecraftClient;
+import org.apache.logging.log4j.Logger;
+import org.lwjgl.opengl.*;
+
+import java.nio.IntBuffer;
 
 public class CanvasGlHelper {
 	static boolean useVboArb;
 	static private boolean vaoEnabled = false;
 	static private boolean useVaoArb = false;
 	static private boolean useGpuShader4 = false;
+	static private int attributeEnabledCount = 0;
 
 	public static void init() {
 		final GLCapabilities caps = GL.getCapabilities();
@@ -46,7 +40,7 @@ public class CanvasGlHelper {
 		useVaoArb = !caps.OpenGL30 && caps.GL_ARB_vertex_array_object;
 		useGpuShader4 = caps.GL_EXT_gpu_shader4;
 
-		if(Configurator.logMachineInfo) {
+		if (Configurator.logMachineInfo) {
 			logMachineInfo(caps);
 		}
 	}
@@ -62,14 +56,12 @@ public class CanvasGlHelper {
 		log.info(String.format(" OpenGL: %s", GLX.getOpenGLVersionString()));
 		log.info(String.format(" GpuShader4: %s  VboArb: %s  VaoEnabled: %s  VaoArb: %s",
 				useGpuShader4 ? "Y" : "N",
-						useVboArb ? "Y" : "N",
-								vaoEnabled ? "Y" : "N",
-										useVaoArb ? "Y" : "N"));
+				useVboArb ? "Y" : "N",
+				vaoEnabled ? "Y" : "N",
+				useVaoArb ? "Y" : "N"));
 		log.info(" (This message can be disabled by configuring logMachineInfo = false.)");
 		log.info("========================================================================");
 	}
-
-	static private int attributeEnabledCount = 0;
 
 	public static boolean useGpuShader4() {
 		return useGpuShader4;
@@ -81,7 +73,7 @@ public class CanvasGlHelper {
 	 */
 	public static void disableAttributesVao(int enabledCount) {
 		for (int i = 1; i <= enabledCount; i++) {
-			if(Configurator.logGlStateChanges) {
+			if (Configurator.logGlStateChanges) {
 				CanvasMod.LOG.info(String.format("GlState: glDisableVertexAttribArray(%d)", i));
 			}
 			GL20.glDisableVertexAttribArray(i);
@@ -95,7 +87,7 @@ public class CanvasGlHelper {
 	 */
 	public static void enableAttributesVao(int enabledCount) {
 		for (int i = 1; i <= enabledCount; i++) {
-			if(Configurator.logGlStateChanges) {
+			if (Configurator.logGlStateChanges) {
 				CanvasMod.LOG.info(String.format("GlState: glEnableVertexAttribArray(%d)", i));
 			}
 			GL20.glEnableVertexAttribArray(i);
@@ -107,12 +99,12 @@ public class CanvasGlHelper {
 	 * Using 1-based numbering for attribute slots because GL (on my machine at
 	 * least) not liking slot 0.<p>
 	 *
-	 * @param enabledCount  Number of needed attributes.
+	 * @param enabledCount Number of needed attributes.
 	 */
 	public static void enableAttributes(int enabledCount) {
 		if (enabledCount > attributeEnabledCount) {
 			while (enabledCount > attributeEnabledCount) {
-				if(Configurator.logGlStateChanges) {
+				if (Configurator.logGlStateChanges) {
 					CanvasMod.LOG.info(String.format("GlState: glEnableVertexAttribArray(%d)", attributeEnabledCount + 1));
 				}
 
@@ -120,7 +112,7 @@ public class CanvasGlHelper {
 			}
 		} else if (enabledCount < attributeEnabledCount) {
 			while (enabledCount < attributeEnabledCount) {
-				if(Configurator.logGlStateChanges) {
+				if (Configurator.logGlStateChanges) {
 					CanvasMod.LOG.info(String.format("GlState: glDisableVertexAttribArray(%d)", attributeEnabledCount));
 				}
 
@@ -142,7 +134,7 @@ public class CanvasGlHelper {
 	}
 
 	public static void glGenVertexArrays(IntBuffer arrays) {
-		if(useVaoArb) {
+		if (useVaoArb) {
 			ARBVertexArrayObject.glGenVertexArrays(arrays);
 		} else {
 			GL30.glGenVertexArrays(arrays);
@@ -150,7 +142,7 @@ public class CanvasGlHelper {
 	}
 
 	public static void glBindVertexArray(int vaoBufferId) {
-		if(useVaoArb) {
+		if (useVaoArb) {
 			ARBVertexArrayObject.glBindVertexArray(vaoBufferId);
 		} else {
 			GL30.glBindVertexArray(vaoBufferId);

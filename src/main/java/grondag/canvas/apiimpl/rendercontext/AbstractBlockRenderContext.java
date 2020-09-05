@@ -1,8 +1,28 @@
+/*
+ * Copyright 2019, 2020 grondag
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License.  You may obtain a copy
+ * of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
 package grondag.canvas.apiimpl.rendercontext;
 
-import java.util.Random;
-import java.util.function.Supplier;
-
+import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
+import grondag.canvas.apiimpl.util.GeometryHelper;
+import grondag.canvas.buffer.encoding.VertexEncoder;
+import grondag.canvas.mixinterface.RenderLayerExt;
+import grondag.frex.api.material.MaterialMap;
+import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
+import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
@@ -11,45 +31,32 @@ import net.minecraft.client.render.RenderLayers;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.BlockRenderView;
 
-import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
-import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
+import java.util.Random;
+import java.util.function.Supplier;
 
-import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
-import grondag.canvas.apiimpl.util.GeometryHelper;
-import grondag.canvas.buffer.encoding.VertexEncoder;
-import grondag.canvas.mixinterface.RenderLayerExt;
-import grondag.frex.api.material.MaterialMap;
-
-public abstract class AbstractBlockRenderContext<T extends BlockRenderView > extends AbstractRenderContext implements RenderContext {
-	protected AbstractBlockRenderContext(String name) {
-		super(name);
-	}
-
-	/** for use by chunk builder - avoids another threadlocal */
+public abstract class AbstractBlockRenderContext<T extends BlockRenderView> extends AbstractRenderContext implements RenderContext {
+	/**
+	 * for use by chunk builder - avoids another threadlocal
+	 */
 	public final BlockPos.Mutable searchPos = new BlockPos.Mutable();
-
-	/** for internal use */
+	public final Random random = new Random();
+	/**
+	 * for internal use
+	 */
 	protected final BlockPos.Mutable internalSearchPos = new BlockPos.Mutable();
 
 	private final BlockColors blockColorMap = MinecraftClient.getInstance().getBlockColors();
-	private boolean needsRandomRefresh = true;
-	private int lastColorIndex = -1;
-	private int blockColor = -1;
-	private int fullCubeCache = 0;
-
-	public final Random random = new Random();
 	public T region;
 	public BlockPos blockPos;
 	public BlockState blockState;
 	public long seed;
 	public boolean defaultAo;
 	public int defaultBlendModeIndex;
-
-
+	private boolean needsRandomRefresh = true;
 	public final Supplier<Random> randomSupplier = () -> {
 		final Random result = random;
 
-		if(needsRandomRefresh) {
+		if (needsRandomRefresh) {
 			needsRandomRefresh = false;
 			long seed = this.seed;
 
@@ -63,13 +70,20 @@ public abstract class AbstractBlockRenderContext<T extends BlockRenderView > ext
 
 		return result;
 	};
+	private int lastColorIndex = -1;
+	private int blockColor = -1;
+	private int fullCubeCache = 0;
+
+
+	protected AbstractBlockRenderContext(String name) {
+		super(name);
+	}
 
 	/**
-	 *
 	 * @param blockState
 	 * @param blockPos
 	 * @param modelAO
-	 * @param seed pass -1 for default behavior
+	 * @param seed       pass -1 for default behavior
 	 */
 	public void prepareForBlock(BlockState blockState, BlockPos blockPos, boolean modelAO, long seed) {
 		this.blockPos = blockPos;
@@ -86,9 +100,9 @@ public abstract class AbstractBlockRenderContext<T extends BlockRenderView > ext
 
 	@Override
 	public final int indexedColor(int colorIndex) {
-		if(colorIndex == -1) {
+		if (colorIndex == -1) {
 			return -1;
-		} else if(lastColorIndex == colorIndex) {
+		} else if (lastColorIndex == colorIndex) {
 			return blockColor;
 		} else {
 			lastColorIndex = colorIndex;

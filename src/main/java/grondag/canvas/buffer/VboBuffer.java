@@ -1,5 +1,5 @@
-/*******************************************************************************
- * Copyright 2019 grondag
+/*
+ * Copyright 2019, 2020 grondag
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
@@ -12,46 +12,35 @@
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
  * License for the specific language governing permissions and limitations under
  * the License.
- ******************************************************************************/
+ */
 
 package grondag.canvas.buffer;
 
-import java.nio.ByteBuffer;
-import java.nio.IntBuffer;
-
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
-import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL21;
-
-import net.minecraft.client.render.VertexFormatElement;
-
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
 import grondag.canvas.material.MaterialVertexFormat;
 import grondag.canvas.varia.CanvasGlHelper;
+import net.minecraft.client.render.VertexFormatElement;
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL21;
+
+import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
 
 public class VboBuffer {
-	ByteBuffer uploadBuffer;
+	private static final int VAO_NONE = -1;
+	public final MaterialVertexFormat format;
 	private final int byteCount;
+	private final VertexBinder vertexBinder;
+	ByteBuffer uploadBuffer;
 	private int glBufferId = -1;
 	private boolean isClosed = false;
-
-	public final MaterialVertexFormat format;
-
-	private final VertexBinder vertexBinder;
-
-	@FunctionalInterface
-	private interface VertexBinder {
-		void bind();
-	}
-
 	/**
 	 * VAO Buffer name if enabled and initialized.
 	 */
 	private int vaoBufferId = VAO_NONE;
-
-	private static final int VAO_NONE = -1;
 
 	public VboBuffer(int bytes, MaterialVertexFormat format) {
 		uploadBuffer = TransferBufferAllocator.claim(bytes);
@@ -60,12 +49,16 @@ public class VboBuffer {
 		vertexBinder = CanvasGlHelper.isVaoEnabled() ? this::bindVao : this::bindVbo;
 	}
 
+	public static void unbind() {
+		BindStateManager.unbind();
+	}
+
 	public void upload() {
 		assert RenderSystem.isOnRenderThread();
 
 		final ByteBuffer uploadBuffer = this.uploadBuffer;
 
-		if(uploadBuffer != null) {
+		if (uploadBuffer != null) {
 			uploadBuffer.rewind();
 			BindStateManager.bind(glBufferId());
 			GL21.glBufferData(GL21.GL_ARRAY_BUFFER, uploadBuffer, GL21.GL_STATIC_DRAW);
@@ -78,7 +71,7 @@ public class VboBuffer {
 	private int glBufferId() {
 		int result = glBufferId;
 
-		if(result == -1) {
+		if (result == -1) {
 			assert RenderSystem.isOnGameThread();
 			result = GlBufferAllocator.claimBuffer(byteCount);
 
@@ -157,14 +150,14 @@ public class VboBuffer {
 
 			final int glBufferId = this.glBufferId;
 
-			if(glBufferId != -1) {
+			if (glBufferId != -1) {
 				GlBufferAllocator.releaseBuffer(glBufferId, byteCount);
 				this.glBufferId = -1;
 			}
 
 			final ByteBuffer uploadBuffer = this.uploadBuffer;
 
-			if(uploadBuffer != null) {
+			if (uploadBuffer != null) {
 				TransferBufferAllocator.release(uploadBuffer);
 				this.uploadBuffer = null;
 			}
@@ -176,11 +169,12 @@ public class VboBuffer {
 		}
 	}
 
-	public static void unbind() {
-		BindStateManager.unbind();
-	}
-
 	public IntBuffer intBuffer() {
 		return uploadBuffer.asIntBuffer();
+	}
+
+	@FunctionalInterface
+	private interface VertexBinder {
+		void bind();
 	}
 }

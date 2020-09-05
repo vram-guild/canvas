@@ -1,5 +1,6 @@
-/*******************************************************************************
+/*
  * Copyright 2019, 2020 grondag
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
  * of the License at
@@ -11,22 +12,16 @@
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
  * License for the specific language governing permissions and limitations under
  * the License.
- ******************************************************************************/
+ */
+
 package grondag.canvas.terrain;
 
-import static grondag.canvas.terrain.RenderRegionAddressHelper.EXTERIOR_CACHE_SIZE;
-import static grondag.canvas.terrain.RenderRegionAddressHelper.INTERIOR_CACHE_SIZE;
-import static grondag.canvas.terrain.RenderRegionAddressHelper.TOTAL_CACHE_SIZE;
-import static grondag.canvas.terrain.RenderRegionAddressHelper.cacheIndexToXyz5;
-import static grondag.canvas.terrain.RenderRegionAddressHelper.interiorIndex;
-
-import java.util.Arrays;
-
-import javax.annotation.Nullable;
-
+import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
+import grondag.canvas.terrain.ChunkPaletteCopier.PaletteCopy;
+import grondag.canvas.terrain.occlusion.region.OcclusionRegion;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.shorts.ShortArrayList;
-
+import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachedBlockView;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.render.WorldRenderer;
@@ -37,25 +32,41 @@ import net.minecraft.world.LightType;
 import net.minecraft.world.chunk.light.LightingProvider;
 import net.minecraft.world.level.ColorResolver;
 
-import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachedBlockView;
+import javax.annotation.Nullable;
+import java.util.Arrays;
 
-import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
-import grondag.canvas.terrain.ChunkPaletteCopier.PaletteCopy;
-import grondag.canvas.terrain.occlusion.region.OcclusionRegion;
+import static grondag.canvas.terrain.RenderRegionAddressHelper.*;
 
 public class FastRenderRegion extends AbstractRenderRegion implements RenderAttachedBlockView {
-	protected final BlockPos.Mutable searchPos = new BlockPos.Mutable();
+	private static final int[] EMPTY_AO_CACHE = new int[TOTAL_CACHE_SIZE];
+	private static final int[] EMPTY_LIGHT_CACHE = new int[TOTAL_CACHE_SIZE];
+	private static final Object[] EMPTY_RENDER_DATA = new Object[INTERIOR_CACHE_SIZE];
+	private static final BlockEntity[] EMPTY_BLOCK_ENTITIES = new BlockEntity[INTERIOR_CACHE_SIZE];
 
-	protected final Object[] renderData = new Object[INTERIOR_CACHE_SIZE];
+	static {
+		Arrays.fill(EMPTY_AO_CACHE, Integer.MAX_VALUE);
+		Arrays.fill(EMPTY_LIGHT_CACHE, Integer.MAX_VALUE);
+	}
+
 	public final BlockEntity[] blockEntities = new BlockEntity[INTERIOR_CACHE_SIZE];
-
+	public final TerrainRenderContext terrainContext;
+	protected final BlockPos.Mutable searchPos = new BlockPos.Mutable();
+	protected final Object[] renderData = new Object[INTERIOR_CACHE_SIZE];
 	private final BlockState[] states = new BlockState[TOTAL_CACHE_SIZE];
+	public final OcclusionRegion occlusion = new OcclusionRegion() {
+		@Override
+		protected BlockState blockStateAtIndex(int index) {
+			return states[index];
+		}
+
+		@Override
+		protected boolean closedAtRelativePos(BlockState blockState, int x, int y, int z) {
+			return blockState.isOpaqueFullCube(world, searchPos.set(originX + x, originY + y, originZ + z));
+		}
+	};
 	// PERF: pack for reduced memory, better LOC
 	private final int[] aoCache = new int[TOTAL_CACHE_SIZE];
 	private final int[] lightCache = new int[TOTAL_CACHE_SIZE];
-
-
-	public final TerrainRenderContext terrainContext;
 
 	public FastRenderRegion(TerrainRenderContext terrainContext) {
 		this.terrainContext = terrainContext;
@@ -78,7 +89,7 @@ public class FastRenderRegion extends AbstractRenderRegion implements RenderAtta
 		chunkBaseY = protoRegion.chunkBaseY;
 		chunkBaseZ = protoRegion.chunkBaseZ;
 
-		final PaletteCopy pc  = protoRegion.takePaletteCopy();
+		final PaletteCopy pc = protoRegion.takePaletteCopy();
 
 		for (int x = 0; x < 16; x++) {
 			for (int y = 0; y < 16; y++) {
@@ -100,7 +111,7 @@ public class FastRenderRegion extends AbstractRenderRegion implements RenderAtta
 	private void copyBeData(ProtoRenderRegion protoRegion) {
 		final ShortArrayList blockEntityPos = protoRegion.blockEntityPos;
 
-		if( !blockEntityPos.isEmpty()) {
+		if (!blockEntityPos.isEmpty()) {
 			final ObjectArrayList<BlockEntity> blockEntities = protoRegion.blockEntities;
 			final int limit = blockEntityPos.size();
 
@@ -111,7 +122,7 @@ public class FastRenderRegion extends AbstractRenderRegion implements RenderAtta
 
 		final ShortArrayList renderDataPos = protoRegion.renderDataPos;
 
-		if( !renderDataPos.isEmpty()) {
+		if (!renderDataPos.isEmpty()) {
 			final ObjectArrayList<Object> renderData = protoRegion.renderData;
 			final int limit = renderDataPos.size();
 
@@ -214,7 +225,7 @@ public class FastRenderRegion extends AbstractRenderRegion implements RenderAtta
 		if (result == Integer.MAX_VALUE) {
 			final BlockState state = states[cacheIndex];
 
-			if(state.getLuminance() == 0) {
+			if (state.getLuminance() == 0) {
 				final int packedXyz5 = cacheIndexToXyz5(cacheIndex);
 				final int x = (packedXyz5 & 31) - 1 + originX;
 				final int y = ((packedXyz5 >> 5) & 31) - 1 + originY;
@@ -245,31 +256,11 @@ public class FastRenderRegion extends AbstractRenderRegion implements RenderAtta
 		return result;
 	}
 
-	/** only valid for positions in render region, including exterior */
+	/**
+	 * only valid for positions in render region, including exterior
+	 */
 	public boolean isClosed(int cacheIndex) {
 		return occlusion.isClosed(cacheIndex);
-	}
-
-	public final OcclusionRegion occlusion = new OcclusionRegion() {
-		@Override
-		protected BlockState blockStateAtIndex(int index) {
-			return states[index];
-		}
-
-		@Override
-		protected boolean closedAtRelativePos(BlockState blockState, int x, int y, int z) {
-			return blockState.isOpaqueFullCube(world, searchPos.set(originX + x, originY + y, originZ + z));
-		}
-	};
-
-	private static final int[] EMPTY_AO_CACHE = new int[TOTAL_CACHE_SIZE];
-	private static final int[] EMPTY_LIGHT_CACHE = new int[TOTAL_CACHE_SIZE];
-	private static final Object[] EMPTY_RENDER_DATA = new Object[INTERIOR_CACHE_SIZE];
-	private static final BlockEntity[] EMPTY_BLOCK_ENTITIES = new BlockEntity[INTERIOR_CACHE_SIZE];
-
-	static {
-		Arrays.fill(EMPTY_AO_CACHE, Integer.MAX_VALUE);
-		Arrays.fill(EMPTY_LIGHT_CACHE, Integer.MAX_VALUE);
 	}
 
 	public int originX() {

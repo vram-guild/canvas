@@ -1,14 +1,14 @@
 {
-	"defaultMap": {
-		"spriteMap": [
-			{
-				"sprite": "minecraft:block/rose_bush_bottom",
-				"material": "canvas:low_foliage"
-			},
-			{
-				"sprite": "minecraft:block/rose_bush_top",
-				"material": "canvas:high_foliage"
-			}
-		]
-	}
+  "defaultMap": {
+	"spriteMap": [
+	  {
+		"sprite": "minecraft:block/rose_bush_bottom",
+		"material": "canvas:low_foliage"
+	  },
+	  {
+		"sprite": "minecraft:block/rose_bush_top",
+		"material": "canvas:high_foliage"
+	  }
+	]
+  }
 }
