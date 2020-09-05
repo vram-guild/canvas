@@ -19,7 +19,7 @@ package grondag.canvas.material;
 /**
  * Describes the type of render context
  * and controls how materials are packed to buffers.
- *
+ * <p>
  * WIP: still needed?
  */
 public enum EncodingContext {
@@ -36,7 +36,7 @@ public enum EncodingContext {
 	public final boolean isGui;
 	public final boolean isWorld;
 
-	private EncodingContext(boolean isBlock, boolean isItem, boolean isGui) {
+	EncodingContext(boolean isBlock, boolean isItem, boolean isGui) {
 		this.isBlock = isBlock;
 		this.isItem = isItem;
 		this.isGui = isGui;

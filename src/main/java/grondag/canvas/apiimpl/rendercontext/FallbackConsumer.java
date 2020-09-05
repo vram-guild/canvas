@@ -16,23 +16,21 @@
 
 package grondag.canvas.apiimpl.rendercontext;
 
-import java.util.List;
-import java.util.function.Consumer;
-
-import net.minecraft.block.BlockState;
-import net.minecraft.client.render.model.BakedModel;
-import net.minecraft.client.render.model.BakedQuad;
-import net.minecraft.util.math.Direction;
-
-import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
-import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
-
 import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.apiimpl.material.MeshMaterialLocator;
 import grondag.canvas.apiimpl.mesh.MeshEncodingHelper;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.util.FaceConstants;
 import grondag.canvas.buffer.encoding.VertexEncoders;
+import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
+import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
+import net.minecraft.block.BlockState;
+import net.minecraft.client.render.model.BakedModel;
+import net.minecraft.client.render.model.BakedQuad;
+import net.minecraft.util.math.Direction;
+
+import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * Consumer for vanilla baked models. Generally intended to give visual results matching a vanilla render,
@@ -43,15 +41,15 @@ import grondag.canvas.buffer.encoding.VertexEncoders;
  * combining quad lists, but the vanilla logic only handles one model per block. To route all of
  * them through vanilla logic would require additional hooks.
  *
- *  <p>Works by copying the quad data to an "editor" quad held in the instance,
- *  where all transformations are applied before buffering. Transformations should be
- *  the same as they would be in a vanilla render - the editor is serving mainly
- *  as a way to access vertex data without magical numbers. It also allows a consistent interface
- *  for downstream tesselation routines.
+ * <p>Works by copying the quad data to an "editor" quad held in the instance,
+ * where all transformations are applied before buffering. Transformations should be
+ * the same as they would be in a vanilla render - the editor is serving mainly
+ * as a way to access vertex data without magical numbers. It also allows a consistent interface
+ * for downstream tesselation routines.
  *
- *  <p>Another difference from vanilla render is that all transformation happens before the
- *  vertex data is sent to the byte buffer.  Generally POJO array access will be faster than
- *  manipulating the data via NIO.
+ * <p>Another difference from vanilla render is that all transformation happens before the
+ * vertex data is sent to the byte buffer.  Generally POJO array access will be faster than
+ * manipulating the data via NIO.
  */
 public class FallbackConsumer implements Consumer<BakedModel> {
 	protected static MeshMaterialLocator MATERIAL_FLAT = Canvas.INSTANCE.materialFinder().disableDiffuse(0, true).disableAo(0, true).find();
@@ -62,11 +60,6 @@ public class FallbackConsumer implements Consumer<BakedModel> {
 	protected final AbstractRenderContext context;
 
 	private final int[] editorBuffer = new int[MeshEncodingHelper.MAX_QUAD_STRIDE];
-
-	public FallbackConsumer(AbstractRenderContext context) {
-		this.context = context;
-	}
-
 	private final MutableQuadViewImpl editorQuad = new MutableQuadViewImpl() {
 		{
 			data = editorBuffer;
@@ -80,9 +73,13 @@ public class FallbackConsumer implements Consumer<BakedModel> {
 		}
 	};
 
+	public FallbackConsumer(AbstractRenderContext context) {
+		this.context = context;
+	}
+
 	@Override
 	public void accept(BakedModel model) {
-		final boolean useAo =  context.defaultAo() && model.useAmbientOcclusion();
+		final boolean useAo = context.defaultAo() && model.useAmbientOcclusion();
 		final BlockState blockState = context.blockState();
 
 		acceptFaceQuads(FaceConstants.DOWN_INDEX, useAo, model.getQuads(blockState, Direction.DOWN, context.random()));

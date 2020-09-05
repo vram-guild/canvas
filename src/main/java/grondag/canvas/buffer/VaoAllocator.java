@@ -16,15 +16,12 @@
 
 package grondag.canvas.buffer;
 
-import java.nio.IntBuffer;
-
 import com.mojang.blaze3d.systems.RenderSystem;
-
+import grondag.canvas.varia.CanvasGlHelper;
 import it.unimi.dsi.fastutil.ints.IntArrayFIFOQueue;
-
 import net.minecraft.client.util.GlAllocationUtils;
 
-import grondag.canvas.varia.CanvasGlHelper;
+import java.nio.IntBuffer;
 
 public class VaoAllocator {
 	private static final IntArrayFIFOQueue queue = new IntArrayFIFOQueue();
@@ -32,7 +29,7 @@ public class VaoAllocator {
 
 	public static int claimVertexArray() {
 		assert RenderSystem.isOnRenderThread();
-		
+
 		if (queue.isEmpty()) {
 			CanvasGlHelper.glGenVertexArrays(buff);
 
@@ -48,7 +45,7 @@ public class VaoAllocator {
 
 	public static void releaseVertexArray(int vaoBufferId) {
 		assert RenderSystem.isOnRenderThread();
-		
+
 		queue.enqueue(vaoBufferId);
 	}
 }

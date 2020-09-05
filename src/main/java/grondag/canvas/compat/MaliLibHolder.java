@@ -16,21 +16,19 @@
 
 package grondag.canvas.compat;
 
+import grondag.canvas.CanvasMod;
+import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.util.math.MatrixStack;
+
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.util.math.MatrixStack;
-
-import net.fabricmc.loader.api.FabricLoader;
-
-import grondag.canvas.CanvasMod;
-
 public class MaliLibHolder {
+	public static HandleRenderWorldLast litematicaRenderWorldLast = (s, mc, t) -> {
+	};
 	private static boolean warnRender = true;
-
-	public static HandleRenderWorldLast litematicaRenderWorldLast = (s, mc, t) -> {};
 
 	static {
 		if (FabricLoader.getInstance().isModLoaded("malilib")) {
@@ -40,14 +38,14 @@ public class MaliLibHolder {
 			try {
 				final Class<?> clazz = Class.forName("fi.dy.masa.malilib.event.RenderEventHandler");
 				final Method getInstance = clazz.getDeclaredMethod("getInstance");
-				final Object instance =  getInstance.invoke(null);
+				final Object instance = getInstance.invoke(null);
 
 				final Method renderLast = clazz.getDeclaredMethod("onRenderWorldLast", MatrixStack.class, MinecraftClient.class, float.class);
 				final MethodHandle renderLastHandler = lookup.unreflect(renderLast);
 				final MethodHandle boundRenderLastHandler = renderLastHandler.bindTo(instance);
 
 				litematicaRenderWorldLast = (s, mc, t) -> {
-					try  {
+					try {
 						boundRenderLastHandler.invokeExact(s, mc, t);
 					} catch (final Throwable e) {
 						if (warnRender) {
@@ -59,7 +57,7 @@ public class MaliLibHolder {
 				};
 
 				CanvasMod.LOG.info("Found MaliLib - compatibility hook enabled");
-			} catch (final Exception e)  {
+			} catch (final Exception e) {
 				CanvasMod.LOG.warn("Unable to find MaliLib render hook due to exception:", e);
 			}
 		}

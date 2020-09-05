@@ -16,10 +16,24 @@
 
 package grondag.canvas.mixin;
 
-import java.util.Set;
-import java.util.SortedSet;
-
+import grondag.canvas.CanvasMod;
+import grondag.canvas.mixinterface.WorldRendererExt;
+import grondag.canvas.render.CanvasWorldRenderer;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gl.Framebuffer;
+import net.minecraft.client.gl.ShaderEffect;
+import net.minecraft.client.options.GameOptions;
+import net.minecraft.client.render.*;
+import net.minecraft.client.render.chunk.ChunkBuilder.BuiltChunk;
+import net.minecraft.client.render.entity.EntityRenderDispatcher;
+import net.minecraft.client.texture.TextureManager;
+import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.client.world.ClientWorld;
+import net.minecraft.entity.Entity;
+import net.minecraft.util.math.BlockPos;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -28,63 +42,71 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gl.Framebuffer;
-import net.minecraft.client.gl.ShaderEffect;
-import net.minecraft.client.options.GameOptions;
-import net.minecraft.client.render.BlockBreakingInfo;
-import net.minecraft.client.render.BufferBuilderStorage;
-import net.minecraft.client.render.BuiltChunkStorage;
-import net.minecraft.client.render.Camera;
-import net.minecraft.client.render.FpsSmoother;
-import net.minecraft.client.render.Frustum;
-import net.minecraft.client.render.LightmapTextureManager;
-import net.minecraft.client.render.VertexConsumer;
-import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.render.VertexFormat;
-import net.minecraft.client.render.WorldRenderer;
-import net.minecraft.client.render.chunk.ChunkBuilder.BuiltChunk;
-import net.minecraft.client.render.entity.EntityRenderDispatcher;
-import net.minecraft.client.texture.TextureManager;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.entity.Entity;
-import net.minecraft.util.math.BlockPos;
-
-import grondag.canvas.CanvasMod;
-import grondag.canvas.mixinterface.WorldRendererExt;
-import grondag.canvas.render.CanvasWorldRenderer;
+import java.util.Set;
+import java.util.SortedSet;
 
 @Mixin(WorldRenderer.class)
 public class MixinWorldRenderer implements WorldRendererExt {
-	@Shadow private MinecraftClient client;
-	@Shadow private int renderDistance;
-	@Shadow private ClientWorld world;
-	@Shadow private int frame;
-	@Shadow private boolean cloudsDirty;
-	@Shadow private TextureManager textureManager;
-	@Shadow private EntityRenderDispatcher entityRenderDispatcher;
-	// PERF: prevent wasteful allocation of these - they are not all used with Canvas and take a lot of space
-	@Shadow private BufferBuilderStorage bufferBuilders;
-	@Shadow private int regularEntityCount;
-	@Shadow private int blockEntityCount;
-	@Shadow private FpsSmoother chunkUpdateSmoother;
-	@Shadow private Framebuffer entityOutlinesFramebuffer;
-	@Shadow private ShaderEffect entityOutlineShader;
-	@Shadow private Set<BlockEntity> noCullingBlockEntities;
-	@Shadow private Long2ObjectMap<SortedSet<BlockBreakingInfo>> blockBreakingProgressions;
-	@Shadow private VertexFormat vertexFormat;
-	@Shadow private ShaderEffect transparencyShader;
-
-	@Shadow protected boolean canDrawEntityOutlines() { return false; }
-	@Shadow private void drawBlockOutline(MatrixStack matrixStack, VertexConsumer vertexConsumer, Entity entity, double d, double e, double f, BlockPos blockPos, BlockState blockState) {}
-	@Shadow private void renderWorldBorder(Camera camera) {}
-	@Shadow private void renderEntity(Entity entity, double d, double e, double f, float g, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider) {}
-	@Shadow private void renderWeather(LightmapTextureManager lightmapTextureManager, float f, double d, double e, double g) {}
-
 	private static boolean shouldWarnOnSetupTerrain = true;
+	private static boolean shouldWarnOnRenderLayer = true;
+	private static boolean shouldWarnGetAdjacentChunk = true;
+	private static boolean shouldWarnOnUpdateChunks = true;
+	@Shadow
+	private MinecraftClient client;
+	@Shadow
+	private int renderDistance;
+	@Shadow
+	private ClientWorld world;
+	@Shadow
+	private int frame;
+	@Shadow
+	private boolean cloudsDirty;
+	@Shadow
+	private TextureManager textureManager;
+	@Shadow
+	private EntityRenderDispatcher entityRenderDispatcher;
+	// PERF: prevent wasteful allocation of these - they are not all used with Canvas and take a lot of space
+	@Shadow
+	private BufferBuilderStorage bufferBuilders;
+	@Shadow
+	private int regularEntityCount;
+	@Shadow
+	private int blockEntityCount;
+	@Shadow
+	private FpsSmoother chunkUpdateSmoother;
+	@Shadow
+	private Framebuffer entityOutlinesFramebuffer;
+	@Shadow
+	private ShaderEffect entityOutlineShader;
+	@Shadow
+	private Set<BlockEntity> noCullingBlockEntities;
+	@Shadow
+	private Long2ObjectMap<SortedSet<BlockBreakingInfo>> blockBreakingProgressions;
+	@Shadow
+	private VertexFormat vertexFormat;
+	@Shadow
+	private ShaderEffect transparencyShader;
+
+	@Shadow
+	protected boolean canDrawEntityOutlines() {
+		return false;
+	}
+
+	@Shadow
+	private void drawBlockOutline(MatrixStack matrixStack, VertexConsumer vertexConsumer, Entity entity, double d, double e, double f, BlockPos blockPos, BlockState blockState) {
+	}
+
+	@Shadow
+	private void renderWorldBorder(Camera camera) {
+	}
+
+	@Shadow
+	private void renderEntity(Entity entity, double d, double e, double f, float g, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider) {
+	}
+
+	@Shadow
+	private void renderWeather(LightmapTextureManager lightmapTextureManager, float f, double d, double e, double g) {
+	}
 
 	@Inject(at = @At("HEAD"), method = "setupTerrain", cancellable = true)
 	private void onSetupTerrain(Camera camera, Frustum frustum, boolean bl, int i, boolean bl2, CallbackInfo ci) {
@@ -102,15 +124,13 @@ public class MixinWorldRenderer implements WorldRendererExt {
 
 	@Redirect(method = "scheduleChunkRender", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/BuiltChunkStorage;scheduleRebuild(IIIZ)V"), require = 1)
 	private void onScheduleChunkRender(BuiltChunkStorage storage, int x, int y, int z, boolean urgent) {
-		((CanvasWorldRenderer)(Object) this).scheduleRegionRender(x, y, z, urgent);
+		((CanvasWorldRenderer) (Object) this).scheduleRegionRender(x, y, z, urgent);
 	}
 
 	@Redirect(method = "reload", at = @At(value = "FIELD", target = "Lnet/minecraft/client/options/GameOptions;viewDistance:I", ordinal = 1))
 	private int onReloadZeroChunkStorage(GameOptions options) {
 		return 0;
 	}
-
-	private static boolean shouldWarnOnRenderLayer = true;
 
 	@Inject(at = @At("HEAD"), method = "renderLayer", cancellable = true)
 	private void onRenderLayer(CallbackInfo ci) {
@@ -121,8 +141,6 @@ public class MixinWorldRenderer implements WorldRendererExt {
 		}
 	}
 
-	private static boolean shouldWarnGetAdjacentChunk = true;
-
 	@Inject(at = @At("HEAD"), method = "getAdjacentChunk", cancellable = true)
 	private void onGetAdjacentChunk(CallbackInfoReturnable<BuiltChunk> ci) {
 		if (shouldWarnGetAdjacentChunk) {
@@ -131,8 +149,6 @@ public class MixinWorldRenderer implements WorldRendererExt {
 			shouldWarnGetAdjacentChunk = false;
 		}
 	}
-
-	private static boolean shouldWarnOnUpdateChunks = true;
 
 	@Inject(at = @At("HEAD"), method = "updateChunks", cancellable = true)
 	private void onUpdateChunks(CallbackInfo ci) {
@@ -155,7 +171,7 @@ public class MixinWorldRenderer implements WorldRendererExt {
 
 	@Override
 	public void canvas_reload() {
-		((WorldRenderer)(Object) this).reload();
+		((WorldRenderer) (Object) this).reload();
 	}
 
 	@Override

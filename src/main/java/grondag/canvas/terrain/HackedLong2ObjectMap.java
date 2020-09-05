@@ -16,19 +16,19 @@
 
 package grondag.canvas.terrain;
 
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.longs.LongArrayList;
+
 import java.util.concurrent.locks.StampedLock;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
-
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.longs.LongArrayList;
 
 class HackedLong2ObjectMap<T> extends Long2ObjectOpenHashMap<T> {
 	private final StampedLock lock = new StampedLock();
 	private final Consumer<T> clearHandler;
 	private final LongArrayList pruned = new LongArrayList();
 
-	HackedLong2ObjectMap(int expectedSize, float fillFactor, Consumer<T> clearHandler)  {
+	HackedLong2ObjectMap(int expectedSize, float fillFactor, Consumer<T> clearHandler) {
 		super(expectedSize, fillFactor);
 		this.clearHandler = clearHandler;
 	}
@@ -37,11 +37,11 @@ class HackedLong2ObjectMap<T> extends Long2ObjectOpenHashMap<T> {
 	@Override
 	public void clear() {
 		final long stamp = lock.writeLock();
-		final  int limit = n;
+		final int limit = n;
 		final Object[] values = value;
 
 		for (int i = 0; i < limit; ++i) {
-			final Object val  = values[i];
+			final Object val = values[i];
 
 			if (val != null) {
 				clearHandler.accept((T) val);
@@ -125,7 +125,7 @@ class HackedLong2ObjectMap<T> extends Long2ObjectOpenHashMap<T> {
 		pruned.clear();
 
 		try {
-			for (int i  = 0; i < limit; ++i) {
+			for (int i = 0; i < limit; ++i) {
 				final Object val = values[i];
 
 				if (val != null && pruner.test((T) val)) {
@@ -136,7 +136,7 @@ class HackedLong2ObjectMap<T> extends Long2ObjectOpenHashMap<T> {
 			final int pruneCount = pruned.size();
 
 			if (pruneCount != 0) {
-				for (int i  = 0; i < pruneCount; ++i) {
+				for (int i = 0; i < pruneCount; ++i) {
 					super.remove(pruned.getLong(i));
 				}
 			}

@@ -1,10 +1,10 @@
 {
-	"defaultMap": {
-		"spriteMap": [
-			{
-				"sprite": "minecraft:block/observer_back_on",
-				"material": "canvas:redstone"
-			}
-		]
-	}
+  "defaultMap": {
+	"spriteMap": [
+	  {
+		"sprite": "minecraft:block/observer_back_on",
+		"material": "canvas:redstone"
+	  }
+	]
+  }
 }

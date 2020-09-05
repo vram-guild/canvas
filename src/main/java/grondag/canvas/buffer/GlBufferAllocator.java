@@ -16,12 +16,11 @@
 
 package grondag.canvas.buffer;
 
-import java.nio.IntBuffer;
-
 import it.unimi.dsi.fastutil.ints.IntArrayFIFOQueue;
+import net.minecraft.client.util.GlAllocationUtils;
 import org.lwjgl.opengl.GL21;
 
-import net.minecraft.client.util.GlAllocationUtils;
+import java.nio.IntBuffer;
 
 /**
  * Buffer gen is incredibly slow on some Windows/NVidia systems and default MC

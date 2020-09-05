@@ -16,23 +16,20 @@
 
 package grondag.canvas;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.lwjgl.system.Configuration;
-
-import net.minecraft.client.options.KeyBinding;
-import net.minecraft.client.render.RenderLayer;
-
+import grondag.canvas.apiimpl.Canvas;
+import grondag.canvas.apiimpl.fluid.FluidHandler;
+import grondag.canvas.mixinterface.RenderLayerExt;
+import grondag.frex.api.fluid.FluidQuadSupplier;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.rendering.v1.InvalidateRenderStateCallback;
 import net.fabricmc.fabric.api.renderer.v1.RendererAccess;
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
-
-import grondag.canvas.apiimpl.Canvas;
-import grondag.canvas.apiimpl.fluid.FluidHandler;
-import grondag.canvas.mixinterface.RenderLayerExt;
-import grondag.frex.api.fluid.FluidQuadSupplier;
+import net.minecraft.client.options.KeyBinding;
+import net.minecraft.client.render.RenderLayer;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.lwjgl.system.Configuration;
 
 //FEAT: fancy water
 //FEAT: fancy lava
@@ -54,6 +51,14 @@ import grondag.frex.api.fluid.FluidQuadSupplier;
 //FEAT: biome texture in shader
 
 public class CanvasMod implements ClientModInitializer {
+	public static final String MODID = "canvas";
+	public static final Logger LOG = LogManager.getLogger("Canvas");
+	public static KeyBinding VIEW_KEY = new KeyBinding("key.canvas.cycle_view", Character.valueOf('`'), "key.canvas.category");
+	public static KeyBinding DECREMENT_A = new KeyBinding("key.canvas.decrement_a", Character.valueOf('-'), "key.canvas.category");
+	public static KeyBinding INCREMENT_A = new KeyBinding("key.canvas.increment_a", Character.valueOf('='), "key.canvas.category");
+	public static KeyBinding DECREMENT_B = new KeyBinding("key.canvas.decrement_b", Character.valueOf('['), "key.canvas.category");
+	public static KeyBinding INCREMENT_B = new KeyBinding("key.canvas.increment_b", Character.valueOf(']'), "key.canvas.category");
+
 	@Override
 	public void onInitializeClient() {
 		Configurator.init();
@@ -61,7 +66,7 @@ public class CanvasMod implements ClientModInitializer {
 		FluidQuadSupplier.setReloadHandler(FluidHandler.HANDLER);
 		InvalidateRenderStateCallback.EVENT.register(Canvas.INSTANCE::reload);
 
-		if(Configurator.debugNativeMemoryAllocation) {
+		if (Configurator.debugNativeMemoryAllocation) {
 			LOG.warn("Canvas is configured to enable native memory debug. This WILL cause slow performance and other issues.  Debug output will print at game exit.");
 			Configuration.DEBUG_MEMORY_ALLOCATOR.set(true);
 		}
@@ -78,14 +83,4 @@ public class CanvasMod implements ClientModInitializer {
 		KeyBindingHelper.registerKeyBinding(DECREMENT_B);
 		KeyBindingHelper.registerKeyBinding(INCREMENT_B);
 	}
-
-	public static KeyBinding VIEW_KEY = new KeyBinding("key.canvas.cycle_view", Character.valueOf('`'), "key.canvas.category");
-	public static KeyBinding DECREMENT_A = new KeyBinding("key.canvas.decrement_a", Character.valueOf('-'), "key.canvas.category");
-	public static KeyBinding INCREMENT_A = new KeyBinding("key.canvas.increment_a", Character.valueOf('='), "key.canvas.category");
-	public static KeyBinding DECREMENT_B = new KeyBinding("key.canvas.decrement_b", Character.valueOf('['), "key.canvas.category");
-	public static KeyBinding INCREMENT_B = new KeyBinding("key.canvas.increment_b", Character.valueOf(']'), "key.canvas.category");
-
-	public static final String MODID = "canvas";
-
-	public static final Logger LOG = LogManager.getLogger("Canvas");
 }

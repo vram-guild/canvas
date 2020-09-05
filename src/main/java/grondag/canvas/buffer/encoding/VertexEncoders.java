@@ -16,24 +16,6 @@
 
 package grondag.canvas.buffer.encoding;
 
-import static grondag.canvas.buffer.encoding.HdEncoders.HD_TERRAIN_1;
-import static grondag.canvas.buffer.encoding.HdEncoders.HD_TERRAIN_2;
-import static grondag.canvas.buffer.encoding.HdEncoders.HD_TERRAIN_3;
-import static grondag.canvas.buffer.encoding.VanillaEncoders.VANILLA_BLOCK_1;
-import static grondag.canvas.buffer.encoding.VanillaEncoders.VANILLA_BLOCK_2;
-import static grondag.canvas.buffer.encoding.VanillaEncoders.VANILLA_BLOCK_3;
-import static grondag.canvas.buffer.encoding.VanillaEncoders.VANILLA_ITEM_1;
-import static grondag.canvas.buffer.encoding.VanillaEncoders.VANILLA_ITEM_2;
-import static grondag.canvas.buffer.encoding.VanillaEncoders.VANILLA_ITEM_3;
-import static grondag.canvas.buffer.encoding.VanillaEncoders.VANILLA_TERRAIN_1;
-import static grondag.canvas.buffer.encoding.VanillaEncoders.VANILLA_TERRAIN_2;
-import static grondag.canvas.buffer.encoding.VanillaEncoders.VANILLA_TERRAIN_3;
-import static grondag.canvas.material.EncodingContext.BLOCK;
-import static grondag.canvas.material.EncodingContext.ITEM;
-import static grondag.canvas.material.EncodingContext.TERRAIN;
-
-import net.minecraft.util.math.MathHelper;
-
 import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.material.AbstractMeshMaterial;
 import grondag.canvas.apiimpl.material.MeshMaterial;
@@ -41,6 +23,11 @@ import grondag.canvas.apiimpl.material.MeshMaterialLocator;
 import grondag.canvas.material.EncodingContext;
 import grondag.canvas.material.MaterialState;
 import grondag.canvas.shader.ShaderPass;
+import net.minecraft.util.math.MathHelper;
+
+import static grondag.canvas.buffer.encoding.HdEncoders.*;
+import static grondag.canvas.buffer.encoding.VanillaEncoders.*;
+import static grondag.canvas.material.EncodingContext.*;
 
 public class VertexEncoders {
 	/**
@@ -52,7 +39,7 @@ public class VertexEncoders {
 	private static final int CONTEXT_SHIFT = Integer.bitCount(MathHelper.smallestEncompassingPowerOfTwo(AbstractMeshMaterial.MAX_SPRITE_DEPTH) - 1);
 	private static final int TRANSLUCENT_FLAG = ENCODER_KEY_SPACE_SIZE / 2;
 
-	private static VertexEncoder[] ENCODERS = new VertexEncoder[ENCODER_KEY_SPACE_SIZE];
+	private static final VertexEncoder[] ENCODERS = new VertexEncoder[ENCODER_KEY_SPACE_SIZE];
 
 	static {
 		reload();
@@ -62,7 +49,7 @@ public class VertexEncoders {
 	 * Not related to encoder index.
 	 */
 	private static final int lookupIndex(EncodingContext context, int spriteDepth, boolean isTranslucent) {
-		return isTranslucent  ? (TRANSLUCENT_FLAG | (context.ordinal() << CONTEXT_SHIFT) | spriteDepth) : ((context.ordinal() << CONTEXT_SHIFT) | spriteDepth);
+		return isTranslucent ? (TRANSLUCENT_FLAG | (context.ordinal() << CONTEXT_SHIFT) | spriteDepth) : ((context.ordinal() << CONTEXT_SHIFT) | spriteDepth);
 	}
 
 	public static VertexEncoder get(EncodingContext context, MeshMaterialLocator matLocator) {

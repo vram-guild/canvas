@@ -16,14 +16,12 @@
 
 package grondag.canvas.mixin;
 
+import grondag.canvas.CanvasMod;
+import net.minecraft.client.render.chunk.ChunkBuilder.ChunkData;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
-import net.minecraft.client.render.chunk.ChunkBuilder.ChunkData;
-
-import grondag.canvas.CanvasMod;
 
 
 @Mixin(ChunkData.class)

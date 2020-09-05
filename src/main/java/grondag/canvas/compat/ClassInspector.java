@@ -16,12 +16,11 @@
 
 package grondag.canvas.compat;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-
+import grondag.canvas.CanvasMod;
 import net.minecraft.client.render.WorldRenderer;
 
-import grondag.canvas.CanvasMod;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 
 public class ClassInspector {
 	public static void inspect() {
@@ -33,14 +32,14 @@ public class ClassInspector {
 		CanvasMod.LOG.info("");
 		CanvasMod.LOG.info("FIELDS");
 
-		for(final Field f : clazz.getDeclaredFields()) {
+		for (final Field f : clazz.getDeclaredFields()) {
 			CanvasMod.LOG.info(f.toGenericString());
 		}
 
 		CanvasMod.LOG.info("");
 		CanvasMod.LOG.info("METHODS");
 
-		for(final Method m : clazz.getDeclaredMethods()) {
+		for (final Method m : clazz.getDeclaredMethods()) {
 			CanvasMod.LOG.info(m.toGenericString());
 		}
 

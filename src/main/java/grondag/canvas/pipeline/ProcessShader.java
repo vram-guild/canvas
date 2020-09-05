@@ -16,8 +16,6 @@
 
 package grondag.canvas.pipeline;
 
-import net.minecraft.util.Identifier;
-
 import grondag.canvas.material.MaterialVertexFormats;
 import grondag.canvas.shader.GlProgram;
 import grondag.canvas.shader.GlProgram.Uniform1fImpl;
@@ -28,17 +26,17 @@ import grondag.canvas.shader.GlShader;
 import grondag.canvas.shader.GlShaderManager;
 import grondag.canvas.shader.ShaderContext;
 import grondag.frex.api.material.UniformRefreshFrequency;
+import net.minecraft.util.Identifier;
 
 public class ProcessShader {
+	private final Identifier fragmentId;
+	private final Identifier vertexId;
+	private final String[] samplers;
 	private GlProgram program;
 	private Uniform2iImpl size;
 	private Uniform2fImpl distance;
 	private Uniform1iImpl lod;
 	private Uniform1fImpl intensity;
-
-	private final Identifier fragmentId;
-	private final Identifier vertexId;
-	private final String[] samplers;
 
 	ProcessShader(Identifier vertexId, Identifier fragmentId, String... samplers) {
 		this.fragmentId = fragmentId;
@@ -66,7 +64,7 @@ public class ProcessShader {
 			int tex = 0;
 
 			for (final String samplerName : samplers) {
-				final int n  = tex++;
+				final int n = tex++;
 				program.uniformSampler2d(samplerName, UniformRefreshFrequency.ON_LOAD, u -> u.set(n));
 			}
 
@@ -79,7 +77,7 @@ public class ProcessShader {
 	}
 
 	public ProcessShader size(int w, int h) {
-		if  (program != null && GlProgram.activeProgram() == program) {
+		if (program != null && GlProgram.activeProgram() == program) {
 			size.set(w, h);
 			size.upload();
 		}
@@ -88,7 +86,7 @@ public class ProcessShader {
 	}
 
 	public ProcessShader distance(float x, float y) {
-		if  (program != null && GlProgram.activeProgram() == program) {
+		if (program != null && GlProgram.activeProgram() == program) {
 			distance.set(x, y);
 			distance.upload();
 		}
@@ -97,7 +95,7 @@ public class ProcessShader {
 	}
 
 	public ProcessShader lod(int lod) {
-		if  (program != null && GlProgram.activeProgram() == program) {
+		if (program != null && GlProgram.activeProgram() == program) {
 			this.lod.set(lod);
 			this.lod.upload();
 		}
@@ -106,7 +104,7 @@ public class ProcessShader {
 	}
 
 	public ProcessShader intensity(float intensity) {
-		if  (program != null && GlProgram.activeProgram() == program) {
+		if (program != null && GlProgram.activeProgram() == program) {
 			this.intensity.set(intensity);
 			this.intensity.upload();
 		}

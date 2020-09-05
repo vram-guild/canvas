@@ -31,35 +31,35 @@ void main() {
 	vec2 rescaledLightMap = in_lightmap / 240.0 * 256.0;
 
 	frx_VertexData data = frx_VertexData(
-		gl_Vertex,
-		in_uv,
-		in_color,
-		in_normal_ao.xyz,
+	gl_Vertex,
+	in_uv,
+	in_color,
+	in_normal_ao.xyz,
 
-		// Lightmap texture coordinates come in as 0-256.
-		// Scale and offset slightly to hit center pixels
-		// vanilla does this with a texture matrix
-		rescaledLightMap * 0.00390625 + 0.03125
+	// Lightmap texture coordinates come in as 0-256.
+	// Scale and offset slightly to hit center pixels
+	// vanilla does this with a texture matrix
+	rescaledLightMap * 0.00390625 + 0.03125
 	);
 
 	// Adding +0.5 prevents striping or other strangeness in flag-dependent rendering
 	// due to FP error on some cards/drivers.  Also made varying attribute invariant (rolls eyes at OpenGL)
-//	_cvv_flags = in_lightmap.b + 0.5;
+	//	_cvv_flags = in_lightmap.b + 0.5;
 
 
-//#ifdef _CV_HAS_VERTEX_START
-//	frx_startVertex(data);
-//#endif
+	//#ifdef _CV_HAS_VERTEX_START
+	//	frx_startVertex(data);
+	//#endif
 
-//	vec4 spriteBounds = texture2DLod(frxs_spriteInfo, vec2(0, in_material.x / _CV_SPRITE_INFO_TEXTURE_SIZE), 0);
+	//	vec4 spriteBounds = texture2DLod(frxs_spriteInfo, vec2(0, in_material.x / _CV_SPRITE_INFO_TEXTURE_SIZE), 0);
 
 	// snap sprite bounds to integer coordinates to correct for floating point error
-//	spriteBounds *= vec4(_CV_ATLAS_WIDTH, _CV_ATLAS_HEIGHT, _CV_ATLAS_WIDTH, _CV_ATLAS_HEIGHT);
-//	spriteBounds += vec4(0.5, 0.5, 0.5, 0.5);
-//	spriteBounds -= fract(spriteBounds);
-//	spriteBounds /= vec4(_CV_ATLAS_WIDTH, _CV_ATLAS_HEIGHT, _CV_ATLAS_WIDTH, _CV_ATLAS_HEIGHT);
-//
-//	data.spriteUV = spriteBounds.xy + data.spriteUV * spriteBounds.zw;
+	//	spriteBounds *= vec4(_CV_ATLAS_WIDTH, _CV_ATLAS_HEIGHT, _CV_ATLAS_WIDTH, _CV_ATLAS_HEIGHT);
+	//	spriteBounds += vec4(0.5, 0.5, 0.5, 0.5);
+	//	spriteBounds -= fract(spriteBounds);
+	//	spriteBounds /= vec4(_CV_ATLAS_WIDTH, _CV_ATLAS_HEIGHT, _CV_ATLAS_WIDTH, _CV_ATLAS_HEIGHT);
+	//
+	//	data.spriteUV = spriteBounds.xy + data.spriteUV * spriteBounds.zw;
 	data.spriteUV = _cv_textureCoord(data.spriteUV, 0);
 
 	vec4 viewCoord = gl_ModelViewMatrix * data.vertex;
@@ -70,25 +70,25 @@ void main() {
 
 	gl_Position = data.vertex;
 
-//#ifdef _CV_HAS_VERTEX_END
-//	frx_endVertex(data);
-//#endif
+	//#ifdef _CV_HAS_VERTEX_END
+	//	frx_endVertex(data);
+	//#endif
 
 	_cvv_texcoord = data.spriteUV;
 	_cvv_color = data.color;
 	_cvv_normal = data.normal;
 	_cvv_overlay = in_overlay;
-    _cvv_flags = 0.0;
-//#ifdef CONTEXT_IS_BLOCK
-	_cvv_ao = 1.0; //(in_normal_ao.w + 1.0) * 0.5;
-//#endif
+	_cvv_flags = 0.0;
+	//#ifdef CONTEXT_IS_BLOCK
+	_cvv_ao = 1.0;//(in_normal_ao.w + 1.0) * 0.5;
+	//#endif
 
-#if DIFFUSE_SHADING_MODE != DIFFUSE_MODE_NONE
+	#if DIFFUSE_SHADING_MODE != DIFFUSE_MODE_NONE
 	_cvv_diffuse = _cv_diffuse(_cv_diffuseNormal(viewCoord, data.normal));
-#endif
+	#endif
 
-#ifndef CONTEXT_IS_GUI
+	#ifndef CONTEXT_IS_GUI
 	_cvv_lightcoord = data.light;
-#endif
+	#endif
 
 }

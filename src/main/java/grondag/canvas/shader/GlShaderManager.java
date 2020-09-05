@@ -17,9 +17,8 @@
 package grondag.canvas.shader;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import org.lwjgl.opengl.GL21;
-
 import net.minecraft.util.Identifier;
+import org.lwjgl.opengl.GL21;
 
 public final class GlShaderManager {
 	public final static GlShaderManager INSTANCE = new GlShaderManager();

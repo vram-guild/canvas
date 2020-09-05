@@ -16,18 +16,12 @@
 
 package grondag.canvas.light;
 
+import grondag.canvas.Configurator;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 
-import grondag.canvas.Configurator;
-
 @Environment(EnvType.CLIENT)
 public final class AoVertexClampFunction {
-	@FunctionalInterface
-	private interface ClampFunc {
-		float clamp(float x);
-	}
-
 	static ClampFunc func;
 
 	static {
@@ -40,5 +34,10 @@ public final class AoVertexClampFunction {
 
 	static float clamp(float x) {
 		return func.clamp(x);
+	}
+
+	@FunctionalInterface
+	private interface ClampFunc {
+		float clamp(float x);
 	}
 }

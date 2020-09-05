@@ -16,10 +16,12 @@
 
 package grondag.canvas.apiimpl.rendercontext;
 
-import static grondag.canvas.terrain.RenderRegionAddressHelper.cacheIndexToXyz5;
-
-import java.util.function.Supplier;
-
+import grondag.canvas.apiimpl.material.MeshMaterialLayer;
+import grondag.canvas.light.AoCalculator;
+import grondag.canvas.material.EncodingContext;
+import grondag.canvas.mixinterface.Matrix3fExt;
+import grondag.fermion.sc.concurrency.SimpleConcurrentList;
+import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.WorldRenderer;
@@ -29,13 +31,9 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.BlockRenderView;
 
-import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
+import java.util.function.Supplier;
 
-import grondag.canvas.apiimpl.material.MeshMaterialLayer;
-import grondag.canvas.light.AoCalculator;
-import grondag.canvas.material.EncodingContext;
-import grondag.canvas.mixinterface.Matrix3fExt;
-import grondag.fermion.sc.concurrency.SimpleConcurrentList;
+import static grondag.canvas.terrain.RenderRegionAddressHelper.cacheIndexToXyz5;
 
 /**
  * Context for non-terrain block rendering.
@@ -50,22 +48,6 @@ public class BlockRenderContext extends AbstractBlockRenderContext<BlockRenderVi
 	});
 
 	private static ThreadLocal<BlockRenderContext> POOL = POOL_FACTORY.get();
-
-	public static void reload() {
-		LOADED.forEach(c -> c.close());
-		LOADED.clear();
-		POOL = POOL_FACTORY.get();
-	}
-
-	public static BlockRenderContext get() {
-		return POOL.get();
-	}
-
-	public BlockRenderContext() {
-		super("BlockRenderContext");
-		collectors.setContext(EncodingContext.BLOCK);
-	}
-
 	private final AoCalculator aoCalc = new AoCalculator() {
 		@Override
 		protected int ao(int cacheIndex) {
@@ -76,8 +58,8 @@ public class BlockRenderContext extends AbstractBlockRenderContext<BlockRenderVi
 			final int packedXyz5 = cacheIndexToXyz5(cacheIndex);
 			final BlockPos pos = blockPos;
 			final int x = (packedXyz5 & 31) - 1 + pos.getX();
-			final int y = ((packedXyz5 >> 5) & 31) - 1+ pos.getY();
-			final int z = (packedXyz5 >> 10) - 1+ pos.getZ();
+			final int y = ((packedXyz5 >> 5) & 31) - 1 + pos.getY();
+			final int z = (packedXyz5 >> 10) - 1 + pos.getZ();
 			internalSearchPos.set(x, y, z);
 			final BlockState state = region.getBlockState(internalSearchPos);
 			return state.getLuminance() == 0 ? Math.round(state.getAmbientOcclusionLightLevel(region, internalSearchPos) * 255f) : 255;
@@ -92,8 +74,8 @@ public class BlockRenderContext extends AbstractBlockRenderContext<BlockRenderVi
 			final int packedXyz5 = cacheIndexToXyz5(cacheIndex);
 			final BlockPos pos = blockPos;
 			final int x = (packedXyz5 & 31) - 1 + pos.getX();
-			final int y = ((packedXyz5 >> 5) & 31) - 1+ pos.getY();
-			final int z = (packedXyz5 >> 10) - 1+ pos.getZ();
+			final int y = ((packedXyz5 >> 5) & 31) - 1 + pos.getY();
+			final int z = (packedXyz5 >> 10) - 1 + pos.getZ();
 			internalSearchPos.set(x, y, z);
 			return WorldRenderer.getLightmapCoordinates(region, region.getBlockState(internalSearchPos), internalSearchPos);
 		}
@@ -109,21 +91,35 @@ public class BlockRenderContext extends AbstractBlockRenderContext<BlockRenderVi
 			final int packedXyz5 = cacheIndexToXyz5(cacheIndex);
 			final BlockPos pos = blockPos;
 			final int x = (packedXyz5 & 31) - 1 + pos.getX();
-			final int y = ((packedXyz5 >> 5) & 31) - 1+ pos.getY();
-			final int z = (packedXyz5 >> 10) - 1+ pos.getZ();
+			final int y = ((packedXyz5 >> 5) & 31) - 1 + pos.getY();
+			final int z = (packedXyz5 >> 10) - 1 + pos.getZ();
 			internalSearchPos.set(x, y, z);
 			final BlockState state = blockView.getBlockState(internalSearchPos);
 			return state.isOpaqueFullCube(blockView, internalSearchPos);
 		}
 	};
-
 	private VertexConsumer bufferBuilder;
 	private boolean didOutput = false;
+
+	public BlockRenderContext() {
+		super("BlockRenderContext");
+		collectors.setContext(EncodingContext.BLOCK);
+	}
+
+	public static void reload() {
+		LOADED.forEach(c -> c.close());
+		LOADED.clear();
+		POOL = POOL_FACTORY.get();
+	}
+
+	public static BlockRenderContext get() {
+		return POOL.get();
+	}
 
 	public boolean tesselate(BlockModelRenderer vanillaRenderer, BlockRenderView blockView, BakedModel model, BlockState state, BlockPos pos, MatrixStack matrixStack, VertexConsumer buffer, boolean checkSides, long seed, int overlay) {
 		bufferBuilder = buffer;
 		matrix = matrixStack.peek().getModel();
-		normalMatrix = (Matrix3fExt)(Object) matrixStack.peek().getNormal();
+		normalMatrix = (Matrix3fExt) (Object) matrixStack.peek().getNormal();
 
 		this.overlay = overlay;
 		didOutput = false;

@@ -16,11 +16,10 @@
 
 package grondag.canvas.compat;
 
-import io.github.prospector.modmenu.api.ConfigScreenFactory;
-import io.github.prospector.modmenu.api.ModMenuApi;
-
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
+import io.github.prospector.modmenu.api.ConfigScreenFactory;
+import io.github.prospector.modmenu.api.ModMenuApi;
 
 public class ModMenuHelper implements ModMenuApi {
 	@Override

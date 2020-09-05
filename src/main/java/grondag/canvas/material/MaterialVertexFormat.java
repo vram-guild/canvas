@@ -16,26 +16,25 @@
 
 package grondag.canvas.material;
 
-import java.nio.ByteBuffer;
-
-import org.lwjgl.opengl.GL20;
-
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
 import grondag.canvas.varia.CanvasGlHelper;
+import org.lwjgl.opengl.GL20;
+
+import java.nio.ByteBuffer;
 
 public class MaterialVertexFormat {
 	private static int nextIndex = 0;
 
 	public final int attributeCount;
 
-	/** vertex stride in bytes */
+	/**
+	 * vertex stride in bytes
+	 */
 	public final int vertexStrideBytes;
 	public final int vertexStrideInts;
-
-	private final MaterialVertextFormatElement[] elements;
-
 	public final int index = nextIndex++;
+	private final MaterialVertextFormatElement[] elements;
 
 	MaterialVertexFormat(MaterialVertextFormatElement... elementsIn) {
 		elements = elementsIn;
@@ -77,14 +76,14 @@ public class MaterialVertexFormat {
 		final int limit = elements.length;
 
 		// NB: <= because element 0 is vertex
-		for(int i = 0; i <= attributeCount; i++) {
-			if(i < limit) {
+		for (int i = 0; i <= attributeCount; i++) {
+			if (i < limit) {
 				final MaterialVertextFormatElement e = elements[i];
 
 				if (e.attributeName != null) {
 					buffer.position((int) bufferOffset + offset);
 
-					if(Configurator.logGlStateChanges) {
+					if (Configurator.logGlStateChanges) {
 						CanvasMod.LOG.info(String.format("GlState: glVertexAttribPointer(%d, %d, %d, %b, %d, %s) [non-VBO]", index, e.elementCount, e.glConstant, e.isNormalized, vertexStrideBytes, buffer.toString()));
 					}
 
@@ -99,6 +98,7 @@ public class MaterialVertexFormat {
 	/**
 	 * Binds attribute locations without enabling them. For use with VAOs. In other
 	 * cases just call {@link #enableAndBindAttributes(int)}
+	 *
 	 * @param attribCount How many attributes are currently enabled.  Any not in format should be bound to dummy index.
 	 */
 	public void bindAttributeLocations(long bufferOffset) {
@@ -108,12 +108,12 @@ public class MaterialVertexFormat {
 		final int attributeCount = this.attributeCount;
 
 		// NB: <= because element 0 is vertex
-		for(int i = 0; i <= attributeCount; i++) {
-			if(i < limit) {
+		for (int i = 0; i <= attributeCount; i++) {
+			if (i < limit) {
 				final MaterialVertextFormatElement e = elements[i];
 
 				if (e.attributeName != null) {
-					if(Configurator.logGlStateChanges) {
+					if (Configurator.logGlStateChanges) {
 						CanvasMod.LOG.info(String.format("GlState: glVertexAttribPointer(%d, %d, %d, %b, %d, %d)", index, e.elementCount, e.glConstant, e.isNormalized, vertexStrideBytes, bufferOffset + offset));
 					}
 

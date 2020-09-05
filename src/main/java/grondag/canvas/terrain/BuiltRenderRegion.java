@@ -16,37 +16,7 @@
 
 package grondag.canvas.terrain;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Consumer;
-
 import com.mojang.blaze3d.systems.RenderSystem;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import it.unimi.dsi.fastutil.objects.ObjectIterator;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
-
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockRenderType;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.block.BlockRenderManager;
-import net.minecraft.client.render.block.entity.BlockEntityRenderDispatcher;
-import net.minecraft.client.render.block.entity.BlockEntityRenderer;
-import net.minecraft.client.render.model.BakedModel;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.fluid.FluidState;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.Vec3d;
-
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
-import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
-
 import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
 import grondag.canvas.apiimpl.util.FaceConstants;
@@ -65,42 +35,68 @@ import grondag.canvas.terrain.render.DrawableChunk;
 import grondag.canvas.terrain.render.UploadableChunk;
 import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
 import grondag.frex.api.fluid.FluidQuadSupplier;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import it.unimi.dsi.fastutil.objects.ObjectIterator;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
+import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
+import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockRenderType;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.render.block.BlockRenderManager;
+import net.minecraft.client.render.block.entity.BlockEntityRenderDispatcher;
+import net.minecraft.client.render.block.entity.BlockEntityRenderer;
+import net.minecraft.client.render.model.BakedModel;
+import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.fluid.FluidState;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.Vec3d;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 
 @Environment(EnvType.CLIENT)
 public class BuiltRenderRegion {
+	private static int frameIndex;
 	private final RenderRegionBuilder renderRegionBuilder;
 	private final RenderRegionStorage storage;
 	private final AtomicReference<RegionData> renderData;
 	private final AtomicReference<RegionData> buildData;
 	private final ObjectOpenHashSet<BlockEntity> localNoCullingBlockEntities = new ObjectOpenHashSet<>();
-	private boolean needsRebuild;
 	private final BlockPos origin;
-	private boolean needsImportantRebuild;
-	private volatile RegionBuildState buildState = new RegionBuildState();
-	private final Consumer<TerrainRenderContext> buildTask = this::rebuildOnWorkerThread;
 	private final RegionChunkReference chunkReference;
 	private final CanvasWorldRenderer cwr;
 	private final boolean isBottom;
 	private final boolean isTop;
 	private final BuiltRenderRegion[] neighbors = new BuiltRenderRegion[6];
 	private final TerrainOccluder terrainOccluder;
+	public int occlusionRange;
+	public int occluderVersion;
+	public boolean occluderResult;
+	public float cameraRelativeCenterX;
+	public float cameraRelativeCenterY;
+	public float cameraRelativeCenterZ;
+	int squaredCameraDistance;
+	private boolean needsRebuild;
+	private boolean needsImportantRebuild;
+	private volatile RegionBuildState buildState = new RegionBuildState();
 	private DrawableChunk translucentDrawable = DrawableChunk.EMPTY_DRAWABLE;
 	private DrawableChunk solidDrawable = DrawableChunk.EMPTY_DRAWABLE;
 	private int frustumVersion;
 	private boolean frustumResult;
 	private int lastSeenFrameIndex;
 	private boolean isClosed = false;
-
-	int squaredCameraDistance;
-	public int occlusionRange;
-	public int occluderVersion;
-	public boolean occluderResult;
-
 	private boolean isInsideRenderDistance;
+	private final Consumer<TerrainRenderContext> buildTask = this::rebuildOnWorkerThread;
 
-	public float cameraRelativeCenterX;
-	public float cameraRelativeCenterY;
-	public float cameraRelativeCenterZ;
 
 	public BuiltRenderRegion(CanvasWorldRenderer cwr, RegionChunkReference chunkRef, long packedPos) {
 		this.cwr = cwr;
@@ -117,10 +113,27 @@ public class BuiltRenderRegion {
 		isTop = origin.getY() == 240;
 	}
 
+	private static <E extends BlockEntity> void addBlockEntity(List<BlockEntity> chunkEntities, Set<BlockEntity> globalEntities, E blockEntity) {
+		final BlockEntityRenderer<E> blockEntityRenderer = BlockEntityRenderDispatcher.INSTANCE.get(blockEntity);
+
+		if (blockEntityRenderer != null) {
+			chunkEntities.add(blockEntity);
+
+			if (blockEntityRenderer.rendersOutsideBoundingBox(blockEntity)) {
+				globalEntities.add(blockEntity);
+			}
+		}
+	}
+
+	public static void advanceFrameIndex() {
+		++frameIndex;
+	}
+
+	// PERF: make this lazy?
 
 	/**
 	 * Assumes camera distance update has already happened.
-	 *
+	 * <p>
 	 * NB: tried a crude hierarchical scheme of checking chunk columns first
 	 * but didn't pay off.  Would probably  need to propagate per-plane results
 	 * over a more efficient region but that might not even help. Is already
@@ -152,7 +165,6 @@ public class BuiltRenderRegion {
 				|| (isInsideRenderDistance && chunkReference.areCornersLoaded());
 	}
 
-	// PERF: make this lazy?
 	/**
 	 * Returns true if inside retentiom distance;
 	 */
@@ -179,18 +191,6 @@ public class BuiltRenderRegion {
 		this.squaredCameraDistance = squaredCameraDistance;
 
 		return horizontalSquaredDistance < cwr.maxRetentionDistance();
-	}
-
-	private static <E extends BlockEntity> void addBlockEntity(List<BlockEntity> chunkEntities, Set<BlockEntity> globalEntities, E blockEntity) {
-		final BlockEntityRenderer<E> blockEntityRenderer = BlockEntityRenderDispatcher.INSTANCE.get(blockEntity);
-
-		if (blockEntityRenderer != null) {
-			chunkEntities.add(blockEntity);
-
-			if (blockEntityRenderer.rendersOutsideBoundingBox(blockEntity)) {
-				globalEntities.add(blockEntity);
-			}
-		}
 	}
 
 	void close() {
@@ -244,7 +244,7 @@ public class BuiltRenderRegion {
 		final ProtoRenderRegion region = ProtoRenderRegion.claim(cwr.getWorld(), origin);
 
 		// null region is signal to reschedule
-		if(buildState.protoRegion.getAndSet(region) == ProtoRenderRegion.IDLE) {
+		if (buildState.protoRegion.getAndSet(region) == ProtoRenderRegion.IDLE) {
 			renderRegionBuilder.executor.execute(buildTask, squaredCameraDistance);
 		}
 	}
@@ -255,7 +255,7 @@ public class BuiltRenderRegion {
 		if (regionData.translucentState == null) {
 			return false;
 		} else {
-			if (buildState.protoRegion.compareAndSet(ProtoRenderRegion.IDLE,  ProtoRenderRegion.RESORT_ONLY)) {
+			if (buildState.protoRegion.compareAndSet(ProtoRenderRegion.IDLE, ProtoRenderRegion.RESORT_ONLY)) {
 				// null means need to reschedule, otherwise was already scheduled for either
 				// resort or rebuild, or is invalid, not ready to be built.
 				renderRegionBuilder.executor.execute(buildTask, squaredCameraDistance);
@@ -269,7 +269,6 @@ public class BuiltRenderRegion {
 		buildState.protoRegion.set(ProtoRenderRegion.INVALID);
 		buildState = new RegionBuildState();
 	}
-
 
 	private void rebuildOnWorkerThread(TerrainRenderContext context) {
 		final RegionBuildState runningState = buildState;
@@ -304,7 +303,7 @@ public class BuiltRenderRegion {
 			return;
 		}
 
-		if(region == ProtoRenderRegion.RESORT_ONLY) {
+		if (region == ProtoRenderRegion.RESORT_ONLY) {
 			final RegionData regionData = buildData.get();
 			final int[] state = regionData.translucentState;
 
@@ -318,16 +317,16 @@ public class BuiltRenderRegion {
 
 				if (Configurator.batchedChunkRender) {
 					collector.sortQuads(
-							(float)cameraPos.x - TerrainModelSpace.renderCubeOrigin(origin.getX()),
-							(float)cameraPos.y - TerrainModelSpace.renderCubeOrigin(origin.getY()),
-							(float)cameraPos.z - TerrainModelSpace.renderCubeOrigin(origin.getZ()));
+							(float) cameraPos.x - TerrainModelSpace.renderCubeOrigin(origin.getX()),
+							(float) cameraPos.y - TerrainModelSpace.renderCubeOrigin(origin.getY()),
+							(float) cameraPos.z - TerrainModelSpace.renderCubeOrigin(origin.getZ()));
 				} else {
-					collector.sortQuads((float)cameraPos.x - origin.getX(), (float)cameraPos.y - origin.getY(), (float)cameraPos.z - origin.getZ());
+					collector.sortQuads((float) cameraPos.x - origin.getX(), (float) cameraPos.y - origin.getY(), (float) cameraPos.z - origin.getZ());
 				}
 
 				regionData.translucentState = collector.saveState(state);
 
-				if(runningState.protoRegion.get() != ProtoRenderRegion.INVALID) {
+				if (runningState.protoRegion.get() != ProtoRenderRegion.INVALID) {
 					final UploadableChunk upload = collectors.toUploadableChunk(EncodingContext.TERRAIN, true);
 
 					if (upload != UploadableChunk.EMPTY_UPLOADABLE) {
@@ -370,7 +369,7 @@ public class BuiltRenderRegion {
 
 			buildTerrain(context, chunkData);
 
-			if(runningState.protoRegion.get() != ProtoRenderRegion.INVALID) {
+			if (runningState.protoRegion.get() != ProtoRenderRegion.INVALID) {
 				final UploadableChunk solidUpload = collectors.toUploadableChunk(EncodingContext.TERRAIN, false);
 				final UploadableChunk translucentUpload = collectors.toUploadableChunk(EncodingContext.TERRAIN, true);
 
@@ -406,7 +405,7 @@ public class BuiltRenderRegion {
 	}
 
 	private void buildTerrain(TerrainRenderContext context, RegionData regionData) {
-		if(ChunkRebuildCounters.ENABLED) {
+		if (ChunkRebuildCounters.ENABLED) {
 			ChunkRebuildCounters.startChunk();
 		}
 
@@ -436,7 +435,7 @@ public class BuiltRenderRegion {
 		final OcclusionRegion occlusionRegion = region.occlusion;
 
 		for (int i = 0; i < RenderRegionAddressHelper.INTERIOR_CACHE_SIZE; i++) {
-			if(occlusionRegion.shouldRender(i)) {
+			if (occlusionRegion.shouldRender(i)) {
 				final BlockState blockState = region.getLocalBlockState(i);
 				final FluidState fluidState = blockState.getFluidState();
 				final int x = i & 0xF;
@@ -476,7 +475,7 @@ public class BuiltRenderRegion {
 
 		regionData.endBuffering((float) (cameraPos.x - xOrigin + xModelOffset), (float) (cameraPos.y - yOrigin + yModelOffset), (float) (cameraPos.z - zOrigin + zModelOffset), collectors);
 
-		if(ChunkRebuildCounters.ENABLED) {
+		if (ChunkRebuildCounters.ENABLED) {
 			ChunkRebuildCounters.completeChunk();
 		}
 	}
@@ -486,7 +485,7 @@ public class BuiltRenderRegion {
 		final ObjectArrayList<BlockEntity> regionDataBlockEntities = regionData.blockEntities;
 
 		// PERF: benchmark vs list, empty indicator, or some other structure
-		for(final BlockEntity blockEntity : context.region.blockEntities) {
+		for (final BlockEntity blockEntity : context.region.blockEntities) {
 			if (blockEntity != null) {
 				addBlockEntity(regionDataBlockEntities, nonCullBlockEntities, blockEntity);
 			}
@@ -610,12 +609,6 @@ public class BuiltRenderRegion {
 
 	public boolean isNear() {
 		return squaredCameraDistance < 768;
-	}
-
-	private static int frameIndex;
-
-	public static void advanceFrameIndex() {
-		++frameIndex;
 	}
 
 	public void enqueueUnvistedNeighbors(SimpleUnorderedArrayList<BuiltRenderRegion> queue) {

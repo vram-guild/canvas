@@ -16,9 +16,8 @@
 
 package grondag.canvas.apiimpl.util;
 
-import net.minecraft.util.math.Direction;
-
 import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
+import net.minecraft.util.math.Direction;
 
 public class FaceConstants {
 

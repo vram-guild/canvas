@@ -16,24 +16,11 @@
 
 package grondag.canvas.terrain;
 
-import static grondag.canvas.terrain.RenderRegionAddressHelper.AIR;
-import static grondag.canvas.terrain.RenderRegionAddressHelper.EXTERIOR_CACHE_SIZE;
-import static grondag.canvas.terrain.RenderRegionAddressHelper.INTERIOR_CACHE_SIZE;
-import static grondag.canvas.terrain.RenderRegionAddressHelper.interiorIndex;
-import static grondag.canvas.terrain.RenderRegionAddressHelper.localCornerIndex;
-import static grondag.canvas.terrain.RenderRegionAddressHelper.localXEdgeIndex;
-import static grondag.canvas.terrain.RenderRegionAddressHelper.localXfaceIndex;
-import static grondag.canvas.terrain.RenderRegionAddressHelper.localYEdgeIndex;
-import static grondag.canvas.terrain.RenderRegionAddressHelper.localYfaceIndex;
-import static grondag.canvas.terrain.RenderRegionAddressHelper.localZEdgeIndex;
-import static grondag.canvas.terrain.RenderRegionAddressHelper.localZfaceIndex;
-
-import java.util.Map;
-import java.util.concurrent.ArrayBlockingQueue;
-
+import grondag.canvas.perf.ChunkRebuildCounters;
+import grondag.canvas.terrain.ChunkPaletteCopier.PaletteCopy;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.shorts.ShortArrayList;
-
+import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachmentBlockEntity;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.world.ClientWorld;
@@ -41,23 +28,52 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.chunk.ChunkSection;
 import net.minecraft.world.chunk.WorldChunk;
 
-import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachmentBlockEntity;
+import java.util.Map;
+import java.util.concurrent.ArrayBlockingQueue;
 
-import grondag.canvas.perf.ChunkRebuildCounters;
-import grondag.canvas.terrain.ChunkPaletteCopier.PaletteCopy;
+import static grondag.canvas.terrain.RenderRegionAddressHelper.*;
 
 public class ProtoRenderRegion extends AbstractRenderRegion {
+	/**
+	 * Signals that build was completed successfully, or has never been run. Nothing is scheduled.
+	 */
+	public static final ProtoRenderRegion IDLE = new DummyRegion();
+	/**
+	 * Signals that build is for resort only.
+	 */
+	public static final ProtoRenderRegion RESORT_ONLY = new DummyRegion();
+	/**
+	 * Signals that build has been cancelled or some other condition has made it unbuildable.
+	 */
+	public static final ProtoRenderRegion INVALID = new DummyRegion();
+	/**
+	 * Signals that build is for empty chunk.
+	 */
+	public static final ProtoRenderRegion EMPTY = new DummyRegion();
+	private static final ArrayBlockingQueue<ProtoRenderRegion> POOL = new ArrayBlockingQueue<>(256);
+	public final ObjectArrayList<BlockEntity> blockEntities = new ObjectArrayList<>();
 	final BlockState[] states = new BlockState[EXTERIOR_CACHE_SIZE];
-
 	final ShortArrayList renderDataPos = new ShortArrayList();
 	final ObjectArrayList<Object> renderData = new ObjectArrayList<>();
 	final ShortArrayList blockEntityPos = new ShortArrayList();
-	public final ObjectArrayList<BlockEntity> blockEntities = new ObjectArrayList<>();
-
 	PaletteCopy mainSectionCopy;
 
+	public static ProtoRenderRegion claim(ClientWorld world, BlockPos origin) {
+		final ProtoRenderRegion result = POOL.poll();
+		return (result == null ? new ProtoRenderRegion() : result).prepare(world, origin);
+	}
+
+	private static void release(ProtoRenderRegion region) {
+		POOL.offer(region);
+	}
+
+	public static void reload() {
+		// ensure current AoFix rule or other config-dependent lambdas are used
+		POOL.clear();
+	}
+
 	private ProtoRenderRegion prepare(ClientWorld world, BlockPos origin) {
-		if(ChunkRebuildCounters.ENABLED) {
+		if (ChunkRebuildCounters.ENABLED) {
 			ChunkRebuildCounters.startCopy();
 		}
 
@@ -84,7 +100,7 @@ public class ProtoRenderRegion extends AbstractRenderRegion {
 
 		final ProtoRenderRegion result;
 
-		if(mainSectionCopy == ChunkPaletteCopier.AIR_COPY) {
+		if (mainSectionCopy == ChunkPaletteCopier.AIR_COPY) {
 			release();
 			result = EMPTY;
 		} else {
@@ -106,7 +122,7 @@ public class ProtoRenderRegion extends AbstractRenderRegion {
 			result = this;
 		}
 
-		if(ChunkRebuildCounters.ENABLED) {
+		if (ChunkRebuildCounters.ENABLED) {
 			ChunkRebuildCounters.completeCopy();
 		}
 
@@ -127,7 +143,7 @@ public class ProtoRenderRegion extends AbstractRenderRegion {
 		blockEntities.clear();
 		final int yCheck = (originY >> 4);
 
-		for(final Map.Entry<BlockPos, BlockEntity> entry : mainChunk.getBlockEntities().entrySet()) {
+		for (final Map.Entry<BlockPos, BlockEntity> entry : mainChunk.getBlockEntities().entrySet()) {
 			final BlockPos pos = entry.getKey();
 
 			// only those in this chunk
@@ -143,7 +159,7 @@ public class ProtoRenderRegion extends AbstractRenderRegion {
 
 			final Object rd = ((RenderAttachmentBlockEntity) be).getRenderAttachmentData();
 
-			if(rd != null) {
+			if (rd != null) {
 				renderDataPos.add(key);
 				renderData.add(rd);
 			}
@@ -188,7 +204,7 @@ public class ProtoRenderRegion extends AbstractRenderRegion {
 		final ChunkSection Xba = getSection(1, 2, 0);
 		final ChunkSection Xbb = getSection(1, 2, 2);
 
-		for(int i = 0; i < 16; i++) {
+		for (int i = 0; i < 16; i++) {
 			states[localZEdgeIndex(false, false, i) - INTERIOR_CACHE_SIZE] = aaZ == null ? AIR : aaZ.getBlockState(15, 15, i);
 			states[localZEdgeIndex(false, true, i) - INTERIOR_CACHE_SIZE] = abZ == null ? AIR : abZ.getBlockState(15, 0, i);
 			states[localZEdgeIndex(true, false, i) - INTERIOR_CACHE_SIZE] = baZ == null ? AIR : baZ.getBlockState(0, 15, i);
@@ -241,46 +257,10 @@ public class ProtoRenderRegion extends AbstractRenderRegion {
 		release(this);
 	}
 
-	private static final ArrayBlockingQueue<ProtoRenderRegion> POOL = new ArrayBlockingQueue<>(256);
-
-	public static ProtoRenderRegion claim(ClientWorld world, BlockPos origin) {
-		final ProtoRenderRegion result = POOL.poll();
-		return (result == null ? new ProtoRenderRegion() : result).prepare(world, origin);
-	}
-
-	private static void release(ProtoRenderRegion region) {
-		POOL.offer(region);
-	}
-
-	public static void reload() {
-		// ensure current AoFix rule or other config-dependent lambdas are used
-		POOL.clear();
-	}
-
 	private static class DummyRegion extends ProtoRenderRegion {
 		@Override
-		public void release() {}
+		public void release() {
+		}
 	}
-
-	/**
-	 * Signals that build was completed successfully, or has never been run. Nothing is scheduled.
-	 */
-	public static final ProtoRenderRegion IDLE = new DummyRegion();
-
-
-	/**
-	 * Signals that build is for resort only.
-	 */
-	public static final ProtoRenderRegion RESORT_ONLY = new DummyRegion();
-
-	/**
-	 * Signals that build has been cancelled or some other condition has made it unbuildable.
-	 */
-	public static final ProtoRenderRegion INVALID = new DummyRegion();
-
-	/**
-	 * Signals that build is for empty chunk.
-	 */
-	public static final ProtoRenderRegion EMPTY = new DummyRegion();
 
 }

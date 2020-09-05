@@ -16,20 +16,21 @@
 
 package grondag.canvas.apiimpl.mesh;
 
-import java.util.function.Consumer;
-
 import net.fabricmc.fabric.api.renderer.v1.mesh.Mesh;
 import net.fabricmc.fabric.api.renderer.v1.mesh.QuadView;
+
+import java.util.function.Consumer;
 
 /**
  * Implementation of {@link Mesh}.
  * The way we encode meshes makes it very simple.
  */
 public class MeshImpl implements Mesh {
-	/** Used to satisfy external calls to {@link #forEach(Consumer)}. */
-	ThreadLocal<QuadViewImpl> POOL = ThreadLocal.withInitial(QuadViewImpl::new);
-
 	final int[] data;
+	/**
+	 * Used to satisfy external calls to {@link #forEach(Consumer)}.
+	 */
+	ThreadLocal<QuadViewImpl> POOL = ThreadLocal.withInitial(QuadViewImpl::new);
 
 	MeshImpl(int[] data) {
 		this.data = data;

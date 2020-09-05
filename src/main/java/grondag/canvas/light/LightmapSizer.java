@@ -16,9 +16,8 @@
 
 package grondag.canvas.light;
 
-import it.unimi.dsi.fastutil.ints.Int2IntFunction;
-
 import grondag.canvas.Configurator;
+import it.unimi.dsi.fastutil.ints.Int2IntFunction;
 
 public final class LightmapSizer {
 	public static final int texSize = Configurator.moreLightmap ? 8192 : 4096;
@@ -32,12 +31,18 @@ public final class LightmapSizer {
 	public static final float centralPixelDistance = pixelUnitFraction / 2;
 	// UGLY - consider making this a full unsigned short
 	// for initial pass didn't want to worry about signed value mistakes
-	/** Scale of texture units sent to shader. Shader should divide by this. */
+	/**
+	 * Scale of texture units sent to shader. Shader should divide by this.
+	 */
 	public static final int bufferScale = 0x8000;
 	public static final float textureToBuffer = (float) bufferScale / texSize;
 
-	/** converts zero-based distance from center to u/v index - use for top/left */
+	/**
+	 * converts zero-based distance from center to u/v index - use for top/left
+	 */
 	public static final Int2IntFunction NEG = i -> radius - 1 - i;
-	/** converts zero-based distance from center to u/v index - use for bottom/right */
+	/**
+	 * converts zero-based distance from center to u/v index - use for bottom/right
+	 */
 	public static final Int2IntFunction POS = i -> radius + i;
 }

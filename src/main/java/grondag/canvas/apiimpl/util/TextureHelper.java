@@ -16,15 +16,13 @@
 
 package grondag.canvas.apiimpl.util;
 
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.UV_PRECISE_UNIT_VALUE;
-
+import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
+import grondag.canvas.mixinterface.SpriteExt;
+import net.fabricmc.fabric.api.renderer.v1.mesh.MutableQuadView;
 import net.minecraft.client.texture.Sprite;
 import net.minecraft.util.math.Direction;
 
-import net.fabricmc.fabric.api.renderer.v1.mesh.MutableQuadView;
-
-import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
-import grondag.canvas.mixinterface.SpriteExt;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.UV_PRECISE_UNIT_VALUE;
 
 /**
  * Handles most texture-baking use cases for model loaders and model libraries
@@ -32,7 +30,24 @@ import grondag.canvas.mixinterface.SpriteExt;
  * itself to implement automatic block-breaking models for enhanced models.
  */
 public class TextureHelper {
-	private TextureHelper() { }
+	private static final VertexModifier[] ROTATIONS = new VertexModifier[]{null,
+			(q, i, t) -> q.spritePrecise(i, t, q.spritePreciseV(i, t), q.spritePreciseU(i, t)), //90
+			(q, i, t) -> q.spritePrecise(i, t, UV_PRECISE_UNIT_VALUE - q.spritePreciseU(i, t), UV_PRECISE_UNIT_VALUE - q.spritePreciseV(i, t)), //180
+			(q, i, t) -> q.spritePrecise(i, t, UV_PRECISE_UNIT_VALUE - q.spritePreciseV(i, t), q.spritePreciseU(i, t)) // 270
+	};
+	private static final VertexModifier[] UVLOCKERS = new VertexModifier[6];
+
+	static {
+		UVLOCKERS[Direction.EAST.getId()] = (q, i, t) -> q.spriteFloat(i, t, 1 - q.z(i), 1 - q.y(i));
+		UVLOCKERS[Direction.WEST.getId()] = (q, i, t) -> q.spriteFloat(i, t, q.z(i), 1 - q.y(i));
+		UVLOCKERS[Direction.NORTH.getId()] = (q, i, t) -> q.spriteFloat(i, t, 1 - q.x(i), 1 - q.y(i));
+		UVLOCKERS[Direction.SOUTH.getId()] = (q, i, t) -> q.spriteFloat(i, t, q.x(i), 1 - q.y(i));
+		UVLOCKERS[Direction.DOWN.getId()] = (q, i, t) -> q.spriteFloat(i, t, q.x(i), 1 - q.z(i));
+		UVLOCKERS[Direction.UP.getId()] = (q, i, t) -> q.spriteFloat(i, t, q.x(i), 1 - q.z(i));
+	}
+
+	private TextureHelper() {
+	}
 
 	/**
 	 * Bakes textures in the provided vertex data, handling UV locking,
@@ -69,31 +84,14 @@ public class TextureHelper {
 		}
 	}
 
-	@FunctionalInterface
-	private interface VertexModifier {
-		void apply(MutableQuadViewImpl quad, int vertexIndex, int spriteIndex);
-	}
-
 	private static void applyModifier(MutableQuadViewImpl quad, int spriteIndex, VertexModifier modifier) {
 		for (int i = 0; i < 4; i++) {
 			modifier.apply(quad, i, spriteIndex);
 		}
 	}
 
-	private static final VertexModifier[] ROTATIONS = new VertexModifier[] { null,
-			(q, i, t) -> q.spritePrecise(i, t, q.spritePreciseV(i, t), q.spritePreciseU(i, t)), //90
-			(q, i, t) -> q.spritePrecise(i, t, UV_PRECISE_UNIT_VALUE - q.spritePreciseU(i, t), UV_PRECISE_UNIT_VALUE - q.spritePreciseV(i, t)), //180
-			(q, i, t) -> q.spritePrecise(i, t, UV_PRECISE_UNIT_VALUE - q.spritePreciseV(i, t), q.spritePreciseU(i, t)) // 270
-	};
-
-	private static final VertexModifier[] UVLOCKERS = new VertexModifier[6];
-
-	static {
-		UVLOCKERS[Direction.EAST.getId()] = (q, i, t) -> q.spriteFloat(i, t, 1 - q.z(i), 1 - q.y(i));
-		UVLOCKERS[Direction.WEST.getId()] = (q, i, t) -> q.spriteFloat(i, t, q.z(i), 1 - q.y(i));
-		UVLOCKERS[Direction.NORTH.getId()] = (q, i, t) -> q.spriteFloat(i, t, 1 - q.x(i), 1 - q.y(i));
-		UVLOCKERS[Direction.SOUTH.getId()] = (q, i, t) -> q.spriteFloat(i, t, q.x(i), 1 - q.y(i));
-		UVLOCKERS[Direction.DOWN.getId()] = (q, i, t) -> q.spriteFloat(i, t, q.x(i), 1 - q.z(i));
-		UVLOCKERS[Direction.UP.getId()] = (q, i, t) -> q.spriteFloat(i, t, q.x(i), 1 - q.z(i));
+	@FunctionalInterface
+	private interface VertexModifier {
+		void apply(MutableQuadViewImpl quad, int vertexIndex, int spriteIndex);
 	}
 }

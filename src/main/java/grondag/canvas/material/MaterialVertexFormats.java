@@ -16,18 +16,9 @@
 
 package grondag.canvas.material;
 
-import static grondag.canvas.material.MaterialVertextFormatElement.BASE_RGBA_4UB;
-import static grondag.canvas.material.MaterialVertextFormatElement.BASE_TEX_2F;
-import static grondag.canvas.material.MaterialVertextFormatElement.BASE_TEX_2US;
-import static grondag.canvas.material.MaterialVertextFormatElement.HD_LIGHTMAP_2US;
-import static grondag.canvas.material.MaterialVertextFormatElement.LIGHTMAPS_4UB;
-import static grondag.canvas.material.MaterialVertextFormatElement.MATERIAL_2US;
-import static grondag.canvas.material.MaterialVertextFormatElement.NORMAL_AO_4B;
-import static grondag.canvas.material.MaterialVertextFormatElement.POSITION_3F;
-import static grondag.canvas.material.MaterialVertextFormatElement.TEMP_LIGHTMAP;
-import static grondag.canvas.material.MaterialVertextFormatElement.TEMP_OVERLAY;
-
 import grondag.canvas.Configurator;
+
+import static grondag.canvas.material.MaterialVertextFormatElement.*;
 
 // WIP: make these fully parallel to vanilla formats
 // encoding may be different and may depend on feature configuration

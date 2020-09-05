@@ -16,8 +16,7 @@
 
 package grondag.canvas.apiimpl.util;
 
-import static net.minecraft.util.math.MathHelper.approximatelyEquals;
-
+import net.fabricmc.fabric.api.renderer.v1.mesh.QuadView;
 import net.minecraft.client.render.model.BakedQuad;
 import net.minecraft.client.render.model.CubeFace.DirectionIds;
 import net.minecraft.client.util.math.Vector3f;
@@ -25,7 +24,7 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Direction.Axis;
 import net.minecraft.util.math.Direction.AxisDirection;
 
-import net.fabricmc.fabric.api.renderer.v1.mesh.QuadView;
+import static net.minecraft.util.math.MathHelper.approximatelyEquals;
 
 /**
  * Static routines of general utility for renderer implementations.
@@ -33,22 +32,27 @@ import net.fabricmc.fabric.api.renderer.v1.mesh.QuadView;
  * designed to be usable without the default renderer.
  */
 public abstract class GeometryHelper {
-	private GeometryHelper() { }
-
-	/** set when a quad touches all four corners of a unit cube. */
+	/**
+	 * set when a quad touches all four corners of a unit cube.
+	 */
 	public static final int CUBIC_FLAG = 1;
-
-	/** set when a quad is parallel to (but not necessarily on) a its light face. */
+	/**
+	 * set when a quad is parallel to (but not necessarily on) a its light face.
+	 */
 	public static final int AXIS_ALIGNED_FLAG = CUBIC_FLAG << 1;
-
-	/** set when a quad is coplanar with its light face. Implies {@link #AXIS_ALIGNED_FLAG} */
+	/**
+	 * set when a quad is coplanar with its light face. Implies {@link #AXIS_ALIGNED_FLAG}
+	 */
 	public static final int LIGHT_FACE_FLAG = AXIS_ALIGNED_FLAG << 1;
-
-	/** how many bits quad header encoding should reserve for encoding geometry flags. */
+	/**
+	 * how many bits quad header encoding should reserve for encoding geometry flags.
+	 */
 	public static final int FLAG_BIT_COUNT = 3;
-
 	private static final float EPS_MIN = 0.0001f;
 	private static final float EPS_MAX = 1.0f - EPS_MIN;
+
+	private GeometryHelper() {
+	}
 
 	/**
 	 * Analyzes the quad and returns a value with some combination
@@ -123,24 +127,24 @@ public abstract class GeometryHelper {
 		int a, b;
 
 		switch (lightFace) {
-		case EAST:
-		case WEST:
-			a = 1;
-			b = 2;
-			break;
-		case UP:
-		case DOWN:
-			a = 0;
-			b = 2;
-			break;
-		case SOUTH:
-		case NORTH:
-			a = 1;
-			b = 0;
-			break;
-		default:
-			// handle WTF case
-			return false;
+			case EAST:
+			case WEST:
+				a = 1;
+				b = 2;
+				break;
+			case UP:
+			case DOWN:
+				a = 0;
+				b = 2;
+				break;
+			case SOUTH:
+			case NORTH:
+				a = 1;
+				b = 0;
+				break;
+			default:
+				// handle WTF case
+				return false;
 		}
 
 		return confirmSquareCorners(a, b, quad);
@@ -194,18 +198,18 @@ public abstract class GeometryHelper {
 	public static int lightFaceId(QuadView quad) {
 		final Vector3f normal = quad.faceNormal();
 		switch (GeometryHelper.longestAxis(normal)) {
-		case X:
-			return normal.getX() > 0 ? DirectionIds.EAST : DirectionIds.WEST;
+			case X:
+				return normal.getX() > 0 ? DirectionIds.EAST : DirectionIds.WEST;
 
-		case Y:
-			return normal.getY() > 0 ? DirectionIds.UP : DirectionIds.DOWN;
+			case Y:
+				return normal.getY() > 0 ? DirectionIds.UP : DirectionIds.DOWN;
 
-		case Z:
-			return normal.getZ() > 0 ? DirectionIds.SOUTH : DirectionIds.NORTH;
+			case Z:
+				return normal.getZ() > 0 ? DirectionIds.SOUTH : DirectionIds.NORTH;
 
-		default:
-			// handle WTF case
-			return DirectionIds.UP;
+			default:
+				// handle WTF case
+				return DirectionIds.UP;
 		}
 	}
 

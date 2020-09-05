@@ -5,39 +5,43 @@
   "name": "Canvas Renderer",
   "description": "Minecraft Renderer for Fabric supporting the FREX API",
   "authors": [
-    "Grondag"
+	"Grondag"
   ],
   "contact": {
-    "homepage": "https://minecraft.curseforge.com/projects/canvas-renderer",
-    "issues": "https://github.com/grondag/canvas/issues",
-    "sources": "https://github.com/grondag/canvas"
+	"homepage": "https://minecraft.curseforge.com/projects/canvas-renderer",
+	"issues": "https://github.com/grondag/canvas/issues",
+	"sources": "https://github.com/grondag/canvas"
   },
-  
   "license": "Apache-2.0",
   "icon": "assets/canvas/canvas_icon.png",
-  
   "environment": "client",
   "entrypoints": {
-    "client": [ "grondag.canvas.CanvasMod" ],
-    "modmenu": [ "grondag.canvas.compat.ModMenuHelper" ],
-    "jmx": [ "grondag.canvas.CanvasJmxInit" ]
+	"client": [
+	  "grondag.canvas.CanvasMod"
+	],
+	"modmenu": [
+	  "grondag.canvas.compat.ModMenuHelper"
+	],
+	"jmx": [
+	  "grondag.canvas.CanvasJmxInit"
+	]
   },
   "mixins": [
-    "canvas.client.json"
+	"canvas.client.json"
   ],
   "depends": {
-    "fabricloader": "\u003e\u003d0.9.1",
-    "fabric-api-base": "*",
-    "fabric-renderer-api-v1": "*",
-    "fabric-rendering-data-attachment-v1": "*"
+	"fabricloader": "\u003e\u003d0.9.1",
+	"fabric-api-base": "*",
+	"fabric-renderer-api-v1": "*",
+	"fabric-rendering-data-attachment-v1": "*"
   },
   "breaks": {
-  	"sodium": "*"
+	"sodium": "*"
   },
   "custom": {
-    "modmenu:api": false,
-    "fabric-renderer-api-v1:contains_renderer" : true,
-    "frex:contains_frex_renderer": true
+	"modmenu:api": false,
+	"fabric-renderer-api-v1:contains_renderer": true,
+	"frex:contains_frex_renderer": true
   },
   "accessWidener": "canvas.accesswidener"
 }

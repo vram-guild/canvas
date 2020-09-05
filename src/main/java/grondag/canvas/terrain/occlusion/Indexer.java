@@ -16,18 +16,14 @@
 
 package grondag.canvas.terrain.occlusion;
 
-import static grondag.canvas.terrain.occlusion.Constants.TILE_ADDRESS_SHIFT_X;
-import static grondag.canvas.terrain.occlusion.Constants.TILE_ADDRESS_SHIFT_Y;
-import static grondag.canvas.terrain.occlusion.Constants.TILE_AXIS_MASK;
-import static grondag.canvas.terrain.occlusion.Constants.TILE_AXIS_SHIFT;
-import static grondag.canvas.terrain.occlusion.Constants.TILE_PIXEL_INDEX_MASK;
-
 import com.google.common.base.Strings;
-
 import grondag.canvas.terrain.occlusion.region.OcclusionBitPrinter;
 
+import static grondag.canvas.terrain.occlusion.Constants.*;
+
 abstract class Indexer {
-	private  Indexer() {}
+	private Indexer() {
+	}
 
 	// only handle 0-7  values
 	static int mortonNumber(int x, int y) {
@@ -40,15 +36,15 @@ abstract class Indexer {
 		return ((tileY & TILE_AXIS_MASK) << TILE_ADDRESS_SHIFT_Y) | ((tileX & TILE_AXIS_MASK) << TILE_ADDRESS_SHIFT_X) | ((tileY & TILE_PIXEL_INDEX_MASK) << TILE_AXIS_SHIFT) | (tileX & TILE_PIXEL_INDEX_MASK);
 	}
 
-	static int lowIndexFromPixelXY(int x, int y)  {
+	static int lowIndexFromPixelXY(int x, int y) {
 		return tileIndex(x >>> TILE_AXIS_SHIFT, y >>> TILE_AXIS_SHIFT);
 	}
 
-	static int pixelIndex(int x, int y)  {
-		return  ((y & TILE_PIXEL_INDEX_MASK) << TILE_AXIS_SHIFT) | (x & TILE_PIXEL_INDEX_MASK);
+	static int pixelIndex(int x, int y) {
+		return ((y & TILE_PIXEL_INDEX_MASK) << TILE_AXIS_SHIFT) | (x & TILE_PIXEL_INDEX_MASK);
 	}
 
-	static boolean isPixelClear(long word, int x, int y)  {
+	static boolean isPixelClear(long word, int x, int y) {
 		return (word & (1L << pixelIndex(x, y))) == 0;
 	}
 
@@ -56,7 +52,9 @@ abstract class Indexer {
 		return 1L << pixelIndex(x, y);
 	}
 
-	/** REQUIRES 0-7 inputs! */
+	/**
+	 * REQUIRES 0-7 inputs!
+	 */
 	static boolean testPixelInWordPreMasked(long word, int x, int y) {
 		return (word & (1L << ((y << TILE_AXIS_SHIFT) | x))) == 0;
 	}

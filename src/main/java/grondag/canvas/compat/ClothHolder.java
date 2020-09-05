@@ -17,10 +17,8 @@
 package grondag.canvas.compat;
 
 import com.google.common.util.concurrent.Runnables;
-
-import net.fabricmc.loader.api.FabricLoader;
-
 import grondag.canvas.CanvasMod;
+import net.fabricmc.loader.api.FabricLoader;
 
 public class ClothHolder {
 	public static Runnable clothDebugPreEvent = init(); //FabricLoader.getInstance().isModLoaded("cloth-client-events-v0") ? ClothHelper.clothDebugRenderPre() : Runnables.doNothing();

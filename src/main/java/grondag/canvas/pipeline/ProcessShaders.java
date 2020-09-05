@@ -16,9 +16,8 @@
 
 package grondag.canvas.pipeline;
 
-import net.minecraft.util.Identifier;
-
 import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
+import net.minecraft.util.Identifier;
 
 public class ProcessShaders {
 	private static final SimpleUnorderedArrayList<ProcessShader> ALL = new SimpleUnorderedArrayList<>();
@@ -30,7 +29,7 @@ public class ProcessShaders {
 	}
 
 	public static void reload() {
-		for (final ProcessShader shader :  ALL) {
+		for (final ProcessShader shader : ALL) {
 			shader.unload();
 		}
 	}

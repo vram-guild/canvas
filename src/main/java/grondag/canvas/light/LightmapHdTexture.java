@@ -16,26 +16,34 @@
 
 package grondag.canvas.light;
 
-import java.util.concurrent.ConcurrentLinkedQueue;
-
 import com.mojang.blaze3d.platform.GlStateManager;
-import org.lwjgl.opengl.GL11;
-
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-
 import grondag.canvas.Configurator;
 import grondag.canvas.texture.SimpleImage;
 import grondag.canvas.texture.SimpleTexture;
 import grondag.canvas.texture.TextureData;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
+import org.lwjgl.opengl.GL11;
+
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 @Environment(EnvType.CLIENT)
 public class LightmapHdTexture implements AutoCloseable {
+	private static final ConcurrentLinkedQueue<LightmapHd> updates = new ConcurrentLinkedQueue<>();
 	private static LightmapHdTexture instance;
+	private final SimpleTexture texture;
+	private final SimpleImage image;
+	private int frameCounter = 0;
+
+	private LightmapHdTexture() {
+		texture = new SimpleTexture(new SimpleImage(4, GL11.GL_RGBA, LightmapSizer.texSize, LightmapSizer.texSize, false), GL11.GL_RGBA);
+		image = texture.getImage();
+		clear();
+	}
 
 	public static LightmapHdTexture instance() {
 		LightmapHdTexture result = instance;
-		if(result == null) {
+		if (result == null) {
 			result = new LightmapHdTexture();
 			instance = result;
 		}
@@ -44,38 +52,27 @@ public class LightmapHdTexture implements AutoCloseable {
 
 	public static void reload() {
 		// just clear image if size is same
-		if(instance != null && instance.texture.getImage().width == LightmapSizer.texSize) {
+		if (instance != null && instance.texture.getImage().width == LightmapSizer.texSize) {
 			instance.clear();
-		} else if(instance != null) {
+		} else if (instance != null) {
 			instance.close();
 			instance = null;
 		}
 	}
 
-	private final SimpleTexture texture;
-	private final SimpleImage image;
-
-	private LightmapHdTexture() {
-		texture = new SimpleTexture(new SimpleImage(4, GL11.GL_RGBA, LightmapSizer.texSize, LightmapSizer.texSize, false), GL11.GL_RGBA);
-		image = texture.getImage();
-		clear();
-	}
-
 	private void clear() {
-		image.clear((byte)255);
+		image.clear((byte) 255);
 		texture.upload();
 	}
-
-	private static final ConcurrentLinkedQueue<LightmapHd> updates = new ConcurrentLinkedQueue<>();
 
 	public void enque(LightmapHd lightmap) {
 		final SimpleImage image = this.image;
 		final int uMap = lightmap.uMinImg;
 		final int vMap = lightmap.vMinImg;
 
-		for(int u = 0; u < LightmapSizer.paddedSize; u++) {
-			for(int v = 0; v < LightmapSizer.paddedSize; v++) {
-				image.setPixelRGBA(uMap + u, vMap + v, lightmap.pixel(u,v));
+		for (int u = 0; u < LightmapSizer.paddedSize; u++) {
+			for (int v = 0; v < LightmapSizer.paddedSize; v++) {
+				image.setPixelRGBA(uMap + u, vMap + v, lightmap.pixel(u, v));
 			}
 		}
 
@@ -88,7 +85,7 @@ public class LightmapHdTexture implements AutoCloseable {
 	}
 
 	public void disable() {
-		if(!Configurator.hdLightmaps()) {
+		if (!Configurator.hdLightmaps()) {
 			return;
 		}
 
@@ -98,7 +95,7 @@ public class LightmapHdTexture implements AutoCloseable {
 	}
 
 	public void enable() {
-		if(!Configurator.hdLightmaps()) {
+		if (!Configurator.hdLightmaps()) {
 			return;
 		}
 
@@ -107,18 +104,16 @@ public class LightmapHdTexture implements AutoCloseable {
 
 		final int mode = Configurator.lightmapDebug ? GL11.GL_NEAREST : GL11.GL_LINEAR;
 		GlStateManager.texParameter(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, mode);
-		GlStateManager.texParameter(GL11.GL_TEXTURE_2D,  GL11.GL_TEXTURE_MAG_FILTER, mode);
+		GlStateManager.texParameter(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, mode);
 		GlStateManager.color4f(1.0F, 1.0F, 1.0F, 1.0F);
 		GlStateManager.enableTexture();
 		GlStateManager.activeTexture(TextureData.MC_SPRITE_ATLAS);
 	}
 
-	private int frameCounter = 0;
-
 	public void onRenderTick() {
 		frameCounter++;
 
-		if(updates.isEmpty() || frameCounter < Configurator.maxLightmapDelayFrames) {
+		if (updates.isEmpty() || frameCounter < Configurator.maxLightmapDelayFrames) {
 			return;
 		}
 
@@ -130,7 +125,7 @@ public class LightmapHdTexture implements AutoCloseable {
 		int vMax = Integer.MIN_VALUE;
 
 		LightmapHd map;
-		while((map = updates.poll()) != null) {
+		while ((map = updates.poll()) != null) {
 			final int uMap = map.uMinImg;
 			final int vMap = map.vMinImg;
 			uMin = Math.min(uMin, uMap);
@@ -139,7 +134,7 @@ public class LightmapHdTexture implements AutoCloseable {
 			vMax = Math.max(vMax, vMap + LightmapSizer.paddedSize);
 		}
 
-		if(uMin == Integer.MAX_VALUE) {
+		if (uMin == Integer.MAX_VALUE) {
 			return;
 		}
 

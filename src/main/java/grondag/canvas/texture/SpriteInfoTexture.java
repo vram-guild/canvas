@@ -18,41 +18,39 @@ package grondag.canvas.texture;
 
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
+import grondag.canvas.CanvasMod;
+import grondag.canvas.mixinterface.SpriteAtlasTextureDataExt;
+import grondag.canvas.mixinterface.SpriteAtlasTextureExt;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL21;
-
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
+import net.fabricmc.fabric.api.renderer.v1.model.SpriteFinder;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.texture.Sprite;
 import net.minecraft.client.texture.SpriteAtlasTexture;
 import net.minecraft.client.texture.SpriteAtlasTexture.Data;
 import net.minecraft.client.texture.TextureUtil;
 import net.minecraft.util.math.MathHelper;
-
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.renderer.v1.model.SpriteFinder;
-
-import grondag.canvas.CanvasMod;
-import grondag.canvas.mixinterface.SpriteAtlasTextureDataExt;
-import grondag.canvas.mixinterface.SpriteAtlasTextureExt;
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL21;
 
 @Environment(EnvType.CLIENT)
 public class SpriteInfoTexture implements AutoCloseable {
-	protected int glId = -1;
-	private final int textureSize;
-	final ObjectArrayList<Sprite> spriteIndex;
+	private static SpriteInfoTexture instance;
+	private static Data atlasData;
 	public final SpriteAtlasTexture atlas;
 	public final int atlasWidth;
 	public final int atlasHeight;
-
 	public final SpriteFinder spriteFinder;
+	final ObjectArrayList<Sprite> spriteIndex;
+	private final int textureSize;
+	protected int glId = -1;
 
 	private SpriteInfoTexture(Data atlasData) {
 		final SpriteAtlasTexture atlas = (SpriteAtlasTexture) MinecraftClient.getInstance().getTextureManager().getTexture(SpriteAtlasTexture.BLOCK_ATLAS_TEX);
 		this.atlas = atlas;
-		atlasWidth = ((SpriteAtlasTextureDataExt)atlasData).canvas_atlasWidth();
-		atlasHeight = ((SpriteAtlasTextureDataExt)atlasData).canvas_atlasHeight();
+		atlasWidth = ((SpriteAtlasTextureDataExt) atlasData).canvas_atlasWidth();
+		atlasHeight = ((SpriteAtlasTextureDataExt) atlasData).canvas_atlasHeight();
 		spriteFinder = SpriteFinder.get(atlas);
 
 		final ObjectArrayList<Sprite> spriteIndex = ((SpriteAtlasTextureExt) atlas).canvas_spriteIndex();
@@ -70,8 +68,29 @@ public class SpriteInfoTexture implements AutoCloseable {
 		}
 	}
 
+	public static SpriteInfoTexture instance() {
+		SpriteInfoTexture result = instance;
+
+		if (result == null) {
+			result = new SpriteInfoTexture(atlasData);
+			instance = result;
+			atlasData = null;
+		}
+
+		return result;
+	}
+
+	public static void reset(Data input) {
+		if (instance != null) {
+			instance.close();
+		}
+
+		instance = null;
+		atlasData = input;
+	}
+
 	private void createImage(int spriteCount) {
-		try(final SpriteInfoImage image = new SpriteInfoImage(spriteIndex, spriteCount, textureSize)) {
+		try (final SpriteInfoImage image = new SpriteInfoImage(spriteIndex, spriteCount, textureSize)) {
 			glId = TextureUtil.generateId();
 
 			GlStateManager.activeTexture(TextureData.SPRITE_INFO);
@@ -157,30 +176,6 @@ public class SpriteInfoTexture implements AutoCloseable {
 		final Sprite sprite = spriteIndex.get(spriteId);
 		final float v0 = sprite.getMinV();
 		return v0 + unmappedV * (sprite.getMaxV() - v0);
-	}
-
-	private static SpriteInfoTexture instance;
-	private static Data atlasData;
-
-	public static SpriteInfoTexture instance() {
-		SpriteInfoTexture result = instance;
-
-		if(result == null) {
-			result = new SpriteInfoTexture(atlasData);
-			instance = result;
-			atlasData = null;
-		}
-
-		return result;
-	}
-
-	public static void reset(Data input) {
-		if(instance != null) {
-			instance.close();
-		}
-
-		instance = null;
-		atlasData = input;
 	}
 
 	public int textureSize() {

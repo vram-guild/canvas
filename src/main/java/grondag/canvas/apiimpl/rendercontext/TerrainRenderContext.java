@@ -16,22 +16,6 @@
 
 package grondag.canvas.apiimpl.rendercontext;
 
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
-
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.client.render.VertexConsumer;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.util.crash.CrashException;
-import net.minecraft.util.crash.CrashReport;
-import net.minecraft.util.crash.CrashReportSection;
-import net.minecraft.util.math.BlockPos;
-
-import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
-import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
-import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
-
 import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.material.MeshMaterialLayer;
 import grondag.canvas.light.AoCalculator;
@@ -41,6 +25,19 @@ import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.terrain.FastRenderRegion;
 import grondag.canvas.terrain.ProtoRenderRegion;
 import grondag.canvas.terrain.RenderRegionAddressHelper;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
+import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
+import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.client.render.VertexConsumer;
+import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.util.crash.CrashException;
+import net.minecraft.util.crash.CrashReport;
+import net.minecraft.util.crash.CrashReportSection;
+import net.minecraft.util.math.BlockPos;
 
 /**
  * Implementation of {@link RenderContext} used during terrain rendering.
@@ -52,16 +49,6 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<FastRenderR
 	public final ObjectOpenHashSet<BlockEntity> nonCullBlockEntities = new ObjectOpenHashSet<>();
 	public final ObjectOpenHashSet<BlockEntity> addedBlockEntities = new ObjectOpenHashSet<>();
 	public final ObjectOpenHashSet<BlockEntity> removedBlockEntities = new ObjectOpenHashSet<>();
-
-	private int cullCompletionFlags;
-	private int cullResultFlags;
-
-	public TerrainRenderContext() {
-		super("TerrainRenderContext");
-		region = new FastRenderRegion(this);
-		collectors.setContext(EncodingContext.TERRAIN);
-	}
-
 	private final AoCalculator aoCalc = new AoCalculator() {
 		@Override
 		protected int ao(int cacheIndex) {
@@ -78,6 +65,14 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<FastRenderR
 			return region.isClosed(cacheIndex);
 		}
 	};
+	private int cullCompletionFlags;
+	private int cullResultFlags;
+
+	public TerrainRenderContext() {
+		super("TerrainRenderContext");
+		region = new FastRenderRegion(this);
+		collectors.setContext(EncodingContext.TERRAIN);
+	}
 
 	public TerrainRenderContext prepareRegion(ProtoRenderRegion protoRegion) {
 		nonCullBlockEntities.clear();
@@ -85,7 +80,7 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<FastRenderR
 		removedBlockEntities.clear();
 		region.prepare(protoRegion);
 
-		if(Configurator.lightSmoothing) {
+		if (Configurator.lightSmoothing) {
 			//            final long start = counter.startRun();
 			LightSmoother.computeSmoothedBrightness(region);
 		}
@@ -108,7 +103,7 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<FastRenderR
 		matrix = matrixStack.peek().getModel();
 
 		// PERF: can probably grab this at prepare
-		normalMatrix = (Matrix3fExt)(Object) matrixStack.peek().getNormal();
+		normalMatrix = (Matrix3fExt) (Object) matrixStack.peek().getNormal();
 
 		try {
 			aoCalc.prepare(RenderRegionAddressHelper.interiorIndex(blockPos));

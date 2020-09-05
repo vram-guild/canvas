@@ -56,7 +56,7 @@ public class OcclusionBitPrinter {
 		System.out.println(header);
 		System.out.println();
 
-		for(int z = 0; z < 16; z++) {
+		for (int z = 0; z < 16; z++) {
 			System.out.println("Z = " + z);
 			printShape(sample, startIndex + z * 4);
 			System.out.println();

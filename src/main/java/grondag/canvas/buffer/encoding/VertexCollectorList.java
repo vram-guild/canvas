@@ -16,29 +16,24 @@
 
 package grondag.canvas.buffer.encoding;
 
-import java.util.Arrays;
-
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-
-import net.minecraft.util.math.MathHelper;
-
 import grondag.canvas.apiimpl.material.MeshMaterialLayer;
 import grondag.canvas.material.EncodingContext;
 import grondag.canvas.material.MaterialState;
 import grondag.canvas.material.MaterialVertexFormats;
 import grondag.canvas.shader.ShaderPass;
 import grondag.canvas.terrain.render.UploadableChunk;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import net.minecraft.util.math.MathHelper;
+
+import java.util.Arrays;
 
 /**
  * MUST ALWAYS BE USED WITHIN SAME MATERIAL CONTEXT
  */
 public class VertexCollectorList {
-	private VertexCollectorImpl[] collectors = new VertexCollectorImpl[4096];
-
-	private int solidCount = 0;
-
 	private final ObjectArrayList<VertexCollectorImpl> solidCollectors = new ObjectArrayList<>();
-
+	private VertexCollectorImpl[] collectors = new VertexCollectorImpl[4096];
+	private int solidCount = 0;
 	private EncodingContext context = null;
 
 	public VertexCollectorList() {
@@ -88,7 +83,7 @@ public class VertexCollectorList {
 			this.collectors = collectors;
 		}
 
-		if(result == null) {
+		if (result == null) {
 			assert materialState.collectorIndex != MaterialState.TRANSLUCENT_INDEX;
 			result = emptySolidCollector().prepare(context, materialState);
 			collectors[index] = result;
@@ -100,7 +95,7 @@ public class VertexCollectorList {
 	private VertexCollectorImpl emptySolidCollector() {
 		VertexCollectorImpl result;
 
-		if(solidCount == solidCollectors.size()) {
+		if (solidCount == solidCollectors.size()) {
 			result = new VertexCollectorImpl();
 			solidCollectors.add(result);
 		} else {
@@ -125,7 +120,7 @@ public class VertexCollectorList {
 
 			int intSize = 0;
 
-			for(int i = 0; i < solidCount; i++) {
+			for (int i = 0; i < solidCount; i++) {
 				intSize += solidCollectors.get(i).integerSize();
 			}
 

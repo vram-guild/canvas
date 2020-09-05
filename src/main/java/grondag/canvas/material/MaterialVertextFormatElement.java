@@ -34,7 +34,6 @@ public class MaterialVertextFormatElement {
 	/**
 	 * In vanilla lighting model, Bytes 1-2 are sky and block lightmap
 	 * coordinates. 3rd and 4th bytes are control flags. <p>
-	 *
 	 */
 	public static final MaterialVertextFormatElement LIGHTMAPS_4UB = new MaterialVertextFormatElement(
 			VertexFormatElement.Format.UBYTE, 4, "in_lightmap", false);

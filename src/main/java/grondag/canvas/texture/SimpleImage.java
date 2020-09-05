@@ -16,18 +16,16 @@
 
 package grondag.canvas.texture;
 
-import java.nio.ByteBuffer;
-import java.nio.IntBuffer;
-
 import com.mojang.blaze3d.platform.GlStateManager;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
+import net.minecraft.client.util.Untracker;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL21;
 import org.lwjgl.system.MemoryUtil;
 
-import net.minecraft.client.util.Untracker;
-
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
+import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
 
 /**
  * Leaner adaptation of Minecraft NativeImage suitable for our needs.
@@ -36,11 +34,11 @@ import net.fabricmc.api.Environment;
 public final class SimpleImage implements AutoCloseable {
 	public final int width;
 	public final int height;
-	private long pointer;
-	private final int sizeBytes;
 	public final int bytesPerPixel;
 	public final int pixelDataFormat;
 	public final int pixelDataType = GL11.GL_UNSIGNED_BYTE;
+	private final int sizeBytes;
+	private long pointer;
 	private ByteBuffer byteBuffer;
 	private IntBuffer intBuffer;
 
@@ -118,7 +116,7 @@ public final class SimpleImage implements AutoCloseable {
 
 		}
 
-		for(int i = 0; i < limit; i++) {
+		for (int i = 0; i < limit; i++) {
 			byteBuffer.put(i, value);
 		}
 	}

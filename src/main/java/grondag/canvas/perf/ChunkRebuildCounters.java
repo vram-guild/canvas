@@ -21,21 +21,22 @@ import grondag.canvas.Configurator;
 import grondag.fermion.sc.concurrency.ConcurrentPerformanceCounter;
 
 public abstract class ChunkRebuildCounters {
-	private ChunkRebuildCounters() {}
-
 	public static final boolean ENABLED = Configurator.enablePerformanceTrace;
-
 	private static final ConcurrentPerformanceCounter buildCounter = new ConcurrentPerformanceCounter();
 	private static final ConcurrentPerformanceCounter copyCounter = new ConcurrentPerformanceCounter();
 	private static final ConcurrentPerformanceCounter uploadCounter = new ConcurrentPerformanceCounter();
+	private static final ThreadLocal<Long> chunkStart = ThreadLocal.withInitial(() -> 0L);
+	private static final ThreadLocal<Long> copyStart = ThreadLocal.withInitial(() -> 0L);
+	private static final ThreadLocal<Long> uploadStart = ThreadLocal.withInitial(() -> 0L);
+
+	private ChunkRebuildCounters() {
+	}
 
 	public static void reset() {
 		buildCounter.clearStats();
 		copyCounter.clearStats();
 		uploadCounter.clearStats();
 	}
-
-	private static final ThreadLocal<Long> chunkStart = ThreadLocal.withInitial(() -> 0L);
 
 	public static void startChunk() {
 		chunkStart.set(System.nanoTime());
@@ -45,7 +46,7 @@ public abstract class ChunkRebuildCounters {
 		buildCounter.endRun(chunkStart.get());
 		final int chunkCount = buildCounter.addCount(1);
 
-		if(chunkCount == 2000) {
+		if (chunkCount == 2000) {
 			CanvasMod.LOG.info(String.format("Rebuild elapsed time per region for last 2000 chunks = %,dns  total time: %fs", buildCounter.runTime() / 2000, buildCounter.runTime() / 1000000000d));
 
 			final int copyCount = copyCounter.runCount();
@@ -59,8 +60,6 @@ public abstract class ChunkRebuildCounters {
 		}
 	}
 
-	private static final ThreadLocal<Long> copyStart = ThreadLocal.withInitial(() -> 0L);
-
 	public static void startCopy() {
 		copyStart.set(System.nanoTime());
 	}
@@ -69,8 +68,6 @@ public abstract class ChunkRebuildCounters {
 		copyCounter.endRun(copyStart.get());
 		copyCounter.addCount(1);
 	}
-
-	private static final ThreadLocal<Long> uploadStart = ThreadLocal.withInitial(() -> 0L);
 
 	public static void startUpload() {
 		uploadStart.set(System.nanoTime());

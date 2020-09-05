@@ -1,14 +1,14 @@
 {
-	"defaultMap": {
-		"spriteMap": [
-			{
-				"sprite": "minecraft:block/soul_campfire_fire",
-				"material": "canvas:emissive_no_diffuse"
-			},
-			{
-				"sprite": "minecraft:block/soul_campfire_log_lit",
-				"material": "canvas:luminance_glow"
-			}
-		]
-	}
+  "defaultMap": {
+	"spriteMap": [
+	  {
+		"sprite": "minecraft:block/soul_campfire_fire",
+		"material": "canvas:emissive_no_diffuse"
+	  },
+	  {
+		"sprite": "minecraft:block/soul_campfire_log_lit",
+		"material": "canvas:luminance_glow"
+	  }
+	]
+  }
 }

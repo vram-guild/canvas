@@ -15,17 +15,17 @@
 
 // Modulo 289 without a division (only multiplications)
 vec3 mod289(vec3 x) {
-  return x - floor(x * (1.0 / 289.0)) * 289.0;
+	return x - floor(x * (1.0 / 289.0)) * 289.0;
 }
 
 // Modulo 7 without a division
 vec3 mod7(vec3 x) {
-  return x - floor(x * (1.0 / 7.0)) * 7.0;
+	return x - floor(x * (1.0 / 7.0)) * 7.0;
 }
 
 // Permutation polynomial: (34x^2 + x) mod 289
 vec3 permute(vec3 x) {
-  return mod289((34.0 * x + 1.0) * x);
+	return mod289((34.0 * x + 1.0) * x);
 }
 
 // Cellular noise, returning F1 and F2 in a vec2.
@@ -37,15 +37,15 @@ vec3 permute(vec3 x) {
 // implementation of Worley noise hands down.
 
 vec2 cellular(vec3 P) {
-#define K 0.142857142857 // 1/7
-#define Ko 0.428571428571 // 1/2-K/2
-#define K2 0.020408163265306 // 1/(7*7)
-#define Kz 0.166666666667 // 1/6
-#define Kzo 0.416666666667 // 1/2-1/6*2
-#define jitter 1.0 // smaller jitter gives more regular pattern
+	#define K 0.142857142857// 1/7
+	#define Ko 0.428571428571// 1/2-K/2
+	#define K2 0.020408163265306// 1/(7*7)
+	#define Kz 0.166666666667// 1/6
+	#define Kzo 0.416666666667// 1/2-1/6*2
+	#define jitter 1.0// smaller jitter gives more regular pattern
 
 	vec3 Pi = mod289(floor(P));
- 	vec3 Pf = fract(P) - 0.5;
+	vec3 Pf = fract(P) - 0.5;
 
 	vec3 Pfx = Pf.x + vec3(1.0, 0.0, -1.0);
 	vec3 Pfy = Pf.y + vec3(1.0, 0.0, -1.0);
@@ -70,7 +70,7 @@ vec2 cellular(vec3 P) {
 
 	vec3 ox11 = fract(p11*K) - Ko;
 	vec3 oy11 = mod7(floor(p11*K))*K - Ko;
-	vec3 oz11 = floor(p11*K2)*Kz - Kzo; // p11 < 289 guaranteed
+	vec3 oz11 = floor(p11*K2)*Kz - Kzo;// p11 < 289 guaranteed
 
 	vec3 ox12 = fract(p12*K) - Ko;
 	vec3 oy12 = mod7(floor(p12*K))*K - Ko;
@@ -151,44 +151,44 @@ vec2 cellular(vec3 P) {
 	vec3 d33 = dx33 * dx33 + dy33 * dy33 + dz33 * dz33;
 
 	// Sort out the two smallest distances (F1, F2)
-#if 0
+	#if 0
 	// Cheat and sort out only F1
-	vec3 d1 = min(min(d11,d12), d13);
-	vec3 d2 = min(min(d21,d22), d23);
-	vec3 d3 = min(min(d31,d32), d33);
-	vec3 d = min(min(d1,d2), d3);
-	d.x = min(min(d.x,d.y),d.z);
-	return vec2(sqrt(d.x)); // F1 duplicated, no F2 computed
-#else
+	vec3 d1 = min(min(d11, d12), d13);
+	vec3 d2 = min(min(d21, d22), d23);
+	vec3 d3 = min(min(d31, d32), d33);
+	vec3 d = min(min(d1, d2), d3);
+	d.x = min(min(d.x, d.y), d.z);
+	return vec2(sqrt(d.x));// F1 duplicated, no F2 computed
+	#else
 	// Do it right and sort out both F1 and F2
 	vec3 d1a = min(d11, d12);
 	d12 = max(d11, d12);
-	d11 = min(d1a, d13); // Smallest now not in d12 or d13
+	d11 = min(d1a, d13);// Smallest now not in d12 or d13
 	d13 = max(d1a, d13);
-	d12 = min(d12, d13); // 2nd smallest now not in d13
+	d12 = min(d12, d13);// 2nd smallest now not in d13
 	vec3 d2a = min(d21, d22);
 	d22 = max(d21, d22);
-	d21 = min(d2a, d23); // Smallest now not in d22 or d23
+	d21 = min(d2a, d23);// Smallest now not in d22 or d23
 	d23 = max(d2a, d23);
-	d22 = min(d22, d23); // 2nd smallest now not in d23
+	d22 = min(d22, d23);// 2nd smallest now not in d23
 	vec3 d3a = min(d31, d32);
 	d32 = max(d31, d32);
-	d31 = min(d3a, d33); // Smallest now not in d32 or d33
+	d31 = min(d3a, d33);// Smallest now not in d32 or d33
 	d33 = max(d3a, d33);
-	d32 = min(d32, d33); // 2nd smallest now not in d33
+	d32 = min(d32, d33);// 2nd smallest now not in d33
 	vec3 da = min(d11, d21);
 	d21 = max(d11, d21);
-	d11 = min(da, d31); // Smallest now in d11
-	d31 = max(da, d31); // 2nd smallest now not in d31
+	d11 = min(da, d31);// Smallest now in d11
+	d31 = max(da, d31);// 2nd smallest now not in d31
 	d11.xy = (d11.x < d11.y) ? d11.xy : d11.yx;
-	d11.xz = (d11.x < d11.z) ? d11.xz : d11.zx; // d11.x now smallest
-	d12 = min(d12, d21); // 2nd smallest now not in d21
-	d12 = min(d12, d22); // nor in d22
-	d12 = min(d12, d31); // nor in d31
-	d12 = min(d12, d32); // nor in d32
-	d11.yz = min(d11.yz,d12.xy); // nor in d12.yz
-	d11.y = min(d11.y,d12.z); // Only two more to go
-	d11.y = min(d11.y,d11.z); // Done! (Phew!)
-	return sqrt(d11.xy); // F1, F2
-#endif
+	d11.xz = (d11.x < d11.z) ? d11.xz : d11.zx;// d11.x now smallest
+	d12 = min(d12, d21);// 2nd smallest now not in d21
+	d12 = min(d12, d22);// nor in d22
+	d12 = min(d12, d31);// nor in d31
+	d12 = min(d12, d32);// nor in d32
+	d11.yz = min(d11.yz, d12.xy);// nor in d12.yz
+	d11.y = min(d11.y, d12.z);// Only two more to go
+	d11.y = min(d11.y, d11.z);// Done! (Phew!)
+	return sqrt(d11.xy);// F1, F2
+	#endif
 }

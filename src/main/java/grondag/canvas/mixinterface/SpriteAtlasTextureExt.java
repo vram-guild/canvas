@@ -16,12 +16,11 @@
 
 package grondag.canvas.mixinterface;
 
-import java.util.Map;
-
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-
 import net.minecraft.client.texture.Sprite;
 import net.minecraft.util.Identifier;
+
+import java.util.Map;
 
 public interface SpriteAtlasTextureExt {
 	Map<Identifier, Sprite> canvas_spriteMap();

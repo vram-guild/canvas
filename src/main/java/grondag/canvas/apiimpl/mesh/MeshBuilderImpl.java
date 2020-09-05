@@ -28,8 +28,8 @@ import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
  * The one interesting bit is in {@link Maker#emit()}.
  */
 public class MeshBuilderImpl implements MeshBuilder {
-	int[] data = new int[256];
 	private final Maker maker = new Maker();
+	int[] data = new int[256];
 	int index = 0;
 	int limit = data.length;
 

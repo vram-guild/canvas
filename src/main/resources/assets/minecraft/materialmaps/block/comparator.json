@@ -1,14 +1,14 @@
 {
-	"defaultMap": {
-		"spriteMap": [
-			{
-				"sprite": "minecraft:block/comparator_on",
-				"material": "canvas:redstone"
-			},
-			{
-				"sprite": "minecraft:block/redstone_torch",
-				"material": "canvas:redstone"
-			}
-		]
-	}
+  "defaultMap": {
+	"spriteMap": [
+	  {
+		"sprite": "minecraft:block/comparator_on",
+		"material": "canvas:redstone"
+	  },
+	  {
+		"sprite": "minecraft:block/redstone_torch",
+		"material": "canvas:redstone"
+	  }
+	]
+  }
 }

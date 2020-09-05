@@ -17,18 +17,16 @@
 package grondag.canvas.render;
 
 import com.mojang.blaze3d.platform.GlStateManager;
-import org.lwjgl.opengl.GL11;
-
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.VertexFormat;
-import net.minecraft.client.render.VertexFormatElement;
-
 import grondag.canvas.Configurator;
 import grondag.canvas.material.MaterialVertexFormats;
 import grondag.canvas.pipeline.CanvasFrameBufferHacks;
 import grondag.canvas.shader.EntityShader;
 import grondag.canvas.shader.GlProgram;
 import grondag.canvas.varia.CanvasGlHelper;
+import net.minecraft.client.render.RenderLayer;
+import net.minecraft.client.render.VertexFormat;
+import net.minecraft.client.render.VertexFormatElement;
+import org.lwjgl.opengl.GL11;
 
 public enum RenderLayerHandler {
 	INSTANCE;

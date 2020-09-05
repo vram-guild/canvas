@@ -16,11 +16,9 @@
 
 package grondag.canvas.mixin;
 
-import org.spongepowered.asm.mixin.Mixin;
-
-import net.minecraft.client.texture.Sprite;
-
 import grondag.canvas.mixinterface.SpriteExt;
+import net.minecraft.client.texture.Sprite;
+import org.spongepowered.asm.mixin.Mixin;
 
 @Mixin(Sprite.class)
 public class MixinSprite implements SpriteExt {

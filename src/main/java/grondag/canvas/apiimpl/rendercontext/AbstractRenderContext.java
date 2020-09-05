@@ -16,24 +16,6 @@
 
 package grondag.canvas.apiimpl.rendercontext;
 
-import java.util.Random;
-import java.util.function.Consumer;
-
-import javax.annotation.Nullable;
-
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-
-import net.minecraft.block.BlockState;
-import net.minecraft.client.render.VertexConsumer;
-import net.minecraft.client.render.model.BakedModel;
-import net.minecraft.client.texture.Sprite;
-import net.minecraft.util.math.Matrix4f;
-
-import net.fabricmc.fabric.api.renderer.v1.material.RenderMaterial;
-import net.fabricmc.fabric.api.renderer.v1.mesh.Mesh;
-import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
-import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
-
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.material.MeshMaterialLayer;
@@ -47,22 +29,49 @@ import grondag.canvas.material.MaterialVertexFormats;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.texture.SpriteInfoTexture;
 import grondag.frex.api.material.MaterialMap;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import net.fabricmc.fabric.api.renderer.v1.material.RenderMaterial;
+import net.fabricmc.fabric.api.renderer.v1.mesh.Mesh;
+import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
+import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
+import net.minecraft.block.BlockState;
+import net.minecraft.client.render.VertexConsumer;
+import net.minecraft.client.render.model.BakedModel;
+import net.minecraft.client.texture.Sprite;
+import net.minecraft.util.math.Matrix4f;
+
+import javax.annotation.Nullable;
+import java.util.Random;
+import java.util.function.Consumer;
 
 public abstract class AbstractRenderContext implements RenderContext {
-	public final float[] vecData = new float[3];
-	public final int[] appendData  = new int[MaterialVertexFormats.MAX_QUAD_INT_STRIDE];
-	public final VertexCollectorList collectors = new VertexCollectorList();
-	private final ObjectArrayList<QuadTransform> transformStack = new ObjectArrayList<>();
 	private static final QuadTransform NO_TRANSFORM = (q) -> true;
 	private static final MaterialMap defaultMap = MaterialMap.defaultMaterialMap();
+	public final float[] vecData = new float[3];
+	public final int[] appendData = new int[MaterialVertexFormats.MAX_QUAD_INT_STRIDE];
+	public final VertexCollectorList collectors = new VertexCollectorList();
+	protected final String name;
+	protected final MeshConsumer meshConsumer = new MeshConsumer(this);
+	protected final MutableQuadViewImpl makerQuad = meshConsumer.editorQuad;
+	protected final FallbackConsumer fallbackConsumer = new FallbackConsumer(this);
+	private final ObjectArrayList<QuadTransform> transformStack = new ObjectArrayList<>();
+	private final QuadTransform stackTransform = (q) -> {
+		int i = transformStack.size() - 1;
 
+		while (i >= 0) {
+			if (!transformStack.get(i--).transform(q)) {
+				return false;
+			}
+		}
+
+		return true;
+	};
 	protected Matrix4f matrix;
 	protected Matrix3fExt normalMatrix;
 	protected int overlay;
 	protected MaterialMap materialMap = defaultMap;
 	protected boolean isFluidModel = false;
-
-	protected final String name;
+	private QuadTransform activeTransform = NO_TRANSFORM;
 
 	protected AbstractRenderContext(String name) {
 		this.name = name;
@@ -77,20 +86,6 @@ public abstract class AbstractRenderContext implements RenderContext {
 			CanvasMod.LOG.info("Lifecycle Event: close render context " + name);
 		}
 	}
-
-	private final QuadTransform stackTransform = (q) -> {
-		int i = transformStack.size() - 1;
-
-		while (i >= 0) {
-			if (!transformStack.get(i--).transform(q)) {
-				return false;
-			}
-		}
-
-		return true;
-	};
-
-	private QuadTransform activeTransform = NO_TRANSFORM;
 
 	protected final boolean transform(MutableQuadViewImpl q) {
 		return activeTransform.transform(q);
@@ -139,15 +134,10 @@ public abstract class AbstractRenderContext implements RenderContext {
 		}
 	}
 
-	protected final MeshConsumer meshConsumer = new MeshConsumer(this);
-	protected final MutableQuadViewImpl makerQuad = meshConsumer.editorQuad;
-
 	@Override
 	public final Consumer<Mesh> meshConsumer() {
 		return meshConsumer;
 	}
-
-	protected final FallbackConsumer fallbackConsumer = new FallbackConsumer(this);
 
 	@Override
 	public final Consumer<BakedModel> fallbackConsumer() {
@@ -188,7 +178,8 @@ public abstract class AbstractRenderContext implements RenderContext {
 	/**
 	 * Null in some contexts, like ITEM.
 	 */
-	public abstract @Nullable AoCalculator aoCalc();
+	public abstract @Nullable
+	AoCalculator aoCalc();
 
 	public abstract int flatBrightness(MutableQuadViewImpl quad);
 

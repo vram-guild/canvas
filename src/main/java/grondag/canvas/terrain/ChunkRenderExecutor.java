@@ -16,16 +16,14 @@
 
 package grondag.canvas.terrain;
 
+import com.google.common.collect.ImmutableList;
+import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
+import grondag.fermion.sc.Sc;
+import net.minecraft.client.MinecraftClient;
+
 import java.util.Comparator;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.function.Consumer;
-
-import com.google.common.collect.ImmutableList;
-
-import net.minecraft.client.MinecraftClient;
-
-import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
-import grondag.fermion.sc.Sc;
 
 /**
  * Simple executor service with ability to submit privileged tasks
@@ -34,7 +32,7 @@ import grondag.fermion.sc.Sc;
  * and privileged tasks run in order of submission.
  */
 public class ChunkRenderExecutor {
-	private final PriorityBlockingQueue<ChunkBuildTask> queue = new  PriorityBlockingQueue<>(1024, new Comparator<ChunkBuildTask>() {
+	private final PriorityBlockingQueue<ChunkBuildTask> queue = new PriorityBlockingQueue<>(1024, new Comparator<ChunkBuildTask>() {
 		@Override
 		public int compare(ChunkBuildTask o1, ChunkBuildTask o2) {
 			return Integer.compare(o1.priority, o2.priority);
@@ -49,8 +47,7 @@ public class ChunkRenderExecutor {
 	public ChunkRenderExecutor() {
 		final ImmutableList.Builder<Worker> builder = ImmutableList.builder();
 
-		for(int i = 0; i < poolSize; i++)
-		{
+		for (int i = 0; i < poolSize; i++) {
 			final Worker w = new Worker();
 			builder.add(w);
 
@@ -67,7 +64,7 @@ public class ChunkRenderExecutor {
 	private static int threadCount() {
 		final int threadCount = Runtime.getRuntime().availableProcessors() - 1;
 
-		if (threadCount > 4 &&  !MinecraftClient.getInstance().is64Bit()) {
+		if (threadCount > 4 && !MinecraftClient.getInstance().is64Bit()) {
 			return 4;
 		}
 
@@ -76,18 +73,6 @@ public class ChunkRenderExecutor {
 
 	public void execute(Consumer<TerrainRenderContext> task, int squaredDistance) {
 		queue.add(new ChunkBuildTask(task, squaredDistance));
-	}
-
-	private class ChunkBuildTask {
-		final Consumer<TerrainRenderContext> task;
-
-		/** Normally squared distance. Use -1 for privileged execution */
-		final int priority;
-
-		ChunkBuildTask(Consumer<TerrainRenderContext> task, int priority) {
-			this.task = task;
-			this.priority = priority;
-		}
 	}
 
 	public void clear() {
@@ -103,21 +88,35 @@ public class ChunkRenderExecutor {
 		return queue.isEmpty();
 	}
 
+	private class ChunkBuildTask {
+		final Consumer<TerrainRenderContext> task;
+
+		/**
+		 * Normally squared distance. Use -1 for privileged execution
+		 */
+		final int priority;
+
+		ChunkBuildTask(Consumer<TerrainRenderContext> task, int priority) {
+			this.task = task;
+			this.priority = priority;
+		}
+	}
+
 	private class Worker implements Runnable {
 		private TerrainRenderContext context = new TerrainRenderContext();
 
 		@Override
-		public void run()  {
-			while(true) {
+		public void run() {
+			while (true) {
 				try {
 					final ChunkBuildTask t = queue.take();
 
-					if(t != null) {
+					if (t != null) {
 						t.task.accept(context);
 					}
-				} catch (final InterruptedException e)  {
+				} catch (final InterruptedException e) {
 					// NOOP
-				} catch (final Exception e){
+				} catch (final Exception e) {
 					Sc.LOG.error("Unhandled error during rendering. Impact unknown.", e);
 				}
 			}

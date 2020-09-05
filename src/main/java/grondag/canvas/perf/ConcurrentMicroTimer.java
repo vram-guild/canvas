@@ -16,10 +16,10 @@
 
 package grondag.canvas.perf;
 
+import grondag.canvas.CanvasMod;
+
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
-
-import grondag.canvas.CanvasMod;
 
 /**
  * For crude but simple microbenchmarks - for small scope, in-game situations

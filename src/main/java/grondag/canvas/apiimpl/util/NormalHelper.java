@@ -16,12 +16,11 @@
 
 package grondag.canvas.apiimpl.util;
 
+import net.fabricmc.fabric.api.renderer.v1.mesh.QuadView;
 import net.minecraft.client.util.math.Vector3f;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3i;
-
-import net.fabricmc.fabric.api.renderer.v1.mesh.QuadView;
 
 /**
  * Static routines of general utility for renderer implementations.
@@ -29,7 +28,8 @@ import net.fabricmc.fabric.api.renderer.v1.mesh.QuadView;
  * designed to be usable without the default renderer.
  */
 public abstract class NormalHelper {
-	private NormalHelper() { }
+	private NormalHelper() {
+	}
 
 	/**
 	 * Stores a normal plus an extra value as a quartet of signed bytes.

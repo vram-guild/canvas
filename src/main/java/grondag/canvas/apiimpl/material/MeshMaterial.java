@@ -16,28 +16,24 @@
 
 package grondag.canvas.apiimpl.material;
 
-import javax.annotation.Nullable;
-
+import grondag.canvas.apiimpl.MaterialConditionImpl;
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 
-import grondag.canvas.apiimpl.MaterialConditionImpl;
+import javax.annotation.Nullable;
 
 /**
  * Mesh material with a specific blend mode and one or more layers.
  * This class controls overall quad buffer prep and encoding, but individual
  * layers control which buffers are targeted and individual layers.
- *
+ * <p>
  * WIP: make sure can handle "dual" render layers and similar vanilla constructs.
- *
  */
 public class MeshMaterial extends AbstractMeshMaterial {
-	final MaterialConditionImpl condition;
-
 	/**
 	 * True if base layer is translucent.
 	 */
 	public final boolean isTranslucent;
-
+	final MaterialConditionImpl condition;
 	private final MeshMaterialLayer[] layers = new MeshMaterialLayer[MAX_SPRITE_DEPTH];
 
 	protected MeshMaterial(MeshMaterialLocator locator) {
@@ -61,7 +57,8 @@ public class MeshMaterial extends AbstractMeshMaterial {
 	/**
 	 * Returns a single-layer material appropriate for the base layer or overlay/decal layer given.
 	 */
-	public @Nullable MeshMaterialLayer getLayer(int layerIndex) {
+	public @Nullable
+	MeshMaterialLayer getLayer(int layerIndex) {
 		assert layerIndex < spriteDepth();
 		return layers[layerIndex];
 	}

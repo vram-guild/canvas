@@ -30,10 +30,17 @@ public abstract class DrawHandler {
 	public final MaterialVertexFormat format;
 	public final ShaderPass shaderPass;
 
-	DrawHandler (MaterialVertexFormat format, ShaderPass shaderPass) {
+	DrawHandler(MaterialVertexFormat format, ShaderPass shaderPass) {
 		assert shaderPass != ShaderPass.PROCESS;
 		this.format = format;
 		this.shaderPass = shaderPass;
+	}
+
+	public static void teardown() {
+		if (current != null) {
+			current.teardownInner();
+			current = null;
+		}
 	}
 
 	public final void setup() {
@@ -57,13 +64,6 @@ public abstract class DrawHandler {
 			d.teardownInner();
 			setupInner();
 			current = this;
-		}
-	}
-
-	public static void teardown() {
-		if (current != null) {
-			current.teardownInner();
-			current = null;
 		}
 	}
 

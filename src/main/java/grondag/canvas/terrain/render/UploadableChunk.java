@@ -21,6 +21,12 @@ import grondag.canvas.buffer.encoding.VertexCollectorList;
 import grondag.canvas.material.MaterialVertexFormat;
 
 public class UploadableChunk {
+	public static final UploadableChunk EMPTY_UPLOADABLE = new UploadableChunk() {
+		@Override
+		public DrawableChunk produceDrawable() {
+			return DrawableChunk.EMPTY_DRAWABLE;
+		}
+	};
 	protected final VboBuffer vboBuffer;
 	protected final DrawableChunk drawable;
 
@@ -41,11 +47,4 @@ public class UploadableChunk {
 		vboBuffer.upload();
 		return drawable;
 	}
-
-	public static final UploadableChunk EMPTY_UPLOADABLE = new UploadableChunk() {
-		@Override
-		public DrawableChunk produceDrawable() {
-			return DrawableChunk.EMPTY_DRAWABLE;
-		}
-	};
 }

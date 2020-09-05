@@ -28,7 +28,7 @@ public class RegionChunkReference {
 	private boolean areCornersLoadedCache = false;
 	private int refCount = 0;
 
-	public  RegionChunkReference(ClientWorld world, long chunkPos) {
+	public RegionChunkReference(ClientWorld world, long chunkPos) {
 		this.world = world;
 		chunkX = ChunkPos.getPackedX(chunkPos);
 		chunkZ = ChunkPos.getPackedZ(chunkPos);

@@ -21,53 +21,8 @@ import it.unimi.dsi.fastutil.ints.IntConsumer;
 public class AreaFinder {
 	final long[] bits = new long[4];
 
-	public long[] bitsFromIndex(int areaIndex) {
-		final long[] result = bits;
-
-		result[0] = Area.bitsFromIndex(areaIndex, 0);
-		result[1] = Area.bitsFromIndex(areaIndex, 1);
-		result[2] = Area.bitsFromIndex(areaIndex, 2);
-		result[3] = Area.bitsFromIndex(areaIndex, 3);
-
-		return result;
-	}
-
-	public void find(long[] bitsIn, int sourceIndex, IntConsumer areaIndexConsumer) {
-		final long[] bits = this.bits;
-		System.arraycopy(bitsIn, sourceIndex, bits, 0, 4);
-
-		int bitCount = bitCount(bits[0]) +  bitCount(bits[1]) +  bitCount(bits[2]) +  bitCount(bits[3]);
-
-		while(bitCount > 0) {
-			final int key = findLargest(bits);
-			final int index = Area.keyToIndex(key);
-			areaIndexConsumer.accept(index);
-			Area.clearBits(bits, 0, index);
-			bitCount -= Area.size(key);
-		}
-	}
-
 	private static int bitCount(long bits) {
 		return bits == 0 ? 0 : Long.bitCount(bits);
-	}
-
-	public void findSections(long[] bitsIn, int sourceIndex, IntConsumer areaIndexConsumer) {
-		final long[] bits = this.bits;
-		System.arraycopy(bitsIn, sourceIndex, bits, 0, 4);
-
-		final int bitCount = Long.bitCount(bits[0]) + Long.bitCount(bits[1]) + Long.bitCount(bits[2]) + Long.bitCount(bits[3]);
-
-		if (bitCount == 0) {
-			return;
-		}
-
-		for(int i = 0; i < Area.SECTION_COUNT; ++i) {
-			final int areaIndex = Area.sectionToAreaIndex(i);
-
-			if (Area.isIncludedBySample(bits, 0, areaIndex)) {
-				areaIndexConsumer.accept(areaIndex);
-			}
-		}
 	}
 
 	// based on approach described here:
@@ -88,7 +43,7 @@ public class AreaFinder {
 		for (int y = 0; y < 16; ++y) {
 			final int rowBits = (int) ((bitsIn[y >> 2] >> ((y & 3) << 4)) & 0xFFFF);
 
-			if  (rowBits == 0) {
+			if (rowBits == 0) {
 				heights = 0;
 				continue;
 			}
@@ -124,7 +79,7 @@ public class AreaFinder {
 					// new run starts here
 					runStart = x;
 					runHeight = h;
-				} else  {
+				} else {
 					// if reduction in height, close out current run and
 					// also runs on stack until revert to a sustainable run
 					// or the stack is empty
@@ -181,25 +136,78 @@ public class AreaFinder {
 		return Area.areaKey(bestX0, bestY0, bestX1, bestY1);
 	}
 
-	/** 1-16 values */
+	/**
+	 * 1-16 values
+	 */
 	private static int getVal16(long packed, int x) {
 		return 1 + getVal15(packed, x);
 	}
 
-	/** 1-16 values */
+	/**
+	 * 1-16 values
+	 */
 	private static long setVal16(long packed, int x, int val) {
-		return setVal15(packed, x, val -1);
+		return setVal15(packed, x, val - 1);
 	}
 
-	/** 0-15 values */
+	/**
+	 * 0-15 values
+	 */
 	private static int getVal15(long packed, int x) {
 		return (int) ((packed >>> (x << 2)) & 0xF);
 	}
 
-	/** 0-15 values */
+	/**
+	 * 0-15 values
+	 */
 	private static long setVal15(long packed, int x, int val) {
 		final int shift = x << 2;
 		final long mask = 0xFL << shift;
 		return (packed & ~mask) | (((long) val) << shift);
+	}
+
+	public long[] bitsFromIndex(int areaIndex) {
+		final long[] result = bits;
+
+		result[0] = Area.bitsFromIndex(areaIndex, 0);
+		result[1] = Area.bitsFromIndex(areaIndex, 1);
+		result[2] = Area.bitsFromIndex(areaIndex, 2);
+		result[3] = Area.bitsFromIndex(areaIndex, 3);
+
+		return result;
+	}
+
+	public void find(long[] bitsIn, int sourceIndex, IntConsumer areaIndexConsumer) {
+		final long[] bits = this.bits;
+		System.arraycopy(bitsIn, sourceIndex, bits, 0, 4);
+
+		int bitCount = bitCount(bits[0]) + bitCount(bits[1]) + bitCount(bits[2]) + bitCount(bits[3]);
+
+		while (bitCount > 0) {
+			final int key = findLargest(bits);
+			final int index = Area.keyToIndex(key);
+			areaIndexConsumer.accept(index);
+			Area.clearBits(bits, 0, index);
+			bitCount -= Area.size(key);
+		}
+	}
+
+	public void findSections(long[] bitsIn, int sourceIndex, IntConsumer areaIndexConsumer) {
+		final long[] bits = this.bits;
+		System.arraycopy(bitsIn, sourceIndex, bits, 0, 4);
+
+		final int bitCount = Long.bitCount(bits[0]) + Long.bitCount(bits[1]) + Long.bitCount(bits[2]) + Long.bitCount(bits[3]);
+
+		if (bitCount == 0) {
+			return;
+		}
+
+		for (int i = 0; i < Area.SECTION_COUNT; ++i) {
+			final int areaIndex = Area.sectionToAreaIndex(i);
+
+			if (Area.isIncludedBySample(bits, 0, areaIndex)) {
+				areaIndexConsumer.accept(areaIndex);
+			}
+		}
 	}
 }

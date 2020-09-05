@@ -16,12 +16,11 @@
 
 package grondag.canvas.apiimpl.material;
 
-import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
-
 import grondag.canvas.apiimpl.MaterialConditionImpl;
 import grondag.frex.api.material.MaterialCondition;
 import grondag.frex.api.material.MaterialFinder;
 import grondag.frex.api.material.MaterialShader;
+import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 
 public class MeshMaterialFinder extends AbstractMeshMaterial implements MaterialFinder {
 	@Override
@@ -56,7 +55,7 @@ public class MeshMaterialFinder extends AbstractMeshMaterial implements Material
 	@Override
 	public MeshMaterialFinder blendMode(int spriteIndex, BlendMode blendMode) {
 		if (spriteIndex == 0) {
-			if (blendMode == null)  {
+			if (blendMode == null) {
 				blendMode = BlendMode.DEFAULT;
 			}
 
@@ -108,7 +107,7 @@ public class MeshMaterialFinder extends AbstractMeshMaterial implements Material
 
 	@Override
 	public MeshMaterialFinder condition(MaterialCondition condition) {
-		CONDITION.setValue(((MaterialConditionImpl)condition).index, this);
+		CONDITION.setValue(((MaterialConditionImpl) condition).index, this);
 		return this;
 	}
 

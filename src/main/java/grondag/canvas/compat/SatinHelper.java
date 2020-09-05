@@ -16,13 +16,12 @@
 
 package grondag.canvas.compat;
 
-import ladysnake.satin.api.event.EntitiesPostRenderCallback;
-import ladysnake.satin.api.event.EntitiesPreRenderCallback;
-import ladysnake.satin.api.event.PostWorldRenderCallbackV2;
-
 import grondag.canvas.compat.SatinHolder.SatinBeforeEntitiesRendered;
 import grondag.canvas.compat.SatinHolder.SatinOnEntitiesRendered;
 import grondag.canvas.compat.SatinHolder.SatinOnWorldRendered;
+import ladysnake.satin.api.event.EntitiesPostRenderCallback;
+import ladysnake.satin.api.event.EntitiesPreRenderCallback;
+import ladysnake.satin.api.event.PostWorldRenderCallbackV2;
 
 public class SatinHelper {
 	static SatinOnWorldRendered onWorldRenderedEvent() {

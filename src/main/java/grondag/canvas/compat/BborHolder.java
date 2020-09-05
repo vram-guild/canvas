@@ -16,21 +16,19 @@
 
 package grondag.canvas.compat;
 
+import grondag.canvas.CanvasMod;
+import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.client.util.math.MatrixStack;
+
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
 
-import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.client.util.math.MatrixStack;
-
-import net.fabricmc.loader.api.FabricLoader;
-
-import grondag.canvas.CanvasMod;
-
 public class BborHolder {
+	public static RenderHandler bborHandler = (m, t, p) -> {
+	};
 	private static boolean warnRender = true;
-
-	public static RenderHandler bborHandler = (m, t, p) -> {};
 
 	static {
 		if (FabricLoader.getInstance().isModLoaded("bbor")) {
@@ -48,7 +46,7 @@ public class BborHolder {
 				final MethodHandle renderHookHandler = lookup.unreflect(renderHook);
 
 				bborHandler = (m, t, p) -> {
-					try  {
+					try {
 						renderHookHandler.invokeExact(m, t, p);
 					} catch (final Throwable e) {
 						if (warnRender) {
@@ -60,7 +58,7 @@ public class BborHolder {
 				};
 
 				CanvasMod.LOG.info("Found Bounding Box Outline Reloaded - compatibility hook enabled");
-			} catch (final Exception e)  {
+			} catch (final Exception e) {
 				CanvasMod.LOG.warn("Unable to find Bounding Box Outline Reloaded render hook due to exception:", e);
 			}
 		}

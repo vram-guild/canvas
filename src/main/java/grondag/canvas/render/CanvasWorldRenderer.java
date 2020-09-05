@@ -16,81 +16,13 @@
 
 package grondag.canvas.render;
 
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import javax.annotation.Nullable;
-
 import com.google.common.collect.Sets;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
-import it.unimi.dsi.fastutil.longs.Long2ObjectMap.Entry;
-import it.unimi.dsi.fastutil.objects.ObjectIterator;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
-import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL21;
-
-import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gl.Framebuffer;
-import net.minecraft.client.gl.ShaderEffect;
-import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.client.options.CloudRenderMode;
-import net.minecraft.client.options.Option;
-import net.minecraft.client.render.BackgroundRenderer;
-import net.minecraft.client.render.BlockBreakingInfo;
-import net.minecraft.client.render.BufferBuilder;
-import net.minecraft.client.render.BufferBuilderStorage;
-import net.minecraft.client.render.Camera;
-import net.minecraft.client.render.DiffuseLighting;
-import net.minecraft.client.render.GameRenderer;
-import net.minecraft.client.render.LightmapTextureManager;
-import net.minecraft.client.render.OutlineVertexConsumerProvider;
-import net.minecraft.client.render.OverlayVertexConsumer;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.Tessellator;
-import net.minecraft.client.render.TexturedRenderLayers;
-import net.minecraft.client.render.VertexConsumer;
-import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.render.VertexConsumerProvider.Immediate;
-import net.minecraft.client.render.VertexConsumers;
-import net.minecraft.client.render.VertexFormats;
-import net.minecraft.client.render.WorldRenderer;
-import net.minecraft.client.render.block.entity.BlockEntityRenderDispatcher;
-import net.minecraft.client.render.entity.EntityRenderDispatcher;
-import net.minecraft.client.render.model.ModelLoader;
-import net.minecraft.client.texture.SpriteAtlasTexture;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.util.Util;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.hit.HitResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Box;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Matrix4f;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.profiler.Profiler;
-import net.minecraft.world.World;
-
 import grondag.canvas.Configurator;
 import grondag.canvas.buffer.BindStateManager;
 import grondag.canvas.buffer.VboBuffer;
-import grondag.canvas.compat.BborHolder;
-import grondag.canvas.compat.ClothHolder;
-import grondag.canvas.compat.DynocapsHolder;
-import grondag.canvas.compat.JustMapHolder;
-import grondag.canvas.compat.LambDynLightsHolder;
-import grondag.canvas.compat.LitematicaHolder;
-import grondag.canvas.compat.MaliLibHolder;
-import grondag.canvas.compat.SatinHolder;
+import grondag.canvas.compat.*;
 import grondag.canvas.light.LightmapHdTexture;
 import grondag.canvas.mixinterface.WorldRendererExt;
 import grondag.canvas.pipeline.BufferDebug;
@@ -110,45 +42,111 @@ import grondag.canvas.texture.DitherTexture;
 import grondag.canvas.varia.CanvasGlHelper;
 import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
 import grondag.frex.api.event.WorldRenderEvent;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap.Entry;
+import it.unimi.dsi.fastutil.objects.ObjectIterator;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gl.Framebuffer;
+import net.minecraft.client.gl.ShaderEffect;
+import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.client.options.CloudRenderMode;
+import net.minecraft.client.options.Option;
+import net.minecraft.client.render.*;
+import net.minecraft.client.render.VertexConsumerProvider.Immediate;
+import net.minecraft.client.render.block.entity.BlockEntityRenderDispatcher;
+import net.minecraft.client.render.entity.EntityRenderDispatcher;
+import net.minecraft.client.render.model.ModelLoader;
+import net.minecraft.client.texture.SpriteAtlasTexture;
+import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.client.world.ClientWorld;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.util.Util;
+import net.minecraft.util.hit.BlockHitResult;
+import net.minecraft.util.hit.HitResult;
+import net.minecraft.util.math.*;
+import net.minecraft.util.profiler.Profiler;
+import net.minecraft.world.World;
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL21;
+
+import javax.annotation.Nullable;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class CanvasWorldRenderer extends WorldRenderer {
+	public static final int MAX_REGION_COUNT = (32 * 2 + 1) * (32 * 2 + 1) * 16;
+	private static CanvasWorldRenderer instance;
+	public final TerrainOccluder terrainOccluder = new TerrainOccluder();
+	// TODO: redirect uses in MC WorldRenderer
+	public final Set<BuiltRenderRegion> regionsToRebuild = Sets.newLinkedHashSet();
+	final TerrainLayerRenderer SOLID = new TerrainLayerRenderer("solid", ShaderContext.TERRAIN_SOLID, null);
+	final TerrainLayerRenderer DECAL = new TerrainLayerRenderer("decal", ShaderContext.TERRAIN_DECAL, null);
+	private final RenderRegionStorage renderRegionStorage = new RenderRegionStorage(this);
+	private final TerrainIterator terrainIterator = new TerrainIterator(this);
+	private final CanvasFrustum frustum = new CanvasFrustum();
+	/**
+	 * Incremented whenever regions are built so visibility search can progress or to indicate visibility might be changed.
+	 * Distinct from occluder state, which indiciates if/when occluder must be reset or redrawn.
+	 */
+	private final AtomicInteger regionDataVersion = new AtomicInteger();
+	private final BuiltRenderRegion[] visibleRegions = new BuiltRenderRegion[MAX_REGION_COUNT];
+	private final WorldRendererExt wr;
 	private boolean terrainSetupOffThread = Configurator.terrainSetupOffThread;
 	private int playerLightmap = 0;
 	private RenderRegionBuilder regionBuilder;
-	private final RenderRegionStorage renderRegionStorage = new RenderRegionStorage(this);
-	public final TerrainOccluder terrainOccluder = new TerrainOccluder();
-	private final TerrainIterator terrainIterator = new TerrainIterator(this);
-	private final CanvasFrustum frustum = new CanvasFrustum();
 	private int translucentSortPositionVersion;
 	private int viewVersion;
 	private int occluderVersion;
 	private ClientWorld world;
 	private int squaredRenderDistance;
 	private int squaredRetentionDistance;
-
 	private Vec3d cameraPos;
-
-	/**
-	 * Incremented whenever regions are built so visibility search can progress or to indicate visibility might be changed.
-	 * Distinct from occluder state, which indiciates if/when occluder must be reset or redrawn.
-	 */
-	private final AtomicInteger regionDataVersion = new AtomicInteger();
-
 	private int lastRegionDataVersion = -1;
-
-	// TODO: redirect uses in MC WorldRenderer
-	public final Set<BuiltRenderRegion> regionsToRebuild = Sets.newLinkedHashSet();
-
-	private final BuiltRenderRegion[] visibleRegions = new BuiltRenderRegion[MAX_REGION_COUNT];
 	private int visibleRegionCount = 0;
-
-	private final WorldRendererExt wr;
+	final TerrainLayerRenderer TRANSLUCENT = new TerrainLayerRenderer("translucemt", ShaderContext.TERRAIN_TRANSLUCENT, this::sortTranslucentTerrain);
 
 	public CanvasWorldRenderer(MinecraftClient client, BufferBuilderStorage bufferBuilders) {
 		super(client, bufferBuilders);
 		wr = (WorldRendererExt) this;
 		instance = this;
 		computeDistances();
+	}
+
+	// FIX: missing edges with off-thread iteration - try frustum check on thread but leave potentially visible set off
+	// PERF: render larger cubes - avoid matrix state changes
+	// PERF: cull particle rendering?
+	// PERF: reduce garbage generation
+	// PERF: lod culling: don't render grass, cobwebs, flowers, etc. at longer ranges
+	// PERF: render leaves as solid at distance - omit interior faces
+	// PERF: get VAO working again
+	// PERF: consider trying backface culling again but at draw time w/ glMultiDrawArrays
+
+	public static int playerLightmap() {
+		return instance == null ? 0 : instance.playerLightmap;
+	}
+
+	private static int rangeColor(int range) {
+		switch (range) {
+			default:
+			case PackedBox.RANGE_NEAR:
+				return 0x80FF8080;
+
+			case PackedBox.RANGE_MID:
+				return 0x80FFFF80;
+
+			case PackedBox.RANGE_FAR:
+				return 0x8080FF80;
+
+			case PackedBox.RANGE_EXTREME:
+				return 0x808080FF;
+		}
+	}
+
+	public static CanvasWorldRenderer instance() {
+		return instance;
 	}
 
 	private void computeDistances() {
@@ -174,15 +172,25 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		return world;
 	}
 
-	// FIX: missing edges with off-thread iteration - try frustum check on thread but leave potentially visible set off
-	// PERF: render larger cubes - avoid matrix state changes
-	// PERF: cull particle rendering?
-	// PERF: reduce garbage generation
-	// PERF: lod culling: don't render grass, cobwebs, flowers, etc. at longer ranges
-	// PERF: render leaves as solid at distance - omit interior faces
-	// PERF: get VAO working again
-	// PERF: consider trying backface culling again but at draw time w/ glMultiDrawArrays
+	@Override
+	public void setWorld(@Nullable ClientWorld clientWorld) {
+		// happens here to avoid creating before renderer is initialized
+		if (regionBuilder == null) {
+			regionBuilder = new RenderRegionBuilder();
+		}
 
+		DitherTexture.instance().initializeIfNeeded();
+		world = clientWorld;
+		visibleRegionCount = 0;
+		renderRegionStorage.clear();
+		Arrays.fill(visibleRegions, null);
+		terrainIterator.reset();
+		renderRegionStorage.clear();
+		Arrays.fill(terrainIterator.visibleRegions, null);
+
+		// Mixins mostly disable what this does
+		super.setWorld(clientWorld);
+	}
 
 	/**
 	 * Terrain rebuild is partly lazy/incremental
@@ -216,7 +224,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		final BuiltRenderRegion cameraRegion = cameraBlockPos.getY() < 0 || cameraBlockPos.getY() > 255 ? null : regionStorage.getOrCreateRegion(cameraBlockPos);
 
 		mc.getProfiler().swap("buildnear");
-		if (cameraRegion != null)  {
+		if (cameraRegion != null) {
 			buildNearRegion(cameraRegion);
 
 			for (int i = 0; i < 6; ++i) {
@@ -282,15 +290,15 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		mc.getProfiler().pop();
 	}
 
-	private void scheduleOrBuild(SimpleUnorderedArrayList<BuiltRenderRegion> updateRegions)  {
+	private void scheduleOrBuild(SimpleUnorderedArrayList<BuiltRenderRegion> updateRegions) {
 		final int limit = updateRegions.size();
 		final Set<BuiltRenderRegion> regionsToRebuild = this.regionsToRebuild;
 
-		if (limit == 0 ) {
+		if (limit == 0) {
 			return;
 		}
 
-		for (int i = 0; i < limit;  ++i) {
+		for (int i = 0; i < limit; ++i) {
 			final BuiltRenderRegion region = updateRegions.get(i);
 
 			if (region.needsRebuild()) {
@@ -305,16 +313,12 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		}
 	}
 
-	private void buildNearRegion(BuiltRenderRegion region)  {
-		if(region.needsRebuild())  {
+	private void buildNearRegion(BuiltRenderRegion region) {
+		if (region.needsRebuild()) {
 			regionsToRebuild.remove(region);
 			region.rebuildOnMainThread();
 			region.markBuilt();
 		}
-	}
-
-	public static int playerLightmap() {
-		return instance == null ? 0 : instance.playerLightmap;
 	}
 
 	private void updatePlayerLightmap(MinecraftClient mc, float f) {
@@ -322,7 +326,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	}
 
 	@SuppressWarnings("resource")
-	private boolean shouldCullChunks(BlockPos pos)  {
+	private boolean shouldCullChunks(BlockPos pos) {
 		final MinecraftClient mc = wr.canvas_mc();
 		boolean result = wr.canvas_mc().chunkCullingEnabled;
 
@@ -452,8 +456,8 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		while (entities.hasNext()) {
 			final Entity entity = entities.next();
-			if((!entityRenderDispatcher.shouldRender(entity, frustum, cameraX, cameraY, cameraZ) && !entity.hasPassengerDeep(mc.player))
-					|| (entity == camera.getFocusedEntity() && !camera.isThirdPerson() && (!(camera.getFocusedEntity() instanceof LivingEntity) || !((LivingEntity)camera.getFocusedEntity()).isSleeping()))
+			if ((!entityRenderDispatcher.shouldRender(entity, frustum, cameraX, cameraY, cameraZ) && !entity.hasPassengerDeep(mc.player))
+					|| (entity == camera.getFocusedEntity() && !camera.isThirdPerson() && (!(camera.getFocusedEntity() instanceof LivingEntity) || !((LivingEntity) camera.getFocusedEntity()).isSleeping()))
 					|| (entity instanceof ClientPlayerEntity && camera.getFocusedEntity() != entity)) {
 				continue;
 			}
@@ -506,7 +510,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 			final Iterator<BlockEntity> itBER = list.iterator();
 
-			while(itBER.hasNext()) {
+			while (itBER.hasNext()) {
 				final BlockEntity blockEntity = itBER.next();
 				final BlockPos blockPos = blockEntity.getPos();
 				VertexConsumerProvider outputConsumer = immediate;
@@ -534,10 +538,10 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			}
 		}
 
-		synchronized(noCullingBlockEntities) {
+		synchronized (noCullingBlockEntities) {
 			final Iterator<BlockEntity> globalBERs = noCullingBlockEntities.iterator();
 
-			while(globalBERs.hasNext()) {
+			while (globalBERs.hasNext()) {
 				final BlockEntity blockEntity2 = globalBERs.next();
 				final BlockPos blockPos2 = blockEntity2.getPos();
 				matrixStack.push();
@@ -568,7 +572,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		profiler.swap("destroyProgress");
 		final ObjectIterator<Entry<SortedSet<BlockBreakingInfo>>> breakings = wr.canvas_blockBreakingProgressions().long2ObjectEntrySet().iterator();
 
-		while(breakings.hasNext()) {
+		while (breakings.hasNext()) {
 			final Entry<SortedSet<BlockBreakingInfo>> entry = breakings.next();
 			final BlockPos breakPos = BlockPos.fromLong(entry.getLongKey());
 			final double y = breakPos.getX() - cameraX;
@@ -597,7 +601,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		if (blockOutlines && hitResult != null && hitResult.getType() == HitResult.Type.BLOCK) {
 			profiler.swap("outline");
-			final BlockPos blockPos4 = ((BlockHitResult)hitResult).getBlockPos();
+			final BlockPos blockPos4 = ((BlockHitResult) hitResult).getBlockPos();
 			final BlockState blockState = world.getBlockState(blockPos4);
 
 			if (!blockState.isAir() && world.getWorldBorder().contains(blockPos4)) {
@@ -642,7 +646,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			mc.particleManager.renderParticles(matrixStack, immediate, lightmapTextureManager, camera, tickDelta);
 
 			mcfb.beginWrite(false);
-		}  else  {
+		} else {
 			profiler.swap("translucent");
 			renderTerrainLayer(true, matrixStack, cameraX, cameraY, cameraZ);
 			profiler.swap("particles");
@@ -721,9 +725,8 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		wr.canvas_setEntityCounts(entityCount, blockEntityCount);
 	}
 
-	private void renderCullBoxes(MatrixStack matrixStack, Immediate immediate, double cameraX, double cameraY, double cameraZ,  float tickDelta) {
-		@SuppressWarnings("resource")
-		final Entity entity = MinecraftClient.getInstance().gameRenderer.getCamera().getFocusedEntity();
+	private void renderCullBoxes(MatrixStack matrixStack, Immediate immediate, double cameraX, double cameraY, double cameraZ, float tickDelta) {
+		@SuppressWarnings("resource") final Entity entity = MinecraftClient.getInstance().gameRenderer.getCamera().getFocusedEntity();
 
 		final HitResult hit = entity.raycast(12 * 16, tickDelta, true);
 
@@ -802,22 +805,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		RenderSystem.popMatrix();
 	}
 
-	private static int rangeColor(int range) {
-		switch (range) {
-		default:
-		case  PackedBox.RANGE_NEAR:
-			return 0x80FF8080;
-
-		case  PackedBox.RANGE_MID:
-			return 0x80FFFF80;
-
-		case  PackedBox.RANGE_FAR:
-			return 0x8080FF80;
-
-		case  PackedBox.RANGE_EXTREME:
-			return 0x808080FF;
-		}
-	}
+	//	private static final Direction[] DIRECTIONS = Direction.values();
 
 	private void drawOutline(BufferBuilder bufferBuilder, double x0, double y0, double z0, double x1, double y1, double z1, int color) {
 		final int a = (color >>> 24) & 0xFF;
@@ -872,10 +860,6 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		mc.getProfiler().pop();
 	}
 
-	final TerrainLayerRenderer SOLID = new TerrainLayerRenderer("solid", ShaderContext.TERRAIN_SOLID, null);
-	final TerrainLayerRenderer DECAL = new TerrainLayerRenderer("decal", ShaderContext.TERRAIN_DECAL, null);
-	final TerrainLayerRenderer TRANSLUCENT = new TerrainLayerRenderer("translucemt", ShaderContext.TERRAIN_TRANSLUCENT, this::sortTranslucentTerrain);
-
 	private void renderTerrainLayer(boolean isTranslucent, MatrixStack matrixStack, double x, double y, double z) {
 		final BuiltRenderRegion[] visibleRegions = this.visibleRegions;
 		final int visibleRegionCount = this.visibleRegionCount;
@@ -924,7 +908,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		if (!regionsToRebuild.isEmpty()) {
 			final Iterator<BuiltRenderRegion> iterator = regionsToRebuild.iterator();
 
-			while(iterator.hasNext()) {
+			while (iterator.hasNext()) {
 				final BuiltRenderRegion builtRegion = iterator.next();
 
 				if (builtRegion.needsImportantRebuild()) {
@@ -954,8 +938,6 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			}
 		}
 	}
-
-	//	private static final Direction[] DIRECTIONS = Direction.values();
 
 	public CanvasFrustum frustum() {
 		return frustum;
@@ -1018,40 +1000,39 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		final RenderRegionStorage regions = renderRegionStorage;
 
 		switch (flags) {
-		case 0b000:
-			return regions.wasSeen(rx0, ry0, rz0);
+			case 0b000:
+				return regions.wasSeen(rx0, ry0, rz0);
 
-		case 0b001:
-			return regions.wasSeen(rx0, ry0, rz0) || regions.wasSeen(rx1, ry0, rz0);
+			case 0b001:
+				return regions.wasSeen(rx0, ry0, rz0) || regions.wasSeen(rx1, ry0, rz0);
 
-		case 0b010:
-			return regions.wasSeen(rx0, ry0, rz0) || regions.wasSeen(rx0, ry1, rz0);
+			case 0b010:
+				return regions.wasSeen(rx0, ry0, rz0) || regions.wasSeen(rx0, ry1, rz0);
 
-		case 0b011:
-			return regions.wasSeen(rx0, ry0, rz0) || regions.wasSeen(rx1, ry0, rz0)
-					|| regions.wasSeen(rx0, ry1, rz0) || regions.wasSeen(rx1, ry1, rz0);
+			case 0b011:
+				return regions.wasSeen(rx0, ry0, rz0) || regions.wasSeen(rx1, ry0, rz0)
+						|| regions.wasSeen(rx0, ry1, rz0) || regions.wasSeen(rx1, ry1, rz0);
 
-		case 0b100:
-			return regions.wasSeen(rx0, ry0, rz0) || regions.wasSeen(rx0, ry0, rz1);
+			case 0b100:
+				return regions.wasSeen(rx0, ry0, rz0) || regions.wasSeen(rx0, ry0, rz1);
 
-		case 0b101:
-			return regions.wasSeen(rx0, ry0, rz0) || regions.wasSeen(rx1, ry0, rz0)
-					|| regions.wasSeen(rx0, ry0, rz1) || regions.wasSeen(rx1, ry0, rz1);
+			case 0b101:
+				return regions.wasSeen(rx0, ry0, rz0) || regions.wasSeen(rx1, ry0, rz0)
+						|| regions.wasSeen(rx0, ry0, rz1) || regions.wasSeen(rx1, ry0, rz1);
 
-		case 0b110:
-			return regions.wasSeen(rx0, ry0, rz0) || regions.wasSeen(rx0, ry1, rz0)
-					|| regions.wasSeen(rx0, ry0, rz1) || regions.wasSeen(rx0, ry1, rz1);
+			case 0b110:
+				return regions.wasSeen(rx0, ry0, rz0) || regions.wasSeen(rx0, ry1, rz0)
+						|| regions.wasSeen(rx0, ry0, rz1) || regions.wasSeen(rx0, ry1, rz1);
 
-		case 0b111:
-			return regions.wasSeen(rx0, ry0, rz0) || regions.wasSeen(rx1, ry0, rz0)
-					|| regions.wasSeen(rx0, ry1, rz0) || regions.wasSeen(rx1, ry1, rz0)
-					|| regions.wasSeen(rx0, ry0, rz1) || regions.wasSeen(rx1, ry0, rz1)
-					|| regions.wasSeen(rx0, ry1, rz1) || regions.wasSeen(rx1, ry1, rz1);
+			case 0b111:
+				return regions.wasSeen(rx0, ry0, rz0) || regions.wasSeen(rx1, ry0, rz0)
+						|| regions.wasSeen(rx0, ry1, rz0) || regions.wasSeen(rx1, ry1, rz0)
+						|| regions.wasSeen(rx0, ry0, rz1) || regions.wasSeen(rx1, ry0, rz1)
+						|| regions.wasSeen(rx0, ry1, rz1) || regions.wasSeen(rx1, ry1, rz1);
 		}
 
 		return true;
 	}
-
 
 	public void scheduleRegionRender(int x, int y, int z, boolean urgent) {
 		regionStorage().scheduleRebuild(x << 4, y << 4, z << 4, urgent);
@@ -1109,26 +1090,6 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	}
 
 	@Override
-	public void setWorld(@Nullable ClientWorld clientWorld) {
-		// happens here to avoid creating before renderer is initialized
-		if (regionBuilder == null) {
-			regionBuilder = new RenderRegionBuilder();
-		}
-
-		DitherTexture.instance().initializeIfNeeded();
-		world = clientWorld;
-		visibleRegionCount = 0;
-		renderRegionStorage.clear();
-		Arrays.fill(visibleRegions, null);
-		terrainIterator.reset();
-		renderRegionStorage.clear();
-		Arrays.fill(terrainIterator.visibleRegions, null);
-
-		// Mixins mostly disable what this does
-		super.setWorld(clientWorld);
-	}
-
-	@Override
 	@SuppressWarnings("resource")
 	public String getChunksDebugString() {
 		final int len = regionStorage().regionCount();
@@ -1136,12 +1097,4 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		final RenderRegionBuilder chunkBuilder = regionBuilder();
 		return String.format("C: %d/%d %sD: %d, %s", count, len, wr.canvas_mc().chunkCullingEnabled ? "(s) " : "", wr.canvas_renderDistance(), chunkBuilder == null ? "null" : chunkBuilder.getDebugString());
 	}
-
-	private static CanvasWorldRenderer instance;
-
-	public static CanvasWorldRenderer instance() {
-		return instance;
-	}
-
-	public static final int MAX_REGION_COUNT = (32 * 2 + 1) * (32 * 2 + 1) * 16;
 }

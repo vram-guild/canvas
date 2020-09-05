@@ -16,23 +16,27 @@
 
 package grondag.canvas.shader;
 
-import net.minecraft.util.Identifier;
-
 import grondag.canvas.material.MaterialVertexFormats;
+import net.minecraft.util.Identifier;
 
 public enum EntityShader {
 	DEFAULT_SOLID(ShaderData.DEFAULT_ENTITY_VERTEX, ShaderData.DEFAULT_ENTITY_FRAGMENT, ShaderContext.ENTITY_BLOCK_SOLID);
 
-	private GlProgram program;
-
 	private final Identifier fragmentId;
 	private final Identifier vertexId;
 	private final ShaderContext context;
+	private GlProgram program;
 
 	EntityShader(Identifier vertexId, Identifier fragmentId, ShaderContext context) {
 		this.fragmentId = fragmentId;
 		this.vertexId = vertexId;
 		this.context = context;
+	}
+
+	public static void reload() {
+		for (final EntityShader s : values()) {
+			s.unload();
+		}
 	}
 
 	void unload() {
@@ -54,11 +58,5 @@ public enum EntityShader {
 		program.activate();
 
 		return this;
-	}
-
-	public static void reload() {
-		for  (final EntityShader s : values()) {
-			s.unload();
-		}
 	}
 }

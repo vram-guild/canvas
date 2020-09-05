@@ -16,15 +16,13 @@
 
 package grondag.canvas.shader;
 
-import java.util.function.Consumer;
-
-import org.lwjgl.opengl.GL21;
-
-import net.minecraft.util.Identifier;
-
 import grondag.canvas.texture.TextureData;
 import grondag.canvas.varia.WorldDataManager;
 import grondag.frex.api.material.UniformRefreshFrequency;
+import net.minecraft.util.Identifier;
+import org.lwjgl.opengl.GL21;
+
+import java.util.function.Consumer;
 
 public class ShaderData {
 	public static final Identifier DEFAULT_VERTEX_SOURCE = new Identifier("canvas:shaders/material/default.vert");
@@ -43,7 +41,7 @@ public class ShaderData {
 
 	private static final float[] BITWISE_DIVISORS = {0.5f, 0.25f, 0.125f, 0.0625f, 0.03125f, 0.015625f, 0.0078125f, 0.00390625f};
 
-	public static final Consumer<GlProgram> STANDARD_UNIFORM_SETUP  = program -> {
+	public static final Consumer<GlProgram> STANDARD_UNIFORM_SETUP = program -> {
 		program.uniformArrayf("_cvu_world", UniformRefreshFrequency.PER_TICK, u -> u.set(WorldDataManager.data()), WorldDataManager.LENGTH);
 
 		program.uniformSampler2d("frxs_spriteAltas", UniformRefreshFrequency.ON_LOAD, u -> u.set(TextureData.MC_SPRITE_ATLAS - GL21.GL_TEXTURE0));

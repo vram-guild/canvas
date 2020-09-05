@@ -23,14 +23,14 @@ import grondag.canvas.CanvasMod;
  * where JMH would be more than I want
  */
 public class MicroTimer {
+	private final int sampleSize;
+	private final String label;
 	private int hits;
 	private long elapsed;
 	private long min;
 	private long max;
 	private long last;
-	private final int sampleSize;
-	private final String label;
-	private long started ;
+	private long started;
 
 	public MicroTimer(String label, int sampleSize) {
 		this.label = label;
@@ -49,7 +49,7 @@ public class MicroTimer {
 		started = System.nanoTime();
 	}
 
-	public long last()  {
+	public long last() {
 		return last;
 	}
 
@@ -80,7 +80,7 @@ public class MicroTimer {
 		}
 	}
 
-	public void reportAndClear(){
+	public void reportAndClear() {
 		if (hits == 0) {
 			hits = 1;
 		}

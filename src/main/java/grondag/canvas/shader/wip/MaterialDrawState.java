@@ -19,10 +19,10 @@ package grondag.canvas.shader.wip;
 /**
  * Primitives with the same DrawState have the same vertex format/buffer,
  * and same uniform state and gl state.
- *
+ * <p>
  * Primitives with draw states will be collected in different arrays
  * and then packed into shared buffers (if applicable) with the same buffer key.
- *
+ * <p>
  * Order of packing will be a hierarchy of Gl state and uniform state
  */
 public class MaterialDrawState {

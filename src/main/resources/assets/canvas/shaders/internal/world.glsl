@@ -20,12 +20,12 @@
 #define _CV_RAIN_GRADIENT 15
 
 #define _CV_FLAG0_NIGHT_VISTION_ACTIVE  0
-#define _CV_FLAG0_HAS_SKYLIGHT			1
-#define _CV_FLAG0_IS_OVERWORLD 			2
-#define _CV_FLAG0_IS_NETHER 			3
-#define _CV_FLAG0_IS_END 				4
-#define _CV_FLAG0_IS_RAINING 			5
-#define _CV_FLAG0_IS_THUNDERING 		6
+#define _CV_FLAG0_HAS_SKYLIGHT            1
+#define _CV_FLAG0_IS_OVERWORLD            2
+#define _CV_FLAG0_IS_NETHER            3
+#define _CV_FLAG0_IS_END                4
+#define _CV_FLAG0_IS_RAINING            5
+#define _CV_FLAG0_IS_THUNDERING        6
 
 uniform float[16] _cvu_world;
 uniform vec3 _cvu_modelOrigin;

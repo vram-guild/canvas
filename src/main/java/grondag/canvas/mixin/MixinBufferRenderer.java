@@ -16,14 +16,12 @@
 
 package grondag.canvas.mixin;
 
+import grondag.canvas.render.RenderLayerHandler;
+import net.minecraft.client.render.BufferRenderer;
+import net.minecraft.client.render.VertexFormat;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
-
-import net.minecraft.client.render.BufferRenderer;
-import net.minecraft.client.render.VertexFormat;
-
-import grondag.canvas.render.RenderLayerHandler;
 
 @Mixin(BufferRenderer.class)
 public abstract class MixinBufferRenderer {

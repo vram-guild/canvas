@@ -21,12 +21,7 @@ import net.minecraft.util.math.Direction;
 
 public class BlockPosHelper {
 
-	@FunctionalInterface
-	private interface OffsetFunc {
-		BlockPos.Mutable offset(BlockPos.Mutable target, BlockPos start);
-	}
-
-	private static final OffsetFunc FACE_OFFSETS[] = new OffsetFunc[6];
+	private static final OffsetFunc[] FACE_OFFSETS = new OffsetFunc[6];
 
 	static {
 		FACE_OFFSETS[Direction.UP.ordinal()] = (t, s) -> {
@@ -62,5 +57,10 @@ public class BlockPosHelper {
 
 	public static BlockPos.Mutable fastFaceOffset(BlockPos.Mutable target, BlockPos start, int faceOrdinal) {
 		return FACE_OFFSETS[faceOrdinal].offset(target, start);
+	}
+
+	@FunctionalInterface
+	private interface OffsetFunc {
+		BlockPos.Mutable offset(BlockPos.Mutable target, BlockPos start);
 	}
 }

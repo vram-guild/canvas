@@ -16,25 +16,26 @@
 
 package grondag.canvas.terrain.occlusion.region;
 
-import static grondag.canvas.terrain.RenderRegionAddressHelper.INTERIOR_CACHE_WORDS;
-import static grondag.canvas.terrain.RenderRegionAddressHelper.SLICE_WORD_COUNT;
-
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntConsumer;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 
+import static grondag.canvas.terrain.RenderRegionAddressHelper.INTERIOR_CACHE_WORDS;
+import static grondag.canvas.terrain.RenderRegionAddressHelper.SLICE_WORD_COUNT;
+
 public class BoxFinder {
+	public final IntArrayList boxes = new IntArrayList();
+	public final AreaFinder areaFinder;
 	final long[] source = new long[INTERIOR_CACHE_WORDS];
 	final long[] filled = new long[INTERIOR_CACHE_WORDS];
-
-	/** bits 0-15 indicate which slices contain the area with the same index of the value */
+	/**
+	 * bits 0-15 indicate which slices contain the area with the same index of the value
+	 */
 	final int[] areaSlices = new int[Area.AREA_COUNT];
-
-	public final IntArrayList boxes = new IntArrayList();
 	private final LongArrayList sortedBoxes = new LongArrayList();
-
-	public final AreaFinder areaFinder;
-
+	private final int[] EMPTY_AREA_SLICES = new int[Area.AREA_COUNT];
+	int mask;
+	private final IntConsumer markSliceConsumer = areaIndex -> areaSlices[areaIndex] |= mask;
 	private int voxelCount;
 
 	public BoxFinder(AreaFinder areaFinder) {
@@ -80,7 +81,7 @@ public class BoxFinder {
 		}
 
 		for (int i = 1; i < Area.SECTION_COUNT; ++i) {
-			final int areaIndex  =  Area.sectionToAreaIndex(i);
+			final int areaIndex = Area.sectionToAreaIndex(i);
 			final int slice = areaSlices[areaIndex];
 
 			if (slice == 0xFFFF) {
@@ -92,7 +93,7 @@ public class BoxFinder {
 			}
 		}
 
-		sortedBoxes.sort((a,b) -> Long.compare(b, a));
+		sortedBoxes.sort((a, b) -> Long.compare(b, a));
 	}
 
 	private void markBoxNeighborSlices() {
@@ -112,7 +113,7 @@ public class BoxFinder {
 				int mask = 2;
 
 				for (int z = 1; z < 15; z++) {
-					if((slice & mask) != 0) {
+					if ((slice & mask) != 0) {
 						// transfer to lower slice if not already present
 						final int lowMask = (mask >> 1);
 
@@ -135,7 +136,7 @@ public class BoxFinder {
 					mask <<= 1;
 				}
 
-				if ((slice & 0b1000000000000000) == 0b1000000000000000  && (slice & 0b0100000000000000) == 0) {
+				if ((slice & 0b1000000000000000) == 0b1000000000000000 && (slice & 0b0100000000000000) == 0) {
 					if (Area.isIncludedBySample(source, SLICE_WORD_COUNT * 14, areaIndex)) {
 						slice |= 0b0100000000000000;
 					}
@@ -160,7 +161,7 @@ public class BoxFinder {
 			}
 		}
 
-		sortedBoxes.sort((a,b) -> Long.compare(b, a));
+		sortedBoxes.sort((a, b) -> Long.compare(b, a));
 	}
 
 	private void addBoxesFromSlice(int areaKey, int slice) {
@@ -173,9 +174,9 @@ public class BoxFinder {
 		final int areaIndex = Area.keyToIndex(areaKey);
 
 		for (int z = 0; z < 16; z++) {
-			if((slice & mask) == 0) {
+			if ((slice & mask) == 0) {
 				// no bit, end run if started
-				if(z0 != -1) {
+				if (z0 != -1) {
 					final int dz = (z - z0);
 					final int dy = (y1 - y0 + 1);
 					final int dx = (x1 - x0 + 1);
@@ -194,7 +195,7 @@ public class BoxFinder {
 		}
 
 		// handle case when run extends to last bit
-		if (z0 != -1)  {
+		if (z0 != -1) {
 			final int dz = (16 - z0);
 			final int dy = (y1 - y0 + 1);
 			final int dx = (x1 - x0 + 1);
@@ -203,10 +204,6 @@ public class BoxFinder {
 			sortedBoxes.add((vol << 34) | (areaIndex << 10) | (16 << 5) | z0);
 		}
 	}
-
-	int mask;
-
-	private final IntConsumer markSliceConsumer = areaIndex -> areaSlices[areaIndex] |= mask;
 
 	// PERF: still slow on relative basis to rest of chunk baking
 	private void markBoxSlices() {
@@ -294,7 +291,7 @@ public class BoxFinder {
 
 		for (int i = sourceIndex; i < limit; ++i) {
 			final long bits = sourceBits[i];
-			result +=  bits == 0 ? 0 : bits == -1 ? 64 : Long.bitCount(bits);
+			result += bits == 0 ? 0 : bits == -1 ? 64 : Long.bitCount(bits);
 		}
 
 		return result;
@@ -305,7 +302,7 @@ public class BoxFinder {
 		int index = z0 * SLICE_WORD_COUNT;
 		final long[] bits = areaFinder.bitsFromIndex(areaIndex);
 
-		for  (int z = z0; z < z1; ++z) {
+		for (int z = z0; z < z1; ++z) {
 			filled[index] |= bits[0];
 			filled[index + 1] |= bits[1];
 			filled[index + 2] |= bits[2];
@@ -318,7 +315,7 @@ public class BoxFinder {
 		final long[] filled = this.filled;
 		int index = z0 * SLICE_WORD_COUNT;
 
-		for  (int z = z0; z < z1; ++z) {
+		for (int z = z0; z < z1; ++z) {
 			if (Area.intersectsWithSample(filled, index, areaIndex)) {
 				return true;
 			}
@@ -338,7 +335,7 @@ public class BoxFinder {
 		final long a2 = Area.bitsFromIndex(areaIndex, 2);
 		final long a3 = Area.bitsFromIndex(areaIndex, 3);
 
-		for  (int z = z0; z < z1; ++z) {
+		for (int z = z0; z < z1; ++z) {
 			if (((~filled[index++] & a0) | (~filled[index++] & a1) | (~filled[index++] & a2) | (~filled[index++] & a3)) != 0) {
 				return true;
 			}
@@ -352,6 +349,4 @@ public class BoxFinder {
 			source[i] &= ~filled[i];
 		}
 	}
-
-	private final int[] EMPTY_AREA_SLICES = new int[Area.AREA_COUNT];
 }

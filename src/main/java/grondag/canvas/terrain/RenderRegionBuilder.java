@@ -16,17 +16,15 @@
 
 package grondag.canvas.terrain;
 
-import java.util.Queue;
-
 import com.google.common.collect.Queues;
 import com.mojang.blaze3d.systems.RenderSystem;
-
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
 
-public class RenderRegionBuilder {
-	private final Queue<Runnable> uploadQueue = Queues.newConcurrentLinkedQueue();
-	public final ChunkRenderExecutor executor = new ChunkRenderExecutor();
+import java.util.Queue;
 
+public class RenderRegionBuilder {
+	public final ChunkRenderExecutor executor = new ChunkRenderExecutor();
+	private final Queue<Runnable> uploadQueue = Queues.newConcurrentLinkedQueue();
 	// for use by render thread rebuilds
 	TerrainRenderContext mainThreadContext = new TerrainRenderContext();
 

@@ -16,20 +16,18 @@
 
 package grondag.canvas;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.util.Arrays;
-import java.util.stream.Collectors;
-
 import blue.endless.jankson.Comment;
 import blue.endless.jankson.Jankson;
 import blue.endless.jankson.JsonObject;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import grondag.canvas.apiimpl.Canvas;
 import me.shedaniel.clothconfig2.api.ConfigBuilder;
 import me.shedaniel.clothconfig2.api.ConfigCategory;
 import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
-
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.resource.language.I18n;
@@ -37,140 +35,24 @@ import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
 
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-import net.fabricmc.loader.api.FabricLoader;
-
-import grondag.canvas.apiimpl.Canvas;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
 @Environment(EnvType.CLIENT)
 public class Configurator {
 
-	@SuppressWarnings("hiding")
-	static class ConfigData {
-		@Comment("Makes terrain fog a little less foggy or turns it off.")
-		FogMode fogMode = FogMode.VANILLA;
-
-		@Comment("Fluid biome colors are blended at block corners to avoid patchy appearance. Slight peformance impact to chunk loading.")
-		boolean blendFluidColors = true;
-
-		@Comment("Glow effect around light sources. Work-in-Progress")
-		public boolean enableBloom = true;
-
-		@Comment("Intensity of glow effect around light sources. 0.0 to 0.5, default is 0.1.")
-		public float bloomIntensity = 0.1f;
-
-		@Comment("Size of bloom effect around light sources. 0.0 to 2.0, default is 0.25.")
-		public float bloomScale = 0.25f;
-
-		@Comment("Animated foliage")
-		public boolean wavyGrass = true;
-
-		@Comment("Truly smoothh lighting. Some impact to memory use, chunk loading and frame rate.")
-		boolean hdLightmaps = false;
-
-		@Comment("Slight variation in light values - may prevent banding. Slight performance impact and not usually necessary.")
-		boolean lightmapNoise = false;
-
-		@Comment("Mimics directional light.")
-		DiffuseMode diffuseShadingMode = DiffuseMode.NORMAL;
-
-		@Comment("Makes light sources less cross-shaped. Chunk loading a little slower. Overall light levels remain similar.")
-		boolean lightSmoothing = false;
-
-		@Comment("Mimics light blocked by nearby objects.")
-		AoMode aoShadingMode = AoMode.NORMAL;
-
-		@Comment("Setting > 0 may give slightly better FPS at cost of potential flickering when lighting changes.")
-		int maxLightmapDelayFrames = 0;
-
-		@Comment("Extra lightmap capacity. Ensure enabled if you are getting `unable to create HD lightmap(s) - out of space' messages.")
-		boolean moreLightmap = true;
-
-		@Comment("Models with flat lighting have smoother lighting (but no ambient occlusion).")
-		boolean semiFlatLighting = true;
-
-		// TWEAKS
-		@Comment("Draws multiple chunks with same view transformation. Much faster, but try without if you see visual defects.")
-		boolean batchedChunkRender = true;
-
-		@Comment("Adjusts quads on some vanilla models (like iron bars) to avoid z-fighting with neighbor blocks.")
-		boolean preventDepthFighting = true;
-
-		@Comment("Treats model geometry outside of block boundaries as on the block for lighting purposes. Helps prevent bad lighting outcomes.")
-		boolean clampExteriorVertices = true;
-
-		@Comment("Prevent Glowstone and other blocks that emit light from casting shade on nearby blocks.")
-		boolean fixLuminousBlockShading = true;
-
-		@Comment("Terrain setup done off the main render thread. Increases FPS when moving. May see occasional flashes of blank chunks")
-		boolean terrainSetupOffThread = true;
-
-		@Comment("Use Vertex Array Objects if available. VAOs generally improve performance when they are supported.")
-		boolean enableVao = true;
-
-		@Comment("Use more efficient entity culling. Improves framerate in most scenes.")
-		boolean cullEntityRender = true;
-
-		@Comment("When true, render thread does not yield to other threads every frame. Vanilla behavior is false (yields).")
-		boolean greedyRenderThread = true;
-
-		@Comment("Use more efficient model loading. Improves chunk rebuild speed and reduces memory use.")
-		boolean forceJmxModelLoading = true;
-
-		// DEBUG
-		@Comment("Output runtime per-material shader source. For shader development debugging.")
-		boolean shaderDebug = false;
-
-		@Comment("Shows HD lightmap pixels for debug purposes. Also looks cool.")
-		boolean lightmapDebug = false;
-
-		@Comment("Summarizes multiple errors and warnings to single-line entries in the log.")
-		boolean conciseErrors = true;
-
-		@Comment("Writes information useful for bug reports to the game log at startup.")
-		boolean logMachineInfo = true;
-
-		@Comment("Writes OpenGL state changes to log.  *VERY SPAMMY - KILLS FRAME RATE*  Used only for debugging.")
-		boolean logGlStateChanges = false;
-
-		@Comment("Enables LWJGL memory allocation tracking.  Will harm performance. Use for debugging memory leaks. Requires restart.")
-		boolean debugNativeMemoryAllocation = false;
-
-		@Comment("Uses slower and safer memory allocation method for GL buffers.  Use only if having problems. Requires restart.")
-		boolean safeNativeMemoryAllocation = false;
-
-		@Comment("Output performance trace data to log. Will have significant performance impact. Requires restart.")
-		boolean enablePerformanceTrace = false;
-
-		@Comment("Output periodic snapshots of terrain occlusion raster. Will have performance impact.")
-		boolean debugOcclusionRaster = false;
-
-		@Comment("Render active occlusion boxes of targeted render region. Will have performance impact and looks strange.")
-		boolean debugOcclusionBoxes = false;
-
-		@Comment("Log clipping or other non-critical failures detected by terrain occluder. May spam the log.")
-		boolean traceOcclusionEdgeCases = false;
-
-		@Comment("Enable rendering of internal buffers for debug purposes. Off by default to prevent accidental activation.")
-		public boolean enableBufferDebug = false;
-
-		@Comment("Output load/reload trace data to log. Will have performance impact.")
-		public boolean enableLifeCycleDebug = false;
-	}
-
 	static final ConfigData DEFAULTS = new ConfigData();
 	private static final Gson GSON = new GsonBuilder().create();
 	private static final Jankson JANKSON = Jankson.builder().build();
-
+	private static final ConfigEntryBuilder ENTRY_BUILDER = ConfigEntryBuilder.create();
 	public static FogMode fogMode = DEFAULTS.fogMode;
 	public static boolean blendFluidColors = DEFAULTS.blendFluidColors;
 	public static boolean enableBloom = DEFAULTS.enableBloom;
 	public static float bloomIntensity = DEFAULTS.bloomIntensity;
 	public static float bloomScale = DEFAULTS.bloomScale;
 	public static boolean wavyGrass = DEFAULTS.wavyGrass;
-
-	private static boolean hdLightmaps = DEFAULTS.hdLightmaps;
 	public static boolean lightmapNoise = DEFAULTS.lightmapNoise;
 	public static DiffuseMode diffuseShadingMode = DEFAULTS.diffuseShadingMode;
 	public static boolean lightSmoothing = DEFAULTS.lightSmoothing;
@@ -178,17 +60,14 @@ public class Configurator {
 	public static boolean moreLightmap = DEFAULTS.moreLightmap;
 	public static int maxLightmapDelayFrames = DEFAULTS.maxLightmapDelayFrames;
 	public static boolean semiFlatLighting = DEFAULTS.semiFlatLighting;
-
 	public static boolean batchedChunkRender = DEFAULTS.batchedChunkRender;
 	public static boolean preventDepthFighting = DEFAULTS.preventDepthFighting;
 	public static boolean clampExteriorVertices = DEFAULTS.clampExteriorVertices;
 	public static boolean fixLuminousBlockShading = DEFAULTS.fixLuminousBlockShading;
 	public static boolean terrainSetupOffThread = DEFAULTS.terrainSetupOffThread;
-	private static boolean enableVao = DEFAULTS.enableVao;
 	public static boolean cullEntityRender = DEFAULTS.cullEntityRender;
 	public static boolean greedyRenderThread = DEFAULTS.greedyRenderThread;
 	public static boolean forceJmxModelLoading = DEFAULTS.forceJmxModelLoading;
-
 	public static boolean shaderDebug = DEFAULTS.shaderDebug;
 	public static boolean lightmapDebug = DEFAULTS.lightmapDebug;
 	public static boolean conciseErrors = DEFAULTS.conciseErrors;
@@ -202,6 +81,18 @@ public class Configurator {
 	public static boolean traceOcclusionEdgeCases = DEFAULTS.traceOcclusionEdgeCases;
 	public static boolean enableBufferDebug = DEFAULTS.enableBufferDebug;
 	public static boolean enableLifeCycleDebug = DEFAULTS.enableLifeCycleDebug;
+	//    @LangKey("config.acuity_fancy_fluids")
+	//    @Comment({"Enable fancy water and lava rendering.",
+	//        " This feature is currently work in progress and has no visible effect if enabled."})
+	public static boolean fancyFluids = false;
+	static boolean reload = false;
+	private static boolean hdLightmaps = DEFAULTS.hdLightmaps;
+	private static boolean enableVao = DEFAULTS.enableVao;
+	/**
+	 * use to stash parent screen during display
+	 */
+	private static Screen screenIn;
+	private static File configFile;
 
 	public static boolean hdLightmaps() {
 		return false;
@@ -211,14 +102,9 @@ public class Configurator {
 		return false;
 	}
 
-	/** use to stash parent screen during display */
-	private static Screen screenIn;
-
-	private static File configFile;
-
 	public static void init() {
 		configFile = new File(FabricLoader.getInstance().getConfigDirectory(), "canvas.json5");
-		if(configFile.exists()) {
+		if (configFile.exists()) {
 			loadConfig();
 		} else {
 			saveConfig();
@@ -328,9 +214,9 @@ public class Configurator {
 				configFile.createNewFile();
 			}
 
-			try(
-					FileOutputStream out = new FileOutputStream(configFile, false);
-					) {
+			try (
+					FileOutputStream out = new FileOutputStream(configFile, false)
+			) {
 				out.write(result.getBytes());
 				out.flush();
 				out.close();
@@ -342,46 +228,8 @@ public class Configurator {
 		}
 	}
 
-	static boolean reload = false;
-
-	public enum AoMode {
-		NORMAL,
-		SUBTLE_ALWAYS,
-		SUBTLE_BLOCK_LIGHT,
-		NONE;
-
-		@Override
-		public String toString() {
-			return I18n.translate("config.canvas.enum.ao_mode." + name().toLowerCase());
-		}
-	}
-
-	public enum DiffuseMode {
-		NORMAL,
-		SKY_ONLY,
-		NONE;
-
-		@Override
-		public String toString() {
-			return I18n.translate("config.canvas.enum.diffuse_mode." + name().toLowerCase());
-		}
-	}
-
-	public enum FogMode {
-		VANILLA,
-		SUBTLE,
-		NONE;
-
-		@Override
-		public String toString() {
-			return I18n.translate("config.canvas.enum.fog_mode." + name().toLowerCase());
-		}
-	}
-
-	private static ConfigEntryBuilder ENTRY_BUILDER = ConfigEntryBuilder.create();
-
 	static Text[] parse(String key) {
-		return Arrays.stream(I18n.translate(key).split(";")).map(s ->  new LiteralText(s)).collect(Collectors.toList()).toArray(new Text[0]);
+		return Arrays.stream(I18n.translate(key).split(";")).map(s -> new LiteralText(s)).collect(Collectors.toList()).toArray(new Text[0]);
 	}
 
 	public static Screen display(Screen screen) {
@@ -406,25 +254,34 @@ public class Configurator {
 				.startEnumSelector(new TranslatableText("config.canvas.value.fog_mode"), FogMode.class, fogMode)
 				.setDefaultValue(DEFAULTS.fogMode)
 				.setTooltip(parse("config.canvas.help.fog_mode"))
-				.setSaveConsumer(b -> {reload |= fogMode != b; fogMode = b;})
+				.setSaveConsumer(b -> {
+					reload |= fogMode != b;
+					fogMode = b;
+				})
 				.build());
 
 		features.addEntry(ENTRY_BUILDER
 				.startBooleanToggle(new TranslatableText("config.canvas.value.blend_fluid_colors"), blendFluidColors)
 				.setDefaultValue(DEFAULTS.blendFluidColors)
 				.setTooltip(parse("config.canvas.help.blend_fluid_colors"))
-				.setSaveConsumer(b -> {reload |= blendFluidColors != b; blendFluidColors = b;})
+				.setSaveConsumer(b -> {
+					reload |= blendFluidColors != b;
+					blendFluidColors = b;
+				})
 				.build());
 
 		features.addEntry(ENTRY_BUILDER
 				.startBooleanToggle(new TranslatableText("config.canvas.value.bloom"), enableBloom)
 				.setDefaultValue(DEFAULTS.enableBloom)
 				.setTooltip(parse("config.canvas.help.bloom"))
-				.setSaveConsumer(b -> {reload |= enableBloom != b; enableBloom = b;})
+				.setSaveConsumer(b -> {
+					reload |= enableBloom != b;
+					enableBloom = b;
+				})
 				.build());
 
 		features.addEntry(ENTRY_BUILDER
-				.startIntSlider(new TranslatableText("config.canvas.value.bloom_intensity"), (int)(bloomIntensity * 200), 0, 100)
+				.startIntSlider(new TranslatableText("config.canvas.value.bloom_intensity"), (int) (bloomIntensity * 200), 0, 100)
 				.setDefaultValue((int) (DEFAULTS.bloomIntensity * 200))
 				.setMax(100)
 				.setMin(0)
@@ -445,7 +302,10 @@ public class Configurator {
 				.startBooleanToggle(new TranslatableText("config.canvas.value.wavy_grass"), wavyGrass)
 				.setDefaultValue(DEFAULTS.wavyGrass)
 				.setTooltip(parse("config.canvas.help.wavy_grass"))
-				.setSaveConsumer(b -> {reload |= wavyGrass != b; wavyGrass = b;})
+				.setSaveConsumer(b -> {
+					reload |= wavyGrass != b;
+					wavyGrass = b;
+				})
 				.build());
 
 		// LIGHTING
@@ -455,14 +315,20 @@ public class Configurator {
 				.startBooleanToggle(new TranslatableText("config.canvas.value.light_smoothing"), lightSmoothing)
 				.setDefaultValue(DEFAULTS.lightSmoothing)
 				.setTooltip(parse("config.canvas.help.light_smoothing"))
-				.setSaveConsumer(b -> {reload |= lightSmoothing != b; lightSmoothing = b;})
+				.setSaveConsumer(b -> {
+					reload |= lightSmoothing != b;
+					lightSmoothing = b;
+				})
 				.build());
 
 		lighting.addEntry(ENTRY_BUILDER
 				.startBooleanToggle(new TranslatableText("config.canvas.value.hd_lightmaps"), hdLightmaps)
 				.setDefaultValue(DEFAULTS.hdLightmaps)
 				.setTooltip(parse("config.canvas.help.hd_lightmaps"))
-				.setSaveConsumer(b -> {reload |= hdLightmaps != b; hdLightmaps = b;})
+				.setSaveConsumer(b -> {
+					reload |= hdLightmaps != b;
+					hdLightmaps = b;
+				})
 				.build());
 
 		lighting.addEntry(ENTRY_BUILDER
@@ -476,21 +342,30 @@ public class Configurator {
 				.startBooleanToggle(new TranslatableText("config.canvas.value.lightmap_noise"), lightmapNoise)
 				.setDefaultValue(DEFAULTS.lightmapNoise)
 				.setTooltip(parse("config.canvas.help.lightmap_noise"))
-				.setSaveConsumer(b -> {reload |= lightmapNoise != b; lightmapNoise = b;})
+				.setSaveConsumer(b -> {
+					reload |= lightmapNoise != b;
+					lightmapNoise = b;
+				})
 				.build());
 
 		lighting.addEntry(ENTRY_BUILDER
 				.startEnumSelector(new TranslatableText("config.canvas.value.diffuse_shading"), DiffuseMode.class, diffuseShadingMode)
 				.setDefaultValue(DEFAULTS.diffuseShadingMode)
 				.setTooltip(parse("config.canvas.help.diffuse_shading"))
-				.setSaveConsumer(b -> {reload |= diffuseShadingMode != b; diffuseShadingMode = b;})
+				.setSaveConsumer(b -> {
+					reload |= diffuseShadingMode != b;
+					diffuseShadingMode = b;
+				})
 				.build());
 
 		lighting.addEntry(ENTRY_BUILDER
 				.startEnumSelector(new TranslatableText("config.canvas.value.ao_shading"), AoMode.class, aoShadingMode)
 				.setDefaultValue(DEFAULTS.aoShadingMode)
 				.setTooltip(parse("config.canvas.help.ao_shading"))
-				.setSaveConsumer(b -> {reload |= aoShadingMode != b; aoShadingMode = b;})
+				.setSaveConsumer(b -> {
+					reload |= aoShadingMode != b;
+					aoShadingMode = b;
+				})
 				.build());
 
 		lighting.addEntry(ENTRY_BUILDER
@@ -504,7 +379,10 @@ public class Configurator {
 				.startBooleanToggle(new TranslatableText("config.canvas.value.semi_flat_lighting"), semiFlatLighting)
 				.setDefaultValue(DEFAULTS.semiFlatLighting)
 				.setTooltip(parse("config.canvas.help.semi_flat_lighting"))
-				.setSaveConsumer(b -> {reload |= semiFlatLighting != b; semiFlatLighting = b;})
+				.setSaveConsumer(b -> {
+					reload |= semiFlatLighting != b;
+					semiFlatLighting = b;
+				})
 				.build());
 
 		// TWEAKS
@@ -525,28 +403,40 @@ public class Configurator {
 				.startBooleanToggle(new TranslatableText("config.canvas.value.adjust_vanilla_geometry"), preventDepthFighting)
 				.setDefaultValue(DEFAULTS.preventDepthFighting)
 				.setTooltip(parse("config.canvas.help.adjust_vanilla_geometry"))
-				.setSaveConsumer(b -> {reload |= preventDepthFighting != b; preventDepthFighting = b;})
+				.setSaveConsumer(b -> {
+					reload |= preventDepthFighting != b;
+					preventDepthFighting = b;
+				})
 				.build());
 
 		tweaks.addEntry(ENTRY_BUILDER
 				.startBooleanToggle(new TranslatableText("config.canvas.value.clamp_exterior_vertices"), clampExteriorVertices)
 				.setDefaultValue(DEFAULTS.clampExteriorVertices)
 				.setTooltip(parse("config.canvas.help.clamp_exterior_vertices"))
-				.setSaveConsumer(b -> {reload |= clampExteriorVertices != b; clampExteriorVertices = b;})
+				.setSaveConsumer(b -> {
+					reload |= clampExteriorVertices != b;
+					clampExteriorVertices = b;
+				})
 				.build());
 
 		tweaks.addEntry(ENTRY_BUILDER
 				.startBooleanToggle(new TranslatableText("config.canvas.value.fix_luminous_block_shade"), fixLuminousBlockShading)
 				.setDefaultValue(DEFAULTS.fixLuminousBlockShading)
 				.setTooltip(parse("config.canvas.help.fix_luminous_block_shade"))
-				.setSaveConsumer(b -> {reload |= fixLuminousBlockShading != b; fixLuminousBlockShading = b;})
+				.setSaveConsumer(b -> {
+					reload |= fixLuminousBlockShading != b;
+					fixLuminousBlockShading = b;
+				})
 				.build());
 
 		tweaks.addEntry(ENTRY_BUILDER
 				.startBooleanToggle(new TranslatableText("config.canvas.value.terrain_setup_off_thread"), terrainSetupOffThread)
 				.setDefaultValue(DEFAULTS.terrainSetupOffThread)
 				.setTooltip(parse("config.canvas.help.terrain_setup_off_thread"))
-				.setSaveConsumer(b -> {reload |= terrainSetupOffThread != b; terrainSetupOffThread = b;})
+				.setSaveConsumer(b -> {
+					reload |= terrainSetupOffThread != b;
+					terrainSetupOffThread = b;
+				})
 				.build());
 
 		tweaks.addEntry(ENTRY_BUILDER
@@ -560,28 +450,37 @@ public class Configurator {
 				.startBooleanToggle(new TranslatableText("config.canvas.value.enable_vao"), enableVao)
 				.setDefaultValue(DEFAULTS.enableVao)
 				.setTooltip(parse("config.canvas.help.enable_vao"))
-				.setSaveConsumer(b -> {reload |= enableVao != b; enableVao = b;})
+				.setSaveConsumer(b -> {
+					reload |= enableVao != b;
+					enableVao = b;
+				})
 				.build());
 
 		tweaks.addEntry(ENTRY_BUILDER
 				.startBooleanToggle(new TranslatableText("config.canvas.value.cull_entity_render"), cullEntityRender)
 				.setDefaultValue(DEFAULTS.cullEntityRender)
 				.setTooltip(parse("config.canvas.help.enable_vao"))
-				.setSaveConsumer(b -> {cullEntityRender = b;})
+				.setSaveConsumer(b -> {
+					cullEntityRender = b;
+				})
 				.build());
 
 		tweaks.addEntry(ENTRY_BUILDER
 				.startBooleanToggle(new TranslatableText("config.canvas.value.greedy_render_thread"), greedyRenderThread)
 				.setDefaultValue(DEFAULTS.greedyRenderThread)
 				.setTooltip(parse("config.canvas.help.greedy_render_thread"))
-				.setSaveConsumer(b -> {greedyRenderThread = b;})
+				.setSaveConsumer(b -> {
+					greedyRenderThread = b;
+				})
 				.build());
 
 		tweaks.addEntry(ENTRY_BUILDER
 				.startBooleanToggle(new TranslatableText("config.canvas.value.force_jmx_loading"), forceJmxModelLoading)
 				.setDefaultValue(DEFAULTS.forceJmxModelLoading)
 				.setTooltip(parse("config.canvas.help.force_jmx_loading"))
-				.setSaveConsumer(b -> {forceJmxModelLoading = b;})
+				.setSaveConsumer(b -> {
+					forceJmxModelLoading = b;
+				})
 				.build());
 
 
@@ -674,18 +573,125 @@ public class Configurator {
 	private static void saveUserInput() {
 		saveConfig();
 
-		if(reload) {
+		if (reload) {
 			Canvas.INSTANCE.reload();
 			MinecraftClient.getInstance().worldRenderer.reload();
 		}
 	}
 
+	public enum AoMode {
+		NORMAL,
+		SUBTLE_ALWAYS,
+		SUBTLE_BLOCK_LIGHT,
+		NONE;
+
+		@Override
+		public String toString() {
+			return I18n.translate("config.canvas.enum.ao_mode." + name().toLowerCase());
+		}
+	}
+
+	public enum DiffuseMode {
+		NORMAL,
+		SKY_ONLY,
+		NONE;
+
+		@Override
+		public String toString() {
+			return I18n.translate("config.canvas.enum.diffuse_mode." + name().toLowerCase());
+		}
+	}
+
+	public enum FogMode {
+		VANILLA,
+		SUBTLE,
+		NONE;
+
+		@Override
+		public String toString() {
+			return I18n.translate("config.canvas.enum.fog_mode." + name().toLowerCase());
+		}
+	}
+
 	// LEGACY STUFF
 
-	//    @LangKey("config.acuity_fancy_fluids")
-	//    @Comment({"Enable fancy water and lava rendering.",
-	//        " This feature is currently work in progress and has no visible effect if enabled."})
-	public static boolean fancyFluids = false;
+	@SuppressWarnings("hiding")
+	static class ConfigData {
+		@Comment("Glow effect around light sources. Work-in-Progress")
+		public boolean enableBloom = true;
+		@Comment("Intensity of glow effect around light sources. 0.0 to 0.5, default is 0.1.")
+		public float bloomIntensity = 0.1f;
+		@Comment("Size of bloom effect around light sources. 0.0 to 2.0, default is 0.25.")
+		public float bloomScale = 0.25f;
+		@Comment("Animated foliage")
+		public boolean wavyGrass = true;
+		@Comment("Enable rendering of internal buffers for debug purposes. Off by default to prevent accidental activation.")
+		public boolean enableBufferDebug = false;
+		@Comment("Output load/reload trace data to log. Will have performance impact.")
+		public boolean enableLifeCycleDebug = false;
+		@Comment("Makes terrain fog a little less foggy or turns it off.")
+		FogMode fogMode = FogMode.VANILLA;
+		@Comment("Fluid biome colors are blended at block corners to avoid patchy appearance. Slight peformance impact to chunk loading.")
+		boolean blendFluidColors = true;
+		@Comment("Truly smoothh lighting. Some impact to memory use, chunk loading and frame rate.")
+		boolean hdLightmaps = false;
+		@Comment("Slight variation in light values - may prevent banding. Slight performance impact and not usually necessary.")
+		boolean lightmapNoise = false;
+		@Comment("Mimics directional light.")
+		DiffuseMode diffuseShadingMode = DiffuseMode.NORMAL;
+		@Comment("Makes light sources less cross-shaped. Chunk loading a little slower. Overall light levels remain similar.")
+		boolean lightSmoothing = false;
+		@Comment("Mimics light blocked by nearby objects.")
+		AoMode aoShadingMode = AoMode.NORMAL;
+		@Comment("Setting > 0 may give slightly better FPS at cost of potential flickering when lighting changes.")
+		int maxLightmapDelayFrames = 0;
+		@Comment("Extra lightmap capacity. Ensure enabled if you are getting `unable to create HD lightmap(s) - out of space' messages.")
+		boolean moreLightmap = true;
+		@Comment("Models with flat lighting have smoother lighting (but no ambient occlusion).")
+		boolean semiFlatLighting = true;
+		// TWEAKS
+		@Comment("Draws multiple chunks with same view transformation. Much faster, but try without if you see visual defects.")
+		boolean batchedChunkRender = true;
+		@Comment("Adjusts quads on some vanilla models (like iron bars) to avoid z-fighting with neighbor blocks.")
+		boolean preventDepthFighting = true;
+		@Comment("Treats model geometry outside of block boundaries as on the block for lighting purposes. Helps prevent bad lighting outcomes.")
+		boolean clampExteriorVertices = true;
+		@Comment("Prevent Glowstone and other blocks that emit light from casting shade on nearby blocks.")
+		boolean fixLuminousBlockShading = true;
+		@Comment("Terrain setup done off the main render thread. Increases FPS when moving. May see occasional flashes of blank chunks")
+		boolean terrainSetupOffThread = true;
+		@Comment("Use Vertex Array Objects if available. VAOs generally improve performance when they are supported.")
+		boolean enableVao = true;
+		@Comment("Use more efficient entity culling. Improves framerate in most scenes.")
+		boolean cullEntityRender = true;
+		@Comment("When true, render thread does not yield to other threads every frame. Vanilla behavior is false (yields).")
+		boolean greedyRenderThread = true;
+		@Comment("Use more efficient model loading. Improves chunk rebuild speed and reduces memory use.")
+		boolean forceJmxModelLoading = true;
+		// DEBUG
+		@Comment("Output runtime per-material shader source. For shader development debugging.")
+		boolean shaderDebug = false;
+		@Comment("Shows HD lightmap pixels for debug purposes. Also looks cool.")
+		boolean lightmapDebug = false;
+		@Comment("Summarizes multiple errors and warnings to single-line entries in the log.")
+		boolean conciseErrors = true;
+		@Comment("Writes information useful for bug reports to the game log at startup.")
+		boolean logMachineInfo = true;
+		@Comment("Writes OpenGL state changes to log.  *VERY SPAMMY - KILLS FRAME RATE*  Used only for debugging.")
+		boolean logGlStateChanges = false;
+		@Comment("Enables LWJGL memory allocation tracking.  Will harm performance. Use for debugging memory leaks. Requires restart.")
+		boolean debugNativeMemoryAllocation = false;
+		@Comment("Uses slower and safer memory allocation method for GL buffers.  Use only if having problems. Requires restart.")
+		boolean safeNativeMemoryAllocation = false;
+		@Comment("Output performance trace data to log. Will have significant performance impact. Requires restart.")
+		boolean enablePerformanceTrace = false;
+		@Comment("Output periodic snapshots of terrain occlusion raster. Will have performance impact.")
+		boolean debugOcclusionRaster = false;
+		@Comment("Render active occlusion boxes of targeted render region. Will have performance impact and looks strange.")
+		boolean debugOcclusionBoxes = false;
+		@Comment("Log clipping or other non-critical failures detected by terrain occluder. May spam the log.")
+		boolean traceOcclusionEdgeCases = false;
+	}
 
 
 	//    @LangKey("config.disable_yield")

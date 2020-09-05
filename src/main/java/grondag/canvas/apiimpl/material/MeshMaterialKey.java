@@ -27,7 +27,7 @@ class MeshMaterialKey {
 
 	@Override
 	public boolean equals(Object other) {
-		if(other == null || !(other instanceof MeshMaterialKey)) {
+		if (other == null || !(other instanceof MeshMaterialKey)) {
 			return false;
 		}
 

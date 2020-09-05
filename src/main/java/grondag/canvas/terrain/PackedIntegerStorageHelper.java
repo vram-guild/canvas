@@ -16,10 +16,11 @@
 
 package grondag.canvas.terrain;
 
-import java.util.concurrent.ArrayBlockingQueue;
-import net.minecraft.util.collection.PackedIntegerArray;
-import it.unimi.dsi.fastutil.ints.IntArrayList;
 import grondag.canvas.mixinterface.PackedIntegerArrayExt;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import net.minecraft.util.collection.PackedIntegerArray;
+
+import java.util.concurrent.ArrayBlockingQueue;
 
 /**
  * Minimize new allocation for chunk storage copies by recycling the arrays.

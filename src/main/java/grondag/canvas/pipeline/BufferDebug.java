@@ -17,14 +17,12 @@
 package grondag.canvas.pipeline;
 
 import com.google.common.util.concurrent.Runnables;
-import org.lwjgl.glfw.GLFW;
-
+import grondag.canvas.CanvasMod;
+import grondag.canvas.Configurator;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.text.LiteralText;
-
-import grondag.canvas.CanvasMod;
-import grondag.canvas.Configurator;
+import org.lwjgl.glfw.GLFW;
 
 public enum BufferDebug {
 	NORMAL(Runnables.doNothing()),
@@ -37,13 +35,12 @@ public enum BufferDebug {
 	BLOOM_5(() -> CanvasFrameBufferHacks.debugBlur(5)),
 	BLOOM_6(() -> CanvasFrameBufferHacks.debugBlur(6));
 
+	private static BufferDebug current = NORMAL;
 	private final Runnable task;
 
-	private BufferDebug(Runnable task) {
+	BufferDebug(Runnable task) {
 		this.task = task;
 	}
-
-	private static BufferDebug current = NORMAL;
 
 	public static BufferDebug current() {
 		return current;
@@ -64,7 +61,7 @@ public enum BufferDebug {
 
 			final int i = (InputUtil.isKeyPressed(handle, GLFW.GLFW_KEY_LEFT_SHIFT) || InputUtil.isKeyPressed(handle, GLFW.GLFW_KEY_RIGHT_SHIFT)) ? -1 : 1;
 			final BufferDebug[] values = values();
-			final int count =  values.length;
+			final int count = values.length;
 
 			current = values[(current.ordinal() + count + i) % values.length];
 

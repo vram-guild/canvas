@@ -16,9 +16,8 @@
 
 package grondag.canvas.terrain.occlusion;
 
-import net.minecraft.util.math.Matrix4f;
-
 import grondag.canvas.mixinterface.Matrix4fExt;
+import net.minecraft.util.math.Matrix4f;
 
 public class Matrix4L {
 	static final int MATRIX_PRECISION_BITS = 16;
@@ -44,7 +43,7 @@ public class Matrix4L {
 	private long a33;
 
 	public void copyFrom(Matrix4f matrix) {
-		copyFrom((Matrix4fExt)(Object) matrix);
+		copyFrom((Matrix4fExt) (Object) matrix);
 	}
 
 	public void copyFrom(Matrix4fExt ext) {
@@ -172,9 +171,9 @@ public class Matrix4L {
 		final int shift = MATRIX_PRECISION_BITS - precision;
 		assert shift >= 0;
 
-		final long t_a03 = x <<  shift;
-		final long t_a13 = y <<  shift;
-		final long t_a23 = z <<  shift;
+		final long t_a03 = x << shift;
+		final long t_a13 = y << shift;
+		final long t_a23 = z << shift;
 
 		final long i = a00 * t_a03 + a01 * t_a13 + a02 * t_a23 + a03;
 		final long m = a10 * t_a03 + a11 * t_a13 + a12 * t_a23 + a13;
@@ -187,45 +186,133 @@ public class Matrix4L {
 		a33 += ((u + MATRIX_PRECISION_HALF) >> MATRIX_PRECISION_BITS);
 	}
 
-	public float a00f() { return FLOAT_CONVERSION * a00; }
-	public float a01f() { return FLOAT_CONVERSION * a01; }
-	public float a02f() { return FLOAT_CONVERSION * a02; }
-	public float a03f() { return FLOAT_CONVERSION * a03; }
+	public float a00f() {
+		return FLOAT_CONVERSION * a00;
+	}
 
-	public float a10f() { return FLOAT_CONVERSION * a10; }
-	public float a11f() { return FLOAT_CONVERSION * a11; }
-	public float a12f() { return FLOAT_CONVERSION * a12; }
-	public float a13f() { return FLOAT_CONVERSION * a13; }
+	public float a01f() {
+		return FLOAT_CONVERSION * a01;
+	}
 
-	public float a20f() { return FLOAT_CONVERSION * a20; }
-	public float a21f() { return FLOAT_CONVERSION * a21; }
-	public float a22f() { return FLOAT_CONVERSION * a22; }
-	public float a23f() { return FLOAT_CONVERSION * a23; }
+	public float a02f() {
+		return FLOAT_CONVERSION * a02;
+	}
 
-	public float a30f() { return FLOAT_CONVERSION * a30; }
-	public float a31f() { return FLOAT_CONVERSION * a31; }
-	public float a32f() { return FLOAT_CONVERSION * a32; }
-	public float a33f() { return FLOAT_CONVERSION * a33; }
+	public float a03f() {
+		return FLOAT_CONVERSION * a03;
+	}
 
-	public long a00() { return a00; }
-	public long a01() { return a01; }
-	public long a02() { return a02; }
-	public long a03() { return a03; }
+	public float a10f() {
+		return FLOAT_CONVERSION * a10;
+	}
 
-	public long a10() { return a10; }
-	public long a11() { return a11; }
-	public long a12() { return a12; }
-	public long a13() { return a13; }
+	public float a11f() {
+		return FLOAT_CONVERSION * a11;
+	}
 
-	public long a20() { return a20; }
-	public long a21() { return a21; }
-	public long a22() { return a22; }
-	public long a23() { return a23; }
+	public float a12f() {
+		return FLOAT_CONVERSION * a12;
+	}
 
-	public long a30() { return a30; }
-	public long a31() { return a31; }
-	public long a32() { return a32; }
-	public long a33() { return a33; }
+	public float a13f() {
+		return FLOAT_CONVERSION * a13;
+	}
+
+	public float a20f() {
+		return FLOAT_CONVERSION * a20;
+	}
+
+	public float a21f() {
+		return FLOAT_CONVERSION * a21;
+	}
+
+	public float a22f() {
+		return FLOAT_CONVERSION * a22;
+	}
+
+	public float a23f() {
+		return FLOAT_CONVERSION * a23;
+	}
+
+	public float a30f() {
+		return FLOAT_CONVERSION * a30;
+	}
+
+	public float a31f() {
+		return FLOAT_CONVERSION * a31;
+	}
+
+	public float a32f() {
+		return FLOAT_CONVERSION * a32;
+	}
+
+	public float a33f() {
+		return FLOAT_CONVERSION * a33;
+	}
+
+	public long a00() {
+		return a00;
+	}
+
+	public long a01() {
+		return a01;
+	}
+
+	public long a02() {
+		return a02;
+	}
+
+	public long a03() {
+		return a03;
+	}
+
+	public long a10() {
+		return a10;
+	}
+
+	public long a11() {
+		return a11;
+	}
+
+	public long a12() {
+		return a12;
+	}
+
+	public long a13() {
+		return a13;
+	}
+
+	public long a20() {
+		return a20;
+	}
+
+	public long a21() {
+		return a21;
+	}
+
+	public long a22() {
+		return a22;
+	}
+
+	public long a23() {
+		return a23;
+	}
+
+	public long a30() {
+		return a30;
+	}
+
+	public long a31() {
+		return a31;
+	}
+
+	public long a32() {
+		return a32;
+	}
+
+	public long a33() {
+		return a33;
+	}
 
 	/**
 	 * Computes X component of transformed vector. Assumes input W is 1.

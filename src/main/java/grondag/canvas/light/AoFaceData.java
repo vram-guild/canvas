@@ -23,7 +23,7 @@ package grondag.canvas.light;
 public class AoFaceData {
 
 	public static final int OPAQUE = -1;
-
+	public final AoFaceCalc calc = new AoFaceCalc();
 	// packed values gathered during compute
 	public int bottom;
 	public int top;
@@ -34,7 +34,6 @@ public class AoFaceData {
 	public int topLeft;
 	public int topRight;
 	public int center;
-
 	// these values are fully computed at gather time
 	public int aoBottom;
 	public int aoTop;
@@ -45,10 +44,7 @@ public class AoFaceData {
 	public int aoTopLeft;
 	public int aoTopRight;
 	public int aoCenter;
-
 	private int hashCode;
-
-	public final AoFaceCalc calc = new AoFaceCalc();
 
 	public static void blendTo(AoFaceData in0, float w0, AoFaceData in1, float w1, AoFaceData out) {
 		out.top = lightBlend(in0.top, w0, in1.top, w1);
@@ -77,14 +73,14 @@ public class AoFaceData {
 	}
 
 	private static int lightBlend(int l0, float w0, int l1, float w1) {
-		if(l0 == OPAQUE) {
-			if(l1 == OPAQUE) {
+		if (l0 == OPAQUE) {
+			if (l1 == OPAQUE) {
 				return OPAQUE;
 			} else {
 				return reduce(l1);
 			}
 		} else {
-			if(l1 == OPAQUE) {
+			if (l1 == OPAQUE) {
 				return reduce(l0);
 			} else {
 				return lightBlendInner(l0, w0, l1, w1);
@@ -145,7 +141,7 @@ public class AoFaceData {
 
 		final AoFaceData o = (AoFaceData) other;
 
-		return 	o.bottom == bottom &&
+		return o.bottom == bottom &&
 				o.top == top &&
 				o.left == left &&
 				o.right == right &&

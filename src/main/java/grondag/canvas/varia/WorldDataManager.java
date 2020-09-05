@@ -56,12 +56,11 @@ public class WorldDataManager {
 	private static final int FLAG0_IS_THUNDERING = 64;
 
 	private static final float[] DATA = new float[LENGTH];
+	private static final long baseRenderTime = System.currentTimeMillis();
 
 	public static float[] data() {
 		return DATA;
 	}
-
-	private static final long baseRenderTime = System.currentTimeMillis();
 
 	public static void update(float tickDelta) {
 		DATA[RENDER_SECONDS] = (System.currentTimeMillis() - baseRenderTime) / 1000f;
@@ -91,7 +90,7 @@ public class WorldDataManager {
 			}
 
 			if (world.isRaining()) {
-				flags  |= FLAG0_IS_RAINING;
+				flags |= FLAG0_IS_RAINING;
 			}
 
 
@@ -109,7 +108,7 @@ public class WorldDataManager {
 				DATA[HELD_LIGHT_GREEN] = 1f;
 				DATA[HELD_LIGHT_BLUE] = 0.8f;
 				DATA[HELD_LIGHT_INTENSITY] = 1f;
-			} else  {
+			} else {
 				DATA[HELD_LIGHT_RED] = 0f;
 				DATA[HELD_LIGHT_GREEN] = 0f;
 				DATA[HELD_LIGHT_BLUE] = 0f;
@@ -135,7 +134,7 @@ public class WorldDataManager {
 			if (fogMode == 2048) {
 				// EXP
 				DATA[FOG_MODE] = 1.0f;
-			} else if (fogMode  == 2049) {
+			} else if (fogMode == 2049) {
 				// EXP2
 				DATA[FOG_MODE] = 2.0f;
 			} else {
@@ -147,8 +146,8 @@ public class WorldDataManager {
 	}
 
 	public static void updateEmissiveColor(int color) {
-		DATA[EMISSIVE_COLOR_RED] = ((color >> 24) &  0xFF) / 255f;
-		DATA[EMISSIVE_COLOR_GREEN] = ((color >> 16) &  0xFF) / 255f;
-		DATA[EMISSIVE_COLOR_BLUE] = (color &  0xFF) / 255f;
+		DATA[EMISSIVE_COLOR_RED] = ((color >> 24) & 0xFF) / 255f;
+		DATA[EMISSIVE_COLOR_GREEN] = ((color >> 16) & 0xFF) / 255f;
+		DATA[EMISSIVE_COLOR_BLUE] = (color & 0xFF) / 255f;
 	}
 }

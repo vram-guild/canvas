@@ -16,21 +16,24 @@
 
 package grondag.canvas.mixin;
 
+import grondag.canvas.mixinterface.PackedIntegerArrayExt;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
+import net.minecraft.util.collection.PackedIntegerArray;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
-import net.minecraft.util.collection.PackedIntegerArray;
-
-import grondag.canvas.mixinterface.PackedIntegerArrayExt;
-
 @Mixin(PackedIntegerArray.class)
 public abstract class MixinPackedIntegerArray implements PackedIntegerArrayExt {
-	@Shadow private long[] storage;
-	@Shadow private int elementBits;
-	@Shadow private long maxValue;
-	@Shadow private int size;
-	@Shadow private int field_24079;
+	@Shadow
+	private long[] storage;
+	@Shadow
+	private int elementBits;
+	@Shadow
+	private long maxValue;
+	@Shadow
+	private int size;
+	@Shadow
+	private int field_24079;
 
 	@Override
 	public void canvas_fastForEach(IntArrayList list) {
@@ -42,8 +45,8 @@ public abstract class MixinPackedIntegerArray implements PackedIntegerArrayExt {
 		for (int wordIndex = 0; wordIndex < wordLimit; ++wordIndex) {
 			long l = bits[wordIndex];
 
-			for(int j = 0; j < elementsPerWord; ++j) {
-				list.add((int)(l & maxValue));
+			for (int j = 0; j < elementsPerWord; ++j) {
+				list.add((int) (l & maxValue));
 				l = (l >> elementBits);
 
 				if (++i >= size) {

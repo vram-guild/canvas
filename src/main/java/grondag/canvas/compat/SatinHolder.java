@@ -16,15 +16,17 @@
 
 package grondag.canvas.compat;
 
+import grondag.canvas.CanvasMod;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.render.Camera;
 import net.minecraft.client.render.Frustum;
 import net.minecraft.client.util.math.MatrixStack;
 
-import net.fabricmc.loader.api.FabricLoader;
-
-import grondag.canvas.CanvasMod;
-
 public class SatinHolder {
+	public static SatinOnWorldRendered onWorldRenderedEvent;
+	public static SatinOnEntitiesRendered onEntitiesRenderedEvent;
+	public static SatinBeforeEntitiesRendered beforeEntitiesRenderEvent;
+
 	static {
 		if (FabricLoader.getInstance().isModLoaded("satin")) {
 			CanvasMod.LOG.info("Found Satin - compatibility hook enabled");
@@ -32,15 +34,14 @@ public class SatinHolder {
 			onEntitiesRenderedEvent = SatinHelper.onEntitiesRenderedEvent();
 			beforeEntitiesRenderEvent = SatinHelper.beforeEntitiesRenderEvent();
 		} else {
-			onWorldRenderedEvent = (m, c, t, n) -> {};
-			onEntitiesRenderedEvent = (c, f, t) -> {};
-			beforeEntitiesRenderEvent = (c, f, t) -> {};
+			onWorldRenderedEvent = (m, c, t, n) -> {
+			};
+			onEntitiesRenderedEvent = (c, f, t) -> {
+			};
+			beforeEntitiesRenderEvent = (c, f, t) -> {
+			};
 		}
 	}
-
-	public static SatinOnWorldRendered onWorldRenderedEvent;
-	public static SatinOnEntitiesRendered onEntitiesRenderedEvent;
-	public static SatinBeforeEntitiesRendered beforeEntitiesRenderEvent;
 
 
 	@FunctionalInterface

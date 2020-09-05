@@ -21,29 +21,13 @@ import it.unimi.dsi.fastutil.ints.IntArrays;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 
 public class Area {
+	public static final int AREA_COUNT;
+	public static final int SECTION_COUNT;
 	private static final int[] AREA_KEY_TO_INDEX = new int[0x10000];
 	private static final int[] AREA_INDEX_TO_KEY;
-
-	public static final int AREA_COUNT;
-
 	private static final int[] SECTION_KEYS;
 	private static final int[] SECTION_INDEX;
-
-	public static final int SECTION_COUNT;
-
 	private static final long[] AREA_BITS;
-
-	public static int keyToIndex(int key) {
-		return AREA_KEY_TO_INDEX[key];
-	}
-
-	public static int indexToKey(int index) {
-		return AREA_INDEX_TO_KEY[index];
-	}
-
-	public static int sectionToAreaIndex(int sectionIndex) {
-		return SECTION_INDEX[sectionIndex];
-	}
 
 	static {
 		final IntOpenHashSet areas = new IntOpenHashSet();
@@ -58,7 +42,7 @@ public class Area {
 		for (int x0 = 0; x0 <= 15; x0++) {
 			for (int x1 = x0; x1 <= 15; x1++) {
 				for (int y0 = 0; y0 <= 15; y0++) {
-					for(int y1 = y0; y1 <= 15; y1++) {
+					for (int y1 = y0; y1 <= 15; y1++) {
 						areas.add(Area.areaKey(x0, y0, x1, y1));
 					}
 				}
@@ -71,7 +55,7 @@ public class Area {
 
 		int i = 0;
 
-		for(final int k : areas) {
+		for (final int k : areas) {
 			AREA_INDEX_TO_KEY[i++] = k;
 		}
 
@@ -91,7 +75,7 @@ public class Area {
 		for (int j = 0; j < AREA_COUNT; ++j) {
 			final int a = AREA_INDEX_TO_KEY[j];
 
-			if ((Area.x0(a) == 0  &&  Area.x1(a) == 15) || (Area.y0(a) == 0  &&  Area.y1(a) == 15)) {
+			if ((Area.x0(a) == 0 && Area.x1(a) == 15) || (Area.y0(a) == 0 && Area.y1(a) == 15)) {
 				sections.add(indexToKey(j));
 			}
 		}
@@ -110,7 +94,7 @@ public class Area {
 
 		for (int x0 = 0; x0 <= 15; ++x0) {
 			for (int x1 = x0; x1 <= 15; ++x1) {
-				final long template  = (0xFFFF << x0) & (0xFFFF >> (15 - x1));
+				final long template = (0xFFFF << x0) & (0xFFFF >> (15 - x1));
 				xMasks[x0 | (x1 << 4)] = template | (template << 16) | (template << 32) | (template << 48);
 			}
 		}
@@ -144,6 +128,18 @@ public class Area {
 		}
 	}
 
+	public static int keyToIndex(int key) {
+		return AREA_KEY_TO_INDEX[key];
+	}
+
+	public static int indexToKey(int index) {
+		return AREA_INDEX_TO_KEY[index];
+	}
+
+	public static int sectionToAreaIndex(int sectionIndex) {
+		return SECTION_INDEX[sectionIndex];
+	}
+
 	public static boolean isIncludedBySample(long[] sample, int sampleStart, int areaIndex) {
 		areaIndex <<= 2;
 
@@ -172,8 +168,8 @@ public class Area {
 
 		return (AREA_BITS[areaIndex] | sample[sampleStart]) != sample[sampleStart]
 				|| (AREA_BITS[++areaIndex] | sample[++sampleStart]) != sample[sampleStart]
-						|| (AREA_BITS[++areaIndex] | sample[++sampleStart]) != sample[sampleStart]
-								|| (AREA_BITS[++areaIndex] | sample[++sampleStart]) != sample[sampleStart];
+				|| (AREA_BITS[++areaIndex] | sample[++sampleStart]) != sample[sampleStart]
+				|| (AREA_BITS[++areaIndex] | sample[++sampleStart]) != sample[sampleStart];
 	}
 
 	public static void clearBits(long[] targetBits, int startIndex, int areaIndex) {

@@ -19,6 +19,23 @@ package grondag.canvas.perf;
 import it.unimi.dsi.fastutil.longs.LongArrays;
 
 public class RunTimer {
+	public static final ThreadSafeRunTimer THREADED_5000 = new ThreadSafeRunTimer("THREADED 5000", 5000);
+	public static final ThreadSafeRunTimer THREADED_50K = new ThreadSafeRunTimer("THREADED 50K", 50000);
+	public static RunTimer TIMER_200 = new RunTimer("GENERIC 200", 200);
+	public static RunTimer TIMER_2400 = new RunTimer("GENERIC 2400", 2400);
+	public static RunTimer TIMER_100000 = new RunTimer("GENERIC 100000", 100000);
+	final String label;
+	final long[] data;
+	final int size;
+	int counter;
+	long start;
+
+	public RunTimer(String label, int sampleCount) {
+		this.label = label;
+		size = sampleCount;
+		data = new long[sampleCount];
+	}
+
 	public static void stats(long[] data) {
 		final int count = data.length;
 		final int bucketSize = count / 5;
@@ -32,7 +49,7 @@ public class RunTimer {
 
 		int bucketIndex = 0;
 		int nextBucket = sizes[0];
-		final long buckets[] = new long[5];
+		final long[] buckets = new long[5];
 
 		long b = 0;
 
@@ -58,19 +75,7 @@ public class RunTimer {
 				buckets[4] * 100 / total));
 		System.out.println(String.format("Bucket Averages: %,d   %,d   %,d   %,d   %,d", buckets[0] / sizes[0],
 				buckets[1] / sizes[1], buckets[2] / sizes[2], buckets[3] / sizes[3], buckets[4] / sizes[4]));
-		System.out.println("");
-	}
-
-	final String label;
-	final long[] data;
-	final int size;
-	int counter;
-	long start;
-
-	public RunTimer(String label, int sampleCount) {
-		this.label = label;
-		size = sampleCount;
-		data = new long[sampleCount];
+		System.out.println();
 	}
 
 	public void start() {
@@ -86,27 +91,20 @@ public class RunTimer {
 		}
 	}
 
-	public static RunTimer TIMER_200 = new RunTimer("GENERIC 200", 200);
-
-	public static RunTimer TIMER_2400 = new RunTimer("GENERIC 2400", 2400);
-
-	public static RunTimer TIMER_100000 = new RunTimer("GENERIC 100000", 100000);
-
 	public static class ThreadSafeRunTimer {
 		final String label;
 		final int size;
-
-		public ThreadSafeRunTimer(String label, int sampleCount) {
-			this.label = label;
-			size = sampleCount;
-		}
-
 		private final ThreadLocal<RunTimer> timers = new ThreadLocal<RunTimer>() {
 			@Override
 			protected RunTimer initialValue() {
 				return new RunTimer(label, size);
 			}
 		};
+
+		public ThreadSafeRunTimer(String label, int sampleCount) {
+			this.label = label;
+			size = sampleCount;
+		}
 
 		public final void start() {
 			timers.get().start();
@@ -116,9 +114,5 @@ public class RunTimer {
 			timers.get().finish();
 		}
 	}
-
-	public static final ThreadSafeRunTimer THREADED_5000 = new ThreadSafeRunTimer("THREADED 5000", 5000);
-
-	public static final ThreadSafeRunTimer THREADED_50K = new ThreadSafeRunTimer("THREADED 50K", 50000);
 
 }

@@ -16,6 +16,10 @@
 
 package grondag.canvas.render;
 
+import grondag.canvas.mixinterface.Matrix4fExt;
+import grondag.canvas.terrain.BuiltRenderRegion;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.Camera;
 import net.minecraft.client.render.Frustum;
@@ -24,49 +28,39 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Matrix4f;
 import net.minecraft.util.math.Vec3d;
 
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-
-import grondag.canvas.mixinterface.Matrix4fExt;
-import grondag.canvas.terrain.BuiltRenderRegion;
-
 /**
  * Plane equation derivations based on:
  * "Fast Extraction of Viewing Frustum Planes from the World- View-Projection Matrix"
  * Gill Gribb, Klaus Hartmann
  * https://www.gamedevs.org/uploads/fast-extraction-viewing-frustum-planes-from-world-view-projection-matrix.pdf
- *
+ * <p>
  * AABB test method based on work by Ville Miettinen
  * as described in Real-Time Rendering, Fourth Edition (Page 971). CRC Press.
  * Abbey, Duane C.; Haines, Eric; Hoffman, Naty.
  */
 @Environment(EnvType.CLIENT)
 public class CanvasFrustum extends Frustum {
+	private static final float MIN_GAP = 0.0001f;
 	private final Matrix4f mvpMatrix = new Matrix4f();
-	private final Matrix4fExt lastProjectionMatrix = (Matrix4fExt)(Object) new Matrix4f();
-	private final Matrix4fExt lastModelMatrix = (Matrix4fExt)(Object) new Matrix4f();
+	private final Matrix4fExt lastProjectionMatrix = (Matrix4fExt) (Object) new Matrix4f();
+	private final Matrix4fExt lastModelMatrix = (Matrix4fExt) (Object) new Matrix4f();
 	private int viewVersion;
 	private int positionVersion;
-
 	private double lastViewX;
 	private double lastViewY;
 	private double lastViewZ;
-
 	private float lastViewXf;
 	private float lastViewYf;
 	private float lastViewZf;
-
 	private double lastPositionX;
 	private double lastPositionY;
 	private double lastPositionZ;
-
 	// NB: distance (w) and subtraction are baked into region extents but must be done for other box tests
 	private float leftX, leftY, leftZ, leftW, leftXe, leftYe, leftZe, leftRegionExtent;
 	private float rightX, rightY, rightZ, rightW, rightXe, rightYe, rightZe, rightRegionExtent;
 	private float topX, topY, topZ, topW, topXe, topYe, topZe, topRegionExtent;
 	private float bottomX, bottomY, bottomZ, bottomW, bottomXe, bottomYe, bottomZe, bottomRegionExtent;
 	private float nearX, nearY, nearZ, nearW, nearXe, nearYe, nearZe, nearRegionExtent;
-
 	private int viewDistanceSquared;
 
 	public CanvasFrustum() {
@@ -173,7 +167,7 @@ public class CanvasFrustum extends Frustum {
 		final double y = vec.y;
 		final double z = vec.z;
 
-		if(x == lastViewX && y == lastViewY && z == lastViewZ
+		if (x == lastViewX && y == lastViewY && z == lastViewZ
 				&& lastModelMatrix.matches(modelMatrix)
 				&& lastProjectionMatrix.matches(projectionMatrix)) {
 			return;
@@ -230,61 +224,51 @@ public class CanvasFrustum extends Frustum {
 		final float cy = (float) y0 + hdy - lastViewYf;
 		final float cz = (float) z0 + hdz - lastViewZf;
 
-		if(cx * leftX + cy * leftY + cz * leftZ + leftW - (hdx * leftXe + hdy * leftYe + hdz * leftZe) > 0) {
+		if (cx * leftX + cy * leftY + cz * leftZ + leftW - (hdx * leftXe + hdy * leftYe + hdz * leftZe) > 0) {
 			return false;
 		}
 
-		if(cx * rightX + cy * rightY + cz * rightZ + rightW - (hdx * rightXe + hdy * rightYe + hdz * rightZe) > 0) {
+		if (cx * rightX + cy * rightY + cz * rightZ + rightW - (hdx * rightXe + hdy * rightYe + hdz * rightZe) > 0) {
 			return false;
 		}
 
-		if(cx * nearX + cy * nearY + cz * nearZ + nearW - (hdx * nearXe + hdy * nearYe + hdz * nearZe) > 0) {
+		if (cx * nearX + cy * nearY + cz * nearZ + nearW - (hdx * nearXe + hdy * nearYe + hdz * nearZe) > 0) {
 			return false;
 		}
 
-		if(cx * topX + cy * topY + cz * topZ + topW - (hdx * topXe + hdy * topYe + hdz * topZe) > 0) {
+		if (cx * topX + cy * topY + cz * topZ + topW - (hdx * topXe + hdy * topYe + hdz * topZe) > 0) {
 			return false;
 		}
 
-		if(cx * bottomX + cy * bottomY + cz * bottomZ + bottomW - (hdx * bottomXe + hdy * bottomYe + hdz * bottomZe) > 0) {
-			return false;
-		}
-
-		return true;
+		return !(cx * bottomX + cy * bottomY + cz * bottomZ + bottomW - (hdx * bottomXe + hdy * bottomYe + hdz * bottomZe) > 0);
 	}
-
-	private static final float MIN_GAP = 0.0001f;
 
 	public boolean isRegionVisible(BuiltRenderRegion region) {
 		final float cx = region.cameraRelativeCenterX;
 		final float cy = region.cameraRelativeCenterY;
 		final float cz = region.cameraRelativeCenterZ;
 
-		if(cx * leftX + cy * leftY + cz * leftZ + leftRegionExtent > MIN_GAP) {
+		if (cx * leftX + cy * leftY + cz * leftZ + leftRegionExtent > MIN_GAP) {
 			return false;
 		}
 
-		if(cx * rightX + cy * rightY + cz * rightZ + rightRegionExtent > MIN_GAP) {
+		if (cx * rightX + cy * rightY + cz * rightZ + rightRegionExtent > MIN_GAP) {
 			return false;
 		}
 
-		if(cx * nearX + cy * nearY + cz * nearZ + nearRegionExtent > MIN_GAP) {
+		if (cx * nearX + cy * nearY + cz * nearZ + nearRegionExtent > MIN_GAP) {
 			return false;
 		}
 
-		if(cx * topX + cy * topY + cz * topZ + topRegionExtent > MIN_GAP) {
+		if (cx * topX + cy * topY + cz * topZ + topRegionExtent > MIN_GAP) {
 			return false;
 		}
 
-		if(cx * bottomX + cy * bottomY + cz * bottomZ + bottomRegionExtent > MIN_GAP) {
-			return false;
-		}
-
-		return true;
+		return !(cx * bottomX + cy * bottomY + cz * bottomZ + bottomRegionExtent > MIN_GAP);
 	}
 
 	private void extractPlanes() {
-		final Matrix4fExt matrix = (Matrix4fExt)(Object) mvpMatrix;
+		final Matrix4fExt matrix = (Matrix4fExt) (Object) mvpMatrix;
 		final float a00 = matrix.a00();
 		final float a01 = matrix.a01();
 		final float a02 = matrix.a02();
@@ -298,10 +282,10 @@ public class CanvasFrustum extends Frustum {
 		final float a32 = matrix.a32();
 		final float a33 = matrix.a33();
 
-		float x  = a30 + a00;
-		float y  = a31 + a01;
-		float z  = a32 + a02;
-		float w  = a33 + a03;
+		float x = a30 + a00;
+		float y = a31 + a01;
+		float z = a32 + a02;
+		float w = a33 + a03;
 		float mag = -MathHelper.fastInverseSqrt(x * x + y * y + z * z);
 		x *= mag;
 		y *= mag;
@@ -319,10 +303,10 @@ public class CanvasFrustum extends Frustum {
 		leftZe = ze;
 		leftRegionExtent = w - 8 * (xe + ye + ze);
 
-		x  = a30 - a00;
-		y  = a31 - a01;
-		z  = a32 - a02;
-		w  = a33 - a03;
+		x = a30 - a00;
+		y = a31 - a01;
+		z = a32 - a02;
+		w = a33 - a03;
 		mag = -MathHelper.fastInverseSqrt(x * x + y * y + z * z);
 		x *= mag;
 		y *= mag;
@@ -340,10 +324,10 @@ public class CanvasFrustum extends Frustum {
 		rightZe = ze;
 		rightRegionExtent = w - 8 * (xe + ye + ze);
 
-		x  = a30 - a10;
-		y  = a31 - a11;
-		z  = a32 - a12;
-		w  = a33 - a13;
+		x = a30 - a10;
+		y = a31 - a11;
+		z = a32 - a12;
+		w = a33 - a13;
 		mag = -MathHelper.fastInverseSqrt(x * x + y * y + z * z);
 		x *= mag;
 		y *= mag;
@@ -361,10 +345,10 @@ public class CanvasFrustum extends Frustum {
 		topZe = ze;
 		topRegionExtent = w - 8 * (xe + ye + ze);
 
-		x  = a30 + a10;
-		y  = a31 + a11;
-		z  = a32 + a12;
-		w  = a33 + a13;
+		x = a30 + a10;
+		y = a31 + a11;
+		z = a32 + a12;
+		w = a33 + a13;
 		mag = -MathHelper.fastInverseSqrt(x * x + y * y + z * z);
 		x *= mag;
 		y *= mag;
@@ -382,10 +366,10 @@ public class CanvasFrustum extends Frustum {
 		bottomZe = ze;
 		bottomRegionExtent = w - 8 * (xe + ye + ze);
 
-		x  = a30 + matrix.a20();
-		y  = a31 + matrix.a21();
-		z  = a32 + matrix.a22();
-		w  = a33 + matrix.a23();
+		x = a30 + matrix.a20();
+		y = a31 + matrix.a21();
+		z = a32 + matrix.a22();
+		w = a33 + matrix.a23();
 		mag = -MathHelper.fastInverseSqrt(x * x + y * y + z * z);
 		x *= mag;
 		y *= mag;

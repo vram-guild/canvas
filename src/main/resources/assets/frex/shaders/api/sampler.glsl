@@ -10,6 +10,6 @@ uniform sampler2D frxs_lightmap;
 uniform sampler2D frxs_spriteInfo;
 
 #ifndef VANILLA_LIGHTING
-	uniform sampler2D frxs_dither;
-	uniform sampler2D frxs_hdLightmap;
+uniform sampler2D frxs_dither;
+uniform sampler2D frxs_hdLightmap;
 #endif

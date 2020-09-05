@@ -16,23 +16,41 @@
 
 package grondag.canvas.apiimpl.material;
 
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-
-import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
-
 import grondag.canvas.apiimpl.MaterialConditionImpl;
 import grondag.canvas.shader.MaterialShaderManager;
 import grondag.fermion.bits.BitPacker64;
 import grondag.fermion.bits.BitPacker64.BooleanElement;
 import grondag.fermion.bits.BitPacker64.IntElement;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 
 public abstract class AbstractMeshMaterial extends MeshMaterialKey {
+	public static final int MAX_SPRITE_DEPTH = 3;
+	public static final int SHADER_FLAGS_DISABLE_AO;
+	static final BlendMode[] LAYERS = new BlendMode[4];
+	// Following are indexes into the array of boolean elements.
+	// They are NOT the index of the bits themselves.  Used to
+	// efficiently access flags based on sprite layer. "_START"
+	// index is the flag for sprite layer 0, with additional layers
+	// offset additively by sprite index.
+	static final int EMISSIVE_INDEX_START = 0;
+	static final int DIFFUSE_INDEX_START = EMISSIVE_INDEX_START + MAX_SPRITE_DEPTH;
+	static final int AO_INDEX_START = DIFFUSE_INDEX_START + MAX_SPRITE_DEPTH;
+	static final int COLOR_DISABLE_INDEX_START = AO_INDEX_START + MAX_SPRITE_DEPTH;
+	@SuppressWarnings("unchecked")
+	static final BitPacker64<AbstractMeshMaterial>.BooleanElement[] FLAGS = new BooleanElement[COLOR_DISABLE_INDEX_START + MAX_SPRITE_DEPTH];
+	static final BitPacker64<AbstractMeshMaterial>.EnumElement<BlendMode> BLEND_MODE;
+	static final BitPacker64<AbstractMeshMaterial>.IntElement SPRITE_DEPTH;
+	@SuppressWarnings("unchecked")
+	static final BitPacker64<AbstractMeshMaterial>.IntElement[] SHADERS = new IntElement[MAX_SPRITE_DEPTH];
+	static final BitPacker64<AbstractMeshMaterial>.IntElement CONDITION;
+	static final long DEFAULT_BITS_0;
+	static final ObjectArrayList<MeshMaterialLocator> LIST = new ObjectArrayList<>();
+	static final Object2ObjectOpenHashMap<MeshMaterialKey, MeshMaterialLocator> MAP = new Object2ObjectOpenHashMap<>();
 	private static final BitPacker64<AbstractMeshMaterial> BITPACKER_0 = new BitPacker64<>(m -> m.bits0, (m, b) -> m.bits0 = b);
 	private static final BitPacker64<AbstractMeshMaterial> BITPACKER_1 = new BitPacker64<>(m -> m.bits1, (m, b) -> m.bits1 = b);
-
-	public static final int MAX_SPRITE_DEPTH = 3;
-	static final BlendMode[] LAYERS = new BlendMode[4];
+	private static final long DEFAULT_BITS_1;
 
 	static {
 		final BlendMode[] layers = BlendMode.values();
@@ -43,36 +61,6 @@ public abstract class AbstractMeshMaterial extends MeshMaterialKey {
 			LAYERS[i] = layers[i + 1];
 		}
 	}
-
-	// Following are indexes into the array of boolean elements.
-	// They are NOT the index of the bits themselves.  Used to
-	// efficiently access flags based on sprite layer. "_START"
-	// index is the flag for sprite layer 0, with additional layers
-	// offset additively by sprite index.
-	static final int EMISSIVE_INDEX_START = 0;
-	static final int DIFFUSE_INDEX_START = EMISSIVE_INDEX_START + MAX_SPRITE_DEPTH;
-	static final int AO_INDEX_START = DIFFUSE_INDEX_START + MAX_SPRITE_DEPTH;
-	static final int COLOR_DISABLE_INDEX_START = AO_INDEX_START + MAX_SPRITE_DEPTH;
-
-	@SuppressWarnings("unchecked")
-	static final BitPacker64<AbstractMeshMaterial>.BooleanElement[] FLAGS = new BooleanElement[COLOR_DISABLE_INDEX_START + MAX_SPRITE_DEPTH];
-
-	static final BitPacker64<AbstractMeshMaterial>.EnumElement<BlendMode> BLEND_MODE;
-
-	static final BitPacker64<AbstractMeshMaterial>.IntElement SPRITE_DEPTH;
-
-	@SuppressWarnings("unchecked")
-	static final BitPacker64<AbstractMeshMaterial>.IntElement [] SHADERS = new IntElement[MAX_SPRITE_DEPTH];
-
-	static final BitPacker64<AbstractMeshMaterial>.IntElement CONDITION;
-
-	static final long DEFAULT_BITS_0;
-	private static final long DEFAULT_BITS_1;
-
-	static final ObjectArrayList<MeshMaterialLocator> LIST = new ObjectArrayList<>();
-	static final Object2ObjectOpenHashMap<MeshMaterialKey, MeshMaterialLocator> MAP = new Object2ObjectOpenHashMap<>();
-
-	public static final int SHADER_FLAGS_DISABLE_AO;
 
 	static {
 		for (int i = 0; i < MAX_SPRITE_DEPTH; ++i) {
@@ -109,7 +97,11 @@ public abstract class AbstractMeshMaterial extends MeshMaterialKey {
 			aoDisableBits = FLAGS[AO_INDEX_START + i].setValue(true, aoDisableBits);
 		}
 
-		SHADER_FLAGS_DISABLE_AO = (int)aoDisableBits;
+		SHADER_FLAGS_DISABLE_AO = (int) aoDisableBits;
+	}
+
+	AbstractMeshMaterial() {
+		super(DEFAULT_BITS_0, DEFAULT_BITS_1);
 	}
 
 	public static MeshMaterialLocator byIndex(int index) {
@@ -117,10 +109,6 @@ public abstract class AbstractMeshMaterial extends MeshMaterialKey {
 		assert index >= 0;
 
 		return LIST.get(index);
-	}
-
-	AbstractMeshMaterial() {
-		super(DEFAULT_BITS_0, DEFAULT_BITS_1);
 	}
 
 	public BlendMode blendMode() {

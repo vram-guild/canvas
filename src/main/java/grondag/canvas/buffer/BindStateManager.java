@@ -22,7 +22,7 @@ public class BindStateManager {
 	private static int boundBufferId = -1;
 
 	public static boolean bind(int glBufferId) {
-		if(glBufferId == boundBufferId) {
+		if (glBufferId == boundBufferId) {
 			return false;
 		} else {
 			boundBufferId = glBufferId;
@@ -32,12 +32,12 @@ public class BindStateManager {
 	}
 
 	public static void unbind() {
-		if(boundBufferId != -1) {
+		if (boundBufferId != -1) {
 			boundBufferId = -1;
 			GL21.glBindBuffer(GL21.GL_ARRAY_BUFFER, 0);
 		}
 	}
-	
+
 	public static int boundBufferId() {
 		return boundBufferId;
 	}

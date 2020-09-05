@@ -1,8 +1,8 @@
 {
-	"layers": [
-		{
-			"disableDiffuse": true,
-			"emissive": true
-		}
-	]
+  "layers": [
+	{
+	  "disableDiffuse": true,
+	  "emissive": true
+	}
+  ]
 }

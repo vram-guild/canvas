@@ -16,22 +16,15 @@
 
 package grondag.canvas.light;
 
-import static grondag.canvas.light.AoVertexClampFunction.clamp;
-import static grondag.canvas.terrain.RenderRegionAddressHelper.signedXyzOffset5;
-import static net.minecraft.util.math.Direction.DOWN;
-import static net.minecraft.util.math.Direction.EAST;
-import static net.minecraft.util.math.Direction.NORTH;
-import static net.minecraft.util.math.Direction.SOUTH;
-import static net.minecraft.util.math.Direction.UP;
-import static net.minecraft.util.math.Direction.WEST;
-
+import grondag.canvas.apiimpl.mesh.QuadViewImpl;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3i;
 
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-
-import grondag.canvas.apiimpl.mesh.QuadViewImpl;
+import static grondag.canvas.light.AoVertexClampFunction.clamp;
+import static grondag.canvas.terrain.RenderRegionAddressHelper.signedXyzOffset5;
+import static net.minecraft.util.math.Direction.*;
 
 /**
  * Adapted from vanilla BlockModelRenderer.AoCalculator.
@@ -113,12 +106,12 @@ enum AoFace {
 				w[3] = (1 - v) * u;
 			});
 
+	private static final AoFace[] values = createValues();
 	final int[] neighbors;
 	final WeightFunction weightFunc;
 	final Vertex2Float depthFunc;
 	final Vertex2Float uFunc;
 	final Vertex2Float vFunc;
-
 	final int bottomOffset;
 	final int leftOffset;
 	final int topOffset;
@@ -128,8 +121,8 @@ enum AoFace {
 	final int topLeftOffset;
 	final int topRightOffset;
 
-	private AoFace(Direction bottom, Direction top, Direction left, Direction right, Vertex2Float depthFunc,
-			Vertex2Float uFunc, Vertex2Float vFunc, WeightFunction weightFunc) {
+	AoFace(Direction bottom, Direction top, Direction left, Direction right, Vertex2Float depthFunc,
+		   Vertex2Float uFunc, Vertex2Float vFunc, WeightFunction weightFunc) {
 		neighbors = new int[4];
 		neighbors[0] = bottom.ordinal();
 		neighbors[1] = top.ordinal();
@@ -157,8 +150,6 @@ enum AoFace {
 		this.uFunc = uFunc;
 	}
 
-	private static final AoFace[] values = createValues();
-
 	private static AoFace[] createValues() {
 		final AoFace[] result = new AoFace[6];
 		result[DOWN.getId()] = AOF_DOWN;
@@ -183,12 +174,12 @@ enum AoFace {
 	 * sum to 1 because it is a unit cube. Values are stored in the provided array.
 	 */
 	@FunctionalInterface
-	static interface WeightFunction {
+	interface WeightFunction {
 		void apply(QuadViewImpl q, int vertexIndex, float[] out);
 	}
 
 	@FunctionalInterface
-	static interface Vertex2Float {
+	interface Vertex2Float {
 		float apply(QuadViewImpl q, int vertexIndex);
 	}
 }

@@ -16,11 +16,10 @@
 
 package grondag.canvas.mixinterface;
 
-import java.util.Optional;
-
+import grondag.canvas.mixin.AccessMultiPhaseParameters;
 import net.minecraft.client.render.RenderLayer;
 
-import grondag.canvas.mixin.AccessMultiPhaseParameters;
+import java.util.Optional;
 
 public interface MultiPhaseExt {
 

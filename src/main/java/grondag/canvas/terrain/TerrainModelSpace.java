@@ -16,24 +16,18 @@
 
 package grondag.canvas.terrain;
 
-import static grondag.fermion.position.PackedBlockPos.WORLD_BOUNDARY;
-import static grondag.fermion.position.PackedBlockPos.X_MASK;
-import static grondag.fermion.position.PackedBlockPos.X_SHIFT;
-import static grondag.fermion.position.PackedBlockPos.Y_MASK;
-import static grondag.fermion.position.PackedBlockPos.Y_SHIFT;
-import static grondag.fermion.position.PackedBlockPos.Z_MASK;
-
+import grondag.canvas.Configurator;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 
-import grondag.canvas.Configurator;
+import static grondag.fermion.position.PackedBlockPos.*;
 
 public class TerrainModelSpace {
+	private static int CUBE_MASK = Configurator.batchedChunkRender ? 0xFFFFFF00 : 0xFFFFFFF0;
+
 	public static void reload() {
 		CUBE_MASK = Configurator.batchedChunkRender ? 0xFFFFFF00 : 0xFFFFFFF0;
 	}
-
-	private static int CUBE_MASK = Configurator.batchedChunkRender ? 0xFFFFFF00 : 0xFFFFFFF0;
 
 	/**
 	 * Finds the origin of the 256x256x256 render cube for the given coordinate.

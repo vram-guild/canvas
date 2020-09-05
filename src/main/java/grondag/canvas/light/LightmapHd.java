@@ -16,56 +16,19 @@
 
 package grondag.canvas.light;
 
-import java.util.concurrent.atomic.AtomicInteger;
-
+import grondag.canvas.CanvasMod;
+import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-
 import net.minecraft.client.resource.language.I18n;
 import net.minecraft.util.math.MathHelper;
 
-import grondag.canvas.CanvasMod;
-import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class LightmapHd {
-	private static boolean errorNoticeNeeded = true;
-
-	private static final AtomicInteger nextIndex = new AtomicInteger();
-
-	public static String occupancyReport() {
-		final int i = nextIndex.get();
-		return String.format("%d of %d ( %d percent )", i, LightmapSizer.maxCount, i * 100 / LightmapSizer.maxCount);
-	}
-
-	public static void reload() {
-		nextIndex.set(0);
-		MAP.clear();
-		errorNoticeNeeded = true;
-	}
-
 	// PERF: use Fermion cache
-	static final Object2ObjectOpenHashMap<AoFaceData, LightmapHd> MAP = new Object2ObjectOpenHashMap<>(MathHelper.smallestEncompassingPowerOfTwo(LightmapSizer.maxCount), LightmapSizer.maxCount / (float)MathHelper.smallestEncompassingPowerOfTwo(LightmapSizer.maxCount));
-
-	static int lightIndex(int u, int v) {
-		return v * LightmapSizer.paddedSize + u;
-	}
-
-	// PERF: can reduce texture consumption 8X by reusing rotations/inversions
-	public static LightmapHd find(AoFaceData faceData) {
-		LightmapHd result = MAP.get(faceData);
-
-		if(result == null) {
-			synchronized(MAP) {
-				result = MAP.get(faceData);
-				if(result == null) {
-					result = new LightmapHd(faceData);
-					MAP.put(faceData.clone(), result);
-				}
-			}
-		}
-
-		return result;
-	}
-
+	static final Object2ObjectOpenHashMap<AoFaceData, LightmapHd> MAP = new Object2ObjectOpenHashMap<>(MathHelper.smallestEncompassingPowerOfTwo(LightmapSizer.maxCount), LightmapSizer.maxCount / (float) MathHelper.smallestEncompassingPowerOfTwo(LightmapSizer.maxCount));
+	private static final AtomicInteger nextIndex = new AtomicInteger();
+	private static boolean errorNoticeNeeded = true;
 	public final int uMinImg;
 	public final int vMinImg;
 	private final int[] light;
@@ -79,17 +42,17 @@ public class LightmapHd {
 		light = new int[LightmapSizer.lightmapPixels];
 
 
-		if(index >= LightmapSizer.maxCount) {
-			if(errorNoticeNeeded) {
+		if (index >= LightmapSizer.maxCount) {
+			if (errorNoticeNeeded) {
 				CanvasMod.LOG.warn(I18n.translate("error.canvas.fail_create_lightmap"));
 				errorNoticeNeeded = false;
 			}
 		} else {
 			// PERF: pool these and the main array - not needed after upload
 
-			final int [] aoLight = new int[LightmapSizer.lightmapPixels];
-			final int [] skyLight = new int[LightmapSizer.lightmapPixels];
-			final int [] blockLight = new int[LightmapSizer.lightmapPixels];
+			final int[] aoLight = new int[LightmapSizer.lightmapPixels];
+			final int[] skyLight = new int[LightmapSizer.lightmapPixels];
+			final int[] blockLight = new int[LightmapSizer.lightmapPixels];
 
 			// TODO: make this an option for AO debugging
 			//			Arrays.fill(skyLight, 255);
@@ -111,6 +74,38 @@ public class LightmapHd {
 		}
 	}
 
+	public static String occupancyReport() {
+		final int i = nextIndex.get();
+		return String.format("%d of %d ( %d percent )", i, LightmapSizer.maxCount, i * 100 / LightmapSizer.maxCount);
+	}
+
+	public static void reload() {
+		nextIndex.set(0);
+		MAP.clear();
+		errorNoticeNeeded = true;
+	}
+
+	static int lightIndex(int u, int v) {
+		return v * LightmapSizer.paddedSize + u;
+	}
+
+	// PERF: can reduce texture consumption 8X by reusing rotations/inversions
+	public static LightmapHd find(AoFaceData faceData) {
+		LightmapHd result = MAP.get(faceData);
+
+		if (result == null) {
+			synchronized (MAP) {
+				result = MAP.get(faceData);
+				if (result == null) {
+					result = new LightmapHd(faceData);
+					MAP.put(faceData.clone(), result);
+				}
+			}
+		}
+
+		return result;
+	}
+
 	/**
 	 * Handles padding
 	 */
@@ -121,8 +116,8 @@ public class LightmapHd {
 	public int coord(MutableQuadViewImpl q, int i) {
 		final int u, v;
 
-		u = Math.round((uMinImg + 0.5f  + q.u[i] * LightmapSizer.centerToCenterPixelDistance) * LightmapSizer.textureToBuffer);
-		v = Math.round((vMinImg + 0.5f  + q.v[i] * LightmapSizer.centerToCenterPixelDistance) * LightmapSizer.textureToBuffer);
+		u = Math.round((uMinImg + 0.5f + q.u[i] * LightmapSizer.centerToCenterPixelDistance) * LightmapSizer.textureToBuffer);
+		v = Math.round((vMinImg + 0.5f + q.v[i] * LightmapSizer.centerToCenterPixelDistance) * LightmapSizer.textureToBuffer);
 
 		return u | (v << 16);
 	}

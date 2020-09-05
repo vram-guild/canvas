@@ -38,6 +38,70 @@ public class AoFaceCalc {
 	int skyTopLeft;
 	int skyTopRight;
 
+	/**
+	 * Independent minimum of packed components
+	 */
+	public static int min(int x, int y) {
+		final int s = Math.min(x & 0x00FF0000, y & 0x00FF0000);
+		final int b = Math.min(x & 0xFF, y & 0xFF);
+		return s | b;
+	}
+
+	/**
+	 * Independent maximum of packed components
+	 */
+	public static int max(int x, int y) {
+		final int s = Math.max(x & 0x00FF0000, y & 0x00FF0000);
+		final int b = Math.max(x & 0xFF, y & 0xFF);
+		return s | b;
+	}
+
+	/**
+	 * Vanilla code excluded missing light values from mean but was not isotropic.
+	 * Still need to substitute or edges are too dark but consistently use the min
+	 * value from all four samples.
+	 */
+	private static int meanBrightness(int a, int b, int c, int d) {
+		int missingVal = 0x0FFFFFFF;
+		final IntBinaryOperator func = AoFaceCalc::min;
+		int missingCount = 0;
+		int total = 0;
+
+		if (a == AoFaceData.OPAQUE) {
+			missingCount++;
+		} else {
+			total += a;
+
+			missingVal = func.applyAsInt(missingVal, a);
+		}
+
+		if (b == AoFaceData.OPAQUE) {
+			missingCount++;
+		} else {
+			total += b;
+			missingVal = func.applyAsInt(missingVal, b);
+		}
+
+		if (c == AoFaceData.OPAQUE) {
+			missingCount++;
+		} else {
+			total += c;
+			missingVal = func.applyAsInt(missingVal, c);
+		}
+
+		if (d == AoFaceData.OPAQUE) {
+			missingCount++;
+		} else {
+			total += d;
+			missingVal = func.applyAsInt(missingVal, d);
+		}
+
+		assert missingCount < 4 : "Computing light for four occluding neighbors?";
+
+		// bitwise divide by 4, clamp to expected (positive) range, round up
+		return (total + missingVal * missingCount + 2) >> 2 & 16711935;
+	}
+
 	public void compute(AoFaceData input) {
 		aoTopLeft = input.aoTopLeft;
 		aoTopRight = input.aoTopRight;
@@ -113,69 +177,5 @@ public class AoFaceCalc {
 		skyBottomLeft = Math.round(in0.skyBottomLeft * w0 + in1.skyBottomLeft * w1);
 		skyTopLeft = Math.round(in0.skyTopLeft * w0 + in1.skyTopLeft * w1);
 		skyTopRight = Math.round(in0.skyTopRight * w0 + in1.skyTopRight * w1);
-	}
-
-	/**
-	 * Independent minimum of packed components
-	 */
-	public static int min(int x, int y) {
-		final int s = Math.min(x & 0x00FF0000, y & 0x00FF0000);
-		final int b = Math.min(x & 0xFF, y & 0xFF);
-		return s | b;
-	}
-
-	/**
-	 * Independent maximum of packed components
-	 */
-	public static int max(int x, int y) {
-		final int s = Math.max(x & 0x00FF0000, y & 0x00FF0000);
-		final int b = Math.max(x & 0xFF, y & 0xFF);
-		return s | b;
-	}
-
-	/**
-	 * Vanilla code excluded missing light values from mean but was not isotropic.
-	 * Still need to substitute or edges are too dark but consistently use the min
-	 * value from all four samples.
-	 */
-	private static int meanBrightness(int a, int b, int c, int d) {
-		int missingVal = 0x0FFFFFFF;
-		final IntBinaryOperator func = AoFaceCalc::min;
-		int missingCount = 0;
-		int total = 0;
-
-		if(a == AoFaceData.OPAQUE) {
-			missingCount++;
-		} else {
-			total += a;
-
-			missingVal = func.applyAsInt(missingVal, a);
-		}
-
-		if(b == AoFaceData.OPAQUE) {
-			missingCount++;
-		} else {
-			total += b;
-			missingVal = func.applyAsInt(missingVal, b);
-		}
-
-		if(c == AoFaceData.OPAQUE) {
-			missingCount++;
-		} else {
-			total += c;
-			missingVal = func.applyAsInt(missingVal, c);
-		}
-
-		if(d == AoFaceData.OPAQUE) {
-			missingCount++;
-		} else {
-			total += d;
-			missingVal = func.applyAsInt(missingVal, d);
-		}
-
-		assert missingCount < 4 : "Computing light for four occluding neighbors?";
-
-		// bitwise divide by 4, clamp to expected (positive) range, round up
-		return (total + missingVal * missingCount + 2) >> 2 & 16711935;
 	}
 }

@@ -16,11 +16,10 @@
 
 package grondag.canvas.light;
 
+import grondag.canvas.terrain.FastRenderRegion;
 import net.minecraft.block.BlockState;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
-
-import grondag.canvas.terrain.FastRenderRegion;
 
 
 // TODO: look at VoxelShapes.method_1080 as a way to not propagate thru slabs
@@ -34,15 +33,10 @@ public class LightSmoother {
 	private static final int POS_COUNT = POS_DIAMETER * POS_DIAMETER * POS_DIAMETER;
 	private static final int Y_INC = POS_DIAMETER;
 	private static final int Z_INC = POS_DIAMETER * POS_DIAMETER;
-
-	private static class Helper {
-		private final BlockPos.Mutable smoothPos = new BlockPos.Mutable();
-		private final int a[] = new int[POS_COUNT];
-		private final int b[] = new int[POS_COUNT];
-		private final int c[] = new int[POS_COUNT];
-	}
-
 	private static final ThreadLocal<Helper> helpers = ThreadLocal.withInitial(Helper::new);
+	private static final int INNER_DIST = 28966; // fractional part of 0xFFFF
+	private static final int OUTER_DIST = (0xFFFF - INNER_DIST) / 2;
+	private static final int INNER_PLUS = INNER_DIST + OUTER_DIST;
 
 	public static void computeSmoothedBrightness(FastRenderRegion region) {
 		final Helper help = helpers.get();
@@ -54,9 +48,9 @@ public class LightSmoother {
 		final int minY = region.originY() - MARGIN;
 		final int minZ = region.originZ() - MARGIN;
 
-		for(int x = 0; x < POS_DIAMETER; x++) {
-			for(int y = 0; y < POS_DIAMETER; y++) {
-				for(int z = 0; z < POS_DIAMETER; z++) {
+		for (int x = 0; x < POS_DIAMETER; x++) {
+			for (int y = 0; y < POS_DIAMETER; y++) {
+				for (int z = 0; z < POS_DIAMETER; z++) {
 					final int bx = x + minX;
 					final int by = y + minY;
 					final int bz = z + minZ;
@@ -68,18 +62,17 @@ public class LightSmoother {
 
 					final boolean opaque = state.isOpaqueFullCube(region, smoothPos);
 
-					final int i = index(x, y , z);
-					if(opaque) {
+					final int i = index(x, y, z);
+					if (opaque) {
 						block[i] = OPAQUE;
 						sky[i] = OPAQUE;
-					} else
-						if(packedLight == 0) {
-							block[i] = 0;
-							sky[i] = 0;
-						} else {
-							block[i] = (packedLight & 0xFF);
-							sky[i] = ((packedLight >>> 16) & 0xFF);
-						}
+					} else if (packedLight == 0) {
+						block[i] = 0;
+						sky[i] = 0;
+					} else {
+						block[i] = (packedLight & 0xFF);
+						sky[i] = ((packedLight >>> 16) & 0xFF);
+					}
 				}
 			}
 		}
@@ -101,13 +94,13 @@ public class LightSmoother {
 
 		final int limit = 16 + MARGIN + 1;
 
-		for(int x = MARGIN - 1; x < limit; x++) {
-			for(int y = MARGIN - 1; y < limit; y++) {
-				for(int z = MARGIN - 1; z < limit; z++) {
-					final int i = index(x, y , z);
+		for (int x = MARGIN - 1; x < limit; x++) {
+			for (int y = MARGIN - 1; y < limit; y++) {
+				for (int z = MARGIN - 1; z < limit; z++) {
+					final int i = index(x, y, z);
 					final int b = MathHelper.clamp(((block[i]) * 104 + 51) / 100, 0, 240);
 					final int k = MathHelper.clamp(((sky[i]) * 104 + 51) / 100, 0, 240);
-					region.setLightCache(x + minX, y + minY, z + minZ, ((b + 2) & 0b11111100) | (((k + 2) & 0b11111100)  << 16));
+					region.setLightCache(x + minX, y + minY, z + minZ, ((b + 2) & 0b11111100) | (((k + 2) & 0b11111100) << 16));
 				}
 			}
 		}
@@ -116,10 +109,6 @@ public class LightSmoother {
 	private static int index(int x, int y, int z) {
 		return x + y * Y_INC + z * Z_INC;
 	}
-
-	private static final int INNER_DIST = 28966; // fractional part of 0xFFFF
-	private static final int OUTER_DIST = (0xFFFF - INNER_DIST) / 2;
-	private static final int INNER_PLUS = INNER_DIST + OUTER_DIST;
 
 	private static void smooth(int margin, int[] src, int[] dest) {
 		final int xBase = MARGIN - margin;
@@ -132,13 +121,13 @@ public class LightSmoother {
 
 
 		// X PASS
-		for(int x = xBase; x < xLimit; x++) {
-			for(int y = yBase; y < yLimit; y += Y_INC) {
-				for(int z = zBase; z < zLimit; z += Z_INC) {
+		for (int x = xBase; x < xLimit; x++) {
+			for (int y = yBase; y < yLimit; y += Y_INC) {
+				for (int z = zBase; z < zLimit; z += Z_INC) {
 					final int i = x + y + z;
 
 					final int c = src[i];
-					if(c == OPAQUE) {
+					if (c == OPAQUE) {
 						dest[i] = OPAQUE;
 						continue;
 					}
@@ -148,13 +137,13 @@ public class LightSmoother {
 					final int a = src[i + 1];
 					final int b = src[i - 1];
 
-					if(a == OPAQUE) {
-						if(b == OPAQUE) {
+					if (a == OPAQUE) {
+						if (b == OPAQUE) {
 							dest[i] = c;
 						} else {
-							dest[i] = (b * OUTER_DIST + c * INNER_PLUS + 0x7FFF) >> 16 ;
+							dest[i] = (b * OUTER_DIST + c * INNER_PLUS + 0x7FFF) >> 16;
 						}
-					} else if(b == OPAQUE) {
+					} else if (b == OPAQUE) {
 						dest[i] = (a * OUTER_DIST + c * INNER_PLUS + 0x7FFF) >> 16;
 					} else {
 						dest[i] = (a * OUTER_DIST + b * OUTER_DIST + c * INNER_DIST + 0x7FFF) >> 16;
@@ -164,14 +153,14 @@ public class LightSmoother {
 		}
 
 		// Y PASS
-		for(int x = xBase; x < xLimit; x++) {
-			for(int y = yBase; y < yLimit; y += Y_INC) {
-				for(int z = zBase; z < zLimit; z += Z_INC) {
+		for (int x = xBase; x < xLimit; x++) {
+			for (int y = yBase; y < yLimit; y += Y_INC) {
+				for (int z = zBase; z < zLimit; z += Z_INC) {
 					final int i = x + y + z;
 
 					// Note arrays are swapped here
 					final int c = dest[i];
-					if(c == OPAQUE) {
+					if (c == OPAQUE) {
 						src[i] = OPAQUE;
 						continue;
 					}
@@ -181,13 +170,13 @@ public class LightSmoother {
 					final int a = dest[i + Y_INC];
 					final int b = dest[i - Y_INC];
 
-					if(a == OPAQUE) {
-						if(b == OPAQUE) {
+					if (a == OPAQUE) {
+						if (b == OPAQUE) {
 							src[i] = c;
 						} else {
 							src[i] = (b * OUTER_DIST + c * INNER_PLUS + 0x7FFF) >> 16;
 						}
-					} else if(b == OPAQUE) {
+					} else if (b == OPAQUE) {
 						src[i] = (a * OUTER_DIST + c * INNER_PLUS + 0x7FFF) >> 16;
 					} else {
 						src[i] = (a * OUTER_DIST + b * OUTER_DIST + c * INNER_DIST + 0x7FFF) >> 16;
@@ -196,14 +185,14 @@ public class LightSmoother {
 			}
 		}
 		// Z PASS
-		for(int x = xBase; x < xLimit; x++) {
-			for(int y = yBase; y < yLimit; y += Y_INC) {
-				for(int z = zBase; z < zLimit; z += Z_INC) {
+		for (int x = xBase; x < xLimit; x++) {
+			for (int y = yBase; y < yLimit; y += Y_INC) {
+				for (int z = zBase; z < zLimit; z += Z_INC) {
 					final int i = x + y + z;
 
 					// Arrays are swapped back to original roles here
 					final int c = src[i];
-					if(c == OPAQUE) {
+					if (c == OPAQUE) {
 						dest[i] = OPAQUE;
 						continue;
 					}
@@ -213,13 +202,13 @@ public class LightSmoother {
 					final int a = src[i + Z_INC];
 					final int b = src[i - Z_INC];
 
-					if(a == OPAQUE) {
-						if(b == OPAQUE) {
+					if (a == OPAQUE) {
+						if (b == OPAQUE) {
 							dest[i] = c;
 						} else {
 							dest[i] = (b * OUTER_DIST + c * INNER_PLUS + 0x7FFF) >> 16;
 						}
-					} else if(b == OPAQUE) {
+					} else if (b == OPAQUE) {
 						dest[i] = (a * OUTER_DIST + c * INNER_PLUS + 0x7FFF) >> 16;
 					} else {
 						dest[i] = (a * OUTER_DIST + b * OUTER_DIST + c * INNER_DIST + 0x7FFF) >> 16;
@@ -227,5 +216,12 @@ public class LightSmoother {
 				}
 			}
 		}
+	}
+
+	private static class Helper {
+		private final BlockPos.Mutable smoothPos = new BlockPos.Mutable();
+		private final int[] a = new int[POS_COUNT];
+		private final int[] b = new int[POS_COUNT];
+		private final int[] c = new int[POS_COUNT];
 	}
 }

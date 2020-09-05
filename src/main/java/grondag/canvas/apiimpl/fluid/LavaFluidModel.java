@@ -16,19 +16,18 @@
 
 package grondag.canvas.apiimpl.fluid;
 
+import grondag.frex.api.fluid.AbstractFluidModel;
 import net.minecraft.client.texture.Sprite;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.BlockRenderView;
 
-import grondag.frex.api.fluid.AbstractFluidModel;
-
 public class LavaFluidModel extends AbstractFluidModel {
+	protected final Sprite[] sprites = FluidHandler.lavaSprites();
+
 	public LavaFluidModel() {
 		super(FluidHandler.LAVA_MATERIAL, false);
 	}
-
-	protected final Sprite[] sprites = FluidHandler.lavaSprites();
 
 	@Override
 	public int getFluidColor(BlockRenderView view, BlockPos pos, FluidState state) {

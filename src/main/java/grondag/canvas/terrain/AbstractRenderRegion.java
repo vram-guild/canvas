@@ -16,29 +16,26 @@
 
 package grondag.canvas.terrain;
 
-import static grondag.canvas.terrain.RenderRegionAddressHelper.relativeCacheIndex;
-
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.ChunkSection;
 import net.minecraft.world.chunk.WorldChunk;
 
+import static grondag.canvas.terrain.RenderRegionAddressHelper.relativeCacheIndex;
+
 /**
  * Tries to prevent FastRenderRegion from being unreadably big. Fails.
  */
 abstract class AbstractRenderRegion {
+	// larger than needed to speed up indexing
+	protected final WorldChunk[] chunks = new WorldChunk[16];
 	protected int originX;
 	protected int originY;
 	protected int originZ;
-
 	protected int chunkBaseX;
 	protected int chunkBaseY;
 	protected int chunkBaseZ;
-
 	protected World world;
-
-	// larger than needed to speed up indexing
-	protected final WorldChunk[] chunks = new WorldChunk[16];
 
 	final boolean isInMainChunk(int x, int y, int z) {
 		return originX == (x & 0xFFFFFFF0) && originY == (y & 0xFFFFFFF0) && originZ == (z & 0xFFFFFFF0);

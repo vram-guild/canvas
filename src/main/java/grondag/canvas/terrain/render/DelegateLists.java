@@ -16,9 +16,9 @@
 
 package grondag.canvas.terrain.render;
 
-import java.util.concurrent.ArrayBlockingQueue;
-
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+
+import java.util.concurrent.ArrayBlockingQueue;
 
 public class DelegateLists {
 	private static final ArrayBlockingQueue<ObjectArrayList<DrawableDelegate>> delegateLists = new ArrayBlockingQueue<>(
