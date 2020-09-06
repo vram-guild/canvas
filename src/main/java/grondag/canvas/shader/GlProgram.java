@@ -17,6 +17,7 @@
 package grondag.canvas.shader;
 
 import grondag.canvas.CanvasMod;
+import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.ShaderBuilderImpl.UniformMatrix4f;
 import grondag.canvas.material.MaterialVertexFormat;
 import grondag.canvas.varia.CanvasGlHelper;
@@ -37,6 +38,12 @@ import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
 public class GlProgram {
+	static {
+		if (Configurator.enableLifeCycleDebug) {
+			CanvasMod.LOG.info("Lifecycle Event: GlProgram static init");
+		}
+	}
+
 	private static GlProgram activeProgram;
 	public final GlShader vertexShader;
 	public final GlShader fragmentShader;
@@ -339,7 +346,7 @@ public class GlProgram {
 		final String regex = "(?m)^\\s*uniform\\s+" + type + "\\s+" + name + "\\s*;";
 		final Pattern pattern = Pattern.compile(regex);
 		return pattern.matcher(vertexShader.getSource()).find()
-				|| pattern.matcher(fragmentShader.getSource()).find();
+		|| pattern.matcher(fragmentShader.getSource()).find();
 	}
 
 	public abstract class UniformImpl<T extends Uniform> {
@@ -371,7 +378,7 @@ public class GlProgram {
 			this.unifID = GL21.glGetUniformLocation(programID, name);
 			if (this.unifID == -1) {
 				CanvasMod.LOG.debug(I18n.translate("debug.canvas.missing_uniform", name,
-						vertexShader.shaderSource.toString(), fragmentShader.shaderSource.toString()));
+					vertexShader.shaderSource.toString(), fragmentShader.shaderSource.toString()));
 				this.flags = 0;
 			} else {
 				// dirty flag will be reset before uniforms are loaded
@@ -700,7 +707,7 @@ public class GlProgram {
 		protected final Matrix4f lastValue = new Matrix4f();
 
 		protected UniformMatrix4fImpl(String name, Consumer<UniformMatrix4f> initializer,
-									  UniformRefreshFrequency frequency) {
+		UniformRefreshFrequency frequency) {
 			this(name, initializer, frequency, BufferUtils.createFloatBuffer(16));
 		}
 
@@ -708,7 +715,7 @@ public class GlProgram {
 		 * Use when have a shared direct buffer
 		 */
 		protected UniformMatrix4fImpl(String name, Consumer<UniformMatrix4f> initializer,
-									  UniformRefreshFrequency frequency, FloatBuffer uniformFloatBuffer) {
+		UniformRefreshFrequency frequency, FloatBuffer uniformFloatBuffer) {
 			super(name, initializer, frequency);
 			this.uniformFloatBuffer = uniformFloatBuffer;
 			bufferAddress = MemoryUtil.memAddress(this.uniformFloatBuffer);

@@ -34,6 +34,10 @@ public class CanvasGlHelper {
 	static private int attributeEnabledCount = 0;
 
 	public static void init() {
+		if (Configurator.enableLifeCycleDebug) {
+			CanvasMod.LOG.info("Lifecycle Event: CanvasGlHelper static init");
+		}
+
 		final GLCapabilities caps = GL.getCapabilities();
 		useVboArb = !caps.OpenGL15 && caps.GL_ARB_vertex_buffer_object;
 		vaoEnabled = caps.GL_ARB_vertex_array_object || caps.OpenGL30;
@@ -55,10 +59,10 @@ public class CanvasGlHelper {
 		log.info(String.format(" GPU: %s  %s", GLX._getCapsString(), GLX._getLWJGLVersion()));
 		log.info(String.format(" OpenGL: %s", GLX.getOpenGLVersionString()));
 		log.info(String.format(" GpuShader4: %s  VboArb: %s  VaoEnabled: %s  VaoArb: %s",
-				useGpuShader4 ? "Y" : "N",
-				useVboArb ? "Y" : "N",
-				vaoEnabled ? "Y" : "N",
-				useVaoArb ? "Y" : "N"));
+			useGpuShader4 ? "Y": "N",
+			useVboArb ? "Y" : "N",
+			vaoEnabled ? "Y" : "N",
+			useVaoArb ? "Y" : "N"));
 		log.info(" (This message can be disabled by configuring logMachineInfo = false.)");
 		log.info("========================================================================");
 	}

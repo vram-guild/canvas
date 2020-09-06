@@ -16,12 +16,21 @@
 
 package grondag.canvas.shader;
 
+import grondag.canvas.CanvasMod;
+import grondag.canvas.Configurator;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.util.Identifier;
 import org.lwjgl.opengl.GL21;
 
-public final class GlShaderManager {
-	public final static GlShaderManager INSTANCE = new GlShaderManager();
+public enum GlShaderManager {
+	INSTANCE;
+
+	{
+		if (Configurator.enableLifeCycleDebug) {
+			CanvasMod.LOG.info("Lifecycle Event: GlShaderManager init");
+		}
+	}
+
 	private final Object2ObjectOpenHashMap<String, GlShader> vertexShaders = new Object2ObjectOpenHashMap<>();
 	private final Object2ObjectOpenHashMap<String, GlShader> fragmentShaders = new Object2ObjectOpenHashMap<>();
 

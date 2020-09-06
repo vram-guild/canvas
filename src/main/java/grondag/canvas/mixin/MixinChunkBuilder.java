@@ -16,6 +16,8 @@
 
 package grondag.canvas.mixin;
 
+import grondag.canvas.CanvasMod;
+import grondag.canvas.Configurator;
 import net.minecraft.client.render.chunk.ChunkBuilder;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -25,6 +27,10 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
 public abstract class MixinChunkBuilder {
 	@ModifyVariable(method = "<init>", index = 9, at = @At(value = "INVOKE", target = "Lcom/google/common/collect/Lists;newArrayListWithExpectedSize(I)Ljava/util/ArrayList;", remap = false))
 	private int onInitZeroListSize(int ignored) {
+		if (Configurator.enableLifeCycleDebug) {
+			CanvasMod.LOG.info("Lifecycle Event: ChunkBuilder init (zero list size)");
+		}
+
 		return 0;
 	}
 

@@ -16,6 +16,8 @@
 
 package grondag.canvas.shader;
 
+import grondag.canvas.CanvasMod;
+import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.material.MaterialShaderImpl;
 import grondag.canvas.varia.WorldDataManager;
 import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
@@ -26,11 +28,10 @@ import net.minecraft.entity.Entity;
 import net.minecraft.util.Identifier;
 
 
-public final class MaterialShaderManager implements ClientTickEvents.EndTick {
+public enum MaterialShaderManager implements ClientTickEvents.EndTick {
+	INSTANCE;
 
 	public static final int MAX_SHADERS = 0xFFFF;
-
-	public static final MaterialShaderManager INSTANCE = new MaterialShaderManager();
 
 	private final SimpleUnorderedArrayList<MaterialShaderImpl> shaders = new SimpleUnorderedArrayList<>();
 
@@ -53,7 +54,9 @@ public final class MaterialShaderManager implements ClientTickEvents.EndTick {
 	private int frameIndex = 0;
 
 	private MaterialShaderManager() {
-		super();
+		if (Configurator.enableLifeCycleDebug) {
+			CanvasMod.LOG.info("Lifecycle Event: MaterialShaderManager init");
+		}
 
 		ClientTickEvents.END_CLIENT_TICK.register(this);
 

@@ -16,6 +16,8 @@
 
 package grondag.canvas.texture;
 
+import grondag.canvas.CanvasMod;
+import grondag.canvas.Configurator;
 import grondag.canvas.varia.CanvasGlHelper;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.fabricmc.api.EnvType;
@@ -37,6 +39,10 @@ public final class SpriteInfoImage implements AutoCloseable {
 	// FIX: make texture square to reduce chance of overrun/driver strangeness
 
 	public SpriteInfoImage(ObjectArrayList<Sprite> spriteIndex, int spriteCount, int size) {
+		if (Configurator.enableLifeCycleDebug) {
+			CanvasMod.LOG.info("Lifecycle Event: SpriteInfoImage init");
+		}
+
 		this.size = size;
 
 		// 16 because 4 floats per vector, 4 because 4 samples per sprite

@@ -17,6 +17,7 @@
 package grondag.canvas.render;
 
 import com.mojang.blaze3d.platform.GlStateManager;
+import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
 import grondag.canvas.material.MaterialVertexFormats;
 import grondag.canvas.pipeline.CanvasFrameBufferHacks;
@@ -30,6 +31,12 @@ import org.lwjgl.opengl.GL11;
 
 public enum RenderLayerHandler {
 	INSTANCE;
+
+	static {
+		if (Configurator.enableLifeCycleDebug) {
+			CanvasMod.LOG.info("Lifecycle Event: RenderLayerHandler static init");
+		}
+	}
 
 	private static boolean enableShaderDraw = false;
 

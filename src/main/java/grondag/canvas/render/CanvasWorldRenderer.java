@@ -19,6 +19,7 @@ package grondag.canvas.render;
 import com.google.common.collect.Sets;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
+import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
 import grondag.canvas.buffer.BindStateManager;
 import grondag.canvas.buffer.VboBuffer;
@@ -73,6 +74,7 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL21;
 
 import javax.annotation.Nullable;
+
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -110,6 +112,11 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 	public CanvasWorldRenderer(MinecraftClient client, BufferBuilderStorage bufferBuilders) {
 		super(client, bufferBuilders);
+
+		if (Configurator.enableLifeCycleDebug) {
+			CanvasMod.LOG.info("Lifecycle Event: CanvasWorldRenderer init");
+		}
+
 		wr = (WorldRendererExt) this;
 		instance = this;
 		computeDistances();

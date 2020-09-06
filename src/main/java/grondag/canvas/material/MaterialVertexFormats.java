@@ -16,45 +16,52 @@
 
 package grondag.canvas.material;
 
-import grondag.canvas.Configurator;
-
 import static grondag.canvas.material.MaterialVertextFormatElement.*;
+
+import grondag.canvas.CanvasMod;
+import grondag.canvas.Configurator;
 
 // WIP: make these fully parallel to vanilla formats
 // encoding may be different and may depend on feature configuration
 
 public final class MaterialVertexFormats {
+	static {
+		if (Configurator.enableLifeCycleDebug) {
+			CanvasMod.LOG.info("Lifecycle Event: MaterialVertexFormats static init");
+		}
+	}
+
 	// PERF: try quantized vertex format
 	public static final MaterialVertexFormat VANILLA_BLOCKS_AND_ITEMS = new MaterialVertexFormat(
-			POSITION_3F,
-			BASE_RGBA_4UB,
-			BASE_TEX_2US,
-			LIGHTMAPS_4UB,
-			NORMAL_AO_4B,
-			MATERIAL_2US);
+		POSITION_3F,
+		BASE_RGBA_4UB,
+		BASE_TEX_2US,
+		LIGHTMAPS_4UB,
+		NORMAL_AO_4B,
+		MATERIAL_2US);
 
 	public static final MaterialVertexFormat TEMPORARY_ENTITY_FORMAT = new MaterialVertexFormat(
-			POSITION_3F,
-			BASE_RGBA_4UB,
-			BASE_TEX_2F,
-			TEMP_OVERLAY,
-			TEMP_LIGHTMAP,
-			NORMAL_AO_4B);
+		POSITION_3F,
+		BASE_RGBA_4UB,
+		BASE_TEX_2F,
+		TEMP_OVERLAY,
+		TEMP_LIGHTMAP,
+		NORMAL_AO_4B);
 
 	public static final MaterialVertexFormat HD_TERRAIN = new MaterialVertexFormat(
-			POSITION_3F,
-			BASE_RGBA_4UB,
-			BASE_TEX_2F,
-			LIGHTMAPS_4UB, // PERF: remove and bundle flags with normal
-			HD_LIGHTMAP_2US,
-			NORMAL_AO_4B);
+		POSITION_3F,
+		BASE_RGBA_4UB,
+		BASE_TEX_2F,
+		LIGHTMAPS_4UB, // PERF: remove and bundle flags with normal
+		HD_LIGHTMAP_2US,
+		NORMAL_AO_4B);
 
 	public static final MaterialVertexFormat PROCESS_VERTEX_UV = new MaterialVertexFormat(
-			POSITION_3F,
-			BASE_TEX_2F);
+		POSITION_3F,
+		BASE_TEX_2F);
 
 	public static final MaterialVertexFormat PROCESS_VERTEX = new MaterialVertexFormat(
-			POSITION_3F);
+		POSITION_3F);
 
 	// UGLY: derive this from formats
 	public static final int MAX_QUAD_INT_STRIDE = 128;

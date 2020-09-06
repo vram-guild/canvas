@@ -19,6 +19,7 @@ package grondag.canvas.pipeline;
 import com.mojang.blaze3d.platform.FramebufferInfo;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
+import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
 import grondag.canvas.buffer.VboBuffer;
 import grondag.canvas.buffer.encoding.VertexCollectorImpl;
@@ -36,6 +37,11 @@ import org.lwjgl.opengl.GL21;
 
 //PERF: handle VAO properly here before re-enabling VAO
 public class CanvasFrameBufferHacks {
+	static {
+		if (Configurator.enableLifeCycleDebug) {
+			CanvasMod.LOG.info("Lifecycle Event: CanvasFrameBufferHacks static init");
+		}
+	}
 
 	static final ProcessShader copy = ProcessShaders.create("canvas:shaders/internal/process/copy", "_cvu_input");
 	static final ProcessShader emissiveColor = ProcessShaders.create("canvas:shaders/internal/process/emissive_color", "_cvu_base", "_cvu_emissive");

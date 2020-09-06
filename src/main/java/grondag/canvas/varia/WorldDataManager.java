@@ -16,6 +16,8 @@
 
 package grondag.canvas.varia;
 
+import grondag.canvas.CanvasMod;
+import grondag.canvas.Configurator;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.render.GameRenderer;
@@ -57,6 +59,12 @@ public class WorldDataManager {
 
 	private static final float[] DATA = new float[LENGTH];
 	private static final long baseRenderTime = System.currentTimeMillis();
+
+	static {
+		if (Configurator.enableLifeCycleDebug) {
+			CanvasMod.LOG.info("Lifecycle Event: WorldDataManager static init");
+		}
+	}
 
 	public static float[] data() {
 		return DATA;
