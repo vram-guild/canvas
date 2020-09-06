@@ -225,16 +225,14 @@ public class GlShader {
 				result = StringUtils.replace(result, "#define _CV_HAS_VERTEX_END", "//#define _CV_HAS_VERTEX_END");
 			}
 
-			final SpriteInfoTexture sit = SpriteInfoTexture.instance();
-
-			result = StringUtils.replace(result, "#define _CV_SPRITE_INFO_TEXTURE_SIZE 1024", "#define _CV_SPRITE_INFO_TEXTURE_SIZE " + sit.textureSize());
-			result = StringUtils.replace(result, "#define _CV_ATLAS_WIDTH 1024", "#define _CV_ATLAS_WIDTH " + sit.atlasWidth);
-			result = StringUtils.replace(result, "#define _CV_ATLAS_HEIGHT 1024", "#define _CV_ATLAS_HEIGHT " + sit.atlasHeight);
+			result = StringUtils.replace(result, "#define _CV_SPRITE_INFO_TEXTURE_SIZE 1024", "#define _CV_SPRITE_INFO_TEXTURE_SIZE " + SpriteInfoTexture.textureSize());
+			result = StringUtils.replace(result, "#define _CV_ATLAS_WIDTH 1024", "#define _CV_ATLAS_WIDTH " + SpriteInfoTexture.atlasWidth());
+			result = StringUtils.replace(result, "#define _CV_ATLAS_HEIGHT 1024", "#define _CV_ATLAS_HEIGHT " + SpriteInfoTexture.atlasHeight());
 		}
 
 		if (context.pass != ShaderPass.SOLID) {
 			result = StringUtils.replace(result, "#define SHADER_PASS SHADER_PASS_SOLID",
-					"#define SHADER_PASS SHADER_PASS_" + context.pass.name());
+				"#define SHADER_PASS SHADER_PASS_" + context.pass.name());
 		}
 
 		if (context.materialContext.isBlock) {
@@ -255,7 +253,7 @@ public class GlShader {
 
 		if (Configurator.fogMode != FogMode.VANILLA && !context.materialContext.isGui) {
 			result = StringUtils.replace(result, "#define _CV_FOG_CONFIG _CV_FOG_CONFIG_VANILLA",
-					"#define _CV_FOG_CONFIG _CV_FOG_CONFIG_" + Configurator.fogMode.name());
+				"#define _CV_FOG_CONFIG _CV_FOG_CONFIG_" + Configurator.fogMode.name());
 		}
 
 		if ((context.pass == ShaderPass.SOLID || context.pass == ShaderPass.DECAL) && Configurator.enableBloom) {
@@ -272,15 +270,15 @@ public class GlShader {
 
 		if (!MinecraftClient.isAmbientOcclusionEnabled()) {
 			result = StringUtils.replace(result, "#define AO_SHADING_MODE AO_MODE_NORMAL",
-					"#define AO_SHADING_MODE AO_MODE_" + AoMode.NONE.name());
+				"#define AO_SHADING_MODE AO_MODE_" + AoMode.NONE.name());
 		} else if (Configurator.aoShadingMode != AoMode.NORMAL) {
 			result = StringUtils.replace(result, "#define AO_SHADING_MODE AO_MODE_NORMAL",
-					"#define AO_SHADING_MODE AO_MODE_" + Configurator.aoShadingMode.name());
+				"#define AO_SHADING_MODE AO_MODE_" + Configurator.aoShadingMode.name());
 		}
 
 		if (Configurator.diffuseShadingMode != DiffuseMode.NORMAL) {
 			result = StringUtils.replace(result, "#define DIFFUSE_SHADING_MODE DIFFUSE_MODE_NORMAL",
-					"#define DIFFUSE_SHADING_MODE DIFFUSE_MODE_" + Configurator.diffuseShadingMode.name());
+				"#define DIFFUSE_SHADING_MODE DIFFUSE_MODE_" + Configurator.diffuseShadingMode.name());
 		}
 
 		if (CanvasGlHelper.useGpuShader4()) {

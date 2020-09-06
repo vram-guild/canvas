@@ -41,6 +41,7 @@ import net.minecraft.client.texture.Sprite;
 import net.minecraft.util.math.Matrix4f;
 
 import javax.annotation.Nullable;
+
 import java.util.Random;
 import java.util.function.Consumer;
 
@@ -100,7 +101,7 @@ public abstract class AbstractRenderContext implements RenderContext {
 			return;
 		}
 
-		final Sprite sprite = materialMap.needsSprite() ? SpriteInfoTexture.instance().fromId(quad.spriteId(0)) : null;
+		final Sprite sprite = materialMap.needsSprite() ? SpriteInfoTexture.fromId(quad.spriteId(0)) : null;
 		final RenderMaterial mapped = materialMap.getMapped(sprite);
 
 		if (mapped != null) {

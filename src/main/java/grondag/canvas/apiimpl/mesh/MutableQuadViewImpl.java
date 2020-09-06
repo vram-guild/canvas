@@ -145,6 +145,7 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 		return this;
 	}
 
+	@Override
 	public final MutableQuadViewImpl fromVanilla(BakedQuad quad, RenderMaterial material, Direction cullFace) {
 		return fromVanilla(quad, material, ModelHelper.toFaceIndex(cullFace));
 	}
@@ -283,7 +284,6 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 	/**
 	 * Same as logic in SpriteFinder but can assume sprites are mapped - avoids checks
 	 */
-	@SuppressWarnings("resource")
 	private Sprite findSprite(int textureIndex) {
 		float u = 0;
 		float v = 0;
@@ -293,7 +293,7 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 			v += spriteFloatV(i, textureIndex);
 		}
 
-		return SpriteInfoTexture.instance().spriteFinder.find(u * 0.25f, v * 0.25f);
+		return SpriteInfoTexture.spriteFinder().find(u * 0.25f, v * 0.25f);
 	}
 
 	@Override

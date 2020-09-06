@@ -16,7 +16,6 @@
 
 package grondag.canvas.mixin;
 
-import grondag.canvas.mixinterface.SpriteAtlasTextureExt;
 import grondag.canvas.mixinterface.SpriteExt;
 import grondag.canvas.texture.SpriteInfoTexture;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
@@ -32,33 +31,24 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import java.util.Map;
 
 @Mixin(SpriteAtlasTexture.class)
-public class MixinSpriteAtlasTexture implements SpriteAtlasTextureExt {
-	private final ObjectArrayList<Sprite> spriteIndex = new ObjectArrayList<>();
+public class MixinSpriteAtlasTexture {
 	@Shadow
 	private Identifier id;
 	@Shadow
 	private Map<Identifier, Sprite> sprites;
 
-	@Override
-	public Map<Identifier, Sprite> canvas_spriteMap() {
-		return sprites;
-	}
-
-	@Override
-	public ObjectArrayList<Sprite> canvas_spriteIndex() {
-		return spriteIndex;
-	}
-
 	@Inject(at = @At("RETURN"), method = "upload")
 	private void afterUpload(SpriteAtlasTexture.Data input, CallbackInfo info) {
 		if (id.equals(SpriteAtlasTexture.BLOCK_ATLAS_TEX)) {
-			SpriteInfoTexture.reset(input);
 			int index = 0;
+			final ObjectArrayList<Sprite> spriteIndex = new ObjectArrayList<>();
 
 			for (final Sprite sprite : sprites.values()) {
 				spriteIndex.add(sprite);
 				((SpriteExt) sprite).canvas_id(index++);
 			}
+
+			SpriteInfoTexture.reset(input, spriteIndex, (SpriteAtlasTexture)(Object) this);
 		}
 	}
 }

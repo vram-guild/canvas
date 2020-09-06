@@ -487,7 +487,6 @@ abstract class EncoderUtils {
 		final MeshMaterialLayer mat0 = mat.getLayer(0);
 		final VertexCollectorImpl buff0 = context.collectors.get(mat0);
 		final int[] appendData = context.appendData;
-		final SpriteInfoTexture spriteInfo = SpriteInfoTexture.instance();
 
 		assert mat.blendMode() != BlendMode.DEFAULT;
 
@@ -504,7 +503,7 @@ abstract class EncoderUtils {
 			transformedNormal = normalMatrix.canvas_transform(packedNormal);
 		}
 
-		final int spriteIdCoord = spriteInfo.coordinate(quad.spriteId(0));
+		final int spriteIdCoord = SpriteInfoTexture.coordinate(quad.spriteId(0));
 
 		assert spriteIdCoord <= 0xFFFF;
 
@@ -547,7 +546,6 @@ abstract class EncoderUtils {
 		final MeshMaterialLayer mat0 = mat.getLayer(0);
 		final VertexCollectorImpl buff0 = context.collectors.get(mat0);
 		final int shaderFlags0 = mat0.shaderFlags << 16;
-		final SpriteInfoTexture spriteInfo = SpriteInfoTexture.instance();
 
 		final int[] appendData = context.appendData;
 		final float[] aoData = quad.ao;
@@ -588,7 +586,7 @@ abstract class EncoderUtils {
 		normalAo2 |= aoData == null ? NO_AO_SHADE : ((Math.round(aoData[2] * 254) - 127) << 24);
 		normalAo3 |= aoData == null ? NO_AO_SHADE : ((Math.round(aoData[3] * 254) - 127) << 24);
 
-		final int spriteIdCoord0 = spriteInfo.coordinate(quad.spriteId(0));
+		final int spriteIdCoord0 = SpriteInfoTexture.coordinate(quad.spriteId(0));
 
 		appendData[3] = quad.spriteColor(0, 0);
 		appendData[4] = quad.spriteBufferU(0, 0) | (quad.spriteBufferV(0, 0) << 16);
@@ -619,7 +617,7 @@ abstract class EncoderUtils {
 		final MeshMaterialLayer mat1 = mat.getLayer(1);
 		final VertexCollectorImpl buff1 = context.collectors.get(mat1);
 		final int shaderFlags1 = mat1.shaderFlags << 16;
-		final int spriteIdCoord1 = spriteInfo.coordinate(quad.spriteId(1));
+		final int spriteIdCoord1 = SpriteInfoTexture.coordinate(quad.spriteId(1));
 
 		appendData[3] = quad.spriteColor(0, 1);
 		appendData[4] = quad.spriteBufferU(0, 1) | (quad.spriteBufferV(0, 1) << 16);
@@ -652,7 +650,6 @@ abstract class EncoderUtils {
 		final Matrix4fExt matrix = (Matrix4fExt) (Object) context.matrix();
 		final Matrix3fExt normalMatrix = context.normalMatrix();
 		final MeshMaterial mat = quad.material().get();
-		final SpriteInfoTexture spriteInfo = SpriteInfoTexture.instance();
 
 		final MeshMaterialLayer mat0 = mat.getLayer(0);
 		final VertexCollectorImpl buff0 = context.collectors.get(mat0);
@@ -698,7 +695,7 @@ abstract class EncoderUtils {
 		normalAo2 |= aoData == null ? NO_AO_SHADE : ((Math.round(aoData[2] * 254) - 127) << 24);
 		normalAo3 |= aoData == null ? NO_AO_SHADE : ((Math.round(aoData[3] * 254) - 127) << 24);
 
-		final int spriteIdCoord0 = spriteInfo.coordinate(quad.spriteId(0));
+		final int spriteIdCoord0 = SpriteInfoTexture.coordinate(quad.spriteId(0));
 
 		appendData[3] = quad.spriteColor(0, 0);
 		appendData[4] = quad.spriteBufferU(0, 0) | (quad.spriteBufferV(0, 0) << 16);
@@ -729,7 +726,7 @@ abstract class EncoderUtils {
 		final MeshMaterialLayer mat1 = mat.getLayer(1);
 		final VertexCollectorImpl buff1 = context.collectors.get(mat1);
 		final int shaderFlags1 = mat1.shaderFlags << 16;
-		final int spriteIdCoord1 = spriteInfo.coordinate(quad.spriteId(1));
+		final int spriteIdCoord1 = SpriteInfoTexture.coordinate(quad.spriteId(1));
 
 		appendData[3] = quad.spriteColor(0, 1);
 		appendData[4] = quad.spriteBufferU(0, 1) | (quad.spriteBufferV(0, 1) << 16);
@@ -760,7 +757,7 @@ abstract class EncoderUtils {
 		final MeshMaterialLayer mat2 = mat.getLayer(2);
 		final VertexCollectorImpl buff2 = context.collectors.get(mat2);
 		final int shaderFlags2 = mat2.shaderFlags << 16;
-		final int spriteIdCoord2 = spriteInfo.coordinate(quad.spriteId(2));
+		final int spriteIdCoord2 = SpriteInfoTexture.coordinate(quad.spriteId(2));
 
 		appendData[3] = quad.spriteColor(0, 2);
 		appendData[4] = quad.spriteBufferU(0, 2) | (quad.spriteBufferV(0, 2) << 16);

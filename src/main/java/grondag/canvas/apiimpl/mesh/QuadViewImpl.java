@@ -316,7 +316,7 @@ public class QuadViewImpl implements QuadView {
 
 	protected int colorOffset(int vertexIndex, int spriteIndex) {
 		return spriteIndex == 0 ? vertexIndex * BASE_VERTEX_STRIDE + VERTEX_COLOR
-				: TEXTURE_OFFSET_MINUS + spriteIndex * TEXTURE_QUAD_STRIDE + vertexIndex * TEXTURE_VERTEX_STRIDE;
+		: TEXTURE_OFFSET_MINUS + spriteIndex * TEXTURE_QUAD_STRIDE + vertexIndex * TEXTURE_VERTEX_STRIDE;
 	}
 
 	@Override
@@ -339,15 +339,15 @@ public class QuadViewImpl implements QuadView {
 	@Override
 	public float spriteU(int vertexIndex, int spriteIndex) {
 		return isSpriteUnmapped(spriteIndex)
-				? SpriteInfoTexture.instance().mapU(spriteId(spriteIndex), spriteFloatU(vertexIndex, spriteIndex))
-				: spriteFloatU(vertexIndex, spriteIndex);
+		? SpriteInfoTexture.mapU(spriteId(spriteIndex), spriteFloatU(vertexIndex, spriteIndex))
+		: spriteFloatU(vertexIndex, spriteIndex);
 	}
 
 	@Override
 	public float spriteV(int vertexIndex, int spriteIndex) {
 		return isSpriteUnmapped(spriteIndex)
-				? SpriteInfoTexture.instance().mapV(spriteId(spriteIndex), spriteFloatV(vertexIndex, spriteIndex))
-				: spriteFloatV(vertexIndex, spriteIndex);
+		? SpriteInfoTexture.mapV(spriteId(spriteIndex), spriteFloatV(vertexIndex, spriteIndex))
+		: spriteFloatV(vertexIndex, spriteIndex);
 	}
 
 	/**

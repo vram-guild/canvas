@@ -19,13 +19,12 @@ package grondag.canvas.texture;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import grondag.canvas.CanvasMod;
+import grondag.canvas.Configurator;
 import grondag.canvas.mixinterface.SpriteAtlasTextureDataExt;
-import grondag.canvas.mixinterface.SpriteAtlasTextureExt;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.renderer.v1.model.SpriteFinder;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.texture.Sprite;
 import net.minecraft.client.texture.SpriteAtlasTexture;
 import net.minecraft.client.texture.SpriteAtlasTexture.Data;
@@ -35,61 +34,44 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL21;
 
 @Environment(EnvType.CLIENT)
-public class SpriteInfoTexture implements AutoCloseable {
-	private static SpriteInfoTexture instance;
-	private static Data atlasData;
-	public final SpriteAtlasTexture atlas;
-	public final int atlasWidth;
-	public final int atlasHeight;
-	public final SpriteFinder spriteFinder;
-	final ObjectArrayList<Sprite> spriteIndex;
-	private final int textureSize;
-	protected int glId = -1;
+public class SpriteInfoTexture {
+	private static ObjectArrayList<Sprite> spriteIndex = null;
+	private static SpriteAtlasTexture atlas;
+	private static SpriteFinder spriteFinder;
+	private static int atlasWidth;
+	private static int atlasHeight;
+	private static int spriteCount = -1;
+	private static int textureSize = -1;
+	private static int glId = -1;
 
-	private SpriteInfoTexture(Data atlasData) {
-		final SpriteAtlasTexture atlas = (SpriteAtlasTexture) MinecraftClient.getInstance().getTextureManager().getTexture(SpriteAtlasTexture.BLOCK_ATLAS_TEX);
-		this.atlas = atlas;
-		atlasWidth = ((SpriteAtlasTextureDataExt) atlasData).canvas_atlasWidth();
-		atlasHeight = ((SpriteAtlasTextureDataExt) atlasData).canvas_atlasHeight();
+	public static void reset(Data dataIn, ObjectArrayList<Sprite> spriteIndexIn, SpriteAtlasTexture atlasIn) {
+		if (Configurator.enableLifeCycleDebug) {
+			CanvasMod.LOG.info("Lifecycle Event: SpriteInfoTexture init");
+		}
+
+		if (glId != -1) {
+			disable();
+			TextureUtil.deleteId(glId);
+			glId = -1;
+		}
+
+		atlas = atlasIn;
 		spriteFinder = SpriteFinder.get(atlas);
-
-		final ObjectArrayList<Sprite> spriteIndex = ((SpriteAtlasTextureExt) atlas).canvas_spriteIndex();
-		this.spriteIndex = spriteIndex;
-
-		final int spriteCount = spriteIndex.size();
+		spriteIndex = spriteIndexIn;
+		spriteCount = spriteIndex.size();
 		textureSize = MathHelper.smallestEncompassingPowerOfTwo(spriteCount);
+		atlasWidth = ((SpriteAtlasTextureDataExt) dataIn).canvas_atlasWidth();
+		atlasHeight = ((SpriteAtlasTextureDataExt) dataIn).canvas_atlasHeight();
+	}
 
-		if (!RenderSystem.isOnRenderThread()) {
-			RenderSystem.recordRenderCall(() -> {
-				createImage(spriteCount);
-			});
-		} else {
-			createImage(spriteCount);
+	private static void createImageIfNeeded() {
+		if (glId == -1) {
+			assert RenderSystem.isOnRenderThread();
+			createImage();
 		}
 	}
 
-	public static SpriteInfoTexture instance() {
-		SpriteInfoTexture result = instance;
-
-		if (result == null) {
-			result = new SpriteInfoTexture(atlasData);
-			instance = result;
-			atlasData = null;
-		}
-
-		return result;
-	}
-
-	public static void reset(Data input) {
-		if (instance != null) {
-			instance.close();
-		}
-
-		instance = null;
-		atlasData = input;
-	}
-
-	private void createImage(int spriteCount) {
+	private static void createImage() {
 		try (final SpriteInfoImage image = new SpriteInfoImage(spriteIndex, spriteCount, textureSize)) {
 			glId = TextureUtil.generateId();
 
@@ -135,50 +117,73 @@ public class SpriteInfoTexture implements AutoCloseable {
 		}
 	}
 
-	@Override
-	public void close() {
-		if (glId != -1) {
-			disable();
-			TextureUtil.deleteId(glId);
-			glId = -1;
-		}
-	}
-
-	public void disable() {
+	public static void disable() {
 		GlStateManager.activeTexture(TextureData.SPRITE_INFO);
 		GlStateManager.bindTexture(0);
 		GlStateManager.disableTexture();
 		GlStateManager.activeTexture(TextureData.MC_SPRITE_ATLAS);
 	}
 
-	public void enable() {
+	public static void enable() {
+		createImageIfNeeded();
 		GlStateManager.activeTexture(TextureData.SPRITE_INFO);
 		GlStateManager.bindTexture(glId);
 		GlStateManager.enableTexture();
 		GlStateManager.activeTexture(TextureData.MC_SPRITE_ATLAS);
 	}
 
-	public int coordinate(int spriteId) {
+	public static int coordinate(int spriteId) {
 		return spriteId;
 	}
 
-	public Sprite fromId(int spriteId) {
+	public static Sprite fromId(int spriteId) {
+		// TODO: remove
+		if (spriteIndex == null) {
+			new RuntimeException().printStackTrace();
+		}
+
 		return spriteIndex.get(spriteId);
 	}
 
-	public float mapU(int spriteId, float unmappedU) {
+	public static float mapU(int spriteId, float unmappedU) {
+		// TODO: remove
+		if (spriteIndex == null) {
+			new RuntimeException().printStackTrace();
+		}
+
 		final Sprite sprite = spriteIndex.get(spriteId);
 		final float u0 = sprite.getMinU();
 		return u0 + unmappedU * (sprite.getMaxU() - u0);
 	}
 
-	public float mapV(int spriteId, float unmappedV) {
+	public static float mapV(int spriteId, float unmappedV) {
+		// TODO: remove
+		if (spriteIndex == null) {
+			new RuntimeException().printStackTrace();
+		}
+
 		final Sprite sprite = spriteIndex.get(spriteId);
 		final float v0 = sprite.getMinV();
 		return v0 + unmappedV * (sprite.getMaxV() - v0);
 	}
 
-	public int textureSize() {
+	public static int textureSize() {
 		return textureSize;
+	}
+
+	public static int atlasWidth() {
+		return atlasWidth;
+	}
+
+	public static int atlasHeight() {
+		return atlasHeight;
+	}
+
+	public static SpriteAtlasTexture atlas() {
+		return atlas;
+	}
+
+	public static SpriteFinder spriteFinder() {
+		return spriteFinder;
 	}
 }

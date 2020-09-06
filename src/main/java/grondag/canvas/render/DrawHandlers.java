@@ -66,7 +66,7 @@ public class DrawHandlers {
 		@SuppressWarnings("resource")
 		@Override
 		protected void setupInner() {
-			SpriteInfoTexture.instance().enable();
+			SpriteInfoTexture.enable();
 			RenderSystem.enableTexture();
 			final TextureManager textureManager = MinecraftClient.getInstance().getTextureManager();
 			textureManager.bindTexture(SpriteAtlasTexture.BLOCK_ATLAS_TEX);
@@ -88,7 +88,7 @@ public class DrawHandlers {
 			RenderSystem.disableCull();
 			MinecraftClient.getInstance().gameRenderer.getLightmapTextureManager().disable();
 			RenderSystem.disableFog();
-			SpriteInfoTexture.instance().disable();
+			SpriteInfoTexture.disable();
 
 		}
 
@@ -102,7 +102,7 @@ public class DrawHandlers {
 		@SuppressWarnings("resource")
 		@Override
 		protected void setupInner() {
-			SpriteInfoTexture.instance().enable();
+			SpriteInfoTexture.enable();
 			RenderSystem.enableTexture();
 			final TextureManager textureManager = MinecraftClient.getInstance().getTextureManager();
 			textureManager.bindTexture(SpriteAtlasTexture.BLOCK_ATLAS_TEX);
@@ -128,7 +128,7 @@ public class DrawHandlers {
 			RenderSystem.disableFog();
 			RenderSystem.disableBlend();
 			RenderSystem.depthMask(true);
-			SpriteInfoTexture.instance().disable();
+			SpriteInfoTexture.disable();
 		}
 	}
 
@@ -140,7 +140,7 @@ public class DrawHandlers {
 		@SuppressWarnings("resource")
 		@Override
 		protected void setupInner() {
-			SpriteInfoTexture.instance().enable();
+			SpriteInfoTexture.enable();
 			RenderSystem.enableTexture();
 			final TextureManager textureManager = MinecraftClient.getInstance().getTextureManager();
 			textureManager.bindTexture(SpriteAtlasTexture.BLOCK_ATLAS_TEX);
@@ -165,7 +165,7 @@ public class DrawHandlers {
 			RenderSystem.disableFog();
 			RenderSystem.disableBlend();
 			RenderSystem.defaultBlendFunc();
-			SpriteInfoTexture.instance().disable();
+			SpriteInfoTexture.disable();
 		}
 	}
 }
