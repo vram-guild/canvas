@@ -26,12 +26,14 @@ package grondag.canvas.shader.wip;
  * Vertex data with different state can share the same buffer and should be
  * packed in glState, uniformState order for best performance.
  */
-public class MaterialRenderState {
-	public final MaterialEncodingKey encodingKey;
-	public final MaterialGlState glState;
-	public final MaterialUniformState uniformState;
+public class WipRenderState {
+	public static final int MAX_INDEX = 4096;
+	public final WipEncodingKey encodingKey;
+	public final WipGlState glState;
+	public final WipUniformState uniformState;
+	public int collectorIndex;
 
-	private MaterialRenderState(MaterialEncodingKey encodingKey, MaterialGlState glState, MaterialUniformState uniformState) {
+	private WipRenderState(WipEncodingKey encodingKey, WipGlState glState, WipUniformState uniformState) {
 		this.encodingKey = encodingKey;
 		this.glState = glState;
 		this.uniformState = uniformState;

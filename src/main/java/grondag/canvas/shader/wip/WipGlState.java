@@ -16,6 +16,22 @@
 
 package grondag.canvas.shader.wip;
 
-public class MaterialUniformState {
 
+public class WipGlState {
+
+	public static class Builder {
+		// WIP: depth test
+		// WIP: texture binding
+		// WIP: transparency
+
+		// WIP: cull
+		// WIP: enable lightmap
+
+		protected boolean sorted = false;
+
+		public Builder sorted(boolean sorted) {
+			this.sorted = sorted;
+			return this;
+		}
+	}
 }

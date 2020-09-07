@@ -16,8 +16,6 @@
 
 package grondag.canvas.shader.wip;
 
-import grondag.canvas.buffer.encoding.VertexEncoder;
-
 /**
  * Primitives with the same key can share the same vertex collector and the same draw call.
  * For this to work they must share the same format and uniform state.<p>
@@ -26,14 +24,14 @@ import grondag.canvas.buffer.encoding.VertexEncoder;
  * collection keys means there is no sorting. Translucent primitives that require sorting
  * all belong to a small handful of collectors.
  */
-public class MaterialEncodingKey {
-	public final VertexEncoder encoder;
+public class WipEncodingKey {
+	public final WipVertexEncoder encoder;
 	/**
 	 * true only for translucent
 	 */
 	public final boolean sorted;
 
-	private MaterialEncodingKey(VertexEncoder encoder, MaterialUniformState uniformState, boolean sorted) {
+	private WipEncodingKey(WipVertexEncoder encoder, WipUniformState uniformState, boolean sorted) {
 		this.encoder = encoder;
 		this.sorted = sorted;
 	}

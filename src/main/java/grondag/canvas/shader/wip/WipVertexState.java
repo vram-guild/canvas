@@ -25,7 +25,7 @@ import grondag.fermion.bits.BitPacker32.IntElement;
  * Encapsulates material state conveyed via vertex attributes.
  */
 @SuppressWarnings("rawtypes")
-public class MaterialVertexState {
+public class WipVertexState {
 	private static final BitPacker32 PACKER = new BitPacker32<>(null, null);
 	public static final int STATE_COUNT = 1 << PACKER.bitLength();
 	// these 8 correspond to shader flag bits
@@ -44,13 +44,13 @@ public class MaterialVertexState {
 	@SuppressWarnings("unused")
 	private static final BooleanElement RESERVED_7 = PACKER.createBooleanElement();
 	private static final IntElement CONDITION = PACKER.createIntElement(MaterialConditionImpl.MAX_CONDITIONS);
-	private static final MaterialVertexState[] STATES = new MaterialVertexState[1 << PACKER.bitLength()];
+	private static final WipVertexState[] STATES = new WipVertexState[1 << PACKER.bitLength()];
 
 	static {
 		assert MaterialConditionImpl.ALWAYS.index == 0;
 
 		for (int i = 0; i < STATE_COUNT; ++i) {
-			STATES[i] = new MaterialVertexState(i);
+			STATES[i] = new WipVertexState(i);
 		}
 	}
 
@@ -62,7 +62,7 @@ public class MaterialVertexState {
 	public final MaterialConditionImpl condition;
 	public final int bits;
 
-	private MaterialVertexState(int bits) {
+	private WipVertexState(int bits) {
 		this.bits = bits;
 		emissive = EMISSIVE.getValue(bits);
 		disableDiffuse = DISABLE_DIFFUSE.getValue(bits);
@@ -72,7 +72,7 @@ public class MaterialVertexState {
 		condition = MaterialConditionImpl.fromIndex(CONDITION.getValue(bits));
 	}
 
-	public static MaterialVertexState fromBits(int bits) {
+	public static WipVertexState fromBits(int bits) {
 		return STATES[bits];
 	}
 
@@ -122,7 +122,7 @@ public class MaterialVertexState {
 			return bits;
 		}
 
-		public MaterialVertexState find() {
+		public WipVertexState find() {
 			return STATES[bits];
 		}
 	}
