@@ -36,12 +36,6 @@ public class BborHolder {
 
 			try {
 				final Class<?> clazz = Class.forName("com.irtimaled.bbor.client.interop.ClientInterop");
-
-				//				for (final Method m : clazz.getDeclaredMethods()) {
-				//					CanvasMod.LOG.info(m.toString());
-				//				}
-
-
 				final Method renderHook = clazz.getDeclaredMethod("render", MatrixStack.class, float.class, ClientPlayerEntity.class);
 				final MethodHandle renderHookHandler = lookup.unreflect(renderHook);
 

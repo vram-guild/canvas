@@ -41,7 +41,6 @@ import org.lwjgl.system.Configuration;
 //FEAT: sky rendering
 //FEAT: pbr textures
 //PERF: disable lava/water texture animation (configurable)
-//FEAT: GLSL library and docs
 //PERF: improve light smoothing performance
 //FEAT: colored lights
 //FEAT: per chunk occlusion mesh - for sky shadow mask
