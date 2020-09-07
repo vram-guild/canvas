@@ -464,8 +464,8 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		while (entities.hasNext()) {
 			final Entity entity = entities.next();
 			if ((!entityRenderDispatcher.shouldRender(entity, frustum, cameraX, cameraY, cameraZ) && !entity.hasPassengerDeep(mc.player))
-					|| (entity == camera.getFocusedEntity() && !camera.isThirdPerson() && (!(camera.getFocusedEntity() instanceof LivingEntity) || !((LivingEntity) camera.getFocusedEntity()).isSleeping()))
-					|| (entity instanceof ClientPlayerEntity && camera.getFocusedEntity() != entity)) {
+			|| (entity == camera.getFocusedEntity() && !camera.isThirdPerson() && (!(camera.getFocusedEntity() instanceof LivingEntity) || !((LivingEntity) camera.getFocusedEntity()).isSleeping()))
+			|| (entity instanceof ClientPlayerEntity && camera.getFocusedEntity() != entity)) {
 				continue;
 			}
 
@@ -643,7 +643,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 			profiler.swap("translucent");
 			renderTerrainLayer(true, matrixStack, cameraX, cameraY, cameraZ);
-
+			VoxelMapHolder.postRenderLayerHandler.render(this, RenderLayer.getTranslucent(), matrixStack, cameraX, cameraY, cameraZ);
 			fb = mcwr.getParticlesFramebuffer();
 			fb.clear(MinecraftClient.IS_SYSTEM_MAC);
 			fb.copyDepthFrom(mcfb);
@@ -656,6 +656,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		} else {
 			profiler.swap("translucent");
 			renderTerrainLayer(true, matrixStack, cameraX, cameraY, cameraZ);
+			VoxelMapHolder.postRenderLayerHandler.render(this, RenderLayer.getTranslucent(), matrixStack, cameraX, cameraY, cameraZ);
 			profiler.swap("particles");
 			mc.particleManager.renderParticles(matrixStack, immediate, lightmapTextureManager, camera, tickDelta);
 		}
@@ -1018,24 +1019,24 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 			case 0b011:
 				return regions.wasSeen(rx0, ry0, rz0) || regions.wasSeen(rx1, ry0, rz0)
-						|| regions.wasSeen(rx0, ry1, rz0) || regions.wasSeen(rx1, ry1, rz0);
+				|| regions.wasSeen(rx0, ry1, rz0) || regions.wasSeen(rx1, ry1, rz0);
 
 			case 0b100:
 				return regions.wasSeen(rx0, ry0, rz0) || regions.wasSeen(rx0, ry0, rz1);
 
 			case 0b101:
 				return regions.wasSeen(rx0, ry0, rz0) || regions.wasSeen(rx1, ry0, rz0)
-						|| regions.wasSeen(rx0, ry0, rz1) || regions.wasSeen(rx1, ry0, rz1);
+				|| regions.wasSeen(rx0, ry0, rz1) || regions.wasSeen(rx1, ry0, rz1);
 
 			case 0b110:
 				return regions.wasSeen(rx0, ry0, rz0) || regions.wasSeen(rx0, ry1, rz0)
-						|| regions.wasSeen(rx0, ry0, rz1) || regions.wasSeen(rx0, ry1, rz1);
+				|| regions.wasSeen(rx0, ry0, rz1) || regions.wasSeen(rx0, ry1, rz1);
 
 			case 0b111:
 				return regions.wasSeen(rx0, ry0, rz0) || regions.wasSeen(rx1, ry0, rz0)
-						|| regions.wasSeen(rx0, ry1, rz0) || regions.wasSeen(rx1, ry1, rz0)
-						|| regions.wasSeen(rx0, ry0, rz1) || regions.wasSeen(rx1, ry0, rz1)
-						|| regions.wasSeen(rx0, ry1, rz1) || regions.wasSeen(rx1, ry1, rz1);
+				|| regions.wasSeen(rx0, ry1, rz0) || regions.wasSeen(rx1, ry1, rz0)
+				|| regions.wasSeen(rx0, ry0, rz1) || regions.wasSeen(rx1, ry0, rz1)
+				|| regions.wasSeen(rx0, ry1, rz1) || regions.wasSeen(rx1, ry1, rz1);
 		}
 
 		return true;
@@ -1053,6 +1054,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		WorldRenderEvent.BEFORE_WORLD_RENDER.invoker().beforeWorldRender(matrices, tickDelta, limitTime, renderBlockOutline, camera, gameRenderer, lightmapTextureManager, matrix4f);
 		renderWorld(matrices, tickDelta, limitTime, renderBlockOutline, camera, gameRenderer, lightmapTextureManager, matrix4f);
+		VoxelMapHolder.postRenderHandler.render(this, matrices, tickDelta, limitTime, renderBlockOutline, camera, gameRenderer, lightmapTextureManager, matrix4f);
 		WorldRenderEvent.AFTER_WORLD_RENDER.invoker().afterWorldRender(matrices, tickDelta, limitTime, renderBlockOutline, camera, gameRenderer, lightmapTextureManager, matrix4f);
 	}
 
