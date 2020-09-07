@@ -22,8 +22,8 @@ import grondag.canvas.shader.GlProgram.Uniform1fImpl;
 import grondag.canvas.shader.GlProgram.Uniform1iImpl;
 import grondag.canvas.shader.GlProgram.Uniform2fImpl;
 import grondag.canvas.shader.GlProgram.Uniform2iImpl;
-import grondag.canvas.shader.GlShader;
 import grondag.canvas.shader.GlShaderManager;
+import grondag.canvas.shader.Shader;
 import grondag.canvas.shader.ShaderContext;
 import grondag.frex.api.material.UniformRefreshFrequency;
 import net.minecraft.util.Identifier;
@@ -53,8 +53,8 @@ public class ProcessShader {
 
 	public ProcessShader activate() {
 		if (program == null) {
-			final GlShader vs = GlShaderManager.INSTANCE.getOrCreateVertexShader(vertexId, ShaderContext.PROCESS);
-			final GlShader fs = GlShaderManager.INSTANCE.getOrCreateFragmentShader(fragmentId, ShaderContext.PROCESS);
+			final Shader vs = GlShaderManager.INSTANCE.getOrCreateVertexShader(vertexId, ShaderContext.PROCESS);
+			final Shader fs = GlShaderManager.INSTANCE.getOrCreateFragmentShader(fragmentId, ShaderContext.PROCESS);
 			program = new GlProgram(vs, fs, MaterialVertexFormats.PROCESS_VERTEX_UV, ShaderContext.PROCESS);
 			size = (Uniform2iImpl) program.uniform2i("_cvu_size", UniformRefreshFrequency.ON_LOAD, u -> u.set(1, 1));
 			lod = (Uniform1iImpl) program.uniform1i("_cvu_lod", UniformRefreshFrequency.ON_LOAD, u -> u.set(0));

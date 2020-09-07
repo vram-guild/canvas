@@ -19,8 +19,8 @@ package grondag.canvas.apiimpl.material;
 import grondag.canvas.material.MaterialVertexFormat;
 import grondag.canvas.shader.GlProgram;
 import grondag.canvas.shader.GlProgram.Uniform3fImpl;
-import grondag.canvas.shader.GlShader;
 import grondag.canvas.shader.GlShaderManager;
+import grondag.canvas.shader.Shader;
 import grondag.canvas.shader.ShaderContext;
 import grondag.frex.api.material.MaterialShader;
 import grondag.frex.api.material.UniformRefreshFrequency;
@@ -52,8 +52,8 @@ public final class MaterialShaderImpl implements MaterialShader {
 		final GlProgram result = programMap.get(key);
 
 		if (result == null) {
-			final GlShader vs = GlShaderManager.INSTANCE.getOrCreateVertexShader(vertexShader, context);
-			final GlShader fs = GlShaderManager.INSTANCE.getOrCreateFragmentShader(fragmentShader, context);
+			final Shader vs = GlShaderManager.INSTANCE.getOrCreateVertexShader(vertexShader, context);
+			final Shader fs = GlShaderManager.INSTANCE.getOrCreateFragmentShader(fragmentShader, context);
 			final GlProgram newProgram = new GlProgram(vs, fs, format, context);
 			programSetups.forEach(ps -> ps.accept(newProgram));
 			newProgram.modelOrigin = (Uniform3fImpl) newProgram.uniform3f("_cvu_modelOrigin", UniformRefreshFrequency.ON_LOAD, u -> u.set(0, 0, 0));
