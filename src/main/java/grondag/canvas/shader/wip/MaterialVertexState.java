@@ -22,7 +22,7 @@ import grondag.fermion.bits.BitPacker32.BooleanElement;
 import grondag.fermion.bits.BitPacker32.IntElement;
 
 /**
- * Encapsulates material state conveyed via vertex attributes
+ * Encapsulates material state conveyed via vertex attributes.
  */
 @SuppressWarnings("rawtypes")
 public class MaterialVertexState {

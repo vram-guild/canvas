@@ -31,6 +31,7 @@ import grondag.canvas.pipeline.CanvasFrameBufferHacks;
 import grondag.canvas.shader.GlProgram;
 import grondag.canvas.shader.MaterialShaderManager;
 import grondag.canvas.shader.ShaderContext;
+import grondag.canvas.shader.wip.RenderLayerHandler;
 import grondag.canvas.terrain.BuiltRenderRegion;
 import grondag.canvas.terrain.RenderRegionBuilder;
 import grondag.canvas.terrain.RenderRegionStorage;

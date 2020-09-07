@@ -17,25 +17,23 @@
 package grondag.canvas.shader.wip;
 
 import grondag.canvas.buffer.encoding.VertexEncoder;
-import grondag.canvas.material.MaterialVertexFormat;
 
 /**
- * Primitives with the same buffer key can share the same buffer.
- * They should share the same encoder/vertex format, same  and have the same sorting requirements.
- * <p>
- * Content of the buffer should also share the same matrix state but this is
- * not enforced and must be controlled through appropriate usage.
+ * Primitives with the same key can share the same vertex collector and the same draw call.
+ * For this to work they must share the same format and uniform state.<p>
+ *
+ * Primitives must have the same sorting requirements, which for all but the translucent
+ * collection keys means there is no sorting. Translucent primitives that require sorting
+ * all belong to a small handful of collectors.
  */
-public class MaterialBufferKey {
-	public final MaterialVertexFormat format;
+public class MaterialEncodingKey {
 	public final VertexEncoder encoder;
 	/**
 	 * true only for translucent
 	 */
 	public final boolean sorted;
 
-	private MaterialBufferKey(VertexEncoder encoder, MaterialVertexFormat format, boolean sorted) {
-		this.format = format;
+	private MaterialEncodingKey(VertexEncoder encoder, MaterialUniformState uniformState, boolean sorted) {
 		this.encoder = encoder;
 		this.sorted = sorted;
 	}

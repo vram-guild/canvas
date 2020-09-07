@@ -20,9 +20,10 @@ package grondag.canvas.shader.wip;
 public class MaterialGlState {
 
 	public static class Builder {
+		// WIP: depth test
 		// WIP: texture binding
 		// WIP: transparency
-		// WIP: depth test
+
 		// WIP: cull
 		// WIP: enable lightmap
 
