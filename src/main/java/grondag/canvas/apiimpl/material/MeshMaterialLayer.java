@@ -17,7 +17,6 @@
 package grondag.canvas.apiimpl.material;
 
 import grondag.canvas.apiimpl.MaterialConditionImpl;
-import grondag.canvas.shader.MaterialShaderManager;
 import grondag.canvas.shader.ShaderPass;
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 
@@ -48,7 +47,7 @@ public class MeshMaterialLayer {
 			shaderType = this.meshMaterial.blendMode() == BlendMode.CUTOUT || this.meshMaterial.blendMode() == BlendMode.CUTOUT_MIPPED ? ShaderPass.SOLID : ShaderPass.DECAL;
 		}
 
-		shader = MaterialShaderManager.INSTANCE.get(MeshMaterialLocator.SHADERS[depth].getValue(this.meshMaterial.bits1));
+		shader = meshMaterial.shader(depth);
 
 		// WIP: flags get conveyed via MaterialVertexState instead
 		int flags = this.meshMaterial.emissive(depth) ? 1 : 0;

@@ -16,8 +16,8 @@
 
 package grondag.canvas.apiimpl.material;
 
+import grondag.frex.api.material.RenderMaterial;
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
-import net.fabricmc.fabric.api.renderer.v1.material.RenderMaterial;
 
 /**
  * Pointer to a specific mesh material that allows for an ambiguous "default"

@@ -39,7 +39,7 @@ public class MeshMaterial extends AbstractMeshMaterial {
 	protected MeshMaterial(MeshMaterialLocator locator) {
 		bits0 = locator.bits0;
 		bits1 = locator.bits1;
-		condition = MaterialConditionImpl.fromIndex(CONDITION.getValue(bits0));
+		condition = locator.condition();
 		isTranslucent = (blendMode() == BlendMode.TRANSLUCENT);
 
 		layers[0] = new MeshMaterialLayer(this, 0);

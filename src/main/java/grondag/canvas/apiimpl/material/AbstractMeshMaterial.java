@@ -134,4 +134,13 @@ public abstract class AbstractMeshMaterial extends MeshMaterialKey {
 	public boolean disableAo(int spriteIndex) {
 		return FLAGS[AO_INDEX_START + spriteIndex].getValue(this);
 	}
+
+	public MaterialShaderImpl shader(int spriteIndex) {
+		return MaterialShaderManager.INSTANCE.get(MeshMaterialLocator.SHADERS[spriteIndex].getValue(bits1));
+	}
+
+	public MaterialConditionImpl condition() {
+		return MaterialConditionImpl.fromIndex(CONDITION.getValue(bits0));
+	}
+
 }

@@ -17,9 +17,7 @@
 package grondag.canvas.apiimpl.material;
 
 import grondag.canvas.apiimpl.MaterialConditionImpl;
-import grondag.frex.api.material.MaterialCondition;
-import grondag.frex.api.material.MaterialFinder;
-import grondag.frex.api.material.MaterialShader;
+import grondag.frex.api.material.*;
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 
 public class MeshMaterialFinder extends AbstractMeshMaterial implements MaterialFinder {
@@ -114,6 +112,14 @@ public class MeshMaterialFinder extends AbstractMeshMaterial implements Material
 	@Override
 	public MeshMaterialFinder blendMode(BlendMode blendMode) {
 		BLEND_MODE.setValue(blendMode, this);
+		return this;
+	}
+
+	@Override
+	public MeshMaterialFinder copyFrom(RenderMaterial material) {
+		final MeshMaterialLocator source = (MeshMaterialLocator) material;
+		bits0 =  source.bits0;
+		bits1 =  source.bits1;
 		return this;
 	}
 }
