@@ -48,8 +48,8 @@ public enum EntityShader {
 
 	public EntityShader activate() {
 		if (program == null) {
-			final GlShader vs = GlShaderManager.INSTANCE.getOrCreateVertexShader(vertexId, context);
-			final GlShader fs = GlShaderManager.INSTANCE.getOrCreateFragmentShader(fragmentId, context);
+			final Shader vs = GlShaderManager.INSTANCE.getOrCreateVertexShader(vertexId, context);
+			final Shader fs = GlShaderManager.INSTANCE.getOrCreateFragmentShader(fragmentId, context);
 			program = new GlProgram(vs, fs, MaterialVertexFormats.TEMPORARY_ENTITY_FORMAT, context);
 			ShaderData.STANDARD_UNIFORM_SETUP.accept(program);
 			program.load();

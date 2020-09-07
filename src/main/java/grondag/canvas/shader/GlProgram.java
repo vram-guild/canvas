@@ -35,7 +35,6 @@ import org.lwjgl.system.MemoryUtil;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.function.Consumer;
-import java.util.regex.Pattern;
 
 public class GlProgram {
 	static {
@@ -45,8 +44,8 @@ public class GlProgram {
 	}
 
 	private static GlProgram activeProgram;
-	public final GlShader vertexShader;
-	public final GlShader fragmentShader;
+	public final Shader vertexShader;
+	public final Shader fragmentShader;
 	public final ShaderPass pass;
 	public final MaterialVertexFormat pipelineVertexFormat;
 	private final ObjectArrayList<UniformImpl<?>> uniforms = new ObjectArrayList<>();
@@ -58,7 +57,7 @@ public class GlProgram {
 	private int progID = -1;
 	private boolean isErrored = false;
 
-	public GlProgram(GlShader vertexShader, GlShader fragmentShader, MaterialVertexFormat format, ShaderContext shaderContext) {
+	public GlProgram(Shader vertexShader, Shader fragmentShader, MaterialVertexFormat format, ShaderContext shaderContext) {
 		this.vertexShader = vertexShader;
 		this.fragmentShader = fragmentShader;
 		pipelineVertexFormat = format;
@@ -297,24 +296,15 @@ public class GlProgram {
 	/**
 	 * Return true on success
 	 */
-	private final boolean loadInner() {
+	private boolean loadInner() {
 		final int programID = progID;
 		if (programID <= 0) {
 			return false;
 		}
 
-		final int vertId = vertexShader.glId();
-		if (vertId <= 0) {
+		if (!vertexShader.attach(programID) || !fragmentShader.attach(programID)) {
 			return false;
 		}
-
-		final int fragId = fragmentShader.glId();
-		if (fragId <= 0) {
-			return false;
-		}
-
-		GL21.glAttachShader(programID, vertId);
-		GL21.glAttachShader(programID, fragId);
 
 		pipelineVertexFormat.bindProgramAttributes(programID);
 
@@ -343,10 +333,8 @@ public class GlProgram {
 	}
 
 	public boolean containsUniformSpec(String type, String name) {
-		final String regex = "(?m)^\\s*uniform\\s+" + type + "\\s+" + name + "\\s*;";
-		final Pattern pattern = Pattern.compile(regex);
-		return pattern.matcher(vertexShader.getSource()).find()
-		|| pattern.matcher(fragmentShader.getSource()).find();
+		return vertexShader.containsUniformSpec(type, name)
+				|| fragmentShader.containsUniformSpec(type, name);
 	}
 
 	public abstract class UniformImpl<T extends Uniform> {
@@ -378,7 +366,7 @@ public class GlProgram {
 			this.unifID = GL21.glGetUniformLocation(programID, name);
 			if (this.unifID == -1) {
 				CanvasMod.LOG.debug(I18n.translate("debug.canvas.missing_uniform", name,
-					vertexShader.shaderSource.toString(), fragmentShader.shaderSource.toString()));
+						vertexShader.getShaderSource().toString(), fragmentShader.getShaderSource().toString()));
 				this.flags = 0;
 			} else {
 				// dirty flag will be reset before uniforms are loaded

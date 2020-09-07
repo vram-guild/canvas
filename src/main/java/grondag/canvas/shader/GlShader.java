@@ -40,13 +40,13 @@ import java.util.HashSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class GlShader {
+class GlShader implements Shader {
 	static final Pattern PATTERN = Pattern.compile("^#include\\s+([\\w]+:[\\w/\\.]+)[ \\t]*.*", Pattern.MULTILINE);
 	private static final HashSet<String> INCLUDED = new HashSet<>();
 	private static boolean isErrorNoticeComplete = false;
 	private static boolean needsClearDebugOutputWarning = true;
 	private static boolean needsDebugOutputWarning = true;
-	public final Identifier shaderSource;
+	private final Identifier shaderSource;
 	private final int shaderType;
 	private final ShaderContext context;
 	private int glId = -1;
@@ -105,14 +105,7 @@ public class GlShader {
 		}
 	}
 
-	/**
-	 * Call after render / resource refresh to force shader reload.
-	 */
-	public final void forceReload() {
-		needsLoad = true;
-	}
-
-	public final int glId() {
+	private int glId() {
 		if (needsLoad) {
 			load();
 		}
@@ -120,7 +113,7 @@ public class GlShader {
 		return isErrored ? -1 : glId;
 	}
 
-	private final void load() {
+	private void load() {
 		needsLoad = false;
 		isErrored = false;
 		String source = null;
@@ -210,8 +203,8 @@ public class GlShader {
 		}
 	}
 
-	public String getSource() {
-		String result = getShaderSource();
+	private String getSource() {
+		String result = getRawShaderString();
 
 		if (shaderType == GL21.GL_FRAGMENT_SHADER) {
 			result = StringUtils.replace(result, "#define SHADER_TYPE SHADER_TYPE_VERTEX", "#define SHADER_TYPE SHADER_TYPE_FRAGMENT");
@@ -232,7 +225,7 @@ public class GlShader {
 
 		if (context.pass != ShaderPass.SOLID) {
 			result = StringUtils.replace(result, "#define SHADER_PASS SHADER_PASS_SOLID",
-				"#define SHADER_PASS SHADER_PASS_" + context.pass.name());
+					"#define SHADER_PASS SHADER_PASS_" + context.pass.name());
 		}
 
 		if (context.materialContext.isBlock) {
@@ -253,7 +246,7 @@ public class GlShader {
 
 		if (Configurator.fogMode != FogMode.VANILLA && !context.materialContext.isGui) {
 			result = StringUtils.replace(result, "#define _CV_FOG_CONFIG _CV_FOG_CONFIG_VANILLA",
-				"#define _CV_FOG_CONFIG _CV_FOG_CONFIG_" + Configurator.fogMode.name());
+					"#define _CV_FOG_CONFIG _CV_FOG_CONFIG_" + Configurator.fogMode.name());
 		}
 
 		if ((context.pass == ShaderPass.SOLID || context.pass == ShaderPass.DECAL) && Configurator.enableBloom) {
@@ -270,15 +263,15 @@ public class GlShader {
 
 		if (!MinecraftClient.isAmbientOcclusionEnabled()) {
 			result = StringUtils.replace(result, "#define AO_SHADING_MODE AO_MODE_NORMAL",
-				"#define AO_SHADING_MODE AO_MODE_" + AoMode.NONE.name());
+					"#define AO_SHADING_MODE AO_MODE_" + AoMode.NONE.name());
 		} else if (Configurator.aoShadingMode != AoMode.NORMAL) {
 			result = StringUtils.replace(result, "#define AO_SHADING_MODE AO_MODE_NORMAL",
-				"#define AO_SHADING_MODE AO_MODE_" + Configurator.aoShadingMode.name());
+					"#define AO_SHADING_MODE AO_MODE_" + Configurator.aoShadingMode.name());
 		}
 
 		if (Configurator.diffuseShadingMode != DiffuseMode.NORMAL) {
 			result = StringUtils.replace(result, "#define DIFFUSE_SHADING_MODE DIFFUSE_MODE_NORMAL",
-				"#define DIFFUSE_SHADING_MODE DIFFUSE_MODE_" + Configurator.diffuseShadingMode.name());
+					"#define DIFFUSE_SHADING_MODE DIFFUSE_MODE_" + Configurator.diffuseShadingMode.name());
 		}
 
 		if (CanvasGlHelper.useGpuShader4()) {
@@ -290,7 +283,7 @@ public class GlShader {
 		return result;
 	}
 
-	private String getShaderSource() {
+	private String getRawShaderString() {
 		final ResourceManager resourceManager = MinecraftClient.getInstance().getResourceManager();
 
 		INCLUDED.clear();
@@ -346,5 +339,37 @@ public class GlShader {
 			CanvasMod.LOG.warn("Unable to load shader resource " + shaderSource.toString() + " due to exception.", e);
 			return "";
 		}
+	}
+
+	/**
+	 * Call after render / resource refresh to force shader reload.
+	 */
+	@Override
+	public final void forceReload() {
+		needsLoad = true;
+	}
+
+	@Override
+	public boolean attach(int program) {
+		int glId = glId();
+
+		if (glId <= 0) {
+			return false;
+		}
+
+		GL21.glAttachShader(program, glId);
+		return true;
+	}
+
+	@Override
+	public boolean containsUniformSpec(String type, String name) {
+		final String regex = "(?m)^\\s*uniform\\s+" + type + "\\s+" + name + "\\s*;";
+		final Pattern pattern = Pattern.compile(regex);
+		return pattern.matcher(getSource()).find();
+	}
+
+	@Override
+	public Identifier getShaderSource() {
+		return shaderSource;
 	}
 }
