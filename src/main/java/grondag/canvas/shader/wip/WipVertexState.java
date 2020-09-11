@@ -26,104 +26,140 @@ import grondag.fermion.bits.BitPacker32.IntElement;
  */
 @SuppressWarnings("rawtypes")
 public class WipVertexState {
+	private WipVertexState() { }
+
 	private static final BitPacker32 PACKER = new BitPacker32<>(null, null);
 	public static final int STATE_COUNT = 1 << PACKER.bitLength();
-	// these 8 correspond to shader flag bits
+	// first 16 bits correspond to shader flag bits
 	private static final BooleanElement EMISSIVE = PACKER.createBooleanElement();
 	private static final BooleanElement DISABLE_DIFFUSE = PACKER.createBooleanElement();
 	private static final BooleanElement DISABLE_AO = PACKER.createBooleanElement();
 	private static final BooleanElement CUTOUT = PACKER.createBooleanElement();
 	private static final BooleanElement UNMIPPED = PACKER.createBooleanElement();
 
-	// WIP: flat? (equivalent of shadeModel - need to look at how it is used)
-	// WIP: cutout threshold: 10% or 50%
-	@SuppressWarnings("unused")
-	private static final BooleanElement RESERVED_5 = PACKER.createBooleanElement();
-	@SuppressWarnings("unused")
-	private static final BooleanElement RESERVED_6 = PACKER.createBooleanElement();
-	@SuppressWarnings("unused")
-	private static final BooleanElement RESERVED_7 = PACKER.createBooleanElement();
+	// true = 10%, false = 50%
+	private static final BooleanElement CUTOUT_10 = PACKER.createBooleanElement();
+	private static final BooleanElement HURT_OVERLAY = PACKER.createBooleanElement();
+	private static final BooleanElement FLASH_OVERLAY = PACKER.createBooleanElement();
+
 	private static final IntElement CONDITION = PACKER.createIntElement(MaterialConditionImpl.MAX_CONDITIONS);
-	private static final WipVertexState[] STATES = new WipVertexState[1 << PACKER.bitLength()];
 
 	static {
 		assert MaterialConditionImpl.ALWAYS.index == 0;
-
-		for (int i = 0; i < STATE_COUNT; ++i) {
-			STATES[i] = new WipVertexState(i);
-		}
 	}
 
-	public final boolean emissive;
-	public final boolean disableDiffuse;
-	public final boolean disableAo;
-	public final boolean cutout;
-	public final boolean unmipped;
-	public final MaterialConditionImpl condition;
-	public final int bits;
-
-	private WipVertexState(int bits) {
-		this.bits = bits;
-		emissive = EMISSIVE.getValue(bits);
-		disableDiffuse = DISABLE_DIFFUSE.getValue(bits);
-		disableAo = DISABLE_AO.getValue(bits);
-		cutout = CUTOUT.getValue(bits);
-		unmipped = UNMIPPED.getValue(bits);
-		condition = MaterialConditionImpl.fromIndex(CONDITION.getValue(bits));
+	public static boolean emissive(int vertexState) {
+		return EMISSIVE.getValue(vertexState);
 	}
 
-	public static WipVertexState fromBits(int bits) {
-		return STATES[bits];
+	public static boolean disableDiffuse(int vertexState) {
+		return DISABLE_DIFFUSE.getValue(vertexState);
+	}
+
+	public static boolean disableAo(int vertexState) {
+		return DISABLE_AO.getValue(vertexState);
+	}
+
+	public static boolean cutout(int vertexState) {
+		return CUTOUT.getValue(vertexState);
+	}
+
+	public static boolean unmipped(int vertexState) {
+		return UNMIPPED.getValue(vertexState);
+	}
+
+	public static boolean cutou10(int vertexState) {
+		return CUTOUT_10.getValue(vertexState);
+	}
+
+	public static boolean hurtOverlay(int vertexState) {
+		return HURT_OVERLAY.getValue(vertexState);
+	}
+
+	public static boolean flashOverlay(int vertexState) {
+		return FLASH_OVERLAY.getValue(vertexState);
+	}
+
+	public static MaterialConditionImpl condition(int vertexState) {
+		return MaterialConditionImpl.fromIndex(CONDITION.getValue(vertexState));
+	}
+
+	public static int conditionIndex(int vertexState) {
+		return CONDITION.getValue(vertexState);
+	}
+
+	public static int shaderFlags(int vertexState) {
+		return vertexState & 0xFF;
 	}
 
 	public static class Finder {
-		private int bits = 0;
+		private int vertexState = 0;
 
 		public Finder() {
 			reset();
 		}
 
 		public Finder reset() {
-			bits = 0;
+			vertexState = 0;
 			return this;
 		}
 
 		public Finder emissive(boolean emissive) {
-			bits = EMISSIVE.setValue(emissive, bits);
+			vertexState = EMISSIVE.setValue(emissive, vertexState);
 			return this;
 		}
 
 		public Finder disableDiffuse(boolean disableDiffuse) {
-			bits = DISABLE_DIFFUSE.setValue(disableDiffuse, bits);
+			vertexState = DISABLE_DIFFUSE.setValue(disableDiffuse, vertexState);
 			return this;
 		}
 
 		public Finder disableAo(boolean disableAo) {
-			bits = DISABLE_AO.setValue(disableAo, bits);
+			vertexState = DISABLE_AO.setValue(disableAo, vertexState);
 			return this;
 		}
 
 		public Finder cutout(boolean cutout) {
-			bits = CUTOUT.setValue(cutout, bits);
+			vertexState = CUTOUT.setValue(cutout, vertexState);
 			return this;
 		}
 
 		public Finder unmipped(boolean unmipped) {
-			bits = UNMIPPED.setValue(unmipped, bits);
+			vertexState = UNMIPPED.setValue(unmipped, vertexState);
 			return this;
+		}
+
+		/**
+		 * Sets cutout threshold to 10% vs default of 50%
+		 */
+		public Finder cutout10(boolean cutout10) {
+			vertexState = CUTOUT_10.setValue(cutout10, vertexState);
+			return this;
+		}
+
+		/**
+		 * Used in lieu of overlay texture.  Displays red blended overlay color.
+		 */
+		public Finder hurtOverlay(boolean hurtOverlay) {
+			vertexState = HURT_OVERLAY.setValue(hurtOverlay, vertexState);
+			return this;
+		}
+
+		/**
+		 * Used in lieu of overlay texture. Displays white blended overlay color.
+		 */
+		public Finder flashOverlay(boolean flashOverlay) {
+			vertexState = FLASH_OVERLAY.setValue(flashOverlay, vertexState);
+			return this;
+		}
+
+		public int find() {
+			return vertexState;
 		}
 
 		public Finder condition(MaterialConditionImpl condition) {
-			bits = CONDITION.setValue(condition.index, bits);
+			vertexState = CONDITION.setValue(condition.index, vertexState);
 			return this;
-		}
-
-		public int findBits() {
-			return bits;
-		}
-
-		public WipVertexState find() {
-			return STATES[bits];
 		}
 	}
 }

@@ -14,9 +14,10 @@
  * the License.
  */
 
-package grondag.canvas.shader.wip;
+package grondag.canvas.shader.wip.encoding;
 
 import grondag.canvas.material.MaterialState;
+import grondag.canvas.shader.wip.WipRenderState;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.util.math.MathHelper;
 
@@ -43,11 +44,11 @@ public class WipVertexCollectorList {
 	}
 
 	public final WipVertexCollectorImpl getIfExists(WipRenderState materialState) {
-		return collectors[materialState.collectorIndex];
+		return collectors[materialState.index];
 	}
 
 	public final WipVertexCollectorImpl get(WipRenderState materialState) {
-		final int index = materialState.collectorIndex;
+		final int index = materialState.index;
 		WipVertexCollectorImpl[] collectors = this.collectors;
 
 		WipVertexCollectorImpl result;
@@ -63,7 +64,7 @@ public class WipVertexCollectorList {
 		}
 
 		if (result == null) {
-			assert materialState.collectorIndex != MaterialState.TRANSLUCENT_INDEX;
+			assert materialState.index != MaterialState.TRANSLUCENT_INDEX;
 			result = emptyCollector().prepare(materialState);
 			collectors[index] = result;
 		}

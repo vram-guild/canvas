@@ -14,10 +14,9 @@
  * the License.
  */
 
-package grondag.canvas.shader.wip;
+package grondag.canvas.shader.wip.encoding;
 
-public class WipVertexEncoders {
-	public static WipVertexEncoder getDefault() {
-		return null;
-	}
+@FunctionalInterface
+public interface WipVertexPacker {
+	void pack(int[] vertexData);
 }

@@ -17,5 +17,5 @@
 package grondag.canvas.shader.wip;
 
 public class WipUniformState {
-
+	// WIP: fog - colored, black or off - could go in vertex state but doesn't change much
 }

@@ -20,12 +20,18 @@ package grondag.canvas.shader.wip;
 public class WipGlState {
 
 	public static class Builder {
-		// WIP: depth test
-		// WIP: texture binding
 		// WIP: transparency
-
+		// WIP: depth test
 		// WIP: cull
 		// WIP: enable lightmap
+		// WIP: framebuffer target(s) - add emissive and other targets to vanilla
+		// WIP: write mask state
+		// WIP: line width
+		// WIP: texture binding
+		// WIP: texture setting - may need to be uniform or conditional compile if fixed pipeline filtering doesn't work
+		// sets up outline, glint or default texturing
+		// these probably won't work as-is with shaders because they use texture env settings
+		// so may be best to leave them for now
 
 		protected boolean sorted = false;
 

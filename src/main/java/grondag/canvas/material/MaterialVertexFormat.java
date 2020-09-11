@@ -24,8 +24,6 @@ import org.lwjgl.opengl.GL20;
 import java.nio.ByteBuffer;
 
 public class MaterialVertexFormat {
-	private static int nextIndex = 0;
-
 	public final int attributeCount;
 
 	/**
@@ -33,10 +31,9 @@ public class MaterialVertexFormat {
 	 */
 	public final int vertexStrideBytes;
 	public final int vertexStrideInts;
-	public final int index = nextIndex++;
 	private final MaterialVertextFormatElement[] elements;
 
-	MaterialVertexFormat(MaterialVertextFormatElement... elementsIn) {
+	public MaterialVertexFormat(MaterialVertextFormatElement... elementsIn) {
 		elements = elementsIn;
 
 		int bytes = 0;
@@ -130,6 +127,7 @@ public class MaterialVertexFormat {
 	 */
 	public void bindProgramAttributes(int programID) {
 		int index = 1;
+
 		for (final MaterialVertextFormatElement e : elements) {
 			if (e.attributeName != null) {
 				GL20.glBindAttribLocation(programID, index++, e.attributeName);

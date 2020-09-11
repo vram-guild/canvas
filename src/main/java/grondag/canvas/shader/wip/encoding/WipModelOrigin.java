@@ -14,20 +14,30 @@
  * the License.
  */
 
-package grondag.canvas.shader.wip;
+package grondag.canvas.shader.wip.encoding;
 
-import net.minecraft.client.render.VertexConsumer;
+public enum WipModelOrigin {
+	/**
+	 * Vertex coordinate are raw coordinates.
+	 * Will need a matrix update per draw.
+	 */
+	SELF,
 
-public interface WipVertexCollector extends VertexConsumer {
-	void addi(int i);
+	/**
+	 * Vertex coordinates are relative to a world region.
+	 * Used in terrain rendering. Canvas regions may be 16x16 or 256x256.
+	 */
+	REGION,
 
-	void addf(float f);
+	/**
+	 * Vertex coordinates are relative to the camera.
+	 * Common for most per-frame render (entities, etc.)
+	 */
+	CAMERA,
 
-	void addf(float u, float v);
-
-	void addf(float x, float y, float z);
-
-	void addf(float... f);
-
-	void add(int[] appendData, int length);
+	/**
+	 * Vertex coordinates are relative to the screen.
+	 * Intended for GUI rendering.
+	 */
+	SCREEN
 }

@@ -14,34 +14,22 @@
  * the License.
  */
 
-package grondag.canvas.shader.wip;
+package grondag.canvas.shader.wip.encoding;
+
+import java.nio.IntBuffer;
 
 import com.google.common.primitives.Doubles;
+import grondag.canvas.shader.wip.WipRenderState;
 import grondag.fermion.intstream.IntStreamProvider;
 import grondag.fermion.intstream.IntStreamProvider.IntStreamImpl;
 import it.unimi.dsi.fastutil.Swapper;
 import it.unimi.dsi.fastutil.ints.IntComparator;
-import net.minecraft.client.render.VertexConsumer;
+
 import net.minecraft.util.math.MathHelper;
 
-import java.nio.IntBuffer;
-
-public class WipVertexCollectorImpl implements WipVertexCollector {
-	private static final ThreadLocal<QuadSorter> quadSorter = new ThreadLocal<QuadSorter>() {
-		@Override
-		protected QuadSorter initialValue() {
-			return new QuadSorter();
-		}
-	};
-	// TODO: make parameters dynamic based on system specs / config
-	private static final IntStreamProvider INT_STREAM_PROVIDER = new IntStreamProvider(0x10000, 16, 4096);
+public class WipVertexCollectorImpl extends WipVertexAdapter {
 	private final IntStreamImpl data = INT_STREAM_PROVIDER.claim();
 	private int integerSize = 0;
-	/**
-	 * Used for vanilla quads
-	 */
-	private WipVertexEncoder defaultEncoder;
-	private WipRenderState materialState;
 
 	/**
 	 * Holds per-quad distance after {@link #sortQuads(double, double, double)} is
@@ -57,16 +45,17 @@ public class WipVertexCollectorImpl implements WipVertexCollector {
 	 * Cached value of {@link #quadCount()}, set when quads are sorted by distance.
 	 */
 	private int sortMaxIndex = 0;
-
 	private int intVertexStride = 1;
 
-	public WipVertexCollectorImpl() {
-	}
-
 	public WipVertexCollectorImpl prepare(WipRenderState materialState) {
-		defaultEncoder = WipVertexEncoders.getDefault();
 		this.materialState = materialState;
-		intVertexStride = materialState.encodingKey.encoder.format.vertexStrideInts;
+		intVertexStride = materialState.vertexStrideInts;
+		final WipVertexFormat format = materialState.format;
+		colorIndex = format.colorIndex;
+		textureIndex = format.textureIndex;
+		materialIndex = format.materialIndex;
+		lightIndex = format.lightIndex;
+		normalIndex = format.normalIndex;
 		return this;
 	}
 
@@ -222,87 +211,10 @@ public class WipVertexCollectorImpl implements WipVertexCollector {
 	}
 
 	@Override
-	public final void addi(final int i) {
-		data.set(integerSize++, i);
-	}
-
-	@Override
-	public final void addf(final float f) {
-		data.set(integerSize++, Float.floatToRawIntBits(f));
-	}
-
-	@Override
-	public final void addf(final float u, float v) {
-		data.set(integerSize++, Float.floatToRawIntBits(u));
-		data.set(integerSize++, Float.floatToRawIntBits(v));
-	}
-
-	@Override
-	public final void addf(final float x, float y, float z) {
-		data.set(integerSize++, Float.floatToRawIntBits(x));
-		data.set(integerSize++, Float.floatToRawIntBits(y));
-		data.set(integerSize++, Float.floatToRawIntBits(z));
-	}
-
-	@Override
-	public final void addf(final float... fArray) {
-		for (final float f : fArray) {
-			data.set(integerSize++, Float.floatToRawIntBits(f));
-		}
-	}
-
-	@Override
-	public final void add(int[] appendData, int length) {
-		data.copyFrom(integerSize, appendData, 0, length);
-		integerSize += length;
-	}
-
-	@Override
-	public VertexConsumer vertex(double x, double y, double z) {
-		assert defaultEncoder != null;
-		defaultEncoder.vertex(this, x, y, z);
-		return this;
-	}
-
-	@Override
-	public void vertex(float x, float y, float z, float i, float j, float k, float l, float m, float n, int o, int p, float q, float r, float s) {
-		defaultEncoder.vertex(this, x, y, z, i, j, k, l, m, n, o, p, q, r, s);
-		next();
-	}
-
-	@Override
-	public VertexConsumer color(int r, int g, int b, int a) {
-		defaultEncoder.color(this, r, g, b, a);
-		return this;
-	}
-
-	@Override
-	public VertexConsumer texture(float u, float v) {
-		defaultEncoder.texture(this, u, v);
-		return this;
-	}
-
-	@Override
-	public VertexConsumer overlay(int s, int t) {
-		defaultEncoder.overlay(this, s, t);
-		return this;
-	}
-
-	@Override
-	public VertexConsumer light(int s, int t) {
-		defaultEncoder.light(this, s, t);
-		return this;
-	}
-
-	@Override
-	public VertexConsumer normal(float x, float y, float z) {
-		defaultEncoder.normal(this, x, y, z);
-		return this;
-	}
-
-	@Override
 	public void next() {
-		// NOOP
+		packer.pack(vertexData);
+		data.copyFrom(integerSize, vertexData, 0, intVertexStride);
+		integerSize += intVertexStride;
 	}
 
 	private static class QuadSorter {
@@ -358,4 +270,14 @@ public class WipVertexCollectorImpl implements WipVertexCollector {
 			System.arraycopy(perQuadDistance, 0, caller.perQuadDistance, 0, quadCount);
 		}
 	}
+
+	private static final ThreadLocal<QuadSorter> quadSorter = new ThreadLocal<QuadSorter>() {
+		@Override
+		protected QuadSorter initialValue() {
+			return new QuadSorter();
+		}
+	};
+
+	// TODO: make parameters dynamic based on system specs / config
+	private static final IntStreamProvider INT_STREAM_PROVIDER = new IntStreamProvider(0x10000, 16, 4096);
 }

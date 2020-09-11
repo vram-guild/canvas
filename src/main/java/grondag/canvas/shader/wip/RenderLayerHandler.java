@@ -84,7 +84,7 @@ public enum RenderLayerHandler {
 		//
 		// -> MaterialVertexState
 
-		//shadeModel
+		//shadeModel - IGNORE
 		// not applicable in core profile but still seems to disable interpolation in 2.1
 		// the default is flat
 		// should work as-is?
@@ -121,7 +121,7 @@ public enum RenderLayerHandler {
 		//		final boolean hasOverlay = params.getOverlay() == Overlay.ENABLE_OVERLAY_COLOR;
 
 		//fog
-		// Handled by existing hooks?
+		// Uniform state (handled by existing uniform, but draws need segregated) or maybe vertex state later
 
 		//layering (decals)
 		// works by polygonOffset or matrix scaling so should work without special handling
