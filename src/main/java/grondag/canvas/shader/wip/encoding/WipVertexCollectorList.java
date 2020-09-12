@@ -16,12 +16,13 @@
 
 package grondag.canvas.shader.wip.encoding;
 
+import java.util.Arrays;
+
 import grondag.canvas.material.MaterialState;
 import grondag.canvas.shader.wip.WipRenderState;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import net.minecraft.util.math.MathHelper;
 
-import java.util.Arrays;
+import net.minecraft.util.math.MathHelper;
 
 /**
  * MUST ALWAYS BE USED WITHIN SAME MATERIAL CONTEXT
@@ -29,7 +30,7 @@ import java.util.Arrays;
 public class WipVertexCollectorList {
 	private final ObjectArrayList<WipVertexCollectorImpl> pool = new ObjectArrayList<>();
 	private int size = 0;
-	private WipVertexCollectorImpl[] collectors = new WipVertexCollectorImpl[WipRenderState.MAX_INDEX];
+	private WipVertexCollectorImpl[] collectors = new WipVertexCollectorImpl[WipRenderState.MAX_COUNT];
 
 	/**
 	 * Releases any held vertex collectors and resets state
@@ -44,10 +45,16 @@ public class WipVertexCollectorList {
 	}
 
 	public final WipVertexCollectorImpl getIfExists(WipRenderState materialState) {
-		return collectors[materialState.index];
+		// PERF remove null check once state mapping is reliable
+		return materialState == null ? null : collectors[materialState.index];
 	}
 
 	public final WipVertexCollectorImpl get(WipRenderState materialState) {
+		// PERF remove once state mapping is reliable
+		if (materialState == null) {
+			return null;
+		}
+
 		final int index = materialState.index;
 		WipVertexCollectorImpl[] collectors = this.collectors;
 

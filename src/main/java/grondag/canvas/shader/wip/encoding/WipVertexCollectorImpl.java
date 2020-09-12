@@ -217,6 +217,13 @@ public class WipVertexCollectorImpl extends WipVertexAdapter {
 		integerSize += intVertexStride;
 	}
 
+	public void drawAndClear() {
+		if (!isEmpty()) {
+			materialState.draw(this);
+			clear();
+		}
+	}
+
 	private static class QuadSorter {
 		double[] perQuadDistance = new double[512];
 		private final IntComparator comparator = new IntComparator() {

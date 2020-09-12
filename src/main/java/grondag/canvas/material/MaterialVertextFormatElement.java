@@ -23,35 +23,38 @@ public class MaterialVertextFormatElement {
 	// via standard (GL 2.1) binding
 	// slows to a crawl otherwise
 	public static final MaterialVertextFormatElement POSITION_3F = new MaterialVertextFormatElement(
-			VertexFormatElement.Format.FLOAT, 3, null);
+		VertexFormatElement.Format.FLOAT, 3, null);
 	public static final MaterialVertextFormatElement BASE_RGBA_4UB = new MaterialVertextFormatElement(
-			VertexFormatElement.Format.UBYTE, 4, "in_color");
+		VertexFormatElement.Format.UBYTE, 4, "in_color");
 	public static final MaterialVertextFormatElement BASE_TEX_2F = new MaterialVertextFormatElement(
-			VertexFormatElement.Format.FLOAT, 2, "in_uv");
+		VertexFormatElement.Format.FLOAT, 2, "in_uv");
 
 	public static final MaterialVertextFormatElement BASE_TEX_2US = new MaterialVertextFormatElement(
-			VertexFormatElement.Format.USHORT, 2, "in_uv", true);
+		VertexFormatElement.Format.USHORT, 2, "in_uv", true);
 	/**
 	 * In vanilla lighting model, Bytes 1-2 are sky and block lightmap
 	 * coordinates. 3rd and 4th bytes are control flags. <p>
 	 */
 	public static final MaterialVertextFormatElement LIGHTMAPS_4UB = new MaterialVertextFormatElement(
-			VertexFormatElement.Format.UBYTE, 4, "in_lightmap", false);
+		VertexFormatElement.Format.UBYTE, 4, "in_lightmap", false);
 
 	public static final MaterialVertextFormatElement TEMP_OVERLAY = new MaterialVertextFormatElement(VertexFormatElement.Format.SHORT, 2, "in_overlay", false);
 	public static final MaterialVertextFormatElement TEMP_LIGHTMAP = new MaterialVertextFormatElement(VertexFormatElement.Format.SHORT, 2, "in_lightmap", false);
 
 	public static final MaterialVertextFormatElement OVERLAY_4UB = new MaterialVertextFormatElement(
-			VertexFormatElement.Format.UBYTE, 4, "in_overlay", false);
+		VertexFormatElement.Format.UBYTE, 4, "in_overlay", false);
 
 	public static final MaterialVertextFormatElement HD_LIGHTMAP_2US = new MaterialVertextFormatElement(
-			VertexFormatElement.Format.USHORT, 2, "in_hd_lightmap", false);
+		VertexFormatElement.Format.USHORT, 2, "in_hd_lightmap", false);
 
 	public static final MaterialVertextFormatElement NORMAL_AO_4B = new MaterialVertextFormatElement(
-			VertexFormatElement.Format.BYTE, 4, "in_normal_ao", true);
+		VertexFormatElement.Format.BYTE, 4, "in_normal_ao", true);
+
+	public static final MaterialVertextFormatElement NORMAL_FLAGS_4UB = new MaterialVertextFormatElement(
+		VertexFormatElement.Format.BYTE, 4, "in_normal_ao", false);
 
 	public static final MaterialVertextFormatElement MATERIAL_2US = new MaterialVertextFormatElement(
-			VertexFormatElement.Format.USHORT, 2, "in_material", false);
+		VertexFormatElement.Format.USHORT, 2, "in_material", false);
 
 	public final String attributeName;
 	public final int elementCount;

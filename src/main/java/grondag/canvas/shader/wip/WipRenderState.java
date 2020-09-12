@@ -16,9 +16,17 @@
 
 package grondag.canvas.shader.wip;
 
+import javax.annotation.Nullable;
+
 import grondag.canvas.shader.wip.encoding.WipModelOrigin;
+import grondag.canvas.shader.wip.encoding.WipVertexCollectorImpl;
 import grondag.canvas.shader.wip.encoding.WipVertexFormat;
-import grondag.fermion.bits.BitPacker32;
+import grondag.fermion.bits.BitPacker64;
+import it.unimi.dsi.fastutil.Hash;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+
+import net.minecraft.client.render.RenderLayer;
+import net.minecraft.util.Identifier;
 
 /**
  * Primitives with the same state have the same vertex encoding,
@@ -36,7 +44,7 @@ import grondag.fermion.bits.BitPacker32;
  */
 @SuppressWarnings("rawtypes")
 public class WipRenderState {
-	private final int bits;
+	private final long bits;
 	public final int index;
 
 	/**
@@ -86,15 +94,6 @@ public class WipRenderState {
 	}
 
 	/**
-	 * True if the material has a color overlay.  In vanilla this is passed
-	 * as UV coordinates for a specialized texture that must be included
-	 * in the vertex attributes. Canvas may convey this via bit flags instead.
-	 */
-	public boolean hasOverlay() {
-		return HAS_OVERLAY.getValue(bits);
-	}
-
-	/**
 	 * OpenGL primitive constant. Determines number of vertices.
 	 *
 	 * Currently used in vanilla are...
@@ -110,36 +109,130 @@ public class WipRenderState {
 
 	public final WipVertexFormat format;
 	public final WipModelOrigin modelOrigin;
-	public final WipGlState glState;
-	public final WipUniformState uniformState;
 	public final int vertexStrideInts;
+	public final WipTextureState texture;
 
-	private WipRenderState(int bits) {
+	private WipRenderState(long bits) {
 		this.bits = bits;
-		// TODO: all of these
-		glState = null;
-		uniformState = null;
 		modelOrigin = ORIGIN.getValue(bits);
-		format = WipVertexFormat.forState(this);
+		texture = WipTextureState.fromIndex(TEXTURE.getValue(bits));
+
+		format = WipVertexFormat.forFlags(
+			HAS_COLOR.getValue(bits),
+			texture != WipTextureState.NO_TEXTURE,
+			texture.isAtlas || HAS_CONDITION.getValue(bits),
+			HAS_LIGHTMAP.getValue(bits),
+			HAS_NORMAL.getValue(bits));
+
 		vertexStrideInts = format.vertexStrideInts;
+
 		index = nextIndex++;
 	}
 
-	public static final int MAX_INDEX = 4096;
+	public void draw(WipVertexCollectorImpl collector) {
+		// TODO Auto-generated method stub
+
+	}
+
+	public static final int MAX_COUNT = 4096;
 	private static int nextIndex = 0;
+	private static final WipRenderState[] STATES = new WipRenderState[MAX_COUNT];
+	private static final Long2ObjectOpenHashMap<WipRenderState> MAP = new Long2ObjectOpenHashMap<>(4096, Hash.VERY_FAST_LOAD_FACTOR);
 
-	private static final BitPacker32<Void> PACKER = new BitPacker32<> (null, null);
+	private static final BitPacker64<Void> PACKER = new BitPacker64<> (null, null);
 
-	private static final BitPacker32.BooleanElement SORTED = PACKER.createBooleanElement();
-	private static final BitPacker32.IntElement PRIMITIVE = PACKER.createIntElement(8);
-	private static final BitPacker32.BooleanElement HAS_COLOR = PACKER.createBooleanElement();
-	private static final BitPacker32.BooleanElement HAS_NORMAL = PACKER.createBooleanElement();
-	private static final BitPacker32.BooleanElement ALLOWS_CONDITIONS = PACKER.createBooleanElement();
-	private static final BitPacker32.BooleanElement HAS_LIGHTMAP = PACKER.createBooleanElement();
-	private static final BitPacker32.BooleanElement HAS_OVERLAY = PACKER.createBooleanElement();
-	private static final BitPacker32<Void>.EnumElement<WipModelOrigin> ORIGIN = PACKER.createEnumElement(WipModelOrigin.class);
+	// GL State comes first for sorting
+	private static final BitPacker64.IntElement TEXTURE = PACKER.createIntElement(WipTextureState.MAX_TEXTURE_STATES);
+
+	// These don't affect GL state but do affect encoding - must be buffered separately
+	private static final BitPacker64.BooleanElement SORTED = PACKER.createBooleanElement();
+	private static final BitPacker64.IntElement PRIMITIVE = PACKER.createIntElement(8);
+	private static final BitPacker64.BooleanElement HAS_COLOR = PACKER.createBooleanElement();
+	private static final BitPacker64.BooleanElement HAS_LIGHTMAP = PACKER.createBooleanElement();
+	private static final BitPacker64.BooleanElement HAS_NORMAL = PACKER.createBooleanElement();
+	private static final BitPacker64.BooleanElement HAS_CONDITION = PACKER.createBooleanElement();
+
+	private static final BitPacker64<Void>.EnumElement<WipModelOrigin> ORIGIN = PACKER.createEnumElement(WipModelOrigin.class);
 
 	static {
-		assert PACKER.bitLength() <= 32;
+		assert PACKER.bitLength() <= 64;
+	}
+
+	public static WipRenderState fromLayer(RenderLayer renderLayer) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public static WipRenderState fromIndex(int index) {
+		return STATES[index];
+	}
+
+	public static class Builder {
+		long bits;
+		// GL State
+		// WIP: transparency
+		// WIP: depth test
+		// WIP: cull
+		// WIP: enable lightmap
+		// WIP: framebuffer target(s) - add emissive and other targets to vanilla
+		// WIP: write mask state
+		// WIP: line width
+		// WIP: texture binding
+		// WIP: texture setting - may need to be uniform or conditional compile if fixed pipeline filtering doesn't work
+		// sets up outline, glint or default texturing
+		// these probably won't work as-is with shaders because they use texture env settings
+		// so may be best to leave them for now
+
+		// Uniform state
+		// WIP: fog - colored, black or off - could go in vertex state but doesn't change much
+
+		public Builder sorted(boolean sorted) {
+			bits = SORTED.setValue(sorted, bits);
+			return this;
+		}
+
+		public Builder hasColor(boolean hasColor) {
+			bits = HAS_COLOR.setValue(hasColor, bits);
+			return this;
+		}
+
+		public Builder hasLightmap(boolean hasLightmap) {
+			bits = HAS_LIGHTMAP.setValue(hasLightmap, bits);
+			return this;
+		}
+
+		public Builder hasNormal(boolean hasNormal) {
+			bits = HAS_NORMAL.setValue(hasNormal, bits);
+			return this;
+		}
+
+		public Builder hasCondition(boolean hasCondition) {
+			bits = HAS_CONDITION.setValue(hasCondition, bits);
+			return this;
+		}
+
+		public Builder primitive(int primitive) {
+			assert primitive <= 7;
+			bits = PRIMITIVE.setValue(primitive, bits);
+			return this;
+		}
+
+		public Builder texture(@Nullable Identifier id) {
+			final int val = id == null ? WipTextureState.NO_TEXTURE.index : WipTextureState.fromId(id).index;
+			bits = TEXTURE.setValue(val, bits);
+			return this;
+		}
+
+		public WipRenderState build() {
+			WipRenderState result = MAP.get(bits);
+
+			if (result == null) {
+				result = new WipRenderState(bits);
+				MAP.put(bits, result);
+				STATES[result.index] = result;
+			}
+
+			return result;
+		}
 	}
 }

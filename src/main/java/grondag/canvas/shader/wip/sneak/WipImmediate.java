@@ -3,6 +3,9 @@ package grondag.canvas.shader.wip.sneak;
 import java.util.Map;
 import java.util.SortedMap;
 
+import grondag.canvas.shader.wip.WipRenderState;
+import grondag.canvas.shader.wip.encoding.WipVertexCollectorImpl;
+import grondag.canvas.shader.wip.encoding.WipVertexCollectorList;
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 
 import net.minecraft.client.render.BufferBuilder;
@@ -15,25 +18,42 @@ import net.minecraft.client.render.model.ModelLoader;
 import net.minecraft.util.Util;
 
 public class WipImmediate extends Immediate {
+	private final WipVertexCollectorList collectors = new WipVertexCollectorList();
+
 	protected WipImmediate(BufferBuilder fallbackBuffer, Map<RenderLayer, BufferBuilder> layerBuffers) {
 		super(fallbackBuffer, layerBuffers);
 	}
 
 	@Override
 	public VertexConsumer getBuffer(RenderLayer renderLayer) {
-		return super.getBuffer(renderLayer);
+		final VertexConsumer result = collectors.get(WipRenderState.fromLayer(renderLayer));
+		return result == null ? super.getBuffer(renderLayer) : result;
 	}
 
 	@Override
 	public void draw() {
+		final int limit = collectors.size();
+
+		for (int i = 0; i < limit; ++i) {
+			final WipVertexCollectorImpl collector = collectors.get(i);
+			collector.drawAndClear();
+		}
+
+		collectors.clear();
 		super.draw();
 	}
 
 	@Override
 	public void draw(RenderLayer layer) {
-		super.draw(layer);
-	}
+		final WipVertexCollectorImpl collector = collectors.getIfExists(WipRenderState.fromLayer(layer));
 
+		if (collector == null) {
+			super.draw(layer);
+
+		} else {
+			collector.drawAndClear();
+		}
+	}
 
 	private static final BlockBufferBuilderStorage blockBuilders = new BlockBufferBuilderStorage();
 

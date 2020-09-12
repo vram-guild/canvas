@@ -17,6 +17,7 @@
 package grondag.canvas.shader.wip.encoding;
 
 import grondag.canvas.apiimpl.mesh.MeshEncodingHelper;
+import grondag.canvas.apiimpl.util.NormalHelper;
 import grondag.canvas.shader.wip.WipRenderState;
 import grondag.canvas.shader.wip.WipVertexState;
 
@@ -96,7 +97,10 @@ public abstract class WipVertexAdapter implements WipVertexCollector {
 
 	@Override
 	public WipVertexCollector packedNormal(int packedNormal) {
-		vertexData[normalIndex] = packedNormal;
+		// PERF: change default normal packing to unsigned when signed format no longer used
+		vertexData[normalIndex] = (vertexData[normalIndex] & 0xFF000000) | NormalHelper.repackToUnsigned(packedNormal);
 		return this;
 	}
+
+
 }

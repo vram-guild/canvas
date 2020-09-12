@@ -16,11 +16,12 @@
 
 package grondag.canvas.apiimpl.util;
 
-import net.fabricmc.fabric.api.renderer.v1.mesh.QuadView;
 import net.minecraft.client.util.math.Vector3f;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3i;
+
+import net.fabricmc.fabric.api.renderer.v1.mesh.QuadView;
 
 /**
  * Static routines of general utility for renderer implementations.
@@ -73,7 +74,7 @@ public abstract class NormalHelper {
 		final Direction nominalFace = q.nominalFace();
 
 		if (GeometryHelper.isQuadParallelToFace(nominalFace, q)) {
-			Vec3i vec = nominalFace.getVector();
+			final Vec3i vec = nominalFace.getVector();
 			saveTo.set(vec.getX(), vec.getY(), vec.getZ());
 			return;
 		}
@@ -102,7 +103,7 @@ public abstract class NormalHelper {
 		float normY = dz0 * dx1 - dx0 * dz1;
 		float normZ = dx0 * dy1 - dy0 * dx1;
 
-		float l = (float) Math.sqrt(normX * normX + normY * normY + normZ * normZ);
+		final float l = (float) Math.sqrt(normX * normX + normY * normY + normZ * normZ);
 
 		if (l != 0) {
 			normX /= l;
@@ -111,5 +112,12 @@ public abstract class NormalHelper {
 		}
 
 		saveTo.set(normX, normY, normZ);
+	}
+
+	public static int repackToUnsigned(int packedNormal) {
+		final int x = ((byte) (packedNormal & 0xFF)) + 127;
+		final int y = (((byte) ((packedNormal >> 8) & 0xFF)) + 127) << 8;
+		final int z = (((byte) ((packedNormal >> 16) & 0xFF)) + 127) << 16;
+		return x | y | z;
 	}
 }

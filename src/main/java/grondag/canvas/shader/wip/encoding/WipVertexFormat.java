@@ -18,13 +18,12 @@ package grondag.canvas.shader.wip.encoding;
 
 import grondag.canvas.material.MaterialVertexFormat;
 import grondag.canvas.material.MaterialVertextFormatElement;
-import grondag.canvas.shader.wip.WipRenderState;
 
 import static grondag.canvas.material.MaterialVertextFormatElement.BASE_RGBA_4UB;
 import static grondag.canvas.material.MaterialVertextFormatElement.BASE_TEX_2US;
 import static grondag.canvas.material.MaterialVertextFormatElement.LIGHTMAPS_4UB;
 import static grondag.canvas.material.MaterialVertextFormatElement.MATERIAL_2US;
-import static grondag.canvas.material.MaterialVertextFormatElement.NORMAL_AO_4B;
+import static grondag.canvas.material.MaterialVertextFormatElement.NORMAL_FLAGS_4UB;
 import static grondag.canvas.material.MaterialVertextFormatElement.POSITION_3F;
 
 /**
@@ -68,16 +67,16 @@ public class WipVertexFormat extends MaterialVertexFormat {
 		POSITION_TEXTURE = new WipVertexFormat(POSITION_3F, BASE_TEX_2US);
 		POSITION_COLOR_TEXTURE = new WipVertexFormat(POSITION_3F, BASE_RGBA_4UB, BASE_TEX_2US);
 
-		POSITION_COLOR_NORMAL = new WipVertexFormat(POSITION_3F, BASE_RGBA_4UB, NORMAL_AO_4B);
-		POSITION_COLOR_LIGHT_NORMAL = new WipVertexFormat(POSITION_3F, BASE_RGBA_4UB, LIGHTMAPS_4UB, NORMAL_AO_4B);
+		POSITION_COLOR_NORMAL = new WipVertexFormat(POSITION_3F, BASE_RGBA_4UB, NORMAL_FLAGS_4UB);
+		POSITION_COLOR_LIGHT_NORMAL = new WipVertexFormat(POSITION_3F, BASE_RGBA_4UB, LIGHTMAPS_4UB, NORMAL_FLAGS_4UB);
 
-		POSITION_TEXTURE_NORMAL = new WipVertexFormat(POSITION_3F, BASE_TEX_2US, NORMAL_AO_4B);
-		POSITION_COLOR_TEXTURE_NORMAL = new WipVertexFormat(POSITION_3F, BASE_RGBA_4UB, BASE_TEX_2US, NORMAL_AO_4B);
-		POSITION_COLOR_TEXTURE_LIGHT_NORMAL = new WipVertexFormat(POSITION_3F, BASE_RGBA_4UB, BASE_TEX_2US, LIGHTMAPS_4UB, NORMAL_AO_4B);
+		POSITION_TEXTURE_NORMAL = new WipVertexFormat(POSITION_3F, BASE_TEX_2US, NORMAL_FLAGS_4UB);
+		POSITION_COLOR_TEXTURE_NORMAL = new WipVertexFormat(POSITION_3F, BASE_RGBA_4UB, BASE_TEX_2US, NORMAL_FLAGS_4UB);
+		POSITION_COLOR_TEXTURE_LIGHT_NORMAL = new WipVertexFormat(POSITION_3F, BASE_RGBA_4UB, BASE_TEX_2US, LIGHTMAPS_4UB, NORMAL_FLAGS_4UB);
 
-		POSITION_TEXTURE_MATERIAL_NORMAL = new WipVertexFormat(POSITION_3F, BASE_TEX_2US, MATERIAL_2US, NORMAL_AO_4B);
-		POSITION_COLOR_TEXTURE_MATERIAL_NORMAL = new WipVertexFormat(POSITION_3F, BASE_RGBA_4UB, BASE_TEX_2US, MATERIAL_2US, NORMAL_AO_4B);
-		POSITION_COLOR_TEXTURE_MATERIAL_LIGHT_NORMAL = new WipVertexFormat(POSITION_3F, BASE_RGBA_4UB, BASE_TEX_2US, LIGHTMAPS_4UB, MATERIAL_2US, NORMAL_AO_4B);
+		POSITION_TEXTURE_MATERIAL_NORMAL = new WipVertexFormat(POSITION_3F, BASE_TEX_2US, MATERIAL_2US, NORMAL_FLAGS_4UB);
+		POSITION_COLOR_TEXTURE_MATERIAL_NORMAL = new WipVertexFormat(POSITION_3F, BASE_RGBA_4UB, BASE_TEX_2US, MATERIAL_2US, NORMAL_FLAGS_4UB);
+		POSITION_COLOR_TEXTURE_MATERIAL_LIGHT_NORMAL = new WipVertexFormat(POSITION_3F, BASE_RGBA_4UB, BASE_TEX_2US, LIGHTMAPS_4UB, MATERIAL_2US, NORMAL_FLAGS_4UB);
 	}
 
 	public final int colorIndex;
@@ -112,7 +111,7 @@ public class WipVertexFormat extends MaterialVertexFormat {
 				lightIndex = nextIndex++;
 			} else if (e == MATERIAL_2US) {
 				materialIndex = nextIndex++;
-			} else if (e == NORMAL_AO_4B) {
+			} else if (e == NORMAL_FLAGS_4UB) {
 				normalIndex = nextIndex++;
 			} else {
 				throw new IllegalArgumentException("Encountered unrecognized vertex element");
@@ -150,7 +149,59 @@ public class WipVertexFormat extends MaterialVertexFormat {
 		this.normalIndex = normalIndex;
 	}
 
-	public static WipVertexFormat forState(WipRenderState state) {
-		return POSITION_COLOR_TEXTURE_MATERIAL_LIGHT_NORMAL;
+	private static final int COLOR_BIT = 1;
+	private static final int TEXTURE_BIT = 2;
+	private static final int MATERIAL_BIT = 4;
+	private static final int LIGHT_BIT = 8;
+	private static final int NORMAL_BIT = 16;
+
+	public static WipVertexFormat forFlags(boolean hasColor, boolean hasTexture, boolean hasConditionOrAtlas, boolean hasLightmap, boolean hasNormal) {
+		int bits = hasColor ? COLOR_BIT : 0;
+		if (hasTexture) bits |= TEXTURE_BIT;
+		if (hasConditionOrAtlas) bits |= MATERIAL_BIT;
+		if (hasLightmap) bits |= LIGHT_BIT;
+		if (hasNormal) bits |= NORMAL_BIT;
+
+		switch(bits) {
+			case 0:
+				return POSITION;
+
+			case COLOR_BIT:
+				return POSITION_COLOR;
+
+			case TEXTURE_BIT:
+				return POSITION_TEXTURE;
+
+			case COLOR_BIT | TEXTURE_BIT:
+				return POSITION_COLOR_TEXTURE;
+
+			case COLOR_BIT | NORMAL_BIT:
+				return POSITION_COLOR_NORMAL;
+
+			case COLOR_BIT | LIGHT_BIT | NORMAL_BIT:
+				return POSITION_COLOR_LIGHT_NORMAL;
+
+			case TEXTURE_BIT | NORMAL_BIT:
+				return POSITION_TEXTURE_NORMAL;
+
+			case COLOR_BIT | TEXTURE_BIT | NORMAL_BIT:
+				return POSITION_COLOR_TEXTURE_NORMAL;
+
+			case COLOR_BIT | TEXTURE_BIT | LIGHT_BIT | NORMAL_BIT:
+				return POSITION_COLOR_TEXTURE_LIGHT_NORMAL;
+
+			case TEXTURE_BIT | MATERIAL_BIT | NORMAL_BIT:
+				return POSITION_TEXTURE_MATERIAL_NORMAL;
+
+			case COLOR_BIT | TEXTURE_BIT | MATERIAL_BIT | NORMAL_BIT:
+				return POSITION_COLOR_TEXTURE_MATERIAL_NORMAL;
+
+			case COLOR_BIT | TEXTURE_BIT | MATERIAL_BIT | LIGHT_BIT | NORMAL_BIT:
+				return POSITION_COLOR_TEXTURE_MATERIAL_LIGHT_NORMAL;
+
+			default:
+				assert false : "Unsupported vertex format";
+			return POSITION_COLOR_TEXTURE_MATERIAL_LIGHT_NORMAL;
+		}
 	}
 }
