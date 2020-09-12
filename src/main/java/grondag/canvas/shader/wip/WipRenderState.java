@@ -62,15 +62,15 @@ public class WipRenderState {
 		return HAS_NORMAL.getValue(bits);
 	}
 
-	/**
-	 * True when material has a primary texture and thus
-	 * includes UV coordinates in the vertex format.
-	 * Canvas may compact or alter UV packing to allow for
-	 * multi-map textures that share UV coordinates.
-	 */
-	public boolean hasTexture() {
-		return HAS_TEXTURE.getValue(bits);
-	}
+	//	/**
+	//	 * True when material has a primary texture and thus
+	//	 * includes UV coordinates in the vertex format.
+	//	 * Canvas may compact or alter UV packing to allow for
+	//	 * multi-map textures that share UV coordinates.
+	//	 */
+	//	public boolean hasTexture() {
+	//		return HAS_TEXTURE.getValue(bits);
+	//	}
 
 	/**
 	 * True if world lighting is passed to the renderer for this material.
@@ -119,7 +119,7 @@ public class WipRenderState {
 		// TODO: all of these
 		glState = null;
 		uniformState = null;
-		modelOrigin = null;
+		modelOrigin = ORIGIN.getValue(bits);
 		format = WipVertexFormat.forState(this);
 		vertexStrideInts = format.vertexStrideInts;
 		index = nextIndex++;
@@ -134,7 +134,12 @@ public class WipRenderState {
 	private static final BitPacker32.IntElement PRIMITIVE = PACKER.createIntElement(8);
 	private static final BitPacker32.BooleanElement HAS_COLOR = PACKER.createBooleanElement();
 	private static final BitPacker32.BooleanElement HAS_NORMAL = PACKER.createBooleanElement();
-	private static final BitPacker32.BooleanElement HAS_TEXTURE = PACKER.createBooleanElement();
+	private static final BitPacker32.BooleanElement ALLOWS_CONDITIONS = PACKER.createBooleanElement();
 	private static final BitPacker32.BooleanElement HAS_LIGHTMAP = PACKER.createBooleanElement();
 	private static final BitPacker32.BooleanElement HAS_OVERLAY = PACKER.createBooleanElement();
+	private static final BitPacker32<Void>.EnumElement<WipModelOrigin> ORIGIN = PACKER.createEnumElement(WipModelOrigin.class);
+
+	static {
+		assert PACKER.bitLength() <= 32;
+	}
 }

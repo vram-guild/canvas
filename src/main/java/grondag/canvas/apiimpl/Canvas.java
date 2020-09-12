@@ -16,6 +16,9 @@
 
 package grondag.canvas.apiimpl;
 
+import java.util.HashMap;
+import java.util.function.BooleanSupplier;
+
 import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.material.AbstractMeshMaterial;
 import grondag.canvas.apiimpl.material.MaterialShaderImpl;
@@ -42,13 +45,12 @@ import grondag.frex.api.Renderer;
 import grondag.frex.api.material.MaterialCondition;
 import grondag.frex.api.material.MaterialShader;
 import grondag.frex.api.material.ShaderBuilder;
-import net.fabricmc.fabric.api.renderer.v1.material.RenderMaterial;
-import net.fabricmc.fabric.api.renderer.v1.mesh.MeshBuilder;
+
 import net.minecraft.client.resource.language.I18n;
 import net.minecraft.util.Identifier;
 
-import java.util.HashMap;
-import java.util.function.BooleanSupplier;
+import net.fabricmc.fabric.api.renderer.v1.material.RenderMaterial;
+import net.fabricmc.fabric.api.renderer.v1.mesh.MeshBuilder;
 
 public class Canvas implements Renderer {
 	public static final Canvas INSTANCE = new Canvas();

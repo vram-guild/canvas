@@ -16,6 +16,11 @@
 
 package grondag.canvas;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.util.Arrays;
+import java.util.stream.Collectors;
+
 import blue.endless.jankson.Comment;
 import blue.endless.jankson.Jankson;
 import blue.endless.jankson.JsonObject;
@@ -25,9 +30,7 @@ import grondag.canvas.apiimpl.Canvas;
 import me.shedaniel.clothconfig2.api.ConfigBuilder;
 import me.shedaniel.clothconfig2.api.ConfigCategory;
 import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-import net.fabricmc.loader.api.FabricLoader;
+
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.resource.language.I18n;
@@ -35,10 +38,9 @@ import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.util.Arrays;
-import java.util.stream.Collectors;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
+import net.fabricmc.loader.api.FabricLoader;
 
 @Environment(EnvType.CLIENT)
 public class Configurator {
@@ -81,6 +83,8 @@ public class Configurator {
 	public static boolean traceOcclusionEdgeCases = DEFAULTS.traceOcclusionEdgeCases;
 	public static boolean enableBufferDebug = DEFAULTS.enableBufferDebug;
 	public static boolean enableLifeCycleDebug = DEFAULTS.enableLifeCycleDebug;
+	public static boolean enableExperimentalPipeline = DEFAULTS.enableExperimentalPipeline;
+
 	//    @LangKey("config.acuity_fancy_fluids")
 	//    @Comment({"Enable fancy water and lava rendering.",
 	//        " This feature is currently work in progress and has no visible effect if enabled."})
@@ -163,6 +167,7 @@ public class Configurator {
 		traceOcclusionEdgeCases = config.traceOcclusionEdgeCases;
 		enableBufferDebug = config.enableBufferDebug;
 		enableLifeCycleDebug = config.enableLifeCycleDebug;
+		enableExperimentalPipeline = config.enableExperimentalPipeline;
 	}
 
 	private static void saveConfig() {
@@ -207,6 +212,7 @@ public class Configurator {
 		config.traceOcclusionEdgeCases = traceOcclusionEdgeCases;
 		config.enableBufferDebug = enableBufferDebug;
 		config.enableLifeCycleDebug = enableLifeCycleDebug;
+		config.enableExperimentalPipeline = enableExperimentalPipeline;
 
 		try {
 			final String result = JANKSON.toJson(config).toJson(true, true, 0);
@@ -215,7 +221,7 @@ public class Configurator {
 			}
 
 			try (
-					FileOutputStream out = new FileOutputStream(configFile, false)
+			FileOutputStream out = new FileOutputStream(configFile, false)
 			) {
 				out.write(result.getBytes());
 				out.flush();
@@ -237,12 +243,12 @@ public class Configurator {
 		reload = false;
 
 		final ConfigBuilder builder = ConfigBuilder.create()
-				.setParentScreen(screenIn)
-				.setTitle(new TranslatableText("config.canvas.title"))
-				.setSavingRunnable(Configurator::saveUserInput)
-				.setAlwaysShowTabs(false)
-				.setShouldListSmoothScroll(true)
-				.setShouldListSmoothScroll(true);
+		.setParentScreen(screenIn)
+		.setTitle(new TranslatableText("config.canvas.title"))
+		.setSavingRunnable(Configurator::saveUserInput)
+		.setAlwaysShowTabs(false)
+		.setShouldListSmoothScroll(true)
+		.setShouldListSmoothScroll(true);
 
 		builder.setGlobalized(true);
 		builder.setGlobalizedExpanded(false);
@@ -251,318 +257,325 @@ public class Configurator {
 		final ConfigCategory features = builder.getOrCreateCategory(new TranslatableText("config.canvas.category.features"));
 
 		features.addEntry(ENTRY_BUILDER
-				.startEnumSelector(new TranslatableText("config.canvas.value.fog_mode"), FogMode.class, fogMode)
-				.setDefaultValue(DEFAULTS.fogMode)
-				.setTooltip(parse("config.canvas.help.fog_mode"))
-				.setSaveConsumer(b -> {
-					reload |= fogMode != b;
-					fogMode = b;
-				})
-				.build());
+			.startEnumSelector(new TranslatableText("config.canvas.value.fog_mode"), FogMode.class, fogMode)
+			.setDefaultValue(DEFAULTS.fogMode)
+			.setTooltip(parse("config.canvas.help.fog_mode"))
+			.setSaveConsumer(b -> {
+				reload |= fogMode != b;
+				fogMode = b;
+			})
+			.build());
 
 		features.addEntry(ENTRY_BUILDER
-				.startBooleanToggle(new TranslatableText("config.canvas.value.blend_fluid_colors"), blendFluidColors)
-				.setDefaultValue(DEFAULTS.blendFluidColors)
-				.setTooltip(parse("config.canvas.help.blend_fluid_colors"))
-				.setSaveConsumer(b -> {
-					reload |= blendFluidColors != b;
-					blendFluidColors = b;
-				})
-				.build());
+			.startBooleanToggle(new TranslatableText("config.canvas.value.blend_fluid_colors"), blendFluidColors)
+			.setDefaultValue(DEFAULTS.blendFluidColors)
+			.setTooltip(parse("config.canvas.help.blend_fluid_colors"))
+			.setSaveConsumer(b -> {
+				reload |= blendFluidColors != b;
+				blendFluidColors = b;
+			})
+			.build());
 
 		features.addEntry(ENTRY_BUILDER
-				.startBooleanToggle(new TranslatableText("config.canvas.value.bloom"), enableBloom)
-				.setDefaultValue(DEFAULTS.enableBloom)
-				.setTooltip(parse("config.canvas.help.bloom"))
-				.setSaveConsumer(b -> {
-					reload |= enableBloom != b;
-					enableBloom = b;
-				})
-				.build());
+			.startBooleanToggle(new TranslatableText("config.canvas.value.bloom"), enableBloom)
+			.setDefaultValue(DEFAULTS.enableBloom)
+			.setTooltip(parse("config.canvas.help.bloom"))
+			.setSaveConsumer(b -> {
+				reload |= enableBloom != b;
+				enableBloom = b;
+			})
+			.build());
 
 		features.addEntry(ENTRY_BUILDER
-				.startIntSlider(new TranslatableText("config.canvas.value.bloom_intensity"), (int) (bloomIntensity * 200), 0, 100)
-				.setDefaultValue((int) (DEFAULTS.bloomIntensity * 200))
-				.setMax(100)
-				.setMin(0)
-				.setTooltip(parse("config.canvas.help.bloom_intensity"))
-				.setSaveConsumer(b -> bloomIntensity = b / 200f)
-				.build());
+			.startIntSlider(new TranslatableText("config.canvas.value.bloom_intensity"), (int) (bloomIntensity * 200), 0, 100)
+			.setDefaultValue((int) (DEFAULTS.bloomIntensity * 200))
+			.setMax(100)
+			.setMin(0)
+			.setTooltip(parse("config.canvas.help.bloom_intensity"))
+			.setSaveConsumer(b -> bloomIntensity = b / 200f)
+			.build());
 
 		features.addEntry(ENTRY_BUILDER
-				.startIntSlider(new TranslatableText("config.canvas.value.bloom_scale"), (int) (bloomScale * 100), 0, 200)
-				.setDefaultValue((int) (DEFAULTS.bloomScale * 100))
-				.setMax(200)
-				.setMin(0)
-				.setTooltip(parse("config.canvas.help.bloom_scale"))
-				.setSaveConsumer(b -> bloomScale = b / 100f)
-				.build());
+			.startIntSlider(new TranslatableText("config.canvas.value.bloom_scale"), (int) (bloomScale * 100), 0, 200)
+			.setDefaultValue((int) (DEFAULTS.bloomScale * 100))
+			.setMax(200)
+			.setMin(0)
+			.setTooltip(parse("config.canvas.help.bloom_scale"))
+			.setSaveConsumer(b -> bloomScale = b / 100f)
+			.build());
 
 		features.addEntry(ENTRY_BUILDER
-				.startBooleanToggle(new TranslatableText("config.canvas.value.wavy_grass"), wavyGrass)
-				.setDefaultValue(DEFAULTS.wavyGrass)
-				.setTooltip(parse("config.canvas.help.wavy_grass"))
-				.setSaveConsumer(b -> {
-					reload |= wavyGrass != b;
-					wavyGrass = b;
-				})
-				.build());
+			.startBooleanToggle(new TranslatableText("config.canvas.value.wavy_grass"), wavyGrass)
+			.setDefaultValue(DEFAULTS.wavyGrass)
+			.setTooltip(parse("config.canvas.help.wavy_grass"))
+			.setSaveConsumer(b -> {
+				reload |= wavyGrass != b;
+				wavyGrass = b;
+			})
+			.build());
 
 		// LIGHTING
 		final ConfigCategory lighting = builder.getOrCreateCategory(new TranslatableText("config.canvas.category.lighting"));
 
 		lighting.addEntry(ENTRY_BUILDER
-				.startBooleanToggle(new TranslatableText("config.canvas.value.light_smoothing"), lightSmoothing)
-				.setDefaultValue(DEFAULTS.lightSmoothing)
-				.setTooltip(parse("config.canvas.help.light_smoothing"))
-				.setSaveConsumer(b -> {
-					reload |= lightSmoothing != b;
-					lightSmoothing = b;
-				})
-				.build());
+			.startBooleanToggle(new TranslatableText("config.canvas.value.light_smoothing"), lightSmoothing)
+			.setDefaultValue(DEFAULTS.lightSmoothing)
+			.setTooltip(parse("config.canvas.help.light_smoothing"))
+			.setSaveConsumer(b -> {
+				reload |= lightSmoothing != b;
+				lightSmoothing = b;
+			})
+			.build());
 
 		lighting.addEntry(ENTRY_BUILDER
-				.startBooleanToggle(new TranslatableText("config.canvas.value.hd_lightmaps"), hdLightmaps)
-				.setDefaultValue(DEFAULTS.hdLightmaps)
-				.setTooltip(parse("config.canvas.help.hd_lightmaps"))
-				.setSaveConsumer(b -> {
-					reload |= hdLightmaps != b;
-					hdLightmaps = b;
-				})
-				.build());
+			.startBooleanToggle(new TranslatableText("config.canvas.value.hd_lightmaps"), hdLightmaps)
+			.setDefaultValue(DEFAULTS.hdLightmaps)
+			.setTooltip(parse("config.canvas.help.hd_lightmaps"))
+			.setSaveConsumer(b -> {
+				reload |= hdLightmaps != b;
+				hdLightmaps = b;
+			})
+			.build());
 
 		lighting.addEntry(ENTRY_BUILDER
-				.startBooleanToggle(new TranslatableText("config.canvas.value.more_lightmap"), moreLightmap)
-				.setDefaultValue(DEFAULTS.moreLightmap)
-				.setTooltip(parse("config.canvas.help.more_lightmap"))
-				.setSaveConsumer(b -> moreLightmap = b)
-				.build());
+			.startBooleanToggle(new TranslatableText("config.canvas.value.more_lightmap"), moreLightmap)
+			.setDefaultValue(DEFAULTS.moreLightmap)
+			.setTooltip(parse("config.canvas.help.more_lightmap"))
+			.setSaveConsumer(b -> moreLightmap = b)
+			.build());
 
 		lighting.addEntry(ENTRY_BUILDER
-				.startBooleanToggle(new TranslatableText("config.canvas.value.lightmap_noise"), lightmapNoise)
-				.setDefaultValue(DEFAULTS.lightmapNoise)
-				.setTooltip(parse("config.canvas.help.lightmap_noise"))
-				.setSaveConsumer(b -> {
-					reload |= lightmapNoise != b;
-					lightmapNoise = b;
-				})
-				.build());
+			.startBooleanToggle(new TranslatableText("config.canvas.value.lightmap_noise"), lightmapNoise)
+			.setDefaultValue(DEFAULTS.lightmapNoise)
+			.setTooltip(parse("config.canvas.help.lightmap_noise"))
+			.setSaveConsumer(b -> {
+				reload |= lightmapNoise != b;
+				lightmapNoise = b;
+			})
+			.build());
 
 		lighting.addEntry(ENTRY_BUILDER
-				.startEnumSelector(new TranslatableText("config.canvas.value.diffuse_shading"), DiffuseMode.class, diffuseShadingMode)
-				.setDefaultValue(DEFAULTS.diffuseShadingMode)
-				.setTooltip(parse("config.canvas.help.diffuse_shading"))
-				.setSaveConsumer(b -> {
-					reload |= diffuseShadingMode != b;
-					diffuseShadingMode = b;
-				})
-				.build());
+			.startEnumSelector(new TranslatableText("config.canvas.value.diffuse_shading"), DiffuseMode.class, diffuseShadingMode)
+			.setDefaultValue(DEFAULTS.diffuseShadingMode)
+			.setTooltip(parse("config.canvas.help.diffuse_shading"))
+			.setSaveConsumer(b -> {
+				reload |= diffuseShadingMode != b;
+				diffuseShadingMode = b;
+			})
+			.build());
 
 		lighting.addEntry(ENTRY_BUILDER
-				.startEnumSelector(new TranslatableText("config.canvas.value.ao_shading"), AoMode.class, aoShadingMode)
-				.setDefaultValue(DEFAULTS.aoShadingMode)
-				.setTooltip(parse("config.canvas.help.ao_shading"))
-				.setSaveConsumer(b -> {
-					reload |= aoShadingMode != b;
-					aoShadingMode = b;
-				})
-				.build());
+			.startEnumSelector(new TranslatableText("config.canvas.value.ao_shading"), AoMode.class, aoShadingMode)
+			.setDefaultValue(DEFAULTS.aoShadingMode)
+			.setTooltip(parse("config.canvas.help.ao_shading"))
+			.setSaveConsumer(b -> {
+				reload |= aoShadingMode != b;
+				aoShadingMode = b;
+			})
+			.build());
 
 		lighting.addEntry(ENTRY_BUILDER
-				.startIntSlider(new TranslatableText("config.canvas.value.lightmap_delay_frames"), maxLightmapDelayFrames, 0, 20)
-				.setDefaultValue(DEFAULTS.maxLightmapDelayFrames)
-				.setTooltip(parse("config.canvas.help.lightmap_delay_frames"))
-				.setSaveConsumer(b -> maxLightmapDelayFrames = b)
-				.build());
+			.startIntSlider(new TranslatableText("config.canvas.value.lightmap_delay_frames"), maxLightmapDelayFrames, 0, 20)
+			.setDefaultValue(DEFAULTS.maxLightmapDelayFrames)
+			.setTooltip(parse("config.canvas.help.lightmap_delay_frames"))
+			.setSaveConsumer(b -> maxLightmapDelayFrames = b)
+			.build());
 
 		lighting.addEntry(ENTRY_BUILDER
-				.startBooleanToggle(new TranslatableText("config.canvas.value.semi_flat_lighting"), semiFlatLighting)
-				.setDefaultValue(DEFAULTS.semiFlatLighting)
-				.setTooltip(parse("config.canvas.help.semi_flat_lighting"))
-				.setSaveConsumer(b -> {
-					reload |= semiFlatLighting != b;
-					semiFlatLighting = b;
-				})
-				.build());
+			.startBooleanToggle(new TranslatableText("config.canvas.value.semi_flat_lighting"), semiFlatLighting)
+			.setDefaultValue(DEFAULTS.semiFlatLighting)
+			.setTooltip(parse("config.canvas.help.semi_flat_lighting"))
+			.setSaveConsumer(b -> {
+				reload |= semiFlatLighting != b;
+				semiFlatLighting = b;
+			})
+			.build());
 
 		// TWEAKS
 		final ConfigCategory tweaks = builder.getOrCreateCategory(new TranslatableText("config.canvas.category.tweaks"));
 
 		tweaks.addEntry(ENTRY_BUILDER
-				.startBooleanToggle(new TranslatableText("config.canvas.value.batch_chunk_render"), batchedChunkRender)
-				.setDefaultValue(DEFAULTS.batchedChunkRender)
-				.setTooltip(parse("config.canvas.help.batch_chunk_render"))
-				.setSaveConsumer(b -> batchedChunkRender = b)
-				.build());
+			.startBooleanToggle(new TranslatableText("config.canvas.value.batch_chunk_render"), batchedChunkRender)
+			.setDefaultValue(DEFAULTS.batchedChunkRender)
+			.setTooltip(parse("config.canvas.help.batch_chunk_render"))
+			.setSaveConsumer(b -> batchedChunkRender = b)
+			.build());
 
 		//        tweaks.addOption(new BooleanListEntry("config.canvas.value.vanilla_chunk_matrix", disableVanillaChunkMatrix, "config.canvas.reset",
 		//                () -> DEFAULTS.disableVanillaChunkMatrix, b -> disableVanillaChunkMatrix = b,
 		//                () -> Optional.of(parse("config.canvas.help.vanilla_chunk_matrix"))));
 
 		tweaks.addEntry(ENTRY_BUILDER
-				.startBooleanToggle(new TranslatableText("config.canvas.value.adjust_vanilla_geometry"), preventDepthFighting)
-				.setDefaultValue(DEFAULTS.preventDepthFighting)
-				.setTooltip(parse("config.canvas.help.adjust_vanilla_geometry"))
-				.setSaveConsumer(b -> {
-					reload |= preventDepthFighting != b;
-					preventDepthFighting = b;
-				})
-				.build());
+			.startBooleanToggle(new TranslatableText("config.canvas.value.adjust_vanilla_geometry"), preventDepthFighting)
+			.setDefaultValue(DEFAULTS.preventDepthFighting)
+			.setTooltip(parse("config.canvas.help.adjust_vanilla_geometry"))
+			.setSaveConsumer(b -> {
+				reload |= preventDepthFighting != b;
+				preventDepthFighting = b;
+			})
+			.build());
 
 		tweaks.addEntry(ENTRY_BUILDER
-				.startBooleanToggle(new TranslatableText("config.canvas.value.clamp_exterior_vertices"), clampExteriorVertices)
-				.setDefaultValue(DEFAULTS.clampExteriorVertices)
-				.setTooltip(parse("config.canvas.help.clamp_exterior_vertices"))
-				.setSaveConsumer(b -> {
-					reload |= clampExteriorVertices != b;
-					clampExteriorVertices = b;
-				})
-				.build());
+			.startBooleanToggle(new TranslatableText("config.canvas.value.clamp_exterior_vertices"), clampExteriorVertices)
+			.setDefaultValue(DEFAULTS.clampExteriorVertices)
+			.setTooltip(parse("config.canvas.help.clamp_exterior_vertices"))
+			.setSaveConsumer(b -> {
+				reload |= clampExteriorVertices != b;
+				clampExteriorVertices = b;
+			})
+			.build());
 
 		tweaks.addEntry(ENTRY_BUILDER
-				.startBooleanToggle(new TranslatableText("config.canvas.value.fix_luminous_block_shade"), fixLuminousBlockShading)
-				.setDefaultValue(DEFAULTS.fixLuminousBlockShading)
-				.setTooltip(parse("config.canvas.help.fix_luminous_block_shade"))
-				.setSaveConsumer(b -> {
-					reload |= fixLuminousBlockShading != b;
-					fixLuminousBlockShading = b;
-				})
-				.build());
+			.startBooleanToggle(new TranslatableText("config.canvas.value.fix_luminous_block_shade"), fixLuminousBlockShading)
+			.setDefaultValue(DEFAULTS.fixLuminousBlockShading)
+			.setTooltip(parse("config.canvas.help.fix_luminous_block_shade"))
+			.setSaveConsumer(b -> {
+				reload |= fixLuminousBlockShading != b;
+				fixLuminousBlockShading = b;
+			})
+			.build());
 
 		tweaks.addEntry(ENTRY_BUILDER
-				.startBooleanToggle(new TranslatableText("config.canvas.value.terrain_setup_off_thread"), terrainSetupOffThread)
-				.setDefaultValue(DEFAULTS.terrainSetupOffThread)
-				.setTooltip(parse("config.canvas.help.terrain_setup_off_thread"))
-				.setSaveConsumer(b -> {
-					reload |= terrainSetupOffThread != b;
-					terrainSetupOffThread = b;
-				})
-				.build());
+			.startBooleanToggle(new TranslatableText("config.canvas.value.terrain_setup_off_thread"), terrainSetupOffThread)
+			.setDefaultValue(DEFAULTS.terrainSetupOffThread)
+			.setTooltip(parse("config.canvas.help.terrain_setup_off_thread"))
+			.setSaveConsumer(b -> {
+				reload |= terrainSetupOffThread != b;
+				terrainSetupOffThread = b;
+			})
+			.build());
 
 		tweaks.addEntry(ENTRY_BUILDER
-				.startBooleanToggle(new TranslatableText("config.canvas.value.safe_native_allocation"), safeNativeMemoryAllocation)
-				.setDefaultValue(DEFAULTS.safeNativeMemoryAllocation)
-				.setTooltip(parse("config.canvas.help.safe_native_allocation"))
-				.setSaveConsumer(b -> safeNativeMemoryAllocation = b)
-				.build());
+			.startBooleanToggle(new TranslatableText("config.canvas.value.safe_native_allocation"), safeNativeMemoryAllocation)
+			.setDefaultValue(DEFAULTS.safeNativeMemoryAllocation)
+			.setTooltip(parse("config.canvas.help.safe_native_allocation"))
+			.setSaveConsumer(b -> safeNativeMemoryAllocation = b)
+			.build());
 
 		tweaks.addEntry(ENTRY_BUILDER
-				.startBooleanToggle(new TranslatableText("config.canvas.value.enable_vao"), enableVao)
-				.setDefaultValue(DEFAULTS.enableVao)
-				.setTooltip(parse("config.canvas.help.enable_vao"))
-				.setSaveConsumer(b -> {
-					reload |= enableVao != b;
-					enableVao = b;
-				})
-				.build());
+			.startBooleanToggle(new TranslatableText("config.canvas.value.enable_vao"), enableVao)
+			.setDefaultValue(DEFAULTS.enableVao)
+			.setTooltip(parse("config.canvas.help.enable_vao"))
+			.setSaveConsumer(b -> {
+				reload |= enableVao != b;
+				enableVao = b;
+			})
+			.build());
 
 		tweaks.addEntry(ENTRY_BUILDER
-				.startBooleanToggle(new TranslatableText("config.canvas.value.cull_entity_render"), cullEntityRender)
-				.setDefaultValue(DEFAULTS.cullEntityRender)
-				.setTooltip(parse("config.canvas.help.enable_vao"))
-				.setSaveConsumer(b -> {
-					cullEntityRender = b;
-				})
-				.build());
+			.startBooleanToggle(new TranslatableText("config.canvas.value.cull_entity_render"), cullEntityRender)
+			.setDefaultValue(DEFAULTS.cullEntityRender)
+			.setTooltip(parse("config.canvas.help.enable_vao"))
+			.setSaveConsumer(b -> {
+				cullEntityRender = b;
+			})
+			.build());
 
 		tweaks.addEntry(ENTRY_BUILDER
-				.startBooleanToggle(new TranslatableText("config.canvas.value.greedy_render_thread"), greedyRenderThread)
-				.setDefaultValue(DEFAULTS.greedyRenderThread)
-				.setTooltip(parse("config.canvas.help.greedy_render_thread"))
-				.setSaveConsumer(b -> {
-					greedyRenderThread = b;
-				})
-				.build());
+			.startBooleanToggle(new TranslatableText("config.canvas.value.greedy_render_thread"), greedyRenderThread)
+			.setDefaultValue(DEFAULTS.greedyRenderThread)
+			.setTooltip(parse("config.canvas.help.greedy_render_thread"))
+			.setSaveConsumer(b -> {
+				greedyRenderThread = b;
+			})
+			.build());
 
 		tweaks.addEntry(ENTRY_BUILDER
-				.startBooleanToggle(new TranslatableText("config.canvas.value.force_jmx_loading"), forceJmxModelLoading)
-				.setDefaultValue(DEFAULTS.forceJmxModelLoading)
-				.setTooltip(parse("config.canvas.help.force_jmx_loading"))
-				.setSaveConsumer(b -> {
-					forceJmxModelLoading = b;
-				})
-				.build());
+			.startBooleanToggle(new TranslatableText("config.canvas.value.force_jmx_loading"), forceJmxModelLoading)
+			.setDefaultValue(DEFAULTS.forceJmxModelLoading)
+			.setTooltip(parse("config.canvas.help.force_jmx_loading"))
+			.setSaveConsumer(b -> {
+				forceJmxModelLoading = b;
+			})
+			.build());
 
 
 		// DEBUG
 		final ConfigCategory debug = builder.getOrCreateCategory(new TranslatableText("config.canvas.category.debug"));
 
 		debug.addEntry(ENTRY_BUILDER
-				.startBooleanToggle(new TranslatableText("config.canvas.value.shader_debug"), shaderDebug)
-				.setDefaultValue(DEFAULTS.shaderDebug)
-				.setTooltip(parse("config.canvas.help.shader_debug"))
-				.setSaveConsumer(b -> shaderDebug = b)
-				.build());
+			.startBooleanToggle(new TranslatableText("config.canvas.value.shader_debug"), shaderDebug)
+			.setDefaultValue(DEFAULTS.shaderDebug)
+			.setTooltip(parse("config.canvas.help.shader_debug"))
+			.setSaveConsumer(b -> shaderDebug = b)
+			.build());
 
 		debug.addEntry(ENTRY_BUILDER
-				.startBooleanToggle(new TranslatableText("config.canvas.value.shader_debug_lightmap"), lightmapDebug)
-				.setDefaultValue(DEFAULTS.lightmapDebug)
-				.setTooltip(parse("config.canvas.help.shader_debug_lightmap"))
-				.setSaveConsumer(b -> lightmapDebug = b)
-				.build());
+			.startBooleanToggle(new TranslatableText("config.canvas.value.shader_debug_lightmap"), lightmapDebug)
+			.setDefaultValue(DEFAULTS.lightmapDebug)
+			.setTooltip(parse("config.canvas.help.shader_debug_lightmap"))
+			.setSaveConsumer(b -> lightmapDebug = b)
+			.build());
 
 		debug.addEntry(ENTRY_BUILDER
-				.startBooleanToggle(new TranslatableText("config.canvas.value.concise_errors"), conciseErrors)
-				.setDefaultValue(DEFAULTS.conciseErrors)
-				.setTooltip(parse("config.canvas.help.concise_errors"))
-				.setSaveConsumer(b -> conciseErrors = b)
-				.build());
+			.startBooleanToggle(new TranslatableText("config.canvas.value.concise_errors"), conciseErrors)
+			.setDefaultValue(DEFAULTS.conciseErrors)
+			.setTooltip(parse("config.canvas.help.concise_errors"))
+			.setSaveConsumer(b -> conciseErrors = b)
+			.build());
 
 		debug.addEntry(ENTRY_BUILDER
-				.startBooleanToggle(new TranslatableText("config.canvas.value.log_machine_info"), logMachineInfo)
-				.setDefaultValue(DEFAULTS.logMachineInfo)
-				.setTooltip(parse("config.canvas.help.log_machine_info"))
-				.setSaveConsumer(b -> logMachineInfo = b)
-				.build());
+			.startBooleanToggle(new TranslatableText("config.canvas.value.log_machine_info"), logMachineInfo)
+			.setDefaultValue(DEFAULTS.logMachineInfo)
+			.setTooltip(parse("config.canvas.help.log_machine_info"))
+			.setSaveConsumer(b -> logMachineInfo = b)
+			.build());
 
 		debug.addEntry(ENTRY_BUILDER
-				.startBooleanToggle(new TranslatableText("config.canvas.value.log_gl_state_changes"), logGlStateChanges)
-				.setDefaultValue(DEFAULTS.logGlStateChanges)
-				.setTooltip(parse("config.canvas.help.log_gl_state_changes"))
-				.setSaveConsumer(b -> logGlStateChanges = b)
-				.build());
+			.startBooleanToggle(new TranslatableText("config.canvas.value.log_gl_state_changes"), logGlStateChanges)
+			.setDefaultValue(DEFAULTS.logGlStateChanges)
+			.setTooltip(parse("config.canvas.help.log_gl_state_changes"))
+			.setSaveConsumer(b -> logGlStateChanges = b)
+			.build());
 
 		debug.addEntry(ENTRY_BUILDER
-				.startBooleanToggle(new TranslatableText("config.canvas.value.debug_native_allocation"), debugNativeMemoryAllocation)
-				.setDefaultValue(DEFAULTS.debugNativeMemoryAllocation)
-				.setTooltip(parse("config.canvas.help.debug_native_allocation"))
-				.setSaveConsumer(b -> debugNativeMemoryAllocation = b)
-				.build());
+			.startBooleanToggle(new TranslatableText("config.canvas.value.debug_native_allocation"), debugNativeMemoryAllocation)
+			.setDefaultValue(DEFAULTS.debugNativeMemoryAllocation)
+			.setTooltip(parse("config.canvas.help.debug_native_allocation"))
+			.setSaveConsumer(b -> debugNativeMemoryAllocation = b)
+			.build());
 
 		debug.addEntry(ENTRY_BUILDER
-				.startBooleanToggle(new TranslatableText("config.canvas.value.debug_occlusion_raster"), debugOcclusionRaster)
-				.setDefaultValue(DEFAULTS.debugOcclusionRaster)
-				.setTooltip(parse("config.canvas.help.debug_occlusion_raster"))
-				.setSaveConsumer(b -> debugOcclusionRaster = b)
-				.build());
+			.startBooleanToggle(new TranslatableText("config.canvas.value.debug_occlusion_raster"), debugOcclusionRaster)
+			.setDefaultValue(DEFAULTS.debugOcclusionRaster)
+			.setTooltip(parse("config.canvas.help.debug_occlusion_raster"))
+			.setSaveConsumer(b -> debugOcclusionRaster = b)
+			.build());
 
 		debug.addEntry(ENTRY_BUILDER
-				.startBooleanToggle(new TranslatableText("config.canvas.value.debug_occlusion_boxes"), debugOcclusionBoxes)
-				.setDefaultValue(DEFAULTS.debugOcclusionBoxes)
-				.setTooltip(parse("config.canvas.help.debug_occlusion_boxes"))
-				.setSaveConsumer(b -> debugOcclusionBoxes = b)
-				.build());
+			.startBooleanToggle(new TranslatableText("config.canvas.value.debug_occlusion_boxes"), debugOcclusionBoxes)
+			.setDefaultValue(DEFAULTS.debugOcclusionBoxes)
+			.setTooltip(parse("config.canvas.help.debug_occlusion_boxes"))
+			.setSaveConsumer(b -> debugOcclusionBoxes = b)
+			.build());
 
 		debug.addEntry(ENTRY_BUILDER
-				.startBooleanToggle(new TranslatableText("config.canvas.value.trace_occlusion_edge_cases"), traceOcclusionEdgeCases)
-				.setDefaultValue(DEFAULTS.traceOcclusionEdgeCases)
-				.setTooltip(parse("config.canvas.help.trace_occlusion_edge_cases"))
-				.setSaveConsumer(b -> traceOcclusionEdgeCases = b)
-				.build());
+			.startBooleanToggle(new TranslatableText("config.canvas.value.trace_occlusion_edge_cases"), traceOcclusionEdgeCases)
+			.setDefaultValue(DEFAULTS.traceOcclusionEdgeCases)
+			.setTooltip(parse("config.canvas.help.trace_occlusion_edge_cases"))
+			.setSaveConsumer(b -> traceOcclusionEdgeCases = b)
+			.build());
 
 		debug.addEntry(ENTRY_BUILDER
-				.startBooleanToggle(new TranslatableText("config.canvas.value.buffer_debug"), enableBufferDebug)
-				.setDefaultValue(DEFAULTS.enableBufferDebug)
-				.setTooltip(parse("config.canvas.help.buffer_debug"))
-				.setSaveConsumer(b -> enableBufferDebug = b)
-				.build());
+			.startBooleanToggle(new TranslatableText("config.canvas.value.buffer_debug"), enableBufferDebug)
+			.setDefaultValue(DEFAULTS.enableBufferDebug)
+			.setTooltip(parse("config.canvas.help.buffer_debug"))
+			.setSaveConsumer(b -> enableBufferDebug = b)
+			.build());
 
 		debug.addEntry(ENTRY_BUILDER
-				.startBooleanToggle(new TranslatableText("config.canvas.value.lifecycle_debug"), enableLifeCycleDebug)
-				.setDefaultValue(DEFAULTS.enableLifeCycleDebug)
-				.setTooltip(parse("config.canvas.help.lifecycle_debug"))
-				.setSaveConsumer(b -> enableLifeCycleDebug = b)
-				.build());
+			.startBooleanToggle(new TranslatableText("config.canvas.value.lifecycle_debug"), enableLifeCycleDebug)
+			.setDefaultValue(DEFAULTS.enableLifeCycleDebug)
+			.setTooltip(parse("config.canvas.help.lifecycle_debug"))
+			.setSaveConsumer(b -> enableLifeCycleDebug = b)
+			.build());
+
+		debug.addEntry(ENTRY_BUILDER
+			.startBooleanToggle(new TranslatableText("config.canvas.value.enable_experimental"), enableExperimentalPipeline)
+			.setDefaultValue(DEFAULTS.enableExperimentalPipeline)
+			.setTooltip(parse("config.canvas.help.enable_experimental"))
+			.setSaveConsumer(b -> enableExperimentalPipeline = b)
+			.build());
 
 		builder.setAlwaysShowTabs(false).setDoesConfirmSave(false);
 
@@ -691,6 +704,8 @@ public class Configurator {
 		boolean debugOcclusionBoxes = false;
 		@Comment("Log clipping or other non-critical failures detected by terrain occluder. May spam the log.")
 		boolean traceOcclusionEdgeCases = false;
+		@Comment("For use in development - enables work-in-progress rendering features.")
+		boolean enableExperimentalPipeline = false;
 	}
 
 

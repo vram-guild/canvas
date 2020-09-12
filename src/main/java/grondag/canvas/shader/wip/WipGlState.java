@@ -16,6 +16,7 @@
 
 package grondag.canvas.shader.wip;
 
+import grondag.fermion.bits.BitPacker32;
 
 public class WipGlState {
 
@@ -40,4 +41,8 @@ public class WipGlState {
 			return this;
 		}
 	}
+
+	private static final BitPacker32<Void> PACKER = new BitPacker32<> (null, null);
+
+	private static final BitPacker32.IntElement TEXTURE = PACKER.createIntElement(WipTextureState.MAX_TEXTURE_STATES);
 }
