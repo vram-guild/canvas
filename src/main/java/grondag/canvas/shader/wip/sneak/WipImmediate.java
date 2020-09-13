@@ -49,7 +49,6 @@ public class WipImmediate extends Immediate {
 
 		if (collector == null) {
 			super.draw(layer);
-
 		} else {
 			collector.drawAndClear();
 		}

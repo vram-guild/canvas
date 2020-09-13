@@ -16,11 +16,6 @@
 
 package grondag.canvas.buffer;
 
-import grondag.canvas.Configurator;
-import net.minecraft.util.math.MathHelper;
-import org.lwjgl.BufferUtils;
-import org.lwjgl.system.MemoryUtil;
-
 import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.IdentityHashMap;
@@ -28,14 +23,19 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.IntFunction;
 
+import grondag.canvas.Configurator;
+import org.lwjgl.BufferUtils;
+import org.lwjgl.system.MemoryUtil;
+
+import net.minecraft.util.math.MathHelper;
+
 /**
  * Tracks all allocations, ensures deallocation on render reload.
  * Implements configuration of allocation method.
  */
 public class TransferBufferAllocator {
 	private static final IntFunction<ByteBuffer> SUPPLIER = Configurator.safeNativeMemoryAllocation ? BufferUtils::createByteBuffer : MemoryUtil::memAlloc;
-	private static final Consumer<ByteBuffer> CONSUMER = Configurator.safeNativeMemoryAllocation ? b -> {
-	} : MemoryUtil::memFree;
+	private static final Consumer<ByteBuffer> CONSUMER = Configurator.safeNativeMemoryAllocation ? b -> {} : MemoryUtil::memFree;
 	private static final Set<ByteBuffer> OPEN = Collections.newSetFromMap(new IdentityHashMap<ByteBuffer, Boolean>());
 	private static int allocatedBytes = 0;
 	private static int peakBytes = 0;
@@ -85,6 +85,6 @@ public class TransferBufferAllocator {
 			}
 		}
 		return String.format("Peak transfer buffers: %03d @ %03dMB - %s mode", peakSize, peakBytes / 0x100000,
-				Configurator.safeNativeMemoryAllocation ? "safe" : "fast");
+			Configurator.safeNativeMemoryAllocation ? "safe" : "fast");
 	}
 }

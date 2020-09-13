@@ -16,12 +16,13 @@
 
 package grondag.canvas.material;
 
+import com.mojang.blaze3d.platform.GlStateManager;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
 import grondag.canvas.varia.CanvasGlHelper;
+import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL20;
-
-import java.nio.ByteBuffer;
+import org.lwjgl.opengl.GL21;
 
 public class MaterialVertexFormat {
 	public final int attributeCount;
@@ -65,7 +66,7 @@ public class MaterialVertexFormat {
 	 * Enables generic vertex attributes and binds their location.
 	 * For use with non-VBO buffers.
 	 */
-	public void enableAndBindAttributes(ByteBuffer buffer, long bufferOffset) {
+	public void enableDirect(long memPointer) {
 		final int attributeCount = this.attributeCount;
 		CanvasGlHelper.enableAttributes(attributeCount);
 		int offset = 0;
@@ -73,23 +74,28 @@ public class MaterialVertexFormat {
 		final int limit = elements.length;
 
 		// NB: <= because element 0 is vertex
-		for (int i = 0; i <= attributeCount; i++) {
-			if (i < limit) {
-				final MaterialVertextFormatElement e = elements[i];
+		for (int i = 0; i <= limit; i++) {
+			final MaterialVertextFormatElement e = elements[i];
 
-				if (e.attributeName != null) {
-					buffer.position((int) bufferOffset + offset);
-
-					if (Configurator.logGlStateChanges) {
-						CanvasMod.LOG.info(String.format("GlState: glVertexAttribPointer(%d, %d, %d, %b, %d, %s) [non-VBO]", index, e.elementCount, e.glConstant, e.isNormalized, vertexStrideBytes, buffer.toString()));
-					}
-
-					GL20.glVertexAttribPointer(index++, e.elementCount, e.glConstant, e.isNormalized, vertexStrideBytes, buffer);
+			if (e.attributeName == null) {
+				assert i == 0 : "position element must be first";
+				GlStateManager.vertexPointer(3, GL21.GL_FLOAT, vertexStrideBytes, memPointer);
+				GlStateManager.enableClientState(GL11.GL_VERTEX_ARRAY);
+			} else {
+				if (Configurator.logGlStateChanges) {
+					CanvasMod.LOG.info(String.format("GlState: glVertexAttribPointer(%d, %d, %d, %b, %d) [direct non-VBO]", index, e.elementCount, e.glConstant, e.isNormalized, vertexStrideBytes));
 				}
 
-				offset += e.byteSize;
+				GL20.glVertexAttribPointer(index++, e.elementCount, e.glConstant, e.isNormalized, vertexStrideBytes, memPointer + offset);
 			}
+
+			offset += e.byteSize;
 		}
+	}
+
+	public static void disableDirect() {
+		CanvasGlHelper.enableAttributes(0);
+		GlStateManager.enableClientState(GL11.GL_VERTEX_ARRAY);
 	}
 
 	/**

@@ -51,7 +51,7 @@ public class MaterialVertextFormatElement {
 		VertexFormatElement.Format.BYTE, 4, "in_normal_ao", true);
 
 	public static final MaterialVertextFormatElement NORMAL_FLAGS_4UB = new MaterialVertextFormatElement(
-		VertexFormatElement.Format.BYTE, 4, "in_normal_ao", false);
+		VertexFormatElement.Format.BYTE, 4, "in_normal_flags", false);
 
 	public static final MaterialVertextFormatElement MATERIAL_2US = new MaterialVertextFormatElement(
 		VertexFormatElement.Format.USHORT, 2, "in_material", false);

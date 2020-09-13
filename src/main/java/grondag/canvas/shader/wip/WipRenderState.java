@@ -18,10 +18,17 @@ package grondag.canvas.shader.wip;
 
 import javax.annotation.Nullable;
 
+import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
+
+import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
+import grondag.canvas.buffer.TransferBufferAllocator;
+import grondag.canvas.material.MaterialVertexFormat;
 import grondag.canvas.mixin.AccessMultiPhaseParameters;
 import grondag.canvas.mixin.AccessTexture;
 import grondag.canvas.mixinterface.MultiPhaseExt;
+import grondag.canvas.shader.GlProgram;
 import grondag.canvas.shader.wip.encoding.WipVertexCollectorImpl;
 import grondag.canvas.shader.wip.encoding.WipVertexFormat;
 import grondag.canvas.shader.wip.props.WipDecal;
@@ -36,6 +43,7 @@ import grondag.fermion.bits.BitPacker64;
 import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
+import org.lwjgl.system.MemoryUtil;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.RenderLayer;
@@ -203,9 +211,27 @@ public class WipRenderState {
 			RenderSystem.lineWidth(1.0F);
 		}
 
-		// TODO Draw the stuff
 		// TODO split this to start and end methods so draw can be done independently or with different uniforms/buffers - most instances don't need an end
 
+		// PERF:  very very inefficient
+		final ByteBuffer buffer = TransferBufferAllocator.claim(collector.byteSize());
+
+		// WIP handle sorting
+		//		if (sorted()) {
+		//			collector.sortQuads(x, y, z);
+		//		}
+
+		final IntBuffer intBuffer = buffer.asIntBuffer();
+		intBuffer.position(0);
+		collector.toBuffer(intBuffer);
+
+		format.enableDirect(MemoryUtil.memAddress(buffer));
+		WipShader.DEFAULT_SOLID.activate();
+		GlStateManager.drawArrays(primitive(), 0, collector.vertexCount());
+		MaterialVertexFormat.disableDirect();
+		GlProgram.deactivate();
+
+		TransferBufferAllocator.release(buffer);
 
 		decal.endAction.run();
 		target.endAction.run();
@@ -397,7 +423,7 @@ public class WipRenderState {
 		}
 
 		// PERF: use copy-on-write instead of synch
-		public synchronized WipRenderState build() {
+		public synchronized WipRenderState find() {
 			WipRenderState result = MAP.get(bits);
 
 			if (result == null) {
@@ -412,5 +438,7 @@ public class WipRenderState {
 
 	static {
 		assert PACKER.bitLength() <= 64;
+
+		CONSTANT_LAYER_MAP.put(RenderLayer.getSolid(), finder().copyFromLayer(RenderLayer.getSolid()).find());
 	}
 }

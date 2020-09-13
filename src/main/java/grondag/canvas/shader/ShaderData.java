@@ -16,13 +16,14 @@
 
 package grondag.canvas.shader;
 
+import java.util.function.Consumer;
+
 import grondag.canvas.texture.TextureData;
 import grondag.canvas.varia.WorldDataManager;
 import grondag.frex.api.material.UniformRefreshFrequency;
-import net.minecraft.util.Identifier;
 import org.lwjgl.opengl.GL21;
 
-import java.util.function.Consumer;
+import net.minecraft.util.Identifier;
 
 public class ShaderData {
 	public static final Identifier DEFAULT_VERTEX_SOURCE = new Identifier("canvas:shaders/material/default.vert");
@@ -38,6 +39,9 @@ public class ShaderData {
 
 	public static final Identifier DEFAULT_ENTITY_VERTEX = new Identifier("canvas:shaders/internal/entity/default.vert");
 	public static final Identifier DEFAULT_ENTITY_FRAGMENT = new Identifier("canvas:shaders/internal/entity/default.frag");
+
+	public static final Identifier DEFAULT_WIP_VERTEX = new Identifier("canvas:shaders/internal/wip/wip.vert");
+	public static final Identifier DEFAULT_WIP_FRAGMENT = new Identifier("canvas:shaders/internal/wip/wip.frag");
 
 	private static final float[] BITWISE_DIVISORS = {0.5f, 0.25f, 0.125f, 0.0625f, 0.03125f, 0.015625f, 0.0078125f, 0.00390625f};
 
