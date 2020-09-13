@@ -18,7 +18,7 @@ package grondag.canvas.mixin;
 
 import java.util.Map;
 
-import grondag.canvas.shader.wip.WipTextureState;
+import grondag.canvas.shader.wip.props.WipTextureState;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;

@@ -4,6 +4,7 @@
   "compatibilityLevel": "JAVA_8",
   "mixins": [
 	"AccessMultiPhaseParameters",
+	"AccessTexture",
 	"MixinBiomeAccess",
 	"MixinBlockModelRenderer",
 	"MixinBufferRenderer",

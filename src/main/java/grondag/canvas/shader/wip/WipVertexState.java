@@ -17,9 +17,15 @@
 package grondag.canvas.shader.wip;
 
 import grondag.canvas.apiimpl.MaterialConditionImpl;
+import grondag.canvas.mixin.AccessMultiPhaseParameters;
+import grondag.canvas.mixin.AccessTexture;
+import grondag.canvas.mixinterface.MultiPhaseExt;
 import grondag.fermion.bits.BitPacker32;
 import grondag.fermion.bits.BitPacker32.BooleanElement;
 import grondag.fermion.bits.BitPacker32.IntElement;
+
+import net.minecraft.client.render.RenderLayer;
+import net.minecraft.client.render.RenderPhase;
 
 /**
  * Encapsulates material state conveyed via vertex attributes.
@@ -101,6 +107,20 @@ public class WipVertexState {
 
 		public Finder reset() {
 			vertexState = 0;
+			return this;
+		}
+
+		/**
+		 * Note sets Ao disabled by default - non-terrain layers can't/won't use it.
+		 */
+		public Finder copyFromLayer(RenderLayer layer) {
+			final AccessMultiPhaseParameters params = ((MultiPhaseExt) layer).canvas_phases();
+			final AccessTexture tex = (AccessTexture) params.getTexture();
+			unmipped(!tex.getMipmap());
+			disableDiffuse(params.getDiffuseLighting() == RenderPhase.DISABLE_DIFFUSE_LIGHTING);
+			cutout(params.getAlpha() != RenderPhase.ZERO_ALPHA);
+			cutout10(params.getAlpha() == RenderPhase.ONE_TENTH_ALPHA);
+			disableAo(true);
 			return this;
 		}
 

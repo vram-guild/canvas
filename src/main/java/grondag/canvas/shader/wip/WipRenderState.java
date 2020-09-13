@@ -18,14 +18,30 @@ package grondag.canvas.shader.wip;
 
 import javax.annotation.Nullable;
 
-import grondag.canvas.shader.wip.encoding.WipModelOrigin;
+import com.mojang.blaze3d.systems.RenderSystem;
+import grondag.canvas.mixin.AccessMultiPhaseParameters;
+import grondag.canvas.mixin.AccessTexture;
+import grondag.canvas.mixinterface.MultiPhaseExt;
 import grondag.canvas.shader.wip.encoding.WipVertexCollectorImpl;
 import grondag.canvas.shader.wip.encoding.WipVertexFormat;
+import grondag.canvas.shader.wip.props.WipDecal;
+import grondag.canvas.shader.wip.props.WipDepthTest;
+import grondag.canvas.shader.wip.props.WipFog;
+import grondag.canvas.shader.wip.props.WipModelOrigin;
+import grondag.canvas.shader.wip.props.WipTarget;
+import grondag.canvas.shader.wip.props.WipTextureState;
+import grondag.canvas.shader.wip.props.WipTransparency;
+import grondag.canvas.shader.wip.props.WipWriteMask;
 import grondag.fermion.bits.BitPacker64;
 import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.RenderLayer;
+import net.minecraft.client.render.RenderPhase;
+import net.minecraft.client.render.VertexFormat;
+import net.minecraft.client.render.VertexFormatElement;
 import net.minecraft.util.Identifier;
 
 /**
@@ -111,11 +127,30 @@ public class WipRenderState {
 	public final WipModelOrigin modelOrigin;
 	public final int vertexStrideInts;
 	public final WipTextureState texture;
+	public final boolean bilinear;
+	public final WipTransparency translucency;
+	public final WipDepthTest depthTest;
+	public final boolean cull;
+	public final WipWriteMask writeMask;
+	public final boolean enableLightmap;
+	public final WipDecal decal;
+	public final WipTarget target;
+	public final boolean lines;
+	public final WipFog fog;
 
 	private WipRenderState(long bits) {
 		this.bits = bits;
 		modelOrigin = ORIGIN.getValue(bits);
 		texture = WipTextureState.fromIndex(TEXTURE.getValue(bits));
+		bilinear = BILINEAR.getValue(bits);
+		depthTest = DEPTH_TEST.getValue(bits);
+		cull = CULL.getValue(bits);
+		writeMask = WRITE_MASK.getValue(bits);
+		enableLightmap = ENABLE_LIGHTMAP.getValue(bits);
+		decal = DECAL.getValue(bits);
+		target = TARGET.getValue(bits);
+		lines = LINES.getValue(bits);
+		fog = FOG.getValue(bits);
 
 		format = WipVertexFormat.forFlags(
 			HAS_COLOR.getValue(bits),
@@ -126,12 +161,54 @@ public class WipRenderState {
 
 		vertexStrideInts = format.vertexStrideInts;
 
+		translucency = TRANSPARENCY.getValue(bits);
+
 		index = nextIndex++;
 	}
 
+	@SuppressWarnings("resource")
 	public void draw(WipVertexCollectorImpl collector) {
-		// TODO Auto-generated method stub
+		if (texture == WipTextureState.NO_TEXTURE) {
+			RenderSystem.disableTexture();
+		} else {
+			RenderSystem.enableTexture();
+			texture.texture.bindTexture();
+			texture.texture.setFilter(bilinear, true);
+		}
 
+		// WIP (PERF): check for need to change GL state based on flag comparison
+		// WIP (PERF): sort draws somehow to avoid unneeded state changes
+		translucency.action.run();
+		depthTest.action.run();
+		writeMask.action.run();
+		fog.action.run();
+		decal.startAction.run();
+		target.startAction.run();
+
+		if (cull) {
+			RenderSystem.enableCull();
+		} else {
+			RenderSystem.disableCull();
+		}
+
+		if (enableLightmap) {
+			MinecraftClient.getInstance().gameRenderer.getLightmapTextureManager().enable();
+		} else {
+			MinecraftClient.getInstance().gameRenderer.getLightmapTextureManager().disable();
+		}
+
+		if (lines) {
+			RenderSystem.lineWidth(Math.max(2.5F, MinecraftClient.getInstance().getWindow().getFramebufferWidth() / 1920.0F * 2.5F));
+		} else {
+			RenderSystem.lineWidth(1.0F);
+		}
+
+		// TODO Draw the stuff
+		// TODO split this to start and end methods so draw can be done independently or with different uniforms/buffers - most instances don't need an end
+
+
+		decal.endAction.run();
+		target.endAction.run();
 	}
 
 	public static final int MAX_COUNT = 4096;
@@ -143,6 +220,17 @@ public class WipRenderState {
 
 	// GL State comes first for sorting
 	private static final BitPacker64.IntElement TEXTURE = PACKER.createIntElement(WipTextureState.MAX_TEXTURE_STATES);
+	private static final BitPacker64.BooleanElement BILINEAR = PACKER.createBooleanElement();
+
+	private static final BitPacker64<Void>.EnumElement<WipTransparency> TRANSPARENCY = PACKER.createEnumElement(WipTransparency.class);
+	private static final BitPacker64<Void>.EnumElement<WipDepthTest> DEPTH_TEST = PACKER.createEnumElement(WipDepthTest.class);
+	private static final BitPacker64.BooleanElement CULL = PACKER.createBooleanElement();
+	private static final BitPacker64<Void>.EnumElement<WipWriteMask> WRITE_MASK = PACKER.createEnumElement(WipWriteMask.class);
+	private static final BitPacker64.BooleanElement ENABLE_LIGHTMAP = PACKER.createBooleanElement();
+	private static final BitPacker64<Void>.EnumElement<WipDecal> DECAL = PACKER.createEnumElement(WipDecal.class);
+	private static final BitPacker64<Void>.EnumElement<WipTarget> TARGET = PACKER.createEnumElement(WipTarget.class);
+	private static final BitPacker64.BooleanElement LINES = PACKER.createBooleanElement();
+	private static final BitPacker64<Void>.EnumElement<WipFog> FOG = PACKER.createEnumElement(WipFog.class);
 
 	// These don't affect GL state but do affect encoding - must be buffered separately
 	private static final BitPacker64.BooleanElement SORTED = PACKER.createBooleanElement();
@@ -151,79 +239,165 @@ public class WipRenderState {
 	private static final BitPacker64.BooleanElement HAS_LIGHTMAP = PACKER.createBooleanElement();
 	private static final BitPacker64.BooleanElement HAS_NORMAL = PACKER.createBooleanElement();
 	private static final BitPacker64.BooleanElement HAS_CONDITION = PACKER.createBooleanElement();
-
 	private static final BitPacker64<Void>.EnumElement<WipModelOrigin> ORIGIN = PACKER.createEnumElement(WipModelOrigin.class);
 
-	static {
-		assert PACKER.bitLength() <= 64;
-	}
+	// for layers that aren't instantiated every use
+	private static final Reference2ReferenceOpenHashMap<RenderLayer, WipRenderState> CONSTANT_LAYER_MAP = new Reference2ReferenceOpenHashMap<>();
 
 	public static WipRenderState fromLayer(RenderLayer renderLayer) {
-		// TODO Auto-generated method stub
-		return null;
+		final WipRenderState result = CONSTANT_LAYER_MAP.get(renderLayer);
+		return result;
+		//return result == null ? builder().copyFromLayer(renderLayer).build() || result;
 	}
 
 	public static WipRenderState fromIndex(int index) {
 		return STATES[index];
 	}
 
-	public static class Builder {
+	private static ThreadLocal<Finder> BUILDER = ThreadLocal.withInitial(Finder::new);
+
+	public static Finder finder() {
+		final Finder result = BUILDER.get();
+		result.bits = 0;
+		return result;
+	}
+
+	public static class Finder {
 		long bits;
-		// GL State
-		// WIP: transparency
-		// WIP: depth test
-		// WIP: cull
-		// WIP: enable lightmap
-		// WIP: framebuffer target(s) - add emissive and other targets to vanilla
-		// WIP: write mask state
-		// WIP: line width
-		// WIP: texture binding
-		// WIP: texture setting - may need to be uniform or conditional compile if fixed pipeline filtering doesn't work
-		// sets up outline, glint or default texturing
-		// these probably won't work as-is with shaders because they use texture env settings
-		// so may be best to leave them for now
 
-		// Uniform state
-		// WIP: fog - colored, black or off - could go in vertex state but doesn't change much
+		public Finder reset() {
+			bits = 0;
+			return this;
+		}
 
-		public Builder sorted(boolean sorted) {
+		public Finder copyFromLayer(RenderLayer layer) {
+			final VertexFormat format = layer.getVertexFormat();
+			for (final VertexFormatElement e : format.getElements()) {
+				switch(e.getType()) {
+					case COLOR:
+						hasColor(true);
+						break;
+					case NORMAL:
+						hasNormal(true);
+						break;
+					case UV:
+						if (e.getFormat() == VertexFormatElement.Format.SHORT) {
+							hasLightmap(true);
+						}
+
+						break;
+					default:
+						break;
+				}
+			}
+
+			final AccessMultiPhaseParameters params = ((MultiPhaseExt) layer).canvas_phases();
+
+			final AccessTexture tex = (AccessTexture) params.getTexture();
+
+			texture(tex.getId().orElse(null));
+			transparency(WipTransparency.fromPhase(params.getTransparency()));
+			depthTest(WipDepthTest.fromPhase(params.getDepthTest()));
+			cull(params.getCull() == RenderPhase.ENABLE_CULLING);
+			writeMask(WipWriteMask.fromPhase(params.getWriteMaskState()));
+			enableLightmap(params.getLightmap() == RenderPhase.ENABLE_LIGHTMAP);
+			decal(WipDecal.fromPhase(params.getLayering()));
+			target(WipTarget.fromPhase(params.getTarget()));
+			lines(params.getLineWidth() != RenderPhase.FULL_LINE_WIDTH);
+			fog(WipFog.fromPhase(params.getFog()));
+
+			return this;
+		}
+
+		public Finder sorted(boolean sorted) {
 			bits = SORTED.setValue(sorted, bits);
 			return this;
 		}
 
-		public Builder hasColor(boolean hasColor) {
+		public Finder hasColor(boolean hasColor) {
 			bits = HAS_COLOR.setValue(hasColor, bits);
 			return this;
 		}
 
-		public Builder hasLightmap(boolean hasLightmap) {
+		public Finder hasLightmap(boolean hasLightmap) {
 			bits = HAS_LIGHTMAP.setValue(hasLightmap, bits);
 			return this;
 		}
 
-		public Builder hasNormal(boolean hasNormal) {
+		public Finder hasNormal(boolean hasNormal) {
 			bits = HAS_NORMAL.setValue(hasNormal, bits);
 			return this;
 		}
 
-		public Builder hasCondition(boolean hasCondition) {
+		public Finder hasCondition(boolean hasCondition) {
 			bits = HAS_CONDITION.setValue(hasCondition, bits);
 			return this;
 		}
 
-		public Builder primitive(int primitive) {
+		public Finder primitive(int primitive) {
 			assert primitive <= 7;
 			bits = PRIMITIVE.setValue(primitive, bits);
 			return this;
 		}
 
-		public Builder texture(@Nullable Identifier id) {
+		public Finder texture(@Nullable Identifier id) {
 			final int val = id == null ? WipTextureState.NO_TEXTURE.index : WipTextureState.fromId(id).index;
 			bits = TEXTURE.setValue(val, bits);
 			return this;
 		}
 
-		public WipRenderState build() {
+		public Finder bilinear(boolean bilinear) {
+			bits = BILINEAR.setValue(bilinear, bits);
+			return this;
+		}
+
+		public Finder transparency(WipTransparency transparency) {
+			bits = TRANSPARENCY.setValue(transparency, bits);
+			return this;
+		}
+
+		public Finder depthTest(WipDepthTest depthTest) {
+			bits = DEPTH_TEST.setValue(depthTest, bits);
+			return this;
+		}
+
+		public Finder cull(boolean cull) {
+			bits = CULL.setValue(cull, bits);
+			return this;
+		}
+
+		public Finder writeMask(WipWriteMask writeMask) {
+			bits = WRITE_MASK.setValue(writeMask, bits);
+			return this;
+		}
+
+		public Finder enableLightmap(boolean enableLightmap) {
+			bits = ENABLE_LIGHTMAP.setValue(enableLightmap, bits);
+			return this;
+		}
+
+		public Finder decal(WipDecal decal) {
+			bits = DECAL.setValue(decal, bits);
+			return this;
+		}
+
+		public Finder target(WipTarget target) {
+			bits = TARGET.setValue(target, bits);
+			return this;
+		}
+
+		public Finder lines(boolean lines) {
+			bits = LINES.setValue(lines, bits);
+			return this;
+		}
+
+		public Finder fog(WipFog fog) {
+			bits = FOG.setValue(fog, bits);
+			return this;
+		}
+
+		// PERF: use copy-on-write instead of synch
+		public synchronized WipRenderState build() {
 			WipRenderState result = MAP.get(bits);
 
 			if (result == null) {
@@ -234,5 +408,9 @@ public class WipRenderState {
 
 			return result;
 		}
+	}
+
+	static {
+		assert PACKER.bitLength() <= 64;
 	}
 }

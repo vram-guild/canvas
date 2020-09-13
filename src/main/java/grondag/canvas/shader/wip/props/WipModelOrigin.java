@@ -14,7 +14,7 @@
  * the License.
  */
 
-package grondag.canvas.shader.wip.encoding;
+package grondag.canvas.shader.wip.props;
 
 public enum WipModelOrigin {
 	/**
