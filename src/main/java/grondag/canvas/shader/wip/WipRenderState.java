@@ -31,6 +31,7 @@ import grondag.canvas.buffer.TransferBufferAllocator;
 import grondag.canvas.material.MaterialVertexFormat;
 import grondag.canvas.mixin.AccessMultiPhaseParameters;
 import grondag.canvas.mixin.AccessTexture;
+import grondag.canvas.mixinterface.EntityRenderDispatcherExt;
 import grondag.canvas.mixinterface.MultiPhaseExt;
 import grondag.canvas.shader.GlProgram;
 import grondag.canvas.shader.wip.encoding.WipVertexCollectorImpl;
@@ -306,6 +307,11 @@ public class WipRenderState {
 		}
 
 		public WipRenderState copyFromLayer(RenderLayer layer) {
+			// PERF: need faster exclusion method
+			if (layer == ENTITY_SHADOW) {
+				return MISSING;
+			}
+
 			final VertexFormat format = layer.getVertexFormat();
 			for (final VertexFormatElement e : format.getElements()) {
 				switch(e.getType()) {
@@ -452,6 +458,7 @@ public class WipRenderState {
 	}
 
 	public static final WipRenderState MISSING = new WipRenderState(0);
+	private static final RenderLayer ENTITY_SHADOW = ((EntityRenderDispatcherExt) MinecraftClient.getInstance().getEntityRenderDispatcher()).canvas_shadowLayer();
 
 	static {
 		assert PACKER.bitLength() <= 64;
