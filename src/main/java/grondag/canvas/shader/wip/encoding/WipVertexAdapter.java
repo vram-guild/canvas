@@ -94,11 +94,8 @@ public abstract class WipVertexAdapter implements WipVertexCollector {
 	}
 
 	@Override
-	public WipVertexCollector packedNormal(int packedNormal) {
-		// PERF: change default normal packing to unsigned when signed format no longer used
-		vertexData[normalIndex] = (vertexData[normalIndex] & 0xFF000000) | NormalHelper.repackToUnsigned(packedNormal);
+	public VertexConsumer normal(float x, float y, float z) {
+		vertexData[normalIndex] = (vertexData[normalIndex] & 0xFF000000) | NormalHelper.packUnsignedNormal(x, y, z);
 		return this;
 	}
-
-
 }

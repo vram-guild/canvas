@@ -32,8 +32,6 @@
 
 package grondag.canvas.shader.wip.encoding;
 
-import grondag.canvas.apiimpl.util.NormalHelper;
-
 import net.minecraft.client.render.VertexConsumer;
 
 public interface WipVertexCollector extends VertexConsumer {
@@ -54,8 +52,6 @@ public interface WipVertexCollector extends VertexConsumer {
 
 	WipVertexCollector texture(int packedTexture, int spriteId);
 
-	WipVertexCollector packedNormal(int packedNormal);
-
 	/**
 	 *
 	 * @param packedLight standard packed lightmap
@@ -73,10 +69,5 @@ public interface WipVertexCollector extends VertexConsumer {
 	@Override
 	default WipVertexCollector color(int red, int green, int blue, int alpha) {
 		return color(red | (green << 8) | (blue << 16) | (alpha << 24));
-	}
-
-	@Override
-	default WipVertexCollector normal(float x, float y, float z) {
-		return packedNormal(NormalHelper.packNormal(x, y, z, 0));
 	}
 }

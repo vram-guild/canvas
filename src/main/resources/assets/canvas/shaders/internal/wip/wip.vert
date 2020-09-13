@@ -56,6 +56,7 @@ void main() {
 	gl_ClipVertex = viewCoord;
 	gl_FogFragCoord = length(viewCoord.xyz);
 
+	data.normal *= gl_NormalMatrix;
 	data.vertex = gl_ModelViewProjectionMatrix * data.vertex;
 
 	gl_Position = data.vertex;
@@ -70,7 +71,7 @@ void main() {
 	_cvv_ao = 1.0; //in_lightmap.b; // TODO: how to handle AO when not used?
 
 	//#if DIFFUSE_SHADING_MODE != DIFFUSE_MODE_NONE
-	_cvv_diffuse = _cv_diffuse(_cv_diffuseNormal(viewCoord, data.normal));
+	_cvv_diffuse = _cv_diffuse(data.normal);
 	//#endif
 
 	//#ifndef CONTEXT_IS_GUI

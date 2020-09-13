@@ -46,6 +46,14 @@ public abstract class NormalHelper {
 		return ((int) (x * 127) & 255) | (((int) (y * 127) & 255) << 8) | (((int) (z * 127) & 255) << 16) | (((int) (w * 127) & 255) << 24);
 	}
 
+	public static int packUnsignedNormal(float x, float y, float z) {
+		x = MathHelper.clamp(x, -1, 1);
+		y = MathHelper.clamp(y, -1, 1);
+		z = MathHelper.clamp(z, -1, 1);
+
+		return ((int) ((x * 127) + 127) & 255) | (((int) ((y * 127) + 127) & 255) << 8) | (((int) ((z * 127) + 127) & 255) << 16);
+	}
+
 	/**
 	 * Version of {@link #packNormal(float, float, float, float)} that accepts a vector type.
 	 */
@@ -112,12 +120,5 @@ public abstract class NormalHelper {
 		}
 
 		saveTo.set(normX, normY, normZ);
-	}
-
-	public static int repackToUnsigned(int packedNormal) {
-		final int x = ((byte) (packedNormal & 0xFF)) + 127;
-		final int y = (((byte) ((packedNormal >> 8) & 0xFF)) + 127) << 8;
-		final int z = (((byte) ((packedNormal >> 16) & 0xFF)) + 127) << 16;
-		return x | y | z;
 	}
 }
