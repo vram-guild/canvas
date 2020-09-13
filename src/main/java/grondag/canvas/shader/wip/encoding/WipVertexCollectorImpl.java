@@ -212,7 +212,6 @@ public class WipVertexCollectorImpl extends WipVertexAdapter {
 
 	@Override
 	public void next() {
-		packer.pack(vertexData);
 		data.copyFrom(integerSize, vertexData, 0, intVertexStride);
 		integerSize += intVertexStride;
 	}

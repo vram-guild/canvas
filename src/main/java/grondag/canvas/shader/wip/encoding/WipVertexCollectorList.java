@@ -36,22 +36,23 @@ public class WipVertexCollectorList {
 	 * Releases any held vertex collectors and resets state
 	 */
 	public void clear() {
-
 		for (int i = 0; i < size; i++) {
 			pool.get(i).clear();
 		}
 
 		Arrays.fill(collectors, 0, collectors.length, null);
+
+		size = 0;
 	}
 
 	public final WipVertexCollectorImpl getIfExists(WipRenderState materialState) {
 		// PERF remove null check once state mapping is reliable
-		return materialState == null ? null : collectors[materialState.index];
+		return materialState == WipRenderState.MISSING ? null : collectors[materialState.index];
 	}
 
 	public final WipVertexCollectorImpl get(WipRenderState materialState) {
 		// PERF remove once state mapping is reliable
-		if (materialState == null) {
+		if (materialState == WipRenderState.MISSING) {
 			return null;
 		}
 

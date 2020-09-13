@@ -7,7 +7,7 @@
 #include frex:shaders/api/sampler.glsl
 #include canvas:shaders/internal/diffuse.glsl
 
-#include canvas:apitarget
+//#include canvas:apitarget
 
 
 /******************************************************
@@ -25,7 +25,7 @@ void main() {
 	gl_Vertex,
 	in_uv,
 	in_color,
-	(in_normal_ao.xyz - 127.0) / 127.0,
+	(in_normal_flags.xyz - 127.0) / 127.0,
 	// Lightmap texture coorinates come in as 0-256.
 	// Scale and offset slightly to hit center pixels
 	// vanilla does this with a texture matrix

@@ -73,8 +73,7 @@ public class MaterialVertexFormat {
 		int index = 1;
 		final int limit = elements.length;
 
-		// NB: <= because element 0 is vertex
-		for (int i = 0; i <= limit; i++) {
+		for (int i = 0; i < limit; i++) {
 			final MaterialVertextFormatElement e = elements[i];
 
 			if (e.attributeName == null) {

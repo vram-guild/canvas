@@ -26,7 +26,7 @@ import grondag.canvas.shader.wip.encoding.WipVertexFormat;
 import net.minecraft.util.Identifier;
 
 public enum WipShader {
-	DEFAULT_SOLID(ShaderData.DEFAULT_ENTITY_VERTEX, ShaderData.DEFAULT_ENTITY_FRAGMENT, ShaderContext.ENTITY_BLOCK_SOLID, WipVertexFormat.POSITION_COLOR_TEXTURE_MATERIAL_LIGHT_NORMAL);
+	DEFAULT_SOLID(ShaderData.DEFAULT_WIP_VERTEX, ShaderData.DEFAULT_WIP_FRAGMENT, ShaderContext.ENTITY_BLOCK_SOLID, WipVertexFormat.POSITION_COLOR_TEXTURE_MATERIAL_LIGHT_NORMAL);
 
 	private final Identifier fragmentId;
 	private final Identifier vertexId;

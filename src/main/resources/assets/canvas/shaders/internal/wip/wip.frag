@@ -11,7 +11,7 @@
 #include frex:shaders/lib/math.glsl
 #include frex:shaders/lib/color.glsl
 
-#include canvas:apitarget
+//#include canvas:apitarget
 
 /******************************************************
   canvas:shaders/internal/wip/wip.frag
@@ -67,7 +67,7 @@ void main() {
 	_cvv_lightcoord
 	);
 
-	frx_startFragment(fragData);
+	//frx_startFragment(fragData);
 
 	vec4 raw = fragData.spriteColor * fragData.vertexColor;
 	vec4 a = raw;

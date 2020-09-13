@@ -20,7 +20,11 @@ import javax.annotation.Nullable;
 
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
+import java.util.concurrent.ExecutionException;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import grondag.canvas.buffer.TransferBufferAllocator;
@@ -42,7 +46,7 @@ import grondag.canvas.shader.wip.props.WipWriteMask;
 import grondag.fermion.bits.BitPacker64;
 import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
+import org.lwjgl.opengl.GL11;
 import org.lwjgl.system.MemoryUtil;
 
 import net.minecraft.client.MinecraftClient;
@@ -192,6 +196,7 @@ public class WipRenderState {
 		fog.action.run();
 		decal.startAction.run();
 		target.startAction.run();
+		RenderSystem.shadeModel(GL11.GL_SMOOTH);
 
 		if (cull) {
 			RenderSystem.enableCull();
@@ -233,6 +238,7 @@ public class WipRenderState {
 
 		TransferBufferAllocator.release(buffer);
 
+		RenderSystem.shadeModel(7424);
 		decal.endAction.run();
 		target.endAction.run();
 	}
@@ -267,13 +273,16 @@ public class WipRenderState {
 	private static final BitPacker64.BooleanElement HAS_CONDITION = PACKER.createBooleanElement();
 	private static final BitPacker64<Void>.EnumElement<WipModelOrigin> ORIGIN = PACKER.createEnumElement(WipModelOrigin.class);
 
-	// for layers that aren't instantiated every use
-	private static final Reference2ReferenceOpenHashMap<RenderLayer, WipRenderState> CONSTANT_LAYER_MAP = new Reference2ReferenceOpenHashMap<>();
+	private static final CacheLoader<RenderLayer, WipRenderState> LOADER = CacheLoader.from(l -> finder().copyFromLayer(l));
+	private static final LoadingCache<RenderLayer, WipRenderState> LAYER_CACHE = CacheBuilder.newBuilder().weakKeys().maximumSize(32768).build(LOADER);
 
 	public static WipRenderState fromLayer(RenderLayer renderLayer) {
-		final WipRenderState result = CONSTANT_LAYER_MAP.get(renderLayer);
-		return result;
-		//return result == null ? builder().copyFromLayer(renderLayer).build() || result;
+		try {
+			return LAYER_CACHE.get(renderLayer);
+		} catch (final ExecutionException e) {
+			assert false : "Unable to construct render state from layer";
+		return null;
+		}
 	}
 
 	public static WipRenderState fromIndex(int index) {
@@ -296,7 +305,7 @@ public class WipRenderState {
 			return this;
 		}
 
-		public Finder copyFromLayer(RenderLayer layer) {
+		public WipRenderState copyFromLayer(RenderLayer layer) {
 			final VertexFormat format = layer.getVertexFormat();
 			for (final VertexFormatElement e : format.getElements()) {
 				switch(e.getType()) {
@@ -319,8 +328,14 @@ public class WipRenderState {
 
 			final AccessMultiPhaseParameters params = ((MultiPhaseExt) layer).canvas_phases();
 
+			// Skip GUI and lines for now
+			if (params.getLineWidth() != RenderPhase.FULL_LINE_WIDTH || !HAS_NORMAL.getValue(bits)) {
+				return MISSING;
+			}
+
 			final AccessTexture tex = (AccessTexture) params.getTexture();
 
+			primitive(GL11.GL_QUADS);
 			texture(tex.getId().orElse(null));
 			transparency(WipTransparency.fromPhase(params.getTransparency()));
 			depthTest(WipDepthTest.fromPhase(params.getDepthTest()));
@@ -332,7 +347,7 @@ public class WipRenderState {
 			lines(params.getLineWidth() != RenderPhase.FULL_LINE_WIDTH);
 			fog(WipFog.fromPhase(params.getFog()));
 
-			return this;
+			return find();
 		}
 
 		public Finder sorted(boolean sorted) {
@@ -436,9 +451,10 @@ public class WipRenderState {
 		}
 	}
 
+	public static final WipRenderState MISSING = new WipRenderState(0);
+
 	static {
 		assert PACKER.bitLength() <= 64;
-
-		CONSTANT_LAYER_MAP.put(RenderLayer.getSolid(), finder().copyFromLayer(RenderLayer.getSolid()).find());
+		STATES[0] = MISSING;
 	}
 }

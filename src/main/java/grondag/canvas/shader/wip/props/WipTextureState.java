@@ -57,7 +57,7 @@ public class WipTextureState {
 
 	public static void onRegister(Identifier identifier, AbstractTexture texture) {
 		final WipTextureState state = MAP.get(identifier);
-		final int index = state == null ? nextIndex++ : state.index;
+		final int index = state == NO_TEXTURE ? nextIndex++ : state.index;
 		final WipTextureState newState = new WipTextureState(index, identifier, texture);
 		MAP.put(identifier, newState);
 		STATES[index] = newState;

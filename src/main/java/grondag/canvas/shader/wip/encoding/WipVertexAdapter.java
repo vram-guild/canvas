@@ -33,8 +33,6 @@ public abstract class WipVertexAdapter implements WipVertexCollector {
 	protected int lightIndex;
 	protected int normalIndex;
 
-	protected WipVertexPacker packer;
-
 	@Override
 	public VertexConsumer texture(float u, float v) {
 		// WIP - detect texture atlas and derive textureID when used by vanilla suppliers
