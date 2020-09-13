@@ -19,8 +19,10 @@ package grondag.canvas.shader.wip.props;
 import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.texture.AbstractTexture;
 import net.minecraft.client.texture.SpriteAtlasTexture;
+import net.minecraft.client.texture.TextureManager;
 import net.minecraft.util.Identifier;
 
 public class WipTextureState {
@@ -28,7 +30,7 @@ public class WipTextureState {
 	private static int nextIndex = 1;
 	private static final WipTextureState[] STATES = new WipTextureState[MAX_TEXTURE_STATES];
 	private static final Object2ObjectOpenHashMap<Identifier, WipTextureState> MAP = new Object2ObjectOpenHashMap<>(256, Hash.VERY_FAST_LOAD_FACTOR);
-	public static final WipTextureState NO_TEXTURE = new WipTextureState(0, null, null);
+	public static final WipTextureState NO_TEXTURE = new WipTextureState(0, TextureManager.MISSING_IDENTIFIER);
 
 	static {
 		STATES[0] = NO_TEXTURE;
@@ -39,27 +41,48 @@ public class WipTextureState {
 		return STATES[index];
 	}
 
-	public static WipTextureState fromId(Identifier id) {
-		return MAP.get(id);
+	// PERF: use cow or other method to avoid synch
+	public synchronized static WipTextureState fromId(Identifier id) {
+		WipTextureState state = MAP.get(id);
+
+		if (state == NO_TEXTURE) {
+			final int index = nextIndex++;
+			state = new WipTextureState(index, id);
+			MAP.put(id, state);
+			STATES[index] = state;
+		}
+
+		return state;
 	}
 
 	public final int index;
-	public final boolean isAtlas;
 	public final Identifier id;
-	public final AbstractTexture texture;
 
-	private WipTextureState(int index, Identifier id, AbstractTexture texture) {
+	private AbstractTexture texture;
+	private boolean isAtlas;
+
+	private WipTextureState(int index, Identifier id) {
 		this.index = index;
 		this.id = id;
-		this.texture  = texture;
-		isAtlas = texture != null && texture instanceof SpriteAtlasTexture;
 	}
 
-	public static void onRegister(Identifier identifier, AbstractTexture texture) {
-		final WipTextureState state = MAP.get(identifier);
-		final int index = state == NO_TEXTURE ? nextIndex++ : state.index;
-		final WipTextureState newState = new WipTextureState(index, identifier, texture);
-		MAP.put(identifier, newState);
-		STATES[index] = newState;
+	private void retreiveTexture() {
+		if (texture == null) {
+			final TextureManager tm = MinecraftClient.getInstance().getTextureManager();
+			// forces registration
+			tm.bindTexture(id);
+			texture = tm.getTexture(id);
+			isAtlas = texture != null && texture instanceof SpriteAtlasTexture;
+		}
+	}
+
+	public AbstractTexture texture() {
+		retreiveTexture();
+		return texture;
+	}
+
+	public boolean isAtlas() {
+		retreiveTexture();
+		return isAtlas;
 	}
 }

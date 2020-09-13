@@ -28,7 +28,6 @@
 	"MixinSprite",
 	"MixinSpriteAtlasTexture",
 	"MixinSpriteAtlasTextureData",
-	"MixinTextureManager",
 	"MixinRenderLayer",
 	"MixinVideoOptionsScreen",
 	"MixinWorldChunk",

@@ -55,6 +55,7 @@ import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.RenderPhase;
 import net.minecraft.client.render.VertexFormat;
 import net.minecraft.client.render.VertexFormatElement;
+import net.minecraft.client.texture.AbstractTexture;
 import net.minecraft.util.Identifier;
 
 /**
@@ -168,7 +169,7 @@ public class WipRenderState {
 		format = WipVertexFormat.forFlags(
 			HAS_COLOR.getValue(bits),
 			texture != WipTextureState.NO_TEXTURE,
-			texture.isAtlas || HAS_CONDITION.getValue(bits),
+			texture.isAtlas() || HAS_CONDITION.getValue(bits),
 			HAS_LIGHTMAP.getValue(bits),
 			HAS_NORMAL.getValue(bits));
 
@@ -185,8 +186,9 @@ public class WipRenderState {
 			RenderSystem.disableTexture();
 		} else {
 			RenderSystem.enableTexture();
-			texture.texture.bindTexture();
-			texture.texture.setFilter(bilinear, true);
+			final AbstractTexture tex = texture.texture();
+			tex.bindTexture();
+			tex.setFilter(bilinear, true);
 		}
 
 		// WIP (PERF): check for need to change GL state based on flag comparison
