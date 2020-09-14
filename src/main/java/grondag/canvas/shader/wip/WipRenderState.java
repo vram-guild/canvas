@@ -73,32 +73,27 @@ import net.minecraft.util.Identifier;
  * packed in glState, uniformState order for best performance.
  */
 @SuppressWarnings("rawtypes")
-public class WipRenderState {
-	private final long bits;
+public final class WipRenderState {
+	protected final long bits;
+
 	public final int index;
 
 	/**
 	 * true only for translucent
 	 */
-	public boolean sorted() {
-		return SORTED.getValue(bits);
-	}
+	public final boolean sorted;
 
 	/**
 	 * True when the material has vertex color and thus
 	 * color should be included in the vertex format.
 	 */
-	public boolean hasColor() {
-		return HAS_COLOR.getValue(bits);
-	}
+	public final boolean hasColor;
 
 	/**
 	 * True when material has vertex normals and thus
 	 * normals should be included in the vertex format.
 	 */
-	public boolean hasNormal() {
-		return HAS_NORMAL.getValue(bits);
-	}
+	public final boolean hasNormal;
 
 	//	/**
 	//	 * True when material has a primary texture and thus
@@ -119,9 +114,7 @@ public class WipRenderState {
 	 *
 	 * UGLY: should this be hasWorldLight instead?  Semantics are messy.
 	 */
-	public boolean hasLightMap() {
-		return HAS_LIGHTMAP.getValue(bits);
-	}
+	public final boolean hasLightMap;
 
 	/**
 	 * OpenGL primitive constant. Determines number of vertices.
@@ -133,9 +126,7 @@ public class WipRenderState {
 	 * GL_TRIANGLE_FAN (currently GUI only)
 	 * GL_QUADS
 	 */
-	public int primitive() {
-		return PRIMITIVE.getValue(bits);
-	}
+	public final int primitive;
 
 	public final WipVertexFormat format;
 	public final WipModelOrigin modelOrigin;
@@ -154,6 +145,11 @@ public class WipRenderState {
 
 	private WipRenderState(long bits) {
 		this.bits = bits;
+		sorted = SORTED.getValue(bits);
+		hasColor = HAS_COLOR.getValue(bits);
+		hasNormal = HAS_NORMAL.getValue(bits);
+		hasLightMap = HAS_LIGHTMAP.getValue(bits);
+		primitive = PRIMITIVE.getValue(bits);
 		modelOrigin = ORIGIN.getValue(bits);
 		texture = WipTextureState.fromIndex(TEXTURE.getValue(bits));
 		bilinear = BILINEAR.getValue(bits);
@@ -165,6 +161,7 @@ public class WipRenderState {
 		target = TARGET.getValue(bits);
 		lines = LINES.getValue(bits);
 		fog = FOG.getValue(bits);
+
 
 		format = WipVertexFormat.forFlags(
 			HAS_COLOR.getValue(bits),
@@ -235,13 +232,13 @@ public class WipRenderState {
 
 		format.enableDirect(MemoryUtil.memAddress(buffer));
 		WipShader.DEFAULT_SOLID.activate();
-		GlStateManager.drawArrays(primitive(), 0, collector.vertexCount());
+		GlStateManager.drawArrays(primitive, 0, collector.vertexCount());
 		MaterialVertexFormat.disableDirect();
 		GlProgram.deactivate();
 
 		TransferBufferAllocator.release(buffer);
 
-		RenderSystem.shadeModel(7424);
+		RenderSystem.shadeModel(GL11.GL_FLAT);
 		decal.endAction.run();
 		target.endAction.run();
 	}
