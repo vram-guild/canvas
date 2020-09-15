@@ -19,13 +19,12 @@ package grondag.canvas.shader;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.material.MaterialShaderImpl;
-import grondag.canvas.varia.WorldDataManager;
 import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.Camera;
-import net.minecraft.entity.Entity;
 import net.minecraft.util.Identifier;
+
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 
 
 public enum MaterialShaderManager implements ClientTickEvents.EndTick {
@@ -36,12 +35,6 @@ public enum MaterialShaderManager implements ClientTickEvents.EndTick {
 	private final SimpleUnorderedArrayList<MaterialShaderImpl> shaders = new SimpleUnorderedArrayList<>();
 
 	private final MaterialShaderImpl defaultShader;
-
-	/**
-	 * Frames are (hopefully) shorter than a client tick. This is the fraction of a
-	 * tick that has elapsed since the last complete client tick.
-	 */
-	private float fractionalTicks;
 
 	/**
 	 * Count of client ticks observed by renderer since last restart.
@@ -111,26 +104,6 @@ public enum MaterialShaderManager implements ClientTickEvents.EndTick {
 
 	public int frameIndex() {
 		return frameIndex;
-	}
-
-	/**
-	 * Called just before terrain setup each frame after camera, fog and projection
-	 * matrix are set up,
-	 */
-	public void prepareForFrame(Camera camera) {
-		fractionalTicks = MinecraftClient.getInstance().getTickDelta();
-
-		final Entity cameraEntity = camera.getFocusedEntity();
-		assert cameraEntity != null;
-		assert cameraEntity.getEntityWorld() != null;
-
-		if (cameraEntity == null || cameraEntity.getEntityWorld() == null) {
-			return;
-		}
-
-		WorldDataManager.update(fractionalTicks);
-
-		onRenderTick();
 	}
 
 	@Override

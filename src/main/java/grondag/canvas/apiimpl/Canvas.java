@@ -38,6 +38,8 @@ import grondag.canvas.pipeline.ProcessShaders;
 import grondag.canvas.shader.EntityShader;
 import grondag.canvas.shader.GlShaderManager;
 import grondag.canvas.shader.MaterialShaderManager;
+import grondag.canvas.shader.wip.WipGlShaderManager;
+import grondag.canvas.shader.wip.WipMaterialShaderManager;
 import grondag.canvas.shader.wip.WipShader;
 import grondag.canvas.terrain.ChunkColorCache;
 import grondag.canvas.terrain.ProtoRenderRegion;
@@ -107,6 +109,8 @@ public class Canvas implements Renderer {
 		LightmapHdTexture.reload();
 		LightmapHd.reload();
 		MaterialShaderManager.INSTANCE.reload();
+		WipMaterialShaderManager.INSTANCE.reload();
+		WipGlShaderManager.INSTANCE.reload();
 		MaterialState.reload();
 		VertexEncoders.reload();
 		TerrainModelSpace.reload();

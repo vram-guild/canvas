@@ -49,6 +49,7 @@ import grondag.canvas.shader.GlProgram;
 import grondag.canvas.shader.MaterialShaderManager;
 import grondag.canvas.shader.ShaderContext;
 import grondag.canvas.shader.wip.RenderLayerHandler;
+import grondag.canvas.shader.wip.WipMaterialShaderManager;
 import grondag.canvas.shader.wip.sneak.WipImmediate;
 import grondag.canvas.terrain.BuiltRenderRegion;
 import grondag.canvas.terrain.RenderRegionBuilder;
@@ -60,6 +61,7 @@ import grondag.canvas.terrain.occlusion.region.PackedBox;
 import grondag.canvas.terrain.render.TerrainLayerRenderer;
 import grondag.canvas.texture.DitherTexture;
 import grondag.canvas.varia.CanvasGlHelper;
+import grondag.canvas.varia.WorldDataManager;
 import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
 import grondag.frex.api.event.WorldRenderEvent;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap.Entry;
@@ -262,7 +264,9 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		mc.getProfiler().swap("distance");
 		regionStorage.updateCameraDistance(cameraPos, frustumPositionVersion, renderDistance);
-		MaterialShaderManager.INSTANCE.prepareForFrame(camera);
+		WorldDataManager.update(camera);
+		MaterialShaderManager.INSTANCE.onRenderTick();
+		WipMaterialShaderManager.INSTANCE.onRenderTick();
 		final BlockPos cameraBlockPos = camera.getBlockPos();
 		final BuiltRenderRegion cameraRegion = cameraBlockPos.getY() < 0 || cameraBlockPos.getY() > 255 ? null : regionStorage.getOrCreateRegion(cameraBlockPos);
 

@@ -1,20 +1,18 @@
-#include canvas:shaders/internal/header.glsl
-#include canvas:shaders/internal/varying.glsl
-#include canvas:shaders/internal/diffuse.glsl
-#include canvas:shaders/internal/flags.glsl
-#include canvas:shaders/internal/fog.glsl
-#include frex:shaders/api/world.glsl
-#include frex:shaders/api/player.glsl
-#include frex:shaders/api/material.glsl
-#include frex:shaders/api/fragment.glsl
-#include frex:shaders/api/sampler.glsl
+#include canvas:shaders/wip/header.glsl
+#include canvas:shaders/wip/varying.glsl
+#include canvas:shaders/wip/diffuse.glsl
+#include canvas:shaders/wip/flags.glsl
+#include canvas:shaders/wip/fog.glsl
+#include frex:shaders/wip/api/world.glsl
+#include frex:shaders/wip/api/player.glsl
+#include frex:shaders/wip/api/material.glsl
+#include frex:shaders/wip/api/fragment.glsl
+#include frex:shaders/wip/api/sampler.glsl
 #include frex:shaders/lib/math.glsl
 #include frex:shaders/lib/color.glsl
 
-//#include canvas:apitarget
-
 /******************************************************
-  canvas:shaders/internal/wip/wip.frag
+  canvas:shaders/internal/vanilla/vanilla.frag
 ******************************************************/
 
 vec4 aoFactor(vec2 lightCoord) {

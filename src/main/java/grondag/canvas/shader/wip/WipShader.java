@@ -16,29 +16,25 @@
 
 package grondag.canvas.shader.wip;
 
-import grondag.canvas.shader.GlProgram;
-import grondag.canvas.shader.GlShaderManager;
 import grondag.canvas.shader.Shader;
-import grondag.canvas.shader.ShaderContext;
-import grondag.canvas.shader.ShaderData;
 import grondag.canvas.shader.wip.encoding.WipVertexFormat;
 
 import net.minecraft.util.Identifier;
 
 public enum WipShader {
-	DEFAULT_SOLID(ShaderData.DEFAULT_WIP_VERTEX, ShaderData.DEFAULT_WIP_FRAGMENT, ShaderContext.ENTITY_BLOCK_SOLID, WipVertexFormat.POSITION_COLOR_TEXTURE_MATERIAL_LIGHT_NORMAL);
+	;
 
 	private final Identifier fragmentId;
 	private final Identifier vertexId;
-	private final ShaderContext context;
-	private GlProgram program;
+	private final WipProgramType programType;
+	private WipGlProgram program;
 	private final WipVertexFormat format;
 
-	WipShader(Identifier vertexId, Identifier fragmentId, ShaderContext context, WipVertexFormat format) {
+	WipShader(Identifier vertexId, Identifier fragmentId, WipVertexFormat format, WipProgramType programType) {
 		this.fragmentId = fragmentId;
 		this.vertexId = vertexId;
-		this.context = context;
 		this.format = format;
+		this.programType = programType;
 	}
 
 	public static void reload() {
@@ -56,10 +52,10 @@ public enum WipShader {
 
 	public WipShader activate() {
 		if (program == null) {
-			final Shader vs = GlShaderManager.INSTANCE.getOrCreateVertexShader(vertexId, context);
-			final Shader fs = GlShaderManager.INSTANCE.getOrCreateFragmentShader(fragmentId, context);
-			program = new GlProgram(vs, fs, format, context);
-			ShaderData.STANDARD_UNIFORM_SETUP.accept(program);
+			final Shader vs = WipGlShaderManager.INSTANCE.getOrCreateVertexShader(vertexId, programType, format);
+			final Shader fs = WipGlShaderManager.INSTANCE.getOrCreateFragmentShader(fragmentId, programType, format);
+			program = new WipGlProgram(vs, fs, format, programType);
+			WipShaderData.STANDARD_UNIFORM_SETUP.accept(program);
 			program.load();
 		}
 

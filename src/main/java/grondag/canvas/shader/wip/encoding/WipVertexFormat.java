@@ -85,9 +85,19 @@ public class WipVertexFormat extends MaterialVertexFormat {
 	public final int lightIndex;
 	public final int normalIndex;
 
+	public final boolean hasColor;
+	public final boolean hasTexture;
+	public final boolean hasMaterial;
+	public final boolean hasLight;
+	public final boolean hasNormal;
+
+	public final int formatIndex;
+
+	private static int nextFormatIndex = 0;
 
 	private WipVertexFormat(MaterialVertextFormatElement... elements) {
 		super(elements);
+		formatIndex = nextFormatIndex++;
 
 		assert elements[0] == POSITION_3F;
 
@@ -99,6 +109,12 @@ public class WipVertexFormat extends MaterialVertexFormat {
 		int materialIndex = 0;
 		int lightIndex = 0;
 		int normalIndex = 0;
+
+		boolean hasColor = true;
+		boolean hasTexture = true;
+		boolean hasMaterial = true;
+		boolean hasLight = true;
+		boolean hasNormal = true;
 
 		for (int i = 1; i < limit; ++i) {
 			final MaterialVertextFormatElement e = elements[i];
@@ -122,22 +138,27 @@ public class WipVertexFormat extends MaterialVertexFormat {
 		// won't fail if they are to be deliberately ignored
 		if (colorIndex == 0) {
 			colorIndex = nextIndex++;
+			hasColor = false;
 		}
 
 		if (textureIndex == 0) {
 			textureIndex = nextIndex++;
+			hasTexture = false;
 		}
 
 		if (materialIndex == 0) {
 			materialIndex = nextIndex++;
+			hasMaterial = false;
 		}
 
 		if (lightIndex == 0) {
 			lightIndex = nextIndex++;
+			hasLight = false;
 		}
 
 		if (normalIndex == 0) {
 			normalIndex = nextIndex++;
+			hasNormal = false;
 		}
 
 		assert nextIndex == 8;
@@ -147,6 +168,12 @@ public class WipVertexFormat extends MaterialVertexFormat {
 		this.materialIndex = materialIndex;
 		this.lightIndex = lightIndex;
 		this.normalIndex = normalIndex;
+
+		this.hasColor = hasColor;
+		this.hasTexture = hasTexture;
+		this.hasMaterial = hasMaterial;
+		this.hasLight = hasLight;
+		this.hasNormal = hasNormal;
 	}
 
 	private static final int COLOR_BIT = 1;

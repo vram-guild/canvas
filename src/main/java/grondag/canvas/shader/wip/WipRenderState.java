@@ -33,7 +33,6 @@ import grondag.canvas.mixin.AccessMultiPhaseParameters;
 import grondag.canvas.mixin.AccessTexture;
 import grondag.canvas.mixinterface.EntityRenderDispatcherExt;
 import grondag.canvas.mixinterface.MultiPhaseExt;
-import grondag.canvas.shader.GlProgram;
 import grondag.canvas.shader.wip.encoding.WipVertexCollectorImpl;
 import grondag.canvas.shader.wip.encoding.WipVertexFormat;
 import grondag.canvas.shader.wip.props.WipDecal;
@@ -142,9 +141,11 @@ public final class WipRenderState {
 	public final WipTarget target;
 	public final boolean lines;
 	public final WipFog fog;
+	public final WipMaterialShaderImpl shader;
 
 	private WipRenderState(long bits) {
 		this.bits = bits;
+		index = nextIndex++;
 		sorted = SORTED.getValue(bits);
 		hasColor = HAS_COLOR.getValue(bits);
 		hasNormal = HAS_NORMAL.getValue(bits);
@@ -162,7 +163,6 @@ public final class WipRenderState {
 		lines = LINES.getValue(bits);
 		fog = FOG.getValue(bits);
 
-
 		format = WipVertexFormat.forFlags(
 			HAS_COLOR.getValue(bits),
 			texture != WipTextureState.NO_TEXTURE,
@@ -171,10 +171,8 @@ public final class WipRenderState {
 			HAS_NORMAL.getValue(bits));
 
 		vertexStrideInts = format.vertexStrideInts;
-
 		translucency = TRANSPARENCY.getValue(bits);
-
-		index = nextIndex++;
+		shader = WipMaterialShaderManager.INSTANCE.find(WipShaderData.VANILLA_VERTEX, WipShaderData.VANILLA_FRAGMENT, sorted ? WipProgramType.MATERIAL_VERTEX_LOGIC : WipProgramType.MATERIAL_UNIFORM_LOGIC, format);
 	}
 
 	@SuppressWarnings("resource")
@@ -231,10 +229,10 @@ public final class WipRenderState {
 		collector.toBuffer(intBuffer);
 
 		format.enableDirect(MemoryUtil.memAddress(buffer));
-		WipShader.DEFAULT_SOLID.activate();
+		shader.activate();
 		GlStateManager.drawArrays(primitive, 0, collector.vertexCount());
 		MaterialVertexFormat.disableDirect();
-		GlProgram.deactivate();
+		WipGlProgram.deactivate();
 
 		TransferBufferAllocator.release(buffer);
 

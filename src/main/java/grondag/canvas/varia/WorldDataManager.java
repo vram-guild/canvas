@@ -18,10 +18,13 @@ package grondag.canvas.varia;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
+
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.client.render.Camera;
 import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.world.ClientWorld;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.item.Items;
 import net.minecraft.world.World;
@@ -70,10 +73,23 @@ public class WorldDataManager {
 		return DATA;
 	}
 
-	public static void update(float tickDelta) {
+	/**
+	 * Called just before terrain setup each frame after camera, fog and projection
+	 * matrix are set up,
+	 */
+	public static void update(Camera camera) {
+		final MinecraftClient client = MinecraftClient.getInstance();
+		final Entity cameraEntity = camera.getFocusedEntity();
+		final float tickDelta = client.getTickDelta();
+		assert cameraEntity != null;
+		assert cameraEntity.getEntityWorld() != null;
+
+		if (cameraEntity == null || cameraEntity.getEntityWorld() == null) {
+			return;
+		}
+
 		DATA[RENDER_SECONDS] = (System.currentTimeMillis() - baseRenderTime) / 1000f;
 
-		final MinecraftClient client = MinecraftClient.getInstance();
 		final ClientWorld world = client.world;
 		if (world != null) {
 			final long days = world.getTimeOfDay() / 24000L;

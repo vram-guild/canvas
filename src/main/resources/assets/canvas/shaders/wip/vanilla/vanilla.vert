@@ -1,35 +1,69 @@
-#include canvas:shaders/internal/header.glsl
-#include frex:shaders/api/context.glsl
-#include canvas:shaders/internal/varying.glsl
-#include canvas:shaders/internal/vertex.glsl
-#include canvas:shaders/internal/flags.glsl
-#include frex:shaders/api/vertex.glsl
-#include frex:shaders/api/sampler.glsl
-#include canvas:shaders/internal/diffuse.glsl
-
-//#include canvas:apitarget
+#include canvas:shaders/wip/header.glsl
+#include frex:shaders/wip/api/context.glsl
+#include canvas:shaders/wip/varying.glsl
+#include canvas:shaders/wip/vertex.glsl
+#include canvas:shaders/wip/flags.glsl
+#include frex:shaders/wip/api/vertex.glsl
+#include frex:shaders/wip/api/sampler.glsl
+#include canvas:shaders/wip/diffuse.glsl
 
 
 /******************************************************
-  canvas:shaders/internal/wip/wip.vert
+  canvas:shaders/internal/vanilla/vanilla.vert
 ******************************************************/
 
+#define ATTRIB_COLOR
+#ifdef ATTRIB_COLOR
 attribute vec4 in_color;
+#endif
+
+#define ATTRIB_TEXTURE
+#ifdef ATTRIB_TEXTURE
 attribute vec2 in_uv;
-attribute vec4 in_normal_flags;
-attribute vec4 in_lightmap;
+#endif
+
+#define ATTRIB_MATERIAL
+#ifdef ATTRIB_MATERIAL
 attribute vec2 in_material;
+#endif
+
+#define ATTRIB_LIGHTMAP
+#ifdef ATTRIB_LIGHTMAP
+attribute vec4 in_lightmap;
+#endif
+
+#define ATTRIB_NORMAL
+#ifdef ATTRIB_NORMAL
+attribute vec4 in_normal_flags;
+#endif
 
 void main() {
 	frx_VertexData data = frx_VertexData(
 	gl_Vertex,
+
+#ifdef ATTRIB_TEXTURE
 	in_uv,
+#else
+	vec2(0.0, 0.0),
+#endif
+
+#ifdef ATTRIB_COLOR
 	in_color,
+#else
+	vec4(1.0, 1.0, 1.0, 1.0),
+#endif
+
+#ifdef ATTRIB_NORMAL
 	(in_normal_flags.xyz - 127.0) / 127.0,
-	// Lightmap texture coorinates come in as 0-256.
-	// Scale and offset slightly to hit center pixels
-	// vanilla does this with a texture matrix
+#else
+	vec4(0.0, 1.0, 0.0, 0.0)
+#endif
+
+#ifdef ATTRIB_LIGHTMAP
 	in_lightmap.rg * 0.00390625 + 0.03125
+#else
+	vec4(1.0, 1.0, 1.0, 1.0)
+#endif
 	);
 
 	// Adding +0.5 prevents striping or other strangeness in flag-dependent rendering
@@ -56,6 +90,10 @@ void main() {
 	gl_ClipVertex = viewCoord;
 	gl_FogFragCoord = length(viewCoord.xyz);
 
+	//#if DIFFUSE_SHADING_MODE != DIFFUSE_MODE_NONE
+	_cvv_diffuse = _cv_diffuseBaked(data.normal);
+	//#endif
+
 	data.normal *= gl_NormalMatrix;
 	data.vertex = gl_ModelViewProjectionMatrix * data.vertex;
 
@@ -68,11 +106,8 @@ void main() {
 	_cvv_texcoord = data.spriteUV;
 	_cvv_color = data.color;
 	_cvv_normal = data.normal;
-	_cvv_ao = 1.0; //in_lightmap.b; // TODO: how to handle AO when not used?
+	_cvv_ao = in_lightmap.b;
 
-	//#if DIFFUSE_SHADING_MODE != DIFFUSE_MODE_NONE
-	_cvv_diffuse = _cv_diffuse(data.normal);
-	//#endif
 
 	//#ifndef CONTEXT_IS_GUI
 	_cvv_lightcoord = data.light;
