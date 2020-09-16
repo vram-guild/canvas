@@ -298,10 +298,10 @@ public final class WipRenderState {
 		return STATES[index];
 	}
 
-	private static ThreadLocal<Finder> BUILDER = ThreadLocal.withInitial(Finder::new);
+	private static ThreadLocal<Finder> FINDER = ThreadLocal.withInitial(Finder::new);
 
 	public static Finder finder() {
-		final Finder result = BUILDER.get();
+		final Finder result = FINDER.get();
 		result.bits = 0;
 		return result;
 	}

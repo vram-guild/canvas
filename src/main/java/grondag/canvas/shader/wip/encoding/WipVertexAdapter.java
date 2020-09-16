@@ -32,6 +32,8 @@ public abstract class WipVertexAdapter implements WipVertexCollector {
 	protected int materialIndex;
 	protected int lightIndex;
 	protected int normalIndex;
+	protected int normalBase;
+	protected int materialBase;
 
 	@Override
 	public VertexConsumer texture(float u, float v) {
@@ -60,8 +62,8 @@ public abstract class WipVertexAdapter implements WipVertexCollector {
 
 	@Override
 	public WipVertexCollector vertexState(int vertexState) {
-		vertexData[materialIndex] = (vertexData[materialIndex] & 0x0000FFFF) | (WipVertexState.conditionIndex(vertexState) << 16);
-		vertexData[normalIndex] = (vertexData[normalIndex] & 0x00FFFFFF) | (WipVertexState.shaderFlags(vertexState) << 24);
+		normalBase = (WipVertexState.shaderFlags(vertexState) << 24);
+		materialBase = (WipVertexState.conditionIndex(vertexState) << 16);
 		return this;
 	}
 
@@ -89,13 +91,13 @@ public abstract class WipVertexAdapter implements WipVertexCollector {
 	@Override
 	public WipVertexCollector texture(int packedTexture, int spriteId) {
 		vertexData[textureIndex] = packedTexture;
-		vertexData[materialIndex] = (vertexData[materialIndex] & 0xFFFF0000) | spriteId;
+		vertexData[materialIndex] = (materialBase & 0xFFFF0000) | spriteId;
 		return this;
 	}
 
 	@Override
 	public VertexConsumer normal(float x, float y, float z) {
-		vertexData[normalIndex] = (vertexData[normalIndex] & 0xFF000000) | NormalHelper.packUnsignedNormal(x, y, z);
+		vertexData[normalIndex] = normalBase | NormalHelper.packUnsignedNormal(x, y, z);
 		return this;
 	}
 }

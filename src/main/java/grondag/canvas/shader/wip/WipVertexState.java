@@ -182,4 +182,11 @@ public class WipVertexState {
 			return this;
 		}
 	}
+
+	private static ThreadLocal<Finder> FINDER = ThreadLocal.withInitial(Finder::new);
+
+	public static Finder finder() {
+		final Finder result = FINDER.get();
+		return result.reset();
+	}
 }

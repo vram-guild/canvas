@@ -4,6 +4,8 @@ import java.util.Map;
 import java.util.SortedMap;
 
 import grondag.canvas.shader.wip.WipRenderState;
+import grondag.canvas.shader.wip.WipVertexState;
+import grondag.canvas.shader.wip.encoding.WipVertexCollector;
 import grondag.canvas.shader.wip.encoding.WipVertexCollectorImpl;
 import grondag.canvas.shader.wip.encoding.WipVertexCollectorList;
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
@@ -26,8 +28,15 @@ public class WipImmediate extends Immediate {
 
 	@Override
 	public VertexConsumer getBuffer(RenderLayer renderLayer) {
-		final VertexConsumer result = collectors.get(WipRenderState.fromLayer(renderLayer));
-		return result == null ? super.getBuffer(renderLayer) : result;
+		final WipVertexCollector result = collectors.get(WipRenderState.fromLayer(renderLayer));
+
+		if (result == null) {
+			return super.getBuffer(renderLayer);
+		} else {
+			// PERF: cache this with the reder layer instead of doing threadlocal each time
+			result.vertexState(WipVertexState.finder().copyFromLayer(renderLayer).find());
+			return result;
+		}
 	}
 
 	@Override

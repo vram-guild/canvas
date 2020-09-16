@@ -35,6 +35,12 @@ package grondag.canvas.shader.wip.encoding;
 import net.minecraft.client.render.VertexConsumer;
 
 public interface WipVertexCollector extends VertexConsumer {
+	/**
+	 * Does not output any vertex data - sets state to be included
+	 * with normals and material if they are included.  Call once
+	 * whenever material changes, including default state or revert
+	 * to default state of the render state.
+	 */
 	WipVertexCollector vertexState(int vertexState);
 
 	WipVertexCollector vertex(float x, float y, float z);
