@@ -22,7 +22,10 @@ import java.util.function.Consumer;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
+import grondag.canvas.apiimpl.ShaderBuilderImpl.UniformMatrix3f;
 import grondag.canvas.apiimpl.ShaderBuilderImpl.UniformMatrix4f;
+import grondag.canvas.mixinterface.Matrix3fExt;
+import grondag.canvas.mixinterface.Matrix4fExt;
 import grondag.canvas.shader.Shader;
 import grondag.canvas.shader.wip.encoding.WipVertexFormat;
 import grondag.canvas.varia.CanvasGlHelper;
@@ -39,13 +42,14 @@ import grondag.frex.api.material.Uniform.UniformArrayf;
 import grondag.frex.api.material.Uniform.UniformArrayi;
 import grondag.frex.api.material.UniformRefreshFrequency;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import org.joml.Matrix4f;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL21;
 import org.lwjgl.system.MemoryUtil;
 
 import net.minecraft.client.resource.language.I18n;
+import net.minecraft.util.math.Matrix3f;
+import net.minecraft.util.math.Matrix4f;
 
 public class WipGlProgram {
 	static {
@@ -64,6 +68,8 @@ public class WipGlProgram {
 	private final ObjectArrayList<UniformImpl<?>> gameTickUpdates = new ObjectArrayList<>();
 	// UGLY: special casing, public
 	public Uniform3fImpl modelOrigin;
+	// converts world normals to normals of incoming vertex data
+	public UniformMatrix3fImpl normalModelMatrix;
 	protected boolean hasDirty = false;
 	private int progID = -1;
 	private boolean isErrored = false;
@@ -94,6 +100,12 @@ public class WipGlProgram {
 		activate();
 		modelOrigin.set(x, y, z);
 		modelOrigin.upload();
+	}
+
+	public void actvateWithNormalModelMatrix(Matrix3f matrix) {
+		activate();
+		normalModelMatrix.set(matrix);
+		normalModelMatrix.upload();
 	}
 
 	private <T extends UniformImpl<?>> void addUniform(T toAdd) {
@@ -264,6 +276,26 @@ public class WipGlProgram {
 		return result;
 	}
 
+	public UniformMatrix3fImpl uniformMatrix3f(String name, UniformRefreshFrequency frequency, Consumer<UniformMatrix3f> initializer) {
+		final UniformMatrix3fImpl result = new UniformMatrix3fImpl(name, initializer, frequency);
+
+		if (containsUniformSpec("mat3", name)) {
+			addUniform(result);
+		}
+
+		return result;
+	}
+
+	public UniformMatrix3fImpl uniformMatrix3f(String name, UniformRefreshFrequency frequency, FloatBuffer floatBuffer, Consumer<UniformMatrix3f> initializer) {
+		final UniformMatrix3fImpl result = new UniformMatrix3fImpl(name, initializer, frequency);
+
+		if (containsUniformSpec("mat3", name)) {
+			addUniform(result);
+		}
+
+		return result;
+	}
+
 	public final void load() {
 		isErrored = true;
 
@@ -376,7 +408,7 @@ public class WipGlProgram {
 		private final void load(int programID) {
 			this.unifID = GL21.glGetUniformLocation(programID, name);
 			if (this.unifID == -1) {
-				CanvasMod.LOG.debug(I18n.translate("debug.canvas.missing_uniform", name,
+				CanvasMod.LOG.info(I18n.translate("debug.canvas.missing_uniform", name,
 					vertexShader.getShaderSource().toString(), fragmentShader.getShaderSource().toString()));
 				this.flags = 0;
 			} else {
@@ -730,9 +762,9 @@ public class WipGlProgram {
 				return;
 			}
 
-			lastValue.set(matrix);
+			((Matrix4fExt)(Object) lastValue).set((Matrix4fExt)(Object) matrix);
 
-			matrix.get(uniformFloatBuffer);
+			matrix.writeToBuffer(uniformFloatBuffer);
 
 			setDirty();
 		}
@@ -740,6 +772,50 @@ public class WipGlProgram {
 		@Override
 		protected void uploadInner() {
 			GL21.glUniformMatrix4fv(unifID, false, uniformFloatBuffer);
+		}
+	}
+
+	public class UniformMatrix3fImpl extends UniformImpl<UniformMatrix3f> implements UniformMatrix3f {
+		protected final FloatBuffer uniformFloatBuffer;
+		protected final long bufferAddress;
+		protected final Matrix3f lastValue = new Matrix3f();
+
+		protected UniformMatrix3fImpl(String name, Consumer<UniformMatrix3f> initializer,
+		UniformRefreshFrequency frequency) {
+			this(name, initializer, frequency, BufferUtils.createFloatBuffer(9));
+		}
+
+		/**
+		 * Use when have a shared direct buffer
+		 */
+		protected UniformMatrix3fImpl(String name, Consumer<UniformMatrix3f> initializer,
+		UniformRefreshFrequency frequency, FloatBuffer uniformFloatBuffer) {
+			super(name, initializer, frequency);
+			this.uniformFloatBuffer = uniformFloatBuffer;
+			bufferAddress = MemoryUtil.memAddress(this.uniformFloatBuffer);
+		}
+
+		@Override
+		public final void set(Matrix3f matrix) {
+			if (unifID == -1) {
+				return;
+			}
+
+			if (matrix == null || matrix.equals(lastValue)) {
+				return;
+			}
+
+			final Matrix3fExt m = (Matrix3fExt)(Object) matrix;
+			((Matrix3fExt)(Object) lastValue).set(m);
+
+			m.writeToBuffer(uniformFloatBuffer);
+
+			setDirty();
+		}
+
+		@Override
+		protected void uploadInner() {
+			GL21.glUniformMatrix3fv(unifID, false, uniformFloatBuffer);
 		}
 	}
 }

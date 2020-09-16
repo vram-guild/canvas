@@ -1,4 +1,5 @@
 #include canvas:shaders/wip/world.glsl
+#include canvas:shaders/wip/flags.glsl
 
 /******************************************************
   frex:shaders/api/world.glsl
@@ -124,5 +125,5 @@ bool frx_isThundering() {
  * Add this to vertex position to get world position.
  */
 vec3 frx_modelOriginWorldPos() {
-	return _cvu_modelOrigin;
+	return _cvu_model_origin;
 }

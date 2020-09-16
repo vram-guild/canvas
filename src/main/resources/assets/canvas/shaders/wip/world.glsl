@@ -28,4 +28,7 @@
 #define _CV_FLAG0_IS_THUNDERING        6
 
 uniform float[16] _cvu_world;
-uniform vec3 _cvu_modelOrigin;
+uniform vec3 _cvu_model_origin;
+
+// converts world space normals to model space of incoming vertex data
+uniform mat3 _cvu_normal_model_matrix;

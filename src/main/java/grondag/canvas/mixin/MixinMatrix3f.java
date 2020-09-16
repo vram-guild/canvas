@@ -18,9 +18,10 @@ package grondag.canvas.mixin;
 
 import grondag.canvas.apiimpl.util.NormalHelper;
 import grondag.canvas.mixinterface.Matrix3fExt;
-import net.minecraft.util.math.Matrix3f;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+
+import net.minecraft.util.math.Matrix3f;
 
 @Mixin(Matrix3f.class)
 public class MixinMatrix3f implements Matrix3fExt {
@@ -55,5 +56,95 @@ public class MixinMatrix3f implements Matrix3fExt {
 		final float nz = a20 * x + a21 * y + a22 * z;
 
 		return NormalHelper.packNormal(nx, ny, nz, w);
+	}
+
+	@Override
+	public float a00() {
+		return a00;
+	}
+
+	@Override
+	public float a01() {
+		return a01;
+	}
+
+	@Override
+	public float a02() {
+		return a02;
+	}
+
+	@Override
+	public float a10() {
+		return a10;
+	}
+
+	@Override
+	public float a11() {
+		return a11;
+	}
+
+	@Override
+	public float a12() {
+		return a12;
+	}
+
+	@Override
+	public float a20() {
+		return a20;
+	}
+
+	@Override
+	public float a21() {
+		return a21;
+	}
+
+	@Override
+	public float a22() {
+		return a22;
+	}
+
+	@Override
+	public void a00(float val) {
+		a00 = val;
+	}
+
+	@Override
+	public void a01(float val) {
+		a01 = val;
+	}
+
+	@Override
+	public void a02(float val) {
+		a02 = val;
+	}
+
+	@Override
+	public void a10(float val) {
+		a10 = val;
+	}
+
+	@Override
+	public void a11(float val) {
+		a11 = val;
+	}
+
+	@Override
+	public void a12(float val) {
+		a12 = val;
+	}
+
+	@Override
+	public void a20(float val) {
+		a20 = val;
+	}
+
+	@Override
+	public void a21(float val) {
+		a21 = val;
+	}
+
+	@Override
+	public void a22(float val) {
+		a22 = val;
 	}
 }

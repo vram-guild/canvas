@@ -16,25 +16,36 @@
 
 package grondag.canvas.shader;
 
+import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
+import java.util.function.Consumer;
+
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.ShaderBuilderImpl.UniformMatrix4f;
 import grondag.canvas.material.MaterialVertexFormat;
+import grondag.canvas.mixinterface.Matrix4fExt;
 import grondag.canvas.varia.CanvasGlHelper;
 import grondag.frex.api.material.Uniform;
-import grondag.frex.api.material.Uniform.*;
+import grondag.frex.api.material.Uniform.Uniform1f;
+import grondag.frex.api.material.Uniform.Uniform1i;
+import grondag.frex.api.material.Uniform.Uniform2f;
+import grondag.frex.api.material.Uniform.Uniform2i;
+import grondag.frex.api.material.Uniform.Uniform3f;
+import grondag.frex.api.material.Uniform.Uniform3i;
+import grondag.frex.api.material.Uniform.Uniform4f;
+import grondag.frex.api.material.Uniform.Uniform4i;
+import grondag.frex.api.material.Uniform.UniformArrayf;
+import grondag.frex.api.material.Uniform.UniformArrayi;
 import grondag.frex.api.material.UniformRefreshFrequency;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import net.minecraft.client.resource.language.I18n;
-import org.joml.Matrix4f;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL21;
 import org.lwjgl.system.MemoryUtil;
 
-import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
-import java.util.function.Consumer;
+import net.minecraft.client.resource.language.I18n;
+import net.minecraft.util.math.Matrix4f;
 
 public class GlProgram {
 	static {
@@ -334,7 +345,7 @@ public class GlProgram {
 
 	public boolean containsUniformSpec(String type, String name) {
 		return vertexShader.containsUniformSpec(type, name)
-				|| fragmentShader.containsUniformSpec(type, name);
+		|| fragmentShader.containsUniformSpec(type, name);
 	}
 
 	public abstract class UniformImpl<T extends Uniform> {
@@ -366,7 +377,7 @@ public class GlProgram {
 			this.unifID = GL21.glGetUniformLocation(programID, name);
 			if (this.unifID == -1) {
 				CanvasMod.LOG.debug(I18n.translate("debug.canvas.missing_uniform", name,
-						vertexShader.getShaderSource().toString(), fragmentShader.getShaderSource().toString()));
+					vertexShader.getShaderSource().toString(), fragmentShader.getShaderSource().toString()));
 				this.flags = 0;
 			} else {
 				// dirty flag will be reset before uniforms are loaded
@@ -719,9 +730,9 @@ public class GlProgram {
 				return;
 			}
 
-			lastValue.set(matrix);
+			((Matrix4fExt)(Object) lastValue).set((Matrix4fExt)(Object) matrix);
 
-			matrix.get(uniformFloatBuffer);
+			matrix.writeToBuffer(uniformFloatBuffer);
 
 			setDirty();
 		}

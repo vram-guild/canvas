@@ -1,4 +1,5 @@
 #include frex:shaders/wip/api/context.glsl
+#include frex:shaders/wip/api/world.glsl
 
 /******************************************************
   canvas:shaders/internal/diffuse.glsl
@@ -9,7 +10,16 @@
  * consistent with Phong lighting ambient + diffuse for others.
  */
 float _cv_diffuseBaked(vec3 normal) {
-	return 0.5 + clamp(abs(normal.x) * 0.1 + (normal.y > 0 ? 0.5 * normal.y : 0.0) + abs(normal.z) * 0.3, 0.0, 0.5);
+	// PERF: highly inefficient
+	vec3 xVec = _cvu_normal_model_matrix * vec3(1.0, 0.0, 0.0);
+	vec3 yVec = _cvu_normal_model_matrix * vec3(0.0, 1.0, 0.0);
+	vec3 zVec = _cvu_normal_model_matrix * vec3(0.0, 0.0, 1.0);
+
+	float x = dot(xVec, normal);
+	float y = dot(yVec, normal);
+	float z = dot(zVec, normal);
+
+	return 0.5 + clamp(abs(x) * 0.1 + (y > 0 ? 0.5 * y : 0.0) + abs(z) * 0.3, 0.0, 0.5);
 }
 
 /**

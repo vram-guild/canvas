@@ -16,19 +16,30 @@
 
 package grondag.canvas.apiimpl;
 
+import java.util.ArrayList;
+import java.util.function.Consumer;
+
 import grondag.canvas.apiimpl.material.MaterialShaderImpl;
 import grondag.canvas.shader.GlProgram;
 import grondag.canvas.shader.MaterialShaderManager;
 import grondag.frex.api.material.MaterialShader;
 import grondag.frex.api.material.ShaderBuilder;
 import grondag.frex.api.material.Uniform;
-import grondag.frex.api.material.Uniform.*;
+import grondag.frex.api.material.Uniform.Uniform1f;
+import grondag.frex.api.material.Uniform.Uniform1i;
+import grondag.frex.api.material.Uniform.Uniform2f;
+import grondag.frex.api.material.Uniform.Uniform2i;
+import grondag.frex.api.material.Uniform.Uniform3f;
+import grondag.frex.api.material.Uniform.Uniform3i;
+import grondag.frex.api.material.Uniform.Uniform4f;
+import grondag.frex.api.material.Uniform.Uniform4i;
+import grondag.frex.api.material.Uniform.UniformArrayf;
+import grondag.frex.api.material.Uniform.UniformArrayi;
 import grondag.frex.api.material.UniformRefreshFrequency;
-import net.minecraft.util.Identifier;
-import org.joml.Matrix4f;
 
-import java.util.ArrayList;
-import java.util.function.Consumer;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.math.Matrix3f;
+import net.minecraft.util.math.Matrix4f;
 
 public class ShaderBuilderImpl implements ShaderBuilder {
 	private final ArrayList<Consumer<GlProgram>> uniforms = new ArrayList<>();
@@ -126,5 +137,10 @@ public class ShaderBuilderImpl implements ShaderBuilder {
 	@FunctionalInterface
 	public interface UniformMatrix4f extends Uniform {
 		void set(Matrix4f matrix);
+	}
+
+	@FunctionalInterface
+	public interface UniformMatrix3f extends Uniform {
+		void set(Matrix3f matrix);
 	}
 }

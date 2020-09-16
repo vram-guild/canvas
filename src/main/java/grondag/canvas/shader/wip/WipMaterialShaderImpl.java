@@ -26,6 +26,7 @@ import grondag.frex.api.material.MaterialShader;
 import grondag.frex.api.material.UniformRefreshFrequency;
 
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.Matrix3f;
 
 public final class WipMaterialShaderImpl implements MaterialShader {
 	public final int index;
@@ -54,7 +55,8 @@ public final class WipMaterialShaderImpl implements MaterialShader {
 			final Shader fs = WipGlShaderManager.INSTANCE.getOrCreateFragmentShader(fragmentShader, programType, format);
 			final WipGlProgram newProgram = new WipGlProgram(vs, fs, format, programType);
 			programSetups.forEach(ps -> ps.accept(newProgram));
-			newProgram.modelOrigin = (Uniform3fImpl) newProgram.uniform3f("_cvu_modelOrigin", UniformRefreshFrequency.ON_LOAD, u -> u.set(0, 0, 0));
+			newProgram.modelOrigin = (Uniform3fImpl) newProgram.uniform3f("_cvu_model_origin", UniformRefreshFrequency.ON_LOAD, u -> u.set(0, 0, 0));
+			newProgram.normalModelMatrix = newProgram.uniformMatrix3f("_cvu_normal_model_matrix", UniformRefreshFrequency.ON_LOAD, u -> {});
 			newProgram.load();
 			program = newProgram;
 			return newProgram;
@@ -69,6 +71,10 @@ public final class WipMaterialShaderImpl implements MaterialShader {
 
 	public void activate() {
 		getOrCreate().activate();
+	}
+
+	public void activate(Matrix3f normalmodelmatrix) {
+		getOrCreate().actvateWithNormalModelMatrix(normalmodelmatrix);
 	}
 
 	public void reload() {

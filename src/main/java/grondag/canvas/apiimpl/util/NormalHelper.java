@@ -67,7 +67,7 @@ public abstract class NormalHelper {
 	 * <p>Components are x, y, z, w - zero based.
 	 */
 	public static float getPackedNormalComponent(int packedNormal, int component) {
-		return ((byte) (packedNormal >> (8 * component))) / 127f;
+		return ((byte) (packedNormal >>> (8 * component))) / 127f;
 	}
 
 	/**
