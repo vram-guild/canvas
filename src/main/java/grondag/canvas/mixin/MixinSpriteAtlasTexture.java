@@ -16,19 +16,20 @@
 
 package grondag.canvas.mixin;
 
+import java.util.Map;
+
 import grondag.canvas.mixinterface.SpriteExt;
 import grondag.canvas.texture.SpriteInfoTexture;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import net.minecraft.client.texture.Sprite;
-import net.minecraft.client.texture.SpriteAtlasTexture;
-import net.minecraft.util.Identifier;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import java.util.Map;
+import net.minecraft.client.texture.Sprite;
+import net.minecraft.client.texture.SpriteAtlasTexture;
+import net.minecraft.util.Identifier;
 
 @Mixin(SpriteAtlasTexture.class)
 public class MixinSpriteAtlasTexture {
@@ -48,7 +49,7 @@ public class MixinSpriteAtlasTexture {
 				((SpriteExt) sprite).canvas_id(index++);
 			}
 
-			SpriteInfoTexture.reset(input, spriteIndex, (SpriteAtlasTexture)(Object) this);
+			SpriteInfoTexture.BLOCKS.reset(input, spriteIndex, (SpriteAtlasTexture)(Object) this);
 		}
 	}
 }

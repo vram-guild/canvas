@@ -22,29 +22,33 @@ import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
 import grondag.canvas.mixinterface.SpriteAtlasTextureDataExt;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.renderer.v1.model.SpriteFinder;
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL21;
+
 import net.minecraft.client.texture.Sprite;
 import net.minecraft.client.texture.SpriteAtlasTexture;
 import net.minecraft.client.texture.SpriteAtlasTexture.Data;
 import net.minecraft.client.texture.TextureUtil;
 import net.minecraft.util.math.MathHelper;
-import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL21;
+
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
+import net.fabricmc.fabric.api.renderer.v1.model.SpriteFinder;
 
 @Environment(EnvType.CLIENT)
 public class SpriteInfoTexture {
-	private static ObjectArrayList<Sprite> spriteIndex = null;
-	private static SpriteAtlasTexture atlas;
-	private static SpriteFinder spriteFinder;
-	private static int atlasWidth;
-	private static int atlasHeight;
-	private static int spriteCount = -1;
-	private static int textureSize = -1;
-	private static int glId = -1;
+	public static final SpriteInfoTexture BLOCKS = new SpriteInfoTexture();
 
-	public static void reset(Data dataIn, ObjectArrayList<Sprite> spriteIndexIn, SpriteAtlasTexture atlasIn) {
+	private ObjectArrayList<Sprite> spriteIndex = null;
+	private SpriteAtlasTexture atlas;
+	private SpriteFinder spriteFinder;
+	private int atlasWidth;
+	private int atlasHeight;
+	private int spriteCount = -1;
+	private int textureSize = -1;
+	private int glId = -1;
+
+	public void reset(Data dataIn, ObjectArrayList<Sprite> spriteIndexIn, SpriteAtlasTexture atlasIn) {
 		if (Configurator.enableLifeCycleDebug) {
 			CanvasMod.LOG.info("Lifecycle Event: SpriteInfoTexture init");
 		}
@@ -64,14 +68,14 @@ public class SpriteInfoTexture {
 		atlasHeight = ((SpriteAtlasTextureDataExt) dataIn).canvas_atlasHeight();
 	}
 
-	private static void createImageIfNeeded() {
+	private void createImageIfNeeded() {
 		if (glId == -1) {
 			assert RenderSystem.isOnRenderThread();
 			createImage();
 		}
 	}
 
-	private static void createImage() {
+	private void createImage() {
 		try (final SpriteInfoImage image = new SpriteInfoImage(spriteIndex, spriteCount, textureSize)) {
 			glId = TextureUtil.generateId();
 
@@ -117,14 +121,14 @@ public class SpriteInfoTexture {
 		}
 	}
 
-	public static void disable() {
+	public void disable() {
 		GlStateManager.activeTexture(TextureData.SPRITE_INFO);
 		GlStateManager.bindTexture(0);
 		GlStateManager.disableTexture();
 		GlStateManager.activeTexture(TextureData.MC_SPRITE_ATLAS);
 	}
 
-	public static void enable() {
+	public void enable() {
 		createImageIfNeeded();
 		GlStateManager.activeTexture(TextureData.SPRITE_INFO);
 		GlStateManager.bindTexture(glId);
@@ -132,11 +136,11 @@ public class SpriteInfoTexture {
 		GlStateManager.activeTexture(TextureData.MC_SPRITE_ATLAS);
 	}
 
-	public static int coordinate(int spriteId) {
+	public int coordinate(int spriteId) {
 		return spriteId;
 	}
 
-	public static Sprite fromId(int spriteId) {
+	public Sprite fromId(int spriteId) {
 		// TODO: remove
 		if (spriteIndex == null) {
 			new RuntimeException().printStackTrace();
@@ -145,7 +149,7 @@ public class SpriteInfoTexture {
 		return spriteIndex.get(spriteId);
 	}
 
-	public static float mapU(int spriteId, float unmappedU) {
+	public float mapU(int spriteId, float unmappedU) {
 		// TODO: remove
 		if (spriteIndex == null) {
 			new RuntimeException().printStackTrace();
@@ -156,7 +160,7 @@ public class SpriteInfoTexture {
 		return u0 + unmappedU * (sprite.getMaxU() - u0);
 	}
 
-	public static float mapV(int spriteId, float unmappedV) {
+	public float mapV(int spriteId, float unmappedV) {
 		// TODO: remove
 		if (spriteIndex == null) {
 			new RuntimeException().printStackTrace();
@@ -167,23 +171,23 @@ public class SpriteInfoTexture {
 		return v0 + unmappedV * (sprite.getMaxV() - v0);
 	}
 
-	public static int textureSize() {
+	public int textureSize() {
 		return textureSize;
 	}
 
-	public static int atlasWidth() {
+	public int atlasWidth() {
 		return atlasWidth;
 	}
 
-	public static int atlasHeight() {
+	public int atlasHeight() {
 		return atlasHeight;
 	}
 
-	public static SpriteAtlasTexture atlas() {
+	public SpriteAtlasTexture atlas() {
 		return atlas;
 	}
 
-	public static SpriteFinder spriteFinder() {
+	public SpriteFinder spriteFinder() {
 		return spriteFinder;
 	}
 }

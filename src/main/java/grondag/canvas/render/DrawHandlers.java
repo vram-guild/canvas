@@ -24,12 +24,13 @@ import grondag.canvas.material.MaterialVertexFormat;
 import grondag.canvas.material.MaterialVertexFormats;
 import grondag.canvas.shader.ShaderPass;
 import grondag.canvas.texture.SpriteInfoTexture;
+import org.lwjgl.opengl.GL21;
+
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.BackgroundRenderer;
 import net.minecraft.client.texture.SpriteAtlasTexture;
 import net.minecraft.client.texture.TextureManager;
 import net.minecraft.util.math.MathHelper;
-import org.lwjgl.opengl.GL21;
 
 public class DrawHandlers {
 
@@ -66,7 +67,7 @@ public class DrawHandlers {
 		@SuppressWarnings("resource")
 		@Override
 		protected void setupInner() {
-			SpriteInfoTexture.enable();
+			SpriteInfoTexture.BLOCKS.enable();
 			RenderSystem.enableTexture();
 			final TextureManager textureManager = MinecraftClient.getInstance().getTextureManager();
 			textureManager.bindTexture(SpriteAtlasTexture.BLOCK_ATLAS_TEX);
@@ -88,7 +89,7 @@ public class DrawHandlers {
 			RenderSystem.disableCull();
 			MinecraftClient.getInstance().gameRenderer.getLightmapTextureManager().disable();
 			RenderSystem.disableFog();
-			SpriteInfoTexture.disable();
+			SpriteInfoTexture.BLOCKS.disable();
 
 		}
 
@@ -102,7 +103,7 @@ public class DrawHandlers {
 		@SuppressWarnings("resource")
 		@Override
 		protected void setupInner() {
-			SpriteInfoTexture.enable();
+			SpriteInfoTexture.BLOCKS.enable();
 			RenderSystem.enableTexture();
 			final TextureManager textureManager = MinecraftClient.getInstance().getTextureManager();
 			textureManager.bindTexture(SpriteAtlasTexture.BLOCK_ATLAS_TEX);
@@ -128,7 +129,7 @@ public class DrawHandlers {
 			RenderSystem.disableFog();
 			RenderSystem.disableBlend();
 			RenderSystem.depthMask(true);
-			SpriteInfoTexture.disable();
+			SpriteInfoTexture.BLOCKS.disable();
 		}
 	}
 
@@ -140,7 +141,7 @@ public class DrawHandlers {
 		@SuppressWarnings("resource")
 		@Override
 		protected void setupInner() {
-			SpriteInfoTexture.enable();
+			SpriteInfoTexture.BLOCKS.enable();
 			RenderSystem.enableTexture();
 			final TextureManager textureManager = MinecraftClient.getInstance().getTextureManager();
 			textureManager.bindTexture(SpriteAtlasTexture.BLOCK_ATLAS_TEX);
@@ -165,7 +166,7 @@ public class DrawHandlers {
 			RenderSystem.disableFog();
 			RenderSystem.disableBlend();
 			RenderSystem.defaultBlendFunc();
-			SpriteInfoTexture.disable();
+			SpriteInfoTexture.BLOCKS.disable();
 		}
 	}
 }

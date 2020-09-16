@@ -22,14 +22,36 @@ import grondag.canvas.apiimpl.util.GeometryHelper;
 import grondag.canvas.apiimpl.util.NormalHelper;
 import grondag.canvas.mixinterface.Matrix4fExt;
 import grondag.canvas.texture.SpriteInfoTexture;
-import net.fabricmc.fabric.api.renderer.v1.mesh.MutableQuadView;
-import net.fabricmc.fabric.api.renderer.v1.mesh.QuadView;
-import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
+
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.BASE_QUAD_STRIDE;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.BASE_VERTEX_STRIDE;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_BITS;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_COLOR_INDEX;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_MATERIAL;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_SPRITE_LOW;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_STRIDE;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_TAG;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.TEXTURE_OFFSET_MINUS;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.TEXTURE_QUAD_STRIDE;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.TEXTURE_VERTEX_STRIDE;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.UV_EXTRA_PRECISION;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.UV_PRECISE_TO_FLOAT_CONVERSION;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.UV_ROUNDING_BIT;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_COLOR;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_LIGHTMAP;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_NORMAL;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_START;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_X;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_Y;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_Z;
+
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.util.math.Vector3f;
 import net.minecraft.util.math.Direction;
 
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.*;
+import net.fabricmc.fabric.api.renderer.v1.mesh.MutableQuadView;
+import net.fabricmc.fabric.api.renderer.v1.mesh.QuadView;
+import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 
 /**
  * Base class for all quads / quad makers. Handles the ugly bits
@@ -339,14 +361,14 @@ public class QuadViewImpl implements QuadView {
 	@Override
 	public float spriteU(int vertexIndex, int spriteIndex) {
 		return isSpriteUnmapped(spriteIndex)
-		? SpriteInfoTexture.mapU(spriteId(spriteIndex), spriteFloatU(vertexIndex, spriteIndex))
+		? SpriteInfoTexture.BLOCKS.mapU(spriteId(spriteIndex), spriteFloatU(vertexIndex, spriteIndex))
 		: spriteFloatU(vertexIndex, spriteIndex);
 	}
 
 	@Override
 	public float spriteV(int vertexIndex, int spriteIndex) {
 		return isSpriteUnmapped(spriteIndex)
-		? SpriteInfoTexture.mapV(spriteId(spriteIndex), spriteFloatV(vertexIndex, spriteIndex))
+		? SpriteInfoTexture.BLOCKS.mapV(spriteId(spriteIndex), spriteFloatV(vertexIndex, spriteIndex))
 		: spriteFloatV(vertexIndex, spriteIndex);
 	}
 

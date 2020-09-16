@@ -16,6 +16,11 @@
 
 package grondag.canvas.apiimpl.rendercontext;
 
+import javax.annotation.Nullable;
+
+import java.util.Random;
+import java.util.function.Consumer;
+
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.material.MeshMaterialLayer;
@@ -30,20 +35,17 @@ import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.texture.SpriteInfoTexture;
 import grondag.frex.api.material.MaterialMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import net.fabricmc.fabric.api.renderer.v1.material.RenderMaterial;
-import net.fabricmc.fabric.api.renderer.v1.mesh.Mesh;
-import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
-import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
+
 import net.minecraft.block.BlockState;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.model.BakedModel;
 import net.minecraft.client.texture.Sprite;
 import net.minecraft.util.math.Matrix4f;
 
-import javax.annotation.Nullable;
-
-import java.util.Random;
-import java.util.function.Consumer;
+import net.fabricmc.fabric.api.renderer.v1.material.RenderMaterial;
+import net.fabricmc.fabric.api.renderer.v1.mesh.Mesh;
+import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
+import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 
 public abstract class AbstractRenderContext implements RenderContext {
 	private static final QuadTransform NO_TRANSFORM = (q) -> true;
@@ -101,7 +103,7 @@ public abstract class AbstractRenderContext implements RenderContext {
 			return;
 		}
 
-		final Sprite sprite = materialMap.needsSprite() ? SpriteInfoTexture.fromId(quad.spriteId(0)) : null;
+		final Sprite sprite = materialMap.needsSprite() ? SpriteInfoTexture.BLOCKS.fromId(quad.spriteId(0)) : null;
 		final RenderMaterial mapped = materialMap.getMapped(sprite);
 
 		if (mapped != null) {
