@@ -40,16 +40,14 @@ public class MixinSpriteAtlasTexture {
 
 	@Inject(at = @At("RETURN"), method = "upload")
 	private void afterUpload(SpriteAtlasTexture.Data input, CallbackInfo info) {
-		if (id.equals(SpriteAtlasTexture.BLOCK_ATLAS_TEX)) {
-			int index = 0;
-			final ObjectArrayList<Sprite> spriteIndex = new ObjectArrayList<>();
+		int index = 0;
+		final ObjectArrayList<Sprite> spriteIndex = new ObjectArrayList<>();
 
-			for (final Sprite sprite : sprites.values()) {
-				spriteIndex.add(sprite);
-				((SpriteExt) sprite).canvas_id(index++);
-			}
-
-			SpriteInfoTexture.BLOCKS.reset(input, spriteIndex, (SpriteAtlasTexture)(Object) this);
+		for (final Sprite sprite : sprites.values()) {
+			spriteIndex.add(sprite);
+			((SpriteExt) sprite).canvas_id(index++);
 		}
+
+		SpriteInfoTexture.getOrCreate(id).reset(input, spriteIndex, (SpriteAtlasTexture)(Object) this);
 	}
 }

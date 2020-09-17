@@ -21,6 +21,8 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
 import grondag.canvas.mixinterface.SpriteAtlasTextureDataExt;
+import it.unimi.dsi.fastutil.Hash;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL21;
@@ -29,6 +31,7 @@ import net.minecraft.client.texture.Sprite;
 import net.minecraft.client.texture.SpriteAtlasTexture;
 import net.minecraft.client.texture.SpriteAtlasTexture.Data;
 import net.minecraft.client.texture.TextureUtil;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.math.MathHelper;
 
 import net.fabricmc.api.EnvType;
@@ -37,7 +40,14 @@ import net.fabricmc.fabric.api.renderer.v1.model.SpriteFinder;
 
 @Environment(EnvType.CLIENT)
 public class SpriteInfoTexture {
-	public static final SpriteInfoTexture BLOCKS = new SpriteInfoTexture();
+
+	private static final Object2ObjectOpenHashMap<Identifier, SpriteInfoTexture> MAP = new Object2ObjectOpenHashMap<>(64, Hash.VERY_FAST_LOAD_FACTOR);
+
+	public static final SpriteInfoTexture getOrCreate(Identifier id) {
+		return MAP.computeIfAbsent(id, SpriteInfoTexture::new);
+	}
+
+	public static final SpriteInfoTexture BLOCKS = getOrCreate(SpriteAtlasTexture.BLOCK_ATLAS_TEX);
 
 	private ObjectArrayList<Sprite> spriteIndex = null;
 	private SpriteAtlasTexture atlas;
@@ -47,6 +57,11 @@ public class SpriteInfoTexture {
 	private int spriteCount = -1;
 	private int textureSize = -1;
 	private int glId = -1;
+	public final Identifier id;
+
+	private SpriteInfoTexture(Identifier id) {
+		this.id = id;
+	}
 
 	public void reset(Data dataIn, ObjectArrayList<Sprite> spriteIndexIn, SpriteAtlasTexture atlasIn) {
 		if (Configurator.enableLifeCycleDebug) {
@@ -141,31 +156,16 @@ public class SpriteInfoTexture {
 	}
 
 	public Sprite fromId(int spriteId) {
-		// TODO: remove
-		if (spriteIndex == null) {
-			new RuntimeException().printStackTrace();
-		}
-
 		return spriteIndex.get(spriteId);
 	}
 
 	public float mapU(int spriteId, float unmappedU) {
-		// TODO: remove
-		if (spriteIndex == null) {
-			new RuntimeException().printStackTrace();
-		}
-
 		final Sprite sprite = spriteIndex.get(spriteId);
 		final float u0 = sprite.getMinU();
 		return u0 + unmappedU * (sprite.getMaxU() - u0);
 	}
 
 	public float mapV(int spriteId, float unmappedV) {
-		// TODO: remove
-		if (spriteIndex == null) {
-			new RuntimeException().printStackTrace();
-		}
-
 		final Sprite sprite = spriteIndex.get(spriteId);
 		final float v0 = sprite.getMinV();
 		return v0 + unmappedV * (sprite.getMaxV() - v0);
