@@ -233,7 +233,7 @@ public final class WipRenderState {
 		format.enableDirect(MemoryUtil.memAddress(buffer));
 
 		// TODO: need to make matrix selection depend on origin or make all of this stateful
-		shader.activate(normalModelMatrix);
+		shader.activate(normalModelMatrix, texture.atlasInfo());
 		GlStateManager.drawArrays(primitive, 0, collector.vertexCount());
 		MaterialVertexFormat.disableDirect();
 		WipGlProgram.deactivate();

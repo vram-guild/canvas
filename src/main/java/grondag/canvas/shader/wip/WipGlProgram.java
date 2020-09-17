@@ -28,6 +28,7 @@ import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.Matrix4fExt;
 import grondag.canvas.shader.Shader;
 import grondag.canvas.shader.wip.encoding.WipVertexFormat;
+import grondag.canvas.texture.SpriteInfoTexture;
 import grondag.canvas.varia.CanvasGlHelper;
 import grondag.frex.api.material.Uniform;
 import grondag.frex.api.material.Uniform.Uniform1f;
@@ -70,6 +71,8 @@ public class WipGlProgram {
 	public Uniform3fImpl modelOrigin;
 	// converts world normals to normals of incoming vertex data
 	public UniformMatrix3fImpl normalModelMatrix;
+	public UniformArrayfImpl materialArray;
+
 	protected boolean hasDirty = false;
 	private int progID = -1;
 	private boolean isErrored = false;
@@ -102,10 +105,29 @@ public class WipGlProgram {
 		modelOrigin.upload();
 	}
 
-	public void actvateWithNormalModelMatrix(Matrix3f matrix) {
+	private final float[] materialData = new float[4];
+	private static final int _CV_SPRITE_INFO_TEXTURE_SIZE = 0;
+	private static final int _CV_ATLAS_WIDTH = 1;
+	private static final int _CV_ATLAS_HEIGHT = 2;
+
+	public void actvateWithNormalModelMatrix(Matrix3f normalModelMatrix, SpriteInfoTexture atlasInfo) {
 		activate();
-		normalModelMatrix.set(matrix);
-		normalModelMatrix.upload();
+
+		if (normalModelMatrix != null) {
+			this.normalModelMatrix.set(normalModelMatrix);
+			this.normalModelMatrix.upload();
+		}
+
+		if (atlasInfo == null) {
+			materialData[_CV_SPRITE_INFO_TEXTURE_SIZE] = 0;
+		} else {
+			materialData[_CV_SPRITE_INFO_TEXTURE_SIZE] = atlasInfo.textureSize();
+			materialData[_CV_ATLAS_WIDTH] = atlasInfo.atlasWidth();
+			materialData[_CV_ATLAS_HEIGHT] = atlasInfo.atlasHeight();
+		}
+
+		materialArray.set(materialData);
+		materialArray.upload();
 	}
 
 	private <T extends UniformImpl<?>> void addUniform(T toAdd) {

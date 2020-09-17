@@ -16,6 +16,7 @@
 
 package grondag.canvas.shader.wip.props;
 
+import grondag.canvas.texture.SpriteInfoTexture;
 import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
@@ -60,6 +61,7 @@ public class WipTextureState {
 
 	private AbstractTexture texture;
 	private boolean isAtlas;
+	private SpriteInfoTexture atlasInfo;
 
 	private WipTextureState(int index, Identifier id) {
 		this.index = index;
@@ -73,6 +75,12 @@ public class WipTextureState {
 			tm.bindTexture(id);
 			texture = tm.getTexture(id);
 			isAtlas = texture != null && texture instanceof SpriteAtlasTexture;
+
+			if (isAtlas) {
+				atlasInfo = SpriteInfoTexture.getOrCreate(id);
+			} else {
+				atlasInfo = null;
+			}
 		}
 	}
 
@@ -84,5 +92,10 @@ public class WipTextureState {
 	public boolean isAtlas() {
 		retreiveTexture();
 		return isAtlas;
+	}
+
+	public SpriteInfoTexture atlasInfo() {
+		retreiveTexture();
+		return atlasInfo;
 	}
 }

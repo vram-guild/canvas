@@ -21,7 +21,9 @@ import java.util.function.Consumer;
 
 import grondag.canvas.shader.Shader;
 import grondag.canvas.shader.wip.WipGlProgram.Uniform3fImpl;
+import grondag.canvas.shader.wip.WipGlProgram.UniformArrayfImpl;
 import grondag.canvas.shader.wip.encoding.WipVertexFormat;
+import grondag.canvas.texture.SpriteInfoTexture;
 import grondag.frex.api.material.MaterialShader;
 import grondag.frex.api.material.UniformRefreshFrequency;
 
@@ -57,6 +59,7 @@ public final class WipMaterialShaderImpl implements MaterialShader {
 			programSetups.forEach(ps -> ps.accept(newProgram));
 			newProgram.modelOrigin = (Uniform3fImpl) newProgram.uniform3f("_cvu_model_origin", UniformRefreshFrequency.ON_LOAD, u -> u.set(0, 0, 0));
 			newProgram.normalModelMatrix = newProgram.uniformMatrix3f("_cvu_normal_model_matrix", UniformRefreshFrequency.ON_LOAD, u -> {});
+			newProgram.materialArray = (UniformArrayfImpl) newProgram.uniformArrayf("_cvu_material", UniformRefreshFrequency.ON_LOAD, u -> {}, 4);
 			newProgram.load();
 			program = newProgram;
 			return newProgram;
@@ -73,8 +76,8 @@ public final class WipMaterialShaderImpl implements MaterialShader {
 		getOrCreate().activate();
 	}
 
-	public void activate(Matrix3f normalmodelmatrix) {
-		getOrCreate().actvateWithNormalModelMatrix(normalmodelmatrix);
+	public void activate(Matrix3f normalmodelmatrix, SpriteInfoTexture atlasInfo) {
+		getOrCreate().actvateWithNormalModelMatrix(normalmodelmatrix, atlasInfo);
 	}
 
 	public void reload() {

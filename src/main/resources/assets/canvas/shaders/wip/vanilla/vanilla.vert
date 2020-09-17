@@ -75,15 +75,22 @@ void main() {
 	//frx_startVertex(data);
 	//#endif
 
-//	vec4 spriteBounds = texture2DLod(frxs_spriteInfo, vec2(0, in_material.x / _CV_SPRITE_INFO_TEXTURE_SIZE), 0);
+	if (_cvu_material[_CV_SPRITE_INFO_TEXTURE_SIZE] != 0.0) {
+		// for sprite atlas textures, convert from normalized (0-1) to interpolated coordinates
+		vec4 spriteBounds = texture2DLod(frxs_spriteInfo, vec2(0, in_material.x / _cvu_material[_CV_SPRITE_INFO_TEXTURE_SIZE]), 0);
 
-	// snap sprite bounds to integer coordinates to correct for floating point error
-//	spriteBounds *= vec4(_CV_ATLAS_WIDTH, _CV_ATLAS_HEIGHT, _CV_ATLAS_WIDTH, _CV_ATLAS_HEIGHT);
-//	spriteBounds += vec4(0.5, 0.5, 0.5, 0.5);
-//	spriteBounds -= fract(spriteBounds);
-//	spriteBounds /= vec4(_CV_ATLAS_WIDTH, _CV_ATLAS_HEIGHT, _CV_ATLAS_WIDTH, _CV_ATLAS_HEIGHT);
+		float atlasHeight = _cvu_material[_CV_ATLAS_HEIGHT];
+		float atlasWidth = _cvu_material[_CV_ATLAS_WIDTH];
 
-//	data.spriteUV = spriteBounds.xy + data.spriteUV * spriteBounds.zw;
+		// snap sprite bounds to integer coordinates to correct for floating point error
+		spriteBounds *= vec4(atlasWidth, atlasHeight, atlasWidth, atlasHeight);
+		spriteBounds += vec4(0.5, 0.5, 0.5, 0.5);
+		spriteBounds -= fract(spriteBounds);
+		spriteBounds /= vec4(atlasWidth, atlasHeight, atlasWidth, atlasHeight);
+
+		data.spriteUV = spriteBounds.xy + data.spriteUV * spriteBounds.zw;
+	}
+
 	data.spriteUV = _cv_textureCoord(data.spriteUV, 0);
 
 	vec4 viewCoord = gl_ModelViewMatrix * data.vertex;
