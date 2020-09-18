@@ -205,7 +205,16 @@ public abstract class AbstractRenderContext implements RenderContext {
 
 		mapMaterials(quad);
 
-		if (transform(quad) && cullTest(quad)) {
+		if (hasTransform()) {
+			if (!transform(quad)) {
+				return;
+			}
+
+			quad.geometryFlags();
+			quad.unmapSpritesIfNeeded();
+		}
+
+		if (cullTest(quad)) {
 			final MeshMaterialLocator mat = quad.material().withDefaultBlendMode(defaultBlendModeIndex());
 			quad.material(mat);
 			VertexEncoders.get(materialContext(), mat).encodeQuad(quad, this);
