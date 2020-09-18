@@ -18,15 +18,18 @@ package grondag.canvas.shader.wip.encoding;
 
 import grondag.canvas.apiimpl.mesh.MeshEncodingHelper;
 import grondag.canvas.apiimpl.util.NormalHelper;
+import grondag.canvas.mixinterface.SpriteExt;
 import grondag.canvas.shader.wip.WipRenderState;
 import grondag.canvas.shader.wip.WipVertexState;
 
-import net.minecraft.client.render.VertexConsumer;
+import net.minecraft.client.texture.Sprite;
 
 public abstract class WipVertexAdapter implements WipVertexCollector {
 	protected WipRenderState materialState;
 
 	protected final int[] vertexData = new int[8];
+	protected int vertexIndex = 0;
+
 	protected int colorIndex;
 	protected int textureIndex;
 	protected int materialIndex;
@@ -34,22 +37,47 @@ public abstract class WipVertexAdapter implements WipVertexCollector {
 	protected int normalIndex;
 	protected int normalBase;
 	protected int materialBase;
+	protected int spriteId;
+	protected float u0;
+	protected float v0;
+	protected float uSpanInv;
+	protected float vSpanInv;
 
-	@Override
-	public VertexConsumer texture(float u, float v) {
-		// WIP - detect texture atlas and derive textureID when used by vanilla suppliers
-		return texture(Math.round(u * MeshEncodingHelper.UV_UNIT_VALUE) | (Math.round(v * MeshEncodingHelper.UV_UNIT_VALUE) << 16));
+	public WipVertexCollector sprite(Sprite sprite) {
+		if (materialState.texture.isAtlas()) {
+			spriteId = ((SpriteExt) sprite).canvas_id();
+			u0 = sprite.getMinU();
+			v0 = sprite.getMinV();
+			uSpanInv = 1f / (sprite.getMaxU() - u0);
+			vSpanInv = 1f / (sprite.getMaxV() - v0);
+		} else {
+			spriteId = -1;
+		}
+
+		return this;
 	}
 
 	@Override
-	public VertexConsumer overlay(int u, int v) {
+	public WipVertexCollector texture(float u, float v) {
+		if (spriteId != -1) {
+			u = (u - u0) * uSpanInv;
+			v = (v - v0) * vSpanInv;
+		}
+
+		vertexData[materialIndex] = (materialBase & 0xFFFF0000) | spriteId;
+		vertexData[textureIndex] = Math.round(u * MeshEncodingHelper.UV_UNIT_VALUE) | (Math.round(v * MeshEncodingHelper.UV_UNIT_VALUE) << 16);
+		return this;
+	}
+
+	@Override
+	public WipVertexCollector overlay(int u, int v) {
 		// WIP - set vertex state flags depending on values
 		return this;
 	}
 
 	// low to high: block, sky, ao, <blank>
 	@Override
-	public VertexConsumer light(int block, int sky) {
+	public WipVertexCollector light(int block, int sky) {
 		vertexData[lightIndex] = (block & 0xFF) | ((sky & 0xFF) << 8);
 		return this;
 	}
@@ -96,7 +124,7 @@ public abstract class WipVertexAdapter implements WipVertexCollector {
 	}
 
 	@Override
-	public VertexConsumer normal(float x, float y, float z) {
+	public WipVertexCollector normal(float x, float y, float z) {
 		vertexData[normalIndex] = normalBase | NormalHelper.packUnsignedNormal(x, y, z);
 		return this;
 	}
