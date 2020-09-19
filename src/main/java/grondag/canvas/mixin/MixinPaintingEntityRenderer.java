@@ -17,7 +17,7 @@
 package grondag.canvas.mixin;
 
 import grondag.canvas.Configurator;
-import grondag.canvas.shader.wip.encoding.PaintingHelper;
+import grondag.canvas.shader.wip.encoding.CanvasPaintingRenderer;
 import grondag.canvas.shader.wip.encoding.WipVertexCollectorImpl;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -35,7 +35,7 @@ abstract class MixinPaintingEntityRenderer {
 	@Inject(at = @At("HEAD"), method = "method_4074", cancellable = true)
 	private void on_method_4074(MatrixStack matrixStack, VertexConsumer vertexConsumer, PaintingEntity paintingEntity, int width, int height, Sprite paintSprite, Sprite frameSprite, CallbackInfo ci) {
 		if (Configurator.enableExperimentalPipeline && vertexConsumer instanceof WipVertexCollectorImpl) {
-			PaintingHelper.bufferPainting(matrixStack, (WipVertexCollectorImpl) vertexConsumer, paintingEntity, width, height, paintSprite, frameSprite);
+			CanvasPaintingRenderer.bufferPainting(matrixStack, (WipVertexCollectorImpl) vertexConsumer, paintingEntity, width, height, paintSprite, frameSprite);
 			ci.cancel();
 		}
 	}
