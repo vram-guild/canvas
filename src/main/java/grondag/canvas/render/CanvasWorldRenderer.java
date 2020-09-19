@@ -51,7 +51,7 @@ import grondag.canvas.shader.ShaderContext;
 import grondag.canvas.shader.wip.RenderLayerHandler;
 import grondag.canvas.shader.wip.WipMaterialShaderManager;
 import grondag.canvas.shader.wip.WipRenderState;
-import grondag.canvas.shader.wip.sneak.WipImmediate;
+import grondag.canvas.shader.wip.encoding.WipImmediate;
 import grondag.canvas.terrain.BuiltRenderRegion;
 import grondag.canvas.terrain.RenderRegionBuilder;
 import grondag.canvas.terrain.RenderRegionStorage;

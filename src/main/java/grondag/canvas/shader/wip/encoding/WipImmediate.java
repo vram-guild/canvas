@@ -1,13 +1,10 @@
-package grondag.canvas.shader.wip.sneak;
+package grondag.canvas.shader.wip.encoding;
 
 import java.util.Map;
 import java.util.SortedMap;
 
 import grondag.canvas.shader.wip.WipRenderState;
 import grondag.canvas.shader.wip.WipVertexState;
-import grondag.canvas.shader.wip.encoding.WipVertexCollector;
-import grondag.canvas.shader.wip.encoding.WipVertexCollectorImpl;
-import grondag.canvas.shader.wip.encoding.WipVertexCollectorList;
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 
 import net.minecraft.client.render.BufferBuilder;
@@ -33,7 +30,7 @@ public class WipImmediate extends Immediate {
 		if (result == null) {
 			return super.getBuffer(renderLayer);
 		} else {
-			// PERF: cache this with the reder layer instead of doing threadlocal each time
+			// PERF: cache this with the render layer instead of doing threadlocal each time
 			result.vertexState(WipVertexState.finder().copyFromLayer(renderLayer).find());
 			return result;
 		}
@@ -63,8 +60,10 @@ public class WipImmediate extends Immediate {
 		}
 	}
 
+	// WIP: need this?
 	private static final BlockBufferBuilderStorage blockBuilders = new BlockBufferBuilderStorage();
 
+	// WIP: should not need all these
 	private static final SortedMap<RenderLayer, BufferBuilder> entityBuilders = Util.make(new Object2ObjectLinkedOpenHashMap<>(), (object2ObjectLinkedOpenHashMap) -> {
 		object2ObjectLinkedOpenHashMap.put(TexturedRenderLayers.getEntitySolid(), blockBuilders.get(RenderLayer.getSolid()));
 		object2ObjectLinkedOpenHashMap.put(TexturedRenderLayers.getEntityCutout(), blockBuilders.get(RenderLayer.getCutout()));
