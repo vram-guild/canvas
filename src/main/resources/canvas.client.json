@@ -24,6 +24,7 @@
 	"MixinMinecraftClient",
 	"MixinMultiPhase",
 	"MixinPackedIntegerArray",
+	"MixinPaintingEntityRenderer",
 	"MixinPalettedContainer",
 	"MixinSprite",
 	"MixinSpriteAtlasTexture",

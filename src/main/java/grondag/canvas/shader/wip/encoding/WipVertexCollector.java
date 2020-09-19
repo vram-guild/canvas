@@ -33,8 +33,12 @@
 package grondag.canvas.shader.wip.encoding;
 
 import grondag.canvas.apiimpl.mesh.MeshEncodingHelper;
+import grondag.canvas.mixinterface.Matrix3fExt;
+import grondag.canvas.mixinterface.Matrix4fExt;
 
 import net.minecraft.client.render.VertexConsumer;
+import net.minecraft.util.math.Matrix3f;
+import net.minecraft.util.math.Matrix4f;
 
 public interface WipVertexCollector extends VertexConsumer {
 	/**
@@ -95,4 +99,39 @@ public interface WipVertexCollector extends VertexConsumer {
 	static int packColorFromBytes(int red, int green, int blue, int alpha) {
 		return red | (green << 8) | (blue << 16) | (alpha << 24);
 	}
+
+	@Override
+	default WipVertexCollector vertex(Matrix4f matrix, float x, float y, float z) {
+		final Matrix4fExt mat = (Matrix4fExt)(Object) matrix;
+
+		final float tx = mat.a00() * x + mat.a01() * y + mat.a02() * z + mat.a03();
+		final float ty = mat.a10() * x + mat.a11() * y + mat.a12() * z + mat.a13();
+		final float tz = mat.a20() * x + mat.a21() * y + mat.a22() * z + mat.a23();
+
+		return this.vertex(tx, ty, tz);
+	}
+
+	@Override
+	default WipVertexCollector normal(Matrix3f matrix, float x, float y, float z) {
+		final Matrix3fExt mat = (Matrix3fExt)(Object) matrix;
+
+		final float tx = mat.a00() * x + mat.a01() * y + mat.a02() * z;
+		final float ty = mat.a10() * x + mat.a11() * y + mat.a12() * z;
+		final float tz = mat.a20() * x + mat.a21() * y + mat.a22() * z;
+
+		return this.normal(tx, ty, tz);
+	}
+
+
+	@Override
+	WipVertexCollector texture(float u, float v);
+
+	@Override
+	WipVertexCollector overlay(int u, int v);
+
+	@Override
+	WipVertexCollector light(int u, int v);
+
+	@Override
+	WipVertexCollector normal(float x, float y, float z);
 }
