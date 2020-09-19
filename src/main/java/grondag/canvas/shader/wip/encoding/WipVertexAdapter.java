@@ -57,6 +57,22 @@ public abstract class WipVertexAdapter implements WipVertexCollector {
 		return this;
 	}
 
+	public WipVertexCollector spriteId(int spriteId) {
+		// PERF: yeeesh - avoid using this
+		if (materialState.texture.isAtlas()) {
+			this.spriteId = spriteId;
+			final Sprite sprite = materialState.texture.atlasInfo().fromId(spriteId);
+			u0 = sprite.getMinU();
+			v0 = sprite.getMinV();
+			uSpanInv = 1f / (sprite.getMaxU() - u0);
+			vSpanInv = 1f / (sprite.getMaxV() - v0);
+		} else {
+			spriteId = -1;
+		}
+
+		return this;
+	}
+
 	@Override
 	public WipVertexCollector texture(float u, float v) {
 		if (spriteId != -1) {

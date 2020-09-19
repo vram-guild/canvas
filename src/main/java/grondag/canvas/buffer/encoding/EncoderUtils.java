@@ -25,6 +25,7 @@ import grondag.canvas.apiimpl.util.ColorHelper;
 import grondag.canvas.apiimpl.util.NormalHelper;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.Matrix4fExt;
+import grondag.canvas.shader.wip.encoding.WipVertexCollectorImpl;
 import grondag.canvas.texture.SpriteInfoTexture;
 
 import net.minecraft.client.MinecraftClient;
@@ -40,6 +41,11 @@ abstract class EncoderUtils {
 		final int overlay = context.overlay();
 		final Matrix3fExt normalMatrix = context.normalMatrix();
 		final VertexConsumer buff = context.consumer(quad.material().get().getLayer(0));
+
+		// WIP: do it right
+		if (Configurator.enableExperimentalPipeline && buff instanceof WipVertexCollectorImpl) {
+			((WipVertexCollectorImpl) buff).spriteId(quad.spriteId(0));
+		}
 
 		int packedNormal = 0;
 		float nx = 0, ny = 0, nz = 0;
@@ -92,6 +98,12 @@ abstract class EncoderUtils {
 		final MeshMaterial mat = quad.material().get();
 		final VertexConsumer buff1 = context.consumer(mat.getLayer(0));
 		final VertexConsumer buff2 = context.consumer(mat.getLayer(1));
+
+		// WIP: do it right
+		if (Configurator.enableExperimentalPipeline && buff1 instanceof WipVertexCollectorImpl) {
+			((WipVertexCollectorImpl) buff1).spriteId(quad.spriteId(0));
+			((WipVertexCollectorImpl) buff2).spriteId(quad.spriteId(1));
+		}
 
 		final float nx0, ny0, nz0;
 		final float nx1, ny1, nz1;
@@ -256,6 +268,13 @@ abstract class EncoderUtils {
 		final VertexConsumer buff1 = context.consumer(mat.getLayer(0));
 		final VertexConsumer buff2 = context.consumer(mat.getLayer(1));
 		final VertexConsumer buff3 = context.consumer(mat.getLayer(2));
+
+		// WIP: do it right
+		if (Configurator.enableExperimentalPipeline && buff1 instanceof WipVertexCollectorImpl) {
+			((WipVertexCollectorImpl) buff1).spriteId(quad.spriteId(0));
+			((WipVertexCollectorImpl) buff2).spriteId(quad.spriteId(1));
+			((WipVertexCollectorImpl) buff3).spriteId(quad.spriteId(2));
+		}
 
 		final float nx0, ny0, nz0;
 		final float nx1, ny1, nz1;

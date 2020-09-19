@@ -186,6 +186,10 @@ public final class WipRenderState {
 			final AbstractTexture tex = texture.texture();
 			tex.bindTexture();
 			tex.setFilter(bilinear, true);
+
+			if (texture.isAtlas()) {
+				texture.atlasInfo().enable();
+			}
 		}
 
 		// WIP (PERF): check for need to change GL state based on flag comparison
@@ -241,6 +245,11 @@ public final class WipRenderState {
 		TransferBufferAllocator.release(buffer);
 
 		RenderSystem.shadeModel(GL11.GL_FLAT);
+
+		if (texture.isAtlas()) {
+			texture.atlasInfo().disable();
+		}
+
 		decal.endAction.run();
 		target.endAction.run();
 	}
