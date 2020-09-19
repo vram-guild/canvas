@@ -104,6 +104,8 @@
   "config.canvas.help.buffer_debug": "Enable rendering of internal buffers for debug purposes.;Off by default to prevent accidental activation.",
   "config.canvas.value.lifecycle_debug": "Log Lifecycle Events",
   "config.canvas.help.lifecycle_debug": "Output load/reload trace data to log;Will have performance impact.",
+  "config.canvas.value.log_missing_uniforms": "Log Missing Uniforms",
+  "config.canvas.help.log_missing_uniforms": "Log uniforms not found in shaders. Sometimes useful for;shader debug. Will spam the log.",
   "config.canvas.value.enable_experimental": "Enable Experimental Pipeline",
   "config.canvas.help.enable_experimental": "For use in development - ;enables work-in-progress rendering features."
 }

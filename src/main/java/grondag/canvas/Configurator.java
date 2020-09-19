@@ -83,6 +83,7 @@ public class Configurator {
 	public static boolean traceOcclusionEdgeCases = DEFAULTS.traceOcclusionEdgeCases;
 	public static boolean enableBufferDebug = DEFAULTS.enableBufferDebug;
 	public static boolean enableLifeCycleDebug = DEFAULTS.enableLifeCycleDebug;
+	public static boolean logMissingUniforms = DEFAULTS.logMissingUniforms;
 	public static boolean enableExperimentalPipeline = DEFAULTS.enableExperimentalPipeline;
 
 	//    @LangKey("config.acuity_fancy_fluids")
@@ -167,6 +168,7 @@ public class Configurator {
 		traceOcclusionEdgeCases = config.traceOcclusionEdgeCases;
 		enableBufferDebug = config.enableBufferDebug;
 		enableLifeCycleDebug = config.enableLifeCycleDebug;
+		logMissingUniforms = config.logMissingUniforms;
 		enableExperimentalPipeline = config.enableExperimentalPipeline;
 	}
 
@@ -212,6 +214,7 @@ public class Configurator {
 		config.traceOcclusionEdgeCases = traceOcclusionEdgeCases;
 		config.enableBufferDebug = enableBufferDebug;
 		config.enableLifeCycleDebug = enableLifeCycleDebug;
+		config.logMissingUniforms = logMissingUniforms;
 		config.enableExperimentalPipeline = enableExperimentalPipeline;
 
 		try {
@@ -571,6 +574,13 @@ public class Configurator {
 			.build());
 
 		debug.addEntry(ENTRY_BUILDER
+			.startBooleanToggle(new TranslatableText("config.canvas.value.log_missing_uniforms"), logMissingUniforms)
+			.setDefaultValue(DEFAULTS.logMissingUniforms)
+			.setTooltip(parse("config.canvas.help.log_missing_uniforms"))
+			.setSaveConsumer(b -> logMissingUniforms = b)
+			.build());
+
+		debug.addEntry(ENTRY_BUILDER
 			.startBooleanToggle(new TranslatableText("config.canvas.value.enable_experimental"), enableExperimentalPipeline)
 			.setDefaultValue(DEFAULTS.enableExperimentalPipeline)
 			.setTooltip(parse("config.canvas.help.enable_experimental"))
@@ -704,6 +714,8 @@ public class Configurator {
 		boolean debugOcclusionBoxes = false;
 		@Comment("Log clipping or other non-critical failures detected by terrain occluder. May spam the log.")
 		boolean traceOcclusionEdgeCases = false;
+		@Comment("Log uniforms not found in shaders. Sometimes useful for shader debug. Will spam the log.")
+		boolean logMissingUniforms = false;
 		@Comment("For use in development - enables work-in-progress rendering features.")
 		boolean enableExperimentalPipeline = false;
 	}

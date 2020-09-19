@@ -430,8 +430,10 @@ public class WipGlProgram {
 		private final void load(int programID) {
 			this.unifID = GL21.glGetUniformLocation(programID, name);
 			if (this.unifID == -1) {
-				CanvasMod.LOG.info(I18n.translate("debug.canvas.missing_uniform", name,
-					vertexShader.getShaderSource().toString(), fragmentShader.getShaderSource().toString()));
+				if (Configurator.logMissingUniforms) {
+					CanvasMod.LOG.info(I18n.translate("debug.canvas.missing_uniform", name, vertexShader.getShaderSource().toString(), fragmentShader.getShaderSource().toString()));
+				}
+
 				this.flags = 0;
 			} else {
 				// dirty flag will be reset before uniforms are loaded
