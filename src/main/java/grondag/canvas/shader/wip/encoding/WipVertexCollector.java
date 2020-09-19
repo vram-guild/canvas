@@ -32,6 +32,8 @@
 
 package grondag.canvas.shader.wip.encoding;
 
+import grondag.canvas.apiimpl.mesh.MeshEncodingHelper;
+
 import net.minecraft.client.render.VertexConsumer;
 
 public interface WipVertexCollector extends VertexConsumer {
@@ -75,5 +77,22 @@ public interface WipVertexCollector extends VertexConsumer {
 	@Override
 	default WipVertexCollector color(int red, int green, int blue, int alpha) {
 		return color(red | (green << 8) | (blue << 16) | (alpha << 24));
+	}
+
+	static int packNormalizedUV(float u, float v) {
+		return Math.round(u * MeshEncodingHelper.UV_UNIT_VALUE) | (Math.round(v * MeshEncodingHelper.UV_UNIT_VALUE) << 16);
+	}
+
+	int NORMALIZED_U0_V0 = packNormalizedUV(0, 0);
+	int NORMALIZED_U0_V1 = packNormalizedUV(0, 1);
+	int NORMALIZED_U1_V0 = packNormalizedUV(1, 0);
+	int NORMALIZED_U1_V1 = packNormalizedUV(1, 1);
+
+	static int packColorFromFloats(float red, float green, float blue, float alpha) {
+		return packColorFromBytes((int) (red * 255.0F), (int) (green * 255.0F), (int) (blue * 255.0F), (int) (alpha * 255.0F));
+	}
+
+	static int packColorFromBytes(int red, int green, int blue, int alpha) {
+		return red | (green << 8) | (blue << 16) | (alpha << 24);
 	}
 }

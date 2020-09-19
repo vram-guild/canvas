@@ -75,6 +75,7 @@ void main() {
 	//frx_startVertex(data);
 	//#endif
 
+#ifdef ATTRIB_MATERIAL
 	if (_cvu_material[_CV_SPRITE_INFO_TEXTURE_SIZE] != 0.0) {
 		// for sprite atlas textures, convert from normalized (0-1) to interpolated coordinates
 		vec4 spriteBounds = texture2DLod(frxs_spriteInfo, vec2(0, in_material.x / _cvu_material[_CV_SPRITE_INFO_TEXTURE_SIZE]), 0);
@@ -90,6 +91,7 @@ void main() {
 
 		data.spriteUV = spriteBounds.xy + data.spriteUV * spriteBounds.zw;
 	}
+#endif
 
 	data.spriteUV = _cv_textureCoord(data.spriteUV, 0);
 

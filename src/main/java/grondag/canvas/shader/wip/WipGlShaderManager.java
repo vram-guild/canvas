@@ -37,12 +37,12 @@ public enum WipGlShaderManager {
 	private final Object2ObjectOpenHashMap<String, Shader> vertexShaders = new Object2ObjectOpenHashMap<>();
 	private final Object2ObjectOpenHashMap<String, Shader> fragmentShaders = new Object2ObjectOpenHashMap<>();
 
-	public static String shaderKey(Identifier shaderSource, WipProgramType programType) {
-		return String.format("%s.%s", shaderSource.toString(), programType.name);
+	public static String shaderKey(Identifier shaderSource, WipProgramType programType, WipVertexFormat format) {
+		return String.format("%s.%s.%s", shaderSource.toString(), programType.name, format.name);
 	}
 
 	public Shader getOrCreateVertexShader(Identifier shaderSource,  WipProgramType programType, WipVertexFormat format) {
-		final String shaderKey = shaderKey(shaderSource, programType);
+		final String shaderKey = shaderKey(shaderSource, programType, format);
 
 		synchronized (vertexShaders) {
 			Shader result = vertexShaders.get(shaderKey);
@@ -55,7 +55,7 @@ public enum WipGlShaderManager {
 	}
 
 	public Shader getOrCreateFragmentShader(Identifier shaderSourceId, WipProgramType programType, WipVertexFormat format) {
-		final String shaderKey = shaderKey(shaderSourceId, programType);
+		final String shaderKey = shaderKey(shaderSourceId, programType, format);
 
 		synchronized (fragmentShaders) {
 			Shader result = fragmentShaders.get(shaderKey);

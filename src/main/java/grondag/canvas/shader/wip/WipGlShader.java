@@ -181,7 +181,7 @@ class WipGlShader implements Shader {
 	}
 
 	private void outputDebugSource(String source, String error) {
-		final String key = programType.name + "-" + shaderSource.toString().replace("/", "-").replace(":", "-");
+		final String fileName = programType.name + "-" + format.name + "-" + shaderSource.toString().replace("/", "-").replace(":", "-");
 		final Path path = shaderDebugPath();
 
 		File shaderDir = path.toFile();
@@ -203,7 +203,7 @@ class WipGlShader implements Shader {
 		}
 
 		if (shaderDir.exists()) {
-			try (FileWriter writer = new FileWriter(shaderDir.getAbsolutePath() + File.separator + key, false)) {
+			try (FileWriter writer = new FileWriter(shaderDir.getAbsolutePath() + File.separator + fileName, false)) {
 				writer.write(source);
 				writer.close();
 			} catch (final IOException e) {

@@ -93,6 +93,8 @@ public class WipVertexFormat extends MaterialVertexFormat {
 
 	public final int formatIndex;
 
+	public final String name;
+
 	private static int nextFormatIndex = 0;
 
 	private WipVertexFormat(MaterialVertextFormatElement... elements) {
@@ -116,19 +118,26 @@ public class WipVertexFormat extends MaterialVertexFormat {
 		boolean hasLight = true;
 		boolean hasNormal = true;
 
+		String name = "p";
+
 		for (int i = 1; i < limit; ++i) {
 			final MaterialVertextFormatElement e = elements[i];
 
 			if (e == BASE_RGBA_4UB) {
 				colorIndex = nextIndex++;
+				name += "c";
 			} else if (e == BASE_TEX_2US) {
 				textureIndex = nextIndex++;
+				name += "t";
 			} else if (e == LIGHTMAPS_4UB) {
 				lightIndex = nextIndex++;
+				name += "l";
 			} else if (e == MATERIAL_2US) {
 				materialIndex = nextIndex++;
+				name += "m";
 			} else if (e == NORMAL_FLAGS_4UB) {
 				normalIndex = nextIndex++;
+				name += "n";
 			} else {
 				throw new IllegalArgumentException("Encountered unrecognized vertex element");
 			}
@@ -174,6 +183,8 @@ public class WipVertexFormat extends MaterialVertexFormat {
 		this.hasMaterial = hasMaterial;
 		this.hasLight = hasLight;
 		this.hasNormal = hasNormal;
+
+		this.name = name + formatIndex;
 	}
 
 	private static final int COLOR_BIT = 1;

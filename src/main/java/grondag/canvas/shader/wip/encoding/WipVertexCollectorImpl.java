@@ -56,6 +56,7 @@ public class WipVertexCollectorImpl extends WipVertexAdapter {
 		materialIndex = format.materialIndex;
 		lightIndex = format.lightIndex;
 		normalIndex = format.normalIndex;
+		spriteId = -1;
 		return this;
 	}
 

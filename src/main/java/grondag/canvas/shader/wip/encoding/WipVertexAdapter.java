@@ -37,7 +37,7 @@ public abstract class WipVertexAdapter implements WipVertexCollector {
 	protected int normalIndex;
 	protected int normalBase;
 	protected int materialBase;
-	protected int spriteId;
+	protected int spriteId = -1;
 	protected float u0;
 	protected float v0;
 	protected float uSpanInv;

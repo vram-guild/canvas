@@ -43,6 +43,7 @@ import grondag.canvas.compat.SatinHolder;
 import grondag.canvas.compat.VoxelMapHolder;
 import grondag.canvas.light.LightmapHdTexture;
 import grondag.canvas.mixinterface.WorldRendererExt;
+import grondag.canvas.perf.MicroTimer;
 import grondag.canvas.pipeline.BufferDebug;
 import grondag.canvas.pipeline.CanvasFrameBufferHacks;
 import grondag.canvas.shader.GlProgram;
@@ -148,6 +149,8 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	private int lastRegionDataVersion = -1;
 	private int visibleRegionCount = 0;
 	final TerrainLayerRenderer TRANSLUCENT = new TerrainLayerRenderer("translucemt", ShaderContext.TERRAIN_TRANSLUCENT, this::sortTranslucentTerrain);
+
+	private static final MicroTimer particleTimer = new MicroTimer("particles", 10000);
 
 	public CanvasWorldRenderer(MinecraftClient client, BufferBuilderStorage bufferBuilders) {
 		super(client, bufferBuilders);
@@ -695,7 +698,9 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			fb.beginWrite(false);
 
 			profiler.swap("particles");
+			particleTimer.start();
 			mc.particleManager.renderParticles(matrixStack, immediate, lightmapTextureManager, camera, tickDelta);
+			particleTimer.stop();
 
 			mcfb.beginWrite(false);
 		} else {
@@ -703,7 +708,10 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			renderTerrainLayer(true, matrixStack, cameraX, cameraY, cameraZ);
 			VoxelMapHolder.postRenderLayerHandler.render(this, RenderLayer.getTranslucent(), matrixStack, cameraX, cameraY, cameraZ);
 			profiler.swap("particles");
+
+			particleTimer.start();
 			mc.particleManager.renderParticles(matrixStack, immediate, lightmapTextureManager, camera, tickDelta);
+			particleTimer.stop();
 		}
 
 		JustMapHolder.justMapRender.renderWaypoints(matrixStack, camera, tickDelta);
