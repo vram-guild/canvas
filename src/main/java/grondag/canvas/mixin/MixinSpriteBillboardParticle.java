@@ -52,89 +52,72 @@ public abstract class MixinSpriteBillboardParticle extends BillboardParticle {
 
 	@Override
 	public void buildGeometry(VertexConsumer vertexConsumer, Camera camera, float tickDelta) {
-		if (CanvasMath.hack()) {
-			final Vec3d vec3d = camera.getPos();
-			final float cx = (float) (MathHelper.lerp(tickDelta, prevPosX, x) - vec3d.getX());
-			final float cy = (float) (MathHelper.lerp(tickDelta, prevPosY, y) - vec3d.getY());
-			final float cz = (float) (MathHelper.lerp(tickDelta, prevPosZ, z) - vec3d.getZ());
+		final Vec3d vec3d = camera.getPos();
+		final float cx = (float) (MathHelper.lerp(tickDelta, prevPosX, x) - vec3d.getX());
+		final float cy = (float) (MathHelper.lerp(tickDelta, prevPosY, y) - vec3d.getY());
+		final float cz = (float) (MathHelper.lerp(tickDelta, prevPosZ, z) - vec3d.getZ());
 
-			final Quaternion cr = camera.getRotation();
-			final Quaternion rotation = quat;
-			rotation.set(cr.getX(), cr.getY(), cr.getZ(), cr.getW());
+		final Quaternion rotation;
 
-			if (angle != 0.0F) {
-				final float adjustedAngle = MathHelper.lerp(tickDelta, prevAngle, angle);
-				final Quaternion radialRotation = auxQuat;
-				CanvasMath.setRadialRotation(radialRotation, Vector3f.POSITIVE_Z, adjustedAngle);
-				rotation.hamiltonProduct(radialRotation);
-			}
-
-			final Vector3f pos = vec;
-			final float scale = getSize(tickDelta);
-			final int light = getColorMultiplier(tickDelta);
-
-			if (vertexConsumer instanceof WipVertexCollectorImpl) {
-				// WIP: hook ParticleManager.renderParticles so we get a collector here - better yet call a different method
-				final WipVertexCollectorImpl vc = (WipVertexCollectorImpl) vertexConsumer;
-				vc.sprite(sprite);
-
-				final int color = packColorFromFloats(colorRed, colorGreen, colorBlue, colorAlpha);
-
-				vec.set(-1.0F, -1.0F, 0.0F);
-				CanvasMath.applyRotation(pos, rotation);
-				pos.scale(scale);
-				pos.add(cx, cy, cz);
-				vc.vertex(pos.getX(), pos.getY(), pos.getZ()).texture(NORMALIZED_U1_V1).color(color).light(light).next();
-
-				vec.set(-1.0F, 1.0F, 0.0F);
-				CanvasMath.applyRotation(pos, rotation);
-				pos.scale(scale);
-				pos.add(cx, cy, cz);
-				vc.vertex(pos.getX(), pos.getY(), pos.getZ()).texture(NORMALIZED_U1_V0).color(color).light(light).next();
-
-				vec.set(1.0F, 1.0F, 0.0F);
-				CanvasMath.applyRotation(pos, rotation);
-				pos.scale(scale);
-				pos.add(cx, cy, cz);
-				vc.vertex(pos.getX(), pos.getY(), pos.getZ()).texture(NORMALIZED_U0_V0).color(color).light(light).next();
-
-				vec.set(1.0F, -1.0F, 0.0F);
-				CanvasMath.applyRotation(pos, rotation);
-				pos.scale(scale);
-				pos.add(cx, cy, cz);
-				vc.vertex(pos.getX(), pos.getY(), pos.getZ()).texture(NORMALIZED_U0_V1).color(color).light(light).next();
-			} else {
-				final float l = getMinU();
-				final float m = getMaxU();
-				final float n = getMinV();
-				final float o = getMaxV();
-
-				vec.set(-1.0F, -1.0F, 0.0F);
-				CanvasMath.applyRotation(pos, rotation);
-				pos.scale(scale);
-				pos.add(cx, cy, cz);
-				vertexConsumer.vertex(pos.getX(), pos.getY(), pos.getZ()).texture(m, o).color(colorRed, colorGreen, colorBlue, colorAlpha).light(light).next();
-
-				vec.set(-1.0F, 1.0F, 0.0F);
-				CanvasMath.applyRotation(pos, rotation);
-				pos.scale(scale);
-				pos.add(cx, cy, cz);
-				vertexConsumer.vertex(pos.getX(), pos.getY(), pos.getZ()).texture(m, n).color(colorRed, colorGreen, colorBlue, colorAlpha).light(light).next();
-
-				vec.set(1.0F, 1.0F, 0.0F);
-				CanvasMath.applyRotation(pos, rotation);
-				pos.scale(scale);
-				pos.add(cx, cy, cz);
-				vertexConsumer.vertex(pos.getX(), pos.getY(), pos.getZ()).texture(l, n).color(colorRed, colorGreen, colorBlue, colorAlpha).light(light).next();
-
-				vec.set(1.0F, -1.0F, 0.0F);
-				CanvasMath.applyRotation(pos, rotation);
-				pos.scale(scale);
-				pos.add(cx, cy, cz);
-				vertexConsumer.vertex(pos.getX(), pos.getY(), pos.getZ()).texture(l, o).color(colorRed, colorGreen, colorBlue, colorAlpha).light(light).next();
-			}
+		if (angle == 0.0F) {
+			rotation = camera.getRotation();
 		} else {
-			super.buildGeometry(vertexConsumer, camera, tickDelta);
+			final Quaternion cr = camera.getRotation();
+			rotation = quat;
+			rotation.set(cr.getX(), cr.getY(), cr.getZ(), cr.getW());
+			final float adjustedAngle = MathHelper.lerp(tickDelta, prevAngle, angle);
+			final Quaternion radialRotation = auxQuat;
+			CanvasMath.setRadialRotation(radialRotation, Vector3f.POSITIVE_Z, adjustedAngle);
+			rotation.hamiltonProduct(radialRotation);
+		}
+
+		final Vector3f pos = vec;
+		final float scale = getSize(tickDelta);
+		final int light = getColorMultiplier(tickDelta);
+
+		if (vertexConsumer instanceof WipVertexCollectorImpl) {
+			// WIP: hook ParticleManager.renderParticles so we get a collector here - better yet call a different method
+			final WipVertexCollectorImpl vc = (WipVertexCollectorImpl) vertexConsumer;
+			vc.sprite(sprite);
+
+			final int color = packColorFromFloats(colorRed, colorGreen, colorBlue, colorAlpha);
+
+			vec.set(-1.0F, -1.0F, 0.0F);
+			CanvasMath.applyBillboardRotation(pos, rotation);
+			vc.vertex(cx + pos.getX() * scale, cy + pos.getY() * scale, cz + pos.getZ() * scale).texture(NORMALIZED_U1_V1).color(color).light(light).next();
+
+			vec.set(-1.0F, 1.0F, 0.0F);
+			CanvasMath.applyBillboardRotation(pos, rotation);
+			vc.vertex(cx + pos.getX() * scale, cy + pos.getY() * scale, cz + pos.getZ() * scale).texture(NORMALIZED_U1_V0).color(color).light(light).next();
+
+			vec.set(1.0F, 1.0F, 0.0F);
+			CanvasMath.applyBillboardRotation(pos, rotation);
+			vc.vertex(cx + pos.getX() * scale, cy + pos.getY() * scale, cz + pos.getZ() * scale).texture(NORMALIZED_U0_V0).color(color).light(light).next();
+
+			vec.set(1.0F, -1.0F, 0.0F);
+			CanvasMath.applyBillboardRotation(pos, rotation);
+			vc.vertex(cx + pos.getX() * scale, cy + pos.getY() * scale, cz + pos.getZ()).texture(NORMALIZED_U0_V1).color(color).light(light).next();
+		} else {
+			final float l = getMinU();
+			final float m = getMaxU();
+			final float n = getMinV();
+			final float o = getMaxV();
+
+			vec.set(-1.0F, -1.0F, 0.0F);
+			CanvasMath.applyBillboardRotation(pos, rotation);
+			vertexConsumer.vertex(cx + pos.getX() * scale, cy + pos.getY() * scale, cz + pos.getZ() * scale).texture(m, o).color(colorRed, colorGreen, colorBlue, colorAlpha).light(light).next();
+
+			vec.set(-1.0F, 1.0F, 0.0F);
+			CanvasMath.applyBillboardRotation(pos, rotation);
+			vertexConsumer.vertex(cx + pos.getX() * scale, cy + pos.getY() * scale, cz + pos.getZ() * scale).texture(m, n).color(colorRed, colorGreen, colorBlue, colorAlpha).light(light).next();
+
+			vec.set(1.0F, 1.0F, 0.0F);
+			CanvasMath.applyBillboardRotation(pos, rotation);
+			vertexConsumer.vertex(cx + pos.getX() * scale, cy + pos.getY() * scale, cz + pos.getZ() * scale).texture(l, n).color(colorRed, colorGreen, colorBlue, colorAlpha).light(light).next();
+
+			vec.set(1.0F, -1.0F, 0.0F);
+			CanvasMath.applyBillboardRotation(pos, rotation);
+			vertexConsumer.vertex(cx + pos.getX() * scale, cy + pos.getY() * scale, cz + pos.getZ() * scale).texture(l, o).color(colorRed, colorGreen, colorBlue, colorAlpha).light(light).next();
 		}
 	}
 }

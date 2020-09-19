@@ -6,11 +6,6 @@ import net.minecraft.util.math.Quaternion;
 public class CanvasMath {
 	private CanvasMath() {}
 
-	// WIP: remove
-	public static boolean hack() {
-		return false;
-	}
-
 	/**
 	 * Non-allocating substitute for {@link Vector3f#rotate(Quaternion)}
 	 */
@@ -28,6 +23,29 @@ public class CanvasMath {
 		final float qy = rw * y - rx * z + rz * x;
 		final float qz = rw * z + rx * y - ry * x;
 		final float qw = - rx * x - ry * y - rz * z;
+
+		vec.set(
+			qw * -rx + qx * rw - qy * rz + qz * ry,
+			qw * -ry + qx * rz + qy * rw - qz * rx,
+			qw * -rz - qx * ry + qy * rx + qz * rw);
+	}
+
+	/**
+	 * Non-allocating substitute for {@link Vector3f#rotate(Quaternion)} that assumes vec.z == 0.
+	 */
+	public static void applyBillboardRotation(Vector3f vec, Quaternion rotation) {
+		final float rx = rotation.getX();
+		final float ry = rotation.getY();
+		final float rz = rotation.getZ();
+		final float rw = rotation.getW();
+
+		final float x = vec.getX();
+		final float y = vec.getY();
+
+		final float qx = rw * x - rz * y;
+		final float qy = rw * y + rz * x;
+		final float qz = rx * y - ry * x;
+		final float qw = - rx * x - ry * y;
 
 		vec.set(
 			qw * -rx + qx * rw - qy * rz + qz * ry,
