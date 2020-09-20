@@ -47,6 +47,7 @@ import grondag.canvas.wip.state.property.WipWriteMask;
 import grondag.fermion.bits.BitPacker64;
 import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.system.MemoryUtil;
 
@@ -247,7 +248,7 @@ public final class WipRenderState {
 		target.endAction.run();
 	}
 
-	// UGLY: probably doesn't belong here
+	// WIP: probably doesn't belong here
 	private static final Matrix3f normalModelMatrix = new Matrix3f();
 
 	public static void setNormalModelMatrix(Matrix3f matrix) {
@@ -283,6 +284,17 @@ public final class WipRenderState {
 	private static final BitPacker64.BooleanElement HAS_CONDITION = PACKER.createBooleanElement();
 	private static final BitPacker64<Void>.EnumElement<WipModelOrigin> ORIGIN = PACKER.createEnumElement(WipModelOrigin.class);
 
+	private static final ReferenceOpenHashSet<RenderLayer> EXCLUSIONS = new ReferenceOpenHashSet<>(64, Hash.VERY_FAST_LOAD_FACTOR);
+
+	static {
+		// entity shadows aren't worth
+		EXCLUSIONS.add(((EntityRenderDispatcherExt) MinecraftClient.getInstance().getEntityRenderDispatcher()).canvas_shadowLayer());
+	}
+
+	public static boolean isExcluded(RenderLayer layer) {
+		return EXCLUSIONS.contains(layer);
+	}
+
 	public static WipRenderState fromIndex(int index) {
 		return STATES[index];
 	}
@@ -304,8 +316,7 @@ public final class WipRenderState {
 		}
 
 		public WipRenderState copyFromLayer(RenderLayer layer) {
-			// WIP: need faster exclusion method
-			if (layer == ENTITY_SHADOW) {
+			if (isExcluded(layer)) {
 				return MISSING;
 			}
 
@@ -449,7 +460,6 @@ public final class WipRenderState {
 	}
 
 	public static final WipRenderState MISSING = new WipRenderState(0);
-	private static final RenderLayer ENTITY_SHADOW = ((EntityRenderDispatcherExt) MinecraftClient.getInstance().getEntityRenderDispatcher()).canvas_shadowLayer();
 
 	static {
 		assert PACKER.bitLength() <= 64;
