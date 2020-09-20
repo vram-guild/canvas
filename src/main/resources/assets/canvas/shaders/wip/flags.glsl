@@ -10,9 +10,11 @@
 #define _CV_FLAG_DISABLE_AO         2// 1 if ao shade should not be applied
 #define _CV_FLAG_CUTOUT             3// 1 if cutout layer - will only be set in base, non-translucent materials
 #define _CV_FLAG_UNMIPPED           4// 1 if LOD disabled - only set in conjunction with cutout
-#define _CV_FLAG_RESERVED_5         5
-#define _CV_FLAG_RESERVED_6         6
-#define _CV_FLAG_RESERVED_7         7
+#define _CV_FLAG_CUTOUT_10          5// 1 if "10%" cutout threshold (Yarn calls it 10, it's not actually 10%
+#define _CV_FLAG_HURT_OVERLAY       6// 1 if should render red hurt overlay
+#define _CV_FLAG_FLASH_OVERLAY      7// 1 if should render white flash overlay
+
+#define _CV_CUTOUT_10_THRESHOLD 	0.003921569
 
 #ifdef USE_FLAT_VARYING
 // may be faster when available and

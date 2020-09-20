@@ -84,11 +84,6 @@ public final class WipRenderState {
 	public final int index;
 
 	/**
-	 * true only for translucent
-	 */
-	public final boolean sorted;
-
-	/**
 	 * True when the material has vertex color and thus
 	 * color should be included in the vertex format.
 	 */
@@ -152,7 +147,6 @@ public final class WipRenderState {
 	private WipRenderState(long bits) {
 		this.bits = bits;
 		index = nextIndex++;
-		sorted = SORTED.getValue(bits);
 		hasColor = HAS_COLOR.getValue(bits);
 		hasNormal = HAS_NORMAL.getValue(bits);
 		hasLightMap = HAS_LIGHTMAP.getValue(bits);
@@ -178,11 +172,15 @@ public final class WipRenderState {
 
 		vertexStrideInts = format.vertexStrideInts;
 		translucency = TRANSPARENCY.getValue(bits);
-		shader = WipMaterialShaderManager.INSTANCE.find(WipShaderData.VANILLA_VERTEX, WipShaderData.VANILLA_FRAGMENT, sorted ? WipProgramType.MATERIAL_VERTEX_LOGIC : WipProgramType.MATERIAL_UNIFORM_LOGIC, format);
+		shader = WipMaterialShaderManager.INSTANCE.find(WipShaderData.VANILLA_VERTEX, WipShaderData.VANILLA_FRAGMENT, translucency == WipTransparency.TRANSLUCENT ? WipProgramType.MATERIAL_VERTEX_LOGIC : WipProgramType.MATERIAL_UNIFORM_LOGIC, format);
 	}
 
 	@SuppressWarnings("resource")
 	public void draw(WipVertexCollectorImpl collector) {
+		if (translucency == WipTransparency.TRANSLUCENT) {
+			collector.sortQuads(0, 0, 0);
+		}
+
 		if (texture == WipTextureState.NO_TEXTURE) {
 			RenderSystem.disableTexture();
 		} else {
@@ -228,11 +226,6 @@ public final class WipRenderState {
 
 		// PERF:  very very inefficient
 		final ByteBuffer buffer = TransferBufferAllocator.claim(collector.byteSize());
-
-		// WIP handle sorting
-		//		if (sorted()) {
-		//			collector.sortQuads(x, y, z);
-		//		}
 
 		final IntBuffer intBuffer = buffer.asIntBuffer();
 		intBuffer.position(0);
@@ -287,7 +280,6 @@ public final class WipRenderState {
 	private static final BitPacker64<Void>.EnumElement<WipFog> FOG = PACKER.createEnumElement(WipFog.class);
 
 	// These don't affect GL state but do affect encoding - must be buffered separately
-	private static final BitPacker64.BooleanElement SORTED = PACKER.createBooleanElement();
 	private static final BitPacker64.IntElement PRIMITIVE = PACKER.createIntElement(8);
 	private static final BitPacker64.BooleanElement HAS_COLOR = PACKER.createBooleanElement();
 	private static final BitPacker64.BooleanElement HAS_LIGHTMAP = PACKER.createBooleanElement();
@@ -298,6 +290,8 @@ public final class WipRenderState {
 	private static final CacheLoader<RenderLayer, WipRenderState> LOADER = CacheLoader.from(l -> finder().copyFromLayer(l));
 	private static final LoadingCache<RenderLayer, WipRenderState> LAYER_CACHE = CacheBuilder.newBuilder().weakKeys().maximumSize(32768).build(LOADER);
 
+	// WIP: really broken thanks to lack of valid equals method on RenderLayer
+	// fix by interning fixed references, check those first, and then map with renderstate finder otherwise
 	public static WipRenderState fromLayer(RenderLayer renderLayer) {
 		try {
 			return LAYER_CACHE.get(renderLayer);
@@ -375,11 +369,6 @@ public final class WipRenderState {
 			fog(WipFog.fromPhase(params.getFog()));
 
 			return find();
-		}
-
-		public Finder sorted(boolean sorted) {
-			bits = SORTED.setValue(sorted, bits);
-			return this;
 		}
 
 		public Finder hasColor(boolean hasColor) {

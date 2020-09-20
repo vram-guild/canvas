@@ -45,10 +45,10 @@ public class WipVertexState {
 
 	// true = 10%, false = 50%
 	private static final BooleanElement CUTOUT_10 = PACKER.createBooleanElement();
-	private static final BooleanElement HURT_OVERLAY = PACKER.createBooleanElement();
-	private static final BooleanElement FLASH_OVERLAY = PACKER.createBooleanElement();
+	private static final BooleanElement HURT_OVERLAY = PACKER.createBooleanElement(); // WIP: implement in shader
+	private static final BooleanElement FLASH_OVERLAY = PACKER.createBooleanElement(); // WIP: implement in shader
 
-	private static final IntElement CONDITION = PACKER.createIntElement(MaterialConditionImpl.MAX_CONDITIONS);
+	private static final IntElement CONDITION = PACKER.createIntElement(MaterialConditionImpl.MAX_CONDITIONS); // WIP: implement in shader
 
 	static {
 		assert MaterialConditionImpl.ALWAYS.index == 0;

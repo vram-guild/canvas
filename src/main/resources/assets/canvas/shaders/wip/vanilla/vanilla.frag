@@ -70,36 +70,42 @@ void main() {
 	vec4 raw = fragData.spriteColor * fragData.vertexColor;
 	vec4 a = raw;
 
-	#if SHADER_PASS == SHADER_PASS_DECAL
+	// TODO: wut?
+#if SHADER_PASS == SHADER_PASS_DECAL
 	if (a.a == 0) {
 		discard;
 	}
-		#endif
+#endif
 
-	if (a.a >= 0.5 || _cv_getFlag(_CV_FLAG_CUTOUT) != 1.0) {
-		a *= mix(light(fragData), frx_emissiveColor(), fragData.emissivity);
+	// PERF: varyings better here?
+	if (_cv_getFlag(_CV_FLAG_CUTOUT) == 1.0) {
+		float t = _cv_getFlag(_CV_FLAG_CUTOUT_10) == 1.0 ? _CV_CUTOUT_10_THRESHOLD : 0.5;
 
-		#if AO_SHADING_MODE != AO_MODE_NONE && defined(CONTEXT_IS_BLOCK)
-		if (fragData.ao) {
-			a *= aoFactor(fragData.light);
+		if (a.a < t) {
+			discard;
 		}
-			#endif
-
-			#if DIFFUSE_SHADING_MODE == DIFFUSE_MODE_NORMAL
-		if (fragData.diffuse) {
-			float df = _cvv_diffuse + (1.0 - _cvv_diffuse) * fragData.emissivity;
-
-			a *= vec4(df, df, df, 1.0);
-		}
-			#endif
-	} else {
-		discard;
 	}
+
+	a *= mix(light(fragData), frx_emissiveColor(), fragData.emissivity);
+
+#if AO_SHADING_MODE != AO_MODE_NONE && defined(CONTEXT_IS_BLOCK)
+	if (fragData.ao) {
+		a *= aoFactor(fragData.light);
+	}
+#endif
+
+#if DIFFUSE_SHADING_MODE == DIFFUSE_MODE_NORMAL
+	if (fragData.diffuse) {
+		float df = _cvv_diffuse + (1.0 - _cvv_diffuse) * fragData.emissivity;
+
+		a *= vec4(df, df, df, 1.0);
+	}
+#endif
 
 	// TODO: need a separate fog pass?
 	gl_FragData[TARGET_BASECOLOR] = _cv_fog(a);
 
-	#if TARGET_EMISSIVE > 0
+#if TARGET_EMISSIVE > 0
 	gl_FragData[TARGET_EMISSIVE] = vec4(fragData.emissivity, 0.0, 0.0, 1.0);
-	#endif
+#endif
 }
