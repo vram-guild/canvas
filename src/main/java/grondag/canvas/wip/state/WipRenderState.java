@@ -283,10 +283,6 @@ public final class WipRenderState {
 	private static final BitPacker64.BooleanElement HAS_CONDITION = PACKER.createBooleanElement();
 	private static final BitPacker64<Void>.EnumElement<WipModelOrigin> ORIGIN = PACKER.createEnumElement(WipModelOrigin.class);
 
-	public static WipRenderState fromLayer(RenderLayer renderLayer) {
-		return ((MultiPhaseExt)renderLayer).canvas_renderState();
-	}
-
 	public static WipRenderState fromIndex(int index) {
 		return STATES[index];
 	}

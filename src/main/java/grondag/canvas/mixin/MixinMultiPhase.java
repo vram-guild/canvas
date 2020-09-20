@@ -23,6 +23,7 @@ import java.util.Optional;
 import grondag.canvas.mixinterface.MultiPhaseExt;
 import grondag.canvas.wip.state.RenderLayerHandler;
 import grondag.canvas.wip.state.WipRenderState;
+import grondag.canvas.wip.state.WipVertexState;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
@@ -39,6 +40,7 @@ abstract class MixinMultiPhase extends RenderLayer implements MultiPhaseExt {
 	private RenderLayer.MultiPhaseParameters phases;
 
 	private @Nullable WipRenderState renderState;
+	private int vertexState;
 
 	private MixinMultiPhase(String name, VertexFormat vertexFormat, int drawMode, int expectedBufferSize, boolean hasCrumbling, boolean translucent, Runnable startAction, Runnable endAction) {
 		super(name, vertexFormat, drawMode, expectedBufferSize, hasCrumbling, translucent, startAction, endAction);
@@ -64,11 +66,17 @@ abstract class MixinMultiPhase extends RenderLayer implements MultiPhaseExt {
 		WipRenderState result = renderState;
 
 		if (result == null) {
-			result = WipRenderState.finder().copyFromLayer((RenderLayer)this);
+			result = WipRenderState.finder().copyFromLayer(this);
 			renderState = result;
+			vertexState = WipVertexState.finder().copyFromLayer(this).find();
 		}
 
 		return result;
+	}
+
+	@Override
+	public int canvas_vertexState() {
+		return vertexState;
 	}
 
 	@Override

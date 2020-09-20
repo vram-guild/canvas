@@ -3,8 +3,7 @@ package grondag.canvas.wip.encoding;
 import java.util.Map;
 import java.util.SortedMap;
 
-import grondag.canvas.wip.state.WipRenderState;
-import grondag.canvas.wip.state.WipVertexState;
+import grondag.canvas.mixinterface.MultiPhaseExt;
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 
 import net.minecraft.client.render.BufferBuilder;
@@ -25,13 +24,12 @@ public class WipImmediate extends Immediate {
 
 	@Override
 	public VertexConsumer getBuffer(RenderLayer renderLayer) {
-		final WipVertexCollector result = collectors.get(WipRenderState.fromLayer(renderLayer));
+		final WipVertexCollector result = collectors.get(((MultiPhaseExt) renderLayer).canvas_renderState());
 
 		if (result == null) {
 			return super.getBuffer(renderLayer);
 		} else {
-			// PERF: cache this with the render layer instead of doing threadlocal each time
-			result.vertexState(WipVertexState.finder().copyFromLayer(renderLayer).find());
+			result.vertexState(((MultiPhaseExt) renderLayer).canvas_vertexState());
 			return result;
 		}
 	}
@@ -51,7 +49,7 @@ public class WipImmediate extends Immediate {
 
 	@Override
 	public void draw(RenderLayer layer) {
-		final WipVertexCollectorImpl collector = collectors.getIfExists(WipRenderState.fromLayer(layer));
+		final WipVertexCollectorImpl collector = collectors.getIfExists(((MultiPhaseExt) layer).canvas_renderState());
 
 		if (collector == null) {
 			super.draw(layer);

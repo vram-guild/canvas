@@ -36,4 +36,9 @@ public interface MultiPhaseExt {
 	AccessMultiPhaseParameters canvas_phases();
 
 	WipRenderState canvas_renderState();
+
+	/**
+	 * Must be called after {@link #canvas_renderState()}
+	 */
+	int canvas_vertexState();
 }
