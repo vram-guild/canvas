@@ -14,7 +14,7 @@
  * the License.
  */
 
-package grondag.canvas.shader.wip;
+package grondag.canvas.wip.shader;
 
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
@@ -27,9 +27,10 @@ import grondag.canvas.apiimpl.ShaderBuilderImpl.UniformMatrix4f;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.Matrix4fExt;
 import grondag.canvas.shader.Shader;
-import grondag.canvas.shader.wip.encoding.WipVertexFormat;
 import grondag.canvas.texture.SpriteInfoTexture;
 import grondag.canvas.varia.CanvasGlHelper;
+import grondag.canvas.wip.encoding.WipVertexFormat;
+import grondag.canvas.wip.state.WipProgramType;
 import grondag.frex.api.material.Uniform;
 import grondag.frex.api.material.Uniform.Uniform1f;
 import grondag.frex.api.material.Uniform.Uniform1i;

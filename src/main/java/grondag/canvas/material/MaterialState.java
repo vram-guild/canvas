@@ -24,7 +24,7 @@ import grondag.canvas.shader.ShaderPass;
 import grondag.fermion.bits.BitPacker32;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 
-//   WIP: replace with MaterialDrawState
+//   WIP2: replace with MaterialDrawState
 
 
 public class MaterialState {
@@ -76,7 +76,7 @@ public class MaterialState {
 		}
 
 		final int lookupIndex = SHADER_TYPE_PACKER.getBits(pass)
-				| CONDITION_PACKER.getBits(condition.index) | SHADER_PACKER.getBits(shader.getIndex());
+		| CONDITION_PACKER.getBits(condition.index) | SHADER_PACKER.getBits(shader.getIndex());
 
 		MaterialState result = MAP.get(lookupIndex);
 

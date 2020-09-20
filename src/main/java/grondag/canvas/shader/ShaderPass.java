@@ -16,7 +16,7 @@
 
 package grondag.canvas.shader;
 
-// WIP: remove
+// WIP2: remove
 @Deprecated
 public enum ShaderPass {
 	SOLID,

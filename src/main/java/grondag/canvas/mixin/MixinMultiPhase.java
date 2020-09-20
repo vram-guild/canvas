@@ -17,7 +17,8 @@
 package grondag.canvas.mixin;
 
 import grondag.canvas.mixinterface.MultiPhaseExt;
-import grondag.canvas.shader.wip.RenderLayerHandler;
+import grondag.canvas.wip.state.RenderLayerHandler;
+
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexFormat;
 import org.spongepowered.asm.mixin.Mixin;

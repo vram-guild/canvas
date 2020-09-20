@@ -1,10 +1,10 @@
-package grondag.canvas.shader.wip.encoding;
+package grondag.canvas.wip.encoding;
 
 import java.util.Map;
 import java.util.SortedMap;
 
-import grondag.canvas.shader.wip.WipRenderState;
-import grondag.canvas.shader.wip.WipVertexState;
+import grondag.canvas.wip.state.WipRenderState;
+import grondag.canvas.wip.state.WipVertexState;
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 
 import net.minecraft.client.render.BufferBuilder;

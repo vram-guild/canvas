@@ -14,16 +14,17 @@
  * the License.
  */
 
-package grondag.canvas.shader.wip;
+package grondag.canvas.wip.shader;
 
 import java.util.ArrayList;
 import java.util.function.Consumer;
 
 import grondag.canvas.shader.Shader;
-import grondag.canvas.shader.wip.WipGlProgram.Uniform3fImpl;
-import grondag.canvas.shader.wip.WipGlProgram.UniformArrayfImpl;
-import grondag.canvas.shader.wip.encoding.WipVertexFormat;
 import grondag.canvas.texture.SpriteInfoTexture;
+import grondag.canvas.wip.encoding.WipVertexFormat;
+import grondag.canvas.wip.shader.WipGlProgram.Uniform3fImpl;
+import grondag.canvas.wip.shader.WipGlProgram.UniformArrayfImpl;
+import grondag.canvas.wip.state.WipProgramType;
 import grondag.frex.api.material.MaterialShader;
 import grondag.frex.api.material.UniformRefreshFrequency;
 

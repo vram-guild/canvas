@@ -16,16 +16,16 @@
 
 package grondag.canvas.mixin;
 
-import grondag.canvas.shader.wip.encoding.WipVertexCollectorImpl;
 import grondag.canvas.varia.CanvasMath;
+import grondag.canvas.wip.encoding.WipVertexCollectorImpl;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
-import static grondag.canvas.shader.wip.encoding.WipVertexCollector.NORMALIZED_U0_V0;
-import static grondag.canvas.shader.wip.encoding.WipVertexCollector.NORMALIZED_U0_V1;
-import static grondag.canvas.shader.wip.encoding.WipVertexCollector.NORMALIZED_U1_V0;
-import static grondag.canvas.shader.wip.encoding.WipVertexCollector.NORMALIZED_U1_V1;
-import static grondag.canvas.shader.wip.encoding.WipVertexCollector.packColorFromFloats;
+import static grondag.canvas.wip.encoding.WipVertexCollector.NORMALIZED_U0_V0;
+import static grondag.canvas.wip.encoding.WipVertexCollector.NORMALIZED_U0_V1;
+import static grondag.canvas.wip.encoding.WipVertexCollector.NORMALIZED_U1_V0;
+import static grondag.canvas.wip.encoding.WipVertexCollector.NORMALIZED_U1_V1;
+import static grondag.canvas.wip.encoding.WipVertexCollector.packColorFromFloats;
 
 import net.minecraft.client.particle.BillboardParticle;
 import net.minecraft.client.particle.SpriteBillboardParticle;

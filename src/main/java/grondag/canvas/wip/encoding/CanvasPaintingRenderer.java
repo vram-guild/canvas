@@ -14,7 +14,7 @@
  * the License.
  */
 
-package grondag.canvas.shader.wip.encoding;
+package grondag.canvas.wip.encoding;
 
 import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.client.texture.Sprite;

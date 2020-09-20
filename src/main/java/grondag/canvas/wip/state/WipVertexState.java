@@ -14,7 +14,7 @@
  * the License.
  */
 
-package grondag.canvas.shader.wip;
+package grondag.canvas.wip.state;
 
 import grondag.canvas.apiimpl.MaterialConditionImpl;
 import grondag.canvas.mixin.AccessMultiPhaseParameters;

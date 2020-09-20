@@ -14,7 +14,7 @@
  * the License.
  */
 
-package grondag.canvas.shader.wip;
+package grondag.canvas.wip.shader;
 
 import java.util.function.Consumer;
 

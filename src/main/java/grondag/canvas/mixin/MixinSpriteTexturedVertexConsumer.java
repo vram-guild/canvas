@@ -17,7 +17,7 @@
 package grondag.canvas.mixin;
 
 import grondag.canvas.Configurator;
-import grondag.canvas.shader.wip.encoding.WipVertexCollectorImpl;
+import grondag.canvas.wip.encoding.WipVertexCollectorImpl;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;

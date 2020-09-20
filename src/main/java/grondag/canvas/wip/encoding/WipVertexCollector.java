@@ -30,7 +30,7 @@
  * the License.
  */
 
-package grondag.canvas.shader.wip.encoding;
+package grondag.canvas.wip.encoding;
 
 import grondag.canvas.apiimpl.mesh.MeshEncodingHelper;
 import grondag.canvas.mixinterface.Matrix3fExt;

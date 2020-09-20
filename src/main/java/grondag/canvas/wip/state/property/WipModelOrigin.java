@@ -14,16 +14,30 @@
  * the License.
  */
 
-package grondag.canvas.shader.wip;
+package grondag.canvas.wip.state.property;
 
-public enum WipProgramType {
-	MATERIAL_UNIFORM_LOGIC,
-	MATERIAL_VERTEX_LOGIC,
-	PROCESS;
+public enum WipModelOrigin {
+	/**
+	 * Vertex coordinate are raw coordinates.
+	 * Will need a matrix update per draw.
+	 */
+	SELF,
 
-	public final String name;
+	/**
+	 * Vertex coordinates are relative to a world region.
+	 * Used in terrain rendering. Canvas regions may be 16x16 or 256x256.
+	 */
+	REGION,
 
-	private WipProgramType() {
-		name = name().toLowerCase();
-	}
+	/**
+	 * Vertex coordinates are relative to the camera.
+	 * Common for most per-frame render (entities, etc.)
+	 */
+	CAMERA,
+
+	/**
+	 * Vertex coordinates are relative to the screen.
+	 * Intended for GUI rendering.
+	 */
+	SCREEN
 }

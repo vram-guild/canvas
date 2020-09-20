@@ -18,6 +18,7 @@ package grondag.canvas.apiimpl.material;
 
 import grondag.canvas.apiimpl.MaterialConditionImpl;
 import grondag.canvas.shader.ShaderPass;
+
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 
 /**
@@ -27,7 +28,7 @@ import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 public class MeshMaterialLayer {
 	public final int shaderFlags;
 	public final boolean isTranslucent;
-	// WIP: remove
+	// WIP2: remove
 	@Deprecated
 	public final ShaderPass shaderType;
 	private final MeshMaterial meshMaterial;
@@ -49,7 +50,7 @@ public class MeshMaterialLayer {
 
 		shader = meshMaterial.shader(depth);
 
-		// WIP: flags get conveyed via MaterialVertexState instead
+		// WIP2: flags get conveyed via MaterialVertexState instead
 		int flags = this.meshMaterial.emissive(depth) ? 1 : 0;
 
 		if (this.meshMaterial.disableDiffuse(depth)) {

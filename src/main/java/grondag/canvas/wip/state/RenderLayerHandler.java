@@ -14,7 +14,7 @@
  * the License.
  */
 
-package grondag.canvas.shader.wip;
+package grondag.canvas.wip.state;
 
 import com.mojang.blaze3d.platform.GlStateManager;
 import grondag.canvas.CanvasMod;

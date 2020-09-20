@@ -14,12 +14,12 @@
  * the License.
  */
 
-package grondag.canvas.shader.wip.encoding;
+package grondag.canvas.wip.encoding;
 
 import java.util.Arrays;
 
 import grondag.canvas.material.MaterialState;
-import grondag.canvas.shader.wip.WipRenderState;
+import grondag.canvas.wip.state.WipRenderState;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import net.minecraft.util.math.MathHelper;

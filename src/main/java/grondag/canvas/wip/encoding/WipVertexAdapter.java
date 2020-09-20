@@ -14,13 +14,13 @@
  * the License.
  */
 
-package grondag.canvas.shader.wip.encoding;
+package grondag.canvas.wip.encoding;
 
 import grondag.canvas.apiimpl.mesh.MeshEncodingHelper;
 import grondag.canvas.apiimpl.util.NormalHelper;
 import grondag.canvas.mixinterface.SpriteExt;
-import grondag.canvas.shader.wip.WipRenderState;
-import grondag.canvas.shader.wip.WipVertexState;
+import grondag.canvas.wip.state.WipRenderState;
+import grondag.canvas.wip.state.WipVertexState;
 
 import net.minecraft.client.texture.Sprite;
 

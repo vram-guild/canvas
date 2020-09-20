@@ -14,7 +14,7 @@
  * the License.
  */
 
-package grondag.canvas.shader.wip.props;
+package grondag.canvas.wip.state.property;
 
 import com.google.common.util.concurrent.Runnables;
 

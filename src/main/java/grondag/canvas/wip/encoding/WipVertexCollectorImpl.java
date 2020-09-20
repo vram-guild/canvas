@@ -14,12 +14,12 @@
  * the License.
  */
 
-package grondag.canvas.shader.wip.encoding;
+package grondag.canvas.wip.encoding;
 
 import java.nio.IntBuffer;
 
 import com.google.common.primitives.Doubles;
-import grondag.canvas.shader.wip.WipRenderState;
+import grondag.canvas.wip.state.WipRenderState;
 import grondag.fermion.intstream.IntStreamProvider;
 import grondag.fermion.intstream.IntStreamProvider.IntStreamImpl;
 import it.unimi.dsi.fastutil.Swapper;

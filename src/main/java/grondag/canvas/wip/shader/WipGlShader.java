@@ -14,7 +14,7 @@
  * the License.
  */
 
-package grondag.canvas.shader.wip;
+package grondag.canvas.wip.shader;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -35,9 +35,10 @@ import grondag.canvas.Configurator.DiffuseMode;
 import grondag.canvas.Configurator.FogMode;
 import grondag.canvas.shader.Shader;
 import grondag.canvas.shader.ShaderData;
-import grondag.canvas.shader.wip.encoding.WipVertexFormat;
 import grondag.canvas.texture.SpriteInfoTexture;
 import grondag.canvas.varia.CanvasGlHelper;
+import grondag.canvas.wip.encoding.WipVertexFormat;
+import grondag.canvas.wip.state.WipProgramType;
 import org.apache.commons.lang3.StringUtils;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL21;

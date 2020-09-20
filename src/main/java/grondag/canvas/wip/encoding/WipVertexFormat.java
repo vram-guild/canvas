@@ -14,7 +14,7 @@
  * the License.
  */
 
-package grondag.canvas.shader.wip.encoding;
+package grondag.canvas.wip.encoding;
 
 import grondag.canvas.material.MaterialVertexFormat;
 import grondag.canvas.material.MaterialVertextFormatElement;

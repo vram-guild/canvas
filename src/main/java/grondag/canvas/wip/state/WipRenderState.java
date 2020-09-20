@@ -14,7 +14,7 @@
  * the License.
  */
 
-package grondag.canvas.shader.wip;
+package grondag.canvas.wip.state;
 
 import javax.annotation.Nullable;
 
@@ -34,16 +34,20 @@ import grondag.canvas.mixin.AccessTexture;
 import grondag.canvas.mixinterface.EntityRenderDispatcherExt;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.MultiPhaseExt;
-import grondag.canvas.shader.wip.encoding.WipVertexCollectorImpl;
-import grondag.canvas.shader.wip.encoding.WipVertexFormat;
-import grondag.canvas.shader.wip.props.WipDecal;
-import grondag.canvas.shader.wip.props.WipDepthTest;
-import grondag.canvas.shader.wip.props.WipFog;
-import grondag.canvas.shader.wip.props.WipModelOrigin;
-import grondag.canvas.shader.wip.props.WipTarget;
-import grondag.canvas.shader.wip.props.WipTextureState;
-import grondag.canvas.shader.wip.props.WipTransparency;
-import grondag.canvas.shader.wip.props.WipWriteMask;
+import grondag.canvas.wip.encoding.WipVertexCollectorImpl;
+import grondag.canvas.wip.encoding.WipVertexFormat;
+import grondag.canvas.wip.shader.WipGlProgram;
+import grondag.canvas.wip.shader.WipMaterialShaderImpl;
+import grondag.canvas.wip.shader.WipMaterialShaderManager;
+import grondag.canvas.wip.shader.WipShaderData;
+import grondag.canvas.wip.state.property.WipDecal;
+import grondag.canvas.wip.state.property.WipDepthTest;
+import grondag.canvas.wip.state.property.WipFog;
+import grondag.canvas.wip.state.property.WipModelOrigin;
+import grondag.canvas.wip.state.property.WipTarget;
+import grondag.canvas.wip.state.property.WipTextureState;
+import grondag.canvas.wip.state.property.WipTransparency;
+import grondag.canvas.wip.state.property.WipWriteMask;
 import grondag.fermion.bits.BitPacker64;
 import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;

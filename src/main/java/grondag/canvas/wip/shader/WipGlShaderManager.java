@@ -14,12 +14,13 @@
  * the License.
  */
 
-package grondag.canvas.shader.wip;
+package grondag.canvas.wip.shader;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
 import grondag.canvas.shader.Shader;
-import grondag.canvas.shader.wip.encoding.WipVertexFormat;
+import grondag.canvas.wip.encoding.WipVertexFormat;
+import grondag.canvas.wip.state.WipProgramType;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.lwjgl.opengl.GL21;
 

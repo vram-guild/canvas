@@ -16,9 +16,10 @@
 
 package grondag.canvas.mixin;
 
-import grondag.canvas.shader.wip.RenderLayerHandler;
 import net.minecraft.client.render.BufferRenderer;
 import net.minecraft.client.render.VertexFormat;
+
+import grondag.canvas.wip.state.RenderLayerHandler;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;

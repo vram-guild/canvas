@@ -14,10 +14,11 @@
  * the License.
  */
 
-package grondag.canvas.shader.wip;
+package grondag.canvas.wip.shader;
 
 import grondag.canvas.shader.Shader;
-import grondag.canvas.shader.wip.encoding.WipVertexFormat;
+import grondag.canvas.wip.encoding.WipVertexFormat;
+import grondag.canvas.wip.state.WipProgramType;
 
 import net.minecraft.util.Identifier;
 
