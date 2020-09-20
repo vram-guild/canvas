@@ -20,11 +20,7 @@ import javax.annotation.Nullable;
 
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
-import java.util.concurrent.ExecutionException;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import grondag.canvas.buffer.TransferBufferAllocator;
@@ -112,7 +108,7 @@ public final class WipRenderState {
 	 * depending on the lighting model. True still indicates the material
 	 * should be affected by world lighting.<p>
 	 *
-	 * UGLY: should this be hasWorldLight instead?  Semantics are messy.
+	 * WIP: should this be hasWorldLight instead?  Semantics are messy.
 	 */
 	public final boolean hasLightMap;
 
@@ -222,9 +218,9 @@ public final class WipRenderState {
 			RenderSystem.lineWidth(1.0F);
 		}
 
-		// TODO split this to start and end methods so draw can be done independently or with different uniforms/buffers - most instances don't need an end
+		// WIP split this to start and end methods so draw can be done independently or with different uniforms/buffers - most instances don't need an end
 
-		// PERF:  very very inefficient
+		// WIP:  very very inefficient
 		final ByteBuffer buffer = TransferBufferAllocator.claim(collector.byteSize());
 
 		final IntBuffer intBuffer = buffer.asIntBuffer();
@@ -233,7 +229,7 @@ public final class WipRenderState {
 
 		format.enableDirect(MemoryUtil.memAddress(buffer));
 
-		// TODO: need to make matrix selection depend on origin or make all of this stateful
+		// WIP: need to make matrix selection depend on origin or make all of this stateful
 		shader.activate(normalModelMatrix, texture.atlasInfo());
 		GlStateManager.drawArrays(primitive, 0, collector.vertexCount());
 		MaterialVertexFormat.disableDirect();
@@ -287,18 +283,8 @@ public final class WipRenderState {
 	private static final BitPacker64.BooleanElement HAS_CONDITION = PACKER.createBooleanElement();
 	private static final BitPacker64<Void>.EnumElement<WipModelOrigin> ORIGIN = PACKER.createEnumElement(WipModelOrigin.class);
 
-	private static final CacheLoader<RenderLayer, WipRenderState> LOADER = CacheLoader.from(l -> finder().copyFromLayer(l));
-	private static final LoadingCache<RenderLayer, WipRenderState> LAYER_CACHE = CacheBuilder.newBuilder().weakKeys().maximumSize(32768).build(LOADER);
-
-	// WIP: really broken thanks to lack of valid equals method on RenderLayer
-	// fix by interning fixed references, check those first, and then map with renderstate finder otherwise
 	public static WipRenderState fromLayer(RenderLayer renderLayer) {
-		try {
-			return LAYER_CACHE.get(renderLayer);
-		} catch (final ExecutionException e) {
-			assert false : "Unable to construct render state from layer";
-		return null;
-		}
+		return ((MultiPhaseExt)renderLayer).canvas_renderState();
 	}
 
 	public static WipRenderState fromIndex(int index) {
@@ -322,7 +308,7 @@ public final class WipRenderState {
 		}
 
 		public WipRenderState copyFromLayer(RenderLayer layer) {
-			// PERF: need faster exclusion method
+			// WIP: need faster exclusion method
 			if (layer == ENTITY_SHADOW) {
 				return MISSING;
 			}
@@ -453,7 +439,6 @@ public final class WipRenderState {
 			return this;
 		}
 
-		// PERF: use copy-on-write instead of synch
 		public synchronized WipRenderState find() {
 			WipRenderState result = MAP.get(bits);
 

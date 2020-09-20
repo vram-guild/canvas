@@ -16,10 +16,12 @@
 
 package grondag.canvas.mixinterface;
 
-import grondag.canvas.mixin.AccessMultiPhaseParameters;
-import net.minecraft.client.render.RenderLayer;
-
 import java.util.Optional;
+
+import grondag.canvas.mixin.AccessMultiPhaseParameters;
+import grondag.canvas.wip.state.WipRenderState;
+
+import net.minecraft.client.render.RenderLayer;
 
 public interface MultiPhaseExt {
 
@@ -32,4 +34,6 @@ public interface MultiPhaseExt {
 	void canvas_endDrawing();
 
 	AccessMultiPhaseParameters canvas_phases();
+
+	WipRenderState canvas_renderState();
 }

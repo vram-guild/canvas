@@ -16,15 +16,18 @@
 
 package grondag.canvas.mixin;
 
+import javax.annotation.Nullable;
+
+import java.util.Optional;
+
 import grondag.canvas.mixinterface.MultiPhaseExt;
 import grondag.canvas.wip.state.RenderLayerHandler;
-
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.VertexFormat;
+import grondag.canvas.wip.state.WipRenderState;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
-import java.util.Optional;
+import net.minecraft.client.render.RenderLayer;
+import net.minecraft.client.render.VertexFormat;
 
 @Mixin(targets = "net.minecraft.client.render.RenderLayer$MultiPhase")
 abstract class MixinMultiPhase extends RenderLayer implements MultiPhaseExt {
@@ -34,6 +37,8 @@ abstract class MixinMultiPhase extends RenderLayer implements MultiPhaseExt {
 	private boolean outline;
 	@Shadow
 	private RenderLayer.MultiPhaseParameters phases;
+
+	private @Nullable WipRenderState renderState;
 
 	private MixinMultiPhase(String name, VertexFormat vertexFormat, int drawMode, int expectedBufferSize, boolean hasCrumbling, boolean translucent, Runnable startAction, Runnable endAction) {
 		super(name, vertexFormat, drawMode, expectedBufferSize, hasCrumbling, translucent, startAction, endAction);
@@ -52,6 +57,18 @@ abstract class MixinMultiPhase extends RenderLayer implements MultiPhaseExt {
 	@Override
 	public AccessMultiPhaseParameters canvas_phases() {
 		return (AccessMultiPhaseParameters) (Object) phases;
+	}
+
+	@Override
+	public WipRenderState canvas_renderState() {
+		WipRenderState result = renderState;
+
+		if (result == null) {
+			result = WipRenderState.finder().copyFromLayer((RenderLayer)this);
+			renderState = result;
+		}
+
+		return result;
 	}
 
 	@Override
