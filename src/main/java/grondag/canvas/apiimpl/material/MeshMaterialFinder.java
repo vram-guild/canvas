@@ -17,7 +17,11 @@
 package grondag.canvas.apiimpl.material;
 
 import grondag.canvas.apiimpl.MaterialConditionImpl;
-import grondag.frex.api.material.*;
+import grondag.frex.api.material.MaterialCondition;
+import grondag.frex.api.material.MaterialFinder;
+import grondag.frex.api.material.MaterialShader;
+import grondag.frex.api.material.RenderMaterial;
+
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 
 public class MeshMaterialFinder extends AbstractMeshMaterial implements MaterialFinder {
@@ -26,20 +30,22 @@ public class MeshMaterialFinder extends AbstractMeshMaterial implements Material
 		return findInternal(true);
 	}
 
-	synchronized MeshMaterialLocator findInternal(boolean setupVariants) {
-		MeshMaterialLocator result = MAP.get(this);
+	MeshMaterialLocator findInternal(boolean setupVariants) {
+		synchronized(MAP) {
+			MeshMaterialLocator result = MAP.get(this);
 
-		if (result == null) {
-			result = new MeshMaterialLocator(LIST.size(), bits0, bits1);
-			LIST.add(result);
-			MAP.put(new MeshMaterialKey(bits0, bits1), result);
+			if (result == null) {
+				result = new MeshMaterialLocator(LIST.size(), bits0, bits1);
+				LIST.add(result);
+				MAP.put(new MeshMaterialKey(bits0, bits1), result);
 
-			if (setupVariants) {
-				result.setupVariants();
+				if (setupVariants) {
+					result.setupVariants();
+				}
 			}
-		}
 
-		return result;
+			return result;
+		}
 	}
 
 	@Override
