@@ -285,6 +285,6 @@ public class WipVertexCollectorImpl extends WipVertexAdapter {
 		}
 	};
 
-	// TODO: make parameters dynamic based on system specs / config
-	private static final IntStreamProvider INT_STREAM_PROVIDER = new IntStreamProvider(0x10000, 16, 4096);
+	// WIP2: confirm parameters after integrating terrain
+	public static final IntStreamProvider INT_STREAM_PROVIDER = new IntStreamProvider(4096, 16, 4096);
 }

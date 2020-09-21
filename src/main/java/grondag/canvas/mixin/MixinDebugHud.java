@@ -16,17 +16,19 @@
 
 package grondag.canvas.mixin;
 
+import java.util.List;
+
 import grondag.canvas.Configurator;
 import grondag.canvas.buffer.GlBufferAllocator;
 import grondag.canvas.buffer.TransferBufferAllocator;
 import grondag.canvas.light.LightmapHd;
-import net.minecraft.client.gui.hud.DebugHud;
+import grondag.canvas.wip.encoding.WipVertexCollectorImpl;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import java.util.List;
+import net.minecraft.client.gui.hud.DebugHud;
 
 @Mixin(DebugHud.class)
 public class MixinDebugHud {
@@ -40,5 +42,6 @@ public class MixinDebugHud {
 
 		list.add(TransferBufferAllocator.debugString());
 		list.add(GlBufferAllocator.debugString());
+		list.add(WipVertexCollectorImpl.INT_STREAM_PROVIDER.report());
 	}
 }
