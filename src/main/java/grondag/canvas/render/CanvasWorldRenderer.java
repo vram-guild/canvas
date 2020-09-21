@@ -469,6 +469,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		LitematicaHolder.litematicaRenderSolids.accept(matrixStack);
 
+		// WIP: need to handle this in shaders?
 		if (this.world.getSkyProperties().isDarkened()) {
 			DiffuseLighting.enableForLevel(matrixStack.peek().getModel());
 		} else {
@@ -540,10 +541,16 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			wr.canvas_renderEntity(entity, cameraX, cameraY, cameraZ, tickDelta, matrixStack, renderProvider);
 		}
 
+		final boolean advancedBloomCapture = Configurator.enableBloom && Configurator.enableExperimentalPipeline;
+
+		if (advancedBloomCapture) CanvasFrameBufferHacks.startEmissiveCapture(false);
+
 		immediate.draw(RenderLayer.getEntitySolid(SpriteAtlasTexture.BLOCK_ATLAS_TEX));
 		immediate.draw(RenderLayer.getEntityCutout(SpriteAtlasTexture.BLOCK_ATLAS_TEX));
 		immediate.draw(RenderLayer.getEntityCutoutNoCull(SpriteAtlasTexture.BLOCK_ATLAS_TEX));
 		immediate.draw(RenderLayer.getEntitySmoothCutout(SpriteAtlasTexture.BLOCK_ATLAS_TEX));
+
+		if (advancedBloomCapture) CanvasFrameBufferHacks.endEmissiveCapture();
 
 		SatinHolder.onEntitiesRenderedEvent.onEntitiesRendered(camera, frustum, tickDelta);
 		LitematicaHolder.litematicaEntityHandler.handle(matrixStack, tickDelta);
@@ -605,6 +612,8 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		assert matrixStack.isEmpty() : "Matrix stack not empty in world render when expected";
 
+		if (advancedBloomCapture) CanvasFrameBufferHacks.startEmissiveCapture(false);
+
 		immediate.draw(RenderLayer.getSolid());
 		immediate.draw(TexturedRenderLayers.getEntitySolid());
 		immediate.draw(TexturedRenderLayers.getEntityCutout());
@@ -615,6 +624,8 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		immediate.draw(TexturedRenderLayers.getSign());
 		immediate.draw(TexturedRenderLayers.getChest());
 		bufferBuilders.getOutlineVertexConsumers().draw();
+
+		if (advancedBloomCapture) CanvasFrameBufferHacks.endEmissiveCapture();
 
 		if (didRenderOutlines) {
 			entityOutlineShader.render(tickDelta);
@@ -669,9 +680,12 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		mc.debugRenderer.render(matrixStack, immediate, cameraX, cameraY, cameraZ);
 		RenderSystem.popMatrix();
 
+		if (advancedBloomCapture) CanvasFrameBufferHacks.startEmissiveCapture(false);
 		immediate.draw(TexturedRenderLayers.getEntityTranslucentCull());
 		immediate.draw(TexturedRenderLayers.getBannerPatterns());
 		immediate.draw(TexturedRenderLayers.getShieldPatterns());
+		if (advancedBloomCapture) CanvasFrameBufferHacks.endEmissiveCapture();
+
 		immediate.draw(RenderLayer.getArmorGlint());
 		immediate.draw(RenderLayer.getArmorEntityGlint());
 		immediate.draw(RenderLayer.getGlint());
@@ -679,12 +693,18 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		immediate.draw(RenderLayer.method_30676());
 		immediate.draw(RenderLayer.getEntityGlint());
 		immediate.draw(RenderLayer.getEntityGlintDirect());
+
+		if (advancedBloomCapture) CanvasFrameBufferHacks.startEmissiveCapture(false);
 		immediate.draw(RenderLayer.getWaterMask());
 		bufferBuilders.getEffectVertexConsumers().draw();
+		if (advancedBloomCapture) CanvasFrameBufferHacks.endEmissiveCapture();
 
 		if (advancedTranslucency) {
 			immediate.draw(RenderLayer.getLines());
+
+			if (advancedBloomCapture) CanvasFrameBufferHacks.startEmissiveCapture(false);
 			immediate.draw();
+			if (advancedBloomCapture) CanvasFrameBufferHacks.endEmissiveCapture();
 
 			Framebuffer fb = mcwr.getTranslucentFramebuffer();
 			fb.clear(MinecraftClient.IS_SYSTEM_MAC);
@@ -710,7 +730,11 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			profiler.swap("translucent");
 			renderTerrainLayer(true, matrixStack, cameraX, cameraY, cameraZ);
 			immediate.draw(RenderLayer.getLines());
+
+			if (advancedBloomCapture) CanvasFrameBufferHacks.startEmissiveCapture(false);
 			immediate.draw();
+			if (advancedBloomCapture) CanvasFrameBufferHacks.endEmissiveCapture();
+
 			VoxelMapHolder.postRenderLayerHandler.render(this, RenderLayer.getTranslucent(), matrixStack, cameraX, cameraY, cameraZ);
 			profiler.swap("particles");
 			mc.particleManager.renderParticles(matrixStack, immediate, lightmapTextureManager, camera, tickDelta);
