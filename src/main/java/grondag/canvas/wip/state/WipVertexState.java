@@ -114,13 +114,17 @@ public class WipVertexState {
 		 * Note sets Ao disabled by default - non-terrain layers can't/won't use it.
 		 */
 		public Finder copyFromLayer(RenderLayer layer) {
-			final AccessMultiPhaseParameters params = ((MultiPhaseExt) layer).canvas_phases();
+			final MultiPhaseExt ext = (MultiPhaseExt) layer;
+
+			final String name = ext.canvas_name();
+			final AccessMultiPhaseParameters params = ext.canvas_phases();
 			final AccessTexture tex = (AccessTexture) params.getTexture();
 			unmipped(!tex.getMipmap());
 			disableDiffuse(params.getDiffuseLighting() == RenderPhase.DISABLE_DIFFUSE_LIGHTING);
 			cutout(params.getAlpha() != RenderPhase.ZERO_ALPHA);
 			cutout10(params.getAlpha() == RenderPhase.ONE_TENTH_ALPHA);
 			disableAo(true);
+			emissive(name.equals("eyes") || name.equals("beacon_beam"));
 			return this;
 		}
 

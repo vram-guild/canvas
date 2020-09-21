@@ -52,6 +52,11 @@ abstract class MixinMultiPhase extends RenderLayer implements MultiPhaseExt {
 	}
 
 	@Override
+	public String canvas_name() {
+		return name;
+	}
+
+	@Override
 	public boolean canvas_outline() {
 		return outline;
 	}

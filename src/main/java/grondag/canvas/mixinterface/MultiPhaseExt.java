@@ -41,4 +41,6 @@ public interface MultiPhaseExt {
 	 * Must be called after {@link #canvas_renderState()}
 	 */
 	int canvas_vertexState();
+
+	String canvas_name();
 }
