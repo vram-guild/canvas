@@ -56,6 +56,7 @@ import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.RenderPhase;
 import net.minecraft.client.render.VertexFormat;
 import net.minecraft.client.render.VertexFormatElement;
+import net.minecraft.client.render.model.ModelLoader;
 import net.minecraft.client.texture.AbstractTexture;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Matrix3f;
@@ -285,10 +286,29 @@ public final class WipRenderState {
 	private static final BitPacker64<Void>.EnumElement<WipModelOrigin> ORIGIN = PACKER.createEnumElement(WipModelOrigin.class);
 
 	private static final ReferenceOpenHashSet<RenderLayer> EXCLUSIONS = new ReferenceOpenHashSet<>(64, Hash.VERY_FAST_LOAD_FACTOR);
+	public static final WipRenderState MISSING = new WipRenderState(0);
 
 	static {
+		assert PACKER.bitLength() <= 64;
+		STATES[0] = MISSING;
+
 		// entity shadows aren't worth
 		EXCLUSIONS.add(((EntityRenderDispatcherExt) MinecraftClient.getInstance().getEntityRenderDispatcher()).canvas_shadowLayer());
+
+		// FEAT: handle more of these with shaders
+		EXCLUSIONS.add(RenderLayer.getArmorGlint());
+		EXCLUSIONS.add(RenderLayer.getArmorEntityGlint());
+		EXCLUSIONS.add(RenderLayer.getGlint());
+		EXCLUSIONS.add(RenderLayer.getGlintDirect());
+		EXCLUSIONS.add(RenderLayer.method_30676());
+		EXCLUSIONS.add(RenderLayer.getEntityGlint());
+		EXCLUSIONS.add(RenderLayer.getEntityGlintDirect());
+		EXCLUSIONS.add(RenderLayer.getLines());
+		EXCLUSIONS.add(RenderLayer.getLightning());
+
+		ModelLoader.BLOCK_DESTRUCTION_RENDER_LAYERS.forEach((renderLayer) -> {
+			EXCLUSIONS.add(renderLayer);
+		});
 	}
 
 	public static boolean isExcluded(RenderLayer layer) {
@@ -457,12 +477,5 @@ public final class WipRenderState {
 
 			return result;
 		}
-	}
-
-	public static final WipRenderState MISSING = new WipRenderState(0);
-
-	static {
-		assert PACKER.bitLength() <= 64;
-		STATES[0] = MISSING;
 	}
 }

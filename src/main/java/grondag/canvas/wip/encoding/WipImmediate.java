@@ -4,14 +4,13 @@ import java.util.Map;
 import java.util.SortedMap;
 
 import grondag.canvas.mixinterface.MultiPhaseExt;
+import grondag.canvas.wip.state.WipRenderState;
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.TexturedRenderLayers;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider.Immediate;
-import net.minecraft.client.render.chunk.BlockBufferBuilderStorage;
 import net.minecraft.client.render.model.ModelLoader;
 import net.minecraft.util.Util;
 
@@ -27,6 +26,7 @@ public class WipImmediate extends Immediate {
 		final WipVertexCollector result = collectors.get(((MultiPhaseExt) renderLayer).canvas_renderState());
 
 		if (result == null) {
+			assert WipRenderState.isExcluded(renderLayer);
 			return super.getBuffer(renderLayer);
 		} else {
 			result.vertexState(((MultiPhaseExt) renderLayer).canvas_vertexState());
@@ -54,24 +54,12 @@ public class WipImmediate extends Immediate {
 		if (collector == null) {
 			super.draw(layer);
 		} else {
+			assert WipRenderState.isExcluded(layer);
 			collector.drawAndClear();
 		}
 	}
 
-	// WIP: need this?
-	private static final BlockBufferBuilderStorage blockBuilders = new BlockBufferBuilderStorage();
-
-	// WIP: should not need all these
 	private static final SortedMap<RenderLayer, BufferBuilder> entityBuilders = Util.make(new Object2ObjectLinkedOpenHashMap<>(), (object2ObjectLinkedOpenHashMap) -> {
-		object2ObjectLinkedOpenHashMap.put(TexturedRenderLayers.getEntitySolid(), blockBuilders.get(RenderLayer.getSolid()));
-		object2ObjectLinkedOpenHashMap.put(TexturedRenderLayers.getEntityCutout(), blockBuilders.get(RenderLayer.getCutout()));
-		object2ObjectLinkedOpenHashMap.put(TexturedRenderLayers.getBannerPatterns(), blockBuilders.get(RenderLayer.getCutoutMipped()));
-		object2ObjectLinkedOpenHashMap.put(TexturedRenderLayers.getEntityTranslucentCull(), blockBuilders.get(RenderLayer.getTranslucent()));
-		assignBufferBuilder(object2ObjectLinkedOpenHashMap, TexturedRenderLayers.getShieldPatterns());
-		assignBufferBuilder(object2ObjectLinkedOpenHashMap, TexturedRenderLayers.getBeds());
-		assignBufferBuilder(object2ObjectLinkedOpenHashMap, TexturedRenderLayers.getShulkerBoxes());
-		assignBufferBuilder(object2ObjectLinkedOpenHashMap, TexturedRenderLayers.getSign());
-		assignBufferBuilder(object2ObjectLinkedOpenHashMap, TexturedRenderLayers.getChest());
 		assignBufferBuilder(object2ObjectLinkedOpenHashMap, RenderLayer.getTranslucentNoCrumbling());
 		assignBufferBuilder(object2ObjectLinkedOpenHashMap, RenderLayer.getArmorGlint());
 		assignBufferBuilder(object2ObjectLinkedOpenHashMap, RenderLayer.getArmorEntityGlint());

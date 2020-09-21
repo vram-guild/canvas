@@ -657,6 +657,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			final BlockState blockState = world.getBlockState(blockPos4);
 
 			if (!blockState.isAir() && world.getWorldBorder().contains(blockPos4)) {
+				// THIS IS WHEN LIGHTENING RENDERS
 				final VertexConsumer vertexConsumer3 = immediate.getBuffer(RenderLayer.getLines());
 				wr.canvas_drawBlockOutline(matrixStack, vertexConsumer3, camera.getFocusedEntity(), cameraX, cameraY, cameraZ, blockPos4, blockState);
 			}
@@ -674,13 +675,17 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		immediate.draw(RenderLayer.getArmorGlint());
 		immediate.draw(RenderLayer.getArmorEntityGlint());
 		immediate.draw(RenderLayer.getGlint());
+		immediate.draw(RenderLayer.getGlintDirect());
+		immediate.draw(RenderLayer.method_30676());
 		immediate.draw(RenderLayer.getEntityGlint());
+		immediate.draw(RenderLayer.getEntityGlintDirect());
 		immediate.draw(RenderLayer.getWaterMask());
 		bufferBuilders.getEffectVertexConsumers().draw();
-		immediate.draw(RenderLayer.getLines());
-		immediate.draw();
 
 		if (advancedTranslucency) {
+			immediate.draw(RenderLayer.getLines());
+			immediate.draw();
+
 			Framebuffer fb = mcwr.getTranslucentFramebuffer();
 			fb.clear(MinecraftClient.IS_SYSTEM_MAC);
 			fb.copyDepthFrom(mcfb);
@@ -688,6 +693,9 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 			profiler.swap("translucent");
 			renderTerrainLayer(true, matrixStack, cameraX, cameraY, cameraZ);
+
+			// NB: vanilla renders tripwire here but we combine into translucent
+
 			VoxelMapHolder.postRenderLayerHandler.render(this, RenderLayer.getTranslucent(), matrixStack, cameraX, cameraY, cameraZ);
 			fb = mcwr.getParticlesFramebuffer();
 			fb.clear(MinecraftClient.IS_SYSTEM_MAC);
@@ -701,6 +709,8 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		} else {
 			profiler.swap("translucent");
 			renderTerrainLayer(true, matrixStack, cameraX, cameraY, cameraZ);
+			immediate.draw(RenderLayer.getLines());
+			immediate.draw();
 			VoxelMapHolder.postRenderLayerHandler.render(this, RenderLayer.getTranslucent(), matrixStack, cameraX, cameraY, cameraZ);
 			profiler.swap("particles");
 			mc.particleManager.renderParticles(matrixStack, immediate, lightmapTextureManager, camera, tickDelta);
@@ -717,27 +727,26 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			renderCullBoxes(matrixStack, immediate, cameraX, cameraY, cameraZ, tickDelta);
 		}
 
-		if (mc.options.getCloudRenderMode() != CloudRenderMode.OFF) {
-			profiler.swap("clouds");
+		profiler.swap("clouds");
 
-			if (advancedTranslucency) {
-				final Framebuffer fb = mcwr.getCloudsFramebuffer();
-				fb.clear(MinecraftClient.IS_SYSTEM_MAC);
-				fb.copyDepthFrom(mcfb);
+		if (advancedTranslucency) {
+			// clear the cloud FB even when clouds are off - prevents leftover clouds
+			final Framebuffer fb = mcwr.getCloudsFramebuffer();
+			fb.clear(MinecraftClient.IS_SYSTEM_MAC);
+
+			if (mc.options.getCloudRenderMode() != CloudRenderMode.OFF) {
 				fb.beginWrite(false);
 				((WorldRenderer) wr).renderClouds(matrixStack, tickDelta, cameraX, cameraY, cameraZ);
 				mcfb.beginWrite(false);
-			} else {
-				((WorldRenderer) wr).renderClouds(matrixStack, tickDelta, cameraX, cameraY, cameraZ);
 			}
+		} else if (mc.options.getCloudRenderMode() != CloudRenderMode.OFF) {
+			((WorldRenderer) wr).renderClouds(matrixStack, tickDelta, cameraX, cameraY, cameraZ);
 		}
 
 		profiler.swap("weather");
 
 		if (advancedTranslucency) {
 			final Framebuffer fb = mcwr.getWeatherFramebuffer();
-			fb.clear(MinecraftClient.IS_SYSTEM_MAC);
-			fb.copyDepthFrom(mcfb);
 			fb.beginWrite(false);
 			wr.canvas_renderWeather(lightmapTextureManager, tickDelta, cameraX, cameraY, cameraZ);
 			wr.canvas_renderWorldBorder(camera);
