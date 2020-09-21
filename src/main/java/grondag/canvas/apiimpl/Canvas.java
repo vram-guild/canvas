@@ -26,6 +26,7 @@ import grondag.canvas.apiimpl.material.MeshMaterialFinder;
 import grondag.canvas.apiimpl.material.MeshMaterialLocator;
 import grondag.canvas.apiimpl.mesh.MeshBuilderImpl;
 import grondag.canvas.apiimpl.rendercontext.BlockRenderContext;
+import grondag.canvas.apiimpl.rendercontext.EntityBlockRenderContext;
 import grondag.canvas.apiimpl.rendercontext.ItemRenderContext;
 import grondag.canvas.buffer.encoding.VertexEncoders;
 import grondag.canvas.compat.LitematicaHolder;
@@ -101,6 +102,7 @@ public class Canvas implements Renderer {
 		CanvasMod.LOG.info(I18n.translate("info.canvas.reloading"));
 		ProtoRenderRegion.reload();
 		BlockRenderContext.reload();
+		EntityBlockRenderContext.reload();
 		ItemRenderContext.reload();
 		ChunkRebuildCounters.reset();
 		ChunkColorCache.invalidate();

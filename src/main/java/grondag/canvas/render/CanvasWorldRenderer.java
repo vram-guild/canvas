@@ -30,6 +30,7 @@ import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
+import grondag.canvas.apiimpl.rendercontext.EntityBlockRenderContext;
 import grondag.canvas.buffer.BindStateManager;
 import grondag.canvas.buffer.VboBuffer;
 import grondag.canvas.compat.BborHolder;
@@ -506,6 +507,8 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		final Iterator<Entity> entities = world.getEntities().iterator();
 		final ShaderEffect entityOutlineShader = wr.canvas_entityOutlineShader();
 		final BuiltRenderRegion[] visibleRegions = this.visibleRegions;
+		final EntityBlockRenderContext entityBlockContext = EntityBlockRenderContext.get();
+		entityBlockContext.tickDelta(tickDelta);
 
 		while (entities.hasNext()) {
 			final Entity entity = entities.next();
@@ -538,6 +541,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 				renderProvider = immediate;
 			}
 
+			entityBlockContext.entity(entity);
 			wr.canvas_renderEntity(entity, cameraX, cameraY, cameraZ, tickDelta, matrixStack, renderProvider);
 		}
 

@@ -16,9 +16,11 @@
 
 package grondag.canvas.mixinterface;
 
+import net.minecraft.client.util.math.Vector3f;
+import net.minecraft.util.math.Matrix4f;
+
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.util.math.Matrix4f;
 
 @Environment(EnvType.CLIENT)
 public interface Matrix4fExt {
@@ -122,27 +124,38 @@ public interface Matrix4fExt {
 
 	default boolean matches(Matrix4fExt val) {
 		return a00() == val.a00()
-				&& a01() == val.a01()
-				&& a02() == val.a02()
-				&& a03() == val.a03()
+		&& a01() == val.a01()
+		&& a02() == val.a02()
+		&& a03() == val.a03()
 
-				&& a10() == val.a10()
-				&& a11() == val.a11()
-				&& a12() == val.a12()
-				&& a13() == val.a13()
+		&& a10() == val.a10()
+		&& a11() == val.a11()
+		&& a12() == val.a12()
+		&& a13() == val.a13()
 
-				&& a20() == val.a20()
-				&& a21() == val.a21()
-				&& a22() == val.a22()
-				&& a23() == val.a23()
+		&& a20() == val.a20()
+		&& a21() == val.a21()
+		&& a22() == val.a22()
+		&& a23() == val.a23()
 
-				&& a30() == val.a30()
-				&& a31() == val.a31()
-				&& a32() == val.a32()
-				&& a33() == val.a33();
+		&& a30() == val.a30()
+		&& a31() == val.a31()
+		&& a32() == val.a32()
+		&& a33() == val.a33();
 	}
 
 	default boolean matches(Matrix4f val) {
 		return matches((Matrix4fExt) (Object) val);
+	}
+
+	default void fastTransform(Vector3f vec) {
+		final float x = vec.getX();
+		final float y = vec.getY();
+		final float z = vec.getZ();
+
+		vec.set(
+			a00() * x + a01() * y + a02() * z + a03(),
+			a10() * x + a11() * y + a12() * z + a13(),
+			a20() * x + a21() * y + a22() * z + a23());
 	}
 }

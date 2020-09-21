@@ -16,13 +16,15 @@
 
 package grondag.canvas.apiimpl.rendercontext;
 
+import java.util.Random;
+import java.util.function.Supplier;
+
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.util.GeometryHelper;
 import grondag.canvas.buffer.encoding.VertexEncoder;
 import grondag.canvas.mixinterface.RenderLayerExt;
 import grondag.frex.api.material.MaterialMap;
-import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
-import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
+
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
@@ -31,8 +33,8 @@ import net.minecraft.client.render.RenderLayers;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.BlockRenderView;
 
-import java.util.Random;
-import java.util.function.Supplier;
+import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
+import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 
 public abstract class AbstractBlockRenderContext<T extends BlockRenderView> extends AbstractRenderContext implements RenderContext {
 	/**
@@ -71,7 +73,7 @@ public abstract class AbstractBlockRenderContext<T extends BlockRenderView> exte
 		return result;
 	};
 	private int lastColorIndex = -1;
-	private int blockColor = -1;
+	protected int blockColor = -1;
 	private int fullCubeCache = 0;
 
 
