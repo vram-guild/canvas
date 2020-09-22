@@ -102,6 +102,13 @@ void main() {
 	}
 #endif
 
+	// PERF: varyings better here?
+	if (_cv_getFlag(_CV_FLAG_FLASH_OVERLAY) == 1.0) {
+		a = a * 0.25 + 0.75;
+	} else if (_cv_getFlag(_CV_FLAG_HURT_OVERLAY) == 1.0) {
+		a = vec4(0.25 + a.r * 0.75, a.g * 0.75, a.b * 0.75, a.a);
+	}
+
 	// TODO: need a separate fog pass?
 	gl_FragData[TARGET_BASECOLOR] = _cv_fog(a);
 

@@ -36,6 +36,7 @@ public abstract class WipVertexAdapter implements WipVertexCollector {
 	protected int lightIndex;
 	protected int normalIndex;
 	protected int normalBase;
+	protected int overlayFlags;
 	protected int materialBase;
 	protected int spriteId = -1;
 	protected float u0;
@@ -87,7 +88,14 @@ public abstract class WipVertexAdapter implements WipVertexCollector {
 
 	@Override
 	public WipVertexCollector overlay(int u, int v) {
-		// WIP - set vertex state flags depending on values
+		if (v == 3) {
+			overlayFlags = WipVertexState.HURT_OVERLAY_FLAG;
+		} else if (v == 10) {
+			overlayFlags = u > 7 ? WipVertexState.FLASH_OVERLAY_FLAG : 0;
+		} else {
+			overlayFlags = 0;
+		}
+
 		return this;
 	}
 
@@ -141,7 +149,7 @@ public abstract class WipVertexAdapter implements WipVertexCollector {
 
 	@Override
 	public WipVertexCollector normal(float x, float y, float z) {
-		vertexData[normalIndex] = normalBase | NormalHelper.packUnsignedNormal(x, y, z);
+		vertexData[normalIndex] = normalBase | overlayFlags | NormalHelper.packUnsignedNormal(x, y, z);
 		return this;
 	}
 }

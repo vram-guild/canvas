@@ -48,6 +48,9 @@ public class WipVertexState {
 	private static final BooleanElement HURT_OVERLAY = PACKER.createBooleanElement(); // WIP: implement in shader
 	private static final BooleanElement FLASH_OVERLAY = PACKER.createBooleanElement(); // WIP: implement in shader
 
+	public static final int HURT_OVERLAY_FLAG = HURT_OVERLAY.comparisonMask() << 24;
+	public static final int FLASH_OVERLAY_FLAG = FLASH_OVERLAY.comparisonMask() << 24;
+
 	private static final IntElement CONDITION = PACKER.createIntElement(MaterialConditionImpl.MAX_CONDITIONS); // WIP: implement in shader
 
 	static {
