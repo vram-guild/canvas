@@ -10,6 +10,12 @@
 #include frex:shaders/wip/api/sampler.glsl
 #include frex:shaders/lib/math.glsl
 #include frex:shaders/lib/color.glsl
+#include canvas:shaders/wip/program.glsl
+
+void _cv_startFragment(inout frx_FragmentData fragData) {
+	int cv_programId = _cv_programId();
+#include canvas:cv_start_fragment
+}
 
 /******************************************************
   canvas:shaders/internal/vanilla/vanilla.frag
@@ -18,7 +24,7 @@
 vec4 aoFactor(vec2 lightCoord) {
 	float ao = _cvv_ao;
 
-	#if AO_SHADING_MODE == AO_MODE_SUBTLE_BLOCK_LIGHT || AO_SHADING_MODE == AO_MODE_SUBTLE_ALWAYS
+#if AO_SHADING_MODE == AO_MODE_SUBTLE_BLOCK_LIGHT || AO_SHADING_MODE == AO_MODE_SUBTLE_ALWAYS
 	// accelerate the transition from 0.4 (should be the minimum) to 1.0
 	float bao = (ao - 0.4) / 0.6;
 	bao = clamp(bao, 0.0, 1.0);
@@ -33,25 +39,25 @@ vec4 aoFactor(vec2 lightCoord) {
 	ao = mix(bao, ao, frx_luminance(sky.rgb));
 	return vec4(ao, ao, ao, 1.0);
 	#endif
-	#else
+#else
 	return vec4(ao, ao, ao, 1.0);
-	#endif
+#endif
 }
 
 vec4 light(frx_FragmentData fragData) {
-	#ifdef CONTEXT_IS_GUI
+#ifdef CONTEXT_IS_GUI
 	return vec4(1.0, 1.0, 1.0, 1.0);
-	#else
+#else
 	#if DIFFUSE_SHADING_MODE == DIFFUSE_MODE_SKY_ONLY && defined(CONTEXT_IS_BLOCK)
 	if (fragData.diffuse) {
 		vec4 block = texture2D(frxs_lightmap, vec2(fragData.light.x, 0.03125));
 		vec4 sky = texture2D(frxs_lightmap, vec2(0.03125, fragData.light.y));
 		return max(block, sky * _cvv_diffuse);
 	}
-		#endif
+	#endif
 
 	return texture2D(frxs_lightmap, fragData.light);
-	#endif
+#endif
 }
 
 void main() {
@@ -65,7 +71,7 @@ void main() {
 	_cvv_lightcoord
 	);
 
-	//frx_startFragment(fragData);
+	_cv_startFragment(fragData);
 
 	vec4 raw = fragData.spriteColor * fragData.vertexColor;
 	vec4 a = raw;

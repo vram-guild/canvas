@@ -39,6 +39,7 @@ import grondag.canvas.texture.SpriteInfoTexture;
 import grondag.canvas.varia.CanvasGlHelper;
 import grondag.canvas.wip.encoding.WipVertexFormat;
 import grondag.canvas.wip.state.WipProgramType;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import org.apache.commons.lang3.StringUtils;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL21;
@@ -64,8 +65,8 @@ class WipGlShader implements Shader {
 	private int glId = -1;
 	private boolean needsLoad = true;
 	private boolean isErrored = false;
-	private boolean hasVertexStart = false;
-	private boolean hasVertexEnd = false;
+
+	private final Object2IntOpenHashMap<Identifier> subSources = new Object2IntOpenHashMap<>();
 
 	WipGlShader(Identifier shaderSource, int shaderType, WipProgramType programType, WipVertexFormat format) {
 		this.shaderSource = shaderSource;
@@ -242,15 +243,6 @@ class WipGlShader implements Shader {
 				result = StringUtils.replace(result, "#define ATTRIB_TEXTURE", "//#define ATTRIB_TEXTURE");
 			}
 
-			// vertex
-			if (!hasVertexStart) {
-				result = StringUtils.replace(result, "#define _CV_HAS_VERTEX_START", "//#define _CV_HAS_VERTEX_START");
-			}
-
-			if (!hasVertexEnd) {
-				result = StringUtils.replace(result, "#define _CV_HAS_VERTEX_END", "//#define _CV_HAS_VERTEX_END");
-			}
-
 			result = StringUtils.replace(result, "#define _CV_SPRITE_INFO_TEXTURE_SIZE 1024", "#define _CV_SPRITE_INFO_TEXTURE_SIZE " + SpriteInfoTexture.BLOCKS.textureSize());
 			result = StringUtils.replace(result, "#define _CV_ATLAS_WIDTH 1024", "#define _CV_ATLAS_WIDTH " + SpriteInfoTexture.BLOCKS.atlasWidth());
 			result = StringUtils.replace(result, "#define _CV_ATLAS_HEIGHT 1024", "#define _CV_ATLAS_HEIGHT " + SpriteInfoTexture.BLOCKS.atlasHeight());
@@ -315,21 +307,18 @@ class WipGlShader implements Shader {
 		//		}
 	}
 
-	private Identifier remapTargetId(Identifier id) {
-		return id.equals(ShaderData.API_TARGET) ? shaderSource : id;
-	}
-
 	private String getShaderSourceInner(ResourceManager resourceManager, Identifier shaderSource) {
-		shaderSource = remapTargetId(shaderSource);
+		if (shaderSource.equals(ShaderData.FRAGMENT_START)) {
+			return "//NOOP";
+		} else if (shaderSource.equals(ShaderData.VERTEX_START)) {
+			return "//NOOP";
+		} else if (shaderSource.equals(ShaderData.VEREX_END)) {
+			return "//NOOP";
+		}
 
 		try (Resource resource = resourceManager.getResource(shaderSource)) {
 			try (Reader reader = new InputStreamReader(resource.getInputStream())) {
 				String result = CharStreams.toString(reader);
-
-				if (shaderType == GL21.GL_VERTEX_SHADER && shaderSource == this.shaderSource) {
-					hasVertexStart = result.contains("frx_startVertex");
-					hasVertexEnd = result.contains("frx_endVertex");
-				}
 
 				final Matcher m = PATTERN.matcher(result);
 

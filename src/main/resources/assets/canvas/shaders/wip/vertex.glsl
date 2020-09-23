@@ -2,8 +2,6 @@
   canvas:shaders/internal/vertex.glsl
 ******************************************************/
 
-#define _CV_HAS_VERTEX_START
-#define _CV_HAS_VERTEX_END
 #define _CV_SPRITE_INFO_TEXTURE_SIZE 0
 #define _CV_ATLAS_WIDTH 1
 #define _CV_ATLAS_HEIGHT 2

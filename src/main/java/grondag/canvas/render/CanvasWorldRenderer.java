@@ -470,7 +470,8 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		LitematicaHolder.litematicaRenderSolids.accept(matrixStack);
 
-		// WIP: need to handle this in shaders?
+		// WIP: need to handle this in shaders - when vanilla diffuse active some dimensions get down-face lighting
+		// should probably also disable these calls entirely when new pipeline is active
 		if (this.world.getSkyProperties().isDarkened()) {
 			DiffuseLighting.enableForLevel(matrixStack.peek().getModel());
 		} else {

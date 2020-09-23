@@ -6,7 +6,15 @@
 #include frex:shaders/wip/api/vertex.glsl
 #include frex:shaders/wip/api/sampler.glsl
 #include canvas:shaders/wip/diffuse.glsl
+#include canvas:shaders/wip/program.glsl
 
+void _cv_startVertex(inout frx_VertexData data, in int cv_programId) {
+#include canvas:cv_start_vertex
+}
+
+void _cv_endVertex(inout frx_VertexData data, in int cv_programId) {
+#include canvas:cv_end_vertex
+}
 
 /******************************************************
   canvas:shaders/internal/vanilla/vanilla.vert
@@ -70,10 +78,8 @@ void main() {
 	// due to FP error on some cards/drivers.  Also made varying attribute invariant (rolls eyes at OpenGL)
 	_cvv_flags = in_normal_flags.w + 0.5;
 
-
-	//#ifdef _CV_HAS_VERTEX_START
-	//frx_startVertex(data);
-	//#endif
+	int cv_programId = _cv_programId();
+	_cv_startVertex(data, cv_programId);
 
 #ifdef ATTRIB_MATERIAL
 	if (_cvu_material[_CV_SPRITE_INFO_TEXTURE_SIZE] != 0.0) {
@@ -108,9 +114,7 @@ void main() {
 
 	gl_Position = data.vertex;
 
-	//#ifdef _CV_HAS_VERTEX_END
-	//frx_endVertex(data);
-	//#endif
+	_cv_endVertex(data, cv_programId);
 
 	_cvv_texcoord = data.spriteUV;
 	_cvv_color = data.color;

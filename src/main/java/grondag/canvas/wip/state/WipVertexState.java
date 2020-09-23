@@ -45,8 +45,8 @@ public class WipVertexState {
 
 	// true = 10%, false = 50%
 	private static final BooleanElement CUTOUT_10 = PACKER.createBooleanElement();
-	private static final BooleanElement HURT_OVERLAY = PACKER.createBooleanElement(); // WIP: implement in shader
-	private static final BooleanElement FLASH_OVERLAY = PACKER.createBooleanElement(); // WIP: implement in shader
+	private static final BooleanElement HURT_OVERLAY = PACKER.createBooleanElement();
+	private static final BooleanElement FLASH_OVERLAY = PACKER.createBooleanElement();
 
 	public static final int HURT_OVERLAY_FLAG = HURT_OVERLAY.comparisonMask() << 24;
 	public static final int FLASH_OVERLAY_FLAG = FLASH_OVERLAY.comparisonMask() << 24;
