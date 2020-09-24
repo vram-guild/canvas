@@ -95,9 +95,6 @@ public enum WipMaterialShaderManager implements ClientTickEvents.EndTick {
 	private synchronized WipMaterialShaderImpl create(Identifier vertexShaderSource, Identifier fragmentShaderSource, WipProgramType programType, WipVertexFormat format) {
 		final WipMaterialShaderImpl result = new WipMaterialShaderImpl(shaders.size(), vertexShaderSource, fragmentShaderSource, programType, format);
 		shaders.add(result);
-
-		result.addProgramSetup(WipShaderData.STANDARD_UNIFORM_SETUP);
-
 		return result;
 	}
 

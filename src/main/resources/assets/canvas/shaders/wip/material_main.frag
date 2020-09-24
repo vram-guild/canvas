@@ -18,7 +18,7 @@ void _cv_startFragment(inout frx_FragmentData fragData) {
 }
 
 /******************************************************
-  canvas:shaders/internal/vanilla/vanilla.frag
+  canvas:shaders/internal/material_main.frag
 ******************************************************/
 
 vec4 aoFactor(vec2 lightCoord) {

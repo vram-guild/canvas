@@ -17,7 +17,7 @@ void _cv_endVertex(inout frx_VertexData data, in int cv_programId) {
 }
 
 /******************************************************
-  canvas:shaders/internal/vanilla/vanilla.vert
+  canvas:shaders/internal/material_main.vert
 ******************************************************/
 
 #define ATTRIB_COLOR

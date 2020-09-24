@@ -44,6 +44,7 @@ import grondag.frex.api.material.Uniform.UniformArrayf;
 import grondag.frex.api.material.Uniform.UniformArrayi;
 import grondag.frex.api.material.UniformRefreshFrequency;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL21;
@@ -61,8 +62,8 @@ public class WipGlProgram {
 	}
 
 	private static WipGlProgram activeProgram;
-	public final Shader vertexShader;
-	public final Shader fragmentShader;
+	private final Shader vertexShader;
+	private final Shader fragmentShader;
 	public final WipVertexFormat pipelineVertexFormat;
 	public final WipProgramType programType;
 	private final ObjectArrayList<UniformImpl<?>> uniforms = new ObjectArrayList<>();
@@ -74,14 +75,18 @@ public class WipGlProgram {
 	public UniformMatrix3fImpl normalModelMatrix;
 	public UniformArrayfImpl materialArray;
 
+	private final ObjectOpenHashSet<WipMaterialShaderImpl> materials;
+
 	protected boolean hasDirty = false;
 	private int progID = -1;
 	private boolean isErrored = false;
+	private boolean needsLoad = true;
 
-	public WipGlProgram(Shader vertexShader, Shader fragmentShader, WipVertexFormat format, WipProgramType programType) {
+	public WipGlProgram(Shader vertexShader, Shader fragmentShader, WipVertexFormat format, WipProgramType programType, ObjectOpenHashSet<WipMaterialShaderImpl> materials) {
 		this.vertexShader = vertexShader;
 		this.fragmentShader = fragmentShader;
 		this.programType = programType;
+		this.materials = materials;
 		pipelineVertexFormat = format;
 	}
 
@@ -251,6 +256,11 @@ public class WipGlProgram {
 	}
 
 	public final void activate() {
+		if (needsLoad) {
+			load();
+			needsLoad = false;
+		}
+
 		if (isErrored) {
 			return;
 		}
@@ -319,7 +329,7 @@ public class WipGlProgram {
 		return result;
 	}
 
-	public final void load() {
+	private void load() {
 		isErrored = true;
 
 		// prevent accumulation of uniforms in programs that aren't activated after
@@ -842,5 +852,16 @@ public class WipGlProgram {
 		protected void uploadInner() {
 			GL21.glUniformMatrix3fv(unifID, false, uniformFloatBuffer);
 		}
+	}
+
+	public void forceReload() {
+		fragmentShader.forceReload();
+		vertexShader.forceReload();
+		needsLoad = true;
+	}
+
+	public void addMaterial(WipMaterialShaderImpl wipMaterialShaderImpl) {
+		materials.add(wipMaterialShaderImpl);
+		needsLoad = true;
 	}
 }

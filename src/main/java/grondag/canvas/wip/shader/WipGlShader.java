@@ -34,12 +34,10 @@ import grondag.canvas.Configurator.AoMode;
 import grondag.canvas.Configurator.DiffuseMode;
 import grondag.canvas.Configurator.FogMode;
 import grondag.canvas.shader.Shader;
-import grondag.canvas.shader.ShaderData;
 import grondag.canvas.texture.SpriteInfoTexture;
 import grondag.canvas.varia.CanvasGlHelper;
 import grondag.canvas.wip.encoding.WipVertexFormat;
 import grondag.canvas.wip.state.WipProgramType;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import org.apache.commons.lang3.StringUtils;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL21;
@@ -59,14 +57,12 @@ class WipGlShader implements Shader {
 	private static boolean needsClearDebugOutputWarning = true;
 	private static boolean needsDebugOutputWarning = true;
 	private final Identifier shaderSource;
-	private final int shaderType;
-	private final WipProgramType programType;
+	protected final int shaderType;
+	protected final WipProgramType programType;
 	private final WipVertexFormat format;
 	private int glId = -1;
 	private boolean needsLoad = true;
 	private boolean isErrored = false;
-
-	private final Object2IntOpenHashMap<Identifier> subSources = new Object2IntOpenHashMap<>();
 
 	WipGlShader(Identifier shaderSource, int shaderType, WipProgramType programType, WipVertexFormat format) {
 		this.shaderSource = shaderSource;
@@ -182,8 +178,12 @@ class WipGlShader implements Shader {
 		}
 	}
 
+	protected String debugSourceString() {
+		return "-" + shaderSource.toString().replace("/", "-").replace(":", "-");
+	}
+
 	private void outputDebugSource(String source, String error) {
-		final String fileName = programType.name + "-" + format.name + "-" + shaderSource.toString().replace("/", "-").replace(":", "-");
+		final String fileName = programType.name + "-" + format.name + debugSourceString();
 		final Path path = shaderDebugPath();
 
 		File shaderDir = path.toFile();
@@ -308,11 +308,11 @@ class WipGlShader implements Shader {
 	}
 
 	private String getShaderSourceInner(ResourceManager resourceManager, Identifier shaderSource) {
-		if (shaderSource.equals(ShaderData.FRAGMENT_START)) {
+		if (shaderSource.equals(WipShaderData.FRAGMENT_START)) {
 			return "//NOOP";
-		} else if (shaderSource.equals(ShaderData.VERTEX_START)) {
+		} else if (shaderSource.equals(WipShaderData.VERTEX_START)) {
 			return "//NOOP";
-		} else if (shaderSource.equals(ShaderData.VEREX_END)) {
+		} else if (shaderSource.equals(WipShaderData.VEREX_END)) {
 			return "//NOOP";
 		}
 

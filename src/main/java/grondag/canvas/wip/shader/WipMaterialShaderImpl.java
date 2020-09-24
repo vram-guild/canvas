@@ -16,17 +16,10 @@
 
 package grondag.canvas.wip.shader;
 
-import java.util.ArrayList;
-import java.util.function.Consumer;
-
-import grondag.canvas.shader.Shader;
 import grondag.canvas.texture.SpriteInfoTexture;
 import grondag.canvas.wip.encoding.WipVertexFormat;
-import grondag.canvas.wip.shader.WipGlProgram.Uniform3fImpl;
-import grondag.canvas.wip.shader.WipGlProgram.UniformArrayfImpl;
 import grondag.canvas.wip.state.WipProgramType;
 import grondag.frex.api.material.MaterialShader;
-import grondag.frex.api.material.UniformRefreshFrequency;
 
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Matrix3f;
@@ -37,10 +30,7 @@ public final class WipMaterialShaderImpl implements MaterialShader {
 	public final Identifier fragmentShader;
 	public final WipProgramType programType;
 	public final  WipVertexFormat format;
-
-	private final ArrayList<Consumer<WipGlProgram>> programSetups = new ArrayList<>();
 	private WipGlProgram program;
-
 
 	public WipMaterialShaderImpl(int index, Identifier vertexShader, Identifier fragmentShader, WipProgramType programType, WipVertexFormat format) {
 		this.vertexShader = vertexShader;
@@ -51,19 +41,12 @@ public final class WipMaterialShaderImpl implements MaterialShader {
 	}
 
 	private WipGlProgram getOrCreate() {
-		final WipGlProgram result = program;
+		WipGlProgram result = program;
 
 		if (result == null) {
-			final Shader vs = WipGlShaderManager.INSTANCE.getOrCreateVertexShader(vertexShader, programType, format);
-			final Shader fs = WipGlShaderManager.INSTANCE.getOrCreateFragmentShader(fragmentShader, programType, format);
-			final WipGlProgram newProgram = new WipGlProgram(vs, fs, format, programType);
-			programSetups.forEach(ps -> ps.accept(newProgram));
-			newProgram.modelOrigin = (Uniform3fImpl) newProgram.uniform3f("_cvu_model_origin", UniformRefreshFrequency.ON_LOAD, u -> u.set(0, 0, 0));
-			newProgram.normalModelMatrix = newProgram.uniformMatrix3f("_cvu_normal_model_matrix", UniformRefreshFrequency.ON_LOAD, u -> {});
-			newProgram.materialArray = (UniformArrayfImpl) newProgram.uniformArrayf("_cvu_material", UniformRefreshFrequency.ON_LOAD, u -> {}, 4);
-			newProgram.load();
-			program = newProgram;
-			return newProgram;
+			result = WipGlShaderManager.INSTANCE.getOrCreateMaterialShader(programType, format);
+			program = result;
+			result.addMaterial(this);
 		}
 
 		return result;
@@ -90,11 +73,6 @@ public final class WipMaterialShaderImpl implements MaterialShader {
 
 	public int getIndex() {
 		return index;
-	}
-
-	public void addProgramSetup(Consumer<WipGlProgram> setup) {
-		assert setup != null;
-		programSetups.add(setup);
 	}
 
 	public void onRenderTick() {

@@ -29,16 +29,12 @@ public class WipShaderData {
 	public static final Identifier DEFAULT_VERTEX_SOURCE = new Identifier("canvas:shaders/material/default.vert");
 	public static final Identifier DEFAULT_FRAGMENT_SOURCE = new Identifier("canvas:shaders/material/default.frag");
 
-	public static final Identifier API_TARGET = new Identifier("canvas:apitarget");
+	public static final Identifier MATERIAL_MAIN_VERTEX = new Identifier("canvas:shaders/wip/material_main.vert");
+	public static final Identifier MATERIAL_MAIN_FRAGMENT = new Identifier("canvas:shaders/wip/material_main.frag");
 
-	public static final Identifier HD_VERTEX = new Identifier("canvas:shaders/internal/hd/hd.vert");
-	public static final Identifier HD_FRAGMENT = new Identifier("canvas:shaders/internal/hd/hd.frag");
-
-	public static final Identifier VANILLA_VERTEX = new Identifier("canvas:shaders/wip/vanilla/vanilla.vert");
-	public static final Identifier VANILLA_FRAGMENT = new Identifier("canvas:shaders/wip/vanilla/vanilla.frag");
-
-	public static final Identifier DEFAULT_ENTITY_VERTEX = new Identifier("canvas:shaders/internal/entity/default.vert");
-	public static final Identifier DEFAULT_ENTITY_FRAGMENT = new Identifier("canvas:shaders/internal/entity/default.frag");
+	public static final Identifier FRAGMENT_START = new Identifier("canvas:cv_start_fragment");
+	public static final Identifier VERTEX_START = new Identifier("canvas:cv_start_vertex");
+	public static final Identifier VEREX_END = new Identifier("canvas:cv_end_vertex");
 
 	private static final float[] BITWISE_DIVISORS = {0.5f, 0.25f, 0.125f, 0.0625f, 0.03125f, 0.015625f, 0.0078125f, 0.00390625f};
 

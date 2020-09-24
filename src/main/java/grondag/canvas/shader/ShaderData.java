@@ -40,12 +40,6 @@ public class ShaderData {
 	public static final Identifier DEFAULT_ENTITY_VERTEX = new Identifier("canvas:shaders/internal/entity/default.vert");
 	public static final Identifier DEFAULT_ENTITY_FRAGMENT = new Identifier("canvas:shaders/internal/entity/default.frag");
 
-	public static final Identifier DEFAULT_WIP_VERTEX = new Identifier("canvas:shaders/internal/wip/wip.vert");
-	public static final Identifier DEFAULT_WIP_FRAGMENT = new Identifier("canvas:shaders/internal/wip/wip.frag");
-
-	public static final Identifier FRAGMENT_START = new Identifier("canvas:cv_start_fragment");
-	public static final Identifier VERTEX_START = new Identifier("canvas:cv_start_vertex");
-	public static final Identifier VEREX_END = new Identifier("canvas:cv_end_vertex");
 
 	private static final float[] BITWISE_DIVISORS = {0.5f, 0.25f, 0.125f, 0.0625f, 0.03125f, 0.015625f, 0.0078125f, 0.00390625f};
 

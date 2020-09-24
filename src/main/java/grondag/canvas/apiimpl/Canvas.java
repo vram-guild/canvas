@@ -44,7 +44,6 @@ import grondag.canvas.terrain.ProtoRenderRegion;
 import grondag.canvas.terrain.TerrainModelSpace;
 import grondag.canvas.wip.shader.WipGlShaderManager;
 import grondag.canvas.wip.shader.WipMaterialShaderManager;
-import grondag.canvas.wip.shader.WipShader;
 import grondag.frex.api.Renderer;
 import grondag.frex.api.material.MaterialCondition;
 import grondag.frex.api.material.MaterialShader;
@@ -119,7 +118,6 @@ public class Canvas implements Renderer {
 		ProcessShaders.reload();
 		EntityShader.reload();
 		LitematicaHolder.litematicaReload.run();
-		WipShader.reload();
 	}
 
 	@Override

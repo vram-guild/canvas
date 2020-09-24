@@ -20,11 +20,13 @@ import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
 import grondag.canvas.shader.Shader;
 import grondag.canvas.wip.encoding.WipVertexFormat;
+import grondag.canvas.wip.shader.WipGlProgram.Uniform3fImpl;
+import grondag.canvas.wip.shader.WipGlProgram.UniformArrayfImpl;
 import grondag.canvas.wip.state.WipProgramType;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import grondag.frex.api.material.UniformRefreshFrequency;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.lwjgl.opengl.GL21;
-
-import net.minecraft.util.Identifier;
 
 public enum WipGlShaderManager {
 	INSTANCE;
@@ -35,42 +37,29 @@ public enum WipGlShaderManager {
 		}
 	}
 
-	private final Object2ObjectOpenHashMap<String, Shader> vertexShaders = new Object2ObjectOpenHashMap<>();
-	private final Object2ObjectOpenHashMap<String, Shader> fragmentShaders = new Object2ObjectOpenHashMap<>();
-
-	public static String shaderKey(Identifier shaderSource, WipProgramType programType, WipVertexFormat format) {
-		return String.format("%s.%s.%s", shaderSource.toString(), programType.name, format.name);
-	}
-
-	public Shader getOrCreateVertexShader(Identifier shaderSource,  WipProgramType programType, WipVertexFormat format) {
-		final String shaderKey = shaderKey(shaderSource, programType, format);
-
-		synchronized (vertexShaders) {
-			Shader result = vertexShaders.get(shaderKey);
-			if (result == null) {
-				result = new WipGlShader(shaderSource, GL21.GL_VERTEX_SHADER, programType, format);
-				vertexShaders.put(shaderKey, result);
-			}
-			return result;
-		}
-	}
-
-	public Shader getOrCreateFragmentShader(Identifier shaderSourceId, WipProgramType programType, WipVertexFormat format) {
-		final String shaderKey = shaderKey(shaderSourceId, programType, format);
-
-		synchronized (fragmentShaders) {
-			Shader result = fragmentShaders.get(shaderKey);
-			if (result == null) {
-				result = new WipGlShader(shaderSourceId, GL21.GL_FRAGMENT_SHADER, programType, format);
-				fragmentShaders.put(shaderKey, result);
-			}
-			return result;
-		}
-	}
+	private final Int2ObjectOpenHashMap<WipGlProgram> materialPrograms = new Int2ObjectOpenHashMap<>();
 
 	public void reload() {
 		WipGlShader.forceReloadErrors();
-		fragmentShaders.values().forEach(s -> s.forceReload());
-		vertexShaders.values().forEach(s -> s.forceReload());
+		materialPrograms.values().forEach(s -> s.forceReload());
+	}
+
+	WipGlProgram getOrCreateMaterialShader(WipProgramType programType, WipVertexFormat format) {
+		final int key = format.formatIndex | (programType.ordinal() << 16);
+		WipGlProgram result = materialPrograms.get(key);
+
+		if (result == null) {
+			final ObjectOpenHashSet<WipMaterialShaderImpl> materials = new ObjectOpenHashSet<>();
+			final Shader vs =  new WipGlMaterialShader(WipShaderData.MATERIAL_MAIN_VERTEX, GL21.GL_VERTEX_SHADER, programType, format, materials);
+			final Shader fs = new WipGlMaterialShader(WipShaderData.MATERIAL_MAIN_FRAGMENT, GL21.GL_FRAGMENT_SHADER, programType, format, materials);
+			result = new WipGlProgram(vs, fs, format, programType, materials);
+			WipShaderData.STANDARD_UNIFORM_SETUP.accept(result);
+			result.modelOrigin = (Uniform3fImpl) result.uniform3f("_cvu_model_origin", UniformRefreshFrequency.ON_LOAD, u -> u.set(0, 0, 0));
+			result.normalModelMatrix = result.uniformMatrix3f("_cvu_normal_model_matrix", UniformRefreshFrequency.ON_LOAD, u -> {});
+			result.materialArray = (UniformArrayfImpl) result.uniformArrayf("_cvu_material", UniformRefreshFrequency.ON_LOAD, u -> {}, 4);
+			materialPrograms.put(key, result);
+		}
+
+		return result;
 	}
 }

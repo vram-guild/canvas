@@ -170,7 +170,7 @@ public final class WipRenderState {
 
 		vertexStrideInts = format.vertexStrideInts;
 		translucency = TRANSPARENCY.getValue(bits);
-		shader = WipMaterialShaderManager.INSTANCE.find(WipShaderData.VANILLA_VERTEX, WipShaderData.VANILLA_FRAGMENT, translucency == WipTransparency.TRANSLUCENT ? WipProgramType.MATERIAL_VERTEX_LOGIC : WipProgramType.MATERIAL_UNIFORM_LOGIC, format);
+		shader = WipMaterialShaderManager.INSTANCE.find(WipShaderData.DEFAULT_VERTEX_SOURCE, WipShaderData.DEFAULT_FRAGMENT_SOURCE, translucency == WipTransparency.TRANSLUCENT ? WipProgramType.MATERIAL_VERTEX_LOGIC : WipProgramType.MATERIAL_UNIFORM_LOGIC, format);
 	}
 
 	@SuppressWarnings("resource")
