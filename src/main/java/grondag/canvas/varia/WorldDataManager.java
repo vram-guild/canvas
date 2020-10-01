@@ -27,10 +27,11 @@ import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.item.Items;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 
 public class WorldDataManager {
-	public static final int LENGTH = 16;
+	public static final int LENGTH = 22;
 
 	private static final int WORLD_EFFECT_MODIFIER = 0;
 	private static final int RENDER_SECONDS = 1;
@@ -48,6 +49,8 @@ public class WorldDataManager {
 	private static final int HELD_LIGHT_BLUE = 13;
 	private static final int HELD_LIGHT_INTENSITY = 14;
 	private static final int RAIN_STRENGTH = 15;
+	private static final int CAMERA_VIEW = 16; // 3 elements wide
+	private static final int ENTITY_VIEW = 19; // 3 elements wide
 
 	// TODO: add player eye position (for 3rd-person views)
 	// TODO: add model origin to allow converting to world coordinates - or confirm view coordinates do that
@@ -167,11 +170,23 @@ public class WorldDataManager {
 				DATA[FOG_MODE] = 0.0f;
 			}
 		}
+
+		putViewVector(CAMERA_VIEW, camera.getYaw(), camera.getPitch());
+		putViewVector(ENTITY_VIEW, cameraEntity.yaw, cameraEntity.pitch);
 	}
 
 	public static void updateEmissiveColor(int color) {
 		DATA[EMISSIVE_COLOR_RED] = ((color >> 24) & 0xFF) / 255f;
 		DATA[EMISSIVE_COLOR_GREEN] = ((color >> 16) & 0xFF) / 255f;
 		DATA[EMISSIVE_COLOR_BLUE] = (color & 0xFF) / 255f;
+	}
+
+	private static void putViewVector(int index, float yaw, float pitch) {
+		float y = (float) Math.toRadians(yaw);
+		float p = (float) Math.toRadians(pitch);
+
+		DATA[index] = -MathHelper.sin(y) * MathHelper.cos(p);
+		DATA[index + 1] = -MathHelper.sin(p);
+		DATA[index + 2] = MathHelper.cos(y) * MathHelper.cos(p);
 	}
 }
