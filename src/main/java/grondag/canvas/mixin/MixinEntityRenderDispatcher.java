@@ -24,7 +24,7 @@ import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.entity.EntityRenderDispatcher;
 
 @Mixin(EntityRenderDispatcher.class)
-abstract class MixinEntityRenderDispatcher implements EntityRenderDispatcherExt {
+public abstract class MixinEntityRenderDispatcher implements EntityRenderDispatcherExt {
 	@Shadow
 	private static RenderLayer SHADOW_LAYER;
 
