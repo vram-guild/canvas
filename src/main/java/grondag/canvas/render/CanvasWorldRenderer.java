@@ -553,7 +553,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		LitematicaHolder.litematicaEntityHandler.handle(matrixStack, tickDelta);
 		DynocapsHolder.handler.render(profiler, matrixStack, immediate, cameraVec3d);
 
-		GOMLHolder.handler.renderClaims(this, matrixStack, tickDelta, limitTime, blockOutlines, camera, gameRenderer, lightmapTextureManager, projectionMatrix);
+		GOMLHolder.HANDLER.render(this, matrixStack, tickDelta, limitTime, blockOutlines, camera, gameRenderer, lightmapTextureManager, projectionMatrix);
 		profiler.swap("blockentities");
 
 		final int visibleRegionCount = this.visibleRegionCount;
@@ -630,7 +630,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			mcfb.beginWrite(false);
 		}
 
-		CampanionHolder.handler.render(this, matrixStack, tickDelta, limitTime, blockOutlines, camera, gameRenderer, lightmapTextureManager, projectionMatrix);
+		CampanionHolder.HANDLER.render(this, matrixStack, tickDelta, limitTime, blockOutlines, camera, gameRenderer, lightmapTextureManager, projectionMatrix);
 		profiler.swap("destroyProgress");
 		final ObjectIterator<Entry<SortedSet<BlockBreakingInfo>>> breakings = wr.canvas_blockBreakingProgressions().long2ObjectEntrySet().iterator();
 
