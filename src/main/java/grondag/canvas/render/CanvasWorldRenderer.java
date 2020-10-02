@@ -33,15 +33,7 @@ import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.rendercontext.EntityBlockRenderContext;
 import grondag.canvas.buffer.BindStateManager;
 import grondag.canvas.buffer.VboBuffer;
-import grondag.canvas.compat.BborHolder;
-import grondag.canvas.compat.ClothHolder;
-import grondag.canvas.compat.DynocapsHolder;
-import grondag.canvas.compat.JustMapHolder;
-import grondag.canvas.compat.LambDynLightsHolder;
-import grondag.canvas.compat.LitematicaHolder;
-import grondag.canvas.compat.MaliLibHolder;
-import grondag.canvas.compat.SatinHolder;
-import grondag.canvas.compat.VoxelMapHolder;
+import grondag.canvas.compat.*;
 import grondag.canvas.light.LightmapHdTexture;
 import grondag.canvas.mixinterface.WorldRendererExt;
 import grondag.canvas.pipeline.BufferDebug;
@@ -561,6 +553,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		LitematicaHolder.litematicaEntityHandler.handle(matrixStack, tickDelta);
 		DynocapsHolder.handler.render(profiler, matrixStack, immediate, cameraVec3d);
 
+		GOMLHolder.handler.renderClaims(this, matrixStack, tickDelta, limitTime, blockOutlines, camera, gameRenderer, lightmapTextureManager, projectionMatrix);
 		profiler.swap("blockentities");
 
 		final int visibleRegionCount = this.visibleRegionCount;
