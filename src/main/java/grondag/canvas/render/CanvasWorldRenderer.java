@@ -630,6 +630,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			mcfb.beginWrite(false);
 		}
 
+		CampanionHolder.handler.render(this, matrixStack, tickDelta, limitTime, blockOutlines, camera, gameRenderer, lightmapTextureManager, projectionMatrix);
 		profiler.swap("destroyProgress");
 		final ObjectIterator<Entry<SortedSet<BlockBreakingInfo>>> breakings = wr.canvas_blockBreakingProgressions().long2ObjectEntrySet().iterator();
 

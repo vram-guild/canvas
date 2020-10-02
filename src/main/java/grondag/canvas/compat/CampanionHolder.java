@@ -31,27 +31,27 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
 
-public class GOMLHolder {
+public class CampanionHolder {
 
-	private static final GOMLRender DUMMY = (worldRenderer, matrices, tickDelta, limitTime, renderBlockOutline, camera, gameRenderer, lightmapTextureManager, matrix4f) -> {
+	private static final CampanionRender DUMMY = (worldRenderer, matrices, tickDelta, limitTime, renderBlockOutline, camera, gameRenderer, lightmapTextureManager, matrix4f) -> {
 	};
-	public static GOMLRender handler = DUMMY;
+	public static CampanionRender handler = DUMMY;
 
 	static {
-		if (FabricLoader.getInstance().isModLoaded("goml")) {
+		if (FabricLoader.getInstance().isModLoaded("campanion")) {
 			MethodHandles.Lookup lookup = MethodHandles.lookup();
 
 			for (Method method : WorldRenderer.class.getDeclaredMethods()) {
 				MixinMerged annotation = method.getAnnotation(MixinMerged.class);
 
-				if (annotation != null && annotation.mixin().equals("draylar.goml.mixin.WorldRendererMixin")) {
+				if (annotation != null && annotation.mixin().equals("com.terraformersmc.campanion.mixin.client.MixinWorldRenderer")) {
 					MethodHandle handle;
 
 					try {
 						method.setAccessible(true);
 						handle = lookup.unreflect(method);
 					} catch (SecurityException | IllegalAccessException e) {
-						CanvasMod.LOG.warn("Could not access GOML's render hooks, compatibility may not be present");
+						CanvasMod.LOG.warn("Could not access Campanion's render hooks, compatibility may not be present");
 						continue;
 					}
 
@@ -59,7 +59,7 @@ public class GOMLHolder {
 						try {
 							handle.invokeExact(worldRenderer, matrices, tickDelta, limitTime, renderBlockOutline, camera, gameRenderer, lightmapTextureManager, matrix4f, new CallbackInfo("render", false));
 						} catch (final Throwable e) {
-							CanvasMod.LOG.warn("Unable to call GOML renderClaims hook due to exception: ", e);
+							CanvasMod.LOG.warn("Unable to call Campanion render hook due to exception: ", e);
 							CanvasMod.LOG.warn("Subsequent errors will be suppressed");
 							handler = DUMMY;
 						}
@@ -69,7 +69,7 @@ public class GOMLHolder {
 		}
 	}
 
-	public interface GOMLRender {
-		void renderClaims(WorldRenderer worldRenderer, MatrixStack matrices, float tickDelta, long limitTime, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f matrix4f);
+	public interface CampanionRender {
+		void render(WorldRenderer worldRenderer, MatrixStack matrices, float tickDelta, long limitTime, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f matrix4f);
 	}
 }
