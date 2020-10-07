@@ -218,7 +218,7 @@ class WipGlShader implements Shader {
 	}
 
 	private String getSource() {
-		String result = getRawShaderString();
+		String result = getCombinedShaderSource();
 
 		if (shaderType == GL21.GL_FRAGMENT_SHADER) {
 			result = StringUtils.replace(result, "#define SHADER_TYPE SHADER_TYPE_VERTEX", "#define SHADER_TYPE SHADER_TYPE_FRAGMENT");
@@ -291,50 +291,22 @@ class WipGlShader implements Shader {
 		return result;
 	}
 
-	private String getRawShaderString() {
+	private String getCombinedShaderSource() {
 		final ResourceManager resourceManager = MinecraftClient.getInstance().getResourceManager();
-
 		INCLUDED.clear();
-
-		//		if (programType != WipProgramType.PROCESS) {
-		//			if (shaderType == GL21.GL_FRAGMENT_SHADER) {
-		//				return getShaderSourceInner(resourceManager, Configurator.hdLightmaps() ? ShaderData.HD_FRAGMENT : ShaderData.VANILLA_FRAGMENT);
-		//			} else {
-		//				return getShaderSourceInner(resourceManager, Configurator.hdLightmaps() ? ShaderData.HD_VERTEX : ShaderData.VANILLA_VERTEX);
-		//			}
-		//		} else {
-		return getShaderSourceInner(resourceManager, shaderSource);
-		//		}
+		String result = loadShaderSource(resourceManager, shaderSource);
+		result = preprocessSource(result);
+		return processSourceIncludes(resourceManager, result);
 	}
 
-	private String getShaderSourceInner(ResourceManager resourceManager, Identifier shaderSource) {
-		if (shaderSource.equals(WipShaderData.FRAGMENT_START)) {
-			return "//NOOP";
-		} else if (shaderSource.equals(WipShaderData.VERTEX_START)) {
-			return "//NOOP";
-		} else if (shaderSource.equals(WipShaderData.VEREX_END)) {
-			return "//NOOP";
-		}
+	protected String preprocessSource(String baseSource) {
+		return baseSource;
+	}
 
-		try (Resource resource = resourceManager.getResource(shaderSource)) {
+	private String loadShaderSource(ResourceManager resourceManager, Identifier shaderSourceId) {
+		try (Resource resource = resourceManager.getResource(shaderSourceId)) {
 			try (Reader reader = new InputStreamReader(resource.getInputStream())) {
-				String result = CharStreams.toString(reader);
-
-				final Matcher m = PATTERN.matcher(result);
-
-				while (m.find()) {
-					final String id = m.group(1);
-
-					if (INCLUDED.contains(id)) {
-						result = StringUtils.replace(result, m.group(0), "");
-					} else {
-						INCLUDED.add(id);
-						final String src = getShaderSourceInner(resourceManager, new Identifier(id));
-						result = StringUtils.replace(result, m.group(0), src);
-					}
-				}
-
-				return result;
+				return CharStreams.toString(reader);
 			}
 		} catch (final FileNotFoundException e) {
 			CanvasMod.LOG.warn("Unable to load shader resource " + shaderSource.toString() + ". File was not found.");
@@ -343,6 +315,24 @@ class WipGlShader implements Shader {
 			CanvasMod.LOG.warn("Unable to load shader resource " + shaderSource.toString() + " due to exception.", e);
 			return "";
 		}
+	}
+
+	private String processSourceIncludes(ResourceManager resourceManager, String source) {
+		final Matcher m = PATTERN.matcher(source);
+
+		while (m.find()) {
+			final String id = m.group(1);
+
+			if (INCLUDED.contains(id)) {
+				source = StringUtils.replace(source, m.group(0), "");
+			} else {
+				INCLUDED.add(id);
+				final String src = processSourceIncludes(resourceManager, loadShaderSource(resourceManager, new Identifier(id)));
+				source = StringUtils.replace(source, m.group(0), src);
+			}
+		}
+
+		return source;
 	}
 
 	/**

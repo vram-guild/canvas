@@ -8,12 +8,14 @@
 #include canvas:shaders/wip/diffuse.glsl
 #include canvas:shaders/wip/program.glsl
 
+#include canvas:apitarget
+
 void _cv_startVertex(inout frx_VertexData data, in int cv_programId) {
-#include canvas:cv_start_vertex
+#include canvas:startvertex
 }
 
 void _cv_endVertex(inout frx_VertexData data, in int cv_programId) {
-#include canvas:cv_end_vertex
+#include canvas:endvertex
 }
 
 /******************************************************

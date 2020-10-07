@@ -44,7 +44,7 @@ public enum WipGlShaderManager {
 		materialPrograms.values().forEach(s -> s.forceReload());
 	}
 
-	WipGlProgram getOrCreateMaterialShader(WipProgramType programType, WipVertexFormat format) {
+	WipGlProgram getOrCreateMaterialProgram(WipProgramType programType, WipVertexFormat format) {
 		final int key = format.formatIndex | (programType.ordinal() << 16);
 		WipGlProgram result = materialPrograms.get(key);
 

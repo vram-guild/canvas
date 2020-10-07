@@ -12,9 +12,11 @@
 #include frex:shaders/lib/color.glsl
 #include canvas:shaders/wip/program.glsl
 
+#include canvas:apitarget
+
 void _cv_startFragment(inout frx_FragmentData fragData) {
 	int cv_programId = _cv_programId();
-#include canvas:cv_start_fragment
+#include canvas:startfragment
 }
 
 /******************************************************

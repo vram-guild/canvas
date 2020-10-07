@@ -32,9 +32,10 @@ public class WipShaderData {
 	public static final Identifier MATERIAL_MAIN_VERTEX = new Identifier("canvas:shaders/wip/material_main.vert");
 	public static final Identifier MATERIAL_MAIN_FRAGMENT = new Identifier("canvas:shaders/wip/material_main.frag");
 
-	public static final Identifier FRAGMENT_START = new Identifier("canvas:cv_start_fragment");
-	public static final Identifier VERTEX_START = new Identifier("canvas:cv_start_vertex");
-	public static final Identifier VEREX_END = new Identifier("canvas:cv_end_vertex");
+	public static final String API_TARGET = "#include canvas:apitarget";
+	public static final String FRAGMENT_START = "#include canvas:startfragment";
+	public static final String VERTEX_START = "#include canvas:startvertex";
+	public static final String VEREX_END = "#include canvas:endvertex";
 
 	private static final float[] BITWISE_DIVISORS = {0.5f, 0.25f, 0.125f, 0.0625f, 0.03125f, 0.015625f, 0.0078125f, 0.00390625f};
 

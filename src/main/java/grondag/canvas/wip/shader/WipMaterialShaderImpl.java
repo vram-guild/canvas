@@ -44,7 +44,7 @@ public final class WipMaterialShaderImpl implements MaterialShader {
 		WipGlProgram result = program;
 
 		if (result == null) {
-			result = WipGlShaderManager.INSTANCE.getOrCreateMaterialShader(programType, format);
+			result = WipGlShaderManager.INSTANCE.getOrCreateMaterialProgram(programType, format);
 			program = result;
 			result.addMaterial(this);
 		}
