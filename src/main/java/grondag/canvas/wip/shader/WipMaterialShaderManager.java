@@ -63,44 +63,24 @@ public enum WipMaterialShaderManager implements ClientTickEvents.EndTick {
 		}
 	}
 
-	public synchronized WipMaterialShaderImpl find(Identifier vertexShaderSource, Identifier fragmentShaderSource, WipProgramType programType, WipVertexFormat format) {
-		if (vertexShaderSource == null) {
-			vertexShaderSource = WipShaderData.DEFAULT_VERTEX_SOURCE;
-		}
-
-		if (fragmentShaderSource == null) {
-			fragmentShaderSource = WipShaderData.DEFAULT_FRAGMENT_SOURCE;
-		}
-
-		return findInner(vertexShaderSource, fragmentShaderSource, programType, format);
-	}
-
-	private synchronized WipMaterialShaderImpl findInner(Identifier vertexShaderSource, Identifier fragmentShaderSource, WipProgramType programType, WipVertexFormat format) {
-		final long key = key(vertexShaderSource, fragmentShaderSource, programType, format);
+	public synchronized WipMaterialShaderImpl find(int vertexShaderIndex, int fragmentShaderIndex, WipProgramType programType, WipVertexFormat format) {
+		final long key = key(vertexShaderIndex, fragmentShaderIndex, programType, format);
 
 		WipMaterialShaderImpl result = KEYMAP.get(key);
 
 		if (result == null) {
-			result = create(vertexShaderSource, fragmentShaderSource, programType, format);
+			result = create(vertexShaderIndex, fragmentShaderIndex, programType, format);
 			KEYMAP.put(key, result);
 		}
 
 		return result;
 	}
 
-	private static long key(Identifier vertexShaderSource, Identifier fragmentShaderSource, WipProgramType programType, WipVertexFormat format) {
-		return format.formatIndex | (programType.ordinal() << 16) | ((long) fragmentIndex.toHandle(fragmentShaderSource) << 32) | ((long) vertexIndex.toHandle(vertexShaderSource) << 48);
-	}
-
-	private synchronized WipMaterialShaderImpl create(Identifier vertexShaderSource, Identifier fragmentShaderSource, WipProgramType programType, WipVertexFormat format) {
-		final WipMaterialShaderImpl result = new WipMaterialShaderImpl(shaders.size(), vertexShaderSource, fragmentShaderSource, programType, format);
+	private synchronized WipMaterialShaderImpl create(int vertexShaderIndex, int fragmentShaderIndex, WipProgramType programType, WipVertexFormat format) {
+		final WipMaterialShaderImpl result = new WipMaterialShaderImpl(shaders.size(), vertexShaderIndex, fragmentShaderIndex, programType, format);
 		shaders.add(result);
 		return result;
 	}
-
-	private static final IndexedInterner<Identifier> fragmentIndex = new IndexedInterner<>(Identifier.class);
-	private static final IndexedInterner<Identifier> vertexIndex = new IndexedInterner<>(Identifier.class);
-	private static final Long2ObjectOpenHashMap<WipMaterialShaderImpl> KEYMAP = new Long2ObjectOpenHashMap<>();
 
 	public WipMaterialShaderImpl get(int index) {
 		return shaders.get(index);
@@ -136,5 +116,13 @@ public enum WipMaterialShaderManager implements ClientTickEvents.EndTick {
 		for (int i = 0; i < limit; i++) {
 			shaders.get(i).onRenderTick();
 		}
+	}
+
+	public static final IndexedInterner<Identifier> fragmentIndex = new IndexedInterner<>(Identifier.class);
+	public static final IndexedInterner<Identifier> vertexIndex = new IndexedInterner<>(Identifier.class);
+	private static final Long2ObjectOpenHashMap<WipMaterialShaderImpl> KEYMAP = new Long2ObjectOpenHashMap<>();
+
+	private static long key(int vertexShaderIndex, int fragmentShaderIndex, WipProgramType programType, WipVertexFormat format) {
+		return format.formatIndex | (programType.ordinal() << 16) | ((long) fragmentShaderIndex << 32) | ((long) vertexShaderIndex << 48);
 	}
 }

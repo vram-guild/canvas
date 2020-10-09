@@ -7,18 +7,26 @@
 
 #ifdef PROGRAM_BY_UNIFORM
 
-uniform int _cvu_program;
+uniform ivec2 _cvu_program;
 
-int _cv_programId() {
-	return _cvu_program;
+int _cv_vertexProgramId() {
+	return _cvu_program.x;
+}
+
+int _cv_fragmentProgramId() {
+	return _cvu_program.y;
 }
 
 #else
 
-varying float _cvu_programId;
+varying vec2 _cvu_program;
 
-int _cv_programId() {
-	return int(_cvu_programId);
+int _cv_vertexProgramId() {
+	return int(_cvu_program.x);
+}
+
+int _cv_fragmentProgramId() {
+	return int(_cvu_program.y);
 }
 
 #endif

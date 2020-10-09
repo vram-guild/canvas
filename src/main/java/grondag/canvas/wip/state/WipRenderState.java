@@ -170,7 +170,7 @@ public final class WipRenderState {
 
 		vertexStrideInts = format.vertexStrideInts;
 		translucency = TRANSPARENCY.getValue(bits);
-		shader = WipMaterialShaderManager.INSTANCE.find(WipShaderData.DEFAULT_VERTEX_SOURCE, WipShaderData.DEFAULT_FRAGMENT_SOURCE, translucency == WipTransparency.TRANSLUCENT ? WipProgramType.MATERIAL_VERTEX_LOGIC : WipProgramType.MATERIAL_UNIFORM_LOGIC, format);
+		shader = WipMaterialShaderManager.INSTANCE.find(VERTEX_SHADER.getValue(bits), FRAGMENT_SHADER.getValue(bits), translucency == WipTransparency.TRANSLUCENT ? WipProgramType.MATERIAL_VERTEX_LOGIC : WipProgramType.MATERIAL_UNIFORM_LOGIC, format);
 	}
 
 	@SuppressWarnings("resource")
@@ -285,6 +285,9 @@ public final class WipRenderState {
 	private static final BitPacker64.BooleanElement HAS_CONDITION = PACKER.createBooleanElement();
 	private static final BitPacker64<Void>.EnumElement<WipModelOrigin> ORIGIN = PACKER.createEnumElement(WipModelOrigin.class);
 
+	private static final BitPacker64.IntElement VERTEX_SHADER = PACKER.createIntElement(4096);
+	private static final BitPacker64.IntElement FRAGMENT_SHADER = PACKER.createIntElement(4096);
+
 	private static final ReferenceOpenHashSet<RenderLayer> EXCLUSIONS = new ReferenceOpenHashSet<>(64, Hash.VERY_FAST_LOAD_FACTOR);
 	public static final WipRenderState MISSING = new WipRenderState(0);
 
@@ -323,7 +326,7 @@ public final class WipRenderState {
 
 	public static Finder finder() {
 		final Finder result = FINDER.get();
-		result.bits = 0;
+		result.reset();
 		return result;
 	}
 
@@ -332,6 +335,8 @@ public final class WipRenderState {
 
 		public Finder reset() {
 			bits = 0;
+			vertexShader(WipShaderData.DEFAULT_VERTEX_SOURCE);
+			fragmentShader(WipShaderData.DEFAULT_FRAGMENT_SOURCE);
 			return this;
 		}
 
@@ -410,9 +415,17 @@ public final class WipRenderState {
 			return this;
 		}
 
+		private static final Identifier EGREGIOUS_ENDERMAN_HACK = new Identifier("textures/entity/enderman/enderman.png");
+
 		public Finder texture(@Nullable Identifier id) {
 			final int val = id == null ? WipTextureState.NO_TEXTURE.index : WipTextureState.fromId(id).index;
 			bits = TEXTURE.setValue(val, bits);
+
+			// WIP: put in proper material map hooks
+			if (id != null && id.equals(EGREGIOUS_ENDERMAN_HACK)) {
+				fragmentShader(new Identifier("canvas:shaders/wip/material/enderman.frag"));
+			}
+
 			return this;
 		}
 
@@ -463,6 +476,16 @@ public final class WipRenderState {
 
 		public Finder fog(WipFog fog) {
 			bits = FOG.setValue(fog, bits);
+			return this;
+		}
+
+		public Finder vertexShader(Identifier vertexSource) {
+			bits = VERTEX_SHADER.setValue(WipMaterialShaderManager.vertexIndex.toHandle(vertexSource), bits);
+			return this;
+		}
+
+		public Finder fragmentShader(Identifier fragmentSource) {
+			bits = FRAGMENT_SHADER.setValue(WipMaterialShaderManager.fragmentIndex.toHandle(fragmentSource), bits);
 			return this;
 		}
 

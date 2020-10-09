@@ -127,6 +127,8 @@ public class WipVertexState {
 			cutout(params.getAlpha() != RenderPhase.ZERO_ALPHA);
 			cutout10(params.getAlpha() == RenderPhase.ONE_TENTH_ALPHA);
 			disableAo(true);
+
+			// WIP: put in proper material map hooks
 			emissive(name.equals("eyes") || name.equals("beacon_beam"));
 			return this;
 		}

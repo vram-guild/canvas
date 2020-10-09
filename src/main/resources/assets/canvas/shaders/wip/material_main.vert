@@ -10,6 +10,10 @@
 
 #include canvas:apitarget
 
+/******************************************************
+  canvas:shaders/internal/material_main.vert
+******************************************************/
+
 void _cv_startVertex(inout frx_VertexData data, in int cv_programId) {
 #include canvas:startvertex
 }
@@ -18,9 +22,6 @@ void _cv_endVertex(inout frx_VertexData data, in int cv_programId) {
 #include canvas:endvertex
 }
 
-/******************************************************
-  canvas:shaders/internal/material_main.vert
-******************************************************/
 
 #define ATTRIB_COLOR
 #ifdef ATTRIB_COLOR
@@ -80,7 +81,7 @@ void main() {
 	// due to FP error on some cards/drivers.  Also made varying attribute invariant (rolls eyes at OpenGL)
 	_cvv_flags = in_normal_flags.w + 0.5;
 
-	int cv_programId = _cv_programId();
+	int cv_programId = _cv_vertexProgramId();
 	_cv_startVertex(data, cv_programId);
 
 #ifdef ATTRIB_MATERIAL

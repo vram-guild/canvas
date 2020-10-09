@@ -20,6 +20,7 @@ import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
 import grondag.canvas.shader.Shader;
 import grondag.canvas.wip.encoding.WipVertexFormat;
+import grondag.canvas.wip.shader.WipGlProgram.Uniform2iImpl;
 import grondag.canvas.wip.shader.WipGlProgram.Uniform3fImpl;
 import grondag.canvas.wip.shader.WipGlProgram.UniformArrayfImpl;
 import grondag.canvas.wip.state.WipProgramType;
@@ -57,6 +58,8 @@ public enum WipGlShaderManager {
 			result.modelOrigin = (Uniform3fImpl) result.uniform3f("_cvu_model_origin", UniformRefreshFrequency.ON_LOAD, u -> u.set(0, 0, 0));
 			result.normalModelMatrix = result.uniformMatrix3f("_cvu_normal_model_matrix", UniformRefreshFrequency.ON_LOAD, u -> {});
 			result.materialArray = (UniformArrayfImpl) result.uniformArrayf("_cvu_material", UniformRefreshFrequency.ON_LOAD, u -> {}, 4);
+			result.programId = (Uniform2iImpl) result.uniform2i("_cvu_program", UniformRefreshFrequency.ON_LOAD, u -> {});
+
 			materialPrograms.put(key, result);
 		}
 

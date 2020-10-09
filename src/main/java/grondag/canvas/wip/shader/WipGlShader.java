@@ -295,24 +295,24 @@ class WipGlShader implements Shader {
 		final ResourceManager resourceManager = MinecraftClient.getInstance().getResourceManager();
 		INCLUDED.clear();
 		String result = loadShaderSource(resourceManager, shaderSource);
-		result = preprocessSource(result);
+		result = preprocessSource(resourceManager, result);
 		return processSourceIncludes(resourceManager, result);
 	}
 
-	protected String preprocessSource(String baseSource) {
+	protected String preprocessSource(ResourceManager resourceManager, String baseSource) {
 		return baseSource;
 	}
 
-	private String loadShaderSource(ResourceManager resourceManager, Identifier shaderSourceId) {
+	protected static String loadShaderSource(ResourceManager resourceManager, Identifier shaderSourceId) {
 		try (Resource resource = resourceManager.getResource(shaderSourceId)) {
 			try (Reader reader = new InputStreamReader(resource.getInputStream())) {
 				return CharStreams.toString(reader);
 			}
 		} catch (final FileNotFoundException e) {
-			CanvasMod.LOG.warn("Unable to load shader resource " + shaderSource.toString() + ". File was not found.");
+			CanvasMod.LOG.warn("Unable to load shader resource " + shaderSourceId.toString() + ". File was not found.");
 			return "";
 		} catch (final IOException e) {
-			CanvasMod.LOG.warn("Unable to load shader resource " + shaderSource.toString() + " due to exception.", e);
+			CanvasMod.LOG.warn("Unable to load shader resource " + shaderSourceId.toString() + " due to exception.", e);
 			return "";
 		}
 	}
@@ -328,7 +328,7 @@ class WipGlShader implements Shader {
 			} else {
 				INCLUDED.add(id);
 				final String src = processSourceIncludes(resourceManager, loadShaderSource(resourceManager, new Identifier(id)));
-				source = StringUtils.replace(source, m.group(0), src);
+				source = StringUtils.replace(source, m.group(0), src, 1);
 			}
 		}
 

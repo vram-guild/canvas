@@ -21,20 +21,19 @@ import grondag.canvas.wip.encoding.WipVertexFormat;
 import grondag.canvas.wip.state.WipProgramType;
 import grondag.frex.api.material.MaterialShader;
 
-import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Matrix3f;
 
 public final class WipMaterialShaderImpl implements MaterialShader {
 	public final int index;
-	public final Identifier vertexShader;
-	public final Identifier fragmentShader;
+	public final int vertexShaderIndex;
+	public final int fragmentShaderIndex;
 	public final WipProgramType programType;
 	public final  WipVertexFormat format;
 	private WipGlProgram program;
 
-	public WipMaterialShaderImpl(int index, Identifier vertexShader, Identifier fragmentShader, WipProgramType programType, WipVertexFormat format) {
-		this.vertexShader = vertexShader;
-		this.fragmentShader = fragmentShader;
+	public WipMaterialShaderImpl(int index, int vertexShaderIndex, int fragmentShaderIndex, WipProgramType programType, WipVertexFormat format) {
+		this.vertexShaderIndex = vertexShaderIndex;
+		this.fragmentShaderIndex = fragmentShaderIndex;
 		this.programType = programType;
 		this.format = format;
 		this.index = index;
@@ -52,16 +51,25 @@ public final class WipMaterialShaderImpl implements MaterialShader {
 		return result;
 	}
 
+	// UGLY: all of this activation stuff is trash code
+	private void setPrograms() {
+		program.programId.set(vertexShaderIndex, fragmentShaderIndex);
+		program.programId.upload();
+	}
+
 	public void activate(int x, int y, int z) {
 		getOrCreate().actvateWithiModelOrigin(x, y, z);
+		setPrograms();
 	}
 
 	public void activate() {
 		getOrCreate().activate();
+		setPrograms();
 	}
 
 	public void activate(Matrix3f normalmodelmatrix, SpriteInfoTexture atlasInfo) {
 		getOrCreate().actvateWithNormalModelMatrix(normalmodelmatrix, atlasInfo);
+		setPrograms();
 	}
 
 	public void reload() {

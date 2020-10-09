@@ -26,8 +26,8 @@ import org.lwjgl.opengl.GL21;
 import net.minecraft.util.Identifier;
 
 public class WipShaderData {
-	public static final Identifier DEFAULT_VERTEX_SOURCE = new Identifier("canvas:shaders/material/default.vert");
-	public static final Identifier DEFAULT_FRAGMENT_SOURCE = new Identifier("canvas:shaders/material/default.frag");
+	public static final Identifier DEFAULT_VERTEX_SOURCE = new Identifier("canvas:shaders/wip/material/default.vert");
+	public static final Identifier DEFAULT_FRAGMENT_SOURCE = new Identifier("canvas:shaders/wip/material/default.frag");
 
 	public static final Identifier MATERIAL_MAIN_VERTEX = new Identifier("canvas:shaders/wip/material_main.vert");
 	public static final Identifier MATERIAL_MAIN_FRAGMENT = new Identifier("canvas:shaders/wip/material_main.frag");

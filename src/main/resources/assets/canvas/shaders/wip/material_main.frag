@@ -14,14 +14,16 @@
 
 #include canvas:apitarget
 
-void _cv_startFragment(inout frx_FragmentData fragData) {
-	int cv_programId = _cv_programId();
-#include canvas:startfragment
-}
-
 /******************************************************
   canvas:shaders/internal/material_main.frag
 ******************************************************/
+
+void _cv_startFragment(inout frx_FragmentData fragData) {
+	int cv_programId = _cv_fragmentProgramId();
+
+#include canvas:startfragment
+}
+
 
 vec4 aoFactor(vec2 lightCoord) {
 	float ao = _cvv_ao;

@@ -74,6 +74,7 @@ public class WipGlProgram {
 	// converts world normals to normals of incoming vertex data
 	public UniformMatrix3fImpl normalModelMatrix;
 	public UniformArrayfImpl materialArray;
+	public Uniform2iImpl programId;
 
 	private final ObjectOpenHashSet<WipMaterialShaderImpl> materials;
 
