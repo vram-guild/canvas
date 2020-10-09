@@ -33,7 +33,18 @@ import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.rendercontext.EntityBlockRenderContext;
 import grondag.canvas.buffer.BindStateManager;
 import grondag.canvas.buffer.VboBuffer;
-import grondag.canvas.compat.*;
+import grondag.canvas.compat.BborHolder;
+import grondag.canvas.compat.CampanionHolder;
+import grondag.canvas.compat.ClothHolder;
+import grondag.canvas.compat.DynocapsHolder;
+import grondag.canvas.compat.FirstPersonModelHolder;
+import grondag.canvas.compat.GOMLHolder;
+import grondag.canvas.compat.JustMapHolder;
+import grondag.canvas.compat.LambDynLightsHolder;
+import grondag.canvas.compat.LitematicaHolder;
+import grondag.canvas.compat.MaliLibHolder;
+import grondag.canvas.compat.SatinHolder;
+import grondag.canvas.compat.VoxelMapHolder;
 import grondag.canvas.light.LightmapHdTexture;
 import grondag.canvas.mixinterface.WorldRendererExt;
 import grondag.canvas.pipeline.BufferDebug;
@@ -542,10 +553,10 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		if (advancedBloomCapture) CanvasFrameBufferHacks.startEmissiveCapture(false);
 
-		immediate.draw(RenderLayer.getEntitySolid(SpriteAtlasTexture.BLOCK_ATLAS_TEX));
-		immediate.draw(RenderLayer.getEntityCutout(SpriteAtlasTexture.BLOCK_ATLAS_TEX));
-		immediate.draw(RenderLayer.getEntityCutoutNoCull(SpriteAtlasTexture.BLOCK_ATLAS_TEX));
-		immediate.draw(RenderLayer.getEntitySmoothCutout(SpriteAtlasTexture.BLOCK_ATLAS_TEX));
+		immediate.draw(RenderLayer.getEntitySolid(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE));
+		immediate.draw(RenderLayer.getEntityCutout(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE));
+		immediate.draw(RenderLayer.getEntityCutoutNoCull(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE));
+		immediate.draw(RenderLayer.getEntitySmoothCutout(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE));
 
 		if (advancedBloomCapture) CanvasFrameBufferHacks.endEmissiveCapture();
 
@@ -688,10 +699,10 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		immediate.draw(RenderLayer.getArmorGlint());
 		immediate.draw(RenderLayer.getArmorEntityGlint());
 		immediate.draw(RenderLayer.getGlint());
-		immediate.draw(RenderLayer.getGlintDirect());
+		immediate.draw(RenderLayer.getDirectGlint());
 		immediate.draw(RenderLayer.method_30676());
 		immediate.draw(RenderLayer.getEntityGlint());
-		immediate.draw(RenderLayer.getEntityGlintDirect());
+		immediate.draw(RenderLayer.getDirectEntityGlint());
 
 		if (advancedBloomCapture) CanvasFrameBufferHacks.startEmissiveCapture(false);
 		immediate.draw(RenderLayer.getWaterMask());

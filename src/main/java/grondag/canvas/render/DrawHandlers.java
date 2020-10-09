@@ -70,8 +70,8 @@ public class DrawHandlers {
 			SpriteInfoTexture.BLOCKS.enable();
 			RenderSystem.enableTexture();
 			final TextureManager textureManager = MinecraftClient.getInstance().getTextureManager();
-			textureManager.bindTexture(SpriteAtlasTexture.BLOCK_ATLAS_TEX);
-			textureManager.getTexture(SpriteAtlasTexture.BLOCK_ATLAS_TEX).setFilter(false, true);
+			textureManager.bindTexture(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE);
+			textureManager.getTexture(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE).setFilter(false, true);
 			RenderSystem.disableBlend();
 			RenderSystem.shadeModel(GL21.GL_SMOOTH);
 			//			RenderSystem.enableAlphaTest();
@@ -106,8 +106,8 @@ public class DrawHandlers {
 			SpriteInfoTexture.BLOCKS.enable();
 			RenderSystem.enableTexture();
 			final TextureManager textureManager = MinecraftClient.getInstance().getTextureManager();
-			textureManager.bindTexture(SpriteAtlasTexture.BLOCK_ATLAS_TEX);
-			textureManager.getTexture(SpriteAtlasTexture.BLOCK_ATLAS_TEX).setFilter(false, true);
+			textureManager.bindTexture(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE);
+			textureManager.getTexture(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE).setFilter(false, true);
 			RenderSystem.enableBlend();
 			RenderSystem.depthMask(false);
 			RenderSystem.defaultBlendFunc();
@@ -144,8 +144,8 @@ public class DrawHandlers {
 			SpriteInfoTexture.BLOCKS.enable();
 			RenderSystem.enableTexture();
 			final TextureManager textureManager = MinecraftClient.getInstance().getTextureManager();
-			textureManager.bindTexture(SpriteAtlasTexture.BLOCK_ATLAS_TEX);
-			textureManager.getTexture(SpriteAtlasTexture.BLOCK_ATLAS_TEX).setFilter(false, true);
+			textureManager.bindTexture(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE);
+			textureManager.getTexture(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE).setFilter(false, true);
 			RenderSystem.enableBlend();
 			RenderSystem.blendFuncSeparate(GlStateManager.SrcFactor.SRC_ALPHA, GlStateManager.DstFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SrcFactor.ONE, GlStateManager.DstFactor.ONE_MINUS_SRC_ALPHA);
 			RenderSystem.shadeModel(GL21.GL_SMOOTH);

@@ -47,7 +47,7 @@ public class SpriteInfoTexture {
 		return MAP.computeIfAbsent(id, SpriteInfoTexture::new);
 	}
 
-	public static final SpriteInfoTexture BLOCKS = getOrCreate(SpriteAtlasTexture.BLOCK_ATLAS_TEX);
+	public static final SpriteInfoTexture BLOCKS = getOrCreate(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE);
 
 	private ObjectArrayList<Sprite> spriteIndex = null;
 	private SpriteAtlasTexture atlas;

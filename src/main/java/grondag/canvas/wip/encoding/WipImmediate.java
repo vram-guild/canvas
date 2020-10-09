@@ -69,10 +69,10 @@ public class WipImmediate extends Immediate {
 		assignBufferBuilder(object2ObjectLinkedOpenHashMap, RenderLayer.getArmorGlint());
 		assignBufferBuilder(object2ObjectLinkedOpenHashMap, RenderLayer.getArmorEntityGlint());
 		assignBufferBuilder(object2ObjectLinkedOpenHashMap, RenderLayer.getGlint());
-		assignBufferBuilder(object2ObjectLinkedOpenHashMap, RenderLayer.getGlintDirect());
+		assignBufferBuilder(object2ObjectLinkedOpenHashMap, RenderLayer.getDirectGlint());
 		assignBufferBuilder(object2ObjectLinkedOpenHashMap, RenderLayer.method_30676());
 		assignBufferBuilder(object2ObjectLinkedOpenHashMap, RenderLayer.getEntityGlint());
-		assignBufferBuilder(object2ObjectLinkedOpenHashMap, RenderLayer.getEntityGlintDirect());
+		assignBufferBuilder(object2ObjectLinkedOpenHashMap, RenderLayer.getDirectEntityGlint());
 		assignBufferBuilder(object2ObjectLinkedOpenHashMap, RenderLayer.getWaterMask());
 		ModelLoader.BLOCK_DESTRUCTION_RENDER_LAYERS.forEach((renderLayer) -> {
 			assignBufferBuilder(object2ObjectLinkedOpenHashMap, renderLayer);

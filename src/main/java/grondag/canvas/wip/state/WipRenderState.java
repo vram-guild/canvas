@@ -302,10 +302,10 @@ public final class WipRenderState {
 		EXCLUSIONS.add(RenderLayer.getArmorGlint());
 		EXCLUSIONS.add(RenderLayer.getArmorEntityGlint());
 		EXCLUSIONS.add(RenderLayer.getGlint());
-		EXCLUSIONS.add(RenderLayer.getGlintDirect());
+		EXCLUSIONS.add(RenderLayer.getDirectGlint());
 		EXCLUSIONS.add(RenderLayer.method_30676());
 		EXCLUSIONS.add(RenderLayer.getEntityGlint());
-		EXCLUSIONS.add(RenderLayer.getEntityGlintDirect());
+		EXCLUSIONS.add(RenderLayer.getDirectEntityGlint());
 		EXCLUSIONS.add(RenderLayer.getLines());
 		EXCLUSIONS.add(RenderLayer.getLightning());
 
