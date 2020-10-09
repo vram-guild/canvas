@@ -14,22 +14,9 @@
  * the License.
  */
 
-package grondag.canvas.mixin;
+package grondag.canvas.compat;
 
-import grondag.canvas.mixinterface.EntityRenderDispatcherExt;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
+public class CampanionHolder {
 
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.entity.EntityRenderDispatcher;
-
-@Mixin(EntityRenderDispatcher.class)
-abstract class MixinEntityRenderDispatcher implements EntityRenderDispatcherExt {
-	@Shadow
-	private static RenderLayer SHADOW_LAYER;
-
-	@Override
-	public RenderLayer canvas_shadowLayer() {
-		return SHADOW_LAYER;
-	}
+	public static RenderInjection HANDLER = RenderInjection.find("campanion", "Campanion's renderer", "com.terraformersmc.campanion.mixin.client.MixinWorldRenderer");
 }

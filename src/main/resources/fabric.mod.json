@@ -27,7 +27,7 @@
 	]
   },
   "mixins": [
-	"canvas.client.json"
+	"mixins.canvas.client.json"
   ],
   "depends": {
 	"fabricloader": "\u003e\u003d0.9.1",

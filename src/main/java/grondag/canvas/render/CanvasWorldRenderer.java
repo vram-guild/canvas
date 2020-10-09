@@ -33,15 +33,7 @@ import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.rendercontext.EntityBlockRenderContext;
 import grondag.canvas.buffer.BindStateManager;
 import grondag.canvas.buffer.VboBuffer;
-import grondag.canvas.compat.BborHolder;
-import grondag.canvas.compat.ClothHolder;
-import grondag.canvas.compat.DynocapsHolder;
-import grondag.canvas.compat.JustMapHolder;
-import grondag.canvas.compat.LambDynLightsHolder;
-import grondag.canvas.compat.LitematicaHolder;
-import grondag.canvas.compat.MaliLibHolder;
-import grondag.canvas.compat.SatinHolder;
-import grondag.canvas.compat.VoxelMapHolder;
+import grondag.canvas.compat.*;
 import grondag.canvas.light.LightmapHdTexture;
 import grondag.canvas.mixinterface.WorldRendererExt;
 import grondag.canvas.pipeline.BufferDebug;
@@ -514,7 +506,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		while (entities.hasNext()) {
 			final Entity entity = entities.next();
 			if ((!entityRenderDispatcher.shouldRender(entity, frustum, cameraX, cameraY, cameraZ) && !entity.hasPassengerDeep(mc.player))
-			|| (entity == camera.getFocusedEntity() && !camera.isThirdPerson() && (!(camera.getFocusedEntity() instanceof LivingEntity) || !((LivingEntity) camera.getFocusedEntity()).isSleeping()))
+			|| (entity == camera.getFocusedEntity() && !FirstPersonModelHolder.handler.isThirdPerson(this, camera, matrixStack) && (!(camera.getFocusedEntity() instanceof LivingEntity) || !((LivingEntity) camera.getFocusedEntity()).isSleeping()))
 			|| (entity instanceof ClientPlayerEntity && camera.getFocusedEntity() != entity)) {
 				continue;
 			}
@@ -561,6 +553,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		LitematicaHolder.litematicaEntityHandler.handle(matrixStack, tickDelta);
 		DynocapsHolder.handler.render(profiler, matrixStack, immediate, cameraVec3d);
 
+		GOMLHolder.HANDLER.render(this, matrixStack, tickDelta, limitTime, blockOutlines, camera, gameRenderer, lightmapTextureManager, projectionMatrix);
 		profiler.swap("blockentities");
 
 		final int visibleRegionCount = this.visibleRegionCount;
@@ -637,6 +630,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			mcfb.beginWrite(false);
 		}
 
+		CampanionHolder.HANDLER.render(this, matrixStack, tickDelta, limitTime, blockOutlines, camera, gameRenderer, lightmapTextureManager, projectionMatrix);
 		profiler.swap("destroyProgress");
 		final ObjectIterator<Entry<SortedSet<BlockBreakingInfo>>> breakings = wr.canvas_blockBreakingProgressions().long2ObjectEntrySet().iterator();
 
