@@ -18,6 +18,8 @@
 #define _CV_HELD_LIGHT_BLUE 13
 #define _CV_HELD_LIGHT_INTENSITY 14
 #define _CV_RAIN_GRADIENT 15
+#define _CV_CAMERA_VIEW 16 // 3 elements wide
+#define _CV_ENTITY_VIEW 19 // 3 elements wide
 
 #define _CV_FLAG0_NIGHT_VISTION_ACTIVE  0
 #define _CV_FLAG0_HAS_SKYLIGHT            1
@@ -27,7 +29,7 @@
 #define _CV_FLAG0_IS_RAINING            5
 #define _CV_FLAG0_IS_THUNDERING        6
 
-uniform float[16] _cvu_world;
+uniform float[22] _cvu_world;
 uniform vec3 _cvu_model_origin;
 
 // converts world space normals to model space of incoming vertex data
