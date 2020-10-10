@@ -24,7 +24,7 @@ void _cv_startFragment(inout frx_FragmentData fragData) {
 #include canvas:startfragment
 }
 
-
+#if AO_SHADING_MODE != AO_MODE_NONE
 vec4 aoFactor(vec2 lightCoord) {
 	float ao = _cvv_ao;
 
@@ -47,6 +47,7 @@ vec4 aoFactor(vec2 lightCoord) {
 	return vec4(ao, ao, ao, 1.0);
 #endif
 }
+#endif
 
 vec4 light(frx_FragmentData fragData) {
 #ifdef CONTEXT_IS_GUI

@@ -269,7 +269,8 @@ class WipGlShader implements Shader {
 			}
 		}
 
-		if (!MinecraftClient.isAmbientOcclusionEnabled()) {
+		if (!MinecraftClient.isAmbientOcclusionEnabled() || !format.hasNormal) {
+			// disable ao for particles or if disabled by player
 			result = StringUtils.replace(result, "#define AO_SHADING_MODE AO_MODE_NORMAL",
 				"#define AO_SHADING_MODE AO_MODE_" + AoMode.NONE.name());
 		} else if (Configurator.aoShadingMode != AoMode.NORMAL) {
@@ -277,7 +278,11 @@ class WipGlShader implements Shader {
 				"#define AO_SHADING_MODE AO_MODE_" + Configurator.aoShadingMode.name());
 		}
 
-		if (Configurator.diffuseShadingMode != DiffuseMode.NORMAL) {
+		if (!format.hasNormal) {
+			// disable diffuse for particles
+			result = StringUtils.replace(result, "#define DIFFUSE_SHADING_MODE DIFFUSE_MODE_NORMAL",
+				"#define DIFFUSE_SHADING_MODE DIFFUSE_MODE_" + DiffuseMode.NONE.name());
+		} else if (Configurator.diffuseShadingMode != DiffuseMode.NORMAL) {
 			result = StringUtils.replace(result, "#define DIFFUSE_SHADING_MODE DIFFUSE_MODE_NORMAL",
 				"#define DIFFUSE_SHADING_MODE DIFFUSE_MODE_" + Configurator.diffuseShadingMode.name());
 		}

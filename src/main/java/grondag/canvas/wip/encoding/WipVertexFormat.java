@@ -46,8 +46,11 @@ public class WipVertexFormat extends MaterialVertexFormat {
 	public static final WipVertexFormat POSITION_TEXTURE;
 	public static final WipVertexFormat POSITION_COLOR_TEXTURE;
 
-	// These are for 3D drawing - all have normals
-	// first two octets of normal are x & z (infer y), last two are control bits
+	// for billboard particles
+	public static final WipVertexFormat POSITION_COLOR_TEXTURE_LIGHT;
+	public static final WipVertexFormat POSITION_COLOR_TEXTURE_MATERIAL_LIGHT;
+
+	// These are for non-billboard 3D drawing - all have normals
 	public static final WipVertexFormat POSITION_COLOR_NORMAL;
 	public static final WipVertexFormat POSITION_COLOR_LIGHT_NORMAL;
 
@@ -66,6 +69,9 @@ public class WipVertexFormat extends MaterialVertexFormat {
 		POSITION_COLOR = new WipVertexFormat(POSITION_3F, BASE_RGBA_4UB);
 		POSITION_TEXTURE = new WipVertexFormat(POSITION_3F, BASE_TEX_2US);
 		POSITION_COLOR_TEXTURE = new WipVertexFormat(POSITION_3F, BASE_RGBA_4UB, BASE_TEX_2US);
+
+		POSITION_COLOR_TEXTURE_LIGHT = new WipVertexFormat(POSITION_3F, BASE_RGBA_4UB, BASE_TEX_2US, LIGHTMAPS_4UB);
+		POSITION_COLOR_TEXTURE_MATERIAL_LIGHT = new WipVertexFormat(POSITION_3F, BASE_RGBA_4UB, BASE_TEX_2US, LIGHTMAPS_4UB, MATERIAL_2US);
 
 		POSITION_COLOR_NORMAL = new WipVertexFormat(POSITION_3F, BASE_RGBA_4UB, NORMAL_FLAGS_4UB);
 		POSITION_COLOR_LIGHT_NORMAL = new WipVertexFormat(POSITION_3F, BASE_RGBA_4UB, LIGHTMAPS_4UB, NORMAL_FLAGS_4UB);
@@ -225,6 +231,9 @@ public class WipVertexFormat extends MaterialVertexFormat {
 			case COLOR_BIT | TEXTURE_BIT | NORMAL_BIT:
 				return POSITION_COLOR_TEXTURE_NORMAL;
 
+			case COLOR_BIT | TEXTURE_BIT | LIGHT_BIT:
+				return POSITION_COLOR_TEXTURE_LIGHT;
+
 			case COLOR_BIT | TEXTURE_BIT | LIGHT_BIT | NORMAL_BIT:
 				return POSITION_COLOR_TEXTURE_LIGHT_NORMAL;
 
@@ -233,6 +242,9 @@ public class WipVertexFormat extends MaterialVertexFormat {
 
 			case COLOR_BIT | TEXTURE_BIT | MATERIAL_BIT | NORMAL_BIT:
 				return POSITION_COLOR_TEXTURE_MATERIAL_NORMAL;
+
+			case COLOR_BIT | TEXTURE_BIT | MATERIAL_BIT | LIGHT_BIT:
+				return POSITION_COLOR_TEXTURE_MATERIAL_LIGHT;
 
 			case COLOR_BIT | TEXTURE_BIT | MATERIAL_BIT | LIGHT_BIT | NORMAL_BIT:
 				return POSITION_COLOR_TEXTURE_MATERIAL_LIGHT_NORMAL;

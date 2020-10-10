@@ -24,7 +24,7 @@ import grondag.canvas.wip.state.WipVertexState;
 
 import net.minecraft.client.texture.Sprite;
 
-public abstract class WipVertexAdapter implements WipVertexCollector {
+public abstract class WipAbstractVertexCollector implements WipVertexCollector {
 	protected WipRenderState materialState;
 
 	protected final int[] vertexData = new int[8];
@@ -35,7 +35,7 @@ public abstract class WipVertexAdapter implements WipVertexCollector {
 	protected int materialIndex;
 	protected int lightIndex;
 	protected int normalIndex;
-	protected int normalBase;
+	protected int lightBase;
 	protected int overlayFlags;
 	protected int materialBase;
 	protected int spriteId = -1;
@@ -108,13 +108,13 @@ public abstract class WipVertexAdapter implements WipVertexCollector {
 
 	@Override
 	public WipVertexCollector packedLightWithAo(int packedLight, int ao) {
-		vertexData[lightIndex] = (packedLight & 0xFF) | ((packedLight >> 8) & 0xFF00) | (ao << 16);
+		vertexData[lightIndex] = lightBase | overlayFlags | (packedLight & 0xFF) | ((packedLight >> 8) & 0xFF00) | (ao << 16);
 		return this;
 	}
 
 	@Override
 	public WipVertexCollector vertexState(int vertexState) {
-		normalBase = (WipVertexState.shaderFlags(vertexState) << 24);
+		lightBase = (WipVertexState.shaderFlags(vertexState) << 24);
 		materialBase = (WipVertexState.conditionIndex(vertexState) << 16);
 		return this;
 	}
@@ -149,7 +149,7 @@ public abstract class WipVertexAdapter implements WipVertexCollector {
 
 	@Override
 	public WipVertexCollector normal(float x, float y, float z) {
-		vertexData[normalIndex] = normalBase | overlayFlags | NormalHelper.packUnsignedNormal(x, y, z);
+		vertexData[normalIndex] = NormalHelper.packUnsignedNormal(x, y, z);
 		return this;
 	}
 }

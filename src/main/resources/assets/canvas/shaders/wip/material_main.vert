@@ -67,7 +67,7 @@ void main() {
 #ifdef ATTRIB_NORMAL
 	(in_normal_flags.xyz - 127.0) / 127.0,
 #else
-	vec4(0.0, 1.0, 0.0, 0.0)
+	vec3(0.0, 1.0, 0.0),
 #endif
 
 #ifdef ATTRIB_LIGHTMAP
@@ -79,7 +79,7 @@ void main() {
 
 	// Adding +0.5 prevents striping or other strangeness in flag-dependent rendering
 	// due to FP error on some cards/drivers.  Also made varying attribute invariant (rolls eyes at OpenGL)
-	_cvv_flags = in_normal_flags.w + 0.5;
+	_cvv_flags = in_lightmap.w + 0.5;
 
 	int cv_programId = _cv_vertexProgramId();
 	_cv_startVertex(data, cv_programId);
@@ -108,9 +108,9 @@ void main() {
 	gl_ClipVertex = viewCoord;
 	gl_FogFragCoord = length(viewCoord.xyz);
 
-	//#if DIFFUSE_SHADING_MODE != DIFFUSE_MODE_NONE
+#if DIFFUSE_SHADING_MODE != DIFFUSE_MODE_NONE
 	_cvv_diffuse = _cv_diffuseBaked(data.normal);
-	//#endif
+#endif
 
 	data.normal *= gl_NormalMatrix;
 	data.vertex = gl_ModelViewProjectionMatrix * data.vertex;
@@ -122,8 +122,10 @@ void main() {
 	_cvv_texcoord = data.spriteUV;
 	_cvv_color = data.color;
 	_cvv_normal = data.normal;
-	_cvv_ao = in_lightmap.b;
 
+#if AO_SHADING_MODE != AO_MODE_NONE
+	_cvv_ao = in_lightmap.b;
+#endif
 
 	//#ifndef CONTEXT_IS_GUI
 	_cvv_lightcoord = data.light;

@@ -27,7 +27,7 @@ import it.unimi.dsi.fastutil.ints.IntComparator;
 
 import net.minecraft.util.math.MathHelper;
 
-public class WipVertexCollectorImpl extends WipVertexAdapter {
+public class WipVertexCollectorImpl extends WipAbstractVertexCollector {
 	private final IntStreamImpl data = INT_STREAM_PROVIDER.claim();
 	private int integerSize = 0;
 
