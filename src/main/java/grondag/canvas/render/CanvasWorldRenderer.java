@@ -733,7 +733,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			fb.beginWrite(false);
 
 			profiler.swap("particles");
-			mc.particleManager.renderParticles(matrixStack, immediate, lightmapTextureManager, camera, tickDelta);
+			CanvasParticleRenderer.renderParticles(mc.particleManager, matrixStack, immediate, lightmapTextureManager, camera, tickDelta);
 
 			mcfb.beginWrite(false);
 		} else {

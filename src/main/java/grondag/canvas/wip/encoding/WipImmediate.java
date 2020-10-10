@@ -26,10 +26,7 @@ public class WipImmediate extends Immediate {
 		final WipVertexCollector result = collectors.get(((MultiPhaseExt) renderLayer).canvas_renderState());
 
 		if (result == null) {
-			//WIP: retore and make configurable
-			//			if (!WipRenderState.isExcluded(renderLayer)) {
-			//				System.out.println(renderLayer.toString());
-			//			}
+			assert WipRenderState.isExcluded(renderLayer) : "Unable to retrieve vertex collector for non-excluded render layer";
 
 			return super.getBuffer(renderLayer);
 		} else {
