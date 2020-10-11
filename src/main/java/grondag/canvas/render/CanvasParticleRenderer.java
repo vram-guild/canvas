@@ -26,8 +26,13 @@ import grondag.canvas.pipeline.CanvasFrameBufferHacks;
 import grondag.canvas.wip.encoding.WipVertexCollectorImpl;
 import grondag.canvas.wip.state.WipRenderState;
 import grondag.canvas.wip.state.WipVertexState;
+import grondag.canvas.wip.state.property.WipDecal;
+import grondag.canvas.wip.state.property.WipDepthTest;
+import grondag.canvas.wip.state.property.WipFog;
+import grondag.canvas.wip.state.property.WipTarget;
 import grondag.canvas.wip.state.property.WipTransparency;
 import grondag.canvas.wip.state.property.WipWriteMask;
+import org.lwjgl.opengl.GL11;
 
 import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleManager;
@@ -51,18 +56,15 @@ public enum CanvasParticleRenderer {
 
 	private Tessellator tessellator;
 	private BufferBuilder bufferBuilder;
+	private LightmapTextureManager lightmapTextureManager;
 	private ParticleManagerExt ext;
 	private Runnable drawHandler = Runnables.doNothing();
 
 	public void renderParticles(ParticleManager pm, MatrixStack matrixStack, VertexConsumerProvider.Immediate immediate, LightmapTextureManager lightmapTextureManager, Camera camera, float tickDelta) {
-		lightmapTextureManager.enable();
-		RenderSystem.enableAlphaTest();
-		RenderSystem.defaultAlphaFunc();
-		RenderSystem.enableDepthTest();
-		RenderSystem.enableFog();
 		RenderSystem.pushMatrix();
 		RenderSystem.multMatrix(matrixStack.peek().getModel());
 
+		this.lightmapTextureManager = lightmapTextureManager;
 		tessellator = Tessellator.getInstance();
 		bufferBuilder = tessellator.getBuffer();
 		ext = (ParticleManagerExt) pm;
@@ -77,6 +79,9 @@ public enum CanvasParticleRenderer {
 			}
 
 			final Iterator<Particle> particles = iterable.iterator();
+
+			if (!particles.hasNext()) continue;
+
 			final VertexConsumer consumer = beginSheet(particleTextureSheet);
 
 			while(particles.hasNext()) {
@@ -97,6 +102,18 @@ public enum CanvasParticleRenderer {
 		}
 
 		RenderSystem.popMatrix();
+		teardownVanillParticleRender();
+	}
+
+	private void setupVanillaParticleRender() {
+		lightmapTextureManager.enable();
+		RenderSystem.enableAlphaTest();
+		RenderSystem.defaultAlphaFunc();
+		RenderSystem.enableDepthTest();
+		RenderSystem.enableFog();
+	}
+
+	private void teardownVanillParticleRender() {
 		RenderSystem.depthMask(true);
 		RenderSystem.depthFunc(515);
 		RenderSystem.disableBlend();
@@ -112,66 +129,80 @@ public enum CanvasParticleRenderer {
 			if (particleTextureSheet == ParticleTextureSheet.TERRAIN_SHEET) {
 				if (Configurator.enableBloom) CanvasFrameBufferHacks.startEmissiveCapture(false);
 				collector.prepare(RENDER_STATE_TERRAIN);
+				collector.vertexState(PARTICLE_VERTEX_STATE);
 
 				drawHandler = () -> {
 					RENDER_STATE_TERRAIN.draw(collector);
 					if (Configurator.enableBloom) CanvasFrameBufferHacks.endEmissiveCapture();
+					collector.clear();
 				};
 
 				return collector;
 			} else if (particleTextureSheet == ParticleTextureSheet.PARTICLE_SHEET_LIT || particleTextureSheet == ParticleTextureSheet.PARTICLE_SHEET_OPAQUE) {
 				if (Configurator.enableBloom) CanvasFrameBufferHacks.startEmissiveCapture(false);
 				collector.prepare(RENDER_STATE_OPAQUE_OR_LIT);
+				collector.vertexState(PARTICLE_VERTEX_STATE);
 
 				drawHandler = () -> {
 					RENDER_STATE_OPAQUE_OR_LIT.draw(collector);
 					if (Configurator.enableBloom) CanvasFrameBufferHacks.endEmissiveCapture();
+					collector.clear();
 				};
 
 				return collector;
 			} else if (particleTextureSheet == ParticleTextureSheet.PARTICLE_SHEET_TRANSLUCENT) {
 				if (Configurator.enableBloom) CanvasFrameBufferHacks.startEmissiveCapture(false);
 				collector.prepare(RENDER_STATE_TRANSLUCENT);
-				collector.vertexState(VERTEX_STATE_TRANSLUCENT);
+				collector.vertexState(PARTICLE_VERTEX_STATE);
 
 				drawHandler = () -> {
 					RENDER_STATE_TRANSLUCENT.draw(collector);
 					if (Configurator.enableBloom) CanvasFrameBufferHacks.endEmissiveCapture();
+					collector.clear();
 				};
 
 				return collector;
 			}
 		}
 
+		setupVanillaParticleRender();
 		particleTextureSheet.begin(bufferBuilder, ext.canvas_textureManager());
 		drawHandler = () -> particleTextureSheet.draw(tessellator);
 		return bufferBuilder;
 	}
 
-	private static final WipRenderState RENDER_STATE_TERRAIN = WipRenderState.finder()
-	.writeMask(WipWriteMask.COLOR_DEPTH)
-	.transparency(WipTransparency.DEFAULT)
-	.hasColor(true)
-	.hasLightmap(true)
+	private static WipRenderState.Finder baseFinder() {
+		return WipRenderState.finder()
+		.hasColor(true)
+		.hasLightmap(true)
+		.hasNormal(false)
+		.primitive(GL11.GL_QUADS)
+		.depthTest(WipDepthTest.LEQUAL)
+		.cull(false)
+		.writeMask(WipWriteMask.COLOR_DEPTH)
+		.enableLightmap(true)
+		.decal(WipDecal.NONE)
+		.target(WipTarget.PARTICLES)
+		.lines(false)
+		.fog(WipFog.BLACK_FOG);
+	}
+
+	private static final WipRenderState RENDER_STATE_TERRAIN = baseFinder()
 	.texture(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE)
-	.hasNormal(false).find();
+	.transparency(WipTransparency.DEFAULT)
+	.find();
 
 	// MC has two but they are functionally identical
-	private static final WipRenderState RENDER_STATE_OPAQUE_OR_LIT = WipRenderState.finder()
-	.writeMask(WipWriteMask.COLOR_DEPTH)
+	private static final WipRenderState RENDER_STATE_OPAQUE_OR_LIT =  baseFinder()
 	.transparency(WipTransparency.NONE)
-	.hasColor(true)
-	.hasLightmap(true)
 	.texture(SpriteAtlasTexture.PARTICLE_ATLAS_TEXTURE)
-	.hasNormal(false).find();
+	.find();
 
-	private static final WipRenderState RENDER_STATE_TRANSLUCENT = WipRenderState.finder()
-	.writeMask(WipWriteMask.COLOR_DEPTH)
+	private static final WipRenderState RENDER_STATE_TRANSLUCENT = baseFinder()
 	.transparency(WipTransparency.TRANSLUCENT)
-	.hasColor(true)
-	.hasLightmap(true)
 	.texture(SpriteAtlasTexture.PARTICLE_ATLAS_TEXTURE)
-	.hasNormal(false).find();
+	.find();
 
-	private static final int VERTEX_STATE_TRANSLUCENT = WipVertexState.finder().cutout(true).cutout10(true).find();
+	// Doesn't strictly match vanilla - which uses 10% threshold vs the 0.03xxx value here.
+	private static final int PARTICLE_VERTEX_STATE = WipVertexState.finder().cutout(true).translucentCutout(true).find();
 }

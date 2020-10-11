@@ -44,7 +44,7 @@ public class WipVertexState {
 	private static final BooleanElement UNMIPPED = PACKER.createBooleanElement();
 
 	// true = 10%, false = 50%
-	private static final BooleanElement CUTOUT_10 = PACKER.createBooleanElement();
+	private static final BooleanElement TRANSLUCENT_CUTOUT = PACKER.createBooleanElement();
 	private static final BooleanElement HURT_OVERLAY = PACKER.createBooleanElement();
 	private static final BooleanElement FLASH_OVERLAY = PACKER.createBooleanElement();
 
@@ -77,8 +77,8 @@ public class WipVertexState {
 		return UNMIPPED.getValue(vertexState);
 	}
 
-	public static boolean cutou10(int vertexState) {
-		return CUTOUT_10.getValue(vertexState);
+	public static boolean translucentCutout(int vertexState) {
+		return TRANSLUCENT_CUTOUT.getValue(vertexState);
 	}
 
 	public static boolean hurtOverlay(int vertexState) {
@@ -125,7 +125,7 @@ public class WipVertexState {
 			unmipped(!tex.getMipmap());
 			disableDiffuse(params.getDiffuseLighting() == RenderPhase.DISABLE_DIFFUSE_LIGHTING);
 			cutout(params.getAlpha() != RenderPhase.ZERO_ALPHA);
-			cutout10(params.getAlpha() == RenderPhase.ONE_TENTH_ALPHA);
+			translucentCutout(params.getAlpha() == RenderPhase.ONE_TENTH_ALPHA);
 			disableAo(true);
 
 			// WIP: put in proper material map hooks
@@ -159,10 +159,10 @@ public class WipVertexState {
 		}
 
 		/**
-		 * Sets cutout threshold to 10% vs default of 50%
+		 * Sets cutout threshold to low value vs default of 50%
 		 */
-		public Finder cutout10(boolean cutout10) {
-			vertexState = CUTOUT_10.setValue(cutout10, vertexState);
+		public Finder translucentCutout(boolean translucentCutout) {
+			vertexState = TRANSLUCENT_CUTOUT.setValue(translucentCutout, vertexState);
 			return this;
 		}
 

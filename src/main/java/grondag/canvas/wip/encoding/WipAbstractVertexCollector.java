@@ -99,10 +99,10 @@ public abstract class WipAbstractVertexCollector implements WipVertexCollector {
 		return this;
 	}
 
-	// low to high: block, sky, ao, <blank>
+	// low to high: block, sky, ao, flags
 	@Override
 	public WipVertexCollector light(int block, int sky) {
-		vertexData[lightIndex] = (block & 0xFF) | ((sky & 0xFF) << 8);
+		vertexData[lightIndex] = lightBase | overlayFlags | (block & 0xFF) | ((sky & 0xFF) << 8);
 		return this;
 	}
 
@@ -137,6 +137,7 @@ public abstract class WipAbstractVertexCollector implements WipVertexCollector {
 	@Override
 	public WipVertexCollector texture(int packedTexture) {
 		vertexData[textureIndex] = packedTexture;
+		vertexData[materialIndex] = (materialBase & 0xFFFF0000) | spriteId;
 		return this;
 	}
 

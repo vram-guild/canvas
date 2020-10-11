@@ -96,7 +96,7 @@ public abstract class MixinSpriteBillboardParticle extends BillboardParticle {
 
 			vec.set(1.0F, -1.0F, 0.0F);
 			CanvasMath.applyBillboardRotation(pos, rotation);
-			vc.vertex(cx + pos.getX() * scale, cy + pos.getY() * scale, cz + pos.getZ()).texture(NORMALIZED_U0_V1).color(color).light(light).next();
+			vc.vertex(cx + pos.getX() * scale, cy + pos.getY() * scale, cz + pos.getZ() * scale).texture(NORMALIZED_U0_V1).color(color).light(light).next();
 		} else {
 			final float l = getMinU();
 			final float m = getMaxU();

@@ -747,7 +747,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 			VoxelMapHolder.postRenderLayerHandler.render(this, RenderLayer.getTranslucent(), matrixStack, cameraX, cameraY, cameraZ);
 			profiler.swap("particles");
-			mc.particleManager.renderParticles(matrixStack, immediate, lightmapTextureManager, camera, tickDelta);
+			CanvasParticleRenderer.INSTANCE.renderParticles(mc.particleManager, matrixStack, immediate, lightmapTextureManager, camera, tickDelta);
 		}
 
 		JustMapHolder.justMapRender.renderWaypoints(matrixStack, camera, tickDelta);

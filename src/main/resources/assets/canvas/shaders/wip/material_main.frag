@@ -90,7 +90,7 @@ void main() {
 
 	// PERF: varyings better here?
 	if (_cv_getFlag(_CV_FLAG_CUTOUT) == 1.0) {
-		float t = _cv_getFlag(_CV_FLAG_CUTOUT_10) == 1.0 ? _CV_CUTOUT_10_THRESHOLD : 0.5;
+		float t = _cv_getFlag(_CV_FLAG_TRANSLUCENT_CUTOUT) == 1.0 ? _CV_TRANSLUCENT_CUTOUT_THRESHOLD : 0.5;
 
 		if (a.a < t) {
 			discard;
