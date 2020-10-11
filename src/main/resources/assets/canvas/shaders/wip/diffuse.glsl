@@ -23,7 +23,7 @@ float _cv_diffuseBaked(vec3 normal) {
 }
 
 /**
- * Offers results simular to vanilla in Gui, assumes a fixed transform.
+ * Offers results similar to vanilla in Gui, assumes a fixed transform.
  */
 float _cv_diffuseGui(vec3 normal) {
 	// Note that vanilla rendering normally sends item models with raw colors and
@@ -48,12 +48,5 @@ float _cv_diffuseWorld(vec3 normal) {
 }
 
 float _cv_diffuse (vec3 normal) {
-	#if defined(CONTEXT_IS_GUI)
-	return _cv_diffuseGui(normal);
-	#elif defined(CONTEXT_IS_ITEM)
-	return _cv_diffuseGui(normal);
-	//    return diffuseWorld(normal);
-	#else
 	return _cv_diffuseBaked(normal);
-	#endif
 }

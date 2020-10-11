@@ -91,8 +91,5 @@ void main() {
 	_cvv_ao = in_lightmap.b;
 #endif
 
-	//#ifndef CONTEXT_IS_GUI
 	_cvv_lightcoord = data.light;
-	//#endif
-
 }

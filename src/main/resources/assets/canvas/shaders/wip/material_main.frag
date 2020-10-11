@@ -50,19 +50,15 @@ vec4 aoFactor(vec2 lightCoord) {
 #endif
 
 vec4 light(frx_FragmentData fragData) {
-#ifdef CONTEXT_IS_GUI
-	return vec4(1.0, 1.0, 1.0, 1.0);
-#else
-	#if DIFFUSE_SHADING_MODE == DIFFUSE_MODE_SKY_ONLY && defined(CONTEXT_IS_BLOCK)
+#if DIFFUSE_SHADING_MODE == DIFFUSE_MODE_SKY_ONLY
 	if (fragData.diffuse) {
 		vec4 block = texture2D(frxs_lightmap, vec2(fragData.light.x, 0.03125));
 		vec4 sky = texture2D(frxs_lightmap, vec2(0.03125, fragData.light.y));
 		return max(block, sky * _cvv_diffuse);
 	}
-	#endif
+#endif
 
 	return texture2D(frxs_lightmap, fragData.light);
-#endif
 }
 
 void main() {
@@ -81,13 +77,6 @@ void main() {
 	vec4 raw = fragData.spriteColor * fragData.vertexColor;
 	vec4 a = raw;
 
-	// TODO: wut?
-#if SHADER_PASS == SHADER_PASS_DECAL
-	if (a.a == 0) {
-		discard;
-	}
-#endif
-
 	// PERF: varyings better here?
 	if (_cv_getFlag(_CV_FLAG_CUTOUT) == 1.0) {
 		float t = _cv_getFlag(_CV_FLAG_TRANSLUCENT_CUTOUT) == 1.0 ? _CV_TRANSLUCENT_CUTOUT_THRESHOLD : 0.5;
@@ -99,7 +88,7 @@ void main() {
 
 	a *= mix(light(fragData), frx_emissiveColor(), fragData.emissivity);
 
-#if AO_SHADING_MODE != AO_MODE_NONE && defined(CONTEXT_IS_BLOCK)
+#if AO_SHADING_MODE != AO_MODE_NONE
 	if (fragData.ao) {
 		a *= aoFactor(fragData.light);
 	}
