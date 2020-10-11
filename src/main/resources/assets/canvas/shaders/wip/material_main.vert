@@ -22,31 +22,10 @@ void _cv_endVertex(inout frx_VertexData data, in int cv_programId) {
 #include canvas:endvertex
 }
 
-
-//#define ATTRIB_COLOR
-//#ifdef ATTRIB_COLOR
 attribute vec4 in_color;
-//#endif
-
-//#define ATTRIB_TEXTURE
-//#ifdef ATTRIB_TEXTURE
 attribute vec2 in_uv;
-//#endif
-
-//#define ATTRIB_MATERIAL
-//#ifdef ATTRIB_MATERIAL
-//attribute vec2 in_material;
-//#endif
-
-//#define ATTRIB_LIGHTMAP
-//#ifdef ATTRIB_LIGHTMAP
 attribute vec4 in_lightmap;
-//#endif
-
-//#define ATTRIB_NORMAL
-//#ifdef ATTRIB_NORMAL
 attribute vec4 in_normal_flags;
-//#endif
 
 vec3 _cv_decodeNormal(vec2 raw) {
 	raw = (raw - 127.0) / 127.0;
@@ -57,30 +36,10 @@ vec3 _cv_decodeNormal(vec2 raw) {
 void main() {
 	frx_VertexData data = frx_VertexData(
 	gl_Vertex,
-
-//#ifdef ATTRIB_TEXTURE
 	in_uv,
-//#else
-//	vec2(0.0, 0.0),
-//#endif
-
-//#ifdef ATTRIB_COLOR
 	in_color,
-//#else
-//	vec4(1.0, 1.0, 1.0, 1.0),
-//#endif
-
-//#ifdef ATTRIB_NORMAL
 	_cv_decodeNormal(in_normal_flags.xy),
-//#else
-//	vec3(0.0, 1.0, 0.0),
-//#endif
-
-//#ifdef ATTRIB_LIGHTMAP
 	in_lightmap.rg * 0.00390625 + 0.03125
-//#else
-//	vec4(1.0, 1.0, 1.0, 1.0)
-//#endif
 	);
 
 	// Adding +0.5 prevents striping or other strangeness in flag-dependent rendering
