@@ -20,14 +20,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 
+import grondag.canvas.mixinterface.ParticleExt;
 import grondag.canvas.mixinterface.ParticleManagerExt;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleManager;
 import net.minecraft.client.particle.ParticleTextureSheet;
 import net.minecraft.client.texture.TextureManager;
+import net.minecraft.particle.ParticleEffect;
 
 @Mixin(ParticleManager.class)
 public class MixinParticleManager implements ParticleManagerExt {
@@ -48,5 +53,15 @@ public class MixinParticleManager implements ParticleManagerExt {
 	@Override
 	public TextureManager canvas_textureManager() {
 		return textureManager;
+	}
+
+	// let particles know their type
+	@Inject(at = @At("RETURN"), method = "createParticle")
+	private <T extends ParticleEffect> void afterCreateParticle(T parameters, double x, double y, double z, double velocityX, double velocityY, double velocityZ, CallbackInfoReturnable<Particle> ci) {
+		final Particle particle = ci.getReturnValue();
+
+		if (particle != null) {
+			((ParticleExt) particle).canvas_particleType(parameters.getType());
+		}
 	}
 }

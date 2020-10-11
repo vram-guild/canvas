@@ -21,6 +21,7 @@ import java.util.Iterator;
 import com.google.common.util.concurrent.Runnables;
 import com.mojang.blaze3d.systems.RenderSystem;
 import grondag.canvas.Configurator;
+import grondag.canvas.mixinterface.ParticleExt;
 import grondag.canvas.mixinterface.ParticleManagerExt;
 import grondag.canvas.pipeline.CanvasFrameBufferHacks;
 import grondag.canvas.wip.encoding.WipVertexCollectorImpl;
@@ -32,6 +33,8 @@ import grondag.canvas.wip.state.property.WipFog;
 import grondag.canvas.wip.state.property.WipTarget;
 import grondag.canvas.wip.state.property.WipTransparency;
 import grondag.canvas.wip.state.property.WipWriteMask;
+import grondag.frex.api.material.MaterialMap;
+import grondag.frex.api.material.RenderMaterial;
 import org.lwjgl.opengl.GL11;
 
 import net.minecraft.client.particle.Particle;
@@ -88,6 +91,8 @@ public enum CanvasParticleRenderer {
 				final Particle particle = particles.next();
 
 				try {
+					final RenderMaterial mat = (RenderMaterial) MaterialMap.getForParticle(((ParticleExt) particle).canvas_particleType()).getMapped(null);
+					collector.vertexState(mat == null || !mat.emissive(0) ? PARTICLE_VERTEX_STATE : PARTICLE_EMISSIVE_VERTEX_STATE);
 					particle.buildGeometry(consumer, camera, tickDelta);
 				} catch (final Throwable exception) {
 					final CrashReport crashReport = CrashReport.create(exception, "Rendering Particle");
@@ -205,4 +210,5 @@ public enum CanvasParticleRenderer {
 
 	// Doesn't strictly match vanilla - which uses 10% threshold vs the 0.03xxx value here.
 	private static final int PARTICLE_VERTEX_STATE = WipVertexState.finder().cutout(true).translucentCutout(true).find();
+	private static final int PARTICLE_EMISSIVE_VERTEX_STATE = WipVertexState.finder().cutout(true).translucentCutout(true).emissive(true).find();
 }

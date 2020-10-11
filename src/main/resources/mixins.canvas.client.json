@@ -27,6 +27,7 @@
 	"MixinPackedIntegerArray",
 	"MixinPaintingEntityRenderer",
 	"MixinPalettedContainer",
+	"MixinParticle",
 	"MixinParticleManager",
 	"MixinSprite",
 	"MixinSpriteAtlasTexture",
