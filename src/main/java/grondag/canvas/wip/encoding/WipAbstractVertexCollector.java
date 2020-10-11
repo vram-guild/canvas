@@ -32,12 +32,10 @@ public abstract class WipAbstractVertexCollector implements WipVertexCollector {
 
 	protected int colorIndex;
 	protected int textureIndex;
-	protected int materialIndex;
 	protected int lightIndex;
 	protected int normalIndex;
 	protected int lightBase;
 	protected int overlayFlags;
-	protected int materialBase;
 	protected int spriteId = -1;
 	protected float u0;
 	protected float v0;
@@ -81,7 +79,7 @@ public abstract class WipAbstractVertexCollector implements WipVertexCollector {
 			v = (v - v0) * vSpanInv;
 		}
 
-		vertexData[materialIndex] = (materialBase & 0xFFFF0000) | spriteId;
+		vertexData[normalIndex] = (vertexData[normalIndex] & 0xFFFF) | (spriteId << 16);
 		vertexData[textureIndex] = Math.round(u * MeshEncodingHelper.UV_UNIT_VALUE) | (Math.round(v * MeshEncodingHelper.UV_UNIT_VALUE) << 16);
 		return this;
 	}
@@ -115,7 +113,6 @@ public abstract class WipAbstractVertexCollector implements WipVertexCollector {
 	@Override
 	public WipVertexCollector vertexState(int vertexState) {
 		lightBase = (WipVertexState.shaderFlags(vertexState) << 24);
-		materialBase = (WipVertexState.conditionIndex(vertexState) << 16);
 		return this;
 	}
 
@@ -137,20 +134,21 @@ public abstract class WipAbstractVertexCollector implements WipVertexCollector {
 	@Override
 	public WipVertexCollector texture(int packedTexture) {
 		vertexData[textureIndex] = packedTexture;
-		vertexData[materialIndex] = (materialBase & 0xFFFF0000) | spriteId;
+		vertexData[normalIndex] = (vertexData[normalIndex] & 0xFFFF) | (spriteId << 16);
 		return this;
 	}
 
 	@Override
 	public WipVertexCollector texture(int packedTexture, int spriteId) {
 		vertexData[textureIndex] = packedTexture;
-		vertexData[materialIndex] = (materialBase & 0xFFFF0000) | spriteId;
+		vertexData[normalIndex] = (vertexData[normalIndex] & 0xFFFF) | (spriteId << 16);
 		return this;
 	}
 
 	@Override
 	public WipVertexCollector normal(float x, float y, float z) {
-		vertexData[normalIndex] = NormalHelper.packUnsignedNormal(x, y, z);
+		// PERF: don't need to pack z
+		vertexData[normalIndex] = (NormalHelper.packUnsignedNormal(x, y, z) & 0xFFFF) | (spriteId << 16);
 		return this;
 	}
 }

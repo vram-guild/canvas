@@ -76,7 +76,6 @@ public abstract class MixinSpriteBillboardParticle extends BillboardParticle {
 		final int light = getColorMultiplier(tickDelta);
 
 		if (vertexConsumer instanceof WipVertexCollectorImpl) {
-			// WIP: hook ParticleManager.renderParticles so we get a collector here - better yet call a different method
 			final WipVertexCollectorImpl vc = (WipVertexCollectorImpl) vertexConsumer;
 			vc.sprite(sprite);
 

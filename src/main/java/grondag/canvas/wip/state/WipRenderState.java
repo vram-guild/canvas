@@ -164,7 +164,7 @@ public final class WipRenderState {
 		format = WipVertexFormat.forFlags(
 			HAS_COLOR.getValue(bits),
 			texture != WipTextureState.NO_TEXTURE,
-			texture.isAtlas() || HAS_CONDITION.getValue(bits),
+			texture.isAtlas(),
 			HAS_LIGHTMAP.getValue(bits),
 			HAS_NORMAL.getValue(bits));
 
@@ -282,7 +282,6 @@ public final class WipRenderState {
 	private static final BitPacker64.BooleanElement HAS_COLOR = PACKER.createBooleanElement();
 	private static final BitPacker64.BooleanElement HAS_LIGHTMAP = PACKER.createBooleanElement();
 	private static final BitPacker64.BooleanElement HAS_NORMAL = PACKER.createBooleanElement();
-	private static final BitPacker64.BooleanElement HAS_CONDITION = PACKER.createBooleanElement();
 	private static final BitPacker64<Void>.EnumElement<WipModelOrigin> ORIGIN = PACKER.createEnumElement(WipModelOrigin.class);
 
 	private static final BitPacker64.IntElement VERTEX_SHADER = PACKER.createIntElement(4096);
@@ -401,11 +400,6 @@ public final class WipRenderState {
 
 		public Finder hasNormal(boolean hasNormal) {
 			bits = HAS_NORMAL.setValue(hasNormal, bits);
-			return this;
-		}
-
-		public Finder hasCondition(boolean hasCondition) {
-			bits = HAS_CONDITION.setValue(hasCondition, bits);
 			return this;
 		}
 

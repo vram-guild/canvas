@@ -23,58 +23,64 @@ void _cv_endVertex(inout frx_VertexData data, in int cv_programId) {
 }
 
 
-#define ATTRIB_COLOR
-#ifdef ATTRIB_COLOR
+//#define ATTRIB_COLOR
+//#ifdef ATTRIB_COLOR
 attribute vec4 in_color;
-#endif
+//#endif
 
-#define ATTRIB_TEXTURE
-#ifdef ATTRIB_TEXTURE
+//#define ATTRIB_TEXTURE
+//#ifdef ATTRIB_TEXTURE
 attribute vec2 in_uv;
-#endif
+//#endif
 
-#define ATTRIB_MATERIAL
-#ifdef ATTRIB_MATERIAL
-attribute vec2 in_material;
-#endif
+//#define ATTRIB_MATERIAL
+//#ifdef ATTRIB_MATERIAL
+//attribute vec2 in_material;
+//#endif
 
-#define ATTRIB_LIGHTMAP
-#ifdef ATTRIB_LIGHTMAP
+//#define ATTRIB_LIGHTMAP
+//#ifdef ATTRIB_LIGHTMAP
 attribute vec4 in_lightmap;
-#endif
+//#endif
 
-#define ATTRIB_NORMAL
-#ifdef ATTRIB_NORMAL
+//#define ATTRIB_NORMAL
+//#ifdef ATTRIB_NORMAL
 attribute vec4 in_normal_flags;
-#endif
+//#endif
+
+vec3 _cv_decodeNormal(vec2 raw) {
+	raw = (raw - 127.0) / 127.0;
+	float z = 1.0 - (raw.x * raw.x) - (raw.y - raw.y);
+	return vec3(raw.xy, sqrt(z));
+}
 
 void main() {
 	frx_VertexData data = frx_VertexData(
 	gl_Vertex,
 
-#ifdef ATTRIB_TEXTURE
+//#ifdef ATTRIB_TEXTURE
 	in_uv,
-#else
-	vec2(0.0, 0.0),
-#endif
+//#else
+//	vec2(0.0, 0.0),
+//#endif
 
-#ifdef ATTRIB_COLOR
+//#ifdef ATTRIB_COLOR
 	in_color,
-#else
-	vec4(1.0, 1.0, 1.0, 1.0),
-#endif
+//#else
+//	vec4(1.0, 1.0, 1.0, 1.0),
+//#endif
 
-#ifdef ATTRIB_NORMAL
-	(in_normal_flags.xyz - 127.0) / 127.0,
-#else
-	vec3(0.0, 1.0, 0.0),
-#endif
+//#ifdef ATTRIB_NORMAL
+	_cv_decodeNormal(in_normal_flags.xy),
+//#else
+//	vec3(0.0, 1.0, 0.0),
+//#endif
 
-#ifdef ATTRIB_LIGHTMAP
+//#ifdef ATTRIB_LIGHTMAP
 	in_lightmap.rg * 0.00390625 + 0.03125
-#else
-	vec4(1.0, 1.0, 1.0, 1.0)
-#endif
+//#else
+//	vec4(1.0, 1.0, 1.0, 1.0)
+//#endif
 	);
 
 	// Adding +0.5 prevents striping or other strangeness in flag-dependent rendering
@@ -84,10 +90,10 @@ void main() {
 	int cv_programId = _cv_vertexProgramId();
 	_cv_startVertex(data, cv_programId);
 
-#ifdef ATTRIB_MATERIAL
 	if (_cvu_material[_CV_SPRITE_INFO_TEXTURE_SIZE] != 0.0) {
+		float spriteIndex = in_normal_flags.w * 256.0 + in_normal_flags.z;
 		// for sprite atlas textures, convert from normalized (0-1) to interpolated coordinates
-		vec4 spriteBounds = texture2DLod(frxs_spriteInfo, vec2(0, in_material.x / _cvu_material[_CV_SPRITE_INFO_TEXTURE_SIZE]), 0);
+		vec4 spriteBounds = texture2DLod(frxs_spriteInfo, vec2(0, spriteIndex / _cvu_material[_CV_SPRITE_INFO_TEXTURE_SIZE]), 0);
 
 		float atlasHeight = _cvu_material[_CV_ATLAS_HEIGHT];
 		float atlasWidth = _cvu_material[_CV_ATLAS_WIDTH];
@@ -100,7 +106,6 @@ void main() {
 
 		data.spriteUV = spriteBounds.xy + data.spriteUV * spriteBounds.zw;
 	}
-#endif
 
 	data.spriteUV = _cv_textureCoord(data.spriteUV, 0);
 

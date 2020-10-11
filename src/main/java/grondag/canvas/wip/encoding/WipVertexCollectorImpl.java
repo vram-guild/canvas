@@ -53,7 +53,6 @@ public class WipVertexCollectorImpl extends WipAbstractVertexCollector {
 		final WipVertexFormat format = materialState.format;
 		colorIndex = format.colorIndex;
 		textureIndex = format.textureIndex;
-		materialIndex = format.materialIndex;
 		lightIndex = format.lightIndex;
 		normalIndex = format.normalIndex;
 		spriteId = -1;
