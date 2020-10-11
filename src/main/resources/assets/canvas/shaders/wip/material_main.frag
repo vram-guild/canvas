@@ -18,7 +18,7 @@
   canvas:shaders/internal/material_main.frag
 ******************************************************/
 
-void _cv_startFragment(inout frx_FragmentData fragData) {
+void _cv_startFragment(inout frx_FragmentData data) {
 	int cv_programId = _cv_fragmentProgramId();
 
 #include canvas:startfragment

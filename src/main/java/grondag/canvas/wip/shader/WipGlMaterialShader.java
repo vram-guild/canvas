@@ -49,17 +49,15 @@ public class WipGlMaterialShader extends WipGlShader{
 		}
 	}
 
-	// PERF: combine passes somehow vs building new set for start/end/impl
-
 	private String preprocessFragmentSource(ResourceManager resourceManager, String baseSource) {
 		String starts;
 		String impl;
 
 		if (materials.isEmpty()) {
-			starts = "// NOOP";
-			impl = "// NOOP";
+			starts = "\t// NOOP";
+			impl = "\t// NOOP";
 		} else if (materials.size() == 1) {
-			starts = "\tfrx_startFragment(fragData);";
+			starts = "\tfrx_startFragment(data);";
 			final int index = materials.iterator().next().fragmentShaderIndex;
 			impl = loadShaderSource(resourceManager, WipMaterialShaderManager.fragmentIndex.fromHandle(index));
 		} else {
@@ -87,7 +85,7 @@ public class WipGlMaterialShader extends WipGlShader{
 
 					startsBuilder.append("frx_startFragment");
 					startsBuilder.append(index);
-					startsBuilder.append("(fragData);\n");
+					startsBuilder.append("(data);\n");
 
 					String src = loadShaderSource(resourceManager, WipMaterialShaderManager.fragmentIndex.fromHandle(index));
 					src = StringUtils.replace(src, "frx_startFragment", "frx_startFragment" + index);
@@ -105,54 +103,82 @@ public class WipGlMaterialShader extends WipGlShader{
 		return baseSource;
 	}
 
-
 	private String preprocessVertexSource(ResourceManager resourceManager, String baseSource) {
-		baseSource = StringUtils.replace(baseSource, WipShaderData.API_TARGET, "");
-		baseSource = StringUtils.replace(baseSource, WipShaderData.VERTEX_START, "");
-		baseSource = StringUtils.replace(baseSource, WipShaderData.VEREX_END,  "");
-		return baseSource;
-	}
+		String starts;
+		String ends;
+		String impl;
 
-	private String vertexStartSource() {
-		final IntOpenHashSet ids = new IntOpenHashSet();
+		if (materials.isEmpty()) {
+			starts = "\t// NOOP";
+			ends = "\t// NOOP";
+			impl = "\t// NOOP";
+		} else if (materials.size() == 1) {
+			final int index = materials.iterator().next().vertexShaderIndex;
+			impl = loadShaderSource(resourceManager, WipMaterialShaderManager.vertexIndex.fromHandle(index));
+			starts = impl.contains("frx_startVertex") ? "\tfrx_startVertex(data);" : "\t// NOOP";
+			ends = impl.contains("frx_endVertex") ? "\tfrx_endVertex(data);" : "\t// NOOP";
+		} else {
+			final IntOpenHashSet ids = new IntOpenHashSet();
+			int counter = 1;
+			final StringBuilder startsBuilder = new StringBuilder();
+			final StringBuilder endsBuilder = new StringBuilder();
+			final StringBuilder implBuilder = new StringBuilder();
 
-		// WIP generate switch/if-else from materials
 
-		//		System.out.println();
-		//		System.out.println("start");
-		//		for (final WipMaterialShaderImpl mat : materials) {
-		//			ids.add(mat.vertexShaderIndex);
-		//			System.out.println(mat.vertexShaderIndex);
-		//		}
-		//		System.out.println();
+			for (final WipMaterialShaderImpl mat : materials) {
+				final int index = mat.vertexShaderIndex;
 
-		/* example
+				if (ids.add(index)) {
+					if (counter > 1) {
+						startsBuilder.append("\telse ");
+						endsBuilder.append("\telse ");
+					}
 
-		if (cv_programId == 0) { frx_startVertex0(data) }
-		else if (cv_programId == 1) { frx_startVertex1(data)}
-		else if (cv_programId == 2) { frx_startVertex2(data)};
+					if (counter < materials.size()) {
+						startsBuilder.append("\tif (cv_programId == ");
+						startsBuilder.append(index);
+						startsBuilder.append(") ");
 
-		 */
+						endsBuilder.append("\tif (cv_programId == ");
+						endsBuilder.append(index);
+						endsBuilder.append(") ");
+					}
 
-		return "";
-	}
+					++ counter;
 
-	private String vertexEndSource() {
-		// WIP generate switch/if-else from materials
-		return "";
-	}
+					String src = loadShaderSource(resourceManager, WipMaterialShaderManager.vertexIndex.fromHandle(index));
 
-	private String implementationSources() {
-		// WIP generate relabeled methods from materials
+					if (src.contains("frx_startVertex")) {
+						startsBuilder.append("frx_startVertex");
+						startsBuilder.append(index);
+						startsBuilder.append("(data);\n");
+						src = StringUtils.replace(src, "frx_startVertex", "frx_startVertex" + index);
+					} else {
+						startsBuilder.append("{ \\NOOP }");
+					}
 
-		/* example
+					if (src.contains("frx_endVertex")) {
+						endsBuilder.append("frx_endVertex");
+						endsBuilder.append(index);
+						endsBuilder.append("(data);\n");
+						src = StringUtils.replace(src, "frx_endVertex", "frx_endVertex" + index);
+					} else {
+						endsBuilder.append("{ \\NOOP }");
+					}
 
-		void frx_startVertex0(inout frx_VertexData data) {
+					implBuilder.append(src);
+					implBuilder.append("\n");
+				}
+			}
 
+			impl = implBuilder.toString();
+			starts = startsBuilder.toString();
+			ends = endsBuilder.toString();
 		}
 
-		 */
-
-		return "";
+		baseSource = StringUtils.replace(baseSource, WipShaderData.API_TARGET, impl);
+		baseSource = StringUtils.replace(baseSource, WipShaderData.VERTEX_START, starts);
+		baseSource = StringUtils.replace(baseSource, WipShaderData.VEREX_END, ends);
+		return baseSource;
 	}
 }
