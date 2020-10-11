@@ -25,13 +25,13 @@ import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import grondag.canvas.buffer.TransferBufferAllocator;
 import grondag.canvas.material.MaterialVertexFormat;
+import grondag.canvas.material.MaterialVertexFormats;
 import grondag.canvas.mixin.AccessMultiPhaseParameters;
 import grondag.canvas.mixin.AccessTexture;
 import grondag.canvas.mixinterface.EntityRenderDispatcherExt;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.MultiPhaseExt;
 import grondag.canvas.wip.encoding.WipVertexCollectorImpl;
-import grondag.canvas.wip.encoding.WipVertexFormat;
 import grondag.canvas.wip.shader.WipGlProgram;
 import grondag.canvas.wip.shader.WipMaterialShaderImpl;
 import grondag.canvas.wip.shader.WipMaterialShaderManager;
@@ -126,7 +126,6 @@ public final class WipRenderState {
 	 */
 	public final int primitive;
 
-	public final WipVertexFormat format;
 	public final WipModelOrigin modelOrigin;
 	public final int vertexStrideInts;
 	public final WipTextureState texture;
@@ -161,16 +160,9 @@ public final class WipRenderState {
 		lines = LINES.getValue(bits);
 		fog = FOG.getValue(bits);
 
-		format = WipVertexFormat.forFlags(
-			HAS_COLOR.getValue(bits),
-			texture != WipTextureState.NO_TEXTURE,
-			texture.isAtlas(),
-			HAS_LIGHTMAP.getValue(bits),
-			HAS_NORMAL.getValue(bits));
-
-		vertexStrideInts = format.vertexStrideInts;
+		vertexStrideInts = MaterialVertexFormats.POSITION_COLOR_TEXTURE_LIGHT_NORMAL.vertexStrideInts;
 		translucency = TRANSPARENCY.getValue(bits);
-		shader = WipMaterialShaderManager.INSTANCE.find(VERTEX_SHADER.getValue(bits), FRAGMENT_SHADER.getValue(bits), translucency == WipTransparency.TRANSLUCENT ? WipProgramType.MATERIAL_VERTEX_LOGIC : WipProgramType.MATERIAL_UNIFORM_LOGIC, format);
+		shader = WipMaterialShaderManager.INSTANCE.find(VERTEX_SHADER.getValue(bits), FRAGMENT_SHADER.getValue(bits), translucency == WipTransparency.TRANSLUCENT ? WipProgramType.MATERIAL_VERTEX_LOGIC : WipProgramType.MATERIAL_UNIFORM_LOGIC);
 	}
 
 	@SuppressWarnings("resource")
@@ -229,7 +221,7 @@ public final class WipRenderState {
 		intBuffer.position(0);
 		collector.toBuffer(intBuffer);
 
-		format.enableDirect(MemoryUtil.memAddress(buffer));
+		MaterialVertexFormats.POSITION_COLOR_TEXTURE_LIGHT_NORMAL.enableDirect(MemoryUtil.memAddress(buffer));
 
 		// WIP: need to make matrix selection depend on origin or make all of this stateful
 		shader.activate(normalModelMatrix, texture.atlasInfo());

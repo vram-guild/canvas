@@ -24,12 +24,12 @@ import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.ShaderBuilderImpl.UniformMatrix3f;
 import grondag.canvas.apiimpl.ShaderBuilderImpl.UniformMatrix4f;
+import grondag.canvas.material.MaterialVertexFormat;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.Matrix4fExt;
 import grondag.canvas.shader.Shader;
 import grondag.canvas.texture.SpriteInfoTexture;
 import grondag.canvas.varia.CanvasGlHelper;
-import grondag.canvas.wip.encoding.WipVertexFormat;
 import grondag.canvas.wip.state.WipProgramType;
 import grondag.frex.api.material.Uniform;
 import grondag.frex.api.material.Uniform.Uniform1f;
@@ -64,7 +64,7 @@ public class WipGlProgram {
 	private static WipGlProgram activeProgram;
 	private final Shader vertexShader;
 	private final Shader fragmentShader;
-	public final WipVertexFormat pipelineVertexFormat;
+	public final MaterialVertexFormat vertexFormat;
 	public final WipProgramType programType;
 	private final ObjectArrayList<UniformImpl<?>> uniforms = new ObjectArrayList<>();
 	private final ObjectArrayList<UniformImpl<?>> renderTickUpdates = new ObjectArrayList<>();
@@ -83,12 +83,12 @@ public class WipGlProgram {
 	private boolean isErrored = false;
 	private boolean needsLoad = true;
 
-	public WipGlProgram(Shader vertexShader, Shader fragmentShader, WipVertexFormat format, WipProgramType programType, ObjectOpenHashSet<WipMaterialShaderImpl> materials) {
+	public WipGlProgram(Shader vertexShader, Shader fragmentShader, MaterialVertexFormat format, WipProgramType programType, ObjectOpenHashSet<WipMaterialShaderImpl> materials) {
 		this.vertexShader = vertexShader;
 		this.fragmentShader = fragmentShader;
 		this.programType = programType;
 		this.materials = materials;
-		pipelineVertexFormat = format;
+		vertexFormat = format;
 	}
 
 	public static void deactivate() {
@@ -383,7 +383,7 @@ public class WipGlProgram {
 			return false;
 		}
 
-		pipelineVertexFormat.bindProgramAttributes(programID);
+		vertexFormat.bindProgramAttributes(programID);
 
 		GL21.glLinkProgram(programID);
 

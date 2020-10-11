@@ -50,11 +50,6 @@ public class WipVertexCollectorImpl extends WipAbstractVertexCollector {
 	public WipVertexCollectorImpl prepare(WipRenderState materialState) {
 		this.materialState = materialState;
 		intVertexStride = materialState.vertexStrideInts;
-		final WipVertexFormat format = materialState.format;
-		colorIndex = format.colorIndex;
-		textureIndex = format.textureIndex;
-		lightIndex = format.lightIndex;
-		normalIndex = format.normalIndex;
 		spriteId = -1;
 		return this;
 	}

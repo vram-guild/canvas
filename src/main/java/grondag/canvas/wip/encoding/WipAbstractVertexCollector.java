@@ -22,6 +22,11 @@ import grondag.canvas.mixinterface.SpriteExt;
 import grondag.canvas.wip.state.WipRenderState;
 import grondag.canvas.wip.state.WipVertexState;
 
+import static grondag.canvas.material.MaterialVertexFormats.MATERIAL_COLOR_INDEX;
+import static grondag.canvas.material.MaterialVertexFormats.MATERIAL_LIGHT_INDEX;
+import static grondag.canvas.material.MaterialVertexFormats.MATERIAL_NORMAL_INDEX;
+import static grondag.canvas.material.MaterialVertexFormats.MATERIAL_TEXTURE_INDEX;
+
 import net.minecraft.client.texture.Sprite;
 
 public abstract class WipAbstractVertexCollector implements WipVertexCollector {
@@ -30,10 +35,6 @@ public abstract class WipAbstractVertexCollector implements WipVertexCollector {
 	protected final int[] vertexData = new int[8];
 	protected int vertexIndex = 0;
 
-	protected int colorIndex;
-	protected int textureIndex;
-	protected int lightIndex;
-	protected int normalIndex;
 	protected int lightBase;
 	protected int overlayFlags;
 	protected int spriteId = -1;
@@ -79,8 +80,8 @@ public abstract class WipAbstractVertexCollector implements WipVertexCollector {
 			v = (v - v0) * vSpanInv;
 		}
 
-		vertexData[normalIndex] = (vertexData[normalIndex] & 0xFFFF) | (spriteId << 16);
-		vertexData[textureIndex] = Math.round(u * MeshEncodingHelper.UV_UNIT_VALUE) | (Math.round(v * MeshEncodingHelper.UV_UNIT_VALUE) << 16);
+		vertexData[MATERIAL_NORMAL_INDEX] = (vertexData[MATERIAL_NORMAL_INDEX] & 0xFFFF) | (spriteId << 16);
+		vertexData[MATERIAL_TEXTURE_INDEX] = Math.round(u * MeshEncodingHelper.UV_UNIT_VALUE) | (Math.round(v * MeshEncodingHelper.UV_UNIT_VALUE) << 16);
 		return this;
 	}
 
@@ -100,13 +101,13 @@ public abstract class WipAbstractVertexCollector implements WipVertexCollector {
 	// low to high: block, sky, ao, flags
 	@Override
 	public WipVertexCollector light(int block, int sky) {
-		vertexData[lightIndex] = lightBase | overlayFlags | (block & 0xFF) | ((sky & 0xFF) << 8);
+		vertexData[MATERIAL_LIGHT_INDEX] = lightBase | overlayFlags | (block & 0xFF) | ((sky & 0xFF) << 8);
 		return this;
 	}
 
 	@Override
 	public WipVertexCollector packedLightWithAo(int packedLight, int ao) {
-		vertexData[lightIndex] = lightBase | overlayFlags | (packedLight & 0xFF) | ((packedLight >> 8) & 0xFF00) | (ao << 16);
+		vertexData[MATERIAL_LIGHT_INDEX] = lightBase | overlayFlags | (packedLight & 0xFF) | ((packedLight >> 8) & 0xFF00) | (ao << 16);
 		return this;
 	}
 
@@ -126,29 +127,29 @@ public abstract class WipAbstractVertexCollector implements WipVertexCollector {
 
 	@Override
 	public WipVertexCollector color(int color) {
-		vertexData[colorIndex] = color;
+		vertexData[MATERIAL_COLOR_INDEX] = color;
 		return this;
 	}
 
 	// packed unsigned shorts
 	@Override
 	public WipVertexCollector texture(int packedTexture) {
-		vertexData[textureIndex] = packedTexture;
-		vertexData[normalIndex] = (vertexData[normalIndex] & 0xFFFF) | (spriteId << 16);
+		vertexData[MATERIAL_TEXTURE_INDEX] = packedTexture;
+		vertexData[MATERIAL_NORMAL_INDEX] = (vertexData[MATERIAL_NORMAL_INDEX] & 0xFFFF) | (spriteId << 16);
 		return this;
 	}
 
 	@Override
 	public WipVertexCollector texture(int packedTexture, int spriteId) {
-		vertexData[textureIndex] = packedTexture;
-		vertexData[normalIndex] = (vertexData[normalIndex] & 0xFFFF) | (spriteId << 16);
+		vertexData[MATERIAL_TEXTURE_INDEX] = packedTexture;
+		vertexData[MATERIAL_NORMAL_INDEX] = (vertexData[MATERIAL_NORMAL_INDEX] & 0xFFFF) | (spriteId << 16);
 		return this;
 	}
 
 	@Override
 	public WipVertexCollector normal(float x, float y, float z) {
 		// PERF: don't need to pack z
-		vertexData[normalIndex] = (NormalHelper.packUnsignedNormal(x, y, z) & 0xFFFF) | (spriteId << 16);
+		vertexData[MATERIAL_NORMAL_INDEX] = (NormalHelper.packUnsignedNormal(x, y, z) & 0xFFFF) | (spriteId << 16);
 		return this;
 	}
 }

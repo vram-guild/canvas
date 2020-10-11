@@ -18,8 +18,8 @@ package grondag.canvas.wip.shader;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
+import grondag.canvas.material.MaterialVertexFormats;
 import grondag.canvas.shader.Shader;
-import grondag.canvas.wip.encoding.WipVertexFormat;
 import grondag.canvas.wip.shader.WipGlProgram.Uniform2iImpl;
 import grondag.canvas.wip.shader.WipGlProgram.Uniform3fImpl;
 import grondag.canvas.wip.shader.WipGlProgram.UniformArrayfImpl;
@@ -45,15 +45,16 @@ public enum WipGlShaderManager {
 		materialPrograms.values().forEach(s -> s.forceReload());
 	}
 
-	WipGlProgram getOrCreateMaterialProgram(WipProgramType programType, WipVertexFormat format) {
-		final int key = format.formatIndex | (programType.ordinal() << 16);
+	WipGlProgram getOrCreateMaterialProgram(WipProgramType programType) {
+		assert programType == WipProgramType.MATERIAL_UNIFORM_LOGIC ||  programType == WipProgramType.MATERIAL_VERTEX_LOGIC;
+		final int key = programType.ordinal();
 		WipGlProgram result = materialPrograms.get(key);
 
 		if (result == null) {
 			final ObjectOpenHashSet<WipMaterialShaderImpl> materials = new ObjectOpenHashSet<>();
-			final Shader vs =  new WipGlMaterialShader(WipShaderData.MATERIAL_MAIN_VERTEX, GL21.GL_VERTEX_SHADER, programType, format, materials);
-			final Shader fs = new WipGlMaterialShader(WipShaderData.MATERIAL_MAIN_FRAGMENT, GL21.GL_FRAGMENT_SHADER, programType, format, materials);
-			result = new WipGlProgram(vs, fs, format, programType, materials);
+			final Shader vs =  new WipGlMaterialShader(WipShaderData.MATERIAL_MAIN_VERTEX, GL21.GL_VERTEX_SHADER, programType, materials);
+			final Shader fs = new WipGlMaterialShader(WipShaderData.MATERIAL_MAIN_FRAGMENT, GL21.GL_FRAGMENT_SHADER, programType, materials);
+			result = new WipGlProgram(vs, fs, MaterialVertexFormats.POSITION_COLOR_TEXTURE_LIGHT_NORMAL, programType, materials);
 			WipShaderData.STANDARD_UNIFORM_SETUP.accept(result);
 			result.modelOrigin = (Uniform3fImpl) result.uniform3f("_cvu_model_origin", UniformRefreshFrequency.ON_LOAD, u -> u.set(0, 0, 0));
 			result.normalModelMatrix = result.uniformMatrix3f("_cvu_normal_model_matrix", UniformRefreshFrequency.ON_LOAD, u -> {});

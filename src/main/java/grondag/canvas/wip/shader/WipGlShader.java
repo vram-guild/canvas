@@ -36,7 +36,6 @@ import grondag.canvas.Configurator.FogMode;
 import grondag.canvas.shader.Shader;
 import grondag.canvas.texture.SpriteInfoTexture;
 import grondag.canvas.varia.CanvasGlHelper;
-import grondag.canvas.wip.encoding.WipVertexFormat;
 import grondag.canvas.wip.state.WipProgramType;
 import org.apache.commons.lang3.StringUtils;
 import org.lwjgl.opengl.GL11;
@@ -59,16 +58,14 @@ class WipGlShader implements Shader {
 	private final Identifier shaderSource;
 	protected final int shaderType;
 	protected final WipProgramType programType;
-	private final WipVertexFormat format;
 	private int glId = -1;
 	private boolean needsLoad = true;
 	private boolean isErrored = false;
 
-	WipGlShader(Identifier shaderSource, int shaderType, WipProgramType programType, WipVertexFormat format) {
+	WipGlShader(Identifier shaderSource, int shaderType, WipProgramType programType) {
 		this.shaderSource = shaderSource;
 		this.shaderType = shaderType;
 		this.programType = programType;
-		this.format = format;
 	}
 
 	public static void forceReloadErrors() {
@@ -183,7 +180,7 @@ class WipGlShader implements Shader {
 	}
 
 	private void outputDebugSource(String source, String error) {
-		final String fileName = programType.name + "-" + format.name + debugSourceString();
+		final String fileName = programType.name + "-" + debugSourceString();
 		final Path path = shaderDebugPath();
 
 		File shaderDir = path.toFile();
@@ -223,26 +220,6 @@ class WipGlShader implements Shader {
 		if (shaderType == GL21.GL_FRAGMENT_SHADER) {
 			result = StringUtils.replace(result, "#define SHADER_TYPE SHADER_TYPE_VERTEX", "#define SHADER_TYPE SHADER_TYPE_FRAGMENT");
 		} else {
-			if (!format.hasColor) {
-				result = StringUtils.replace(result, "#define ATTRIB_COLOR", "//#define ATTRIB_COLOR");
-			}
-
-			if (!format.hasLight) {
-				result = StringUtils.replace(result, "#define ATTRIB_LIGHTMAP", "//#define ATTRIB_LIGHTMAP");
-			}
-
-			if (!format.hasMaterial) {
-				result = StringUtils.replace(result, "#define ATTRIB_MATERIAL", "//#define ATTRIB_MATERIAL");
-			}
-
-			if (!format.hasNormal) {
-				result = StringUtils.replace(result, "#define ATTRIB_NORMAL", "//#define ATTRIB_NORMAL");
-			}
-
-			if (!format.hasTexture) {
-				result = StringUtils.replace(result, "#define ATTRIB_TEXTURE", "//#define ATTRIB_TEXTURE");
-			}
-
 			result = StringUtils.replace(result, "#define _CV_SPRITE_INFO_TEXTURE_SIZE 1024", "#define _CV_SPRITE_INFO_TEXTURE_SIZE " + SpriteInfoTexture.BLOCKS.textureSize());
 			result = StringUtils.replace(result, "#define _CV_ATLAS_WIDTH 1024", "#define _CV_ATLAS_WIDTH " + SpriteInfoTexture.BLOCKS.atlasWidth());
 			result = StringUtils.replace(result, "#define _CV_ATLAS_HEIGHT 1024", "#define _CV_ATLAS_HEIGHT " + SpriteInfoTexture.BLOCKS.atlasHeight());
@@ -269,7 +246,7 @@ class WipGlShader implements Shader {
 			}
 		}
 
-		if (!MinecraftClient.isAmbientOcclusionEnabled() || !format.hasNormal) {
+		if (!MinecraftClient.isAmbientOcclusionEnabled()) {
 			// disable ao for particles or if disabled by player
 			result = StringUtils.replace(result, "#define AO_SHADING_MODE AO_MODE_NORMAL",
 				"#define AO_SHADING_MODE AO_MODE_" + AoMode.NONE.name());
@@ -278,11 +255,7 @@ class WipGlShader implements Shader {
 				"#define AO_SHADING_MODE AO_MODE_" + Configurator.aoShadingMode.name());
 		}
 
-		if (!format.hasNormal) {
-			// disable diffuse for particles
-			result = StringUtils.replace(result, "#define DIFFUSE_SHADING_MODE DIFFUSE_MODE_NORMAL",
-				"#define DIFFUSE_SHADING_MODE DIFFUSE_MODE_" + DiffuseMode.NONE.name());
-		} else if (Configurator.diffuseShadingMode != DiffuseMode.NORMAL) {
+		if (Configurator.diffuseShadingMode != DiffuseMode.NORMAL) {
 			result = StringUtils.replace(result, "#define DIFFUSE_SHADING_MODE DIFFUSE_MODE_NORMAL",
 				"#define DIFFUSE_SHADING_MODE DIFFUSE_MODE_" + Configurator.diffuseShadingMode.name());
 		}

@@ -18,7 +18,6 @@ package grondag.canvas.wip.shader;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
-import grondag.canvas.wip.encoding.WipVertexFormat;
 import grondag.canvas.wip.state.WipProgramType;
 import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
 import grondag.fermion.varia.IndexedInterner;
@@ -63,21 +62,21 @@ public enum WipMaterialShaderManager implements ClientTickEvents.EndTick {
 		}
 	}
 
-	public synchronized WipMaterialShaderImpl find(int vertexShaderIndex, int fragmentShaderIndex, WipProgramType programType, WipVertexFormat format) {
-		final long key = key(vertexShaderIndex, fragmentShaderIndex, programType, format);
+	public synchronized WipMaterialShaderImpl find(int vertexShaderIndex, int fragmentShaderIndex, WipProgramType programType) {
+		final long key = key(vertexShaderIndex, fragmentShaderIndex, programType);
 
 		WipMaterialShaderImpl result = KEYMAP.get(key);
 
 		if (result == null) {
-			result = create(vertexShaderIndex, fragmentShaderIndex, programType, format);
+			result = create(vertexShaderIndex, fragmentShaderIndex, programType);
 			KEYMAP.put(key, result);
 		}
 
 		return result;
 	}
 
-	private synchronized WipMaterialShaderImpl create(int vertexShaderIndex, int fragmentShaderIndex, WipProgramType programType, WipVertexFormat format) {
-		final WipMaterialShaderImpl result = new WipMaterialShaderImpl(shaders.size(), vertexShaderIndex, fragmentShaderIndex, programType, format);
+	private synchronized WipMaterialShaderImpl create(int vertexShaderIndex, int fragmentShaderIndex, WipProgramType programType) {
+		final WipMaterialShaderImpl result = new WipMaterialShaderImpl(shaders.size(), vertexShaderIndex, fragmentShaderIndex, programType);
 		shaders.add(result);
 		return result;
 	}
@@ -122,7 +121,8 @@ public enum WipMaterialShaderManager implements ClientTickEvents.EndTick {
 	public static final IndexedInterner<Identifier> vertexIndex = new IndexedInterner<>(Identifier.class);
 	private static final Long2ObjectOpenHashMap<WipMaterialShaderImpl> KEYMAP = new Long2ObjectOpenHashMap<>();
 
-	private static long key(int vertexShaderIndex, int fragmentShaderIndex, WipProgramType programType, WipVertexFormat format) {
-		return format.formatIndex | (programType.ordinal() << 16) | ((long) fragmentShaderIndex << 32) | ((long) vertexShaderIndex << 48);
+	private static long key(int vertexShaderIndex, int fragmentShaderIndex, WipProgramType programType) {
+		// PERF: don't need key space this big
+		return programType.ordinal() | ((long) fragmentShaderIndex << 16) | ((long) vertexShaderIndex << 32);
 	}
 }

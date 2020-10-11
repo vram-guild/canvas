@@ -16,7 +16,6 @@
 
 package grondag.canvas.wip.shader;
 
-import grondag.canvas.wip.encoding.WipVertexFormat;
 import grondag.canvas.wip.state.WipProgramType;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
@@ -29,8 +28,8 @@ import net.minecraft.util.Identifier;
 public class WipGlMaterialShader extends WipGlShader{
 	private final ObjectOpenHashSet<WipMaterialShaderImpl> materials;
 
-	WipGlMaterialShader(Identifier shaderSource, int shaderType, WipProgramType programType, WipVertexFormat format, ObjectOpenHashSet<WipMaterialShaderImpl> materials) {
-		super(shaderSource, shaderType, programType, format);
+	WipGlMaterialShader(Identifier shaderSource, int shaderType, WipProgramType programType, ObjectOpenHashSet<WipMaterialShaderImpl> materials) {
+		super(shaderSource, shaderType, programType);
 		this.materials = materials;
 	}
 

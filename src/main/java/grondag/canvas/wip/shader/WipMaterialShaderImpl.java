@@ -17,7 +17,6 @@
 package grondag.canvas.wip.shader;
 
 import grondag.canvas.texture.SpriteInfoTexture;
-import grondag.canvas.wip.encoding.WipVertexFormat;
 import grondag.canvas.wip.state.WipProgramType;
 import grondag.frex.api.material.MaterialShader;
 
@@ -28,14 +27,12 @@ public final class WipMaterialShaderImpl implements MaterialShader {
 	public final int vertexShaderIndex;
 	public final int fragmentShaderIndex;
 	public final WipProgramType programType;
-	public final  WipVertexFormat format;
 	private WipGlProgram program;
 
-	public WipMaterialShaderImpl(int index, int vertexShaderIndex, int fragmentShaderIndex, WipProgramType programType, WipVertexFormat format) {
+	public WipMaterialShaderImpl(int index, int vertexShaderIndex, int fragmentShaderIndex, WipProgramType programType) {
 		this.vertexShaderIndex = vertexShaderIndex;
 		this.fragmentShaderIndex = fragmentShaderIndex;
 		this.programType = programType;
-		this.format = format;
 		this.index = index;
 	}
 
@@ -43,7 +40,7 @@ public final class WipMaterialShaderImpl implements MaterialShader {
 		WipGlProgram result = program;
 
 		if (result == null) {
-			result = WipGlShaderManager.INSTANCE.getOrCreateMaterialProgram(programType, format);
+			result = WipGlShaderManager.INSTANCE.getOrCreateMaterialProgram(programType);
 			program = result;
 			result.addMaterial(this);
 		}
