@@ -415,16 +415,16 @@ public final class WipRenderState {
 			return this;
 		}
 
-		private static final Identifier EGREGIOUS_ENDERMAN_HACK = new Identifier("textures/entity/enderman/enderman.png");
+		//		private static final Identifier EGREGIOUS_ENDERMAN_HACK = new Identifier("textures/entity/enderman/enderman.png");
 
 		public Finder texture(@Nullable Identifier id) {
 			final int val = id == null ? WipTextureState.NO_TEXTURE.index : WipTextureState.fromId(id).index;
 			bits = TEXTURE.setValue(val, bits);
 
 			// WIP: put in proper material map hooks
-			if (id != null && id.equals(EGREGIOUS_ENDERMAN_HACK)) {
-				fragmentShader(new Identifier("canvas:shaders/wip/material/enderman.frag"));
-			}
+			//			if (id != null && id.equals(EGREGIOUS_ENDERMAN_HACK)) {
+			//				fragmentShader(new Identifier("canvas:shaders/wip/material/enderman.frag"));
+			//			}
 
 			return this;
 		}
