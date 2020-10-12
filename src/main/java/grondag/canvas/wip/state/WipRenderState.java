@@ -184,8 +184,8 @@ public final class WipRenderState {
 			}
 		}
 
-		// WIP (PERF): check for need to change GL state based on flag comparison
-		// WIP (PERF): sort draws somehow to avoid unneeded state changes
+		// WIP: check for need to change GL state based on flag comparison
+		// WIP: sort draws somehow to avoid unneeded state changes
 		translucency.action.run();
 		depthTest.action.run();
 		writeMask.action.run();

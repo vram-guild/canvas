@@ -16,6 +16,9 @@
 
 package grondag.canvas.apiimpl.rendercontext;
 
+import java.util.Random;
+import java.util.function.Supplier;
+
 import grondag.canvas.apiimpl.material.MeshMaterialLayer;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.light.AoCalculator;
@@ -23,9 +26,7 @@ import grondag.canvas.material.EncodingContext;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.MinecraftClientExt;
 import grondag.fermion.sc.concurrency.SimpleConcurrentList;
-import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
-import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
-import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
+
 import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.color.item.ItemColors;
@@ -35,8 +36,9 @@ import net.minecraft.client.render.model.json.ModelTransformation.Mode;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.item.ItemStack;
 
-import java.util.Random;
-import java.util.function.Supplier;
+import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
+import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
+import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 
 /**
  * The render context used for item rendering.
@@ -127,7 +129,7 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 
 	@Override
 	public VertexConsumer consumer(MeshMaterialLayer mat) {
-		// WIP: really can't honor per-quad materials in the current setup
+		// WIP2: really can't honor per-quad materials in the current setup
 		// and also honor default model render layer because default blend mode
 		// is transformed to something specific before we get here, and the
 		// vanilla logic for model default layer is monstrous - see ItemRenderer
