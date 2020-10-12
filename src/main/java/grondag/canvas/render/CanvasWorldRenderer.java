@@ -65,7 +65,6 @@ import grondag.canvas.varia.CanvasGlHelper;
 import grondag.canvas.varia.WorldDataManager;
 import grondag.canvas.wip.encoding.WipImmediate;
 import grondag.canvas.wip.shader.WipMaterialShaderManager;
-import grondag.canvas.wip.state.RenderLayerHandler;
 import grondag.canvas.wip.state.WipRenderState;
 import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
 import grondag.frex.api.event.WorldRenderEvent;
@@ -627,9 +626,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		immediate.draw(TexturedRenderLayers.getEntitySolid());
 		immediate.draw(TexturedRenderLayers.getEntityCutout());
 		immediate.draw(TexturedRenderLayers.getBeds());
-		RenderLayerHandler.enableShaderDraw(true);
 		immediate.draw(TexturedRenderLayers.getShulkerBoxes());
-		RenderLayerHandler.enableShaderDraw(false);
 		immediate.draw(TexturedRenderLayers.getSign());
 		immediate.draw(TexturedRenderLayers.getChest());
 		bufferBuilders.getOutlineVertexConsumers().draw();

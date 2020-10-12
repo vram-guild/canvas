@@ -28,8 +28,6 @@ import static grondag.canvas.material.MaterialVertextFormatElement.MATERIAL_2US;
 import static grondag.canvas.material.MaterialVertextFormatElement.NORMAL_AO_4B;
 import static grondag.canvas.material.MaterialVertextFormatElement.NORMAL_FLAGS_4UB;
 import static grondag.canvas.material.MaterialVertextFormatElement.POSITION_3F;
-import static grondag.canvas.material.MaterialVertextFormatElement.TEMP_LIGHTMAP;
-import static grondag.canvas.material.MaterialVertextFormatElement.TEMP_OVERLAY;
 
 // WIP2: remove and clean up
 // encoding may be different and may depend on feature configuration
@@ -49,14 +47,6 @@ public final class MaterialVertexFormats {
 		LIGHTMAPS_4UB,
 		NORMAL_AO_4B,
 		MATERIAL_2US);
-
-	public static final MaterialVertexFormat TEMPORARY_ENTITY_FORMAT = new MaterialVertexFormat(
-		POSITION_3F,
-		BASE_RGBA_4UB,
-		BASE_TEX_2F,
-		TEMP_OVERLAY,
-		TEMP_LIGHTMAP,
-		NORMAL_AO_4B);
 
 	public static final MaterialVertexFormat HD_TERRAIN = new MaterialVertexFormat(
 		POSITION_3F,

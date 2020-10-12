@@ -89,8 +89,7 @@ public class DrawHandlers {
 			RenderSystem.disableCull();
 			MinecraftClient.getInstance().gameRenderer.getLightmapTextureManager().disable();
 			RenderSystem.disableFog();
-			SpriteInfoTexture.BLOCKS.disable();
-
+			SpriteInfoTexture.disable();
 		}
 
 	}
@@ -129,7 +128,7 @@ public class DrawHandlers {
 			RenderSystem.disableFog();
 			RenderSystem.disableBlend();
 			RenderSystem.depthMask(true);
-			SpriteInfoTexture.BLOCKS.disable();
+			SpriteInfoTexture.disable();
 		}
 	}
 
@@ -166,7 +165,7 @@ public class DrawHandlers {
 			RenderSystem.disableFog();
 			RenderSystem.disableBlend();
 			RenderSystem.defaultBlendFunc();
-			SpriteInfoTexture.BLOCKS.disable();
+			SpriteInfoTexture.disable();
 		}
 	}
 }

@@ -21,7 +21,6 @@ import javax.annotation.Nullable;
 import java.util.Optional;
 
 import grondag.canvas.mixinterface.MultiPhaseExt;
-import grondag.canvas.wip.state.RenderLayerHandler;
 import grondag.canvas.wip.state.WipRenderState;
 import grondag.canvas.wip.state.WipVertexState;
 import org.spongepowered.asm.mixin.Mixin;
@@ -91,18 +90,6 @@ abstract class MixinMultiPhase extends RenderLayer implements MultiPhaseExt {
 
 	@Override
 	public void canvas_endDrawing() {
-		super.endDrawing();
-	}
-
-	@Override
-	public void startDrawing() {
-		super.startDrawing();
-		RenderLayerHandler.startDrawing(this);
-	}
-
-	@Override
-	public void endDrawing() {
-		RenderLayerHandler.endDrawing(this);
 		super.endDrawing();
 	}
 }

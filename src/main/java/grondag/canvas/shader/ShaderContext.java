@@ -20,25 +20,21 @@ import grondag.canvas.material.EncodingContext;
 
 public class ShaderContext {
 	public static final ShaderContext TERRAIN_SOLID = builder()
-			.pass(ShaderPass.SOLID)
-			.materialContext(EncodingContext.TERRAIN)
-			.build();
+	.pass(ShaderPass.SOLID)
+	.materialContext(EncodingContext.TERRAIN)
+	.build();
 	public static final ShaderContext TERRAIN_DECAL = builder()
-			.pass(ShaderPass.DECAL)
-			.materialContext(EncodingContext.TERRAIN)
-			.build();
+	.pass(ShaderPass.DECAL)
+	.materialContext(EncodingContext.TERRAIN)
+	.build();
 	public static final ShaderContext TERRAIN_TRANSLUCENT = builder()
-			.pass(ShaderPass.TRANSLUCENT)
-			.materialContext(EncodingContext.TERRAIN)
-			.build();
+	.pass(ShaderPass.TRANSLUCENT)
+	.materialContext(EncodingContext.TERRAIN)
+	.build();
 	public static final ShaderContext PROCESS = builder()
-			.pass(ShaderPass.PROCESS)
-			.materialContext(EncodingContext.PROCESS)
-			.build();
-	public static final ShaderContext ENTITY_BLOCK_SOLID = builder()
-			.pass(ShaderPass.SOLID)
-			.materialContext(EncodingContext.ENTITY_BLOCK)
-			.build();
+	.pass(ShaderPass.PROCESS)
+	.materialContext(EncodingContext.PROCESS)
+	.build();
 	private static int indexCounter;
 	public final int index = ++indexCounter;
 	public final EncodingContext materialContext;

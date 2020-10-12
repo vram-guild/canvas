@@ -8,7 +8,6 @@
 	"MixinBiomeAccess",
 	"MixinBlockModelRenderer",
 	"MixinBlockRenderManager",
-	"MixinBufferRenderer",
 	"MixinChunkBuilder",
 	"MixinChunkRebuildTask",
 	"MixinChunkRenderData",

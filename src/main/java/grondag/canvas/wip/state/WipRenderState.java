@@ -181,8 +181,6 @@ public final class WipRenderState {
 			}
 		}
 
-		// WIP: check for need to change GL state based on flag comparison
-		// WIP: sort draws somehow to avoid unneeded state changes
 		translucency.action.run();
 		depthTest.action.run();
 		writeMask.action.run();
@@ -237,7 +235,6 @@ public final class WipRenderState {
 		collector.toBuffer(intBuffer);
 
 		MaterialVertexFormats.POSITION_COLOR_TEXTURE_LIGHT_NORMAL.enableDirect(MemoryUtil.memAddress(buffer));
-
 
 		GlStateManager.drawArrays(primitive, 0, collector.vertexCount());
 
