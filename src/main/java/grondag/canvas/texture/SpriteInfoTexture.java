@@ -136,7 +136,7 @@ public class SpriteInfoTexture {
 		}
 	}
 
-	public void disable() {
+	public static void disable() {
 		GlStateManager.activeTexture(TextureData.SPRITE_INFO);
 		GlStateManager.bindTexture(0);
 		GlStateManager.disableTexture();

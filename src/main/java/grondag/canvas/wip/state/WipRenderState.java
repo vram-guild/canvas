@@ -31,6 +31,7 @@ import grondag.canvas.mixin.AccessTexture;
 import grondag.canvas.mixinterface.EntityRenderDispatcherExt;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.MultiPhaseExt;
+import grondag.canvas.texture.SpriteInfoTexture;
 import grondag.canvas.wip.encoding.WipVertexCollectorImpl;
 import grondag.canvas.wip.shader.WipGlProgram;
 import grondag.canvas.wip.shader.WipMaterialShaderImpl;
@@ -166,11 +167,7 @@ public final class WipRenderState {
 	}
 
 	@SuppressWarnings("resource")
-	public void draw(WipVertexCollectorImpl collector) {
-		if (translucency == WipTransparency.TRANSLUCENT) {
-			collector.sortQuads(0, 0, 0);
-		}
-
+	public void enable() {
 		if (texture == WipTextureState.NO_TEXTURE) {
 			RenderSystem.disableTexture();
 		} else {
@@ -190,8 +187,8 @@ public final class WipRenderState {
 		depthTest.action.run();
 		writeMask.action.run();
 		fog.action.run();
-		decal.startAction.run();
-		target.startAction.run();
+		decal.enable();
+		target.enable();
 		RenderSystem.shadeModel(GL11.GL_SMOOTH);
 
 		if (cull) {
@@ -212,7 +209,25 @@ public final class WipRenderState {
 			RenderSystem.lineWidth(1.0F);
 		}
 
-		// WIP split this to start and end methods so draw can be done independently or with different uniforms/buffers - most instances don't need an end
+		// WIP: need to make matrix selection depend on origin or make all of this stateful
+		shader.activate(normalModelMatrix, texture.atlasInfo());
+	}
+
+	public static void disable() {
+		MaterialVertexFormat.disableDirect();
+		WipGlProgram.deactivate();
+		RenderSystem.shadeModel(GL11.GL_FLAT);
+		SpriteInfoTexture.disable();
+		WipDecal.disable();
+		WipTarget.disable();
+	}
+
+	public void draw(WipVertexCollectorImpl collector) {
+		enable();
+
+		if (translucency == WipTransparency.TRANSLUCENT) {
+			collector.sortQuads(0, 0, 0);
+		}
 
 		// WIP:  very very inefficient
 		final ByteBuffer buffer = TransferBufferAllocator.claim(collector.byteSize());
@@ -223,22 +238,12 @@ public final class WipRenderState {
 
 		MaterialVertexFormats.POSITION_COLOR_TEXTURE_LIGHT_NORMAL.enableDirect(MemoryUtil.memAddress(buffer));
 
-		// WIP: need to make matrix selection depend on origin or make all of this stateful
-		shader.activate(normalModelMatrix, texture.atlasInfo());
+
 		GlStateManager.drawArrays(primitive, 0, collector.vertexCount());
-		MaterialVertexFormat.disableDirect();
-		WipGlProgram.deactivate();
 
 		TransferBufferAllocator.release(buffer);
 
-		RenderSystem.shadeModel(GL11.GL_FLAT);
-
-		if (texture.isAtlas()) {
-			texture.atlasInfo().disable();
-		}
-
-		decal.endAction.run();
-		target.endAction.run();
+		disable();
 	}
 
 	// WIP: probably doesn't belong here

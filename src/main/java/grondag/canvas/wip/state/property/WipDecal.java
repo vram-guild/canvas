@@ -38,13 +38,31 @@ public enum WipDecal {
 		RenderSystem.scalef(0.99975586F, 0.99975586F, 0.99975586F);
 	}, RenderSystem::popMatrix);
 
-	public final Runnable startAction;
-	public final Runnable endAction;
+	private final Runnable startAction;
+	private final Runnable endAction;
 
 	private WipDecal(Runnable startAction, Runnable endAction) {
 		this.startAction = startAction;
 		this.endAction = endAction;
 	}
+
+	public void enable() {
+		if (active != null && active != this) {
+			active.endAction.run();
+		}
+
+		startAction.run();
+		active = this;
+	}
+
+	public static void disable() {
+		if (active != null) {
+			active.endAction.run();
+			active = null;
+		}
+	}
+
+	private static WipDecal active = null;
 
 	public static WipDecal fromPhase(Layering phase) {
 		if (phase == RenderPhase.VIEW_OFFSET_Z_LAYERING) {
