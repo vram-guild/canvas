@@ -26,14 +26,15 @@ import grondag.canvas.buffer.encoding.VertexCollectorImpl;
 import grondag.canvas.material.MaterialVertexFormats;
 import grondag.canvas.mixinterface.FrameBufferExt;
 import grondag.canvas.shader.GlProgram;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gl.Framebuffer;
-import net.minecraft.client.texture.TextureUtil;
-import net.minecraft.client.util.InputUtil;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.ARBTextureFloat;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL21;
+
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gl.Framebuffer;
+import net.minecraft.client.texture.TextureUtil;
+import net.minecraft.client.util.InputUtil;
 
 //PERF: handle VAO properly here before re-enabling VAO
 public class CanvasFrameBufferHacks {
@@ -67,6 +68,8 @@ public class CanvasFrameBufferHacks {
 	private static int oldTex0;
 	private static int oldTex1;
 
+	private static boolean active = false;
+
 	private static void clearAttachments() {
 		GlStateManager.bindFramebuffer(FramebufferInfo.FRAME_BUFFER, canvasFboId);
 		GlStateManager.clearColor(0, 0, 0, 0);
@@ -75,19 +78,26 @@ public class CanvasFrameBufferHacks {
 		GlStateManager.bindFramebuffer(FramebufferInfo.FRAME_BUFFER, mainFbo);
 	}
 
-	public static void startEmissiveCapture(boolean first) {
-		if (first) {
-			sync();
-			clearAttachments();
-		}
+	public static void prepareForFrame() {
+		assert !active;
+		sync();
+		clearAttachments();
+	}
 
-		GL21.glDrawBuffers(ATTACHMENTS_DOUBLE);
-		GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT + 1, GL21.GL_TEXTURE_2D, texEmissive, 0);
+	public static void startEmissiveCapture() {
+		if (!active) {
+			active = true;
+			GL21.glDrawBuffers(ATTACHMENTS_DOUBLE);
+			GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT + 1, GL21.GL_TEXTURE_2D, texEmissive, 0);
+		}
 	}
 
 	public static void endEmissiveCapture() {
-		GL21.glDrawBuffers(FramebufferInfo.COLOR_ATTACHMENT);
-		GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT + 1, GL21.GL_TEXTURE_2D, 0, 0);
+		if (active) {
+			active = false;
+			GL21.glDrawBuffers(FramebufferInfo.COLOR_ATTACHMENT);
+			GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT + 1, GL21.GL_TEXTURE_2D, 0, 0);
+		}
 	}
 
 	private static void startCopy() {

@@ -23,7 +23,6 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import grondag.canvas.Configurator;
 import grondag.canvas.mixinterface.ParticleExt;
 import grondag.canvas.mixinterface.ParticleManagerExt;
-import grondag.canvas.pipeline.CanvasFrameBufferHacks;
 import grondag.canvas.wip.encoding.WipVertexCollectorImpl;
 import grondag.canvas.wip.state.WipRenderState;
 import grondag.canvas.wip.state.WipVertexState;
@@ -132,37 +131,31 @@ public enum CanvasParticleRenderer {
 
 		if (Configurator.enableExperimentalPipeline) {
 			if (particleTextureSheet == ParticleTextureSheet.TERRAIN_SHEET) {
-				if (Configurator.enableBloom) CanvasFrameBufferHacks.startEmissiveCapture(false);
 				collector.prepare(RENDER_STATE_TERRAIN);
 				collector.vertexState(PARTICLE_VERTEX_STATE);
 
 				drawHandler = () -> {
 					RENDER_STATE_TERRAIN.draw(collector);
-					if (Configurator.enableBloom) CanvasFrameBufferHacks.endEmissiveCapture();
 					collector.clear();
 				};
 
 				return collector;
 			} else if (particleTextureSheet == ParticleTextureSheet.PARTICLE_SHEET_LIT || particleTextureSheet == ParticleTextureSheet.PARTICLE_SHEET_OPAQUE) {
-				if (Configurator.enableBloom) CanvasFrameBufferHacks.startEmissiveCapture(false);
 				collector.prepare(RENDER_STATE_OPAQUE_OR_LIT);
 				collector.vertexState(PARTICLE_VERTEX_STATE);
 
 				drawHandler = () -> {
 					RENDER_STATE_OPAQUE_OR_LIT.draw(collector);
-					if (Configurator.enableBloom) CanvasFrameBufferHacks.endEmissiveCapture();
 					collector.clear();
 				};
 
 				return collector;
 			} else if (particleTextureSheet == ParticleTextureSheet.PARTICLE_SHEET_TRANSLUCENT) {
-				if (Configurator.enableBloom) CanvasFrameBufferHacks.startEmissiveCapture(false);
 				collector.prepare(RENDER_STATE_TRANSLUCENT);
 				collector.vertexState(PARTICLE_VERTEX_STATE);
 
 				drawHandler = () -> {
 					RENDER_STATE_TRANSLUCENT.draw(collector);
-					if (Configurator.enableBloom) CanvasFrameBufferHacks.endEmissiveCapture();
 					collector.clear();
 				};
 

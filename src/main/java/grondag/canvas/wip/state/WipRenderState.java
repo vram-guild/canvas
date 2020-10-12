@@ -23,6 +23,7 @@ import java.nio.IntBuffer;
 
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
+import grondag.canvas.Configurator;
 import grondag.canvas.buffer.TransferBufferAllocator;
 import grondag.canvas.material.MaterialVertexFormat;
 import grondag.canvas.material.MaterialVertexFormats;
@@ -31,6 +32,7 @@ import grondag.canvas.mixin.AccessTexture;
 import grondag.canvas.mixinterface.EntityRenderDispatcherExt;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.MultiPhaseExt;
+import grondag.canvas.pipeline.CanvasFrameBufferHacks;
 import grondag.canvas.texture.SpriteInfoTexture;
 import grondag.canvas.wip.encoding.WipVertexCollectorImpl;
 import grondag.canvas.wip.shader.WipGlProgram;
@@ -187,6 +189,9 @@ public final class WipRenderState {
 		fog.action.run();
 		decal.enable();
 		target.enable();
+
+		if (Configurator.enableBloom) CanvasFrameBufferHacks.startEmissiveCapture();
+
 		RenderSystem.shadeModel(GL11.GL_SMOOTH);
 
 		if (cull) {
@@ -218,6 +223,7 @@ public final class WipRenderState {
 		SpriteInfoTexture.disable();
 		WipDecal.disable();
 		WipTarget.disable();
+		if (Configurator.enableBloom) CanvasFrameBufferHacks.endEmissiveCapture();
 	}
 
 	public void draw(WipVertexCollectorImpl collector) {
