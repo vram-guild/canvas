@@ -209,6 +209,6 @@ public enum CanvasParticleRenderer {
 	.find();
 
 	// Doesn't strictly match vanilla - which uses 10% threshold vs the 0.03xxx value here.
-	private static final int PARTICLE_VERTEX_STATE = WipVertexState.finder().cutout(true).translucentCutout(true).find();
-	private static final int PARTICLE_EMISSIVE_VERTEX_STATE = WipVertexState.finder().cutout(true).translucentCutout(true).emissive(true).find();
+	private static final int PARTICLE_VERTEX_STATE = WipVertexState.finder().disableAo(true).disableDiffuse(true).cutout(true).translucentCutout(true).find();
+	private static final int PARTICLE_EMISSIVE_VERTEX_STATE = WipVertexState.finder().disableAo(true).disableDiffuse(true).cutout(true).translucentCutout(true).emissive(true).find();
 }
