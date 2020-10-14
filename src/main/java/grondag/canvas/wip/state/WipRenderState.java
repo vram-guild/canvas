@@ -187,13 +187,11 @@ public final class WipRenderState {
 		fog.action.run();
 		decal.enable();
 
-		// WIP: enable emissive capture for fabulous buffers
+		// NB: must be after frame-buffer target switch
 		if (Configurator.enableBloom) {
-			if (target == WipTarget.MAIN) {
-				CanvasFrameBufferHacks.startEmissiveCapture();
-			} else {
-				CanvasFrameBufferHacks.endEmissiveCapture();
-			}
+			CanvasFrameBufferHacks.startEmissiveCapture();
+		} else {
+			CanvasFrameBufferHacks.endEmissiveCapture();
 		}
 
 		RenderSystem.shadeModel(GL11.GL_SMOOTH);
@@ -221,13 +219,15 @@ public final class WipRenderState {
 	}
 
 	public static void disable() {
+		// NB: must be before frame-buffer target switch
+		if (Configurator.enableBloom) CanvasFrameBufferHacks.endEmissiveCapture();
+
 		MaterialVertexFormat.disableDirect();
 		WipGlProgram.deactivate();
 		RenderSystem.shadeModel(GL11.GL_FLAT);
 		SpriteInfoTexture.disable();
 		WipDecal.disable();
 		WipTarget.disable();
-		if (Configurator.enableBloom) CanvasFrameBufferHacks.endEmissiveCapture();
 	}
 
 	public void draw(WipVertexCollectorImpl collector) {
