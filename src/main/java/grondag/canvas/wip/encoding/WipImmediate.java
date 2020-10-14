@@ -35,6 +35,20 @@ public class WipImmediate extends Immediate {
 		}
 	}
 
+	public void drawCollectors(boolean translucentTerrain) {
+		final int limit = collectors.size();
+
+		if (limit != 0) {
+			for (int i = 0; i < limit; ++i) {
+				final WipVertexCollectorImpl collector = collectors.get(i);
+
+				if (collector.materialState.isTranslucentTerrain == translucentTerrain) {
+					collector.drawAndClear();
+				}
+			}
+		}
+	}
+
 	@Override
 	public void draw() {
 		final int limit = collectors.size();

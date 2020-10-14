@@ -96,15 +96,6 @@ public final class WipRenderState {
 	 */
 	public final boolean hasNormal;
 
-	//	/**
-	//	 * True when material has a primary texture and thus
-	//	 * includes UV coordinates in the vertex format.
-	//	 * Canvas may compact or alter UV packing to allow for
-	//	 * multi-map textures that share UV coordinates.
-	//	 */
-	//	public boolean hasTexture() {
-	//		return HAS_TEXTURE.getValue(bits);
-	//	}
 
 	/**
 	 * True if world lighting is passed to the renderer for this material.
@@ -112,8 +103,6 @@ public final class WipRenderState {
 	 * Canvas may compact this, or may not pass it to the renderer at all,
 	 * depending on the lighting model. True still indicates the material
 	 * should be affected by world lighting.<p>
-	 *
-	 * WIP: should this be hasWorldLight instead?  Semantics are messy.
 	 */
 	public final boolean hasLightMap;
 
@@ -144,6 +133,13 @@ public final class WipRenderState {
 	public final WipFog fog;
 	public final WipMaterialShaderImpl shader;
 
+	/**
+	 * True when translucent transparency and targets the terrain layer.
+	 * Should not be rendered until that framebuffer is initialized in fabulous mode
+	 * or should be delayed to render with other trasnslucent when not.
+	 */
+	public final boolean isTranslucentTerrain;
+
 	private WipRenderState(long bits) {
 		this.bits = bits;
 		index = nextIndex++;
@@ -162,14 +158,16 @@ public final class WipRenderState {
 		target = TARGET.getValue(bits);
 		lines = LINES.getValue(bits);
 		fog = FOG.getValue(bits);
-
 		vertexStrideInts = MaterialVertexFormats.POSITION_COLOR_TEXTURE_LIGHT_NORMAL.vertexStrideInts;
 		translucency = TRANSPARENCY.getValue(bits);
 		shader = WipMaterialShaderManager.INSTANCE.find(VERTEX_SHADER.getValue(bits), FRAGMENT_SHADER.getValue(bits), translucency == WipTransparency.TRANSLUCENT ? WipProgramType.MATERIAL_VERTEX_LOGIC : WipProgramType.MATERIAL_UNIFORM_LOGIC);
+		isTranslucentTerrain = (target == WipTarget.MAIN || target == WipTarget.TRANSLUCENT) && translucency == WipTransparency.TRANSLUCENT;
 	}
 
 	@SuppressWarnings("resource")
 	public void enable() {
+		target.enable();
+
 		if (texture == WipTextureState.NO_TEXTURE) {
 			RenderSystem.disableTexture();
 		} else {
@@ -188,9 +186,15 @@ public final class WipRenderState {
 		writeMask.action.run();
 		fog.action.run();
 		decal.enable();
-		target.enable();
 
-		if (Configurator.enableBloom) CanvasFrameBufferHacks.startEmissiveCapture();
+		// WIP: enable emissive capture for fabulous buffers
+		if (Configurator.enableBloom) {
+			if (target == WipTarget.MAIN) {
+				CanvasFrameBufferHacks.startEmissiveCapture();
+			} else {
+				CanvasFrameBufferHacks.endEmissiveCapture();
+			}
+		}
 
 		RenderSystem.shadeModel(GL11.GL_SMOOTH);
 

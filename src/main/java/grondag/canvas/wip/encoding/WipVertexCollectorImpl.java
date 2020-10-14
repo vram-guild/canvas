@@ -220,15 +220,18 @@ public class WipVertexCollectorImpl extends WipAbstractVertexCollector {
 
 	private static class QuadSorter {
 		double[] perQuadDistance = new double[512];
+
 		private final IntComparator comparator = new IntComparator() {
 			@Override
 			public int compare(int a, int b) {
 				return Doubles.compare(perQuadDistance[b], perQuadDistance[a]);
 			}
 		};
+
 		int[] quadSwap = new int[128];
 		IntStreamImpl data;
 		int quadIntStride;
+
 		private final Swapper swapper = new Swapper() {
 			@Override
 			public void swap(int a, int b) {

@@ -77,6 +77,7 @@ public class DrawHandlers {
 			//			RenderSystem.enableAlphaTest();
 			//			RenderSystem.alphaFunc(516, 0.5f);
 			RenderSystem.enableDepthTest();
+			RenderSystem.depthMask(true);
 			RenderSystem.enableCull();
 			MinecraftClient.getInstance().gameRenderer.getLightmapTextureManager().enable();
 			BackgroundRenderer.setFogBlack();
@@ -151,6 +152,7 @@ public class DrawHandlers {
 			RenderSystem.disableAlphaTest();
 			RenderSystem.enableDepthTest();
 			RenderSystem.depthFunc(GL21.GL_LEQUAL);
+			RenderSystem.depthMask(true);
 			RenderSystem.enableCull();
 			MinecraftClient.getInstance().gameRenderer.getLightmapTextureManager().enable();
 			BackgroundRenderer.setFogBlack();

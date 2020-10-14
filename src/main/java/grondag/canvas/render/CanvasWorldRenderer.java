@@ -545,19 +545,24 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			}
 
 			entityBlockContext.entity(entity);
+
+			// Item entity translucent typically gets drawn here in vanilla because there's no dedicated buffer for it
 			wr.canvas_renderEntity(entity, cameraX, cameraY, cameraZ, tickDelta, matrixStack, renderProvider);
 		}
 
-		immediate.draw(RenderLayer.getEntitySolid(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE));
-		immediate.draw(RenderLayer.getEntityCutout(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE));
-		immediate.draw(RenderLayer.getEntityCutoutNoCull(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE));
-		immediate.draw(RenderLayer.getEntitySmoothCutout(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE));
+		if (!Configurator.enableExperimentalPipeline) {
+			immediate.draw(RenderLayer.getEntitySolid(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE));
+			immediate.draw(RenderLayer.getEntityCutout(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE));
+			immediate.draw(RenderLayer.getEntityCutoutNoCull(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE));
+			immediate.draw(RenderLayer.getEntitySmoothCutout(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE));
+		}
 
+		// WIP2 move these after bulk draw in new pipeline
 		SatinHolder.onEntitiesRenderedEvent.onEntitiesRendered(camera, frustum, tickDelta);
 		LitematicaHolder.litematicaEntityHandler.handle(matrixStack, tickDelta);
 		DynocapsHolder.handler.render(profiler, matrixStack, immediate, cameraVec3d);
-
 		GOMLHolder.HANDLER.render(this, matrixStack, tickDelta, limitTime, blockOutlines, camera, gameRenderer, lightmapTextureManager, projectionMatrix);
+
 		profiler.swap("blockentities");
 
 		final int visibleRegionCount = this.visibleRegionCount;
@@ -614,13 +619,18 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		assert matrixStack.isEmpty() : "Matrix stack not empty in world render when expected";
 
-		immediate.draw(RenderLayer.getSolid());
-		immediate.draw(TexturedRenderLayers.getEntitySolid());
-		immediate.draw(TexturedRenderLayers.getEntityCutout());
-		immediate.draw(TexturedRenderLayers.getBeds());
-		immediate.draw(TexturedRenderLayers.getShulkerBoxes());
-		immediate.draw(TexturedRenderLayers.getSign());
-		immediate.draw(TexturedRenderLayers.getChest());
+		if (Configurator.enableExperimentalPipeline) {
+			((WipImmediate) immediate).drawCollectors(false);
+		} else {
+			immediate.draw(RenderLayer.getSolid());
+			immediate.draw(TexturedRenderLayers.getEntitySolid());
+			immediate.draw(TexturedRenderLayers.getEntityCutout());
+			immediate.draw(TexturedRenderLayers.getBeds());
+			immediate.draw(TexturedRenderLayers.getShulkerBoxes());
+			immediate.draw(TexturedRenderLayers.getSign());
+			immediate.draw(TexturedRenderLayers.getChest());
+		}
+
 		bufferBuilders.getOutlineVertexConsumers().draw();
 
 		if (didRenderOutlines) {
@@ -665,7 +675,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			final BlockState blockState = world.getBlockState(blockPos4);
 
 			if (!blockState.isAir() && world.getWorldBorder().contains(blockPos4)) {
-				// THIS IS WHEN LIGHTENING RENDERS
+				// THIS IS WHEN LIGHTENING RENDERS IN VANILLA
 				final VertexConsumer vertexConsumer3 = immediate.getBuffer(RenderLayer.getLines());
 				wr.canvas_drawBlockOutline(matrixStack, vertexConsumer3, camera.getFocusedEntity(), cameraX, cameraY, cameraZ, blockPos4, blockState);
 			}
@@ -677,10 +687,16 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		mc.debugRenderer.render(matrixStack, immediate, cameraX, cameraY, cameraZ);
 		RenderSystem.popMatrix();
 
-
-		immediate.draw(TexturedRenderLayers.getEntityTranslucentCull());
-		immediate.draw(TexturedRenderLayers.getBannerPatterns());
-		immediate.draw(TexturedRenderLayers.getShieldPatterns());
+		// Intention here seems to be to draw all the non-translucent layers before
+		// enabling the translucent target - this is a very brittle way of handling
+		// should be able to draw all layers for a given target
+		if (Configurator.enableExperimentalPipeline) {
+			((WipImmediate) immediate).drawCollectors(false);
+		} else {
+			immediate.draw(TexturedRenderLayers.getEntityTranslucentCull());
+			immediate.draw(TexturedRenderLayers.getBannerPatterns());
+			immediate.draw(TexturedRenderLayers.getShieldPatterns());
+		}
 
 		immediate.draw(RenderLayer.getArmorGlint());
 		immediate.draw(RenderLayer.getArmorEntityGlint());
@@ -689,13 +705,23 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		immediate.draw(RenderLayer.method_30676());
 		immediate.draw(RenderLayer.getEntityGlint());
 		immediate.draw(RenderLayer.getDirectEntityGlint());
-
 		immediate.draw(RenderLayer.getWaterMask());
 		bufferBuilders.getEffectVertexConsumers().draw();
 
 		if (advancedTranslucency) {
+			profiler.swap("translucent");
+
+			// in fabulous mode, the only thing that renders to terrain translucency
+			// is terrain itself - so everything else can be rendered first
+
+			// Lines draw to entity (item) target
 			immediate.draw(RenderLayer.getLines());
 
+			if (Configurator.enableExperimentalPipeline) {
+				((WipImmediate) immediate).drawCollectors(true);
+			}
+
+			// This presumably catches any remaining translucent layers in vanilla
 			immediate.draw();
 
 			Framebuffer fb = mcwr.getTranslucentFramebuffer();
@@ -703,7 +729,6 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			fb.copyDepthFrom(mcfb);
 			fb.beginWrite(false);
 
-			profiler.swap("translucent");
 			renderTerrainLayer(true, matrixStack, cameraX, cameraY, cameraZ);
 
 			// NB: vanilla renders tripwire here but we combine into translucent
@@ -721,7 +746,16 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		} else {
 			profiler.swap("translucent");
 			renderTerrainLayer(true, matrixStack, cameraX, cameraY, cameraZ);
+
+			// without fabulous transparency important that lines
+			// and other translucent elements get drawn on top of terrain
 			immediate.draw(RenderLayer.getLines());
+
+			if (Configurator.enableExperimentalPipeline) {
+				((WipImmediate) immediate).drawCollectors(true);
+			}
+
+			// This presumably catches any remaining translucent layers in vanilla
 			immediate.draw();
 
 			VoxelMapHolder.postRenderLayerHandler.render(this, RenderLayer.getTranslucent(), matrixStack, cameraX, cameraY, cameraZ);
@@ -764,7 +798,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			wr.canvas_renderWeather(lightmapTextureManager, tickDelta, cameraX, cameraY, cameraZ);
 			wr.canvas_renderWorldBorder(camera);
 
-			// litematica overlay uses fabulous buffer so much run before translucent shader
+			// litematica overlay uses fabulous buffer so must run before translucent shader
 			MaliLibHolder.litematicaRenderWorldLast.render(matrixStack, mc, tickDelta);
 
 			wr.canvas_transparencyShader().render(tickDelta);

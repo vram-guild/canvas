@@ -16,6 +16,17 @@
 
 package grondag.canvas.wip.state.property;
 
+// WIP: what to do with this?
+// In main world render, the GL matrix is set to be a projection matrix onLy - no view component
+// The base matrix stack has view rotation but not translation
+
+// In terrain render, render state is set to include offset and view rotation
+
+// Entity rendering handles the translation as part of buffering and applies
+// the matrix stack (with view rotation) on CPU so does not need to be a part of render state
+
+// particle/debug render the CPU includes translation but the view rotation is handled in GPU
+
 public enum WipModelOrigin {
 	/**
 	 * Vertex coordinate are raw coordinates.
