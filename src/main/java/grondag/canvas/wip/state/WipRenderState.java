@@ -18,13 +18,8 @@ package grondag.canvas.wip.state;
 
 import javax.annotation.Nullable;
 
-import java.nio.ByteBuffer;
-import java.nio.IntBuffer;
-
-import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import grondag.canvas.Configurator;
-import grondag.canvas.buffer.TransferBufferAllocator;
 import grondag.canvas.material.MaterialVertexFormat;
 import grondag.canvas.material.MaterialVertexFormats;
 import grondag.canvas.mixin.AccessMultiPhaseParameters;
@@ -34,7 +29,6 @@ import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.MultiPhaseExt;
 import grondag.canvas.pipeline.CanvasFrameBufferHacks;
 import grondag.canvas.texture.SpriteInfoTexture;
-import grondag.canvas.wip.encoding.WipVertexCollectorImpl;
 import grondag.canvas.wip.shader.WipGlProgram;
 import grondag.canvas.wip.shader.WipMaterialShaderImpl;
 import grondag.canvas.wip.shader.WipMaterialShaderManager;
@@ -52,7 +46,6 @@ import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.system.MemoryUtil;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.RenderLayer;
@@ -228,29 +221,6 @@ public final class WipRenderState {
 		SpriteInfoTexture.disable();
 		WipDecal.disable();
 		WipTarget.disable();
-	}
-
-	public void draw(WipVertexCollectorImpl collector) {
-		enable();
-
-		if (translucency == WipTransparency.TRANSLUCENT) {
-			collector.sortQuads(0, 0, 0);
-		}
-
-		// WIP:  very very inefficient
-		final ByteBuffer buffer = TransferBufferAllocator.claim(collector.byteSize());
-
-		final IntBuffer intBuffer = buffer.asIntBuffer();
-		intBuffer.position(0);
-		collector.toBuffer(intBuffer);
-
-		MaterialVertexFormats.POSITION_COLOR_TEXTURE_LIGHT_NORMAL.enableDirect(MemoryUtil.memAddress(buffer));
-
-		GlStateManager.drawArrays(primitive, 0, collector.vertexCount());
-
-		TransferBufferAllocator.release(buffer);
-
-		disable();
 	}
 
 	// WIP: probably doesn't belong here

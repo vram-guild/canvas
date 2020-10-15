@@ -16,14 +16,20 @@
 
 package grondag.canvas.wip.encoding;
 
+import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 
 import com.google.common.primitives.Doubles;
+import com.mojang.blaze3d.platform.GlStateManager;
+import grondag.canvas.buffer.TransferBufferAllocator;
+import grondag.canvas.material.MaterialVertexFormats;
 import grondag.canvas.wip.state.WipRenderState;
+import grondag.canvas.wip.state.property.WipTransparency;
 import grondag.fermion.intstream.IntStreamProvider;
 import grondag.fermion.intstream.IntStreamProvider.IntStreamImpl;
 import it.unimi.dsi.fastutil.Swapper;
 import it.unimi.dsi.fastutil.ints.IntComparator;
+import org.lwjgl.system.MemoryUtil;
 
 import net.minecraft.util.math.MathHelper;
 
@@ -213,9 +219,33 @@ public class WipVertexCollectorImpl extends WipAbstractVertexCollector {
 
 	public void drawAndClear() {
 		if (!isEmpty()) {
-			materialState.draw(this);
+			drawSingle();
 			clear();
 		}
+	}
+
+	/** avoid: slow */
+	public void drawSingle() {
+		materialState.enable();
+
+		if (materialState.translucency == WipTransparency.TRANSLUCENT) {
+			sortQuads(0, 0, 0);
+		}
+
+		// WIP:  very very inefficient
+		final ByteBuffer buffer = TransferBufferAllocator.claim(byteSize());
+
+		final IntBuffer intBuffer = buffer.asIntBuffer();
+		intBuffer.position(0);
+		toBuffer(intBuffer);
+
+		MaterialVertexFormats.POSITION_COLOR_TEXTURE_LIGHT_NORMAL.enableDirect(MemoryUtil.memAddress(buffer));
+
+		GlStateManager.drawArrays(materialState.primitive, 0, vertexCount());
+
+		TransferBufferAllocator.release(buffer);
+
+		WipRenderState.disable();
 	}
 
 	private static class QuadSorter {

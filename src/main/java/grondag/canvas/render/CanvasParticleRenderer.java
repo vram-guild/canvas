@@ -129,36 +129,22 @@ public enum CanvasParticleRenderer {
 	private VertexConsumer beginSheet(ParticleTextureSheet particleTextureSheet) {
 		RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
 
+		// PERF: consolidate these draws
 		if (Configurator.enableExperimentalPipeline) {
 			if (particleTextureSheet == ParticleTextureSheet.TERRAIN_SHEET) {
 				collector.prepare(RENDER_STATE_TERRAIN);
 				collector.vertexState(PARTICLE_VERTEX_STATE);
-
-				drawHandler = () -> {
-					RENDER_STATE_TERRAIN.draw(collector);
-					collector.clear();
-				};
-
+				drawHandler = () -> collector.drawAndClear();
 				return collector;
 			} else if (particleTextureSheet == ParticleTextureSheet.PARTICLE_SHEET_LIT || particleTextureSheet == ParticleTextureSheet.PARTICLE_SHEET_OPAQUE) {
 				collector.prepare(RENDER_STATE_OPAQUE_OR_LIT);
 				collector.vertexState(PARTICLE_VERTEX_STATE);
-
-				drawHandler = () -> {
-					RENDER_STATE_OPAQUE_OR_LIT.draw(collector);
-					collector.clear();
-				};
-
+				drawHandler = () -> collector.drawAndClear();
 				return collector;
 			} else if (particleTextureSheet == ParticleTextureSheet.PARTICLE_SHEET_TRANSLUCENT) {
 				collector.prepare(RENDER_STATE_TRANSLUCENT);
 				collector.vertexState(PARTICLE_VERTEX_STATE);
-
-				drawHandler = () -> {
-					RENDER_STATE_TRANSLUCENT.draw(collector);
-					collector.clear();
-				};
-
+				drawHandler = () -> collector.drawAndClear();
 				return collector;
 			}
 		}
