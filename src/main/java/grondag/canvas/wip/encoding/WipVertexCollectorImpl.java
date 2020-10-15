@@ -29,6 +29,7 @@ import grondag.fermion.intstream.IntStreamProvider;
 import grondag.fermion.intstream.IntStreamProvider.IntStreamImpl;
 import it.unimi.dsi.fastutil.Swapper;
 import it.unimi.dsi.fastutil.ints.IntComparator;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.lwjgl.system.MemoryUtil;
 
 import net.minecraft.util.math.MathHelper;
@@ -314,4 +315,17 @@ public class WipVertexCollectorImpl extends WipAbstractVertexCollector {
 
 	// WIP2: confirm parameters after integrating terrain
 	public static final IntStreamProvider INT_STREAM_PROVIDER = new IntStreamProvider(4096, 16, 4096);
+
+	/**
+	 * Assumes all collectors are non-empty.
+	 */
+	public static void drawAndClear(ObjectArrayList<WipVertexCollectorImpl> drawList) {
+		final int limit = drawList.size();
+
+		for (int i = 0; i < limit; ++i) {
+			final WipVertexCollectorImpl collector = drawList.get(i);
+			collector.drawSingle();
+			collector.clear();
+		}
+	}
 }

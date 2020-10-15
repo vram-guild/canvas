@@ -46,12 +46,10 @@ public class WipVertexCollectorList {
 	}
 
 	public final WipVertexCollectorImpl getIfExists(WipRenderState materialState) {
-		// PERF remove null check once state mapping is reliable
 		return materialState == WipRenderState.MISSING ? null : collectors[materialState.index];
 	}
 
 	public final WipVertexCollectorImpl get(WipRenderState materialState) {
-		// PERF remove once state mapping is reliable
 		if (materialState == WipRenderState.MISSING) {
 			return null;
 		}
@@ -99,18 +97,18 @@ public class WipVertexCollectorList {
 		return index < collectors.length && collectors[index] != null;
 	}
 
-	public int totalBytes() {
-		final int size = this.size;
-		final ObjectArrayList<WipVertexCollectorImpl> pool = this.pool;
-
-		int intSize = 0;
-
-		for (int i = 0; i < size; i++) {
-			intSize += pool.get(i).integerSize();
-		}
-
-		return intSize * 4;
-	}
+	//	public int totalBytes() {
+	//		final int size = this.size;
+	//		final ObjectArrayList<WipVertexCollectorImpl> pool = this.pool;
+	//
+	//		int intSize = 0;
+	//
+	//		for (int i = 0; i < size; i++) {
+	//			intSize += pool.get(i).integerSize();
+	//		}
+	//
+	//		return intSize * 4;
+	//	}
 
 	//	public UploadableChunk toUploadableChunk(EncodingContext context, boolean isTranslucent) {
 	//		final int bytes = totalBytes(isTranslucent);

@@ -6,6 +6,7 @@ import java.util.SortedMap;
 import grondag.canvas.mixinterface.MultiPhaseExt;
 import grondag.canvas.wip.state.WipRenderState;
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.RenderLayer;
@@ -16,6 +17,8 @@ import net.minecraft.util.Util;
 
 public class WipImmediate extends Immediate {
 	private final WipVertexCollectorList collectors = new WipVertexCollectorList();
+
+	private final ObjectArrayList<WipVertexCollectorImpl> drawList = new ObjectArrayList<>();
 
 	protected WipImmediate(BufferBuilder fallbackBuffer, Map<RenderLayer, BufferBuilder> layerBuffers) {
 		super(fallbackBuffer, layerBuffers);
@@ -36,28 +39,36 @@ public class WipImmediate extends Immediate {
 	}
 
 	public void drawCollectors(boolean translucentTerrain) {
+		final ObjectArrayList<WipVertexCollectorImpl> drawList = this.drawList;
 		final int limit = collectors.size();
 
 		if (limit != 0) {
 			for (int i = 0; i < limit; ++i) {
 				final WipVertexCollectorImpl collector = collectors.get(i);
 
-				if (collector.materialState.isTranslucentTerrain == translucentTerrain) {
-					collector.drawAndClear();
+				if (collector.materialState.isTranslucentTerrain == translucentTerrain && !collector.isEmpty()) {
+					drawList.add(collector);
 				}
 			}
 		}
+
+		WipVertexCollectorImpl.drawAndClear(drawList);
 	}
 
 	@Override
 	public void draw() {
+		final ObjectArrayList<WipVertexCollectorImpl> drawList = this.drawList;
 		final int limit = collectors.size();
 
 		for (int i = 0; i < limit; ++i) {
 			final WipVertexCollectorImpl collector = collectors.get(i);
-			collector.drawAndClear();
+
+			if (!collector.isEmpty()) {
+				drawList.add(collector);
+			}
 		}
 
+		WipVertexCollectorImpl.drawAndClear(drawList);
 		collectors.clear();
 		super.draw();
 	}
@@ -95,6 +106,4 @@ public class WipImmediate extends Immediate {
 	}
 
 	public static final WipImmediate INSTANCE = new WipImmediate(new BufferBuilder(256), entityBuilders);
-
-
 }
