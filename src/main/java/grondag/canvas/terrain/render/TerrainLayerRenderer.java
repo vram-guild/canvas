@@ -16,6 +16,8 @@
 
 package grondag.canvas.terrain.render;
 
+import javax.annotation.Nullable;
+
 import com.google.common.util.concurrent.Runnables;
 import com.mojang.blaze3d.systems.RenderSystem;
 import grondag.canvas.Configurator;
@@ -25,18 +27,16 @@ import grondag.canvas.material.EncodingContext;
 import grondag.canvas.material.MaterialVertexFormat;
 import grondag.canvas.render.DrawHandler;
 import grondag.canvas.render.DrawHandlers;
-import grondag.canvas.shader.MaterialShaderManager;
 import grondag.canvas.shader.ShaderContext;
 import grondag.canvas.shader.ShaderPass;
 import grondag.canvas.terrain.BuiltRenderRegion;
 import grondag.canvas.terrain.TerrainModelSpace;
 import grondag.canvas.texture.DitherTexture;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.math.BlockPos;
-
-import javax.annotation.Nullable;
 
 public class TerrainLayerRenderer {
 	private final String profileString;
@@ -63,7 +63,6 @@ public class TerrainLayerRenderer {
 		final int startIndex = isTranslucent ? visibleRegionCount - 1 : 0;
 		final int endIndex = isTranslucent ? -1 : visibleRegionCount;
 		final int step = isTranslucent ? -1 : 1;
-		final int frameIndex = MaterialShaderManager.INSTANCE.frameIndex();
 		final ShaderPass pass = shaderContext.pass;
 
 		if (Configurator.hdLightmaps()) {
@@ -137,7 +136,7 @@ public class TerrainLayerRenderer {
 						final DrawableDelegate d = delegates.get(i);
 						final MaterialConditionImpl condition = d.materialState().condition;
 
-						if (!condition.affectBlocks || condition.compute(frameIndex)) {
+						if (!condition.affectBlocks || condition.compute()) {
 							d.materialState().shader.activate(shaderContext, format, ox, oy, oz);
 							d.draw();
 						}

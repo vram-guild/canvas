@@ -214,8 +214,11 @@ public class WipVertexCollectorImpl extends WipAbstractVertexCollector {
 
 	@Override
 	public void next() {
-		data.copyFrom(integerSize, vertexData, 0, intVertexStride);
-		integerSize += intVertexStride;
+		// WIP2: implement condition with indexed draw for terrain
+		if (conditionActive) {
+			data.copyFrom(integerSize, vertexData, 0, intVertexStride);
+			integerSize += intVertexStride;
+		}
 	}
 
 	public void drawAndClear() {
@@ -237,7 +240,6 @@ public class WipVertexCollectorImpl extends WipAbstractVertexCollector {
 
 		materialState.enable();
 
-		// WIP:  very very inefficient
 		final ByteBuffer buffer = TransferBufferAllocator.claim(byteSize());
 
 		final IntBuffer intBuffer = buffer.asIntBuffer();

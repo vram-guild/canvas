@@ -42,6 +42,7 @@ public abstract class WipAbstractVertexCollector implements WipVertexCollector {
 	protected float v0;
 	protected float uSpanInv;
 	protected float vSpanInv;
+	protected boolean conditionActive = true;
 
 	public WipVertexCollector sprite(Sprite sprite) {
 		if (materialState.texture.isAtlas()) {
@@ -114,6 +115,7 @@ public abstract class WipAbstractVertexCollector implements WipVertexCollector {
 	@Override
 	public WipVertexCollector vertexState(int vertexState) {
 		lightBase = (WipVertexState.shaderFlags(vertexState) << 24);
+		conditionActive = WipVertexState.condition(vertexState).compute();
 		return this;
 	}
 

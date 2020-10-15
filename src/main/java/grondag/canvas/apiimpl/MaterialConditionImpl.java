@@ -16,10 +16,11 @@
 
 package grondag.canvas.apiimpl;
 
+import java.util.function.BooleanSupplier;
+
+import grondag.canvas.shader.MaterialShaderManager;
 import grondag.frex.api.material.MaterialCondition;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-
-import java.util.function.BooleanSupplier;
 
 public class MaterialConditionImpl implements MaterialCondition {
 	private static final ObjectArrayList<MaterialConditionImpl> ALL_BY_INDEX = new ObjectArrayList<>();
@@ -49,7 +50,9 @@ public class MaterialConditionImpl implements MaterialCondition {
 		return ALL_BY_INDEX.get(index);
 	}
 
-	public boolean compute(int frameIndex) {
+	public boolean compute() {
+		final int frameIndex = MaterialShaderManager.INSTANCE.frameIndex();
+
 		if (frameIndex == this.frameIndex) {
 			return result;
 		} else {

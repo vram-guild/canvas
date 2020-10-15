@@ -51,7 +51,6 @@ public class WipVertexState {
 	public static final int HURT_OVERLAY_FLAG = HURT_OVERLAY.comparisonMask() << 24;
 	public static final int FLASH_OVERLAY_FLAG = FLASH_OVERLAY.comparisonMask() << 24;
 
-	// WIP: implement condition with indexed draw
 	private static final IntElement CONDITION = PACKER.createIntElement(MaterialConditionImpl.MAX_CONDITIONS);
 
 	static {
