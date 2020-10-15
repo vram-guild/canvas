@@ -36,7 +36,6 @@ import grondag.canvas.wip.shader.WipShaderData;
 import grondag.canvas.wip.state.property.WipDecal;
 import grondag.canvas.wip.state.property.WipDepthTest;
 import grondag.canvas.wip.state.property.WipFog;
-import grondag.canvas.wip.state.property.WipModelOrigin;
 import grondag.canvas.wip.state.property.WipTarget;
 import grondag.canvas.wip.state.property.WipTextureState;
 import grondag.canvas.wip.state.property.WipTransparency;
@@ -111,7 +110,6 @@ public final class WipRenderState {
 	 */
 	public final int primitive;
 
-	public final WipModelOrigin modelOrigin;
 	public final int vertexStrideInts;
 	public final WipTextureState texture;
 	public final boolean bilinear;
@@ -140,7 +138,6 @@ public final class WipRenderState {
 		hasNormal = HAS_NORMAL.getValue(bits);
 		hasLightMap = HAS_LIGHTMAP.getValue(bits);
 		primitive = PRIMITIVE.getValue(bits);
-		modelOrigin = ORIGIN.getValue(bits);
 		texture = WipTextureState.fromIndex(TEXTURE.getValue(bits));
 		bilinear = BILINEAR.getValue(bits);
 		depthTest = DEPTH_TEST.getValue(bits);
@@ -256,7 +253,6 @@ public final class WipRenderState {
 	private static final BitPacker64.BooleanElement HAS_COLOR = PACKER.createBooleanElement();
 	private static final BitPacker64.BooleanElement HAS_LIGHTMAP = PACKER.createBooleanElement();
 	private static final BitPacker64.BooleanElement HAS_NORMAL = PACKER.createBooleanElement();
-	private static final BitPacker64<Void>.EnumElement<WipModelOrigin> ORIGIN = PACKER.createEnumElement(WipModelOrigin.class);
 
 	private static final BitPacker64.IntElement VERTEX_SHADER = PACKER.createIntElement(4096);
 	private static final BitPacker64.IntElement FRAGMENT_SHADER = PACKER.createIntElement(4096);

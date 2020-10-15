@@ -66,6 +66,7 @@ import grondag.canvas.varia.WorldDataManager;
 import grondag.canvas.wip.encoding.WipImmediate;
 import grondag.canvas.wip.shader.WipMaterialShaderManager;
 import grondag.canvas.wip.state.WipRenderState;
+import grondag.canvas.wip.state.property.WipModelOrigin;
 import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
 import grondag.frex.api.event.WorldRenderEvent;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap.Entry;
@@ -413,6 +414,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		final Matrix4f modelMatrix = matrixStack.peek().getModel();
 
 		if (Configurator.enableExperimentalPipeline) {
+			WipModelOrigin.set(WipModelOrigin.ENTITY);
 			WipRenderState.setNormalModelMatrix(matrixStack.peek().getNormal());
 		}
 
@@ -467,7 +469,9 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		if (Configurator.enableBloom) CanvasFrameBufferHacks.prepareForFrame();
 
 		if (Configurator.enableBloom) CanvasFrameBufferHacks.startEmissiveCapture();
+		WipModelOrigin.set(WipModelOrigin.REGION);
 		renderTerrainLayer(false, matrixStack, cameraX, cameraY, cameraZ);
+		WipModelOrigin.set(WipModelOrigin.ENTITY);
 		if (Configurator.enableBloom) CanvasFrameBufferHacks.endEmissiveCapture();
 
 		LitematicaHolder.litematicaRenderSolids.accept(matrixStack);
@@ -729,7 +733,9 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			fb.copyDepthFrom(mcfb);
 			fb.beginWrite(false);
 
+			WipModelOrigin.set(WipModelOrigin.REGION);
 			renderTerrainLayer(true, matrixStack, cameraX, cameraY, cameraZ);
+			WipModelOrigin.set(WipModelOrigin.ENTITY);
 
 			// NB: vanilla renders tripwire here but we combine into translucent
 
@@ -740,12 +746,16 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			fb.beginWrite(false);
 
 			profiler.swap("particles");
+			WipModelOrigin.set(WipModelOrigin.PARTICLE);
 			CanvasParticleRenderer.INSTANCE.renderParticles(mc.particleManager, matrixStack, immediate, lightmapTextureManager, camera, tickDelta);
+			WipModelOrigin.set(WipModelOrigin.ENTITY);
 
 			mcfb.beginWrite(false);
 		} else {
 			profiler.swap("translucent");
+			WipModelOrigin.set(WipModelOrigin.REGION);
 			renderTerrainLayer(true, matrixStack, cameraX, cameraY, cameraZ);
+			WipModelOrigin.set(WipModelOrigin.ENTITY);
 
 			// without fabulous transparency important that lines
 			// and other translucent elements get drawn on top of terrain
@@ -760,7 +770,9 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 			VoxelMapHolder.postRenderLayerHandler.render(this, RenderLayer.getTranslucent(), matrixStack, cameraX, cameraY, cameraZ);
 			profiler.swap("particles");
+			WipModelOrigin.set(WipModelOrigin.PARTICLE);
 			CanvasParticleRenderer.INSTANCE.renderParticles(mc.particleManager, matrixStack, immediate, lightmapTextureManager, camera, tickDelta);
+			WipModelOrigin.set(WipModelOrigin.ENTITY);
 		}
 
 		JustMapHolder.justMapRender.renderWaypoints(matrixStack, camera, tickDelta);

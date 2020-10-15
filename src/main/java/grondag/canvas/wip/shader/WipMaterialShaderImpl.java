@@ -18,6 +18,7 @@ package grondag.canvas.wip.shader;
 
 import grondag.canvas.texture.SpriteInfoTexture;
 import grondag.canvas.wip.state.WipProgramType;
+import grondag.canvas.wip.state.property.WipModelOrigin;
 import grondag.frex.api.material.MaterialShader;
 
 import net.minecraft.util.math.Matrix3f;
@@ -49,24 +50,27 @@ public final class WipMaterialShaderImpl implements MaterialShader {
 	}
 
 	// UGLY: all of this activation stuff is trash code
-	private void setPrograms() {
+	private void updateCommonUniforms() {
 		program.programId.set(vertexShaderIndex, fragmentShaderIndex);
 		program.programId.upload();
+
+		program.modelOriginType.set(WipModelOrigin.get().ordinal());
+		program.modelOriginType.upload();
 	}
 
 	public void activate(int x, int y, int z) {
 		getOrCreate().actvateWithiModelOrigin(x, y, z);
-		setPrograms();
+		updateCommonUniforms();
 	}
 
 	public void activate() {
 		getOrCreate().activate();
-		setPrograms();
+		updateCommonUniforms();
 	}
 
 	public void activate(Matrix3f normalmodelmatrix, SpriteInfoTexture atlasInfo) {
 		getOrCreate().actvateWithNormalModelMatrix(normalmodelmatrix, atlasInfo);
-		setPrograms();
+		updateCommonUniforms();
 	}
 
 	public void reload() {

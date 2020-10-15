@@ -75,6 +75,7 @@ public class WipGlProgram {
 	public UniformMatrix3fImpl normalModelMatrix;
 	public UniformArrayfImpl materialArray;
 	public Uniform2iImpl programId;
+	public Uniform1iImpl modelOriginType;
 
 	private final ObjectOpenHashSet<WipMaterialShaderImpl> materials;
 
@@ -113,6 +114,7 @@ public class WipGlProgram {
 	}
 
 	private final float[] materialData = new float[4];
+
 	private static final int _CV_SPRITE_INFO_TEXTURE_SIZE = 0;
 	private static final int _CV_ATLAS_WIDTH = 1;
 	private static final int _CV_ATLAS_HEIGHT = 2;
