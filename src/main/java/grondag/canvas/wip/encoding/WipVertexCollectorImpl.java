@@ -225,13 +225,17 @@ public class WipVertexCollectorImpl extends WipAbstractVertexCollector {
 		}
 	}
 
-	/** avoid: slow */
-	public void drawSingle() {
-		materialState.enable();
-
+	private void sortIfNeeded() {
 		if (materialState.translucency == WipTransparency.TRANSLUCENT) {
 			sortQuads(0, 0, 0);
 		}
+	}
+
+	/** avoid: slow */
+	public void drawSingle() {
+		sortIfNeeded();
+
+		materialState.enable();
 
 		// WIP:  very very inefficient
 		final ByteBuffer buffer = TransferBufferAllocator.claim(byteSize());
@@ -317,15 +321,44 @@ public class WipVertexCollectorImpl extends WipAbstractVertexCollector {
 	public static final IntStreamProvider INT_STREAM_PROVIDER = new IntStreamProvider(4096, 16, 4096);
 
 	/**
+	 * Single-buffer draw, minimizes state changes.
 	 * Assumes all collectors are non-empty.
 	 */
 	public static void drawAndClear(ObjectArrayList<WipVertexCollectorImpl> drawList) {
 		final int limit = drawList.size();
 
+		int bytes = 0;
+
 		for (int i = 0; i < limit; ++i) {
 			final WipVertexCollectorImpl collector = drawList.get(i);
-			collector.drawSingle();
+			collector.sortIfNeeded();
+			bytes += collector.byteSize();
+		}
+
+		// PERF: trial memory mapped here
+		final ByteBuffer buffer = TransferBufferAllocator.claim(bytes);
+		final IntBuffer intBuffer = buffer.asIntBuffer();
+		intBuffer.position(0);
+
+		for (int i = 0; i < limit; ++i) {
+			final WipVertexCollectorImpl collector = drawList.get(i);
+			collector.toBuffer(intBuffer);
+		}
+
+		MaterialVertexFormats.POSITION_COLOR_TEXTURE_LIGHT_NORMAL.enableDirect(MemoryUtil.memAddress(buffer));
+		int startIndex = 0;
+
+		for (int i = 0; i < limit; ++i) {
+			final WipVertexCollectorImpl collector = drawList.get(i);
+			final int vertexCount = collector.vertexCount();
+			collector.materialState.enable();
+			GlStateManager.drawArrays(collector.materialState.primitive, startIndex, vertexCount);
+			startIndex += vertexCount;
 			collector.clear();
 		}
+
+		TransferBufferAllocator.release(buffer);
+		WipRenderState.disable();
+		drawList.clear();
 	}
 }
