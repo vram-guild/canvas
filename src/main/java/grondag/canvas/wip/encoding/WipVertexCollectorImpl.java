@@ -58,12 +58,14 @@ public class WipVertexCollectorImpl extends WipAbstractVertexCollector {
 		this.materialState = materialState;
 		intVertexStride = materialState.vertexStrideInts;
 		spriteId = -1;
+		didPopulateNormal = false;
 		return this;
 	}
 
 	public void clear() {
 		integerSize = 0;
 		data.reset();
+		didPopulateNormal = false;
 	}
 
 	public int integerSize() {
@@ -214,6 +216,12 @@ public class WipVertexCollectorImpl extends WipAbstractVertexCollector {
 
 	@Override
 	public void next() {
+		if (!didPopulateNormal) {
+			normal(0, 1, 0);
+		}
+
+		didPopulateNormal = false;
+
 		// WIP2: implement condition with indexed draw for terrain
 		if (conditionActive) {
 			data.copyFrom(integerSize, vertexData, 0, intVertexStride);
@@ -246,7 +254,7 @@ public class WipVertexCollectorImpl extends WipAbstractVertexCollector {
 		intBuffer.position(0);
 		toBuffer(intBuffer);
 
-		MaterialVertexFormats.POSITION_COLOR_TEXTURE_LIGHT_NORMAL.enableDirect(MemoryUtil.memAddress(buffer));
+		MaterialVertexFormats.POSITION_COLOR_TEXTURE_MATERIAL_LIGHT_NORMAL.enableDirect(MemoryUtil.memAddress(buffer));
 
 		GlStateManager.drawArrays(materialState.primitive, 0, vertexCount());
 
@@ -347,7 +355,7 @@ public class WipVertexCollectorImpl extends WipAbstractVertexCollector {
 			collector.toBuffer(intBuffer);
 		}
 
-		MaterialVertexFormats.POSITION_COLOR_TEXTURE_LIGHT_NORMAL.enableDirect(MemoryUtil.memAddress(buffer));
+		MaterialVertexFormats.POSITION_COLOR_TEXTURE_MATERIAL_LIGHT_NORMAL.enableDirect(MemoryUtil.memAddress(buffer));
 		int startIndex = 0;
 
 		for (int i = 0; i < limit; ++i) {

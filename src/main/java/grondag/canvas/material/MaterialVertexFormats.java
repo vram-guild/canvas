@@ -74,12 +74,13 @@ public final class MaterialVertexFormats {
 	 * Normal only contains packed x and y values, z is derived in shader.
 	 * Most significant byte of lightmap holds vertex state flags.
 	 */
-	public static final MaterialVertexFormat POSITION_COLOR_TEXTURE_LIGHT_NORMAL = new MaterialVertexFormat(POSITION_3F, BASE_RGBA_4UB, BASE_TEX_2US, LIGHTMAPS_4UB, NORMAL_FLAGS_4UB);
+	public static final MaterialVertexFormat POSITION_COLOR_TEXTURE_MATERIAL_LIGHT_NORMAL = new MaterialVertexFormat(POSITION_3F, BASE_RGBA_4UB, BASE_TEX_2US, MATERIAL_2US, LIGHTMAPS_4UB, NORMAL_FLAGS_4UB);
 
 	public static final int MATERIAL_COLOR_INDEX = 3;
 	public static final int MATERIAL_TEXTURE_INDEX = 4;
-	public static final int MATERIAL_LIGHT_INDEX = 5;
-	public static final int MATERIAL_NORMAL_INDEX = 6;
+	public static final int MATERIAL_MATERIAL_INDEX = 5;
+	public static final int MATERIAL_LIGHT_INDEX = 6;
+	public static final int MATERIAL_NORMAL_INDEX = 7;
 
 	public static MaterialVertexFormat get(EncodingContext context, boolean translucent) {
 		return context == EncodingContext.TERRAIN && Configurator.hdLightmaps() ? HD_TERRAIN : VANILLA_BLOCKS_AND_ITEMS;

@@ -24,33 +24,29 @@ void _cv_endVertex(inout frx_VertexData data, in int cv_programId) {
 
 attribute vec4 in_color;
 attribute vec2 in_uv;
+attribute vec2 in_material;
 attribute vec4 in_lightmap;
 attribute vec4 in_normal_flags;
 
-vec3 _cv_decodeNormal(vec2 raw) {
-	raw = (raw - 127.0) / 127.0;
-	float z = 1.0 - (raw.x * raw.x) - (raw.y - raw.y);
-	return vec3(raw.xy, sqrt(z));
-}
 
 void main() {
 	frx_VertexData data = frx_VertexData(
 	gl_Vertex,
 	in_uv,
 	in_color,
-	_cv_decodeNormal(in_normal_flags.xy),
+	(in_normal_flags.xyz - 127.0) / 127.0,
 	in_lightmap.rg * 0.00390625 + 0.03125
 	);
 
 	// Adding +0.5 prevents striping or other strangeness in flag-dependent rendering
 	// due to FP error on some cards/drivers.  Also made varying attribute invariant (rolls eyes at OpenGL)
-	_cvv_flags = in_lightmap.w + 0.5;
+	_cvv_flags = in_normal_flags.w + 0.5;
 
 	int cv_programId = _cv_vertexProgramId();
 	_cv_startVertex(data, cv_programId);
 
 	if (_cvu_material[_CV_SPRITE_INFO_TEXTURE_SIZE] != 0.0) {
-		float spriteIndex = in_normal_flags.w * 256.0 + in_normal_flags.z;
+		float spriteIndex = in_material.x;
 		// for sprite atlas textures, convert from normalized (0-1) to interpolated coordinates
 		vec4 spriteBounds = texture2DLod(frxs_spriteInfo, vec2(0, spriteIndex / _cvu_material[_CV_SPRITE_INFO_TEXTURE_SIZE]), 0);
 
@@ -76,7 +72,7 @@ void main() {
 	_cvv_diffuse = _cv_diffuseBaked(data.normal);
 #endif
 
-	data.normal *= gl_NormalMatrix;
+	//data.normal *= gl_NormalMatrix;
 	data.vertex = gl_ModelViewProjectionMatrix * data.vertex;
 
 	gl_Position = data.vertex;

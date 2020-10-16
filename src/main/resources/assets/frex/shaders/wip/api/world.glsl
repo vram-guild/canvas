@@ -121,6 +121,14 @@ bool frx_isThundering() {
 }
 
 /*
+ * True when world.getSkyProperties().isDarkened() is true for the currently rendering world.
+ * True in Nether - indicates diffuse lighting bottom face is same as top, not as bright.
+ */
+bool frx_isSkyDarkened() {
+	return frx_bitValue(_cvu_world[_CV_FLAGS_0], _CV_FLAG0_IS_SKY_DARKENED) == 1.0;
+}
+
+/*
  * World coordinates for model space origin in the current invocation.
  * Add this to vertex position to get world position.
  */

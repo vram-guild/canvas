@@ -52,9 +52,6 @@ public class WorldDataManager {
 	private static final int CAMERA_VIEW = 16; // 3 elements wide
 	private static final int ENTITY_VIEW = 19; // 3 elements wide
 
-	// TODO: add player eye position (for 3rd-person views)
-	// TODO: add model origin to allow converting to world coordinates - or confirm view coordinates do that
-	// update shader docs in that case to make clear vertex coordinates are model, not world
 	private static final int FLAG0_NIGHT_VISTION_ACTIVE = 1;
 	private static final int FLAG0_HAS_SKYLIGHT = 2;
 	private static final int FLAG0_IS_OVERWORLD = 4;
@@ -62,6 +59,7 @@ public class WorldDataManager {
 	private static final int FLAG0_IS_END = 16;
 	private static final int FLAG0_IS_RAINING = 32;
 	private static final int FLAG0_IS_THUNDERING = 64;
+	private static final int FLAG0_IS_SKY_DARKENED = 128;
 
 	private static final float[] DATA = new float[LENGTH];
 	private static final long baseRenderTime = System.currentTimeMillis();
@@ -120,6 +118,9 @@ public class WorldDataManager {
 				flags |= FLAG0_IS_RAINING;
 			}
 
+			if (world.getSkyProperties().isDarkened()) {
+				flags |= FLAG0_IS_SKY_DARKENED;
+			}
 
 			if (world.isThundering()) {
 				flags |= FLAG0_IS_THUNDERING;
@@ -182,8 +183,8 @@ public class WorldDataManager {
 	}
 
 	private static void putViewVector(int index, float yaw, float pitch) {
-		float y = (float) Math.toRadians(yaw);
-		float p = (float) Math.toRadians(pitch);
+		final float y = (float) Math.toRadians(yaw);
+		final float p = (float) Math.toRadians(pitch);
 
 		DATA[index] = -MathHelper.sin(y) * MathHelper.cos(p);
 		DATA[index + 1] = -MathHelper.sin(p);

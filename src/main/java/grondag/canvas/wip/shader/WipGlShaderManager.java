@@ -56,7 +56,7 @@ public enum WipGlShaderManager {
 			final ObjectOpenHashSet<WipMaterialShaderImpl> materials = new ObjectOpenHashSet<>();
 			final Shader vs =  new WipGlMaterialShader(WipShaderData.MATERIAL_MAIN_VERTEX, GL21.GL_VERTEX_SHADER, programType, materials);
 			final Shader fs = new WipGlMaterialShader(WipShaderData.MATERIAL_MAIN_FRAGMENT, GL21.GL_FRAGMENT_SHADER, programType, materials);
-			result = new WipGlProgram(vs, fs, MaterialVertexFormats.POSITION_COLOR_TEXTURE_LIGHT_NORMAL, programType, materials);
+			result = new WipGlProgram(vs, fs, MaterialVertexFormats.POSITION_COLOR_TEXTURE_MATERIAL_LIGHT_NORMAL, programType, materials);
 			WipShaderData.STANDARD_UNIFORM_SETUP.accept(result);
 			result.modelOrigin = (Uniform3fImpl) result.uniform3f("_cvu_model_origin", UniformRefreshFrequency.ON_LOAD, u -> u.set(0, 0, 0));
 			result.normalModelMatrix = result.uniformMatrix3f("_cvu_normal_model_matrix", UniformRefreshFrequency.ON_LOAD, u -> {});

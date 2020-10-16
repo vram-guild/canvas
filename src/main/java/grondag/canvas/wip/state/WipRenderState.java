@@ -148,7 +148,7 @@ public final class WipRenderState {
 		target = TARGET.getValue(bits);
 		lines = LINES.getValue(bits);
 		fog = FOG.getValue(bits);
-		vertexStrideInts = MaterialVertexFormats.POSITION_COLOR_TEXTURE_LIGHT_NORMAL.vertexStrideInts;
+		vertexStrideInts = MaterialVertexFormats.POSITION_COLOR_TEXTURE_MATERIAL_LIGHT_NORMAL.vertexStrideInts;
 		translucency = TRANSPARENCY.getValue(bits);
 		shader = WipMaterialShaderManager.INSTANCE.find(VERTEX_SHADER.getValue(bits), FRAGMENT_SHADER.getValue(bits), translucency == WipTransparency.TRANSLUCENT ? WipProgramType.MATERIAL_VERTEX_LOGIC : WipProgramType.MATERIAL_UNIFORM_LOGIC);
 		isTranslucentTerrain = (target == WipTarget.MAIN || target == WipTarget.TRANSLUCENT) && translucency == WipTransparency.TRANSLUCENT;
