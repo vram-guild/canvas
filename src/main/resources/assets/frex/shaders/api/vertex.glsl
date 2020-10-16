@@ -7,28 +7,28 @@
  * 	  void frx_startVertex(inout frx_VertexData data)
  * 	  void frx_endVertex(inout frx_VertexData data)
  *
- * Passed to frx_startFragment at start of fragment shader processing
+ * Passed to frx_startVertex at start of vertex shader processing
  * before any transformations are performed and passed
  * to frx_endVertex after all transformations are complete.
  *
- * Note that any changes made during cv_endVertex WILL affect
+ * Note that any changes made during frx_endVertex WILL affect
  * renderer output but changes here are generally tricky
- * and discouraged. The cv_endVertex call is meant for
+ * and discouraged. The frx_endVertex call is meant for
  * retrieving post-transform values to set up varying variable.
  *
  * The exception to the above is vertex. See notes below.
  */
 struct frx_VertexData {
 /*
- * Vertex position. Transformation during cv_startVertex
+ * Vertex position. Transformation during frx_startVertex
  * is the primary means for achieving animation effects.
  * Remember that normals must be transformed separately!
  *
- * Will be world space during cv_startVertex and in
- * screen space during cv_endVertex.
+ * Will be world space during frx_startVertex and in
+ * screen space during frx_endVertex.
  *
  * Note that unlike other attributes, changes made in
- * cv_endVertex will NOT be used.  This limitation may
+ * frx_endVertex will NOT be used.  This limitation may
  * be removed in a future enhancement.
  */
 	vec4 vertex;
