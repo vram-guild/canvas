@@ -185,3 +185,13 @@ vec3 frx_modelOriginWorldPos() {
 int frx_modelOriginType() {
 	return _cvu_model_origin_type;
 }
+
+/**
+ * Converts world space normals to coordinate space of incoming vertex data.
+ * Entity render, for example, has camera rotation already baked in to
+ * vertex data and so a pure world normal vector can be transformed
+ * with this to be consistent with vertex normals.
+ */
+mat3 frx_normalModelMatrix() {
+	return _cvu_normal_model_matrix;
+}

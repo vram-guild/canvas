@@ -16,6 +16,10 @@
 
 package grondag.canvas.wip.state.property;
 
+import grondag.canvas.mixinterface.Matrix3fExt;
+
+import net.minecraft.util.math.Matrix3f;
+
 /**
  * Describes how vertex coordinates relate to world and camera geometry.
  * Currently vertex collectors don't mix so not part of render state
@@ -25,7 +29,7 @@ package grondag.canvas.wip.state.property;
  * matrix set and view matrix set to identity. This is the default matrix
  * state during work render.
  */
-public enum WipModelOrigin {
+public enum WipMatrixState {
 	/**
 	 * Vertex coordinates are relative to the camera and include model transformations
 	 * as well as camera rotation and translation via MatrixStack.
@@ -65,14 +69,31 @@ public enum WipModelOrigin {
 	SCREEN;
 
 
-	private static WipModelOrigin current = ENTITY;
+	private static WipMatrixState current = ENTITY;
 
-	public static WipModelOrigin get() {
+	private static final Matrix3f IDENTITY = new Matrix3f();
+
+	static {
+		IDENTITY.loadIdentity();
+	}
+
+	public static WipMatrixState getModelOrigin() {
 		return current;
 	}
 
-	public static void set(WipModelOrigin val) {
+	public static void set(WipMatrixState val, Matrix3f matrixIn) {
 		assert val != null;
 		current = val;
+
+		if (matrixIn == null) matrixIn = IDENTITY;
+
+		((Matrix3fExt)(Object) normalModelMatrix).set((Matrix3fExt)(Object) matrixIn);
+	}
+
+	private static final Matrix3f normalModelMatrix = new Matrix3f();
+
+
+	public static Matrix3f getNormalModelMatrix() {
+		return normalModelMatrix;
 	}
 }

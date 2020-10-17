@@ -25,7 +25,6 @@ import grondag.canvas.material.MaterialVertexFormats;
 import grondag.canvas.mixin.AccessMultiPhaseParameters;
 import grondag.canvas.mixin.AccessTexture;
 import grondag.canvas.mixinterface.EntityRenderDispatcherExt;
-import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.MultiPhaseExt;
 import grondag.canvas.pipeline.CanvasFrameBufferHacks;
 import grondag.canvas.texture.SpriteInfoTexture;
@@ -54,7 +53,6 @@ import net.minecraft.client.render.VertexFormatElement;
 import net.minecraft.client.render.model.ModelLoader;
 import net.minecraft.client.texture.AbstractTexture;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.math.Matrix3f;
 
 /**
  * Primitives with the same state have the same vertex encoding,
@@ -204,8 +202,7 @@ public final class WipRenderState {
 			RenderSystem.lineWidth(1.0F);
 		}
 
-		// WIP: need to make matrix selection depend on origin or make all of this stateful
-		shader.activate(normalModelMatrix, texture.atlasInfo());
+		shader.activate(texture.atlasInfo());
 	}
 
 	public static void disable() {
@@ -218,13 +215,6 @@ public final class WipRenderState {
 		SpriteInfoTexture.disable();
 		WipDecal.disable();
 		WipTarget.disable();
-	}
-
-	// WIP: probably doesn't belong here
-	private static final Matrix3f normalModelMatrix = new Matrix3f();
-
-	public static void setNormalModelMatrix(Matrix3f matrix) {
-		((Matrix3fExt)(Object) normalModelMatrix).set((Matrix3fExt)(Object) matrix);
 	}
 
 	public static final int MAX_COUNT = 4096;

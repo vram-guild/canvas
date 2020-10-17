@@ -119,13 +119,8 @@ public class WipGlProgram {
 	private static final int _CV_ATLAS_WIDTH = 1;
 	private static final int _CV_ATLAS_HEIGHT = 2;
 
-	public void actvateWithNormalModelMatrix(Matrix3f normalModelMatrix, SpriteInfoTexture atlasInfo) {
+	public void actvateWithAtlasInfo(SpriteInfoTexture atlasInfo) {
 		activate();
-
-		if (normalModelMatrix != null) {
-			this.normalModelMatrix.set(normalModelMatrix);
-			this.normalModelMatrix.upload();
-		}
 
 		if (atlasInfo == null) {
 			materialData[_CV_SPRITE_INFO_TEXTURE_SIZE] = 0;

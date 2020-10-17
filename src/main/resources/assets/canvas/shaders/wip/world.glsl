@@ -33,6 +33,4 @@
 uniform float[22] _cvu_world;
 uniform vec3 _cvu_model_origin;
 uniform int _cvu_model_origin_type;
-
-// converts world space normals to model space of incoming vertex data
 uniform mat3 _cvu_normal_model_matrix;

@@ -18,10 +18,8 @@ package grondag.canvas.wip.shader;
 
 import grondag.canvas.texture.SpriteInfoTexture;
 import grondag.canvas.wip.state.WipProgramType;
-import grondag.canvas.wip.state.property.WipModelOrigin;
+import grondag.canvas.wip.state.property.WipMatrixState;
 import grondag.frex.api.material.MaterialShader;
-
-import net.minecraft.util.math.Matrix3f;
 
 public final class WipMaterialShaderImpl implements MaterialShader {
 	public final int index;
@@ -54,8 +52,11 @@ public final class WipMaterialShaderImpl implements MaterialShader {
 		program.programId.set(vertexShaderIndex, fragmentShaderIndex);
 		program.programId.upload();
 
-		program.modelOriginType.set(WipModelOrigin.get().ordinal());
+		program.modelOriginType.set(WipMatrixState.getModelOrigin().ordinal());
 		program.modelOriginType.upload();
+
+		program.normalModelMatrix.set(WipMatrixState.getNormalModelMatrix());
+		program.normalModelMatrix.upload();
 	}
 
 	public void activate(int x, int y, int z) {
@@ -68,8 +69,8 @@ public final class WipMaterialShaderImpl implements MaterialShader {
 		updateCommonUniforms();
 	}
 
-	public void activate(Matrix3f normalmodelmatrix, SpriteInfoTexture atlasInfo) {
-		getOrCreate().actvateWithNormalModelMatrix(normalmodelmatrix, atlasInfo);
+	public void activate(SpriteInfoTexture atlasInfo) {
+		getOrCreate().actvateWithAtlasInfo(atlasInfo);
 		updateCommonUniforms();
 	}
 

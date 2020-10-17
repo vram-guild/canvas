@@ -10,11 +10,12 @@
  * consistent with Phong lighting ambient + diffuse for others.
  */
 float _cv_diffuseBaked(vec3 normal) {
-	vec3 lv1 = normalize(_cvu_normal_model_matrix * vec3(0.1, 1.0, -0.3));
+	mat3 normalModelMatrix = frx_normalModelMatrix();
+	vec3 lv1 = normalize(normalModelMatrix * vec3(0.1, 1.0, -0.3));
 
 	// in nether underside is lit like top
 	vec3 secondaryVec = frx_isSkyDarkened() ? vec3(-0.1, -1.0, 0.3) : vec3(-0.1, 1.0, 0.3);
-	vec3 lv2 = normalize(_cvu_normal_model_matrix * secondaryVec);
+	vec3 lv2 = normalize(normalModelMatrix * secondaryVec);
 
 	float l1 = max(0.0, dot(lv1, normal));
 	float l2 = max(0.0, dot(lv2, normal));

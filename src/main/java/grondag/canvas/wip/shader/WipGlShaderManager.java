@@ -25,7 +25,7 @@ import grondag.canvas.wip.shader.WipGlProgram.Uniform2iImpl;
 import grondag.canvas.wip.shader.WipGlProgram.Uniform3fImpl;
 import grondag.canvas.wip.shader.WipGlProgram.UniformArrayfImpl;
 import grondag.canvas.wip.state.WipProgramType;
-import grondag.canvas.wip.state.property.WipModelOrigin;
+import grondag.canvas.wip.state.property.WipMatrixState;
 import grondag.frex.api.material.UniformRefreshFrequency;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
@@ -62,7 +62,7 @@ public enum WipGlShaderManager {
 			result.normalModelMatrix = result.uniformMatrix3f("_cvu_normal_model_matrix", UniformRefreshFrequency.ON_LOAD, u -> {});
 			result.materialArray = (UniformArrayfImpl) result.uniformArrayf("_cvu_material", UniformRefreshFrequency.ON_LOAD, u -> {}, 4);
 			result.programId = (Uniform2iImpl) result.uniform2i("_cvu_program", UniformRefreshFrequency.ON_LOAD, u -> {});
-			result.modelOriginType = (Uniform1iImpl) result.uniform1i("_cvu_model_origin_type", UniformRefreshFrequency.ON_LOAD, u -> u.set(WipModelOrigin.get().ordinal()));
+			result.modelOriginType = (Uniform1iImpl) result.uniform1i("_cvu_model_origin_type", UniformRefreshFrequency.ON_LOAD, u -> u.set(WipMatrixState.getModelOrigin().ordinal()));
 			materialPrograms.put(key, result);
 		}
 
