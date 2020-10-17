@@ -70,6 +70,7 @@ public class Configurator {
 	public static boolean cullEntityRender = DEFAULTS.cullEntityRender;
 	public static boolean greedyRenderThread = DEFAULTS.greedyRenderThread;
 	public static boolean forceJmxModelLoading = DEFAULTS.forceJmxModelLoading;
+	public static boolean reduceResolutionOnMac = DEFAULTS.reduceResolutionOnMac;
 	public static boolean shaderDebug = DEFAULTS.shaderDebug;
 	public static boolean lightmapDebug = DEFAULTS.lightmapDebug;
 	public static boolean conciseErrors = DEFAULTS.conciseErrors;
@@ -98,6 +99,7 @@ public class Configurator {
 	 */
 	private static Screen screenIn;
 	private static File configFile;
+
 
 	public static boolean hdLightmaps() {
 		return false;
@@ -156,6 +158,7 @@ public class Configurator {
 		cullEntityRender = config.cullEntityRender;
 		greedyRenderThread = config.greedyRenderThread;
 		forceJmxModelLoading = config.forceJmxModelLoading;
+		reduceResolutionOnMac = config.reduceResolutionOnMac;
 
 		lightmapDebug = config.lightmapDebug;
 		conciseErrors = config.conciseErrors;
@@ -202,6 +205,7 @@ public class Configurator {
 		config.cullEntityRender = cullEntityRender;
 		config.greedyRenderThread = greedyRenderThread;
 		config.forceJmxModelLoading = forceJmxModelLoading;
+		config.reduceResolutionOnMac = reduceResolutionOnMac;
 
 		config.lightmapDebug = lightmapDebug;
 		config.conciseErrors = conciseErrors;
@@ -492,6 +496,15 @@ public class Configurator {
 			})
 			.build());
 
+		tweaks.addEntry(ENTRY_BUILDER
+			.startBooleanToggle(new TranslatableText("config.canvas.value.reduce_resolution_on_mac"), reduceResolutionOnMac)
+			.setDefaultValue(DEFAULTS.reduceResolutionOnMac)
+			.setTooltip(parse("config.canvas.help.reduce_resolution_on_mac"))
+			.setSaveConsumer(b -> {
+				reduceResolutionOnMac = b;
+			})
+			.build());
+
 
 		// DEBUG
 		final ConfigCategory debug = builder.getOrCreateCategory(new TranslatableText("config.canvas.category.debug"));
@@ -691,6 +704,9 @@ public class Configurator {
 		boolean greedyRenderThread = true;
 		@Comment("Use more efficient model loading. Improves chunk rebuild speed and reduces memory use.")
 		boolean forceJmxModelLoading = true;
+		@Comment("Use half resolution on retina displays - greatly improves frame rate on Macs.")
+		boolean reduceResolutionOnMac = true;
+
 		// DEBUG
 		@Comment("Output runtime per-material shader source. For shader development debugging.")
 		boolean shaderDebug = false;

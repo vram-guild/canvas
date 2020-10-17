@@ -35,6 +35,7 @@
 	"MixinSpriteTexturedVertexConsumer",
 	"MixinRenderLayer",
 	"MixinVideoOptionsScreen",
+	"MixinWindow",
 	"MixinWorldChunk",
 	"MixinWorldRenderer"
   ],
