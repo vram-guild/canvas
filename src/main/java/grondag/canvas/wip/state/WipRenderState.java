@@ -325,12 +325,6 @@ public final class WipRenderState {
 			}
 
 			final AccessMultiPhaseParameters params = ((MultiPhaseExt) layer).canvas_phases();
-
-			// Skip GUI and lines for now
-			if (params.getLineWidth() != RenderPhase.FULL_LINE_WIDTH || !HAS_NORMAL.getValue(bits)) {
-				return MISSING;
-			}
-
 			final AccessTexture tex = (AccessTexture) params.getTexture();
 
 			primitive(GL11.GL_QUADS);
