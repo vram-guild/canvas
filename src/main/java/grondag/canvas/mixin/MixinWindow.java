@@ -19,8 +19,11 @@ package grondag.canvas.mixin;
 import grondag.canvas.Configurator;
 import org.lwjgl.glfw.GLFW;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.util.Window;
@@ -31,12 +34,24 @@ import net.minecraft.client.util.Window;
 // Original is licensed under MIT
 @Mixin(Window.class)
 public class MixinWindow {
-	@Redirect( at = @At( value = "INVOKE", target = "Lorg/lwjgl/glfw/GLFW;glfwDefaultWindowHints()V"), method = "<init>")
+	@Shadow private int framebufferWidth;
+	@Shadow private int framebufferHeight;
+
+	@Redirect (at = @At( value = "INVOKE", target = "Lorg/lwjgl/glfw/GLFW;glfwDefaultWindowHints()V"), method = "<init>")
 	private void onDefaultWindowHints() {
 		GLFW.glfwDefaultWindowHints();
 
 		if (MinecraftClient.IS_SYSTEM_MAC && Configurator.reduceResolutionOnMac) {
 			GLFW.glfwWindowHint(GLFW.GLFW_COCOA_RETINA_FRAMEBUFFER, GLFW.GLFW_FALSE);
+		}
+	}
+
+	@Inject (at = @At(value = "RETURN"), method = "updateFramebufferSize")
+	private void afterUpdateFrameBufferSize(CallbackInfo ci) {
+		// prevents mis-scaled startup screen
+		if (MinecraftClient.IS_SYSTEM_MAC && Configurator.reduceResolutionOnMac) {
+			framebufferWidth /= 2;
+			framebufferHeight /= 2;
 		}
 	}
 }
