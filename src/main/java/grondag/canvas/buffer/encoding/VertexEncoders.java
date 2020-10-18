@@ -17,27 +17,29 @@
 package grondag.canvas.buffer.encoding;
 
 import grondag.canvas.Configurator;
-import grondag.canvas.apiimpl.material.AbstractMeshMaterial;
 import grondag.canvas.apiimpl.material.MeshMaterial;
 import grondag.canvas.apiimpl.material.MeshMaterialLocator;
 import grondag.canvas.material.EncodingContext;
 import grondag.canvas.material.MaterialState;
 import grondag.canvas.shader.ShaderPass;
-import net.minecraft.util.math.MathHelper;
 
-import static grondag.canvas.buffer.encoding.HdEncoders.*;
-import static grondag.canvas.buffer.encoding.VanillaEncoders.*;
-import static grondag.canvas.material.EncodingContext.*;
+import static grondag.canvas.buffer.encoding.HdEncoders.HD_TERRAIN_1;
+import static grondag.canvas.buffer.encoding.VanillaEncoders.VANILLA_BLOCK_1;
+import static grondag.canvas.buffer.encoding.VanillaEncoders.VANILLA_ITEM_1;
+import static grondag.canvas.buffer.encoding.VanillaEncoders.VANILLA_TERRAIN_1;
+import static grondag.canvas.material.EncodingContext.BLOCK;
+import static grondag.canvas.material.EncodingContext.ITEM;
+import static grondag.canvas.material.EncodingContext.TERRAIN;
+
+import net.minecraft.util.math.MathHelper;
 
 public class VertexEncoders {
 	/**
 	 * Largest possible number of active encoder indices.
 	 */
-	public static final int ENCODER_KEY_SPACE_SIZE = 2 * MathHelper.smallestEncompassingPowerOfTwo(AbstractMeshMaterial.MAX_SPRITE_DEPTH)
-			* MathHelper.smallestEncompassingPowerOfTwo(EncodingContext.values().length);
-
-	private static final int CONTEXT_SHIFT = Integer.bitCount(MathHelper.smallestEncompassingPowerOfTwo(AbstractMeshMaterial.MAX_SPRITE_DEPTH) - 1);
-	private static final int TRANSLUCENT_FLAG = ENCODER_KEY_SPACE_SIZE / 2;
+	public static final int ENCODER_KEY_SPACE_SIZE = 2 * MathHelper.smallestEncompassingPowerOfTwo(EncodingContext.values().length);
+	private static final int CONTEXT_SHIFT = 1;
+	private static final int TRANSLUCENT_FLAG = 1;
 
 	private static final VertexEncoder[] ENCODERS = new VertexEncoder[ENCODER_KEY_SPACE_SIZE];
 
@@ -48,17 +50,17 @@ public class VertexEncoders {
 	/**
 	 * Not related to encoder index.
 	 */
-	private static final int lookupIndex(EncodingContext context, int spriteDepth, boolean isTranslucent) {
-		return isTranslucent ? (TRANSLUCENT_FLAG | (context.ordinal() << CONTEXT_SHIFT) | spriteDepth) : ((context.ordinal() << CONTEXT_SHIFT) | spriteDepth);
+	private static final int lookupIndex(EncodingContext context, boolean isTranslucent) {
+		return (isTranslucent ? TRANSLUCENT_FLAG : 0) | (context.ordinal() << CONTEXT_SHIFT);
 	}
 
 	public static VertexEncoder get(EncodingContext context, MeshMaterialLocator matLocator) {
 		final MeshMaterial mat = matLocator.get();
-		return ENCODERS[lookupIndex(context, mat.spriteDepth(), mat.isTranslucent)];
+		return ENCODERS[lookupIndex(context, mat.isTranslucent)];
 	}
 
 	public static VertexEncoder getDefault(EncodingContext context, boolean isTranslucent) {
-		return ENCODERS[lookupIndex(context, 1, isTranslucent)];
+		return ENCODERS[lookupIndex(context, isTranslucent)];
 	}
 
 	public static VertexEncoder getDefault(EncodingContext context, MaterialState materialState) {
@@ -66,25 +68,13 @@ public class VertexEncoders {
 	}
 
 	public static void reload() {
-		ENCODERS[lookupIndex(BLOCK, 1, false)] = VANILLA_BLOCK_1;
-		ENCODERS[lookupIndex(BLOCK, 2, false)] = VANILLA_BLOCK_2;
-		ENCODERS[lookupIndex(BLOCK, 3, false)] = VANILLA_BLOCK_3;
-		ENCODERS[lookupIndex(BLOCK, 1, true)] = VANILLA_BLOCK_1;
-		ENCODERS[lookupIndex(BLOCK, 2, true)] = VANILLA_BLOCK_2;
-		ENCODERS[lookupIndex(BLOCK, 3, true)] = VANILLA_BLOCK_3;
+		ENCODERS[lookupIndex(BLOCK, false)] = VANILLA_BLOCK_1;
+		ENCODERS[lookupIndex(BLOCK, true)] = VANILLA_BLOCK_1;
 
-		ENCODERS[lookupIndex(TERRAIN, 1, false)] = Configurator.hdLightmaps() ? HD_TERRAIN_1 : VANILLA_TERRAIN_1;
-		ENCODERS[lookupIndex(TERRAIN, 2, false)] = Configurator.hdLightmaps() ? HD_TERRAIN_2 : VANILLA_TERRAIN_2;
-		ENCODERS[lookupIndex(TERRAIN, 3, false)] = Configurator.hdLightmaps() ? HD_TERRAIN_3 : VANILLA_TERRAIN_3;
-		ENCODERS[lookupIndex(TERRAIN, 1, true)] = Configurator.hdLightmaps() ? HD_TERRAIN_1 : VANILLA_TERRAIN_1;
-		ENCODERS[lookupIndex(TERRAIN, 2, true)] = Configurator.hdLightmaps() ? HD_TERRAIN_2 : VANILLA_TERRAIN_2;
-		ENCODERS[lookupIndex(TERRAIN, 3, true)] = Configurator.hdLightmaps() ? HD_TERRAIN_3 : VANILLA_TERRAIN_3;
+		ENCODERS[lookupIndex(TERRAIN, false)] = Configurator.hdLightmaps() ? HD_TERRAIN_1 : VANILLA_TERRAIN_1;
+		ENCODERS[lookupIndex(TERRAIN, true)] = Configurator.hdLightmaps() ? HD_TERRAIN_1 : VANILLA_TERRAIN_1;
 
-		ENCODERS[lookupIndex(ITEM, 1, false)] = VANILLA_ITEM_1;
-		ENCODERS[lookupIndex(ITEM, 2, false)] = VANILLA_ITEM_2;
-		ENCODERS[lookupIndex(ITEM, 3, false)] = VANILLA_ITEM_3;
-		ENCODERS[lookupIndex(ITEM, 1, true)] = VANILLA_ITEM_1;
-		ENCODERS[lookupIndex(ITEM, 2, true)] = VANILLA_ITEM_2;
-		ENCODERS[lookupIndex(ITEM, 3, true)] = VANILLA_ITEM_3;
+		ENCODERS[lookupIndex(ITEM, false)] = VANILLA_ITEM_1;
+		ENCODERS[lookupIndex(ITEM, true)] = VANILLA_ITEM_1;
 	}
 }

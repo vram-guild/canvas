@@ -24,6 +24,7 @@ import grondag.canvas.apiimpl.util.TextureHelper;
 import grondag.canvas.light.LightmapHd;
 import grondag.canvas.mixinterface.SpriteExt;
 import grondag.canvas.texture.SpriteInfoTexture;
+import grondag.frex.api.mesh.QuadEmitter;
 
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.BASE_QUAD_STRIDE;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.BASE_VERTEX_STRIDE;
@@ -31,6 +32,7 @@ import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.EMPTY;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_BITS;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_COLOR_INDEX;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_MATERIAL;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_SPRITE;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_STRIDE;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_TAG;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.UV_PRECISE_UNIT_VALUE;
@@ -43,7 +45,6 @@ import net.minecraft.client.texture.Sprite;
 import net.minecraft.util.math.Direction;
 
 import net.fabricmc.fabric.api.renderer.v1.material.RenderMaterial;
-import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
 import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 
 /**
@@ -83,7 +84,7 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 		colorIndex(-1);
 		cullFace(null);
 		material(Canvas.MATERIAL_STANDARD);
-		spriteMappedFlags = 0;
+		spriteMappedFlag = false;
 	}
 
 	@Override
@@ -136,7 +137,7 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 
 	private void convertVanillaUvPrecision() {
 		// Convert sprite data from float to fixed precision
-		int index = baseIndex + colorOffset(0, 0) + 1;
+		int index = baseIndex + colorOffset(0) + 1;
 
 		for (int i = 0; i < 4; ++i) {
 			data[index] = (int) (Float.intBitsToFloat(data[index]) * UV_PRECISE_UNIT_VALUE);
@@ -150,8 +151,8 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 	public final MutableQuadViewImpl fromVanilla(int[] quadData, int startIndex, boolean isItem) {
 		System.arraycopy(quadData, startIndex, data, baseIndex + HEADER_STRIDE, BASE_QUAD_STRIDE);
 		convertVanillaUvPrecision();
-		unmapSprite(0);
-		spriteMappedFlags = 0;
+		unmapSprite();
+		spriteMappedFlag = false;
 
 		isGeometryInvalid = true;
 		packedFaceNormal = -1;
@@ -166,8 +167,8 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 	public final MutableQuadViewImpl fromVanilla(BakedQuad quad, RenderMaterial material, int cullFaceId) {
 		System.arraycopy(quad.getVertexData(), 0, data, baseIndex + HEADER_STRIDE, BASE_QUAD_STRIDE);
 		convertVanillaUvPrecision();
-		unmapSprite(0);
-		spriteMappedFlags = 0;
+		unmapSprite();
+		spriteMappedFlag = false;
 		data[baseIndex + HEADER_BITS] = MeshEncodingHelper.cullFace(0, cullFaceId);
 		nominalFaceId = ModelHelper.toFaceIndex(quad.getFace());
 		data[baseIndex + HEADER_COLOR_INDEX] = quad.getColorIndex();
@@ -228,23 +229,21 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 	}
 
 	@Override
-	public MutableQuadViewImpl spriteColor(int vertexIndex, int spriteIndex, int color) {
-		data[baseIndex + colorOffset(vertexIndex, spriteIndex)] = color;
+	public MutableQuadViewImpl vertexColor(int vertexIndex, int color) {
+		data[baseIndex + colorOffset(vertexIndex)] = color;
 		return this;
 	}
 
-	public final void setSpriteUnmapped(int spriteIndex, boolean isNormalized) {
-		final int mask = 1 << spriteIndex;
-
+	public final void setSpriteUnmapped(boolean isNormalized) {
 		if (isNormalized) {
-			spriteMappedFlags &= ~mask;
+			spriteMappedFlag = false;
 		} else {
-			spriteMappedFlags |= mask;
+			spriteMappedFlag = true;
 		}
 	}
 
-	public MutableQuadViewImpl spriteFloat(int vertexIndex, int spriteIndex, float u, float v) {
-		final int i = baseIndex + colorOffset(vertexIndex, spriteIndex) + 1;
+	public MutableQuadViewImpl spriteFloat(int vertexIndex, float u, float v) {
+		final int i = baseIndex + colorOffset(vertexIndex) + 1;
 		data[i] = (int) (u * UV_PRECISE_UNIT_VALUE + 0.5f);
 		data[i + 1] = (int) (v * UV_PRECISE_UNIT_VALUE + 0.5f);
 		return this;
@@ -253,86 +252,73 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 	/**
 	 * Must call {@link #spriteId(int, int)} separately.
 	 */
-	public MutableQuadViewImpl spritePrecise(int vertexIndex, int spriteIndex, int u, int v) {
-		final int i = baseIndex + colorOffset(vertexIndex, spriteIndex) + 1;
+	public MutableQuadViewImpl spritePrecise(int vertexIndex, int u, int v) {
+		final int i = baseIndex + colorOffset(vertexIndex) + 1;
 		data[i] = u;
 		data[i + 1] = v;
-		assert isSpriteUnmapped(spriteIndex);
+		assert isSpriteUnmapped();
 		return this;
 	}
 
 	public void unmapSpritesIfNeeded() {
-		if (spriteMappedFlags != 0) {
-			if ((spriteMappedFlags & 1) == 1) {
-				unmapSprite(0);
-			}
-
-			if ((spriteMappedFlags & 2) == 2) {
-				unmapSprite(1);
-			}
-
-			if ((spriteMappedFlags & 4) == 4) {
-				unmapSprite(2);
-			}
-
-			spriteMappedFlags = 0;
+		if (spriteMappedFlag) {
+			unmapSprite();
+			spriteMappedFlag = false;
 		}
 	}
 
-	private void unmapSprite(int textureIndex) {
-		final Sprite sprite = findSprite(textureIndex);
+	private void unmapSprite() {
+		final Sprite sprite = findSprite();
 		final int spriteId = ((SpriteExt) sprite).canvas_id();
 		final float u0 = sprite.getMinU();
 		final float v0 = sprite.getMinV();
 		final float uSpanInv = 1f / (sprite.getMaxU() - u0);
 		final float vSpanInv = 1f / (sprite.getMaxV() - v0);
 
-		spriteFloat(0, textureIndex, (spriteFloatU(0, textureIndex) - u0) * uSpanInv, (spriteFloatV(0, textureIndex) - v0) * vSpanInv);
-		spriteFloat(1, textureIndex, (spriteFloatU(1, textureIndex) - u0) * uSpanInv, (spriteFloatV(1, textureIndex) - v0) * vSpanInv);
-		spriteFloat(2, textureIndex, (spriteFloatU(2, textureIndex) - u0) * uSpanInv, (spriteFloatV(2, textureIndex) - v0) * vSpanInv);
-		spriteFloat(3, textureIndex, (spriteFloatU(3, textureIndex) - u0) * uSpanInv, (spriteFloatV(3, textureIndex) - v0) * vSpanInv);
-		spriteId(textureIndex, spriteId);
+		spriteFloat(0, (spriteFloatU(0) - u0) * uSpanInv, (spriteFloatV(0) - v0) * vSpanInv);
+		spriteFloat(1, (spriteFloatU(1) - u0) * uSpanInv, (spriteFloatV(1) - v0) * vSpanInv);
+		spriteFloat(2, (spriteFloatU(2) - u0) * uSpanInv, (spriteFloatV(2) - v0) * vSpanInv);
+		spriteFloat(3, (spriteFloatU(3) - u0) * uSpanInv, (spriteFloatV(3) - v0) * vSpanInv);
+		spriteId(spriteId);
 	}
 
 	/**
 	 * Same as logic in SpriteFinder but can assume sprites are mapped - avoids checks
 	 */
-	private Sprite findSprite(int textureIndex) {
+	private Sprite findSprite() {
 		float u = 0;
 		float v = 0;
 
 		for (int i = 0; i < 4; i++) {
-			u += spriteFloatU(i, textureIndex);
-			v += spriteFloatV(i, textureIndex);
+			u += spriteFloatU(i);
+			v += spriteFloatV(i);
 		}
 
 		return SpriteInfoTexture.BLOCKS.spriteFinder().find(u * 0.25f, v * 0.25f);
 	}
 
 	@Override
-	public MutableQuadViewImpl sprite(int vertexIndex, int spriteIndex, float u, float v) {
-		spriteFloat(vertexIndex, spriteIndex, u, v);
+	public MutableQuadViewImpl sprite(int vertexIndex, float u, float v) {
+		spriteFloat(vertexIndex, u, v);
 
 		// true for whole quad so only need for one vertex
 		if (vertexIndex == 0) {
-			setSpriteUnmapped(spriteIndex, false);
+			setSpriteUnmapped(false);
 		} else {
-			assert !isSpriteUnmapped(spriteIndex);
+			assert !isSpriteUnmapped();
 		}
 
 		return this;
 	}
 
 	@Override
-	public MutableQuadViewImpl spriteBake(int spriteIndex, Sprite sprite, int bakeFlags) {
-		TextureHelper.bakeSprite(this, spriteIndex, sprite, bakeFlags);
+	public MutableQuadViewImpl spriteBake(Sprite sprite, int bakeFlags) {
+		TextureHelper.bakeSprite(this, sprite, bakeFlags);
 		return this;
 	}
 
-	public MutableQuadViewImpl spriteId(int spriteIndex, int spriteId) {
-		final int index = spriteIdOffset(spriteIndex);
-		final int d = data[index];
-		data[index] = (spriteIndex & 1) == 0 ? (d & 0xFFFF0000) | spriteId : (d & 0xFFFF) | (spriteId << 16);
+	public MutableQuadViewImpl spriteId(int spriteId) {
+		data[baseIndex + HEADER_SPRITE] = spriteId;
 		return this;
 	}
 }

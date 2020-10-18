@@ -17,6 +17,7 @@
 package grondag.canvas.apiimpl.material;
 
 import grondag.frex.api.material.RenderMaterial;
+
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 
 /**
@@ -30,10 +31,9 @@ public class MeshMaterialLocator extends AbstractMeshMaterial implements RenderM
 	private final MeshMaterialLocator[] blendModeVariants = new MeshMaterialLocator[4];
 	private final MeshMaterial material;
 
-	protected MeshMaterialLocator(int index, long bits0, long bits1) {
+	protected MeshMaterialLocator(int index, long bits) {
+		super(bits);
 		this.index = index;
-		this.bits0 = bits0;
-		this.bits1 = bits1;
 
 		final BlendMode baseLayer = blendMode();
 		material = baseLayer == BlendMode.DEFAULT ? null : new MeshMaterial(this);
@@ -60,8 +60,7 @@ public class MeshMaterialLocator extends AbstractMeshMaterial implements RenderM
 
 				assert layer != BlendMode.DEFAULT;
 
-				finder.bits0 = bits0;
-				finder.bits1 = bits1;
+				finder.bits = bits;
 
 				if (finder.blendMode() == BlendMode.DEFAULT) {
 					finder.blendMode(layer);

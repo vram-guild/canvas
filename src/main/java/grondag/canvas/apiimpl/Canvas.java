@@ -16,11 +16,9 @@
 
 package grondag.canvas.apiimpl;
 
-import java.util.HashMap;
 import java.util.function.BooleanSupplier;
 
 import grondag.canvas.CanvasMod;
-import grondag.canvas.apiimpl.material.AbstractMeshMaterial;
 import grondag.canvas.apiimpl.material.MaterialShaderImpl;
 import grondag.canvas.apiimpl.material.MeshMaterialFinder;
 import grondag.canvas.apiimpl.material.MeshMaterialLocator;
@@ -47,6 +45,7 @@ import grondag.frex.api.Renderer;
 import grondag.frex.api.material.MaterialCondition;
 import grondag.frex.api.material.MaterialShader;
 import grondag.frex.api.material.ShaderBuilder;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
 import net.minecraft.client.resource.language.I18n;
 import net.minecraft.util.Identifier;
@@ -63,9 +62,9 @@ public class Canvas implements Renderer {
 		INSTANCE.registerMaterial(RenderMaterial.MATERIAL_STANDARD, MATERIAL_STANDARD);
 	}
 
-	private final HashMap<Identifier, MeshMaterialLocator> materialMap = new HashMap<>();
-	private final HashMap<Identifier, MaterialShaderImpl> shaderMap = new HashMap<>();
-	private final HashMap<Identifier, MaterialConditionImpl> conditionMap = new HashMap<>();
+	private final Object2ObjectOpenHashMap<Identifier, MeshMaterialLocator> materialMap = new Object2ObjectOpenHashMap<>();
+	private final Object2ObjectOpenHashMap<Identifier, MaterialShaderImpl> shaderMap = new Object2ObjectOpenHashMap<>();
+	private final Object2ObjectOpenHashMap<Identifier, MaterialConditionImpl> conditionMap = new Object2ObjectOpenHashMap<>();
 
 	private Canvas() {
 	}
@@ -120,7 +119,7 @@ public class Canvas implements Renderer {
 
 	@Override
 	public int maxSpriteDepth() {
-		return AbstractMeshMaterial.MAX_SPRITE_DEPTH;
+		return 1;
 	}
 
 	@Override

@@ -16,8 +16,6 @@
 
 package grondag.canvas.wip.state;
 
-import javax.annotation.Nullable;
-
 import com.mojang.blaze3d.systems.RenderSystem;
 import grondag.canvas.Configurator;
 import grondag.canvas.material.MaterialVertexFormat;
@@ -43,6 +41,7 @@ import grondag.fermion.bits.BitPacker64;
 import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
+import org.jetbrains.annotations.Nullable;
 import org.lwjgl.opengl.GL11;
 
 import net.minecraft.client.MinecraftClient;

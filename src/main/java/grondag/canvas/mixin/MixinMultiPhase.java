@@ -16,13 +16,12 @@
 
 package grondag.canvas.mixin;
 
-import javax.annotation.Nullable;
-
 import java.util.Optional;
 
 import grondag.canvas.mixinterface.MultiPhaseExt;
 import grondag.canvas.wip.state.WipRenderState;
 import grondag.canvas.wip.state.WipVertexState;
+import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 

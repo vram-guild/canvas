@@ -16,9 +16,8 @@
 
 package grondag.canvas.apiimpl.material;
 
-import javax.annotation.Nullable;
-
 import grondag.canvas.apiimpl.MaterialConditionImpl;
+import grondag.canvas.shader.ShaderPass;
 
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 
@@ -34,33 +33,52 @@ public class MeshMaterial extends AbstractMeshMaterial {
 	 * True if base layer is translucent.
 	 */
 	public final boolean isTranslucent;
+	public final int shaderFlags;
+	@Deprecated
+	public final ShaderPass shaderType;
 	final MaterialConditionImpl condition;
-	private final MeshMaterialLayer[] layers = new MeshMaterialLayer[MAX_SPRITE_DEPTH];
+	private final MaterialShaderImpl shader;
 
 	protected MeshMaterial(MeshMaterialLocator locator) {
-		bits0 = locator.bits0;
-		bits1 = locator.bits1;
+		super(locator.bits);
 		condition = locator.condition();
+		shader = super.shader();
 		isTranslucent = (blendMode() == BlendMode.TRANSLUCENT);
+		// WIP2: find way to activate decal pass again
+		shaderType = isTranslucent ? ShaderPass.TRANSLUCENT : ShaderPass.SOLID;
 
-		layers[0] = new MeshMaterialLayer(this, 0);
-		final int depth = spriteDepth();
+		// WIP2: flags get conveyed via MaterialVertexState instead
+		int flags = emissive() ? 1 : 0;
 
-		if (depth > 1) {
-			layers[1] = new MeshMaterialLayer(this, 1);
-
-			if (depth > 2) {
-				layers[2] = new MeshMaterialLayer(this, 2);
-			}
+		if (disableDiffuse()) {
+			flags |= 2;
 		}
+
+		if (disableAo()) {
+			flags |= 4;
+		}
+
+		switch (blendMode()) {
+			case CUTOUT:
+				flags |= 16; // disable LOD
+				//$FALL-THROUGH$
+			case CUTOUT_MIPPED:
+				flags |= 8; // cutout
+				break;
+			default:
+				break;
+		}
+
+		shaderFlags = flags;
 	}
 
-	/**
-	 * Returns a single-layer material appropriate for the base layer or overlay/decal layer given.
-	 */
-	public @Nullable
-	MeshMaterialLayer getLayer(int layerIndex) {
-		assert layerIndex < spriteDepth();
-		return layers[layerIndex];
+	@Override
+	public MaterialShaderImpl shader() {
+		return shader;
+	}
+
+	@Override
+	public MaterialConditionImpl condition() {
+		return condition;
 	}
 }

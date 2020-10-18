@@ -16,12 +16,16 @@
 
 package grondag.canvas.apiimpl.rendercontext;
 
-import grondag.canvas.apiimpl.material.MeshMaterialLayer;
+import java.util.function.Supplier;
+
+import grondag.canvas.apiimpl.material.MeshMaterial;
 import grondag.canvas.light.AoCalculator;
 import grondag.canvas.material.EncodingContext;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.fermion.sc.concurrency.SimpleConcurrentList;
-import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
+
+import static grondag.canvas.terrain.RenderRegionAddressHelper.cacheIndexToXyz5;
+
 import net.minecraft.block.BlockState;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.WorldRenderer;
@@ -31,9 +35,7 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.BlockRenderView;
 
-import java.util.function.Supplier;
-
-import static grondag.canvas.terrain.RenderRegionAddressHelper.cacheIndexToXyz5;
+import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
 
 /**
  * Context for non-terrain block rendering.
@@ -140,7 +142,7 @@ public class BlockRenderContext extends AbstractBlockRenderContext<BlockRenderVi
 	}
 
 	@Override
-	public VertexConsumer consumer(MeshMaterialLayer mat) {
+	public VertexConsumer consumer(MeshMaterial mat) {
 		didOutput = true;
 		return bufferBuilder;
 	}

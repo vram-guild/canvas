@@ -16,21 +16,23 @@
 
 package grondag.canvas.apiimpl.rendercontext;
 
+import java.util.List;
+import java.util.function.Consumer;
+
 import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.apiimpl.material.MeshMaterialLocator;
 import grondag.canvas.apiimpl.mesh.MeshEncodingHelper;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.util.FaceConstants;
 import grondag.canvas.buffer.encoding.VertexEncoders;
-import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
-import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
+import grondag.frex.api.mesh.QuadEmitter;
+
 import net.minecraft.block.BlockState;
 import net.minecraft.client.render.model.BakedModel;
 import net.minecraft.client.render.model.BakedQuad;
 import net.minecraft.util.math.Direction;
 
-import java.util.List;
-import java.util.function.Consumer;
+import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 
 /**
  * Consumer for vanilla baked models. Generally intended to give visual results matching a vanilla render,
@@ -52,9 +54,9 @@ import java.util.function.Consumer;
  * manipulating the data via NIO.
  */
 public class FallbackConsumer implements Consumer<BakedModel> {
-	protected static MeshMaterialLocator MATERIAL_FLAT = Canvas.INSTANCE.materialFinder().disableDiffuse(0, true).disableAo(0, true).find();
-	protected static MeshMaterialLocator MATERIAL_SHADED = Canvas.INSTANCE.materialFinder().disableAo(0, true).find();
-	protected static MeshMaterialLocator MATERIAL_AO_FLAT = Canvas.INSTANCE.materialFinder().disableDiffuse(0, true).find();
+	protected static MeshMaterialLocator MATERIAL_FLAT = Canvas.INSTANCE.materialFinder().disableDiffuse(true).disableAo(true).find();
+	protected static MeshMaterialLocator MATERIAL_SHADED = Canvas.INSTANCE.materialFinder().disableAo(true).find();
+	protected static MeshMaterialLocator MATERIAL_AO_FLAT = Canvas.INSTANCE.materialFinder().disableDiffuse(true).find();
 	protected static MeshMaterialLocator MATERIAL_AO_SHADED = Canvas.INSTANCE.materialFinder().find();
 
 	protected final AbstractRenderContext context;

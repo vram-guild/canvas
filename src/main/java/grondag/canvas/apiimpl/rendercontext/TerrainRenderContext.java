@@ -17,7 +17,7 @@
 package grondag.canvas.apiimpl.rendercontext;
 
 import grondag.canvas.Configurator;
-import grondag.canvas.apiimpl.material.MeshMaterialLayer;
+import grondag.canvas.apiimpl.material.MeshMaterial;
 import grondag.canvas.light.AoCalculator;
 import grondag.canvas.light.LightSmoother;
 import grondag.canvas.material.EncodingContext;
@@ -127,7 +127,7 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<FastRenderR
 	}
 
 	@Override
-	public VertexConsumer consumer(MeshMaterialLayer mat) {
+	public VertexConsumer consumer(MeshMaterial mat) {
 		return collectors.get(mat);
 	}
 

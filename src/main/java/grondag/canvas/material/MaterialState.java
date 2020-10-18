@@ -18,7 +18,7 @@ package grondag.canvas.material;
 
 import grondag.canvas.apiimpl.MaterialConditionImpl;
 import grondag.canvas.apiimpl.material.MaterialShaderImpl;
-import grondag.canvas.apiimpl.material.MeshMaterialLayer;
+import grondag.canvas.apiimpl.material.MeshMaterial;
 import grondag.canvas.shader.MaterialShaderManager;
 import grondag.canvas.shader.ShaderPass;
 import grondag.fermion.bits.BitPacker32;
@@ -62,7 +62,7 @@ public class MaterialState {
 	}
 
 	// UGLY: decal probably doesn't belong here
-	public static MaterialState get(MeshMaterialLayer mat) {
+	public static MaterialState get(MeshMaterial mat) {
 		return get(mat.shader(), mat.condition(), mat.shaderType);
 	}
 

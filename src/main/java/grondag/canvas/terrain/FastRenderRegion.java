@@ -16,12 +16,21 @@
 
 package grondag.canvas.terrain;
 
+import java.util.Arrays;
+
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
 import grondag.canvas.terrain.ChunkPaletteCopier.PaletteCopy;
 import grondag.canvas.terrain.occlusion.region.OcclusionRegion;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.shorts.ShortArrayList;
-import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachedBlockView;
+import org.jetbrains.annotations.Nullable;
+
+import static grondag.canvas.terrain.RenderRegionAddressHelper.EXTERIOR_CACHE_SIZE;
+import static grondag.canvas.terrain.RenderRegionAddressHelper.INTERIOR_CACHE_SIZE;
+import static grondag.canvas.terrain.RenderRegionAddressHelper.TOTAL_CACHE_SIZE;
+import static grondag.canvas.terrain.RenderRegionAddressHelper.cacheIndexToXyz5;
+import static grondag.canvas.terrain.RenderRegionAddressHelper.interiorIndex;
+
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.render.WorldRenderer;
@@ -32,10 +41,7 @@ import net.minecraft.world.LightType;
 import net.minecraft.world.chunk.light.LightingProvider;
 import net.minecraft.world.level.ColorResolver;
 
-import javax.annotation.Nullable;
-import java.util.Arrays;
-
-import static grondag.canvas.terrain.RenderRegionAddressHelper.*;
+import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachedBlockView;
 
 public class FastRenderRegion extends AbstractRenderRegion implements RenderAttachedBlockView {
 	private static final int[] EMPTY_AO_CACHE = new int[TOTAL_CACHE_SIZE];

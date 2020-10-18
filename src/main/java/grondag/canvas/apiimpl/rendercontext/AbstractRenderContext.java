@@ -16,14 +16,12 @@
 
 package grondag.canvas.apiimpl.rendercontext;
 
-import javax.annotation.Nullable;
-
 import java.util.Random;
 import java.util.function.Consumer;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
-import grondag.canvas.apiimpl.material.MeshMaterialLayer;
+import grondag.canvas.apiimpl.material.MeshMaterial;
 import grondag.canvas.apiimpl.material.MeshMaterialLocator;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.buffer.encoding.VertexCollectorList;
@@ -35,6 +33,7 @@ import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.texture.SpriteInfoTexture;
 import grondag.frex.api.material.MaterialMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.block.BlockState;
 import net.minecraft.client.render.VertexConsumer;
@@ -103,7 +102,7 @@ public abstract class AbstractRenderContext implements RenderContext {
 			return;
 		}
 
-		final Sprite sprite = materialMap.needsSprite() ? SpriteInfoTexture.BLOCKS.fromId(quad.spriteId(0)) : null;
+		final Sprite sprite = materialMap.needsSprite() ? SpriteInfoTexture.BLOCKS.fromId(quad.spriteId()) : null;
 		final RenderMaterial mapped = materialMap.getMapped(sprite);
 
 		if (mapped != null) {
@@ -169,7 +168,7 @@ public abstract class AbstractRenderContext implements RenderContext {
 
 	public abstract EncodingContext materialContext();
 
-	public abstract VertexConsumer consumer(MeshMaterialLayer mat);
+	public abstract VertexConsumer consumer(MeshMaterial mat);
 
 	public abstract int indexedColor(int colorIndex);
 

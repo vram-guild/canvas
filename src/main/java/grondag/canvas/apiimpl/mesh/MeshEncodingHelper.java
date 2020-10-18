@@ -17,7 +17,7 @@
 package grondag.canvas.apiimpl.mesh;
 
 import com.google.common.base.Preconditions;
-import grondag.canvas.apiimpl.material.AbstractMeshMaterial;
+
 import net.fabricmc.fabric.api.renderer.v1.mesh.QuadView;
 import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 
@@ -31,9 +31,8 @@ public abstract class MeshEncodingHelper {
 	public static final int HEADER_COLOR_INDEX = 1;
 	public static final int HEADER_BITS = 2;
 	public static final int HEADER_TAG = 3;
-	public static final int HEADER_SPRITE_LOW = 4;
-	public static final int HEADER_SPRITE_HIGH = 5;
-	public static final int HEADER_STRIDE = 6;
+	public static final int HEADER_SPRITE = 4;
+	public static final int HEADER_STRIDE = 5;
 	public static final int VERTEX_X;
 	public static final int VERTEX_Y;
 	public static final int VERTEX_Z;
@@ -54,8 +53,6 @@ public abstract class MeshEncodingHelper {
 	 * is one tex stride less than the actual base, because when used tex index is >= 1
 	 */
 	public static final int TEXTURE_OFFSET_MINUS;
-	public static final int SECOND_TEXTURE_OFFSET;
-	public static final int THIRD_TEXTURE_OFFSET;
 	public static final int MAX_QUAD_STRIDE;
 	/**
 	 * used for quick clearing of quad buffers
@@ -106,9 +103,7 @@ public abstract class MeshEncodingHelper {
 		 * is one tex stride less than the actual base, because when used tex index is >= 1
 		 */
 		TEXTURE_OFFSET_MINUS = MIN_QUAD_STRIDE - TEXTURE_QUAD_STRIDE;
-		SECOND_TEXTURE_OFFSET = MIN_QUAD_STRIDE;
-		THIRD_TEXTURE_OFFSET = SECOND_TEXTURE_OFFSET + TEXTURE_QUAD_STRIDE;
-		MAX_QUAD_STRIDE = MIN_QUAD_STRIDE + TEXTURE_QUAD_STRIDE * (AbstractMeshMaterial.MAX_SPRITE_DEPTH - 1);
+		MAX_QUAD_STRIDE = MIN_QUAD_STRIDE + TEXTURE_QUAD_STRIDE;
 		EMPTY = new int[MAX_QUAD_STRIDE];
 	}
 
@@ -146,8 +141,8 @@ public abstract class MeshEncodingHelper {
 		return (bits & NORMALS_INVERSE_MASK) | ((normalFlags & NORMALS_MASK) << NORMALS_SHIFT);
 	}
 
-	public static int stride(int textureDepth) {
-		return SECOND_TEXTURE_OFFSET - TEXTURE_QUAD_STRIDE + textureDepth * TEXTURE_QUAD_STRIDE;
+	public static int stride() {
+		return MIN_QUAD_STRIDE;
 	}
 
 	public static int geometryFlags(int bits) {

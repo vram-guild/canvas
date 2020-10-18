@@ -16,6 +16,9 @@
 
 package grondag.canvas.terrain.occlusion;
 
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
+
 import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
 import grondag.canvas.render.CanvasFrustum;
@@ -26,12 +29,10 @@ import grondag.canvas.terrain.RenderRegionStorage;
 import grondag.canvas.terrain.occlusion.region.OcclusionRegion;
 import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
 import grondag.fermion.varia.Useful;
+import org.jetbrains.annotations.Nullable;
+
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3i;
-
-import javax.annotation.Nullable;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Consumer;
 
 public class TerrainIterator implements Consumer<TerrainRenderContext> {
 	public static final int IDLE = 0;

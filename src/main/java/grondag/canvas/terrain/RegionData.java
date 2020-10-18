@@ -16,17 +16,19 @@
 
 package grondag.canvas.terrain;
 
+import java.util.List;
+
 import grondag.canvas.buffer.encoding.VertexCollectorImpl;
 import grondag.canvas.buffer.encoding.VertexCollectorList;
 import grondag.canvas.material.MaterialState;
 import grondag.canvas.shader.ShaderPass;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
+import org.jetbrains.annotations.Nullable;
+
 import net.minecraft.block.entity.BlockEntity;
 
-import javax.annotation.Nullable;
-import java.util.List;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 
 @Environment(EnvType.CLIENT)
 public class RegionData {

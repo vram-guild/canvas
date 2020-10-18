@@ -19,7 +19,7 @@ package grondag.canvas.apiimpl.rendercontext;
 import java.util.Random;
 import java.util.function.Supplier;
 
-import grondag.canvas.apiimpl.material.MeshMaterialLayer;
+import grondag.canvas.apiimpl.material.MeshMaterial;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.light.AoCalculator;
 import grondag.canvas.material.EncodingContext;
@@ -128,7 +128,7 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 	}
 
 	@Override
-	public VertexConsumer consumer(MeshMaterialLayer mat) {
+	public VertexConsumer consumer(MeshMaterial mat) {
 		// WIP2: really can't honor per-quad materials in the current setup
 		// and also honor default model render layer because default blend mode
 		// is transformed to something specific before we get here, and the

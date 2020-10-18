@@ -16,11 +16,10 @@
 
 package grondag.canvas.apiimpl.util;
 
-import grondag.canvas.apiimpl.material.AbstractMeshMaterial;
+import java.nio.ByteOrder;
+
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import it.unimi.dsi.fastutil.ints.Int2IntFunction;
-
-import java.nio.ByteOrder;
 
 /**
  * Static routines of general utility for renderer implementations. Renderers
@@ -29,68 +28,6 @@ import java.nio.ByteOrder;
  */
 public abstract class ColorHelper {
 	private static final Int2IntFunction colorSwapper = ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN ? color -> ((color & 0xFF00FF00) | ((color & 0x00FF0000) >> 16) | ((color & 0xFF) << 16)) : color -> color;
-	private static final Colorizer[][] COLORIZERS = new Colorizer[3][8];
-
-	static {
-		COLORIZERS[0][0b000] = (q, i, s) -> q.spriteColor(i, 0, swapRedBlueIfNeeded(q.spriteColor(i, 0)));
-
-		COLORIZERS[0][0b001] = (q, i, s) -> q.spriteColor(i, 0, swapRedBlueIfNeeded(multiplyColor(q.spriteColor(i, 0), s)));
-
-		COLORIZERS[1][0b000] = (q, i, s) ->
-				q.spriteColor(i, 0, swapRedBlueIfNeeded(q.spriteColor(i, 0)))
-						.spriteColor(i, 1, swapRedBlueIfNeeded(q.spriteColor(i, 1)));
-
-		COLORIZERS[1][0b001] = (q, i, s) ->
-				q.spriteColor(i, 0, swapRedBlueIfNeeded(multiplyColor(q.spriteColor(i, 0), s)))
-						.spriteColor(i, 1, swapRedBlueIfNeeded(q.spriteColor(i, 1)));
-
-		COLORIZERS[1][0b010] = (q, i, s) ->
-				q.spriteColor(i, 0, swapRedBlueIfNeeded(q.spriteColor(i, 0)))
-						.spriteColor(i, 1, swapRedBlueIfNeeded(multiplyColor(q.spriteColor(i, 1), s)));
-		COLORIZERS[1][0b011] = (q, i, s) ->
-				q.spriteColor(i, 0, swapRedBlueIfNeeded(multiplyColor(q.spriteColor(i, 0), s)))
-						.spriteColor(i, 1, swapRedBlueIfNeeded(multiplyColor(q.spriteColor(i, 1), s)));
-
-		COLORIZERS[2][0b000] = (q, i, s) ->
-				q.spriteColor(i, 0, swapRedBlueIfNeeded(q.spriteColor(i, 0)))
-						.spriteColor(i, 1, swapRedBlueIfNeeded(q.spriteColor(i, 1)))
-						.spriteColor(i, 2, swapRedBlueIfNeeded(q.spriteColor(i, 2)));
-
-		COLORIZERS[2][0b001] = (q, i, s) ->
-				q.spriteColor(i, 0, swapRedBlueIfNeeded(multiplyColor(q.spriteColor(i, 0), s)))
-						.spriteColor(i, 1, swapRedBlueIfNeeded(q.spriteColor(i, 1)))
-						.spriteColor(i, 2, swapRedBlueIfNeeded(q.spriteColor(i, 2)));
-
-		COLORIZERS[2][0b010] = (q, i, s) ->
-				q.spriteColor(i, 0, swapRedBlueIfNeeded(q.spriteColor(i, 0)))
-						.spriteColor(i, 1, swapRedBlueIfNeeded(multiplyColor(q.spriteColor(i, 1), s)))
-						.spriteColor(i, 2, swapRedBlueIfNeeded(q.spriteColor(i, 2)));
-
-		COLORIZERS[2][0b011] = (q, i, s) ->
-				q.spriteColor(i, 0, swapRedBlueIfNeeded(multiplyColor(q.spriteColor(i, 0), s)))
-						.spriteColor(i, 1, swapRedBlueIfNeeded(multiplyColor(q.spriteColor(i, 1), s)))
-						.spriteColor(i, 2, swapRedBlueIfNeeded(q.spriteColor(i, 2)));
-
-		COLORIZERS[2][0b100] = (q, i, s) ->
-				q.spriteColor(i, 0, swapRedBlueIfNeeded(q.spriteColor(i, 0)))
-						.spriteColor(i, 1, swapRedBlueIfNeeded(q.spriteColor(i, 1)))
-						.spriteColor(i, 2, swapRedBlueIfNeeded(multiplyColor(q.spriteColor(i, 2), s)));
-
-		COLORIZERS[2][0b101] = (q, i, s) ->
-				q.spriteColor(i, 0, swapRedBlueIfNeeded(multiplyColor(q.spriteColor(i, 0), s)))
-						.spriteColor(i, 1, swapRedBlueIfNeeded(q.spriteColor(i, 1)))
-						.spriteColor(i, 2, swapRedBlueIfNeeded(multiplyColor(q.spriteColor(i, 2), s)));
-
-		COLORIZERS[2][0b110] = (q, i, s) ->
-				q.spriteColor(i, 0, swapRedBlueIfNeeded(q.spriteColor(i, 0)))
-						.spriteColor(i, 1, swapRedBlueIfNeeded(multiplyColor(q.spriteColor(i, 1), s)))
-						.spriteColor(i, 2, swapRedBlueIfNeeded(multiplyColor(q.spriteColor(i, 2), s)));
-
-		COLORIZERS[2][0b111] = (q, i, s) ->
-				q.spriteColor(i, 0, swapRedBlueIfNeeded(multiplyColor(q.spriteColor(i, 0), s)))
-						.spriteColor(i, 1, swapRedBlueIfNeeded(multiplyColor(q.spriteColor(i, 1), s)))
-						.spriteColor(i, 2, swapRedBlueIfNeeded(multiplyColor(q.spriteColor(i, 2), s)));
-	}
 
 	private ColorHelper() {
 	}
@@ -131,32 +68,6 @@ public abstract class ColorHelper {
 		final int blue = (color1 & 0xFF) * (color2 & 0xFF) / 0xFF;
 
 		return (alpha << 24) | (red << 16) | (green << 8) | blue;
-	}
-
-	public static void colorizeQuad(MutableQuadViewImpl quad, int color) {
-		final AbstractMeshMaterial mat = quad.material();
-		final int depth = mat.spriteDepth();
-		int flags = 0;
-
-		if (quad.colorIndex() != -1) {
-			if (!mat.disableColorIndex(0)) {
-				flags = 1;
-			}
-
-			if (depth > 1) {
-				if (!mat.disableColorIndex(1)) {
-					flags |= 2;
-				}
-				if (depth == 3 && !mat.disableColorIndex(2)) {
-					flags |= 4;
-				}
-			}
-		}
-
-		final Colorizer colorizer = COLORIZERS[depth - 1][flags];
-		for (int i = 0; i < 4; i++) {
-			colorizer.shade(quad, i, color);
-		}
 	}
 
 	/**

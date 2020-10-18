@@ -16,15 +16,15 @@
 
 package grondag.canvas.apiimpl.rendercontext;
 
+import java.util.function.Consumer;
+
 import grondag.canvas.apiimpl.Canvas;
-import grondag.canvas.apiimpl.material.AbstractMeshMaterial;
 import grondag.canvas.apiimpl.mesh.MeshEncodingHelper;
 import grondag.canvas.apiimpl.mesh.MeshImpl;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
+
 import net.fabricmc.fabric.api.renderer.v1.mesh.Mesh;
 import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
-
-import java.util.function.Consumer;
 
 /**
  * Consumer for pre-baked meshes.  Works by copying the mesh data to a
@@ -47,7 +47,7 @@ public class MeshConsumer implements Consumer<Mesh> {
 		final MutableQuadViewImpl quad = editorQuad;
 
 		while (index < limit) {
-			final int stride = MeshEncodingHelper.stride(AbstractMeshMaterial.byIndex(data[index]).spriteDepth());
+			final int stride = MeshEncodingHelper.stride();
 			quad.copyAndload(data, index, stride);
 			index += stride;
 			context.renderQuad();

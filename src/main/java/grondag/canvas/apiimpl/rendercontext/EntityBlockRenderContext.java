@@ -18,7 +18,7 @@ package grondag.canvas.apiimpl.rendercontext;
 
 import java.util.function.Supplier;
 
-import grondag.canvas.apiimpl.material.MeshMaterialLayer;
+import grondag.canvas.apiimpl.material.MeshMaterial;
 import grondag.canvas.light.AoCalculator;
 import grondag.canvas.material.EncodingContext;
 import grondag.canvas.mixinterface.Matrix3fExt;
@@ -130,7 +130,7 @@ public class EntityBlockRenderContext extends AbstractBlockRenderContext<BlockRe
 	}
 
 	@Override
-	public VertexConsumer consumer(MeshMaterialLayer mat) {
+	public VertexConsumer consumer(MeshMaterial mat) {
 		didOutput = true;
 		return bufferBuilder;
 	}

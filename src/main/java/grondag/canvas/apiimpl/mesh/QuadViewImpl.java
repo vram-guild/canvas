@@ -22,18 +22,16 @@ import grondag.canvas.apiimpl.util.GeometryHelper;
 import grondag.canvas.apiimpl.util.NormalHelper;
 import grondag.canvas.mixinterface.Matrix4fExt;
 import grondag.canvas.texture.SpriteInfoTexture;
+import grondag.frex.api.mesh.QuadView;
 
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.BASE_QUAD_STRIDE;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.BASE_VERTEX_STRIDE;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_BITS;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_COLOR_INDEX;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_MATERIAL;
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_SPRITE_LOW;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_SPRITE;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_STRIDE;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_TAG;
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.TEXTURE_OFFSET_MINUS;
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.TEXTURE_QUAD_STRIDE;
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.TEXTURE_VERTEX_STRIDE;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.UV_EXTRA_PRECISION;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.UV_PRECISE_TO_FLOAT_CONVERSION;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.UV_ROUNDING_BIT;
@@ -50,7 +48,6 @@ import net.minecraft.client.util.math.Vector3f;
 import net.minecraft.util.math.Direction;
 
 import net.fabricmc.fabric.api.renderer.v1.mesh.MutableQuadView;
-import net.fabricmc.fabric.api.renderer.v1.mesh.QuadView;
 import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 
 /**
@@ -66,7 +63,7 @@ public class QuadViewImpl implements QuadView {
 	/**
 	 * flag true when sprite is assumed to be interpolated and need normalization
 	 */
-	protected int spriteMappedFlags = 0;
+	protected boolean spriteMappedFlag = false;
 
 	/**
 	 * Size and where it comes from will vary in subtypes. But in all cases quad is fully encoded to array.
@@ -137,7 +134,7 @@ public class QuadViewImpl implements QuadView {
 	 * Length of encoded quad in array, including header.
 	 */
 	public final int stride() {
-		return MeshEncodingHelper.stride(material().spriteDepth());
+		return MeshEncodingHelper.stride();
 	}
 
 	/**
@@ -167,15 +164,15 @@ public class QuadViewImpl implements QuadView {
 	}
 
 	@Override
-	public final void toVanilla(int textureIndex, int[] target, int targetIndex, boolean isItem) {
+	public final void toVanilla(int[] target, int targetIndex) {
 		System.arraycopy(data, baseIndex + VERTEX_START, target, targetIndex, BASE_QUAD_STRIDE);
 
 		// Convert sprite data from fixed precision to float
 		int index = targetIndex + 4;
 
 		for (int i = 0; i < 4; ++i) {
-			target[index] = Float.floatToRawIntBits(spriteU(i, 0));
-			target[index + 1] = Float.floatToRawIntBits(spriteV(i, 0));
+			target[index] = Float.floatToRawIntBits(spriteU(i));
+			target[index + 1] = Float.floatToRawIntBits(spriteV(i));
 			index += 8;
 		}
 	}
@@ -240,7 +237,9 @@ public class QuadViewImpl implements QuadView {
 	}
 
 	@Override
-	public void copyTo(MutableQuadView target) {
+	public void copyTo(MutableQuadView targetIn) {
+		final grondag.frex.api.mesh.MutableQuadView target = (grondag.frex.api.mesh.MutableQuadView) targetIn;
+
 		// forces geometry compute
 		final int packedNormal = packedFaceNormal();
 
@@ -250,7 +249,7 @@ public class QuadViewImpl implements QuadView {
 
 		// copy everything except the material
 		System.arraycopy(data, baseIndex + 1, quad.data, quad.baseIndex + 1, len - 1);
-		quad.spriteMappedFlags = spriteMappedFlags;
+		quad.spriteMappedFlag = spriteMappedFlag;
 		quad.faceNormal.set(faceNormal.getX(), faceNormal.getY(), faceNormal.getZ());
 		quad.packedFaceNormal = packedNormal;
 		quad.nominalFaceId = nominalFaceId;
@@ -336,80 +335,75 @@ public class QuadViewImpl implements QuadView {
 		return data[baseIndex + vertexIndex * BASE_VERTEX_STRIDE + VERTEX_LIGHTMAP];
 	}
 
-	protected int colorOffset(int vertexIndex, int spriteIndex) {
-		return spriteIndex == 0 ? vertexIndex * BASE_VERTEX_STRIDE + VERTEX_COLOR
-		: TEXTURE_OFFSET_MINUS + spriteIndex * TEXTURE_QUAD_STRIDE + vertexIndex * TEXTURE_VERTEX_STRIDE;
+	protected int colorOffset(int vertexIndex) {
+		return vertexIndex * BASE_VERTEX_STRIDE + VERTEX_COLOR;
 	}
 
 	@Override
-	public int spriteColor(int vertexIndex, int spriteIndex) {
-		return data[baseIndex + colorOffset(vertexIndex, spriteIndex)];
+	public int vertexColor(int vertexIndex) {
+		return data[baseIndex + colorOffset(vertexIndex)];
 	}
 
-	protected final boolean isSpriteUnmapped(int spriteIndex) {
-		return (spriteMappedFlags & (1 << spriteIndex)) == 0;
+	protected final boolean isSpriteUnmapped() {
+		return !spriteMappedFlag;
 	}
 
-	protected final float spriteFloatU(int vertexIndex, int spriteIndex) {
-		return data[baseIndex + colorOffset(vertexIndex, spriteIndex) + 1] * UV_PRECISE_TO_FLOAT_CONVERSION;
+	protected final float spriteFloatU(int vertexIndex) {
+		return data[baseIndex + colorOffset(vertexIndex) + 1] * UV_PRECISE_TO_FLOAT_CONVERSION;
 	}
 
-	protected final float spriteFloatV(int vertexIndex, int spriteIndex) {
-		return data[baseIndex + colorOffset(vertexIndex, spriteIndex) + 2] * UV_PRECISE_TO_FLOAT_CONVERSION;
-	}
-
-	@Override
-	public float spriteU(int vertexIndex, int spriteIndex) {
-		return isSpriteUnmapped(spriteIndex)
-		? SpriteInfoTexture.BLOCKS.mapU(spriteId(spriteIndex), spriteFloatU(vertexIndex, spriteIndex))
-		: spriteFloatU(vertexIndex, spriteIndex);
+	protected final float spriteFloatV(int vertexIndex) {
+		return data[baseIndex + colorOffset(vertexIndex) + 2] * UV_PRECISE_TO_FLOAT_CONVERSION;
 	}
 
 	@Override
-	public float spriteV(int vertexIndex, int spriteIndex) {
-		return isSpriteUnmapped(spriteIndex)
-		? SpriteInfoTexture.BLOCKS.mapV(spriteId(spriteIndex), spriteFloatV(vertexIndex, spriteIndex))
-		: spriteFloatV(vertexIndex, spriteIndex);
+	public float spriteU(int vertexIndex) {
+		return isSpriteUnmapped()
+		? SpriteInfoTexture.BLOCKS.mapU(spriteId(), spriteFloatU(vertexIndex))
+		: spriteFloatU(vertexIndex);
+	}
+
+	@Override
+	public float spriteV(int vertexIndex) {
+		return isSpriteUnmapped()
+		? SpriteInfoTexture.BLOCKS.mapV(spriteId(), spriteFloatV(vertexIndex))
+		: spriteFloatV(vertexIndex);
 	}
 
 	/**
 	 * Fixed precision value suitable for transformations
 	 */
-	public int spritePreciseU(int vertexIndex, int spriteIndex) {
-		assert isSpriteUnmapped(spriteIndex);
-		return data[baseIndex + colorOffset(vertexIndex, spriteIndex) + 1];
+	public int spritePreciseU(int vertexIndex) {
+		assert isSpriteUnmapped();
+		return data[baseIndex + colorOffset(vertexIndex) + 1];
 	}
 
 	/**
 	 * Fixed precision value suitable for transformations
 	 */
-	public int spritePreciseV(int vertexIndex, int spriteIndex) {
-		assert isSpriteUnmapped(spriteIndex);
-		return data[baseIndex + colorOffset(vertexIndex, spriteIndex) + 2];
+	public int spritePreciseV(int vertexIndex) {
+		assert isSpriteUnmapped();
+		return data[baseIndex + colorOffset(vertexIndex) + 2];
 	}
 
 	/**
 	 * Rounded, unsigned short value suitable for vertex buffer
 	 */
-	public int spriteBufferU(int vertexIndex, int spriteIndex) {
-		assert isSpriteUnmapped(spriteIndex);
-		return (data[baseIndex + colorOffset(vertexIndex, spriteIndex) + 1] + UV_ROUNDING_BIT) >> UV_EXTRA_PRECISION;
+	public int spriteBufferU(int vertexIndex) {
+		assert isSpriteUnmapped();
+		return (data[baseIndex + colorOffset(vertexIndex) + 1] + UV_ROUNDING_BIT) >> UV_EXTRA_PRECISION;
 	}
 
 	/**
 	 * Rounded, unsigned short value suitable for vertex buffer
 	 */
-	public int spriteBufferV(int vertexIndex, int spriteIndex) {
-		assert isSpriteUnmapped(spriteIndex);
-		return (data[baseIndex + colorOffset(vertexIndex, spriteIndex) + 2] + UV_ROUNDING_BIT) >> UV_EXTRA_PRECISION;
+	public int spriteBufferV(int vertexIndex) {
+		assert isSpriteUnmapped();
+		return (data[baseIndex + colorOffset(vertexIndex) + 2] + UV_ROUNDING_BIT) >> UV_EXTRA_PRECISION;
 	}
 
-	protected int spriteIdOffset(int spriteIndex) {
-		return baseIndex + HEADER_SPRITE_LOW + (spriteIndex >> 1);
-	}
-
-	public int spriteId(int spriteIndex) {
-		return (spriteIndex & 1) == 0 ? data[spriteIdOffset(spriteIndex)] & 0xFFFF : (data[spriteIdOffset(spriteIndex)] >> 16) & 0xFFFF;
+	public int spriteId() {
+		return data[baseIndex + HEADER_SPRITE];
 	}
 
 	public void transformAndAppend(final int vertexIndex, final Matrix4fExt matrix, final int[] appendData, final int targetIndex) {

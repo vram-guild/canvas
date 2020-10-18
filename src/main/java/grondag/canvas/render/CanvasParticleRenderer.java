@@ -91,7 +91,7 @@ public enum CanvasParticleRenderer {
 
 				try {
 					final RenderMaterial mat = (RenderMaterial) MaterialMap.getForParticle(((ParticleExt) particle).canvas_particleType()).getMapped(null);
-					collector.vertexState(mat == null || !mat.emissive(0) ? PARTICLE_VERTEX_STATE : PARTICLE_EMISSIVE_VERTEX_STATE);
+					collector.vertexState(mat == null || !mat.emissive() ? PARTICLE_VERTEX_STATE : PARTICLE_EMISSIVE_VERTEX_STATE);
 					particle.buildGeometry(consumer, camera, tickDelta);
 				} catch (final Throwable exception) {
 					final CrashReport crashReport = CrashReport.create(exception, "Rendering Particle");

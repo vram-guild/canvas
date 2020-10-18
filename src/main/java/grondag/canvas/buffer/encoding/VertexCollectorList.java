@@ -16,16 +16,17 @@
 
 package grondag.canvas.buffer.encoding;
 
-import grondag.canvas.apiimpl.material.MeshMaterialLayer;
+import java.util.Arrays;
+
+import grondag.canvas.apiimpl.material.MeshMaterial;
 import grondag.canvas.material.EncodingContext;
 import grondag.canvas.material.MaterialState;
 import grondag.canvas.material.MaterialVertexFormats;
 import grondag.canvas.shader.ShaderPass;
 import grondag.canvas.terrain.render.UploadableChunk;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import net.minecraft.util.math.MathHelper;
 
-import java.util.Arrays;
+import net.minecraft.util.math.MathHelper;
 
 /**
  * MUST ALWAYS BE USED WITHIN SAME MATERIAL CONTEXT
@@ -128,7 +129,7 @@ public class VertexCollectorList {
 		}
 	}
 
-	public VertexCollectorImpl get(MeshMaterialLayer mat) {
+	public VertexCollectorImpl get(MeshMaterial mat) {
 		return get(MaterialState.get(mat));
 	}
 

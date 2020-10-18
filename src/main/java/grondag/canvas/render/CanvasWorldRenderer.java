@@ -16,8 +16,6 @@
 
 package grondag.canvas.render;
 
-import javax.annotation.Nullable;
-
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
@@ -71,6 +69,7 @@ import grondag.frex.api.event.WorldRenderEvent;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap.Entry;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import org.jetbrains.annotations.Nullable;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL21;
 

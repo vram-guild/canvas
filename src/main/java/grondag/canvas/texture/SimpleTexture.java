@@ -17,12 +17,12 @@
 package grondag.canvas.texture;
 
 import com.mojang.blaze3d.platform.GlStateManager;
-import net.minecraft.client.texture.TextureUtil;
+import org.jetbrains.annotations.Nullable;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 import org.lwjgl.opengl.GL21;
 
-import javax.annotation.Nullable;
+import net.minecraft.client.texture.TextureUtil;
 
 /**
  * Leaner adaptation of Minecraft NativeImageBackedTexture suitable for our needs.

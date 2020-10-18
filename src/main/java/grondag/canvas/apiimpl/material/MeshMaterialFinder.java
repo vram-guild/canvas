@@ -25,6 +25,10 @@ import grondag.frex.api.material.RenderMaterial;
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 
 public class MeshMaterialFinder extends AbstractMeshMaterial implements MaterialFinder {
+	public MeshMaterialFinder() {
+		super(DEFAULT_BITS);
+	}
+
 	@Override
 	public MeshMaterialLocator find() {
 		return findInternal(true);
@@ -32,12 +36,12 @@ public class MeshMaterialFinder extends AbstractMeshMaterial implements Material
 
 	MeshMaterialLocator findInternal(boolean setupVariants) {
 		synchronized(MAP) {
-			MeshMaterialLocator result = MAP.get(this);
+			MeshMaterialLocator result = MAP.get(bits);
 
 			if (result == null) {
-				result = new MeshMaterialLocator(LIST.size(), bits0, bits1);
+				result = new MeshMaterialLocator(LIST.size(), bits);
 				LIST.add(result);
-				MAP.put(new MeshMaterialKey(bits0, bits1), result);
+				MAP.put(bits, result);
 
 				if (setupVariants) {
 					result.setupVariants();
@@ -50,82 +54,61 @@ public class MeshMaterialFinder extends AbstractMeshMaterial implements Material
 
 	@Override
 	public MeshMaterialFinder clear() {
-		bits0 = DEFAULT_BITS_0;
-		bits1 = DEFAULT_BITS_0;
+		bits = DEFAULT_BITS;
 		return this;
 	}
 
 	@Deprecated
 	@Override
-	public MeshMaterialFinder blendMode(int spriteIndex, BlendMode blendMode) {
-		if (spriteIndex == 0) {
-			if (blendMode == null) {
-				blendMode = BlendMode.DEFAULT;
-			}
-
-			blendMode(blendMode);
+	public MeshMaterialFinder blendMode(BlendMode blendMode) {
+		if (blendMode == null) {
+			blendMode = BlendMode.DEFAULT;
 		}
 
+		bits = BLEND_MODE.setValue(blendMode, bits);
 		return this;
 	}
 
 	@Override
-	public MeshMaterialFinder disableColorIndex(int spriteIndex, boolean disable) {
-		FLAGS[COLOR_DISABLE_INDEX_START + spriteIndex].setValue(disable, this);
+	public MeshMaterialFinder disableColorIndex(boolean disable) {
+		bits = DISABLE_COLOR.setValue(disable, bits);
 		return this;
 	}
 
 	@Override
-	public MeshMaterialFinder spriteDepth(int depth) {
-		if (depth < 1 || depth > MAX_SPRITE_DEPTH) {
-			throw new IndexOutOfBoundsException("Invalid sprite depth: " + depth);
-		}
-
-		SPRITE_DEPTH.setValue(depth, this);
+	public MeshMaterialFinder emissive(boolean isEmissive) {
+		bits = EMISSIVE.setValue(isEmissive, bits);
 		return this;
 	}
 
 	@Override
-	public MeshMaterialFinder emissive(int spriteIndex, boolean isEmissive) {
-		FLAGS[EMISSIVE_INDEX_START + spriteIndex].setValue(isEmissive, this);
+	public MeshMaterialFinder disableDiffuse(boolean disable) {
+		bits = DISABLE_DIFFUSE.setValue(disable, bits);
 		return this;
 	}
 
 	@Override
-	public MeshMaterialFinder disableDiffuse(int spriteIndex, boolean disable) {
-		FLAGS[DIFFUSE_INDEX_START + spriteIndex].setValue(disable, this);
+	public MeshMaterialFinder disableAo(boolean disable) {
+		bits = DISABLE_AO.setValue(disable, bits);
 		return this;
 	}
 
 	@Override
-	public MeshMaterialFinder disableAo(int spriteIndex, boolean disable) {
-		FLAGS[AO_INDEX_START + spriteIndex].setValue(disable, this);
-		return this;
-	}
-
-	@Override
-	public MeshMaterialFinder shader(int spriteIndex, MaterialShader shader) {
-		SHADERS[spriteIndex].setValue(((MaterialShaderImpl) shader).getIndex(), this);
+	public MeshMaterialFinder shader( MaterialShader shader) {
+		bits = SHADER.setValue(((MaterialShaderImpl) shader).getIndex(), bits);
 		return this;
 	}
 
 	@Override
 	public MeshMaterialFinder condition(MaterialCondition condition) {
-		CONDITION.setValue(((MaterialConditionImpl) condition).index, this);
-		return this;
-	}
-
-	@Override
-	public MeshMaterialFinder blendMode(BlendMode blendMode) {
-		BLEND_MODE.setValue(blendMode, this);
+		bits = CONDITION.setValue(((MaterialConditionImpl) condition).index, bits);
 		return this;
 	}
 
 	@Override
 	public MeshMaterialFinder copyFrom(RenderMaterial material) {
 		final MeshMaterialLocator source = (MeshMaterialLocator) material;
-		bits0 =  source.bits0;
-		bits1 =  source.bits1;
+		bits =  source.bits;
 		return this;
 	}
 }

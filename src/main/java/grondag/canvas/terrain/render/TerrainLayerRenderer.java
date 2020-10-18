@@ -16,8 +16,6 @@
 
 package grondag.canvas.terrain.render;
 
-import javax.annotation.Nullable;
-
 import com.google.common.util.concurrent.Runnables;
 import com.mojang.blaze3d.systems.RenderSystem;
 import grondag.canvas.Configurator;
@@ -33,6 +31,7 @@ import grondag.canvas.terrain.BuiltRenderRegion;
 import grondag.canvas.terrain.TerrainModelSpace;
 import grondag.canvas.texture.DitherTexture;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.util.math.MatrixStack;
