@@ -1,7 +1,0 @@
-{
-  "layers": [
-	{
-	  "fragmentSource": "canvas:shaders/material/enderman.frag"
-	}
-  ]
-}

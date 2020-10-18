@@ -1,10 +1,6 @@
 {
-  "layers": [
-	{
-	  "vertexSource": "canvas:shaders/material/low_foliage.vert",
-	  "fragmentSource": "canvas:shaders/material/default.frag",
-	  "disableAo": true,
-	  "disableDiffuse": true
-	}
-  ]
+  "vertexSource": "canvas:shaders/material/low_foliage.vert",
+  "fragmentSource": "canvas:shaders/material/default.frag",
+  "disableAo": true,
+  "disableDiffuse": true
 }

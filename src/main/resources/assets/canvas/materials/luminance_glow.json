@@ -1,8 +1,4 @@
 {
-  "layers": [
-	{
-	  "vertexSource": "canvas:shaders/material/default.vert",
-	  "fragmentSource": "canvas:shaders/material/luminance_glow.frag"
-	}
-  ]
+  "vertexSource": "canvas:shaders/material/default.vert",
+  "fragmentSource": "canvas:shaders/material/luminance_glow.frag"
 }
