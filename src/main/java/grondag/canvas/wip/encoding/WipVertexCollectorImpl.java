@@ -55,7 +55,6 @@ public class WipVertexCollectorImpl extends WipAbstractVertexCollector {
 
 	public WipVertexCollectorImpl prepare(WipRenderState materialState) {
 		this.materialState = materialState;
-		spriteId = -1;
 		didPopulateNormal = false;
 		return this;
 	}

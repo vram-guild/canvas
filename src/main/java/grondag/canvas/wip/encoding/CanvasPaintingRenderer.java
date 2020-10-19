@@ -26,6 +26,7 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Matrix3f;
 import net.minecraft.util.math.Matrix4f;
 
+// WIP: still need this now that sprite detection is automatic?
 public class CanvasPaintingRenderer {
 	public static void bufferPainting(MatrixStack matrixStack, WipVertexCollectorImpl vertexConsumer, PaintingEntity paintingEntity, int width, int height, Sprite paintSprite, Sprite frameSprite) {
 		final MatrixStack.Entry entry = matrixStack.peek();
@@ -79,14 +80,10 @@ public class CanvasPaintingRenderer {
 				final float pv0 = paintSprite.getFrameV(hDiv * (h - xz));
 				final float pv1 = paintSprite.getFrameV(hDiv * (h - (xz + 1)));
 
-				vertexConsumer.sprite(paintSprite);
-
 				vertexConsumer.vertex(modelMatrix, y1, xz0, -0.5F).color(-1).texture(pu1, pv0).light(light).normal(normalMatrix, 0, 0, -1).next();
 				vertexConsumer.vertex(modelMatrix, y0, xz0, -0.5F).color(-1).texture(pu0, pv0).light(light).normal(normalMatrix, 0, 0, -1).next();
 				vertexConsumer.vertex(modelMatrix, y0, xz1, -0.5F).color(-1).texture(pu0, pv1).light(light).normal(normalMatrix, 0, 0, -1).next();
 				vertexConsumer.vertex(modelMatrix, y1, xz1, -0.5F).color(-1).texture(pu1, pv1).light(light).normal(normalMatrix, 0, 0, -1).next();
-
-				vertexConsumer.sprite(frameSprite);
 
 				vertexConsumer.vertex(modelMatrix, y1, xz1, 0.5F).color(-1).texture(fu0, fv0).light(light).normal(normalMatrix, 0, 0, 1).next();
 				vertexConsumer.vertex(modelMatrix, y0, xz1, 0.5F).color(-1).texture(fu1, fv0).light(light).normal(normalMatrix, 0, 0, 1).next();

@@ -25,7 +25,6 @@ import grondag.canvas.apiimpl.util.NormalHelper;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.Matrix4fExt;
 import grondag.canvas.texture.SpriteInfoTexture;
-import grondag.canvas.wip.encoding.WipVertexCollectorImpl;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.VertexConsumer;
@@ -40,11 +39,6 @@ abstract class EncoderUtils {
 		final int overlay = context.overlay();
 		final Matrix3fExt normalMatrix = context.normalMatrix();
 		final VertexConsumer buff = context.consumer(quad.material());
-
-		// WIP: do it right
-		if (Configurator.enableExperimentalPipeline && buff instanceof WipVertexCollectorImpl) {
-			((WipVertexCollectorImpl) buff).spriteId(quad.spriteId());
-		}
 
 		int packedNormal = 0;
 		float nx = 0, ny = 0, nz = 0;

@@ -58,14 +58,6 @@ public interface WipVertexCollector extends VertexConsumer {
 
 	/**
 	 *
-	 * @param packedTexture 2 unsigned shorts, relative to the sprite if texture is an atlas, u low, v high
-	 */
-	WipVertexCollector texture(int packedTexture);
-
-	WipVertexCollector texture(int packedTexture, int spriteId);
-
-	/**
-	 *
 	 * @param packedLight standard packed lightmap
 	 * @param ao 0-255
 	 * @return

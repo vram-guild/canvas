@@ -39,56 +39,17 @@ public abstract class WipAbstractVertexCollector implements WipVertexCollector {
 
 	protected final int[] vertexData = new int[MATERIAL_QUAD_STRIDE];
 	protected int baseVertexIndex = 0;
+	protected int firstVertexIndex = 0;
 
 	protected int normalBase;
 	protected int overlayFlags;
-	protected int spriteId = -1;
-	protected float u0;
-	protected float v0;
-	protected float uSpanInv;
-	protected float vSpanInv;
 	protected boolean conditionActive = true;
 	protected boolean didPopulateNormal = false;
 
-	public WipVertexCollector sprite(Sprite sprite) {
-		if (materialState.texture.isAtlas()) {
-			spriteId = ((SpriteExt) sprite).canvas_id();
-			u0 = sprite.getMinU();
-			v0 = sprite.getMinV();
-			uSpanInv = 1f / (sprite.getMaxU() - u0);
-			vSpanInv = 1f / (sprite.getMaxV() - v0);
-		} else {
-			spriteId = -1;
-		}
-
-		return this;
-	}
-
-	public WipVertexCollector spriteId(int spriteId) {
-		// PERF: yeeesh - avoid using this
-		if (materialState.texture.isAtlas()) {
-			this.spriteId = spriteId;
-			final Sprite sprite = materialState.texture.atlasInfo().fromId(spriteId);
-			u0 = sprite.getMinU();
-			v0 = sprite.getMinV();
-			uSpanInv = 1f / (sprite.getMaxU() - u0);
-			vSpanInv = 1f / (sprite.getMaxV() - v0);
-		} else {
-			spriteId = -1;
-		}
-
-		return this;
-	}
-
 	@Override
 	public WipVertexCollector texture(float u, float v) {
-		if (spriteId != -1) {
-			u = (u - u0) * uSpanInv;
-			v = (v - v0) * vSpanInv;
-		}
-
-		vertexData[baseVertexIndex + MATERIAL_TEXTURE_INDEX] = Math.round(u * MeshEncodingHelper.UV_UNIT_VALUE) | (Math.round(v * MeshEncodingHelper.UV_UNIT_VALUE) << 16);
-		vertexData[baseVertexIndex + MATERIAL_MATERIAL_INDEX] = spriteId & 0xFFFF;
+		vertexData[baseVertexIndex + MATERIAL_TEXTURE_INDEX] = Float.floatToRawIntBits(u);
+		vertexData[baseVertexIndex + MATERIAL_MATERIAL_INDEX] = Float.floatToRawIntBits(v);
 		return this;
 	}
 
@@ -140,26 +101,67 @@ public abstract class WipAbstractVertexCollector implements WipVertexCollector {
 		return this;
 	}
 
-	// packed unsigned shorts
-	@Override
-	public WipVertexCollector texture(int packedTexture) {
-		vertexData[baseVertexIndex + MATERIAL_TEXTURE_INDEX] = packedTexture;
-		vertexData[baseVertexIndex + MATERIAL_MATERIAL_INDEX] = spriteId & 0xFFFF;
-		return this;
-	}
-
-	@Override
-	public WipVertexCollector texture(int packedTexture, int spriteId) {
-		vertexData[baseVertexIndex + MATERIAL_TEXTURE_INDEX] = packedTexture;
-		vertexData[baseVertexIndex + MATERIAL_MATERIAL_INDEX] = spriteId & 0xFFFF;
-		return this;
-	}
-
 	@Override
 	public WipVertexCollector normal(float x, float y, float z) {
 		vertexData[baseVertexIndex + MATERIAL_NORMAL_INDEX] = NormalHelper.packUnsignedNormal(x, y, z) | normalBase | overlayFlags;
 		didPopulateNormal = true;
 		return this;
+	}
+
+	private void normalizeSprites() {
+		if (materialState.texture.isAtlas()) {
+			normalizeAtlasSprites();
+		} else {
+			final float u0 = Float.intBitsToFloat(vertexData[firstVertexIndex + MATERIAL_TEXTURE_INDEX]);
+			final float v0 = Float.intBitsToFloat(vertexData[firstVertexIndex + MATERIAL_MATERIAL_INDEX]);
+			vertexData[firstVertexIndex + MATERIAL_TEXTURE_INDEX] = Math.round(u0 * MeshEncodingHelper.UV_UNIT_VALUE) | (Math.round(v0 * MeshEncodingHelper.UV_UNIT_VALUE) << 16);
+			vertexData[firstVertexIndex + MATERIAL_MATERIAL_INDEX] = 0;
+
+			final float u1 = Float.intBitsToFloat(vertexData[firstVertexIndex + MATERIAL_TEXTURE_INDEX + MATERIAL_VERTEX_STRIDE]);
+			final float v1 = Float.intBitsToFloat(vertexData[firstVertexIndex + MATERIAL_MATERIAL_INDEX + MATERIAL_VERTEX_STRIDE]);
+			vertexData[firstVertexIndex + MATERIAL_TEXTURE_INDEX + MATERIAL_VERTEX_STRIDE] = Math.round(u1 * MeshEncodingHelper.UV_UNIT_VALUE) | (Math.round(v1 * MeshEncodingHelper.UV_UNIT_VALUE) << 16);
+			vertexData[firstVertexIndex + MATERIAL_MATERIAL_INDEX + MATERIAL_VERTEX_STRIDE] = 0;
+
+			final float u2 = Float.intBitsToFloat(vertexData[firstVertexIndex + MATERIAL_TEXTURE_INDEX + MATERIAL_VERTEX_STRIDE * 2]);
+			final float v2 = Float.intBitsToFloat(vertexData[firstVertexIndex + MATERIAL_MATERIAL_INDEX + MATERIAL_VERTEX_STRIDE * 2]);
+			vertexData[firstVertexIndex + MATERIAL_TEXTURE_INDEX + MATERIAL_VERTEX_STRIDE * 2] = Math.round(u2 * MeshEncodingHelper.UV_UNIT_VALUE) | (Math.round(v2 * MeshEncodingHelper.UV_UNIT_VALUE) << 16);
+			vertexData[firstVertexIndex + MATERIAL_MATERIAL_INDEX + MATERIAL_VERTEX_STRIDE * 2] = 0;
+
+			final float u3 = Float.intBitsToFloat(vertexData[firstVertexIndex + MATERIAL_TEXTURE_INDEX + MATERIAL_VERTEX_STRIDE * 3]);
+			final float v3 = Float.intBitsToFloat(vertexData[firstVertexIndex + MATERIAL_MATERIAL_INDEX + MATERIAL_VERTEX_STRIDE * 3]);
+			vertexData[firstVertexIndex + MATERIAL_TEXTURE_INDEX + MATERIAL_VERTEX_STRIDE * 3] =Math.round(u3 * MeshEncodingHelper.UV_UNIT_VALUE) | (Math.round(v3 * MeshEncodingHelper.UV_UNIT_VALUE) << 16);
+			vertexData[firstVertexIndex + MATERIAL_MATERIAL_INDEX + MATERIAL_VERTEX_STRIDE * 3] = 0;
+		}
+	}
+
+	private static final float ONE_THIRD = 1f / 3f;
+
+	private void normalizeAtlasSprites() {
+		final float u0 = Float.intBitsToFloat(vertexData[firstVertexIndex + MATERIAL_TEXTURE_INDEX]);
+		final float v0 = Float.intBitsToFloat(vertexData[firstVertexIndex + MATERIAL_MATERIAL_INDEX]);
+		final float u1 = Float.intBitsToFloat(vertexData[firstVertexIndex + MATERIAL_TEXTURE_INDEX + MATERIAL_VERTEX_STRIDE]);
+		final float v1 = Float.intBitsToFloat(vertexData[firstVertexIndex + MATERIAL_MATERIAL_INDEX + MATERIAL_VERTEX_STRIDE]);
+		final float u2 = Float.intBitsToFloat(vertexData[firstVertexIndex + MATERIAL_TEXTURE_INDEX + MATERIAL_VERTEX_STRIDE * 2]);
+		final float v2 = Float.intBitsToFloat(vertexData[firstVertexIndex + MATERIAL_MATERIAL_INDEX + MATERIAL_VERTEX_STRIDE * 2]);
+		final float u3 = Float.intBitsToFloat(vertexData[firstVertexIndex + MATERIAL_TEXTURE_INDEX + MATERIAL_VERTEX_STRIDE * 3]);
+		final float v3 = Float.intBitsToFloat(vertexData[firstVertexIndex + MATERIAL_MATERIAL_INDEX + MATERIAL_VERTEX_STRIDE * 3]);
+
+		final Sprite sprite = materialState.texture.atlasInfo().spriteFinder().find((u0 + u1 + u2) * ONE_THIRD, (v0 + v1 + v2) * ONE_THIRD);
+		final int spriteId = ((SpriteExt) sprite).canvas_id();
+		final float uMin = sprite.getMinU();
+		final float vMin = sprite.getMinV();
+		final float uSpanInv = 1f / (sprite.getMaxU() - uMin);
+		final float vSpanInv = 1f / (sprite.getMaxV() - vMin);
+
+		vertexData[firstVertexIndex + MATERIAL_TEXTURE_INDEX] = Math.round((u0 - uMin) * uSpanInv * MeshEncodingHelper.UV_UNIT_VALUE) | (Math.round((v0 - vMin) * vSpanInv * MeshEncodingHelper.UV_UNIT_VALUE) << 16);
+		vertexData[firstVertexIndex + MATERIAL_TEXTURE_INDEX + MATERIAL_VERTEX_STRIDE] = Math.round((u1 - uMin) * uSpanInv * MeshEncodingHelper.UV_UNIT_VALUE) | (Math.round((v1 - vMin) * vSpanInv * MeshEncodingHelper.UV_UNIT_VALUE) << 16);
+		vertexData[firstVertexIndex + MATERIAL_TEXTURE_INDEX + MATERIAL_VERTEX_STRIDE * 2] = Math.round((u2 - uMin) * uSpanInv * MeshEncodingHelper.UV_UNIT_VALUE) | (Math.round((v2 - vMin) * vSpanInv * MeshEncodingHelper.UV_UNIT_VALUE) << 16);
+		vertexData[firstVertexIndex + MATERIAL_TEXTURE_INDEX + MATERIAL_VERTEX_STRIDE * 3] = Math.round((u3 - uMin) * uSpanInv * MeshEncodingHelper.UV_UNIT_VALUE) | (Math.round((v3 - vMin) * vSpanInv * MeshEncodingHelper.UV_UNIT_VALUE) << 16);
+
+		vertexData[firstVertexIndex + MATERIAL_MATERIAL_INDEX] = spriteId;
+		vertexData[firstVertexIndex + MATERIAL_MATERIAL_INDEX + MATERIAL_VERTEX_STRIDE] = spriteId;
+		vertexData[firstVertexIndex + MATERIAL_MATERIAL_INDEX + MATERIAL_VERTEX_STRIDE * 2] = spriteId;
+		vertexData[firstVertexIndex + MATERIAL_MATERIAL_INDEX + MATERIAL_VERTEX_STRIDE * 3] = spriteId;
 	}
 
 	@Override
@@ -172,6 +174,7 @@ public abstract class WipAbstractVertexCollector implements WipVertexCollector {
 
 		if (base == LAST_VERTEX_BASE_INDEX) {
 			baseVertexIndex = 0;
+			normalizeSprites();
 			emitQuad();
 		} else {
 			baseVertexIndex = base + MATERIAL_VERTEX_STRIDE;

@@ -17,15 +17,8 @@
 package grondag.canvas.mixin;
 
 import grondag.canvas.varia.CanvasMath;
-import grondag.canvas.wip.encoding.WipVertexCollectorImpl;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
-
-import static grondag.canvas.wip.encoding.WipVertexCollector.NORMALIZED_U0_V0;
-import static grondag.canvas.wip.encoding.WipVertexCollector.NORMALIZED_U0_V1;
-import static grondag.canvas.wip.encoding.WipVertexCollector.NORMALIZED_U1_V0;
-import static grondag.canvas.wip.encoding.WipVertexCollector.NORMALIZED_U1_V1;
-import static grondag.canvas.wip.encoding.WipVertexCollector.packColorFromFloats;
 
 import net.minecraft.client.particle.BillboardParticle;
 import net.minecraft.client.particle.SpriteBillboardParticle;
@@ -38,6 +31,7 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Quaternion;
 import net.minecraft.util.math.Vec3d;
 
+// WIP: still need this now that sprite detection is automatic?
 @Mixin(SpriteBillboardParticle.class)
 public abstract class MixinSpriteBillboardParticle extends BillboardParticle {
 	@Shadow protected Sprite sprite;
@@ -75,48 +69,47 @@ public abstract class MixinSpriteBillboardParticle extends BillboardParticle {
 		final float scale = getSize(tickDelta);
 		final int light = getColorMultiplier(tickDelta);
 
-		if (vertexConsumer instanceof WipVertexCollectorImpl) {
-			final WipVertexCollectorImpl vc = (WipVertexCollectorImpl) vertexConsumer;
-			vc.sprite(sprite);
+		//		if (vertexConsumer instanceof WipVertexCollectorImpl) {
+		//			final WipVertexCollectorImpl vc = (WipVertexCollectorImpl) vertexConsumer;
+		//
+		//			final int color = packColorFromFloats(colorRed, colorGreen, colorBlue, colorAlpha);
+		//
+		//			vec.set(-1.0F, -1.0F, 0.0F);
+		//			CanvasMath.applyBillboardRotation(pos, rotation);
+		//			vc.vertex(cx + pos.getX() * scale, cy + pos.getY() * scale, cz + pos.getZ() * scale).texture(NORMALIZED_U1_V1).color(color).light(light).next();
+		//
+		//			vec.set(-1.0F, 1.0F, 0.0F);
+		//			CanvasMath.applyBillboardRotation(pos, rotation);
+		//			vc.vertex(cx + pos.getX() * scale, cy + pos.getY() * scale, cz + pos.getZ() * scale).texture(NORMALIZED_U1_V0).color(color).light(light).next();
+		//
+		//			vec.set(1.0F, 1.0F, 0.0F);
+		//			CanvasMath.applyBillboardRotation(pos, rotation);
+		//			vc.vertex(cx + pos.getX() * scale, cy + pos.getY() * scale, cz + pos.getZ() * scale).texture(NORMALIZED_U0_V0).color(color).light(light).next();
+		//
+		//			vec.set(1.0F, -1.0F, 0.0F);
+		//			CanvasMath.applyBillboardRotation(pos, rotation);
+		//			vc.vertex(cx + pos.getX() * scale, cy + pos.getY() * scale, cz + pos.getZ() * scale).texture(NORMALIZED_U0_V1).color(color).light(light).next();
+		//		} else {
+		final float l = getMinU();
+		final float m = getMaxU();
+		final float n = getMinV();
+		final float o = getMaxV();
 
-			final int color = packColorFromFloats(colorRed, colorGreen, colorBlue, colorAlpha);
+		vec.set(-1.0F, -1.0F, 0.0F);
+		CanvasMath.applyBillboardRotation(pos, rotation);
+		vertexConsumer.vertex(cx + pos.getX() * scale, cy + pos.getY() * scale, cz + pos.getZ() * scale).texture(m, o).color(colorRed, colorGreen, colorBlue, colorAlpha).light(light).next();
 
-			vec.set(-1.0F, -1.0F, 0.0F);
-			CanvasMath.applyBillboardRotation(pos, rotation);
-			vc.vertex(cx + pos.getX() * scale, cy + pos.getY() * scale, cz + pos.getZ() * scale).texture(NORMALIZED_U1_V1).color(color).light(light).next();
+		vec.set(-1.0F, 1.0F, 0.0F);
+		CanvasMath.applyBillboardRotation(pos, rotation);
+		vertexConsumer.vertex(cx + pos.getX() * scale, cy + pos.getY() * scale, cz + pos.getZ() * scale).texture(m, n).color(colorRed, colorGreen, colorBlue, colorAlpha).light(light).next();
 
-			vec.set(-1.0F, 1.0F, 0.0F);
-			CanvasMath.applyBillboardRotation(pos, rotation);
-			vc.vertex(cx + pos.getX() * scale, cy + pos.getY() * scale, cz + pos.getZ() * scale).texture(NORMALIZED_U1_V0).color(color).light(light).next();
+		vec.set(1.0F, 1.0F, 0.0F);
+		CanvasMath.applyBillboardRotation(pos, rotation);
+		vertexConsumer.vertex(cx + pos.getX() * scale, cy + pos.getY() * scale, cz + pos.getZ() * scale).texture(l, n).color(colorRed, colorGreen, colorBlue, colorAlpha).light(light).next();
 
-			vec.set(1.0F, 1.0F, 0.0F);
-			CanvasMath.applyBillboardRotation(pos, rotation);
-			vc.vertex(cx + pos.getX() * scale, cy + pos.getY() * scale, cz + pos.getZ() * scale).texture(NORMALIZED_U0_V0).color(color).light(light).next();
-
-			vec.set(1.0F, -1.0F, 0.0F);
-			CanvasMath.applyBillboardRotation(pos, rotation);
-			vc.vertex(cx + pos.getX() * scale, cy + pos.getY() * scale, cz + pos.getZ() * scale).texture(NORMALIZED_U0_V1).color(color).light(light).next();
-		} else {
-			final float l = getMinU();
-			final float m = getMaxU();
-			final float n = getMinV();
-			final float o = getMaxV();
-
-			vec.set(-1.0F, -1.0F, 0.0F);
-			CanvasMath.applyBillboardRotation(pos, rotation);
-			vertexConsumer.vertex(cx + pos.getX() * scale, cy + pos.getY() * scale, cz + pos.getZ() * scale).texture(m, o).color(colorRed, colorGreen, colorBlue, colorAlpha).light(light).next();
-
-			vec.set(-1.0F, 1.0F, 0.0F);
-			CanvasMath.applyBillboardRotation(pos, rotation);
-			vertexConsumer.vertex(cx + pos.getX() * scale, cy + pos.getY() * scale, cz + pos.getZ() * scale).texture(m, n).color(colorRed, colorGreen, colorBlue, colorAlpha).light(light).next();
-
-			vec.set(1.0F, 1.0F, 0.0F);
-			CanvasMath.applyBillboardRotation(pos, rotation);
-			vertexConsumer.vertex(cx + pos.getX() * scale, cy + pos.getY() * scale, cz + pos.getZ() * scale).texture(l, n).color(colorRed, colorGreen, colorBlue, colorAlpha).light(light).next();
-
-			vec.set(1.0F, -1.0F, 0.0F);
-			CanvasMath.applyBillboardRotation(pos, rotation);
-			vertexConsumer.vertex(cx + pos.getX() * scale, cy + pos.getY() * scale, cz + pos.getZ() * scale).texture(l, o).color(colorRed, colorGreen, colorBlue, colorAlpha).light(light).next();
-		}
+		vec.set(1.0F, -1.0F, 0.0F);
+		CanvasMath.applyBillboardRotation(pos, rotation);
+		vertexConsumer.vertex(cx + pos.getX() * scale, cy + pos.getY() * scale, cz + pos.getZ() * scale).texture(l, o).color(colorRed, colorGreen, colorBlue, colorAlpha).light(light).next();
+		//		}
 	}
 }

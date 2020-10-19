@@ -32,7 +32,6 @@
 	"MixinSpriteAtlasTexture",
 	"MixinSpriteAtlasTextureData",
 	"MixinSpriteBillboardParticle",
-	"MixinSpriteTexturedVertexConsumer",
 	"MixinRenderLayer",
 	"MixinVideoOptionsScreen",
 	"MixinWindow",
