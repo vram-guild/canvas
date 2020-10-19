@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import grondag.canvas.apiimpl.Canvas;
-import grondag.canvas.apiimpl.material.MeshMaterialLocator;
+import grondag.canvas.apiimpl.material.MeshMaterial;
 import grondag.canvas.apiimpl.mesh.MeshEncodingHelper;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.util.FaceConstants;
@@ -32,6 +32,7 @@ import net.minecraft.client.render.model.BakedModel;
 import net.minecraft.client.render.model.BakedQuad;
 import net.minecraft.util.math.Direction;
 
+import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 
 /**
@@ -54,18 +55,61 @@ import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
  * manipulating the data via NIO.
  */
 public class FallbackConsumer implements Consumer<BakedModel> {
-	protected static MeshMaterialLocator MATERIAL_FLAT = Canvas.INSTANCE.materialFinder().disableDiffuse(true).disableAo(true).find();
-	protected static MeshMaterialLocator MATERIAL_SHADED = Canvas.INSTANCE.materialFinder().disableAo(true).find();
-	protected static MeshMaterialLocator MATERIAL_AO_FLAT = Canvas.INSTANCE.materialFinder().disableDiffuse(true).find();
-	protected static MeshMaterialLocator MATERIAL_AO_SHADED = Canvas.INSTANCE.materialFinder().find();
+	protected static final int BLEND_MODE_COUNT;
+	protected static final int FLAT_INDEX_START;
+	protected static final int SHADED_INDEX_START;
+	protected static final int AO_FLAT_INDEX_START;
+	protected static final int AO_SHADED_INDEX_START;
+
+	protected static final MeshMaterial[] MATERIALS;
+
+	static {
+		final BlendMode[] modes = BlendMode.values();
+
+		BLEND_MODE_COUNT = modes.length;
+		FLAT_INDEX_START = 0;
+		SHADED_INDEX_START = FLAT_INDEX_START + BLEND_MODE_COUNT;
+		AO_FLAT_INDEX_START = SHADED_INDEX_START + BLEND_MODE_COUNT;
+		AO_SHADED_INDEX_START = AO_FLAT_INDEX_START + BLEND_MODE_COUNT;
+		MATERIALS = new MeshMaterial[AO_SHADED_INDEX_START + BLEND_MODE_COUNT];
+
+		for (int i = 0; i < BLEND_MODE_COUNT; ++i) {
+			final BlendMode b = modes[i];
+
+			if (b == BlendMode.DEFAULT) {
+				continue;
+			}
+
+			MATERIALS[FLAT_INDEX_START + i] = Canvas.INSTANCE.materialFinder().blendMode(b).disableDiffuse(true).disableAo(true).find();
+			MATERIALS[SHADED_INDEX_START + i] = Canvas.INSTANCE.materialFinder().blendMode(b).disableAo(true).find();
+			MATERIALS[AO_FLAT_INDEX_START + i] = Canvas.INSTANCE.materialFinder().blendMode(b).disableDiffuse(true).find();
+			MATERIALS[AO_SHADED_INDEX_START + i] = Canvas.INSTANCE.materialFinder().blendMode(b).find();
+		}
+	}
+
+	protected MeshMaterial flatMaterial() {
+		return MATERIALS[FLAT_INDEX_START + context.defaultBlendMode().ordinal()];
+	}
+
+	protected MeshMaterial shadedMaterial() {
+		return MATERIALS[SHADED_INDEX_START + context.defaultBlendMode().ordinal()];
+	}
+
+	protected MeshMaterial aoFlatMaterial() {
+		return MATERIALS[AO_FLAT_INDEX_START + context.defaultBlendMode().ordinal()];
+	}
+
+	protected MeshMaterial aoShadedMaterial() {
+		return MATERIALS[AO_SHADED_INDEX_START + context.defaultBlendMode().ordinal()];
+	}
 
 	protected final AbstractRenderContext context;
 
 	private final int[] editorBuffer = new int[MeshEncodingHelper.MAX_QUAD_STRIDE];
+
 	private final MutableQuadViewImpl editorQuad = new MutableQuadViewImpl() {
 		{
 			data = editorBuffer;
-			material(MATERIAL_SHADED);
 		}
 
 		@Override
@@ -100,11 +144,11 @@ public class FallbackConsumer implements Consumer<BakedModel> {
 		if (count != 0 && context.cullTest(faceIndex)) {
 			if (count == 1) {
 				final BakedQuad q = quads.get(0);
-				renderQuad(q, faceIndex, q.hasShade() ? (useAo ? MATERIAL_AO_SHADED : MATERIAL_SHADED) : (useAo ? MATERIAL_AO_FLAT : MATERIAL_FLAT));
+				renderQuad(q, faceIndex, q.hasShade() ? (useAo ? aoShadedMaterial() : shadedMaterial()) : (useAo ? aoFlatMaterial() : flatMaterial()));
 			} else { // > 1
 				for (int j = 0; j < count; j++) {
 					final BakedQuad q = quads.get(j);
-					renderQuad(q, faceIndex, q.hasShade() ? (useAo ? MATERIAL_AO_SHADED : MATERIAL_SHADED) : (useAo ? MATERIAL_AO_FLAT : MATERIAL_FLAT));
+					renderQuad(q, faceIndex, q.hasShade() ? (useAo ? aoShadedMaterial() : shadedMaterial()) : (useAo ? aoFlatMaterial() : flatMaterial()));
 				}
 			}
 		}
@@ -114,18 +158,18 @@ public class FallbackConsumer implements Consumer<BakedModel> {
 		final int count = quads.size();
 		if (count == 1) {
 			final BakedQuad q = quads.get(0);
-			renderQuad(q, ModelHelper.NULL_FACE_ID, q.hasShade() ? (useAo ? MATERIAL_AO_SHADED : MATERIAL_SHADED) : (useAo ? MATERIAL_AO_FLAT : MATERIAL_FLAT));
+			renderQuad(q, ModelHelper.NULL_FACE_ID, q.hasShade() ? (useAo ? aoShadedMaterial() : shadedMaterial()) : (useAo ? aoFlatMaterial() : flatMaterial()));
 		} else if (count > 1) {
 			for (int j = 0; j < count; j++) {
 				final BakedQuad q = quads.get(j);
-				renderQuad(q, ModelHelper.NULL_FACE_ID, q.hasShade() ? (useAo ? MATERIAL_AO_SHADED : MATERIAL_SHADED) : (useAo ? MATERIAL_AO_FLAT : MATERIAL_FLAT));
+				renderQuad(q, ModelHelper.NULL_FACE_ID, q.hasShade() ? (useAo ? aoShadedMaterial() : shadedMaterial()) : (useAo ? aoFlatMaterial() : flatMaterial()));
 			}
 		}
 	}
 
-	private void renderQuad(BakedQuad quad, int cullFaceId, MeshMaterialLocator defaultMaterial) {
+	private void renderQuad(BakedQuad quad, int cullFaceId, MeshMaterial mat) {
 		final MutableQuadViewImpl editorQuad = this.editorQuad;
-		editorQuad.fromVanilla(quad, defaultMaterial, cullFaceId);
+		editorQuad.fromVanilla(quad, mat, cullFaceId);
 		context.mapMaterials(editorQuad);
 
 		if (context.hasTransform()) {
@@ -136,10 +180,14 @@ public class FallbackConsumer implements Consumer<BakedModel> {
 			// Can't rely on lazy computation in tesselate because needs to happen before offsets are applied
 			editorQuad.geometryFlags();
 			editorQuad.unmapSpritesIfNeeded();
+			mat = editorQuad.material();
 		}
 
-		final MeshMaterialLocator mat = editorQuad.material().withDefaultBlendMode(context.defaultBlendModeIndex());
-		editorQuad.material(mat);
+		if (mat.blendMode() == BlendMode.DEFAULT) {
+			mat = context.finder.copyFrom(mat).blendMode(context.defaultBlendMode()).find();
+			editorQuad.material(mat);
+		}
+
 		VertexEncoders.get(context.materialContext(), mat).encodeQuad(editorQuad, context);
 	}
 }

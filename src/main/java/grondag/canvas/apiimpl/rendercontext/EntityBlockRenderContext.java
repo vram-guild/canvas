@@ -26,7 +26,10 @@ import grondag.canvas.render.CanvasWorldRenderer;
 import grondag.fermion.sc.concurrency.SimpleConcurrentList;
 
 import net.minecraft.block.BlockState;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.RenderLayers;
+import net.minecraft.client.render.TexturedRenderLayers;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.block.BlockModelRenderer;
@@ -37,6 +40,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.BlockRenderView;
 
+import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
 
 /**
@@ -132,7 +136,41 @@ public class EntityBlockRenderContext extends AbstractBlockRenderContext<BlockRe
 	@Override
 	public VertexConsumer consumer(MeshMaterial mat) {
 		didOutput = true;
-		return bufferBuilder;
+
+		if (bufferProvider == null) {
+			return bufferBuilder;
+		} else {
+			BlendMode bm = mat.blendMode();
+
+			if (bm == BlendMode.DEFAULT) {
+				bm = defaultBlendMode();
+			}
+
+			RenderLayer layer;
+
+			switch (bm) {
+				case CUTOUT:
+				case CUTOUT_MIPPED:
+					// WIP2: should be addressed by new pipeline - cutout isn't mipped
+					layer = mat.disableDiffuse() ? RenderLayer.getCutout() : TexturedRenderLayers.getEntityCutout();
+					break;
+				case TRANSLUCENT:
+					// WIP2: should be addessed by new pipeline - only moving blocks are supposed to have item target
+					if (!MinecraftClient.isFabulousGraphicsOrBetter()) {
+						layer = mat.disableDiffuse() ? RenderLayer.getTranslucent() : TexturedRenderLayers.getEntityTranslucentCull();
+					} else {
+						layer = mat.disableDiffuse() ? RenderLayer.getTranslucent() : TexturedRenderLayers.getItemEntityTranslucentCull();
+					}
+					break;
+				case DEFAULT:
+				case SOLID:
+				default:
+					layer = mat.disableDiffuse() ? RenderLayer.getSolid() : TexturedRenderLayers.getEntitySolid();
+					break;
+			}
+
+			return bufferProvider.getBuffer(layer);
+		}
 	}
 
 	@Override
@@ -148,5 +186,10 @@ public class EntityBlockRenderContext extends AbstractBlockRenderContext<BlockRe
 	@Override
 	protected int fastBrightness(BlockState blockState, BlockPos pos) {
 		return light;
+	}
+
+	@Override
+	protected void adjustMaterial() {
+		finder.disableAo(true);
 	}
 }

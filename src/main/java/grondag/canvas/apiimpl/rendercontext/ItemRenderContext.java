@@ -27,14 +27,28 @@ import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.MinecraftClientExt;
 import grondag.fermion.sc.concurrency.SimpleConcurrentList;
 
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.StainedGlassPaneBlock;
+import net.minecraft.block.TransparentBlock;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.color.item.ItemColors;
+import net.minecraft.client.render.RenderLayer;
+import net.minecraft.client.render.RenderLayers;
+import net.minecraft.client.render.TexturedRenderLayers;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
+import net.minecraft.client.render.item.BuiltinModelItemRenderer;
+import net.minecraft.client.render.item.ItemModels;
+import net.minecraft.client.render.item.ItemRenderer;
+import net.minecraft.client.render.model.BakedModel;
+import net.minecraft.client.render.model.json.ModelTransformation;
 import net.minecraft.client.render.model.json.ModelTransformation.Mode;
+import net.minecraft.client.util.ModelIdentifier;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
@@ -68,7 +82,11 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 		result.setSeed(ITEM_RANDOM_SEED);
 		return random;
 	};
-	private VertexConsumer modelVertexConsumer;
+	private MatrixStack matrices;
+	private Mode renderMode;
+	private RenderLayer defaultRenderLayer;
+	private VertexConsumerProvider bufferProvider;
+	private VertexConsumer defaultConsumer;
 	private int lightmap;
 	private ItemStack itemStack;
 
@@ -87,25 +105,6 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 	public static ItemRenderContext get() {
 		return POOL.get();
 	}
-
-	public void renderModel(ItemStack itemStack, Mode transformMode, boolean invert, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, VertexConsumer modelConsumer, int lightmap, int overlay, FabricBakedModel model) {
-		this.lightmap = lightmap;
-		this.overlay = overlay;
-		this.itemStack = itemStack;
-		modelVertexConsumer = modelConsumer;
-		matrixStack.push();
-
-		matrix = matrixStack.peek().getModel();
-		normalMatrix = (Matrix3fExt) (Object) matrixStack.peek().getNormal();
-
-		model.emitItemQuads(itemStack, randomSupplier, this);
-
-		matrixStack.pop();
-
-		this.itemStack = null;
-		modelVertexConsumer = null;
-	}
-
 
 	@Override
 	public EncodingContext materialContext() {
@@ -129,12 +128,29 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 
 	@Override
 	public VertexConsumer consumer(MeshMaterial mat) {
-		// WIP2: really can't honor per-quad materials in the current setup
-		// and also honor default model render layer because default blend mode
-		// is transformed to something specific before we get here, and the
-		// vanilla logic for model default layer is monstrous - see ItemRenderer
-		// For now, always use the model default
-		return modelVertexConsumer;
+		// WIP2: will need to allow for/handle other material properties here when switching to material state
+		// routing to the default consumer may not be correct
+		// standard vanilla consumers may also be incorrect
+
+		if (bufferProvider == null) {
+			return defaultConsumer;
+		} else {
+			final BlendMode bm = mat.blendMode();
+
+			if (bm == BlendMode.DEFAULT) {
+				return defaultConsumer;
+			}
+
+			if (bm == BlendMode.TRANSLUCENT) {
+				if (!MinecraftClient.isFabulousGraphicsOrBetter()) {
+					return getCompoundConsumer(TexturedRenderLayers.getEntityTranslucentCull());
+				} else {
+					return getCompoundConsumer(isDirect ? TexturedRenderLayers.getEntityTranslucentCull() : TexturedRenderLayers.getItemEntityTranslucentCull());
+				}
+			} else {
+				return getCompoundConsumer(TexturedRenderLayers.getEntityCutout());
+			}
+		}
 	}
 
 	@Override
@@ -158,7 +174,80 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 	}
 
 	@Override
-	protected int defaultBlendModeIndex() {
-		return BlendMode.TRANSLUCENT.ordinal();
+	protected BlendMode defaultBlendMode() {
+		return BlendMode.TRANSLUCENT;
+	}
+
+	private boolean isDirect;
+
+	public void renderItem(ItemModels models, ItemStack stack, Mode renderMode, boolean leftHanded, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, int overlay, BakedModel model) {
+		if (stack.isEmpty()) return;
+
+		lightmap = light;
+		this.overlay = overlay;
+		this.matrices = matrices;
+		this.renderMode = renderMode;
+		itemStack = stack;
+		bufferProvider = vertexConsumers;
+
+		matrices.push();
+		final boolean detachedPerspective = renderMode == ModelTransformation.Mode.GUI || renderMode == ModelTransformation.Mode.GROUND || renderMode == ModelTransformation.Mode.FIXED;
+
+		if (stack.getItem() == Items.TRIDENT && detachedPerspective) {
+			model = models.getModelManager().getModel(new ModelIdentifier("minecraft:trident#inventory"));
+		}
+
+		// PERF: optimize matrix stack operations
+		model.getTransformation().getTransformation(renderMode).apply(leftHanded, matrices);
+		matrices.translate(-0.5D, -0.5D, -0.5D);
+
+		matrix = matrices.peek().getModel();
+		normalMatrix = (Matrix3fExt) (Object) matrices.peek().getNormal();
+
+		if (model.isBuiltin() || stack.getItem() == Items.TRIDENT && !detachedPerspective) {
+			BuiltinModelItemRenderer.INSTANCE.render(stack, renderMode, matrices, vertexConsumers, light, overlay);
+		} else {
+			if (renderMode != ModelTransformation.Mode.GUI && !renderMode.isFirstPerson() && stack.getItem() instanceof BlockItem) {
+				final Block block = ((BlockItem)stack.getItem()).getBlock();
+				isDirect = !(block instanceof TransparentBlock) && !(block instanceof StainedGlassPaneBlock);
+			} else {
+				isDirect = true;
+			}
+
+			defaultRenderLayer = RenderLayers.getItemLayer(stack, isDirect);
+			defaultConsumer = getCompoundConsumer(defaultRenderLayer);
+			((FabricBakedModel) model).emitItemQuads(itemStack, randomSupplier, this);
+		}
+
+		matrices.pop();
+
+	}
+
+	private VertexConsumer getCompoundConsumer(RenderLayer layer) {
+		if (itemStack.getItem() == Items.COMPASS && itemStack.hasGlint()) {
+			// WTAF MOJANG
+			VertexConsumer result;
+			matrices.push();
+			final MatrixStack.Entry entry = matrices.peek();
+
+			if (renderMode == ModelTransformation.Mode.GUI) {
+				entry.getModel().multiply(0.5F);
+			} else if (renderMode.isFirstPerson()) {
+				entry.getModel().multiply(0.75F);
+			}
+
+			if (isDirect) {
+				result = ItemRenderer.getDirectCompassGlintConsumer(bufferProvider, layer, entry);
+			} else {
+				result = ItemRenderer.getCompassGlintConsumer(bufferProvider, layer, entry);
+			}
+
+			matrices.pop();
+			return result;
+		} else if (isDirect) {
+			return ItemRenderer.getDirectItemGlintConsumer(bufferProvider, layer, true, itemStack.hasGlint());
+		} else {
+			return ItemRenderer.getItemGlintConsumer(bufferProvider, layer, true, itemStack.hasGlint());
+		}
 	}
 }

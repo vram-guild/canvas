@@ -19,8 +19,6 @@ package grondag.canvas.apiimpl.material;
 import grondag.canvas.apiimpl.MaterialConditionImpl;
 import grondag.canvas.shader.MaterialShaderManager;
 import grondag.fermion.bits.BitPacker64;
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 
@@ -36,8 +34,7 @@ public abstract class AbstractMeshMaterial {
 	static final BitPacker64<AbstractMeshMaterial>.EnumElement<BlendMode> BLEND_MODE = BITPACKER_0.createEnumElement(BlendMode.class);
 	static final BitPacker64<AbstractMeshMaterial>.IntElement SHADER = BITPACKER_0.createIntElement(MaterialShaderManager.MAX_SHADERS);
 	static final BitPacker64<AbstractMeshMaterial>.IntElement CONDITION = BITPACKER_0.createIntElement(MaterialConditionImpl.MAX_CONDITIONS);
-	static final ObjectArrayList<MeshMaterialLocator> LIST = new ObjectArrayList<>();
-	static final Long2ObjectOpenHashMap<MeshMaterialLocator> MAP = new Long2ObjectOpenHashMap<>();
+
 	protected static final long DEFAULT_BITS;
 
 	static {
@@ -66,13 +63,6 @@ public abstract class AbstractMeshMaterial {
 
 	AbstractMeshMaterial(long bits) {
 		this.bits = bits;
-	}
-
-	public static MeshMaterialLocator byIndex(int index) {
-		assert index < LIST.size();
-		assert index >= 0;
-
-		return LIST.get(index);
 	}
 
 	public BlendMode blendMode() {

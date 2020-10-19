@@ -16,8 +16,7 @@
 
 package grondag.canvas.apiimpl.mesh;
 
-import grondag.canvas.apiimpl.material.AbstractMeshMaterial;
-import grondag.canvas.apiimpl.material.MeshMaterialLocator;
+import grondag.canvas.apiimpl.material.MeshMaterial;
 import grondag.canvas.apiimpl.util.GeometryHelper;
 import grondag.canvas.apiimpl.util.NormalHelper;
 import grondag.canvas.mixinterface.Matrix4fExt;
@@ -178,8 +177,8 @@ public class QuadViewImpl implements QuadView {
 	}
 
 	@Override
-	public final MeshMaterialLocator material() {
-		return AbstractMeshMaterial.byIndex(data[baseIndex + HEADER_MATERIAL]);
+	public final MeshMaterial material() {
+		return MeshMaterial.byIndex(data[baseIndex + HEADER_MATERIAL]);
 	}
 
 	@Override

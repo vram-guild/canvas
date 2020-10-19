@@ -22,7 +22,7 @@ import java.util.function.Consumer;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.material.MeshMaterial;
-import grondag.canvas.apiimpl.material.MeshMaterialLocator;
+import grondag.canvas.apiimpl.material.MeshMaterialFinder;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.buffer.encoding.VertexCollectorList;
 import grondag.canvas.buffer.encoding.VertexEncoders;
@@ -41,6 +41,7 @@ import net.minecraft.client.render.model.BakedModel;
 import net.minecraft.client.texture.Sprite;
 import net.minecraft.util.math.Matrix4f;
 
+import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 import net.fabricmc.fabric.api.renderer.v1.material.RenderMaterial;
 import net.fabricmc.fabric.api.renderer.v1.mesh.Mesh;
 import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
@@ -49,6 +50,7 @@ import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 public abstract class AbstractRenderContext implements RenderContext {
 	private static final QuadTransform NO_TRANSFORM = (q) -> true;
 	private static final MaterialMap defaultMap = MaterialMap.defaultMaterialMap();
+	final MeshMaterialFinder finder = new MeshMaterialFinder();
 	public final float[] vecData = new float[3];
 	public final int[] appendData = new int[MaterialVertexFormats.MAX_QUAD_INT_STRIDE];
 	public final VertexCollectorList collectors = new VertexCollectorList();
@@ -197,7 +199,7 @@ public abstract class AbstractRenderContext implements RenderContext {
 		return normalMatrix;
 	}
 
-	protected abstract int defaultBlendModeIndex();
+	protected abstract BlendMode defaultBlendMode();
 
 	public final void renderQuad() {
 		final MutableQuadViewImpl quad = makerQuad;
@@ -214,9 +216,17 @@ public abstract class AbstractRenderContext implements RenderContext {
 		}
 
 		if (cullTest(quad)) {
-			final MeshMaterialLocator mat = quad.material().withDefaultBlendMode(defaultBlendModeIndex());
+			finder.copyFrom(quad.material());
+			adjustMaterial();
+			final MeshMaterial mat = finder.find();
 			quad.material(mat);
 			VertexEncoders.get(materialContext(), mat).encodeQuad(quad, this);
+		}
+	}
+
+	protected void adjustMaterial() {
+		if (finder.blendMode() == BlendMode.DEFAULT) {
+			finder.blendMode(defaultBlendMode()).disableAo();
 		}
 	}
 }

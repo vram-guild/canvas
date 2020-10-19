@@ -46,7 +46,7 @@ public abstract class HdEncoders {
 		final Matrix4fExt matrix = (Matrix4fExt) (Object) context.matrix();
 		final Matrix3fExt normalMatrix = context.normalMatrix();
 		final float[] aoData = quad.ao;
-		final MeshMaterial mat = quad.material().get();
+		final MeshMaterial mat = quad.material();
 		final VertexCollectorImpl buff0 = context.collectors.get(mat);
 		final int[] appendData = context.appendData;
 

@@ -27,6 +27,9 @@ import grondag.fermion.sc.concurrency.SimpleConcurrentList;
 import static grondag.canvas.terrain.RenderRegionAddressHelper.cacheIndexToXyz5;
 
 import net.minecraft.block.BlockState;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.render.RenderLayer;
+import net.minecraft.client.render.TexturedRenderLayers;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.client.render.block.BlockModelRenderer;
@@ -35,6 +38,7 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.BlockRenderView;
 
+import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
 
 /**
@@ -50,6 +54,7 @@ public class BlockRenderContext extends AbstractBlockRenderContext<BlockRenderVi
 	});
 
 	private static ThreadLocal<BlockRenderContext> POOL = POOL_FACTORY.get();
+
 	private final AoCalculator aoCalc = new AoCalculator() {
 		@Override
 		protected int ao(int cacheIndex) {
@@ -142,12 +147,6 @@ public class BlockRenderContext extends AbstractBlockRenderContext<BlockRenderVi
 	}
 
 	@Override
-	public VertexConsumer consumer(MeshMaterial mat) {
-		didOutput = true;
-		return bufferBuilder;
-	}
-
-	@Override
 	public int brightness() {
 		return 0;
 	}
@@ -160,5 +159,50 @@ public class BlockRenderContext extends AbstractBlockRenderContext<BlockRenderVi
 	@Override
 	protected int fastBrightness(BlockState blockState, BlockPos pos) {
 		return WorldRenderer.getLightmapCoordinates(region, blockState, pos);
+	}
+
+	@Override
+	public VertexConsumer consumer(MeshMaterial mat) {
+		didOutput = true;
+
+		if (bufferProvider == null) {
+			return bufferBuilder;
+		} else {
+			BlendMode bm = mat.blendMode();
+
+			if (bm == BlendMode.DEFAULT) {
+				bm = defaultBlendMode();
+			}
+
+			RenderLayer layer;
+
+			switch (bm) {
+				case CUTOUT:
+				case CUTOUT_MIPPED:
+					// WIP2: should be addressed by new pipeline - cutout isn't mipped
+					layer = mat.disableDiffuse() ? RenderLayer.getCutout() : TexturedRenderLayers.getEntityCutout();
+					break;
+				case TRANSLUCENT:
+					// WIP2: should be addessed by new pipeline - only moving blocks are supposed to have item target
+					if (!MinecraftClient.isFabulousGraphicsOrBetter()) {
+						layer = mat.disableDiffuse() ? RenderLayer.getTranslucent() : TexturedRenderLayers.getEntityTranslucentCull();
+					} else {
+						layer = mat.disableDiffuse() ? RenderLayer.getTranslucent() : TexturedRenderLayers.getItemEntityTranslucentCull();
+					}
+					break;
+				case DEFAULT:
+				case SOLID:
+				default:
+					layer = mat.disableDiffuse() ? RenderLayer.getSolid() : TexturedRenderLayers.getEntitySolid();
+					break;
+			}
+
+			return bufferProvider.getBuffer(layer);
+		}
+	}
+
+	@Override
+	protected void adjustMaterial() {
+		finder.disableAo(true);
 	}
 }

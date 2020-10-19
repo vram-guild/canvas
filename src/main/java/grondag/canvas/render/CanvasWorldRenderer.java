@@ -28,6 +28,7 @@ import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
+import grondag.canvas.apiimpl.rendercontext.BlockRenderContext;
 import grondag.canvas.apiimpl.rendercontext.EntityBlockRenderContext;
 import grondag.canvas.buffer.BindStateManager;
 import grondag.canvas.buffer.VboBuffer;
@@ -392,6 +393,9 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		final MinecraftClient mc = wr.canvas_mc();
 		final WorldRenderer mcwr = mc.worldRenderer;
 		final Framebuffer mcfb = mc.getFramebuffer();
+		final BlockRenderContext blockContext = BlockRenderContext.get();
+		final EntityBlockRenderContext entityBlockContext = EntityBlockRenderContext.get();
+
 		updatePlayerLightmap(mc, tickDelta);
 		final ClientWorld world = this.world;
 		final BufferBuilderStorage bufferBuilders = wr.canvas_bufferBuilders();
@@ -513,8 +517,9 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		final Iterator<Entity> entities = world.getEntities().iterator();
 		final ShaderEffect entityOutlineShader = wr.canvas_entityOutlineShader();
 		final BuiltRenderRegion[] visibleRegions = this.visibleRegions;
-		final EntityBlockRenderContext entityBlockContext = EntityBlockRenderContext.get();
 		entityBlockContext.tickDelta(tickDelta);
+		entityBlockContext.bufferProvider = immediate;
+		blockContext.bufferProvider = immediate;
 
 		while (entities.hasNext()) {
 			final Entity entity = entities.next();
@@ -643,6 +648,10 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		CampanionHolder.HANDLER.render(this, matrixStack, tickDelta, limitTime, blockOutlines, camera, gameRenderer, lightmapTextureManager, projectionMatrix);
 		profiler.swap("destroyProgress");
+
+		// honor damage render layer irrespective of model material
+		blockContext.bufferProvider = null;
+
 		final ObjectIterator<Entry<SortedSet<BlockBreakingInfo>>> breakings = wr.canvas_blockBreakingProgressions().long2ObjectEntrySet().iterator();
 
 		while (breakings.hasNext()) {
@@ -666,6 +675,8 @@ public class CanvasWorldRenderer extends WorldRenderer {
 				}
 			}
 		}
+
+		blockContext.bufferProvider = immediate;
 
 		assert matrixStack.isEmpty() : "Matrix stack not empty in world render when expected";
 
@@ -841,6 +852,8 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		RenderSystem.disableBlend();
 		RenderSystem.popMatrix();
 		BackgroundRenderer.method_23792();
+		entityBlockContext.bufferProvider = null;
+		blockContext.bufferProvider = null;
 
 		wr.canvas_setEntityCounts(entityCount, blockEntityCount);
 	}

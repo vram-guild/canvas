@@ -30,22 +30,14 @@ public class MeshMaterialFinder extends AbstractMeshMaterial implements Material
 	}
 
 	@Override
-	public MeshMaterialLocator find() {
-		return findInternal(true);
-	}
-
-	MeshMaterialLocator findInternal(boolean setupVariants) {
-		synchronized(MAP) {
-			MeshMaterialLocator result = MAP.get(bits);
+	public MeshMaterial find() {
+		synchronized(MeshMaterial.MAP) {
+			MeshMaterial result = MeshMaterial.MAP.get(bits);
 
 			if (result == null) {
-				result = new MeshMaterialLocator(LIST.size(), bits);
-				LIST.add(result);
-				MAP.put(bits, result);
-
-				if (setupVariants) {
-					result.setupVariants();
-				}
+				result = new MeshMaterial(MeshMaterial.LIST.size(), bits);
+				MeshMaterial.LIST.add(result);
+				MeshMaterial.MAP.put(bits, result);
 			}
 
 			return result;
@@ -58,7 +50,6 @@ public class MeshMaterialFinder extends AbstractMeshMaterial implements Material
 		return this;
 	}
 
-	@Deprecated
 	@Override
 	public MeshMaterialFinder blendMode(BlendMode blendMode) {
 		if (blendMode == null) {
@@ -107,8 +98,7 @@ public class MeshMaterialFinder extends AbstractMeshMaterial implements Material
 
 	@Override
 	public MeshMaterialFinder copyFrom(RenderMaterial material) {
-		final MeshMaterialLocator source = (MeshMaterialLocator) material;
-		bits =  source.bits;
+		bits =  ((MeshMaterial) material).bits;
 		return this;
 	}
 }

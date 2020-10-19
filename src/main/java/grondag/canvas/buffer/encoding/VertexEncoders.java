@@ -18,7 +18,6 @@ package grondag.canvas.buffer.encoding;
 
 import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.material.MeshMaterial;
-import grondag.canvas.apiimpl.material.MeshMaterialLocator;
 import grondag.canvas.material.EncodingContext;
 import grondag.canvas.material.MaterialState;
 import grondag.canvas.shader.ShaderPass;
@@ -54,8 +53,7 @@ public class VertexEncoders {
 		return (isTranslucent ? TRANSLUCENT_FLAG : 0) | (context.ordinal() << CONTEXT_SHIFT);
 	}
 
-	public static VertexEncoder get(EncodingContext context, MeshMaterialLocator matLocator) {
-		final MeshMaterial mat = matLocator.get();
+	public static VertexEncoder get(EncodingContext context, MeshMaterial mat) {
 		return ENCODERS[lookupIndex(context, mat.isTranslucent)];
 	}
 

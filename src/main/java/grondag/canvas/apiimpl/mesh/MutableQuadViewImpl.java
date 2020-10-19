@@ -17,8 +17,7 @@
 package grondag.canvas.apiimpl.mesh;
 
 import grondag.canvas.apiimpl.Canvas;
-import grondag.canvas.apiimpl.material.AbstractMeshMaterial;
-import grondag.canvas.apiimpl.material.MeshMaterialLocator;
+import grondag.canvas.apiimpl.material.MeshMaterial;
 import grondag.canvas.apiimpl.util.NormalHelper;
 import grondag.canvas.apiimpl.util.TextureHelper;
 import grondag.canvas.light.LightmapHd;
@@ -93,9 +92,9 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 			material = Canvas.MATERIAL_STANDARD;
 		}
 
-		data[baseIndex + HEADER_MATERIAL] = ((MeshMaterialLocator) material).index();
+		data[baseIndex + HEADER_MATERIAL] = ((MeshMaterial) material).index;
 
-		assert AbstractMeshMaterial.byIndex(data[baseIndex + HEADER_MATERIAL]) == material;
+		assert MeshMaterial.byIndex(data[baseIndex + HEADER_MATERIAL]) == material;
 
 		return this;
 	}

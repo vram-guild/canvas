@@ -20,16 +20,18 @@ import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.apiimpl.fluid.FluidHandler;
 import grondag.canvas.mixinterface.RenderLayerExt;
 import grondag.frex.api.fluid.FluidQuadSupplier;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.lwjgl.system.Configuration;
+
+import net.minecraft.client.options.KeyBinding;
+import net.minecraft.client.render.RenderLayer;
+
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.rendering.v1.InvalidateRenderStateCallback;
 import net.fabricmc.fabric.api.renderer.v1.RendererAccess;
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
-import net.minecraft.client.options.KeyBinding;
-import net.minecraft.client.render.RenderLayer;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.lwjgl.system.Configuration;
 
 //FEAT: fancy water
 //FEAT: fancy lava
@@ -70,11 +72,11 @@ public class CanvasMod implements ClientModInitializer {
 			Configuration.DEBUG_MEMORY_ALLOCATOR.set(true);
 		}
 
-		((RenderLayerExt) RenderLayer.getTranslucent()).canvas_blendModeIndex(BlendMode.TRANSLUCENT.ordinal());
-		((RenderLayerExt) RenderLayer.getTripwire()).canvas_blendModeIndex(BlendMode.TRANSLUCENT.ordinal());
-		((RenderLayerExt) RenderLayer.getSolid()).canvas_blendModeIndex(BlendMode.SOLID.ordinal());
-		((RenderLayerExt) RenderLayer.getCutout()).canvas_blendModeIndex(BlendMode.CUTOUT.ordinal());
-		((RenderLayerExt) RenderLayer.getCutoutMipped()).canvas_blendModeIndex(BlendMode.CUTOUT_MIPPED.ordinal());
+		((RenderLayerExt) RenderLayer.getTranslucent()).canvas_blendMode(BlendMode.TRANSLUCENT);
+		((RenderLayerExt) RenderLayer.getTripwire()).canvas_blendMode(BlendMode.TRANSLUCENT);
+		((RenderLayerExt) RenderLayer.getSolid()).canvas_blendMode(BlendMode.SOLID);
+		((RenderLayerExt) RenderLayer.getCutout()).canvas_blendMode(BlendMode.CUTOUT);
+		((RenderLayerExt) RenderLayer.getCutoutMipped()).canvas_blendMode(BlendMode.CUTOUT_MIPPED);
 
 		KeyBindingHelper.registerKeyBinding(VIEW_KEY);
 		KeyBindingHelper.registerKeyBinding(DECREMENT_A);

@@ -39,7 +39,7 @@ abstract class EncoderUtils {
 		final Matrix4fExt matrix = (Matrix4fExt) (Object) context.matrix();
 		final int overlay = context.overlay();
 		final Matrix3fExt normalMatrix = context.normalMatrix();
-		final VertexConsumer buff = context.consumer(quad.material().get());
+		final VertexConsumer buff = context.consumer(quad.material());
 
 		// WIP: do it right
 		if (Configurator.enableExperimentalPipeline && buff instanceof WipVertexCollectorImpl) {
@@ -115,7 +115,7 @@ abstract class EncoderUtils {
 		final Matrix4fExt matrix = (Matrix4fExt) (Object) context.matrix();
 		final Matrix3fExt normalMatrix = context.normalMatrix();
 		final float[] aoData = quad.ao;
-		final MeshMaterial mat = quad.material().get();
+		final MeshMaterial mat = quad.material();
 		final VertexCollectorImpl buff0 = context.collectors.get(mat);
 		final int[] appendData = context.appendData;
 
@@ -174,7 +174,7 @@ abstract class EncoderUtils {
 		// FIX: per-vertex light maps will be ignored unless we bake a custom HD map
 		// or retain vertex light maps in buffer format and logic in shader to take max
 
-		if (!quad.material().disableAo(0) && MinecraftClient.isAmbientOcclusionEnabled()) {
+		if (!quad.material().disableAo() && MinecraftClient.isAmbientOcclusionEnabled()) {
 			context.aoCalc().compute(quad);
 		} else {
 			if (Configurator.semiFlatLighting) {

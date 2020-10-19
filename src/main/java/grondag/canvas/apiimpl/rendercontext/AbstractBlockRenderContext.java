@@ -24,15 +24,18 @@ import grondag.canvas.apiimpl.util.GeometryHelper;
 import grondag.canvas.buffer.encoding.VertexEncoder;
 import grondag.canvas.mixinterface.RenderLayerExt;
 import grondag.frex.api.material.MaterialMap;
+import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.color.block.BlockColors;
 import net.minecraft.client.render.RenderLayers;
+import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.BlockRenderView;
 
+import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 
@@ -47,13 +50,16 @@ public abstract class AbstractBlockRenderContext<T extends BlockRenderView> exte
 	 */
 	protected final BlockPos.Mutable internalSearchPos = new BlockPos.Mutable();
 
+	/** null when not in world render loop/thread or when default consumer should be honored. */
+	@Nullable public VertexConsumerProvider bufferProvider = null;
+
 	private final BlockColors blockColorMap = MinecraftClient.getInstance().getBlockColors();
 	public T region;
 	public BlockPos blockPos;
 	public BlockState blockState;
 	public long seed;
 	public boolean defaultAo;
-	public int defaultBlendModeIndex;
+	public BlendMode defaultBlendMode;
 	private boolean needsRandomRefresh = true;
 	public final Supplier<Random> randomSupplier = () -> {
 		final Random result = random;
@@ -90,14 +96,13 @@ public abstract class AbstractBlockRenderContext<T extends BlockRenderView> exte
 	public void prepareForBlock(BlockState blockState, BlockPos blockPos, boolean modelAO, long seed) {
 		this.blockPos = blockPos;
 		this.blockState = blockState;
-
 		materialMap = MaterialMap.get(blockState);
 		lastColorIndex = -1;
 		needsRandomRefresh = true;
 		fullCubeCache = 0;
 		this.seed = seed;
 		defaultAo = modelAO && MinecraftClient.isAmbientOcclusionEnabled() && blockState.getLuminance() == 0;
-		defaultBlendModeIndex = ((RenderLayerExt) RenderLayers.getBlockLayer(blockState)).canvas_blendModeIndex();
+		defaultBlendMode = ((RenderLayerExt) RenderLayers.getBlockLayer(blockState)).canvas_blendMode();
 	}
 
 	@Override
@@ -162,8 +167,8 @@ public abstract class AbstractBlockRenderContext<T extends BlockRenderView> exte
 	}
 
 	@Override
-	protected int defaultBlendModeIndex() {
-		return defaultBlendModeIndex;
+	protected BlendMode defaultBlendMode() {
+		return defaultBlendMode;
 	}
 
 	protected abstract int fastBrightness(BlockState blockState, BlockPos pos);

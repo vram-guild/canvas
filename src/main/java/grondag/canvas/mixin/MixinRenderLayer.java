@@ -17,17 +17,19 @@
 package grondag.canvas.mixin;
 
 import grondag.canvas.mixinterface.RenderLayerExt;
-import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
-import net.minecraft.client.render.RenderLayer;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+
+import net.minecraft.client.render.RenderLayer;
+
+import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 
 @Mixin(RenderLayer.class)
 public class MixinRenderLayer implements RenderLayerExt {
 	@Shadow
 	private boolean translucent;
 
-	private int blendModeIndex = BlendMode.DEFAULT.ordinal();
+	private BlendMode blendMode = BlendMode.DEFAULT;
 
 	@Override
 	public boolean canvas_isTranslucent() {
@@ -35,12 +37,12 @@ public class MixinRenderLayer implements RenderLayerExt {
 	}
 
 	@Override
-	public void canvas_blendModeIndex(int blendModeIndex) {
-		this.blendModeIndex = blendModeIndex;
+	public void canvas_blendMode(BlendMode blendMode) {
+		this.blendMode = blendMode;
 	}
 
 	@Override
-	public int canvas_blendModeIndex() {
-		return blendModeIndex;
+	public BlendMode canvas_blendMode() {
+		return blendMode;
 	}
 }

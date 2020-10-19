@@ -18,6 +18,9 @@ package grondag.canvas.apiimpl.material;
 
 import grondag.canvas.apiimpl.MaterialConditionImpl;
 import grondag.canvas.shader.ShaderPass;
+import grondag.frex.api.material.RenderMaterial;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 
@@ -28,7 +31,7 @@ import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
  * <p>
  * WIP2: make sure can handle "dual" render layers and similar vanilla constructs.
  */
-public class MeshMaterial extends AbstractMeshMaterial {
+public class MeshMaterial extends AbstractMeshMaterial implements RenderMaterial {
 	/**
 	 * True if base layer is translucent.
 	 */
@@ -38,10 +41,12 @@ public class MeshMaterial extends AbstractMeshMaterial {
 	public final ShaderPass shaderType;
 	final MaterialConditionImpl condition;
 	private final MaterialShaderImpl shader;
+	public final int index;
 
-	protected MeshMaterial(MeshMaterialLocator locator) {
-		super(locator.bits);
-		condition = locator.condition();
+	protected MeshMaterial(int index, long bits) {
+		super(bits);
+		this.index = index;
+		condition = super.condition();
 		shader = super.shader();
 		isTranslucent = (blendMode() == BlendMode.TRANSLUCENT);
 		// WIP2: find way to activate decal pass again
@@ -80,5 +85,15 @@ public class MeshMaterial extends AbstractMeshMaterial {
 	@Override
 	public MaterialConditionImpl condition() {
 		return condition;
+	}
+
+	static final ObjectArrayList<MeshMaterial> LIST = new ObjectArrayList<>();
+	static final Long2ObjectOpenHashMap<MeshMaterial> MAP = new Long2ObjectOpenHashMap<>();
+
+	public static MeshMaterial byIndex(int index) {
+		assert index < LIST.size();
+		assert index >= 0;
+
+		return LIST.get(index);
 	}
 }

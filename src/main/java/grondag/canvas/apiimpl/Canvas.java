@@ -20,8 +20,8 @@ import java.util.function.BooleanSupplier;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.material.MaterialShaderImpl;
+import grondag.canvas.apiimpl.material.MeshMaterial;
 import grondag.canvas.apiimpl.material.MeshMaterialFinder;
-import grondag.canvas.apiimpl.material.MeshMaterialLocator;
 import grondag.canvas.apiimpl.mesh.MeshBuilderImpl;
 import grondag.canvas.apiimpl.rendercontext.BlockRenderContext;
 import grondag.canvas.apiimpl.rendercontext.EntityBlockRenderContext;
@@ -56,13 +56,13 @@ import net.fabricmc.fabric.api.renderer.v1.mesh.MeshBuilder;
 public class Canvas implements Renderer {
 	public static final Canvas INSTANCE = new Canvas();
 
-	public static final MeshMaterialLocator MATERIAL_STANDARD = INSTANCE.materialFinder().find();
+	public static final MeshMaterial MATERIAL_STANDARD = INSTANCE.materialFinder().find();
 
 	static {
 		INSTANCE.registerMaterial(RenderMaterial.MATERIAL_STANDARD, MATERIAL_STANDARD);
 	}
 
-	private final Object2ObjectOpenHashMap<Identifier, MeshMaterialLocator> materialMap = new Object2ObjectOpenHashMap<>();
+	private final Object2ObjectOpenHashMap<Identifier, MeshMaterial> materialMap = new Object2ObjectOpenHashMap<>();
 	private final Object2ObjectOpenHashMap<Identifier, MaterialShaderImpl> shaderMap = new Object2ObjectOpenHashMap<>();
 	private final Object2ObjectOpenHashMap<Identifier, MaterialConditionImpl> conditionMap = new Object2ObjectOpenHashMap<>();
 
@@ -80,7 +80,7 @@ public class Canvas implements Renderer {
 	}
 
 	@Override
-	public MeshMaterialLocator materialById(Identifier id) {
+	public MeshMaterial materialById(Identifier id) {
 		return materialMap.get(id);
 	}
 
@@ -91,7 +91,7 @@ public class Canvas implements Renderer {
 		}
 
 		// cast to prevent acceptance of impostor implementations
-		materialMap.put(id, (MeshMaterialLocator) material);
+		materialMap.put(id, (MeshMaterial) material);
 		return true;
 	}
 
