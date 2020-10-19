@@ -24,7 +24,6 @@
 	"MixinMinecraftClient",
 	"MixinMultiPhase",
 	"MixinPackedIntegerArray",
-	"MixinPaintingEntityRenderer",
 	"MixinPalettedContainer",
 	"MixinParticle",
 	"MixinParticleManager",
