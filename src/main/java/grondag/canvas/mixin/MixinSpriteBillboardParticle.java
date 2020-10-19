@@ -31,7 +31,6 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Quaternion;
 import net.minecraft.util.math.Vec3d;
 
-// WIP: still need this now that sprite detection is automatic?
 @Mixin(SpriteBillboardParticle.class)
 public abstract class MixinSpriteBillboardParticle extends BillboardParticle {
 	@Shadow protected Sprite sprite;
@@ -44,6 +43,7 @@ public abstract class MixinSpriteBillboardParticle extends BillboardParticle {
 	private static final Quaternion auxQuat = new Quaternion(0, 0, 0, 0);
 	private static final Vector3f vec = new Vector3f();
 
+	// slightly faster math and less allocation
 	@Override
 	public void buildGeometry(VertexConsumer vertexConsumer, Camera camera, float tickDelta) {
 		final Vec3d vec3d = camera.getPos();
@@ -69,27 +69,6 @@ public abstract class MixinSpriteBillboardParticle extends BillboardParticle {
 		final float scale = getSize(tickDelta);
 		final int light = getColorMultiplier(tickDelta);
 
-		//		if (vertexConsumer instanceof WipVertexCollectorImpl) {
-		//			final WipVertexCollectorImpl vc = (WipVertexCollectorImpl) vertexConsumer;
-		//
-		//			final int color = packColorFromFloats(colorRed, colorGreen, colorBlue, colorAlpha);
-		//
-		//			vec.set(-1.0F, -1.0F, 0.0F);
-		//			CanvasMath.applyBillboardRotation(pos, rotation);
-		//			vc.vertex(cx + pos.getX() * scale, cy + pos.getY() * scale, cz + pos.getZ() * scale).texture(NORMALIZED_U1_V1).color(color).light(light).next();
-		//
-		//			vec.set(-1.0F, 1.0F, 0.0F);
-		//			CanvasMath.applyBillboardRotation(pos, rotation);
-		//			vc.vertex(cx + pos.getX() * scale, cy + pos.getY() * scale, cz + pos.getZ() * scale).texture(NORMALIZED_U1_V0).color(color).light(light).next();
-		//
-		//			vec.set(1.0F, 1.0F, 0.0F);
-		//			CanvasMath.applyBillboardRotation(pos, rotation);
-		//			vc.vertex(cx + pos.getX() * scale, cy + pos.getY() * scale, cz + pos.getZ() * scale).texture(NORMALIZED_U0_V0).color(color).light(light).next();
-		//
-		//			vec.set(1.0F, -1.0F, 0.0F);
-		//			CanvasMath.applyBillboardRotation(pos, rotation);
-		//			vc.vertex(cx + pos.getX() * scale, cy + pos.getY() * scale, cz + pos.getZ() * scale).texture(NORMALIZED_U0_V1).color(color).light(light).next();
-		//		} else {
 		final float l = getMinU();
 		final float m = getMaxU();
 		final float n = getMinV();
