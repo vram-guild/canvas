@@ -82,6 +82,9 @@ public final class MaterialVertexFormats {
 	public static final int MATERIAL_LIGHT_INDEX = 6;
 	public static final int MATERIAL_NORMAL_INDEX = 7;
 
+	public static final int MATERIAL_VERTEX_STRIDE = POSITION_COLOR_TEXTURE_MATERIAL_LIGHT_NORMAL.vertexStrideInts;
+	public static final int MATERIAL_QUAD_STRIDE = MATERIAL_VERTEX_STRIDE * 4;
+
 	public static MaterialVertexFormat get(EncodingContext context, boolean translucent) {
 		return context == EncodingContext.TERRAIN && Configurator.hdLightmaps() ? HD_TERRAIN : VANILLA_BLOCKS_AND_ITEMS;
 	}

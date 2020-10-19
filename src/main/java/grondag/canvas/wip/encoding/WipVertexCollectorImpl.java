@@ -52,11 +52,9 @@ public class WipVertexCollectorImpl extends WipAbstractVertexCollector {
 	 * Cached value of {@link #quadCount()}, set when quads are sorted by distance.
 	 */
 	private int sortMaxIndex = 0;
-	private int intVertexStride = 1;
 
 	public WipVertexCollectorImpl prepare(WipRenderState materialState) {
 		this.materialState = materialState;
-		intVertexStride = materialState.vertexStrideInts;
 		spriteId = -1;
 		didPopulateNormal = false;
 		return this;
@@ -85,7 +83,7 @@ public class WipVertexCollectorImpl extends WipAbstractVertexCollector {
 	}
 
 	public int vertexCount() {
-		return integerSize / intVertexStride;
+		return integerSize / MaterialVertexFormats.MATERIAL_VERTEX_STRIDE;
 	}
 
 	public int quadCount() {
@@ -214,21 +212,6 @@ public class WipVertexCollectorImpl extends WipAbstractVertexCollector {
 		data.copyTo(0, intBuffer, integerSize);
 	}
 
-	@Override
-	public void next() {
-		if (!didPopulateNormal) {
-			normal(0, 1, 0);
-		}
-
-		didPopulateNormal = false;
-
-		// WIP2: implement condition with indexed draw for terrain
-		if (conditionActive) {
-			data.copyFrom(integerSize, vertexData, 0, intVertexStride);
-			integerSize += intVertexStride;
-		}
-	}
-
 	public void drawAndClear() {
 		if (!isEmpty()) {
 			drawSingle();
@@ -293,8 +276,6 @@ public class WipVertexCollectorImpl extends WipAbstractVertexCollector {
 		private void doSort(WipVertexCollectorImpl caller, double x, double y, double z) {
 			data = caller.data;
 
-			final int vertexIntStride = caller.intVertexStride;
-			quadIntStride = vertexIntStride * 4;
 			final int quadCount = caller.vertexCount() / 4;
 
 			if (perQuadDistance.length < quadCount) {
@@ -306,7 +287,7 @@ public class WipVertexCollectorImpl extends WipAbstractVertexCollector {
 			}
 
 			for (int j = 0; j < quadCount; ++j) {
-				perQuadDistance[j] = caller.getDistanceSq(x, y, z, vertexIntStride, j);
+				perQuadDistance[j] = caller.getDistanceSq(x, y, z, MaterialVertexFormats.MATERIAL_VERTEX_STRIDE, j);
 			}
 
 			// sort the indexes by distance - farthest first
@@ -370,5 +351,14 @@ public class WipVertexCollectorImpl extends WipAbstractVertexCollector {
 		TransferBufferAllocator.release(buffer);
 		WipRenderState.disable();
 		drawList.clear();
+	}
+
+	@Override
+	protected void emitQuad() {
+		// WIP2: implement condition with indexed draw for terrain
+		if (conditionActive) {
+			data.copyFrom(integerSize, vertexData, 0, MaterialVertexFormats.MATERIAL_QUAD_STRIDE);
+			integerSize += MaterialVertexFormats.MATERIAL_QUAD_STRIDE;
+		}
 	}
 }
