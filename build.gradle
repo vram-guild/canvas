@@ -142,7 +142,7 @@ publishing {
 			}
 		}
 		maven {
-			url 'sftp://dblsaiko.net:22/srv/http/maven/'
+			url 'sftp://dblsaiko.net:22/var/maven'
 			credentials {
 				if (project.hasProperty('maven_user_2')) {
 					username = project.getProperty('maven_user_2')
