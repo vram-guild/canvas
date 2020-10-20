@@ -23,6 +23,7 @@ import com.google.common.primitives.Doubles;
 import com.mojang.blaze3d.platform.GlStateManager;
 import grondag.canvas.buffer.TransferBufferAllocator;
 import grondag.canvas.material.MaterialVertexFormats;
+import grondag.canvas.wip.state.RenderContextState;
 import grondag.canvas.wip.state.WipRenderState;
 import grondag.canvas.wip.state.property.WipTransparency;
 import grondag.fermion.intstream.IntStreamProvider;
@@ -52,6 +53,10 @@ public class WipVertexCollectorImpl extends WipAbstractVertexCollector {
 	 * Cached value of {@link #quadCount()}, set when quads are sorted by distance.
 	 */
 	private int sortMaxIndex = 0;
+
+	public WipVertexCollectorImpl(RenderContextState contextState) {
+		super(contextState);
+	}
 
 	public WipVertexCollectorImpl prepare(WipRenderState materialState) {
 		this.materialState = materialState;

@@ -47,8 +47,6 @@ import org.lwjgl.opengl.GL11;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.RenderPhase;
-import net.minecraft.client.render.VertexFormat;
-import net.minecraft.client.render.VertexFormatElement;
 import net.minecraft.client.render.model.ModelLoader;
 import net.minecraft.client.texture.AbstractTexture;
 import net.minecraft.util.Identifier;
@@ -72,28 +70,6 @@ public final class WipRenderState {
 	protected final long bits;
 
 	public final int index;
-
-	/**
-	 * True when the material has vertex color and thus
-	 * color should be included in the vertex format.
-	 */
-	public final boolean hasColor;
-
-	/**
-	 * True when material has vertex normals and thus
-	 * normals should be included in the vertex format.
-	 */
-	public final boolean hasNormal;
-
-
-	/**
-	 * True if world lighting is passed to the renderer for this material.
-	 * In vanilla lighting, this is done by a lightmap UV coordinate.
-	 * Canvas may compact this, or may not pass it to the renderer at all,
-	 * depending on the lighting model. True still indicates the material
-	 * should be affected by world lighting.<p>
-	 */
-	public final boolean hasLightMap;
 
 	/**
 	 * OpenGL primitive constant. Determines number of vertices.
@@ -131,9 +107,6 @@ public final class WipRenderState {
 	private WipRenderState(long bits) {
 		this.bits = bits;
 		index = nextIndex++;
-		hasColor = HAS_COLOR.getValue(bits);
-		hasNormal = HAS_NORMAL.getValue(bits);
-		hasLightMap = HAS_LIGHTMAP.getValue(bits);
 		primitive = PRIMITIVE.getValue(bits);
 		texture = WipTextureState.fromIndex(TEXTURE.getValue(bits));
 		bilinear = BILINEAR.getValue(bits);
@@ -239,9 +212,6 @@ public final class WipRenderState {
 
 	// These don't affect GL state but do affect encoding - must be buffered separately
 	private static final BitPacker64.IntElement PRIMITIVE = PACKER.createIntElement(8);
-	private static final BitPacker64.BooleanElement HAS_COLOR = PACKER.createBooleanElement();
-	private static final BitPacker64.BooleanElement HAS_LIGHTMAP = PACKER.createBooleanElement();
-	private static final BitPacker64.BooleanElement HAS_NORMAL = PACKER.createBooleanElement();
 
 	private static final BitPacker64.IntElement VERTEX_SHADER = PACKER.createIntElement(4096);
 	private static final BitPacker64.IntElement FRAGMENT_SHADER = PACKER.createIntElement(4096);
@@ -303,26 +273,6 @@ public final class WipRenderState {
 				return MISSING;
 			}
 
-			final VertexFormat format = layer.getVertexFormat();
-			for (final VertexFormatElement e : format.getElements()) {
-				switch(e.getType()) {
-					case COLOR:
-						hasColor(true);
-						break;
-					case NORMAL:
-						hasNormal(true);
-						break;
-					case UV:
-						if (e.getFormat() == VertexFormatElement.Format.SHORT) {
-							hasLightmap(true);
-						}
-
-						break;
-					default:
-						break;
-				}
-			}
-
 			final AccessMultiPhaseParameters params = ((MultiPhaseExt) layer).canvas_phases();
 			final AccessTexture tex = (AccessTexture) params.getTexture();
 
@@ -341,21 +291,6 @@ public final class WipRenderState {
 			return find();
 		}
 
-		public Finder hasColor(boolean hasColor) {
-			bits = HAS_COLOR.setValue(hasColor, bits);
-			return this;
-		}
-
-		public Finder hasLightmap(boolean hasLightmap) {
-			bits = HAS_LIGHTMAP.setValue(hasLightmap, bits);
-			return this;
-		}
-
-		public Finder hasNormal(boolean hasNormal) {
-			bits = HAS_NORMAL.setValue(hasNormal, bits);
-			return this;
-		}
-
 		public Finder primitive(int primitive) {
 			assert primitive <= 7;
 			bits = PRIMITIVE.setValue(primitive, bits);
@@ -368,7 +303,7 @@ public final class WipRenderState {
 			final int val = id == null ? WipTextureState.NO_TEXTURE.index : WipTextureState.fromId(id).index;
 			bits = TEXTURE.setValue(val, bits);
 
-			// WIP: put in proper material map hooks
+			// WIP2: put in proper material map hooks
 			//			if (id != null && id.equals(EGREGIOUS_ENDERMAN_HACK)) {
 			//				fragmentShader(new Identifier("canvas:shaders/wip/material/enderman.frag"));
 			//			}

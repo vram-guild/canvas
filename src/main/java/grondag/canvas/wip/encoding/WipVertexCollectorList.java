@@ -19,6 +19,7 @@ package grondag.canvas.wip.encoding;
 import java.util.Arrays;
 
 import grondag.canvas.material.MaterialState;
+import grondag.canvas.wip.state.RenderContextState;
 import grondag.canvas.wip.state.WipRenderState;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
@@ -31,6 +32,11 @@ public class WipVertexCollectorList {
 	private final ObjectArrayList<WipVertexCollectorImpl> pool = new ObjectArrayList<>();
 	private int size = 0;
 	private WipVertexCollectorImpl[] collectors = new WipVertexCollectorImpl[WipRenderState.MAX_COUNT];
+	private final RenderContextState contextState;
+
+	public WipVertexCollectorList(RenderContextState contextState) {
+		this.contextState = contextState;
+	}
 
 	/**
 	 * Releases any held vertex collectors and resets state
@@ -82,7 +88,7 @@ public class WipVertexCollectorList {
 		WipVertexCollectorImpl result;
 
 		if (size == pool.size()) {
-			result = new WipVertexCollectorImpl();
+			result = new WipVertexCollectorImpl(contextState);
 			pool.add(result);
 		} else {
 			result = pool.get(size);

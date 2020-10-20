@@ -64,6 +64,7 @@ import grondag.canvas.varia.CanvasGlHelper;
 import grondag.canvas.varia.WorldDataManager;
 import grondag.canvas.wip.encoding.WipImmediate;
 import grondag.canvas.wip.shader.WipMaterialShaderManager;
+import grondag.canvas.wip.state.RenderContextState;
 import grondag.canvas.wip.state.property.WipMatrixState;
 import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
 import grondag.frex.api.event.WorldRenderEvent;
@@ -151,6 +152,10 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	private int lastRegionDataVersion = -1;
 	private int visibleRegionCount = 0;
 	final TerrainLayerRenderer TRANSLUCENT = new TerrainLayerRenderer("translucemt", ShaderContext.TERRAIN_TRANSLUCENT, this::sortTranslucentTerrain);
+
+	private final RenderContextState contextState = new RenderContextState();
+	private final WipImmediate worldRenderImmediate = new WipImmediate(new BufferBuilder(256), WipImmediate.entityBuilders(), contextState);
+	private final CanvasParticleRenderer particleRenderer = new CanvasParticleRenderer(contextState);
 
 	public CanvasWorldRenderer(MinecraftClient client, BufferBuilderStorage bufferBuilders) {
 		super(client, bufferBuilders);
@@ -513,7 +518,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		mcfb.beginWrite(false);
 
 		boolean didRenderOutlines = false;
-		final VertexConsumerProvider.Immediate immediate = Configurator.enableExperimentalPipeline ? WipImmediate.INSTANCE : bufferBuilders.getEntityVertexConsumers();
+		final VertexConsumerProvider.Immediate immediate = Configurator.enableExperimentalPipeline ? worldRenderImmediate : bufferBuilders.getEntityVertexConsumers();
 		final Iterator<Entity> entities = world.getEntities().iterator();
 		final ShaderEffect entityOutlineShader = wr.canvas_entityOutlineShader();
 		final BuiltRenderRegion[] visibleRegions = this.visibleRegions;
@@ -530,6 +535,8 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			}
 
 			++entityCount;
+			contextState.setCurrentEntity(
+				entity);
 
 			if (entity.age == 0) {
 				entity.lastRenderX = entity.getX();
@@ -552,11 +559,15 @@ public class CanvasWorldRenderer extends WorldRenderer {
 				renderProvider = immediate;
 			}
 
+			// WIP2: use the RenderContextState instead
 			entityBlockContext.entity(entity);
 
 			// Item entity translucent typically gets drawn here in vanilla because there's no dedicated buffer for it
 			wr.canvas_renderEntity(entity, cameraX, cameraY, cameraZ, tickDelta, matrixStack, renderProvider);
 		}
+
+		contextState.setCurrentEntity(
+			null);
 
 		if (!Configurator.enableExperimentalPipeline) {
 			immediate.draw(RenderLayer.getEntitySolid(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE));
@@ -757,7 +768,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 			profiler.swap("particles");
 			WipMatrixState.set(WipMatrixState.PARTICLE, null);
-			CanvasParticleRenderer.INSTANCE.renderParticles(mc.particleManager, matrixStack, immediate, lightmapTextureManager, camera, tickDelta);
+			particleRenderer.renderParticles(mc.particleManager, matrixStack, immediate, lightmapTextureManager, camera, tickDelta);
 			WipMatrixState.set(WipMatrixState.ENTITY, matrixStack.peek().getNormal());
 
 			mcfb.beginWrite(false);
@@ -781,7 +792,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			VoxelMapHolder.postRenderLayerHandler.render(this, RenderLayer.getTranslucent(), matrixStack, cameraX, cameraY, cameraZ);
 			profiler.swap("particles");
 			WipMatrixState.set(WipMatrixState.PARTICLE, null);
-			CanvasParticleRenderer.INSTANCE.renderParticles(mc.particleManager, matrixStack, immediate, lightmapTextureManager, camera, tickDelta);
+			particleRenderer.renderParticles(mc.particleManager, matrixStack, immediate, lightmapTextureManager, camera, tickDelta);
 			WipMatrixState.set(WipMatrixState.ENTITY, matrixStack.peek().getNormal());
 		}
 

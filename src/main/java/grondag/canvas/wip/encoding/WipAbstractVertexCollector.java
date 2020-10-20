@@ -19,6 +19,7 @@ package grondag.canvas.wip.encoding;
 import grondag.canvas.apiimpl.mesh.MeshEncodingHelper;
 import grondag.canvas.apiimpl.util.NormalHelper;
 import grondag.canvas.mixinterface.SpriteExt;
+import grondag.canvas.wip.state.RenderContextState;
 import grondag.canvas.wip.state.WipRenderState;
 import grondag.canvas.wip.state.WipVertexState;
 
@@ -36,6 +37,7 @@ public abstract class WipAbstractVertexCollector implements WipVertexCollector {
 	private static final int LAST_VERTEX_BASE_INDEX = MATERIAL_QUAD_STRIDE - MATERIAL_VERTEX_STRIDE;
 
 	protected WipRenderState materialState;
+	protected final RenderContextState contextState;
 
 	protected final int[] vertexData = new int[MATERIAL_QUAD_STRIDE];
 	protected int baseVertexIndex = 0;
@@ -45,6 +47,10 @@ public abstract class WipAbstractVertexCollector implements WipVertexCollector {
 	protected int overlayFlags;
 	protected boolean conditionActive = true;
 	protected boolean didPopulateNormal = false;
+
+	public WipAbstractVertexCollector(RenderContextState contextState) {
+		this.contextState = contextState;
+	}
 
 	@Override
 	public WipVertexCollector texture(float u, float v) {

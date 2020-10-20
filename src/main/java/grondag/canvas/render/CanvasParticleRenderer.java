@@ -24,6 +24,7 @@ import grondag.canvas.Configurator;
 import grondag.canvas.mixinterface.ParticleExt;
 import grondag.canvas.mixinterface.ParticleManagerExt;
 import grondag.canvas.wip.encoding.WipVertexCollectorImpl;
+import grondag.canvas.wip.state.RenderContextState;
 import grondag.canvas.wip.state.WipRenderState;
 import grondag.canvas.wip.state.WipVertexState;
 import grondag.canvas.wip.state.property.WipDecal;
@@ -51,16 +52,18 @@ import net.minecraft.util.crash.CrashException;
 import net.minecraft.util.crash.CrashReport;
 import net.minecraft.util.crash.CrashReportSection;
 
-public enum CanvasParticleRenderer {
-	INSTANCE;
-
-	private final WipVertexCollectorImpl collector = new WipVertexCollectorImpl();
+public class CanvasParticleRenderer {
+	private final WipVertexCollectorImpl collector;
 
 	private Tessellator tessellator;
 	private BufferBuilder bufferBuilder;
 	private LightmapTextureManager lightmapTextureManager;
 	private ParticleManagerExt ext;
 	private Runnable drawHandler = Runnables.doNothing();
+
+	CanvasParticleRenderer(RenderContextState contextState) {
+		collector = new WipVertexCollectorImpl(contextState);
+	}
 
 	public void renderParticles(ParticleManager pm, MatrixStack matrixStack, VertexConsumerProvider.Immediate immediate, LightmapTextureManager lightmapTextureManager, Camera camera, float tickDelta) {
 		RenderSystem.pushMatrix();
@@ -83,6 +86,8 @@ public enum CanvasParticleRenderer {
 			final Iterator<Particle> particles = iterable.iterator();
 
 			if (!particles.hasNext()) continue;
+
+			// FEAT: material maps for particles
 
 			final VertexConsumer consumer = beginSheet(particleTextureSheet);
 
@@ -157,9 +162,6 @@ public enum CanvasParticleRenderer {
 
 	private static WipRenderState.Finder baseFinder() {
 		return WipRenderState.finder()
-		.hasColor(true)
-		.hasLightmap(true)
-		.hasNormal(false)
 		.primitive(GL11.GL_QUADS)
 		.depthTest(WipDepthTest.LEQUAL)
 		.cull(false)

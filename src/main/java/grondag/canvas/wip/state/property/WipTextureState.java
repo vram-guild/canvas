@@ -27,7 +27,7 @@ import net.minecraft.client.texture.TextureManager;
 import net.minecraft.util.Identifier;
 
 public class WipTextureState {
-	public static final int MAX_TEXTURE_STATES = 4096;
+	public static final int MAX_TEXTURE_STATES = 1024;
 	private static int nextIndex = 1;
 	private static final WipTextureState[] STATES = new WipTextureState[MAX_TEXTURE_STATES];
 	private static final Object2ObjectOpenHashMap<Identifier, WipTextureState> MAP = new Object2ObjectOpenHashMap<>(256, Hash.VERY_FAST_LOAD_FACTOR);
