@@ -566,8 +566,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			wr.canvas_renderEntity(entity, cameraX, cameraY, cameraZ, tickDelta, matrixStack, renderProvider);
 		}
 
-		contextState.setCurrentEntity(
-			null);
+		contextState.setCurrentEntity(null);
 
 		if (!Configurator.enableExperimentalPipeline) {
 			immediate.draw(RenderLayer.getEntitySolid(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE));
