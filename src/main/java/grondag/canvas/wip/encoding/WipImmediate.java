@@ -4,8 +4,8 @@ import java.util.Map;
 import java.util.SortedMap;
 
 import grondag.canvas.mixinterface.MultiPhaseExt;
+import grondag.canvas.wip.state.AbstractStateFinder;
 import grondag.canvas.wip.state.RenderContextState;
-import grondag.canvas.wip.state.WipRenderState;
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
@@ -31,7 +31,7 @@ public class WipImmediate extends Immediate {
 		final WipVertexCollector result = collectors.get(((MultiPhaseExt) renderLayer).canvas_renderState());
 
 		if (result == null) {
-			assert WipRenderState.isExcluded(renderLayer) : "Unable to retrieve vertex collector for non-excluded render layer";
+			assert AbstractStateFinder.isExcluded(renderLayer) : "Unable to retrieve vertex collector for non-excluded render layer";
 
 			return super.getBuffer(renderLayer);
 		} else {
@@ -77,7 +77,7 @@ public class WipImmediate extends Immediate {
 
 	@Override
 	public void draw(RenderLayer layer) {
-		if (WipRenderState.isExcluded(layer)) {
+		if (AbstractStateFinder.isExcluded(layer)) {
 			super.draw(layer);
 		} else {
 			final WipVertexCollectorImpl collector = collectors.getIfExists(((MultiPhaseExt) layer).canvas_renderState());
@@ -90,7 +90,6 @@ public class WipImmediate extends Immediate {
 
 	public static SortedMap<RenderLayer, BufferBuilder> entityBuilders() {
 		return Util.make(new Object2ObjectLinkedOpenHashMap<>(), (object2ObjectLinkedOpenHashMap) -> {
-
 			assignBufferBuilder(object2ObjectLinkedOpenHashMap, RenderLayer.getTranslucentNoCrumbling());
 			assignBufferBuilder(object2ObjectLinkedOpenHashMap, RenderLayer.getArmorGlint());
 			assignBufferBuilder(object2ObjectLinkedOpenHashMap, RenderLayer.getArmorEntityGlint());
