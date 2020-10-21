@@ -94,7 +94,7 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 
 		data[baseIndex + HEADER_MATERIAL] = ((MeshMaterial) material).index;
 
-		assert MeshMaterial.byIndex(data[baseIndex + HEADER_MATERIAL]) == material;
+		assert MeshMaterial.fromIndex(data[baseIndex + HEADER_MATERIAL]) == material;
 
 		return this;
 	}

@@ -34,21 +34,27 @@ import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.opengl.GL11;
 
-import static grondag.canvas.wip.state.AbstractRenderState.BILINEAR;
-import static grondag.canvas.wip.state.AbstractRenderState.CULL;
-import static grondag.canvas.wip.state.AbstractRenderState.DECAL;
-import static grondag.canvas.wip.state.AbstractRenderState.DEPTH_TEST;
-import static grondag.canvas.wip.state.AbstractRenderState.ENABLE_LIGHTMAP;
-import static grondag.canvas.wip.state.AbstractRenderState.FOG;
-import static grondag.canvas.wip.state.AbstractRenderState.FRAGMENT_SHADER;
-import static grondag.canvas.wip.state.AbstractRenderState.LINES;
-import static grondag.canvas.wip.state.AbstractRenderState.PACKER;
-import static grondag.canvas.wip.state.AbstractRenderState.PRIMITIVE;
-import static grondag.canvas.wip.state.AbstractRenderState.TARGET;
-import static grondag.canvas.wip.state.AbstractRenderState.TEXTURE;
-import static grondag.canvas.wip.state.AbstractRenderState.TRANSPARENCY;
-import static grondag.canvas.wip.state.AbstractRenderState.VERTEX_SHADER;
-import static grondag.canvas.wip.state.AbstractRenderState.WRITE_MASK;
+import static grondag.canvas.wip.state.AbstractRenderStateView.BILINEAR;
+import static grondag.canvas.wip.state.AbstractRenderStateView.CULL;
+import static grondag.canvas.wip.state.AbstractRenderStateView.CUTOUT;
+import static grondag.canvas.wip.state.AbstractRenderStateView.DECAL;
+import static grondag.canvas.wip.state.AbstractRenderStateView.DEPTH_TEST;
+import static grondag.canvas.wip.state.AbstractRenderStateView.DISABLE_AO;
+import static grondag.canvas.wip.state.AbstractRenderStateView.DISABLE_DIFFUSE;
+import static grondag.canvas.wip.state.AbstractRenderStateView.EMISSIVE;
+import static grondag.canvas.wip.state.AbstractRenderStateView.ENABLE_LIGHTMAP;
+import static grondag.canvas.wip.state.AbstractRenderStateView.FLASH_OVERLAY;
+import static grondag.canvas.wip.state.AbstractRenderStateView.FOG;
+import static grondag.canvas.wip.state.AbstractRenderStateView.HURT_OVERLAY;
+import static grondag.canvas.wip.state.AbstractRenderStateView.LINES;
+import static grondag.canvas.wip.state.AbstractRenderStateView.PRIMITIVE;
+import static grondag.canvas.wip.state.AbstractRenderStateView.SHADER;
+import static grondag.canvas.wip.state.AbstractRenderStateView.TARGET;
+import static grondag.canvas.wip.state.AbstractRenderStateView.TEXTURE;
+import static grondag.canvas.wip.state.AbstractRenderStateView.TRANSLUCENT_CUTOUT;
+import static grondag.canvas.wip.state.AbstractRenderStateView.TRANSPARENCY;
+import static grondag.canvas.wip.state.AbstractRenderStateView.UNMIPPED;
+import static grondag.canvas.wip.state.AbstractRenderStateView.WRITE_MASK;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.RenderLayer;
@@ -59,6 +65,9 @@ import net.minecraft.util.Identifier;
 @SuppressWarnings("unchecked")
 public abstract class AbstractStateFinder<T extends AbstractStateFinder<T, V>, V extends AbstractRenderState> {
 	protected long bits;
+
+	protected int vertexShaderIndex;
+	protected int fragmentShaderIndex;
 
 	public T reset() {
 		bits = 0;
@@ -138,18 +147,77 @@ public abstract class AbstractStateFinder<T extends AbstractStateFinder<T, V>, V
 	}
 
 	public T vertexShader(Identifier vertexSource) {
-		bits = VERTEX_SHADER.setValue(WipMaterialShaderManager.vertexIndex.toHandle(vertexSource), bits);
+		vertexShaderIndex = WipMaterialShaderManager.vertexIndex.toHandle(vertexSource);
 		return (T) this;
 	}
 
 	public T fragmentShader(Identifier fragmentSource) {
-		bits = FRAGMENT_SHADER.setValue(WipMaterialShaderManager.fragmentIndex.toHandle(fragmentSource), bits);
+		fragmentShaderIndex = WipMaterialShaderManager.fragmentIndex.toHandle(fragmentSource);
+		return (T) this;
+	}
+
+	public T emissive(boolean emissive) {
+		bits = EMISSIVE.setValue(emissive, bits);
+		return (T) this;
+	}
+
+	public T disableDiffuse(boolean disableDiffuse) {
+		bits = DISABLE_DIFFUSE.setValue(disableDiffuse, bits);
+		return (T) this;
+	}
+
+	public T disableAo(boolean disableAo) {
+		bits = DISABLE_AO.setValue(disableAo, bits);
+		return (T) this;
+	}
+
+	public T cutout(boolean cutout) {
+		bits = CUTOUT.setValue(cutout, bits);
+		return (T) this;
+	}
+
+	public T unmipped(boolean unmipped) {
+		bits = UNMIPPED.setValue(unmipped, bits);
+		return (T) this;
+	}
+
+	/**
+	 * Sets cutout threshold to low value vs default of 50%
+	 */
+	public T translucentCutout(boolean translucentCutout) {
+		bits = TRANSLUCENT_CUTOUT.setValue(translucentCutout, bits);
+		return (T) this;
+	}
+
+	/**
+	 * Used in lieu of overlay texture.  Displays red blended overlay color.
+	 */
+	public T hurtOverlay(boolean hurtOverlay) {
+		bits = HURT_OVERLAY.setValue(hurtOverlay, bits);
+		return (T) this;
+	}
+
+	/**
+	 * Used in lieu of overlay texture. Displays white blended overlay color.
+	 */
+	public T flashOverlay(boolean flashOverlay) {
+		bits = FLASH_OVERLAY.setValue(flashOverlay, bits);
 		return (T) this;
 	}
 
 	protected abstract V missing();
 
-	protected abstract V find();
+	public V find() {
+		bits = SHADER.setValue(WipMaterialShaderManager.INSTANCE.find(vertexShaderIndex,fragmentShaderIndex, TRANSPARENCY.getValue(bits) == WipTransparency.TRANSLUCENT ? WipProgramType.MATERIAL_VERTEX_LOGIC : WipProgramType.MATERIAL_UNIFORM_LOGIC).index, bits);
+		return findInner();
+	}
+
+	public V fromBits(long bits) {
+		this.bits = bits;
+		return findInner();
+	}
+
+	protected abstract V findInner();
 
 	public V copyFromLayer(RenderLayer layer) {
 		if (AbstractStateFinder.isExcluded(layer)) {
@@ -170,15 +238,27 @@ public abstract class AbstractStateFinder<T extends AbstractStateFinder<T, V>, V
 		target(WipTarget.fromPhase(params.getTarget()));
 		lines(params.getLineWidth() != RenderPhase.FULL_LINE_WIDTH);
 		fog(WipFog.fromPhase(params.getFog()));
+		unmipped(!tex.getMipmap());
+		disableDiffuse(params.getDiffuseLighting() == RenderPhase.DISABLE_DIFFUSE_LIGHTING);
+		cutout(params.getAlpha() != RenderPhase.ZERO_ALPHA);
+		translucentCutout(params.getAlpha() == RenderPhase.ONE_TENTH_ALPHA);
+		disableAo(true);
+
+		// WIP2: put in proper material map hooks
+		final String name = ((MultiPhaseExt) layer).canvas_name();
+		emissive(name.equals("eyes") || name.equals("beacon_beam"));
 
 		return find();
+	}
+
+	public T copyFrom(V template) {
+		this.bits = template.bits;
+		return (T) this;
 	}
 
 	private static final ReferenceOpenHashSet<RenderLayer> EXCLUSIONS = new ReferenceOpenHashSet<>(64, Hash.VERY_FAST_LOAD_FACTOR);
 
 	static {
-		assert PACKER.bitLength() <= 56; // high eight bits saved for RenderMaterial aggregate
-
 		// entity shadows aren't worth
 		EXCLUSIONS.add(((EntityRenderDispatcherExt) MinecraftClient.getInstance().getEntityRenderDispatcher()).canvas_shadowLayer());
 

@@ -178,7 +178,7 @@ public class QuadViewImpl implements QuadView {
 
 	@Override
 	public final MeshMaterial material() {
-		return MeshMaterial.byIndex(data[baseIndex + HEADER_MATERIAL]);
+		return MeshMaterial.fromIndex(data[baseIndex + HEADER_MATERIAL]);
 	}
 
 	@Override

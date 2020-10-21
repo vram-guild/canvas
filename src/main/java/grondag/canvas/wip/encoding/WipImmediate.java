@@ -28,14 +28,14 @@ public class WipImmediate extends Immediate {
 
 	@Override
 	public VertexConsumer getBuffer(RenderLayer renderLayer) {
-		final WipVertexCollector result = collectors.get(((MultiPhaseExt) renderLayer).canvas_renderState());
+		final WipVertexCollector result = collectors.get(((MultiPhaseExt) renderLayer).canvas_materialState());
 
 		if (result == null) {
 			assert AbstractStateFinder.isExcluded(renderLayer) : "Unable to retrieve vertex collector for non-excluded render layer";
 
 			return super.getBuffer(renderLayer);
 		} else {
-			result.vertexState(((MultiPhaseExt) renderLayer).canvas_vertexState());
+			result.vertexState(((MultiPhaseExt) renderLayer).canvas_materialState());
 			return result;
 		}
 	}
@@ -80,7 +80,7 @@ public class WipImmediate extends Immediate {
 		if (AbstractStateFinder.isExcluded(layer)) {
 			super.draw(layer);
 		} else {
-			final WipVertexCollectorImpl collector = collectors.getIfExists(((MultiPhaseExt) layer).canvas_renderState());
+			final WipVertexCollectorImpl collector = collectors.getIfExists(((MultiPhaseExt) layer).canvas_materialState());
 
 			if (collector != null) {
 				collector.drawAndClear();

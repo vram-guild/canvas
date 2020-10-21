@@ -25,8 +25,8 @@ import grondag.canvas.mixinterface.ParticleExt;
 import grondag.canvas.mixinterface.ParticleManagerExt;
 import grondag.canvas.wip.encoding.WipVertexCollectorImpl;
 import grondag.canvas.wip.state.RenderContextState;
-import grondag.canvas.wip.state.WipRenderState;
-import grondag.canvas.wip.state.WipVertexState;
+import grondag.canvas.wip.state.WipRenderMaterial;
+import grondag.canvas.wip.state.WipRenderMaterialFinder;
 import grondag.canvas.wip.state.property.WipDecal;
 import grondag.canvas.wip.state.property.WipDepthTest;
 import grondag.canvas.wip.state.property.WipFog;
@@ -60,6 +60,8 @@ public class CanvasParticleRenderer {
 	private LightmapTextureManager lightmapTextureManager;
 	private ParticleManagerExt ext;
 	private Runnable drawHandler = Runnables.doNothing();
+	private WipRenderMaterial baseMat;
+	private WipRenderMaterial emissiveMat;
 
 	CanvasParticleRenderer(RenderContextState contextState) {
 		collector = new WipVertexCollectorImpl(contextState);
@@ -87,7 +89,6 @@ public class CanvasParticleRenderer {
 
 			if (!particles.hasNext()) continue;
 
-			// FEAT: material maps for particles
 
 			final VertexConsumer consumer = beginSheet(particleTextureSheet);
 
@@ -95,8 +96,9 @@ public class CanvasParticleRenderer {
 				final Particle particle = particles.next();
 
 				try {
+					// FEAT: enhanced material maps for particles - shaders for animation in particular
 					final RenderMaterial mat = (RenderMaterial) MaterialMap.getForParticle(((ParticleExt) particle).canvas_particleType()).getMapped(null);
-					collector.vertexState(mat == null || !mat.emissive() ? PARTICLE_VERTEX_STATE : PARTICLE_EMISSIVE_VERTEX_STATE);
+					collector.vertexState(mat == null || !mat.emissive() ? baseMat : emissiveMat);
 					particle.buildGeometry(consumer, camera, tickDelta);
 				} catch (final Throwable exception) {
 					final CrashReport crashReport = CrashReport.create(exception, "Rendering Particle");
@@ -137,18 +139,21 @@ public class CanvasParticleRenderer {
 		// PERF: consolidate these draws
 		if (Configurator.enableExperimentalPipeline) {
 			if (particleTextureSheet == ParticleTextureSheet.TERRAIN_SHEET) {
-				collector.prepare(RENDER_STATE_TERRAIN);
-				collector.vertexState(PARTICLE_VERTEX_STATE);
+				baseMat = RENDER_STATE_TERRAIN;
+				emissiveMat = RENDER_STATE_TERRAIN_EMISSIVE;
+				collector.prepare(baseMat);
 				drawHandler = () -> collector.drawAndClear();
 				return collector;
 			} else if (particleTextureSheet == ParticleTextureSheet.PARTICLE_SHEET_LIT || particleTextureSheet == ParticleTextureSheet.PARTICLE_SHEET_OPAQUE) {
-				collector.prepare(RENDER_STATE_OPAQUE_OR_LIT);
-				collector.vertexState(PARTICLE_VERTEX_STATE);
+				baseMat = RENDER_STATE_OPAQUE_OR_LIT;
+				emissiveMat = RENDER_STATE_OPAQUE_OR_LIT_EMISSIVE;
+				collector.prepare(baseMat);
 				drawHandler = () -> collector.drawAndClear();
 				return collector;
 			} else if (particleTextureSheet == ParticleTextureSheet.PARTICLE_SHEET_TRANSLUCENT) {
-				collector.prepare(RENDER_STATE_TRANSLUCENT);
-				collector.vertexState(PARTICLE_VERTEX_STATE);
+				baseMat = RENDER_STATE_TRANSLUCENT;
+				emissiveMat = RENDER_STATE_TRANSLUCENT_EMISSIVE;
+				collector.prepare(baseMat);
 				drawHandler = () -> collector.drawAndClear();
 				return collector;
 			}
@@ -160,8 +165,8 @@ public class CanvasParticleRenderer {
 		return bufferBuilder;
 	}
 
-	private static WipRenderState.Finder baseFinder() {
-		return WipRenderState.finder()
+	private static WipRenderMaterialFinder baseFinder() {
+		return WipRenderMaterialFinder.threadLocal()
 		.primitive(GL11.GL_QUADS)
 		.depthTest(WipDepthTest.LEQUAL)
 		.cull(false)
@@ -170,26 +175,38 @@ public class CanvasParticleRenderer {
 		.decal(WipDecal.NONE)
 		.target(WipTarget.PARTICLES)
 		.lines(false)
+		.disableAo(true)
+		.disableDiffuse(true)
+		.cutout(true)
+		.translucentCutout(true)
 		.fog(WipFog.BLACK_FOG);
 	}
 
-	private static final WipRenderState RENDER_STATE_TERRAIN = baseFinder()
+	private static final WipRenderMaterial RENDER_STATE_TERRAIN = baseFinder()
 	.texture(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE)
 	.transparency(WipTransparency.DEFAULT)
 	.find();
 
+	private static final WipRenderMaterial RENDER_STATE_TERRAIN_EMISSIVE = baseFinder().copyFrom(RENDER_STATE_TERRAIN)
+	.emissive(true)
+	.find();
+
 	// MC has two but they are functionally identical
-	private static final WipRenderState RENDER_STATE_OPAQUE_OR_LIT =  baseFinder()
+	private static final WipRenderMaterial RENDER_STATE_OPAQUE_OR_LIT =  baseFinder()
 	.transparency(WipTransparency.NONE)
 	.texture(SpriteAtlasTexture.PARTICLE_ATLAS_TEXTURE)
 	.find();
 
-	private static final WipRenderState RENDER_STATE_TRANSLUCENT = baseFinder()
+	private static final WipRenderMaterial RENDER_STATE_OPAQUE_OR_LIT_EMISSIVE = baseFinder().copyFrom(RENDER_STATE_OPAQUE_OR_LIT)
+	.emissive(true)
+	.find();
+
+	private static final WipRenderMaterial RENDER_STATE_TRANSLUCENT = baseFinder()
 	.transparency(WipTransparency.TRANSLUCENT)
 	.texture(SpriteAtlasTexture.PARTICLE_ATLAS_TEXTURE)
 	.find();
 
-	// Doesn't strictly match vanilla - which uses 10% threshold vs the 0.03xxx value here.
-	private static final int PARTICLE_VERTEX_STATE = WipVertexState.finder().disableAo(true).disableDiffuse(true).cutout(true).translucentCutout(true).find();
-	private static final int PARTICLE_EMISSIVE_VERTEX_STATE = WipVertexState.finder().disableAo(true).disableDiffuse(true).cutout(true).translucentCutout(true).emissive(true).find();
+	private static final WipRenderMaterial RENDER_STATE_TRANSLUCENT_EMISSIVE = baseFinder().copyFrom(RENDER_STATE_TRANSLUCENT)
+	.emissive(true)
+	.find();
 }

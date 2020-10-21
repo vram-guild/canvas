@@ -119,7 +119,7 @@ public final class WipRenderState extends AbstractRenderState {
 	public static final int MAX_COUNT = 4096;
 	static int nextIndex = 0;
 	static final WipRenderState[] STATES = new WipRenderState[MAX_COUNT];
-	private static final Long2ObjectOpenHashMap<WipRenderState> MAP = new Long2ObjectOpenHashMap<>(4096, Hash.VERY_FAST_LOAD_FACTOR);
+	static final Long2ObjectOpenHashMap<WipRenderState> MAP = new Long2ObjectOpenHashMap<>(4096, Hash.VERY_FAST_LOAD_FACTOR);
 
 	public static final WipRenderState MISSING = new WipRenderState(0);
 
@@ -129,33 +129,5 @@ public final class WipRenderState extends AbstractRenderState {
 
 	public static WipRenderState fromIndex(int index) {
 		return STATES[index];
-	}
-
-	private static ThreadLocal<Finder> FINDER = ThreadLocal.withInitial(Finder::new);
-
-	public static Finder finder() {
-		final Finder result = FINDER.get();
-		result.reset();
-		return result;
-	}
-
-	public static class Finder extends AbstractStateFinder<Finder, WipRenderState>{
-		@Override
-		public synchronized WipRenderState find() {
-			WipRenderState result = MAP.get(bits);
-
-			if (result == null) {
-				result = new WipRenderState(bits);
-				MAP.put(bits, result);
-				STATES[result.index] = result;
-			}
-
-			return result;
-		}
-
-		@Override
-		protected WipRenderState missing() {
-			return MISSING;
-		}
 	}
 }

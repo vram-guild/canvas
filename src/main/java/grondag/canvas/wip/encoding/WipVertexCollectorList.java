@@ -20,6 +20,7 @@ import java.util.Arrays;
 
 import grondag.canvas.material.MaterialState;
 import grondag.canvas.wip.state.RenderContextState;
+import grondag.canvas.wip.state.WipRenderMaterial;
 import grondag.canvas.wip.state.WipRenderState;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
@@ -51,16 +52,16 @@ public class WipVertexCollectorList {
 		size = 0;
 	}
 
-	public final WipVertexCollectorImpl getIfExists(WipRenderState materialState) {
-		return materialState == WipRenderState.MISSING ? null : collectors[materialState.index];
+	public final WipVertexCollectorImpl getIfExists(WipRenderMaterial materialState) {
+		return materialState == WipRenderMaterial.MISSING ? null : collectors[materialState.collectorIndex];
 	}
 
-	public final WipVertexCollectorImpl get(WipRenderState materialState) {
-		if (materialState == WipRenderState.MISSING) {
+	public final WipVertexCollectorImpl get(WipRenderMaterial materialState) {
+		if (materialState == WipRenderMaterial.MISSING) {
 			return null;
 		}
 
-		final int index = materialState.index;
+		final int index = materialState.collectorIndex;
 		WipVertexCollectorImpl[] collectors = this.collectors;
 
 		WipVertexCollectorImpl result;
@@ -76,7 +77,7 @@ public class WipVertexCollectorList {
 		}
 
 		if (result == null) {
-			assert materialState.index != MaterialState.TRANSLUCENT_INDEX;
+			assert materialState.collectorIndex != MaterialState.TRANSLUCENT_INDEX;
 			result = emptyCollector().prepare(materialState);
 			collectors[index] = result;
 		}

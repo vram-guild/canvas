@@ -24,6 +24,7 @@ import com.mojang.blaze3d.platform.GlStateManager;
 import grondag.canvas.buffer.TransferBufferAllocator;
 import grondag.canvas.material.MaterialVertexFormats;
 import grondag.canvas.wip.state.RenderContextState;
+import grondag.canvas.wip.state.WipRenderMaterial;
 import grondag.canvas.wip.state.WipRenderState;
 import grondag.canvas.wip.state.property.WipTransparency;
 import grondag.fermion.intstream.IntStreamProvider;
@@ -58,9 +59,10 @@ public class WipVertexCollectorImpl extends WipAbstractVertexCollector {
 		super(contextState);
 	}
 
-	public WipVertexCollectorImpl prepare(WipRenderState materialState) {
+	public WipVertexCollectorImpl prepare(WipRenderMaterial materialState) {
 		this.materialState = materialState;
 		didPopulateNormal = false;
+		vertexState(materialState);
 		return this;
 	}
 
@@ -82,7 +84,7 @@ public class WipVertexCollectorImpl extends WipAbstractVertexCollector {
 		return integerSize == 0;
 	}
 
-	public WipRenderState materialState() {
+	public WipRenderMaterial materialState() {
 		return materialState;
 	}
 
@@ -194,7 +196,7 @@ public class WipVertexCollectorImpl extends WipAbstractVertexCollector {
 		return result;
 	}
 
-	public WipVertexCollectorImpl loadState(WipRenderState state, int[] stateData) {
+	public WipVertexCollectorImpl loadState(WipRenderMaterial state, int[] stateData) {
 		if (stateData == null) {
 			clear();
 			return this;
@@ -233,7 +235,7 @@ public class WipVertexCollectorImpl extends WipAbstractVertexCollector {
 	public void drawSingle() {
 		sortIfNeeded();
 
-		materialState.enable();
+		materialState.renderState.enable();
 
 		final ByteBuffer buffer = TransferBufferAllocator.claim(byteSize());
 
@@ -346,7 +348,7 @@ public class WipVertexCollectorImpl extends WipAbstractVertexCollector {
 		for (int i = 0; i < limit; ++i) {
 			final WipVertexCollectorImpl collector = drawList.get(i);
 			final int vertexCount = collector.vertexCount();
-			collector.materialState.enable();
+			collector.materialState.renderState.enable();
 			GlStateManager.drawArrays(collector.materialState.primitive, startIndex, vertexCount);
 			startIndex += vertexCount;
 			collector.clear();

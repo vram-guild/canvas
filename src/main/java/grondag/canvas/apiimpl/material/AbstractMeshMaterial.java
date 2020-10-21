@@ -23,6 +23,40 @@ import grondag.fermion.bits.BitPacker64;
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 
 public abstract class AbstractMeshMaterial {
+	protected long bits;
+
+	AbstractMeshMaterial(long bits) {
+		this.bits = bits;
+	}
+
+	public BlendMode blendMode() {
+		return BLEND_MODE.getValue(bits);
+	}
+
+	public boolean disableColorIndex() {
+		return DISABLE_COLOR.getValue(bits);
+	}
+
+	public boolean emissive() {
+		return EMISSIVE.getValue(bits);
+	}
+
+	public boolean disableDiffuse() {
+		return DISABLE_DIFFUSE.getValue(bits);
+	}
+
+	public boolean disableAo() {
+		return DISABLE_AO.getValue(bits);
+	}
+
+	public MaterialShaderImpl shader() {
+		return MaterialShaderManager.INSTANCE.get(SHADER.getValue(bits));
+	}
+
+	public MaterialConditionImpl condition() {
+		return MaterialConditionImpl.fromIndex(CONDITION.getValue(bits));
+	}
+
 	public static final int SHADER_FLAGS_DISABLE_AO;
 	static final BlendMode[] LAYERS = new BlendMode[4];
 	private static final BitPacker64<AbstractMeshMaterial> BITPACKER_0 = new BitPacker64<>(null, null);
@@ -57,39 +91,5 @@ public abstract class AbstractMeshMaterial {
 
 		DEFAULT_BITS = defaultBits;
 		SHADER_FLAGS_DISABLE_AO = (int) DISABLE_AO.setValue(true, 0);
-	}
-
-	protected long bits;
-
-	AbstractMeshMaterial(long bits) {
-		this.bits = bits;
-	}
-
-	public BlendMode blendMode() {
-		return BLEND_MODE.getValue(bits);
-	}
-
-	public boolean disableColorIndex() {
-		return DISABLE_COLOR.getValue(bits);
-	}
-
-	public boolean emissive() {
-		return EMISSIVE.getValue(bits);
-	}
-
-	public boolean disableDiffuse() {
-		return DISABLE_DIFFUSE.getValue(bits);
-	}
-
-	public boolean disableAo() {
-		return DISABLE_AO.getValue(bits);
-	}
-
-	public MaterialShaderImpl shader() {
-		return MaterialShaderManager.INSTANCE.get(SHADER.getValue(bits));
-	}
-
-	public MaterialConditionImpl condition() {
-		return MaterialConditionImpl.fromIndex(CONDITION.getValue(bits));
 	}
 }

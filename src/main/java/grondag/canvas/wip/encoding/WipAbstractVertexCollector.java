@@ -20,8 +20,8 @@ import grondag.canvas.apiimpl.mesh.MeshEncodingHelper;
 import grondag.canvas.apiimpl.util.NormalHelper;
 import grondag.canvas.mixinterface.SpriteExt;
 import grondag.canvas.wip.state.RenderContextState;
-import grondag.canvas.wip.state.WipRenderState;
-import grondag.canvas.wip.state.WipVertexState;
+import grondag.canvas.wip.state.RenderStateData;
+import grondag.canvas.wip.state.WipRenderMaterial;
 
 import static grondag.canvas.material.MaterialVertexFormats.MATERIAL_COLOR_INDEX;
 import static grondag.canvas.material.MaterialVertexFormats.MATERIAL_LIGHT_INDEX;
@@ -36,7 +36,7 @@ import net.minecraft.client.texture.Sprite;
 public abstract class WipAbstractVertexCollector implements WipVertexCollector {
 	private static final int LAST_VERTEX_BASE_INDEX = MATERIAL_QUAD_STRIDE - MATERIAL_VERTEX_STRIDE;
 
-	protected WipRenderState materialState;
+	protected WipRenderMaterial materialState;
 	protected final RenderContextState contextState;
 
 	protected final int[] vertexData = new int[MATERIAL_QUAD_STRIDE];
@@ -63,9 +63,9 @@ public abstract class WipAbstractVertexCollector implements WipVertexCollector {
 	public WipVertexCollector overlay(int u, int v) {
 		if (v == 3) {
 			// NB: these are pre-shifted to msb
-			overlayFlags = WipVertexState.HURT_OVERLAY_FLAG;
+			overlayFlags = RenderStateData.HURT_OVERLAY_FLAG;
 		} else if (v == 10) {
-			overlayFlags = u > 7 ? WipVertexState.FLASH_OVERLAY_FLAG : 0;
+			overlayFlags = u > 7 ? RenderStateData.FLASH_OVERLAY_FLAG : 0;
 		} else {
 			overlayFlags = 0;
 		}
@@ -87,9 +87,10 @@ public abstract class WipAbstractVertexCollector implements WipVertexCollector {
 	}
 
 	@Override
-	public WipVertexCollector vertexState(int vertexState) {
-		normalBase = (WipVertexState.shaderFlags(vertexState) << 24);
-		conditionActive = WipVertexState.condition(vertexState).compute();
+	public WipVertexCollector vertexState(WipRenderMaterial material) {
+		// WIP2: should assert collector key doesn't change here but not currently visible
+		normalBase = (material.shaderFlags << 24);
+		conditionActive = material.condition().compute();
 		return this;
 	}
 

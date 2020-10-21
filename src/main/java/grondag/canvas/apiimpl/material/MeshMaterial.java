@@ -90,7 +90,7 @@ public class MeshMaterial extends AbstractMeshMaterial implements RenderMaterial
 	static final ObjectArrayList<MeshMaterial> LIST = new ObjectArrayList<>();
 	static final Long2ObjectOpenHashMap<MeshMaterial> MAP = new Long2ObjectOpenHashMap<>();
 
-	public static MeshMaterial byIndex(int index) {
+	public static MeshMaterial fromIndex(int index) {
 		assert index < LIST.size();
 		assert index >= 0;
 

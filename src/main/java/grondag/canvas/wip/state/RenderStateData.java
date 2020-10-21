@@ -14,27 +14,11 @@
  * the License.
  */
 
-package grondag.canvas.mixinterface;
+package grondag.canvas.wip.state;
 
-import java.util.Optional;
+public class RenderStateData {
+	private RenderStateData() {}
 
-import grondag.canvas.mixin.AccessMultiPhaseParameters;
-import grondag.canvas.wip.state.WipRenderMaterial;
-
-import net.minecraft.client.render.RenderLayer;
-
-public interface MultiPhaseExt {
-	Optional<RenderLayer> canvas_affectedOutline();
-
-	boolean canvas_outline();
-
-	void canvas_startDrawing();
-
-	void canvas_endDrawing();
-
-	AccessMultiPhaseParameters canvas_phases();
-
-	WipRenderMaterial canvas_materialState();
-
-	String canvas_name();
+	public static final int HURT_OVERLAY_FLAG = (int) (AbstractRenderStateView.HURT_OVERLAY_FLAG << 24);
+	public static final int FLASH_OVERLAY_FLAG = (int) (AbstractRenderStateView.FLASH_OVERLAY_FLAG << 24);
 }

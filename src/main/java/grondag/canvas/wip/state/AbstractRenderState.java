@@ -26,12 +26,8 @@ import grondag.canvas.wip.state.property.WipTarget;
 import grondag.canvas.wip.state.property.WipTextureState;
 import grondag.canvas.wip.state.property.WipTransparency;
 import grondag.canvas.wip.state.property.WipWriteMask;
-import grondag.fermion.bits.BitPacker64;
 
-@SuppressWarnings("rawtypes")
-abstract class AbstractRenderState {
-	protected final long bits;
-
+abstract class AbstractRenderState extends AbstractRenderStateView {
 	public final int index;
 
 	/**
@@ -46,7 +42,9 @@ abstract class AbstractRenderState {
 	 */
 	public final int primitive;
 
+	// WIP: remove - doesn't change
 	public final int vertexStrideInts;
+
 	public final WipTextureState texture;
 	public final boolean bilinear;
 	public final WipTransparency translucency;
@@ -68,45 +66,22 @@ abstract class AbstractRenderState {
 	public final boolean isTranslucentTerrain;
 
 	protected AbstractRenderState(int index, long bits) {
-		this.bits = bits;
+		super(bits);
 		this.index = index;
-		primitive = PRIMITIVE.getValue(bits);
-		texture = WipTextureState.fromIndex(TEXTURE.getValue(bits));
-		bilinear = BILINEAR.getValue(bits);
-		depthTest = DEPTH_TEST.getValue(bits);
-		cull = CULL.getValue(bits);
-		writeMask = WRITE_MASK.getValue(bits);
-		enableLightmap = ENABLE_LIGHTMAP.getValue(bits);
-		decal = DECAL.getValue(bits);
-		target = TARGET.getValue(bits);
-		lines = LINES.getValue(bits);
-		fog = FOG.getValue(bits);
+		primitive = primitive();
+		texture = texture();
+		bilinear = bilinear();
+		depthTest = depthTest();
+		cull = cull();
+		writeMask = writeMask();
+		enableLightmap = enableLightmap();
+		decal = decal();
+		target = target();
+		lines = lines();
+		fog = fog();
 		vertexStrideInts = MaterialVertexFormats.POSITION_COLOR_TEXTURE_MATERIAL_LIGHT_NORMAL.vertexStrideInts;
 		translucency = TRANSPARENCY.getValue(bits);
-		shader = WipMaterialShaderManager.INSTANCE.find(VERTEX_SHADER.getValue(bits), FRAGMENT_SHADER.getValue(bits), translucency == WipTransparency.TRANSLUCENT ? WipProgramType.MATERIAL_VERTEX_LOGIC : WipProgramType.MATERIAL_UNIFORM_LOGIC);
+		shader = WipMaterialShaderManager.INSTANCE.get(SHADER.getValue(bits));
 		isTranslucentTerrain = (target == WipTarget.MAIN || target == WipTarget.TRANSLUCENT) && translucency == WipTransparency.TRANSLUCENT;
 	}
-
-
-	static final BitPacker64<Void> PACKER = new BitPacker64<> (null, null);
-
-	// GL State comes first for sorting
-	static final BitPacker64.IntElement TEXTURE = PACKER.createIntElement(WipTextureState.MAX_TEXTURE_STATES);
-	static final BitPacker64.BooleanElement BILINEAR = PACKER.createBooleanElement();
-
-	static final BitPacker64<Void>.EnumElement<WipTransparency> TRANSPARENCY = PACKER.createEnumElement(WipTransparency.class);
-	static final BitPacker64<Void>.EnumElement<WipDepthTest> DEPTH_TEST = PACKER.createEnumElement(WipDepthTest.class);
-	static final BitPacker64.BooleanElement CULL = PACKER.createBooleanElement();
-	static final BitPacker64<Void>.EnumElement<WipWriteMask> WRITE_MASK = PACKER.createEnumElement(WipWriteMask.class);
-	static final BitPacker64.BooleanElement ENABLE_LIGHTMAP = PACKER.createBooleanElement();
-	static final BitPacker64<Void>.EnumElement<WipDecal> DECAL = PACKER.createEnumElement(WipDecal.class);
-	static final BitPacker64<Void>.EnumElement<WipTarget> TARGET = PACKER.createEnumElement(WipTarget.class);
-	static final BitPacker64.BooleanElement LINES = PACKER.createBooleanElement();
-	static final BitPacker64<Void>.EnumElement<WipFog> FOG = PACKER.createEnumElement(WipFog.class);
-
-	// These don't affect GL state but do affect encoding - must be buffered separately
-	static final BitPacker64.IntElement PRIMITIVE = PACKER.createIntElement(8);
-
-	static final BitPacker64.IntElement VERTEX_SHADER = PACKER.createIntElement(4096);
-	static final BitPacker64.IntElement FRAGMENT_SHADER = PACKER.createIntElement(4096);
 }
