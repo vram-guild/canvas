@@ -19,12 +19,12 @@ package grondag.canvas.apiimpl.rendercontext;
 import java.util.Random;
 import java.util.function.Supplier;
 
-import grondag.canvas.apiimpl.material.MeshMaterial;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.light.AoCalculator;
 import grondag.canvas.material.EncodingContext;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.MinecraftClientExt;
+import grondag.canvas.wip.state.WipRenderMaterial;
 import grondag.fermion.sc.concurrency.SimpleConcurrentList;
 
 import net.minecraft.block.Block;
@@ -127,7 +127,7 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 	}
 
 	@Override
-	public VertexConsumer consumer(MeshMaterial mat) {
+	public VertexConsumer consumer(WipRenderMaterial mat) {
 		// WIP2: will need to allow for/handle other material properties here when switching to material state
 		// routing to the default consumer may not be correct
 		// standard vanilla consumers may also be incorrect

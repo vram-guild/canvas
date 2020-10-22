@@ -16,11 +16,11 @@
 
 package grondag.canvas.apiimpl.mesh;
 
-import grondag.canvas.apiimpl.material.MeshMaterial;
 import grondag.canvas.apiimpl.util.GeometryHelper;
 import grondag.canvas.apiimpl.util.NormalHelper;
 import grondag.canvas.mixinterface.Matrix4fExt;
 import grondag.canvas.texture.SpriteInfoTexture;
+import grondag.canvas.wip.state.WipRenderMaterial;
 import grondag.frex.api.mesh.QuadView;
 
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.BASE_QUAD_STRIDE;
@@ -177,8 +177,8 @@ public class QuadViewImpl implements QuadView {
 	}
 
 	@Override
-	public final MeshMaterial material() {
-		return MeshMaterial.fromIndex(data[baseIndex + HEADER_MATERIAL]);
+	public final WipRenderMaterial material() {
+		return WipRenderMaterial.fromIndex(data[baseIndex + HEADER_MATERIAL]);
 	}
 
 	@Override

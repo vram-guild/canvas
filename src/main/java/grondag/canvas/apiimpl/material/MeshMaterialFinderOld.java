@@ -24,20 +24,20 @@ import grondag.frex.api.material.RenderMaterial;
 
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 
-public class MeshMaterialFinder extends AbstractMeshMaterial implements MaterialFinder {
-	public MeshMaterialFinder() {
+public class MeshMaterialFinderOld extends AbstractMeshMaterialOld implements MaterialFinder {
+	public MeshMaterialFinderOld() {
 		super(DEFAULT_BITS);
 	}
 
 	@Override
-	public MeshMaterial find() {
-		synchronized(MeshMaterial.MAP) {
-			MeshMaterial result = MeshMaterial.MAP.get(bits);
+	public MeshMaterialOld find() {
+		synchronized(MeshMaterialOld.MAP) {
+			MeshMaterialOld result = MeshMaterialOld.MAP.get(bits);
 
 			if (result == null) {
-				result = new MeshMaterial(MeshMaterial.LIST.size(), bits);
-				MeshMaterial.LIST.add(result);
-				MeshMaterial.MAP.put(bits, result);
+				result = new MeshMaterialOld(MeshMaterialOld.LIST.size(), bits);
+				MeshMaterialOld.LIST.add(result);
+				MeshMaterialOld.MAP.put(bits, result);
 			}
 
 			return result;
@@ -45,13 +45,13 @@ public class MeshMaterialFinder extends AbstractMeshMaterial implements Material
 	}
 
 	@Override
-	public MeshMaterialFinder clear() {
+	public MeshMaterialFinderOld clear() {
 		bits = DEFAULT_BITS;
 		return this;
 	}
 
 	@Override
-	public MeshMaterialFinder blendMode(BlendMode blendMode) {
+	public MeshMaterialFinderOld blendMode(BlendMode blendMode) {
 		if (blendMode == null) {
 			blendMode = BlendMode.DEFAULT;
 		}
@@ -61,44 +61,44 @@ public class MeshMaterialFinder extends AbstractMeshMaterial implements Material
 	}
 
 	@Override
-	public MeshMaterialFinder disableColorIndex(boolean disable) {
+	public MeshMaterialFinderOld disableColorIndex(boolean disable) {
 		bits = DISABLE_COLOR.setValue(disable, bits);
 		return this;
 	}
 
 	@Override
-	public MeshMaterialFinder emissive(boolean isEmissive) {
+	public MeshMaterialFinderOld emissive(boolean isEmissive) {
 		bits = EMISSIVE.setValue(isEmissive, bits);
 		return this;
 	}
 
 	@Override
-	public MeshMaterialFinder disableDiffuse(boolean disable) {
+	public MeshMaterialFinderOld disableDiffuse(boolean disable) {
 		bits = DISABLE_DIFFUSE.setValue(disable, bits);
 		return this;
 	}
 
 	@Override
-	public MeshMaterialFinder disableAo(boolean disable) {
+	public MeshMaterialFinderOld disableAo(boolean disable) {
 		bits = DISABLE_AO.setValue(disable, bits);
 		return this;
 	}
 
 	@Override
-	public MeshMaterialFinder shader( MaterialShader shader) {
+	public MeshMaterialFinderOld shader( MaterialShader shader) {
 		bits = SHADER.setValue(((MaterialShaderImpl) shader).getIndex(), bits);
 		return this;
 	}
 
 	@Override
-	public MeshMaterialFinder condition(MaterialCondition condition) {
+	public MeshMaterialFinderOld condition(MaterialCondition condition) {
 		bits = CONDITION.setValue(((MaterialConditionImpl) condition).index, bits);
 		return this;
 	}
 
 	@Override
-	public MeshMaterialFinder copyFrom(RenderMaterial material) {
-		bits =  ((MeshMaterial) material).bits;
+	public MeshMaterialFinderOld copyFrom(RenderMaterial material) {
+		bits =  ((MeshMaterialOld) material).bits;
 		return this;
 	}
 }

@@ -18,7 +18,6 @@ package grondag.canvas.wip.encoding;
 
 import java.util.Arrays;
 
-import grondag.canvas.material.MaterialState;
 import grondag.canvas.wip.state.RenderContextState;
 import grondag.canvas.wip.state.WipRenderMaterial;
 import grondag.canvas.wip.state.WipRenderState;
@@ -77,7 +76,6 @@ public class WipVertexCollectorList {
 		}
 
 		if (result == null) {
-			assert materialState.collectorIndex != MaterialState.TRANSLUCENT_INDEX;
 			result = emptyCollector().prepare(materialState);
 			collectors[index] = result;
 		}
@@ -99,7 +97,7 @@ public class WipVertexCollectorList {
 		return result;
 	}
 
-	public boolean contains(MaterialState materialState) {
+	public boolean contains(WipRenderMaterial materialState) {
 		final int index = materialState.collectorIndex;
 		return index < collectors.length && collectors[index] != null;
 	}

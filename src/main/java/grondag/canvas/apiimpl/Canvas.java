@@ -20,8 +20,6 @@ import java.util.function.BooleanSupplier;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.material.MaterialShaderImpl;
-import grondag.canvas.apiimpl.material.MeshMaterial;
-import grondag.canvas.apiimpl.material.MeshMaterialFinder;
 import grondag.canvas.apiimpl.mesh.MeshBuilderImpl;
 import grondag.canvas.apiimpl.rendercontext.BlockRenderContext;
 import grondag.canvas.apiimpl.rendercontext.EntityBlockRenderContext;
@@ -31,7 +29,6 @@ import grondag.canvas.compat.LitematicaHolder;
 import grondag.canvas.light.AoVertexClampFunction;
 import grondag.canvas.light.LightmapHd;
 import grondag.canvas.light.LightmapHdTexture;
-import grondag.canvas.material.MaterialState;
 import grondag.canvas.perf.ChunkRebuildCounters;
 import grondag.canvas.pipeline.ProcessShaders;
 import grondag.canvas.shader.GlShaderManager;
@@ -41,6 +38,8 @@ import grondag.canvas.terrain.ProtoRenderRegion;
 import grondag.canvas.terrain.TerrainModelSpace;
 import grondag.canvas.wip.shader.WipGlShaderManager;
 import grondag.canvas.wip.shader.WipMaterialShaderManager;
+import grondag.canvas.wip.state.WipRenderMaterial;
+import grondag.canvas.wip.state.WipRenderMaterialFinder;
 import grondag.frex.api.Renderer;
 import grondag.frex.api.material.MaterialCondition;
 import grondag.frex.api.material.MaterialShader;
@@ -56,13 +55,13 @@ import net.fabricmc.fabric.api.renderer.v1.mesh.MeshBuilder;
 public class Canvas implements Renderer {
 	public static final Canvas INSTANCE = new Canvas();
 
-	public static final MeshMaterial MATERIAL_STANDARD = INSTANCE.materialFinder().find();
+	public static final WipRenderMaterial MATERIAL_STANDARD = INSTANCE.materialFinder().find();
 
 	static {
 		INSTANCE.registerMaterial(RenderMaterial.MATERIAL_STANDARD, MATERIAL_STANDARD);
 	}
 
-	private final Object2ObjectOpenHashMap<Identifier, MeshMaterial> materialMap = new Object2ObjectOpenHashMap<>();
+	private final Object2ObjectOpenHashMap<Identifier, WipRenderMaterial> materialMap = new Object2ObjectOpenHashMap<>();
 	private final Object2ObjectOpenHashMap<Identifier, MaterialShaderImpl> shaderMap = new Object2ObjectOpenHashMap<>();
 	private final Object2ObjectOpenHashMap<Identifier, MaterialConditionImpl> conditionMap = new Object2ObjectOpenHashMap<>();
 
@@ -75,12 +74,12 @@ public class Canvas implements Renderer {
 	}
 
 	@Override
-	public MeshMaterialFinder materialFinder() {
-		return new MeshMaterialFinder();
+	public WipRenderMaterialFinder materialFinder() {
+		return new WipRenderMaterialFinder();
 	}
 
 	@Override
-	public MeshMaterial materialById(Identifier id) {
+	public WipRenderMaterial materialById(Identifier id) {
 		return materialMap.get(id);
 	}
 
@@ -91,7 +90,7 @@ public class Canvas implements Renderer {
 		}
 
 		// cast to prevent acceptance of impostor implementations
-		materialMap.put(id, (MeshMaterial) material);
+		materialMap.put(id, (WipRenderMaterial) material);
 		return true;
 	}
 
@@ -110,7 +109,6 @@ public class Canvas implements Renderer {
 		MaterialShaderManager.INSTANCE.reload();
 		WipMaterialShaderManager.INSTANCE.reload();
 		WipGlShaderManager.INSTANCE.reload();
-		MaterialState.reload();
 		VertexEncoders.reload();
 		TerrainModelSpace.reload();
 		ProcessShaders.reload();

@@ -31,7 +31,7 @@ import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
  * <p>
  * WIP2: make sure can handle "dual" render layers and similar vanilla constructs.
  */
-public class MeshMaterial extends AbstractMeshMaterial implements RenderMaterial {
+public class MeshMaterialOld extends AbstractMeshMaterialOld implements RenderMaterial {
 	/**
 	 * True if base layer is translucent.
 	 */
@@ -43,7 +43,7 @@ public class MeshMaterial extends AbstractMeshMaterial implements RenderMaterial
 	private final MaterialShaderImpl shader;
 	public final int index;
 
-	protected MeshMaterial(int index, long bits) {
+	protected MeshMaterialOld(int index, long bits) {
 		super(bits);
 		this.index = index;
 		condition = super.condition();
@@ -87,10 +87,10 @@ public class MeshMaterial extends AbstractMeshMaterial implements RenderMaterial
 		return condition;
 	}
 
-	static final ObjectArrayList<MeshMaterial> LIST = new ObjectArrayList<>();
-	static final Long2ObjectOpenHashMap<MeshMaterial> MAP = new Long2ObjectOpenHashMap<>();
+	static final ObjectArrayList<MeshMaterialOld> LIST = new ObjectArrayList<>();
+	static final Long2ObjectOpenHashMap<MeshMaterialOld> MAP = new Long2ObjectOpenHashMap<>();
 
-	public static MeshMaterial fromIndex(int index) {
+	public static MeshMaterialOld fromIndex(int index) {
 		assert index < LIST.size();
 		assert index >= 0;
 

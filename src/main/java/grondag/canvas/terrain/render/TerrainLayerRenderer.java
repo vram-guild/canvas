@@ -21,10 +21,6 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.MaterialConditionImpl;
 import grondag.canvas.light.LightmapHdTexture;
-import grondag.canvas.material.EncodingContext;
-import grondag.canvas.material.MaterialVertexFormat;
-import grondag.canvas.render.DrawHandler;
-import grondag.canvas.render.DrawHandlers;
 import grondag.canvas.shader.ShaderContext;
 import grondag.canvas.shader.ShaderPass;
 import grondag.canvas.terrain.BuiltRenderRegion;
@@ -71,11 +67,13 @@ public class TerrainLayerRenderer {
 
 		long lastRelativeOrigin = -1;
 
-		final DrawHandler h = DrawHandlers.get(EncodingContext.TERRAIN, shaderContext.pass);
-		final MaterialVertexFormat format = h.format;
-		h.setup();
+		//		final DrawHandler h = DrawHandlers.get(EncodingContext.TERRAIN, shaderContext.pass);
+		//		final MaterialVertexFormat format = h.format;
+		//		h.setup();
 
 		int ox = 0, oy = 0, oz = 0;
+
+		boolean first = true;
 
 		for (int regionIndex = startIndex; regionIndex != endIndex; regionIndex += step) {
 			final BuiltRenderRegion builtRegion = visibleRegions[regionIndex];
@@ -127,16 +125,23 @@ public class TerrainLayerRenderer {
 						RenderSystem.multMatrix(matrixStack.peek().getModel());
 					}
 
+
+
 					drawable.vboBuffer.bind();
 
 					final int limit = delegates.size();
 
 					for (int i = 0; i < limit; ++i) {
 						final DrawableDelegate d = delegates.get(i);
+
+						if (first) {
+							d.materialState().renderState.enable();
+							first = false;
+						}
+
 						final MaterialConditionImpl condition = d.materialState().condition;
 
 						if (!condition.affectBlocks || condition.compute()) {
-							d.materialState().shader.activate(shaderContext, format, ox, oy, oz);
 							d.draw();
 						}
 					}

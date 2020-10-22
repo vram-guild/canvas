@@ -16,10 +16,12 @@
 
 package grondag.canvas.wip.state;
 
+import grondag.canvas.apiimpl.MaterialConditionImpl;
 import grondag.canvas.mixin.AccessMultiPhaseParameters;
 import grondag.canvas.mixin.AccessTexture;
 import grondag.canvas.mixinterface.EntityRenderDispatcherExt;
 import grondag.canvas.mixinterface.MultiPhaseExt;
+import grondag.canvas.wip.shader.WipMaterialShaderImpl;
 import grondag.canvas.wip.shader.WipMaterialShaderManager;
 import grondag.canvas.wip.shader.WipShaderData;
 import grondag.canvas.wip.state.property.WipDecal;
@@ -29,32 +31,13 @@ import grondag.canvas.wip.state.property.WipTarget;
 import grondag.canvas.wip.state.property.WipTextureState;
 import grondag.canvas.wip.state.property.WipTransparency;
 import grondag.canvas.wip.state.property.WipWriteMask;
+import grondag.frex.api.material.MaterialCondition;
+import grondag.frex.api.material.MaterialShader;
+import grondag.frex.api.material.RenderMaterial;
 import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.opengl.GL11;
-
-import static grondag.canvas.wip.state.AbstractRenderStateView.BILINEAR;
-import static grondag.canvas.wip.state.AbstractRenderStateView.CULL;
-import static grondag.canvas.wip.state.AbstractRenderStateView.CUTOUT;
-import static grondag.canvas.wip.state.AbstractRenderStateView.DECAL;
-import static grondag.canvas.wip.state.AbstractRenderStateView.DEPTH_TEST;
-import static grondag.canvas.wip.state.AbstractRenderStateView.DISABLE_AO;
-import static grondag.canvas.wip.state.AbstractRenderStateView.DISABLE_DIFFUSE;
-import static grondag.canvas.wip.state.AbstractRenderStateView.EMISSIVE;
-import static grondag.canvas.wip.state.AbstractRenderStateView.ENABLE_LIGHTMAP;
-import static grondag.canvas.wip.state.AbstractRenderStateView.FLASH_OVERLAY;
-import static grondag.canvas.wip.state.AbstractRenderStateView.FOG;
-import static grondag.canvas.wip.state.AbstractRenderStateView.HURT_OVERLAY;
-import static grondag.canvas.wip.state.AbstractRenderStateView.LINES;
-import static grondag.canvas.wip.state.AbstractRenderStateView.PRIMITIVE;
-import static grondag.canvas.wip.state.AbstractRenderStateView.SHADER;
-import static grondag.canvas.wip.state.AbstractRenderStateView.TARGET;
-import static grondag.canvas.wip.state.AbstractRenderStateView.TEXTURE;
-import static grondag.canvas.wip.state.AbstractRenderStateView.TRANSLUCENT_CUTOUT;
-import static grondag.canvas.wip.state.AbstractRenderStateView.TRANSPARENCY;
-import static grondag.canvas.wip.state.AbstractRenderStateView.UNMIPPED;
-import static grondag.canvas.wip.state.AbstractRenderStateView.WRITE_MASK;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.RenderLayer;
@@ -62,14 +45,18 @@ import net.minecraft.client.render.RenderPhase;
 import net.minecraft.client.render.model.ModelLoader;
 import net.minecraft.util.Identifier;
 
+import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
+
 @SuppressWarnings("unchecked")
-public abstract class AbstractStateFinder<T extends AbstractStateFinder<T, V>, V extends AbstractRenderState> {
-	protected long bits;
+public abstract class AbstractStateFinder<T extends AbstractStateFinder<T, V>, V extends AbstractRenderState> extends AbstractRenderStateView{
+	protected AbstractStateFinder() {
+		super(0);
+	}
 
 	protected int vertexShaderIndex;
 	protected int fragmentShaderIndex;
 
-	public T reset() {
+	public T clear() {
 		bits = 0;
 		vertexShader(WipShaderData.DEFAULT_VERTEX_SOURCE);
 		fragmentShader(WipShaderData.DEFAULT_FRAGMENT_SOURCE);
@@ -127,6 +114,13 @@ public abstract class AbstractStateFinder<T extends AbstractStateFinder<T, V>, V
 	}
 
 	public T decal(WipDecal decal) {
+		if (decal == WipDecal.TRANSLUCENT) {
+			decal = WipDecal.NONE;
+			bits = DECAL_TRANSLUCENCY.setValue(true, bits);
+		} else {
+			bits = DECAL_TRANSLUCENCY.setValue(true, bits);
+		}
+
 		bits = DECAL.setValue(decal, bits);
 		return (T) this;
 	}
@@ -205,9 +199,74 @@ public abstract class AbstractStateFinder<T extends AbstractStateFinder<T, V>, V
 		return (T) this;
 	}
 
+	public T blendMode(BlendMode blendMode) {
+		switch (blendMode) {
+			case CUTOUT:
+				transparency(WipTransparency.NONE);
+				cutout(true);
+				unmipped(true);
+				translucentCutout(false);
+				bits = DEFAULT_BLEND_MODE.setValue(false, bits);
+				break;
+			case CUTOUT_MIPPED:
+				transparency(WipTransparency.NONE);
+				cutout(true);
+				unmipped(false);
+				translucentCutout(false);
+				bits = DEFAULT_BLEND_MODE.setValue(false, bits);
+				break;
+			case TRANSLUCENT:
+				transparency(WipTransparency.TRANSLUCENT);
+				cutout(true);
+				unmipped(false);
+				translucentCutout(true);
+				bits = DEFAULT_BLEND_MODE.setValue(false, bits);
+				break;
+			case DEFAULT:
+				transparency(WipTransparency.NONE);
+				cutout(false);
+				unmipped(false);
+				translucentCutout(false);
+				bits = DEFAULT_BLEND_MODE.setValue(true, bits);
+				break;
+			default:
+			case SOLID:
+				transparency(WipTransparency.NONE);
+				cutout(false);
+				unmipped(false);
+				translucentCutout(false);
+				bits = DEFAULT_BLEND_MODE.setValue(false, bits);
+				break;
+		}
+
+		return (T) this;
+	}
+
+	public T disableColorIndex(boolean disable) {
+		bits = DISABLE_COLOR_INDEX.setValue(disable, bits);
+		return (T) this;
+	}
+
+	public T shader(MaterialShader shader) {
+		final WipMaterialShaderImpl s = (WipMaterialShaderImpl) shader;
+		vertexShaderIndex = s.vertexShaderIndex;
+		fragmentShaderIndex = s.fragmentShaderIndex;
+		return (T) this;
+	}
+
+	public T condition(MaterialCondition condition) {
+		bits = CONDITION.setValue(((MaterialConditionImpl) condition).index, bits);
+		return (T) this;
+	}
+
+	public T copyFrom(RenderMaterial material) {
+		return copyFrom((V) material);
+	}
+
 	protected abstract V missing();
 
 	public V find() {
+		// WIP: need a way to ensure only one translucent material per target
 		bits = SHADER.setValue(WipMaterialShaderManager.INSTANCE.find(vertexShaderIndex,fragmentShaderIndex, TRANSPARENCY.getValue(bits) == WipTransparency.TRANSLUCENT ? WipProgramType.MATERIAL_VERTEX_LOGIC : WipProgramType.MATERIAL_UNIFORM_LOGIC).index, bits);
 		return findInner();
 	}
@@ -252,7 +311,7 @@ public abstract class AbstractStateFinder<T extends AbstractStateFinder<T, V>, V
 	}
 
 	public T copyFrom(V template) {
-		this.bits = template.bits;
+		bits = template.bits;
 		return (T) this;
 	}
 

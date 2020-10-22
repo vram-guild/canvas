@@ -17,7 +17,6 @@
 package grondag.canvas.apiimpl.rendercontext;
 
 import grondag.canvas.Configurator;
-import grondag.canvas.apiimpl.material.MeshMaterial;
 import grondag.canvas.light.AoCalculator;
 import grondag.canvas.light.LightSmoother;
 import grondag.canvas.material.EncodingContext;
@@ -25,6 +24,7 @@ import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.terrain.FastRenderRegion;
 import grondag.canvas.terrain.ProtoRenderRegion;
 import grondag.canvas.terrain.RenderRegionAddressHelper;
+import grondag.canvas.wip.state.WipRenderMaterial;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 
 import net.minecraft.block.Block;
@@ -127,7 +127,7 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<FastRenderR
 	}
 
 	@Override
-	public VertexConsumer consumer(MeshMaterial mat) {
+	public VertexConsumer consumer(WipRenderMaterial mat) {
 		return collectors.get(mat);
 	}
 

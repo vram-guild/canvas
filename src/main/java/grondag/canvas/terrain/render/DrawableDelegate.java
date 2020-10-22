@@ -16,16 +16,16 @@
 
 package grondag.canvas.terrain.render;
 
+import java.util.concurrent.ArrayBlockingQueue;
+
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
-import grondag.canvas.material.MaterialState;
+import grondag.canvas.wip.state.WipRenderMaterial;
 import org.lwjgl.opengl.GL11;
-
-import java.util.concurrent.ArrayBlockingQueue;
 
 public class DrawableDelegate {
 	private static final ArrayBlockingQueue<DrawableDelegate> store = new ArrayBlockingQueue<>(4096);
-	private MaterialState materialState;
+	private WipRenderMaterial materialState;
 	private int vertexOffset;
 	private int vertexCount;
 	private boolean isReleased = false;
@@ -34,7 +34,7 @@ public class DrawableDelegate {
 		super();
 	}
 
-	public static DrawableDelegate claim(MaterialState renderState, int vertexOffset, int vertexCount) {
+	public static DrawableDelegate claim(WipRenderMaterial renderState, int vertexOffset, int vertexCount) {
 		DrawableDelegate result = store.poll();
 
 		if (result == null) {
@@ -51,7 +51,7 @@ public class DrawableDelegate {
 	/**
 	 * The pipeline (and vertex format) associated with this delegate.
 	 */
-	public MaterialState materialState() {
+	public WipRenderMaterial materialState() {
 		return materialState;
 	}
 

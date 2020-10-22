@@ -65,6 +65,7 @@ import grondag.canvas.varia.WorldDataManager;
 import grondag.canvas.wip.encoding.WipImmediate;
 import grondag.canvas.wip.shader.WipMaterialShaderManager;
 import grondag.canvas.wip.state.RenderContextState;
+import grondag.canvas.wip.state.WipRenderState;
 import grondag.canvas.wip.state.property.WipMatrixState;
 import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
 import grondag.frex.api.event.WorldRenderEvent;
@@ -1018,6 +1019,8 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			DECAL.render(visibleRegions, visibleRegionCount, matrixStack, x, y, z);
 		}
 
+		WipRenderState.disable();
+
 		// Important this happens BEFORE anything that could affect vertex state
 		if (CanvasGlHelper.isVaoEnabled()) {
 			CanvasGlHelper.glBindVertexArray(0);
@@ -1031,8 +1034,6 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		VboBuffer.unbind();
 
 		RenderSystem.clearCurrentColor();
-
-		DrawHandler.teardown();
 
 		GlStateManager.disableClientState(GL11.GL_VERTEX_ARRAY);
 		CanvasGlHelper.enableAttributes(0);

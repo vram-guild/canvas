@@ -18,7 +18,7 @@ package grondag.canvas.material;
 
 import grondag.canvas.apiimpl.MaterialConditionImpl;
 import grondag.canvas.apiimpl.material.MaterialShaderImpl;
-import grondag.canvas.apiimpl.material.MeshMaterial;
+import grondag.canvas.apiimpl.material.MeshMaterialOld;
 import grondag.canvas.shader.MaterialShaderManager;
 import grondag.canvas.shader.ShaderPass;
 import grondag.fermion.bits.BitPacker32;
@@ -27,9 +27,9 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 //   WIP2: replace with MaterialDrawState
 
 
-public class MaterialState {
+public class MaterialStateOld {
 	public static final int TRANSLUCENT_INDEX = 0;
-	private static final Int2ObjectOpenHashMap<MaterialState> MAP = new Int2ObjectOpenHashMap<>(4096);
+	private static final Int2ObjectOpenHashMap<MaterialStateOld> MAP = new Int2ObjectOpenHashMap<>(4096);
 	@SuppressWarnings({"unchecked", "rawtypes"})
 	private static final BitPacker32<Void> PACKER = new BitPacker32(null, null);
 	private static final BitPacker32<Void>.EnumElement<ShaderPass> SHADER_TYPE_PACKER = PACKER.createEnumElement(ShaderPass.class);
@@ -51,7 +51,7 @@ public class MaterialState {
 	public final MaterialConditionImpl condition;
 	public final boolean isTranslucent;
 
-	private MaterialState(MaterialShaderImpl shader, MaterialConditionImpl condition, ShaderPass shaderPass) {
+	private MaterialStateOld(MaterialShaderImpl shader, MaterialConditionImpl condition, ShaderPass shaderPass) {
 		assert shaderPass != ShaderPass.PROCESS;
 
 		this.shader = shader;
@@ -62,11 +62,11 @@ public class MaterialState {
 	}
 
 	// UGLY: decal probably doesn't belong here
-	public static MaterialState get(MeshMaterial mat) {
+	public static MaterialStateOld get(MeshMaterialOld mat) {
 		return get(mat.shader(), mat.condition(), mat.shaderType);
 	}
 
-	public static MaterialState get(MaterialShaderImpl shader, MaterialConditionImpl condition, ShaderPass pass) {
+	public static MaterialStateOld get(MaterialShaderImpl shader, MaterialConditionImpl condition, ShaderPass pass) {
 		assert pass != ShaderPass.PROCESS;
 
 		// translucent must be done with ubershader
@@ -78,14 +78,14 @@ public class MaterialState {
 		final int lookupIndex = SHADER_TYPE_PACKER.getBits(pass)
 		| CONDITION_PACKER.getBits(condition.index) | SHADER_PACKER.getBits(shader.getIndex());
 
-		MaterialState result = MAP.get(lookupIndex);
+		MaterialStateOld result = MAP.get(lookupIndex);
 
 		if (result == null) {
 			synchronized (MAP) {
 				result = MAP.get(lookupIndex);
 
 				if (result == null) {
-					result = new MaterialState(shader, condition, pass);
+					result = new MaterialStateOld(shader, condition, pass);
 					MAP.put(lookupIndex, result);
 				}
 			}
@@ -94,7 +94,7 @@ public class MaterialState {
 		return result;
 	}
 
-	public static MaterialState getDefault(ShaderPass pass) {
+	public static MaterialStateOld getDefault(ShaderPass pass) {
 		return get(MaterialShaderManager.INSTANCE.getDefault(), MaterialConditionImpl.ALWAYS, pass);
 	}
 

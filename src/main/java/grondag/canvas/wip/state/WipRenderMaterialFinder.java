@@ -1,7 +1,8 @@
 package grondag.canvas.wip.state;
 
+import grondag.frex.api.material.MaterialFinder;
 
-public class WipRenderMaterialFinder extends AbstractStateFinder<WipRenderMaterialFinder, WipRenderMaterial> {
+public class WipRenderMaterialFinder extends AbstractStateFinder<WipRenderMaterialFinder, WipRenderMaterial> implements MaterialFinder {
 	@Override
 	protected synchronized WipRenderMaterial findInner() {
 		WipRenderMaterial result = WipRenderMaterial.MAP.get(bits);
@@ -24,9 +25,7 @@ public class WipRenderMaterialFinder extends AbstractStateFinder<WipRenderMateri
 
 	public static WipRenderMaterialFinder threadLocal() {
 		final WipRenderMaterialFinder result = FINDER.get();
-		result.reset();
+		result.clear();
 		return result;
 	}
-
-
 }

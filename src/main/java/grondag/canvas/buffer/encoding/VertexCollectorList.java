@@ -18,12 +18,10 @@ package grondag.canvas.buffer.encoding;
 
 import java.util.Arrays;
 
-import grondag.canvas.apiimpl.material.MeshMaterial;
 import grondag.canvas.material.EncodingContext;
-import grondag.canvas.material.MaterialState;
 import grondag.canvas.material.MaterialVertexFormats;
-import grondag.canvas.shader.ShaderPass;
 import grondag.canvas.terrain.render.UploadableChunk;
+import grondag.canvas.wip.state.WipRenderMaterial;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import net.minecraft.util.math.MathHelper;
@@ -38,7 +36,7 @@ public class VertexCollectorList {
 	private EncodingContext context = null;
 
 	public VertexCollectorList() {
-		collectors[MaterialState.TRANSLUCENT_INDEX] = new VertexCollectorImpl();
+		collectors[WAS_TRANSLUCENT_INDEX_NOW_DUMMY_INDEX_NOT_USED] = new VertexCollectorImpl();
 	}
 
 	/**
@@ -46,14 +44,14 @@ public class VertexCollectorList {
 	 */
 	public void setContext(EncodingContext context) {
 		this.context = context;
-		collectors[MaterialState.TRANSLUCENT_INDEX].prepare(context, MaterialState.getDefault(ShaderPass.TRANSLUCENT));
+		collectors[WAS_TRANSLUCENT_INDEX_NOW_DUMMY_INDEX_NOT_USED].prepare(context, WipRenderMaterial.TRANSLUCENT_TERRAIN);
 	}
 
 	/**
 	 * Releases any held vertex collectors and resets state
 	 */
 	public void clear() {
-		collectors[MaterialState.TRANSLUCENT_INDEX].clear();
+		collectors[WAS_TRANSLUCENT_INDEX_NOW_DUMMY_INDEX_NOT_USED].clear();
 
 		for (int i = 0; i < solidCount; i++) {
 			solidCollectors.get(i).clear();
@@ -64,11 +62,11 @@ public class VertexCollectorList {
 		Arrays.fill(collectors, 1, collectors.length, null);
 	}
 
-	public final VertexCollectorImpl getIfExists(MaterialState materialState) {
+	public final VertexCollectorImpl getIfExists(WipRenderMaterial materialState) {
 		return collectors[materialState.collectorIndex];
 	}
 
-	public final VertexCollectorImpl get(MaterialState materialState) {
+	public final VertexCollectorImpl get(WipRenderMaterial materialState) {
 		final int index = materialState.collectorIndex;
 		VertexCollectorImpl[] collectors = this.collectors;
 
@@ -85,7 +83,7 @@ public class VertexCollectorList {
 		}
 
 		if (result == null) {
-			assert materialState.collectorIndex != MaterialState.TRANSLUCENT_INDEX;
+			assert materialState.collectorIndex != WAS_TRANSLUCENT_INDEX_NOW_DUMMY_INDEX_NOT_USED;
 			result = emptySolidCollector().prepare(context, materialState);
 			collectors[index] = result;
 		}
@@ -107,14 +105,14 @@ public class VertexCollectorList {
 		return result;
 	}
 
-	public boolean contains(MaterialState materialState) {
+	public boolean contains(WipRenderMaterial materialState) {
 		final int index = materialState.collectorIndex;
 		return index < collectors.length && collectors[index] != null;
 	}
 
 	private int totalBytes(boolean translucent) {
 		if (translucent) {
-			return collectors[MaterialState.TRANSLUCENT_INDEX].integerSize() * 4;
+			return collectors[WAS_TRANSLUCENT_INDEX_NOW_DUMMY_INDEX_NOT_USED].integerSize() * 4;
 		} else {
 			final int solidCount = this.solidCount;
 			final ObjectArrayList<VertexCollectorImpl> solidCollectors = this.solidCollectors;
@@ -129,17 +127,13 @@ public class VertexCollectorList {
 		}
 	}
 
-	public VertexCollectorImpl get(MeshMaterial mat) {
-		return get(MaterialState.get(mat));
-	}
-
 	public UploadableChunk toUploadableChunk(EncodingContext context, boolean isTranslucent) {
 		final int bytes = totalBytes(isTranslucent);
-		return bytes == 0 ? UploadableChunk.EMPTY_UPLOADABLE : new UploadableChunk(this, MaterialVertexFormats.get(context, isTranslucent), isTranslucent, bytes);
+		return bytes == 0 ? UploadableChunk.EMPTY_UPLOADABLE : new UploadableChunk(this, MaterialVertexFormats.POSITION_COLOR_TEXTURE_MATERIAL_LIGHT_NORMAL, isTranslucent, bytes);
 	}
 
 	public VertexCollectorImpl getTranslucent() {
-		return collectors[MaterialState.TRANSLUCENT_INDEX];
+		return collectors[WAS_TRANSLUCENT_INDEX_NOW_DUMMY_INDEX_NOT_USED];
 	}
 
 	public int solidCount() {
@@ -149,4 +143,6 @@ public class VertexCollectorList {
 	public VertexCollectorImpl getSolid(int index) {
 		return solidCollectors.get(index);
 	}
+
+	public static final int WAS_TRANSLUCENT_INDEX_NOW_DUMMY_INDEX_NOT_USED = 0;
 }

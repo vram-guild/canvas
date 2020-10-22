@@ -20,8 +20,7 @@ import java.util.List;
 
 import grondag.canvas.buffer.encoding.VertexCollectorImpl;
 import grondag.canvas.buffer.encoding.VertexCollectorList;
-import grondag.canvas.material.MaterialState;
-import grondag.canvas.shader.ShaderPass;
+import grondag.canvas.wip.state.WipRenderMaterial;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.Nullable;
 
@@ -45,7 +44,7 @@ public class RegionData {
 	}
 
 	public void endBuffering(float x, float y, float z, VertexCollectorList buffers) {
-		final VertexCollectorImpl buffer = buffers.getIfExists(MaterialState.getDefault(ShaderPass.TRANSLUCENT));
+		final VertexCollectorImpl buffer = buffers.getIfExists(WipRenderMaterial.TRANSLUCENT_TERRAIN);
 
 		if (buffer != null) {
 			buffer.sortQuads(x, y, z);

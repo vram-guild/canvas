@@ -26,7 +26,6 @@ import grondag.canvas.material.MaterialVertexFormats;
 import grondag.canvas.wip.state.RenderContextState;
 import grondag.canvas.wip.state.WipRenderMaterial;
 import grondag.canvas.wip.state.WipRenderState;
-import grondag.canvas.wip.state.property.WipTransparency;
 import grondag.fermion.intstream.IntStreamProvider;
 import grondag.fermion.intstream.IntStreamProvider.IntStreamImpl;
 import it.unimi.dsi.fastutil.Swapper;
@@ -226,7 +225,7 @@ public class WipVertexCollectorImpl extends WipAbstractVertexCollector {
 	}
 
 	private void sortIfNeeded() {
-		if (materialState.translucency == WipTransparency.TRANSLUCENT) {
+		if (materialState.sorted) {
 			sortQuads(0, 0, 0);
 		}
 	}

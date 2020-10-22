@@ -21,8 +21,6 @@ import java.util.function.Consumer;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
-import grondag.canvas.apiimpl.material.MeshMaterial;
-import grondag.canvas.apiimpl.material.MeshMaterialFinder;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.buffer.encoding.VertexCollectorList;
 import grondag.canvas.buffer.encoding.VertexEncoders;
@@ -31,6 +29,8 @@ import grondag.canvas.material.EncodingContext;
 import grondag.canvas.material.MaterialVertexFormats;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.texture.SpriteInfoTexture;
+import grondag.canvas.wip.state.WipRenderMaterial;
+import grondag.canvas.wip.state.WipRenderMaterialFinder;
 import grondag.frex.api.material.MaterialMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.Nullable;
@@ -50,7 +50,7 @@ import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 public abstract class AbstractRenderContext implements RenderContext {
 	private static final QuadTransform NO_TRANSFORM = (q) -> true;
 	private static final MaterialMap defaultMap = MaterialMap.defaultMaterialMap();
-	final MeshMaterialFinder finder = new MeshMaterialFinder();
+	final WipRenderMaterialFinder finder = new WipRenderMaterialFinder();
 	public final float[] vecData = new float[3];
 	public final int[] appendData = new int[MaterialVertexFormats.MAX_QUAD_INT_STRIDE];
 	public final VertexCollectorList collectors = new VertexCollectorList();
@@ -170,7 +170,7 @@ public abstract class AbstractRenderContext implements RenderContext {
 
 	public abstract EncodingContext materialContext();
 
-	public abstract VertexConsumer consumer(MeshMaterial mat);
+	public abstract VertexConsumer consumer(WipRenderMaterial mat);
 
 	public abstract int indexedColor(int colorIndex);
 
@@ -218,7 +218,7 @@ public abstract class AbstractRenderContext implements RenderContext {
 		if (cullTest(quad)) {
 			finder.copyFrom(quad.material());
 			adjustMaterial();
-			final MeshMaterial mat = finder.find();
+			final WipRenderMaterial mat = finder.find();
 			quad.material(mat);
 			VertexEncoders.get(materialContext(), mat).encodeQuad(quad, this);
 		}

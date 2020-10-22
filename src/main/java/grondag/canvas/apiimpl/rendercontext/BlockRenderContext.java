@@ -18,10 +18,10 @@ package grondag.canvas.apiimpl.rendercontext;
 
 import java.util.function.Supplier;
 
-import grondag.canvas.apiimpl.material.MeshMaterial;
 import grondag.canvas.light.AoCalculator;
 import grondag.canvas.material.EncodingContext;
 import grondag.canvas.mixinterface.Matrix3fExt;
+import grondag.canvas.wip.state.WipRenderMaterial;
 import grondag.fermion.sc.concurrency.SimpleConcurrentList;
 
 import static grondag.canvas.terrain.RenderRegionAddressHelper.cacheIndexToXyz5;
@@ -162,7 +162,7 @@ public class BlockRenderContext extends AbstractBlockRenderContext<BlockRenderVi
 	}
 
 	@Override
-	public VertexConsumer consumer(MeshMaterial mat) {
+	public VertexConsumer consumer(WipRenderMaterial mat) {
 		didOutput = true;
 
 		if (bufferProvider == null) {

@@ -20,11 +20,11 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import grondag.canvas.apiimpl.Canvas;
-import grondag.canvas.apiimpl.material.MeshMaterial;
 import grondag.canvas.apiimpl.mesh.MeshEncodingHelper;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.util.FaceConstants;
 import grondag.canvas.buffer.encoding.VertexEncoders;
+import grondag.canvas.wip.state.WipRenderMaterial;
 import grondag.frex.api.mesh.QuadEmitter;
 
 import net.minecraft.block.BlockState;
@@ -61,7 +61,7 @@ public class FallbackConsumer implements Consumer<BakedModel> {
 	protected static final int AO_FLAT_INDEX_START;
 	protected static final int AO_SHADED_INDEX_START;
 
-	protected static final MeshMaterial[] MATERIALS;
+	protected static final WipRenderMaterial[] MATERIALS;
 
 	static {
 		final BlendMode[] modes = BlendMode.values();
@@ -71,7 +71,7 @@ public class FallbackConsumer implements Consumer<BakedModel> {
 		SHADED_INDEX_START = FLAT_INDEX_START + BLEND_MODE_COUNT;
 		AO_FLAT_INDEX_START = SHADED_INDEX_START + BLEND_MODE_COUNT;
 		AO_SHADED_INDEX_START = AO_FLAT_INDEX_START + BLEND_MODE_COUNT;
-		MATERIALS = new MeshMaterial[AO_SHADED_INDEX_START + BLEND_MODE_COUNT];
+		MATERIALS = new WipRenderMaterial[AO_SHADED_INDEX_START + BLEND_MODE_COUNT];
 
 		for (int i = 0; i < BLEND_MODE_COUNT; ++i) {
 			final BlendMode b = modes[i];
@@ -87,19 +87,19 @@ public class FallbackConsumer implements Consumer<BakedModel> {
 		}
 	}
 
-	protected MeshMaterial flatMaterial() {
+	protected WipRenderMaterial flatMaterial() {
 		return MATERIALS[FLAT_INDEX_START + context.defaultBlendMode().ordinal()];
 	}
 
-	protected MeshMaterial shadedMaterial() {
+	protected WipRenderMaterial shadedMaterial() {
 		return MATERIALS[SHADED_INDEX_START + context.defaultBlendMode().ordinal()];
 	}
 
-	protected MeshMaterial aoFlatMaterial() {
+	protected WipRenderMaterial aoFlatMaterial() {
 		return MATERIALS[AO_FLAT_INDEX_START + context.defaultBlendMode().ordinal()];
 	}
 
-	protected MeshMaterial aoShadedMaterial() {
+	protected WipRenderMaterial aoShadedMaterial() {
 		return MATERIALS[AO_SHADED_INDEX_START + context.defaultBlendMode().ordinal()];
 	}
 
@@ -167,7 +167,7 @@ public class FallbackConsumer implements Consumer<BakedModel> {
 		}
 	}
 
-	private void renderQuad(BakedQuad quad, int cullFaceId, MeshMaterial mat) {
+	private void renderQuad(BakedQuad quad, int cullFaceId, WipRenderMaterial mat) {
 		final MutableQuadViewImpl editorQuad = this.editorQuad;
 		editorQuad.fromVanilla(quad, mat, cullFaceId);
 		context.mapMaterials(editorQuad);

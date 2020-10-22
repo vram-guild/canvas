@@ -36,7 +36,10 @@ public enum WipDecal {
 	VIEW_OFFSET(() -> {
 		RenderSystem.pushMatrix();
 		RenderSystem.scalef(0.99975586F, 0.99975586F, 0.99975586F);
-	}, RenderSystem::popMatrix);
+	}, RenderSystem::popMatrix),
+
+	/** unsorted translucency that relies on identical geometry to avoid Z-fighting */
+	TRANSLUCENT(Runnables.doNothing(), Runnables.doNothing());
 
 	private final Runnable startAction;
 	private final Runnable endAction;

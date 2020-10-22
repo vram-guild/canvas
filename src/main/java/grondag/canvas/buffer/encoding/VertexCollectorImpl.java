@@ -16,19 +16,20 @@
 
 package grondag.canvas.buffer.encoding;
 
+import java.nio.IntBuffer;
+
 import com.google.common.primitives.Doubles;
 import grondag.canvas.material.EncodingContext;
-import grondag.canvas.material.MaterialState;
 import grondag.canvas.material.MaterialVertexFormat;
 import grondag.canvas.material.MaterialVertexFormats;
+import grondag.canvas.wip.state.WipRenderMaterial;
 import grondag.fermion.intstream.IntStreamProvider;
 import grondag.fermion.intstream.IntStreamProvider.IntStreamImpl;
 import it.unimi.dsi.fastutil.Swapper;
 import it.unimi.dsi.fastutil.ints.IntComparator;
+
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.util.math.MathHelper;
-
-import java.nio.IntBuffer;
 
 public class VertexCollectorImpl implements VertexCollector {
 	private static final ThreadLocal<QuadSorter> quadSorter = new ThreadLocal<QuadSorter>() {
@@ -45,7 +46,7 @@ public class VertexCollectorImpl implements VertexCollector {
 	 * Used for vanilla quads
 	 */
 	private VertexEncoder defaultEncoder;
-	private MaterialState materialState;
+	private WipRenderMaterial materialState;
 	private MaterialVertexFormat format;
 	/**
 	 * Holds per-quad distance after {@link #sortQuads(double, double, double)} is
@@ -65,10 +66,10 @@ public class VertexCollectorImpl implements VertexCollector {
 	public VertexCollectorImpl() {
 	}
 
-	public VertexCollectorImpl prepare(EncodingContext context, MaterialState materialState) {
+	public VertexCollectorImpl prepare(EncodingContext context, WipRenderMaterial materialState) {
 		defaultEncoder = VertexEncoders.getDefault(context, materialState);
 		this.materialState = materialState;
-		format = MaterialVertexFormats.get(context, materialState.isTranslucent);
+		format = MaterialVertexFormats.POSITION_COLOR_TEXTURE_MATERIAL_LIGHT_NORMAL;
 		return this;
 	}
 
@@ -89,7 +90,7 @@ public class VertexCollectorImpl implements VertexCollector {
 		return integerSize == 0;
 	}
 
-	public MaterialState materialState() {
+	public WipRenderMaterial materialState() {
 		return materialState;
 	}
 
@@ -201,7 +202,7 @@ public class VertexCollectorImpl implements VertexCollector {
 		return result;
 	}
 
-	public VertexCollectorImpl loadState(MaterialState state, int[] stateData) {
+	public VertexCollectorImpl loadState(WipRenderMaterial state, int[] stateData) {
 		if (stateData == null) {
 			clear();
 			return this;

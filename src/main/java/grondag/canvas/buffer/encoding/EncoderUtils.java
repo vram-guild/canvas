@@ -17,7 +17,6 @@
 package grondag.canvas.buffer.encoding;
 
 import grondag.canvas.Configurator;
-import grondag.canvas.apiimpl.material.MeshMaterial;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.rendercontext.AbstractRenderContext;
 import grondag.canvas.apiimpl.util.ColorHelper;
@@ -25,6 +24,7 @@ import grondag.canvas.apiimpl.util.NormalHelper;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.Matrix4fExt;
 import grondag.canvas.texture.SpriteInfoTexture;
+import grondag.canvas.wip.state.WipRenderMaterial;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.VertexConsumer;
@@ -109,7 +109,7 @@ abstract class EncoderUtils {
 		final Matrix4fExt matrix = (Matrix4fExt) (Object) context.matrix();
 		final Matrix3fExt normalMatrix = context.normalMatrix();
 		final float[] aoData = quad.ao;
-		final MeshMaterial mat = quad.material();
+		final WipRenderMaterial mat = quad.material();
 		final VertexCollectorImpl buff0 = context.collectors.get(mat);
 		final int[] appendData = context.appendData;
 

@@ -16,13 +16,15 @@
 
 package grondag.canvas.terrain.render;
 
+import java.nio.IntBuffer;
+
 import grondag.canvas.buffer.VboBuffer;
 import grondag.canvas.buffer.encoding.VertexCollectorImpl;
 import grondag.canvas.buffer.encoding.VertexCollectorList;
 import grondag.canvas.shader.ShaderPass;
+import grondag.canvas.wip.state.property.WipDecal;
+import grondag.canvas.wip.state.property.WipTransparency;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-
-import java.nio.IntBuffer;
 
 public abstract class DrawableChunk {
 	public static DrawableChunk EMPTY_DRAWABLE = new DrawableChunk.Dummy();
@@ -91,7 +93,7 @@ public abstract class DrawableChunk {
 			for (int i = 0; i < limit; ++i) {
 				final VertexCollectorImpl collector = collectorList.getSolid(i);
 
-				if (collector.materialState().shaderPass == ShaderPass.SOLID) {
+				if (collector.materialState().translucency == WipTransparency.NONE) {
 					final int vertexCount = collector.vertexCount();
 					collector.toBuffer(intBuffer);
 					solid.add(DrawableDelegate.claim(collector.materialState(), position, vertexCount));
@@ -113,7 +115,7 @@ public abstract class DrawableChunk {
 			for (int i = 0; i < limit; ++i) {
 				final VertexCollectorImpl collector = collectorList.getSolid(i);
 
-				if (collector.materialState().shaderPass == ShaderPass.DECAL) {
+				if (collector.materialState().decal == WipDecal.TRANSLUCENT) {
 					final int vertexCount = collector.vertexCount();
 					collector.toBuffer(intBuffer);
 					decal.add(DrawableDelegate.claim(collector.materialState(), position, vertexCount));

@@ -24,7 +24,7 @@ public class WipRenderStateFinder extends AbstractStateFinder<WipRenderStateFind
 
 	public static WipRenderStateFinder threadLocal() {
 		final WipRenderStateFinder result = FINDER.get();
-		result.reset();
+		result.clear();
 		return result;
 	}
 }

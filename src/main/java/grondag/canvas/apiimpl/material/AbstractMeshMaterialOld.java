@@ -22,10 +22,10 @@ import grondag.fermion.bits.BitPacker64;
 
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 
-public abstract class AbstractMeshMaterial {
+public abstract class AbstractMeshMaterialOld {
 	protected long bits;
 
-	AbstractMeshMaterial(long bits) {
+	AbstractMeshMaterialOld(long bits) {
 		this.bits = bits;
 	}
 
@@ -59,15 +59,15 @@ public abstract class AbstractMeshMaterial {
 
 	public static final int SHADER_FLAGS_DISABLE_AO;
 	static final BlendMode[] LAYERS = new BlendMode[4];
-	private static final BitPacker64<AbstractMeshMaterial> BITPACKER_0 = new BitPacker64<>(null, null);
+	private static final BitPacker64<AbstractMeshMaterialOld> BITPACKER_0 = new BitPacker64<>(null, null);
 
-	static final BitPacker64<AbstractMeshMaterial>.BooleanElement EMISSIVE = BITPACKER_0.createBooleanElement();
-	static final BitPacker64<AbstractMeshMaterial>.BooleanElement DISABLE_AO = BITPACKER_0.createBooleanElement();
-	static final BitPacker64<AbstractMeshMaterial>.BooleanElement DISABLE_DIFFUSE = BITPACKER_0.createBooleanElement();
-	static final BitPacker64<AbstractMeshMaterial>.BooleanElement DISABLE_COLOR = BITPACKER_0.createBooleanElement();
-	static final BitPacker64<AbstractMeshMaterial>.EnumElement<BlendMode> BLEND_MODE = BITPACKER_0.createEnumElement(BlendMode.class);
-	static final BitPacker64<AbstractMeshMaterial>.IntElement SHADER = BITPACKER_0.createIntElement(MaterialShaderManager.MAX_SHADERS);
-	static final BitPacker64<AbstractMeshMaterial>.IntElement CONDITION = BITPACKER_0.createIntElement(MaterialConditionImpl.MAX_CONDITIONS);
+	static final BitPacker64<AbstractMeshMaterialOld>.BooleanElement EMISSIVE = BITPACKER_0.createBooleanElement();
+	static final BitPacker64<AbstractMeshMaterialOld>.BooleanElement DISABLE_AO = BITPACKER_0.createBooleanElement();
+	static final BitPacker64<AbstractMeshMaterialOld>.BooleanElement DISABLE_DIFFUSE = BITPACKER_0.createBooleanElement();
+	static final BitPacker64<AbstractMeshMaterialOld>.BooleanElement DISABLE_COLOR = BITPACKER_0.createBooleanElement();
+	static final BitPacker64<AbstractMeshMaterialOld>.EnumElement<BlendMode> BLEND_MODE = BITPACKER_0.createEnumElement(BlendMode.class);
+	static final BitPacker64<AbstractMeshMaterialOld>.IntElement SHADER = BITPACKER_0.createIntElement(MaterialShaderManager.MAX_SHADERS);
+	static final BitPacker64<AbstractMeshMaterialOld>.IntElement CONDITION = BITPACKER_0.createIntElement(MaterialConditionImpl.MAX_CONDITIONS);
 
 	protected static final long DEFAULT_BITS;
 

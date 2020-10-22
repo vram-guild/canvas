@@ -17,10 +17,9 @@
 package grondag.canvas.buffer.encoding;
 
 import grondag.canvas.Configurator;
-import grondag.canvas.apiimpl.material.MeshMaterial;
 import grondag.canvas.material.EncodingContext;
-import grondag.canvas.material.MaterialState;
-import grondag.canvas.shader.ShaderPass;
+import grondag.canvas.wip.state.WipRenderMaterial;
+import grondag.canvas.wip.state.property.WipTransparency;
 
 import static grondag.canvas.buffer.encoding.HdEncoders.HD_TERRAIN_1;
 import static grondag.canvas.buffer.encoding.VanillaEncoders.VANILLA_BLOCK_1;
@@ -53,16 +52,16 @@ public class VertexEncoders {
 		return (isTranslucent ? TRANSLUCENT_FLAG : 0) | (context.ordinal() << CONTEXT_SHIFT);
 	}
 
-	public static VertexEncoder get(EncodingContext context, MeshMaterial mat) {
-		return ENCODERS[lookupIndex(context, mat.isTranslucent)];
+	public static VertexEncoder get(EncodingContext context, WipRenderMaterial mat) {
+		return ENCODERS[lookupIndex(context, mat.translucency == WipTransparency.TRANSLUCENT)];
 	}
 
 	public static VertexEncoder getDefault(EncodingContext context, boolean isTranslucent) {
 		return ENCODERS[lookupIndex(context, isTranslucent)];
 	}
 
-	public static VertexEncoder getDefault(EncodingContext context, MaterialState materialState) {
-		return getDefault(context, materialState.shaderPass == ShaderPass.TRANSLUCENT);
+	public static VertexEncoder getDefault(EncodingContext context, WipRenderMaterial materialState) {
+		return getDefault(context, materialState.translucency == WipTransparency.TRANSLUCENT);
 	}
 
 	public static void reload() {

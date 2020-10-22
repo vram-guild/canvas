@@ -16,6 +16,7 @@
 
 package grondag.canvas.wip.state;
 
+import grondag.canvas.apiimpl.MaterialConditionImpl;
 import grondag.canvas.material.MaterialVertexFormats;
 import grondag.canvas.wip.shader.WipMaterialShaderImpl;
 import grondag.canvas.wip.shader.WipMaterialShaderManager;
@@ -53,10 +54,12 @@ abstract class AbstractRenderState extends AbstractRenderStateView {
 	public final WipWriteMask writeMask;
 	public final boolean enableLightmap;
 	public final WipDecal decal;
+	public final boolean sorted;
 	public final WipTarget target;
 	public final boolean lines;
 	public final WipFog fog;
 	public final WipMaterialShaderImpl shader;
+	public final MaterialConditionImpl condition;
 
 	/**
 	 * True when translucent transparency and targets the terrain layer.
@@ -79,8 +82,10 @@ abstract class AbstractRenderState extends AbstractRenderStateView {
 		target = target();
 		lines = lines();
 		fog = fog();
+		condition = condition();
 		vertexStrideInts = MaterialVertexFormats.POSITION_COLOR_TEXTURE_MATERIAL_LIGHT_NORMAL.vertexStrideInts;
 		translucency = TRANSPARENCY.getValue(bits);
+		sorted = translucency != WipTransparency.NONE && decal != WipDecal.TRANSLUCENT;
 		shader = WipMaterialShaderManager.INSTANCE.get(SHADER.getValue(bits));
 		isTranslucentTerrain = (target == WipTarget.MAIN || target == WipTarget.TRANSLUCENT) && translucency == WipTransparency.TRANSLUCENT;
 	}

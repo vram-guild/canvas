@@ -27,7 +27,6 @@ import grondag.canvas.wip.state.property.WipTextureState;
 import grondag.canvas.wip.state.property.WipTransparency;
 import grondag.canvas.wip.state.property.WipWriteMask;
 import grondag.fermion.bits.BitPacker64;
-import grondag.frex.api.material.MaterialCondition;
 
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 
@@ -47,7 +46,7 @@ abstract class AbstractRenderStateView {
 		return WipMaterialShaderManager.INSTANCE.get(SHADER.getValue(bits));
 	}
 
-	public MaterialCondition condition() {
+	public MaterialConditionImpl condition() {
 		return MaterialConditionImpl.fromIndex(CONDITION.getValue(bits));
 	}
 
@@ -100,7 +99,12 @@ abstract class AbstractRenderStateView {
 	}
 
 	public WipDecal decal() {
-		return DECAL.getValue(bits);
+		if (translucency() != WipTransparency.TRANSLUCENT && DECAL_TRANSLUCENCY.getValue(bits)) {
+			assert DECAL.getValue(bits) == WipDecal.NONE;
+			return WipDecal.TRANSLUCENT;
+		} else {
+			return DECAL.getValue(bits);
+		}
 	}
 
 	public WipTarget target() {
@@ -170,6 +174,7 @@ abstract class AbstractRenderStateView {
 	static final BitPacker64.BooleanElement CULL = PACKER.createBooleanElement();
 	static final BitPacker64<Void>.EnumElement<WipWriteMask> WRITE_MASK = PACKER.createEnumElement(WipWriteMask.class);
 	static final BitPacker64.BooleanElement ENABLE_LIGHTMAP = PACKER.createBooleanElement();
+	// note that translucent decal is never persisted because it isn't part of GL state - that is indicated by SORTED
 	static final BitPacker64<Void>.EnumElement<WipDecal> DECAL = PACKER.createEnumElement(WipDecal.class);
 	static final BitPacker64<Void>.EnumElement<WipTarget> TARGET = PACKER.createEnumElement(WipTarget.class);
 	static final BitPacker64.BooleanElement LINES = PACKER.createBooleanElement();
@@ -182,6 +187,8 @@ abstract class AbstractRenderStateView {
 	// Should always be zero in render state, only used in buffer key and material
 	static final BitPacker64.IntElement PRIMITIVE = PACKER.createIntElement(8);
 	static final BitPacker64.IntElement CONDITION = PACKER.createIntElement(MaterialConditionImpl.MAX_CONDITIONS);
+	// true when translucent and not sorted
+	static final BitPacker64.BooleanElement DECAL_TRANSLUCENCY = PACKER.createBooleanElement();
 
 	public static final long COLLECTOR_KEY_MASK = PACKER.bitMask();
 
