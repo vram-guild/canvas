@@ -14,11 +14,10 @@
  * the License.
  */
 
-package grondag.canvas.material;
+package grondag.canvas.render.remove;
 
 import grondag.canvas.apiimpl.MaterialConditionImpl;
 import grondag.canvas.apiimpl.material.MaterialShaderImpl;
-import grondag.canvas.apiimpl.material.MeshMaterialOld;
 import grondag.canvas.shader.MaterialShaderManager;
 import grondag.canvas.shader.ShaderPass;
 import grondag.fermion.bits.BitPacker32;

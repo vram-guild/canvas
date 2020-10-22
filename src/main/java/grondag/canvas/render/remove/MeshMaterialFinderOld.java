@@ -14,9 +14,10 @@
  * the License.
  */
 
-package grondag.canvas.apiimpl.material;
+package grondag.canvas.render.remove;
 
 import grondag.canvas.apiimpl.MaterialConditionImpl;
+import grondag.canvas.apiimpl.material.MaterialShaderImpl;
 import grondag.frex.api.material.MaterialCondition;
 import grondag.frex.api.material.MaterialFinder;
 import grondag.frex.api.material.MaterialShader;

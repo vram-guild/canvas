@@ -14,14 +14,14 @@
  * the License.
  */
 
-package grondag.canvas.render;
+package grondag.canvas.render.remove;
 
 import grondag.canvas.material.MaterialVertexFormat;
 import grondag.canvas.shader.ShaderPass;
 import grondag.canvas.varia.CanvasGlHelper;
 
-public abstract class DrawHandler {
-	private static DrawHandler current = null;
+public abstract class DrawHandlerOld {
+	private static DrawHandlerOld current = null;
 
 	private static int nextHandlerIndex = 0;
 
@@ -30,7 +30,7 @@ public abstract class DrawHandler {
 	public final MaterialVertexFormat format;
 	public final ShaderPass shaderPass;
 
-	DrawHandler(MaterialVertexFormat format, ShaderPass shaderPass) {
+	DrawHandlerOld(MaterialVertexFormat format, ShaderPass shaderPass) {
 		assert shaderPass != ShaderPass.PROCESS;
 		this.format = format;
 		this.shaderPass = shaderPass;
@@ -44,7 +44,7 @@ public abstract class DrawHandler {
 	}
 
 	public final void setup() {
-		final DrawHandler d = current;
+		final DrawHandlerOld d = current;
 
 		if (d == null) {
 			// PERF: really needed?  Doesn't seem to help or hurt

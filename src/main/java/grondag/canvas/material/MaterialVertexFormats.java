@@ -29,7 +29,7 @@ import static grondag.canvas.material.MaterialVertextFormatElement.NORMAL_AO_4B;
 import static grondag.canvas.material.MaterialVertextFormatElement.NORMAL_FLAGS_4UB;
 import static grondag.canvas.material.MaterialVertextFormatElement.POSITION_3F;
 
-// WIP2: remove and clean up
+// WIP2: remove unused formats and elements and clean up
 // encoding may be different and may depend on feature configuration
 
 public final class MaterialVertexFormats {

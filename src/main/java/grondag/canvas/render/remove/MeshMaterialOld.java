@@ -14,9 +14,10 @@
  * the License.
  */
 
-package grondag.canvas.apiimpl.material;
+package grondag.canvas.render.remove;
 
 import grondag.canvas.apiimpl.MaterialConditionImpl;
+import grondag.canvas.apiimpl.material.MaterialShaderImpl;
 import grondag.canvas.shader.ShaderPass;
 import grondag.frex.api.material.RenderMaterial;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;

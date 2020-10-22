@@ -14,7 +14,7 @@
  * the License.
  */
 
-package grondag.canvas.render;
+package grondag.canvas.render.remove;
 
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -32,26 +32,26 @@ import net.minecraft.client.texture.SpriteAtlasTexture;
 import net.minecraft.client.texture.TextureManager;
 import net.minecraft.util.math.MathHelper;
 
-public class DrawHandlers {
+public class DrawHandlersOld {
 
-	private static final DrawHandler[] HANDLERS = new DrawHandler[MathHelper.smallestEncompassingPowerOfTwo(EncodingContext.values().length) * MathHelper.smallestEncompassingPowerOfTwo(ShaderPass.values().length)];
-	private static final DrawHandler[] HD_HANDLERS = new DrawHandler[MathHelper.smallestEncompassingPowerOfTwo(EncodingContext.values().length) * MathHelper.smallestEncompassingPowerOfTwo(ShaderPass.values().length)];
+	private static final DrawHandlerOld[] HANDLERS = new DrawHandlerOld[MathHelper.smallestEncompassingPowerOfTwo(EncodingContext.values().length) * MathHelper.smallestEncompassingPowerOfTwo(ShaderPass.values().length)];
+	private static final DrawHandlerOld[] HD_HANDLERS = new DrawHandlerOld[MathHelper.smallestEncompassingPowerOfTwo(EncodingContext.values().length) * MathHelper.smallestEncompassingPowerOfTwo(ShaderPass.values().length)];
 
 	static {
-		HANDLERS[lookupIndex(EncodingContext.TERRAIN, ShaderPass.SOLID)] = new SolidHandler(MaterialVertexFormats.VANILLA_BLOCKS_AND_ITEMS, ShaderPass.SOLID);
-		HANDLERS[lookupIndex(EncodingContext.TERRAIN, ShaderPass.DECAL)] = new DecalHandler(MaterialVertexFormats.VANILLA_BLOCKS_AND_ITEMS, ShaderPass.DECAL);
-		HANDLERS[lookupIndex(EncodingContext.TERRAIN, ShaderPass.TRANSLUCENT)] = new TranslucentHandler(MaterialVertexFormats.VANILLA_BLOCKS_AND_ITEMS, ShaderPass.TRANSLUCENT);
+		HANDLERS[lookupIndex(EncodingContext.TERRAIN, ShaderPass.SOLID)] = new SolidHandlerOld(MaterialVertexFormats.VANILLA_BLOCKS_AND_ITEMS, ShaderPass.SOLID);
+		HANDLERS[lookupIndex(EncodingContext.TERRAIN, ShaderPass.DECAL)] = new DecalHandlerOld(MaterialVertexFormats.VANILLA_BLOCKS_AND_ITEMS, ShaderPass.DECAL);
+		HANDLERS[lookupIndex(EncodingContext.TERRAIN, ShaderPass.TRANSLUCENT)] = new TranslucentHandlerOld(MaterialVertexFormats.VANILLA_BLOCKS_AND_ITEMS, ShaderPass.TRANSLUCENT);
 
-		HD_HANDLERS[lookupIndex(EncodingContext.TERRAIN, ShaderPass.SOLID)] = new SolidHandler(MaterialVertexFormats.HD_TERRAIN, ShaderPass.SOLID);
-		HD_HANDLERS[lookupIndex(EncodingContext.TERRAIN, ShaderPass.DECAL)] = new DecalHandler(MaterialVertexFormats.HD_TERRAIN, ShaderPass.DECAL);
-		HD_HANDLERS[lookupIndex(EncodingContext.TERRAIN, ShaderPass.TRANSLUCENT)] = new TranslucentHandler(MaterialVertexFormats.HD_TERRAIN, ShaderPass.TRANSLUCENT);
+		HD_HANDLERS[lookupIndex(EncodingContext.TERRAIN, ShaderPass.SOLID)] = new SolidHandlerOld(MaterialVertexFormats.HD_TERRAIN, ShaderPass.SOLID);
+		HD_HANDLERS[lookupIndex(EncodingContext.TERRAIN, ShaderPass.DECAL)] = new DecalHandlerOld(MaterialVertexFormats.HD_TERRAIN, ShaderPass.DECAL);
+		HD_HANDLERS[lookupIndex(EncodingContext.TERRAIN, ShaderPass.TRANSLUCENT)] = new TranslucentHandlerOld(MaterialVertexFormats.HD_TERRAIN, ShaderPass.TRANSLUCENT);
 	}
 
 	private static int lookupIndex(EncodingContext context, ShaderPass shaderType) {
 		return shaderType.ordinal() | (context.ordinal() << 2);
 	}
 
-	public static DrawHandler get(EncodingContext context, ShaderPass shaderPass) {
+	public static DrawHandlerOld get(EncodingContext context, ShaderPass shaderPass) {
 		assert shaderPass != ShaderPass.PROCESS;
 
 		final boolean isHD = context == EncodingContext.TERRAIN && Configurator.hdLightmaps();
@@ -59,8 +59,8 @@ public class DrawHandlers {
 		return isHD ? HD_HANDLERS[index] : HANDLERS[index];
 	}
 
-	private static class SolidHandler extends DrawHandler {
-		SolidHandler(MaterialVertexFormat format, ShaderPass shaderPass) {
+	private static class SolidHandlerOld extends DrawHandlerOld {
+		SolidHandlerOld(MaterialVertexFormat format, ShaderPass shaderPass) {
 			super(format, shaderPass);
 		}
 
@@ -95,8 +95,8 @@ public class DrawHandlers {
 
 	}
 
-	private static class DecalHandler extends DrawHandler {
-		DecalHandler(MaterialVertexFormat format, ShaderPass shaderType) {
+	private static class DecalHandlerOld extends DrawHandlerOld {
+		DecalHandlerOld(MaterialVertexFormat format, ShaderPass shaderType) {
 			super(format, shaderType);
 		}
 
@@ -133,8 +133,8 @@ public class DrawHandlers {
 		}
 	}
 
-	private static class TranslucentHandler extends DrawHandler {
-		TranslucentHandler(MaterialVertexFormat format, ShaderPass shaderPass) {
+	private static class TranslucentHandlerOld extends DrawHandlerOld {
+		TranslucentHandlerOld(MaterialVertexFormat format, ShaderPass shaderPass) {
 			super(format, shaderPass);
 		}
 
