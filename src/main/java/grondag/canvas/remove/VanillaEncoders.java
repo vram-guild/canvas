@@ -18,7 +18,6 @@ package grondag.canvas.remove;
 
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.rendercontext.AbstractRenderContext;
-import grondag.canvas.material.MaterialVertexFormats;
 
 import static grondag.canvas.remove.EncoderUtilsOld.applyBlockLighting;
 import static grondag.canvas.remove.EncoderUtilsOld.applyItemLighting;
@@ -27,7 +26,7 @@ import static grondag.canvas.remove.EncoderUtilsOld.bufferQuadDirect1;
 import static grondag.canvas.remove.EncoderUtilsOld.colorizeQuad;
 
 public class VanillaEncoders {
-	public static final VertexEncoderOld VANILLA_BLOCK_1 = new VertexEncoderOld(MaterialVertexFormats.VANILLA_BLOCKS_AND_ITEMS) {
+	public static final VertexEncoderOld VANILLA_BLOCK_1 = new VertexEncoderOld() {
 		@Override
 		public void encodeQuad(MutableQuadViewImpl quad, AbstractRenderContext context) {
 			// needs to happen before offsets are applied
@@ -47,7 +46,7 @@ public class VanillaEncoders {
 		}
 	};
 
-	public static final VertexEncoderOld VANILLA_ITEM_1 = new VertexEncoderOld(MaterialVertexFormats.VANILLA_BLOCKS_AND_ITEMS) {
+	public static final VertexEncoderOld VANILLA_ITEM_1 = new VertexEncoderOld() {
 		@Override
 		public void encodeQuad(MutableQuadViewImpl quad, AbstractRenderContext context) {
 			colorizeQuad(quad, context);
@@ -59,7 +58,7 @@ public class VanillaEncoders {
 	abstract static class VanillaTerrainEncoder extends VertexEncoderOld {
 
 		VanillaTerrainEncoder() {
-			super(MaterialVertexFormats.VANILLA_BLOCKS_AND_ITEMS);
+			super();
 		}
 
 		@Override

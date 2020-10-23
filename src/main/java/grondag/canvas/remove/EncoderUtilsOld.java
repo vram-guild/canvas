@@ -24,6 +24,7 @@ import grondag.canvas.apiimpl.util.NormalHelper;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.Matrix4fExt;
 import grondag.canvas.texture.SpriteInfoTexture;
+import grondag.canvas.wip.encoding.WipVertexCollectorImpl;
 import grondag.canvas.wip.state.WipRenderMaterial;
 
 import net.minecraft.client.MinecraftClient;
@@ -110,7 +111,7 @@ abstract class EncoderUtilsOld {
 		final Matrix3fExt normalMatrix = context.normalMatrix();
 		final float[] aoData = quad.ao;
 		final WipRenderMaterial mat = quad.material();
-		final VertexCollectorImplOld buff0 = null; //context.collectors.get(mat);
+		final WipVertexCollectorImpl buff0 = context.collectors.get(mat);
 		final int[] appendData = context.appendData;
 
 		assert mat.blendMode() != BlendMode.DEFAULT;

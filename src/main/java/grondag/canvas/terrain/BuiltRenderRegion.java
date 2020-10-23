@@ -26,9 +26,6 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
 import grondag.canvas.apiimpl.util.FaceConstants;
-import grondag.canvas.buffer.encoding.VertexCollectorImpl;
-import grondag.canvas.buffer.encoding.VertexCollectorList;
-import grondag.canvas.material.EncodingContext;
 import grondag.canvas.perf.ChunkRebuildCounters;
 import grondag.canvas.render.CanvasFrustum;
 import grondag.canvas.render.CanvasWorldRenderer;
@@ -37,6 +34,8 @@ import grondag.canvas.terrain.occlusion.region.OcclusionRegion;
 import grondag.canvas.terrain.occlusion.region.PackedBox;
 import grondag.canvas.terrain.render.DrawableChunk;
 import grondag.canvas.terrain.render.UploadableChunk;
+import grondag.canvas.wip.encoding.WipVertexCollectorImpl;
+import grondag.canvas.wip.encoding.WipVertexCollectorList;
 import grondag.canvas.wip.state.WipRenderMaterial;
 import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
 import grondag.frex.api.fluid.FluidQuadSupplier;
@@ -310,9 +309,9 @@ public class BuiltRenderRegion {
 
 			if (state != null) {
 				final Vec3d cameraPos = cwr.cameraPos();
-				final VertexCollectorList collectors = context.collectors;
+				final WipVertexCollectorList collectors = context.collectors;
 				final WipRenderMaterial translucentState = WipRenderMaterial.TRANSLUCENT_TERRAIN;
-				final VertexCollectorImpl collector = collectors.get(translucentState);
+				final WipVertexCollectorImpl collector = collectors.get(translucentState);
 
 				collector.loadState(translucentState, state);
 
@@ -328,7 +327,7 @@ public class BuiltRenderRegion {
 				regionData.translucentState = collector.saveState(state);
 
 				if (runningState.protoRegion.get() != ProtoRenderRegion.INVALID) {
-					final UploadableChunk upload = collectors.toUploadableChunk(EncodingContext.TERRAIN, true);
+					final UploadableChunk upload = collectors.toUploadableChunk(true);
 
 					if (upload != UploadableChunk.EMPTY_UPLOADABLE) {
 						renderRegionBuilder.scheduleUpload(() -> {
@@ -360,7 +359,7 @@ public class BuiltRenderRegion {
 
 			cwr.forceVisibilityUpdate();
 
-			final VertexCollectorList collectors = context.collectors;
+			final WipVertexCollectorList collectors = context.collectors;
 
 			if (runningState.protoRegion.get() == ProtoRenderRegion.INVALID) {
 				collectors.clear();
@@ -371,8 +370,8 @@ public class BuiltRenderRegion {
 			buildTerrain(context, chunkData);
 
 			if (runningState.protoRegion.get() != ProtoRenderRegion.INVALID) {
-				final UploadableChunk solidUpload = collectors.toUploadableChunk(EncodingContext.TERRAIN, false);
-				final UploadableChunk translucentUpload = collectors.toUploadableChunk(EncodingContext.TERRAIN, true);
+				final UploadableChunk solidUpload = collectors.toUploadableChunk(false);
+				final UploadableChunk translucentUpload = collectors.toUploadableChunk(true);
 
 				if (solidUpload != UploadableChunk.EMPTY_UPLOADABLE || translucentUpload != UploadableChunk.EMPTY_UPLOADABLE) {
 					renderRegionBuilder.scheduleUpload(() -> {
@@ -410,7 +409,7 @@ public class BuiltRenderRegion {
 			ChunkRebuildCounters.startChunk();
 		}
 
-		final VertexCollectorList collectors = context.collectors;
+		final WipVertexCollectorList collectors = context.collectors;
 
 		final BlockPos.Mutable searchPos = context.searchPos;
 		final int xOrigin = origin.getX();
@@ -559,9 +558,9 @@ public class BuiltRenderRegion {
 			ChunkRebuildCounters.startUpload();
 		}
 
-		final VertexCollectorList collectors = context.collectors;
-		final UploadableChunk solidUpload = collectors.toUploadableChunk(EncodingContext.TERRAIN, false);
-		final UploadableChunk translucentUpload = collectors.toUploadableChunk(EncodingContext.TERRAIN, true);
+		final WipVertexCollectorList collectors = context.collectors;
+		final UploadableChunk solidUpload = collectors.toUploadableChunk(false);
+		final UploadableChunk translucentUpload = collectors.toUploadableChunk(true);
 
 		releaseDrawables();
 		solidDrawable = solidUpload.produceDrawable();

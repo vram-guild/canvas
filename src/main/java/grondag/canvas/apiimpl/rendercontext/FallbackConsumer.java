@@ -23,7 +23,6 @@ import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.apiimpl.mesh.MeshEncodingHelper;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.util.FaceConstants;
-import grondag.canvas.buffer.encoding.VertexEncoders;
 import grondag.canvas.wip.state.WipRenderMaterial;
 import grondag.frex.api.mesh.QuadEmitter;
 
@@ -188,6 +187,6 @@ public class FallbackConsumer implements Consumer<BakedModel> {
 			editorQuad.material(mat);
 		}
 
-		VertexEncoders.get(context.materialContext(), mat).encodeQuad(editorQuad, context);
+		context.encoder.encodeQuad(editorQuad, context);
 	}
 }

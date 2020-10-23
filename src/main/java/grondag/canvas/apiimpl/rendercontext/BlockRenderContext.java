@@ -21,6 +21,7 @@ import java.util.function.Supplier;
 import grondag.canvas.light.AoCalculator;
 import grondag.canvas.material.EncodingContext;
 import grondag.canvas.mixinterface.Matrix3fExt;
+import grondag.canvas.remove.VanillaEncoders;
 import grondag.canvas.wip.state.WipRenderMaterial;
 import grondag.fermion.sc.concurrency.SimpleConcurrentList;
 
@@ -109,8 +110,7 @@ public class BlockRenderContext extends AbstractBlockRenderContext<BlockRenderVi
 	private boolean didOutput = false;
 
 	public BlockRenderContext() {
-		super("BlockRenderContext");
-		collectors.setContext(EncodingContext.BLOCK);
+		super("BlockRenderContext", VanillaEncoders.VANILLA_BLOCK_1);
 	}
 
 	public static void reload() {

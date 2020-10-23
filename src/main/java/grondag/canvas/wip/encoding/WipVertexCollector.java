@@ -33,6 +33,7 @@
 package grondag.canvas.wip.encoding;
 
 import grondag.canvas.apiimpl.mesh.MeshEncodingHelper;
+import grondag.canvas.buffer.encoding.VertexCollector;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.Matrix4fExt;
 import grondag.canvas.wip.state.WipRenderMaterial;
@@ -41,7 +42,7 @@ import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.util.math.Matrix3f;
 import net.minecraft.util.math.Matrix4f;
 
-public interface WipVertexCollector extends VertexConsumer {
+public interface WipVertexCollector extends VertexConsumer, VertexCollector {
 	/**
 	 * Sets state to be included with normals and material if they are included.  Call once
 	 * whenever material changes, including default state or revert
@@ -128,4 +129,6 @@ public interface WipVertexCollector extends VertexConsumer {
 
 	@Override
 	WipVertexCollector normal(float x, float y, float z);
+
+	int VANILLA_FULL_BRIGHTNESS = 0xF000F0;
 }

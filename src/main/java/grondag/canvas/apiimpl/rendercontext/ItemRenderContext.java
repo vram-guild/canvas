@@ -24,6 +24,7 @@ import grondag.canvas.light.AoCalculator;
 import grondag.canvas.material.EncodingContext;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.MinecraftClientExt;
+import grondag.canvas.remove.VanillaEncoders;
 import grondag.canvas.wip.state.WipRenderMaterial;
 import grondag.fermion.sc.concurrency.SimpleConcurrentList;
 
@@ -91,9 +92,10 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 	private ItemStack itemStack;
 
 	public ItemRenderContext(ItemColors colorMap) {
-		super("ItemRenderContext");
+		super("ItemRenderContext", VanillaEncoders.VANILLA_ITEM_1);
 		this.colorMap = colorMap;
-		collectors.setContext(EncodingContext.ITEM);
+		// WIP2: fix or remove
+		//		collectors.setContext(EncodingContext.ITEM);
 	}
 
 	public static void reload() {

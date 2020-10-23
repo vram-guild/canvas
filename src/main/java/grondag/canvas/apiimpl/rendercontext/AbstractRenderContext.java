@@ -22,13 +22,14 @@ import java.util.function.Consumer;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
-import grondag.canvas.buffer.encoding.VertexCollectorList;
-import grondag.canvas.buffer.encoding.VertexEncoders;
 import grondag.canvas.light.AoCalculator;
 import grondag.canvas.material.EncodingContext;
 import grondag.canvas.material.MaterialVertexFormats;
 import grondag.canvas.mixinterface.Matrix3fExt;
+import grondag.canvas.remove.VertexEncoderOld;
 import grondag.canvas.texture.SpriteInfoTexture;
+import grondag.canvas.wip.encoding.WipVertexCollectorList;
+import grondag.canvas.wip.state.RenderContextState;
 import grondag.canvas.wip.state.WipRenderMaterial;
 import grondag.canvas.wip.state.WipRenderMaterialFinder;
 import grondag.frex.api.material.MaterialMap;
@@ -53,7 +54,8 @@ public abstract class AbstractRenderContext implements RenderContext {
 	final WipRenderMaterialFinder finder = new WipRenderMaterialFinder();
 	public final float[] vecData = new float[3];
 	public final int[] appendData = new int[MaterialVertexFormats.MAX_QUAD_INT_STRIDE];
-	public final VertexCollectorList collectors = new VertexCollectorList();
+	public final RenderContextState contextState = new RenderContextState();
+	public final WipVertexCollectorList collectors = new WipVertexCollectorList(contextState);
 	protected final String name;
 	protected final MeshConsumer meshConsumer = new MeshConsumer(this);
 	protected final MutableQuadViewImpl makerQuad = meshConsumer.editorQuad;
@@ -76,9 +78,11 @@ public abstract class AbstractRenderContext implements RenderContext {
 	protected MaterialMap materialMap = defaultMap;
 	protected boolean isFluidModel = false;
 	private QuadTransform activeTransform = NO_TRANSFORM;
+	protected final VertexEncoderOld encoder;
 
-	protected AbstractRenderContext(String name) {
+	protected AbstractRenderContext(String name, VertexEncoderOld encoder) {
 		this.name = name;
+		this.encoder = encoder;
 
 		if (Configurator.enableLifeCycleDebug) {
 			CanvasMod.LOG.info("Lifecycle Event: create render context " + name);
@@ -220,7 +224,7 @@ public abstract class AbstractRenderContext implements RenderContext {
 			adjustMaterial();
 			final WipRenderMaterial mat = finder.find();
 			quad.material(mat);
-			VertexEncoders.get(materialContext(), mat).encodeQuad(quad, this);
+			encoder.encodeQuad(quad, this);
 		}
 	}
 

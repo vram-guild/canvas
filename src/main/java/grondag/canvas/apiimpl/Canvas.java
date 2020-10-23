@@ -23,7 +23,6 @@ import grondag.canvas.apiimpl.mesh.MeshBuilderImpl;
 import grondag.canvas.apiimpl.rendercontext.BlockRenderContext;
 import grondag.canvas.apiimpl.rendercontext.EntityBlockRenderContext;
 import grondag.canvas.apiimpl.rendercontext.ItemRenderContext;
-import grondag.canvas.buffer.encoding.VertexEncoders;
 import grondag.canvas.compat.LitematicaHolder;
 import grondag.canvas.light.AoVertexClampFunction;
 import grondag.canvas.light.LightmapHd;
@@ -103,7 +102,6 @@ public class Canvas implements Renderer {
 		LightmapHd.reload();
 		WipMaterialShaderManager.INSTANCE.reload();
 		WipGlShaderManager.INSTANCE.reload();
-		VertexEncoders.reload();
 		TerrainModelSpace.reload();
 		ProcessShaders.reload();
 		LitematicaHolder.litematicaReload.run();

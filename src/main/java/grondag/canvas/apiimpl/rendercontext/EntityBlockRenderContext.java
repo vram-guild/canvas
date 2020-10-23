@@ -21,6 +21,7 @@ import java.util.function.Supplier;
 import grondag.canvas.light.AoCalculator;
 import grondag.canvas.material.EncodingContext;
 import grondag.canvas.mixinterface.Matrix3fExt;
+import grondag.canvas.remove.VanillaEncoders;
 import grondag.canvas.render.CanvasWorldRenderer;
 import grondag.canvas.wip.state.WipRenderMaterial;
 import grondag.fermion.sc.concurrency.SimpleConcurrentList;
@@ -82,9 +83,9 @@ public class EntityBlockRenderContext extends AbstractBlockRenderContext<BlockRe
 	private float tickDelta;
 
 	public EntityBlockRenderContext() {
-		super("BlockRenderContext");
+		super("BlockRenderContext", VanillaEncoders.VANILLA_BLOCK_1);
 		// WIP2: should be ENTITY_BLOCK or remove
-		collectors.setContext(EncodingContext.BLOCK);
+		//		collectors.setContext(EncodingContext.BLOCK);
 	}
 
 	public static void reload() {

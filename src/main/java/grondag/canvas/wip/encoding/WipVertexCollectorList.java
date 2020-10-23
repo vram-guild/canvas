@@ -18,6 +18,7 @@ package grondag.canvas.wip.encoding;
 
 import java.util.Arrays;
 
+import grondag.canvas.terrain.render.UploadableChunk;
 import grondag.canvas.wip.state.RenderContextState;
 import grondag.canvas.wip.state.WipRenderMaterial;
 import grondag.canvas.wip.state.WipRenderState;
@@ -126,5 +127,15 @@ public class WipVertexCollectorList {
 
 	public WipVertexCollectorImpl get(int index) {
 		return pool.get(index);
+	}
+
+	public int totalBytes(boolean sorted) {
+		// WIP: implement
+		return 0;
+	}
+
+	public UploadableChunk toUploadableChunk(boolean sorted) {
+		final int bytes = totalBytes(sorted);
+		return bytes == 0 ? UploadableChunk.EMPTY_UPLOADABLE : new UploadableChunk(this, sorted, bytes);
 	}
 }

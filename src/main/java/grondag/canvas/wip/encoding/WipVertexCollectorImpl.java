@@ -366,4 +366,40 @@ public class WipVertexCollectorImpl extends WipAbstractVertexCollector {
 			integerSize += MaterialVertexFormats.MATERIAL_QUAD_STRIDE;
 		}
 	}
+
+	@Override
+	public final void addi(final int i) {
+		data.set(integerSize++, i);
+	}
+
+	@Override
+	public final void addf(final float f) {
+		data.set(integerSize++, Float.floatToRawIntBits(f));
+	}
+
+	@Override
+	public final void addf(final float u, float v) {
+		data.set(integerSize++, Float.floatToRawIntBits(u));
+		data.set(integerSize++, Float.floatToRawIntBits(v));
+	}
+
+	@Override
+	public final void addf(final float x, float y, float z) {
+		data.set(integerSize++, Float.floatToRawIntBits(x));
+		data.set(integerSize++, Float.floatToRawIntBits(y));
+		data.set(integerSize++, Float.floatToRawIntBits(z));
+	}
+
+	@Override
+	public final void addf(final float... fArray) {
+		for (final float f : fArray) {
+			data.set(integerSize++, Float.floatToRawIntBits(f));
+		}
+	}
+
+	@Override
+	public final void add(int[] appendData, int length) {
+		data.copyFrom(integerSize, appendData, 0, length);
+		integerSize += length;
+	}
 }

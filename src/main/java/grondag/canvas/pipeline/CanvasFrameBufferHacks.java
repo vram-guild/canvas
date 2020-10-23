@@ -22,10 +22,11 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
 import grondag.canvas.buffer.VboBuffer;
-import grondag.canvas.buffer.encoding.VertexCollectorImpl;
 import grondag.canvas.material.MaterialVertexFormats;
 import grondag.canvas.mixinterface.FrameBufferExt;
 import grondag.canvas.shader.GlProgram;
+import grondag.canvas.wip.encoding.WipVertexCollectorImpl;
+import grondag.canvas.wip.state.RenderContextState;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.ARBTextureFloat;
 import org.lwjgl.opengl.GL11;
@@ -329,7 +330,7 @@ public class CanvasFrameBufferHacks {
 
 			GlStateManager.bindTexture(0);
 
-			final VertexCollectorImpl collector = new VertexCollectorImpl();
+			final WipVertexCollectorImpl collector = new WipVertexCollectorImpl(new RenderContextState());
 			collector.addf(0, 0, 0.2f, 0, 1f);
 			collector.addf(1f, 0, 0.2f, 1f, 1f);
 			collector.addf(1f, 1f, 0.2f, 1f, 0f);

@@ -19,7 +19,6 @@ package grondag.canvas.remove;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.rendercontext.AbstractRenderContext;
 import grondag.canvas.apiimpl.util.NormalHelper;
-import grondag.canvas.material.MaterialVertexFormat;
 
 /**
  * Encodes quads according to a specific GPU-side vertex format/shader/lighting scheme.
@@ -27,12 +26,6 @@ import grondag.canvas.material.MaterialVertexFormat;
  */
 public abstract class VertexEncoderOld {
 	public static final int FULL_BRIGHTNESS = 0xF000F0;
-
-	public final MaterialVertexFormat format;
-
-	protected VertexEncoderOld(MaterialVertexFormat format) {
-		this.format = format;
-	}
 
 	/**
 	 * Determines color index and render layer, then routes to appropriate

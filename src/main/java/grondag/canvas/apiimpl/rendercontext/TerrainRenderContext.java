@@ -21,6 +21,7 @@ import grondag.canvas.light.AoCalculator;
 import grondag.canvas.light.LightSmoother;
 import grondag.canvas.material.EncodingContext;
 import grondag.canvas.mixinterface.Matrix3fExt;
+import grondag.canvas.remove.VanillaEncoders;
 import grondag.canvas.terrain.FastRenderRegion;
 import grondag.canvas.terrain.ProtoRenderRegion;
 import grondag.canvas.terrain.RenderRegionAddressHelper;
@@ -71,9 +72,10 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<FastRenderR
 	private int cullResultFlags;
 
 	public TerrainRenderContext() {
-		super("TerrainRenderContext");
+		super("TerrainRenderContext", VanillaEncoders.VANILLA_TERRAIN_1);
 		region = new FastRenderRegion(this);
-		collectors.setContext(EncodingContext.TERRAIN);
+		// WIP2: fix or remove
+		//		collectors.setContext(EncodingContext.TERRAIN);
 	}
 
 	public TerrainRenderContext prepareRegion(ProtoRenderRegion protoRegion) {
