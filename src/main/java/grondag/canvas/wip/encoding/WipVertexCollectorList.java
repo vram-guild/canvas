@@ -130,8 +130,15 @@ public class WipVertexCollectorList {
 	}
 
 	public int totalBytes(boolean sorted) {
-		// WIP: implement
-		return 0;
+		final int limit = size;
+		final ObjectArrayList<WipVertexCollectorImpl> pool = this.pool;
+		int intSize = 0;
+
+		for (int i = 0; i < limit; i++) {
+			intSize += pool.get(i).integerSize();
+		}
+
+		return intSize * 4;
 	}
 
 	public UploadableChunk toUploadableChunk(boolean sorted) {
