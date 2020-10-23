@@ -23,6 +23,8 @@ import grondag.frex.api.material.MaterialFinder;
 import grondag.frex.api.material.MaterialShader;
 import grondag.frex.api.material.RenderMaterial;
 
+import net.minecraft.util.Identifier;
+
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 
 public class MeshMaterialFinderOld extends AbstractMeshMaterialOld implements MaterialFinder {
@@ -101,5 +103,17 @@ public class MeshMaterialFinderOld extends AbstractMeshMaterialOld implements Ma
 	public MeshMaterialFinderOld copyFrom(RenderMaterial material) {
 		bits =  ((MeshMaterialOld) material).bits;
 		return this;
+	}
+
+	@Override
+	public MaterialFinder vertexShader(Identifier identifier) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public MaterialFinder fragmentShader(Identifier identifier) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

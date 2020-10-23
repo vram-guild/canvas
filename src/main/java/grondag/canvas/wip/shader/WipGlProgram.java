@@ -22,8 +22,6 @@ import java.util.function.Consumer;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
-import grondag.canvas.apiimpl.ShaderBuilderImpl.UniformMatrix3f;
-import grondag.canvas.apiimpl.ShaderBuilderImpl.UniformMatrix4f;
 import grondag.canvas.material.MaterialVertexFormat;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.Matrix4fExt;
@@ -42,6 +40,8 @@ import grondag.frex.api.material.Uniform.Uniform4f;
 import grondag.frex.api.material.Uniform.Uniform4i;
 import grondag.frex.api.material.Uniform.UniformArrayf;
 import grondag.frex.api.material.Uniform.UniformArrayi;
+import grondag.frex.api.material.Uniform.UniformMatrix3f;
+import grondag.frex.api.material.Uniform.UniformMatrix4f;
 import grondag.frex.api.material.UniformRefreshFrequency;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;

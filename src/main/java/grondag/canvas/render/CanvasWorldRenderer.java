@@ -49,7 +49,6 @@ import grondag.canvas.mixinterface.WorldRendererExt;
 import grondag.canvas.pipeline.BufferDebug;
 import grondag.canvas.pipeline.CanvasFrameBufferHacks;
 import grondag.canvas.shader.GlProgram;
-import grondag.canvas.shader.MaterialShaderManager;
 import grondag.canvas.shader.ShaderContext;
 import grondag.canvas.terrain.BuiltRenderRegion;
 import grondag.canvas.terrain.RenderRegionBuilder;
@@ -275,7 +274,6 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		mc.getProfiler().swap("distance");
 		regionStorage.updateCameraDistance(cameraPos, frustumPositionVersion, renderDistance);
 		WorldDataManager.update(camera);
-		MaterialShaderManager.INSTANCE.onRenderTick();
 		WipMaterialShaderManager.INSTANCE.onRenderTick();
 		final BlockPos cameraBlockPos = camera.getBlockPos();
 		final BuiltRenderRegion cameraRegion = cameraBlockPos.getY() < 0 || cameraBlockPos.getY() > 255 ? null : regionStorage.getOrCreateRegion(cameraBlockPos);

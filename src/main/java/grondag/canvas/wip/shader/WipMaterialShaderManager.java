@@ -62,6 +62,10 @@ public enum WipMaterialShaderManager implements ClientTickEvents.EndTick {
 		}
 	}
 
+	public WipMaterialShaderImpl find(Identifier vertexSource, Identifier fragmentSource, WipProgramType programType) {
+		return find(WipMaterialShaderManager.vertexIndex.toHandle(vertexSource), WipMaterialShaderManager.fragmentIndex.toHandle(fragmentSource), programType);
+	}
+
 	public synchronized WipMaterialShaderImpl find(int vertexShaderIndex, int fragmentShaderIndex, WipProgramType programType) {
 		final long key = key(vertexShaderIndex, fragmentShaderIndex, programType);
 

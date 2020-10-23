@@ -19,7 +19,6 @@ package grondag.canvas.apiimpl;
 import java.util.function.BooleanSupplier;
 
 import grondag.canvas.CanvasMod;
-import grondag.canvas.apiimpl.material.MaterialShaderImpl;
 import grondag.canvas.apiimpl.mesh.MeshBuilderImpl;
 import grondag.canvas.apiimpl.rendercontext.BlockRenderContext;
 import grondag.canvas.apiimpl.rendercontext.EntityBlockRenderContext;
@@ -32,7 +31,6 @@ import grondag.canvas.light.LightmapHdTexture;
 import grondag.canvas.perf.ChunkRebuildCounters;
 import grondag.canvas.pipeline.ProcessShaders;
 import grondag.canvas.shader.GlShaderManager;
-import grondag.canvas.shader.MaterialShaderManager;
 import grondag.canvas.terrain.ChunkColorCache;
 import grondag.canvas.terrain.ProtoRenderRegion;
 import grondag.canvas.terrain.TerrainModelSpace;
@@ -42,8 +40,6 @@ import grondag.canvas.wip.state.WipRenderMaterial;
 import grondag.canvas.wip.state.WipRenderMaterialFinder;
 import grondag.frex.api.Renderer;
 import grondag.frex.api.material.MaterialCondition;
-import grondag.frex.api.material.MaterialShader;
-import grondag.frex.api.material.ShaderBuilder;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
 import net.minecraft.client.resource.language.I18n;
@@ -62,7 +58,6 @@ public class Canvas implements Renderer {
 	}
 
 	private final Object2ObjectOpenHashMap<Identifier, WipRenderMaterial> materialMap = new Object2ObjectOpenHashMap<>();
-	private final Object2ObjectOpenHashMap<Identifier, MaterialShaderImpl> shaderMap = new Object2ObjectOpenHashMap<>();
 	private final Object2ObjectOpenHashMap<Identifier, MaterialConditionImpl> conditionMap = new Object2ObjectOpenHashMap<>();
 
 	private Canvas() {
@@ -106,7 +101,6 @@ public class Canvas implements Renderer {
 		GlShaderManager.INSTANCE.reload();
 		LightmapHdTexture.reload();
 		LightmapHd.reload();
-		MaterialShaderManager.INSTANCE.reload();
 		WipMaterialShaderManager.INSTANCE.reload();
 		WipGlShaderManager.INSTANCE.reload();
 		VertexEncoders.reload();
@@ -118,27 +112,6 @@ public class Canvas implements Renderer {
 	@Override
 	public int maxSpriteDepth() {
 		return 1;
-	}
-
-	@Override
-	public ShaderBuilder shaderBuilder() {
-		return new ShaderBuilderImpl();
-	}
-
-	@Override
-	public MaterialShaderImpl shaderById(Identifier id) {
-		return shaderMap.get(id);
-	}
-
-	@Override
-	public boolean registerShader(Identifier id, MaterialShader shader) {
-		if (shaderMap.containsKey(id)) {
-			return false;
-		}
-
-		// cast to prevent acceptance of impostor implementations
-		shaderMap.put(id, (MaterialShaderImpl) shader);
-		return true;
 	}
 
 	@Override
