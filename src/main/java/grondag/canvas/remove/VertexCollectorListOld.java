@@ -14,12 +14,11 @@
  * the License.
  */
 
-package grondag.canvas.buffer.encoding;
+package grondag.canvas.remove;
 
 import java.util.Arrays;
 
 import grondag.canvas.material.EncodingContext;
-import grondag.canvas.material.MaterialVertexFormats;
 import grondag.canvas.terrain.render.UploadableChunk;
 import grondag.canvas.wip.state.WipRenderMaterial;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
@@ -29,14 +28,14 @@ import net.minecraft.util.math.MathHelper;
 /**
  * MUST ALWAYS BE USED WITHIN SAME MATERIAL CONTEXT
  */
-public class VertexCollectorList {
-	private final ObjectArrayList<VertexCollectorImpl> solidCollectors = new ObjectArrayList<>();
-	private VertexCollectorImpl[] collectors = new VertexCollectorImpl[4096];
+public class VertexCollectorListOld {
+	private final ObjectArrayList<VertexCollectorImplOld> solidCollectors = new ObjectArrayList<>();
+	private VertexCollectorImplOld[] collectors = new VertexCollectorImplOld[4096];
 	private int solidCount = 0;
 	private EncodingContext context = null;
 
-	public VertexCollectorList() {
-		collectors[WAS_TRANSLUCENT_INDEX_NOW_DUMMY_INDEX_NOT_USED] = new VertexCollectorImpl();
+	public VertexCollectorListOld() {
+		collectors[WAS_TRANSLUCENT_INDEX_NOW_DUMMY_INDEX_NOT_USED] = new VertexCollectorImplOld();
 	}
 
 	/**
@@ -62,21 +61,21 @@ public class VertexCollectorList {
 		Arrays.fill(collectors, 1, collectors.length, null);
 	}
 
-	public final VertexCollectorImpl getIfExists(WipRenderMaterial materialState) {
+	public final VertexCollectorImplOld getIfExists(WipRenderMaterial materialState) {
 		return collectors[materialState.collectorIndex];
 	}
 
-	public final VertexCollectorImpl get(WipRenderMaterial materialState) {
+	public final VertexCollectorImplOld get(WipRenderMaterial materialState) {
 		final int index = materialState.collectorIndex;
-		VertexCollectorImpl[] collectors = this.collectors;
+		VertexCollectorImplOld[] collectors = this.collectors;
 
-		VertexCollectorImpl result;
+		VertexCollectorImplOld result;
 
 		if (index < collectors.length) {
 			result = collectors[index];
 		} else {
 			result = null;
-			final VertexCollectorImpl[] newCollectors = new VertexCollectorImpl[MathHelper.smallestEncompassingPowerOfTwo(index)];
+			final VertexCollectorImplOld[] newCollectors = new VertexCollectorImplOld[MathHelper.smallestEncompassingPowerOfTwo(index)];
 			System.arraycopy(collectors, 0, newCollectors, 0, collectors.length);
 			collectors = newCollectors;
 			this.collectors = collectors;
@@ -91,11 +90,11 @@ public class VertexCollectorList {
 		return result;
 	}
 
-	private VertexCollectorImpl emptySolidCollector() {
-		VertexCollectorImpl result;
+	private VertexCollectorImplOld emptySolidCollector() {
+		VertexCollectorImplOld result;
 
 		if (solidCount == solidCollectors.size()) {
-			result = new VertexCollectorImpl();
+			result = new VertexCollectorImplOld();
 			solidCollectors.add(result);
 		} else {
 			result = solidCollectors.get(solidCount);
@@ -115,7 +114,7 @@ public class VertexCollectorList {
 			return collectors[WAS_TRANSLUCENT_INDEX_NOW_DUMMY_INDEX_NOT_USED].integerSize() * 4;
 		} else {
 			final int solidCount = this.solidCount;
-			final ObjectArrayList<VertexCollectorImpl> solidCollectors = this.solidCollectors;
+			final ObjectArrayList<VertexCollectorImplOld> solidCollectors = this.solidCollectors;
 
 			int intSize = 0;
 
@@ -129,10 +128,10 @@ public class VertexCollectorList {
 
 	public UploadableChunk toUploadableChunk(EncodingContext context, boolean isTranslucent) {
 		final int bytes = totalBytes(isTranslucent);
-		return bytes == 0 ? UploadableChunk.EMPTY_UPLOADABLE : new UploadableChunk(this, MaterialVertexFormats.POSITION_COLOR_TEXTURE_MATERIAL_LIGHT_NORMAL, isTranslucent, bytes);
+		return bytes == 0 ? UploadableChunk.EMPTY_UPLOADABLE : null; //new UploadableChunk(this, MaterialVertexFormats.POSITION_COLOR_TEXTURE_MATERIAL_LIGHT_NORMAL, isTranslucent, bytes);
 	}
 
-	public VertexCollectorImpl getTranslucent() {
+	public VertexCollectorImplOld getTranslucent() {
 		return collectors[WAS_TRANSLUCENT_INDEX_NOW_DUMMY_INDEX_NOT_USED];
 	}
 
@@ -140,7 +139,7 @@ public class VertexCollectorList {
 		return solidCount;
 	}
 
-	public VertexCollectorImpl getSolid(int index) {
+	public VertexCollectorImplOld getSolid(int index) {
 		return solidCollectors.get(index);
 	}
 

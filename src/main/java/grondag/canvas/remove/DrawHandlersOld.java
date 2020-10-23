@@ -14,7 +14,7 @@
  * the License.
  */
 
-package grondag.canvas.render.remove;
+package grondag.canvas.remove;
 
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;

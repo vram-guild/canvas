@@ -14,7 +14,7 @@
  * the License.
  */
 
-package grondag.canvas.buffer.encoding;
+package grondag.canvas.remove;
 
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.rendercontext.AbstractRenderContext;
@@ -24,15 +24,15 @@ import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.Matrix4fExt;
 import grondag.canvas.wip.state.WipRenderMaterial;
 
-import static grondag.canvas.buffer.encoding.EncoderUtils.applyBlockLighting;
-import static grondag.canvas.buffer.encoding.EncoderUtils.colorizeQuad;
+import static grondag.canvas.remove.EncoderUtilsOld.applyBlockLighting;
+import static grondag.canvas.remove.EncoderUtilsOld.colorizeQuad;
 
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 
 public abstract class HdEncoders {
 	private static final int QUAD_STRIDE = MaterialVertexFormats.HD_TERRAIN.vertexStrideInts * 4;
 
-	public static final VertexEncoder HD_TERRAIN_1 = new HdTerrainEncoder() {
+	public static final VertexEncoderOld HD_TERRAIN_1 = new HdTerrainEncoder() {
 		@Override
 		public void encodeQuad(MutableQuadViewImpl quad, AbstractRenderContext context) {
 			// needs to happen before offsets are applied
@@ -47,7 +47,7 @@ public abstract class HdEncoders {
 		final Matrix3fExt normalMatrix = context.normalMatrix();
 		final float[] aoData = quad.ao;
 		final WipRenderMaterial mat = quad.material();
-		final VertexCollectorImpl buff0 = context.collectors.get(mat);
+		final VertexCollectorImplOld buff0 = null;//context.collectors.get(mat);
 		final int[] appendData = context.appendData;
 
 		final LightmapHd hdLight = quad.hdLight;
@@ -102,13 +102,13 @@ public abstract class HdEncoders {
 		buff0.add(appendData, k);
 	}
 
-	abstract static class HdTerrainEncoder extends VertexEncoder {
+	abstract static class HdTerrainEncoder extends VertexEncoderOld {
 		HdTerrainEncoder() {
 			super(MaterialVertexFormats.HD_TERRAIN);
 		}
 
 		@Override
-		public void light(VertexCollectorImpl collector, int blockLight, int skyLight) {
+		public void light(VertexCollectorImplOld collector, int blockLight, int skyLight) {
 			// flags disable diffuse and AO in shader - mainly meant for fluids
 			// TODO: toggle/remove this when do smooth fluid lighting
 			collector.addi(blockLight | (skyLight << 8) | (0b00000110 << 16));

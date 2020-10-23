@@ -14,11 +14,12 @@
  * the License.
  */
 
-package grondag.canvas.buffer.encoding;
+package grondag.canvas.remove;
 
 import java.nio.IntBuffer;
 
 import com.google.common.primitives.Doubles;
+import grondag.canvas.buffer.encoding.VertexCollector;
 import grondag.canvas.material.EncodingContext;
 import grondag.canvas.material.MaterialVertexFormat;
 import grondag.canvas.material.MaterialVertexFormats;
@@ -31,7 +32,7 @@ import it.unimi.dsi.fastutil.ints.IntComparator;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.util.math.MathHelper;
 
-public class VertexCollectorImpl implements VertexCollector {
+public class VertexCollectorImplOld implements VertexCollector {
 	private static final ThreadLocal<QuadSorter> quadSorter = new ThreadLocal<QuadSorter>() {
 		@Override
 		protected QuadSorter initialValue() {
@@ -45,7 +46,7 @@ public class VertexCollectorImpl implements VertexCollector {
 	/**
 	 * Used for vanilla quads
 	 */
-	private VertexEncoder defaultEncoder;
+	private VertexEncoderOld defaultEncoder;
 	private WipRenderMaterial materialState;
 	private MaterialVertexFormat format;
 	/**
@@ -63,11 +64,11 @@ public class VertexCollectorImpl implements VertexCollector {
 	 */
 	private int sortMaxIndex = 0;
 
-	public VertexCollectorImpl() {
+	public VertexCollectorImplOld() {
 	}
 
-	public VertexCollectorImpl prepare(EncodingContext context, WipRenderMaterial materialState) {
-		defaultEncoder = VertexEncoders.getDefault(context, materialState);
+	public VertexCollectorImplOld prepare(EncodingContext context, WipRenderMaterial materialState) {
+		defaultEncoder = VertexEncodersOld.getDefault(context, materialState);
 		this.materialState = materialState;
 		format = MaterialVertexFormats.POSITION_COLOR_TEXTURE_MATERIAL_LIGHT_NORMAL;
 		return this;
@@ -103,7 +104,7 @@ public class VertexCollectorImpl implements VertexCollector {
 	}
 
 	@Override
-	public VertexCollectorImpl clone() {
+	public VertexCollectorImplOld clone() {
 		throw new UnsupportedOperationException();
 	}
 
@@ -202,7 +203,7 @@ public class VertexCollectorImpl implements VertexCollector {
 		return result;
 	}
 
-	public VertexCollectorImpl loadState(WipRenderMaterial state, int[] stateData) {
+	public VertexCollectorImplOld loadState(WipRenderMaterial state, int[] stateData) {
 		if (stateData == null) {
 			clear();
 			return this;
@@ -332,7 +333,7 @@ public class VertexCollectorImpl implements VertexCollector {
 			}
 		};
 
-		private void doSort(VertexCollectorImpl caller, double x, double y, double z) {
+		private void doSort(VertexCollectorImplOld caller, double x, double y, double z) {
 			data = caller.data;
 
 			// works because 4 bytes per int

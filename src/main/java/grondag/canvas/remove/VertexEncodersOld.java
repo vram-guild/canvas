@@ -14,24 +14,24 @@
  * the License.
  */
 
-package grondag.canvas.buffer.encoding;
+package grondag.canvas.remove;
 
 import grondag.canvas.Configurator;
 import grondag.canvas.material.EncodingContext;
 import grondag.canvas.wip.state.WipRenderMaterial;
 import grondag.canvas.wip.state.property.WipTransparency;
 
-import static grondag.canvas.buffer.encoding.HdEncoders.HD_TERRAIN_1;
-import static grondag.canvas.buffer.encoding.VanillaEncoders.VANILLA_BLOCK_1;
-import static grondag.canvas.buffer.encoding.VanillaEncoders.VANILLA_ITEM_1;
-import static grondag.canvas.buffer.encoding.VanillaEncoders.VANILLA_TERRAIN_1;
 import static grondag.canvas.material.EncodingContext.BLOCK;
 import static grondag.canvas.material.EncodingContext.ITEM;
 import static grondag.canvas.material.EncodingContext.TERRAIN;
+import static grondag.canvas.remove.HdEncoders.HD_TERRAIN_1;
+import static grondag.canvas.remove.VanillaEncoders.VANILLA_BLOCK_1;
+import static grondag.canvas.remove.VanillaEncoders.VANILLA_ITEM_1;
+import static grondag.canvas.remove.VanillaEncoders.VANILLA_TERRAIN_1;
 
 import net.minecraft.util.math.MathHelper;
 
-public class VertexEncoders {
+public class VertexEncodersOld {
 	/**
 	 * Largest possible number of active encoder indices.
 	 */
@@ -39,7 +39,7 @@ public class VertexEncoders {
 	private static final int CONTEXT_SHIFT = 1;
 	private static final int TRANSLUCENT_FLAG = 1;
 
-	private static final VertexEncoder[] ENCODERS = new VertexEncoder[ENCODER_KEY_SPACE_SIZE];
+	private static final VertexEncoderOld[] ENCODERS = new VertexEncoderOld[ENCODER_KEY_SPACE_SIZE];
 
 	static {
 		reload();
@@ -52,15 +52,15 @@ public class VertexEncoders {
 		return (isTranslucent ? TRANSLUCENT_FLAG : 0) | (context.ordinal() << CONTEXT_SHIFT);
 	}
 
-	public static VertexEncoder get(EncodingContext context, WipRenderMaterial mat) {
+	public static VertexEncoderOld get(EncodingContext context, WipRenderMaterial mat) {
 		return ENCODERS[lookupIndex(context, mat.translucency == WipTransparency.TRANSLUCENT)];
 	}
 
-	public static VertexEncoder getDefault(EncodingContext context, boolean isTranslucent) {
+	public static VertexEncoderOld getDefault(EncodingContext context, boolean isTranslucent) {
 		return ENCODERS[lookupIndex(context, isTranslucent)];
 	}
 
-	public static VertexEncoder getDefault(EncodingContext context, WipRenderMaterial materialState) {
+	public static VertexEncoderOld getDefault(EncodingContext context, WipRenderMaterial materialState) {
 		return getDefault(context, materialState.translucency == WipTransparency.TRANSLUCENT);
 	}
 

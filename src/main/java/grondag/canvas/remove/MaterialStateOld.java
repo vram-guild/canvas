@@ -14,7 +14,7 @@
  * the License.
  */
 
-package grondag.canvas.render.remove;
+package grondag.canvas.remove;
 
 import grondag.canvas.apiimpl.MaterialConditionImpl;
 import grondag.canvas.apiimpl.material.MaterialShaderImpl;

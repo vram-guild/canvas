@@ -14,7 +14,7 @@
  * the License.
  */
 
-package grondag.canvas.render.remove;
+package grondag.canvas.remove;
 
 import grondag.canvas.material.MaterialVertexFormat;
 import grondag.canvas.shader.ShaderPass;
