@@ -19,8 +19,8 @@ package grondag.canvas.mixin;
 import java.util.Optional;
 
 import grondag.canvas.mixinterface.MultiPhaseExt;
+import grondag.canvas.wip.state.RenderLayerHelper;
 import grondag.canvas.wip.state.WipRenderMaterial;
-import grondag.canvas.wip.state.WipRenderMaterialFinder;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -68,7 +68,7 @@ abstract class MixinMultiPhase extends RenderLayer implements MultiPhaseExt {
 		WipRenderMaterial result = materialState;
 
 		if (result == null) {
-			result = WipRenderMaterialFinder.threadLocal().copyFromLayer(this);
+			result = RenderLayerHelper.copyFromLayer(this);
 			materialState = result;
 		}
 

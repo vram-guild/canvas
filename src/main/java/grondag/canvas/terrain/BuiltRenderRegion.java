@@ -36,6 +36,7 @@ import grondag.canvas.terrain.render.DrawableChunk;
 import grondag.canvas.terrain.render.UploadableChunk;
 import grondag.canvas.wip.encoding.WipVertexCollectorImpl;
 import grondag.canvas.wip.encoding.WipVertexCollectorList;
+import grondag.canvas.wip.state.RenderLayerHelper;
 import grondag.canvas.wip.state.WipRenderMaterial;
 import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
 import grondag.frex.api.fluid.FluidQuadSupplier;
@@ -310,7 +311,7 @@ public class BuiltRenderRegion {
 			if (state != null) {
 				final Vec3d cameraPos = cwr.cameraPos();
 				final WipVertexCollectorList collectors = context.collectors;
-				final WipRenderMaterial translucentState = WipRenderMaterial.TRANSLUCENT_TERRAIN;
+				final WipRenderMaterial translucentState = RenderLayerHelper.TRANSLUCENT_TERRAIN;
 				final WipVertexCollectorImpl collector = collectors.get(translucentState);
 
 				collector.loadState(translucentState, state);

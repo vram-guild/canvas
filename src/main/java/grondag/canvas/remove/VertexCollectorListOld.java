@@ -20,6 +20,7 @@ import java.util.Arrays;
 
 import grondag.canvas.material.EncodingContext;
 import grondag.canvas.terrain.render.UploadableChunk;
+import grondag.canvas.wip.state.RenderLayerHelper;
 import grondag.canvas.wip.state.WipRenderMaterial;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
@@ -43,7 +44,7 @@ public class VertexCollectorListOld {
 	 */
 	public void setContext(EncodingContext context) {
 		this.context = context;
-		collectors[WAS_TRANSLUCENT_INDEX_NOW_DUMMY_INDEX_NOT_USED].prepare(context, WipRenderMaterial.TRANSLUCENT_TERRAIN);
+		collectors[WAS_TRANSLUCENT_INDEX_NOW_DUMMY_INDEX_NOT_USED].prepare(context, RenderLayerHelper.TRANSLUCENT_TERRAIN);
 	}
 
 	/**

@@ -4,8 +4,8 @@ import java.util.Map;
 import java.util.SortedMap;
 
 import grondag.canvas.mixinterface.MultiPhaseExt;
-import grondag.canvas.wip.state.AbstractStateFinder;
 import grondag.canvas.wip.state.RenderContextState;
+import grondag.canvas.wip.state.RenderLayerHelper;
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
@@ -31,7 +31,7 @@ public class WipImmediate extends Immediate {
 		final WipVertexCollector result = collectors.get(((MultiPhaseExt) renderLayer).canvas_materialState());
 
 		if (result == null) {
-			assert AbstractStateFinder.isExcluded(renderLayer) : "Unable to retrieve vertex collector for non-excluded render layer";
+			assert RenderLayerHelper.isExcluded(renderLayer) : "Unable to retrieve vertex collector for non-excluded render layer";
 
 			return super.getBuffer(renderLayer);
 		} else {
@@ -77,7 +77,7 @@ public class WipImmediate extends Immediate {
 
 	@Override
 	public void draw(RenderLayer layer) {
-		if (AbstractStateFinder.isExcluded(layer)) {
+		if (RenderLayerHelper.isExcluded(layer)) {
 			super.draw(layer);
 		} else {
 			final WipVertexCollectorImpl collector = collectors.getIfExists(((MultiPhaseExt) layer).canvas_materialState());

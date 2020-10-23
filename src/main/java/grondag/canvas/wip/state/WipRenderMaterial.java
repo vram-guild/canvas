@@ -21,8 +21,6 @@ import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
-import net.minecraft.client.render.RenderLayer;
-
 
 public final class WipRenderMaterial extends AbstractRenderState implements RenderMaterial {
 	public final int collectorIndex;
@@ -57,6 +55,4 @@ public final class WipRenderMaterial extends AbstractRenderState implements Rend
 	public static WipRenderMaterial fromIndex(int index) {
 		return LIST.get(index);
 	}
-
-	public static final WipRenderMaterial TRANSLUCENT_TERRAIN = WipRenderMaterialFinder.threadLocal().copyFromLayer(RenderLayer.getTranslucent());
 }

@@ -17,10 +17,6 @@
 package grondag.canvas.wip.state;
 
 import grondag.canvas.apiimpl.MaterialConditionImpl;
-import grondag.canvas.mixin.AccessMultiPhaseParameters;
-import grondag.canvas.mixin.AccessTexture;
-import grondag.canvas.mixinterface.EntityRenderDispatcherExt;
-import grondag.canvas.mixinterface.MultiPhaseExt;
 import grondag.canvas.wip.shader.WipMaterialShaderImpl;
 import grondag.canvas.wip.shader.WipMaterialShaderManager;
 import grondag.canvas.wip.shader.WipShaderData;
@@ -34,15 +30,8 @@ import grondag.canvas.wip.state.property.WipWriteMask;
 import grondag.frex.api.material.MaterialCondition;
 import grondag.frex.api.material.MaterialShader;
 import grondag.frex.api.material.RenderMaterial;
-import it.unimi.dsi.fastutil.Hash;
-import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import org.jetbrains.annotations.Nullable;
-import org.lwjgl.opengl.GL11;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.RenderPhase;
-import net.minecraft.client.render.model.ModelLoader;
 import net.minecraft.util.Identifier;
 
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
@@ -278,66 +267,8 @@ public abstract class AbstractStateFinder<T extends AbstractStateFinder<T, V>, V
 
 	protected abstract V findInner();
 
-	public V copyFromLayer(RenderLayer layer) {
-		if (AbstractStateFinder.isExcluded(layer)) {
-			return missing();
-		}
-
-		final AccessMultiPhaseParameters params = ((MultiPhaseExt) layer).canvas_phases();
-		final AccessTexture tex = (AccessTexture) params.getTexture();
-
-		primitive(GL11.GL_QUADS);
-		texture(tex.getId().orElse(null));
-		transparency(WipTransparency.fromPhase(params.getTransparency()));
-		depthTest(WipDepthTest.fromPhase(params.getDepthTest()));
-		cull(params.getCull() == RenderPhase.ENABLE_CULLING);
-		writeMask(WipWriteMask.fromPhase(params.getWriteMaskState()));
-		enableLightmap(params.getLightmap() == RenderPhase.ENABLE_LIGHTMAP);
-		decal(WipDecal.fromPhase(params.getLayering()));
-		target(WipTarget.fromPhase(params.getTarget()));
-		lines(params.getLineWidth() != RenderPhase.FULL_LINE_WIDTH);
-		fog(WipFog.fromPhase(params.getFog()));
-		unmipped(!tex.getMipmap());
-		disableDiffuse(params.getDiffuseLighting() == RenderPhase.DISABLE_DIFFUSE_LIGHTING);
-		cutout(params.getAlpha() != RenderPhase.ZERO_ALPHA);
-		translucentCutout(params.getAlpha() == RenderPhase.ONE_TENTH_ALPHA);
-		disableAo(true);
-
-		// WIP2: put in proper material map hooks
-		final String name = ((MultiPhaseExt) layer).canvas_name();
-		emissive(name.equals("eyes") || name.equals("beacon_beam"));
-
-		return find();
-	}
-
 	public T copyFrom(V template) {
 		bits = template.bits;
 		return (T) this;
-	}
-
-	private static final ReferenceOpenHashSet<RenderLayer> EXCLUSIONS = new ReferenceOpenHashSet<>(64, Hash.VERY_FAST_LOAD_FACTOR);
-
-	static {
-		// entity shadows aren't worth
-		EXCLUSIONS.add(((EntityRenderDispatcherExt) MinecraftClient.getInstance().getEntityRenderDispatcher()).canvas_shadowLayer());
-
-		// FEAT: handle more of these with shaders
-		EXCLUSIONS.add(RenderLayer.getArmorGlint());
-		EXCLUSIONS.add(RenderLayer.getArmorEntityGlint());
-		EXCLUSIONS.add(RenderLayer.getGlint());
-		EXCLUSIONS.add(RenderLayer.getDirectGlint());
-		EXCLUSIONS.add(RenderLayer.method_30676());
-		EXCLUSIONS.add(RenderLayer.getEntityGlint());
-		EXCLUSIONS.add(RenderLayer.getDirectEntityGlint());
-		EXCLUSIONS.add(RenderLayer.getLines());
-		EXCLUSIONS.add(RenderLayer.getLightning());
-
-		ModelLoader.BLOCK_DESTRUCTION_RENDER_LAYERS.forEach((renderLayer) -> {
-			EXCLUSIONS.add(renderLayer);
-		});
-	}
-
-	public static boolean isExcluded(RenderLayer layer) {
-		return EXCLUSIONS.contains(layer);
 	}
 }
