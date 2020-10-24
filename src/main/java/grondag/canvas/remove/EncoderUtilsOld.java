@@ -146,7 +146,7 @@ abstract class EncoderUtilsOld {
 			final int packedLight = quad.lightmap(i);
 			final int blockLight = (packedLight & 0xFF);
 			final int skyLight = ((packedLight >> 16) & 0xFF);
-			final int ao = aoData == null ? NO_AO_SHADE : (Math.round(aoData[i] * 254) - 127);
+			final int ao = aoData == null ? 255 : (Math.round(aoData[i] * 255));
 			appendData[k++] = blockLight | (skyLight << 8) | (ao << 16);
 
 			if (useNormals) {

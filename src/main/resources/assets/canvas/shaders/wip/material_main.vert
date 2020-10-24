@@ -84,7 +84,7 @@ void main() {
 	_cvv_normal = data.normal;
 
 #if AO_SHADING_MODE != AO_MODE_NONE
-	_cvv_ao = in_lightmap.b;
+	_cvv_ao = in_lightmap.b / 255.0;
 #endif
 
 	_cvv_lightcoord = data.light;

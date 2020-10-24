@@ -256,7 +256,7 @@ public abstract class AbstractStateFinder<T extends AbstractStateFinder<T, V>, V
 	protected abstract V missing();
 
 	public V find() {
-		// WIP: need a way to ensure only one translucent material per target
+		// WIP: need a way to ensure only one translucent buffer/render state per target
 		bits = SHADER.setValue(WipMaterialShaderManager.INSTANCE.find(vertexShaderIndex,fragmentShaderIndex, TRANSPARENCY.getValue(bits) == WipTransparency.TRANSLUCENT ? WipProgramType.MATERIAL_VERTEX_LOGIC : WipProgramType.MATERIAL_UNIFORM_LOGIC).index, bits);
 		return findInner();
 	}
@@ -270,6 +270,9 @@ public abstract class AbstractStateFinder<T extends AbstractStateFinder<T, V>, V
 
 	public T copyFrom(V template) {
 		bits = template.bits;
+		final WipMaterialShaderImpl shader = WipMaterialShaderManager.INSTANCE.get(SHADER.getValue(bits));
+		vertexShaderIndex = shader.vertexShaderIndex;
+		fragmentShaderIndex = shader.fragmentShaderIndex;
 		return (T) this;
 	}
 }
