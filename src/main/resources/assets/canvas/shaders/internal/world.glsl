@@ -22,12 +22,15 @@
 #define _CV_ENTITY_VIEW 19 // 3 elements wide
 
 #define _CV_FLAG0_NIGHT_VISTION_ACTIVE  0
-#define _CV_FLAG0_HAS_SKYLIGHT            1
-#define _CV_FLAG0_IS_OVERWORLD            2
-#define _CV_FLAG0_IS_NETHER            3
+#define _CV_FLAG0_HAS_SKYLIGHT          1
+#define _CV_FLAG0_IS_OVERWORLD          2
+#define _CV_FLAG0_IS_NETHER            	3
 #define _CV_FLAG0_IS_END                4
 #define _CV_FLAG0_IS_RAINING            5
-#define _CV_FLAG0_IS_THUNDERING        6
+#define _CV_FLAG0_IS_THUNDERING        	6
+#define _CV_FLAG0_IS_SKY_DARKENED      	7
 
 uniform float[22] _cvu_world;
-uniform vec3 _cvu_modelOrigin;
+uniform vec3 _cvu_model_origin;
+uniform int _cvu_model_origin_type;
+uniform mat3 _cvu_normal_model_matrix;

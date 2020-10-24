@@ -1,12 +1,12 @@
-#include canvas:shaders/wip/header.glsl
-#include frex:shaders/wip/api/context.glsl
-#include canvas:shaders/wip/varying.glsl
-#include canvas:shaders/wip/vertex.glsl
-#include canvas:shaders/wip/flags.glsl
-#include frex:shaders/wip/api/vertex.glsl
-#include frex:shaders/wip/api/sampler.glsl
-#include canvas:shaders/wip/diffuse.glsl
-#include canvas:shaders/wip/program.glsl
+#include canvas:shaders/internal/header.glsl
+#include frex:shaders/api/context.glsl
+#include canvas:shaders/internal/varying.glsl
+#include canvas:shaders/internal/vertex.glsl
+#include canvas:shaders/internal/flags.glsl
+#include frex:shaders/api/vertex.glsl
+#include frex:shaders/api/sampler.glsl
+#include canvas:shaders/internal/diffuse.glsl
+#include canvas:shaders/internal/program.glsl
 
 #include canvas:apitarget
 
