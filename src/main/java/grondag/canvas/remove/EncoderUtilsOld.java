@@ -33,7 +33,7 @@ import net.minecraft.client.render.VertexConsumer;
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 
 abstract class EncoderUtilsOld {
-	private static final int NO_AO_SHADE = 0x7F000000;
+	private static final int NO_AO_SHADE = 0x7F;
 
 	static void bufferQuad1(MutableQuadViewImpl quad, AbstractRenderContext context) {
 		final Matrix4fExt matrix = (Matrix4fExt) (Object) context.matrix();
@@ -116,7 +116,7 @@ abstract class EncoderUtilsOld {
 
 		assert mat.blendMode() != BlendMode.DEFAULT;
 
-		final int shaderFlags = mat.shaderFlags << 16;
+		final int shaderFlags = mat.shaderFlags << 24;
 
 		int packedNormal = 0;
 		int transformedNormal = 0;
@@ -141,11 +141,13 @@ abstract class EncoderUtilsOld {
 
 			appendData[k++] = quad.vertexColor(i);
 			appendData[k++] = quad.spriteBufferU(i) | (quad.spriteBufferV(i) << 16);
+			appendData[k++] = spriteIdCoord;
 
 			final int packedLight = quad.lightmap(i);
 			final int blockLight = (packedLight & 0xFF);
 			final int skyLight = ((packedLight >> 16) & 0xFF);
-			appendData[k++] = blockLight | (skyLight << 8) | shaderFlags;
+			final int ao = aoData == null ? NO_AO_SHADE : (Math.round(aoData[i] * 254) - 127);
+			appendData[k++] = blockLight | (skyLight << 8) | (ao << 16);
 
 			if (useNormals) {
 				final int p = quad.packedNormal(i);
@@ -156,10 +158,7 @@ abstract class EncoderUtilsOld {
 				}
 			}
 
-			final int ao = aoData == null ? NO_AO_SHADE : ((Math.round(aoData[i] * 254) - 127) << 24);
-			appendData[k++] = transformedNormal | ao;
-
-			appendData[k++] = spriteIdCoord;
+			appendData[k++] = transformedNormal | shaderFlags;
 		}
 
 		buff0.add(appendData, k);

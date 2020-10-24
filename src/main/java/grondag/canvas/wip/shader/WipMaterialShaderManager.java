@@ -63,7 +63,7 @@ public enum WipMaterialShaderManager implements ClientTickEvents.EndTick {
 	}
 
 	public WipMaterialShaderImpl find(Identifier vertexSource, Identifier fragmentSource, WipProgramType programType) {
-		return find(WipMaterialShaderManager.vertexIndex.toHandle(vertexSource), WipMaterialShaderManager.fragmentIndex.toHandle(fragmentSource), programType);
+		return find(WipMaterialShaderManager.VERTEX_INDEXER.toHandle(vertexSource), WipMaterialShaderManager.FRAGMENT_INDEXER.toHandle(fragmentSource), programType);
 	}
 
 	public synchronized WipMaterialShaderImpl find(int vertexShaderIndex, int fragmentShaderIndex, WipProgramType programType) {
@@ -121,12 +121,15 @@ public enum WipMaterialShaderManager implements ClientTickEvents.EndTick {
 		}
 	}
 
-	public static final IndexedInterner<Identifier> fragmentIndex = new IndexedInterner<>(Identifier.class);
-	public static final IndexedInterner<Identifier> vertexIndex = new IndexedInterner<>(Identifier.class);
+	public static final IndexedInterner<Identifier> VERTEX_INDEXER = new IndexedInterner<>(Identifier.class);
+	public static final IndexedInterner<Identifier> FRAGMENT_INDEXER = new IndexedInterner<>(Identifier.class);
 	private static final Long2ObjectOpenHashMap<WipMaterialShaderImpl> KEYMAP = new Long2ObjectOpenHashMap<>();
 
 	private static long key(int vertexShaderIndex, int fragmentShaderIndex, WipProgramType programType) {
 		// PERF: don't need key space this big
 		return programType.ordinal() | ((long) fragmentShaderIndex << 16) | ((long) vertexShaderIndex << 32);
 	}
+
+	public static final int DEFAULT_VERTEX_INDEX = VERTEX_INDEXER.toHandle(WipShaderData.DEFAULT_VERTEX_SOURCE);
+	public static final int DEFAULT_FRAGMENT_INDEX = FRAGMENT_INDEXER.toHandle(WipShaderData.DEFAULT_FRAGMENT_SOURCE);
 }

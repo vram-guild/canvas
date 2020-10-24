@@ -19,7 +19,6 @@ package grondag.canvas.wip.state;
 import grondag.canvas.apiimpl.MaterialConditionImpl;
 import grondag.canvas.wip.shader.WipMaterialShaderImpl;
 import grondag.canvas.wip.shader.WipMaterialShaderManager;
-import grondag.canvas.wip.shader.WipShaderData;
 import grondag.canvas.wip.state.property.WipDecal;
 import grondag.canvas.wip.state.property.WipDepthTest;
 import grondag.canvas.wip.state.property.WipFog;
@@ -39,16 +38,18 @@ import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 @SuppressWarnings("unchecked")
 public abstract class AbstractStateFinder<T extends AbstractStateFinder<T, V>, V extends AbstractRenderState> extends AbstractRenderStateView{
 	protected AbstractStateFinder() {
-		super(0);
+		super(AbstractRenderStateView.DEFAULT_BITS);
+		vertexShaderIndex = WipMaterialShaderManager.DEFAULT_VERTEX_INDEX;
+		fragmentShaderIndex = WipMaterialShaderManager.DEFAULT_FRAGMENT_INDEX;
 	}
 
 	protected int vertexShaderIndex;
 	protected int fragmentShaderIndex;
 
 	public T clear() {
-		bits = 0;
-		vertexShader(WipShaderData.DEFAULT_VERTEX_SOURCE);
-		fragmentShader(WipShaderData.DEFAULT_FRAGMENT_SOURCE);
+		bits = AbstractRenderStateView.DEFAULT_BITS;
+		vertexShaderIndex = WipMaterialShaderManager.DEFAULT_VERTEX_INDEX;
+		fragmentShaderIndex = WipMaterialShaderManager.DEFAULT_FRAGMENT_INDEX;
 		return (T) this;
 	}
 
@@ -130,12 +131,12 @@ public abstract class AbstractStateFinder<T extends AbstractStateFinder<T, V>, V
 	}
 
 	public T vertexShader(Identifier vertexSource) {
-		vertexShaderIndex = WipMaterialShaderManager.vertexIndex.toHandle(vertexSource);
+		vertexShaderIndex = WipMaterialShaderManager.VERTEX_INDEXER.toHandle(vertexSource);
 		return (T) this;
 	}
 
 	public T fragmentShader(Identifier fragmentSource) {
-		fragmentShaderIndex = WipMaterialShaderManager.fragmentIndex.toHandle(fragmentSource);
+		fragmentShaderIndex = WipMaterialShaderManager.FRAGMENT_INDEXER.toHandle(fragmentSource);
 		return (T) this;
 	}
 

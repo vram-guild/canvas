@@ -33,6 +33,11 @@ public final class WipMaterialShaderImpl implements MaterialShader {
 		this.fragmentShaderIndex = fragmentShaderIndex;
 		this.programType = programType;
 		this.index = index;
+
+		// WIP: remove
+		if (vertexShaderIndex == 0) {
+			System.out.println("boop");
+		}
 	}
 
 	private WipGlProgram getOrCreate() {

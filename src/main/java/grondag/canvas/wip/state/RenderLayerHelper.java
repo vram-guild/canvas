@@ -33,6 +33,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.RenderPhase;
 import net.minecraft.client.render.model.ModelLoader;
+import net.minecraft.client.texture.SpriteAtlasTexture;
 
 // segregates render layer references from mod init
 public final class RenderLayerHelper {
@@ -90,6 +91,14 @@ public final class RenderLayerHelper {
 		finder.cutout(params.getAlpha() != RenderPhase.ZERO_ALPHA);
 		finder.translucentCutout(params.getAlpha() == RenderPhase.ONE_TENTH_ALPHA);
 		finder.disableAo(true);
+
+		// vanilla sets these as part of draw process but we don't want special casing
+		if (layer ==  RenderLayer.getSolid() || layer == RenderLayer.getCutoutMipped() || layer == RenderLayer.getCutout() || layer == RenderLayer.getTranslucent()) {
+			finder.cull(true);
+			finder.texture(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE);
+			finder.writeMask(WipWriteMask.COLOR_DEPTH);
+			finder.enableLightmap(true);
+		}
 
 		// WIP2: put in proper material map hooks
 		final String name = ((MultiPhaseExt) layer).canvas_name();

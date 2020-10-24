@@ -19,6 +19,7 @@ package grondag.canvas.wip.state;
 import grondag.canvas.apiimpl.MaterialConditionImpl;
 import grondag.canvas.wip.shader.WipMaterialShaderImpl;
 import grondag.canvas.wip.shader.WipMaterialShaderManager;
+import grondag.canvas.wip.shader.WipShaderData;
 import grondag.canvas.wip.state.property.WipDecal;
 import grondag.canvas.wip.state.property.WipDepthTest;
 import grondag.canvas.wip.state.property.WipFog;
@@ -27,6 +28,9 @@ import grondag.canvas.wip.state.property.WipTextureState;
 import grondag.canvas.wip.state.property.WipTransparency;
 import grondag.canvas.wip.state.property.WipWriteMask;
 import grondag.fermion.bits.BitPacker64;
+import org.lwjgl.opengl.GL11;
+
+import net.minecraft.client.texture.SpriteAtlasTexture;
 
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 
@@ -212,7 +216,26 @@ abstract class AbstractRenderStateView {
 	public static final long HURT_OVERLAY_FLAG = HURT_OVERLAY.comparisonMask() >>> FLAG_SHIFT;
 	public static final long FLASH_OVERLAY_FLAG = FLASH_OVERLAY.comparisonMask() >>> FLAG_SHIFT;
 
+	static final long DEFAULT_BITS;
 	static {
 		assert PACKER.bitLength() <= 64;
+
+		long defaultBits = PRIMITIVE.setValue(GL11.GL_QUADS, 0);
+
+		final int vertexShaderIndex = WipMaterialShaderManager.VERTEX_INDEXER.toHandle(WipShaderData.DEFAULT_VERTEX_SOURCE);
+		final int fragmentShaderIndex = WipMaterialShaderManager.FRAGMENT_INDEXER.toHandle(WipShaderData.DEFAULT_FRAGMENT_SOURCE);
+		defaultBits = SHADER.setValue(WipMaterialShaderManager.INSTANCE.find(vertexShaderIndex,fragmentShaderIndex, WipProgramType.MATERIAL_UNIFORM_LOGIC).index, defaultBits);
+
+		defaultBits = DEFAULT_BLEND_MODE.setValue(true, defaultBits);
+		defaultBits = CULL.setValue(true, defaultBits);
+		defaultBits = DEPTH_TEST.setValue(WipDepthTest.LEQUAL, defaultBits);
+		defaultBits = ENABLE_LIGHTMAP.setValue(true, defaultBits);
+		defaultBits = TEXTURE.setValue(WipTextureState.fromId(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE).index, defaultBits);
+		defaultBits = TARGET.setValue(WipTarget.MAIN, defaultBits);
+		defaultBits = WRITE_MASK.setValue(WipWriteMask.COLOR_DEPTH, defaultBits);
+		defaultBits = UNMIPPED.setValue(false, defaultBits);
+		defaultBits = FOG.setValue(WipFog.BLACK_FOG, defaultBits);
+
+		DEFAULT_BITS = defaultBits;
 	}
 }

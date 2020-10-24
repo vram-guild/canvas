@@ -59,7 +59,7 @@ public class WipGlMaterialShader extends WipGlShader{
 		} else if (materials.size() == 1) {
 			starts = "\tfrx_startFragment(data);";
 			final int index = materials.iterator().next().fragmentShaderIndex;
-			impl = loadShaderSource(resourceManager, WipMaterialShaderManager.fragmentIndex.fromHandle(index));
+			impl = loadShaderSource(resourceManager, WipMaterialShaderManager.FRAGMENT_INDEXER.fromHandle(index));
 		} else {
 			final IntOpenHashSet ids = new IntOpenHashSet();
 			int counter = 1;
@@ -87,7 +87,7 @@ public class WipGlMaterialShader extends WipGlShader{
 					startsBuilder.append(index);
 					startsBuilder.append("(data);\n");
 
-					String src = loadShaderSource(resourceManager, WipMaterialShaderManager.fragmentIndex.fromHandle(index));
+					String src = loadShaderSource(resourceManager, WipMaterialShaderManager.FRAGMENT_INDEXER.fromHandle(index));
 					src = StringUtils.replace(src, "frx_startFragment", "frx_startFragment" + index);
 					implBuilder.append(src);
 					implBuilder.append("\n");
@@ -114,7 +114,7 @@ public class WipGlMaterialShader extends WipGlShader{
 			impl = "\t// NOOP";
 		} else if (materials.size() == 1) {
 			final int index = materials.iterator().next().vertexShaderIndex;
-			impl = loadShaderSource(resourceManager, WipMaterialShaderManager.vertexIndex.fromHandle(index));
+			impl = loadShaderSource(resourceManager, WipMaterialShaderManager.VERTEX_INDEXER.fromHandle(index));
 			starts = impl.contains("frx_startVertex") ? "\tfrx_startVertex(data);" : "\t// NOOP";
 			ends = impl.contains("frx_endVertex") ? "\tfrx_endVertex(data);" : "\t// NOOP";
 		} else {
@@ -146,7 +146,7 @@ public class WipGlMaterialShader extends WipGlShader{
 
 					++ counter;
 
-					String src = loadShaderSource(resourceManager, WipMaterialShaderManager.vertexIndex.fromHandle(index));
+					String src = loadShaderSource(resourceManager, WipMaterialShaderManager.VERTEX_INDEXER.fromHandle(index));
 
 					if (src.contains("frx_startVertex")) {
 						startsBuilder.append("frx_startVertex");

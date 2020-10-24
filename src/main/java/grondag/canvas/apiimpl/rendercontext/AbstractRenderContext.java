@@ -230,7 +230,7 @@ public abstract class AbstractRenderContext implements RenderContext {
 
 	protected void adjustMaterial() {
 		if (finder.blendMode() == BlendMode.DEFAULT) {
-			finder.blendMode(defaultBlendMode()).disableAo();
+			finder.blendMode(defaultBlendMode());
 		}
 	}
 }
