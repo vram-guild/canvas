@@ -48,7 +48,6 @@ import grondag.canvas.light.LightmapHdTexture;
 import grondag.canvas.mixinterface.WorldRendererExt;
 import grondag.canvas.pipeline.BufferDebug;
 import grondag.canvas.pipeline.CanvasFrameBufferHacks;
-import grondag.canvas.shader.GlProgram;
 import grondag.canvas.shader.ShaderContext;
 import grondag.canvas.terrain.BuiltRenderRegion;
 import grondag.canvas.terrain.RenderRegionBuilder;
@@ -62,6 +61,7 @@ import grondag.canvas.texture.DitherTexture;
 import grondag.canvas.varia.CanvasGlHelper;
 import grondag.canvas.varia.WorldDataManager;
 import grondag.canvas.wip.encoding.WipImmediate;
+import grondag.canvas.wip.shader.WipGlProgram;
 import grondag.canvas.wip.shader.WipMaterialShaderManager;
 import grondag.canvas.wip.state.RenderContextState;
 import grondag.canvas.wip.state.WipRenderState;
@@ -1004,7 +1004,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		GlStateManager.disableClientState(GL11.GL_VERTEX_ARRAY);
 		CanvasGlHelper.enableAttributes(0);
 		BindStateManager.unbind();
-		GlProgram.deactivate();
+		WipGlProgram.deactivate(); // WIP: needed?
 	}
 
 	private void updateRegions(long endNanos) {

@@ -48,7 +48,7 @@ import net.minecraft.util.Identifier;
 
 import net.fabricmc.loader.api.FabricLoader;
 
-class WipGlShader implements Shader {
+public class WipGlShader implements Shader {
 	static final Pattern PATTERN = Pattern.compile("^#include\\s+([\\w]+:[\\w/\\.]+)[ \\t]*.*", Pattern.MULTILINE);
 	private static final HashSet<String> INCLUDED = new HashSet<>();
 	private static boolean isErrorNoticeComplete = false;
@@ -62,7 +62,7 @@ class WipGlShader implements Shader {
 	private boolean needsLoad = true;
 	private boolean isErrored = false;
 
-	WipGlShader(Identifier shaderSource, int shaderType, WipProgramType programType) {
+	public WipGlShader(Identifier shaderSource, int shaderType, WipProgramType programType) {
 		shaderSourceId = shaderSource;
 		this.shaderType = shaderType;
 		this.programType = programType;

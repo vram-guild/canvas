@@ -248,7 +248,7 @@ public class WipGlProgram {
 		}
 	}
 
-	private void load() {
+	public void load() {
 		isErrored = true;
 
 		// prevent accumulation of uniforms in programs that aren't activated after

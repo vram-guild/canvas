@@ -17,22 +17,23 @@
 package grondag.canvas.pipeline;
 
 import grondag.canvas.material.MaterialVertexFormats;
-import grondag.canvas.shader.GlProgram;
-import grondag.canvas.shader.GlProgram.Uniform1fImpl;
-import grondag.canvas.shader.GlProgram.Uniform1iImpl;
-import grondag.canvas.shader.GlProgram.Uniform2fImpl;
-import grondag.canvas.shader.GlProgram.Uniform2iImpl;
 import grondag.canvas.shader.GlShaderManager;
 import grondag.canvas.shader.Shader;
-import grondag.canvas.shader.ShaderContext;
+import grondag.canvas.wip.shader.WipGlProgram;
+import grondag.canvas.wip.shader.WipGlProgram.Uniform1fImpl;
+import grondag.canvas.wip.shader.WipGlProgram.Uniform1iImpl;
+import grondag.canvas.wip.shader.WipGlProgram.Uniform2fImpl;
+import grondag.canvas.wip.shader.WipGlProgram.Uniform2iImpl;
+import grondag.canvas.wip.state.WipProgramType;
 import grondag.frex.api.material.UniformRefreshFrequency;
+
 import net.minecraft.util.Identifier;
 
 public class ProcessShader {
 	private final Identifier fragmentId;
 	private final Identifier vertexId;
 	private final String[] samplers;
-	private GlProgram program;
+	private WipGlProgram program;
 	private Uniform2iImpl size;
 	private Uniform2fImpl distance;
 	private Uniform1iImpl lod;
@@ -53,9 +54,9 @@ public class ProcessShader {
 
 	public ProcessShader activate() {
 		if (program == null) {
-			final Shader vs = GlShaderManager.INSTANCE.getOrCreateVertexShader(vertexId, ShaderContext.PROCESS);
-			final Shader fs = GlShaderManager.INSTANCE.getOrCreateFragmentShader(fragmentId, ShaderContext.PROCESS);
-			program = new GlProgram(vs, fs, MaterialVertexFormats.PROCESS_VERTEX_UV, ShaderContext.PROCESS);
+			final Shader vs = GlShaderManager.INSTANCE.getOrCreateVertexShader(vertexId, WipProgramType.PROCESS);
+			final Shader fs = GlShaderManager.INSTANCE.getOrCreateFragmentShader(fragmentId, WipProgramType.PROCESS);
+			program = new WipGlProgram(vs, fs, MaterialVertexFormats.PROCESS_VERTEX_UV, WipProgramType.PROCESS);
 			size = (Uniform2iImpl) program.uniform2i("_cvu_size", UniformRefreshFrequency.ON_LOAD, u -> u.set(1, 1));
 			lod = (Uniform1iImpl) program.uniform1i("_cvu_lod", UniformRefreshFrequency.ON_LOAD, u -> u.set(0));
 			distance = (Uniform2fImpl) program.uniform2f("_cvu_distance", UniformRefreshFrequency.ON_LOAD, u -> u.set(0, 0));
@@ -77,7 +78,7 @@ public class ProcessShader {
 	}
 
 	public ProcessShader size(int w, int h) {
-		if (program != null && GlProgram.activeProgram() == program) {
+		if (program != null && WipGlProgram.activeProgram() == program) {
 			size.set(w, h);
 			size.upload();
 		}
@@ -86,7 +87,7 @@ public class ProcessShader {
 	}
 
 	public ProcessShader distance(float x, float y) {
-		if (program != null && GlProgram.activeProgram() == program) {
+		if (program != null && WipGlProgram.activeProgram() == program) {
 			distance.set(x, y);
 			distance.upload();
 		}
@@ -95,7 +96,7 @@ public class ProcessShader {
 	}
 
 	public ProcessShader lod(int lod) {
-		if (program != null && GlProgram.activeProgram() == program) {
+		if (program != null && WipGlProgram.activeProgram() == program) {
 			this.lod.set(lod);
 			this.lod.upload();
 		}
@@ -104,7 +105,7 @@ public class ProcessShader {
 	}
 
 	public ProcessShader intensity(float intensity) {
-		if (program != null && GlProgram.activeProgram() == program) {
+		if (program != null && WipGlProgram.activeProgram() == program) {
 			this.intensity.set(intensity);
 			this.intensity.upload();
 		}

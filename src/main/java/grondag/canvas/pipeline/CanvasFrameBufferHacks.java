@@ -24,8 +24,8 @@ import grondag.canvas.Configurator;
 import grondag.canvas.buffer.VboBuffer;
 import grondag.canvas.material.MaterialVertexFormats;
 import grondag.canvas.mixinterface.FrameBufferExt;
-import grondag.canvas.shader.GlProgram;
 import grondag.canvas.wip.encoding.WipVertexCollectorImpl;
+import grondag.canvas.wip.shader.WipGlProgram;
 import grondag.canvas.wip.state.RenderContextState;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.ARBTextureFloat;
@@ -129,7 +129,7 @@ public class CanvasFrameBufferHacks {
 		GlStateManager.disableTexture();
 		GlStateManager.activeTexture(GL21.GL_TEXTURE0);
 		GlStateManager.bindTexture(oldTex0);
-		GlProgram.deactivate();
+		WipGlProgram.deactivate();
 		RenderSystem.popMatrix();
 		GlStateManager.matrixMode(GL11.GL_MODELVIEW);
 		RenderSystem.depthMask(true);
