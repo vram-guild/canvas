@@ -18,6 +18,7 @@ package grondag.canvas.material;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
+import grondag.canvas.buffer.encoding.EncodingContext;
 
 import static grondag.canvas.material.MaterialVertextFormatElement.BASE_RGBA_4UB;
 import static grondag.canvas.material.MaterialVertextFormatElement.BASE_TEX_2F;

@@ -20,12 +20,12 @@ import java.util.concurrent.ArrayBlockingQueue;
 
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
-import grondag.canvas.wip.state.WipRenderMaterial;
+import grondag.canvas.material.state.RenderMaterialImpl;
 import org.lwjgl.opengl.GL11;
 
 public class DrawableDelegate {
 	private static final ArrayBlockingQueue<DrawableDelegate> store = new ArrayBlockingQueue<>(4096);
-	private WipRenderMaterial materialState;
+	private RenderMaterialImpl materialState;
 	private int vertexOffset;
 	private int vertexCount;
 	private boolean isReleased = false;
@@ -34,7 +34,7 @@ public class DrawableDelegate {
 		super();
 	}
 
-	public static DrawableDelegate claim(WipRenderMaterial renderState, int vertexOffset, int vertexCount) {
+	public static DrawableDelegate claim(RenderMaterialImpl renderState, int vertexOffset, int vertexCount) {
 		DrawableDelegate result = store.poll();
 
 		if (result == null) {
@@ -51,7 +51,7 @@ public class DrawableDelegate {
 	/**
 	 * The pipeline (and vertex format) associated with this delegate.
 	 */
-	public WipRenderMaterial materialState() {
+	public RenderMaterialImpl materialState() {
 		return materialState;
 	}
 

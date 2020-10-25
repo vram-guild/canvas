@@ -26,6 +26,10 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
 import grondag.canvas.apiimpl.util.FaceConstants;
+import grondag.canvas.buffer.encoding.VertexCollectorImpl;
+import grondag.canvas.buffer.encoding.VertexCollectorList;
+import grondag.canvas.material.state.RenderLayerHelper;
+import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.perf.ChunkRebuildCounters;
 import grondag.canvas.render.CanvasFrustum;
 import grondag.canvas.render.CanvasWorldRenderer;
@@ -34,10 +38,6 @@ import grondag.canvas.terrain.occlusion.region.OcclusionRegion;
 import grondag.canvas.terrain.occlusion.region.PackedBox;
 import grondag.canvas.terrain.render.DrawableChunk;
 import grondag.canvas.terrain.render.UploadableChunk;
-import grondag.canvas.wip.encoding.WipVertexCollectorImpl;
-import grondag.canvas.wip.encoding.WipVertexCollectorList;
-import grondag.canvas.wip.state.RenderLayerHelper;
-import grondag.canvas.wip.state.WipRenderMaterial;
 import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
 import grondag.frex.api.fluid.FluidQuadSupplier;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
@@ -310,9 +310,9 @@ public class BuiltRenderRegion {
 
 			if (state != null) {
 				final Vec3d cameraPos = cwr.cameraPos();
-				final WipVertexCollectorList collectors = context.collectors;
-				final WipRenderMaterial translucentState = RenderLayerHelper.TRANSLUCENT_TERRAIN;
-				final WipVertexCollectorImpl collector = collectors.get(translucentState);
+				final VertexCollectorList collectors = context.collectors;
+				final RenderMaterialImpl translucentState = RenderLayerHelper.TRANSLUCENT_TERRAIN;
+				final VertexCollectorImpl collector = collectors.get(translucentState);
 
 				collector.loadState(translucentState, state);
 
@@ -360,7 +360,7 @@ public class BuiltRenderRegion {
 
 			cwr.forceVisibilityUpdate();
 
-			final WipVertexCollectorList collectors = context.collectors;
+			final VertexCollectorList collectors = context.collectors;
 
 			if (runningState.protoRegion.get() == ProtoRenderRegion.INVALID) {
 				collectors.clear();
@@ -410,7 +410,7 @@ public class BuiltRenderRegion {
 			ChunkRebuildCounters.startChunk();
 		}
 
-		final WipVertexCollectorList collectors = context.collectors;
+		final VertexCollectorList collectors = context.collectors;
 
 		final BlockPos.Mutable searchPos = context.searchPos;
 		final int xOrigin = origin.getX();
@@ -559,7 +559,7 @@ public class BuiltRenderRegion {
 			ChunkRebuildCounters.startUpload();
 		}
 
-		final WipVertexCollectorList collectors = context.collectors;
+		final VertexCollectorList collectors = context.collectors;
 		final UploadableChunk solidUpload = collectors.toUploadableChunk(false);
 		final UploadableChunk translucentUpload = collectors.toUploadableChunk(true);
 

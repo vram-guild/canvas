@@ -19,10 +19,10 @@ package grondag.canvas.terrain.render;
 import java.nio.IntBuffer;
 
 import grondag.canvas.buffer.VboBuffer;
+import grondag.canvas.buffer.encoding.VertexCollectorImpl;
+import grondag.canvas.buffer.encoding.VertexCollectorList;
+import grondag.canvas.material.property.MaterialDecal;
 import grondag.canvas.shader.ShaderPass;
-import grondag.canvas.wip.encoding.WipVertexCollectorImpl;
-import grondag.canvas.wip.encoding.WipVertexCollectorList;
-import grondag.canvas.wip.state.property.WipDecal;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 public abstract class DrawableChunk {
@@ -48,7 +48,7 @@ public abstract class DrawableChunk {
 		DelegateLists.releaseDelegateList(delegates);
 	}
 
-	public static DrawableChunk pack(WipVertexCollectorList collectorList, VboBuffer vboBuffer, boolean translucent) {
+	public static DrawableChunk pack(VertexCollectorList collectorList, VboBuffer vboBuffer, boolean translucent) {
 		return translucent ? new Translucent(collectorList, vboBuffer) : new Solid(collectorList, vboBuffer);
 	}
 
@@ -77,7 +77,7 @@ public abstract class DrawableChunk {
 		private ObjectArrayList<DrawableDelegate> solid;
 		private ObjectArrayList<DrawableDelegate> decal;
 
-		public Solid(WipVertexCollectorList collectorList, VboBuffer vboBuffer) {
+		public Solid(VertexCollectorList collectorList, VboBuffer vboBuffer) {
 			super(vboBuffer);
 
 			// WIP2: further consolidate draw calls with same render state - need to handle conditions
@@ -92,9 +92,9 @@ public abstract class DrawableChunk {
 
 			// solid pass
 			for (int i = 0; i < limit; ++i) {
-				final WipVertexCollectorImpl collector = collectorList.get(i);
+				final VertexCollectorImpl collector = collectorList.get(i);
 
-				if (!collector.materialState().sorted && collector.materialState().decal == WipDecal.NONE) {
+				if (!collector.materialState().sorted && collector.materialState().decal == MaterialDecal.NONE) {
 					final int vertexCount = collector.vertexCount();
 					collector.toBuffer(intBuffer);
 					solid.add(DrawableDelegate.claim(collector.materialState(), position, vertexCount));
@@ -114,9 +114,9 @@ public abstract class DrawableChunk {
 
 			// decal pass
 			for (int i = 0; i < limit; ++i) {
-				final WipVertexCollectorImpl collector = collectorList.get(i);
+				final VertexCollectorImpl collector = collectorList.get(i);
 
-				if (!collector.materialState().sorted && collector.materialState().decal != WipDecal.NONE) {
+				if (!collector.materialState().sorted && collector.materialState().decal != MaterialDecal.NONE) {
 					final int vertexCount = collector.vertexCount();
 					collector.toBuffer(intBuffer);
 					decal.add(DrawableDelegate.claim(collector.materialState(), position, vertexCount));
@@ -161,7 +161,7 @@ public abstract class DrawableChunk {
 	private static class Translucent extends DrawableChunk {
 		private ObjectArrayList<DrawableDelegate> delegates;
 
-		public Translucent(WipVertexCollectorList collectorList, VboBuffer vboBuffer) {
+		public Translucent(VertexCollectorList collectorList, VboBuffer vboBuffer) {
 			super(vboBuffer);
 
 			final IntBuffer intBuffer = vboBuffer.intBuffer();
@@ -171,7 +171,7 @@ public abstract class DrawableChunk {
 			final ObjectArrayList<DrawableDelegate> delegates = DelegateLists.getReadyDelegateList();
 
 			for (int i = 0; i < limit; ++i) {
-				final WipVertexCollectorImpl collector = collectorList.get(i);
+				final VertexCollectorImpl collector = collectorList.get(i);
 
 				if (collector.materialState().sorted) {
 					final int vertexCount = collector.vertexCount();

@@ -20,18 +20,18 @@ import java.util.Iterator;
 
 import com.google.common.util.concurrent.Runnables;
 import com.mojang.blaze3d.systems.RenderSystem;
+import grondag.canvas.buffer.encoding.VertexCollectorImpl;
+import grondag.canvas.material.property.MaterialDecal;
+import grondag.canvas.material.property.MaterialDepthTest;
+import grondag.canvas.material.property.MaterialFog;
+import grondag.canvas.material.property.MaterialTarget;
+import grondag.canvas.material.property.MaterialTransparency;
+import grondag.canvas.material.property.MaterialWriteMask;
+import grondag.canvas.material.state.RenderContextState;
+import grondag.canvas.material.state.RenderMaterialImpl;
+import grondag.canvas.material.state.MaterialFinderImpl;
 import grondag.canvas.mixinterface.ParticleExt;
 import grondag.canvas.mixinterface.ParticleManagerExt;
-import grondag.canvas.wip.encoding.WipVertexCollectorImpl;
-import grondag.canvas.wip.state.RenderContextState;
-import grondag.canvas.wip.state.WipRenderMaterial;
-import grondag.canvas.wip.state.WipRenderMaterialFinder;
-import grondag.canvas.wip.state.property.WipDecal;
-import grondag.canvas.wip.state.property.WipDepthTest;
-import grondag.canvas.wip.state.property.WipFog;
-import grondag.canvas.wip.state.property.WipTarget;
-import grondag.canvas.wip.state.property.WipTransparency;
-import grondag.canvas.wip.state.property.WipWriteMask;
 import grondag.frex.api.material.MaterialMap;
 import grondag.frex.api.material.RenderMaterial;
 import org.lwjgl.opengl.GL11;
@@ -52,18 +52,18 @@ import net.minecraft.util.crash.CrashReport;
 import net.minecraft.util.crash.CrashReportSection;
 
 public class CanvasParticleRenderer {
-	private final WipVertexCollectorImpl collector;
+	private final VertexCollectorImpl collector;
 
 	private Tessellator tessellator;
 	private BufferBuilder bufferBuilder;
 	private LightmapTextureManager lightmapTextureManager;
 	private ParticleManagerExt ext;
 	private Runnable drawHandler = Runnables.doNothing();
-	private WipRenderMaterial baseMat;
-	private WipRenderMaterial emissiveMat;
+	private RenderMaterialImpl baseMat;
+	private RenderMaterialImpl emissiveMat;
 
 	CanvasParticleRenderer(RenderContextState contextState) {
-		collector = new WipVertexCollectorImpl(contextState);
+		collector = new VertexCollectorImpl(contextState);
 	}
 
 	public void renderParticles(ParticleManager pm, MatrixStack matrixStack, VertexConsumerProvider.Immediate immediate, LightmapTextureManager lightmapTextureManager, Camera camera, float tickDelta) {
@@ -162,48 +162,48 @@ public class CanvasParticleRenderer {
 		return bufferBuilder;
 	}
 
-	private static WipRenderMaterialFinder baseFinder() {
-		return WipRenderMaterialFinder.threadLocal()
+	private static MaterialFinderImpl baseFinder() {
+		return MaterialFinderImpl.threadLocal()
 		.primitive(GL11.GL_QUADS)
-		.depthTest(WipDepthTest.LEQUAL)
+		.depthTest(MaterialDepthTest.LEQUAL)
 		.cull(false)
-		.writeMask(WipWriteMask.COLOR_DEPTH)
+		.writeMask(MaterialWriteMask.COLOR_DEPTH)
 		.enableLightmap(true)
-		.decal(WipDecal.NONE)
-		.target(WipTarget.PARTICLES)
+		.decal(MaterialDecal.NONE)
+		.target(MaterialTarget.PARTICLES)
 		.lines(false)
 		.disableAo(true)
 		.disableDiffuse(true)
 		.cutout(true)
 		.translucentCutout(true)
-		.fog(WipFog.BLACK_FOG);
+		.fog(MaterialFog.BLACK_FOG);
 	}
 
-	private static final WipRenderMaterial RENDER_STATE_TERRAIN = baseFinder()
+	private static final RenderMaterialImpl RENDER_STATE_TERRAIN = baseFinder()
 	.texture(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE)
-	.transparency(WipTransparency.DEFAULT)
+	.transparency(MaterialTransparency.DEFAULT)
 	.find();
 
-	private static final WipRenderMaterial RENDER_STATE_TERRAIN_EMISSIVE = baseFinder().copyFrom(RENDER_STATE_TERRAIN)
+	private static final RenderMaterialImpl RENDER_STATE_TERRAIN_EMISSIVE = baseFinder().copyFrom(RENDER_STATE_TERRAIN)
 	.emissive(true)
 	.find();
 
 	// MC has two but they are functionally identical
-	private static final WipRenderMaterial RENDER_STATE_OPAQUE_OR_LIT =  baseFinder()
-	.transparency(WipTransparency.NONE)
+	private static final RenderMaterialImpl RENDER_STATE_OPAQUE_OR_LIT =  baseFinder()
+	.transparency(MaterialTransparency.NONE)
 	.texture(SpriteAtlasTexture.PARTICLE_ATLAS_TEXTURE)
 	.find();
 
-	private static final WipRenderMaterial RENDER_STATE_OPAQUE_OR_LIT_EMISSIVE = baseFinder().copyFrom(RENDER_STATE_OPAQUE_OR_LIT)
+	private static final RenderMaterialImpl RENDER_STATE_OPAQUE_OR_LIT_EMISSIVE = baseFinder().copyFrom(RENDER_STATE_OPAQUE_OR_LIT)
 	.emissive(true)
 	.find();
 
-	private static final WipRenderMaterial RENDER_STATE_TRANSLUCENT = baseFinder()
-	.transparency(WipTransparency.TRANSLUCENT)
+	private static final RenderMaterialImpl RENDER_STATE_TRANSLUCENT = baseFinder()
+	.transparency(MaterialTransparency.TRANSLUCENT)
 	.texture(SpriteAtlasTexture.PARTICLE_ATLAS_TEXTURE)
 	.find();
 
-	private static final WipRenderMaterial RENDER_STATE_TRANSLUCENT_EMISSIVE = baseFinder().copyFrom(RENDER_STATE_TRANSLUCENT)
+	private static final RenderMaterialImpl RENDER_STATE_TRANSLUCENT_EMISSIVE = baseFinder().copyFrom(RENDER_STATE_TRANSLUCENT)
 	.emissive(true)
 	.find();
 }

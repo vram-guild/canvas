@@ -22,16 +22,16 @@ import java.util.function.Consumer;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
+import grondag.canvas.buffer.encoding.EncodingContext;
+import grondag.canvas.buffer.encoding.VertexCollectorList;
 import grondag.canvas.buffer.encoding.VertexEncoder;
 import grondag.canvas.light.AoCalculator;
-import grondag.canvas.material.EncodingContext;
 import grondag.canvas.material.MaterialVertexFormats;
+import grondag.canvas.material.state.RenderContextState;
+import grondag.canvas.material.state.RenderMaterialImpl;
+import grondag.canvas.material.state.MaterialFinderImpl;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.texture.SpriteInfoTexture;
-import grondag.canvas.wip.encoding.WipVertexCollectorList;
-import grondag.canvas.wip.state.RenderContextState;
-import grondag.canvas.wip.state.WipRenderMaterial;
-import grondag.canvas.wip.state.WipRenderMaterialFinder;
 import grondag.frex.api.material.MaterialMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.Nullable;
@@ -51,11 +51,11 @@ import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 public abstract class AbstractRenderContext implements RenderContext {
 	private static final QuadTransform NO_TRANSFORM = (q) -> true;
 	private static final MaterialMap defaultMap = MaterialMap.defaultMaterialMap();
-	final WipRenderMaterialFinder finder = new WipRenderMaterialFinder();
+	final MaterialFinderImpl finder = new MaterialFinderImpl();
 	public final float[] vecData = new float[3];
 	public final int[] appendData = new int[MaterialVertexFormats.MAX_QUAD_INT_STRIDE];
 	public final RenderContextState contextState = new RenderContextState();
-	public final WipVertexCollectorList collectors = new WipVertexCollectorList(contextState);
+	public final VertexCollectorList collectors = new VertexCollectorList(contextState);
 	protected final String name;
 	protected final MeshConsumer meshConsumer = new MeshConsumer(this);
 	protected final MutableQuadViewImpl makerQuad = meshConsumer.editorQuad;
@@ -174,7 +174,7 @@ public abstract class AbstractRenderContext implements RenderContext {
 
 	public abstract EncodingContext materialContext();
 
-	public abstract VertexConsumer consumer(WipRenderMaterial mat);
+	public abstract VertexConsumer consumer(RenderMaterialImpl mat);
 
 	public abstract int indexedColor(int colorIndex);
 
@@ -222,7 +222,7 @@ public abstract class AbstractRenderContext implements RenderContext {
 		if (cullTest(quad)) {
 			finder.copyFrom(quad.material());
 			adjustMaterial();
-			final WipRenderMaterial mat = finder.find();
+			final RenderMaterialImpl mat = finder.find();
 			quad.material(mat);
 			encoder.encodeQuad(quad, this);
 		}

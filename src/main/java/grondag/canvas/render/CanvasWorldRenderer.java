@@ -32,6 +32,7 @@ import grondag.canvas.apiimpl.rendercontext.BlockRenderContext;
 import grondag.canvas.apiimpl.rendercontext.EntityBlockRenderContext;
 import grondag.canvas.buffer.BindStateManager;
 import grondag.canvas.buffer.VboBuffer;
+import grondag.canvas.buffer.encoding.CanvasImmediate;
 import grondag.canvas.compat.BborHolder;
 import grondag.canvas.compat.CampanionHolder;
 import grondag.canvas.compat.ClothHolder;
@@ -45,10 +46,13 @@ import grondag.canvas.compat.MaliLibHolder;
 import grondag.canvas.compat.SatinHolder;
 import grondag.canvas.compat.VoxelMapHolder;
 import grondag.canvas.light.LightmapHdTexture;
+import grondag.canvas.material.property.MaterialMatrixState;
+import grondag.canvas.material.state.RenderContextState;
+import grondag.canvas.material.state.RenderState;
 import grondag.canvas.mixinterface.WorldRendererExt;
-import grondag.canvas.pipeline.BufferDebug;
-import grondag.canvas.pipeline.CanvasFrameBufferHacks;
+import grondag.canvas.shader.GlProgram;
 import grondag.canvas.shader.ShaderContext;
+import grondag.canvas.shader.MaterialShaderManager;
 import grondag.canvas.terrain.BuiltRenderRegion;
 import grondag.canvas.terrain.RenderRegionBuilder;
 import grondag.canvas.terrain.RenderRegionStorage;
@@ -60,12 +64,6 @@ import grondag.canvas.terrain.render.TerrainLayerRenderer;
 import grondag.canvas.texture.DitherTexture;
 import grondag.canvas.varia.CanvasGlHelper;
 import grondag.canvas.varia.WorldDataManager;
-import grondag.canvas.wip.encoding.WipImmediate;
-import grondag.canvas.wip.shader.WipGlProgram;
-import grondag.canvas.wip.shader.WipMaterialShaderManager;
-import grondag.canvas.wip.state.RenderContextState;
-import grondag.canvas.wip.state.WipRenderState;
-import grondag.canvas.wip.state.property.WipMatrixState;
 import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
 import grondag.frex.api.event.WorldRenderEvent;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap.Entry;
@@ -152,7 +150,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	final TerrainLayerRenderer TRANSLUCENT = new TerrainLayerRenderer("translucemt", ShaderContext.TERRAIN_TRANSLUCENT, this::sortTranslucentTerrain);
 
 	private final RenderContextState contextState = new RenderContextState();
-	private final WipImmediate worldRenderImmediate = new WipImmediate(new BufferBuilder(256), WipImmediate.entityBuilders(), contextState);
+	private final CanvasImmediate worldRenderImmediate = new CanvasImmediate(new BufferBuilder(256), CanvasImmediate.entityBuilders(), contextState);
 	private final CanvasParticleRenderer particleRenderer = new CanvasParticleRenderer(contextState);
 
 	public CanvasWorldRenderer(MinecraftClient client, BufferBuilderStorage bufferBuilders) {
@@ -272,7 +270,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		mc.getProfiler().swap("distance");
 		regionStorage.updateCameraDistance(cameraPos, frustumPositionVersion, renderDistance);
 		WorldDataManager.update(camera);
-		WipMaterialShaderManager.INSTANCE.onRenderTick();
+		MaterialShaderManager.INSTANCE.onRenderTick();
 		final BlockPos cameraBlockPos = camera.getBlockPos();
 		final BuiltRenderRegion cameraRegion = cameraBlockPos.getY() < 0 || cameraBlockPos.getY() > 255 ? null : regionStorage.getOrCreateRegion(cameraBlockPos);
 
@@ -416,7 +414,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		final double cameraY = cameraVec3d.getY();
 		final double cameraZ = cameraVec3d.getZ();
 		final Matrix4f modelMatrix = matrixStack.peek().getModel();
-		WipMatrixState.set(WipMatrixState.ENTITY, matrixStack.peek().getNormal());
+		MaterialMatrixState.set(MaterialMatrixState.ENTITY, matrixStack.peek().getNormal());
 
 		profiler.swap("culling");
 
@@ -469,9 +467,9 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		if (Configurator.enableBloom) CanvasFrameBufferHacks.prepareForFrame();
 
 		if (Configurator.enableBloom) CanvasFrameBufferHacks.startEmissiveCapture();
-		WipMatrixState.set(WipMatrixState.REGION, null);
+		MaterialMatrixState.set(MaterialMatrixState.REGION, null);
 		renderTerrainLayer(false, matrixStack, cameraX, cameraY, cameraZ);
-		WipMatrixState.set(WipMatrixState.ENTITY, matrixStack.peek().getNormal());
+		MaterialMatrixState.set(MaterialMatrixState.ENTITY, matrixStack.peek().getNormal());
 		if (Configurator.enableBloom) CanvasFrameBufferHacks.endEmissiveCapture();
 
 		LitematicaHolder.litematicaRenderSolids.accept(matrixStack);
@@ -624,7 +622,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		assert matrixStack.isEmpty() : "Matrix stack not empty in world render when expected";
 
-		((WipImmediate) immediate).drawCollectors(false);
+		((CanvasImmediate) immediate).drawCollectors(false);
 
 		bufferBuilders.getOutlineVertexConsumers().draw();
 
@@ -691,7 +689,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		// Intention here seems to be to draw all the non-translucent layers before
 		// enabling the translucent target - this is a very brittle way of handling
 		// should be able to draw all layers for a given target
-		((WipImmediate) immediate).drawCollectors(false);
+		((CanvasImmediate) immediate).drawCollectors(false);
 
 		immediate.draw(RenderLayer.getArmorGlint());
 		immediate.draw(RenderLayer.getArmorEntityGlint());
@@ -712,7 +710,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			// Lines draw to entity (item) target
 			immediate.draw(RenderLayer.getLines());
 
-			((WipImmediate) immediate).drawCollectors(true);
+			((CanvasImmediate) immediate).drawCollectors(true);
 
 			// This presumably catches any remaining translucent layers in vanilla
 			immediate.draw();
@@ -722,9 +720,9 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			fb.copyDepthFrom(mcfb);
 			fb.beginWrite(false);
 
-			WipMatrixState.set(WipMatrixState.REGION, null);
+			MaterialMatrixState.set(MaterialMatrixState.REGION, null);
 			renderTerrainLayer(true, matrixStack, cameraX, cameraY, cameraZ);
-			WipMatrixState.set(WipMatrixState.ENTITY, matrixStack.peek().getNormal());
+			MaterialMatrixState.set(MaterialMatrixState.ENTITY, matrixStack.peek().getNormal());
 
 			// NB: vanilla renders tripwire here but we combine into translucent
 
@@ -735,31 +733,31 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			fb.beginWrite(false);
 
 			profiler.swap("particles");
-			WipMatrixState.set(WipMatrixState.PARTICLE, null);
+			MaterialMatrixState.set(MaterialMatrixState.PARTICLE, null);
 			particleRenderer.renderParticles(mc.particleManager, matrixStack, immediate, lightmapTextureManager, camera, tickDelta);
-			WipMatrixState.set(WipMatrixState.ENTITY, matrixStack.peek().getNormal());
+			MaterialMatrixState.set(MaterialMatrixState.ENTITY, matrixStack.peek().getNormal());
 
 			mcfb.beginWrite(false);
 		} else {
 			profiler.swap("translucent");
-			WipMatrixState.set(WipMatrixState.REGION, null);
+			MaterialMatrixState.set(MaterialMatrixState.REGION, null);
 			renderTerrainLayer(true, matrixStack, cameraX, cameraY, cameraZ);
-			WipMatrixState.set(WipMatrixState.ENTITY, matrixStack.peek().getNormal());
+			MaterialMatrixState.set(MaterialMatrixState.ENTITY, matrixStack.peek().getNormal());
 
 			// without fabulous transparency important that lines
 			// and other translucent elements get drawn on top of terrain
 			immediate.draw(RenderLayer.getLines());
 
-			((WipImmediate) immediate).drawCollectors(true);
+			((CanvasImmediate) immediate).drawCollectors(true);
 
 			// This presumably catches any remaining translucent layers in vanilla
 			immediate.draw();
 
 			VoxelMapHolder.postRenderLayerHandler.render(this, RenderLayer.getTranslucent(), matrixStack, cameraX, cameraY, cameraZ);
 			profiler.swap("particles");
-			WipMatrixState.set(WipMatrixState.PARTICLE, null);
+			MaterialMatrixState.set(MaterialMatrixState.PARTICLE, null);
 			particleRenderer.renderParticles(mc.particleManager, matrixStack, immediate, lightmapTextureManager, camera, tickDelta);
-			WipMatrixState.set(WipMatrixState.ENTITY, matrixStack.peek().getNormal());
+			MaterialMatrixState.set(MaterialMatrixState.ENTITY, matrixStack.peek().getNormal());
 		}
 
 		JustMapHolder.justMapRender.renderWaypoints(matrixStack, camera, tickDelta);
@@ -985,7 +983,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			DECAL.render(visibleRegions, visibleRegionCount, matrixStack, x, y, z);
 		}
 
-		WipRenderState.disable();
+		RenderState.disable();
 
 		// Important this happens BEFORE anything that could affect vertex state
 		if (CanvasGlHelper.isVaoEnabled()) {
@@ -1004,7 +1002,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		GlStateManager.disableClientState(GL11.GL_VERTEX_ARRAY);
 		CanvasGlHelper.enableAttributes(0);
 		BindStateManager.unbind();
-		WipGlProgram.deactivate(); // WIP: needed?
+		GlProgram.deactivate(); // WIP: needed?
 	}
 
 	private void updateRegions(long endNanos) {

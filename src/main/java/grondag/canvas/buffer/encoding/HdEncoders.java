@@ -20,10 +20,9 @@ import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.rendercontext.AbstractRenderContext;
 import grondag.canvas.light.LightmapHd;
 import grondag.canvas.material.MaterialVertexFormats;
+import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.Matrix4fExt;
-import grondag.canvas.wip.encoding.WipVertexCollectorImpl;
-import grondag.canvas.wip.state.WipRenderMaterial;
 
 import static grondag.canvas.buffer.encoding.EncoderUtils.applyBlockLighting;
 import static grondag.canvas.buffer.encoding.EncoderUtils.colorizeQuad;
@@ -47,8 +46,8 @@ public abstract class HdEncoders {
 		final Matrix4fExt matrix = (Matrix4fExt) (Object) context.matrix();
 		final Matrix3fExt normalMatrix = context.normalMatrix();
 		final float[] aoData = quad.ao;
-		final WipRenderMaterial mat = quad.material();
-		final WipVertexCollectorImpl buff0 = context.collectors.get(mat);
+		final RenderMaterialImpl mat = quad.material();
+		final VertexCollectorImpl buff0 = context.collectors.get(mat);
 		final int[] appendData = context.appendData;
 
 		final LightmapHd hdLight = quad.hdLight;

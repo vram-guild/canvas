@@ -17,17 +17,16 @@
 package grondag.canvas.buffer.encoding;
 
 import grondag.canvas.Configurator;
-import grondag.canvas.material.EncodingContext;
-import grondag.canvas.wip.state.WipRenderMaterial;
-import grondag.canvas.wip.state.property.WipTransparency;
+import grondag.canvas.material.property.MaterialTransparency;
+import grondag.canvas.material.state.RenderMaterialImpl;
 
+import static grondag.canvas.buffer.encoding.EncodingContext.BLOCK;
+import static grondag.canvas.buffer.encoding.EncodingContext.ITEM;
+import static grondag.canvas.buffer.encoding.EncodingContext.TERRAIN;
 import static grondag.canvas.buffer.encoding.HdEncoders.HD_TERRAIN_1;
 import static grondag.canvas.buffer.encoding.VanillaEncoders.VANILLA_BLOCK;
 import static grondag.canvas.buffer.encoding.VanillaEncoders.VANILLA_ITEM;
 import static grondag.canvas.buffer.encoding.VanillaEncoders.VANILLA_TERRAIN;
-import static grondag.canvas.material.EncodingContext.BLOCK;
-import static grondag.canvas.material.EncodingContext.ITEM;
-import static grondag.canvas.material.EncodingContext.TERRAIN;
 
 import net.minecraft.util.math.MathHelper;
 
@@ -52,16 +51,16 @@ public class VertexEncoders {
 		return (isTranslucent ? TRANSLUCENT_FLAG : 0) | (context.ordinal() << CONTEXT_SHIFT);
 	}
 
-	public static VertexEncoder get(EncodingContext context, WipRenderMaterial mat) {
-		return ENCODERS[lookupIndex(context, mat.translucency == WipTransparency.TRANSLUCENT)];
+	public static VertexEncoder get(EncodingContext context, RenderMaterialImpl mat) {
+		return ENCODERS[lookupIndex(context, mat.translucency == MaterialTransparency.TRANSLUCENT)];
 	}
 
 	public static VertexEncoder getDefault(EncodingContext context, boolean isTranslucent) {
 		return ENCODERS[lookupIndex(context, isTranslucent)];
 	}
 
-	public static VertexEncoder getDefault(EncodingContext context, WipRenderMaterial materialState) {
-		return getDefault(context, materialState.translucency == WipTransparency.TRANSLUCENT);
+	public static VertexEncoder getDefault(EncodingContext context, RenderMaterialImpl materialState) {
+		return getDefault(context, materialState.translucency == MaterialTransparency.TRANSLUCENT);
 	}
 
 	public static void reload() {

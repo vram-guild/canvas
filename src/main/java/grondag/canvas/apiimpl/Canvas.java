@@ -27,16 +27,16 @@ import grondag.canvas.compat.LitematicaHolder;
 import grondag.canvas.light.AoVertexClampFunction;
 import grondag.canvas.light.LightmapHd;
 import grondag.canvas.light.LightmapHdTexture;
+import grondag.canvas.material.state.RenderMaterialImpl;
+import grondag.canvas.material.state.MaterialFinderImpl;
 import grondag.canvas.perf.ChunkRebuildCounters;
-import grondag.canvas.pipeline.ProcessShaders;
+import grondag.canvas.shader.GlProgramManager;
 import grondag.canvas.shader.GlShaderManager;
+import grondag.canvas.shader.MaterialShaderManager;
+import grondag.canvas.shader.ProcessShaders;
 import grondag.canvas.terrain.ChunkColorCache;
 import grondag.canvas.terrain.ProtoRenderRegion;
 import grondag.canvas.terrain.TerrainModelSpace;
-import grondag.canvas.wip.shader.WipGlProgramManager;
-import grondag.canvas.wip.shader.WipMaterialShaderManager;
-import grondag.canvas.wip.state.WipRenderMaterial;
-import grondag.canvas.wip.state.WipRenderMaterialFinder;
 import grondag.frex.api.Renderer;
 import grondag.frex.api.material.MaterialCondition;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
@@ -50,13 +50,13 @@ import net.fabricmc.fabric.api.renderer.v1.mesh.MeshBuilder;
 public class Canvas implements Renderer {
 	public static final Canvas INSTANCE = new Canvas();
 
-	public static final WipRenderMaterial MATERIAL_STANDARD = INSTANCE.materialFinder().find();
+	public static final RenderMaterialImpl MATERIAL_STANDARD = INSTANCE.materialFinder().find();
 
 	static {
 		INSTANCE.registerMaterial(RenderMaterial.MATERIAL_STANDARD, MATERIAL_STANDARD);
 	}
 
-	private final Object2ObjectOpenHashMap<Identifier, WipRenderMaterial> materialMap = new Object2ObjectOpenHashMap<>();
+	private final Object2ObjectOpenHashMap<Identifier, RenderMaterialImpl> materialMap = new Object2ObjectOpenHashMap<>();
 	private final Object2ObjectOpenHashMap<Identifier, MaterialConditionImpl> conditionMap = new Object2ObjectOpenHashMap<>();
 
 	private Canvas() {
@@ -68,12 +68,12 @@ public class Canvas implements Renderer {
 	}
 
 	@Override
-	public WipRenderMaterialFinder materialFinder() {
-		return new WipRenderMaterialFinder();
+	public MaterialFinderImpl materialFinder() {
+		return new MaterialFinderImpl();
 	}
 
 	@Override
-	public WipRenderMaterial materialById(Identifier id) {
+	public RenderMaterialImpl materialById(Identifier id) {
 		return materialMap.get(id);
 	}
 
@@ -84,7 +84,7 @@ public class Canvas implements Renderer {
 		}
 
 		// cast to prevent acceptance of impostor implementations
-		materialMap.put(id, (WipRenderMaterial) material);
+		materialMap.put(id, (RenderMaterialImpl) material);
 		return true;
 	}
 
@@ -100,8 +100,8 @@ public class Canvas implements Renderer {
 		GlShaderManager.INSTANCE.reload();
 		LightmapHdTexture.reload();
 		LightmapHd.reload();
-		WipMaterialShaderManager.INSTANCE.reload();
-		WipGlProgramManager.INSTANCE.reload();
+		MaterialShaderManager.INSTANCE.reload();
+		GlProgramManager.INSTANCE.reload();
 		TerrainModelSpace.reload();
 		ProcessShaders.reload();
 		LitematicaHolder.litematicaReload.run();

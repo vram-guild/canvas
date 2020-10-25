@@ -18,9 +18,9 @@ package grondag.canvas.terrain;
 
 import java.util.List;
 
-import grondag.canvas.wip.encoding.WipVertexCollectorImpl;
-import grondag.canvas.wip.encoding.WipVertexCollectorList;
-import grondag.canvas.wip.state.RenderLayerHelper;
+import grondag.canvas.buffer.encoding.VertexCollectorImpl;
+import grondag.canvas.buffer.encoding.VertexCollectorList;
+import grondag.canvas.material.state.RenderLayerHelper;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.Nullable;
 
@@ -43,8 +43,8 @@ public class RegionData {
 		return blockEntities;
 	}
 
-	public void endBuffering(float x, float y, float z, WipVertexCollectorList buffers) {
-		final WipVertexCollectorImpl buffer = buffers.getIfExists(RenderLayerHelper.TRANSLUCENT_TERRAIN);
+	public void endBuffering(float x, float y, float z, VertexCollectorList buffers) {
+		final VertexCollectorImpl buffer = buffers.getIfExists(RenderLayerHelper.TRANSLUCENT_TERRAIN);
 
 		if (buffer != null) {
 			buffer.sortQuads(x, y, z);

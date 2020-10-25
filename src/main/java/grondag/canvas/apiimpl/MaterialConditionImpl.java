@@ -18,7 +18,7 @@ package grondag.canvas.apiimpl;
 
 import java.util.function.BooleanSupplier;
 
-import grondag.canvas.wip.shader.WipMaterialShaderManager;
+import grondag.canvas.shader.MaterialShaderManager;
 import grondag.frex.api.material.MaterialCondition;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
@@ -52,7 +52,7 @@ public class MaterialConditionImpl implements MaterialCondition {
 
 	@Override
 	public boolean compute() {
-		final int frameIndex = WipMaterialShaderManager.INSTANCE.frameIndex();
+		final int frameIndex = MaterialShaderManager.INSTANCE.frameIndex();
 
 		if (frameIndex == this.frameIndex) {
 			return result;

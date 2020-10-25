@@ -16,7 +16,7 @@
 
 package grondag.canvas.shader;
 
-import grondag.canvas.material.EncodingContext;
+import grondag.canvas.buffer.encoding.EncodingContext;
 
 public class ShaderContext {
 	public static final ShaderContext TERRAIN_SOLID = builder()

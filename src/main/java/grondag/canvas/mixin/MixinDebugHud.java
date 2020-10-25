@@ -21,8 +21,8 @@ import java.util.List;
 import grondag.canvas.Configurator;
 import grondag.canvas.buffer.GlBufferAllocator;
 import grondag.canvas.buffer.TransferBufferAllocator;
+import grondag.canvas.buffer.encoding.VertexCollectorImpl;
 import grondag.canvas.light.LightmapHd;
-import grondag.canvas.wip.encoding.WipVertexCollectorImpl;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -42,6 +42,6 @@ public class MixinDebugHud {
 
 		list.add(TransferBufferAllocator.debugString());
 		list.add(GlBufferAllocator.debugString());
-		list.add(WipVertexCollectorImpl.INT_STREAM_PROVIDER.report());
+		list.add(VertexCollectorImpl.INT_STREAM_PROVIDER.report());
 	}
 }

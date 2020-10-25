@@ -20,9 +20,9 @@ import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.apiimpl.util.NormalHelper;
 import grondag.canvas.apiimpl.util.TextureHelper;
 import grondag.canvas.light.LightmapHd;
+import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.mixinterface.SpriteExt;
 import grondag.canvas.texture.SpriteInfoTexture;
-import grondag.canvas.wip.state.WipRenderMaterial;
 import grondag.frex.api.mesh.QuadEmitter;
 
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.BASE_QUAD_STRIDE;
@@ -92,9 +92,9 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 			material = Canvas.MATERIAL_STANDARD;
 		}
 
-		data[baseIndex + HEADER_MATERIAL] = ((WipRenderMaterial) material).index;
+		data[baseIndex + HEADER_MATERIAL] = ((RenderMaterialImpl) material).index;
 
-		assert WipRenderMaterial.fromIndex(data[baseIndex + HEADER_MATERIAL]) == material;
+		assert RenderMaterialImpl.fromIndex(data[baseIndex + HEADER_MATERIAL]) == material;
 
 		return this;
 	}
