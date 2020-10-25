@@ -19,8 +19,8 @@ package grondag.canvas.buffer.encoding;
 import grondag.canvas.apiimpl.mesh.MeshEncodingHelper;
 import grondag.canvas.apiimpl.util.NormalHelper;
 import grondag.canvas.material.state.RenderContextState;
-import grondag.canvas.material.state.RenderStateData;
 import grondag.canvas.material.state.RenderMaterialImpl;
+import grondag.canvas.material.state.RenderStateData;
 import grondag.canvas.mixinterface.SpriteExt;
 
 import static grondag.canvas.material.MaterialVertexFormats.MATERIAL_COLOR_INDEX;
@@ -110,7 +110,7 @@ public abstract class AbstractVertexCollector implements VertexCollector {
 
 	@Override
 	public VertexCollector normal(float x, float y, float z) {
-		vertexData[baseVertexIndex + MATERIAL_NORMAL_INDEX] = NormalHelper.packUnsignedNormal(x, y, z) | normalBase | overlayFlags;
+		vertexData[baseVertexIndex + MATERIAL_NORMAL_INDEX] = NormalHelper.packNormal(x, y, z) | normalBase | overlayFlags;
 		didPopulateNormal = true;
 		return this;
 	}

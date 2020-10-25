@@ -196,7 +196,7 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 	@Override
 	public MutableQuadViewImpl normal(int vertexIndex, float x, float y, float z) {
 		normalFlags(normalFlags() | (1 << vertexIndex));
-		data[baseIndex + vertexIndex * BASE_VERTEX_STRIDE + VERTEX_NORMAL] = NormalHelper.packNormal(x, y, z, 0);
+		data[baseIndex + vertexIndex * BASE_VERTEX_STRIDE + VERTEX_NORMAL] = NormalHelper.packNormal(x, y, z);
 		return this;
 	}
 
@@ -210,7 +210,7 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 			return;
 		}
 
-		final int packedFaceNormal = NormalHelper.packNormal(faceNormal(), 0);
+		final int packedFaceNormal = NormalHelper.packNormal(faceNormal());
 
 		for (int v = 0; v < 4; v++) {
 			if ((normalFlags & (1 << v)) == 0) {

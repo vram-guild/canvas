@@ -49,13 +49,12 @@ public class MixinMatrix3f implements Matrix3fExt {
 		final float x = NormalHelper.getPackedNormalComponent(packedNormal, 0);
 		final float y = NormalHelper.getPackedNormalComponent(packedNormal, 1);
 		final float z = NormalHelper.getPackedNormalComponent(packedNormal, 2);
-		final float w = NormalHelper.getPackedNormalComponent(packedNormal, 3);
 
 		final float nx = a00 * x + a01 * y + a02 * z;
 		final float ny = a10 * x + a11 * y + a12 * z;
 		final float nz = a20 * x + a21 * y + a22 * z;
 
-		return NormalHelper.packNormal(nx, ny, nz, w);
+		return NormalHelper.packNormal(nx, ny, nz);
 	}
 
 	@Override

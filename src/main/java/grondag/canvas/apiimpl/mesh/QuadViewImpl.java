@@ -228,7 +228,7 @@ public class QuadViewImpl implements QuadView {
 		int result = packedFaceNormal;
 
 		if (result == -1) {
-			result = NormalHelper.packNormal(faceNormal, 0);
+			result = NormalHelper.packNormal(faceNormal);
 			packedFaceNormal = result;
 		}
 
