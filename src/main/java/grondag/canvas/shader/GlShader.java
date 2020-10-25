@@ -211,7 +211,7 @@ public class GlShader implements Shader {
 			}
 		}
 	}
-	// WIP: cache this during uniform setup
+
 	private String getSource() {
 		String result = source;
 
