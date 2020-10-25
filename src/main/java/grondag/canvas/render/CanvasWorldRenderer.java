@@ -95,7 +95,6 @@ import net.minecraft.client.render.OutlineVertexConsumerProvider;
 import net.minecraft.client.render.OverlayVertexConsumer;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.Tessellator;
-import net.minecraft.client.render.TexturedRenderLayers;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.VertexConsumerProvider.Immediate;
@@ -105,7 +104,6 @@ import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.client.render.block.entity.BlockEntityRenderDispatcher;
 import net.minecraft.client.render.entity.EntityRenderDispatcher;
 import net.minecraft.client.render.model.ModelLoader;
-import net.minecraft.client.texture.SpriteAtlasTexture;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.Entity;
@@ -418,10 +416,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		final double cameraY = cameraVec3d.getY();
 		final double cameraZ = cameraVec3d.getZ();
 		final Matrix4f modelMatrix = matrixStack.peek().getModel();
-
-		if (Configurator.enableExperimentalPipeline) {
-			WipMatrixState.set(WipMatrixState.ENTITY, matrixStack.peek().getNormal());
-		}
+		WipMatrixState.set(WipMatrixState.ENTITY, matrixStack.peek().getNormal());
 
 		profiler.swap("culling");
 
@@ -517,7 +512,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		mcfb.beginWrite(false);
 
 		boolean didRenderOutlines = false;
-		final VertexConsumerProvider.Immediate immediate = Configurator.enableExperimentalPipeline ? worldRenderImmediate : bufferBuilders.getEntityVertexConsumers();
+		final VertexConsumerProvider.Immediate immediate = worldRenderImmediate;
 		final Iterator<Entity> entities = world.getEntities().iterator();
 		final ShaderEffect entityOutlineShader = wr.canvas_entityOutlineShader();
 		final BuiltRenderRegion[] visibleRegions = this.visibleRegions;
@@ -566,13 +561,6 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		}
 
 		contextState.setCurrentEntity(null);
-
-		if (!Configurator.enableExperimentalPipeline) {
-			immediate.draw(RenderLayer.getEntitySolid(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE));
-			immediate.draw(RenderLayer.getEntityCutout(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE));
-			immediate.draw(RenderLayer.getEntityCutoutNoCull(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE));
-			immediate.draw(RenderLayer.getEntitySmoothCutout(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE));
-		}
 
 		// WIP2 move these after bulk draw in new pipeline
 		SatinHolder.onEntitiesRenderedEvent.onEntitiesRendered(camera, frustum, tickDelta);
@@ -636,17 +624,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		assert matrixStack.isEmpty() : "Matrix stack not empty in world render when expected";
 
-		if (Configurator.enableExperimentalPipeline) {
-			((WipImmediate) immediate).drawCollectors(false);
-		} else {
-			immediate.draw(RenderLayer.getSolid());
-			immediate.draw(TexturedRenderLayers.getEntitySolid());
-			immediate.draw(TexturedRenderLayers.getEntityCutout());
-			immediate.draw(TexturedRenderLayers.getBeds());
-			immediate.draw(TexturedRenderLayers.getShulkerBoxes());
-			immediate.draw(TexturedRenderLayers.getSign());
-			immediate.draw(TexturedRenderLayers.getChest());
-		}
+		((WipImmediate) immediate).drawCollectors(false);
 
 		bufferBuilders.getOutlineVertexConsumers().draw();
 
@@ -713,13 +691,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		// Intention here seems to be to draw all the non-translucent layers before
 		// enabling the translucent target - this is a very brittle way of handling
 		// should be able to draw all layers for a given target
-		if (Configurator.enableExperimentalPipeline) {
-			((WipImmediate) immediate).drawCollectors(false);
-		} else {
-			immediate.draw(TexturedRenderLayers.getEntityTranslucentCull());
-			immediate.draw(TexturedRenderLayers.getBannerPatterns());
-			immediate.draw(TexturedRenderLayers.getShieldPatterns());
-		}
+		((WipImmediate) immediate).drawCollectors(false);
 
 		immediate.draw(RenderLayer.getArmorGlint());
 		immediate.draw(RenderLayer.getArmorEntityGlint());
@@ -740,9 +712,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			// Lines draw to entity (item) target
 			immediate.draw(RenderLayer.getLines());
 
-			if (Configurator.enableExperimentalPipeline) {
-				((WipImmediate) immediate).drawCollectors(true);
-			}
+			((WipImmediate) immediate).drawCollectors(true);
 
 			// This presumably catches any remaining translucent layers in vanilla
 			immediate.draw();
@@ -780,9 +750,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			// and other translucent elements get drawn on top of terrain
 			immediate.draw(RenderLayer.getLines());
 
-			if (Configurator.enableExperimentalPipeline) {
-				((WipImmediate) immediate).drawCollectors(true);
-			}
+			((WipImmediate) immediate).drawCollectors(true);
 
 			// This presumably catches any remaining translucent layers in vanilla
 			immediate.draw();

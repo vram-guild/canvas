@@ -85,7 +85,6 @@ public class Configurator {
 	public static boolean enableBufferDebug = DEFAULTS.enableBufferDebug;
 	public static boolean enableLifeCycleDebug = DEFAULTS.enableLifeCycleDebug;
 	public static boolean logMissingUniforms = DEFAULTS.logMissingUniforms;
-	public static boolean enableExperimentalPipeline = DEFAULTS.enableExperimentalPipeline;
 
 	//    @LangKey("config.acuity_fancy_fluids")
 	//    @Comment({"Enable fancy water and lava rendering.",
@@ -172,7 +171,6 @@ public class Configurator {
 		enableBufferDebug = config.enableBufferDebug;
 		enableLifeCycleDebug = config.enableLifeCycleDebug;
 		logMissingUniforms = config.logMissingUniforms;
-		enableExperimentalPipeline = config.enableExperimentalPipeline;
 	}
 
 	private static void saveConfig() {
@@ -219,7 +217,6 @@ public class Configurator {
 		config.enableBufferDebug = enableBufferDebug;
 		config.enableLifeCycleDebug = enableLifeCycleDebug;
 		config.logMissingUniforms = logMissingUniforms;
-		config.enableExperimentalPipeline = enableExperimentalPipeline;
 
 		try {
 			final String result = JANKSON.toJson(config).toJson(true, true, 0);
@@ -593,13 +590,6 @@ public class Configurator {
 			.setSaveConsumer(b -> logMissingUniforms = b)
 			.build());
 
-		debug.addEntry(ENTRY_BUILDER
-			.startBooleanToggle(new TranslatableText("config.canvas.value.enable_experimental"), enableExperimentalPipeline)
-			.setDefaultValue(DEFAULTS.enableExperimentalPipeline)
-			.setTooltip(parse("config.canvas.help.enable_experimental"))
-			.setSaveConsumer(b -> enableExperimentalPipeline = b)
-			.build());
-
 		builder.setAlwaysShowTabs(false).setDoesConfirmSave(false);
 
 		return builder.build();
@@ -732,8 +722,6 @@ public class Configurator {
 		boolean traceOcclusionEdgeCases = false;
 		@Comment("Log uniforms not found in shaders. Sometimes useful for shader debug. Will spam the log.")
 		boolean logMissingUniforms = false;
-		@Comment("For use in development - enables work-in-progress rendering features.")
-		boolean enableExperimentalPipeline = false;
 	}
 
 

@@ -20,7 +20,6 @@ import java.util.Iterator;
 
 import com.google.common.util.concurrent.Runnables;
 import com.mojang.blaze3d.systems.RenderSystem;
-import grondag.canvas.Configurator;
 import grondag.canvas.mixinterface.ParticleExt;
 import grondag.canvas.mixinterface.ParticleManagerExt;
 import grondag.canvas.wip.encoding.WipVertexCollectorImpl;
@@ -137,26 +136,24 @@ public class CanvasParticleRenderer {
 		RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
 
 		// PERF: consolidate these draws
-		if (Configurator.enableExperimentalPipeline) {
-			if (particleTextureSheet == ParticleTextureSheet.TERRAIN_SHEET) {
-				baseMat = RENDER_STATE_TERRAIN;
-				emissiveMat = RENDER_STATE_TERRAIN_EMISSIVE;
-				collector.prepare(baseMat);
-				drawHandler = () -> collector.drawAndClear();
-				return collector;
-			} else if (particleTextureSheet == ParticleTextureSheet.PARTICLE_SHEET_LIT || particleTextureSheet == ParticleTextureSheet.PARTICLE_SHEET_OPAQUE) {
-				baseMat = RENDER_STATE_OPAQUE_OR_LIT;
-				emissiveMat = RENDER_STATE_OPAQUE_OR_LIT_EMISSIVE;
-				collector.prepare(baseMat);
-				drawHandler = () -> collector.drawAndClear();
-				return collector;
-			} else if (particleTextureSheet == ParticleTextureSheet.PARTICLE_SHEET_TRANSLUCENT) {
-				baseMat = RENDER_STATE_TRANSLUCENT;
-				emissiveMat = RENDER_STATE_TRANSLUCENT_EMISSIVE;
-				collector.prepare(baseMat);
-				drawHandler = () -> collector.drawAndClear();
-				return collector;
-			}
+		if (particleTextureSheet == ParticleTextureSheet.TERRAIN_SHEET) {
+			baseMat = RENDER_STATE_TERRAIN;
+			emissiveMat = RENDER_STATE_TERRAIN_EMISSIVE;
+			collector.prepare(baseMat);
+			drawHandler = () -> collector.drawAndClear();
+			return collector;
+		} else if (particleTextureSheet == ParticleTextureSheet.PARTICLE_SHEET_LIT || particleTextureSheet == ParticleTextureSheet.PARTICLE_SHEET_OPAQUE) {
+			baseMat = RENDER_STATE_OPAQUE_OR_LIT;
+			emissiveMat = RENDER_STATE_OPAQUE_OR_LIT_EMISSIVE;
+			collector.prepare(baseMat);
+			drawHandler = () -> collector.drawAndClear();
+			return collector;
+		} else if (particleTextureSheet == ParticleTextureSheet.PARTICLE_SHEET_TRANSLUCENT) {
+			baseMat = RENDER_STATE_TRANSLUCENT;
+			emissiveMat = RENDER_STATE_TRANSLUCENT_EMISSIVE;
+			collector.prepare(baseMat);
+			drawHandler = () -> collector.drawAndClear();
+			return collector;
 		}
 
 		setupVanillaParticleRender();
