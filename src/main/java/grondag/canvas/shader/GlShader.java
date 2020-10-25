@@ -376,7 +376,7 @@ class GlShader implements Shader {
 	}
 
 	@Override
-	public Identifier getShaderSource() {
+	public Identifier getShaderSourceId() {
 		return shaderSource;
 	}
 }

@@ -34,7 +34,6 @@ import grondag.canvas.Configurator.AoMode;
 import grondag.canvas.Configurator.DiffuseMode;
 import grondag.canvas.Configurator.FogMode;
 import grondag.canvas.shader.Shader;
-import grondag.canvas.texture.SpriteInfoTexture;
 import grondag.canvas.varia.CanvasGlHelper;
 import grondag.canvas.wip.state.WipProgramType;
 import org.apache.commons.lang3.StringUtils;
@@ -55,15 +54,16 @@ class WipGlShader implements Shader {
 	private static boolean isErrorNoticeComplete = false;
 	private static boolean needsClearDebugOutputWarning = true;
 	private static boolean needsDebugOutputWarning = true;
-	private final Identifier shaderSource;
+	private final Identifier shaderSourceId;
 	protected final int shaderType;
 	protected final WipProgramType programType;
+	private String source = null;
 	private int glId = -1;
 	private boolean needsLoad = true;
 	private boolean isErrored = false;
 
 	WipGlShader(Identifier shaderSource, int shaderType, WipProgramType programType) {
-		this.shaderSource = shaderSource;
+		shaderSourceId = shaderSource;
 		this.shaderType = shaderType;
 		this.programType = programType;
 	}
@@ -166,7 +166,7 @@ class WipGlShader implements Shader {
 					isErrorNoticeComplete = true;
 				}
 			} else {
-				CanvasMod.LOG.error(I18n.translate("error.canvas.fail_create_shader", shaderSource.toString(), programType.name, error));
+				CanvasMod.LOG.error(I18n.translate("error.canvas.fail_create_shader", shaderSourceId.toString(), programType.name, error));
 			}
 			outputDebugSource(source, error);
 
@@ -176,7 +176,7 @@ class WipGlShader implements Shader {
 	}
 
 	protected String debugSourceString() {
-		return "-" + shaderSource.toString().replace("/", "-").replace(":", "-");
+		return "-" + shaderSourceId.toString().replace("/", "-").replace(":", "-");
 	}
 
 	private void outputDebugSource(String source, String error) {
@@ -215,55 +215,57 @@ class WipGlShader implements Shader {
 	}
 	// WIP: cache this during uniform setup
 	private String getSource() {
-		String result = getCombinedShaderSource();
+		String result = source;
 
-		if (shaderType == GL21.GL_FRAGMENT_SHADER) {
-			result = StringUtils.replace(result, "#define SHADER_TYPE SHADER_TYPE_VERTEX", "#define SHADER_TYPE SHADER_TYPE_FRAGMENT");
-		} else {
-			result = StringUtils.replace(result, "#define _CV_SPRITE_INFO_TEXTURE_SIZE 1024", "#define _CV_SPRITE_INFO_TEXTURE_SIZE " + SpriteInfoTexture.BLOCKS.textureSize());
-			result = StringUtils.replace(result, "#define _CV_ATLAS_WIDTH 1024", "#define _CV_ATLAS_WIDTH " + SpriteInfoTexture.BLOCKS.atlasWidth());
-			result = StringUtils.replace(result, "#define _CV_ATLAS_HEIGHT 1024", "#define _CV_ATLAS_HEIGHT " + SpriteInfoTexture.BLOCKS.atlasHeight());
-		}
+		if (result == null) {
+			result = getCombinedShaderSource();
 
-		if (!Configurator.wavyGrass) {
-			result = StringUtils.replace(result, "#define ANIMATED_FOLIAGE", "//#define ANIMATED_FOLIAGE");
-		}
-
-		if (Configurator.fogMode != FogMode.VANILLA) {
-			result = StringUtils.replace(result, "#define _CV_FOG_CONFIG _CV_FOG_CONFIG_VANILLA",
-				"#define _CV_FOG_CONFIG _CV_FOG_CONFIG_" + Configurator.fogMode.name());
-		}
-
-		if (Configurator.enableBloom) {
-			result = StringUtils.replace(result, "#define TARGET_EMISSIVE -1", "#define TARGET_EMISSIVE 1");
-		}
-
-		if (Configurator.hdLightmaps()) {
-			result = StringUtils.replace(result, "#define VANILLA_LIGHTING", "//#define VANILLA_LIGHTING");
-
-			if (Configurator.lightmapNoise) {
-				result = StringUtils.replace(result, "//#define ENABLE_LIGHT_NOISE", "#define ENABLE_LIGHT_NOISE");
+			if (shaderType == GL21.GL_FRAGMENT_SHADER) {
+				result = StringUtils.replace(result, "#define SHADER_TYPE SHADER_TYPE_VERTEX", "#define SHADER_TYPE SHADER_TYPE_FRAGMENT");
 			}
-		}
 
-		if (!MinecraftClient.isAmbientOcclusionEnabled()) {
-			// disable ao for particles or if disabled by player
-			result = StringUtils.replace(result, "#define AO_SHADING_MODE AO_MODE_NORMAL",
-				"#define AO_SHADING_MODE AO_MODE_" + AoMode.NONE.name());
-		} else if (Configurator.aoShadingMode != AoMode.NORMAL) {
-			result = StringUtils.replace(result, "#define AO_SHADING_MODE AO_MODE_NORMAL",
-				"#define AO_SHADING_MODE AO_MODE_" + Configurator.aoShadingMode.name());
-		}
+			if (!Configurator.wavyGrass) {
+				result = StringUtils.replace(result, "#define ANIMATED_FOLIAGE", "//#define ANIMATED_FOLIAGE");
+			}
 
-		if (Configurator.diffuseShadingMode != DiffuseMode.NORMAL) {
-			result = StringUtils.replace(result, "#define DIFFUSE_SHADING_MODE DIFFUSE_MODE_NORMAL",
-				"#define DIFFUSE_SHADING_MODE DIFFUSE_MODE_" + Configurator.diffuseShadingMode.name());
-		}
+			if (Configurator.fogMode != FogMode.VANILLA) {
+				result = StringUtils.replace(result, "#define _CV_FOG_CONFIG _CV_FOG_CONFIG_VANILLA",
+					"#define _CV_FOG_CONFIG _CV_FOG_CONFIG_" + Configurator.fogMode.name());
+			}
 
-		if (CanvasGlHelper.useGpuShader4()) {
-			result = StringUtils.replace(result, "//#define USE_FLAT_VARYING", "#define USE_FLAT_VARYING");
-		} else {
-			result = StringUtils.replace(result, "#extension GL_EXT_gpu_shader4 : enable", "");
+			if (Configurator.enableBloom) {
+				result = StringUtils.replace(result, "#define TARGET_EMISSIVE -1", "#define TARGET_EMISSIVE 1");
+			}
+
+			if (Configurator.hdLightmaps()) {
+				result = StringUtils.replace(result, "#define VANILLA_LIGHTING", "//#define VANILLA_LIGHTING");
+
+				if (Configurator.lightmapNoise) {
+					result = StringUtils.replace(result, "//#define ENABLE_LIGHT_NOISE", "#define ENABLE_LIGHT_NOISE");
+				}
+			}
+
+			if (!MinecraftClient.isAmbientOcclusionEnabled()) {
+				// disable ao for particles or if disabled by player
+				result = StringUtils.replace(result, "#define AO_SHADING_MODE AO_MODE_NORMAL",
+					"#define AO_SHADING_MODE AO_MODE_" + AoMode.NONE.name());
+			} else if (Configurator.aoShadingMode != AoMode.NORMAL) {
+				result = StringUtils.replace(result, "#define AO_SHADING_MODE AO_MODE_NORMAL",
+					"#define AO_SHADING_MODE AO_MODE_" + Configurator.aoShadingMode.name());
+			}
+
+			if (Configurator.diffuseShadingMode != DiffuseMode.NORMAL) {
+				result = StringUtils.replace(result, "#define DIFFUSE_SHADING_MODE DIFFUSE_MODE_NORMAL",
+					"#define DIFFUSE_SHADING_MODE DIFFUSE_MODE_" + Configurator.diffuseShadingMode.name());
+			}
+
+			if (CanvasGlHelper.useGpuShader4()) {
+				result = StringUtils.replace(result, "//#define USE_FLAT_VARYING", "#define USE_FLAT_VARYING");
+			} else {
+				result = StringUtils.replace(result, "#extension GL_EXT_gpu_shader4 : enable", "");
+			}
+
+			source = result;
 		}
 
 		return result;
@@ -272,7 +274,7 @@ class WipGlShader implements Shader {
 	private String getCombinedShaderSource() {
 		final ResourceManager resourceManager = MinecraftClient.getInstance().getResourceManager();
 		INCLUDED.clear();
-		String result = loadShaderSource(resourceManager, shaderSource);
+		String result = loadShaderSource(resourceManager, shaderSourceId);
 		result = preprocessSource(resourceManager, result);
 		return processSourceIncludes(resourceManager, result);
 	}
@@ -319,6 +321,7 @@ class WipGlShader implements Shader {
 	@Override
 	public final void forceReload() {
 		needsLoad = true;
+		source = null;
 	}
 
 	@Override
@@ -341,7 +344,7 @@ class WipGlShader implements Shader {
 	}
 
 	@Override
-	public Identifier getShaderSource() {
-		return shaderSource;
+	public Identifier getShaderSourceId() {
+		return shaderSourceId;
 	}
 }

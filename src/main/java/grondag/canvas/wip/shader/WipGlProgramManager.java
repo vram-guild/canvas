@@ -28,10 +28,9 @@ import grondag.canvas.wip.state.WipProgramType;
 import grondag.canvas.wip.state.property.WipMatrixState;
 import grondag.frex.api.material.UniformRefreshFrequency;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.lwjgl.opengl.GL21;
 
-public enum WipGlShaderManager {
+public enum WipGlProgramManager {
 	INSTANCE;
 
 	{
@@ -53,10 +52,9 @@ public enum WipGlShaderManager {
 		WipGlProgram result = materialPrograms.get(key);
 
 		if (result == null) {
-			final ObjectOpenHashSet<WipMaterialShaderImpl> materials = new ObjectOpenHashSet<>();
-			final Shader vs =  new WipGlMaterialShader(WipShaderData.MATERIAL_MAIN_VERTEX, GL21.GL_VERTEX_SHADER, programType, materials);
-			final Shader fs = new WipGlMaterialShader(WipShaderData.MATERIAL_MAIN_FRAGMENT, GL21.GL_FRAGMENT_SHADER, programType, materials);
-			result = new WipGlProgram(vs, fs, MaterialVertexFormats.POSITION_COLOR_TEXTURE_MATERIAL_LIGHT_NORMAL, programType, materials);
+			final Shader vs =  new WipGlMaterialShader(WipShaderData.MATERIAL_MAIN_VERTEX, GL21.GL_VERTEX_SHADER, programType);
+			final Shader fs = new WipGlMaterialShader(WipShaderData.MATERIAL_MAIN_FRAGMENT, GL21.GL_FRAGMENT_SHADER, programType);
+			result = new WipGlProgram(vs, fs, MaterialVertexFormats.POSITION_COLOR_TEXTURE_MATERIAL_LIGHT_NORMAL, programType);
 			WipShaderData.STANDARD_UNIFORM_SETUP.accept(result);
 			result.modelOrigin = (Uniform3fImpl) result.uniform3f("_cvu_model_origin", UniformRefreshFrequency.ON_LOAD, u -> u.set(0, 0, 0));
 			result.normalModelMatrix = result.uniformMatrix3f("_cvu_normal_model_matrix", UniformRefreshFrequency.ON_LOAD, u -> {});

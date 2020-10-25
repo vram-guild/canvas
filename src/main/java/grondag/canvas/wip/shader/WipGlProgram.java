@@ -44,7 +44,6 @@ import grondag.frex.api.material.Uniform.UniformMatrix3f;
 import grondag.frex.api.material.Uniform.UniformMatrix4f;
 import grondag.frex.api.material.UniformRefreshFrequency;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL21;
@@ -67,6 +66,7 @@ public class WipGlProgram {
 	public final MaterialVertexFormat vertexFormat;
 	public final WipProgramType programType;
 	private final ObjectArrayList<UniformImpl<?>> uniforms = new ObjectArrayList<>();
+	private final ObjectArrayList<UniformImpl<?>> activeUniforms = new ObjectArrayList<>();
 	private final ObjectArrayList<UniformImpl<?>> renderTickUpdates = new ObjectArrayList<>();
 	private final ObjectArrayList<UniformImpl<?>> gameTickUpdates = new ObjectArrayList<>();
 	// UGLY: special casing, public
@@ -77,18 +77,15 @@ public class WipGlProgram {
 	public Uniform2iImpl programId;
 	public Uniform1iImpl modelOriginType;
 
-	private final ObjectOpenHashSet<WipMaterialShaderImpl> materials;
-
 	protected boolean hasDirty = false;
 	private int progID = -1;
 	private boolean isErrored = false;
 	private boolean needsLoad = true;
 
-	public WipGlProgram(Shader vertexShader, Shader fragmentShader, MaterialVertexFormat format, WipProgramType programType, ObjectOpenHashSet<WipMaterialShaderImpl> materials) {
+	public WipGlProgram(Shader vertexShader, Shader fragmentShader, MaterialVertexFormat format, WipProgramType programType) {
 		this.vertexShader = vertexShader;
 		this.fragmentShader = fragmentShader;
 		this.programType = programType;
-		this.materials = materials;
 		vertexFormat = format;
 	}
 
@@ -134,123 +131,49 @@ public class WipGlProgram {
 		materialArray.upload();
 	}
 
-	private <T extends UniformImpl<?>> void addUniform(T toAdd) {
-		uniforms.add(toAdd);
-		if (toAdd.frequency == UniformRefreshFrequency.PER_FRAME) {
-			renderTickUpdates.add(toAdd);
-		} else if (toAdd.frequency == UniformRefreshFrequency.PER_TICK) {
-			gameTickUpdates.add(toAdd);
-		}
-	}
 
 	public Uniform1f uniform1f(String name, UniformRefreshFrequency frequency, Consumer<Uniform1f> initializer) {
-		final Uniform1fImpl result = new Uniform1fImpl(name, initializer, frequency);
-
-		if (containsUniformSpec("float", name)) {
-			addUniform(result);
-		}
-
-		return result;
+		return new Uniform1fImpl(name, initializer, frequency);
 	}
 
 	public Uniform2f uniform2f(String name, UniformRefreshFrequency frequency, Consumer<Uniform2f> initializer) {
-		final Uniform2fImpl result = new Uniform2fImpl(name, initializer, frequency);
-
-		if (containsUniformSpec("vec2", name)) {
-			addUniform(result);
-		}
-
-		return result;
+		return new Uniform2fImpl(name, initializer, frequency);
 	}
 
 	public Uniform3f uniform3f(String name, UniformRefreshFrequency frequency, Consumer<Uniform3f> initializer) {
-		final Uniform3fImpl result = new Uniform3fImpl(name, initializer, frequency);
-
-		if (containsUniformSpec("vec3", name)) {
-			addUniform(result);
-		}
-
-		return result;
+		return new Uniform3fImpl(name, initializer, frequency);
 	}
 
 	public Uniform4f uniform4f(String name, UniformRefreshFrequency frequency, Consumer<Uniform4f> initializer) {
-		final Uniform4fImpl result = new Uniform4fImpl(name, initializer, frequency);
-
-		if (containsUniformSpec("vec4", name)) {
-			addUniform(result);
-		}
-
-		return result;
+		return new Uniform4fImpl(name, initializer, frequency);
 	}
 
 	public UniformArrayf uniformArrayf(String name, UniformRefreshFrequency frequency, Consumer<UniformArrayf> initializer, int size) {
-		final UniformArrayfImpl result = new UniformArrayfImpl(name, initializer, frequency, size);
-
-		if (containsUniformSpec("float\\s*\\[\\s*[0-9]+\\s*]", name)) {
-			addUniform(result);
-		}
-
-		return result;
+		return new UniformArrayfImpl(name, initializer, frequency, size);
 	}
 
 	public Uniform1i uniformSampler2d(String name, UniformRefreshFrequency frequency, Consumer<Uniform1i> initializer) {
-		final Uniform1iImpl result = new Uniform1iImpl(name, initializer, frequency);
-
-		if (containsUniformSpec("sampler2D", name)) {
-			addUniform(result);
-		}
-
-		return result;
+		return new UniformSamplerImpl(name, initializer, frequency);
 	}
 
 	public Uniform1i uniform1i(String name, UniformRefreshFrequency frequency, Consumer<Uniform1i> initializer) {
-		final Uniform1iImpl result = new Uniform1iImpl(name, initializer, frequency);
-
-		if (containsUniformSpec("int", name)) {
-			addUniform(result);
-		}
-
-		return result;
+		return new Uniform1iImpl(name, initializer, frequency);
 	}
 
 	public Uniform2i uniform2i(String name, UniformRefreshFrequency frequency, Consumer<Uniform2i> initializer) {
-		final Uniform2iImpl result = new Uniform2iImpl(name, initializer, frequency);
-
-		if (containsUniformSpec("ivec2", name)) {
-			addUniform(result);
-		}
-
-		return result;
+		return new Uniform2iImpl(name, initializer, frequency);
 	}
 
 	public Uniform3i uniform3i(String name, UniformRefreshFrequency frequency, Consumer<Uniform3i> initializer) {
-		final Uniform3iImpl result = new Uniform3iImpl(name, initializer, frequency);
-
-		if (containsUniformSpec("ivec3", name)) {
-			addUniform(result);
-		}
-
-		return result;
+		return new Uniform3iImpl(name, initializer, frequency);
 	}
 
 	public Uniform4i uniform4i(String name, UniformRefreshFrequency frequency, Consumer<Uniform4i> initializer) {
-		final Uniform4iImpl result = new Uniform4iImpl(name, initializer, frequency);
-
-		if (containsUniformSpec("ivec4", name)) {
-			addUniform(result);
-		}
-
-		return result;
+		return new Uniform4iImpl(name, initializer, frequency);
 	}
 
 	public UniformArrayi uniformArrayi(String name, UniformRefreshFrequency frequency, Consumer<UniformArrayi> initializer, int size) {
-		final UniformArrayiImpl result = new UniformArrayiImpl(name, initializer, frequency, size);
-
-		if (containsUniformSpec("int\\s*\\[\\s*[0-9]+\\s*]", name)) {
-			addUniform(result);
-		}
-
-		return result;
+		return new UniformArrayiImpl(name, initializer, frequency, size);
 	}
 
 	public final void activate() {
@@ -277,10 +200,10 @@ public class WipGlProgram {
 		GL21.glUseProgram(progID);
 
 		if (hasDirty) {
-			final int count = uniforms.size();
+			final int count = activeUniforms.size();
 
 			for (int i = 0; i < count; i++) {
-				uniforms.get(i).upload();
+				activeUniforms.get(i).upload();
 			}
 
 			hasDirty = false;
@@ -288,43 +211,41 @@ public class WipGlProgram {
 	}
 
 	public UniformMatrix4fImpl uniformMatrix4f(String name, UniformRefreshFrequency frequency, Consumer<UniformMatrix4f> initializer) {
-		final UniformMatrix4fImpl result = new UniformMatrix4fImpl(name, initializer, frequency);
-
-		if (containsUniformSpec("mat4", name)) {
-			addUniform(result);
-		}
-
-		return result;
+		return new UniformMatrix4fImpl(name, initializer, frequency);
 	}
 
 	public UniformMatrix4fImpl uniformMatrix4f(String name, UniformRefreshFrequency frequency, FloatBuffer floatBuffer, Consumer<UniformMatrix4f> initializer) {
-		final UniformMatrix4fImpl result = new UniformMatrix4fImpl(name, initializer, frequency);
-
-		if (containsUniformSpec("mat4", name)) {
-			addUniform(result);
-		}
-
-		return result;
+		return new UniformMatrix4fImpl(name, initializer, frequency);
 	}
 
 	public UniformMatrix3fImpl uniformMatrix3f(String name, UniformRefreshFrequency frequency, Consumer<UniformMatrix3f> initializer) {
-		final UniformMatrix3fImpl result = new UniformMatrix3fImpl(name, initializer, frequency);
-
-		if (containsUniformSpec("mat3", name)) {
-			addUniform(result);
-		}
-
-		return result;
+		return new UniformMatrix3fImpl(name, initializer, frequency);
 	}
 
 	public UniformMatrix3fImpl uniformMatrix3f(String name, UniformRefreshFrequency frequency, FloatBuffer floatBuffer, Consumer<UniformMatrix3f> initializer) {
-		final UniformMatrix3fImpl result = new UniformMatrix3fImpl(name, initializer, frequency);
+		return new UniformMatrix3fImpl(name, initializer, frequency);
+	}
 
-		if (containsUniformSpec("mat3", name)) {
-			addUniform(result);
+	private void loadUniforms() {
+		activeUniforms.clear();
+		renderTickUpdates.clear();
+		gameTickUpdates.clear();
+
+		final int limit = uniforms.size();
+
+		for (int i = 0; i < limit; ++i) {
+			final UniformImpl<?> u = uniforms.get(i);
+
+			if (containsUniformSpec(u)) {
+				activeUniforms.add(u);
+
+				if (u.frequency == UniformRefreshFrequency.PER_FRAME) {
+					renderTickUpdates.add(u);
+				} else if (u.frequency == UniformRefreshFrequency.PER_TICK) {
+					gameTickUpdates.add(u);
+				}
+			}
 		}
-
-		return result;
 	}
 
 	private void load() {
@@ -352,9 +273,11 @@ public class WipGlProgram {
 		}
 
 		if (!isErrored) {
-			final int limit = uniforms.size();
+			loadUniforms();
+			final int limit = activeUniforms.size();
+
 			for (int i = 0; i < limit; i++) {
-				uniforms.get(i).load(progID);
+				activeUniforms.get(i).load(progID);
 			}
 		}
 
@@ -406,7 +329,10 @@ public class WipGlProgram {
 		}
 	}
 
-	public boolean containsUniformSpec(String type, String name) {
+	public boolean containsUniformSpec(UniformImpl<?> uniform) {
+		final String type = uniform.searchString();
+		final String name = uniform.name;
+
 		return vertexShader.containsUniformSpec(type, name)
 		|| fragmentShader.containsUniformSpec(type, name);
 	}
@@ -424,6 +350,7 @@ public class WipGlProgram {
 			this.name = name;
 			this.initializer = initializer;
 			this.frequency = frequency;
+			uniforms.add(this);
 		}
 
 		public final void setDirty() {
@@ -438,9 +365,10 @@ public class WipGlProgram {
 
 		private final void load(int programID) {
 			this.unifID = GL21.glGetUniformLocation(programID, name);
+
 			if (this.unifID == -1) {
 				if (Configurator.logMissingUniforms) {
-					CanvasMod.LOG.info(I18n.translate("debug.canvas.missing_uniform", name, vertexShader.getShaderSource().toString(), fragmentShader.getShaderSource().toString()));
+					CanvasMod.LOG.info(I18n.translate("debug.canvas.missing_uniform", name, vertexShader.getShaderSourceId().toString(), fragmentShader.getShaderSourceId().toString()));
 				}
 
 				this.flags = 0;
@@ -469,6 +397,8 @@ public class WipGlProgram {
 		}
 
 		protected abstract void uploadInner();
+
+		public abstract String searchString();
 	}
 
 	protected abstract class UniformFloat<T extends Uniform> extends UniformImpl<T> {
@@ -500,6 +430,11 @@ public class WipGlProgram {
 		protected void uploadInner() {
 			GL21.glUniform1fv(unifID, uniformFloatBuffer);
 		}
+
+		@Override
+		public String searchString() {
+			return "float";
+		}
 	}
 
 	public class Uniform2fImpl extends UniformFloat<Uniform2f> implements Uniform2f {
@@ -525,6 +460,11 @@ public class WipGlProgram {
 		@Override
 		protected void uploadInner() {
 			GL21.glUniform2fv(unifID, uniformFloatBuffer);
+		}
+
+		@Override
+		public String searchString() {
+			return "vec2";
 		}
 	}
 
@@ -555,6 +495,11 @@ public class WipGlProgram {
 		@Override
 		protected void uploadInner() {
 			GL21.glUniform3fv(unifID, uniformFloatBuffer);
+		}
+
+		@Override
+		public String searchString() {
+			return "vec3";
 		}
 	}
 
@@ -590,6 +535,11 @@ public class WipGlProgram {
 		protected void uploadInner() {
 			GL21.glUniform4fv(unifID, uniformFloatBuffer);
 		}
+
+		@Override
+		public String searchString() {
+			return "vec4";
+		}
 	}
 
 	public class UniformArrayfImpl extends UniformFloat<UniformArrayf> implements UniformArrayf {
@@ -615,6 +565,11 @@ public class WipGlProgram {
 		@Override
 		protected void uploadInner() {
 			GL21.glUniform1fv(unifID, uniformFloatBuffer);
+		}
+
+		@Override
+		public String searchString() {
+			return "float\\s*\\[\\s*[0-9]+\\s*]";
 		}
 	}
 
@@ -647,6 +602,22 @@ public class WipGlProgram {
 		protected void uploadInner() {
 			GL21.glUniform1iv(unifID, uniformIntBuffer);
 		}
+
+		@Override
+		public String searchString() {
+			return "int";
+		}
+	}
+
+	public class UniformSamplerImpl extends Uniform1iImpl {
+		protected UniformSamplerImpl(String name, Consumer<Uniform1i> initializer, UniformRefreshFrequency frequency) {
+			super(name, initializer, frequency);
+		}
+
+		@Override
+		public String searchString() {
+			return "sampler2D";
+		}
 	}
 
 	public class Uniform2iImpl extends UniformInt<Uniform2i> implements Uniform2i {
@@ -672,6 +643,11 @@ public class WipGlProgram {
 		@Override
 		protected void uploadInner() {
 			GL21.glUniform2iv(unifID, uniformIntBuffer);
+		}
+
+		@Override
+		public String searchString() {
+			return "ivec2";
 		}
 	}
 
@@ -702,6 +678,11 @@ public class WipGlProgram {
 		@Override
 		protected void uploadInner() {
 			GL21.glUniform3iv(unifID, uniformIntBuffer);
+		}
+
+		@Override
+		public String searchString() {
+			return "ivec3";
 		}
 	}
 
@@ -737,6 +718,11 @@ public class WipGlProgram {
 		protected void uploadInner() {
 			GL21.glUniform4iv(unifID, uniformIntBuffer);
 		}
+
+		@Override
+		public String searchString() {
+			return "ivec4";
+		}
 	}
 
 	public class UniformArrayiImpl extends UniformInt<UniformArrayi> implements UniformArrayi {
@@ -762,6 +748,11 @@ public class WipGlProgram {
 		@Override
 		protected void uploadInner() {
 			GL21.glUniform1iv(unifID, uniformIntBuffer);
+		}
+
+		@Override
+		public String searchString() {
+			return "int\\s*\\[\\s*[0-9]+\\s*]";
 		}
 	}
 
@@ -805,6 +796,11 @@ public class WipGlProgram {
 		@Override
 		protected void uploadInner() {
 			GL21.glUniformMatrix4fv(unifID, false, uniformFloatBuffer);
+		}
+
+		@Override
+		public String searchString() {
+			return "mat4";
 		}
 	}
 
@@ -850,16 +846,16 @@ public class WipGlProgram {
 		protected void uploadInner() {
 			GL21.glUniformMatrix3fv(unifID, false, uniformFloatBuffer);
 		}
+
+		@Override
+		public String searchString() {
+			return "mat3";
+		}
 	}
 
 	public void forceReload() {
 		fragmentShader.forceReload();
 		vertexShader.forceReload();
-		needsLoad = true;
-	}
-
-	public void addMaterial(WipMaterialShaderImpl wipMaterialShaderImpl) {
-		materials.add(wipMaterialShaderImpl);
 		needsLoad = true;
 	}
 }

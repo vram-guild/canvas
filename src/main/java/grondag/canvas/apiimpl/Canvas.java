@@ -33,7 +33,7 @@ import grondag.canvas.shader.GlShaderManager;
 import grondag.canvas.terrain.ChunkColorCache;
 import grondag.canvas.terrain.ProtoRenderRegion;
 import grondag.canvas.terrain.TerrainModelSpace;
-import grondag.canvas.wip.shader.WipGlShaderManager;
+import grondag.canvas.wip.shader.WipGlProgramManager;
 import grondag.canvas.wip.shader.WipMaterialShaderManager;
 import grondag.canvas.wip.state.WipRenderMaterial;
 import grondag.canvas.wip.state.WipRenderMaterialFinder;
@@ -101,7 +101,7 @@ public class Canvas implements Renderer {
 		LightmapHdTexture.reload();
 		LightmapHd.reload();
 		WipMaterialShaderManager.INSTANCE.reload();
-		WipGlShaderManager.INSTANCE.reload();
+		WipGlProgramManager.INSTANCE.reload();
 		TerrainModelSpace.reload();
 		ProcessShaders.reload();
 		LitematicaHolder.litematicaReload.run();

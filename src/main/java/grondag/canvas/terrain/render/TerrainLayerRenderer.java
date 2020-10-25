@@ -73,8 +73,6 @@ public class TerrainLayerRenderer {
 
 		int ox = 0, oy = 0, oz = 0;
 
-		boolean first = true;
-
 		for (int regionIndex = startIndex; regionIndex != endIndex; regionIndex += step) {
 			final BuiltRenderRegion builtRegion = visibleRegions[regionIndex];
 
@@ -133,11 +131,7 @@ public class TerrainLayerRenderer {
 
 					for (int i = 0; i < limit; ++i) {
 						final DrawableDelegate d = delegates.get(i);
-
-						if (first) {
-							d.materialState().renderState.enable();
-							first = false;
-						}
+						d.materialState().renderState.enable();
 
 						final MaterialConditionImpl condition = d.materialState().condition;
 

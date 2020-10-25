@@ -17,8 +17,6 @@
 package grondag.canvas.wip.shader;
 
 import grondag.canvas.wip.state.WipProgramType;
-import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.apache.commons.lang3.StringUtils;
 import org.lwjgl.opengl.GL21;
 
@@ -26,11 +24,8 @@ import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.Identifier;
 
 public class WipGlMaterialShader extends WipGlShader{
-	private final ObjectOpenHashSet<WipMaterialShaderImpl> materials;
-
-	WipGlMaterialShader(Identifier shaderSource, int shaderType, WipProgramType programType, ObjectOpenHashSet<WipMaterialShaderImpl> materials) {
+	WipGlMaterialShader(Identifier shaderSource, int shaderType, WipProgramType programType) {
 		super(shaderSource, shaderType, programType);
-		this.materials = materials;
 	}
 
 	// all material shaders use the same source so only append extension to keep debug source file names of reasonable length
@@ -53,45 +48,40 @@ public class WipGlMaterialShader extends WipGlShader{
 		String starts;
 		String impl;
 
-		if (materials.isEmpty()) {
+		final int[] shaders =  WipMaterialShaderManager.FRAGMENT_INDEXES.toIntArray();
+		final int limit = shaders.length;
+
+		if (limit == 0) {
 			starts = "\t// NOOP";
-			impl = "\t// NOOP";
-		} else if (materials.size() == 1) {
+			impl = "";
+		} else if (limit == 1) {
 			starts = "\tfrx_startFragment(data);";
-			final int index = materials.iterator().next().fragmentShaderIndex;
-			impl = loadShaderSource(resourceManager, WipMaterialShaderManager.FRAGMENT_INDEXER.fromHandle(index));
+			impl = loadShaderSource(resourceManager, WipMaterialShaderManager.FRAGMENT_INDEXER.fromHandle(shaders[0]));
 		} else {
-			final IntOpenHashSet ids = new IntOpenHashSet();
-			int counter = 1;
 			final StringBuilder startsBuilder = new StringBuilder();
 			final StringBuilder implBuilder = new StringBuilder();
 
+			for (int i = 0; i < limit; ++i) {
+				final int index = shaders[i];
 
-			for (final WipMaterialShaderImpl mat : materials) {
-				final int index = mat.fragmentShaderIndex;
-
-				if (ids.add(index)) {
-					if (counter > 1) {
-						startsBuilder.append("\telse ");
-					}
-
-					if (counter < materials.size()) {
-						startsBuilder.append("\tif (cv_programId == ");
-						startsBuilder.append(index);
-						startsBuilder.append(") ");
-					}
-
-					++ counter;
-
-					startsBuilder.append("frx_startFragment");
-					startsBuilder.append(index);
-					startsBuilder.append("(data);\n");
-
-					String src = loadShaderSource(resourceManager, WipMaterialShaderManager.FRAGMENT_INDEXER.fromHandle(index));
-					src = StringUtils.replace(src, "frx_startFragment", "frx_startFragment" + index);
-					implBuilder.append(src);
-					implBuilder.append("\n");
+				if (i > 0) {
+					startsBuilder.append("\telse ");
 				}
+
+				if (i < limit - 1) {
+					startsBuilder.append("\tif (cv_programId == ");
+					startsBuilder.append(index);
+					startsBuilder.append(") ");
+				}
+
+				startsBuilder.append("frx_startFragment");
+				startsBuilder.append(index);
+				startsBuilder.append("(data);\n");
+
+				String src = loadShaderSource(resourceManager, WipMaterialShaderManager.FRAGMENT_INDEXER.fromHandle(index));
+				src = StringUtils.replace(src, "frx_startFragment", "frx_startFragment" + index);
+				implBuilder.append(src);
+				implBuilder.append("\n");
 			}
 
 			impl = implBuilder.toString();
@@ -108,67 +98,62 @@ public class WipGlMaterialShader extends WipGlShader{
 		String ends;
 		String impl;
 
-		if (materials.isEmpty()) {
+		final int[] shaders =  WipMaterialShaderManager.VERTEX_INDEXES.toIntArray();
+		final int limit = shaders.length;
+
+		if (limit == 0) {
 			starts = "\t// NOOP";
 			ends = "\t// NOOP";
 			impl = "\t// NOOP";
-		} else if (materials.size() == 1) {
-			final int index = materials.iterator().next().vertexShaderIndex;
-			impl = loadShaderSource(resourceManager, WipMaterialShaderManager.VERTEX_INDEXER.fromHandle(index));
+		} else if (limit == 1) {
+			impl = loadShaderSource(resourceManager, WipMaterialShaderManager.VERTEX_INDEXER.fromHandle(shaders[0]));
 			starts = impl.contains("frx_startVertex") ? "\tfrx_startVertex(data);" : "\t// NOOP";
 			ends = impl.contains("frx_endVertex") ? "\tfrx_endVertex(data);" : "\t// NOOP";
 		} else {
-			final IntOpenHashSet ids = new IntOpenHashSet();
-			int counter = 1;
 			final StringBuilder startsBuilder = new StringBuilder();
 			final StringBuilder endsBuilder = new StringBuilder();
 			final StringBuilder implBuilder = new StringBuilder();
 
+			for (int i = 0; i < limit; ++i) {
+				final int index = shaders[i];
+				String src = loadShaderSource(resourceManager, WipMaterialShaderManager.VERTEX_INDEXER.fromHandle(index));
 
-			for (final WipMaterialShaderImpl mat : materials) {
-				final int index = mat.vertexShaderIndex;
-
-				if (ids.add(index)) {
-					if (counter > 1) {
-						startsBuilder.append("\telse ");
-						endsBuilder.append("\telse ");
-					}
-
-					if (counter < materials.size()) {
-						startsBuilder.append("\tif (cv_programId == ");
-						startsBuilder.append(index);
-						startsBuilder.append(") ");
-
-						endsBuilder.append("\tif (cv_programId == ");
-						endsBuilder.append(index);
-						endsBuilder.append(") ");
-					}
-
-					++ counter;
-
-					String src = loadShaderSource(resourceManager, WipMaterialShaderManager.VERTEX_INDEXER.fromHandle(index));
-
-					if (src.contains("frx_startVertex")) {
-						startsBuilder.append("frx_startVertex");
-						startsBuilder.append(index);
-						startsBuilder.append("(data);\n");
-						src = StringUtils.replace(src, "frx_startVertex", "frx_startVertex" + index);
-					} else {
-						startsBuilder.append("{ \\NOOP }");
-					}
-
-					if (src.contains("frx_endVertex")) {
-						endsBuilder.append("frx_endVertex");
-						endsBuilder.append(index);
-						endsBuilder.append("(data);\n");
-						src = StringUtils.replace(src, "frx_endVertex", "frx_endVertex" + index);
-					} else {
-						endsBuilder.append("{ \\NOOP }");
-					}
-
-					implBuilder.append(src);
-					implBuilder.append("\n");
+				if (i > 0) {
+					startsBuilder.append("\telse ");
+					endsBuilder.append("\telse ");
 				}
+
+				if (i < limit - 1) {
+					startsBuilder.append("\tif (cv_programId == ");
+					startsBuilder.append(index);
+					startsBuilder.append(") ");
+
+					endsBuilder.append("\tif (cv_programId == ");
+					endsBuilder.append(index);
+					endsBuilder.append(") ");
+				}
+
+
+				if (src.contains("frx_startVertex")) {
+					startsBuilder.append("{ frx_startVertex");
+					startsBuilder.append(index);
+					startsBuilder.append("(data); }\n");
+					src = StringUtils.replace(src, "frx_startVertex", "frx_startVertex" + index);
+				} else {
+					startsBuilder.append("{ }\n");
+				}
+
+				if (src.contains("frx_endVertex")) {
+					endsBuilder.append("{ frx_endVertex");
+					endsBuilder.append(index);
+					endsBuilder.append("(data); }\n");
+					src = StringUtils.replace(src, "frx_endVertex", "frx_endVertex" + index);
+				} else {
+					endsBuilder.append("{ }\n");
+				}
+
+				implBuilder.append(src);
+				implBuilder.append("\n");
 			}
 
 			impl = implBuilder.toString();

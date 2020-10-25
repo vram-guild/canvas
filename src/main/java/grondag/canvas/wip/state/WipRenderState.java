@@ -55,6 +55,7 @@ public final class WipRenderState extends AbstractRenderState {
 	public void enable() {
 		target.enable();
 
+		// WIP: make all of these do nothing if already active
 		if (texture == WipTextureState.NO_TEXTURE) {
 			RenderSystem.disableTexture();
 		} else {

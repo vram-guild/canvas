@@ -33,8 +33,6 @@ import net.minecraft.client.render.VertexConsumer;
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 
 abstract class EncoderUtilsOld {
-	private static final int NO_AO_SHADE = 0x7F;
-
 	static void bufferQuad1(MutableQuadViewImpl quad, AbstractRenderContext context) {
 		final Matrix4fExt matrix = (Matrix4fExt) (Object) context.matrix();
 		final int overlay = context.overlay();
@@ -55,7 +53,7 @@ abstract class EncoderUtilsOld {
 			nz = NormalHelper.getPackedNormalComponent(transformedNormal, 2);
 		}
 
-		final boolean emissive = quad.material().emissive(0);
+		final boolean emissive = quad.material().emissive();
 
 		for (int i = 0; i < 4; i++) {
 			quad.transformAndAppend(i, matrix, buff);

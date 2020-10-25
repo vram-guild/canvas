@@ -21,6 +21,7 @@ import grondag.canvas.Configurator;
 import grondag.canvas.wip.state.WipProgramType;
 import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
 import grondag.fermion.varia.IndexedInterner;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 
 import net.minecraft.client.MinecraftClient;
@@ -31,8 +32,6 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 
 public enum WipMaterialShaderManager implements ClientTickEvents.EndTick {
 	INSTANCE;
-
-	public static final int MAX_SHADERS = 0xFFFF;
 
 	private final SimpleUnorderedArrayList<WipMaterialShaderImpl> shaders = new SimpleUnorderedArrayList<>();
 
@@ -54,6 +53,7 @@ public enum WipMaterialShaderManager implements ClientTickEvents.EndTick {
 		ClientTickEvents.END_CLIENT_TICK.register(this);
 	}
 
+	// WIP: remove - should not be needed if GlProgramManager reload is called
 	public void reload() {
 		final int limit = shaders.size();
 
@@ -62,13 +62,8 @@ public enum WipMaterialShaderManager implements ClientTickEvents.EndTick {
 		}
 	}
 
-	public WipMaterialShaderImpl find(Identifier vertexSource, Identifier fragmentSource, WipProgramType programType) {
-		return find(WipMaterialShaderManager.VERTEX_INDEXER.toHandle(vertexSource), WipMaterialShaderManager.FRAGMENT_INDEXER.toHandle(fragmentSource), programType);
-	}
-
 	public synchronized WipMaterialShaderImpl find(int vertexShaderIndex, int fragmentShaderIndex, WipProgramType programType) {
 		final long key = key(vertexShaderIndex, fragmentShaderIndex, programType);
-
 		WipMaterialShaderImpl result = KEYMAP.get(key);
 
 		if (result == null) {
@@ -82,6 +77,15 @@ public enum WipMaterialShaderManager implements ClientTickEvents.EndTick {
 	private synchronized WipMaterialShaderImpl create(int vertexShaderIndex, int fragmentShaderIndex, WipProgramType programType) {
 		final WipMaterialShaderImpl result = new WipMaterialShaderImpl(shaders.size(), vertexShaderIndex, fragmentShaderIndex, programType);
 		shaders.add(result);
+
+		final boolean newVert = VERTEX_INDEXES.add(vertexShaderIndex);
+		final boolean newFrag = FRAGMENT_INDEXES.add(fragmentShaderIndex);
+
+		// ensure shaders are recompiled when new sub-shader source referenced
+		if (newVert || newFrag) {
+			WipGlProgramManager.INSTANCE.reload();
+		}
+
 		return result;
 	}
 
@@ -121,6 +125,13 @@ public enum WipMaterialShaderManager implements ClientTickEvents.EndTick {
 		}
 	}
 
+	/** tracks which vertex sub-shaders are in use by materials */
+	public static final IntOpenHashSet VERTEX_INDEXES = new IntOpenHashSet();
+
+	/** tracks which fragmet sub-shaders are in use by materials */
+	public static final IntOpenHashSet FRAGMENT_INDEXES = new IntOpenHashSet();
+
+	public static final int MAX_SHADERS = 0xFFFF;
 	public static final IndexedInterner<Identifier> VERTEX_INDEXER = new IndexedInterner<>(Identifier.class);
 	public static final IndexedInterner<Identifier> FRAGMENT_INDEXER = new IndexedInterner<>(Identifier.class);
 	private static final Long2ObjectOpenHashMap<WipMaterialShaderImpl> KEYMAP = new Long2ObjectOpenHashMap<>();

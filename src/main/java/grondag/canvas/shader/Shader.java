@@ -43,5 +43,5 @@ public interface Shader {
 	/**
 	 * @return The shader source location, typically for debugging
 	 */
-	Identifier getShaderSource();
+	Identifier getShaderSourceId();
 }

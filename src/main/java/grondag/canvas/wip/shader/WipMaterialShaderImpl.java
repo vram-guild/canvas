@@ -39,15 +39,15 @@ public final class WipMaterialShaderImpl implements MaterialShader {
 		WipGlProgram result = program;
 
 		if (result == null) {
-			result = WipGlShaderManager.INSTANCE.getOrCreateMaterialProgram(programType);
+			result = WipGlProgramManager.INSTANCE.getOrCreateMaterialProgram(programType);
 			program = result;
-			result.addMaterial(this);
 		}
 
 		return result;
 	}
 
 	// UGLY: all of this activation stuff is trash code
+	// these should probably happen before program activation - change detection should upload as needed
 	private void updateCommonUniforms() {
 		program.programId.set(vertexShaderIndex, fragmentShaderIndex);
 		program.programId.upload();

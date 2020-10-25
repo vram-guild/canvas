@@ -377,7 +377,7 @@ public class GlProgram {
 			this.unifID = GL21.glGetUniformLocation(programID, name);
 			if (this.unifID == -1) {
 				if (Configurator.logMissingUniforms) {
-					CanvasMod.LOG.info(I18n.translate("debug.canvas.missing_uniform", name, vertexShader.getShaderSource().toString(), fragmentShader.getShaderSource().toString()));
+					CanvasMod.LOG.info(I18n.translate("debug.canvas.missing_uniform", name, vertexShader.getShaderSourceId().toString(), fragmentShader.getShaderSourceId().toString()));
 				}
 
 				this.flags = 0;
