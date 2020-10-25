@@ -20,11 +20,11 @@ import java.util.Random;
 import java.util.function.Supplier;
 
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
+import grondag.canvas.buffer.encoding.VanillaEncoders;
 import grondag.canvas.light.AoCalculator;
 import grondag.canvas.material.EncodingContext;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.MinecraftClientExt;
-import grondag.canvas.remove.VanillaEncoders;
 import grondag.canvas.wip.state.WipRenderMaterial;
 import grondag.fermion.sc.concurrency.SimpleConcurrentList;
 
@@ -92,7 +92,7 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 	private ItemStack itemStack;
 
 	public ItemRenderContext(ItemColors colorMap) {
-		super("ItemRenderContext", VanillaEncoders.VANILLA_ITEM_1);
+		super("ItemRenderContext", VanillaEncoders.VANILLA_ITEM);
 		this.colorMap = colorMap;
 		// WIP2: fix or remove
 		//		collectors.setContext(EncodingContext.ITEM);

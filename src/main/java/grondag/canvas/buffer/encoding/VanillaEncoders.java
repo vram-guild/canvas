@@ -14,59 +14,52 @@
  * the License.
  */
 
-package grondag.canvas.remove;
+package grondag.canvas.buffer.encoding;
 
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.rendercontext.AbstractRenderContext;
 
-import static grondag.canvas.remove.EncoderUtilsOld.applyBlockLighting;
-import static grondag.canvas.remove.EncoderUtilsOld.applyItemLighting;
-import static grondag.canvas.remove.EncoderUtilsOld.bufferQuad1;
-import static grondag.canvas.remove.EncoderUtilsOld.bufferQuadDirect1;
-import static grondag.canvas.remove.EncoderUtilsOld.colorizeQuad;
+import static grondag.canvas.buffer.encoding.EncoderUtils.applyBlockLighting;
+import static grondag.canvas.buffer.encoding.EncoderUtils.applyItemLighting;
+import static grondag.canvas.buffer.encoding.EncoderUtils.bufferQuad;
+import static grondag.canvas.buffer.encoding.EncoderUtils.bufferQuadDirect;
+import static grondag.canvas.buffer.encoding.EncoderUtils.colorizeQuad;
 
 public class VanillaEncoders {
-	public static final VertexEncoderOld VANILLA_BLOCK_1 = new VertexEncoderOld() {
+	public static final VertexEncoder VANILLA_BLOCK = new VertexEncoder() {
 		@Override
 		public void encodeQuad(MutableQuadViewImpl quad, AbstractRenderContext context) {
 			// needs to happen before offsets are applied
 			applyBlockLighting(quad, context);
 			colorizeQuad(quad, context);
-			bufferQuad1(quad, context);
+			bufferQuad(quad, context);
 		}
 	};
 
-	public static final VertexEncoderOld VANILLA_TERRAIN_1 = new VanillaTerrainEncoder() {
+	public static final VertexEncoder VANILLA_TERRAIN = new VanillaTerrainEncoder() {
 		@Override
 		public void encodeQuad(MutableQuadViewImpl quad, AbstractRenderContext context) {
 			// needs to happen before offsets are applied
 			applyBlockLighting(quad, context);
 			colorizeQuad(quad, context);
-			bufferQuadDirect1(quad, context);
+			bufferQuadDirect(quad, context);
 		}
 	};
 
-	public static final VertexEncoderOld VANILLA_ITEM_1 = new VertexEncoderOld() {
+	public static final VertexEncoder VANILLA_ITEM = new VertexEncoder() {
 		@Override
 		public void encodeQuad(MutableQuadViewImpl quad, AbstractRenderContext context) {
 			colorizeQuad(quad, context);
 			applyItemLighting(quad, context);
-			bufferQuad1(quad, context);
+			bufferQuad(quad, context);
 		}
 	};
 
-	abstract static class VanillaTerrainEncoder extends VertexEncoderOld {
+	abstract static class VanillaTerrainEncoder extends VertexEncoder {
 
 		VanillaTerrainEncoder() {
 			super();
 		}
 
-		@Override
-		public void light(VertexCollectorImplOld collector, int blockLight, int skyLight) {
-			// flags disable diffuse and AO in shader - mainly meant for fluids
-			// TODO: toggle/remove this when do smooth fluid lighting
-			collector.addi(blockLight | (skyLight << 8) | (0b00000110 << 16));
-		}
 	}
-
 }

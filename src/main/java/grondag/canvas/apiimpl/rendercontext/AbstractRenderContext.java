@@ -22,11 +22,11 @@ import java.util.function.Consumer;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
+import grondag.canvas.buffer.encoding.VertexEncoder;
 import grondag.canvas.light.AoCalculator;
 import grondag.canvas.material.EncodingContext;
 import grondag.canvas.material.MaterialVertexFormats;
 import grondag.canvas.mixinterface.Matrix3fExt;
-import grondag.canvas.remove.VertexEncoderOld;
 import grondag.canvas.texture.SpriteInfoTexture;
 import grondag.canvas.wip.encoding.WipVertexCollectorList;
 import grondag.canvas.wip.state.RenderContextState;
@@ -78,9 +78,9 @@ public abstract class AbstractRenderContext implements RenderContext {
 	protected MaterialMap materialMap = defaultMap;
 	protected boolean isFluidModel = false;
 	private QuadTransform activeTransform = NO_TRANSFORM;
-	protected final VertexEncoderOld encoder;
+	protected final VertexEncoder encoder;
 
-	protected AbstractRenderContext(String name, VertexEncoderOld encoder) {
+	protected AbstractRenderContext(String name, VertexEncoder encoder) {
 		this.name = name;
 		this.encoder = encoder;
 

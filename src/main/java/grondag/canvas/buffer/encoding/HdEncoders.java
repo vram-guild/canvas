@@ -14,7 +14,7 @@
  * the License.
  */
 
-package grondag.canvas.remove;
+package grondag.canvas.buffer.encoding;
 
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.rendercontext.AbstractRenderContext;
@@ -25,15 +25,15 @@ import grondag.canvas.mixinterface.Matrix4fExt;
 import grondag.canvas.wip.encoding.WipVertexCollectorImpl;
 import grondag.canvas.wip.state.WipRenderMaterial;
 
-import static grondag.canvas.remove.EncoderUtilsOld.applyBlockLighting;
-import static grondag.canvas.remove.EncoderUtilsOld.colorizeQuad;
+import static grondag.canvas.buffer.encoding.EncoderUtils.applyBlockLighting;
+import static grondag.canvas.buffer.encoding.EncoderUtils.colorizeQuad;
 
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 
 public abstract class HdEncoders {
 	private static final int QUAD_STRIDE = MaterialVertexFormats.HD_TERRAIN.vertexStrideInts * 4;
 
-	public static final VertexEncoderOld HD_TERRAIN_1 = new HdTerrainEncoder() {
+	public static final VertexEncoder HD_TERRAIN_1 = new HdTerrainEncoder() {
 		@Override
 		public void encodeQuad(MutableQuadViewImpl quad, AbstractRenderContext context) {
 			// needs to happen before offsets are applied
@@ -103,16 +103,9 @@ public abstract class HdEncoders {
 		buff0.add(appendData, k);
 	}
 
-	abstract static class HdTerrainEncoder extends VertexEncoderOld {
+	abstract static class HdTerrainEncoder extends VertexEncoder {
 		HdTerrainEncoder() {
 			super();
-		}
-
-		@Override
-		public void light(VertexCollectorImplOld collector, int blockLight, int skyLight) {
-			// flags disable diffuse and AO in shader - mainly meant for fluids
-			// TODO: toggle/remove this when do smooth fluid lighting
-			collector.addi(blockLight | (skyLight << 8) | (0b00000110 << 16));
 		}
 	}
 }

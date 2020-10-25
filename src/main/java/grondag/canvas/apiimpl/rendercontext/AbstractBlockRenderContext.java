@@ -21,8 +21,8 @@ import java.util.function.Supplier;
 
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.util.GeometryHelper;
+import grondag.canvas.buffer.encoding.VertexEncoder;
 import grondag.canvas.mixinterface.RenderLayerExt;
-import grondag.canvas.remove.VertexEncoderOld;
 import grondag.canvas.wip.encoding.WipVertexCollector;
 import grondag.frex.api.material.MaterialMap;
 import org.jetbrains.annotations.Nullable;
@@ -84,7 +84,7 @@ public abstract class AbstractBlockRenderContext<T extends BlockRenderView> exte
 	private int fullCubeCache = 0;
 
 
-	protected AbstractBlockRenderContext(String name, VertexEncoderOld encoder) {
+	protected AbstractBlockRenderContext(String name, VertexEncoder encoder) {
 		super(name, encoder);
 	}
 

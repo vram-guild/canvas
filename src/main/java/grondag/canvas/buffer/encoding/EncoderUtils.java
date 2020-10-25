@@ -14,7 +14,7 @@
  * the License.
  */
 
-package grondag.canvas.remove;
+package grondag.canvas.buffer.encoding;
 
 import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
@@ -32,8 +32,8 @@ import net.minecraft.client.render.VertexConsumer;
 
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 
-abstract class EncoderUtilsOld {
-	static void bufferQuad1(MutableQuadViewImpl quad, AbstractRenderContext context) {
+abstract class EncoderUtils {
+	static void bufferQuad(MutableQuadViewImpl quad, AbstractRenderContext context) {
 		final Matrix4fExt matrix = (Matrix4fExt) (Object) context.matrix();
 		final int overlay = context.overlay();
 		final Matrix3fExt normalMatrix = context.normalMatrix();
@@ -63,7 +63,7 @@ abstract class EncoderUtilsOld {
 
 			buff.texture(quad.spriteU(i, 0), quad.spriteV(i, 0));
 			buff.overlay(overlay);
-			buff.light(emissive ? VertexEncoderOld.FULL_BRIGHTNESS : quad.lightmap(i));
+			buff.light(emissive ? VertexEncoder.FULL_BRIGHTNESS : quad.lightmap(i));
 
 			if (useNormals) {
 				final int p = quad.packedNormal(i);
@@ -104,7 +104,7 @@ abstract class EncoderUtilsOld {
 		}
 	}
 
-	static void bufferQuadDirect1(MutableQuadViewImpl quad, AbstractRenderContext context) {
+	static void bufferQuadDirect(MutableQuadViewImpl quad, AbstractRenderContext context) {
 		final Matrix4fExt matrix = (Matrix4fExt) (Object) context.matrix();
 		final Matrix3fExt normalMatrix = context.normalMatrix();
 		final float[] aoData = quad.ao;

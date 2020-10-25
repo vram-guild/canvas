@@ -14,24 +14,24 @@
  * the License.
  */
 
-package grondag.canvas.remove;
+package grondag.canvas.buffer.encoding;
 
 import grondag.canvas.Configurator;
 import grondag.canvas.material.EncodingContext;
 import grondag.canvas.wip.state.WipRenderMaterial;
 import grondag.canvas.wip.state.property.WipTransparency;
 
+import static grondag.canvas.buffer.encoding.HdEncoders.HD_TERRAIN_1;
+import static grondag.canvas.buffer.encoding.VanillaEncoders.VANILLA_BLOCK;
+import static grondag.canvas.buffer.encoding.VanillaEncoders.VANILLA_ITEM;
+import static grondag.canvas.buffer.encoding.VanillaEncoders.VANILLA_TERRAIN;
 import static grondag.canvas.material.EncodingContext.BLOCK;
 import static grondag.canvas.material.EncodingContext.ITEM;
 import static grondag.canvas.material.EncodingContext.TERRAIN;
-import static grondag.canvas.remove.HdEncoders.HD_TERRAIN_1;
-import static grondag.canvas.remove.VanillaEncoders.VANILLA_BLOCK_1;
-import static grondag.canvas.remove.VanillaEncoders.VANILLA_ITEM_1;
-import static grondag.canvas.remove.VanillaEncoders.VANILLA_TERRAIN_1;
 
 import net.minecraft.util.math.MathHelper;
 
-public class VertexEncodersOld {
+public class VertexEncoders {
 	/**
 	 * Largest possible number of active encoder indices.
 	 */
@@ -39,7 +39,7 @@ public class VertexEncodersOld {
 	private static final int CONTEXT_SHIFT = 1;
 	private static final int TRANSLUCENT_FLAG = 1;
 
-	private static final VertexEncoderOld[] ENCODERS = new VertexEncoderOld[ENCODER_KEY_SPACE_SIZE];
+	private static final VertexEncoder[] ENCODERS = new VertexEncoder[ENCODER_KEY_SPACE_SIZE];
 
 	static {
 		reload();
@@ -52,26 +52,26 @@ public class VertexEncodersOld {
 		return (isTranslucent ? TRANSLUCENT_FLAG : 0) | (context.ordinal() << CONTEXT_SHIFT);
 	}
 
-	public static VertexEncoderOld get(EncodingContext context, WipRenderMaterial mat) {
+	public static VertexEncoder get(EncodingContext context, WipRenderMaterial mat) {
 		return ENCODERS[lookupIndex(context, mat.translucency == WipTransparency.TRANSLUCENT)];
 	}
 
-	public static VertexEncoderOld getDefault(EncodingContext context, boolean isTranslucent) {
+	public static VertexEncoder getDefault(EncodingContext context, boolean isTranslucent) {
 		return ENCODERS[lookupIndex(context, isTranslucent)];
 	}
 
-	public static VertexEncoderOld getDefault(EncodingContext context, WipRenderMaterial materialState) {
+	public static VertexEncoder getDefault(EncodingContext context, WipRenderMaterial materialState) {
 		return getDefault(context, materialState.translucency == WipTransparency.TRANSLUCENT);
 	}
 
 	public static void reload() {
-		ENCODERS[lookupIndex(BLOCK, false)] = VANILLA_BLOCK_1;
-		ENCODERS[lookupIndex(BLOCK, true)] = VANILLA_BLOCK_1;
+		ENCODERS[lookupIndex(BLOCK, false)] = VANILLA_BLOCK;
+		ENCODERS[lookupIndex(BLOCK, true)] = VANILLA_BLOCK;
 
-		ENCODERS[lookupIndex(TERRAIN, false)] = Configurator.hdLightmaps() ? HD_TERRAIN_1 : VANILLA_TERRAIN_1;
-		ENCODERS[lookupIndex(TERRAIN, true)] = Configurator.hdLightmaps() ? HD_TERRAIN_1 : VANILLA_TERRAIN_1;
+		ENCODERS[lookupIndex(TERRAIN, false)] = Configurator.hdLightmaps() ? HD_TERRAIN_1 : VANILLA_TERRAIN;
+		ENCODERS[lookupIndex(TERRAIN, true)] = Configurator.hdLightmaps() ? HD_TERRAIN_1 : VANILLA_TERRAIN;
 
-		ENCODERS[lookupIndex(ITEM, false)] = VANILLA_ITEM_1;
-		ENCODERS[lookupIndex(ITEM, true)] = VANILLA_ITEM_1;
+		ENCODERS[lookupIndex(ITEM, false)] = VANILLA_ITEM;
+		ENCODERS[lookupIndex(ITEM, true)] = VANILLA_ITEM;
 	}
 }
