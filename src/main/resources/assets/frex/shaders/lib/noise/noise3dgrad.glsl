@@ -1,10 +1,13 @@
+#include frex:shaders/lib/noise/noisecommon.glsl
+
 /******************************************************
   frex:shaders/lib/noise/noise3dgrad.glsl
 
   External MIT noise library - bundled for convenience.
 
   No modifications have been made except to remove
-  the #version header and add this comment block.
+  the #version header, add this comment block, and
+  move some shared functions to noisecommon.glsl.
 ******************************************************/
 
 //
@@ -18,23 +21,6 @@
 //               https://github.com/ashima/webgl-noise
 //               https://github.com/stegu/webgl-noise
 //
-
-vec3 mod289(vec3 x) {
-	return x - floor(x * (1.0 / 289.0)) * 289.0;
-}
-
-vec4 mod289(vec4 x) {
-	return x - floor(x * (1.0 / 289.0)) * 289.0;
-}
-
-vec4 permute(vec4 x) {
-	return mod289(((x*34.0)+1.0)*x);
-}
-
-vec4 taylorInvSqrt(vec4 r)
-{
-	return 1.79284291400159 - 0.85373472095314 * r;
-}
 
 float snoise(vec3 v, out vec3 gradient)
 {

@@ -1,10 +1,13 @@
+#include frex:shaders/lib/noise/noisecommon.glsl
+
 /******************************************************
   frex:shaders/lib/noise/cellular3d.glsl
 
   External MIT noise library - bundled for convenience.
 
   No modifications have been made except to remove
-  the #version header and add this comment block.
+  the #version header, add this comment block, and
+  move some shared functions to noisecommon.glsl.
 ******************************************************/
 
 // Cellular noise ("Worley noise") in 3D in GLSL.
@@ -12,21 +15,6 @@
 // This code is released under the conditions of the MIT license.
 // See LICENSE file for details.
 // https://github.com/stegu/webgl-noise
-
-// Modulo 289 without a division (only multiplications)
-vec3 mod289(vec3 x) {
-	return x - floor(x * (1.0 / 289.0)) * 289.0;
-}
-
-// Modulo 7 without a division
-vec3 mod7(vec3 x) {
-	return x - floor(x * (1.0 / 7.0)) * 7.0;
-}
-
-// Permutation polynomial: (34x^2 + x) mod 289
-vec3 permute(vec3 x) {
-	return mod289((34.0 * x + 1.0) * x);
-}
 
 // Cellular noise, returning F1 and F2 in a vec2.
 // 3x3x3 search region for good F2 everywhere, but a lot
