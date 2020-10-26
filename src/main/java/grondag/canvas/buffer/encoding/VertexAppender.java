@@ -17,15 +17,7 @@
 package grondag.canvas.buffer.encoding;
 
 public interface VertexAppender {
-	void addi(int i);
-
-	void addf(float f);
-
-	void addf(float u, float v);
-
-	void addf(float x, float y, float z);
-
-	void addf(float... f);
-
 	void add(int[] appendData, int length);
+
+	void add(float... val);
 }

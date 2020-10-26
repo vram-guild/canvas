@@ -16,6 +16,8 @@
 
 package grondag.canvas.buffer.encoding;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 import grondag.canvas.apiimpl.mesh.MeshEncodingHelper;
 import grondag.canvas.apiimpl.util.NormalHelper;
 import grondag.canvas.material.state.RenderContextState;
@@ -32,6 +34,7 @@ import static grondag.canvas.buffer.format.CanvasVertexFormats.MATERIAL_TEXTURE_
 import static grondag.canvas.buffer.format.CanvasVertexFormats.MATERIAL_VERTEX_STRIDE;
 
 import net.minecraft.client.texture.Sprite;
+import net.minecraft.util.math.MathHelper;
 
 public abstract class AbstractVertexCollector implements VertexCollector {
 	private static final int LAST_VERTEX_BASE_INDEX = MATERIAL_QUAD_STRIDE - MATERIAL_VERTEX_STRIDE;
@@ -39,9 +42,11 @@ public abstract class AbstractVertexCollector implements VertexCollector {
 	protected RenderMaterialImpl materialState;
 	protected final RenderContextState contextState;
 
-	protected final int[] vertexData = new int[MATERIAL_QUAD_STRIDE];
-	protected int baseVertexIndex = 0;
+	protected int capacity = 256;
+	protected int[] vertexData = new int[capacity];
 	protected int firstVertexIndex = 0;
+	protected int currentVertexIndex = 0;
+	protected int integerSize = 0;
 
 	protected int normalBase;
 	protected int overlayFlags;
@@ -50,12 +55,29 @@ public abstract class AbstractVertexCollector implements VertexCollector {
 
 	public AbstractVertexCollector(RenderContextState contextState) {
 		this.contextState = contextState;
+		collectorCount.incrementAndGet();
+		collectorBytes.addAndGet(capacity);
+	}
+
+	protected void ensureCapacity(int intSize) {
+		if (intSize > capacity) {
+			final int newCapacity = MathHelper.smallestEncompassingPowerOfTwo(intSize);
+			final int[] newData = new int[newCapacity];
+
+			if (integerSize > 0) {
+				System.arraycopy(vertexData, 0, newData, 0, integerSize);
+			}
+
+			collectorBytes.addAndGet(newCapacity - capacity);
+			capacity = newCapacity;
+			vertexData = newData;
+		}
 	}
 
 	@Override
 	public VertexCollector texture(float u, float v) {
-		vertexData[baseVertexIndex + MATERIAL_TEXTURE_INDEX] = Float.floatToRawIntBits(u);
-		vertexData[baseVertexIndex + MATERIAL_MATERIAL_INDEX] = Float.floatToRawIntBits(v);
+		vertexData[currentVertexIndex + MATERIAL_TEXTURE_INDEX] = Float.floatToRawIntBits(u);
+		vertexData[currentVertexIndex + MATERIAL_MATERIAL_INDEX] = Float.floatToRawIntBits(v);
 		return this;
 	}
 
@@ -100,16 +122,16 @@ public abstract class AbstractVertexCollector implements VertexCollector {
 	}
 
 	protected void setLight(int block, int sky) {
-		vertexData[baseVertexIndex + MATERIAL_LIGHT_INDEX] = (block & 0xFF) | ((sky & 0xFF) << 8);
+		vertexData[currentVertexIndex + MATERIAL_LIGHT_INDEX] = (block & 0xFF) | ((sky & 0xFF) << 8);
 	}
 
 	protected void setLight(int uv) {
-		vertexData[baseVertexIndex + MATERIAL_LIGHT_INDEX] = (uv & 0xFF) | ((uv >> 8) & 0xFF00);
+		vertexData[currentVertexIndex + MATERIAL_LIGHT_INDEX] = (uv & 0xFF) | ((uv >> 8) & 0xFF00);
 	}
 
 	@Override
 	public VertexCollector packedLightWithAo(int packedLight, int ao) {
-		vertexData[baseVertexIndex + MATERIAL_LIGHT_INDEX] = (packedLight & 0xFF) | ((packedLight >> 8) & 0xFF00) | (ao << 16);
+		vertexData[currentVertexIndex + MATERIAL_LIGHT_INDEX] = (packedLight & 0xFF) | ((packedLight >> 8) & 0xFF00) | (ao << 16);
 		return this;
 	}
 
@@ -123,15 +145,15 @@ public abstract class AbstractVertexCollector implements VertexCollector {
 
 	@Override
 	public VertexCollector vertex(float x, float y, float z) {
-		vertexData[baseVertexIndex + 0] = Float.floatToRawIntBits(x);
-		vertexData[baseVertexIndex + 1] = Float.floatToRawIntBits(y);
-		vertexData[baseVertexIndex + 2] = Float.floatToRawIntBits(z);
+		vertexData[currentVertexIndex + 0] = Float.floatToRawIntBits(x);
+		vertexData[currentVertexIndex + 1] = Float.floatToRawIntBits(y);
+		vertexData[currentVertexIndex + 2] = Float.floatToRawIntBits(z);
 		return this;
 	}
 
 	@Override
 	public VertexCollector color(int color) {
-		vertexData[baseVertexIndex + MATERIAL_COLOR_INDEX] = color;
+		vertexData[currentVertexIndex + MATERIAL_COLOR_INDEX] = color;
 		return this;
 	}
 
@@ -142,19 +164,19 @@ public abstract class AbstractVertexCollector implements VertexCollector {
 	}
 
 	protected void setNormal(float x, float y, float z) {
-		vertexData[baseVertexIndex + MATERIAL_NORMAL_INDEX] = NormalHelper.packNormal(x, y, z) | normalBase | overlayFlags;
+		vertexData[currentVertexIndex + MATERIAL_NORMAL_INDEX] = NormalHelper.packNormal(x, y, z) | normalBase | overlayFlags;
 		didPopulateNormal = true;
 	}
 
 	// heavily used, so inlined
 	@Override
 	public void vertex(float x, float y, float z, float red, float green, float blue, float alpha, float u, float v, int overlay, int light, float normalX, float normalY, float normalZ) {
-		vertexData[baseVertexIndex + 0] = Float.floatToRawIntBits(x);
-		vertexData[baseVertexIndex + 1] = Float.floatToRawIntBits(y);
-		vertexData[baseVertexIndex + 2] = Float.floatToRawIntBits(z);
-		vertexData[baseVertexIndex + MATERIAL_COLOR_INDEX] = VertexCollector.packColor(red, green, blue, alpha);
-		vertexData[baseVertexIndex + MATERIAL_TEXTURE_INDEX] = Float.floatToRawIntBits(u);
-		vertexData[baseVertexIndex + MATERIAL_MATERIAL_INDEX] = Float.floatToRawIntBits(v);
+		vertexData[currentVertexIndex + 0] = Float.floatToRawIntBits(x);
+		vertexData[currentVertexIndex + 1] = Float.floatToRawIntBits(y);
+		vertexData[currentVertexIndex + 2] = Float.floatToRawIntBits(z);
+		vertexData[currentVertexIndex + MATERIAL_COLOR_INDEX] = VertexCollector.packColor(red, green, blue, alpha);
+		vertexData[currentVertexIndex + MATERIAL_TEXTURE_INDEX] = Float.floatToRawIntBits(u);
+		vertexData[currentVertexIndex + MATERIAL_MATERIAL_INDEX] = Float.floatToRawIntBits(v);
 		setOverlay(overlay);
 		setLight(light);
 		setNormal(normalX, normalY, normalZ);
@@ -223,18 +245,20 @@ public abstract class AbstractVertexCollector implements VertexCollector {
 			normal(0, 1, 0);
 		}
 
-		final int base = baseVertexIndex;
+		final int base = currentVertexIndex;
 
-		if (base == LAST_VERTEX_BASE_INDEX) {
-			baseVertexIndex = 0;
+		if ((base - firstVertexIndex) >= LAST_VERTEX_BASE_INDEX) {
 			normalizeSprites();
 			emitQuad();
 		} else {
-			baseVertexIndex = base + MATERIAL_VERTEX_STRIDE;
+			currentVertexIndex = base + MATERIAL_VERTEX_STRIDE;
 		}
 
 		didPopulateNormal = false;
 	}
 
 	protected abstract void emitQuad();
+
+	static AtomicInteger collectorCount = new AtomicInteger();
+	static AtomicInteger collectorBytes = new AtomicInteger();
 }

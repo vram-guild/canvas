@@ -16,23 +16,18 @@
 
 package grondag.canvas.buffer.encoding;
 
-import java.util.Arrays;
-
 import grondag.canvas.material.state.RenderContextState;
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.material.state.RenderState;
 import grondag.canvas.terrain.render.UploadableChunk;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
-import net.minecraft.util.math.MathHelper;
-
 /**
  * MUST ALWAYS BE USED WITHIN SAME MATERIAL CONTEXT
  */
 public class VertexCollectorList {
 	private final ObjectArrayList<VertexCollectorImpl> pool = new ObjectArrayList<>();
-	private int size = 0;
-	private VertexCollectorImpl[] collectors = new VertexCollectorImpl[RenderState.MAX_COUNT];
+	private final VertexCollectorImpl[] collectors = new VertexCollectorImpl[RenderState.MAX_COUNT];
 	private final RenderContextState contextState;
 
 	public VertexCollectorList(RenderContextState contextState) {
@@ -40,16 +35,14 @@ public class VertexCollectorList {
 	}
 
 	/**
-	 * Releases any held vertex collectors and resets state
+	 * Clears all vertex collectors
 	 */
 	public void clear() {
-		for (int i = 0; i < size; i++) {
+		final int limit = pool.size();
+
+		for (int i = 0; i < limit; i++) {
 			pool.get(i).clear();
 		}
-
-		Arrays.fill(collectors, 0, collectors.length, null);
-
-		size = 0;
 	}
 
 	public final VertexCollectorImpl getIfExists(RenderMaterialImpl materialState) {
@@ -62,39 +55,20 @@ public class VertexCollectorList {
 		}
 
 		final int index = materialState.collectorIndex;
-		VertexCollectorImpl[] collectors = this.collectors;
+		final VertexCollectorImpl[] collectors = this.collectors;
 
-		VertexCollectorImpl result;
+		VertexCollectorImpl result = null;
 
 		if (index < collectors.length) {
 			result = collectors[index];
-		} else {
-			result = null;
-			final VertexCollectorImpl[] newCollectors = new VertexCollectorImpl[MathHelper.smallestEncompassingPowerOfTwo(index)];
-			System.arraycopy(collectors, 0, newCollectors, 0, collectors.length);
-			collectors = newCollectors;
-			this.collectors = collectors;
 		}
 
 		if (result == null) {
-			result = emptyCollector().prepare(materialState);
+			result = new VertexCollectorImpl(contextState).prepare(materialState);
 			collectors[index] = result;
-		}
-
-		return result;
-	}
-
-	private VertexCollectorImpl emptyCollector() {
-		VertexCollectorImpl result;
-
-		if (size == pool.size()) {
-			result = new VertexCollectorImpl(contextState);
 			pool.add(result);
-		} else {
-			result = pool.get(size);
 		}
 
-		++size;
 		return result;
 	}
 
@@ -122,7 +96,7 @@ public class VertexCollectorList {
 	//	}
 
 	public int size() {
-		return size;
+		return pool.size();
 	}
 
 	public VertexCollectorImpl get(int index) {
@@ -130,14 +104,14 @@ public class VertexCollectorList {
 	}
 
 	public int totalBytes(boolean sorted) {
-		final int limit = size;
+		final int limit =  pool.size();
 		final ObjectArrayList<VertexCollectorImpl> pool = this.pool;
 		int intSize = 0;
 
 		for (int i = 0; i < limit; i++) {
 			final VertexCollectorImpl collector = pool.get(i);
 
-			if (collector.materialState.sorted == sorted) {
+			if (!collector.isEmpty() && collector.materialState.sorted == sorted) {
 				intSize += collector.integerSize();
 			}
 		}

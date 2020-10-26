@@ -42,6 +42,6 @@ public class MixinDebugHud {
 
 		list.add(TransferBufferAllocator.debugString());
 		list.add(GlBufferAllocator.debugString());
-		list.add(VertexCollectorImpl.INT_STREAM_PROVIDER.report());
+		list.add(VertexCollectorImpl.debugReport());
 	}
 }

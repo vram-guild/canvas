@@ -54,7 +54,9 @@ public class CanvasImmediate extends Immediate {
 			}
 		}
 
-		VertexCollectorImpl.drawAndClear(drawList);
+		if (!drawList.isEmpty()) {
+			VertexCollectorImpl.drawAndClear(drawList);
+		}
 	}
 
 	@Override
@@ -70,8 +72,10 @@ public class CanvasImmediate extends Immediate {
 			}
 		}
 
-		VertexCollectorImpl.drawAndClear(drawList);
-		collectors.clear();
+		if (!drawList.isEmpty()) {
+			VertexCollectorImpl.drawAndClear(drawList);
+		}
+
 		super.draw();
 	}
 
@@ -82,7 +86,7 @@ public class CanvasImmediate extends Immediate {
 		} else {
 			final VertexCollectorImpl collector = collectors.getIfExists(((MultiPhaseExt) layer).canvas_materialState());
 
-			if (collector != null) {
+			if (collector != null && !collector.isEmpty()) {
 				collector.drawAndClear();
 			}
 		}

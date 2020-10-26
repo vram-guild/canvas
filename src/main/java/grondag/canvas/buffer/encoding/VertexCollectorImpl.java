@@ -26,8 +26,6 @@ import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.material.state.RenderContextState;
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.material.state.RenderState;
-import grondag.fermion.intstream.IntStreamProvider;
-import grondag.fermion.intstream.IntStreamProvider.IntStreamImpl;
 import it.unimi.dsi.fastutil.Swapper;
 import it.unimi.dsi.fastutil.ints.IntComparator;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
@@ -36,9 +34,6 @@ import org.lwjgl.system.MemoryUtil;
 import net.minecraft.util.math.MathHelper;
 
 public class VertexCollectorImpl extends AbstractVertexCollector {
-	private final IntStreamImpl data = INT_STREAM_PROVIDER.claim();
-	private int integerSize = 0;
-
 	/**
 	 * Holds per-quad distance after {@link #sortQuads(double, double, double)} is
 	 * called
@@ -59,15 +54,16 @@ public class VertexCollectorImpl extends AbstractVertexCollector {
 	}
 
 	public VertexCollectorImpl prepare(RenderMaterialImpl materialState) {
+		clear();
 		this.materialState = materialState;
-		didPopulateNormal = false;
 		vertexState(materialState);
 		return this;
 	}
 
 	public void clear() {
+		firstVertexIndex = 0;
+		currentVertexIndex = 0;
 		integerSize = 0;
-		data.reset();
 		didPopulateNormal = false;
 	}
 
@@ -109,24 +105,24 @@ public class VertexCollectorImpl extends AbstractVertexCollector {
 	private double getDistanceSq(double x, double y, double z, int integerStride, int vertexIndex) {
 		// unpack vertex coordinates
 		int i = vertexIndex * integerStride * 4;
-		final double x0 = Float.intBitsToFloat(data.get(i));
-		final double y0 = Float.intBitsToFloat(data.get(i + 1));
-		final double z0 = Float.intBitsToFloat(data.get(i + 2));
+		final double x0 = Float.intBitsToFloat(vertexData[i]);
+		final double y0 = Float.intBitsToFloat(vertexData[i + 1]);
+		final double z0 = Float.intBitsToFloat(vertexData[i + 2]);
 
 		i += integerStride;
-		final double x1 = Float.intBitsToFloat(data.get(i));
-		final double y1 = Float.intBitsToFloat(data.get(i + 1));
-		final double z1 = Float.intBitsToFloat(data.get(i + 2));
+		final double x1 = Float.intBitsToFloat(vertexData[i]);
+		final double y1 = Float.intBitsToFloat(vertexData[i + 1]);
+		final double z1 = Float.intBitsToFloat(vertexData[i + 2]);
 
 		i += integerStride;
-		final double x2 = Float.intBitsToFloat(data.get(i));
-		final double y2 = Float.intBitsToFloat(data.get(i + 1));
-		final double z2 = Float.intBitsToFloat(data.get(i + 2));
+		final double x2 = Float.intBitsToFloat(vertexData[i]);
+		final double y2 = Float.intBitsToFloat(vertexData[i + 1]);
+		final double z2 = Float.intBitsToFloat(vertexData[i + 2]);
 
 		i += integerStride;
-		final double x3 = Float.intBitsToFloat(data.get(i));
-		final double y3 = Float.intBitsToFloat(data.get(i + 1));
-		final double z3 = Float.intBitsToFloat(data.get(i + 2));
+		final double x3 = Float.intBitsToFloat(vertexData[i]);
+		final double y3 = Float.intBitsToFloat(vertexData[i + 1]);
+		final double z3 = Float.intBitsToFloat(vertexData[i + 2]);
 
 		// compute average distance by component
 		final double dx = (x0 + x1 + x2 + x3) * 0.25 - x;
@@ -189,7 +185,7 @@ public class VertexCollectorImpl extends AbstractVertexCollector {
 		}
 
 		if (integerSize > 0) {
-			data.copyTo(0, result, 0, integerSize);
+			System.arraycopy(vertexData, 0, result, 0, integerSize);
 		}
 
 		return result;
@@ -206,15 +202,16 @@ public class VertexCollectorImpl extends AbstractVertexCollector {
 		integerSize = 0;
 
 		if (newSize > 0) {
+			ensureCapacity(newSize);
 			integerSize = newSize;
-			data.copyFrom(0, stateData, 0, newSize);
+			System.arraycopy(stateData, 0, vertexData, 0, newSize);
 		}
 
 		return this;
 	}
 
 	public void toBuffer(IntBuffer intBuffer) {
-		data.copyTo(0, intBuffer, integerSize);
+		intBuffer.put(vertexData, 0, integerSize);
 	}
 
 	public void drawAndClear() {
@@ -262,7 +259,7 @@ public class VertexCollectorImpl extends AbstractVertexCollector {
 		};
 
 		int[] quadSwap = new int[128];
-		IntStreamImpl data;
+		int[] data;
 		int quadIntStride;
 
 		private final Swapper swapper = new Swapper() {
@@ -272,14 +269,17 @@ public class VertexCollectorImpl extends AbstractVertexCollector {
 				perQuadDistance[a] = perQuadDistance[b];
 				perQuadDistance[b] = distSwap;
 
-				data.copyTo(a * quadIntStride, quadSwap, 0, quadIntStride);
-				data.copyFromDirect(a * quadIntStride, data, b * quadIntStride, quadIntStride);
-				data.copyFrom(b * quadIntStride, quadSwap, 0, quadIntStride);
+				System.arraycopy(data, a * quadIntStride, quadSwap, 0, quadIntStride);
+				//data.copyTo(a * quadIntStride, quadSwap, 0, quadIntStride);
+				System.arraycopy(data, b * quadIntStride, data, a * quadIntStride, quadIntStride);
+				//data.copyFromDirect(a * quadIntStride, data, b * quadIntStride, quadIntStride);
+				System.arraycopy(quadSwap, 0, data, b * quadIntStride, quadIntStride);
+				//data.copyFrom(b * quadIntStride, quadSwap, 0, quadIntStride);
 			}
 		};
 
 		private void doSort(VertexCollectorImpl caller, double x, double y, double z) {
-			data = caller.data;
+			data = caller.vertexData;
 
 			final int quadCount = caller.vertexCount() / 4;
 
@@ -312,9 +312,6 @@ public class VertexCollectorImpl extends AbstractVertexCollector {
 			return new QuadSorter();
 		}
 	};
-
-	// WIP2: confirm parameters after integrating terrain
-	public static final IntStreamProvider INT_STREAM_PROVIDER = new IntStreamProvider(4096, 16, 4096);
 
 	/**
 	 * Single-buffer draw, minimizes state changes.
@@ -362,44 +359,40 @@ public class VertexCollectorImpl extends AbstractVertexCollector {
 	protected void emitQuad() {
 		// WIP2: implement condition with indexed draw for terrain
 		if (conditionActive) {
-			data.copyFrom(integerSize, vertexData, 0, CanvasVertexFormats.MATERIAL_QUAD_STRIDE);
-			integerSize += CanvasVertexFormats.MATERIAL_QUAD_STRIDE;
-		}
-	}
-
-	@Override
-	public final void addi(final int i) {
-		data.set(integerSize++, i);
-	}
-
-	@Override
-	public final void addf(final float f) {
-		data.set(integerSize++, Float.floatToRawIntBits(f));
-	}
-
-	@Override
-	public final void addf(final float u, float v) {
-		data.set(integerSize++, Float.floatToRawIntBits(u));
-		data.set(integerSize++, Float.floatToRawIntBits(v));
-	}
-
-	@Override
-	public final void addf(final float x, float y, float z) {
-		data.set(integerSize++, Float.floatToRawIntBits(x));
-		data.set(integerSize++, Float.floatToRawIntBits(y));
-		data.set(integerSize++, Float.floatToRawIntBits(z));
-	}
-
-	@Override
-	public final void addf(final float... fArray) {
-		for (final float f : fArray) {
-			data.set(integerSize++, Float.floatToRawIntBits(f));
+			final int oldSize = integerSize;
+			final int newSize = oldSize + CanvasVertexFormats.MATERIAL_QUAD_STRIDE;
+			ensureCapacity(newSize);
+			firstVertexIndex = integerSize;
+			currentVertexIndex = firstVertexIndex;
+			integerSize = newSize;
 		}
 	}
 
 	@Override
 	public final void add(int[] appendData, int length) {
-		data.copyFrom(integerSize, appendData, 0, length);
-		integerSize += length;
+		final int oldSize = integerSize;
+		final int newSize = integerSize + length;
+		ensureCapacity(newSize);
+		System.arraycopy(appendData, 0, vertexData, oldSize, length);
+		integerSize = newSize;
+	}
+
+	@Override
+	public void add(float... val) {
+		final int length = val.length;
+		final int oldSize = integerSize;
+		final int newSize = integerSize + length;
+		final int[] data = vertexData;
+		ensureCapacity(newSize);
+
+		for (int i = 0; i < length; ++i) {
+			data[i + oldSize] = Float.floatToRawIntBits(val[i]);
+		}
+
+		integerSize = newSize;
+	}
+
+	public static String debugReport() {
+		return String.format("Vertex Collectors - count;%d,   MB allocated:%f", collectorCount.get(), collectorBytes.get() / 1048576f);
 	}
 }

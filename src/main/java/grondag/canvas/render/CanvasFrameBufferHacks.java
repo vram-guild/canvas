@@ -333,14 +333,16 @@ public class CanvasFrameBufferHacks {
 			GlStateManager.bindTexture(0);
 
 			final VertexCollectorImpl collector = new VertexCollectorImpl(new RenderContextState());
-			collector.addf(0, 0, 0.2f, 0, 1f);
-			collector.addf(1f, 0, 0.2f, 1f, 1f);
-			collector.addf(1f, 1f, 0.2f, 1f, 0f);
-			collector.addf(0, 1f, 0.2f, 0, 0f);
+			collector.add(0f, 0f, 0.2f, 0, 1f);
+			collector.add(1f, 0f, 0.2f, 1f, 1f);
+			collector.add(1f, 1f, 0.2f, 1f, 0f);
+			collector.add(0f, 1f, 0.2f, 0f, 0f);
 
 			drawBuffer = new VboBuffer(collector.byteSize(), CanvasVertexFormats.PROCESS_VERTEX_UV);
 			collector.toBuffer(drawBuffer.intBuffer());
 			drawBuffer.upload();
+
+			collector.clear(); // releases storage
 		}
 	}
 
