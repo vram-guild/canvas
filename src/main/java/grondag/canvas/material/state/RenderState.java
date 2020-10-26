@@ -52,6 +52,17 @@ public final class RenderState extends AbstractRenderState {
 
 	@SuppressWarnings("resource")
 	public void enable() {
+		if (active == this) {
+			return;
+		}
+
+		if (active == null) {
+			// same for all, so only do 1X
+			RenderSystem.shadeModel(GL11.GL_SMOOTH);
+		}
+
+		active = this;
+
 		target.enable();
 		texture.enable(bilinear);
 
@@ -63,13 +74,7 @@ public final class RenderState extends AbstractRenderState {
 		decal.enable();
 
 		// NB: must be after frame-buffer target switch
-		if (Configurator.enableBloom) {
-			CanvasFrameBufferHacks.startEmissiveCapture();
-		} else {
-			CanvasFrameBufferHacks.endEmissiveCapture();
-		}
-
-		RenderSystem.shadeModel(GL11.GL_SMOOTH);
+		if (Configurator.enableBloom) CanvasFrameBufferHacks.startEmissiveCapture();
 
 		if (cull) {
 			RenderSystem.enableCull();
@@ -93,6 +98,12 @@ public final class RenderState extends AbstractRenderState {
 	}
 
 	public static void disable() {
+		if (active == null) {
+			return;
+		}
+
+		active = null;
+
 		// NB: must be before frame-buffer target switch
 		if (Configurator.enableBloom) CanvasFrameBufferHacks.endEmissiveCapture();
 
@@ -109,6 +120,8 @@ public final class RenderState extends AbstractRenderState {
 	static int nextIndex = 0;
 	static final RenderState[] STATES = new RenderState[MAX_COUNT];
 	static final Long2ObjectOpenHashMap<RenderState> MAP = new Long2ObjectOpenHashMap<>(4096, Hash.VERY_FAST_LOAD_FACTOR);
+
+	private static RenderState active = null;
 
 	public static final RenderState MISSING = new RenderState(0);
 

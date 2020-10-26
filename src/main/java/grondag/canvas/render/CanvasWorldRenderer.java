@@ -51,8 +51,8 @@ import grondag.canvas.material.state.RenderContextState;
 import grondag.canvas.material.state.RenderState;
 import grondag.canvas.mixinterface.WorldRendererExt;
 import grondag.canvas.shader.GlProgram;
-import grondag.canvas.shader.ShaderContext;
 import grondag.canvas.shader.MaterialShaderManager;
+import grondag.canvas.shader.ShaderContext;
 import grondag.canvas.terrain.BuiltRenderRegion;
 import grondag.canvas.terrain.RenderRegionBuilder;
 import grondag.canvas.terrain.RenderRegionStorage;
@@ -466,11 +466,9 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		if (Configurator.enableBloom) CanvasFrameBufferHacks.prepareForFrame();
 
-		if (Configurator.enableBloom) CanvasFrameBufferHacks.startEmissiveCapture();
 		MaterialMatrixState.set(MaterialMatrixState.REGION, null);
 		renderTerrainLayer(false, matrixStack, cameraX, cameraY, cameraZ);
 		MaterialMatrixState.set(MaterialMatrixState.ENTITY, matrixStack.peek().getNormal());
-		if (Configurator.enableBloom) CanvasFrameBufferHacks.endEmissiveCapture();
 
 		LitematicaHolder.litematicaRenderSolids.accept(matrixStack);
 
