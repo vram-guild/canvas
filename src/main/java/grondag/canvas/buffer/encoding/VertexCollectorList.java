@@ -135,7 +135,11 @@ public class VertexCollectorList {
 		int intSize = 0;
 
 		for (int i = 0; i < limit; i++) {
-			intSize += pool.get(i).integerSize();
+			final VertexCollectorImpl collector = pool.get(i);
+
+			if (collector.materialState.sorted == sorted) {
+				intSize += collector.integerSize();
+			}
 		}
 
 		return intSize * 4;
