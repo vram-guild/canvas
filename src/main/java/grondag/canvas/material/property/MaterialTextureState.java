@@ -16,6 +16,7 @@
 
 package grondag.canvas.material.property;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import grondag.canvas.texture.SpriteInfoTexture;
 import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
@@ -27,35 +28,6 @@ import net.minecraft.client.texture.TextureManager;
 import net.minecraft.util.Identifier;
 
 public class MaterialTextureState {
-	public static final int MAX_TEXTURE_STATES = 1024;
-	private static int nextIndex = 1;
-	private static final MaterialTextureState[] STATES = new MaterialTextureState[MAX_TEXTURE_STATES];
-	private static final Object2ObjectOpenHashMap<Identifier, MaterialTextureState> MAP = new Object2ObjectOpenHashMap<>(256, Hash.VERY_FAST_LOAD_FACTOR);
-	public static final MaterialTextureState NO_TEXTURE = new MaterialTextureState(0, TextureManager.MISSING_IDENTIFIER);
-
-	static {
-		STATES[0] = NO_TEXTURE;
-		MAP.defaultReturnValue(NO_TEXTURE);
-	}
-
-	public static MaterialTextureState fromIndex(int index) {
-		return STATES[index];
-	}
-
-	// PERF: use cow or other method to avoid synch
-	public synchronized static MaterialTextureState fromId(Identifier id) {
-		MaterialTextureState state = MAP.get(id);
-
-		if (state == NO_TEXTURE) {
-			final int index = nextIndex++;
-			state = new MaterialTextureState(index, id);
-			MAP.put(id, state);
-			STATES[index] = state;
-		}
-
-		return state;
-	}
-
 	public final int index;
 	public final Identifier id;
 
@@ -97,5 +69,80 @@ public class MaterialTextureState {
 	public SpriteInfoTexture atlasInfo() {
 		retreiveTexture();
 		return atlasInfo;
+	}
+
+	public void enable(boolean bilinear) {
+		if (activeState == this) {
+			if (bilinear != activeIsBilinearFilter) {
+				final AbstractTexture tex = texture();
+				tex.bindTexture();
+				tex.setFilter(bilinear, true);
+				activeIsBilinearFilter = bilinear;
+			}
+		} else {
+			if (this == MaterialTextureState.NO_TEXTURE) {
+				RenderSystem.disableTexture();
+			} else {
+				RenderSystem.enableTexture();
+				final AbstractTexture tex = texture();
+				tex.bindTexture();
+				tex.setFilter(bilinear, true);
+
+				if (isAtlas()) {
+					atlasInfo().enable();
+				}
+
+				activeIsBilinearFilter = bilinear;
+				activeState = this;
+			}
+		}
+	}
+
+	public static final int MAX_TEXTURE_STATES = 1024;
+	private static int nextIndex = 1;
+	private static final MaterialTextureState[] STATES = new MaterialTextureState[MAX_TEXTURE_STATES];
+	private static final Object2ObjectOpenHashMap<Identifier, MaterialTextureState> MAP = new Object2ObjectOpenHashMap<>(256, Hash.VERY_FAST_LOAD_FACTOR);
+
+	public static final MaterialTextureState NO_TEXTURE = new MaterialTextureState(0, TextureManager.MISSING_IDENTIFIER) {
+		@Override
+		public void enable(boolean bilinear) {
+			if (activeState != this) {
+				RenderSystem.disableTexture();
+				activeState = this;
+			}
+		}
+	};
+
+	private static MaterialTextureState activeState = NO_TEXTURE;
+	private static boolean activeIsBilinearFilter = false;
+
+	public static void disable() {
+		if (activeState != NO_TEXTURE) {
+			RenderSystem.disableTexture();
+			activeState = NO_TEXTURE;
+		}
+	}
+
+	static {
+		STATES[0] = NO_TEXTURE;
+		MAP.defaultReturnValue(NO_TEXTURE);
+	}
+
+	public static MaterialTextureState fromIndex(int index) {
+		return STATES[index];
+	}
+
+	// PERF: use cow or other method to avoid synch
+	public synchronized static MaterialTextureState fromId(Identifier id) {
+		MaterialTextureState state = MAP.get(id);
+
+		if (state == NO_TEXTURE) {
+			final int index = nextIndex++;
+			state = new MaterialTextureState(index, id);
+			MAP.put(id, state);
+			STATES[index] = state;
+		}
+
+		return state;
 	}
 }

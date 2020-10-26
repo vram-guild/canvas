@@ -30,7 +30,6 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import org.lwjgl.opengl.GL11;
 
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.texture.AbstractTexture;
 
 /**
  * Primitives with the same state have the same vertex encoding,
@@ -54,21 +53,9 @@ public final class RenderState extends AbstractRenderState {
 	@SuppressWarnings("resource")
 	public void enable() {
 		target.enable();
+		texture.enable(bilinear);
 
 		// WIP: make all of these do nothing if already active
-		if (texture == MaterialTextureState.NO_TEXTURE) {
-			RenderSystem.disableTexture();
-		} else {
-			RenderSystem.enableTexture();
-			final AbstractTexture tex = texture.texture();
-			tex.bindTexture();
-			tex.setFilter(bilinear, true);
-
-			if (texture.isAtlas()) {
-				texture.atlasInfo().enable();
-			}
-		}
-
 		translucency.action.run();
 		depthTest.action.run();
 		writeMask.action.run();
@@ -115,6 +102,7 @@ public final class RenderState extends AbstractRenderState {
 		SpriteInfoTexture.disable();
 		MaterialDecal.disable();
 		MaterialTarget.disable();
+		MaterialTextureState.disable();
 	}
 
 	public static final int MAX_COUNT = 4096;
