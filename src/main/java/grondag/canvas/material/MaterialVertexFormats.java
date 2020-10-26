@@ -18,7 +18,6 @@ package grondag.canvas.material;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
-import grondag.canvas.buffer.encoding.EncodingContext;
 
 import static grondag.canvas.material.MaterialVertextFormatElement.BASE_RGBA_4UB;
 import static grondag.canvas.material.MaterialVertextFormatElement.BASE_TEX_2F;
@@ -40,15 +39,6 @@ public final class MaterialVertexFormats {
 		}
 	}
 
-	// PERF: try quantized vertex format
-	public static final MaterialVertexFormat VANILLA_BLOCKS_AND_ITEMS = new MaterialVertexFormat(
-		POSITION_3F,
-		BASE_RGBA_4UB,
-		BASE_TEX_2US,
-		LIGHTMAPS_4UB,
-		NORMAL_AO_4B,
-		MATERIAL_2US);
-
 	public static final MaterialVertexFormat HD_TERRAIN = new MaterialVertexFormat(
 		POSITION_3F,
 		BASE_RGBA_4UB,
@@ -64,8 +54,6 @@ public final class MaterialVertexFormats {
 	public static final MaterialVertexFormat PROCESS_VERTEX = new MaterialVertexFormat(
 		POSITION_3F);
 
-	// UGLY: derive this from formats
-	public static final int MAX_QUAD_INT_STRIDE = 128;
 
 	/**
 	 * New common format for all world/game object rendering.<p>
@@ -85,8 +73,4 @@ public final class MaterialVertexFormats {
 
 	public static final int MATERIAL_VERTEX_STRIDE = POSITION_COLOR_TEXTURE_MATERIAL_LIGHT_NORMAL.vertexStrideInts;
 	public static final int MATERIAL_QUAD_STRIDE = MATERIAL_VERTEX_STRIDE * 4;
-
-	public static MaterialVertexFormat get(EncodingContext context, boolean translucent) {
-		return context == EncodingContext.TERRAIN && Configurator.hdLightmaps() ? HD_TERRAIN : VANILLA_BLOCKS_AND_ITEMS;
-	}
 }

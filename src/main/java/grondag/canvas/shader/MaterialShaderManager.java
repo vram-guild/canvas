@@ -52,15 +52,6 @@ public enum MaterialShaderManager implements ClientTickEvents.EndTick {
 		ClientTickEvents.END_CLIENT_TICK.register(this);
 	}
 
-	// WIP: remove - should not be needed if GlProgramManager reload is called
-	public void reload() {
-		final int limit = shaders.size();
-
-		for (int i = 0; i < limit; i++) {
-			shaders.get(i).reload();
-		}
-	}
-
 	public synchronized MaterialShaderImpl find(int vertexShaderIndex, int fragmentShaderIndex, ProgramType programType) {
 		final long key = key(vertexShaderIndex, fragmentShaderIndex, programType);
 		MaterialShaderImpl result = KEYMAP.get(key);
@@ -82,7 +73,7 @@ public enum MaterialShaderManager implements ClientTickEvents.EndTick {
 
 		// ensure shaders are recompiled when new sub-shader source referenced
 		if (newVert || newFrag) {
-			GlProgramManager.INSTANCE.reload();
+			MaterialProgramManager.INSTANCE.reload();
 		}
 
 		return result;

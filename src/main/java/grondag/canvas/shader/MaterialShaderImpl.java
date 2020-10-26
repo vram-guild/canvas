@@ -38,7 +38,7 @@ public final class MaterialShaderImpl implements MaterialShader {
 		GlProgram result = program;
 
 		if (result == null) {
-			result = GlProgramManager.INSTANCE.getOrCreateMaterialProgram(programType);
+			result = MaterialProgramManager.INSTANCE.getOrCreateMaterialProgram(programType);
 			program = result;
 		}
 

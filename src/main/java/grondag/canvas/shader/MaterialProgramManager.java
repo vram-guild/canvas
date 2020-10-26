@@ -28,7 +28,7 @@ import grondag.frex.api.material.UniformRefreshFrequency;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.lwjgl.opengl.GL21;
 
-public enum GlProgramManager {
+public enum MaterialProgramManager {
 	INSTANCE;
 
 	{

@@ -17,7 +17,6 @@
 package grondag.canvas.material.state;
 
 import grondag.canvas.apiimpl.MaterialConditionImpl;
-import grondag.canvas.material.MaterialVertexFormats;
 import grondag.canvas.material.property.MaterialDecal;
 import grondag.canvas.material.property.MaterialDepthTest;
 import grondag.canvas.material.property.MaterialFog;
@@ -42,9 +41,6 @@ abstract class AbstractRenderState extends AbstractRenderStateView {
 	 * GL_QUADS
 	 */
 	public final int primitive;
-
-	// WIP: remove - doesn't change
-	public final int vertexStrideInts;
 
 	public final MaterialTextureState texture;
 	public final boolean bilinear;
@@ -83,7 +79,6 @@ abstract class AbstractRenderState extends AbstractRenderStateView {
 		lines = lines();
 		fog = fog();
 		condition = condition();
-		vertexStrideInts = MaterialVertexFormats.POSITION_COLOR_TEXTURE_MATERIAL_LIGHT_NORMAL.vertexStrideInts;
 		transparency = TRANSPARENCY.getValue(bits);
 		sorted = transparency != MaterialTransparency.NONE && decal != MaterialDecal.TRANSLUCENT;
 		shader = MaterialShaderManager.INSTANCE.get(SHADER.getValue(bits));

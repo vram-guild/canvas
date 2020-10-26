@@ -80,7 +80,7 @@ public class GlProgram {
 	private boolean isErrored = false;
 	private boolean needsLoad = true;
 
-	public GlProgram(Shader vertexShader, Shader fragmentShader, MaterialVertexFormat format, ProgramType programType) {
+	GlProgram(Shader vertexShader, Shader fragmentShader, MaterialVertexFormat format, ProgramType programType) {
 		this.vertexShader = vertexShader;
 		this.fragmentShader = fragmentShader;
 		this.programType = programType;
