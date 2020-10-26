@@ -38,10 +38,17 @@ public enum MaterialFog {
 		RenderSystem.enableFog();
 	});
 
-	public final Runnable action;
+	private final Runnable action;
 
 	private MaterialFog(Runnable action) {
 		this.action = action;
+	}
+
+	public void enable() {
+		if (active != this) {
+			action.run();
+			active = this;
+		}
 	}
 
 	public static MaterialFog fromPhase(Fog phase) {
@@ -52,6 +59,15 @@ public enum MaterialFog {
 		} else {
 			assert phase == RenderPhase.NO_FOG : "Encounted unknown fog mode";
 			return NO_FOG;
+		}
+	}
+
+	private static MaterialFog active = null;
+
+	public static void disable() {
+		if (active != null) {
+			NO_FOG.action.run();
+			active = null;
 		}
 	}
 }

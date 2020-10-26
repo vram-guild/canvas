@@ -37,10 +37,17 @@ public enum MaterialWriteMask {
 		RenderSystem.colorMask(true, true, true, true);
 	});
 
-	public final Runnable action;
+	private final Runnable action;
 
 	private MaterialWriteMask(Runnable action) {
 		this.action = action;
+	}
+
+	public void enable() {
+		if (active != this) {
+			action.run();
+			active = this;
+		}
 	}
 
 	public static MaterialWriteMask fromPhase(WriteMaskState phase) {
@@ -50,6 +57,15 @@ public enum MaterialWriteMask {
 			return DEPTH;
 		} else {
 			return COLOR_DEPTH;
+		}
+	}
+
+	private static MaterialWriteMask active = null;
+
+	public static void disable() {
+		if (active != null) {
+			COLOR_DEPTH.action.run();
+			active = null;
 		}
 	}
 }

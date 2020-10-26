@@ -52,7 +52,7 @@ public class VertexEncoders {
 	}
 
 	public static VertexEncoder get(EncodingContext context, RenderMaterialImpl mat) {
-		return ENCODERS[lookupIndex(context, mat.translucency == MaterialTransparency.TRANSLUCENT)];
+		return ENCODERS[lookupIndex(context, mat.transparency == MaterialTransparency.TRANSLUCENT)];
 	}
 
 	public static VertexEncoder getDefault(EncodingContext context, boolean isTranslucent) {
@@ -60,7 +60,7 @@ public class VertexEncoders {
 	}
 
 	public static VertexEncoder getDefault(EncodingContext context, RenderMaterialImpl materialState) {
-		return getDefault(context, materialState.translucency == MaterialTransparency.TRANSLUCENT);
+		return getDefault(context, materialState.transparency == MaterialTransparency.TRANSLUCENT);
 	}
 
 	public static void reload() {

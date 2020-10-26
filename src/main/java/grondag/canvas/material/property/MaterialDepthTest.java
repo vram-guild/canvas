@@ -43,10 +43,17 @@ public enum MaterialDepthTest {
 		RenderSystem.depthFunc(GL11.GL_LEQUAL);
 	});
 
-	public final Runnable action;
+	private final Runnable action;
 
 	private MaterialDepthTest(Runnable action) {
 		this.action = action;
+	}
+
+	public void enable() {
+		if (active != this) {
+			action.run();
+			active = this;
+		}
 	}
 
 	public static MaterialDepthTest fromPhase(DepthTest phase) {
@@ -58,6 +65,15 @@ public enum MaterialDepthTest {
 			return LEQUAL;
 		} else {
 			return DISABLE;
+		}
+	}
+
+	private static MaterialDepthTest active = null;
+
+	public static void disable() {
+		if (active != null) {
+			DISABLE.action.run();
+			active = null;
 		}
 	}
 }

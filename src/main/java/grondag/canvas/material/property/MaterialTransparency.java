@@ -59,10 +59,17 @@ public enum MaterialTransparency {
 		RenderSystem.blendFuncSeparate(GlStateManager.SrcFactor.SRC_ALPHA, GlStateManager.DstFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SrcFactor.ONE, GlStateManager.DstFactor.ZERO);
 	});
 
-	public final Runnable action;
+	private final Runnable action;
 
 	private MaterialTransparency(Runnable action) {
 		this.action = action;
+	}
+
+	public void enable() {
+		if (active != this) {
+			action.run();
+			active = this;
+		}
 	}
 
 	public static MaterialTransparency fromPhase(Transparency phase) {
@@ -78,6 +85,18 @@ public enum MaterialTransparency {
 			return TRANSLUCENT;
 		} else {
 			return NONE;
+		}
+	}
+
+	private static MaterialTransparency active = null;
+
+	public static void disable() {
+		if (active != null) {
+			if (active != NONE) {
+				NONE.action.run();
+			}
+
+			active = null;
 		}
 	}
 }

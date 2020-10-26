@@ -20,8 +20,12 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import grondag.canvas.Configurator;
 import grondag.canvas.material.MaterialVertexFormat;
 import grondag.canvas.material.property.MaterialDecal;
+import grondag.canvas.material.property.MaterialDepthTest;
+import grondag.canvas.material.property.MaterialFog;
 import grondag.canvas.material.property.MaterialTarget;
 import grondag.canvas.material.property.MaterialTextureState;
+import grondag.canvas.material.property.MaterialTransparency;
+import grondag.canvas.material.property.MaterialWriteMask;
 import grondag.canvas.render.CanvasFrameBufferHacks;
 import grondag.canvas.shader.GlProgram;
 import grondag.canvas.texture.SpriteInfoTexture;
@@ -65,17 +69,16 @@ public final class RenderState extends AbstractRenderState {
 
 		target.enable();
 		texture.enable(bilinear);
-
-		// WIP: make all of these do nothing if already active
-		translucency.action.run();
-		depthTest.action.run();
-		writeMask.action.run();
-		fog.action.run();
+		transparency.enable();
+		depthTest.enable();
+		writeMask.enable();
+		fog.enable();
 		decal.enable();
 
 		// NB: must be after frame-buffer target switch
 		if (Configurator.enableBloom) CanvasFrameBufferHacks.startEmissiveCapture();
 
+		// WIP: make all of these do nothing if already active
 		if (cull) {
 			RenderSystem.enableCull();
 		} else {
@@ -113,6 +116,10 @@ public final class RenderState extends AbstractRenderState {
 		SpriteInfoTexture.disable();
 		MaterialDecal.disable();
 		MaterialTarget.disable();
+		MaterialTransparency.disable();
+		MaterialDepthTest.disable();
+		MaterialWriteMask.disable();
+		MaterialFog.disable();
 		MaterialTextureState.disable();
 	}
 

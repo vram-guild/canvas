@@ -107,5 +107,6 @@ public final class RenderLayerHelper {
 		return finder.find();
 	}
 
+	// WIP: fix translucency sort - this doesn't seem to be used consistently and sort doesn't happen
 	public static final RenderMaterialImpl TRANSLUCENT_TERRAIN = copyFromLayer(RenderLayer.getTranslucent());
 }

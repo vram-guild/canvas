@@ -48,7 +48,7 @@ abstract class AbstractRenderState extends AbstractRenderStateView {
 
 	public final MaterialTextureState texture;
 	public final boolean bilinear;
-	public final MaterialTransparency translucency;
+	public final MaterialTransparency transparency;
 	public final MaterialDepthTest depthTest;
 	public final boolean cull;
 	public final MaterialWriteMask writeMask;
@@ -84,9 +84,9 @@ abstract class AbstractRenderState extends AbstractRenderStateView {
 		fog = fog();
 		condition = condition();
 		vertexStrideInts = MaterialVertexFormats.POSITION_COLOR_TEXTURE_MATERIAL_LIGHT_NORMAL.vertexStrideInts;
-		translucency = TRANSPARENCY.getValue(bits);
-		sorted = translucency != MaterialTransparency.NONE && decal != MaterialDecal.TRANSLUCENT;
+		transparency = TRANSPARENCY.getValue(bits);
+		sorted = transparency != MaterialTransparency.NONE && decal != MaterialDecal.TRANSLUCENT;
 		shader = MaterialShaderManager.INSTANCE.get(SHADER.getValue(bits));
-		isTranslucentTerrain = (target == MaterialTarget.MAIN || target == MaterialTarget.TRANSLUCENT) && translucency == MaterialTransparency.TRANSLUCENT;
+		isTranslucentTerrain = (target == MaterialTarget.MAIN || target == MaterialTarget.TRANSLUCENT) && transparency == MaterialTransparency.TRANSLUCENT;
 	}
 }
