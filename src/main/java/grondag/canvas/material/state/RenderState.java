@@ -19,6 +19,7 @@ package grondag.canvas.material.state;
 import com.mojang.blaze3d.systems.RenderSystem;
 import grondag.canvas.Configurator;
 import grondag.canvas.material.MaterialVertexFormat;
+import grondag.canvas.material.property.BinaryMaterialState;
 import grondag.canvas.material.property.MaterialDecal;
 import grondag.canvas.material.property.MaterialDepthTest;
 import grondag.canvas.material.property.MaterialFog;
@@ -78,27 +79,22 @@ public final class RenderState extends AbstractRenderState {
 		// NB: must be after frame-buffer target switch
 		if (Configurator.enableBloom) CanvasFrameBufferHacks.startEmissiveCapture();
 
-		// WIP: make all of these do nothing if already active
-		if (cull) {
-			RenderSystem.enableCull();
-		} else {
-			RenderSystem.disableCull();
-		}
-
-		if (enableLightmap) {
-			MinecraftClient.getInstance().gameRenderer.getLightmapTextureManager().enable();
-		} else {
-			MinecraftClient.getInstance().gameRenderer.getLightmapTextureManager().disable();
-		}
-
-		if (lines) {
-			RenderSystem.lineWidth(Math.max(2.5F, MinecraftClient.getInstance().getWindow().getFramebufferWidth() / 1920.0F * 2.5F));
-		} else {
-			RenderSystem.lineWidth(1.0F);
-		}
+		CULL_STATE.setEnabled(cull);
+		LIGHTMAP_STATE.setEnabled(enableLightmap);
+		LINE_STATE.setEnabled(lines);
 
 		shader.activate(texture.atlasInfo());
 	}
+
+	private static final BinaryMaterialState CULL_STATE = new BinaryMaterialState(RenderSystem::enableCull, RenderSystem::disableCull);
+
+	private static final BinaryMaterialState LIGHTMAP_STATE = new BinaryMaterialState(
+		() -> MinecraftClient.getInstance().gameRenderer.getLightmapTextureManager().enable(),
+		() -> MinecraftClient.getInstance().gameRenderer.getLightmapTextureManager().disable());
+
+	private static final BinaryMaterialState LINE_STATE = new BinaryMaterialState(
+		() -> RenderSystem.lineWidth(Math.max(2.5F, MinecraftClient.getInstance().getWindow().getFramebufferWidth() / 1920.0F * 2.5F)),
+		() -> RenderSystem.lineWidth(1.0F));
 
 	public static void disable() {
 		if (active == null) {
@@ -120,6 +116,9 @@ public final class RenderState extends AbstractRenderState {
 		MaterialDepthTest.disable();
 		MaterialWriteMask.disable();
 		MaterialFog.disable();
+		CULL_STATE.disable();
+		LIGHTMAP_STATE.disable();
+		LINE_STATE.disable();
 		MaterialTextureState.disable();
 	}
 
