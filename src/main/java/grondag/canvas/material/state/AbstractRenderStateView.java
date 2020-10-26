@@ -235,7 +235,7 @@ abstract class AbstractRenderStateView {
 		defaultBits = TARGET.setValue(MaterialTarget.MAIN, defaultBits);
 		defaultBits = WRITE_MASK.setValue(MaterialWriteMask.COLOR_DEPTH, defaultBits);
 		defaultBits = UNMIPPED.setValue(false, defaultBits);
-		defaultBits = FOG.setValue(MaterialFog.BLACK_FOG, defaultBits);
+		defaultBits = FOG.setValue(MaterialFog.FOG, defaultBits);
 
 		DEFAULT_BITS = defaultBits;
 	}
