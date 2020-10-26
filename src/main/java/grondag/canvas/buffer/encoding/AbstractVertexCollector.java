@@ -61,6 +61,21 @@ public abstract class AbstractVertexCollector implements VertexCollector {
 
 	@Override
 	public VertexCollector overlay(int u, int v) {
+		setOverlay(u, v);
+		return this;
+	}
+
+	@Override
+	public VertexCollector overlay(int uv) {
+		setOverlay(uv);
+		return this;
+	}
+
+	protected void setOverlay(int uv) {
+		setOverlay(uv & '\uffff', uv >> 16 & '\uffff');
+	}
+
+	protected void setOverlay (int u, int v) {
 		if (v == 3) {
 			// NB: these are pre-shifted to msb
 			overlayFlags = RenderStateData.HURT_OVERLAY_FLAG;
@@ -69,15 +84,27 @@ public abstract class AbstractVertexCollector implements VertexCollector {
 		} else {
 			overlayFlags = 0;
 		}
-
-		return this;
 	}
 
 	// low to high: block, sky, ao, flags
 	@Override
 	public VertexCollector light(int block, int sky) {
-		vertexData[baseVertexIndex + MATERIAL_LIGHT_INDEX] = (block & 0xFF) | ((sky & 0xFF) << 8);
+		setLight(block, sky);
 		return this;
+	}
+
+	@Override
+	public VertexCollector light(int uv) {
+		setLight(uv);
+		return this;
+	}
+
+	protected void setLight(int block, int sky) {
+		vertexData[baseVertexIndex + MATERIAL_LIGHT_INDEX] = (block & 0xFF) | ((sky & 0xFF) << 8);
+	}
+
+	protected void setLight(int uv) {
+		vertexData[baseVertexIndex + MATERIAL_LIGHT_INDEX] = (uv & 0xFF) | ((uv >> 8) & 0xFF00);
 	}
 
 	@Override
@@ -110,9 +137,28 @@ public abstract class AbstractVertexCollector implements VertexCollector {
 
 	@Override
 	public VertexCollector normal(float x, float y, float z) {
+		setNormal(x, y, z);
+		return this;
+	}
+
+	protected void setNormal(float x, float y, float z) {
 		vertexData[baseVertexIndex + MATERIAL_NORMAL_INDEX] = NormalHelper.packNormal(x, y, z) | normalBase | overlayFlags;
 		didPopulateNormal = true;
-		return this;
+	}
+
+	// heavily used, so inlined
+	@Override
+	public void vertex(float x, float y, float z, float red, float green, float blue, float alpha, float u, float v, int overlay, int light, float normalX, float normalY, float normalZ) {
+		vertexData[baseVertexIndex + 0] = Float.floatToRawIntBits(x);
+		vertexData[baseVertexIndex + 1] = Float.floatToRawIntBits(y);
+		vertexData[baseVertexIndex + 2] = Float.floatToRawIntBits(z);
+		vertexData[baseVertexIndex + MATERIAL_COLOR_INDEX] = VertexCollector.packColor(red, green, blue, alpha);
+		vertexData[baseVertexIndex + MATERIAL_TEXTURE_INDEX] = Float.floatToRawIntBits(u);
+		vertexData[baseVertexIndex + MATERIAL_MATERIAL_INDEX] = Float.floatToRawIntBits(v);
+		setOverlay(overlay);
+		setLight(light);
+		setNormal(normalX, normalY, normalZ);
+		next();
 	}
 
 	private void normalizeSprites() {

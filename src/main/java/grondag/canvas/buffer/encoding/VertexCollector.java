@@ -74,11 +74,19 @@ public interface VertexCollector extends VertexConsumer, VertexAppender {
 
 	@Override
 	default VertexCollector color(int red, int green, int blue, int alpha) {
-		return color(red | (green << 8) | (blue << 16) | (alpha << 24));
+		return color(packColor(red, green, blue, alpha));
 	}
 
 	static int packNormalizedUV(float u, float v) {
 		return Math.round(u * MeshEncodingHelper.UV_UNIT_VALUE) | (Math.round(v * MeshEncodingHelper.UV_UNIT_VALUE) << 16);
+	}
+
+	static int packColor(int red, int green, int blue, int alpha) {
+		return red | (green << 8) | (blue << 16) | (alpha << 24);
+	}
+
+	static int packColor(float red, float green, float blue, float alpha) {
+		return packColor((int)(red * 255.0F), (int)(green * 255.0F), (int)(blue * 255.0F), (int)(alpha * 255.0F));
 	}
 
 	int NORMALIZED_U0_V0 = packNormalizedUV(0, 0);
