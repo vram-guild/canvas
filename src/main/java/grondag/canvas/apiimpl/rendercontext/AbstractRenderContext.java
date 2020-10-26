@@ -25,8 +25,8 @@ import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.buffer.encoding.EncodingContext;
 import grondag.canvas.buffer.encoding.VertexCollectorList;
 import grondag.canvas.buffer.encoding.VertexEncoder;
+import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.light.AoCalculator;
-import grondag.canvas.material.MaterialVertexFormats;
 import grondag.canvas.material.state.MaterialFinderImpl;
 import grondag.canvas.material.state.RenderContextState;
 import grondag.canvas.material.state.RenderMaterialImpl;
@@ -53,7 +53,7 @@ public abstract class AbstractRenderContext implements RenderContext {
 	private static final MaterialMap defaultMap = MaterialMap.defaultMaterialMap();
 	final MaterialFinderImpl finder = new MaterialFinderImpl();
 	public final float[] vecData = new float[3];
-	public final int[] appendData = new int[MaterialVertexFormats.MATERIAL_QUAD_STRIDE];
+	public final int[] appendData = new int[CanvasVertexFormats.MATERIAL_QUAD_STRIDE];
 	public final RenderContextState contextState = new RenderContextState();
 	public final VertexCollectorList collectors = new VertexCollectorList(contextState);
 	protected final String name;

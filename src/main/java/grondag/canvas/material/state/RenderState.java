@@ -18,7 +18,7 @@ package grondag.canvas.material.state;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import grondag.canvas.Configurator;
-import grondag.canvas.material.MaterialVertexFormat;
+import grondag.canvas.buffer.format.CanvasVertexFormat;
 import grondag.canvas.material.property.BinaryMaterialState;
 import grondag.canvas.material.property.MaterialDecal;
 import grondag.canvas.material.property.MaterialDepthTest;
@@ -106,7 +106,7 @@ public final class RenderState extends AbstractRenderState {
 		// NB: must be before frame-buffer target switch
 		if (Configurator.enableBloom) CanvasFrameBufferHacks.endEmissiveCapture();
 
-		MaterialVertexFormat.disableDirect();
+		CanvasVertexFormat.disableDirect();
 		GlProgram.deactivate();
 		RenderSystem.shadeModel(GL11.GL_FLAT);
 		SpriteInfoTexture.disable();

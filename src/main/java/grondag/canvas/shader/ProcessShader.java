@@ -16,7 +16,7 @@
 
 package grondag.canvas.shader;
 
-import grondag.canvas.material.MaterialVertexFormats;
+import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.shader.GlProgram.Uniform1fImpl;
 import grondag.canvas.shader.GlProgram.Uniform1iImpl;
 import grondag.canvas.shader.GlProgram.Uniform2fImpl;
@@ -52,7 +52,7 @@ public class ProcessShader {
 		if (program == null) {
 			final Shader vs = GlShaderManager.INSTANCE.getOrCreateVertexShader(vertexId, ProgramType.PROCESS);
 			final Shader fs = GlShaderManager.INSTANCE.getOrCreateFragmentShader(fragmentId, ProgramType.PROCESS);
-			program = new GlProgram(vs, fs, MaterialVertexFormats.PROCESS_VERTEX_UV, ProgramType.PROCESS);
+			program = new GlProgram(vs, fs, CanvasVertexFormats.PROCESS_VERTEX_UV, ProgramType.PROCESS);
 			size = (Uniform2iImpl) program.uniform2i("_cvu_size", UniformRefreshFrequency.ON_LOAD, u -> u.set(1, 1));
 			lod = (Uniform1iImpl) program.uniform1i("_cvu_lod", UniformRefreshFrequency.ON_LOAD, u -> u.set(0));
 			distance = (Uniform2fImpl) program.uniform2f("_cvu_distance", UniformRefreshFrequency.ON_LOAD, u -> u.set(0, 0));

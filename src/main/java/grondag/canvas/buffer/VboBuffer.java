@@ -20,7 +20,7 @@ import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
-import grondag.canvas.material.MaterialVertexFormat;
+import grondag.canvas.buffer.format.CanvasVertexFormat;
 import grondag.canvas.varia.CanvasGlHelper;
 import net.minecraft.client.render.VertexFormatElement;
 import org.lwjgl.opengl.GL11;
@@ -31,7 +31,7 @@ import java.nio.IntBuffer;
 
 public class VboBuffer {
 	private static final int VAO_NONE = -1;
-	public final MaterialVertexFormat format;
+	public final CanvasVertexFormat format;
 	private final int byteCount;
 	private final VertexBinder vertexBinder;
 	ByteBuffer uploadBuffer;
@@ -42,7 +42,7 @@ public class VboBuffer {
 	 */
 	private int vaoBufferId = VAO_NONE;
 
-	public VboBuffer(int bytes, MaterialVertexFormat format) {
+	public VboBuffer(int bytes, CanvasVertexFormat format) {
 		uploadBuffer = TransferBufferAllocator.claim(bytes);
 		this.format = format;
 		byteCount = bytes;
@@ -89,7 +89,7 @@ public class VboBuffer {
 	}
 
 	private void bindVao() {
-		final MaterialVertexFormat format = this.format;
+		final CanvasVertexFormat format = this.format;
 
 		if (vaoBufferId == VAO_NONE) {
 			// Important this happens BEFORE anything that could affect vertex state
@@ -120,7 +120,7 @@ public class VboBuffer {
 	}
 
 	private void bindVbo() {
-		final MaterialVertexFormat format = this.format;
+		final CanvasVertexFormat format = this.format;
 		BindStateManager.bind(glBufferId());
 
 		if (Configurator.logGlStateChanges) {

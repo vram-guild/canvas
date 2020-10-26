@@ -16,14 +16,12 @@
 
 package grondag.canvas.buffer.encoding;
 
-import grondag.canvas.Configurator;
 import grondag.canvas.material.property.MaterialTransparency;
 import grondag.canvas.material.state.RenderMaterialImpl;
 
 import static grondag.canvas.buffer.encoding.EncodingContext.BLOCK;
 import static grondag.canvas.buffer.encoding.EncodingContext.ITEM;
 import static grondag.canvas.buffer.encoding.EncodingContext.TERRAIN;
-import static grondag.canvas.buffer.encoding.HdEncoders.HD_TERRAIN_1;
 import static grondag.canvas.buffer.encoding.VanillaEncoders.VANILLA_BLOCK;
 import static grondag.canvas.buffer.encoding.VanillaEncoders.VANILLA_ITEM;
 import static grondag.canvas.buffer.encoding.VanillaEncoders.VANILLA_TERRAIN;
@@ -67,8 +65,8 @@ public class VertexEncoders {
 		ENCODERS[lookupIndex(BLOCK, false)] = VANILLA_BLOCK;
 		ENCODERS[lookupIndex(BLOCK, true)] = VANILLA_BLOCK;
 
-		ENCODERS[lookupIndex(TERRAIN, false)] = Configurator.hdLightmaps() ? HD_TERRAIN_1 : VANILLA_TERRAIN;
-		ENCODERS[lookupIndex(TERRAIN, true)] = Configurator.hdLightmaps() ? HD_TERRAIN_1 : VANILLA_TERRAIN;
+		ENCODERS[lookupIndex(TERRAIN, false)] = VANILLA_TERRAIN;
+		ENCODERS[lookupIndex(TERRAIN, true)] = VANILLA_TERRAIN;
 
 		ENCODERS[lookupIndex(ITEM, false)] = VANILLA_ITEM;
 		ENCODERS[lookupIndex(ITEM, true)] = VANILLA_ITEM;

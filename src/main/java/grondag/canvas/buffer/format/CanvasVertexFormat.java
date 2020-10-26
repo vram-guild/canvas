@@ -14,7 +14,7 @@
  * the License.
  */
 
-package grondag.canvas.material;
+package grondag.canvas.buffer.format;
 
 import com.mojang.blaze3d.platform.GlStateManager;
 import grondag.canvas.CanvasMod;
@@ -24,7 +24,7 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL21;
 
-public class MaterialVertexFormat {
+public class CanvasVertexFormat {
 	public final int attributeCount;
 
 	/**
@@ -32,15 +32,15 @@ public class MaterialVertexFormat {
 	 */
 	public final int vertexStrideBytes;
 	public final int vertexStrideInts;
-	private final MaterialVertextFormatElement[] elements;
+	private final CanvasVertextFormatElement[] elements;
 
-	public MaterialVertexFormat(MaterialVertextFormatElement... elementsIn) {
+	public CanvasVertexFormat(CanvasVertextFormatElement... elementsIn) {
 		elements = elementsIn;
 
 		int bytes = 0;
 		int count = 0;
 
-		for (final MaterialVertextFormatElement e : elements) {
+		for (final CanvasVertextFormatElement e : elements) {
 			bytes += e.byteSize;
 
 			if (e.attributeName != null) {
@@ -74,7 +74,7 @@ public class MaterialVertexFormat {
 		final int limit = elements.length;
 
 		for (int i = 0; i < limit; i++) {
-			final MaterialVertextFormatElement e = elements[i];
+			final CanvasVertextFormatElement e = elements[i];
 
 			if (e.attributeName == null) {
 				assert i == 0 : "position element must be first";
@@ -112,7 +112,7 @@ public class MaterialVertexFormat {
 		// NB: <= because element 0 is vertex
 		for (int i = 0; i <= attributeCount; i++) {
 			if (i < limit) {
-				final MaterialVertextFormatElement e = elements[i];
+				final CanvasVertextFormatElement e = elements[i];
 
 				if (e.attributeName != null) {
 					if (Configurator.logGlStateChanges) {
@@ -133,7 +133,7 @@ public class MaterialVertexFormat {
 	public void bindProgramAttributes(int programID) {
 		int index = 1;
 
-		for (final MaterialVertextFormatElement e : elements) {
+		for (final CanvasVertextFormatElement e : elements) {
 			if (e.attributeName != null) {
 				GL20.glBindAttribLocation(programID, index++, e.attributeName);
 			}

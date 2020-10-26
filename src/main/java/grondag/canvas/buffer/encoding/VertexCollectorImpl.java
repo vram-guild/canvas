@@ -22,7 +22,7 @@ import java.nio.IntBuffer;
 import com.google.common.primitives.Doubles;
 import com.mojang.blaze3d.platform.GlStateManager;
 import grondag.canvas.buffer.TransferBufferAllocator;
-import grondag.canvas.material.MaterialVertexFormats;
+import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.material.state.RenderContextState;
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.material.state.RenderState;
@@ -88,7 +88,7 @@ public class VertexCollectorImpl extends AbstractVertexCollector {
 	}
 
 	public int vertexCount() {
-		return integerSize / MaterialVertexFormats.MATERIAL_VERTEX_STRIDE;
+		return integerSize / CanvasVertexFormats.MATERIAL_VERTEX_STRIDE;
 	}
 
 	public int quadCount() {
@@ -242,7 +242,7 @@ public class VertexCollectorImpl extends AbstractVertexCollector {
 		intBuffer.position(0);
 		toBuffer(intBuffer);
 
-		MaterialVertexFormats.POSITION_COLOR_TEXTURE_MATERIAL_LIGHT_NORMAL.enableDirect(MemoryUtil.memAddress(buffer));
+		CanvasVertexFormats.POSITION_COLOR_TEXTURE_MATERIAL_LIGHT_NORMAL.enableDirect(MemoryUtil.memAddress(buffer));
 
 		GlStateManager.drawArrays(materialState.primitive, 0, vertexCount());
 
@@ -292,7 +292,7 @@ public class VertexCollectorImpl extends AbstractVertexCollector {
 			}
 
 			for (int j = 0; j < quadCount; ++j) {
-				perQuadDistance[j] = caller.getDistanceSq(x, y, z, MaterialVertexFormats.MATERIAL_VERTEX_STRIDE, j);
+				perQuadDistance[j] = caller.getDistanceSq(x, y, z, CanvasVertexFormats.MATERIAL_VERTEX_STRIDE, j);
 			}
 
 			// sort the indexes by distance - farthest first
@@ -341,7 +341,7 @@ public class VertexCollectorImpl extends AbstractVertexCollector {
 			collector.toBuffer(intBuffer);
 		}
 
-		MaterialVertexFormats.POSITION_COLOR_TEXTURE_MATERIAL_LIGHT_NORMAL.enableDirect(MemoryUtil.memAddress(buffer));
+		CanvasVertexFormats.POSITION_COLOR_TEXTURE_MATERIAL_LIGHT_NORMAL.enableDirect(MemoryUtil.memAddress(buffer));
 		int startIndex = 0;
 
 		for (int i = 0; i < limit; ++i) {
@@ -362,8 +362,8 @@ public class VertexCollectorImpl extends AbstractVertexCollector {
 	protected void emitQuad() {
 		// WIP2: implement condition with indexed draw for terrain
 		if (conditionActive) {
-			data.copyFrom(integerSize, vertexData, 0, MaterialVertexFormats.MATERIAL_QUAD_STRIDE);
-			integerSize += MaterialVertexFormats.MATERIAL_QUAD_STRIDE;
+			data.copyFrom(integerSize, vertexData, 0, CanvasVertexFormats.MATERIAL_QUAD_STRIDE);
+			integerSize += CanvasVertexFormats.MATERIAL_QUAD_STRIDE;
 		}
 	}
 

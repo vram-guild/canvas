@@ -23,7 +23,7 @@ import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
 import grondag.canvas.buffer.VboBuffer;
 import grondag.canvas.buffer.encoding.VertexCollectorImpl;
-import grondag.canvas.material.MaterialVertexFormats;
+import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.material.state.RenderContextState;
 import grondag.canvas.mixinterface.FrameBufferExt;
 import grondag.canvas.shader.GlProgram;
@@ -338,7 +338,7 @@ public class CanvasFrameBufferHacks {
 			collector.addf(1f, 1f, 0.2f, 1f, 0f);
 			collector.addf(0, 1f, 0.2f, 0, 0f);
 
-			drawBuffer = new VboBuffer(collector.byteSize(), MaterialVertexFormats.PROCESS_VERTEX_UV);
+			drawBuffer = new VboBuffer(collector.byteSize(), CanvasVertexFormats.PROCESS_VERTEX_UV);
 			collector.toBuffer(drawBuffer.intBuffer());
 			drawBuffer.upload();
 		}

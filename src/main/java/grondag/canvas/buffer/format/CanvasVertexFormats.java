@@ -14,44 +14,31 @@
  * the License.
  */
 
-package grondag.canvas.material;
+package grondag.canvas.buffer.format;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
 
-import static grondag.canvas.material.MaterialVertextFormatElement.BASE_RGBA_4UB;
-import static grondag.canvas.material.MaterialVertextFormatElement.BASE_TEX_2F;
-import static grondag.canvas.material.MaterialVertextFormatElement.BASE_TEX_2US;
-import static grondag.canvas.material.MaterialVertextFormatElement.HD_LIGHTMAP_2US;
-import static grondag.canvas.material.MaterialVertextFormatElement.LIGHTMAPS_4UB;
-import static grondag.canvas.material.MaterialVertextFormatElement.MATERIAL_2US;
-import static grondag.canvas.material.MaterialVertextFormatElement.NORMAL_AO_4B;
-import static grondag.canvas.material.MaterialVertextFormatElement.NORMAL_FLAGS_4UB;
-import static grondag.canvas.material.MaterialVertextFormatElement.POSITION_3F;
+import static grondag.canvas.buffer.format.CanvasVertextFormatElement.BASE_RGBA_4UB;
+import static grondag.canvas.buffer.format.CanvasVertextFormatElement.BASE_TEX_2F;
+import static grondag.canvas.buffer.format.CanvasVertextFormatElement.BASE_TEX_2US;
+import static grondag.canvas.buffer.format.CanvasVertextFormatElement.LIGHTMAPS_4UB;
+import static grondag.canvas.buffer.format.CanvasVertextFormatElement.MATERIAL_2US;
+import static grondag.canvas.buffer.format.CanvasVertextFormatElement.NORMAL_FLAGS_4UB;
+import static grondag.canvas.buffer.format.CanvasVertextFormatElement.POSITION_3F;
 
-// WIP2: remove unused formats and elements and clean up
-// encoding may be different and may depend on feature configuration
-
-public final class MaterialVertexFormats {
+public final class CanvasVertexFormats {
 	static {
 		if (Configurator.enableLifeCycleDebug) {
 			CanvasMod.LOG.info("Lifecycle Event: MaterialVertexFormats static init");
 		}
 	}
 
-	public static final MaterialVertexFormat HD_TERRAIN = new MaterialVertexFormat(
-		POSITION_3F,
-		BASE_RGBA_4UB,
-		BASE_TEX_2F,
-		LIGHTMAPS_4UB, // PERF: remove and bundle flags with normal
-		HD_LIGHTMAP_2US,
-		NORMAL_AO_4B);
-
-	public static final MaterialVertexFormat PROCESS_VERTEX_UV = new MaterialVertexFormat(
+	public static final CanvasVertexFormat PROCESS_VERTEX_UV = new CanvasVertexFormat(
 		POSITION_3F,
 		BASE_TEX_2F);
 
-	public static final MaterialVertexFormat PROCESS_VERTEX = new MaterialVertexFormat(
+	public static final CanvasVertexFormat PROCESS_VERTEX = new CanvasVertexFormat(
 		POSITION_3F);
 
 
@@ -63,7 +50,7 @@ public final class MaterialVertexFormats {
 	 * Normal only contains packed x and y values, z is derived in shader.
 	 * Most significant byte of lightmap holds vertex state flags.
 	 */
-	public static final MaterialVertexFormat POSITION_COLOR_TEXTURE_MATERIAL_LIGHT_NORMAL = new MaterialVertexFormat(POSITION_3F, BASE_RGBA_4UB, BASE_TEX_2US, MATERIAL_2US, LIGHTMAPS_4UB, NORMAL_FLAGS_4UB);
+	public static final CanvasVertexFormat POSITION_COLOR_TEXTURE_MATERIAL_LIGHT_NORMAL = new CanvasVertexFormat(POSITION_3F, BASE_RGBA_4UB, BASE_TEX_2US, MATERIAL_2US, LIGHTMAPS_4UB, NORMAL_FLAGS_4UB);
 
 	public static final int MATERIAL_COLOR_INDEX = 3;
 	public static final int MATERIAL_TEXTURE_INDEX = 4;

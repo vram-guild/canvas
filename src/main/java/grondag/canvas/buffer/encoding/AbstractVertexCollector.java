@@ -23,13 +23,13 @@ import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.material.state.RenderStateData;
 import grondag.canvas.mixinterface.SpriteExt;
 
-import static grondag.canvas.material.MaterialVertexFormats.MATERIAL_COLOR_INDEX;
-import static grondag.canvas.material.MaterialVertexFormats.MATERIAL_LIGHT_INDEX;
-import static grondag.canvas.material.MaterialVertexFormats.MATERIAL_MATERIAL_INDEX;
-import static grondag.canvas.material.MaterialVertexFormats.MATERIAL_NORMAL_INDEX;
-import static grondag.canvas.material.MaterialVertexFormats.MATERIAL_QUAD_STRIDE;
-import static grondag.canvas.material.MaterialVertexFormats.MATERIAL_TEXTURE_INDEX;
-import static grondag.canvas.material.MaterialVertexFormats.MATERIAL_VERTEX_STRIDE;
+import static grondag.canvas.buffer.format.CanvasVertexFormats.MATERIAL_COLOR_INDEX;
+import static grondag.canvas.buffer.format.CanvasVertexFormats.MATERIAL_LIGHT_INDEX;
+import static grondag.canvas.buffer.format.CanvasVertexFormats.MATERIAL_MATERIAL_INDEX;
+import static grondag.canvas.buffer.format.CanvasVertexFormats.MATERIAL_NORMAL_INDEX;
+import static grondag.canvas.buffer.format.CanvasVertexFormats.MATERIAL_QUAD_STRIDE;
+import static grondag.canvas.buffer.format.CanvasVertexFormats.MATERIAL_TEXTURE_INDEX;
+import static grondag.canvas.buffer.format.CanvasVertexFormats.MATERIAL_VERTEX_STRIDE;
 
 import net.minecraft.client.texture.Sprite;
 

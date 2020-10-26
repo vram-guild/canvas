@@ -18,7 +18,7 @@ package grondag.canvas.shader;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
-import grondag.canvas.material.MaterialVertexFormats;
+import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.material.property.MaterialMatrixState;
 import grondag.canvas.shader.GlProgram.Uniform1iImpl;
 import grondag.canvas.shader.GlProgram.Uniform2iImpl;
@@ -52,7 +52,7 @@ public enum MaterialProgramManager {
 		if (result == null) {
 			final Shader vs =  new GlMaterialShader(ShaderData.MATERIAL_MAIN_VERTEX, GL21.GL_VERTEX_SHADER, programType);
 			final Shader fs = new GlMaterialShader(ShaderData.MATERIAL_MAIN_FRAGMENT, GL21.GL_FRAGMENT_SHADER, programType);
-			result = new GlProgram(vs, fs, MaterialVertexFormats.POSITION_COLOR_TEXTURE_MATERIAL_LIGHT_NORMAL, programType);
+			result = new GlProgram(vs, fs, CanvasVertexFormats.POSITION_COLOR_TEXTURE_MATERIAL_LIGHT_NORMAL, programType);
 			ShaderData.STANDARD_UNIFORM_SETUP.accept(result);
 			result.modelOrigin = (Uniform3fImpl) result.uniform3f("_cvu_model_origin", UniformRefreshFrequency.ON_LOAD, u -> u.set(0, 0, 0));
 			result.normalModelMatrix = result.uniformMatrix3f("_cvu_normal_model_matrix", UniformRefreshFrequency.ON_LOAD, u -> {});

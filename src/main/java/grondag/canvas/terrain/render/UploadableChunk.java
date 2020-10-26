@@ -18,7 +18,7 @@ package grondag.canvas.terrain.render;
 
 import grondag.canvas.buffer.VboBuffer;
 import grondag.canvas.buffer.encoding.VertexCollectorList;
-import grondag.canvas.material.MaterialVertexFormats;
+import grondag.canvas.buffer.format.CanvasVertexFormats;
 
 public class UploadableChunk {
 	public static final UploadableChunk EMPTY_UPLOADABLE = new UploadableChunk() {
@@ -31,7 +31,7 @@ public class UploadableChunk {
 	protected final DrawableChunk drawable;
 
 	public UploadableChunk(VertexCollectorList collectorList, boolean sorted, int bytes) {
-		vboBuffer = new VboBuffer(bytes, MaterialVertexFormats.POSITION_COLOR_TEXTURE_MATERIAL_LIGHT_NORMAL);
+		vboBuffer = new VboBuffer(bytes, CanvasVertexFormats.POSITION_COLOR_TEXTURE_MATERIAL_LIGHT_NORMAL);
 		drawable = DrawableChunk.pack(collectorList, vboBuffer, sorted);
 	}
 

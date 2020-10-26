@@ -22,7 +22,7 @@ import java.util.function.Consumer;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
-import grondag.canvas.material.MaterialVertexFormat;
+import grondag.canvas.buffer.format.CanvasVertexFormat;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.Matrix4fExt;
 import grondag.canvas.texture.SpriteInfoTexture;
@@ -61,7 +61,7 @@ public class GlProgram {
 	private static GlProgram activeProgram;
 	private final Shader vertexShader;
 	private final Shader fragmentShader;
-	public final MaterialVertexFormat vertexFormat;
+	public final CanvasVertexFormat vertexFormat;
 	public final ProgramType programType;
 	private final ObjectArrayList<UniformImpl<?>> uniforms = new ObjectArrayList<>();
 	private final ObjectArrayList<UniformImpl<?>> activeUniforms = new ObjectArrayList<>();
@@ -80,7 +80,7 @@ public class GlProgram {
 	private boolean isErrored = false;
 	private boolean needsLoad = true;
 
-	GlProgram(Shader vertexShader, Shader fragmentShader, MaterialVertexFormat format, ProgramType programType) {
+	GlProgram(Shader vertexShader, Shader fragmentShader, CanvasVertexFormat format, ProgramType programType) {
 		this.vertexShader = vertexShader;
 		this.fragmentShader = fragmentShader;
 		this.programType = programType;
