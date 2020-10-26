@@ -17,7 +17,8 @@
 package grondag.canvas.apiimpl.rendercontext;
 
 import grondag.canvas.Configurator;
-import grondag.canvas.buffer.encoding.VanillaEncoders;
+import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
+import grondag.canvas.buffer.encoding.VertexCollectorList;
 import grondag.canvas.light.AoCalculator;
 import grondag.canvas.light.LightSmoother;
 import grondag.canvas.material.state.RenderMaterialImpl;
@@ -26,6 +27,10 @@ import grondag.canvas.terrain.FastRenderRegion;
 import grondag.canvas.terrain.ProtoRenderRegion;
 import grondag.canvas.terrain.RenderRegionAddressHelper;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+
+import static grondag.canvas.buffer.encoding.EncoderUtils.applyBlockLighting;
+import static grondag.canvas.buffer.encoding.EncoderUtils.bufferQuadDirect;
+import static grondag.canvas.buffer.encoding.EncoderUtils.colorizeQuad;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -47,6 +52,8 @@ import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
  * and holds/manages all of the state needed by them.
  */
 public class TerrainRenderContext extends AbstractBlockRenderContext<FastRenderRegion> {
+	public final VertexCollectorList collectors = new VertexCollectorList(contextState);
+
 	// Reused each build to prevent needless allocation
 	public final ObjectOpenHashSet<BlockEntity> nonCullBlockEntities = new ObjectOpenHashSet<>();
 	public final ObjectOpenHashSet<BlockEntity> addedBlockEntities = new ObjectOpenHashSet<>();
@@ -71,7 +78,7 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<FastRenderR
 	private int cullResultFlags;
 
 	public TerrainRenderContext() {
-		super("TerrainRenderContext", VanillaEncoders.VANILLA_TERRAIN);
+		super("TerrainRenderContext");
 		region = new FastRenderRegion(this);
 		// WIP2: fix or remove
 		//		collectors.setContext(EncodingContext.TERRAIN);
@@ -162,5 +169,13 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<FastRenderR
 		} else {
 			return (cullResultFlags & mask) != 0;
 		}
+	}
+
+	@Override
+	protected void encodeQuad(MutableQuadViewImpl quad) {
+		// needs to happen before offsets are applied
+		applyBlockLighting(quad, this);
+		colorizeQuad(quad, this);
+		bufferQuadDirect(quad, this);
 	}
 }

@@ -22,8 +22,6 @@ import java.util.function.Consumer;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
-import grondag.canvas.buffer.encoding.VertexCollectorList;
-import grondag.canvas.buffer.encoding.VertexEncoder;
 import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.light.AoCalculator;
 import grondag.canvas.material.state.MaterialFinderImpl;
@@ -53,8 +51,9 @@ public abstract class AbstractRenderContext implements RenderContext {
 	final MaterialFinderImpl finder = new MaterialFinderImpl();
 	public final float[] vecData = new float[3];
 	public final int[] appendData = new int[CanvasVertexFormats.MATERIAL_QUAD_STRIDE];
+	// WIP: use this for material maps, etc. need to populate it upstream of render output
 	public final RenderContextState contextState = new RenderContextState();
-	public final VertexCollectorList collectors = new VertexCollectorList(contextState);
+
 	protected final String name;
 	protected final MeshConsumer meshConsumer = new MeshConsumer(this);
 	protected final MutableQuadViewImpl makerQuad = meshConsumer.editorQuad;
@@ -77,11 +76,9 @@ public abstract class AbstractRenderContext implements RenderContext {
 	protected MaterialMap materialMap = defaultMap;
 	protected boolean isFluidModel = false;
 	private QuadTransform activeTransform = NO_TRANSFORM;
-	protected final VertexEncoder encoder;
 
-	protected AbstractRenderContext(String name, VertexEncoder encoder) {
+	protected AbstractRenderContext(String name) {
 		this.name = name;
-		this.encoder = encoder;
 
 		if (Configurator.enableLifeCycleDebug) {
 			CanvasMod.LOG.info("Lifecycle Event: create render context " + name);
@@ -221,9 +218,11 @@ public abstract class AbstractRenderContext implements RenderContext {
 			adjustMaterial();
 			final RenderMaterialImpl mat = finder.find();
 			quad.material(mat);
-			encoder.encodeQuad(quad, this);
+			encodeQuad(quad);
 		}
 	}
+
+	protected abstract void encodeQuad(MutableQuadViewImpl quad);
 
 	protected void adjustMaterial() {
 		if (finder.blendMode() == BlendMode.DEFAULT) {

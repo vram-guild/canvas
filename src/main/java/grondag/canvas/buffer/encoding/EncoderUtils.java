@@ -19,6 +19,7 @@ package grondag.canvas.buffer.encoding;
 import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.rendercontext.AbstractRenderContext;
+import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
 import grondag.canvas.apiimpl.util.ColorHelper;
 import grondag.canvas.apiimpl.util.NormalHelper;
 import grondag.canvas.material.state.RenderMaterialImpl;
@@ -31,8 +32,10 @@ import net.minecraft.client.render.VertexConsumer;
 
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 
-abstract class EncoderUtils {
-	static void bufferQuad(MutableQuadViewImpl quad, AbstractRenderContext context) {
+public abstract class EncoderUtils {
+	public static final int FULL_BRIGHTNESS = 0xF000F0;
+
+	public static void bufferQuad(MutableQuadViewImpl quad, AbstractRenderContext context) {
 		final Matrix4fExt matrix = (Matrix4fExt) (Object) context.matrix();
 		final int overlay = context.overlay();
 		final Matrix3fExt normalMatrix = context.normalMatrix();
@@ -62,7 +65,7 @@ abstract class EncoderUtils {
 
 			buff.texture(quad.spriteU(i, 0), quad.spriteV(i, 0));
 			buff.overlay(overlay);
-			buff.light(emissive ? VertexEncoder.FULL_BRIGHTNESS : quad.lightmap(i));
+			buff.light(emissive ? FULL_BRIGHTNESS : quad.lightmap(i));
 
 			if (useNormals) {
 				final int p = quad.packedNormal(i);
@@ -85,7 +88,7 @@ abstract class EncoderUtils {
 	/**
 	 * handles block color and red-blue swizzle, common to all renders.
 	 */
-	static void colorizeQuad(MutableQuadViewImpl quad, AbstractRenderContext context) {
+	public static void colorizeQuad(MutableQuadViewImpl quad, AbstractRenderContext context) {
 		final int colorIndex = quad.colorIndex();
 
 		// PERF: don't swap red blue on white quad (most of em)
@@ -103,7 +106,7 @@ abstract class EncoderUtils {
 		}
 	}
 
-	static void bufferQuadDirect(MutableQuadViewImpl quad, AbstractRenderContext context) {
+	public static void bufferQuadDirect(MutableQuadViewImpl quad, TerrainRenderContext context) {
 		final Matrix4fExt matrix = (Matrix4fExt) (Object) context.matrix();
 		final Matrix3fExt normalMatrix = context.normalMatrix();
 		final float[] aoData = quad.ao;
@@ -161,7 +164,7 @@ abstract class EncoderUtils {
 		buff0.add(appendData, k);
 	}
 
-	static void applyBlockLighting(MutableQuadViewImpl quad, AbstractRenderContext context) {
+	public static void applyBlockLighting(MutableQuadViewImpl quad, AbstractRenderContext context) {
 		// FIX: per-vertex light maps will be ignored unless we bake a custom HD map
 		// or retain vertex light maps in buffer format and logic in shader to take max
 
@@ -185,7 +188,7 @@ abstract class EncoderUtils {
 		}
 	}
 
-	static void applyItemLighting(MutableQuadViewImpl quad, AbstractRenderContext context) {
+	public static void applyItemLighting(MutableQuadViewImpl quad, AbstractRenderContext context) {
 		final int lightmap = context.brightness();
 		quad.lightmap(0, ColorHelper.maxBrightness(quad.lightmap(0), lightmap));
 		quad.lightmap(1, ColorHelper.maxBrightness(quad.lightmap(1), lightmap));

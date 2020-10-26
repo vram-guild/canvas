@@ -187,6 +187,6 @@ public class FallbackConsumer implements Consumer<BakedModel> {
 			editorQuad.material(mat);
 		}
 
-		context.encoder.encodeQuad(editorQuad, context);
+		context.encodeQuad(editorQuad);
 	}
 }

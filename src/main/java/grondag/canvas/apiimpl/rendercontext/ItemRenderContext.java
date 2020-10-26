@@ -20,12 +20,15 @@ import java.util.Random;
 import java.util.function.Supplier;
 
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
-import grondag.canvas.buffer.encoding.VanillaEncoders;
 import grondag.canvas.light.AoCalculator;
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.MinecraftClientExt;
 import grondag.fermion.sc.concurrency.SimpleConcurrentList;
+
+import static grondag.canvas.buffer.encoding.EncoderUtils.applyItemLighting;
+import static grondag.canvas.buffer.encoding.EncoderUtils.bufferQuad;
+import static grondag.canvas.buffer.encoding.EncoderUtils.colorizeQuad;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -90,7 +93,7 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 	private ItemStack itemStack;
 
 	public ItemRenderContext(ItemColors colorMap) {
-		super("ItemRenderContext", VanillaEncoders.VANILLA_ITEM);
+		super("ItemRenderContext");
 		this.colorMap = colorMap;
 		// WIP2: fix or remove
 		//		collectors.setContext(EncodingContext.ITEM);
@@ -244,5 +247,12 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 		} else {
 			return ItemRenderer.getItemGlintConsumer(bufferProvider, layer, true, itemStack.hasGlint());
 		}
+	}
+
+	@Override
+	protected void encodeQuad(MutableQuadViewImpl quad) {
+		colorizeQuad(quad, this);
+		applyItemLighting(quad, this);
+		bufferQuad(quad, this);
 	}
 }

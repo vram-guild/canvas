@@ -22,10 +22,13 @@ import java.util.function.Supplier;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.util.GeometryHelper;
 import grondag.canvas.buffer.encoding.VertexCollector;
-import grondag.canvas.buffer.encoding.VertexEncoder;
 import grondag.canvas.mixinterface.RenderLayerExt;
 import grondag.frex.api.material.MaterialMap;
 import org.jetbrains.annotations.Nullable;
+
+import static grondag.canvas.buffer.encoding.EncoderUtils.applyBlockLighting;
+import static grondag.canvas.buffer.encoding.EncoderUtils.bufferQuad;
+import static grondag.canvas.buffer.encoding.EncoderUtils.colorizeQuad;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -84,8 +87,8 @@ public abstract class AbstractBlockRenderContext<T extends BlockRenderView> exte
 	private int fullCubeCache = 0;
 
 
-	protected AbstractBlockRenderContext(String name, VertexEncoder encoder) {
-		super(name, encoder);
+	protected AbstractBlockRenderContext(String name) {
+		super(name);
 	}
 
 	/**
@@ -173,4 +176,12 @@ public abstract class AbstractBlockRenderContext<T extends BlockRenderView> exte
 	}
 
 	protected abstract int fastBrightness(BlockState blockState, BlockPos pos);
+
+	@Override
+	protected void encodeQuad(MutableQuadViewImpl quad) {
+		// needs to happen before offsets are applied
+		applyBlockLighting(quad, this);
+		colorizeQuad(quad, this);
+		bufferQuad(quad, this);
+	}
 }

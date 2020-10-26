@@ -18,7 +18,6 @@ package grondag.canvas.apiimpl.rendercontext;
 
 import java.util.function.Supplier;
 
-import grondag.canvas.buffer.encoding.VanillaEncoders;
 import grondag.canvas.light.AoCalculator;
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.mixinterface.Matrix3fExt;
@@ -109,7 +108,7 @@ public class BlockRenderContext extends AbstractBlockRenderContext<BlockRenderVi
 	private boolean didOutput = false;
 
 	public BlockRenderContext() {
-		super("BlockRenderContext", VanillaEncoders.VANILLA_BLOCK);
+		super("BlockRenderContext");
 	}
 
 	public static void reload() {
