@@ -17,7 +17,6 @@
 package grondag.canvas.apiimpl.rendercontext;
 
 import grondag.canvas.Configurator;
-import grondag.canvas.buffer.encoding.EncodingContext;
 import grondag.canvas.buffer.encoding.VanillaEncoders;
 import grondag.canvas.light.AoCalculator;
 import grondag.canvas.light.LightSmoother;
@@ -121,11 +120,6 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<FastRenderR
 			CrashReportSection.addBlockInfo(crashReportElement_1, blockPos, blockState);
 			throw new CrashException(crashReport_1);
 		}
-	}
-
-	@Override
-	public EncodingContext materialContext() {
-		return EncodingContext.TERRAIN;
 	}
 
 	@Override

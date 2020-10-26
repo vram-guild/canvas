@@ -21,8 +21,6 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.MaterialConditionImpl;
 import grondag.canvas.light.LightmapHdTexture;
-import grondag.canvas.shader.ShaderContext;
-import grondag.canvas.shader.ShaderPass;
 import grondag.canvas.terrain.BuiltRenderRegion;
 import grondag.canvas.terrain.TerrainModelSpace;
 import grondag.canvas.texture.DitherTexture;
@@ -37,15 +35,11 @@ public class TerrainLayerRenderer {
 	private final String profileString;
 	private final Runnable sortTask;
 	private final boolean isTranslucent;
-	private final ShaderContext shaderContext;
 
-	public TerrainLayerRenderer(String layerName, ShaderContext shaderContext, @Nullable Runnable translucentSortTask) {
+	public TerrainLayerRenderer(String layerName, @Nullable Runnable translucentSortTask) {
 		profileString = "render_" + layerName;
-		this.shaderContext = shaderContext;
 		isTranslucent = translucentSortTask != null;
 		sortTask = isTranslucent ? translucentSortTask : Runnables.doNothing();
-
-		assert !isTranslucent || shaderContext == ShaderContext.TERRAIN_TRANSLUCENT;
 	}
 
 	public void render(final BuiltRenderRegion[] visibleRegions, final int visibleRegionCount, MatrixStack matrixStack, double x, double y, double z) {
@@ -58,7 +52,6 @@ public class TerrainLayerRenderer {
 		final int startIndex = isTranslucent ? visibleRegionCount - 1 : 0;
 		final int endIndex = isTranslucent ? -1 : visibleRegionCount;
 		final int step = isTranslucent ? -1 : 1;
-		final ShaderPass pass = shaderContext.pass;
 
 		if (Configurator.hdLightmaps()) {
 			LightmapHdTexture.instance().enable();
@@ -83,7 +76,7 @@ public class TerrainLayerRenderer {
 			final DrawableChunk drawable = isTranslucent ? builtRegion.translucentDrawable() : builtRegion.solidDrawable();
 
 			if (!drawable.isClosed()) {
-				final ObjectArrayList<DrawableDelegate> delegates = drawable.delegates(pass);
+				final ObjectArrayList<DrawableDelegate> delegates = drawable.delegates();
 
 				if (delegates != null) {
 					final BlockPos modelOrigin = builtRegion.getOrigin();

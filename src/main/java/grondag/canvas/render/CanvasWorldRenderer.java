@@ -50,7 +50,6 @@ import grondag.canvas.material.state.RenderContextState;
 import grondag.canvas.material.state.RenderState;
 import grondag.canvas.mixinterface.WorldRendererExt;
 import grondag.canvas.shader.MaterialShaderManager;
-import grondag.canvas.shader.ShaderContext;
 import grondag.canvas.terrain.BuiltRenderRegion;
 import grondag.canvas.terrain.RenderRegionBuilder;
 import grondag.canvas.terrain.RenderRegionStorage;
@@ -120,8 +119,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	public final TerrainOccluder terrainOccluder = new TerrainOccluder();
 	// TODO: redirect uses in MC WorldRenderer
 	public final Set<BuiltRenderRegion> regionsToRebuild = Sets.newLinkedHashSet();
-	final TerrainLayerRenderer SOLID = new TerrainLayerRenderer("solid", ShaderContext.TERRAIN_SOLID, null);
-	final TerrainLayerRenderer DECAL = new TerrainLayerRenderer("decal", ShaderContext.TERRAIN_DECAL, null);
+	final TerrainLayerRenderer SOLID = new TerrainLayerRenderer("solid", null);
 	private final RenderRegionStorage renderRegionStorage = new RenderRegionStorage(this);
 	private final TerrainIterator terrainIterator = new TerrainIterator(this);
 	private final CanvasFrustum frustum = new CanvasFrustum();
@@ -144,7 +142,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	private Vec3d cameraPos;
 	private int lastRegionDataVersion = -1;
 	private int visibleRegionCount = 0;
-	final TerrainLayerRenderer TRANSLUCENT = new TerrainLayerRenderer("translucemt", ShaderContext.TERRAIN_TRANSLUCENT, this::sortTranslucentTerrain);
+	final TerrainLayerRenderer TRANSLUCENT = new TerrainLayerRenderer("translucemt", this::sortTranslucentTerrain);
 
 	private final RenderContextState contextState = new RenderContextState();
 	private final CanvasImmediate worldRenderImmediate = new CanvasImmediate(new BufferBuilder(256), CanvasImmediate.entityBuilders(), contextState);
@@ -975,7 +973,6 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			TRANSLUCENT.render(visibleRegions, visibleRegionCount, matrixStack, x, y, z);
 		} else {
 			SOLID.render(visibleRegions, visibleRegionCount, matrixStack, x, y, z);
-			DECAL.render(visibleRegions, visibleRegionCount, matrixStack, x, y, z);
 		}
 
 		RenderState.disable();

@@ -20,7 +20,6 @@ import java.util.Random;
 import java.util.function.Supplier;
 
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
-import grondag.canvas.buffer.encoding.EncodingContext;
 import grondag.canvas.buffer.encoding.VanillaEncoders;
 import grondag.canvas.light.AoCalculator;
 import grondag.canvas.material.state.RenderMaterialImpl;
@@ -77,7 +76,6 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 	private static ThreadLocal<ItemRenderContext> POOL = POOL_FACTORY.get();
 	private final ItemColors colorMap;
 	private final Random random = new Random();
-	private final EncodingContext context = EncodingContext.ITEM;
 	private final Supplier<Random> randomSupplier = () -> {
 		final Random result = random;
 		result.setSeed(ITEM_RANDOM_SEED);
@@ -106,11 +104,6 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 
 	public static ItemRenderContext get() {
 		return POOL.get();
-	}
-
-	@Override
-	public EncodingContext materialContext() {
-		return context;
 	}
 
 	@Override

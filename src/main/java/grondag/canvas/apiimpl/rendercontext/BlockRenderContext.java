@@ -18,7 +18,6 @@ package grondag.canvas.apiimpl.rendercontext;
 
 import java.util.function.Supplier;
 
-import grondag.canvas.buffer.encoding.EncodingContext;
 import grondag.canvas.buffer.encoding.VanillaEncoders;
 import grondag.canvas.light.AoCalculator;
 import grondag.canvas.material.state.RenderMaterialImpl;
@@ -139,11 +138,6 @@ public class BlockRenderContext extends AbstractBlockRenderContext<BlockRenderVi
 		bufferBuilder = null;
 
 		return didOutput;
-	}
-
-	@Override
-	public EncodingContext materialContext() {
-		return EncodingContext.BLOCK;
 	}
 
 	@Override

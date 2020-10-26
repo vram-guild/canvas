@@ -22,7 +22,6 @@ import java.util.function.Consumer;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
-import grondag.canvas.buffer.encoding.EncodingContext;
 import grondag.canvas.buffer.encoding.VertexCollectorList;
 import grondag.canvas.buffer.encoding.VertexEncoder;
 import grondag.canvas.buffer.format.CanvasVertexFormats;
@@ -171,8 +170,6 @@ public abstract class AbstractRenderContext implements RenderContext {
 	public abstract boolean defaultAo();
 
 	protected abstract BlockState blockState();
-
-	public abstract EncodingContext materialContext();
 
 	public abstract VertexConsumer consumer(RenderMaterialImpl mat);
 
