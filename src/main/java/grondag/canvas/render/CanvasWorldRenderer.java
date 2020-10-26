@@ -24,7 +24,6 @@ import java.util.SortedSet;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.google.common.collect.Sets;
-import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
@@ -50,7 +49,6 @@ import grondag.canvas.material.property.MaterialMatrixState;
 import grondag.canvas.material.state.RenderContextState;
 import grondag.canvas.material.state.RenderState;
 import grondag.canvas.mixinterface.WorldRendererExt;
-import grondag.canvas.shader.GlProgram;
 import grondag.canvas.shader.MaterialShaderManager;
 import grondag.canvas.shader.ShaderContext;
 import grondag.canvas.terrain.BuiltRenderRegion;
@@ -70,7 +68,6 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectMap.Entry;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.jetbrains.annotations.Nullable;
-import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL21;
 
 import net.minecraft.block.BlockState;
@@ -994,13 +991,8 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		}
 
 		VboBuffer.unbind();
-
 		RenderSystem.clearCurrentColor();
-
-		GlStateManager.disableClientState(GL11.GL_VERTEX_ARRAY);
-		CanvasGlHelper.enableAttributes(0);
 		BindStateManager.unbind();
-		GlProgram.deactivate(); // WIP: needed?
 	}
 
 	private void updateRegions(long endNanos) {
