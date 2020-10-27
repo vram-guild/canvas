@@ -22,12 +22,15 @@ import java.util.function.Supplier;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.util.GeometryHelper;
 import grondag.canvas.buffer.encoding.VertexCollector;
+import grondag.canvas.material.state.MaterialFinderImpl;
+import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.mixinterface.RenderLayerExt;
 import grondag.frex.api.material.MaterialMap;
 import org.jetbrains.annotations.Nullable;
 
 import static grondag.canvas.buffer.encoding.EncoderUtils.applyBlockLighting;
 import static grondag.canvas.buffer.encoding.EncoderUtils.bufferQuad;
+import static grondag.canvas.buffer.encoding.EncoderUtils.bufferQuadDirect;
 import static grondag.canvas.buffer.encoding.EncoderUtils.colorizeQuad;
 
 import net.minecraft.block.Block;
@@ -35,7 +38,7 @@ import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.color.block.BlockColors;
 import net.minecraft.client.render.RenderLayers;
-import net.minecraft.client.render.VertexConsumerProvider;
+import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.BlockRenderView;
 
@@ -54,8 +57,8 @@ public abstract class AbstractBlockRenderContext<T extends BlockRenderView> exte
 	 */
 	protected final BlockPos.Mutable internalSearchPos = new BlockPos.Mutable();
 
-	/** null when not in world render loop/thread or when default consumer should be honored. */
-	@Nullable public VertexConsumerProvider bufferProvider = null;
+
+	@Nullable protected VertexConsumer defaultConsumer;
 
 	private final BlockColors blockColorMap = MinecraftClient.getInstance().getBlockColors();
 	public T region;
@@ -177,11 +180,26 @@ public abstract class AbstractBlockRenderContext<T extends BlockRenderView> exte
 
 	protected abstract int fastBrightness(BlockState blockState, BlockPos pos);
 
+	protected RenderMaterialImpl actualMaterial(RenderMaterialImpl mat) {
+		if (mat.blendMode() == BlendMode.DEFAULT) {
+			final MaterialFinderImpl finder = this.finder;
+			finder.copyFrom(mat);
+			finder.blendMode(defaultBlendMode());
+			return finder.find();
+		}
+
+		return mat;
+	}
 	@Override
 	protected void encodeQuad(MutableQuadViewImpl quad) {
 		// needs to happen before offsets are applied
 		applyBlockLighting(quad, this);
 		colorizeQuad(quad, this);
-		bufferQuad(quad, this);
+
+		if (collectors == null ) {
+			bufferQuad(quad, this, defaultConsumer);
+		} else {
+			bufferQuadDirect(quad, this, collectors.get(actualMaterial(quad.material())));
+		}
 	}
 }

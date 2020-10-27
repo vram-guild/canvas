@@ -43,13 +43,14 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.client.resource.language.I18n;
 import net.minecraft.util.Identifier;
 
+import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 import net.fabricmc.fabric.api.renderer.v1.material.RenderMaterial;
 import net.fabricmc.fabric.api.renderer.v1.mesh.MeshBuilder;
 
 public class Canvas implements Renderer {
 	public static final Canvas INSTANCE = new Canvas();
 
-	public static final RenderMaterialImpl MATERIAL_STANDARD = INSTANCE.materialFinder().find();
+	public static final RenderMaterialImpl MATERIAL_STANDARD = INSTANCE.materialFinder().blendMode(BlendMode.DEFAULT).find();
 
 	static {
 		INSTANCE.registerMaterial(RenderMaterial.MATERIAL_STANDARD, MATERIAL_STANDARD);

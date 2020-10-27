@@ -503,13 +503,13 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		mcfb.beginWrite(false);
 
 		boolean didRenderOutlines = false;
-		final VertexConsumerProvider.Immediate immediate = worldRenderImmediate;
+		final CanvasImmediate immediate = worldRenderImmediate;
 		final Iterator<Entity> entities = world.getEntities().iterator();
 		final ShaderEffect entityOutlineShader = wr.canvas_entityOutlineShader();
 		final BuiltRenderRegion[] visibleRegions = this.visibleRegions;
 		entityBlockContext.tickDelta(tickDelta);
-		entityBlockContext.bufferProvider = immediate;
-		blockContext.bufferProvider = immediate;
+		entityBlockContext.collectors = immediate.collectors;
+		blockContext.collectors = immediate.collectors;
 
 		while (entities.hasNext()) {
 			final Entity entity = entities.next();
@@ -615,7 +615,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		assert matrixStack.isEmpty() : "Matrix stack not empty in world render when expected";
 
-		((CanvasImmediate) immediate).drawCollectors(false);
+		immediate.drawCollectors(false);
 
 		bufferBuilders.getOutlineVertexConsumers().draw();
 
@@ -628,7 +628,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		profiler.swap("destroyProgress");
 
 		// honor damage render layer irrespective of model material
-		blockContext.bufferProvider = null;
+		blockContext.collectors = null;
 
 		final ObjectIterator<Entry<SortedSet<BlockBreakingInfo>>> breakings = wr.canvas_blockBreakingProgressions().long2ObjectEntrySet().iterator();
 
@@ -654,7 +654,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			}
 		}
 
-		blockContext.bufferProvider = immediate;
+		blockContext.collectors = immediate.collectors;
 
 		assert matrixStack.isEmpty() : "Matrix stack not empty in world render when expected";
 
@@ -682,7 +682,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		// Intention here seems to be to draw all the non-translucent layers before
 		// enabling the translucent target - this is a very brittle way of handling
 		// should be able to draw all layers for a given target
-		((CanvasImmediate) immediate).drawCollectors(false);
+		immediate.drawCollectors(false);
 
 		immediate.draw(RenderLayer.getArmorGlint());
 		immediate.draw(RenderLayer.getArmorEntityGlint());
@@ -703,7 +703,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			// Lines draw to entity (item) target
 			immediate.draw(RenderLayer.getLines());
 
-			((CanvasImmediate) immediate).drawCollectors(true);
+			immediate.drawCollectors(true);
 
 			// This presumably catches any remaining translucent layers in vanilla
 			immediate.draw();
@@ -741,7 +741,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			// and other translucent elements get drawn on top of terrain
 			immediate.draw(RenderLayer.getLines());
 
-			((CanvasImmediate) immediate).drawCollectors(true);
+			immediate.drawCollectors(true);
 
 			// This presumably catches any remaining translucent layers in vanilla
 			immediate.draw();
@@ -820,8 +820,8 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		RenderSystem.disableBlend();
 		RenderSystem.popMatrix();
 		BackgroundRenderer.method_23792();
-		entityBlockContext.bufferProvider = null;
-		blockContext.bufferProvider = null;
+		entityBlockContext.collectors = null;
+		blockContext.collectors = null;
 
 		wr.canvas_setEntityCounts(entityCount, blockEntityCount);
 	}

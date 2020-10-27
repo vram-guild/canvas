@@ -21,7 +21,6 @@ import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.buffer.encoding.VertexCollectorList;
 import grondag.canvas.light.AoCalculator;
 import grondag.canvas.light.LightSmoother;
-import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.terrain.FastRenderRegion;
 import grondag.canvas.terrain.ProtoRenderRegion;
@@ -35,7 +34,6 @@ import static grondag.canvas.buffer.encoding.EncoderUtils.colorizeQuad;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.crash.CrashException;
 import net.minecraft.util.crash.CrashReport;
@@ -52,8 +50,6 @@ import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
  * and holds/manages all of the state needed by them.
  */
 public class TerrainRenderContext extends AbstractBlockRenderContext<FastRenderRegion> {
-	public final VertexCollectorList collectors = new VertexCollectorList(contextState);
-
 	// Reused each build to prevent needless allocation
 	public final ObjectOpenHashSet<BlockEntity> nonCullBlockEntities = new ObjectOpenHashSet<>();
 	public final ObjectOpenHashSet<BlockEntity> addedBlockEntities = new ObjectOpenHashSet<>();
@@ -80,8 +76,7 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<FastRenderR
 	public TerrainRenderContext() {
 		super("TerrainRenderContext");
 		region = new FastRenderRegion(this);
-		// WIP2: fix or remove
-		//		collectors.setContext(EncodingContext.TERRAIN);
+		collectors = new VertexCollectorList(contextState);
 	}
 
 	public TerrainRenderContext prepareRegion(ProtoRenderRegion protoRegion) {
@@ -130,11 +125,6 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<FastRenderR
 	}
 
 	@Override
-	public VertexConsumer consumer(RenderMaterialImpl mat) {
-		return collectors.get(mat);
-	}
-
-	@Override
 	public int brightness() {
 		return 0;
 	}
@@ -176,6 +166,6 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<FastRenderR
 		// needs to happen before offsets are applied
 		applyBlockLighting(quad, this);
 		colorizeQuad(quad, this);
-		bufferQuadDirect(quad, this);
+		bufferQuadDirect(quad, this, collectors.get(quad.material()));
 	}
 }

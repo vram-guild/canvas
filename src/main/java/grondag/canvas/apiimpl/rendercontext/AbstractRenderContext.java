@@ -22,6 +22,7 @@ import java.util.function.Consumer;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
+import grondag.canvas.buffer.encoding.VertexCollectorList;
 import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.light.AoCalculator;
 import grondag.canvas.material.state.MaterialFinderImpl;
@@ -34,7 +35,6 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.block.BlockState;
-import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.model.BakedModel;
 import net.minecraft.client.texture.Sprite;
 import net.minecraft.util.math.Matrix4f;
@@ -53,6 +53,9 @@ public abstract class AbstractRenderContext implements RenderContext {
 	public final int[] appendData = new int[CanvasVertexFormats.MATERIAL_QUAD_STRIDE];
 	// WIP: use this for material maps, etc. need to populate it upstream of render output
 	public final RenderContextState contextState = new RenderContextState();
+
+	/** null when not in world render loop/thread or when default consumer should be honored. */
+	@Nullable public VertexCollectorList collectors = null;
 
 	protected final String name;
 	protected final MeshConsumer meshConsumer = new MeshConsumer(this);
@@ -167,8 +170,6 @@ public abstract class AbstractRenderContext implements RenderContext {
 	public abstract boolean defaultAo();
 
 	protected abstract BlockState blockState();
-
-	public abstract VertexConsumer consumer(RenderMaterialImpl mat);
 
 	public abstract int indexedColor(int colorIndex);
 

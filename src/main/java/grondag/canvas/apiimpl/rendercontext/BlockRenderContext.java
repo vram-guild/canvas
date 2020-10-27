@@ -19,16 +19,12 @@ package grondag.canvas.apiimpl.rendercontext;
 import java.util.function.Supplier;
 
 import grondag.canvas.light.AoCalculator;
-import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.fermion.sc.concurrency.SimpleConcurrentList;
 
 import static grondag.canvas.terrain.RenderRegionAddressHelper.cacheIndexToXyz5;
 
 import net.minecraft.block.BlockState;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.TexturedRenderLayers;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.client.render.block.BlockModelRenderer;
@@ -37,7 +33,6 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.BlockRenderView;
 
-import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
 
 /**
@@ -104,7 +99,7 @@ public class BlockRenderContext extends AbstractBlockRenderContext<BlockRenderVi
 			return state.isOpaqueFullCube(blockView, internalSearchPos);
 		}
 	};
-	private VertexConsumer bufferBuilder;
+
 	private boolean didOutput = false;
 
 	public BlockRenderContext() {
@@ -122,7 +117,7 @@ public class BlockRenderContext extends AbstractBlockRenderContext<BlockRenderVi
 	}
 
 	public boolean tesselate(BlockModelRenderer vanillaRenderer, BlockRenderView blockView, BakedModel model, BlockState state, BlockPos pos, MatrixStack matrixStack, VertexConsumer buffer, boolean checkSides, long seed, int overlay) {
-		bufferBuilder = buffer;
+		defaultConsumer = buffer;
 		matrix = matrixStack.peek().getModel();
 		normalMatrix = (Matrix3fExt) (Object) matrixStack.peek().getNormal();
 
@@ -134,7 +129,7 @@ public class BlockRenderContext extends AbstractBlockRenderContext<BlockRenderVi
 
 		((FabricBakedModel) model).emitBlockQuads(blockView, state, pos, randomSupplier, this);
 
-		bufferBuilder = null;
+		defaultConsumer = null;
 
 		return didOutput;
 	}
@@ -152,46 +147,6 @@ public class BlockRenderContext extends AbstractBlockRenderContext<BlockRenderVi
 	@Override
 	protected int fastBrightness(BlockState blockState, BlockPos pos) {
 		return WorldRenderer.getLightmapCoordinates(region, blockState, pos);
-	}
-
-	@Override
-	public VertexConsumer consumer(RenderMaterialImpl mat) {
-		didOutput = true;
-
-		if (bufferProvider == null) {
-			return bufferBuilder;
-		} else {
-			BlendMode bm = mat.blendMode();
-
-			if (bm == BlendMode.DEFAULT) {
-				bm = defaultBlendMode();
-			}
-
-			RenderLayer layer;
-
-			switch (bm) {
-				case CUTOUT:
-				case CUTOUT_MIPPED:
-					// WIP2: should be addressed by new pipeline - cutout isn't mipped
-					layer = mat.disableDiffuse() ? RenderLayer.getCutout() : TexturedRenderLayers.getEntityCutout();
-					break;
-				case TRANSLUCENT:
-					// WIP2: should be addessed by new pipeline - only moving blocks are supposed to have item target
-					if (!MinecraftClient.isFabulousGraphicsOrBetter()) {
-						layer = mat.disableDiffuse() ? RenderLayer.getTranslucent() : TexturedRenderLayers.getEntityTranslucentCull();
-					} else {
-						layer = mat.disableDiffuse() ? RenderLayer.getTranslucent() : TexturedRenderLayers.getItemEntityTranslucentCull();
-					}
-					break;
-				case DEFAULT:
-				case SOLID:
-				default:
-					layer = mat.disableDiffuse() ? RenderLayer.getSolid() : TexturedRenderLayers.getEntitySolid();
-					break;
-			}
-
-			return bufferProvider.getBuffer(layer);
-		}
 	}
 
 	@Override

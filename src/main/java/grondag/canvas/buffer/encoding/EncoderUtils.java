@@ -19,7 +19,6 @@ package grondag.canvas.buffer.encoding;
 import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.rendercontext.AbstractRenderContext;
-import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
 import grondag.canvas.apiimpl.util.ColorHelper;
 import grondag.canvas.apiimpl.util.NormalHelper;
 import grondag.canvas.material.state.RenderMaterialImpl;
@@ -35,11 +34,10 @@ import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 public abstract class EncoderUtils {
 	public static final int FULL_BRIGHTNESS = 0xF000F0;
 
-	public static void bufferQuad(MutableQuadViewImpl quad, AbstractRenderContext context) {
+	public static void bufferQuad(MutableQuadViewImpl quad, AbstractRenderContext context, VertexConsumer buff) {
 		final Matrix4fExt matrix = (Matrix4fExt) (Object) context.matrix();
 		final int overlay = context.overlay();
 		final Matrix3fExt normalMatrix = context.normalMatrix();
-		final VertexConsumer buff = context.consumer(quad.material());
 
 		int packedNormal = 0;
 		float nx = 0, ny = 0, nz = 0;
@@ -106,12 +104,11 @@ public abstract class EncoderUtils {
 		}
 	}
 
-	public static void bufferQuadDirect(MutableQuadViewImpl quad, TerrainRenderContext context) {
+	public static void bufferQuadDirect(MutableQuadViewImpl quad, AbstractRenderContext context, VertexCollectorImpl buff) {
 		final Matrix4fExt matrix = (Matrix4fExt) (Object) context.matrix();
 		final Matrix3fExt normalMatrix = context.normalMatrix();
 		final float[] aoData = quad.ao;
 		final RenderMaterialImpl mat = quad.material();
-		final VertexCollectorImpl buff0 = context.collectors.get(mat);
 		final int[] appendData = context.appendData;
 
 		assert mat.blendMode() != BlendMode.DEFAULT;
@@ -161,7 +158,7 @@ public abstract class EncoderUtils {
 			appendData[k++] = transformedNormal | shaderFlags;
 		}
 
-		buff0.add(appendData, k);
+		buff.add(appendData, k);
 	}
 
 	public static void applyBlockLighting(MutableQuadViewImpl quad, AbstractRenderContext context) {
