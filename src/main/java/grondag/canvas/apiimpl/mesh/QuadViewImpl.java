@@ -16,9 +16,9 @@
 
 package grondag.canvas.apiimpl.mesh;
 
-import grondag.canvas.apiimpl.material.MeshMaterial;
 import grondag.canvas.apiimpl.util.GeometryHelper;
 import grondag.canvas.apiimpl.util.NormalHelper;
+import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.mixinterface.Matrix4fExt;
 import grondag.canvas.texture.SpriteInfoTexture;
 import grondag.frex.api.mesh.QuadView;
@@ -177,8 +177,8 @@ public class QuadViewImpl implements QuadView {
 	}
 
 	@Override
-	public final MeshMaterial material() {
-		return MeshMaterial.fromIndex(data[baseIndex + HEADER_MATERIAL]);
+	public final RenderMaterialImpl material() {
+		return RenderMaterialImpl.fromIndex(data[baseIndex + HEADER_MATERIAL]);
 	}
 
 	@Override
@@ -228,7 +228,7 @@ public class QuadViewImpl implements QuadView {
 		int result = packedFaceNormal;
 
 		if (result == -1) {
-			result = NormalHelper.packNormal(faceNormal, 0);
+			result = NormalHelper.packNormal(faceNormal);
 			packedFaceNormal = result;
 		}
 

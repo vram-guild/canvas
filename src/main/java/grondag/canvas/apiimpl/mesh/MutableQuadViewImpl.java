@@ -17,10 +17,10 @@
 package grondag.canvas.apiimpl.mesh;
 
 import grondag.canvas.apiimpl.Canvas;
-import grondag.canvas.apiimpl.material.MeshMaterial;
 import grondag.canvas.apiimpl.util.NormalHelper;
 import grondag.canvas.apiimpl.util.TextureHelper;
 import grondag.canvas.light.LightmapHd;
+import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.mixinterface.SpriteExt;
 import grondag.canvas.texture.SpriteInfoTexture;
 import grondag.frex.api.mesh.QuadEmitter;
@@ -92,9 +92,9 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 			material = Canvas.MATERIAL_STANDARD;
 		}
 
-		data[baseIndex + HEADER_MATERIAL] = ((MeshMaterial) material).index;
+		data[baseIndex + HEADER_MATERIAL] = ((RenderMaterialImpl) material).index;
 
-		assert MeshMaterial.fromIndex(data[baseIndex + HEADER_MATERIAL]) == material;
+		assert RenderMaterialImpl.fromIndex(data[baseIndex + HEADER_MATERIAL]) == material;
 
 		return this;
 	}
@@ -196,7 +196,7 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 	@Override
 	public MutableQuadViewImpl normal(int vertexIndex, float x, float y, float z) {
 		normalFlags(normalFlags() | (1 << vertexIndex));
-		data[baseIndex + vertexIndex * BASE_VERTEX_STRIDE + VERTEX_NORMAL] = NormalHelper.packNormal(x, y, z, 0);
+		data[baseIndex + vertexIndex * BASE_VERTEX_STRIDE + VERTEX_NORMAL] = NormalHelper.packNormal(x, y, z);
 		return this;
 	}
 
@@ -210,7 +210,7 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 			return;
 		}
 
-		final int packedFaceNormal = NormalHelper.packNormal(faceNormal(), 0);
+		final int packedFaceNormal = NormalHelper.packNormal(faceNormal());
 
 		for (int v = 0; v < 4; v++) {
 			if ((normalFlags & (1 << v)) == 0) {

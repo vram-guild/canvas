@@ -17,20 +17,23 @@
 package grondag.canvas.apiimpl.rendercontext;
 
 import grondag.canvas.Configurator;
-import grondag.canvas.apiimpl.material.MeshMaterial;
+import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
+import grondag.canvas.buffer.encoding.VertexCollectorList;
 import grondag.canvas.light.AoCalculator;
 import grondag.canvas.light.LightSmoother;
-import grondag.canvas.material.EncodingContext;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.terrain.FastRenderRegion;
 import grondag.canvas.terrain.ProtoRenderRegion;
 import grondag.canvas.terrain.RenderRegionAddressHelper;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 
+import static grondag.canvas.buffer.encoding.EncoderUtils.applyBlockLighting;
+import static grondag.canvas.buffer.encoding.EncoderUtils.bufferQuadDirect;
+import static grondag.canvas.buffer.encoding.EncoderUtils.colorizeQuad;
+
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.crash.CrashException;
 import net.minecraft.util.crash.CrashReport;
@@ -73,7 +76,7 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<FastRenderR
 	public TerrainRenderContext() {
 		super("TerrainRenderContext");
 		region = new FastRenderRegion(this);
-		collectors.setContext(EncodingContext.TERRAIN);
+		collectors = new VertexCollectorList();
 	}
 
 	public TerrainRenderContext prepareRegion(ProtoRenderRegion protoRegion) {
@@ -122,16 +125,6 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<FastRenderR
 	}
 
 	@Override
-	public EncodingContext materialContext() {
-		return EncodingContext.TERRAIN;
-	}
-
-	@Override
-	public VertexConsumer consumer(MeshMaterial mat) {
-		return collectors.get(mat);
-	}
-
-	@Override
 	public int brightness() {
 		return 0;
 	}
@@ -166,5 +159,13 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<FastRenderR
 		} else {
 			return (cullResultFlags & mask) != 0;
 		}
+	}
+
+	@Override
+	protected void encodeQuad(MutableQuadViewImpl quad) {
+		// needs to happen before offsets are applied
+		applyBlockLighting(quad, this);
+		colorizeQuad(quad, this);
+		bufferQuadDirect(quad, this, collectors.get(quad.material()));
 	}
 }

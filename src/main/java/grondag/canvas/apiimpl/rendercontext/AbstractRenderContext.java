@@ -21,14 +21,12 @@ import java.util.function.Consumer;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
-import grondag.canvas.apiimpl.material.MeshMaterial;
-import grondag.canvas.apiimpl.material.MeshMaterialFinder;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.buffer.encoding.VertexCollectorList;
-import grondag.canvas.buffer.encoding.VertexEncoders;
+import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.light.AoCalculator;
-import grondag.canvas.material.EncodingContext;
-import grondag.canvas.material.MaterialVertexFormats;
+import grondag.canvas.material.state.MaterialFinderImpl;
+import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.texture.SpriteInfoTexture;
 import grondag.frex.api.material.MaterialMap;
@@ -36,7 +34,6 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.block.BlockState;
-import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.model.BakedModel;
 import net.minecraft.client.texture.Sprite;
 import net.minecraft.util.math.Matrix4f;
@@ -47,13 +44,17 @@ import net.fabricmc.fabric.api.renderer.v1.mesh.Mesh;
 import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 
+// UGLY: consolidate and simplify this class hierarchy
 public abstract class AbstractRenderContext implements RenderContext {
 	private static final QuadTransform NO_TRANSFORM = (q) -> true;
 	private static final MaterialMap defaultMap = MaterialMap.defaultMaterialMap();
-	final MeshMaterialFinder finder = new MeshMaterialFinder();
+	final MaterialFinderImpl finder = new MaterialFinderImpl();
 	public final float[] vecData = new float[3];
-	public final int[] appendData = new int[MaterialVertexFormats.MAX_QUAD_INT_STRIDE];
-	public final VertexCollectorList collectors = new VertexCollectorList();
+	public final int[] appendData = new int[CanvasVertexFormats.MATERIAL_QUAD_STRIDE];
+
+	/** null when not in world render loop/thread or when default consumer should be honored. */
+	@Nullable public VertexCollectorList collectors = null;
+
 	protected final String name;
 	protected final MeshConsumer meshConsumer = new MeshConsumer(this);
 	protected final MutableQuadViewImpl makerQuad = meshConsumer.editorQuad;
@@ -168,10 +169,6 @@ public abstract class AbstractRenderContext implements RenderContext {
 
 	protected abstract BlockState blockState();
 
-	public abstract EncodingContext materialContext();
-
-	public abstract VertexConsumer consumer(MeshMaterial mat);
-
 	public abstract int indexedColor(int colorIndex);
 
 	/**
@@ -180,7 +177,7 @@ public abstract class AbstractRenderContext implements RenderContext {
 	public abstract int brightness();
 
 	/**
-	 * Null in some contexts, like ITEM.
+	 * Null in most contexts.  AO is disabled if null.
 	 */
 	public abstract @Nullable
 	AoCalculator aoCalc();
@@ -218,15 +215,27 @@ public abstract class AbstractRenderContext implements RenderContext {
 		if (cullTest(quad)) {
 			finder.copyFrom(quad.material());
 			adjustMaterial();
-			final MeshMaterial mat = finder.find();
+			final RenderMaterialImpl mat = finder.find();
 			quad.material(mat);
-			VertexEncoders.get(materialContext(), mat).encodeQuad(quad, this);
+			encodeQuad(quad);
 		}
 	}
 
+	protected abstract void encodeQuad(MutableQuadViewImpl quad);
+
 	protected void adjustMaterial() {
+		final MaterialFinderImpl finder = this.finder;
+
 		if (finder.blendMode() == BlendMode.DEFAULT) {
-			finder.blendMode(defaultBlendMode()).disableAo();
+			final BlendMode bm = defaultBlendMode();
+
+			assert bm != BlendMode.DEFAULT;
+
+			finder.blendMode(bm);
+		}
+
+		if (aoCalc() == null) {
+			finder.disableAo(true);
 		}
 	}
 }

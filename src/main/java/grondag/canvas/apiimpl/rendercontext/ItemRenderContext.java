@@ -19,13 +19,21 @@ package grondag.canvas.apiimpl.rendercontext;
 import java.util.Random;
 import java.util.function.Supplier;
 
-import grondag.canvas.apiimpl.material.MeshMaterial;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
+import grondag.canvas.buffer.encoding.CanvasImmediate;
 import grondag.canvas.light.AoCalculator;
-import grondag.canvas.material.EncodingContext;
+import grondag.canvas.material.property.MaterialTarget;
+import grondag.canvas.material.state.RenderLayerHelper;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.MinecraftClientExt;
 import grondag.fermion.sc.concurrency.SimpleConcurrentList;
+import grondag.frex.api.material.MaterialMap;
+import org.jetbrains.annotations.Nullable;
+
+import static grondag.canvas.buffer.encoding.EncoderUtils.applyItemLighting;
+import static grondag.canvas.buffer.encoding.EncoderUtils.bufferQuad;
+import static grondag.canvas.buffer.encoding.EncoderUtils.bufferQuadDirect;
+import static grondag.canvas.buffer.encoding.EncoderUtils.colorizeQuad;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -33,6 +41,7 @@ import net.minecraft.block.StainedGlassPaneBlock;
 import net.minecraft.block.TransparentBlock;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.color.item.ItemColors;
+import net.minecraft.client.render.OverlayVertexConsumer;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.RenderLayers;
 import net.minecraft.client.render.TexturedRenderLayers;
@@ -40,7 +49,6 @@ import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.item.BuiltinModelItemRenderer;
 import net.minecraft.client.render.item.ItemModels;
-import net.minecraft.client.render.item.ItemRenderer;
 import net.minecraft.client.render.model.BakedModel;
 import net.minecraft.client.render.model.json.ModelTransformation;
 import net.minecraft.client.render.model.json.ModelTransformation.Mode;
@@ -76,7 +84,6 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 	private static ThreadLocal<ItemRenderContext> POOL = POOL_FACTORY.get();
 	private final ItemColors colorMap;
 	private final Random random = new Random();
-	private final EncodingContext context = EncodingContext.ITEM;
 	private final Supplier<Random> randomSupplier = () -> {
 		final Random result = random;
 		result.setSeed(ITEM_RANDOM_SEED);
@@ -85,15 +92,20 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 	private MatrixStack matrices;
 	private Mode renderMode;
 	private RenderLayer defaultRenderLayer;
-	private VertexConsumerProvider bufferProvider;
+	private VertexConsumerProvider vanillaProvider;
 	private VertexConsumer defaultConsumer;
+	private @Nullable VertexConsumer glintConsumer;
+
+	private BlendMode defaultBlendMode;
+
 	private int lightmap;
 	private ItemStack itemStack;
 
 	public ItemRenderContext(ItemColors colorMap) {
 		super("ItemRenderContext");
 		this.colorMap = colorMap;
-		collectors.setContext(EncodingContext.ITEM);
+		// WIP2: fix or remove
+		//		collectors.setContext(EncodingContext.ITEM);
 	}
 
 	public static void reload() {
@@ -104,11 +116,6 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 
 	public static ItemRenderContext get() {
 		return POOL.get();
-	}
-
-	@Override
-	public EncodingContext materialContext() {
-		return context;
 	}
 
 	@Override
@@ -124,33 +131,6 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 	@Override
 	public BlockState blockState() {
 		return null;
-	}
-
-	@Override
-	public VertexConsumer consumer(MeshMaterial mat) {
-		// WIP2: will need to allow for/handle other material properties here when switching to material state
-		// routing to the default consumer may not be correct
-		// standard vanilla consumers may also be incorrect
-
-		if (bufferProvider == null) {
-			return defaultConsumer;
-		} else {
-			final BlendMode bm = mat.blendMode();
-
-			if (bm == BlendMode.DEFAULT) {
-				return defaultConsumer;
-			}
-
-			if (bm == BlendMode.TRANSLUCENT) {
-				if (!MinecraftClient.isFabulousGraphicsOrBetter()) {
-					return getCompoundConsumer(TexturedRenderLayers.getEntityTranslucentCull());
-				} else {
-					return getCompoundConsumer(isDirect ? TexturedRenderLayers.getEntityTranslucentCull() : TexturedRenderLayers.getItemEntityTranslucentCull());
-				}
-			} else {
-				return getCompoundConsumer(TexturedRenderLayers.getEntityCutout());
-			}
-		}
 	}
 
 	@Override
@@ -175,7 +155,7 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 
 	@Override
 	protected BlendMode defaultBlendMode() {
-		return BlendMode.TRANSLUCENT;
+		return defaultBlendMode;
 	}
 
 	private boolean isDirect;
@@ -188,7 +168,10 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 		this.matrices = matrices;
 		this.renderMode = renderMode;
 		itemStack = stack;
-		bufferProvider = vertexConsumers;
+		vanillaProvider = vertexConsumers;
+
+		// WIP: need a way to indicate item context in shader to disable wavy grass, et.
+		materialMap = MaterialMap.get(itemStack);
 
 		matrices.push();
 		final boolean detachedPerspective = renderMode == ModelTransformation.Mode.GUI || renderMode == ModelTransformation.Mode.GROUND || renderMode == ModelTransformation.Mode.FIXED;
@@ -215,7 +198,16 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 			}
 
 			defaultRenderLayer = RenderLayers.getItemLayer(stack, isDirect);
-			defaultConsumer = getCompoundConsumer(defaultRenderLayer);
+			glintConsumer = getGlintConsumer(defaultRenderLayer);
+			defaultBlendMode = RenderLayerHelper.copyFromLayer(defaultRenderLayer).blendMode();
+
+			if (((vertexConsumers instanceof CanvasImmediate))) {
+				collectors = ((CanvasImmediate) vertexConsumers).collectors;
+			} else {
+				collectors = null;
+				defaultConsumer = vertexConsumers.getBuffer(defaultRenderLayer);
+			}
+
 			((FabricBakedModel) model).emitItemQuads(itemStack, randomSupplier, this);
 		}
 
@@ -223,10 +215,14 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 
 	}
 
-	private VertexConsumer getCompoundConsumer(RenderLayer layer) {
-		if (itemStack.getItem() == Items.COMPASS && itemStack.hasGlint()) {
+	private VertexConsumer getGlintConsumer(RenderLayer layer) {
+		if (!itemStack.hasGlint()) {
+			return null;
+		}
+
+		if (itemStack.getItem() == Items.COMPASS) {
 			// WTAF MOJANG
-			VertexConsumer result;
+			final VertexConsumer result;
 			matrices.push();
 			final MatrixStack.Entry entry = matrices.peek();
 
@@ -237,17 +233,60 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 			}
 
 			if (isDirect) {
-				result = ItemRenderer.getDirectCompassGlintConsumer(bufferProvider, layer, entry);
+				result = getDirectCompassGlintConsumer(vanillaProvider, layer, entry);
 			} else {
-				result = ItemRenderer.getCompassGlintConsumer(bufferProvider, layer, entry);
+				result = getCompassGlintConsumer(vanillaProvider, layer, entry);
 			}
 
 			matrices.pop();
 			return result;
 		} else if (isDirect) {
-			return ItemRenderer.getDirectItemGlintConsumer(bufferProvider, layer, true, itemStack.hasGlint());
+			return getDirectItemGlintConsumer(vanillaProvider, layer);
 		} else {
-			return ItemRenderer.getItemGlintConsumer(bufferProvider, layer, true, itemStack.hasGlint());
+			return getItemGlintConsumer(vanillaProvider, layer);
 		}
+	}
+
+	@Override
+	protected void adjustMaterial() {
+		super.adjustMaterial();
+
+		if (finder.blendMode() == BlendMode.TRANSLUCENT && MinecraftClient.isFabulousGraphicsOrBetter() && !isDirect) {
+			finder.target(MaterialTarget.ENTITIES);
+		}
+	}
+
+	@Override
+	protected void encodeQuad(MutableQuadViewImpl quad) {
+		colorizeQuad(quad, this);
+		applyItemLighting(quad, this);
+
+		if (collectors == null) {
+			bufferQuad(quad, this, defaultConsumer);
+		} else {
+			bufferQuadDirect(quad, this, collectors.get(quad.material()));
+		}
+
+		if (glintConsumer != null) {
+			bufferQuad(quad, this, glintConsumer);
+		}
+	}
+
+	// differ from vanilla in that aren't dual - just render quads twice
+	// PERF: avoid reallocation
+	private static VertexConsumer getCompassGlintConsumer(VertexConsumerProvider provider, RenderLayer layer, MatrixStack.Entry entry) {
+		return new OverlayVertexConsumer(provider.getBuffer(RenderLayer.getGlint()), entry.getModel(), entry.getNormal());
+	}
+
+	private static VertexConsumer getDirectCompassGlintConsumer(VertexConsumerProvider provider, RenderLayer layer, MatrixStack.Entry entry) {
+		return new OverlayVertexConsumer(provider.getBuffer(RenderLayer.getDirectGlint()), entry.getModel(), entry.getNormal());
+	}
+
+	private static VertexConsumer getItemGlintConsumer(VertexConsumerProvider vertexConsumers, RenderLayer layer) {
+		return MinecraftClient.isFabulousGraphicsOrBetter() && layer == TexturedRenderLayers.getItemEntityTranslucentCull() ? vertexConsumers.getBuffer(RenderLayer.method_30676()) : vertexConsumers.getBuffer(RenderLayer.getGlint());
+	}
+
+	private static VertexConsumer getDirectItemGlintConsumer(VertexConsumerProvider provider, RenderLayer layer) {
+		return provider.getBuffer(RenderLayer.getDirectGlint());
 	}
 }

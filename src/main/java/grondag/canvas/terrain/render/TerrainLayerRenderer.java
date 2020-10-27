@@ -21,12 +21,6 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.MaterialConditionImpl;
 import grondag.canvas.light.LightmapHdTexture;
-import grondag.canvas.material.EncodingContext;
-import grondag.canvas.material.MaterialVertexFormat;
-import grondag.canvas.render.DrawHandler;
-import grondag.canvas.render.DrawHandlers;
-import grondag.canvas.shader.ShaderContext;
-import grondag.canvas.shader.ShaderPass;
 import grondag.canvas.terrain.BuiltRenderRegion;
 import grondag.canvas.terrain.TerrainModelSpace;
 import grondag.canvas.texture.DitherTexture;
@@ -41,15 +35,11 @@ public class TerrainLayerRenderer {
 	private final String profileString;
 	private final Runnable sortTask;
 	private final boolean isTranslucent;
-	private final ShaderContext shaderContext;
 
-	public TerrainLayerRenderer(String layerName, ShaderContext shaderContext, @Nullable Runnable translucentSortTask) {
+	public TerrainLayerRenderer(String layerName, @Nullable Runnable translucentSortTask) {
 		profileString = "render_" + layerName;
-		this.shaderContext = shaderContext;
 		isTranslucent = translucentSortTask != null;
 		sortTask = isTranslucent ? translucentSortTask : Runnables.doNothing();
-
-		assert !isTranslucent || shaderContext == ShaderContext.TERRAIN_TRANSLUCENT;
 	}
 
 	public void render(final BuiltRenderRegion[] visibleRegions, final int visibleRegionCount, MatrixStack matrixStack, double x, double y, double z) {
@@ -62,7 +52,6 @@ public class TerrainLayerRenderer {
 		final int startIndex = isTranslucent ? visibleRegionCount - 1 : 0;
 		final int endIndex = isTranslucent ? -1 : visibleRegionCount;
 		final int step = isTranslucent ? -1 : 1;
-		final ShaderPass pass = shaderContext.pass;
 
 		if (Configurator.hdLightmaps()) {
 			LightmapHdTexture.instance().enable();
@@ -71,9 +60,9 @@ public class TerrainLayerRenderer {
 
 		long lastRelativeOrigin = -1;
 
-		final DrawHandler h = DrawHandlers.get(EncodingContext.TERRAIN, shaderContext.pass);
-		final MaterialVertexFormat format = h.format;
-		h.setup();
+		//		final DrawHandler h = DrawHandlers.get(EncodingContext.TERRAIN, shaderContext.pass);
+		//		final MaterialVertexFormat format = h.format;
+		//		h.setup();
 
 		int ox = 0, oy = 0, oz = 0;
 
@@ -87,7 +76,7 @@ public class TerrainLayerRenderer {
 			final DrawableChunk drawable = isTranslucent ? builtRegion.translucentDrawable() : builtRegion.solidDrawable();
 
 			if (!drawable.isClosed()) {
-				final ObjectArrayList<DrawableDelegate> delegates = drawable.delegates(pass);
+				final ObjectArrayList<DrawableDelegate> delegates = drawable.delegates();
 
 				if (delegates != null) {
 					final BlockPos modelOrigin = builtRegion.getOrigin();
@@ -127,16 +116,19 @@ public class TerrainLayerRenderer {
 						RenderSystem.multMatrix(matrixStack.peek().getModel());
 					}
 
+
+
 					drawable.vboBuffer.bind();
 
 					final int limit = delegates.size();
 
 					for (int i = 0; i < limit; ++i) {
 						final DrawableDelegate d = delegates.get(i);
+						d.materialState().renderState.enable();
+
 						final MaterialConditionImpl condition = d.materialState().condition;
 
 						if (!condition.affectBlocks || condition.compute()) {
-							d.materialState().shader.activate(shaderContext, format, ox, oy, oz);
 							d.draw();
 						}
 					}

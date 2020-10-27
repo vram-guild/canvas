@@ -67,8 +67,9 @@ struct frx_FragmentData {
 	vec3 vertexNormal;
 
 /*
- * Block and sky light intensity for this fragment as 0 to 1 values.
+ * Block and sky light intensity for this fragment.
  * Block is X and sky is Y.
+ * Encoding may depend on renderer configuration.
  *
  * Depending on the context or lighting model in effect, this
  * may be an interpolated vertex value, a value from

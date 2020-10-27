@@ -2,10 +2,10 @@
 #include canvas:shaders/internal/context.glsl
 
 /******************************************************
-  canvas:shaders/internal/common_varying.glsl
+  canvas:shaders/internal/varying.glsl
 ******************************************************/
 
-#ifdef CONTEXT_IS_BLOCK
+#if AO_SHADING_MODE != AO_MODE_NONE
 varying float _cvv_ao;
 #endif
 

@@ -32,21 +32,7 @@ public abstract class NormalHelper {
 	private NormalHelper() {
 	}
 
-	/**
-	 * Stores a normal plus an extra value as a quartet of signed bytes.
-	 * This is the same normal format that vanilla item rendering expects.
-	 * The extra value is for use by shaders.
-	 */
-	public static int packNormal(float x, float y, float z, float w) {
-		x = MathHelper.clamp(x, -1, 1);
-		y = MathHelper.clamp(y, -1, 1);
-		z = MathHelper.clamp(z, -1, 1);
-		w = MathHelper.clamp(w, -1, 1);
-
-		return ((int) (x * 127) & 255) | (((int) (y * 127) & 255) << 8) | (((int) (z * 127) & 255) << 16) | (((int) (w * 127) & 255) << 24);
-	}
-
-	public static int packUnsignedNormal(float x, float y, float z) {
+	public static int packNormal(float x, float y, float z) {
 		x = MathHelper.clamp(x, -1, 1);
 		y = MathHelper.clamp(y, -1, 1);
 		z = MathHelper.clamp(z, -1, 1);
@@ -55,19 +41,19 @@ public abstract class NormalHelper {
 	}
 
 	/**
-	 * Version of {@link #packNormal(float, float, float, float)} that accepts a vector type.
+	 * Version of {@link #packNormal(float, float, float)} that accepts a vector type.
 	 */
-	public static int packNormal(Vector3f normal, float w) {
-		return packNormal(normal.getX(), normal.getY(), normal.getZ(), w);
+	public static int packNormal(Vector3f normal) {
+		return packNormal(normal.getX(), normal.getY(), normal.getZ());
 	}
 
 	/**
 	 * Retrieves values packed by {@link #packNormal(float, float, float, float)}.
 	 *
-	 * <p>Components are x, y, z, w - zero based.
+	 * <p>Components are x, y, z - zero based.
 	 */
 	public static float getPackedNormalComponent(int packedNormal, int component) {
-		return ((byte) (packedNormal >>> (8 * component))) / 127f;
+		return (((packedNormal >>> (8 * component)) & 0xFF) - 127f) / 127f;
 	}
 
 	/**

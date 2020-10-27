@@ -19,51 +19,44 @@ package grondag.canvas.apiimpl;
 import java.util.function.BooleanSupplier;
 
 import grondag.canvas.CanvasMod;
-import grondag.canvas.apiimpl.material.MaterialShaderImpl;
-import grondag.canvas.apiimpl.material.MeshMaterial;
-import grondag.canvas.apiimpl.material.MeshMaterialFinder;
 import grondag.canvas.apiimpl.mesh.MeshBuilderImpl;
 import grondag.canvas.apiimpl.rendercontext.BlockRenderContext;
 import grondag.canvas.apiimpl.rendercontext.EntityBlockRenderContext;
 import grondag.canvas.apiimpl.rendercontext.ItemRenderContext;
-import grondag.canvas.buffer.encoding.VertexEncoders;
 import grondag.canvas.compat.LitematicaHolder;
 import grondag.canvas.light.AoVertexClampFunction;
 import grondag.canvas.light.LightmapHd;
 import grondag.canvas.light.LightmapHdTexture;
-import grondag.canvas.material.MaterialState;
+import grondag.canvas.material.state.MaterialFinderImpl;
+import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.perf.ChunkRebuildCounters;
-import grondag.canvas.pipeline.ProcessShaders;
 import grondag.canvas.shader.GlShaderManager;
-import grondag.canvas.shader.MaterialShaderManager;
+import grondag.canvas.shader.MaterialProgramManager;
+import grondag.canvas.shader.ProcessShaders;
 import grondag.canvas.terrain.ChunkColorCache;
 import grondag.canvas.terrain.ProtoRenderRegion;
 import grondag.canvas.terrain.TerrainModelSpace;
-import grondag.canvas.wip.shader.WipGlShaderManager;
-import grondag.canvas.wip.shader.WipMaterialShaderManager;
 import grondag.frex.api.Renderer;
 import grondag.frex.api.material.MaterialCondition;
-import grondag.frex.api.material.MaterialShader;
-import grondag.frex.api.material.ShaderBuilder;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
 import net.minecraft.client.resource.language.I18n;
 import net.minecraft.util.Identifier;
 
+import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 import net.fabricmc.fabric.api.renderer.v1.material.RenderMaterial;
 import net.fabricmc.fabric.api.renderer.v1.mesh.MeshBuilder;
 
 public class Canvas implements Renderer {
 	public static final Canvas INSTANCE = new Canvas();
 
-	public static final MeshMaterial MATERIAL_STANDARD = INSTANCE.materialFinder().find();
+	public static final RenderMaterialImpl MATERIAL_STANDARD = INSTANCE.materialFinder().blendMode(BlendMode.DEFAULT).find();
 
 	static {
 		INSTANCE.registerMaterial(RenderMaterial.MATERIAL_STANDARD, MATERIAL_STANDARD);
 	}
 
-	private final Object2ObjectOpenHashMap<Identifier, MeshMaterial> materialMap = new Object2ObjectOpenHashMap<>();
-	private final Object2ObjectOpenHashMap<Identifier, MaterialShaderImpl> shaderMap = new Object2ObjectOpenHashMap<>();
+	private final Object2ObjectOpenHashMap<Identifier, RenderMaterialImpl> materialMap = new Object2ObjectOpenHashMap<>();
 	private final Object2ObjectOpenHashMap<Identifier, MaterialConditionImpl> conditionMap = new Object2ObjectOpenHashMap<>();
 
 	private Canvas() {
@@ -75,12 +68,12 @@ public class Canvas implements Renderer {
 	}
 
 	@Override
-	public MeshMaterialFinder materialFinder() {
-		return new MeshMaterialFinder();
+	public MaterialFinderImpl materialFinder() {
+		return new MaterialFinderImpl();
 	}
 
 	@Override
-	public MeshMaterial materialById(Identifier id) {
+	public RenderMaterialImpl materialById(Identifier id) {
 		return materialMap.get(id);
 	}
 
@@ -91,7 +84,7 @@ public class Canvas implements Renderer {
 		}
 
 		// cast to prevent acceptance of impostor implementations
-		materialMap.put(id, (MeshMaterial) material);
+		materialMap.put(id, (RenderMaterialImpl) material);
 		return true;
 	}
 
@@ -107,11 +100,7 @@ public class Canvas implements Renderer {
 		GlShaderManager.INSTANCE.reload();
 		LightmapHdTexture.reload();
 		LightmapHd.reload();
-		MaterialShaderManager.INSTANCE.reload();
-		WipMaterialShaderManager.INSTANCE.reload();
-		WipGlShaderManager.INSTANCE.reload();
-		MaterialState.reload();
-		VertexEncoders.reload();
+		MaterialProgramManager.INSTANCE.reload();
 		TerrainModelSpace.reload();
 		ProcessShaders.reload();
 		LitematicaHolder.litematicaReload.run();
@@ -120,27 +109,6 @@ public class Canvas implements Renderer {
 	@Override
 	public int maxSpriteDepth() {
 		return 1;
-	}
-
-	@Override
-	public ShaderBuilder shaderBuilder() {
-		return new ShaderBuilderImpl();
-	}
-
-	@Override
-	public MaterialShaderImpl shaderById(Identifier id) {
-		return shaderMap.get(id);
-	}
-
-	@Override
-	public boolean registerShader(Identifier id, MaterialShader shader) {
-		if (shaderMap.containsKey(id)) {
-			return false;
-		}
-
-		// cast to prevent acceptance of impostor implementations
-		shaderMap.put(id, (MaterialShaderImpl) shader);
-		return true;
 	}
 
 	@Override

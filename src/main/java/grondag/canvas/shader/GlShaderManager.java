@@ -19,8 +19,9 @@ package grondag.canvas.shader;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import net.minecraft.util.Identifier;
 import org.lwjgl.opengl.GL21;
+
+import net.minecraft.util.Identifier;
 
 public enum GlShaderManager {
 	INSTANCE;
@@ -34,30 +35,30 @@ public enum GlShaderManager {
 	private final Object2ObjectOpenHashMap<String, Shader> vertexShaders = new Object2ObjectOpenHashMap<>();
 	private final Object2ObjectOpenHashMap<String, Shader> fragmentShaders = new Object2ObjectOpenHashMap<>();
 
-	public static String shaderKey(Identifier shaderSource, ShaderContext context) {
-		return String.format("%s.%s", shaderSource.toString(), context.name);
+	public static String shaderKey(Identifier shaderSource, ProgramType programType) {
+		return String.format("%s.%s", shaderSource.toString(), programType.name);
 	}
 
-	public Shader getOrCreateVertexShader(Identifier shaderSource, ShaderContext context) {
-		final String shaderKey = shaderKey(shaderSource, context);
+	public Shader getOrCreateVertexShader(Identifier shaderSource, ProgramType programType) {
+		final String shaderKey = shaderKey(shaderSource, programType);
 
 		synchronized (vertexShaders) {
 			Shader result = vertexShaders.get(shaderKey);
 			if (result == null) {
-				result = new GlShader(shaderSource, GL21.GL_VERTEX_SHADER, context);
+				result = new GlShader(shaderSource, GL21.GL_VERTEX_SHADER, programType);
 				vertexShaders.put(shaderKey, result);
 			}
 			return result;
 		}
 	}
 
-	public Shader getOrCreateFragmentShader(Identifier shaderSourceId, ShaderContext context) {
-		final String shaderKey = shaderKey(shaderSourceId, context);
+	public Shader getOrCreateFragmentShader(Identifier shaderSourceId, ProgramType programType) {
+		final String shaderKey = shaderKey(shaderSourceId, programType);
 
 		synchronized (fragmentShaders) {
 			Shader result = fragmentShaders.get(shaderKey);
 			if (result == null) {
-				result = new GlShader(shaderSourceId, GL21.GL_FRAGMENT_SHADER, context);
+				result = new GlShader(shaderSourceId, GL21.GL_FRAGMENT_SHADER, programType);
 				fragmentShaders.put(shaderKey, result);
 			}
 			return result;

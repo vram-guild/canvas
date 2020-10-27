@@ -50,6 +50,7 @@ public class MaterialConditionImpl implements MaterialCondition {
 		return ALL_BY_INDEX.get(index);
 	}
 
+	@Override
 	public boolean compute() {
 		final int frameIndex = MaterialShaderManager.INSTANCE.frameIndex();
 

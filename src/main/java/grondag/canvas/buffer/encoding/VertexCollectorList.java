@@ -16,137 +16,105 @@
 
 package grondag.canvas.buffer.encoding;
 
-import java.util.Arrays;
-
-import grondag.canvas.apiimpl.material.MeshMaterial;
-import grondag.canvas.material.EncodingContext;
-import grondag.canvas.material.MaterialState;
-import grondag.canvas.material.MaterialVertexFormats;
-import grondag.canvas.shader.ShaderPass;
+import grondag.canvas.material.state.RenderMaterialImpl;
+import grondag.canvas.material.state.RenderState;
 import grondag.canvas.terrain.render.UploadableChunk;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-
-import net.minecraft.util.math.MathHelper;
 
 /**
  * MUST ALWAYS BE USED WITHIN SAME MATERIAL CONTEXT
  */
 public class VertexCollectorList {
-	private final ObjectArrayList<VertexCollectorImpl> solidCollectors = new ObjectArrayList<>();
-	private VertexCollectorImpl[] collectors = new VertexCollectorImpl[4096];
-	private int solidCount = 0;
-	private EncodingContext context = null;
-
-	public VertexCollectorList() {
-		collectors[MaterialState.TRANSLUCENT_INDEX] = new VertexCollectorImpl();
-	}
+	private final ObjectArrayList<VertexCollectorImpl> pool = new ObjectArrayList<>();
+	private final VertexCollectorImpl[] collectors = new VertexCollectorImpl[RenderState.MAX_COUNT];
 
 	/**
-	 * Used for assertions and to set material state for translucent collector .
-	 */
-	public void setContext(EncodingContext context) {
-		this.context = context;
-		collectors[MaterialState.TRANSLUCENT_INDEX].prepare(context, MaterialState.getDefault(ShaderPass.TRANSLUCENT));
-	}
-
-	/**
-	 * Releases any held vertex collectors and resets state
+	 * Clears all vertex collectors
 	 */
 	public void clear() {
-		collectors[MaterialState.TRANSLUCENT_INDEX].clear();
+		final int limit = pool.size();
 
-		for (int i = 0; i < solidCount; i++) {
-			solidCollectors.get(i).clear();
+		for (int i = 0; i < limit; i++) {
+			pool.get(i).clear();
+		}
+	}
+
+	public final VertexCollectorImpl getIfExists(RenderMaterialImpl materialState) {
+		return materialState == RenderMaterialImpl.MISSING ? null : collectors[materialState.collectorIndex];
+	}
+
+	public final VertexCollectorImpl get(RenderMaterialImpl materialState) {
+		if (materialState == RenderMaterialImpl.MISSING) {
+			return null;
 		}
 
-		solidCount = 0;
-
-		Arrays.fill(collectors, 1, collectors.length, null);
-	}
-
-	public final VertexCollectorImpl getIfExists(MaterialState materialState) {
-		return collectors[materialState.collectorIndex];
-	}
-
-	public final VertexCollectorImpl get(MaterialState materialState) {
 		final int index = materialState.collectorIndex;
-		VertexCollectorImpl[] collectors = this.collectors;
+		final VertexCollectorImpl[] collectors = this.collectors;
 
-		VertexCollectorImpl result;
+		VertexCollectorImpl result = null;
 
 		if (index < collectors.length) {
 			result = collectors[index];
-		} else {
-			result = null;
-			final VertexCollectorImpl[] newCollectors = new VertexCollectorImpl[MathHelper.smallestEncompassingPowerOfTwo(index)];
-			System.arraycopy(collectors, 0, newCollectors, 0, collectors.length);
-			collectors = newCollectors;
-			this.collectors = collectors;
 		}
 
 		if (result == null) {
-			assert materialState.collectorIndex != MaterialState.TRANSLUCENT_INDEX;
-			result = emptySolidCollector().prepare(context, materialState);
+			result = new VertexCollectorImpl().prepare(materialState);
 			collectors[index] = result;
+			pool.add(result);
 		}
 
 		return result;
 	}
 
-	private VertexCollectorImpl emptySolidCollector() {
-		VertexCollectorImpl result;
-
-		if (solidCount == solidCollectors.size()) {
-			result = new VertexCollectorImpl();
-			solidCollectors.add(result);
-		} else {
-			result = solidCollectors.get(solidCount);
-		}
-
-		++solidCount;
-		return result;
-	}
-
-	public boolean contains(MaterialState materialState) {
+	public boolean contains(RenderMaterialImpl materialState) {
 		final int index = materialState.collectorIndex;
 		return index < collectors.length && collectors[index] != null;
 	}
 
-	private int totalBytes(boolean translucent) {
-		if (translucent) {
-			return collectors[MaterialState.TRANSLUCENT_INDEX].integerSize() * 4;
-		} else {
-			final int solidCount = this.solidCount;
-			final ObjectArrayList<VertexCollectorImpl> solidCollectors = this.solidCollectors;
+	//	public int totalBytes() {
+	//		final int size = this.size;
+	//		final ObjectArrayList<WipVertexCollectorImpl> pool = this.pool;
+	//
+	//		int intSize = 0;
+	//
+	//		for (int i = 0; i < size; i++) {
+	//			intSize += pool.get(i).integerSize();
+	//		}
+	//
+	//		return intSize * 4;
+	//	}
 
-			int intSize = 0;
+	//	public UploadableChunk toUploadableChunk(EncodingContext context, boolean isTranslucent) {
+	//		final int bytes = totalBytes(isTranslucent);
+	//		return bytes == 0 ? UploadableChunk.EMPTY_UPLOADABLE : new UploadableChunk(this, MaterialVertexFormats.get(context, isTranslucent), isTranslucent, bytes);
+	//	}
 
-			for (int i = 0; i < solidCount; i++) {
-				intSize += solidCollectors.get(i).integerSize();
+	public int size() {
+		return pool.size();
+	}
+
+	public VertexCollectorImpl get(int index) {
+		return pool.get(index);
+	}
+
+	public int totalBytes(boolean sorted) {
+		final int limit =  pool.size();
+		final ObjectArrayList<VertexCollectorImpl> pool = this.pool;
+		int intSize = 0;
+
+		for (int i = 0; i < limit; i++) {
+			final VertexCollectorImpl collector = pool.get(i);
+
+			if (!collector.isEmpty() && collector.materialState.sorted == sorted) {
+				intSize += collector.integerSize();
 			}
-
-			return intSize * 4;
 		}
+
+		return intSize * 4;
 	}
 
-	public VertexCollectorImpl get(MeshMaterial mat) {
-		return get(MaterialState.get(mat));
-	}
-
-	public UploadableChunk toUploadableChunk(EncodingContext context, boolean isTranslucent) {
-		final int bytes = totalBytes(isTranslucent);
-		return bytes == 0 ? UploadableChunk.EMPTY_UPLOADABLE : new UploadableChunk(this, MaterialVertexFormats.get(context, isTranslucent), isTranslucent, bytes);
-	}
-
-	public VertexCollectorImpl getTranslucent() {
-		return collectors[MaterialState.TRANSLUCENT_INDEX];
-	}
-
-	public int solidCount() {
-		return solidCount;
-	}
-
-	public VertexCollectorImpl getSolid(int index) {
-		return solidCollectors.get(index);
+	public UploadableChunk toUploadableChunk(boolean sorted) {
+		final int bytes = totalBytes(sorted);
+		return bytes == 0 ? UploadableChunk.EMPTY_UPLOADABLE : new UploadableChunk(this, sorted, bytes);
 	}
 }

@@ -18,19 +18,13 @@ package grondag.canvas.apiimpl.rendercontext;
 
 import java.util.function.Supplier;
 
-import grondag.canvas.apiimpl.material.MeshMaterial;
 import grondag.canvas.light.AoCalculator;
-import grondag.canvas.material.EncodingContext;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.render.CanvasWorldRenderer;
 import grondag.fermion.sc.concurrency.SimpleConcurrentList;
 
 import net.minecraft.block.BlockState;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.RenderLayers;
-import net.minecraft.client.render.TexturedRenderLayers;
-import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.block.BlockModelRenderer;
 import net.minecraft.client.render.model.BakedModel;
@@ -40,7 +34,6 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.BlockRenderView;
 
-import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
 
 /**
@@ -74,8 +67,6 @@ public class EntityBlockRenderContext extends AbstractBlockRenderContext<BlockRe
 		}
 	};
 
-	private VertexConsumer bufferBuilder;
-	private boolean didOutput = false;
 	private int light;
 	private final BlockPos.Mutable pos = new BlockPos.Mutable();
 	//private Entity entity;
@@ -84,7 +75,7 @@ public class EntityBlockRenderContext extends AbstractBlockRenderContext<BlockRe
 	public EntityBlockRenderContext() {
 		super("BlockRenderContext");
 		// WIP2: should be ENTITY_BLOCK or remove
-		collectors.setContext(EncodingContext.BLOCK);
+		//		collectors.setContext(EncodingContext.BLOCK);
 	}
 
 	public static void reload() {
@@ -111,66 +102,17 @@ public class EntityBlockRenderContext extends AbstractBlockRenderContext<BlockRe
 		pos.set(x, y, z);
 	}
 
-	public boolean tesselate(BlockModelRenderer vanillaRenderer, BakedModel model, BlockState state, MatrixStack matrixStack, VertexConsumerProvider buffers, int overlay, int light) {
-		bufferBuilder = buffers.getBuffer(RenderLayers.getEntityBlockLayer(state, false));
+	public void tesselate(BlockModelRenderer vanillaRenderer, BakedModel model, BlockState state, MatrixStack matrixStack, VertexConsumerProvider buffers, int overlay, int light) {
+		defaultConsumer = buffers.getBuffer(RenderLayers.getEntityBlockLayer(state, false));
 		matrix = matrixStack.peek().getModel();
 		normalMatrix = (Matrix3fExt) (Object) matrixStack.peek().getNormal();
 		this.light = light;
 		this.overlay = overlay;
-		didOutput = false;
 		aoCalc.prepare(0);
 		region = CanvasWorldRenderer.instance().getWorld();
 		prepareForBlock(state, pos, model.useAmbientOcclusion(), 42);
 		((FabricBakedModel) model).emitBlockQuads(region, state, pos, randomSupplier, this);
-
-		bufferBuilder = null;
-
-		return didOutput;
-	}
-
-	@Override
-	public EncodingContext materialContext() {
-		return EncodingContext.BLOCK;
-	}
-
-	@Override
-	public VertexConsumer consumer(MeshMaterial mat) {
-		didOutput = true;
-
-		if (bufferProvider == null) {
-			return bufferBuilder;
-		} else {
-			BlendMode bm = mat.blendMode();
-
-			if (bm == BlendMode.DEFAULT) {
-				bm = defaultBlendMode();
-			}
-
-			RenderLayer layer;
-
-			switch (bm) {
-				case CUTOUT:
-				case CUTOUT_MIPPED:
-					// WIP2: should be addressed by new pipeline - cutout isn't mipped
-					layer = mat.disableDiffuse() ? RenderLayer.getCutout() : TexturedRenderLayers.getEntityCutout();
-					break;
-				case TRANSLUCENT:
-					// WIP2: should be addessed by new pipeline - only moving blocks are supposed to have item target
-					if (!MinecraftClient.isFabulousGraphicsOrBetter()) {
-						layer = mat.disableDiffuse() ? RenderLayer.getTranslucent() : TexturedRenderLayers.getEntityTranslucentCull();
-					} else {
-						layer = mat.disableDiffuse() ? RenderLayer.getTranslucent() : TexturedRenderLayers.getItemEntityTranslucentCull();
-					}
-					break;
-				case DEFAULT:
-				case SOLID:
-				default:
-					layer = mat.disableDiffuse() ? RenderLayer.getSolid() : TexturedRenderLayers.getEntitySolid();
-					break;
-			}
-
-			return bufferProvider.getBuffer(layer);
-		}
+		defaultConsumer = null;
 	}
 
 	@Override
@@ -186,10 +128,5 @@ public class EntityBlockRenderContext extends AbstractBlockRenderContext<BlockRe
 	@Override
 	protected int fastBrightness(BlockState blockState, BlockPos pos) {
 		return light;
-	}
-
-	@Override
-	protected void adjustMaterial() {
-		finder.disableAo(true);
 	}
 }

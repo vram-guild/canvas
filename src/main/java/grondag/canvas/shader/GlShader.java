@@ -33,7 +33,6 @@ import grondag.canvas.Configurator;
 import grondag.canvas.Configurator.AoMode;
 import grondag.canvas.Configurator.DiffuseMode;
 import grondag.canvas.Configurator.FogMode;
-import grondag.canvas.texture.SpriteInfoTexture;
 import grondag.canvas.varia.CanvasGlHelper;
 import org.apache.commons.lang3.StringUtils;
 import org.lwjgl.opengl.GL11;
@@ -47,25 +46,24 @@ import net.minecraft.util.Identifier;
 
 import net.fabricmc.loader.api.FabricLoader;
 
-class GlShader implements Shader {
+public class GlShader implements Shader {
 	static final Pattern PATTERN = Pattern.compile("^#include\\s+([\\w]+:[\\w/\\.]+)[ \\t]*.*", Pattern.MULTILINE);
 	private static final HashSet<String> INCLUDED = new HashSet<>();
 	private static boolean isErrorNoticeComplete = false;
 	private static boolean needsClearDebugOutputWarning = true;
 	private static boolean needsDebugOutputWarning = true;
-	private final Identifier shaderSource;
-	private final int shaderType;
-	private final ShaderContext context;
+	private final Identifier shaderSourceId;
+	protected final int shaderType;
+	protected final ProgramType programType;
+	private String source = null;
 	private int glId = -1;
 	private boolean needsLoad = true;
 	private boolean isErrored = false;
-	private boolean hasVertexStart = false;
-	private boolean hasVertexEnd = false;
 
-	GlShader(Identifier shaderSource, int shaderType, ShaderContext context) {
-		this.shaderSource = shaderSource;
+	public GlShader(Identifier shaderSource, int shaderType, ProgramType programType) {
+		shaderSourceId = shaderSource;
 		this.shaderType = shaderType;
-		this.context = context;
+		this.programType = programType;
 	}
 
 	public static void forceReloadErrors() {
@@ -166,7 +164,7 @@ class GlShader implements Shader {
 					isErrorNoticeComplete = true;
 				}
 			} else {
-				CanvasMod.LOG.error(I18n.translate("error.canvas.fail_create_shader", shaderSource.toString(), context.name, error));
+				CanvasMod.LOG.error(I18n.translate("error.canvas.fail_create_shader", shaderSourceId.toString(), programType.name, error));
 			}
 			outputDebugSource(source, error);
 
@@ -175,8 +173,12 @@ class GlShader implements Shader {
 		}
 	}
 
+	protected String debugSourceString() {
+		return "-" + shaderSourceId.toString().replace("/", "-").replace(":", "-");
+	}
+
 	private void outputDebugSource(String source, String error) {
-		final String key = context.name + "-" + shaderSource.toString().replace("/", "-").replace(":", "-");
+		final String fileName = programType.name + "-" + debugSourceString();
 		final Path path = shaderDebugPath();
 
 		File shaderDir = path.toFile();
@@ -198,7 +200,7 @@ class GlShader implements Shader {
 		}
 
 		if (shaderDir.exists()) {
-			try (FileWriter writer = new FileWriter(shaderDir.getAbsolutePath() + File.separator + key, false)) {
+			try (FileWriter writer = new FileWriter(shaderDir.getAbsolutePath() + File.separator + fileName, false)) {
 				writer.write(source);
 				writer.close();
 			} catch (final IOException e) {
@@ -211,141 +213,104 @@ class GlShader implements Shader {
 	}
 
 	private String getSource() {
-		String result = getRawShaderString();
+		String result = source;
 
-		if (shaderType == GL21.GL_FRAGMENT_SHADER) {
-			result = StringUtils.replace(result, "#define SHADER_TYPE SHADER_TYPE_VERTEX", "#define SHADER_TYPE SHADER_TYPE_FRAGMENT");
-		} else {
-			// vertex
-			if (!hasVertexStart) {
-				result = StringUtils.replace(result, "#define _CV_HAS_VERTEX_START", "//#define _CV_HAS_VERTEX_START");
+		if (result == null) {
+			result = getCombinedShaderSource();
+
+			if (shaderType == GL21.GL_FRAGMENT_SHADER) {
+				result = StringUtils.replace(result, "#define SHADER_TYPE SHADER_TYPE_VERTEX", "#define SHADER_TYPE SHADER_TYPE_FRAGMENT");
 			}
 
-			if (!hasVertexEnd) {
-				result = StringUtils.replace(result, "#define _CV_HAS_VERTEX_END", "//#define _CV_HAS_VERTEX_END");
+			if (!Configurator.wavyGrass) {
+				result = StringUtils.replace(result, "#define ANIMATED_FOLIAGE", "//#define ANIMATED_FOLIAGE");
 			}
 
-			result = StringUtils.replace(result, "#define _CV_SPRITE_INFO_TEXTURE_SIZE 1024", "#define _CV_SPRITE_INFO_TEXTURE_SIZE " + SpriteInfoTexture.BLOCKS.textureSize());
-			result = StringUtils.replace(result, "#define _CV_ATLAS_WIDTH 1024", "#define _CV_ATLAS_WIDTH " + SpriteInfoTexture.BLOCKS.atlasWidth());
-			result = StringUtils.replace(result, "#define _CV_ATLAS_HEIGHT 1024", "#define _CV_ATLAS_HEIGHT " + SpriteInfoTexture.BLOCKS.atlasHeight());
-		}
-
-		if (context.pass != ShaderPass.SOLID) {
-			result = StringUtils.replace(result, "#define SHADER_PASS SHADER_PASS_SOLID",
-				"#define SHADER_PASS SHADER_PASS_" + context.pass.name());
-		}
-
-		if (context.materialContext.isBlock) {
-			result = StringUtils.replace(result, "//#define CONTEXT_IS_BLOCK", "#define CONTEXT_IS_BLOCK");
-		}
-
-		if (context.materialContext.isItem) {
-			result = StringUtils.replace(result, "//#define CONTEXT_IS_ITEM", "#define CONTEXT_IS_ITEM");
-		}
-
-		if (context.materialContext.isGui) {
-			result = StringUtils.replace(result, "//#define CONTEXT_IS_GUI", "#define CONTEXT_IS_GUI");
-		}
-
-		if (!context.materialContext.isWorld || !Configurator.wavyGrass) {
-			result = StringUtils.replace(result, "#define ANIMATED_FOLIAGE", "//#define ANIMATED_FOLIAGE");
-		}
-
-		if (Configurator.fogMode != FogMode.VANILLA && !context.materialContext.isGui) {
-			result = StringUtils.replace(result, "#define _CV_FOG_CONFIG _CV_FOG_CONFIG_VANILLA",
-				"#define _CV_FOG_CONFIG _CV_FOG_CONFIG_" + Configurator.fogMode.name());
-		}
-
-		if ((context.pass == ShaderPass.SOLID || context.pass == ShaderPass.DECAL) && Configurator.enableBloom) {
-			result = StringUtils.replace(result, "#define TARGET_EMISSIVE -1", "#define TARGET_EMISSIVE 1");
-		}
-
-		if (Configurator.hdLightmaps()) {
-			result = StringUtils.replace(result, "#define VANILLA_LIGHTING", "//#define VANILLA_LIGHTING");
-
-			if (Configurator.lightmapNoise) {
-				result = StringUtils.replace(result, "//#define ENABLE_LIGHT_NOISE", "#define ENABLE_LIGHT_NOISE");
+			if (Configurator.fogMode != FogMode.VANILLA) {
+				result = StringUtils.replace(result, "#define _CV_FOG_CONFIG _CV_FOG_CONFIG_VANILLA",
+					"#define _CV_FOG_CONFIG _CV_FOG_CONFIG_" + Configurator.fogMode.name());
 			}
-		}
 
-		if (!MinecraftClient.isAmbientOcclusionEnabled()) {
-			result = StringUtils.replace(result, "#define AO_SHADING_MODE AO_MODE_NORMAL",
-				"#define AO_SHADING_MODE AO_MODE_" + AoMode.NONE.name());
-		} else if (Configurator.aoShadingMode != AoMode.NORMAL) {
-			result = StringUtils.replace(result, "#define AO_SHADING_MODE AO_MODE_NORMAL",
-				"#define AO_SHADING_MODE AO_MODE_" + Configurator.aoShadingMode.name());
-		}
+			if (Configurator.enableBloom) {
+				result = StringUtils.replace(result, "#define TARGET_EMISSIVE -1", "#define TARGET_EMISSIVE 1");
+			}
 
-		if (Configurator.diffuseShadingMode != DiffuseMode.NORMAL) {
-			result = StringUtils.replace(result, "#define DIFFUSE_SHADING_MODE DIFFUSE_MODE_NORMAL",
-				"#define DIFFUSE_SHADING_MODE DIFFUSE_MODE_" + Configurator.diffuseShadingMode.name());
-		}
+			if (Configurator.hdLightmaps()) {
+				result = StringUtils.replace(result, "#define VANILLA_LIGHTING", "//#define VANILLA_LIGHTING");
 
-		if (CanvasGlHelper.useGpuShader4()) {
-			result = StringUtils.replace(result, "//#define USE_FLAT_VARYING", "#define USE_FLAT_VARYING");
-		} else {
-			result = StringUtils.replace(result, "#extension GL_EXT_gpu_shader4 : enable", "");
+				if (Configurator.lightmapNoise) {
+					result = StringUtils.replace(result, "//#define ENABLE_LIGHT_NOISE", "#define ENABLE_LIGHT_NOISE");
+				}
+			}
+
+			if (!MinecraftClient.isAmbientOcclusionEnabled()) {
+				// disable ao for particles or if disabled by player
+				result = StringUtils.replace(result, "#define AO_SHADING_MODE AO_MODE_NORMAL",
+					"#define AO_SHADING_MODE AO_MODE_" + AoMode.NONE.name());
+			} else if (Configurator.aoShadingMode != AoMode.NORMAL) {
+				result = StringUtils.replace(result, "#define AO_SHADING_MODE AO_MODE_NORMAL",
+					"#define AO_SHADING_MODE AO_MODE_" + Configurator.aoShadingMode.name());
+			}
+
+			if (Configurator.diffuseShadingMode != DiffuseMode.NORMAL) {
+				result = StringUtils.replace(result, "#define DIFFUSE_SHADING_MODE DIFFUSE_MODE_NORMAL",
+					"#define DIFFUSE_SHADING_MODE DIFFUSE_MODE_" + Configurator.diffuseShadingMode.name());
+			}
+
+			if (CanvasGlHelper.useGpuShader4()) {
+				result = StringUtils.replace(result, "//#define USE_FLAT_VARYING", "#define USE_FLAT_VARYING");
+			} else {
+				result = StringUtils.replace(result, "#extension GL_EXT_gpu_shader4 : enable", "");
+			}
+
+			source = result;
 		}
 
 		return result;
 	}
 
-	private String getRawShaderString() {
+	private String getCombinedShaderSource() {
 		final ResourceManager resourceManager = MinecraftClient.getInstance().getResourceManager();
-
 		INCLUDED.clear();
-
-		// UGLY - too many ifs
-		if (context == ShaderContext.TERRAIN_SOLID || context == ShaderContext.TERRAIN_TRANSLUCENT || context == ShaderContext.TERRAIN_DECAL) {
-			if (shaderType == GL21.GL_FRAGMENT_SHADER) {
-				return getShaderSourceInner(resourceManager, Configurator.hdLightmaps() ? ShaderData.HD_FRAGMENT : ShaderData.VANILLA_FRAGMENT);
-			} else {
-				return getShaderSourceInner(resourceManager, Configurator.hdLightmaps() ? ShaderData.HD_VERTEX : ShaderData.VANILLA_VERTEX);
-			}
-		} else {
-			return getShaderSourceInner(resourceManager, shaderSource);
-		}
+		String result = loadShaderSource(resourceManager, shaderSourceId);
+		result = preprocessSource(resourceManager, result);
+		return processSourceIncludes(resourceManager, result);
 	}
 
-	private Identifier remapTargetId(Identifier id) {
-		return id.equals(ShaderData.API_TARGET) ? shaderSource : id;
+	protected String preprocessSource(ResourceManager resourceManager, String baseSource) {
+		return baseSource;
 	}
 
-	private String getShaderSourceInner(ResourceManager resourceManager, Identifier shaderSource) {
-		shaderSource = remapTargetId(shaderSource);
-
-		try (Resource resource = resourceManager.getResource(shaderSource)) {
+	protected static String loadShaderSource(ResourceManager resourceManager, Identifier shaderSourceId) {
+		try (Resource resource = resourceManager.getResource(shaderSourceId)) {
 			try (Reader reader = new InputStreamReader(resource.getInputStream())) {
-				String result = CharStreams.toString(reader);
-
-				if (shaderType == GL21.GL_VERTEX_SHADER && shaderSource == this.shaderSource) {
-					hasVertexStart = result.contains("frx_startVertex");
-					hasVertexEnd = result.contains("frx_endVertex");
-				}
-
-				final Matcher m = PATTERN.matcher(result);
-
-				while (m.find()) {
-					final String id = m.group(1);
-
-					if (INCLUDED.contains(id)) {
-						result = StringUtils.replace(result, m.group(0), "");
-					} else {
-						INCLUDED.add(id);
-						final String src = getShaderSourceInner(resourceManager, new Identifier(id));
-						result = StringUtils.replace(result, m.group(0), src);
-					}
-				}
-
-				return result;
+				return CharStreams.toString(reader);
 			}
 		} catch (final FileNotFoundException e) {
-			CanvasMod.LOG.warn("Unable to load shader resource " + shaderSource.toString() + ". File was not found.");
+			CanvasMod.LOG.warn("Unable to load shader resource " + shaderSourceId.toString() + ". File was not found.");
 			return "";
 		} catch (final IOException e) {
-			CanvasMod.LOG.warn("Unable to load shader resource " + shaderSource.toString() + " due to exception.", e);
+			CanvasMod.LOG.warn("Unable to load shader resource " + shaderSourceId.toString() + " due to exception.", e);
 			return "";
 		}
+	}
+
+	private String processSourceIncludes(ResourceManager resourceManager, String source) {
+		final Matcher m = PATTERN.matcher(source);
+
+		while (m.find()) {
+			final String id = m.group(1);
+
+			if (INCLUDED.contains(id)) {
+				source = StringUtils.replace(source, m.group(0), "");
+			} else {
+				INCLUDED.add(id);
+				final String src = processSourceIncludes(resourceManager, loadShaderSource(resourceManager, new Identifier(id)));
+				source = StringUtils.replace(source, m.group(0), src, 1);
+			}
+		}
+
+		return source;
 	}
 
 	/**
@@ -354,6 +319,7 @@ class GlShader implements Shader {
 	@Override
 	public final void forceReload() {
 		needsLoad = true;
+		source = null;
 	}
 
 	@Override
@@ -376,7 +342,7 @@ class GlShader implements Shader {
 	}
 
 	@Override
-	public Identifier getShaderSource() {
-		return shaderSource;
+	public Identifier getShaderSourceId() {
+		return shaderSourceId;
 	}
 }

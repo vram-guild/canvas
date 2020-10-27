@@ -16,21 +16,32 @@
 
 package grondag.canvas.terrain.render;
 
+import java.nio.IntBuffer;
+
 import grondag.canvas.buffer.VboBuffer;
 import grondag.canvas.buffer.encoding.VertexCollectorImpl;
 import grondag.canvas.buffer.encoding.VertexCollectorList;
-import grondag.canvas.shader.ShaderPass;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
-import java.nio.IntBuffer;
-
-public abstract class DrawableChunk {
+public class DrawableChunk {
 	public static DrawableChunk EMPTY_DRAWABLE = new DrawableChunk.Dummy();
 	public final VboBuffer vboBuffer;
 	protected boolean isClosed = false;
+	protected ObjectArrayList<DrawableDelegate> delegates;
 
-	protected DrawableChunk(VboBuffer vboBuffer) {
+	protected DrawableChunk(VboBuffer vboBuffer, ObjectArrayList<DrawableDelegate> delegates) {
 		this.vboBuffer = vboBuffer;
+		this.delegates = delegates;
+	}
+
+	public ObjectArrayList<DrawableDelegate> delegates() {
+		return delegates;
+	}
+
+	protected void closeInner() {
+		assert delegates != null;
+		clearDelegateList(delegates);
+		delegates = null;
 	}
 
 	private static void clearDelegateList(ObjectArrayList<DrawableDelegate> delegates) {
@@ -46,12 +57,6 @@ public abstract class DrawableChunk {
 
 		DelegateLists.releaseDelegateList(delegates);
 	}
-
-	public static DrawableChunk pack(VertexCollectorList collectorList, VboBuffer vboBuffer, boolean translucent) {
-		return translucent ? new Translucent(collectorList, vboBuffer) : new Solid(collectorList, vboBuffer);
-	}
-
-	abstract public ObjectArrayList<DrawableDelegate> delegates(ShaderPass pass);
 
 	/**
 	 * Called when buffer content is no longer current and will not be rendered.
@@ -70,132 +75,16 @@ public abstract class DrawableChunk {
 		return isClosed;
 	}
 
-	abstract protected void closeInner();
-
-	private static class Solid extends DrawableChunk {
-		private ObjectArrayList<DrawableDelegate> solid;
-		private ObjectArrayList<DrawableDelegate> decal;
-
-		public Solid(VertexCollectorList collectorList, VboBuffer vboBuffer) {
-			super(vboBuffer);
-
-			final IntBuffer intBuffer = vboBuffer.intBuffer();
-			intBuffer.position(0);
-
-			final int limit = collectorList.solidCount();
-			int position = 0;
-
-			final ObjectArrayList<DrawableDelegate> solid = DelegateLists.getReadyDelegateList();
-
-			// solid pass
-			for (int i = 0; i < limit; ++i) {
-				final VertexCollectorImpl collector = collectorList.getSolid(i);
-
-				if (collector.materialState().shaderPass == ShaderPass.SOLID) {
-					final int vertexCount = collector.vertexCount();
-					collector.toBuffer(intBuffer);
-					solid.add(DrawableDelegate.claim(collector.materialState(), position, vertexCount));
-					position += vertexCount;
-				}
-			}
-
-			final ObjectArrayList<DrawableDelegate> decal;
-
-			if (solid.isEmpty()) {
-				this.solid = null;
-				decal = solid;
-			} else {
-				this.solid = solid;
-				decal = DelegateLists.getReadyDelegateList();
-			}
-
-			// decal pass
-			for (int i = 0; i < limit; ++i) {
-				final VertexCollectorImpl collector = collectorList.getSolid(i);
-
-				if (collector.materialState().shaderPass == ShaderPass.DECAL) {
-					final int vertexCount = collector.vertexCount();
-					collector.toBuffer(intBuffer);
-					decal.add(DrawableDelegate.claim(collector.materialState(), position, vertexCount));
-					position += vertexCount;
-				}
-			}
-
-			if (decal.isEmpty()) {
-				this.decal = null;
-				DelegateLists.releaseDelegateList(decal);
-			} else {
-				this.decal = decal;
-			}
-		}
-
-		@Override
-		public ObjectArrayList<DrawableDelegate> delegates(ShaderPass pass) {
-			if (pass == ShaderPass.SOLID) {
-				return solid;
-			} else {
-				assert pass == ShaderPass.DECAL;
-				return decal;
-			}
-		}
-
-		@Override
-		protected void closeInner() {
-			assert solid != null || decal != null;
-
-			if (solid != null) {
-				clearDelegateList(solid);
-				solid = null;
-			}
-
-			if (decal != null) {
-				clearDelegateList(decal);
-				decal = null;
-			}
-		}
-	}
-
-	private static class Translucent extends DrawableChunk {
-		private ObjectArrayList<DrawableDelegate> delegates;
-
-		public Translucent(VertexCollectorList collectorList, VboBuffer vboBuffer) {
-			super(vboBuffer);
-
-			final IntBuffer intBuffer = vboBuffer.intBuffer();
-			intBuffer.position(0);
-
-			final VertexCollectorImpl collector = collectorList.getTranslucent();
-			collector.toBuffer(intBuffer);
-
-			final ObjectArrayList<DrawableDelegate> delegates = DelegateLists.getReadyDelegateList();
-			delegates.add(DrawableDelegate.claim(collector.materialState(), 0, collector.vertexCount()));
-			this.delegates = delegates;
-		}
-
-		@Override
-		public ObjectArrayList<DrawableDelegate> delegates(ShaderPass pass) {
-			assert pass == ShaderPass.TRANSLUCENT;
-			return delegates;
-		}
-
-		@Override
-		protected void closeInner() {
-			assert delegates != null;
-			clearDelegateList(delegates);
-			delegates = null;
-		}
-	}
-
 	private static class Dummy extends DrawableChunk {
 		private final ObjectArrayList<DrawableDelegate> nothing = new ObjectArrayList<>();
 
 		protected Dummy() {
-			super(null);
+			super(null, null);
 			isClosed = true;
 		}
 
 		@Override
-		public ObjectArrayList<DrawableDelegate> delegates(ShaderPass pass) {
+		public ObjectArrayList<DrawableDelegate> delegates() {
 			return nothing;
 		}
 
@@ -205,4 +94,32 @@ public abstract class DrawableChunk {
 		}
 	}
 
+	public static DrawableChunk pack(VertexCollectorList collectorList, VboBuffer vboBuffer, boolean translucent) {
+		// WIP2: further consolidate draw calls with same render state - need to handle conditions
+		final IntBuffer intBuffer = vboBuffer.intBuffer();
+		intBuffer.position(0);
+
+		final int limit = collectorList.size();
+		int position = 0;
+
+		final ObjectArrayList<DrawableDelegate> delegates = DelegateLists.getReadyDelegateList();
+
+		for (int i = 0; i < limit; ++i) {
+			final VertexCollectorImpl collector = collectorList.get(i);
+
+			if (collector.materialState().sorted == translucent) {
+				final int vertexCount = collector.vertexCount();
+				collector.toBuffer(intBuffer);
+				delegates.add(DrawableDelegate.claim(collector.materialState(), position, vertexCount));
+				position += vertexCount;
+			}
+		}
+
+		if (delegates.isEmpty()) {
+			DelegateLists.releaseDelegateList(delegates);
+			return EMPTY_DRAWABLE;
+		} else {
+			return new DrawableChunk(vboBuffer, delegates);
+		}
+	}
 }

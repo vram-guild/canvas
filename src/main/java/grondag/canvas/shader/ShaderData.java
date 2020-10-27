@@ -29,14 +29,13 @@ public class ShaderData {
 	public static final Identifier DEFAULT_VERTEX_SOURCE = new Identifier("canvas:shaders/material/default.vert");
 	public static final Identifier DEFAULT_FRAGMENT_SOURCE = new Identifier("canvas:shaders/material/default.frag");
 
-	public static final Identifier API_TARGET = new Identifier("canvas:apitarget");
+	public static final Identifier MATERIAL_MAIN_VERTEX = new Identifier("canvas:shaders/internal/material_main.vert");
+	public static final Identifier MATERIAL_MAIN_FRAGMENT = new Identifier("canvas:shaders/internal/material_main.frag");
 
-	public static final Identifier HD_VERTEX = new Identifier("canvas:shaders/internal/hd/hd.vert");
-	public static final Identifier HD_FRAGMENT = new Identifier("canvas:shaders/internal/hd/hd.frag");
-
-	public static final Identifier VANILLA_VERTEX = new Identifier("canvas:shaders/internal/vanilla/vanilla.vert");
-	public static final Identifier VANILLA_FRAGMENT = new Identifier("canvas:shaders/internal/vanilla/vanilla.frag");
-
+	public static final String API_TARGET = "#include canvas:apitarget";
+	public static final String FRAGMENT_START = "#include canvas:startfragment";
+	public static final String VERTEX_START = "#include canvas:startvertex";
+	public static final String VEREX_END = "#include canvas:endvertex";
 
 	private static final float[] BITWISE_DIVISORS = {0.5f, 0.25f, 0.125f, 0.0625f, 0.03125f, 0.015625f, 0.0078125f, 0.00390625f};
 
