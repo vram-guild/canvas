@@ -62,6 +62,8 @@ import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 
+// WIP: fix item frame background render
+
 /**
  * The render context used for item rendering.
  * Does not implement emissive lighting for sake
@@ -169,8 +171,6 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 		this.renderMode = renderMode;
 		itemStack = stack;
 		vanillaProvider = vertexConsumers;
-
-		// WIP: need a way to indicate item context in shader to disable wavy grass, et.
 		materialMap = MaterialMap.get(itemStack);
 
 		matrices.push();
