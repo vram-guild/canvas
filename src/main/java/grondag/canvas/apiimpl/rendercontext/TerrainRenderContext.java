@@ -76,7 +76,7 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<FastRenderR
 	public TerrainRenderContext() {
 		super("TerrainRenderContext");
 		region = new FastRenderRegion(this);
-		collectors = new VertexCollectorList(contextState);
+		collectors = new VertexCollectorList();
 	}
 
 	public TerrainRenderContext prepareRegion(ProtoRenderRegion protoRegion) {

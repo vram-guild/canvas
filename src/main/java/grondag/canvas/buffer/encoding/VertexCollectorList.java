@@ -16,7 +16,6 @@
 
 package grondag.canvas.buffer.encoding;
 
-import grondag.canvas.material.state.RenderContextState;
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.material.state.RenderState;
 import grondag.canvas.terrain.render.UploadableChunk;
@@ -28,11 +27,6 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 public class VertexCollectorList {
 	private final ObjectArrayList<VertexCollectorImpl> pool = new ObjectArrayList<>();
 	private final VertexCollectorImpl[] collectors = new VertexCollectorImpl[RenderState.MAX_COUNT];
-	private final RenderContextState contextState;
-
-	public VertexCollectorList(RenderContextState contextState) {
-		this.contextState = contextState;
-	}
 
 	/**
 	 * Clears all vertex collectors
@@ -64,7 +58,7 @@ public class VertexCollectorList {
 		}
 
 		if (result == null) {
-			result = new VertexCollectorImpl(contextState).prepare(materialState);
+			result = new VertexCollectorImpl().prepare(materialState);
 			collectors[index] = result;
 			pool.add(result);
 		}

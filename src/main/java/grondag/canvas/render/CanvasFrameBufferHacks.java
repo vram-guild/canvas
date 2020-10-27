@@ -24,7 +24,6 @@ import grondag.canvas.Configurator;
 import grondag.canvas.buffer.VboBuffer;
 import grondag.canvas.buffer.encoding.VertexCollectorImpl;
 import grondag.canvas.buffer.format.CanvasVertexFormats;
-import grondag.canvas.material.state.RenderContextState;
 import grondag.canvas.mixinterface.FrameBufferExt;
 import grondag.canvas.shader.GlProgram;
 import grondag.canvas.shader.ProcessShader;
@@ -332,7 +331,7 @@ public class CanvasFrameBufferHacks {
 
 			GlStateManager.bindTexture(0);
 
-			final VertexCollectorImpl collector = new VertexCollectorImpl(new RenderContextState());
+			final VertexCollectorImpl collector = new VertexCollectorImpl();
 			collector.add(0f, 0f, 0.2f, 0, 1f);
 			collector.add(1f, 0f, 0.2f, 1f, 1f);
 			collector.add(1f, 1f, 0.2f, 1f, 0f);

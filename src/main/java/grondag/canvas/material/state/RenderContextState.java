@@ -20,6 +20,7 @@ import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.entity.Entity;
 
+// WIP: use this for entity material maps
 public class RenderContextState {
 	/**
 	 * Set via world rendered when incoming vertices are for an entity.

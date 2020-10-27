@@ -20,7 +20,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import grondag.canvas.apiimpl.mesh.MeshEncodingHelper;
 import grondag.canvas.apiimpl.util.NormalHelper;
-import grondag.canvas.material.state.RenderContextState;
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.material.state.RenderStateData;
 import grondag.canvas.mixinterface.SpriteExt;
@@ -40,7 +39,6 @@ public abstract class AbstractVertexCollector implements VertexCollector {
 	private static final int LAST_VERTEX_BASE_INDEX = MATERIAL_QUAD_STRIDE - MATERIAL_VERTEX_STRIDE;
 
 	protected RenderMaterialImpl materialState;
-	protected final RenderContextState contextState;
 
 	protected int capacity = 256;
 	protected int[] vertexData = new int[capacity];
@@ -53,8 +51,7 @@ public abstract class AbstractVertexCollector implements VertexCollector {
 	protected boolean conditionActive = true;
 	protected boolean didPopulateNormal = false;
 
-	public AbstractVertexCollector(RenderContextState contextState) {
-		this.contextState = contextState;
+	public AbstractVertexCollector() {
 		collectorCount.incrementAndGet();
 		collectorBytes.addAndGet(capacity);
 	}

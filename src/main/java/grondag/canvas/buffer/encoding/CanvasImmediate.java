@@ -17,13 +17,12 @@ import net.minecraft.client.render.model.ModelLoader;
 import net.minecraft.util.Util;
 
 public class CanvasImmediate extends Immediate {
-	public final VertexCollectorList collectors;
+	public final VertexCollectorList collectors = new VertexCollectorList();
 
 	private final ObjectArrayList<VertexCollectorImpl> drawList = new ObjectArrayList<>();
 
 	public CanvasImmediate(BufferBuilder fallbackBuffer, Map<RenderLayer, BufferBuilder> layerBuffers, RenderContextState contextState) {
 		super(fallbackBuffer, layerBuffers);
-		collectors = new VertexCollectorList(contextState);
 	}
 
 	@Override

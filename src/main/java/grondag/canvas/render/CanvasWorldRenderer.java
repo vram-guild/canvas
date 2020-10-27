@@ -146,7 +146,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 	private final RenderContextState contextState = new RenderContextState();
 	private final CanvasImmediate worldRenderImmediate = new CanvasImmediate(new BufferBuilder(256), CanvasImmediate.entityBuilders(), contextState);
-	private final CanvasParticleRenderer particleRenderer = new CanvasParticleRenderer(contextState);
+	private final CanvasParticleRenderer particleRenderer = new CanvasParticleRenderer();
 
 	public CanvasWorldRenderer(MinecraftClient client, BufferBuilderStorage bufferBuilders) {
 		super(client, bufferBuilders);

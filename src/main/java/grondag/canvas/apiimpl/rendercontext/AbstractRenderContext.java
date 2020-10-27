@@ -26,7 +26,6 @@ import grondag.canvas.buffer.encoding.VertexCollectorList;
 import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.light.AoCalculator;
 import grondag.canvas.material.state.MaterialFinderImpl;
-import grondag.canvas.material.state.RenderContextState;
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.texture.SpriteInfoTexture;
@@ -52,8 +51,6 @@ public abstract class AbstractRenderContext implements RenderContext {
 	final MaterialFinderImpl finder = new MaterialFinderImpl();
 	public final float[] vecData = new float[3];
 	public final int[] appendData = new int[CanvasVertexFormats.MATERIAL_QUAD_STRIDE];
-	// WIP: use this for material maps, etc. need to populate it upstream of render output
-	public final RenderContextState contextState = new RenderContextState();
 
 	/** null when not in world render loop/thread or when default consumer should be honored. */
 	@Nullable public VertexCollectorList collectors = null;

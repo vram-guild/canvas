@@ -23,7 +23,6 @@ import com.google.common.primitives.Doubles;
 import com.mojang.blaze3d.platform.GlStateManager;
 import grondag.canvas.buffer.TransferBufferAllocator;
 import grondag.canvas.buffer.format.CanvasVertexFormats;
-import grondag.canvas.material.state.RenderContextState;
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.material.state.RenderState;
 import it.unimi.dsi.fastutil.Swapper;
@@ -48,10 +47,6 @@ public class VertexCollectorImpl extends AbstractVertexCollector {
 	 * Cached value of {@link #quadCount()}, set when quads are sorted by distance.
 	 */
 	private int sortMaxIndex = 0;
-
-	public VertexCollectorImpl(RenderContextState contextState) {
-		super(contextState);
-	}
 
 	public VertexCollectorImpl prepare(RenderMaterialImpl materialState) {
 		clear();

@@ -28,7 +28,6 @@ import grondag.canvas.material.property.MaterialTarget;
 import grondag.canvas.material.property.MaterialTransparency;
 import grondag.canvas.material.property.MaterialWriteMask;
 import grondag.canvas.material.state.MaterialFinderImpl;
-import grondag.canvas.material.state.RenderContextState;
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.mixinterface.ParticleExt;
 import grondag.canvas.mixinterface.ParticleManagerExt;
@@ -52,7 +51,7 @@ import net.minecraft.util.crash.CrashReport;
 import net.minecraft.util.crash.CrashReportSection;
 
 public class CanvasParticleRenderer {
-	private final VertexCollectorImpl collector;
+	private final VertexCollectorImpl collector = new VertexCollectorImpl();
 
 	private Tessellator tessellator;
 	private BufferBuilder bufferBuilder;
@@ -61,10 +60,6 @@ public class CanvasParticleRenderer {
 	private Runnable drawHandler = Runnables.doNothing();
 	private RenderMaterialImpl baseMat;
 	private RenderMaterialImpl emissiveMat;
-
-	CanvasParticleRenderer(RenderContextState contextState) {
-		collector = new VertexCollectorImpl(contextState);
-	}
 
 	public void renderParticles(ParticleManager pm, MatrixStack matrixStack, VertexConsumerProvider.Immediate immediate, LightmapTextureManager lightmapTextureManager, Camera camera, float tickDelta) {
 		RenderSystem.pushMatrix();
