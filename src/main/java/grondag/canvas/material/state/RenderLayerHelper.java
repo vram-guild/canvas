@@ -90,7 +90,9 @@ public final class RenderLayerHelper {
 		finder.disableDiffuse(params.getDiffuseLighting() == RenderPhase.DISABLE_DIFFUSE_LIGHTING);
 		finder.cutout(params.getAlpha() != RenderPhase.ZERO_ALPHA);
 		finder.translucentCutout(params.getAlpha() == RenderPhase.ONE_TENTH_ALPHA);
+		// WIP: this may need to be disabled if JMX loading is off - need to test
 		finder.disableAo(true);
+		finder.defaultBlendMode(false);
 
 		// vanilla sets these as part of draw process but we don't want special casing
 		if (layer ==  RenderLayer.getSolid() || layer == RenderLayer.getCutoutMipped() || layer == RenderLayer.getCutout() || layer == RenderLayer.getTranslucent()) {

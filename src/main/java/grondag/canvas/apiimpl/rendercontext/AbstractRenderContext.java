@@ -45,6 +45,7 @@ import net.fabricmc.fabric.api.renderer.v1.mesh.Mesh;
 import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 
+// UGLY: consolidate and simplify this class hierarchy
 public abstract class AbstractRenderContext implements RenderContext {
 	private static final QuadTransform NO_TRANSFORM = (q) -> true;
 	private static final MaterialMap defaultMap = MaterialMap.defaultMaterialMap();
@@ -179,7 +180,7 @@ public abstract class AbstractRenderContext implements RenderContext {
 	public abstract int brightness();
 
 	/**
-	 * Null in some contexts, like ITEM.
+	 * Null in most contexts.  AO is disabled if null.
 	 */
 	public abstract @Nullable
 	AoCalculator aoCalc();
@@ -226,8 +227,18 @@ public abstract class AbstractRenderContext implements RenderContext {
 	protected abstract void encodeQuad(MutableQuadViewImpl quad);
 
 	protected void adjustMaterial() {
+		final MaterialFinderImpl finder = this.finder;
+
 		if (finder.blendMode() == BlendMode.DEFAULT) {
-			finder.blendMode(defaultBlendMode());
+			final BlendMode bm = defaultBlendMode();
+
+			assert bm != BlendMode.DEFAULT;
+
+			finder.blendMode(bm);
+		}
+
+		if (aoCalc() == null) {
+			finder.disableAo(true);
 		}
 	}
 }

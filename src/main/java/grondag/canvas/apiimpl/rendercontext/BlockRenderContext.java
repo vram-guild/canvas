@@ -148,9 +148,4 @@ public class BlockRenderContext extends AbstractBlockRenderContext<BlockRenderVi
 	protected int fastBrightness(BlockState blockState, BlockPos pos) {
 		return WorldRenderer.getLightmapCoordinates(region, blockState, pos);
 	}
-
-	@Override
-	protected void adjustMaterial() {
-		finder.disableAo(true);
-	}
 }

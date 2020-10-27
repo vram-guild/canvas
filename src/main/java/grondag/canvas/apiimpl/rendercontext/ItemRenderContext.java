@@ -23,7 +23,6 @@ import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.buffer.encoding.CanvasImmediate;
 import grondag.canvas.light.AoCalculator;
 import grondag.canvas.material.property.MaterialTarget;
-import grondag.canvas.material.state.MaterialFinderImpl;
 import grondag.canvas.material.state.RenderLayerHelper;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.MinecraftClientExt;
@@ -246,25 +245,11 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 
 	@Override
 	protected void adjustMaterial() {
-		final MaterialFinderImpl finder = this.finder;
+		super.adjustMaterial();
 
-		BlendMode bm = finder.blendMode();
-
-		if (bm == BlendMode.DEFAULT) {
-			bm = defaultBlendMode;
-			finder.blendMode(bm);
+		if (finder.blendMode() == BlendMode.TRANSLUCENT && MinecraftClient.isFabulousGraphicsOrBetter() && !isDirect) {
+			finder.target(MaterialTarget.ENTITIES);
 		}
-
-		if (bm == BlendMode.TRANSLUCENT) {
-			if (MinecraftClient.isFabulousGraphicsOrBetter() && !isDirect) {
-				finder.target(MaterialTarget.ENTITIES);
-			} else {
-				finder.target(MaterialTarget.MAIN);
-			}
-		}
-
-		// always disable AO in item rendering
-		finder.disableAo(true);
 	}
 
 	@Override

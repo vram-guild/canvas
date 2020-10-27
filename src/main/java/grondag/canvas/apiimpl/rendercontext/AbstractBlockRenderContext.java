@@ -22,8 +22,6 @@ import java.util.function.Supplier;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.util.GeometryHelper;
 import grondag.canvas.buffer.encoding.VertexCollector;
-import grondag.canvas.material.state.MaterialFinderImpl;
-import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.mixinterface.RenderLayerExt;
 import grondag.frex.api.material.MaterialMap;
 import org.jetbrains.annotations.Nullable;
@@ -180,16 +178,6 @@ public abstract class AbstractBlockRenderContext<T extends BlockRenderView> exte
 
 	protected abstract int fastBrightness(BlockState blockState, BlockPos pos);
 
-	protected RenderMaterialImpl actualMaterial(RenderMaterialImpl mat) {
-		if (mat.blendMode() == BlendMode.DEFAULT) {
-			final MaterialFinderImpl finder = this.finder;
-			finder.copyFrom(mat);
-			finder.blendMode(defaultBlendMode());
-			return finder.find();
-		}
-
-		return mat;
-	}
 	@Override
 	protected void encodeQuad(MutableQuadViewImpl quad) {
 		// needs to happen before offsets are applied
@@ -199,7 +187,7 @@ public abstract class AbstractBlockRenderContext<T extends BlockRenderView> exte
 		if (collectors == null ) {
 			bufferQuad(quad, this, defaultConsumer);
 		} else {
-			bufferQuadDirect(quad, this, collectors.get(actualMaterial(quad.material())));
+			bufferQuadDirect(quad, this, collectors.get(quad.material()));
 		}
 	}
 }

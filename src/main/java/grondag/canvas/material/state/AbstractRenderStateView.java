@@ -125,7 +125,6 @@ abstract class AbstractRenderStateView {
 	}
 
 	/** derived and may not match input for non-block layers */
-	@Deprecated
 	public BlendMode blendMode() {
 		if (DEFAULT_BLEND_MODE.getValue(bits)) {
 			return BlendMode.DEFAULT;
@@ -227,7 +226,7 @@ abstract class AbstractRenderStateView {
 		final int fragmentShaderIndex = MaterialShaderManager.FRAGMENT_INDEXER.toHandle(ShaderData.DEFAULT_FRAGMENT_SOURCE);
 		defaultBits = SHADER.setValue(MaterialShaderManager.INSTANCE.find(vertexShaderIndex,fragmentShaderIndex, ProgramType.MATERIAL_UNIFORM_LOGIC).index, defaultBits);
 
-		defaultBits = DEFAULT_BLEND_MODE.setValue(false, defaultBits);
+		defaultBits = DEFAULT_BLEND_MODE.setValue(true, defaultBits);
 		defaultBits = CULL.setValue(true, defaultBits);
 		defaultBits = DEPTH_TEST.setValue(MaterialDepthTest.LEQUAL, defaultBits);
 		defaultBits = ENABLE_LIGHTMAP.setValue(true, defaultBits);

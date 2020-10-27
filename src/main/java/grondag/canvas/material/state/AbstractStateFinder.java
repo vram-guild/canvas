@@ -166,6 +166,11 @@ public abstract class AbstractStateFinder<T extends AbstractStateFinder<T, V>, V
 		return (T) this;
 	}
 
+	public T defaultBlendMode(boolean isDefault) {
+		bits = DEFAULT_BLEND_MODE.setValue(isDefault, bits);
+		return (T) this;
+	}
+
 	/**
 	 * Sets cutout threshold to low value vs default of 50%
 	 */

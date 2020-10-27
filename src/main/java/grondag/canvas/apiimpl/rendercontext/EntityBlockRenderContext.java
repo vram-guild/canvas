@@ -129,9 +129,4 @@ public class EntityBlockRenderContext extends AbstractBlockRenderContext<BlockRe
 	protected int fastBrightness(BlockState blockState, BlockPos pos) {
 		return light;
 	}
-
-	@Override
-	protected void adjustMaterial() {
-		finder.disableAo(true);
-	}
 }
