@@ -24,6 +24,7 @@ import grondag.canvas.apiimpl.mesh.MeshEncodingHelper;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.util.FaceConstants;
 import grondag.canvas.material.state.RenderMaterialImpl;
+import grondag.frex.api.material.MaterialFinder;
 import grondag.frex.api.mesh.QuadEmitter;
 
 import net.minecraft.block.BlockState;
@@ -179,14 +180,12 @@ public class FallbackConsumer implements Consumer<BakedModel> {
 			// Can't rely on lazy computation in tesselate because needs to happen before offsets are applied
 			editorQuad.geometryFlags();
 			editorQuad.unmapSpritesIfNeeded();
-			mat = editorQuad.material();
 		}
 
-		if (mat.blendMode() == BlendMode.DEFAULT) {
-			mat = context.finder.copyFrom(mat).blendMode(context.defaultBlendMode()).find();
-			editorQuad.material(mat);
-		}
-
+		final MaterialFinder finder = context.finder;
+		finder.copyFrom(editorQuad.material());
+		context.adjustMaterial();
+		editorQuad.material(finder.find());
 		context.encodeQuad(editorQuad);
 	}
 }

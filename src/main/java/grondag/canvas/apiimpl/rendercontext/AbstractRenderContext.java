@@ -26,7 +26,6 @@ import grondag.canvas.buffer.encoding.VertexCollectorList;
 import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.light.AoCalculator;
 import grondag.canvas.material.state.MaterialFinderImpl;
-import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.texture.SpriteInfoTexture;
 import grondag.frex.api.material.MaterialMap;
@@ -215,8 +214,7 @@ public abstract class AbstractRenderContext implements RenderContext {
 		if (cullTest(quad)) {
 			finder.copyFrom(quad.material());
 			adjustMaterial();
-			final RenderMaterialImpl mat = finder.find();
-			quad.material(mat);
+			quad.material(finder.find());
 			encodeQuad(quad);
 		}
 	}

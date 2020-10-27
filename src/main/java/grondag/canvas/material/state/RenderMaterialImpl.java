@@ -22,7 +22,6 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 // WIP2: find way to implement efficient decal pass again, esp in terrain
-// WIP2: make sure can handle "dual" render layers and similar vanilla constructs.
 public final class RenderMaterialImpl extends AbstractRenderState implements RenderMaterial {
 	public final int collectorIndex;
 	public final RenderState renderState;
