@@ -27,6 +27,7 @@ import grondag.canvas.material.state.RenderLayerHelper;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.MinecraftClientExt;
 import grondag.fermion.sc.concurrency.SimpleConcurrentList;
+import grondag.frex.api.material.MaterialMap;
 import org.jetbrains.annotations.Nullable;
 
 import static grondag.canvas.buffer.encoding.EncoderUtils.applyItemLighting;
@@ -168,6 +169,9 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 		this.renderMode = renderMode;
 		itemStack = stack;
 		vanillaProvider = vertexConsumers;
+
+		// WIP: need a way to indicate item context in shader to disable wavy grass, et.
+		materialMap = MaterialMap.get(itemStack);
 
 		matrices.push();
 		final boolean detachedPerspective = renderMode == ModelTransformation.Mode.GUI || renderMode == ModelTransformation.Mode.GROUND || renderMode == ModelTransformation.Mode.FIXED;
