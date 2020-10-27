@@ -88,16 +88,18 @@ public class CanvasParticleRenderer {
 
 			if (!particles.hasNext()) continue;
 
-
 			final VertexConsumer consumer = beginSheet(particleTextureSheet);
 
 			while(particles.hasNext()) {
 				final Particle particle = particles.next();
 
 				try {
-					// FEAT: enhanced material maps for particles - shaders for animation in particular
-					final RenderMaterial mat = (RenderMaterial) MaterialMap.getForParticle(((ParticleExt) particle).canvas_particleType()).getMapped(null);
-					collector.vertexState(mat == null || !mat.emissive() ? baseMat : emissiveMat);
+					if (baseMat != null) {
+						// FEAT: enhanced material maps for particles - shaders for animation in particular
+						final RenderMaterial mat = (RenderMaterial) MaterialMap.getForParticle(((ParticleExt) particle).canvas_particleType()).getMapped(null);
+						collector.vertexState(mat == null || !mat.emissive() ? baseMat : emissiveMat);
+					}
+
 					particle.buildGeometry(consumer, camera, tickDelta);
 				} catch (final Throwable exception) {
 					final CrashReport crashReport = CrashReport.create(exception, "Rendering Particle");
@@ -159,6 +161,8 @@ public class CanvasParticleRenderer {
 		setupVanillaParticleRender();
 		particleTextureSheet.begin(bufferBuilder, ext.canvas_textureManager());
 		drawHandler = () -> particleTextureSheet.draw(tessellator);
+		baseMat = null;
+		emissiveMat = null;
 		return bufferBuilder;
 	}
 
