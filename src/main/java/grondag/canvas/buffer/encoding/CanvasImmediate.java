@@ -5,6 +5,7 @@ import java.util.SortedMap;
 
 import grondag.canvas.material.state.RenderContextState;
 import grondag.canvas.material.state.RenderLayerHelper;
+import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.mixinterface.MultiPhaseExt;
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
@@ -27,14 +28,15 @@ public class CanvasImmediate extends Immediate {
 
 	@Override
 	public VertexConsumer getBuffer(RenderLayer renderLayer) {
-		final VertexCollector result = collectors.get(((MultiPhaseExt) renderLayer).canvas_materialState());
+		final RenderMaterialImpl mat = ((MultiPhaseExt) renderLayer).canvas_materialState();
+		final VertexCollector result = collectors.get(mat);
 
 		if (result == null) {
 			assert RenderLayerHelper.isExcluded(renderLayer) : "Unable to retrieve vertex collector for non-excluded render layer";
 
 			return super.getBuffer(renderLayer);
 		} else {
-			result.vertexState(((MultiPhaseExt) renderLayer).canvas_materialState());
+			result.vertexState(mat);
 			return result;
 		}
 	}

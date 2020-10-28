@@ -27,6 +27,8 @@ import grondag.canvas.material.property.MaterialWriteMask;
 import grondag.canvas.shader.MaterialShaderImpl;
 import grondag.canvas.shader.MaterialShaderManager;
 
+import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
+
 abstract class AbstractRenderState extends AbstractRenderStateView {
 	public final int index;
 
@@ -56,6 +58,16 @@ abstract class AbstractRenderState extends AbstractRenderStateView {
 	public final MaterialFog fog;
 	public final MaterialShaderImpl shader;
 	public final MaterialConditionImpl condition;
+	public final BlendMode blendMode;
+	public final boolean emissive;
+	public final boolean disableDiffuse;
+	public final boolean disableAo;
+	public final boolean disableColorIndex;
+	public final boolean cutout;
+	public final boolean unmipped;
+	public final boolean translucentCutout;
+	public final boolean hurtOverlay;
+	public final boolean flashOverlay;
 
 	/**
 	 * True when translucent transparency and targets the terrain layer.
@@ -83,5 +95,15 @@ abstract class AbstractRenderState extends AbstractRenderStateView {
 		sorted = transparency != MaterialTransparency.NONE && decal != MaterialDecal.TRANSLUCENT;
 		shader = MaterialShaderManager.INSTANCE.get(SHADER.getValue(bits));
 		isTranslucentTerrain = (target == MaterialTarget.MAIN || target == MaterialTarget.TRANSLUCENT) && transparency == MaterialTransparency.TRANSLUCENT;
+		blendMode = blendMode();
+		emissive = emissive();
+		disableDiffuse = disableDiffuse();
+		disableAo = disableAo();
+		disableColorIndex = disableColorIndex();
+		cutout = cutout();
+		unmipped = unmipped();
+		translucentCutout = translucentCutout();
+		hurtOverlay = hurtOverlay();
+		flashOverlay = flashOverlay();
 	}
 }

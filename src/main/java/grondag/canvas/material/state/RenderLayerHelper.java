@@ -90,7 +90,6 @@ public final class RenderLayerHelper {
 		finder.disableDiffuse(params.getDiffuseLighting() == RenderPhase.DISABLE_DIFFUSE_LIGHTING);
 		finder.cutout(params.getAlpha() != RenderPhase.ZERO_ALPHA);
 		finder.translucentCutout(params.getAlpha() == RenderPhase.ONE_TENTH_ALPHA);
-		// WIP: this may need to be disabled if JMX loading is off - need to test
 		finder.disableAo(true);
 		finder.defaultBlendMode(false);
 

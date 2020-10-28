@@ -105,13 +105,6 @@ public abstract class AbstractStateFinder<T extends AbstractStateFinder<T, V>, V
 	}
 
 	public T decal(MaterialDecal decal) {
-		if (decal == MaterialDecal.TRANSLUCENT) {
-			decal = MaterialDecal.NONE;
-			bits = DECAL_TRANSLUCENCY.setValue(true, bits);
-		} else {
-			bits = DECAL_TRANSLUCENCY.setValue(true, bits);
-		}
-
 		bits = DECAL.setValue(decal, bits);
 		return (T) this;
 	}

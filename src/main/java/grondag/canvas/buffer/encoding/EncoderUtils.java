@@ -90,7 +90,7 @@ public abstract class EncoderUtils {
 		final int colorIndex = quad.colorIndex();
 
 		// PERF: don't swap red blue on white quad (most of em)
-		if (colorIndex == -1 || quad.material().disableColorIndex()) {
+		if (colorIndex == -1 || quad.material().disableColorIndex) {
 			quad.vertexColor(0, ColorHelper.swapRedBlueIfNeeded(quad.vertexColor(0)));
 			quad.vertexColor(1, ColorHelper.swapRedBlueIfNeeded(quad.vertexColor(1)));
 			quad.vertexColor(2, ColorHelper.swapRedBlueIfNeeded(quad.vertexColor(2)));
@@ -111,7 +111,7 @@ public abstract class EncoderUtils {
 		final RenderMaterialImpl mat = quad.material();
 		final int[] appendData = context.appendData;
 
-		assert mat.blendMode() != BlendMode.DEFAULT;
+		assert mat.blendMode != BlendMode.DEFAULT;
 
 		final int shaderFlags = mat.shaderFlags << 24;
 

@@ -199,7 +199,7 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 
 			defaultRenderLayer = RenderLayers.getItemLayer(stack, isDirect);
 			glintConsumer = getGlintConsumer(defaultRenderLayer);
-			defaultBlendMode = RenderLayerHelper.copyFromLayer(defaultRenderLayer).blendMode();
+			defaultBlendMode = RenderLayerHelper.copyFromLayer(defaultRenderLayer).blendMode;
 
 			if (((vertexConsumers instanceof CanvasImmediate))) {
 				collectors = ((CanvasImmediate) vertexConsumers).collectors;

@@ -84,7 +84,7 @@ abstract class AbstractRenderStateView {
 	}
 
 	public MaterialTransparency translucency() {
-		return TRANSPARENCY.getValue(bits);
+		return decal() == MaterialDecal.TRANSLUCENT ? MaterialTransparency.TRANSLUCENT : TRANSPARENCY.getValue(bits);
 	}
 
 	public MaterialDepthTest depthTest() {
@@ -104,12 +104,7 @@ abstract class AbstractRenderStateView {
 	}
 
 	public MaterialDecal decal() {
-		if (translucency() != MaterialTransparency.TRANSLUCENT && DECAL_TRANSLUCENCY.getValue(bits)) {
-			assert DECAL.getValue(bits) == MaterialDecal.NONE;
-			return MaterialDecal.TRANSLUCENT;
-		} else {
-			return DECAL.getValue(bits);
-		}
+		return DECAL.getValue(bits);
 	}
 
 	public MaterialTarget target() {
@@ -191,8 +186,6 @@ abstract class AbstractRenderStateView {
 	// Should always be zero in render state, only used in buffer key and material
 	static final BitPacker64.IntElement PRIMITIVE = PACKER.createIntElement(8);
 	static final BitPacker64.IntElement CONDITION = PACKER.createIntElement(MaterialConditionImpl.MAX_CONDITIONS);
-	// true when translucent and not sorted
-	static final BitPacker64.BooleanElement DECAL_TRANSLUCENCY = PACKER.createBooleanElement();
 
 	public static final long COLLECTOR_KEY_MASK = PACKER.bitMask();
 
