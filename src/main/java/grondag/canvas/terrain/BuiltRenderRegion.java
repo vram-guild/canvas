@@ -453,7 +453,7 @@ public class BuiltRenderRegion {
 					matrixStack.translate(x + xModelOffset, y + yModelOffset, z + zModelOffset);
 
 					if (hasFluid) {
-						context.tesselateFluid(blockState, searchPos, false, FluidQuadSupplier.get(fluidState.getFluid()), matrixStack);
+						context.renderFluid(blockState, searchPos, false, FluidQuadSupplier.get(fluidState.getFluid()), matrixStack);
 					}
 
 					if (hasBlock) {
@@ -466,7 +466,7 @@ public class BuiltRenderRegion {
 						}
 
 						final BakedModel model = blockRenderManager.getModel(blockState);
-						context.tesselateBlock(blockState, searchPos, model.useAmbientOcclusion(), (FabricBakedModel) model, matrixStack);
+						context.renderBlock(blockState, searchPos, model.useAmbientOcclusion(), (FabricBakedModel) model, matrixStack);
 					}
 
 					matrixStack.pop();

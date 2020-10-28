@@ -93,18 +93,18 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<FastRenderR
 		return this;
 	}
 
-	public void tesselateFluid(BlockState blockState, BlockPos blockPos, boolean defaultAo, final FabricBakedModel model, MatrixStack matrixStack) {
+	public void renderFluid(BlockState blockState, BlockPos blockPos, boolean defaultAo, final FabricBakedModel model, MatrixStack matrixStack) {
 		isFluidModel = true;
-		tesselateInner(blockState, blockPos, defaultAo, model, matrixStack);
+		rebnderInner(blockState, blockPos, defaultAo, model, matrixStack);
 	}
 
-	public void tesselateBlock(BlockState blockState, BlockPos blockPos, boolean defaultAo, final FabricBakedModel model, MatrixStack matrixStack) {
+	public void renderBlock(BlockState blockState, BlockPos blockPos, boolean defaultAo, final FabricBakedModel model, MatrixStack matrixStack) {
 		isFluidModel = false;
-		tesselateInner(blockState, blockPos, defaultAo, model, matrixStack);
+		rebnderInner(blockState, blockPos, defaultAo, model, matrixStack);
 	}
 
 	// PERF: don't pass in matrixStack each time, just change model matrix directly
-	private void tesselateInner(BlockState blockState, BlockPos blockPos, boolean defaultAo, final FabricBakedModel model, MatrixStack matrixStack) {
+	private void rebnderInner(BlockState blockState, BlockPos blockPos, boolean defaultAo, final FabricBakedModel model, MatrixStack matrixStack) {
 		matrix = matrixStack.peek().getModel();
 
 		// PERF: can probably grab this at prepare

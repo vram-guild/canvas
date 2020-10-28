@@ -46,7 +46,7 @@ public abstract class MixinBlockRenderManager {
 			switch(blockRenderType) {
 				case MODEL:
 					final BakedModel bakedModel = ((BlockRenderManager)(Object) this).getModel(state);
-					EntityBlockRenderContext.get().tesselate(blockModelRenderer, bakedModel, state, matrices, vertexConsumer, overlay, light);
+					EntityBlockRenderContext.get().render(blockModelRenderer, bakedModel, state, matrices, vertexConsumer, overlay, light);
 					break;
 				case ENTITYBLOCK_ANIMATED:
 					BuiltinModelItemRenderer.INSTANCE.render(new ItemStack(state.getBlock()), ModelTransformation.Mode.NONE, matrices, vertexConsumer, light, overlay);

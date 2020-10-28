@@ -102,7 +102,7 @@ public class EntityBlockRenderContext extends AbstractBlockRenderContext<BlockRe
 		pos.set(x, y, z);
 	}
 
-	public void tesselate(BlockModelRenderer vanillaRenderer, BakedModel model, BlockState state, MatrixStack matrixStack, VertexConsumerProvider buffers, int overlay, int light) {
+	public void render(BlockModelRenderer vanillaRenderer, BakedModel model, BlockState state, MatrixStack matrixStack, VertexConsumerProvider buffers, int overlay, int light) {
 		defaultConsumer = buffers.getBuffer(RenderLayers.getEntityBlockLayer(state, false));
 		matrix = matrixStack.peek().getModel();
 		normalMatrix = (Matrix3fExt) (Object) matrixStack.peek().getNormal();

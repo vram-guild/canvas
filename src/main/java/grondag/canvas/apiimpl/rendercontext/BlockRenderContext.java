@@ -116,7 +116,7 @@ public class BlockRenderContext extends AbstractBlockRenderContext<BlockRenderVi
 		return POOL.get();
 	}
 
-	public boolean tesselate(BlockModelRenderer vanillaRenderer, BlockRenderView blockView, BakedModel model, BlockState state, BlockPos pos, MatrixStack matrixStack, VertexConsumer buffer, boolean checkSides, long seed, int overlay) {
+	public boolean render(BlockModelRenderer vanillaRenderer, BlockRenderView blockView, BakedModel model, BlockState state, BlockPos pos, MatrixStack matrixStack, VertexConsumer buffer, boolean checkSides, long seed, int overlay) {
 		defaultConsumer = buffer;
 		matrix = matrixStack.peek().getModel();
 		normalMatrix = (Matrix3fExt) (Object) matrixStack.peek().getNormal();
