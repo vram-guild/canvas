@@ -65,7 +65,7 @@ public abstract class AbstractBlockRenderContext<T extends BlockRenderView> exte
 	public long seed;
 	public boolean defaultAo;
 	public BlendMode defaultBlendMode;
-	private boolean needsRandomRefresh = true;
+	protected boolean needsRandomRefresh = true;
 	public final Supplier<Random> randomSupplier = () -> {
 		final Random result = random;
 
@@ -83,9 +83,9 @@ public abstract class AbstractBlockRenderContext<T extends BlockRenderView> exte
 
 		return result;
 	};
-	private int lastColorIndex = -1;
+	protected int lastColorIndex = -1;
 	protected int blockColor = -1;
-	private int fullCubeCache = 0;
+	protected int fullCubeCache = 0;
 
 
 	protected AbstractBlockRenderContext(String name) {

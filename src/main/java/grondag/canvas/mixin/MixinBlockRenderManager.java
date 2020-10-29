@@ -40,16 +40,16 @@ public abstract class MixinBlockRenderManager {
 	 * @reason performance; less bad than inject and cancel at head
 	 */
 	@Overwrite
-	public void renderBlockAsEntity(BlockState state, MatrixStack matrices, VertexConsumerProvider vertexConsumer, int light, int overlay) {
+	public void renderBlockAsEntity(BlockState state, MatrixStack matrices, VertexConsumerProvider consumers, int light, int overlay) {
 		final BlockRenderType blockRenderType = state.getRenderType();
 		if (blockRenderType != BlockRenderType.INVISIBLE) {
 			switch(blockRenderType) {
 				case MODEL:
 					final BakedModel bakedModel = ((BlockRenderManager)(Object) this).getModel(state);
-					EntityBlockRenderContext.get().render(blockModelRenderer, bakedModel, state, matrices, vertexConsumer, overlay, light);
+					EntityBlockRenderContext.get().render(blockModelRenderer, bakedModel, state, matrices, consumers, overlay, light);
 					break;
 				case ENTITYBLOCK_ANIMATED:
-					BuiltinModelItemRenderer.INSTANCE.render(new ItemStack(state.getBlock()), ModelTransformation.Mode.NONE, matrices, vertexConsumer, light, overlay);
+					BuiltinModelItemRenderer.INSTANCE.render(new ItemStack(state.getBlock()), ModelTransformation.Mode.NONE, matrices, consumers, light, overlay);
 					break;
 				default:
 					break;

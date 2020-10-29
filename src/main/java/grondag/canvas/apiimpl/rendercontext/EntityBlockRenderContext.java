@@ -22,18 +22,23 @@ import grondag.canvas.light.AoCalculator;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.render.CanvasWorldRenderer;
 import grondag.fermion.sc.concurrency.SimpleConcurrentList;
+import grondag.frex.api.material.MaterialMap;
 
 import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
 import net.minecraft.client.render.RenderLayers;
+import net.minecraft.client.render.TexturedRenderLayers;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.block.BlockModelRenderer;
 import net.minecraft.client.render.model.BakedModel;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.decoration.ItemFrameEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.BlockRenderView;
 
+import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
 
 /**
@@ -102,8 +107,8 @@ public class EntityBlockRenderContext extends AbstractBlockRenderContext<BlockRe
 		pos.set(x, y, z);
 	}
 
-	public void render(BlockModelRenderer vanillaRenderer, BakedModel model, BlockState state, MatrixStack matrixStack, VertexConsumerProvider buffers, int overlay, int light) {
-		defaultConsumer = buffers.getBuffer(RenderLayers.getEntityBlockLayer(state, false));
+	public void render(BlockModelRenderer vanillaRenderer, BakedModel model, BlockState state, MatrixStack matrixStack, VertexConsumerProvider consumers, int overlay, int light) {
+		defaultConsumer = consumers.getBuffer(RenderLayers.getEntityBlockLayer(state, false));
 		matrix = matrixStack.peek().getModel();
 		normalMatrix = (Matrix3fExt) (Object) matrixStack.peek().getNormal();
 		this.light = light;
@@ -112,6 +117,31 @@ public class EntityBlockRenderContext extends AbstractBlockRenderContext<BlockRe
 		region = CanvasWorldRenderer.instance().getWorld();
 		prepareForBlock(state, pos, model.useAmbientOcclusion(), 42);
 		((FabricBakedModel) model).emitBlockQuads(region, state, pos, randomSupplier, this);
+		defaultConsumer = null;
+	}
+
+	// item frames don't have a block state but render like a block
+	public void renderItemFrame(BlockModelRenderer modelRenderer, BakedModel model, MatrixStack matrixStack, VertexConsumerProvider consumers, int overlay, int light, ItemFrameEntity itemFrameEntity) {
+		defaultConsumer = consumers.getBuffer(TexturedRenderLayers.getEntitySolid());
+		matrix = matrixStack.peek().getModel();
+		normalMatrix = (Matrix3fExt) (Object) matrixStack.peek().getNormal();
+		this.light = light;
+		this.overlay = overlay;
+		aoCalc.prepare(0);
+		region = CanvasWorldRenderer.instance().getWorld();
+
+		pos.set(itemFrameEntity.getX(), itemFrameEntity.getY(), itemFrameEntity.getZ());
+		blockPos = pos;
+		blockState = Blocks.AIR.getDefaultState();
+		materialMap = MaterialMap.get(itemFrameEntity.getHeldItemStack());
+		lastColorIndex = -1;
+		needsRandomRefresh = true;
+		fullCubeCache = 0;
+		seed = 42;
+		defaultAo = false;
+		defaultBlendMode = BlendMode.SOLID;
+
+		((FabricBakedModel) model).emitBlockQuads(region, null, pos, randomSupplier, this);
 		defaultConsumer = null;
 	}
 
@@ -129,4 +159,6 @@ public class EntityBlockRenderContext extends AbstractBlockRenderContext<BlockRe
 	protected int fastBrightness(BlockState blockState, BlockPos pos) {
 		return light;
 	}
+
+
 }

@@ -17,6 +17,7 @@
 	"MixinEntityRenderer",
 	"MixinFogState",
 	"MixinFrameBuffer",
+	"MixinItemFrameEntityRenderer",
 	"MixinItemRenderer",
 	"MixinLightmapTextureManager",
 	"MixinMatrix3f",
