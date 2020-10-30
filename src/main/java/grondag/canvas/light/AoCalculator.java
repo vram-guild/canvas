@@ -22,16 +22,22 @@ import grondag.canvas.apiimpl.mesh.QuadViewImpl;
 import grondag.canvas.apiimpl.util.ColorHelper;
 import grondag.canvas.light.AoFace.Vertex2Float;
 import grondag.canvas.light.AoFace.WeightFunction;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
+
+import static grondag.canvas.apiimpl.util.GeometryHelper.AXIS_ALIGNED_FLAG;
+import static grondag.canvas.apiimpl.util.GeometryHelper.CUBIC_FLAG;
+import static grondag.canvas.apiimpl.util.GeometryHelper.LIGHT_FACE_FLAG;
+import static grondag.canvas.light.AoFaceData.OPAQUE;
+import static grondag.canvas.terrain.RenderRegionAddressHelper.cacheIndexToXyz5;
+import static grondag.canvas.terrain.RenderRegionAddressHelper.fastOffsetRelativeCacheIndex;
+import static grondag.canvas.terrain.RenderRegionAddressHelper.offsetMainChunkBlockIndex;
+
 import net.minecraft.client.util.math.Vector3f;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.MathHelper;
 
-import static grondag.canvas.apiimpl.util.GeometryHelper.*;
-import static grondag.canvas.light.AoFaceData.OPAQUE;
-import static grondag.canvas.terrain.RenderRegionAddressHelper.*;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
+import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 
 /**
  * Adaptation of inner, non-static class in BlockModelRenderer that serves same
@@ -101,7 +107,7 @@ public abstract class AoCalculator {
 	protected abstract boolean isOpaque(int cacheIndex);
 
 	private boolean checkBlendDirty(int blendIndex) {
-		if ((blendIndex & 63) == 0) {
+		if (blendIndex < 64) {
 			final long mask = 1L << blendIndex;
 
 			if ((blendCacheCompletionLowFlags & mask) == 0) {
@@ -185,8 +191,9 @@ public abstract class AoCalculator {
 		}
 	}
 
+	// PERF: quite bad - essentially pay whole cost of AO on flat lighting
+	// needs specialized routines or segregate brightness/AO computation
 	public void computeFlat(MutableQuadViewImpl quad) {
-
 		final int flags = quad.geometryFlags();
 
 		quad.hdLight = null;
@@ -285,8 +292,8 @@ public abstract class AoCalculator {
 			if (checkBlendDirty(blendIndex)) {
 				final float w0 = 1 - w1;
 				result.weightedMean(
-						gatherFace(lightFace, true).calc, w0,
-						gatherFace(lightFace, false).calc, w1);
+					gatherFace(lightFace, true).calc, w0,
+					gatherFace(lightFace, false).calc, w1);
 			}
 
 			return result;
@@ -411,7 +418,7 @@ public abstract class AoCalculator {
 
 			aoResult[i] = (ao + maxAo) * (0.5f * DIVIDE_BY_255);
 			quad.lightmap(i, ColorHelper.maxBrightness(quad.lightmap(i), (((int) ((sky + maxSky) * 0.5f) & 0xFF) << 16)
-					| ((int) ((block + maxBlock) * 0.5f) & 0xFF)));
+				| ((int) ((block + maxBlock) * 0.5f) & 0xFF)));
 		}
 	}
 
@@ -433,7 +440,7 @@ public abstract class AoCalculator {
 	 * parameterization, the logic itself is practically identical to vanilla.
 	 */
 	private AoFaceData gatherFace(final int lightFace, boolean isOnBlockFace) {
-		final int faceDataIndex = isOnBlockFace ? lightFace : lightFace + 6;
+		final int faceDataIndex = isOnBlockFace ? lightFace : (lightFace + 6);
 		final int mask = 1 << faceDataIndex;
 		final AoFaceData fd = faceData[faceDataIndex];
 
