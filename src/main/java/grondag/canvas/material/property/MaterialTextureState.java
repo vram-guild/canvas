@@ -117,9 +117,9 @@ public class MaterialTextureState {
 	private static boolean activeIsBilinearFilter = false;
 
 	public static void disable() {
-		if (activeState != NO_TEXTURE) {
-			RenderSystem.disableTexture();
-			activeState = NO_TEXTURE;
+		if (activeState != null) {
+			RenderSystem.enableTexture();
+			activeState = null;
 		}
 	}
 
