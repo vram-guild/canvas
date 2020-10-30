@@ -753,6 +753,8 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			MaterialMatrixState.set(MaterialMatrixState.ENTITY, matrixStack.peek().getNormal());
 		}
 
+		RenderState.disable();
+
 		JustMapHolder.justMapRender.renderWaypoints(matrixStack, camera, tickDelta);
 		LitematicaHolder.litematicaRenderTranslucent.accept(matrixStack);
 		LitematicaHolder.litematicaRenderOverlay.accept(matrixStack);
@@ -763,6 +765,8 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		if (Configurator.debugOcclusionBoxes) {
 			renderCullBoxes(matrixStack, immediate, cameraX, cameraY, cameraZ, tickDelta);
 		}
+
+		RenderState.disable();
 
 		profiler.swap("clouds");
 

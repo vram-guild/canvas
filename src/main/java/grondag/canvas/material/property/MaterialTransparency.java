@@ -25,7 +25,6 @@ import net.minecraft.client.render.RenderPhase.Transparency;
 public enum MaterialTransparency {
 	NONE (() -> {
 		RenderSystem.disableBlend();
-		RenderSystem.defaultBlendFunc();
 	}),
 
 	ADDITIVE (() -> {
@@ -92,10 +91,8 @@ public enum MaterialTransparency {
 
 	public static void disable() {
 		if (active != null) {
-			if (active != NONE) {
-				NONE.action.run();
-			}
-
+			RenderSystem.disableBlend();
+			RenderSystem.defaultBlendFunc();
 			active = null;
 		}
 	}

@@ -55,11 +55,12 @@ public final class RenderState extends AbstractRenderState {
 		super(nextIndex++, bits);
 	}
 
-	@SuppressWarnings("resource")
 	public void enable() {
 		if (active == this) {
 			return;
 		}
+
+		target.enable();
 
 		if (active == null) {
 			// same for all, so only do 1X
@@ -68,7 +69,6 @@ public final class RenderState extends AbstractRenderState {
 
 		active = this;
 
-		target.enable();
 		texture.enable(bilinear);
 		transparency.enable();
 		depthTest.enable();
@@ -111,7 +111,6 @@ public final class RenderState extends AbstractRenderState {
 		RenderSystem.shadeModel(GL11.GL_FLAT);
 		SpriteInfoTexture.disable();
 		MaterialDecal.disable();
-		MaterialTarget.disable();
 		MaterialTransparency.disable();
 		MaterialDepthTest.disable();
 		MaterialWriteMask.disable();
@@ -120,6 +119,11 @@ public final class RenderState extends AbstractRenderState {
 		LIGHTMAP_STATE.disable();
 		LINE_STATE.disable();
 		MaterialTextureState.disable();
+		RenderSystem.color4f(1f, 1f, 1f, 1f);
+		RenderSystem.disableAlphaTest();
+		RenderSystem.defaultAlphaFunc();
+
+		MaterialTarget.disable();
 	}
 
 	public static final int MAX_COUNT = 4096;
