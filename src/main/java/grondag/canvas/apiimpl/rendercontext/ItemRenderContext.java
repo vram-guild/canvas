@@ -62,13 +62,6 @@ import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 
-// WIP: fix item frame background render
-
-/**
- * The render context used for item rendering.
- * Does not implement emissive lighting for sake
- * of simplicity in the default renderer.
- */
 public class ItemRenderContext extends AbstractRenderContext implements RenderContext {
 	/**
 	 * Value vanilla uses for item rendering.  The only sensible choice, of course.
@@ -106,8 +99,6 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 	public ItemRenderContext(ItemColors colorMap) {
 		super("ItemRenderContext");
 		this.colorMap = colorMap;
-		// WIP2: fix or remove
-		//		collectors.setContext(EncodingContext.ITEM);
 	}
 
 	public static void reload() {

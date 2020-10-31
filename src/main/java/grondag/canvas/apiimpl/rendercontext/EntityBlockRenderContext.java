@@ -55,6 +55,7 @@ public class EntityBlockRenderContext extends AbstractBlockRenderContext<BlockRe
 
 	private static ThreadLocal<EntityBlockRenderContext> POOL = POOL_FACTORY.get();
 
+	// PERF: remove from non-terrain
 	private final AoCalculator aoCalc = new AoCalculator() {
 		@Override
 		protected int ao(int cacheIndex) {
@@ -79,8 +80,6 @@ public class EntityBlockRenderContext extends AbstractBlockRenderContext<BlockRe
 
 	public EntityBlockRenderContext() {
 		super("BlockRenderContext");
-		// WIP2: should be ENTITY_BLOCK or remove
-		//		collectors.setContext(EncodingContext.BLOCK);
 	}
 
 	public static void reload() {
@@ -127,13 +126,13 @@ public class EntityBlockRenderContext extends AbstractBlockRenderContext<BlockRe
 		normalMatrix = (Matrix3fExt) (Object) matrixStack.peek().getNormal();
 		this.light = light;
 		this.overlay = overlay;
-		aoCalc.prepare(0);
+		aoCalc.prepare(0); // PERF: need this?
 		region = CanvasWorldRenderer.instance().getWorld();
 
 		pos.set(itemFrameEntity.getX(), itemFrameEntity.getY(), itemFrameEntity.getZ());
 		blockPos = pos;
 		blockState = Blocks.AIR.getDefaultState();
-		materialMap = MaterialMap.get(itemFrameEntity.getHeldItemStack());
+		materialMap = MaterialMap.defaultMaterialMap();
 		lastColorIndex = -1;
 		needsRandomRefresh = true;
 		fullCubeCache = 0;
