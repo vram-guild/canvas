@@ -22,9 +22,9 @@ import java.util.function.Consumer;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
+import grondag.canvas.apiimpl.util.ColorHelper;
 import grondag.canvas.buffer.encoding.VertexCollectorList;
 import grondag.canvas.buffer.format.CanvasVertexFormats;
-import grondag.canvas.light.AoCalculator;
 import grondag.canvas.material.state.MaterialFinderImpl;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.texture.SpriteInfoTexture;
@@ -175,11 +175,17 @@ public abstract class AbstractRenderContext implements RenderContext {
 	 */
 	public abstract int brightness();
 
-	/**
-	 * Null in most contexts.  AO is disabled if null.
-	 */
-	public abstract @Nullable
-	AoCalculator aoCalc();
+	public abstract void computeAo(MutableQuadViewImpl quad);
+
+	public abstract void computeFlat(MutableQuadViewImpl quad);
+
+	protected void computeFlatSimple(MutableQuadViewImpl quad) {
+		final int brightness = flatBrightness(quad);
+		quad.lightmap(0, ColorHelper.maxBrightness(quad.lightmap(0), brightness));
+		quad.lightmap(1, ColorHelper.maxBrightness(quad.lightmap(1), brightness));
+		quad.lightmap(2, ColorHelper.maxBrightness(quad.lightmap(2), brightness));
+		quad.lightmap(3, ColorHelper.maxBrightness(quad.lightmap(3), brightness));
+	}
 
 	public abstract int flatBrightness(MutableQuadViewImpl quad);
 
@@ -230,10 +236,6 @@ public abstract class AbstractRenderContext implements RenderContext {
 			assert bm != BlendMode.DEFAULT;
 
 			finder.blendMode(bm);
-		}
-
-		if (aoCalc() == null) {
-			finder.disableAo(true);
 		}
 	}
 }

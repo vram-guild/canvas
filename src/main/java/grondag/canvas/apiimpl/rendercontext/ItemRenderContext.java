@@ -21,7 +21,6 @@ import java.util.function.Supplier;
 
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.buffer.encoding.CanvasImmediate;
-import grondag.canvas.light.AoCalculator;
 import grondag.canvas.material.property.MaterialTarget;
 import grondag.canvas.material.state.RenderLayerHelper;
 import grondag.canvas.mixinterface.Matrix3fExt;
@@ -137,11 +136,6 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 	}
 
 	@Override
-	public AoCalculator aoCalc() {
-		return null;
-	}
-
-	@Override
 	public int flatBrightness(MutableQuadViewImpl quad) {
 		return 0;
 	}
@@ -242,9 +236,21 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 	protected void adjustMaterial() {
 		super.adjustMaterial();
 
+		finder.disableAo(true);
+
 		if (finder.blendMode() == BlendMode.TRANSLUCENT && MinecraftClient.isFabulousGraphicsOrBetter() && !isDirect) {
 			finder.target(MaterialTarget.ENTITIES);
 		}
+	}
+
+	@Override
+	public void computeAo(MutableQuadViewImpl quad) {
+		// NOOP
+	}
+
+	@Override
+	public void computeFlat(MutableQuadViewImpl quad) {
+		computeFlatSimple(quad);
 	}
 
 	@Override

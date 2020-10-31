@@ -16,7 +16,6 @@
 
 package grondag.canvas.buffer.encoding;
 
-import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.rendercontext.AbstractRenderContext;
 import grondag.canvas.apiimpl.util.ColorHelper;
@@ -162,26 +161,10 @@ public abstract class EncoderUtils {
 	}
 
 	public static void applyBlockLighting(MutableQuadViewImpl quad, AbstractRenderContext context) {
-		// FIX: per-vertex light maps will be ignored unless we bake a custom HD map
-		// or retain vertex light maps in buffer format and logic in shader to take max
-
 		if (!quad.material().disableAo() && MinecraftClient.isAmbientOcclusionEnabled()) {
-			context.aoCalc().compute(quad);
+			context.computeAo(quad);
 		} else {
-			if (Configurator.semiFlatLighting) {
-				context.aoCalc().computeFlat(quad);
-			} else {
-				// TODO: in HD path don't do this
-				final int brightness = context.flatBrightness(quad);
-				quad.lightmap(0, ColorHelper.maxBrightness(quad.lightmap(0), brightness));
-				quad.lightmap(1, ColorHelper.maxBrightness(quad.lightmap(1), brightness));
-				quad.lightmap(2, ColorHelper.maxBrightness(quad.lightmap(2), brightness));
-				quad.lightmap(3, ColorHelper.maxBrightness(quad.lightmap(3), brightness));
-
-				if (Configurator.hdLightmaps()) {
-					context.aoCalc().computeFlatHd(quad, brightness);
-				}
-			}
+			context.computeFlat(quad);
 		}
 	}
 

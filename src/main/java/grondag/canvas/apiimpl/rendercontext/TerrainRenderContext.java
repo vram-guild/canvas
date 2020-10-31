@@ -130,8 +130,21 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<FastRenderR
 	}
 
 	@Override
-	public AoCalculator aoCalc() {
-		return aoCalc;
+	public void computeAo(MutableQuadViewImpl quad) {
+		aoCalc.compute(quad);
+	}
+
+	@Override
+	public void computeFlat(MutableQuadViewImpl quad) {
+		if (Configurator.semiFlatLighting) {
+			aoCalc.computeFlat(quad);
+		} else if (Configurator.hdLightmaps()) {
+			// FEAT: per-vertex light maps will be ignored unless we bake a custom HD map
+			// or retain vertex light maps in buffer format and logic in shader to take max
+			aoCalc.computeFlatHd(quad, flatBrightness(quad));
+		} else {
+			computeFlatSimple(quad);
+		}
 	}
 
 	@Override

@@ -544,8 +544,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 				renderProvider = immediate;
 			}
 
-			// WIP2: use the RenderContextState instead
-			entityBlockContext.entity(entity);
+			entityBlockContext.setPosAndWorldFromEntity(entity);
 
 			// Item entity translucent typically gets drawn here in vanilla because there's no dedicated buffer for it
 			wr.canvas_renderEntity(entity, cameraX, cameraY, cameraZ, tickDelta, matrixStack, renderProvider);

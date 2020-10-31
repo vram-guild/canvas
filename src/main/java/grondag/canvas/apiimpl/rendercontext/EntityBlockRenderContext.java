@@ -18,7 +18,7 @@ package grondag.canvas.apiimpl.rendercontext;
 
 import java.util.function.Supplier;
 
-import grondag.canvas.light.AoCalculator;
+import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.render.CanvasWorldRenderer;
 import grondag.fermion.sc.concurrency.SimpleConcurrentList;
@@ -42,7 +42,12 @@ import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
 
 /**
- * Context for non-terrain block rendering.
+ * Context used when blocks are rendered as part of an entity.
+ * Vanilla examples include blocks held be endermen, blocks in minecarts,
+ * flowers held by iron golems and Mooshroom mushrooms.<p>
+ *
+ * Also handle rendering of the item frame which looks and acts like a block
+ * and has a block JSON model but is an entity.
  */
 public class EntityBlockRenderContext extends AbstractBlockRenderContext<BlockRenderView> {
 	private static final SimpleConcurrentList<AbstractRenderContext> LOADED = new SimpleConcurrentList<>(AbstractRenderContext.class);
@@ -55,27 +60,8 @@ public class EntityBlockRenderContext extends AbstractBlockRenderContext<BlockRe
 
 	private static ThreadLocal<EntityBlockRenderContext> POOL = POOL_FACTORY.get();
 
-	// PERF: remove from non-terrain
-	private final AoCalculator aoCalc = new AoCalculator() {
-		@Override
-		protected int ao(int cacheIndex) {
-			return 255;
-		}
-
-		@Override
-		protected int brightness(int cacheIndex) {
-			return light;
-		}
-
-		@Override
-		protected boolean isOpaque(int cacheIndex) {
-			return false;
-		}
-	};
-
 	private int light;
 	private final BlockPos.Mutable pos = new BlockPos.Mutable();
-	//private Entity entity;
 	private float tickDelta;
 
 	public EntityBlockRenderContext() {
@@ -96,23 +82,26 @@ public class EntityBlockRenderContext extends AbstractBlockRenderContext<BlockRe
 		this.tickDelta = tickDelta;
 	}
 
-	public void entity(Entity entity) {
-		// WIP2: save entity and eye pos?
-		final float tickDelta = this.tickDelta;
-		//		this.entity = entity;
-		final double x = MathHelper.lerp(tickDelta, entity.prevX, entity.getX());
-		final double y = MathHelper.lerp(tickDelta, entity.prevY, entity.getY()) + entity.getStandingEyeHeight();
-		final double z = MathHelper.lerp(tickDelta, entity.prevZ, entity.getZ());
-		pos.set(x, y, z);
+	public void setPosAndWorldFromEntity(Entity entity) {
+		if (entity != null) {
+			final float tickDelta = this.tickDelta;
+			final double x = MathHelper.lerp(tickDelta, entity.prevX, entity.getX());
+			final double y = MathHelper.lerp(tickDelta, entity.prevY, entity.getY()) + entity.getStandingEyeHeight();
+			final double z = MathHelper.lerp(tickDelta, entity.prevZ, entity.getZ());
+			pos.set(x, y, z);
+			region = entity.getEntityWorld();
+		}
 	}
 
+	/**
+	 * Assumes region and block pos set earlier via {@link #setPosAndWorldFromEntity(Entity)}
+	 */
 	public void render(BlockModelRenderer vanillaRenderer, BakedModel model, BlockState state, MatrixStack matrixStack, VertexConsumerProvider consumers, int overlay, int light) {
 		defaultConsumer = consumers.getBuffer(RenderLayers.getEntityBlockLayer(state, false));
 		matrix = matrixStack.peek().getModel();
 		normalMatrix = (Matrix3fExt) (Object) matrixStack.peek().getNormal();
 		this.light = light;
 		this.overlay = overlay;
-		aoCalc.prepare(0);
 		region = CanvasWorldRenderer.instance().getWorld();
 		prepareForBlock(state, pos, model.useAmbientOcclusion(), 42);
 		((FabricBakedModel) model).emitBlockQuads(region, state, pos, randomSupplier, this);
@@ -126,7 +115,6 @@ public class EntityBlockRenderContext extends AbstractBlockRenderContext<BlockRe
 		normalMatrix = (Matrix3fExt) (Object) matrixStack.peek().getNormal();
 		this.light = light;
 		this.overlay = overlay;
-		aoCalc.prepare(0); // PERF: need this?
 		region = CanvasWorldRenderer.instance().getWorld();
 
 		pos.set(itemFrameEntity.getX(), itemFrameEntity.getY(), itemFrameEntity.getZ());
@@ -150,14 +138,24 @@ public class EntityBlockRenderContext extends AbstractBlockRenderContext<BlockRe
 	}
 
 	@Override
-	public AoCalculator aoCalc() {
-		return aoCalc;
-	}
-
-	@Override
 	protected int fastBrightness(BlockState blockState, BlockPos pos) {
 		return light;
 	}
 
+	@Override
+	protected void adjustMaterial() {
+		super.adjustMaterial();
 
+		finder.disableAo(true);
+	}
+
+	@Override
+	public void computeAo(MutableQuadViewImpl quad) {
+		// NOOP
+	}
+
+	@Override
+	public void computeFlat(MutableQuadViewImpl quad) {
+		computeFlatSimple(quad);
+	}
 }
