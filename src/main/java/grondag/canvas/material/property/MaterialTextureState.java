@@ -145,4 +145,10 @@ public class MaterialTextureState {
 
 		return state;
 	}
+
+	public static void reload() {
+		MAP.values().forEach(t -> {
+			t.texture = null;
+		});
+	}
 }

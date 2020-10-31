@@ -27,6 +27,7 @@ import grondag.canvas.compat.LitematicaHolder;
 import grondag.canvas.light.AoVertexClampFunction;
 import grondag.canvas.light.LightmapHd;
 import grondag.canvas.light.LightmapHdTexture;
+import grondag.canvas.material.property.MaterialTextureState;
 import grondag.canvas.material.state.MaterialFinderImpl;
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.perf.ChunkRebuildCounters;
@@ -104,6 +105,7 @@ public class Canvas implements Renderer {
 		TerrainModelSpace.reload();
 		ProcessShaders.reload();
 		LitematicaHolder.litematicaReload.run();
+		MaterialTextureState.reload();
 	}
 
 	@Override
