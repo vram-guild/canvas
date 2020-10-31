@@ -60,11 +60,16 @@ public final class RenderState extends AbstractRenderState {
 			return;
 		}
 
-		target.enable();
-
 		if (active == null) {
 			// same for all, so only do 1X
 			RenderSystem.shadeModel(GL11.GL_SMOOTH);
+			target.enable();
+			// NB: must be after frame-buffer target switch
+			if (Configurator.enableBloom) CanvasFrameBufferHacks.startEmissiveCapture();
+		} else if (active.target != target) {
+			if (Configurator.enableBloom) CanvasFrameBufferHacks.endEmissiveCapture();
+			target.enable();
+			if (Configurator.enableBloom) CanvasFrameBufferHacks.startEmissiveCapture();
 		}
 
 		active = this;
@@ -75,9 +80,6 @@ public final class RenderState extends AbstractRenderState {
 		writeMask.enable();
 		fog.enable();
 		decal.enable();
-
-		// NB: must be after frame-buffer target switch
-		if (Configurator.enableBloom) CanvasFrameBufferHacks.startEmissiveCapture();
 
 		CULL_STATE.setEnabled(cull);
 		LIGHTMAP_STATE.setEnabled(enableLightmap);
