@@ -69,13 +69,6 @@ abstract class AbstractRenderState extends AbstractRenderStateView {
 	public final boolean hurtOverlay;
 	public final boolean flashOverlay;
 
-	/**
-	 * True when translucent transparency and targets the terrain layer.
-	 * Should not be rendered until that framebuffer is initialized in fabulous mode
-	 * or should be delayed to render with other trasnslucent when not.
-	 */
-	public final boolean isTranslucentTerrain;
-
 	protected AbstractRenderState(int index, long bits) {
 		super(bits);
 		this.index = index;
@@ -92,9 +85,8 @@ abstract class AbstractRenderState extends AbstractRenderStateView {
 		fog = fog();
 		condition = condition();
 		transparency = TRANSPARENCY.getValue(bits);
-		sorted = transparency != MaterialTransparency.NONE && decal != MaterialDecal.TRANSLUCENT;
+		sorted = sorted();
 		shader = MaterialShaderManager.INSTANCE.get(SHADER.getValue(bits));
-		isTranslucentTerrain = (target == MaterialTarget.MAIN || target == MaterialTarget.TRANSLUCENT) && transparency == MaterialTransparency.TRANSLUCENT;
 		blendMode = blendMode();
 		emissive = emissive();
 		disableDiffuse = disableDiffuse();

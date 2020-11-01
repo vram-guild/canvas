@@ -46,6 +46,7 @@ import grondag.canvas.compat.SatinHolder;
 import grondag.canvas.compat.VoxelMapHolder;
 import grondag.canvas.light.LightmapHdTexture;
 import grondag.canvas.material.property.MaterialMatrixState;
+import grondag.canvas.material.property.MaterialTarget;
 import grondag.canvas.material.state.RenderContextState;
 import grondag.canvas.material.state.RenderState;
 import grondag.canvas.mixinterface.WorldRendererExt;
@@ -614,7 +615,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		assert matrixStack.isEmpty() : "Matrix stack not empty in world render when expected";
 
-		immediate.drawCollectors(false);
+		immediate.drawCollectors(MaterialTarget.MAIN);
 
 		bufferBuilders.getOutlineVertexConsumers().draw();
 
@@ -678,10 +679,8 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		mc.debugRenderer.render(matrixStack, immediate, cameraX, cameraY, cameraZ);
 		RenderSystem.popMatrix();
 
-		// Intention here seems to be to draw all the non-translucent layers before
-		// enabling the translucent target - this is a very brittle way of handling
-		// should be able to draw all layers for a given target
-		immediate.drawCollectors(false);
+		// Should generally not have anything here but draw in case content injected in hooks?
+		immediate.drawCollectors(MaterialTarget.MAIN);
 
 		immediate.draw(RenderLayer.getArmorGlint());
 		immediate.draw(RenderLayer.getArmorEntityGlint());
@@ -696,21 +695,21 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		if (advancedTranslucency) {
 			profiler.swap("translucent");
 
+			Framebuffer fb = mcwr.getTranslucentFramebuffer();
+			fb.clear(MinecraftClient.IS_SYSTEM_MAC);
+			fb.copyDepthFrom(mcfb);
+			fb.beginWrite(false);
+
 			// in fabulous mode, the only thing that renders to terrain translucency
 			// is terrain itself - so everything else can be rendered first
 
 			// Lines draw to entity (item) target
 			immediate.draw(RenderLayer.getLines());
 
-			immediate.drawCollectors(true);
+			immediate.drawCollectors(MaterialTarget.TRANSLUCENT);
 
-			// This presumably catches any remaining translucent layers in vanilla
+			// This catches entity layer and any remaining non-main layers
 			immediate.draw();
-
-			Framebuffer fb = mcwr.getTranslucentFramebuffer();
-			fb.clear(MinecraftClient.IS_SYSTEM_MAC);
-			fb.copyDepthFrom(mcfb);
-			fb.beginWrite(false);
 
 			MaterialMatrixState.set(MaterialMatrixState.REGION, null);
 			renderTerrainLayer(true, matrixStack, cameraX, cameraY, cameraZ);
@@ -740,9 +739,9 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			// and other translucent elements get drawn on top of terrain
 			immediate.draw(RenderLayer.getLines());
 
-			immediate.drawCollectors(true);
+			immediate.drawCollectors(MaterialTarget.TRANSLUCENT);
 
-			// This presumably catches any remaining translucent layers in vanilla
+			// This catches entity layer and any remaining non-main layers
 			immediate.draw();
 
 			VoxelMapHolder.postRenderLayerHandler.render(this, RenderLayer.getTranslucent(), matrixStack, cameraX, cameraY, cameraZ);

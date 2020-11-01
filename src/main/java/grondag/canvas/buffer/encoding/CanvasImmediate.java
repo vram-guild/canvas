@@ -3,6 +3,7 @@ package grondag.canvas.buffer.encoding;
 import java.util.Map;
 import java.util.SortedMap;
 
+import grondag.canvas.material.property.MaterialTarget;
 import grondag.canvas.material.state.RenderContextState;
 import grondag.canvas.material.state.RenderLayerHelper;
 import grondag.canvas.material.state.RenderMaterialImpl;
@@ -41,7 +42,8 @@ public class CanvasImmediate extends Immediate {
 		}
 	}
 
-	public void drawCollectors(boolean translucentTerrain) {
+	// WIP: need a way to ensure decal layers go last
+	public void drawCollectors(MaterialTarget target) {
 		final ObjectArrayList<VertexCollectorImpl> drawList = this.drawList;
 		final int limit = collectors.size();
 
@@ -49,7 +51,7 @@ public class CanvasImmediate extends Immediate {
 			for (int i = 0; i < limit; ++i) {
 				final VertexCollectorImpl collector = collectors.get(i);
 
-				if (collector.materialState.isTranslucentTerrain == translucentTerrain && !collector.isEmpty()) {
+				if (collector.materialState.target == target && !collector.isEmpty()) {
 					drawList.add(collector);
 				}
 			}

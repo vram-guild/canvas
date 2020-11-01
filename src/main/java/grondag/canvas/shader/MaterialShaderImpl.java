@@ -24,6 +24,9 @@ public final class MaterialShaderImpl implements MaterialShader {
 	public final int index;
 	public final int vertexShaderIndex;
 	public final int fragmentShaderIndex;
+	public final String vertexShaderSource;
+	public final String fragmentShaderSource;
+
 	public final ProgramType programType;
 	private GlProgram program;
 
@@ -32,6 +35,8 @@ public final class MaterialShaderImpl implements MaterialShader {
 		this.fragmentShaderIndex = fragmentShaderIndex;
 		this.programType = programType;
 		this.index = index;
+		vertexShaderSource = MaterialShaderManager.VERTEX_INDEXER.fromHandle(vertexShaderIndex).toString();
+		fragmentShaderSource = MaterialShaderManager.FRAGMENT_INDEXER.fromHandle(fragmentShaderIndex).toString();
 	}
 
 	private GlProgram getOrCreate() {
@@ -94,5 +99,12 @@ public final class MaterialShaderImpl implements MaterialShader {
 		if (program != null) {
 			program.onGameTick();
 		}
+	}
+
+	@Override
+	public String toString() {
+		return "index: " + index + "  type: " + programType.name
+		+ "  vertex: " + vertexShaderSource + "(" + vertexShaderIndex +
+		")  fragment: " + fragmentShaderSource + "(" + fragmentShaderIndex + ")";
 	}
 }

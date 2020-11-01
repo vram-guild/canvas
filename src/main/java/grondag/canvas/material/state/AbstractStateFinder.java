@@ -114,6 +114,11 @@ public abstract class AbstractStateFinder<T extends AbstractStateFinder<T, V>, V
 		return (T) this;
 	}
 
+	public T sorted(boolean sorted) {
+		bits = SORTED.setValue(sorted, bits);
+		return (T) this;
+	}
+
 	public T lines(boolean lines) {
 		bits = LINES.setValue(lines, bits);
 		return (T) this;
@@ -195,6 +200,8 @@ public abstract class AbstractStateFinder<T extends AbstractStateFinder<T, V>, V
 				cutout(true);
 				unmipped(true);
 				translucentCutout(false);
+				target(MaterialTarget.MAIN);
+				sorted(false);
 				bits = DEFAULT_BLEND_MODE.setValue(false, bits);
 				break;
 			case CUTOUT_MIPPED:
@@ -202,13 +209,17 @@ public abstract class AbstractStateFinder<T extends AbstractStateFinder<T, V>, V
 				cutout(true);
 				unmipped(false);
 				translucentCutout(false);
+				target(MaterialTarget.MAIN);
+				sorted(false);
 				bits = DEFAULT_BLEND_MODE.setValue(false, bits);
 				break;
 			case TRANSLUCENT:
 				transparency(MaterialTransparency.TRANSLUCENT);
-				cutout(true);
+				cutout(false);
 				unmipped(false);
-				translucentCutout(true);
+				translucentCutout(false);
+				target(MaterialTarget.TRANSLUCENT);
+				sorted(true);
 				bits = DEFAULT_BLEND_MODE.setValue(false, bits);
 				break;
 			case DEFAULT:
@@ -216,6 +227,8 @@ public abstract class AbstractStateFinder<T extends AbstractStateFinder<T, V>, V
 				cutout(false);
 				unmipped(false);
 				translucentCutout(false);
+				target(MaterialTarget.MAIN);
+				sorted(false);
 				bits = DEFAULT_BLEND_MODE.setValue(true, bits);
 				break;
 			default:
@@ -224,6 +237,8 @@ public abstract class AbstractStateFinder<T extends AbstractStateFinder<T, V>, V
 				cutout(false);
 				unmipped(false);
 				translucentCutout(false);
+				target(MaterialTarget.MAIN);
+				sorted(false);
 				bits = DEFAULT_BLEND_MODE.setValue(false, bits);
 				break;
 		}
@@ -256,11 +271,17 @@ public abstract class AbstractStateFinder<T extends AbstractStateFinder<T, V>, V
 
 	public V find() {
 		// WIP: need a way to ensure only one translucent buffer/render state per target
-		bits = SHADER.setValue(MaterialShaderManager.INSTANCE.find(vertexShaderIndex,fragmentShaderIndex, TRANSPARENCY.getValue(bits) == MaterialTransparency.TRANSLUCENT ? ProgramType.MATERIAL_VERTEX_LOGIC : ProgramType.MATERIAL_UNIFORM_LOGIC).index, bits);
+		bits = SHADER.setValue(MaterialShaderManager.INSTANCE.find(vertexShaderIndex,fragmentShaderIndex, sorted() ? ProgramType.MATERIAL_VERTEX_LOGIC : ProgramType.MATERIAL_UNIFORM_LOGIC).index, bits);
 		return findInner();
 	}
 
 	public V fromBits(long bits) {
+		if (SORTED.getValue(bits)) {
+			bits &= SORTED_RENDER_STATE_MASK;
+		} else {
+			bits &= UNSORTED_RENDER_STATE_MASK;
+		}
+
 		this.bits = bits;
 		return findInner();
 	}

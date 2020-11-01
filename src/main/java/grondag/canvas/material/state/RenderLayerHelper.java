@@ -25,6 +25,7 @@ import grondag.canvas.mixin.AccessMultiPhaseParameters;
 import grondag.canvas.mixin.AccessTexture;
 import grondag.canvas.mixinterface.EntityRenderDispatcherExt;
 import grondag.canvas.mixinterface.MultiPhaseExt;
+import grondag.canvas.mixinterface.RenderLayerExt;
 import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import org.lwjgl.opengl.GL11;
@@ -65,16 +66,11 @@ public final class RenderLayerHelper {
 		return EXCLUSIONS.contains(layer);
 	}
 
-	public static RenderMaterialImpl copyFromLayer(RenderLayer layer) {
-		if (isExcluded(layer)) {
-			return RenderMaterialImpl.MISSING;
-		}
-
+	private static void copyFromLayer(MaterialFinderImpl finder, RenderLayer layer) {
 		final AccessMultiPhaseParameters params = ((MultiPhaseExt) layer).canvas_phases();
 		final AccessTexture tex = (AccessTexture) params.getTexture();
 
-		final MaterialFinderImpl finder = MaterialFinderImpl.threadLocal();
-
+		finder.sorted(((RenderLayerExt) layer).canvas_isTranslucent());
 		finder.primitive(GL11.GL_QUADS);
 		finder.texture(tex.getId().orElse(null));
 		finder.transparency(MaterialTransparency.fromPhase(params.getTransparency()));
@@ -87,10 +83,9 @@ public final class RenderLayerHelper {
 		finder.lines(params.getLineWidth() != RenderPhase.FULL_LINE_WIDTH);
 		finder.fog(MaterialFog.fromPhase(params.getFog()));
 		finder.unmipped(!tex.getMipmap());
-		finder.disableDiffuse(params.getDiffuseLighting() == RenderPhase.DISABLE_DIFFUSE_LIGHTING);
+		finder.bilinear(tex.getBilinear());
 		finder.cutout(params.getAlpha() != RenderPhase.ZERO_ALPHA);
 		finder.translucentCutout(params.getAlpha() == RenderPhase.ONE_TENTH_ALPHA);
-		finder.disableAo(true);
 		finder.defaultBlendMode(false);
 
 		// vanilla sets these as part of draw process but we don't want special casing
@@ -99,7 +94,21 @@ public final class RenderLayerHelper {
 			finder.texture(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE);
 			finder.writeMask(MaterialWriteMask.COLOR_DEPTH);
 			finder.enableLightmap(true);
+			finder.disableAo(false);
+			finder.disableDiffuse(false);
+		} else {
+			finder.disableAo(true);
+			finder.disableDiffuse(params.getDiffuseLighting() == RenderPhase.DISABLE_DIFFUSE_LIGHTING);
 		}
+	}
+
+	public static RenderMaterialImpl copyFromLayer(RenderLayer layer) {
+		if (isExcluded(layer)) {
+			return RenderMaterialImpl.MISSING;
+		}
+
+		final MaterialFinderImpl finder = MaterialFinderImpl.threadLocal();
+		copyFromLayer(finder, layer);
 
 		// WIP2: put in proper material map hooks
 		final String name = ((MultiPhaseExt) layer).canvas_name();
