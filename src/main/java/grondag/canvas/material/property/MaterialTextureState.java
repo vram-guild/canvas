@@ -16,10 +16,12 @@
 
 package grondag.canvas.material.property;
 
+import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import grondag.canvas.texture.SpriteInfoTexture;
 import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import org.lwjgl.opengl.GL21;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.texture.AbstractTexture;
@@ -76,7 +78,7 @@ public class MaterialTextureState {
 			if (bilinear != activeIsBilinearFilter) {
 				final AbstractTexture tex = texture();
 				tex.bindTexture();
-				tex.setFilter(bilinear, true);
+				setFilter(bilinear);
 				activeIsBilinearFilter = bilinear;
 			}
 		} else {
@@ -86,7 +88,7 @@ public class MaterialTextureState {
 				RenderSystem.enableTexture();
 				final AbstractTexture tex = texture();
 				tex.bindTexture();
-				tex.setFilter(bilinear, true);
+				setFilter(bilinear);
 
 				if (isAtlas()) {
 					atlasInfo().enable();
@@ -95,6 +97,46 @@ public class MaterialTextureState {
 				activeIsBilinearFilter = bilinear;
 				activeState = this;
 			}
+		}
+	}
+
+	/**
+	 * Vanilla logic for texture filtering works like this:<p>
+	 *
+	 *<pre>
+	 * 	int minFilter;
+	 * 	int magFilter;
+	 *
+	 * 	if (bilinear) {
+	 * 		minFilter = mipmap ? GL21.GL_LINEAR_MIPMAP_LINEAR : GL21.GL_LINEAR;
+	 * 		magFilter = GL21.GL_LINEAR;
+	 * 	} else {
+	 * 		minFilter = mipmap ? GL21.GL_NEAREST_MIPMAP_LINEAR : GL21.GL_NEAREST;
+	 * 		magFilter = GL21.GL_NEAREST;
+	 * 	}
+	 *
+	 * 	GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MIN_FILTER, minFilter);
+	 * 	GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MAG_FILTER, magFilter);
+	 *</pre><p>
+	 *
+	 * In vanilla,"bilinear" enables blur on magnification, makes minification blur LOD-linear.
+	 * It seems to only be used only be used for enchantment glint.<p>
+	 *
+	 * The vanilla mipmap parameter enables minification blur (linear with nearest LOD).
+	 * Vanilla does not use GL_LINEAR_MIPMAP_LINEAR for most rendering because atlas textures
+	 * cause artifacts when sampled across LODS levels, especially for randomized rotated sprites
+	 * like grass. <p>
+	 *
+	 * Canvas controlled mipmap in shader, so we always set that to GL_NEAREST_MIPMAP_LINEAR unless
+	 * bilinear filtering is needed.
+	 */
+	private static void setFilter(boolean bilinear) {
+		if (bilinear) {
+			GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MIN_FILTER, GL21.GL_LINEAR_MIPMAP_LINEAR);
+			GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MAG_FILTER, GL21.GL_LINEAR);
+		} else {
+			GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MIN_FILTER, GL21.GL_NEAREST_MIPMAP_LINEAR);
+			GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MAG_FILTER, GL21.GL_NEAREST);
 		}
 	}
 
