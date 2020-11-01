@@ -30,6 +30,8 @@ import it.unimi.dsi.fastutil.ints.IntComparator;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.lwjgl.system.MemoryUtil;
 
+import static grondag.canvas.buffer.format.CanvasVertexFormats.MATERIAL_QUAD_STRIDE;
+
 import net.minecraft.util.math.MathHelper;
 
 public class VertexCollectorImpl extends AbstractVertexCollector {
@@ -253,9 +255,8 @@ public class VertexCollectorImpl extends AbstractVertexCollector {
 			}
 		};
 
-		int[] quadSwap = new int[128];
+		final int[] quadSwap = new int[MATERIAL_QUAD_STRIDE];
 		int[] data;
-		int quadIntStride;
 
 		private final Swapper swapper = new Swapper() {
 			@Override
@@ -264,12 +265,9 @@ public class VertexCollectorImpl extends AbstractVertexCollector {
 				perQuadDistance[a] = perQuadDistance[b];
 				perQuadDistance[b] = distSwap;
 
-				System.arraycopy(data, a * quadIntStride, quadSwap, 0, quadIntStride);
-				//data.copyTo(a * quadIntStride, quadSwap, 0, quadIntStride);
-				System.arraycopy(data, b * quadIntStride, data, a * quadIntStride, quadIntStride);
-				//data.copyFromDirect(a * quadIntStride, data, b * quadIntStride, quadIntStride);
-				System.arraycopy(quadSwap, 0, data, b * quadIntStride, quadIntStride);
-				//data.copyFrom(b * quadIntStride, quadSwap, 0, quadIntStride);
+				System.arraycopy(data, a * MATERIAL_QUAD_STRIDE, quadSwap, 0, MATERIAL_QUAD_STRIDE);
+				System.arraycopy(data, b * MATERIAL_QUAD_STRIDE, data, a * MATERIAL_QUAD_STRIDE, MATERIAL_QUAD_STRIDE);
+				System.arraycopy(quadSwap, 0, data, b * MATERIAL_QUAD_STRIDE, MATERIAL_QUAD_STRIDE);
 			}
 		};
 
@@ -280,10 +278,6 @@ public class VertexCollectorImpl extends AbstractVertexCollector {
 
 			if (perQuadDistance.length < quadCount) {
 				perQuadDistance = new double[MathHelper.smallestEncompassingPowerOfTwo(quadCount)];
-			}
-
-			if (quadSwap.length < quadIntStride) {
-				quadSwap = new int[MathHelper.smallestEncompassingPowerOfTwo(quadIntStride)];
 			}
 
 			for (int j = 0; j < quadCount; ++j) {
@@ -354,11 +348,10 @@ public class VertexCollectorImpl extends AbstractVertexCollector {
 	protected void emitQuad() {
 		// WIP2: implement condition with indexed draw for terrain
 		if (conditionActive) {
-			final int oldSize = integerSize;
-			final int newSize = oldSize + CanvasVertexFormats.MATERIAL_QUAD_STRIDE;
-			ensureCapacity(newSize);
-			firstVertexIndex = integerSize;
-			currentVertexIndex = firstVertexIndex;
+			final int newSize = integerSize + CanvasVertexFormats.MATERIAL_QUAD_STRIDE;
+			ensureCapacity(newSize + CanvasVertexFormats.MATERIAL_QUAD_STRIDE);
+			firstVertexIndex = newSize;
+			currentVertexIndex = newSize;
 			integerSize = newSize;
 		}
 	}
