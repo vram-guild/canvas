@@ -87,7 +87,7 @@ public final class RenderLayerHelper {
 		finder.lines(params.getLineWidth() != RenderPhase.FULL_LINE_WIDTH);
 		finder.fog(MaterialFog.fromPhase(params.getFog()));
 		finder.unmipped(!tex.getMipmap());
-		finder.bilinear(tex.getBilinear());
+		finder.blur(tex.getBilinear());
 		finder.cutout(params.getAlpha() != RenderPhase.ZERO_ALPHA);
 		finder.translucentCutout(params.getAlpha() == RenderPhase.ONE_TENTH_ALPHA);
 		finder.defaultBlendMode(false);

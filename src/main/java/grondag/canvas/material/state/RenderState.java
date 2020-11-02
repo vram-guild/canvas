@@ -74,7 +74,7 @@ public final class RenderState extends AbstractRenderState {
 
 		active = this;
 
-		texture.enable(bilinear);
+		texture.enable(blur);
 		transparency.enable();
 		depthTest.enable();
 		writeMask.enable();

@@ -97,12 +97,12 @@ abstract class AbstractRenderStateView {
 		return MaterialTextureState.fromIndex(TEXTURE.getValue(bits));
 	}
 
-	public boolean bilinear() {
-		return BILINEAR.getValue(bits);
+	public boolean blur() {
+		return BLUR.getValue(bits);
 	}
 
 	public MaterialTransparency translucency() {
-		return decal() == MaterialDecal.TRANSLUCENT ? MaterialTransparency.TRANSLUCENT : TRANSPARENCY.getValue(bits);
+		return TRANSPARENCY.getValue(bits);
 	}
 
 	public MaterialDepthTest depthTest() {
@@ -185,15 +185,14 @@ abstract class AbstractRenderStateView {
 	// GL State comes first for sorting
 	static final BitPacker64<Void>.EnumElement<MaterialTarget> TARGET = PACKER.createEnumElement(MaterialTarget.class);
 	static final BitPacker64.IntElement TEXTURE = PACKER.createIntElement(MaterialTextureState.MAX_TEXTURE_STATES);
-	static final BitPacker64.BooleanElement BILINEAR = PACKER.createBooleanElement();
-
+	static final BitPacker64.BooleanElement BLUR = PACKER.createBooleanElement();
 	static final BitPacker64<Void>.EnumElement<MaterialTransparency> TRANSPARENCY = PACKER.createEnumElement(MaterialTransparency.class);
 	static final BitPacker64<Void>.EnumElement<MaterialDepthTest> DEPTH_TEST = PACKER.createEnumElement(MaterialDepthTest.class);
 	static final BitPacker64.BooleanElement CULL = PACKER.createBooleanElement();
 	static final BitPacker64<Void>.EnumElement<MaterialWriteMask> WRITE_MASK = PACKER.createEnumElement(MaterialWriteMask.class);
+	// PERF: could probably handle this entirely shader-side and avoid some state changes
 	static final BitPacker64.BooleanElement ENABLE_LIGHTMAP = PACKER.createBooleanElement();
-	// note that translucent decal is never persisted because it isn't part of GL state - that is indicated by SORTED
-	// WIP: move matrix-based decal out of render state
+	static final BitPacker64.BooleanElement POLYGON_OFFSET = PACKER.createBooleanElement();
 	static final BitPacker64<Void>.EnumElement<MaterialDecal> DECAL = PACKER.createEnumElement(MaterialDecal.class);
 	static final BitPacker64.BooleanElement LINES = PACKER.createBooleanElement();
 	static final BitPacker64<Void>.EnumElement<MaterialFog> FOG = PACKER.createEnumElement(MaterialFog.class);
@@ -201,19 +200,17 @@ abstract class AbstractRenderStateView {
 	// These don't affect GL state but must be collected and drawn separately
 	// They also generally won't change within a render state for any given context
 	// so they don't cause fragmentation except for sorted transparency, which is intended.
-	/** indicates sorted transparency - should be only one true value per render target */
 	static final BitPacker64.BooleanElement SORTED = PACKER.createBooleanElement();
 	static final BitPacker64.IntElement PRIMITIVE = PACKER.createIntElement(8);
 
+	// PTT stands for for "Primary Target Transparency" and identifies the collection key and state
+	// to be used for the primary sorted transparency buffer for a given target.
+	// Quads outside of this buffer, if any, will be rendered after primary and may not sort correctly.
 	public static final long PTT_COLLECTOR_AND_STATE_MASK = PACKER.bitMask();
-
-	// WIP: make vertex/uniform configurable for non-sorted layers
 
 	// Part of render state and collection key for non-sorted, not included in either for sorted
 	static final BitPacker64.IntElement SHADER_ID = PACKER.createIntElement(4096);
 
-	// PTT standard for Primary Target Transparency and identifies the collection key and state
-	// to be used for most sorted transparency quads for a given target.
 
 	public static final long RENDER_STATE_MASK = PACKER.bitMask();
 
@@ -267,7 +264,7 @@ abstract class AbstractRenderStateView {
 
 		long translucentBits = DEFAULT_BLEND_MODE.setValue(false, 0);
 		translucentBits = TEXTURE.setValue(MaterialTextureState.fromId(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE).index, translucentBits);
-		translucentBits = BILINEAR.setValue(false, translucentBits);
+		translucentBits = BLUR.setValue(false, translucentBits);
 		translucentBits = TRANSPARENCY.setValue(MaterialTransparency.TRANSLUCENT, translucentBits);
 		translucentBits = DEPTH_TEST.setValue(MaterialDepthTest.LEQUAL, translucentBits);
 		translucentBits = CULL.setValue(true, translucentBits);

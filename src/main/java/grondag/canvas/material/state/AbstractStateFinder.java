@@ -64,8 +64,8 @@ public abstract class AbstractStateFinder<T extends AbstractStateFinder<T, V>, V
 		return (T) this;
 	}
 
-	public T bilinear(boolean bilinear) {
-		bits = BILINEAR.setValue(bilinear, bits);
+	public T blur(boolean blur) {
+		bits = BLUR.setValue(blur, bits);
 		return (T) this;
 	}
 

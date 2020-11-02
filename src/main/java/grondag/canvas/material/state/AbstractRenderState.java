@@ -49,7 +49,7 @@ abstract class AbstractRenderState extends AbstractRenderStateView {
 	public final int primitive;
 
 	public final MaterialTextureState texture;
-	public final boolean bilinear;
+	public final boolean blur;
 	public final MaterialTransparency transparency;
 	public final MaterialDepthTest depthTest;
 	public final boolean cull;
@@ -85,7 +85,7 @@ abstract class AbstractRenderState extends AbstractRenderStateView {
 		this.index = index;
 		primitive = primitive();
 		texture = texture();
-		bilinear = bilinear();
+		blur = blur();
 		depthTest = depthTest();
 		cull = cull();
 		writeMask = writeMask();

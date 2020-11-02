@@ -80,7 +80,7 @@ public final class RenderMaterialImpl extends AbstractRenderState implements Ren
 		sb.append("primaryTargetTransparency: ").append(primaryTargetTransparency).append("\n");
 		sb.append("target: ").append(target.name()).append("\n");
 		sb.append("texture: ").append(texture.index).append("  ").append(texture.id.toString()).append("\n");
-		sb.append("bilinear: ").append(bilinear).append("\n");
+		sb.append("blur: ").append(blur).append("\n");
 		sb.append("transparency: ").append(transparency.name()).append("\n");
 		sb.append("depthTest: ").append(depthTest.name()).append("\n");
 		sb.append("cull: ").append(cull).append("\n");
