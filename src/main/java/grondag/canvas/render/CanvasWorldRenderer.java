@@ -553,7 +553,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		contextState.setCurrentEntity(null);
 
-		// WIP2 move these after bulk draw in new pipeline
+		// WIP: move these after bulk draw in new pipeline
 		SatinHolder.onEntitiesRenderedEvent.onEntitiesRendered(camera, frustum, tickDelta);
 		LitematicaHolder.litematicaEntityHandler.handle(matrixStack, tickDelta);
 		DynocapsHolder.handler.render(profiler, matrixStack, immediate, cameraVec3d);

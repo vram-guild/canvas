@@ -3,7 +3,7 @@ package grondag.canvas.material.state;
 import grondag.frex.api.material.MaterialFinder;
 
 // WIP: expose attributes in FREX
-// WIP: use decal layer in JMX, RenderBender and XB/XM to improve performance for mult-layer blocks
+// WIP: implement proper decal layers in JMX, RenderBender and XB/XM to improve performance for multi-layer blocks
 public class MaterialFinderImpl extends AbstractStateFinder<MaterialFinderImpl, RenderMaterialImpl> implements MaterialFinder {
 	@Override
 	protected synchronized RenderMaterialImpl findInner() {

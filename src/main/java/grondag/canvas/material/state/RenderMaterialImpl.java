@@ -21,7 +21,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 import com.google.common.base.Strings;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
+import grondag.canvas.material.property.MaterialDecal;
+import grondag.canvas.material.property.MaterialDepthTest;
+import grondag.canvas.material.property.MaterialFog;
+import grondag.canvas.material.property.MaterialTransparency;
+import grondag.canvas.material.property.MaterialWriteMask;
 import grondag.canvas.shader.MaterialShaderId;
+import grondag.fermion.bits.BitPacker64;
 import grondag.frex.api.material.RenderMaterial;
 import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
@@ -29,20 +35,41 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import net.minecraft.util.Identifier;
 
-// WIP2: find way to implement efficient decal pass again, esp in terrain
 public final class RenderMaterialImpl extends AbstractRenderState implements RenderMaterial {
+	// packs render order sorting weights - higher (later) weights are drawn first
+	// assumes draws are for a single target and primitive type, so those are not included
+	private static final BitPacker64<Void> SORT_PACKER = new BitPacker64<> (null, null);
+
+	// these aren't order-dependent, they are included in sort to minimize state changes
+	private static final BitPacker64<Void>.BooleanElement SORT_BLUR = SORT_PACKER.createBooleanElement();
+	private static final BitPacker64<Void>.EnumElement<MaterialDepthTest> SORT_DEPTH_TEST = SORT_PACKER.createEnumElement(MaterialDepthTest.class);
+	private static final BitPacker64<Void>.BooleanElement SORT_CULL = SORT_PACKER.createBooleanElement();
+	private static final BitPacker64<Void>.BooleanElement SORT_LINES = SORT_PACKER.createBooleanElement();
+	private static final BitPacker64<Void>.EnumElement<MaterialFog> SORT_FOG = SORT_PACKER.createEnumElement(MaterialFog.class);
+	private static final BitPacker64<Void>.BooleanElement SORT_ENABLE_LIGHTMAP = SORT_PACKER.createBooleanElement();
+	private static final BitPacker64<Void>.IntElement SORT_SHADER_ID = SORT_PACKER.createIntElement(4096);
+
+	// decal should be drawn after non-decal
+	private static final BitPacker64<Void>.IntElement SORT_DECAL = SORT_PACKER.createIntElement(MaterialDecal.values().length);
+	// primary sorted layer drawn first
+	private static final BitPacker64<Void>.BooleanElement SORT_TPP = SORT_PACKER.createBooleanElement();
+	// draw solid first, then various translucent layers
+	private static final BitPacker64<Void>.IntElement SORT_TRANSPARENCY = SORT_PACKER.createIntElement(MaterialTransparency.values().length);
+	// draw things that update depth buffer first
+	private static final BitPacker64<Void>.IntElement SORT_WRITE_MASK = SORT_PACKER.createIntElement(MaterialWriteMask.values().length);
+
+
 	public final int collectorIndex;
 	public final RenderState renderState;
 	public final int shaderFlags;
-	public final int drawPriority;
+	public final long drawPriority;
 
 	RenderMaterialImpl(long bits) {
 		super(nextIndex.getAndIncrement(), bits);
 		collectorIndex = CollectorIndexMap.indexFromKey(collectorKey());
 		renderState = CollectorIndexMap.renderStateForIndex(collectorIndex);
 		shaderFlags = shaderFlags();
-		// WIP: implement
-		drawPriority = renderState.index;
+		drawPriority = drawPriority();
 
 		if (Configurator.logMaterials) {
 			CanvasMod.LOG.info("New RenderMaterial" + "\n" + toString() + "\n");
@@ -125,5 +152,22 @@ public final class RenderMaterialImpl extends AbstractRenderState implements Ren
 	@Override
 	public Identifier fragmentShader() {
 		return fragmentShaderSource;
+	}
+
+	private long drawPriority() {
+		long result = SORT_BLUR.setValue(blur, 0);
+		result = SORT_DEPTH_TEST.setValue(depthTest, result);
+		result = SORT_CULL.setValue(cull, result);
+		result = SORT_LINES.setValue(lines, result);
+		result = SORT_FOG.setValue(fog, result);
+		result = SORT_ENABLE_LIGHTMAP.setValue(enableLightmap, result);
+		result = SORT_SHADER_ID.setValue(shader.index, result);
+		result = SORT_DECAL.setValue(decal.drawPriority, result);
+		// inverted because higher goes first
+		result = SORT_TPP.setValue(!primaryTargetTransparency, result);
+		result = SORT_TRANSPARENCY.setValue(transparency.drawPriority, result);
+		result = SORT_WRITE_MASK.setValue(writeMask.drawPriority, result);
+
+		return result;
 	}
 }

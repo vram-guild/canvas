@@ -45,7 +45,7 @@ public class CanvasImmediate extends Immediate {
 
 	private static final Comparator<VertexCollectorImpl> DRAW_SORT = (a, b) -> {
 		// note reverse argument order - higher priority wins
-		return Integer.compare(b.materialState.drawPriority, a.materialState.drawPriority);
+		return Long.compare(b.materialState.drawPriority, a.materialState.drawPriority);
 	};
 
 	public void drawCollectors(MaterialTarget target) {

@@ -116,7 +116,7 @@ public final class RenderLayerHelper {
 		final MaterialFinderImpl finder = MaterialFinderImpl.threadLocal();
 		copyFromLayer(finder, layer);
 
-		// WIP2: put in proper material map hooks
+		// WIP: put in proper material map hooks
 		final String name = ((MultiPhaseExt) layer).canvas_name();
 		finder.emissive(name.equals("eyes") || name.equals("beacon_beam"));
 

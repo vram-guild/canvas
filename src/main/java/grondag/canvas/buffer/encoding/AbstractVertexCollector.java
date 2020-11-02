@@ -134,7 +134,7 @@ public abstract class AbstractVertexCollector implements VertexCollector {
 
 	@Override
 	public VertexCollector vertexState(RenderMaterialImpl material) {
-		// WIP2: should assert collector key doesn't change here but not currently visible
+		assert material.collectorIndex == materialState.collectorIndex;
 		normalBase = (material.shaderFlags << 24);
 		conditionActive = material.condition().compute();
 		return this;

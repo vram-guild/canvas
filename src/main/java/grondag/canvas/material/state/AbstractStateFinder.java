@@ -56,7 +56,7 @@ public abstract class AbstractStateFinder<T extends AbstractStateFinder<T, V>, V
 		final int val = id == null ? MaterialTextureState.NO_TEXTURE.index : MaterialTextureState.fromId(id).index;
 		bits = TEXTURE.setValue(val, bits);
 
-		// WIP2: put in proper material map hooks
+		// WIP: put in proper material map hooks
 		//			if (id != null && id.equals(EGREGIOUS_ENDERMAN_HACK)) {
 		//				fragmentShader(new Identifier("canvas:shaders/wip/material/enderman.frag"));
 		//			}

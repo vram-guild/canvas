@@ -23,9 +23,9 @@ import net.minecraft.client.render.RenderPhase;
 import net.minecraft.client.render.RenderPhase.Layering;
 
 public enum MaterialDecal {
-	NONE(Runnables.doNothing(), Runnables.doNothing()),
+	NONE(0, Runnables.doNothing(), Runnables.doNothing()),
 
-	POLYGON_OFFSET(() -> {
+	POLYGON_OFFSET(1, () -> {
 		RenderSystem.polygonOffset(-1.0F, -10.0F);
 		RenderSystem.enablePolygonOffset();
 	}, () -> {
@@ -33,7 +33,7 @@ public enum MaterialDecal {
 		RenderSystem.disablePolygonOffset();
 	}),
 
-	VIEW_OFFSET(() -> {
+	VIEW_OFFSET(2, () -> {
 		RenderSystem.pushMatrix();
 		RenderSystem.scalef(0.99975586F, 0.99975586F, 0.99975586F);
 	}, RenderSystem::popMatrix);
@@ -41,7 +41,11 @@ public enum MaterialDecal {
 	private final Runnable startAction;
 	private final Runnable endAction;
 
-	private MaterialDecal(Runnable startAction, Runnable endAction) {
+	/** higher goes first */
+	public final int drawPriority;
+
+	private MaterialDecal(int drawPriority, Runnable startAction, Runnable endAction) {
+		this.drawPriority = drawPriority;
 		this.startAction = startAction;
 		this.endAction = endAction;
 	}

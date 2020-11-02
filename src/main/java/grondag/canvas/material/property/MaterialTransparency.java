@@ -23,44 +23,48 @@ import net.minecraft.client.render.RenderPhase;
 import net.minecraft.client.render.RenderPhase.Transparency;
 
 public enum MaterialTransparency {
-	NONE (() -> {
+	NONE (6, () -> {
 		RenderSystem.disableBlend();
 	}),
 
-	ADDITIVE (() -> {
+	ADDITIVE (2, () -> {
 		RenderSystem.enableBlend();
 		RenderSystem.blendFunc(GlStateManager.SrcFactor.ONE, GlStateManager.DstFactor.ONE);
 	}),
 
-	LIGHTNING (() -> {
+	LIGHTNING (5, () -> {
 		RenderSystem.enableBlend();
 		RenderSystem.blendFunc(GlStateManager.SrcFactor.SRC_ALPHA, GlStateManager.DstFactor.ONE);
 	}),
 
-	GLINT (() -> {
+	GLINT (1, () -> {
 		RenderSystem.enableBlend();
 		RenderSystem.blendFuncSeparate(GlStateManager.SrcFactor.SRC_COLOR, GlStateManager.DstFactor.ONE, GlStateManager.SrcFactor.ZERO, GlStateManager.DstFactor.ONE);
 	}),
 
-	CRUMBLING (() -> {
+	CRUMBLING (0, () -> {
 		RenderSystem.enableBlend();
 		RenderSystem.blendFuncSeparate(GlStateManager.SrcFactor.DST_COLOR, GlStateManager.DstFactor.SRC_COLOR, GlStateManager.SrcFactor.ONE, GlStateManager.DstFactor.ZERO);
 	}),
 
-	TRANSLUCENT (() -> {
+	TRANSLUCENT (4, () -> {
 		RenderSystem.enableBlend();
 		RenderSystem.blendFuncSeparate(GlStateManager.SrcFactor.SRC_ALPHA, GlStateManager.DstFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SrcFactor.ONE, GlStateManager.DstFactor.ONE_MINUS_SRC_ALPHA);
 	}),
 
 	/** used for terrain particles */
-	DEFAULT (() -> {
+	DEFAULT (3, () -> {
 		RenderSystem.enableBlend();
 		RenderSystem.blendFuncSeparate(GlStateManager.SrcFactor.SRC_ALPHA, GlStateManager.DstFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SrcFactor.ONE, GlStateManager.DstFactor.ZERO);
 	});
 
 	private final Runnable action;
 
-	private MaterialTransparency(Runnable action) {
+	/** higher goes first */
+	public final int drawPriority;
+
+	private MaterialTransparency(int drawPriority, Runnable action) {
+		this.drawPriority = drawPriority;
 		this.action = action;
 	}
 

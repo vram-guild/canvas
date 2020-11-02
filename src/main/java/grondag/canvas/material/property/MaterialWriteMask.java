@@ -22,24 +22,28 @@ import net.minecraft.client.render.RenderPhase;
 import net.minecraft.client.render.RenderPhase.WriteMaskState;
 
 public enum MaterialWriteMask {
-	COLOR(() -> {
+	COLOR(0, () -> {
 		RenderSystem.depthMask(false);
 		RenderSystem.colorMask(true, true, true, true);
 	}),
 
-	DEPTH(() -> {
+	DEPTH(2, () -> {
 		RenderSystem.depthMask(true);
 		RenderSystem.colorMask(false, false, false, false);
 	}),
 
-	COLOR_DEPTH(() -> {
+	COLOR_DEPTH(1, () -> {
 		RenderSystem.depthMask(true);
 		RenderSystem.colorMask(true, true, true, true);
 	});
 
 	private final Runnable action;
 
-	private MaterialWriteMask(Runnable action) {
+	/** higher goes first */
+	public final int drawPriority;
+
+	private MaterialWriteMask(int drawPriority, Runnable action) {
+		this.drawPriority = drawPriority;
 		this.action = action;
 	}
 
