@@ -18,9 +18,8 @@ package grondag.canvas.shader;
 
 import grondag.canvas.material.property.MaterialMatrixState;
 import grondag.canvas.texture.SpriteInfoTexture;
-import grondag.frex.api.material.MaterialShader;
 
-public final class MaterialShaderImpl implements MaterialShader {
+public final class MaterialShaderImpl {
 	public final int index;
 	public final int vertexShaderIndex;
 	public final int fragmentShaderIndex;

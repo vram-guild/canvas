@@ -24,8 +24,12 @@ import grondag.canvas.material.property.MaterialTarget;
 import grondag.canvas.material.property.MaterialTextureState;
 import grondag.canvas.material.property.MaterialTransparency;
 import grondag.canvas.material.property.MaterialWriteMask;
+import grondag.canvas.shader.MaterialShaderId;
 import grondag.canvas.shader.MaterialShaderImpl;
 import grondag.canvas.shader.MaterialShaderManager;
+import grondag.canvas.shader.ProgramType;
+
+import net.minecraft.util.Identifier;
 
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 
@@ -56,6 +60,11 @@ abstract class AbstractRenderState extends AbstractRenderStateView {
 	public final MaterialTarget target;
 	public final boolean lines;
 	public final MaterialFog fog;
+	public final int vertexShaderIndex;
+	public final Identifier vertexShaderSource;
+	public final int fragmentShaderIndex;
+	public final Identifier fragmentShaderSource;
+	public final MaterialShaderId shaderId;
 	public final MaterialShaderImpl shader;
 	public final MaterialConditionImpl condition;
 	public final BlendMode blendMode;
@@ -68,6 +77,8 @@ abstract class AbstractRenderState extends AbstractRenderStateView {
 	public final boolean translucentCutout;
 	public final boolean hurtOverlay;
 	public final boolean flashOverlay;
+	public final boolean primaryTargetTransparency;
+	public final ProgramType programType;
 
 	protected AbstractRenderState(int index, long bits) {
 		super(bits);
@@ -86,7 +97,14 @@ abstract class AbstractRenderState extends AbstractRenderStateView {
 		condition = condition();
 		transparency = TRANSPARENCY.getValue(bits);
 		sorted = sorted();
-		shader = MaterialShaderManager.INSTANCE.get(SHADER.getValue(bits));
+		shaderId = shaderId();
+		vertexShaderIndex = shaderId.vertexIndex;
+		vertexShaderSource = shaderId.vertexId;
+		fragmentShaderIndex = shaderId.fragmentIndex;
+		fragmentShaderSource = shaderId.fragmentId;
+		primaryTargetTransparency = primaryTargetTransparency();
+		programType = primaryTargetTransparency ? ProgramType.MATERIAL_VERTEX_LOGIC : ProgramType.MATERIAL_UNIFORM_LOGIC;
+		shader = MaterialShaderManager.INSTANCE.find(vertexShaderIndex, fragmentShaderIndex, programType);
 		blendMode = blendMode();
 		emissive = emissive();
 		disableDiffuse = disableDiffuse();

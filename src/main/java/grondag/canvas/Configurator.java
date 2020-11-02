@@ -85,6 +85,7 @@ public class Configurator {
 	public static boolean enableBufferDebug = DEFAULTS.enableBufferDebug;
 	public static boolean enableLifeCycleDebug = DEFAULTS.enableLifeCycleDebug;
 	public static boolean logMissingUniforms = DEFAULTS.logMissingUniforms;
+	public static boolean logMaterials = DEFAULTS.logMaterials;
 
 	//    @LangKey("config.acuity_fancy_fluids")
 	//    @Comment({"Enable fancy water and lava rendering.",
@@ -171,6 +172,7 @@ public class Configurator {
 		enableBufferDebug = config.enableBufferDebug;
 		enableLifeCycleDebug = config.enableLifeCycleDebug;
 		logMissingUniforms = config.logMissingUniforms;
+		logMaterials = config.logMaterials;
 	}
 
 	private static void saveConfig() {
@@ -217,6 +219,7 @@ public class Configurator {
 		config.enableBufferDebug = enableBufferDebug;
 		config.enableLifeCycleDebug = enableLifeCycleDebug;
 		config.logMissingUniforms = logMissingUniforms;
+		config.logMaterials = logMaterials;
 
 		try {
 			final String result = JANKSON.toJson(config).toJson(true, true, 0);
@@ -590,6 +593,13 @@ public class Configurator {
 			.setSaveConsumer(b -> logMissingUniforms = b)
 			.build());
 
+		debug.addEntry(ENTRY_BUILDER
+			.startBooleanToggle(new TranslatableText("config.canvas.value.log_materials"), logMaterials)
+			.setDefaultValue(DEFAULTS.logMaterials)
+			.setTooltip(parse("config.canvas.help.log_materials"))
+			.setSaveConsumer(b -> logMaterials = b)
+			.build());
+
 		builder.setAlwaysShowTabs(false).setDoesConfirmSave(false);
 
 		return builder.build();
@@ -722,6 +732,8 @@ public class Configurator {
 		boolean traceOcclusionEdgeCases = false;
 		@Comment("Log uniforms not found in shaders. Sometimes useful for shader debug. Will spam the log.")
 		boolean logMissingUniforms = false;
+		@Comment("Log render material states and vanilla RenderLayer mapping. Useful for material debug and pack makers. Will spam the log.")
+		boolean logMaterials = false;
 	}
 
 

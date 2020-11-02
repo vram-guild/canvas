@@ -107,5 +107,7 @@
   "config.canvas.value.lifecycle_debug": "Log Lifecycle Events",
   "config.canvas.help.lifecycle_debug": "Output load/reload trace data to log;Will have performance impact.",
   "config.canvas.value.log_missing_uniforms": "Log Missing Uniforms",
-  "config.canvas.help.log_missing_uniforms": "Log uniforms not found in shaders. Sometimes useful for;shader debug. Will spam the log."
+  "config.canvas.help.log_missing_uniforms": "Log uniforms not found in shaders. Sometimes useful for;shader debug. Will spam the log.",
+  "config.canvas.value.log_materials": "Log Materials",
+  "config.canvas.help.log_materials": "Log render material states and vanilla RenderLayer mapping.;Useful for material debug and pack makers.;Will spam the log."
 }

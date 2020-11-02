@@ -15,6 +15,8 @@
  */
 package grondag.canvas.material.state;
 
+import grondag.canvas.CanvasMod;
+import grondag.canvas.Configurator;
 import grondag.canvas.material.property.MaterialDecal;
 import grondag.canvas.material.property.MaterialDepthTest;
 import grondag.canvas.material.property.MaterialFog;
@@ -27,12 +29,14 @@ import grondag.canvas.mixinterface.EntityRenderDispatcherExt;
 import grondag.canvas.mixinterface.MultiPhaseExt;
 import grondag.canvas.mixinterface.RenderLayerExt;
 import it.unimi.dsi.fastutil.Hash;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import org.lwjgl.opengl.GL11;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.RenderPhase;
+import net.minecraft.client.render.TexturedRenderLayers;
 import net.minecraft.client.render.model.ModelLoader;
 import net.minecraft.client.texture.SpriteAtlasTexture;
 
@@ -102,6 +106,8 @@ public final class RenderLayerHelper {
 		}
 	}
 
+	private static final ObjectOpenHashSet<String> VANILLA_MATERIAL_SET = new ObjectOpenHashSet<>();
+
 	public static RenderMaterialImpl copyFromLayer(RenderLayer layer) {
 		if (isExcluded(layer)) {
 			return RenderMaterialImpl.MISSING;
@@ -114,9 +120,30 @@ public final class RenderLayerHelper {
 		final String name = ((MultiPhaseExt) layer).canvas_name();
 		finder.emissive(name.equals("eyes") || name.equals("beacon_beam"));
 
-		return finder.find();
+		final RenderMaterialImpl result = finder.find();
+
+		if (Configurator.logMaterials) {
+			final String key = name +": " + layer.toString();
+
+			if(VANILLA_MATERIAL_SET.add(key)) {
+				CanvasMod.LOG.info("Encountered new unique RenderLayer\n"
+				+ key + "\n"
+				+ "primary target transparency: " + result.primaryTargetTransparency + "\n"
+				+ "mapped to render material #" + result.index + "\n");
+			}
+		}
+
+		return result;
 	}
 
-	// WIP: fix translucency sort - this doesn't seem to be used consistently and sort doesn't happen
+	// PERF: disable translucent sorting on vanilla layers that don't actually require it - like horse spots
+	// may need to be a lookup table because some will need it.
+
 	public static final RenderMaterialImpl TRANSLUCENT_TERRAIN = copyFromLayer(RenderLayer.getTranslucent());
+	public static final RenderMaterialImpl TRANSLUCENT_ITEM_ENTITY = copyFromLayer(TexturedRenderLayers.getItemEntityTranslucentCull());
+
+	static {
+		assert TRANSLUCENT_TERRAIN.primaryTargetTransparency;
+		assert TRANSLUCENT_ITEM_ENTITY.primaryTargetTransparency;
+	}
 }

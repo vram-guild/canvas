@@ -24,11 +24,8 @@ import grondag.canvas.material.property.MaterialTarget;
 import grondag.canvas.material.property.MaterialTextureState;
 import grondag.canvas.material.property.MaterialTransparency;
 import grondag.canvas.material.property.MaterialWriteMask;
-import grondag.canvas.shader.MaterialShaderImpl;
-import grondag.canvas.shader.MaterialShaderManager;
-import grondag.canvas.shader.ProgramType;
+import grondag.canvas.shader.MaterialShaderId;
 import grondag.frex.api.material.MaterialCondition;
-import grondag.frex.api.material.MaterialShader;
 import grondag.frex.api.material.RenderMaterial;
 import org.jetbrains.annotations.Nullable;
 
@@ -40,17 +37,10 @@ import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 public abstract class AbstractStateFinder<T extends AbstractStateFinder<T, V>, V extends AbstractRenderState> extends AbstractRenderStateView{
 	protected AbstractStateFinder() {
 		super(AbstractRenderStateView.DEFAULT_BITS);
-		vertexShaderIndex = MaterialShaderManager.DEFAULT_VERTEX_INDEX;
-		fragmentShaderIndex = MaterialShaderManager.DEFAULT_FRAGMENT_INDEX;
 	}
-
-	protected int vertexShaderIndex;
-	protected int fragmentShaderIndex;
 
 	public T clear() {
 		bits = AbstractRenderStateView.DEFAULT_BITS;
-		vertexShaderIndex = MaterialShaderManager.DEFAULT_VERTEX_INDEX;
-		fragmentShaderIndex = MaterialShaderManager.DEFAULT_FRAGMENT_INDEX;
 		return (T) this;
 	}
 
@@ -129,13 +119,8 @@ public abstract class AbstractStateFinder<T extends AbstractStateFinder<T, V>, V
 		return (T) this;
 	}
 
-	public T vertexShader(Identifier vertexSource) {
-		vertexShaderIndex = MaterialShaderManager.VERTEX_INDEXER.toHandle(vertexSource);
-		return (T) this;
-	}
-
-	public T fragmentShader(Identifier fragmentSource) {
-		fragmentShaderIndex = MaterialShaderManager.FRAGMENT_INDEXER.toHandle(fragmentSource);
+	public T shader(Identifier vertexSource, Identifier fragmentSource) {
+		bits = SHADER_ID.setValue(MaterialShaderId.find(vertexSource, fragmentSource).index, bits);
 		return (T) this;
 	}
 
@@ -251,13 +236,6 @@ public abstract class AbstractStateFinder<T extends AbstractStateFinder<T, V>, V
 		return (T) this;
 	}
 
-	public T shader(MaterialShader shader) {
-		final MaterialShaderImpl s = (MaterialShaderImpl) shader;
-		vertexShaderIndex = s.vertexShaderIndex;
-		fragmentShaderIndex = s.fragmentShaderIndex;
-		return (T) this;
-	}
-
 	public T condition(MaterialCondition condition) {
 		bits = CONDITION.setValue(((MaterialConditionImpl) condition).index, bits);
 		return (T) this;
@@ -270,18 +248,10 @@ public abstract class AbstractStateFinder<T extends AbstractStateFinder<T, V>, V
 	protected abstract V missing();
 
 	public V find() {
-		// WIP: need a way to ensure only one translucent buffer/render state per target
-		bits = SHADER.setValue(MaterialShaderManager.INSTANCE.find(vertexShaderIndex,fragmentShaderIndex, sorted() ? ProgramType.MATERIAL_VERTEX_LOGIC : ProgramType.MATERIAL_UNIFORM_LOGIC).index, bits);
 		return findInner();
 	}
 
 	public V fromBits(long bits) {
-		if (SORTED.getValue(bits)) {
-			bits &= SORTED_RENDER_STATE_MASK;
-		} else {
-			bits &= UNSORTED_RENDER_STATE_MASK;
-		}
-
 		this.bits = bits;
 		return findInner();
 	}
@@ -290,9 +260,6 @@ public abstract class AbstractStateFinder<T extends AbstractStateFinder<T, V>, V
 
 	public T copyFrom(V template) {
 		bits = template.bits;
-		final MaterialShaderImpl shader = MaterialShaderManager.INSTANCE.get(SHADER.getValue(bits));
-		vertexShaderIndex = shader.vertexShaderIndex;
-		fragmentShaderIndex = shader.fragmentShaderIndex;
 		return (T) this;
 	}
 }

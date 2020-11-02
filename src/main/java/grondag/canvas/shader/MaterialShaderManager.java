@@ -121,7 +121,6 @@ public enum MaterialShaderManager implements ClientTickEvents.EndTick {
 	/** tracks which fragmet sub-shaders are in use by materials */
 	public static final IntOpenHashSet FRAGMENT_INDEXES = new IntOpenHashSet();
 
-	public static final int MAX_SHADERS = 0xFFFF;
 	public static final IndexedInterner<Identifier> VERTEX_INDEXER = new IndexedInterner<>(Identifier.class);
 	public static final IndexedInterner<Identifier> FRAGMENT_INDEXER = new IndexedInterner<>(Identifier.class);
 	private static final Long2ObjectOpenHashMap<MaterialShaderImpl> KEYMAP = new Long2ObjectOpenHashMap<>();
