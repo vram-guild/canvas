@@ -211,7 +211,6 @@ abstract class AbstractRenderStateView {
 	// Part of render state and collection key for non-sorted, not included in either for sorted
 	static final BitPacker64.IntElement SHADER_ID = PACKER.createIntElement(4096);
 
-
 	public static final long RENDER_STATE_MASK = PACKER.bitMask();
 
 	// Can't be part of PTT collector key

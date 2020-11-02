@@ -34,12 +34,15 @@ public final class RenderMaterialImpl extends AbstractRenderState implements Ren
 	public final int collectorIndex;
 	public final RenderState renderState;
 	public final int shaderFlags;
+	public final int drawPriority;
 
 	RenderMaterialImpl(long bits) {
 		super(nextIndex.getAndIncrement(), bits);
 		collectorIndex = CollectorIndexMap.indexFromKey(collectorKey());
 		renderState = CollectorIndexMap.renderStateForIndex(collectorIndex);
 		shaderFlags = shaderFlags();
+		// WIP: implement
+		drawPriority = renderState.index;
 
 		if (Configurator.logMaterials) {
 			CanvasMod.LOG.info("New RenderMaterial" + "\n" + toString() + "\n");
@@ -110,6 +113,7 @@ public final class RenderMaterialImpl extends AbstractRenderState implements Ren
 
 		sb.append("shaderFlags: ").append(Integer.toBinaryString(shaderFlags)).append("\n");
 		sb.append("blendMode: ").append(blendMode.name()).append("\n");
+		sb.append("drawPriority: ").append(drawPriority).append("\n");
 		return sb.toString();
 	}
 

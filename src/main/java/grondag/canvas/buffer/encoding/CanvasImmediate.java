@@ -1,5 +1,6 @@
 package grondag.canvas.buffer.encoding;
 
+import java.util.Comparator;
 import java.util.Map;
 import java.util.SortedMap;
 
@@ -42,7 +43,11 @@ public class CanvasImmediate extends Immediate {
 		}
 	}
 
-	// WIP: need a way to ensure decal layers go last
+	private static final Comparator<VertexCollectorImpl> DRAW_SORT = (a, b) -> {
+		// note reverse argument order - higher priority wins
+		return Integer.compare(b.materialState.drawPriority, a.materialState.drawPriority);
+	};
+
 	public void drawCollectors(MaterialTarget target) {
 		final ObjectArrayList<VertexCollectorImpl> drawList = this.drawList;
 		final int limit = collectors.size();
@@ -58,6 +63,7 @@ public class CanvasImmediate extends Immediate {
 		}
 
 		if (!drawList.isEmpty()) {
+			drawList.sort(DRAW_SORT);
 			VertexCollectorImpl.drawAndClear(drawList);
 		}
 	}
