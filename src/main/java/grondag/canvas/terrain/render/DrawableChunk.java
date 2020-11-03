@@ -95,7 +95,8 @@ public class DrawableChunk {
 	}
 
 	public static DrawableChunk pack(VertexCollectorList collectorList, VboBuffer vboBuffer, boolean translucent) {
-		// WIP: further consolidate draw calls with same render state - use drawPriority.  Need to handle conditions.
+		// WIP: further consolidate draw calls with same render state - use drawPriority.
+		// WIP: handle conditions.
 		final IntBuffer intBuffer = vboBuffer.intBuffer();
 		intBuffer.position(0);
 

@@ -553,12 +553,6 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		contextState.setCurrentEntity(null);
 
-		// WIP: move these after bulk draw in new pipeline
-		SatinHolder.onEntitiesRenderedEvent.onEntitiesRendered(camera, frustum, tickDelta);
-		LitematicaHolder.litematicaEntityHandler.handle(matrixStack, tickDelta);
-		DynocapsHolder.handler.render(profiler, matrixStack, immediate, cameraVec3d);
-		GOMLHolder.HANDLER.render(this, matrixStack, tickDelta, limitTime, blockOutlines, camera, gameRenderer, lightmapTextureManager, projectionMatrix);
-
 		profiler.swap("blockentities");
 
 		final int visibleRegionCount = this.visibleRegionCount;
@@ -616,6 +610,11 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		assert matrixStack.isEmpty() : "Matrix stack not empty in world render when expected";
 
 		immediate.drawCollectors(MaterialTarget.MAIN);
+
+		SatinHolder.onEntitiesRenderedEvent.onEntitiesRendered(camera, frustum, tickDelta);
+		LitematicaHolder.litematicaEntityHandler.handle(matrixStack, tickDelta);
+		DynocapsHolder.handler.render(profiler, matrixStack, immediate, cameraVec3d);
+		GOMLHolder.HANDLER.render(this, matrixStack, tickDelta, limitTime, blockOutlines, camera, gameRenderer, lightmapTextureManager, projectionMatrix);
 
 		bufferBuilders.getOutlineVertexConsumers().draw();
 
