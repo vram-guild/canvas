@@ -40,7 +40,6 @@ import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.BlockRenderView;
 
-import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 
@@ -64,7 +63,6 @@ public abstract class AbstractBlockRenderContext<T extends BlockRenderView> exte
 	public BlockState blockState;
 	public long seed;
 	public boolean defaultAo;
-	public BlendMode defaultBlendMode;
 	protected boolean needsRandomRefresh = true;
 	public final Supplier<Random> randomSupplier = () -> {
 		final Random result = random;
@@ -107,6 +105,8 @@ public abstract class AbstractBlockRenderContext<T extends BlockRenderView> exte
 		fullCubeCache = 0;
 		this.seed = seed;
 		defaultAo = modelAO && MinecraftClient.isAmbientOcclusionEnabled() && blockState.getLuminance() == 0;
+
+		// FEAT: support additional blend modes on terrain blocks?
 		defaultBlendMode = ((RenderLayerExt) RenderLayers.getBlockLayer(blockState)).canvas_blendMode();
 	}
 
@@ -169,11 +169,6 @@ public abstract class AbstractBlockRenderContext<T extends BlockRenderView> exte
 		}
 
 		return fastBrightness(blockState, internalSearchPos);
-	}
-
-	@Override
-	protected BlendMode defaultBlendMode() {
-		return defaultBlendMode;
 	}
 
 	protected abstract int fastBrightness(BlockState blockState, BlockPos pos);

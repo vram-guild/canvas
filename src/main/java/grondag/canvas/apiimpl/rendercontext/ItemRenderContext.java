@@ -22,6 +22,8 @@ import java.util.function.Supplier;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.buffer.encoding.CanvasImmediate;
 import grondag.canvas.material.property.MaterialTarget;
+import grondag.canvas.material.property.MaterialTransparency;
+import grondag.canvas.material.state.MaterialFinderImpl;
 import grondag.canvas.material.state.RenderLayerHelper;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.MinecraftClientExt;
@@ -90,8 +92,6 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 	private VertexConsumer defaultConsumer;
 	private @Nullable VertexConsumer glintConsumer;
 
-	private BlendMode defaultBlendMode;
-
 	private int lightmap;
 	private ItemStack itemStack;
 
@@ -138,11 +138,6 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 	@Override
 	public int flatBrightness(MutableQuadViewImpl quad) {
 		return 0;
-	}
-
-	@Override
-	protected BlendMode defaultBlendMode() {
-		return defaultBlendMode;
 	}
 
 	/**
@@ -200,7 +195,7 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 
 			defaultRenderLayer = RenderLayers.getItemLayer(stack, drawDirectToMainTarget);
 			glintConsumer = getGlintConsumer(defaultRenderLayer);
-			defaultBlendMode = RenderLayerHelper.copyFromLayer(defaultRenderLayer).blendMode;
+			defaultBlendMode = RenderLayerHelper.blendModeFromLayer(defaultRenderLayer);
 
 			if (((vertexConsumers instanceof CanvasImmediate))) {
 				collectors = ((CanvasImmediate) vertexConsumers).collectors;
@@ -250,18 +245,65 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 
 	@Override
 	protected void adjustMaterial() {
-		super.adjustMaterial();
+		final MaterialFinderImpl finder = this.finder;
+
+		BlendMode bm = finder.blendMode();
+
+		// fully specific renderable material
+		if (bm == null) return;
+
+		if (finder.blendMode() == BlendMode.DEFAULT) {
+			bm = defaultBlendMode;
+			finder.blendMode(null);
+		}
+
+		switch (bm) {
+			case CUTOUT:
+				finder.transparency(MaterialTransparency.NONE)
+				.cutout(true)
+				.translucentCutout(false)
+				.unmipped(true)
+				.target(MaterialTarget.MAIN)
+				.sorted(false);
+				break;
+			case CUTOUT_MIPPED:
+				finder.transparency(MaterialTransparency.NONE)
+				.cutout(true)
+				.translucentCutout(false)
+				.unmipped(false)
+				.target(MaterialTarget.MAIN)
+				.sorted(false);
+				break;
+			case TRANSLUCENT:
+				// Note on glint rendering
+				// Glint renders use EQUALS depth test.
+				// This makes it important that
+				//   1) geometry is the same
+				//   2) cutout is enabled for generated models so depth buffer isn't updated
+				// 1 is easily solved by renderin twice with same vertex data
+				// 2 has to be finessed because blend mode = TRANSLUCENT doesn't make it clear cutout is needed.
+				// The code below is an ugly hack - need a better way
+
+				finder.transparency(MaterialTransparency.TRANSLUCENT)
+				.cutout(!isBlockItem)
+				.translucentCutout(!isBlockItem)
+				.unmipped(false)
+				.target(drawDirectToMainTarget ? MaterialTarget.MAIN : MaterialTarget.ENTITIES)
+				.sorted(true);
+				break;
+			case SOLID:
+				finder.transparency(MaterialTransparency.NONE)
+				.cutout(false)
+				.translucentCutout(false)
+				.unmipped(false)
+				.target(MaterialTarget.MAIN)
+				.sorted(false);
+				break;
+			default:
+				assert false : "Unhandled blend mode";
+		}
 
 		finder.disableAo(true);
-
-		if (finder.blendMode() == BlendMode.TRANSLUCENT) {
-			if (!isBlockItem) {
-				finder.cutout(true);
-				finder.translucentCutout(true);
-			}
-
-			finder.target(drawDirectToMainTarget ? MaterialTarget.MAIN : MaterialTarget.ENTITIES);
-		}
 	}
 
 	@Override

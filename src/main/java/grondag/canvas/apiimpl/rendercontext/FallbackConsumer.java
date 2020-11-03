@@ -88,19 +88,19 @@ public class FallbackConsumer implements Consumer<BakedModel> {
 	}
 
 	protected RenderMaterialImpl flatMaterial() {
-		return MATERIALS[FLAT_INDEX_START + context.defaultBlendMode().ordinal()];
+		return MATERIALS[FLAT_INDEX_START + context.defaultBlendMode.ordinal()];
 	}
 
 	protected RenderMaterialImpl shadedMaterial() {
-		return MATERIALS[SHADED_INDEX_START + context.defaultBlendMode().ordinal()];
+		return MATERIALS[SHADED_INDEX_START + context.defaultBlendMode.ordinal()];
 	}
 
 	protected RenderMaterialImpl aoFlatMaterial() {
-		return MATERIALS[AO_FLAT_INDEX_START + context.defaultBlendMode().ordinal()];
+		return MATERIALS[AO_FLAT_INDEX_START + context.defaultBlendMode.ordinal()];
 	}
 
 	protected RenderMaterialImpl aoShadedMaterial() {
-		return MATERIALS[AO_SHADED_INDEX_START + context.defaultBlendMode().ordinal()];
+		return MATERIALS[AO_SHADED_INDEX_START + context.defaultBlendMode.ordinal()];
 	}
 
 	protected final AbstractRenderContext context;

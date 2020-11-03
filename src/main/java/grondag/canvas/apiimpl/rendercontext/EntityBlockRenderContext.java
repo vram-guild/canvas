@@ -145,7 +145,6 @@ public class EntityBlockRenderContext extends AbstractBlockRenderContext<BlockRe
 	@Override
 	protected void adjustMaterial() {
 		super.adjustMaterial();
-
 		finder.disableAo(true);
 	}
 

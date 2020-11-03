@@ -136,19 +136,8 @@ abstract class AbstractRenderStateView {
 		return FOG.getValue(bits);
 	}
 
-	/** derived and may not match input for non-block layers */
 	public BlendMode blendMode() {
-		if (DEFAULT_BLEND_MODE.getValue(bits)) {
-			return BlendMode.DEFAULT;
-		}
-
-		if (translucency() != MaterialTransparency.NONE) {
-			return BlendMode.TRANSLUCENT;
-		} else if (cutout()) {
-			return unmipped() ? BlendMode.CUTOUT : BlendMode.CUTOUT_MIPPED;
-		} else {
-			return BlendMode.SOLID;
-		}
+		return BLENDMODE.getValue(bits);
 	}
 
 	public boolean disableColorIndex() {
@@ -218,7 +207,7 @@ abstract class AbstractRenderStateView {
 
 	// here and below only used in material - holds vertex state - does not affect buffering or gl State
 	static final BitPacker64<Void>.BooleanElement DISABLE_COLOR_INDEX = PACKER.createBooleanElement();
-	static final BitPacker64<Void>.BooleanElement DEFAULT_BLEND_MODE = PACKER.createBooleanElement();
+	static final BitPacker64<Void>.NullableEnumElement<BlendMode> BLENDMODE = PACKER.createNullableEnumElement(BlendMode.class);
 
 	static final int FLAG_SHIFT = PACKER.bitLength();
 
@@ -247,7 +236,7 @@ abstract class AbstractRenderStateView {
 		long defaultBits = PRIMITIVE.setValue(GL11.GL_QUADS, 0);
 
 		defaultBits = SHADER_ID.setValue(MaterialShaderId.find(ShaderData.DEFAULT_VERTEX_SOURCE, ShaderData.DEFAULT_FRAGMENT_SOURCE).index, defaultBits);
-		defaultBits = DEFAULT_BLEND_MODE.setValue(true, defaultBits);
+		defaultBits = BLENDMODE.setValue(BlendMode.DEFAULT, defaultBits);
 		defaultBits = CULL.setValue(true, defaultBits);
 		defaultBits = DEPTH_TEST.setValue(MaterialDepthTest.LEQUAL, defaultBits);
 		defaultBits = ENABLE_LIGHTMAP.setValue(true, defaultBits);
@@ -259,7 +248,7 @@ abstract class AbstractRenderStateView {
 
 		DEFAULT_BITS = defaultBits;
 
-		long translucentBits = DEFAULT_BLEND_MODE.setValue(false, 0);
+		long translucentBits = BLENDMODE.setValue(null, 0);
 		translucentBits = TEXTURE.setValue(MaterialTextureState.fromId(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE).index, translucentBits);
 		translucentBits = BLUR.setValue(false, translucentBits);
 		translucentBits = TRANSPARENCY.setValue(MaterialTransparency.TRANSLUCENT, translucentBits);

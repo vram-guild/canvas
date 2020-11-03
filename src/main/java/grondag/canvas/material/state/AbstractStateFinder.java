@@ -149,11 +149,6 @@ public abstract class AbstractStateFinder<T extends AbstractStateFinder<T, V>, V
 		return (T) this;
 	}
 
-	public T defaultBlendMode(boolean isDefault) {
-		bits = DEFAULT_BLEND_MODE.setValue(isDefault, bits);
-		return (T) this;
-	}
-
 	/**
 	 * Sets cutout threshold to low value vs default of 50%
 	 */
@@ -179,56 +174,7 @@ public abstract class AbstractStateFinder<T extends AbstractStateFinder<T, V>, V
 	}
 
 	public T blendMode(BlendMode blendMode) {
-		// WIP: accept null to indicate it should be ignored for custom render layers and document this behavior
-		switch (blendMode) {
-			case CUTOUT:
-				transparency(MaterialTransparency.NONE);
-				cutout(true);
-				unmipped(true);
-				translucentCutout(false);
-				target(MaterialTarget.MAIN);
-				sorted(false);
-				bits = DEFAULT_BLEND_MODE.setValue(false, bits);
-				break;
-			case CUTOUT_MIPPED:
-				transparency(MaterialTransparency.NONE);
-				cutout(true);
-				unmipped(false);
-				translucentCutout(false);
-				target(MaterialTarget.MAIN);
-				sorted(false);
-				bits = DEFAULT_BLEND_MODE.setValue(false, bits);
-				break;
-			case TRANSLUCENT:
-				transparency(MaterialTransparency.TRANSLUCENT);
-				cutout(false);
-				unmipped(false);
-				translucentCutout(false);
-				target(MaterialTarget.TRANSLUCENT);
-				sorted(true);
-				bits = DEFAULT_BLEND_MODE.setValue(false, bits);
-				break;
-			case DEFAULT:
-				transparency(MaterialTransparency.NONE);
-				cutout(false);
-				unmipped(false);
-				translucentCutout(false);
-				target(MaterialTarget.MAIN);
-				sorted(false);
-				bits = DEFAULT_BLEND_MODE.setValue(true, bits);
-				break;
-			default:
-			case SOLID:
-				transparency(MaterialTransparency.NONE);
-				cutout(false);
-				unmipped(false);
-				translucentCutout(false);
-				target(MaterialTarget.MAIN);
-				sorted(false);
-				bits = DEFAULT_BLEND_MODE.setValue(false, bits);
-				break;
-		}
-
+		bits = BLENDMODE.setValue(blendMode, bits);
 		return (T) this;
 	}
 

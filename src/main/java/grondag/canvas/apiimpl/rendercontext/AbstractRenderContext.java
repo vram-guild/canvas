@@ -25,6 +25,8 @@ import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.util.ColorHelper;
 import grondag.canvas.buffer.encoding.VertexCollectorList;
 import grondag.canvas.buffer.format.CanvasVertexFormats;
+import grondag.canvas.material.property.MaterialTarget;
+import grondag.canvas.material.property.MaterialTransparency;
 import grondag.canvas.material.state.MaterialFinderImpl;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.texture.SpriteInfoTexture;
@@ -74,6 +76,7 @@ public abstract class AbstractRenderContext implements RenderContext {
 	protected Matrix3fExt normalMatrix;
 	protected int overlay;
 	protected MaterialMap materialMap = defaultMap;
+	protected BlendMode defaultBlendMode;
 	protected boolean isFluidModel = false;
 	private QuadTransform activeTransform = NO_TRANSFORM;
 
@@ -201,8 +204,6 @@ public abstract class AbstractRenderContext implements RenderContext {
 		return normalMatrix;
 	}
 
-	protected abstract BlendMode defaultBlendMode();
-
 	public final void renderQuad() {
 		final MutableQuadViewImpl quad = makerQuad;
 
@@ -230,12 +231,51 @@ public abstract class AbstractRenderContext implements RenderContext {
 	protected void adjustMaterial() {
 		final MaterialFinderImpl finder = this.finder;
 
-		if (finder.blendMode() == BlendMode.DEFAULT) {
-			final BlendMode bm = defaultBlendMode();
+		BlendMode bm = finder.blendMode();
 
-			assert bm != BlendMode.DEFAULT;
+		if (bm == BlendMode.DEFAULT) {
+			bm = defaultBlendMode;
+			finder.blendMode(null);
+		}
 
-			finder.blendMode(bm);
+		// fully specific renderable material
+		if (bm == null) return;
+
+		switch (bm) {
+			case CUTOUT:
+				finder.transparency(MaterialTransparency.NONE)
+				.cutout(true)
+				.unmipped(true)
+				.translucentCutout(false)
+				.target(MaterialTarget.MAIN)
+				.sorted(false);
+				break;
+			case CUTOUT_MIPPED:
+				finder.transparency(MaterialTransparency.NONE)
+				.cutout(true)
+				.unmipped(false)
+				.translucentCutout(false)
+				.target(MaterialTarget.MAIN)
+				.sorted(false);
+				break;
+			case TRANSLUCENT:
+				finder.transparency(MaterialTransparency.TRANSLUCENT)
+				.cutout(false)
+				.unmipped(false)
+				.translucentCutout(false)
+				.target(MaterialTarget.TRANSLUCENT)
+				.sorted(true);
+				break;
+			case SOLID:
+				finder.transparency(MaterialTransparency.NONE)
+				.cutout(false)
+				.unmipped(false)
+				.translucentCutout(false)
+				.target(MaterialTarget.MAIN)
+				.sorted(false);
+				break;
+			default:
+				assert false : "Unhandled blend mode";
 		}
 	}
 }

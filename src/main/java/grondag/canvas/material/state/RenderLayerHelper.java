@@ -40,6 +40,8 @@ import net.minecraft.client.render.TexturedRenderLayers;
 import net.minecraft.client.render.model.ModelLoader;
 import net.minecraft.client.texture.SpriteAtlasTexture;
 
+import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
+
 // segregates render layer references from mod init
 public final class RenderLayerHelper {
 	private RenderLayerHelper() {}
@@ -70,6 +72,19 @@ public final class RenderLayerHelper {
 		return EXCLUSIONS.contains(layer);
 	}
 
+	public static BlendMode blendModeFromLayer(RenderLayer layer) {
+		final AccessMultiPhaseParameters params = ((MultiPhaseExt) layer).canvas_phases();
+
+		if (params.getTransparency() == RenderPhase.TRANSLUCENT_TRANSPARENCY) {
+			return BlendMode.TRANSLUCENT;
+		} else if (params.getAlpha() != RenderPhase.ZERO_ALPHA) {
+			final AccessTexture tex = (AccessTexture) params.getTexture();
+			return tex.getMipmap() ? BlendMode.CUTOUT_MIPPED : BlendMode.CUTOUT;
+		} else {
+			return BlendMode.SOLID;
+		}
+	}
+
 	private static void copyFromLayer(MaterialFinderImpl finder, RenderLayer layer) {
 		final AccessMultiPhaseParameters params = ((MultiPhaseExt) layer).canvas_phases();
 		final AccessTexture tex = (AccessTexture) params.getTexture();
@@ -90,7 +105,6 @@ public final class RenderLayerHelper {
 		finder.blur(tex.getBilinear());
 		finder.cutout(params.getAlpha() != RenderPhase.ZERO_ALPHA);
 		finder.translucentCutout(params.getAlpha() == RenderPhase.ONE_TENTH_ALPHA);
-		finder.defaultBlendMode(false);
 
 		// vanilla sets these as part of draw process but we don't want special casing
 		if (layer ==  RenderLayer.getSolid() || layer == RenderLayer.getCutoutMipped() || layer == RenderLayer.getCutout() || layer == RenderLayer.getTranslucent()) {
