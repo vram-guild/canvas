@@ -179,6 +179,7 @@ public abstract class AbstractStateFinder<T extends AbstractStateFinder<T, V>, V
 	}
 
 	public T blendMode(BlendMode blendMode) {
+		// WIP: accept null to indicate it should be ignored for custom render layers and document this behavior
 		switch (blendMode) {
 			case CUTOUT:
 				transparency(MaterialTransparency.NONE);

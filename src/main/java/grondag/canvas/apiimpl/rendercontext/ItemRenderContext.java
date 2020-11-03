@@ -145,7 +145,18 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 		return defaultBlendMode;
 	}
 
-	private boolean isDirect;
+	/**
+	 * True except for translucent blocks and glass panes or when drawing to GUI or first person perspective.
+	 * Even if drawn with translucency, the model can be expected to cull itself and the scene and distance
+	 * sorting isn't important.
+	 */
+	private boolean drawDirectToMainTarget;
+
+	/**
+	 * When false, assume item models are generated and should be rendered with cutout enabled if blend mode is translucent.
+	 * This prevents
+	 */
+	private boolean isBlockItem;
 
 	public void renderItem(ItemModels models, ItemStack stack, Mode renderMode, boolean leftHanded, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, int overlay, BakedModel model) {
 		if (stack.isEmpty()) return;
@@ -173,16 +184,21 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 		normalMatrix = (Matrix3fExt) (Object) matrices.peek().getNormal();
 
 		if (model.isBuiltin() || stack.getItem() == Items.TRIDENT && !detachedPerspective) {
+			isBlockItem = false;
 			BuiltinModelItemRenderer.INSTANCE.render(stack, renderMode, matrices, vertexConsumers, light, overlay);
 		} else {
-			if (renderMode != ModelTransformation.Mode.GUI && !renderMode.isFirstPerson() && stack.getItem() instanceof BlockItem) {
+			isBlockItem = stack.getItem() instanceof BlockItem;
+
+			if (renderMode != ModelTransformation.Mode.GUI && !renderMode.isFirstPerson() && isBlockItem) {
 				final Block block = ((BlockItem)stack.getItem()).getBlock();
-				isDirect = !(block instanceof TransparentBlock) && !(block instanceof StainedGlassPaneBlock);
+				// WIP: this probably doesn't work for modded blocks that have translucent quads (like XB)
+				// determination needs to happen at quad level.
+				drawDirectToMainTarget = !(block instanceof TransparentBlock) && !(block instanceof StainedGlassPaneBlock);
 			} else {
-				isDirect = true;
+				drawDirectToMainTarget = true;
 			}
 
-			defaultRenderLayer = RenderLayers.getItemLayer(stack, isDirect);
+			defaultRenderLayer = RenderLayers.getItemLayer(stack, drawDirectToMainTarget);
 			glintConsumer = getGlintConsumer(defaultRenderLayer);
 			defaultBlendMode = RenderLayerHelper.copyFromLayer(defaultRenderLayer).blendMode;
 
@@ -217,7 +233,7 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 				entry.getModel().multiply(0.75F);
 			}
 
-			if (isDirect) {
+			if (drawDirectToMainTarget) {
 				result = getDirectCompassGlintConsumer(vanillaProvider, layer, entry);
 			} else {
 				result = getCompassGlintConsumer(vanillaProvider, layer, entry);
@@ -225,7 +241,7 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 
 			matrices.pop();
 			return result;
-		} else if (isDirect) {
+		} else if (drawDirectToMainTarget) {
 			return getDirectItemGlintConsumer(vanillaProvider, layer);
 		} else {
 			return getItemGlintConsumer(vanillaProvider, layer);
@@ -238,8 +254,13 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 
 		finder.disableAo(true);
 
-		if (finder.blendMode() == BlendMode.TRANSLUCENT && MinecraftClient.isFabulousGraphicsOrBetter() && !isDirect) {
-			finder.target(MaterialTarget.ENTITIES);
+		if (finder.blendMode() == BlendMode.TRANSLUCENT) {
+			if (!isBlockItem) {
+				finder.cutout(true);
+				finder.translucentCutout(true);
+			}
+
+			finder.target(drawDirectToMainTarget ? MaterialTarget.MAIN : MaterialTarget.ENTITIES);
 		}
 	}
 

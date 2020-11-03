@@ -659,6 +659,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		assert matrixStack.isEmpty() : "Matrix stack not empty in world render when expected";
 
 		profiler.pop();
+
 		final HitResult hitResult = mc.crosshairTarget;
 
 		if (blockOutlines && hitResult != null && hitResult.getType() == HitResult.Type.BLOCK) {
@@ -679,7 +680,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		mc.debugRenderer.render(matrixStack, immediate, cameraX, cameraY, cameraZ);
 		RenderSystem.popMatrix();
 
-		// Should generally not have anything here but draw in case content injected in hooks?
+		// Should generally not have anything here but draw in case content injected in hooks
 		immediate.drawCollectors(MaterialTarget.MAIN);
 
 		immediate.draw(RenderLayer.getArmorGlint());
