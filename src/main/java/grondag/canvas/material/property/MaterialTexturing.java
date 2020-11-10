@@ -27,6 +27,8 @@ import net.minecraft.client.render.RenderPhase.Texturing;
 // these probably won't work as-is with shaders because they use texture env settings
 // so may be best to leave them for now
 
+
+// WIP: use this and handle portal texturing and overlay texturing, somehow
 public enum MaterialTexturing {
 	DEFAULT(Runnables.doNothing(), Runnables.doNothing()),
 

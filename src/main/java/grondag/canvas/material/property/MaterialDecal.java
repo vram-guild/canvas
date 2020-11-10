@@ -51,7 +51,8 @@ public enum MaterialDecal {
 	}
 
 	public void enable() {
-		if (active != null && active != this) {
+		// must run end action for view offset each time to prevent matrix stack overrun
+		if (active != null && (active == VIEW_OFFSET || active != this)) {
 			active.endAction.run();
 		}
 
