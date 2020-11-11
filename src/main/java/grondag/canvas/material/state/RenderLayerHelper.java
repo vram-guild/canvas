@@ -62,6 +62,8 @@ public final class RenderLayerHelper {
 		EXCLUSIONS.add(RenderLayer.getDirectEntityGlint());
 		EXCLUSIONS.add(RenderLayer.getLines());
 		EXCLUSIONS.add(RenderLayer.getLightning());
+		// draw order is important and our sorting mechanism doesn't cover
+		EXCLUSIONS.add(RenderLayer.getWaterMask());
 
 		ModelLoader.BLOCK_DESTRUCTION_RENDER_LAYERS.forEach((renderLayer) -> {
 			EXCLUSIONS.add(renderLayer);

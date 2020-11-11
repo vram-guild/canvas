@@ -689,7 +689,9 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		immediate.draw(RenderLayer.method_30676());
 		immediate.draw(RenderLayer.getEntityGlint());
 		immediate.draw(RenderLayer.getDirectEntityGlint());
+		// draw order is important and our sorting mechanism doesn't cover
 		immediate.draw(RenderLayer.getWaterMask());
+
 		bufferBuilders.getEffectVertexConsumers().draw();
 
 		if (advancedTranslucency) {
