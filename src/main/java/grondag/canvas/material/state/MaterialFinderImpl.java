@@ -5,12 +5,26 @@ import grondag.frex.api.material.MaterialFinder;
 // WIP: expose attributes in FREX
 // WIP: implement proper decal layers in JMX, RenderBender and XB/XM to improve performance for multi-layer blocks
 public class MaterialFinderImpl extends AbstractStateFinder<MaterialFinderImpl, RenderMaterialImpl> implements MaterialFinder {
+
+	private String renderLayerName = CANVAS_MATERIAL_NAME;
+
+	@Override
+	public MaterialFinderImpl clear() {
+		renderLayerName = CANVAS_MATERIAL_NAME;
+		return super.clear();
+	}
+
+	public MaterialFinderImpl renderlayerName(String name) {
+		renderLayerName = name;
+		return this;
+	}
+
 	@Override
 	protected synchronized RenderMaterialImpl findInner() {
 		RenderMaterialImpl result = RenderMaterialImpl.MAP.get(bits);
 
 		if (result == null) {
-			result = new RenderMaterialImpl(bits);
+			result = new RenderMaterialImpl(bits, renderLayerName);
 			RenderMaterialImpl.MAP.put(bits, result);
 			RenderMaterialImpl.LIST.add(result);
 		}
@@ -30,4 +44,6 @@ public class MaterialFinderImpl extends AbstractStateFinder<MaterialFinderImpl, 
 		result.clear();
 		return result;
 	}
+
+	public static final String CANVAS_MATERIAL_NAME = "<canvas custom material>";
 }

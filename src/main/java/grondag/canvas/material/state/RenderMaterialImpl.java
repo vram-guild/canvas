@@ -63,13 +63,16 @@ public final class RenderMaterialImpl extends AbstractRenderState implements Ren
 	public final RenderState renderState;
 	public final int shaderFlags;
 	public final long drawPriority;
+	/** vanilla render layer name if we derived from a vanilla render layer */
+	public final String renderLayerName;
 
-	RenderMaterialImpl(long bits) {
+	RenderMaterialImpl(long bits, String renderLayerName) {
 		super(nextIndex.getAndIncrement(), bits);
 		collectorIndex = CollectorIndexMap.indexFromKey(collectorKey());
 		renderState = CollectorIndexMap.renderStateForIndex(collectorIndex);
 		shaderFlags = shaderFlags();
 		drawPriority = drawPriority();
+		this.renderLayerName = renderLayerName;
 
 		if (Configurator.logMaterials) {
 			CanvasMod.LOG.info("New RenderMaterial" + "\n" + toString() + "\n");
@@ -88,7 +91,7 @@ public final class RenderMaterialImpl extends AbstractRenderState implements Ren
 	static final ObjectArrayList<RenderMaterialImpl> LIST = new ObjectArrayList<>();
 	static final Long2ObjectOpenHashMap<RenderMaterialImpl> MAP = new Long2ObjectOpenHashMap<>(4096, Hash.VERY_FAST_LOAD_FACTOR);
 
-	public static final RenderMaterialImpl MISSING = new RenderMaterialImpl(0);
+	public static final RenderMaterialImpl MISSING = new RenderMaterialImpl(0, "<canvas missing>");
 
 	static {
 		LIST.add(MISSING);
@@ -107,6 +110,7 @@ public final class RenderMaterialImpl extends AbstractRenderState implements Ren
 		sb.append("collectorKey: ").append(Strings.padStart(Long.toHexString(collectorKey()), 16, '0')).append("  ").append(Strings.padStart(Long.toBinaryString(collectorKey()), 64, '0')).append("\n");
 		sb.append("renderIndex:  ").append(renderState.index).append("\n");
 		sb.append("renderKey:    ").append(Strings.padStart(Long.toHexString(renderState.bits), 16, '0')).append("  ").append(Strings.padStart(Long.toBinaryString(renderState.bits), 64, '0')).append("\n");
+		sb.append("renderLayerName: ").append(renderLayerName).append("\n");
 		sb.append("primaryTargetTransparency: ").append(primaryTargetTransparency).append("\n");
 		sb.append("target: ").append(target.name()).append("\n");
 		sb.append("texture: ").append(texture.index).append("  ").append(texture.id.toString()).append("\n");
@@ -139,7 +143,7 @@ public final class RenderMaterialImpl extends AbstractRenderState implements Ren
 		sb.append("flashoverlay: ").append(flashOverlay).append("\n");
 
 		sb.append("shaderFlags: ").append(Integer.toBinaryString(shaderFlags)).append("\n");
-		sb.append("blendMode: ").append(blendMode.name()).append("\n");
+		sb.append("blendMode: ").append(blendMode == null ? "null" : blendMode.name()).append("\n");
 		sb.append("drawPriority: ").append(drawPriority).append("\n");
 		return sb.toString();
 	}
