@@ -54,8 +54,13 @@ public class GlMaterialShader extends GlShader{
 			starts = "\t// NOOP";
 			impl = "";
 		} else if (limit == 1) {
-			starts = "\tfrx_startFragment(data);";
 			impl = loadShaderSource(resourceManager, MaterialShaderManager.FRAGMENT_INDEXER.fromHandle(shaders[0]));
+
+			if (impl.contains("frx_startFragment")) {
+				starts = "\tfrx_startFragment(data);";
+			} else {
+				starts = "\t// NOOP";
+			}
 		} else {
 			final StringBuilder startsBuilder = new StringBuilder();
 			final StringBuilder implBuilder = new StringBuilder();
@@ -73,14 +78,19 @@ public class GlMaterialShader extends GlShader{
 					startsBuilder.append(") ");
 				}
 
-				startsBuilder.append("frx_startFragment");
-				startsBuilder.append(index);
-				startsBuilder.append("(data);\n");
-
 				String src = loadShaderSource(resourceManager, MaterialShaderManager.FRAGMENT_INDEXER.fromHandle(index));
-				src = StringUtils.replace(src, "frx_startFragment", "frx_startFragment" + index);
-				implBuilder.append(src);
-				implBuilder.append("\n");
+
+				if (src.contains("frx_startFragment")) {
+					startsBuilder.append("frx_startFragment");
+					startsBuilder.append(index);
+					startsBuilder.append("(data);\n");
+
+					src = StringUtils.replace(src, "frx_startFragment", "frx_startFragment" + index);
+					implBuilder.append(src);
+					implBuilder.append("\n");
+				} else {
+					startsBuilder.append("{ }\n");
+				}
 			}
 
 			impl = implBuilder.toString();
