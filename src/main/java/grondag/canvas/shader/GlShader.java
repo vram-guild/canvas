@@ -16,17 +16,6 @@
 
 package grondag.canvas.shader;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.nio.file.Path;
-import java.util.HashSet;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import com.google.common.io.CharStreams;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
@@ -34,21 +23,22 @@ import grondag.canvas.Configurator.AoMode;
 import grondag.canvas.Configurator.DiffuseMode;
 import grondag.canvas.Configurator.FogMode;
 import grondag.canvas.varia.CanvasGlHelper;
-import org.apache.commons.lang3.StringUtils;
-import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL21;
-
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.resource.language.I18n;
 import net.minecraft.resource.Resource;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.Identifier;
+import org.apache.commons.lang3.StringUtils;
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL21;
 
-import net.fabricmc.loader.api.FabricLoader;
+import java.io.*;
+import java.nio.file.Path;
+import java.util.regex.Pattern;
 
 public class GlShader implements Shader {
-	static final Pattern PATTERN = Pattern.compile("^#include\\s+([\\w]+:[\\w/\\.]+)[ \\t]*.*", Pattern.MULTILINE);
-	private static final HashSet<String> INCLUDED = new HashSet<>();
+
 	private static boolean isErrorNoticeComplete = false;
 	private static boolean needsClearDebugOutputWarning = true;
 	private static boolean needsDebugOutputWarning = true;
@@ -202,7 +192,6 @@ public class GlShader implements Shader {
 		if (shaderDir.exists()) {
 			try (FileWriter writer = new FileWriter(shaderDir.getAbsolutePath() + File.separator + fileName, false)) {
 				writer.write(source);
-				writer.close();
 			} catch (final IOException e) {
 				if (needsDebugOutputWarning) {
 					CanvasMod.LOG.error(I18n.translate("error.canvas.fail_create_shader_output", path), e);
@@ -228,7 +217,7 @@ public class GlShader implements Shader {
 
 			if (Configurator.fogMode != FogMode.VANILLA) {
 				result = StringUtils.replace(result, "#define _CV_FOG_CONFIG _CV_FOG_CONFIG_VANILLA",
-					"#define _CV_FOG_CONFIG _CV_FOG_CONFIG_" + Configurator.fogMode.name());
+						"#define _CV_FOG_CONFIG _CV_FOG_CONFIG_" + Configurator.fogMode.name());
 			}
 
 			if (Configurator.enableBloom) {
@@ -246,15 +235,15 @@ public class GlShader implements Shader {
 			if (!MinecraftClient.isAmbientOcclusionEnabled()) {
 				// disable ao for particles or if disabled by player
 				result = StringUtils.replace(result, "#define AO_SHADING_MODE AO_MODE_NORMAL",
-					"#define AO_SHADING_MODE AO_MODE_" + AoMode.NONE.name());
+						"#define AO_SHADING_MODE AO_MODE_" + AoMode.NONE.name());
 			} else if (Configurator.aoShadingMode != AoMode.NORMAL) {
 				result = StringUtils.replace(result, "#define AO_SHADING_MODE AO_MODE_NORMAL",
-					"#define AO_SHADING_MODE AO_MODE_" + Configurator.aoShadingMode.name());
+						"#define AO_SHADING_MODE AO_MODE_" + Configurator.aoShadingMode.name());
 			}
 
 			if (Configurator.diffuseShadingMode != DiffuseMode.NORMAL) {
 				result = StringUtils.replace(result, "#define DIFFUSE_SHADING_MODE DIFFUSE_MODE_NORMAL",
-					"#define DIFFUSE_SHADING_MODE DIFFUSE_MODE_" + Configurator.diffuseShadingMode.name());
+						"#define DIFFUSE_SHADING_MODE DIFFUSE_MODE_" + Configurator.diffuseShadingMode.name());
 			}
 
 			if (CanvasGlHelper.useGpuShader4()) {
@@ -271,10 +260,17 @@ public class GlShader implements Shader {
 
 	private String getCombinedShaderSource() {
 		final ResourceManager resourceManager = MinecraftClient.getInstance().getResourceManager();
-		INCLUDED.clear();
-		String result = loadShaderSource(resourceManager, shaderSourceId);
-		result = preprocessSource(resourceManager, result);
-		return processSourceIncludes(resourceManager, result);
+		String result = preprocessSource(resourceManager, loadShaderSource(resourceManager, shaderSourceId));
+
+		return IncludeDirectiveProcessor.process(identifier -> {
+			// TODO: Inject configs here?
+
+			if (identifier.equals(shaderSourceId)) {
+				return result;
+			} else {
+				return loadShaderSource(resourceManager, identifier);
+			}
+		}, shaderSourceId);
 	}
 
 	protected String preprocessSource(ResourceManager resourceManager, String baseSource) {
@@ -293,24 +289,6 @@ public class GlShader implements Shader {
 			CanvasMod.LOG.warn("Unable to load shader resource " + shaderSourceId.toString() + " due to exception.", e);
 			return "";
 		}
-	}
-
-	private String processSourceIncludes(ResourceManager resourceManager, String source) {
-		final Matcher m = PATTERN.matcher(source);
-
-		while (m.find()) {
-			final String id = m.group(1);
-
-			if (INCLUDED.contains(id)) {
-				source = StringUtils.replace(source, m.group(0), "");
-			} else {
-				INCLUDED.add(id);
-				final String src = processSourceIncludes(resourceManager, loadShaderSource(resourceManager, new Identifier(id)));
-				source = StringUtils.replace(source, m.group(0), src, 1);
-			}
-		}
-
-		return source;
 	}
 
 	/**

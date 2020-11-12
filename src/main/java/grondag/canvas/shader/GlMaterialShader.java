@@ -16,13 +16,13 @@
 
 package grondag.canvas.shader;
 
+import net.minecraft.resource.ResourceManager;
+import net.minecraft.util.Identifier;
 import org.apache.commons.lang3.StringUtils;
 import org.lwjgl.opengl.GL21;
 
-import net.minecraft.resource.ResourceManager;
-import net.minecraft.util.Identifier;
+public class GlMaterialShader extends GlShader {
 
-public class GlMaterialShader extends GlShader{
 	GlMaterialShader(Identifier shaderSource, int shaderType, ProgramType programType) {
 		super(shaderSource, shaderType, programType);
 	}
@@ -35,7 +35,6 @@ public class GlMaterialShader extends GlShader{
 
 	@Override
 	protected String preprocessSource(ResourceManager resourceManager, String baseSource) {
-
 		if (shaderType == GL21.GL_FRAGMENT_SHADER) {
 			return preprocessFragmentSource(resourceManager, baseSource);
 		} else {
@@ -47,7 +46,7 @@ public class GlMaterialShader extends GlShader{
 		String starts;
 		String impl;
 
-		final int[] shaders =  MaterialShaderManager.FRAGMENT_INDEXES.toIntArray();
+		final int[] shaders = MaterialShaderManager.FRAGMENT_INDEXES.toIntArray();
 		final int limit = shaders.length;
 
 		if (limit == 0) {
@@ -97,7 +96,7 @@ public class GlMaterialShader extends GlShader{
 		String ends;
 		String impl;
 
-		final int[] shaders =  MaterialShaderManager.VERTEX_INDEXES.toIntArray();
+		final int[] shaders = MaterialShaderManager.VERTEX_INDEXES.toIntArray();
 		final int limit = shaders.length;
 
 		if (limit == 0) {
