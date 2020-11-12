@@ -19,7 +19,6 @@ package grondag.canvas.buffer.encoding;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 
-import com.google.common.primitives.Doubles;
 import com.mojang.blaze3d.platform.GlStateManager;
 import grondag.canvas.buffer.TransferBufferAllocator;
 import grondag.canvas.buffer.format.CanvasVertexFormats;
@@ -35,21 +34,6 @@ import static grondag.canvas.buffer.format.CanvasVertexFormats.MATERIAL_QUAD_STR
 import net.minecraft.util.math.MathHelper;
 
 public class VertexCollectorImpl extends AbstractVertexCollector {
-	/**
-	 * Holds per-quad distance after {@link #sortQuads(double, double, double)} is
-	 * called
-	 */
-	private double[] perQuadDistance;
-	/**
-	 * Pointer to next sorted quad in sort iteration methods.<br>
-	 * After {@link #sortQuads(float, float, float)} is called this will be zero.
-	 */
-	private int sortReadIndex = 0;
-	/**
-	 * Cached value of {@link #quadCount()}, set when quads are sorted by distance.
-	 */
-	private int sortMaxIndex = 0;
-
 	public VertexCollectorImpl prepare(RenderMaterialImpl materialState) {
 		clear();
 		this.materialState = materialState;
@@ -93,81 +77,38 @@ public class VertexCollectorImpl extends AbstractVertexCollector {
 		throw new UnsupportedOperationException();
 	}
 
-	public void sortQuads(double x, double y, double z) {
+	public void sortQuads(float x, float y, float z) {
 		quadSorter.get().doSort(this, x, y, z);
-		sortReadIndex = 0;
-		sortMaxIndex = quadCount();
 	}
 
-	private double getDistanceSq(double x, double y, double z, int integerStride, int vertexIndex) {
+	private float getDistanceSq(float x, float y, float z, int integerStride, int vertexIndex) {
 		// unpack vertex coordinates
 		int i = vertexIndex * integerStride * 4;
-		final double x0 = Float.intBitsToFloat(vertexData[i]);
-		final double y0 = Float.intBitsToFloat(vertexData[i + 1]);
-		final double z0 = Float.intBitsToFloat(vertexData[i + 2]);
+		final float x0 = Float.intBitsToFloat(vertexData[i]);
+		final float y0 = Float.intBitsToFloat(vertexData[i + 1]);
+		final float z0 = Float.intBitsToFloat(vertexData[i + 2]);
 
 		i += integerStride;
-		final double x1 = Float.intBitsToFloat(vertexData[i]);
-		final double y1 = Float.intBitsToFloat(vertexData[i + 1]);
-		final double z1 = Float.intBitsToFloat(vertexData[i + 2]);
+		final float x1 = Float.intBitsToFloat(vertexData[i]);
+		final float y1 = Float.intBitsToFloat(vertexData[i + 1]);
+		final float z1 = Float.intBitsToFloat(vertexData[i + 2]);
 
 		i += integerStride;
-		final double x2 = Float.intBitsToFloat(vertexData[i]);
-		final double y2 = Float.intBitsToFloat(vertexData[i + 1]);
-		final double z2 = Float.intBitsToFloat(vertexData[i + 2]);
+		final float x2 = Float.intBitsToFloat(vertexData[i]);
+		final float y2 = Float.intBitsToFloat(vertexData[i + 1]);
+		final float z2 = Float.intBitsToFloat(vertexData[i + 2]);
 
 		i += integerStride;
-		final double x3 = Float.intBitsToFloat(vertexData[i]);
-		final double y3 = Float.intBitsToFloat(vertexData[i + 1]);
-		final double z3 = Float.intBitsToFloat(vertexData[i + 2]);
+		final float x3 = Float.intBitsToFloat(vertexData[i]);
+		final float y3 = Float.intBitsToFloat(vertexData[i + 1]);
+		final float z3 = Float.intBitsToFloat(vertexData[i + 2]);
 
 		// compute average distance by component
-		final double dx = (x0 + x1 + x2 + x3) * 0.25 - x;
-		final double dy = (y0 + y1 + y2 + y3) * 0.25 - y;
-		final double dz = (z0 + z1 + z2 + z3) * 0.25 - z;
+		final float dx = (x0 + x1 + x2 + x3) * 0.25f - x;
+		final float dy = (y0 + y1 + y2 + y3) * 0.25f - y;
+		final float dz = (z0 + z1 + z2 + z3) * 0.25f - z;
 
 		return dx * dx + dy * dy + dz * dz;
-	}
-
-	/**
-	 * Index of first quad that will be referenced by {@link #unpackUntilDistance(double)}
-	 */
-	public int sortReadIndex() {
-		return sortReadIndex;
-	}
-
-	public boolean hasUnpackedSortedQuads() {
-		return perQuadDistance != null && sortReadIndex < sortMaxIndex;
-	}
-
-	/**
-	 * Will return {@link Double#MIN_VALUE} if no unpacked quads remaining.
-	 */
-	public double firstUnpackedDistance() {
-		return hasUnpackedSortedQuads() ? perQuadDistance[sortReadIndex] : Double.MIN_VALUE;
-	}
-
-	/**
-	 * Returns the number of quads that are more or as distant than the distance
-	 * provided and advances the usage pointer so that
-	 * {@link #firstUnpackedDistance()} will return the distance to the next quad
-	 * after that.
-	 * <p>
-	 * <p>
-	 * (All distances are actually squared distances, to be clear.)
-	 */
-	public int unpackUntilDistance(double minDistanceSquared) {
-		if (!hasUnpackedSortedQuads()) {
-			return 0;
-		}
-
-		int result = 0;
-		final int limit = sortMaxIndex;
-		while (sortReadIndex < limit && minDistanceSquared <= perQuadDistance[sortReadIndex]) {
-			result++;
-			sortReadIndex++;
-		}
-		return result;
 	}
 
 	public int[] saveState(int[] priorState) {
@@ -246,12 +187,12 @@ public class VertexCollectorImpl extends AbstractVertexCollector {
 	}
 
 	private static class QuadSorter {
-		double[] perQuadDistance = new double[512];
+		float[] perQuadDistance = new float[512];
 
 		private final IntComparator comparator = new IntComparator() {
 			@Override
 			public int compare(int a, int b) {
-				return Doubles.compare(perQuadDistance[b], perQuadDistance[a]);
+				return Float.compare(perQuadDistance[b], perQuadDistance[a]);
 			}
 		};
 
@@ -261,7 +202,7 @@ public class VertexCollectorImpl extends AbstractVertexCollector {
 		private final Swapper swapper = new Swapper() {
 			@Override
 			public void swap(int a, int b) {
-				final double distSwap = perQuadDistance[a];
+				final float distSwap = perQuadDistance[a];
 				perQuadDistance[a] = perQuadDistance[b];
 				perQuadDistance[b] = distSwap;
 
@@ -271,13 +212,13 @@ public class VertexCollectorImpl extends AbstractVertexCollector {
 			}
 		};
 
-		private void doSort(VertexCollectorImpl caller, double x, double y, double z) {
+		private void doSort(VertexCollectorImpl caller, float x, float y, float z) {
 			data = caller.vertexData;
 
 			final int quadCount = caller.vertexCount() / 4;
 
 			if (perQuadDistance.length < quadCount) {
-				perQuadDistance = new double[MathHelper.smallestEncompassingPowerOfTwo(quadCount)];
+				perQuadDistance = new float[MathHelper.smallestEncompassingPowerOfTwo(quadCount)];
 			}
 
 			for (int j = 0; j < quadCount; ++j) {
@@ -286,12 +227,6 @@ public class VertexCollectorImpl extends AbstractVertexCollector {
 
 			// sort the indexes by distance - farthest first
 			it.unimi.dsi.fastutil.Arrays.quickSort(0, quadCount, comparator, swapper);
-
-			if (caller.perQuadDistance == null || caller.perQuadDistance.length < quadCount) {
-				caller.perQuadDistance = new double[perQuadDistance.length];
-			}
-
-			System.arraycopy(perQuadDistance, 0, caller.perQuadDistance, 0, quadCount);
 		}
 	}
 

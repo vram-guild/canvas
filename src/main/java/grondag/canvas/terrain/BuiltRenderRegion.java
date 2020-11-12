@@ -318,11 +318,14 @@ public class BuiltRenderRegion {
 
 				if (Configurator.batchedChunkRender) {
 					collector.sortQuads(
-						cameraPos.x - TerrainModelSpace.renderCubeOrigin(origin.getX()),
-						cameraPos.y - TerrainModelSpace.renderCubeOrigin(origin.getY()),
-						cameraPos.z - TerrainModelSpace.renderCubeOrigin(origin.getZ()));
+						(float) (cameraPos.x - TerrainModelSpace.renderCubeOrigin(origin.getX())),
+						(float) (cameraPos.y - TerrainModelSpace.renderCubeOrigin(origin.getY())),
+						(float) (cameraPos.z - TerrainModelSpace.renderCubeOrigin(origin.getZ())));
 				} else {
-					collector.sortQuads(cameraPos.x - origin.getX(), cameraPos.y - origin.getY(), cameraPos.z - origin.getZ());
+					collector.sortQuads(
+						(float) (cameraPos.x - origin.getX()),
+						(float) (cameraPos.y - origin.getY()),
+						(float) (cameraPos.z - origin.getZ()));
 				}
 
 				regionData.translucentState = collector.saveState(state);
