@@ -64,6 +64,7 @@ public final class RenderLayerHelper {
 		EXCLUSIONS.add(RenderLayer.getLightning());
 		// draw order is important and our sorting mechanism doesn't cover
 		EXCLUSIONS.add(RenderLayer.getWaterMask());
+		EXCLUSIONS.add(RenderLayer.getEndPortal(0));
 
 		ModelLoader.BLOCK_DESTRUCTION_RENDER_LAYERS.forEach((renderLayer) -> {
 			EXCLUSIONS.add(renderLayer);
@@ -129,10 +130,16 @@ public final class RenderLayerHelper {
 			return RenderMaterialImpl.MISSING;
 		}
 
+		final String name = ((MultiPhaseExt) layer).canvas_name();
+
+		if (name.equals("end_portal")) {
+			EXCLUSIONS.add(layer);
+			return RenderMaterialImpl.MISSING;
+		}
+
 		final MaterialFinderImpl finder = MaterialFinderImpl.threadLocal();
 		copyFromLayer(finder, layer);
 
-		final String name = ((MultiPhaseExt) layer).canvas_name();
 		finder.renderlayerName(name);
 
 		// WIP: put in proper material map hooks
