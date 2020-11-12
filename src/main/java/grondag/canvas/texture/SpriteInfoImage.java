@@ -16,18 +16,20 @@
 
 package grondag.canvas.texture;
 
+import java.nio.FloatBuffer;
+
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
 import grondag.canvas.varia.CanvasGlHelper;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-import net.minecraft.client.texture.Sprite;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL21;
 import org.lwjgl.system.MemoryUtil;
 
-import java.nio.FloatBuffer;
+import net.minecraft.client.texture.Sprite;
+
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 
 @Environment(EnvType.CLIENT)
 public final class SpriteInfoImage implements AutoCloseable {
@@ -79,6 +81,9 @@ public final class SpriteInfoImage implements AutoCloseable {
 	public void upload() {
 		assert pointer != 0L : "Image not allocated.";
 		GL21.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL21.GL_RGBA16, 4, size, 0, GL21.GL_RGBA, GL21.GL_FLOAT, pointer);
-		assert CanvasGlHelper.checkError();
+
+		if (!CanvasGlHelper.checkError()) {
+			CanvasMod.LOG.warn("Unable to upload material information texture due to unexpected OpenGL error. Game may crash or render incorrectly.");
+		}
 	}
 }
