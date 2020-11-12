@@ -47,7 +47,7 @@ import net.minecraft.util.Identifier;
 import net.fabricmc.loader.api.FabricLoader;
 
 public class GlShader implements Shader {
-	static final Pattern PATTERN = Pattern.compile("^#include\\s+([\\w]+:[\\w/\\.]+)[ \\t]*.*", Pattern.MULTILINE);
+	static final Pattern PATTERN = Pattern.compile("^#include\\s+(\\\"*[\\w]+:[\\w/\\.]+)[ \\t]*.*", Pattern.MULTILINE);
 	private static final HashSet<String> INCLUDED = new HashSet<>();
 	private static boolean isErrorNoticeComplete = false;
 	private static boolean needsClearDebugOutputWarning = true;
@@ -299,7 +299,8 @@ public class GlShader implements Shader {
 		final Matcher m = PATTERN.matcher(source);
 
 		while (m.find()) {
-			final String id = m.group(1);
+			// allow quoted arguments to #include for nicer IDE support
+			final String id = StringUtils.replace(m.group(1), "\"", "");
 
 			if (INCLUDED.contains(id)) {
 				source = StringUtils.replace(source, m.group(0), "");
