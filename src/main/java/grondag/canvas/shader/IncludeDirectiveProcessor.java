@@ -27,7 +27,7 @@ import java.util.regex.Pattern;
 
 public class IncludeDirectiveProcessor {
 
-	private static final Pattern PATTERN = Pattern.compile("^#include\\s+([\\w]+:[\\w/.]+)", Pattern.MULTILINE);
+	private static final Pattern PATTERN = Pattern.compile("^#include\\s+\"?([\\w]+:[\\w/.]+)\"?", Pattern.MULTILINE);
 
 	public static String process(Function<Identifier, String> resourceLoader, Identifier identifier) {
 		return process0(resourceLoader, identifier, new HashSet<>());
