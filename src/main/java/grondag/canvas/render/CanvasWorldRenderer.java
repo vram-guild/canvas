@@ -49,6 +49,7 @@ import grondag.canvas.material.property.MaterialMatrixState;
 import grondag.canvas.material.property.MaterialTarget;
 import grondag.canvas.material.state.RenderContextState;
 import grondag.canvas.material.state.RenderState;
+import grondag.canvas.mixinterface.MatrixStackExt;
 import grondag.canvas.mixinterface.WorldRendererExt;
 import grondag.canvas.shader.MaterialShaderManager;
 import grondag.canvas.terrain.BuiltRenderRegion;
@@ -512,6 +513,8 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		entityBlockContext.collectors = immediate.collectors;
 		blockContext.collectors = immediate.collectors;
 
+		final int stackDepth = ((MatrixStackExt) matrixStack).canvas_size();
+
 		while (entities.hasNext()) {
 			final Entity entity = entities.next();
 			if ((!entityRenderDispatcher.shouldRender(entity, frustum, cameraX, cameraY, cameraZ) && !entity.hasPassengerDeep(mc.player))
@@ -593,6 +596,8 @@ public class CanvasWorldRenderer extends WorldRenderer {
 				matrixStack.pop();
 			}
 		}
+
+		assert ((MatrixStackExt) matrixStack).canvas_size() == stackDepth;
 
 		synchronized (noCullingBlockEntities) {
 			final Iterator<BlockEntity> globalBERs = noCullingBlockEntities.iterator();

@@ -22,6 +22,7 @@
 	"MixinLightmapTextureManager",
 	"MixinMatrix3f",
 	"MixinMatrix4f",
+	"MixinMatrixStack",
 	"MixinMinecraftClient",
 	"MixinMultiPhase",
 	"MixinPackedIntegerArray",

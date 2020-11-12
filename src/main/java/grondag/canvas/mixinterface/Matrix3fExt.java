@@ -18,6 +18,8 @@ package grondag.canvas.mixinterface;
 
 import java.nio.FloatBuffer;
 
+import net.minecraft.util.math.Matrix3f;
+
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 
@@ -72,6 +74,10 @@ public interface Matrix3fExt {
 		a20(val.a20());
 		a21(val.a21());
 		a22(val.a22());
+	}
+
+	default void set(Matrix3f val) {
+		set((Matrix3fExt) (Object) val);
 	}
 
 	@Environment(EnvType.CLIENT)
