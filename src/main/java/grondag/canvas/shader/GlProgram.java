@@ -102,8 +102,7 @@ public class GlProgram {
 		return progID;
 	}
 
-	public void actvateWithiModelOrigin(int x, int y, int z) {
-		activate();
+	public void setModelOrigin(int x, int y, int z) {
 		modelOrigin.set(x, y, z);
 		modelOrigin.upload();
 	}
@@ -114,9 +113,7 @@ public class GlProgram {
 	private static final int _CV_ATLAS_WIDTH = 1;
 	private static final int _CV_ATLAS_HEIGHT = 2;
 
-	public void actvateWithAtlasInfo(SpriteInfoTexture atlasInfo) {
-		activate();
-
+	public void setAtlasInfo(SpriteInfoTexture atlasInfo) {
 		if (atlasInfo == null) {
 			materialData[_CV_SPRITE_INFO_TEXTURE_SIZE] = 0;
 		} else {

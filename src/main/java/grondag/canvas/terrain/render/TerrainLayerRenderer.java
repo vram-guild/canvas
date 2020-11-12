@@ -124,11 +124,10 @@ public class TerrainLayerRenderer {
 
 					for (int i = 0; i < limit; ++i) {
 						final DrawableDelegate d = delegates.get(i);
-						d.materialState().renderState.enable();
-
 						final MaterialConditionImpl condition = d.materialState().condition;
 
 						if (!condition.affectBlocks || condition.compute()) {
+							d.materialState().renderState.enableWithOrigin(ox, oy, oz);
 							d.draw();
 						}
 					}

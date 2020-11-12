@@ -62,9 +62,8 @@ public final class MaterialShaderImpl {
 		program.normalModelMatrix.upload();
 	}
 
-	public void activate(int x, int y, int z) {
-		getOrCreate().actvateWithiModelOrigin(x, y, z);
-		updateCommonUniforms();
+	public void setModelOrigin(int x, int y, int z) {
+		getOrCreate().setModelOrigin(x, y, z);
 	}
 
 	public void activate() {
@@ -72,9 +71,8 @@ public final class MaterialShaderImpl {
 		updateCommonUniforms();
 	}
 
-	public void activate(SpriteInfoTexture atlasInfo) {
-		getOrCreate().actvateWithAtlasInfo(atlasInfo);
-		updateCommonUniforms();
+	public void setAtlasInfo(SpriteInfoTexture atlasInfo) {
+		getOrCreate().setAtlasInfo(atlasInfo);
 	}
 
 	public void reload() {

@@ -85,7 +85,13 @@ public final class RenderState extends AbstractRenderState {
 		LIGHTMAP_STATE.setEnabled(enableLightmap);
 		LINE_STATE.setEnabled(lines);
 
-		shader.activate(texture.atlasInfo());
+		shader.activate();
+		shader.setAtlasInfo(texture.atlasInfo());
+	}
+
+	public void enableWithOrigin(int x, int y, int z) {
+		enable();
+		shader.setModelOrigin(x, y, z);
 	}
 
 	private static final BinaryMaterialState CULL_STATE = new BinaryMaterialState(RenderSystem::enableCull, RenderSystem::disableCull);
