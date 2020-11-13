@@ -289,6 +289,8 @@ public class VertexCollectorImpl extends AbstractVertexCollector {
 		ensureCapacity(newSize);
 		System.arraycopy(appendData, 0, vertexData, oldSize, length);
 		integerSize = newSize;
+		firstVertexIndex = newSize;
+		currentVertexIndex = newSize;
 	}
 
 	@Override
