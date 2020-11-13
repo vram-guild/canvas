@@ -34,6 +34,8 @@ import static grondag.canvas.buffer.format.CanvasVertexFormats.MATERIAL_QUAD_STR
 import net.minecraft.util.math.MathHelper;
 
 public class VertexCollectorImpl extends AbstractVertexCollector {
+	float[] perQuadDistance = new float[512];
+
 	public VertexCollectorImpl prepare(RenderMaterialImpl materialState) {
 		clear();
 		this.materialState = materialState;
@@ -78,8 +80,48 @@ public class VertexCollectorImpl extends AbstractVertexCollector {
 	}
 
 	public void sortQuads(float x, float y, float z) {
-		quadSorter.get().doSort(this, x, y, z);
+		final int quadCount = vertexCount() / 4;
+
+		if (perQuadDistance.length < quadCount) {
+			perQuadDistance = new float[MathHelper.smallestEncompassingPowerOfTwo(quadCount)];
+		}
+
+		for (int j = 0; j < quadCount; ++j) {
+			perQuadDistance[j] = getDistanceSq(x, y, z, CanvasVertexFormats.MATERIAL_VERTEX_STRIDE, j);
+		}
+
+		// sort the indexes by distance - farthest first
+		// mergesort is important here - quicksort causes problems
+		// PERF: consider sorting primitive packed long array with distance in high bits
+		// and then use result to reorder the array. Will need to copy vertex data.
+		it.unimi.dsi.fastutil.Arrays.mergeSort(0, quadCount, comparator, swapper);
 	}
+
+	private final IntComparator comparator = new IntComparator() {
+		@Override
+		public int compare(int a, int b) {
+			return Float.compare(perQuadDistance[b], perQuadDistance[a]);
+		}
+	};
+
+	private final int[] swapData = new int[MATERIAL_QUAD_STRIDE * 2];
+
+	private final Swapper swapper = new Swapper() {
+		@Override
+		public void swap(int a, int b) {
+			final float distSwap = perQuadDistance[a];
+			perQuadDistance[a] = perQuadDistance[b];
+			perQuadDistance[b] = distSwap;
+
+			final int aIndex = a * MATERIAL_QUAD_STRIDE;
+			final int bIndex = b * MATERIAL_QUAD_STRIDE;
+
+			System.arraycopy(vertexData, aIndex, swapData, 0, MATERIAL_QUAD_STRIDE);
+			System.arraycopy(vertexData, bIndex, swapData, MATERIAL_QUAD_STRIDE, MATERIAL_QUAD_STRIDE);
+			System.arraycopy(swapData, 0, vertexData, bIndex, MATERIAL_QUAD_STRIDE);
+			System.arraycopy(swapData, MATERIAL_QUAD_STRIDE, vertexData, aIndex, MATERIAL_QUAD_STRIDE);
+		}
+	};
 
 	private float getDistanceSq(float x, float y, float z, int integerStride, int vertexIndex) {
 		// unpack vertex coordinates
@@ -185,57 +227,6 @@ public class VertexCollectorImpl extends AbstractVertexCollector {
 
 		RenderState.disable();
 	}
-
-	private static class QuadSorter {
-		float[] perQuadDistance = new float[512];
-
-		private final IntComparator comparator = new IntComparator() {
-			@Override
-			public int compare(int a, int b) {
-				return Float.compare(perQuadDistance[b], perQuadDistance[a]);
-			}
-		};
-
-		final int[] quadSwap = new int[MATERIAL_QUAD_STRIDE];
-		int[] data;
-
-		private final Swapper swapper = new Swapper() {
-			@Override
-			public void swap(int a, int b) {
-				final float distSwap = perQuadDistance[a];
-				perQuadDistance[a] = perQuadDistance[b];
-				perQuadDistance[b] = distSwap;
-
-				System.arraycopy(data, a * MATERIAL_QUAD_STRIDE, quadSwap, 0, MATERIAL_QUAD_STRIDE);
-				System.arraycopy(data, b * MATERIAL_QUAD_STRIDE, data, a * MATERIAL_QUAD_STRIDE, MATERIAL_QUAD_STRIDE);
-				System.arraycopy(quadSwap, 0, data, b * MATERIAL_QUAD_STRIDE, MATERIAL_QUAD_STRIDE);
-			}
-		};
-
-		private void doSort(VertexCollectorImpl caller, float x, float y, float z) {
-			data = caller.vertexData;
-
-			final int quadCount = caller.vertexCount() / 4;
-
-			if (perQuadDistance.length < quadCount) {
-				perQuadDistance = new float[MathHelper.smallestEncompassingPowerOfTwo(quadCount)];
-			}
-
-			for (int j = 0; j < quadCount; ++j) {
-				perQuadDistance[j] = caller.getDistanceSq(x, y, z, CanvasVertexFormats.MATERIAL_VERTEX_STRIDE, j);
-			}
-
-			// sort the indexes by distance - farthest first
-			it.unimi.dsi.fastutil.Arrays.quickSort(0, quadCount, comparator, swapper);
-		}
-	}
-
-	private static final ThreadLocal<QuadSorter> quadSorter = new ThreadLocal<QuadSorter>() {
-		@Override
-		protected QuadSorter initialValue() {
-			return new QuadSorter();
-		}
-	};
 
 	/**
 	 * Single-buffer draw, minimizes state changes.
