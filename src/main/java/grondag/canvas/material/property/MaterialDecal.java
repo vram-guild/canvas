@@ -24,8 +24,8 @@ import net.minecraft.client.render.RenderPhase;
 import net.minecraft.client.render.RenderPhase.Layering;
 
 public final class MaterialDecal {
-	public static final int VALUE_COUNT = 3;
-	private static final MaterialDecal[] VALUES = new MaterialDecal[VALUE_COUNT];
+	public static final int DECAL_COUNT = 3;
+	private static final MaterialDecal[] VALUES = new MaterialDecal[DECAL_COUNT];
 
 	public static MaterialDecal fromIndex(int index) {
 		return VALUES[index];

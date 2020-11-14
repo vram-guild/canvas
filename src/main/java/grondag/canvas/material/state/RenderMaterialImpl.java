@@ -42,7 +42,7 @@ public final class RenderMaterialImpl extends AbstractRenderState implements Ren
 
 	// these aren't order-dependent, they are included in sort to minimize state changes
 	private static final BitPacker64<Void>.BooleanElement SORT_BLUR = SORT_PACKER.createBooleanElement();
-	private static final BitPacker64<Void>.EnumElement<MaterialDepthTest> SORT_DEPTH_TEST = SORT_PACKER.createEnumElement(MaterialDepthTest.class);
+	private static final BitPacker64<Void>.IntElement SORT_DEPTH_TEST = SORT_PACKER.createIntElement(MaterialDepthTest.DEPTH_TEST_COUNT);
 	private static final BitPacker64<Void>.BooleanElement SORT_CULL = SORT_PACKER.createBooleanElement();
 	private static final BitPacker64<Void>.BooleanElement SORT_LINES = SORT_PACKER.createBooleanElement();
 	private static final BitPacker64<Void>.EnumElement<MaterialFog> SORT_FOG = SORT_PACKER.createEnumElement(MaterialFog.class);
@@ -50,7 +50,7 @@ public final class RenderMaterialImpl extends AbstractRenderState implements Ren
 	private static final BitPacker64<Void>.IntElement SORT_SHADER_ID = SORT_PACKER.createIntElement(4096);
 
 	// decal should be drawn after non-decal
-	private static final BitPacker64<Void>.IntElement SORT_DECAL = SORT_PACKER.createIntElement(MaterialDecal.VALUE_COUNT);
+	private static final BitPacker64<Void>.IntElement SORT_DECAL = SORT_PACKER.createIntElement(MaterialDecal.DECAL_COUNT);
 	// primary sorted layer drawn first
 	private static final BitPacker64<Void>.BooleanElement SORT_TPP = SORT_PACKER.createBooleanElement();
 	// draw solid first, then various translucent layers
@@ -116,7 +116,7 @@ public final class RenderMaterialImpl extends AbstractRenderState implements Ren
 		sb.append("texture: ").append(texture.index).append("  ").append(texture.id.toString()).append("\n");
 		sb.append("blur: ").append(blur).append("\n");
 		sb.append("transparency: ").append(transparency.name()).append("\n");
-		sb.append("depthTest: ").append(depthTest.name()).append("\n");
+		sb.append("depthTest: ").append(depthTest.name).append("\n");
 		sb.append("cull: ").append(cull).append("\n");
 		sb.append("writeMask: ").append(writeMask.name()).append("\n");
 		sb.append("enableLightmap: ").append(enableLightmap).append("\n");
@@ -160,7 +160,7 @@ public final class RenderMaterialImpl extends AbstractRenderState implements Ren
 
 	private long drawPriority() {
 		long result = SORT_BLUR.setValue(blur, 0);
-		result = SORT_DEPTH_TEST.setValue(depthTest, result);
+		result = SORT_DEPTH_TEST.setValue(depthTest.index, result);
 		result = SORT_CULL.setValue(cull, result);
 		result = SORT_LINES.setValue(lines, result);
 		result = SORT_FOG.setValue(fog, result);

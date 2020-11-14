@@ -17,35 +17,66 @@
 package grondag.canvas.material.property;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import grondag.frex.api.material.MaterialProperty;
 import org.lwjgl.opengl.GL11;
 
 import net.minecraft.client.render.RenderPhase;
 import net.minecraft.client.render.RenderPhase.DepthTest;
 
-public enum MaterialDepthTest {
-	DISABLE(() -> {
-		RenderSystem.disableDepthTest();
-		RenderSystem.depthFunc(GL11.GL_NEVER);
-	}),
+public class MaterialDepthTest {
+	public static final MaterialDepthTest DISABLE = new MaterialDepthTest(
+		MaterialProperty.DEPTH_TEST_DISABLE,
+		"disable",
+		() -> {
+			RenderSystem.disableDepthTest();
+			RenderSystem.depthFunc(GL11.GL_NEVER);
+		});
 
-	ALWAYS(() -> {
-		RenderSystem.enableDepthTest();
-		RenderSystem.depthFunc(GL11.GL_ALWAYS);
-	}),
+	public static final MaterialDepthTest ALWAYS = new MaterialDepthTest(
+		MaterialProperty.DEPTH_TEST_ALWAYS,
+		"disable",
+		() -> {
+			RenderSystem.enableDepthTest();
+			RenderSystem.depthFunc(GL11.GL_ALWAYS);
+		});
 
-	EQUAL(() -> {
-		RenderSystem.enableDepthTest();
-		RenderSystem.depthFunc(GL11.GL_EQUAL);
-	}),
+	public static final MaterialDepthTest EQUAL = new MaterialDepthTest(
+		MaterialProperty.DEPTH_TEST_EQUAL,
+		"disable",
+		() -> {
+			RenderSystem.enableDepthTest();
+			RenderSystem.depthFunc(GL11.GL_EQUAL);
+		});
 
-	LEQUAL(() -> {
-		RenderSystem.enableDepthTest();
-		RenderSystem.depthFunc(GL11.GL_LEQUAL);
-	});
+	public static final MaterialDepthTest LEQUAL = new MaterialDepthTest(
+		MaterialProperty.DEPTH_TEST_LEQUAL,
+		"disable",
+		() -> {
+			RenderSystem.enableDepthTest();
+			RenderSystem.depthFunc(GL11.GL_LEQUAL);
+		});
 
+	public static final int DEPTH_TEST_COUNT = 4;
+	private static final MaterialDepthTest[] VALUES = new MaterialDepthTest[DEPTH_TEST_COUNT];
+
+	static {
+		VALUES[MaterialProperty.DEPTH_TEST_DISABLE] = DISABLE;
+		VALUES[MaterialProperty.DEPTH_TEST_ALWAYS] = ALWAYS;
+		VALUES[MaterialProperty.DEPTH_TEST_EQUAL] = EQUAL;
+		VALUES[MaterialProperty.DEPTH_TEST_LEQUAL] = LEQUAL;
+	}
+
+	public static MaterialDepthTest fromIndex(int index) {
+		return VALUES[index];
+	}
+
+	public final int index;
+	public final String name;
 	private final Runnable action;
 
-	private MaterialDepthTest(Runnable action) {
+	private MaterialDepthTest(int index, String name, Runnable action) {
+		this.index = index;
+		this.name = name;
 		this.action = action;
 	}
 
@@ -56,15 +87,15 @@ public enum MaterialDepthTest {
 		}
 	}
 
-	public static MaterialDepthTest fromPhase(DepthTest phase) {
+	public static int fromPhase(DepthTest phase) {
 		if (phase == RenderPhase.ALWAYS_DEPTH_TEST) {
-			return ALWAYS;
+			return MaterialProperty.DEPTH_TEST_ALWAYS;
 		} else if (phase == RenderPhase.EQUAL_DEPTH_TEST) {
-			return EQUAL;
+			return MaterialProperty.DEPTH_TEST_EQUAL;
 		} else if (phase == RenderPhase.LEQUAL_DEPTH_TEST) {
-			return LEQUAL;
+			return MaterialProperty.DEPTH_TEST_LEQUAL;
 		} else {
-			return DISABLE;
+			return MaterialProperty.DEPTH_TEST_DISABLE;
 		}
 	}
 

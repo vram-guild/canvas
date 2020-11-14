@@ -17,7 +17,6 @@
 package grondag.canvas.material.state;
 
 import grondag.canvas.apiimpl.MaterialConditionImpl;
-import grondag.canvas.material.property.MaterialDepthTest;
 import grondag.canvas.material.property.MaterialFog;
 import grondag.canvas.material.property.MaterialTarget;
 import grondag.canvas.material.property.MaterialTextureState;
@@ -33,7 +32,7 @@ import net.minecraft.util.Identifier;
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 
 @SuppressWarnings("unchecked")
-public abstract class AbstractStateFinder<T extends AbstractStateFinder<T, V>, V extends AbstractRenderState> extends AbstractRenderStateView{
+public abstract class AbstractStateFinder<T extends AbstractStateFinder<T, V>, V extends AbstractRenderState> extends AbstractRenderStateView {
 	protected AbstractStateFinder() {
 		super(AbstractRenderStateView.DEFAULT_BITS);
 	}
@@ -73,7 +72,7 @@ public abstract class AbstractStateFinder<T extends AbstractStateFinder<T, V>, V
 		return (T) this;
 	}
 
-	public T depthTest(MaterialDepthTest depthTest) {
+	public T depthTest(int depthTest) {
 		bits = DEPTH_TEST.setValue(depthTest, bits);
 		return (T) this;
 	}

@@ -21,7 +21,6 @@ import java.util.Iterator;
 import com.google.common.util.concurrent.Runnables;
 import com.mojang.blaze3d.systems.RenderSystem;
 import grondag.canvas.buffer.encoding.VertexCollectorImpl;
-import grondag.canvas.material.property.MaterialDepthTest;
 import grondag.canvas.material.property.MaterialFog;
 import grondag.canvas.material.property.MaterialTarget;
 import grondag.canvas.material.property.MaterialTransparency;
@@ -164,7 +163,7 @@ public class CanvasParticleRenderer {
 	private static MaterialFinderImpl baseFinder() {
 		return MaterialFinderImpl.threadLocal()
 		.primitive(GL11.GL_QUADS)
-		.depthTest(MaterialDepthTest.LEQUAL)
+		.depthTest(MaterialProperty.DEPTH_TEST_LEQUAL)
 		.cull(false)
 		.writeMask(MaterialWriteMask.COLOR_DEPTH)
 		.enableLightmap(true)

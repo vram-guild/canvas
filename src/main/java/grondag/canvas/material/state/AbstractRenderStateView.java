@@ -27,6 +27,7 @@ import grondag.canvas.material.property.MaterialWriteMask;
 import grondag.canvas.shader.MaterialShaderId;
 import grondag.canvas.shader.ShaderData;
 import grondag.fermion.bits.BitPacker64;
+import grondag.frex.api.material.MaterialProperty;
 import org.lwjgl.opengl.GL11;
 
 import net.minecraft.client.texture.SpriteAtlasTexture;
@@ -104,7 +105,7 @@ abstract class AbstractRenderStateView {
 		return TRANSPARENCY.getValue(bits);
 	}
 
-	public MaterialDepthTest depthTest() {
+	public int depthTest() {
 		return DEPTH_TEST.getValue(bits);
 	}
 
@@ -175,12 +176,12 @@ abstract class AbstractRenderStateView {
 	static final BitPacker64<Void>.IntElement TEXTURE = PACKER.createIntElement(MaterialTextureState.MAX_TEXTURE_STATES);
 	static final BitPacker64<Void>.BooleanElement BLUR = PACKER.createBooleanElement();
 	static final BitPacker64<Void>.EnumElement<MaterialTransparency> TRANSPARENCY = PACKER.createEnumElement(MaterialTransparency.class);
-	static final BitPacker64<Void>.EnumElement<MaterialDepthTest> DEPTH_TEST = PACKER.createEnumElement(MaterialDepthTest.class);
+	static final BitPacker64<Void>.IntElement DEPTH_TEST = PACKER.createIntElement(MaterialDepthTest.DEPTH_TEST_COUNT);
 	static final BitPacker64<Void>.BooleanElement CULL = PACKER.createBooleanElement();
 	static final BitPacker64<Void>.EnumElement<MaterialWriteMask> WRITE_MASK = PACKER.createEnumElement(MaterialWriteMask.class);
 	// PERF: could probably handle this entirely shader-side and avoid some state changes
 	static final BitPacker64<Void>.BooleanElement ENABLE_LIGHTMAP = PACKER.createBooleanElement();
-	static final BitPacker64<Void>.IntElement DECAL = PACKER.createIntElement(MaterialDecal.VALUE_COUNT);
+	static final BitPacker64<Void>.IntElement DECAL = PACKER.createIntElement(MaterialDecal.DECAL_COUNT);
 	static final BitPacker64<Void>.BooleanElement LINES = PACKER.createBooleanElement();
 	static final BitPacker64<Void>.EnumElement<MaterialFog> FOG = PACKER.createEnumElement(MaterialFog.class);
 
@@ -238,7 +239,7 @@ abstract class AbstractRenderStateView {
 		defaultBits = SHADER_ID.setValue(MaterialShaderId.find(ShaderData.DEFAULT_VERTEX_SOURCE, ShaderData.DEFAULT_FRAGMENT_SOURCE).index, defaultBits);
 		defaultBits = BLENDMODE.setValue(BlendMode.DEFAULT, defaultBits);
 		defaultBits = CULL.setValue(true, defaultBits);
-		defaultBits = DEPTH_TEST.setValue(MaterialDepthTest.LEQUAL, defaultBits);
+		defaultBits = DEPTH_TEST.setValue(MaterialProperty.DEPTH_TEST_LEQUAL, defaultBits);
 		defaultBits = ENABLE_LIGHTMAP.setValue(true, defaultBits);
 		defaultBits = TEXTURE.setValue(MaterialTextureState.fromId(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE).index, defaultBits);
 		defaultBits = TARGET.setValue(MaterialTarget.MAIN, defaultBits);
@@ -252,7 +253,7 @@ abstract class AbstractRenderStateView {
 		translucentBits = TEXTURE.setValue(MaterialTextureState.fromId(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE).index, translucentBits);
 		translucentBits = BLUR.setValue(false, translucentBits);
 		translucentBits = TRANSPARENCY.setValue(MaterialTransparency.TRANSLUCENT, translucentBits);
-		translucentBits = DEPTH_TEST.setValue(MaterialDepthTest.LEQUAL, translucentBits);
+		translucentBits = DEPTH_TEST.setValue(MaterialProperty.DEPTH_TEST_LEQUAL, translucentBits);
 		translucentBits = CULL.setValue(true, translucentBits);
 		translucentBits = WRITE_MASK.setValue(MaterialWriteMask.COLOR_DEPTH, translucentBits);
 		translucentBits = ENABLE_LIGHTMAP.setValue(true, translucentBits);

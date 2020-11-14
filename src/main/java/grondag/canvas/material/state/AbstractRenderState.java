@@ -86,7 +86,7 @@ abstract class AbstractRenderState extends AbstractRenderStateView {
 		primitive = primitive();
 		texture = texture();
 		blur = blur();
-		depthTest = depthTest();
+		depthTest = MaterialDepthTest.fromIndex(depthTest());
 		cull = cull();
 		writeMask = writeMask();
 		enableLightmap = enableLightmap();
