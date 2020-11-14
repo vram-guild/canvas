@@ -21,7 +21,6 @@ import java.util.function.Supplier;
 
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.buffer.encoding.CanvasImmediate;
-import grondag.canvas.material.property.MaterialTarget;
 import grondag.canvas.material.state.MaterialFinderImpl;
 import grondag.canvas.material.state.RenderLayerHelper;
 import grondag.canvas.mixinterface.Matrix3fExt;
@@ -263,7 +262,7 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 				.cutout(true)
 				.translucentCutout(false)
 				.unmipped(true)
-				.target(MaterialTarget.MAIN)
+				.target(MaterialFinder.TARGET_MAIN)
 				.sorted(false);
 				break;
 			case CUTOUT_MIPPED:
@@ -271,7 +270,7 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 				.cutout(true)
 				.translucentCutout(false)
 				.unmipped(false)
-				.target(MaterialTarget.MAIN)
+				.target(MaterialFinder.TARGET_MAIN)
 				.sorted(false);
 				break;
 			case TRANSLUCENT:
@@ -288,7 +287,7 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 				.cutout(!isBlockItem)
 				.translucentCutout(!isBlockItem)
 				.unmipped(false)
-				.target(drawDirectToMainTarget ? MaterialTarget.MAIN : MaterialTarget.ENTITIES)
+				.target(drawDirectToMainTarget ? MaterialFinder.TARGET_MAIN : MaterialFinder.TARGET_ENTITIES)
 				.sorted(true);
 				break;
 			case SOLID:
@@ -296,7 +295,7 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 				.cutout(false)
 				.translucentCutout(false)
 				.unmipped(false)
-				.target(MaterialTarget.MAIN)
+				.target(MaterialFinder.TARGET_MAIN)
 				.sorted(false);
 				break;
 			default:

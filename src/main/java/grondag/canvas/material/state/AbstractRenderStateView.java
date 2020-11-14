@@ -64,9 +64,9 @@ abstract class AbstractRenderStateView {
 
 		final long masked = bits & AbstractRenderState.PTT_COLLECTOR_AND_STATE_MASK;
 
-		if (masked == PTT_TRANSLUCENT_COLLECTOR_KEY && target() == MaterialTarget.TRANSLUCENT) {
+		if (masked == PTT_TRANSLUCENT_COLLECTOR_KEY && target() == MaterialFinder.TARGET_TRANSLUCENT) {
 			return true;
-		} else if (masked == PTT_ENTITY_COLLECTOR_KEY && target() == MaterialTarget.ENTITIES) {
+		} else if (masked == PTT_ENTITY_COLLECTOR_KEY && target() == MaterialFinder.TARGET_ENTITIES) {
 			return true;
 		} else {
 			return false;
@@ -121,11 +121,15 @@ abstract class AbstractRenderStateView {
 		return ENABLE_LIGHTMAP.getValue(bits);
 	}
 
+	public boolean discardsTexture() {
+		return DISCARDS_TEXTURE.getValue(bits);
+	}
+
 	public int decal() {
 		return DECAL.getValue(bits);
 	}
 
-	public MaterialTarget target() {
+	public int target() {
 		return TARGET.getValue(bits);
 	}
 
@@ -172,7 +176,7 @@ abstract class AbstractRenderStateView {
 	static final BitPacker64<Void> PACKER = new BitPacker64<> (null, null);
 
 	// GL State comes first for sorting
-	static final BitPacker64<Void>.EnumElement<MaterialTarget> TARGET = PACKER.createEnumElement(MaterialTarget.class);
+	static final BitPacker64<Void>.IntElement TARGET = PACKER.createIntElement(MaterialTarget.TARGET_COUNT);
 	static final BitPacker64<Void>.IntElement TEXTURE = PACKER.createIntElement(MaterialTextureState.MAX_TEXTURE_STATES);
 	static final BitPacker64<Void>.BooleanElement BLUR = PACKER.createBooleanElement();
 	static final BitPacker64<Void>.IntElement TRANSPARENCY = PACKER.createIntElement(MaterialTransparency.TRANSPARENCY_COUNT);
@@ -209,6 +213,7 @@ abstract class AbstractRenderStateView {
 	// here and below only used in material - holds vertex state - does not affect buffering or gl State
 	static final BitPacker64<Void>.BooleanElement DISABLE_COLOR_INDEX = PACKER.createBooleanElement();
 	static final BitPacker64<Void>.NullableEnumElement<BlendMode> BLENDMODE = PACKER.createNullableEnumElement(BlendMode.class);
+	static final BitPacker64<Void>.BooleanElement DISCARDS_TEXTURE = PACKER.createBooleanElement();
 
 	static final int FLAG_SHIFT = PACKER.bitLength();
 
@@ -242,7 +247,7 @@ abstract class AbstractRenderStateView {
 		defaultBits = DEPTH_TEST.setValue(MaterialFinder.DEPTH_TEST_LEQUAL, defaultBits);
 		defaultBits = ENABLE_LIGHTMAP.setValue(true, defaultBits);
 		defaultBits = TEXTURE.setValue(MaterialTextureState.fromId(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE).index, defaultBits);
-		defaultBits = TARGET.setValue(MaterialTarget.MAIN, defaultBits);
+		defaultBits = TARGET.setValue(MaterialFinder.TARGET_MAIN, defaultBits);
 		defaultBits = WRITE_MASK.setValue(MaterialFinder.WRITE_MASK_COLOR_DEPTH, defaultBits);
 		defaultBits = UNMIPPED.setValue(false, defaultBits);
 		defaultBits = FOG.setValue(MaterialFog.FOG, defaultBits);
@@ -258,7 +263,7 @@ abstract class AbstractRenderStateView {
 		translucentBits = WRITE_MASK.setValue(MaterialFinder.WRITE_MASK_COLOR_DEPTH, translucentBits);
 		translucentBits = ENABLE_LIGHTMAP.setValue(true, translucentBits);
 		translucentBits = DECAL.setValue(MaterialDecal.NONE.index, translucentBits);
-		translucentBits = TARGET.setValue(MaterialTarget.TRANSLUCENT, translucentBits);
+		translucentBits = TARGET.setValue(MaterialFinder.TARGET_TRANSLUCENT, translucentBits);
 		translucentBits = LINES.setValue(false, translucentBits);
 		translucentBits = FOG.setValue(MaterialFog.FOG, translucentBits);
 		translucentBits = SORTED.setValue(true, translucentBits);
@@ -267,7 +272,7 @@ abstract class AbstractRenderStateView {
 		PTT_TRANSLUCENT_COLLECTOR_KEY = translucentBits & PTT_COLLECTOR_AND_STATE_MASK;
 
 		translucentBits = TEXTURE.setValue(MaterialTextureState.fromId(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE).index, translucentBits);
-		translucentBits = TARGET.setValue(MaterialTarget.ENTITIES, translucentBits);
+		translucentBits = TARGET.setValue(MaterialFinder.TARGET_ENTITIES, translucentBits);
 
 		//copyFromLayer(RenderLayer.getItemEntityTranslucentCull(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE));
 		PTT_ENTITY_COLLECTOR_KEY = translucentBits & PTT_COLLECTOR_AND_STATE_MASK;

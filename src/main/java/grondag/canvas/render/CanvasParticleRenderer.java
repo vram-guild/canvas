@@ -22,7 +22,6 @@ import com.google.common.util.concurrent.Runnables;
 import com.mojang.blaze3d.systems.RenderSystem;
 import grondag.canvas.buffer.encoding.VertexCollectorImpl;
 import grondag.canvas.material.property.MaterialFog;
-import grondag.canvas.material.property.MaterialTarget;
 import grondag.canvas.material.state.MaterialFinderImpl;
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.mixinterface.ParticleExt;
@@ -166,7 +165,7 @@ public class CanvasParticleRenderer {
 		.writeMask(MaterialFinder.WRITE_MASK_COLOR_DEPTH)
 		.enableLightmap(true)
 		.decal(MaterialFinder.DECAL_NONE)
-		.target(MaterialTarget.PARTICLES)
+		.target(MaterialFinder.TARGET_PARTICLES)
 		.lines(false)
 		.disableAo(true)
 		.disableDiffuse(true)

@@ -18,7 +18,6 @@ package grondag.canvas.material.state;
 
 import grondag.canvas.apiimpl.MaterialConditionImpl;
 import grondag.canvas.material.property.MaterialFog;
-import grondag.canvas.material.property.MaterialTarget;
 import grondag.canvas.material.property.MaterialTextureState;
 import grondag.canvas.shader.MaterialShaderId;
 import grondag.frex.api.material.MaterialCondition;
@@ -95,7 +94,12 @@ public abstract class AbstractStateFinder<T extends AbstractStateFinder<T, V>, V
 		return (T) this;
 	}
 
-	public T target(MaterialTarget target) {
+	public T discardsTexture(boolean discardsTexture) {
+		bits = DISCARDS_TEXTURE.setValue(discardsTexture, bits);
+		return (T) this;
+	}
+
+	public T target(int target) {
 		bits = TARGET.setValue(target, bits);
 		return (T) this;
 	}

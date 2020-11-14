@@ -17,75 +17,126 @@
 package grondag.canvas.material.property;
 
 import com.google.common.util.concurrent.Runnables;
+import grondag.frex.api.material.MaterialFinder;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.RenderPhase;
 import net.minecraft.client.render.RenderPhase.Target;
 
 @SuppressWarnings("resource")
-public enum MaterialTarget {
-	MAIN(Runnables.doNothing(), Runnables.doNothing()),
+public class MaterialTarget {
+	public static final MaterialTarget MAIN = new MaterialTarget(
+		MaterialFinder.TARGET_MAIN,
+		"main",
+		Runnables.doNothing(),
+		Runnables.doNothing()
+	);
 
-	OUTLINE(() -> {
-		MinecraftClient.getInstance().worldRenderer.getEntityOutlinesFramebuffer().beginWrite(false);
-	}, () -> {
-		MinecraftClient.getInstance().getFramebuffer().beginWrite(false);
-	}),
-
-	TRANSLUCENT(() -> {
-		if (MinecraftClient.isFabulousGraphicsOrBetter()) {
-			MinecraftClient.getInstance().worldRenderer.getTranslucentFramebuffer().beginWrite(false);
-		}
-	}, () -> {
-		if (MinecraftClient.isFabulousGraphicsOrBetter()) {
+	public static final MaterialTarget OUTLINE = new MaterialTarget(
+		MaterialFinder.TARGET_OUTLINE,
+		"outline",
+		() -> {
+			MinecraftClient.getInstance().worldRenderer.getEntityOutlinesFramebuffer().beginWrite(false);
+		}, () -> {
 			MinecraftClient.getInstance().getFramebuffer().beginWrite(false);
 		}
-	}),
+	);
 
-	PARTICLES(() -> {
-		if (MinecraftClient.isFabulousGraphicsOrBetter()) {
-			MinecraftClient.getInstance().worldRenderer.getParticlesFramebuffer().beginWrite(false);
+	public static final MaterialTarget TRANSLUCENT = new MaterialTarget(
+		MaterialFinder.TARGET_TRANSLUCENT,
+		"translucent",
+		() -> {
+			if (MinecraftClient.isFabulousGraphicsOrBetter()) {
+				MinecraftClient.getInstance().worldRenderer.getTranslucentFramebuffer().beginWrite(false);
+			}
+		}, () -> {
+			if (MinecraftClient.isFabulousGraphicsOrBetter()) {
+				MinecraftClient.getInstance().getFramebuffer().beginWrite(false);
+			}
 		}
-	}, () -> {
-		if (MinecraftClient.isFabulousGraphicsOrBetter()) {
-			MinecraftClient.getInstance().getFramebuffer().beginWrite(false);
-		}
-	}),
+	);
 
-	WEATHER(() -> {
-		if (MinecraftClient.isFabulousGraphicsOrBetter()) {
-			MinecraftClient.getInstance().worldRenderer.getWeatherFramebuffer().beginWrite(false);
+	public static final MaterialTarget PARTICLES = new MaterialTarget(
+		MaterialFinder.TARGET_PARTICLES,
+		"particles",
+		() -> {
+			if (MinecraftClient.isFabulousGraphicsOrBetter()) {
+				MinecraftClient.getInstance().worldRenderer.getParticlesFramebuffer().beginWrite(false);
+			}
+		}, () -> {
+			if (MinecraftClient.isFabulousGraphicsOrBetter()) {
+				MinecraftClient.getInstance().getFramebuffer().beginWrite(false);
+			}
 		}
-	}, () -> {
-		if (MinecraftClient.isFabulousGraphicsOrBetter()) {
-			MinecraftClient.getInstance().getFramebuffer().beginWrite(false);
-		}
-	}),
+	);
 
-	CLOUDS(() -> {
-		if (MinecraftClient.isFabulousGraphicsOrBetter()) {
-			MinecraftClient.getInstance().worldRenderer.getCloudsFramebuffer().beginWrite(false);
+	public static final MaterialTarget WEATHER = new MaterialTarget(
+		MaterialFinder.TARGET_WEATHER,
+		"weather",
+		() -> {
+			if (MinecraftClient.isFabulousGraphicsOrBetter()) {
+				MinecraftClient.getInstance().worldRenderer.getWeatherFramebuffer().beginWrite(false);
+			}
+		}, () -> {
+			if (MinecraftClient.isFabulousGraphicsOrBetter()) {
+				MinecraftClient.getInstance().getFramebuffer().beginWrite(false);
+			}
 		}
-	}, () -> {
-		if (MinecraftClient.isFabulousGraphicsOrBetter()) {
-			MinecraftClient.getInstance().getFramebuffer().beginWrite(false);
-		}
-	}),
+	);
 
-	ENTITIES(() -> {
-		if (MinecraftClient.isFabulousGraphicsOrBetter()) {
-			MinecraftClient.getInstance().worldRenderer.getEntityFramebuffer().beginWrite(false);
+	public static final MaterialTarget CLOUDS = new MaterialTarget(
+		MaterialFinder.TARGET_CLOUDS,
+		"clouds",
+		() -> {
+			if (MinecraftClient.isFabulousGraphicsOrBetter()) {
+				MinecraftClient.getInstance().worldRenderer.getCloudsFramebuffer().beginWrite(false);
+			}
+		}, () -> {
+			if (MinecraftClient.isFabulousGraphicsOrBetter()) {
+				MinecraftClient.getInstance().getFramebuffer().beginWrite(false);
+			}
 		}
-	}, () -> {
-		if (MinecraftClient.isFabulousGraphicsOrBetter()) {
-			MinecraftClient.getInstance().getFramebuffer().beginWrite(false);
-		}
-	});
+	);
 
+	public static final MaterialTarget ENTITIES = new MaterialTarget(
+		MaterialFinder.TARGET_ENTITIES,
+		"entities",
+		() -> {
+			if (MinecraftClient.isFabulousGraphicsOrBetter()) {
+				MinecraftClient.getInstance().worldRenderer.getEntityFramebuffer().beginWrite(false);
+			}
+		}, () -> {
+			if (MinecraftClient.isFabulousGraphicsOrBetter()) {
+				MinecraftClient.getInstance().getFramebuffer().beginWrite(false);
+			}
+		}
+	);
+
+	public static final int TARGET_COUNT = 7;
+	private static final MaterialTarget[] VALUES = new MaterialTarget[TARGET_COUNT];
+
+	static {
+		VALUES[MaterialFinder.TARGET_MAIN] = MAIN;
+		VALUES[MaterialFinder.TARGET_OUTLINE] = OUTLINE;
+		VALUES[MaterialFinder.TARGET_TRANSLUCENT] = TRANSLUCENT;
+		VALUES[MaterialFinder.TARGET_PARTICLES] = PARTICLES;
+		VALUES[MaterialFinder.TARGET_WEATHER] = WEATHER;
+		VALUES[MaterialFinder.TARGET_CLOUDS] = CLOUDS;
+		VALUES[MaterialFinder.TARGET_ENTITIES] = ENTITIES;
+	}
+
+	public static MaterialTarget fromIndex(int index) {
+		return VALUES[index];
+	}
+
+	public final int index;
+	public final String name;
 	private final Runnable startAction;
 	private final Runnable endAction;
 
-	private MaterialTarget(Runnable startAction, Runnable endAction) {
+	private MaterialTarget(int index, String name, Runnable startAction, Runnable endAction) {
+		this.index = index;
+		this.name = name;
 		this.startAction = startAction;
 		this.endAction = endAction;
 	}
@@ -108,22 +159,22 @@ public enum MaterialTarget {
 
 	private static MaterialTarget active = null;
 
-	public static MaterialTarget fromPhase(Target phase) {
+	public static int fromPhase(Target phase) {
 		if (phase == RenderPhase.TRANSLUCENT_TARGET) {
-			return TRANSLUCENT;
+			return MaterialFinder.TARGET_TRANSLUCENT;
 		} else if (phase == RenderPhase.OUTLINE_TARGET) {
-			return OUTLINE;
+			return MaterialFinder.TARGET_OUTLINE;
 		} else if (phase == RenderPhase.PARTICLES_TARGET){
-			return PARTICLES;
+			return MaterialFinder.TARGET_PARTICLES;
 		} else if (phase == RenderPhase.WEATHER_TARGET){
-			return WEATHER;
+			return MaterialFinder.TARGET_WEATHER;
 		} else if (phase == RenderPhase.CLOUDS_TARGET){
-			return CLOUDS;
+			return MaterialFinder.TARGET_CLOUDS;
 		} else if (phase == RenderPhase.ITEM_TARGET){
-			return ENTITIES;
+			return MaterialFinder.TARGET_ENTITIES;
 		} else {
 			assert phase == RenderPhase.MAIN_TARGET : "Unsupported render target";
-			return MAIN;
+			return MaterialFinder.TARGET_MAIN;
 		}
 	}
 }

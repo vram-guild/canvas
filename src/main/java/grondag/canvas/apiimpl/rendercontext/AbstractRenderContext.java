@@ -25,7 +25,6 @@ import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.util.ColorHelper;
 import grondag.canvas.buffer.encoding.VertexCollectorList;
 import grondag.canvas.buffer.format.CanvasVertexFormats;
-import grondag.canvas.material.property.MaterialTarget;
 import grondag.canvas.material.state.MaterialFinderImpl;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.texture.SpriteInfoTexture;
@@ -247,7 +246,7 @@ public abstract class AbstractRenderContext implements RenderContext {
 				.cutout(true)
 				.unmipped(true)
 				.translucentCutout(false)
-				.target(MaterialTarget.MAIN)
+				.target(MaterialFinder.TARGET_MAIN)
 				.sorted(false);
 				break;
 			case CUTOUT_MIPPED:
@@ -255,7 +254,7 @@ public abstract class AbstractRenderContext implements RenderContext {
 				.cutout(true)
 				.unmipped(false)
 				.translucentCutout(false)
-				.target(MaterialTarget.MAIN)
+				.target(MaterialFinder.TARGET_MAIN)
 				.sorted(false);
 				break;
 			case TRANSLUCENT:
@@ -263,7 +262,7 @@ public abstract class AbstractRenderContext implements RenderContext {
 				.cutout(false)
 				.unmipped(false)
 				.translucentCutout(false)
-				.target(MaterialTarget.TRANSLUCENT)
+				.target(MaterialFinder.TARGET_TRANSLUCENT)
 				.sorted(true);
 				break;
 			case SOLID:
@@ -271,7 +270,7 @@ public abstract class AbstractRenderContext implements RenderContext {
 				.cutout(false)
 				.unmipped(false)
 				.translucentCutout(false)
-				.target(MaterialTarget.MAIN)
+				.target(MaterialFinder.TARGET_MAIN)
 				.sorted(false);
 				break;
 			default:

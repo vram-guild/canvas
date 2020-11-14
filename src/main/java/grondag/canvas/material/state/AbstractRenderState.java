@@ -78,6 +78,8 @@ abstract class AbstractRenderState extends AbstractRenderStateView {
 	public final boolean hurtOverlay;
 	public final boolean flashOverlay;
 	public final boolean primaryTargetTransparency;
+	// PERF: use this to avoid overhead of animated textures
+	public final boolean discardsTexture;
 	public final ProgramType programType;
 
 	protected AbstractRenderState(int index, long bits) {
@@ -91,7 +93,7 @@ abstract class AbstractRenderState extends AbstractRenderStateView {
 		writeMask = MaterialWriteMask.fromIndex(writeMask());
 		enableLightmap = enableLightmap();
 		decal = MaterialDecal.fromIndex(decal());
-		target = target();
+		target = MaterialTarget.fromIndex(target());
 		lines = lines();
 		fog = fog();
 		condition = condition();
@@ -115,5 +117,6 @@ abstract class AbstractRenderState extends AbstractRenderStateView {
 		translucentCutout = translucentCutout();
 		hurtOverlay = hurtOverlay();
 		flashOverlay = flashOverlay();
+		discardsTexture = discardsTexture();
 	}
 }
