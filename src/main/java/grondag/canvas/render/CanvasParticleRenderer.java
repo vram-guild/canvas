@@ -23,7 +23,6 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import grondag.canvas.buffer.encoding.VertexCollectorImpl;
 import grondag.canvas.material.property.MaterialFog;
 import grondag.canvas.material.property.MaterialTarget;
-import grondag.canvas.material.property.MaterialTransparency;
 import grondag.canvas.material.property.MaterialWriteMask;
 import grondag.canvas.material.state.MaterialFinderImpl;
 import grondag.canvas.material.state.RenderMaterialImpl;
@@ -179,7 +178,7 @@ public class CanvasParticleRenderer {
 
 	private static final RenderMaterialImpl RENDER_STATE_TERRAIN = baseFinder()
 	.texture(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE)
-	.transparency(MaterialTransparency.DEFAULT)
+	.transparency(MaterialProperty.TRANSPARENCY_DEFAULT)
 	.find();
 
 	private static final RenderMaterialImpl RENDER_STATE_TERRAIN_EMISSIVE = baseFinder().copyFrom(RENDER_STATE_TERRAIN)
@@ -188,7 +187,7 @@ public class CanvasParticleRenderer {
 
 	// MC has two but they are functionally identical
 	private static final RenderMaterialImpl RENDER_STATE_OPAQUE_OR_LIT =  baseFinder()
-	.transparency(MaterialTransparency.NONE)
+	.transparency(MaterialProperty.TRANSPARENCY_NONE)
 	.texture(SpriteAtlasTexture.PARTICLE_ATLAS_TEXTURE)
 	.find();
 
@@ -197,7 +196,7 @@ public class CanvasParticleRenderer {
 	.find();
 
 	private static final RenderMaterialImpl RENDER_STATE_TRANSLUCENT = baseFinder()
-	.transparency(MaterialTransparency.TRANSLUCENT)
+	.transparency(MaterialProperty.TRANSPARENCY_TRANSLUCENT)
 	.texture(SpriteAtlasTexture.PARTICLE_ATLAS_TEXTURE)
 	.find();
 

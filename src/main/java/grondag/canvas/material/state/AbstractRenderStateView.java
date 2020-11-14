@@ -101,7 +101,7 @@ abstract class AbstractRenderStateView {
 		return BLUR.getValue(bits);
 	}
 
-	public MaterialTransparency translucency() {
+	public int translucency() {
 		return TRANSPARENCY.getValue(bits);
 	}
 
@@ -175,7 +175,7 @@ abstract class AbstractRenderStateView {
 	static final BitPacker64<Void>.EnumElement<MaterialTarget> TARGET = PACKER.createEnumElement(MaterialTarget.class);
 	static final BitPacker64<Void>.IntElement TEXTURE = PACKER.createIntElement(MaterialTextureState.MAX_TEXTURE_STATES);
 	static final BitPacker64<Void>.BooleanElement BLUR = PACKER.createBooleanElement();
-	static final BitPacker64<Void>.EnumElement<MaterialTransparency> TRANSPARENCY = PACKER.createEnumElement(MaterialTransparency.class);
+	static final BitPacker64<Void>.IntElement TRANSPARENCY = PACKER.createIntElement(MaterialTransparency.TRANSPARENCY_COUNT);
 	static final BitPacker64<Void>.IntElement DEPTH_TEST = PACKER.createIntElement(MaterialDepthTest.DEPTH_TEST_COUNT);
 	static final BitPacker64<Void>.BooleanElement CULL = PACKER.createBooleanElement();
 	static final BitPacker64<Void>.EnumElement<MaterialWriteMask> WRITE_MASK = PACKER.createEnumElement(MaterialWriteMask.class);
@@ -252,7 +252,7 @@ abstract class AbstractRenderStateView {
 		long translucentBits = BLENDMODE.setValue(null, 0);
 		translucentBits = TEXTURE.setValue(MaterialTextureState.fromId(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE).index, translucentBits);
 		translucentBits = BLUR.setValue(false, translucentBits);
-		translucentBits = TRANSPARENCY.setValue(MaterialTransparency.TRANSLUCENT, translucentBits);
+		translucentBits = TRANSPARENCY.setValue(MaterialProperty.TRANSPARENCY_TRANSLUCENT, translucentBits);
 		translucentBits = DEPTH_TEST.setValue(MaterialProperty.DEPTH_TEST_LEQUAL, translucentBits);
 		translucentBits = CULL.setValue(true, translucentBits);
 		translucentBits = WRITE_MASK.setValue(MaterialWriteMask.COLOR_DEPTH, translucentBits);

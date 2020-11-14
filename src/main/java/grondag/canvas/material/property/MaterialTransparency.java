@@ -18,52 +18,102 @@ package grondag.canvas.material.property;
 
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
+import grondag.frex.api.material.MaterialProperty;
 
 import net.minecraft.client.render.RenderPhase;
 import net.minecraft.client.render.RenderPhase.Transparency;
 
-public enum MaterialTransparency {
-	NONE (6, () -> {
-		RenderSystem.disableBlend();
-	}),
+public class MaterialTransparency {
+	public static final MaterialTransparency NONE = new MaterialTransparency(
+		MaterialProperty.TRANSPARENCY_NONE,
+		"none",
+		6,
+		() -> {
+			RenderSystem.disableBlend();
+		});
 
-	ADDITIVE (2, () -> {
-		RenderSystem.enableBlend();
-		RenderSystem.blendFunc(GlStateManager.SrcFactor.ONE, GlStateManager.DstFactor.ONE);
-	}),
+	public static final MaterialTransparency ADDITIVE = new MaterialTransparency(
+		MaterialProperty.TRANSPARENCY_ADDITIVE,
+		"none",
+		2,
+		() -> {
+			RenderSystem.enableBlend();
+			RenderSystem.blendFunc(GlStateManager.SrcFactor.ONE, GlStateManager.DstFactor.ONE);
+		});
 
-	LIGHTNING (5, () -> {
-		RenderSystem.enableBlend();
-		RenderSystem.blendFunc(GlStateManager.SrcFactor.SRC_ALPHA, GlStateManager.DstFactor.ONE);
-	}),
+	public static final MaterialTransparency LIGHTNING = new MaterialTransparency(
+		MaterialProperty.TRANSPARENCY_LIGHTNING,
+		"lightning",
+		5,
+		() -> {
+			RenderSystem.enableBlend();
+			RenderSystem.blendFunc(GlStateManager.SrcFactor.SRC_ALPHA, GlStateManager.DstFactor.ONE);
+		});
 
-	GLINT (1, () -> {
-		RenderSystem.enableBlend();
-		RenderSystem.blendFuncSeparate(GlStateManager.SrcFactor.SRC_COLOR, GlStateManager.DstFactor.ONE, GlStateManager.SrcFactor.ZERO, GlStateManager.DstFactor.ONE);
-	}),
+	public static final MaterialTransparency GLINT = new MaterialTransparency(
+		MaterialProperty.TRANSPARENCY_GLINT,
+		"glint",
+		1,
+		() -> {
+			RenderSystem.enableBlend();
+			RenderSystem.blendFuncSeparate(GlStateManager.SrcFactor.SRC_COLOR, GlStateManager.DstFactor.ONE, GlStateManager.SrcFactor.ZERO, GlStateManager.DstFactor.ONE);
+		});
 
-	CRUMBLING (0, () -> {
-		RenderSystem.enableBlend();
-		RenderSystem.blendFuncSeparate(GlStateManager.SrcFactor.DST_COLOR, GlStateManager.DstFactor.SRC_COLOR, GlStateManager.SrcFactor.ONE, GlStateManager.DstFactor.ZERO);
-	}),
+	public static final MaterialTransparency CRUMBLING = new MaterialTransparency(
+		MaterialProperty.TRANSPARENCY_CRUMBLING,
+		"crumbling",
+		0,
+		() -> {
+			RenderSystem.enableBlend();
+			RenderSystem.blendFuncSeparate(GlStateManager.SrcFactor.DST_COLOR, GlStateManager.DstFactor.SRC_COLOR, GlStateManager.SrcFactor.ONE, GlStateManager.DstFactor.ZERO);
+		});
 
-	TRANSLUCENT (4, () -> {
-		RenderSystem.enableBlend();
-		RenderSystem.blendFuncSeparate(GlStateManager.SrcFactor.SRC_ALPHA, GlStateManager.DstFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SrcFactor.ONE, GlStateManager.DstFactor.ONE_MINUS_SRC_ALPHA);
-	}),
+	public static final MaterialTransparency TRANSLUCENT = new MaterialTransparency(
+		MaterialProperty.TRANSPARENCY_TRANSLUCENT,
+		"translucent",
+		4,
+		() -> {
+			RenderSystem.enableBlend();
+			RenderSystem.blendFuncSeparate(GlStateManager.SrcFactor.SRC_ALPHA, GlStateManager.DstFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SrcFactor.ONE, GlStateManager.DstFactor.ONE_MINUS_SRC_ALPHA);
+		});
 
 	/** used for terrain particles */
-	DEFAULT (3, () -> {
-		RenderSystem.enableBlend();
-		RenderSystem.blendFuncSeparate(GlStateManager.SrcFactor.SRC_ALPHA, GlStateManager.DstFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SrcFactor.ONE, GlStateManager.DstFactor.ZERO);
-	});
+	public static final MaterialTransparency DEFAULT = new MaterialTransparency(
+		MaterialProperty.TRANSPARENCY_DEFAULT,
+		"default",
+		3,
+		() -> {
+			RenderSystem.enableBlend();
+			RenderSystem.blendFuncSeparate(GlStateManager.SrcFactor.SRC_ALPHA, GlStateManager.DstFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SrcFactor.ONE, GlStateManager.DstFactor.ZERO);
+		});
 
+	public static final int TRANSPARENCY_COUNT = 7;
+	private static final MaterialTransparency[] VALUES = new MaterialTransparency[TRANSPARENCY_COUNT];
+
+	static {
+		VALUES[MaterialProperty.TRANSPARENCY_NONE] = NONE;
+		VALUES[MaterialProperty.TRANSPARENCY_ADDITIVE] = ADDITIVE;
+		VALUES[MaterialProperty.TRANSPARENCY_LIGHTNING] = LIGHTNING;
+		VALUES[MaterialProperty.TRANSPARENCY_GLINT] = GLINT;
+		VALUES[MaterialProperty.TRANSPARENCY_CRUMBLING] = CRUMBLING;
+		VALUES[MaterialProperty.TRANSPARENCY_TRANSLUCENT] = TRANSLUCENT;
+		VALUES[MaterialProperty.TRANSPARENCY_DEFAULT] = DEFAULT;
+	}
+
+	public static MaterialTransparency fromIndex(int index) {
+		return VALUES[index];
+	}
+
+	public final int index;
+	public final String name;
 	private final Runnable action;
 
 	/** higher goes first */
 	public final int drawPriority;
 
-	private MaterialTransparency(int drawPriority, Runnable action) {
+	private MaterialTransparency(int index, String name, int drawPriority, Runnable action) {
+		this.index = index;
+		this.name = name;
 		this.drawPriority = drawPriority;
 		this.action = action;
 	}
@@ -75,19 +125,19 @@ public enum MaterialTransparency {
 		}
 	}
 
-	public static MaterialTransparency fromPhase(Transparency phase) {
+	public static int fromPhase(Transparency phase) {
 		if (phase == RenderPhase.ADDITIVE_TRANSPARENCY) {
-			return ADDITIVE;
+			return MaterialProperty.TRANSPARENCY_ADDITIVE;
 		} else if (phase == RenderPhase.LIGHTNING_TRANSPARENCY) {
-			return LIGHTNING;
+			return MaterialProperty.TRANSPARENCY_LIGHTNING;
 		} else if (phase == RenderPhase.GLINT_TRANSPARENCY) {
-			return GLINT;
+			return MaterialProperty.TRANSPARENCY_GLINT;
 		} else if (phase == RenderPhase.CRUMBLING_TRANSPARENCY) {
-			return CRUMBLING;
+			return MaterialProperty.TRANSPARENCY_CRUMBLING;
 		} else if (phase == RenderPhase.TRANSLUCENT_TRANSPARENCY) {
-			return TRANSLUCENT;
+			return MaterialProperty.TRANSPARENCY_TRANSLUCENT;
 		} else {
-			return NONE;
+			return MaterialProperty.TRANSPARENCY_NONE;
 		}
 	}
 

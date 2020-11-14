@@ -26,11 +26,11 @@ import grondag.canvas.apiimpl.util.ColorHelper;
 import grondag.canvas.buffer.encoding.VertexCollectorList;
 import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.material.property.MaterialTarget;
-import grondag.canvas.material.property.MaterialTransparency;
 import grondag.canvas.material.state.MaterialFinderImpl;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.texture.SpriteInfoTexture;
 import grondag.frex.api.material.MaterialMap;
+import grondag.frex.api.material.MaterialProperty;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.Nullable;
 
@@ -243,7 +243,7 @@ public abstract class AbstractRenderContext implements RenderContext {
 
 		switch (bm) {
 			case CUTOUT:
-				finder.transparency(MaterialTransparency.NONE)
+				finder.transparency(MaterialProperty.TRANSPARENCY_NONE)
 				.cutout(true)
 				.unmipped(true)
 				.translucentCutout(false)
@@ -251,7 +251,7 @@ public abstract class AbstractRenderContext implements RenderContext {
 				.sorted(false);
 				break;
 			case CUTOUT_MIPPED:
-				finder.transparency(MaterialTransparency.NONE)
+				finder.transparency(MaterialProperty.TRANSPARENCY_NONE)
 				.cutout(true)
 				.unmipped(false)
 				.translucentCutout(false)
@@ -259,7 +259,7 @@ public abstract class AbstractRenderContext implements RenderContext {
 				.sorted(false);
 				break;
 			case TRANSLUCENT:
-				finder.transparency(MaterialTransparency.TRANSLUCENT)
+				finder.transparency(MaterialProperty.TRANSPARENCY_TRANSLUCENT)
 				.cutout(false)
 				.unmipped(false)
 				.translucentCutout(false)
@@ -267,7 +267,7 @@ public abstract class AbstractRenderContext implements RenderContext {
 				.sorted(true);
 				break;
 			case SOLID:
-				finder.transparency(MaterialTransparency.NONE)
+				finder.transparency(MaterialProperty.TRANSPARENCY_NONE)
 				.cutout(false)
 				.unmipped(false)
 				.translucentCutout(false)

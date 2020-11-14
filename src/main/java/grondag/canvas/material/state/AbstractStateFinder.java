@@ -20,7 +20,6 @@ import grondag.canvas.apiimpl.MaterialConditionImpl;
 import grondag.canvas.material.property.MaterialFog;
 import grondag.canvas.material.property.MaterialTarget;
 import grondag.canvas.material.property.MaterialTextureState;
-import grondag.canvas.material.property.MaterialTransparency;
 import grondag.canvas.material.property.MaterialWriteMask;
 import grondag.canvas.shader.MaterialShaderId;
 import grondag.frex.api.material.MaterialCondition;
@@ -67,7 +66,7 @@ public abstract class AbstractStateFinder<T extends AbstractStateFinder<T, V>, V
 		return (T) this;
 	}
 
-	public T transparency(MaterialTransparency transparency) {
+	public T transparency(int transparency) {
 		bits = TRANSPARENCY.setValue(transparency, bits);
 		return (T) this;
 	}

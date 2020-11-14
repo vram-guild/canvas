@@ -95,7 +95,7 @@ abstract class AbstractRenderState extends AbstractRenderStateView {
 		lines = lines();
 		fog = fog();
 		condition = condition();
-		transparency = TRANSPARENCY.getValue(bits);
+		transparency = MaterialTransparency.fromIndex(TRANSPARENCY.getValue(bits));
 		sorted = sorted();
 		shaderId = shaderId();
 		vertexShaderIndex = shaderId.vertexIndex;
