@@ -1,7 +1,10 @@
 # Canvas
 Canvas is a shader-based Renderer for the [Fabric](https://fabricmc.net) modding toolchain.  It supports all features of the proposed [Fabric Rendering API](https://github.com/FabricMC/fabric/pull/65) plus extensions defined in [FREX](https://github.com/grondag/frex).
 
+## License
+Except as noted in individual source files, all code in this mod, include shaders, is [licensed under the Apache 2.0 License](http://www.apache.org/licenses/LICENSE-2.0). This means no warranty is provided.
 
+Some elements of code are adapted from or copied from other projects with compatible licensing.  The author has attempted to provide credit and/or appropriate notices in the code where applicable.
 
 ## Limitations
 Canvas is in EARLY ALPHA.  Expect it to break.  Currently terrain rendering works with shaders but item rendering does not. (It will.). Rendering for blocks in movement (falling blocks, blocks being moved by pistons, etc.) is WIP.  
