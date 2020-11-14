@@ -9,6 +9,8 @@ import grondag.canvas.material.state.RenderContextState;
 import grondag.canvas.material.state.RenderLayerHelper;
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.mixinterface.MultiPhaseExt;
+import grondag.frex.api.material.FrexVertexConsumerProvider;
+import grondag.frex.api.material.RenderMaterial;
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
@@ -19,7 +21,7 @@ import net.minecraft.client.render.VertexConsumerProvider.Immediate;
 import net.minecraft.client.render.model.ModelLoader;
 import net.minecraft.util.Util;
 
-public class CanvasImmediate extends Immediate {
+public class CanvasImmediate extends Immediate implements FrexVertexConsumerProvider {
 	public final VertexCollectorList collectors = new VertexCollectorList();
 
 	private final ObjectArrayList<VertexCollectorImpl> drawList = new ObjectArrayList<>();
@@ -120,5 +122,10 @@ public class CanvasImmediate extends Immediate {
 
 	private static void assignBufferBuilder(Object2ObjectLinkedOpenHashMap<RenderLayer, BufferBuilder> builderStorage, RenderLayer layer) {
 		builderStorage.put(layer, new BufferBuilder(layer.getExpectedBufferSize()));
+	}
+
+	@Override
+	public VertexConsumer getConsumer(RenderMaterial material) {
+		return collectors.get((RenderMaterialImpl) material);
 	}
 }
