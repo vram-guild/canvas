@@ -1,0 +1,6 @@
+{
+  "emissive": true,
+  "disableAo": true,
+  "vertexSource": "canvas:shaders/material/lava.vert",
+  "fragmentSource": "canvas:shaders/material/lava.frag"
+}
