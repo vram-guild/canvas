@@ -50,3 +50,19 @@ vec2 frx_faceUv(vec3 pos, vec3 normal) {
 	vec3 result = m * pos;
 	return result.xy;
 }
+
+/*
+ * Estimates UV coordinates for a world-space position
+ * and world-space normal, assuming texture coordinates
+ * are from the 0,0 face corner to the opposite corner.
+ *
+ * The result is similar to "locked-uv" coordinate mapping
+ * in block/item models.
+ *
+ * Will return garbage for vertex or normals in screen space.
+ */
+vec2 frx_faceUv(vec3 pos, int face) {
+	mat3 m = FRX_UV_MATRIX[face];
+	vec3 result = m * pos;
+	return result.xy;
+}
