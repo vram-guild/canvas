@@ -18,7 +18,7 @@ package grondag.canvas.material.property;
 
 import com.google.common.util.concurrent.Runnables;
 import com.mojang.blaze3d.systems.RenderSystem;
-import grondag.frex.api.material.MaterialProperty;
+import grondag.frex.api.material.MaterialFinder;
 
 import net.minecraft.client.render.RenderPhase;
 import net.minecraft.client.render.RenderPhase.Layering;
@@ -32,14 +32,14 @@ public final class MaterialDecal {
 	}
 
 	public static final MaterialDecal NONE = new MaterialDecal(
-		MaterialProperty.DECAL_NONE,
+		MaterialFinder.DECAL_NONE,
 		"none",
 		0,
 		Runnables.doNothing(),
 		Runnables.doNothing());
 
 	public static final MaterialDecal POLYGON_OFFSET = new MaterialDecal(
-		MaterialProperty.DECAL_POLYGON_OFFSET,
+		MaterialFinder.DECAL_POLYGON_OFFSET,
 		"polygon_offset",
 		1,
 		() -> {
@@ -52,7 +52,7 @@ public final class MaterialDecal {
 		});
 
 	public static final MaterialDecal VIEW_OFFSET = new MaterialDecal(
-		MaterialProperty.DECAL_VIEW_OFFSET,
+		MaterialFinder.DECAL_VIEW_OFFSET,
 		"view_offset",
 		2,
 		() -> {
@@ -62,9 +62,9 @@ public final class MaterialDecal {
 		RenderSystem::popMatrix);
 
 	static {
-		VALUES[MaterialProperty.DECAL_NONE] = NONE;
-		VALUES[MaterialProperty.DECAL_POLYGON_OFFSET] = POLYGON_OFFSET;
-		VALUES[MaterialProperty.DECAL_VIEW_OFFSET] = VIEW_OFFSET;
+		VALUES[MaterialFinder.DECAL_NONE] = NONE;
+		VALUES[MaterialFinder.DECAL_POLYGON_OFFSET] = POLYGON_OFFSET;
+		VALUES[MaterialFinder.DECAL_VIEW_OFFSET] = VIEW_OFFSET;
 	}
 
 	public final int index;
@@ -104,11 +104,11 @@ public final class MaterialDecal {
 
 	public static int fromPhase(Layering phase) {
 		if (phase == RenderPhase.VIEW_OFFSET_Z_LAYERING) {
-			return MaterialProperty.DECAL_VIEW_OFFSET;
+			return MaterialFinder.DECAL_VIEW_OFFSET;
 		} else if (phase == RenderPhase.POLYGON_OFFSET_LAYERING) {
-			return MaterialProperty.DECAL_POLYGON_OFFSET;
+			return MaterialFinder.DECAL_POLYGON_OFFSET;
 		} else {
-			return MaterialProperty.DECAL_NONE;
+			return MaterialFinder.DECAL_NONE;
 		}
 	}
 }

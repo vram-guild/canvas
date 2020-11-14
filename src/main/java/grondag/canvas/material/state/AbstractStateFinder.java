@@ -20,7 +20,6 @@ import grondag.canvas.apiimpl.MaterialConditionImpl;
 import grondag.canvas.material.property.MaterialFog;
 import grondag.canvas.material.property.MaterialTarget;
 import grondag.canvas.material.property.MaterialTextureState;
-import grondag.canvas.material.property.MaterialWriteMask;
 import grondag.canvas.shader.MaterialShaderId;
 import grondag.frex.api.material.MaterialCondition;
 import grondag.frex.api.material.RenderMaterial;
@@ -81,7 +80,7 @@ public abstract class AbstractStateFinder<T extends AbstractStateFinder<T, V>, V
 		return (T) this;
 	}
 
-	public T writeMask(MaterialWriteMask writeMask) {
+	public T writeMask(int writeMask) {
 		bits = WRITE_MASK.setValue(writeMask, bits);
 		return (T) this;
 	}

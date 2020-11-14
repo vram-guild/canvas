@@ -18,14 +18,14 @@ package grondag.canvas.material.property;
 
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
-import grondag.frex.api.material.MaterialProperty;
+import grondag.frex.api.material.MaterialFinder;
 
 import net.minecraft.client.render.RenderPhase;
 import net.minecraft.client.render.RenderPhase.Transparency;
 
 public class MaterialTransparency {
 	public static final MaterialTransparency NONE = new MaterialTransparency(
-		MaterialProperty.TRANSPARENCY_NONE,
+		MaterialFinder.TRANSPARENCY_NONE,
 		"none",
 		6,
 		() -> {
@@ -33,7 +33,7 @@ public class MaterialTransparency {
 		});
 
 	public static final MaterialTransparency ADDITIVE = new MaterialTransparency(
-		MaterialProperty.TRANSPARENCY_ADDITIVE,
+		MaterialFinder.TRANSPARENCY_ADDITIVE,
 		"none",
 		2,
 		() -> {
@@ -42,7 +42,7 @@ public class MaterialTransparency {
 		});
 
 	public static final MaterialTransparency LIGHTNING = new MaterialTransparency(
-		MaterialProperty.TRANSPARENCY_LIGHTNING,
+		MaterialFinder.TRANSPARENCY_LIGHTNING,
 		"lightning",
 		5,
 		() -> {
@@ -51,7 +51,7 @@ public class MaterialTransparency {
 		});
 
 	public static final MaterialTransparency GLINT = new MaterialTransparency(
-		MaterialProperty.TRANSPARENCY_GLINT,
+		MaterialFinder.TRANSPARENCY_GLINT,
 		"glint",
 		1,
 		() -> {
@@ -60,7 +60,7 @@ public class MaterialTransparency {
 		});
 
 	public static final MaterialTransparency CRUMBLING = new MaterialTransparency(
-		MaterialProperty.TRANSPARENCY_CRUMBLING,
+		MaterialFinder.TRANSPARENCY_CRUMBLING,
 		"crumbling",
 		0,
 		() -> {
@@ -69,7 +69,7 @@ public class MaterialTransparency {
 		});
 
 	public static final MaterialTransparency TRANSLUCENT = new MaterialTransparency(
-		MaterialProperty.TRANSPARENCY_TRANSLUCENT,
+		MaterialFinder.TRANSPARENCY_TRANSLUCENT,
 		"translucent",
 		4,
 		() -> {
@@ -79,7 +79,7 @@ public class MaterialTransparency {
 
 	/** used for terrain particles */
 	public static final MaterialTransparency DEFAULT = new MaterialTransparency(
-		MaterialProperty.TRANSPARENCY_DEFAULT,
+		MaterialFinder.TRANSPARENCY_DEFAULT,
 		"default",
 		3,
 		() -> {
@@ -91,13 +91,13 @@ public class MaterialTransparency {
 	private static final MaterialTransparency[] VALUES = new MaterialTransparency[TRANSPARENCY_COUNT];
 
 	static {
-		VALUES[MaterialProperty.TRANSPARENCY_NONE] = NONE;
-		VALUES[MaterialProperty.TRANSPARENCY_ADDITIVE] = ADDITIVE;
-		VALUES[MaterialProperty.TRANSPARENCY_LIGHTNING] = LIGHTNING;
-		VALUES[MaterialProperty.TRANSPARENCY_GLINT] = GLINT;
-		VALUES[MaterialProperty.TRANSPARENCY_CRUMBLING] = CRUMBLING;
-		VALUES[MaterialProperty.TRANSPARENCY_TRANSLUCENT] = TRANSLUCENT;
-		VALUES[MaterialProperty.TRANSPARENCY_DEFAULT] = DEFAULT;
+		VALUES[MaterialFinder.TRANSPARENCY_NONE] = NONE;
+		VALUES[MaterialFinder.TRANSPARENCY_ADDITIVE] = ADDITIVE;
+		VALUES[MaterialFinder.TRANSPARENCY_LIGHTNING] = LIGHTNING;
+		VALUES[MaterialFinder.TRANSPARENCY_GLINT] = GLINT;
+		VALUES[MaterialFinder.TRANSPARENCY_CRUMBLING] = CRUMBLING;
+		VALUES[MaterialFinder.TRANSPARENCY_TRANSLUCENT] = TRANSLUCENT;
+		VALUES[MaterialFinder.TRANSPARENCY_DEFAULT] = DEFAULT;
 	}
 
 	public static MaterialTransparency fromIndex(int index) {
@@ -127,17 +127,17 @@ public class MaterialTransparency {
 
 	public static int fromPhase(Transparency phase) {
 		if (phase == RenderPhase.ADDITIVE_TRANSPARENCY) {
-			return MaterialProperty.TRANSPARENCY_ADDITIVE;
+			return MaterialFinder.TRANSPARENCY_ADDITIVE;
 		} else if (phase == RenderPhase.LIGHTNING_TRANSPARENCY) {
-			return MaterialProperty.TRANSPARENCY_LIGHTNING;
+			return MaterialFinder.TRANSPARENCY_LIGHTNING;
 		} else if (phase == RenderPhase.GLINT_TRANSPARENCY) {
-			return MaterialProperty.TRANSPARENCY_GLINT;
+			return MaterialFinder.TRANSPARENCY_GLINT;
 		} else if (phase == RenderPhase.CRUMBLING_TRANSPARENCY) {
-			return MaterialProperty.TRANSPARENCY_CRUMBLING;
+			return MaterialFinder.TRANSPARENCY_CRUMBLING;
 		} else if (phase == RenderPhase.TRANSLUCENT_TRANSPARENCY) {
-			return MaterialProperty.TRANSPARENCY_TRANSLUCENT;
+			return MaterialFinder.TRANSPARENCY_TRANSLUCENT;
 		} else {
-			return MaterialProperty.TRANSPARENCY_NONE;
+			return MaterialFinder.TRANSPARENCY_NONE;
 		}
 	}
 

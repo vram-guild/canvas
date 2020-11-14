@@ -23,13 +23,12 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import grondag.canvas.buffer.encoding.VertexCollectorImpl;
 import grondag.canvas.material.property.MaterialFog;
 import grondag.canvas.material.property.MaterialTarget;
-import grondag.canvas.material.property.MaterialWriteMask;
 import grondag.canvas.material.state.MaterialFinderImpl;
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.mixinterface.ParticleExt;
 import grondag.canvas.mixinterface.ParticleManagerExt;
+import grondag.frex.api.material.MaterialFinder;
 import grondag.frex.api.material.MaterialMap;
-import grondag.frex.api.material.MaterialProperty;
 import grondag.frex.api.material.RenderMaterial;
 import org.lwjgl.opengl.GL11;
 
@@ -162,11 +161,11 @@ public class CanvasParticleRenderer {
 	private static MaterialFinderImpl baseFinder() {
 		return MaterialFinderImpl.threadLocal()
 		.primitive(GL11.GL_QUADS)
-		.depthTest(MaterialProperty.DEPTH_TEST_LEQUAL)
+		.depthTest(MaterialFinder.DEPTH_TEST_LEQUAL)
 		.cull(false)
-		.writeMask(MaterialWriteMask.COLOR_DEPTH)
+		.writeMask(MaterialFinder.WRITE_MASK_COLOR_DEPTH)
 		.enableLightmap(true)
-		.decal(MaterialProperty.DECAL_NONE)
+		.decal(MaterialFinder.DECAL_NONE)
 		.target(MaterialTarget.PARTICLES)
 		.lines(false)
 		.disableAo(true)
@@ -178,7 +177,7 @@ public class CanvasParticleRenderer {
 
 	private static final RenderMaterialImpl RENDER_STATE_TERRAIN = baseFinder()
 	.texture(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE)
-	.transparency(MaterialProperty.TRANSPARENCY_DEFAULT)
+	.transparency(MaterialFinder.TRANSPARENCY_DEFAULT)
 	.find();
 
 	private static final RenderMaterialImpl RENDER_STATE_TERRAIN_EMISSIVE = baseFinder().copyFrom(RENDER_STATE_TERRAIN)
@@ -187,7 +186,7 @@ public class CanvasParticleRenderer {
 
 	// MC has two but they are functionally identical
 	private static final RenderMaterialImpl RENDER_STATE_OPAQUE_OR_LIT =  baseFinder()
-	.transparency(MaterialProperty.TRANSPARENCY_NONE)
+	.transparency(MaterialFinder.TRANSPARENCY_NONE)
 	.texture(SpriteAtlasTexture.PARTICLE_ATLAS_TEXTURE)
 	.find();
 
@@ -196,7 +195,7 @@ public class CanvasParticleRenderer {
 	.find();
 
 	private static final RenderMaterialImpl RENDER_STATE_TRANSLUCENT = baseFinder()
-	.transparency(MaterialProperty.TRANSPARENCY_TRANSLUCENT)
+	.transparency(MaterialFinder.TRANSPARENCY_TRANSLUCENT)
 	.texture(SpriteAtlasTexture.PARTICLE_ATLAS_TEXTURE)
 	.find();
 

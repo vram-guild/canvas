@@ -27,8 +27,8 @@ import grondag.canvas.material.state.RenderLayerHelper;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.MinecraftClientExt;
 import grondag.fermion.sc.concurrency.SimpleConcurrentList;
+import grondag.frex.api.material.MaterialFinder;
 import grondag.frex.api.material.MaterialMap;
-import grondag.frex.api.material.MaterialProperty;
 import org.jetbrains.annotations.Nullable;
 
 import static grondag.canvas.buffer.encoding.EncoderUtils.applyItemLighting;
@@ -259,7 +259,7 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 
 		switch (bm) {
 			case CUTOUT:
-				finder.transparency(MaterialProperty.TRANSPARENCY_NONE)
+				finder.transparency(MaterialFinder.TRANSPARENCY_NONE)
 				.cutout(true)
 				.translucentCutout(false)
 				.unmipped(true)
@@ -267,7 +267,7 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 				.sorted(false);
 				break;
 			case CUTOUT_MIPPED:
-				finder.transparency(MaterialProperty.TRANSPARENCY_NONE)
+				finder.transparency(MaterialFinder.TRANSPARENCY_NONE)
 				.cutout(true)
 				.translucentCutout(false)
 				.unmipped(false)
@@ -284,7 +284,7 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 				// 2 has to be finessed because blend mode = TRANSLUCENT doesn't make it clear cutout is needed.
 				// The code below is an ugly hack - need a better way
 
-				finder.transparency(MaterialProperty.TRANSPARENCY_TRANSLUCENT)
+				finder.transparency(MaterialFinder.TRANSPARENCY_TRANSLUCENT)
 				.cutout(!isBlockItem)
 				.translucentCutout(!isBlockItem)
 				.unmipped(false)
@@ -292,7 +292,7 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 				.sorted(true);
 				break;
 			case SOLID:
-				finder.transparency(MaterialProperty.TRANSPARENCY_NONE)
+				finder.transparency(MaterialFinder.TRANSPARENCY_NONE)
 				.cutout(false)
 				.translucentCutout(false)
 				.unmipped(false)

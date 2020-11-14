@@ -56,7 +56,7 @@ public final class RenderMaterialImpl extends AbstractRenderState implements Ren
 	// draw solid first, then various translucent layers
 	private static final BitPacker64<Void>.IntElement SORT_TRANSPARENCY = SORT_PACKER.createIntElement(MaterialTransparency.TRANSPARENCY_COUNT);
 	// draw things that update depth buffer first
-	private static final BitPacker64<Void>.IntElement SORT_WRITE_MASK = SORT_PACKER.createIntElement(MaterialWriteMask.values().length);
+	private static final BitPacker64<Void>.IntElement SORT_WRITE_MASK = SORT_PACKER.createIntElement(MaterialWriteMask.WRITE_MASK_COUNT);
 
 
 	public final int collectorIndex;
@@ -118,7 +118,7 @@ public final class RenderMaterialImpl extends AbstractRenderState implements Ren
 		sb.append("transparency: ").append(transparency.name).append("\n");
 		sb.append("depthTest: ").append(depthTest.name).append("\n");
 		sb.append("cull: ").append(cull).append("\n");
-		sb.append("writeMask: ").append(writeMask.name()).append("\n");
+		sb.append("writeMask: ").append(writeMask.name).append("\n");
 		sb.append("enableLightmap: ").append(enableLightmap).append("\n");
 		sb.append("decal: ").append(decal.name).append("\n");
 		sb.append("lines: ").append(lines).append("\n");

@@ -88,14 +88,14 @@ abstract class AbstractRenderState extends AbstractRenderStateView {
 		blur = blur();
 		depthTest = MaterialDepthTest.fromIndex(depthTest());
 		cull = cull();
-		writeMask = writeMask();
+		writeMask = MaterialWriteMask.fromIndex(writeMask());
 		enableLightmap = enableLightmap();
 		decal = MaterialDecal.fromIndex(decal());
 		target = target();
 		lines = lines();
 		fog = fog();
 		condition = condition();
-		transparency = MaterialTransparency.fromIndex(TRANSPARENCY.getValue(bits));
+		transparency = MaterialTransparency.fromIndex(transparency());
 		sorted = sorted();
 		shaderId = shaderId();
 		vertexShaderIndex = shaderId.vertexIndex;
