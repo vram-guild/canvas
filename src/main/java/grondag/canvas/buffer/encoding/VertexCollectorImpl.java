@@ -44,7 +44,6 @@ public class VertexCollectorImpl extends AbstractVertexCollector {
 	}
 
 	public void clear() {
-		firstVertexIndex = 0;
 		currentVertexIndex = 0;
 		integerSize = 0;
 		didPopulateNormal = false;
@@ -276,7 +275,6 @@ public class VertexCollectorImpl extends AbstractVertexCollector {
 		if (conditionActive) {
 			final int newSize = integerSize + CanvasVertexFormats.MATERIAL_QUAD_STRIDE;
 			ensureCapacity(newSize + CanvasVertexFormats.MATERIAL_QUAD_STRIDE);
-			firstVertexIndex = newSize;
 			currentVertexIndex = newSize;
 			integerSize = newSize;
 		}
@@ -289,7 +287,6 @@ public class VertexCollectorImpl extends AbstractVertexCollector {
 		ensureCapacity(newSize);
 		System.arraycopy(appendData, 0, vertexData, oldSize, length);
 		integerSize = newSize;
-		firstVertexIndex = newSize;
 		currentVertexIndex = newSize;
 	}
 

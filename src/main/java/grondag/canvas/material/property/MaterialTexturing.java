@@ -28,7 +28,7 @@ import net.minecraft.client.render.RenderPhase.Texturing;
 // so may be best to leave them for now
 
 
-// WIP: use this and handle portal texturing and overlay texturing, somehow
+// UGLY: use this and handle portal texturing and overlay texturing, somehow
 public enum MaterialTexturing {
 	DEFAULT(Runnables.doNothing(), Runnables.doNothing()),
 
