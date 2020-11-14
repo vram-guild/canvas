@@ -21,7 +21,6 @@ import java.util.Iterator;
 import com.google.common.util.concurrent.Runnables;
 import com.mojang.blaze3d.systems.RenderSystem;
 import grondag.canvas.buffer.encoding.VertexCollectorImpl;
-import grondag.canvas.material.property.MaterialFog;
 import grondag.canvas.material.state.MaterialFinderImpl;
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.mixinterface.ParticleExt;
@@ -171,7 +170,7 @@ public class CanvasParticleRenderer {
 		.disableDiffuse(true)
 		.cutout(true)
 		.translucentCutout(true)
-		.fog(MaterialFog.BLACK_FOG);
+		.fog(MaterialFinder.FOG_BLACK);
 	}
 
 	private static final RenderMaterialImpl RENDER_STATE_TERRAIN = baseFinder()

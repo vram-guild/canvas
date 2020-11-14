@@ -95,7 +95,7 @@ abstract class AbstractRenderState extends AbstractRenderStateView {
 		decal = MaterialDecal.fromIndex(decal());
 		target = MaterialTarget.fromIndex(target());
 		lines = lines();
-		fog = fog();
+		fog = MaterialFog.fromIndex(fog());
 		condition = condition();
 		transparency = MaterialTransparency.fromIndex(transparency());
 		sorted = sorted();

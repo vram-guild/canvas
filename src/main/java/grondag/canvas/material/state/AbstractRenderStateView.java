@@ -137,7 +137,7 @@ abstract class AbstractRenderStateView {
 		return LINES.getValue(bits);
 	}
 
-	public MaterialFog fog() {
+	public int fog() {
 		return FOG.getValue(bits);
 	}
 
@@ -187,7 +187,7 @@ abstract class AbstractRenderStateView {
 	static final BitPacker64<Void>.BooleanElement ENABLE_LIGHTMAP = PACKER.createBooleanElement();
 	static final BitPacker64<Void>.IntElement DECAL = PACKER.createIntElement(MaterialDecal.DECAL_COUNT);
 	static final BitPacker64<Void>.BooleanElement LINES = PACKER.createBooleanElement();
-	static final BitPacker64<Void>.EnumElement<MaterialFog> FOG = PACKER.createEnumElement(MaterialFog.class);
+	static final BitPacker64<Void>.IntElement FOG = PACKER.createIntElement(MaterialFog.FOG_COUNT);
 
 	// These don't affect GL state but must be collected and drawn separately
 	// They also generally won't change within a render state for any given context
@@ -250,7 +250,7 @@ abstract class AbstractRenderStateView {
 		defaultBits = TARGET.setValue(MaterialFinder.TARGET_MAIN, defaultBits);
 		defaultBits = WRITE_MASK.setValue(MaterialFinder.WRITE_MASK_COLOR_DEPTH, defaultBits);
 		defaultBits = UNMIPPED.setValue(false, defaultBits);
-		defaultBits = FOG.setValue(MaterialFog.FOG, defaultBits);
+		defaultBits = FOG.setValue(MaterialFinder.FOG_TINTED, defaultBits);
 
 		DEFAULT_BITS = defaultBits;
 
@@ -265,7 +265,7 @@ abstract class AbstractRenderStateView {
 		translucentBits = DECAL.setValue(MaterialDecal.NONE.index, translucentBits);
 		translucentBits = TARGET.setValue(MaterialFinder.TARGET_TRANSLUCENT, translucentBits);
 		translucentBits = LINES.setValue(false, translucentBits);
-		translucentBits = FOG.setValue(MaterialFog.FOG, translucentBits);
+		translucentBits = FOG.setValue(MaterialFinder.FOG_TINTED, translucentBits);
 		translucentBits = SORTED.setValue(true, translucentBits);
 		translucentBits = PRIMITIVE.setValue(GL11.GL_QUADS, translucentBits);
 

@@ -17,30 +17,60 @@
 package grondag.canvas.material.property;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import grondag.frex.api.material.MaterialFinder;
 
 import net.minecraft.client.render.BackgroundRenderer;
 import net.minecraft.client.render.RenderPhase;
 import net.minecraft.client.render.RenderPhase.Fog;
 
-public enum MaterialFog {
-	NO_FOG(() -> {
-		BackgroundRenderer.setFogBlack();
-		RenderSystem.disableFog();
-	}),
+public class MaterialFog {
+	public static final MaterialFog NONE = new MaterialFog(
+		MaterialFinder.FOG_NONE,
+		"none",
+		() -> {
+			BackgroundRenderer.setFogBlack();
+			RenderSystem.disableFog();
+		}
+	);
 
-	FOG(() -> {
-		BackgroundRenderer.setFogBlack();
-		RenderSystem.enableFog();
-	}),
+	public static final MaterialFog TINTED = new MaterialFog(
+		MaterialFinder.FOG_TINTED,
+		"tinted",
+		() -> {
+			BackgroundRenderer.setFogBlack();
+			RenderSystem.enableFog();
+		}
+	);
 
-	BLACK_FOG(() -> {
-		RenderSystem.fog(2918, 0.0F, 0.0F, 0.0F, 1.0F);
-		RenderSystem.enableFog();
-	});
+	public static final MaterialFog BLACK = new MaterialFog(
+		MaterialFinder.FOG_BLACK,
+		"black",
+		() -> {
+			RenderSystem.fog(2918, 0.0F, 0.0F, 0.0F, 1.0F);
+			RenderSystem.enableFog();
+		}
+	);
 
+	public static final int FOG_COUNT = 3;
+	private static final MaterialFog[] VALUES = new MaterialFog[FOG_COUNT];
+
+	static {
+		VALUES[MaterialFinder.FOG_NONE] = NONE;
+		VALUES[MaterialFinder.FOG_TINTED] = TINTED;
+		VALUES[MaterialFinder.FOG_BLACK] = BLACK;
+	}
+
+	public static MaterialFog fromIndex(int index) {
+		return VALUES[index];
+	}
+
+	public final int index;
+	public final String name;
 	private final Runnable action;
 
-	private MaterialFog(Runnable action) {
+	private MaterialFog(int index, String name, Runnable action) {
+		this.index = index;
+		this.name = name;
 		this.action = action;
 	}
 
@@ -51,14 +81,14 @@ public enum MaterialFog {
 		}
 	}
 
-	public static MaterialFog fromPhase(Fog phase) {
+	public static int fromPhase(Fog phase) {
 		if (phase == RenderPhase.FOG) {
-			return FOG;
+			return MaterialFinder.FOG_TINTED;
 		} else if (phase == RenderPhase.BLACK_FOG) {
-			return BLACK_FOG;
+			return MaterialFinder.FOG_BLACK;
 		} else {
 			assert phase == RenderPhase.NO_FOG : "Encounted unknown fog mode";
-			return NO_FOG;
+			return MaterialFinder.FOG_NONE;
 		}
 	}
 
@@ -66,7 +96,7 @@ public enum MaterialFog {
 
 	public static void disable() {
 		if (active != null) {
-			NO_FOG.action.run();
+			NONE.action.run();
 			active = null;
 		}
 	}
