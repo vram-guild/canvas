@@ -85,7 +85,6 @@ public abstract class AbstractBlockRenderContext<T extends BlockRenderView> exte
 	protected int blockColor = -1;
 	protected int fullCubeCache = 0;
 
-
 	protected AbstractBlockRenderContext(String name) {
 		super(name);
 	}
@@ -99,7 +98,7 @@ public abstract class AbstractBlockRenderContext<T extends BlockRenderView> exte
 	public void prepareForBlock(BlockState blockState, BlockPos blockPos, boolean modelAO, long seed) {
 		this.blockPos = blockPos;
 		this.blockState = blockState;
-		materialMap = MaterialMap.get(blockState);
+		materialMap = isFluidModel ? MaterialMap.get(blockState.getFluidState()) : MaterialMap.get(blockState);
 		lastColorIndex = -1;
 		needsRandomRefresh = true;
 		fullCubeCache = 0;

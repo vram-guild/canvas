@@ -103,7 +103,7 @@ public abstract class AbstractRenderContext implements RenderContext {
 	}
 
 	void mapMaterials(MutableQuadViewImpl quad) {
-		if (isFluidModel || materialMap == defaultMap) {
+		if (materialMap == defaultMap) {
 			return;
 		}
 
