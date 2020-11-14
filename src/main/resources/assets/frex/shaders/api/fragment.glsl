@@ -3,6 +3,29 @@
 ******************************************************/
 
 /*
+ * Varying variables for generic use. Shader authors are
+ * encouraged to exhaust these before creating new custom varyings.
+ *
+ * This is necessary because custom shaders may be consolidated
+ * into a single shader with logic controlled via uniforms or vertex data.
+ * This is done either to reduce draw calls or as a way to achieve
+ * sorted translucency with mixed custom shaders.
+ *
+ * If we do not reuse varying variable, then three bad things can happen:
+ *   1) Naming conflicts (could be avoided with care)
+ *   2) Exceed hardware/driver limits
+ *   3) Wasteful interpolation if unused varyings aren't stripped by the compiler.
+ *
+ * Authors do not need to worry about conflicting usage of these variables
+ * by other shaders in the same compilation - only a single pair of custom
+ * vertex/fragment shaders will be active for a single polygon.
+ */
+varying vec4 frx_var0;
+varying vec4 frx_var1;
+varying vec4 frx_var2;
+varying vec4 frx_var3;
+
+/*
  * Usage in API:
  * 	  void frx_startFragment(inout frx_FragmentData fragData)
  *
