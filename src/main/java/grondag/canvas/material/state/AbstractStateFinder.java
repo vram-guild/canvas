@@ -151,7 +151,7 @@ public abstract class AbstractStateFinder<T extends AbstractStateFinder<T, V>, V
 	/**
 	 * Sets cutout threshold to low value vs default of 50%
 	 */
-	public T translucentCutout(boolean translucentCutout) {
+	public T transparentCutout(boolean translucentCutout) {
 		bits = TRANSLUCENT_CUTOUT.setValue(translucentCutout, bits);
 		return (T) this;
 	}

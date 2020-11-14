@@ -245,7 +245,7 @@ public abstract class AbstractRenderContext implements RenderContext {
 				finder.transparency(MaterialFinder.TRANSPARENCY_NONE)
 				.cutout(true)
 				.unmipped(true)
-				.translucentCutout(false)
+				.transparentCutout(false)
 				.target(MaterialFinder.TARGET_MAIN)
 				.sorted(false);
 				break;
@@ -253,7 +253,7 @@ public abstract class AbstractRenderContext implements RenderContext {
 				finder.transparency(MaterialFinder.TRANSPARENCY_NONE)
 				.cutout(true)
 				.unmipped(false)
-				.translucentCutout(false)
+				.transparentCutout(false)
 				.target(MaterialFinder.TARGET_MAIN)
 				.sorted(false);
 				break;
@@ -261,7 +261,7 @@ public abstract class AbstractRenderContext implements RenderContext {
 				finder.transparency(MaterialFinder.TRANSPARENCY_TRANSLUCENT)
 				.cutout(false)
 				.unmipped(false)
-				.translucentCutout(false)
+				.transparentCutout(false)
 				.target(MaterialFinder.TARGET_TRANSLUCENT)
 				.sorted(true);
 				break;
@@ -269,7 +269,7 @@ public abstract class AbstractRenderContext implements RenderContext {
 				finder.transparency(MaterialFinder.TRANSPARENCY_NONE)
 				.cutout(false)
 				.unmipped(false)
-				.translucentCutout(false)
+				.transparentCutout(false)
 				.target(MaterialFinder.TARGET_MAIN)
 				.sorted(false);
 				break;

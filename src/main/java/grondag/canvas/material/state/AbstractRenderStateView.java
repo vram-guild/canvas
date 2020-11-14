@@ -93,7 +93,7 @@ abstract class AbstractRenderStateView {
 		return PRIMITIVE.getValue(bits);
 	}
 
-	public MaterialTextureState texture() {
+	public MaterialTextureState textureState() {
 		return MaterialTextureState.fromIndex(TEXTURE.getValue(bits));
 	}
 
@@ -157,7 +157,7 @@ abstract class AbstractRenderStateView {
 		return UNMIPPED.getValue(bits);
 	}
 
-	public boolean translucentCutout() {
+	public boolean transparentCutout() {
 		return TRANSLUCENT_CUTOUT.getValue(bits);
 	}
 

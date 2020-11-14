@@ -260,7 +260,7 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 			case CUTOUT:
 				finder.transparency(MaterialFinder.TRANSPARENCY_NONE)
 				.cutout(true)
-				.translucentCutout(false)
+				.transparentCutout(false)
 				.unmipped(true)
 				.target(MaterialFinder.TARGET_MAIN)
 				.sorted(false);
@@ -268,7 +268,7 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 			case CUTOUT_MIPPED:
 				finder.transparency(MaterialFinder.TRANSPARENCY_NONE)
 				.cutout(true)
-				.translucentCutout(false)
+				.transparentCutout(false)
 				.unmipped(false)
 				.target(MaterialFinder.TARGET_MAIN)
 				.sorted(false);
@@ -285,7 +285,7 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 
 				finder.transparency(MaterialFinder.TRANSPARENCY_TRANSLUCENT)
 				.cutout(!isBlockItem)
-				.translucentCutout(!isBlockItem)
+				.transparentCutout(!isBlockItem)
 				.unmipped(false)
 				.target(drawDirectToMainTarget ? MaterialFinder.TARGET_MAIN : MaterialFinder.TARGET_ENTITIES)
 				.sorted(true);
@@ -293,7 +293,7 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 			case SOLID:
 				finder.transparency(MaterialFinder.TRANSPARENCY_NONE)
 				.cutout(false)
-				.translucentCutout(false)
+				.transparentCutout(false)
 				.unmipped(false)
 				.target(MaterialFinder.TARGET_MAIN)
 				.sorted(false);

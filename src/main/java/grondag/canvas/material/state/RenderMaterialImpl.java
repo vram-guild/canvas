@@ -174,4 +174,9 @@ public final class RenderMaterialImpl extends AbstractRenderState implements Ren
 
 		return result;
 	}
+
+	@Override
+	public Identifier texture() {
+		return texture.id;
+	}
 }

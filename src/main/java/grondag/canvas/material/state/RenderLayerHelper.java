@@ -108,7 +108,7 @@ public final class RenderLayerHelper {
 		finder.unmipped(!tex.getMipmap());
 		finder.blur(tex.getBilinear());
 		finder.cutout(params.getAlpha() != RenderPhase.ZERO_ALPHA);
-		finder.translucentCutout(params.getAlpha() == RenderPhase.ONE_TENTH_ALPHA);
+		finder.transparentCutout(params.getAlpha() == RenderPhase.ONE_TENTH_ALPHA);
 
 		// vanilla sets these as part of draw process but we don't want special casing
 		if (layer ==  RenderLayer.getSolid() || layer == RenderLayer.getCutoutMipped() || layer == RenderLayer.getCutout() || layer == RenderLayer.getTranslucent()) {

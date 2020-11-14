@@ -86,7 +86,7 @@ abstract class AbstractRenderState extends AbstractRenderStateView {
 		super(bits);
 		this.index = index;
 		primitive = primitive();
-		texture = texture();
+		texture = textureState();
 		blur = blur();
 		depthTest = MaterialDepthTest.fromIndex(depthTest());
 		cull = cull();
@@ -114,7 +114,7 @@ abstract class AbstractRenderState extends AbstractRenderStateView {
 		disableColorIndex = disableColorIndex();
 		cutout = cutout();
 		unmipped = unmipped();
-		translucentCutout = translucentCutout();
+		translucentCutout = transparentCutout();
 		hurtOverlay = hurtOverlay();
 		flashOverlay = flashOverlay();
 		discardsTexture = discardsTexture();

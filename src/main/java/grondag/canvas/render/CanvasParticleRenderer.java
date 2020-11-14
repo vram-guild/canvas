@@ -169,7 +169,7 @@ public class CanvasParticleRenderer {
 		.disableAo(true)
 		.disableDiffuse(true)
 		.cutout(true)
-		.translucentCutout(true)
+		.transparentCutout(true)
 		.fog(MaterialFinder.FOG_BLACK);
 	}
 
