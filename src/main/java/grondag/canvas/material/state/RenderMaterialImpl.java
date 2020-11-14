@@ -50,7 +50,7 @@ public final class RenderMaterialImpl extends AbstractRenderState implements Ren
 	private static final BitPacker64<Void>.IntElement SORT_SHADER_ID = SORT_PACKER.createIntElement(4096);
 
 	// decal should be drawn after non-decal
-	private static final BitPacker64<Void>.IntElement SORT_DECAL = SORT_PACKER.createIntElement(MaterialDecal.values().length);
+	private static final BitPacker64<Void>.IntElement SORT_DECAL = SORT_PACKER.createIntElement(MaterialDecal.VALUE_COUNT);
 	// primary sorted layer drawn first
 	private static final BitPacker64<Void>.BooleanElement SORT_TPP = SORT_PACKER.createBooleanElement();
 	// draw solid first, then various translucent layers
@@ -120,7 +120,7 @@ public final class RenderMaterialImpl extends AbstractRenderState implements Ren
 		sb.append("cull: ").append(cull).append("\n");
 		sb.append("writeMask: ").append(writeMask.name()).append("\n");
 		sb.append("enableLightmap: ").append(enableLightmap).append("\n");
-		sb.append("decal: ").append(decal.name()).append("\n");
+		sb.append("decal: ").append(decal.name).append("\n");
 		sb.append("lines: ").append(lines).append("\n");
 		sb.append("fog: ").append(fog.name()).append("\n");
 

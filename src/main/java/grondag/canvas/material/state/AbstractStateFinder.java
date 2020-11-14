@@ -17,7 +17,6 @@
 package grondag.canvas.material.state;
 
 import grondag.canvas.apiimpl.MaterialConditionImpl;
-import grondag.canvas.material.property.MaterialDecal;
 import grondag.canvas.material.property.MaterialDepthTest;
 import grondag.canvas.material.property.MaterialFog;
 import grondag.canvas.material.property.MaterialTarget;
@@ -94,7 +93,7 @@ public abstract class AbstractStateFinder<T extends AbstractStateFinder<T, V>, V
 		return (T) this;
 	}
 
-	public T decal(MaterialDecal decal) {
+	public T decal(int decal) {
 		bits = DECAL.setValue(decal, bits);
 		return (T) this;
 	}

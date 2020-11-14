@@ -21,7 +21,6 @@ import java.util.Iterator;
 import com.google.common.util.concurrent.Runnables;
 import com.mojang.blaze3d.systems.RenderSystem;
 import grondag.canvas.buffer.encoding.VertexCollectorImpl;
-import grondag.canvas.material.property.MaterialDecal;
 import grondag.canvas.material.property.MaterialDepthTest;
 import grondag.canvas.material.property.MaterialFog;
 import grondag.canvas.material.property.MaterialTarget;
@@ -32,6 +31,7 @@ import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.mixinterface.ParticleExt;
 import grondag.canvas.mixinterface.ParticleManagerExt;
 import grondag.frex.api.material.MaterialMap;
+import grondag.frex.api.material.MaterialProperty;
 import grondag.frex.api.material.RenderMaterial;
 import org.lwjgl.opengl.GL11;
 
@@ -168,7 +168,7 @@ public class CanvasParticleRenderer {
 		.cull(false)
 		.writeMask(MaterialWriteMask.COLOR_DEPTH)
 		.enableLightmap(true)
-		.decal(MaterialDecal.NONE)
+		.decal(MaterialProperty.DECAL_NONE)
 		.target(MaterialTarget.PARTICLES)
 		.lines(false)
 		.disableAo(true)

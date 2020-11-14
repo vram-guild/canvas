@@ -120,7 +120,7 @@ abstract class AbstractRenderStateView {
 		return ENABLE_LIGHTMAP.getValue(bits);
 	}
 
-	public MaterialDecal decal() {
+	public int decal() {
 		return DECAL.getValue(bits);
 	}
 
@@ -180,7 +180,7 @@ abstract class AbstractRenderStateView {
 	static final BitPacker64<Void>.EnumElement<MaterialWriteMask> WRITE_MASK = PACKER.createEnumElement(MaterialWriteMask.class);
 	// PERF: could probably handle this entirely shader-side and avoid some state changes
 	static final BitPacker64<Void>.BooleanElement ENABLE_LIGHTMAP = PACKER.createBooleanElement();
-	static final BitPacker64<Void>.EnumElement<MaterialDecal> DECAL = PACKER.createEnumElement(MaterialDecal.class);
+	static final BitPacker64<Void>.IntElement DECAL = PACKER.createIntElement(MaterialDecal.VALUE_COUNT);
 	static final BitPacker64<Void>.BooleanElement LINES = PACKER.createBooleanElement();
 	static final BitPacker64<Void>.EnumElement<MaterialFog> FOG = PACKER.createEnumElement(MaterialFog.class);
 
@@ -256,7 +256,7 @@ abstract class AbstractRenderStateView {
 		translucentBits = CULL.setValue(true, translucentBits);
 		translucentBits = WRITE_MASK.setValue(MaterialWriteMask.COLOR_DEPTH, translucentBits);
 		translucentBits = ENABLE_LIGHTMAP.setValue(true, translucentBits);
-		translucentBits = DECAL.setValue(MaterialDecal.NONE, translucentBits);
+		translucentBits = DECAL.setValue(MaterialDecal.NONE.index, translucentBits);
 		translucentBits = TARGET.setValue(MaterialTarget.TRANSLUCENT, translucentBits);
 		translucentBits = LINES.setValue(false, translucentBits);
 		translucentBits = FOG.setValue(MaterialFog.FOG, translucentBits);

@@ -90,7 +90,7 @@ abstract class AbstractRenderState extends AbstractRenderStateView {
 		cull = cull();
 		writeMask = writeMask();
 		enableLightmap = enableLightmap();
-		decal = decal();
+		decal = MaterialDecal.fromIndex(decal());
 		target = target();
 		lines = lines();
 		fog = fog();
