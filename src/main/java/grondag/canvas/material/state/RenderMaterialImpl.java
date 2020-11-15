@@ -149,13 +149,13 @@ public final class RenderMaterialImpl extends AbstractRenderState implements Ren
 	}
 
 	@Override
-	public Identifier vertexShader() {
-		return vertexShaderSource;
+	public Identifier vertexShaderId() {
+		return vertexShaderId;
 	}
 
 	@Override
-	public Identifier fragmentShader() {
-		return fragmentShaderSource;
+	public Identifier fragmentShaderId() {
+		return fragmentShaderId;
 	}
 
 	private long drawPriority() {
@@ -176,7 +176,27 @@ public final class RenderMaterialImpl extends AbstractRenderState implements Ren
 	}
 
 	@Override
-	public Identifier texture() {
+	public Identifier textureId() {
 		return texture.id;
+	}
+
+	@Override
+	public String renderLayerName() {
+		return renderLayerName;
+	}
+
+	@Override
+	public String fragmentShader() {
+		return fragmentShader;
+	}
+
+	@Override
+	public String texture() {
+		return textureIdString;
+	}
+
+	@Override
+	public String vertexShader() {
+		return vertexShader;
 	}
 }

@@ -95,6 +95,7 @@ public class DrawableChunk {
 	}
 
 	public static DrawableChunk pack(VertexCollectorList collectorList, VboBuffer vboBuffer, boolean translucent) {
+		// WIP: sort to appropriate draw order
 		// WIP: further consolidate draw calls with same render state - use drawPriority.
 		// WIP: handle conditions.
 		final IntBuffer intBuffer = vboBuffer.intBuffer();

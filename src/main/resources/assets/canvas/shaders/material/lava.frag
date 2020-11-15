@@ -42,9 +42,6 @@ void frx_startFragment(inout frx_FragmentData fragData) {
 	float t = frx_renderSeconds();
 	vec2 uv = frx_var0.xy * 4.00 + t * frx_var0.zw;
 	float n = cellular2x2x2(vec3(uv.xy, t * 0.2)).x;
-//	n = 1.0 - n;
-//	n *= n;
-//	n = 1.0 - n;
 	float v = 700 + n * 2000;
 	fragData.spriteColor = vec4(1.0, bbrGreen(v), bbrBlue(v), 1.0);
 }

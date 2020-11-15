@@ -1,0 +1,12 @@
+{
+ 	"map": [
+  		{
+			"predicate": {
+	  			"materialPredicate": {
+	  				"renderLayerName": "beacon_beam"
+	  			}
+	  		},
+		  	"material": "canvas:emissive_transform"
+		}
+  	]
+}

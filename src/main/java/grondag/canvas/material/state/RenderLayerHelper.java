@@ -143,9 +143,6 @@ public final class RenderLayerHelper {
 
 		finder.renderlayerName(name);
 
-		// WIP: put in proper material map hooks
-		finder.emissive(name.equals("eyes") || name.equals("beacon_beam"));
-
 		final RenderMaterialImpl result = finder.find();
 
 		if (Configurator.logMaterials) {

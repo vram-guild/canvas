@@ -170,7 +170,7 @@ public class CanvasParticleRenderer {
 		.disableDiffuse(true)
 		.cutout(true)
 		.transparentCutout(true)
-		.fog(MaterialFinder.FOG_BLACK);
+		.fog(MaterialFinder.FOG_TINTED);
 	}
 
 	private static final RenderMaterialImpl RENDER_STATE_TERRAIN = baseFinder()

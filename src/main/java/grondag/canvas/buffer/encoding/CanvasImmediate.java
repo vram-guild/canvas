@@ -23,16 +23,20 @@ import net.minecraft.util.Util;
 
 public class CanvasImmediate extends Immediate implements FrexVertexConsumerProvider {
 	public final VertexCollectorList collectors = new VertexCollectorList();
+	public final RenderContextState contextState;
 
 	private final ObjectArrayList<VertexCollectorImpl> drawList = new ObjectArrayList<>();
 
 	public CanvasImmediate(BufferBuilder fallbackBuffer, Map<RenderLayer, BufferBuilder> layerBuffers, RenderContextState contextState) {
 		super(fallbackBuffer, layerBuffers);
+		this.contextState = contextState;
 	}
 
 	@Override
 	public VertexConsumer getBuffer(RenderLayer renderLayer) {
-		final RenderMaterialImpl mat = ((MultiPhaseExt) renderLayer).canvas_materialState();
+		RenderMaterialImpl mat = ((MultiPhaseExt) renderLayer).canvas_materialState();
+		mat = contextState.mapMaterial(mat);
+
 		final VertexCollector result = collectors.get(mat);
 
 		if (result == null) {
@@ -43,6 +47,12 @@ public class CanvasImmediate extends Immediate implements FrexVertexConsumerProv
 			result.vertexState(mat);
 			return result;
 		}
+	}
+
+	@Override
+	public VertexConsumer getConsumer(RenderMaterial material) {
+		final RenderMaterialImpl mat = contextState.mapMaterial((RenderMaterialImpl) material);
+		return collectors.get(mat);
 	}
 
 	private static final Comparator<VertexCollectorImpl> DRAW_SORT = (a, b) -> {
@@ -122,10 +132,5 @@ public class CanvasImmediate extends Immediate implements FrexVertexConsumerProv
 
 	private static void assignBufferBuilder(Object2ObjectLinkedOpenHashMap<RenderLayer, BufferBuilder> builderStorage, RenderLayer layer) {
 		builderStorage.put(layer, new BufferBuilder(layer.getExpectedBufferSize()));
-	}
-
-	@Override
-	public VertexConsumer getConsumer(RenderMaterial material) {
-		return collectors.get((RenderMaterialImpl) material);
 	}
 }

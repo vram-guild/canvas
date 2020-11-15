@@ -44,17 +44,9 @@ public abstract class AbstractStateFinder<T extends AbstractStateFinder<T, V>, V
 		return (T) this;
 	}
 
-	//		private static final Identifier EGREGIOUS_ENDERMAN_HACK = new Identifier("textures/entity/enderman/enderman.png");
-
 	public T texture(@Nullable Identifier id) {
 		final int val = id == null ? MaterialTextureState.NO_TEXTURE.index : MaterialTextureState.fromId(id).index;
 		bits = TEXTURE.setValue(val, bits);
-
-		// WIP: put in proper material map hooks
-		//			if (id != null && id.equals(EGREGIOUS_ENDERMAN_HACK)) {
-		//				fragmentShader(new Identifier("canvas:shaders/wip/material/enderman.frag"));
-		//			}
-
 		return (T) this;
 	}
 

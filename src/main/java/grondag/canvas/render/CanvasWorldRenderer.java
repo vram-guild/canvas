@@ -524,8 +524,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			}
 
 			++entityCount;
-			contextState.setCurrentEntity(
-				entity);
+			contextState.setCurrentEntity(entity);
 
 			if (entity.age == 0) {
 				entity.lastRenderX = entity.getX();
@@ -573,6 +572,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 				final BlockEntity blockEntity = itBER.next();
 				final BlockPos blockPos = blockEntity.getPos();
 				VertexConsumerProvider outputConsumer = immediate;
+				contextState.setCurrentBlockEntity(blockEntity);
 
 				matrixStack.push();
 				matrixStack.translate(blockPos.getX() - cameraX, blockPos.getY() - cameraY, blockPos.getZ() - cameraZ);
@@ -605,12 +605,15 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			while (globalBERs.hasNext()) {
 				final BlockEntity blockEntity2 = globalBERs.next();
 				final BlockPos blockPos2 = blockEntity2.getPos();
+				contextState.setCurrentBlockEntity(blockEntity2);
 				matrixStack.push();
 				matrixStack.translate(blockPos2.getX() - cameraX, blockPos2.getY() - cameraY, blockPos2.getZ() - cameraZ);
 				BlockEntityRenderDispatcher.INSTANCE.render(blockEntity2, tickDelta, matrixStack, immediate);
 				matrixStack.pop();
 			}
 		}
+
+		contextState.setCurrentBlockEntity(null);
 
 		assert matrixStack.isEmpty() : "Matrix stack not empty in world render when expected";
 

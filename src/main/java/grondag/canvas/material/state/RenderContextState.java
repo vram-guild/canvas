@@ -16,23 +16,51 @@
 
 package grondag.canvas.material.state;
 
+import java.util.function.Function;
+
+import grondag.frex.api.material.BlockEntityMaterialMap;
+import grondag.frex.api.material.EntityMaterialMap;
 import org.jetbrains.annotations.Nullable;
 
+import net.minecraft.block.BlockState;
+import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.Entity;
 
-// WIP: use this for entity material maps
 public class RenderContextState {
-	/**
-	 * Set via world rendered when incoming vertices are for an entity.
-	 * Meant to enable entity material maps
-	 */
-	private @Nullable Entity currentEntity;
+	private EntityMaterialMap entityMap = null;
+	private BlockEntityMaterialMap blockEntityMap = null;
+	private Entity entity;
+	private BlockState blockState;
+	private final MaterialFinderImpl finder = new MaterialFinderImpl();
 
-	public @Nullable Entity getCurrentEntity() {
-		return currentEntity;
+	private final Function<RenderMaterialImpl, RenderMaterialImpl> defaultFunc = m -> m;
+	private final Function<RenderMaterialImpl, RenderMaterialImpl> entityFunc = m -> (RenderMaterialImpl) entityMap.getMapped(m, entity, finder);
+	private final Function<RenderMaterialImpl, RenderMaterialImpl> blockEntityFunc = m -> (RenderMaterialImpl) blockEntityMap.getMapped(m, blockState, finder);
+
+	private Function<RenderMaterialImpl, RenderMaterialImpl> activeFunc = defaultFunc;
+
+	public void setCurrentEntity(@Nullable Entity entity) {
+		if (entity == null) {
+			entityMap = null;
+			activeFunc = defaultFunc;
+		} else {
+			entityMap = EntityMaterialMap.get(entity.getType());
+			activeFunc = entityFunc;
+		}
 	}
 
-	public void setCurrentEntity(@Nullable Entity currentEntity) {
-		this.currentEntity = currentEntity;
+	public void setCurrentBlockEntity(@Nullable BlockEntity blockEntity) {
+		if (blockEntity == null) {
+			blockEntityMap = null;
+			activeFunc = defaultFunc;
+		} else {
+			blockState = blockEntity.getCachedState();
+			blockEntityMap = BlockEntityMaterialMap.get(blockEntity.getType());
+			activeFunc = blockEntityFunc;
+		}
+	}
+
+	public RenderMaterialImpl mapMaterial(RenderMaterialImpl mat) {
+		return activeFunc.apply(mat);
 	}
 }

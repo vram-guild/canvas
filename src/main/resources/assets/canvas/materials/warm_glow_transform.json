@@ -1,0 +1,5 @@
+{
+  "transform": true,
+  "vertexSource": "canvas:shaders/material/default.vert",
+  "fragmentSource": "canvas:shaders/material/warm_glow.frag"
+}

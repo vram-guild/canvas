@@ -49,6 +49,7 @@ abstract class AbstractRenderState extends AbstractRenderStateView {
 	public final int primitive;
 
 	public final MaterialTextureState texture;
+	public final String textureIdString;
 	public final boolean blur;
 	public final MaterialTransparency transparency;
 	public final MaterialDepthTest depthTest;
@@ -61,9 +62,11 @@ abstract class AbstractRenderState extends AbstractRenderStateView {
 	public final boolean lines;
 	public final MaterialFog fog;
 	public final int vertexShaderIndex;
-	public final Identifier vertexShaderSource;
+	public final Identifier vertexShaderId;
+	public final String vertexShader;
 	public final int fragmentShaderIndex;
-	public final Identifier fragmentShaderSource;
+	public final Identifier fragmentShaderId;
+	public final String fragmentShader;
 	public final MaterialShaderId shaderId;
 	public final MaterialShaderImpl shader;
 	public final MaterialConditionImpl condition;
@@ -87,6 +90,7 @@ abstract class AbstractRenderState extends AbstractRenderStateView {
 		this.index = index;
 		primitive = primitive();
 		texture = textureState();
+		textureIdString = texture == null ? "null" : texture.id.toString();
 		blur = blur();
 		depthTest = MaterialDepthTest.fromIndex(depthTest());
 		cull = cull();
@@ -101,9 +105,11 @@ abstract class AbstractRenderState extends AbstractRenderStateView {
 		sorted = sorted();
 		shaderId = shaderId();
 		vertexShaderIndex = shaderId.vertexIndex;
-		vertexShaderSource = shaderId.vertexId;
+		vertexShaderId = shaderId.vertexId;
+		vertexShader = vertexShaderId.toString();
 		fragmentShaderIndex = shaderId.fragmentIndex;
-		fragmentShaderSource = shaderId.fragmentId;
+		fragmentShaderId = shaderId.fragmentId;
+		fragmentShader = fragmentShaderId.toString();
 		primaryTargetTransparency = primaryTargetTransparency();
 		programType = primaryTargetTransparency ? ProgramType.MATERIAL_VERTEX_LOGIC : ProgramType.MATERIAL_UNIFORM_LOGIC;
 		shader = MaterialShaderManager.INSTANCE.find(vertexShaderIndex, fragmentShaderIndex, programType);
