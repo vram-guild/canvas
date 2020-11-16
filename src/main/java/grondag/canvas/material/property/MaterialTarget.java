@@ -16,7 +16,10 @@
 
 package grondag.canvas.material.property;
 
+import java.util.function.Predicate;
+
 import com.google.common.util.concurrent.Runnables;
+import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.frex.api.material.MaterialFinder;
 
 import net.minecraft.client.MinecraftClient;
@@ -24,7 +27,7 @@ import net.minecraft.client.render.RenderPhase;
 import net.minecraft.client.render.RenderPhase.Target;
 
 @SuppressWarnings("resource")
-public class MaterialTarget {
+public class MaterialTarget implements Predicate<RenderMaterialImpl> {
 	public static final MaterialTarget MAIN = new MaterialTarget(
 		MaterialFinder.TARGET_MAIN,
 		"main",
@@ -176,5 +179,10 @@ public class MaterialTarget {
 			assert phase == RenderPhase.MAIN_TARGET : "Unsupported render target";
 			return MaterialFinder.TARGET_MAIN;
 		}
+	}
+
+	@Override
+	public boolean test(RenderMaterialImpl mat) {
+		return mat.target == this;
 	}
 }

@@ -18,6 +18,7 @@ package grondag.canvas.terrain.render;
 
 import java.nio.IntBuffer;
 
+import com.google.common.base.Predicates;
 import grondag.canvas.buffer.VboBuffer;
 import grondag.canvas.buffer.encoding.VertexCollectorImpl;
 import grondag.canvas.buffer.encoding.VertexCollectorList;
@@ -95,19 +96,18 @@ public class DrawableChunk {
 	}
 
 	public static DrawableChunk pack(VertexCollectorList collectorList, VboBuffer vboBuffer, boolean translucent) {
-		// WIP: sort to appropriate draw order
-		// WIP: further consolidate draw calls with same render state - use drawPriority.
 		// WIP: handle conditions.
 		final IntBuffer intBuffer = vboBuffer.intBuffer();
 		intBuffer.position(0);
 
-		final int limit = collectorList.size();
+		final ObjectArrayList<VertexCollectorImpl> drawList = collectorList.sortedDrawList(Predicates.alwaysTrue());
+		final int limit = drawList.size();
 		int position = 0;
 
 		final ObjectArrayList<DrawableDelegate> delegates = DelegateLists.getReadyDelegateList();
 
 		for (int i = 0; i < limit; ++i) {
-			final VertexCollectorImpl collector = collectorList.get(i);
+			final VertexCollectorImpl collector = drawList.get(i);
 
 			if (collector.materialState().sorted == translucent) {
 				final int vertexCount = collector.vertexCount();

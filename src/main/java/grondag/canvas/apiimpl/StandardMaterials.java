@@ -24,7 +24,6 @@ import net.minecraft.client.render.RenderLayer;
 
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 
-// TODO: expose in API as alternate for render layer
 public class StandardMaterials {
 	public static final RenderMaterialImpl BLOCK_TRANSLUCENT = Canvas.INSTANCE.materialFinder().blendMode(BlendMode.TRANSLUCENT).find();
 	public static final RenderMaterialImpl BLOCK_SOLID = Canvas.INSTANCE.materialFinder().blendMode(BlendMode.SOLID).find();

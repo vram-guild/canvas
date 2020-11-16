@@ -1,9 +1,9 @@
 package grondag.canvas.buffer.encoding;
 
-import java.util.Comparator;
 import java.util.Map;
 import java.util.SortedMap;
 
+import com.google.common.base.Predicates;
 import grondag.canvas.material.property.MaterialTarget;
 import grondag.canvas.material.state.RenderContextState;
 import grondag.canvas.material.state.RenderLayerHelper;
@@ -24,8 +24,6 @@ import net.minecraft.util.Util;
 public class CanvasImmediate extends Immediate implements FrexVertexConsumerProvider {
 	public final VertexCollectorList collectors = new VertexCollectorList();
 	public final RenderContextState contextState;
-
-	private final ObjectArrayList<VertexCollectorImpl> drawList = new ObjectArrayList<>();
 
 	public CanvasImmediate(BufferBuilder fallbackBuffer, Map<RenderLayer, BufferBuilder> layerBuffers, RenderContextState contextState) {
 		super(fallbackBuffer, layerBuffers);
@@ -55,34 +53,17 @@ public class CanvasImmediate extends Immediate implements FrexVertexConsumerProv
 		return collectors.get(mat);
 	}
 
-	private static final Comparator<VertexCollectorImpl> DRAW_SORT = (a, b) -> {
-		// note reverse argument order - higher priority wins
-		return Long.compare(b.materialState.drawPriority, a.materialState.drawPriority);
-	};
-
 	public void drawCollectors(MaterialTarget target) {
-		final ObjectArrayList<VertexCollectorImpl> drawList = this.drawList;
-		final int limit = collectors.size();
-
-		if (limit != 0) {
-			for (int i = 0; i < limit; ++i) {
-				final VertexCollectorImpl collector = collectors.get(i);
-
-				if (collector.materialState.target == target && !collector.isEmpty()) {
-					drawList.add(collector);
-				}
-			}
-		}
+		final ObjectArrayList<VertexCollectorImpl> drawList = collectors.sortedDrawList(target);
 
 		if (!drawList.isEmpty()) {
-			drawList.sort(DRAW_SORT);
 			VertexCollectorImpl.drawAndClear(drawList);
 		}
 	}
 
 	@Override
 	public void draw() {
-		final ObjectArrayList<VertexCollectorImpl> drawList = this.drawList;
+		final ObjectArrayList<VertexCollectorImpl> drawList = collectors.sortedDrawList(Predicates.alwaysTrue());
 		final int limit = collectors.size();
 
 		for (int i = 0; i < limit; ++i) {

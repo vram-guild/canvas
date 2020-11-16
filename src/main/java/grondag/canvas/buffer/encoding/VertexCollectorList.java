@@ -16,6 +16,9 @@
 
 package grondag.canvas.buffer.encoding;
 
+import java.util.Comparator;
+import java.util.function.Predicate;
+
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.material.state.RenderState;
 import grondag.canvas.terrain.render.UploadableChunk;
@@ -27,6 +30,7 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 public class VertexCollectorList {
 	private final ObjectArrayList<VertexCollectorImpl> pool = new ObjectArrayList<>();
 	private final VertexCollectorImpl[] collectors = new VertexCollectorImpl[RenderState.MAX_COUNT];
+	private final ObjectArrayList<VertexCollectorImpl> drawList = new ObjectArrayList<>();
 
 	/**
 	 * Clears all vertex collectors
@@ -117,4 +121,37 @@ public class VertexCollectorList {
 		final int bytes = totalBytes(sorted);
 		return bytes == 0 ? UploadableChunk.EMPTY_UPLOADABLE : new UploadableChunk(this, sorted, bytes);
 	}
+
+	/**
+	 * Gives populated collectors in the order they should be drawn.
+	 * DO NOT RETAIN A REFERENCE
+	 */
+	public ObjectArrayList<VertexCollectorImpl> sortedDrawList(Predicate<RenderMaterialImpl> predicate) {
+		final ObjectArrayList<VertexCollectorImpl> drawList = this.drawList;
+		drawList.clear();
+
+		final int limit = size();
+
+		if (limit != 0) {
+			for (int i = 0; i < limit; ++i) {
+				final VertexCollectorImpl collector = get(i);
+
+				if (!collector.isEmpty() && predicate.test(collector.materialState)) {
+					drawList.add(collector);
+				}
+			}
+		}
+
+		if (!drawList.isEmpty()) {
+			drawList.sort(DRAW_SORT);
+		}
+
+		return drawList;
+	}
+
+	private static final Comparator<VertexCollectorImpl> DRAW_SORT = (a, b) -> {
+		// note reverse argument order - higher priority wins
+		return Long.compare(b.materialState.drawPriority, a.materialState.drawPriority);
+	};
+
 }
