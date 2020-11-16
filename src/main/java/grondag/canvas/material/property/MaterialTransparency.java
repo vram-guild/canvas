@@ -34,7 +34,7 @@ public class MaterialTransparency {
 
 	public static final MaterialTransparency ADDITIVE = new MaterialTransparency(
 		MaterialFinder.TRANSPARENCY_ADDITIVE,
-		"none",
+		"additive",
 		2,
 		() -> {
 			RenderSystem.enableBlend();
