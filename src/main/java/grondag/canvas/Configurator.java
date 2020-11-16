@@ -673,7 +673,7 @@ public class Configurator {
 		@Comment("Size of bloom effect around light sources. 0.0 to 2.0, default is 0.25.")
 		public float bloomScale = 0.25f;
 		@Comment("Screen space reflection on smooth surfaces.")
-		public boolean screenSpaceReflection = true;
+		public boolean screenSpaceReflection = false;
 		@Comment("Animated foliage")
 		public boolean wavyGrass = true;
 		@Comment("Enable rendering of internal buffers for debug purposes. Off by default to prevent accidental activation.")

@@ -1,0 +1,4 @@
+{
+  "vertexSource": "canvas:shaders/material/default.vert",
+  "fragmentSource": "canvas:shaders/material/rough_metal.frag"
+}
