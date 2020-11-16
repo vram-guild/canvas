@@ -61,6 +61,8 @@ void main() {
 	texture2D(frxs_spriteAltas, _cvv_texcoord, _cv_getFlag(_CV_FLAG_UNMIPPED) * -4.0),
 	_cvv_color,
 	frx_matEmissive() ? 1.0 : 0.0,
+	0.0, // Metal (WIP)
+	1.0, // Roughness (WIP)
 	!frx_matDisableDiffuse(),
 	!frx_matDisableAo(),
 	_cvv_normal,
@@ -101,7 +103,7 @@ void main() {
 	// TODO: need a separate fog pass?
 	gl_FragData[TARGET_BASECOLOR] = _cv_fog(a);
 
-	#if TARGET_EMISSIVE > 0
-	gl_FragData[TARGET_EMISSIVE] = vec4(fragData.emissivity, 0.0, 0.0, 1.0);
-	#endif
+#if TARGET_EXTRAS > 0
+	gl_FragData[TARGET_EXTRAS] = vec4(fragData.emissivity * a.a, fragData.metal, fragData.roughness, 1.0);
+#endif
 }

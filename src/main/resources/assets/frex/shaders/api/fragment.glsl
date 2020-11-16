@@ -66,6 +66,16 @@ struct frx_FragmentData {
 	float emissivity;
 
 /*
+ * Metal component of this fragment, 1.0 for metals and 0.0 for non-metals. (WIP)
+ */
+	float metal;
+
+/*
+ * Roughness component of this fragment in [0.0, 1.0] range. (WIP)
+ */
+	float roughness;
+
+/*
  * True if the this fragment should receive diffuse shading.
  * Typical use is to disable directional shading on emissve surfaces.
  *

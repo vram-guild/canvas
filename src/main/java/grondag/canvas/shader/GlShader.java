@@ -232,7 +232,7 @@ public class GlShader implements Shader {
 			}
 
 			if (Configurator.enableBloom) {
-				result = StringUtils.replace(result, "#define TARGET_EMISSIVE -1", "#define TARGET_EMISSIVE 1");
+				result = StringUtils.replace(result, "#define TARGET_EXTRAS -1", "#define TARGET_EXTRAS 1");
 			}
 
 			if (Configurator.hdLightmaps()) {
