@@ -118,4 +118,12 @@ void main() {
 #if TARGET_EXTRAS > 0
 	gl_FragData[TARGET_EXTRAS] = vec4(fragData.emissivity * a.a, fragData.metal, fragData.roughness, 1.0);
 #endif
+
+#if TARGET_NORMAL > 0
+	if(_cvu_model_origin_type == MODEL_ORIGIN_ENTITY){
+		gl_FragData[TARGET_NORMAL] = vec4(fragData.vertexNormal.xyz * vec3(0.5) + vec3(0.5), 1.0);
+	} else {
+		gl_FragData[TARGET_NORMAL] = vec4((gl_ModelViewMatrix * vec4(fragData.vertexNormal, 0.0)).xyz * vec3(0.5) + vec3(0.5), 1.0 );
+	}
+#endif
 }

@@ -233,6 +233,7 @@ public class GlShader implements Shader {
 
 			if (Configurator.enableBloom || Configurator.screenSpaceReflection) {
 				result = StringUtils.replace(result, "#define TARGET_EXTRAS -1", "#define TARGET_EXTRAS 1");
+				result = StringUtils.replace(result, "#define TARGET_NORMAL -1", "#define TARGET_NORMAL 2");
 			}
 
 			if (Configurator.hdLightmaps()) {

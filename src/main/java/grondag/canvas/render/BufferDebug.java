@@ -27,6 +27,7 @@ import org.lwjgl.glfw.GLFW;
 public enum BufferDebug {
 	NORMAL(Runnables.doNothing()),
 	EMISSIVE(CanvasFrameBufferHacks::debugEmissive),
+	DEPTH_NORMAL(CanvasFrameBufferHacks::debugDepthNormal),
 	BLOOM_0(() -> CanvasFrameBufferHacks.debugBlur(0)),
 	BLOOM_1(() -> CanvasFrameBufferHacks.debugBlur(1)),
 	BLOOM_2(() -> CanvasFrameBufferHacks.debugBlur(2)),

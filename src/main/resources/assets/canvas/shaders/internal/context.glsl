@@ -25,3 +25,4 @@
 
 #define TARGET_BASECOLOR 0
 #define TARGET_EXTRAS -1
+#define TARGET_NORMAL -1
