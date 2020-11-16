@@ -21,9 +21,11 @@ import grondag.canvas.shader.GlProgram.Uniform1fImpl;
 import grondag.canvas.shader.GlProgram.Uniform1iImpl;
 import grondag.canvas.shader.GlProgram.Uniform2fImpl;
 import grondag.canvas.shader.GlProgram.Uniform2iImpl;
+import grondag.canvas.shader.GlProgram.UniformMatrix4fImpl;
 import grondag.frex.api.material.UniformRefreshFrequency;
 
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.Matrix4f;
 
 public class ProcessShader {
 	private final Identifier fragmentId;
@@ -34,6 +36,8 @@ public class ProcessShader {
 	private Uniform2fImpl distance;
 	private Uniform1iImpl lod;
 	private Uniform1fImpl intensity;
+	private UniformMatrix4fImpl projection;
+	private UniformMatrix4fImpl invProjection;
 
 	ProcessShader(Identifier vertexId, Identifier fragmentId, String... samplers) {
 		this.fragmentId = fragmentId;
@@ -57,6 +61,8 @@ public class ProcessShader {
 			lod = (Uniform1iImpl) program.uniform1i("_cvu_lod", UniformRefreshFrequency.ON_LOAD, u -> u.set(0));
 			distance = (Uniform2fImpl) program.uniform2f("_cvu_distance", UniformRefreshFrequency.ON_LOAD, u -> u.set(0, 0));
 			intensity = (Uniform1fImpl) program.uniform1f("cvu_intensity", UniformRefreshFrequency.ON_LOAD, u -> u.set(0));
+			projection = (UniformMatrix4fImpl) program.uniformMatrix4f("cvu_projection", UniformRefreshFrequency.ON_LOAD, u -> u.set(new Matrix4f()));
+			invProjection = (UniformMatrix4fImpl) program.uniformMatrix4f("cvu_inv_projection", UniformRefreshFrequency.ON_LOAD, u -> u.set(new Matrix4f()));
 
 			int tex = 0;
 
@@ -104,6 +110,24 @@ public class ProcessShader {
 		if (program != null && GlProgram.activeProgram() == program) {
 			this.intensity.set(intensity);
 			this.intensity.upload();
+		}
+
+		return this;
+	}
+
+	public ProcessShader projection(Matrix4f projection) {
+		if (program != null && GlProgram.activeProgram() == program) {
+			this.projection.set(projection);
+			this.projection.upload();
+		}
+
+		return this;
+	}
+
+	public ProcessShader invProjection(Matrix4f invProjection) {
+		if (program != null && GlProgram.activeProgram() == program) {
+			this.invProjection.set(invProjection);
+			this.invProjection.upload();
 		}
 
 		return this;

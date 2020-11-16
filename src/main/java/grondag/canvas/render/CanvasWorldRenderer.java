@@ -461,7 +461,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		profiler.swap("terrain");
 
-		if (Configurator.enableBloom) CanvasFrameBufferHacks.prepareForFrame();
+		if (Configurator.enableBloom || Configurator.screenSpaceReflection) CanvasFrameBufferHacks.prepareForFrame();
 
 		MaterialMatrixState.set(MaterialMatrixState.REGION, null);
 		renderTerrainLayer(false, matrixStack, cameraX, cameraY, cameraZ);
@@ -812,6 +812,10 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		if (Configurator.enableBloom) {
 			CanvasFrameBufferHacks.applyBloom();
+		}
+
+		if (Configurator.screenSpaceReflection) {
+			CanvasFrameBufferHacks.applyScreenSpaceReflection(projectionMatrix);
 		}
 
 		SatinHolder.onWorldRenderedEvent.onWorldRendered(matrixStack, camera, tickDelta, limitTime);

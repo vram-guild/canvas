@@ -231,7 +231,7 @@ public class GlShader implements Shader {
 					"#define _CV_FOG_CONFIG _CV_FOG_CONFIG_" + Configurator.fogMode.name());
 			}
 
-			if (Configurator.enableBloom) {
+			if (Configurator.enableBloom || Configurator.screenSpaceReflection) {
 				result = StringUtils.replace(result, "#define TARGET_EXTRAS -1", "#define TARGET_EXTRAS 1");
 			}
 

@@ -1,7 +1,7 @@
 #include canvas:shaders/internal/process/header.glsl
 
 /******************************************************
-  canvas:shaders/internal/process/emissive_color.vert
+  canvas:shaders/internal/process/reflection.vert
 ******************************************************/
 uniform sampler2D _cvu_base;
 uniform sampler2D _cvu_extras;

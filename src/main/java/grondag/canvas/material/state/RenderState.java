@@ -65,11 +65,11 @@ public final class RenderState extends AbstractRenderState {
 			RenderSystem.shadeModel(GL11.GL_SMOOTH);
 			target.enable();
 			// NB: must be after frame-buffer target switch
-			if (Configurator.enableBloom) CanvasFrameBufferHacks.startEmissiveCapture();
+			if (Configurator.enableBloom || Configurator.screenSpaceReflection) CanvasFrameBufferHacks.startExtrasCapture();
 		} else if (active.target != target) {
-			if (Configurator.enableBloom) CanvasFrameBufferHacks.endEmissiveCapture();
+			if (Configurator.enableBloom || Configurator.screenSpaceReflection) CanvasFrameBufferHacks.endExtrasCapture();
 			target.enable();
-			if (Configurator.enableBloom) CanvasFrameBufferHacks.startEmissiveCapture();
+			if (Configurator.enableBloom || Configurator.screenSpaceReflection) CanvasFrameBufferHacks.startExtrasCapture();
 		}
 
 		active = this;
@@ -112,7 +112,7 @@ public final class RenderState extends AbstractRenderState {
 		active = null;
 
 		// NB: must be before frame-buffer target switch
-		if (Configurator.enableBloom) CanvasFrameBufferHacks.endEmissiveCapture();
+		if (Configurator.enableBloom || Configurator.screenSpaceReflection) CanvasFrameBufferHacks.endExtrasCapture();
 
 		CanvasVertexFormat.disableDirect();
 		GlProgram.deactivate();

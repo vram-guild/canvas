@@ -26,8 +26,16 @@ public abstract class MixinFrameBuffer implements FrameBufferExt {
 	@Shadow
 	private int colorAttachment;
 
+	@Shadow
+	private int depthAttachment;
+
 	@Override
 	public int canvas_colorAttachment() {
 		return colorAttachment;
+	}
+
+	@Override
+	public int canvas_depthAttachment() {
+		return depthAttachment;
 	}
 }
