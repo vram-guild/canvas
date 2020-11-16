@@ -27,6 +27,8 @@
   "config.canvas.help.bloom_intensity": "Intensity of glow effect around light sources.",
   "config.canvas.value.bloom_scale": "Bloom Scale",
   "config.canvas.help.bloom_scale": "Size of bloom effect around light sources.",
+  "config.canvas.value.screen_space_reflection": "Screen Space Reflection",
+  "config.canvas.help.screen_space_reflection": "Reflection on smooth surface based on screen data.;Performance impact depends on resolution.",
   "config.canvas.value.wavy_grass": "Animated Foliage",
   "config.canvas.help.wavy_grass": "Activates shaders for waving grass, leaves, etc.",
   "config.canvas.category.lighting": "Lighting",

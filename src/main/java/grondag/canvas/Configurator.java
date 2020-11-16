@@ -54,6 +54,7 @@ public class Configurator {
 	public static boolean enableBloom = DEFAULTS.enableBloom;
 	public static float bloomIntensity = DEFAULTS.bloomIntensity;
 	public static float bloomScale = DEFAULTS.bloomScale;
+	public static boolean screenSpaceReflection = DEFAULTS.screenSpaceReflection;
 	public static boolean wavyGrass = DEFAULTS.wavyGrass;
 	public static boolean lightmapNoise = DEFAULTS.lightmapNoise;
 	public static DiffuseMode diffuseShadingMode = DEFAULTS.diffuseShadingMode;
@@ -134,6 +135,7 @@ public class Configurator {
 		enableBloom = config.enableBloom;
 		bloomIntensity = config.bloomIntensity;
 		bloomScale = config.bloomScale;
+		screenSpaceReflection = config.screenSpaceReflection;
 		wavyGrass = config.wavyGrass;
 
 		shaderDebug = config.shaderDebug;
@@ -182,6 +184,7 @@ public class Configurator {
 		config.enableBloom = enableBloom;
 		config.bloomIntensity = bloomIntensity;
 		config.bloomScale = bloomScale;
+		config.screenSpaceReflection = screenSpaceReflection;
 		config.wavyGrass = wavyGrass;
 
 		config.shaderDebug = shaderDebug;
@@ -310,6 +313,16 @@ public class Configurator {
 			.setTooltip(parse("config.canvas.help.bloom_scale"))
 			.setSaveConsumer(b -> bloomScale = b / 100f)
 			.build());
+
+		features.addEntry(ENTRY_BUILDER
+				.startBooleanToggle(new TranslatableText("config.canvas.value.screen_space_reflection"), screenSpaceReflection)
+				.setDefaultValue(DEFAULTS.screenSpaceReflection)
+				.setTooltip(parse("config.canvas.help.screen_space_reflection"))
+				.setSaveConsumer(b -> {
+					reload |= screenSpaceReflection != b;
+					screenSpaceReflection = b;
+				})
+				.build());
 
 		features.addEntry(ENTRY_BUILDER
 			.startBooleanToggle(new TranslatableText("config.canvas.value.wavy_grass"), wavyGrass)
@@ -659,6 +672,8 @@ public class Configurator {
 		public float bloomIntensity = 0.1f;
 		@Comment("Size of bloom effect around light sources. 0.0 to 2.0, default is 0.25.")
 		public float bloomScale = 0.25f;
+		@Comment("Screen space reflection on smooth surfaces.")
+		public boolean screenSpaceReflection = true;
 		@Comment("Animated foliage")
 		public boolean wavyGrass = true;
 		@Comment("Enable rendering of internal buffers for debug purposes. Off by default to prevent accidental activation.")
