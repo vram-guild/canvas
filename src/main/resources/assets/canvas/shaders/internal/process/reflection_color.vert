@@ -4,8 +4,11 @@
   canvas:shaders/internal/process/reflection.vert
 ******************************************************/
 uniform sampler2D _cvu_base;
-uniform sampler2D _cvu_reflection;
 uniform sampler2D _cvu_extras;
+uniform sampler2D _cvu_normal;
+uniform sampler2D _cvu_depth;
+uniform mat4 cvu_projection;
+uniform mat4 cvu_inv_projection;
 uniform ivec2 _cvu_size;
 
 attribute vec2 in_uv;

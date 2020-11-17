@@ -28,7 +28,6 @@ import grondag.canvas.mixinterface.FrameBufferExt;
 import grondag.canvas.shader.GlProgram;
 import grondag.canvas.shader.ProcessShader;
 import grondag.canvas.shader.ProcessShaders;
-import net.minecraft.client.render.Camera;
 import net.minecraft.util.math.Matrix4f;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.ARBTextureFloat;
@@ -54,7 +53,8 @@ public class CanvasFrameBufferHacks {
 	static final ProcessShader copyLod = ProcessShaders.create("canvas:shaders/internal/process/copy_lod", "_cvu_input");
 	static final ProcessShader downsample = ProcessShaders.create("canvas:shaders/internal/process/downsample", "_cvu_input");
 	static final ProcessShader upsample = ProcessShaders.create("canvas:shaders/internal/process/upsample", "cvu_input", "cvu_prior");
-	static final ProcessShader reflection = ProcessShaders.create("canvas:shaders/internal/process/reflection", "_cvu_base", "_cvu_extras", "_cvu_normal", "_cvu_depth");
+	static final ProcessShader reflectionColor = ProcessShaders.create("canvas:shaders/internal/process/reflection_color", "_cvu_base", "_cvu_extras", "_cvu_normal", "_cvu_depth");
+	static final ProcessShader reflection = ProcessShaders.create("canvas:shaders/internal/process/reflection", "_cvu_base", "_cvu_reflection", "_cvu_extras");
 	static final ProcessShader depthNormal = ProcessShaders.create("canvas:shaders/internal/process/debug_depth_normal", "_cvu_normal", "_cvu_depth");
 	static final int[] ATTACHMENTS_TRIPLE = {FramebufferInfo.COLOR_ATTACHMENT, FramebufferInfo.COLOR_ATTACHMENT + 1, FramebufferInfo.COLOR_ATTACHMENT + 2};
 	static Framebuffer mcFbo;
@@ -65,7 +65,7 @@ public class CanvasFrameBufferHacks {
 	//	static int mainHDR;
 	static int texExtras = -1;
 	static int texNormal = -1;
-	static int texEmissiveColor;
+	static int texEffectColor;
 	static int texMainCopy;
 	static int texBloomDownsample;
 	static int texBloomUpsample;
@@ -187,7 +187,7 @@ public class CanvasFrameBufferHacks {
 		GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
 
 		// select emissive portions for blur
-		GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT, GL21.GL_TEXTURE_2D, texEmissiveColor, 0);
+		GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT, GL21.GL_TEXTURE_2D, texEffectColor, 0);
 		GlStateManager.activeTexture(GL21.GL_TEXTURE1);
 		GlStateManager.enableTexture();
 		GlStateManager.bindTexture(texExtras);
@@ -199,7 +199,7 @@ public class CanvasFrameBufferHacks {
 
 		// build bloom mipmaps, blurring as part of downscale
 		GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT, GL21.GL_TEXTURE_2D, texBloomDownsample, 0);
-		GlStateManager.bindTexture(texEmissiveColor);
+		GlStateManager.bindTexture(texEffectColor);
 		downsample.activate().distance(1f, 1f).size(w, h).lod(0);
 		setProjection(w, h);
 		RenderSystem.viewport(0, 0, w, h);
@@ -270,32 +270,53 @@ public class CanvasFrameBufferHacks {
 		setProjection(w, h);
 		RenderSystem.viewport(0, 0, w, h);
 
+		// copy MC fbo color attachment - need it at end for combine step
+		GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT, GL21.GL_TEXTURE_2D, texMainCopy, 0);
+		GlStateManager.bindTexture(mainColor);
+		copy.activate().size(w, h);
+		GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
+
 		// Inverse projection matrix to get view space coordinates
 		Matrix4f invProjection = new Matrix4f(projectionMatrix);
 		invProjection.invert();
 
-		// Draw to copy
-		GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT, GL21.GL_TEXTURE_2D, texMainCopy, 0);
-		reflection.activate().size(w, h).projection(projectionMatrix).invProjection(invProjection);
+		// Draw to intermediate texture. Might add a blur pass later
+		GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT, GL21.GL_TEXTURE_2D, texEffectColor, 0);
+		reflectionColor.activate().size(w, h).projection(projectionMatrix).invProjection(invProjection);
 
-		GlStateManager.activeTexture(GL21.GL_TEXTURE1);
-		GlStateManager.enableTexture();
-		GlStateManager.bindTexture(texExtras);
-		GlStateManager.activeTexture(GL21.GL_TEXTURE2);
-		GlStateManager.enableTexture();
-		GlStateManager.bindTexture(texNormal);
 		GlStateManager.activeTexture(GL21.GL_TEXTURE3);
 		GlStateManager.enableTexture();
 		GlStateManager.bindTexture(mainDepth);
+		GlStateManager.activeTexture(GL21.GL_TEXTURE2);
+		GlStateManager.enableTexture();
+		GlStateManager.bindTexture(texNormal);
+		GlStateManager.activeTexture(GL21.GL_TEXTURE1);
+		GlStateManager.enableTexture();
+		GlStateManager.bindTexture(texExtras);
+
 		GlStateManager.activeTexture(GL21.GL_TEXTURE0);
 		GlStateManager.bindTexture(mainColor);
 
 		GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
 
-		// Copy result into main fbo
+		// Switch back to MC fbo to draw combined color + reflection color
 		GlStateManager.bindFramebuffer(FramebufferInfo.FRAME_BUFFER, mainFbo);
-		copy.activate().size(w, h);
+//		RenderSystem.viewport(0, 0, w, h);
+		reflection.activate().size(w, h);
+//		setProjection(w, h);
+
+		GlStateManager.activeTexture(GL21.GL_TEXTURE2);
+		GlStateManager.enableTexture();
+		GlStateManager.bindTexture(texExtras);
+
+		GlStateManager.activeTexture(GL21.GL_TEXTURE1);
+		GlStateManager.enableTexture();
+		GlStateManager.bindTexture(texEffectColor);
+
+		// Framebuffer attachment shouldn't draw to self so use copy created earlier
+		GlStateManager.activeTexture(GL21.GL_TEXTURE0);
 		GlStateManager.bindTexture(texMainCopy);
+
 		GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
 
 		endCopy();
@@ -347,7 +368,7 @@ public class CanvasFrameBufferHacks {
 		final long handle = MinecraftClient.getInstance().getWindow().getHandle();
 
 		if ((InputUtil.isKeyPressed(handle, GLFW.GLFW_KEY_LEFT_SHIFT) || InputUtil.isKeyPressed(handle, GLFW.GLFW_KEY_RIGHT_SHIFT))) {
-			GlStateManager.bindTexture(texEmissiveColor);
+			GlStateManager.bindTexture(texEffectColor);
 		} else {
 			GlStateManager.bindTexture(texExtras);
 		}
@@ -419,7 +440,7 @@ public class CanvasFrameBufferHacks {
 			texExtras = createColorAttachment(w, h);
 			texNormal = createColorAttachment(w, h);
 
-			texEmissiveColor = createColorAttachment(w, h);
+			texEffectColor = createColorAttachment(w, h);
 			texMainCopy = createColorAttachment(w, h);
 
 			texBloomDownsample = createColorAttachment(w, h);
@@ -476,7 +497,7 @@ public class CanvasFrameBufferHacks {
 	private static void tearDown() {
 		if (texExtras != -1) {
 			TextureUtil.deleteId(texExtras);
-			TextureUtil.deleteId(texEmissiveColor);
+			TextureUtil.deleteId(texEffectColor);
 			//			TextureUtil.deleteId(mainHDR);
 			TextureUtil.deleteId(texMainCopy);
 			TextureUtil.deleteId(texBloomDownsample);
