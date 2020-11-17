@@ -226,7 +226,7 @@ public class CanvasFrameBufferHacks {
 		GlStateManager.activeTexture(GL21.GL_TEXTURE1);
 		GlStateManager.enableTexture();
 		GlStateManager.bindTexture(texBloomUpsample);
-		upsample.activate();
+		upsample.activate().intensity(1f);
 
 		for (int d = 6; d >= 0; --d) {
 			final int sw = (w >> d);
@@ -326,12 +326,12 @@ public class CanvasFrameBufferHacks {
 		GlStateManager.activeTexture(GL21.GL_TEXTURE1);
 		GlStateManager.enableTexture();
 		GlStateManager.bindTexture(texReflectionUpsample);
-		upsample.activate();
+		upsample.activate().intensity(0.5f);
 
 		for (int d = 6; d >= 0; --d) {
 			final int sw = (w >> d);
 			final int sh = (h >> d);
-			upsample.distance(10, 10).size(sw, sh).lod(d).intensity(1f);
+			upsample.distance(10, 10).size(sw, sh).lod(d);
 			setProjection(sw, sh);
 			RenderSystem.viewport(0, 0, sw, sh);
 			GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT, GL21.GL_TEXTURE_2D, texReflectionUpsample, d);
