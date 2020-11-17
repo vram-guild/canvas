@@ -799,6 +799,11 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			// litematica overlay uses fabulous buffer so must run before translucent shader
 			MaliLibHolder.litematicaRenderWorldLast.render(matrixStack, mc, tickDelta);
 
+			// screen space reflection uses fabulous buffer too
+			if (Configurator.screenSpaceReflection) {
+				CanvasFrameBufferHacks.applyScreenSpaceReflection(projectionMatrix);
+			}
+
 			wr.canvas_transparencyShader().render(tickDelta);
 			mcfb.beginWrite(false);
 		} else {
@@ -808,14 +813,14 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			RenderSystem.depthMask(true);
 
 			MaliLibHolder.litematicaRenderWorldLast.render(matrixStack, mc, tickDelta);
+
+			if (Configurator.screenSpaceReflection) {
+				CanvasFrameBufferHacks.applyScreenSpaceReflection(projectionMatrix);
+			}
 		}
 
 		if (Configurator.enableBloom) {
 			CanvasFrameBufferHacks.applyBloom();
-		}
-
-		if (Configurator.screenSpaceReflection) {
-			CanvasFrameBufferHacks.applyScreenSpaceReflection(projectionMatrix);
 		}
 
 		SatinHolder.onWorldRenderedEvent.onWorldRendered(matrixStack, camera, tickDelta, limitTime);
