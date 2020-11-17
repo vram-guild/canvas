@@ -34,16 +34,17 @@ vec3 normal(vec2 uv){
 
 // Adds randomness to reflection ray for rough surfaces
 // Would look better if world space coordinates are used for seed
+const float wildness = 0.5;
 vec3 hash(vec2 uv){
-    vec3 a = fract(uv.xyx * vec3(25.9, 25.9, 25.9));
-    a += dot(a, a.yxz + 19.19);
-    vec3 b = fract((a.xxy + a.yxx)*a.zyx);
-    return 2.0 * b - 1.0;
+    vec3 a  = fract(uv.xyx * vec3(25.9, 25.9, 25.9));
+    a      += dot(a, a.yxz + 19.19);
+    vec3 b  = fract((a.xxy + a.yxx)*a.zyx);
+    return (2.0 * b - 1.0) * wildness;
 }
 
 const float minStepL = 0.1;
-const float stepL = 0.2;
-const int maxStep = 20;
+const float stepL = 0.4;
+const int maxStep = 50;
 const int maxBinaryStep = 15;
 
 vec2 binaryTest(inout vec3 march, inout vec3 curPos){
@@ -78,6 +79,10 @@ vec4 rayMarch(float reflectance){
 		texPos = viewSpace(curUV);
 		if(texture2DLod(_cvu_extras, curUV, 0).a > 0.0 && curPos.z - texPos.z < 0 && curPos.z - texPos.z > -bias){
 			vec2 finalUV = binaryTest(march, curPos);
+            // Discard ray coming towards the camera
+            if(curPos.z > 0){
+	            return vec4(0.0, 0.0, 0.0, 1.0);
+            }
 		    texPos = viewSpace(finalUV);
 			return max(0.0, dot(-normalize(march), normalize(normal(finalUV))))
 				* smoothstep(0.5, 0.45, abs(finalUV.x - 0.5))
@@ -86,6 +91,12 @@ vec4 rayMarch(float reflectance){
 		}
 		curStep ++;
 	}
+    // Sky reflection
+    if(texture2DLod(_cvu_extras, curUV, 0).a == 0.0 && curPos.z < 0){
+        return smoothstep(0.6, 0.5, abs(curUV.x - 0.5))
+            * smoothstep(0.6, 0.5, abs(curUV.y - 0.5))
+            * texture2D(_cvu_base, curUV);
+    }
 	return vec4(0.0, 0.0, 0.0, 1.0);
 }
 
