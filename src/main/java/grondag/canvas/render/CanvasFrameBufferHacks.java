@@ -481,28 +481,23 @@ public class CanvasFrameBufferHacks {
 
 			texMainCopy = createColorAttachment(w, h);
 
-			if(Configurator.enableBloom) {
-				texEmissiveColor = createColorAttachment(w, h);
-				texBloomDownsample = createColorAttachment(w, h);
-				GlStateManager.bindTexture(texBloomDownsample);
-				setupBlurLod();
+			texEmissiveColor = createColorAttachment(w, h);
+			texBloomDownsample = createColorAttachment(w, h);
+			GlStateManager.bindTexture(texBloomDownsample);
+			setupBlurLod();
 
-				texBloomUpsample = createColorAttachment(w, h);
-				GlStateManager.bindTexture(texBloomUpsample);
-				setupBlurLod();
-			}
+			texBloomUpsample = createColorAttachment(w, h);
+			GlStateManager.bindTexture(texBloomUpsample);
+			setupBlurLod();
 
-			if(Configurator.screenSpaceReflection){
-				texReflectionColor = createColorAttachment(w, h);
-				texReflectionDownsample = createColorAttachment(w, h);
-				GlStateManager.bindTexture(texReflectionDownsample);
-				setupBlurLod();
+			texReflectionColor = createColorAttachment(w, h);
+			texReflectionDownsample = createColorAttachment(w, h);
+			GlStateManager.bindTexture(texReflectionDownsample);
+			setupBlurLod();
 
-				texReflectionUpsample = createColorAttachment(w, h);
-				GlStateManager.bindTexture(texReflectionUpsample);
-				setupBlurLod();
-			}
-
+			texReflectionUpsample = createColorAttachment(w, h);
+			GlStateManager.bindTexture(texReflectionUpsample);
+			setupBlurLod();
 
 			// don't want filtering when copy back from main
 			GlStateManager.bindTexture(texMainCopy);
