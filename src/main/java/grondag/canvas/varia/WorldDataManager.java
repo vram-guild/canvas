@@ -40,7 +40,8 @@ public class WorldDataManager {
 	private static final int WORLD_TIME = 4;
 	private static final int WORLD_DAYS = 5;
 	private static final int FLAGS_0 = 6;
-	private static final int FOG_MODE = 7;
+	@SuppressWarnings("unused") // was previously used for fog
+	private static final int RESERVED = 7;
 	private static final int EMISSIVE_COLOR_RED = 8;
 	private static final int EMISSIVE_COLOR_GREEN = 9;
 	private static final int EMISSIVE_COLOR_BLUE = 10;
@@ -154,21 +155,6 @@ public class WorldDataManager {
 				DATA[WORLD_EFFECT_MODIFIER] = fluidModifier;
 			} else {
 				DATA[WORLD_EFFECT_MODIFIER] = 0.0F;
-			}
-
-			final int fogMode = FogStateExtHolder.INSTANCE.getMode();
-
-			// Convert to values more reliably read as floats
-			if (fogMode == 2048) {
-				// EXP
-				DATA[FOG_MODE] = 1.0f;
-			} else if (fogMode == 2049) {
-				// EXP2
-				DATA[FOG_MODE] = 2.0f;
-			} else {
-				assert fogMode == 9729;
-				// LINEAR
-				DATA[FOG_MODE] = 0.0f;
 			}
 		}
 

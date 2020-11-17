@@ -29,9 +29,33 @@ public abstract class MixinFogState implements FogStateExt {
 	@Shadow
 	public int mode;
 
+	@Shadow
+	public float density;
+
+	@Shadow
+	public float start;
+
+	@Shadow
+	public float end;
+
 	@Override
 	public int getMode() {
 		return mode;
+	}
+
+	@Override
+	public float getDensity() {
+		return density;
+	}
+
+	@Override
+	public float getStart() {
+		return start;
+	}
+
+	@Override
+	public float getEnd() {
+		return end;
 	}
 
 	@Inject(method = "<init>()V", require = 1, at = @At("RETURN"))

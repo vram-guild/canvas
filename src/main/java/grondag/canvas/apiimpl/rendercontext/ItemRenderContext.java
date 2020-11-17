@@ -35,10 +35,7 @@ import static grondag.canvas.buffer.encoding.EncoderUtils.bufferQuad;
 import static grondag.canvas.buffer.encoding.EncoderUtils.bufferQuadDirect;
 import static grondag.canvas.buffer.encoding.EncoderUtils.colorizeQuad;
 
-import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
-import net.minecraft.block.StainedGlassPaneBlock;
-import net.minecraft.block.TransparentBlock;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.color.item.ItemColors;
 import net.minecraft.client.render.OverlayVertexConsumer;
@@ -140,11 +137,9 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 	}
 
 	/**
-	 * True except for translucent blocks and glass panes or when drawing to GUI or first person perspective.
-	 * Even if drawn with translucency, the model can be expected to cull itself and the scene and distance
-	 * sorting isn't important.
+	 * True when drawing to GUI or first person perspective.
 	 */
-	private boolean drawDirectToMainTarget;
+	private boolean drawTranslucencyDirectToMainTarget;
 
 	/**
 	 * When false, assume item models are generated and should be rendered with cutout enabled if blend mode is translucent.
@@ -182,17 +177,8 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 			BuiltinModelItemRenderer.INSTANCE.render(stack, renderMode, matrices, vertexConsumers, light, overlay);
 		} else {
 			isBlockItem = stack.getItem() instanceof BlockItem;
-
-			if (renderMode != ModelTransformation.Mode.GUI && !renderMode.isFirstPerson() && isBlockItem) {
-				final Block block = ((BlockItem)stack.getItem()).getBlock();
-				// WIP: this probably doesn't work for modded blocks that have translucent quads (like XB)
-				// determination needs to happen at quad level.
-				drawDirectToMainTarget = !(block instanceof TransparentBlock) && !(block instanceof StainedGlassPaneBlock);
-			} else {
-				drawDirectToMainTarget = true;
-			}
-
-			defaultRenderLayer = RenderLayers.getItemLayer(stack, drawDirectToMainTarget);
+			drawTranslucencyDirectToMainTarget = renderMode == ModelTransformation.Mode.GUI || renderMode.isFirstPerson() || !isBlockItem;
+			defaultRenderLayer = RenderLayers.getItemLayer(stack, drawTranslucencyDirectToMainTarget);
 			glintConsumer = getGlintConsumer(defaultRenderLayer);
 			defaultBlendMode = RenderLayerHelper.blendModeFromLayer(defaultRenderLayer);
 
@@ -227,7 +213,7 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 				entry.getModel().multiply(0.75F);
 			}
 
-			if (drawDirectToMainTarget) {
+			if (drawTranslucencyDirectToMainTarget) {
 				result = getDirectCompassGlintConsumer(vanillaProvider, layer, entry);
 			} else {
 				result = getCompassGlintConsumer(vanillaProvider, layer, entry);
@@ -235,7 +221,7 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 
 			matrices.pop();
 			return result;
-		} else if (drawDirectToMainTarget) {
+		} else if (drawTranslucencyDirectToMainTarget) {
 			return getDirectItemGlintConsumer(vanillaProvider, layer);
 		} else {
 			return getItemGlintConsumer(vanillaProvider, layer);
@@ -287,7 +273,7 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 				.cutout(!isBlockItem)
 				.transparentCutout(!isBlockItem)
 				.unmipped(false)
-				.target(drawDirectToMainTarget ? MaterialFinder.TARGET_MAIN : MaterialFinder.TARGET_ENTITIES)
+				.target(drawTranslucencyDirectToMainTarget ? MaterialFinder.TARGET_MAIN : MaterialFinder.TARGET_ENTITIES)
 				.sorted(true);
 				break;
 			case SOLID:

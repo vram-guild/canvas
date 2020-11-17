@@ -16,6 +16,7 @@
 
 package grondag.canvas.shader;
 
+import grondag.canvas.material.property.MaterialFog;
 import grondag.canvas.material.property.MaterialMatrixState;
 import grondag.canvas.texture.SpriteInfoTexture;
 
@@ -27,7 +28,7 @@ public final class MaterialShaderImpl {
 	public final String fragmentShaderSource;
 
 	public final ProgramType programType;
-	private GlProgram program;
+	private GlMaterialProgram program;
 
 	public MaterialShaderImpl(int index, int vertexShaderIndex, int fragmentShaderIndex, ProgramType programType) {
 		this.vertexShaderIndex = vertexShaderIndex;
@@ -38,8 +39,8 @@ public final class MaterialShaderImpl {
 		fragmentShaderSource = MaterialShaderManager.FRAGMENT_INDEXER.fromHandle(fragmentShaderIndex).toString();
 	}
 
-	private GlProgram getOrCreate() {
-		GlProgram result = program;
+	private GlMaterialProgram getOrCreate() {
+		GlMaterialProgram result = program;
 
 		if (result == null) {
 			result = MaterialProgramManager.INSTANCE.getOrCreateMaterialProgram(programType);
@@ -60,6 +61,9 @@ public final class MaterialShaderImpl {
 
 		program.normalModelMatrix.set(MaterialMatrixState.getNormalModelMatrix());
 		program.normalModelMatrix.upload();
+
+		program.fogMode.set(MaterialFog.shaderParam());
+		program.fogMode.upload();
 	}
 
 	public void setModelOrigin(int x, int y, int z) {

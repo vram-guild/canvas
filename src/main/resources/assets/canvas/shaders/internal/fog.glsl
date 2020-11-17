@@ -5,9 +5,14 @@
   canvas:shaders/internal/fog.glsl
 ******************************************************/
 
-#define  _CV_FOG_LINEAR 0.0
-#define  _CV_FOG_EXP    1.0
-#define  _CV_FOG_EXP2   2.0
+uniform int _cvu_fog_mode;
+
+#define _CV_FOG_MODE = 0;
+
+#define  _CV_FOG_LINEAR  0
+#define  _CV_FOG_EXP     1
+#define  _CV_FOG_EXP2    2
+#define  _CV_FOG_DISABLE 3
 
 #define _CV_FOG_CONFIG_VANILLA    0
 #define _CV_FOG_CONFIG_SUBTLE    1
@@ -28,7 +33,7 @@ float _cv_linearFogFactor() {
  */
 float _cv_expFogFactor() {
 	float f = gl_FogFragCoord * gl_Fog.density;
-	float fogFactor = _cvu_world[_CV_FOG_MODE] == _CV_FOG_EXP ? exp(f) : exp(f * f);
+	float fogFactor = _cvu_fog_mode == _CV_FOG_EXP ? exp(f) : exp(f * f);
 	return clamp(1.0 / fogFactor, 0.0, 1.0);
 }
 
@@ -36,7 +41,7 @@ float _cv_expFogFactor() {
  * Returns either linear or exponential fog depending on current uniform value.
  */
 float _cv_fogFactor() {
-	return _cvu_world[_CV_FOG_MODE] == _CV_FOG_LINEAR ? _cv_linearFogFactor() : _cv_expFogFactor();
+	return _cvu_fog_mode == _CV_FOG_LINEAR ? _cv_linearFogFactor() : _cv_expFogFactor();
 }
 
 vec4 _cv_fog(vec4 diffuseColor) {
@@ -47,6 +52,6 @@ vec4 _cv_fog(vec4 diffuseColor) {
 	f *= f;
 	return mix(vec4(gl_Fog.color.rgb, diffuseColor.a), diffuseColor, 1.0 - f);
 #else
-	return mix(vec4(gl_Fog.color.rgb, diffuseColor.a), diffuseColor, _cv_fogFactor());
+	return _cvu_fog_mode == _CV_FOG_DISABLE ? diffuseColor : mix(vec4(gl_Fog.color.rgb, diffuseColor.a), diffuseColor, _cv_fogFactor());
 #endif
 }

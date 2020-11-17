@@ -25,7 +25,6 @@ import grondag.canvas.Configurator;
 import grondag.canvas.buffer.format.CanvasVertexFormat;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.Matrix4fExt;
-import grondag.canvas.texture.SpriteInfoTexture;
 import grondag.canvas.varia.CanvasGlHelper;
 import grondag.frex.api.material.Uniform;
 import grondag.frex.api.material.Uniform.Uniform1f;
@@ -67,13 +66,6 @@ public class GlProgram {
 	private final ObjectArrayList<UniformImpl<?>> activeUniforms = new ObjectArrayList<>();
 	private final ObjectArrayList<UniformImpl<?>> renderTickUpdates = new ObjectArrayList<>();
 	private final ObjectArrayList<UniformImpl<?>> gameTickUpdates = new ObjectArrayList<>();
-	// UGLY: special casing, public
-	public Uniform3fImpl modelOrigin;
-	// converts world normals to normals of incoming vertex data
-	public UniformMatrix3fImpl normalModelMatrix;
-	public UniformArrayfImpl materialArray;
-	public Uniform2iImpl programId;
-	public Uniform1iImpl modelOriginType;
 
 	protected boolean hasDirty = false;
 	private int progID = -1;
@@ -101,31 +93,6 @@ public class GlProgram {
 	public int programId() {
 		return progID;
 	}
-
-	public void setModelOrigin(int x, int y, int z) {
-		modelOrigin.set(x, y, z);
-		modelOrigin.upload();
-	}
-
-	private final float[] materialData = new float[4];
-
-	private static final int _CV_SPRITE_INFO_TEXTURE_SIZE = 0;
-	private static final int _CV_ATLAS_WIDTH = 1;
-	private static final int _CV_ATLAS_HEIGHT = 2;
-
-	public void setAtlasInfo(SpriteInfoTexture atlasInfo) {
-		if (atlasInfo == null) {
-			materialData[_CV_SPRITE_INFO_TEXTURE_SIZE] = 0;
-		} else {
-			materialData[_CV_SPRITE_INFO_TEXTURE_SIZE] = atlasInfo.textureSize();
-			materialData[_CV_ATLAS_WIDTH] = atlasInfo.atlasWidth();
-			materialData[_CV_ATLAS_HEIGHT] = atlasInfo.atlasHeight();
-		}
-
-		materialArray.set(materialData);
-		materialArray.upload();
-	}
-
 
 	public Uniform1f uniform1f(String name, UniformRefreshFrequency frequency, Consumer<Uniform1f> initializer) {
 		return new Uniform1fImpl(name, initializer, frequency);

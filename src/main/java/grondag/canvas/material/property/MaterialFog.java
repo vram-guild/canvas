@@ -17,6 +17,7 @@
 package grondag.canvas.material.property;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import grondag.canvas.varia.FogStateExtHolder;
 import grondag.frex.api.material.MaterialFinder;
 
 import net.minecraft.client.render.BackgroundRenderer;
@@ -29,7 +30,8 @@ public class MaterialFog {
 		"none",
 		() -> {
 			BackgroundRenderer.setFogBlack();
-			RenderSystem.disableFog();
+			isEnabled = false;
+			//RenderSystem.disableFog();
 		}
 	);
 
@@ -38,7 +40,8 @@ public class MaterialFog {
 		"tinted",
 		() -> {
 			BackgroundRenderer.setFogBlack();
-			RenderSystem.enableFog();
+			isEnabled = true;
+			//RenderSystem.enableFog();
 		}
 	);
 
@@ -47,7 +50,8 @@ public class MaterialFog {
 		"black",
 		() -> {
 			RenderSystem.fog(2918, 0.0F, 0.0F, 0.0F, 1.0F);
-			RenderSystem.enableFog();
+			isEnabled = true;
+			//RenderSystem.enableFog();
 		}
 	);
 
@@ -78,6 +82,7 @@ public class MaterialFog {
 		if (active != this) {
 			action.run();
 			active = this;
+			updateShaderParam();
 		}
 	}
 
@@ -98,6 +103,47 @@ public class MaterialFog {
 		if (active != null) {
 			NONE.action.run();
 			active = null;
+			updateShaderParam();
 		}
+	}
+
+	private static boolean isAllowed = false;
+	private static boolean isEnabled = false;
+	private static int shaderParam = 0;
+
+	private static void updateShaderParam() {
+		if (isAllowed && isEnabled) {
+			final int fogMode = FogStateExtHolder.INSTANCE.getMode();
+
+			// Convert to values more reliably read as floats
+
+			if (fogMode == 2048) {
+				// EXP
+				shaderParam = 1;
+			} else if (fogMode == 2049) {
+				// EXP2
+				shaderParam = 2;
+			} else {
+				assert fogMode == 9729;
+				// LINEAR
+				shaderParam = 0;
+			}
+		} else {
+			// disable
+			shaderParam = 3;
+		}
+	}
+
+
+	/**
+	 * Fog normally disabled except during world render.
+	 */
+	public static void allow(boolean allow) {
+		isAllowed = allow;
+		updateShaderParam();
+	}
+
+	public static int shaderParam() {
+		return shaderParam;
 	}
 }
