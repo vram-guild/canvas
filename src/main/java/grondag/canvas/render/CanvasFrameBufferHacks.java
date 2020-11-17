@@ -65,10 +65,13 @@ public class CanvasFrameBufferHacks {
 	//	static int mainHDR;
 	static int texExtras = -1;
 	static int texNormal = -1;
-	static int texEffectColor;
+	static int texEmissiveColor = -1;
 	static int texMainCopy;
 	static int texBloomDownsample;
 	static int texBloomUpsample;
+	static int texReflectionColor = -1;
+	static int texReflectionDownsample;
+	static int texReflectionUpsample;
 	static int canvasFboId = -1;
 	static VboBuffer drawBuffer;
 	static int h;
@@ -187,7 +190,7 @@ public class CanvasFrameBufferHacks {
 		GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
 
 		// select emissive portions for blur
-		GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT, GL21.GL_TEXTURE_2D, texEffectColor, 0);
+		GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT, GL21.GL_TEXTURE_2D, texEmissiveColor, 0);
 		GlStateManager.activeTexture(GL21.GL_TEXTURE1);
 		GlStateManager.enableTexture();
 		GlStateManager.bindTexture(texExtras);
@@ -199,7 +202,7 @@ public class CanvasFrameBufferHacks {
 
 		// build bloom mipmaps, blurring as part of downscale
 		GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT, GL21.GL_TEXTURE_2D, texBloomDownsample, 0);
-		GlStateManager.bindTexture(texEffectColor);
+		GlStateManager.bindTexture(texEmissiveColor);
 		downsample.activate().distance(1f, 1f).size(w, h).lod(0);
 		setProjection(w, h);
 		RenderSystem.viewport(0, 0, w, h);
@@ -281,7 +284,7 @@ public class CanvasFrameBufferHacks {
 		invProjection.invert();
 
 		// Draw to intermediate texture. Might add a blur pass later
-		GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT, GL21.GL_TEXTURE_2D, texEffectColor, 0);
+		GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT, GL21.GL_TEXTURE_2D, texReflectionColor, 0);
 		reflectionColor.activate().size(w, h).projection(projectionMatrix).invProjection(invProjection);
 
 		GlStateManager.activeTexture(GL21.GL_TEXTURE3);
@@ -299,11 +302,47 @@ public class CanvasFrameBufferHacks {
 
 		GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
 
+		// build bloom mipmaps, blurring as part of downscale
+		GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT, GL21.GL_TEXTURE_2D, texReflectionDownsample, 0);
+		GlStateManager.bindTexture(texReflectionColor);
+		downsample.activate().distance(1f, 1f).size(w, h).lod(0);
+		setProjection(w, h);
+		RenderSystem.viewport(0, 0, w, h);
+		GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
+
+		GlStateManager.bindTexture(texReflectionDownsample);
+
+		for (int d = 0; d <= 0; ++d) {
+			final int sw = (w >> d);
+			final int sh = (h >> d);
+			downsample.size(sw, sh).lod(d - 1);
+			setProjection(sw, sh);
+			RenderSystem.viewport(0, 0, sw, sh);
+			GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT, GL21.GL_TEXTURE_2D, texReflectionDownsample, d);
+			GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
+		}
+
+		// upscale bloom mipmaps, bluring again as we go
+		GlStateManager.activeTexture(GL21.GL_TEXTURE1);
+		GlStateManager.enableTexture();
+		GlStateManager.bindTexture(texReflectionUpsample);
+		upsample.activate();
+
+		for (int d = 0; d >= 0; --d) {
+			final int sw = (w >> d);
+			final int sh = (h >> d);
+			upsample.distance(10, 10).size(sw, sh).lod(d);
+			setProjection(sw, sh);
+			RenderSystem.viewport(0, 0, sw, sh);
+			GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT, GL21.GL_TEXTURE_2D, texReflectionUpsample, d);
+			GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
+		}
+
 		// Switch back to MC fbo to draw combined color + reflection color
 		GlStateManager.bindFramebuffer(FramebufferInfo.FRAME_BUFFER, mainFbo);
-//		RenderSystem.viewport(0, 0, w, h);
+		RenderSystem.viewport(0, 0, w, h);
 		reflection.activate().size(w, h);
-//		setProjection(w, h);
+		setProjection(w, h);
 
 		GlStateManager.activeTexture(GL21.GL_TEXTURE2);
 		GlStateManager.enableTexture();
@@ -311,7 +350,7 @@ public class CanvasFrameBufferHacks {
 
 		GlStateManager.activeTexture(GL21.GL_TEXTURE1);
 		GlStateManager.enableTexture();
-		GlStateManager.bindTexture(texEffectColor);
+		GlStateManager.bindTexture(texReflectionUpsample);
 
 		// Framebuffer attachment shouldn't draw to self so use copy created earlier
 		GlStateManager.activeTexture(GL21.GL_TEXTURE0);
@@ -368,7 +407,7 @@ public class CanvasFrameBufferHacks {
 		final long handle = MinecraftClient.getInstance().getWindow().getHandle();
 
 		if ((InputUtil.isKeyPressed(handle, GLFW.GLFW_KEY_LEFT_SHIFT) || InputUtil.isKeyPressed(handle, GLFW.GLFW_KEY_RIGHT_SHIFT))) {
-			GlStateManager.bindTexture(texEffectColor);
+			GlStateManager.bindTexture(texEmissiveColor);
 		} else {
 			GlStateManager.bindTexture(texExtras);
 		}
@@ -402,7 +441,7 @@ public class CanvasFrameBufferHacks {
 		endCopy();
 	}
 
-	private static void setupBloomLod() {
+	private static void setupBlurLod() {
 		GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MAX_LEVEL, 6);
 		GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MIN_LOD, 0);
 		GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MAX_LOD, 6);
@@ -440,16 +479,29 @@ public class CanvasFrameBufferHacks {
 			texExtras = createColorAttachment(w, h);
 			texNormal = createColorAttachment(w, h);
 
-			texEffectColor = createColorAttachment(w, h);
 			texMainCopy = createColorAttachment(w, h);
 
-			texBloomDownsample = createColorAttachment(w, h);
-			GlStateManager.bindTexture(texBloomDownsample);
-			setupBloomLod();
+			if(Configurator.enableBloom) {
+				texEmissiveColor = createColorAttachment(w, h);
+				texBloomDownsample = createColorAttachment(w, h);
+				GlStateManager.bindTexture(texBloomDownsample);
+				setupBlurLod();
 
-			texBloomUpsample = createColorAttachment(w, h);
-			GlStateManager.bindTexture(texBloomUpsample);
-			setupBloomLod();
+				texBloomUpsample = createColorAttachment(w, h);
+				GlStateManager.bindTexture(texBloomUpsample);
+				setupBlurLod();
+			}
+
+			if(Configurator.screenSpaceReflection){
+				texReflectionColor = createColorAttachment(w, h);
+				texReflectionDownsample = createColorAttachment(w, h);
+				GlStateManager.bindTexture(texReflectionDownsample);
+				setupBlurLod();
+
+				texReflectionUpsample = createColorAttachment(w, h);
+				GlStateManager.bindTexture(texReflectionUpsample);
+				setupBlurLod();
+			}
 
 
 			// don't want filtering when copy back from main
@@ -497,12 +549,23 @@ public class CanvasFrameBufferHacks {
 	private static void tearDown() {
 		if (texExtras != -1) {
 			TextureUtil.deleteId(texExtras);
-			TextureUtil.deleteId(texEffectColor);
-			//			TextureUtil.deleteId(mainHDR);
 			TextureUtil.deleteId(texMainCopy);
+			texExtras = -1;
+		}
+
+		if (texEmissiveColor != -1) {
+			TextureUtil.deleteId(texEmissiveColor);
+			//			TextureUtil.deleteId(mainHDR);
 			TextureUtil.deleteId(texBloomDownsample);
 			TextureUtil.deleteId(texBloomUpsample);
-			texExtras = -1;
+			texEmissiveColor = -1;
+		}
+
+		if (texReflectionColor != -1) {
+			TextureUtil.deleteId(texReflectionColor);
+			TextureUtil.deleteId(texReflectionDownsample);
+			TextureUtil.deleteId(texReflectionUpsample);
+			texReflectionColor = -1;
 		}
 
 		if (texNormal != -1) {
