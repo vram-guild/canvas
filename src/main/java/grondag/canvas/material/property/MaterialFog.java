@@ -115,8 +115,6 @@ public class MaterialFog {
 		if (isAllowed && isEnabled) {
 			final int fogMode = FogStateExtHolder.INSTANCE.getMode();
 
-			// Convert to values more reliably read as floats
-
 			if (fogMode == 2048) {
 				// EXP
 				shaderParam = 1;

@@ -30,7 +30,6 @@ import grondag.canvas.material.property.MaterialWriteMask;
 import grondag.canvas.render.CanvasFrameBufferHacks;
 import grondag.canvas.shader.GlProgram;
 import grondag.canvas.texture.SpriteInfoTexture;
-import grondag.canvas.varia.GlStateSpy;
 import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import org.lwjgl.opengl.GL11;
@@ -61,9 +60,9 @@ public final class RenderState extends AbstractRenderState {
 			return;
 		}
 
-		if (enablePrint) {
-			GlStateSpy.print();
-		}
+		//		if (enablePrint) {
+		//			GlStateSpy.print();
+		//		}
 
 		if (active == null) {
 			// same for all, so only do 1X
@@ -138,10 +137,10 @@ public final class RenderState extends AbstractRenderState {
 
 		MaterialTarget.disable();
 
-		if (enablePrint) {
-			GlStateSpy.print();
-			enablePrint = false;
-		}
+		//		if (enablePrint) {
+		//			GlStateSpy.print();
+		//			enablePrint = false;
+		//		}
 	}
 
 
@@ -162,5 +161,5 @@ public final class RenderState extends AbstractRenderState {
 		return STATES[index];
 	}
 
-	public static boolean enablePrint = false;
+	//	public static boolean enablePrint = false;
 }
