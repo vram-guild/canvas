@@ -33,16 +33,11 @@ import net.fabricmc.fabric.api.client.rendering.v1.InvalidateRenderStateCallback
 import net.fabricmc.fabric.api.renderer.v1.RendererAccess;
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 
-//FEAT: fancy water
-//FEAT: fancy lava
 //FEAT: item rendering
-//FEAT: block entity rendering
-//FEAT: entity rendering
-//FEAT: particle rendering
 //FEAT: weather rendering
 //FEAT: sky rendering
 //FEAT: pbr textures
-//PERF: disable lava/water texture animation (configurable)
+//PERF: disable animated textures when not in view
 //PERF: improve light smoothing performance
 //FEAT: colored lights
 //FEAT: per chunk occlusion mesh - for sky shadow mask
