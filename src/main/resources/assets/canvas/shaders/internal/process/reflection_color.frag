@@ -23,7 +23,7 @@ vec2 uvSpace(vec3 viewPos){
 }
 
 vec3 viewSpace(vec2 uv) {
-	vec2 clipPos = (uv - 0.5) * 2;
+	vec2 clipPos = 2.0 * uv - 1.0;
 	vec4 viewPos = cvu_inv_projection * vec4( clipPos.x, clipPos.y, 2.0 * texture2DLod(_cvu_depth, uv, 0).r - 1.0, 1.0);
 	return viewPos.xyz / viewPos.w;
 }
@@ -37,7 +37,8 @@ vec3 normal(vec2 uv){
 vec3 hash(vec2 uv){
     vec3 a = fract(uv.xyx * vec3(25.9, 25.9, 25.9));
     a += dot(a, a.yxz + 19.19);
-    return fract((a.xxy + a.yxx)*a.zyx);
+    vec3 b = fract((a.xxy + a.yxx)*a.zyx);
+    return 2.0 * b - 1.0;
 }
 
 const float minStepL = 0.1;
