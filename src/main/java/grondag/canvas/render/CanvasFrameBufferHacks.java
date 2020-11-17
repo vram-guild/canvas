@@ -226,7 +226,7 @@ public class CanvasFrameBufferHacks {
 		GlStateManager.activeTexture(GL21.GL_TEXTURE1);
 		GlStateManager.enableTexture();
 		GlStateManager.bindTexture(texBloomUpsample);
-		upsample.activate().intensity(1f);
+		upsample.activate().intensity(1f); // <- reuse uniform. used to multiply sum (for averaging)
 
 		for (int d = 6; d >= 0; --d) {
 			final int sw = (w >> d);
@@ -283,7 +283,7 @@ public class CanvasFrameBufferHacks {
 		Matrix4f invProjection = new Matrix4f(projectionMatrix);
 		invProjection.invert();
 
-		// Draw to intermediate texture. Might add a blur pass later
+		// Draw to intermediate texture
 		GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT, GL21.GL_TEXTURE_2D, texReflectionColor, 0);
 		reflectionColor.activate().size(w, h).projection(projectionMatrix).invProjection(invProjection);
 
@@ -302,41 +302,44 @@ public class CanvasFrameBufferHacks {
 
 		GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
 
-		// build bloom mipmaps, blurring as part of downscale
-		GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT, GL21.GL_TEXTURE_2D, texReflectionDownsample, 0);
-		GlStateManager.bindTexture(texReflectionColor);
-		downsample.activate().distance(1f, 1f).size(w, h).lod(0);
-		setProjection(w, h);
-		RenderSystem.viewport(0, 0, w, h);
-		GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
+		// Disable blur for now as it is causing artifacts. May be better to improve the roughness
+		// function instead as the main purpose of blur was to improve the look of rough surfaces.
 
-		GlStateManager.bindTexture(texReflectionDownsample);
-
-		for (int d = 1; d <= 6; ++d) {
-			final int sw = (w >> d);
-			final int sh = (h >> d);
-			downsample.size(sw, sh).lod(d - 1);
-			setProjection(sw, sh);
-			RenderSystem.viewport(0, 0, sw, sh);
-			GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT, GL21.GL_TEXTURE_2D, texReflectionDownsample, d);
-			GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
-		}
-
-		// upscale bloom mipmaps, bluring again as we go
-		GlStateManager.activeTexture(GL21.GL_TEXTURE1);
-		GlStateManager.enableTexture();
-		GlStateManager.bindTexture(texReflectionUpsample);
-		upsample.activate().intensity(0.5f);
-
-		for (int d = 6; d >= 0; --d) {
-			final int sw = (w >> d);
-			final int sh = (h >> d);
-			upsample.distance(10, 10).size(sw, sh).lod(d);
-			setProjection(sw, sh);
-			RenderSystem.viewport(0, 0, sw, sh);
-			GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT, GL21.GL_TEXTURE_2D, texReflectionUpsample, d);
-			GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
-		}
+//		// build reflection mipmaps, blurring as part of downscale
+//		GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT, GL21.GL_TEXTURE_2D, texReflectionDownsample, 0);
+//		GlStateManager.bindTexture(texReflectionColor);
+//		downsample.activate().distance(1f, 1f).size(w, h).lod(0);
+//		setProjection(w, h);
+//		RenderSystem.viewport(0, 0, w, h);
+//		GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
+//
+//		GlStateManager.bindTexture(texReflectionDownsample);
+//
+//		for (int d = 1; d <= 6; ++d) {
+//			final int sw = (w >> d);
+//			final int sh = (h >> d);
+//			downsample.size(sw, sh).lod(d - 1);
+//			setProjection(sw, sh);
+//			RenderSystem.viewport(0, 0, sw, sh);
+//			GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT, GL21.GL_TEXTURE_2D, texReflectionDownsample, d);
+//			GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
+//		}
+//
+//		// upscale reflection mipmaps, bluring again as we go
+//		GlStateManager.activeTexture(GL21.GL_TEXTURE1);
+//		GlStateManager.enableTexture();
+//		GlStateManager.bindTexture(texReflectionUpsample);
+//		upsample.activate().intensity(0.5f); // <- reuse uniform. used to multiply sum (for averaging)
+//
+//		for (int d = 6; d >= 0; --d) {
+//			final int sw = (w >> d);
+//			final int sh = (h >> d);
+//			upsample.distance(10, 10).size(sw, sh).lod(d);
+//			setProjection(sw, sh);
+//			RenderSystem.viewport(0, 0, sw, sh);
+//			GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT, GL21.GL_TEXTURE_2D, texReflectionUpsample, d);
+//			GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
+//		}
 
 		// Switch back to MC fbo to draw combined color + reflection color
 		GlStateManager.bindFramebuffer(FramebufferInfo.FRAME_BUFFER, mainFbo);
@@ -350,7 +353,7 @@ public class CanvasFrameBufferHacks {
 
 		GlStateManager.activeTexture(GL21.GL_TEXTURE1);
 		GlStateManager.enableTexture();
-		GlStateManager.bindTexture(texReflectionUpsample);
+		GlStateManager.bindTexture(texReflectionColor);
 
 		// Framebuffer attachment shouldn't draw to self so use copy created earlier
 		GlStateManager.activeTexture(GL21.GL_TEXTURE0);
