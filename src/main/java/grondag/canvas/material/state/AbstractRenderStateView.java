@@ -141,6 +141,10 @@ abstract class AbstractRenderStateView {
 		return FOG.getValue(bits);
 	}
 
+	public boolean gui() {
+		return GUI.getValue(bits);
+	}
+
 	public BlendMode blendMode() {
 		return BLENDMODE.getValue(bits);
 	}
@@ -188,6 +192,7 @@ abstract class AbstractRenderStateView {
 	static final BitPacker64<Void>.IntElement DECAL = PACKER.createIntElement(MaterialDecal.DECAL_COUNT);
 	static final BitPacker64<Void>.BooleanElement LINES = PACKER.createBooleanElement();
 	static final BitPacker64<Void>.IntElement FOG = PACKER.createIntElement(MaterialFog.FOG_COUNT);
+	static final BitPacker64<Void>.BooleanElement GUI = PACKER.createBooleanElement();
 
 	// These don't affect GL state but must be collected and drawn separately
 	// They also generally won't change within a render state for any given context
@@ -198,6 +203,7 @@ abstract class AbstractRenderStateView {
 	// PTT stands for for "Primary Target Transparency" and identifies the collection key and state
 	// to be used for the primary sorted transparency buffer for a given target.
 	// Quads outside of this buffer, if any, will be rendered after primary and may not sort correctly.
+	// Must not be GUI render
 	public static final long PTT_COLLECTOR_AND_STATE_MASK = PACKER.bitMask();
 
 	// Part of render state and collection key for non-sorted, not included in either for sorted
@@ -251,6 +257,7 @@ abstract class AbstractRenderStateView {
 		defaultBits = WRITE_MASK.setValue(MaterialFinder.WRITE_MASK_COLOR_DEPTH, defaultBits);
 		defaultBits = UNMIPPED.setValue(false, defaultBits);
 		defaultBits = FOG.setValue(MaterialFinder.FOG_TINTED, defaultBits);
+		defaultBits = GUI.setValue(false, defaultBits);
 
 		DEFAULT_BITS = defaultBits;
 
@@ -266,6 +273,7 @@ abstract class AbstractRenderStateView {
 		translucentBits = TARGET.setValue(MaterialFinder.TARGET_TRANSLUCENT, translucentBits);
 		translucentBits = LINES.setValue(false, translucentBits);
 		translucentBits = FOG.setValue(MaterialFinder.FOG_TINTED, translucentBits);
+		translucentBits = GUI.setValue(false, translucentBits);
 		translucentBits = SORTED.setValue(true, translucentBits);
 		translucentBits = PRIMITIVE.setValue(GL11.GL_QUADS, translucentBits);
 

@@ -11,7 +11,7 @@ public class GlMaterialProgram extends GlProgram {
 	// converts world normals to normals of incoming vertex data
 	public final UniformMatrix3fImpl normalModelMatrix;
 	public final UniformArrayfImpl materialArray;
-	public final Uniform2iImpl programId;
+	public final Uniform3iImpl programInfo;
 	public final Uniform1iImpl modelOriginType;
 	public final Uniform1iImpl fogMode;
 
@@ -20,7 +20,7 @@ public class GlMaterialProgram extends GlProgram {
 		modelOrigin = (Uniform3fImpl) uniform3f("_cvu_model_origin", UniformRefreshFrequency.ON_LOAD, u -> u.set(0, 0, 0));
 		normalModelMatrix = uniformMatrix3f("_cvu_normal_model_matrix", UniformRefreshFrequency.ON_LOAD, u -> {});
 		materialArray = (UniformArrayfImpl) uniformArrayf("_cvu_material", UniformRefreshFrequency.ON_LOAD, u -> {}, 4);
-		programId = (Uniform2iImpl) uniform2i("_cvu_program", UniformRefreshFrequency.ON_LOAD, u -> {});
+		programInfo = (Uniform3iImpl) uniform3i("_cvu_program", UniformRefreshFrequency.ON_LOAD, u -> {});
 		modelOriginType = (Uniform1iImpl) uniform1i("_cvu_model_origin_type", UniformRefreshFrequency.ON_LOAD, u -> u.set(MaterialMatrixState.getModelOrigin().ordinal()));
 		fogMode = (Uniform1iImpl) uniform1i("_cvu_fog_mode", UniformRefreshFrequency.ON_LOAD, u -> u.set(0));
 	}

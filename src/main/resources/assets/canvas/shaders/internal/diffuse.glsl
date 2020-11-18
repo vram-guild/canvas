@@ -1,5 +1,6 @@
 #include frex:shaders/api/context.glsl
 #include frex:shaders/api/world.glsl
+#include canvas:shaders/internal/program.glsl
 
 /******************************************************
   canvas:shaders/internal/diffuse.glsl
@@ -24,15 +25,27 @@ float _cv_diffuseBaked(vec3 normal) {
 }
 
 /**
- * Offers results similar to vanilla in Gui, assumes a fixed transform.
+ * Offers results similar to vanilla in GUI, assumes a fixed transform.
+ * Vanilla GUI light setup looks like this:
+ *
+ * light(GL_LIGHT0, GL_POSITION, -0.96104145, -0.078606814, -0.2593495, 0
+ * light(GL_LIGHT0, GL_DIFFUSE, getBuffer(0.6F, 0.6F, 0.6F, 1.0F));
+ * light(GL_LIGHT0, GL_AMBIENT, getBuffer(0.0F, 0.0F, 0.0F, 1.0F));
+ * light(GL_LIGHT0, GL_SPECULAR, getBuffer(0.0F, 0.0F, 0.0F, 1.0F));
+ *
+ * light(GL_LIGHT1, GL_POSITION, -0.26765957, -0.95667744, 0.100838766, 0
+ * light(GL_LIGHT1, GL_DIFFUSE, getBuffer(0.6F, 0.6F, 0.6F, 1.0F));
+ * light(GL_LIGHT1, GL_AMBIENT, getBuffer(0.0F, 0.0F, 0.0F, 1.0F));
+ * light(GL_LIGHT1, GL_SPECULAR, getBuffer(0.0F, 0.0F, 0.0F, 1.0F));
+ *
+ * glShadeModel(GL_FLAT);
+ * glLightModel(GL_LIGHT_MODEL_AMBIENT, 0.4F, 0.4F, 0.4F, 1.0F);
  */
 float _cv_diffuseGui(vec3 normal) {
-	// Note that vanilla rendering normally sends item models with raw colors and
-	// canvas sends colors unmodified, so we do not need to compensate for any pre-buffer shading
+	normal = normalize(gl_NormalMatrix * normal);
 	float light = 0.4
-	+ 0.6 * clamp(dot(normal.xyz, vec3(-0.309, 0.927, -0.211)), 0.0, 1.0)
-	+ 0.6 * clamp(dot(normal.xyz, vec3(0.518, 0.634, 0.574)), 0.0, 1.0);
-
+	+ 0.6 * clamp(dot(normal.xyz, vec3(-0.96104145, -0.078606814, -0.2593495)), 0.0, 1.0)
+	+ 0.6 * clamp(dot(normal.xyz, vec3(-0.26765957, -0.95667744, 0.100838766)), 0.0, 1.0);
 	return min(light, 1.0);
 }
 
@@ -49,5 +62,5 @@ float _cv_diffuseWorld(vec3 normal) {
 }
 
 float _cv_diffuse (vec3 normal) {
-	return _cv_diffuseBaked(normal);
+	return _cv_isGui() == 1.0 ? _cv_diffuseGui(normal) : _cv_diffuseBaked(normal);
 }

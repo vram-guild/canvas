@@ -89,7 +89,7 @@ public final class RenderState extends AbstractRenderState {
 		LIGHTMAP_STATE.setEnabled(enableLightmap);
 		LINE_STATE.setEnabled(lines);
 
-		shader.activate();
+		shader.activate(this);
 		shader.setAtlasInfo(texture.atlasInfo());
 	}
 

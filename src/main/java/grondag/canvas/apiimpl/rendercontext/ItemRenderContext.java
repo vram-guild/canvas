@@ -147,10 +147,13 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 	 */
 	private boolean isBlockItem;
 
+	private boolean isGui;
+
 	/**
-	 * False for generated models when in GUI and diffuse shading shouldn't be used.
+	 * True for generated models when in GUI and diffuse shading shouldn't be used.
+	 * True only when isGui is true;
 	 */
-	private boolean isSideLit;
+	private boolean isFrontLit;
 
 	public void renderItem(ItemModels models, ItemStack stack, Mode renderMode, boolean leftHanded, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, int overlay, BakedModel model) {
 		if (stack.isEmpty()) return;
@@ -162,7 +165,8 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 		itemStack = stack;
 		vanillaProvider = vertexConsumers;
 		materialMap = MaterialMap.get(itemStack);
-		isSideLit = renderMode == ModelTransformation.Mode.GUI && model.isSideLit();
+		isGui = renderMode == ModelTransformation.Mode.GUI;
+		isFrontLit = isGui && !model.isSideLit();
 		matrices.push();
 		final boolean detachedPerspective = renderMode == ModelTransformation.Mode.GUI || renderMode == ModelTransformation.Mode.GROUND || renderMode == ModelTransformation.Mode.FIXED;
 
@@ -293,8 +297,12 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 				assert false : "Unhandled blend mode";
 		}
 
-		if (!isSideLit) {
-			finder.disableDiffuse(true);
+		if (isGui) {
+			finder.gui(true);
+
+			if (isFrontLit) {
+				finder.disableDiffuse(true);
+			}
 		}
 
 		finder.disableAo(true);

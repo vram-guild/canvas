@@ -18,6 +18,7 @@ package grondag.canvas.shader;
 
 import grondag.canvas.material.property.MaterialFog;
 import grondag.canvas.material.property.MaterialMatrixState;
+import grondag.canvas.material.state.RenderState;
 import grondag.canvas.texture.SpriteInfoTexture;
 
 public final class MaterialShaderImpl {
@@ -52,9 +53,9 @@ public final class MaterialShaderImpl {
 
 	// UGLY: all of this activation stuff is trash code
 	// these should probably happen before program activation - change detection should upload as needed
-	private void updateCommonUniforms() {
-		program.programId.set(vertexShaderIndex, fragmentShaderIndex);
-		program.programId.upload();
+	private void updateCommonUniforms(RenderState renderState) {
+		program.programInfo.set(vertexShaderIndex, fragmentShaderIndex, renderState.gui ? 1 : 0);
+		program.programInfo.upload();
 
 		program.modelOriginType.set(MaterialMatrixState.getModelOrigin().ordinal());
 		program.modelOriginType.upload();
@@ -70,9 +71,9 @@ public final class MaterialShaderImpl {
 		getOrCreate().setModelOrigin(x, y, z);
 	}
 
-	public void activate() {
+	public void activate(RenderState renderState) {
 		getOrCreate().activate();
-		updateCommonUniforms();
+		updateCommonUniforms(renderState);
 	}
 
 	public void setAtlasInfo(SpriteInfoTexture atlasInfo) {

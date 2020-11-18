@@ -68,9 +68,6 @@ void main() {
 	gl_ClipVertex = viewCoord;
 	gl_FogFragCoord = length(viewCoord.xyz);
 
-#if DIFFUSE_SHADING_MODE != DIFFUSE_MODE_NONE
-	_cvv_diffuse = _cv_diffuseBaked(data.normal);
-#endif
 
 	//data.normal *= gl_NormalMatrix;
 	data.vertex = gl_ModelViewProjectionMatrix * data.vertex;
@@ -83,7 +80,11 @@ void main() {
 	_cvv_color = data.color;
 	_cvv_normal = data.normal;
 
-#if AO_SHADING_MODE != AO_MODE_NONE
+#if DIFFUSE_SHADING_MODE != DIFFUSE_MODE_NONE
+	_cvv_diffuse = _cv_diffuse(_cvv_normal);
+#endif
+
+	#if AO_SHADING_MODE != AO_MODE_NONE
 	_cvv_ao = in_lightmap.b / 255.0;
 #endif
 
