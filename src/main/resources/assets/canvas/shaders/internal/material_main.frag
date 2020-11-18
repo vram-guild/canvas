@@ -50,15 +50,34 @@ vec4 aoFactor(vec2 lightCoord) {
 #endif
 
 vec4 light(frx_FragmentData fragData) {
+	vec4 result;
+
 #if DIFFUSE_SHADING_MODE == DIFFUSE_MODE_SKY_ONLY
 	if (fragData.diffuse) {
 		vec4 block = texture2D(frxs_lightmap, vec2(fragData.light.x, 0.03125));
 		vec4 sky = texture2D(frxs_lightmap, vec2(0.03125, fragData.light.y));
-		return max(block, sky * _cvv_diffuse);
+		result = max(block, sky * _cvv_diffuse);
+	} else {
+		result = texture2D(frxs_lightmap, fragData.light);
 	}
+#else
+	result = texture2D(frxs_lightmap, fragData.light);
 #endif
 
-	return texture2D(frxs_lightmap, fragData.light);
+	vec4 held = frx_heldLight();
+
+	if (held.w > 0.0 && !frx_isGui()) {
+		float d = clamp(gl_FogFragCoord / (held.w * 12.0), 0.0, 1.0);
+		d = 1.0 - d * d;
+
+		vec4 maxBlock = texture2D(frxs_lightmap, vec2(0.96875, 0.03125));
+
+		held = vec4(held.xyz, 1.0) * maxBlock * d;
+
+		result = min(result + held, 1.0);
+	}
+
+	return result;
 }
 
 void main() {

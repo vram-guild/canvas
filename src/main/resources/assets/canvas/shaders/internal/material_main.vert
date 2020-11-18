@@ -28,7 +28,6 @@ attribute vec2 in_material;
 attribute vec4 in_lightmap;
 attribute vec4 in_normal_flags;
 
-
 void main() {
 	frx_VertexData data = frx_VertexData(
 	gl_Vertex,
@@ -67,7 +66,6 @@ void main() {
 	vec4 viewCoord = gl_ModelViewMatrix * data.vertex;
 	gl_ClipVertex = viewCoord;
 	gl_FogFragCoord = length(viewCoord.xyz);
-
 
 	//data.normal *= gl_NormalMatrix;
 	data.vertex = gl_ModelViewProjectionMatrix * data.vertex;
