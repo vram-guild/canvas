@@ -64,10 +64,11 @@ vec4 light(frx_FragmentData fragData) {
 	result = texture2D(frxs_lightmap, fragData.light);
 #endif
 
+#if HANDHELD_LIGHT_RADIUS != 0
 	vec4 held = frx_heldLight();
 
 	if (held.w > 0.0 && !frx_isGui()) {
-		float d = clamp(gl_FogFragCoord / (held.w * 12.0), 0.0, 1.0);
+		float d = clamp(gl_FogFragCoord / (held.w * HANDHELD_LIGHT_RADIUS), 0.0, 1.0);
 		d = 1.0 - d * d;
 
 		vec4 maxBlock = texture2D(frxs_lightmap, vec2(0.96875, 0.03125));
@@ -76,6 +77,7 @@ vec4 light(frx_FragmentData fragData) {
 
 		result = min(result + held, 1.0);
 	}
+#endif
 
 	return result;
 }
