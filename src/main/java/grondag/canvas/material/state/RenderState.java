@@ -60,6 +60,10 @@ public final class RenderState extends AbstractRenderState {
 			return;
 		}
 
+		//		if (enablePrint) {
+		//			GlStateSpy.print();
+		//		}
+
 		if (active == null) {
 			// same for all, so only do 1X
 			RenderSystem.shadeModel(GL11.GL_SMOOTH);
@@ -85,7 +89,7 @@ public final class RenderState extends AbstractRenderState {
 		LIGHTMAP_STATE.setEnabled(enableLightmap);
 		LINE_STATE.setEnabled(lines);
 
-		shader.activate();
+		shader.activate(this);
 		shader.setAtlasInfo(texture.atlasInfo());
 	}
 
@@ -132,7 +136,13 @@ public final class RenderState extends AbstractRenderState {
 		RenderSystem.defaultAlphaFunc();
 
 		MaterialTarget.disable();
+
+		//		if (enablePrint) {
+		//			GlStateSpy.print();
+		//			enablePrint = false;
+		//		}
 	}
+
 
 	public static final int MAX_COUNT = 4096;
 	static int nextIndex = 0;
@@ -150,4 +160,6 @@ public final class RenderState extends AbstractRenderState {
 	public static RenderState fromIndex(int index) {
 		return STATES[index];
 	}
+
+	//	public static boolean enablePrint = false;
 }

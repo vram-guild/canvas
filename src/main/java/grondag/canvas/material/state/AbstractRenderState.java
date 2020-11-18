@@ -61,6 +61,7 @@ abstract class AbstractRenderState extends AbstractRenderStateView {
 	public final MaterialTarget target;
 	public final boolean lines;
 	public final MaterialFog fog;
+	public final boolean gui;
 	public final int vertexShaderIndex;
 	public final Identifier vertexShaderId;
 	public final String vertexShader;
@@ -100,6 +101,7 @@ abstract class AbstractRenderState extends AbstractRenderStateView {
 		target = MaterialTarget.fromIndex(target());
 		lines = lines();
 		fog = MaterialFog.fromIndex(fog());
+		gui = gui();
 		condition = condition();
 		transparency = MaterialTransparency.fromIndex(transparency());
 		sorted = sorted();

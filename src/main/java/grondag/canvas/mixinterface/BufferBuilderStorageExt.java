@@ -16,12 +16,8 @@
 
 package grondag.canvas.mixinterface;
 
-public interface FogStateExt {
-	int getMode();
+import grondag.canvas.buffer.encoding.CanvasImmediate;
 
-	float getDensity();
-
-	float getStart();
-
-	float getEnd();
+public interface BufferBuilderStorageExt {
+	void canvas_setEntityConsumers(CanvasImmediate consumers);
 }

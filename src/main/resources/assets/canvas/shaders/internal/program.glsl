@@ -1,3 +1,5 @@
+#include frex:shaders/lib/bitwise.glsl
+
 /******************************************************
   canvas:shaders/internal/program.glsl
 ******************************************************/
@@ -7,7 +9,7 @@
 
 #ifdef PROGRAM_BY_UNIFORM
 
-uniform ivec2 _cvu_program;
+uniform ivec3 _cvu_program;
 
 int _cv_vertexProgramId() {
 	return _cvu_program.x;
@@ -19,7 +21,7 @@ int _cv_fragmentProgramId() {
 
 #else
 
-varying vec2 _cvu_program;
+varying vec3 _cvu_program;
 
 int _cv_vertexProgramId() {
 	return int(_cvu_program.x);
@@ -30,3 +32,9 @@ int _cv_fragmentProgramId() {
 }
 
 #endif
+
+#define PROGRAM_FLAG_GUI 0
+
+float _cv_isGui() {
+	return frx_bitValue(_cvu_program.z, PROGRAM_FLAG_GUI);
+}

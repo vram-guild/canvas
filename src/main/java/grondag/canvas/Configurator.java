@@ -56,6 +56,7 @@ public class Configurator {
 	public static float bloomScale = DEFAULTS.bloomScale;
 	public static boolean screenSpaceReflection = DEFAULTS.screenSpaceReflection;
 	public static boolean wavyGrass = DEFAULTS.wavyGrass;
+	public static int handheldLightRadius = DEFAULTS.handheldLightRadius;
 	public static boolean lightmapNoise = DEFAULTS.lightmapNoise;
 	public static DiffuseMode diffuseShadingMode = DEFAULTS.diffuseShadingMode;
 	public static boolean lightSmoothing = DEFAULTS.lightSmoothing;
@@ -137,6 +138,7 @@ public class Configurator {
 		bloomScale = config.bloomScale;
 		screenSpaceReflection = config.screenSpaceReflection;
 		wavyGrass = config.wavyGrass;
+		handheldLightRadius = config.handheldLightRadius;
 
 		shaderDebug = config.shaderDebug;
 		maxLightmapDelayFrames = config.maxLightmapDelayFrames;
@@ -186,6 +188,7 @@ public class Configurator {
 		config.bloomScale = bloomScale;
 		config.screenSpaceReflection = screenSpaceReflection;
 		config.wavyGrass = wavyGrass;
+		config.handheldLightRadius = handheldLightRadius;
 
 		config.shaderDebug = shaderDebug;
 		config.maxLightmapDelayFrames = maxLightmapDelayFrames;
@@ -331,6 +334,18 @@ public class Configurator {
 			.setSaveConsumer(b -> {
 				reload |= wavyGrass != b;
 				wavyGrass = b;
+			})
+			.build());
+
+		features.addEntry(ENTRY_BUILDER
+			.startIntSlider(new TranslatableText("config.canvas.value.handheld_light_radius"), handheldLightRadius, 0, 15)
+			.setDefaultValue(DEFAULTS.handheldLightRadius)
+			.setMax(15)
+			.setMin(0)
+			.setTooltip(parse("config.canvas.help.handheld_light_radius"))
+			.setSaveConsumer(b -> {
+				reload |= handheldLightRadius != b;
+				handheldLightRadius = b;
 			})
 			.build());
 
@@ -676,6 +691,8 @@ public class Configurator {
 		public boolean screenSpaceReflection = false;
 		@Comment("Animated foliage")
 		public boolean wavyGrass = true;
+		@Comment("Hand held light max radius. 0-15, Zero disables")
+		public int handheldLightRadius = 12;
 		@Comment("Enable rendering of internal buffers for debug purposes. Off by default to prevent accidental activation.")
 		public boolean enableBufferDebug = false;
 		@Comment("Output load/reload trace data to log. Will have performance impact.")

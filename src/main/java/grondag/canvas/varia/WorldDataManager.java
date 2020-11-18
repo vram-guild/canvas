@@ -18,6 +18,7 @@ package grondag.canvas.varia;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
+import grondag.frex.api.light.ItemLight;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
@@ -26,7 +27,6 @@ import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.effect.StatusEffects;
-import net.minecraft.item.Items;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 
@@ -40,7 +40,8 @@ public class WorldDataManager {
 	private static final int WORLD_TIME = 4;
 	private static final int WORLD_DAYS = 5;
 	private static final int FLAGS_0 = 6;
-	private static final int FOG_MODE = 7;
+	@SuppressWarnings("unused") // was previously used for fog
+	private static final int RESERVED = 7;
 	private static final int EMISSIVE_COLOR_RED = 8;
 	private static final int EMISSIVE_COLOR_GREEN = 9;
 	private static final int EMISSIVE_COLOR_BLUE = 10;
@@ -130,18 +131,24 @@ public class WorldDataManager {
 
 			DATA[RAIN_STRENGTH] = world.getRainGradient(tickDelta);
 
-			// TODO: use item tags
-			if (player != null && player.isHolding(Items.TORCH)) {
-				DATA[HELD_LIGHT_RED] = 1f;
-				DATA[HELD_LIGHT_GREEN] = 1f;
-				DATA[HELD_LIGHT_BLUE] = 0.8f;
-				DATA[HELD_LIGHT_INTENSITY] = 1f;
-			} else {
-				DATA[HELD_LIGHT_RED] = 0f;
-				DATA[HELD_LIGHT_GREEN] = 0f;
-				DATA[HELD_LIGHT_BLUE] = 0f;
-				DATA[HELD_LIGHT_INTENSITY] = 0f;
+			ItemLight light = ItemLight.NONE;
+
+			if (player != null)  {
+				light = ItemLight.get(player.getMainHandStack());
+
+				if (light == ItemLight.NONE) {
+					light = ItemLight.get(player.getOffHandStack());
+				}
+
+				if (!light.worksInFluid() && player.isInsideWaterOrBubbleColumn()) {
+					light = ItemLight.NONE;
+				}
 			}
+
+			DATA[HELD_LIGHT_RED] = light.red();
+			DATA[HELD_LIGHT_GREEN] = light.green();
+			DATA[HELD_LIGHT_BLUE] = light.blue();
+			DATA[HELD_LIGHT_INTENSITY] = light.intensity();
 
 			DATA[AMBIENT_INTENSITY] = world.method_23783(1.0F);
 			DATA[MOON_SIZE] = world.getMoonSize();
@@ -154,21 +161,6 @@ public class WorldDataManager {
 				DATA[WORLD_EFFECT_MODIFIER] = fluidModifier;
 			} else {
 				DATA[WORLD_EFFECT_MODIFIER] = 0.0F;
-			}
-
-			final int fogMode = FogStateExtHolder.INSTANCE.getMode();
-
-			// Convert to values more reliably read as floats
-			if (fogMode == 2048) {
-				// EXP
-				DATA[FOG_MODE] = 1.0f;
-			} else if (fogMode == 2049) {
-				// EXP2
-				DATA[FOG_MODE] = 2.0f;
-			} else {
-				assert fogMode == 9729;
-				// LINEAR
-				DATA[FOG_MODE] = 0.0f;
 			}
 		}
 

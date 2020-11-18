@@ -45,10 +45,12 @@ import grondag.canvas.compat.MaliLibHolder;
 import grondag.canvas.compat.SatinHolder;
 import grondag.canvas.compat.VoxelMapHolder;
 import grondag.canvas.light.LightmapHdTexture;
+import grondag.canvas.material.property.MaterialFog;
 import grondag.canvas.material.property.MaterialMatrixState;
 import grondag.canvas.material.property.MaterialTarget;
 import grondag.canvas.material.state.RenderContextState;
 import grondag.canvas.material.state.RenderState;
+import grondag.canvas.mixinterface.BufferBuilderStorageExt;
 import grondag.canvas.mixinterface.MatrixStackExt;
 import grondag.canvas.mixinterface.WorldRendererExt;
 import grondag.canvas.shader.MaterialShaderManager;
@@ -147,11 +149,12 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	final TerrainLayerRenderer TRANSLUCENT = new TerrainLayerRenderer("translucemt", this::sortTranslucentTerrain);
 
 	private final RenderContextState contextState = new RenderContextState();
-	private final CanvasImmediate worldRenderImmediate = new CanvasImmediate(new BufferBuilder(256), CanvasImmediate.entityBuilders(), contextState);
+	public final CanvasImmediate worldRenderImmediate = new CanvasImmediate(new BufferBuilder(256), CanvasImmediate.entityBuilders(), contextState);
 	private final CanvasParticleRenderer particleRenderer = new CanvasParticleRenderer();
 
 	public CanvasWorldRenderer(MinecraftClient client, BufferBuilderStorage bufferBuilders) {
 		super(client, bufferBuilders);
+		((BufferBuilderStorageExt) bufferBuilders).canvas_setEntityConsumers(worldRenderImmediate);
 
 		if (Configurator.enableLifeCycleDebug) {
 			CanvasMod.LOG.info("Lifecycle Event: CanvasWorldRenderer init");
@@ -392,6 +395,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		final Framebuffer mcfb = mc.getFramebuffer();
 		final BlockRenderContext blockContext = BlockRenderContext.get();
 		final EntityBlockRenderContext entityBlockContext = EntityBlockRenderContext.get();
+		MaterialFog.allow(true);
 
 		updatePlayerLightmap(mc, tickDelta);
 		final ClientWorld world = this.world;
@@ -819,15 +823,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			}
 		}
 
-		if (Configurator.enableBloom) {
-			CanvasFrameBufferHacks.applyBloom();
-		}
-
 		SatinHolder.onWorldRenderedEvent.onWorldRendered(matrixStack, camera, tickDelta, limitTime);
-
-		if (Configurator.enableBufferDebug) {
-			BufferDebug.render();
-		}
 
 		//this.renderChunkDebugInfo(camera);
 		BborHolder.bborHandler.render(matrixStack, tickDelta, mc.player);
@@ -841,6 +837,11 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		blockContext.collectors = null;
 
 		wr.canvas_setEntityCounts(entityCount, blockEntityCount);
+
+		// prevents fog in GUI
+		MaterialFog.allow(false);
+
+		//RenderState.enablePrint = true;
 	}
 
 	private void renderCullBoxes(MatrixStack matrixStack, Immediate immediate, double cameraX, double cameraY, double cameraZ, float tickDelta) {

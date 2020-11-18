@@ -31,6 +31,8 @@
   "config.canvas.help.screen_space_reflection": "Reflection on smooth surface based on screen data.;Performance impact depends on resolution.",
   "config.canvas.value.wavy_grass": "Animated Foliage",
   "config.canvas.help.wavy_grass": "Activates shaders for waving grass, leaves, etc.",
+  "config.canvas.value.handheld_light_radius": "Handheld Light Radius",
+  "config.canvas.help.handheld_light_radius": "Max reach for hand-held lights. Zero disables.",
   "config.canvas.category.lighting": "Lighting",
   "config.canvas.value.light_smoothing": "Light Smoothing",
   "config.canvas.help.light_smoothing": "Makes light sources less cross-shaped.;Chunk loading a little slower.;Overall light levels remain similar.",

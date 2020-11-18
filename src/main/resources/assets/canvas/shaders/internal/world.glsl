@@ -9,7 +9,7 @@
 #define _CV_WORLD_TIME 4
 #define _CV_WORLD_DAYS 5
 #define _CV_FLAGS_0 6
-#define _CV_FOG_MODE 7
+#define _CV_UNUSED 7
 #define _CV_EMISSIVE_COLOR_RED 8
 #define _CV_EMISSIVE_COLOR_GREEN 9
 #define _CV_EMISSIVE_COLOR_BLUE 10

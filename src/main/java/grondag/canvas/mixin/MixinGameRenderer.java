@@ -16,50 +16,26 @@
 
 package grondag.canvas.mixin;
 
-import grondag.canvas.mixinterface.FogStateExt;
-import grondag.canvas.varia.FogStateExtHolder;
+import grondag.canvas.Configurator;
+import grondag.canvas.render.BufferDebug;
+import grondag.canvas.render.CanvasFrameBufferHacks;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(targets = "com.mojang.blaze3d.platform.GlStateManager$FogState")
-public abstract class MixinFogState implements FogStateExt {
-	@Shadow
-	public int mode;
+import net.minecraft.client.render.GameRenderer;
 
-	@Shadow
-	public float density;
+@Mixin(GameRenderer.class)
+public abstract class MixinGameRenderer {
+	@Inject(method = "renderHand", require = 1, at = @At("RETURN"))
+	private void afterRenderHand(CallbackInfo ci) {
+		if (Configurator.enableBloom) {
+			CanvasFrameBufferHacks.applyBloom();
+		}
 
-	@Shadow
-	public float start;
-
-	@Shadow
-	public float end;
-
-	@Override
-	public int getMode() {
-		return mode;
-	}
-
-	@Override
-	public float getDensity() {
-		return density;
-	}
-
-	@Override
-	public float getStart() {
-		return start;
-	}
-
-	@Override
-	public float getEnd() {
-		return end;
-	}
-
-	@Inject(method = "<init>()V", require = 1, at = @At("RETURN"))
-	private void onConstructed(CallbackInfo ci) {
-		FogStateExtHolder.INSTANCE = (this);
+		if (Configurator.enableBufferDebug) {
+			BufferDebug.render();
+		}
 	}
 }

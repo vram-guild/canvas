@@ -29,7 +29,7 @@ public class MaterialDepthTest {
 		"disable",
 		() -> {
 			RenderSystem.disableDepthTest();
-			RenderSystem.depthFunc(GL11.GL_NEVER);
+			RenderSystem.depthFunc(GL11.GL_LEQUAL);
 		});
 
 	public static final MaterialDepthTest ALWAYS = new MaterialDepthTest(

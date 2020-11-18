@@ -236,6 +236,8 @@ public class GlShader implements Shader {
 				result = StringUtils.replace(result, "#define TARGET_NORMAL -1", "#define TARGET_NORMAL 2");
 			}
 
+			result = StringUtils.replace(result, "#define HANDHELD_LIGHT_RADIUS 0", "#define HANDHELD_LIGHT_RADIUS " + Configurator.handheldLightRadius);
+
 			if (Configurator.hdLightmaps()) {
 				result = StringUtils.replace(result, "#define VANILLA_LIGHTING", "//#define VANILLA_LIGHTING");
 

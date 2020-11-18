@@ -110,6 +110,11 @@ public abstract class AbstractStateFinder<T extends AbstractStateFinder<T, V>, V
 		return (T) this;
 	}
 
+	public T gui(boolean gui) {
+		bits = GUI.setValue(gui, bits);
+		return (T) this;
+	}
+
 	public T shader(Identifier vertexSource, Identifier fragmentSource) {
 		bits = SHADER_ID.setValue(MaterialShaderId.find(vertexSource, fragmentSource).index, bits);
 		return (T) this;

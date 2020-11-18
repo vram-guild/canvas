@@ -1,3 +1,5 @@
+#include canvas:shaders/internal/program.glsl
+
 /******************************************************
   frex:shaders/api/context.glsl
 
@@ -12,3 +14,10 @@
 
 // present in world context only when feature is enabled - if not present then foliage shaders should NOOP
 #define ANIMATED_FOLIAGE
+
+/*
+ * True when rendering to GUI.
+ */
+bool frx_isGui() {
+	return _cv_isGui() == 1.0;
+}
