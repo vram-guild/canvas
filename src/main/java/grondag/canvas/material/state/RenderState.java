@@ -29,6 +29,7 @@ import grondag.canvas.material.property.MaterialTransparency;
 import grondag.canvas.material.property.MaterialWriteMask;
 import grondag.canvas.render.CanvasFrameBufferHacks;
 import grondag.canvas.shader.GlProgram;
+import grondag.canvas.texture.MaterialInfoTexture;
 import grondag.canvas.texture.SpriteInfoTexture;
 import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
@@ -53,6 +54,7 @@ import net.minecraft.client.MinecraftClient;
 public final class RenderState extends AbstractRenderState {
 	protected RenderState(long bits) {
 		super(nextIndex++, bits);
+		MaterialInfoTexture.INSTANCE.set(index, vertexShaderIndex, fragmentShaderIndex, gui ? 1 : 0, 0);
 	}
 
 	public void enable() {

@@ -16,47 +16,51 @@
 
 package grondag.canvas.texture;
 
+import java.nio.FloatBuffer;
+
+import com.mojang.blaze3d.platform.GlStateManager;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
 import grondag.canvas.varia.CanvasGlHelper;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-import net.minecraft.client.texture.Sprite;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL21;
 import org.lwjgl.system.MemoryUtil;
 
-import java.nio.FloatBuffer;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 
+/**
+ * Texture stores information about material.
+ * Each pixel component is a signed 16-bit float.
+ * The upload buffer takes 32-bit floats.
+ *
+ * Layout is as follows
+ *
+ * R: vertex program ID
+ * G: fragment program ID
+ * B: program flags - currently only GUI
+ * A: reserved B
+ *
+ */
 @Environment(EnvType.CLIENT)
-public final class MaterialInfoImage implements AutoCloseable {
-	public final int size;
-	private final int sizeBytes;
+public final class MaterialInfoImage {
+	public final int squareSizePixels;
+	private final int bufferSizeBytes;
 	private long pointer;
 	private FloatBuffer floatBuffer;
+	private boolean dirty = true;
 
-	// FIX: make texture square to reduce chance of overrun/driver strangeness
-
-	public MaterialInfoImage(ObjectArrayList<Sprite> spriteIndex, int spriteCount, int size) {
+	public MaterialInfoImage(int squareSizePixels) {
 		if (Configurator.enableLifeCycleDebug) {
-			CanvasMod.LOG.info("Lifecycle Event: SpriteInfoImage init");
+			CanvasMod.LOG.info("Lifecycle Event: MaterialInfoImage init");
 		}
 
-		this.size = size;
-
-		// 16 because 4 floats per vector, 4 because 4 samples per sprite
-		sizeBytes = size * 16 * 4;
-		pointer = MemoryUtil.nmemAlloc(sizeBytes);
-		floatBuffer = MemoryUtil.memFloatBuffer(pointer, sizeBytes / 4);
-
-		for (int i = 0; i < spriteCount; ++i) {
-			final Sprite s = spriteIndex.get(i);
-			setPixel(i, s.getMinU(), s.getMinV(), s.getMaxU() - s.getMinU(), s.getMaxV() - s.getMinV());
-		}
+		this.squareSizePixels = squareSizePixels;
+		bufferSizeBytes = squareSizePixels * BUFFER_BYTES_PER_SPRITE;
+		pointer = MemoryUtil.nmemAlloc(bufferSizeBytes);
+		floatBuffer = MemoryUtil.memFloatBuffer(pointer, bufferSizeBytes / 4);
 	}
 
-	@Override
 	public void close() {
 		if (pointer != 0L) {
 			floatBuffer = null;
@@ -66,19 +70,33 @@ public final class MaterialInfoImage implements AutoCloseable {
 		pointer = 0L;
 	}
 
-	private void setPixel(int n, float x, float y, float z, float w) {
-		assert n <= size;
+	void set(int materialIndex, int vertexId, int fragmentId, int programFlags, int reserved) {
+		assert materialIndex <= squareSizePixels;
 		assert pointer != 0L : "Image not allocated.";
-		n *= 16;
-		floatBuffer.put(n, x);
-		floatBuffer.put(n + 1, y);
-		floatBuffer.put(n + 2, z);
-		floatBuffer.put(n + 3, w);
+		materialIndex *= 4;
+		floatBuffer.put(materialIndex, vertexId);
+		floatBuffer.put(materialIndex + 1, fragmentId);
+		floatBuffer.put(materialIndex + 2, programFlags);
+		floatBuffer.put(materialIndex + 3, reserved);
+		dirty = true;
 	}
 
 	public void upload() {
-		assert pointer != 0L : "Image not allocated.";
-		GL21.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL21.GL_RGBA16, 4, size, 0, GL21.GL_RGBA, GL21.GL_FLOAT, pointer);
-		assert CanvasGlHelper.checkError();
+		if (dirty) {
+			dirty = false;
+			assert pointer != 0L : "Image not allocated.";
+
+			GlStateManager.pixelStore(GL11.GL_UNPACK_ROW_LENGTH, 0);
+			GlStateManager.pixelStore(GL11.GL_UNPACK_SKIP_ROWS, 0);
+			GlStateManager.pixelStore(GL11.GL_UNPACK_SKIP_PIXELS, 0);
+			GlStateManager.pixelStore(GL11.GL_UNPACK_ALIGNMENT, 4);
+
+			GL21.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL21.GL_RGBA16, 4, squareSizePixels, 0, GL21.GL_RGBA, GL21.GL_FLOAT, pointer);
+			assert CanvasGlHelper.checkError();
+		}
 	}
+
+	// Four components per material, and four bytes per float
+	private static final int BUFFER_BYTES_PER_SPRITE = 4 * 4;
+
 }

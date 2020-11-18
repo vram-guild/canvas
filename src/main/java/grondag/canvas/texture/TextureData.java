@@ -29,4 +29,5 @@ public class TextureData {
 	public static final int HD_LIGHTMAP = GL21.GL_TEXTURE4;
 	public static final int DITHER = GL21.GL_TEXTURE5;
 	public static final int SPRITE_INFO = GL21.GL_TEXTURE6;
+	public static final int MATERIAL_INFO = GL21.GL_TEXTURE7;
 }
