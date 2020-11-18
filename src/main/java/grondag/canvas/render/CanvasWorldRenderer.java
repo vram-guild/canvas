@@ -814,15 +814,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			MaliLibHolder.litematicaRenderWorldLast.render(matrixStack, mc, tickDelta);
 		}
 
-		if (Configurator.enableBloom) {
-			CanvasFrameBufferHacks.applyBloom();
-		}
-
 		SatinHolder.onWorldRenderedEvent.onWorldRendered(matrixStack, camera, tickDelta, limitTime);
-
-		if (Configurator.enableBufferDebug) {
-			BufferDebug.render();
-		}
 
 		//this.renderChunkDebugInfo(camera);
 		BborHolder.bborHandler.render(matrixStack, tickDelta, mc.player);
