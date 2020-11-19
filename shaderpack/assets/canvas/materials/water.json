@@ -1,0 +1,6 @@
+{
+  "blendMode": "translucent",
+  "disableAo": true,
+  "vertexSource": "canvas:shaders/material/water.vert",
+  "fragmentSource": "canvas:shaders/material/water.frag"
+}
