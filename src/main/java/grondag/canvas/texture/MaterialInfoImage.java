@@ -21,6 +21,7 @@ import java.nio.FloatBuffer;
 import com.mojang.blaze3d.platform.GlStateManager;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
+import grondag.canvas.shader.MaterialShaderImpl;
 import grondag.canvas.varia.CanvasGlHelper;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL21;
@@ -56,7 +57,7 @@ public final class MaterialInfoImage {
 		}
 
 		this.squareSizePixels = squareSizePixels;
-		bufferSizeBytes = squareSizePixels * BUFFER_BYTES_PER_SPRITE;
+		bufferSizeBytes = squareSizePixels * squareSizePixels * BUFFER_BYTES_PER_SPRITE;
 		pointer = MemoryUtil.nmemAlloc(bufferSizeBytes);
 		floatBuffer = MemoryUtil.memFloatBuffer(pointer, bufferSizeBytes / 4);
 	}
@@ -70,15 +71,15 @@ public final class MaterialInfoImage {
 		pointer = 0L;
 	}
 
-	void set(int materialIndex, int vertexId, int fragmentId, int programFlags, int reserved) {
-		assert materialIndex <= squareSizePixels;
+	void set(int materialIndex, float vertexId, float fragmentId, float programFlags, float reserved) {
 		assert pointer != 0L : "Image not allocated.";
 		materialIndex *= 4;
-		floatBuffer.put(materialIndex, vertexId);
-		floatBuffer.put(materialIndex + 1, fragmentId);
-		floatBuffer.put(materialIndex + 2, programFlags);
+		floatBuffer.put(materialIndex, vertexId / MaterialShaderImpl.MAX_SHADERS);
+		floatBuffer.put(materialIndex + 1, fragmentId / MaterialShaderImpl.MAX_SHADERS);
+		floatBuffer.put(materialIndex + 2, programFlags / 255f);
 		floatBuffer.put(materialIndex + 3, reserved);
 		dirty = true;
+
 	}
 
 	public void upload() {
@@ -91,7 +92,7 @@ public final class MaterialInfoImage {
 			GlStateManager.pixelStore(GL11.GL_UNPACK_SKIP_PIXELS, 0);
 			GlStateManager.pixelStore(GL11.GL_UNPACK_ALIGNMENT, 4);
 
-			GL21.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL21.GL_RGBA16, 4, squareSizePixels, 0, GL21.GL_RGBA, GL21.GL_FLOAT, pointer);
+			GL21.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL21.GL_RGBA16, squareSizePixels, squareSizePixels, 0, GL21.GL_RGBA, GL21.GL_FLOAT, pointer);
 			assert CanvasGlHelper.checkError();
 		}
 	}

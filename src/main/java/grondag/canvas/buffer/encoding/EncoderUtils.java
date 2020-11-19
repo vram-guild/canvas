@@ -125,9 +125,11 @@ public abstract class EncoderUtils {
 			transformedNormal = normalMatrix.canvas_transform(packedNormal);
 		}
 
-		final int spriteIdCoord = SpriteInfoTexture.BLOCKS.coordinate(quad.spriteId());
+		int spriteIdCoord = SpriteInfoTexture.BLOCKS.coordinate(quad.spriteId());
 
 		assert spriteIdCoord <= 0xFFFF;
+
+		spriteIdCoord |= (mat.index << 16);
 
 		int k = 0;
 

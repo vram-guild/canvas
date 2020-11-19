@@ -54,6 +54,8 @@ public class ShaderData {
 
 		program.uniformSampler2d("frxs_spriteInfo", UniformRefreshFrequency.ON_LOAD, u -> u.set(TextureData.SPRITE_INFO - GL21.GL_TEXTURE0));
 
+		program.uniformSampler2d("frxs_materialInfo", UniformRefreshFrequency.ON_LOAD, u -> u.set(TextureData.MATERIAL_INFO - GL21.GL_TEXTURE0));
+
 		program.uniformArrayf("_fru_bitwise_divisors", UniformRefreshFrequency.ON_LOAD, u -> u.set(BITWISE_DIVISORS), 8);
 	};
 }

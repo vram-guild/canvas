@@ -20,7 +20,7 @@ import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
-import grondag.canvas.material.state.RenderState;
+import grondag.canvas.material.state.RenderMaterialImpl;
 import org.lwjgl.opengl.GL21;
 
 import net.minecraft.client.texture.TextureUtil;
@@ -33,6 +33,7 @@ public class MaterialInfoTexture {
 	private final int squareSizePixels = computeSquareSizeInPixels();
 	private int glId = -1;
 	private MaterialInfoImage image = null;
+	private boolean enabled = false;
 
 	private MaterialInfoTexture() { }
 
@@ -40,6 +41,8 @@ public class MaterialInfoTexture {
 		if (Configurator.enableLifeCycleDebug) {
 			CanvasMod.LOG.info("Lifecycle Event: MaterialInfoTexture init");
 		}
+
+		disable();
 
 		if (image != null) {
 			image.close();
@@ -53,7 +56,7 @@ public class MaterialInfoTexture {
 		}
 	}
 
-	public void set(int materialIndex, int vertexId, int fragmentId, int programFlags, int reserved) {
+	public synchronized void set(int materialIndex, int vertexId, int fragmentId, int programFlags, int reserved) {
 		createImageIfNeeded();
 
 		if (image != null) {
@@ -72,24 +75,33 @@ public class MaterialInfoTexture {
 		}
 	}
 
-	public static void disable() {
-		GlStateManager.activeTexture(TextureData.MATERIAL_INFO);
-		GlStateManager.bindTexture(0);
-		GlStateManager.disableTexture();
-		GlStateManager.activeTexture(TextureData.MC_SPRITE_ATLAS);
+	public void disable() {
+		if (enabled) {
+			enabled = false;
+			GlStateManager.activeTexture(TextureData.MATERIAL_INFO);
+			GlStateManager.bindTexture(0);
+			GlStateManager.disableTexture();
+			GlStateManager.activeTexture(TextureData.MC_SPRITE_ATLAS);
+		}
 	}
 
-	private void upload() {
-		if (glId == -1) {
-			try {
+	private void uploadAndActivate() {
+		try {
+			boolean isNew = false;
+
+			if (glId == -1) {
 				glId = TextureUtil.generateId();
+				isNew = true;
+			}
 
-				GlStateManager.activeTexture(TextureData.MATERIAL_INFO);
-				GlStateManager.bindTexture(glId);
+			GlStateManager.activeTexture(TextureData.MATERIAL_INFO);
+			GlStateManager.bindTexture(glId);
 
-				image.upload();
+			image.upload();
 
-				GlStateManager.enableTexture();
+			GlStateManager.enableTexture();
+
+			if (isNew) {
 				RenderSystem.matrixMode(GL21.GL_TEXTURE);
 				RenderSystem.loadIdentity();
 				RenderSystem.matrixMode(GL21.GL_MODELVIEW);
@@ -101,32 +113,32 @@ public class MaterialInfoTexture {
 				GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MAG_FILTER, GL21.GL_NEAREST);
 				GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_WRAP_S, GL21.GL_REPEAT);
 				GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_WRAP_T, GL21.GL_REPEAT);
-				GlStateManager.activeTexture(TextureData.MC_SPRITE_ATLAS);
-
-				GlStateManager.bindTexture(0);
-				GlStateManager.disableTexture();
-				GlStateManager.activeTexture(TextureData.MC_SPRITE_ATLAS);
-			} catch (final Exception e) {
-				CanvasMod.LOG.warn("Unable to create material info texture due to error:", e);
-				image = null;
-
-				if (glId != -1) {
-					TextureUtil.deleteId(glId);
-					glId = -1;
-				}
 			}
-		} else if (image != null) {
-			image.upload();
-		}
-	}
-	public void enable() {
-		createImageIfNeeded();
-		upload();
 
-		GlStateManager.activeTexture(TextureData.MATERIAL_INFO);
-		GlStateManager.bindTexture(glId);
-		GlStateManager.enableTexture();
-		GlStateManager.activeTexture(TextureData.MC_SPRITE_ATLAS);
+			GlStateManager.activeTexture(TextureData.MC_SPRITE_ATLAS);
+
+		} catch (final Exception e) {
+			CanvasMod.LOG.warn("Unable to create material info texture due to error:", e);
+
+			if (image != null) {
+				image.close();
+				image = null;
+			}
+
+			if (glId != -1) {
+				TextureUtil.deleteId(glId);
+				glId = -1;
+			}
+		}
+
+	}
+
+	public void enable() {
+		if (!enabled) {
+			enabled = true;
+			createImageIfNeeded();
+			uploadAndActivate();
+		}
 	}
 
 	public int squareSizePixels() {
@@ -137,7 +149,7 @@ public class MaterialInfoTexture {
 		int size = 64;
 		int capacity = size * size;
 
-		while (capacity < RenderState.MAX_COUNT) {
+		while (capacity < RenderMaterialImpl.MAX_MATERIAL_COUNT) {
 			size *= 2;
 			capacity = size * size;
 		}

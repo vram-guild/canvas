@@ -25,6 +25,7 @@ import grondag.canvas.material.property.MaterialTextureState;
 import grondag.canvas.material.property.MaterialTransparency;
 import grondag.canvas.material.property.MaterialWriteMask;
 import grondag.canvas.shader.MaterialShaderId;
+import grondag.canvas.shader.MaterialShaderImpl;
 import grondag.canvas.shader.ShaderData;
 import grondag.fermion.bits.BitPacker64;
 import grondag.frex.api.material.MaterialFinder;
@@ -207,7 +208,7 @@ abstract class AbstractRenderStateView {
 	public static final long PTT_COLLECTOR_AND_STATE_MASK = PACKER.bitMask();
 
 	// Part of render state and collection key for non-sorted, not included in either for sorted
-	static final BitPacker64<Void>.IntElement SHADER_ID = PACKER.createIntElement(4096);
+	static final BitPacker64<Void>.IntElement SHADER_ID = PACKER.createIntElement(MaterialShaderImpl.MAX_SHADERS);
 
 	public static final long RENDER_STATE_MASK = PACKER.bitMask();
 

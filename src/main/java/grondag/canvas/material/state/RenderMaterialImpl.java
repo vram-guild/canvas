@@ -27,11 +27,11 @@ import grondag.canvas.material.property.MaterialFog;
 import grondag.canvas.material.property.MaterialTransparency;
 import grondag.canvas.material.property.MaterialWriteMask;
 import grondag.canvas.shader.MaterialShaderId;
+import grondag.canvas.texture.MaterialInfoTexture;
 import grondag.fermion.bits.BitPacker64;
 import grondag.frex.api.material.RenderMaterial;
 import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import net.minecraft.util.Identifier;
 
@@ -58,6 +58,7 @@ public final class RenderMaterialImpl extends AbstractRenderState implements Ren
 	// draw things that update depth buffer first
 	private static final BitPacker64<Void>.IntElement SORT_WRITE_MASK = SORT_PACKER.createIntElement(MaterialWriteMask.WRITE_MASK_COUNT);
 
+	public static final int MAX_MATERIAL_COUNT = RenderState.MAX_COUNT * 4;
 
 	public final int collectorIndex;
 	public final RenderState renderState;
@@ -73,6 +74,7 @@ public final class RenderMaterialImpl extends AbstractRenderState implements Ren
 		shaderFlags = shaderFlags();
 		drawPriority = drawPriority();
 		this.renderLayerName = renderLayerName;
+		MaterialInfoTexture.INSTANCE.set(index, vertexShaderIndex, fragmentShaderIndex, gui ? 1 : 0, 0);
 
 		if (Configurator.logMaterials) {
 			CanvasMod.LOG.info("New RenderMaterial" + "\n" + toString() + "\n");
@@ -88,17 +90,17 @@ public final class RenderMaterialImpl extends AbstractRenderState implements Ren
 	}
 
 	static AtomicInteger nextIndex = new AtomicInteger();
-	static final ObjectArrayList<RenderMaterialImpl> LIST = new ObjectArrayList<>();
+	static final RenderMaterialImpl[] VALUES = new RenderMaterialImpl[MAX_MATERIAL_COUNT];
 	static final Long2ObjectOpenHashMap<RenderMaterialImpl> MAP = new Long2ObjectOpenHashMap<>(4096, Hash.VERY_FAST_LOAD_FACTOR);
 
 	public static final RenderMaterialImpl MISSING = new RenderMaterialImpl(0, "<canvas missing>");
 
 	static {
-		LIST.add(MISSING);
+		VALUES[MISSING.index] = MISSING;
 	}
 
 	public static RenderMaterialImpl fromIndex(int index) {
-		return LIST.get(index);
+		return VALUES[index];
 	}
 
 	@Override

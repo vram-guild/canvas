@@ -27,3 +27,5 @@
 #define TARGET_EMISSIVE -1
 
 #define HANDHELD_LIGHT_RADIUS 0
+
+#define VERTEX_SHADER

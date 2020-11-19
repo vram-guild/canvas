@@ -180,6 +180,9 @@ public abstract class AbstractVertexCollector implements VertexCollector {
 		next();
 	}
 
+	// PERF: MATERIAL_INDEX value never populated or used for non-atlas renders because they
+	// are always drawn with uniform program control and don't need sprite ID. Could be removed.
+	// However, will mean vertex length is not consistent within the same buffer.
 	private void normalizeSprites() {
 		if (materialState.texture.isAtlas()) {
 			normalizeAtlasSprites();
@@ -224,16 +227,17 @@ public abstract class AbstractVertexCollector implements VertexCollector {
 		final float vMin = sprite.getMinV();
 		final float uSpanInv = 1f / (sprite.getMaxU() - uMin);
 		final float vSpanInv = 1f / (sprite.getMaxV() - vMin);
+		final int stateVec = spriteId | (materialState.index << 16);
 
 		vertexData[integerSize + MATERIAL_TEXTURE_INDEX] = Math.round((u0 - uMin) * uSpanInv * MeshEncodingHelper.UV_UNIT_VALUE) | (Math.round((v0 - vMin) * vSpanInv * MeshEncodingHelper.UV_UNIT_VALUE) << 16);
 		vertexData[integerSize + MATERIAL_TEXTURE_INDEX + MATERIAL_VERTEX_STRIDE] = Math.round((u1 - uMin) * uSpanInv * MeshEncodingHelper.UV_UNIT_VALUE) | (Math.round((v1 - vMin) * vSpanInv * MeshEncodingHelper.UV_UNIT_VALUE) << 16);
 		vertexData[integerSize + MATERIAL_TEXTURE_INDEX + MATERIAL_VERTEX_STRIDE * 2] = Math.round((u2 - uMin) * uSpanInv * MeshEncodingHelper.UV_UNIT_VALUE) | (Math.round((v2 - vMin) * vSpanInv * MeshEncodingHelper.UV_UNIT_VALUE) << 16);
 		vertexData[integerSize + MATERIAL_TEXTURE_INDEX + MATERIAL_VERTEX_STRIDE * 3] = Math.round((u3 - uMin) * uSpanInv * MeshEncodingHelper.UV_UNIT_VALUE) | (Math.round((v3 - vMin) * vSpanInv * MeshEncodingHelper.UV_UNIT_VALUE) << 16);
 
-		vertexData[integerSize + MATERIAL_MATERIAL_INDEX] = spriteId;
-		vertexData[integerSize + MATERIAL_MATERIAL_INDEX + MATERIAL_VERTEX_STRIDE] = spriteId;
-		vertexData[integerSize + MATERIAL_MATERIAL_INDEX + MATERIAL_VERTEX_STRIDE * 2] = spriteId;
-		vertexData[integerSize + MATERIAL_MATERIAL_INDEX + MATERIAL_VERTEX_STRIDE * 3] = spriteId;
+		vertexData[integerSize + MATERIAL_MATERIAL_INDEX] = stateVec;
+		vertexData[integerSize + MATERIAL_MATERIAL_INDEX + MATERIAL_VERTEX_STRIDE] = stateVec;
+		vertexData[integerSize + MATERIAL_MATERIAL_INDEX + MATERIAL_VERTEX_STRIDE * 2] = stateVec;
+		vertexData[integerSize + MATERIAL_MATERIAL_INDEX + MATERIAL_VERTEX_STRIDE * 3] = stateVec;
 	}
 
 	@Override

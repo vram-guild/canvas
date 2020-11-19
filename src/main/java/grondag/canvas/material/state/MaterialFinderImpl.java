@@ -25,7 +25,7 @@ public class MaterialFinderImpl extends AbstractStateFinder<MaterialFinderImpl, 
 		if (result == null) {
 			result = new RenderMaterialImpl(bits, renderLayerName);
 			RenderMaterialImpl.MAP.put(bits, result);
-			RenderMaterialImpl.LIST.add(result);
+			RenderMaterialImpl.VALUES[result.index] = result;
 		}
 
 		return result;

@@ -33,7 +33,6 @@ import net.fabricmc.fabric.api.client.rendering.v1.InvalidateRenderStateCallback
 import net.fabricmc.fabric.api.renderer.v1.RendererAccess;
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 
-//FEAT: item rendering
 //FEAT: weather rendering
 //FEAT: sky rendering
 //FEAT: pbr textures
@@ -42,7 +41,6 @@ import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 //FEAT: colored lights
 //FEAT: per chunk occlusion mesh - for sky shadow mask
 //FEAT: per chunk depth mesh - addendum to occlusion mesh to render for depth pass - includes translucent cutout
-//FEAT: first person dynamic light
 //FEAT: weather uniforms
 //FEAT: biome texture in shader
 

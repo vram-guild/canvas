@@ -29,6 +29,7 @@ import grondag.canvas.material.property.MaterialTransparency;
 import grondag.canvas.material.property.MaterialWriteMask;
 import grondag.canvas.render.CanvasFrameBufferHacks;
 import grondag.canvas.shader.GlProgram;
+import grondag.canvas.shader.ProgramType;
 import grondag.canvas.texture.MaterialInfoTexture;
 import grondag.canvas.texture.SpriteInfoTexture;
 import it.unimi.dsi.fastutil.Hash;
@@ -54,7 +55,6 @@ import net.minecraft.client.MinecraftClient;
 public final class RenderState extends AbstractRenderState {
 	protected RenderState(long bits) {
 		super(nextIndex++, bits);
-		MaterialInfoTexture.INSTANCE.set(index, vertexShaderIndex, fragmentShaderIndex, gui ? 1 : 0, 0);
 	}
 
 	public void enable() {
@@ -79,6 +79,12 @@ public final class RenderState extends AbstractRenderState {
 		}
 
 		active = this;
+
+		if (programType == ProgramType.MATERIAL_VERTEX_LOGIC) {
+			MaterialInfoTexture.INSTANCE.enable();
+		} else {
+			MaterialInfoTexture.INSTANCE.disable();
+		}
 
 		texture.enable(blur);
 		transparency.enable();
@@ -136,6 +142,7 @@ public final class RenderState extends AbstractRenderState {
 		RenderSystem.color4f(1f, 1f, 1f, 1f);
 		RenderSystem.disableAlphaTest();
 		RenderSystem.defaultAlphaFunc();
+		MaterialInfoTexture.INSTANCE.disable();
 
 		MaterialTarget.disable();
 

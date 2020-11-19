@@ -109,4 +109,6 @@ public final class MaterialShaderImpl {
 		+ "  vertex: " + vertexShaderSource + "(" + vertexShaderIndex +
 		")  fragment: " + fragmentShaderSource + "(" + fragmentShaderIndex + ")";
 	}
+
+	public static final int MAX_SHADERS = 4096;
 }

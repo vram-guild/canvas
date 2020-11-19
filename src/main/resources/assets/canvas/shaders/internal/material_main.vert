@@ -22,12 +22,6 @@ void _cv_endVertex(inout frx_VertexData data, in int cv_programId) {
 #include canvas:endvertex
 }
 
-attribute vec4 in_color;
-attribute vec2 in_uv;
-attribute vec2 in_material;
-attribute vec4 in_lightmap;
-attribute vec4 in_normal_flags;
-
 void main() {
 	frx_VertexData data = frx_VertexData(
 	gl_Vertex,
@@ -40,6 +34,8 @@ void main() {
 	// Adding +0.5 prevents striping or other strangeness in flag-dependent rendering
 	// due to FP error on some cards/drivers.  Also made varying attribute invariant (rolls eyes at OpenGL)
 	_cvv_flags = in_normal_flags.w + 0.5;
+
+	_cv_setupProgram();
 
 	int cv_programId = _cv_vertexProgramId();
 	_cv_startVertex(data, cv_programId);
