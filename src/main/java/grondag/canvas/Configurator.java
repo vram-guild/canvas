@@ -692,7 +692,7 @@ public class Configurator {
 		@Comment("Animated foliage")
 		public boolean wavyGrass = true;
 		@Comment("Hand held light max radius. 0-15, Zero disables")
-		public int handheldLightRadius = 12;
+		public int handheldLightRadius = 11;
 		@Comment("Enable rendering of internal buffers for debug purposes. Off by default to prevent accidental activation.")
 		public boolean enableBufferDebug = false;
 		@Comment("Output load/reload trace data to log. Will have performance impact.")
