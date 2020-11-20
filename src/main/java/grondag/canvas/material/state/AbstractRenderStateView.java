@@ -71,8 +71,8 @@ abstract class AbstractRenderStateView {
 
 		final long masked = bits & AbstractRenderState.VERTEX_CONTROL_COLLECTOR_AND_STATE_MASK;
 
-		return (masked == VERTEX_CONTROL_COLLECTOR_KEY && target() == MaterialFinder.TARGET_TRANSLUCENT)
-			|| (masked == PTT_ENTITY_COLLECTOR_KEY && target() == MaterialFinder.TARGET_ENTITIES);
+		return (masked == TRANSLUCENT_TERRAIN_COLLECTOR_KEY && target() == MaterialFinder.TARGET_TRANSLUCENT)
+			|| (masked == TRANSLUCENT_ENTITY_COLLECTOR_KEY && target() == MaterialFinder.TARGET_ENTITIES);
 	}
 
 	public int conditionIndex() {
@@ -241,8 +241,8 @@ abstract class AbstractRenderStateView {
 
 	static final long DEFAULT_BITS;
 
-	public static final long VERTEX_CONTROL_COLLECTOR_KEY;
-	public static final long PTT_ENTITY_COLLECTOR_KEY;
+	public static final long TRANSLUCENT_TERRAIN_COLLECTOR_KEY;
+	public static final long TRANSLUCENT_ENTITY_COLLECTOR_KEY;
 
 	static {
 		assert PACKER.bitLength() <= 64;
@@ -279,13 +279,13 @@ abstract class AbstractRenderStateView {
 		translucentBits = SORTED.setValue(true, translucentBits);
 		translucentBits = PRIMITIVE.setValue(GL11.GL_QUADS, translucentBits);
 
-		VERTEX_CONTROL_COLLECTOR_KEY = translucentBits & VERTEX_CONTROL_COLLECTOR_AND_STATE_MASK;
+		TRANSLUCENT_TERRAIN_COLLECTOR_KEY = translucentBits & VERTEX_CONTROL_COLLECTOR_AND_STATE_MASK;
 
 		translucentBits = TEXTURE.setValue(MaterialTextureState.fromId(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE).index, translucentBits);
 		translucentBits = TARGET.setValue(MaterialFinder.TARGET_ENTITIES, translucentBits);
 
 		//copyFromLayer(RenderLayer.getItemEntityTranslucentCull(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE));
-		PTT_ENTITY_COLLECTOR_KEY = translucentBits & VERTEX_CONTROL_COLLECTOR_AND_STATE_MASK;
+		TRANSLUCENT_ENTITY_COLLECTOR_KEY = translucentBits & VERTEX_CONTROL_COLLECTOR_AND_STATE_MASK;
 	}
 
 	static final boolean VERTEX_CONTROL_MODE = Configurator.vertexControlMode;
