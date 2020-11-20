@@ -42,7 +42,6 @@ import grondag.canvas.mixin.AccessMultiPhaseParameters;
 import grondag.canvas.mixin.AccessTexture;
 import grondag.canvas.mixinterface.EntityRenderDispatcherExt;
 import grondag.canvas.mixinterface.MultiPhaseExt;
-import grondag.canvas.mixinterface.RenderLayerExt;
 import grondag.frex.api.material.MaterialFinder;
 
 // segregates render layer references from mod init
@@ -91,11 +90,11 @@ public final class RenderLayerHelper {
 		}
 	}
 
-	private static void copyFromLayer(MaterialFinderImpl finder, RenderLayer layer) {
-		final AccessMultiPhaseParameters params = ((MultiPhaseExt) layer).canvas_phases();
+	private static void copyFromLayer(MaterialFinderImpl finder, MultiPhaseExt layer) {
+		final AccessMultiPhaseParameters params = layer.canvas_phases();
 		final AccessTexture tex = (AccessTexture) params.getTexture();
 
-		finder.sorted(((RenderLayerExt) layer).canvas_isTranslucent());
+		finder.sorted(layer.canvas_isTranslucent());
 		finder.primitive(GL11.GL_QUADS);
 		finder.texture(tex.getId().orElse(null));
 		finder.transparency(MaterialTransparency.fromPhase(params.getTransparency()));
@@ -133,18 +132,18 @@ public final class RenderLayerHelper {
 			return RenderMaterialImpl.MISSING;
 		}
 
-		final String name = ((MultiPhaseExt) layer).canvas_name();
+		final MultiPhaseExt multiPhase = (MultiPhaseExt) layer;
+		final String name = multiPhase.canvas_name();
 
-		if (name.equals("end_portal")) {
+		// Excludes glint, end portal, and other specialized render layers that won't play nice with our current setup
+		if (multiPhase.canvas_phases().getTexturing() != RenderPhase.DEFAULT_TEXTURING) {
 			EXCLUSIONS.add(layer);
 			return RenderMaterialImpl.MISSING;
 		}
 
 		final MaterialFinderImpl finder = MaterialFinderImpl.threadLocal();
-		copyFromLayer(finder, layer);
-
+		copyFromLayer(finder, multiPhase);
 		finder.renderlayerName(name);
-
 		final RenderMaterialImpl result = finder.find();
 
 		if (Configurator.logMaterials) {

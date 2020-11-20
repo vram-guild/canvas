@@ -23,7 +23,7 @@ import net.minecraft.client.render.RenderLayer;
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.mixin.AccessMultiPhaseParameters;
 
-public interface MultiPhaseExt {
+public interface MultiPhaseExt extends RenderLayerExt {
 	Optional<RenderLayer> canvas_affectedOutline();
 
 	boolean canvas_outline();
