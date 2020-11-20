@@ -70,7 +70,13 @@ abstract class AbstractRenderState extends AbstractRenderStateView {
 	public final String fragmentShader;
 	public final MaterialShaderId shaderId;
 	public final MaterialShaderImpl shader;
+
+	/**
+	 * Will be always visible condition in vertex-controlled render state.
+	 * This is ensured by the state mask.
+	 */
 	public final MaterialConditionImpl condition;
+
 	public final BlendMode blendMode;
 	public final boolean emissive;
 	public final boolean disableDiffuse;
@@ -113,7 +119,7 @@ abstract class AbstractRenderState extends AbstractRenderStateView {
 		fragmentShaderId = shaderId.fragmentId;
 		fragmentShader = fragmentShaderId.toString();
 		primaryTargetTransparency = primaryTargetTransparency();
-		programType = ((VERTEX_CONTROL_MODE && textureIdString.contains("/atlas/")) || primaryTargetTransparency) ? ProgramType.MATERIAL_VERTEX_LOGIC : ProgramType.MATERIAL_UNIFORM_LOGIC;
+		programType = ((VERTEX_CONTROL_MODE && !gui && textureIdString.contains("/atlas/")) || primaryTargetTransparency) ? ProgramType.MATERIAL_VERTEX_LOGIC : ProgramType.MATERIAL_UNIFORM_LOGIC;
 		shader = MaterialShaderManager.INSTANCE.find(vertexShaderIndex, fragmentShaderIndex, programType);
 		blendMode = blendMode();
 		emissive = emissive();

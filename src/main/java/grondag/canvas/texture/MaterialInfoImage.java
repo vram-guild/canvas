@@ -71,13 +71,13 @@ public final class MaterialInfoImage {
 		pointer = 0L;
 	}
 
-	void set(int materialIndex, float vertexId, float fragmentId, float programFlags, float reserved) {
+	void set(int materialIndex, float vertexId, float fragmentId, float programFlags, float conditionId) {
 		assert pointer != 0L : "Image not allocated.";
 		materialIndex *= 4;
 		floatBuffer.put(materialIndex, vertexId / MaterialShaderImpl.MAX_SHADERS);
 		floatBuffer.put(materialIndex + 1, fragmentId / MaterialShaderImpl.MAX_SHADERS);
 		floatBuffer.put(materialIndex + 2, programFlags / 255f);
-		floatBuffer.put(materialIndex + 3, reserved);
+		floatBuffer.put(materialIndex + 3, conditionId);
 		dirty = true;
 	}
 

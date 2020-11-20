@@ -75,7 +75,7 @@ public final class RenderMaterialImpl extends AbstractRenderState implements Ren
 		shaderFlags = shaderFlags();
 		drawPriority = drawPriority();
 		this.renderLayerName = renderLayerName;
-		MaterialInfoTexture.INSTANCE.set(index, vertexShaderIndex, fragmentShaderIndex, gui ? 1 : 0, 0);
+		MaterialInfoTexture.INSTANCE.set(index, vertexShaderIndex, fragmentShaderIndex, gui ? 1 : 0, condition.index);
 
 		if (Configurator.logMaterials) {
 			CanvasMod.LOG.info("New RenderMaterial" + "\n" + toString() + "\n");

@@ -272,7 +272,6 @@ public class VertexCollectorImpl extends AbstractVertexCollector {
 
 	@Override
 	protected void emitQuad() {
-		// WIP: implement condition with indexed draw for terrain
 		if (conditionActive) {
 			final int newSize = integerSize + CanvasVertexFormats.MATERIAL_QUAD_STRIDE;
 			ensureCapacity(newSize + CanvasVertexFormats.MATERIAL_QUAD_STRIDE);

@@ -45,13 +45,17 @@ abstract class AbstractRenderStateView {
 	}
 
 	public long collectorKey() {
-		return ((VERTEX_CONTROL_MODE && textureState().id.toString().contains("/atlas/")) || primaryTargetTransparency()) ? (bits & VERTEX_CONTROL_COLLECTOR_AND_STATE_MASK) : (bits & COLLECTOR_KEY_MASK);
+		return ((VERTEX_CONTROL_MODE && !gui() && textureState().id.toString().contains("/atlas/")) || primaryTargetTransparency()) ? (bits & VERTEX_CONTROL_COLLECTOR_AND_STATE_MASK) : (bits & COLLECTOR_KEY_MASK);
 	}
 
 	public MaterialShaderId shaderId() {
 		return MaterialShaderId.get(SHADER_ID.getValue(bits));
 	}
 
+	/**
+	 * Will be always visible condition in vertex-controlled render state.
+	 * This is ensured by the state mask.
+	 */
 	public MaterialConditionImpl condition() {
 		return MaterialConditionImpl.fromIndex(CONDITION.getValue(bits));
 	}
@@ -67,7 +71,7 @@ abstract class AbstractRenderStateView {
 
 		final long masked = bits & AbstractRenderState.VERTEX_CONTROL_COLLECTOR_AND_STATE_MASK;
 
-		return (masked == PTT_TRANSLUCENT_COLLECTOR_KEY && target() == MaterialFinder.TARGET_TRANSLUCENT)
+		return (masked == VERTEX_CONTROL_COLLECTOR_KEY && target() == MaterialFinder.TARGET_TRANSLUCENT)
 			|| (masked == PTT_ENTITY_COLLECTOR_KEY && target() == MaterialFinder.TARGET_ENTITIES);
 	}
 
@@ -237,7 +241,7 @@ abstract class AbstractRenderStateView {
 
 	static final long DEFAULT_BITS;
 
-	public static final long PTT_TRANSLUCENT_COLLECTOR_KEY;
+	public static final long VERTEX_CONTROL_COLLECTOR_KEY;
 	public static final long PTT_ENTITY_COLLECTOR_KEY;
 
 	static {
@@ -275,7 +279,7 @@ abstract class AbstractRenderStateView {
 		translucentBits = SORTED.setValue(true, translucentBits);
 		translucentBits = PRIMITIVE.setValue(GL11.GL_QUADS, translucentBits);
 
-		PTT_TRANSLUCENT_COLLECTOR_KEY = translucentBits & VERTEX_CONTROL_COLLECTOR_AND_STATE_MASK;
+		VERTEX_CONTROL_COLLECTOR_KEY = translucentBits & VERTEX_CONTROL_COLLECTOR_AND_STATE_MASK;
 
 		translucentBits = TEXTURE.setValue(MaterialTextureState.fromId(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE).index, translucentBits);
 		translucentBits = TARGET.setValue(MaterialFinder.TARGET_ENTITIES, translucentBits);

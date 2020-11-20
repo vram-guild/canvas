@@ -57,11 +57,11 @@ public class MaterialInfoTexture {
 		}
 	}
 
-	public synchronized void set(int materialIndex, int vertexId, int fragmentId, int programFlags, int reserved) {
+	public synchronized void set(int materialIndex, int vertexId, int fragmentId, int programFlags, int conditionId) {
 		createImageIfNeeded();
 
 		if (image != null) {
-			image.set(materialIndex, vertexId, fragmentId, programFlags, reserved);
+			image.set(materialIndex, vertexId, fragmentId, programFlags, conditionId);
 		}
 	}
 
