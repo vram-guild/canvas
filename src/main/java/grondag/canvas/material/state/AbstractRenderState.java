@@ -113,7 +113,7 @@ abstract class AbstractRenderState extends AbstractRenderStateView {
 		fragmentShaderId = shaderId.fragmentId;
 		fragmentShader = fragmentShaderId.toString();
 		primaryTargetTransparency = primaryTargetTransparency();
-		programType = primaryTargetTransparency ? ProgramType.MATERIAL_VERTEX_LOGIC : ProgramType.MATERIAL_UNIFORM_LOGIC;
+		programType = ((VERTEX_CONTROL_MODE && textureIdString.contains("/atlas/")) || primaryTargetTransparency) ? ProgramType.MATERIAL_VERTEX_LOGIC : ProgramType.MATERIAL_UNIFORM_LOGIC;
 		shader = MaterialShaderManager.INSTANCE.find(vertexShaderIndex, fragmentShaderIndex, programType);
 		blendMode = blendMode();
 		emissive = emissive();

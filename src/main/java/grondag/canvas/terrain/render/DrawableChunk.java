@@ -17,13 +17,15 @@
 package grondag.canvas.terrain.render;
 
 import java.nio.IntBuffer;
+import java.util.function.Predicate;
 
-import com.google.common.base.Predicates;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import grondag.canvas.buffer.VboBuffer;
 import grondag.canvas.buffer.encoding.VertexCollectorImpl;
 import grondag.canvas.buffer.encoding.VertexCollectorList;
+import grondag.canvas.material.property.MaterialTarget;
+import grondag.canvas.material.state.RenderMaterialImpl;
 
 public class DrawableChunk {
 	public static DrawableChunk EMPTY_DRAWABLE = new DrawableChunk.Dummy();
@@ -96,15 +98,16 @@ public class DrawableChunk {
 		}
 	}
 
+	private static final Predicate<RenderMaterialImpl> TRANSLUCENT = m -> m.target == MaterialTarget.TRANSLUCENT && m.primaryTargetTransparency;
+	private static final Predicate<RenderMaterialImpl> SOLID = m -> !TRANSLUCENT.test(m);
+
 	public static DrawableChunk pack(VertexCollectorList collectorList, VboBuffer vboBuffer, boolean translucent) {
 		// WIP: handle conditions.
 		final IntBuffer intBuffer = vboBuffer.intBuffer();
 		intBuffer.position(0);
-
-		final ObjectArrayList<VertexCollectorImpl> drawList = collectorList.sortedDrawList(Predicates.alwaysTrue());
+		final ObjectArrayList<VertexCollectorImpl> drawList = collectorList.sortedDrawList(translucent ? TRANSLUCENT : SOLID);
 		final int limit = drawList.size();
 		int position = 0;
-
 		final ObjectArrayList<DrawableDelegate> delegates = DelegateLists.getReadyDelegateList();
 
 		for (int i = 0; i < limit; ++i) {

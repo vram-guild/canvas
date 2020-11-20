@@ -72,6 +72,7 @@ public class Configurator {
 	public static boolean greedyRenderThread = DEFAULTS.greedyRenderThread;
 	public static boolean forceJmxModelLoading = DEFAULTS.forceJmxModelLoading;
 	public static boolean reduceResolutionOnMac = DEFAULTS.reduceResolutionOnMac;
+	public static boolean vertexControlMode = DEFAULTS.vertexControlMode;
 	public static boolean shaderDebug = DEFAULTS.shaderDebug;
 	public static boolean lightmapDebug = DEFAULTS.lightmapDebug;
 	public static boolean conciseErrors = DEFAULTS.conciseErrors;
@@ -163,6 +164,7 @@ public class Configurator {
 		greedyRenderThread = config.greedyRenderThread;
 		forceJmxModelLoading = config.forceJmxModelLoading;
 		reduceResolutionOnMac = config.reduceResolutionOnMac;
+		vertexControlMode = config.vertexControlMode;
 
 		lightmapDebug = config.lightmapDebug;
 		conciseErrors = config.conciseErrors;
@@ -211,6 +213,7 @@ public class Configurator {
 		config.greedyRenderThread = greedyRenderThread;
 		config.forceJmxModelLoading = forceJmxModelLoading;
 		config.reduceResolutionOnMac = reduceResolutionOnMac;
+		config.vertexControlMode = vertexControlMode;
 
 		config.lightmapDebug = lightmapDebug;
 		config.conciseErrors = conciseErrors;
@@ -523,6 +526,16 @@ public class Configurator {
 				})
 				.build());
 
+		tweaks.addEntry(ENTRY_BUILDER
+				.startBooleanToggle(new TranslatableText("config.canvas.value.vertex_control_mode"), vertexControlMode)
+				.setDefaultValue(DEFAULTS.vertexControlMode)
+				.setTooltip(parse("config.canvas.help.vertex_control_mode"))
+				.requireRestart()
+				.setSaveConsumer(b -> {
+					vertexControlMode = b;
+				})
+				.build());
+
 		// DEBUG
 		final ConfigCategory debug = builder.getOrCreateCategory(new TranslatableText("config.canvas.category.debug"));
 
@@ -725,6 +738,8 @@ public class Configurator {
 		boolean forceJmxModelLoading = true;
 		@Comment("Use half resolution on retina displays - greatly improves frame rate on Macs.")
 		boolean reduceResolutionOnMac = true;
+		@Comment("Reduce draw calls for terrain by controlling shaders with vertex data. Faster on some hardware.")
+		boolean vertexControlMode = true;
 
 		// DEBUG
 		@Comment("Output runtime per-material shader source. For shader development debugging.")

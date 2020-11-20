@@ -22,6 +22,7 @@ import net.minecraft.client.texture.SpriteAtlasTexture;
 
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 
+import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.MaterialConditionImpl;
 import grondag.canvas.material.property.MaterialDecal;
 import grondag.canvas.material.property.MaterialDepthTest;
@@ -44,7 +45,7 @@ abstract class AbstractRenderStateView {
 	}
 
 	public long collectorKey() {
-		return primaryTargetTransparency() ? (bits & PTT_COLLECTOR_AND_STATE_MASK) : (bits & COLLECTOR_KEY_MASK);
+		return ((VERTEX_CONTROL_MODE && textureState().id.toString().contains("/atlas/")) || primaryTargetTransparency()) ? (bits & VERTEX_CONTROL_COLLECTOR_AND_STATE_MASK) : (bits & COLLECTOR_KEY_MASK);
 	}
 
 	public MaterialShaderId shaderId() {
@@ -64,7 +65,7 @@ abstract class AbstractRenderStateView {
 			return false;
 		}
 
-		final long masked = bits & AbstractRenderState.PTT_COLLECTOR_AND_STATE_MASK;
+		final long masked = bits & AbstractRenderState.VERTEX_CONTROL_COLLECTOR_AND_STATE_MASK;
 
 		return (masked == PTT_TRANSLUCENT_COLLECTOR_KEY && target() == MaterialFinder.TARGET_TRANSLUCENT)
 			|| (masked == PTT_ENTITY_COLLECTOR_KEY && target() == MaterialFinder.TARGET_ENTITIES);
@@ -197,11 +198,11 @@ abstract class AbstractRenderStateView {
 	static final BitPacker64<Void>.BooleanElement SORTED = PACKER.createBooleanElement();
 	static final BitPacker64<Void>.IntElement PRIMITIVE = PACKER.createIntElement(8);
 
-	// PTT stands for for "Primary Target Transparency" and identifies the collection key and state
-	// to be used for the primary sorted transparency buffer for a given target.
+	// Identifies the collection key and state to be used for the primary sorted transparency buffer
+	// for a given target. Also used to render mixed-material atlas quads as a performance optimization.
 	// Quads outside of this buffer, if any, will be rendered after primary and may not sort correctly.
 	// Must not be GUI render
-	public static final long PTT_COLLECTOR_AND_STATE_MASK = PACKER.bitMask();
+	public static final long VERTEX_CONTROL_COLLECTOR_AND_STATE_MASK = PACKER.bitMask();
 
 	// Part of render state and collection key for non-sorted, not included in either for sorted
 	static final BitPacker64<Void>.IntElement SHADER_ID = PACKER.createIntElement(MaterialShaderImpl.MAX_SHADERS);
@@ -274,12 +275,14 @@ abstract class AbstractRenderStateView {
 		translucentBits = SORTED.setValue(true, translucentBits);
 		translucentBits = PRIMITIVE.setValue(GL11.GL_QUADS, translucentBits);
 
-		PTT_TRANSLUCENT_COLLECTOR_KEY = translucentBits & PTT_COLLECTOR_AND_STATE_MASK;
+		PTT_TRANSLUCENT_COLLECTOR_KEY = translucentBits & VERTEX_CONTROL_COLLECTOR_AND_STATE_MASK;
 
 		translucentBits = TEXTURE.setValue(MaterialTextureState.fromId(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE).index, translucentBits);
 		translucentBits = TARGET.setValue(MaterialFinder.TARGET_ENTITIES, translucentBits);
 
 		//copyFromLayer(RenderLayer.getItemEntityTranslucentCull(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE));
-		PTT_ENTITY_COLLECTOR_KEY = translucentBits & PTT_COLLECTOR_AND_STATE_MASK;
+		PTT_ENTITY_COLLECTOR_KEY = translucentBits & VERTEX_CONTROL_COLLECTOR_AND_STATE_MASK;
 	}
+
+	static final boolean VERTEX_CONTROL_MODE = Configurator.vertexControlMode;
 }
