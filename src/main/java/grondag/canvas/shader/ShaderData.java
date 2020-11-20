@@ -38,8 +38,6 @@ public class ShaderData {
 	public static final String VERTEX_START = "#include canvas:startvertex";
 	public static final String VEREX_END = "#include canvas:endvertex";
 
-	private static final float[] BITWISE_DIVISORS = {0.5f, 0.25f, 0.125f, 0.0625f, 0.03125f, 0.015625f, 0.0078125f, 0.00390625f};
-
 	public static final Consumer<GlProgram> STANDARD_UNIFORM_SETUP = program -> {
 		program.uniformArrayf("_cvu_world", UniformRefreshFrequency.PER_TICK, u -> u.set(WorldDataManager.data()), WorldDataManager.LENGTH);
 
@@ -56,7 +54,5 @@ public class ShaderData {
 		program.uniformSampler2d("frxs_spriteInfo", UniformRefreshFrequency.ON_LOAD, u -> u.set(TextureData.SPRITE_INFO - GL21.GL_TEXTURE0));
 
 		program.uniformSampler2d("frxs_materialInfo", UniformRefreshFrequency.ON_LOAD, u -> u.set(TextureData.MATERIAL_INFO - GL21.GL_TEXTURE0));
-
-		program.uniformArrayf("_fru_bitwise_divisors", UniformRefreshFrequency.ON_LOAD, u -> u.set(BITWISE_DIVISORS), 8);
 	};
 }

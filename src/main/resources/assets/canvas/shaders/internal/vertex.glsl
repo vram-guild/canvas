@@ -16,7 +16,7 @@ attribute vec4 in_lightmap;
 attribute vec4 in_normal_flags;
 #endif
 
-uniform float[4] _cvu_material;
+uniform float[4] _cvu_atlas;
 
 vec2 _cv_textureCoord(vec2 coordIn, int matrixIndex) {
 	vec4 temp = gl_TextureMatrix[matrixIndex] * coordIn.xyxy;
