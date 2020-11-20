@@ -1,26 +1,26 @@
 /*
- * Copyright 2019, 2020 grondag
+ *  Copyright 2019, 2020 grondag
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License.  You may obtain a copy
- * of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ *  use this file except in compliance with the License.  You may obtain a copy
+ *  of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ *  License for the specific language governing permissions and limitations under
+ *  the License.
  */
 
 package grondag.canvas.light;
 
-import grondag.canvas.terrain.FastRenderRegion;
 import net.minecraft.block.BlockState;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 
+import grondag.canvas.terrain.FastRenderRegion;
 
 // TODO: look at VoxelShapes.method_1080 as a way to not propagate thru slabs
 // Also BlockState.hasSidedTransparency seems promising
@@ -63,6 +63,7 @@ public class LightSmoother {
 					final boolean opaque = state.isOpaqueFullCube(region, smoothPos);
 
 					final int i = index(x, y, z);
+
 					if (opaque) {
 						block[i] = OPAQUE;
 						sky[i] = OPAQUE;
@@ -119,7 +120,6 @@ public class LightSmoother {
 		final int zBase = xBase * Z_INC;
 		final int zLimit = xLimit * Z_INC;
 
-
 		// X PASS
 		for (int x = xBase; x < xLimit; x++) {
 			for (int y = yBase; y < yLimit; y += Y_INC) {
@@ -127,6 +127,7 @@ public class LightSmoother {
 					final int i = x + y + z;
 
 					final int c = src[i];
+
 					if (c == OPAQUE) {
 						dest[i] = OPAQUE;
 						continue;
@@ -160,6 +161,7 @@ public class LightSmoother {
 
 					// Note arrays are swapped here
 					final int c = dest[i];
+
 					if (c == OPAQUE) {
 						src[i] = OPAQUE;
 						continue;
@@ -184,6 +186,7 @@ public class LightSmoother {
 				}
 			}
 		}
+
 		// Z PASS
 		for (int x = xBase; x < xLimit; x++) {
 			for (int y = yBase; y < yLimit; y += Y_INC) {
@@ -192,6 +195,7 @@ public class LightSmoother {
 
 					// Arrays are swapped back to original roles here
 					final int c = src[i];
+
 					if (c == OPAQUE) {
 						dest[i] = OPAQUE;
 						continue;

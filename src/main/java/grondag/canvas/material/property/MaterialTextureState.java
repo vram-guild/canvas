@@ -1,24 +1,23 @@
 /*
- * Copyright 2019, 2020 grondag
+ *  Copyright 2019, 2020 grondag
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License.  You may obtain a copy
- * of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ *  use this file except in compliance with the License.  You may obtain a copy
+ *  of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ *  License for the specific language governing permissions and limitations under
+ *  the License.
  */
 
 package grondag.canvas.material.property;
 
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
-import grondag.canvas.texture.SpriteInfoTexture;
 import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.lwjgl.opengl.GL21;
@@ -28,6 +27,8 @@ import net.minecraft.client.texture.AbstractTexture;
 import net.minecraft.client.texture.SpriteAtlasTexture;
 import net.minecraft.client.texture.TextureManager;
 import net.minecraft.util.Identifier;
+
+import grondag.canvas.texture.SpriteInfoTexture;
 
 public class MaterialTextureState {
 	public final int index;
@@ -101,9 +102,9 @@ public class MaterialTextureState {
 	}
 
 	/**
-	 * Vanilla logic for texture filtering works like this:<p>
+	 * Vanilla logic for texture filtering works like this:
 	 *
-	 *<pre>
+	 * <p><pre>
 	 * 	int minFilter;
 	 * 	int magFilter;
 	 *
@@ -117,17 +118,17 @@ public class MaterialTextureState {
 	 *
 	 * 	GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MIN_FILTER, minFilter);
 	 * 	GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MAG_FILTER, magFilter);
-	 *</pre><p>
+	 * </pre>
 	 *
-	 * In vanilla,"bilinear" enables blur on magnification, makes minification blur LOD-linear.
-	 * It seems to only be used only be used for enchantment glint.<p>
+	 * <p>In vanilla,"bilinear" enables blur on magnification, makes minification blur LOD-linear.
+	 * It seems to only be used only be used for enchantment glint.
 	 *
-	 * The vanilla mipmap parameter enables minification blur (linear with nearest LOD).
+	 * <p>The vanilla mipmap parameter enables minification blur (linear with nearest LOD).
 	 * Vanilla does not use GL_LINEAR_MIPMAP_LINEAR for most rendering because atlas textures
 	 * cause artifacts when sampled across LODS levels, especially for randomized rotated sprites
-	 * like grass. <p>
+	 * like grass.
 	 *
-	 * Canvas controlled mipmap in shader, so we always set that to GL_NEAREST_MIPMAP_LINEAR unless
+	 * <p>Canvas controlled mipmap in shader, so we always set that to GL_NEAREST_MIPMAP_LINEAR unless
 	 * bilinear filtering is needed.
 	 */
 	private static void setFilter(boolean bilinear) {
@@ -175,7 +176,7 @@ public class MaterialTextureState {
 	}
 
 	// PERF: use cow or other method to avoid synch
-	public synchronized static MaterialTextureState fromId(Identifier id) {
+	public static synchronized MaterialTextureState fromId(Identifier id) {
 		MaterialTextureState state = MAP.get(id);
 
 		if (state == NO_TEXTURE) {

@@ -1,25 +1,21 @@
 /*
- * Copyright 2019, 2020 grondag
+ *  Copyright 2019, 2020 grondag
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License.  You may obtain a copy
- * of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ *  use this file except in compliance with the License.  You may obtain a copy
+ *  of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ *  License for the specific language governing permissions and limitations under
+ *  the License.
  */
 
 package grondag.canvas.render;
 
-import grondag.canvas.mixinterface.Matrix4fExt;
-import grondag.canvas.terrain.BuiltRenderRegion;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.Camera;
 import net.minecraft.client.render.Frustum;
@@ -28,13 +24,19 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Matrix4f;
 import net.minecraft.util.math.Vec3d;
 
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
+
+import grondag.canvas.mixinterface.Matrix4fExt;
+import grondag.canvas.terrain.BuiltRenderRegion;
+
 /**
  * Plane equation derivations based on:
  * "Fast Extraction of Viewing Frustum Planes from the World- View-Projection Matrix"
  * Gill Gribb, Klaus Hartmann
  * https://www.gamedevs.org/uploads/fast-extraction-viewing-frustum-planes-from-world-view-projection-matrix.pdf
- * <p>
- * AABB test method based on work by Ville Miettinen
+ *
+ * <p>AABB test method based on work by Ville Miettinen
  * as described in Real-Time Rendering, Fourth Edition (Page 971). CRC Press.
  * Abbey, Duane C.; Haines, Eric; Hoffman, Naty.
  */

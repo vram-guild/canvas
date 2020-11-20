@@ -1,39 +1,30 @@
 /*
- * Copyright 2019, 2020 grondag
+ *  Copyright 2019, 2020 grondag
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License.  You may obtain a copy
- * of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ *  use this file except in compliance with the License.  You may obtain a copy
+ *  of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ *  License for the specific language governing permissions and limitations under
+ *  the License.
  */
 
 package grondag.canvas.apiimpl.rendercontext;
-
-import java.util.Random;
-import java.util.function.Supplier;
-
-import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
-import grondag.canvas.buffer.encoding.CanvasImmediate;
-import grondag.canvas.material.state.MaterialFinderImpl;
-import grondag.canvas.material.state.RenderLayerHelper;
-import grondag.canvas.mixinterface.Matrix3fExt;
-import grondag.canvas.mixinterface.MinecraftClientExt;
-import grondag.fermion.sc.concurrency.SimpleConcurrentList;
-import grondag.frex.api.material.MaterialFinder;
-import grondag.frex.api.material.MaterialMap;
-import org.jetbrains.annotations.Nullable;
 
 import static grondag.canvas.buffer.encoding.EncoderUtils.applyItemLighting;
 import static grondag.canvas.buffer.encoding.EncoderUtils.bufferQuad;
 import static grondag.canvas.buffer.encoding.EncoderUtils.bufferQuadDirect;
 import static grondag.canvas.buffer.encoding.EncoderUtils.colorizeQuad;
+
+import java.util.Random;
+import java.util.function.Supplier;
+
+import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
@@ -58,6 +49,16 @@ import net.minecraft.item.Items;
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
+
+import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
+import grondag.canvas.buffer.encoding.CanvasImmediate;
+import grondag.canvas.material.state.MaterialFinderImpl;
+import grondag.canvas.material.state.RenderLayerHelper;
+import grondag.canvas.mixinterface.Matrix3fExt;
+import grondag.canvas.mixinterface.MinecraftClientExt;
+import grondag.fermion.sc.concurrency.SimpleConcurrentList;
+import grondag.frex.api.material.MaterialFinder;
+import grondag.frex.api.material.MaterialMap;
 
 public class ItemRenderContext extends AbstractRenderContext implements RenderContext {
 	/**
@@ -202,7 +203,6 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 		}
 
 		matrices.pop();
-
 	}
 
 	private VertexConsumer getGlintConsumer(RenderLayer layer) {
@@ -254,19 +254,19 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 		switch (bm) {
 			case CUTOUT:
 				finder.transparency(MaterialFinder.TRANSPARENCY_NONE)
-				.cutout(true)
-				.transparentCutout(false)
-				.unmipped(true)
-				.target(MaterialFinder.TARGET_MAIN)
-				.sorted(false);
+					.cutout(true)
+					.transparentCutout(false)
+					.unmipped(true)
+					.target(MaterialFinder.TARGET_MAIN)
+					.sorted(false);
 				break;
 			case CUTOUT_MIPPED:
 				finder.transparency(MaterialFinder.TRANSPARENCY_NONE)
-				.cutout(true)
-				.transparentCutout(false)
-				.unmipped(false)
-				.target(MaterialFinder.TARGET_MAIN)
-				.sorted(false);
+					.cutout(true)
+					.transparentCutout(false)
+					.unmipped(false)
+					.target(MaterialFinder.TARGET_MAIN)
+					.sorted(false);
 				break;
 			case TRANSLUCENT:
 				// Note on glint rendering
@@ -279,19 +279,19 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 				// The code below is an ugly hack - need a better way
 
 				finder.transparency(MaterialFinder.TRANSPARENCY_TRANSLUCENT)
-				.cutout(!isBlockItem)
-				.transparentCutout(!isBlockItem)
-				.unmipped(false)
-				.target(drawTranslucencyDirectToMainTarget ? MaterialFinder.TARGET_MAIN : MaterialFinder.TARGET_ENTITIES)
-				.sorted(true);
+					.cutout(!isBlockItem)
+					.transparentCutout(!isBlockItem)
+					.unmipped(false)
+					.target(drawTranslucencyDirectToMainTarget ? MaterialFinder.TARGET_MAIN : MaterialFinder.TARGET_ENTITIES)
+					.sorted(true);
 				break;
 			case SOLID:
 				finder.transparency(MaterialFinder.TRANSPARENCY_NONE)
-				.cutout(false)
-				.transparentCutout(false)
-				.unmipped(false)
-				.target(MaterialFinder.TARGET_MAIN)
-				.sorted(false);
+					.cutout(false)
+					.transparentCutout(false)
+					.unmipped(false)
+					.target(MaterialFinder.TARGET_MAIN)
+					.sorted(false);
 				break;
 			default:
 				assert false : "Unhandled blend mode";

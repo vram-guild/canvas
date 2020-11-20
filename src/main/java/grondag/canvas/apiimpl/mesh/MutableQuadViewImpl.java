@@ -1,29 +1,20 @@
 /*
- * Copyright 2019, 2020 grondag
+ *  Copyright 2019, 2020 grondag
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License.  You may obtain a copy
- * of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ *  use this file except in compliance with the License.  You may obtain a copy
+ *  of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ *  License for the specific language governing permissions and limitations under
+ *  the License.
  */
 
 package grondag.canvas.apiimpl.mesh;
-
-import grondag.canvas.apiimpl.Canvas;
-import grondag.canvas.apiimpl.util.NormalHelper;
-import grondag.canvas.apiimpl.util.TextureHelper;
-import grondag.canvas.light.LightmapHd;
-import grondag.canvas.material.state.RenderMaterialImpl;
-import grondag.canvas.mixinterface.SpriteExt;
-import grondag.canvas.texture.SpriteInfoTexture;
-import grondag.frex.api.mesh.QuadEmitter;
 
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.BASE_QUAD_STRIDE;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.BASE_VERTEX_STRIDE;
@@ -45,6 +36,15 @@ import net.minecraft.util.math.Direction;
 
 import net.fabricmc.fabric.api.renderer.v1.material.RenderMaterial;
 import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
+
+import grondag.canvas.apiimpl.Canvas;
+import grondag.canvas.apiimpl.util.NormalHelper;
+import grondag.canvas.apiimpl.util.TextureHelper;
+import grondag.canvas.light.LightmapHd;
+import grondag.canvas.material.state.RenderMaterialImpl;
+import grondag.canvas.mixinterface.SpriteExt;
+import grondag.canvas.texture.SpriteInfoTexture;
+import grondag.frex.api.mesh.QuadEmitter;
 
 /**
  * Almost-concrete implementation of a mutable quad. The only missing part is {@link #emit()},
@@ -282,7 +282,7 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 	}
 
 	/**
-	 * Same as logic in SpriteFinder but can assume sprites are mapped - avoids checks
+	 * Same as logic in SpriteFinder but can assume sprites are mapped - avoids checks.
 	 */
 	private Sprite findSprite() {
 		float u = 0;

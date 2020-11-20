@@ -1,23 +1,24 @@
 /*
- * Copyright 2019, 2020 grondag
+ *  Copyright 2019, 2020 grondag
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License.  You may obtain a copy
- * of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ *  use this file except in compliance with the License.  You may obtain a copy
+ *  of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ *  License for the specific language governing permissions and limitations under
+ *  the License.
  */
 
 package grondag.canvas.terrain.occlusion;
 
-import grondag.canvas.mixinterface.Matrix4fExt;
 import net.minecraft.util.math.Matrix4f;
+
+import grondag.canvas.mixinterface.Matrix4fExt;
 
 public class Matrix4L {
 	static final int MATRIX_PRECISION_BITS = 16;
@@ -47,7 +48,6 @@ public class Matrix4L {
 	}
 
 	public void copyFrom(Matrix4fExt ext) {
-
 		a00 = Math.round(ext.a00() * MATRIX_PRECISION_UNITY);
 		a01 = Math.round(ext.a01() * MATRIX_PRECISION_UNITY);
 		a02 = Math.round(ext.a02() * MATRIX_PRECISION_UNITY);
@@ -92,25 +92,25 @@ public class Matrix4L {
 	}
 
 	public boolean matches(Matrix4L other) {
-		return a00 == other.a00 &&
-				a01 == other.a01 &&
-				a02 == other.a02 &&
-				a03 == other.a03 &&
+		return a00 == other.a00
+				&& a01 == other.a01
+				&& a02 == other.a02
+				&& a03 == other.a03
 
-				a10 == other.a10 &&
-				a11 == other.a11 &&
-				a12 == other.a12 &&
-				a13 == other.a13 &&
+				&& a10 == other.a10
+				&& a11 == other.a11
+				&& a12 == other.a12
+				&& a13 == other.a13
 
-				a20 == other.a20 &&
-				a21 == other.a21 &&
-				a22 == other.a22 &&
-				a23 == other.a23 &&
+				&& a20 == other.a20
+				&& a21 == other.a21
+				&& a22 == other.a22
+				&& a23 == other.a23
 
-				a30 == other.a30 &&
-				a31 == other.a31 &&
-				a32 == other.a32 &&
-				a33 == other.a33;
+				&& a30 == other.a30
+				&& a31 == other.a31
+				&& a32 == other.a32
+				&& a33 == other.a33;
 	}
 
 	public void loadIdentity() {

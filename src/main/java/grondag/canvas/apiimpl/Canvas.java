@@ -1,22 +1,31 @@
 /*
- * Copyright 2019, 2020 grondag
+ *  Copyright 2019, 2020 grondag
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License.  You may obtain a copy
- * of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ *  use this file except in compliance with the License.  You may obtain a copy
+ *  of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ *  License for the specific language governing permissions and limitations under
+ *  the License.
  */
 
 package grondag.canvas.apiimpl;
 
 import java.util.function.BooleanSupplier;
+
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+
+import net.minecraft.client.resource.language.I18n;
+import net.minecraft.util.Identifier;
+
+import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
+import net.fabricmc.fabric.api.renderer.v1.material.RenderMaterial;
+import net.fabricmc.fabric.api.renderer.v1.mesh.MeshBuilder;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.mesh.MeshBuilderImpl;
@@ -39,14 +48,6 @@ import grondag.canvas.terrain.ProtoRenderRegion;
 import grondag.canvas.terrain.TerrainModelSpace;
 import grondag.frex.api.Renderer;
 import grondag.frex.api.material.MaterialCondition;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-
-import net.minecraft.client.resource.language.I18n;
-import net.minecraft.util.Identifier;
-
-import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
-import net.fabricmc.fabric.api.renderer.v1.material.RenderMaterial;
-import net.fabricmc.fabric.api.renderer.v1.mesh.MeshBuilder;
 
 public class Canvas implements Renderer {
 	public static final Canvas INSTANCE = new Canvas();
@@ -128,6 +129,7 @@ public class Canvas implements Renderer {
 		if (conditionMap.containsKey(id)) {
 			return false;
 		}
+
 		// cast to prevent acceptance of impostor implementations
 		conditionMap.put(id, (MaterialConditionImpl) condition);
 		return true;

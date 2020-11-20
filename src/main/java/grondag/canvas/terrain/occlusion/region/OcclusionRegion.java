@@ -1,27 +1,38 @@
 /*
- * Copyright 2019, 2020 grondag
+ *  Copyright 2019, 2020 grondag
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License.  You may obtain a copy
- * of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ *  use this file except in compliance with the License.  You may obtain a copy
+ *  of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ *  License for the specific language governing permissions and limitations under
+ *  the License.
  */
 
 package grondag.canvas.terrain.occlusion.region;
 
+import static grondag.canvas.terrain.RenderRegionAddressHelper.INTERIOR_CACHE_SIZE;
+import static grondag.canvas.terrain.RenderRegionAddressHelper.INTERIOR_CACHE_WORDS;
+import static grondag.canvas.terrain.RenderRegionAddressHelper.TOTAL_CACHE_WORDS;
+import static grondag.canvas.terrain.RenderRegionAddressHelper.interiorIndex;
+import static grondag.canvas.terrain.RenderRegionAddressHelper.localCornerIndex;
+import static grondag.canvas.terrain.RenderRegionAddressHelper.localXEdgeIndex;
+import static grondag.canvas.terrain.RenderRegionAddressHelper.localXfaceIndex;
+import static grondag.canvas.terrain.RenderRegionAddressHelper.localYEdgeIndex;
+import static grondag.canvas.terrain.RenderRegionAddressHelper.localYfaceIndex;
+import static grondag.canvas.terrain.RenderRegionAddressHelper.localZEdgeIndex;
+import static grondag.canvas.terrain.RenderRegionAddressHelper.localZfaceIndex;
+
 import it.unimi.dsi.fastutil.ints.IntArrayFIFOQueue;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
+
 import net.minecraft.block.BlockRenderType;
 import net.minecraft.block.BlockState;
-
-import static grondag.canvas.terrain.RenderRegionAddressHelper.*;
 
 public abstract class OcclusionRegion {
 	public static final int CULL_DATA_REGION_BOUNDS = 0;
@@ -225,51 +236,87 @@ public abstract class OcclusionRegion {
 
 		// don't render edge blocks obscured by neighboring chunks
 		for (int i = 1; i < 15; i++) {
-			if (isClosed(localXfaceIndex(false, 0, i)) && isClosed(localYfaceIndex(0, false, i)))
+			if (isClosed(localXfaceIndex(false, 0, i)) && isClosed(localYfaceIndex(0, false, i))) {
 				clearInteriorRenderable(0, 0, i);
-			if (isClosed(localXfaceIndex(true, 0, i)) && isClosed(localYfaceIndex(15, false, i)))
+			}
+
+			if (isClosed(localXfaceIndex(true, 0, i)) && isClosed(localYfaceIndex(15, false, i))) {
 				clearInteriorRenderable(15, 0, i);
-			if (isClosed(localXfaceIndex(false, 15, i)) && isClosed(localYfaceIndex(0, true, i)))
+			}
+
+			if (isClosed(localXfaceIndex(false, 15, i)) && isClosed(localYfaceIndex(0, true, i))) {
 				clearInteriorRenderable(0, 15, i);
-			if (isClosed(localXfaceIndex(true, 15, i)) && isClosed(localYfaceIndex(15, true, i)))
+			}
+
+			if (isClosed(localXfaceIndex(true, 15, i)) && isClosed(localYfaceIndex(15, true, i))) {
 				clearInteriorRenderable(15, 15, i);
+			}
 
-			if (isClosed(localZfaceIndex(i, 0, false)) && isClosed(localYfaceIndex(i, false, 0)))
+			if (isClosed(localZfaceIndex(i, 0, false)) && isClosed(localYfaceIndex(i, false, 0))) {
 				clearInteriorRenderable(i, 0, 0);
-			if (isClosed(localZfaceIndex(i, 0, true)) && isClosed(localYfaceIndex(i, false, 15)))
-				clearInteriorRenderable(i, 0, 15);
-			if (isClosed(localZfaceIndex(i, 15, false)) && isClosed(localYfaceIndex(i, true, 0)))
-				clearInteriorRenderable(i, 15, 0);
-			if (isClosed(localZfaceIndex(i, 15, true)) && isClosed(localYfaceIndex(i, true, 15)))
-				clearInteriorRenderable(i, 15, 15);
+			}
 
-			if (isClosed(localXfaceIndex(false, i, 0)) && isClosed(localZfaceIndex(0, i, false)))
+			if (isClosed(localZfaceIndex(i, 0, true)) && isClosed(localYfaceIndex(i, false, 15))) {
+				clearInteriorRenderable(i, 0, 15);
+			}
+
+			if (isClosed(localZfaceIndex(i, 15, false)) && isClosed(localYfaceIndex(i, true, 0))) {
+				clearInteriorRenderable(i, 15, 0);
+			}
+
+			if (isClosed(localZfaceIndex(i, 15, true)) && isClosed(localYfaceIndex(i, true, 15))) {
+				clearInteriorRenderable(i, 15, 15);
+			}
+
+			if (isClosed(localXfaceIndex(false, i, 0)) && isClosed(localZfaceIndex(0, i, false))) {
 				clearInteriorRenderable(0, i, 0);
-			if (isClosed(localXfaceIndex(true, i, 0)) && isClosed(localZfaceIndex(15, i, false)))
+			}
+
+			if (isClosed(localXfaceIndex(true, i, 0)) && isClosed(localZfaceIndex(15, i, false))) {
 				clearInteriorRenderable(15, i, 0);
-			if (isClosed(localXfaceIndex(false, i, 15)) && isClosed(localZfaceIndex(0, i, true)))
+			}
+
+			if (isClosed(localXfaceIndex(false, i, 15)) && isClosed(localZfaceIndex(0, i, true))) {
 				clearInteriorRenderable(0, i, 15);
-			if (isClosed(localXfaceIndex(true, i, 15)) && isClosed(localZfaceIndex(15, i, true)))
+			}
+
+			if (isClosed(localXfaceIndex(true, i, 15)) && isClosed(localZfaceIndex(15, i, true))) {
 				clearInteriorRenderable(15, i, 15);
+			}
 		}
 
 		// don't render corner blocks obscured by neighboring chunks
-		if (isClosed(localXfaceIndex(false, 0, 0)) && isClosed(localYfaceIndex(0, false, 0)) && isClosed(localZfaceIndex(0, 0, false)))
+		if (isClosed(localXfaceIndex(false, 0, 0)) && isClosed(localYfaceIndex(0, false, 0)) && isClosed(localZfaceIndex(0, 0, false))) {
 			clearInteriorRenderable(0, 0, 0);
-		if (isClosed(localXfaceIndex(true, 0, 0)) && isClosed(localYfaceIndex(15, false, 0)) && isClosed(localZfaceIndex(15, 0, false)))
+		}
+
+		if (isClosed(localXfaceIndex(true, 0, 0)) && isClosed(localYfaceIndex(15, false, 0)) && isClosed(localZfaceIndex(15, 0, false))) {
 			clearInteriorRenderable(15, 0, 0);
-		if (isClosed(localXfaceIndex(false, 15, 0)) && isClosed(localYfaceIndex(0, true, 0)) && isClosed(localZfaceIndex(0, 15, false)))
+		}
+
+		if (isClosed(localXfaceIndex(false, 15, 0)) && isClosed(localYfaceIndex(0, true, 0)) && isClosed(localZfaceIndex(0, 15, false))) {
 			clearInteriorRenderable(0, 15, 0);
-		if (isClosed(localXfaceIndex(true, 15, 0)) && isClosed(localYfaceIndex(15, true, 0)) && isClosed(localZfaceIndex(15, 15, false)))
+		}
+
+		if (isClosed(localXfaceIndex(true, 15, 0)) && isClosed(localYfaceIndex(15, true, 0)) && isClosed(localZfaceIndex(15, 15, false))) {
 			clearInteriorRenderable(15, 15, 0);
-		if (isClosed(localXfaceIndex(false, 0, 15)) && isClosed(localYfaceIndex(0, false, 15)) && isClosed(localZfaceIndex(0, 0, true)))
+		}
+
+		if (isClosed(localXfaceIndex(false, 0, 15)) && isClosed(localYfaceIndex(0, false, 15)) && isClosed(localZfaceIndex(0, 0, true))) {
 			clearInteriorRenderable(0, 0, 15);
-		if (isClosed(localXfaceIndex(true, 0, 15)) && isClosed(localYfaceIndex(15, false, 15)) && isClosed(localZfaceIndex(15, 0, true)))
+		}
+
+		if (isClosed(localXfaceIndex(true, 0, 15)) && isClosed(localYfaceIndex(15, false, 15)) && isClosed(localZfaceIndex(15, 0, true))) {
 			clearInteriorRenderable(15, 0, 15);
-		if (isClosed(localXfaceIndex(false, 15, 15)) && isClosed(localYfaceIndex(0, true, 15)) && isClosed(localZfaceIndex(0, 15, true)))
+		}
+
+		if (isClosed(localXfaceIndex(false, 15, 15)) && isClosed(localYfaceIndex(0, true, 15)) && isClosed(localZfaceIndex(0, 15, true))) {
 			clearInteriorRenderable(0, 15, 15);
-		if (isClosed(localXfaceIndex(true, 15, 15)) && isClosed(localYfaceIndex(15, true, 15)) && isClosed(localZfaceIndex(15, 15, true)))
+		}
+
+		if (isClosed(localXfaceIndex(true, 15, 15)) && isClosed(localYfaceIndex(15, true, 15)) && isClosed(localZfaceIndex(15, 15, true))) {
 			clearInteriorRenderable(15, 15, 15);
+		}
 	}
 
 	/**

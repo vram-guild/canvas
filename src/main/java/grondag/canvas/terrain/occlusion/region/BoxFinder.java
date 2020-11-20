@@ -1,27 +1,27 @@
 /*
- * Copyright 2019, 2020 grondag
+ *  Copyright 2019, 2020 grondag
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License.  You may obtain a copy
- * of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ *  use this file except in compliance with the License.  You may obtain a copy
+ *  of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ *  License for the specific language governing permissions and limitations under
+ *  the License.
  */
 
 package grondag.canvas.terrain.occlusion.region;
 
+import static grondag.canvas.terrain.RenderRegionAddressHelper.INTERIOR_CACHE_WORDS;
+import static grondag.canvas.terrain.RenderRegionAddressHelper.SLICE_WORD_COUNT;
+
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntConsumer;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
-
-import static grondag.canvas.terrain.RenderRegionAddressHelper.INTERIOR_CACHE_WORDS;
-import static grondag.canvas.terrain.RenderRegionAddressHelper.SLICE_WORD_COUNT;
 
 public class BoxFinder {
 	public final IntArrayList boxes = new IntArrayList();
@@ -29,7 +29,7 @@ public class BoxFinder {
 	final long[] source = new long[INTERIOR_CACHE_WORDS];
 	final long[] filled = new long[INTERIOR_CACHE_WORDS];
 	/**
-	 * bits 0-15 indicate which slices contain the area with the same index of the value
+	 * Bits 0-15 indicate which slices contain the area with the same index of the value.
 	 */
 	final int[] areaSlices = new int[Area.AREA_COUNT];
 	private final LongArrayList sortedBoxes = new LongArrayList();
@@ -43,7 +43,6 @@ public class BoxFinder {
 	}
 
 	public void findBoxes(long[] sourceBits, int sourceIndex) {
-
 		System.arraycopy(OcclusionRegion.EMPTY_BITS, 0, filled, 0, INTERIOR_CACHE_WORDS);
 		System.arraycopy(sourceBits, sourceIndex, source, 0, INTERIOR_CACHE_WORDS);
 		boxes.clear();

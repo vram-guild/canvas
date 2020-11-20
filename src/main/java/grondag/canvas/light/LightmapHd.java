@@ -1,28 +1,30 @@
 /*
- * Copyright 2019, 2020 grondag
+ *  Copyright 2019, 2020 grondag
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License.  You may obtain a copy
- * of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ *  use this file except in compliance with the License.  You may obtain a copy
+ *  of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ *  License for the specific language governing permissions and limitations under
+ *  the License.
  */
 
 package grondag.canvas.light;
 
-import grondag.canvas.CanvasMod;
-import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+
 import net.minecraft.client.resource.language.I18n;
 import net.minecraft.util.math.MathHelper;
 
-import java.util.concurrent.atomic.AtomicInteger;
+import grondag.canvas.CanvasMod;
+import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 
 public class LightmapHd {
 	// PERF: use Fermion cache
@@ -40,7 +42,6 @@ public class LightmapHd {
 		uMinImg = s * LightmapSizer.paddedSize;
 		vMinImg = t * LightmapSizer.paddedSize;
 		light = new int[LightmapSizer.lightmapPixels];
-
 
 		if (index >= LightmapSizer.maxCount) {
 			if (errorNoticeNeeded) {
@@ -65,8 +66,8 @@ public class LightmapHd {
 
 			for (int i = 0; i < LightmapSizer.lightmapPixels; ++i) {
 				final int ao = aoLight[i];
-				final int sky = skyLight[i];// * ao / 255;
-				final int block = blockLight[i];// * ao / 255;
+				final int sky = skyLight[i]; // * ao / 255;
+				final int block = blockLight[i]; // * ao / 255;
 				light[i] = (sky << 24) | (ao << 16) | (block << 8) | ao;
 			}
 
@@ -96,6 +97,7 @@ public class LightmapHd {
 		if (result == null) {
 			synchronized (MAP) {
 				result = MAP.get(faceData);
+
 				if (result == null) {
 					result = new LightmapHd(faceData);
 					MAP.put(faceData.clone(), result);
@@ -107,7 +109,7 @@ public class LightmapHd {
 	}
 
 	/**
-	 * Handles padding
+	 * Handles padding.
 	 */
 	public int pixel(int u, int v) {
 		return light[v * LightmapSizer.paddedSize + u];

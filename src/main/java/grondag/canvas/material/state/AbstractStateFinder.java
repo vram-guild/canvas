@@ -1,31 +1,32 @@
 /*
- * Copyright 2019, 2020 grondag
+ *  Copyright 2019, 2020 grondag
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License.  You may obtain a copy
- * of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ *  use this file except in compliance with the License.  You may obtain a copy
+ *  of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ *  License for the specific language governing permissions and limitations under
+ *  the License.
  */
 
 package grondag.canvas.material.state;
+
+import org.jetbrains.annotations.Nullable;
+
+import net.minecraft.util.Identifier;
+
+import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 
 import grondag.canvas.apiimpl.MaterialConditionImpl;
 import grondag.canvas.material.property.MaterialTextureState;
 import grondag.canvas.shader.MaterialShaderId;
 import grondag.frex.api.material.MaterialCondition;
 import grondag.frex.api.material.RenderMaterial;
-import org.jetbrains.annotations.Nullable;
-
-import net.minecraft.util.Identifier;
-
-import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 
 @SuppressWarnings("unchecked")
 public abstract class AbstractStateFinder<T extends AbstractStateFinder<T, V>, V extends AbstractRenderState> extends AbstractRenderStateView {
@@ -146,7 +147,7 @@ public abstract class AbstractStateFinder<T extends AbstractStateFinder<T, V>, V
 	}
 
 	/**
-	 * Sets cutout threshold to low value vs default of 50%
+	 * Sets cutout threshold to low value vs default of 50%.
 	 */
 	public T transparentCutout(boolean translucentCutout) {
 		bits = TRANSLUCENT_CUTOUT.setValue(translucentCutout, bits);

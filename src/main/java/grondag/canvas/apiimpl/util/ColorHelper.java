@@ -1,25 +1,26 @@
 /*
- * Copyright 2019, 2020 grondag
+ *  Copyright 2019, 2020 grondag
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License.  You may obtain a copy
- * of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ *  use this file except in compliance with the License.  You may obtain a copy
+ *  of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ *  License for the specific language governing permissions and limitations under
+ *  the License.
  */
 
 package grondag.canvas.apiimpl.util;
 
 import java.nio.ByteOrder;
 
-import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import it.unimi.dsi.fastutil.ints.Int2IntFunction;
+
+import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 
 /**
  * Static routines of general utility for renderer implementations. Renderers
@@ -41,7 +42,7 @@ public abstract class ColorHelper {
 	}
 
 	/**
-	 * arguments are assumed to be ARGB - does not modify alpha
+	 * arguments are assumed to be ARGB - does not modify alpha.
 	 */
 	public static int multiplyRGB(int color, float shade) {
 		final int red = (int) (((color >> 16) & 0xFF) * shade);
@@ -71,7 +72,7 @@ public abstract class ColorHelper {
 	}
 
 	/**
-	 * Component-wise max
+	 * Component-wise max.
 	 */
 	public static int maxBrightness(int b0, int b1) {
 		if (b0 == 0) {
@@ -79,6 +80,7 @@ public abstract class ColorHelper {
 		} else if (b1 == 0) {
 			return b0;
 		}
+
 		return Math.max(b0 & 0xFFFF, b1 & 0xFFFF) | Math.max(b0 & 0xFFFF0000, b1 & 0xFFFF0000);
 	}
 

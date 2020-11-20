@@ -1,31 +1,33 @@
 /*
- * Copyright 2019, 2020 grondag
+ *  Copyright 2019, 2020 grondag
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License.  You may obtain a copy
- * of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ *  use this file except in compliance with the License.  You may obtain a copy
+ *  of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ *  License for the specific language governing permissions and limitations under
+ *  the License.
  */
 
 package grondag.canvas.texture;
 
+import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
+
 import com.mojang.blaze3d.platform.GlStateManager;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-import net.minecraft.client.util.Untracker;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL21;
 import org.lwjgl.system.MemoryUtil;
 
-import java.nio.ByteBuffer;
-import java.nio.IntBuffer;
+import net.minecraft.client.util.Untracker;
+
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 
 /**
  * Leaner adaptation of Minecraft NativeImage suitable for our needs.
@@ -48,11 +50,13 @@ public final class SimpleImage implements AutoCloseable {
 		this.width = width;
 		this.height = height;
 		sizeBytes = width * height * bytesPerPixel;
+
 		if (calloc) {
 			pointer = MemoryUtil.nmemCalloc(1L, sizeBytes);
 		} else {
 			pointer = MemoryUtil.nmemAlloc(sizeBytes);
 		}
+
 		byteBuffer = MemoryUtil.memByteBuffer(pointer, sizeBytes);
 		intBuffer = MemoryUtil.memIntBuffer(pointer, sizeBytes / 4);
 	}
@@ -80,6 +84,7 @@ public final class SimpleImage implements AutoCloseable {
 			intBuffer = null;
 			MemoryUtil.nmemFree(pointer);
 		}
+
 		pointer = 0L;
 	}
 
@@ -108,12 +113,12 @@ public final class SimpleImage implements AutoCloseable {
 		assert pointer != 0L : "Image not allocated.";
 
 		final int limit;
+
 		if (bytesPerPixel == 1) {
 			limit = width * height;
 		} else {
 			assert bytesPerPixel == 4;
 			limit = width * height * 4;
-
 		}
 
 		for (int i = 0; i < limit; i++) {

@@ -1,30 +1,37 @@
 /*
- * Copyright 2019, 2020 grondag
+ *  Copyright 2019, 2020 grondag
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License.  You may obtain a copy
- * of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ *  use this file except in compliance with the License.  You may obtain a copy
+ *  of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ *  License for the specific language governing permissions and limitations under
+ *  the License.
  */
 
 package grondag.canvas.light;
 
-import grondag.canvas.apiimpl.mesh.QuadViewImpl;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
+import static grondag.canvas.light.AoVertexClampFunction.clamp;
+import static grondag.canvas.terrain.RenderRegionAddressHelper.signedXyzOffset5;
+import static net.minecraft.util.math.Direction.DOWN;
+import static net.minecraft.util.math.Direction.EAST;
+import static net.minecraft.util.math.Direction.NORTH;
+import static net.minecraft.util.math.Direction.SOUTH;
+import static net.minecraft.util.math.Direction.UP;
+import static net.minecraft.util.math.Direction.WEST;
+
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3i;
 
-import static grondag.canvas.light.AoVertexClampFunction.clamp;
-import static grondag.canvas.terrain.RenderRegionAddressHelper.signedXyzOffset5;
-import static net.minecraft.util.math.Direction.*;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
+
+import grondag.canvas.apiimpl.mesh.QuadViewImpl;
 
 /**
  * Adapted from vanilla BlockModelRenderer.AoCalculator.
@@ -32,79 +39,79 @@ import static net.minecraft.util.math.Direction.*;
 @Environment(EnvType.CLIENT)
 enum AoFace {
 	AOF_DOWN(WEST, EAST, NORTH, SOUTH,
-			(q, i) -> clamp(q.y(i)),
-			(q, i) -> clamp(q.z(i)),
-			(q, i) -> 1 - clamp(q.x(i)),
-			(q, i, w) -> {
-				final float u = clamp(q.z(i));
-				final float v = 1 - clamp(q.x(i));
-				w[0] = v * u;
-				w[1] = v * (1 - u);
-				w[2] = (1 - v) * (1 - u);
-				w[3] = (1 - v) * u;
-			}),
+		(q, i) -> clamp(q.y(i)),
+		(q, i) -> clamp(q.z(i)),
+		(q, i) -> 1 - clamp(q.x(i)),
+		(q, i, w) -> {
+			final float u = clamp(q.z(i));
+			final float v = 1 - clamp(q.x(i));
+			w[0] = v * u;
+			w[1] = v * (1 - u);
+			w[2] = (1 - v) * (1 - u);
+			w[3] = (1 - v) * u;
+		}),
 
 	AOF_UP(EAST, WEST, NORTH, SOUTH,
-			(q, i) -> 1 - clamp(q.y(i)),
-			(q, i) -> clamp(q.z(i)),
-			(q, i) -> clamp(q.x(i)),
-			(q, i, w) -> {
-				final float u = clamp(q.z(i));
-				final float v = clamp(q.x(i));
-				w[0] = v * u;
-				w[1] = v * (1 - u);
-				w[2] = (1 - v) * (1 - u);
-				w[3] = (1 - v) * u;
-			}),
+		(q, i) -> 1 - clamp(q.y(i)),
+		(q, i) -> clamp(q.z(i)),
+		(q, i) -> clamp(q.x(i)),
+		(q, i, w) -> {
+			final float u = clamp(q.z(i));
+			final float v = clamp(q.x(i));
+			w[0] = v * u;
+			w[1] = v * (1 - u);
+			w[2] = (1 - v) * (1 - u);
+			w[3] = (1 - v) * u;
+		}),
 
 	AOF_NORTH(UP, DOWN, EAST, WEST,
-			(q, i) -> clamp(q.z(i)),
-			(q, i) -> 1 - clamp(q.x(i)),
-			(q, i) -> clamp(q.y(i)),
-			(q, i, w) -> {
-				final float u = 1 - clamp(q.x(i));
-				final float v = clamp(q.y(i));
-				w[0] = v * u;
-				w[1] = v * (1 - u);
-				w[2] = (1 - v) * (1 - u);
-				w[3] = (1 - v) * u;
-			}),
+		(q, i) -> clamp(q.z(i)),
+		(q, i) -> 1 - clamp(q.x(i)),
+		(q, i) -> clamp(q.y(i)),
+		(q, i, w) -> {
+			final float u = 1 - clamp(q.x(i));
+			final float v = clamp(q.y(i));
+			w[0] = v * u;
+			w[1] = v * (1 - u);
+			w[2] = (1 - v) * (1 - u);
+			w[3] = (1 - v) * u;
+		}),
 	AOF_SOUTH(WEST, EAST, DOWN, UP,
-			(q, i) -> 1 - clamp(q.z(i)),
-			(q, i) -> clamp(q.y(i)),
-			(q, i) -> 1 - clamp(q.x(i)),
-			(q, i, w) -> {
-				final float u = clamp(q.y(i));
-				final float v = 1 - clamp(q.x(i));
-				w[0] = u * v;
-				w[1] = (1 - u) * v;
-				w[2] = (1 - u) * (1 - v);
-				w[3] = u * (1 - v);
-			}),
+		(q, i) -> 1 - clamp(q.z(i)),
+		(q, i) -> clamp(q.y(i)),
+		(q, i) -> 1 - clamp(q.x(i)),
+		(q, i, w) -> {
+			final float u = clamp(q.y(i));
+			final float v = 1 - clamp(q.x(i));
+			w[0] = u * v;
+			w[1] = (1 - u) * v;
+			w[2] = (1 - u) * (1 - v);
+			w[3] = u * (1 - v);
+		}),
 	AOF_WEST(UP, DOWN, NORTH, SOUTH,
-			(q, i) -> clamp(q.x(i)),
-			(q, i) -> clamp(q.z(i)),
-			(q, i) -> clamp(q.y(i)),
-			(q, i, w) -> {
-				final float u = clamp(q.z(i));
-				final float v = clamp(q.y(i));
-				w[0] = v * u;
-				w[1] = v * (1 - u);
-				w[2] = (1 - v) * (1 - u);
-				w[3] = (1 - v) * u;
-			}),
+		(q, i) -> clamp(q.x(i)),
+		(q, i) -> clamp(q.z(i)),
+		(q, i) -> clamp(q.y(i)),
+		(q, i, w) -> {
+			final float u = clamp(q.z(i));
+			final float v = clamp(q.y(i));
+			w[0] = v * u;
+			w[1] = v * (1 - u);
+			w[2] = (1 - v) * (1 - u);
+			w[3] = (1 - v) * u;
+		}),
 	AOF_EAST(DOWN, UP, NORTH, SOUTH,
-			(q, i) -> 1 - clamp(q.x(i)),
-			(q, i) -> clamp(q.z(i)),
-			(q, i) -> 1 - clamp(q.y(i)),
-			(q, i, w) -> {
-				final float u = clamp(q.z(i));
-				final float v = 1 - clamp(q.y(i));
-				w[0] = v * u;
-				w[1] = v * (1 - u);
-				w[2] = (1 - v) * (1 - u);
-				w[3] = (1 - v) * u;
-			});
+		(q, i) -> 1 - clamp(q.x(i)),
+		(q, i) -> clamp(q.z(i)),
+		(q, i) -> 1 - clamp(q.y(i)),
+		(q, i, w) -> {
+			final float u = clamp(q.z(i));
+			final float v = 1 - clamp(q.y(i));
+			w[0] = v * u;
+			w[1] = v * (1 - u);
+			w[2] = (1 - v) * (1 - u);
+			w[3] = (1 - v) * u;
+		});
 
 	private static final AoFace[] values = createValues();
 	final int[] neighbors;
@@ -121,8 +128,7 @@ enum AoFace {
 	final int topLeftOffset;
 	final int topRightOffset;
 
-	AoFace(Direction bottom, Direction top, Direction left, Direction right, Vertex2Float depthFunc,
-		   Vertex2Float uFunc, Vertex2Float vFunc, WeightFunction weightFunc) {
+	AoFace(Direction bottom, Direction top, Direction left, Direction right, Vertex2Float depthFunc, Vertex2Float uFunc, Vertex2Float vFunc, WeightFunction weightFunc) {
 		neighbors = new int[4];
 		neighbors[0] = bottom.ordinal();
 		neighbors[1] = top.ordinal();

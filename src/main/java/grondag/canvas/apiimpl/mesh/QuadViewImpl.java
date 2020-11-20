@@ -1,27 +1,20 @@
 /*
- * Copyright 2019, 2020 grondag
+ *  Copyright 2019, 2020 grondag
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License.  You may obtain a copy
- * of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ *  use this file except in compliance with the License.  You may obtain a copy
+ *  of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ *  License for the specific language governing permissions and limitations under
+ *  the License.
  */
 
 package grondag.canvas.apiimpl.mesh;
-
-import grondag.canvas.apiimpl.util.GeometryHelper;
-import grondag.canvas.apiimpl.util.NormalHelper;
-import grondag.canvas.material.state.RenderMaterialImpl;
-import grondag.canvas.mixinterface.Matrix4fExt;
-import grondag.canvas.texture.SpriteInfoTexture;
-import grondag.frex.api.mesh.QuadView;
 
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.BASE_QUAD_STRIDE;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.BASE_VERTEX_STRIDE;
@@ -49,6 +42,13 @@ import net.minecraft.util.math.Direction;
 import net.fabricmc.fabric.api.renderer.v1.mesh.MutableQuadView;
 import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 
+import grondag.canvas.apiimpl.util.GeometryHelper;
+import grondag.canvas.apiimpl.util.NormalHelper;
+import grondag.canvas.material.state.RenderMaterialImpl;
+import grondag.canvas.mixinterface.Matrix4fExt;
+import grondag.canvas.texture.SpriteInfoTexture;
+import grondag.frex.api.mesh.QuadView;
+
 /**
  * Base class for all quads / quad makers. Handles the ugly bits
  * of maintaining and encoding the quad state.
@@ -60,7 +60,7 @@ public class QuadViewImpl implements QuadView {
 	protected int packedFaceNormal = -1;
 
 	/**
-	 * flag true when sprite is assumed to be interpolated and need normalization
+	 * Flag true when sprite is assumed to be interpolated and need normalization.
 	 */
 	protected boolean spriteMappedFlag = false;
 
@@ -358,19 +358,19 @@ public class QuadViewImpl implements QuadView {
 	@Override
 	public float spriteU(int vertexIndex) {
 		return isSpriteUnmapped()
-		? SpriteInfoTexture.BLOCKS.mapU(spriteId(), spriteFloatU(vertexIndex))
-		: spriteFloatU(vertexIndex);
+			? SpriteInfoTexture.BLOCKS.mapU(spriteId(), spriteFloatU(vertexIndex))
+			: spriteFloatU(vertexIndex);
 	}
 
 	@Override
 	public float spriteV(int vertexIndex) {
 		return isSpriteUnmapped()
-		? SpriteInfoTexture.BLOCKS.mapV(spriteId(), spriteFloatV(vertexIndex))
-		: spriteFloatV(vertexIndex);
+			? SpriteInfoTexture.BLOCKS.mapV(spriteId(), spriteFloatV(vertexIndex))
+			: spriteFloatV(vertexIndex);
 	}
 
 	/**
-	 * Fixed precision value suitable for transformations
+	 * Fixed precision value suitable for transformations.
 	 */
 	public int spritePreciseU(int vertexIndex) {
 		assert isSpriteUnmapped();
@@ -378,7 +378,7 @@ public class QuadViewImpl implements QuadView {
 	}
 
 	/**
-	 * Fixed precision value suitable for transformations
+	 * Fixed precision value suitable for transformations.
 	 */
 	public int spritePreciseV(int vertexIndex) {
 		assert isSpriteUnmapped();
@@ -386,7 +386,7 @@ public class QuadViewImpl implements QuadView {
 	}
 
 	/**
-	 * Rounded, unsigned short value suitable for vertex buffer
+	 * Rounded, unsigned short value suitable for vertex buffer.
 	 */
 	public int spriteBufferU(int vertexIndex) {
 		assert isSpriteUnmapped();
@@ -394,7 +394,7 @@ public class QuadViewImpl implements QuadView {
 	}
 
 	/**
-	 * Rounded, unsigned short value suitable for vertex buffer
+	 * Rounded, unsigned short value suitable for vertex buffer.
 	 */
 	public int spriteBufferV(int vertexIndex) {
 		assert isSpriteUnmapped();

@@ -1,31 +1,31 @@
 /*
- * Copyright 2019, 2020 grondag
+ *  Copyright 2019, 2020 grondag
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License.  You may obtain a copy
- * of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ *  use this file except in compliance with the License.  You may obtain a copy
+ *  of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ *  License for the specific language governing permissions and limitations under
+ *  the License.
  */
 
 package grondag.canvas.material.property;
 
-import grondag.canvas.mixinterface.Matrix3fExt;
-
 import net.minecraft.util.math.Matrix3f;
+
+import grondag.canvas.mixinterface.Matrix3fExt;
 
 /**
  * Describes how vertex coordinates relate to world and camera geometry.
  * Currently vertex collectors don't mix so not part of render state
- * but kept as a global indicator to allow for checking and in-shader information.<p>
+ * but kept as a global indicator to allow for checking and in-shader information.
  *
- * Except as noted below, GL state is always assumed to have the projection
+ * <p>Except as noted below, GL state is always assumed to have the projection
  * matrix set and view matrix set to identity. This is the default matrix
  * state during work render.
  */
@@ -68,7 +68,6 @@ public enum MaterialMatrixState {
 	 */
 	SCREEN;
 
-
 	private static MaterialMatrixState current = ENTITY;
 
 	private static final Matrix3f IDENTITY = new Matrix3f();
@@ -87,11 +86,10 @@ public enum MaterialMatrixState {
 
 		if (matrixIn == null) matrixIn = IDENTITY;
 
-		((Matrix3fExt)(Object) normalModelMatrix).set((Matrix3fExt)(Object) matrixIn);
+		((Matrix3fExt) (Object) normalModelMatrix).set((Matrix3fExt) (Object) matrixIn);
 	}
 
 	private static final Matrix3f normalModelMatrix = new Matrix3f();
-
 
 	public static Matrix3f getNormalModelMatrix() {
 		return normalModelMatrix;

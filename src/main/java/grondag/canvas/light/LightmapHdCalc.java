@@ -1,24 +1,24 @@
 /*
- * Copyright 2019, 2020 grondag
+ *  Copyright 2019, 2020 grondag
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License.  You may obtain a copy
- * of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ *  use this file except in compliance with the License.  You may obtain a copy
+ *  of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ *  License for the specific language governing permissions and limitations under
+ *  the License.
  */
 
 package grondag.canvas.light;
 
-import it.unimi.dsi.fastutil.ints.Int2IntFunction;
-
 import static grondag.canvas.light.LightmapHd.lightIndex;
+
+import it.unimi.dsi.fastutil.ints.Int2IntFunction;
 
 final class LightmapHdCalc {
 	static float input(int b, boolean isSky) {
@@ -69,7 +69,6 @@ final class LightmapHdCalc {
 				final float join = (center + uSide + corner) / 3f;
 				computeClamped(center, (uSide + center) * 0.5f, center - 4f, join, light, uFunc, vFunc);
 			}
-
 		} else if (corner == AoFaceData.OPAQUE) {
 			// opaque corner
 			final float join = (center + uSide + vSide) / 3f;
@@ -128,6 +127,7 @@ final class LightmapHdCalc {
 		} else if (result > 255) {
 			result = 255;
 		}
+
 		return result;
 	}
 
@@ -165,7 +165,6 @@ final class LightmapHdCalc {
 	}
 
 	static int aoCorner(int a, int b, int c, int d) {
-
 		if (a < 0xFF) {
 			if (b < 0xFF || c < 0xFF || d < 0xFF) {
 				return (a + b + c + d + 1) >> 2;
@@ -216,7 +215,6 @@ final class LightmapHdCalc {
 		final int right = ((faceData.aoRight + center + 1) >> 1); //FACTOR * (255f - faceData.aoRight);
 		final int bottom = ((faceData.aoBottom + center + 1) >> 1); //FACTOR * (255f - faceData.aoBottom);
 		final int left = ((faceData.aoLeft + center + 1) >> 1); //FACTOR * (255f - faceData.aoLeft);
-
 
 		computeClampedAo(center, left, top, topLeft, light, LightmapSizer.NEG, LightmapSizer.NEG);
 		computeClampedAo(center, right, top, topRight, light, LightmapSizer.POS, LightmapSizer.NEG);

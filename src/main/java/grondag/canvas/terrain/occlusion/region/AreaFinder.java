@@ -1,17 +1,17 @@
 /*
- * Copyright 2019, 2020 grondag
+ *  Copyright 2019, 2020 grondag
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License.  You may obtain a copy
- * of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ *  use this file except in compliance with the License.  You may obtain a copy
+ *  of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ *  License for the specific language governing permissions and limitations under
+ *  the License.
  */
 
 package grondag.canvas.terrain.occlusion.region;
@@ -125,7 +125,6 @@ public class AreaFinder {
 							}
 						}
 					}
-
 				}
 
 				// track height of this column but don't overflow on last row/column
@@ -137,28 +136,28 @@ public class AreaFinder {
 	}
 
 	/**
-	 * 1-16 values
+	 * 1-16 values.
 	 */
 	private static int getVal16(long packed, int x) {
 		return 1 + getVal15(packed, x);
 	}
 
 	/**
-	 * 1-16 values
+	 * 1-16 values.
 	 */
 	private static long setVal16(long packed, int x, int val) {
 		return setVal15(packed, x, val - 1);
 	}
 
 	/**
-	 * 0-15 values
+	 * 0-15 values.
 	 */
 	private static int getVal15(long packed, int x) {
 		return (int) ((packed >>> (x << 2)) & 0xF);
 	}
 
 	/**
-	 * 0-15 values
+	 * 0-15 values.
 	 */
 	private static long setVal15(long packed, int x, int val) {
 		final int shift = x << 2;

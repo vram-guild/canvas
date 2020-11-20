@@ -1,17 +1,17 @@
 /*
- * Copyright 2019, 2020 grondag
+ *  Copyright 2019, 2020 grondag
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License.  You may obtain a copy
- * of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ *  use this file except in compliance with the License.  You may obtain a copy
+ *  of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ *  License for the specific language governing permissions and limitations under
+ *  the License.
  */
 
 package grondag.canvas.shader;
@@ -22,7 +22,7 @@ import org.lwjgl.opengl.GL21;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.Identifier;
 
-public class GlMaterialShader extends GlShader{
+public class GlMaterialShader extends GlShader {
 	GlMaterialShader(Identifier shaderSource, int shaderType, ProgramType programType) {
 		super(shaderSource, shaderType, programType);
 	}
@@ -35,7 +35,6 @@ public class GlMaterialShader extends GlShader{
 
 	@Override
 	protected String preprocessSource(ResourceManager resourceManager, String baseSource) {
-
 		if (shaderType == GL21.GL_FRAGMENT_SHADER) {
 			return preprocessFragmentSource(resourceManager, baseSource);
 		} else {
@@ -47,7 +46,7 @@ public class GlMaterialShader extends GlShader{
 		String starts;
 		String impl;
 
-		final int[] shaders =  MaterialShaderManager.FRAGMENT_INDEXES.toIntArray();
+		final int[] shaders = MaterialShaderManager.FRAGMENT_INDEXES.toIntArray();
 		final int limit = shaders.length;
 
 		if (limit == 0) {
@@ -107,7 +106,7 @@ public class GlMaterialShader extends GlShader{
 		String ends;
 		String impl;
 
-		final int[] shaders =  MaterialShaderManager.VERTEX_INDEXES.toIntArray();
+		final int[] shaders = MaterialShaderManager.VERTEX_INDEXES.toIntArray();
 		final int limit = shaders.length;
 
 		if (limit == 0) {
@@ -141,7 +140,6 @@ public class GlMaterialShader extends GlShader{
 					endsBuilder.append(index);
 					endsBuilder.append(") ");
 				}
-
 
 				if (src.contains("frx_startVertex")) {
 					startsBuilder.append("{ frx_startVertex");

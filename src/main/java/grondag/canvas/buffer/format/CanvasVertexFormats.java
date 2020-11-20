@@ -1,23 +1,20 @@
 /*
- * Copyright 2019, 2020 grondag
+ *  Copyright 2019, 2020 grondag
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License.  You may obtain a copy
- * of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ *  use this file except in compliance with the License.  You may obtain a copy
+ *  of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ *  License for the specific language governing permissions and limitations under
+ *  the License.
  */
 
 package grondag.canvas.buffer.format;
-
-import grondag.canvas.CanvasMod;
-import grondag.canvas.Configurator;
 
 import static grondag.canvas.buffer.format.CanvasVertextFormatElement.BASE_RGBA_4UB;
 import static grondag.canvas.buffer.format.CanvasVertextFormatElement.BASE_TEX_2F;
@@ -27,6 +24,9 @@ import static grondag.canvas.buffer.format.CanvasVertextFormatElement.MATERIAL_2
 import static grondag.canvas.buffer.format.CanvasVertextFormatElement.NORMAL_FLAGS_4UB;
 import static grondag.canvas.buffer.format.CanvasVertextFormatElement.POSITION_3F;
 
+import grondag.canvas.CanvasMod;
+import grondag.canvas.Configurator;
+
 public final class CanvasVertexFormats {
 	static {
 		if (Configurator.enableLifeCycleDebug) {
@@ -34,18 +34,13 @@ public final class CanvasVertexFormats {
 		}
 	}
 
-	public static final CanvasVertexFormat PROCESS_VERTEX_UV = new CanvasVertexFormat(
-		POSITION_3F,
-		BASE_TEX_2F);
-
-	public static final CanvasVertexFormat PROCESS_VERTEX = new CanvasVertexFormat(
-		POSITION_3F);
-
+	public static final CanvasVertexFormat PROCESS_VERTEX_UV = new CanvasVertexFormat(POSITION_3F, BASE_TEX_2F);
+	public static final CanvasVertexFormat PROCESS_VERTEX = new CanvasVertexFormat(POSITION_3F);
 
 	/**
-	 * New common format for all world/game object rendering.<p>
+	 * New common format for all world/game object rendering.
 	 *
-	 * Texture is always normalized. For atlas textures, sprite ID is
+	 * <p>Texture is always normalized. For atlas textures, sprite ID is
 	 * carried in most significant bytes of normal.
 	 * Normal only contains packed x and y values, z is derived in shader.
 	 * Most significant byte of lightmap holds vertex state flags.

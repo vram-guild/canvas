@@ -1,30 +1,182 @@
 /*
- * Copyright 2019, 2020 grondag
+ *  Copyright 2019, 2020 grondag
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License.  You may obtain a copy
- * of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ *  use this file except in compliance with the License.  You may obtain a copy
+ *  of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ *  License for the specific language governing permissions and limitations under
+ *  the License.
  */
 
 package grondag.canvas.terrain.occlusion;
 
-import com.google.common.base.Strings;
-import grondag.canvas.CanvasMod;
-import grondag.canvas.Configurator;
-import org.apache.commons.lang3.StringUtils;
-
-import static grondag.canvas.terrain.occlusion.Constants.*;
+import static grondag.canvas.terrain.occlusion.Constants.BOUNDS_IN;
+import static grondag.canvas.terrain.occlusion.Constants.BOUNDS_OUTSIDE_OR_TOO_SMALL;
+import static grondag.canvas.terrain.occlusion.Constants.DATA_LENGTH;
+import static grondag.canvas.terrain.occlusion.Constants.EDGE_BOTTOM;
+import static grondag.canvas.terrain.occlusion.Constants.EDGE_POINT;
+import static grondag.canvas.terrain.occlusion.Constants.EDGE_TOP;
+import static grondag.canvas.terrain.occlusion.Constants.EVENTS_LENGTH;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_0123_FFFF;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_0123_FFFL;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_0123_FFFR;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_0123_FFLF;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_0123_FFLL;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_0123_FFLR;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_0123_FFRF;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_0123_FFRL;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_0123_FFRR;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_0123_FLFF;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_0123_FLFL;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_0123_FLFR;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_0123_FLLF;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_0123_FLLL;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_0123_FLLR;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_0123_FLRF;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_0123_FLRL;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_0123_FLRR;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_0123_FRFF;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_0123_FRFL;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_0123_FRFR;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_0123_FRLF;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_0123_FRLL;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_0123_FRLR;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_0123_FRRF;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_0123_FRRL;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_0123_FRRR;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_0123_LFFF;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_0123_LFFL;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_0123_LFFR;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_0123_LFLF;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_0123_LFLL;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_0123_LFLR;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_0123_LFRF;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_0123_LFRL;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_0123_LFRR;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_0123_LLFF;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_0123_LLFL;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_0123_LLFR;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_0123_LLLF;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_0123_LLLL;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_0123_LLLR;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_0123_LLRF;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_0123_LLRL;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_0123_LLRR;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_0123_LRFF;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_0123_LRFL;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_0123_LRFR;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_0123_LRLF;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_0123_LRLL;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_0123_LRLR;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_0123_LRRF;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_0123_LRRL;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_0123_LRRR;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_0123_RFFF;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_0123_RFFL;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_0123_RFFR;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_0123_RFLF;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_0123_RFLL;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_0123_RFLR;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_0123_RFRF;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_0123_RFRL;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_0123_RFRR;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_0123_RLFF;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_0123_RLFL;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_0123_RLFR;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_0123_RLLF;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_0123_RLLL;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_0123_RLLR;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_0123_RLRF;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_0123_RLRL;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_0123_RLRR;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_0123_RRFF;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_0123_RRFL;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_0123_RRFR;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_0123_RRLF;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_0123_RRLL;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_0123_RRLR;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_0123_RRRF;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_0123_RRRL;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_0123_RRRR;
+import static grondag.canvas.terrain.occlusion.Constants.EVENT_POSITION_MASK;
+import static grondag.canvas.terrain.occlusion.Constants.HALF_PIXEL_HEIGHT;
+import static grondag.canvas.terrain.occlusion.Constants.HALF_PIXEL_WIDTH;
+import static grondag.canvas.terrain.occlusion.Constants.HALF_PRECISE_HEIGHT;
+import static grondag.canvas.terrain.occlusion.Constants.HALF_PRECISE_WIDTH;
+import static grondag.canvas.terrain.occlusion.Constants.IDX_AX0;
+import static grondag.canvas.terrain.occlusion.Constants.IDX_AX1;
+import static grondag.canvas.terrain.occlusion.Constants.IDX_AY0;
+import static grondag.canvas.terrain.occlusion.Constants.IDX_AY1;
+import static grondag.canvas.terrain.occlusion.Constants.IDX_BX0;
+import static grondag.canvas.terrain.occlusion.Constants.IDX_BX1;
+import static grondag.canvas.terrain.occlusion.Constants.IDX_BY0;
+import static grondag.canvas.terrain.occlusion.Constants.IDX_BY1;
+import static grondag.canvas.terrain.occlusion.Constants.IDX_CLIP_X;
+import static grondag.canvas.terrain.occlusion.Constants.IDX_CLIP_Y;
+import static grondag.canvas.terrain.occlusion.Constants.IDX_CX0;
+import static grondag.canvas.terrain.occlusion.Constants.IDX_CX1;
+import static grondag.canvas.terrain.occlusion.Constants.IDX_CY0;
+import static grondag.canvas.terrain.occlusion.Constants.IDX_CY1;
+import static grondag.canvas.terrain.occlusion.Constants.IDX_DX0;
+import static grondag.canvas.terrain.occlusion.Constants.IDX_DX1;
+import static grondag.canvas.terrain.occlusion.Constants.IDX_DY0;
+import static grondag.canvas.terrain.occlusion.Constants.IDX_DY1;
+import static grondag.canvas.terrain.occlusion.Constants.IDX_EVENTS;
+import static grondag.canvas.terrain.occlusion.Constants.IDX_MAX_PIX_X;
+import static grondag.canvas.terrain.occlusion.Constants.IDX_MAX_PIX_Y;
+import static grondag.canvas.terrain.occlusion.Constants.IDX_MAX_TILE_ORIGIN_X;
+import static grondag.canvas.terrain.occlusion.Constants.IDX_MAX_TILE_ORIGIN_Y;
+import static grondag.canvas.terrain.occlusion.Constants.IDX_MIN_PIX_X;
+import static grondag.canvas.terrain.occlusion.Constants.IDX_MIN_PIX_Y;
+import static grondag.canvas.terrain.occlusion.Constants.IDX_MIN_TILE_ORIGIN_X;
+import static grondag.canvas.terrain.occlusion.Constants.IDX_POS0;
+import static grondag.canvas.terrain.occlusion.Constants.IDX_POS1;
+import static grondag.canvas.terrain.occlusion.Constants.IDX_POS2;
+import static grondag.canvas.terrain.occlusion.Constants.IDX_POS3;
+import static grondag.canvas.terrain.occlusion.Constants.IDX_SAVE_TILE_INDEX;
+import static grondag.canvas.terrain.occlusion.Constants.IDX_SAVE_TILE_ORIGIN_X;
+import static grondag.canvas.terrain.occlusion.Constants.IDX_SAVE_TILE_ORIGIN_Y;
+import static grondag.canvas.terrain.occlusion.Constants.IDX_TILE_INDEX;
+import static grondag.canvas.terrain.occlusion.Constants.IDX_TILE_ORIGIN_X;
+import static grondag.canvas.terrain.occlusion.Constants.IDX_TILE_ORIGIN_Y;
+import static grondag.canvas.terrain.occlusion.Constants.IDX_VERTEX_DATA;
+import static grondag.canvas.terrain.occlusion.Constants.MAX_PIXEL_Y;
+import static grondag.canvas.terrain.occlusion.Constants.PIXEL_HEIGHT;
+import static grondag.canvas.terrain.occlusion.Constants.PIXEL_WIDTH;
+import static grondag.canvas.terrain.occlusion.Constants.PRECISE_HEIGHT;
+import static grondag.canvas.terrain.occlusion.Constants.PRECISE_HEIGHT_CLAMP;
+import static grondag.canvas.terrain.occlusion.Constants.PRECISE_WIDTH;
+import static grondag.canvas.terrain.occlusion.Constants.PRECISE_WIDTH_CLAMP;
+import static grondag.canvas.terrain.occlusion.Constants.PRECISION_BITS;
+import static grondag.canvas.terrain.occlusion.Constants.PV_PX;
+import static grondag.canvas.terrain.occlusion.Constants.PV_PY;
+import static grondag.canvas.terrain.occlusion.Constants.PV_W;
+import static grondag.canvas.terrain.occlusion.Constants.PV_X;
+import static grondag.canvas.terrain.occlusion.Constants.PV_Y;
+import static grondag.canvas.terrain.occlusion.Constants.PV_Z;
+import static grondag.canvas.terrain.occlusion.Constants.SCANT_PRECISE_PIXEL_CENTER;
+import static grondag.canvas.terrain.occlusion.Constants.TILE_AXIS_MASK;
+import static grondag.canvas.terrain.occlusion.Constants.TILE_AXIS_SHIFT;
+import static grondag.canvas.terrain.occlusion.Constants.TILE_COUNT;
+import static grondag.canvas.terrain.occlusion.Constants.TILE_INDEX_HIGH_X;
+import static grondag.canvas.terrain.occlusion.Constants.TILE_INDEX_HIGH_Y;
+import static grondag.canvas.terrain.occlusion.Constants.TILE_INDEX_LOW_X_MASK;
+import static grondag.canvas.terrain.occlusion.Constants.TILE_INDEX_LOW_Y;
+import static grondag.canvas.terrain.occlusion.Constants.TILE_INDEX_LOW_Y_MASK;
 import static grondag.canvas.terrain.occlusion.Indexer.tileIndex;
 import static grondag.canvas.terrain.occlusion.Matrix4L.MATRIX_PRECISION_HALF;
 
+import com.google.common.base.Strings;
+import org.apache.commons.lang3.StringUtils;
+
+import grondag.canvas.CanvasMod;
+import grondag.canvas.Configurator;
 
 // Some elements are adapted from content found at
 // https://fgiesen.wordpress.com/2013/02/17/optimizing-sw-occlusion-culling-index/
@@ -174,7 +326,6 @@ class Rasterizer {
 			populateFlatEvents(data[IDX_POS1], data[IDX_BY0]);
 			populateFlatEvents(data[IDX_POS2], data[IDX_CY0]);
 		};
-
 
 		EVENT_FILLERS[EVENT_0123_RRRL] = () -> {
 			populateLeftEvents(IDX_DX0);
@@ -474,7 +625,6 @@ class Rasterizer {
 			populateFlatEvents(data[IDX_POS2], data[IDX_CY0]);
 			populateFlatEvents(data[IDX_POS3], data[IDX_DY0]);
 		};
-
 	}
 
 	final void copyFrom(Rasterizer source) {
@@ -666,7 +816,6 @@ class Rasterizer {
 			case 0b0000:
 				return prepareBounds0000(v0, v1, v2, v3);
 
-
 			case 0b0001:
 				return prepareBounds0001(v0, v1, v2, v3);
 
@@ -679,7 +828,6 @@ class Rasterizer {
 			case 0b1000:
 				return prepareBounds0001(v1, v2, v3, v0);
 
-
 			case 0b0011:
 				return prepareBounds0011(v0, v1, v2, v3);
 
@@ -691,7 +839,6 @@ class Rasterizer {
 
 			case 0b0110:
 				return prepareBounds0011(v3, v0, v1, v2);
-
 
 			case 0b0111:
 				return prepareBounds0111(v0, v1, v2, v3);
@@ -768,25 +915,47 @@ class Rasterizer {
 		minX = ax0;
 		maxX = ax0;
 
-		if (bx0 < minX) minX = bx0;
-		else if (bx0 > maxX) maxX = bx0;
-		if (cx0 < minX) minX = cx0;
-		else if (cx0 > maxX) maxX = cx0;
-		if (dx0 < minX) minX = dx0;
-		else if (dx0 > maxX) maxX = dx0;
+		if (bx0 < minX) {
+			minX = bx0;
+		} else if (bx0 > maxX) {
+			maxX = bx0;
+		}
+
+		if (cx0 < minX) {
+			minX = cx0;
+		} else if (cx0 > maxX) {
+			maxX = cx0;
+		}
+
+		if (dx0 < minX) {
+			minX = dx0;
+		} else if (dx0 > maxX) {
+			maxX = dx0;
+		}
 
 		minY = ay0;
 		maxY = ay0;
 
-		if (by0 < minY) minY = by0;
-		else if (by0 > maxY) maxY = by0;
-		if (cy0 < minY) minY = cy0;
-		else if (cy0 > maxY) maxY = cy0;
-		if (dy0 < minY) minY = dy0;
-		else if (dy0 > maxY) maxY = dy0;
+		if (by0 < minY) {
+			minY = by0;
+		} else if (by0 > maxY) {
+			maxY = by0;
+		}
+
+		if (cy0 < minY) {
+			minY = cy0;
+		} else if (cy0 > maxY) {
+			maxY = cy0;
+		}
+
+		if (dy0 < minY) {
+			minY = dy0;
+		} else if (dy0 > maxY) {
+			maxY = dy0;
+		}
 
 		if (((maxY - 1) | (maxX - 1) | (PRECISE_HEIGHT - 1 - minY) | (PRECISE_WIDTH - 1 - minX)) < 0) {
-
+			// NOOP?  TODO: why is this here?
 		}
 
 		if (maxY <= 0 || minY >= PRECISE_HEIGHT) {
@@ -908,26 +1077,56 @@ class Rasterizer {
 		maxX = ax0;
 
 		// ax1 = bx0 and dx1 = ax0,  so no need to test those
-		if (bx0 < minX) minX = bx0;
-		else if (bx0 > maxX) maxX = bx0;
-		if (cx0 < minX) minX = cx0;
-		else if (cx0 > maxX) maxX = cx0;
-		if (cx1 < minX) minX = cx1;
-		else if (cx1 > maxX) maxX = cx1;
-		if (dx0 < minX) minX = dx0;
-		else if (dx0 > maxX) maxX = dx0;
+		if (bx0 < minX) {
+			minX = bx0;
+		} else if (bx0 > maxX) {
+			maxX = bx0;
+		}
+
+		if (cx0 < minX) {
+			minX = cx0;
+		} else if (cx0 > maxX) {
+			maxX = cx0;
+		}
+
+		if (cx1 < minX) {
+			minX = cx1;
+		} else if (cx1 > maxX) {
+			maxX = cx1;
+		}
+
+		if (dx0 < minX) {
+			minX = dx0;
+		} else if (dx0 > maxX) {
+			maxX = dx0;
+		}
 
 		minY = ay0;
 		maxY = ay0;
 
-		if (by0 < minY) minY = by0;
-		else if (by0 > maxY) maxY = by0;
-		if (cy0 < minY) minY = cy0;
-		else if (cy0 > maxY) maxY = cy0;
-		if (cy1 < minY) minY = cy1;
-		else if (cy1 > maxY) maxY = cy1;
-		if (dy0 < minY) minY = dy0;
-		else if (dy0 > maxY) maxY = dy0;
+		if (by0 < minY) {
+			minY = by0;
+		} else if (by0 > maxY) {
+			maxY = by0;
+		}
+
+		if (cy0 < minY) {
+			minY = cy0;
+		} else if (cy0 > maxY) {
+			maxY = cy0;
+		}
+
+		if (cy1 < minY) {
+			minY = cy1;
+		} else if (cy1 > maxY) {
+			maxY = cy1;
+		}
+
+		if (dy0 < minY) {
+			minY = dy0;
+		} else if (dy0 > maxY) {
+			maxY = dy0;
+		}
 
 		if (maxY <= 0 || minY >= PRECISE_HEIGHT) {
 			return BOUNDS_OUTSIDE_OR_TOO_SMALL;
@@ -1049,23 +1248,44 @@ class Rasterizer {
 		minX = ax0;
 		maxX = ax0;
 
-		if (bx0 < minX) minX = bx0;
-		else if (bx0 > maxX) maxX = bx0;
-		if (bx1 < minX) minX = bx1;
-		else if (bx1 > maxX) maxX = bx1;
-		if (dx0 < minX) minX = dx0;
-		else if (dx0 > maxX) maxX = dx0;
+		if (bx0 < minX) {
+			minX = bx0;
+		} else if (bx0 > maxX) {
+			maxX = bx0;
+		}
+
+		if (bx1 < minX) {
+			minX = bx1;
+		} else if (bx1 > maxX) {
+			maxX = bx1;
+		}
+
+		if (dx0 < minX) {
+			minX = dx0;
+		} else if (dx0 > maxX) {
+			maxX = dx0;
+		}
 
 		minY = ay0;
 		maxY = ay0;
 
-		if (by0 < minY) minY = by0;
-		else if (by0 > maxY) maxY = by0;
-		if (by1 < minY) minY = by1;
-		else if (by1 > maxY) maxY = by1;
-		if (dy0 < minY) minY = dy0;
-		else if (dy0 > maxY) maxY = dy0;
+		if (by0 < minY) {
+			minY = by0;
+		} else if (by0 > maxY) {
+			maxY = by0;
+		}
 
+		if (by1 < minY) {
+			minY = by1;
+		} else if (by1 > maxY) {
+			maxY = by1;
+		}
+
+		if (dy0 < minY) {
+			minY = dy0;
+		} else if (dy0 > maxY) {
+			maxY = dy0;
+		}
 
 		if (maxY <= 0 || minY >= PRECISE_HEIGHT) {
 			return BOUNDS_OUTSIDE_OR_TOO_SMALL;
@@ -1185,23 +1405,36 @@ class Rasterizer {
 		minX = ax0;
 		maxX = ax0;
 
-		if (ax1 < minX) minX = ax1;
-		else if (ax1 > maxX) maxX = ax1;
-		if (dx0 < minX) minX = dx0;
-		else if (dx0 > maxX) maxX = dx0;
+		if (ax1 < minX) {
+			minX = ax1;
+		} else if (ax1 > maxX) {
+			maxX = ax1;
+		}
+
+		if (dx0 < minX) {
+			minX = dx0;
+		} else if (dx0 > maxX) {
+			maxX = dx0;
+		}
 
 		minY = ay0;
 		maxY = ay0;
 
-		if (ay1 < minY) minY = ay1;
-		else if (ay1 > maxY) maxY = ay1;
-		if (dy0 < minY) minY = dy0;
-		else if (dy0 > maxY) maxY = dy0;
+		if (ay1 < minY) {
+			minY = ay1;
+		} else if (ay1 > maxY) {
+			maxY = ay1;
+		}
+
+		if (dy0 < minY) {
+			minY = dy0;
+		} else if (dy0 > maxY) {
+			maxY = dy0;
+		}
 
 		if (maxY <= 0 || minY >= PRECISE_HEIGHT) {
 			return BOUNDS_OUTSIDE_OR_TOO_SMALL;
 		}
-
 
 		if (maxX <= 0 || minX >= PRECISE_WIDTH) {
 			return BOUNDS_OUTSIDE_OR_TOO_SMALL;
@@ -1332,7 +1565,7 @@ class Rasterizer {
 	}
 
 	/**
-	 * Puts left edge at screen boundary
+	 * Puts left edge at screen boundary.
 	 */
 	private void populateLeftEvents() {
 		final int[] data = this.data;
@@ -2082,7 +2315,6 @@ class Rasterizer {
 			mask = m;
 		}
 
-
 		leftX = data[++y + IDX_EVENTS] - tx;
 		rightX = baseX - data[++y + IDX_EVENTS];
 
@@ -2095,7 +2327,6 @@ class Rasterizer {
 
 			mask |= m << 8;
 		}
-
 
 		leftX = data[++y + IDX_EVENTS] - tx;
 		rightX = baseX - data[++y + IDX_EVENTS];
@@ -2110,7 +2341,6 @@ class Rasterizer {
 			mask |= m << 16;
 		}
 
-
 		leftX = data[++y + IDX_EVENTS] - tx;
 		rightX = baseX - data[++y + IDX_EVENTS];
 
@@ -2123,7 +2353,6 @@ class Rasterizer {
 
 			mask |= m << 24;
 		}
-
 
 		leftX = data[++y + IDX_EVENTS] - tx;
 		rightX = baseX - data[++y + IDX_EVENTS];
@@ -2138,7 +2367,6 @@ class Rasterizer {
 			mask |= m << 32;
 		}
 
-
 		leftX = data[++y + IDX_EVENTS] - tx;
 		rightX = baseX - data[++y + IDX_EVENTS];
 
@@ -2151,7 +2379,6 @@ class Rasterizer {
 
 			mask |= m << 40;
 		}
-
 
 		leftX = data[++y + IDX_EVENTS] - tx;
 		rightX = baseX - data[++y + IDX_EVENTS];
@@ -2166,7 +2393,6 @@ class Rasterizer {
 			mask |= m << 48;
 		}
 
-
 		leftX = data[++y + IDX_EVENTS] - tx;
 		rightX = baseX - data[++y + IDX_EVENTS];
 
@@ -2180,12 +2406,11 @@ class Rasterizer {
 			mask |= m << 56;
 		}
 
-
 		return mask;
 	}
 
 	/**
-	 * For early exit testing
+	 * For early exit testing.
 	 *
 	 * @param x
 	 * @param y

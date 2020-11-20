@@ -1,17 +1,17 @@
 /*
- * Copyright 2019, 2020 grondag
+ *  Copyright 2019, 2020 grondag
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License.  You may obtain a copy
- * of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ *  use this file except in compliance with the License.  You may obtain a copy
+ *  of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ *  License for the specific language governing permissions and limitations under
+ *  the License.
  */
 
 package grondag.canvas.buffer.encoding;
@@ -19,13 +19,14 @@ package grondag.canvas.buffer.encoding;
 import java.util.Comparator;
 import java.util.function.Predicate;
 
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.material.state.RenderState;
 import grondag.canvas.terrain.render.UploadableChunk;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 /**
- * MUST ALWAYS BE USED WITHIN SAME MATERIAL CONTEXT
+ * MUST ALWAYS BE USED WITHIN SAME MATERIAL CONTEXT.
  */
 public class VertexCollectorList {
 	private final ObjectArrayList<VertexCollectorImpl> pool = new ObjectArrayList<>();
@@ -33,7 +34,7 @@ public class VertexCollectorList {
 	private final ObjectArrayList<VertexCollectorImpl> drawList = new ObjectArrayList<>();
 
 	/**
-	 * Clears all vertex collectors
+	 * Clears all vertex collectors.
 	 */
 	public void clear() {
 		final int limit = pool.size();
@@ -102,7 +103,7 @@ public class VertexCollectorList {
 	}
 
 	public int totalBytes(boolean sorted) {
-		final int limit =  pool.size();
+		final int limit = pool.size();
 		final ObjectArrayList<VertexCollectorImpl> pool = this.pool;
 		int intSize = 0;
 
@@ -153,5 +154,4 @@ public class VertexCollectorList {
 		// note reverse argument order - higher priority wins
 		return Long.compare(b.materialState.drawPriority, a.materialState.drawPriority);
 	};
-
 }

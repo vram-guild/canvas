@@ -1,26 +1,39 @@
 /*
- * Copyright 2019, 2020 grondag
+ *  Copyright 2019, 2020 grondag
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License.  You may obtain a copy
- * of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ *  use this file except in compliance with the License.  You may obtain a copy
+ *  of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ *  License for the specific language governing permissions and limitations under
+ *  the License.
  */
 
 package grondag.canvas.terrain;
 
-import grondag.canvas.perf.ChunkRebuildCounters;
-import grondag.canvas.terrain.ChunkPaletteCopier.PaletteCopy;
+import static grondag.canvas.terrain.RenderRegionAddressHelper.AIR;
+import static grondag.canvas.terrain.RenderRegionAddressHelper.EXTERIOR_CACHE_SIZE;
+import static grondag.canvas.terrain.RenderRegionAddressHelper.INTERIOR_CACHE_SIZE;
+import static grondag.canvas.terrain.RenderRegionAddressHelper.interiorIndex;
+import static grondag.canvas.terrain.RenderRegionAddressHelper.localCornerIndex;
+import static grondag.canvas.terrain.RenderRegionAddressHelper.localXEdgeIndex;
+import static grondag.canvas.terrain.RenderRegionAddressHelper.localXfaceIndex;
+import static grondag.canvas.terrain.RenderRegionAddressHelper.localYEdgeIndex;
+import static grondag.canvas.terrain.RenderRegionAddressHelper.localYfaceIndex;
+import static grondag.canvas.terrain.RenderRegionAddressHelper.localZEdgeIndex;
+import static grondag.canvas.terrain.RenderRegionAddressHelper.localZfaceIndex;
+
+import java.util.Map;
+import java.util.concurrent.ArrayBlockingQueue;
+
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.shorts.ShortArrayList;
-import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachmentBlockEntity;
+
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.world.ClientWorld;
@@ -28,10 +41,10 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.chunk.ChunkSection;
 import net.minecraft.world.chunk.WorldChunk;
 
-import java.util.Map;
-import java.util.concurrent.ArrayBlockingQueue;
+import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachmentBlockEntity;
 
-import static grondag.canvas.terrain.RenderRegionAddressHelper.*;
+import grondag.canvas.perf.ChunkRebuildCounters;
+import grondag.canvas.terrain.ChunkPaletteCopier.PaletteCopy;
 
 public class ProtoRenderRegion extends AbstractRenderRegion {
 	/**
@@ -133,7 +146,6 @@ public class ProtoRenderRegion extends AbstractRenderRegion {
 		final PaletteCopy result = mainSectionCopy;
 		mainSectionCopy = null;
 		return result;
-
 	}
 
 	private void captureBlockEntities(WorldChunk mainChunk) {
@@ -262,5 +274,4 @@ public class ProtoRenderRegion extends AbstractRenderRegion {
 		public void release() {
 		}
 	}
-
 }

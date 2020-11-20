@@ -1,34 +1,35 @@
 /*
- * Copyright 2019, 2020 grondag
+ *  Copyright 2019, 2020 grondag
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License.  You may obtain a copy
- * of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ *  use this file except in compliance with the License.  You may obtain a copy
+ *  of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ *  License for the specific language governing permissions and limitations under
+ *  the License.
  */
 
 package grondag.canvas.buffer.format;
 
 import com.mojang.blaze3d.platform.GlStateManager;
-import grondag.canvas.CanvasMod;
-import grondag.canvas.Configurator;
-import grondag.canvas.varia.CanvasGlHelper;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL21;
+
+import grondag.canvas.CanvasMod;
+import grondag.canvas.Configurator;
+import grondag.canvas.varia.CanvasGlHelper;
 
 public class CanvasVertexFormat {
 	public final int attributeCount;
 
 	/**
-	 * vertex stride in bytes
+	 * Vertex stride in bytes.
 	 */
 	public final int vertexStrideBytes;
 	public final int vertexStrideInts;
@@ -55,7 +56,7 @@ public class CanvasVertexFormat {
 
 	/**
 	 * Enables generic vertex attributes and binds their location.
-	 * For use with non-VAO VBOs
+	 * For use with non-VAO VBOs.
 	 */
 	public void enableAndBindAttributes(long bufferOffset) {
 		CanvasGlHelper.enableAttributes(attributeCount);

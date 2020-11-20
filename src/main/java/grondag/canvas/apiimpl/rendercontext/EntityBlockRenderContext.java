@@ -1,28 +1,22 @@
 /*
- * Copyright 2019, 2020 grondag
+ *  Copyright 2019, 2020 grondag
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License.  You may obtain a copy
- * of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ *  use this file except in compliance with the License.  You may obtain a copy
+ *  of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ *  License for the specific language governing permissions and limitations under
+ *  the License.
  */
 
 package grondag.canvas.apiimpl.rendercontext;
 
 import java.util.function.Supplier;
-
-import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
-import grondag.canvas.mixinterface.Matrix3fExt;
-import grondag.canvas.render.CanvasWorldRenderer;
-import grondag.fermion.sc.concurrency.SimpleConcurrentList;
-import grondag.frex.api.material.MaterialMap;
 
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
@@ -41,12 +35,18 @@ import net.minecraft.world.BlockRenderView;
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
 
+import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
+import grondag.canvas.mixinterface.Matrix3fExt;
+import grondag.canvas.render.CanvasWorldRenderer;
+import grondag.fermion.sc.concurrency.SimpleConcurrentList;
+import grondag.frex.api.material.MaterialMap;
+
 /**
  * Context used when blocks are rendered as part of an entity.
  * Vanilla examples include blocks held be endermen, blocks in minecarts,
- * flowers held by iron golems and Mooshroom mushrooms.<p>
+ * flowers held by iron golems and Mooshroom mushrooms.
  *
- * Also handle rendering of the item frame which looks and acts like a block
+ * <p>Also handle rendering of the item frame which looks and acts like a block
  * and has a block JSON model but is an entity.
  */
 public class EntityBlockRenderContext extends AbstractBlockRenderContext<BlockRenderView> {
@@ -94,7 +94,7 @@ public class EntityBlockRenderContext extends AbstractBlockRenderContext<BlockRe
 	}
 
 	/**
-	 * Assumes region and block pos set earlier via {@link #setPosAndWorldFromEntity(Entity)}
+	 * Assumes region and block pos set earlier via {@link #setPosAndWorldFromEntity(Entity)}.
 	 */
 	public void render(BlockModelRenderer vanillaRenderer, BakedModel model, BlockState state, MatrixStack matrixStack, VertexConsumerProvider consumers, int overlay, int light) {
 		defaultConsumer = consumers.getBuffer(RenderLayers.getEntityBlockLayer(state, false));

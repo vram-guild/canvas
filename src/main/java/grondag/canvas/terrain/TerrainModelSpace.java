@@ -1,26 +1,32 @@
 /*
- * Copyright 2019, 2020 grondag
+ *  Copyright 2019, 2020 grondag
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License.  You may obtain a copy
- * of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ *  use this file except in compliance with the License.  You may obtain a copy
+ *  of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ *  License for the specific language governing permissions and limitations under
+ *  the License.
  */
 
 package grondag.canvas.terrain;
 
-import grondag.canvas.Configurator;
+import static grondag.fermion.position.PackedBlockPos.WORLD_BOUNDARY;
+import static grondag.fermion.position.PackedBlockPos.X_MASK;
+import static grondag.fermion.position.PackedBlockPos.X_SHIFT;
+import static grondag.fermion.position.PackedBlockPos.Y_MASK;
+import static grondag.fermion.position.PackedBlockPos.Y_SHIFT;
+import static grondag.fermion.position.PackedBlockPos.Z_MASK;
+
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 
-import static grondag.fermion.position.PackedBlockPos.*;
+import grondag.canvas.Configurator;
 
 public class TerrainModelSpace {
 	private static int CUBE_MASK = Configurator.batchedChunkRender ? 0xFFFFFF00 : 0xFFFFFFF0;
@@ -73,7 +79,7 @@ public class TerrainModelSpace {
 		return (int) ((packedKey >> Y_SHIFT) & Y_MASK);
 	}
 
-	private static final long pack(int x, int y, int z) {
+	private static long pack(int x, int y, int z) {
 		return (x + WORLD_BOUNDARY & X_MASK) << X_SHIFT | (y & Y_MASK) << Y_SHIFT
 				| (z + WORLD_BOUNDARY & Z_MASK);
 	}

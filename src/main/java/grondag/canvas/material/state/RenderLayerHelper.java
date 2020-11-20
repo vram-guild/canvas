@@ -1,19 +1,34 @@
 /*
- * Copyright 2019, 2020 grondag
+ *  Copyright 2019, 2020 grondag
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License.  You may obtain a copy
- * of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ *  use this file except in compliance with the License.  You may obtain a copy
+ *  of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ *  License for the specific language governing permissions and limitations under
+ *  the License.
  */
+
 package grondag.canvas.material.state;
+
+import it.unimi.dsi.fastutil.Hash;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
+import org.lwjgl.opengl.GL11;
+
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.render.RenderLayer;
+import net.minecraft.client.render.RenderPhase;
+import net.minecraft.client.render.TexturedRenderLayers;
+import net.minecraft.client.render.model.ModelLoader;
+import net.minecraft.client.texture.SpriteAtlasTexture;
+
+import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
@@ -29,23 +44,10 @@ import grondag.canvas.mixinterface.EntityRenderDispatcherExt;
 import grondag.canvas.mixinterface.MultiPhaseExt;
 import grondag.canvas.mixinterface.RenderLayerExt;
 import grondag.frex.api.material.MaterialFinder;
-import it.unimi.dsi.fastutil.Hash;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
-import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
-import org.lwjgl.opengl.GL11;
-
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.RenderPhase;
-import net.minecraft.client.render.TexturedRenderLayers;
-import net.minecraft.client.render.model.ModelLoader;
-import net.minecraft.client.texture.SpriteAtlasTexture;
-
-import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 
 // segregates render layer references from mod init
 public final class RenderLayerHelper {
-	private RenderLayerHelper() {}
+	private RenderLayerHelper() { }
 
 	private static final ReferenceOpenHashSet<RenderLayer> EXCLUSIONS = new ReferenceOpenHashSet<>(64, Hash.VERY_FAST_LOAD_FACTOR);
 
@@ -111,7 +113,7 @@ public final class RenderLayerHelper {
 		finder.transparentCutout(params.getAlpha() == RenderPhase.ONE_TENTH_ALPHA);
 
 		// vanilla sets these as part of draw process but we don't want special casing
-		if (layer ==  RenderLayer.getSolid() || layer == RenderLayer.getCutoutMipped() || layer == RenderLayer.getCutout() || layer == RenderLayer.getTranslucent()) {
+		if (layer == RenderLayer.getSolid() || layer == RenderLayer.getCutoutMipped() || layer == RenderLayer.getCutout() || layer == RenderLayer.getTranslucent()) {
 			finder.cull(true);
 			finder.texture(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE);
 			finder.writeMask(MaterialFinder.WRITE_MASK_COLOR_DEPTH);
@@ -148,11 +150,11 @@ public final class RenderLayerHelper {
 		if (Configurator.logMaterials) {
 			final String key = name +": " + layer.toString();
 
-			if(VANILLA_MATERIAL_SET.add(key)) {
+			if (VANILLA_MATERIAL_SET.add(key)) {
 				CanvasMod.LOG.info("Encountered new unique RenderLayer\n"
-				+ key + "\n"
-				+ "primary target transparency: " + result.primaryTargetTransparency + "\n"
-				+ "mapped to render material #" + result.index + "\n");
+					+ key + "\n"
+					+ "primary target transparency: " + result.primaryTargetTransparency + "\n"
+					+ "mapped to render material #" + result.index + "\n");
 			}
 		}
 

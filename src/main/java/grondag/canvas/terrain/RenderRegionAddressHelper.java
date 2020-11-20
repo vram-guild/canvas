@@ -1,28 +1,28 @@
 /*
- * Copyright 2019, 2020 grondag
+ *  Copyright 2019, 2020 grondag
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License.  You may obtain a copy
- * of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ *  use this file except in compliance with the License.  You may obtain a copy
+ *  of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ *  License for the specific language governing permissions and limitations under
+ *  the License.
  */
 
 package grondag.canvas.terrain;
+
+import java.util.Arrays;
 
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3i;
-
-import java.util.Arrays;
 
 public abstract class RenderRegionAddressHelper {
 	public static final int INTERIOR_CACHE_SIZE = 4096;
@@ -71,7 +71,7 @@ public abstract class RenderRegionAddressHelper {
 	}
 
 	/**
-	 * Assumes values 0-15
+	 * Assumes values 0-15.
 	 */
 	public static int interiorIndex(int x, int y, int z) {
 		return x | (y << 4) | (z << 8);
@@ -137,7 +137,7 @@ public abstract class RenderRegionAddressHelper {
 	}
 
 	/**
-	 * checks for values outside -1 to 16, returns -1 if outside
+	 * Checks for values outside -1 to 16, returns -1 if outside.
 	 */
 	public static int relativeCacheIndex(int x, int y, int z) {
 		final int ix = (x + 1);
@@ -156,7 +156,7 @@ public abstract class RenderRegionAddressHelper {
 	}
 
 	/**
-	 * values must be -1 to 16
+	 * Values must be -1 to 16.
 	 */
 	public static int fastRelativeCacheIndex(int x, int y, int z) {
 		final int lookupIndex = (x + 1) | ((y + 1) << 5) | ((z + 1) << 10);
@@ -164,7 +164,7 @@ public abstract class RenderRegionAddressHelper {
 	}
 
 	/**
-	 * inputs must ensure result of addition is in  -1 to 16 range
+	 * Inputs must ensure result of addition is in  -1 to 16 range.
 	 *
 	 * @param packedXyz5       must be in  -1 to 16 range (packed values 0-17)
 	 * @param signedXyzOffset5 must be in -1 to 1 (packed values 0-2)
@@ -272,6 +272,7 @@ public abstract class RenderRegionAddressHelper {
 				} else if (z == 16) {
 					return localZfaceIndex(x & 0xF, y & 0xF, true);
 				}
+
 				break;
 
 			case 0b110:
@@ -281,6 +282,7 @@ public abstract class RenderRegionAddressHelper {
 				} else if (x == 16) {
 					return localXfaceIndex(true, y & 0xF, z & 0xF);
 				}
+
 				break;
 
 			case 0b101:
@@ -290,6 +292,7 @@ public abstract class RenderRegionAddressHelper {
 				} else if (y == 16) {
 					return localYfaceIndex(x & 0xF, true, z & 0xF);
 				}
+
 				break;
 
 			case 0b111:

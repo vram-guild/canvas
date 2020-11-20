@@ -45,7 +45,6 @@ class ChunkAddressPerf {
 	}
 
 	static long doMod() {
-
 		final long n = System.nanoTime();
 
 		long sink = 0;
@@ -153,5 +152,4 @@ class ChunkAddressPerf {
 		doFastMod();
 		doFastMod();
 	}
-
 }

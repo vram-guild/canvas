@@ -1,27 +1,20 @@
 /*
- * Copyright 2019, 2020 grondag
+ *  Copyright 2019, 2020 grondag
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License.  You may obtain a copy
- * of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ *  use this file except in compliance with the License.  You may obtain a copy
+ *  of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ *  License for the specific language governing permissions and limitations under
+ *  the License.
  */
 
 package grondag.canvas.light;
-
-import grondag.canvas.Configurator;
-import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
-import grondag.canvas.apiimpl.mesh.QuadViewImpl;
-import grondag.canvas.apiimpl.util.ColorHelper;
-import grondag.canvas.light.AoFace.Vertex2Float;
-import grondag.canvas.light.AoFace.WeightFunction;
 
 import static grondag.canvas.apiimpl.util.GeometryHelper.AXIS_ALIGNED_FLAG;
 import static grondag.canvas.apiimpl.util.GeometryHelper.CUBIC_FLAG;
@@ -38,6 +31,13 @@ import net.minecraft.util.math.MathHelper;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
+
+import grondag.canvas.Configurator;
+import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
+import grondag.canvas.apiimpl.mesh.QuadViewImpl;
+import grondag.canvas.apiimpl.util.ColorHelper;
+import grondag.canvas.light.AoFace.Vertex2Float;
+import grondag.canvas.light.AoFace.WeightFunction;
 
 /**
  * Adaptation of inner, non-static class in BlockModelRenderer that serves same
@@ -63,24 +63,22 @@ public abstract class AoCalculator {
 	// PERF: need to cache these vs only the calc results due to mixed use
 	private final AoFaceData localData = new AoFaceData();
 	/**
-	 * caches results of {@link #gatherFace(Direction, boolean)} for the current
-	 * block
+	 * Caches results of {@link #gatherFace(Direction, boolean)} for the current block.
 	 */
 	private final AoFaceData[] faceData = new AoFaceData[12];
 	/**
-	 * holds per-corner weights - used locally to avoid new allocation.
+	 * Holds per-corner weights - used locally to avoid new allocation.
 	 */
 	private final float[] w = new float[4];
 	/**
-	 * used exclusively in irregular face to avoid new heap allocations each call.
+	 * Used exclusively in irregular face to avoid new heap allocations each call.
 	 */
 	private final Vector3f vertexNormal = new Vector3f();
 	private long blendCacheCompletionLowFlags;
 	private long blendCacheCompletionHighFlags;
 	private int regionRelativeCacheIndex;
 	/**
-	 * indicates which elements of {@link #faceData} have been computed for the
-	 * current block
+	 * Indicates which elements of {@link #faceData} have been computed for the current block.
 	 */
 	private int completionFlags = 0;
 
@@ -129,7 +127,7 @@ public abstract class AoCalculator {
 	}
 
 	/**
-	 * call at start of each new block
+	 * Call at start of each new block.
 	 *
 	 * @param index region-relative index - must be an interior index - for block context, will always be 0
 	 */
@@ -169,6 +167,7 @@ public abstract class AoCalculator {
 				irregularFace(quad);
 				quad.hdLight = null;
 			}
+
 			return;
 		}
 
@@ -275,8 +274,7 @@ public abstract class AoCalculator {
 	}
 
 	/**
-	 * Returns linearly interpolated blend of outer and inner face based on depth of
-	 * vertex in face
+	 * Returns linearly interpolated blend of outer and inner face based on depth of vertex in face.
 	 */
 	private AoFaceCalc blendedInsetData(QuadViewImpl quad, int vertexIndex, int lightFace) {
 		final float w1 = AoFace.get(lightFace).depthFunc.apply(quad, vertexIndex);
@@ -292,8 +290,8 @@ public abstract class AoCalculator {
 			if (checkBlendDirty(blendIndex)) {
 				final float w0 = 1 - w1;
 				result.weightedMean(
-					gatherFace(lightFace, true).calc, w0,
-					gatherFace(lightFace, false).calc, w1);
+						gatherFace(lightFace, true).calc, w0,
+						gatherFace(lightFace, false).calc, w1);
 			}
 
 			return result;
@@ -365,6 +363,7 @@ public abstract class AoCalculator {
 			float maxAo = 0;
 
 			final float x = normal.getX();
+
 			if (!MathHelper.approximatelyEquals(0f, x)) {
 				final int face = x > 0 ? EAST : WEST;
 				// PERF: really need to cache these
@@ -383,6 +382,7 @@ public abstract class AoCalculator {
 			}
 
 			final float y = normal.getY();
+
 			if (!MathHelper.approximatelyEquals(0f, y)) {
 				final int face = y > 0 ? UP : DOWN;
 				final AoFaceCalc fd = blendedInsetData(quad, i, face);
@@ -400,6 +400,7 @@ public abstract class AoCalculator {
 			}
 
 			final float z = normal.getZ();
+
 			if (!MathHelper.approximatelyEquals(0f, z)) {
 				final int face = z > 0 ? SOUTH : NORTH;
 				final AoFaceCalc fd = blendedInsetData(quad, i, face);
@@ -418,7 +419,7 @@ public abstract class AoCalculator {
 
 			aoResult[i] = (ao + maxAo) * (0.5f * DIVIDE_BY_255);
 			quad.lightmap(i, ColorHelper.maxBrightness(quad.lightmap(i), (((int) ((sky + maxSky) * 0.5f) & 0xFF) << 16)
-				| ((int) ((block + maxBlock) * 0.5f) & 0xFF)));
+					| ((int) ((block + maxBlock) * 0.5f) & 0xFF)));
 		}
 	}
 
@@ -511,6 +512,7 @@ public abstract class AoCalculator {
 			} else {
 				fd.aoBottomLeft = (Math.min(aoLeft, aoBottom) + aoBottom + aoLeft + 1 + aoCenter) >> 2;
 			}
+
 			fd.bottomLeft = OPAQUE;
 		} else { // at least one clear
 			cacheIndex = fastOffsetRelativeCacheIndex(packedXyz5, aoFace.bottomLeftOffset);

@@ -1,17 +1,17 @@
 /*
- * Copyright 2019, 2020 grondag
+ *  Copyright 2019, 2020 grondag
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License.  You may obtain a copy
- * of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ *  use this file except in compliance with the License.  You may obtain a copy
+ *  of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ *  License for the specific language governing permissions and limitations under
+ *  the License.
  */
 
 package grondag.canvas.shader;
@@ -28,13 +28,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.google.common.io.CharStreams;
-import grondag.canvas.CanvasMod;
-import grondag.canvas.Configurator;
-import grondag.canvas.Configurator.AoMode;
-import grondag.canvas.Configurator.DiffuseMode;
-import grondag.canvas.Configurator.FogMode;
-import grondag.canvas.texture.MaterialInfoTexture;
-import grondag.canvas.varia.CanvasGlHelper;
 import org.apache.commons.lang3.StringUtils;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL21;
@@ -46,6 +39,14 @@ import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.Identifier;
 
 import net.fabricmc.loader.api.FabricLoader;
+
+import grondag.canvas.CanvasMod;
+import grondag.canvas.Configurator;
+import grondag.canvas.Configurator.AoMode;
+import grondag.canvas.Configurator.DiffuseMode;
+import grondag.canvas.Configurator.FogMode;
+import grondag.canvas.texture.MaterialInfoTexture;
+import grondag.canvas.varia.CanvasGlHelper;
 
 public class GlShader implements Shader {
 	static final Pattern PATTERN = Pattern.compile("^#include\\s+(\\\"*[\\w]+:[\\w/\\.]+)[ \\t]*.*", Pattern.MULTILINE);
@@ -128,6 +129,7 @@ public class GlShader implements Shader {
 		try {
 			if (glId <= 0) {
 				glId = GL21.glCreateShader(shaderType);
+
 				if (glId == 0) {
 					glId = -1;
 					isErrored = true;
@@ -143,11 +145,11 @@ public class GlShader implements Shader {
 			if (GL21.glGetShaderi(glId, GL21.GL_COMPILE_STATUS) == GL11.GL_FALSE) {
 				isErrored = true;
 				error = CanvasGlHelper.getShaderInfoLog(glId);
+
 				if (error.isEmpty()) {
 					error = "Unknown OpenGL Error.";
 				}
 			}
-
 		} catch (final Exception e) {
 			isErrored = true;
 			error = e.getMessage();
@@ -167,8 +169,8 @@ public class GlShader implements Shader {
 			} else {
 				CanvasMod.LOG.error(I18n.translate("error.canvas.fail_create_shader", shaderSourceId.toString(), programType.name, error));
 			}
-			outputDebugSource(source, error);
 
+			outputDebugSource(source, error);
 		} else if (Configurator.shaderDebug) {
 			outputDebugSource(source, null);
 		}
@@ -244,7 +246,6 @@ public class GlShader implements Shader {
 
 			result = StringUtils.replace(result, "#define _CV_MATERIAL_INFO_TEXTURE_SIZE 0", "#define _CV_MATERIAL_INFO_TEXTURE_SIZE " + MaterialInfoTexture.INSTANCE.squareSizePixels());
 			result = StringUtils.replace(result, "#define _CV_MAX_SHADER_COUNT 0", "#define _CV_MAX_SHADER_COUNT " + MaterialShaderImpl.MAX_SHADERS);
-
 
 			if (Configurator.hdLightmaps()) {
 				result = StringUtils.replace(result, "#define VANILLA_LIGHTING", "//#define VANILLA_LIGHTING");

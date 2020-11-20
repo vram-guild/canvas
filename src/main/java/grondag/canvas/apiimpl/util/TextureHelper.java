@@ -1,23 +1,20 @@
 /*
- * Copyright 2019, 2020 grondag
+ *  Copyright 2019, 2020 grondag
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License.  You may obtain a copy
- * of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ *  use this file except in compliance with the License.  You may obtain a copy
+ *  of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ *  License for the specific language governing permissions and limitations under
+ *  the License.
  */
 
 package grondag.canvas.apiimpl.util;
-
-import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
-import grondag.canvas.mixinterface.SpriteExt;
 
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.UV_PRECISE_UNIT_VALUE;
 
@@ -26,6 +23,9 @@ import net.minecraft.util.math.Direction;
 
 import net.fabricmc.fabric.api.renderer.v1.mesh.MutableQuadView;
 
+import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
+import grondag.canvas.mixinterface.SpriteExt;
+
 /**
  * Handles most texture-baking use cases for model loaders and model libraries
  * via {@link #bakeSprite(MutableQuadView, int, Sprite, int)}. Also used by the API
@@ -33,9 +33,9 @@ import net.fabricmc.fabric.api.renderer.v1.mesh.MutableQuadView;
  */
 public class TextureHelper {
 	private static final VertexModifier[] ROTATIONS = new VertexModifier[]{null,
-	(q, i) -> q.spritePrecise(i, q.spritePreciseV(i), q.spritePreciseU(i)), //90
-	(q, i) -> q.spritePrecise(i, UV_PRECISE_UNIT_VALUE - q.spritePreciseU(i), UV_PRECISE_UNIT_VALUE - q.spritePreciseV(i)), //180
-	(q, i) -> q.spritePrecise(i, UV_PRECISE_UNIT_VALUE - q.spritePreciseV(i), q.spritePreciseU(i)) // 270
+		(q, i) -> q.spritePrecise(i, q.spritePreciseV(i), q.spritePreciseU(i)), //90
+		(q, i) -> q.spritePrecise(i, UV_PRECISE_UNIT_VALUE - q.spritePreciseU(i), UV_PRECISE_UNIT_VALUE - q.spritePreciseV(i)), //180
+		(q, i) -> q.spritePrecise(i, UV_PRECISE_UNIT_VALUE - q.spritePreciseV(i), q.spritePreciseU(i)) // 270
 	};
 	private static final VertexModifier[] UVLOCKERS = new VertexModifier[6];
 

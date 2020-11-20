@@ -1,17 +1,17 @@
 /*
- * Copyright 2019, 2020 grondag
+ *  Copyright 2019, 2020 grondag
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License.  You may obtain a copy
- * of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ *  use this file except in compliance with the License.  You may obtain a copy
+ *  of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ *  License for the specific language governing permissions and limitations under
+ *  the License.
  */
 
 package grondag.canvas.render;
@@ -25,48 +25,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import com.google.common.collect.Sets;
 import com.mojang.blaze3d.systems.RenderSystem;
-import grondag.canvas.CanvasMod;
-import grondag.canvas.Configurator;
-import grondag.canvas.apiimpl.rendercontext.BlockRenderContext;
-import grondag.canvas.apiimpl.rendercontext.EntityBlockRenderContext;
-import grondag.canvas.buffer.BindStateManager;
-import grondag.canvas.buffer.VboBuffer;
-import grondag.canvas.buffer.encoding.CanvasImmediate;
-import grondag.canvas.compat.BborHolder;
-import grondag.canvas.compat.CampanionHolder;
-import grondag.canvas.compat.ClothHolder;
-import grondag.canvas.compat.DynocapsHolder;
-import grondag.canvas.compat.FirstPersonModelHolder;
-import grondag.canvas.compat.GOMLHolder;
-import grondag.canvas.compat.JustMapHolder;
-import grondag.canvas.compat.LambDynLightsHolder;
-import grondag.canvas.compat.LitematicaHolder;
-import grondag.canvas.compat.MaliLibHolder;
-import grondag.canvas.compat.SatinHolder;
-import grondag.canvas.compat.VoxelMapHolder;
-import grondag.canvas.light.LightmapHdTexture;
-import grondag.canvas.material.property.MaterialFog;
-import grondag.canvas.material.property.MaterialMatrixState;
-import grondag.canvas.material.property.MaterialTarget;
-import grondag.canvas.material.state.RenderContextState;
-import grondag.canvas.material.state.RenderState;
-import grondag.canvas.mixinterface.BufferBuilderStorageExt;
-import grondag.canvas.mixinterface.MatrixStackExt;
-import grondag.canvas.mixinterface.WorldRendererExt;
-import grondag.canvas.shader.MaterialShaderManager;
-import grondag.canvas.terrain.BuiltRenderRegion;
-import grondag.canvas.terrain.RenderRegionBuilder;
-import grondag.canvas.terrain.RenderRegionStorage;
-import grondag.canvas.terrain.occlusion.TerrainIterator;
-import grondag.canvas.terrain.occlusion.TerrainOccluder;
-import grondag.canvas.terrain.occlusion.region.OcclusionRegion;
-import grondag.canvas.terrain.occlusion.region.PackedBox;
-import grondag.canvas.terrain.render.TerrainLayerRenderer;
-import grondag.canvas.texture.DitherTexture;
-import grondag.canvas.varia.CanvasGlHelper;
-import grondag.canvas.varia.WorldDataManager;
-import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
-import grondag.frex.api.event.WorldRenderEvent;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap.Entry;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
@@ -116,6 +74,49 @@ import net.minecraft.util.math.Matrix4f;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.profiler.Profiler;
 import net.minecraft.world.World;
+
+import grondag.canvas.CanvasMod;
+import grondag.canvas.Configurator;
+import grondag.canvas.apiimpl.rendercontext.BlockRenderContext;
+import grondag.canvas.apiimpl.rendercontext.EntityBlockRenderContext;
+import grondag.canvas.buffer.BindStateManager;
+import grondag.canvas.buffer.VboBuffer;
+import grondag.canvas.buffer.encoding.CanvasImmediate;
+import grondag.canvas.compat.BborHolder;
+import grondag.canvas.compat.CampanionHolder;
+import grondag.canvas.compat.ClothHolder;
+import grondag.canvas.compat.DynocapsHolder;
+import grondag.canvas.compat.FirstPersonModelHolder;
+import grondag.canvas.compat.GOMLHolder;
+import grondag.canvas.compat.JustMapHolder;
+import grondag.canvas.compat.LambDynLightsHolder;
+import grondag.canvas.compat.LitematicaHolder;
+import grondag.canvas.compat.MaliLibHolder;
+import grondag.canvas.compat.SatinHolder;
+import grondag.canvas.compat.VoxelMapHolder;
+import grondag.canvas.light.LightmapHdTexture;
+import grondag.canvas.material.property.MaterialFog;
+import grondag.canvas.material.property.MaterialMatrixState;
+import grondag.canvas.material.property.MaterialTarget;
+import grondag.canvas.material.state.RenderContextState;
+import grondag.canvas.material.state.RenderState;
+import grondag.canvas.mixinterface.BufferBuilderStorageExt;
+import grondag.canvas.mixinterface.MatrixStackExt;
+import grondag.canvas.mixinterface.WorldRendererExt;
+import grondag.canvas.shader.MaterialShaderManager;
+import grondag.canvas.terrain.BuiltRenderRegion;
+import grondag.canvas.terrain.RenderRegionBuilder;
+import grondag.canvas.terrain.RenderRegionStorage;
+import grondag.canvas.terrain.occlusion.TerrainIterator;
+import grondag.canvas.terrain.occlusion.TerrainOccluder;
+import grondag.canvas.terrain.occlusion.region.OcclusionRegion;
+import grondag.canvas.terrain.occlusion.region.PackedBox;
+import grondag.canvas.terrain.render.TerrainLayerRenderer;
+import grondag.canvas.texture.DitherTexture;
+import grondag.canvas.varia.CanvasGlHelper;
+import grondag.canvas.varia.WorldDataManager;
+import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
+import grondag.frex.api.event.WorldRenderEvent;
 
 public class CanvasWorldRenderer extends WorldRenderer {
 	public static final int MAX_REGION_COUNT = (32 * 2 + 1) * (32 * 2 + 1) * 16;
@@ -180,8 +181,8 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 	private static int rangeColor(int range) {
 		switch (range) {
-			default:
 			case PackedBox.RANGE_NEAR:
+			default:
 				return 0x80FF8080;
 
 			case PackedBox.RANGE_MID:
@@ -275,6 +276,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		final BuiltRenderRegion cameraRegion = cameraBlockPos.getY() < 0 || cameraBlockPos.getY() > 255 ? null : regionStorage.getOrCreateRegion(cameraBlockPos);
 
 		mc.getProfiler().swap("buildnear");
+
 		if (cameraRegion != null) {
 			buildNearRegion(cameraRegion);
 
@@ -290,7 +292,6 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		Entity.setRenderDistanceMultiplier(MathHelper.clamp(mc.options.viewDistance / 8.0D, 1.0D, 2.5D));
 
 		mc.getProfiler().swap("update");
-
 
 		if (terrainSetupOffThread) {
 			int state = terrainIterator.state();
@@ -336,7 +337,6 @@ public class CanvasWorldRenderer extends WorldRenderer {
 				terrainIterator.reset();
 			}
 		}
-
 
 		mc.getProfiler().pop();
 	}
@@ -522,8 +522,8 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		while (entities.hasNext()) {
 			final Entity entity = entities.next();
 			if ((!entityRenderDispatcher.shouldRender(entity, frustum, cameraX, cameraY, cameraZ) && !entity.hasPassengerDeep(mc.player))
-			|| (entity == camera.getFocusedEntity() && !FirstPersonModelHolder.handler.isThirdPerson(this, camera, matrixStack) && (!(camera.getFocusedEntity() instanceof LivingEntity) || !((LivingEntity) camera.getFocusedEntity()).isSleeping()))
-			|| (entity instanceof ClientPlayerEntity && camera.getFocusedEntity() != entity)) {
+					|| (entity == camera.getFocusedEntity() && !FirstPersonModelHolder.handler.isThirdPerson(this, camera, matrixStack) && (!(camera.getFocusedEntity() instanceof LivingEntity) || !((LivingEntity) camera.getFocusedEntity()).isSleeping()))
+					|| (entity instanceof ClientPlayerEntity && camera.getFocusedEntity() != entity)) {
 				continue;
 			}
 
@@ -960,6 +960,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			translucentSortPositionVersion = frustum.positionVersion();
 
 			int j = 0;
+
 			for (int regionIndex = 0; regionIndex < visibleRegionCount; regionIndex++) {
 				if (j < 15 && visibleRegions[regionIndex].scheduleSort()) {
 					++j;
@@ -1115,24 +1116,24 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 			case 0b011:
 				return regions.wasSeen(rx0, ry0, rz0) || regions.wasSeen(rx1, ry0, rz0)
-				|| regions.wasSeen(rx0, ry1, rz0) || regions.wasSeen(rx1, ry1, rz0);
+						|| regions.wasSeen(rx0, ry1, rz0) || regions.wasSeen(rx1, ry1, rz0);
 
 			case 0b100:
 				return regions.wasSeen(rx0, ry0, rz0) || regions.wasSeen(rx0, ry0, rz1);
 
 			case 0b101:
 				return regions.wasSeen(rx0, ry0, rz0) || regions.wasSeen(rx1, ry0, rz0)
-				|| regions.wasSeen(rx0, ry0, rz1) || regions.wasSeen(rx1, ry0, rz1);
+						|| regions.wasSeen(rx0, ry0, rz1) || regions.wasSeen(rx1, ry0, rz1);
 
 			case 0b110:
 				return regions.wasSeen(rx0, ry0, rz0) || regions.wasSeen(rx0, ry1, rz0)
-				|| regions.wasSeen(rx0, ry0, rz1) || regions.wasSeen(rx0, ry1, rz1);
+						|| regions.wasSeen(rx0, ry0, rz1) || regions.wasSeen(rx0, ry1, rz1);
 
 			case 0b111:
 				return regions.wasSeen(rx0, ry0, rz0) || regions.wasSeen(rx1, ry0, rz0)
-				|| regions.wasSeen(rx0, ry1, rz0) || regions.wasSeen(rx1, ry1, rz0)
-				|| regions.wasSeen(rx0, ry0, rz1) || regions.wasSeen(rx1, ry0, rz1)
-				|| regions.wasSeen(rx0, ry1, rz1) || regions.wasSeen(rx1, ry1, rz1);
+						|| regions.wasSeen(rx0, ry1, rz0) || regions.wasSeen(rx1, ry1, rz0)
+						|| regions.wasSeen(rx0, ry0, rz1) || regions.wasSeen(rx1, ry0, rz1)
+						|| regions.wasSeen(rx0, ry1, rz1) || regions.wasSeen(rx1, ry1, rz1);
 		}
 
 		return true;
@@ -1162,9 +1163,11 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		terrainIterator.reset();
 		terrainSetupOffThread = Configurator.terrainSetupOffThread;
 		regionsToRebuild.clear();
+
 		if (regionBuilder != null) {
 			regionBuilder.reset();
 		}
+
 		renderRegionStorage.clear();
 		terrainOccluder.invalidate();
 		visibleRegionCount = 0;

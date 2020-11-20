@@ -1,37 +1,38 @@
 /*
- * Copyright 2019, 2020 grondag
+ *  Copyright 2019, 2020 grondag
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License.  You may obtain a copy
- * of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ *  use this file except in compliance with the License.  You may obtain a copy
+ *  of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ *  License for the specific language governing permissions and limitations under
+ *  the License.
  */
 
 package grondag.canvas.buffer.encoding;
+
+import static grondag.canvas.buffer.format.CanvasVertexFormats.MATERIAL_QUAD_STRIDE;
 
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 
 import com.mojang.blaze3d.platform.GlStateManager;
-import grondag.canvas.buffer.TransferBufferAllocator;
-import grondag.canvas.buffer.format.CanvasVertexFormats;
-import grondag.canvas.material.state.RenderMaterialImpl;
-import grondag.canvas.material.state.RenderState;
 import it.unimi.dsi.fastutil.Swapper;
 import it.unimi.dsi.fastutil.ints.IntComparator;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.lwjgl.system.MemoryUtil;
 
-import static grondag.canvas.buffer.format.CanvasVertexFormats.MATERIAL_QUAD_STRIDE;
-
 import net.minecraft.util.math.MathHelper;
+
+import grondag.canvas.buffer.TransferBufferAllocator;
+import grondag.canvas.buffer.format.CanvasVertexFormats;
+import grondag.canvas.material.state.RenderMaterialImpl;
+import grondag.canvas.material.state.RenderState;
 
 public class VertexCollectorImpl extends AbstractVertexCollector {
 	float[] perQuadDistance = new float[512];
@@ -206,7 +207,7 @@ public class VertexCollectorImpl extends AbstractVertexCollector {
 		}
 	}
 
-	/** avoid: slow */
+	/** Avoid: slow. */
 	public void drawSingle() {
 		sortIfNeeded();
 

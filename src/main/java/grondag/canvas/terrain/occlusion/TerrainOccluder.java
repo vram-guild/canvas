@@ -1,26 +1,45 @@
 /*
- * Copyright 2019, 2020 grondag
+ *  Copyright 2019, 2020 grondag
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License.  You may obtain a copy
- * of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ *  use this file except in compliance with the License.  You may obtain a copy
+ *  of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ *  License for the specific language governing permissions and limitations under
+ *  the License.
  */
 
 package grondag.canvas.terrain.occlusion;
 
-import grondag.canvas.CanvasMod;
-import grondag.canvas.mixinterface.Matrix4fExt;
-import grondag.canvas.render.CanvasFrustum;
-import grondag.canvas.terrain.BuiltRenderRegion;
-import grondag.canvas.terrain.occlusion.region.PackedBox;
+import static grondag.canvas.terrain.occlusion.Constants.CAMERA_PRECISION_BITS;
+import static grondag.canvas.terrain.occlusion.Constants.CAMERA_PRECISION_UNITY;
+import static grondag.canvas.terrain.occlusion.Constants.DOWN;
+import static grondag.canvas.terrain.occlusion.Constants.EAST;
+import static grondag.canvas.terrain.occlusion.Constants.EMPTY_BITS;
+import static grondag.canvas.terrain.occlusion.Constants.NORTH;
+import static grondag.canvas.terrain.occlusion.Constants.PIXEL_HEIGHT;
+import static grondag.canvas.terrain.occlusion.Constants.PIXEL_WIDTH;
+import static grondag.canvas.terrain.occlusion.Constants.SOUTH;
+import static grondag.canvas.terrain.occlusion.Constants.TILE_COUNT;
+import static grondag.canvas.terrain.occlusion.Constants.UP;
+import static grondag.canvas.terrain.occlusion.Constants.V000;
+import static grondag.canvas.terrain.occlusion.Constants.V001;
+import static grondag.canvas.terrain.occlusion.Constants.V010;
+import static grondag.canvas.terrain.occlusion.Constants.V011;
+import static grondag.canvas.terrain.occlusion.Constants.V100;
+import static grondag.canvas.terrain.occlusion.Constants.V101;
+import static grondag.canvas.terrain.occlusion.Constants.V110;
+import static grondag.canvas.terrain.occlusion.Constants.V111;
+import static grondag.canvas.terrain.occlusion.Constants.WEST;
+
+import java.io.File;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.Camera;
 import net.minecraft.client.texture.NativeImage;
@@ -28,10 +47,11 @@ import net.minecraft.util.Util;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 
-import java.io.File;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import static grondag.canvas.terrain.occlusion.Constants.*;
+import grondag.canvas.CanvasMod;
+import grondag.canvas.mixinterface.Matrix4fExt;
+import grondag.canvas.render.CanvasFrustum;
+import grondag.canvas.terrain.BuiltRenderRegion;
+import grondag.canvas.terrain.occlusion.region.PackedBox;
 
 public class TerrainOccluder {
 	private final Matrix4L baseMvpMatrix = new Matrix4L();
@@ -114,8 +134,8 @@ public class TerrainOccluder {
 			raster.setupVertex(V101, x1, y0, z1);
 			raster.setupVertex(V110, x1, y1, z0);
 			raster.setupVertex(V111, x1, y1, z1);
-			return raster.testQuad(V010, V011, V111, V101) ||
-					raster.testQuad(V101, V100, V110, V010);
+			return raster.testQuad(V010, V011, V111, V101)
+					|| raster.testQuad(V101, V100, V110, V010);
 		};
 
 		boxTests[UP | WEST] = (x0, y0, z0, x1, y1, z1) -> {
@@ -125,8 +145,8 @@ public class TerrainOccluder {
 			raster.setupVertex(V011, x0, y1, z1);
 			raster.setupVertex(V110, x1, y1, z0);
 			raster.setupVertex(V111, x1, y1, z1);
-			return raster.testQuad(V111, V110, V010, V000) ||
-					raster.testQuad(V000, V001, V011, V111);
+			return raster.testQuad(V111, V110, V010, V000)
+					|| raster.testQuad(V000, V001, V011, V111);
 		};
 
 		boxTests[UP | NORTH] = (x0, y0, z0, x1, y1, z1) -> {
@@ -136,8 +156,8 @@ public class TerrainOccluder {
 			raster.setupVertex(V100, x1, y0, z0);
 			raster.setupVertex(V110, x1, y1, z0);
 			raster.setupVertex(V111, x1, y1, z1);
-			return raster.testQuad(V011, V111, V110, V100) ||
-					raster.testQuad(V100, V000, V010, V011);
+			return raster.testQuad(V011, V111, V110, V100)
+					|| raster.testQuad(V100, V000, V010, V011);
 		};
 
 		boxTests[UP | SOUTH] = (x0, y0, z0, x1, y1, z1) -> {
@@ -147,8 +167,8 @@ public class TerrainOccluder {
 			raster.setupVertex(V101, x1, y0, z1);
 			raster.setupVertex(V110, x1, y1, z0);
 			raster.setupVertex(V111, x1, y1, z1);
-			return raster.testQuad(V110, V010, V011, V001) ||
-					raster.testQuad(V001, V101, V111, V110);
+			return raster.testQuad(V110, V010, V011, V001)
+					|| raster.testQuad(V001, V101, V111, V110);
 		};
 
 		boxTests[DOWN | EAST] = (x0, y0, z0, x1, y1, z1) -> {
@@ -158,8 +178,8 @@ public class TerrainOccluder {
 			raster.setupVertex(V101, x1, y0, z1);
 			raster.setupVertex(V110, x1, y1, z0);
 			raster.setupVertex(V111, x1, y1, z1);
-			return raster.testQuad(V001, V000, V100, V110) ||
-					raster.testQuad(V110, V111, V101, V001);
+			return raster.testQuad(V001, V000, V100, V110)
+					|| raster.testQuad(V110, V111, V101, V001);
 		};
 
 		boxTests[DOWN | WEST] = (x0, y0, z0, x1, y1, z1) -> {
@@ -169,8 +189,8 @@ public class TerrainOccluder {
 			raster.setupVertex(V011, x0, y1, z1);
 			raster.setupVertex(V100, x1, y0, z0);
 			raster.setupVertex(V101, x1, y0, z1);
-			return raster.testQuad(V100, V101, V001, V011) ||
-					raster.testQuad(V011, V010, V000, V100);
+			return raster.testQuad(V100, V101, V001, V011)
+					|| raster.testQuad(V011, V010, V000, V100);
 		};
 
 		boxTests[DOWN | NORTH] = (x0, y0, z0, x1, y1, z1) -> {
@@ -180,8 +200,8 @@ public class TerrainOccluder {
 			raster.setupVertex(V100, x1, y0, z0);
 			raster.setupVertex(V101, x1, y0, z1);
 			raster.setupVertex(V110, x1, y1, z0);
-			return raster.testQuad(V101, V001, V000, V010) ||
-					raster.testQuad(V010, V110, V100, V101);
+			return raster.testQuad(V101, V001, V000, V010)
+					|| raster.testQuad(V010, V110, V100, V101);
 		};
 
 		boxTests[DOWN | SOUTH] = (x0, y0, z0, x1, y1, z1) -> {
@@ -191,8 +211,8 @@ public class TerrainOccluder {
 			raster.setupVertex(V100, x1, y0, z0);
 			raster.setupVertex(V101, x1, y0, z1);
 			raster.setupVertex(V111, x1, y1, z1);
-			return raster.testQuad(V000, V100, V101, V111) ||
-					raster.testQuad(V111, V011, V001, V000);
+			return raster.testQuad(V000, V100, V101, V111)
+					|| raster.testQuad(V111, V011, V001, V000);
 		};
 
 		boxTests[NORTH | EAST] = (x0, y0, z0, x1, y1, z1) -> {
@@ -202,8 +222,8 @@ public class TerrainOccluder {
 			raster.setupVertex(V101, x1, y0, z1);
 			raster.setupVertex(V110, x1, y1, z0);
 			raster.setupVertex(V111, x1, y1, z1);
-			return raster.testQuad(V000, V010, V110, V111) ||
-					raster.testQuad(V111, V101, V100, V000);
+			return raster.testQuad(V000, V010, V110, V111)
+					|| raster.testQuad(V111, V101, V100, V000);
 		};
 
 		boxTests[NORTH | WEST] = (x0, y0, z0, x1, y1, z1) -> {
@@ -213,8 +233,8 @@ public class TerrainOccluder {
 			raster.setupVertex(V011, x0, y1, z1);
 			raster.setupVertex(V100, x1, y0, z0);
 			raster.setupVertex(V110, x1, y1, z0);
-			return raster.testQuad(V110, V100, V000, V001) ||
-					raster.testQuad(V001, V011, V010, V110);
+			return raster.testQuad(V110, V100, V000, V001)
+					|| raster.testQuad(V001, V011, V010, V110);
 		};
 
 		boxTests[SOUTH | EAST] = (x0, y0, z0, x1, y1, z1) -> {
@@ -224,8 +244,8 @@ public class TerrainOccluder {
 			raster.setupVertex(V101, x1, y0, z1);
 			raster.setupVertex(V110, x1, y1, z0);
 			raster.setupVertex(V111, x1, y1, z1);
-			return raster.testQuad(V011, V001, V101, V100) ||
-					raster.testQuad(V100, V110, V111, V011);
+			return raster.testQuad(V011, V001, V101, V100)
+					|| raster.testQuad(V100, V110, V111, V011);
 		};
 
 		boxTests[SOUTH | WEST] = (x0, y0, z0, x1, y1, z1) -> {
@@ -235,8 +255,8 @@ public class TerrainOccluder {
 			raster.setupVertex(V011, x0, y1, z1);
 			raster.setupVertex(V101, x1, y0, z1);
 			raster.setupVertex(V111, x1, y1, z1);
-			return raster.testQuad(V101, V111, V011, V010) ||
-					raster.testQuad(V010, V000, V001, V101);
+			return raster.testQuad(V101, V111, V011, V010)
+					|| raster.testQuad(V010, V000, V001, V101);
 		};
 
 		// NB: When three faces are visible, omit nearest vertex and draw two quads instead of three.
@@ -248,8 +268,8 @@ public class TerrainOccluder {
 			raster.setupVertex(V100, x1, y0, z0);
 			raster.setupVertex(V101, x1, y0, z1);
 			raster.setupVertex(V111, x1, y1, z1);
-			return raster.testQuad(V011, V111, V101, V100) ||
-					raster.testQuad(V100, V000, V010, V011);
+			return raster.testQuad(V011, V111, V101, V100)
+					|| raster.testQuad(V100, V000, V010, V011);
 		};
 
 		boxTests[UP | WEST | NORTH] = (x0, y0, z0, x1, y1, z1) -> {
@@ -259,10 +279,8 @@ public class TerrainOccluder {
 			raster.setupVertex(V100, x1, y0, z0);
 			raster.setupVertex(V110, x1, y1, z0);
 			raster.setupVertex(V111, x1, y1, z1);
-			return raster.testQuad(V111, V110, V100, V000) ||
-					raster.testQuad(V000, V001, V011, V111);
-
-
+			return raster.testQuad(V111, V110, V100, V000)
+					|| raster.testQuad(V000, V001, V011, V111);
 		};
 
 		boxTests[UP | EAST | SOUTH] = (x0, y0, z0, x1, y1, z1) -> {
@@ -272,8 +290,8 @@ public class TerrainOccluder {
 			raster.setupVertex(V100, x1, y0, z0);
 			raster.setupVertex(V101, x1, y0, z1);
 			raster.setupVertex(V110, x1, y1, z0);
-			return raster.testQuad(V010, V011, V001, V101) ||
-					raster.testQuad(V101, V100, V110, V010);
+			return raster.testQuad(V010, V011, V001, V101)
+					|| raster.testQuad(V101, V100, V110, V010);
 		};
 
 		boxTests[UP | WEST | SOUTH] = (x0, y0, z0, x1, y1, z1) -> {
@@ -283,8 +301,8 @@ public class TerrainOccluder {
 			raster.setupVertex(V101, x1, y0, z1);
 			raster.setupVertex(V110, x1, y1, z0);
 			raster.setupVertex(V111, x1, y1, z1);
-			return raster.testQuad(V110, V010, V000, V001) ||
-					raster.testQuad(V001, V101, V111, V110);
+			return raster.testQuad(V110, V010, V000, V001)
+					|| raster.testQuad(V001, V101, V111, V110);
 		};
 
 		boxTests[DOWN | EAST | NORTH] = (x0, y0, z0, x1, y1, z1) -> {
@@ -294,8 +312,8 @@ public class TerrainOccluder {
 			raster.setupVertex(V101, x1, y0, z1);
 			raster.setupVertex(V110, x1, y1, z0);
 			raster.setupVertex(V111, x1, y1, z1);
-			return raster.testQuad(V001, V000, V010, V110) ||
-					raster.testQuad(V110, V111, V101, V001);
+			return raster.testQuad(V001, V000, V010, V110)
+					|| raster.testQuad(V110, V111, V101, V001);
 		};
 
 		boxTests[DOWN | WEST | NORTH] = (x0, y0, z0, x1, y1, z1) -> {
@@ -305,8 +323,8 @@ public class TerrainOccluder {
 			raster.setupVertex(V100, x1, y0, z0);
 			raster.setupVertex(V101, x1, y0, z1);
 			raster.setupVertex(V110, x1, y1, z0);
-			return raster.testQuad(V101, V001, V011, V010) ||
-					raster.testQuad(V010, V110, V100, V101);
+			return raster.testQuad(V101, V001, V011, V010)
+					|| raster.testQuad(V010, V110, V100, V101);
 		};
 
 		boxTests[DOWN | EAST | SOUTH] = (x0, y0, z0, x1, y1, z1) -> {
@@ -316,8 +334,8 @@ public class TerrainOccluder {
 			raster.setupVertex(V100, x1, y0, z0);
 			raster.setupVertex(V110, x1, y1, z0);
 			raster.setupVertex(V111, x1, y1, z1);
-			return raster.testQuad(V000, V100, V110, V111) ||
-					raster.testQuad(V111, V011, V001, V000);
+			return raster.testQuad(V000, V100, V110, V111)
+					|| raster.testQuad(V111, V011, V001, V000);
 		};
 
 		boxTests[DOWN | WEST | SOUTH] = (x0, y0, z0, x1, y1, z1) -> {
@@ -327,8 +345,8 @@ public class TerrainOccluder {
 			raster.setupVertex(V100, x1, y0, z0);
 			raster.setupVertex(V101, x1, y0, z1);
 			raster.setupVertex(V111, x1, y1, z1);
-			return raster.testQuad(V100, V101, V111, V011) ||
-					raster.testQuad(V011, V010, V000, V100);
+			return raster.testQuad(V100, V101, V111, V011)
+					|| raster.testQuad(V011, V010, V000, V100);
 		};
 
 		////
@@ -540,8 +558,6 @@ public class TerrainOccluder {
 			raster.setupVertex(V111, x1, y1, z1);
 			raster.drawQuad(V111, V110, V100, V000);
 			raster.drawQuad(V000, V001, V011, V111);
-
-
 		};
 
 		boxDraws[UP | EAST | SOUTH] = (x0, y0, z0, x1, y1, z1) -> {
@@ -643,7 +659,7 @@ public class TerrainOccluder {
 	}
 
 	/**
-	 * Force update to new version if provided version matches current
+	 * Force update to new version if provided version matches current.
 	 *
 	 * @param occluderVersion
 	 */
@@ -654,7 +670,7 @@ public class TerrainOccluder {
 	}
 
 	/**
-	 * Force update to new version
+	 * Force update to new version.
 	 */
 	public void invalidate() {
 		occluderVersion.incrementAndGet();
@@ -700,7 +716,6 @@ public class TerrainOccluder {
 				} finally {
 					nativeImage.close();
 				}
-
 			});
 		}
 	}
@@ -708,8 +723,8 @@ public class TerrainOccluder {
 	/**
 	 * Check if needs redrawn and prep for redraw if  so.
 	 * When false, regions should be drawn only if their occluder version is not current.
-	 * <p>
-	 * Also checks for invalidation of occluder version using positionVersion.
+	 *
+	 * <p>Also checks for invalidation of occluder version using positionVersion.
 	 *
 	 * @param projectionMatrix
 	 * @param modelMatrix
@@ -762,8 +777,6 @@ public class TerrainOccluder {
 		} else {
 			needsRedraw = false;
 		}
-
-
 	}
 
 	public boolean needsRedraw() {
@@ -862,6 +875,7 @@ public class TerrainOccluder {
 		if (limit > 1) {
 			for (int i = 1; i < limit; i++) {
 				final int box = visData[i];
+
 				if (occlusionRange > PackedBox.range(box)) {
 					break;
 				}

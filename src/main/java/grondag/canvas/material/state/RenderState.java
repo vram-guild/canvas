@@ -1,22 +1,28 @@
 /*
- * Copyright 2019, 2020 grondag
+ *  Copyright 2019, 2020 grondag
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License.  You may obtain a copy
- * of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ *  use this file except in compliance with the License.  You may obtain a copy
+ *  of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ *  License for the specific language governing permissions and limitations under
+ *  the License.
  */
 
 package grondag.canvas.material.state;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import it.unimi.dsi.fastutil.Hash;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import org.lwjgl.opengl.GL11;
+
+import net.minecraft.client.MinecraftClient;
+
 import grondag.canvas.Configurator;
 import grondag.canvas.buffer.format.CanvasVertexFormat;
 import grondag.canvas.material.property.BinaryMaterialState;
@@ -32,24 +38,19 @@ import grondag.canvas.shader.GlProgram;
 import grondag.canvas.shader.ProgramType;
 import grondag.canvas.texture.MaterialInfoTexture;
 import grondag.canvas.texture.SpriteInfoTexture;
-import it.unimi.dsi.fastutil.Hash;
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-import org.lwjgl.opengl.GL11;
-
-import net.minecraft.client.MinecraftClient;
 
 /**
  * Primitives with the same state have the same vertex encoding,
- * same uniform state and same GL draw state. Analogous to RenderLayer<p>
+ * same uniform state and same GL draw state. Analogous to RenderLayer.
  *
- * Also serves as the key for vertex collection. Primitives with the same state
- * can share the same draw call and should be packed contiguously in the buffer.<p>
+ * <p>Also serves as the key for vertex collection. Primitives with the same state
+ * can share the same draw call and should be packed contiguously in the buffer.
  *
- * Primitives must have the same sorting requirements, which for all but the translucent
+ * <p>Primitives must have the same sorting requirements, which for all but the translucent
  * collection keys means there is no sorting. Translucent primitives that require sorting
- * all belong to a small handful of collectors.<p>
+ * all belong to a small handful of collectors.
  *
- * Vertex data with different state can share the same buffer and should be
+ * <p>Vertex data with different state can share the same buffer and should be
  * packed in glState, uniformState order for best performance.
  */
 public final class RenderState extends AbstractRenderState {
@@ -151,7 +152,6 @@ public final class RenderState extends AbstractRenderState {
 		//			enablePrint = false;
 		//		}
 	}
-
 
 	public static final int MAX_COUNT = 4096;
 	static int nextIndex = 0;

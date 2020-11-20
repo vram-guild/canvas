@@ -1,17 +1,17 @@
 /*
- * Copyright 2019, 2020 grondag
+ *  Copyright 2019, 2020 grondag
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License.  You may obtain a copy
- * of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ *  use this file except in compliance with the License.  You may obtain a copy
+ *  of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ *  License for the specific language governing permissions and limitations under
+ *  the License.
  */
 
 package grondag.canvas.terrain;
@@ -23,23 +23,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import grondag.canvas.Configurator;
-import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
-import grondag.canvas.apiimpl.util.FaceConstants;
-import grondag.canvas.buffer.encoding.VertexCollectorImpl;
-import grondag.canvas.buffer.encoding.VertexCollectorList;
-import grondag.canvas.material.state.RenderLayerHelper;
-import grondag.canvas.material.state.RenderMaterialImpl;
-import grondag.canvas.perf.ChunkRebuildCounters;
-import grondag.canvas.render.CanvasFrustum;
-import grondag.canvas.render.CanvasWorldRenderer;
-import grondag.canvas.terrain.occlusion.TerrainOccluder;
-import grondag.canvas.terrain.occlusion.region.OcclusionRegion;
-import grondag.canvas.terrain.occlusion.region.PackedBox;
-import grondag.canvas.terrain.render.DrawableChunk;
-import grondag.canvas.terrain.render.UploadableChunk;
-import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
-import grondag.frex.api.fluid.FluidQuadSupplier;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
@@ -63,6 +46,24 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
 import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
+
+import grondag.canvas.Configurator;
+import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
+import grondag.canvas.apiimpl.util.FaceConstants;
+import grondag.canvas.buffer.encoding.VertexCollectorImpl;
+import grondag.canvas.buffer.encoding.VertexCollectorList;
+import grondag.canvas.material.state.RenderLayerHelper;
+import grondag.canvas.material.state.RenderMaterialImpl;
+import grondag.canvas.perf.ChunkRebuildCounters;
+import grondag.canvas.render.CanvasFrustum;
+import grondag.canvas.render.CanvasWorldRenderer;
+import grondag.canvas.terrain.occlusion.TerrainOccluder;
+import grondag.canvas.terrain.occlusion.region.OcclusionRegion;
+import grondag.canvas.terrain.occlusion.region.PackedBox;
+import grondag.canvas.terrain.render.DrawableChunk;
+import grondag.canvas.terrain.render.UploadableChunk;
+import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
+import grondag.frex.api.fluid.FluidQuadSupplier;
 
 @Environment(EnvType.CLIENT)
 public class BuiltRenderRegion {
@@ -97,7 +98,6 @@ public class BuiltRenderRegion {
 	private boolean isClosed = false;
 	private boolean isInsideRenderDistance;
 	private final Consumer<TerrainRenderContext> buildTask = this::rebuildOnWorkerThread;
-
 
 	public BuiltRenderRegion(CanvasWorldRenderer cwr, RegionChunkReference chunkRef, long packedPos) {
 		this.cwr = cwr;
@@ -134,8 +134,8 @@ public class BuiltRenderRegion {
 
 	/**
 	 * Assumes camera distance update has already happened.
-	 * <p>
-	 * NB: tried a crude hierarchical scheme of checking chunk columns first
+	 *
+	 * <p>NB: tried a crude hierarchical scheme of checking chunk columns first
 	 * but didn't pay off.  Would probably  need to propagate per-plane results
 	 * over a more efficient region but that might not even help. Is already
 	 * quite fast and typically only one or a few regions per chunk must be tested.
@@ -163,11 +163,11 @@ public class BuiltRenderRegion {
 	 */
 	public boolean shouldBuild() {
 		return squaredCameraDistance <= 576
-		|| (isInsideRenderDistance && chunkReference.areCornersLoaded());
+				|| (isInsideRenderDistance && chunkReference.areCornersLoaded());
 	}
 
 	/**
-	 * Returns true if inside retentiom distance;
+	 * Returns true if inside retentiom distance.
 	 */
 	boolean updateCameraDistance() {
 		final BlockPos origin = this.origin;

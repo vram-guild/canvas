@@ -1,16 +1,25 @@
+/*
+ *  Copyright 2019, 2020 grondag
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ *  use this file except in compliance with the License.  You may obtain a copy
+ *  of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ *  License for the specific language governing permissions and limitations under
+ *  the License.
+ */
+
 package grondag.canvas.buffer.encoding;
 
 import java.util.Map;
 import java.util.SortedMap;
 
 import com.google.common.base.Predicates;
-import grondag.canvas.material.property.MaterialTarget;
-import grondag.canvas.material.state.RenderContextState;
-import grondag.canvas.material.state.RenderLayerHelper;
-import grondag.canvas.material.state.RenderMaterialImpl;
-import grondag.canvas.mixinterface.MultiPhaseExt;
-import grondag.frex.api.material.FrexVertexConsumerProvider;
-import grondag.frex.api.material.RenderMaterial;
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
@@ -20,6 +29,14 @@ import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider.Immediate;
 import net.minecraft.client.render.model.ModelLoader;
 import net.minecraft.util.Util;
+
+import grondag.canvas.material.property.MaterialTarget;
+import grondag.canvas.material.state.RenderContextState;
+import grondag.canvas.material.state.RenderLayerHelper;
+import grondag.canvas.material.state.RenderMaterialImpl;
+import grondag.canvas.mixinterface.MultiPhaseExt;
+import grondag.frex.api.material.FrexVertexConsumerProvider;
+import grondag.frex.api.material.RenderMaterial;
 
 public class CanvasImmediate extends Immediate implements FrexVertexConsumerProvider {
 	public final VertexCollectorList collectors = new VertexCollectorList();

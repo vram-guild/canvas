@@ -8,16 +8,13 @@ import org.junit.jupiter.api.Test;
 import grondag.canvas.terrain.occlusion.region.PackedBox;
 
 class PackedBoxTest {
-
 	@Test
 	void test() {
-
 		assert PackedBox.pack(0, 0, 0, 16, 16, 16, PackedBox.RANGE_EXTREME) == PackedBox.FULL_BOX;
 
 		final Random r = ThreadLocalRandom.current();
 
 		for (int i = 0; i < 500; i++) {
-
 			final int x0 = r.nextInt(16);
 			final int y0 = r.nextInt(16);
 			final int z0 = r.nextInt(16);

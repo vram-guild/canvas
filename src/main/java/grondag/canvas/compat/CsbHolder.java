@@ -1,4 +1,21 @@
-//package grondag.canvas.compat;
+/*
+ *  Copyright 2019, 2020 grondag
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ *  use this file except in compliance with the License.  You may obtain a copy
+ *  of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ *  License for the specific language governing permissions and limitations under
+ *  the License.
+ */
+
+package grondag.canvas.compat;
+
 //
 //import java.lang.invoke.MethodHandle;
 //import java.lang.invoke.MethodHandles;
@@ -22,7 +39,7 @@
 //
 // TODO: On hold until have response to CSB #20
 
-//public class CsbHolder {
+public class CsbHolder {
 //	private static boolean warnRender = true;
 //
 //	public static CsbRender handler = (MatrixStack matrices, float delta, long limitTime, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f matrix4f, CallbackInfo ci) -> {};
@@ -67,4 +84,4 @@
 //
 //	private void net.minecraft.class_761.handler$zeh000$renderWorldBorder(net.minecraft.class_4587,float,long,boolean,net.minecraft.class_4184,net.minecraft.class_757,net.minecraft.class_765,net.minecraft.class_1159,org.spongepowered.asm.mixin.injection.callback.CallbackInfo)
 //
-//}
+}

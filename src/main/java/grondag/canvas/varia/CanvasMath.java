@@ -1,13 +1,29 @@
+/*
+ *  Copyright 2019, 2020 grondag
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ *  use this file except in compliance with the License.  You may obtain a copy
+ *  of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ *  License for the specific language governing permissions and limitations under
+ *  the License.
+ */
+
 package grondag.canvas.varia;
 
 import net.minecraft.client.util.math.Vector3f;
 import net.minecraft.util.math.Quaternion;
 
 public class CanvasMath {
-	private CanvasMath() {}
+	private CanvasMath() { }
 
 	/**
-	 * Non-allocating substitute for {@link Vector3f#rotate(Quaternion)}
+	 * Non-allocating substitute for {@link Vector3f#rotate(Quaternion)}.
 	 */
 	public static void applyRotation(Vector3f vec, Quaternion rotation) {
 		final float rx = rotation.getX();
@@ -22,7 +38,7 @@ public class CanvasMath {
 		final float qx = rw * x + ry * z - rz * y;
 		final float qy = rw * y - rx * z + rz * x;
 		final float qz = rw * z + rx * y - ry * x;
-		final float qw = - rx * x - ry * y - rz * z;
+		final float qw = -rx * x - ry * y - rz * z;
 
 		vec.set(
 			qw * -rx + qx * rw - qy * rz + qz * ry,
@@ -45,7 +61,7 @@ public class CanvasMath {
 		final float qx = rw * x - rz * y;
 		final float qy = rw * y + rz * x;
 		final float qz = rx * y - ry * x;
-		final float qw = - rx * x - ry * y;
+		final float qw = -rx * x - ry * y;
 
 		vec.set(
 			qw * -rx + qx * rw - qy * rz + qz * ry,

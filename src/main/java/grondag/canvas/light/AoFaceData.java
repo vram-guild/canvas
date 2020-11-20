@@ -1,17 +1,17 @@
 /*
- * Copyright 2019, 2020 grondag
+ *  Copyright 2019, 2020 grondag
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License.  You may obtain a copy
- * of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ *  use this file except in compliance with the License.  You may obtain a copy
+ *  of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ *  License for the specific language governing permissions and limitations under
+ *  the License.
  */
 
 package grondag.canvas.light;
@@ -21,7 +21,6 @@ package grondag.canvas.light;
  * provides various utility methods to simplify code elsewhere.
  */
 public class AoFaceData {
-
 	public static final int OPAQUE = -1;
 	public final AoFaceCalc calc = new AoFaceCalc();
 	// packed values gathered during compute
@@ -141,25 +140,25 @@ public class AoFaceData {
 
 		final AoFaceData o = (AoFaceData) other;
 
-		return o.bottom == bottom &&
-				o.top == top &&
-				o.left == left &&
-				o.right == right &&
-				o.bottomLeft == bottomLeft &&
-				o.bottomRight == bottomRight &&
-				o.topLeft == topLeft &&
-				o.topRight == topRight &&
-				o.center == center &&
+		return o.bottom == bottom
+				&& o.top == top
+				&& o.left == left
+				&& o.right == right
+				&& o.bottomLeft == bottomLeft
+				&& o.bottomRight == bottomRight
+				&& o.topLeft == topLeft
+				&& o.topRight == topRight
+				&& o.center == center
 
-				o.aoBottomLeft == aoBottomLeft &&
-				o.aoBottomRight == aoBottomRight &&
-				o.aoTopLeft == aoTopLeft &&
-				o.aoTopRight == aoTopRight &&
-				o.aoLeft == aoLeft &&
-				o.aoBottom == aoBottom &&
-				o.aoTop == aoTop &&
-				o.aoRight == aoRight &&
-				o.aoCenter == aoCenter;
+				&& o.aoBottomLeft == aoBottomLeft
+				&& o.aoBottomRight == aoBottomRight
+				&& o.aoTopLeft == aoTopLeft
+				&& o.aoTopRight == aoTopRight
+				&& o.aoLeft == aoLeft
+				&& o.aoBottom == aoBottom
+				&& o.aoTop == aoTop
+				&& o.aoRight == aoRight
+				&& o.aoCenter == aoCenter;
 	}
 
 	@Override

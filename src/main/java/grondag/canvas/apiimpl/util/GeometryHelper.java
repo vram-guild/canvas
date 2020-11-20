@@ -1,22 +1,23 @@
 /*
- * Copyright 2019, 2020 grondag
+ *  Copyright 2019, 2020 grondag
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License.  You may obtain a copy
- * of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ *  use this file except in compliance with the License.  You may obtain a copy
+ *  of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ *  License for the specific language governing permissions and limitations under
+ *  the License.
  */
 
 package grondag.canvas.apiimpl.util;
 
-import net.fabricmc.fabric.api.renderer.v1.mesh.QuadView;
+import static net.minecraft.util.math.MathHelper.approximatelyEquals;
+
 import net.minecraft.client.render.model.BakedQuad;
 import net.minecraft.client.render.model.CubeFace.DirectionIds;
 import net.minecraft.client.util.math.Vector3f;
@@ -24,7 +25,7 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Direction.Axis;
 import net.minecraft.util.math.Direction.AxisDirection;
 
-import static net.minecraft.util.math.MathHelper.approximatelyEquals;
+import net.fabricmc.fabric.api.renderer.v1.mesh.QuadView;
 
 /**
  * Static routines of general utility for renderer implementations.

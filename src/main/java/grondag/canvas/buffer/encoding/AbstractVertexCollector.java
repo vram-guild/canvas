@@ -1,28 +1,20 @@
 /*
- * Copyright 2019, 2020 grondag
+ *  Copyright 2019, 2020 grondag
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License.  You may obtain a copy
- * of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ *  use this file except in compliance with the License.  You may obtain a copy
+ *  of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ *  License for the specific language governing permissions and limitations under
+ *  the License.
  */
 
 package grondag.canvas.buffer.encoding;
-
-import java.util.concurrent.atomic.AtomicInteger;
-
-import grondag.canvas.apiimpl.mesh.MeshEncodingHelper;
-import grondag.canvas.apiimpl.util.NormalHelper;
-import grondag.canvas.material.state.RenderMaterialImpl;
-import grondag.canvas.material.state.RenderStateData;
-import grondag.canvas.mixinterface.SpriteExt;
 
 import static grondag.canvas.buffer.format.CanvasVertexFormats.MATERIAL_COLOR_INDEX;
 import static grondag.canvas.buffer.format.CanvasVertexFormats.MATERIAL_LIGHT_INDEX;
@@ -32,8 +24,16 @@ import static grondag.canvas.buffer.format.CanvasVertexFormats.MATERIAL_QUAD_STR
 import static grondag.canvas.buffer.format.CanvasVertexFormats.MATERIAL_TEXTURE_INDEX;
 import static grondag.canvas.buffer.format.CanvasVertexFormats.MATERIAL_VERTEX_STRIDE;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 import net.minecraft.client.texture.Sprite;
 import net.minecraft.util.math.MathHelper;
+
+import grondag.canvas.apiimpl.mesh.MeshEncodingHelper;
+import grondag.canvas.apiimpl.util.NormalHelper;
+import grondag.canvas.material.state.RenderMaterialImpl;
+import grondag.canvas.material.state.RenderStateData;
+import grondag.canvas.mixinterface.SpriteExt;
 
 public abstract class AbstractVertexCollector implements VertexCollector {
 	private static final int LAST_VERTEX_BASE_INDEX = MATERIAL_QUAD_STRIDE - MATERIAL_VERTEX_STRIDE;
@@ -42,7 +42,7 @@ public abstract class AbstractVertexCollector implements VertexCollector {
 
 	protected int capacity = 256;
 	protected int[] vertexData = new int[capacity];
-	/** also the index of the first vertex when used in VertexConsumer mode */
+	/** also the index of the first vertex when used in VertexConsumer mode. */
 	protected int integerSize = 0;
 	protected int currentVertexIndex = 0;
 
@@ -204,7 +204,7 @@ public abstract class AbstractVertexCollector implements VertexCollector {
 
 			final float u3 = Float.intBitsToFloat(vertexData[integerSize + MATERIAL_TEXTURE_INDEX + MATERIAL_VERTEX_STRIDE * 3]);
 			final float v3 = Float.intBitsToFloat(vertexData[integerSize + MATERIAL_MATERIAL_INDEX + MATERIAL_VERTEX_STRIDE * 3]);
-			vertexData[integerSize + MATERIAL_TEXTURE_INDEX + MATERIAL_VERTEX_STRIDE * 3] =Math.round(u3 * MeshEncodingHelper.UV_UNIT_VALUE) | (Math.round(v3 * MeshEncodingHelper.UV_UNIT_VALUE) << 16);
+			vertexData[integerSize + MATERIAL_TEXTURE_INDEX + MATERIAL_VERTEX_STRIDE * 3] = Math.round(u3 * MeshEncodingHelper.UV_UNIT_VALUE) | (Math.round(v3 * MeshEncodingHelper.UV_UNIT_VALUE) << 16);
 			vertexData[integerSize + MATERIAL_MATERIAL_INDEX + MATERIAL_VERTEX_STRIDE * 3] = 0;
 		}
 	}

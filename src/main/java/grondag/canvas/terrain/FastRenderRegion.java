@@ -1,35 +1,32 @@
 /*
- * Copyright 2019, 2020 grondag
+ *  Copyright 2019, 2020 grondag
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License.  You may obtain a copy
- * of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ *  use this file except in compliance with the License.  You may obtain a copy
+ *  of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ *  License for the specific language governing permissions and limitations under
+ *  the License.
  */
 
 package grondag.canvas.terrain;
-
-import java.util.Arrays;
-
-import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
-import grondag.canvas.terrain.ChunkPaletteCopier.PaletteCopy;
-import grondag.canvas.terrain.occlusion.region.OcclusionRegion;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import it.unimi.dsi.fastutil.shorts.ShortArrayList;
-import org.jetbrains.annotations.Nullable;
 
 import static grondag.canvas.terrain.RenderRegionAddressHelper.EXTERIOR_CACHE_SIZE;
 import static grondag.canvas.terrain.RenderRegionAddressHelper.INTERIOR_CACHE_SIZE;
 import static grondag.canvas.terrain.RenderRegionAddressHelper.TOTAL_CACHE_SIZE;
 import static grondag.canvas.terrain.RenderRegionAddressHelper.cacheIndexToXyz5;
 import static grondag.canvas.terrain.RenderRegionAddressHelper.interiorIndex;
+
+import java.util.Arrays;
+
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import it.unimi.dsi.fastutil.shorts.ShortArrayList;
+import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
@@ -42,6 +39,10 @@ import net.minecraft.world.chunk.light.LightingProvider;
 import net.minecraft.world.level.ColorResolver;
 
 import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachedBlockView;
+
+import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
+import grondag.canvas.terrain.ChunkPaletteCopier.PaletteCopy;
+import grondag.canvas.terrain.occlusion.region.OcclusionRegion;
 
 public class FastRenderRegion extends AbstractRenderRegion implements RenderAttachedBlockView {
 	private static final int[] EMPTY_AO_CACHE = new int[TOTAL_CACHE_SIZE];
@@ -160,7 +161,7 @@ public class FastRenderRegion extends AbstractRenderRegion implements RenderAtta
 	}
 
 	/**
-	 * Assumes values 0-15
+	 * Assumes values 0-15.
 	 */
 	public BlockState getLocalBlockState(int interiorIndex) {
 		return states[interiorIndex];
@@ -263,7 +264,7 @@ public class FastRenderRegion extends AbstractRenderRegion implements RenderAtta
 	}
 
 	/**
-	 * only valid for positions in render region, including exterior
+	 * Only valid for positions in render region, including exterior.
 	 */
 	public boolean isClosed(int cacheIndex) {
 		return occlusion.isClosed(cacheIndex);

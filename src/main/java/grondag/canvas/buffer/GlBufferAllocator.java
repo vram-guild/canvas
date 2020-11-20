@@ -1,30 +1,30 @@
 /*
- * Copyright 2019, 2020 grondag
+ *  Copyright 2019, 2020 grondag
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License.  You may obtain a copy
- * of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ *  use this file except in compliance with the License.  You may obtain a copy
+ *  of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ *  License for the specific language governing permissions and limitations under
+ *  the License.
  */
 
 package grondag.canvas.buffer;
 
-import it.unimi.dsi.fastutil.ints.IntArrayFIFOQueue;
-import net.minecraft.client.util.GlAllocationUtils;
-import org.lwjgl.opengl.GL21;
-
 import java.nio.IntBuffer;
 
+import it.unimi.dsi.fastutil.ints.IntArrayFIFOQueue;
+import org.lwjgl.opengl.GL21;
+
+import net.minecraft.client.util.GlAllocationUtils;
+
 /**
- * Buffer gen is incredibly slow on some Windows/NVidia systems and default MC
- * behavior
+ * Buffer gen is incredibly slow on some Windows/NVidia systems and default MC behavior.
  */
 public class GlBufferAllocator {
 	private static final IntArrayFIFOQueue queue = new IntArrayFIFOQueue(256);

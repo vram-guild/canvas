@@ -1,27 +1,27 @@
 /*
- * Copyright 2019, 2020 grondag
+ *  Copyright 2019, 2020 grondag
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License.  You may obtain a copy
- * of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ *  use this file except in compliance with the License.  You may obtain a copy
+ *  of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ *  License for the specific language governing permissions and limitations under
+ *  the License.
  */
 
 package grondag.canvas.terrain.occlusion;
 
-import grondag.canvas.Configurator;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.MathHelper;
 
-public class Constants {
+import grondag.canvas.Configurator;
 
+public class Constants {
 	public static final int UP = 1 << Direction.UP.getId();
 	public static final int DOWN = 1 << Direction.DOWN.getId();
 	public static final int EAST = 1 << Direction.EAST.getId();
@@ -48,8 +48,9 @@ public class Constants {
 	static final int HALF_PIXEL_WIDTH = PIXEL_WIDTH / 2;
 	static final int PRECISE_WIDTH = PIXEL_WIDTH << PRECISION_BITS;
 	static final int HALF_PRECISE_WIDTH = PRECISE_WIDTH / 2;
+
 	/**
-	 * clamp to this to ensure value + half pixel rounds down to last pixel
+	 * clamp to this to ensure value + half pixel rounds down to last pixel.
 	 */
 	static final int PRECISE_WIDTH_CLAMP = PRECISE_WIDTH - PRECISE_PIXEL_CENTER;
 	static final int TILE_HEIGHT = 64;
@@ -60,8 +61,9 @@ public class Constants {
 	static final int HALF_PIXEL_HEIGHT = PIXEL_HEIGHT / 2;
 	static final int PRECISE_HEIGHT = PIXEL_HEIGHT << PRECISION_BITS;
 	static final int HALF_PRECISE_HEIGHT = PRECISE_HEIGHT / 2;
+
 	/**
-	 * clamp to this to ensure value + half pixel rounds down to last pixel
+	 * clamp to this to ensure value + half pixel rounds down to last pixel.
 	 */
 	static final int PRECISE_HEIGHT_CLAMP = PRECISE_HEIGHT - PRECISE_PIXEL_CENTER;
 	static final int TILE_INDEX_LOW_Y_MASK = TILE_PIXEL_INDEX_MASK << TILE_AXIS_SHIFT;
@@ -132,7 +134,6 @@ public class Constants {
 	static final int EVENT_012_LRF = EVENT_0_LEFT | EVENT_1_RIGHT | EVENT_2_FLAT;
 	static final int EVENT_012_RRF = EVENT_0_RIGHT | EVENT_1_RIGHT | EVENT_2_FLAT;
 	static final int EVENT_012_FRF = EVENT_0_FLAT | EVENT_1_RIGHT | EVENT_2_FLAT;
-
 
 	////
 	static final int EVENT_012_RLF = EVENT_0_RIGHT | EVENT_1_LEFT | EVENT_2_FLAT;

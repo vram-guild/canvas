@@ -1,17 +1,17 @@
 /*
- * Copyright 2019, 2020 grondag
+ *  Copyright 2019, 2020 grondag
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License.  You may obtain a copy
- * of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ *  use this file except in compliance with the License.  You may obtain a copy
+ *  of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ *  License for the specific language governing permissions and limitations under
+ *  the License.
  */
 
 package grondag.canvas.render;
@@ -20,14 +20,6 @@ import java.util.Iterator;
 
 import com.google.common.util.concurrent.Runnables;
 import com.mojang.blaze3d.systems.RenderSystem;
-import grondag.canvas.buffer.encoding.VertexCollectorImpl;
-import grondag.canvas.material.state.MaterialFinderImpl;
-import grondag.canvas.material.state.RenderMaterialImpl;
-import grondag.canvas.mixinterface.ParticleExt;
-import grondag.canvas.mixinterface.ParticleManagerExt;
-import grondag.frex.api.material.MaterialFinder;
-import grondag.frex.api.material.MaterialMap;
-import grondag.frex.api.material.RenderMaterial;
 import org.lwjgl.opengl.GL11;
 
 import net.minecraft.client.particle.Particle;
@@ -44,6 +36,15 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.crash.CrashException;
 import net.minecraft.util.crash.CrashReport;
 import net.minecraft.util.crash.CrashReportSection;
+
+import grondag.canvas.buffer.encoding.VertexCollectorImpl;
+import grondag.canvas.material.state.MaterialFinderImpl;
+import grondag.canvas.material.state.RenderMaterialImpl;
+import grondag.canvas.mixinterface.ParticleExt;
+import grondag.canvas.mixinterface.ParticleManagerExt;
+import grondag.frex.api.material.MaterialFinder;
+import grondag.frex.api.material.MaterialMap;
+import grondag.frex.api.material.RenderMaterial;
 
 public class CanvasParticleRenderer {
 	private final VertexCollectorImpl collector = new VertexCollectorImpl();
@@ -66,7 +67,7 @@ public class CanvasParticleRenderer {
 		ext = (ParticleManagerExt) pm;
 		final Iterator<ParticleTextureSheet> sheets = ext.canvas_textureSheets().iterator();
 
-		while(sheets.hasNext()) {
+		while (sheets.hasNext()) {
 			final ParticleTextureSheet particleTextureSheet = sheets.next();
 			final Iterable<Particle> iterable = ext.canvas_particles().get(particleTextureSheet);
 
@@ -80,7 +81,7 @@ public class CanvasParticleRenderer {
 
 			final VertexConsumer consumer = beginSheet(particleTextureSheet);
 
-			while(particles.hasNext()) {
+			while (particles.hasNext()) {
 				final Particle particle = particles.next();
 
 				try {
@@ -158,46 +159,46 @@ public class CanvasParticleRenderer {
 
 	private static MaterialFinderImpl baseFinder() {
 		return MaterialFinderImpl.threadLocal()
-		.primitive(GL11.GL_QUADS)
-		.depthTest(MaterialFinder.DEPTH_TEST_LEQUAL)
-		.cull(false)
-		.writeMask(MaterialFinder.WRITE_MASK_COLOR_DEPTH)
-		.enableLightmap(true)
-		.decal(MaterialFinder.DECAL_NONE)
-		.target(MaterialFinder.TARGET_PARTICLES)
-		.lines(false)
-		.disableAo(true)
-		.disableDiffuse(true)
-		.cutout(true)
-		.transparentCutout(true)
-		.fog(MaterialFinder.FOG_TINTED);
+				.primitive(GL11.GL_QUADS)
+				.depthTest(MaterialFinder.DEPTH_TEST_LEQUAL)
+				.cull(false)
+				.writeMask(MaterialFinder.WRITE_MASK_COLOR_DEPTH)
+				.enableLightmap(true)
+				.decal(MaterialFinder.DECAL_NONE)
+				.target(MaterialFinder.TARGET_PARTICLES)
+				.lines(false)
+				.disableAo(true)
+				.disableDiffuse(true)
+				.cutout(true)
+				.transparentCutout(true)
+				.fog(MaterialFinder.FOG_TINTED);
 	}
 
 	private static final RenderMaterialImpl RENDER_STATE_TERRAIN = baseFinder()
-	.texture(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE)
-	.transparency(MaterialFinder.TRANSPARENCY_DEFAULT)
-	.find();
+			.texture(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE)
+			.transparency(MaterialFinder.TRANSPARENCY_DEFAULT)
+			.find();
 
 	private static final RenderMaterialImpl RENDER_STATE_TERRAIN_EMISSIVE = baseFinder().copyFrom(RENDER_STATE_TERRAIN)
-	.emissive(true)
-	.find();
+			.emissive(true)
+			.find();
 
 	// MC has two but they are functionally identical
-	private static final RenderMaterialImpl RENDER_STATE_OPAQUE_OR_LIT =  baseFinder()
-	.transparency(MaterialFinder.TRANSPARENCY_NONE)
-	.texture(SpriteAtlasTexture.PARTICLE_ATLAS_TEXTURE)
-	.find();
+	private static final RenderMaterialImpl RENDER_STATE_OPAQUE_OR_LIT = baseFinder()
+			.transparency(MaterialFinder.TRANSPARENCY_NONE)
+			.texture(SpriteAtlasTexture.PARTICLE_ATLAS_TEXTURE)
+			.find();
 
 	private static final RenderMaterialImpl RENDER_STATE_OPAQUE_OR_LIT_EMISSIVE = baseFinder().copyFrom(RENDER_STATE_OPAQUE_OR_LIT)
-	.emissive(true)
-	.find();
+			.emissive(true)
+			.find();
 
 	private static final RenderMaterialImpl RENDER_STATE_TRANSLUCENT = baseFinder()
-	.transparency(MaterialFinder.TRANSPARENCY_TRANSLUCENT)
-	.texture(SpriteAtlasTexture.PARTICLE_ATLAS_TEXTURE)
-	.find();
+			.transparency(MaterialFinder.TRANSPARENCY_TRANSLUCENT)
+			.texture(SpriteAtlasTexture.PARTICLE_ATLAS_TEXTURE)
+			.find();
 
 	private static final RenderMaterialImpl RENDER_STATE_TRANSLUCENT_EMISSIVE = baseFinder().copyFrom(RENDER_STATE_TRANSLUCENT)
-	.emissive(true)
-	.find();
+			.emissive(true)
+			.find();
 }

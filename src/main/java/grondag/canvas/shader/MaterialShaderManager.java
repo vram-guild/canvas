@@ -1,25 +1,21 @@
 /*
- * Copyright 2019, 2020 grondag
+ *  Copyright 2019, 2020 grondag
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License.  You may obtain a copy
- * of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ *  use this file except in compliance with the License.  You may obtain a copy
+ *  of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ *  License for the specific language governing permissions and limitations under
+ *  the License.
  */
 
 package grondag.canvas.shader;
 
-import grondag.canvas.CanvasMod;
-import grondag.canvas.Configurator;
-import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
-import grondag.fermion.varia.IndexedInterner;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 
@@ -28,6 +24,10 @@ import net.minecraft.util.Identifier;
 
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 
+import grondag.canvas.CanvasMod;
+import grondag.canvas.Configurator;
+import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
+import grondag.fermion.varia.IndexedInterner;
 
 public enum MaterialShaderManager implements ClientTickEvents.EndTick {
 	INSTANCE;
@@ -44,7 +44,7 @@ public enum MaterialShaderManager implements ClientTickEvents.EndTick {
 	 */
 	private int frameIndex = 0;
 
-	private MaterialShaderManager() {
+	MaterialShaderManager() {
 		if (Configurator.enableLifeCycleDebug) {
 			CanvasMod.LOG.info("Lifecycle Event: MaterialShaderManager init");
 		}
@@ -102,6 +102,7 @@ public enum MaterialShaderManager implements ClientTickEvents.EndTick {
 	public void onEndTick(MinecraftClient client) {
 		tickIndex++;
 		final int limit = shaders.size();
+
 		for (int i = 0; i < limit; i++) {
 			shaders.get(i).onGameTick();
 		}
@@ -110,15 +111,16 @@ public enum MaterialShaderManager implements ClientTickEvents.EndTick {
 	public void onRenderTick() {
 		frameIndex++;
 		final int limit = shaders.size();
+
 		for (int i = 0; i < limit; i++) {
 			shaders.get(i).onRenderTick();
 		}
 	}
 
-	/** tracks which vertex sub-shaders are in use by materials */
+	/** Tracks which vertex sub-shaders are in use by materials. */
 	public static final IntOpenHashSet VERTEX_INDEXES = new IntOpenHashSet();
 
-	/** tracks which fragmet sub-shaders are in use by materials */
+	/** Tracks which fragmet sub-shaders are in use by materials. */
 	public static final IntOpenHashSet FRAGMENT_INDEXES = new IntOpenHashSet();
 
 	public static final IndexedInterner<Identifier> VERTEX_INDEXER = new IndexedInterner<>(Identifier.class);

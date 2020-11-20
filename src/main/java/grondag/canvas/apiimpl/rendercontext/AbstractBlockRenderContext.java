@@ -1,35 +1,30 @@
 /*
- * Copyright 2019, 2020 grondag
+ *  Copyright 2019, 2020 grondag
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License.  You may obtain a copy
- * of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ *  use this file except in compliance with the License.  You may obtain a copy
+ *  of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ *  License for the specific language governing permissions and limitations under
+ *  the License.
  */
 
 package grondag.canvas.apiimpl.rendercontext;
-
-import java.util.Random;
-import java.util.function.Supplier;
-
-import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
-import grondag.canvas.apiimpl.util.GeometryHelper;
-import grondag.canvas.buffer.encoding.VertexCollector;
-import grondag.canvas.mixinterface.RenderLayerExt;
-import grondag.frex.api.material.MaterialMap;
-import org.jetbrains.annotations.Nullable;
 
 import static grondag.canvas.buffer.encoding.EncoderUtils.applyBlockLighting;
 import static grondag.canvas.buffer.encoding.EncoderUtils.bufferQuad;
 import static grondag.canvas.buffer.encoding.EncoderUtils.bufferQuadDirect;
 import static grondag.canvas.buffer.encoding.EncoderUtils.colorizeQuad;
+
+import java.util.Random;
+import java.util.function.Supplier;
+
+import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -43,17 +38,23 @@ import net.minecraft.world.BlockRenderView;
 import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 
+import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
+import grondag.canvas.apiimpl.util.GeometryHelper;
+import grondag.canvas.buffer.encoding.VertexCollector;
+import grondag.canvas.mixinterface.RenderLayerExt;
+import grondag.frex.api.material.MaterialMap;
+
 public abstract class AbstractBlockRenderContext<T extends BlockRenderView> extends AbstractRenderContext implements RenderContext {
 	/**
-	 * for use by chunk builder - avoids another threadlocal
+	 * For use by chunk builder - avoids another threadlocal.
 	 */
 	public final BlockPos.Mutable searchPos = new BlockPos.Mutable();
 	public final Random random = new Random();
+
 	/**
-	 * for internal use
+	 * For internal use.
 	 */
 	protected final BlockPos.Mutable internalSearchPos = new BlockPos.Mutable();
-
 
 	@Nullable protected VertexConsumer defaultConsumer;
 
@@ -178,7 +179,7 @@ public abstract class AbstractBlockRenderContext<T extends BlockRenderView> exte
 		applyBlockLighting(quad, this);
 		colorizeQuad(quad, this);
 
-		if (collectors == null ) {
+		if (collectors == null) {
 			bufferQuad(quad, this, defaultConsumer);
 		} else {
 			bufferQuadDirect(quad, this, collectors.get(quad.material()));

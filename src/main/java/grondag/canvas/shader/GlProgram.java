@@ -1,17 +1,17 @@
 /*
- * Copyright 2019, 2020 grondag
+ *  Copyright 2019, 2020 grondag
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License.  You may obtain a copy
- * of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ *  use this file except in compliance with the License.  You may obtain a copy
+ *  of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ *  License for the specific language governing permissions and limitations under
+ *  the License.
  */
 
 package grondag.canvas.shader;
@@ -19,6 +19,16 @@ package grondag.canvas.shader;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.function.Consumer;
+
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import org.lwjgl.BufferUtils;
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL21;
+import org.lwjgl.system.MemoryUtil;
+
+import net.minecraft.client.resource.language.I18n;
+import net.minecraft.util.math.Matrix3f;
+import net.minecraft.util.math.Matrix4f;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
@@ -40,15 +50,6 @@ import grondag.frex.api.material.Uniform.UniformArrayi;
 import grondag.frex.api.material.Uniform.UniformMatrix3f;
 import grondag.frex.api.material.Uniform.UniformMatrix4f;
 import grondag.frex.api.material.UniformRefreshFrequency;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import org.lwjgl.BufferUtils;
-import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL21;
-import org.lwjgl.system.MemoryUtil;
-
-import net.minecraft.client.resource.language.I18n;
-import net.minecraft.util.math.Matrix3f;
-import net.minecraft.util.math.Matrix4f;
 
 public class GlProgram {
 	static {
@@ -154,7 +155,7 @@ public class GlProgram {
 		}
 	}
 
-	private final void activateInner() {
+	private void activateInner() {
 		if (isErrored) {
 			return;
 		}
@@ -242,7 +243,6 @@ public class GlProgram {
 				activeUniforms.get(i).load(progID);
 			}
 		}
-
 	}
 
 	public final void unload() {
@@ -253,10 +253,11 @@ public class GlProgram {
 	}
 
 	/**
-	 * Return true on success
+	 * Return true on success.
 	 */
 	private boolean loadInner() {
 		final int programID = progID;
+
 		if (programID <= 0) {
 			return false;
 		}
@@ -279,6 +280,7 @@ public class GlProgram {
 
 	public final void onRenderTick() {
 		final int limit = renderTickUpdates.size();
+
 		for (int i = 0; i < limit; i++) {
 			renderTickUpdates.get(i).markForInitialization();
 		}
@@ -286,6 +288,7 @@ public class GlProgram {
 
 	public final void onGameTick() {
 		final int limit = gameTickUpdates.size();
+
 		for (int i = 0; i < limit; i++) {
 			gameTickUpdates.get(i).markForInitialization();
 		}
@@ -296,7 +299,7 @@ public class GlProgram {
 		final String name = uniform.name;
 
 		return vertexShader.containsUniformSpec(type, name)
-		|| fragmentShader.containsUniformSpec(type, name);
+				|| fragmentShader.containsUniformSpec(type, name);
 	}
 
 	public abstract class UniformImpl<T extends Uniform> {
@@ -325,7 +328,7 @@ public class GlProgram {
 			flags |= FLAG_NEEDS_INITIALIZATION;
 		}
 
-		private final void load(int programID) {
+		private void load(int programID) {
 			this.unifID = GL21.glGetUniformLocation(programID, name);
 
 			if (this.unifID == -1) {
@@ -382,6 +385,7 @@ public class GlProgram {
 			if (unifID == -1) {
 				return;
 			}
+
 			if (uniformFloatBuffer.get(0) != value) {
 				uniformFloatBuffer.put(0, value);
 				setDirty();
@@ -409,10 +413,12 @@ public class GlProgram {
 			if (unifID == -1) {
 				return;
 			}
+
 			if (uniformFloatBuffer.get(0) != v0) {
 				uniformFloatBuffer.put(0, v0);
 				setDirty();
 			}
+
 			if (uniformFloatBuffer.get(1) != v1) {
 				uniformFloatBuffer.put(1, v1);
 				setDirty();
@@ -440,14 +446,17 @@ public class GlProgram {
 			if (unifID == -1) {
 				return;
 			}
+
 			if (uniformFloatBuffer.get(0) != v0) {
 				uniformFloatBuffer.put(0, v0);
 				setDirty();
 			}
+
 			if (uniformFloatBuffer.get(1) != v1) {
 				uniformFloatBuffer.put(1, v1);
 				setDirty();
 			}
+
 			if (uniformFloatBuffer.get(2) != v2) {
 				uniformFloatBuffer.put(2, v2);
 				setDirty();
@@ -475,18 +484,22 @@ public class GlProgram {
 			if (unifID == -1) {
 				return;
 			}
+
 			if (uniformFloatBuffer.get(0) != v0) {
 				uniformFloatBuffer.put(0, v0);
 				setDirty();
 			}
+
 			if (uniformFloatBuffer.get(1) != v1) {
 				uniformFloatBuffer.put(1, v1);
 				setDirty();
 			}
+
 			if (uniformFloatBuffer.get(2) != v2) {
 				uniformFloatBuffer.put(2, v2);
 				setDirty();
 			}
+
 			if (uniformFloatBuffer.get(3) != v3) {
 				uniformFloatBuffer.put(3, v3);
 				setDirty();
@@ -516,6 +529,7 @@ public class GlProgram {
 			}
 
 			final int limit = data.length;
+
 			for (int i = 0; i < limit; i++) {
 				if (uniformFloatBuffer.get(i) != data[i]) {
 					uniformFloatBuffer.put(i, data[i]);
@@ -554,6 +568,7 @@ public class GlProgram {
 			if (unifID == -1) {
 				return;
 			}
+
 			if (uniformIntBuffer.get(0) != value) {
 				uniformIntBuffer.put(0, value);
 				setDirty();
@@ -592,10 +607,12 @@ public class GlProgram {
 			if (unifID == -1) {
 				return;
 			}
+
 			if (uniformIntBuffer.get(0) != v0) {
 				uniformIntBuffer.put(0, v0);
 				setDirty();
 			}
+
 			if (uniformIntBuffer.get(1) != v1) {
 				uniformIntBuffer.put(1, v1);
 				setDirty();
@@ -623,14 +640,17 @@ public class GlProgram {
 			if (unifID == -1) {
 				return;
 			}
+
 			if (uniformIntBuffer.get(0) != v0) {
 				uniformIntBuffer.put(0, v0);
 				setDirty();
 			}
+
 			if (uniformIntBuffer.get(1) != v1) {
 				uniformIntBuffer.put(1, v1);
 				setDirty();
 			}
+
 			if (uniformIntBuffer.get(2) != v2) {
 				uniformIntBuffer.put(2, v2);
 				setDirty();
@@ -658,18 +678,22 @@ public class GlProgram {
 			if (unifID == -1) {
 				return;
 			}
+
 			if (uniformIntBuffer.get(0) != v0) {
 				uniformIntBuffer.put(0, v0);
 				setDirty();
 			}
+
 			if (uniformIntBuffer.get(1) != v1) {
 				uniformIntBuffer.put(1, v1);
 				setDirty();
 			}
+
 			if (uniformIntBuffer.get(2) != v2) {
 				uniformIntBuffer.put(2, v2);
 				setDirty();
 			}
+
 			if (uniformIntBuffer.get(3) != v3) {
 				uniformIntBuffer.put(3, v3);
 				setDirty();
@@ -699,6 +723,7 @@ public class GlProgram {
 			}
 
 			final int limit = data.length;
+
 			for (int i = 0; i < limit; i++) {
 				if (uniformIntBuffer.get(i) != data[i]) {
 					uniformIntBuffer.put(i, data[i]);
@@ -723,16 +748,14 @@ public class GlProgram {
 		protected final long bufferAddress;
 		protected final Matrix4f lastValue = new Matrix4f();
 
-		protected UniformMatrix4fImpl(String name, Consumer<UniformMatrix4f> initializer,
-		UniformRefreshFrequency frequency) {
+		protected UniformMatrix4fImpl(String name, Consumer<UniformMatrix4f> initializer, UniformRefreshFrequency frequency) {
 			this(name, initializer, frequency, BufferUtils.createFloatBuffer(16));
 		}
 
 		/**
-		 * Use when have a shared direct buffer
+		 * Use when have a shared direct buffer.
 		 */
-		protected UniformMatrix4fImpl(String name, Consumer<UniformMatrix4f> initializer,
-		UniformRefreshFrequency frequency, FloatBuffer uniformFloatBuffer) {
+		protected UniformMatrix4fImpl(String name, Consumer<UniformMatrix4f> initializer, UniformRefreshFrequency frequency, FloatBuffer uniformFloatBuffer) {
 			super(name, initializer, frequency);
 			this.uniformFloatBuffer = uniformFloatBuffer;
 			bufferAddress = MemoryUtil.memAddress(this.uniformFloatBuffer);
@@ -748,7 +771,7 @@ public class GlProgram {
 				return;
 			}
 
-			((Matrix4fExt)(Object) lastValue).set((Matrix4fExt)(Object) matrix);
+			((Matrix4fExt) (Object) lastValue).set((Matrix4fExt) (Object) matrix);
 
 			matrix.writeToBuffer(uniformFloatBuffer);
 
@@ -771,16 +794,14 @@ public class GlProgram {
 		protected final long bufferAddress;
 		protected final Matrix3f lastValue = new Matrix3f();
 
-		protected UniformMatrix3fImpl(String name, Consumer<UniformMatrix3f> initializer,
-		UniformRefreshFrequency frequency) {
+		protected UniformMatrix3fImpl(String name, Consumer<UniformMatrix3f> initializer, UniformRefreshFrequency frequency) {
 			this(name, initializer, frequency, BufferUtils.createFloatBuffer(9));
 		}
 
 		/**
-		 * Use when have a shared direct buffer
+		 * Use when have a shared direct buffer.
 		 */
-		protected UniformMatrix3fImpl(String name, Consumer<UniformMatrix3f> initializer,
-		UniformRefreshFrequency frequency, FloatBuffer uniformFloatBuffer) {
+		protected UniformMatrix3fImpl(String name, Consumer<UniformMatrix3f> initializer, UniformRefreshFrequency frequency, FloatBuffer uniformFloatBuffer) {
 			super(name, initializer, frequency);
 			this.uniformFloatBuffer = uniformFloatBuffer;
 			bufferAddress = MemoryUtil.memAddress(this.uniformFloatBuffer);
@@ -796,8 +817,8 @@ public class GlProgram {
 				return;
 			}
 
-			final Matrix3fExt m = (Matrix3fExt)(Object) matrix;
-			((Matrix3fExt)(Object) lastValue).set(m);
+			final Matrix3fExt m = (Matrix3fExt) (Object) matrix;
+			((Matrix3fExt) (Object) lastValue).set(m);
 
 			m.writeToBuffer(uniformFloatBuffer);
 

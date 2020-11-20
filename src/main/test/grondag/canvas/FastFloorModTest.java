@@ -133,6 +133,7 @@ class FastFloorModTest {
 		long runA() {
 			final long start = System.nanoTime();
 			long result = 0;
+
 			for (int n = 0; n < 10; ++n) {
 				for (int i = MIN; i <= MAX; ++i) {
 					result += Math.floorMod(i, size);

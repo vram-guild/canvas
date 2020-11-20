@@ -1,17 +1,17 @@
 /*
- * Copyright 2019, 2020 grondag
+ *  Copyright 2019, 2020 grondag
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License.  You may obtain a copy
- * of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ *  use this file except in compliance with the License.  You may obtain a copy
+ *  of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ *  License for the specific language governing permissions and limitations under
+ *  the License.
  */
 
 package grondag.canvas.material.property;
@@ -19,12 +19,13 @@ package grondag.canvas.material.property;
 import java.util.function.Predicate;
 
 import com.google.common.util.concurrent.Runnables;
-import grondag.canvas.material.state.RenderMaterialImpl;
-import grondag.frex.api.material.MaterialFinder;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.RenderPhase;
 import net.minecraft.client.render.RenderPhase.Target;
+
+import grondag.canvas.material.state.RenderMaterialImpl;
+import grondag.frex.api.material.MaterialFinder;
 
 @SuppressWarnings("resource")
 public class MaterialTarget implements Predicate<RenderMaterialImpl> {
@@ -40,7 +41,8 @@ public class MaterialTarget implements Predicate<RenderMaterialImpl> {
 		"outline",
 		() -> {
 			MinecraftClient.getInstance().worldRenderer.getEntityOutlinesFramebuffer().beginWrite(false);
-		}, () -> {
+		},
+		() -> {
 			MinecraftClient.getInstance().getFramebuffer().beginWrite(false);
 		}
 	);
@@ -52,7 +54,8 @@ public class MaterialTarget implements Predicate<RenderMaterialImpl> {
 			if (MinecraftClient.isFabulousGraphicsOrBetter()) {
 				MinecraftClient.getInstance().worldRenderer.getTranslucentFramebuffer().beginWrite(false);
 			}
-		}, () -> {
+		},
+		() -> {
 			if (MinecraftClient.isFabulousGraphicsOrBetter()) {
 				MinecraftClient.getInstance().getFramebuffer().beginWrite(false);
 			}
@@ -66,7 +69,8 @@ public class MaterialTarget implements Predicate<RenderMaterialImpl> {
 			if (MinecraftClient.isFabulousGraphicsOrBetter()) {
 				MinecraftClient.getInstance().worldRenderer.getParticlesFramebuffer().beginWrite(false);
 			}
-		}, () -> {
+		},
+		() -> {
 			if (MinecraftClient.isFabulousGraphicsOrBetter()) {
 				MinecraftClient.getInstance().getFramebuffer().beginWrite(false);
 			}
@@ -80,7 +84,8 @@ public class MaterialTarget implements Predicate<RenderMaterialImpl> {
 			if (MinecraftClient.isFabulousGraphicsOrBetter()) {
 				MinecraftClient.getInstance().worldRenderer.getWeatherFramebuffer().beginWrite(false);
 			}
-		}, () -> {
+		},
+		() -> {
 			if (MinecraftClient.isFabulousGraphicsOrBetter()) {
 				MinecraftClient.getInstance().getFramebuffer().beginWrite(false);
 			}
@@ -94,7 +99,8 @@ public class MaterialTarget implements Predicate<RenderMaterialImpl> {
 			if (MinecraftClient.isFabulousGraphicsOrBetter()) {
 				MinecraftClient.getInstance().worldRenderer.getCloudsFramebuffer().beginWrite(false);
 			}
-		}, () -> {
+		},
+		() -> {
 			if (MinecraftClient.isFabulousGraphicsOrBetter()) {
 				MinecraftClient.getInstance().getFramebuffer().beginWrite(false);
 			}
@@ -108,7 +114,8 @@ public class MaterialTarget implements Predicate<RenderMaterialImpl> {
 			if (MinecraftClient.isFabulousGraphicsOrBetter()) {
 				MinecraftClient.getInstance().worldRenderer.getEntityFramebuffer().beginWrite(false);
 			}
-		}, () -> {
+		},
+		() -> {
 			if (MinecraftClient.isFabulousGraphicsOrBetter()) {
 				MinecraftClient.getInstance().getFramebuffer().beginWrite(false);
 			}
@@ -167,13 +174,13 @@ public class MaterialTarget implements Predicate<RenderMaterialImpl> {
 			return MaterialFinder.TARGET_TRANSLUCENT;
 		} else if (phase == RenderPhase.OUTLINE_TARGET) {
 			return MaterialFinder.TARGET_OUTLINE;
-		} else if (phase == RenderPhase.PARTICLES_TARGET){
+		} else if (phase == RenderPhase.PARTICLES_TARGET) {
 			return MaterialFinder.TARGET_PARTICLES;
-		} else if (phase == RenderPhase.WEATHER_TARGET){
+		} else if (phase == RenderPhase.WEATHER_TARGET) {
 			return MaterialFinder.TARGET_WEATHER;
-		} else if (phase == RenderPhase.CLOUDS_TARGET){
+		} else if (phase == RenderPhase.CLOUDS_TARGET) {
 			return MaterialFinder.TARGET_CLOUDS;
-		} else if (phase == RenderPhase.ITEM_TARGET){
+		} else if (phase == RenderPhase.ITEM_TARGET) {
 			return MaterialFinder.TARGET_ENTITIES;
 		} else {
 			assert phase == RenderPhase.MAIN_TARGET : "Unsupported render target";

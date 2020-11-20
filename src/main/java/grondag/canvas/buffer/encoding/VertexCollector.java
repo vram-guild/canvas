@@ -1,17 +1,17 @@
 /*
- * Copyright 2019, 2020 grondag
+ *  Copyright 2019, 2020 grondag
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License.  You may obtain a copy
- * of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ *  use this file except in compliance with the License.  You may obtain a copy
+ *  of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ *  License for the specific language governing permissions and limitations under
+ *  the License.
  */
 
 /*
@@ -32,14 +32,14 @@
 
 package grondag.canvas.buffer.encoding;
 
+import net.minecraft.client.render.VertexConsumer;
+import net.minecraft.util.math.Matrix3f;
+import net.minecraft.util.math.Matrix4f;
+
 import grondag.canvas.apiimpl.mesh.MeshEncodingHelper;
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.Matrix4fExt;
-
-import net.minecraft.client.render.VertexConsumer;
-import net.minecraft.util.math.Matrix3f;
-import net.minecraft.util.math.Matrix4f;
 
 public interface VertexCollector extends VertexConsumer, VertexAppender {
 	/**
@@ -47,7 +47,7 @@ public interface VertexCollector extends VertexConsumer, VertexAppender {
 	 * whenever material changes, including default state or revert
 	 * to default state of the render state.
 	 *
-	 * Material collector key must match that of this collector.
+	 * <p>Material collector key must match that of this collector.
 	 */
 	VertexCollector vertexState(RenderMaterialImpl material);
 
@@ -86,7 +86,7 @@ public interface VertexCollector extends VertexConsumer, VertexAppender {
 	}
 
 	static int packColor(float red, float green, float blue, float alpha) {
-		return packColor((int)(red * 255.0F), (int)(green * 255.0F), (int)(blue * 255.0F), (int)(alpha * 255.0F));
+		return packColor((int) (red * 255.0F), (int) (green * 255.0F), (int) (blue * 255.0F), (int) (alpha * 255.0F));
 	}
 
 	int NORMALIZED_U0_V0 = packNormalizedUV(0, 0);
@@ -104,7 +104,7 @@ public interface VertexCollector extends VertexConsumer, VertexAppender {
 
 	@Override
 	default VertexCollector vertex(Matrix4f matrix, float x, float y, float z) {
-		final Matrix4fExt mat = (Matrix4fExt)(Object) matrix;
+		final Matrix4fExt mat = (Matrix4fExt) (Object) matrix;
 
 		final float tx = mat.a00() * x + mat.a01() * y + mat.a02() * z + mat.a03();
 		final float ty = mat.a10() * x + mat.a11() * y + mat.a12() * z + mat.a13();
@@ -115,7 +115,7 @@ public interface VertexCollector extends VertexConsumer, VertexAppender {
 
 	@Override
 	default VertexCollector normal(Matrix3f matrix, float x, float y, float z) {
-		final Matrix3fExt mat = (Matrix3fExt)(Object) matrix;
+		final Matrix3fExt mat = (Matrix3fExt) (Object) matrix;
 
 		final float tx = mat.a00() * x + mat.a01() * y + mat.a02() * z;
 		final float ty = mat.a10() * x + mat.a11() * y + mat.a12() * z;
@@ -123,7 +123,6 @@ public interface VertexCollector extends VertexConsumer, VertexAppender {
 
 		return this.normal(tx, ty, tz);
 	}
-
 
 	@Override
 	VertexCollector texture(float u, float v);

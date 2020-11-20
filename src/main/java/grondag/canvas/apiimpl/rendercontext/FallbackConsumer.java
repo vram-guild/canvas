@@ -1,31 +1,23 @@
 /*
- * Copyright 2019, 2020 grondag
+ *  Copyright 2019, 2020 grondag
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License.  You may obtain a copy
- * of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ *  use this file except in compliance with the License.  You may obtain a copy
+ *  of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ *  License for the specific language governing permissions and limitations under
+ *  the License.
  */
 
 package grondag.canvas.apiimpl.rendercontext;
 
 import java.util.List;
 import java.util.function.Consumer;
-
-import grondag.canvas.apiimpl.Canvas;
-import grondag.canvas.apiimpl.mesh.MeshEncodingHelper;
-import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
-import grondag.canvas.apiimpl.util.FaceConstants;
-import grondag.canvas.material.state.RenderMaterialImpl;
-import grondag.frex.api.material.MaterialFinder;
-import grondag.frex.api.mesh.QuadEmitter;
 
 import net.minecraft.block.BlockState;
 import net.minecraft.client.render.model.BakedModel;
@@ -34,6 +26,14 @@ import net.minecraft.util.math.Direction;
 
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
+
+import grondag.canvas.apiimpl.Canvas;
+import grondag.canvas.apiimpl.mesh.MeshEncodingHelper;
+import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
+import grondag.canvas.apiimpl.util.FaceConstants;
+import grondag.canvas.material.state.RenderMaterialImpl;
+import grondag.frex.api.material.MaterialFinder;
+import grondag.frex.api.mesh.QuadEmitter;
 
 /**
  * Consumer for vanilla baked models. Generally intended to give visual results matching a vanilla render,
@@ -156,6 +156,7 @@ public class FallbackConsumer implements Consumer<BakedModel> {
 
 	private void acceptInsideQuads(boolean useAo, List<BakedQuad> quads) {
 		final int count = quads.size();
+
 		if (count == 1) {
 			final BakedQuad q = quads.get(0);
 			renderQuad(q, ModelHelper.NULL_FACE_ID, q.hasShade() ? (useAo ? aoShadedMaterial() : shadedMaterial()) : (useAo ? aoFlatMaterial() : flatMaterial()));

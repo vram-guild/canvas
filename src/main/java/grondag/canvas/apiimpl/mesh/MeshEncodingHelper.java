@@ -1,17 +1,17 @@
 /*
- * Copyright 2019, 2020 grondag
+ *  Copyright 2019, 2020 grondag
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License.  You may obtain a copy
- * of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ *  use this file except in compliance with the License.  You may obtain a copy
+ *  of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ *  License for the specific language governing permissions and limitations under
+ *  the License.
  */
 
 package grondag.canvas.apiimpl.mesh;
@@ -49,13 +49,15 @@ public abstract class MeshEncodingHelper {
 	// normals are followed by 0-2 sets of color/uv coordinates
 	public static final int TEXTURE_VERTEX_STRIDE;
 	public static final int TEXTURE_QUAD_STRIDE;
+
 	/**
-	 * is one tex stride less than the actual base, because when used tex index is >= 1
+	 * Is one tex stride less than the actual base, because when used tex index is >= 1.
 	 */
 	public static final int TEXTURE_OFFSET_MINUS;
 	public static final int MAX_QUAD_STRIDE;
+
 	/**
-	 * used for quick clearing of quad buffers
+	 * Used for quick clearing of quad buffers.
 	 */
 	public static final int[] EMPTY;
 	public static final int DEFAULT_HEADER_BITS;

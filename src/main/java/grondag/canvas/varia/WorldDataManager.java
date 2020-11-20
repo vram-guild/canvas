@@ -1,24 +1,20 @@
 /*
- * Copyright 2019, 2020 grondag
+ *  Copyright 2019, 2020 grondag
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License.  You may obtain a copy
- * of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ *  use this file except in compliance with the License.  You may obtain a copy
+ *  of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ *  License for the specific language governing permissions and limitations under
+ *  the License.
  */
 
 package grondag.canvas.varia;
-
-import grondag.canvas.CanvasMod;
-import grondag.canvas.Configurator;
-import grondag.frex.api.light.ItemLight;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
@@ -29,6 +25,10 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
+
+import grondag.canvas.CanvasMod;
+import grondag.canvas.Configurator;
+import grondag.frex.api.light.ItemLight;
 
 public class WorldDataManager {
 	public static final int LENGTH = 22;
@@ -77,7 +77,7 @@ public class WorldDataManager {
 
 	/**
 	 * Called just before terrain setup each frame after camera, fog and projection
-	 * matrix are set up,
+	 * matrix are set up.
 	 */
 	public static void update(Camera camera) {
 		final MinecraftClient client = MinecraftClient.getInstance();
@@ -93,6 +93,7 @@ public class WorldDataManager {
 		DATA[RENDER_SECONDS] = (System.currentTimeMillis() - baseRenderTime) / 1000f;
 
 		final ClientWorld world = client.world;
+
 		if (world != null) {
 			final long days = world.getTimeOfDay() / 24000L;
 			DATA[WORLD_DAYS] = (int) (days % 2147483647L);
@@ -133,7 +134,7 @@ public class WorldDataManager {
 
 			ItemLight light = ItemLight.NONE;
 
-			if (player != null)  {
+			if (player != null) {
 				light = ItemLight.get(player.getMainHandStack());
 
 				if (light == ItemLight.NONE) {

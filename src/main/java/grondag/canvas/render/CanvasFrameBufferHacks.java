@@ -1,17 +1,17 @@
 /*
- * Copyright 2019, 2020 grondag
+ *  Copyright 2019, 2020 grondag
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License.  You may obtain a copy
- * of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ *  use this file except in compliance with the License.  You may obtain a copy
+ *  of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ *  License for the specific language governing permissions and limitations under
+ *  the License.
  */
 
 package grondag.canvas.render;
@@ -19,15 +19,6 @@ package grondag.canvas.render;
 import com.mojang.blaze3d.platform.FramebufferInfo;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
-import grondag.canvas.CanvasMod;
-import grondag.canvas.Configurator;
-import grondag.canvas.buffer.VboBuffer;
-import grondag.canvas.buffer.encoding.VertexCollectorImpl;
-import grondag.canvas.buffer.format.CanvasVertexFormats;
-import grondag.canvas.mixinterface.FrameBufferExt;
-import grondag.canvas.shader.GlProgram;
-import grondag.canvas.shader.ProcessShader;
-import grondag.canvas.shader.ProcessShaders;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.ARBTextureFloat;
 import org.lwjgl.opengl.GL11;
@@ -37,6 +28,16 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.Framebuffer;
 import net.minecraft.client.texture.TextureUtil;
 import net.minecraft.client.util.InputUtil;
+
+import grondag.canvas.CanvasMod;
+import grondag.canvas.Configurator;
+import grondag.canvas.buffer.VboBuffer;
+import grondag.canvas.buffer.encoding.VertexCollectorImpl;
+import grondag.canvas.buffer.format.CanvasVertexFormats;
+import grondag.canvas.mixinterface.FrameBufferExt;
+import grondag.canvas.shader.GlProgram;
+import grondag.canvas.shader.ProcessShader;
+import grondag.canvas.shader.ProcessShaders;
 
 //PERF: handle VAO properly here before re-enabling VAO
 public class CanvasFrameBufferHacks {
@@ -322,7 +323,6 @@ public class CanvasFrameBufferHacks {
 			texBloomUpsample = createColorAttachment(w, h);
 			GlStateManager.bindTexture(texBloomUpsample);
 			setupBloomLod();
-
 
 			// don't want filtering when copy back from main
 			GlStateManager.bindTexture(texMainCopy);
