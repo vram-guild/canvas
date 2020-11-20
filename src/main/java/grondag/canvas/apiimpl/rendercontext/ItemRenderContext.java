@@ -26,6 +26,7 @@ import java.util.function.Supplier;
 
 import org.jetbrains.annotations.Nullable;
 
+import net.minecraft.block.AbstractBannerBlock;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.color.item.ItemColors;
@@ -53,6 +54,8 @@ import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.buffer.encoding.CanvasImmediate;
 import grondag.canvas.material.state.MaterialFinderImpl;
+import grondag.canvas.material.state.RenderContextState;
+import grondag.canvas.material.state.RenderContextState.GuiMode;
 import grondag.canvas.material.state.RenderLayerHelper;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.MinecraftClientExt;
@@ -164,6 +167,7 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 		this.matrices = matrices;
 		this.renderMode = renderMode;
 		itemStack = stack;
+		isBlockItem = stack.getItem() instanceof BlockItem;
 		vanillaProvider = vertexConsumers;
 		materialMap = MaterialMap.get(itemStack);
 		isGui = renderMode == ModelTransformation.Mode.GUI;
@@ -183,11 +187,16 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 		normalMatrix = (Matrix3fExt) (Object) matrices.peek().getNormal();
 
 		if (model.isBuiltin() || stack.getItem() == Items.TRIDENT && !detachedPerspective) {
-			isBlockItem = false;
-			BuiltinModelItemRenderer.INSTANCE.render(stack, renderMode, matrices, vertexConsumers, light, overlay);
+			if (isGui && vertexConsumers instanceof CanvasImmediate) {
+				final RenderContextState context = ((CanvasImmediate) vertexConsumers).contextState;
+				context.guiMode(isBlockItem && ((BlockItem) stack.getItem()).getBlock() instanceof AbstractBannerBlock ? GuiMode.GUI_FRONT_LIT : GuiMode.GUI);
+				BuiltinModelItemRenderer.INSTANCE.render(stack, renderMode, matrices, vertexConsumers, light, overlay);
+				context.guiMode(GuiMode.NONE);
+			} else {
+				BuiltinModelItemRenderer.INSTANCE.render(stack, renderMode, matrices, vertexConsumers, light, overlay);
+			}
 		} else {
-			isBlockItem = stack.getItem() instanceof BlockItem;
-			drawTranslucencyDirectToMainTarget = renderMode == ModelTransformation.Mode.GUI || renderMode.isFirstPerson() || !isBlockItem;
+			drawTranslucencyDirectToMainTarget = isGui || renderMode.isFirstPerson() || !isBlockItem;
 			defaultRenderLayer = RenderLayers.getItemLayer(stack, drawTranslucencyDirectToMainTarget);
 			glintConsumer = getGlintConsumer(defaultRenderLayer);
 			defaultBlendMode = RenderLayerHelper.blendModeFromLayer(defaultRenderLayer);
