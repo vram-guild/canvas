@@ -60,11 +60,7 @@ public abstract class AbstractVertexCollector implements VertexCollector {
 		if (intSize > capacity) {
 			final int newCapacity = MathHelper.smallestEncompassingPowerOfTwo(intSize);
 			final int[] newData = new int[newCapacity];
-
-			if (integerSize > 0) {
-				System.arraycopy(vertexData, 0, newData, 0, integerSize);
-			}
-
+			System.arraycopy(vertexData, 0, newData, 0, capacity);
 			collectorBytes.addAndGet(newCapacity - capacity);
 			capacity = newCapacity;
 			vertexData = newData;

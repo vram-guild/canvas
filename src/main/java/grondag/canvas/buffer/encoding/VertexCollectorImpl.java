@@ -277,6 +277,8 @@ public class VertexCollectorImpl extends AbstractVertexCollector {
 			ensureCapacity(newSize + CanvasVertexFormats.MATERIAL_QUAD_STRIDE);
 			currentVertexIndex = newSize;
 			integerSize = newSize;
+		} else {
+			currentVertexIndex = integerSize;
 		}
 	}
 
