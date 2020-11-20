@@ -37,7 +37,6 @@ public class CanvasGlHelper {
 	static boolean useVboArb;
 	private static boolean vaoEnabled = false;
 	private static boolean useVaoArb = false;
-	private static boolean useGpuShader4 = false;
 	private static int attributeEnabledCount = 0;
 
 	public static void init() {
@@ -49,7 +48,6 @@ public class CanvasGlHelper {
 		useVboArb = !caps.OpenGL15 && caps.GL_ARB_vertex_buffer_object;
 		vaoEnabled = caps.GL_ARB_vertex_array_object || caps.OpenGL30;
 		useVaoArb = !caps.OpenGL30 && caps.GL_ARB_vertex_array_object;
-		useGpuShader4 = caps.GL_EXT_gpu_shader4;
 
 		if (Configurator.logMachineInfo) {
 			logMachineInfo(caps);
@@ -66,17 +64,12 @@ public class CanvasGlHelper {
 		log.info(String.format(" GPU: %s  %s", GLX._getCapsString(), GLX._getLWJGLVersion()));
 		log.info(String.format(" OpenGL: %s", GLX.getOpenGLVersionString()));
 		log.info(String.format(
-				" GpuShader4: %s  VboArb: %s  VaoEnabled: %s  VaoArb: %s",
-				useGpuShader4 ? "Y" : "N",
-						useVboArb ? "Y" : "N",
-								vaoEnabled ? "Y" : "N",
-										useVaoArb ? "Y" : "N"));
+				" VboArb: %s  VaoEnabled: %s  VaoArb: %s",
+					useVboArb ? "Y" : "N",
+					vaoEnabled ? "Y" : "N",
+					useVaoArb ? "Y" : "N"));
 		log.info(" (This message can be disabled by configuring logMachineInfo = false.)");
 		log.info("========================================================================");
-	}
-
-	public static boolean useGpuShader4() {
-		return useGpuShader4;
 	}
 
 	/**

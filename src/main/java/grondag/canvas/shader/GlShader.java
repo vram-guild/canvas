@@ -269,10 +269,9 @@ public class GlShader implements Shader {
 					"#define DIFFUSE_SHADING_MODE DIFFUSE_MODE_" + Configurator.diffuseShadingMode.name());
 			}
 
-			if (CanvasGlHelper.useGpuShader4()) {
-				result = StringUtils.replace(result, "//#define USE_FLAT_VARYING", "#define USE_FLAT_VARYING");
-			} else {
-				result = StringUtils.replace(result, "#extension GL_EXT_gpu_shader4 : enable", "");
+			if (!MinecraftClient.IS_SYSTEM_MAC) {
+				result = StringUtils.replace(result, "#version 120", "#version 130");
+				result = StringUtils.replace(result, "#extension GL_EXT_gpu_shader4 : enable", "//#extension GL_EXT_gpu_shader4 : enable");
 			}
 
 			source = result;

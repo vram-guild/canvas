@@ -16,15 +16,9 @@
 
 #define _CV_TRANSLUCENT_CUTOUT_THRESHOLD 0.003921569
 
-#ifdef USE_FLAT_VARYING
-// may be faster when available and
 // prevents problems on some NVidia cards/drives
 flat varying float _cvv_flags;
-#else
-// flat no available on mesa drivers
-invariant varying float _cvv_flags;
-#endif
 
 float _cv_getFlag(int flagId) {
-	return frx_bitValue(_cvv_flags, flagId);
+	return frx_bitValue(int(_cvv_flags), flagId);
 }

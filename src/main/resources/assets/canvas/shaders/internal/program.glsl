@@ -25,15 +25,7 @@ int _cv_fragmentProgramId() {
 }
 
 #else
-
-	#ifdef USE_FLAT_VARYING
-// may be faster when available and
-// prevents problems on some NVidia cards/drives
 flat varying vec3 _cvu_program;
-	#else
-// flat no available on mesa drivers
-invariant varying vec3 _cvu_program;
-	#endif
 
 int _cv_vertexProgramId() {
 	return int(_cvu_program.x);
@@ -48,7 +40,7 @@ int _cv_fragmentProgramId() {
 #define PROGRAM_FLAG_GUI 0
 
 float _cv_isGui() {
-	return frx_bitValue(_cvu_program.z, PROGRAM_FLAG_GUI);
+	return frx_bitValue(int(_cvu_program.z), PROGRAM_FLAG_GUI);
 }
 
 #ifdef VERTEX_SHADER
