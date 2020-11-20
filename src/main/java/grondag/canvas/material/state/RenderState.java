@@ -87,6 +87,9 @@ public final class RenderState extends AbstractRenderState {
 			MaterialInfoTexture.INSTANCE.disable();
 		}
 
+		// controlled in shader
+		RenderSystem.disableAlphaTest();
+
 		texture.enable(blur);
 		transparency.enable();
 		depthTest.enable();
@@ -141,8 +144,6 @@ public final class RenderState extends AbstractRenderState {
 		LINE_STATE.disable();
 		MaterialTextureState.disable();
 		RenderSystem.color4f(1f, 1f, 1f, 1f);
-		RenderSystem.disableAlphaTest();
-		RenderSystem.defaultAlphaFunc();
 		MaterialInfoTexture.INSTANCE.disable();
 
 		MaterialTarget.disable();
