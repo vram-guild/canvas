@@ -41,6 +41,8 @@ public class ShaderData {
 	public static final Consumer<GlProgram> STANDARD_UNIFORM_SETUP = program -> {
 		program.uniformArrayf("_cvu_world", UniformRefreshFrequency.PER_TICK, u -> u.set(WorldDataManager.data()), WorldDataManager.LENGTH);
 
+		program.uniform1ui("_cvu_world_flags", UniformRefreshFrequency.PER_TICK, u -> u.set(WorldDataManager.flags()));
+
 		program.uniformSampler2d("frxs_spriteAltas", UniformRefreshFrequency.ON_LOAD, u -> u.set(TextureData.MC_SPRITE_ATLAS - GL21.GL_TEXTURE0));
 
 		program.uniformSampler2d("frxs_overlay", UniformRefreshFrequency.ON_LOAD, u -> u.set(TextureData.MC_OVELAY - GL21.GL_TEXTURE0));

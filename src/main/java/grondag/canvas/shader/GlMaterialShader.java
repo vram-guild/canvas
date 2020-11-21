@@ -22,6 +22,7 @@ import org.lwjgl.opengl.GL21;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.Identifier;
 
+// PERF: emit switch statments on non-Mac
 public class GlMaterialShader extends GlShader {
 	GlMaterialShader(Identifier shaderSource, int shaderType, ProgramType programType) {
 		super(shaderSource, shaderType, programType);

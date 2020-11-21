@@ -33,7 +33,7 @@ void main() {
 
 	// Adding +0.5 prevents striping or other strangeness in flag-dependent rendering
 	// due to FP error on some cards/drivers.  Also made varying attribute invariant (rolls eyes at OpenGL)
-	_cvv_flags = in_normal_flags.w + 0.5;
+	_cvv_flags = uint(in_normal_flags.w + 0.5);
 
 	_cv_setupProgram();
 

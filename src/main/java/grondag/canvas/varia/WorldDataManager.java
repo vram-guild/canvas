@@ -39,9 +39,10 @@ public class WorldDataManager {
 	private static final int MOON_SIZE = 3;
 	private static final int WORLD_TIME = 4;
 	private static final int WORLD_DAYS = 5;
-	private static final int FLAGS_0 = 6;
+	@SuppressWarnings("unused") // was previously used for flags
+	private static final int RESERVED_A = 6;
 	@SuppressWarnings("unused") // was previously used for fog
-	private static final int RESERVED = 7;
+	private static final int RESERVED_B = 7;
 	private static final int EMISSIVE_COLOR_RED = 8;
 	private static final int EMISSIVE_COLOR_GREEN = 9;
 	private static final int EMISSIVE_COLOR_BLUE = 10;
@@ -64,6 +65,7 @@ public class WorldDataManager {
 
 	private static final float[] DATA = new float[LENGTH];
 	private static final long baseRenderTime = System.currentTimeMillis();
+	private static int flags;
 
 	static {
 		if (Configurator.enableLifeCycleDebug) {
@@ -128,7 +130,7 @@ public class WorldDataManager {
 				flags |= FLAG0_IS_THUNDERING;
 			}
 
-			DATA[FLAGS_0] = flags;
+			WorldDataManager.flags = flags;
 
 			DATA[RAIN_STRENGTH] = world.getRainGradient(tickDelta);
 
@@ -182,5 +184,9 @@ public class WorldDataManager {
 		DATA[index] = -MathHelper.sin(y) * MathHelper.cos(p);
 		DATA[index + 1] = -MathHelper.sin(p);
 		DATA[index + 2] = MathHelper.cos(y) * MathHelper.cos(p);
+	}
+
+	public static int flags() {
+		return flags;
 	}
 }

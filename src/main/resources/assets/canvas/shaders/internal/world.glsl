@@ -8,8 +8,8 @@
 #define _CV_MOON_SIZE 3
 #define _CV_WORLD_TIME 4
 #define _CV_WORLD_DAYS 5
-#define _CV_FLAGS_0 6
-#define _CV_UNUSED 7
+#define _CV_UNUSED_A 6
+#define _CV_UNUSED_B 7
 #define _CV_EMISSIVE_COLOR_RED 8
 #define _CV_EMISSIVE_COLOR_GREEN 9
 #define _CV_EMISSIVE_COLOR_BLUE 10
@@ -30,7 +30,10 @@
 #define _CV_FLAG0_IS_THUNDERING        	6
 #define _CV_FLAG0_IS_SKY_DARKENED      	7
 
+#define uint unsigned int
+
 uniform float[22] _cvu_world;
+uniform uint _cvu_world_flags;
 uniform vec3 _cvu_model_origin;
 uniform int _cvu_model_origin_type;
 uniform mat3 _cvu_normal_model_matrix;

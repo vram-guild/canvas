@@ -22,10 +22,13 @@ import java.util.function.Consumer;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.lwjgl.BufferUtils;
+import org.lwjgl.opengl.EXTGPUShader4;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL21;
+import org.lwjgl.opengl.GL30;
 import org.lwjgl.system.MemoryUtil;
 
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.resource.language.I18n;
 import net.minecraft.util.math.Matrix3f;
 import net.minecraft.util.math.Matrix4f;
@@ -39,14 +42,19 @@ import grondag.canvas.varia.CanvasGlHelper;
 import grondag.frex.api.material.Uniform;
 import grondag.frex.api.material.Uniform.Uniform1f;
 import grondag.frex.api.material.Uniform.Uniform1i;
+import grondag.frex.api.material.Uniform.Uniform1ui;
 import grondag.frex.api.material.Uniform.Uniform2f;
 import grondag.frex.api.material.Uniform.Uniform2i;
+import grondag.frex.api.material.Uniform.Uniform2ui;
 import grondag.frex.api.material.Uniform.Uniform3f;
 import grondag.frex.api.material.Uniform.Uniform3i;
+import grondag.frex.api.material.Uniform.Uniform3ui;
 import grondag.frex.api.material.Uniform.Uniform4f;
 import grondag.frex.api.material.Uniform.Uniform4i;
+import grondag.frex.api.material.Uniform.Uniform4ui;
 import grondag.frex.api.material.Uniform.UniformArrayf;
 import grondag.frex.api.material.Uniform.UniformArrayi;
+import grondag.frex.api.material.Uniform.UniformArrayui;
 import grondag.frex.api.material.Uniform.UniformMatrix3f;
 import grondag.frex.api.material.Uniform.UniformMatrix4f;
 import grondag.frex.api.material.UniformRefreshFrequency;
@@ -137,6 +145,26 @@ public class GlProgram {
 
 	public UniformArrayi uniformArrayi(String name, UniformRefreshFrequency frequency, Consumer<UniformArrayi> initializer, int size) {
 		return new UniformArrayiImpl(name, initializer, frequency, size);
+	}
+
+	public Uniform1ui uniform1ui(String name, UniformRefreshFrequency frequency, Consumer<Uniform1ui> initializer) {
+		return new Uniform1uiImpl(name, initializer, frequency);
+	}
+
+	public Uniform2ui uniform2ui(String name, UniformRefreshFrequency frequency, Consumer<Uniform2ui> initializer) {
+		return new Uniform2uiImpl(name, initializer, frequency);
+	}
+
+	public Uniform3ui uniform3ui(String name, UniformRefreshFrequency frequency, Consumer<Uniform3ui> initializer) {
+		return new Uniform3uiImpl(name, initializer, frequency);
+	}
+
+	public Uniform4ui uniform4ui(String name, UniformRefreshFrequency frequency, Consumer<Uniform4ui> initializer) {
+		return new Uniform4uiImpl(name, initializer, frequency);
+	}
+
+	public UniformArrayui uniformArrayui(String name, UniformRefreshFrequency frequency, Consumer<UniformArrayui> initializer, int size) {
+		return new UniformArrayuiImpl(name, initializer, frequency, size);
 	}
 
 	public final void activate() {
@@ -740,6 +768,200 @@ public class GlProgram {
 		@Override
 		public String searchString() {
 			return "int\\s*\\[\\s*[0-9]+\\s*]";
+		}
+	}
+
+	public class Uniform1uiImpl extends UniformInt<Uniform1ui> implements Uniform1ui {
+		protected Uniform1uiImpl(String name, Consumer<Uniform1ui> initializer, UniformRefreshFrequency frequency) {
+			super(name, initializer, frequency, 1);
+		}
+
+		@Override
+		public final void set(int value) {
+			if (unifID == -1) {
+				return;
+			}
+
+			if (uniformIntBuffer.get(0) != value) {
+				uniformIntBuffer.put(0, value);
+				setDirty();
+			}
+		}
+
+		@Override
+		protected void uploadInner() {
+			if (MinecraftClient.IS_SYSTEM_MAC) {
+				EXTGPUShader4.glUniform1uivEXT(unifID, uniformIntBuffer);
+			} else {
+				GL30.glUniform1uiv(unifID, uniformIntBuffer);
+			}
+		}
+
+		@Override
+		public String searchString() {
+			return "uint";
+		}
+	}
+
+	public class Uniform2uiImpl extends UniformInt<Uniform2ui> implements Uniform2ui {
+		protected Uniform2uiImpl(String name, Consumer<Uniform2ui> initializer, UniformRefreshFrequency frequency) {
+			super(name, initializer, frequency, 2);
+		}
+
+		@Override
+		public final void set(int v0, int v1) {
+			if (unifID == -1) {
+				return;
+			}
+
+			if (uniformIntBuffer.get(0) != v0) {
+				uniformIntBuffer.put(0, v0);
+				setDirty();
+			}
+
+			if (uniformIntBuffer.get(1) != v1) {
+				uniformIntBuffer.put(1, v1);
+				setDirty();
+			}
+		}
+
+		@Override
+		protected void uploadInner() {
+			if (MinecraftClient.IS_SYSTEM_MAC) {
+				EXTGPUShader4.glUniform2uivEXT(unifID, uniformIntBuffer);
+			} else {
+				GL30.glUniform2uiv(unifID, uniformIntBuffer);
+			}
+		}
+
+		@Override
+		public String searchString() {
+			return "uvec2";
+		}
+	}
+
+	public class Uniform3uiImpl extends UniformInt<Uniform3ui> implements Uniform3ui {
+		protected Uniform3uiImpl(String name, Consumer<Uniform3ui> initializer, UniformRefreshFrequency frequency) {
+			super(name, initializer, frequency, 3);
+		}
+
+		@Override
+		public final void set(int v0, int v1, int v2) {
+			if (unifID == -1) {
+				return;
+			}
+
+			if (uniformIntBuffer.get(0) != v0) {
+				uniformIntBuffer.put(0, v0);
+				setDirty();
+			}
+
+			if (uniformIntBuffer.get(1) != v1) {
+				uniformIntBuffer.put(1, v1);
+				setDirty();
+			}
+
+			if (uniformIntBuffer.get(2) != v2) {
+				uniformIntBuffer.put(2, v2);
+				setDirty();
+			}
+		}
+
+		@Override
+		protected void uploadInner() {
+			if (MinecraftClient.IS_SYSTEM_MAC) {
+				EXTGPUShader4.glUniform3uivEXT(unifID, uniformIntBuffer);
+			} else {
+				GL30.glUniform3uiv(unifID, uniformIntBuffer);
+			}
+		}
+
+		@Override
+		public String searchString() {
+			return "uvec3";
+		}
+	}
+
+	public class Uniform4uiImpl extends UniformInt<Uniform4ui> implements Uniform4ui {
+		protected Uniform4uiImpl(String name, Consumer<Uniform4ui> initializer, UniformRefreshFrequency frequency) {
+			super(name, initializer, frequency, 4);
+		}
+
+		@Override
+		public final void set(int v0, int v1, int v2, int v3) {
+			if (unifID == -1) {
+				return;
+			}
+
+			if (uniformIntBuffer.get(0) != v0) {
+				uniformIntBuffer.put(0, v0);
+				setDirty();
+			}
+
+			if (uniformIntBuffer.get(1) != v1) {
+				uniformIntBuffer.put(1, v1);
+				setDirty();
+			}
+
+			if (uniformIntBuffer.get(2) != v2) {
+				uniformIntBuffer.put(2, v2);
+				setDirty();
+			}
+
+			if (uniformIntBuffer.get(3) != v3) {
+				uniformIntBuffer.put(3, v3);
+				setDirty();
+			}
+		}
+
+		@Override
+		protected void uploadInner() {
+			if (MinecraftClient.IS_SYSTEM_MAC) {
+				EXTGPUShader4.glUniform4uivEXT(unifID, uniformIntBuffer);
+			} else {
+				GL30.glUniform4uiv(unifID, uniformIntBuffer);
+			}
+		}
+
+		@Override
+		public String searchString() {
+			return "uvec4";
+		}
+	}
+
+	public class UniformArrayuiImpl extends UniformInt<UniformArrayui> implements UniformArrayui {
+		protected UniformArrayuiImpl(String name, Consumer<UniformArrayui> initializer, UniformRefreshFrequency frequency, int size) {
+			super(name, initializer, frequency, size);
+		}
+
+		@Override
+		public final void set(int[] data) {
+			if (unifID == -1) {
+				return;
+			}
+
+			final int limit = data.length;
+
+			for (int i = 0; i < limit; i++) {
+				if (uniformIntBuffer.get(i) != data[i]) {
+					uniformIntBuffer.put(i, data[i]);
+					setDirty();
+				}
+			}
+		}
+
+		@Override
+		protected void uploadInner() {
+			if (MinecraftClient.IS_SYSTEM_MAC) {
+				EXTGPUShader4.glUniform1uivEXT(unifID, uniformIntBuffer);
+			} else {
+				GL30.glUniform1uiv(unifID, uniformIntBuffer);
+			}
+		}
+
+		@Override
+		public String searchString() {
+			return "uint\\s*\\[\\s*[0-9]+\\s*]";
 		}
 	}
 

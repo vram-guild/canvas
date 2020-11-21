@@ -16,9 +16,8 @@
 
 #define _CV_TRANSLUCENT_CUTOUT_THRESHOLD 0.003921569
 
-// prevents problems on some NVidia cards/drives
-flat varying float _cvv_flags;
+flat varying uint _cvv_flags;
 
 float _cv_getFlag(int flagId) {
-	return frx_bitValue(int(_cvv_flags), flagId);
+	return frx_bitValue(_cvv_flags, flagId);
 }

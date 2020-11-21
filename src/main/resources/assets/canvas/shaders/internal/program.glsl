@@ -40,7 +40,7 @@ int _cv_fragmentProgramId() {
 #define PROGRAM_FLAG_GUI 0
 
 float _cv_isGui() {
-	return frx_bitValue(int(_cvu_program.z), PROGRAM_FLAG_GUI);
+	return frx_bitValue(uint(_cvu_program.z), PROGRAM_FLAG_GUI);
 }
 
 #ifdef VERTEX_SHADER

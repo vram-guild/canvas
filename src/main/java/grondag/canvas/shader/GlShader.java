@@ -271,7 +271,7 @@ public class GlShader implements Shader {
 
 			if (!MinecraftClient.IS_SYSTEM_MAC) {
 				result = StringUtils.replace(result, "#version 120", "#version 130");
-				result = StringUtils.replace(result, "#extension GL_EXT_gpu_shader4 : enable", "//#extension GL_EXT_gpu_shader4 : enable");
+				result = StringUtils.replace(result, "#extension GL_EXT_gpu_shader4 : require", "//#extension GL_EXT_gpu_shader4 : require");
 			}
 
 			source = result;

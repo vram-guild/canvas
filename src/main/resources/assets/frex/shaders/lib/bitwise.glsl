@@ -13,6 +13,6 @@
  * Returns the value (0-1) of the indexed bit (0-7)
  * within a float value that represents a single byte (0-255).
  */
-float frx_bitValue(int byteValue, int bitIndex) {
-	return (byteValue >> bitIndex) & 1;
+float frx_bitValue(uint byteValue, int bitIndex) {
+	return (byteValue >> bitIndex) & 1u;
 }
