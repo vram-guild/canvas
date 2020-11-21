@@ -30,8 +30,6 @@
 #define _CV_FLAG0_IS_THUNDERING        	6
 #define _CV_FLAG0_IS_SKY_DARKENED      	7
 
-#define uint unsigned int
-
 uniform float[22] _cvu_world;
 uniform uint _cvu_world_flags;
 uniform vec3 _cvu_model_origin;
