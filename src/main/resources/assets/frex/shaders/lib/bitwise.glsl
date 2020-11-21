@@ -14,5 +14,6 @@
  * within a float value that represents a single byte (0-255).
  */
 float frx_bitValue(uint byteValue, int bitIndex) {
-	return (byteValue >> bitIndex) & 1u;
+	// Mesa drivers won't handle implicit conversion of uint to float on return
+	return float((byteValue >> bitIndex) & 1u);
 }
