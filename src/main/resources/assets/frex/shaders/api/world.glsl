@@ -195,3 +195,7 @@ int frx_modelOriginType() {
 mat3 frx_normalModelMatrix() {
 	return _cvu_normal_model_matrix;
 }
+
+bool frx_testCondition(int conditionIndex) {
+	return frx_bitValue(_cvu_condition_flags[conditionIndex >> 5], conditionIndex & 31) == 1.0;
+}

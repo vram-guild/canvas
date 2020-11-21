@@ -116,7 +116,7 @@ public class Canvas implements Renderer {
 
 	@Override
 	public MaterialCondition createCondition(BooleanSupplier supplier, boolean affectBlocks, boolean affectItems) {
-		return new MaterialConditionImpl(supplier, affectBlocks, affectItems);
+		return MaterialConditionImpl.create(supplier, affectBlocks, affectItems);
 	}
 
 	@Override

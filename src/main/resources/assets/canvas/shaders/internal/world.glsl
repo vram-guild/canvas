@@ -32,6 +32,7 @@
 
 uniform float[22] _cvu_world;
 uniform uint _cvu_world_flags;
+uniform uint[2] _cvu_condition_flags;
 uniform vec3 _cvu_model_origin;
 uniform int _cvu_model_origin_type;
 uniform mat3 _cvu_normal_model_matrix;

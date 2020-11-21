@@ -22,6 +22,7 @@ import org.lwjgl.opengl.GL21;
 
 import net.minecraft.util.Identifier;
 
+import grondag.canvas.apiimpl.MaterialConditionImpl;
 import grondag.canvas.texture.TextureData;
 import grondag.canvas.varia.WorldDataManager;
 import grondag.frex.api.material.UniformRefreshFrequency;
@@ -42,6 +43,12 @@ public class ShaderData {
 		program.uniformArrayf("_cvu_world", UniformRefreshFrequency.PER_TICK, u -> u.set(WorldDataManager.data()), WorldDataManager.LENGTH);
 
 		program.uniform1ui("_cvu_world_flags", UniformRefreshFrequency.PER_TICK, u -> u.set(WorldDataManager.flags()));
+
+		program.uniformArrayui("_cvu_condition_flags", UniformRefreshFrequency.PER_TICK, u -> {
+			if (MaterialConditionImpl.refreshFlags()) {
+				u.set(MaterialConditionImpl.CONDITION_FLAGS);
+			}
+		}, MaterialConditionImpl.CONDITION_FLAG_ARRAY_LENGTH);
 
 		program.uniformSampler2d("frxs_spriteAltas", UniformRefreshFrequency.ON_LOAD, u -> u.set(TextureData.MC_SPRITE_ATLAS - GL21.GL_TEXTURE0));
 

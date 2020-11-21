@@ -18,15 +18,11 @@ package grondag.canvas.apiimpl;
 
 import java.util.function.BooleanSupplier;
 
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-
+import grondag.canvas.CanvasMod;
 import grondag.canvas.shader.MaterialShaderManager;
 import grondag.frex.api.material.MaterialCondition;
 
 public class MaterialConditionImpl implements MaterialCondition {
-	private static final ObjectArrayList<MaterialConditionImpl> ALL_BY_INDEX = new ObjectArrayList<>();
-	public static final int MAX_CONDITIONS = 64;
-	public static final MaterialConditionImpl ALWAYS = new MaterialConditionImpl(() -> true, false, false);
 	public final BooleanSupplier supplier;
 	public final boolean affectItems;
 	public final boolean affectBlocks;
@@ -38,18 +34,11 @@ public class MaterialConditionImpl implements MaterialCondition {
 		this.supplier = supplier;
 		this.affectBlocks = affectBlocks;
 		this.affectItems = affectItems;
-		synchronized (ALL_BY_INDEX) {
-			index = ALL_BY_INDEX.size();
-			ALL_BY_INDEX.add(this);
 
-			if (index >= MAX_CONDITIONS) {
-				throw new IndexOutOfBoundsException("Max render condition count exceeded.");
-			}
+		synchronized (CONDITIONS) {
+			index = nextIndex++;
+			CONDITIONS[index] = this;
 		}
-	}
-
-	public static MaterialConditionImpl fromIndex(int index) {
-		return ALL_BY_INDEX.get(index);
 	}
 
 	@Override
@@ -63,5 +52,51 @@ public class MaterialConditionImpl implements MaterialCondition {
 			this.result = result;
 			return result;
 		}
+	}
+
+	public static final int CONDITION_FLAG_ARRAY_LENGTH = 2;
+	public static final int MAX_CONDITIONS = CONDITION_FLAG_ARRAY_LENGTH * 32;
+	private static MaterialConditionImpl[] CONDITIONS = new MaterialConditionImpl[MAX_CONDITIONS];
+	private static int nextIndex = 0;
+	public static final MaterialConditionImpl ALWAYS = new MaterialConditionImpl(() -> true, false, false);
+
+	public static MaterialConditionImpl fromIndex(int index) {
+		return CONDITIONS[index];
+	}
+
+	public static MaterialCondition create(BooleanSupplier supplier, boolean affectBlocks, boolean affectItems) {
+		if (nextIndex >= MAX_CONDITIONS) {
+			CanvasMod.LOG.error("Unable to create new render condition because max conditions have already been created.  Some renders may not work correctly.");
+			return ALWAYS;
+		} else {
+			return new MaterialConditionImpl(supplier, affectBlocks, affectItems);
+		}
+	}
+
+	public static final int[] CONDITION_FLAGS = new int[CONDITION_FLAG_ARRAY_LENGTH];
+	private static final int[] CONDITION_FLAGS_BUILD = new int[CONDITION_FLAG_ARRAY_LENGTH];
+
+	/**
+	 * Returns true if any flag changed.
+	 */
+	public static boolean refreshFlags() {
+		for (int i = 0; i < CONDITION_FLAG_ARRAY_LENGTH; ++i) {
+			CONDITION_FLAGS_BUILD[i] = 0;
+		}
+
+		for (int i = 0; i < nextIndex; ++i) {
+			if (CONDITIONS[i].compute()) {
+				CONDITION_FLAGS_BUILD[i >> 5] |= 1 << (i & 31);
+			}
+		}
+
+		for (int i = 0; i < CONDITION_FLAG_ARRAY_LENGTH; ++i) {
+			if (CONDITION_FLAGS_BUILD[i] != CONDITION_FLAGS[i]) {
+				System.arraycopy(CONDITION_FLAGS_BUILD, 0, CONDITION_FLAGS, 0, CONDITION_FLAG_ARRAY_LENGTH);
+				return true;
+			}
+		}
+
+		return false;
 	}
 }
