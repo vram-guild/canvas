@@ -44,11 +44,7 @@ public class ShaderData {
 
 		program.uniform1ui("_cvu_world_flags", UniformRefreshFrequency.PER_TICK, u -> u.set(WorldDataManager.flags()));
 
-		program.uniformArrayui("_cvu_condition_flags", UniformRefreshFrequency.PER_TICK, u -> {
-			if (MaterialConditionImpl.refreshFlags()) {
-				u.set(MaterialConditionImpl.CONDITION_FLAGS);
-			}
-		}, MaterialConditionImpl.CONDITION_FLAG_ARRAY_LENGTH);
+		program.uniformArrayui("_cvu_condition_flags", UniformRefreshFrequency.PER_TICK, u -> u.set(MaterialConditionImpl.CONDITION_FLAGS), MaterialConditionImpl.CONDITION_FLAG_ARRAY_LENGTH);
 
 		program.uniformSampler2d("frxs_spriteAltas", UniformRefreshFrequency.ON_LOAD, u -> u.set(TextureData.MC_SPRITE_ATLAS - GL21.GL_TEXTURE0));
 

@@ -102,7 +102,6 @@ public class DrawableChunk {
 	private static final Predicate<RenderMaterialImpl> SOLID = m -> !TRANSLUCENT.test(m);
 
 	public static DrawableChunk pack(VertexCollectorList collectorList, VboBuffer vboBuffer, boolean translucent) {
-		// WIP: handle conditions.
 		final IntBuffer intBuffer = vboBuffer.intBuffer();
 		intBuffer.position(0);
 		final ObjectArrayList<VertexCollectorImpl> drawList = collectorList.sortedDrawList(translucent ? TRANSLUCENT : SOLID);

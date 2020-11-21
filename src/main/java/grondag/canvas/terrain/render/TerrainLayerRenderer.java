@@ -26,8 +26,9 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.math.BlockPos;
 
 import grondag.canvas.Configurator;
-import grondag.canvas.apiimpl.MaterialConditionImpl;
 import grondag.canvas.light.LightmapHdTexture;
+import grondag.canvas.material.state.RenderMaterialImpl;
+import grondag.canvas.shader.ProgramType;
 import grondag.canvas.terrain.BuiltRenderRegion;
 import grondag.canvas.terrain.TerrainModelSpace;
 import grondag.canvas.texture.DitherTexture;
@@ -121,9 +122,9 @@ public class TerrainLayerRenderer {
 
 					for (int i = 0; i < limit; ++i) {
 						final DrawableDelegate d = delegates.get(i);
-						final MaterialConditionImpl condition = d.materialState().condition;
+						final RenderMaterialImpl mat = d.materialState();
 
-						if (!condition.affectBlocks || condition.compute()) {
+						if (mat.programType == ProgramType.MATERIAL_VERTEX_LOGIC || !mat.condition.affectBlocks || mat.condition.compute()) {
 							d.materialState().renderState.enableWithOrigin(ox, oy, oz);
 							d.draw();
 						}

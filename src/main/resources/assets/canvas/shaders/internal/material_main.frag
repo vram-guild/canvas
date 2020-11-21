@@ -83,6 +83,12 @@ vec4 light(frx_FragmentData fragData) {
 }
 
 void main() {
+#ifndef PROGRAM_BY_UNIFORM
+	if (_cv_programDiscard()) {
+		discard;
+	}
+#endif
+
 	frx_FragmentData fragData = frx_FragmentData (
 	texture2D(frxs_spriteAltas, _cvv_texcoord, _cv_getFlag(_CV_FLAG_UNMIPPED) * -4.0),
 	_cvv_color,

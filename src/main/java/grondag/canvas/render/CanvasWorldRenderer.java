@@ -77,6 +77,7 @@ import net.minecraft.world.World;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
+import grondag.canvas.apiimpl.MaterialConditionImpl;
 import grondag.canvas.apiimpl.rendercontext.BlockRenderContext;
 import grondag.canvas.apiimpl.rendercontext.EntityBlockRenderContext;
 import grondag.canvas.buffer.BindStateManager;
@@ -271,6 +272,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		mc.getProfiler().swap("distance");
 		regionStorage.updateCameraDistance(cameraPos, frustumPositionVersion, renderDistance);
 		WorldDataManager.update(camera);
+		MaterialConditionImpl.update();
 		MaterialShaderManager.INSTANCE.onRenderTick();
 		final BlockPos cameraBlockPos = camera.getBlockPos();
 		final BuiltRenderRegion cameraRegion = cameraBlockPos.getY() < 0 || cameraBlockPos.getY() > 255 ? null : regionStorage.getOrCreateRegion(cameraBlockPos);

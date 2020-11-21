@@ -19,7 +19,6 @@ package grondag.canvas.apiimpl;
 import java.util.function.BooleanSupplier;
 
 import grondag.canvas.CanvasMod;
-import grondag.canvas.shader.MaterialShaderManager;
 import grondag.frex.api.material.MaterialCondition;
 
 public class MaterialConditionImpl implements MaterialCondition {
@@ -27,8 +26,8 @@ public class MaterialConditionImpl implements MaterialCondition {
 	public final boolean affectItems;
 	public final boolean affectBlocks;
 	public final int index;
-	private int frameIndex;
-	private boolean result;
+	private final int arrayIndex;
+	private final int testMask;
 
 	MaterialConditionImpl(BooleanSupplier supplier, boolean affectBlocks, boolean affectItems) {
 		this.supplier = supplier;
@@ -39,19 +38,14 @@ public class MaterialConditionImpl implements MaterialCondition {
 			index = nextIndex++;
 			CONDITIONS[index] = this;
 		}
+
+		arrayIndex = index >> 5;
+		testMask = index & 31;
 	}
 
 	@Override
 	public boolean compute() {
-		final int frameIndex = MaterialShaderManager.INSTANCE.frameIndex();
-
-		if (frameIndex == this.frameIndex) {
-			return result;
-		} else {
-			final boolean result = supplier.getAsBoolean();
-			this.result = result;
-			return result;
-		}
+		return (CONDITION_FLAGS[arrayIndex] & testMask) != 0;
 	}
 
 	public static final int CONDITION_FLAG_ARRAY_LENGTH = 2;
@@ -74,29 +68,16 @@ public class MaterialConditionImpl implements MaterialCondition {
 	}
 
 	public static final int[] CONDITION_FLAGS = new int[CONDITION_FLAG_ARRAY_LENGTH];
-	private static final int[] CONDITION_FLAGS_BUILD = new int[CONDITION_FLAG_ARRAY_LENGTH];
 
-	/**
-	 * Returns true if any flag changed.
-	 */
-	public static boolean refreshFlags() {
+	public static void update() {
 		for (int i = 0; i < CONDITION_FLAG_ARRAY_LENGTH; ++i) {
-			CONDITION_FLAGS_BUILD[i] = 0;
+			CONDITION_FLAGS[i] = 0;
 		}
 
 		for (int i = 0; i < nextIndex; ++i) {
-			if (CONDITIONS[i].compute()) {
-				CONDITION_FLAGS_BUILD[i >> 5] |= 1 << (i & 31);
+			if (CONDITIONS[i].supplier.getAsBoolean()) {
+				CONDITION_FLAGS[i >> 5] |= (1 << (i & 31));
 			}
 		}
-
-		for (int i = 0; i < CONDITION_FLAG_ARRAY_LENGTH; ++i) {
-			if (CONDITION_FLAGS_BUILD[i] != CONDITION_FLAGS[i]) {
-				System.arraycopy(CONDITION_FLAGS_BUILD, 0, CONDITION_FLAGS, 0, CONDITION_FLAG_ARRAY_LENGTH);
-				return true;
-			}
-		}
-
-		return false;
 	}
 }

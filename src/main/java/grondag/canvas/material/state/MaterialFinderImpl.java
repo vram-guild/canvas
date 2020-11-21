@@ -18,7 +18,7 @@ package grondag.canvas.material.state;
 
 import grondag.frex.api.material.MaterialFinder;
 
-// WIP: implement proper decal layers in JMX, RenderBender and XB/XM to improve performance for multi-layer blocks
+// PERF: implement proper decal layers in JMX, RenderBender and XB/XM to improve performance for multi-layer blocks
 public class MaterialFinderImpl extends AbstractStateFinder<MaterialFinderImpl, RenderMaterialImpl> implements MaterialFinder {
 	private String renderLayerName = CANVAS_MATERIAL_NAME;
 
