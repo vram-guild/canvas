@@ -117,7 +117,14 @@ import grondag.canvas.texture.DitherTexture;
 import grondag.canvas.varia.CanvasGlHelper;
 import grondag.canvas.varia.WorldDataManager;
 import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
-import grondag.frex.api.event.WorldRenderEvent;
+import grondag.frex.api.event.WorldRenderDebugRenderCallback;
+import grondag.frex.api.event.WorldRenderEndCallback;
+import grondag.frex.api.event.WorldRenderLastCallback;
+import grondag.frex.api.event.WorldRenderPostEntityCallback;
+import grondag.frex.api.event.WorldRenderPostSetupCallback;
+import grondag.frex.api.event.WorldRenderPostTranslucentCallback;
+import grondag.frex.api.event.WorldRenderPreEntityCallback;
+import grondag.frex.api.event.WorldRenderStartCallback;
 import grondag.frex.impl.event.WorldRenderContextImpl;
 
 public class CanvasWorldRenderer extends WorldRenderer {
@@ -446,7 +453,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		setupTerrain(camera, wr.canvas_getAndIncrementFrameIndex(), shouldCullChunks(camera.getBlockPos()));
 		eventContext.setFrustum(frustum);
-		WorldRenderEvent.AFTER_TERRAIN_SETUP.invoker().onRender(eventContext);
+		WorldRenderPostSetupCallback.EVENT.invoker().afterWorldRenderSetup(eventContext);
 		LitematicaHolder.litematicaTerrainSetup.accept(frustum);
 
 		profiler.swap("updatechunks");
@@ -491,6 +498,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		profiler.swap("entities");
 		SatinHolder.beforeEntitiesRenderEvent.beforeEntitiesRender(camera, frustum, tickDelta);
+		WorldRenderPreEntityCallback.EVENT.invoker().beforeWorldRenderEntities(eventContext);
 		profiler.push("prepare");
 		int entityCount = 0;
 		final int blockEntityCount = 0;
@@ -629,7 +637,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		immediate.drawCollectors(MaterialTarget.MAIN);
 
-		WorldRenderEvent.AFTER_ENTITIES.invoker().onRender(eventContext);
+		WorldRenderPostEntityCallback.EVENT.invoker().afterWorldRenderEntities(eventContext);
 		SatinHolder.onEntitiesRenderedEvent.onEntitiesRendered(camera, frustum, tickDelta);
 		LitematicaHolder.litematicaEntityHandler.handle(matrixStack, tickDelta);
 		DynocapsHolder.handler.render(profiler, matrixStack, immediate, cameraVec3d);
@@ -694,7 +702,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		RenderSystem.pushMatrix();
 		RenderSystem.multMatrix(matrixStack.peek().getModel());
-		WorldRenderEvent.BEFORE_DEBUG_RENDER.invoker().onRender(eventContext);
+		WorldRenderDebugRenderCallback.EVENT.invoker().onWorldRenderDebugRender(eventContext);
 		ClothHolder.clothDebugPreEvent.run();
 		mc.debugRenderer.render(matrixStack, immediate, cameraX, cameraY, cameraZ);
 		RenderSystem.popMatrix();
@@ -728,6 +736,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			// Lines draw to entity (item) target
 			immediate.draw(RenderLayer.getLines());
 
+			// PERF: Why is this here? Should be empty
 			immediate.drawCollectors(MaterialTarget.TRANSLUCENT);
 
 			// This catches entity layer and any remaining non-main layers
@@ -761,6 +770,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			// and other translucent elements get drawn on top of terrain
 			immediate.draw(RenderLayer.getLines());
 
+			// PERF: how is this needed? - would either have been drawn above or will be drawn below
 			immediate.drawCollectors(MaterialTarget.TRANSLUCENT);
 
 			// This catches entity layer and any remaining non-main layers
@@ -773,6 +783,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			MaterialMatrixState.set(MaterialMatrixState.ENTITY, matrixStack.peek().getNormal());
 		}
 
+		WorldRenderPostTranslucentCallback.EVENT.invoker().worldRenderAfterTranslucent(eventContext);
 		JustMapHolder.justMapRender.renderWaypoints(matrixStack, camera, tickDelta);
 		LitematicaHolder.litematicaRenderTranslucent.accept(matrixStack);
 		LitematicaHolder.litematicaRenderOverlay.accept(matrixStack);
@@ -826,6 +837,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		//this.renderChunkDebugInfo(camera);
 		BborHolder.bborHandler.render(matrixStack, tickDelta, mc.player);
+		WorldRenderLastCallback.EVENT.invoker().worldRenderLast(eventContext);
 
 		RenderSystem.shadeModel(7424);
 		RenderSystem.depthMask(true);
@@ -1157,11 +1169,11 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		wr.canvas_mc().getProfiler().swap("dynamic_lighting");
 		LambDynLightsHolder.updateAll.accept(this);
 
-		eventContext.prepare(this, matrices, tickDelta, limitTime, renderBlockOutline, camera, matrix4f, worldRenderImmediate);
-		WorldRenderEvent.BEFORE_START.invoker().onRender(eventContext);
+		eventContext.prepare(this, matrices, tickDelta, limitTime, renderBlockOutline, camera, matrix4f, worldRenderImmediate, wr.canvas_mc().getProfiler());
+		WorldRenderStartCallback.EVENT.invoker().onWorldRenderStart(eventContext);
 		renderWorld(matrices, tickDelta, limitTime, renderBlockOutline, camera, gameRenderer, lightmapTextureManager, matrix4f);
 		VoxelMapHolder.postRenderHandler.render(this, matrices, tickDelta, limitTime, renderBlockOutline, camera, gameRenderer, lightmapTextureManager, matrix4f);
-		WorldRenderEvent.AFTER_END.invoker().onRender(eventContext);
+		WorldRenderEndCallback.EVENT.invoker().worldRenderEnd(eventContext);
 	}
 
 	@Override
