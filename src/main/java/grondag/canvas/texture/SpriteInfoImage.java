@@ -84,7 +84,7 @@ public final class SpriteInfoImage implements AutoCloseable {
 		GL21.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL21.GL_RGBA16, 4, size, 0, GL21.GL_RGBA, GL21.GL_FLOAT, pointer);
 
 		if (!CanvasGlHelper.checkError()) {
-			CanvasMod.LOG.warn("Unable to upload material information texture due to unexpected OpenGL error. Game may crash or render incorrectly.");
+			CanvasMod.LOG.warn("Unable to upload sprite information texture due to unexpected OpenGL error. Game may crash or render incorrectly.");
 		}
 	}
 }

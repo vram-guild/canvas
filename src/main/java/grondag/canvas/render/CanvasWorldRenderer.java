@@ -165,7 +165,6 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 	public CanvasWorldRenderer(MinecraftClient client, BufferBuilderStorage bufferBuilders) {
 		super(client, bufferBuilders);
-		((BufferBuilderStorageExt) bufferBuilders).canvas_setEntityConsumers(worldRenderImmediate);
 
 		if (Configurator.enableLifeCycleDebug) {
 			CanvasMod.LOG.info("Lifecycle Event: CanvasWorldRenderer init");
@@ -248,7 +247,8 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		terrainIterator.reset();
 		renderRegionStorage.clear();
 		Arrays.fill(terrainIterator.visibleRegions, null);
-
+		// we don't want to use our collector unless we are in a world
+		((BufferBuilderStorageExt) wr.canvas_bufferBuilders()).canvas_setEntityConsumers(clientWorld == null ? null : worldRenderImmediate);
 		// Mixins mostly disable what this does
 		super.setWorld(clientWorld);
 	}

@@ -19,6 +19,9 @@ package grondag.canvas.mixin;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import net.minecraft.client.render.BufferBuilderStorage;
 import net.minecraft.client.render.VertexConsumerProvider;
@@ -31,7 +34,12 @@ import grondag.canvas.mixinterface.BufferBuilderStorageExt;
 public class MixinBufferBuilderStorage implements BufferBuilderStorageExt {
 	@Shadow private Immediate entityVertexConsumers;
 
-	private Immediate activeEntityVertexConsumers = entityVertexConsumers;
+	private Immediate activeEntityVertexConsumers;
+
+	@Inject(at = @At("RETURN"), method = "<init>*")
+	private void onNew(CallbackInfo ci) {
+		activeEntityVertexConsumers = entityVertexConsumers;
+	}
 
 	/**
 	 * @author grondag
@@ -44,6 +52,6 @@ public class MixinBufferBuilderStorage implements BufferBuilderStorageExt {
 
 	@Override
 	public void canvas_setEntityConsumers(CanvasImmediate consumers) {
-		activeEntityVertexConsumers = consumers;
+		activeEntityVertexConsumers = consumers == null ? entityVertexConsumers : consumers;
 	}
 }
