@@ -40,7 +40,7 @@ public class MaterialConditionImpl implements MaterialCondition {
 		}
 
 		arrayIndex = index >> 5;
-		testMask = index & 31;
+		testMask = (1 << (index & 31));
 	}
 
 	@Override
