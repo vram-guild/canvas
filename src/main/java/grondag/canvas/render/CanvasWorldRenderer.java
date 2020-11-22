@@ -118,6 +118,7 @@ import grondag.canvas.varia.CanvasGlHelper;
 import grondag.canvas.varia.WorldDataManager;
 import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
 import grondag.frex.api.event.WorldRenderEvent;
+import grondag.frex.impl.event.WorldRenderContextImpl;
 
 public class CanvasWorldRenderer extends WorldRenderer {
 	public static final int MAX_REGION_COUNT = (32 * 2 + 1) * (32 * 2 + 1) * 16;
@@ -153,6 +154,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	private final RenderContextState contextState = new RenderContextState();
 	public final CanvasImmediate worldRenderImmediate = new CanvasImmediate(new BufferBuilder(256), CanvasImmediate.entityBuilders(), contextState);
 	private final CanvasParticleRenderer particleRenderer = new CanvasParticleRenderer();
+	private final WorldRenderContextImpl eventContext = new WorldRenderContextImpl();
 
 	public CanvasWorldRenderer(MinecraftClient client, BufferBuilderStorage bufferBuilders) {
 		super(client, bufferBuilders);
@@ -443,6 +445,8 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		profiler.swap("terrain_setup");
 
 		setupTerrain(camera, wr.canvas_getAndIncrementFrameIndex(), shouldCullChunks(camera.getBlockPos()));
+		eventContext.setFrustum(frustum);
+		WorldRenderEvent.AFTER_TERRAIN_SETUP.invoker().onRender(eventContext);
 		LitematicaHolder.litematicaTerrainSetup.accept(frustum);
 
 		profiler.swap("updatechunks");
@@ -625,6 +629,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		immediate.drawCollectors(MaterialTarget.MAIN);
 
+		WorldRenderEvent.AFTER_ENTITIES.invoker().onRender(eventContext);
 		SatinHolder.onEntitiesRenderedEvent.onEntitiesRendered(camera, frustum, tickDelta);
 		LitematicaHolder.litematicaEntityHandler.handle(matrixStack, tickDelta);
 		DynocapsHolder.handler.render(profiler, matrixStack, immediate, cameraVec3d);
@@ -689,6 +694,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		RenderSystem.pushMatrix();
 		RenderSystem.multMatrix(matrixStack.peek().getModel());
+		WorldRenderEvent.BEFORE_DEBUG_RENDER.invoker().onRender(eventContext);
 		ClothHolder.clothDebugPreEvent.run();
 		mc.debugRenderer.render(matrixStack, immediate, cameraX, cameraY, cameraZ);
 		RenderSystem.popMatrix();
@@ -1151,10 +1157,11 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		wr.canvas_mc().getProfiler().swap("dynamic_lighting");
 		LambDynLightsHolder.updateAll.accept(this);
 
-		WorldRenderEvent.BEFORE_WORLD_RENDER.invoker().beforeWorldRender(matrices, tickDelta, limitTime, renderBlockOutline, camera, gameRenderer, lightmapTextureManager, matrix4f);
+		eventContext.prepare(this, matrices, tickDelta, limitTime, renderBlockOutline, camera, matrix4f, worldRenderImmediate);
+		WorldRenderEvent.BEFORE_START.invoker().onRender(eventContext);
 		renderWorld(matrices, tickDelta, limitTime, renderBlockOutline, camera, gameRenderer, lightmapTextureManager, matrix4f);
 		VoxelMapHolder.postRenderHandler.render(this, matrices, tickDelta, limitTime, renderBlockOutline, camera, gameRenderer, lightmapTextureManager, matrix4f);
-		WorldRenderEvent.AFTER_WORLD_RENDER.invoker().afterWorldRender(matrices, tickDelta, limitTime, renderBlockOutline, camera, gameRenderer, lightmapTextureManager, matrix4f);
+		WorldRenderEvent.AFTER_END.invoker().onRender(eventContext);
 	}
 
 	@Override
