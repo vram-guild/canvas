@@ -106,14 +106,7 @@ import grondag.canvas.texture.DitherTexture;
 import grondag.canvas.varia.CanvasGlHelper;
 import grondag.canvas.varia.WorldDataManager;
 import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
-import grondag.frex.api.event.WorldRenderDebugRenderCallback;
-import grondag.frex.api.event.WorldRenderEndCallback;
-import grondag.frex.api.event.WorldRenderLastCallback;
-import grondag.frex.api.event.WorldRenderPostEntityCallback;
-import grondag.frex.api.event.WorldRenderPostSetupCallback;
-import grondag.frex.api.event.WorldRenderPostTranslucentCallback;
-import grondag.frex.api.event.WorldRenderPreEntityCallback;
-import grondag.frex.api.event.WorldRenderStartCallback;
+import grondag.frex.api.event.WorldRenderEvents;
 import grondag.frex.impl.event.WorldRenderContextImpl;
 
 public class CanvasWorldRenderer extends WorldRenderer {
@@ -442,7 +435,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		setupTerrain(camera, wr.canvas_getAndIncrementFrameIndex(), shouldCullChunks(camera.getBlockPos()));
 		eventContext.setFrustum(frustum);
-		WorldRenderPostSetupCallback.EVENT.invoker().afterWorldRenderSetup(eventContext);
+		WorldRenderEvents.AFTER_SETUP.invoker().afterSetup(eventContext);
 
 		profiler.swap("updatechunks");
 		final int maxFps = mc.options.maxFps;
@@ -483,7 +476,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		}
 
 		profiler.swap("entities");
-		WorldRenderPreEntityCallback.EVENT.invoker().beforeWorldRenderEntities(eventContext);
+		WorldRenderEvents.BEFORE_ENTITIES.invoker().beforeEntities(eventContext);
 		profiler.push("prepare");
 		int entityCount = 0;
 		final int blockEntityCount = 0;
@@ -622,7 +615,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		immediate.drawCollectors(MaterialTarget.MAIN);
 
-		WorldRenderPostEntityCallback.EVENT.invoker().afterWorldRenderEntities(eventContext);
+		WorldRenderEvents.AFTER_ENTITIES.invoker().afterEntities(eventContext);
 
 		bufferBuilders.getOutlineVertexConsumers().draw();
 
@@ -682,7 +675,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		RenderSystem.pushMatrix();
 		RenderSystem.multMatrix(matrixStack.peek().getModel());
-		WorldRenderDebugRenderCallback.EVENT.invoker().onWorldRenderDebugRender(eventContext);
+		WorldRenderEvents.BEFORE_DEBUG_RENDER.invoker().beforeDebugRender(eventContext);
 		mc.debugRenderer.render(matrixStack, immediate, cameraX, cameraY, cameraZ);
 		RenderSystem.popMatrix();
 
@@ -760,7 +753,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			MaterialMatrixState.set(MaterialMatrixState.ENTITY, matrixStack.peek().getNormal());
 		}
 
-		WorldRenderPostTranslucentCallback.EVENT.invoker().worldRenderAfterTranslucent(eventContext);
+		WorldRenderEvents.AFTER_TRANSLUCENT.invoker().afterTranslucent(eventContext);
 
 		RenderSystem.pushMatrix();
 		RenderSystem.multMatrix(matrixStack.peek().getModel());
@@ -803,7 +796,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		// doesn't make any sense with our chunk culling scheme
 		// this.renderChunkDebugInfo(camera);
-		WorldRenderLastCallback.EVENT.invoker().worldRenderLast(eventContext);
+		WorldRenderEvents.LAST.invoker().onLast(eventContext);
 
 		RenderSystem.shadeModel(7424);
 		RenderSystem.depthMask(true);
@@ -1134,9 +1127,9 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	public void render(MatrixStack matrices, float tickDelta, long limitTime, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f matrix4f) {
 		wr.canvas_mc().getProfiler().swap("dynamic_lighting");
 		eventContext.prepare(this, matrices, tickDelta, limitTime, renderBlockOutline, camera, gameRenderer, lightmapTextureManager, matrix4f, worldRenderImmediate, wr.canvas_mc().getProfiler(), wr.canvas_transparencyShader() != null);
-		WorldRenderStartCallback.EVENT.invoker().onWorldRenderStart(eventContext);
+		WorldRenderEvents.START.invoker().onStart(eventContext);
 		renderWorld(matrices, tickDelta, limitTime, renderBlockOutline, camera, gameRenderer, lightmapTextureManager, matrix4f);
-		WorldRenderEndCallback.EVENT.invoker().worldRenderEnd(eventContext);
+		WorldRenderEvents.END.invoker().onEnd(eventContext);
 	}
 
 	@Override

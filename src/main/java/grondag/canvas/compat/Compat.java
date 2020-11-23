@@ -23,33 +23,26 @@ import net.minecraft.util.math.Vec3d;
 
 import net.fabricmc.fabric.api.client.rendering.v1.InvalidateRenderStateCallback;
 
-import grondag.frex.api.event.WorldRenderDebugRenderCallback;
-import grondag.frex.api.event.WorldRenderEndCallback;
-import grondag.frex.api.event.WorldRenderLastCallback;
-import grondag.frex.api.event.WorldRenderPostEntityCallback;
-import grondag.frex.api.event.WorldRenderPostSetupCallback;
-import grondag.frex.api.event.WorldRenderPostTranslucentCallback;
-import grondag.frex.api.event.WorldRenderPreEntityCallback;
-import grondag.frex.api.event.WorldRenderStartCallback;
+import grondag.frex.api.event.WorldRenderEvents;
 
 public class Compat {
 	private Compat() { }
 
 	public static void init() {
-		WorldRenderStartCallback.EVENT.register(ctx -> {
+		WorldRenderEvents.START.register(ctx -> {
 			LambDynLightsHolder.updateAll.accept(ctx.worldRenderer());
 		});
 
-		WorldRenderPostSetupCallback.EVENT.register(ctx -> {
+		WorldRenderEvents.AFTER_SETUP.register(ctx -> {
 			LitematicaHolder.litematicaTerrainSetup.accept(ctx.frustum());
 		});
 
-		WorldRenderPreEntityCallback.EVENT.register(ctx -> {
+		WorldRenderEvents.BEFORE_ENTITIES.register(ctx -> {
 			LitematicaHolder.litematicaRenderSolids.accept(ctx.matrixStack());
 			SatinHolder.beforeEntitiesRenderEvent.beforeEntitiesRender(ctx.camera(), ctx.frustum(), ctx.tickDelta());
 		});
 
-		WorldRenderPostEntityCallback.EVENT.register(ctx -> {
+		WorldRenderEvents.AFTER_ENTITIES.register(ctx -> {
 			GOMLHolder.HANDLER.render(ctx);
 			CampanionHolder.HANDLER.render(ctx);
 			SatinHolder.onEntitiesRenderedEvent.onEntitiesRendered(ctx.camera(), ctx.frustum(), ctx.tickDelta());
@@ -57,11 +50,11 @@ public class Compat {
 			DynocapsHolder.handler.render(ctx.profiler(), ctx.matrixStack(), (Immediate) ctx.consumers(), ctx.camera().getPos());
 		});
 
-		WorldRenderDebugRenderCallback.EVENT.register(ctx -> {
+		WorldRenderEvents.BEFORE_DEBUG_RENDER.register(ctx -> {
 			ClothHolder.clothDebugPreEvent.run();
 		});
 
-		WorldRenderPostTranslucentCallback.EVENT.register(ctx -> {
+		WorldRenderEvents.AFTER_TRANSLUCENT.register(ctx -> {
 			JustMapHolder.justMapRender.renderWaypoints(ctx.matrixStack(), ctx.camera(), ctx.tickDelta());
 			LitematicaHolder.litematicaRenderTranslucent.accept(ctx.matrixStack());
 			LitematicaHolder.litematicaRenderOverlay.accept(ctx.matrixStack());
@@ -74,7 +67,7 @@ public class Compat {
 			}
 		});
 
-		WorldRenderLastCallback.EVENT.register(ctx -> {
+		WorldRenderEvents.LAST.register(ctx -> {
 			BborHolder.render(ctx);
 			SatinHolder.onWorldRenderedEvent.onWorldRendered(ctx.matrixStack(), ctx.camera(), ctx.tickDelta(), ctx.limitTime());
 
@@ -84,7 +77,7 @@ public class Compat {
 			}
 		});
 
-		WorldRenderEndCallback.EVENT.register(ctx -> {
+		WorldRenderEvents.END.register(ctx -> {
 			VoxelMapHolder.postRenderHandler.render(ctx.worldRenderer(), ctx.matrixStack(), ctx.tickDelta(), ctx.limitTime(), ctx.blockOutlines(), ctx.camera(), ctx.gameRenderer(), ctx.lightmapTextureManager(), ctx.projectionMatrix());
 		});
 
