@@ -1,3 +1,8 @@
 {
-  "defaultMaterial": "canvas:redstone"
+  "defaultMaterial": "canvas:redstone",
+  "variants": {
+    "lit=false": {
+      "defaultMaterial": "fabric:standard"
+    }
+  }
 }
