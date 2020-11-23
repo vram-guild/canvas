@@ -20,16 +20,18 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
 
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.util.math.MatrixStack;
 
 import net.fabricmc.loader.api.FabricLoader;
 
 import grondag.canvas.CanvasMod;
+import grondag.frex.api.event.WorldRenderContext;
 
-public class BborHolder {
-	public static RenderHandler bborHandler = (m, t, p) -> {
-	};
+class BborHolder {
+	static RenderHandler bborHandler = (m, t, p) -> { };
+
 	private static boolean warnRender = true;
 
 	static {
@@ -60,7 +62,12 @@ public class BborHolder {
 		}
 	}
 
-	public interface RenderHandler {
+	@SuppressWarnings("resource")
+	static void render(WorldRenderContext ctx) {
+		bborHandler.render(ctx.matrixStack(), ctx.tickDelta(), MinecraftClient.getInstance().player);
+	}
+
+	interface RenderHandler {
 		void render(MatrixStack matrixStack, float partialTicks, ClientPlayerEntity player);
 	}
 }

@@ -24,10 +24,10 @@ import net.fabricmc.loader.api.FabricLoader;
 
 import grondag.canvas.CanvasMod;
 
-public class SatinHolder {
-	public static SatinOnWorldRendered onWorldRenderedEvent;
-	public static SatinOnEntitiesRendered onEntitiesRenderedEvent;
-	public static SatinBeforeEntitiesRendered beforeEntitiesRenderEvent;
+class SatinHolder {
+	static SatinOnWorldRendered onWorldRenderedEvent;
+	static SatinOnEntitiesRendered onEntitiesRenderedEvent;
+	static SatinBeforeEntitiesRendered beforeEntitiesRenderEvent;
 
 	static {
 		if (FabricLoader.getInstance().isModLoaded("satin")) {
@@ -46,17 +46,17 @@ public class SatinHolder {
 	}
 
 	@FunctionalInterface
-	public interface SatinOnWorldRendered {
+	interface SatinOnWorldRendered {
 		void onWorldRendered(MatrixStack matrices, Camera camera, float tickDelta, long nanoTime);
 	}
 
 	@FunctionalInterface
-	public interface SatinOnEntitiesRendered {
+	interface SatinOnEntitiesRendered {
 		void onEntitiesRendered(Camera camera, Frustum frustum, float tickDelta);
 	}
 
 	@FunctionalInterface
-	public interface SatinBeforeEntitiesRendered {
+	interface SatinBeforeEntitiesRendered {
 		void beforeEntitiesRender(Camera camera, Frustum frustum, float tickDelta);
 	}
 }

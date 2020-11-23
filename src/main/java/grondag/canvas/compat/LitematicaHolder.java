@@ -30,18 +30,14 @@ import net.fabricmc.loader.api.FabricLoader;
 
 import grondag.canvas.CanvasMod;
 
-public class LitematicaHolder {
-	public static Runnable litematicaReload = Runnables.doNothing();
-	public static Consumer<Frustum> litematicaTerrainSetup = f -> {
-	};
-	public static Consumer<MatrixStack> litematicaRenderSolids = s -> {
-	};
-	public static Consumer<MatrixStack> litematicaRenderTranslucent = s -> {
-	};
-	public static Consumer<MatrixStack> litematicaRenderOverlay = s -> {
-	};
-	public static EntityHandler litematicaEntityHandler = (s, t) -> {
-	};
+class LitematicaHolder {
+	static Runnable litematicaReload = Runnables.doNothing();
+	static Consumer<Frustum> litematicaTerrainSetup = f -> { };
+	static Consumer<MatrixStack> litematicaRenderSolids = s -> { };
+	static Consumer<MatrixStack> litematicaRenderTranslucent = s -> { };
+	static Consumer<MatrixStack> litematicaRenderOverlay = s -> { };
+	static EntityHandler litematicaEntityHandler = (s, t) -> { };
+
 	private static boolean warnLoad = true;
 	private static boolean warnPrepare = true;
 	private static boolean warnSolid = true;
@@ -171,7 +167,7 @@ public class LitematicaHolder {
 		}
 	}
 
-	public interface EntityHandler {
+	interface EntityHandler {
 		void handle(MatrixStack matrices, float partialTicks);
 	}
 }

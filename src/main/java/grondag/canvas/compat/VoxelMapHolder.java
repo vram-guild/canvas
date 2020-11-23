@@ -34,12 +34,12 @@ import net.fabricmc.loader.api.FabricLoader;
 
 import grondag.canvas.CanvasMod;
 
-public class VoxelMapHolder {
+class VoxelMapHolder {
 	private static final PostRenderHandler DUMMY_RENDER_HANDLER = (WorldRenderer wr, MatrixStack matrices, float tickDelta, long limitTime, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f matrix4f) -> { };
-	public static PostRenderHandler postRenderHandler = DUMMY_RENDER_HANDLER;
+	static PostRenderHandler postRenderHandler = DUMMY_RENDER_HANDLER;
 
 	private static final PostRenderLayerHandler DUMMY_RENDER_LAYER_HANDLER = (WorldRenderer wr, RenderLayer renderLayer, MatrixStack matrixStack, double d, double e, double f) -> { };
-	public static PostRenderLayerHandler postRenderLayerHandler = DUMMY_RENDER_LAYER_HANDLER;
+	static PostRenderLayerHandler postRenderLayerHandler = DUMMY_RENDER_LAYER_HANDLER;
 
 	static {
 		if (FabricLoader.getInstance().isModLoaded("voxelmap")) {
@@ -95,11 +95,11 @@ public class VoxelMapHolder {
 		}
 	}
 
-	public interface PostRenderHandler {
+	interface PostRenderHandler {
 		void render(WorldRenderer wr, MatrixStack matrices, float tickDelta, long limitTime, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f matrix4f);
 	}
 
-	public interface PostRenderLayerHandler {
+	interface PostRenderLayerHandler {
 		void render(WorldRenderer wr, RenderLayer renderLayer, MatrixStack matrixStack, double d, double e, double f);
 	}
 }

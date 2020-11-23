@@ -29,9 +29,9 @@ import net.fabricmc.loader.api.FabricLoader;
 
 import grondag.canvas.CanvasMod;
 
-public class DynocapsHolder {
-	public static DynoCapsRender handler = (profiler, matrixStack, immediate, camPos) -> {
-	};
+class DynocapsHolder {
+	static DynoCapsRender handler = (profiler, matrixStack, immediate, camPos) -> { };
+
 	private static boolean warnRender = true;
 
 	static {
@@ -63,7 +63,7 @@ public class DynocapsHolder {
 		}
 	}
 
-	public interface DynoCapsRender {
+	interface DynoCapsRender {
 		void render(Profiler profiler, MatrixStack matrixStack, VertexConsumerProvider.Immediate immediate, Vec3d camPos);
 	}
 }

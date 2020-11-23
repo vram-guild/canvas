@@ -27,9 +27,8 @@ import net.fabricmc.loader.api.FabricLoader;
 
 import grondag.canvas.CanvasMod;
 
-public class LambDynLightsHolder {
-	public static Consumer<WorldRenderer> updateAll = wr -> {
-	};
+class LambDynLightsHolder {
+	static Consumer<WorldRenderer> updateAll = wr -> { };
 	private static boolean warnInit = true;
 
 	static {

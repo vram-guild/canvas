@@ -16,6 +16,6 @@
 
 package grondag.canvas.compat;
 
-public class CampanionHolder {
-	public static RenderInjection HANDLER = RenderInjection.find("campanion", "Campanion's renderer", "com.terraformersmc.campanion.mixin.client.MixinWorldRenderer");
+class CampanionHolder {
+	static RenderInjection HANDLER = RenderInjection.find("campanion", "Campanion's renderer", "com.terraformersmc.campanion.mixin.client.MixinWorldRenderer");
 }

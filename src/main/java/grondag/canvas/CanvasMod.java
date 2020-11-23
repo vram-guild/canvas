@@ -31,6 +31,7 @@ import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 
 import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.apiimpl.fluid.FluidHandler;
+import grondag.canvas.compat.Compat;
 import grondag.canvas.mixinterface.RenderLayerExt;
 import grondag.frex.api.fluid.FluidQuadSupplier;
 
@@ -77,5 +78,7 @@ public class CanvasMod implements ClientModInitializer {
 		KeyBindingHelper.registerKeyBinding(INCREMENT_A);
 		KeyBindingHelper.registerKeyBinding(DECREMENT_B);
 		KeyBindingHelper.registerKeyBinding(INCREMENT_B);
+
+		Compat.init();
 	}
 }

@@ -29,8 +29,8 @@ import net.fabricmc.loader.api.FabricLoader;
 
 import grondag.canvas.CanvasMod;
 
-public class SimpleDrawersHolder {
-	public static ItemModelHandler itemCallbackHandler = (stack, renderMode, leftHanded, model) -> model;
+class SimpleDrawersHolder {
+	static ItemModelHandler itemCallbackHandler = (stack, renderMode, leftHanded, model) -> model;
 	private static boolean warnRender = true;
 
 	static {
@@ -66,7 +66,7 @@ public class SimpleDrawersHolder {
 		}
 	}
 
-	public interface ItemModelHandler {
+	interface ItemModelHandler {
 		BakedModel onRender(ItemStack stack, ModelTransformation.Mode renderMode, boolean leftHanded, BakedModel model);
 	}
 }

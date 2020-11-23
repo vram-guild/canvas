@@ -1,0 +1,93 @@
+/*
+ *  Copyright 2019, 2020 grondag
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ *  use this file except in compliance with the License.  You may obtain a copy
+ *  of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ *  License for the specific language governing permissions and limitations under
+ *  the License.
+ */
+
+package grondag.canvas.compat;
+
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.render.RenderLayer;
+import net.minecraft.client.render.VertexConsumerProvider.Immediate;
+import net.minecraft.util.math.Vec3d;
+
+import net.fabricmc.fabric.api.client.rendering.v1.InvalidateRenderStateCallback;
+
+import grondag.frex.api.event.WorldRenderDebugRenderCallback;
+import grondag.frex.api.event.WorldRenderEndCallback;
+import grondag.frex.api.event.WorldRenderLastCallback;
+import grondag.frex.api.event.WorldRenderPostEntityCallback;
+import grondag.frex.api.event.WorldRenderPostSetupCallback;
+import grondag.frex.api.event.WorldRenderPostTranslucentCallback;
+import grondag.frex.api.event.WorldRenderPreEntityCallback;
+import grondag.frex.api.event.WorldRenderStartCallback;
+
+public class Compat {
+	private Compat() { }
+
+	public static void init() {
+		WorldRenderStartCallback.EVENT.register(ctx -> {
+			LambDynLightsHolder.updateAll.accept(ctx.worldRenderer());
+		});
+
+		WorldRenderPostSetupCallback.EVENT.register(ctx -> {
+			LitematicaHolder.litematicaTerrainSetup.accept(ctx.frustum());
+		});
+
+		WorldRenderPreEntityCallback.EVENT.register(ctx -> {
+			LitematicaHolder.litematicaRenderSolids.accept(ctx.matrixStack());
+			SatinHolder.beforeEntitiesRenderEvent.beforeEntitiesRender(ctx.camera(), ctx.frustum(), ctx.tickDelta());
+		});
+
+		WorldRenderPostEntityCallback.EVENT.register(ctx -> {
+			GOMLHolder.HANDLER.render(ctx);
+			CampanionHolder.HANDLER.render(ctx);
+			SatinHolder.onEntitiesRenderedEvent.onEntitiesRendered(ctx.camera(), ctx.frustum(), ctx.tickDelta());
+			LitematicaHolder.litematicaEntityHandler.handle(ctx.matrixStack(), ctx.tickDelta());
+			DynocapsHolder.handler.render(ctx.profiler(), ctx.matrixStack(), (Immediate) ctx.consumers(), ctx.camera().getPos());
+		});
+
+		WorldRenderDebugRenderCallback.EVENT.register(ctx -> {
+			ClothHolder.clothDebugPreEvent.run();
+		});
+
+		WorldRenderPostTranslucentCallback.EVENT.register(ctx -> {
+			JustMapHolder.justMapRender.renderWaypoints(ctx.matrixStack(), ctx.camera(), ctx.tickDelta());
+			LitematicaHolder.litematicaRenderTranslucent.accept(ctx.matrixStack());
+			LitematicaHolder.litematicaRenderOverlay.accept(ctx.matrixStack());
+			final Vec3d cameraPos = ctx.camera().getPos();
+			VoxelMapHolder.postRenderLayerHandler.render(ctx.worldRenderer(), RenderLayer.getTranslucent(), ctx.matrixStack(), cameraPos.getX(), cameraPos.getY(), cameraPos.getZ());
+
+			// litematica overlay uses fabulous buffer so must run before translucent shader when active
+			if (ctx.advancedTranslucency()) {
+				MaliLibHolder.litematicaRenderWorldLast.render(ctx.matrixStack(), MinecraftClient.getInstance(), ctx.tickDelta());
+			}
+		});
+
+		WorldRenderLastCallback.EVENT.register(ctx -> {
+			BborHolder.render(ctx);
+			SatinHolder.onWorldRenderedEvent.onWorldRendered(ctx.matrixStack(), ctx.camera(), ctx.tickDelta(), ctx.limitTime());
+
+			// litematica overlay expects to render on top of translucency when fabulout is off
+			if (!ctx.advancedTranslucency()) {
+				MaliLibHolder.litematicaRenderWorldLast.render(ctx.matrixStack(), MinecraftClient.getInstance(), ctx.tickDelta());
+			}
+		});
+
+		WorldRenderEndCallback.EVENT.register(ctx -> {
+			VoxelMapHolder.postRenderHandler.render(ctx.worldRenderer(), ctx.matrixStack(), ctx.tickDelta(), ctx.limitTime(), ctx.blockOutlines(), ctx.camera(), ctx.gameRenderer(), ctx.lightmapTextureManager(), ctx.projectionMatrix());
+		});
+
+		InvalidateRenderStateCallback.EVENT.register(LitematicaHolder.litematicaReload::run);
+	}
+}

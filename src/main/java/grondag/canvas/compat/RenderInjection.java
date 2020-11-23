@@ -23,24 +23,19 @@ import java.lang.reflect.Method;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.transformer.meta.MixinMerged;
 
-import net.minecraft.client.render.Camera;
-import net.minecraft.client.render.GameRenderer;
-import net.minecraft.client.render.LightmapTextureManager;
 import net.minecraft.client.render.WorldRenderer;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.util.math.Matrix4f;
 
 import net.fabricmc.loader.api.FabricLoader;
 
 import grondag.canvas.CanvasMod;
+import grondag.frex.api.event.WorldRenderContext;
 
-public interface RenderInjection {
+interface RenderInjection {
 	CallbackInfo CALLBACK_INFO = new CallbackInfo("render", false);
 
-	RenderInjection EMPTY = (worldRenderer, matrices, tickDelta, limitTime, renderBlockOutline, camera, gameRenderer, lightmapTextureManager, matrix4f) -> {
-	};
+	RenderInjection EMPTY = ctx -> { };
 
-	void render(WorldRenderer worldRenderer, MatrixStack matrices, float tickDelta, long limitTime, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f matrix4f);
+	void render(WorldRenderContext ctx);
 
 	static RenderInjection find(String modId, String debugName, String mixinName) {
 		if (!FabricLoader.getInstance().isModLoaded(modId)) {
@@ -78,10 +73,10 @@ public interface RenderInjection {
 	static RenderInjection of(String debugName, MethodHandle handle) {
 		final boolean[] caught = new boolean[1];
 
-		return (worldRenderer, matrices, tickDelta, limitTime, renderBlockOutline, camera, gameRenderer, lightmapTextureManager, matrix4f) -> {
+		return ctx -> {
 			if (!caught[0]) {
 				try {
-					handle.invokeExact(worldRenderer, matrices, tickDelta, limitTime, renderBlockOutline, camera, gameRenderer, lightmapTextureManager, matrix4f, CALLBACK_INFO);
+					handle.invokeExact(ctx.worldRenderer(), ctx.matrixStack(), ctx.tickDelta(), ctx.limitTime(), ctx.blockOutlines(), ctx.camera(), ctx.gameRenderer(), ctx.lightmapTextureManager(), ctx.projectionMatrix(), CALLBACK_INFO);
 				} catch (final Throwable throwable) {
 					CanvasMod.LOG.warn("Unable to call " + debugName + " hook due to exception: ", throwable);
 					CanvasMod.LOG.warn("Subsequent errors will be suppressed");

@@ -39,7 +39,7 @@ package grondag.canvas.compat;
 //
 // TODO: On hold until have response to CSB #20
 
-public class CsbHolder {
+class CsbHolder {
 //	private static boolean warnRender = true;
 //
 //	public static CsbRender handler = (MatrixStack matrices, float delta, long limitTime, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f matrix4f, CallbackInfo ci) -> {};

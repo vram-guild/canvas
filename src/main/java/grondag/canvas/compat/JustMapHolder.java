@@ -27,9 +27,8 @@ import net.fabricmc.loader.api.FabricLoader;
 
 import grondag.canvas.CanvasMod;
 
-public class JustMapHolder {
-	public static JustMapRender justMapRender = (matrixStack, camera, tickDelta) -> {
-	};
+class JustMapHolder {
+	static JustMapRender justMapRender = (matrixStack, camera, tickDelta) -> { };
 	private static boolean warnRender = true;
 
 	static {
@@ -60,7 +59,7 @@ public class JustMapHolder {
 		}
 	}
 
-	public interface JustMapRender {
+	interface JustMapRender {
 		void renderWaypoints(MatrixStack matrixStack, Camera camera, float tickDelta);
 	}
 }

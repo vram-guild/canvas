@@ -23,8 +23,8 @@ import net.minecraft.client.render.WorldRenderer;
 
 import grondag.canvas.CanvasMod;
 
-public class ClassInspector {
-	public static void inspect() {
+class ClassInspector {
+	static void inspect() {
 		final Class<WorldRenderer> clazz = WorldRenderer.class;
 
 		CanvasMod.LOG.info("");

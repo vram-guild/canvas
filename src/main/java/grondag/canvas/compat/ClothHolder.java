@@ -22,8 +22,8 @@ import net.fabricmc.loader.api.FabricLoader;
 
 import grondag.canvas.CanvasMod;
 
-public class ClothHolder {
-	public static Runnable clothDebugPreEvent = init(); //FabricLoader.getInstance().isModLoaded("cloth-client-events-v0") ? ClothHelper.clothDebugRenderPre() : Runnables.doNothing();
+class ClothHolder {
+	static Runnable clothDebugPreEvent = init(); //FabricLoader.getInstance().isModLoaded("cloth-client-events-v0") ? ClothHelper.clothDebugRenderPre() : Runnables.doNothing();
 
 	static Runnable init() {
 		if (FabricLoader.getInstance().isModLoaded("cloth-client-events-v0")) {

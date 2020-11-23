@@ -16,6 +16,6 @@
 
 package grondag.canvas.compat;
 
-public class GOMLHolder {
-	public static RenderInjection HANDLER = RenderInjection.find("goml", "GOML's render", "draylar.goml.mixin.WorldRendererMixin");
+class GOMLHolder {
+	static RenderInjection HANDLER = RenderInjection.find("goml", "GOML's render", "draylar.goml.mixin.WorldRendererMixin");
 }

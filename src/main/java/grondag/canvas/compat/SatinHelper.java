@@ -24,7 +24,7 @@ import grondag.canvas.compat.SatinHolder.SatinBeforeEntitiesRendered;
 import grondag.canvas.compat.SatinHolder.SatinOnEntitiesRendered;
 import grondag.canvas.compat.SatinHolder.SatinOnWorldRendered;
 
-public class SatinHelper {
+class SatinHelper {
 	static SatinOnWorldRendered onWorldRenderedEvent() {
 		return PostWorldRenderCallbackV2.EVENT.invoker()::onWorldRendered;
 	}
