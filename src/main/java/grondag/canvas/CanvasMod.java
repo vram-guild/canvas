@@ -22,12 +22,15 @@ import org.lwjgl.system.Configuration;
 
 import net.minecraft.client.options.KeyBinding;
 import net.minecraft.client.render.RenderLayer;
+import net.minecraft.util.Identifier;
 
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.rendering.v1.InvalidateRenderStateCallback;
 import net.fabricmc.fabric.api.renderer.v1.RendererAccess;
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
+import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
+import net.fabricmc.loader.api.FabricLoader;
 
 import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.apiimpl.fluid.FluidHandler;
@@ -80,5 +83,10 @@ public class CanvasMod implements ClientModInitializer {
 		KeyBindingHelper.registerKeyBinding(INCREMENT_B);
 
 		Compat.init();
+
+		FabricLoader.getInstance().getModContainer(MODID).ifPresent(modContainer -> {
+			ResourceManagerHelper.registerBuiltinResourcePack(new Identifier("canvas:default"), "resourcepacks/canvas_default", modContainer, true);
+			ResourceManagerHelper.registerBuiltinResourcePack(new Identifier("canvas:extras"), "resourcepacks/canvas_extras", modContainer, false);
+		});
 	}
 }
