@@ -47,6 +47,7 @@ import grondag.canvas.Configurator.DiffuseMode;
 import grondag.canvas.Configurator.FogMode;
 import grondag.canvas.texture.MaterialInfoTexture;
 import grondag.canvas.varia.CanvasGlHelper;
+import grondag.frex.api.config.ShaderConfig;
 
 public class GlShader implements Shader {
 	static final Pattern PATTERN = Pattern.compile("^#include\\s+(\\\"*[\\w]+:[\\w/\\.]+)[ \\t]*.*", Pattern.MULTILINE);
@@ -298,8 +299,7 @@ public class GlShader implements Shader {
 				return CharStreams.toString(reader);
 			}
 		} catch (final FileNotFoundException e) {
-			CanvasMod.LOG.warn("Unable to load shader resource " + shaderSourceId.toString() + ". File was not found.");
-			return "";
+			return ShaderConfig.getShaderConfigSupplier(shaderSourceId).get();
 		} catch (final IOException e) {
 			CanvasMod.LOG.warn("Unable to load shader resource " + shaderSourceId.toString() + " due to exception.", e);
 			return "";

@@ -41,8 +41,6 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.loader.api.FabricLoader;
 
-import grondag.canvas.apiimpl.Canvas;
-
 @Environment(EnvType.CLIENT)
 public class Configurator {
 	static final ConfigData DEFAULTS = new ConfigData();
@@ -640,7 +638,6 @@ public class Configurator {
 		saveConfig();
 
 		if (reload) {
-			Canvas.INSTANCE.reload();
 			MinecraftClient.getInstance().worldRenderer.reload();
 		}
 	}
