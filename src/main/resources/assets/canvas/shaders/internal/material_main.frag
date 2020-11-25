@@ -90,13 +90,13 @@ void main() {
 #endif
 
 	frx_FragmentData fragData = frx_FragmentData (
-	texture2D(frxs_spriteAltas, _cvv_texcoord, _cv_getFlag(_CV_FLAG_UNMIPPED) * -4.0),
-	_cvv_color,
-	frx_matEmissive() ? 1.0 : 0.0,
-	!frx_matDisableDiffuse(),
-	!frx_matDisableAo(),
-	_cvv_normal,
-	_cvv_lightcoord
+		texture2D(frxs_spriteAltas, _cvv_texcoord, _cv_getFlag(_CV_FLAG_UNMIPPED) * -4.0),
+		_cvv_color,
+		frx_matEmissive() ? 1.0 : 0.0,
+		!frx_matDisableDiffuse(),
+		!frx_matDisableAo(),
+		_cvv_normal,
+		_cvv_lightcoord
 	);
 
 	_cv_startFragment(fragData);
