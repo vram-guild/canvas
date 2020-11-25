@@ -658,18 +658,29 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		assert matrixStack.isEmpty() : "Matrix stack not empty in world render when expected";
 
 		profiler.pop();
-
+		profiler.swap("outline");
 		final HitResult hitResult = mc.crosshairTarget;
+		eventContext.setHitResult(hitResult);
+		WorldRenderEvents.BEFORE_BLOCK_OUTLINE.invoker().beforeBlockOutline(eventContext);
 
-		if (blockOutlines && hitResult != null && hitResult.getType() == HitResult.Type.BLOCK) {
-			profiler.swap("outline");
-			final BlockPos blockPos4 = ((BlockHitResult) hitResult).getBlockPos();
-			final BlockState blockState = world.getBlockState(blockPos4);
+		if (eventContext.didCancelDefaultBlockOutline()) {
+			eventContext.resetDefaultBlockOutline();
+		} else {
+			if (blockOutlines && hitResult != null && hitResult.getType() == HitResult.Type.BLOCK) {
+				final BlockPos blockOutlinePos = ((BlockHitResult) hitResult).getBlockPos();
+				final BlockState blockOutlineState = world.getBlockState(blockOutlinePos);
 
-			if (!blockState.isAir() && world.getWorldBorder().contains(blockPos4)) {
-				// THIS IS WHEN LIGHTENING RENDERS IN VANILLA
-				final VertexConsumer vertexConsumer3 = immediate.getBuffer(RenderLayer.getLines());
-				wr.canvas_drawBlockOutline(matrixStack, vertexConsumer3, camera.getFocusedEntity(), cameraX, cameraY, cameraZ, blockPos4, blockState);
+				if (!blockOutlineState.isAir() && world.getWorldBorder().contains(blockOutlinePos)) {
+					// THIS IS WHEN LIGHTENING RENDERS IN VANILLA
+					final VertexConsumer blockOutlineConumer = immediate.getBuffer(RenderLayer.getLines());
+
+					eventContext.prepareBlockOutline(blockOutlineConumer, camera.getFocusedEntity(), cameraX, cameraY, cameraZ, blockOutlinePos, blockOutlineState);
+					WorldRenderEvents.BLOCK_OUTLINE.invoker().onBlockOutline(eventContext);
+
+					if (!eventContext.didCancelDefaultBlockOutline()) {
+						wr.canvas_drawBlockOutline(matrixStack, blockOutlineConumer, camera.getFocusedEntity(), cameraX, cameraY, cameraZ, blockOutlinePos, blockOutlineState);
+					}
+				}
 			}
 		}
 
@@ -1126,7 +1137,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	@Override
 	public void render(MatrixStack matrices, float tickDelta, long limitTime, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f matrix4f) {
 		wr.canvas_mc().getProfiler().swap("dynamic_lighting");
-		eventContext.prepare(this, matrices, tickDelta, limitTime, renderBlockOutline, camera, gameRenderer, lightmapTextureManager, matrix4f, worldRenderImmediate, wr.canvas_mc().getProfiler(), wr.canvas_transparencyShader() != null);
+		eventContext.prepare(this, matrices, tickDelta, limitTime, renderBlockOutline, camera, gameRenderer, lightmapTextureManager, matrix4f, worldRenderImmediate, wr.canvas_mc().getProfiler(), wr.canvas_transparencyShader() != null, world);
 		WorldRenderEvents.START.invoker().onStart(eventContext);
 		renderWorld(matrices, tickDelta, limitTime, renderBlockOutline, camera, gameRenderer, lightmapTextureManager, matrix4f);
 		WorldRenderEvents.END.invoker().onEnd(eventContext);
