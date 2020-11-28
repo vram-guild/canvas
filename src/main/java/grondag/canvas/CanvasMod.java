@@ -87,6 +87,7 @@ public class CanvasMod implements ClientModInitializer {
 		FabricLoader.getInstance().getModContainer(MODID).ifPresent(modContainer -> {
 			ResourceManagerHelper.registerBuiltinResourcePack(new Identifier("canvas:default"), "resourcepacks/canvas_default", modContainer, true);
 			ResourceManagerHelper.registerBuiltinResourcePack(new Identifier("canvas:extras"), "resourcepacks/canvas_extras", modContainer, false);
+			//ResourceManagerHelper.registerBuiltinResourcePack(new Identifier("canvas:development"), "resourcepacks/canvas_wip", modContainer, false);
 		});
 	}
 }

@@ -50,8 +50,6 @@ abstract class AbstractRenderRegion {
 	}
 
 	protected ChunkSection getSection(int x, int y, int z) {
-		// TODO: handle world border
-
 		if ((y == 0 && chunkBaseY < 0) || (y == 2 && chunkBaseY > 13)) {
 			return null;
 		}
