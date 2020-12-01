@@ -62,6 +62,7 @@ import grondag.canvas.terrain.occlusion.region.OcclusionRegion;
 import grondag.canvas.terrain.occlusion.region.PackedBox;
 import grondag.canvas.terrain.render.DrawableChunk;
 import grondag.canvas.terrain.render.UploadableChunk;
+import grondag.canvas.varia.BlockPosHelper;
 import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
 import grondag.frex.api.fluid.FluidQuadSupplier;
 
@@ -201,6 +202,15 @@ public class BuiltRenderRegion {
 
 		if (!isClosed) {
 			isClosed = true;
+
+			for (int i = 0; i < 6; ++i) {
+				final BuiltRenderRegion nr = neighbors[i];
+
+				if (nr != null) {
+					nr.notifyNeighborClosed(BlockPosHelper.oppositeFaceIndex(i), this);
+				}
+			}
+
 			chunkReference.release(this);
 
 			cancel();
@@ -586,9 +596,24 @@ public class BuiltRenderRegion {
 			final Direction face = ModelHelper.faceFromIndex(faceIndex);
 			region = storage.getOrCreateRegion(origin.getX() + face.getOffsetX() * 16, origin.getY() + face.getOffsetY() * 16, origin.getZ() + face.getOffsetZ() * 16);
 			neighbors[faceIndex] = region;
+			region.attachOrConfirmVisitingNeighbor(BlockPosHelper.oppositeFaceIndex(faceIndex), this);
 		}
 
 		return region;
+	}
+
+	private void attachOrConfirmVisitingNeighbor(int visitingFaceIndex, BuiltRenderRegion visitingNeighbor) {
+		assert neighbors[visitingFaceIndex] == null || neighbors[visitingFaceIndex] == visitingNeighbor
+			: "Visting render region is attaching to a position that already has a non-null region";
+
+		neighbors[visitingFaceIndex] = visitingNeighbor;
+	}
+
+	private void notifyNeighborClosed(int closedFaceIndex, BuiltRenderRegion closingNeighbor) {
+		assert neighbors[closedFaceIndex] == closingNeighbor
+			: "Closing neighbor render region does not match current attachment";
+
+		neighbors[closedFaceIndex] = null;
 	}
 
 	public RegionData getBuildData() {

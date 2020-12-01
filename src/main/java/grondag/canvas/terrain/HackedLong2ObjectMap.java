@@ -116,11 +116,12 @@ class HackedLong2ObjectMap<T> extends Long2ObjectOpenHashMap<T> {
 
 	@SuppressWarnings("unchecked")
 	public void prune(Predicate<T> pruner) {
+		final long stamp = lock.writeLock();
 		final LongArrayList pruned = this.pruned;
-		final int limit = n;
+		// +1 because value for zero key ("null" key) is stored at end of the array
+		final int limit = n + 1;
 		final Object[] values = value;
 		final long[] keys = key;
-		final long stamp = lock.writeLock();
 
 		pruned.clear();
 

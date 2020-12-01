@@ -19,8 +19,11 @@ package grondag.canvas.varia;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 
+import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
+
 public class BlockPosHelper {
 	private static final OffsetFunc[] FACE_OFFSETS = new OffsetFunc[6];
+	private static final int[] FACE_INDEX_OPPOSITES = new int[6];
 
 	static {
 		FACE_OFFSETS[Direction.UP.ordinal()] = (t, s) -> {
@@ -52,6 +55,13 @@ public class BlockPosHelper {
 			t.set(s.getX() - 1, s.getY(), s.getZ());
 			return t;
 		};
+
+		FACE_INDEX_OPPOSITES[ModelHelper.toFaceIndex(Direction.DOWN)] = ModelHelper.toFaceIndex(Direction.UP);
+		FACE_INDEX_OPPOSITES[ModelHelper.toFaceIndex(Direction.UP)] = ModelHelper.toFaceIndex(Direction.DOWN);
+		FACE_INDEX_OPPOSITES[ModelHelper.toFaceIndex(Direction.EAST)] = ModelHelper.toFaceIndex(Direction.WEST);
+		FACE_INDEX_OPPOSITES[ModelHelper.toFaceIndex(Direction.WEST)] = ModelHelper.toFaceIndex(Direction.EAST);
+		FACE_INDEX_OPPOSITES[ModelHelper.toFaceIndex(Direction.NORTH)] = ModelHelper.toFaceIndex(Direction.SOUTH);
+		FACE_INDEX_OPPOSITES[ModelHelper.toFaceIndex(Direction.SOUTH)] = ModelHelper.toFaceIndex(Direction.NORTH);
 	}
 
 	public static BlockPos.Mutable fastFaceOffset(BlockPos.Mutable target, BlockPos start, int faceOrdinal) {
@@ -61,5 +71,9 @@ public class BlockPosHelper {
 	@FunctionalInterface
 	private interface OffsetFunc {
 		BlockPos.Mutable offset(BlockPos.Mutable target, BlockPos start);
+	}
+
+	public static int oppositeFaceIndex(int faceIndex) {
+		return FACE_INDEX_OPPOSITES[faceIndex];
 	}
 }
