@@ -57,13 +57,13 @@ import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.perf.ChunkRebuildCounters;
 import grondag.canvas.render.CanvasFrustum;
 import grondag.canvas.render.CanvasWorldRenderer;
+import grondag.canvas.terrain.occlusion.TerrainDistanceSorter;
 import grondag.canvas.terrain.occlusion.TerrainOccluder;
 import grondag.canvas.terrain.occlusion.region.OcclusionRegion;
 import grondag.canvas.terrain.occlusion.region.PackedBox;
 import grondag.canvas.terrain.render.DrawableChunk;
 import grondag.canvas.terrain.render.UploadableChunk;
 import grondag.canvas.varia.BlockPosHelper;
-import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
 import grondag.frex.api.fluid.FluidQuadSupplier;
 
 @Environment(EnvType.CLIENT)
@@ -88,6 +88,8 @@ public class BuiltRenderRegion {
 	public float cameraRelativeCenterY;
 	public float cameraRelativeCenterZ;
 	int squaredCameraDistance;
+	// WIP: need above if using this?
+	int squaredChunkDistance;
 	private boolean needsRebuild;
 	private boolean needsImportantRebuild;
 	private volatile RegionBuildState buildState = new RegionBuildState();
@@ -167,12 +169,17 @@ public class BuiltRenderRegion {
 				|| (isInsideRenderDistance && chunkReference.areCornersLoaded());
 	}
 
+	// TODO: remove
+	public boolean isMagic = false;
+
 	/**
 	 * Returns true if inside retentiom distance.
 	 */
 	boolean updateCameraDistance() {
 		final BlockPos origin = this.origin;
 		final Vec3d cameraPos = cwr.cameraPos();
+
+		isMagic = origin.getX() >> 4 == -11 && origin.getY() >> 4 == 4 && origin.getZ() >> 4 == -14;
 
 		final float dx = (float) (origin.getX() + 8 - cameraPos.x);
 		final float dy = (float) (origin.getY() + 8 - cameraPos.y);
@@ -192,7 +199,24 @@ public class BuiltRenderRegion {
 		occlusionRange = PackedBox.rangeFromSquareBlockDist(squaredCameraDistance);
 		this.squaredCameraDistance = squaredCameraDistance;
 
+		final BlockPos cameraBlockPos = cwr.eventContext.camera().getBlockPos();
+
+		final int sx = (cameraBlockPos.getX() - origin.getX()) >> 4;
+		final int sy = (cameraBlockPos.getY() - origin.getY()) >> 4;
+		final int sz = (cameraBlockPos.getZ() - origin.getZ()) >> 4;
+
+		squaredChunkDistance = sx * sx + sy * sy + sz * sz;
+
 		return horizontalSquaredDistance < cwr.maxRetentionDistance();
+	}
+
+	public int simpleCameraDistance() {
+		return squaredChunkDistance;
+	}
+
+	// WIP: remove
+	public int sqCameraDist() {
+		return squaredCameraDistance;
 	}
 
 	void close() {
@@ -296,7 +320,7 @@ public class BuiltRenderRegion {
 			final int[] oldData = buildData.getAndSet(chunkData).occlusionData;
 
 			if (oldData != null && oldData != OcclusionRegion.EMPTY_CULL_DATA) {
-				terrainOccluder.invalidate();
+				terrainOccluder.invalidate(occluderVersion);
 			}
 
 			// Even if empty the chunk may still be needed for visibility search to progress
@@ -632,34 +656,31 @@ public class BuiltRenderRegion {
 		return solidDrawable;
 	}
 
-	public int squaredCameraDistance() {
-		return squaredCameraDistance;
-	}
-
 	public boolean isNear() {
 		return squaredCameraDistance < 768;
 	}
 
-	public void enqueueUnvistedNeighbors(SimpleUnorderedArrayList<BuiltRenderRegion> queue) {
+	public void enqueueUnvistedNeighbors(TerrainDistanceSorter distanceSorter) {
 		final int index = frameIndex;
 		lastSeenFrameIndex = index;
 
-		enqueNeighbor(index, getNeighbor(FaceConstants.EAST_INDEX), queue);
-		enqueNeighbor(index, getNeighbor(FaceConstants.WEST_INDEX), queue);
-		enqueNeighbor(index, getNeighbor(FaceConstants.NORTH_INDEX), queue);
-		enqueNeighbor(index, getNeighbor(FaceConstants.SOUTH_INDEX), queue);
+		enqueNeighbor(index, getNeighbor(FaceConstants.EAST_INDEX), distanceSorter);
+		enqueNeighbor(index, getNeighbor(FaceConstants.WEST_INDEX), distanceSorter);
+		enqueNeighbor(index, getNeighbor(FaceConstants.NORTH_INDEX), distanceSorter);
+		enqueNeighbor(index, getNeighbor(FaceConstants.SOUTH_INDEX), distanceSorter);
 
 		if (!isTop) {
-			enqueNeighbor(index, getNeighbor(FaceConstants.UP_INDEX), queue);
+			enqueNeighbor(index, getNeighbor(FaceConstants.UP_INDEX), distanceSorter);
 		}
 
 		if (!isBottom) {
-			enqueNeighbor(index, getNeighbor(FaceConstants.DOWN_INDEX), queue);
+			enqueNeighbor(index, getNeighbor(FaceConstants.DOWN_INDEX), distanceSorter);
 		}
 	}
 
-	private void enqueNeighbor(int index, BuiltRenderRegion r, SimpleUnorderedArrayList<BuiltRenderRegion> queue) {
-		if (r.lastSeenFrameIndex != index) {
+	private void enqueNeighbor(int index, BuiltRenderRegion r, TerrainDistanceSorter queue) {
+		// WIP: reduce checks by storing farther neighbors when distance is updated
+		if (r.lastSeenFrameIndex != index && r.squaredChunkDistance > squaredChunkDistance) {
 			r.lastSeenFrameIndex = index;
 			queue.add(r);
 		}

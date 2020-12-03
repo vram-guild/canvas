@@ -22,7 +22,6 @@ import it.unimi.dsi.fastutil.Hash;
 
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
-import net.minecraft.util.math.Vec3d;
 
 import grondag.canvas.render.CanvasWorldRenderer;
 
@@ -43,8 +42,7 @@ public class RenderRegionStorage {
 	private final HackedLong2ObjectMap<RegionChunkReference> chunkRefMap = new HackedLong2ObjectMap<>(2048, Hash.VERY_FAST_LOAD_FACTOR, r -> {
 	});
 	private final CanvasWorldRenderer cwr;
-	private final int regionVersion = -1;
-	private int positionVersion;
+	private long cameraChunkOrigin;
 
 	public RenderRegionStorage(CanvasWorldRenderer cwr) {
 		this.cwr = cwr;
@@ -74,12 +72,12 @@ public class RenderRegionStorage {
 	 * Called each frame, but only updates when player has moved more than 1 block.
 	 * Uses position version to detect the movement.
 	 */
-	public void updateCameraDistance(Vec3d cameraPos, int positionVersion, int renderDistance) {
-		if (this.positionVersion == positionVersion) {
+	public void updateCameraDistance(long cameraChunkOrigin) {
+		if (this.cameraChunkOrigin == cameraChunkOrigin) {
 			return;
 		}
 
-		this.positionVersion = positionVersion;
+		this.cameraChunkOrigin = cameraChunkOrigin;
 
 		regionMap.prune(REGION_PRUNER);
 		chunkRefMap.prune(CHUNK_REF_PRUNER);
@@ -87,10 +85,6 @@ public class RenderRegionStorage {
 
 	public int regionCount() {
 		return regionMap.size();
-	}
-
-	public int regionVersion() {
-		return regionVersion;
 	}
 
 	private BuiltRenderRegion getOrCreateRegion(long packedOriginPos) {

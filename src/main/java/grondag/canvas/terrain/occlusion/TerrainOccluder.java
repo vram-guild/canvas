@@ -67,11 +67,16 @@ public class TerrainOccluder {
 	private int offsetY;
 	private int offsetZ;
 	private int occlusionRange;
-	private int positionVersion = -1;
 	private int viewVersion = -1;
 	private int regionVersion = -1;
 	private boolean forceRedraw = false;
 	private boolean needsRedraw = false;
+
+	@Override
+	public String toString() {
+		return String.format("OccluderVersion:%d  viewX:%d  viewY:%d  viewZ:%d  offsetX:%d  offsetY:%d  offsetZ:%d viewVersion:%d  regionVersion:%d  forceRedraw:%b  needsRedraw:%b  matrix:%s",
+				occluderVersion.get(), viewX, viewY, viewZ, offsetX, offsetY, offsetZ, viewVersion, regionVersion, forceRedraw, needsRedraw, raster.mvpMatrix.toString());
+	}
 
 	{
 		boxTests[0] = (x0, y0, z0, x1, y1, z1) -> {
@@ -640,7 +645,6 @@ public class TerrainOccluder {
 
 		occlusionRange = source.occlusionRange;
 
-		positionVersion = source.positionVersion;
 		viewVersion = source.viewVersion;
 		regionVersion = source.regionVersion;
 
@@ -664,7 +668,12 @@ public class TerrainOccluder {
 	 * @param occluderVersion
 	 */
 	public void invalidate(int invalidVersion) {
+		// WIP: remove
+		System.out.println("Attempting to invalidate occluder by version" + invalidVersion + "  old version is " + occluderVersion.get());
+
 		if (occluderVersion.compareAndSet(invalidVersion, invalidVersion + 1)) {
+			// WIP: remove
+			System.out.println("Invalidating occluder by version" + invalidVersion);
 			forceRedraw = true;
 		}
 	}
@@ -691,11 +700,18 @@ public class TerrainOccluder {
 	}
 
 	public void outputRaster() {
+		outputRaster("canvas_occlusion_raster.png", false);
+	}
+
+	public void outputRaster(String fileName, boolean force) {
 		final long t = System.currentTimeMillis();
 
-		if (t >= raster.nextRasterOutputTime) {
+		if (!force && t >= raster.nextRasterOutputTime) {
+			force = true;
 			raster.nextRasterOutputTime = t + 1000;
+		}
 
+		if (force) {
 			final NativeImage nativeImage = new NativeImage(PIXEL_WIDTH, PIXEL_HEIGHT, false);
 
 			for (int x = 0; x < PIXEL_WIDTH; x++) {
@@ -706,7 +722,7 @@ public class TerrainOccluder {
 
 			nativeImage.mirrorVertically();
 
-			@SuppressWarnings("resource") final File file = new File(MinecraftClient.getInstance().runDirectory, "canvas_occlusion_raster.png");
+			@SuppressWarnings("resource") final File file = new File(MinecraftClient.getInstance().runDirectory, fileName);
 
 			Util.getIoWorkerExecutor().execute(() -> {
 				try {
@@ -734,7 +750,6 @@ public class TerrainOccluder {
 	 */
 	public void prepareScene(Camera camera, CanvasFrustum frustum, int regionVersion) {
 		final int viewVersion = frustum.viewVersion();
-		final int positionVersion = frustum.positionVersion();
 
 		if (this.viewVersion != viewVersion) {
 			final Matrix4L baseMvpMatrix = this.baseMvpMatrix;
@@ -757,25 +772,31 @@ public class TerrainOccluder {
 		}
 
 		if (forceRedraw) {
+			// WIP: remove
+			System.out.println("occluder encountered forceRedraw");
 			this.viewVersion = viewVersion;
-			this.positionVersion = positionVersion;
 			this.regionVersion = regionVersion;
 			System.arraycopy(EMPTY_BITS, 0, raster.tiles, 0, TILE_COUNT);
 			forceRedraw = false;
 			needsRedraw = true;
-		} else if (this.positionVersion != positionVersion || this.regionVersion != regionVersion) {
+		} else if (this.regionVersion != regionVersion) {
 			occluderVersion.incrementAndGet();
 			this.viewVersion = viewVersion;
-			this.positionVersion = positionVersion;
 			this.regionVersion = regionVersion;
 			System.arraycopy(EMPTY_BITS, 0, raster.tiles, 0, TILE_COUNT);
 			needsRedraw = true;
+			// WIP:remove
+			System.out.println("prepareScene: region redraw");
 		} else if (this.viewVersion != viewVersion) {
 			this.viewVersion = viewVersion;
 			System.arraycopy(EMPTY_BITS, 0, raster.tiles, 0, TILE_COUNT);
 			needsRedraw = true;
+			// WIP:remove
+			System.out.println("prepareScene: viewversion redraw");
 		} else {
 			needsRedraw = false;
+			// WIP:remove
+			System.out.println("prepareScene: NO REDRAW");
 		}
 	}
 

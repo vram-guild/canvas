@@ -143,7 +143,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	private final RenderContextState contextState = new RenderContextState();
 	public final CanvasImmediate worldRenderImmediate = new CanvasImmediate(new BufferBuilder(256), CanvasImmediate.entityBuilders(), contextState);
 	private final CanvasParticleRenderer particleRenderer = new CanvasParticleRenderer();
-	private final WorldRenderContextImpl eventContext = new WorldRenderContextImpl();
+	public final WorldRenderContextImpl eventContext = new WorldRenderContextImpl();
 
 	public CanvasWorldRenderer(MinecraftClient client, BufferBuilderStorage bufferBuilders) {
 		super(client, bufferBuilders);
@@ -251,17 +251,15 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		final int renderDistance = wr.canvas_renderDistance();
 		final RenderRegionStorage regionStorage = renderRegionStorage;
 		final TerrainIterator terrainIterator = this.terrainIterator;
-		final int frustumPositionVersion = frustum.positionVersion();
 
 		if (mc.options.viewDistance != renderDistance) {
 			wr.canvas_reload();
 		}
 
 		mc.getProfiler().push("camera");
-		final Vec3d cameraPos = this.cameraPos;
 
 		mc.getProfiler().swap("distance");
-		regionStorage.updateCameraDistance(cameraPos, frustumPositionVersion, renderDistance);
+		regionStorage.updateCameraDistance(camera.getBlockPos().asLong());
 		WorldDataManager.update(camera);
 		MaterialConditionImpl.update();
 		MaterialShaderManager.INSTANCE.onRenderTick();
@@ -306,7 +304,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 				viewVersion = frustum.viewVersion();
 				occluderVersion = terrainOccluder.version();
 				lastRegionDataVersion = newRegionDataVersion;
-				terrainOccluder.prepareScene(camera, frustum, renderRegionStorage.regionVersion());
+				terrainOccluder.prepareScene(camera, frustum, newRegionDataVersion);
 				terrainIterator.prepare(cameraRegion, cameraBlockPos, frustum, renderDistance, shouldCullChunks);
 				regionBuilder.executor.execute(terrainIterator, -1);
 			}
@@ -318,7 +316,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 				occluderVersion = terrainOccluder.version();
 				lastRegionDataVersion = newRegionDataVersion;
 
-				terrainOccluder.prepareScene(camera, frustum, renderRegionStorage.regionVersion());
+				terrainOccluder.prepareScene(camera, frustum, newRegionDataVersion);
 				terrainIterator.prepare(cameraRegion, cameraBlockPos, frustum, renderDistance, shouldCullChunks);
 				terrainIterator.accept(null);
 
@@ -1143,6 +1141,12 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		WorldRenderEvents.END.invoker().onEnd(eventContext);
 	}
 
+	// WIP: remove
+	public static boolean doFirstSnapshot = true;
+	public static boolean doMagicA = true;
+	public static boolean doMagicB = true;
+	public static boolean doMagicC = true;
+
 	@Override
 	public void reload() {
 		super.reload();
@@ -1157,10 +1161,17 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		}
 
 		renderRegionStorage.clear();
+
+		// WIP: remove
+		System.out.println("Invalidating occluder");
 		terrainOccluder.invalidate();
 		visibleRegionCount = 0;
 
 		//ClassInspector.inspect();
+		doFirstSnapshot = true;
+		doMagicA = true;
+		doMagicB = true;
+		doMagicC = true;
 	}
 
 	@Override
