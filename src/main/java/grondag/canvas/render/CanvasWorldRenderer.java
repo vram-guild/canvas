@@ -133,8 +133,9 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	private RenderRegionBuilder regionBuilder;
 	private int translucentSortPositionVersion;
 	private ClientWorld world;
-	private int squaredRenderDistance;
-	private int squaredRetentionDistance;
+	// both of these are measured in chunks, not blocks
+	private int squaredChunkRenderDistance;
+	private int squaredChunkRetentionDistance;
 	private Vec3d cameraPos;
 	private int lastRegionDataVersion = -1;
 	private int lastViewVersion = -1;
@@ -194,9 +195,9 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 	private void computeDistances() {
 		int renderDistance = wr.canvas_renderDistance();
-		squaredRenderDistance = renderDistance * renderDistance * 256;
+		squaredChunkRenderDistance = renderDistance * renderDistance;
 		renderDistance += 2;
-		squaredRetentionDistance = renderDistance * renderDistance * 256;
+		squaredChunkRetentionDistance = renderDistance * renderDistance;
 	}
 
 	public void forceVisibilityUpdate() {
@@ -1034,12 +1035,12 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		return cameraPos;
 	}
 
-	public int maxSquaredDistance() {
-		return squaredRenderDistance;
+	public int maxSquaredChunkRenderDistance() {
+		return squaredChunkRenderDistance;
 	}
 
-	public int maxRetentionDistance() {
-		return squaredRetentionDistance;
+	public int maxSquaredChunkRetentionDistance() {
+		return squaredChunkRetentionDistance;
 	}
 
 	public void updateNoCullingBlockEntities(ObjectOpenHashSet<BlockEntity> removedBlockEntities, ObjectOpenHashSet<BlockEntity> addedBlockEntities) {

@@ -89,9 +89,8 @@ public class BuiltRenderRegion {
 	public float cameraRelativeCenterX;
 	public float cameraRelativeCenterY;
 	public float cameraRelativeCenterZ;
-	int squaredCameraDistance;
-	// WIP: need above if using this?
-	int squaredChunkDistance;
+	private int squaredChunkDistance;
+	private boolean isNear;
 	private boolean needsRebuild;
 	private boolean needsImportantRebuild;
 	private volatile RegionBuildState buildState = new RegionBuildState();
@@ -191,8 +190,7 @@ public class BuiltRenderRegion {
 	 * @return True if nearby.  If not nearby and not outside view distance true if neighbors are loaded.
 	 */
 	public boolean shouldBuild() {
-		return squaredCameraDistance <= 576
-				|| (isInsideRenderDistance && chunkReference.areCornersLoaded());
+		return isNear || (isInsideRenderDistance && chunkReference.areCornersLoaded());
 	}
 
 	/**
@@ -210,22 +208,15 @@ public class BuiltRenderRegion {
 		cameraRelativeCenterY = dy;
 		cameraRelativeCenterZ = dz;
 
-		final int idx = Math.round(dx);
-		final int idy = Math.round(dy);
-		final int idz = Math.round(dz);
-
-		final int horizontalSquaredDistance = idx * idx + idz * idz;
-		isInsideRenderDistance = horizontalSquaredDistance <= cwr.maxSquaredDistance();
-
-		final int squaredCameraDistance = horizontalSquaredDistance + idy * idy;
-		occlusionRange = PackedBox.rangeFromSquareBlockDist(squaredCameraDistance);
-		this.squaredCameraDistance = squaredCameraDistance;
-
 		final int cx = pruner.cameraChunkX() - (origin.getX() >> 4);
 		final int cy = pruner.cameraChunkY() - (origin.getY() >> 4);
 		final int cz = pruner.cameraChunkZ() - (origin.getZ() >> 4);
 
-		squaredChunkDistance = cx * cx + cy * cy + cz * cz;
+		final int horizontalSquaredDistance = cx * cx + cz * cz;
+		isInsideRenderDistance = horizontalSquaredDistance <= cwr.maxSquaredChunkRenderDistance();
+		squaredChunkDistance = horizontalSquaredDistance + cy * cy;
+		isNear = squaredChunkDistance <= 3;
+		occlusionRange = PackedBox.rangeFromSquareChunkDist(squaredChunkDistance);
 
 		// WIP - clean up docs
 		// We check here to know if the occlusion raster must be redrawn.
@@ -263,7 +254,7 @@ public class BuiltRenderRegion {
 			}
 		}
 
-		return horizontalSquaredDistance < cwr.maxRetentionDistance();
+		return horizontalSquaredDistance < cwr.maxSquaredChunkRetentionDistance();
 	}
 
 	public int squaredChunkDistance() {
@@ -330,7 +321,7 @@ public class BuiltRenderRegion {
 
 		// null region is signal to reschedule
 		if (buildState.protoRegion.getAndSet(region) == ProtoRenderRegion.IDLE) {
-			renderRegionBuilder.executor.execute(buildTask, squaredCameraDistance);
+			renderRegionBuilder.executor.execute(buildTask, squaredChunkDistance);
 		}
 	}
 
@@ -343,7 +334,7 @@ public class BuiltRenderRegion {
 			if (buildState.protoRegion.compareAndSet(ProtoRenderRegion.IDLE, ProtoRenderRegion.RESORT_ONLY)) {
 				// null means need to reschedule, otherwise was already scheduled for either
 				// resort or rebuild, or is invalid, not ready to be built.
-				renderRegionBuilder.executor.execute(buildTask, squaredCameraDistance);
+				renderRegionBuilder.executor.execute(buildTask, squaredChunkDistance);
 			}
 
 			return true;
@@ -712,8 +703,15 @@ public class BuiltRenderRegion {
 		return solidDrawable;
 	}
 
+	/**
+	 * Our logic for this is a little different than vanilla, which checks for squared distance
+	 * to chunk center from camera < 768.0.  Our will always return true for all 26 chunks adjacent
+	 * (including diagonal) to the chunk in which the camera is placed.
+	 *
+	 * <p>This logic is in {@link #updateCameraDistanceAndVisibilityInfo(RenderRegionPruner)}.
+	 */
 	public boolean isNear() {
-		return squaredCameraDistance < 768;
+		return isNear;
 	}
 
 	public void enqueueUnvistedNeighbors(TerrainDistanceSorter distanceSorter) {

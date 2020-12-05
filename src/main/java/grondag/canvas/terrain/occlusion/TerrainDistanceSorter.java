@@ -31,9 +31,11 @@ public class TerrainDistanceSorter {
 	static final int[] RING_INDEX;
 
 	static {
-		for (int x = -32; x <= 32; ++x) {
-			for (int z = -32; z <= 32; ++z) {
-				for (int y = -16; y <= 16; ++y) {
+		// 34 too allow for padding
+		for (int x = -34; x <= 34; ++x) {
+			for (int z = -34; z <= 34; ++z) {
+				// not clamped on Y because player can be above or below world
+				for (int y = -34; y <= 34; ++y) {
 					final int d = x * x + y * y + z * z;
 					RINGS.addTo(d, 1);
 				}
@@ -81,7 +83,11 @@ public class TerrainDistanceSorter {
 	}
 
 	public void add(BuiltRenderRegion region) {
-		rings[RING_INDEX[region.squaredChunkDistance()]].add(region);
+		final int dist = region.squaredChunkDistance();
+
+		if (dist >= 0 && dist <= MAX_SQ_DIST) {
+			rings[RING_INDEX[dist]].add(region);
+		}
 	}
 
 	@Nullable BuiltRenderRegion next() {

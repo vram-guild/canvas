@@ -94,7 +94,7 @@ public class ChunkRenderExecutor {
 		final Consumer<TerrainRenderContext> task;
 
 		/**
-		 * Normally squared distance. Use -1 for privileged execution
+		 * Normally squared chunk distance. Use -1 for privileged execution
 		 */
 		final int priority;
 
