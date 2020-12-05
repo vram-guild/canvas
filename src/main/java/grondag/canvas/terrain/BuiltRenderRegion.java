@@ -73,7 +73,6 @@ public class BuiltRenderRegion {
 
 	private final RenderRegionBuilder renderRegionBuilder;
 	private final RenderRegionStorage storage;
-	private final AtomicReference<RegionData> renderData;
 	private final AtomicReference<RegionData> buildData;
 	private final ObjectOpenHashSet<BlockEntity> localNoCullingBlockEntities = new ObjectOpenHashSet<>();
 	private final BlockPos origin;
@@ -113,7 +112,6 @@ public class BuiltRenderRegion {
 		chunkReference = chunkRef;
 		chunkReference.retain(this);
 		buildData = new AtomicReference<>(RegionData.UNBUILT);
-		renderData = new AtomicReference<>(RegionData.UNBUILT);
 		needsRebuild = true;
 		origin = BlockPos.fromLong(packedPos);
 		isBottom = origin.getY() == 0;
@@ -121,11 +119,16 @@ public class BuiltRenderRegion {
 	}
 
 	public void setOccluderResult(boolean occluderResult, int occluderVersion) {
-		// WIP: remove
-		System.out.println("Setting result " + occluderResult + "  dist=" + squaredChunkDistance + "  version=" + occluderVersion + "  @" + origin.toShortString());
-		this.occluderResult = occluderResult;
-		this.occluderVersion = occluderVersion;
-		occlusionBuildCount = buildCount;
+		if (this.occluderVersion == occluderVersion) {
+			assert occluderResult == this.occluderResult;
+		} else {
+			// WIP: remove
+			final String prefix = buildData.get().canOcclude() ? "Occluding result " : "Empty result ";
+			System.out.println(prefix + occluderResult + "  dist=" + squaredChunkDistance + "  buildCounter=" + buildCount + "  occluderVersion=" + occluderVersion + "  @" + origin.toShortString());
+			this.occluderResult = occluderResult;
+			this.occluderVersion = occluderVersion;
+			occlusionBuildCount = buildCount;
+		}
 	}
 
 	public boolean occluderResult() {
@@ -261,9 +264,9 @@ public class BuiltRenderRegion {
 	void close() {
 		assert RenderSystem.isOnRenderThread();
 
-		releaseDrawables();
-
 		if (!isClosed) {
+			releaseDrawables();
+
 			isClosed = true;
 
 			for (int i = 0; i < 6; ++i) {
@@ -278,7 +281,6 @@ public class BuiltRenderRegion {
 
 			cancel();
 			buildData.set(RegionData.UNBUILT);
-			renderData.set(RegionData.UNBUILT);
 			needsRebuild = true;
 		}
 	}
@@ -365,13 +367,13 @@ public class BuiltRenderRegion {
 			final RegionData oldBuildData = buildData.getAndSet(chunkData);
 
 			if (oldBuildData == RegionData.UNBUILT || !Arrays.equals(chunkData.occlusionData, oldBuildData.occlusionData)) {
+				final int oldCounter = buildCount;
 				buildCount = BUILD_COUNTER.incrementAndGet();
+				System.out.println("Updating build counter from " + oldCounter + " to " + buildCount + " @" + origin.toShortString() + "  (WT empty)");
 
 				// Even if empty the chunk may still be needed for visibility search to progress
 				cwr.forceVisibilityUpdate();
 			}
-
-			renderData.set(chunkData);
 
 			return;
 		}
@@ -435,9 +437,6 @@ public class BuiltRenderRegion {
 			context.prepareRegion(region);
 			final RegionData chunkData = buildRegionData(context, isNear());
 
-			// WIP: still needed?
-			cwr.forceVisibilityUpdate();
-
 			final VertexCollectorList collectors = context.collectors;
 
 			if (runningState.protoRegion.get() == ProtoRenderRegion.INVALID) {
@@ -461,10 +460,6 @@ public class BuiltRenderRegion {
 						releaseDrawables();
 						solidDrawable = solidUpload.produceDrawable();
 						translucentDrawable = translucentUpload.produceDrawable();
-						renderData.set(chunkData);
-
-						// WIP: don't update occluder if translucent only
-						buildCount = BUILD_COUNTER.incrementAndGet();
 
 						if (ChunkRebuildCounters.ENABLED) {
 							ChunkRebuildCounters.completeUpload();
@@ -487,7 +482,10 @@ public class BuiltRenderRegion {
 		final RegionData oldBuildData = buildData.getAndSet(regionData);
 
 		if (oldBuildData == RegionData.UNBUILT || !Arrays.equals(regionData.occlusionData, oldBuildData.occlusionData)) {
+			//WIP: remove
+			final int oldCounter = buildCount;
 			buildCount = BUILD_COUNTER.incrementAndGet();
+			System.out.println("Updating build counter from " + oldCounter + " to " + buildCount + " @" + origin.toShortString());
 			cwr.forceVisibilityUpdate();
 		}
 
@@ -628,14 +626,14 @@ public class BuiltRenderRegion {
 			final RegionData oldBuildData = buildData.getAndSet(regionData);
 
 			if (oldBuildData == RegionData.UNBUILT || !Arrays.equals(regionData.occlusionData, oldBuildData.occlusionData)) {
+				// WIP: remove
+				final int oldCounter = buildCount;
 				buildCount = BUILD_COUNTER.incrementAndGet();
+				System.out.println("Updating build counter from " + oldCounter + " to " + buildCount + " @" + origin.toShortString() + "  (MTR empty)");
 
 				// Even if empty the chunk may still be needed for visibility search to progress
 				cwr.forceVisibilityUpdate();
 			}
-
-			// but do use the new data with potentially new entity map
-			renderData.set(regionData);
 
 			return;
 		}
@@ -663,14 +661,6 @@ public class BuiltRenderRegion {
 			ChunkRebuildCounters.completeUpload();
 		}
 
-		// don't rebuild occlusion if occlusion did not change
-		final RegionData oldRenderData = renderData.get();
-
-		if (oldRenderData == RegionData.UNBUILT || !Arrays.equals(regionData.occlusionData, oldRenderData.occlusionData)) {
-			buildCount = BUILD_COUNTER.incrementAndGet();
-		}
-
-		renderData.set(regionData);
 		collectors.clear();
 		region.release();
 	}
@@ -704,10 +694,6 @@ public class BuiltRenderRegion {
 
 	public RegionData getBuildData() {
 		return buildData.get();
-	}
-
-	public RegionData getRenderData() {
-		return renderData.get();
 	}
 
 	public DrawableChunk translucentDrawable() {

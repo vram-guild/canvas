@@ -257,6 +257,8 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			wr.canvas_reload();
 		}
 
+		pruner.closeRegionsOnRenderThread();
+
 		mc.getProfiler().push("camera");
 		WorldDataManager.update(camera);
 		MaterialConditionImpl.update();
@@ -554,9 +556,8 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		for (int regionIndex = 0; regionIndex < visibleRegionCount; ++regionIndex) {
 			assert visibleRegions[regionIndex] != null;
-			assert visibleRegions[regionIndex].getRenderData() != null;
 
-			final List<BlockEntity> list = visibleRegions[regionIndex].getRenderData().getBlockEntities();
+			final List<BlockEntity> list = visibleRegions[regionIndex].getBuildData().getBlockEntities();
 
 			final Iterator<BlockEntity> itBER = list.iterator();
 
@@ -837,7 +838,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			return;
 		}
 
-		final int[] boxes = region.getRenderData().getOcclusionData();
+		final int[] boxes = region.getBuildData().getOcclusionData();
 
 		if (boxes == null || boxes.length < OcclusionRegion.CULL_DATA_FIRST_BOX) {
 			return;

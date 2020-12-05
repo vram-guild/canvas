@@ -16,7 +16,10 @@
 
 package grondag.canvas.terrain;
 
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.function.Predicate;
+
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import net.minecraft.util.math.BlockPos;
 
@@ -32,6 +35,12 @@ public class RenderRegionPruner implements Predicate<BuiltRenderRegion> {
 	private int maxSquaredChunkDistance;
 	public final CanvasFrustum frustum;
 	public final TerrainOccluder occluder;
+
+	// accessed from terrain iterator and render threads - holds regions to be closed on render thread
+	private final ArrayBlockingQueue<BuiltRenderRegion> closeQueue = new ArrayBlockingQueue<>(4096);
+
+	// holds close targets during close on render thread - avoid multiple lock attempts
+	private final ObjectArrayList<BuiltRenderRegion> closeList = new ObjectArrayList<>();
 
 	public RenderRegionPruner(TerrainOccluder occluder) {
 		this.occluder = occluder;
@@ -74,7 +83,7 @@ public class RenderRegionPruner implements Predicate<BuiltRenderRegion> {
 	@Override
 	public boolean test(BuiltRenderRegion r) {
 		if (!r.updateCameraDistance(this)) {
-			r.close();
+			closeQueue.offer(r);
 			return true;
 		} else {
 			return false;
@@ -83,5 +92,20 @@ public class RenderRegionPruner implements Predicate<BuiltRenderRegion> {
 
 	public int maxSquaredChunkDistance() {
 		return maxSquaredChunkDistance;
+	}
+
+	public void closeRegionsOnRenderThread() {
+		if (closeQueue.isEmpty()) {
+			return;
+		}
+
+		closeList.clear();
+		closeQueue.drainTo(closeList);
+
+		final int limit = closeList.size();
+
+		for (int i = 0; i < limit; ++i) {
+			closeList.get(i).close();
+		}
 	}
 }
