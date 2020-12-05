@@ -130,13 +130,12 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	private int playerLightmap = 0;
 	private RenderRegionBuilder regionBuilder;
 	private int translucentSortPositionVersion;
-	private int viewVersion;
-	private int occluderVersion;
 	private ClientWorld world;
 	private int squaredRenderDistance;
 	private int squaredRetentionDistance;
 	private Vec3d cameraPos;
 	private int lastRegionDataVersion = -1;
+	private int lastViewVersion = -1;
 	private int visibleRegionCount = 0;
 	final TerrainLayerRenderer TRANSLUCENT = new TerrainLayerRenderer("translucemt", this::sortTranslucentTerrain);
 
@@ -257,9 +256,6 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		}
 
 		mc.getProfiler().push("camera");
-
-		mc.getProfiler().swap("distance");
-		regionStorage.updateCameraDistance(camera.getBlockPos().asLong());
 		WorldDataManager.update(camera);
 		MaterialConditionImpl.update();
 		MaterialShaderManager.INSTANCE.onRenderTick();
@@ -300,28 +296,23 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 			final int newRegionDataVersion = regionDataVersion.get();
 
-			if (state == TerrainIterator.IDLE && (newRegionDataVersion != lastRegionDataVersion || viewVersion != frustum.viewVersion() || occluderVersion != terrainOccluder.version())) {
-				viewVersion = frustum.viewVersion();
-				occluderVersion = terrainOccluder.version();
+			if (state == TerrainIterator.IDLE && (frustum.viewVersion() != lastViewVersion || lastRegionDataVersion != newRegionDataVersion)) {
 				lastRegionDataVersion = newRegionDataVersion;
-				terrainOccluder.prepareScene(camera, frustum, newRegionDataVersion);
-				terrainIterator.prepare(cameraRegion, cameraBlockPos, frustum, renderDistance, shouldCullChunks);
+				lastViewVersion = frustum.viewVersion();
+				terrainIterator.prepare(cameraRegion, camera, frustum, renderDistance, shouldCullChunks);
 				regionBuilder.executor.execute(terrainIterator, -1);
 			}
 		} else {
 			final int newRegionDataVersion = regionDataVersion.get();
 
-			if (newRegionDataVersion != lastRegionDataVersion || viewVersion != frustum.viewVersion() || occluderVersion != terrainOccluder.version()) {
-				viewVersion = frustum.viewVersion();
-				occluderVersion = terrainOccluder.version();
+			if (frustum.viewVersion() != lastViewVersion || newRegionDataVersion != lastRegionDataVersion) {
 				lastRegionDataVersion = newRegionDataVersion;
-
-				terrainOccluder.prepareScene(camera, frustum, newRegionDataVersion);
-				terrainIterator.prepare(cameraRegion, cameraBlockPos, frustum, renderDistance, shouldCullChunks);
+				terrainIterator.prepare(cameraRegion, camera, frustum, renderDistance, shouldCullChunks);
 				terrainIterator.accept(null);
 
 				final BuiltRenderRegion[] visibleRegions = this.visibleRegions;
 				final int size = terrainIterator.visibleRegionCount;
+				lastViewVersion = frustum.viewVersion();
 				visibleRegionCount = size;
 				System.arraycopy(terrainIterator.visibleRegions, 0, visibleRegions, 0, size);
 				scheduleOrBuild(terrainIterator.updateRegions);

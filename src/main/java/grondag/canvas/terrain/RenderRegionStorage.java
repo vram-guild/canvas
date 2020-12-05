@@ -24,17 +24,11 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 
 import grondag.canvas.render.CanvasWorldRenderer;
+import grondag.canvas.terrain.occlusion.TerrainOccluder;
 
 public class RenderRegionStorage {
-	private static final Predicate<BuiltRenderRegion> REGION_PRUNER = r -> {
-		// TODO: confirm not creating/removing due to mismatch in distances
-		if (!r.updateCameraDistance()) {
-			r.close();
-			return true;
-		} else {
-			return false;
-		}
-	};
+	public final RenderRegionPruner regionPruner = new RenderRegionPruner();
+
 	private static final Predicate<RegionChunkReference> CHUNK_REF_PRUNER = RegionChunkReference::isEmpty;
 	// Hat tip to JellySquid for the suggestion of using a hashmap
 	// PERF: lock-free implementation
@@ -42,7 +36,6 @@ public class RenderRegionStorage {
 	private final HackedLong2ObjectMap<RegionChunkReference> chunkRefMap = new HackedLong2ObjectMap<>(2048, Hash.VERY_FAST_LOAD_FACTOR, r -> {
 	});
 	private final CanvasWorldRenderer cwr;
-	private long cameraChunkOrigin;
 
 	public RenderRegionStorage(CanvasWorldRenderer cwr) {
 		this.cwr = cwr;
@@ -68,19 +61,19 @@ public class RenderRegionStorage {
 		}
 	}
 
-	/**
-	 * Called each frame, but only updates when player has moved more than 1 block.
-	 * Uses position version to detect the movement.
-	 */
-	public void updateCameraDistance(long cameraChunkOrigin) {
-		if (this.cameraChunkOrigin == cameraChunkOrigin) {
-			return;
-		}
+	public void updateCameraDistance(long cameraChunkOrigin, TerrainOccluder occluder) {
+		// WIP: do we need some way to avoid running each time?
+		//		if (this.cameraChunkOrigin == cameraChunkOrigin) {
+		//			return;
+		//		}
 
-		this.cameraChunkOrigin = cameraChunkOrigin;
-
-		regionMap.prune(REGION_PRUNER);
+		regionPruner.prepare(occluder, cameraChunkOrigin);
+		regionMap.prune(regionPruner);
 		chunkRefMap.prune(CHUNK_REF_PRUNER);
+
+		if (regionPruner.didInvalidateOccluder()) {
+			occluder.invalidate();
+		}
 	}
 
 	public int regionCount() {
@@ -90,7 +83,8 @@ public class RenderRegionStorage {
 	private BuiltRenderRegion getOrCreateRegion(long packedOriginPos) {
 		return regionMap.computeIfAbsent(packedOriginPos, k -> {
 			final BuiltRenderRegion result = new BuiltRenderRegion(cwr, chunkRef(k), k);
-			result.updateCameraDistance();
+			// WIP: how to handle creation off thread?  Probably have to exclude these from iteration.
+			//			result.updateCameraDistance();
 			return result;
 		});
 	}

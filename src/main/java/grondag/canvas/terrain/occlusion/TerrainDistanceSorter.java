@@ -81,7 +81,7 @@ public class TerrainDistanceSorter {
 	}
 
 	public void add(BuiltRenderRegion region) {
-		rings[RING_INDEX[region.simpleCameraDistance()]].add(region);
+		rings[RING_INDEX[region.squaredChunkDistance()]].add(region);
 	}
 
 	@Nullable BuiltRenderRegion next() {

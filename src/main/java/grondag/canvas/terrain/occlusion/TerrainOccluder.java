@@ -38,10 +38,8 @@ import static grondag.canvas.terrain.occlusion.Constants.V111;
 import static grondag.canvas.terrain.occlusion.Constants.WEST;
 
 import java.io.File;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.Camera;
 import net.minecraft.client.texture.NativeImage;
 import net.minecraft.util.Util;
 import net.minecraft.util.math.BlockPos;
@@ -57,7 +55,7 @@ public class TerrainOccluder {
 	private final Matrix4L baseMvpMatrix = new Matrix4L();
 
 	private final Rasterizer raster = new Rasterizer();
-	private final AtomicInteger occluderVersion = new AtomicInteger();
+	private int occluderVersion;
 	private final BoxTest[] boxTests = new BoxTest[128];
 	private final BoxDraw[] boxDraws = new BoxDraw[128];
 	private long viewX;
@@ -67,15 +65,17 @@ public class TerrainOccluder {
 	private int offsetY;
 	private int offsetZ;
 	private int occlusionRange;
+	private int regionSquaredChunkDist;
 	private int viewVersion = -1;
 	private int regionVersion = -1;
-	private boolean forceRedraw = false;
+	private volatile boolean forceRedraw = false;
 	private boolean needsRedraw = false;
+	private int maxSquaredChunkDistance;
 
 	@Override
 	public String toString() {
 		return String.format("OccluderVersion:%d  viewX:%d  viewY:%d  viewZ:%d  offsetX:%d  offsetY:%d  offsetZ:%d viewVersion:%d  regionVersion:%d  forceRedraw:%b  needsRedraw:%b  matrix:%s",
-				occluderVersion.get(), viewX, viewY, viewZ, offsetX, offsetY, offsetZ, viewVersion, regionVersion, forceRedraw, needsRedraw, raster.mvpMatrix.toString());
+				occluderVersion, viewX, viewY, viewZ, offsetX, offsetY, offsetZ, viewVersion, regionVersion, forceRedraw, needsRedraw, raster.mvpMatrix.toString());
 	}
 
 	{
@@ -647,47 +647,32 @@ public class TerrainOccluder {
 
 		viewVersion = source.viewVersion;
 		regionVersion = source.regionVersion;
-
-		occluderVersion.set(source.occluderVersion.get());
+		occluderVersion = source.occluderVersion;
+		maxSquaredChunkDistance = source.maxSquaredChunkDistance;
 
 		forceRedraw = source.forceRedraw;
 		needsRedraw = source.needsRedraw;
 	}
 
+	// WIP: remove?
 	/**
 	 * Previously tested regions can reuse test results if their version matches.
 	 * However, they must still be drawn (if visible) if indicated by {@link #clearSceneIfNeeded(int, int)}.
 	 */
 	public int version() {
-		return occluderVersion.get();
-	}
-
-	/**
-	 * Force update to new version if provided version matches current.
-	 *
-	 * @param occluderVersion
-	 */
-	public void invalidate(int invalidVersion) {
-		// WIP: remove
-		System.out.println("Attempting to invalidate occluder by version" + invalidVersion + "  old version is " + occluderVersion.get());
-
-		if (occluderVersion.compareAndSet(invalidVersion, invalidVersion + 1)) {
-			// WIP: remove
-			System.out.println("Invalidating occluder by version" + invalidVersion);
-			forceRedraw = true;
-		}
+		return occluderVersion;
 	}
 
 	/**
 	 * Force update to new version.
 	 */
 	public void invalidate() {
-		occluderVersion.incrementAndGet();
 		forceRedraw = true;
 	}
 
-	public void prepareRegion(BlockPos origin, int occlusionRange) {
+	public void prepareRegion(BlockPos origin, int occlusionRange, int squaredChunkDistance) {
 		this.occlusionRange = occlusionRange;
+		regionSquaredChunkDist = squaredChunkDistance;
 
 		// PERF: could perhaps reuse CameraRelativeCenter values in BuildRenderRegion that are used by Frustum
 		offsetX = (int) ((origin.getX() << CAMERA_PRECISION_BITS) - viewX);
@@ -737,18 +722,10 @@ public class TerrainOccluder {
 	}
 
 	/**
-	 * Check if needs redrawn and prep for redraw if  so.
+	 * Check if needs redrawn and prep for redraw if so.
 	 * When false, regions should be drawn only if their occluder version is not current.
-	 *
-	 * <p>Also checks for invalidation of occluder version using positionVersion.
-	 *
-	 * @param projectionMatrix
-	 * @param modelMatrix
-	 * @param camera
-	 * @param frustum
-	 * @param regionVersion    Needed because chunk camera position update whenever a chunk boundary is crossed by Frustum doesn't care.
 	 */
-	public void prepareScene(Camera camera, CanvasFrustum frustum, int regionVersion) {
+	public boolean prepareScene(Vec3d cameraPos, CanvasFrustum frustum) {
 		final int viewVersion = frustum.viewVersion();
 
 		if (this.viewVersion != viewVersion) {
@@ -765,39 +742,25 @@ public class TerrainOccluder {
 			tempMatrix.copyFrom(modelMatrix);
 			baseMvpMatrix.multiply(tempMatrix);
 
-			final Vec3d vec3d = camera.getPos();
-			viewX = Math.round(vec3d.getX() * CAMERA_PRECISION_UNITY);
-			viewY = Math.round(vec3d.getY() * CAMERA_PRECISION_UNITY);
-			viewZ = Math.round(vec3d.getZ() * CAMERA_PRECISION_UNITY);
+			viewX = Math.round(cameraPos.getX() * CAMERA_PRECISION_UNITY);
+			viewY = Math.round(cameraPos.getY() * CAMERA_PRECISION_UNITY);
+			viewZ = Math.round(cameraPos.getZ() * CAMERA_PRECISION_UNITY);
 		}
 
-		if (forceRedraw) {
+		if (forceRedraw || this.viewVersion != viewVersion) {
 			// WIP: remove
-			System.out.println("occluder encountered forceRedraw");
+			System.out.println("occluder redrawing, forceRedraw = " + forceRedraw);
 			this.viewVersion = viewVersion;
-			this.regionVersion = regionVersion;
 			System.arraycopy(EMPTY_BITS, 0, raster.tiles, 0, TILE_COUNT);
 			forceRedraw = false;
 			needsRedraw = true;
-		} else if (this.regionVersion != regionVersion) {
-			occluderVersion.incrementAndGet();
-			this.viewVersion = viewVersion;
-			this.regionVersion = regionVersion;
-			System.arraycopy(EMPTY_BITS, 0, raster.tiles, 0, TILE_COUNT);
-			needsRedraw = true;
-			// WIP:remove
-			System.out.println("prepareScene: region redraw");
-		} else if (this.viewVersion != viewVersion) {
-			this.viewVersion = viewVersion;
-			System.arraycopy(EMPTY_BITS, 0, raster.tiles, 0, TILE_COUNT);
-			needsRedraw = true;
-			// WIP:remove
-			System.out.println("prepareScene: viewversion redraw");
+			maxSquaredChunkDistance = 0;
+			++occluderVersion;
 		} else {
 			needsRedraw = false;
-			// WIP:remove
-			System.out.println("prepareScene: NO REDRAW");
 		}
+
+		return needsRedraw;
 	}
 
 	public boolean needsRedraw() {
@@ -845,7 +808,7 @@ public class TerrainOccluder {
 	}
 
 	public boolean isEmptyRegionVisible(BlockPos origin) {
-		prepareRegion(origin, 0);
+		prepareRegion(origin, 0, 0);
 		return isBoxVisible(PackedBox.FULL_BOX);
 	}
 
@@ -894,6 +857,8 @@ public class TerrainOccluder {
 		final int limit = visData.length;
 
 		if (limit > 1) {
+			boolean updateDist = false;
+
 			for (int i = 1; i < limit; i++) {
 				final int box = visData[i];
 
@@ -901,7 +866,18 @@ public class TerrainOccluder {
 					break;
 				}
 
+				updateDist = true;
 				occludeInner(box);
+			}
+
+			if (updateDist) {
+				// WIP: remove
+				// System.out.println(regionSquaredChunkDist);
+				assert regionSquaredChunkDist >= maxSquaredChunkDistance : "Occluder went backwards in chunkdistance.";
+
+				if (maxSquaredChunkDistance < regionSquaredChunkDist) {
+					maxSquaredChunkDistance = regionSquaredChunkDist;
+				}
 			}
 		}
 	}
@@ -990,5 +966,9 @@ public class TerrainOccluder {
 	@FunctionalInterface
 	interface BoxDraw {
 		void apply(int x0, int y0, int z0, int x1, int y1, int z1);
+	}
+
+	public int maxSquaredChunkDistance() {
+		return maxSquaredChunkDistance;
 	}
 }

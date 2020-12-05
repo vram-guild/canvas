@@ -16,9 +16,9 @@
 
 package grondag.canvas.terrain;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
@@ -58,7 +58,6 @@ import grondag.canvas.perf.ChunkRebuildCounters;
 import grondag.canvas.render.CanvasFrustum;
 import grondag.canvas.render.CanvasWorldRenderer;
 import grondag.canvas.terrain.occlusion.TerrainDistanceSorter;
-import grondag.canvas.terrain.occlusion.TerrainOccluder;
 import grondag.canvas.terrain.occlusion.region.OcclusionRegion;
 import grondag.canvas.terrain.occlusion.region.PackedBox;
 import grondag.canvas.terrain.render.DrawableChunk;
@@ -69,6 +68,8 @@ import grondag.frex.api.fluid.FluidQuadSupplier;
 @Environment(EnvType.CLIENT)
 public class BuiltRenderRegion {
 	private static int frameIndex;
+	private static final AtomicInteger BUILD_COUNTER = new AtomicInteger();
+
 	private final RenderRegionBuilder renderRegionBuilder;
 	private final RenderRegionStorage storage;
 	private final AtomicReference<RegionData> renderData;
@@ -80,10 +81,9 @@ public class BuiltRenderRegion {
 	private final boolean isBottom;
 	private final boolean isTop;
 	private final BuiltRenderRegion[] neighbors = new BuiltRenderRegion[6];
-	private final TerrainOccluder terrainOccluder;
 	public int occlusionRange;
-	public int occluderVersion;
-	public boolean occluderResult;
+	private int occluderVersion;
+	private boolean occluderResult;
 	public float cameraRelativeCenterX;
 	public float cameraRelativeCenterY;
 	public float cameraRelativeCenterZ;
@@ -101,10 +101,12 @@ public class BuiltRenderRegion {
 	private boolean isClosed = false;
 	private boolean isInsideRenderDistance;
 	private final Consumer<TerrainRenderContext> buildTask = this::rebuildOnWorkerThread;
+	private int buildCount = -1;
+	// build count that was in effect last time drawn to occluder
+	private int occlusionBuildCount;
 
 	public BuiltRenderRegion(CanvasWorldRenderer cwr, RegionChunkReference chunkRef, long packedPos) {
 		this.cwr = cwr;
-		terrainOccluder = cwr.terrainOccluder;
 		renderRegionBuilder = cwr.regionBuilder();
 		storage = cwr.regionStorage();
 		chunkReference = chunkRef;
@@ -115,6 +117,25 @@ public class BuiltRenderRegion {
 		origin = BlockPos.fromLong(packedPos);
 		isBottom = origin.getY() == 0;
 		isTop = origin.getY() == 240;
+	}
+
+	public void setOccluderResult(boolean occluderResult, int occluderVersion) {
+		this.occluderResult = occluderResult;
+		this.occluderVersion = occluderVersion;
+		occlusionBuildCount = buildCount;
+
+		// WIP: remove
+		if (isMagic) {
+			System.out.println("Set result " + occluderResult + "  version=" + occluderVersion);
+		}
+	}
+
+	public boolean occluderResult() {
+		return occluderResult;
+	}
+
+	public int occluderVersion() {
+		return occluderVersion;
 	}
 
 	private static <E extends BlockEntity> void addBlockEntity(List<BlockEntity> chunkEntities, Set<BlockEntity> globalEntities, E blockEntity) {
@@ -175,7 +196,7 @@ public class BuiltRenderRegion {
 	/**
 	 * Returns true if inside retentiom distance.
 	 */
-	boolean updateCameraDistance() {
+	boolean updateCameraDistance(RenderRegionPruner pruner) {
 		final BlockPos origin = this.origin;
 		final Vec3d cameraPos = cwr.cameraPos();
 
@@ -199,24 +220,40 @@ public class BuiltRenderRegion {
 		occlusionRange = PackedBox.rangeFromSquareBlockDist(squaredCameraDistance);
 		this.squaredCameraDistance = squaredCameraDistance;
 
-		final BlockPos cameraBlockPos = cwr.eventContext.camera().getBlockPos();
+		final int cx = pruner.cameraChunkX() - (origin.getX() >> 4);
+		final int cy = pruner.cameraChunkY() - (origin.getY() >> 4);
+		final int cz = pruner.cameraChunkZ() - (origin.getZ() >> 4);
 
-		final int sx = (cameraBlockPos.getX() - origin.getX()) >> 4;
-		final int sy = (cameraBlockPos.getY() - origin.getY()) >> 4;
-		final int sz = (cameraBlockPos.getZ() - origin.getZ()) >> 4;
+		squaredChunkDistance = cx * cx + cy * cy + cz * cz;
 
-		squaredChunkDistance = sx * sx + sy * sy + sz * sz;
+		// WIP
+		// We check here to know if the occlusion raster must be redrawn.
+		//
+		// The check depends on classifying this region as one of:
+		//   new - has not been drawn in raster - occluder version doesn't match
+		//   existing - has been drawn in rater - occluder version matches
+		//
+		// The raster must be redrawn if either is true:
+		//   1) A new chunk has a chunk distance less than the current max drawn (we somehow went backwards towards the camera)
+		//   2) An existing chunk has been reloaded - the buildCounter doesn't match the buildCounter when it was marked existing
+
+		if (occluderVersion == pruner.occluderVersion()) {
+			// Existing - has been drawn in occlusion raster
+			if (buildCount != occlusionBuildCount) {
+				pruner.invalidateOccluder();
+			}
+		} else {
+			// Not yet drawn in occlusion raster
+			if (squaredChunkDistance < pruner.maxSquaredChunkDistance()) {
+				pruner.invalidateOccluder();
+			}
+		}
 
 		return horizontalSquaredDistance < cwr.maxRetentionDistance();
 	}
 
-	public int simpleCameraDistance() {
+	public int squaredChunkDistance() {
 		return squaredChunkDistance;
-	}
-
-	// WIP: remove
-	public int sqCameraDist() {
-		return squaredCameraDistance;
 	}
 
 	void close() {
@@ -317,16 +354,13 @@ public class BuiltRenderRegion {
 			final RegionData chunkData = new RegionData();
 			chunkData.complete(OcclusionRegion.EMPTY_CULL_DATA);
 
-			final int[] oldData = buildData.getAndSet(chunkData).occlusionData;
-
-			if (oldData != null && oldData != OcclusionRegion.EMPTY_CULL_DATA) {
-				terrainOccluder.invalidate(occluderVersion);
-			}
-
 			// Even if empty the chunk may still be needed for visibility search to progress
 			cwr.forceVisibilityUpdate();
 
 			renderData.set(chunkData);
+
+			// WIP: do this for empty?
+			buildCount = BUILD_COUNTER.incrementAndGet();
 			return;
 		}
 
@@ -389,12 +423,7 @@ public class BuiltRenderRegion {
 			context.prepareRegion(region);
 			final RegionData chunkData = buildRegionData(context, isNear());
 
-			final int[] oldData = buildData.getAndSet(chunkData).occlusionData;
-
-			if (oldData != null && !Arrays.equals(oldData, chunkData.occlusionData)) {
-				terrainOccluder.invalidate(occluderVersion);
-			}
-
+			// WIP: still needed?
 			cwr.forceVisibilityUpdate();
 
 			final VertexCollectorList collectors = context.collectors;
@@ -421,6 +450,9 @@ public class BuiltRenderRegion {
 						solidDrawable = solidUpload.produceDrawable();
 						translucentDrawable = translucentUpload.produceDrawable();
 						renderData.set(chunkData);
+
+						// WIP: don't update occluder if translucent only
+						buildCount = BUILD_COUNTER.incrementAndGet();
 
 						if (ChunkRebuildCounters.ENABLED) {
 							ChunkRebuildCounters.completeUpload();
@@ -566,13 +598,8 @@ public class BuiltRenderRegion {
 		if (region == ProtoRenderRegion.EMPTY) {
 			final RegionData regionData = new RegionData();
 			regionData.complete(OcclusionRegion.EMPTY_CULL_DATA);
-			final int[] oldData = buildData.getAndSet(regionData).occlusionData;
-
-			if (oldData != null && oldData != OcclusionRegion.EMPTY_CULL_DATA) {
-				terrainOccluder.invalidate(occluderVersion);
-			}
-
 			renderData.set(regionData);
+			buildCount = BUILD_COUNTER.incrementAndGet();
 
 			// Even if empty the chunk may still be needed for visibility search to progress
 			cwr.forceVisibilityUpdate();
@@ -582,11 +609,6 @@ public class BuiltRenderRegion {
 
 		final TerrainRenderContext context = renderRegionBuilder.mainThreadContext.prepareRegion(region);
 		final RegionData regionData = buildRegionData(context, isNear());
-		final int[] oldData = buildData.getAndSet(regionData).occlusionData;
-
-		if (oldData != null && !Arrays.equals(oldData, regionData.occlusionData)) {
-			terrainOccluder.invalidate(occluderVersion);
-		}
 
 		cwr.forceVisibilityUpdate();
 
@@ -595,6 +617,8 @@ public class BuiltRenderRegion {
 		if (ChunkRebuildCounters.ENABLED) {
 			ChunkRebuildCounters.startUpload();
 		}
+
+		// WIP: don't invalidate occluder if translucent only
 
 		final VertexCollectorList collectors = context.collectors;
 		final UploadableChunk solidUpload = collectors.toUploadableChunk(false);
@@ -609,6 +633,7 @@ public class BuiltRenderRegion {
 		}
 
 		renderData.set(regionData);
+		buildCount = BUILD_COUNTER.incrementAndGet();
 		collectors.clear();
 		region.release();
 	}
