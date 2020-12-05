@@ -16,6 +16,7 @@
 
 package grondag.canvas.terrain;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -105,14 +106,14 @@ public class BuiltRenderRegion {
 	// build count that was in effect last time drawn to occluder
 	private int occlusionBuildCount;
 
-	public BuiltRenderRegion(CanvasWorldRenderer cwr, RegionChunkReference chunkRef, long packedPos) {
+	public BuiltRenderRegion(CanvasWorldRenderer cwr, RenderRegionStorage storage, RegionChunkReference chunkRef, long packedPos) {
 		this.cwr = cwr;
 		renderRegionBuilder = cwr.regionBuilder();
-		storage = cwr.regionStorage();
+		this.storage = storage;
 		chunkReference = chunkRef;
 		chunkReference.retain(this);
-		buildData = new AtomicReference<>(RegionData.EMPTY);
-		renderData = new AtomicReference<>(RegionData.EMPTY);
+		buildData = new AtomicReference<>(RegionData.UNBUILT);
+		renderData = new AtomicReference<>(RegionData.UNBUILT);
 		needsRebuild = true;
 		origin = BlockPos.fromLong(packedPos);
 		isBottom = origin.getY() == 0;
@@ -120,14 +121,11 @@ public class BuiltRenderRegion {
 	}
 
 	public void setOccluderResult(boolean occluderResult, int occluderVersion) {
+		// WIP: remove
+		System.out.println("Setting result " + occluderResult + "  dist=" + squaredChunkDistance + "  version=" + occluderVersion + "  @" + origin.toShortString());
 		this.occluderResult = occluderResult;
 		this.occluderVersion = occluderVersion;
 		occlusionBuildCount = buildCount;
-
-		// WIP: remove
-		if (isMagic) {
-			System.out.println("Set result " + occluderResult + "  version=" + occluderVersion);
-		}
 	}
 
 	public boolean occluderResult() {
@@ -190,17 +188,12 @@ public class BuiltRenderRegion {
 				|| (isInsideRenderDistance && chunkReference.areCornersLoaded());
 	}
 
-	// TODO: remove
-	public boolean isMagic = false;
-
 	/**
 	 * Returns true if inside retentiom distance.
 	 */
 	boolean updateCameraDistance(RenderRegionPruner pruner) {
 		final BlockPos origin = this.origin;
 		final Vec3d cameraPos = cwr.cameraPos();
-
-		isMagic = origin.getX() >> 4 == -11 && origin.getY() >> 4 == 4 && origin.getZ() >> 4 == -14;
 
 		final float dx = (float) (origin.getX() + 8 - cameraPos.x);
 		final float dy = (float) (origin.getY() + 8 - cameraPos.y);
@@ -237,14 +230,23 @@ public class BuiltRenderRegion {
 		//   1) A new chunk has a chunk distance less than the current max drawn (we somehow went backwards towards the camera)
 		//   2) An existing chunk has been reloaded - the buildCounter doesn't match the buildCounter when it was marked existing
 
-		if (occluderVersion == pruner.occluderVersion()) {
-			// Existing - has been drawn in occlusion raster
-			if (buildCount != occlusionBuildCount) {
-				pruner.invalidateOccluder();
-			}
-		} else {
-			// Not yet drawn in occlusion raster
-			if (squaredChunkDistance < pruner.maxSquaredChunkDistance()) {
+		if (buildData.get().canOcclude() && pruner.frustum.isRegionVisible(this)) {
+			if (occluderVersion == pruner.occluderVersion()) {
+				// Existing - has been drawn in occlusion raster
+				if (buildCount != occlusionBuildCount) {
+					// WIP: remove
+					System.out.println("Invalidate - redraw: " + this.origin.toShortString() + "  occluder version:" + occluderVersion);
+					pruner.invalidateOccluder();
+				}
+			} else if (squaredChunkDistance < pruner.maxSquaredChunkDistance()) {
+				// Not yet drawn in current occlusion raster and could be nearer than a chunk that has been
+				// Need to invalidate the occlusion raster if both things are true:
+				//   1) This region isn't empty (empty regions don't matter for culling)
+				//   2) This region is in the view frustum
+
+				// WIP: remove
+				System.out.println("Invalidate - backtrack: " + this.origin.toShortString() + "  occluder max:" + pruner.maxSquaredChunkDistance()
+					+ "  chunk max:" + squaredChunkDistance + "  occluder version:" + pruner.occluderVersion() + "  chunk version:" + occluderVersion);
 				pruner.invalidateOccluder();
 			}
 		}
@@ -275,8 +277,8 @@ public class BuiltRenderRegion {
 			chunkReference.release(this);
 
 			cancel();
-			buildData.set(RegionData.EMPTY);
-			renderData.set(RegionData.EMPTY);
+			buildData.set(RegionData.UNBUILT);
+			renderData.set(RegionData.UNBUILT);
 			needsRebuild = true;
 		}
 	}
@@ -343,6 +345,11 @@ public class BuiltRenderRegion {
 	}
 
 	private void rebuildOnWorkerThread(TerrainRenderContext context) {
+		// WIP: remove
+		if (origin.getX() == -192 && origin.getY() == 80 && origin.getZ() == -224) {
+			System.out.println("rebuildOnWorkerThread");
+		}
+
 		final RegionBuildState runningState = buildState;
 		final ProtoRenderRegion region = runningState.protoRegion.getAndSet(ProtoRenderRegion.IDLE);
 
@@ -354,13 +361,18 @@ public class BuiltRenderRegion {
 			final RegionData chunkData = new RegionData();
 			chunkData.complete(OcclusionRegion.EMPTY_CULL_DATA);
 
-			// Even if empty the chunk may still be needed for visibility search to progress
-			cwr.forceVisibilityUpdate();
+			// don't rebuild occlusion if occlusion did not change
+			final RegionData oldBuildData = buildData.getAndSet(chunkData);
+
+			if (oldBuildData == RegionData.UNBUILT || !Arrays.equals(chunkData.occlusionData, oldBuildData.occlusionData)) {
+				buildCount = BUILD_COUNTER.incrementAndGet();
+
+				// Even if empty the chunk may still be needed for visibility search to progress
+				cwr.forceVisibilityUpdate();
+			}
 
 			renderData.set(chunkData);
 
-			// WIP: do this for empty?
-			buildCount = BUILD_COUNTER.incrementAndGet();
 			return;
 		}
 
@@ -470,7 +482,15 @@ public class BuiltRenderRegion {
 		final RegionData regionData = new RegionData();
 		regionData.complete(context.region.occlusion.build(isNear));
 		handleBlockEntities(regionData, context);
-		buildData.set(regionData);
+
+		// don't rebuild occlusion if occlusion did not change
+		final RegionData oldBuildData = buildData.getAndSet(regionData);
+
+		if (oldBuildData == RegionData.UNBUILT || !Arrays.equals(regionData.occlusionData, oldBuildData.occlusionData)) {
+			buildCount = BUILD_COUNTER.incrementAndGet();
+			cwr.forceVisibilityUpdate();
+		}
+
 		return regionData;
 	}
 
@@ -595,22 +615,33 @@ public class BuiltRenderRegion {
 	public void rebuildOnMainThread() {
 		final ProtoRenderRegion region = ProtoRenderRegion.claim(cwr.getWorld(), origin);
 
+		// WIP: remove
+		if (origin.getX() == -192 && origin.getY() == 80 && origin.getZ() == -224) {
+			System.out.println("rebuildOnWorkerThread");
+		}
+
 		if (region == ProtoRenderRegion.EMPTY) {
 			final RegionData regionData = new RegionData();
 			regionData.complete(OcclusionRegion.EMPTY_CULL_DATA);
-			renderData.set(regionData);
-			buildCount = BUILD_COUNTER.incrementAndGet();
 
-			// Even if empty the chunk may still be needed for visibility search to progress
-			cwr.forceVisibilityUpdate();
+			// don't rebuild occlusion if occlusion did not change
+			final RegionData oldBuildData = buildData.getAndSet(regionData);
+
+			if (oldBuildData == RegionData.UNBUILT || !Arrays.equals(regionData.occlusionData, oldBuildData.occlusionData)) {
+				buildCount = BUILD_COUNTER.incrementAndGet();
+
+				// Even if empty the chunk may still be needed for visibility search to progress
+				cwr.forceVisibilityUpdate();
+			}
+
+			// but do use the new data with potentially new entity map
+			renderData.set(regionData);
 
 			return;
 		}
 
 		final TerrainRenderContext context = renderRegionBuilder.mainThreadContext.prepareRegion(region);
 		final RegionData regionData = buildRegionData(context, isNear());
-
-		cwr.forceVisibilityUpdate();
 
 		buildTerrain(context, regionData);
 
@@ -632,8 +663,14 @@ public class BuiltRenderRegion {
 			ChunkRebuildCounters.completeUpload();
 		}
 
+		// don't rebuild occlusion if occlusion did not change
+		final RegionData oldRenderData = renderData.get();
+
+		if (oldRenderData == RegionData.UNBUILT || !Arrays.equals(regionData.occlusionData, oldRenderData.occlusionData)) {
+			buildCount = BUILD_COUNTER.incrementAndGet();
+		}
+
 		renderData.set(regionData);
-		buildCount = BUILD_COUNTER.incrementAndGet();
 		collectors.clear();
 		region.release();
 	}

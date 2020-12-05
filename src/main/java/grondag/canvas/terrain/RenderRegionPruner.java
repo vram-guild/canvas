@@ -20,6 +20,7 @@ import java.util.function.Predicate;
 
 import net.minecraft.util.math.BlockPos;
 
+import grondag.canvas.render.CanvasFrustum;
 import grondag.canvas.terrain.occlusion.TerrainOccluder;
 
 public class RenderRegionPruner implements Predicate<BuiltRenderRegion> {
@@ -29,8 +30,15 @@ public class RenderRegionPruner implements Predicate<BuiltRenderRegion> {
 	private int cameraChunkY;
 	private int cameraChunkZ;
 	private int maxSquaredChunkDistance;
+	public final CanvasFrustum frustum;
+	public final TerrainOccluder occluder;
 
-	public void prepare(TerrainOccluder occluder, long cameraChunkOrigin) {
+	public RenderRegionPruner(TerrainOccluder occluder) {
+		this.occluder = occluder;
+		frustum = occluder.frustum;
+	}
+
+	public void prepare(final long cameraChunkOrigin) {
 		invalidateOccluder = false;
 		cameraChunkX = BlockPos.unpackLongX(cameraChunkOrigin) >> 4;
 		cameraChunkY = BlockPos.unpackLongY(cameraChunkOrigin) >> 4;

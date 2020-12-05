@@ -24,10 +24,9 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 
 import grondag.canvas.render.CanvasWorldRenderer;
-import grondag.canvas.terrain.occlusion.TerrainOccluder;
 
 public class RenderRegionStorage {
-	public final RenderRegionPruner regionPruner = new RenderRegionPruner();
+	public final RenderRegionPruner regionPruner;
 
 	private static final Predicate<RegionChunkReference> CHUNK_REF_PRUNER = RegionChunkReference::isEmpty;
 	// Hat tip to JellySquid for the suggestion of using a hashmap
@@ -37,8 +36,9 @@ public class RenderRegionStorage {
 	});
 	private final CanvasWorldRenderer cwr;
 
-	public RenderRegionStorage(CanvasWorldRenderer cwr) {
+	public RenderRegionStorage(CanvasWorldRenderer cwr, RenderRegionPruner regionPruner) {
 		this.cwr = cwr;
+		this.regionPruner = regionPruner;
 	}
 
 	private RegionChunkReference chunkRef(long packedOriginPos) {
@@ -61,18 +61,18 @@ public class RenderRegionStorage {
 		}
 	}
 
-	public void updateCameraDistance(long cameraChunkOrigin, TerrainOccluder occluder) {
+	public void updateCameraDistance(long cameraChunkOrigin) {
 		// WIP: do we need some way to avoid running each time?
 		//		if (this.cameraChunkOrigin == cameraChunkOrigin) {
 		//			return;
 		//		}
 
-		regionPruner.prepare(occluder, cameraChunkOrigin);
+		regionPruner.prepare(cameraChunkOrigin);
 		regionMap.prune(regionPruner);
 		chunkRefMap.prune(CHUNK_REF_PRUNER);
 
 		if (regionPruner.didInvalidateOccluder()) {
-			occluder.invalidate();
+			regionPruner.occluder.invalidate();
 		}
 	}
 
@@ -82,7 +82,7 @@ public class RenderRegionStorage {
 
 	private BuiltRenderRegion getOrCreateRegion(long packedOriginPos) {
 		return regionMap.computeIfAbsent(packedOriginPos, k -> {
-			final BuiltRenderRegion result = new BuiltRenderRegion(cwr, chunkRef(k), k);
+			final BuiltRenderRegion result = new BuiltRenderRegion(cwr, this, chunkRef(k), k);
 			// WIP: how to handle creation off thread?  Probably have to exclude these from iteration.
 			//			result.updateCameraDistance();
 			return result;

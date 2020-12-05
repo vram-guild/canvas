@@ -34,7 +34,6 @@ import grondag.canvas.terrain.BuiltRenderRegion;
 import grondag.canvas.terrain.RegionData;
 import grondag.canvas.terrain.RenderRegionStorage;
 import grondag.canvas.terrain.occlusion.region.OcclusionRegion;
-import grondag.canvas.terrain.occlusion.region.PackedBox;
 import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
 import grondag.fermion.varia.Useful;
 
@@ -45,9 +44,8 @@ public class TerrainIterator implements Consumer<TerrainRenderContext> {
 	public static final int COMPLETE = 3;
 	public final SimpleUnorderedArrayList<BuiltRenderRegion> updateRegions = new SimpleUnorderedArrayList<>();
 	public final BuiltRenderRegion[] visibleRegions = new BuiltRenderRegion[CanvasWorldRenderer.MAX_REGION_COUNT];
-	private final CanvasFrustum frustum = new CanvasFrustum();
 	private final RenderRegionStorage renderRegionStorage;
-	private final TerrainOccluder terrainOccluder;
+	public final TerrainOccluder terrainOccluder;
 	private final AtomicInteger state = new AtomicInteger(IDLE);
 	private final TerrainDistanceSorter distanceSorter = new TerrainDistanceSorter();
 	public volatile int visibleRegionCount;
@@ -58,9 +56,9 @@ public class TerrainIterator implements Consumer<TerrainRenderContext> {
 	private boolean chunkCullingEnabled = true;
 	private volatile boolean cancelled = false;
 
-	public TerrainIterator(CanvasWorldRenderer cwr) {
-		renderRegionStorage = cwr.regionStorage();
-		terrainOccluder = cwr.terrainOccluder;
+	public TerrainIterator(RenderRegionStorage renderRegionStorage, TerrainOccluder terrainOccluder) {
+		this.renderRegionStorage = renderRegionStorage;
+		this.terrainOccluder = terrainOccluder;
 	}
 
 	public void prepare(@Nullable BuiltRenderRegion cameraRegion, Camera camera, CanvasFrustum frustum, int renderDistance, boolean chunkCullingEnabled) {
@@ -69,7 +67,7 @@ public class TerrainIterator implements Consumer<TerrainRenderContext> {
 		cameraPos = camera.getPos();
 		final BlockPos cameraBlockPos = camera.getBlockPos();
 		cameraChunkOrigin = BlockPos.asLong(cameraBlockPos.getX() & 0xFFFFFFF0, cameraBlockPos.getY() & 0xFFFFFFF0, cameraBlockPos.getZ() & 0xFFFFFFF0);
-		this.frustum.copy(frustum);
+		terrainOccluder.frustum.copy(frustum);
 		this.renderDistance = renderDistance;
 		this.chunkCullingEnabled = chunkCullingEnabled;
 
@@ -96,7 +94,7 @@ public class TerrainIterator implements Consumer<TerrainRenderContext> {
 
 		final boolean chunkCullingEnabled = this.chunkCullingEnabled;
 		final int renderDistance = this.renderDistance;
-		final CanvasFrustum frustum = this.frustum;
+		final CanvasFrustum frustum = terrainOccluder.frustum;
 		final RenderRegionStorage regionStorage = renderRegionStorage;
 		final BuiltRenderRegion[] visibleRegions = this.visibleRegions;
 		final TerrainDistanceSorter distanceSorter = this.distanceSorter;
@@ -105,26 +103,12 @@ public class TerrainIterator implements Consumer<TerrainRenderContext> {
 		distanceSorter.clear();
 		BuiltRenderRegion.advanceFrameIndex();
 
-		renderRegionStorage.updateCameraDistance(cameraChunkOrigin, terrainOccluder);
-		final boolean redrawOccluder = terrainOccluder.prepareScene(cameraPos, frustum);
+		renderRegionStorage.updateCameraDistance(cameraChunkOrigin);
+		final boolean redrawOccluder = terrainOccluder.prepareScene(cameraPos);
 		final int occluderVersion = terrainOccluder.version();
 
-		if (magicVersion != terrainOccluder.version()) {
-			magicVersion = terrainOccluder.version();
-			System.out.println("NEW OCCLUDER VERSION: " + magicVersion);
-			CanvasWorldRenderer.doMagicA = true;
-			CanvasWorldRenderer.doMagicB = true;
-			CanvasWorldRenderer.doMagicC = true;
-		}
-
-		// WIP: removve
-		int drawSequence = 0;
-		int iterationNo = -1;
-
-		if (CanvasWorldRenderer.doFirstSnapshot) {
-			//terrainOccluder.outputRaster("snapshot_" + magicVersion + ".png", true);
-			CanvasWorldRenderer.doFirstSnapshot = false;
-		}
+		// WIP: remove
+		System.out.println("REDRAW: " + redrawOccluder);
 
 		if (cameraRegion == null) {
 			// prime visible when above or below world and camera region is null
@@ -142,8 +126,8 @@ public class TerrainIterator implements Consumer<TerrainRenderContext> {
 				}
 			}
 		} else {
-			final RegionData regionData = cameraRegion.getBuildData();
-			final int[] visData = regionData.getOcclusionData();
+			final RegionData regionBuildData = cameraRegion.getBuildData();
+			final int[] visData = regionBuildData.getOcclusionData();
 
 			if (visData != OcclusionRegion.EMPTY_CULL_DATA && visData != null) {
 				visibleRegions[visibleRegionCount++] = cameraRegion;
@@ -151,9 +135,6 @@ public class TerrainIterator implements Consumer<TerrainRenderContext> {
 				if (redrawOccluder || cameraRegion.occluderVersion() != occluderVersion) {
 					terrainOccluder.prepareRegion(cameraRegion.getOrigin(), cameraRegion.occlusionRange, cameraRegion.squaredChunkDistance());
 					terrainOccluder.occlude(visData);
-
-					++iterationNo;
-					++drawSequence;
 				}
 			}
 
@@ -163,50 +144,50 @@ public class TerrainIterator implements Consumer<TerrainRenderContext> {
 
 		// PERF: look for ways to improve branch prediction
 		while (!cancelled) {
-			++iterationNo;
 			final BuiltRenderRegion builtRegion = distanceSorter.next();
 
 			if (builtRegion == null) {
 				break;
 			}
 
+			// WIP: remove
+			//			if (builtRegion.getOrigin().getX() == -192 && builtRegion.getOrigin().getY() == 80 && builtRegion.getOrigin().getZ() == -224) {
+			//				System.out.println("boop");
+			//			}
+
 			// don't visit if not in frustum
 			if (!builtRegion.isInFrustum(frustum)) {
-				if (builtRegion.isMagic) {
-					System.out.println("BADNESS: FRUSTUM");
-				}
-
 				continue;
 			}
 
 			// don't visit if region is outside near distance and doesn't have all 4 neighbors loaded
 			// also checks for outside of render distance
 			if (!builtRegion.shouldBuild()) {
-				if (builtRegion.isMagic) {
-					System.out.println("BADNESS: SHOULD BUILD");
-				}
-
 				continue;
 			}
 
+			// Use build data for visibility - render data lags in availability and should only be used for rendering
 			final RegionData regionData = builtRegion.getBuildData();
 			final int[] visData = regionData.getOcclusionData();
 
-			if (visData == null) {
+			// If never built then don't do anything with it
+			if (regionData == RegionData.UNBUILT) {
 				updateRegions.add(builtRegion);
 				continue;
 			}
 
+			// WIP: remove
+			//			if (builtRegion.getOrigin().getX() == -192 && builtRegion.getOrigin().getY() == 80 && builtRegion.getOrigin().getZ() == -224) {
+			//				System.out.println("anti-boop");
+			//			}
+
+			// If get to here has been built - if needs rebuilt we can use existing data this frame
 			if (builtRegion.needsRebuild()) {
 				updateRegions.add(builtRegion);
 			}
 
 			// for empty regions, check neighbors if visible but don't add to visible set
-			if (visData == OcclusionRegion.EMPTY_CULL_DATA) {
-				if (builtRegion.isMagic) {
-					System.out.println("BADNESS: EMPTY");
-				}
-
+			if (!regionData.canOcclude()) {
 				if (Configurator.cullEntityRender) {
 					if (builtRegion.occluderVersion() == occluderVersion) {
 						// reuse prior test results
@@ -227,23 +208,13 @@ public class TerrainIterator implements Consumer<TerrainRenderContext> {
 				}
 
 				continue;
-			} else if (builtRegion.isMagic && CanvasWorldRenderer.doMagicA) {
-				CanvasWorldRenderer.doMagicA = false;
-				System.out.println("Magic Box: " + PackedBox.toString(visData[OcclusionRegion.CULL_DATA_REGION_BOUNDS]));
-				System.out.println("Magic Origin: " + builtRegion.getOrigin().toShortString() + "      Range: " + builtRegion.occlusionRange);
 			}
 
 			if (!chunkCullingEnabled || builtRegion.isNear()) {
 				builtRegion.enqueueUnvistedNeighbors(distanceSorter);
 				visibleRegions[visibleRegionCount++] = builtRegion;
 
-				if (builtRegion.isMagic && CanvasWorldRenderer.doMagicC) {
-					System.out.println("GOODNESS: NEAR");
-					CanvasWorldRenderer.doMagicC = false;
-				}
-
 				if (redrawOccluder || builtRegion.occluderVersion() != occluderVersion) {
-					++drawSequence;
 					terrainOccluder.prepareRegion(builtRegion.getOrigin(), builtRegion.occlusionRange, builtRegion.squaredChunkDistance());
 					terrainOccluder.occlude(visData);
 				}
@@ -257,48 +228,22 @@ public class TerrainIterator implements Consumer<TerrainRenderContext> {
 
 					// will already have been drawn if occluder view version hasn't changed
 					if (redrawOccluder) {
-						++drawSequence;
 						terrainOccluder.prepareRegion(builtRegion.getOrigin(), builtRegion.occlusionRange, builtRegion.squaredChunkDistance());
 						terrainOccluder.occlude(visData);
 					}
-
-					if (builtRegion.isMagic && CanvasWorldRenderer.doMagicC) {
-						System.out.println("GOODNESS: REUSE");
-						CanvasWorldRenderer.doMagicC = false;
-					}
-				} else if (builtRegion.isMagic) {
-					System.out.println("BADNESS: OLD TEST");
 				}
 			} else {
 				terrainOccluder.prepareRegion(builtRegion.getOrigin(), builtRegion.occlusionRange, builtRegion.squaredChunkDistance());
-
-				if (builtRegion.isMagic && CanvasWorldRenderer.doMagicB) {
-					CanvasWorldRenderer.doMagicB = false;
-					System.out.println("OccluderState - itNo:" + iterationNo + "  drawSequence:" + drawSequence + "  " + terrainOccluder.toString());
-					System.out.println("Region occluder version:" + builtRegion.occluderVersion());
-					//terrainOccluder.outputRaster("magic_raster_" + magicVersion + ".png", true);
-				}
 
 				if (terrainOccluder.isBoxVisible(visData[OcclusionRegion.CULL_DATA_REGION_BOUNDS])) {
 					builtRegion.enqueueUnvistedNeighbors(distanceSorter);
 					visibleRegions[visibleRegionCount++] = builtRegion;
 					builtRegion.setOccluderResult(true, occluderVersion);
 
-					++drawSequence;
 					// these must always be drawn - will be additive if view hasn't changed
 					terrainOccluder.occlude(visData);
-
-					if (builtRegion.isMagic && CanvasWorldRenderer.doMagicC) {
-						CanvasWorldRenderer.doMagicC = false;
-						System.out.println("GOODNESS: TEST SUCCESS");
-					}
 				} else {
 					builtRegion.setOccluderResult(false, occluderVersion);
-
-					if (builtRegion.isMagic && CanvasWorldRenderer.doMagicC) {
-						CanvasWorldRenderer.doMagicC = false;
-						System.out.println("BADNESS: TEST FAILED");
-					}
 				}
 			}
 		}

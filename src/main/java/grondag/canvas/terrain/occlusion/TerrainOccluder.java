@@ -55,7 +55,7 @@ public class TerrainOccluder {
 	private final Matrix4L baseMvpMatrix = new Matrix4L();
 
 	private final Rasterizer raster = new Rasterizer();
-	private int occluderVersion;
+	private int occluderVersion = 1;
 	private final BoxTest[] boxTests = new BoxTest[128];
 	private final BoxDraw[] boxDraws = new BoxDraw[128];
 	private long viewX;
@@ -71,6 +71,8 @@ public class TerrainOccluder {
 	private volatile boolean forceRedraw = false;
 	private boolean needsRedraw = false;
 	private int maxSquaredChunkDistance;
+
+	public final CanvasFrustum frustum = new CanvasFrustum();
 
 	@Override
 	public String toString() {
@@ -670,9 +672,13 @@ public class TerrainOccluder {
 		forceRedraw = true;
 	}
 
+	// WIP: remove
+	private final BlockPos.Mutable origin = new BlockPos.Mutable();
+
 	public void prepareRegion(BlockPos origin, int occlusionRange, int squaredChunkDistance) {
 		this.occlusionRange = occlusionRange;
 		regionSquaredChunkDist = squaredChunkDistance;
+		this.origin.set(origin);
 
 		// PERF: could perhaps reuse CameraRelativeCenter values in BuildRenderRegion that are used by Frustum
 		offsetX = (int) ((origin.getX() << CAMERA_PRECISION_BITS) - viewX);
@@ -725,7 +731,7 @@ public class TerrainOccluder {
 	 * Check if needs redrawn and prep for redraw if so.
 	 * When false, regions should be drawn only if their occluder version is not current.
 	 */
-	public boolean prepareScene(Vec3d cameraPos, CanvasFrustum frustum) {
+	public boolean prepareScene(Vec3d cameraPos) {
 		final int viewVersion = frustum.viewVersion();
 
 		if (this.viewVersion != viewVersion) {
@@ -749,7 +755,12 @@ public class TerrainOccluder {
 
 		if (forceRedraw || this.viewVersion != viewVersion) {
 			// WIP: remove
-			System.out.println("occluder redrawing, forceRedraw = " + forceRedraw);
+			if (forceRedraw) {
+				System.out.println("occluder redrawing due to force redraw");
+			} else {
+				System.out.println("occluder redrawing due to view change");
+			}
+
 			this.viewVersion = viewVersion;
 			System.arraycopy(EMPTY_BITS, 0, raster.tiles, 0, TILE_COUNT);
 			forceRedraw = false;
@@ -871,11 +882,14 @@ public class TerrainOccluder {
 			}
 
 			if (updateDist) {
-				// WIP: remove
-				// System.out.println(regionSquaredChunkDist);
-				assert regionSquaredChunkDist >= maxSquaredChunkDistance : "Occluder went backwards in chunkdistance.";
+				// WIP: remove or toggle or 1X
+				if (regionSquaredChunkDist < maxSquaredChunkDistance) {
+					CanvasMod.LOG.warn("Terrain Occluder went backwards in chunkdistance @" + origin.toShortString());
+				}
 
 				if (maxSquaredChunkDistance < regionSquaredChunkDist) {
+					// WIP: remove
+					System.out.println("Occluder advancing to dist " + regionSquaredChunkDist);
 					maxSquaredChunkDistance = regionSquaredChunkDist;
 				}
 			}

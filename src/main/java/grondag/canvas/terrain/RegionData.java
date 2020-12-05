@@ -29,13 +29,15 @@ import net.fabricmc.api.Environment;
 import grondag.canvas.buffer.encoding.VertexCollectorImpl;
 import grondag.canvas.buffer.encoding.VertexCollectorList;
 import grondag.canvas.material.state.RenderLayerHelper;
+import grondag.canvas.terrain.occlusion.region.OcclusionRegion;
 
 @Environment(EnvType.CLIENT)
 public class RegionData {
-	public static final RegionData EMPTY = new RegionData();
+	/** value for new regions that never been built or have been built and then closed. */
+	public static final RegionData UNBUILT = new RegionData();
 
 	final ObjectArrayList<BlockEntity> blockEntities = new ObjectArrayList<>();
-	int[] occlusionData = null;
+	int[] occlusionData = OcclusionRegion.EMPTY_CULL_DATA;
 
 	@Nullable
 	int[] translucentState;
@@ -59,5 +61,9 @@ public class RegionData {
 
 	public void complete(int[] occlusionData) {
 		this.occlusionData = occlusionData;
+	}
+
+	public boolean canOcclude() {
+		return occlusionData != OcclusionRegion.EMPTY_CULL_DATA;
 	}
 }

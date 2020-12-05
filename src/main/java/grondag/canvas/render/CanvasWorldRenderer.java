@@ -96,6 +96,7 @@ import grondag.canvas.mixinterface.WorldRendererExt;
 import grondag.canvas.shader.MaterialShaderManager;
 import grondag.canvas.terrain.BuiltRenderRegion;
 import grondag.canvas.terrain.RenderRegionBuilder;
+import grondag.canvas.terrain.RenderRegionPruner;
 import grondag.canvas.terrain.RenderRegionStorage;
 import grondag.canvas.terrain.occlusion.TerrainIterator;
 import grondag.canvas.terrain.occlusion.TerrainOccluder;
@@ -112,12 +113,13 @@ import grondag.frex.impl.event.WorldRenderContextImpl;
 public class CanvasWorldRenderer extends WorldRenderer {
 	public static final int MAX_REGION_COUNT = (32 * 2 + 1) * (32 * 2 + 1) * 16;
 	private static CanvasWorldRenderer instance;
-	public final TerrainOccluder terrainOccluder = new TerrainOccluder();
 	// TODO: redirect uses in MC WorldRenderer
 	public final Set<BuiltRenderRegion> regionsToRebuild = Sets.newLinkedHashSet();
 	final TerrainLayerRenderer SOLID = new TerrainLayerRenderer("solid", null);
-	private final RenderRegionStorage renderRegionStorage = new RenderRegionStorage(this);
-	private final TerrainIterator terrainIterator = new TerrainIterator(this);
+	private final TerrainOccluder terrainOccluder = new TerrainOccluder();
+	private final RenderRegionPruner pruner = new RenderRegionPruner(terrainOccluder);
+	private final RenderRegionStorage renderRegionStorage = new RenderRegionStorage(this, pruner);
+	private final TerrainIterator terrainIterator = new TerrainIterator(renderRegionStorage, terrainOccluder);
 	private final CanvasFrustum frustum = new CanvasFrustum();
 	/**
 	 * Incremented whenever regions are built so visibility search can progress or to indicate visibility might be changed.
@@ -205,9 +207,9 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		return regionBuilder;
 	}
 
-	public RenderRegionStorage regionStorage() {
-		return renderRegionStorage;
-	}
+	//	public RenderRegionStorage regionStorage() {
+	//		return renderRegionStorage;
+	//	}
 
 	public ClientWorld getWorld() {
 		return world;
@@ -333,6 +335,11 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		for (int i = 0; i < limit; ++i) {
 			final BuiltRenderRegion region = updateRegions.get(i);
+
+			// WIP: remove
+			if (region.getOrigin().getX() == -192 && region.getOrigin().getY() == 80 && region.getOrigin().getZ() == -224) {
+				System.out.println("update");
+			}
 
 			if (region.needsRebuild()) {
 				if (region.needsImportantRebuild() || region.isNear()) {
@@ -1119,7 +1126,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	}
 
 	public void scheduleRegionRender(int x, int y, int z, boolean urgent) {
-		regionStorage().scheduleRebuild(x << 4, y << 4, z << 4, urgent);
+		renderRegionStorage.scheduleRebuild(x << 4, y << 4, z << 4, urgent);
 		forceVisibilityUpdate();
 	}
 
@@ -1132,18 +1139,13 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		WorldRenderEvents.END.invoker().onEnd(eventContext);
 	}
 
-	// WIP: remove
-	public static boolean doFirstSnapshot = true;
-	public static boolean doMagicA = true;
-	public static boolean doMagicB = true;
-	public static boolean doMagicC = true;
-
 	@Override
 	public void reload() {
 		super.reload();
 
 		computeDistances();
 		terrainIterator.reset();
+		terrainOccluder.invalidate();
 		terrainSetupOffThread = Configurator.terrainSetupOffThread;
 		regionsToRebuild.clear();
 
@@ -1155,15 +1157,10 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		// WIP: remove
 		System.out.println("Invalidating occluder");
-		terrainOccluder.invalidate();
 		visibleRegionCount = 0;
 		frustum.reload();
 
 		//ClassInspector.inspect();
-		doFirstSnapshot = true;
-		doMagicA = true;
-		doMagicB = true;
-		doMagicC = true;
 	}
 
 	@Override
@@ -1191,7 +1188,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	@Override
 	@SuppressWarnings("resource")
 	public String getChunksDebugString() {
-		final int len = regionStorage().regionCount();
+		final int len = renderRegionStorage.regionCount();
 		final int count = getCompletedChunkCount();
 		final RenderRegionBuilder chunkBuilder = regionBuilder();
 		return String.format("C: %d/%d %sD: %d, %s", count, len, wr.canvas_mc().chunkCullingEnabled ? "(s) " : "", wr.canvas_renderDistance(), chunkBuilder == null ? "null" : chunkBuilder.getDebugString());
