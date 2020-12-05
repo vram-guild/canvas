@@ -338,11 +338,6 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		for (int i = 0; i < limit; ++i) {
 			final BuiltRenderRegion region = updateRegions.get(i);
 
-			// WIP: remove
-			if (region.getOrigin().getX() == -192 && region.getOrigin().getY() == 80 && region.getOrigin().getZ() == -224) {
-				System.out.println("update");
-			}
-
 			if (region.needsRebuild()) {
 				if (region.needsImportantRebuild() || region.isNear()) {
 					regionsToRebuild.remove(region);
@@ -1156,8 +1151,6 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		renderRegionStorage.clear();
 
-		// WIP: remove
-		System.out.println("Invalidating occluder");
 		visibleRegionCount = 0;
 		frustum.reload();
 

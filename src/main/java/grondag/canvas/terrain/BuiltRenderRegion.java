@@ -48,6 +48,7 @@ import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
 import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 
+import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
 import grondag.canvas.apiimpl.util.FaceConstants;
@@ -59,6 +60,7 @@ import grondag.canvas.perf.ChunkRebuildCounters;
 import grondag.canvas.render.CanvasFrustum;
 import grondag.canvas.render.CanvasWorldRenderer;
 import grondag.canvas.terrain.occlusion.TerrainDistanceSorter;
+import grondag.canvas.terrain.occlusion.TerrainIterator;
 import grondag.canvas.terrain.occlusion.region.OcclusionRegion;
 import grondag.canvas.terrain.occlusion.region.PackedBox;
 import grondag.canvas.terrain.render.DrawableChunk;
@@ -122,9 +124,11 @@ public class BuiltRenderRegion {
 		if (this.occluderVersion == occluderVersion) {
 			assert occluderResult == this.occluderResult;
 		} else {
-			// WIP: remove
-			final String prefix = buildData.get().canOcclude() ? "Occluding result " : "Empty result ";
-			System.out.println(prefix + occluderResult + "  dist=" + squaredChunkDistance + "  buildCounter=" + buildCount + "  occluderVersion=" + occluderVersion + "  @" + origin.toShortString());
+			if (TerrainIterator.TRACE_OCCLUSION_OUTCOMES) {
+				final String prefix = buildData.get().canOcclude() ? "Occluding result " : "Empty result ";
+				CanvasMod.LOG.info(prefix + occluderResult + "  dist=" + squaredChunkDistance + "  buildCounter=" + buildCount + "  occluderVersion=" + occluderVersion + "  @" + origin.toShortString());
+			}
+
 			this.occluderResult = occluderResult;
 			this.occluderVersion = occluderVersion;
 			occlusionBuildCount = buildCount;
@@ -192,9 +196,10 @@ public class BuiltRenderRegion {
 	}
 
 	/**
-	 * Returns true if inside retentiom distance.
+	 * Returns true if could be visible.
 	 */
-	boolean updateCameraDistance(RenderRegionPruner pruner) {
+	boolean updateCameraDistanceAndVisibilityInfo(RenderRegionPruner pruner) {
+		// WIP: avoid these if camera origin hasn't changed
 		final BlockPos origin = this.origin;
 		final Vec3d cameraPos = cwr.cameraPos();
 
@@ -222,7 +227,7 @@ public class BuiltRenderRegion {
 
 		squaredChunkDistance = cx * cx + cy * cy + cz * cz;
 
-		// WIP
+		// WIP - clean up docs
 		// We check here to know if the occlusion raster must be redrawn.
 		//
 		// The check depends on classifying this region as one of:
@@ -237,8 +242,10 @@ public class BuiltRenderRegion {
 			if (occluderVersion == pruner.occluderVersion()) {
 				// Existing - has been drawn in occlusion raster
 				if (buildCount != occlusionBuildCount) {
-					// WIP: remove
-					System.out.println("Invalidate - redraw: " + this.origin.toShortString() + "  occluder version:" + occluderVersion);
+					if (TerrainIterator.TRACE_OCCLUSION_OUTCOMES) {
+						CanvasMod.LOG.info("Invalidate - redraw: " + this.origin.toShortString() + "  occluder version:" + occluderVersion);
+					}
+
 					pruner.invalidateOccluder();
 				}
 			} else if (squaredChunkDistance < pruner.maxSquaredChunkDistance()) {
@@ -247,9 +254,11 @@ public class BuiltRenderRegion {
 				//   1) This region isn't empty (empty regions don't matter for culling)
 				//   2) This region is in the view frustum
 
-				// WIP: remove
-				System.out.println("Invalidate - backtrack: " + this.origin.toShortString() + "  occluder max:" + pruner.maxSquaredChunkDistance()
-					+ "  chunk max:" + squaredChunkDistance + "  occluder version:" + pruner.occluderVersion() + "  chunk version:" + occluderVersion);
+				if (TerrainIterator.TRACE_OCCLUSION_OUTCOMES) {
+					CanvasMod.LOG.info("Invalidate - backtrack: " + this.origin.toShortString() + "  occluder max:" + pruner.maxSquaredChunkDistance()
+						+ "  chunk max:" + squaredChunkDistance + "  occluder version:" + pruner.occluderVersion() + "  chunk version:" + occluderVersion);
+				}
+
 				pruner.invalidateOccluder();
 			}
 		}
@@ -347,11 +356,6 @@ public class BuiltRenderRegion {
 	}
 
 	private void rebuildOnWorkerThread(TerrainRenderContext context) {
-		// WIP: remove
-		if (origin.getX() == -192 && origin.getY() == 80 && origin.getZ() == -224) {
-			System.out.println("rebuildOnWorkerThread");
-		}
-
 		final RegionBuildState runningState = buildState;
 		final ProtoRenderRegion region = runningState.protoRegion.getAndSet(ProtoRenderRegion.IDLE);
 
@@ -367,9 +371,13 @@ public class BuiltRenderRegion {
 			final RegionData oldBuildData = buildData.getAndSet(chunkData);
 
 			if (oldBuildData == RegionData.UNBUILT || !Arrays.equals(chunkData.occlusionData, oldBuildData.occlusionData)) {
-				final int oldCounter = buildCount;
-				buildCount = BUILD_COUNTER.incrementAndGet();
-				System.out.println("Updating build counter from " + oldCounter + " to " + buildCount + " @" + origin.toShortString() + "  (WT empty)");
+				if (TerrainIterator.TRACE_OCCLUSION_OUTCOMES) {
+					final int oldCounter = buildCount;
+					buildCount = BUILD_COUNTER.incrementAndGet();
+					CanvasMod.LOG.info("Updating build counter from " + oldCounter + " to " + buildCount + " @" + origin.toShortString() + "  (WT empty)");
+				} else {
+					buildCount = BUILD_COUNTER.incrementAndGet();
+				}
 
 				// Even if empty the chunk may still be needed for visibility search to progress
 				cwr.forceVisibilityUpdate();
@@ -482,10 +490,14 @@ public class BuiltRenderRegion {
 		final RegionData oldBuildData = buildData.getAndSet(regionData);
 
 		if (oldBuildData == RegionData.UNBUILT || !Arrays.equals(regionData.occlusionData, oldBuildData.occlusionData)) {
-			//WIP: remove
-			final int oldCounter = buildCount;
-			buildCount = BUILD_COUNTER.incrementAndGet();
-			System.out.println("Updating build counter from " + oldCounter + " to " + buildCount + " @" + origin.toShortString());
+			if (TerrainIterator.TRACE_OCCLUSION_OUTCOMES) {
+				final int oldCounter = buildCount;
+				buildCount = BUILD_COUNTER.incrementAndGet();
+				CanvasMod.LOG.info("Updating build counter from " + oldCounter + " to " + buildCount + " @" + origin.toShortString());
+			} else {
+				buildCount = BUILD_COUNTER.incrementAndGet();
+			}
+
 			cwr.forceVisibilityUpdate();
 		}
 
@@ -613,11 +625,6 @@ public class BuiltRenderRegion {
 	public void rebuildOnMainThread() {
 		final ProtoRenderRegion region = ProtoRenderRegion.claim(cwr.getWorld(), origin);
 
-		// WIP: remove
-		if (origin.getX() == -192 && origin.getY() == 80 && origin.getZ() == -224) {
-			System.out.println("rebuildOnWorkerThread");
-		}
-
 		if (region == ProtoRenderRegion.EMPTY) {
 			final RegionData regionData = new RegionData();
 			regionData.complete(OcclusionRegion.EMPTY_CULL_DATA);
@@ -626,10 +633,13 @@ public class BuiltRenderRegion {
 			final RegionData oldBuildData = buildData.getAndSet(regionData);
 
 			if (oldBuildData == RegionData.UNBUILT || !Arrays.equals(regionData.occlusionData, oldBuildData.occlusionData)) {
-				// WIP: remove
-				final int oldCounter = buildCount;
-				buildCount = BUILD_COUNTER.incrementAndGet();
-				System.out.println("Updating build counter from " + oldCounter + " to " + buildCount + " @" + origin.toShortString() + "  (MTR empty)");
+				if (TerrainIterator.TRACE_OCCLUSION_OUTCOMES) {
+					final int oldCounter = buildCount;
+					buildCount = BUILD_COUNTER.incrementAndGet();
+					CanvasMod.LOG.info("Updating build counter from " + oldCounter + " to " + buildCount + " @" + origin.toShortString() + "  (MTR empty)");
+				} else {
+					buildCount = BUILD_COUNTER.incrementAndGet();
+				}
 
 				// Even if empty the chunk may still be needed for visibility search to progress
 				cwr.forceVisibilityUpdate();
@@ -646,8 +656,6 @@ public class BuiltRenderRegion {
 		if (ChunkRebuildCounters.ENABLED) {
 			ChunkRebuildCounters.startUpload();
 		}
-
-		// WIP: don't invalidate occluder if translucent only
 
 		final VertexCollectorList collectors = context.collectors;
 		final UploadableChunk solidUpload = collectors.toUploadableChunk(false);

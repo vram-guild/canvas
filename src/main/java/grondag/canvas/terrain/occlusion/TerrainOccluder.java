@@ -74,6 +74,8 @@ public class TerrainOccluder {
 
 	public final CanvasFrustum frustum = new CanvasFrustum();
 
+	private final BlockPos.Mutable originForTracing = new BlockPos.Mutable();
+
 	@Override
 	public String toString() {
 		return String.format("OccluderVersion:%d  viewX:%d  viewY:%d  viewZ:%d  offsetX:%d  offsetY:%d  offsetZ:%d viewVersion:%d  regionVersion:%d  forceRedraw:%b  needsRedraw:%b  matrix:%s",
@@ -656,7 +658,6 @@ public class TerrainOccluder {
 		needsRedraw = source.needsRedraw;
 	}
 
-	// WIP: remove?
 	/**
 	 * Previously tested regions can reuse test results if their version matches.
 	 * However, they must still be drawn (if visible) if indicated by {@link #clearSceneIfNeeded(int, int)}.
@@ -669,16 +670,20 @@ public class TerrainOccluder {
 	 * Force update to new version.
 	 */
 	public void invalidate() {
+		if (TerrainIterator.TRACE_OCCLUSION_OUTCOMES) {
+			CanvasMod.LOG.info("Invalidating terrain occluder");
+		}
+
 		forceRedraw = true;
 	}
-
-	// WIP: remove
-	private final BlockPos.Mutable origin = new BlockPos.Mutable();
 
 	public void prepareRegion(BlockPos origin, int occlusionRange, int squaredChunkDistance) {
 		this.occlusionRange = occlusionRange;
 		regionSquaredChunkDist = squaredChunkDistance;
-		this.origin.set(origin);
+
+		if (TerrainIterator.TRACE_OCCLUSION_OUTCOMES) {
+			originForTracing.set(origin);
+		}
 
 		// PERF: could perhaps reuse CameraRelativeCenter values in BuildRenderRegion that are used by Frustum
 		offsetX = (int) ((origin.getX() << CAMERA_PRECISION_BITS) - viewX);
@@ -754,11 +759,12 @@ public class TerrainOccluder {
 		}
 
 		if (forceRedraw || this.viewVersion != viewVersion) {
-			// WIP: remove
-			if (forceRedraw) {
-				System.out.println("occluder redrawing due to force redraw");
-			} else {
-				System.out.println("occluder redrawing due to view change");
+			if (TerrainIterator.TRACE_OCCLUSION_OUTCOMES) {
+				if (forceRedraw) {
+					CanvasMod.LOG.info("Terrain occluder redrawing due to force redraw");
+				} else {
+					CanvasMod.LOG.info("Terrain occluder redrawing due to view change");
+				}
 			}
 
 			this.viewVersion = viewVersion;
@@ -882,14 +888,15 @@ public class TerrainOccluder {
 			}
 
 			if (updateDist) {
-				// WIP: remove or toggle or 1X
-				if (regionSquaredChunkDist < maxSquaredChunkDistance) {
-					CanvasMod.LOG.warn("Terrain Occluder went backwards in chunkdistance @" + origin.toShortString());
+				if (TerrainIterator.TRACE_OCCLUSION_OUTCOMES && regionSquaredChunkDist < maxSquaredChunkDistance) {
+					CanvasMod.LOG.warn("Terrain Occluder went backwards in chunkdistance @" + originForTracing.toShortString());
 				}
 
 				if (maxSquaredChunkDistance < regionSquaredChunkDist) {
-					// WIP: remove
-					System.out.println("Occluder advancing to dist " + regionSquaredChunkDist);
+					if (TerrainIterator.TRACE_OCCLUSION_OUTCOMES) {
+						CanvasMod.LOG.info("Occluder advancing to dist " + regionSquaredChunkDist);
+					}
+
 					maxSquaredChunkDistance = regionSquaredChunkDist;
 				}
 			}

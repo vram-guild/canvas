@@ -82,7 +82,7 @@ public class RenderRegionPruner implements Predicate<BuiltRenderRegion> {
 
 	@Override
 	public boolean test(BuiltRenderRegion r) {
-		if (!r.updateCameraDistance(this)) {
+		if (!r.updateCameraDistanceAndVisibilityInfo(this)) {
 			closeQueue.offer(r);
 			return true;
 		} else {

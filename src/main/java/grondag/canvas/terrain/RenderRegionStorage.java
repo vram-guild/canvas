@@ -61,12 +61,7 @@ public class RenderRegionStorage {
 		}
 	}
 
-	public void updateCameraDistance(long cameraChunkOrigin) {
-		// WIP: do we need some way to avoid running each time?
-		//		if (this.cameraChunkOrigin == cameraChunkOrigin) {
-		//			return;
-		//		}
-
+	public void updateCameraDistanceAndVisibilityInfo(long cameraChunkOrigin) {
 		regionPruner.prepare(cameraChunkOrigin);
 		regionMap.prune(regionPruner);
 		chunkRefMap.prune(CHUNK_REF_PRUNER);
@@ -82,10 +77,7 @@ public class RenderRegionStorage {
 
 	private BuiltRenderRegion getOrCreateRegion(long packedOriginPos) {
 		return regionMap.computeIfAbsent(packedOriginPos, k -> {
-			final BuiltRenderRegion result = new BuiltRenderRegion(cwr, this, chunkRef(k), k);
-			// WIP: how to handle creation off thread?  Probably have to exclude these from iteration.
-			//			result.updateCameraDistance();
-			return result;
+			return new BuiltRenderRegion(cwr, this, chunkRef(k), k);
 		});
 	}
 

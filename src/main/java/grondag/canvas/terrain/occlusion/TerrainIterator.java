@@ -26,6 +26,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.Vec3i;
 
+import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
 import grondag.canvas.render.CanvasFrustum;
@@ -38,6 +39,8 @@ import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
 import grondag.fermion.varia.Useful;
 
 public class TerrainIterator implements Consumer<TerrainRenderContext> {
+	public static final boolean TRACE_OCCLUSION_OUTCOMES = Configurator.traceOcclusionOutcomes;
+
 	public static final int IDLE = 0;
 	public static final int READY = 1;
 	public static final int RUNNING = 2;
@@ -84,9 +87,6 @@ public class TerrainIterator implements Consumer<TerrainRenderContext> {
 		state.compareAndSet(COMPLETE, IDLE);
 	}
 
-	// WIP: remove
-	int magicVersion = -1;
-
 	@Override
 	public void accept(TerrainRenderContext ignored) {
 		assert state.get() == READY;
@@ -103,12 +103,13 @@ public class TerrainIterator implements Consumer<TerrainRenderContext> {
 		distanceSorter.clear();
 		BuiltRenderRegion.advanceFrameIndex();
 
-		renderRegionStorage.updateCameraDistance(cameraChunkOrigin);
+		renderRegionStorage.updateCameraDistanceAndVisibilityInfo(cameraChunkOrigin);
 		final boolean redrawOccluder = terrainOccluder.prepareScene(cameraPos);
 		final int occluderVersion = terrainOccluder.version();
 
-		// WIP: remove
-		System.out.println("REDRAW: " + redrawOccluder);
+		if (TRACE_OCCLUSION_OUTCOMES) {
+			CanvasMod.LOG.info("TerrainIterator Redraw Status: " + redrawOccluder);
+		}
 
 		if (cameraRegion == null) {
 			// prime visible when above or below world and camera region is null
@@ -150,11 +151,6 @@ public class TerrainIterator implements Consumer<TerrainRenderContext> {
 				break;
 			}
 
-			// WIP: remove
-			//			if (builtRegion.getOrigin().getX() == -192 && builtRegion.getOrigin().getY() == 80 && builtRegion.getOrigin().getZ() == -224) {
-			//				System.out.println("boop");
-			//			}
-
 			// don't visit if not in frustum
 			if (!builtRegion.isInFrustum(frustum)) {
 				continue;
@@ -175,11 +171,6 @@ public class TerrainIterator implements Consumer<TerrainRenderContext> {
 				updateRegions.add(builtRegion);
 				continue;
 			}
-
-			// WIP: remove
-			//			if (builtRegion.getOrigin().getX() == -192 && builtRegion.getOrigin().getY() == 80 && builtRegion.getOrigin().getZ() == -224) {
-			//				System.out.println("anti-boop");
-			//			}
 
 			// If get to here has been built - if needs rebuilt we can use existing data this frame
 			if (builtRegion.needsRebuild()) {
