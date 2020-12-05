@@ -1157,6 +1157,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		System.out.println("Invalidating occluder");
 		terrainOccluder.invalidate();
 		visibleRegionCount = 0;
+		frustum.reload();
 
 		//ClassInspector.inspect();
 		doFirstSnapshot = true;

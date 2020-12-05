@@ -122,7 +122,7 @@ public class TerrainIterator implements Consumer<TerrainRenderContext> {
 		int iterationNo = -1;
 
 		if (CanvasWorldRenderer.doFirstSnapshot) {
-			terrainOccluder.outputRaster("snapshot_" + magicVersion + ".png", true);
+			//terrainOccluder.outputRaster("snapshot_" + magicVersion + ".png", true);
 			CanvasWorldRenderer.doFirstSnapshot = false;
 		}
 
@@ -276,7 +276,7 @@ public class TerrainIterator implements Consumer<TerrainRenderContext> {
 					CanvasWorldRenderer.doMagicB = false;
 					System.out.println("OccluderState - itNo:" + iterationNo + "  drawSequence:" + drawSequence + "  " + terrainOccluder.toString());
 					System.out.println("Region occluder version:" + builtRegion.occluderVersion());
-					terrainOccluder.outputRaster("magic_raster_" + magicVersion + ".png", true);
+					//terrainOccluder.outputRaster("magic_raster_" + magicVersion + ".png", true);
 				}
 
 				if (terrainOccluder.isBoxVisible(visData[OcclusionRegion.CULL_DATA_REGION_BOUNDS])) {
