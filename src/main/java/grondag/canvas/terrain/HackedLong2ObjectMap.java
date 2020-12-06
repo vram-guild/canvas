@@ -18,12 +18,11 @@ package grondag.canvas.terrain;
 
 import java.util.concurrent.locks.StampedLock;
 import java.util.function.Consumer;
-import java.util.function.Predicate;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 
-class HackedLong2ObjectMap<T> extends Long2ObjectOpenHashMap<T> {
+abstract class HackedLong2ObjectMap<T> extends Long2ObjectOpenHashMap<T> {
 	private final StampedLock lock = new StampedLock();
 	private final Consumer<T> clearHandler;
 	private final LongArrayList pruned = new LongArrayList();
@@ -114,8 +113,10 @@ class HackedLong2ObjectMap<T> extends Long2ObjectOpenHashMap<T> {
 		return result;
 	}
 
+	protected abstract boolean shouldPrune(T item);
+
 	@SuppressWarnings("unchecked")
-	public void prune(Predicate<T> pruner) {
+	public void prune() {
 		final long stamp = lock.writeLock();
 		final LongArrayList pruned = this.pruned;
 		// +1 because value for zero key ("null" key) is stored at end of the array
@@ -129,7 +130,7 @@ class HackedLong2ObjectMap<T> extends Long2ObjectOpenHashMap<T> {
 			for (int i = 0; i < limit; ++i) {
 				final Object val = values[i];
 
-				if (val != null && pruner.test((T) val)) {
+				if (val != null && shouldPrune((T) val)) {
 					pruned.add(keys[i]);
 				}
 			}

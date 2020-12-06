@@ -43,6 +43,12 @@ public class Matrix4L {
 	private long a32;
 	private long a33;
 
+	@Override
+	public String toString() {
+		return String.format("[%d, %d, %d, %d], [%d, %d, %d, %d], [%d, %d, %d, %d], [%d, %d, %d, %d]",
+			a00, a01, a02, a03, a10, a11, a12, a13, a20, a21, a22, a23, a30, a31, a32, a33);
+	}
+
 	public void copyFrom(Matrix4f matrix) {
 		copyFrom((Matrix4fExt) (Object) matrix);
 	}

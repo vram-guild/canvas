@@ -16,38 +16,37 @@
 
 package grondag.canvas.terrain;
 
-import java.util.function.Predicate;
-
 import it.unimi.dsi.fastutil.Hash;
 
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
-import net.minecraft.util.math.Vec3d;
 
 import grondag.canvas.render.CanvasWorldRenderer;
 
 public class RenderRegionStorage {
-	private static final Predicate<BuiltRenderRegion> REGION_PRUNER = r -> {
-		// TODO: confirm not creating/removing due to mismatch in distances
-		if (!r.updateCameraDistance()) {
-			r.close();
-			return true;
-		} else {
-			return false;
-		}
-	};
-	private static final Predicate<RegionChunkReference> CHUNK_REF_PRUNER = RegionChunkReference::isEmpty;
+	public final RenderRegionPruner regionPruner;
+
 	// Hat tip to JellySquid for the suggestion of using a hashmap
 	// PERF: lock-free implementation
-	private final HackedLong2ObjectMap<BuiltRenderRegion> regionMap = new HackedLong2ObjectMap<>(8192, Hash.VERY_FAST_LOAD_FACTOR, r -> r.close());
-	private final HackedLong2ObjectMap<RegionChunkReference> chunkRefMap = new HackedLong2ObjectMap<>(2048, Hash.VERY_FAST_LOAD_FACTOR, r -> {
-	});
-	private final CanvasWorldRenderer cwr;
-	private final int regionVersion = -1;
-	private int positionVersion;
+	private final HackedLong2ObjectMap<BuiltRenderRegion> regionMap = new HackedLong2ObjectMap<BuiltRenderRegion>(8192, Hash.VERY_FAST_LOAD_FACTOR, r -> r.close()) {
+		@Override
+		protected boolean shouldPrune(BuiltRenderRegion region) {
+			return region.shouldPrune();
+		}
+	};
 
-	public RenderRegionStorage(CanvasWorldRenderer cwr) {
+	private final HackedLong2ObjectMap<RegionChunkReference> chunkRefMap = new HackedLong2ObjectMap<RegionChunkReference>(2048, Hash.VERY_FAST_LOAD_FACTOR, r -> { }) {
+		@Override
+		protected boolean shouldPrune(RegionChunkReference item) {
+			return item.isEmpty();
+		}
+	};
+
+	private final CanvasWorldRenderer cwr;
+
+	public RenderRegionStorage(CanvasWorldRenderer cwr, RenderRegionPruner regionPruner) {
 		this.cwr = cwr;
+		this.regionPruner = regionPruner;
 	}
 
 	private RegionChunkReference chunkRef(long packedOriginPos) {
@@ -70,34 +69,25 @@ public class RenderRegionStorage {
 		}
 	}
 
-	/**
-	 * Called each frame, but only updates when player has moved more than 1 block.
-	 * Uses position version to detect the movement.
-	 */
-	public void updateCameraDistance(Vec3d cameraPos, int positionVersion, int renderDistance) {
-		if (this.positionVersion == positionVersion) {
-			return;
+	public void updateCameraDistanceAndVisibilityInfo(long cameraChunkOrigin) {
+		regionPruner.prepare(cameraChunkOrigin);
+		regionMap.prune();
+		chunkRefMap.prune();
+
+		if (regionPruner.didInvalidateOccluder()) {
+			regionPruner.occluder.invalidate();
 		}
 
-		this.positionVersion = positionVersion;
-
-		regionMap.prune(REGION_PRUNER);
-		chunkRefMap.prune(CHUNK_REF_PRUNER);
+		regionPruner.post();
 	}
 
 	public int regionCount() {
 		return regionMap.size();
 	}
 
-	public int regionVersion() {
-		return regionVersion;
-	}
-
 	private BuiltRenderRegion getOrCreateRegion(long packedOriginPos) {
 		return regionMap.computeIfAbsent(packedOriginPos, k -> {
-			final BuiltRenderRegion result = new BuiltRenderRegion(cwr, chunkRef(k), k);
-			result.updateCameraDistance();
-			return result;
+			return new BuiltRenderRegion(cwr, this, chunkRef(k), k);
 		});
 	}
 

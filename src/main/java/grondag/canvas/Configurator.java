@@ -81,6 +81,7 @@ public class Configurator {
 	public static boolean enablePerformanceTrace = DEFAULTS.enablePerformanceTrace;
 	public static boolean debugOcclusionRaster = DEFAULTS.debugOcclusionRaster;
 	public static boolean debugOcclusionBoxes = DEFAULTS.debugOcclusionBoxes;
+	public static boolean traceOcclusionOutcomes = DEFAULTS.traceOcclusionOutcomes;
 	public static boolean traceOcclusionEdgeCases = DEFAULTS.traceOcclusionEdgeCases;
 	public static boolean enableBufferDebug = DEFAULTS.enableBufferDebug;
 	public static boolean enableLifeCycleDebug = DEFAULTS.enableLifeCycleDebug;
@@ -173,6 +174,7 @@ public class Configurator {
 		debugOcclusionBoxes = config.debugOcclusionBoxes;
 		debugOcclusionRaster = config.debugOcclusionRaster;
 		traceOcclusionEdgeCases = config.traceOcclusionEdgeCases;
+		traceOcclusionOutcomes = config.traceOcclusionOutcomes;
 		enableBufferDebug = config.enableBufferDebug;
 		enableLifeCycleDebug = config.enableLifeCycleDebug;
 		logMissingUniforms = config.logMissingUniforms;
@@ -221,6 +223,7 @@ public class Configurator {
 		config.enablePerformanceTrace = enablePerformanceTrace;
 		config.debugOcclusionBoxes = debugOcclusionBoxes;
 		config.debugOcclusionRaster = debugOcclusionRaster;
+		config.traceOcclusionOutcomes = traceOcclusionOutcomes;
 		config.traceOcclusionEdgeCases = traceOcclusionEdgeCases;
 		config.enableBufferDebug = enableBufferDebug;
 		config.enableLifeCycleDebug = enableLifeCycleDebug;
@@ -601,6 +604,14 @@ public class Configurator {
 				.build());
 
 		debug.addEntry(ENTRY_BUILDER
+				.startBooleanToggle(new TranslatableText("config.canvas.value.trace_occlusion_outcomes"), traceOcclusionOutcomes)
+				.setDefaultValue(DEFAULTS.traceOcclusionOutcomes)
+				.requireRestart()
+				.setTooltip(parse("config.canvas.help.trace_occlusion_outcomes"))
+				.setSaveConsumer(b -> traceOcclusionOutcomes = b)
+				.build());
+
+		debug.addEntry(ENTRY_BUILDER
 				.startBooleanToggle(new TranslatableText("config.canvas.value.buffer_debug"), enableBufferDebug)
 				.setDefaultValue(DEFAULTS.enableBufferDebug)
 				.setTooltip(parse("config.canvas.help.buffer_debug"))
@@ -760,6 +771,8 @@ public class Configurator {
 		boolean debugOcclusionRaster = false;
 		@Comment("Render active occlusion boxes of targeted render region. Will have performance impact and looks strange.")
 		boolean debugOcclusionBoxes = false;
+		@Comment("Log various region/occluder tests and status changes. Highly verbose and WILL spam the log. Requires restart.")
+		boolean traceOcclusionOutcomes = false;
 		@Comment("Log clipping or other non-critical failures detected by terrain occluder. May spam the log.")
 		boolean traceOcclusionEdgeCases = false;
 		@Comment("Log uniforms not found in shaders. Sometimes useful for shader debug. Will spam the log.")

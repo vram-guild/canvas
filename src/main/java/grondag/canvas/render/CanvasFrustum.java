@@ -43,7 +43,7 @@ import grondag.canvas.terrain.BuiltRenderRegion;
 @Environment(EnvType.CLIENT)
 public class CanvasFrustum extends Frustum {
 	private static final float MIN_GAP = 0.0001f;
-	private final Matrix4f mvpMatrix = new Matrix4f();
+	private final Matrix4fExt mvpMatrix = (Matrix4fExt) (Object) new Matrix4f();
 	private final Matrix4fExt lastProjectionMatrix = (Matrix4fExt) (Object) new Matrix4f();
 	private final Matrix4fExt lastModelMatrix = (Matrix4fExt) (Object) new Matrix4f();
 	private int viewVersion;
@@ -64,9 +64,14 @@ public class CanvasFrustum extends Frustum {
 	private float bottomX, bottomY, bottomZ, bottomW, bottomXe, bottomYe, bottomZe, bottomRegionExtent;
 	private float nearX, nearY, nearZ, nearW, nearXe, nearYe, nearZe, nearRegionExtent;
 	private int viewDistanceSquared;
+	private boolean initialized = false;
 
 	public CanvasFrustum() {
 		super(dummyMatrix(), dummyMatrix());
+	}
+
+	void reload() {
+		initialized = false;
 	}
 
 	private static Matrix4f dummyMatrix() {
@@ -115,6 +120,10 @@ public class CanvasFrustum extends Frustum {
 		lastPositionZ = src.lastPositionZ;
 
 		viewDistanceSquared = src.viewDistanceSquared;
+
+		lastModelMatrix.set(src.lastModelMatrix);
+		lastProjectionMatrix.set(src.lastProjectionMatrix);
+		mvpMatrix.set(src.mvpMatrix);
 
 		leftX = src.leftX;
 		leftY = src.leftY;
@@ -169,11 +178,13 @@ public class CanvasFrustum extends Frustum {
 		final double y = vec.y;
 		final double z = vec.z;
 
-		if (x == lastViewX && y == lastViewY && z == lastViewZ
+		if (initialized && x == lastViewX && y == lastViewY && z == lastViewZ
 				&& lastModelMatrix.matches(modelMatrix)
 				&& lastProjectionMatrix.matches(projectionMatrix)) {
 			return;
 		}
+
+		initialized = true;
 
 		lastViewX = x;
 		lastViewY = y;
@@ -188,8 +199,8 @@ public class CanvasFrustum extends Frustum {
 		++viewVersion;
 
 		mvpMatrix.loadIdentity();
-		mvpMatrix.multiply(projectionMatrix);
-		mvpMatrix.multiply(modelMatrix);
+		mvpMatrix.multiply(lastProjectionMatrix);
+		mvpMatrix.multiply(lastModelMatrix);
 
 		extractPlanes();
 
@@ -270,7 +281,7 @@ public class CanvasFrustum extends Frustum {
 	}
 
 	private void extractPlanes() {
-		final Matrix4fExt matrix = (Matrix4fExt) (Object) mvpMatrix;
+		final Matrix4fExt matrix = mvpMatrix;
 		final float a00 = matrix.a00();
 		final float a01 = matrix.a01();
 		final float a02 = matrix.a02();

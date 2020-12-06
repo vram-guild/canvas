@@ -113,5 +113,7 @@
   "config.canvas.value.log_missing_uniforms": "Log Missing Uniforms",
   "config.canvas.help.log_missing_uniforms": "Log uniforms not found in shaders. Sometimes useful for;shader debug. Will spam the log.",
   "config.canvas.value.log_materials": "Log Materials",
-  "config.canvas.help.log_materials": "Log render material states and vanilla RenderLayer mapping.;Useful for material debug and pack makers.;Will spam the log."
+  "config.canvas.help.log_materials": "Log render material states and vanilla RenderLayer mapping.;Useful for material debug and pack makers.;Will spam the log.",
+  "config.canvas.value.trace_occlusion_outcomes": "Trace Occlusion Outcomes",
+  "config.canvas.help.trace_occlusion_outcomes": "Log various occlusion-related tests and status changes.;Highly verbose and WILL spam the log."
 }

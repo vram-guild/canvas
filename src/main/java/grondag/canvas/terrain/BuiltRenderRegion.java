@@ -19,6 +19,7 @@ package grondag.canvas.terrain;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
@@ -47,6 +48,7 @@ import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
 import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 
+import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
 import grondag.canvas.apiimpl.util.FaceConstants;
@@ -57,62 +59,101 @@ import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.perf.ChunkRebuildCounters;
 import grondag.canvas.render.CanvasFrustum;
 import grondag.canvas.render.CanvasWorldRenderer;
-import grondag.canvas.terrain.occlusion.TerrainOccluder;
+import grondag.canvas.terrain.occlusion.TerrainDistanceSorter;
+import grondag.canvas.terrain.occlusion.TerrainIterator;
 import grondag.canvas.terrain.occlusion.region.OcclusionRegion;
 import grondag.canvas.terrain.occlusion.region.PackedBox;
 import grondag.canvas.terrain.render.DrawableChunk;
 import grondag.canvas.terrain.render.UploadableChunk;
 import grondag.canvas.varia.BlockPosHelper;
-import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
 import grondag.frex.api.fluid.FluidQuadSupplier;
 
 @Environment(EnvType.CLIENT)
 public class BuiltRenderRegion {
 	private static int frameIndex;
+	private static final AtomicInteger BUILD_COUNTER = new AtomicInteger();
+
 	private final RenderRegionBuilder renderRegionBuilder;
 	private final RenderRegionStorage storage;
-	private final AtomicReference<RegionData> renderData;
+	private final RenderRegionPruner pruner;
 	private final AtomicReference<RegionData> buildData;
 	private final ObjectOpenHashSet<BlockEntity> localNoCullingBlockEntities = new ObjectOpenHashSet<>();
 	private final BlockPos origin;
+	private final int chunkX;
+	private final int chunkY;
+	private final int chunkZ;
+	private long lastCameraChunkPos = -1;
 	private final RegionChunkReference chunkReference;
 	private final CanvasWorldRenderer cwr;
 	private final boolean isBottom;
 	private final boolean isTop;
 	private final BuiltRenderRegion[] neighbors = new BuiltRenderRegion[6];
-	private final TerrainOccluder terrainOccluder;
 	public int occlusionRange;
-	public int occluderVersion;
-	public boolean occluderResult;
+	private int occluderVersion;
+	private boolean occluderResult;
+
+	/** Used by frustum tests. Will be current only if region is within render distance. */
 	public float cameraRelativeCenterX;
 	public float cameraRelativeCenterY;
 	public float cameraRelativeCenterZ;
-	int squaredCameraDistance;
+
+	private int squaredChunkDistance;
+	private boolean isNear;
 	private boolean needsRebuild;
 	private boolean needsImportantRebuild;
 	private volatile RegionBuildState buildState = new RegionBuildState();
 	private DrawableChunk translucentDrawable = DrawableChunk.EMPTY_DRAWABLE;
 	private DrawableChunk solidDrawable = DrawableChunk.EMPTY_DRAWABLE;
-	private int frustumVersion;
+	private int frustumVersion = -1;
+	private int positionVersion = -1;
 	private boolean frustumResult;
 	private int lastSeenFrameIndex;
 	private boolean isClosed = false;
 	private boolean isInsideRenderDistance;
+	private boolean isInsideRetentionDistance;
 	private final Consumer<TerrainRenderContext> buildTask = this::rebuildOnWorkerThread;
+	private int buildCount = -1;
+	// build count that was in effect last time drawn to occluder
+	private int occlusionBuildCount;
 
-	public BuiltRenderRegion(CanvasWorldRenderer cwr, RegionChunkReference chunkRef, long packedPos) {
+	public BuiltRenderRegion(CanvasWorldRenderer cwr, RenderRegionStorage storage, RegionChunkReference chunkRef, long packedPos) {
 		this.cwr = cwr;
-		terrainOccluder = cwr.terrainOccluder;
 		renderRegionBuilder = cwr.regionBuilder();
-		storage = cwr.regionStorage();
+		this.storage = storage;
+		pruner = storage.regionPruner;
 		chunkReference = chunkRef;
 		chunkReference.retain(this);
-		buildData = new AtomicReference<>(RegionData.EMPTY);
-		renderData = new AtomicReference<>(RegionData.EMPTY);
+		buildData = new AtomicReference<>(RegionData.UNBUILT);
 		needsRebuild = true;
 		origin = BlockPos.fromLong(packedPos);
+		chunkX = origin.getX() >> 4;
+		chunkY = origin.getY() >> 4;
+		chunkZ = origin.getZ() >> 4;
 		isBottom = origin.getY() == 0;
 		isTop = origin.getY() == 240;
+	}
+
+	public void setOccluderResult(boolean occluderResult, int occluderVersion) {
+		if (this.occluderVersion == occluderVersion) {
+			assert occluderResult == this.occluderResult;
+		} else {
+			if (TerrainIterator.TRACE_OCCLUSION_OUTCOMES) {
+				final String prefix = buildData.get().canOcclude() ? "Occluding result " : "Empty result ";
+				CanvasMod.LOG.info(prefix + occluderResult + "  dist=" + squaredChunkDistance + "  buildCounter=" + buildCount + "  occluderVersion=" + occluderVersion + "  @" + origin.toShortString());
+			}
+
+			this.occluderResult = occluderResult;
+			this.occluderVersion = occluderVersion;
+			occlusionBuildCount = buildCount;
+		}
+	}
+
+	public boolean occluderResult() {
+		return occluderResult;
+	}
+
+	public int occluderVersion() {
+		return occluderVersion;
 	}
 
 	private static <E extends BlockEntity> void addBlockEntity(List<BlockEntity> chunkEntities, Set<BlockEntity> globalEntities, E blockEntity) {
@@ -131,28 +172,16 @@ public class BuiltRenderRegion {
 		++frameIndex;
 	}
 
-	// PERF: make this lazy?
-
 	/**
-	 * Assumes camera distance update has already happened.
+	 * Result is computed in {@link #updateCameraDistanceAndVisibilityInfo(RenderRegionPruner)}.
 	 *
 	 * <p>NB: tried a crude hierarchical scheme of checking chunk columns first
 	 * but didn't pay off.  Would probably  need to propagate per-plane results
 	 * over a more efficient region but that might not even help. Is already
 	 * quite fast and typically only one or a few regions per chunk must be tested.
 	 */
-	public boolean isInFrustum(CanvasFrustum frustum) {
-		final int v = frustum.viewVersion();
-
-		if (v == frustumVersion) {
-			return frustumResult;
-		} else {
-			frustumVersion = v;
-			//  PERF: implement hierarchical tests with propagation of per-plane inside test results
-			final boolean result = frustum.isRegionVisible(this);
-			frustumResult = result;
-			return result;
-		}
+	public boolean isInFrustum() {
+		return frustumResult;
 	}
 
 	public boolean wasRecentlySeen() {
@@ -160,47 +189,132 @@ public class BuiltRenderRegion {
 	}
 
 	/**
-	 * @return True if nearby.  If not nearby and not outside view distance true if neighbors are loaded.
+	 * @return True if nearby or if all neighbors are loaded.
 	 */
 	public boolean shouldBuild() {
-		return squaredCameraDistance <= 576
-				|| (isInsideRenderDistance && chunkReference.areCornersLoaded());
+		return isNear || chunkReference.areCornersLoaded();
 	}
 
 	/**
-	 * Returns true if inside retentiom distance.
+	 * Returns false if could be visible.
 	 */
-	boolean updateCameraDistance() {
-		final BlockPos origin = this.origin;
-		final Vec3d cameraPos = cwr.cameraPos();
+	boolean shouldPrune() {
+		final CanvasFrustum frustum = pruner.frustum;
+		final int fv = frustum.viewVersion();
 
-		final float dx = (float) (origin.getX() + 8 - cameraPos.x);
-		final float dy = (float) (origin.getY() + 8 - cameraPos.y);
-		final float dz = (float) (origin.getZ() + 8 - cameraPos.z);
-		cameraRelativeCenterX = dx;
-		cameraRelativeCenterY = dy;
-		cameraRelativeCenterZ = dz;
+		if (fv != frustumVersion) {
+			frustumVersion = fv;
+			computeDistanceChecks();
+			computeFrustumChecks();
+		}
 
-		final int idx = Math.round(dx);
-		final int idy = Math.round(dy);
-		final int idz = Math.round(dz);
+		invalidateOccluderIfNeeded();
 
-		final int horizontalSquaredDistance = idx * idx + idz * idz;
-		isInsideRenderDistance = horizontalSquaredDistance <= cwr.maxSquaredDistance();
+		if (isInsideRetentionDistance) {
+			return false;
+		} else {
+			if (!isClosed) {
+				// pruner holds for close on render thread
+				pruner.prune(this);
+			}
 
-		final int squaredCameraDistance = horizontalSquaredDistance + idy * idy;
-		occlusionRange = PackedBox.rangeFromSquareBlockDist(squaredCameraDistance);
-		this.squaredCameraDistance = squaredCameraDistance;
+			return true;
+		}
+	}
 
-		return horizontalSquaredDistance < cwr.maxRetentionDistance();
+	private void computeDistanceChecks() {
+		final long cameraChunkPos = pruner.cameraChunkPos();
+
+		if (cameraChunkPos != lastCameraChunkPos) {
+			lastCameraChunkPos = cameraChunkPos;
+
+			final int cx = BlockPos.unpackLongX(cameraChunkPos) - chunkX;
+			final int cy = BlockPos.unpackLongY(cameraChunkPos) - chunkY;
+			final int cz = BlockPos.unpackLongZ(cameraChunkPos) - chunkZ;
+
+			final int horizontalSquaredDistance = cx * cx + cz * cz;
+			isInsideRenderDistance = horizontalSquaredDistance <= cwr.maxSquaredChunkRenderDistance();
+			isInsideRetentionDistance = horizontalSquaredDistance <= cwr.maxSquaredChunkRetentionDistance();
+			squaredChunkDistance = horizontalSquaredDistance + cy * cy;
+			isNear = squaredChunkDistance <= 3;
+			occlusionRange = PackedBox.rangeFromSquareChunkDist(squaredChunkDistance);
+		}
+	}
+
+	private void computeFrustumChecks() {
+		final CanvasFrustum frustum = pruner.frustum;
+
+		// position version can only be different if overall frustum version is different
+		final int pv = frustum.positionVersion();
+
+		if (pv != positionVersion) {
+			positionVersion = pv;
+
+			// these are needed by the frustum - only need to recompute when position moves
+			// not needed at all if outside of render distance
+			if (isInsideRenderDistance) {
+				final Vec3d cameraPos = cwr.cameraPos();
+				final float dx = (float) (origin.getX() + 8 - cameraPos.x);
+				final float dy = (float) (origin.getY() + 8 - cameraPos.y);
+				final float dz = (float) (origin.getZ() + 8 - cameraPos.z);
+				cameraRelativeCenterX = dx;
+				cameraRelativeCenterY = dy;
+				cameraRelativeCenterZ = dz;
+			}
+		}
+
+		//  PERF: implement hierarchical tests with propagation of per-plane inside test results
+		frustumResult = isInsideRenderDistance && frustum.isRegionVisible(this);
+	}
+
+	private void invalidateOccluderIfNeeded() {
+		// WIP - clean up docs
+		// We check here to know if the occlusion raster must be redrawn.
+		//
+		// The check depends on classifying this region as one of:
+		//   new - has not been drawn in raster - occluder version doesn't match
+		//   existing - has been drawn in rater - occluder version matches
+		//
+		// The raster must be redrawn if either is true:
+		//   1) A new chunk has a chunk distance less than the current max drawn (we somehow went backwards towards the camera)
+		//   2) An existing chunk has been reloaded - the buildCounter doesn't match the buildCounter when it was marked existing
+
+		if (frustumResult && buildData.get().canOcclude()) {
+			if (occluderVersion == pruner.occluderVersion()) {
+				// Existing - has been drawn in occlusion raster
+				if (buildCount != occlusionBuildCount) {
+					if (TerrainIterator.TRACE_OCCLUSION_OUTCOMES) {
+						CanvasMod.LOG.info("Invalidate - redraw: " + origin.toShortString() + "  occluder version:" + occluderVersion);
+					}
+
+					pruner.invalidateOccluder();
+				}
+			} else if (squaredChunkDistance < pruner.maxSquaredChunkDistance()) {
+				// Not yet drawn in current occlusion raster and could be nearer than a chunk that has been
+				// Need to invalidate the occlusion raster if both things are true:
+				//   1) This region isn't empty (empty regions don't matter for culling)
+				//   2) This region is in the view frustum
+
+				if (TerrainIterator.TRACE_OCCLUSION_OUTCOMES) {
+					CanvasMod.LOG.info("Invalidate - backtrack: " + origin.toShortString() + "  occluder max:" + pruner.maxSquaredChunkDistance()
+						+ "  chunk max:" + squaredChunkDistance + "  occluder version:" + pruner.occluderVersion() + "  chunk version:" + occluderVersion);
+				}
+
+				pruner.invalidateOccluder();
+			}
+		}
+	}
+
+	public int squaredChunkDistance() {
+		return squaredChunkDistance;
 	}
 
 	void close() {
 		assert RenderSystem.isOnRenderThread();
 
-		releaseDrawables();
-
 		if (!isClosed) {
+			releaseDrawables();
+
 			isClosed = true;
 
 			for (int i = 0; i < 6; ++i) {
@@ -214,9 +328,14 @@ public class BuiltRenderRegion {
 			chunkReference.release(this);
 
 			cancel();
-			buildData.set(RegionData.EMPTY);
-			renderData.set(RegionData.EMPTY);
+			buildData.set(RegionData.UNBUILT);
 			needsRebuild = true;
+			frustumVersion = -1;
+			positionVersion = -1;
+			isInsideRenderDistance = false;
+			isNear = false;
+			frustumResult = false;
+			lastCameraChunkPos = -1;
 		}
 	}
 
@@ -256,7 +375,7 @@ public class BuiltRenderRegion {
 
 		// null region is signal to reschedule
 		if (buildState.protoRegion.getAndSet(region) == ProtoRenderRegion.IDLE) {
-			renderRegionBuilder.executor.execute(buildTask, squaredCameraDistance);
+			renderRegionBuilder.executor.execute(buildTask, squaredChunkDistance);
 		}
 	}
 
@@ -269,7 +388,7 @@ public class BuiltRenderRegion {
 			if (buildState.protoRegion.compareAndSet(ProtoRenderRegion.IDLE, ProtoRenderRegion.RESORT_ONLY)) {
 				// null means need to reschedule, otherwise was already scheduled for either
 				// resort or rebuild, or is invalid, not ready to be built.
-				renderRegionBuilder.executor.execute(buildTask, squaredCameraDistance);
+				renderRegionBuilder.executor.execute(buildTask, squaredChunkDistance);
 			}
 
 			return true;
@@ -293,16 +412,22 @@ public class BuiltRenderRegion {
 			final RegionData chunkData = new RegionData();
 			chunkData.complete(OcclusionRegion.EMPTY_CULL_DATA);
 
-			final int[] oldData = buildData.getAndSet(chunkData).occlusionData;
+			// don't rebuild occlusion if occlusion did not change
+			final RegionData oldBuildData = buildData.getAndSet(chunkData);
 
-			if (oldData != null && oldData != OcclusionRegion.EMPTY_CULL_DATA) {
-				terrainOccluder.invalidate();
+			if (oldBuildData == RegionData.UNBUILT || !Arrays.equals(chunkData.occlusionData, oldBuildData.occlusionData)) {
+				if (TerrainIterator.TRACE_OCCLUSION_OUTCOMES) {
+					final int oldCounter = buildCount;
+					buildCount = BUILD_COUNTER.incrementAndGet();
+					CanvasMod.LOG.info("Updating build counter from " + oldCounter + " to " + buildCount + " @" + origin.toShortString() + "  (WT empty)");
+				} else {
+					buildCount = BUILD_COUNTER.incrementAndGet();
+				}
+
+				// Even if empty the chunk may still be needed for visibility search to progress
+				cwr.forceVisibilityUpdate();
 			}
 
-			// Even if empty the chunk may still be needed for visibility search to progress
-			cwr.forceVisibilityUpdate();
-
-			renderData.set(chunkData);
 			return;
 		}
 
@@ -365,14 +490,6 @@ public class BuiltRenderRegion {
 			context.prepareRegion(region);
 			final RegionData chunkData = buildRegionData(context, isNear());
 
-			final int[] oldData = buildData.getAndSet(chunkData).occlusionData;
-
-			if (oldData != null && !Arrays.equals(oldData, chunkData.occlusionData)) {
-				terrainOccluder.invalidate(occluderVersion);
-			}
-
-			cwr.forceVisibilityUpdate();
-
 			final VertexCollectorList collectors = context.collectors;
 
 			if (runningState.protoRegion.get() == ProtoRenderRegion.INVALID) {
@@ -396,7 +513,6 @@ public class BuiltRenderRegion {
 						releaseDrawables();
 						solidDrawable = solidUpload.produceDrawable();
 						translucentDrawable = translucentUpload.produceDrawable();
-						renderData.set(chunkData);
 
 						if (ChunkRebuildCounters.ENABLED) {
 							ChunkRebuildCounters.completeUpload();
@@ -414,7 +530,22 @@ public class BuiltRenderRegion {
 		final RegionData regionData = new RegionData();
 		regionData.complete(context.region.occlusion.build(isNear));
 		handleBlockEntities(regionData, context);
-		buildData.set(regionData);
+
+		// don't rebuild occlusion if occlusion did not change
+		final RegionData oldBuildData = buildData.getAndSet(regionData);
+
+		if (oldBuildData == RegionData.UNBUILT || !Arrays.equals(regionData.occlusionData, oldBuildData.occlusionData)) {
+			if (TerrainIterator.TRACE_OCCLUSION_OUTCOMES) {
+				final int oldCounter = buildCount;
+				buildCount = BUILD_COUNTER.incrementAndGet();
+				CanvasMod.LOG.info("Updating build counter from " + oldCounter + " to " + buildCount + " @" + origin.toShortString());
+			} else {
+				buildCount = BUILD_COUNTER.incrementAndGet();
+			}
+
+			cwr.forceVisibilityUpdate();
+		}
+
 		return regionData;
 	}
 
@@ -542,29 +673,28 @@ public class BuiltRenderRegion {
 		if (region == ProtoRenderRegion.EMPTY) {
 			final RegionData regionData = new RegionData();
 			regionData.complete(OcclusionRegion.EMPTY_CULL_DATA);
-			final int[] oldData = buildData.getAndSet(regionData).occlusionData;
 
-			if (oldData != null && oldData != OcclusionRegion.EMPTY_CULL_DATA) {
-				terrainOccluder.invalidate(occluderVersion);
+			// don't rebuild occlusion if occlusion did not change
+			final RegionData oldBuildData = buildData.getAndSet(regionData);
+
+			if (oldBuildData == RegionData.UNBUILT || !Arrays.equals(regionData.occlusionData, oldBuildData.occlusionData)) {
+				if (TerrainIterator.TRACE_OCCLUSION_OUTCOMES) {
+					final int oldCounter = buildCount;
+					buildCount = BUILD_COUNTER.incrementAndGet();
+					CanvasMod.LOG.info("Updating build counter from " + oldCounter + " to " + buildCount + " @" + origin.toShortString() + "  (MTR empty)");
+				} else {
+					buildCount = BUILD_COUNTER.incrementAndGet();
+				}
+
+				// Even if empty the chunk may still be needed for visibility search to progress
+				cwr.forceVisibilityUpdate();
 			}
-
-			renderData.set(regionData);
-
-			// Even if empty the chunk may still be needed for visibility search to progress
-			cwr.forceVisibilityUpdate();
 
 			return;
 		}
 
 		final TerrainRenderContext context = renderRegionBuilder.mainThreadContext.prepareRegion(region);
 		final RegionData regionData = buildRegionData(context, isNear());
-		final int[] oldData = buildData.getAndSet(regionData).occlusionData;
-
-		if (oldData != null && !Arrays.equals(oldData, regionData.occlusionData)) {
-			terrainOccluder.invalidate(occluderVersion);
-		}
-
-		cwr.forceVisibilityUpdate();
 
 		buildTerrain(context, regionData);
 
@@ -584,7 +714,6 @@ public class BuiltRenderRegion {
 			ChunkRebuildCounters.completeUpload();
 		}
 
-		renderData.set(regionData);
 		collectors.clear();
 		region.release();
 	}
@@ -620,10 +749,6 @@ public class BuiltRenderRegion {
 		return buildData.get();
 	}
 
-	public RegionData getRenderData() {
-		return renderData.get();
-	}
-
 	public DrawableChunk translucentDrawable() {
 		return translucentDrawable;
 	}
@@ -632,34 +757,38 @@ public class BuiltRenderRegion {
 		return solidDrawable;
 	}
 
-	public int squaredCameraDistance() {
-		return squaredCameraDistance;
-	}
-
+	/**
+	 * Our logic for this is a little different than vanilla, which checks for squared distance
+	 * to chunk center from camera < 768.0.  Our will always return true for all 26 chunks adjacent
+	 * (including diagonal) to the chunk in which the camera is placed.
+	 *
+	 * <p>This logic is in {@link #updateCameraDistanceAndVisibilityInfo(RenderRegionPruner)}.
+	 */
 	public boolean isNear() {
-		return squaredCameraDistance < 768;
+		return isNear;
 	}
 
-	public void enqueueUnvistedNeighbors(SimpleUnorderedArrayList<BuiltRenderRegion> queue) {
+	public void enqueueUnvistedNeighbors(TerrainDistanceSorter distanceSorter) {
 		final int index = frameIndex;
 		lastSeenFrameIndex = index;
 
-		enqueNeighbor(index, getNeighbor(FaceConstants.EAST_INDEX), queue);
-		enqueNeighbor(index, getNeighbor(FaceConstants.WEST_INDEX), queue);
-		enqueNeighbor(index, getNeighbor(FaceConstants.NORTH_INDEX), queue);
-		enqueNeighbor(index, getNeighbor(FaceConstants.SOUTH_INDEX), queue);
+		enqueNeighbor(index, getNeighbor(FaceConstants.EAST_INDEX), distanceSorter);
+		enqueNeighbor(index, getNeighbor(FaceConstants.WEST_INDEX), distanceSorter);
+		enqueNeighbor(index, getNeighbor(FaceConstants.NORTH_INDEX), distanceSorter);
+		enqueNeighbor(index, getNeighbor(FaceConstants.SOUTH_INDEX), distanceSorter);
 
 		if (!isTop) {
-			enqueNeighbor(index, getNeighbor(FaceConstants.UP_INDEX), queue);
+			enqueNeighbor(index, getNeighbor(FaceConstants.UP_INDEX), distanceSorter);
 		}
 
 		if (!isBottom) {
-			enqueNeighbor(index, getNeighbor(FaceConstants.DOWN_INDEX), queue);
+			enqueNeighbor(index, getNeighbor(FaceConstants.DOWN_INDEX), distanceSorter);
 		}
 	}
 
-	private void enqueNeighbor(int index, BuiltRenderRegion r, SimpleUnorderedArrayList<BuiltRenderRegion> queue) {
-		if (r.lastSeenFrameIndex != index) {
+	private void enqueNeighbor(int index, BuiltRenderRegion r, TerrainDistanceSorter queue) {
+		// WIP: reduce checks by storing farther neighbors when distance is updated
+		if (r.lastSeenFrameIndex != index && r.squaredChunkDistance > squaredChunkDistance) {
 			r.lastSeenFrameIndex = index;
 			queue.add(r);
 		}
