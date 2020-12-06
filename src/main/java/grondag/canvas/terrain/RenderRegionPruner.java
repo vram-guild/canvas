@@ -16,31 +16,28 @@
 
 package grondag.canvas.terrain;
 
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.function.Predicate;
-
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-
 import net.minecraft.util.math.BlockPos;
 
 import grondag.canvas.render.CanvasFrustum;
 import grondag.canvas.terrain.occlusion.TerrainOccluder;
+import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
 
-public class RenderRegionPruner implements Predicate<BuiltRenderRegion> {
+public class RenderRegionPruner {
 	private boolean invalidateOccluder = false;
 	private int occluderVersion = 0;
-	private int cameraChunkX;
-	private int cameraChunkY;
-	private int cameraChunkZ;
+	private long cameraChunkPos;
 	private int maxSquaredChunkDistance;
 	public final CanvasFrustum frustum;
 	public final TerrainOccluder occluder;
 
 	// accessed from terrain iterator and render threads - holds regions to be closed on render thread
-	private final ArrayBlockingQueue<BuiltRenderRegion> closeQueue = new ArrayBlockingQueue<>(4096);
+	private final SimpleUnorderedArrayList<BuiltRenderRegion> concurrentCloseList = new SimpleUnorderedArrayList<>();
+
+	// holds close targets during close on iterator thread - avoid multiple lock attempts
+	private final SimpleUnorderedArrayList<BuiltRenderRegion> prunerThreadCloseList = new SimpleUnorderedArrayList<>();
 
 	// holds close targets during close on render thread - avoid multiple lock attempts
-	private final ObjectArrayList<BuiltRenderRegion> closeList = new ObjectArrayList<>();
+	private final SimpleUnorderedArrayList<BuiltRenderRegion> renderThreadCloseList = new SimpleUnorderedArrayList<>();
 
 	public RenderRegionPruner(TerrainOccluder occluder) {
 		this.occluder = occluder;
@@ -49,27 +46,31 @@ public class RenderRegionPruner implements Predicate<BuiltRenderRegion> {
 
 	public void prepare(final long cameraChunkOrigin) {
 		invalidateOccluder = false;
-		cameraChunkX = BlockPos.unpackLongX(cameraChunkOrigin) >> 4;
-		cameraChunkY = BlockPos.unpackLongY(cameraChunkOrigin) >> 4;
-		cameraChunkZ = BlockPos.unpackLongZ(cameraChunkOrigin) >> 4;
+		cameraChunkPos = BlockPos.asLong(BlockPos.unpackLongX(cameraChunkOrigin) >> 4, BlockPos.unpackLongY(cameraChunkOrigin) >> 4, BlockPos.unpackLongZ(cameraChunkOrigin) >> 4);
 		occluderVersion = occluder.version();
 		maxSquaredChunkDistance = occluder.maxSquaredChunkDistance();
+	}
+
+	public void post() {
+		if (!prunerThreadCloseList.isEmpty()) {
+			synchronized (concurrentCloseList) {
+				final int limit = prunerThreadCloseList.size();
+
+				for (int i = 0; i < limit; ++i) {
+					concurrentCloseList.add(prunerThreadCloseList.get(i));
+				}
+			}
+
+			prunerThreadCloseList.clear();
+		}
 	}
 
 	public int occluderVersion() {
 		return occluderVersion;
 	}
 
-	public int cameraChunkX() {
-		return cameraChunkX;
-	}
-
-	public int cameraChunkY() {
-		return cameraChunkY;
-	}
-
-	public int cameraChunkZ() {
-		return cameraChunkZ;
+	public long cameraChunkPos() {
+		return cameraChunkPos;
 	}
 
 	public boolean didInvalidateOccluder() {
@@ -80,14 +81,8 @@ public class RenderRegionPruner implements Predicate<BuiltRenderRegion> {
 		invalidateOccluder = true;
 	}
 
-	@Override
-	public boolean test(BuiltRenderRegion r) {
-		if (!r.updateCameraDistanceAndVisibilityInfo(this)) {
-			closeQueue.offer(r);
-			return true;
-		} else {
-			return false;
-		}
+	public void prune(BuiltRenderRegion r) {
+		prunerThreadCloseList.add(r);
 	}
 
 	public int maxSquaredChunkDistance() {
@@ -95,17 +90,26 @@ public class RenderRegionPruner implements Predicate<BuiltRenderRegion> {
 	}
 
 	public void closeRegionsOnRenderThread() {
-		if (closeQueue.isEmpty()) {
-			return;
+		if (!concurrentCloseList.isEmpty()) {
+			synchronized (concurrentCloseList) {
+				final int limit = concurrentCloseList.size();
+
+				for (int i = 0; i < limit; ++i) {
+					renderThreadCloseList.add(concurrentCloseList.get(i));
+				}
+
+				concurrentCloseList.clear();
+			}
 		}
 
-		closeList.clear();
-		closeQueue.drainTo(closeList);
+		if (!renderThreadCloseList.isEmpty()) {
+			final int limit = renderThreadCloseList.size();
 
-		final int limit = closeList.size();
+			for (int i = 0; i < limit; ++i) {
+				renderThreadCloseList.get(i).close();
+			}
 
-		for (int i = 0; i < limit; ++i) {
-			closeList.get(i).close();
+			renderThreadCloseList.clear();
 		}
 	}
 }

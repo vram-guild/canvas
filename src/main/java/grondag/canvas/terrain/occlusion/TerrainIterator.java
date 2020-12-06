@@ -94,7 +94,6 @@ public class TerrainIterator implements Consumer<TerrainRenderContext> {
 
 		final boolean chunkCullingEnabled = this.chunkCullingEnabled;
 		final int renderDistance = this.renderDistance;
-		final CanvasFrustum frustum = terrainOccluder.frustum;
 		final RenderRegionStorage regionStorage = renderRegionStorage;
 		final BuiltRenderRegion[] visibleRegions = this.visibleRegions;
 		final TerrainDistanceSorter distanceSorter = this.distanceSorter;
@@ -122,7 +121,7 @@ public class TerrainIterator implements Consumer<TerrainRenderContext> {
 				final Vec3i offset = Useful.getDistanceSortedCircularOffset(i);
 				final BuiltRenderRegion region = regionStorage.getOrCreateRegion((offset.getX() << 4) + x, y, (offset.getZ() << 4) + z);
 
-				if (region != null && region.isInFrustum(frustum)) {
+				if (region != null && region.isInFrustum()) {
 					distanceSorter.add(region);
 				}
 			}
@@ -151,8 +150,8 @@ public class TerrainIterator implements Consumer<TerrainRenderContext> {
 				break;
 			}
 
-			// don't visit if not in frustum
-			if (!builtRegion.isInFrustum(frustum)) {
+			// don't visit if not in frustum and within render distance
+			if (!builtRegion.isInFrustum()) {
 				continue;
 			}
 

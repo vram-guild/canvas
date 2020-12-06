@@ -75,9 +75,14 @@ public class BuiltRenderRegion {
 
 	private final RenderRegionBuilder renderRegionBuilder;
 	private final RenderRegionStorage storage;
+	private final RenderRegionPruner pruner;
 	private final AtomicReference<RegionData> buildData;
 	private final ObjectOpenHashSet<BlockEntity> localNoCullingBlockEntities = new ObjectOpenHashSet<>();
 	private final BlockPos origin;
+	private final int chunkX;
+	private final int chunkY;
+	private final int chunkZ;
+	private long lastCameraChunkPos = -1;
 	private final RegionChunkReference chunkReference;
 	private final CanvasWorldRenderer cwr;
 	private final boolean isBottom;
@@ -86,9 +91,12 @@ public class BuiltRenderRegion {
 	public int occlusionRange;
 	private int occluderVersion;
 	private boolean occluderResult;
+
+	/** Used by frustum tests. Will be current only if region is within render distance. */
 	public float cameraRelativeCenterX;
 	public float cameraRelativeCenterY;
 	public float cameraRelativeCenterZ;
+
 	private int squaredChunkDistance;
 	private boolean isNear;
 	private boolean needsRebuild;
@@ -96,11 +104,13 @@ public class BuiltRenderRegion {
 	private volatile RegionBuildState buildState = new RegionBuildState();
 	private DrawableChunk translucentDrawable = DrawableChunk.EMPTY_DRAWABLE;
 	private DrawableChunk solidDrawable = DrawableChunk.EMPTY_DRAWABLE;
-	private int frustumVersion;
+	private int frustumVersion = -1;
+	private int positionVersion = -1;
 	private boolean frustumResult;
 	private int lastSeenFrameIndex;
 	private boolean isClosed = false;
 	private boolean isInsideRenderDistance;
+	private boolean isInsideRetentionDistance;
 	private final Consumer<TerrainRenderContext> buildTask = this::rebuildOnWorkerThread;
 	private int buildCount = -1;
 	// build count that was in effect last time drawn to occluder
@@ -110,11 +120,15 @@ public class BuiltRenderRegion {
 		this.cwr = cwr;
 		renderRegionBuilder = cwr.regionBuilder();
 		this.storage = storage;
+		pruner = storage.regionPruner;
 		chunkReference = chunkRef;
 		chunkReference.retain(this);
 		buildData = new AtomicReference<>(RegionData.UNBUILT);
 		needsRebuild = true;
 		origin = BlockPos.fromLong(packedPos);
+		chunkX = origin.getX() >> 4;
+		chunkY = origin.getY() >> 4;
+		chunkZ = origin.getZ() >> 4;
 		isBottom = origin.getY() == 0;
 		isTop = origin.getY() == 240;
 	}
@@ -158,28 +172,16 @@ public class BuiltRenderRegion {
 		++frameIndex;
 	}
 
-	// PERF: make this lazy?
-
 	/**
-	 * Assumes camera distance update has already happened.
+	 * Result is computed in {@link #updateCameraDistanceAndVisibilityInfo(RenderRegionPruner)}.
 	 *
 	 * <p>NB: tried a crude hierarchical scheme of checking chunk columns first
 	 * but didn't pay off.  Would probably  need to propagate per-plane results
 	 * over a more efficient region but that might not even help. Is already
 	 * quite fast and typically only one or a few regions per chunk must be tested.
 	 */
-	public boolean isInFrustum(CanvasFrustum frustum) {
-		final int v = frustum.viewVersion();
-
-		if (v == frustumVersion) {
-			return frustumResult;
-		} else {
-			frustumVersion = v;
-			//  PERF: implement hierarchical tests with propagation of per-plane inside test results
-			final boolean result = frustum.isRegionVisible(this);
-			frustumResult = result;
-			return result;
-		}
+	public boolean isInFrustum() {
+		return frustumResult;
 	}
 
 	public boolean wasRecentlySeen() {
@@ -187,37 +189,85 @@ public class BuiltRenderRegion {
 	}
 
 	/**
-	 * @return True if nearby.  If not nearby and not outside view distance true if neighbors are loaded.
+	 * @return True if nearby or if all neighbors are loaded.
 	 */
 	public boolean shouldBuild() {
-		return isNear || (isInsideRenderDistance && chunkReference.areCornersLoaded());
+		return isNear || chunkReference.areCornersLoaded();
 	}
 
 	/**
-	 * Returns true if could be visible.
+	 * Returns false if could be visible.
 	 */
-	boolean updateCameraDistanceAndVisibilityInfo(RenderRegionPruner pruner) {
-		// WIP: avoid these if camera origin hasn't changed
-		final BlockPos origin = this.origin;
-		final Vec3d cameraPos = cwr.cameraPos();
+	boolean shouldPrune() {
+		final CanvasFrustum frustum = pruner.frustum;
+		final int fv = frustum.viewVersion();
 
-		final float dx = (float) (origin.getX() + 8 - cameraPos.x);
-		final float dy = (float) (origin.getY() + 8 - cameraPos.y);
-		final float dz = (float) (origin.getZ() + 8 - cameraPos.z);
-		cameraRelativeCenterX = dx;
-		cameraRelativeCenterY = dy;
-		cameraRelativeCenterZ = dz;
+		if (fv != frustumVersion) {
+			frustumVersion = fv;
+			computeDistanceChecks();
+			computeFrustumChecks();
+		}
 
-		final int cx = pruner.cameraChunkX() - (origin.getX() >> 4);
-		final int cy = pruner.cameraChunkY() - (origin.getY() >> 4);
-		final int cz = pruner.cameraChunkZ() - (origin.getZ() >> 4);
+		invalidateOccluderIfNeeded();
 
-		final int horizontalSquaredDistance = cx * cx + cz * cz;
-		isInsideRenderDistance = horizontalSquaredDistance <= cwr.maxSquaredChunkRenderDistance();
-		squaredChunkDistance = horizontalSquaredDistance + cy * cy;
-		isNear = squaredChunkDistance <= 3;
-		occlusionRange = PackedBox.rangeFromSquareChunkDist(squaredChunkDistance);
+		if (isInsideRetentionDistance) {
+			return false;
+		} else {
+			if (!isClosed) {
+				// pruner holds for close on render thread
+				pruner.prune(this);
+			}
 
+			return true;
+		}
+	}
+
+	private void computeDistanceChecks() {
+		final long cameraChunkPos = pruner.cameraChunkPos();
+
+		if (cameraChunkPos != lastCameraChunkPos) {
+			lastCameraChunkPos = cameraChunkPos;
+
+			final int cx = BlockPos.unpackLongX(cameraChunkPos) - chunkX;
+			final int cy = BlockPos.unpackLongY(cameraChunkPos) - chunkY;
+			final int cz = BlockPos.unpackLongZ(cameraChunkPos) - chunkZ;
+
+			final int horizontalSquaredDistance = cx * cx + cz * cz;
+			isInsideRenderDistance = horizontalSquaredDistance <= cwr.maxSquaredChunkRenderDistance();
+			isInsideRetentionDistance = horizontalSquaredDistance <= cwr.maxSquaredChunkRetentionDistance();
+			squaredChunkDistance = horizontalSquaredDistance + cy * cy;
+			isNear = squaredChunkDistance <= 3;
+			occlusionRange = PackedBox.rangeFromSquareChunkDist(squaredChunkDistance);
+		}
+	}
+
+	private void computeFrustumChecks() {
+		final CanvasFrustum frustum = pruner.frustum;
+
+		// position version can only be different if overall frustum version is different
+		final int pv = frustum.positionVersion();
+
+		if (pv != positionVersion) {
+			positionVersion = pv;
+
+			// these are needed by the frustum - only need to recompute when position moves
+			// not needed at all if outside of render distance
+			if (isInsideRenderDistance) {
+				final Vec3d cameraPos = cwr.cameraPos();
+				final float dx = (float) (origin.getX() + 8 - cameraPos.x);
+				final float dy = (float) (origin.getY() + 8 - cameraPos.y);
+				final float dz = (float) (origin.getZ() + 8 - cameraPos.z);
+				cameraRelativeCenterX = dx;
+				cameraRelativeCenterY = dy;
+				cameraRelativeCenterZ = dz;
+			}
+		}
+
+		//  PERF: implement hierarchical tests with propagation of per-plane inside test results
+		frustumResult = isInsideRenderDistance && frustum.isRegionVisible(this);
+	}
+
+	private void invalidateOccluderIfNeeded() {
 		// WIP - clean up docs
 		// We check here to know if the occlusion raster must be redrawn.
 		//
@@ -229,12 +279,12 @@ public class BuiltRenderRegion {
 		//   1) A new chunk has a chunk distance less than the current max drawn (we somehow went backwards towards the camera)
 		//   2) An existing chunk has been reloaded - the buildCounter doesn't match the buildCounter when it was marked existing
 
-		if (buildData.get().canOcclude() && pruner.frustum.isRegionVisible(this)) {
+		if (frustumResult && buildData.get().canOcclude()) {
 			if (occluderVersion == pruner.occluderVersion()) {
 				// Existing - has been drawn in occlusion raster
 				if (buildCount != occlusionBuildCount) {
 					if (TerrainIterator.TRACE_OCCLUSION_OUTCOMES) {
-						CanvasMod.LOG.info("Invalidate - redraw: " + this.origin.toShortString() + "  occluder version:" + occluderVersion);
+						CanvasMod.LOG.info("Invalidate - redraw: " + origin.toShortString() + "  occluder version:" + occluderVersion);
 					}
 
 					pruner.invalidateOccluder();
@@ -246,15 +296,13 @@ public class BuiltRenderRegion {
 				//   2) This region is in the view frustum
 
 				if (TerrainIterator.TRACE_OCCLUSION_OUTCOMES) {
-					CanvasMod.LOG.info("Invalidate - backtrack: " + this.origin.toShortString() + "  occluder max:" + pruner.maxSquaredChunkDistance()
+					CanvasMod.LOG.info("Invalidate - backtrack: " + origin.toShortString() + "  occluder max:" + pruner.maxSquaredChunkDistance()
 						+ "  chunk max:" + squaredChunkDistance + "  occluder version:" + pruner.occluderVersion() + "  chunk version:" + occluderVersion);
 				}
 
 				pruner.invalidateOccluder();
 			}
 		}
-
-		return horizontalSquaredDistance < cwr.maxSquaredChunkRetentionDistance();
 	}
 
 	public int squaredChunkDistance() {
@@ -282,6 +330,12 @@ public class BuiltRenderRegion {
 			cancel();
 			buildData.set(RegionData.UNBUILT);
 			needsRebuild = true;
+			frustumVersion = -1;
+			positionVersion = -1;
+			isInsideRenderDistance = false;
+			isNear = false;
+			frustumResult = false;
+			lastCameraChunkPos = -1;
 		}
 	}
 

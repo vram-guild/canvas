@@ -16,8 +16,6 @@
 
 package grondag.canvas.terrain;
 
-import java.util.function.Predicate;
-
 import it.unimi.dsi.fastutil.Hash;
 
 import net.minecraft.util.math.BlockPos;
@@ -28,12 +26,22 @@ import grondag.canvas.render.CanvasWorldRenderer;
 public class RenderRegionStorage {
 	public final RenderRegionPruner regionPruner;
 
-	private static final Predicate<RegionChunkReference> CHUNK_REF_PRUNER = RegionChunkReference::isEmpty;
 	// Hat tip to JellySquid for the suggestion of using a hashmap
 	// PERF: lock-free implementation
-	private final HackedLong2ObjectMap<BuiltRenderRegion> regionMap = new HackedLong2ObjectMap<>(8192, Hash.VERY_FAST_LOAD_FACTOR, r -> r.close());
-	private final HackedLong2ObjectMap<RegionChunkReference> chunkRefMap = new HackedLong2ObjectMap<>(2048, Hash.VERY_FAST_LOAD_FACTOR, r -> {
-	});
+	private final HackedLong2ObjectMap<BuiltRenderRegion> regionMap = new HackedLong2ObjectMap<BuiltRenderRegion>(8192, Hash.VERY_FAST_LOAD_FACTOR, r -> r.close()) {
+		@Override
+		protected boolean shouldPrune(BuiltRenderRegion region) {
+			return region.shouldPrune();
+		}
+	};
+
+	private final HackedLong2ObjectMap<RegionChunkReference> chunkRefMap = new HackedLong2ObjectMap<RegionChunkReference>(2048, Hash.VERY_FAST_LOAD_FACTOR, r -> { }) {
+		@Override
+		protected boolean shouldPrune(RegionChunkReference item) {
+			return item.isEmpty();
+		}
+	};
+
 	private final CanvasWorldRenderer cwr;
 
 	public RenderRegionStorage(CanvasWorldRenderer cwr, RenderRegionPruner regionPruner) {
@@ -63,12 +71,14 @@ public class RenderRegionStorage {
 
 	public void updateCameraDistanceAndVisibilityInfo(long cameraChunkOrigin) {
 		regionPruner.prepare(cameraChunkOrigin);
-		regionMap.prune(regionPruner);
-		chunkRefMap.prune(CHUNK_REF_PRUNER);
+		regionMap.prune();
+		chunkRefMap.prune();
 
 		if (regionPruner.didInvalidateOccluder()) {
 			regionPruner.occluder.invalidate();
 		}
+
+		regionPruner.post();
 	}
 
 	public int regionCount() {
