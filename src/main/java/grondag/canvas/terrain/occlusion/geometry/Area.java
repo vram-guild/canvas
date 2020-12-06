@@ -14,7 +14,7 @@
  *  the License.
  */
 
-package grondag.canvas.terrain.occlusion.region;
+package grondag.canvas.terrain.occlusion.geometry;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntArrays;

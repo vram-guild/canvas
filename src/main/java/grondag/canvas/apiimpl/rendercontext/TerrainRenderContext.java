@@ -41,9 +41,9 @@ import grondag.canvas.buffer.encoding.VertexCollectorList;
 import grondag.canvas.light.AoCalculator;
 import grondag.canvas.light.LightSmoother;
 import grondag.canvas.mixinterface.Matrix3fExt;
-import grondag.canvas.terrain.FastRenderRegion;
-import grondag.canvas.terrain.ProtoRenderRegion;
-import grondag.canvas.terrain.RenderRegionAddressHelper;
+import grondag.canvas.terrain.region.FastRenderRegion;
+import grondag.canvas.terrain.region.ProtoRenderRegion;
+import grondag.canvas.terrain.util.RenderRegionAddressHelper;
 
 /**
  * Implementation of {@link RenderContext} used during terrain rendering.

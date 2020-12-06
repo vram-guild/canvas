@@ -14,7 +14,7 @@
  *  the License.
  */
 
-package grondag.canvas.terrain;
+package grondag.canvas.terrain.region;
 
 import java.util.List;
 
@@ -29,7 +29,7 @@ import net.fabricmc.api.Environment;
 import grondag.canvas.buffer.encoding.VertexCollectorImpl;
 import grondag.canvas.buffer.encoding.VertexCollectorList;
 import grondag.canvas.material.state.RenderLayerHelper;
-import grondag.canvas.terrain.occlusion.region.OcclusionRegion;
+import grondag.canvas.terrain.occlusion.geometry.OcclusionRegion;
 
 @Environment(EnvType.CLIENT)
 public class RegionData {

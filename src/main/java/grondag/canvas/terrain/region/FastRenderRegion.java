@@ -14,13 +14,13 @@
  *  the License.
  */
 
-package grondag.canvas.terrain;
+package grondag.canvas.terrain.region;
 
-import static grondag.canvas.terrain.RenderRegionAddressHelper.EXTERIOR_CACHE_SIZE;
-import static grondag.canvas.terrain.RenderRegionAddressHelper.INTERIOR_CACHE_SIZE;
-import static grondag.canvas.terrain.RenderRegionAddressHelper.TOTAL_CACHE_SIZE;
-import static grondag.canvas.terrain.RenderRegionAddressHelper.cacheIndexToXyz5;
-import static grondag.canvas.terrain.RenderRegionAddressHelper.interiorIndex;
+import static grondag.canvas.terrain.util.RenderRegionAddressHelper.EXTERIOR_CACHE_SIZE;
+import static grondag.canvas.terrain.util.RenderRegionAddressHelper.INTERIOR_CACHE_SIZE;
+import static grondag.canvas.terrain.util.RenderRegionAddressHelper.TOTAL_CACHE_SIZE;
+import static grondag.canvas.terrain.util.RenderRegionAddressHelper.cacheIndexToXyz5;
+import static grondag.canvas.terrain.util.RenderRegionAddressHelper.interiorIndex;
 
 import java.util.Arrays;
 
@@ -41,8 +41,9 @@ import net.minecraft.world.level.ColorResolver;
 import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachedBlockView;
 
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
-import grondag.canvas.terrain.ChunkPaletteCopier.PaletteCopy;
-import grondag.canvas.terrain.occlusion.region.OcclusionRegion;
+import grondag.canvas.terrain.occlusion.geometry.OcclusionRegion;
+import grondag.canvas.terrain.util.ChunkColorCache;
+import grondag.canvas.terrain.util.ChunkPaletteCopier.PaletteCopy;
 
 public class FastRenderRegion extends AbstractRenderRegion implements RenderAttachedBlockView {
 	private static final int[] EMPTY_AO_CACHE = new int[TOTAL_CACHE_SIZE];

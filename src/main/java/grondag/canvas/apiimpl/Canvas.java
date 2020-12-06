@@ -42,9 +42,9 @@ import grondag.canvas.perf.ChunkRebuildCounters;
 import grondag.canvas.shader.GlShaderManager;
 import grondag.canvas.shader.MaterialProgramManager;
 import grondag.canvas.shader.ProcessShaders;
-import grondag.canvas.terrain.ChunkColorCache;
-import grondag.canvas.terrain.ProtoRenderRegion;
-import grondag.canvas.terrain.TerrainModelSpace;
+import grondag.canvas.terrain.region.ProtoRenderRegion;
+import grondag.canvas.terrain.util.ChunkColorCache;
+import grondag.canvas.terrain.util.TerrainModelSpace;
 import grondag.frex.api.Renderer;
 import grondag.frex.api.material.MaterialCondition;
 

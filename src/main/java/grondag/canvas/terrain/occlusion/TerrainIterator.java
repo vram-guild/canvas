@@ -31,10 +31,10 @@ import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
 import grondag.canvas.render.CanvasFrustum;
 import grondag.canvas.render.CanvasWorldRenderer;
-import grondag.canvas.terrain.BuiltRenderRegion;
-import grondag.canvas.terrain.RegionData;
-import grondag.canvas.terrain.RenderRegionStorage;
-import grondag.canvas.terrain.occlusion.region.OcclusionRegion;
+import grondag.canvas.terrain.occlusion.geometry.OcclusionRegion;
+import grondag.canvas.terrain.region.BuiltRenderRegion;
+import grondag.canvas.terrain.region.RegionData;
+import grondag.canvas.terrain.region.RenderRegionStorage;
 import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
 import grondag.fermion.varia.Useful;
 

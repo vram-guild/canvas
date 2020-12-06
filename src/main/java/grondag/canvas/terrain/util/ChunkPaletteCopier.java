@@ -14,7 +14,7 @@
  *  the License.
  */
 
-package grondag.canvas.terrain;
+package grondag.canvas.terrain.util;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import org.apache.commons.lang3.ObjectUtils;

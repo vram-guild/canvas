@@ -25,8 +25,8 @@ import net.minecraft.world.chunk.Palette;
 import net.minecraft.world.chunk.PalettedContainer;
 
 import grondag.canvas.mixinterface.PalettedContainerExt;
-import grondag.canvas.terrain.ChunkPaletteCopier;
-import grondag.canvas.terrain.ChunkPaletteCopier.PaletteCopy;
+import grondag.canvas.terrain.util.ChunkPaletteCopier;
+import grondag.canvas.terrain.util.ChunkPaletteCopier.PaletteCopy;
 
 @Mixin(PalettedContainer.class)
 public abstract class MixinPalettedContainer<T> implements PalettedContainerExt {

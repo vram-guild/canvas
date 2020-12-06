@@ -14,7 +14,7 @@
  *  the License.
  */
 
-package grondag.canvas.terrain;
+package grondag.canvas.terrain.util;
 
 import java.util.Arrays;
 
@@ -41,7 +41,7 @@ public abstract class RenderRegionAddressHelper {
 	public static final int INTERIOR_CACHE_WORDS = INTERIOR_CACHE_SIZE / 64;
 	public static final int EXTERIOR_CACHE_WORDS = (EXTERIOR_CACHE_SIZE + 63) / 64;
 	public static final int TOTAL_CACHE_WORDS = INTERIOR_CACHE_WORDS + EXTERIOR_CACHE_WORDS;
-	protected static final BlockState AIR = Blocks.AIR.getDefaultState();
+	public static final BlockState AIR = Blocks.AIR.getDefaultState();
 	static final int[] REVERSE_INDEX_LOOKUP = new int[TOTAL_CACHE_SIZE];
 	static final int[] INDEX_LOOKUP = new int[32768];
 

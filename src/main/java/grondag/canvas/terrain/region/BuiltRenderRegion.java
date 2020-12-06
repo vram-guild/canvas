@@ -14,7 +14,7 @@
  *  the License.
  */
 
-package grondag.canvas.terrain;
+package grondag.canvas.terrain.region;
 
 import java.util.Arrays;
 import java.util.List;
@@ -61,10 +61,12 @@ import grondag.canvas.render.CanvasFrustum;
 import grondag.canvas.render.CanvasWorldRenderer;
 import grondag.canvas.terrain.occlusion.TerrainDistanceSorter;
 import grondag.canvas.terrain.occlusion.TerrainIterator;
-import grondag.canvas.terrain.occlusion.region.OcclusionRegion;
-import grondag.canvas.terrain.occlusion.region.PackedBox;
+import grondag.canvas.terrain.occlusion.geometry.OcclusionRegion;
+import grondag.canvas.terrain.occlusion.geometry.PackedBox;
 import grondag.canvas.terrain.render.DrawableChunk;
 import grondag.canvas.terrain.render.UploadableChunk;
+import grondag.canvas.terrain.util.RenderRegionAddressHelper;
+import grondag.canvas.terrain.util.TerrainModelSpace;
 import grondag.canvas.varia.BlockPosHelper;
 import grondag.frex.api.fluid.FluidQuadSupplier;
 

@@ -25,7 +25,7 @@ import net.minecraft.world.World;
 import net.minecraft.world.chunk.WorldChunk;
 
 import grondag.canvas.mixinterface.WorldChunkExt;
-import grondag.canvas.terrain.ChunkColorCache;
+import grondag.canvas.terrain.util.ChunkColorCache;
 
 @Mixin(WorldChunk.class)
 public class MixinWorldChunk implements WorldChunkExt {

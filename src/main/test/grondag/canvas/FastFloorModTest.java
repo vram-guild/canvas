@@ -4,7 +4,7 @@ import java.util.function.IntUnaryOperator;
 
 import org.junit.jupiter.api.Test;
 
-import grondag.canvas.terrain.FastFloorMod;
+import grondag.canvas.terrain.util.FastFloorMod;
 
 class FastFloorModTest {
 	private static final int MIN = -30000000;

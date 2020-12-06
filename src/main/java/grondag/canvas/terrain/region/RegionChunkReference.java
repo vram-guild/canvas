@@ -14,7 +14,7 @@
  *  the License.
  */
 
-package grondag.canvas.terrain;
+package grondag.canvas.terrain.region;
 
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.util.math.ChunkPos;

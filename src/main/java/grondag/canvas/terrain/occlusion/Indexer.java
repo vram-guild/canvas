@@ -24,7 +24,7 @@ import static grondag.canvas.terrain.occlusion.Constants.TILE_PIXEL_INDEX_MASK;
 
 import com.google.common.base.Strings;
 
-import grondag.canvas.terrain.occlusion.region.OcclusionBitPrinter;
+import grondag.canvas.terrain.occlusion.geometry.OcclusionBitPrinter;
 
 abstract class Indexer {
 	private Indexer() {

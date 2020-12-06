@@ -170,13 +170,14 @@ import static grondag.canvas.terrain.occlusion.Constants.TILE_INDEX_LOW_X_MASK;
 import static grondag.canvas.terrain.occlusion.Constants.TILE_INDEX_LOW_Y;
 import static grondag.canvas.terrain.occlusion.Constants.TILE_INDEX_LOW_Y_MASK;
 import static grondag.canvas.terrain.occlusion.Indexer.tileIndex;
-import static grondag.canvas.terrain.occlusion.Matrix4L.MATRIX_PRECISION_HALF;
+import static grondag.canvas.varia.Matrix4L.MATRIX_PRECISION_HALF;
 
 import com.google.common.base.Strings;
 import org.apache.commons.lang3.StringUtils;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
+import grondag.canvas.varia.Matrix4L;
 
 // Some elements are adapted from content found at
 // https://fgiesen.wordpress.com/2013/02/17/optimizing-sw-occlusion-culling-index/

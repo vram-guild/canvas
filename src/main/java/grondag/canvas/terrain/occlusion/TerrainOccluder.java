@@ -48,8 +48,9 @@ import net.minecraft.util.math.Vec3d;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.mixinterface.Matrix4fExt;
 import grondag.canvas.render.CanvasFrustum;
-import grondag.canvas.terrain.BuiltRenderRegion;
-import grondag.canvas.terrain.occlusion.region.PackedBox;
+import grondag.canvas.terrain.occlusion.geometry.PackedBox;
+import grondag.canvas.terrain.region.BuiltRenderRegion;
+import grondag.canvas.varia.Matrix4L;
 
 public class TerrainOccluder {
 	private final Matrix4L baseMvpMatrix = new Matrix4L();

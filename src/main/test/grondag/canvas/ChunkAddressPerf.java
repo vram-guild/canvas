@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test;
 
 import net.minecraft.util.math.BlockPos;
 
-import grondag.canvas.terrain.FastFloorMod;
+import grondag.canvas.terrain.util.FastFloorMod;
 
 class ChunkAddressPerf {
 	static final int COUNT = 100000000;

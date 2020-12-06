@@ -14,7 +14,7 @@
  *  the License.
  */
 
-package grondag.canvas.terrain;
+package grondag.canvas.terrain.region;
 
 import java.util.Queue;
 
@@ -22,6 +22,7 @@ import com.google.common.collect.Queues;
 import com.mojang.blaze3d.systems.RenderSystem;
 
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
+import grondag.canvas.terrain.util.ChunkRenderExecutor;
 
 public class RenderRegionBuilder {
 	public final ChunkRenderExecutor executor = new ChunkRenderExecutor();

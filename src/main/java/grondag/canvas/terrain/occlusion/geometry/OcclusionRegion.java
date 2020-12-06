@@ -14,19 +14,19 @@
  *  the License.
  */
 
-package grondag.canvas.terrain.occlusion.region;
+package grondag.canvas.terrain.occlusion.geometry;
 
-import static grondag.canvas.terrain.RenderRegionAddressHelper.INTERIOR_CACHE_SIZE;
-import static grondag.canvas.terrain.RenderRegionAddressHelper.INTERIOR_CACHE_WORDS;
-import static grondag.canvas.terrain.RenderRegionAddressHelper.TOTAL_CACHE_WORDS;
-import static grondag.canvas.terrain.RenderRegionAddressHelper.interiorIndex;
-import static grondag.canvas.terrain.RenderRegionAddressHelper.localCornerIndex;
-import static grondag.canvas.terrain.RenderRegionAddressHelper.localXEdgeIndex;
-import static grondag.canvas.terrain.RenderRegionAddressHelper.localXfaceIndex;
-import static grondag.canvas.terrain.RenderRegionAddressHelper.localYEdgeIndex;
-import static grondag.canvas.terrain.RenderRegionAddressHelper.localYfaceIndex;
-import static grondag.canvas.terrain.RenderRegionAddressHelper.localZEdgeIndex;
-import static grondag.canvas.terrain.RenderRegionAddressHelper.localZfaceIndex;
+import static grondag.canvas.terrain.util.RenderRegionAddressHelper.INTERIOR_CACHE_SIZE;
+import static grondag.canvas.terrain.util.RenderRegionAddressHelper.INTERIOR_CACHE_WORDS;
+import static grondag.canvas.terrain.util.RenderRegionAddressHelper.TOTAL_CACHE_WORDS;
+import static grondag.canvas.terrain.util.RenderRegionAddressHelper.interiorIndex;
+import static grondag.canvas.terrain.util.RenderRegionAddressHelper.localCornerIndex;
+import static grondag.canvas.terrain.util.RenderRegionAddressHelper.localXEdgeIndex;
+import static grondag.canvas.terrain.util.RenderRegionAddressHelper.localXfaceIndex;
+import static grondag.canvas.terrain.util.RenderRegionAddressHelper.localYEdgeIndex;
+import static grondag.canvas.terrain.util.RenderRegionAddressHelper.localYfaceIndex;
+import static grondag.canvas.terrain.util.RenderRegionAddressHelper.localZEdgeIndex;
+import static grondag.canvas.terrain.util.RenderRegionAddressHelper.localZfaceIndex;
 
 import it.unimi.dsi.fastutil.ints.IntArrayFIFOQueue;
 import it.unimi.dsi.fastutil.ints.IntArrayList;

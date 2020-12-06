@@ -14,7 +14,7 @@
  *  the License.
  */
 
-package grondag.canvas.terrain;
+package grondag.canvas.terrain.util;
 
 import static grondag.fermion.position.PackedBlockPos.WORLD_BOUNDARY;
 import static grondag.fermion.position.PackedBlockPos.X_MASK;

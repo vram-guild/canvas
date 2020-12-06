@@ -14,7 +14,7 @@
  *  the License.
  */
 
-package grondag.canvas.terrain;
+package grondag.canvas.terrain.util;
 
 import java.util.concurrent.ArrayBlockingQueue;
 

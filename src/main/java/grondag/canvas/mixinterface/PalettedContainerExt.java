@@ -16,7 +16,7 @@
 
 package grondag.canvas.mixinterface;
 
-import grondag.canvas.terrain.ChunkPaletteCopier.PaletteCopy;
+import grondag.canvas.terrain.util.ChunkPaletteCopier.PaletteCopy;
 
 public interface PalettedContainerExt {
 	PaletteCopy canvas_paletteCopy();

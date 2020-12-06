@@ -14,7 +14,7 @@
  *  the License.
  */
 
-package grondag.canvas.terrain.occlusion.region;
+package grondag.canvas.terrain.occlusion.geometry;
 
 public abstract class PackedBox {
 	public static final int RANGE_NEAR = 0;

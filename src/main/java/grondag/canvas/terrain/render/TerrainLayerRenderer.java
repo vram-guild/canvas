@@ -29,8 +29,8 @@ import grondag.canvas.Configurator;
 import grondag.canvas.light.LightmapHdTexture;
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.shader.ProgramType;
-import grondag.canvas.terrain.BuiltRenderRegion;
-import grondag.canvas.terrain.TerrainModelSpace;
+import grondag.canvas.terrain.region.BuiltRenderRegion;
+import grondag.canvas.terrain.util.TerrainModelSpace;
 import grondag.canvas.texture.DitherTexture;
 
 public class TerrainLayerRenderer {

@@ -14,9 +14,9 @@
  *  the License.
  */
 
-package grondag.canvas.terrain;
+package grondag.canvas.terrain.region;
 
-import static grondag.canvas.terrain.RenderRegionAddressHelper.relativeCacheIndex;
+import static grondag.canvas.terrain.util.RenderRegionAddressHelper.relativeCacheIndex;
 
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;

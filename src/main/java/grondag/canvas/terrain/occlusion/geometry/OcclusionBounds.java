@@ -14,7 +14,7 @@
  *  the License.
  */
 
-package grondag.canvas.terrain.occlusion.region;
+package grondag.canvas.terrain.occlusion.geometry;
 //package grondag.canvas.chunk.occlusion;
 //
 //public abstract class OcclusionBounds {

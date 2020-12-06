@@ -5,7 +5,7 @@ import java.util.Random;
 import io.netty.util.internal.ThreadLocalRandom;
 import org.junit.jupiter.api.Test;
 
-import grondag.canvas.terrain.occlusion.region.PackedBox;
+import grondag.canvas.terrain.occlusion.geometry.PackedBox;
 
 class PackedBoxTest {
 	@Test

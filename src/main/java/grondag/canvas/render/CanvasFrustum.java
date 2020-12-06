@@ -28,7 +28,7 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 
 import grondag.canvas.mixinterface.Matrix4fExt;
-import grondag.canvas.terrain.BuiltRenderRegion;
+import grondag.canvas.terrain.region.BuiltRenderRegion;
 
 /**
  * Plane equation derivations based on:

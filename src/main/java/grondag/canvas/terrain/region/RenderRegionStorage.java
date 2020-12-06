@@ -14,7 +14,7 @@
  *  the License.
  */
 
-package grondag.canvas.terrain;
+package grondag.canvas.terrain.region;
 
 import it.unimi.dsi.fastutil.Hash;
 
@@ -22,6 +22,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 
 import grondag.canvas.render.CanvasWorldRenderer;
+import grondag.canvas.terrain.util.HackedLong2ObjectMap;
 
 public class RenderRegionStorage {
 	public final RenderRegionPruner regionPruner;

@@ -20,7 +20,7 @@ import net.minecraft.block.BlockState;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 
-import grondag.canvas.terrain.FastRenderRegion;
+import grondag.canvas.terrain.region.FastRenderRegion;
 
 // TODO: look at VoxelShapes.method_1080 as a way to not propagate thru slabs
 // Also BlockState.hasSidedTransparency seems promising

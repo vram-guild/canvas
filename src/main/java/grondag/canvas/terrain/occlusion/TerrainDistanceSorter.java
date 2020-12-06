@@ -21,7 +21,7 @@ import java.util.Arrays;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import org.jetbrains.annotations.Nullable;
 
-import grondag.canvas.terrain.BuiltRenderRegion;
+import grondag.canvas.terrain.region.BuiltRenderRegion;
 import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
 
 public class TerrainDistanceSorter {

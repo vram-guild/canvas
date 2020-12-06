@@ -14,19 +14,19 @@
  *  the License.
  */
 
-package grondag.canvas.terrain;
+package grondag.canvas.terrain.region;
 
-import static grondag.canvas.terrain.RenderRegionAddressHelper.AIR;
-import static grondag.canvas.terrain.RenderRegionAddressHelper.EXTERIOR_CACHE_SIZE;
-import static grondag.canvas.terrain.RenderRegionAddressHelper.INTERIOR_CACHE_SIZE;
-import static grondag.canvas.terrain.RenderRegionAddressHelper.interiorIndex;
-import static grondag.canvas.terrain.RenderRegionAddressHelper.localCornerIndex;
-import static grondag.canvas.terrain.RenderRegionAddressHelper.localXEdgeIndex;
-import static grondag.canvas.terrain.RenderRegionAddressHelper.localXfaceIndex;
-import static grondag.canvas.terrain.RenderRegionAddressHelper.localYEdgeIndex;
-import static grondag.canvas.terrain.RenderRegionAddressHelper.localYfaceIndex;
-import static grondag.canvas.terrain.RenderRegionAddressHelper.localZEdgeIndex;
-import static grondag.canvas.terrain.RenderRegionAddressHelper.localZfaceIndex;
+import static grondag.canvas.terrain.util.RenderRegionAddressHelper.AIR;
+import static grondag.canvas.terrain.util.RenderRegionAddressHelper.EXTERIOR_CACHE_SIZE;
+import static grondag.canvas.terrain.util.RenderRegionAddressHelper.INTERIOR_CACHE_SIZE;
+import static grondag.canvas.terrain.util.RenderRegionAddressHelper.interiorIndex;
+import static grondag.canvas.terrain.util.RenderRegionAddressHelper.localCornerIndex;
+import static grondag.canvas.terrain.util.RenderRegionAddressHelper.localXEdgeIndex;
+import static grondag.canvas.terrain.util.RenderRegionAddressHelper.localXfaceIndex;
+import static grondag.canvas.terrain.util.RenderRegionAddressHelper.localYEdgeIndex;
+import static grondag.canvas.terrain.util.RenderRegionAddressHelper.localYfaceIndex;
+import static grondag.canvas.terrain.util.RenderRegionAddressHelper.localZEdgeIndex;
+import static grondag.canvas.terrain.util.RenderRegionAddressHelper.localZfaceIndex;
 
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -44,7 +44,8 @@ import net.minecraft.world.chunk.WorldChunk;
 import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachmentBlockEntity;
 
 import grondag.canvas.perf.ChunkRebuildCounters;
-import grondag.canvas.terrain.ChunkPaletteCopier.PaletteCopy;
+import grondag.canvas.terrain.util.ChunkPaletteCopier;
+import grondag.canvas.terrain.util.ChunkPaletteCopier.PaletteCopy;
 
 public class ProtoRenderRegion extends AbstractRenderRegion {
 	/**

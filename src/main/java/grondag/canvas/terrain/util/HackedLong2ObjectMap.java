@@ -14,7 +14,7 @@
  *  the License.
  */
 
-package grondag.canvas.terrain;
+package grondag.canvas.terrain.util;
 
 import java.util.concurrent.locks.StampedLock;
 import java.util.function.Consumer;
@@ -22,12 +22,12 @@ import java.util.function.Consumer;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 
-abstract class HackedLong2ObjectMap<T> extends Long2ObjectOpenHashMap<T> {
+public abstract class HackedLong2ObjectMap<T> extends Long2ObjectOpenHashMap<T> {
 	private final StampedLock lock = new StampedLock();
 	private final Consumer<T> clearHandler;
 	private final LongArrayList pruned = new LongArrayList();
 
-	HackedLong2ObjectMap(int expectedSize, float fillFactor, Consumer<T> clearHandler) {
+	public HackedLong2ObjectMap(int expectedSize, float fillFactor, Consumer<T> clearHandler) {
 		super(expectedSize, fillFactor);
 		this.clearHandler = clearHandler;
 	}

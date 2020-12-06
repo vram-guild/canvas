@@ -14,17 +14,17 @@
  *  the License.
  */
 
-package grondag.canvas.terrain.occlusion;
+package grondag.canvas.varia;
 
 import net.minecraft.util.math.Matrix4f;
 
 import grondag.canvas.mixinterface.Matrix4fExt;
 
 public class Matrix4L {
-	static final int MATRIX_PRECISION_BITS = 16;
-	static final long MATRIX_PRECISION_UNITY = 1 << MATRIX_PRECISION_BITS;
-	static final long MATRIX_PRECISION_HALF = MATRIX_PRECISION_UNITY / 2;
-	static final float FLOAT_CONVERSION = 1f / MATRIX_PRECISION_UNITY;
+	public static final int MATRIX_PRECISION_BITS = 16;
+	public static final long MATRIX_PRECISION_UNITY = 1 << MATRIX_PRECISION_BITS;
+	public static final long MATRIX_PRECISION_HALF = MATRIX_PRECISION_UNITY / 2;
+	public static final float FLOAT_CONVERSION = 1f / MATRIX_PRECISION_UNITY;
 
 	private long a00;
 	private long a01;

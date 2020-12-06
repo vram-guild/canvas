@@ -20,9 +20,9 @@ import static grondag.canvas.apiimpl.util.GeometryHelper.AXIS_ALIGNED_FLAG;
 import static grondag.canvas.apiimpl.util.GeometryHelper.CUBIC_FLAG;
 import static grondag.canvas.apiimpl.util.GeometryHelper.LIGHT_FACE_FLAG;
 import static grondag.canvas.light.AoFaceData.OPAQUE;
-import static grondag.canvas.terrain.RenderRegionAddressHelper.cacheIndexToXyz5;
-import static grondag.canvas.terrain.RenderRegionAddressHelper.fastOffsetRelativeCacheIndex;
-import static grondag.canvas.terrain.RenderRegionAddressHelper.offsetMainChunkBlockIndex;
+import static grondag.canvas.terrain.util.RenderRegionAddressHelper.cacheIndexToXyz5;
+import static grondag.canvas.terrain.util.RenderRegionAddressHelper.fastOffsetRelativeCacheIndex;
+import static grondag.canvas.terrain.util.RenderRegionAddressHelper.offsetMainChunkBlockIndex;
 
 import net.minecraft.client.util.math.Vector3f;
 import net.minecraft.util.math.Direction;
