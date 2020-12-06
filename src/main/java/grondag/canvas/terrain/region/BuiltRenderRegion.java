@@ -269,18 +269,18 @@ public class BuiltRenderRegion {
 		frustumResult = isInsideRenderDistance && frustum.isRegionVisible(this);
 	}
 
+	/**
+	 * We check here to know if the occlusion raster must be redrawn.
+	 *
+	 * <p>The check depends on classifying this region as one of:<ul>
+	 *   <li>new - has not been drawn in raster - occluder version doesn't match
+	 *   <li>existing - has been drawn in rater - occluder version matches</ul>
+	 *
+	 * <p>The raster must be redrawn if either is true:<ul>
+	 *   <li>A new chunk has a chunk distance less than the current max drawn (we somehow went backwards towards the camera)
+	 *   <li>An existing chunk has been reloaded - the buildCounter doesn't match the buildCounter when it was marked existing</ul>
+	 */
 	private void invalidateOccluderIfNeeded() {
-		// WIP - clean up docs
-		// We check here to know if the occlusion raster must be redrawn.
-		//
-		// The check depends on classifying this region as one of:
-		//   new - has not been drawn in raster - occluder version doesn't match
-		//   existing - has been drawn in rater - occluder version matches
-		//
-		// The raster must be redrawn if either is true:
-		//   1) A new chunk has a chunk distance less than the current max drawn (we somehow went backwards towards the camera)
-		//   2) An existing chunk has been reloaded - the buildCounter doesn't match the buildCounter when it was marked existing
-
 		if (frustumResult && buildData.get().canOcclude()) {
 			if (occluderVersion == pruner.occluderVersion()) {
 				// Existing - has been drawn in occlusion raster
@@ -761,8 +761,8 @@ public class BuiltRenderRegion {
 
 	/**
 	 * Our logic for this is a little different than vanilla, which checks for squared distance
-	 * to chunk center from camera < 768.0.  Our will always return true for all 26 chunks adjacent
-	 * (including diagonal) to the chunk in which the camera is placed.
+	 * to chunk center from camera < 768.0.  Ours will always return true for all 26 chunks adjacent
+	 * (including diagonal) to the chunk containing the camera.
 	 *
 	 * <p>This logic is in {@link #updateCameraDistanceAndVisibilityInfo(RenderRegionPruner)}.
 	 */
@@ -789,7 +789,6 @@ public class BuiltRenderRegion {
 	}
 
 	private void enqueNeighbor(int index, BuiltRenderRegion r, RegionDistanceSorter queue) {
-		// WIP: reduce checks by storing farther neighbors when distance is updated
 		if (r.lastSeenFrameIndex != index && r.squaredChunkDistance > squaredChunkDistance) {
 			r.lastSeenFrameIndex = index;
 			queue.add(r);
