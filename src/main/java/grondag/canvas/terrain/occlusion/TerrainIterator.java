@@ -50,7 +50,7 @@ public class TerrainIterator implements Consumer<TerrainRenderContext> {
 	private final RenderRegionStorage renderRegionStorage;
 	public final TerrainOccluder terrainOccluder;
 	private final AtomicInteger state = new AtomicInteger(IDLE);
-	private final TerrainDistanceSorter distanceSorter = new TerrainDistanceSorter();
+	private final RegionDistanceSorter distanceSorter = new RegionDistanceSorter();
 	public volatile int visibleRegionCount;
 	private BuiltRenderRegion cameraRegion;
 	private Vec3d cameraPos;
@@ -96,7 +96,7 @@ public class TerrainIterator implements Consumer<TerrainRenderContext> {
 		final int renderDistance = this.renderDistance;
 		final RenderRegionStorage regionStorage = renderRegionStorage;
 		final BuiltRenderRegion[] visibleRegions = this.visibleRegions;
-		final TerrainDistanceSorter distanceSorter = this.distanceSorter;
+		final RegionDistanceSorter distanceSorter = this.distanceSorter;
 		int visibleRegionCount = 0;
 		updateRegions.clear();
 		distanceSorter.clear();

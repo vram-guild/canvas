@@ -59,7 +59,7 @@ import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.perf.ChunkRebuildCounters;
 import grondag.canvas.render.CanvasFrustum;
 import grondag.canvas.render.CanvasWorldRenderer;
-import grondag.canvas.terrain.occlusion.TerrainDistanceSorter;
+import grondag.canvas.terrain.occlusion.RegionDistanceSorter;
 import grondag.canvas.terrain.occlusion.TerrainIterator;
 import grondag.canvas.terrain.occlusion.geometry.OcclusionRegion;
 import grondag.canvas.terrain.occlusion.geometry.PackedBox;
@@ -770,7 +770,7 @@ public class BuiltRenderRegion {
 		return isNear;
 	}
 
-	public void enqueueUnvistedNeighbors(TerrainDistanceSorter distanceSorter) {
+	public void enqueueUnvistedNeighbors(RegionDistanceSorter distanceSorter) {
 		final int index = frameIndex;
 		lastSeenFrameIndex = index;
 
@@ -788,7 +788,7 @@ public class BuiltRenderRegion {
 		}
 	}
 
-	private void enqueNeighbor(int index, BuiltRenderRegion r, TerrainDistanceSorter queue) {
+	private void enqueNeighbor(int index, BuiltRenderRegion r, RegionDistanceSorter queue) {
 		// WIP: reduce checks by storing farther neighbors when distance is updated
 		if (r.lastSeenFrameIndex != index && r.squaredChunkDistance > squaredChunkDistance) {
 			r.lastSeenFrameIndex = index;
