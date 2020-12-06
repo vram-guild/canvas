@@ -22,21 +22,13 @@ import com.google.common.collect.Queues;
 import com.mojang.blaze3d.systems.RenderSystem;
 
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
-import grondag.canvas.terrain.util.ChunkRenderExecutor;
+import grondag.canvas.terrain.util.TerrainExecutor;
 
 public class RenderRegionBuilder {
-	public final ChunkRenderExecutor executor = new ChunkRenderExecutor();
+	public final TerrainExecutor executor = new TerrainExecutor();
 	private final Queue<Runnable> uploadQueue = Queues.newConcurrentLinkedQueue();
 	// for use by render thread rebuilds
 	TerrainRenderContext mainThreadContext = new TerrainRenderContext();
-
-	public RenderRegionBuilder() {
-		// PERF: limit vertex collectors similarly, somehow
-		//		final int memoryLimitedBufferCount = Math.max(1, (int)(Runtime.getRuntime().maxMemory() * 0.3D) / (RenderLayer.getBlockLayers().stream().mapToInt(RenderLayer::getExpectedBufferSize).sum() * 4) - 1);
-		//		final int processorCount = Runtime.getRuntime().availableProcessors();
-		//		final int architectureMaxBuilderCount = is64Bit ? processorCount : Math.min(processorCount, 4);
-		//		final int l = Math.max(1, Math.max(architectureMaxBuilderCount, memoryLimitedBufferCount));
-	}
 
 	public String getDebugString() {
 		return String.format("not available");

@@ -33,7 +33,7 @@ import grondag.fermion.sc.Sc;
  * distance-sorted execution.  Privilege is indicated by distance == -1
  * and privileged tasks run in order of submission.
  */
-public class ChunkRenderExecutor {
+public class TerrainExecutor {
 	private final PriorityBlockingQueue<ChunkBuildTask> queue = new PriorityBlockingQueue<>(1024, new Comparator<ChunkBuildTask>() {
 		@Override
 		public int compare(ChunkBuildTask o1, ChunkBuildTask o2) {
@@ -43,10 +43,9 @@ public class ChunkRenderExecutor {
 
 	private final int poolSize = threadCount();
 
-	@SuppressWarnings("unused")
 	private final ImmutableList<Worker> workers;
 
-	public ChunkRenderExecutor() {
+	public TerrainExecutor() {
 		final ImmutableList.Builder<Worker> builder = ImmutableList.builder();
 
 		for (int i = 0; i < poolSize; i++) {
