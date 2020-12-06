@@ -120,7 +120,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	private final RenderRegionPruner pruner = new RenderRegionPruner(terrainOccluder);
 	private final RenderRegionStorage renderRegionStorage = new RenderRegionStorage(this, pruner);
 	private final TerrainIterator terrainIterator = new TerrainIterator(renderRegionStorage, terrainOccluder);
-	private final CanvasFrustum frustum = new CanvasFrustum();
+	public final CanvasFrustum frustum = new CanvasFrustum();
 	/**
 	 * Incremented whenever regions are built so visibility search can progress or to indicate visibility might be changed.
 	 * Distinct from occluder state, which indiciates if/when occluder must be reset or redrawn.
@@ -159,7 +159,6 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		computeDistances();
 	}
 
-	// FIX: missing edges with off-thread iteration - try frustum check on thread but leave potentially visible set off
 	// PERF: render larger cubes - avoid matrix state changes
 	// PERF: cull particle rendering?
 	// PERF: reduce garbage generation
@@ -407,7 +406,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		profiler.swap("culling");
 
 		final CanvasFrustum frustum = this.frustum;
-		frustum.prepare(modelMatrix, projectionMatrix, camera);
+		frustum.prepare(modelMatrix, projectionMatrix, tickDelta, camera);
 
 		mc.getProfiler().swap("regions");
 

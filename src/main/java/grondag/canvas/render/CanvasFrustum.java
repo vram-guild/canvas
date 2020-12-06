@@ -19,6 +19,10 @@ package grondag.canvas.render;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.Camera;
 import net.minecraft.client.render.Frustum;
+import net.minecraft.client.render.GameRenderer;
+import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.client.util.math.Vector3f;
+import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Matrix4f;
@@ -27,6 +31,7 @@ import net.minecraft.util.math.Vec3d;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 
+import grondag.canvas.mixinterface.GameRendererExt;
 import grondag.canvas.mixinterface.Matrix4fExt;
 import grondag.canvas.terrain.region.BuiltRenderRegion;
 
@@ -172,7 +177,7 @@ public class CanvasFrustum extends Frustum {
 	}
 
 	@SuppressWarnings("resource")
-	public void prepare(Matrix4f modelMatrix, Matrix4f projectionMatrix, Camera camera) {
+	public void prepare(Matrix4f modelMatrix, Matrix4f projectionMatrix, float tickDelta, Camera camera) {
 		final Vec3d vec = camera.getPos();
 		final double x = vec.x;
 		final double y = vec.y;
@@ -181,6 +186,7 @@ public class CanvasFrustum extends Frustum {
 		if (initialized && x == lastViewX && y == lastViewY && z == lastViewZ
 				&& lastModelMatrix.matches(modelMatrix)
 				&& lastProjectionMatrix.matches(projectionMatrix)) {
+				//&& lastProjectionMatrix.matches(altProjMat)) {
 			return;
 		}
 
@@ -196,12 +202,14 @@ public class CanvasFrustum extends Frustum {
 
 		lastModelMatrix.set(modelMatrix);
 		lastProjectionMatrix.set(projectionMatrix);
+		//lastProjectionMatrix.set(altProjMat);
 		++viewVersion;
 
 		mvpMatrix.loadIdentity();
 		mvpMatrix.multiply(lastProjectionMatrix);
 		mvpMatrix.multiply(lastModelMatrix);
 
+		// depends on mvpMatrix being complete
 		extractPlanes();
 
 		viewDistanceSquared = MinecraftClient.getInstance().options.viewDistance * 16;
@@ -217,6 +225,56 @@ public class CanvasFrustum extends Frustum {
 			lastPositionY = y;
 			lastPositionZ = z;
 		}
+	}
+
+	private final MatrixStack projectionStack = new MatrixStack();
+	private final MinecraftClient client = MinecraftClient.getInstance();
+	private final GameRenderer gr = client.gameRenderer;
+	private final GameRendererExt grx = (GameRendererExt) gr;
+	private final MatrixStack altProjStack = new MatrixStack();
+	private final Matrix4f altProjMat = altProjStack.peek().getModel();
+	private final Matrix4fExt altProjMatEx = (Matrix4fExt) (Object) altProjMat;
+	private double fov;
+
+	/** Called by GameRenderer mixin to avoid recomputing fov. */
+	public void setFov(double fov) {
+		this.fov = fov;
+	}
+
+	public void updateProjection(Camera camera, float tickDelta) {
+		computeProjectionMatrix(camera, tickDelta);
+
+		// WIP: avoid bobbing frust on hurt/nausea to avoid occlusion update - give sufficient padding
+		grx.canvas_bobViewWhenHurt(projectionStack, tickDelta);
+
+		if (client.options.bobView) {
+			grx.canvas_bobView(projectionStack, tickDelta);
+		}
+
+		final float f = MathHelper.lerp(tickDelta, client.player.lastNauseaStrength, client.player.nextNauseaStrength) * client.options.distortionEffectScale * client.options.distortionEffectScale;
+
+		if (f > 0.0F) {
+			final int i = client.player.hasStatusEffect(StatusEffects.NAUSEA) ? 7 : 20;
+			float g = 5.0F / (f * f + 5.0F) - f * 0.04F;
+			g *= g;
+			final Vector3f vector3f = new Vector3f(0.0F, MathHelper.SQUARE_ROOT_OF_TWO / 2.0F, MathHelper.SQUARE_ROOT_OF_TWO / 2.0F);
+			projectionStack.multiply(vector3f.getDegreesQuaternion((grx.canvas_ticks() + tickDelta) * i));
+			projectionStack.scale(1.0F / g, 1.0F, 1.0F);
+			final float h = -(grx.canvas_ticks() + tickDelta) * i;
+			projectionStack.multiply(vector3f.getDegreesQuaternion(h));
+		}
+	}
+
+	private void computeProjectionMatrix(Camera camera, float tickDelta) {
+		altProjMat.loadIdentity();
+
+		if (grx.canvas_zoom() != 1.0F) {
+			final float zoom = grx.canvas_zoom();
+			altProjMatEx.translate(grx.canvas_zoomX(), -grx.canvas_zoomY(), 0.0F);
+			altProjMatEx.scale(zoom, zoom, 1.0F);
+		}
+
+		altProjMat.multiply(Matrix4f.viewboxMatrix(fov + 0.0, client.getWindow().getFramebufferWidth() / (float) client.getWindow().getFramebufferHeight(), 0.05F, gr.getViewDistance() * 4.0F));
 	}
 
 	@Override

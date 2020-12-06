@@ -158,4 +158,44 @@ public interface Matrix4fExt {
 			a10() * x + a11() * y + a12() * z + a13(),
 			a20() * x + a21() * y + a22() * z + a23());
 	}
+
+	default void translate(float x, float y, float z) {
+		final float b03 = a00() * x + a01() * y + a02() * z + a03();
+		final float b13 = a10() * x + a11() * y + a12() * z + a13();
+		final float b23 = a20() * x + a21() * y + a22() * z + a23();
+		final float b33 = a30() * x + a31() * y + a32() * z + a33();
+
+		a03(b03);
+		a13(b13);
+		a23(b23);
+		a33(b33);
+	}
+
+	default void scale(float x, float y, float z) {
+		final float b00 = a00() * x;
+		final float b01 = a01() * y;
+		final float b02 = a02() * z;
+		final float b10 = a10() * x;
+		final float b11 = a11() * y;
+		final float b12 = a12() * z;
+		final float b20 = a20() * x;
+		final float b21 = a21() * y;
+		final float b22 = a22() * z;
+		final float b30 = a30() * x;
+		final float b31 = a31() * y;
+		final float b32 = a32() * z;
+
+		a00(b00);
+		a01(b01);
+		a02(b02);
+		a10(b10);
+		a11(b11);
+		a12(b12);
+		a20(b20);
+		a21(b21);
+		a22(b22);
+		a30(b30);
+		a31(b31);
+		a32(b32);
+	}
 }
