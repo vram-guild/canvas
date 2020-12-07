@@ -150,11 +150,6 @@ public class TerrainIterator implements Consumer<TerrainRenderContext> {
 				break;
 			}
 
-			// WIP: remove
-			//			if (builtRegion.getOrigin().getX() >> 4 == -19 >> 4 && builtRegion.getOrigin().getY() >> 4 == 83 >> 4 && builtRegion.getOrigin().getZ() >> 4 == -27 >> 4) {
-			//				System.out.println("boop");
-			//			}
-
 			// don't visit if not in frustum and within render distance
 			if (!builtRegion.isInFrustum()) {
 				continue;

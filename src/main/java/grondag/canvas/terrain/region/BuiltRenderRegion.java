@@ -762,7 +762,7 @@ public class BuiltRenderRegion {
 	/**
 	 * Our logic for this is a little different than vanilla, which checks for squared distance
 	 * to chunk center from camera < 768.0.  Ours will always return true for all 26 chunks adjacent
-	 * (including diagonal) to the chunk containing the camera.
+	 * (including diagonal) to the achunk containing the camera.
 	 *
 	 * <p>This logic is in {@link #updateCameraDistanceAndVisibilityInfo(RenderRegionPruner)}.
 	 */
@@ -789,9 +789,21 @@ public class BuiltRenderRegion {
 	}
 
 	private void enqueNeighbor(int index, BuiltRenderRegion r, RegionDistanceSorter queue) {
-		if (r.lastSeenFrameIndex != index && r.squaredChunkDistance > squaredChunkDistance) {
+		// Previously checked for r.squaredChunkDistance > squaredChunkDistance
+		// but some progression patterns seem to require it or chunks are missed.
+		// This is probably because a nearer path has an occlude chunk and so it
+		// has to be found reaching around. This will cause some backtracking and
+		// thus redraw of the occluder, but that already happens and is handled.
+
+		// The frustum version check is necessary to skip regions without valid info.
+		if (r.lastSeenFrameIndex != index && r.frustumVersion != -1) {
 			r.lastSeenFrameIndex = index;
 			queue.add(r);
 		}
+	}
+
+	/** For debugging. */
+	public boolean sharesOriginWith(int blockX, int blockY, int blockZ) {
+		return origin.getX() >> 4 == blockX >> 4 && origin.getY() >> 4 == blockY >> 4 && origin.getZ() >> 4 == blockZ >> 4;
 	}
 }

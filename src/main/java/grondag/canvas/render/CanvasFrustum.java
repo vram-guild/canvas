@@ -31,6 +31,7 @@ import net.minecraft.util.math.Vec3d;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 
+import grondag.canvas.Configurator;
 import grondag.canvas.mixinterface.GameRendererExt;
 import grondag.canvas.mixinterface.Matrix4fExt;
 import grondag.canvas.terrain.region.BuiltRenderRegion;
@@ -176,6 +177,7 @@ public class CanvasFrustum extends Frustum {
 		nearRegionExtent = src.nearRegionExtent;
 	}
 
+	// WIP: clean up - we probably don't need need vanilla projectionMatrix here
 	@SuppressWarnings("resource")
 	public void prepare(Matrix4f modelMatrix, Matrix4f projectionMatrix, float tickDelta, Camera camera) {
 		final Vec3d vec = camera.getPos();
@@ -183,10 +185,10 @@ public class CanvasFrustum extends Frustum {
 		final double y = vec.y;
 		final double z = vec.z;
 
+		// WIP: version check should be based on our projection matrix so not triggered by nausea, bob, etc.
 		if (initialized && x == lastViewX && y == lastViewY && z == lastViewZ
 				&& lastModelMatrix.matches(modelMatrix)
-				&& lastProjectionMatrix.matches(projectionMatrix)) {
-				//&& lastProjectionMatrix.matches(altProjMat)) {
+				&& lastProjectionMatrix.matches(altProjMat)) {
 			return;
 		}
 
@@ -201,8 +203,7 @@ public class CanvasFrustum extends Frustum {
 		lastViewZf = (float) z;
 
 		lastModelMatrix.set(modelMatrix);
-		lastProjectionMatrix.set(projectionMatrix);
-		//lastProjectionMatrix.set(altProjMat);
+		lastProjectionMatrix.set(altProjMat);
 		++viewVersion;
 
 		mvpMatrix.loadIdentity();
@@ -247,6 +248,7 @@ public class CanvasFrustum extends Frustum {
 		// WIP: avoid bobbing frust on hurt/nausea to avoid occlusion update - give sufficient padding
 		grx.canvas_bobViewWhenHurt(projectionStack, tickDelta);
 
+		// WIP: clean this up and test it
 		if (client.options.bobView) {
 			grx.canvas_bobView(projectionStack, tickDelta);
 		}
@@ -274,7 +276,10 @@ public class CanvasFrustum extends Frustum {
 			altProjMatEx.scale(zoom, zoom, 1.0F);
 		}
 
-		altProjMat.multiply(Matrix4f.viewboxMatrix(fov + 0.0, client.getWindow().getFramebufferWidth() / (float) client.getWindow().getFramebufferHeight(), 0.05F, gr.getViewDistance() * 4.0F));
+		// WIP: make configurable
+		final double paddedFov = Configurator.terrainSetupOffThread ? fov + 20.0 : fov;
+
+		altProjMat.multiply(Matrix4f.viewboxMatrix(paddedFov, client.getWindow().getFramebufferWidth() / (float) client.getWindow().getFramebufferHeight(), 0.05F, gr.getViewDistance() * 4.0F));
 	}
 
 	@Override
