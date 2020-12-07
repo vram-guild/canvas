@@ -30,7 +30,7 @@ import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
  * be at a finite number of distances from the origin chunk
  * and slots them into buckets using simple and fast array access.
  */
-public class RegionDistanceSorter {
+public class PotentiallyVisibleRegionSorter {
 	/** Max render chunk distance + 2 padding to allow for neighbor regions at edge. */
 	static final int RADIUS = 34;
 
@@ -105,6 +105,12 @@ public class RegionDistanceSorter {
 		EMPTY_REGIONS = new BuiltRenderRegion[REGION_LOOKUP_LENGTH];
 	}
 
+	private int version = 1;
+
+	public int version() {
+		return version;
+	}
+
 	/**
 	 * Same as {@link #SQ_DIST_TO_RING_MAP} but indices are updated as we collect regions.
 	 * Starting state is a copy of {@link #SQ_DIST_TO_RING_MAP}.
@@ -117,15 +123,20 @@ public class RegionDistanceSorter {
 	int regionIndex = 0;
 	int maxIndex = 0;
 
-	public RegionDistanceSorter() {
+	public PotentiallyVisibleRegionSorter() {
 		clear();
 	}
 
 	public void clear() {
 		System.arraycopy(SQ_DIST_TO_RING_MAP, 0, ringMap, 0, RING_MAP_LENGTH);
 		System.arraycopy(EMPTY_REGIONS, 0, regions, 0, REGION_LOOKUP_LENGTH);
-		regionIndex = 0;
 		maxIndex = -1;
+		++version;
+		returnToStart();
+	}
+
+	public void returnToStart() {
+		regionIndex = 0;
 	}
 
 	public void add(BuiltRenderRegion region) {

@@ -94,6 +94,7 @@ import grondag.canvas.mixinterface.BufferBuilderStorageExt;
 import grondag.canvas.mixinterface.MatrixStackExt;
 import grondag.canvas.mixinterface.WorldRendererExt;
 import grondag.canvas.shader.MaterialShaderManager;
+import grondag.canvas.terrain.occlusion.PotentiallyVisibleRegionSorter;
 import grondag.canvas.terrain.occlusion.TerrainIterator;
 import grondag.canvas.terrain.occlusion.TerrainOccluder;
 import grondag.canvas.terrain.occlusion.geometry.OcclusionRegion;
@@ -116,10 +117,11 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	// TODO: redirect uses in MC WorldRenderer
 	public final Set<BuiltRenderRegion> regionsToRebuild = Sets.newLinkedHashSet();
 	final TerrainLayerRenderer SOLID = new TerrainLayerRenderer("solid", null);
+	private final PotentiallyVisibleRegionSorter distanceSorter = new PotentiallyVisibleRegionSorter();
 	private final TerrainOccluder terrainOccluder = new TerrainOccluder();
-	private final RenderRegionPruner pruner = new RenderRegionPruner(terrainOccluder);
+	private final RenderRegionPruner pruner = new RenderRegionPruner(terrainOccluder, distanceSorter);
 	private final RenderRegionStorage renderRegionStorage = new RenderRegionStorage(this, pruner);
-	private final TerrainIterator terrainIterator = new TerrainIterator(renderRegionStorage, terrainOccluder);
+	private final TerrainIterator terrainIterator = new TerrainIterator(renderRegionStorage, terrainOccluder, distanceSorter);
 	public final CanvasFrustum frustum = new CanvasFrustum();
 	/**
 	 * Incremented whenever regions are built so visibility search can progress or to indicate visibility might be changed.
@@ -1150,7 +1152,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		}
 
 		renderRegionStorage.clear();
-
+		distanceSorter.clear();
 		visibleRegionCount = 0;
 		frustum.reload();
 

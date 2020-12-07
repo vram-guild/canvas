@@ -59,7 +59,7 @@ import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.perf.ChunkRebuildCounters;
 import grondag.canvas.render.CanvasFrustum;
 import grondag.canvas.render.CanvasWorldRenderer;
-import grondag.canvas.terrain.occlusion.RegionDistanceSorter;
+import grondag.canvas.terrain.occlusion.PotentiallyVisibleRegionSorter;
 import grondag.canvas.terrain.occlusion.TerrainIterator;
 import grondag.canvas.terrain.occlusion.geometry.OcclusionRegion;
 import grondag.canvas.terrain.occlusion.geometry.PackedBox;
@@ -72,7 +72,6 @@ import grondag.frex.api.fluid.FluidQuadSupplier;
 
 @Environment(EnvType.CLIENT)
 public class BuiltRenderRegion {
-	private static int frameIndex;
 	private static final AtomicInteger BUILD_COUNTER = new AtomicInteger();
 
 	private final RenderRegionBuilder renderRegionBuilder;
@@ -109,7 +108,7 @@ public class BuiltRenderRegion {
 	private int frustumVersion = -1;
 	private int positionVersion = -1;
 	private boolean frustumResult;
-	private int lastSeenFrameIndex;
+	private int lastSeenVisibility;
 	private boolean isClosed = false;
 	private boolean isInsideRenderDistance;
 	private boolean isInsideRetentionDistance;
@@ -170,10 +169,6 @@ public class BuiltRenderRegion {
 		}
 	}
 
-	public static void advanceFrameIndex() {
-		++frameIndex;
-	}
-
 	/**
 	 * Result is computed in {@link #updateCameraDistanceAndVisibilityInfo(RenderRegionPruner)}.
 	 *
@@ -187,7 +182,7 @@ public class BuiltRenderRegion {
 	}
 
 	public boolean wasRecentlySeen() {
-		return frameIndex - lastSeenFrameIndex < 4 && occluderResult;
+		return pruner.potentiallyVisibleRegions.version() - lastSeenVisibility < 4 && occluderResult;
 	}
 
 	/**
@@ -770,35 +765,35 @@ public class BuiltRenderRegion {
 		return isNear;
 	}
 
-	public void enqueueUnvistedNeighbors(RegionDistanceSorter distanceSorter) {
-		final int index = frameIndex;
-		lastSeenFrameIndex = index;
-
-		enqueNeighbor(index, getNeighbor(FaceConstants.EAST_INDEX), distanceSorter);
-		enqueNeighbor(index, getNeighbor(FaceConstants.WEST_INDEX), distanceSorter);
-		enqueNeighbor(index, getNeighbor(FaceConstants.NORTH_INDEX), distanceSorter);
-		enqueNeighbor(index, getNeighbor(FaceConstants.SOUTH_INDEX), distanceSorter);
+	public void enqueueUnvistedNeighbors() {
+		getNeighbor(FaceConstants.EAST_INDEX).addToPvsIfValid();
+		getNeighbor(FaceConstants.WEST_INDEX).addToPvsIfValid();
+		getNeighbor(FaceConstants.NORTH_INDEX).addToPvsIfValid();
+		getNeighbor(FaceConstants.SOUTH_INDEX).addToPvsIfValid();
 
 		if (!isTop) {
-			enqueNeighbor(index, getNeighbor(FaceConstants.UP_INDEX), distanceSorter);
+			getNeighbor(FaceConstants.UP_INDEX).addToPvsIfValid();
 		}
 
 		if (!isBottom) {
-			enqueNeighbor(index, getNeighbor(FaceConstants.DOWN_INDEX), distanceSorter);
+			getNeighbor(FaceConstants.DOWN_INDEX).addToPvsIfValid();
 		}
 	}
 
-	private void enqueNeighbor(int index, BuiltRenderRegion r, RegionDistanceSorter queue) {
+	public void addToPvsIfValid() {
 		// Previously checked for r.squaredChunkDistance > squaredChunkDistance
 		// but some progression patterns seem to require it or chunks are missed.
 		// This is probably because a nearer path has an occlude chunk and so it
 		// has to be found reaching around. This will cause some backtracking and
 		// thus redraw of the occluder, but that already happens and is handled.
 
+		final PotentiallyVisibleRegionSorter pvs = pruner.potentiallyVisibleRegions;
+		final int version = pvs.version();
+
 		// The frustum version check is necessary to skip regions without valid info.
-		if (r.lastSeenFrameIndex != index && r.frustumVersion != -1) {
-			r.lastSeenFrameIndex = index;
-			queue.add(r);
+		if (lastSeenVisibility != version && frustumVersion != -1) {
+			lastSeenVisibility = version;
+			pvs.add(this);
 		}
 	}
 

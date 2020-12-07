@@ -19,6 +19,7 @@ package grondag.canvas.terrain.region;
 import net.minecraft.util.math.BlockPos;
 
 import grondag.canvas.render.CanvasFrustum;
+import grondag.canvas.terrain.occlusion.PotentiallyVisibleRegionSorter;
 import grondag.canvas.terrain.occlusion.TerrainOccluder;
 import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
 
@@ -26,9 +27,12 @@ public class RenderRegionPruner {
 	private boolean invalidateOccluder = false;
 	private int occluderVersion = 0;
 	private long cameraChunkPos;
+	private long lastCameraChunkPos = -1;
+
 	private int maxSquaredChunkDistance;
 	public final CanvasFrustum frustum;
 	public final TerrainOccluder occluder;
+	public final PotentiallyVisibleRegionSorter potentiallyVisibleRegions;
 
 	// accessed from terrain iterator and render threads - holds regions to be closed on render thread
 	private final SimpleUnorderedArrayList<BuiltRenderRegion> concurrentCloseList = new SimpleUnorderedArrayList<>();
@@ -39,14 +43,23 @@ public class RenderRegionPruner {
 	// holds close targets during close on render thread - avoid multiple lock attempts
 	private final SimpleUnorderedArrayList<BuiltRenderRegion> renderThreadCloseList = new SimpleUnorderedArrayList<>();
 
-	public RenderRegionPruner(TerrainOccluder occluder) {
+	public RenderRegionPruner(TerrainOccluder occluder, PotentiallyVisibleRegionSorter distanceSorter) {
 		this.occluder = occluder;
+		potentiallyVisibleRegions = distanceSorter;
 		frustum = occluder.frustum;
 	}
 
 	public void prepare(final long cameraChunkOrigin) {
 		invalidateOccluder = false;
 		cameraChunkPos = BlockPos.asLong(BlockPos.unpackLongX(cameraChunkOrigin) >> 4, BlockPos.unpackLongY(cameraChunkOrigin) >> 4, BlockPos.unpackLongZ(cameraChunkOrigin) >> 4);
+
+		if (lastCameraChunkPos != cameraChunkPos) {
+			lastCameraChunkPos = cameraChunkPos;
+			potentiallyVisibleRegions.clear();
+		} else {
+			potentiallyVisibleRegions.returnToStart();
+		}
+
 		occluderVersion = occluder.version();
 		maxSquaredChunkDistance = occluder.maxSquaredChunkDistance();
 	}
