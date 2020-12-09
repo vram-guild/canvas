@@ -77,6 +77,7 @@ public abstract class HackedLong2ObjectMap<T> extends Long2ObjectOpenHashMap<T> 
 
 	@Override
 	public T get(final long k) {
+		// WIP: optimistic success very low on render thread
 		long stamp = lock.tryOptimisticRead();
 		T result;
 

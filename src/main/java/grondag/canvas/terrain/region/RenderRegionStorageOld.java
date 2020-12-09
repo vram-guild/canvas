@@ -24,7 +24,7 @@ import net.minecraft.util.math.ChunkPos;
 import grondag.canvas.render.CanvasWorldRenderer;
 import grondag.canvas.terrain.util.HackedLong2ObjectMap;
 
-public class RenderRegionStorage {
+public class RenderRegionStorageOld {
 	public final RenderRegionPruner regionPruner;
 
 	// Hat tip to JellySquid for the suggestion of using a hashmap
@@ -45,7 +45,7 @@ public class RenderRegionStorage {
 
 	private final CanvasWorldRenderer cwr;
 
-	public RenderRegionStorage(CanvasWorldRenderer cwr, RenderRegionPruner regionPruner) {
+	public RenderRegionStorageOld(CanvasWorldRenderer cwr, RenderRegionPruner regionPruner) {
 		this.cwr = cwr;
 		this.regionPruner = regionPruner;
 	}
@@ -88,7 +88,7 @@ public class RenderRegionStorage {
 
 	private BuiltRenderRegion getOrCreateRegion(long packedOriginPos) {
 		return regionMap.computeIfAbsent(packedOriginPos, k -> {
-			return new BuiltRenderRegion(cwr, this, chunkRef(k), k);
+			return null; //new BuiltRenderRegion(cwr, this, chunkRef(k), k);
 		});
 	}
 

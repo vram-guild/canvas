@@ -75,7 +75,7 @@ public class BuiltRenderRegion {
 	private static final AtomicInteger BUILD_COUNTER = new AtomicInteger();
 
 	private final RenderRegionBuilder renderRegionBuilder;
-	private final RenderRegionStorage storage;
+	private final RenderRegionStorage2 storage;
 	private final RenderRegionPruner pruner;
 	private final AtomicReference<RegionData> buildData;
 	private final ObjectOpenHashSet<BlockEntity> localNoCullingBlockEntities = new ObjectOpenHashSet<>();
@@ -117,7 +117,7 @@ public class BuiltRenderRegion {
 	// build count that was in effect last time drawn to occluder
 	private int occlusionBuildCount;
 
-	public BuiltRenderRegion(CanvasWorldRenderer cwr, RenderRegionStorage storage, RegionChunkReference chunkRef, long packedPos) {
+	public BuiltRenderRegion(CanvasWorldRenderer cwr, RenderRegionStorage2 storage, RegionChunkReference chunkRef, long packedPos) {
 		this.cwr = cwr;
 		renderRegionBuilder = cwr.regionBuilder();
 		this.storage = storage;

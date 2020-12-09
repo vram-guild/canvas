@@ -102,7 +102,7 @@ import grondag.canvas.terrain.occlusion.geometry.PackedBox;
 import grondag.canvas.terrain.region.BuiltRenderRegion;
 import grondag.canvas.terrain.region.RenderRegionBuilder;
 import grondag.canvas.terrain.region.RenderRegionPruner;
-import grondag.canvas.terrain.region.RenderRegionStorage;
+import grondag.canvas.terrain.region.RenderRegionStorage2;
 import grondag.canvas.terrain.render.TerrainLayerRenderer;
 import grondag.canvas.texture.DitherTexture;
 import grondag.canvas.varia.CanvasGlHelper;
@@ -120,7 +120,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	private final PotentiallyVisibleRegionSorter distanceSorter = new PotentiallyVisibleRegionSorter();
 	private final TerrainOccluder terrainOccluder = new TerrainOccluder();
 	private final RenderRegionPruner pruner = new RenderRegionPruner(terrainOccluder, distanceSorter);
-	private final RenderRegionStorage renderRegionStorage = new RenderRegionStorage(this, pruner);
+	private final RenderRegionStorage2 renderRegionStorage = new RenderRegionStorage2(this, pruner);
 	private final TerrainIterator terrainIterator = new TerrainIterator(renderRegionStorage, terrainOccluder, distanceSorter);
 	public final CanvasFrustum frustum = new CanvasFrustum();
 	/**
@@ -230,6 +230,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		renderRegionStorage.clear();
 		Arrays.fill(visibleRegions, null);
 		terrainIterator.reset();
+		// WIP: why twice?
 		renderRegionStorage.clear();
 		Arrays.fill(terrainIterator.visibleRegions, null);
 		// we don't want to use our collector unless we are in a world
@@ -252,7 +253,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		final WorldRendererExt wr = this.wr;
 		final MinecraftClient mc = wr.canvas_mc();
 		final int renderDistance = wr.canvas_renderDistance();
-		final RenderRegionStorage regionStorage = renderRegionStorage;
+		final RenderRegionStorage2 regionStorage = renderRegionStorage;
 		final TerrainIterator terrainIterator = this.terrainIterator;
 
 		if (mc.options.viewDistance != renderDistance) {
@@ -1086,7 +1087,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		if (ry0 != ry1) flags |= 2;
 		if (rz0 != rz1) flags |= 4;
 
-		final RenderRegionStorage regions = renderRegionStorage;
+		final RenderRegionStorage2 regions = renderRegionStorage;
 
 		switch (flags) {
 			case 0b000:
