@@ -34,7 +34,7 @@ import grondag.canvas.render.CanvasWorldRenderer;
 import grondag.canvas.terrain.occlusion.geometry.OcclusionRegion;
 import grondag.canvas.terrain.region.BuiltRenderRegion;
 import grondag.canvas.terrain.region.RegionData;
-import grondag.canvas.terrain.region.RenderRegionStorage2;
+import grondag.canvas.terrain.region.RenderRegionStorage;
 import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
 import grondag.fermion.varia.Useful;
 
@@ -47,7 +47,7 @@ public class TerrainIterator implements Consumer<TerrainRenderContext> {
 	public static final int COMPLETE = 3;
 	public final SimpleUnorderedArrayList<BuiltRenderRegion> updateRegions = new SimpleUnorderedArrayList<>();
 	public final BuiltRenderRegion[] visibleRegions = new BuiltRenderRegion[CanvasWorldRenderer.MAX_REGION_COUNT];
-	private final RenderRegionStorage2 renderRegionStorage;
+	private final RenderRegionStorage renderRegionStorage;
 	public final TerrainOccluder terrainOccluder;
 	private final AtomicInteger state = new AtomicInteger(IDLE);
 	private final PotentiallyVisibleRegionSorter distanceSorter;
@@ -59,7 +59,7 @@ public class TerrainIterator implements Consumer<TerrainRenderContext> {
 	private boolean chunkCullingEnabled = true;
 	private volatile boolean cancelled = false;
 
-	public TerrainIterator(RenderRegionStorage2 renderRegionStorage, TerrainOccluder terrainOccluder, PotentiallyVisibleRegionSorter distanceSorter) {
+	public TerrainIterator(RenderRegionStorage renderRegionStorage, TerrainOccluder terrainOccluder, PotentiallyVisibleRegionSorter distanceSorter) {
 		this.renderRegionStorage = renderRegionStorage;
 		this.terrainOccluder = terrainOccluder;
 		this.distanceSorter = distanceSorter;
@@ -95,7 +95,7 @@ public class TerrainIterator implements Consumer<TerrainRenderContext> {
 
 		final boolean chunkCullingEnabled = this.chunkCullingEnabled;
 		final int renderDistance = this.renderDistance;
-		final RenderRegionStorage2 regionStorage = renderRegionStorage;
+		final RenderRegionStorage regionStorage = renderRegionStorage;
 		final BuiltRenderRegion[] visibleRegions = this.visibleRegions;
 		final PotentiallyVisibleRegionSorter distanceSorter = this.distanceSorter;
 		int visibleRegionCount = 0;

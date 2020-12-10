@@ -21,7 +21,6 @@ import net.minecraft.util.math.BlockPos;
 import grondag.canvas.render.CanvasFrustum;
 import grondag.canvas.terrain.occlusion.PotentiallyVisibleRegionSorter;
 import grondag.canvas.terrain.occlusion.TerrainOccluder;
-import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
 
 public class RenderRegionPruner {
 	private boolean invalidateOccluder = false;
@@ -33,15 +32,6 @@ public class RenderRegionPruner {
 	public final CanvasFrustum frustum;
 	public final TerrainOccluder occluder;
 	public final PotentiallyVisibleRegionSorter potentiallyVisibleRegions;
-
-	// accessed from terrain iterator and render threads - holds regions to be closed on render thread
-	private final SimpleUnorderedArrayList<BuiltRenderRegion> concurrentCloseList = new SimpleUnorderedArrayList<>();
-
-	// holds close targets during close on iterator thread - avoid multiple lock attempts
-	private final SimpleUnorderedArrayList<BuiltRenderRegion> prunerThreadCloseList = new SimpleUnorderedArrayList<>();
-
-	// holds close targets during close on render thread - avoid multiple lock attempts
-	private final SimpleUnorderedArrayList<BuiltRenderRegion> renderThreadCloseList = new SimpleUnorderedArrayList<>();
 
 	public RenderRegionPruner(TerrainOccluder occluder, PotentiallyVisibleRegionSorter distanceSorter) {
 		this.occluder = occluder;
@@ -64,20 +54,6 @@ public class RenderRegionPruner {
 		maxSquaredChunkDistance = occluder.maxSquaredChunkDistance();
 	}
 
-	public void post() {
-		if (!prunerThreadCloseList.isEmpty()) {
-			synchronized (concurrentCloseList) {
-				final int limit = prunerThreadCloseList.size();
-
-				for (int i = 0; i < limit; ++i) {
-					concurrentCloseList.add(prunerThreadCloseList.get(i));
-				}
-			}
-
-			prunerThreadCloseList.clear();
-		}
-	}
-
 	public int occluderVersion() {
 		return occluderVersion;
 	}
@@ -94,35 +70,7 @@ public class RenderRegionPruner {
 		invalidateOccluder = true;
 	}
 
-	public void prune(BuiltRenderRegion r) {
-		prunerThreadCloseList.add(r);
-	}
-
 	public int maxSquaredChunkDistance() {
 		return maxSquaredChunkDistance;
-	}
-
-	public void closeRegionsOnRenderThread() {
-		if (!concurrentCloseList.isEmpty()) {
-			synchronized (concurrentCloseList) {
-				final int limit = concurrentCloseList.size();
-
-				for (int i = 0; i < limit; ++i) {
-					renderThreadCloseList.add(concurrentCloseList.get(i));
-				}
-
-				concurrentCloseList.clear();
-			}
-		}
-
-		if (!renderThreadCloseList.isEmpty()) {
-			final int limit = renderThreadCloseList.size();
-
-			for (int i = 0; i < limit; ++i) {
-				renderThreadCloseList.get(i).close();
-			}
-
-			renderThreadCloseList.clear();
-		}
 	}
 }
