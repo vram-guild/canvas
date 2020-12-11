@@ -21,6 +21,7 @@ import java.util.Arrays;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import org.jetbrains.annotations.Nullable;
 
+import grondag.canvas.CanvasMod;
 import grondag.canvas.terrain.region.BuiltRenderRegion;
 import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
 
@@ -145,12 +146,30 @@ public class PotentiallyVisibleRegionSorter {
 		if (dist >= 0 && dist <= MAX_SQ_DIST) {
 			final int index = ringMap[dist];
 			regions[index] = region;
-			assert dist == MAX_SQ_DIST || index < SQ_DIST_TO_RING_MAP[dist + 1] : "Region ring index overrun into next (more distant) region.";
+			assert isSaneAddition(region, dist, index) : "Region ring index overrun into next (more distant) region.";
 			ringMap[dist] = index + 1;
 
 			if (index > maxIndex) {
 				maxIndex = index;
 			}
+		}
+	}
+
+	private boolean isSaneAddition(BuiltRenderRegion region, int dist, int targetIndex) {
+		final int limit = SQ_DIST_TO_RING_MAP[dist + 1];
+
+		if (dist < MAX_SQ_DIST && targetIndex >= limit) {
+			CanvasMod.LOG.info("Origin region: " + (regions[0] == null ? "null" : regions[0].toString()));
+			CanvasMod.LOG.info("Region to be added: " + region.toString());
+			CanvasMod.LOG.info("Regions extant in same ring follow...");
+
+			for (int i = SQ_DIST_TO_RING_MAP[dist]; i < limit; ++i) {
+				CanvasMod.LOG.info(regions[i].toString());
+			}
+
+			return false;
+		} else {
+			return true;
 		}
 	}
 

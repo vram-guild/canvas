@@ -50,6 +50,18 @@ public class RenderRegionStorage {
 		}
 	}
 
+	public int cameraChunkX() {
+		return lastCameraChunkX;
+	}
+
+	public int cameraChunkY() {
+		return lastCameraChunkY;
+	}
+
+	public int cameraChunkZ() {
+		return lastCameraChunkZ;
+	}
+
 	private static int chunkIndex(int x, int z) {
 		x = ((x + 30000000) >> 4) & 127;
 		z = ((z + 30000000) >> 4) & 127;
@@ -70,19 +82,20 @@ public class RenderRegionStorage {
 	int chunkDistVersion = 1;
 
 	public void updateCameraDistanceAndVisibilityInfo(long cameraChunkOrigin) {
-		regionPruner.prepare(cameraChunkOrigin);
-
-		final long cameraChunkPos = regionPruner.cameraChunkPos();
-		final int cameraChunkX = BlockPos.unpackLongX(cameraChunkPos);
-		final int cameraChunkY = BlockPos.unpackLongY(cameraChunkPos);
-		final int cameraChunkZ = BlockPos.unpackLongZ(cameraChunkPos);
+		final int cameraChunkX = BlockPos.unpackLongX(cameraChunkOrigin) >> 4;
+		final int cameraChunkY = BlockPos.unpackLongY(cameraChunkOrigin) >> 4;
+		final int cameraChunkZ = BlockPos.unpackLongZ(cameraChunkOrigin) >> 4;
+		boolean clearVisibility = false;
 
 		if (!(cameraChunkX == lastCameraChunkX && cameraChunkY == lastCameraChunkY && cameraChunkZ == lastCameraChunkZ)) {
 			lastCameraChunkX = cameraChunkX;
 			lastCameraChunkY = cameraChunkY;
 			lastCameraChunkZ = cameraChunkZ;
 			++chunkDistVersion;
+			clearVisibility = true;
 		}
+
+		regionPruner.prepare(clearVisibility);
 
 		for (int i = 0; i < CHUNK_COUNT; ++i) {
 			chunks[i].updateCameraDistanceAndVisibilityInfo();
@@ -123,10 +136,11 @@ public class RenderRegionStorage {
 	}
 
 	public void closeRegionsOnRenderThread() {
-		final RenderRegionChunk chunk = closeQueue.poll();
+		RenderRegionChunk chunk = closeQueue.poll();
 
-		if (chunk != null) {
+		while (chunk != null) {
 			chunk.close();
+			chunk = closeQueue.poll();
 		}
 	}
 }

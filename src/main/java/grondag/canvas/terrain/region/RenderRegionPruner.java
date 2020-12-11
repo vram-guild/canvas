@@ -16,8 +16,6 @@
 
 package grondag.canvas.terrain.region;
 
-import net.minecraft.util.math.BlockPos;
-
 import grondag.canvas.render.CanvasFrustum;
 import grondag.canvas.terrain.occlusion.PotentiallyVisibleRegionSorter;
 import grondag.canvas.terrain.occlusion.TerrainOccluder;
@@ -25,8 +23,6 @@ import grondag.canvas.terrain.occlusion.TerrainOccluder;
 public class RenderRegionPruner {
 	private boolean invalidateOccluder = false;
 	private int occluderVersion = 0;
-	private long cameraChunkPos;
-	private long lastCameraChunkPos = -1;
 
 	private int maxSquaredChunkDistance;
 	public final CanvasFrustum frustum;
@@ -39,12 +35,10 @@ public class RenderRegionPruner {
 		frustum = occluder.frustum;
 	}
 
-	public void prepare(final long cameraChunkOrigin) {
+	public void prepare(boolean clear) {
 		invalidateOccluder = false;
-		cameraChunkPos = BlockPos.asLong(BlockPos.unpackLongX(cameraChunkOrigin) >> 4, BlockPos.unpackLongY(cameraChunkOrigin) >> 4, BlockPos.unpackLongZ(cameraChunkOrigin) >> 4);
 
-		if (lastCameraChunkPos != cameraChunkPos) {
-			lastCameraChunkPos = cameraChunkPos;
+		if (clear) {
 			potentiallyVisibleRegions.clear();
 		} else {
 			potentiallyVisibleRegions.returnToStart();
@@ -56,10 +50,6 @@ public class RenderRegionPruner {
 
 	public int occluderVersion() {
 		return occluderVersion;
-	}
-
-	public long cameraChunkPos() {
-		return cameraChunkPos;
 	}
 
 	public boolean didInvalidateOccluder() {

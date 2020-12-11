@@ -36,6 +36,7 @@ import net.minecraft.client.resource.language.I18n;
 import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
+import net.minecraft.util.math.MathHelper;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -71,6 +72,8 @@ public class Configurator {
 	public static boolean forceJmxModelLoading = DEFAULTS.forceJmxModelLoading;
 	public static boolean reduceResolutionOnMac = DEFAULTS.reduceResolutionOnMac;
 	public static boolean vertexControlMode = DEFAULTS.vertexControlMode;
+	public static int staticFrustumPadding = DEFAULTS.staticFrustumPadding;
+	public static int dynamicFrustumPadding = DEFAULTS.dynamicFrustumPadding;
 	public static boolean shaderDebug = DEFAULTS.shaderDebug;
 	public static boolean lightmapDebug = DEFAULTS.lightmapDebug;
 	public static boolean conciseErrors = DEFAULTS.conciseErrors;
@@ -164,6 +167,8 @@ public class Configurator {
 		forceJmxModelLoading = config.forceJmxModelLoading;
 		reduceResolutionOnMac = config.reduceResolutionOnMac;
 		vertexControlMode = config.vertexControlMode;
+		dynamicFrustumPadding = MathHelper.clamp(config.dynamicFrustumPadding, 0, 20);
+		staticFrustumPadding = MathHelper.clamp(config.staticFrustumPadding, 0, 30);
 
 		lightmapDebug = config.lightmapDebug;
 		conciseErrors = config.conciseErrors;
@@ -214,6 +219,8 @@ public class Configurator {
 		config.forceJmxModelLoading = forceJmxModelLoading;
 		config.reduceResolutionOnMac = reduceResolutionOnMac;
 		config.vertexControlMode = vertexControlMode;
+		config.staticFrustumPadding = staticFrustumPadding;
+		config.dynamicFrustumPadding = dynamicFrustumPadding;
 
 		config.lightmapDebug = lightmapDebug;
 		config.conciseErrors = conciseErrors;
@@ -537,6 +544,24 @@ public class Configurator {
 				})
 				.build());
 
+		tweaks.addEntry(ENTRY_BUILDER
+				.startIntSlider(new TranslatableText("config.canvas.value.static_frustum_padding"), staticFrustumPadding, 0, 20)
+				.setDefaultValue(DEFAULTS.staticFrustumPadding)
+				.setTooltip(parse("config.canvas.help.static_frustum_padding"))
+				.setSaveConsumer(b -> {
+					staticFrustumPadding = b;
+				})
+				.build());
+
+		tweaks.addEntry(ENTRY_BUILDER
+				.startIntSlider(new TranslatableText("config.canvas.value.dynamic_frustum_padding"), dynamicFrustumPadding, 0, 30)
+				.setDefaultValue(DEFAULTS.dynamicFrustumPadding)
+				.setTooltip(parse("config.canvas.help.dynamic_frustum_padding"))
+				.setSaveConsumer(b -> {
+					dynamicFrustumPadding = b;
+				})
+				.build());
+
 		// DEBUG
 		final ConfigCategory debug = builder.getOrCreateCategory(new TranslatableText("config.canvas.category.debug"));
 
@@ -749,6 +774,10 @@ public class Configurator {
 		boolean reduceResolutionOnMac = true;
 		@Comment("Reduce draw calls for terrain by controlling shaders with vertex data. Faster on some hardware.")
 		boolean vertexControlMode = false;
+		@Comment("Padding at edges of screen to reduce how often terrain visibility is computed. In degrees. Values 0 to 20. Zero disables.")
+		int staticFrustumPadding = 10;
+		@Comment("Extra padding at edges of screen to reduce missing chunks when view roates and terrainSetupOffThread is on. In degrees. Values 0 to 30. Zero disables.")
+		int dynamicFrustumPadding = 20;
 
 		// DEBUG
 		@Comment("Output runtime per-material shader source. For shader development debugging.")

@@ -79,12 +79,8 @@ public class RenderRegionChunk {
 	synchronized void updateCameraDistanceAndVisibilityInfo() {
 		if (storage.chunkDistVersion != chunkDistVersion) {
 			chunkDistVersion = storage.chunkDistVersion;
-			final long cameraChunkPos = storage.regionPruner.cameraChunkPos();
-			final int cameraChunkX = BlockPos.unpackLongX(cameraChunkPos);
-			final int cameraChunkZ = BlockPos.unpackLongZ(cameraChunkPos);
-
-			final int cx = cameraChunkX - chunkX;
-			final int cz = cameraChunkZ - chunkZ;
+			final int cx = storage.cameraChunkX() - chunkX;
+			final int cz = storage.cameraChunkZ() - chunkZ;
 			horizontalSquaredDistance = cx * cx + cz * cz;
 		}
 

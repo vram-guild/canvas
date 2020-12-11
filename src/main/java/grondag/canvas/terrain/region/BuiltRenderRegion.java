@@ -128,6 +128,20 @@ public class BuiltRenderRegion {
 		isTop = origin.getY() == 240;
 	}
 
+	@Override
+	public String toString() {
+		return String.format("%s  sqcd=%d  rebuild=%b  closed=%b  frustVer=%d  frustResult=%b  posVer=%d  lastSeenVis=%d  inRenderDist=%b",
+			origin.toShortString(),
+			squaredChunkDistance,
+			needsRebuild,
+			isClosed,
+			frustumVersion,
+			frustumResult,
+			positionVersion,
+			lastSeenVisibility,
+			isInsideRenderDistance);
+	}
+
 	public void setOccluderResult(boolean occluderResult, int occluderVersion) {
 		if (this.occluderVersion == occluderVersion) {
 			assert occluderResult == this.occluderResult;
@@ -204,8 +218,7 @@ public class BuiltRenderRegion {
 	}
 
 	private void computeDistanceChecks() {
-		final long cameraChunkPos = pruner.cameraChunkPos();
-		final int cy = BlockPos.unpackLongY(cameraChunkPos) - chunkY;
+		final int cy = storage.cameraChunkY() - chunkY;
 		final int horizontalSquaredDistance = renderRegionChunk.horizontalSquaredDistance;
 		isInsideRenderDistance = horizontalSquaredDistance <= cwr.maxSquaredChunkRenderDistance();
 		squaredChunkDistance = horizontalSquaredDistance + cy * cy;
