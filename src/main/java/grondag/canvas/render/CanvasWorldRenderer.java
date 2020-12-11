@@ -378,7 +378,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		return result;
 	}
 
-	public void renderWorld(MatrixStack matrixStack, float tickDelta, long limitTime, boolean blockOutlines, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f projectionMatrix) {
+	public void renderWorld(MatrixStack matrixStack, float tickDelta, long frameStartNanos, boolean blockOutlines, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f projectionMatrix) {
 		final WorldRendererExt wr = this.wr;
 		final MinecraftClient mc = wr.canvas_mc();
 		final WorldRenderer mcwr = mc.worldRenderer;
@@ -444,13 +444,14 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			maxFpsLimit = 1000000000 / maxFps;
 		}
 
-		final long budget = Util.getMeasuringTimeNano() - limitTime;
+		final long nowTime = Util.getMeasuringTimeNano();
+		final long usedTime = nowTime - frameStartNanos;
 
-		// No idea wtg the 3/2 is for - looks like a hack
-		final long updateBudget = wr.canvas_chunkUpdateSmoother().getTargetUsedTime(budget) * 3L / 2L;
+		// No idea what the 3/2 is for - looks like a hack
+		final long updateBudget = wr.canvas_chunkUpdateSmoother().getTargetUsedTime(usedTime) * 3L / 2L;
 		final long clampedBudget = MathHelper.clamp(updateBudget, maxFpsLimit, 33333333L);
 
-		updateRegions(limitTime + clampedBudget);
+		updateRegions(frameStartNanos + clampedBudget);
 
 		LightmapHdTexture.instance().onRenderTick();
 
@@ -1131,11 +1132,11 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	}
 
 	@Override
-	public void render(MatrixStack matrices, float tickDelta, long limitTime, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f matrix4f) {
+	public void render(MatrixStack matrices, float tickDelta, long frameStartNanos, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f matrix4f) {
 		wr.canvas_mc().getProfiler().swap("dynamic_lighting");
-		eventContext.prepare(this, matrices, tickDelta, limitTime, renderBlockOutline, camera, gameRenderer, lightmapTextureManager, matrix4f, worldRenderImmediate, wr.canvas_mc().getProfiler(), wr.canvas_transparencyShader() != null, world);
+		eventContext.prepare(this, matrices, tickDelta, frameStartNanos, renderBlockOutline, camera, gameRenderer, lightmapTextureManager, matrix4f, worldRenderImmediate, wr.canvas_mc().getProfiler(), wr.canvas_transparencyShader() != null, world);
 		WorldRenderEvents.START.invoker().onStart(eventContext);
-		renderWorld(matrices, tickDelta, limitTime, renderBlockOutline, camera, gameRenderer, lightmapTextureManager, matrix4f);
+		renderWorld(matrices, tickDelta, frameStartNanos, renderBlockOutline, camera, gameRenderer, lightmapTextureManager, matrix4f);
 		WorldRenderEvents.END.invoker().onEnd(eventContext);
 	}
 
