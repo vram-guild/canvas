@@ -21,8 +21,7 @@ import net.minecraft.client.render.Camera;
 import net.minecraft.client.render.Frustum;
 import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.client.util.math.Vector3f;
-import net.minecraft.entity.effect.StatusEffects;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Matrix4f;
@@ -177,9 +176,8 @@ public class CanvasFrustum extends Frustum {
 		nearRegionExtent = src.nearRegionExtent;
 	}
 
-	// WIP: clean up - we probably don't need need vanilla projectionMatrix here
 	@SuppressWarnings("resource")
-	public void prepare(Matrix4f modelMatrix, Matrix4f projectionMatrix, float tickDelta, Camera camera) {
+	public void prepare(Matrix4f modelMatrix, float tickDelta, Camera camera) {
 		final Vec3d vec = camera.getPos();
 		final double x = vec.x;
 		final double y = vec.y;
@@ -188,7 +186,7 @@ public class CanvasFrustum extends Frustum {
 		// WIP: version check should be based on our projection matrix so not triggered by nausea, bob, etc.
 		if (initialized && x == lastViewX && y == lastViewY && z == lastViewZ
 				&& lastModelMatrix.matches(modelMatrix)
-				&& lastProjectionMatrix.matches(altProjMat)) {
+				&& lastProjectionMatrix.matches(occlusionProjMat)) {
 			return;
 		}
 
@@ -203,7 +201,7 @@ public class CanvasFrustum extends Frustum {
 		lastViewZf = (float) z;
 
 		lastModelMatrix.set(modelMatrix);
-		lastProjectionMatrix.set(altProjMat);
+		lastProjectionMatrix.set(occlusionProjMat);
 		++viewVersion;
 
 		mvpMatrix.loadIdentity();
@@ -228,13 +226,14 @@ public class CanvasFrustum extends Frustum {
 		}
 	}
 
+	// WIP: clean up
 	private final MatrixStack projectionStack = new MatrixStack();
 	private final MinecraftClient client = MinecraftClient.getInstance();
 	private final GameRenderer gr = client.gameRenderer;
 	private final GameRendererExt grx = (GameRendererExt) gr;
 	private final MatrixStack altProjStack = new MatrixStack();
-	private final Matrix4f altProjMat = altProjStack.peek().getModel();
-	private final Matrix4fExt altProjMatEx = (Matrix4fExt) (Object) altProjMat;
+	private final Matrix4f occlusionProjMat = altProjStack.peek().getModel();
+	private final Matrix4fExt occlusionProjMatEx = (Matrix4fExt) (Object) occlusionProjMat;
 	private double fov;
 
 	/** Called by GameRenderer mixin to avoid recomputing fov. */
@@ -243,43 +242,47 @@ public class CanvasFrustum extends Frustum {
 	}
 
 	public void updateProjection(Camera camera, float tickDelta) {
-		computeProjectionMatrix(camera, tickDelta);
+		// WIP: make configurable
+		double fovPadding = Configurator.terrainSetupOffThread ? 20.0 : 0;
 
-		// WIP: avoid bobbing frust on hurt/nausea to avoid occlusion update - give sufficient padding
-		grx.canvas_bobViewWhenHurt(projectionStack, tickDelta);
-
-		// WIP: clean this up and test it
+		// avoid bobbing frust on hurt/nausea to avoid occlusion update - give sufficient padding
 		if (client.options.bobView) {
-			grx.canvas_bobView(projectionStack, tickDelta);
+			fovPadding = Math.max(fovPadding, 5.0);
 		}
 
-		final float f = MathHelper.lerp(tickDelta, client.player.lastNauseaStrength, client.player.nextNauseaStrength) * client.options.distortionEffectScale * client.options.distortionEffectScale;
+		if (MathHelper.lerp(tickDelta, client.player.lastNauseaStrength, client.player.nextNauseaStrength) * client.options.distortionEffectScale * client.options.distortionEffectScale > 0) {
+			fovPadding = Math.max(fovPadding, 20.0);
+		}
 
-		if (f > 0.0F) {
-			final int i = client.player.hasStatusEffect(StatusEffects.NAUSEA) ? 7 : 20;
-			float g = 5.0F / (f * f + 5.0F) - f * 0.04F;
-			g *= g;
-			final Vector3f vector3f = new Vector3f(0.0F, MathHelper.SQUARE_ROOT_OF_TWO / 2.0F, MathHelper.SQUARE_ROOT_OF_TWO / 2.0F);
-			projectionStack.multiply(vector3f.getDegreesQuaternion((grx.canvas_ticks() + tickDelta) * i));
-			projectionStack.scale(1.0F / g, 1.0F, 1.0F);
-			final float h = -(grx.canvas_ticks() + tickDelta) * i;
-			projectionStack.multiply(vector3f.getDegreesQuaternion(h));
+		boolean doDeadRotation = false;
+
+		if (client.getCameraEntity() instanceof LivingEntity) {
+			final LivingEntity livingEntity = (LivingEntity) client.getCameraEntity();
+
+			if (livingEntity.isDead()) {
+				doDeadRotation = true;
+			} else if (livingEntity.hurtTime - tickDelta > 0) {
+				fovPadding = Math.max(fovPadding, 20.0);
+			}
+		}
+
+		computeProjectionMatrix(camera, tickDelta, fovPadding);
+
+		if (doDeadRotation) {
+			grx.canvas_bobViewWhenHurt(projectionStack, tickDelta);
 		}
 	}
 
-	private void computeProjectionMatrix(Camera camera, float tickDelta) {
-		altProjMat.loadIdentity();
+	private void computeProjectionMatrix(Camera camera, float tickDelta, double padding) {
+		occlusionProjMat.loadIdentity();
 
 		if (grx.canvas_zoom() != 1.0F) {
 			final float zoom = grx.canvas_zoom();
-			altProjMatEx.translate(grx.canvas_zoomX(), -grx.canvas_zoomY(), 0.0F);
-			altProjMatEx.scale(zoom, zoom, 1.0F);
+			occlusionProjMatEx.translate(grx.canvas_zoomX(), -grx.canvas_zoomY(), 0.0F);
+			occlusionProjMatEx.scale(zoom, zoom, 1.0F);
 		}
 
-		// WIP: make configurable
-		final double paddedFov = Configurator.terrainSetupOffThread ? fov + 20.0 : fov;
-
-		altProjMat.multiply(Matrix4f.viewboxMatrix(paddedFov, client.getWindow().getFramebufferWidth() / (float) client.getWindow().getFramebufferHeight(), 0.05F, gr.getViewDistance() * 4.0F));
+		occlusionProjMat.multiply(Matrix4f.viewboxMatrix(fov + padding, client.getWindow().getFramebufferWidth() / (float) client.getWindow().getFramebufferHeight(), 0.05F, gr.getViewDistance() * 4.0F));
 	}
 
 	@Override

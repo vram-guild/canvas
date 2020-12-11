@@ -228,11 +228,9 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		DitherTexture.instance().initializeIfNeeded();
 		world = clientWorld;
 		visibleRegionCount = 0;
+		terrainIterator.reset();
 		renderRegionStorage.clear();
 		Arrays.fill(visibleRegions, null);
-		terrainIterator.reset();
-		// WIP: why twice?
-		renderRegionStorage.clear();
 		Arrays.fill(terrainIterator.visibleRegions, null);
 		// we don't want to use our collector unless we are in a world
 		((BufferBuilderStorageExt) wr.canvas_bufferBuilders()).canvas_setEntityConsumers(clientWorld == null ? null : worldRenderImmediate);
@@ -410,7 +408,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		profiler.swap("culling");
 
 		final CanvasFrustum frustum = this.frustum;
-		frustum.prepare(modelMatrix, projectionMatrix, tickDelta, camera);
+		frustum.prepare(modelMatrix, tickDelta, camera);
 
 		mc.getProfiler().swap("regions");
 

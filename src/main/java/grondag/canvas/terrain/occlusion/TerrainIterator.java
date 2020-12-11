@@ -164,13 +164,8 @@ public class TerrainIterator implements Consumer<TerrainRenderContext> {
 			// for empty regions, check neighbors if visible but don't add to visible set
 			if (!regionData.canOcclude()) {
 				if (Configurator.cullEntityRender) {
-					if (builtRegion.occluderVersion() == occluderVersion) {
-						// reuse prior test results
-						if (builtRegion.occluderResult()) {
-							// WIP: still needed if have occluder results?
-							builtRegion.enqueueUnvistedNeighbors();
-						}
-					} else {
+					// reuse prior test results
+					if (builtRegion.occluderVersion() != occluderVersion) {
 						if (!chunkCullingEnabled || builtRegion.isNear() || terrainOccluder.isEmptyRegionVisible(builtRegion.getOrigin())) {
 							builtRegion.enqueueUnvistedNeighbors();
 							builtRegion.setOccluderResult(true, occluderVersion);
