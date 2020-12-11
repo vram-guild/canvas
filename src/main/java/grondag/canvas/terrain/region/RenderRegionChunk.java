@@ -91,15 +91,15 @@ public class RenderRegionChunk {
 		final BuiltRenderRegion[] regions = this.regions;
 
 		if (regions != null) {
-			if (horizontalSquaredDistance <= storage.cwr.maxSquaredChunkRetentionDistance()) {
-				for (int i = 0; i < 16; ++i) {
-					final BuiltRenderRegion r = regions[i];
+			for (int i = 0; i < 16; ++i) {
+				final BuiltRenderRegion r = regions[i];
 
-					if (r != null) {
-						r.updateCameraDistanceAndVisibilityInfo();
-					}
+				if (r != null) {
+					r.updateCameraDistanceAndVisibilityInfo();
 				}
-			} else {
+			}
+
+			if (horizontalSquaredDistance > storage.cwr.maxSquaredChunkRetentionDistance()) {
 				storage.scheduleClose(this);
 			}
 		}
