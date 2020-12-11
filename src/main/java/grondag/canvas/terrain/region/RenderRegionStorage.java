@@ -33,8 +33,6 @@ public class RenderRegionStorage {
 
 	static final int CHUNK_COUNT = 128 * 128;
 	private final RenderRegionChunk[] chunks = new RenderRegionChunk[CHUNK_COUNT];
-
-	// WIP: so big?
 	private final ArrayBlockingQueue<RenderRegionChunk> closeQueue = new ArrayBlockingQueue<>(RenderRegionStorage.CHUNK_COUNT);
 
 	public RenderRegionStorage(CanvasWorldRenderer canvasWorldRenderer, RenderRegionPruner pruner) {
