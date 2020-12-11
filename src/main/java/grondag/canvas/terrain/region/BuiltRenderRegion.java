@@ -691,6 +691,10 @@ public class BuiltRenderRegion {
 		BuiltRenderRegion region = neighbors[faceIndex];
 
 		if (region == null || region.isClosed) {
+			if ((faceIndex == FaceConstants.UP_INDEX && isTop) || (faceIndex == FaceConstants.DOWN_INDEX && isBottom)) {
+				return null;
+			}
+
 			final Direction face = ModelHelper.faceFromIndex(faceIndex);
 			region = storage.getOrCreateRegion(origin.getX() + face.getOffsetX() * 16, origin.getY() + face.getOffsetY() * 16, origin.getZ() + face.getOffsetZ() * 16);
 			neighbors[faceIndex] = region;

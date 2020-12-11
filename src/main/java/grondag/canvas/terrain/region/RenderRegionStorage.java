@@ -28,6 +28,7 @@ public class RenderRegionStorage {
 	public final RenderRegionPruner regionPruner;
 	final CanvasWorldRenderer cwr;
 	private int lastCameraChunkX = Integer.MAX_VALUE;
+	private int lastCameraChunkY = Integer.MAX_VALUE;
 	private int lastCameraChunkZ = Integer.MAX_VALUE;
 
 	static final int CHUNK_COUNT = 128 * 128;
@@ -75,10 +76,12 @@ public class RenderRegionStorage {
 
 		final long cameraChunkPos = regionPruner.cameraChunkPos();
 		final int cameraChunkX = BlockPos.unpackLongX(cameraChunkPos);
+		final int cameraChunkY = BlockPos.unpackLongY(cameraChunkPos);
 		final int cameraChunkZ = BlockPos.unpackLongZ(cameraChunkPos);
 
-		if (!(cameraChunkX == lastCameraChunkX && cameraChunkZ == lastCameraChunkZ)) {
+		if (!(cameraChunkX == lastCameraChunkX && cameraChunkY == lastCameraChunkY && cameraChunkZ == lastCameraChunkZ)) {
 			lastCameraChunkX = cameraChunkX;
+			lastCameraChunkY = cameraChunkY;
 			lastCameraChunkZ = cameraChunkZ;
 			++chunkDistVersion;
 		}
