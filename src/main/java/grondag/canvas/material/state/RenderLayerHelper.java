@@ -19,7 +19,6 @@ package grondag.canvas.material.state;
 import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
-import org.lwjgl.opengl.GL11;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.RenderLayer;
@@ -95,7 +94,7 @@ public final class RenderLayerHelper {
 		final AccessTexture tex = (AccessTexture) params.getTexture();
 
 		finder.sorted(layer.canvas_isTranslucent());
-		finder.primitive(GL11.GL_QUADS);
+		//finder.primitive(GL11.GL_QUADS);
 		finder.texture(tex.getId().orElse(null));
 		finder.transparency(MaterialTransparency.fromPhase(params.getTransparency()));
 		finder.depthTest(MaterialDepthTest.fromPhase(params.getDepthTest()));

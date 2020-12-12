@@ -28,6 +28,7 @@ import net.minecraft.client.texture.SpriteAtlasTexture;
 import net.minecraft.client.texture.TextureManager;
 import net.minecraft.util.Identifier;
 
+import grondag.canvas.CanvasMod;
 import grondag.canvas.texture.SpriteInfoTexture;
 
 public class MaterialTextureState {
@@ -141,7 +142,7 @@ public class MaterialTextureState {
 		}
 	}
 
-	public static final int MAX_TEXTURE_STATES = 1024;
+	public static final int MAX_TEXTURE_STATES = 4096;
 	private static int nextIndex = 1;
 	private static final MaterialTextureState[] STATES = new MaterialTextureState[MAX_TEXTURE_STATES];
 	private static final Object2ObjectOpenHashMap<Identifier, MaterialTextureState> MAP = new Object2ObjectOpenHashMap<>(256, Hash.VERY_FAST_LOAD_FACTOR);
@@ -156,6 +157,8 @@ public class MaterialTextureState {
 		}
 	};
 
+	public static final MaterialTextureState MISSING;
+
 	private static MaterialTextureState activeState = NO_TEXTURE;
 	private static boolean activeIsBilinearFilter = false;
 
@@ -169,17 +172,35 @@ public class MaterialTextureState {
 	static {
 		STATES[0] = NO_TEXTURE;
 		MAP.defaultReturnValue(NO_TEXTURE);
+		MISSING = fromId(TextureManager.MISSING_IDENTIFIER);
 	}
 
 	public static MaterialTextureState fromIndex(int index) {
 		return STATES[index];
 	}
 
+	private static boolean shouldWarn = true;
+
 	// PERF: use cow or other method to avoid synch
 	public static synchronized MaterialTextureState fromId(Identifier id) {
 		MaterialTextureState state = MAP.get(id);
 
 		if (state == NO_TEXTURE) {
+			if (nextIndex >= MAX_TEXTURE_STATES) {
+				if (shouldWarn) {
+					shouldWarn = false;
+					CanvasMod.LOG.warn(String.format("Maximum unique textures (%d) exceeded when attempting to add %s.  Missing texture will be used.",
+							MAX_TEXTURE_STATES, id.toString()));
+					CanvasMod.LOG.warn("Previously encountered textures are listed below. Subsequent warnings are suppressed.");
+
+					for (final MaterialTextureState extant : STATES) {
+						CanvasMod.LOG.info(extant == null ? "Null (this is a bug)" : extant.id.toString());
+					}
+				}
+
+				return MISSING;
+			}
+
 			final int index = nextIndex++;
 			state = new MaterialTextureState(index, id);
 			MAP.put(id, state);

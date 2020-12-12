@@ -16,7 +16,7 @@
 
 package grondag.canvas.material.state;
 
-import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL21;
 
 import net.minecraft.client.texture.SpriteAtlasTexture;
 
@@ -92,7 +92,8 @@ abstract class AbstractRenderStateView {
 	}
 
 	public int primitive() {
-		return PRIMITIVE.getValue(bits);
+		return GL21.GL_QUADS;
+		//return PRIMITIVE.getValue(bits);
 	}
 
 	public MaterialTextureState textureState() {
@@ -200,7 +201,7 @@ abstract class AbstractRenderStateView {
 	// They also generally won't change within a render state for any given context
 	// so they don't cause fragmentation except for sorted transparency, which is intended.
 	static final BitPacker64<Void>.BooleanElement SORTED = PACKER.createBooleanElement();
-	static final BitPacker64<Void>.IntElement PRIMITIVE = PACKER.createIntElement(8);
+	//static final BitPacker64<Void>.IntElement PRIMITIVE = PACKER.createIntElement(8);
 
 	// Identifies the collection key and state to be used for the primary sorted transparency buffer
 	// for a given target. Also used to render mixed-material atlas quads as a performance optimization.
@@ -247,7 +248,7 @@ abstract class AbstractRenderStateView {
 	static {
 		assert PACKER.bitLength() <= 64;
 
-		long defaultBits = PRIMITIVE.setValue(GL11.GL_QUADS, 0);
+		long defaultBits = 0; //PRIMITIVE.setValue(GL11.GL_QUADS, 0);
 
 		defaultBits = SHADER_ID.setValue(MaterialShaderId.find(ShaderData.DEFAULT_VERTEX_SOURCE, ShaderData.DEFAULT_FRAGMENT_SOURCE).index, defaultBits);
 		defaultBits = BLENDMODE.setValue(BlendMode.DEFAULT, defaultBits);
@@ -277,7 +278,7 @@ abstract class AbstractRenderStateView {
 		translucentBits = FOG.setValue(MaterialFinder.FOG_TINTED, translucentBits);
 		translucentBits = GUI.setValue(false, translucentBits);
 		translucentBits = SORTED.setValue(true, translucentBits);
-		translucentBits = PRIMITIVE.setValue(GL11.GL_QUADS, translucentBits);
+		//translucentBits = PRIMITIVE.setValue(GL11.GL_QUADS, translucentBits);
 
 		TRANSLUCENT_TERRAIN_COLLECTOR_KEY = translucentBits & VERTEX_CONTROL_COLLECTOR_AND_STATE_MASK;
 
