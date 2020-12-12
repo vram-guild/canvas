@@ -59,7 +59,7 @@ import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.perf.ChunkRebuildCounters;
 import grondag.canvas.render.CanvasFrustum;
 import grondag.canvas.render.CanvasWorldRenderer;
-import grondag.canvas.terrain.occlusion.RegionDistanceSorter;
+import grondag.canvas.terrain.occlusion.PotentiallyVisibleRegionSorter;
 import grondag.canvas.terrain.occlusion.TerrainIterator;
 import grondag.canvas.terrain.occlusion.geometry.OcclusionRegion;
 import grondag.canvas.terrain.occlusion.geometry.PackedBox;
@@ -72,7 +72,6 @@ import grondag.frex.api.fluid.FluidQuadSupplier;
 
 @Environment(EnvType.CLIENT)
 public class BuiltRenderRegion {
-	private static int frameIndex;
 	private static final AtomicInteger BUILD_COUNTER = new AtomicInteger();
 
 	private final RenderRegionBuilder renderRegionBuilder;
@@ -81,11 +80,8 @@ public class BuiltRenderRegion {
 	private final AtomicReference<RegionData> buildData;
 	private final ObjectOpenHashSet<BlockEntity> localNoCullingBlockEntities = new ObjectOpenHashSet<>();
 	private final BlockPos origin;
-	private final int chunkX;
 	private final int chunkY;
-	private final int chunkZ;
-	private long lastCameraChunkPos = -1;
-	private final RegionChunkReference chunkReference;
+	private final RenderRegionChunk renderRegionChunk;
 	private final CanvasWorldRenderer cwr;
 	private final boolean isBottom;
 	private final boolean isTop;
@@ -93,6 +89,7 @@ public class BuiltRenderRegion {
 	public int occlusionRange;
 	private int occluderVersion;
 	private boolean occluderResult;
+	private int chunkDistVersion = -1;
 
 	/** Used by frustum tests. Will be current only if region is within render distance. */
 	public float cameraRelativeCenterX;
@@ -109,30 +106,40 @@ public class BuiltRenderRegion {
 	private int frustumVersion = -1;
 	private int positionVersion = -1;
 	private boolean frustumResult;
-	private int lastSeenFrameIndex;
+	private int lastSeenVisibility;
 	private boolean isClosed = false;
 	private boolean isInsideRenderDistance;
-	private boolean isInsideRetentionDistance;
 	private final Consumer<TerrainRenderContext> buildTask = this::rebuildOnWorkerThread;
 	private int buildCount = -1;
 	// build count that was in effect last time drawn to occluder
 	private int occlusionBuildCount;
 
-	public BuiltRenderRegion(CanvasWorldRenderer cwr, RenderRegionStorage storage, RegionChunkReference chunkRef, long packedPos) {
-		this.cwr = cwr;
+	public BuiltRenderRegion(RenderRegionChunk chunk, long packedPos) {
+		cwr = chunk.storage.cwr;
 		renderRegionBuilder = cwr.regionBuilder();
-		this.storage = storage;
+		storage = chunk.storage;
 		pruner = storage.regionPruner;
-		chunkReference = chunkRef;
-		chunkReference.retain(this);
+		renderRegionChunk = chunk;
 		buildData = new AtomicReference<>(RegionData.UNBUILT);
 		needsRebuild = true;
 		origin = BlockPos.fromLong(packedPos);
-		chunkX = origin.getX() >> 4;
 		chunkY = origin.getY() >> 4;
-		chunkZ = origin.getZ() >> 4;
 		isBottom = origin.getY() == 0;
 		isTop = origin.getY() == 240;
+	}
+
+	@Override
+	public String toString() {
+		return String.format("%s  sqcd=%d  rebuild=%b  closed=%b  frustVer=%d  frustResult=%b  posVer=%d  lastSeenVis=%d  inRenderDist=%b",
+			origin.toShortString(),
+			squaredChunkDistance,
+			needsRebuild,
+			isClosed,
+			frustumVersion,
+			frustumResult,
+			positionVersion,
+			lastSeenVisibility,
+			isInsideRenderDistance);
 	}
 
 	public void setOccluderResult(boolean occluderResult, int occluderVersion) {
@@ -170,10 +177,6 @@ public class BuiltRenderRegion {
 		}
 	}
 
-	public static void advanceFrameIndex() {
-		++frameIndex;
-	}
-
 	/**
 	 * Result is computed in {@link #updateCameraDistanceAndVisibilityInfo(RenderRegionPruner)}.
 	 *
@@ -187,60 +190,40 @@ public class BuiltRenderRegion {
 	}
 
 	public boolean wasRecentlySeen() {
-		return frameIndex - lastSeenFrameIndex < 4 && occluderResult;
+		return pruner.potentiallyVisibleRegions.version() - lastSeenVisibility < 4 && occluderResult;
 	}
 
 	/**
 	 * @return True if nearby or if all neighbors are loaded.
 	 */
 	public boolean shouldBuild() {
-		return isNear || chunkReference.areCornersLoaded();
+		return isNear || renderRegionChunk.areCornersLoaded();
 	}
 
-	/**
-	 * Returns false if could be visible.
-	 */
-	boolean shouldPrune() {
+	void updateCameraDistanceAndVisibilityInfo() {
 		final CanvasFrustum frustum = pruner.frustum;
 		final int fv = frustum.viewVersion();
 
+		if (chunkDistVersion != renderRegionChunk.chunkDistVersion) {
+			chunkDistVersion = renderRegionChunk.chunkDistVersion;
+			computeDistanceChecks();
+		}
+
 		if (fv != frustumVersion) {
 			frustumVersion = fv;
-			computeDistanceChecks();
 			computeFrustumChecks();
 		}
 
 		invalidateOccluderIfNeeded();
-
-		if (isInsideRetentionDistance) {
-			return false;
-		} else {
-			if (!isClosed) {
-				// pruner holds for close on render thread
-				pruner.prune(this);
-			}
-
-			return true;
-		}
 	}
 
 	private void computeDistanceChecks() {
-		final long cameraChunkPos = pruner.cameraChunkPos();
-
-		if (cameraChunkPos != lastCameraChunkPos) {
-			lastCameraChunkPos = cameraChunkPos;
-
-			final int cx = BlockPos.unpackLongX(cameraChunkPos) - chunkX;
-			final int cy = BlockPos.unpackLongY(cameraChunkPos) - chunkY;
-			final int cz = BlockPos.unpackLongZ(cameraChunkPos) - chunkZ;
-
-			final int horizontalSquaredDistance = cx * cx + cz * cz;
-			isInsideRenderDistance = horizontalSquaredDistance <= cwr.maxSquaredChunkRenderDistance();
-			isInsideRetentionDistance = horizontalSquaredDistance <= cwr.maxSquaredChunkRetentionDistance();
-			squaredChunkDistance = horizontalSquaredDistance + cy * cy;
-			isNear = squaredChunkDistance <= 3;
-			occlusionRange = PackedBox.rangeFromSquareChunkDist(squaredChunkDistance);
-		}
+		final int cy = storage.cameraChunkY() - chunkY;
+		final int horizontalSquaredDistance = renderRegionChunk.horizontalSquaredDistance;
+		isInsideRenderDistance = horizontalSquaredDistance <= cwr.maxSquaredChunkRenderDistance();
+		squaredChunkDistance = horizontalSquaredDistance + cy * cy;
+		isNear = squaredChunkDistance <= 3;
+		occlusionRange = PackedBox.rangeFromSquareChunkDist(squaredChunkDistance);
 	}
 
 	private void computeFrustumChecks() {
@@ -327,8 +310,6 @@ public class BuiltRenderRegion {
 				}
 			}
 
-			chunkReference.release(this);
-
 			cancel();
 			buildData.set(RegionData.UNBUILT);
 			needsRebuild = true;
@@ -337,7 +318,6 @@ public class BuiltRenderRegion {
 			isInsideRenderDistance = false;
 			isNear = false;
 			frustumResult = false;
-			lastCameraChunkPos = -1;
 		}
 	}
 
@@ -724,6 +704,10 @@ public class BuiltRenderRegion {
 		BuiltRenderRegion region = neighbors[faceIndex];
 
 		if (region == null || region.isClosed) {
+			if ((faceIndex == FaceConstants.UP_INDEX && isTop) || (faceIndex == FaceConstants.DOWN_INDEX && isBottom)) {
+				return null;
+			}
+
 			final Direction face = ModelHelper.faceFromIndex(faceIndex);
 			region = storage.getOrCreateRegion(origin.getX() + face.getOffsetX() * 16, origin.getY() + face.getOffsetY() * 16, origin.getZ() + face.getOffsetZ() * 16);
 			neighbors[faceIndex] = region;
@@ -762,7 +746,7 @@ public class BuiltRenderRegion {
 	/**
 	 * Our logic for this is a little different than vanilla, which checks for squared distance
 	 * to chunk center from camera < 768.0.  Ours will always return true for all 26 chunks adjacent
-	 * (including diagonal) to the chunk containing the camera.
+	 * (including diagonal) to the achunk containing the camera.
 	 *
 	 * <p>This logic is in {@link #updateCameraDistanceAndVisibilityInfo(RenderRegionPruner)}.
 	 */
@@ -770,28 +754,40 @@ public class BuiltRenderRegion {
 		return isNear;
 	}
 
-	public void enqueueUnvistedNeighbors(RegionDistanceSorter distanceSorter) {
-		final int index = frameIndex;
-		lastSeenFrameIndex = index;
-
-		enqueNeighbor(index, getNeighbor(FaceConstants.EAST_INDEX), distanceSorter);
-		enqueNeighbor(index, getNeighbor(FaceConstants.WEST_INDEX), distanceSorter);
-		enqueNeighbor(index, getNeighbor(FaceConstants.NORTH_INDEX), distanceSorter);
-		enqueNeighbor(index, getNeighbor(FaceConstants.SOUTH_INDEX), distanceSorter);
+	public void enqueueUnvistedNeighbors() {
+		getNeighbor(FaceConstants.EAST_INDEX).addToPvsIfValid();
+		getNeighbor(FaceConstants.WEST_INDEX).addToPvsIfValid();
+		getNeighbor(FaceConstants.NORTH_INDEX).addToPvsIfValid();
+		getNeighbor(FaceConstants.SOUTH_INDEX).addToPvsIfValid();
 
 		if (!isTop) {
-			enqueNeighbor(index, getNeighbor(FaceConstants.UP_INDEX), distanceSorter);
+			getNeighbor(FaceConstants.UP_INDEX).addToPvsIfValid();
 		}
 
 		if (!isBottom) {
-			enqueNeighbor(index, getNeighbor(FaceConstants.DOWN_INDEX), distanceSorter);
+			getNeighbor(FaceConstants.DOWN_INDEX).addToPvsIfValid();
 		}
 	}
 
-	private void enqueNeighbor(int index, BuiltRenderRegion r, RegionDistanceSorter queue) {
-		if (r.lastSeenFrameIndex != index && r.squaredChunkDistance > squaredChunkDistance) {
-			r.lastSeenFrameIndex = index;
-			queue.add(r);
+	public void addToPvsIfValid() {
+		// Previously checked for r.squaredChunkDistance > squaredChunkDistance
+		// but some progression patterns seem to require it or chunks are missed.
+		// This is probably because a nearer path has an occlude chunk and so it
+		// has to be found reaching around. This will cause some backtracking and
+		// thus redraw of the occluder, but that already happens and is handled.
+
+		final PotentiallyVisibleRegionSorter pvs = pruner.potentiallyVisibleRegions;
+		final int version = pvs.version();
+
+		// The frustum version check is necessary to skip regions without valid info.
+		if (lastSeenVisibility != version && frustumVersion != -1) {
+			lastSeenVisibility = version;
+			pvs.add(this);
 		}
+	}
+
+	/** For debugging. */
+	public boolean sharesOriginWith(int blockX, int blockY, int blockZ) {
+		return origin.getX() >> 4 == blockX >> 4 && origin.getY() >> 4 == blockY >> 4 && origin.getZ() >> 4 == blockZ >> 4;
 	}
 }

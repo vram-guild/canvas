@@ -94,6 +94,7 @@ import grondag.canvas.mixinterface.BufferBuilderStorageExt;
 import grondag.canvas.mixinterface.MatrixStackExt;
 import grondag.canvas.mixinterface.WorldRendererExt;
 import grondag.canvas.shader.MaterialShaderManager;
+import grondag.canvas.terrain.occlusion.PotentiallyVisibleRegionSorter;
 import grondag.canvas.terrain.occlusion.TerrainIterator;
 import grondag.canvas.terrain.occlusion.TerrainOccluder;
 import grondag.canvas.terrain.occlusion.geometry.OcclusionRegion;
@@ -116,11 +117,13 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	// TODO: redirect uses in MC WorldRenderer
 	public final Set<BuiltRenderRegion> regionsToRebuild = Sets.newLinkedHashSet();
 	final TerrainLayerRenderer SOLID = new TerrainLayerRenderer("solid", null);
+	private final PotentiallyVisibleRegionSorter distanceSorter = new PotentiallyVisibleRegionSorter();
 	private final TerrainOccluder terrainOccluder = new TerrainOccluder();
-	private final RenderRegionPruner pruner = new RenderRegionPruner(terrainOccluder);
+	private final RenderRegionPruner pruner = new RenderRegionPruner(terrainOccluder, distanceSorter);
 	private final RenderRegionStorage renderRegionStorage = new RenderRegionStorage(this, pruner);
-	private final TerrainIterator terrainIterator = new TerrainIterator(renderRegionStorage, terrainOccluder);
-	private final CanvasFrustum frustum = new CanvasFrustum();
+	private final TerrainIterator terrainIterator = new TerrainIterator(renderRegionStorage, terrainOccluder, distanceSorter);
+	public final CanvasFrustum frustum = new CanvasFrustum();
+
 	/**
 	 * Incremented whenever regions are built so visibility search can progress or to indicate visibility might be changed.
 	 * Distinct from occluder state, which indiciates if/when occluder must be reset or redrawn.
@@ -159,7 +162,6 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		computeDistances();
 	}
 
-	// FIX: missing edges with off-thread iteration - try frustum check on thread but leave potentially visible set off
 	// PERF: render larger cubes - avoid matrix state changes
 	// PERF: cull particle rendering?
 	// PERF: reduce garbage generation
@@ -226,10 +228,9 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		DitherTexture.instance().initializeIfNeeded();
 		world = clientWorld;
 		visibleRegionCount = 0;
-		renderRegionStorage.clear();
-		Arrays.fill(visibleRegions, null);
 		terrainIterator.reset();
 		renderRegionStorage.clear();
+		Arrays.fill(visibleRegions, null);
 		Arrays.fill(terrainIterator.visibleRegions, null);
 		// we don't want to use our collector unless we are in a world
 		((BufferBuilderStorageExt) wr.canvas_bufferBuilders()).canvas_setEntityConsumers(clientWorld == null ? null : worldRenderImmediate);
@@ -258,7 +259,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			wr.canvas_reload();
 		}
 
-		pruner.closeRegionsOnRenderThread();
+		regionStorage.closeRegionsOnRenderThread();
 
 		mc.getProfiler().push("camera");
 		WorldDataManager.update(camera);
@@ -375,7 +376,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		return result;
 	}
 
-	public void renderWorld(MatrixStack matrixStack, float tickDelta, long limitTime, boolean blockOutlines, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f projectionMatrix) {
+	public void renderWorld(MatrixStack matrixStack, float tickDelta, long frameStartNanos, boolean blockOutlines, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f projectionMatrix) {
 		final WorldRendererExt wr = this.wr;
 		final MinecraftClient mc = wr.canvas_mc();
 		final WorldRenderer mcwr = mc.worldRenderer;
@@ -407,7 +408,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		profiler.swap("culling");
 
 		final CanvasFrustum frustum = this.frustum;
-		frustum.prepare(modelMatrix, projectionMatrix, camera);
+		frustum.prepare(modelMatrix, tickDelta, camera);
 
 		mc.getProfiler().swap("regions");
 
@@ -441,13 +442,14 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			maxFpsLimit = 1000000000 / maxFps;
 		}
 
-		final long budget = Util.getMeasuringTimeNano() - limitTime;
+		final long nowTime = Util.getMeasuringTimeNano();
+		final long usedTime = nowTime - frameStartNanos;
 
-		// No idea wtg the 3/2 is for - looks like a hack
-		final long updateBudget = wr.canvas_chunkUpdateSmoother().getTargetUsedTime(budget) * 3L / 2L;
+		// No idea what the 3/2 is for - looks like a hack
+		final long updateBudget = wr.canvas_chunkUpdateSmoother().getTargetUsedTime(usedTime) * 3L / 2L;
 		final long clampedBudget = MathHelper.clamp(updateBudget, maxFpsLimit, 33333333L);
 
-		updateRegions(limitTime + clampedBudget);
+		updateRegions(frameStartNanos + clampedBudget);
 
 		LightmapHdTexture.instance().onRenderTick();
 
@@ -1128,11 +1130,11 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	}
 
 	@Override
-	public void render(MatrixStack matrices, float tickDelta, long limitTime, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f matrix4f) {
+	public void render(MatrixStack matrices, float tickDelta, long frameStartNanos, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f matrix4f) {
 		wr.canvas_mc().getProfiler().swap("dynamic_lighting");
-		eventContext.prepare(this, matrices, tickDelta, limitTime, renderBlockOutline, camera, gameRenderer, lightmapTextureManager, matrix4f, worldRenderImmediate, wr.canvas_mc().getProfiler(), wr.canvas_transparencyShader() != null, world);
+		eventContext.prepare(this, matrices, tickDelta, frameStartNanos, renderBlockOutline, camera, gameRenderer, lightmapTextureManager, matrix4f, worldRenderImmediate, wr.canvas_mc().getProfiler(), wr.canvas_transparencyShader() != null, world);
 		WorldRenderEvents.START.invoker().onStart(eventContext);
-		renderWorld(matrices, tickDelta, limitTime, renderBlockOutline, camera, gameRenderer, lightmapTextureManager, matrix4f);
+		renderWorld(matrices, tickDelta, frameStartNanos, renderBlockOutline, camera, gameRenderer, lightmapTextureManager, matrix4f);
 		WorldRenderEvents.END.invoker().onEnd(eventContext);
 	}
 
@@ -1151,7 +1153,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		}
 
 		renderRegionStorage.clear();
-
+		distanceSorter.clear();
 		visibleRegionCount = 0;
 		frustum.reload();
 

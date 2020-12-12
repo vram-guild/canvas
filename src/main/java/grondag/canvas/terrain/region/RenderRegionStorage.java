@@ -16,53 +16,62 @@
 
 package grondag.canvas.terrain.region;
 
-import it.unimi.dsi.fastutil.Hash;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ChunkPos;
 
 import grondag.canvas.render.CanvasWorldRenderer;
-import grondag.canvas.terrain.util.HackedLong2ObjectMap;
 
 public class RenderRegionStorage {
+	final AtomicInteger regionCount = new AtomicInteger();
 	public final RenderRegionPruner regionPruner;
+	final CanvasWorldRenderer cwr;
+	private int lastCameraChunkX = Integer.MAX_VALUE;
+	private int lastCameraChunkY = Integer.MAX_VALUE;
+	private int lastCameraChunkZ = Integer.MAX_VALUE;
 
-	// Hat tip to JellySquid for the suggestion of using a hashmap
-	// PERF: lock-free implementation
-	private final HackedLong2ObjectMap<BuiltRenderRegion> regionMap = new HackedLong2ObjectMap<BuiltRenderRegion>(8192, Hash.VERY_FAST_LOAD_FACTOR, r -> r.close()) {
-		@Override
-		protected boolean shouldPrune(BuiltRenderRegion region) {
-			return region.shouldPrune();
+	static final int CHUNK_COUNT = 128 * 128;
+	private final RenderRegionChunk[] chunks = new RenderRegionChunk[CHUNK_COUNT];
+	private final ArrayBlockingQueue<RenderRegionChunk> closeQueue = new ArrayBlockingQueue<>(RenderRegionStorage.CHUNK_COUNT);
+
+	public RenderRegionStorage(CanvasWorldRenderer canvasWorldRenderer, RenderRegionPruner pruner) {
+		cwr = canvasWorldRenderer;
+		regionPruner = pruner;
+
+		for (int i = 0; i < CHUNK_COUNT; ++i) {
+			chunks[i] = new RenderRegionChunk(this);
 		}
-	};
-
-	private final HackedLong2ObjectMap<RegionChunkReference> chunkRefMap = new HackedLong2ObjectMap<RegionChunkReference>(2048, Hash.VERY_FAST_LOAD_FACTOR, r -> { }) {
-		@Override
-		protected boolean shouldPrune(RegionChunkReference item) {
-			return item.isEmpty();
-		}
-	};
-
-	private final CanvasWorldRenderer cwr;
-
-	public RenderRegionStorage(CanvasWorldRenderer cwr, RenderRegionPruner regionPruner) {
-		this.cwr = cwr;
-		this.regionPruner = regionPruner;
 	}
 
-	private RegionChunkReference chunkRef(long packedOriginPos) {
-		final long key = ChunkPos.toLong(BlockPos.unpackLongX(packedOriginPos) >> 4, BlockPos.unpackLongZ(packedOriginPos) >> 4);
-		return chunkRefMap.computeIfAbsent(key, k -> new RegionChunkReference(cwr.getWorld(), key));
+	public synchronized void clear() {
+		for (final RenderRegionChunk chunk : chunks) {
+			chunk.close();
+		}
 	}
 
-	public void clear() {
-		regionMap.clear();
-		chunkRefMap.clear();
+	public int cameraChunkX() {
+		return lastCameraChunkX;
+	}
+
+	public int cameraChunkY() {
+		return lastCameraChunkY;
+	}
+
+	public int cameraChunkZ() {
+		return lastCameraChunkZ;
+	}
+
+	private static int chunkIndex(int x, int z) {
+		x = ((x + 30000000) >> 4) & 127;
+		z = ((z + 30000000) >> 4) & 127;
+
+		return x | (z << 7);
 	}
 
 	public void scheduleRebuild(int x, int y, int z, boolean urgent) {
 		if ((y & 0xFFFFFF00) == 0) {
-			final BuiltRenderRegion region = regionMap.get(BlockPos.asLong(x & 0xFFFFFFF0, y & 0xFFFFFFF0, z & 0xFFFFFFF0));
+			final BuiltRenderRegion region = getRegionIfExists(x, y, z);
 
 			if (region != null) {
 				region.markForBuild(urgent);
@@ -70,30 +79,39 @@ public class RenderRegionStorage {
 		}
 	}
 
+	int chunkDistVersion = 1;
+
 	public void updateCameraDistanceAndVisibilityInfo(long cameraChunkOrigin) {
-		regionPruner.prepare(cameraChunkOrigin);
-		regionMap.prune();
-		chunkRefMap.prune();
+		final int cameraChunkX = BlockPos.unpackLongX(cameraChunkOrigin) >> 4;
+		final int cameraChunkY = BlockPos.unpackLongY(cameraChunkOrigin) >> 4;
+		final int cameraChunkZ = BlockPos.unpackLongZ(cameraChunkOrigin) >> 4;
+		boolean clearVisibility = false;
+
+		if (!(cameraChunkX == lastCameraChunkX && cameraChunkY == lastCameraChunkY && cameraChunkZ == lastCameraChunkZ)) {
+			lastCameraChunkX = cameraChunkX;
+			lastCameraChunkY = cameraChunkY;
+			lastCameraChunkZ = cameraChunkZ;
+			++chunkDistVersion;
+			clearVisibility = true;
+		}
+
+		regionPruner.prepare(clearVisibility);
+
+		for (int i = 0; i < CHUNK_COUNT; ++i) {
+			chunks[i].updateCameraDistanceAndVisibilityInfo();
+		}
 
 		if (regionPruner.didInvalidateOccluder()) {
 			regionPruner.occluder.invalidate();
 		}
-
-		regionPruner.post();
 	}
 
 	public int regionCount() {
-		return regionMap.size();
-	}
-
-	private BuiltRenderRegion getOrCreateRegion(long packedOriginPos) {
-		return regionMap.computeIfAbsent(packedOriginPos, k -> {
-			return new BuiltRenderRegion(cwr, this, chunkRef(k), k);
-		});
+		return regionCount.get();
 	}
 
 	public BuiltRenderRegion getOrCreateRegion(int x, int y, int z) {
-		return getOrCreateRegion(BlockPos.asLong(x & 0xFFFFFFF0, y & 0xFFFFFFF0, z & 0xFFFFFFF0));
+		return chunks[chunkIndex(x, z)].getOrCreateRegion(x, y, z);
 	}
 
 	public BuiltRenderRegion getOrCreateRegion(BlockPos pos) {
@@ -105,11 +123,24 @@ public class RenderRegionStorage {
 	}
 
 	public BuiltRenderRegion getRegionIfExists(int x, int y, int z) {
-		return regionMap.get(BlockPos.asLong(x & 0xFFFFFFF0, y & 0xFFFFFFF0, z & 0xFFFFFFF0));
+		return chunks[chunkIndex(x, z)].getRegionIfExists(x, y, z);
 	}
 
 	public boolean wasSeen(int x, int y, int z) {
 		final BuiltRenderRegion r = getRegionIfExists(x, y, z);
 		return r != null && r.wasRecentlySeen();
+	}
+
+	public void scheduleClose(RenderRegionChunk chunk) {
+		closeQueue.offer(chunk);
+	}
+
+	public void closeRegionsOnRenderThread() {
+		RenderRegionChunk chunk = closeQueue.poll();
+
+		while (chunk != null) {
+			chunk.close();
+			chunk = closeQueue.poll();
+		}
 	}
 }

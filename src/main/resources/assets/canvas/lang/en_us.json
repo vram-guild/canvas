@@ -115,5 +115,11 @@
   "config.canvas.value.log_materials": "Log Materials",
   "config.canvas.help.log_materials": "Log render material states and vanilla RenderLayer mapping.;Useful for material debug and pack makers.;Will spam the log.",
   "config.canvas.value.trace_occlusion_outcomes": "Trace Occlusion Outcomes",
-  "config.canvas.help.trace_occlusion_outcomes": "Log various occlusion-related tests and status changes.;Highly verbose and WILL spam the log."
+  "config.canvas.help.trace_occlusion_outcomes": "Log various occlusion-related tests and status changes.;Highly verbose and WILL spam the log.",
+  
+  "config.canvas.value.static_frustum_padding": "Static Frustum Padding",
+  "config.canvas.help.static_frustum_padding": "Padding at edges of screen to reduce how often terrain visibility;is computed. In degrees. Zero disables.",
+  "config.canvas.value.dynamic_frustum_padding": "Dynamic Frustum Padding",
+  "config.canvas.help.dynamic_frustum_padding": "Extra padding at edges of screen to reduce missing chunks when;view roates and Parallel Terrain Setup is on.;In degrees. Zero disables."
+  
 }

@@ -19,6 +19,9 @@ package grondag.canvas.render;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.Camera;
 import net.minecraft.client.render.Frustum;
+import net.minecraft.client.render.GameRenderer;
+import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Matrix4f;
@@ -27,6 +30,8 @@ import net.minecraft.util.math.Vec3d;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 
+import grondag.canvas.Configurator;
+import grondag.canvas.mixinterface.GameRendererExt;
 import grondag.canvas.mixinterface.Matrix4fExt;
 import grondag.canvas.terrain.region.BuiltRenderRegion;
 
@@ -42,21 +47,37 @@ import grondag.canvas.terrain.region.BuiltRenderRegion;
  */
 @Environment(EnvType.CLIENT)
 public class CanvasFrustum extends Frustum {
+	// These are for maintaining a project matrix used by occluder.
+	// Updated every frame but not used directly by occlude because of concurrency
+	// Occluder uses a copy, below.
+	private final MatrixStack projectionStack = new MatrixStack();
+	private final MinecraftClient client = MinecraftClient.getInstance();
+	private final GameRenderer gr = client.gameRenderer;
+	private final GameRendererExt grx = (GameRendererExt) gr;
+	private final MatrixStack occlusionsProjStack = new MatrixStack();
+	private final Matrix4f occlusionProjMat = occlusionsProjStack.peek().getModel();
+	private final Matrix4fExt occlusionProjMatEx = (Matrix4fExt) (Object) occlusionProjMat;
+
 	private static final float MIN_GAP = 0.0001f;
 	private final Matrix4fExt mvpMatrix = (Matrix4fExt) (Object) new Matrix4f();
 	private final Matrix4fExt lastProjectionMatrix = (Matrix4fExt) (Object) new Matrix4f();
 	private final Matrix4fExt lastModelMatrix = (Matrix4fExt) (Object) new Matrix4f();
 	private int viewVersion;
 	private int positionVersion;
-	private double lastViewX;
-	private double lastViewY;
-	private double lastViewZ;
-	private float lastViewXf;
-	private float lastViewYf;
-	private float lastViewZf;
-	private double lastPositionX;
-	private double lastPositionY;
-	private double lastPositionZ;
+	private double lastViewX = Float.MAX_VALUE;
+	private double lastViewY = Float.MAX_VALUE;
+	private double lastViewZ = Float.MAX_VALUE;
+	private float lastViewXf = Float.MAX_VALUE;
+	private float lastViewYf = Float.MAX_VALUE;
+	private float lastViewZf = Float.MAX_VALUE;
+	private double lastPositionX = Double.MAX_VALUE;
+	private double lastPositionY = Double.MAX_VALUE;
+	private double lastPositionZ = Double.MAX_VALUE;
+	private long lastCameraBlockPos = Long.MAX_VALUE;
+	private float lastCameraPitch = Float.MAX_VALUE;
+	private float lastCameraYaw = Float.MAX_VALUE;
+	private double fov;
+
 	// NB: distance (w) and subtraction are baked into region extents but must be done for other box tests
 	private float leftX, leftY, leftZ, leftW, leftXe, leftYe, leftZe, leftRegionExtent;
 	private float rightX, rightY, rightZ, rightW, rightXe, rightYe, rightZe, rightRegionExtent;
@@ -64,14 +85,24 @@ public class CanvasFrustum extends Frustum {
 	private float bottomX, bottomY, bottomZ, bottomW, bottomXe, bottomYe, bottomZe, bottomRegionExtent;
 	private float nearX, nearY, nearZ, nearW, nearXe, nearYe, nearZe, nearRegionExtent;
 	private int viewDistanceSquared;
-	private boolean initialized = false;
 
 	public CanvasFrustum() {
 		super(dummyMatrix(), dummyMatrix());
 	}
 
 	void reload() {
-		initialized = false;
+		lastViewX = Float.MAX_VALUE;
+		lastViewY = Float.MAX_VALUE;
+		lastViewZ = Float.MAX_VALUE;
+		lastViewXf = Float.MAX_VALUE;
+		lastViewYf = Float.MAX_VALUE;
+		lastViewZf = Float.MAX_VALUE;
+		lastPositionX = Double.MAX_VALUE;
+		lastPositionY = Double.MAX_VALUE;
+		lastPositionZ = Double.MAX_VALUE;
+		lastCameraBlockPos = Long.MAX_VALUE;
+		lastCameraPitch = Float.MAX_VALUE;
+		lastCameraYaw = Float.MAX_VALUE;
 	}
 
 	private static Matrix4f dummyMatrix() {
@@ -82,7 +113,7 @@ public class CanvasFrustum extends Frustum {
 
 	/**
 	 * Incremented when player moves more than 1 block.
-	 * Triggers visibility rebuild and translucency resort.
+	 * Triggers region visibility recalc and translucency resort.
 	 */
 	public int positionVersion() {
 		return positionVersion;
@@ -118,6 +149,10 @@ public class CanvasFrustum extends Frustum {
 		lastPositionX = src.lastPositionX;
 		lastPositionY = src.lastPositionY;
 		lastPositionZ = src.lastPositionZ;
+
+		lastCameraBlockPos = src.lastCameraBlockPos;
+		lastCameraPitch = src.lastCameraPitch;
+		lastCameraYaw = src.lastCameraYaw;
 
 		viewDistanceSquared = src.viewDistanceSquared;
 
@@ -169,54 +204,128 @@ public class CanvasFrustum extends Frustum {
 		nearYe = src.nearYe;
 		nearZe = src.nearZe;
 		nearRegionExtent = src.nearRegionExtent;
+
+		fov = src.fov;
 	}
 
 	@SuppressWarnings("resource")
-	public void prepare(Matrix4f modelMatrix, Matrix4f projectionMatrix, Camera camera) {
+	public void prepare(Matrix4f modelMatrix, float tickDelta, Camera camera) {
 		final Vec3d vec = camera.getPos();
 		final double x = vec.x;
 		final double y = vec.y;
 		final double z = vec.z;
 
-		if (initialized && x == lastViewX && y == lastViewY && z == lastViewZ
-				&& lastModelMatrix.matches(modelMatrix)
-				&& lastProjectionMatrix.matches(projectionMatrix)) {
-			return;
+		final long cameraBlockPos = camera.getBlockPos().asLong();
+		boolean movedOneBlock = false;
+
+		if (cameraBlockPos != lastCameraBlockPos) {
+			lastCameraBlockPos = cameraBlockPos;
+			movedOneBlock = true;
+		} else {
+			// could move 1.0 or more diagonally within same block pos
+			final double dx = x - lastPositionX;
+			final double dy = y - lastPositionY;
+			final double dz = z - lastPositionZ;
+			movedOneBlock = dx * dx + dy * dy + dz * dz >= 1.0D;
 		}
 
-		initialized = true;
-
-		lastViewX = x;
-		lastViewY = y;
-		lastViewZ = z;
-
-		lastViewXf = (float) x;
-		lastViewYf = (float) y;
-		lastViewZf = (float) z;
-
-		lastModelMatrix.set(modelMatrix);
-		lastProjectionMatrix.set(projectionMatrix);
-		++viewVersion;
-
-		mvpMatrix.loadIdentity();
-		mvpMatrix.multiply(lastProjectionMatrix);
-		mvpMatrix.multiply(lastModelMatrix);
-
-		extractPlanes();
-
-		viewDistanceSquared = MinecraftClient.getInstance().options.viewDistance * 16;
-		viewDistanceSquared *= viewDistanceSquared;
-
-		final double dx = x - lastPositionX;
-		final double dy = y - lastPositionY;
-		final double dz = z - lastPositionZ;
-
-		if (dx * dx + dy * dy + dz * dz > 1.0D) {
+		if (movedOneBlock) {
 			++positionVersion;
 			lastPositionX = x;
 			lastPositionY = y;
 			lastPositionZ = z;
 		}
+
+		boolean modelMatrixUpdate = false;
+		final float cameraPitch = camera.getPitch();
+		final float cameraYaw = camera.getYaw();
+
+		// view (rotaion) version changes if moved beyond the configured limit
+		// the frustum is padded elsewhere to compensate
+		// avoids excessive visibility rebuilds when rotating view
+		if (cameraPitch != lastCameraPitch || cameraYaw != lastCameraYaw) {
+			final float dPitch = lastCameraPitch - cameraPitch;
+			final float dYaw = lastCameraYaw - cameraYaw;
+			// divide by two because same division occurs in frustum setup - only half degrees given applies to any edge
+			final float paddingFov = Configurator.staticFrustumPadding * 0.5f;
+			modelMatrixUpdate = dPitch * dPitch + dYaw * dYaw >= paddingFov * paddingFov;
+		}
+
+		if (movedOneBlock || modelMatrixUpdate || !lastProjectionMatrix.matches(occlusionProjMat)) {
+			++viewVersion;
+
+			lastViewX = x;
+			lastViewY = y;
+			lastViewZ = z;
+
+			lastViewXf = (float) x;
+			lastViewYf = (float) y;
+			lastViewZf = (float) z;
+
+			lastCameraPitch = cameraPitch;
+			lastCameraYaw = cameraYaw;
+
+			lastModelMatrix.set(modelMatrix);
+			lastProjectionMatrix.set(occlusionProjMat);
+
+			mvpMatrix.loadIdentity();
+			mvpMatrix.multiply(lastProjectionMatrix);
+			mvpMatrix.multiply(lastModelMatrix);
+
+			// depends on mvpMatrix being complete
+			extractPlanes();
+
+			viewDistanceSquared = MinecraftClient.getInstance().options.viewDistance * 16;
+			viewDistanceSquared *= viewDistanceSquared;
+		}
+	}
+
+	/** Called by GameRenderer mixin to avoid recomputing fov. */
+	public void setFov(double fov) {
+		this.fov = fov;
+	}
+
+	public void updateProjection(Camera camera, float tickDelta) {
+		int fovPadding = Configurator.terrainSetupOffThread ? Configurator.dynamicFrustumPadding : 0;
+
+		// avoid bobbing frust on hurt/nausea to avoid occlusion update - give sufficient padding
+		if (client.options.bobView) {
+			fovPadding = Math.max(fovPadding, 5);
+		}
+
+		if (MathHelper.lerp(tickDelta, client.player.lastNauseaStrength, client.player.nextNauseaStrength) * client.options.distortionEffectScale * client.options.distortionEffectScale > 0) {
+			fovPadding = Math.max(fovPadding, 20);
+		}
+
+		boolean doDeadRotation = false;
+
+		if (client.getCameraEntity() instanceof LivingEntity) {
+			final LivingEntity livingEntity = (LivingEntity) client.getCameraEntity();
+
+			if (livingEntity.isDead()) {
+				doDeadRotation = true;
+			} else if (livingEntity.hurtTime - tickDelta > 0) {
+				fovPadding = Math.max(fovPadding, 20);
+			}
+		}
+
+		computeProjectionMatrix(camera, tickDelta, Configurator.staticFrustumPadding + fovPadding);
+
+		if (doDeadRotation) {
+			grx.canvas_bobViewWhenHurt(projectionStack, tickDelta);
+		}
+	}
+
+	private void computeProjectionMatrix(Camera camera, float tickDelta, double padding) {
+		occlusionProjMat.loadIdentity();
+
+		if (grx.canvas_zoom() != 1.0F) {
+			final float zoom = grx.canvas_zoom();
+			occlusionProjMatEx.translate(grx.canvas_zoomX(), -grx.canvas_zoomY(), 0.0F);
+			occlusionProjMatEx.scale(zoom, zoom, 1.0F);
+		}
+
+		occlusionProjMat.multiply(Matrix4f.viewboxMatrix(fov + padding, client.getWindow().getFramebufferWidth() / (float) client.getWindow().getFramebufferHeight(), 0.05F, gr.getViewDistance() * 4.0F));
 	}
 
 	@Override

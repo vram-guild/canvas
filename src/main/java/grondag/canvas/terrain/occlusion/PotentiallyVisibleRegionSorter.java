@@ -21,6 +21,7 @@ import java.util.Arrays;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import org.jetbrains.annotations.Nullable;
 
+import grondag.canvas.CanvasMod;
 import grondag.canvas.terrain.region.BuiltRenderRegion;
 import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
 
@@ -30,7 +31,7 @@ import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
  * be at a finite number of distances from the origin chunk
  * and slots them into buckets using simple and fast array access.
  */
-public class RegionDistanceSorter {
+public class PotentiallyVisibleRegionSorter {
 	/** Max render chunk distance + 2 padding to allow for neighbor regions at edge. */
 	static final int RADIUS = 34;
 
@@ -105,6 +106,12 @@ public class RegionDistanceSorter {
 		EMPTY_REGIONS = new BuiltRenderRegion[REGION_LOOKUP_LENGTH];
 	}
 
+	private int version = 1;
+
+	public int version() {
+		return version;
+	}
+
 	/**
 	 * Same as {@link #SQ_DIST_TO_RING_MAP} but indices are updated as we collect regions.
 	 * Starting state is a copy of {@link #SQ_DIST_TO_RING_MAP}.
@@ -117,15 +124,20 @@ public class RegionDistanceSorter {
 	int regionIndex = 0;
 	int maxIndex = 0;
 
-	public RegionDistanceSorter() {
+	public PotentiallyVisibleRegionSorter() {
 		clear();
 	}
 
 	public void clear() {
 		System.arraycopy(SQ_DIST_TO_RING_MAP, 0, ringMap, 0, RING_MAP_LENGTH);
 		System.arraycopy(EMPTY_REGIONS, 0, regions, 0, REGION_LOOKUP_LENGTH);
-		regionIndex = 0;
 		maxIndex = -1;
+		++version;
+		returnToStart();
+	}
+
+	public void returnToStart() {
+		regionIndex = 0;
 	}
 
 	public void add(BuiltRenderRegion region) {
@@ -134,12 +146,30 @@ public class RegionDistanceSorter {
 		if (dist >= 0 && dist <= MAX_SQ_DIST) {
 			final int index = ringMap[dist];
 			regions[index] = region;
-			assert dist == MAX_SQ_DIST || index < SQ_DIST_TO_RING_MAP[dist + 1] : "Region ring index overrun into next (more distant) region.";
+			assert isSaneAddition(region, dist, index) : "Region ring index overrun into next (more distant) region.";
 			ringMap[dist] = index + 1;
 
 			if (index > maxIndex) {
 				maxIndex = index;
 			}
+		}
+	}
+
+	private boolean isSaneAddition(BuiltRenderRegion region, int dist, int targetIndex) {
+		final int limit = SQ_DIST_TO_RING_MAP[dist + 1];
+
+		if (dist < MAX_SQ_DIST && targetIndex >= limit) {
+			CanvasMod.LOG.info("Origin region: " + (regions[0] == null ? "null" : regions[0].toString()));
+			CanvasMod.LOG.info("Region to be added: " + region.toString());
+			CanvasMod.LOG.info("Regions extant in same ring follow...");
+
+			for (int i = SQ_DIST_TO_RING_MAP[dist]; i < limit; ++i) {
+				CanvasMod.LOG.info(regions[i].toString());
+			}
+
+			return false;
+		} else {
+			return true;
 		}
 	}
 
