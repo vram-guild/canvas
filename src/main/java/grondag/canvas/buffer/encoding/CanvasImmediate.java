@@ -52,13 +52,10 @@ public class CanvasImmediate extends Immediate implements FrexVertexConsumerProv
 		RenderMaterialImpl mat = ((MultiPhaseExt) renderLayer).canvas_materialState();
 		mat = contextState.mapMaterial(mat);
 
-		final VertexCollector result = RenderLayerHelper.isExcluded(renderLayer) ? null : collectors.get(mat);
-
-		if (result == null) {
-			assert RenderLayerHelper.isExcluded(renderLayer) : "Unable to retrieve vertex collector for non-excluded render layer";
-
+		if (mat == RenderMaterialImpl.MISSING) {
 			return super.getBuffer(renderLayer);
 		} else {
+			final VertexCollector result = collectors.get(mat);
 			result.vertexState(mat);
 			return result;
 		}
