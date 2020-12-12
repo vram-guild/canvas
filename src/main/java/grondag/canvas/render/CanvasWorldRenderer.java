@@ -369,7 +369,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		final MinecraftClient mc = wr.canvas_mc();
 		boolean result = wr.canvas_mc().chunkCullingEnabled;
 
-		if (mc.player.isSpectator() && !World.isHeightInvalid(pos.getY()) && world.getBlockState(pos).isOpaqueFullCube(world, pos)) {
+		if (mc.player.isSpectator() && !World.isOutOfBuildLimitVertically(pos.getY()) && world.getBlockState(pos).isOpaqueFullCube(world, pos)) {
 			result = false;
 		}
 
