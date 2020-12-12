@@ -50,6 +50,11 @@ public class CanvasImmediate extends Immediate implements FrexVertexConsumerProv
 	@Override
 	public VertexConsumer getBuffer(RenderLayer renderLayer) {
 		RenderMaterialImpl mat = ((MultiPhaseExt) renderLayer).canvas_materialState();
+
+		if (mat == RenderMaterialImpl.MISSING) {
+			return super.getBuffer(renderLayer);
+		}
+
 		mat = contextState.mapMaterial(mat);
 
 		if (mat == RenderMaterialImpl.MISSING) {
