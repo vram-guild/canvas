@@ -74,6 +74,7 @@ public class Configurator {
 	public static boolean vertexControlMode = DEFAULTS.vertexControlMode;
 	public static int staticFrustumPadding = DEFAULTS.staticFrustumPadding;
 	public static int dynamicFrustumPadding = DEFAULTS.dynamicFrustumPadding;
+	public static boolean cullParticles = DEFAULTS.cullParticles;
 	public static boolean shaderDebug = DEFAULTS.shaderDebug;
 	public static boolean lightmapDebug = DEFAULTS.lightmapDebug;
 	public static boolean conciseErrors = DEFAULTS.conciseErrors;
@@ -169,6 +170,7 @@ public class Configurator {
 		vertexControlMode = config.vertexControlMode;
 		dynamicFrustumPadding = MathHelper.clamp(config.dynamicFrustumPadding, 0, 20);
 		staticFrustumPadding = MathHelper.clamp(config.staticFrustumPadding, 0, 30);
+		cullParticles = config.cullParticles;
 
 		lightmapDebug = config.lightmapDebug;
 		conciseErrors = config.conciseErrors;
@@ -221,6 +223,7 @@ public class Configurator {
 		config.vertexControlMode = vertexControlMode;
 		config.staticFrustumPadding = staticFrustumPadding;
 		config.dynamicFrustumPadding = dynamicFrustumPadding;
+		config.cullParticles = cullParticles;
 
 		config.lightmapDebug = lightmapDebug;
 		config.conciseErrors = conciseErrors;
@@ -562,6 +565,15 @@ public class Configurator {
 				})
 				.build());
 
+		tweaks.addEntry(ENTRY_BUILDER
+				.startBooleanToggle(new TranslatableText("config.canvas.value.cull_particles"), cullParticles)
+				.setDefaultValue(DEFAULTS.cullParticles)
+				.setTooltip(parse("config.canvas.help.cull_particles"))
+				.setSaveConsumer(b -> {
+					cullParticles = b;
+				})
+				.build());
+
 		// DEBUG
 		final ConfigCategory debug = builder.getOrCreateCategory(new TranslatableText("config.canvas.category.debug"));
 
@@ -778,6 +790,8 @@ public class Configurator {
 		int staticFrustumPadding = 10;
 		@Comment("Extra padding at edges of screen to reduce missing chunks when view roates and terrainSetupOffThread is on. In degrees. Values 0 to 30. Zero disables.")
 		int dynamicFrustumPadding = 20;
+		@Comment("Culls particles that are not in view. Should always be faster.")
+		boolean cullParticles = true;
 
 		// DEBUG
 		@Comment("Output runtime per-material shader source. For shader development debugging.")

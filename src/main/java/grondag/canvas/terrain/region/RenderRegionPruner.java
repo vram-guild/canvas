@@ -16,7 +16,7 @@
 
 package grondag.canvas.terrain.region;
 
-import grondag.canvas.render.CanvasFrustum;
+import grondag.canvas.render.TerrainFrustum;
 import grondag.canvas.terrain.occlusion.PotentiallyVisibleRegionSorter;
 import grondag.canvas.terrain.occlusion.TerrainOccluder;
 
@@ -25,7 +25,7 @@ public class RenderRegionPruner {
 	private int occluderVersion = 0;
 
 	private int maxSquaredChunkDistance;
-	public final CanvasFrustum frustum;
+	public final TerrainFrustum frustum;
 	public final TerrainOccluder occluder;
 	public final PotentiallyVisibleRegionSorter potentiallyVisibleRegions;
 

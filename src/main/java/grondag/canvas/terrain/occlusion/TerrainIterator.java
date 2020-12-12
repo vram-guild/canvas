@@ -29,8 +29,8 @@ import net.minecraft.util.math.Vec3i;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
-import grondag.canvas.render.CanvasFrustum;
 import grondag.canvas.render.CanvasWorldRenderer;
+import grondag.canvas.render.TerrainFrustum;
 import grondag.canvas.terrain.occlusion.geometry.OcclusionRegion;
 import grondag.canvas.terrain.region.BuiltRenderRegion;
 import grondag.canvas.terrain.region.RegionData;
@@ -65,7 +65,7 @@ public class TerrainIterator implements Consumer<TerrainRenderContext> {
 		this.distanceSorter = distanceSorter;
 	}
 
-	public void prepare(@Nullable BuiltRenderRegion cameraRegion, Camera camera, CanvasFrustum frustum, int renderDistance, boolean chunkCullingEnabled) {
+	public void prepare(@Nullable BuiltRenderRegion cameraRegion, Camera camera, TerrainFrustum frustum, int renderDistance, boolean chunkCullingEnabled) {
 		assert state.get() == IDLE;
 		this.cameraRegion = cameraRegion;
 		cameraPos = camera.getPos();

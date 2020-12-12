@@ -57,8 +57,8 @@ import grondag.canvas.buffer.encoding.VertexCollectorList;
 import grondag.canvas.material.state.RenderLayerHelper;
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.perf.ChunkRebuildCounters;
-import grondag.canvas.render.CanvasFrustum;
 import grondag.canvas.render.CanvasWorldRenderer;
+import grondag.canvas.render.TerrainFrustum;
 import grondag.canvas.terrain.occlusion.PotentiallyVisibleRegionSorter;
 import grondag.canvas.terrain.occlusion.TerrainIterator;
 import grondag.canvas.terrain.occlusion.geometry.OcclusionRegion;
@@ -201,7 +201,7 @@ public class BuiltRenderRegion {
 	}
 
 	void updateCameraDistanceAndVisibilityInfo() {
-		final CanvasFrustum frustum = pruner.frustum;
+		final TerrainFrustum frustum = pruner.frustum;
 		final int fv = frustum.viewVersion();
 
 		if (chunkDistVersion != renderRegionChunk.chunkDistVersion) {
@@ -227,7 +227,7 @@ public class BuiltRenderRegion {
 	}
 
 	private void computeFrustumChecks() {
-		final CanvasFrustum frustum = pruner.frustum;
+		final TerrainFrustum frustum = pruner.frustum;
 
 		// position version can only be different if overall frustum version is different
 		final int pv = frustum.positionVersion();

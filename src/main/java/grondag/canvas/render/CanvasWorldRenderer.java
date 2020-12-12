@@ -122,7 +122,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	private final RenderRegionPruner pruner = new RenderRegionPruner(terrainOccluder, distanceSorter);
 	private final RenderRegionStorage renderRegionStorage = new RenderRegionStorage(this, pruner);
 	private final TerrainIterator terrainIterator = new TerrainIterator(renderRegionStorage, terrainOccluder, distanceSorter);
-	public final CanvasFrustum frustum = new CanvasFrustum();
+	public final TerrainFrustum terrainFrustum = new TerrainFrustum();
 
 	/**
 	 * Incremented whenever regions are built so visibility search can progress or to indicate visibility might be changed.
@@ -302,23 +302,23 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 			final int newRegionDataVersion = regionDataVersion.get();
 
-			if (state == TerrainIterator.IDLE && (frustum.viewVersion() != lastViewVersion || lastRegionDataVersion != newRegionDataVersion)) {
+			if (state == TerrainIterator.IDLE && (terrainFrustum.viewVersion() != lastViewVersion || lastRegionDataVersion != newRegionDataVersion)) {
 				lastRegionDataVersion = newRegionDataVersion;
-				lastViewVersion = frustum.viewVersion();
-				terrainIterator.prepare(cameraRegion, camera, frustum, renderDistance, shouldCullChunks);
+				lastViewVersion = terrainFrustum.viewVersion();
+				terrainIterator.prepare(cameraRegion, camera, terrainFrustum, renderDistance, shouldCullChunks);
 				regionBuilder.executor.execute(terrainIterator, -1);
 			}
 		} else {
 			final int newRegionDataVersion = regionDataVersion.get();
 
-			if (frustum.viewVersion() != lastViewVersion || newRegionDataVersion != lastRegionDataVersion) {
+			if (terrainFrustum.viewVersion() != lastViewVersion || newRegionDataVersion != lastRegionDataVersion) {
 				lastRegionDataVersion = newRegionDataVersion;
-				terrainIterator.prepare(cameraRegion, camera, frustum, renderDistance, shouldCullChunks);
+				terrainIterator.prepare(cameraRegion, camera, terrainFrustum, renderDistance, shouldCullChunks);
 				terrainIterator.accept(null);
 
 				final BuiltRenderRegion[] visibleRegions = this.visibleRegions;
 				final int size = terrainIterator.visibleRegionCount;
-				lastViewVersion = frustum.viewVersion();
+				lastViewVersion = terrainFrustum.viewVersion();
 				visibleRegionCount = size;
 				System.arraycopy(terrainIterator.visibleRegions, 0, visibleRegions, 0, size);
 				scheduleOrBuild(terrainIterator.updateRegions);
@@ -407,8 +407,9 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		profiler.swap("culling");
 
-		final CanvasFrustum frustum = this.frustum;
+		final TerrainFrustum frustum = terrainFrustum;
 		frustum.prepare(modelMatrix, tickDelta, camera);
+		particleRenderer.frustum.prepare(modelMatrix, tickDelta, camera, projectionMatrix);
 
 		mc.getProfiler().swap("regions");
 
@@ -941,8 +942,8 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		mc.getProfiler().push("translucent_sort");
 
-		if (translucentSortPositionVersion != frustum.positionVersion()) {
-			translucentSortPositionVersion = frustum.positionVersion();
+		if (translucentSortPositionVersion != terrainFrustum.positionVersion()) {
+			translucentSortPositionVersion = terrainFrustum.positionVersion();
 
 			int j = 0;
 
@@ -1030,7 +1031,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	}
 
 	public CanvasFrustum frustum() {
-		return frustum;
+		return terrainFrustum;
 	}
 
 	public Vec3d cameraPos() {
@@ -1072,7 +1073,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			z1 = box.maxZ;
 		}
 
-		if (!frustum.isVisible(x0 - 0.5, y0 - 0.5, z0 - 0.5, x1 + 0.5, y1 + 0.5, z1 + 0.5)) {
+		if (!terrainFrustum.isVisible(x0 - 0.5, y0 - 0.5, z0 - 0.5, x1 + 0.5, y1 + 0.5, z1 + 0.5)) {
 			return false;
 		}
 
@@ -1155,7 +1156,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		renderRegionStorage.clear();
 		distanceSorter.clear();
 		visibleRegionCount = 0;
-		frustum.reload();
+		terrainFrustum.reload();
 
 		//ClassInspector.inspect();
 	}

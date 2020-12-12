@@ -47,7 +47,7 @@ import net.minecraft.util.math.Vec3d;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.mixinterface.Matrix4fExt;
-import grondag.canvas.render.CanvasFrustum;
+import grondag.canvas.render.TerrainFrustum;
 import grondag.canvas.terrain.occlusion.geometry.PackedBox;
 import grondag.canvas.terrain.region.BuiltRenderRegion;
 import grondag.canvas.varia.Matrix4L;
@@ -73,7 +73,7 @@ public class TerrainOccluder {
 	private boolean needsRedraw = false;
 	private int maxSquaredChunkDistance;
 
-	public final CanvasFrustum frustum = new CanvasFrustum();
+	public final TerrainFrustum frustum = new TerrainFrustum();
 
 	private final BlockPos.Mutable originForTracing = new BlockPos.Mutable();
 
