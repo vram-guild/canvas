@@ -121,6 +121,10 @@
   "config.canvas.value.dynamic_frustum_padding": "Dynamic Frustum Padding",
   "config.canvas.help.dynamic_frustum_padding": "Extra padding at edges of screen to reduce missing chunks when;view roates and Parallel Terrain Setup is on.;In degrees. Zero disables.",
   "config.canvas.value.cull_particles": "Particle Culling",
-  "config.canvas.help.cull_particles": "Culls particles that are not in view.;Should always be faster."
+  "config.canvas.help.cull_particles": "Culls particles that are not in view.;Should always be faster.",
+  "config.canvas.value.log_render_lag_spikes": "Log Render Lag Spikes",
+  "config.canvas.help.log_render_lag_spikes": "Log information on render lag spikes - when they happen and where.;Will spam the log.",
+  "config.canvas.value.render_lag_spike_fps": "Render Lag Spike FPS",
+  "config.canvas.help.render_lag_spike_fps": "Target frames per second when Log Render Lag Spikes is enabled.;If elapsed time exceeds an entire frame, a spike is logged."
   
 }

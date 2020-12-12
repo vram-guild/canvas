@@ -377,6 +377,8 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	}
 
 	public void renderWorld(MatrixStack matrixStack, float tickDelta, long frameStartNanos, boolean blockOutlines, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f projectionMatrix) {
+		Configurator.lagFinder.swap("WorldRenderer-Setup");
+
 		final WorldRendererExt wr = this.wr;
 		final MinecraftClient mc = wr.canvas_mc();
 		final WorldRenderer mcwr = mc.worldRenderer;
@@ -395,7 +397,11 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		entityRenderDispatcher.configure(world, camera, mc.targetedEntity);
 		final Profiler profiler = world.getProfiler();
 		profiler.swap("light_updates");
+
+		Configurator.lagFinder.swap("WorldRenderer-LightUpdates");
 		mc.world.getChunkManager().getLightingProvider().doLightUpdates(Integer.MAX_VALUE, true, true);
+
+		Configurator.lagFinder.swap("WorldRenderer-Culling");
 		final Vec3d cameraVec3d = camera.getPos();
 		cameraPos = cameraVec3d;
 
@@ -413,6 +419,8 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		mc.getProfiler().swap("regions");
 
+		Configurator.lagFinder.swap("WorldRenderer-Background");
+
 		profiler.swap("clear");
 		BackgroundRenderer.render(camera, tickDelta, mc.world, mc.options.viewDistance, gameRenderer.getSkyDarkness(tickDelta));
 		RenderSystem.clear(16640, MinecraftClient.IS_SYSTEM_MAC);
@@ -429,9 +437,13 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		BackgroundRenderer.applyFog(camera, BackgroundRenderer.FogType.FOG_TERRAIN, Math.max(viewDistance - 16.0F, 32.0F), thickFog);
 		profiler.swap("terrain_setup");
 
+		Configurator.lagFinder.swap("WorldRenderer-TerrainSetup");
+
 		setupTerrain(camera, wr.canvas_getAndIncrementFrameIndex(), shouldCullChunks(camera.getBlockPos()));
 		eventContext.setFrustum(frustum);
 		WorldRenderEvents.AFTER_SETUP.invoker().afterSetup(eventContext);
+
+		Configurator.lagFinder.swap("WorldRenderer-TerrainUpdate");
 
 		profiler.swap("updatechunks");
 		final int maxFps = mc.options.maxFps;
@@ -452,11 +464,14 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		updateRegions(frameStartNanos + clampedBudget);
 
+		Configurator.lagFinder.swap("WorldRenderer-BloomSetup");
+
 		LightmapHdTexture.instance().onRenderTick();
 
-		profiler.swap("terrain");
-
 		if (Configurator.enableBloom) CanvasFrameBufferHacks.prepareForFrame();
+
+		profiler.swap("terrain");
+		Configurator.lagFinder.swap("WorldRenderer-TerrainRenderSolid");
 
 		MaterialMatrixState.set(MaterialMatrixState.REGION, null);
 		renderTerrainLayer(false, matrixStack, cameraX, cameraY, cameraZ);
@@ -471,6 +486,8 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		} else {
 			DiffuseLighting.method_27869(matrixStack.peek().getModel());
 		}
+
+		Configurator.lagFinder.swap("WorldRenderer-EntityRender");
 
 		profiler.swap("entities");
 		WorldRenderEvents.BEFORE_ENTITIES.invoker().beforeEntities(eventContext);
@@ -620,6 +637,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			mcfb.beginWrite(false);
 		}
 
+		Configurator.lagFinder.swap("WorldRenderer-Breaking");
 		profiler.swap("destroyProgress");
 
 		// honor damage render layer irrespective of model material
@@ -655,6 +673,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		profiler.pop();
 		profiler.swap("outline");
+		Configurator.lagFinder.swap("WorldRenderer-OutlineAndDebug");
 		final HitResult hitResult = mc.crosshairTarget;
 		eventContext.setHitResult(hitResult);
 		WorldRenderEvents.BEFORE_BLOCK_OUTLINE.invoker().beforeBlockOutline(eventContext);
@@ -686,6 +705,8 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		mc.debugRenderer.render(matrixStack, immediate, cameraX, cameraY, cameraZ);
 		RenderSystem.popMatrix();
 
+		Configurator.lagFinder.swap("WorldRenderer-SolidDraws");
+
 		// Should generally not have anything here but draw in case content injected in hooks
 		immediate.drawCollectors(MaterialTarget.MAIN);
 
@@ -700,6 +721,8 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		immediate.draw(RenderLayer.getWaterMask());
 
 		bufferBuilders.getEffectVertexConsumers().draw();
+
+		Configurator.lagFinder.swap("WorldRenderer-Transluent");
 
 		if (advancedTranslucency) {
 			profiler.swap("translucent");
@@ -769,6 +792,8 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			renderCullBoxes(matrixStack, immediate, cameraX, cameraY, cameraZ, tickDelta);
 		}
 
+		Configurator.lagFinder.swap("WorldRenderer-PostTransluent");
+
 		profiler.swap("clouds");
 
 		if (advancedTranslucency) {
@@ -819,6 +844,8 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		MaterialFog.allow(false);
 
 		//RenderState.enablePrint = true;
+
+		Configurator.lagFinder.complete();
 	}
 
 	private void renderCullBoxes(MatrixStack matrixStack, Immediate immediate, double cameraX, double cameraY, double cameraZ, float tickDelta) {

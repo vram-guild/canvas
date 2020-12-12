@@ -42,6 +42,8 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.loader.api.FabricLoader;
 
+import grondag.canvas.perf.LagFinder;
+
 @Environment(EnvType.CLIENT)
 public class Configurator {
 	static final ConfigData DEFAULTS = new ConfigData();
@@ -91,6 +93,14 @@ public class Configurator {
 	public static boolean enableLifeCycleDebug = DEFAULTS.enableLifeCycleDebug;
 	public static boolean logMissingUniforms = DEFAULTS.logMissingUniforms;
 	public static boolean logMaterials = DEFAULTS.logMaterials;
+	private static boolean logRenderLagSpikes = DEFAULTS.logRenderLagSpikes;
+	private static int renderLagSpikeFps = DEFAULTS.renderLagSpikeFps;
+
+	public static LagFinder lagFinder = createLagFinder();
+
+	private static LagFinder createLagFinder() {
+		return logRenderLagSpikes ? LagFinder.create(() -> 1000000000 / renderLagSpikeFps) : LagFinder.DUMMMY;
+	}
 
 	//    @LangKey("config.acuity_fancy_fluids")
 	//    @Comment({"Enable fancy water and lava rendering.",
@@ -186,6 +196,9 @@ public class Configurator {
 		enableLifeCycleDebug = config.enableLifeCycleDebug;
 		logMissingUniforms = config.logMissingUniforms;
 		logMaterials = config.logMaterials;
+		logRenderLagSpikes = config.logRenderLagSpikes;
+		renderLagSpikeFps = MathHelper.clamp(config.renderLagSpikeFps, 30, 120);
+		lagFinder = createLagFinder();
 	}
 
 	private static void saveConfig() {
@@ -239,6 +252,8 @@ public class Configurator {
 		config.enableLifeCycleDebug = enableLifeCycleDebug;
 		config.logMissingUniforms = logMissingUniforms;
 		config.logMaterials = logMaterials;
+		config.logRenderLagSpikes = logRenderLagSpikes;
+		config.renderLagSpikeFps = renderLagSpikeFps;
 
 		try {
 			final String result = JANKSON.toJson(config).toJson(true, true, 0);
@@ -676,6 +691,26 @@ public class Configurator {
 				.setSaveConsumer(b -> logMaterials = b)
 				.build());
 
+		debug.addEntry(ENTRY_BUILDER
+				.startBooleanToggle(new TranslatableText("config.canvas.value.log_render_lag_spikes"), logRenderLagSpikes)
+				.setDefaultValue(DEFAULTS.logRenderLagSpikes)
+				.setTooltip(parse("config.canvas.help.log_render_lag_spikes"))
+				.setSaveConsumer(b -> {
+					logRenderLagSpikes = b;
+					lagFinder = createLagFinder();
+				})
+				.build());
+
+		debug.addEntry(ENTRY_BUILDER
+				.startIntSlider(new TranslatableText("config.canvas.value.render_lag_spike_fps"), renderLagSpikeFps, 30, 120)
+				.setDefaultValue(DEFAULTS.renderLagSpikeFps)
+				.setTooltip(parse("config.canvas.help.render_lag_spike_fps"))
+				.setSaveConsumer(b -> {
+					renderLagSpikeFps = b;
+					lagFinder = createLagFinder();
+				})
+				.build());
+
 		builder.setAlwaysShowTabs(false).setDoesConfirmSave(false);
 
 		return builder.build();
@@ -822,6 +857,10 @@ public class Configurator {
 		boolean logMissingUniforms = false;
 		@Comment("Log render material states and vanilla RenderLayer mapping. Useful for material debug and pack makers. Will spam the log.")
 		boolean logMaterials = false;
+		@Comment("Log information on render lag spikes - when they happen and where. Will spam the log.")
+		boolean logRenderLagSpikes = false;
+		@Comment("Approximate target FPS when logRenderLagSpikes is enabled. If elapsed time exceeds an entire frame, a spike is logged. 30-120")
+		int renderLagSpikeFps = 30;
 	}
 
 	//    @LangKey("config.disable_yield")

@@ -67,6 +67,11 @@ public abstract class MixinGameRenderer implements GameRendererExt {
 		((CanvasWorldRenderer) client.worldRenderer).terrainFrustum.setFov(ci.getReturnValueD());
 	}
 
+	@Inject(method = "renderWorld", require = 1, at = @At("HEAD"))
+	private void onRenderWorld(CallbackInfo ci) {
+		Configurator.lagFinder.start("GameRenderer Setup");
+	}
+
 	@Override
 	public float canvas_zoom() {
 		return zoom;
