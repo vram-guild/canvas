@@ -107,7 +107,9 @@ public abstract class AbstractBlockRenderContext<T extends BlockRenderView> exte
 		defaultAo = modelAO && MinecraftClient.isAmbientOcclusionEnabled() && blockState.getLuminance() == 0;
 
 		// FEAT: support additional blend modes on terrain blocks?
-		defaultBlendMode = ((RenderLayerExt) RenderLayers.getBlockLayer(blockState)).canvas_blendMode();
+		defaultBlendMode = isFluidModel
+			? ((RenderLayerExt) RenderLayers.getFluidLayer(blockState.getFluidState())).canvas_blendMode()
+			: ((RenderLayerExt) RenderLayers.getBlockLayer(blockState)).canvas_blendMode();
 	}
 
 	@Override
