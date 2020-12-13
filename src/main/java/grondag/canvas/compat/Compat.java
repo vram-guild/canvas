@@ -81,6 +81,8 @@ public class Compat {
 			VoxelMapHolder.postRenderHandler.render(ctx.worldRenderer(), ctx.matrixStack(), ctx.tickDelta(), ctx.limitTime(), ctx.blockOutlines(), ctx.camera(), ctx.gameRenderer(), ctx.lightmapTextureManager(), ctx.projectionMatrix());
 		});
 
-		InvalidateRenderStateCallback.EVENT.register(LitematicaHolder.litematicaReload::run);
+		InvalidateRenderStateCallback.EVENT.register(() -> {
+			LitematicaHolder.litematicaReload.run();
+		});
 	}
 }
