@@ -859,7 +859,10 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		} catch (final Exception e) {
 			if (CAUGHT_BER_ERRORS.add(blockEntity.getType())) {
 				CanvasMod.LOG.warn(String.format("Unhandled exception rendering while rendering BlockEntity %s @ %s.  Stack trace follows. Subsequent errors will be suppressed.",
-						Registry.BLOCK_ENTITY_TYPE.getId(blockEntity.getType()).toString(), blockEntity.getPos().toShortString()), e);
+						Registry.BLOCK_ENTITY_TYPE.getId(blockEntity.getType()).toString(), blockEntity.getPos().toShortString()));
+
+				// Passing this to .(warn) causes "Negative index in crash report handler" spam, so printing separately
+				e.printStackTrace();
 			}
 		}
 	}
