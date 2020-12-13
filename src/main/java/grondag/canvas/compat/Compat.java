@@ -16,6 +16,8 @@
 
 package grondag.canvas.compat;
 
+import com.mojang.blaze3d.systems.RenderSystem;
+
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexConsumerProvider.Immediate;
@@ -61,9 +63,13 @@ public class Compat {
 			final Vec3d cameraPos = ctx.camera().getPos();
 			VoxelMapHolder.postRenderLayerHandler.render(ctx.worldRenderer(), RenderLayer.getTranslucent(), ctx.matrixStack(), cameraPos.getX(), cameraPos.getY(), cameraPos.getZ());
 
-			// litematica overlay uses fabulous buffer so must run before translucent shader when active
+			// litematica overlay uses fabulous buffers so must run before translucent shader when active
+			// and also expects view matrix to be pre-applied because it normally happens in weather render
 			if (ctx.advancedTranslucency()) {
+				RenderSystem.pushMatrix();
+				RenderSystem.multMatrix(ctx.matrixStack().peek().getModel());
 				MaliLibHolder.litematicaRenderWorldLast.render(ctx.matrixStack(), MinecraftClient.getInstance(), ctx.tickDelta());
+				RenderSystem.popMatrix();
 			}
 		});
 
@@ -71,7 +77,7 @@ public class Compat {
 			BborHolder.render(ctx);
 			SatinHolder.onWorldRenderedEvent.onWorldRendered(ctx.matrixStack(), ctx.camera(), ctx.tickDelta(), ctx.limitTime());
 
-			// litematica overlay expects to render on top of translucency when fabulout is off
+			// litematica overlay expects to render on top of translucency when fabulous is off
 			if (!ctx.advancedTranslucency()) {
 				MaliLibHolder.litematicaRenderWorldLast.render(ctx.matrixStack(), MinecraftClient.getInstance(), ctx.tickDelta());
 			}

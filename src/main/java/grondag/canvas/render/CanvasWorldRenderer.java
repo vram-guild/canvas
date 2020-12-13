@@ -791,6 +791,9 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		RenderSystem.pushMatrix();
 		RenderSystem.multMatrix(matrixStack.peek().getModel());
 
+		// WIP: need a new event here for weather/cloud targets that has matrix applies to render state
+		// WIP: move the Mallib world last to the new event when fabulous is on
+
 		if (Configurator.debugOcclusionBoxes) {
 			renderCullBoxes(matrixStack, immediate, cameraX, cameraY, cameraZ, tickDelta);
 		}
