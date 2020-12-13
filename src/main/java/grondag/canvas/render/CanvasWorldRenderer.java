@@ -28,11 +28,13 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap.Entry;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.opengl.GL21;
 
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.Framebuffer;
 import net.minecraft.client.gl.ShaderEffect;
@@ -73,6 +75,7 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Matrix4f;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.profiler.Profiler;
+import net.minecraft.util.registry.Registry;
 import net.minecraft.world.World;
 
 import grondag.canvas.CanvasMod;
@@ -601,7 +604,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 					}
 				}
 
-				BlockEntityRenderDispatcher.INSTANCE.render(blockEntity, tickDelta, matrixStack, outputConsumer);
+				renderBlockEntitySafely(blockEntity, tickDelta, matrixStack, outputConsumer);
 				matrixStack.pop();
 			}
 		}
@@ -617,7 +620,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 				contextState.setCurrentBlockEntity(blockEntity2);
 				matrixStack.push();
 				matrixStack.translate(blockPos2.getX() - cameraX, blockPos2.getY() - cameraY, blockPos2.getZ() - cameraZ);
-				BlockEntityRenderDispatcher.INSTANCE.render(blockEntity2, tickDelta, matrixStack, immediate);
+				renderBlockEntitySafely(blockEntity2, tickDelta, matrixStack, immediate);
 				matrixStack.pop();
 			}
 		}
@@ -846,6 +849,19 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		//RenderState.enablePrint = true;
 
 		Configurator.lagFinder.complete();
+	}
+
+	private static final ReferenceOpenHashSet<BlockEntityType<?>> CAUGHT_BER_ERRORS = new ReferenceOpenHashSet<>();
+
+	private static void renderBlockEntitySafely(BlockEntity blockEntity, float tickDelta, MatrixStack matrixStack, VertexConsumerProvider outputConsumer) {
+		try {
+			BlockEntityRenderDispatcher.INSTANCE.render(blockEntity, tickDelta, matrixStack, outputConsumer);
+		} catch (final Exception e) {
+			if (CAUGHT_BER_ERRORS.add(blockEntity.getType())) {
+				CanvasMod.LOG.warn(String.format("Unhandled exception rendering while rendering BlockEntity %s @ %s.  Stack trace follows. Subsequent errors will be suppressed.",
+						Registry.BLOCK_ENTITY_TYPE.getId(blockEntity.getType()).toString(), blockEntity.getPos().toShortString()), e);
+			}
+		}
 	}
 
 	private void renderCullBoxes(MatrixStack matrixStack, Immediate immediate, double cameraX, double cameraY, double cameraZ, float tickDelta) {
