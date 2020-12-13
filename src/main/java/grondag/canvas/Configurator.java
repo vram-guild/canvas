@@ -519,7 +519,7 @@ public class Configurator {
 		tweaks.addEntry(ENTRY_BUILDER
 				.startBooleanToggle(new TranslatableText("config.canvas.value.cull_entity_render"), cullEntityRender)
 				.setDefaultValue(DEFAULTS.cullEntityRender)
-				.setTooltip(parse("config.canvas.help.enable_vao"))
+				.setTooltip(parse("config.canvas.help.cull_entity_render"))
 				.setSaveConsumer(b -> {
 					cullEntityRender = b;
 				})
