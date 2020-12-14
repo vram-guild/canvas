@@ -16,12 +16,15 @@
 
 package grondag.canvas.shader;
 
+import static org.lwjgl.system.MemoryStack.stackGet;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.regex.Matcher;
@@ -29,8 +32,13 @@ import java.util.regex.Pattern;
 
 import com.google.common.io.CharStreams;
 import org.apache.commons.lang3.StringUtils;
+import org.lwjgl.PointerBuffer;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL20C;
 import org.lwjgl.opengl.GL21;
+import org.lwjgl.system.MemoryStack;
+import org.lwjgl.system.MemoryUtil;
+import org.lwjgl.system.NativeType;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.resource.language.I18n;
@@ -140,7 +148,7 @@ public class GlShader implements Shader {
 
 			source = getSource();
 
-			GL21.glShaderSource(glId, source);
+			safeShaderSource(glId, source);
 			GL21.glCompileShader(glId);
 
 			if (GL21.glGetShaderi(glId, GL21.GL_COMPILE_STATUS) == GL11.GL_FALSE) {
@@ -174,6 +182,31 @@ public class GlShader implements Shader {
 			outputDebugSource(source, error);
 		} else if (Configurator.shaderDebug) {
 			outputDebugSource(source, null);
+		}
+	}
+
+	/**
+	 * Identical in function to {@link GL20C#glShaderSource(int, CharSequence)} but
+	 * passes a null pointer for string length to force the driver to rely on the null
+	 * terminator for string length.  This is a workaround for an apparent flaw with some
+	 * AMD drivers that don't receive or interpret the length correctly, resulting in
+	 * an access violation when the driver tries to read past the string memory.
+	 *
+	 * <p>Hat tip to fewizz for the find and the fix.
+	 */
+	private static void safeShaderSource(@NativeType("GLuint") int glId, @NativeType("GLchar const **") CharSequence source) {
+		final MemoryStack stack = stackGet();
+		final int stackPointer = stack.getPointer();
+
+		try {
+			final ByteBuffer sourceBuffer = MemoryUtil.memUTF8(source, true);
+			final PointerBuffer pointers = stack.mallocPointer(1);
+			pointers.put(sourceBuffer);
+
+			GL21.nglShaderSource(glId, 1, pointers.address0(), 0);
+			org.lwjgl.system.APIUtil.apiArrayFree(pointers.address0(), 1);
+		} finally {
+			stack.setPointer(stackPointer);
 		}
 	}
 
