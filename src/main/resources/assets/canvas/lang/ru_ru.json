@@ -121,6 +121,10 @@
   "config.canvas.value.dynamic_frustum_padding": "Динамический отступ",
   "config.canvas.help.dynamic_frustum_padding": "Размер отступа;по краям экрана;для уменьшения;недостающих чанков;при быстром повороте;камеры и включенном;\"Параллельном построении\",;в градусах.;Суммируется со;статическим отступом.;0 = выключено.",
   "config.canvas.value.cull_particles": "Отбрасывание частиц",
-  "config.canvas.help.cull_particles": "Отбрасывание частиц;не находящихся;в поле зрения."
+  "config.canvas.help.cull_particles": "Отбрасывание частиц;не находящихся;в поле зрения.",
+  "config.canvas.value.log_render_lag_spikes": "Задержка отрисовки",
+  "config.canvas.help.log_render_lag_spikes": "Вывод в лог информации;о задержках отрисовки,;когда и где они;случились. Возможен;спам лога.",
+  "config.canvas.value.render_lag_spike_fps": "Время задержки отрисовки",
+  "config.canvas.help.render_lag_spike_fps": "Информация в лог;будет выводится;при включенной опции;\"Задержки отрисовки\",;если за указанное;время кадр не будет;отрисован."
 
 }
