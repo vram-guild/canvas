@@ -32,7 +32,7 @@
   "config.canvas.value.handheld_light_radius": "Радиус излучения света",
   "config.canvas.help.handheld_light_radius": "Радиус света, излучаемого от;источника света в руке.;0 - отключение излучения света.",
   "config.canvas.category.lighting": "Освещение",
-  "config.canvas.value.light_smoothing": "Мягкое освещения",
+  "config.canvas.value.light_smoothing": "Мягкое освещение",
   "config.canvas.help.light_smoothing": "Исходимый от источника свет;менее \"крестообразный\".;Незначительно замедляет;загрузку чанков.;Общий уровень освещения;остается прежним.",
   "config.canvas.value.hd_lightmaps": "HD карта освещения (НЕДОСТУПНО)",
   "config.canvas.help.hd_lightmaps": "По-настоящему мягкое освещение.;Небольшое влияние на;использование памяти,;загрузку чанков и частоту кадров.",
