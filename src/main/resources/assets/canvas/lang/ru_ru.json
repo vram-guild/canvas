@@ -73,7 +73,7 @@
   "config.canvas.help.fix_luminous_block_shade": "Предотвращает затенение;светокамня и других;блоков, излучающих свет.",
   "config.canvas.value.terrain_setup_off_thread": "Параллельное построение",
   "config.canvas.help.terrain_setup_off_thread": "Построение поверхности;выполняется вне;основного потока.;Увеличивает FPS;При движении. Могут; быть видны пустые;(ещё не отрисованные);части поверхности;при быстрых поворотах;камеры.",
-  "config.canvas.value.enable_vao": "Использование VAO (НЕ ДОСТУПНО)",
+  "config.canvas.value.enable_vao": "Использование VAO (НЕДОСТУПНО)",
   "config.canvas.help.enable_vao": "Использование VAO;(Vertex Array Objects,;Объектов Массивов Вершин);увеличивает производительность.;Могут возникнуть проблемы.",
   "config.canvas.value.cull_entity_render": "Продвинутая выборка сущностей",
   "config.canvas.help.cull_entity_render": "Используется более;аккуратный способ;выбора сущностей;для отрисовки;В большинстве сцен;увеличивается FPS.",
