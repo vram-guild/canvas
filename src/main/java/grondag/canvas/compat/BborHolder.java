@@ -20,6 +20,8 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
 
+import com.google.common.util.concurrent.Runnables;
+
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.util.math.MatrixStack;
@@ -31,8 +33,10 @@ import grondag.frex.api.event.WorldRenderContext;
 
 class BborHolder {
 	static RenderHandler bborHandler = (m, t, p) -> { };
+	static Runnable bborDeferredHandler = Runnables.doNothing();
 
 	private static boolean warnRender = true;
+	private static boolean warnDeferredRender = true;
 
 	static {
 		if (FabricLoader.getInstance().isModLoaded("bbor")) {
@@ -40,8 +44,12 @@ class BborHolder {
 
 			try {
 				final Class<?> clazz = Class.forName("com.irtimaled.bbor.client.interop.ClientInterop");
+
 				final Method renderHook = clazz.getDeclaredMethod("render", MatrixStack.class, float.class, ClientPlayerEntity.class);
 				final MethodHandle renderHookHandler = lookup.unreflect(renderHook);
+
+				final Method deferredHook = clazz.getDeclaredMethod("renderDeferred");
+				final MethodHandle deferredHookHandler = lookup.unreflect(deferredHook);
 
 				bborHandler = (m, t, p) -> {
 					try {
@@ -51,6 +59,18 @@ class BborHolder {
 							CanvasMod.LOG.warn("Unable to call Bounding Box Outline Reloaded render hook due to exception:", e);
 							CanvasMod.LOG.warn("Subsequent errors will be suppressed");
 							warnRender = false;
+						}
+					}
+				};
+
+				bborDeferredHandler = () -> {
+					try {
+						deferredHookHandler.invokeExact();
+					} catch (final Throwable e) {
+						if (warnDeferredRender) {
+							CanvasMod.LOG.warn("Unable to call Bounding Box Outline Reloaded deferred render hook due to exception:", e);
+							CanvasMod.LOG.warn("Subsequent errors will be suppressed");
+							warnDeferredRender = false;
 						}
 					}
 				};
@@ -69,5 +89,9 @@ class BborHolder {
 
 	interface RenderHandler {
 		void render(MatrixStack matrixStack, float partialTicks, ClientPlayerEntity player);
+	}
+
+	static void deferred() {
+		bborDeferredHandler.run();
 	}
 }

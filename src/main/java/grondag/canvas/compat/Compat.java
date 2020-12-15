@@ -54,6 +54,7 @@ public class Compat {
 
 		WorldRenderEvents.BEFORE_DEBUG_RENDER.register(ctx -> {
 			ClothHolder.clothDebugPreEvent.run();
+			BborHolder.render(ctx);
 		});
 
 		WorldRenderEvents.AFTER_TRANSLUCENT.register(ctx -> {
@@ -74,7 +75,7 @@ public class Compat {
 		});
 
 		WorldRenderEvents.LAST.register(ctx -> {
-			BborHolder.render(ctx);
+			BborHolder.deferred();
 			SatinHolder.onWorldRenderedEvent.onWorldRendered(ctx.matrixStack(), ctx.camera(), ctx.tickDelta(), ctx.limitTime());
 
 			// litematica overlay expects to render on top of translucency when fabulous is off
