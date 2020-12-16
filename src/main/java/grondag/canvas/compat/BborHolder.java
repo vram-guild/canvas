@@ -83,7 +83,7 @@ class BborHolder {
 	}
 
 	@SuppressWarnings("resource")
-	static void render(WorldRenderContext.FrustumContext ctx) {
+	static void render(WorldRenderContext ctx) {
 		bborHandler.render(ctx.matrixStack(), ctx.tickDelta(), MinecraftClient.getInstance().player);
 	}
 

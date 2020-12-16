@@ -679,12 +679,8 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		profiler.swap("outline");
 		Configurator.lagFinder.swap("WorldRenderer-OutlineAndDebug");
 		final HitResult hitResult = mc.crosshairTarget;
-		eventContext.setHitResult(hitResult);
-		WorldRenderEvents.BEFORE_BLOCK_OUTLINE.invoker().beforeBlockOutline(eventContext);
 
-		if (eventContext.didCancelDefaultBlockOutline()) {
-			eventContext.resetDefaultBlockOutline();
-		} else {
+		if (WorldRenderEvents.BEFORE_BLOCK_OUTLINE.invoker().beforeBlockOutline(eventContext, hitResult)) {
 			if (blockOutlines && hitResult != null && hitResult.getType() == HitResult.Type.BLOCK) {
 				final BlockPos blockOutlinePos = ((BlockHitResult) hitResult).getBlockPos();
 				final BlockState blockOutlineState = world.getBlockState(blockOutlinePos);
@@ -694,9 +690,8 @@ public class CanvasWorldRenderer extends WorldRenderer {
 					final VertexConsumer blockOutlineConumer = immediate.getBuffer(RenderLayer.getLines());
 
 					eventContext.prepareBlockOutline(blockOutlineConumer, camera.getFocusedEntity(), cameraX, cameraY, cameraZ, blockOutlinePos, blockOutlineState);
-					WorldRenderEvents.BLOCK_OUTLINE.invoker().onBlockOutline(eventContext);
 
-					if (!eventContext.didCancelDefaultBlockOutline()) {
+					if (WorldRenderEvents.BLOCK_OUTLINE.invoker().onBlockOutline(eventContext, eventContext)) {
 						wr.canvas_drawBlockOutline(matrixStack, blockOutlineConumer, camera.getFocusedEntity(), cameraX, cameraY, cameraZ, blockOutlinePos, blockOutlineState);
 					}
 				}
