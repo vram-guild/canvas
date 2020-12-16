@@ -191,48 +191,47 @@ githubRelease {
 }
 
 curseforge {
-	if (project.hasProperty("curseforge_api_key")) {
+	if(project.hasProperty("curseforge_api_key")) {
 		apiKey = project.properties.curseforge_api_key
 	}
 
-	if (project.hasProperty("curseforge_id")) {
+	if(project.hasProperty("curseforge_id")) {
 		project {
 			id = project.properties.curseforge_id
-
 			releaseType = project.release_type
 			addGameVersion project.release_version
 			addGameVersion "Fabric"
+			changelog = "A changelog can be found at https://github.com/${github_repository_owner}/${github_repository}/commits"
 
-			mainArtifact(remapJar) {
-				displayName = "${archives_base_name}-${project.version}.jar"
+			mainArtifact(file("${project.buildDir}/libs/${archivesBaseName}-${version}.jar")) {
 
-				if (project.hasProperty("required_dep_slugs") || project.hasProperty("embedded_lib_slugs") || project.hasProperty("optional_dep_slugs") || project.hasProperty("compatible_tool_slugs") || project.hasProperty("incompatible_slugs")) {
+				if(project.hasProperty("required_dep_slugs") || project.hasProperty("embedded_lib_slugs") || project.hasProperty("optional_dep_slugs") || project.hasProperty("compatible_tool_slugs") || project.hasProperty("incompatible_slugs")) {
 					relations {
-						if (project.hasProperty("required_dep_slugs")) {
+						if(project.hasProperty("required_dep_slugs")) {
 							project.required_dep_slugs.split(", ").each { String slug ->
 								requiredDependency slug
 							}
 						}
 
-						if (project.hasProperty("embedded_lib_slugs")) {
+						if(project.hasProperty("embedded_lib_slugs")) {
 							project.embedded_lib_slugs.split(", ").each { String slug ->
 								embeddedLibrary slug
 							}
 						}
 
-						if (project.hasProperty("optional_dep_slugs")) {
+						if(project.hasProperty("optional_dep_slugs")) {
 							project.optional_dep_slugs.split(", ").each { String slug ->
 								optionalDependency slug
 							}
 						}
 
-						if (project.hasProperty("compatible_tool_slugs")) {
+						if(project.hasProperty("compatible_tool_slugs")) {
 							project.compatible_tool_slugs.split(", ").each { String slug ->
 								tool slug
 							}
 						}
 
-						if (project.hasProperty("incompatible_slugs")) {
+						if(project.hasProperty("incompatible_slugs")) {
 							project.incompatible_slugs.split(", ").each { String slug ->
 								incompatible slug
 							}
@@ -241,14 +240,11 @@ curseforge {
 				}
 			}
 
-			addArtifact(sourcesJar) {
-				displayName = "${archives_base_name}-${minecraft_version}-${project.version}-sources.jar"
-			}
-
 			afterEvaluate {
 				uploadTask.dependsOn remapSourcesJar
 			}
 		}
+		
 		options {
 			forgeGradleIntegration = false
 		}
