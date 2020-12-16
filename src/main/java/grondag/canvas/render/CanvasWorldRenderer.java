@@ -111,6 +111,7 @@ import grondag.canvas.texture.DitherTexture;
 import grondag.canvas.varia.CanvasGlHelper;
 import grondag.canvas.varia.WorldDataManager;
 import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
+import grondag.frex.api.event.WorldRenderEvent;
 import grondag.frex.api.event.WorldRenderEvents;
 import grondag.frex.impl.event.WorldRenderContextImpl;
 
@@ -1184,7 +1185,9 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		wr.canvas_mc().getProfiler().swap("dynamic_lighting");
 		eventContext.prepare(this, matrices, tickDelta, frameStartNanos, renderBlockOutline, camera, gameRenderer, lightmapTextureManager, matrix4f, worldRenderImmediate, wr.canvas_mc().getProfiler(), wr.canvas_transparencyShader() != null, world);
 		WorldRenderEvents.START.invoker().onStart(eventContext);
+		WorldRenderEvent.BEFORE_WORLD_RENDER.invoker().beforeWorldRender(matrices, tickDelta, frameStartNanos, renderBlockOutline, camera, gameRenderer, lightmapTextureManager, matrix4f);
 		renderWorld(matrices, tickDelta, frameStartNanos, renderBlockOutline, camera, gameRenderer, lightmapTextureManager, matrix4f);
+		WorldRenderEvent.AFTER_WORLD_RENDER.invoker().afterWorldRender(matrices, tickDelta, frameStartNanos, renderBlockOutline, camera, gameRenderer, lightmapTextureManager, matrix4f);
 		WorldRenderEvents.END.invoker().onEnd(eventContext);
 	}
 
