@@ -36,7 +36,8 @@
 	"fabric-rendering-data-attachment-v1": "*"
   },
   "breaks": {
-	"sodium": "*"
+	"sodium": "*",
+	"retino": "*"
   },
   "custom": {
 	"modmenu:api": false,
