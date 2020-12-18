@@ -19,11 +19,11 @@ Optifine and shader packs primarily target vanilla Minecraft.  They work with mo
 Canvas' main purpose is to give mod authors more control and options for rendering modded blocks.  It can also be used for building shader packs, but the design is entirely different than OF and does not yet support all the features needed for a full shader pack implementation.  Unlike OF shader packs, Canvas shader packs can be mixed together by adding multiple resource packs. 
 
 ## Performance
-Performance-wise, Canvas tries to be be faster than Vanilla with extended features. It is optimized heavilty - but the intent of these changes is to make better rendering practical, not to be a general-purpose performance mod. It isn't meant to run on low-end hardware and may or may not make your game run faster overall.
+Performance-wise, Canvas tries to be be faster than Vanilla with extended features. It is optimized heavily - but the intent of these changes is to make better rendering practical, not to be a general-purpose performance mod. It isn't meant to run on low-end hardware and may or may not make your game run faster overall.
 
 Canvas will try to fully use your hardware and will not be timid about it. It wants at least 4GB and will push both your CPU and GPU.  It will stress your cooling system.
 
-If you're looking to max performance with Canvas, the config meno tool tips indicate which features can help.  Bloom is especially expensive at high resolutions.  But bloom is also fun to look at, so.... your call. 
+If you're looking to max performance with Canvas, the config menu tool tips indicate which features can help.  Bloom is especially expensive at high resolutions.  But bloom is also fun to look at, so.... your call. 
 
 More optimizations will be added after a stable release.
 
