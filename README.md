@@ -16,15 +16,21 @@ When people first hear about Canvas they often ask if it is a performance mod or
 
 Optifine and shader packs primarily target vanilla Minecraft.  They work with modded, often well, but they aren't designed as tools for *mod authors*.
 
-Canvas' entire purpose is to give mod authors more control and options for rendering modded blocks.  It *could* be used for building a shader pack by replacing vanilla models with material-aware models that have custom shaders.  But that isn't its main reason for being.
+Canvas' main purpose is to give mod authors more control and options for rendering modded blocks.  It can also be used for building shader packs, but the design is entirely different than OF and does not yet support all the features needed for a full shader pack implementation.  Unlike OF shader packs, Canvas shader packs can be mixed together by adding multiple resource packs. 
 
-Performance-wise, Canvas does try to be reasonably fast and has/will have optimizations - but the intent of these changes is to make better rendering practical, not to be a general-purpose performance mod. It isn't meant to run on low-end hardware and  may or may not make your game run faster overall.
+## Performance
+Performance-wise, Canvas tries to be be faster than Vanilla with extended features. It is optimized heavilty - but the intent of these changes is to make better rendering practical, not to be a general-purpose performance mod. It isn't meant to run on low-end hardware and may or may not make your game run faster overall.
 
-Currently, there are two main optimizations.  1) Canvas buffers and renders SOLID and CUTOUT layers in a single pass with cutout and mip mapping variation handled in the fragment shader.  2) Canvas buffers and renders multiple chunks using the same matrix transform to reduce the number of GL state changes.
+Canvas will try to fully use your hardware and will not be timid about it. It wants at least 4GB and will push both your CPU and GPU.  It will stress your cooling system.
 
-Additional optimizations will wait until after a stable release.
+If you're looking to max performance with Canvas, the config meno tool tips indicate which features can help.  Bloom is especially expensive at high resolutions.  But bloom is also fun to look at, so.... your call. 
 
-## Using Canvas
+More optimizations will be added after a stable release.
+
+## Playing with Canvas
+Add Canvas to your mods folder and make sure you have recent versions of Fabric Loader and API, plus at least 4GB of memory allocated to Minecraft.  An in-game config menu is available in video options, or via Mod Menu if you have it installed.
+
+## Developing With Canvas
 Before using Canvas, you should first understand RenderMaterials, Meshes, RenderContexts and other features defined by the Fabric Rendering API.  For that information, consult the [rendering article on the Fabric Wiki](https://fabricmc.net/wiki/rendering). Note: Fabric wiki is still WIP as of this writing but should be more complete "soon."
 
 You can also see [RenderBender](https://github.com/grondag/renderbender) for some (not very good) examples of usage.  Avoid duplicating those examples directly - they aren't especially performant or suitable for use at scale.  As soon as someone releases a model loader / library for Fabric Rendering API / FREX, that will almost certainly be a better approach.  
