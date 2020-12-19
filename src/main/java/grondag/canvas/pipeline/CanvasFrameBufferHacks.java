@@ -101,7 +101,7 @@ public class CanvasFrameBufferHacks {
 		}
 	}
 
-	private static void startCopy() {
+	static void startCopy() {
 		GlStateManager.activeTexture(GL21.GL_TEXTURE1);
 		oldTex1 = GlStateManager.getActiveBoundTexture();
 		GlStateManager.activeTexture(GL21.GL_TEXTURE0);
@@ -231,7 +231,7 @@ public class CanvasFrameBufferHacks {
 		endCopy();
 	}
 
-	public static void debugEmissive() {
+	static void renderDebug(int mainId, int sneakId, int lod) {
 		startCopy();
 		drawBuffer.bind();
 		RenderSystem.viewport(0, 0, w, h);
@@ -242,35 +242,13 @@ public class CanvasFrameBufferHacks {
 		final long handle = MinecraftClient.getInstance().getWindow().getHandle();
 
 		if ((InputUtil.isKeyPressed(handle, GLFW.GLFW_KEY_LEFT_SHIFT) || InputUtil.isKeyPressed(handle, GLFW.GLFW_KEY_RIGHT_SHIFT))) {
-			GlStateManager.bindTexture(texEmissiveColor);
+			GlStateManager.bindTexture(sneakId);
 		} else {
-			GlStateManager.bindTexture(texEmissive);
+			GlStateManager.bindTexture(mainId);
 		}
 
 		setProjection(w, h);
-		copyLod.activate().size(w, h).lod(0).activate();
-		GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
-
-		endCopy();
-	}
-
-	public static void debugBlur(int level) {
-		startCopy();
-		drawBuffer.bind();
-		RenderSystem.viewport(0, 0, w, h);
-
-		GlStateManager.activeTexture(GL21.GL_TEXTURE0);
-		GlStateManager.enableTexture();
-		final long handle = MinecraftClient.getInstance().getWindow().getHandle();
-
-		if ((InputUtil.isKeyPressed(handle, GLFW.GLFW_KEY_LEFT_SHIFT) || InputUtil.isKeyPressed(handle, GLFW.GLFW_KEY_RIGHT_SHIFT))) {
-			GlStateManager.bindTexture(texBloomDownsample);
-		} else {
-			GlStateManager.bindTexture(texBloomUpsample);
-		}
-
-		setProjection(w, h);
-		copyLod.activate().size(w, h).lod(level);
+		copyLod.activate().size(w, h).lod(lod).activate();
 		GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
 
 		endCopy();

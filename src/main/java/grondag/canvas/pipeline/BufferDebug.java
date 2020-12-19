@@ -17,6 +17,7 @@
 package grondag.canvas.pipeline;
 
 import com.google.common.util.concurrent.Runnables;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.lwjgl.glfw.GLFW;
 
 import net.minecraft.client.MinecraftClient;
@@ -26,22 +27,33 @@ import net.minecraft.text.LiteralText;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
 
-public enum BufferDebug {
-	NORMAL(Runnables.doNothing()),
-	EMISSIVE(CanvasFrameBufferHacks::debugEmissive),
-	BLOOM_0(() -> CanvasFrameBufferHacks.debugBlur(0)),
-	BLOOM_1(() -> CanvasFrameBufferHacks.debugBlur(1)),
-	BLOOM_2(() -> CanvasFrameBufferHacks.debugBlur(2)),
-	BLOOM_3(() -> CanvasFrameBufferHacks.debugBlur(3)),
-	BLOOM_4(() -> CanvasFrameBufferHacks.debugBlur(4)),
-	BLOOM_5(() -> CanvasFrameBufferHacks.debugBlur(5)),
-	BLOOM_6(() -> CanvasFrameBufferHacks.debugBlur(6));
+public class BufferDebug {
+	private static ObjectArrayList<BufferDebug> DEBUGS = new ObjectArrayList<>();
 
+	static {
+		clear();
+	}
+
+	static void clear() {
+		DEBUGS.clear();
+		DEBUGS.add(NORMAL);
+	}
+
+	static void add(Runnable render, String name) {
+		DEBUGS.add(new BufferDebug(DEBUGS.size(), render, name));
+	}
+
+	static BufferDebug NORMAL = new BufferDebug(0, Runnables.doNothing(), "NORMAL");
 	private static BufferDebug current = NORMAL;
-	private final Runnable task;
 
-	BufferDebug(Runnable task) {
+	private final Runnable task;
+	private final String name;
+	private final int index;
+
+	private BufferDebug(int index, Runnable task, String name) {
+		this.index = index;
 		this.task = task;
+		this.name = name;
 	}
 
 	public static BufferDebug current() {
@@ -49,8 +61,7 @@ public enum BufferDebug {
 	}
 
 	public static void advance() {
-		final BufferDebug[] values = values();
-		current = values[(current.ordinal() + 1) % values.length];
+		current = DEBUGS.get((current.index + 1) % DEBUGS.size());
 	}
 
 	/**
@@ -62,12 +73,11 @@ public enum BufferDebug {
 			final long handle = MinecraftClient.getInstance().getWindow().getHandle();
 
 			final int i = (InputUtil.isKeyPressed(handle, GLFW.GLFW_KEY_LEFT_SHIFT) || InputUtil.isKeyPressed(handle, GLFW.GLFW_KEY_RIGHT_SHIFT)) ? -1 : 1;
-			final BufferDebug[] values = values();
-			final int count = values.length;
+			final int count = DEBUGS.size();
 
-			current = values[(current.ordinal() + count + i) % values.length];
+			current = DEBUGS.get((current.index + count + i) % count);
 
-			MinecraftClient.getInstance().player.sendMessage(new LiteralText("Buffer Debug Mode: " + current.name()), true);
+			MinecraftClient.getInstance().player.sendMessage(new LiteralText("Buffer Debug Mode: " + current.name), true);
 		}
 
 		while (CanvasMod.DECREMENT_A.wasPressed()) {
