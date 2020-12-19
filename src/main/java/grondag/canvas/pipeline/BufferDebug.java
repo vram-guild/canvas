@@ -14,7 +14,7 @@
  *  the License.
  */
 
-package grondag.canvas.render;
+package grondag.canvas.pipeline;
 
 import com.google.common.util.concurrent.Runnables;
 import org.lwjgl.glfw.GLFW;

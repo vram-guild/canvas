@@ -33,7 +33,7 @@ import grondag.canvas.material.property.MaterialTarget;
 import grondag.canvas.material.property.MaterialTextureState;
 import grondag.canvas.material.property.MaterialTransparency;
 import grondag.canvas.material.property.MaterialWriteMask;
-import grondag.canvas.render.CanvasFrameBufferHacks;
+import grondag.canvas.pipeline.CanvasFrameBufferHacks;
 import grondag.canvas.shader.GlProgram;
 import grondag.canvas.shader.ProgramType;
 import grondag.canvas.texture.MaterialInfoTexture;

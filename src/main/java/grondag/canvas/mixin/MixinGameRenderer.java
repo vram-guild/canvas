@@ -31,8 +31,8 @@ import net.minecraft.util.math.Matrix4f;
 
 import grondag.canvas.Configurator;
 import grondag.canvas.mixinterface.GameRendererExt;
-import grondag.canvas.render.BufferDebug;
-import grondag.canvas.render.CanvasFrameBufferHacks;
+import grondag.canvas.pipeline.BufferDebug;
+import grondag.canvas.pipeline.CanvasFrameBufferHacks;
 import grondag.canvas.render.CanvasWorldRenderer;
 
 @Mixin(GameRenderer.class)
