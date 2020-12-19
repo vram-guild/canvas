@@ -21,6 +21,7 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
 import net.minecraft.util.Identifier;
 
+import grondag.canvas.pipeline.PipelineConfig.DebugConfig;
 import grondag.canvas.pipeline.PipelineConfig.ImageConfig;
 
 public class Pipeline {
@@ -53,6 +54,8 @@ public class Pipeline {
 			IMAGES.values().forEach(img -> img.close());
 			IMAGES.clear();
 		}
+
+		BufferDebug.clear();
 	}
 
 	static void activate(int width, int height) {
@@ -74,14 +77,8 @@ public class Pipeline {
 			IMAGES.put(img.id, new Image(img.id, width, height, img.hdr, img.blur, img.lod));
 		}
 
-		BufferDebug.clear();
-		BufferDebug.add(() -> CanvasFrameBufferHacks.renderDebug(getImage(PipelineConfig.IMG_EMISSIVE).glId(), getImage(PipelineConfig.IMG_EMISSIVE_COLOR).glId(), 0), "EMISSIVE/EMISSIVE_COLOR");
-		BufferDebug.add(() -> CanvasFrameBufferHacks.renderDebug(getImage(PipelineConfig.IMG_BLOOM_UPSAMPLE).glId(), getImage(PipelineConfig.IMG_BLOOM_DOWNSAMPLE).glId(), 0), "BLOOM LOD 0 UPSAMPLE/DOWNSAMPLE");
-		BufferDebug.add(() -> CanvasFrameBufferHacks.renderDebug(getImage(PipelineConfig.IMG_BLOOM_UPSAMPLE).glId(), getImage(PipelineConfig.IMG_BLOOM_DOWNSAMPLE).glId(), 1), "BLOOM LOD 1 UPSAMPLE/DOWNSAMPLE");
-		BufferDebug.add(() -> CanvasFrameBufferHacks.renderDebug(getImage(PipelineConfig.IMG_BLOOM_UPSAMPLE).glId(), getImage(PipelineConfig.IMG_BLOOM_DOWNSAMPLE).glId(), 2), "BLOOM LOD 2 UPSAMPLE/DOWNSAMPLE");
-		BufferDebug.add(() -> CanvasFrameBufferHacks.renderDebug(getImage(PipelineConfig.IMG_BLOOM_UPSAMPLE).glId(), getImage(PipelineConfig.IMG_BLOOM_DOWNSAMPLE).glId(), 3), "BLOOM LOD 3 UPSAMPLE/DOWNSAMPLE");
-		BufferDebug.add(() -> CanvasFrameBufferHacks.renderDebug(getImage(PipelineConfig.IMG_BLOOM_UPSAMPLE).glId(), getImage(PipelineConfig.IMG_BLOOM_DOWNSAMPLE).glId(), 4), "BLOOM LOD 4 UPSAMPLE/DOWNSAMPLE");
-		BufferDebug.add(() -> CanvasFrameBufferHacks.renderDebug(getImage(PipelineConfig.IMG_BLOOM_UPSAMPLE).glId(), getImage(PipelineConfig.IMG_BLOOM_DOWNSAMPLE).glId(), 5), "BLOOM LOD 5 UPSAMPLE/DOWNSAMPLE");
-		BufferDebug.add(() -> CanvasFrameBufferHacks.renderDebug(getImage(PipelineConfig.IMG_BLOOM_UPSAMPLE).glId(), getImage(PipelineConfig.IMG_BLOOM_DOWNSAMPLE).glId(), 6), "BLOOM LOD 6 UPSAMPLE/DOWNSAMPLE");
+		for (final DebugConfig debug : config.debugs) {
+			BufferDebug.add(debug.mainImage, debug.sneakImage, debug.lod, debug.label);
+		}
 	}
 }

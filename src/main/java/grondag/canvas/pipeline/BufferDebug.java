@@ -23,6 +23,7 @@ import org.lwjgl.glfw.GLFW;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.text.LiteralText;
+import net.minecraft.util.Identifier;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
@@ -41,6 +42,13 @@ public class BufferDebug {
 
 	static void add(Runnable render, String name) {
 		DEBUGS.add(new BufferDebug(DEBUGS.size(), render, name));
+	}
+
+	static void add(Identifier mainImage, Identifier sneakImage, int lod, String name) {
+		final int mainId = Pipeline.getImage(mainImage).glId();
+		final int sneakId = Pipeline.getImage(sneakImage).glId();
+		final Runnable render = () -> CanvasFrameBufferHacks.renderDebug(mainId, sneakId, lod);
+		add(render, name);
 	}
 
 	static BufferDebug NORMAL = new BufferDebug(0, Runnables.doNothing(), "NORMAL");

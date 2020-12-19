@@ -39,6 +39,24 @@ class PipelineConfig {
 
 	ImageConfig[] images;
 
+	static class DebugConfig {
+		Identifier mainImage;
+		Identifier sneakImage;
+		int lod;
+		String label;
+
+		static DebugConfig of(Identifier mainImage, Identifier sneakImage, int lod, String label) {
+			final DebugConfig result = new DebugConfig();
+			result.mainImage = mainImage;
+			result.sneakImage = sneakImage;
+			result.lod = lod;
+			result.label = label;
+			return result;
+		}
+	}
+
+	DebugConfig[] debugs;
+
 	{
 		final ArrayList<ImageConfig> imgList = new ArrayList<>();
 		imgList.add(ImageConfig.of(IMG_EMISSIVE, false, true, 0));
@@ -47,8 +65,18 @@ class PipelineConfig {
 		imgList.add(ImageConfig.of(IMG_MAIN_COPY, false, false, 0));
 		imgList.add(ImageConfig.of(IMG_BLOOM_DOWNSAMPLE, false, true, 6));
 		imgList.add(ImageConfig.of(IMG_BLOOM_UPSAMPLE, false, true, 6));
-
 		images = imgList.toArray(new ImageConfig[imgList.size()]);
+
+		final ArrayList<DebugConfig> debugList = new ArrayList<>();
+		debugList.add(DebugConfig.of(PipelineConfig.IMG_EMISSIVE, PipelineConfig.IMG_EMISSIVE_COLOR, 0, "EMISSIVE/EMISSIVE_COLOR"));
+		debugList.add(DebugConfig.of(PipelineConfig.IMG_BLOOM_UPSAMPLE, PipelineConfig.IMG_BLOOM_DOWNSAMPLE, 0, "BLOOM LOD 0 UPSAMPLE/DOWNSAMPLE"));
+		debugList.add(DebugConfig.of(PipelineConfig.IMG_BLOOM_UPSAMPLE, PipelineConfig.IMG_BLOOM_DOWNSAMPLE, 1, "BLOOM LOD 1 UPSAMPLE/DOWNSAMPLE"));
+		debugList.add(DebugConfig.of(PipelineConfig.IMG_BLOOM_UPSAMPLE, PipelineConfig.IMG_BLOOM_DOWNSAMPLE, 2, "BLOOM LOD 2 UPSAMPLE/DOWNSAMPLE"));
+		debugList.add(DebugConfig.of(PipelineConfig.IMG_BLOOM_UPSAMPLE, PipelineConfig.IMG_BLOOM_DOWNSAMPLE, 3, "BLOOM LOD 3 UPSAMPLE/DOWNSAMPLE"));
+		debugList.add(DebugConfig.of(PipelineConfig.IMG_BLOOM_UPSAMPLE, PipelineConfig.IMG_BLOOM_DOWNSAMPLE, 4, "BLOOM LOD 4 UPSAMPLE/DOWNSAMPLE"));
+		debugList.add(DebugConfig.of(PipelineConfig.IMG_BLOOM_UPSAMPLE, PipelineConfig.IMG_BLOOM_DOWNSAMPLE, 5, "BLOOM LOD 5 UPSAMPLE/DOWNSAMPLE"));
+		debugList.add(DebugConfig.of(PipelineConfig.IMG_BLOOM_UPSAMPLE, PipelineConfig.IMG_BLOOM_DOWNSAMPLE, 6, "BLOOM LOD 6 UPSAMPLE/DOWNSAMPLE"));
+		debugs = debugList.toArray(new DebugConfig[debugList.size()]);
 	}
 
 	static final Identifier IMG_EMISSIVE = new Identifier("canvas:emissive");
