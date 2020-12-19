@@ -20,13 +20,11 @@ import com.mojang.blaze3d.platform.FramebufferInfo;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import org.lwjgl.glfw.GLFW;
-import org.lwjgl.opengl.ARBTextureFloat;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL21;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.Framebuffer;
-import net.minecraft.client.texture.TextureUtil;
 import net.minecraft.client.util.InputUtil;
 
 import grondag.canvas.CanvasMod;
@@ -278,29 +276,14 @@ public class CanvasFrameBufferHacks {
 		endCopy();
 	}
 
-	private static void setupBloomLod() {
-		GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MAX_LEVEL, 6);
-		GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MIN_LOD, 0);
-		GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MAX_LOD, 6);
-		GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_LOD_BIAS, 0.0F);
-		GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MIN_FILTER, GL21.GL_LINEAR_MIPMAP_NEAREST);
-		GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MAG_FILTER, GL21.GL_LINEAR);
-
-		GlStateManager.texImage2D(GL21.GL_TEXTURE_2D, 1, GL21.GL_RGBA8, w >> 1, h >> 1, 0, GL21.GL_RGBA, GL21.GL_UNSIGNED_BYTE, null);
-		GlStateManager.texImage2D(GL21.GL_TEXTURE_2D, 2, GL21.GL_RGBA8, w >> 2, h >> 2, 0, GL21.GL_RGBA, GL21.GL_UNSIGNED_BYTE, null);
-		GlStateManager.texImage2D(GL21.GL_TEXTURE_2D, 3, GL21.GL_RGBA8, w >> 3, h >> 3, 0, GL21.GL_RGBA, GL21.GL_UNSIGNED_BYTE, null);
-		GlStateManager.texImage2D(GL21.GL_TEXTURE_2D, 4, GL21.GL_RGBA8, w >> 4, h >> 4, 0, GL21.GL_RGBA, GL21.GL_UNSIGNED_BYTE, null);
-		GlStateManager.texImage2D(GL21.GL_TEXTURE_2D, 5, GL21.GL_RGBA8, w >> 5, h >> 5, 0, GL21.GL_RGBA, GL21.GL_UNSIGNED_BYTE, null);
-		GlStateManager.texImage2D(GL21.GL_TEXTURE_2D, 6, GL21.GL_RGBA8, w >> 6, h >> 6, 0, GL21.GL_RGBA, GL21.GL_UNSIGNED_BYTE, null);
-	}
-
 	private static void sync() {
 		assert RenderSystem.isOnRenderThread();
 
 		mcFbo = MinecraftClient.getInstance().getFramebuffer();
 		mcFboExt = ((FrameBufferExt) mcFbo);
 
-		if (mcFboExt.canvas_colorAttachment() != mainColor || mcFbo.textureHeight != h || mcFbo.textureWidth != w) {
+		if (Pipeline.needsReload() || mcFboExt.canvas_colorAttachment() != mainColor || mcFbo.textureHeight != h || mcFbo.textureWidth != w) {
+			Pipeline.close();
 			tearDown();
 			mainFbo = mcFbo.fbo;
 
@@ -311,23 +294,14 @@ public class CanvasFrameBufferHacks {
 			w = mcFbo.textureWidth;
 			h = mcFbo.textureHeight;
 
+			Pipeline.activate(w, h);
+
 			//			mainHDR = createColorAttachment(w, h, true);
-			texEmissive = createColorAttachment(w, h);
-			texEmissiveColor = createColorAttachment(w, h);
-			texMainCopy = createColorAttachment(w, h);
-
-			texBloomDownsample = createColorAttachment(w, h);
-			GlStateManager.bindTexture(texBloomDownsample);
-			setupBloomLod();
-
-			texBloomUpsample = createColorAttachment(w, h);
-			GlStateManager.bindTexture(texBloomUpsample);
-			setupBloomLod();
-
-			// don't want filtering when copy back from main
-			GlStateManager.bindTexture(texMainCopy);
-			GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MIN_FILTER, GL21.GL_NEAREST);
-			GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MAG_FILTER, GL21.GL_NEAREST);
+			texEmissive = Pipeline.getImage(PipelineConfig.IMG_EMISSIVE).glId();
+			texEmissiveColor = Pipeline.getImage(PipelineConfig.IMG_EMISSIVE_COLOR).glId();
+			texMainCopy = Pipeline.getImage(PipelineConfig.IMG_MAIN_COPY).glId();
+			texBloomDownsample = Pipeline.getImage(PipelineConfig.IMG_BLOOM_DOWNSAMPLE).glId();
+			texBloomUpsample = Pipeline.getImage(PipelineConfig.IMG_BLOOM_UPSAMPLE).glId();
 
 			GlStateManager.bindTexture(0);
 
@@ -345,38 +319,7 @@ public class CanvasFrameBufferHacks {
 		}
 	}
 
-	private static int createColorAttachment(int width, int height) {
-		return createColorAttachment(width, height, false);
-	}
-
-	private static int createColorAttachment(int width, int height, boolean hdr) {
-		final int result = TextureUtil.generateId();
-		GlStateManager.bindTexture(result);
-		GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MIN_FILTER, GL21.GL_LINEAR);
-		GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MAG_FILTER, GL21.GL_LINEAR);
-		GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_WRAP_S, GL21.GL_CLAMP);
-		GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_WRAP_T, GL21.GL_CLAMP);
-
-		if (hdr) {
-			GlStateManager.texImage2D(GL21.GL_TEXTURE_2D, 0, ARBTextureFloat.GL_RGBA16F_ARB, width, height, 0, GL21.GL_RGBA, GL21.GL_FLOAT, null);
-		} else {
-			GlStateManager.texImage2D(GL21.GL_TEXTURE_2D, 0, GL21.GL_RGBA8, width, height, 0, GL21.GL_RGBA, GL21.GL_UNSIGNED_BYTE, null);
-		}
-
-		return result;
-	}
-
 	private static void tearDown() {
-		if (texEmissive != -1) {
-			TextureUtil.deleteId(texEmissive);
-			TextureUtil.deleteId(texEmissiveColor);
-			//			TextureUtil.deleteId(mainHDR);
-			TextureUtil.deleteId(texMainCopy);
-			TextureUtil.deleteId(texBloomDownsample);
-			TextureUtil.deleteId(texBloomUpsample);
-			texEmissive = -1;
-		}
-
 		if (drawBuffer != null) {
 			drawBuffer.close();
 			drawBuffer = null;
