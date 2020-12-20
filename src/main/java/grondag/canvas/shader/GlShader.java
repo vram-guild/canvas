@@ -268,8 +268,7 @@ public class GlShader implements Shader {
 			}
 
 			if (Configurator.fogMode != FogMode.VANILLA) {
-				result = StringUtils.replace(result, "#define _CV_FOG_CONFIG _CV_FOG_CONFIG_VANILLA",
-					"#define _CV_FOG_CONFIG _CV_FOG_CONFIG_" + Configurator.fogMode.name());
+				result = StringUtils.replace(result, "#define _CV_FOG_CONFIG _CV_FOG_CONFIG_VANILLA", "#define _CV_FOG_CONFIG _CV_FOG_CONFIG_SUBTLE");
 			}
 
 			if (Configurator.enableBloom) {

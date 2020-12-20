@@ -16,7 +16,6 @@ uniform int _cvu_fog_mode;
 
 #define _CV_FOG_CONFIG_VANILLA    0
 #define _CV_FOG_CONFIG_SUBTLE    1
-#define _CV_FOG_CONFIG_NONE        2
 
 #define _CV_FOG_CONFIG _CV_FOG_CONFIG_VANILLA
 
@@ -44,14 +43,16 @@ float _cv_fogFactor() {
 	return _cvu_fog_mode == _CV_FOG_LINEAR ? _cv_linearFogFactor() : _cv_expFogFactor();
 }
 
-vec4 _cv_fog(vec4 diffuseColor) {
-#if _CV_FOG_CONFIG == _CV_FOG_CONFIG_NONE
-	return diffuseColor;
-#elif _CV_FOG_CONFIG == _CV_FOG_CONFIG_SUBTLE
+vec4 _cv_fogInner(vec4 diffuseColor) {
+#if _CV_FOG_CONFIG == _CV_FOG_CONFIG_SUBTLE
 	float f = 1.0 - _cv_fogFactor();
 	f *= f;
 	return mix(vec4(gl_Fog.color.rgb, diffuseColor.a), diffuseColor, 1.0 - f);
 #else
-	return _cvu_fog_mode == _CV_FOG_DISABLE ? diffuseColor : mix(vec4(gl_Fog.color.rgb, diffuseColor.a), diffuseColor, _cv_fogFactor());
+	return mix(vec4(gl_Fog.color.rgb, diffuseColor.a), diffuseColor, _cv_fogFactor());
 #endif
+}
+
+vec4 _cv_fog(vec4 diffuseColor) {
+	return _cvu_fog_mode == _CV_FOG_DISABLE ? diffuseColor : _cv_fogInner(diffuseColor);
 }

@@ -112,24 +112,26 @@ public class MaterialFog {
 	private static boolean isEnabled = false;
 	private static int shaderParam = 0;
 
+	private static final int FOG_LINEAR = 0;
+	private static final int FOG_EXP = 1;
+	private static final int FOG_EXP2 = 2;
+	private static final int FOG_DISABLE = 3;
+
 	private static void updateShaderParam() {
 		if (isAllowed && isEnabled) {
 			final int fogMode = FogStateExtHolder.INSTANCE.getMode();
 
 			if (fogMode == 2048) {
-				// EXP
-				shaderParam = 1;
+				shaderParam = FOG_EXP;
 			} else if (fogMode == 2049) {
-				// EXP2
-				shaderParam = 2;
+				shaderParam = FOG_EXP2;
 			} else {
 				assert fogMode == 9729;
-				// LINEAR
-				shaderParam = 0;
+				shaderParam = FOG_LINEAR;
 			}
 		} else {
 			// disable
-			shaderParam = 3;
+			shaderParam = FOG_DISABLE;
 		}
 	}
 
