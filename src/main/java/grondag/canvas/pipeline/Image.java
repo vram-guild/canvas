@@ -21,25 +21,19 @@ import org.lwjgl.opengl.ARBTextureFloat;
 import org.lwjgl.opengl.GL21;
 
 import net.minecraft.client.texture.TextureUtil;
-import net.minecraft.util.Identifier;
+
+import grondag.canvas.pipeline.PipelineConfig.ImageConfig;
 
 class Image {
-	final Identifier id;
-	private int glId = -1;
+	final ImageConfig config;
+	protected int glId = -1;
 	private final int width;
 	private final int height;
-	private final boolean hdr;
-	private final boolean blur;
-	// WIP: make more configurable
-	private final int lod;
 
-	Image(Identifier id, int width, int height, boolean hdr, boolean blur, int lod) {
-		this.id = id;
+	Image(ImageConfig config, int width, int height) {
+		this.config = config;
 		this.width = width;
 		this.height = height;
-		this.hdr = hdr;
-		this.lod = lod;
-		this.blur = blur;
 		open();
 	}
 
@@ -47,16 +41,16 @@ class Image {
 		return glId;
 	}
 
-	private void open() {
+	protected void open() {
 		if (glId == -1) {
 			glId = TextureUtil.generateId();
 
 			GlStateManager.bindTexture(glId);
 
-			if (lod > 0) {
+			if (config.lod > 0) {
 				GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MIN_FILTER, GL21.GL_LINEAR_MIPMAP_NEAREST);
 				GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MAG_FILTER, GL21.GL_LINEAR);
-			} else if (blur) {
+			} else if (config.blur) {
 				GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MIN_FILTER, GL21.GL_LINEAR);
 				GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MAG_FILTER, GL21.GL_LINEAR);
 			} else {
@@ -67,25 +61,25 @@ class Image {
 			GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_WRAP_S, GL21.GL_CLAMP);
 			GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_WRAP_T, GL21.GL_CLAMP);
 
-			if (hdr) {
+			if (config.hdr) {
 				GlStateManager.texImage2D(GL21.GL_TEXTURE_2D, 0, ARBTextureFloat.GL_RGBA16F_ARB, width, height, 0, GL21.GL_RGBA, GL21.GL_FLOAT, null);
 			} else {
 				GlStateManager.texImage2D(GL21.GL_TEXTURE_2D, 0, GL21.GL_RGBA8, width, height, 0, GL21.GL_RGBA, GL21.GL_UNSIGNED_BYTE, null);
 			}
 
-			if (lod > 0) {
+			if (config.lod > 0) {
 				setupLod();
 			}
 		}
 	}
 
 	private void setupLod() {
-		GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MAX_LEVEL, lod);
+		GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MAX_LEVEL, config.lod);
 		GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MIN_LOD, 0);
-		GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MAX_LOD, lod);
+		GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MAX_LOD, config.lod);
 		GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_LOD_BIAS, 0.0F);
 
-		for (int i = 1; i <= lod; ++i) {
+		for (int i = 1; i <= config.lod; ++i) {
 			GlStateManager.texImage2D(GL21.GL_TEXTURE_2D, i, GL21.GL_RGBA8, width >> i, height >> i, 0, GL21.GL_RGBA, GL21.GL_UNSIGNED_BYTE, null);
 		}
 	}
@@ -94,6 +88,26 @@ class Image {
 		if (glId != -1) {
 			TextureUtil.deleteId(glId);
 			glId = -1;
+		}
+	}
+
+	/**
+	 * For attachments managed by minecraft itself.
+	 */
+	static class BuiltIn extends Image {
+		BuiltIn(ImageConfig config, int width, int height, int glId) {
+			super(config, width, height);
+			this.glId = glId;
+		}
+
+		@Override
+		protected void open() {
+			// NOOP
+		}
+
+		@Override
+		void close() {
+			// NOOP
 		}
 	}
 }

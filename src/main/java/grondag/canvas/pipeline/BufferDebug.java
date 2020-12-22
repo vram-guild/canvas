@@ -47,7 +47,7 @@ public class BufferDebug {
 	static void add(Identifier mainImage, Identifier sneakImage, int lod, String name) {
 		final int mainId = Pipeline.getImage(mainImage).glId();
 		final int sneakId = Pipeline.getImage(sneakImage).glId();
-		final Runnable render = () -> CanvasFrameBufferHacks.renderDebug(mainId, sneakId, lod);
+		final Runnable render = () -> PipelineManager.renderDebug(mainId, sneakId, lod);
 		add(render, name);
 	}
 

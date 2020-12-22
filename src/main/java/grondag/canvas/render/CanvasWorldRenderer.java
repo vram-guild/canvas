@@ -98,7 +98,7 @@ import grondag.canvas.material.state.RenderState;
 import grondag.canvas.mixinterface.BufferBuilderStorageExt;
 import grondag.canvas.mixinterface.MatrixStackExt;
 import grondag.canvas.mixinterface.WorldRendererExt;
-import grondag.canvas.pipeline.CanvasFrameBufferHacks;
+import grondag.canvas.pipeline.PipelineManager;
 import grondag.canvas.shader.MaterialShaderManager;
 import grondag.canvas.terrain.occlusion.PotentiallyVisibleRegionSorter;
 import grondag.canvas.terrain.occlusion.TerrainIterator;
@@ -475,7 +475,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		LightmapHdTexture.instance().onRenderTick();
 
-		if (Configurator.enableBloom) CanvasFrameBufferHacks.prepareForFrame();
+		if (Configurator.enableBloom) PipelineManager.prepareForFrame();
 
 		profiler.swap("terrain");
 		Configurator.lagFinder.swap("WorldRenderer-TerrainRenderSolid");

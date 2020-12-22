@@ -1,12 +1,11 @@
 #include canvas:shaders/internal/process/header.glsl
+#include canvas:shaders/pipeline/pipeline.glsl
 
 /******************************************************
   canvas:shaders/internal/process/bloom.vert
 ******************************************************/
 uniform sampler2D _cvu_base;
 uniform sampler2D _cvu_bloom;
-uniform ivec2 _cvu_size;
-uniform vec2 _cvu_distance;
 
 attribute vec2 in_uv;
 

@@ -1,4 +1,5 @@
 #include canvas:shaders/internal/process/header.glsl
+#include canvas:shaders/pipeline/pipeline.glsl
 #include frex:shaders/lib/color.glsl
 #include frex:shaders/lib/sample.glsl
 #include frex:shaders/lib/math.glsl
@@ -8,7 +9,6 @@
 ******************************************************/
 uniform sampler2D _cvu_base;
 uniform sampler2D _cvu_emissive;
-uniform ivec2 _cvu_size;
 
 varying vec2 _cvv_texcoord;
 

@@ -32,7 +32,7 @@ import net.minecraft.util.math.Matrix4f;
 import grondag.canvas.Configurator;
 import grondag.canvas.mixinterface.GameRendererExt;
 import grondag.canvas.pipeline.BufferDebug;
-import grondag.canvas.pipeline.CanvasFrameBufferHacks;
+import grondag.canvas.pipeline.PipelineManager;
 import grondag.canvas.render.CanvasWorldRenderer;
 
 @Mixin(GameRenderer.class)
@@ -49,7 +49,7 @@ public abstract class MixinGameRenderer implements GameRendererExt {
 	@Inject(method = "renderHand", require = 1, at = @At("RETURN"))
 	private void afterRenderHand(CallbackInfo ci) {
 		if (Configurator.enableBloom) {
-			CanvasFrameBufferHacks.applyBloom();
+			PipelineManager.applyBloom();
 		}
 
 		if (Configurator.enableBufferDebug) {

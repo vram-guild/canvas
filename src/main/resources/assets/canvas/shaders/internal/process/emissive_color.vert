@@ -1,11 +1,11 @@
 #include canvas:shaders/internal/process/header.glsl
+#include canvas:shaders/pipeline/pipeline.glsl
 
 /******************************************************
   canvas:shaders/internal/process/emissive_color.vert
 ******************************************************/
 uniform sampler2D _cvu_base;
 uniform sampler2D _cvu_emissive;
-uniform ivec2 _cvu_size;
 
 attribute vec2 in_uv;
 

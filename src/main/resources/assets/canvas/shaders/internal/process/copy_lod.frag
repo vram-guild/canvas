@@ -1,11 +1,10 @@
 #include canvas:shaders/internal/process/header.glsl
+#include canvas:shaders/pipeline/pipeline.glsl
 
 /******************************************************
   canvas:shaders/internal/process/copy_lod.frag
 ******************************************************/
 uniform sampler2D _cvu_input;
-uniform ivec2 _cvu_size;
-uniform int _cvu_lod;
 
 varying vec2 _cvv_texcoord;
 

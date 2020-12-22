@@ -1,11 +1,9 @@
 #include canvas:shaders/internal/process/header.glsl
+#include canvas:shaders/pipeline/pipeline.glsl
 
 /******************************************************
   canvas:shaders/internal/process/downsample.vert
 ******************************************************/
-
-uniform ivec2 _cvu_size;
-uniform int _cvu_lod;
 
 attribute vec2 in_uv;
 

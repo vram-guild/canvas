@@ -1,12 +1,11 @@
 #include canvas:shaders/internal/process/header.glsl
+#include canvas:shaders/pipeline/pipeline.glsl
 
 /******************************************************
   canvas:shaders/internal/process/copy_lod.vert
 ******************************************************/
 
 uniform sampler2D _cvu_input;
-uniform ivec2 _cvu_size;
-uniform int _cvu_lod;
 
 attribute vec2 in_uv;
 

@@ -31,17 +31,19 @@ public class ProcessShader {
 	private final String[] samplers;
 	private GlProgram program;
 	private Uniform2iImpl size;
-	private Uniform2fImpl distance;
 	private Uniform1iImpl lod;
+
+	// WIP: remove
+	private Uniform2fImpl distance;
 	private Uniform1fImpl intensity;
 
-	ProcessShader(Identifier vertexId, Identifier fragmentId, String... samplers) {
+	public ProcessShader(Identifier vertexId, Identifier fragmentId, String... samplers) {
 		this.fragmentId = fragmentId;
 		this.vertexId = vertexId;
 		this.samplers = samplers;
 	}
 
-	void unload() {
+	public void unload() {
 		if (program != null) {
 			program.unload();
 			program = null;
