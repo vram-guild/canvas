@@ -1,0 +1,233 @@
+{
+	// FREX ensures that pipeline configuration files support JSON5 extensions
+	// This means you can do some useful things you can't normally do:
+	//   unquoted keys
+	//   hexadecimal values
+	//   leading and trailing decimal points
+	//   positive sign
+
+	id: "canvas_default",
+
+	images: [
+		// attached to the main framebuffer in world rendering to capture emissive layer
+		{ id: "canvas:emissive", 					hdr: false, 	blur: true, 	lod: 0},
+
+		// result of applying the emissive map to base color - source for the downsample/upsample
+		{ id: "canvas:emissive_color", 		hdr: false, 	blur: true, 	lod: 0},
+
+		// needed to combine bloom result with main - attachment can't read/write self in same pass
+		// blur = false because don't want filtering when copy back from main
+		{ id: "canvas:main_copy", 				hdr: false, 	blur: false, 	lod: 0},
+
+		// these two hold the cascade of bloom images that are blurred
+		{ id: "canvas:bloom_downsample", 	hdr: false,		blur: true, 	lod: 6},
+		{ id: "canvas:bloom_upsample", 		hdr: false, 	blur: true, 	lod: 6}
+	],
+
+	shaders: [
+		{
+			// utility, does what it says on the tin
+			id: "canvas:copy",
+			vertexSource: "canvas:shaders/internal/process/copy.vert",
+			fragmentSource: "canvas:shaders/internal/process/copy.frag",
+			samplerNames: ["_cvu_input"]
+		}, {
+			// copies from a specific level of detail, that's it
+			id: "canvas:copy_lod",
+			vertexSource: "canvas:shaders/internal/process/copy_lod.vert",
+			fragmentSource: "canvas:shaders/internal/process/copy_lod.frag",
+			samplerNames: ["_cvu_input"]
+		}, {
+			// copies colored pixels from main color buffer if marked emissive
+			id: "canvas:emissive_color",
+			vertexSource: "canvas:shaders/internal/process/emissive_color.vert",
+			fragmentSource: "canvas:shaders/internal/process/emissive_color.frag",
+			samplerNames: ["_cvu_base", "_cvu_emissive"]
+		}, {
+			// combines final bloom image and main color buffer
+			id: "canvas:bloom",
+			vertexSource: "canvas:shaders/internal/process/bloom.vert",
+			fragmentSource: "canvas:shaders/internal/process/bloom.frag",
+			samplerNames: ["_cvu_base", "_cvu_bloom"]
+		}, {
+			// uses a fancy sampling algo for higher quality, not a conventional mipmap
+			id: "canvas:downsample",
+			vertexSource: "canvas:shaders/internal/process/downsample.vert",
+			fragmentSource: "canvas:shaders/internal/process/downsample.frag",
+			samplerNames: ["_cvu_input"]
+		}, {
+			// less fancy (but still slightly fancy) upsample of downsample outputs
+			id: "canvas:upsample_first",
+			vertexSource: "canvas:shaders/internal/process/upsample.vert",
+			fragmentSource: "canvas:shaders/internal/process/upsample_first.frag",
+			samplerNames: ["_cvu_input"]
+		}, {
+			id: "canvas:upsample",
+			// same as upsample_first but combines with next lower level of detail
+			vertexSource: "canvas:shaders/internal/process/upsample.vert",
+			fragmentSource: "canvas:shaders/internal/process/upsample.frag",
+			samplerNames: ["_cvu_input", "cvu_prior"]
+		}
+	],
+
+	framebuffers: [
+		{
+			id: "canvas:emissive",
+			attachments: [{id: "canvas:emissive", clearColor: 0x00000000}]
+		}, {
+			id: "canvas:main_copy",
+			attachments: [{id: "canvas:main_copy"}]
+		}, {
+			id: "canvas:emissive_color",
+			attachments: [{id: "canvas:emissive_color"}]
+		}, {
+			id: "canvas:bloom_downsample_0",
+			attachments: [{id: "canvas:bloom_downsample", lod: 0}]
+		}, {
+			id: "canvas:bloom_downsample_1",
+			attachments: [{id: "canvas:bloom_downsample", lod: 1}]
+		}, {
+			id: "canvas:bloom_downsample_2",
+			attachments: [{id: "canvas:bloom_downsample", lod: 2}]
+		}, {
+			id: "canvas:bloom_downsample_3",
+			attachments: [{id: "canvas:bloom_downsample", lod: 3}]
+		}, {
+			id: "canvas:bloom_downsample_4",
+			attachments: [{id: "canvas:bloom_downsample", lod: 4}]
+		}, {
+			id: "canvas:bloom_downsample_5",
+			attachments: [{id: "canvas:bloom_downsample", lod: 5}]
+		}, {
+			id: "canvas:bloom_downsample_6",
+			attachments: [{id: "canvas:bloom_downsample", lod: 6}]
+		}, {
+			id: "canvas:bloom_upsample_6",
+			attachments: [{id: "canvas:bloom_upsample", lod: 6}]
+		}, {
+			id: "canvas:bloom_upsample_5",
+			attachments: [{id: "canvas:bloom_upsample", lod: 5}]
+		}, {
+			id: "canvas:bloom_upsample_4",
+			attachments: [{id: "canvas:bloom_upsample", lod: 4}]
+		}, {
+			id: "canvas:bloom_upsample_3",
+			attachments: [{id: "canvas:bloom_upsample", lod: 3}]
+		}, {
+			id: "canvas:bloom_upsample_2",
+			attachments: [{id: "canvas:bloom_upsample", lod: 2}]
+		}, {
+			id: "canvas:bloom_upsample_1",
+			attachments: [{id: "canvas:bloom_upsample", lod: 1}]
+		}, {
+			id: "canvas:bloom_upsample_0",
+			attachments: [{id: "canvas:bloom_upsample", lod: 0}]
+		}, {
+			id: "canvas:bloom",
+			attachments: [{id: "minecraft:main"}]
+		}
+	],
+
+	onWorldRenderStart: {
+		passes: [
+			{
+				// copy MC fbo color attachment - need it at end for combine step
+				framebuffer: "canvas:emissive",
+				program: "frex:clear"
+			}
+		]
+	},
+
+	afterRenderHand: {
+		passes: [
+			{
+				// copy MC fbo color attachment - need it at end for combine step
+				framebuffer: "canvas:main_copy",
+				samplers: ["minecraft:main"],
+				program: "canvas:copy"
+			}, {
+				// select emissive portions for blur
+				framebuffer: "canvas:emissive_color",
+				samplers: ["minecraft:main", "canvas:emissive"],
+				program: "canvas:emissive_color"
+			}, {
+				// build bloom mipmaps, blurring as part of downscale
+				framebuffer: "canvas:bloom_downsample_0",
+				samplers: ["canvas:emissive_color"],
+				program: "canvas:downsample"
+			}, {
+				framebuffer: "canvas:bloom_downsample_1",
+				samplers: ["canvas:bloom_downsample"],
+				program: "canvas:downsample",
+				lod: 1
+			}, {
+				framebuffer: "canvas:bloom_downsample_2",
+				samplers: ["canvas:bloom_downsample"],
+				program: "canvas:downsample",
+				lod: 2
+			}, {
+				framebuffer: "canvas:bloom_downsample_3",
+				samplers: ["canvas:bloom_downsample"],
+				program: "canvas:downsample",
+				lod: 3
+			}, {
+				framebuffer: "canvas:bloom_downsample_4",
+				samplers: ["canvas:bloom_downsample"],
+				program: "canvas:downsample",
+				lod: 4
+			}, {
+				framebuffer: "canvas:bloom_downsample_5",
+				samplers: ["canvas:bloom_downsample"],
+				program: "canvas:downsample",
+				lod: 5
+			}, {
+				framebuffer: "canvas:bloom_downsample_6",
+				samplers: ["canvas:bloom_downsample"],
+				program: "canvas:downsample",
+				lod: 6
+			}, {
+				// upscale bloom mipmaps, bluring again as we go
+				framebuffer: "canvas:bloom_upsample_6",
+				samplers: ["canvas:bloom_downsample"],
+				program: "canvas:upsample_first",
+				lod: 6
+			}, {
+				framebuffer: "canvas:bloom_upsample_5",
+				samplers: ["canvas:bloom_downsample", "canvas:bloom_upsample"],
+				program: "canvas:upsample",
+				lod: 5
+			}, {
+				framebuffer: "canvas:bloom_upsample_4",
+				samplers: ["canvas:bloom_downsample", "canvas:bloom_upsample"],
+				program: "canvas:upsample",
+				lod: 4
+			}, {
+				framebuffer: "canvas:bloom_upsample_3",
+				samplers: ["canvas:bloom_downsample", "canvas:bloom_upsample"],
+				program: "canvas:upsample",
+				lod: 3
+			}, {
+				framebuffer: "canvas:bloom_upsample_2",
+				samplers: ["canvas:bloom_downsample", "canvas:bloom_upsample"],
+				program: "canvas:upsample",
+				lod: 2
+			}, {
+				framebuffer: "canvas:bloom_upsample_1",
+				samplers: ["canvas:bloom_downsample", "canvas:bloom_upsample"],
+				program: "canvas:upsample",
+				lod: 1
+			}, {
+				framebuffer: "canvas:bloom_upsample_0",
+				samplers: ["canvas:bloom_downsample", "canvas:bloom_upsample"],
+				program: "canvas:upsample",
+				lod: 0
+			}, {
+				// Switch back to MC main color to draw combined color + bloom
+				// Framebuffer attachment shouldn't draw to self so use copy created earlier
+				framebuffer: "canvas:bloom",
+				samplers: ["canvas:main_copy", "canvas:bloom_upsample"],
+				program: "canvas:bloom"
+			}
+		]
+	}
+}

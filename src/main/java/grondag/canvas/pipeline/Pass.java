@@ -38,10 +38,11 @@ public class Pass {
 	Pass(PassConfig config) {
 		this.config = config;
 		binds = new int[config.samplers.length];
-		a = ((config.clearColor >> 24) & 0xFF) / 255f;
-		r = ((config.clearColor >> 16) & 0xFF) / 255f;
-		g = ((config.clearColor >> 8) & 0xFF) / 255f;
-		b = (config.clearColor & 0xFF) / 255f;
+		// WIP: move this to framebuffer config
+		//		a = ((config.clearColor >> 24) & 0xFF) / 255f;
+		//		r = ((config.clearColor >> 16) & 0xFF) / 255f;
+		//		g = ((config.clearColor >> 8) & 0xFF) / 255f;
+		//		b = (config.clearColor & 0xFF) / 255f;
 	}
 
 	void open(int width, int height) {
@@ -66,11 +67,12 @@ public class Pass {
 	}
 
 	void clearIfNeeded() {
-		if (config.clear) {
-			GlStateManager.bindFramebuffer(FramebufferInfo.FRAME_BUFFER, fboGlId);
-			GlStateManager.clearColor(r, g, b, a);
-			GlStateManager.clear(GL21.GL_COLOR_BUFFER_BIT, MinecraftClient.IS_SYSTEM_MAC);
-		}
+		// WIP: implement as built-in program
+		//		if (config.clear) {
+		//			GlStateManager.bindFramebuffer(FramebufferInfo.FRAME_BUFFER, fboGlId);
+		//			GlStateManager.clearColor(r, g, b, a);
+		//			GlStateManager.clear(GL21.GL_COLOR_BUFFER_BIT, MinecraftClient.IS_SYSTEM_MAC);
+		//		}
 	}
 
 	void activate(int width, int height) {
@@ -93,7 +95,7 @@ public class Pass {
 			GlStateManager.bindTexture(binds[i]);
 		}
 
-		shader.activate().lod(config.shaderLod).size(width, height);
+		shader.activate().lod(config.lod).size(width, height);
 	}
 
 	void close() {

@@ -113,12 +113,12 @@ public class Pipeline {
 			BufferDebug.add(debug.mainImage, debug.sneakImage, debug.lod, debug.label);
 		}
 
-		final int passCount = config.passes.length;
+		final int passCount = config.afterRenderHand.passes.length;
 
 		passes = new Pass[passCount];
 
 		for (int i = 0; i < passCount; ++i) {
-			passes[i] = new Pass(config.passes[i]);
+			passes[i] = new Pass(config.afterRenderHand.passes[i]);
 			passes[i].open(width, height);
 		}
 	}
