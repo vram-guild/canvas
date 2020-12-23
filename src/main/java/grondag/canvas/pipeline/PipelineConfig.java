@@ -69,31 +69,57 @@ class PipelineConfig {
 
 	static class AttachmentConfig {
 		Identifier image;
-		int attachmentIndex;
 		int lod;
+		int clearColor;
 
 		static AttachmentConfig of(
 			Identifier image,
-			int attachmentIndex,
+			int clearColor,
 			int lod
 		) {
 			final AttachmentConfig result = new AttachmentConfig();
 			result.image = image;
-			result.attachmentIndex = attachmentIndex;
 			result.lod = lod;
+			result.clearColor = clearColor;
 			return result;
 		}
 
 		static AttachmentConfig of(
 			String image,
-			int attachmentIndex,
+			int clearColor,
 			int lod
 		) {
-			return of(new Identifier(image), attachmentIndex, lod);
+			return of(new Identifier(image), lod, clearColor);
 		}
 
 		static AttachmentConfig[] array(AttachmentConfig... attachments) {
 			return attachments;
+		}
+	}
+
+	static class FramebufferConfig {
+		Identifier id;
+		AttachmentConfig[] attachments;
+
+		static FramebufferConfig of(
+			Identifier id,
+			AttachmentConfig... attachments
+		) {
+			final FramebufferConfig result = new FramebufferConfig();
+			result.id = id;
+			result.attachments = attachments;
+			return result;
+		}
+
+		static FramebufferConfig of(
+			String id,
+			AttachmentConfig... attachments
+		) {
+			return of(new Identifier(id), attachments);
+		}
+
+		static FramebufferConfig[] array(FramebufferConfig... configs) {
+			return configs;
 		}
 	}
 
@@ -159,7 +185,7 @@ class PipelineConfig {
 	}
 
 	static class PassConfig {
-		AttachmentConfig[] attachments;
+		Identifier framebuffer;
 		SamplerConfig[] samplers;
 		Identifier shader;
 		// for computing size
@@ -168,17 +194,35 @@ class PipelineConfig {
 		//Image[] attachments, int[] samplerBinds, ProcessShader shader, Consumer<ProcessShader> activator
 
 		static PassConfig of(
-			AttachmentConfig[] attachments,
+			Identifier framebuffer,
 			SamplerConfig[] samplers,
 			Identifier shader,
 			int lod
 		) {
 			final PassConfig result = new PassConfig();
-			result.attachments = attachments;
+			result.framebuffer = framebuffer;
 			result.samplers = samplers;
 			result.shader = shader;
 			result.lod = lod;
 			return result;
+		}
+
+		static PassConfig of(
+			String framebuffer,
+			SamplerConfig[] samplers,
+			Identifier shader,
+			int lod
+		) {
+			return of(new Identifier(framebuffer), samplers, shader, lod);
+		}
+
+		static PassConfig of(
+			String framebuffer,
+			SamplerConfig[] samplers,
+			String shader,
+			int lod
+		) {
+			return of(new Identifier(framebuffer), samplers, new Identifier(shader), lod);
 		}
 
 		static PassConfig[] array(PassConfig... passes) {
@@ -186,46 +230,13 @@ class PipelineConfig {
 		}
 	}
 
-	static class ClearConfig {
-		Identifier image;
-		int clearColor;
-
-		static ClearConfig of(
-			Identifier image,
-			int clearColor
-		) {
-			final ClearConfig result = new ClearConfig();
-			result.image = image;
-			result.clearColor = clearColor;
-			return result;
-		}
-
-		static ClearConfig[] array(ClearConfig... configs) {
-			return configs;
-		}
-	}
-
-	static class StageConfig {
-		ClearConfig[] clears;
-		PassConfig[] passes;
-
-		static StageConfig of(
-			ClearConfig[] clears,
-			PassConfig[] passes
-		) {
-			final StageConfig result = new StageConfig();
-			result.clears = clears;
-			result.passes = passes;
-			return result;
-		}
-	}
-
 	ImageConfig[] images;
 	PipelineParam[] params;
 	ShaderConfig[] shaders;
+	FramebufferConfig[] framebuffers;
 
-	StageConfig onWorldStart;
-	StageConfig afterRenderHand;
+	PassConfig[] onWorldStart;
+	PassConfig[] afterRenderHand;
 
 	{
 		params = PipelineParam.array(
@@ -288,170 +299,246 @@ class PipelineConfig {
 			)
 		);
 
-		onWorldStart = StageConfig.of(
-			ClearConfig.array(ClearConfig.of(IMG_EMISSIVE, 0)),
-			new PassConfig[0]
+		framebuffers = FramebufferConfig.array(
+			FramebufferConfig.of(
+				"canvas:emissive",
+				AttachmentConfig.array(AttachmentConfig.of("canvas:emissive", 0, 0))
+			),
+
+			FramebufferConfig.of(
+				"canvas:main_copy",
+				AttachmentConfig.array(AttachmentConfig.of(IMG_MAIN_COPY, 0, 0))
+			),
+
+			FramebufferConfig.of(
+				"canvas:emissive_color",
+				AttachmentConfig.array(AttachmentConfig.of(IMG_EMISSIVE_COLOR, 0, 0))
+			),
+
+			FramebufferConfig.of(
+				"canvas:bloom_downsample_0",
+				AttachmentConfig.array(AttachmentConfig.of(IMG_BLOOM_DOWNSAMPLE, 0, 0))
+			),
+
+			FramebufferConfig.of(
+				"canvas:bloom_downsample_1",
+				AttachmentConfig.array(AttachmentConfig.of(IMG_BLOOM_DOWNSAMPLE, 0, 1))
+			),
+
+			FramebufferConfig.of(
+				"canvas:bloom_downsample_2",
+				AttachmentConfig.array(AttachmentConfig.of(IMG_BLOOM_DOWNSAMPLE, 0, 2))
+			),
+
+			FramebufferConfig.of(
+				"canvas:bloom_downsample_3",
+				AttachmentConfig.array(AttachmentConfig.of(IMG_BLOOM_DOWNSAMPLE, 0, 3))
+			),
+
+			FramebufferConfig.of(
+				"canvas:bloom_downsample_4",
+				AttachmentConfig.array(AttachmentConfig.of(IMG_BLOOM_DOWNSAMPLE, 0, 4))
+			),
+
+			FramebufferConfig.of(
+				"canvas:bloom_downsample_5",
+				AttachmentConfig.array(AttachmentConfig.of(IMG_BLOOM_DOWNSAMPLE, 0, 5))
+			),
+
+			FramebufferConfig.of(
+				"canvas:bloom_downsample_6",
+				AttachmentConfig.array(AttachmentConfig.of(IMG_BLOOM_DOWNSAMPLE, 0, 6))
+			),
+
+			FramebufferConfig.of(
+				"canvas:bloom_upsample_6",
+				AttachmentConfig.array(AttachmentConfig.of(IMG_BLOOM_UPSAMPLE, 0, 6))
+			),
+
+			FramebufferConfig.of(
+				"canvas:bloom_upsample_5",
+				AttachmentConfig.array(AttachmentConfig.of(IMG_BLOOM_UPSAMPLE, 0, 5))
+			),
+
+			FramebufferConfig.of(
+				"canvas:bloom_upsample_4",
+				AttachmentConfig.array(AttachmentConfig.of(IMG_BLOOM_UPSAMPLE, 0, 4))
+			),
+
+			FramebufferConfig.of(
+				"canvas:bloom_upsample_3",
+				AttachmentConfig.array(AttachmentConfig.of(IMG_BLOOM_UPSAMPLE, 0, 3))
+			),
+
+			FramebufferConfig.of(
+				"canvas:bloom_upsample_2",
+				AttachmentConfig.array(AttachmentConfig.of(IMG_BLOOM_UPSAMPLE, 0, 2))
+			),
+
+			FramebufferConfig.of(
+				"canvas:bloom_upsample_1",
+				AttachmentConfig.array(AttachmentConfig.of(IMG_BLOOM_UPSAMPLE, 0, 1))
+			),
+
+			FramebufferConfig.of(
+				"canvas:bloom_upsample_0",
+				AttachmentConfig.array(AttachmentConfig.of(IMG_BLOOM_UPSAMPLE, 0, 0))
+			),
+
+			FramebufferConfig.of(
+				"canvas:bloom",
+				AttachmentConfig.array(AttachmentConfig.of(IMG_MC_MAIN, 0, 0))
+			)
 		);
 
-		afterRenderHand = StageConfig.of(
-			new ClearConfig[0],
-			PassConfig.array(
-				// Bloom based on approach described by Jorge Jiminez, 2014
-				// http://www.iryoku.com/next-generation-post-processing-in-call-of-duty-advanced-warfare
+		onWorldStart = PassConfig.array(
+			PassConfig.of("canvas:emissive", SamplerConfig.array(), ClearPass.CLEAR_ID, 0)
+		);
 
-				// copy MC fbo color attachment - need it at end for combine step
-				PassConfig.of(
-					AttachmentConfig.array(AttachmentConfig.of(IMG_MAIN_COPY, 0, 0)),
-					SamplerConfig.array(SamplerConfig.of(IMG_MC_MAIN, false)),
-					PROG_COPY,
-					0
+		afterRenderHand = PassConfig.array(
+			PassConfig.of(
+				"canvas:main_copy",
+				SamplerConfig.array(SamplerConfig.of(IMG_MC_MAIN, false)),
+				PROG_COPY,
+				0
+			),
+
+			PassConfig.of(
+				"canvas:emissive_color",
+				SamplerConfig.array(
+						SamplerConfig.of(IMG_MC_MAIN, false),
+						SamplerConfig.of(IMG_EMISSIVE, false)
 				),
+				PROG_EMISSIVE_COLOR,
+				0
+			),
 
-				// select emissive portions for blur
-				PassConfig.of(
-					AttachmentConfig.array(AttachmentConfig.of(IMG_EMISSIVE_COLOR, 0, 0)),
-					SamplerConfig.array(
-							SamplerConfig.of(IMG_MC_MAIN, false),
-							SamplerConfig.of(IMG_EMISSIVE, false)
-					),
-					PROG_EMISSIVE_COLOR,
-					0
+			PassConfig.of(
+				"canvas:bloom_downsample_0",
+				SamplerConfig.array(SamplerConfig.of(IMG_EMISSIVE_COLOR, false)),
+				PROG_DOWNSAMPLE,
+				0
+			),
+
+			PassConfig.of(
+				"canvas:bloom_downsample_1",
+				SamplerConfig.array(SamplerConfig.of(IMG_BLOOM_DOWNSAMPLE, false)),
+				PROG_DOWNSAMPLE,
+				1
+			),
+
+			PassConfig.of(
+				"canvas:bloom_downsample_2",
+				SamplerConfig.array(SamplerConfig.of(IMG_BLOOM_DOWNSAMPLE, false)),
+				PROG_DOWNSAMPLE,
+				2
+			),
+
+			PassConfig.of(
+				"canvas:bloom_downsample_3",
+				SamplerConfig.array(SamplerConfig.of(IMG_BLOOM_DOWNSAMPLE, false)),
+				PROG_DOWNSAMPLE,
+				3
+			),
+
+			PassConfig.of(
+				"canvas:bloom_downsample_4",
+				SamplerConfig.array(SamplerConfig.of(IMG_BLOOM_DOWNSAMPLE, false)),
+				PROG_DOWNSAMPLE,
+				4
+			),
+
+			PassConfig.of(
+				"canvas:bloom_downsample_5",
+				SamplerConfig.array(SamplerConfig.of(IMG_BLOOM_DOWNSAMPLE, false)),
+				PROG_DOWNSAMPLE,
+				5
+			),
+
+			PassConfig.of(
+				"canvas:bloom_downsample_6",
+				SamplerConfig.array(SamplerConfig.of(IMG_BLOOM_DOWNSAMPLE, false)),
+				PROG_DOWNSAMPLE,
+				6
+			),
+
+			PassConfig.of(
+				"canvas:bloom_upsample_6",
+				SamplerConfig.array(
+						SamplerConfig.of(IMG_BLOOM_DOWNSAMPLE, false)
 				),
+				PROG_UPSAMPLE_FIRST,
+				6
+			),
 
-				// build bloom mipmaps, blurring as part of downscale
-
-				PassConfig.of(
-					AttachmentConfig.array(AttachmentConfig.of(IMG_BLOOM_DOWNSAMPLE, 0, 0)),
-					SamplerConfig.array(SamplerConfig.of(IMG_EMISSIVE_COLOR, false)),
-					PROG_DOWNSAMPLE,
-					0
+			PassConfig.of(
+				"canvas:bloom_upsample_5",
+				SamplerConfig.array(
+						SamplerConfig.of(IMG_BLOOM_DOWNSAMPLE, false),
+						SamplerConfig.of(IMG_BLOOM_UPSAMPLE, false)
 				),
+				PROG_UPSAMPLE,
+				5
+			),
 
-				PassConfig.of(
-					AttachmentConfig.array(AttachmentConfig.of(IMG_BLOOM_DOWNSAMPLE, 0, 1)),
-					SamplerConfig.array(SamplerConfig.of(IMG_BLOOM_DOWNSAMPLE, false)),
-					PROG_DOWNSAMPLE,
-					1
+			PassConfig.of(
+				"canvas:bloom_upsample_4",
+				SamplerConfig.array(
+						SamplerConfig.of(IMG_BLOOM_DOWNSAMPLE, false),
+						SamplerConfig.of(IMG_BLOOM_UPSAMPLE, false)
 				),
+				PROG_UPSAMPLE,
+				4
+			),
 
-				PassConfig.of(
-					AttachmentConfig.array(AttachmentConfig.of(IMG_BLOOM_DOWNSAMPLE, 0, 2)),
-					SamplerConfig.array(SamplerConfig.of(IMG_BLOOM_DOWNSAMPLE, false)),
-					PROG_DOWNSAMPLE,
-					2
+			PassConfig.of(
+				"canvas:bloom_upsample_3",
+				SamplerConfig.array(
+						SamplerConfig.of(IMG_BLOOM_DOWNSAMPLE, false),
+						SamplerConfig.of(IMG_BLOOM_UPSAMPLE, false)
 				),
+				PROG_UPSAMPLE,
+				3
+			),
 
-				PassConfig.of(
-					AttachmentConfig.array(AttachmentConfig.of(IMG_BLOOM_DOWNSAMPLE, 0, 3)),
-					SamplerConfig.array(SamplerConfig.of(IMG_BLOOM_DOWNSAMPLE, false)),
-					PROG_DOWNSAMPLE,
-					3
+			PassConfig.of(
+				"canvas:bloom_upsample_2",
+				SamplerConfig.array(
+						SamplerConfig.of(IMG_BLOOM_DOWNSAMPLE, false),
+						SamplerConfig.of(IMG_BLOOM_UPSAMPLE, false)
 				),
+				PROG_UPSAMPLE,
+				2
+			),
 
-				PassConfig.of(
-					AttachmentConfig.array(AttachmentConfig.of(IMG_BLOOM_DOWNSAMPLE, 0, 4)),
-					SamplerConfig.array(SamplerConfig.of(IMG_BLOOM_DOWNSAMPLE, false)),
-					PROG_DOWNSAMPLE,
-					4
+			PassConfig.of(
+				"canvas:bloom_upsample_1",
+				SamplerConfig.array(
+						SamplerConfig.of(IMG_BLOOM_DOWNSAMPLE, false),
+						SamplerConfig.of(IMG_BLOOM_UPSAMPLE, false)
 				),
+				PROG_UPSAMPLE,
+				1
+			),
 
-				PassConfig.of(
-					AttachmentConfig.array(AttachmentConfig.of(IMG_BLOOM_DOWNSAMPLE, 0, 5)),
-					SamplerConfig.array(SamplerConfig.of(IMG_BLOOM_DOWNSAMPLE, false)),
-					PROG_DOWNSAMPLE,
-					5
+			PassConfig.of(
+				"canvas:bloom_upsample_0",
+				SamplerConfig.array(
+						SamplerConfig.of(IMG_BLOOM_DOWNSAMPLE, false),
+						SamplerConfig.of(IMG_BLOOM_UPSAMPLE, false)
 				),
+				PROG_UPSAMPLE,
+				0
+			),
 
-				PassConfig.of(
-					AttachmentConfig.array(AttachmentConfig.of(IMG_BLOOM_DOWNSAMPLE, 0, 6)),
-					SamplerConfig.array(SamplerConfig.of(IMG_BLOOM_DOWNSAMPLE, false)),
-					PROG_DOWNSAMPLE,
-					6
+			PassConfig.of(
+				"canvas:bloom",
+				SamplerConfig.array(
+						SamplerConfig.of(IMG_MAIN_COPY, false),
+						SamplerConfig.of(IMG_BLOOM_UPSAMPLE, false)
 				),
-
-				// upscale bloom mipmaps, bluring again as we go
-
-				PassConfig.of(
-					AttachmentConfig.array(AttachmentConfig.of(IMG_BLOOM_UPSAMPLE, 0, 6)),
-					SamplerConfig.array(
-							SamplerConfig.of(IMG_BLOOM_DOWNSAMPLE, false)
-					),
-					PROG_UPSAMPLE_FIRST,
-					6
-				),
-
-				PassConfig.of(
-					AttachmentConfig.array(AttachmentConfig.of(IMG_BLOOM_UPSAMPLE, 0, 5)),
-					SamplerConfig.array(
-							SamplerConfig.of(IMG_BLOOM_DOWNSAMPLE, false),
-							SamplerConfig.of(IMG_BLOOM_UPSAMPLE, false)
-					),
-					PROG_UPSAMPLE,
-					5
-				),
-
-				PassConfig.of(
-					AttachmentConfig.array(AttachmentConfig.of(IMG_BLOOM_UPSAMPLE, 0, 4)),
-					SamplerConfig.array(
-							SamplerConfig.of(IMG_BLOOM_DOWNSAMPLE, false),
-							SamplerConfig.of(IMG_BLOOM_UPSAMPLE, false)
-					),
-					PROG_UPSAMPLE,
-					4
-				),
-
-				PassConfig.of(
-					AttachmentConfig.array(AttachmentConfig.of(IMG_BLOOM_UPSAMPLE, 0, 3)),
-					SamplerConfig.array(
-							SamplerConfig.of(IMG_BLOOM_DOWNSAMPLE, false),
-							SamplerConfig.of(IMG_BLOOM_UPSAMPLE, false)
-					),
-					PROG_UPSAMPLE,
-					3
-				),
-
-				PassConfig.of(
-					AttachmentConfig.array(AttachmentConfig.of(IMG_BLOOM_UPSAMPLE, 0, 2)),
-					SamplerConfig.array(
-							SamplerConfig.of(IMG_BLOOM_DOWNSAMPLE, false),
-							SamplerConfig.of(IMG_BLOOM_UPSAMPLE, false)
-					),
-					PROG_UPSAMPLE,
-					2
-				),
-
-				PassConfig.of(
-					AttachmentConfig.array(AttachmentConfig.of(IMG_BLOOM_UPSAMPLE, 0, 1)),
-					SamplerConfig.array(
-							SamplerConfig.of(IMG_BLOOM_DOWNSAMPLE, false),
-							SamplerConfig.of(IMG_BLOOM_UPSAMPLE, false)
-					),
-					PROG_UPSAMPLE,
-					1
-				),
-
-				PassConfig.of(
-					AttachmentConfig.array(AttachmentConfig.of(IMG_BLOOM_UPSAMPLE, 0, 0)),
-					SamplerConfig.array(
-							SamplerConfig.of(IMG_BLOOM_DOWNSAMPLE, false),
-							SamplerConfig.of(IMG_BLOOM_UPSAMPLE, false)
-					),
-					PROG_UPSAMPLE,
-					0
-				),
-
-				// Switch back to MC main color to draw combined color + bloom
-				// Framebuffer attachment shouldn't draw to self so use copy created earlier
-
-				PassConfig.of(
-					AttachmentConfig.array(AttachmentConfig.of(IMG_MC_MAIN, 0, 0)),
-					SamplerConfig.array(
-							SamplerConfig.of(IMG_MAIN_COPY, false),
-							SamplerConfig.of(IMG_BLOOM_UPSAMPLE, false)
-					),
-					PROG_BLOOM,
-					0
-				)
+				PROG_BLOOM,
+				0
 			)
 		);
 	}

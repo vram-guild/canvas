@@ -24,6 +24,7 @@ import net.minecraft.client.gl.Framebuffer;
 import net.minecraft.util.Identifier;
 
 import grondag.canvas.mixinterface.FrameBufferExt;
+import grondag.canvas.pipeline.PipelineConfig.FramebufferConfig;
 import grondag.canvas.pipeline.PipelineConfig.ImageConfig;
 import grondag.canvas.pipeline.PipelineConfig.ShaderConfig;
 import grondag.canvas.shader.ProcessShader;
@@ -32,10 +33,12 @@ public class Pipeline {
 	private static boolean reload = true;
 	private static int lastWidth;
 	private static int lastHeight;
-	static Pass[] passes = { };
+	static Pass[] onWorldRenderStart = { };
+	static Pass[] afterRenderHand = { };
 
 	private static final Object2ObjectOpenHashMap<Identifier, Image> IMAGES = new Object2ObjectOpenHashMap<>();
 	private static final Object2ObjectOpenHashMap<Identifier, ProcessShader> SHADERS = new Object2ObjectOpenHashMap<>();
+	private static final Object2ObjectOpenHashMap<Identifier, PipelineFramebuffer> FRAMEBUFFERS = new Object2ObjectOpenHashMap<>();
 
 	static Image getImage(Identifier id) {
 		return IMAGES.get(id);
@@ -43,6 +46,10 @@ public class Pipeline {
 
 	static ProcessShader getShader(Identifier id) {
 		return SHADERS.get(id);
+	}
+
+	static PipelineFramebuffer getFramebuffer(Identifier id) {
+		return FRAMEBUFFERS.get(id);
 	}
 
 	static boolean needsReload() {
@@ -59,11 +66,21 @@ public class Pipeline {
 	}
 
 	private static void closeInner() {
-		for (final Pass pass : passes) {
+		for (final Pass pass : afterRenderHand) {
 			pass.close();
 		}
 
-		passes = new Pass[0];
+		for (final Pass pass : onWorldRenderStart) {
+			pass.close();
+		}
+
+		afterRenderHand = new Pass[0];
+		onWorldRenderStart = new Pass[0];
+
+		if (!FRAMEBUFFERS.isEmpty()) {
+			FRAMEBUFFERS.values().forEach(shader -> shader.close());
+			FRAMEBUFFERS.clear();
+		}
 
 		if (!IMAGES.isEmpty()) {
 			IMAGES.values().forEach(img -> img.close());
@@ -105,15 +122,24 @@ public class Pipeline {
 			SHADERS.put(shader.id, new ProcessShader(shader.vertexSource, shader.fragmentSource, shader.samplerNames));
 		}
 
+		// WIP: add the mc framebuffers?
+
+		for (final FramebufferConfig buffer : config.framebuffers) {
+			FRAMEBUFFERS.put(buffer.id, new PipelineFramebuffer(buffer, width, height));
+		}
+
 		BufferDebug.init(config);
 
-		final int passCount = config.afterRenderHand.passes.length;
+		onWorldRenderStart = new Pass[config.onWorldStart.length];
 
-		passes = new Pass[passCount];
+		for (int i = 0; i < config.onWorldStart.length; ++i) {
+			onWorldRenderStart[i] = Pass.create(config.onWorldStart[i]);
+		}
 
-		for (int i = 0; i < passCount; ++i) {
-			passes[i] = new Pass(config.afterRenderHand.passes[i]);
-			passes[i].open(width, height);
+		afterRenderHand = new Pass[config.afterRenderHand.length];
+
+		for (int i = 0; i < config.afterRenderHand.length; ++i) {
+			afterRenderHand[i] = Pass.create(config.afterRenderHand[i]);
 		}
 	}
 }

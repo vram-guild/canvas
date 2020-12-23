@@ -47,15 +47,9 @@ public class PipelineManager {
 
 	static final int[] ATTACHMENTS_DOUBLE = {FramebufferInfo.COLOR_ATTACHMENT, FramebufferInfo.COLOR_ATTACHMENT + 1};
 	static Framebuffer mcFbo;
-	//static FrameBufferExt mcFboExt;
 	static int mainFbo = -1;
 	static int mainColor;
-	//	static int mainHDR;
 	static int texEmissive = -1;
-	static int texEmissiveColor;
-	static int texMainCopy;
-	static int texBloomDownsample;
-	static int texBloomUpsample;
 	static int canvasFboId = -1;
 	static VboBuffer drawBuffer;
 	static int h;
@@ -65,18 +59,21 @@ public class PipelineManager {
 
 	private static boolean active = false;
 
-	private static void clearAttachments() {
-		GlStateManager.bindFramebuffer(FramebufferInfo.FRAME_BUFFER, canvasFboId);
-		GlStateManager.clearColor(0, 0, 0, 0);
-		GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT, GL21.GL_TEXTURE_2D, texEmissive, 0);
-		GlStateManager.clear(GL21.GL_COLOR_BUFFER_BIT, MinecraftClient.IS_SYSTEM_MAC);
-		GlStateManager.bindFramebuffer(FramebufferInfo.FRAME_BUFFER, mainFbo);
-	}
-
 	public static void prepareForFrame() {
 		assert !active;
 		sync();
-		clearAttachments();
+
+		beginFullFrameRender();
+
+		drawBuffer.bind();
+
+		for (final Pass pass : Pipeline.onWorldRenderStart) {
+			pass.run(w, h);
+		}
+
+		endFullFrameRender();
+
+		GlStateManager.bindFramebuffer(FramebufferInfo.FRAME_BUFFER, mainFbo);
 	}
 
 	public static void enableCanvasPrimaryFramebuffer() {
@@ -132,14 +129,13 @@ public class PipelineManager {
 		RenderSystem.viewport(0, 0, w, h);
 	}
 
-	public static void applyBloom() {
+	public static void afterRenderHand() {
 		beginFullFrameRender();
 
 		drawBuffer.bind();
 
-		for (final Pass pass : Pipeline.passes) {
-			pass.activate(w, h);
-			GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
+		for (final Pass pass : Pipeline.afterRenderHand) {
+			pass.run(w, h);
 		}
 
 		endFullFrameRender();
@@ -184,12 +180,7 @@ public class PipelineManager {
 			GlStateManager.bindFramebuffer(FramebufferInfo.FRAME_BUFFER, mcFbo.fbo);
 
 			assert mainColor == Pipeline.getImage(PipelineConfig.IMG_MC_MAIN).glId();
-			//			mainHDR = createColorAttachment(w, h, true);
 			texEmissive = Pipeline.getImage(PipelineConfig.IMG_EMISSIVE).glId();
-			texEmissiveColor = Pipeline.getImage(PipelineConfig.IMG_EMISSIVE_COLOR).glId();
-			texMainCopy = Pipeline.getImage(PipelineConfig.IMG_MAIN_COPY).glId();
-			texBloomDownsample = Pipeline.getImage(PipelineConfig.IMG_BLOOM_DOWNSAMPLE).glId();
-			texBloomUpsample = Pipeline.getImage(PipelineConfig.IMG_BLOOM_UPSAMPLE).glId();
 
 			GlStateManager.bindTexture(0);
 
