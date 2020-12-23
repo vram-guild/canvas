@@ -46,7 +46,6 @@ public class Pipeline {
 		return SHADERS.get(id);
 	}
 
-	// WIP: remove
 	static boolean needsReload() {
 		return reload;
 	}

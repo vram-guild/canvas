@@ -26,6 +26,7 @@ import org.lwjgl.opengl.GL21;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.Framebuffer;
 import net.minecraft.client.util.InputUtil;
+import net.minecraft.util.Identifier;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
@@ -35,7 +36,6 @@ import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.mixinterface.FrameBufferExt;
 import grondag.canvas.shader.GlProgram;
 import grondag.canvas.shader.ProcessShader;
-import grondag.canvas.shader.ProcessShaders;
 
 //PERF: handle VAO properly here before re-enabling VAO
 public class PipelineManager {
@@ -45,12 +45,7 @@ public class PipelineManager {
 		}
 	}
 
-	static final ProcessShader copy = ProcessShaders.create("canvas:shaders/internal/process/copy", "_cvu_input");
-	static final ProcessShader emissiveColor = ProcessShaders.create("canvas:shaders/internal/process/emissive_color", "_cvu_base", "_cvu_emissive");
-	static final ProcessShader bloom = ProcessShaders.create("canvas:shaders/internal/process/bloom", "_cvu_base", "_cvu_bloom");
-	static final ProcessShader copyLod = ProcessShaders.create("canvas:shaders/internal/process/copy_lod", "_cvu_input");
-	static final ProcessShader downsample = ProcessShaders.create("canvas:shaders/internal/process/downsample", "_cvu_input");
-	static final ProcessShader upsample = ProcessShaders.create("canvas:shaders/internal/process/upsample", "cvu_input", "cvu_prior");
+	static ProcessShader debugShader;
 
 	static final int[] ATTACHMENTS_DOUBLE = {FramebufferInfo.COLOR_ATTACHMENT, FramebufferInfo.COLOR_ATTACHMENT + 1};
 	static Framebuffer mcFbo;
@@ -157,174 +152,6 @@ public class PipelineManager {
 			GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
 		}
 
-		//setProjection(w, h);
-		//RenderSystem.viewport(0, 0, w, h);
-
-		// copy MC fbo color attachment - need it at end for combine step
-		//GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT, GL21.GL_TEXTURE_2D, texMainCopy, 0);
-		//GlStateManager.bindTexture(mainColor);
-		//copy.activate().size(w, h);
-		//GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
-
-		// select emissive portions for blur
-		//		GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT, GL21.GL_TEXTURE_2D, texEmissiveColor, 0);
-		//		GlStateManager.activeTexture(GL21.GL_TEXTURE1);
-		//		GlStateManager.enableTexture();
-		//		GlStateManager.bindTexture(texEmissive);
-		//		emissiveColor.activate().size(w, h);
-		//		GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
-		//		GlStateManager.bindTexture(0);
-		//		GlStateManager.disableTexture();
-		//		GlStateManager.activeTexture(GL21.GL_TEXTURE0);
-
-		// build bloom mipmaps, blurring as part of downscale
-		//		GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT, GL21.GL_TEXTURE_2D, texBloomDownsample, 0);
-		//		GlStateManager.bindTexture(texEmissiveColor);
-		//		downsample.activate().distance(1f, 1f).size(w, h).lod(0);
-		//		setProjection(w, h);
-		//		RenderSystem.viewport(0, 0, w, h);
-		//		GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
-		//
-		//		GlStateManager.bindTexture(texBloomDownsample);
-		//
-		//		for (int d = 1; d <= 6; ++d) {
-		//			final int sw = (w >> d);
-		//			final int sh = (h >> d);
-		//			downsample.size(sw, sh).lod(d - 1);
-		//			setProjection(sw, sh);
-		//			RenderSystem.viewport(0, 0, sw, sh);
-		//			GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT, GL21.GL_TEXTURE_2D, texBloomDownsample, d);
-		//			GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
-		//		}
-		//
-		//		final float bloomScale = Configurator.bloomScale;
-		//
-		//		// upscale bloom mipmaps, bluring again as we go
-		//		GlStateManager.activeTexture(GL21.GL_TEXTURE1);
-		//		GlStateManager.enableTexture();
-		//		GlStateManager.bindTexture(texBloomUpsample);
-		//		upsample.activate();
-		//
-		//		for (int d = 6; d >= 0; --d) {
-		//			final int sw = (w >> d);
-		//			final int sh = (h >> d);
-		//			upsample.distance(bloomScale, bloomScale).size(sw, sh).lod(d);
-		//			setProjection(sw, sh);
-		//			RenderSystem.viewport(0, 0, sw, sh);
-		//			GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT, GL21.GL_TEXTURE_2D, texBloomUpsample, d);
-		//			GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
-		//		}
-		//
-		//		// Switch back to MC fbo to draw combined color + bloom
-		//		GlStateManager.bindFramebuffer(FramebufferInfo.FRAME_BUFFER, mainFbo);
-		//		RenderSystem.viewport(0, 0, w, h);
-		//		bloom.activate().size(w, h).distance(bloomScale, bloomScale).intensity(Configurator.bloomIntensity);
-		//		setProjection(w, h);
-		//
-		//		GlStateManager.activeTexture(GL21.GL_TEXTURE1);
-		//		GlStateManager.enableTexture();
-		//		GlStateManager.bindTexture(texBloomUpsample);
-		//
-		//		// Framebuffer attachment shouldn't draw to self so use copy created earlier
-		//		GlStateManager.activeTexture(GL21.GL_TEXTURE0);
-		//		GlStateManager.bindTexture(texMainCopy);
-		//
-		//		GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
-
-		endFullFrameRender();
-	}
-
-	// WIP: why was 1 forced in downsample shader distance input?
-
-	public static void applyBloomOld() {
-		if (Configurator.enableBufferDebug && BufferDebug.current() == BufferDebug.NORMAL) {
-			final long handle = MinecraftClient.getInstance().getWindow().getHandle();
-
-			if (InputUtil.isKeyPressed(handle, GLFW.GLFW_KEY_LEFT_SHIFT) || InputUtil.isKeyPressed(handle, GLFW.GLFW_KEY_RIGHT_SHIFT)) {
-				return;
-			}
-		}
-
-		GlStateManager.bindFramebuffer(FramebufferInfo.FRAME_BUFFER, canvasFboId);
-		beginFullFrameRender();
-
-		drawBuffer.bind();
-
-		setProjection(w, h);
-		RenderSystem.viewport(0, 0, w, h);
-
-		// copy MC fbo color attachment - need it at end for combine step
-		GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT, GL21.GL_TEXTURE_2D, texMainCopy, 0);
-		GlStateManager.bindTexture(mainColor);
-		copy.activate().size(w, h);
-		GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
-
-		// select emissive portions for blur
-		GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT, GL21.GL_TEXTURE_2D, texEmissiveColor, 0);
-		GlStateManager.activeTexture(GL21.GL_TEXTURE1);
-		GlStateManager.enableTexture();
-		GlStateManager.bindTexture(texEmissive);
-		emissiveColor.activate().size(w, h);
-		GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
-		GlStateManager.bindTexture(0);
-		GlStateManager.disableTexture();
-		GlStateManager.activeTexture(GL21.GL_TEXTURE0);
-
-		// build bloom mipmaps, blurring as part of downscale
-		GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT, GL21.GL_TEXTURE_2D, texBloomDownsample, 0);
-		GlStateManager.bindTexture(texEmissiveColor);
-
-		downsample.activate().distance(1f, 1f).size(w, h).lod(0);
-		setProjection(w, h);
-		RenderSystem.viewport(0, 0, w, h);
-		GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
-
-		GlStateManager.bindTexture(texBloomDownsample);
-
-		for (int d = 1; d <= 6; ++d) {
-			final int sw = (w >> d);
-			final int sh = (h >> d);
-			downsample.size(sw, sh).lod(d - 1);
-			setProjection(sw, sh);
-			RenderSystem.viewport(0, 0, sw, sh);
-			GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT, GL21.GL_TEXTURE_2D, texBloomDownsample, d);
-			GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
-		}
-
-		final float bloomScale = Configurator.bloomScale;
-
-		// upscale bloom mipmaps, bluring again as we go
-		GlStateManager.activeTexture(GL21.GL_TEXTURE1);
-		GlStateManager.enableTexture();
-		GlStateManager.bindTexture(texBloomUpsample);
-		upsample.activate();
-
-		for (int d = 6; d >= 0; --d) {
-			final int sw = (w >> d);
-			final int sh = (h >> d);
-			upsample.distance(bloomScale, bloomScale).size(sw, sh).lod(d);
-			setProjection(sw, sh);
-			RenderSystem.viewport(0, 0, sw, sh);
-			GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT, GL21.GL_TEXTURE_2D, texBloomUpsample, d);
-			GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
-		}
-
-		// Switch back to MC fbo to draw combined color + bloom
-		GlStateManager.bindFramebuffer(FramebufferInfo.FRAME_BUFFER, mainFbo);
-		RenderSystem.viewport(0, 0, w, h);
-		bloom.activate().size(w, h).distance(bloomScale, bloomScale).intensity(Configurator.bloomIntensity);
-		setProjection(w, h);
-
-		GlStateManager.activeTexture(GL21.GL_TEXTURE1);
-		GlStateManager.enableTexture();
-		GlStateManager.bindTexture(texBloomUpsample);
-
-		// Framebuffer attachment shouldn't draw to self so use copy created earlier
-		GlStateManager.activeTexture(GL21.GL_TEXTURE0);
-		GlStateManager.bindTexture(texMainCopy);
-
-		GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
-
 		endFullFrameRender();
 	}
 
@@ -334,7 +161,6 @@ public class PipelineManager {
 		RenderSystem.viewport(0, 0, w, h);
 		GlStateManager.activeTexture(GL21.GL_TEXTURE0);
 		GlStateManager.enableTexture();
-		//GlStateManager.bindTexture(texBloomDownsample);
 
 		final long handle = MinecraftClient.getInstance().getWindow().getHandle();
 
@@ -345,7 +171,7 @@ public class PipelineManager {
 		}
 
 		setProjection(w, h);
-		copyLod.activate().size(w, h).lod(lod).activate();
+		debugShader.activate().size(w, h).lod(lod).activate();
 		GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
 
 		endFullFrameRender();
@@ -360,6 +186,8 @@ public class PipelineManager {
 		if (Pipeline.needsReload() || mcFboExt.canvas_colorAttachment() != mainColor || mcFbo.textureHeight != h || mcFbo.textureWidth != w) {
 			Pipeline.close();
 			tearDown();
+
+			debugShader = new ProcessShader(new Identifier("canvas:shaders/internal/process/copy_lod.vert"), new Identifier("canvas:shaders/internal/process/copy_lod.vert"), "_cvu_input");
 			mainFbo = mcFbo.fbo;
 			canvasFboId = GlStateManager.genFramebuffers();
 			mainColor = mcFboExt.canvas_colorAttachment();
@@ -395,6 +223,10 @@ public class PipelineManager {
 	}
 
 	private static void tearDown() {
+		if (debugShader != null) {
+			debugShader.unload();
+		}
+
 		if (drawBuffer != null) {
 			drawBuffer.close();
 			drawBuffer = null;
