@@ -8,11 +8,11 @@
   "error.canvas.program_link_failure": "Canvas unable to create linked shader due to unexpected error.",
   "error.canvas.fail_create_lightmap": "Canvas unable to create HD lightmap(s) - out of space. \nSome blocks will not render with proper lighting. \nReduce view distance or disable HD lightmaps. F3+A will temporarily clear this problem.",
   "key.canvas.category": "Canvas",
-  "key.canvas.cycle_view": "Cycle Debug View",
-  "key.canvas.decrement_a": "Debug Decrement A",
-  "key.canvas.increment_a": "Debug Increment A",
-  "key.canvas.decrement_b": "Debug Decrement B",
-  "key.canvas.increment_b": "Debug Increment B",
+
+
+
+
+
   "config.canvas.button": "Canvas",
   "config.canvas.title": "Canvas Renderer Configuration",
   "config.canvas.reset": "Reset",
@@ -125,6 +125,8 @@
   "config.canvas.value.log_render_lag_spikes": "Log Render Lag Spikes",
   "config.canvas.help.log_render_lag_spikes": "Log information on render lag spikes - when they happen and where.;Will spam the log.",
   "config.canvas.value.render_lag_spike_fps": "Render Lag Spike FPS",
-  "config.canvas.help.render_lag_spike_fps": "Target frames per second when Log Render Lag Spikes is enabled.;If elapsed time exceeds an entire frame, a spike is logged."
-  
+  "config.canvas.help.render_lag_spike_fps": "Target frames per second when Log Render Lag Spikes is enabled.;If elapsed time exceeds an entire frame, a spike is logged.",
+  "key.canvas.debug_toggle": "Toggle Debug View",
+  "key.canvas.debug_prev": "Debug Previous Image",
+  "key.canvas.debug_next": "Debug Next Image"
 }

@@ -67,26 +67,6 @@ class PipelineConfig {
 		}
 	}
 
-	static class DebugConfig {
-		Identifier mainImage;
-		Identifier sneakImage;
-		int lod;
-		String label;
-
-		static DebugConfig of(Identifier mainImage, Identifier sneakImage, int lod, String label) {
-			final DebugConfig result = new DebugConfig();
-			result.mainImage = mainImage;
-			result.sneakImage = sneakImage;
-			result.lod = lod;
-			result.label = label;
-			return result;
-		}
-
-		static DebugConfig[] array(DebugConfig... configs) {
-			return configs;
-		}
-	}
-
 	static class AttachmentConfig {
 		Identifier image;
 		int attachmentIndex;
@@ -241,7 +221,6 @@ class PipelineConfig {
 	}
 
 	ImageConfig[] images;
-	DebugConfig[] debugs;
 	PipelineParam[] params;
 	ShaderConfig[] shaders;
 
@@ -261,17 +240,6 @@ class PipelineConfig {
 			ImageConfig.of(IMG_MAIN_COPY, false, false, 0),
 			ImageConfig.of(IMG_BLOOM_DOWNSAMPLE, false, true, 6),
 			ImageConfig.of(IMG_BLOOM_UPSAMPLE, false, true, 6)
-		);
-
-		debugs = DebugConfig.array(
-			DebugConfig.of(PipelineConfig.IMG_EMISSIVE, PipelineConfig.IMG_EMISSIVE_COLOR, 0, "EMISSIVE/EMISSIVE_COLOR"),
-			DebugConfig.of(PipelineConfig.IMG_BLOOM_UPSAMPLE, PipelineConfig.IMG_BLOOM_DOWNSAMPLE, 0, "BLOOM LOD 0 UPSAMPLE/DOWNSAMPLE"),
-			DebugConfig.of(PipelineConfig.IMG_BLOOM_UPSAMPLE, PipelineConfig.IMG_BLOOM_DOWNSAMPLE, 1, "BLOOM LOD 1 UPSAMPLE/DOWNSAMPLE"),
-			DebugConfig.of(PipelineConfig.IMG_BLOOM_UPSAMPLE, PipelineConfig.IMG_BLOOM_DOWNSAMPLE, 2, "BLOOM LOD 2 UPSAMPLE/DOWNSAMPLE"),
-			DebugConfig.of(PipelineConfig.IMG_BLOOM_UPSAMPLE, PipelineConfig.IMG_BLOOM_DOWNSAMPLE, 3, "BLOOM LOD 3 UPSAMPLE/DOWNSAMPLE"),
-			DebugConfig.of(PipelineConfig.IMG_BLOOM_UPSAMPLE, PipelineConfig.IMG_BLOOM_DOWNSAMPLE, 4, "BLOOM LOD 4 UPSAMPLE/DOWNSAMPLE"),
-			DebugConfig.of(PipelineConfig.IMG_BLOOM_UPSAMPLE, PipelineConfig.IMG_BLOOM_DOWNSAMPLE, 5, "BLOOM LOD 5 UPSAMPLE/DOWNSAMPLE"),
-			DebugConfig.of(PipelineConfig.IMG_BLOOM_UPSAMPLE, PipelineConfig.IMG_BLOOM_DOWNSAMPLE, 6, "BLOOM LOD 6 UPSAMPLE/DOWNSAMPLE")
 		);
 
 		shaders = ShaderConfig.array(

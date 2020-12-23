@@ -24,7 +24,6 @@ import net.minecraft.client.gl.Framebuffer;
 import net.minecraft.util.Identifier;
 
 import grondag.canvas.mixinterface.FrameBufferExt;
-import grondag.canvas.pipeline.PipelineConfig.DebugConfig;
 import grondag.canvas.pipeline.PipelineConfig.ImageConfig;
 import grondag.canvas.pipeline.PipelineConfig.ShaderConfig;
 import grondag.canvas.shader.ProcessShader;
@@ -75,8 +74,6 @@ public class Pipeline {
 			SHADERS.values().forEach(shader -> shader.unload());
 			SHADERS.clear();
 		}
-
-		BufferDebug.clear();
 	}
 
 	static void activate(int width, int height) {
@@ -108,9 +105,7 @@ public class Pipeline {
 			SHADERS.put(shader.id, new ProcessShader(shader.vertexSource, shader.fragmentSource, shader.samplerNames));
 		}
 
-		for (final DebugConfig debug : config.debugs) {
-			BufferDebug.add(debug.mainImage, debug.sneakImage, debug.lod, debug.label);
-		}
+		BufferDebug.init(config);
 
 		final int passCount = config.afterRenderHand.passes.length;
 

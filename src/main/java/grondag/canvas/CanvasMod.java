@@ -52,11 +52,9 @@ import grondag.frex.api.fluid.FluidQuadSupplier;
 public class CanvasMod implements ClientModInitializer {
 	public static final String MODID = "canvas";
 	public static final Logger LOG = LogManager.getLogger("Canvas");
-	public static KeyBinding VIEW_KEY = new KeyBinding("key.canvas.cycle_view", Character.valueOf('`'), "key.canvas.category");
-	public static KeyBinding DECREMENT_A = new KeyBinding("key.canvas.decrement_a", Character.valueOf('-'), "key.canvas.category");
-	public static KeyBinding INCREMENT_A = new KeyBinding("key.canvas.increment_a", Character.valueOf('='), "key.canvas.category");
-	public static KeyBinding DECREMENT_B = new KeyBinding("key.canvas.decrement_b", Character.valueOf('['), "key.canvas.category");
-	public static KeyBinding INCREMENT_B = new KeyBinding("key.canvas.increment_b", Character.valueOf(']'), "key.canvas.category");
+	public static KeyBinding DEBUG_TOGGLE = new KeyBinding("key.canvas.debug_toggle", Character.valueOf('`'), "key.canvas.category");
+	public static KeyBinding DEBUG_PREV = new KeyBinding("key.canvas.debug_prev", Character.valueOf('['), "key.canvas.category");
+	public static KeyBinding DEBUG_NEXT = new KeyBinding("key.canvas.debug_next", Character.valueOf(']'), "key.canvas.category");
 
 	@Override
 	public void onInitializeClient() {
@@ -76,11 +74,9 @@ public class CanvasMod implements ClientModInitializer {
 		((RenderLayerExt) RenderLayer.getCutout()).canvas_blendMode(BlendMode.CUTOUT);
 		((RenderLayerExt) RenderLayer.getCutoutMipped()).canvas_blendMode(BlendMode.CUTOUT_MIPPED);
 
-		KeyBindingHelper.registerKeyBinding(VIEW_KEY);
-		KeyBindingHelper.registerKeyBinding(DECREMENT_A);
-		KeyBindingHelper.registerKeyBinding(INCREMENT_A);
-		KeyBindingHelper.registerKeyBinding(DECREMENT_B);
-		KeyBindingHelper.registerKeyBinding(INCREMENT_B);
+		KeyBindingHelper.registerKeyBinding(DEBUG_TOGGLE);
+		KeyBindingHelper.registerKeyBinding(DEBUG_PREV);
+		KeyBindingHelper.registerKeyBinding(DEBUG_NEXT);
 
 		Compat.init();
 

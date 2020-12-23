@@ -19,13 +19,11 @@ package grondag.canvas.pipeline;
 import com.mojang.blaze3d.platform.FramebufferInfo;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
-import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL21;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.Framebuffer;
-import net.minecraft.client.util.InputUtil;
 import net.minecraft.util.Identifier;
 
 import grondag.canvas.CanvasMod;
@@ -135,14 +133,6 @@ public class PipelineManager {
 	}
 
 	public static void applyBloom() {
-		if (Configurator.enableBufferDebug && BufferDebug.current() == BufferDebug.NORMAL) {
-			final long handle = MinecraftClient.getInstance().getWindow().getHandle();
-
-			if (InputUtil.isKeyPressed(handle, GLFW.GLFW_KEY_LEFT_SHIFT) || InputUtil.isKeyPressed(handle, GLFW.GLFW_KEY_RIGHT_SHIFT)) {
-				return;
-			}
-		}
-
 		beginFullFrameRender();
 
 		drawBuffer.bind();
@@ -155,23 +145,18 @@ public class PipelineManager {
 		endFullFrameRender();
 	}
 
-	static void renderDebug(int mainId, int sneakId, int lod) {
+	static void renderDebug(int glId, int lod) {
 		beginFullFrameRender();
+
 		drawBuffer.bind();
 		RenderSystem.viewport(0, 0, w, h);
+		GlStateManager.bindFramebuffer(FramebufferInfo.FRAME_BUFFER, mainFbo);
+		PipelineManager.setProjection(w, h);
 		GlStateManager.activeTexture(GL21.GL_TEXTURE0);
 		GlStateManager.enableTexture();
-
-		final long handle = MinecraftClient.getInstance().getWindow().getHandle();
-
-		if ((InputUtil.isKeyPressed(handle, GLFW.GLFW_KEY_LEFT_SHIFT) || InputUtil.isKeyPressed(handle, GLFW.GLFW_KEY_RIGHT_SHIFT))) {
-			GlStateManager.bindTexture(sneakId);
-		} else {
-			GlStateManager.bindTexture(mainId);
-		}
-
+		GlStateManager.bindTexture(glId);
 		setProjection(w, h);
-		debugShader.activate().size(w, h).lod(lod).activate();
+		debugShader.activate().size(w, h).lod(lod);
 		GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
 
 		endFullFrameRender();
@@ -187,7 +172,7 @@ public class PipelineManager {
 			Pipeline.close();
 			tearDown();
 
-			debugShader = new ProcessShader(new Identifier("canvas:shaders/internal/process/copy_lod.vert"), new Identifier("canvas:shaders/internal/process/copy_lod.vert"), "_cvu_input");
+			debugShader = new ProcessShader(new Identifier("canvas:shaders/internal/process/copy_lod.vert"), new Identifier("canvas:shaders/internal/process/copy_lod.frag"), "_cvu_input");
 			mainFbo = mcFbo.fbo;
 			canvasFboId = GlStateManager.genFramebuffers();
 			mainColor = mcFboExt.canvas_colorAttachment();
