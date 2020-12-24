@@ -16,6 +16,8 @@
 
 package grondag.canvas.pipeline;
 
+import org.lwjgl.opengl.GL21;
+
 import net.minecraft.util.Identifier;
 
 class PipelineConfig {
@@ -48,17 +50,20 @@ class PipelineConfig {
 
 	static class ImageConfig {
 		Identifier id;
-		boolean hdr;
-		boolean blur;
-		// WIP: make more configurable
+		boolean depth;
+		int internalFormat;
+		int minFilter;
+		int maxFilter;
 		int lod;
 
-		static ImageConfig of(Identifier id, boolean hdr, boolean blur, int lod) {
+		static ImageConfig of(Identifier id, boolean depth, int internalFormat, int minFilter, int maxFilter, int lod) {
 			final ImageConfig result = new ImageConfig();
 			result.id = id;
-			result.hdr = hdr;
+			result.depth = depth;
+			result.internalFormat = internalFormat;
 			result.lod = lod;
-			result.blur = blur;
+			result.minFilter = minFilter;
+			result.maxFilter = maxFilter;
 			return result;
 		}
 
@@ -245,12 +250,12 @@ class PipelineConfig {
 		);
 
 		images = ImageConfig.array(
-			ImageConfig.of(IMG_EMISSIVE, false, true, 0),
-			ImageConfig.of(IMG_EMISSIVE_COLOR, false, true, 0),
+			ImageConfig.of(IMG_EMISSIVE, false, GL21.GL_RGBA8, GL21.GL_LINEAR, GL21.GL_LINEAR, 0),
+			ImageConfig.of(IMG_EMISSIVE_COLOR, false, GL21.GL_RGBA8, GL21.GL_LINEAR, GL21.GL_LINEAR, 0),
 			// don't want filtering when copy back from main
-			ImageConfig.of(IMG_MAIN_COPY, false, false, 0),
-			ImageConfig.of(IMG_BLOOM_DOWNSAMPLE, false, true, 6),
-			ImageConfig.of(IMG_BLOOM_UPSAMPLE, false, true, 6)
+			ImageConfig.of(IMG_MAIN_COPY, false, GL21.GL_RGBA8, GL21.GL_NEAREST, GL21.GL_NEAREST, 0),
+			ImageConfig.of(IMG_BLOOM_DOWNSAMPLE, false, GL21.GL_RGBA8, GL21.GL_LINEAR_MIPMAP_NEAREST, GL21.GL_LINEAR, 6),
+			ImageConfig.of(IMG_BLOOM_UPSAMPLE, false, GL21.GL_RGBA8, GL21.GL_LINEAR_MIPMAP_NEAREST, GL21.GL_LINEAR, 6)
 		);
 
 		shaders = ShaderConfig.array(

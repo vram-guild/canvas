@@ -17,12 +17,12 @@
 package grondag.canvas.pipeline;
 
 import com.mojang.blaze3d.platform.GlStateManager;
-import org.lwjgl.opengl.ARBTextureFloat;
 import org.lwjgl.opengl.GL21;
 
 import net.minecraft.client.texture.TextureUtil;
 
 import grondag.canvas.pipeline.PipelineConfig.ImageConfig;
+import grondag.canvas.varia.CanvasGlHelper;
 
 class Image {
 	final ImageConfig config;
@@ -46,30 +46,29 @@ class Image {
 			glId = TextureUtil.generateId();
 
 			GlStateManager.bindTexture(glId);
-
-			if (config.lod > 0) {
-				GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MIN_FILTER, GL21.GL_LINEAR_MIPMAP_NEAREST);
-				GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MAG_FILTER, GL21.GL_LINEAR);
-			} else if (config.blur) {
-				GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MIN_FILTER, GL21.GL_LINEAR);
-				GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MAG_FILTER, GL21.GL_LINEAR);
-			} else {
-				GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MIN_FILTER, GL21.GL_NEAREST);
-				GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MAG_FILTER, GL21.GL_NEAREST);
-			}
-
 			GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_WRAP_S, GL21.GL_CLAMP);
 			GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_WRAP_T, GL21.GL_CLAMP);
 
-			if (config.hdr) {
-				GlStateManager.texImage2D(GL21.GL_TEXTURE_2D, 0, ARBTextureFloat.GL_RGBA16F_ARB, width, height, 0, GL21.GL_RGBA, GL21.GL_FLOAT, null);
-			} else {
-				GlStateManager.texImage2D(GL21.GL_TEXTURE_2D, 0, GL21.GL_RGBA8, width, height, 0, GL21.GL_RGBA, GL21.GL_UNSIGNED_BYTE, null);
+			//WIP: Put this warning in parsing
+			// if (config.depth && config.internalFormat != GL11.GL_DEPTH_COMPONENT) {
+			// CanvasMod.LOG.warn("Framebuffer image %s is marked as a depth attachment but uses an unrecognized format. Stuff might break.");
+
+			if (config.depth) {
+				GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_COMPARE_MODE, GL21.GL_NONE);
 			}
+
+			GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MIN_FILTER, config.minFilter);
+			GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MAG_FILTER, config.maxFilter);
+
+			// the last few parameters here should not matter because we aren't passing in any pixel data
+			GlStateManager.texImage2D(GL21.GL_TEXTURE_2D, 0, config.internalFormat, width, height, 0, GL21.GL_RGBA, GL21.GL_UNSIGNED_BYTE, null);
+			assert CanvasGlHelper.checkError();
 
 			if (config.lod > 0) {
 				setupLod();
 			}
+
+			assert CanvasGlHelper.checkError();
 		}
 	}
 
@@ -82,6 +81,8 @@ class Image {
 		for (int i = 1; i <= config.lod; ++i) {
 			GlStateManager.texImage2D(GL21.GL_TEXTURE_2D, i, GL21.GL_RGBA8, width >> i, height >> i, 0, GL21.GL_RGBA, GL21.GL_UNSIGNED_BYTE, null);
 		}
+
+		assert CanvasGlHelper.checkError();
 	}
 
 	void close() {

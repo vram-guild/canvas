@@ -18,6 +18,7 @@ package grondag.canvas.pipeline;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import org.lwjgl.opengl.GL21;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.Framebuffer;
@@ -112,7 +113,7 @@ public class Pipeline {
 		final FrameBufferExt mcFboExt = ((FrameBufferExt) mcFbo);
 		final int mainColor = mcFboExt.canvas_colorAttachment();
 
-		IMAGES.put(PipelineConfig.IMG_MC_MAIN, new Image.BuiltIn(ImageConfig.of(PipelineConfig.IMG_MC_MAIN, false, false, 0), width, height, mainColor));
+		IMAGES.put(PipelineConfig.IMG_MC_MAIN, new Image.BuiltIn(ImageConfig.of(PipelineConfig.IMG_MC_MAIN, false, GL21.GL_RGBA8, GL21.GL_NEAREST, GL21.GL_NEAREST, 0), width, height, mainColor));
 
 		for (final ImageConfig img : config.images) {
 			IMAGES.put(img.id, new Image(img, width, height));

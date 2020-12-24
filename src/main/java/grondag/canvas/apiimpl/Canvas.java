@@ -42,7 +42,6 @@ import grondag.canvas.perf.ChunkRebuildCounters;
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.shader.GlShaderManager;
 import grondag.canvas.shader.MaterialProgramManager;
-import grondag.canvas.shader.ProcessShaders;
 import grondag.canvas.terrain.region.ProtoRenderRegion;
 import grondag.canvas.terrain.util.ChunkColorCache;
 import grondag.canvas.terrain.util.TerrainModelSpace;
@@ -104,7 +103,6 @@ public class Canvas implements Renderer {
 		LightmapHd.reload();
 		MaterialProgramManager.INSTANCE.reload();
 		TerrainModelSpace.reload();
-		ProcessShaders.reload();
 		Pipeline.reload();
 		MaterialTextureState.reload();
 	}
