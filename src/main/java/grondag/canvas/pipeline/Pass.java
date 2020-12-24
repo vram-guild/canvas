@@ -38,7 +38,7 @@ abstract class Pass {
 	abstract void close();
 
 	static Pass create(PassConfig config) {
-		if (config.shader.equals(PassConfig.CLEAR_ID)) {
+		if (config.shaderName.equals(PassConfig.CLEAR_NAME)) {
 			return new ClearPass(config);
 		} else {
 			return new ProgramPass(config);

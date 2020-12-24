@@ -16,27 +16,25 @@
 
 package grondag.canvas.pipeline.config;
 
-import net.minecraft.util.Identifier;
-
 public class PassConfig {
 	public String framebufferName;
 	public SamplerConfig[] samplers;
-	public Identifier shader;
+	public String shaderName;
 	// for computing size
 	public int lod;
 
 	//Image[] attachments, int[] samplerBinds, ProcessShader shader, Consumer<ProcessShader> activator
 
 	public static PassConfig of(
-			String framebufferName,
+		String framebufferName,
 		SamplerConfig[] samplers,
-		Identifier shader,
+		String shaderName,
 		int lod
 	) {
 		final PassConfig result = new PassConfig();
 		result.framebufferName = framebufferName;
 		result.samplers = samplers;
-		result.shader = shader;
+		result.shaderName = shaderName;
 		result.lod = lod;
 		return result;
 	}
@@ -45,5 +43,5 @@ public class PassConfig {
 		return passes;
 	}
 
-	public static Identifier CLEAR_ID = new Identifier("frex:clear");
+	public static String CLEAR_NAME = "frex_clear";
 }

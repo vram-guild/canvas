@@ -44,7 +44,7 @@ class ProgramPass extends Pass {
 				: Pipeline.getImage(sc.imageName).glId();
 		}
 
-		shader = Pipeline.getShader(config.shader);
+		shader = Pipeline.getShader(config.shaderName);
 	}
 
 	@Override

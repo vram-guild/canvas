@@ -18,8 +18,6 @@ package grondag.canvas.pipeline.config;
 
 import org.lwjgl.opengl.GL21;
 
-import net.minecraft.util.Identifier;
-
 public class PipelineConfig {
 	public ImageConfig[] images;
 	public PipelineParam[] params;
@@ -45,45 +43,45 @@ public class PipelineConfig {
 		);
 
 		shaders = ShaderConfig.array(
-			ShaderConfig.of(PROG_COPY, "canvas:shaders/internal/process/copy.vert", "canvas:shaders/internal/process/copy.frag", "_cvu_input", "tex0"),
+			ShaderConfig.of("copy", "canvas:shaders/internal/process/copy.vert", "canvas:shaders/internal/process/copy.frag", "_cvu_input", "tex0"),
 
 			ShaderConfig.of(
-				PROG_EMISSIVE_COLOR,
+				"emissive_color",
 				"canvas:shaders/internal/process/emissive_color.vert",
 				"canvas:shaders/internal/process/emissive_color.frag",
 				"_cvu_base", "_cvu_emissive"
 			),
 
 			ShaderConfig.of(
-				PROG_BLOOM,
+				"boom",
 				"canvas:shaders/internal/process/bloom.vert",
 				"canvas:shaders/internal/process/bloom.frag",
 				"_cvu_base", "_cvu_bloom"
 			),
 
 			ShaderConfig.of(
-				PROG_COPY_LOD,
+				"copy_lod",
 				"canvas:shaders/internal/process/copy_lod.vert",
 				"canvas:shaders/internal/process/copy_lod.frag",
 				"_cvu_input"
 			),
 
 			ShaderConfig.of(
-				PROG_DOWNSAMPLE,
+				"downsample",
 				"canvas:shaders/internal/process/downsample.vert",
 				"canvas:shaders/internal/process/downsample.frag",
 				"_cvu_input"
 			),
 
 			ShaderConfig.of(
-				PROG_UPSAMPLE,
+				"upsample",
 				"canvas:shaders/internal/process/upsample.vert",
 				"canvas:shaders/internal/process/upsample.frag",
 				"_cvu_input", "cvu_prior"
 			),
 
 			ShaderConfig.of(
-					PROG_UPSAMPLE_FIRST,
+					"upsample_first",
 				"canvas:shaders/internal/process/upsample.vert",
 				"canvas:shaders/internal/process/upsample_first.frag",
 				"_cvu_input"
@@ -183,14 +181,14 @@ public class PipelineConfig {
 		);
 
 		onWorldStart = PassConfig.array(
-			PassConfig.of("emissive", SamplerConfig.array(), PassConfig.CLEAR_ID, 0)
+			PassConfig.of("emissive", SamplerConfig.array(), PassConfig.CLEAR_NAME, 0)
 		);
 
 		afterRenderHand = PassConfig.array(
 			PassConfig.of(
 				"main_copy",
 				SamplerConfig.array(SamplerConfig.of("default_main", false)),
-				PROG_COPY,
+				"copy",
 				0
 			),
 
@@ -200,56 +198,56 @@ public class PipelineConfig {
 						SamplerConfig.of("default_main", false),
 						SamplerConfig.of("emissive", false)
 				),
-				PROG_EMISSIVE_COLOR,
+				"emissive_color",
 				0
 			),
 
 			PassConfig.of(
 				"bloom_downsample_0",
 				SamplerConfig.array(SamplerConfig.of("emissive_color", false)),
-				PROG_DOWNSAMPLE,
+				"downsample",
 				0
 			),
 
 			PassConfig.of(
 				"bloom_downsample_1",
 				SamplerConfig.array(SamplerConfig.of("bloom_downsample", false)),
-				PROG_DOWNSAMPLE,
+				"downsample",
 				1
 			),
 
 			PassConfig.of(
 				"bloom_downsample_2",
 				SamplerConfig.array(SamplerConfig.of("bloom_downsample", false)),
-				PROG_DOWNSAMPLE,
+				"downsample",
 				2
 			),
 
 			PassConfig.of(
 				"bloom_downsample_3",
 				SamplerConfig.array(SamplerConfig.of("bloom_downsample", false)),
-				PROG_DOWNSAMPLE,
+				"downsample",
 				3
 			),
 
 			PassConfig.of(
 				"bloom_downsample_4",
 				SamplerConfig.array(SamplerConfig.of("bloom_downsample", false)),
-				PROG_DOWNSAMPLE,
+				"downsample",
 				4
 			),
 
 			PassConfig.of(
 				"bloom_downsample_5",
 				SamplerConfig.array(SamplerConfig.of("bloom_downsample", false)),
-				PROG_DOWNSAMPLE,
+				"downsample",
 				5
 			),
 
 			PassConfig.of(
 				"bloom_downsample_6",
 				SamplerConfig.array(SamplerConfig.of("bloom_downsample", false)),
-				PROG_DOWNSAMPLE,
+				"downsample",
 				6
 			),
 
@@ -258,7 +256,7 @@ public class PipelineConfig {
 				SamplerConfig.array(
 						SamplerConfig.of("bloom_downsample", false)
 				),
-				PROG_UPSAMPLE_FIRST,
+				"upsample_first",
 				6
 			),
 
@@ -268,7 +266,7 @@ public class PipelineConfig {
 						SamplerConfig.of("bloom_downsample", false),
 						SamplerConfig.of("bloom_upsample", false)
 				),
-				PROG_UPSAMPLE,
+				"upsample",
 				5
 			),
 
@@ -278,7 +276,7 @@ public class PipelineConfig {
 						SamplerConfig.of("bloom_downsample", false),
 						SamplerConfig.of("bloom_upsample", false)
 				),
-				PROG_UPSAMPLE,
+				"upsample",
 				4
 			),
 
@@ -288,7 +286,7 @@ public class PipelineConfig {
 						SamplerConfig.of("bloom_downsample", false),
 						SamplerConfig.of("bloom_upsample", false)
 				),
-				PROG_UPSAMPLE,
+				"upsample",
 				3
 			),
 
@@ -298,7 +296,7 @@ public class PipelineConfig {
 						SamplerConfig.of("bloom_downsample", false),
 						SamplerConfig.of("bloom_upsample", false)
 				),
-				PROG_UPSAMPLE,
+				"upsample",
 				2
 			),
 
@@ -308,7 +306,7 @@ public class PipelineConfig {
 						SamplerConfig.of("bloom_downsample", false),
 						SamplerConfig.of("bloom_upsample", false)
 				),
-				PROG_UPSAMPLE,
+				"upsample",
 				1
 			),
 
@@ -318,7 +316,7 @@ public class PipelineConfig {
 						SamplerConfig.of("bloom_downsample", false),
 						SamplerConfig.of("bloom_upsample", false)
 				),
-				PROG_UPSAMPLE,
+				"upsample",
 				0
 			),
 
@@ -328,17 +326,9 @@ public class PipelineConfig {
 						SamplerConfig.of("main_copy", false),
 						SamplerConfig.of("bloom_upsample", false)
 				),
-				PROG_BLOOM,
+				"boom",
 				0
 			)
 		);
 	}
-
-	public static final Identifier PROG_COPY = new Identifier("canvas:copy");
-	public static final Identifier PROG_EMISSIVE_COLOR = new Identifier("canvas:emissive_color");
-	public static final Identifier PROG_BLOOM = new Identifier("canvas:boom");
-	public static final Identifier PROG_COPY_LOD = new Identifier("canvas:copy_lod");
-	public static final Identifier PROG_DOWNSAMPLE = new Identifier("canvas:downsample");
-	public static final Identifier PROG_UPSAMPLE = new Identifier("canvas:upsample");
-	public static final Identifier PROG_UPSAMPLE_FIRST = new Identifier("canvas:upsample_first");
 }

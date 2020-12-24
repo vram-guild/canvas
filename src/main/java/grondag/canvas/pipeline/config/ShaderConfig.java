@@ -19,32 +19,23 @@ import net.minecraft.util.Identifier;
  */
 
 public class ShaderConfig {
-	public Identifier id;
+	public String name;
 	public Identifier vertexSource;
 	public Identifier fragmentSource;
 	public String[] samplerNames;
 
 	public static ShaderConfig of(
-			Identifier id,
-			Identifier vertexSource,
-			Identifier fragmentSource,
-			String... samplerNames
-	) {
-		final ShaderConfig result = new ShaderConfig();
-		result.id = id;
-		result.vertexSource = vertexSource;
-		result.fragmentSource = fragmentSource;
-		result.samplerNames = samplerNames;
-		return result;
-	}
-
-	public static ShaderConfig of(
-			Identifier id,
+			String name,
 			String vertexSource,
 			String fragmentSource,
 			String... samplerNames
 	) {
-		return of(id, new Identifier(vertexSource), new Identifier(fragmentSource), samplerNames);
+		final ShaderConfig result = new ShaderConfig();
+		result.name = name;
+		result.vertexSource = new Identifier(vertexSource);
+		result.fragmentSource = new Identifier(fragmentSource);
+		result.samplerNames = samplerNames;
+		return result;
 	}
 
 	public static ShaderConfig[] array(ShaderConfig... configs) {

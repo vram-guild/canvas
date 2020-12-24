@@ -22,7 +22,6 @@ import org.lwjgl.opengl.GL21;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.Framebuffer;
-import net.minecraft.util.Identifier;
 
 import grondag.canvas.mixinterface.FrameBufferExt;
 import grondag.canvas.pipeline.config.FramebufferConfig;
@@ -39,15 +38,15 @@ public class Pipeline {
 	static Pass[] afterRenderHand = { };
 
 	private static final Object2ObjectOpenHashMap<String, Image> IMAGES = new Object2ObjectOpenHashMap<>();
-	private static final Object2ObjectOpenHashMap<Identifier, ProcessShader> SHADERS = new Object2ObjectOpenHashMap<>();
+	private static final Object2ObjectOpenHashMap<String, ProcessShader> SHADERS = new Object2ObjectOpenHashMap<>();
 	private static final Object2ObjectOpenHashMap<String, PipelineFramebuffer> FRAMEBUFFERS = new Object2ObjectOpenHashMap<>();
 
 	static Image getImage(String name) {
 		return IMAGES.get(name);
 	}
 
-	static ProcessShader getShader(Identifier id) {
-		return SHADERS.get(id);
+	static ProcessShader getShader(String name) {
+		return SHADERS.get(name);
 	}
 
 	static PipelineFramebuffer getFramebuffer(String name) {
@@ -121,7 +120,7 @@ public class Pipeline {
 		}
 
 		for (final ShaderConfig shader : config.shaders) {
-			SHADERS.put(shader.id, new ProcessShader(shader.vertexSource, shader.fragmentSource, shader.samplerNames));
+			SHADERS.put(shader.name, new ProcessShader(shader.vertexSource, shader.fragmentSource, shader.samplerNames));
 		}
 
 		// WIP: add the mc framebuffers?
