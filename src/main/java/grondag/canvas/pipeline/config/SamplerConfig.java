@@ -16,28 +16,18 @@
 
 package grondag.canvas.pipeline.config;
 
-import net.minecraft.util.Identifier;
-
 public class SamplerConfig {
-	public Identifier texture;
+	public String texture;
 	public boolean gameTexture;
 
 	public static SamplerConfig of(
-		Identifier texture,
+		String texture,
 		boolean gameTexture
 	) {
 		final SamplerConfig result = new SamplerConfig();
 		result.texture = texture;
 		result.gameTexture = gameTexture;
 		return result;
-	}
-
-	public static SamplerConfig of(
-		String texture,
-		boolean gameTexture,
-		int samplerIndex
-	) {
-		return of(new Identifier(texture), gameTexture);
 	}
 
 	public static SamplerConfig[] array(SamplerConfig... samplers) {

@@ -63,10 +63,10 @@ public class BufferDebug {
 		int i = 0;
 
 		for (final ImageConfig img : config.images) {
-			final int glId = Pipeline.getImage(img.id).glId();
+			final int glId = Pipeline.getImage(img.name).glId();
 
 			for (int lod = 0; lod <= img.lod; ++lod) {
-				labels[i] = img.id.toString() + " lod=" + lod;
+				labels[i] = img.name + " lod=" + lod;
 				glIds[i] = glId;
 				lods[i] = lod;
 				++i;

@@ -38,12 +38,12 @@ public class Pipeline {
 	static Pass[] onWorldRenderStart = { };
 	static Pass[] afterRenderHand = { };
 
-	private static final Object2ObjectOpenHashMap<Identifier, Image> IMAGES = new Object2ObjectOpenHashMap<>();
+	private static final Object2ObjectOpenHashMap<String, Image> IMAGES = new Object2ObjectOpenHashMap<>();
 	private static final Object2ObjectOpenHashMap<Identifier, ProcessShader> SHADERS = new Object2ObjectOpenHashMap<>();
 	private static final Object2ObjectOpenHashMap<Identifier, PipelineFramebuffer> FRAMEBUFFERS = new Object2ObjectOpenHashMap<>();
 
-	static Image getImage(Identifier id) {
-		return IMAGES.get(id);
+	static Image getImage(String name) {
+		return IMAGES.get(name);
 	}
 
 	static ProcessShader getShader(Identifier id) {
@@ -114,10 +114,10 @@ public class Pipeline {
 		final FrameBufferExt mcFboExt = ((FrameBufferExt) mcFbo);
 		final int mainColor = mcFboExt.canvas_colorAttachment();
 
-		IMAGES.put(PipelineConfig.IMG_MC_MAIN, new Image.BuiltIn(ImageConfig.of(PipelineConfig.IMG_MC_MAIN, false, GL21.GL_RGBA8, GL21.GL_NEAREST, GL21.GL_NEAREST, 0), width, height, mainColor));
+		IMAGES.put("default_main", new Image.BuiltIn(ImageConfig.of("default_main", false, GL21.GL_RGBA8, GL21.GL_NEAREST, GL21.GL_NEAREST, 0), width, height, mainColor));
 
 		for (final ImageConfig img : config.images) {
-			IMAGES.put(img.id, new Image(img, width, height));
+			IMAGES.put(img.name, new Image(img, width, height));
 		}
 
 		for (final ShaderConfig shader : config.shaders) {

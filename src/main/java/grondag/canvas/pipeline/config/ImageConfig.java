@@ -16,19 +16,17 @@
 
 package grondag.canvas.pipeline.config;
 
-import net.minecraft.util.Identifier;
-
 public class ImageConfig {
-	public Identifier id;
+	public String name;
 	public boolean depth;
 	public int internalFormat;
 	public int minFilter;
 	public int maxFilter;
 	public int lod;
 
-	public static ImageConfig of(Identifier id, boolean depth, int internalFormat, int minFilter, int maxFilter, int lod) {
+	public static ImageConfig of(String name, boolean depth, int internalFormat, int minFilter, int maxFilter, int lod) {
 		final ImageConfig result = new ImageConfig();
-		result.id = id;
+		result.name = name;
 		result.depth = depth;
 		result.internalFormat = internalFormat;
 		result.lod = lod;

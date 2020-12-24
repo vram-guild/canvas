@@ -32,7 +32,6 @@ import grondag.canvas.buffer.VboBuffer;
 import grondag.canvas.buffer.encoding.VertexCollectorImpl;
 import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.mixinterface.FrameBufferExt;
-import grondag.canvas.pipeline.config.PipelineConfig;
 import grondag.canvas.shader.GlProgram;
 import grondag.canvas.shader.ProcessShader;
 
@@ -180,8 +179,8 @@ public class PipelineManager {
 			Pipeline.activate(w, h);
 			GlStateManager.bindFramebuffer(FramebufferInfo.FRAME_BUFFER, mcFbo.fbo);
 
-			assert mainColor == Pipeline.getImage(PipelineConfig.IMG_MC_MAIN).glId();
-			texEmissive = Pipeline.getImage(PipelineConfig.IMG_EMISSIVE).glId();
+			assert mainColor == Pipeline.getImage("default_main").glId();
+			texEmissive = Pipeline.getImage("emissive").glId();
 
 			GlStateManager.bindTexture(0);
 

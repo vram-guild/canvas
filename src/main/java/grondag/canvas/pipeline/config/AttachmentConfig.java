@@ -16,15 +16,13 @@
 
 package grondag.canvas.pipeline.config;
 
-import net.minecraft.util.Identifier;
-
 public class AttachmentConfig {
-	public Identifier image;
+	public String image;
 	public int lod;
 	public int clearColor;
 
 	static AttachmentConfig of(
-		Identifier image,
+		String image,
 		int clearColor,
 		int lod
 	) {
@@ -33,14 +31,6 @@ public class AttachmentConfig {
 		result.lod = lod;
 		result.clearColor = clearColor;
 		return result;
-	}
-
-	public static AttachmentConfig of(
-		String image,
-		int clearColor,
-		int lod
-	) {
-		return of(new Identifier(image), lod, clearColor);
 	}
 
 	public static AttachmentConfig[] array(AttachmentConfig... attachments) {

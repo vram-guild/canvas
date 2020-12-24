@@ -22,6 +22,7 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL21;
 
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.util.Identifier;
 
 import grondag.canvas.pipeline.config.PassConfig;
 import grondag.canvas.pipeline.config.SamplerConfig;
@@ -39,7 +40,7 @@ class ProgramPass extends Pass {
 			final SamplerConfig sc = config.samplers[i];
 
 			binds[i] = sc.gameTexture
-				? MinecraftClient.getInstance().getTextureManager().getTexture(sc.texture).getGlId()
+				? MinecraftClient.getInstance().getTextureManager().getTexture(new Identifier(sc.texture)).getGlId()
 				: Pipeline.getImage(sc.texture).glId();
 		}
 
