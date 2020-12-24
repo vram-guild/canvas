@@ -16,27 +16,18 @@
 
 package grondag.canvas.pipeline.config;
 
-import net.minecraft.util.Identifier;
-
 public class FramebufferConfig {
-	public Identifier id;
+	public String name;
 	public AttachmentConfig[] attachments;
 
 	static FramebufferConfig of(
-		Identifier id,
+		String name,
 		AttachmentConfig... attachments
 	) {
 		final FramebufferConfig result = new FramebufferConfig();
-		result.id = id;
+		result.name = name;
 		result.attachments = attachments;
 		return result;
-	}
-
-	public static FramebufferConfig of(
-		String id,
-		AttachmentConfig... attachments
-	) {
-		return of(new Identifier(id), attachments);
 	}
 
 	public static FramebufferConfig[] array(FramebufferConfig... configs) {

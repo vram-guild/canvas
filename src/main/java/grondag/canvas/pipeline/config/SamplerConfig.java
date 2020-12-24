@@ -17,15 +17,15 @@
 package grondag.canvas.pipeline.config;
 
 public class SamplerConfig {
-	public String texture;
+	public String imageName;
 	public boolean gameTexture;
 
 	public static SamplerConfig of(
-		String texture,
+		String imageName,
 		boolean gameTexture
 	) {
 		final SamplerConfig result = new SamplerConfig();
-		result.texture = texture;
+		result.imageName = imageName;
 		result.gameTexture = gameTexture;
 		return result;
 	}

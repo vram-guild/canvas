@@ -40,7 +40,7 @@ public class Pipeline {
 
 	private static final Object2ObjectOpenHashMap<String, Image> IMAGES = new Object2ObjectOpenHashMap<>();
 	private static final Object2ObjectOpenHashMap<Identifier, ProcessShader> SHADERS = new Object2ObjectOpenHashMap<>();
-	private static final Object2ObjectOpenHashMap<Identifier, PipelineFramebuffer> FRAMEBUFFERS = new Object2ObjectOpenHashMap<>();
+	private static final Object2ObjectOpenHashMap<String, PipelineFramebuffer> FRAMEBUFFERS = new Object2ObjectOpenHashMap<>();
 
 	static Image getImage(String name) {
 		return IMAGES.get(name);
@@ -50,8 +50,8 @@ public class Pipeline {
 		return SHADERS.get(id);
 	}
 
-	static PipelineFramebuffer getFramebuffer(Identifier id) {
-		return FRAMEBUFFERS.get(id);
+	static PipelineFramebuffer getFramebuffer(String name) {
+		return FRAMEBUFFERS.get(name);
 	}
 
 	static boolean needsReload() {
@@ -127,7 +127,7 @@ public class Pipeline {
 		// WIP: add the mc framebuffers?
 
 		for (final FramebufferConfig buffer : config.framebuffers) {
-			FRAMEBUFFERS.put(buffer.id, new PipelineFramebuffer(buffer, width, height));
+			FRAMEBUFFERS.put(buffer.name, new PipelineFramebuffer(buffer, width, height));
 		}
 
 		BufferDebug.init(config);

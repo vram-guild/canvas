@@ -17,17 +17,17 @@
 package grondag.canvas.pipeline.config;
 
 public class AttachmentConfig {
-	public String image;
+	public String imageName;
 	public int lod;
 	public int clearColor;
 
 	static AttachmentConfig of(
-		String image,
+		String imageName,
 		int clearColor,
 		int lod
 	) {
 		final AttachmentConfig result = new AttachmentConfig();
-		result.image = image;
+		result.imageName = imageName;
 		result.lod = lod;
 		result.clearColor = clearColor;
 		return result;

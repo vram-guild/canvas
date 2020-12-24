@@ -40,8 +40,8 @@ class ProgramPass extends Pass {
 			final SamplerConfig sc = config.samplers[i];
 
 			binds[i] = sc.gameTexture
-				? MinecraftClient.getInstance().getTextureManager().getTexture(new Identifier(sc.texture)).getGlId()
-				: Pipeline.getImage(sc.texture).glId();
+				? MinecraftClient.getInstance().getTextureManager().getTexture(new Identifier(sc.imageName)).getGlId()
+				: Pipeline.getImage(sc.imageName).glId();
 		}
 
 		shader = Pipeline.getShader(config.shader);

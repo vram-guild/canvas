@@ -50,7 +50,7 @@ class PipelineFramebuffer {
 
 		for (int i = 0; i < config.attachments.length; ++i) {
 			final AttachmentConfig ac = config.attachments[i];
-			final Image img = Pipeline.getImage(ac.image);
+			final Image img = Pipeline.getImage(ac.imageName);
 			GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT + i, GL21.GL_TEXTURE_2D, img.glId(), ac.lod);
 		}
 	}

@@ -25,11 +25,11 @@ abstract class Pass {
 
 	Pass(PassConfig config) {
 		this.config = config;
-		fbo = Pipeline.getFramebuffer(config.framebuffer);
+		fbo = Pipeline.getFramebuffer(config.framebufferName);
 
 		if (fbo == null) {
 			// WIP: give passes names, allow profiling
-			CanvasMod.LOG.warn(String.format("Unable to find framebuffer %s for pass $s.  Pass will be skipped.", config.framebuffer.toString(), "UNKNOWN"));
+			CanvasMod.LOG.warn(String.format("Unable to find framebuffer %s for pass $s.  Pass will be skipped.", config.framebufferName.toString(), "UNKNOWN"));
 		}
 	}
 

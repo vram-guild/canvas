@@ -92,110 +92,110 @@ public class PipelineConfig {
 
 		framebuffers = FramebufferConfig.array(
 			FramebufferConfig.of(
-				"canvas:emissive",
+				"emissive",
 				AttachmentConfig.array(AttachmentConfig.of("emissive", 0, 0))
 			),
 
 			FramebufferConfig.of(
-				"canvas:main_copy",
+				"main_copy",
 				AttachmentConfig.array(AttachmentConfig.of("main_copy", 0, 0))
 			),
 
 			FramebufferConfig.of(
-				"canvas:emissive_color",
+				"emissive_color",
 				AttachmentConfig.array(AttachmentConfig.of("emissive_color", 0, 0))
 			),
 
 			FramebufferConfig.of(
-				"canvas:bloom_downsample_0",
+				"bloom_downsample_0",
 				AttachmentConfig.array(AttachmentConfig.of("bloom_downsample", 0, 0))
 			),
 
 			FramebufferConfig.of(
-				"canvas:bloom_downsample_1",
+				"bloom_downsample_1",
 				AttachmentConfig.array(AttachmentConfig.of("bloom_downsample", 0, 1))
 			),
 
 			FramebufferConfig.of(
-				"canvas:bloom_downsample_2",
+				"bloom_downsample_2",
 				AttachmentConfig.array(AttachmentConfig.of("bloom_downsample", 0, 2))
 			),
 
 			FramebufferConfig.of(
-				"canvas:bloom_downsample_3",
+				"bloom_downsample_3",
 				AttachmentConfig.array(AttachmentConfig.of("bloom_downsample", 0, 3))
 			),
 
 			FramebufferConfig.of(
-				"canvas:bloom_downsample_4",
+				"bloom_downsample_4",
 				AttachmentConfig.array(AttachmentConfig.of("bloom_downsample", 0, 4))
 			),
 
 			FramebufferConfig.of(
-				"canvas:bloom_downsample_5",
+				"bloom_downsample_5",
 				AttachmentConfig.array(AttachmentConfig.of("bloom_downsample", 0, 5))
 			),
 
 			FramebufferConfig.of(
-				"canvas:bloom_downsample_6",
+				"bloom_downsample_6",
 				AttachmentConfig.array(AttachmentConfig.of("bloom_downsample", 0, 6))
 			),
 
 			FramebufferConfig.of(
-				"canvas:bloom_upsample_6",
+				"bloom_upsample_6",
 				AttachmentConfig.array(AttachmentConfig.of("bloom_upsample", 0, 6))
 			),
 
 			FramebufferConfig.of(
-				"canvas:bloom_upsample_5",
+				"bloom_upsample_5",
 				AttachmentConfig.array(AttachmentConfig.of("bloom_upsample", 0, 5))
 			),
 
 			FramebufferConfig.of(
-				"canvas:bloom_upsample_4",
+				"bloom_upsample_4",
 				AttachmentConfig.array(AttachmentConfig.of("bloom_upsample", 0, 4))
 			),
 
 			FramebufferConfig.of(
-				"canvas:bloom_upsample_3",
+				"bloom_upsample_3",
 				AttachmentConfig.array(AttachmentConfig.of("bloom_upsample", 0, 3))
 			),
 
 			FramebufferConfig.of(
-				"canvas:bloom_upsample_2",
+				"bloom_upsample_2",
 				AttachmentConfig.array(AttachmentConfig.of("bloom_upsample", 0, 2))
 			),
 
 			FramebufferConfig.of(
-				"canvas:bloom_upsample_1",
+				"bloom_upsample_1",
 				AttachmentConfig.array(AttachmentConfig.of("bloom_upsample", 0, 1))
 			),
 
 			FramebufferConfig.of(
-				"canvas:bloom_upsample_0",
+				"bloom_upsample_0",
 				AttachmentConfig.array(AttachmentConfig.of("bloom_upsample", 0, 0))
 			),
 
 			FramebufferConfig.of(
-				"canvas:bloom",
+				"bloom",
 				AttachmentConfig.array(AttachmentConfig.of("default_main", 0, 0))
 			)
 		);
 
 		onWorldStart = PassConfig.array(
-			PassConfig.of("canvas:emissive", SamplerConfig.array(), PassConfig.CLEAR_ID, 0)
+			PassConfig.of("emissive", SamplerConfig.array(), PassConfig.CLEAR_ID, 0)
 		);
 
 		afterRenderHand = PassConfig.array(
 			PassConfig.of(
-				"canvas:main_copy",
+				"main_copy",
 				SamplerConfig.array(SamplerConfig.of("default_main", false)),
 				PROG_COPY,
 				0
 			),
 
 			PassConfig.of(
-				"canvas:emissive_color",
+				"emissive_color",
 				SamplerConfig.array(
 						SamplerConfig.of("default_main", false),
 						SamplerConfig.of("emissive", false)
@@ -205,56 +205,56 @@ public class PipelineConfig {
 			),
 
 			PassConfig.of(
-				"canvas:bloom_downsample_0",
+				"bloom_downsample_0",
 				SamplerConfig.array(SamplerConfig.of("emissive_color", false)),
 				PROG_DOWNSAMPLE,
 				0
 			),
 
 			PassConfig.of(
-				"canvas:bloom_downsample_1",
+				"bloom_downsample_1",
 				SamplerConfig.array(SamplerConfig.of("bloom_downsample", false)),
 				PROG_DOWNSAMPLE,
 				1
 			),
 
 			PassConfig.of(
-				"canvas:bloom_downsample_2",
+				"bloom_downsample_2",
 				SamplerConfig.array(SamplerConfig.of("bloom_downsample", false)),
 				PROG_DOWNSAMPLE,
 				2
 			),
 
 			PassConfig.of(
-				"canvas:bloom_downsample_3",
+				"bloom_downsample_3",
 				SamplerConfig.array(SamplerConfig.of("bloom_downsample", false)),
 				PROG_DOWNSAMPLE,
 				3
 			),
 
 			PassConfig.of(
-				"canvas:bloom_downsample_4",
+				"bloom_downsample_4",
 				SamplerConfig.array(SamplerConfig.of("bloom_downsample", false)),
 				PROG_DOWNSAMPLE,
 				4
 			),
 
 			PassConfig.of(
-				"canvas:bloom_downsample_5",
+				"bloom_downsample_5",
 				SamplerConfig.array(SamplerConfig.of("bloom_downsample", false)),
 				PROG_DOWNSAMPLE,
 				5
 			),
 
 			PassConfig.of(
-				"canvas:bloom_downsample_6",
+				"bloom_downsample_6",
 				SamplerConfig.array(SamplerConfig.of("bloom_downsample", false)),
 				PROG_DOWNSAMPLE,
 				6
 			),
 
 			PassConfig.of(
-				"canvas:bloom_upsample_6",
+				"bloom_upsample_6",
 				SamplerConfig.array(
 						SamplerConfig.of("bloom_downsample", false)
 				),
@@ -263,7 +263,7 @@ public class PipelineConfig {
 			),
 
 			PassConfig.of(
-				"canvas:bloom_upsample_5",
+				"bloom_upsample_5",
 				SamplerConfig.array(
 						SamplerConfig.of("bloom_downsample", false),
 						SamplerConfig.of("bloom_upsample", false)
@@ -273,7 +273,7 @@ public class PipelineConfig {
 			),
 
 			PassConfig.of(
-				"canvas:bloom_upsample_4",
+				"bloom_upsample_4",
 				SamplerConfig.array(
 						SamplerConfig.of("bloom_downsample", false),
 						SamplerConfig.of("bloom_upsample", false)
@@ -283,7 +283,7 @@ public class PipelineConfig {
 			),
 
 			PassConfig.of(
-				"canvas:bloom_upsample_3",
+				"bloom_upsample_3",
 				SamplerConfig.array(
 						SamplerConfig.of("bloom_downsample", false),
 						SamplerConfig.of("bloom_upsample", false)
@@ -293,7 +293,7 @@ public class PipelineConfig {
 			),
 
 			PassConfig.of(
-				"canvas:bloom_upsample_2",
+				"bloom_upsample_2",
 				SamplerConfig.array(
 						SamplerConfig.of("bloom_downsample", false),
 						SamplerConfig.of("bloom_upsample", false)
@@ -303,7 +303,7 @@ public class PipelineConfig {
 			),
 
 			PassConfig.of(
-				"canvas:bloom_upsample_1",
+				"bloom_upsample_1",
 				SamplerConfig.array(
 						SamplerConfig.of("bloom_downsample", false),
 						SamplerConfig.of("bloom_upsample", false)
@@ -313,7 +313,7 @@ public class PipelineConfig {
 			),
 
 			PassConfig.of(
-				"canvas:bloom_upsample_0",
+				"bloom_upsample_0",
 				SamplerConfig.array(
 						SamplerConfig.of("bloom_downsample", false),
 						SamplerConfig.of("bloom_upsample", false)
@@ -323,7 +323,7 @@ public class PipelineConfig {
 			),
 
 			PassConfig.of(
-				"canvas:bloom",
+				"bloom",
 				SamplerConfig.array(
 						SamplerConfig.of("main_copy", false),
 						SamplerConfig.of("bloom_upsample", false)
