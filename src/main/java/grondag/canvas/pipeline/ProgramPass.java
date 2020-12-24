@@ -23,8 +23,8 @@ import org.lwjgl.opengl.GL21;
 
 import net.minecraft.client.MinecraftClient;
 
-import grondag.canvas.pipeline.PipelineConfig.PassConfig;
-import grondag.canvas.pipeline.PipelineConfig.SamplerConfig;
+import grondag.canvas.pipeline.config.PassConfig;
+import grondag.canvas.pipeline.config.SamplerConfig;
 import grondag.canvas.shader.ProcessShader;
 
 class ProgramPass extends Pass {

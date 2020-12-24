@@ -21,7 +21,7 @@ import org.lwjgl.opengl.GL21;
 
 import net.minecraft.client.texture.TextureUtil;
 
-import grondag.canvas.pipeline.PipelineConfig.ImageConfig;
+import grondag.canvas.pipeline.config.ImageConfig;
 import grondag.canvas.varia.CanvasGlHelper;
 
 class Image {
@@ -44,6 +44,10 @@ class Image {
 	protected void open() {
 		if (glId == -1) {
 			glId = TextureUtil.generateId();
+
+			// WIP: REMOVE
+			final int tex2d = GlSymbolLookup.lookup("TEXTURE_2D");
+			final int rgbs = GlSymbolLookup.lookup("RGBA8");
 
 			GlStateManager.bindTexture(glId);
 			GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_WRAP_S, GL21.GL_CLAMP);

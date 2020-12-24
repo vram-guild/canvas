@@ -22,8 +22,8 @@ import org.lwjgl.opengl.GL21;
 
 import net.minecraft.client.MinecraftClient;
 
-import grondag.canvas.pipeline.PipelineConfig.AttachmentConfig;
-import grondag.canvas.pipeline.PipelineConfig.FramebufferConfig;
+import grondag.canvas.pipeline.config.AttachmentConfig;
+import grondag.canvas.pipeline.config.FramebufferConfig;
 
 class PipelineFramebuffer {
 	final FramebufferConfig config;

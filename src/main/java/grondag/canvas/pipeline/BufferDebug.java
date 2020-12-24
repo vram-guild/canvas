@@ -26,7 +26,8 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.LiteralText;
 
 import grondag.canvas.CanvasMod;
-import grondag.canvas.pipeline.PipelineConfig.ImageConfig;
+import grondag.canvas.pipeline.config.ImageConfig;
+import grondag.canvas.pipeline.config.PipelineConfig;
 
 public class BufferDebug {
 	private static final int NONE = 0;

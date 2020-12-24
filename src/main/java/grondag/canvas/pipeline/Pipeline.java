@@ -25,9 +25,10 @@ import net.minecraft.client.gl.Framebuffer;
 import net.minecraft.util.Identifier;
 
 import grondag.canvas.mixinterface.FrameBufferExt;
-import grondag.canvas.pipeline.PipelineConfig.FramebufferConfig;
-import grondag.canvas.pipeline.PipelineConfig.ImageConfig;
-import grondag.canvas.pipeline.PipelineConfig.ShaderConfig;
+import grondag.canvas.pipeline.config.FramebufferConfig;
+import grondag.canvas.pipeline.config.ImageConfig;
+import grondag.canvas.pipeline.config.PipelineConfig;
+import grondag.canvas.pipeline.config.ShaderConfig;
 import grondag.canvas.shader.ProcessShader;
 
 public class Pipeline {

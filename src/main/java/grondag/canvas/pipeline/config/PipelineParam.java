@@ -14,25 +14,31 @@
  *  the License.
  */
 
-package grondag.canvas.pipeline;
+package grondag.canvas.pipeline.config;
 
-import grondag.canvas.pipeline.config.PassConfig;
+public class PipelineParam {
+	public String name;
+	public float minVal;
+	public float maxVal;
+	public float defaultVal;
+	public float currentVal;
 
-public class ClearPass extends Pass {
-	ClearPass(PassConfig config) {
-		super(config);
+	public static PipelineParam of(
+		String name,
+		float minVal,
+		float maxVal,
+		float defaultVal
+	) {
+		final PipelineParam result = new PipelineParam();
+		result.name = name;
+		result.minVal = minVal;
+		result.maxVal = maxVal;
+		result.defaultVal = defaultVal;
+		result.currentVal = defaultVal;
+		return result;
 	}
 
-	@Override
-	void run(int width, int height) {
-		if (fbo != null) {
-			fbo.bind(width, height);
-			fbo.clear();
-		}
-	}
-
-	@Override
-	void close() {
-		// NOOP
+	public static PipelineParam[] array(PipelineParam... params) {
+		return params;
 	}
 }

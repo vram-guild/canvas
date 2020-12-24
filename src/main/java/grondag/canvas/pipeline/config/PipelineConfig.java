@@ -14,234 +14,20 @@
  *  the License.
  */
 
-package grondag.canvas.pipeline;
+package grondag.canvas.pipeline.config;
 
 import org.lwjgl.opengl.GL21;
 
 import net.minecraft.util.Identifier;
 
-class PipelineConfig {
-	static class PipelineParam {
-		String name;
-		float minVal;
-		float maxVal;
-		float defaultVal;
-		float currentVal;
+public class PipelineConfig {
+	public ImageConfig[] images;
+	public PipelineParam[] params;
+	public ShaderConfig[] shaders;
+	public FramebufferConfig[] framebuffers;
 
-		static PipelineParam of(
-			String name,
-			float minVal,
-			float maxVal,
-			float defaultVal
-		) {
-			final PipelineParam result = new PipelineParam();
-			result.name = name;
-			result.minVal = minVal;
-			result.maxVal = maxVal;
-			result.defaultVal = defaultVal;
-			result.currentVal = defaultVal;
-			return result;
-		}
-
-		static PipelineParam[] array(PipelineParam... params) {
-			return params;
-		}
-	}
-
-	static class ImageConfig {
-		Identifier id;
-		boolean depth;
-		int internalFormat;
-		int minFilter;
-		int maxFilter;
-		int lod;
-
-		static ImageConfig of(Identifier id, boolean depth, int internalFormat, int minFilter, int maxFilter, int lod) {
-			final ImageConfig result = new ImageConfig();
-			result.id = id;
-			result.depth = depth;
-			result.internalFormat = internalFormat;
-			result.lod = lod;
-			result.minFilter = minFilter;
-			result.maxFilter = maxFilter;
-			return result;
-		}
-
-		static ImageConfig[] array(ImageConfig... configs) {
-			return configs;
-		}
-	}
-
-	static class AttachmentConfig {
-		Identifier image;
-		int lod;
-		int clearColor;
-
-		static AttachmentConfig of(
-			Identifier image,
-			int clearColor,
-			int lod
-		) {
-			final AttachmentConfig result = new AttachmentConfig();
-			result.image = image;
-			result.lod = lod;
-			result.clearColor = clearColor;
-			return result;
-		}
-
-		static AttachmentConfig of(
-			String image,
-			int clearColor,
-			int lod
-		) {
-			return of(new Identifier(image), lod, clearColor);
-		}
-
-		static AttachmentConfig[] array(AttachmentConfig... attachments) {
-			return attachments;
-		}
-	}
-
-	static class FramebufferConfig {
-		Identifier id;
-		AttachmentConfig[] attachments;
-
-		static FramebufferConfig of(
-			Identifier id,
-			AttachmentConfig... attachments
-		) {
-			final FramebufferConfig result = new FramebufferConfig();
-			result.id = id;
-			result.attachments = attachments;
-			return result;
-		}
-
-		static FramebufferConfig of(
-			String id,
-			AttachmentConfig... attachments
-		) {
-			return of(new Identifier(id), attachments);
-		}
-
-		static FramebufferConfig[] array(FramebufferConfig... configs) {
-			return configs;
-		}
-	}
-
-	static class SamplerConfig {
-		Identifier texture;
-		boolean gameTexture;
-
-		static SamplerConfig of(
-			Identifier texture,
-			boolean gameTexture
-		) {
-			final SamplerConfig result = new SamplerConfig();
-			result.texture = texture;
-			result.gameTexture = gameTexture;
-			return result;
-		}
-
-		static SamplerConfig of(
-			String texture,
-			boolean gameTexture,
-			int samplerIndex
-		) {
-			return of(new Identifier(texture), gameTexture);
-		}
-
-		static SamplerConfig[] array(SamplerConfig... samplers) {
-			return samplers;
-		}
-	}
-
-	static class ShaderConfig {
-		Identifier id;
-		Identifier vertexSource;
-		Identifier fragmentSource;
-		String[] samplerNames;
-
-		static ShaderConfig of(
-				Identifier id,
-				Identifier vertexSource,
-				Identifier fragmentSource,
-				String... samplerNames
-		) {
-			final ShaderConfig result = new ShaderConfig();
-			result.id = id;
-			result.vertexSource = vertexSource;
-			result.fragmentSource = fragmentSource;
-			result.samplerNames = samplerNames;
-			return result;
-		}
-
-		static ShaderConfig of(
-				Identifier id,
-				String vertexSource,
-				String fragmentSource,
-				String... samplerNames
-		) {
-			return of(id, new Identifier(vertexSource), new Identifier(fragmentSource), samplerNames);
-		}
-
-		static ShaderConfig[] array(ShaderConfig... configs) {
-			return configs;
-		}
-	}
-
-	static class PassConfig {
-		Identifier framebuffer;
-		SamplerConfig[] samplers;
-		Identifier shader;
-		// for computing size
-		int lod;
-
-		//Image[] attachments, int[] samplerBinds, ProcessShader shader, Consumer<ProcessShader> activator
-
-		static PassConfig of(
-			Identifier framebuffer,
-			SamplerConfig[] samplers,
-			Identifier shader,
-			int lod
-		) {
-			final PassConfig result = new PassConfig();
-			result.framebuffer = framebuffer;
-			result.samplers = samplers;
-			result.shader = shader;
-			result.lod = lod;
-			return result;
-		}
-
-		static PassConfig of(
-			String framebuffer,
-			SamplerConfig[] samplers,
-			Identifier shader,
-			int lod
-		) {
-			return of(new Identifier(framebuffer), samplers, shader, lod);
-		}
-
-		static PassConfig of(
-			String framebuffer,
-			SamplerConfig[] samplers,
-			String shader,
-			int lod
-		) {
-			return of(new Identifier(framebuffer), samplers, new Identifier(shader), lod);
-		}
-
-		static PassConfig[] array(PassConfig... passes) {
-			return passes;
-		}
-	}
-
-	ImageConfig[] images;
-	PipelineParam[] params;
-	ShaderConfig[] shaders;
-	FramebufferConfig[] framebuffers;
-
-	PassConfig[] onWorldStart;
-	PassConfig[] afterRenderHand;
+	public PassConfig[] onWorldStart;
+	public PassConfig[] afterRenderHand;
 
 	{
 		params = PipelineParam.array(
@@ -397,7 +183,7 @@ class PipelineConfig {
 		);
 
 		onWorldStart = PassConfig.array(
-			PassConfig.of("canvas:emissive", SamplerConfig.array(), ClearPass.CLEAR_ID, 0)
+			PassConfig.of("canvas:emissive", SamplerConfig.array(), PassConfig.CLEAR_ID, 0)
 		);
 
 		afterRenderHand = PassConfig.array(
@@ -548,18 +334,18 @@ class PipelineConfig {
 		);
 	}
 
-	static final Identifier IMG_MC_MAIN = new Identifier("minecraft:main");
-	static final Identifier IMG_EMISSIVE = new Identifier("canvas:emissive");
-	static final Identifier IMG_EMISSIVE_COLOR = new Identifier("canvas:emissive_color");
-	static final Identifier IMG_MAIN_COPY = new Identifier("canvas:main_copy");
-	static final Identifier IMG_BLOOM_DOWNSAMPLE = new Identifier("canvas:bloom_downsample");
-	static final Identifier IMG_BLOOM_UPSAMPLE = new Identifier("canvas:bloom_upsample");
+	public static final Identifier IMG_MC_MAIN = new Identifier("minecraft:main");
+	public static final Identifier IMG_EMISSIVE = new Identifier("canvas:emissive");
+	public static final Identifier IMG_EMISSIVE_COLOR = new Identifier("canvas:emissive_color");
+	public static final Identifier IMG_MAIN_COPY = new Identifier("canvas:main_copy");
+	public static final Identifier IMG_BLOOM_DOWNSAMPLE = new Identifier("canvas:bloom_downsample");
+	public static final Identifier IMG_BLOOM_UPSAMPLE = new Identifier("canvas:bloom_upsample");
 
-	static final Identifier PROG_COPY = new Identifier("canvas:copy");
-	static final Identifier PROG_EMISSIVE_COLOR = new Identifier("canvas:emissive_color");
-	static final Identifier PROG_BLOOM = new Identifier("canvas:boom");
-	static final Identifier PROG_COPY_LOD = new Identifier("canvas:copy_lod");
-	static final Identifier PROG_DOWNSAMPLE = new Identifier("canvas:downsample");
-	static final Identifier PROG_UPSAMPLE = new Identifier("canvas:upsample");
-	static final Identifier PROG_UPSAMPLE_FIRST = new Identifier("canvas:upsample_first");
+	public static final Identifier PROG_COPY = new Identifier("canvas:copy");
+	public static final Identifier PROG_EMISSIVE_COLOR = new Identifier("canvas:emissive_color");
+	public static final Identifier PROG_BLOOM = new Identifier("canvas:boom");
+	public static final Identifier PROG_COPY_LOD = new Identifier("canvas:copy_lod");
+	public static final Identifier PROG_DOWNSAMPLE = new Identifier("canvas:downsample");
+	public static final Identifier PROG_UPSAMPLE = new Identifier("canvas:upsample");
+	public static final Identifier PROG_UPSAMPLE_FIRST = new Identifier("canvas:upsample_first");
 }

@@ -17,7 +17,7 @@
 package grondag.canvas.pipeline;
 
 import grondag.canvas.CanvasMod;
-import grondag.canvas.pipeline.PipelineConfig.PassConfig;
+import grondag.canvas.pipeline.config.PassConfig;
 
 abstract class Pass {
 	final PassConfig config;
@@ -38,7 +38,7 @@ abstract class Pass {
 	abstract void close();
 
 	static Pass create(PassConfig config) {
-		if (config.shader.equals(ClearPass.CLEAR_ID)) {
+		if (config.shader.equals(PassConfig.CLEAR_ID)) {
 			return new ClearPass(config);
 		} else {
 			return new ProgramPass(config);

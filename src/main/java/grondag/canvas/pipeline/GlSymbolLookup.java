@@ -16,23 +16,20 @@
 
 package grondag.canvas.pipeline;
 
-import grondag.canvas.pipeline.config.PassConfig;
+import java.lang.reflect.Field;
 
-public class ClearPass extends Pass {
-	ClearPass(PassConfig config) {
-		super(config);
-	}
+import org.lwjgl.opengl.GL46;
 
-	@Override
-	void run(int width, int height) {
-		if (fbo != null) {
-			fbo.bind(width, height);
-			fbo.clear();
+public class GlSymbolLookup {
+	public static int lookup(String symbol) {
+		symbol = "GL_" + symbol.toUpperCase();
+
+		try {
+			final Field f = GL46.class.getField(symbol);
+			return f.getInt(null);
+		} catch (final Exception e) {
+			e.printStackTrace();
+			return -1;
 		}
-	}
-
-	@Override
-	void close() {
-		// NOOP
 	}
 }

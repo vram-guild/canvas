@@ -14,25 +14,33 @@
  *  the License.
  */
 
-package grondag.canvas.pipeline;
+package grondag.canvas.pipeline.config;
 
-import grondag.canvas.pipeline.config.PassConfig;
+import net.minecraft.util.Identifier;
 
-public class ClearPass extends Pass {
-	ClearPass(PassConfig config) {
-		super(config);
+public class SamplerConfig {
+	public Identifier texture;
+	public boolean gameTexture;
+
+	public static SamplerConfig of(
+		Identifier texture,
+		boolean gameTexture
+	) {
+		final SamplerConfig result = new SamplerConfig();
+		result.texture = texture;
+		result.gameTexture = gameTexture;
+		return result;
 	}
 
-	@Override
-	void run(int width, int height) {
-		if (fbo != null) {
-			fbo.bind(width, height);
-			fbo.clear();
-		}
+	public static SamplerConfig of(
+		String texture,
+		boolean gameTexture,
+		int samplerIndex
+	) {
+		return of(new Identifier(texture), gameTexture);
 	}
 
-	@Override
-	void close() {
-		// NOOP
+	public static SamplerConfig[] array(SamplerConfig... samplers) {
+		return samplers;
 	}
 }

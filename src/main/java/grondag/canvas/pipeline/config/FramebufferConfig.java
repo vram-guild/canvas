@@ -14,25 +14,32 @@
  *  the License.
  */
 
-package grondag.canvas.pipeline;
+package grondag.canvas.pipeline.config;
 
-import grondag.canvas.pipeline.config.PassConfig;
+import net.minecraft.util.Identifier;
 
-public class ClearPass extends Pass {
-	ClearPass(PassConfig config) {
-		super(config);
+public class FramebufferConfig {
+	public Identifier id;
+	public AttachmentConfig[] attachments;
+
+	static FramebufferConfig of(
+		Identifier id,
+		AttachmentConfig... attachments
+	) {
+		final FramebufferConfig result = new FramebufferConfig();
+		result.id = id;
+		result.attachments = attachments;
+		return result;
 	}
 
-	@Override
-	void run(int width, int height) {
-		if (fbo != null) {
-			fbo.bind(width, height);
-			fbo.clear();
-		}
+	public static FramebufferConfig of(
+		String id,
+		AttachmentConfig... attachments
+	) {
+		return of(new Identifier(id), attachments);
 	}
 
-	@Override
-	void close() {
-		// NOOP
+	public static FramebufferConfig[] array(FramebufferConfig... configs) {
+		return configs;
 	}
 }

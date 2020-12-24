@@ -32,6 +32,7 @@ import grondag.canvas.buffer.VboBuffer;
 import grondag.canvas.buffer.encoding.VertexCollectorImpl;
 import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.mixinterface.FrameBufferExt;
+import grondag.canvas.pipeline.config.PipelineConfig;
 import grondag.canvas.shader.GlProgram;
 import grondag.canvas.shader.ProcessShader;
 
