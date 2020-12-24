@@ -18,9 +18,13 @@ package grondag.canvas.pipeline;
 
 import java.lang.reflect.Field;
 
+import blue.endless.jankson.JsonObject;
 import org.lwjgl.opengl.GL46;
 
+import grondag.canvas.CanvasMod;
+
 public class GlSymbolLookup {
+	// WIP: cache
 	public static int lookup(String symbol) {
 		symbol = "GL_" + symbol.toUpperCase();
 
@@ -31,5 +35,22 @@ public class GlSymbolLookup {
 			e.printStackTrace();
 			return -1;
 		}
+	}
+
+	public static int lookup(JsonObject config, String key, String fallback) {
+		String symbol = fallback;
+
+		if (config.containsKey(key)) {
+			symbol = config.get(String.class, key);
+		}
+
+		int result = GlSymbolLookup.lookup(symbol);
+
+		if (result == -1 && !symbol.equals(fallback)) {
+			CanvasMod.LOG.warn(String.format("GL Symbol %s not found, substituting %s", symbol, fallback));
+			result = GlSymbolLookup.lookup(fallback);
+		}
+
+		return result;
 	}
 }

@@ -45,13 +45,15 @@ class Image {
 		if (glId == -1) {
 			glId = TextureUtil.generateId();
 
-			// WIP: REMOVE
-			final int tex2d = GlSymbolLookup.lookup("TEXTURE_2D");
-			final int rgbs = GlSymbolLookup.lookup("RGBA8");
-
 			GlStateManager.bindTexture(glId);
-			GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_WRAP_S, GL21.GL_CLAMP);
-			GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_WRAP_T, GL21.GL_CLAMP);
+
+			final int[] params = config.texParamPairs;
+			final int limit = params.length;
+
+			for (int i = 0; i < limit; ++i) {
+				GlStateManager.texParameter(GL21.GL_TEXTURE_2D, params[i], params[++i]);
+				assert CanvasGlHelper.checkError();
+			}
 
 			//WIP: Put this warning in parsing
 			// if (config.depth && config.internalFormat != GL11.GL_DEPTH_COMPONENT) {
@@ -60,9 +62,6 @@ class Image {
 			if (config.depth) {
 				GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_COMPARE_MODE, GL21.GL_NONE);
 			}
-
-			GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MIN_FILTER, config.minFilter);
-			GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MAG_FILTER, config.maxFilter);
 
 			// the last few parameters here should not matter because we aren't passing in any pixel data
 			GlStateManager.texImage2D(GL21.GL_TEXTURE_2D, 0, config.internalFormat, width, height, 0, GL21.GL_RGBA, GL21.GL_UNSIGNED_BYTE, null);

@@ -23,8 +23,6 @@ public class PassConfig {
 	// for computing size
 	public int lod;
 
-	//Image[] attachments, int[] samplerBinds, ProcessShader shader, Consumer<ProcessShader> activator
-
 	public static PassConfig of(
 		String framebufferName,
 		SamplerConfig[] samplers,

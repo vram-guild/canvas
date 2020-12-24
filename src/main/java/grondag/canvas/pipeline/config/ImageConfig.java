@@ -16,26 +16,62 @@
 
 package grondag.canvas.pipeline.config;
 
-public class ImageConfig {
-	public String name;
-	public boolean depth;
-	public int internalFormat;
-	public int minFilter;
-	public int maxFilter;
-	public int lod;
+import blue.endless.jankson.JsonArray;
+import blue.endless.jankson.JsonObject;
 
-	public static ImageConfig of(String name, boolean depth, int internalFormat, int minFilter, int maxFilter, int lod) {
-		final ImageConfig result = new ImageConfig();
-		result.name = name;
-		result.depth = depth;
-		result.internalFormat = internalFormat;
-		result.lod = lod;
-		result.minFilter = minFilter;
-		result.maxFilter = maxFilter;
-		return result;
+import grondag.canvas.pipeline.GlSymbolLookup;
+
+public class ImageConfig {
+	public final String name;
+	public final boolean depth;
+	public final int internalFormat;
+	public final int lod;
+	public final int[] texParamPairs;
+
+	public ImageConfig(String name, boolean depth, int internalFormat, int lod) {
+		this.name = name;
+		this.depth = depth;
+		this.internalFormat = internalFormat;
+		this.lod = lod;
+		texParamPairs = new int[0];
 	}
 
-	public static ImageConfig[] array(ImageConfig... configs) {
-		return configs;
+	private ImageConfig (JsonObject config) {
+		name = config.get(String.class, "name");
+		depth = config.getBoolean("depth", false);
+		internalFormat = GlSymbolLookup.lookup(config, "internalFormat", "RGBA8");
+		lod = config.getInt("lod", 0);
+
+		if (!config.containsKey("texParams")) {
+			texParamPairs = new int[0];
+		} else {
+			final JsonArray params = config.get(JsonArray.class, "texParams");
+			final int limit = params.size();
+			texParamPairs = new int[limit * 2];
+
+			int j = 0;
+
+			for (int i = 0; i < limit; ++i) {
+				final JsonObject p = (JsonObject) params.get(i);
+				texParamPairs[j++] = GlSymbolLookup.lookup(p, "name", "NONE");
+				texParamPairs[j++] = GlSymbolLookup.lookup(p, "val", "NONE");
+			}
+		}
+	}
+
+	public static ImageConfig[] deserialize(JsonObject configJson) {
+		if (configJson == null || !configJson.containsKey("images")) {
+			return new ImageConfig[0];
+		}
+
+		final JsonArray images = configJson.get(JsonArray.class, "images");
+		final int limit = images.size();
+		final ImageConfig[] result = new ImageConfig[limit];
+
+		for (int i = 0; i < limit; ++i) {
+			result[i] = new ImageConfig((JsonObject) images.get(i));
+		}
+
+		return result;
 	}
 }

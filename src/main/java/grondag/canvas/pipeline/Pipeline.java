@@ -113,7 +113,7 @@ public class Pipeline {
 		final FrameBufferExt mcFboExt = ((FrameBufferExt) mcFbo);
 		final int mainColor = mcFboExt.canvas_colorAttachment();
 
-		IMAGES.put("default_main", new Image.BuiltIn(ImageConfig.of("default_main", false, GL21.GL_RGBA8, GL21.GL_NEAREST, GL21.GL_NEAREST, 0), width, height, mainColor));
+		IMAGES.put("default_main", new Image.BuiltIn(new ImageConfig("default_main", false, GL21.GL_RGBA8, 0), width, height, mainColor));
 
 		for (final ImageConfig img : config.images) {
 			IMAGES.put(img.name, new Image(img, width, height));

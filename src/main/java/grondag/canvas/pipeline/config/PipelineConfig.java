@@ -16,7 +16,14 @@
 
 package grondag.canvas.pipeline.config;
 
-import org.lwjgl.opengl.GL21;
+import blue.endless.jankson.JsonObject;
+
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.resource.Resource;
+import net.minecraft.resource.ResourceManager;
+import net.minecraft.util.Identifier;
+
+import grondag.canvas.Configurator;
 
 public class PipelineConfig {
 	public ImageConfig[] images;
@@ -28,19 +35,30 @@ public class PipelineConfig {
 	public PassConfig[] afterRenderHand;
 
 	{
+		final Identifier id = new Identifier("canvas:pipeline/canvas_default.json");
+		final ResourceManager rm = MinecraftClient.getInstance().getResourceManager();
+		JsonObject configJson = null;
+
+		try (Resource res = rm.getResource(id)) {
+			configJson = Configurator.JANKSON.load(res.getInputStream());
+		} catch (final Exception e) {
+			e.printStackTrace();
+		}
+
 		params = PipelineParam.array(
 			PipelineParam.of("bloom_intensity", 0.0f, 0.5f, 0.1f),
 			PipelineParam.of("bloom_scale", 0.0f, 2.0f, 0.25f)
 		);
 
-		images = ImageConfig.array(
-			ImageConfig.of("emissive", false, GL21.GL_RGBA8, GL21.GL_LINEAR, GL21.GL_LINEAR, 0),
-			ImageConfig.of("emissive_color", false, GL21.GL_RGBA8, GL21.GL_LINEAR, GL21.GL_LINEAR, 0),
-			// don't want filtering when copy back from main
-			ImageConfig.of("main_copy", false, GL21.GL_RGBA8, GL21.GL_NEAREST, GL21.GL_NEAREST, 0),
-			ImageConfig.of("bloom_downsample", false, GL21.GL_RGBA8, GL21.GL_LINEAR_MIPMAP_NEAREST, GL21.GL_LINEAR, 6),
-			ImageConfig.of("bloom_upsample", false, GL21.GL_RGBA8, GL21.GL_LINEAR_MIPMAP_NEAREST, GL21.GL_LINEAR, 6)
-		);
+		images = ImageConfig.deserialize(configJson);
+		//		.array(
+		//			ImageConfig.of("emissive", false, GL21.GL_RGBA8, GL21.GL_LINEAR, GL21.GL_LINEAR, 0),
+		//			ImageConfig.of("emissive_color", false, GL21.GL_RGBA8, GL21.GL_LINEAR, GL21.GL_LINEAR, 0),
+		//			// don't want filtering when copy back from main
+		//			ImageConfig.of("main_copy", false, GL21.GL_RGBA8, GL21.GL_NEAREST, GL21.GL_NEAREST, 0),
+		//			ImageConfig.of("bloom_downsample", false, GL21.GL_RGBA8, GL21.GL_LINEAR_MIPMAP_NEAREST, GL21.GL_LINEAR, 6),
+		//			ImageConfig.of("bloom_upsample", false, GL21.GL_RGBA8, GL21.GL_LINEAR_MIPMAP_NEAREST, GL21.GL_LINEAR, 6)
+		//		);
 
 		shaders = ShaderConfig.array(
 			ShaderConfig.of("copy", "canvas:shaders/internal/process/copy.vert", "canvas:shaders/internal/process/copy.frag", "_cvu_input", "tex0"),

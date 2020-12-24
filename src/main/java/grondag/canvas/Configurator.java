@@ -47,8 +47,8 @@ import grondag.canvas.perf.LagFinder;
 @Environment(EnvType.CLIENT)
 public class Configurator {
 	static final ConfigData DEFAULTS = new ConfigData();
-	private static final Gson GSON = new GsonBuilder().create();
-	private static final Jankson JANKSON = Jankson.builder().build();
+	public static final Gson GSON = new GsonBuilder().create();
+	public static final Jankson JANKSON = Jankson.builder().build();
 	private static final ConfigEntryBuilder ENTRY_BUILDER = ConfigEntryBuilder.create();
 	public static FogMode fogMode = DEFAULTS.fogMode;
 	public static boolean blendFluidColors = DEFAULTS.blendFluidColors;

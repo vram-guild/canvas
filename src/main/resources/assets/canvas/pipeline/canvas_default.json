@@ -10,18 +10,69 @@
 
 	images: [
 		// attached to the main framebuffer in world rendering to capture emissive layer
-		{ id: "canvas:emissive", 					hdr: false, 	blur: true, 	lod: 0},
+		{ name: "emissive",
+			lod: 0,
+			internalFormat: "RGBA8",
+			target: "TEXTURE_2D",
+			texParams: [
+				{name: "TEXTURE_MIN_FILTER", val: "LINEAR"},
+				{name: "TEXTURE_MAG_FILTER", val: "LINEAR"},
+				{name: "TEXTURE_WRAP_S", val: "CLAMP"},
+				{name: "TEXTURE_WRAP_T", val: "CLAMP"}
+			]
+		},
 
 		// result of applying the emissive map to base color - source for the downsample/upsample
-		{ id: "canvas:emissive_color", 		hdr: false, 	blur: true, 	lod: 0},
+		{ name: "emissive_color",
+			lod: 0,
+			internalFormat: "RGBA8",
+			target: "TEXTURE_2D",
+			texParams: [
+				{name: "TEXTURE_MIN_FILTER", val: "LINEAR"},
+				{name: "TEXTURE_MAG_FILTER", val: "LINEAR"},
+				{name: "TEXTURE_WRAP_S", val: "CLAMP"},
+				{name: "TEXTURE_WRAP_T", val: "CLAMP"}
+			]
+		},
 
 		// needed to combine bloom result with main - attachment can't read/write self in same pass
-		// blur = false because don't want filtering when copy back from main
-		{ id: "canvas:main_copy", 				hdr: false, 	blur: false, 	lod: 0},
+		{ name: "main_copy",
+			lod: 0,
+			internalFormat: "RGBA8",
+			target: "TEXTURE_2D",
+			texParams: [
+				// nearest because don't want filtering when copy back from main
+			  {name: "TEXTURE_MIN_FILTER", val: "NEAREST"},
+				{name: "TEXTURE_MAG_FILTER", val: "NEAREST"},
+				{name: "TEXTURE_WRAP_S", val: "CLAMP"},
+				{name: "TEXTURE_WRAP_T", val: "CLAMP"}
+			]
+		},
 
-		// these two hold the cascade of bloom images that are blurred
-		{ id: "canvas:bloom_downsample", 	hdr: false,		blur: true, 	lod: 6},
-		{ id: "canvas:bloom_upsample", 		hdr: false, 	blur: true, 	lod: 6}
+		// these next two hold the cascade of bloom images that are blurred
+		{ name: "bloom_downsample",
+			lod: 6,
+			internalFormat: "RGBA8",
+			target: "TEXTURE_2D",
+			texParams: [
+			  {name: "TEXTURE_MIN_FILTER", val: "LINEAR_MIPMAP_NEAREST"},
+				{name: "TEXTURE_MAG_FILTER", val: "LINEAR"},
+				{name: "TEXTURE_WRAP_S", val: "CLAMP"},
+				{name: "TEXTURE_WRAP_T", val: "CLAMP"}
+			]
+		},
+
+		{ name: "bloom_upsample",
+			lod: 6,
+			internalFormat: "RGBA8",
+			target: "TEXTURE_2D",
+			texParams: [
+				{name: "TEXTURE_MIN_FILTER", val: "LINEAR_MIPMAP_NEAREST"},
+				{name: "TEXTURE_MAG_FILTER", val: "LINEAR"},
+				{name: "TEXTURE_WRAP_S", val: "CLAMP"},
+				{name: "TEXTURE_WRAP_T", val: "CLAMP"}
+			]
+		}
 	],
 
 	shaders: [
