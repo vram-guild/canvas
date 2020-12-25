@@ -16,21 +16,31 @@
 
 package grondag.canvas.pipeline.config;
 
-public class FramebufferConfig {
-	public String name;
-	public AttachmentConfig[] attachments;
+import blue.endless.jankson.JsonArray;
+import blue.endless.jankson.JsonObject;
 
-	static FramebufferConfig of(
-		String name,
-		AttachmentConfig... attachments
-	) {
-		final FramebufferConfig result = new FramebufferConfig();
-		result.name = name;
-		result.attachments = attachments;
-		return result;
+public class FramebufferConfig {
+	public final String name;
+	public final AttachmentConfig[] colorAttachments;
+
+	private FramebufferConfig(JsonObject config) {
+		name = config.get(String.class, "name");
+		colorAttachments = AttachmentConfig.deserialize(config);
 	}
 
-	public static FramebufferConfig[] array(FramebufferConfig... configs) {
-		return configs;
+	public static FramebufferConfig[] deserialize(JsonObject configJson) {
+		if (configJson == null || !configJson.containsKey("framebuffers")) {
+			return new FramebufferConfig[0];
+		}
+
+		final JsonArray array = configJson.get(JsonArray.class, "framebuffers");
+		final int limit = array.size();
+		final FramebufferConfig[] result = new FramebufferConfig[limit];
+
+		for (int i = 0; i < limit; ++i) {
+			result[i] = new FramebufferConfig((JsonObject) array.get(i));
+		}
+
+		return result;
 	}
 }

@@ -34,7 +34,7 @@ class PipelineFramebuffer {
 		this.config = config;
 
 		// WIP: handle separate colors/masks per attachment
-		final int color = config.attachments[0].clearColor;
+		final int color = config.colorAttachments[0].clearColor;
 		a = ((color >> 24) & 0xFF) / 255f;
 		r = ((color >> 16) & 0xFF) / 255f;
 		g = ((color >> 8) & 0xFF) / 255f;
@@ -48,8 +48,8 @@ class PipelineFramebuffer {
 
 		GlStateManager.bindFramebuffer(FramebufferInfo.FRAME_BUFFER, fboGlId);
 
-		for (int i = 0; i < config.attachments.length; ++i) {
-			final AttachmentConfig ac = config.attachments[i];
+		for (int i = 0; i < config.colorAttachments.length; ++i) {
+			final AttachmentConfig ac = config.colorAttachments[i];
 			final Image img = Pipeline.getImage(ac.imageName);
 			GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT + i, GL21.GL_TEXTURE_2D, img.glId(), ac.lod);
 		}

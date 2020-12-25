@@ -10,7 +10,8 @@
 
 	images: [
 		// attached to the main framebuffer in world rendering to capture emissive layer
-		{ name: "emissive",
+		{
+			name: "emissive",
 			lod: 0,
 			internalFormat: "RGBA8",
 			target: "TEXTURE_2D",
@@ -23,7 +24,8 @@
 		},
 
 		// result of applying the emissive map to base color - source for the downsample/upsample
-		{ name: "emissive_color",
+		{
+			name: "emissive_color",
 			lod: 0,
 			internalFormat: "RGBA8",
 			target: "TEXTURE_2D",
@@ -36,7 +38,8 @@
 		},
 
 		// needed to combine bloom result with main - attachment can't read/write self in same pass
-		{ name: "main_copy",
+		{
+			name: "main_copy",
 			lod: 0,
 			internalFormat: "RGBA8",
 			target: "TEXTURE_2D",
@@ -50,7 +53,8 @@
 		},
 
 		// these next two hold the cascade of bloom images that are blurred
-		{ name: "bloom_downsample",
+		{
+			name: "bloom_downsample",
 			lod: 6,
 			internalFormat: "RGBA8",
 			target: "TEXTURE_2D",
@@ -62,7 +66,8 @@
 			]
 		},
 
-		{ name: "bloom_upsample",
+		{
+			name: "bloom_upsample",
 			lod: 6,
 			internalFormat: "RGBA8",
 			target: "TEXTURE_2D",
@@ -123,59 +128,59 @@
 
 	framebuffers: [
 		{
-			id: "canvas:emissive",
-			attachments: [{id: "canvas:emissive", clearColor: 0x00000000}]
+			name: "emissive",
+			colorAttachments: [{imageName: "emissive", clearColor: 0x00000000, lod: 0}]
 		}, {
-			id: "canvas:main_copy",
-			attachments: [{id: "canvas:main_copy"}]
+			name: "main_copy",
+			colorAttachments: [{imageName: "main_copy", lod: 0}]
 		}, {
-			id: "canvas:emissive_color",
-			attachments: [{id: "canvas:emissive_color"}]
+			name: "emissive_color",
+			colorAttachments: [{imageName: "emissive_color", lod: 0}]
 		}, {
-			id: "canvas:bloom_downsample_0",
-			attachments: [{id: "canvas:bloom_downsample", lod: 0}]
+			name: "bloom_downsample_0",
+			colorAttachments: [{imageName: "bloom_downsample", lod: 0}]
 		}, {
-			id: "canvas:bloom_downsample_1",
-			attachments: [{id: "canvas:bloom_downsample", lod: 1}]
+			name: "bloom_downsample_1",
+			colorAttachments: [{imageName: "bloom_downsample", lod: 1}]
 		}, {
-			id: "canvas:bloom_downsample_2",
-			attachments: [{id: "canvas:bloom_downsample", lod: 2}]
+			name: "bloom_downsample_2",
+			colorAttachments: [{imageName: "bloom_downsample", lod: 2}]
 		}, {
-			id: "canvas:bloom_downsample_3",
-			attachments: [{id: "canvas:bloom_downsample", lod: 3}]
+			name: "bloom_downsample_3",
+			colorAttachments: [{imageName: "bloom_downsample", lod: 3}]
 		}, {
-			id: "canvas:bloom_downsample_4",
-			attachments: [{id: "canvas:bloom_downsample", lod: 4}]
+			name: "bloom_downsample_4",
+			colorAttachments: [{imageName: "bloom_downsample", lod: 4}]
 		}, {
-			id: "canvas:bloom_downsample_5",
-			attachments: [{id: "canvas:bloom_downsample", lod: 5}]
+			name: "bloom_downsample_5",
+			colorAttachments: [{imageName: "bloom_downsample", lod: 5}]
 		}, {
-			id: "canvas:bloom_downsample_6",
-			attachments: [{id: "canvas:bloom_downsample", lod: 6}]
+			name: "bloom_downsample_6",
+			colorAttachments: [{imageName: "bloom_downsample", lod: 6}]
 		}, {
-			id: "canvas:bloom_upsample_6",
-			attachments: [{id: "canvas:bloom_upsample", lod: 6}]
+			name: "bloom_upsample_6",
+			colorAttachments: [{imageName: "bloom_upsample", lod: 6}]
 		}, {
-			id: "canvas:bloom_upsample_5",
-			attachments: [{id: "canvas:bloom_upsample", lod: 5}]
+			name: "bloom_upsample_5",
+			colorAttachments: [{imageName: "bloom_upsample", lod: 5}]
 		}, {
-			id: "canvas:bloom_upsample_4",
-			attachments: [{id: "canvas:bloom_upsample", lod: 4}]
+			name: "bloom_upsample_4",
+			colorAttachments: [{imageName: "bloom_upsample", lod: 4}]
 		}, {
-			id: "canvas:bloom_upsample_3",
-			attachments: [{id: "canvas:bloom_upsample", lod: 3}]
+			name: "bloom_upsample_3",
+			colorAttachments: [{imageName: "bloom_upsample", lod: 3}]
 		}, {
-			id: "canvas:bloom_upsample_2",
-			attachments: [{id: "canvas:bloom_upsample", lod: 2}]
+			name: "bloom_upsample_2",
+			colorAttachments: [{imageName: "bloom_upsample", lod: 2}]
 		}, {
-			id: "canvas:bloom_upsample_1",
-			attachments: [{id: "canvas:bloom_upsample", lod: 1}]
+			name: "bloom_upsample_1",
+			colorAttachments: [{imageName: "bloom_upsample", lod: 1}]
 		}, {
-			id: "canvas:bloom_upsample_0",
-			attachments: [{id: "canvas:bloom_upsample", lod: 0}]
+			name: "bloom_upsample_0",
+			colorAttachments: [{imageName: "bloom_upsample", lod: 0}]
 		}, {
-			id: "canvas:bloom",
-			attachments: [{id: "minecraft:main"}]
+			name: "bloom",
+			colorAttachments: [{imageName: "default_main", lod: 0}]
 		}
 	],
 

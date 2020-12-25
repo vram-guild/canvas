@@ -16,24 +16,33 @@
 
 package grondag.canvas.pipeline.config;
 
-public class AttachmentConfig {
-	public String imageName;
-	public int lod;
-	public int clearColor;
+import blue.endless.jankson.JsonArray;
+import blue.endless.jankson.JsonObject;
 
-	static AttachmentConfig of(
-		String imageName,
-		int clearColor,
-		int lod
-	) {
-		final AttachmentConfig result = new AttachmentConfig();
-		result.imageName = imageName;
-		result.lod = lod;
-		result.clearColor = clearColor;
-		return result;
+public class AttachmentConfig {
+	public final String imageName;
+	public final int lod;
+	public final int clearColor;
+
+	AttachmentConfig(JsonObject config) {
+		imageName = config.get(String.class, "imageName");
+		lod = config.getInt("lod", 0);
+		clearColor = config.getInt("clearColor", 0);
 	}
 
-	public static AttachmentConfig[] array(AttachmentConfig... attachments) {
-		return attachments;
+	public static AttachmentConfig[] deserialize(JsonObject configJson) {
+		if (configJson == null || !configJson.containsKey("colorAttachments")) {
+			return new AttachmentConfig[0];
+		}
+
+		final JsonArray array = configJson.get(JsonArray.class, "colorAttachments");
+		final int limit = array.size();
+		final AttachmentConfig[] result = new AttachmentConfig[limit];
+
+		for (int i = 0; i < limit; ++i) {
+			result[i] = new AttachmentConfig((JsonObject) array.get(i));
+		}
+
+		return result;
 	}
 }

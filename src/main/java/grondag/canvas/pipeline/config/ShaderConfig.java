@@ -59,12 +59,12 @@ public class ShaderConfig {
 			return new ShaderConfig[0];
 		}
 
-		final JsonArray shaders = configJson.get(JsonArray.class, "shaders");
-		final int limit = shaders.size();
+		final JsonArray array = configJson.get(JsonArray.class, "shaders");
+		final int limit = array.size();
 		final ShaderConfig[] result = new ShaderConfig[limit];
 
 		for (int i = 0; i < limit; ++i) {
-			result[i] = new ShaderConfig((JsonObject) shaders.get(i));
+			result[i] = new ShaderConfig((JsonObject) array.get(i));
 		}
 
 		return result;
