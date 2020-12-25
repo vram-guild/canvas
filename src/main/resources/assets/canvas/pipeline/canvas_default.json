@@ -78,42 +78,42 @@
 	shaders: [
 		{
 			// utility, does what it says on the tin
-			id: "canvas:copy",
+			name: "copy",
 			vertexSource: "canvas:shaders/internal/process/copy.vert",
 			fragmentSource: "canvas:shaders/internal/process/copy.frag",
 			samplerNames: ["_cvu_input"]
 		}, {
 			// copies from a specific level of detail, that's it
-			id: "canvas:copy_lod",
+			name: "copy_lod",
 			vertexSource: "canvas:shaders/internal/process/copy_lod.vert",
 			fragmentSource: "canvas:shaders/internal/process/copy_lod.frag",
 			samplerNames: ["_cvu_input"]
 		}, {
 			// copies colored pixels from main color buffer if marked emissive
-			id: "canvas:emissive_color",
+			name: "emissive_color",
 			vertexSource: "canvas:shaders/internal/process/emissive_color.vert",
 			fragmentSource: "canvas:shaders/internal/process/emissive_color.frag",
 			samplerNames: ["_cvu_base", "_cvu_emissive"]
 		}, {
 			// combines final bloom image and main color buffer
-			id: "canvas:bloom",
+			name: "bloom",
 			vertexSource: "canvas:shaders/internal/process/bloom.vert",
 			fragmentSource: "canvas:shaders/internal/process/bloom.frag",
 			samplerNames: ["_cvu_base", "_cvu_bloom"]
 		}, {
 			// uses a fancy sampling algo for higher quality, not a conventional mipmap
-			id: "canvas:downsample",
+			name: "downsample",
 			vertexSource: "canvas:shaders/internal/process/downsample.vert",
 			fragmentSource: "canvas:shaders/internal/process/downsample.frag",
 			samplerNames: ["_cvu_input"]
 		}, {
 			// less fancy (but still slightly fancy) upsample of downsample outputs
-			id: "canvas:upsample_first",
+			name: "upsample_first",
 			vertexSource: "canvas:shaders/internal/process/upsample.vert",
 			fragmentSource: "canvas:shaders/internal/process/upsample_first.frag",
 			samplerNames: ["_cvu_input"]
 		}, {
-			id: "canvas:upsample",
+			name: "upsample",
 			// same as upsample_first but combines with next lower level of detail
 			vertexSource: "canvas:shaders/internal/process/upsample.vert",
 			fragmentSource: "canvas:shaders/internal/process/upsample.frag",
@@ -193,90 +193,92 @@
 		passes: [
 			{
 				// copy MC fbo color attachment - need it at end for combine step
-				framebuffer: "canvas:main_copy",
-				samplers: ["minecraft:main"],
-				program: "canvas:copy"
+				name: "main_copy",
+				framebuffer: "main_copy",
+				samplerImages: ["minecraft:main"],
+				shader: "canvas:copy"
 			}, {
 				// select emissive portions for blur
-				framebuffer: "canvas:emissive_color",
-				samplers: ["minecraft:main", "canvas:emissive"],
+				name: "emissive_color",
+				framebuffer: "emissive_color",
+				samplerImages: ["minecraft:main", "canvas:emissive"],
 				program: "canvas:emissive_color"
 			}, {
 				// build bloom mipmaps, blurring as part of downscale
-				framebuffer: "canvas:bloom_downsample_0",
-				samplers: ["canvas:emissive_color"],
+				framebuffer: "bloom_downsample_0",
+				samplerImages: ["canvas:emissive_color"],
 				program: "canvas:downsample"
 			}, {
 				framebuffer: "canvas:bloom_downsample_1",
-				samplers: ["canvas:bloom_downsample"],
+				samplerImages: ["canvas:bloom_downsample"],
 				program: "canvas:downsample",
 				lod: 1
 			}, {
 				framebuffer: "canvas:bloom_downsample_2",
-				samplers: ["canvas:bloom_downsample"],
+				samplerImages: ["canvas:bloom_downsample"],
 				program: "canvas:downsample",
 				lod: 2
 			}, {
 				framebuffer: "canvas:bloom_downsample_3",
-				samplers: ["canvas:bloom_downsample"],
+				samplerImages: ["canvas:bloom_downsample"],
 				program: "canvas:downsample",
 				lod: 3
 			}, {
 				framebuffer: "canvas:bloom_downsample_4",
-				samplers: ["canvas:bloom_downsample"],
+				samplerImages: ["canvas:bloom_downsample"],
 				program: "canvas:downsample",
 				lod: 4
 			}, {
 				framebuffer: "canvas:bloom_downsample_5",
-				samplers: ["canvas:bloom_downsample"],
+				samplerImages: ["canvas:bloom_downsample"],
 				program: "canvas:downsample",
 				lod: 5
 			}, {
 				framebuffer: "canvas:bloom_downsample_6",
-				samplers: ["canvas:bloom_downsample"],
+				samplerImages: ["canvas:bloom_downsample"],
 				program: "canvas:downsample",
 				lod: 6
 			}, {
 				// upscale bloom mipmaps, bluring again as we go
 				framebuffer: "canvas:bloom_upsample_6",
-				samplers: ["canvas:bloom_downsample"],
+				samplerImages: ["canvas:bloom_downsample"],
 				program: "canvas:upsample_first",
 				lod: 6
 			}, {
 				framebuffer: "canvas:bloom_upsample_5",
-				samplers: ["canvas:bloom_downsample", "canvas:bloom_upsample"],
+				samplerImages: ["canvas:bloom_downsample", "canvas:bloom_upsample"],
 				program: "canvas:upsample",
 				lod: 5
 			}, {
 				framebuffer: "canvas:bloom_upsample_4",
-				samplers: ["canvas:bloom_downsample", "canvas:bloom_upsample"],
+				samplerImages: ["canvas:bloom_downsample", "canvas:bloom_upsample"],
 				program: "canvas:upsample",
 				lod: 4
 			}, {
 				framebuffer: "canvas:bloom_upsample_3",
-				samplers: ["canvas:bloom_downsample", "canvas:bloom_upsample"],
+				samplerImages: ["canvas:bloom_downsample", "canvas:bloom_upsample"],
 				program: "canvas:upsample",
 				lod: 3
 			}, {
 				framebuffer: "canvas:bloom_upsample_2",
-				samplers: ["canvas:bloom_downsample", "canvas:bloom_upsample"],
+				samplerImages: ["canvas:bloom_downsample", "canvas:bloom_upsample"],
 				program: "canvas:upsample",
 				lod: 2
 			}, {
 				framebuffer: "canvas:bloom_upsample_1",
-				samplers: ["canvas:bloom_downsample", "canvas:bloom_upsample"],
+				samplerImages: ["canvas:bloom_downsample", "canvas:bloom_upsample"],
 				program: "canvas:upsample",
 				lod: 1
 			}, {
 				framebuffer: "canvas:bloom_upsample_0",
-				samplers: ["canvas:bloom_downsample", "canvas:bloom_upsample"],
+				samplerImages: ["canvas:bloom_downsample", "canvas:bloom_upsample"],
 				program: "canvas:upsample",
 				lod: 0
 			}, {
 				// Switch back to MC main color to draw combined color + bloom
 				// Framebuffer attachment shouldn't draw to self so use copy created earlier
 				framebuffer: "canvas:bloom",
-				samplers: ["canvas:main_copy", "canvas:bloom_upsample"],
+				samplerImages: ["canvas:main_copy", "canvas:bloom_upsample"],
 				program: "canvas:bloom"
 			}
 		]

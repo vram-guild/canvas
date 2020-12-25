@@ -22,10 +22,11 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL21;
 
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.texture.AbstractTexture;
 import net.minecraft.util.Identifier;
 
+import grondag.canvas.CanvasMod;
 import grondag.canvas.pipeline.config.PassConfig;
-import grondag.canvas.pipeline.config.SamplerConfig;
 import grondag.canvas.shader.ProcessShader;
 
 class ProgramPass extends Pass {
@@ -37,14 +38,38 @@ class ProgramPass extends Pass {
 		binds = new int[config.samplers.length];
 
 		for (int i = 0; i < config.samplers.length; ++i) {
-			final SamplerConfig sc = config.samplers[i];
+			final String imageName = config.samplers[i];
 
-			binds[i] = sc.gameTexture
-				? MinecraftClient.getInstance().getTextureManager().getTexture(new Identifier(sc.imageName)).getGlId()
-				: Pipeline.getImage(sc.imageName).glId();
+			int imageBind = 0;
+
+			if (imageName.contains(":")) {
+				final AbstractTexture tex = MinecraftClient.getInstance().getTextureManager().getTexture(new Identifier(imageName));
+
+				if (tex != null) {
+					imageBind = tex.getGlId();
+				}
+			} else {
+				final Image img = Pipeline.getImage(imageName);
+
+				if (img != null) {
+					imageBind = img.glId();
+				}
+			}
+
+			if (imageBind == 0) {
+				CanvasMod.LOG.warn(String.format("Unable to find image binding %s for pass $s.  Pass will be skipped.", imageName, config.name));
+				isValid = false;
+			}
+
+			binds[i] = imageBind;
 		}
 
 		shader = Pipeline.getShader(config.shaderName);
+
+		if (shader == null) {
+			CanvasMod.LOG.warn(String.format("Unable to find shader %s for pass $s.  Pass will be skipped.", config.shaderName, config.name));
+			isValid = false;
+		}
 	}
 
 	@Override

@@ -17,19 +17,21 @@
 package grondag.canvas.pipeline.config;
 
 public class PassConfig {
+	public String name;
 	public String framebufferName;
-	public SamplerConfig[] samplers;
+	public String[] samplers;
 	public String shaderName;
 	// for computing size
 	public int lod;
 
 	public static PassConfig of(
 		String framebufferName,
-		SamplerConfig[] samplers,
+		String[] samplers,
 		String shaderName,
 		int lod
 	) {
 		final PassConfig result = new PassConfig();
+		result.name = framebufferName;
 		result.framebufferName = framebufferName;
 		result.samplers = samplers;
 		result.shaderName = shaderName;

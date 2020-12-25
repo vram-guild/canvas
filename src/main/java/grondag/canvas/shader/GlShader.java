@@ -211,11 +211,11 @@ public class GlShader implements Shader {
 	}
 
 	protected String debugSourceString() {
-		return "-" + shaderSourceId.toString().replace("/", "-").replace(":", "-");
+		return shaderSourceId.getPath().toString().replace("/", "-").replace(":", "-");
 	}
 
 	private void outputDebugSource(String source, String error) {
-		final String fileName = programType.name + "-" + debugSourceString();
+		final String fileName = debugSourceString();
 		final Path path = shaderDebugPath();
 
 		File shaderDir = path.toFile();

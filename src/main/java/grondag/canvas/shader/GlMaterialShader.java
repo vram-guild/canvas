@@ -31,7 +31,7 @@ public class GlMaterialShader extends GlShader {
 	// all material shaders use the same source so only append extension to keep debug source file names of reasonable length
 	@Override
 	protected String debugSourceString() {
-		return shaderType == GL21.GL_FRAGMENT_SHADER ? ".frag" : ".vert";
+		return programType.name + "-" + (shaderType == GL21.GL_FRAGMENT_SHADER ? ".frag" : ".vert");
 	}
 
 	@Override

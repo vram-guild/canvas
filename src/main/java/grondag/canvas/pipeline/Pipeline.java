@@ -23,6 +23,7 @@ import org.lwjgl.opengl.GL21;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.Framebuffer;
 
+import grondag.canvas.CanvasMod;
 import grondag.canvas.mixinterface.FrameBufferExt;
 import grondag.canvas.pipeline.config.FramebufferConfig;
 import grondag.canvas.pipeline.config.ImageConfig;
@@ -116,16 +117,31 @@ public class Pipeline {
 		IMAGES.put("default_main", new Image.BuiltIn(new ImageConfig("default_main", false, GL21.GL_RGBA8, 0), width, height, mainColor));
 
 		for (final ImageConfig img : config.images) {
+			if (IMAGES.containsKey(img.name)) {
+				CanvasMod.LOG.warn(String.format("Duplicate pipeline image definition encountered with name %s. Duplicate was skipped.", img.name));
+				continue;
+			}
+
 			IMAGES.put(img.name, new Image(img, width, height));
 		}
 
 		for (final ShaderConfig shader : config.shaders) {
+			if (SHADERS.containsKey(shader.name)) {
+				CanvasMod.LOG.warn(String.format("Duplicate pipeline shader definition encountered with name %s. Duplicate was skipped.", shader.name));
+				continue;
+			}
+
 			SHADERS.put(shader.name, new ProcessShader(shader.vertexSource, shader.fragmentSource, shader.samplerNames));
 		}
 
 		// WIP: add the mc framebuffers?
 
 		for (final FramebufferConfig buffer : config.framebuffers) {
+			if (FRAMEBUFFERS.containsKey(buffer.name)) {
+				CanvasMod.LOG.warn(String.format("Duplicate pipeline framebuffer definition encountered with name %s. Duplicate was skipped.", buffer.name));
+				continue;
+			}
+
 			FRAMEBUFFERS.put(buffer.name, new PipelineFramebuffer(buffer, width, height));
 		}
 

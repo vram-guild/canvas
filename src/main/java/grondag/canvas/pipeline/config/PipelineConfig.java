@@ -60,51 +60,53 @@ public class PipelineConfig {
 		//			ImageConfig.of("bloom_upsample", false, GL21.GL_RGBA8, GL21.GL_LINEAR_MIPMAP_NEAREST, GL21.GL_LINEAR, 6)
 		//		);
 
-		shaders = ShaderConfig.array(
-			ShaderConfig.of("copy", "canvas:shaders/internal/process/copy.vert", "canvas:shaders/internal/process/copy.frag", "_cvu_input", "tex0"),
+		shaders = ShaderConfig.deserialize(configJson);
 
-			ShaderConfig.of(
-				"emissive_color",
-				"canvas:shaders/internal/process/emissive_color.vert",
-				"canvas:shaders/internal/process/emissive_color.frag",
-				"_cvu_base", "_cvu_emissive"
-			),
-
-			ShaderConfig.of(
-				"boom",
-				"canvas:shaders/internal/process/bloom.vert",
-				"canvas:shaders/internal/process/bloom.frag",
-				"_cvu_base", "_cvu_bloom"
-			),
-
-			ShaderConfig.of(
-				"copy_lod",
-				"canvas:shaders/internal/process/copy_lod.vert",
-				"canvas:shaders/internal/process/copy_lod.frag",
-				"_cvu_input"
-			),
-
-			ShaderConfig.of(
-				"downsample",
-				"canvas:shaders/internal/process/downsample.vert",
-				"canvas:shaders/internal/process/downsample.frag",
-				"_cvu_input"
-			),
-
-			ShaderConfig.of(
-				"upsample",
-				"canvas:shaders/internal/process/upsample.vert",
-				"canvas:shaders/internal/process/upsample.frag",
-				"_cvu_input", "cvu_prior"
-			),
-
-			ShaderConfig.of(
-					"upsample_first",
-				"canvas:shaders/internal/process/upsample.vert",
-				"canvas:shaders/internal/process/upsample_first.frag",
-				"_cvu_input"
-			)
-		);
+		//		.array(
+		//			ShaderConfig.of("copy", "canvas:shaders/internal/process/copy.vert", "canvas:shaders/internal/process/copy.frag", "_cvu_input", "tex0"),
+		//
+		//			ShaderConfig.of(
+		//				"emissive_color",
+		//				"canvas:shaders/internal/process/emissive_color.vert",
+		//				"canvas:shaders/internal/process/emissive_color.frag",
+		//				"_cvu_base", "_cvu_emissive"
+		//			),
+		//
+		//			ShaderConfig.of(
+		//				"boom",
+		//				"canvas:shaders/internal/process/bloom.vert",
+		//				"canvas:shaders/internal/process/bloom.frag",
+		//				"_cvu_base", "_cvu_bloom"
+		//			),
+		//
+		//			ShaderConfig.of(
+		//				"copy_lod",
+		//				"canvas:shaders/internal/process/copy_lod.vert",
+		//				"canvas:shaders/internal/process/copy_lod.frag",
+		//				"_cvu_input"
+		//			),
+		//
+		//			ShaderConfig.of(
+		//				"downsample",
+		//				"canvas:shaders/internal/process/downsample.vert",
+		//				"canvas:shaders/internal/process/downsample.frag",
+		//				"_cvu_input"
+		//			),
+		//
+		//			ShaderConfig.of(
+		//				"upsample",
+		//				"canvas:shaders/internal/process/upsample.vert",
+		//				"canvas:shaders/internal/process/upsample.frag",
+		//				"_cvu_input", "cvu_prior"
+		//			),
+		//
+		//			ShaderConfig.of(
+		//					"upsample_first",
+		//				"canvas:shaders/internal/process/upsample.vert",
+		//				"canvas:shaders/internal/process/upsample_first.frag",
+		//				"_cvu_input"
+		//			)
+		//		);
 
 		framebuffers = FramebufferConfig.array(
 			FramebufferConfig.of(
@@ -199,154 +201,132 @@ public class PipelineConfig {
 		);
 
 		onWorldStart = PassConfig.array(
-			PassConfig.of("emissive", SamplerConfig.array(), PassConfig.CLEAR_NAME, 0)
+			PassConfig.of("emissive", new String[0], PassConfig.CLEAR_NAME, 0)
 		);
 
 		afterRenderHand = PassConfig.array(
 			PassConfig.of(
 				"main_copy",
-				SamplerConfig.array(SamplerConfig.of("default_main", false)),
+				stringArray("default_main"),
 				"copy",
 				0
 			),
 
 			PassConfig.of(
 				"emissive_color",
-				SamplerConfig.array(
-						SamplerConfig.of("default_main", false),
-						SamplerConfig.of("emissive", false)
-				),
+				stringArray("default_main", "emissive"),
 				"emissive_color",
 				0
 			),
 
 			PassConfig.of(
 				"bloom_downsample_0",
-				SamplerConfig.array(SamplerConfig.of("emissive_color", false)),
+				stringArray("emissive_color"),
 				"downsample",
 				0
 			),
 
 			PassConfig.of(
 				"bloom_downsample_1",
-				SamplerConfig.array(SamplerConfig.of("bloom_downsample", false)),
+				stringArray("bloom_downsample"),
 				"downsample",
 				1
 			),
 
 			PassConfig.of(
 				"bloom_downsample_2",
-				SamplerConfig.array(SamplerConfig.of("bloom_downsample", false)),
+				stringArray("bloom_downsample"),
 				"downsample",
 				2
 			),
 
 			PassConfig.of(
 				"bloom_downsample_3",
-				SamplerConfig.array(SamplerConfig.of("bloom_downsample", false)),
+				stringArray("bloom_downsample"),
 				"downsample",
 				3
 			),
 
 			PassConfig.of(
 				"bloom_downsample_4",
-				SamplerConfig.array(SamplerConfig.of("bloom_downsample", false)),
+				stringArray("bloom_downsample"),
 				"downsample",
 				4
 			),
 
 			PassConfig.of(
 				"bloom_downsample_5",
-				SamplerConfig.array(SamplerConfig.of("bloom_downsample", false)),
+				stringArray("bloom_downsample"),
 				"downsample",
 				5
 			),
 
 			PassConfig.of(
 				"bloom_downsample_6",
-				SamplerConfig.array(SamplerConfig.of("bloom_downsample", false)),
+				stringArray("bloom_downsample"),
 				"downsample",
 				6
 			),
 
 			PassConfig.of(
 				"bloom_upsample_6",
-				SamplerConfig.array(
-						SamplerConfig.of("bloom_downsample", false)
-				),
+				stringArray("bloom_downsample"),
 				"upsample_first",
 				6
 			),
 
 			PassConfig.of(
 				"bloom_upsample_5",
-				SamplerConfig.array(
-						SamplerConfig.of("bloom_downsample", false),
-						SamplerConfig.of("bloom_upsample", false)
-				),
+				stringArray("bloom_downsample", "bloom_upsample"),
 				"upsample",
 				5
 			),
 
 			PassConfig.of(
 				"bloom_upsample_4",
-				SamplerConfig.array(
-						SamplerConfig.of("bloom_downsample", false),
-						SamplerConfig.of("bloom_upsample", false)
-				),
+				stringArray("bloom_downsample", "bloom_upsample"),
 				"upsample",
 				4
 			),
 
 			PassConfig.of(
 				"bloom_upsample_3",
-				SamplerConfig.array(
-						SamplerConfig.of("bloom_downsample", false),
-						SamplerConfig.of("bloom_upsample", false)
-				),
+				stringArray("bloom_downsample", "bloom_upsample"),
 				"upsample",
 				3
 			),
 
 			PassConfig.of(
 				"bloom_upsample_2",
-				SamplerConfig.array(
-						SamplerConfig.of("bloom_downsample", false),
-						SamplerConfig.of("bloom_upsample", false)
-				),
+				stringArray("bloom_downsample", "bloom_upsample"),
 				"upsample",
 				2
 			),
 
 			PassConfig.of(
 				"bloom_upsample_1",
-				SamplerConfig.array(
-						SamplerConfig.of("bloom_downsample", false),
-						SamplerConfig.of("bloom_upsample", false)
-				),
+				stringArray("bloom_downsample", "bloom_upsample"),
 				"upsample",
 				1
 			),
 
 			PassConfig.of(
 				"bloom_upsample_0",
-				SamplerConfig.array(
-						SamplerConfig.of("bloom_downsample", false),
-						SamplerConfig.of("bloom_upsample", false)
-				),
+				stringArray("bloom_downsample", "bloom_upsample"),
 				"upsample",
 				0
 			),
 
 			PassConfig.of(
 				"bloom",
-				SamplerConfig.array(
-						SamplerConfig.of("main_copy", false),
-						SamplerConfig.of("bloom_upsample", false)
-				),
-				"boom",
+				stringArray("main_copy", "bloom_upsample"),
+				"bloom",
 				0
 			)
 		);
+	}
+
+	String[] stringArray(String... strings) {
+		return strings;
 	}
 }

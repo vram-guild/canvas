@@ -1,6 +1,11 @@
 package grondag.canvas.pipeline.config;
 
+import blue.endless.jankson.JsonArray;
+import blue.endless.jankson.JsonObject;
+
 import net.minecraft.util.Identifier;
+
+import grondag.canvas.CanvasMod;
 
 /*
  *  Copyright 2019, 2020 grondag
@@ -19,26 +24,49 @@ import net.minecraft.util.Identifier;
  */
 
 public class ShaderConfig {
-	public String name;
-	public Identifier vertexSource;
-	public Identifier fragmentSource;
-	public String[] samplerNames;
+	public final String name;
+	public final Identifier vertexSource;
+	public final Identifier fragmentSource;
+	public final String[] samplerNames;
 
-	public static ShaderConfig of(
-			String name,
-			String vertexSource,
-			String fragmentSource,
-			String... samplerNames
-	) {
-		final ShaderConfig result = new ShaderConfig();
-		result.name = name;
-		result.vertexSource = new Identifier(vertexSource);
-		result.fragmentSource = new Identifier(fragmentSource);
-		result.samplerNames = samplerNames;
-		return result;
+	private ShaderConfig(JsonObject config) {
+		name = config.get(String.class, "name");
+		vertexSource = new Identifier(config.get(String.class, "vertexSource"));
+		fragmentSource = new Identifier(config.get(String.class, "fragmentSource"));
+
+		if (!config.containsKey("samplerNames")) {
+			samplerNames = new String[0];
+		} else {
+			final JsonArray names = config.get(JsonArray.class, "samplerNames");
+			final int limit = names.size();
+			samplerNames = new String[limit];
+
+			for (int i = 0; i < limit; ++i) {
+				final String s = JanksonHelper.asString(names.get(i));
+
+				if (s == null) {
+					CanvasMod.LOG.warn(String.format("Sampler name %s (%d of %d) for pipeline shader %s is not a valid string and was skipped.",
+							names.get(i).toString(), i, limit, name));
+				} else {
+					samplerNames[i] = s;
+				}
+			}
+		}
 	}
 
-	public static ShaderConfig[] array(ShaderConfig... configs) {
-		return configs;
+	public static ShaderConfig[] deserialize(JsonObject configJson) {
+		if (configJson == null || !configJson.containsKey("shaders")) {
+			return new ShaderConfig[0];
+		}
+
+		final JsonArray shaders = configJson.get(JsonArray.class, "shaders");
+		final int limit = shaders.size();
+		final ShaderConfig[] result = new ShaderConfig[limit];
+
+		for (int i = 0; i < limit; ++i) {
+			result[i] = new ShaderConfig((JsonObject) shaders.get(i));
+		}
+
+		return result;
 	}
 }

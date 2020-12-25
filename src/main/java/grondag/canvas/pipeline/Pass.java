@@ -16,11 +16,14 @@
 
 package grondag.canvas.pipeline;
 
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+
 import grondag.canvas.CanvasMod;
 import grondag.canvas.pipeline.config.PassConfig;
 
 abstract class Pass {
 	final PassConfig config;
+	boolean isValid = true;
 	PipelineFramebuffer fbo;
 
 	Pass(PassConfig config) {
@@ -29,8 +32,11 @@ abstract class Pass {
 
 		if (fbo == null) {
 			// WIP: give passes names, allow profiling
-			CanvasMod.LOG.warn(String.format("Unable to find framebuffer %s for pass $s.  Pass will be skipped.", config.framebufferName.toString(), "UNKNOWN"));
+			CanvasMod.LOG.warn(String.format("Unable to find framebuffer %s for pass $s.  Pass will be skipped.", config.framebufferName, "UNKNOWN"));
+			isValid = false;
 		}
+
+		isValid = false;
 	}
 
 	abstract void run(int width, int height);
@@ -43,5 +49,23 @@ abstract class Pass {
 		} else {
 			return new ProgramPass(config);
 		}
+	}
+
+	static Pass[] create(String logName, PassConfig[] configs) {
+		if (configs == null || configs.length == 0) {
+			return new Pass[0];
+		}
+
+		final ObjectArrayList<Pass> passes = new ObjectArrayList<>();
+
+		for (final PassConfig c : configs) {
+			final Pass p = create(c);
+
+			if (p.isValid) {
+				passes.add(p);
+			}
+		}
+
+		return passes.toArray(new Pass[passes.size()]);
 	}
 }
