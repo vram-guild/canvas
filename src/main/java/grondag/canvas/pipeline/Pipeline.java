@@ -28,7 +28,7 @@ import grondag.canvas.mixinterface.FrameBufferExt;
 import grondag.canvas.pipeline.config.FramebufferConfig;
 import grondag.canvas.pipeline.config.ImageConfig;
 import grondag.canvas.pipeline.config.PipelineConfig;
-import grondag.canvas.pipeline.config.ShaderConfig;
+import grondag.canvas.pipeline.config.ProgramConfig;
 import grondag.canvas.shader.ProcessShader;
 
 public class Pipeline {
@@ -125,7 +125,7 @@ public class Pipeline {
 			IMAGES.put(img.name, new Image(img, width, height));
 		}
 
-		for (final ShaderConfig shader : config.shaders) {
+		for (final ProgramConfig shader : config.shaders) {
 			if (SHADERS.containsKey(shader.name)) {
 				CanvasMod.LOG.warn(String.format("Duplicate pipeline shader definition encountered with name %s. Duplicate was skipped.", shader.name));
 				continue;

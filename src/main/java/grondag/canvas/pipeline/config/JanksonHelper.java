@@ -16,9 +16,13 @@
 
 package grondag.canvas.pipeline.config;
 
+import blue.endless.jankson.JsonArray;
 import blue.endless.jankson.JsonElement;
+import blue.endless.jankson.JsonObject;
 import blue.endless.jankson.JsonPrimitive;
 import org.jetbrains.annotations.Nullable;
+
+import grondag.canvas.CanvasMod;
 
 public class JanksonHelper {
 	static @Nullable String asString(JsonElement json) {
@@ -31,5 +35,20 @@ public class JanksonHelper {
 		}
 
 		return null;
+	}
+
+	static @Nullable JsonArray getJsonArrayOrNull(JsonObject jsonObject, String key, String nonArrayMessage) {
+		if (jsonObject == null || !jsonObject.containsKey(key)) {
+			return null;
+		}
+
+		final JsonElement element = jsonObject.get(key);
+
+		if (element instanceof JsonArray) {
+			return (JsonArray) element;
+		} else {
+			CanvasMod.LOG.warn(nonArrayMessage);
+			return null;
+		}
 	}
 }

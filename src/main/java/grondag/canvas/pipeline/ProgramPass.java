@@ -35,10 +35,10 @@ class ProgramPass extends Pass {
 
 	ProgramPass(PassConfig config) {
 		super(config);
-		binds = new int[config.samplers.length];
+		binds = new int[config.samplerNames.length];
 
-		for (int i = 0; i < config.samplers.length; ++i) {
-			final String imageName = config.samplers[i];
+		for (int i = 0; i < config.samplerNames.length; ++i) {
+			final String imageName = config.samplerNames[i];
 
 			int imageBind = 0;
 
@@ -57,18 +57,21 @@ class ProgramPass extends Pass {
 			}
 
 			if (imageBind == 0) {
-				CanvasMod.LOG.warn(String.format("Unable to find image binding %s for pass $s.  Pass will be skipped.", imageName, config.name));
+				CanvasMod.LOG.warn(String.format("Unable to find image binding %s for pass %s.  Pass will be skipped.", imageName, config.name));
 				isValid = false;
 			}
 
 			binds[i] = imageBind;
 		}
 
-		shader = Pipeline.getShader(config.shaderName);
+		shader = Pipeline.getShader(config.programName);
 
 		if (shader == null) {
-			CanvasMod.LOG.warn(String.format("Unable to find shader %s for pass $s.  Pass will be skipped.", config.shaderName, config.name));
+			CanvasMod.LOG.warn(String.format("Unable to find shader %s for pass %s.  Pass will be skipped.", config.programName, config.name));
 			isValid = false;
+		} else if (shader.samplerCount() != binds.length) {
+			CanvasMod.LOG.warn(String.format("Shader %s in pass %s expects %d samplers but the pass binds %d.  Pass may not operate correctly.",
+					config.programName, config.name, shader.samplerCount(), binds.length));
 		}
 	}
 

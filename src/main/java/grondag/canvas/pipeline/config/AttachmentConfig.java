@@ -25,7 +25,7 @@ public class AttachmentConfig {
 	public final int clearColor;
 
 	AttachmentConfig(JsonObject config) {
-		imageName = config.get(String.class, "imageName");
+		imageName = config.get(String.class, "image");
 		lod = config.getInt("lod", 0);
 		clearColor = config.getInt("clearColor", 0);
 	}

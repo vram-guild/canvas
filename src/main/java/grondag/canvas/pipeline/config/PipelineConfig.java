@@ -28,7 +28,7 @@ import grondag.canvas.Configurator;
 public class PipelineConfig {
 	public ImageConfig[] images;
 	public PipelineParam[] params;
-	public ShaderConfig[] shaders;
+	public ProgramConfig[] shaders;
 	public FramebufferConfig[] framebuffers;
 
 	public PassConfig[] onWorldStart;
@@ -51,133 +51,10 @@ public class PipelineConfig {
 		);
 
 		images = ImageConfig.deserialize(configJson);
-		shaders = ShaderConfig.deserialize(configJson);
+		shaders = ProgramConfig.deserialize(configJson);
 		framebuffers = FramebufferConfig.deserialize(configJson);
-
-		onWorldStart = PassConfig.array(
-			PassConfig.of("emissive", new String[0], PassConfig.CLEAR_NAME, 0)
-		);
-
-		afterRenderHand = PassConfig.array(
-			PassConfig.of(
-				"main_copy",
-				stringArray("default_main"),
-				"copy",
-				0
-			),
-
-			PassConfig.of(
-				"emissive_color",
-				stringArray("default_main", "emissive"),
-				"emissive_color",
-				0
-			),
-
-			PassConfig.of(
-				"bloom_downsample_0",
-				stringArray("emissive_color"),
-				"downsample",
-				0
-			),
-
-			PassConfig.of(
-				"bloom_downsample_1",
-				stringArray("bloom_downsample"),
-				"downsample",
-				1
-			),
-
-			PassConfig.of(
-				"bloom_downsample_2",
-				stringArray("bloom_downsample"),
-				"downsample",
-				2
-			),
-
-			PassConfig.of(
-				"bloom_downsample_3",
-				stringArray("bloom_downsample"),
-				"downsample",
-				3
-			),
-
-			PassConfig.of(
-				"bloom_downsample_4",
-				stringArray("bloom_downsample"),
-				"downsample",
-				4
-			),
-
-			PassConfig.of(
-				"bloom_downsample_5",
-				stringArray("bloom_downsample"),
-				"downsample",
-				5
-			),
-
-			PassConfig.of(
-				"bloom_downsample_6",
-				stringArray("bloom_downsample"),
-				"downsample",
-				6
-			),
-
-			PassConfig.of(
-				"bloom_upsample_6",
-				stringArray("bloom_downsample"),
-				"upsample_first",
-				6
-			),
-
-			PassConfig.of(
-				"bloom_upsample_5",
-				stringArray("bloom_downsample", "bloom_upsample"),
-				"upsample",
-				5
-			),
-
-			PassConfig.of(
-				"bloom_upsample_4",
-				stringArray("bloom_downsample", "bloom_upsample"),
-				"upsample",
-				4
-			),
-
-			PassConfig.of(
-				"bloom_upsample_3",
-				stringArray("bloom_downsample", "bloom_upsample"),
-				"upsample",
-				3
-			),
-
-			PassConfig.of(
-				"bloom_upsample_2",
-				stringArray("bloom_downsample", "bloom_upsample"),
-				"upsample",
-				2
-			),
-
-			PassConfig.of(
-				"bloom_upsample_1",
-				stringArray("bloom_downsample", "bloom_upsample"),
-				"upsample",
-				1
-			),
-
-			PassConfig.of(
-				"bloom_upsample_0",
-				stringArray("bloom_downsample", "bloom_upsample"),
-				"upsample",
-				0
-			),
-
-			PassConfig.of(
-				"bloom",
-				stringArray("main_copy", "bloom_upsample"),
-				"bloom",
-				0
-			)
-		);
+		onWorldStart = PassConfig.deserialize(configJson, "onWorldRenderStart");
+		afterRenderHand = PassConfig.deserialize(configJson, "afterRenderHand");
 	}
 
 	String[] stringArray(String... strings) {

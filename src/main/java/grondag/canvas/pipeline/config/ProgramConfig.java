@@ -23,21 +23,21 @@ import grondag.canvas.CanvasMod;
  *  the License.
  */
 
-public class ShaderConfig {
+public class ProgramConfig {
 	public final String name;
 	public final Identifier vertexSource;
 	public final Identifier fragmentSource;
 	public final String[] samplerNames;
 
-	private ShaderConfig(JsonObject config) {
+	private ProgramConfig(JsonObject config) {
 		name = config.get(String.class, "name");
 		vertexSource = new Identifier(config.get(String.class, "vertexSource"));
 		fragmentSource = new Identifier(config.get(String.class, "fragmentSource"));
 
-		if (!config.containsKey("samplerNames")) {
+		if (!config.containsKey("samplers")) {
 			samplerNames = new String[0];
 		} else {
-			final JsonArray names = config.get(JsonArray.class, "samplerNames");
+			final JsonArray names = config.get(JsonArray.class, "samplers");
 			final int limit = names.size();
 			samplerNames = new String[limit];
 
@@ -54,17 +54,17 @@ public class ShaderConfig {
 		}
 	}
 
-	public static ShaderConfig[] deserialize(JsonObject configJson) {
-		if (configJson == null || !configJson.containsKey("shaders")) {
-			return new ShaderConfig[0];
+	public static ProgramConfig[] deserialize(JsonObject configJson) {
+		if (configJson == null || !configJson.containsKey("programs")) {
+			return new ProgramConfig[0];
 		}
 
-		final JsonArray array = configJson.get(JsonArray.class, "shaders");
+		final JsonArray array = configJson.get(JsonArray.class, "programs");
 		final int limit = array.size();
-		final ShaderConfig[] result = new ShaderConfig[limit];
+		final ProgramConfig[] result = new ProgramConfig[limit];
 
 		for (int i = 0; i < limit; ++i) {
-			result[i] = new ShaderConfig((JsonObject) array.get(i));
+			result[i] = new ProgramConfig((JsonObject) array.get(i));
 		}
 
 		return result;

@@ -37,6 +37,10 @@ public class ProcessShader {
 		this.samplers = samplers;
 	}
 
+	public int samplerCount() {
+		return samplers.length;
+	}
+
 	public void unload() {
 		if (program != null) {
 			program.unload();
