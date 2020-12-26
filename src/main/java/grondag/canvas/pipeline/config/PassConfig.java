@@ -29,6 +29,27 @@ public class PassConfig {
 	// for computing size
 	public final int lod;
 
+	//	// For blit operations
+	//	public final String sourceFrameBufferName;
+	//
+	//	//	readFramebuffer
+	//	//	Specifies the name of the source framebuffer object for glBlitNamedFramebuffer.
+	//
+	//	//	drawFramebuffer
+	//	//	Specifies the name of the destination framebuffer object for glBlitNamedFramebuffer.
+	//
+	//	//Specify the bounds of the source rectangle within the read buffer of the read framebuffer.
+	//	public float srcX0, srcY0, srcX1, srcY1;
+	//
+	//	//Specify the bounds of the destination rectangle within the write buffer of the write framebuffer.
+	//	public float dstX0, dstY0, dstX1, dstY1;
+	//
+	//	// The bitwise OR of the flags indicating which buffers are to be copied. The allowed flags are GL_COLOR_BUFFER_BIT, GL_DEPTH_BUFFER_BIT and GL_STENCIL_BUFFER_BIT.
+	//	public String[] maskFlags;
+	//
+	//	// Specifies the interpolation to be applied if the image is stretched. Must be GL_NEAREST or GL_LINEAR.
+	//	public String filter;
+
 	private PassConfig (JsonObject config) {
 		framebufferName = JanksonHelper.asString(config.get("framebuffer"));
 		programName = JanksonHelper.asString(config.get("program"));

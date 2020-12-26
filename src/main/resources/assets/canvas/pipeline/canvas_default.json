@@ -7,7 +7,7 @@
 	//   leading and trailing decimal points
 	//   positive sign
 
-	id: "canvas_default",
+	name: "canvas_default",
 
 	images: [
 		// attached to the main framebuffer in world rendering to capture emissive layer
@@ -203,100 +203,107 @@
 			{
 				// copy MC fbo color attachment - need it at end for combine step
 				name: "main_copy",
+				program: "copy",
 				framebuffer: "main_copy",
-				samplerImages: ["default_main"],
-				program: "copy"
+				samplerImages: ["default_main"]
 			}, {
 				// select emissive portions for blur
 				name: "emissive_color",
+				program: "emissive_color",
 				framebuffer: "emissive_color",
-				samplerImages: ["default_main", "emissive"],
-				program: "emissive_color"
+				samplerImages: ["default_main", "emissive"]
 			}, {
 				// build bloom mipmaps, blurring as part of downscale
+				name: "bloom_downsample_0",
+				program: "downsample",
 				framebuffer: "bloom_downsample_0",
 				samplerImages: ["emissive_color"],
-				program: "downsample"
 			}, {
+				name: "bloom_downsample_1",
+				program: "downsample",
 				framebuffer: "bloom_downsample_1",
 				samplerImages: ["bloom_downsample"],
-				program: "downsample",
 				lod: 1
 			}, {
+				name: "bloom_downsample_2",
+				program: "downsample",
 				framebuffer: "bloom_downsample_2",
 				samplerImages: ["bloom_downsample"],
-				program: "downsample",
 				lod: 2
 			}, {
+				name: "bloom_downsample_3",
+				program: "downsample",
 				framebuffer: "bloom_downsample_3",
 				samplerImages: ["bloom_downsample"],
-				program: "downsample",
 				lod: 3
 			}, {
+				name: "bloom_downsample_4",
+				program: "downsample",
 				framebuffer: "bloom_downsample_4",
 				samplerImages: ["bloom_downsample"],
-				program: "downsample",
 				lod: 4
 			}, {
+				name: "bloom_downsample_5",
+				program: "downsample",
 				framebuffer: "bloom_downsample_5",
 				samplerImages: ["bloom_downsample"],
-				program: "downsample",
 				lod: 5
 			}, {
+				name: "bloom_downsample_6",
+				program: "downsample",
 				framebuffer: "bloom_downsample_6",
 				samplerImages: ["bloom_downsample"],
-				program: "downsample",
 				lod: 6
 			}, {
 				// upscale bloom mipmaps, bluring again as we go
-				name: "bloom",
+				name: "bloom_upsample_6",
+				program: "upsample_first",
 				framebuffer: "bloom_upsample_6",
 				samplerImages: ["bloom_downsample"],
-				program: "upsample_first",
 				lod: 6
 			}, {
-				name: "bloom",
+				name: "bloom_upsample_5",
+				program: "upsample",
 				framebuffer: "bloom_upsample_5",
 				samplerImages: ["bloom_downsample", "bloom_upsample"],
-				program: "upsample",
 				lod: 5
 			}, {
-				name: "bloom",
+				name: "bloom_upsample_4",
+				program: "upsample",
 				framebuffer: "bloom_upsample_4",
 				samplerImages: ["bloom_downsample", "bloom_upsample"],
-				program: "upsample",
 				lod: 4
 			}, {
-				name: "bloom",
+				name: "bloom_upsample_3",
+				program: "upsample",
 				framebuffer: "bloom_upsample_3",
 				samplerImages: ["bloom_downsample", "bloom_upsample"],
-				program: "upsample",
 				lod: 3
 			}, {
-				name: "bloom",
+				name: "bloom_upsample_2",
+				program: "upsample",
 				framebuffer: "bloom_upsample_2",
 				samplerImages: ["bloom_downsample", "bloom_upsample"],
-				program: "upsample",
 				lod: 2
 			}, {
-				name: "bloom",
+				name: "bloom_upsample_1",
+				program: "upsample",
 				framebuffer: "bloom_upsample_1",
 				samplerImages: ["bloom_downsample", "bloom_upsample"],
-				program: "upsample",
 				lod: 1
 			}, {
-				name: "bloom",
+				name: "bloom_upsample_0",
+				program: "upsample",
 				framebuffer: "bloom_upsample_0",
 				samplerImages: ["bloom_downsample", "bloom_upsample"],
-				program: "upsample",
 				lod: 0
 			}, {
 				// Switch back to MC main color to draw combined color + bloom
 				// Framebuffer attachment shouldn't draw to self so use copy created earlier
 				name: "bloom",
+				program: "bloom",
 				framebuffer: "bloom",
-				samplerImages: ["main_copy", "bloom_upsample"],
-				program: "bloom"
+				samplerImages: ["main_copy", "bloom_upsample"]
 			}
 		]
 	}
