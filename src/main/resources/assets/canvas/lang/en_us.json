@@ -128,5 +128,10 @@
   "config.canvas.help.render_lag_spike_fps": "Target frames per second when Log Render Lag Spikes is enabled.;If elapsed time exceeds an entire frame, a spike is logged.",
   "key.canvas.debug_toggle": "Toggle Debug View",
   "key.canvas.debug_prev": "Debug Previous Image",
-  "key.canvas.debug_next": "Debug Next Image"
+  "key.canvas.debug_next": "Debug Next Image",
+  "pipeline.canvas_default.name": "Canvas Default",
+  "pipeline.canvas_default.desc": "Some aesthetic improvements, with balanced performance",
+  "pipeline.canvas_basic.name": "Canvas Basic",
+  "pipeline.canvas_basic.desc": "Vanilla-style rendering, best performance.",
+  "pipeline.no_desc": "No description provided."
 }

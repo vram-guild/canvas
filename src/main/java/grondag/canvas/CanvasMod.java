@@ -22,6 +22,7 @@ import org.lwjgl.system.Configuration;
 
 import net.minecraft.client.options.KeyBinding;
 import net.minecraft.client.render.RenderLayer;
+import net.minecraft.resource.ResourceType;
 import net.minecraft.util.Identifier;
 
 import net.fabricmc.api.ClientModInitializer;
@@ -36,6 +37,7 @@ import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.apiimpl.fluid.FluidHandler;
 import grondag.canvas.compat.Compat;
 import grondag.canvas.mixinterface.RenderLayerExt;
+import grondag.canvas.pipeline.config.PipelineLoader;
 import grondag.frex.api.fluid.FluidQuadSupplier;
 
 //FEAT: weather rendering
@@ -85,5 +87,7 @@ public class CanvasMod implements ClientModInitializer {
 			ResourceManagerHelper.registerBuiltinResourcePack(new Identifier("canvas:extras"), "resourcepacks/canvas_extras", modContainer, false);
 			//ResourceManagerHelper.registerBuiltinResourcePack(new Identifier("canvas:development"), "resourcepacks/canvas_wip", modContainer, false);
 		});
+
+		ResourceManagerHelper.get(ResourceType.CLIENT_RESOURCES).registerReloadListener(PipelineLoader.INSTANCE);
 	}
 }

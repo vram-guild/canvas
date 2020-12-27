@@ -108,7 +108,7 @@ public class Pipeline {
 	}
 
 	private static void activateInner(int width, int height) {
-		final PipelineConfig config = new PipelineConfig();
+		final PipelineConfig config = PipelineConfig.load(PipelineConfig.DEFAULT_ID);
 
 		final Framebuffer mcFbo = MinecraftClient.getInstance().getFramebuffer();
 		final FrameBufferExt mcFboExt = ((FrameBufferExt) mcFbo);

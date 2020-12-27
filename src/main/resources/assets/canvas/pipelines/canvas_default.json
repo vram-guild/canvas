@@ -7,7 +7,14 @@
 	//   leading and trailing decimal points
 	//   positive sign
 
-	name: "canvas_default",
+	// When a descriptive attribute ends with ...Key that means the config loader_version
+	//  will attempt to use the value as a localization key.  For that to work,
+	// you'll need to include the key and it's translation in accompanying lang file(s).
+	// If you don't want to deal with localization, use literal strings -
+	// those will fail localization lookup and be used directly.
+
+	nameKey: "pipeline.canvas_default.name",
+	descriptionKey: "pipeline.canvas_default.desc",
 
 	images: [
 		// attached to the main framebuffer in world rendering to capture emissive layer

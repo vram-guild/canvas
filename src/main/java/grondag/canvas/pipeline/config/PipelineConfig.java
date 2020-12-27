@@ -17,6 +17,7 @@
 package grondag.canvas.pipeline.config;
 
 import blue.endless.jankson.JsonObject;
+import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.resource.Resource;
@@ -34,17 +35,7 @@ public class PipelineConfig {
 	public PassConfig[] onWorldStart;
 	public PassConfig[] afterRenderHand;
 
-	{
-		final Identifier id = new Identifier("canvas:pipeline/canvas_default.json");
-		final ResourceManager rm = MinecraftClient.getInstance().getResourceManager();
-		JsonObject configJson = null;
-
-		try (Resource res = rm.getResource(id)) {
-			configJson = Configurator.JANKSON.load(res.getInputStream());
-		} catch (final Exception e) {
-			e.printStackTrace();
-		}
-
+	private PipelineConfig (JsonObject configJson) {
 		params = PipelineParam.array(
 			PipelineParam.of("bloom_intensity", 0.0f, 0.5f, 0.1f),
 			PipelineParam.of("bloom_scale", 0.0f, 2.0f, 0.25f)
@@ -57,7 +48,19 @@ public class PipelineConfig {
 		afterRenderHand = PassConfig.deserialize(configJson, "afterRenderHand");
 	}
 
-	String[] stringArray(String... strings) {
-		return strings;
+	public static @Nullable PipelineConfig load(Identifier id) {
+		final ResourceManager rm = MinecraftClient.getInstance().getResourceManager();
+		JsonObject configJson = null;
+
+		try (Resource res = rm.getResource(id)) {
+			configJson = Configurator.JANKSON.load(res.getInputStream());
+			return new PipelineConfig(configJson);
+		} catch (final Exception e) {
+			e.printStackTrace();
+		}
+
+		return null;
 	}
+
+	public static final Identifier DEFAULT_ID = new Identifier("canvas:pipelines/canvas_default.json");
 }
