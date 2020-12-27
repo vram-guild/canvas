@@ -19,22 +19,28 @@ package grondag.canvas.pipeline;
 import java.lang.reflect.Field;
 
 import blue.endless.jankson.JsonObject;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import org.lwjgl.opengl.GL46;
 
 import grondag.canvas.CanvasMod;
 
 public class GlSymbolLookup {
-	// WIP: cache
+	private static final Object2IntOpenHashMap<String> MAP = new Object2IntOpenHashMap<>();
+
 	public static int lookup(String symbol) {
 		symbol = "GL_" + symbol.toUpperCase();
 
-		try {
-			final Field f = GL46.class.getField(symbol);
-			return f.getInt(null);
-		} catch (final Exception e) {
-			e.printStackTrace();
-			return -1;
-		}
+		return MAP.computeIntIfAbsent(symbol,
+			k -> {
+				try {
+					final Field f = GL46.class.getField(k);
+					return f.getInt(null);
+				} catch (final Exception e) {
+					e.printStackTrace();
+					return -1;
+				}
+			}
+		);
 	}
 
 	public static int lookup(JsonObject config, String key, String fallback) {
