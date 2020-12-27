@@ -19,22 +19,24 @@ package grondag.canvas.mixin;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.screen.VideoOptionsScreen;
-import net.minecraft.text.Text;
+import net.minecraft.client.gui.widget.AbstractButtonWidget;
+import net.minecraft.client.options.CyclingOption;
+import net.minecraft.client.options.GameOptions;
+import net.minecraft.client.options.Option;
+import net.minecraft.text.TranslatableText;
 
 import grondag.canvas.varia.CanvasButtonWidget;
 
-@Mixin(VideoOptionsScreen.class)
-public class MixinVideoOptionsScreen extends Screen {
-	public MixinVideoOptionsScreen(Text title) {
-		super(title);
-	}
+@Mixin(CyclingOption.class)
+public abstract class MixinCyclingOption {
+	@Inject(at = @At("HEAD"), method = "createButton", cancellable = true)
+	private void onCreateButton(GameOptions options, int x, int y, int width, CallbackInfoReturnable<AbstractButtonWidget> info) {
+		final CyclingOption self = (CyclingOption) (Object) this;
 
-	@Inject(at = @At("RETURN"), method = "init()V")
-	private void onInit(CallbackInfo info) {
-		CanvasButtonWidget.parent = this;
+		if (self == Option.GRAPHICS) {
+			info.setReturnValue(new CanvasButtonWidget(x, y, width, 20, new TranslatableText("config.canvas.button")));
+		}
 	}
 }
