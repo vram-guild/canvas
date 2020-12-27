@@ -57,6 +57,7 @@ public class CanvasMod implements ClientModInitializer {
 	public static KeyBinding DEBUG_TOGGLE = new KeyBinding("key.canvas.debug_toggle", Character.valueOf('`'), "key.canvas.category");
 	public static KeyBinding DEBUG_PREV = new KeyBinding("key.canvas.debug_prev", Character.valueOf('['), "key.canvas.category");
 	public static KeyBinding DEBUG_NEXT = new KeyBinding("key.canvas.debug_next", Character.valueOf(']'), "key.canvas.category");
+	public static KeyBinding RECOMPILE = new KeyBinding("key.canvas.recompile", Character.valueOf('='), "key.canvas.category");
 
 	@Override
 	public void onInitializeClient() {
@@ -79,6 +80,7 @@ public class CanvasMod implements ClientModInitializer {
 		KeyBindingHelper.registerKeyBinding(DEBUG_TOGGLE);
 		KeyBindingHelper.registerKeyBinding(DEBUG_PREV);
 		KeyBindingHelper.registerKeyBinding(DEBUG_NEXT);
+		KeyBindingHelper.registerKeyBinding(RECOMPILE);
 
 		Compat.init();
 

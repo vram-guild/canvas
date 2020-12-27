@@ -24,6 +24,7 @@ import org.lwjgl.opengl.GL21;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.Framebuffer;
+import net.minecraft.client.resource.language.I18n;
 import net.minecraft.util.Identifier;
 
 import grondag.canvas.CanvasMod;
@@ -31,9 +32,15 @@ import grondag.canvas.Configurator;
 import grondag.canvas.buffer.VboBuffer;
 import grondag.canvas.buffer.encoding.VertexCollectorImpl;
 import grondag.canvas.buffer.format.CanvasVertexFormats;
+import grondag.canvas.light.LightmapHd;
+import grondag.canvas.light.LightmapHdTexture;
+import grondag.canvas.material.property.MaterialTextureState;
 import grondag.canvas.mixinterface.FrameBufferExt;
 import grondag.canvas.shader.GlProgram;
+import grondag.canvas.shader.GlShaderManager;
+import grondag.canvas.shader.MaterialProgramManager;
 import grondag.canvas.shader.ProcessShader;
+import grondag.canvas.terrain.util.TerrainModelSpace;
 
 //PERF: handle VAO properly here before re-enabling VAO
 public class PipelineManager {
@@ -60,6 +67,8 @@ public class PipelineManager {
 	private static boolean active = false;
 
 	public static void prepareForFrame() {
+		handleRecompile();
+
 		assert !active;
 		sync();
 
@@ -89,6 +98,25 @@ public class PipelineManager {
 			active = false;
 			GL21.glDrawBuffers(FramebufferInfo.COLOR_ATTACHMENT);
 			GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT + 1, GL21.GL_TEXTURE_2D, 0, 0);
+		}
+	}
+
+	public static void handleRecompile() {
+		boolean doIt = false;
+
+		while (CanvasMod.RECOMPILE.wasPressed()) {
+			doIt = true;
+		}
+
+		if (doIt) {
+			CanvasMod.LOG.info(I18n.translate("info.canvas.reloading"));
+			GlShaderManager.INSTANCE.reload();
+			LightmapHdTexture.reload();
+			LightmapHd.reload();
+			MaterialProgramManager.INSTANCE.reload();
+			TerrainModelSpace.reload();
+			Pipeline.reload();
+			MaterialTextureState.reload();
 		}
 	}
 
