@@ -15,8 +15,23 @@
 
 	nameKey: "pipeline.canvas_default.name",
 	descriptionKey: "pipeline.canvas_default.desc",
+	fabulous: true,
 
 	images: [
+		/* // attached to the main framebuffer in world rendering to capture emissive layer
+		{
+			name: "default_main",
+			lod: 0,
+			internalFormat: "RGBA8",
+			target: "TEXTURE_2D",
+			texParams: [
+				{name: "TEXTURE_MIN_FILTER", val: "LINEAR"},
+				{name: "TEXTURE_MAG_FILTER", val: "LINEAR"},
+				{name: "TEXTURE_WRAP_S", val: "CLAMP"},
+				{name: "TEXTURE_WRAP_T", val: "CLAMP"}
+			]
+		}, */
+
 		// attached to the main framebuffer in world rendering to capture emissive layer
 		{
 			name: "emissive",
@@ -135,6 +150,10 @@
 	],
 
 	framebuffers: [
+		/* {
+			name: "default",
+			colorAttachments: [{image: "default_main", clearColor: 0x00000000, lod: 0}]
+		}, */
 		{
 			name: "emissive",
 			colorAttachments: [{image: "emissive", clearColor: 0x00000000, lod: 0}]
@@ -187,6 +206,7 @@
 			name: "bloom_upsample_0",
 			colorAttachments: [{image: "bloom_upsample", lod: 0}]
 		}, {
+			// TODO: just use main fb instead?
 			name: "bloom",
 			colorAttachments: [{image: "default_main", lod: 0}]
 		}

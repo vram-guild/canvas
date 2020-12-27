@@ -21,7 +21,6 @@ import java.util.function.Function;
 
 import blue.endless.jankson.JsonObject;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import net.minecraft.resource.Resource;
 import net.minecraft.resource.ResourceManager;
@@ -44,7 +43,6 @@ public class PipelineLoader implements SimpleSynchronousResourceReloadListener {
 
 	@Override
 	public void apply(ResourceManager manager) {
-		LIST.clear();
 		MAP.clear();
 
 		final Iterator<?> it = manager.findResources("pipelines", (stringx) -> {
@@ -57,7 +55,6 @@ public class PipelineLoader implements SimpleSynchronousResourceReloadListener {
 			try (Resource res = manager.getResource(id)) {
 				final JsonObject configJson = Configurator.JANKSON.load(res.getInputStream());
 				final PipelineDescription p = new PipelineDescription(id, configJson);
-				LIST.add(id.toString());
 				MAP.put(id.toString(), p);
 			} catch (final Exception e) {
 				CanvasMod.LOG.warn(String.format("Unable to load pipeline configuration %s due to unhandled exception.", id), e);
@@ -65,12 +62,7 @@ public class PipelineLoader implements SimpleSynchronousResourceReloadListener {
 		}
 	}
 
-	public static final ObjectArrayList<String> LIST = new ObjectArrayList<>();
 	private static final Object2ObjectOpenHashMap<String, PipelineDescription> MAP = new Object2ObjectOpenHashMap<>();
-
-	public static Iterable<String> iterable() {
-		return LIST;
-	}
 
 	public static PipelineDescription get(String idString) {
 		return MAP.get(idString);
@@ -78,10 +70,6 @@ public class PipelineLoader implements SimpleSynchronousResourceReloadListener {
 
 	public static PipelineDescription[] array() {
 		return MAP.values().toArray(new PipelineDescription[MAP.size()]);
-	}
-
-	public static String[] stringArray() {
-		return LIST.toArray(new String[LIST.size()]);
 	}
 
 	public static final Function<String, Text> NAME_TEXT_FUNCTION = s -> new TranslatableText(get(s).nameKey);

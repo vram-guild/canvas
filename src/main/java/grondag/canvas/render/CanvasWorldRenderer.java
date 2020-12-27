@@ -1191,7 +1191,26 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 	@Override
 	public void reload() {
+		Configurator.updateGraphicsMode();
+
 		super.reload();
+
+		//		if (MinecraftClient.isFabulousGraphicsOrBetter()) {
+		//            this.loadTransparencyShader();
+		//         } else {
+		//            this.resetTransparencyShader();
+		//         }
+		//
+		//         this.world.reloadColor();
+		//         if (this.chunkBuilder == null) {
+		//            this.chunkBuilder = new ChunkBuilder(this.world, this, Util.getMainWorkerExecutor(), this.client.is64Bit(), this.bufferBuilders.getBlockBufferBuilders());
+		//         } else {
+		//            this.chunkBuilder.setWorld(this.world);
+		//         }
+		//
+		//         this.needsTerrainUpdate = true;
+		//         this.cloudsDirty = true;
+		//         RenderLayers.setFancyGraphicsOrBetter(MinecraftClient.isFancyGraphicsOrBetter());
 
 		computeDistances();
 		terrainIterator.reset();

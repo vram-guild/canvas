@@ -36,6 +36,7 @@ import grondag.canvas.light.LightmapHd;
 import grondag.canvas.light.LightmapHdTexture;
 import grondag.canvas.material.property.MaterialTextureState;
 import grondag.canvas.mixinterface.FrameBufferExt;
+import grondag.canvas.pipeline.config.PipelineLoader;
 import grondag.canvas.shader.GlProgram;
 import grondag.canvas.shader.GlShaderManager;
 import grondag.canvas.shader.MaterialProgramManager;
@@ -88,16 +89,24 @@ public class PipelineManager {
 	public static void enableCanvasPrimaryFramebuffer() {
 		if (!active) {
 			active = true;
-			GL21.glDrawBuffers(ATTACHMENTS_DOUBLE);
-			GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT + 1, GL21.GL_TEXTURE_2D, texEmissive, 0);
+
+			// WIP: remove
+			if (MinecraftClient.isFabulousGraphicsOrBetter()) {
+				GL21.glDrawBuffers(ATTACHMENTS_DOUBLE);
+				GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT + 1, GL21.GL_TEXTURE_2D, texEmissive, 0);
+			}
 		}
 	}
 
 	public static void disableCanvasPrimaryFrambuffer() {
 		if (active) {
 			active = false;
-			GL21.glDrawBuffers(FramebufferInfo.COLOR_ATTACHMENT);
-			GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT + 1, GL21.GL_TEXTURE_2D, 0, 0);
+
+			// WIP: remove
+			if (MinecraftClient.isFabulousGraphicsOrBetter()) {
+				GL21.glDrawBuffers(FramebufferInfo.COLOR_ATTACHMENT);
+				GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT + 1, GL21.GL_TEXTURE_2D, 0, 0);
+			}
 		}
 	}
 
@@ -115,6 +124,7 @@ public class PipelineManager {
 			LightmapHd.reload();
 			MaterialProgramManager.INSTANCE.reload();
 			TerrainModelSpace.reload();
+			PipelineLoader.INSTANCE.apply(MinecraftClient.getInstance().getResourceManager());
 			Pipeline.reload();
 			MaterialTextureState.reload();
 		}
@@ -208,7 +218,11 @@ public class PipelineManager {
 			GlStateManager.bindFramebuffer(FramebufferInfo.FRAME_BUFFER, mcFbo.fbo);
 
 			assert mainColor == Pipeline.getImage("default_main").glId();
-			texEmissive = Pipeline.getImage("emissive").glId();
+
+			// WIP: remove
+			if (MinecraftClient.isFabulousGraphicsOrBetter()) {
+				texEmissive = Pipeline.getImage("emissive").glId();
+			}
 
 			GlStateManager.bindTexture(0);
 

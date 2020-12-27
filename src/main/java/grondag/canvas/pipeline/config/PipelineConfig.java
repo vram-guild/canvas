@@ -35,11 +35,15 @@ public class PipelineConfig {
 	public PassConfig[] onWorldStart;
 	public PassConfig[] afterRenderHand;
 
+	public final boolean isFabulous;
+
 	private PipelineConfig (JsonObject configJson) {
 		params = PipelineParam.array(
 			PipelineParam.of("bloom_intensity", 0.0f, 0.5f, 0.1f),
 			PipelineParam.of("bloom_scale", 0.0f, 2.0f, 0.25f)
 		);
+
+		isFabulous = configJson.getBoolean("fabulous", false);
 
 		images = ImageConfig.deserialize(configJson);
 		shaders = ProgramConfig.deserialize(configJson);

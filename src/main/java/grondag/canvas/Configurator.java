@@ -33,6 +33,7 @@ import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.options.GraphicsMode;
 import net.minecraft.client.resource.language.I18n;
 import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
@@ -46,6 +47,7 @@ import net.fabricmc.loader.api.FabricLoader;
 import grondag.canvas.perf.LagFinder;
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.pipeline.config.PipelineConfig;
+import grondag.canvas.pipeline.config.PipelineDescription;
 import grondag.canvas.pipeline.config.PipelineLoader;
 
 @Environment(EnvType.CLIENT)
@@ -210,6 +212,16 @@ public class Configurator {
 		logRenderLagSpikes = config.logRenderLagSpikes;
 		renderLagSpikeFps = MathHelper.clamp(config.renderLagSpikeFps, 30, 120);
 		lagFinder = createLagFinder();
+	}
+
+	@SuppressWarnings("resource")
+	public static void updateGraphicsMode() {
+		final PipelineDescription p = PipelineLoader.get(pipelineId);
+
+		final GraphicsMode target = p == null || !p.isFabulous
+				? GraphicsMode.FANCY : GraphicsMode.FABULOUS;
+
+		MinecraftClient.getInstance().options.graphicsMode = target;
 	}
 
 	private static void saveConfig() {

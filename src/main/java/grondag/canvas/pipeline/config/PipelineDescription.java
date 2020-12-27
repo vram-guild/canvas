@@ -25,12 +25,14 @@ public class PipelineDescription {
 	public final Identifier id;
 	public final String nameKey;
 	public final String descriptionKey;
+	public final boolean isFabulous;
 
 	public PipelineDescription (Identifier id, JsonObject config) {
 		this.id = id;
 
 		final String nameKey = JanksonHelper.asString(config.get("nameKey"));
 		this.nameKey = nameKey == null ? id.toString() : nameKey;
+		isFabulous = config.getBoolean("fabulous", false);
 
 		final String descriptionKey = JanksonHelper.asString(config.get("descriptionKey"));
 		this.descriptionKey = descriptionKey == null ? "pipeline.no_desc" : descriptionKey;
