@@ -22,8 +22,10 @@ import org.lwjgl.opengl.GL21;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.Framebuffer;
+import net.minecraft.util.Identifier;
 
 import grondag.canvas.CanvasMod;
+import grondag.canvas.Configurator;
 import grondag.canvas.mixinterface.FrameBufferExt;
 import grondag.canvas.pipeline.config.FramebufferConfig;
 import grondag.canvas.pipeline.config.ImageConfig;
@@ -108,7 +110,7 @@ public class Pipeline {
 	}
 
 	private static void activateInner(int width, int height) {
-		final PipelineConfig config = PipelineConfig.load(PipelineConfig.DEFAULT_ID);
+		final PipelineConfig config = PipelineConfig.load(new Identifier(Configurator.pipelineId));
 
 		final Framebuffer mcFbo = MinecraftClient.getInstance().getFramebuffer();
 		final FrameBufferExt mcFboExt = ((FrameBufferExt) mcFbo);

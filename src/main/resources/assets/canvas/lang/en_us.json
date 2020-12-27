@@ -134,5 +134,7 @@
   "pipeline.canvas_basic.name": "Canvas Basic",
   "pipeline.canvas_basic.desc": "Vanilla-style rendering, best performance.",
   "pipeline.no_desc": "No description provided.",
-  "key.canvas.recompile": "Recompile Shaders"
+  "key.canvas.recompile": "Recompile Shaders",
+  "config.canvas.value.pipeline": "Pipeline",
+  "config.canvas.help.pipeline": "Renderer configuration. Determines appearance, ;performance and available options."
 }

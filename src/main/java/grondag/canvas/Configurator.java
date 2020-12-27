@@ -19,6 +19,7 @@ package grondag.canvas;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import blue.endless.jankson.Comment;
@@ -43,6 +44,9 @@ import net.fabricmc.api.Environment;
 import net.fabricmc.loader.api.FabricLoader;
 
 import grondag.canvas.perf.LagFinder;
+import grondag.canvas.pipeline.Pipeline;
+import grondag.canvas.pipeline.config.PipelineConfig;
+import grondag.canvas.pipeline.config.PipelineLoader;
 
 @Environment(EnvType.CLIENT)
 public class Configurator {
@@ -50,6 +54,7 @@ public class Configurator {
 	public static final Gson GSON = new GsonBuilder().create();
 	public static final Jankson JANKSON = Jankson.builder().build();
 	private static final ConfigEntryBuilder ENTRY_BUILDER = ConfigEntryBuilder.create();
+	public static String pipelineId = DEFAULTS.pipelineId;
 	public static FogMode fogMode = DEFAULTS.fogMode;
 	public static boolean blendFluidColors = DEFAULTS.blendFluidColors;
 	public static boolean enableBloom = DEFAULTS.enableBloom;
@@ -146,6 +151,12 @@ public class Configurator {
 			CanvasMod.LOG.error("Unable to load config. Using default values.");
 		}
 
+		pipelineId = config.pipelineId;
+
+		if (pipelineId == null || pipelineId.isEmpty() || PipelineLoader.get(pipelineId) == null) {
+			pipelineId = PipelineConfig.DEFAULT_ID.toString();
+		}
+
 		fogMode = config.fogMode;
 		blendFluidColors = config.blendFluidColors;
 		enableBloom = config.enableBloom;
@@ -203,6 +214,7 @@ public class Configurator {
 
 	private static void saveConfig() {
 		final ConfigData config = new ConfigData();
+		config.pipelineId = pipelineId;
 		config.fogMode = fogMode;
 		config.blendFluidColors = blendFluidColors;
 		config.enableBloom = enableBloom;
@@ -297,6 +309,22 @@ public class Configurator {
 
 		// FEATURES
 		final ConfigCategory features = builder.getOrCreateCategory(new TranslatableText("config.canvas.category.features"));
+
+		features.addEntry(
+			ENTRY_BUILDER
+				.startSelector(new TranslatableText("config.canvas.value.pipeline"), PipelineLoader.array(), PipelineLoader.get(pipelineId))
+				.setNameProvider(o -> new LiteralText(o.name()))
+				.setTooltip(parse("config.canvas.help.pipeline"))
+				.setTooltipSupplier(o -> Optional.of(parse(o.descriptionKey)))
+				.setSaveConsumer(b -> {
+					if (!b.id.toString().equals(pipelineId)) {
+						Pipeline.reload();
+						reload = true;
+						pipelineId = b.id.toString();
+					}
+				})
+				.build()
+		);
 
 		features.addEntry(ENTRY_BUILDER
 				.startEnumSelector(new TranslatableText("config.canvas.value.fog_mode"), FogMode.class, fogMode)
@@ -763,7 +791,9 @@ public class Configurator {
 
 	@SuppressWarnings("hiding")
 	static class ConfigData {
-		@Comment("Glow effect around light sources. Work-in-Progress")
+		@Comment("Renderer configuration. Determines appearance, performance and available options.")
+		public String pipelineId = PipelineConfig.DEFAULT_ID.toString();
+		@Comment("Glow effect around light sources.")
 		public boolean enableBloom = true;
 		@Comment("Intensity of glow effect around light sources. 0.0 to 0.5, default is 0.1.")
 		public float bloomIntensity = 0.1f;
