@@ -80,7 +80,10 @@ public interface WorldRendererExt {
 
 	VertexFormat canvas_vertexFormat();
 
+	// WIP: remove
 	ShaderEffect canvas_transparencyShader();
 
 	void canvas_setEntityCounts(int regularEntityCount, int blockEntityCount);
+
+	void canvas_setWorldNoSideEffects(ClientWorld world);
 }

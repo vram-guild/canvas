@@ -15,6 +15,30 @@
 
 	nameKey: "pipeline.canvas_default.name",
 	descriptionKey: "pipeline.canvas_default.desc",
+
+	// When true, will force Minecraft to operate as if "fabulous" mode was selected.
+	// Normally this means translucent geometry will be drawn to different framebuffers
+	// and five additional built-in framebuffers will be available:
+	// 		mc_entity				- item entities
+	// 		mc_particles
+	// 		mc_weather
+	//    mc_clouds
+	//    mc_translucent  - terrain
+	//
+	// If you set fabulous to true, then you need to configure these buffers but the
+	// pipeline does not have to use them.  The main purpose of this setting is
+	// compatibility: these extra framebuffers are visible to mods and some of them
+	// will target a specific buffer when fabulous mode is active.  If you want mods
+	// to draw translucency to separate buffers, set this true.  If you want them to
+	// target the default framebuffer set this false.
+	//
+	// The structure of these should match the default framebuffer and be compatible
+	// with direct draws. A deferred setup is probably going to want to do
+	// primary rendering to separate targets.
+	//
+	// Canvas does *not* automatically do the necessary passes for fabulous mode
+	// to compsite the transparency layers. That must be configured in the pipeline
+	// - this offers maximum flexiblity for shader devs.
 	fabulous: true,
 
 	images: [

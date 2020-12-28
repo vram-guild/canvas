@@ -263,7 +263,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		final TerrainIterator terrainIterator = this.terrainIterator;
 
 		if (mc.options.viewDistance != renderDistance) {
-			wr.canvas_reload();
+			reload();
 		}
 
 		regionStorage.closeRegionsOnRenderThread();
@@ -398,7 +398,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		final ClientWorld world = this.world;
 		final BufferBuilderStorage bufferBuilders = wr.canvas_bufferBuilders();
 		final EntityRenderDispatcher entityRenderDispatcher = wr.canvas_entityRenderDispatcher();
-		final boolean advancedTranslucency = wr.canvas_transparencyShader() != null;
+		final boolean advancedTranslucency = MinecraftClient.isFabulousGraphicsOrBetter();
 
 		BlockEntityRenderDispatcher.INSTANCE.configure(world, mc.getTextureManager(), mc.textRenderer, camera, mc.crosshairTarget);
 		entityRenderDispatcher.configure(world, camera, mc.targetedEntity);
@@ -1181,7 +1181,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	@Override
 	public void render(MatrixStack matrices, float tickDelta, long frameStartNanos, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f matrix4f) {
 		wr.canvas_mc().getProfiler().swap("dynamic_lighting");
-		eventContext.prepare(this, matrices, tickDelta, frameStartNanos, renderBlockOutline, camera, gameRenderer, lightmapTextureManager, matrix4f, worldRenderImmediate, wr.canvas_mc().getProfiler(), wr.canvas_transparencyShader() != null, world);
+		eventContext.prepare(this, matrices, tickDelta, frameStartNanos, renderBlockOutline, camera, gameRenderer, lightmapTextureManager, matrix4f, worldRenderImmediate, wr.canvas_mc().getProfiler(), MinecraftClient.isFabulousGraphicsOrBetter(), world);
 		WorldRenderEvents.START.invoker().onStart(eventContext);
 		WorldRenderEvent.BEFORE_WORLD_RENDER.invoker().beforeWorldRender(matrices, tickDelta, frameStartNanos, renderBlockOutline, camera, gameRenderer, lightmapTextureManager, matrix4f);
 		renderWorld(matrices, tickDelta, frameStartNanos, renderBlockOutline, camera, gameRenderer, lightmapTextureManager, matrix4f);
@@ -1193,24 +1193,15 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	public void reload() {
 		Configurator.updateGraphicsMode();
 
+		// cause injections to fire but disable all other vanilla logic
+		// by setting world to null temporarily
+		final ClientWorld swapWorld = wr.canvas_world();
+		wr.canvas_setWorldNoSideEffects(null);
 		super.reload();
+		wr.canvas_setWorldNoSideEffects(swapWorld);
 
-		//		if (MinecraftClient.isFabulousGraphicsOrBetter()) {
-		//            this.loadTransparencyShader();
-		//         } else {
-		//            this.resetTransparencyShader();
-		//         }
-		//
-		//         this.world.reloadColor();
-		//         if (this.chunkBuilder == null) {
-		//            this.chunkBuilder = new ChunkBuilder(this.world, this, Util.getMainWorkerExecutor(), this.client.is64Bit(), this.bufferBuilders.getBlockBufferBuilders());
-		//         } else {
-		//            this.chunkBuilder.setWorld(this.world);
-		//         }
-		//
-		//         this.needsTerrainUpdate = true;
-		//         this.cloudsDirty = true;
-		//         RenderLayers.setFancyGraphicsOrBetter(MinecraftClient.isFancyGraphicsOrBetter());
+		// has the logic from super.reload() that requires private access
+		wr.canvas_reload();
 
 		computeDistances();
 		terrainIterator.reset();
