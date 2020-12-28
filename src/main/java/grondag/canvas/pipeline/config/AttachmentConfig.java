@@ -23,11 +23,27 @@ public class AttachmentConfig {
 	public final String imageName;
 	public final int lod;
 	public final int clearColor;
+	public final boolean isValid;
 
 	AttachmentConfig(JsonObject config) {
-		imageName = config.get(String.class, "image");
-		lod = config.getInt("lod", 0);
-		clearColor = config.getInt("clearColor", 0);
+		if (config == null) {
+			imageName = "invalid";
+			lod = 0;
+			clearColor = 0;
+			isValid = true;
+		} else {
+			imageName = config.get(String.class, "image");
+			lod = config.getInt("lod", 0);
+			clearColor = config.getInt("clearColor", 0);
+			isValid = true;
+		}
+	}
+
+	private AttachmentConfig(String name) {
+		imageName = name;
+		lod = 0;
+		clearColor = 0;
+		isValid = true;
 	}
 
 	public static AttachmentConfig[] deserialize(JsonObject configJson) {
@@ -45,4 +61,7 @@ public class AttachmentConfig {
 
 		return result;
 	}
+
+	public static final AttachmentConfig DEFAULT_MAIN = new AttachmentConfig("default_main");
+	public static final AttachmentConfig DEFAULT_DEPTH = new AttachmentConfig("default_depth");
 }

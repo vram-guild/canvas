@@ -1,13 +1,12 @@
 package grondag.canvas.render;
 
-import java.nio.IntBuffer;
-
-import com.mojang.blaze3d.platform.FramebufferInfo;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 
 import net.minecraft.client.gl.Framebuffer;
-import net.minecraft.client.texture.TextureUtil;
+
+import grondag.canvas.pipeline.Pipeline;
+import grondag.canvas.pipeline.PipelineManager;
 
 public class PrimaryFrameBuffer extends Framebuffer {
 	public int[] extraColorAttachments;
@@ -23,21 +22,7 @@ public class PrimaryFrameBuffer extends Framebuffer {
 		endRead();
 		endWrite();
 
-		if (depthAttachment > -1) {
-			TextureUtil.deleteId(depthAttachment);
-			depthAttachment = -1;
-		}
-
-		if (colorAttachment > -1) {
-			TextureUtil.deleteId(colorAttachment);
-			colorAttachment = -1;
-		}
-
-		if (fbo > -1) {
-			GlStateManager.bindFramebuffer(FramebufferInfo.FRAME_BUFFER, 0);
-			GlStateManager.deleteFramebuffers(fbo);
-			fbo = -1;
-		}
+		// WIP: need to signal pipeline to close anything?
 	}
 
 	@Override
@@ -47,27 +32,15 @@ public class PrimaryFrameBuffer extends Framebuffer {
 		viewportHeight = height;
 		textureWidth = width;
 		textureHeight = height;
-		fbo = GlStateManager.genFramebuffers();
-		colorAttachment = TextureUtil.generateId();
 
-		depthAttachment = TextureUtil.generateId();
-		GlStateManager.bindTexture(depthAttachment);
-		GlStateManager.texParameter(3553, 10241, 9728);
-		GlStateManager.texParameter(3553, 10240, 9728);
-		GlStateManager.texParameter(3553, 10242, 10496);
-		GlStateManager.texParameter(3553, 10243, 10496);
-		GlStateManager.texParameter(3553, 34892, 0);
-		GlStateManager.texImage2D(3553, 0, 6402, textureWidth, textureHeight, 0, 6402, 5126, (IntBuffer ) null);
+		// UGLY - throwing away what seems to be a spurious INVALID_VALUE error here
+		GlStateManager.getError();
 
-		setTexFilter(9728);
-		GlStateManager.bindTexture(colorAttachment);
-		GlStateManager.texImage2D(3553, 0, 32856, textureWidth, textureHeight, 0, 6408, 5121, (IntBuffer) null);
-		GlStateManager.bindFramebuffer(FramebufferInfo.FRAME_BUFFER, fbo);
-		GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT, 3553, colorAttachment, 0);
+		PipelineManager.init(width, height);
 
-		if (useDepthAttachment) {
-			GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.DEPTH_ATTACHMENT, 3553, depthAttachment, 0);
-		}
+		fbo = Pipeline.getFramebuffer("default").glId();
+		colorAttachment = Pipeline.getImage("default_main").glId();
+		depthAttachment = Pipeline.getImage("default_depth").glId();
 
 		checkFramebufferStatus();
 		clear(getError);

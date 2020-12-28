@@ -32,6 +32,7 @@ import net.minecraft.client.MinecraftClient;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
+import grondag.canvas.pipeline.GlSymbolLookup;
 
 public class CanvasGlHelper {
 	static boolean useVboArb;
@@ -162,7 +163,7 @@ public class CanvasGlHelper {
 		if (error == 0) {
 			return true;
 		} else {
-			CanvasMod.LOG.warn("OpenGL Error detected: " + error);
+			CanvasMod.LOG.warn(String.format("OpenGL Error detected: %s (%d)", GlSymbolLookup.reverseLookup(error), error));
 			return false;
 		}
 	}

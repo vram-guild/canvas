@@ -19,13 +19,48 @@ package grondag.canvas.pipeline.config;
 import blue.endless.jankson.JsonArray;
 import blue.endless.jankson.JsonObject;
 
+import grondag.canvas.CanvasMod;
+
 public class FramebufferConfig {
 	public final String name;
 	public final AttachmentConfig[] colorAttachments;
+	public final AttachmentConfig depthAttachment;
+	public final boolean isValid;
 
 	private FramebufferConfig(JsonObject config) {
-		name = config.get(String.class, "name");
+		boolean valid = true;
+
+		String name = config.get(String.class, "name");
+
+		if (name == null || name.isEmpty()) {
+			name = "missing";
+			CanvasMod.LOG.warn("Invalid pipeline config - missing framebuffer name.");
+			valid = false;
+		}
+
+		this.name = name;
+
 		colorAttachments = AttachmentConfig.deserialize(config);
+
+		for (final AttachmentConfig c : colorAttachments) {
+			valid &= c.isValid;
+		}
+
+		if (config.containsKey("depthAttachment")) {
+			depthAttachment = new AttachmentConfig(config.getObject("depthAttachment"));
+			valid &= depthAttachment.isValid;
+		} else {
+			depthAttachment = null;
+		}
+
+		isValid = valid;
+	}
+
+	private FramebufferConfig() {
+		name = "default";
+		colorAttachments = new AttachmentConfig[] {AttachmentConfig.DEFAULT_MAIN};
+		depthAttachment = AttachmentConfig.DEFAULT_DEPTH;
+		isValid = true;
 	}
 
 	public static FramebufferConfig[] deserialize(JsonObject configJson) {
@@ -43,4 +78,6 @@ public class FramebufferConfig {
 
 		return result;
 	}
+
+	public static final FramebufferConfig DEFAULT = new FramebufferConfig();
 }

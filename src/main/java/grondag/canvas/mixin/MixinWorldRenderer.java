@@ -157,7 +157,7 @@ public class MixinWorldRenderer implements WorldRendererExt {
 
 	@Inject(at = @At("HEAD"), method = "loadTransparencyShader", cancellable = true)
 	private void onLoadTransparencyShader(CallbackInfo ci) {
-		System.out.println("loadTransparencyShaderHook");
+		// WIP - do the appropriate thing here, which may mean doing nothing or removing
 		resetTransparencyShader();
 	}
 

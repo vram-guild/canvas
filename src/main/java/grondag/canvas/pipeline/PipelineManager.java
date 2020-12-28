@@ -23,7 +23,6 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL21;
 
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gl.Framebuffer;
 import net.minecraft.client.resource.language.I18n;
 import net.minecraft.util.Identifier;
 
@@ -35,13 +34,13 @@ import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.light.LightmapHd;
 import grondag.canvas.light.LightmapHdTexture;
 import grondag.canvas.material.property.MaterialTextureState;
-import grondag.canvas.mixinterface.FrameBufferExt;
 import grondag.canvas.pipeline.config.PipelineLoader;
 import grondag.canvas.shader.GlProgram;
 import grondag.canvas.shader.GlShaderManager;
 import grondag.canvas.shader.MaterialProgramManager;
 import grondag.canvas.shader.ProcessShader;
 import grondag.canvas.terrain.util.TerrainModelSpace;
+import grondag.canvas.varia.CanvasGlHelper;
 
 //PERF: handle VAO properly here before re-enabling VAO
 public class PipelineManager {
@@ -54,11 +53,12 @@ public class PipelineManager {
 	static ProcessShader debugShader;
 
 	static final int[] ATTACHMENTS_DOUBLE = {FramebufferInfo.COLOR_ATTACHMENT, FramebufferInfo.COLOR_ATTACHMENT + 1};
-	static Framebuffer mcFbo;
-	static int mainFbo = -1;
-	static int mainColor;
+
+	public static int mainFbo = -1;
+	public static int mainColor;
+	public static int mainDepth;
+
 	static int texEmissive = -1;
-	static int canvasFboId = -1;
 	static VboBuffer drawBuffer;
 	static int h;
 	static int w;
@@ -68,10 +68,13 @@ public class PipelineManager {
 	private static boolean active = false;
 
 	public static void prepareForFrame() {
+		if (mainFbo != -1 && Pipeline.needsReload()) {
+			init(w, h);
+		}
+
 		handleRecompile();
 
 		assert !active;
-		sync();
 
 		beginFullFrameRender();
 
@@ -196,48 +199,49 @@ public class PipelineManager {
 		endFullFrameRender();
 	}
 
-	private static void sync() {
+	public static void init(int width, int height) {
 		assert RenderSystem.isOnRenderThread();
 
-		mcFbo = MinecraftClient.getInstance().getFramebuffer();
-		final FrameBufferExt mcFboExt = ((FrameBufferExt) mcFbo);
+		assert CanvasGlHelper.checkError();
 
-		if (Pipeline.needsReload() || mcFboExt.canvas_colorAttachment() != mainColor || mcFbo.textureHeight != h || mcFbo.textureWidth != w) {
-			Pipeline.close();
-			tearDown();
+		Pipeline.close();
+		tearDown();
 
-			debugShader = new ProcessShader(new Identifier("canvas:shaders/internal/process/copy_lod.vert"), new Identifier("canvas:shaders/internal/process/copy_lod.frag"), "_cvu_input");
-			mainFbo = mcFbo.fbo;
-			canvasFboId = GlStateManager.genFramebuffers();
-			mainColor = mcFboExt.canvas_colorAttachment();
+		assert CanvasGlHelper.checkError();
 
-			w = mcFbo.textureWidth;
-			h = mcFbo.textureHeight;
+		w = width;
+		h = height;
 
-			Pipeline.activate(w, h);
-			GlStateManager.bindFramebuffer(FramebufferInfo.FRAME_BUFFER, mcFbo.fbo);
+		debugShader = new ProcessShader(new Identifier("canvas:shaders/internal/process/copy_lod.vert"), new Identifier("canvas:shaders/internal/process/copy_lod.frag"), "_cvu_input");
 
-			assert mainColor == Pipeline.getImage("default_main").glId();
+		assert CanvasGlHelper.checkError();
 
-			// WIP: remove
-			if (MinecraftClient.isFabulousGraphicsOrBetter()) {
-				texEmissive = Pipeline.getImage("emissive").glId();
-			}
+		Pipeline.activate(w, h);
 
-			GlStateManager.bindTexture(0);
+		mainFbo = Pipeline.getFramebuffer("default").glId();
+		mainColor = Pipeline.getImage("default_main").glId();
+		GlStateManager.bindFramebuffer(FramebufferInfo.FRAME_BUFFER, mainFbo);
 
-			final VertexCollectorImpl collector = new VertexCollectorImpl();
-			collector.add(0f, 0f, 0.2f, 0, 1f);
-			collector.add(1f, 0f, 0.2f, 1f, 1f);
-			collector.add(1f, 1f, 0.2f, 1f, 0f);
-			collector.add(0f, 1f, 0.2f, 0f, 0f);
+		assert mainColor == Pipeline.getImage("default_main").glId();
 
-			drawBuffer = new VboBuffer(collector.byteSize(), CanvasVertexFormats.PROCESS_VERTEX_UV);
-			collector.toBuffer(drawBuffer.intBuffer());
-			drawBuffer.upload();
-
-			collector.clear(); // releases storage
+		// WIP: remove
+		if (Pipeline.isFabulous()) {
+			texEmissive = Pipeline.getImage("emissive").glId();
 		}
+
+		GlStateManager.bindTexture(0);
+
+		final VertexCollectorImpl collector = new VertexCollectorImpl();
+		collector.add(0f, 0f, 0.2f, 0, 1f);
+		collector.add(1f, 0f, 0.2f, 1f, 1f);
+		collector.add(1f, 1f, 0.2f, 1f, 0f);
+		collector.add(0f, 1f, 0.2f, 0f, 0f);
+
+		drawBuffer = new VboBuffer(collector.byteSize(), CanvasVertexFormats.PROCESS_VERTEX_UV);
+		collector.toBuffer(drawBuffer.intBuffer());
+		drawBuffer.upload();
+
+		collector.clear(); // releases storage
 	}
 
 	private static void tearDown() {
@@ -248,11 +252,6 @@ public class PipelineManager {
 		if (drawBuffer != null) {
 			drawBuffer.close();
 			drawBuffer = null;
-		}
-
-		if (canvasFboId > -1) {
-			GlStateManager.deleteFramebuffers(canvasFboId);
-			canvasFboId = -1;
 		}
 	}
 }

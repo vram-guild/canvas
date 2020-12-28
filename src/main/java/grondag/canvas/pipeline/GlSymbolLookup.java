@@ -19,6 +19,7 @@ package grondag.canvas.pipeline;
 import java.lang.reflect.Field;
 
 import blue.endless.jankson.JsonObject;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import org.lwjgl.opengl.GL46;
 
@@ -26,21 +27,28 @@ import grondag.canvas.CanvasMod;
 
 public class GlSymbolLookup {
 	private static final Object2IntOpenHashMap<String> MAP = new Object2IntOpenHashMap<>();
+	private static final Int2ObjectOpenHashMap<String> REVERSE_MAP = new Int2ObjectOpenHashMap<>();
+
+	static {
+		for (final Field f : GL46.class.getFields()) {
+			try {
+				final int i = f.getInt(null);
+				final String s = f.getName();
+				MAP.put(s, i);
+				REVERSE_MAP.put(i, s);
+			} catch (final Exception e) {
+				// eat it
+			}
+		}
+	}
 
 	public static int lookup(String symbol) {
 		symbol = "GL_" + symbol.toUpperCase();
+		return MAP.getOrDefault(symbol, -1);
+	}
 
-		return MAP.computeIntIfAbsent(symbol,
-			k -> {
-				try {
-					final Field f = GL46.class.getField(k);
-					return f.getInt(null);
-				} catch (final Exception e) {
-					e.printStackTrace();
-					return -1;
-				}
-			}
-		);
+	public static String reverseLookup(int id) {
+		return REVERSE_MAP.getOrDefault(id, "UNKNOWN");
 	}
 
 	public static int lookup(JsonObject config, String key, String fallback) {

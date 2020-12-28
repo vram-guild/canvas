@@ -18,29 +18,51 @@ package grondag.canvas.pipeline.config;
 
 import blue.endless.jankson.JsonArray;
 import blue.endless.jankson.JsonObject;
+import org.lwjgl.opengl.GL21;
 
 import grondag.canvas.pipeline.GlSymbolLookup;
 
 public class ImageConfig {
 	public final String name;
-	public final boolean depth;
 	public final int internalFormat;
+	public final int pixelFormat;
+	public final int pixelDataType;
 	public final int lod;
 	public final int[] texParamPairs;
 
-	public ImageConfig(String name, boolean depth, int internalFormat, int lod) {
+	private ImageConfig(String name, int internalFormat, int lod, int pixelFormat, int pixelDataType, boolean depth) {
 		this.name = name;
-		this.depth = depth;
 		this.internalFormat = internalFormat;
 		this.lod = lod;
-		texParamPairs = new int[0];
+		this.pixelDataType = pixelDataType;
+		this.pixelFormat = pixelFormat;
+
+		if (depth) {
+			texParamPairs = new int[10];
+			texParamPairs[1] = GL21.GL_NEAREST;
+			texParamPairs[3] = GL21.GL_NEAREST;
+			texParamPairs[8] = GL21.GL_TEXTURE_COMPARE_MODE;
+			texParamPairs[9] = GL21.GL_NONE;
+		} else {
+			texParamPairs = new int[8];
+			texParamPairs[1] = GL21.GL_LINEAR;
+			texParamPairs[3] = GL21.GL_LINEAR;
+		}
+
+		texParamPairs[0] = GL21.GL_TEXTURE_MIN_FILTER;
+		texParamPairs[2] = GL21.GL_TEXTURE_MAG_FILTER;
+		texParamPairs[4] = GL21.GL_TEXTURE_WRAP_S;
+		texParamPairs[5] = GL21.GL_CLAMP;
+		texParamPairs[6] = GL21.GL_TEXTURE_WRAP_T;
+		texParamPairs[7] = GL21.GL_CLAMP;
 	}
 
 	private ImageConfig (JsonObject config) {
 		name = config.get(String.class, "name");
-		depth = config.getBoolean("depth", false);
 		internalFormat = GlSymbolLookup.lookup(config, "internalFormat", "RGBA8");
 		lod = config.getInt("lod", 0);
+		pixelFormat = GlSymbolLookup.lookup(config, "pixelFormat", "RGBA");
+		pixelDataType = GlSymbolLookup.lookup(config, "pixelDataType", "UNSIGNED_BYTE");
 
 		if (!config.containsKey("texParams")) {
 			texParamPairs = new int[0];
@@ -74,4 +96,7 @@ public class ImageConfig {
 
 		return result;
 	}
+
+	public static ImageConfig DEFAULT_MAIN = new ImageConfig("default_main", GL21.GL_RGBA8, 0, GL21.GL_RGBA, GL21.GL_UNSIGNED_BYTE, false);
+	public static ImageConfig DEFAULT_DEPTH = new ImageConfig("default_depth", GL21.GL_DEPTH_COMPONENT, 0, GL21.GL_DEPTH_COMPONENT, GL21.GL_FLOAT, true);
 }

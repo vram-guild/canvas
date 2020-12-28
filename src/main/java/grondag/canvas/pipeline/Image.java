@@ -24,7 +24,7 @@ import net.minecraft.client.texture.TextureUtil;
 import grondag.canvas.pipeline.config.ImageConfig;
 import grondag.canvas.varia.CanvasGlHelper;
 
-class Image {
+public class Image {
 	final ImageConfig config;
 	protected int glId = -1;
 	private final int width;
@@ -37,15 +37,17 @@ class Image {
 		open();
 	}
 
-	int glId() {
+	public int glId() {
 		return glId;
 	}
 
 	protected void open() {
 		if (glId == -1) {
 			glId = TextureUtil.generateId();
+			assert CanvasGlHelper.checkError();
 
 			GlStateManager.bindTexture(glId);
+			assert CanvasGlHelper.checkError();
 
 			final int[] params = config.texParamPairs;
 			final int limit = params.length;
@@ -55,16 +57,7 @@ class Image {
 				assert CanvasGlHelper.checkError();
 			}
 
-			//WIP: Put this warning in parsing
-			// if (config.depth && config.internalFormat != GL11.GL_DEPTH_COMPONENT) {
-			// CanvasMod.LOG.warn("Framebuffer image %s is marked as a depth attachment but uses an unrecognized format. Stuff might break.");
-
-			if (config.depth) {
-				GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_COMPARE_MODE, GL21.GL_NONE);
-			}
-
-			// the last few parameters here should not matter because we aren't passing in any pixel data
-			GlStateManager.texImage2D(GL21.GL_TEXTURE_2D, 0, config.internalFormat, width, height, 0, GL21.GL_RGBA, GL21.GL_UNSIGNED_BYTE, null);
+			GlStateManager.texImage2D(GL21.GL_TEXTURE_2D, 0, config.internalFormat, width, height, 0, config.pixelFormat, config.pixelDataType, null);
 			assert CanvasGlHelper.checkError();
 
 			if (config.lod > 0) {
@@ -77,15 +70,16 @@ class Image {
 
 	private void setupLod() {
 		GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MAX_LEVEL, config.lod);
+		assert CanvasGlHelper.checkError();
 		GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MIN_LOD, 0);
 		GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MAX_LOD, config.lod);
+		assert CanvasGlHelper.checkError();
 		GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_LOD_BIAS, 0.0F);
 
 		for (int i = 1; i <= config.lod; ++i) {
 			GlStateManager.texImage2D(GL21.GL_TEXTURE_2D, i, GL21.GL_RGBA8, width >> i, height >> i, 0, GL21.GL_RGBA, GL21.GL_UNSIGNED_BYTE, null);
+			assert CanvasGlHelper.checkError();
 		}
-
-		assert CanvasGlHelper.checkError();
 	}
 
 	void close() {

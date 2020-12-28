@@ -27,15 +27,28 @@ import net.minecraft.util.Identifier;
 import grondag.canvas.Configurator;
 
 public class PipelineConfig {
-	public ImageConfig[] images;
-	public PipelineParam[] params;
-	public ProgramConfig[] shaders;
-	public FramebufferConfig[] framebuffers;
+	public final ImageConfig[] images;
+	public final PipelineParam[] params;
+	public final ProgramConfig[] shaders;
+	public final FramebufferConfig[] framebuffers;
 
-	public PassConfig[] onWorldStart;
-	public PassConfig[] afterRenderHand;
+	public final PassConfig[] onWorldStart;
+	public final PassConfig[] afterRenderHand;
 
 	public final boolean isFabulous;
+
+	public final boolean isValid;
+
+	private PipelineConfig() {
+		params = new PipelineParam[0];
+		shaders = new ProgramConfig[0];
+		onWorldStart = new PassConfig[0];
+		afterRenderHand = new PassConfig[0];
+		images = new ImageConfig[] { ImageConfig.DEFAULT_MAIN, ImageConfig.DEFAULT_DEPTH };
+		framebuffers = new FramebufferConfig[] { FramebufferConfig.DEFAULT };
+		isFabulous = false;
+		isValid = true;
+	}
 
 	private PipelineConfig (JsonObject configJson) {
 		params = PipelineParam.array(
@@ -50,20 +63,36 @@ public class PipelineConfig {
 		framebuffers = FramebufferConfig.deserialize(configJson);
 		onWorldStart = PassConfig.deserialize(configJson, "onWorldRenderStart");
 		afterRenderHand = PassConfig.deserialize(configJson, "afterRenderHand");
+
+		boolean valid = true;
+
+		for (final FramebufferConfig fb : framebuffers) {
+			valid &= fb.isValid;
+		}
+
+		isValid = valid;
 	}
 
 	public static @Nullable PipelineConfig load(Identifier id) {
 		final ResourceManager rm = MinecraftClient.getInstance().getResourceManager();
 		JsonObject configJson = null;
 
-		try (Resource res = rm.getResource(id)) {
-			configJson = Configurator.JANKSON.load(res.getInputStream());
-			return new PipelineConfig(configJson);
-		} catch (final Exception e) {
-			e.printStackTrace();
+		PipelineConfig result = null;
+
+		if (rm != null) {
+			try (Resource res = rm.getResource(id)) {
+				configJson = Configurator.JANKSON.load(res.getInputStream());
+				result = new PipelineConfig(configJson);
+			} catch (final Exception e) {
+				e.printStackTrace();
+			}
 		}
 
-		return null;
+		if (result != null && result.isValid) {
+			return result;
+		} else {
+			return new PipelineConfig();
+		}
 	}
 
 	public static final Identifier DEFAULT_ID = new Identifier("canvas:pipelines/canvas_default.json");

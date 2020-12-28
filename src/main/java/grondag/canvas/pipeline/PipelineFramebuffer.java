@@ -22,12 +22,13 @@ import org.lwjgl.opengl.GL21;
 
 import net.minecraft.client.MinecraftClient;
 
+import grondag.canvas.CanvasMod;
 import grondag.canvas.pipeline.config.AttachmentConfig;
 import grondag.canvas.pipeline.config.FramebufferConfig;
 
-class PipelineFramebuffer {
+public class PipelineFramebuffer {
 	final FramebufferConfig config;
-	int fboGlId = -1;
+	private int fboGlId = -1;
 	float r, g, b, a;
 
 	PipelineFramebuffer(FramebufferConfig config, int width, int height) {
@@ -43,6 +44,10 @@ class PipelineFramebuffer {
 		open(width, height);
 	}
 
+	public int glId() {
+		return fboGlId;
+	}
+
 	void open(int width, int height) {
 		fboGlId = GlStateManager.genFramebuffers();
 
@@ -51,7 +56,24 @@ class PipelineFramebuffer {
 		for (int i = 0; i < config.colorAttachments.length; ++i) {
 			final AttachmentConfig ac = config.colorAttachments[i];
 			final Image img = Pipeline.getImage(ac.imageName);
-			GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT + i, GL21.GL_TEXTURE_2D, img.glId(), ac.lod);
+
+			if (img == null) {
+				CanvasMod.LOG.warn(String.format("Frambuffer %s cannot be completetly configured because color attachment %s was not found",
+						config.name, ac.imageName));
+			} else {
+				GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT + i, GL21.GL_TEXTURE_2D, img.glId(), ac.lod);
+			}
+		}
+
+		if (config.depthAttachment != null) {
+			final Image img = Pipeline.getImage(config.depthAttachment.imageName);
+
+			if (img == null) {
+				CanvasMod.LOG.warn(String.format("Frambuffer %s cannot be completetly configured because depth attachment %s was not found",
+						config.name, config.depthAttachment.imageName));
+			} else {
+				GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.DEPTH_ATTACHMENT, GL21.GL_TEXTURE_2D, img.glId, 0);
+			}
 		}
 	}
 

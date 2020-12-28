@@ -41,12 +41,18 @@
 	// - this offers maximum flexiblity for shader devs.
 	fabulous: true,
 
+	// pixelFormat and pixelDataType should not matter because the textures
+	// are created without loading any pixel data.  You can specify them to deal
+	// with any driver strangeness or situations where the image will somehow
+	// also be loaded from memory.
 	images: [
-		/* // attached to the main framebuffer in world rendering to capture emissive layer
+		// first color attachment of primary framebuffer
 		{
 			name: "default_main",
 			lod: 0,
 			internalFormat: "RGBA8",
+			pixelFormat: "RGBA",
+			pixelDataType: "UNSIGNED_BYTE",
 			target: "TEXTURE_2D",
 			texParams: [
 				{name: "TEXTURE_MIN_FILTER", val: "LINEAR"},
@@ -54,7 +60,24 @@
 				{name: "TEXTURE_WRAP_S", val: "CLAMP"},
 				{name: "TEXTURE_WRAP_T", val: "CLAMP"}
 			]
-		}, */
+		},
+
+		// first color attachment of primary framebuffer
+		{
+			name: "default_depth",
+			lod: 0,
+			internalFormat: "DEPTH_COMPONENT",
+			pixelFormat: "DEPTH_COMPONENT",
+			pixelDataType: "FLOAT",
+			target: "TEXTURE_2D",
+			texParams: [
+				{name: "TEXTURE_MIN_FILTER", val: "NEAREST"},
+				{name: "TEXTURE_MAG_FILTER", val: "NEAREST"},
+				{name: "TEXTURE_WRAP_S", val: "CLAMP"},
+				{name: "TEXTURE_WRAP_T", val: "CLAMP"},
+				{name: "TEXTURE_COMPARE_MODE", val: "NONE"}
+			]
+		},
 
 		// attached to the main framebuffer in world rendering to capture emissive layer
 		{
@@ -174,11 +197,11 @@
 	],
 
 	framebuffers: [
-		/* {
-			name: "default",
-			colorAttachments: [{image: "default_main", clearColor: 0x00000000, lod: 0}]
-		}, */
 		{
+			name: "default",
+			depthAttachment: {image: "default_depth", clearColor: 0x00000000, lod: 0},
+			colorAttachments: [{image: "default_main", clearColor: 0x00000000, lod: 0}]
+		}, {
 			name: "emissive",
 			colorAttachments: [{image: "emissive", clearColor: 0x00000000, lod: 0}]
 		}, {

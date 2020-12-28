@@ -18,15 +18,11 @@ package grondag.canvas.pipeline;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import org.lwjgl.opengl.GL21;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gl.Framebuffer;
 import net.minecraft.util.Identifier;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
-import grondag.canvas.mixinterface.FrameBufferExt;
 import grondag.canvas.pipeline.config.FramebufferConfig;
 import grondag.canvas.pipeline.config.ImageConfig;
 import grondag.canvas.pipeline.config.PipelineConfig;
@@ -40,11 +36,13 @@ public class Pipeline {
 	static Pass[] onWorldRenderStart = { };
 	static Pass[] afterRenderHand = { };
 
+	private static boolean isFabulous = false;
+
 	private static final Object2ObjectOpenHashMap<String, Image> IMAGES = new Object2ObjectOpenHashMap<>();
 	private static final Object2ObjectOpenHashMap<String, ProcessShader> SHADERS = new Object2ObjectOpenHashMap<>();
 	private static final Object2ObjectOpenHashMap<String, PipelineFramebuffer> FRAMEBUFFERS = new Object2ObjectOpenHashMap<>();
 
-	static Image getImage(String name) {
+	public static Image getImage(String name) {
 		return IMAGES.get(name);
 	}
 
@@ -52,7 +50,7 @@ public class Pipeline {
 		return SHADERS.get(name);
 	}
 
-	static PipelineFramebuffer getFramebuffer(String name) {
+	public static PipelineFramebuffer getFramebuffer(String name) {
 		return FRAMEBUFFERS.get(name);
 	}
 
@@ -111,12 +109,7 @@ public class Pipeline {
 
 	private static void activateInner(int width, int height) {
 		final PipelineConfig config = PipelineConfig.load(new Identifier(Configurator.pipelineId));
-
-		final Framebuffer mcFbo = MinecraftClient.getInstance().getFramebuffer();
-		final FrameBufferExt mcFboExt = ((FrameBufferExt) mcFbo);
-		final int mainColor = mcFboExt.canvas_colorAttachment();
-
-		IMAGES.put("default_main", new Image.BuiltIn(new ImageConfig("default_main", false, GL21.GL_RGBA8, 0), width, height, mainColor));
+		isFabulous = config.isFabulous;
 
 		for (final ImageConfig img : config.images) {
 			if (IMAGES.containsKey(img.name)) {
@@ -135,8 +128,6 @@ public class Pipeline {
 
 			SHADERS.put(shader.name, new ProcessShader(shader.vertexSource, shader.fragmentSource, shader.samplerNames));
 		}
-
-		// WIP: add the mc framebuffers?
 
 		for (final FramebufferConfig buffer : config.framebuffers) {
 			if (FRAMEBUFFERS.containsKey(buffer.name)) {
@@ -160,5 +151,10 @@ public class Pipeline {
 		for (int i = 0; i < config.afterRenderHand.length; ++i) {
 			afterRenderHand[i] = Pass.create(config.afterRenderHand[i]);
 		}
+	}
+
+	// WIP: remove?
+	public static boolean isFabulous() {
+		return isFabulous;
 	}
 }
