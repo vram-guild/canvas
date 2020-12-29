@@ -81,7 +81,7 @@ class ProgramPass extends Pass {
 			return;
 		}
 
-		fbo.bind(width, height);
+		fbo.bind();
 
 		final int lod = config.lod;
 

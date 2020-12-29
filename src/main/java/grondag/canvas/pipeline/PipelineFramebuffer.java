@@ -26,21 +26,44 @@ import grondag.canvas.CanvasMod;
 import grondag.canvas.pipeline.config.AttachmentConfig;
 import grondag.canvas.pipeline.config.FramebufferConfig;
 
+// WIP: handle clear masks
 public class PipelineFramebuffer {
 	final FramebufferConfig config;
+	final float[][] clearColor;
+	final int[] attachmentPoints;
+	final int clearFlags;
+
 	private int fboGlId = -1;
-	float r, g, b, a;
+
+	private static final int R = 0;
+	private static final int G = 1;
+	private static final int B = 2;
+	private static final int A = 3;
 
 	PipelineFramebuffer(FramebufferConfig config, int width, int height) {
 		this.config = config;
 
-		// WIP: handle separate colors/masks per attachment
-		final int color = config.colorAttachments[0].clearColor;
-		a = ((color >> 24) & 0xFF) / 255f;
-		r = ((color >> 16) & 0xFF) / 255f;
-		g = ((color >> 8) & 0xFF) / 255f;
-		b = (color & 0xFF) / 255f;
+		final int count = config.colorAttachments.length;
 
+		clearColor = new float[count][4];
+		attachmentPoints = new int[count];
+		int attachmentPoint = FramebufferInfo.COLOR_ATTACHMENT;
+		int clearFlags = 0;
+
+		for (int i = 0; i < count; ++i) {
+			if (config.colorAttachments[i].clear) {
+				clearFlags |= (1 << i);
+				final int color = config.colorAttachments[i].clearColor;
+				clearColor[i][A] = ((color >> 24) & 0xFF) / 255f;
+				clearColor[i][R] = ((color >> 16) & 0xFF) / 255f;
+				clearColor[i][G] = ((color >> 8) & 0xFF) / 255f;
+				clearColor[i][B] = (color & 0xFF) / 255f;
+			}
+
+			attachmentPoints[i] = attachmentPoint++;
+		}
+
+		this.clearFlags = clearFlags;
 		open(width, height);
 	}
 
@@ -52,6 +75,8 @@ public class PipelineFramebuffer {
 		fboGlId = GlStateManager.genFramebuffers();
 
 		GlStateManager.bindFramebuffer(FramebufferInfo.FRAME_BUFFER, fboGlId);
+
+		GL21.glDrawBuffers(attachmentPoints);
 
 		for (int i = 0; i < config.colorAttachments.length; ++i) {
 			final AttachmentConfig ac = config.colorAttachments[i];
@@ -79,11 +104,26 @@ public class PipelineFramebuffer {
 
 	void clear() {
 		GlStateManager.bindFramebuffer(FramebufferInfo.FRAME_BUFFER, fboGlId);
-		GlStateManager.clearColor(r, g, b, a);
-		GlStateManager.clear(GL21.GL_COLOR_BUFFER_BIT, MinecraftClient.IS_SYSTEM_MAC);
+
+		final int count = clearColor.length;
+
+		if (count == 1 || clearFlags == 1) {
+			GlStateManager.clearColor(clearColor[0][R], clearColor[0][G], clearColor[0][B], clearColor[0][A]);
+			GlStateManager.clear(GL21.GL_COLOR_BUFFER_BIT, MinecraftClient.IS_SYSTEM_MAC);
+		} else {
+			for (int i = 0; i < count; ++i) {
+				if ((clearFlags & (1 << i)) != 0) {
+					GL21.glDrawBuffer(FramebufferInfo.COLOR_ATTACHMENT + i);
+					GlStateManager.clearColor(clearColor[i][R], clearColor[i][G], clearColor[i][B], clearColor[i][A]);
+					GlStateManager.clear(GL21.GL_COLOR_BUFFER_BIT, MinecraftClient.IS_SYSTEM_MAC);
+				}
+			}
+
+			GL21.glDrawBuffers(attachmentPoints);
+		}
 	}
 
-	void bind(int width, int height) {
+	public void bind() {
 		GlStateManager.bindFramebuffer(FramebufferInfo.FRAME_BUFFER, fboGlId);
 	}
 

@@ -26,7 +26,7 @@ public class ClearPass extends Pass {
 	@Override
 	void run(int width, int height) {
 		if (fbo != null) {
-			fbo.bind(width, height);
+			fbo.bind();
 			fbo.clear();
 		}
 	}

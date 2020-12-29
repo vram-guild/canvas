@@ -16,7 +16,6 @@
 
 package grondag.canvas.pipeline;
 
-import com.mojang.blaze3d.platform.FramebufferInfo;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import org.lwjgl.opengl.GL11;
@@ -53,13 +52,6 @@ public class PipelineManager {
 
 	static ProcessShader debugShader;
 
-	static final int[] ATTACHMENTS_DOUBLE = {FramebufferInfo.COLOR_ATTACHMENT, FramebufferInfo.COLOR_ATTACHMENT + 1};
-
-	public static int mainFbo = -1;
-	public static int mainColor;
-	public static int mainDepth;
-
-	static int texEmissive = -1;
 	static VboBuffer drawBuffer;
 	static int h;
 	static int w;
@@ -77,7 +69,7 @@ public class PipelineManager {
 	}
 
 	public static void reloadIfNeeded() {
-		if (mainFbo != -1 && Pipeline.needsReload()) {
+		if (Pipeline.needsReload()) {
 			init(w, h);
 		}
 
@@ -97,31 +89,7 @@ public class PipelineManager {
 
 		endFullFrameRender();
 
-		GlStateManager.bindFramebuffer(FramebufferInfo.FRAME_BUFFER, mainFbo);
-	}
-
-	public static void enableCanvasPrimaryFramebuffer() {
-		if (!active) {
-			active = true;
-
-			// WIP: remove - put in the config
-			if (MinecraftClient.isFabulousGraphicsOrBetter()) {
-				GL21.glDrawBuffers(ATTACHMENTS_DOUBLE);
-				GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT + 1, GL21.GL_TEXTURE_2D, texEmissive, 0);
-			}
-		}
-	}
-
-	public static void disableCanvasPrimaryFrambuffer() {
-		if (active) {
-			active = false;
-
-			// WIP: remove
-			if (MinecraftClient.isFabulousGraphicsOrBetter()) {
-				GL21.glDrawBuffers(FramebufferInfo.COLOR_ATTACHMENT);
-				GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT + 1, GL21.GL_TEXTURE_2D, 0, 0);
-			}
-		}
+		Pipeline.defaultFbo.bind();
 	}
 
 	public static void handleRecompile() {
@@ -210,7 +178,7 @@ public class PipelineManager {
 
 		drawBuffer.bind();
 		RenderSystem.viewport(0, 0, w, h);
-		GlStateManager.bindFramebuffer(FramebufferInfo.FRAME_BUFFER, mainFbo);
+		Pipeline.defaultFbo.bind();
 		PipelineManager.setProjection(w, h);
 		GlStateManager.activeTexture(GL21.GL_TEXTURE0);
 		GlStateManager.enableTexture();
@@ -244,16 +212,7 @@ public class PipelineManager {
 
 		MinecraftClient.getInstance().options.graphicsMode = Pipeline.isFabulous() ? GraphicsMode.FABULOUS : GraphicsMode.FANCY;
 
-		mainFbo = Pipeline.getFramebuffer("default").glId();
-		mainColor = Pipeline.getImage("default_main").glId();
-		GlStateManager.bindFramebuffer(FramebufferInfo.FRAME_BUFFER, mainFbo);
-
-		assert mainColor == Pipeline.getImage("default_main").glId();
-
-		// WIP: remove
-		if (Pipeline.isFabulous()) {
-			texEmissive = Pipeline.getImage("emissive").glId();
-		}
+		Pipeline.defaultFbo.bind();
 
 		GlStateManager.bindTexture(0);
 

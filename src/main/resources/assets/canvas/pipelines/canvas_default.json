@@ -16,6 +16,22 @@
 	nameKey: "pipeline.canvas_default.name",
 	descriptionKey: "pipeline.canvas_default.desc",
 
+	// Framebuffer that will be visible to the game and to mods as the primary framebuffer.
+	// Should generally keep it the same as vanilla has it and avoid using it except as a
+	// sink for unmanaged draws and for final output.
+	// Canvas will make no managed draws to this framebuffer unless requested.
+	defaultFramebuffer: "default",
+
+	drawTargets: {
+		solidTerrain: "solid",
+		translucentTerrain: "translucent",
+		translucentEntity: "entity",
+		weather: "weather",
+		clouds: "clouds",
+		// TODO: segregate solid particles
+		translucentParticles: "particles"
+	},
+
 	// When present, will force Minecraft to operate as if "fabulous" mode was selected.
 	// Normally this means translucent geometry will be drawn to different framebuffers
 	// and mc and mods expect five additional framebuffers will be available:
@@ -55,9 +71,9 @@
 	// with any driver strangeness or situations where the image will somehow
 	// also be loaded from memory.
 	images: [
-		// color attachment of primary framebuffer
+		// color attachment for solid draws
 		{
-			name: "default_main",
+			name: "solid_main",
 			lod: 0,
 			internalFormat: "RGBA8",
 			pixelFormat: "RGBA",
@@ -71,9 +87,9 @@
 			]
 		},
 
-		// depth attachment of primary framebuffer
+		// depth attachment for solid draws
 		{
-			name: "default_depth",
+			name: "solid_depth",
 			lod: 0,
 			internalFormat: "DEPTH_COMPONENT",
 			pixelFormat: "DEPTH_COMPONENT",
@@ -88,9 +104,9 @@
 			]
 		},
 
-		// color attachment of fablulous entity framebuffer
+		// color attachment for entity translucency
 		{
-			name: "fab_entity_main",
+			name: "entity_main",
 			lod: 0,
 			internalFormat: "RGBA8",
 			pixelFormat: "RGBA",
@@ -104,9 +120,9 @@
 			]
 		},
 
-		// depth attachment of fablulous entity framebuffer
+		// depth attachment for entity translucency
 		{
-			name: "fab_entity_depth",
+			name: "entity_depth",
 			lod: 0,
 			internalFormat: "DEPTH_COMPONENT",
 			pixelFormat: "DEPTH_COMPONENT",
@@ -121,9 +137,9 @@
 			]
 		},
 
-		// color attachment of fablulous particles framebuffer
+		// color attachment for particle translucency
 		{
-			name: "fab_particles_main",
+			name: "particles_main",
 			lod: 0,
 			internalFormat: "RGBA8",
 			pixelFormat: "RGBA",
@@ -137,9 +153,9 @@
 			]
 		},
 
-		// depth attachment of fablulous particles framebuffer
+		// depth attachment for particle translucency
 		{
-			name: "fab_particles_depth",
+			name: "particles_depth",
 			lod: 0,
 			internalFormat: "DEPTH_COMPONENT",
 			pixelFormat: "DEPTH_COMPONENT",
@@ -154,9 +170,9 @@
 			]
 		},
 
-		// color attachment of fablulous weather framebuffer
+		// color attachment for weather translucency
 		{
-			name: "fab_weather_main",
+			name: "weather_main",
 			lod: 0,
 			internalFormat: "RGBA8",
 			pixelFormat: "RGBA",
@@ -170,9 +186,9 @@
 			]
 		},
 
-		// depth attachment of fablulous weather framebuffer
+		// depth attachment for weather translucency
 		{
-			name: "fab_weather_depth",
+			name: "weather_depth",
 			lod: 0,
 			internalFormat: "DEPTH_COMPONENT",
 			pixelFormat: "DEPTH_COMPONENT",
@@ -187,9 +203,9 @@
 			]
 		},
 
-		// color attachment of fablulous clouds framebuffer
+		// color attachment for cloud translucency
 		{
-			name: "fab_clouds_main",
+			name: "clouds_main",
 			lod: 0,
 			internalFormat: "RGBA8",
 			pixelFormat: "RGBA",
@@ -203,9 +219,9 @@
 			]
 		},
 
-		// depth attachment of fablulous clouds framebuffer
+		// depth attachment for cloud translucency
 		{
-			name: "fab_clouds_depth",
+			name: "clouds_depth",
 			lod: 0,
 			internalFormat: "DEPTH_COMPONENT",
 			pixelFormat: "DEPTH_COMPONENT",
@@ -220,9 +236,9 @@
 			]
 		},
 
-		// color attachment of fablulous translucent framebuffer
+		// color attachment for terain translucency
 		{
-			name: "fab_translucent_main",
+			name: "translucent_main",
 			lod: 0,
 			internalFormat: "RGBA8",
 			pixelFormat: "RGBA",
@@ -236,9 +252,9 @@
 			]
 		},
 
-		// depth attachment of fablulous translucent framebuffer
+		// depth attachment for terain translucency
 		{
-			name: "fab_translucent_depth",
+			name: "translucent_depth",
 			lod: 0,
 			internalFormat: "DEPTH_COMPONENT",
 			pixelFormat: "DEPTH_COMPONENT",
@@ -253,7 +269,7 @@
 			]
 		},
 
-		// attached to the main framebuffer in world rendering to capture emissive layer
+		// attached as secondary in managed draws to capture emissive layer
 		{
 			name: "emissive",
 			lod: 0,
@@ -399,45 +415,99 @@
 	],
 
 	framebuffers: [
+		// These are the framebuffers visible to the game and to mods.
+		// They exist mainly so mods can't mess up the managed fb state.
+		// Attachements are the same as those for managed draws.
 		{
 			name: "default",
-			depthAttachment: {image: "default_depth", clearColor: 0x00000000, lod: 0},
-			colorAttachments: [{image: "default_main", clearColor: 0x00000000, lod: 0}]
+			depthAttachment: {image: "solid_depth"},
+			colorAttachments: [{image: "solid_main"}]
 		}, {
 			name: "fab_entity",
-			depthAttachment: {image: "fab_entity_depth", clearColor: 0x00000000, lod: 0},
-			colorAttachments: [{image: "fab_entity_main", clearColor: 0x00000000, lod: 0}]
+			depthAttachment: {image: "entity_depth"},
+			colorAttachments: [{image: "entity_main"}]
 		}, {
 			name: "fab_particles",
-			depthAttachment: {image: "fab_particles_depth", clearColor: 0x00000000, lod: 0},
-			colorAttachments: [{image: "fab_particles_main", clearColor: 0x00000000, lod: 0}]
+			depthAttachment: {image: "particles_depth"},
+			colorAttachments: [{image: "particles_main"}]
 		}, {
 			name: "fab_weather",
-			depthAttachment: {image: "fab_weather_depth", clearColor: 0x00000000, lod: 0},
-			colorAttachments: [{image: "fab_weather_main", clearColor: 0x00000000, lod: 0}]
+			depthAttachment: {image: "weather_depth"},
+			colorAttachments: [{image: "weather_main"}]
 		}, {
 			name: "fab_clouds",
-			depthAttachment: {image: "fab_clouds_depth", clearColor: 0x00000000, lod: 0},
-			colorAttachments: [{image: "fab_clouds_main", clearColor: 0x00000000, lod: 0}]
+			depthAttachment: {image: "clouds_depth"},
+			colorAttachments: [{image: "clouds_main"}]
 		}, {
 			name: "fab_translucent",
-			depthAttachment: {image: "fab_translucent_depth", clearColor: 0x00000000, lod: 0},
-			colorAttachments: [{image: "fab_translucent_main", clearColor: 0x00000000, lod: 0}]
+			depthAttachment: {image: "translucent_depth"},
+			colorAttachments: [{image: "translucent_main"}]
+		},
+
+		{
+			name: "solid",
+			depthAttachment: {image: "solid_depth", clearDepth: 1.0},
+			colorAttachments: [
+				{image: "solid_main", clearColor: 0x00000000},
+				{image: "emissive", clearColor: 0x00000000}
+			]
 		}, {
+			name: "entity",
+			// depth not cleared because always copied from solid
+			depthAttachment: {image: "entity_depth"},
+			colorAttachments: [
+				{image: "entity_main", clearColor: 0x00000000},
+				// emissive not cleared here because shared - only cleared once on solid depth
+				{image: "emissive"}
+			]
+		}, {
+			name: "particles",
+			depthAttachment: {image: "particles_depth"},
+			colorAttachments: [
+				{image: "particles_main", clearColor: 0x00000000},
+				{image: "emissive"}
+			]
+		}, {
+			name: "weather",
+			depthAttachment: {image: "weather_depth"},
+			colorAttachments: [
+				{image: "weather_main", clearColor: 0x00000000},
+				{image: "emissive"}
+			]
+		}, {
+			name: "clouds",
+			depthAttachment: {image: "clouds_depth"},
+			colorAttachments: [
+				{image: "clouds_main", clearColor: 0x00000000},
+				{image: "emissive"}
+			]
+		}, {
+			name: "translucent",
+			depthAttachment: {image: "translucent_depth"},
+			colorAttachments: [
+				{image: "translucent_main", clearColor: 0x00000000},
+				{image: "emissive"}
+			]
+		},
+
+
+
+		{
 			name: "fab_composite",
-			colorAttachments: [{image: "fab_composite", clearColor: 0x00000000, lod: 0}]
+			colorAttachments: [{image: "fab_composite", clearColor: 0x00000000}]
 		}, {
+			// TODO: should be able to remove this now
 			name: "emissive",
-			colorAttachments: [{image: "emissive", clearColor: 0x00000000, lod: 0}]
+			colorAttachments: [{image: "emissive", clearColor: 0x00000000}]
 		}, {
 			name: "main_copy",
-			colorAttachments: [{image: "main_copy", lod: 0}]
+			colorAttachments: [{image: "main_copy"}]
 		}, {
 			name: "emissive_color",
-			colorAttachments: [{image: "emissive_color", lod: 0}]
+			colorAttachments: [{image: "emissive_color"}]
 		}, {
 			name: "bloom_downsample_0",
-			colorAttachments: [{image: "bloom_downsample", lod: 0}]
+			colorAttachments: [{image: "bloom_downsample"}]
 		}, {
 			name: "bloom_downsample_1",
 			colorAttachments: [{image: "bloom_downsample", lod: 1}]
@@ -476,11 +546,11 @@
 			colorAttachments: [{image: "bloom_upsample", lod: 1}]
 		}, {
 			name: "bloom_upsample_0",
-			colorAttachments: [{image: "bloom_upsample", lod: 0}]
+			colorAttachments: [{image: "bloom_upsample"}]
 		}, {
 			// TODO: just use main fb instead?
 			name: "bloom",
-			colorAttachments: [{image: "default_main", lod: 0}]
+			colorAttachments: [{image: "solid_main"}]
 		}
 	],
 
@@ -488,10 +558,31 @@
 	// If name is ommited, the name of the framebuffer will identify the pass in profiling.
 
 	onWorldRenderStart: {
+		// TODO: move the contingent passes to separate draw pre-passes when available - not needed if draws don't happen
 		passes: [
 			{
-				name: "clear_emissive",
-				framebuffer: "emissive",
+				name: "clear_main",
+				framebuffer: "solid",
+				program: "frex_clear"
+			}, {
+				name: "clear_entity",
+				framebuffer: "entity",
+				program: "frex_clear"
+			}, {
+				name: "clear_particles",
+				framebuffer: "particles",
+				program: "frex_clear"
+			}, {
+				name: "clear_weather",
+				framebuffer: "weather",
+				program: "frex_clear"
+			}, {
+				name: "clear_clouds",
+				framebuffer: "clouds",
+				program: "frex_clear"
+			}, {
+				name: "clear_translucent",
+				framebuffer: "translucent",
 				program: "frex_clear"
 			}
 		]
@@ -506,12 +597,12 @@
 				program: "fabulous",
 				framebuffer: "fab_composite",
 				samplerImages: [
-					"default_main", "default_depth",
-					"fab_translucent_main", "fab_translucent_depth",
-					"fab_entity_main", "fab_entity_depth",
-					"fab_particles_main", "fab_particles_depth",
-					"fab_weather_main", "fab_weather_depth",
-					"fab_clouds_main", "fab_clouds_depth"]
+					"solid_main", "solid_depth",
+					"translucent_main", "translucent_depth",
+					"entity_main", "entity_depth",
+					"particles_main", "particles_depth",
+					"weather_main", "weather_depth",
+					"clouds_main", "clouds_depth"]
 			},
 			{
 				// TODO: reroute passes to reduce copying steps
@@ -531,13 +622,13 @@
 				name: "main_copy",
 				program: "copy",
 				framebuffer: "main_copy",
-				samplerImages: ["default_main"]
+				samplerImages: ["solid_main"]
 			}, {
 				// select emissive portions for blur
 				name: "emissive_color",
 				program: "emissive_color",
 				framebuffer: "emissive_color",
-				samplerImages: ["default_main", "emissive"]
+				samplerImages: ["solid_main", "emissive"]
 			}, {
 				// build bloom mipmaps, blurring as part of downscale
 				name: "bloom_downsample_0",

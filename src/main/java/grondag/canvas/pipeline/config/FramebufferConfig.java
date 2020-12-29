@@ -47,7 +47,7 @@ public class FramebufferConfig {
 		}
 
 		if (config.containsKey("depthAttachment")) {
-			depthAttachment = new AttachmentConfig(config.getObject("depthAttachment"));
+			depthAttachment = new AttachmentConfig(config.getObject("depthAttachment"), true);
 			valid &= depthAttachment.isValid;
 		} else {
 			depthAttachment = null;

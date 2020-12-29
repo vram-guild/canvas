@@ -40,6 +40,9 @@ public class Pipeline {
 
 	private static boolean isFabulous = false;
 
+	public static PipelineFramebuffer defaultFbo;
+	public static int defaultColor = -1;
+	public static int defaultDepth = -1;
 	public static int fabEntityFbo = -1;
 	public static int fabEntityColor = -1;
 	public static int fabEntityDepth = -1;
@@ -55,6 +58,13 @@ public class Pipeline {
 	public static int fabTranslucentFbo = -1;
 	public static int fabTranslucentColor = -1;
 	public static int fabTranslucentDepth = -1;
+
+	public static PipelineFramebuffer solidTerrainFbo;
+	public static PipelineFramebuffer translucentTerrainFbo;
+	public static PipelineFramebuffer translucentEntityFbo;
+	public static PipelineFramebuffer weatherFbo;
+	public static PipelineFramebuffer cloudsFbo;
+	public static PipelineFramebuffer translucentParticlesFbo;
 
 	private static final Object2ObjectOpenHashMap<String, Image> IMAGES = new Object2ObjectOpenHashMap<>();
 	private static final Object2ObjectOpenHashMap<String, ProcessShader> SHADERS = new Object2ObjectOpenHashMap<>();
@@ -160,11 +170,23 @@ public class Pipeline {
 			FRAMEBUFFERS.put(buffer.name, new PipelineFramebuffer(buffer, width, height));
 		}
 
+		PipelineFramebuffer b = getFramebuffer(config.defaultFramebuffer);
+		defaultFbo = b;
+		defaultColor = getImage(b.config.colorAttachments[0].imageName).glId();
+		defaultDepth = getImage(b.config.depthAttachment.imageName).glId();
+
+		solidTerrainFbo = getFramebuffer(config.drawTargets.solidTerrain);
+		translucentTerrainFbo = getFramebuffer(config.drawTargets.translucentTerrain);
+		translucentEntityFbo = getFramebuffer(config.drawTargets.translucentEntity);
+		weatherFbo = getFramebuffer(config.drawTargets.weather);
+		cloudsFbo = getFramebuffer(config.drawTargets.clouds);
+		translucentParticlesFbo = getFramebuffer(config.drawTargets.translucentParticles);
+
 		isFabulous = config.fabulosity != null;
 
 		if (isFabulous) {
 			final FabulousConfig fc = config.fabulosity;
-			PipelineFramebuffer b = getFramebuffer(fc.entityFrambuffer);
+			b = getFramebuffer(fc.entityFrambuffer);
 			fabEntityFbo = b.glId();
 			fabEntityColor = getImage(b.config.colorAttachments[0].imageName).glId();
 			fabEntityDepth = getImage(b.config.depthAttachment.imageName).glId();

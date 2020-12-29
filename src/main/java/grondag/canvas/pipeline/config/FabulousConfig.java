@@ -47,7 +47,7 @@ public class FabulousConfig {
 		}
 	}
 
-	public static @Nullable FabulousConfig get(JsonObject config) {
+	public static @Nullable FabulousConfig deserialize(JsonObject config) {
 		if (config == null || !config.containsKey("fabulousTargets")) {
 			return null;
 		}

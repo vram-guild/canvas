@@ -9,9 +9,6 @@ import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.pipeline.PipelineManager;
 
 public class PrimaryFrameBuffer extends Framebuffer {
-	public int[] extraColorAttachments;
-	public float[][] clearColors;
-
 	public PrimaryFrameBuffer(int width, int height, boolean getError) {
 		super(width, height, true, getError);
 	}
@@ -38,12 +35,17 @@ public class PrimaryFrameBuffer extends Framebuffer {
 
 		PipelineManager.init(width, height);
 
-		fbo = Pipeline.getFramebuffer("default").glId();
-		colorAttachment = Pipeline.getImage("default_main").glId();
-		depthAttachment = Pipeline.getImage("default_depth").glId();
+		fbo = Pipeline.defaultFbo.glId();
+		colorAttachment = Pipeline.defaultColor;
+		depthAttachment = Pipeline.defaultDepth;
 
 		checkFramebufferStatus();
-		clear(getError);
 		endRead();
+	}
+
+	@Override
+	public void clear(boolean getError) {
+		// NOOP - should be done in pipeline buffers
+		assert false : "Unmanaged frambuffer clear";
 	}
 }

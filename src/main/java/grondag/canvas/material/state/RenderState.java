@@ -23,7 +23,6 @@ import org.lwjgl.opengl.GL11;
 
 import net.minecraft.client.MinecraftClient;
 
-import grondag.canvas.Configurator;
 import grondag.canvas.buffer.format.CanvasVertexFormat;
 import grondag.canvas.material.property.BinaryMaterialState;
 import grondag.canvas.material.property.MaterialDecal;
@@ -33,7 +32,6 @@ import grondag.canvas.material.property.MaterialTarget;
 import grondag.canvas.material.property.MaterialTextureState;
 import grondag.canvas.material.property.MaterialTransparency;
 import grondag.canvas.material.property.MaterialWriteMask;
-import grondag.canvas.pipeline.PipelineManager;
 import grondag.canvas.shader.GlProgram;
 import grondag.canvas.shader.ProgramType;
 import grondag.canvas.texture.MaterialInfoTexture;
@@ -71,12 +69,8 @@ public final class RenderState extends AbstractRenderState {
 			// same for all, so only do 1X
 			RenderSystem.shadeModel(GL11.GL_SMOOTH);
 			target.enable();
-			// NB: must be after frame-buffer target switch
-			if (Configurator.enableBloom) PipelineManager.enableCanvasPrimaryFramebuffer();
 		} else if (active.target != target) {
-			if (Configurator.enableBloom) PipelineManager.disableCanvasPrimaryFrambuffer();
 			target.enable();
-			if (Configurator.enableBloom) PipelineManager.enableCanvasPrimaryFramebuffer();
 		}
 
 		active = this;
@@ -126,9 +120,6 @@ public final class RenderState extends AbstractRenderState {
 		}
 
 		active = null;
-
-		// NB: must be before frame-buffer target switch
-		if (Configurator.enableBloom) PipelineManager.disableCanvasPrimaryFrambuffer();
 
 		CanvasVertexFormat.disableDirect();
 		GlProgram.deactivate();

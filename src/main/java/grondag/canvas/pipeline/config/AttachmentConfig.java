@@ -24,17 +24,34 @@ public class AttachmentConfig {
 	public final int lod;
 	public final int clearColor;
 	public final boolean isValid;
+	public final boolean clear;
+	public final boolean isDepth;
+	public final float clearDepth;
 
-	AttachmentConfig(JsonObject config) {
+	AttachmentConfig(JsonObject config, boolean isDepth) {
+		this.isDepth = isDepth;
+
 		if (config == null) {
 			imageName = "invalid";
 			lod = 0;
+			clear = false;
 			clearColor = 0;
-			isValid = true;
+			isValid = false;
+			clearDepth = 1.0f;
 		} else {
 			imageName = config.get(String.class, "image");
 			lod = config.getInt("lod", 0);
-			clearColor = config.getInt("clearColor", 0);
+
+			if (isDepth) {
+				clear = config.containsKey("clearDepth");
+				clearDepth = config.getFloat("clearDepth", 1.0f);
+				clearColor = 0;
+			} else {
+				clear = config.containsKey("clearColor");
+				clearColor = config.getInt("clearColor", 0);
+				clearDepth = 1.0f;
+			}
+
 			isValid = true;
 		}
 	}
@@ -43,7 +60,10 @@ public class AttachmentConfig {
 		imageName = name;
 		lod = 0;
 		clearColor = 0;
+		clear = false;
 		isValid = true;
+		isDepth = false;
+		clearDepth = 1.0f;
 	}
 
 	public static AttachmentConfig[] deserialize(JsonObject configJson) {
@@ -56,7 +76,7 @@ public class AttachmentConfig {
 		final AttachmentConfig[] result = new AttachmentConfig[limit];
 
 		for (int i = 0; i < limit; ++i) {
-			result[i] = new AttachmentConfig((JsonObject) array.get(i));
+			result[i] = new AttachmentConfig((JsonObject) array.get(i), false);
 		}
 
 		return result;

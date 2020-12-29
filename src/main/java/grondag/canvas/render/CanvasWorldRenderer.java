@@ -382,6 +382,8 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 	public void renderWorld(MatrixStack matrixStack, float tickDelta, long frameStartNanos, boolean blockOutlines, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f projectionMatrix) {
 		Configurator.lagFinder.swap("WorldRenderer-Setup");
+		// WIP: misnamed or doesn't go here
+		PipelineManager.onWorldRenderStart();
 
 		final WorldRendererExt wr = this.wr;
 		final MinecraftClient mc = wr.canvas_mc();
@@ -424,6 +426,8 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		mc.getProfiler().swap("regions");
 
 		Configurator.lagFinder.swap("WorldRenderer-Background");
+
+		Pipeline.defaultFbo.bind();
 
 		profiler.swap("clear");
 		BackgroundRenderer.render(camera, tickDelta, mc.world, mc.options.viewDistance, gameRenderer.getSkyDarkness(tickDelta));
@@ -472,9 +476,6 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		LightmapHdTexture.instance().onRenderTick();
 
-		// WIP: misnamed or doesn't go here
-		PipelineManager.onWorldRenderStart();
-
 		profiler.swap("terrain");
 		Configurator.lagFinder.swap("WorldRenderer-TerrainRenderSolid");
 
@@ -502,21 +503,14 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		profiler.swap("entities");
 
-		assert Pipeline.isFabulous() == MinecraftClient.isFabulousGraphicsOrBetter();
-		assert advancedTranslucency == Pipeline.isFabulous();
-		assert advancedTranslucency == (getEntityFramebuffer() != null);
-		assert advancedTranslucency == (getWeatherFramebuffer() != null);
-		assert advancedTranslucency == (getParticlesFramebuffer() != null);
-		assert advancedTranslucency == (getCloudsFramebuffer() != null);
-		assert advancedTranslucency == (getTranslucentFramebuffer() != null);
-
+		// WIP remove or move to pipeline config
 		if (advancedTranslucency) {
 			final Framebuffer entityFramebuffer = mcwr.getEntityFramebuffer();
-			entityFramebuffer.clear(MinecraftClient.IS_SYSTEM_MAC);
+			//entityFramebuffer.clear(MinecraftClient.IS_SYSTEM_MAC);
 			entityFramebuffer.copyDepthFrom(mcfb);
 
-			final Framebuffer weatherFramebuffer = mcwr.getWeatherFramebuffer();
-			weatherFramebuffer.clear(MinecraftClient.IS_SYSTEM_MAC);
+			//final Framebuffer weatherFramebuffer = mcwr.getWeatherFramebuffer();
+			//weatherFramebuffer.clear(MinecraftClient.IS_SYSTEM_MAC);
 		}
 
 		final boolean canDrawEntityOutlines = wr.canvas_canDrawEntityOutlines();
@@ -525,7 +519,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			wr.canvas_entityOutlinesFramebuffer().clear(MinecraftClient.IS_SYSTEM_MAC);
 		}
 
-		mcfb.beginWrite(false);
+		Pipeline.defaultFbo.bind();
 
 		boolean didRenderOutlines = false;
 		final CanvasImmediate immediate = worldRenderImmediate;
@@ -647,7 +641,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		if (didRenderOutlines) {
 			entityOutlineShader.render(tickDelta);
-			mcfb.beginWrite(false);
+			Pipeline.defaultFbo.bind();
 		}
 
 		Configurator.lagFinder.swap("WorldRenderer-Breaking");
@@ -736,9 +730,9 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			profiler.swap("translucent");
 
 			Framebuffer fb = mcwr.getTranslucentFramebuffer();
-			fb.clear(MinecraftClient.IS_SYSTEM_MAC);
 			fb.copyDepthFrom(mcfb);
-			fb.beginWrite(false);
+
+			Pipeline.translucentTerrainFbo.bind();
 
 			// in fabulous mode, the only thing that renders to terrain translucency
 			// is terrain itself - so everything else can be rendered first
@@ -759,16 +753,15 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			// NB: vanilla renders tripwire here but we combine into translucent
 
 			fb = mcwr.getParticlesFramebuffer();
-			fb.clear(MinecraftClient.IS_SYSTEM_MAC);
 			fb.copyDepthFrom(mcfb);
-			fb.beginWrite(false);
+			Pipeline.translucentParticlesFbo.bind();
 
 			profiler.swap("particles");
 			MaterialMatrixState.set(MaterialMatrixState.PARTICLE, null);
 			particleRenderer.renderParticles(mc.particleManager, matrixStack, immediate, lightmapTextureManager, camera, tickDelta);
 			MaterialMatrixState.set(MaterialMatrixState.ENTITY, matrixStack.peek().getNormal());
 
-			mcfb.beginWrite(false);
+			Pipeline.defaultFbo.bind();
 		} else {
 			profiler.swap("translucent");
 			MaterialMatrixState.set(MaterialMatrixState.REGION, null);
@@ -807,31 +800,23 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		profiler.swap("clouds");
 
-		if (advancedTranslucency) {
-			// clear the cloud FB even when clouds are off - prevents leftover clouds
-			final Framebuffer fb = mcwr.getCloudsFramebuffer();
-			fb.clear(MinecraftClient.IS_SYSTEM_MAC);
-
-			if (mc.options.getCloudRenderMode() != CloudRenderMode.OFF) {
-				fb.beginWrite(false);
-				((WorldRenderer) wr).renderClouds(matrixStack, tickDelta, cameraX, cameraY, cameraZ);
-				mcfb.beginWrite(false);
-			}
-		} else if (mc.options.getCloudRenderMode() != CloudRenderMode.OFF) {
-			((WorldRenderer) wr).renderClouds(matrixStack, tickDelta, cameraX, cameraY, cameraZ);
+		// NB: important to clear the cloud FB even when clouds are off - prevents leftover clouds
+		if (mc.options.getCloudRenderMode() != CloudRenderMode.OFF) {
+			Pipeline.cloudsFbo.bind();
+			renderClouds(matrixStack, tickDelta, cameraX, cameraY, cameraZ);
+			Pipeline.defaultFbo.bind();
 		}
 
 		profiler.swap("weather");
 
 		if (advancedTranslucency) {
-			final Framebuffer fb = mcwr.getWeatherFramebuffer();
-			fb.beginWrite(false);
+			Pipeline.weatherFbo.bind();
 			wr.canvas_renderWeather(lightmapTextureManager, tickDelta, cameraX, cameraY, cameraZ);
 			wr.canvas_renderWorldBorder(camera);
 
 			PipelineManager.beFabulous();
-			//wr.canvas_transparencyShader().render(tickDelta);
-			mcfb.beginWrite(false);
+
+			Pipeline.defaultFbo.bind();
 		} else {
 			RenderSystem.depthMask(false);
 			wr.canvas_renderWeather(lightmapTextureManager, tickDelta, cameraX, cameraY, cameraZ);

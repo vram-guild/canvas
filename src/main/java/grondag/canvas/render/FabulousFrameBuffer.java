@@ -17,7 +17,6 @@ public class FabulousFrameBuffer extends Framebuffer {
 		depthAttachment = depthId;
 
 		checkFramebufferStatus();
-		clear(MinecraftClient.IS_SYSTEM_MAC);
 		endRead();
 	}
 
@@ -39,5 +38,11 @@ public class FabulousFrameBuffer extends Framebuffer {
 		textureHeight = height;
 
 		// rest is handled in init that accepts IDs from pipeline
+	}
+
+	@Override
+	public void clear(boolean getError) {
+		// NOOP - should be done in pipeline buffers
+		assert false : "Unmanaged frambuffer clear";
 	}
 }

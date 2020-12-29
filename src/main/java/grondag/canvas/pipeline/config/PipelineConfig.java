@@ -24,8 +24,11 @@ import net.minecraft.resource.Resource;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.Identifier;
 
+import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
 
+// WIP:  defaultFramebuffer target
+// WIP: managed draw targets
 public class PipelineConfig {
 	public final ImageConfig[] images;
 	public final PipelineParam[] params;
@@ -37,8 +40,11 @@ public class PipelineConfig {
 	public final PassConfig[] fabulous;
 
 	@Nullable public final FabulousConfig fabulosity;
+	@Nullable public final DrawTargetsConfig drawTargets;
 
 	public final boolean isValid;
+
+	public final String defaultFramebuffer;
 
 	private PipelineConfig() {
 		params = new PipelineParam[0];
@@ -49,25 +55,37 @@ public class PipelineConfig {
 		images = new ImageConfig[] { ImageConfig.DEFAULT_MAIN, ImageConfig.DEFAULT_DEPTH };
 		framebuffers = new FramebufferConfig[] { FramebufferConfig.DEFAULT };
 		fabulosity = null;
+		drawTargets = DrawTargetsConfig.DEFAULT;
+		defaultFramebuffer = "default";
 		isValid = true;
 	}
 
 	private PipelineConfig (JsonObject configJson) {
+		boolean valid = true;
 		params = PipelineParam.array(
 			PipelineParam.of("bloom_intensity", 0.0f, 0.5f, 0.1f),
 			PipelineParam.of("bloom_scale", 0.0f, 2.0f, 0.25f)
 		);
 
-		fabulosity = FabulousConfig.get(configJson);
+		defaultFramebuffer = JanksonHelper.asString(configJson.get("defaultFramebuffer"));
+
+		if (defaultFramebuffer == null || defaultFramebuffer.isEmpty()) {
+			CanvasMod.LOG.warn("Invalid pipeline config - missing defaultFramebuffer.");
+			valid = false;
+		}
+
+		fabulosity = FabulousConfig.deserialize(configJson);
+		fabulous = PassConfig.deserialize(configJson, "fabulous");
+		valid &= (fabulosity == null || fabulosity.isValid);
+
+		drawTargets = DrawTargetsConfig.deserialize(configJson);
+		valid &= (drawTargets == null || drawTargets.isValid);
 
 		images = ImageConfig.deserialize(configJson);
 		shaders = ProgramConfig.deserialize(configJson);
 		framebuffers = FramebufferConfig.deserialize(configJson);
 		onWorldStart = PassConfig.deserialize(configJson, "onWorldRenderStart");
 		afterRenderHand = PassConfig.deserialize(configJson, "afterRenderHand");
-		fabulous = PassConfig.deserialize(configJson, "fabulous");
-
-		boolean valid = fabulosity == null || fabulosity.isValid;
 
 		for (final FramebufferConfig fb : framebuffers) {
 			valid &= fb.isValid;
