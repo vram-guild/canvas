@@ -382,8 +382,6 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 	public void renderWorld(MatrixStack matrixStack, float tickDelta, long frameStartNanos, boolean blockOutlines, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f projectionMatrix) {
 		Configurator.lagFinder.swap("WorldRenderer-Setup");
-		// WIP: misnamed or doesn't go here
-		PipelineManager.onWorldRenderStart();
 
 		final WorldRendererExt wr = this.wr;
 		final MinecraftClient mc = wr.canvas_mc();
@@ -430,6 +428,11 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		Pipeline.defaultFbo.bind();
 
 		profiler.swap("clear");
+		// WIP: renderBackground
+		// WIP: need to get the various inputs and color inputs into uniforms
+		// replace these with passes - note that render is badly named - it sets the clear color without clearing
+		// WIP: complete the various fog computations and ensure their inputs and outputs are available before any drawing stages
+
 		BackgroundRenderer.render(camera, tickDelta, mc.world, mc.options.viewDistance, gameRenderer.getSkyDarkness(tickDelta));
 		RenderSystem.clear(16640, MinecraftClient.IS_SYSTEM_MAC);
 		final float viewDistance = gameRenderer.getViewDistance();
@@ -472,6 +475,9 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		updateRegions(frameStartNanos + clampedBudget);
 
+		// WIP: sky shadow - after uploads
+
+		// WIP: label no longer correct - use stage names for profiling
 		Configurator.lagFinder.swap("WorldRenderer-BloomSetup");
 
 		LightmapHdTexture.instance().onRenderTick();
@@ -496,6 +502,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		Configurator.lagFinder.swap("WorldRenderer-EntityRender");
 
 		profiler.swap("entities");
+		// WIP: renderEntityPre
 		WorldRenderEvents.BEFORE_ENTITIES.invoker().beforeEntities(eventContext);
 		profiler.push("prepare");
 		int entityCount = 0;
@@ -634,6 +641,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		assert matrixStack.isEmpty() : "Matrix stack not empty in world render when expected";
 
 		immediate.drawCollectors(MaterialTarget.MAIN);
+		// WIP: renderEntityPost
 
 		WorldRenderEvents.AFTER_ENTITIES.invoker().afterEntities(eventContext);
 
@@ -1190,6 +1198,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		wr.canvas_mc().getProfiler().swap("dynamic_lighting");
 		eventContext.prepare(this, matrices, tickDelta, frameStartNanos, renderBlockOutline, camera, gameRenderer, lightmapTextureManager, matrix4f, worldRenderImmediate, wr.canvas_mc().getProfiler(), MinecraftClient.isFabulousGraphicsOrBetter(), world);
 		WorldRenderEvents.START.invoker().onStart(eventContext);
+		PipelineManager.beforeWorldRender();
 		WorldRenderEvent.BEFORE_WORLD_RENDER.invoker().beforeWorldRender(matrices, tickDelta, frameStartNanos, renderBlockOutline, camera, gameRenderer, lightmapTextureManager, matrix4f);
 		renderWorld(matrices, tickDelta, frameStartNanos, renderBlockOutline, camera, gameRenderer, lightmapTextureManager, matrix4f);
 		WorldRenderEvent.AFTER_WORLD_RENDER.invoker().afterWorldRender(matrices, tickDelta, frameStartNanos, renderBlockOutline, camera, gameRenderer, lightmapTextureManager, matrix4f);
