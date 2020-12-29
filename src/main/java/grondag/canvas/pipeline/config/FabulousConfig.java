@@ -20,8 +20,10 @@ import blue.endless.jankson.JsonObject;
 import org.jetbrains.annotations.Nullable;
 
 import grondag.canvas.CanvasMod;
+import grondag.canvas.pipeline.config.util.AbstractConfig;
+import grondag.canvas.pipeline.config.util.ConfigContext;
 
-public class FabulousConfig {
+public class FabulousConfig extends AbstractConfig {
 	public final String entityFrambuffer;
 	public final String particleFrambuffer;
 	public final String weatherFrambuffer;
@@ -29,7 +31,8 @@ public class FabulousConfig {
 	public final String translucentFrambuffer;
 	public final boolean isValid;
 
-	private FabulousConfig (JsonObject config) {
+	private FabulousConfig (ConfigContext ctx, JsonObject config) {
+		super(ctx);
 		entityFrambuffer = config.get(String.class, "entity");
 		particleFrambuffer = config.get(String.class, "particles");
 		weatherFrambuffer = config.get(String.class, "weather");
@@ -47,11 +50,17 @@ public class FabulousConfig {
 		}
 	}
 
-	public static @Nullable FabulousConfig deserialize(JsonObject config) {
+	public static @Nullable FabulousConfig deserialize(ConfigContext ctx, JsonObject config) {
 		if (config == null || !config.containsKey("fabulousTargets")) {
 			return null;
 		}
 
-		return new FabulousConfig(config.getObject("fabulousTargets"));
+		return new FabulousConfig(ctx, config.getObject("fabulousTargets"));
+	}
+
+	@Override
+	public boolean isValid() {
+		// TODO Auto-generated method stub
+		return false;
 	}
 }

@@ -19,7 +19,10 @@ package grondag.canvas.pipeline.config;
 import blue.endless.jankson.JsonArray;
 import blue.endless.jankson.JsonObject;
 
-public class AttachmentConfig {
+import grondag.canvas.pipeline.config.util.AbstractConfig;
+import grondag.canvas.pipeline.config.util.ConfigContext;
+
+public class AttachmentConfig extends AbstractConfig {
 	public final String imageName;
 	public final int lod;
 	public final int clearColor;
@@ -28,7 +31,9 @@ public class AttachmentConfig {
 	public final boolean isDepth;
 	public final float clearDepth;
 
-	AttachmentConfig(JsonObject config, boolean isDepth) {
+	AttachmentConfig(ConfigContext ctx, JsonObject config, boolean isDepth) {
+		super(ctx);
+
 		this.isDepth = isDepth;
 
 		if (config == null) {
@@ -56,7 +61,8 @@ public class AttachmentConfig {
 		}
 	}
 
-	private AttachmentConfig(String name) {
+	private AttachmentConfig(ConfigContext ctx, String name) {
+		super(ctx);
 		imageName = name;
 		lod = 0;
 		clearColor = 0;
@@ -66,7 +72,7 @@ public class AttachmentConfig {
 		clearDepth = 1.0f;
 	}
 
-	public static AttachmentConfig[] deserialize(JsonObject configJson) {
+	public static AttachmentConfig[] deserialize(ConfigContext ctx, JsonObject configJson) {
 		if (configJson == null || !configJson.containsKey("colorAttachments")) {
 			return new AttachmentConfig[0];
 		}
@@ -76,12 +82,23 @@ public class AttachmentConfig {
 		final AttachmentConfig[] result = new AttachmentConfig[limit];
 
 		for (int i = 0; i < limit; ++i) {
-			result[i] = new AttachmentConfig((JsonObject) array.get(i), false);
+			result[i] = new AttachmentConfig(ctx, (JsonObject) array.get(i), false);
 		}
 
 		return result;
 	}
 
-	public static final AttachmentConfig DEFAULT_MAIN = new AttachmentConfig("default_main");
-	public static final AttachmentConfig DEFAULT_DEPTH = new AttachmentConfig("default_depth");
+	public static AttachmentConfig defaultMain(ConfigContext ctx) {
+		return new AttachmentConfig(ctx, "default_main");
+	}
+
+	public static AttachmentConfig defaultDepth(ConfigContext ctx) {
+		return new AttachmentConfig(ctx, "default_depth");
+	}
+
+	@Override
+	public boolean isValid() {
+		// TODO Auto-generated method stub
+		return false;
+	}
 }

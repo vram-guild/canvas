@@ -18,11 +18,14 @@ package grondag.canvas.pipeline.config;
 
 import blue.endless.jankson.JsonArray;
 import blue.endless.jankson.JsonObject;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
 import grondag.canvas.CanvasMod;
+import grondag.canvas.pipeline.config.util.ConfigContext;
+import grondag.canvas.pipeline.config.util.JanksonHelper;
+import grondag.canvas.pipeline.config.util.NamedConfig;
 
-public class PassConfig {
-	public final String name;
+public class PassConfig extends NamedConfig<PassConfig> {
 	public final String framebufferName;
 	public final String[] samplerNames;
 	public final String programName;
@@ -50,12 +53,10 @@ public class PassConfig {
 	//	// Specifies the interpolation to be applied if the image is stretched. Must be GL_NEAREST or GL_LINEAR.
 	//	public String filter;
 
-	private PassConfig (JsonObject config) {
+	private PassConfig (ConfigContext ctx, JsonObject config) {
+		super(ctx, JanksonHelper.asStringOrDefault(config.get("name"), JanksonHelper.asString(config.get("framebuffer"))));
 		framebufferName = JanksonHelper.asString(config.get("framebuffer"));
 		programName = JanksonHelper.asString(config.get("program"));
-
-		final String name = JanksonHelper.asString(config.get("name"));
-		this.name = name == null ? framebufferName : name;
 
 		lod = config.getInt("lod", 0);
 
@@ -79,7 +80,7 @@ public class PassConfig {
 		}
 	}
 
-	public static PassConfig[] deserialize(JsonObject configJson, String key) {
+	public static PassConfig[] deserialize(ConfigContext ctx, JsonObject configJson, String key) {
 		if (configJson == null || !configJson.containsKey(key)) {
 			return new PassConfig[0];
 		}
@@ -101,11 +102,22 @@ public class PassConfig {
 		final PassConfig[] result = new PassConfig[limit];
 
 		for (int i = 0; i < limit; ++i) {
-			result[i] = new PassConfig((JsonObject) array.get(i));
+			result[i] = new PassConfig(ctx, (JsonObject) array.get(i));
 		}
 
 		return result;
 	}
 
 	public static String CLEAR_NAME = "frex_clear";
+
+	@Override
+	public boolean isValid() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public Object2ObjectOpenHashMap<String, PassConfig> nameMap() {
+		return context.passes;
+	}
 }

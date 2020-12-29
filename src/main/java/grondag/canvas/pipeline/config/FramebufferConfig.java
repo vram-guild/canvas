@@ -18,36 +18,34 @@ package grondag.canvas.pipeline.config;
 
 import blue.endless.jankson.JsonArray;
 import blue.endless.jankson.JsonObject;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
 import grondag.canvas.CanvasMod;
+import grondag.canvas.pipeline.config.util.ConfigContext;
+import grondag.canvas.pipeline.config.util.NamedConfig;
 
-public class FramebufferConfig {
-	public final String name;
+public class FramebufferConfig extends NamedConfig<FramebufferConfig> {
 	public final AttachmentConfig[] colorAttachments;
 	public final AttachmentConfig depthAttachment;
 	public final boolean isValid;
 
-	private FramebufferConfig(JsonObject config) {
+	private FramebufferConfig(ConfigContext ctx, JsonObject config) {
+		super(ctx, config.get(String.class, "name"));
 		boolean valid = true;
 
-		String name = config.get(String.class, "name");
-
 		if (name == null || name.isEmpty()) {
-			name = "missing";
 			CanvasMod.LOG.warn("Invalid pipeline config - missing framebuffer name.");
 			valid = false;
 		}
 
-		this.name = name;
-
-		colorAttachments = AttachmentConfig.deserialize(config);
+		colorAttachments = AttachmentConfig.deserialize(ctx, config);
 
 		for (final AttachmentConfig c : colorAttachments) {
 			valid &= c.isValid;
 		}
 
 		if (config.containsKey("depthAttachment")) {
-			depthAttachment = new AttachmentConfig(config.getObject("depthAttachment"), true);
+			depthAttachment = new AttachmentConfig(ctx, config.getObject("depthAttachment"), true);
 			valid &= depthAttachment.isValid;
 		} else {
 			depthAttachment = null;
@@ -56,14 +54,14 @@ public class FramebufferConfig {
 		isValid = valid;
 	}
 
-	private FramebufferConfig() {
-		name = "default";
-		colorAttachments = new AttachmentConfig[] {AttachmentConfig.DEFAULT_MAIN};
-		depthAttachment = AttachmentConfig.DEFAULT_DEPTH;
+	private FramebufferConfig(ConfigContext ctx) {
+		super(ctx, "default");
+		colorAttachments = new AttachmentConfig[] {AttachmentConfig.defaultMain(ctx)};
+		depthAttachment = AttachmentConfig.defaultDepth(ctx);
 		isValid = true;
 	}
 
-	public static FramebufferConfig[] deserialize(JsonObject configJson) {
+	public static FramebufferConfig[] deserialize(ConfigContext ctx, JsonObject configJson) {
 		if (configJson == null || !configJson.containsKey("framebuffers")) {
 			return new FramebufferConfig[0];
 		}
@@ -73,11 +71,24 @@ public class FramebufferConfig {
 		final FramebufferConfig[] result = new FramebufferConfig[limit];
 
 		for (int i = 0; i < limit; ++i) {
-			result[i] = new FramebufferConfig((JsonObject) array.get(i));
+			result[i] = new FramebufferConfig(ctx, (JsonObject) array.get(i));
 		}
 
 		return result;
 	}
 
-	public static final FramebufferConfig DEFAULT = new FramebufferConfig();
+	public static FramebufferConfig makeDefault(ConfigContext context) {
+		return new FramebufferConfig(context);
+	}
+
+	@Override
+	public boolean isValid() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public Object2ObjectOpenHashMap<String, FramebufferConfig> nameMap() {
+		return context.frameBuffers;
+	}
 }

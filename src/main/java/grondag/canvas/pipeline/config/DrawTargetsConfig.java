@@ -20,8 +20,10 @@ import blue.endless.jankson.JsonObject;
 import org.jetbrains.annotations.Nullable;
 
 import grondag.canvas.CanvasMod;
+import grondag.canvas.pipeline.config.util.AbstractConfig;
+import grondag.canvas.pipeline.config.util.ConfigContext;
 
-public class DrawTargetsConfig {
+public class DrawTargetsConfig extends AbstractConfig {
 	public final String solidTerrain;
 	public final String translucentTerrain;
 	public final String translucentEntity;
@@ -30,7 +32,8 @@ public class DrawTargetsConfig {
 	public final String translucentParticles;
 	public final boolean isValid;
 
-	private DrawTargetsConfig() {
+	private DrawTargetsConfig(ConfigContext ctx) {
+		super(ctx);
 		solidTerrain = "default";
 		translucentTerrain = "default";
 		translucentEntity = "default";
@@ -40,7 +43,8 @@ public class DrawTargetsConfig {
 		isValid = true;
 	}
 
-	private DrawTargetsConfig (JsonObject config) {
+	private DrawTargetsConfig (ConfigContext ctx, JsonObject config) {
+		super(ctx);
 		solidTerrain = config.get(String.class, "solidTerrain");
 		translucentTerrain = config.get(String.class, "translucentTerrain");
 		translucentEntity = config.get(String.class, "translucentEntity");
@@ -83,14 +87,22 @@ public class DrawTargetsConfig {
 		isValid = valid;
 	}
 
-	public static @Nullable DrawTargetsConfig deserialize(JsonObject config) {
+	public static @Nullable DrawTargetsConfig deserialize(ConfigContext ctx, JsonObject config) {
 		if (config == null || !config.containsKey("drawTargets")) {
 			CanvasMod.LOG.warn("Invalid pipeline config - missing drawTargets config.");
 			return null;
 		}
 
-		return new DrawTargetsConfig(config.getObject("drawTargets"));
+		return new DrawTargetsConfig(ctx, config.getObject("drawTargets"));
 	}
 
-	public static final DrawTargetsConfig DEFAULT = new DrawTargetsConfig();
+	public static DrawTargetsConfig makeDefault(ConfigContext ctx) {
+		return new DrawTargetsConfig(ctx);
+	}
+
+	@Override
+	public boolean isValid() {
+		// TODO Auto-generated method stub
+		return false;
+	}
 }

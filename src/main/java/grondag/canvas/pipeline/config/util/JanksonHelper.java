@@ -14,7 +14,7 @@
  *  the License.
  */
 
-package grondag.canvas.pipeline.config;
+package grondag.canvas.pipeline.config.util;
 
 import blue.endless.jankson.JsonArray;
 import blue.endless.jankson.JsonElement;
@@ -25,7 +25,7 @@ import org.jetbrains.annotations.Nullable;
 import grondag.canvas.CanvasMod;
 
 public class JanksonHelper {
-	static @Nullable String asString(JsonElement json) {
+	public static @Nullable String asString(JsonElement json) {
 		if (json instanceof JsonPrimitive) {
 			final JsonPrimitive p = (JsonPrimitive) json;
 
@@ -37,7 +37,19 @@ public class JanksonHelper {
 		return null;
 	}
 
-	static @Nullable JsonArray getJsonArrayOrNull(JsonObject jsonObject, String key, String nonArrayMessage) {
+	public static @Nullable String asStringOrDefault(JsonElement json, String defaultVal) {
+		if (json instanceof JsonPrimitive) {
+			final JsonPrimitive p = (JsonPrimitive) json;
+
+			if (p.getValue() instanceof String) {
+				return (String) p.getValue();
+			}
+		}
+
+		return defaultVal;
+	}
+
+	public static @Nullable JsonArray getJsonArrayOrNull(JsonObject jsonObject, String key, String nonArrayMessage) {
 		if (jsonObject == null || !jsonObject.containsKey(key)) {
 			return null;
 		}

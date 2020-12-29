@@ -16,21 +16,29 @@
 
 package grondag.canvas.pipeline.config;
 
-public class PipelineParam {
-	public String name;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+
+import grondag.canvas.pipeline.config.util.ConfigContext;
+import grondag.canvas.pipeline.config.util.NamedConfig;
+
+public class PipelineParam extends NamedConfig<PipelineParam> {
+	protected PipelineParam(ConfigContext ctx, String name) {
+		super(ctx, name);
+	}
+
 	public float minVal;
 	public float maxVal;
 	public float defaultVal;
 	public float currentVal;
 
 	public static PipelineParam of(
+		ConfigContext ctx,
 		String name,
 		float minVal,
 		float maxVal,
 		float defaultVal
 	) {
-		final PipelineParam result = new PipelineParam();
-		result.name = name;
+		final PipelineParam result = new PipelineParam(ctx, name);
 		result.minVal = minVal;
 		result.maxVal = maxVal;
 		result.defaultVal = defaultVal;
@@ -40,5 +48,16 @@ public class PipelineParam {
 
 	public static PipelineParam[] array(PipelineParam... params) {
 		return params;
+	}
+
+	@Override
+	public boolean isValid() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public Object2ObjectOpenHashMap<String, PipelineParam> nameMap() {
+		return context.params;
 	}
 }

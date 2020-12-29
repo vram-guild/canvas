@@ -18,20 +18,22 @@ package grondag.canvas.pipeline.config;
 
 import blue.endless.jankson.JsonArray;
 import blue.endless.jankson.JsonObject;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.lwjgl.opengl.GL21;
 
 import grondag.canvas.pipeline.GlSymbolLookup;
+import grondag.canvas.pipeline.config.util.ConfigContext;
+import grondag.canvas.pipeline.config.util.NamedConfig;
 
-public class ImageConfig {
-	public final String name;
+public class ImageConfig extends NamedConfig<ImageConfig> {
 	public final int internalFormat;
 	public final int pixelFormat;
 	public final int pixelDataType;
 	public final int lod;
 	public final int[] texParamPairs;
 
-	private ImageConfig(String name, int internalFormat, int lod, int pixelFormat, int pixelDataType, boolean depth) {
-		this.name = name;
+	private ImageConfig(ConfigContext ctx, String name, int internalFormat, int lod, int pixelFormat, int pixelDataType, boolean depth) {
+		super(ctx, name);
 		this.internalFormat = internalFormat;
 		this.lod = lod;
 		this.pixelDataType = pixelDataType;
@@ -57,8 +59,8 @@ public class ImageConfig {
 		texParamPairs[7] = GL21.GL_CLAMP;
 	}
 
-	private ImageConfig (JsonObject config) {
-		name = config.get(String.class, "name");
+	private ImageConfig (ConfigContext ctx, JsonObject config) {
+		super(ctx, config.get(String.class, "name"));
 		internalFormat = GlSymbolLookup.lookup(config, "internalFormat", "RGBA8");
 		lod = config.getInt("lod", 0);
 		pixelFormat = GlSymbolLookup.lookup(config, "pixelFormat", "RGBA");
@@ -81,7 +83,7 @@ public class ImageConfig {
 		}
 	}
 
-	public static ImageConfig[] deserialize(JsonObject configJson) {
+	public static ImageConfig[] deserialize(ConfigContext ctx, JsonObject configJson) {
 		if (configJson == null || !configJson.containsKey("images")) {
 			return new ImageConfig[0];
 		}
@@ -91,12 +93,28 @@ public class ImageConfig {
 		final ImageConfig[] result = new ImageConfig[limit];
 
 		for (int i = 0; i < limit; ++i) {
-			result[i] = new ImageConfig((JsonObject) images.get(i));
+			result[i] = new ImageConfig(ctx, (JsonObject) images.get(i));
 		}
 
 		return result;
 	}
 
-	public static ImageConfig DEFAULT_MAIN = new ImageConfig("default_main", GL21.GL_RGBA8, 0, GL21.GL_RGBA, GL21.GL_UNSIGNED_BYTE, false);
-	public static ImageConfig DEFAULT_DEPTH = new ImageConfig("default_depth", GL21.GL_DEPTH_COMPONENT, 0, GL21.GL_DEPTH_COMPONENT, GL21.GL_FLOAT, true);
+	public static ImageConfig defaultMain(ConfigContext ctx) {
+		return new ImageConfig(ctx, "default_main", GL21.GL_RGBA8, 0, GL21.GL_RGBA, GL21.GL_UNSIGNED_BYTE, false);
+	}
+
+	public static ImageConfig defaultDepth(ConfigContext ctx) {
+		return new ImageConfig(ctx, "default_depth", GL21.GL_DEPTH_COMPONENT, 0, GL21.GL_DEPTH_COMPONENT, GL21.GL_FLOAT, true);
+	}
+
+	@Override
+	public boolean isValid() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public Object2ObjectOpenHashMap<String, ImageConfig> nameMap() {
+		return context.images;
+	}
 }

@@ -21,6 +21,8 @@ import blue.endless.jankson.JsonObject;
 import net.minecraft.client.resource.language.I18n;
 import net.minecraft.util.Identifier;
 
+import grondag.canvas.pipeline.config.util.JanksonHelper;
+
 public class PipelineDescription {
 	public final Identifier id;
 	public final String nameKey;

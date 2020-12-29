@@ -2,10 +2,14 @@ package grondag.canvas.pipeline.config;
 
 import blue.endless.jankson.JsonArray;
 import blue.endless.jankson.JsonObject;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
 import net.minecraft.util.Identifier;
 
 import grondag.canvas.CanvasMod;
+import grondag.canvas.pipeline.config.util.ConfigContext;
+import grondag.canvas.pipeline.config.util.JanksonHelper;
+import grondag.canvas.pipeline.config.util.NamedConfig;
 
 /*
  *  Copyright 2019, 2020 grondag
@@ -23,14 +27,13 @@ import grondag.canvas.CanvasMod;
  *  the License.
  */
 
-public class ProgramConfig {
-	public final String name;
+public class ProgramConfig extends NamedConfig<ProgramConfig> {
 	public final Identifier vertexSource;
 	public final Identifier fragmentSource;
 	public final String[] samplerNames;
 
-	private ProgramConfig(JsonObject config) {
-		name = config.get(String.class, "name");
+	private ProgramConfig(ConfigContext ctx, JsonObject config) {
+		super(ctx, config.get(String.class, "name"));
 		vertexSource = new Identifier(config.get(String.class, "vertexSource"));
 		fragmentSource = new Identifier(config.get(String.class, "fragmentSource"));
 
@@ -54,7 +57,7 @@ public class ProgramConfig {
 		}
 	}
 
-	public static ProgramConfig[] deserialize(JsonObject configJson) {
+	public static ProgramConfig[] deserialize(ConfigContext ctx, JsonObject configJson) {
 		if (configJson == null || !configJson.containsKey("programs")) {
 			return new ProgramConfig[0];
 		}
@@ -64,9 +67,19 @@ public class ProgramConfig {
 		final ProgramConfig[] result = new ProgramConfig[limit];
 
 		for (int i = 0; i < limit; ++i) {
-			result[i] = new ProgramConfig((JsonObject) array.get(i));
+			result[i] = new ProgramConfig(ctx, (JsonObject) array.get(i));
 		}
 
 		return result;
+	}
+
+	@Override
+	public Object2ObjectOpenHashMap<String, ProgramConfig> nameMap() {
+		return context.programs;
+	}
+
+	@Override
+	public boolean isValid() {
+		return !isDuplicateName;
 	}
 }

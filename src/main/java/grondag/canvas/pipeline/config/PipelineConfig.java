@@ -26,10 +26,13 @@ import net.minecraft.util.Identifier;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
+import grondag.canvas.pipeline.config.util.ConfigContext;
+import grondag.canvas.pipeline.config.util.JanksonHelper;
 
 // WIP:  defaultFramebuffer target
 // WIP: managed draw targets
 public class PipelineConfig {
+	public final ConfigContext context = new ConfigContext();
 	public final ImageConfig[] images;
 	public final PipelineParam[] params;
 	public final ProgramConfig[] shaders;
@@ -52,10 +55,10 @@ public class PipelineConfig {
 		onWorldStart = new PassConfig[0];
 		afterRenderHand = new PassConfig[0];
 		fabulous = new PassConfig[0];
-		images = new ImageConfig[] { ImageConfig.DEFAULT_MAIN, ImageConfig.DEFAULT_DEPTH };
-		framebuffers = new FramebufferConfig[] { FramebufferConfig.DEFAULT };
+		images = new ImageConfig[] { ImageConfig.defaultMain(context), ImageConfig.defaultDepth(context) };
+		framebuffers = new FramebufferConfig[] { FramebufferConfig.makeDefault(context) };
 		fabulosity = null;
-		drawTargets = DrawTargetsConfig.DEFAULT;
+		drawTargets = DrawTargetsConfig.makeDefault(context);
 		defaultFramebuffer = "default";
 		isValid = true;
 	}
@@ -63,8 +66,8 @@ public class PipelineConfig {
 	private PipelineConfig (JsonObject configJson) {
 		boolean valid = true;
 		params = PipelineParam.array(
-			PipelineParam.of("bloom_intensity", 0.0f, 0.5f, 0.1f),
-			PipelineParam.of("bloom_scale", 0.0f, 2.0f, 0.25f)
+			PipelineParam.of(context, "bloom_intensity", 0.0f, 0.5f, 0.1f),
+			PipelineParam.of(context, "bloom_scale", 0.0f, 2.0f, 0.25f)
 		);
 
 		defaultFramebuffer = JanksonHelper.asString(configJson.get("defaultFramebuffer"));
@@ -74,18 +77,18 @@ public class PipelineConfig {
 			valid = false;
 		}
 
-		fabulosity = FabulousConfig.deserialize(configJson);
-		fabulous = PassConfig.deserialize(configJson, "fabulous");
+		fabulosity = FabulousConfig.deserialize(context, configJson);
+		fabulous = PassConfig.deserialize(context, configJson, "fabulous");
 		valid &= (fabulosity == null || fabulosity.isValid);
 
-		drawTargets = DrawTargetsConfig.deserialize(configJson);
+		drawTargets = DrawTargetsConfig.deserialize(context, configJson);
 		valid &= (drawTargets == null || drawTargets.isValid);
 
-		images = ImageConfig.deserialize(configJson);
-		shaders = ProgramConfig.deserialize(configJson);
-		framebuffers = FramebufferConfig.deserialize(configJson);
-		onWorldStart = PassConfig.deserialize(configJson, "onWorldRenderStart");
-		afterRenderHand = PassConfig.deserialize(configJson, "afterRenderHand");
+		images = ImageConfig.deserialize(context, configJson);
+		shaders = ProgramConfig.deserialize(context, configJson);
+		framebuffers = FramebufferConfig.deserialize(context, configJson);
+		onWorldStart = PassConfig.deserialize(context, configJson, "onWorldRenderStart");
+		afterRenderHand = PassConfig.deserialize(context, configJson, "afterRenderHand");
 
 		for (final FramebufferConfig fb : framebuffers) {
 			valid &= fb.isValid;
