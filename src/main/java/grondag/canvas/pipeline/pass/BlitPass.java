@@ -14,7 +14,7 @@
  *  the License.
  */
 
-package grondag.canvas.pipeline;
+package grondag.canvas.pipeline.pass;
 
 import grondag.canvas.pipeline.config.PassConfig;
 
@@ -25,7 +25,7 @@ public class BlitPass extends Pass {
 	}
 
 	@Override
-	void run(int width, int height) {
+	public void run(int width, int height) {
 		//		if (fbo != null) {
 		//			fbo.bind(width, height);
 		//			fbo.clear();
@@ -52,7 +52,7 @@ public class BlitPass extends Pass {
 	}
 
 	@Override
-	void close() {
+	public void close() {
 		// NOOP
 	}
 }

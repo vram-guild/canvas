@@ -102,7 +102,7 @@ public class PipelineFramebuffer {
 		}
 	}
 
-	void clear() {
+	public void clear() {
 		GlStateManager.bindFramebuffer(FramebufferInfo.FRAME_BUFFER, fboGlId);
 
 		final int count = clearColor.length;

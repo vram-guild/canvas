@@ -14,7 +14,7 @@
  *  the License.
  */
 
-package grondag.canvas.pipeline;
+package grondag.canvas.pipeline.pass;
 
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -26,6 +26,9 @@ import net.minecraft.client.texture.AbstractTexture;
 import net.minecraft.util.Identifier;
 
 import grondag.canvas.CanvasMod;
+import grondag.canvas.pipeline.Image;
+import grondag.canvas.pipeline.Pipeline;
+import grondag.canvas.pipeline.PipelineManager;
 import grondag.canvas.pipeline.config.PassConfig;
 import grondag.canvas.shader.ProcessShader;
 
@@ -76,7 +79,7 @@ class ProgramPass extends Pass {
 	}
 
 	@Override
-	void run(int width, int height) {
+	public void run(int width, int height) {
 		if (fbo == null) {
 			return;
 		}
@@ -106,7 +109,7 @@ class ProgramPass extends Pass {
 	}
 
 	@Override
-	void close() {
+	public void close() {
 		// NOOP
 	}
 }

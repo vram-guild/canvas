@@ -14,7 +14,7 @@
  *  the License.
  */
 
-package grondag.canvas.pipeline;
+package grondag.canvas.pipeline.pass;
 
 import grondag.canvas.pipeline.config.PassConfig;
 
@@ -24,7 +24,7 @@ public class ClearPass extends Pass {
 	}
 
 	@Override
-	void run(int width, int height) {
+	public void run(int width, int height) {
 		if (fbo != null) {
 			fbo.bind();
 			fbo.clear();
@@ -32,7 +32,7 @@ public class ClearPass extends Pass {
 	}
 
 	@Override
-	void close() {
+	public void close() {
 		// NOOP
 	}
 }

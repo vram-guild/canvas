@@ -14,14 +14,16 @@
  *  the License.
  */
 
-package grondag.canvas.pipeline;
+package grondag.canvas.pipeline.pass;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import grondag.canvas.CanvasMod;
+import grondag.canvas.pipeline.Pipeline;
+import grondag.canvas.pipeline.PipelineFramebuffer;
 import grondag.canvas.pipeline.config.PassConfig;
 
-abstract class Pass {
+public abstract class Pass {
 	final PassConfig config;
 	boolean isValid = true;
 	PipelineFramebuffer fbo;
@@ -36,11 +38,11 @@ abstract class Pass {
 		}
 	}
 
-	abstract void run(int width, int height);
+	public abstract void run(int width, int height);
 
-	abstract void close();
+	public abstract void close();
 
-	static Pass create(PassConfig config) {
+	public static Pass create(PassConfig config) {
 		if (config.programName.equals(PassConfig.CLEAR_NAME)) {
 			return new ClearPass(config);
 		} else {

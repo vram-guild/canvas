@@ -35,6 +35,7 @@ import grondag.canvas.light.LightmapHd;
 import grondag.canvas.light.LightmapHdTexture;
 import grondag.canvas.material.property.MaterialTextureState;
 import grondag.canvas.pipeline.config.PipelineLoader;
+import grondag.canvas.pipeline.pass.Pass;
 import grondag.canvas.shader.GlProgram;
 import grondag.canvas.shader.GlShaderManager;
 import grondag.canvas.shader.MaterialProgramManager;
@@ -75,7 +76,6 @@ public class PipelineManager {
 
 		handleRecompile();
 	}
-
 
 	public static void beforeWorldRender() {
 		assert !active;
@@ -129,7 +129,7 @@ public class PipelineManager {
 		RenderSystem.pushMatrix();
 	}
 
-	static void setProjection(int pixelWidth, int pixelHeight) {
+	public static void setProjection(int pixelWidth, int pixelHeight) {
 		RenderSystem.loadIdentity();
 		GlStateManager.ortho(0.0D, pixelWidth, pixelHeight, 0.0D, 1000.0, 3000.0);
 	}
@@ -241,6 +241,7 @@ public class PipelineManager {
 		}
 	}
 
+	// WIP - notes
 	// stages that come after beforeWorldRender
 	// need managed target map
 

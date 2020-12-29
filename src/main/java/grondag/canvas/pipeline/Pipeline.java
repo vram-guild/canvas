@@ -28,6 +28,7 @@ import grondag.canvas.pipeline.config.FramebufferConfig;
 import grondag.canvas.pipeline.config.ImageConfig;
 import grondag.canvas.pipeline.config.PipelineConfig;
 import grondag.canvas.pipeline.config.ProgramConfig;
+import grondag.canvas.pipeline.pass.Pass;
 import grondag.canvas.shader.ProcessShader;
 
 public class Pipeline {
@@ -74,7 +75,7 @@ public class Pipeline {
 		return IMAGES.get(name);
 	}
 
-	static ProcessShader getShader(String name) {
+	public static ProcessShader getShader(String name) {
 		return SHADERS.get(name);
 	}
 
