@@ -16,24 +16,16 @@
 
 package grondag.canvas.pipeline.config;
 
-import blue.endless.jankson.JsonObject;
 import org.jetbrains.annotations.Nullable;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.resource.Resource;
-import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.Identifier;
 
-import grondag.canvas.CanvasMod;
-import grondag.canvas.Configurator;
 import grondag.canvas.pipeline.config.util.ConfigContext;
-import grondag.canvas.pipeline.config.util.JanksonHelper;
 import grondag.canvas.pipeline.config.util.NamedDependency;
 
-// WIP:  defaultFramebuffer target
 // WIP: managed draw targets
 public class PipelineConfig {
-	public final ConfigContext context = new ConfigContext();
+	public final ConfigContext context;
 	public final ImageConfig[] images;
 	public final PipelineParam[] params;
 	public final ProgramConfig[] shaders;
@@ -49,6 +41,7 @@ public class PipelineConfig {
 	public final NamedDependency<FramebufferConfig> defaultFramebuffer;
 
 	private PipelineConfig() {
+		context = new ConfigContext();
 		params = new PipelineParam[0];
 		shaders = new ProgramConfig[0];
 		onWorldStart = new PassConfig[0];
@@ -61,64 +54,24 @@ public class PipelineConfig {
 		defaultFramebuffer = context.frameBuffers.createDependency("default");
 	}
 
-	private PipelineConfig (JsonObject configJson) {
-		params = PipelineParam.array(
-			PipelineParam.of(context, "bloom_intensity", 0.0f, 0.5f, 0.1f),
-			PipelineParam.of(context, "bloom_scale", 0.0f, 2.0f, 0.25f)
-		);
+	PipelineConfig (PipelineConfigBuilder builder) {
+		context = builder.context;
 
-		defaultFramebuffer = context.frameBuffers.createDependency(JanksonHelper.asString(configJson.get("defaultFramebuffer")));
-		fabulosity = FabulousConfig.deserialize(context, configJson);
-		fabulous = PassConfig.deserialize(context, configJson, "fabulous");
-		drawTargets = DrawTargetsConfig.deserialize(context, configJson);
-		images = ImageConfig.deserialize(context, configJson);
-		shaders = ProgramConfig.deserialize(context, configJson);
-		framebuffers = FramebufferConfig.deserialize(context, configJson);
-		onWorldStart = PassConfig.deserialize(context, configJson, "onWorldRenderStart");
-		afterRenderHand = PassConfig.deserialize(context, configJson, "afterRenderHand");
+		defaultFramebuffer = builder.defaultFramebuffer;
+		fabulosity = builder.fabulosity;
+		drawTargets = builder.drawTargets;
+
+		params = builder.params.toArray(new PipelineParam[builder.params.size()]);
+		fabulous = builder.fabulous.toArray(new PassConfig[builder.fabulous.size()]);
+		images = builder.images.toArray(new ImageConfig[builder.images.size()]);
+		shaders = builder.shaders.toArray(new ProgramConfig[builder.shaders.size()]);
+		framebuffers = builder.framebuffers.toArray(new FramebufferConfig[builder.framebuffers.size()]);
+		onWorldStart = builder.onWorldStart.toArray(new PassConfig[builder.onWorldStart.size()]);
+		afterRenderHand = builder.afterRenderHand.toArray(new PassConfig[builder.afterRenderHand.size()]);
 	}
 
-	public boolean validate() {
-		boolean valid = true;
-
-		valid &= (drawTargets == null || drawTargets.validate());
-
-		valid &= (fabulosity == null || fabulosity.validate());
-
-		if (!defaultFramebuffer.isValid()) {
-			CanvasMod.LOG.warn("Invalid pipeline config - missing or invalid defaultFramebuffer.");
-			valid = false;
-		}
-
-		for (final FramebufferConfig fb : framebuffers) {
-			valid &= fb.validate();
-		}
-
-		return valid;
-	}
-
-	public static @Nullable PipelineConfig load(Identifier id) {
-		final ResourceManager rm = MinecraftClient.getInstance().getResourceManager();
-		JsonObject configJson = null;
-
-		PipelineConfig result = null;
-
-		if (PipelineLoader.areResourcesAvailable() && rm != null) {
-			try (Resource res = rm.getResource(id)) {
-				configJson = Configurator.JANKSON.load(res.getInputStream());
-				result = new PipelineConfig(configJson);
-			} catch (final Exception e) {
-				// WIP: better logging
-				e.printStackTrace();
-			}
-		}
-
-		if (result != null && result.validate()) {
-			return result;
-		} else {
-			// fallback to minimal renderable pipeline if not valid
-			return new PipelineConfig();
-		}
+	public static PipelineConfig minimalConfig() {
+		return new PipelineConfig();
 	}
 
 	public static final Identifier DEFAULT_ID = new Identifier("canvas:pipelines/canvas_default.json");

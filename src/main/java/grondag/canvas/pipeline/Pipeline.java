@@ -27,6 +27,7 @@ import grondag.canvas.pipeline.config.FabulousConfig;
 import grondag.canvas.pipeline.config.FramebufferConfig;
 import grondag.canvas.pipeline.config.ImageConfig;
 import grondag.canvas.pipeline.config.PipelineConfig;
+import grondag.canvas.pipeline.config.PipelineConfigBuilder;
 import grondag.canvas.pipeline.config.ProgramConfig;
 import grondag.canvas.pipeline.pass.Pass;
 import grondag.canvas.shader.ProcessShader;
@@ -142,7 +143,7 @@ public class Pipeline {
 	}
 
 	private static void activateInner(int width, int height) {
-		final PipelineConfig config = PipelineConfig.load(new Identifier(Configurator.pipelineId));
+		final PipelineConfig config = PipelineConfigBuilder.build(new Identifier(Configurator.pipelineId));
 
 		for (final ImageConfig img : config.images) {
 			if (IMAGES.containsKey(img.name)) {

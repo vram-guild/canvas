@@ -18,6 +18,7 @@ package grondag.canvas.pipeline.config;
 
 import blue.endless.jankson.JsonArray;
 import blue.endless.jankson.JsonObject;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.lwjgl.opengl.GL21;
 
 import grondag.canvas.pipeline.GlSymbolLookup;
@@ -83,20 +84,17 @@ public class ImageConfig extends NamedConfig<ImageConfig> {
 		}
 	}
 
-	public static ImageConfig[] deserialize(ConfigContext ctx, JsonObject configJson) {
+	public static void deserialize(ConfigContext ctx, JsonObject configJson, ObjectArrayList<ImageConfig> consumer) {
 		if (configJson == null || !configJson.containsKey("images")) {
-			return new ImageConfig[0];
+			return;
 		}
 
 		final JsonArray images = configJson.get(JsonArray.class, "images");
 		final int limit = images.size();
-		final ImageConfig[] result = new ImageConfig[limit];
 
 		for (int i = 0; i < limit; ++i) {
-			result[i] = new ImageConfig(ctx, (JsonObject) images.get(i));
+			consumer.add(new ImageConfig(ctx, (JsonObject) images.get(i)));
 		}
-
-		return result;
 	}
 
 	public static ImageConfig defaultMain(ConfigContext ctx) {

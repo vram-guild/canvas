@@ -18,6 +18,7 @@ package grondag.canvas.pipeline.config;
 
 import blue.endless.jankson.JsonArray;
 import blue.endless.jankson.JsonObject;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import grondag.canvas.pipeline.config.util.ConfigContext;
 import grondag.canvas.pipeline.config.util.NamedConfig;
@@ -45,20 +46,17 @@ public class FramebufferConfig extends NamedConfig<FramebufferConfig> {
 		depthAttachment = AttachmentConfig.defaultDepth(ctx);
 	}
 
-	public static FramebufferConfig[] deserialize(ConfigContext ctx, JsonObject configJson) {
+	public static void deserialize(ConfigContext ctx, JsonObject configJson, ObjectArrayList<FramebufferConfig> consumer) {
 		if (configJson == null || !configJson.containsKey("framebuffers")) {
-			return new FramebufferConfig[0];
+			return;
 		}
 
 		final JsonArray array = configJson.get(JsonArray.class, "framebuffers");
 		final int limit = array.size();
-		final FramebufferConfig[] result = new FramebufferConfig[limit];
 
 		for (int i = 0; i < limit; ++i) {
-			result[i] = new FramebufferConfig(ctx, (JsonObject) array.get(i));
+			consumer.add(new FramebufferConfig(ctx, (JsonObject) array.get(i)));
 		}
-
-		return result;
 	}
 
 	public static FramebufferConfig makeDefault(ConfigContext context) {

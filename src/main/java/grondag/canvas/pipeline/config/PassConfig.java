@@ -18,6 +18,7 @@ package grondag.canvas.pipeline.config;
 
 import blue.endless.jankson.JsonArray;
 import blue.endless.jankson.JsonObject;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.pipeline.config.util.ConfigContext;
@@ -75,32 +76,29 @@ public class PassConfig extends NamedConfig<PassConfig> {
 		}
 	}
 
-	public static PassConfig[] deserialize(ConfigContext ctx, JsonObject configJson, String key) {
+	public static void deserialize(ConfigContext ctx, JsonObject configJson, String key, ObjectArrayList<PassConfig> passes) {
 		if (configJson == null || !configJson.containsKey(key)) {
-			return new PassConfig[0];
+			return;
 		}
 
 		final JsonObject passJson = configJson.getObject(key);
 
 		if (passJson == null || !passJson.containsKey("passes")) {
-			return new PassConfig[0];
+			return;
 		}
 
 		final JsonArray array = JanksonHelper.getJsonArrayOrNull(passJson, "passes",
 				String.format("Error parsing pipeline stage %s.  Passes must be an array. No passes created.", key));
 
 		if (array == null) {
-			return new PassConfig[0];
+			return;
 		}
 
 		final int limit = array.size();
-		final PassConfig[] result = new PassConfig[limit];
 
 		for (int i = 0; i < limit; ++i) {
-			result[i] = new PassConfig(ctx, (JsonObject) array.get(i));
+			passes.add(new PassConfig(ctx, (JsonObject) array.get(i)));
 		}
-
-		return result;
 	}
 
 	public static String CLEAR_NAME = "frex_clear";
