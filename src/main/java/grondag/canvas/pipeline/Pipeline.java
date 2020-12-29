@@ -23,6 +23,7 @@ import net.minecraft.util.Identifier;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
+import grondag.canvas.pipeline.config.FabulousConfig;
 import grondag.canvas.pipeline.config.FramebufferConfig;
 import grondag.canvas.pipeline.config.ImageConfig;
 import grondag.canvas.pipeline.config.PipelineConfig;
@@ -35,8 +36,25 @@ public class Pipeline {
 	private static int lastHeight;
 	static Pass[] onWorldRenderStart = { };
 	static Pass[] afterRenderHand = { };
+	static Pass[] fabulous = { };
 
 	private static boolean isFabulous = false;
+
+	public static int fabEntityFbo = -1;
+	public static int fabEntityColor = -1;
+	public static int fabEntityDepth = -1;
+	public static int fabParticleFbo = -1;
+	public static int fabParticleColor = -1;
+	public static int fabParticleDepth = -1;
+	public static int fabWeatherFbo = -1;
+	public static int fabWeatherColor = -1;
+	public static int fabWeatherDepth = -1;
+	public static int fabCloudsFbo = -1;
+	public static int fabCloudsColor = -1;
+	public static int fabCloudsDepth = -1;
+	public static int fabTranslucentFbo = -1;
+	public static int fabTranslucentColor = -1;
+	public static int fabTranslucentDepth = -1;
 
 	private static final Object2ObjectOpenHashMap<String, Image> IMAGES = new Object2ObjectOpenHashMap<>();
 	private static final Object2ObjectOpenHashMap<String, ProcessShader> SHADERS = new Object2ObjectOpenHashMap<>();
@@ -76,8 +94,13 @@ public class Pipeline {
 			pass.close();
 		}
 
+		for (final Pass pass : fabulous) {
+			pass.close();
+		}
+
 		afterRenderHand = new Pass[0];
 		onWorldRenderStart = new Pass[0];
+		fabulous = new Pass[0];
 
 		if (!FRAMEBUFFERS.isEmpty()) {
 			FRAMEBUFFERS.values().forEach(shader -> shader.close());
@@ -109,7 +132,6 @@ public class Pipeline {
 
 	private static void activateInner(int width, int height) {
 		final PipelineConfig config = PipelineConfig.load(new Identifier(Configurator.pipelineId));
-		isFabulous = config.isFabulous;
 
 		for (final ImageConfig img : config.images) {
 			if (IMAGES.containsKey(img.name)) {
@@ -138,6 +160,42 @@ public class Pipeline {
 			FRAMEBUFFERS.put(buffer.name, new PipelineFramebuffer(buffer, width, height));
 		}
 
+		isFabulous = config.fabulosity != null;
+
+		if (isFabulous) {
+			final FabulousConfig fc = config.fabulosity;
+			PipelineFramebuffer b = getFramebuffer(fc.entityFrambuffer);
+			fabEntityFbo = b.glId();
+			fabEntityColor = getImage(b.config.colorAttachments[0].imageName).glId();
+			fabEntityDepth = getImage(b.config.depthAttachment.imageName).glId();
+
+			b = getFramebuffer(fc.particleFrambuffer);
+			fabParticleFbo = b.glId();
+			fabParticleColor = getImage(b.config.colorAttachments[0].imageName).glId();
+			fabParticleDepth = getImage(b.config.depthAttachment.imageName).glId();
+
+			b = getFramebuffer(fc.weatherFrambuffer);
+			fabWeatherFbo = b.glId();
+			fabWeatherColor = getImage(b.config.colorAttachments[0].imageName).glId();
+			fabWeatherDepth = getImage(b.config.depthAttachment.imageName).glId();
+
+			b = getFramebuffer(fc.cloudsFrambuffer);
+			fabCloudsFbo = b.glId();
+			fabCloudsColor = getImage(b.config.colorAttachments[0].imageName).glId();
+			fabCloudsDepth = getImage(b.config.depthAttachment.imageName).glId();
+
+			b = getFramebuffer(fc.translucentFrambuffer);
+			fabTranslucentFbo = b.glId();
+			fabTranslucentColor = getImage(b.config.colorAttachments[0].imageName).glId();
+			fabTranslucentDepth = getImage(b.config.depthAttachment.imageName).glId();
+
+			fabulous = new Pass[config.fabulous.length];
+
+			for (int i = 0; i < config.fabulous.length; ++i) {
+				fabulous[i] = Pass.create(config.fabulous[i]);
+			}
+		}
+
 		BufferDebug.init(config);
 
 		onWorldRenderStart = new Pass[config.onWorldStart.length];
@@ -153,7 +211,6 @@ public class Pipeline {
 		}
 	}
 
-	// WIP: remove?
 	public static boolean isFabulous() {
 		return isFabulous;
 	}

@@ -21,6 +21,7 @@ import java.util.SortedSet;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -56,15 +57,12 @@ import net.minecraft.util.math.BlockPos;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.mixinterface.WorldRendererExt;
+import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.render.CanvasWorldRenderer;
+import grondag.canvas.render.FabulousFrameBuffer;
 
 @Mixin(WorldRenderer.class)
 public class MixinWorldRenderer implements WorldRendererExt {
-	private static boolean shouldWarnOnSetupTerrain = true;
-	private static boolean shouldWarnOnRenderLayer = true;
-	private static boolean shouldWarnGetAdjacentChunk = true;
-	private static boolean shouldWarnOnUpdateChunks = true;
-
 	@Shadow private MinecraftClient client;
 	@Shadow private int renderDistance;
 	@Shadow private ClientWorld world;
@@ -87,7 +85,6 @@ public class MixinWorldRenderer implements WorldRendererExt {
 	@Shadow private Framebuffer particlesFramebuffer;
 	@Shadow private Framebuffer weatherFramebuffer;
 	@Shadow private Framebuffer cloudsFramebuffer;
-	@Shadow private ShaderEffect transparencyShader;
 	@Shadow protected boolean canDrawEntityOutlines() {
 		return false;
 	}
@@ -100,9 +97,7 @@ public class MixinWorldRenderer implements WorldRendererExt {
 
 	@Shadow private void renderWeather(LightmapTextureManager lightmapTextureManager, float f, double d, double e, double g) { }
 
-	@Shadow private void resetTransparencyShader() { }
-
-	@Shadow private void loadTransparencyShader() { }
+	private static boolean shouldWarnOnSetupTerrain = true;
 
 	@Inject(at = @At("HEAD"), method = "setupTerrain", cancellable = true)
 	private void onSetupTerrain(Camera camera, Frustum frustum, boolean bl, int i, boolean bl2, CallbackInfo ci) {
@@ -128,6 +123,8 @@ public class MixinWorldRenderer implements WorldRendererExt {
 		return 0;
 	}
 
+	private static boolean shouldWarnOnRenderLayer = true;
+
 	@Inject(at = @At("HEAD"), method = "renderLayer", cancellable = true)
 	private void onRenderLayer(CallbackInfo ci) {
 		if (shouldWarnOnRenderLayer) {
@@ -136,6 +133,8 @@ public class MixinWorldRenderer implements WorldRendererExt {
 			shouldWarnOnRenderLayer = false;
 		}
 	}
+
+	private static boolean shouldWarnGetAdjacentChunk = true;
 
 	@Inject(at = @At("HEAD"), method = "getAdjacentChunk", cancellable = true)
 	private void onGetAdjacentChunk(CallbackInfoReturnable<BuiltChunk> ci) {
@@ -146,6 +145,8 @@ public class MixinWorldRenderer implements WorldRendererExt {
 		}
 	}
 
+	private static boolean shouldWarnOnUpdateChunks = true;
+
 	@Inject(at = @At("HEAD"), method = "updateChunks", cancellable = true)
 	private void onUpdateChunks(CallbackInfo ci) {
 		if (shouldWarnOnUpdateChunks) {
@@ -155,10 +156,21 @@ public class MixinWorldRenderer implements WorldRendererExt {
 		}
 	}
 
-	@Inject(at = @At("HEAD"), method = "loadTransparencyShader", cancellable = true)
-	private void onLoadTransparencyShader(CallbackInfo ci) {
-		// WIP - do the appropriate thing here, which may mean doing nothing or removing
-		resetTransparencyShader();
+	/**
+	 * @reason prevent mishap
+	 */
+	@Overwrite
+	private void resetTransparencyShader() {
+		// NOOP
+	}
+
+	/**
+	 * @reason prevent mishap
+	 */
+	@Overwrite
+	private void loadTransparencyShader() {
+		// Will be called by Worldrenderer.apply() during resource load (and ignored)
+		// NOOP
 	}
 
 	@Override
@@ -172,38 +184,35 @@ public class MixinWorldRenderer implements WorldRendererExt {
 	}
 
 	@Override
-	public void canvas_reload() {
-		// WIP: replace
-		if (MinecraftClient.isFabulousGraphicsOrBetter()) {
-			loadTransparencyShader();
+	public void canvas_setupFabulousBuffers() {
+		if (Pipeline.isFabulous()) {
+			translucentFramebuffer = new FabulousFrameBuffer(Pipeline.fabTranslucentFbo, Pipeline.fabTranslucentColor, Pipeline.fabTranslucentDepth);
+			entityFramebuffer = new FabulousFrameBuffer(Pipeline.fabEntityFbo, Pipeline.fabEntityColor, Pipeline.fabEntityDepth);
+			particlesFramebuffer = new FabulousFrameBuffer(Pipeline.fabParticleFbo, Pipeline.fabParticleColor, Pipeline.fabParticleDepth);
+			weatherFramebuffer = new FabulousFrameBuffer(Pipeline.fabWeatherFbo, Pipeline.fabWeatherColor, Pipeline.fabWeatherDepth);
+			cloudsFramebuffer = new FabulousFrameBuffer(Pipeline.fabCloudsFbo, Pipeline.fabCloudsColor, Pipeline.fabCloudsDepth);
 		} else {
-			resetTransparencyShader();
+			translucentFramebuffer = null;
+			entityFramebuffer = null;
+			particlesFramebuffer = null;
+			weatherFramebuffer = null;
+			cloudsFramebuffer = null;
 		}
+	}
 
-		//		if (translucentFramebuffer != null) {
-		//			translucentFramebuffer.delete();
-		//			entityFramebuffer.delete();
-		//			particlesFramebuffer.delete();
-		//			weatherFramebuffer.delete();
-		//			cloudsFramebuffer.delete();
-		//			translucentFramebuffer = null;
-		//			entityFramebuffer = null;
-		//			particlesFramebuffer = null;
-		//			weatherFramebuffer = null;
-		//			cloudsFramebuffer = null;
-		//		}
-		//
-		//		if (MinecraftClient.isFabulousGraphicsOrBetter()) {
-		//		}
-
+	@Override
+	public void canvas_reload() {
 		// not used by us
 		//needsTerrainUpdate = true;
+
+		canvas_setupFabulousBuffers();
+
 		if (world != null) {
 			world.reloadColor();
 		}
 
 		cloudsDirty = true;
-		RenderLayers.setFancyGraphicsOrBetter(MinecraftClient.isFancyGraphicsOrBetter());
+		RenderLayers.setFancyGraphicsOrBetter(true);
 		renderDistance = client.options.viewDistance;
 
 		synchronized (noCullingBlockEntities) {
@@ -300,10 +309,5 @@ public class MixinWorldRenderer implements WorldRendererExt {
 	@Override
 	public VertexFormat canvas_vertexFormat() {
 		return vertexFormat;
-	}
-
-	@Override
-	public ShaderEffect canvas_transparencyShader() {
-		return transparencyShader;
 	}
 }

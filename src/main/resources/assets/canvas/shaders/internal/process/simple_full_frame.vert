@@ -2,10 +2,8 @@
 #include canvas:shaders/pipeline/pipeline.glsl
 
 /******************************************************
-  canvas:shaders/internal/process/downsample.vert
+  canvas:shaders/internal/process/simple_full_frame.vert
 ******************************************************/
-
-uniform sampler2D _cvu_input;
 
 attribute vec2 in_uv;
 

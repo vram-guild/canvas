@@ -16,37 +16,46 @@
 	nameKey: "pipeline.canvas_default.name",
 	descriptionKey: "pipeline.canvas_default.desc",
 
-	// When true, will force Minecraft to operate as if "fabulous" mode was selected.
+	// When present, will force Minecraft to operate as if "fabulous" mode was selected.
 	// Normally this means translucent geometry will be drawn to different framebuffers
-	// and five additional built-in framebuffers will be available:
+	// and mc and mods expect five additional framebuffers will be available:
 	// 		mc_entity				- item entities
 	// 		mc_particles
 	// 		mc_weather
 	//    mc_clouds
 	//    mc_translucent  - terrain
 	//
-	// If you set fabulous to true, then you need to configure these buffers but the
-	// pipeline does not have to use them.  The main purpose of this setting is
-	// compatibility: these extra framebuffers are visible to mods and some of them
+	// The main purpose of this setting is compatibility with mods that draw directly.
+	// These extra framebuffers which are visible to mods and some of them
 	// will target a specific buffer when fabulous mode is active.  If you want mods
-	// to draw translucency to separate buffers, set this true.  If you want them to
+	// to draw direct translucency to separate buffers, configure this.  If you want them to
 	// target the default framebuffer set this false.
+  //
+  // The actual target for managed draws will be controlled by the stage configuration.
+	// These mappings will *only* affect unmanaged draws that directly target one of these buffers.
 	//
 	// The structure of these should match the default framebuffer and be compatible
-	// with direct draws. A deferred setup is probably going to want to do
-	// primary rendering to separate targets.
-	//
+	// with direct draws.
+
 	// Canvas does *not* automatically do the necessary passes for fabulous mode
 	// to compsite the transparency layers. That must be configured in the pipeline
 	// - this offers maximum flexiblity for shader devs.
-	fabulous: true,
+	//
+	// The values here must be valid framebuffer names from the framebuffers block.
+	fabulousTargets: {
+		entity: "fab_entity",
+		particles: "fab_particles",
+		weather: "fab_weather",
+		clouds: "fab_clouds",
+		translucent: "fab_translucent"
+	},
 
 	// pixelFormat and pixelDataType should not matter because the textures
 	// are created without loading any pixel data.  You can specify them to deal
 	// with any driver strangeness or situations where the image will somehow
 	// also be loaded from memory.
 	images: [
-		// first color attachment of primary framebuffer
+		// color attachment of primary framebuffer
 		{
 			name: "default_main",
 			lod: 0,
@@ -62,9 +71,174 @@
 			]
 		},
 
-		// first color attachment of primary framebuffer
+		// depth attachment of primary framebuffer
 		{
 			name: "default_depth",
+			lod: 0,
+			internalFormat: "DEPTH_COMPONENT",
+			pixelFormat: "DEPTH_COMPONENT",
+			pixelDataType: "FLOAT",
+			target: "TEXTURE_2D",
+			texParams: [
+				{name: "TEXTURE_MIN_FILTER", val: "NEAREST"},
+				{name: "TEXTURE_MAG_FILTER", val: "NEAREST"},
+				{name: "TEXTURE_WRAP_S", val: "CLAMP"},
+				{name: "TEXTURE_WRAP_T", val: "CLAMP"},
+				{name: "TEXTURE_COMPARE_MODE", val: "NONE"}
+			]
+		},
+
+		// color attachment of fablulous entity framebuffer
+		{
+			name: "fab_entity_main",
+			lod: 0,
+			internalFormat: "RGBA8",
+			pixelFormat: "RGBA",
+			pixelDataType: "UNSIGNED_BYTE",
+			target: "TEXTURE_2D",
+			texParams: [
+				{name: "TEXTURE_MIN_FILTER", val: "LINEAR"},
+				{name: "TEXTURE_MAG_FILTER", val: "LINEAR"},
+				{name: "TEXTURE_WRAP_S", val: "CLAMP"},
+				{name: "TEXTURE_WRAP_T", val: "CLAMP"}
+			]
+		},
+
+		// depth attachment of fablulous entity framebuffer
+		{
+			name: "fab_entity_depth",
+			lod: 0,
+			internalFormat: "DEPTH_COMPONENT",
+			pixelFormat: "DEPTH_COMPONENT",
+			pixelDataType: "FLOAT",
+			target: "TEXTURE_2D",
+			texParams: [
+				{name: "TEXTURE_MIN_FILTER", val: "NEAREST"},
+				{name: "TEXTURE_MAG_FILTER", val: "NEAREST"},
+				{name: "TEXTURE_WRAP_S", val: "CLAMP"},
+				{name: "TEXTURE_WRAP_T", val: "CLAMP"},
+				{name: "TEXTURE_COMPARE_MODE", val: "NONE"}
+			]
+		},
+
+		// color attachment of fablulous particles framebuffer
+		{
+			name: "fab_particles_main",
+			lod: 0,
+			internalFormat: "RGBA8",
+			pixelFormat: "RGBA",
+			pixelDataType: "UNSIGNED_BYTE",
+			target: "TEXTURE_2D",
+			texParams: [
+				{name: "TEXTURE_MIN_FILTER", val: "LINEAR"},
+				{name: "TEXTURE_MAG_FILTER", val: "LINEAR"},
+				{name: "TEXTURE_WRAP_S", val: "CLAMP"},
+				{name: "TEXTURE_WRAP_T", val: "CLAMP"}
+			]
+		},
+
+		// depth attachment of fablulous particles framebuffer
+		{
+			name: "fab_particles_depth",
+			lod: 0,
+			internalFormat: "DEPTH_COMPONENT",
+			pixelFormat: "DEPTH_COMPONENT",
+			pixelDataType: "FLOAT",
+			target: "TEXTURE_2D",
+			texParams: [
+				{name: "TEXTURE_MIN_FILTER", val: "NEAREST"},
+				{name: "TEXTURE_MAG_FILTER", val: "NEAREST"},
+				{name: "TEXTURE_WRAP_S", val: "CLAMP"},
+				{name: "TEXTURE_WRAP_T", val: "CLAMP"},
+				{name: "TEXTURE_COMPARE_MODE", val: "NONE"}
+			]
+		},
+
+		// color attachment of fablulous weather framebuffer
+		{
+			name: "fab_weather_main",
+			lod: 0,
+			internalFormat: "RGBA8",
+			pixelFormat: "RGBA",
+			pixelDataType: "UNSIGNED_BYTE",
+			target: "TEXTURE_2D",
+			texParams: [
+				{name: "TEXTURE_MIN_FILTER", val: "LINEAR"},
+				{name: "TEXTURE_MAG_FILTER", val: "LINEAR"},
+				{name: "TEXTURE_WRAP_S", val: "CLAMP"},
+				{name: "TEXTURE_WRAP_T", val: "CLAMP"}
+			]
+		},
+
+		// depth attachment of fablulous weather framebuffer
+		{
+			name: "fab_weather_depth",
+			lod: 0,
+			internalFormat: "DEPTH_COMPONENT",
+			pixelFormat: "DEPTH_COMPONENT",
+			pixelDataType: "FLOAT",
+			target: "TEXTURE_2D",
+			texParams: [
+				{name: "TEXTURE_MIN_FILTER", val: "NEAREST"},
+				{name: "TEXTURE_MAG_FILTER", val: "NEAREST"},
+				{name: "TEXTURE_WRAP_S", val: "CLAMP"},
+				{name: "TEXTURE_WRAP_T", val: "CLAMP"},
+				{name: "TEXTURE_COMPARE_MODE", val: "NONE"}
+			]
+		},
+
+		// color attachment of fablulous clouds framebuffer
+		{
+			name: "fab_clouds_main",
+			lod: 0,
+			internalFormat: "RGBA8",
+			pixelFormat: "RGBA",
+			pixelDataType: "UNSIGNED_BYTE",
+			target: "TEXTURE_2D",
+			texParams: [
+				{name: "TEXTURE_MIN_FILTER", val: "LINEAR"},
+				{name: "TEXTURE_MAG_FILTER", val: "LINEAR"},
+				{name: "TEXTURE_WRAP_S", val: "CLAMP"},
+				{name: "TEXTURE_WRAP_T", val: "CLAMP"}
+			]
+		},
+
+		// depth attachment of fablulous clouds framebuffer
+		{
+			name: "fab_clouds_depth",
+			lod: 0,
+			internalFormat: "DEPTH_COMPONENT",
+			pixelFormat: "DEPTH_COMPONENT",
+			pixelDataType: "FLOAT",
+			target: "TEXTURE_2D",
+			texParams: [
+				{name: "TEXTURE_MIN_FILTER", val: "NEAREST"},
+				{name: "TEXTURE_MAG_FILTER", val: "NEAREST"},
+				{name: "TEXTURE_WRAP_S", val: "CLAMP"},
+				{name: "TEXTURE_WRAP_T", val: "CLAMP"},
+				{name: "TEXTURE_COMPARE_MODE", val: "NONE"}
+			]
+		},
+
+		// color attachment of fablulous translucent framebuffer
+		{
+			name: "fab_translucent_main",
+			lod: 0,
+			internalFormat: "RGBA8",
+			pixelFormat: "RGBA",
+			pixelDataType: "UNSIGNED_BYTE",
+			target: "TEXTURE_2D",
+			texParams: [
+				{name: "TEXTURE_MIN_FILTER", val: "LINEAR"},
+				{name: "TEXTURE_MAG_FILTER", val: "LINEAR"},
+				{name: "TEXTURE_WRAP_S", val: "CLAMP"},
+				{name: "TEXTURE_WRAP_T", val: "CLAMP"}
+			]
+		},
+
+		// depth attachment of fablulous translucent framebuffer
+		{
+			name: "fab_translucent_depth",
 			lod: 0,
 			internalFormat: "DEPTH_COMPONENT",
 			pixelFormat: "DEPTH_COMPONENT",
@@ -122,6 +296,21 @@
 			]
 		},
 
+		// combined transparent layers with main - main attachments can't read/write self in same pass
+		{
+			name: "fab_composite",
+			lod: 0,
+			internalFormat: "RGBA8",
+			target: "TEXTURE_2D",
+			texParams: [
+				// nearest because don't want filtering when copy back to main
+				{name: "TEXTURE_MIN_FILTER", val: "NEAREST"},
+				{name: "TEXTURE_MAG_FILTER", val: "NEAREST"},
+				{name: "TEXTURE_WRAP_S", val: "CLAMP"},
+				{name: "TEXTURE_WRAP_T", val: "CLAMP"}
+			]
+		},
+
 		// these next two hold the cascade of bloom images that are blurred
 		{
 			name: "bloom_downsample",
@@ -154,45 +343,58 @@
 		{
 			// utility, does what it says on the tin
 			name: "copy",
-			vertexSource: "canvas:shaders/internal/process/copy.vert",
+			vertexSource: "canvas:shaders/internal/process/simple_full_frame.vert",
 			fragmentSource: "canvas:shaders/internal/process/copy.frag",
 			samplers: ["_cvu_input"]
 		}, {
 			// copies from a specific level of detail, that's it
 			name: "copy_lod",
-			vertexSource: "canvas:shaders/internal/process/copy_lod.vert",
+			vertexSource: "canvas:shaders/internal/process/simple_full_frame.vert",
 			fragmentSource: "canvas:shaders/internal/process/copy_lod.frag",
 			samplers: ["_cvu_input"]
 		}, {
 			// copies colored pixels from main color buffer if marked emissive
 			name: "emissive_color",
-			vertexSource: "canvas:shaders/internal/process/emissive_color.vert",
+			vertexSource: "canvas:shaders/internal/process/simple_full_frame.vert",
 			fragmentSource: "canvas:shaders/internal/process/emissive_color.frag",
 			samplers: ["_cvu_base", "_cvu_emissive"]
 		}, {
 			// combines final bloom image and main color buffer
 			name: "bloom",
-			vertexSource: "canvas:shaders/internal/process/bloom.vert",
+			vertexSource: "canvas:shaders/internal/process/simple_full_frame.vert",
 			fragmentSource: "canvas:shaders/internal/process/bloom.frag",
 			samplers: ["_cvu_base", "_cvu_bloom"]
 		}, {
 			// uses a fancy sampling algo for higher quality, not a conventional mipmap
 			name: "downsample",
-			vertexSource: "canvas:shaders/internal/process/downsample.vert",
+			vertexSource: "canvas:shaders/internal/process/simple_full_frame.vert",
 			fragmentSource: "canvas:shaders/internal/process/downsample.frag",
 			samplers: ["_cvu_input"]
 		}, {
 			// less fancy (but still slightly fancy) upsample of downsample outputs
 			name: "upsample_first",
-			vertexSource: "canvas:shaders/internal/process/upsample.vert",
+			vertexSource: "canvas:shaders/internal/process/simple_full_frame.vert",
 			fragmentSource: "canvas:shaders/internal/process/upsample_first.frag",
 			samplers: ["_cvu_input"]
 		}, {
 			name: "upsample",
 			// same as upsample_first but combines with next lower level of detail
-			vertexSource: "canvas:shaders/internal/process/upsample.vert",
+			vertexSource: "canvas:shaders/internal/process/simple_full_frame.vert",
 			fragmentSource: "canvas:shaders/internal/process/upsample.frag",
 			samplers: ["_cvu_input", "cvu_prior"]
+		}, {
+			name: "fabulous",
+			// implements fabulous mode composite - same method as Mojang
+			vertexSource: "canvas:shaders/internal/process/simple_full_frame.vert",
+			fragmentSource: "canvas:shaders/internal/process/fabulous.frag",
+			samplers: [
+				"diffuseColor", "diffuseDepth",
+				"translucentColor", "translucentDepth",
+				"entityColor", "entityDepth",
+				"particleColor", "particleDepth",
+				"weatherColor", "weatherDepth",
+				"cloudsColor", "cloudsDepth"
+			],
 		}
 	],
 
@@ -201,6 +403,29 @@
 			name: "default",
 			depthAttachment: {image: "default_depth", clearColor: 0x00000000, lod: 0},
 			colorAttachments: [{image: "default_main", clearColor: 0x00000000, lod: 0}]
+		}, {
+			name: "fab_entity",
+			depthAttachment: {image: "fab_entity_depth", clearColor: 0x00000000, lod: 0},
+			colorAttachments: [{image: "fab_entity_main", clearColor: 0x00000000, lod: 0}]
+		}, {
+			name: "fab_particles",
+			depthAttachment: {image: "fab_particles_depth", clearColor: 0x00000000, lod: 0},
+			colorAttachments: [{image: "fab_particles_main", clearColor: 0x00000000, lod: 0}]
+		}, {
+			name: "fab_weather",
+			depthAttachment: {image: "fab_weather_depth", clearColor: 0x00000000, lod: 0},
+			colorAttachments: [{image: "fab_weather_main", clearColor: 0x00000000, lod: 0}]
+		}, {
+			name: "fab_clouds",
+			depthAttachment: {image: "fab_clouds_depth", clearColor: 0x00000000, lod: 0},
+			colorAttachments: [{image: "fab_clouds_main", clearColor: 0x00000000, lod: 0}]
+		}, {
+			name: "fab_translucent",
+			depthAttachment: {image: "fab_translucent_depth", clearColor: 0x00000000, lod: 0},
+			colorAttachments: [{image: "fab_translucent_main", clearColor: 0x00000000, lod: 0}]
+		}, {
+			name: "fab_composite",
+			colorAttachments: [{image: "fab_composite", clearColor: 0x00000000, lod: 0}]
 		}, {
 			name: "emissive",
 			colorAttachments: [{image: "emissive", clearColor: 0x00000000, lod: 0}]
@@ -259,7 +484,7 @@
 		}
 	],
 
-	// Names in passes are informational (meant to support profiling, later) and optional.
+	// Names in passes are informational and meant to support profiling, to be added later.
 	// If name is ommited, the name of the framebuffer will identify the pass in profiling.
 
 	onWorldRenderStart: {
@@ -268,6 +493,33 @@
 				name: "clear_emissive",
 				framebuffer: "emissive",
 				program: "frex_clear"
+			}
+		]
+	},
+
+	// TODO: put where belongs
+	fabulous: {
+		passes: [
+			{
+				// faulous mode composite
+				name: "fabulous",
+				program: "fabulous",
+				framebuffer: "fab_composite",
+				samplerImages: [
+					"default_main", "default_depth",
+					"fab_translucent_main", "fab_translucent_depth",
+					"fab_entity_main", "fab_entity_depth",
+					"fab_particles_main", "fab_particles_depth",
+					"fab_weather_main", "fab_weather_depth",
+					"fab_clouds_main", "fab_clouds_depth"]
+			},
+			{
+				// TODO: reroute passes to reduce copying steps
+				// copy composite to main framebuffer
+				name: "fab_write",
+				program: "copy",
+				framebuffer: "default",
+				samplerImages: ["fab_composite"]
 			}
 		]
 	},

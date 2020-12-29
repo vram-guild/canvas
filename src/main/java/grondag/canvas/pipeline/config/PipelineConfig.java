@@ -34,8 +34,9 @@ public class PipelineConfig {
 
 	public final PassConfig[] onWorldStart;
 	public final PassConfig[] afterRenderHand;
+	public final PassConfig[] fabulous;
 
-	public final boolean isFabulous;
+	@Nullable public final FabulousConfig fabulosity;
 
 	public final boolean isValid;
 
@@ -44,9 +45,10 @@ public class PipelineConfig {
 		shaders = new ProgramConfig[0];
 		onWorldStart = new PassConfig[0];
 		afterRenderHand = new PassConfig[0];
+		fabulous = new PassConfig[0];
 		images = new ImageConfig[] { ImageConfig.DEFAULT_MAIN, ImageConfig.DEFAULT_DEPTH };
 		framebuffers = new FramebufferConfig[] { FramebufferConfig.DEFAULT };
-		isFabulous = false;
+		fabulosity = null;
 		isValid = true;
 	}
 
@@ -56,15 +58,16 @@ public class PipelineConfig {
 			PipelineParam.of("bloom_scale", 0.0f, 2.0f, 0.25f)
 		);
 
-		isFabulous = configJson.getBoolean("fabulous", false);
+		fabulosity = FabulousConfig.get(configJson);
 
 		images = ImageConfig.deserialize(configJson);
 		shaders = ProgramConfig.deserialize(configJson);
 		framebuffers = FramebufferConfig.deserialize(configJson);
 		onWorldStart = PassConfig.deserialize(configJson, "onWorldRenderStart");
 		afterRenderHand = PassConfig.deserialize(configJson, "afterRenderHand");
+		fabulous = PassConfig.deserialize(configJson, "fabulous");
 
-		boolean valid = true;
+		boolean valid = fabulosity == null || fabulosity.isValid;
 
 		for (final FramebufferConfig fb : framebuffers) {
 			valid &= fb.isValid;
@@ -79,11 +82,12 @@ public class PipelineConfig {
 
 		PipelineConfig result = null;
 
-		if (rm != null) {
+		if (PipelineLoader.areResourcesAvailable() && rm != null) {
 			try (Resource res = rm.getResource(id)) {
 				configJson = Configurator.JANKSON.load(res.getInputStream());
 				result = new PipelineConfig(configJson);
 			} catch (final Exception e) {
+				// WIP: better logging
 				e.printStackTrace();
 			}
 		}
@@ -91,6 +95,7 @@ public class PipelineConfig {
 		if (result != null && result.isValid) {
 			return result;
 		} else {
+			// fallback to minimal renderable pipeline if not valid
 			return new PipelineConfig();
 		}
 	}

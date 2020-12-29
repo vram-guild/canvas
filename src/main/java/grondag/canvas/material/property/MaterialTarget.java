@@ -25,6 +25,7 @@ import net.minecraft.client.render.RenderPhase;
 import net.minecraft.client.render.RenderPhase.Target;
 
 import grondag.canvas.material.state.RenderMaterialImpl;
+import grondag.canvas.pipeline.Pipeline;
 import grondag.frex.api.material.MaterialFinder;
 
 @SuppressWarnings("resource")
@@ -51,12 +52,12 @@ public class MaterialTarget implements Predicate<RenderMaterialImpl> {
 		MaterialFinder.TARGET_TRANSLUCENT,
 		"translucent",
 		() -> {
-			if (MinecraftClient.isFabulousGraphicsOrBetter()) {
+			if (Pipeline.isFabulous()) {
 				MinecraftClient.getInstance().worldRenderer.getTranslucentFramebuffer().beginWrite(false);
 			}
 		},
 		() -> {
-			if (MinecraftClient.isFabulousGraphicsOrBetter()) {
+			if (Pipeline.isFabulous()) {
 				MinecraftClient.getInstance().getFramebuffer().beginWrite(false);
 			}
 		}
@@ -66,12 +67,12 @@ public class MaterialTarget implements Predicate<RenderMaterialImpl> {
 		MaterialFinder.TARGET_PARTICLES,
 		"particles",
 		() -> {
-			if (MinecraftClient.isFabulousGraphicsOrBetter()) {
+			if (Pipeline.isFabulous()) {
 				MinecraftClient.getInstance().worldRenderer.getParticlesFramebuffer().beginWrite(false);
 			}
 		},
 		() -> {
-			if (MinecraftClient.isFabulousGraphicsOrBetter()) {
+			if (Pipeline.isFabulous()) {
 				MinecraftClient.getInstance().getFramebuffer().beginWrite(false);
 			}
 		}
@@ -81,12 +82,12 @@ public class MaterialTarget implements Predicate<RenderMaterialImpl> {
 		MaterialFinder.TARGET_WEATHER,
 		"weather",
 		() -> {
-			if (MinecraftClient.isFabulousGraphicsOrBetter()) {
+			if (Pipeline.isFabulous()) {
 				MinecraftClient.getInstance().worldRenderer.getWeatherFramebuffer().beginWrite(false);
 			}
 		},
 		() -> {
-			if (MinecraftClient.isFabulousGraphicsOrBetter()) {
+			if (Pipeline.isFabulous()) {
 				MinecraftClient.getInstance().getFramebuffer().beginWrite(false);
 			}
 		}
@@ -96,12 +97,12 @@ public class MaterialTarget implements Predicate<RenderMaterialImpl> {
 		MaterialFinder.TARGET_CLOUDS,
 		"clouds",
 		() -> {
-			if (MinecraftClient.isFabulousGraphicsOrBetter()) {
+			if (Pipeline.isFabulous()) {
 				MinecraftClient.getInstance().worldRenderer.getCloudsFramebuffer().beginWrite(false);
 			}
 		},
 		() -> {
-			if (MinecraftClient.isFabulousGraphicsOrBetter()) {
+			if (Pipeline.isFabulous()) {
 				MinecraftClient.getInstance().getFramebuffer().beginWrite(false);
 			}
 		}
@@ -111,12 +112,12 @@ public class MaterialTarget implements Predicate<RenderMaterialImpl> {
 		MaterialFinder.TARGET_ENTITIES,
 		"entities",
 		() -> {
-			if (MinecraftClient.isFabulousGraphicsOrBetter()) {
+			if (Pipeline.isFabulous()) {
 				MinecraftClient.getInstance().worldRenderer.getEntityFramebuffer().beginWrite(false);
 			}
 		},
 		() -> {
-			if (MinecraftClient.isFabulousGraphicsOrBetter()) {
+			if (Pipeline.isFabulous()) {
 				MinecraftClient.getInstance().getFramebuffer().beginWrite(false);
 			}
 		}

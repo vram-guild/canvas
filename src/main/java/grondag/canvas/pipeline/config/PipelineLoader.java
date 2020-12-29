@@ -34,7 +34,13 @@ import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
 
 public class PipelineLoader implements SimpleSynchronousResourceReloadListener {
+	private static boolean hasLoadedOnce = false;
+
 	private PipelineLoader() { }
+
+	public static boolean areResourcesAvailable() {
+		return hasLoadedOnce;
+	}
 
 	@Override
 	public Identifier getFabricId() {
@@ -43,6 +49,7 @@ public class PipelineLoader implements SimpleSynchronousResourceReloadListener {
 
 	@Override
 	public void apply(ResourceManager manager) {
+		hasLoadedOnce = true;
 		MAP.clear();
 
 		final Iterator<?> it = manager.findResources("pipelines", (stringx) -> {

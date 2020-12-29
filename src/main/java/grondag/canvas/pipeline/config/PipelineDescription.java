@@ -32,7 +32,7 @@ public class PipelineDescription {
 
 		final String nameKey = JanksonHelper.asString(config.get("nameKey"));
 		this.nameKey = nameKey == null ? id.toString() : nameKey;
-		isFabulous = config.getBoolean("fabulous", false);
+		isFabulous = config.containsKey("fabulousTargets");
 
 		final String descriptionKey = JanksonHelper.asString(config.get("descriptionKey"));
 		this.descriptionKey = descriptionKey == null ? "pipeline.no_desc" : descriptionKey;

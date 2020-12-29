@@ -98,6 +98,7 @@ import grondag.canvas.material.state.RenderState;
 import grondag.canvas.mixinterface.BufferBuilderStorageExt;
 import grondag.canvas.mixinterface.MatrixStackExt;
 import grondag.canvas.mixinterface.WorldRendererExt;
+import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.pipeline.PipelineManager;
 import grondag.canvas.shader.MaterialShaderManager;
 import grondag.canvas.terrain.occlusion.PotentiallyVisibleRegionSorter;
@@ -262,10 +263,6 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		final RenderRegionStorage regionStorage = renderRegionStorage;
 		final TerrainIterator terrainIterator = this.terrainIterator;
 
-		if (mc.options.viewDistance != renderDistance) {
-			reload();
-		}
-
 		regionStorage.closeRegionsOnRenderThread();
 
 		mc.getProfiler().push("camera");
@@ -398,7 +395,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		final ClientWorld world = this.world;
 		final BufferBuilderStorage bufferBuilders = wr.canvas_bufferBuilders();
 		final EntityRenderDispatcher entityRenderDispatcher = wr.canvas_entityRenderDispatcher();
-		final boolean advancedTranslucency = MinecraftClient.isFabulousGraphicsOrBetter();
+		final boolean advancedTranslucency = Pipeline.isFabulous();
 
 		BlockEntityRenderDispatcher.INSTANCE.configure(world, mc.getTextureManager(), mc.textRenderer, camera, mc.crosshairTarget);
 		entityRenderDispatcher.configure(world, camera, mc.targetedEntity);
@@ -475,7 +472,8 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		LightmapHdTexture.instance().onRenderTick();
 
-		if (Configurator.enableBloom) PipelineManager.prepareForFrame();
+		// WIP: misnamed or doesn't go here
+		PipelineManager.onWorldRenderStart();
 
 		profiler.swap("terrain");
 		Configurator.lagFinder.swap("WorldRenderer-TerrainRenderSolid");
@@ -503,6 +501,14 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		final int blockEntityCount = 0;
 
 		profiler.swap("entities");
+
+		assert Pipeline.isFabulous() == MinecraftClient.isFabulousGraphicsOrBetter();
+		assert advancedTranslucency == Pipeline.isFabulous();
+		assert advancedTranslucency == (getEntityFramebuffer() != null);
+		assert advancedTranslucency == (getWeatherFramebuffer() != null);
+		assert advancedTranslucency == (getParticlesFramebuffer() != null);
+		assert advancedTranslucency == (getCloudsFramebuffer() != null);
+		assert advancedTranslucency == (getTranslucentFramebuffer() != null);
 
 		if (advancedTranslucency) {
 			final Framebuffer entityFramebuffer = mcwr.getEntityFramebuffer();
@@ -822,7 +828,9 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			fb.beginWrite(false);
 			wr.canvas_renderWeather(lightmapTextureManager, tickDelta, cameraX, cameraY, cameraZ);
 			wr.canvas_renderWorldBorder(camera);
-			wr.canvas_transparencyShader().render(tickDelta);
+
+			PipelineManager.beFabulous();
+			//wr.canvas_transparencyShader().render(tickDelta);
 			mcfb.beginWrite(false);
 		} else {
 			RenderSystem.depthMask(false);
@@ -1180,6 +1188,20 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 	@Override
 	public void render(MatrixStack matrices, float tickDelta, long frameStartNanos, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f matrix4f) {
+		final WorldRendererExt wr = this.wr;
+		final MinecraftClient mc = wr.canvas_mc();
+		final boolean wasFabulous = Pipeline.isFabulous();
+
+		PipelineManager.reloadIfNeeded();
+
+		if (wasFabulous != Pipeline.isFabulous()) {
+			wr.canvas_setupFabulousBuffers();
+		}
+
+		if (mc.options.viewDistance != wr.canvas_renderDistance()) {
+			reload();
+		}
+
 		wr.canvas_mc().getProfiler().swap("dynamic_lighting");
 		eventContext.prepare(this, matrices, tickDelta, frameStartNanos, renderBlockOutline, camera, gameRenderer, lightmapTextureManager, matrix4f, worldRenderImmediate, wr.canvas_mc().getProfiler(), MinecraftClient.isFabulousGraphicsOrBetter(), world);
 		WorldRenderEvents.START.invoker().onStart(eventContext);
@@ -1191,7 +1213,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 	@Override
 	public void reload() {
-		Configurator.updateGraphicsMode();
+		PipelineManager.reloadIfNeeded();
 
 		// cause injections to fire but disable all other vanilla logic
 		// by setting world to null temporarily

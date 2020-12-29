@@ -23,6 +23,7 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL21;
 
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.options.GraphicsMode;
 import net.minecraft.client.resource.language.I18n;
 import net.minecraft.util.Identifier;
 
@@ -67,13 +68,23 @@ public class PipelineManager {
 
 	private static boolean active = false;
 
-	public static void prepareForFrame() {
+	public static int width() {
+		return w;
+	}
+
+	public static int height() {
+		return h;
+	}
+
+	public static void reloadIfNeeded() {
 		if (mainFbo != -1 && Pipeline.needsReload()) {
 			init(w, h);
 		}
 
 		handleRecompile();
+	}
 
+	public static void onWorldRenderStart() {
 		assert !active;
 
 		beginFullFrameRender();
@@ -93,7 +104,7 @@ public class PipelineManager {
 		if (!active) {
 			active = true;
 
-			// WIP: remove
+			// WIP: remove - put in the config
 			if (MinecraftClient.isFabulousGraphicsOrBetter()) {
 				GL21.glDrawBuffers(ATTACHMENTS_DOUBLE);
 				GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT + 1, GL21.GL_TEXTURE_2D, texEmissive, 0);
@@ -182,6 +193,18 @@ public class PipelineManager {
 		endFullFrameRender();
 	}
 
+	public static void beFabulous() {
+		beginFullFrameRender();
+
+		drawBuffer.bind();
+
+		for (final Pass pass : Pipeline.fabulous) {
+			pass.run(w, h);
+		}
+
+		endFullFrameRender();
+	}
+
 	static void renderDebug(int glId, int lod) {
 		beginFullFrameRender();
 
@@ -199,6 +222,7 @@ public class PipelineManager {
 		endFullFrameRender();
 	}
 
+	@SuppressWarnings("resource")
 	public static void init(int width, int height) {
 		assert RenderSystem.isOnRenderThread();
 
@@ -212,11 +236,13 @@ public class PipelineManager {
 		w = width;
 		h = height;
 
-		debugShader = new ProcessShader(new Identifier("canvas:shaders/internal/process/copy_lod.vert"), new Identifier("canvas:shaders/internal/process/copy_lod.frag"), "_cvu_input");
+		debugShader = new ProcessShader(new Identifier("canvas:shaders/internal/process/simple_full_frame.vert"), new Identifier("canvas:shaders/internal/process/copy_lod.frag"), "_cvu_input");
 
 		assert CanvasGlHelper.checkError();
 
 		Pipeline.activate(w, h);
+
+		MinecraftClient.getInstance().options.graphicsMode = Pipeline.isFabulous() ? GraphicsMode.FABULOUS : GraphicsMode.FANCY;
 
 		mainFbo = Pipeline.getFramebuffer("default").glId();
 		mainColor = Pipeline.getImage("default_main").glId();
