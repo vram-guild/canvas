@@ -21,30 +21,28 @@ import blue.endless.jankson.JsonObject;
 
 import grondag.canvas.pipeline.config.util.AbstractConfig;
 import grondag.canvas.pipeline.config.util.ConfigContext;
+import grondag.canvas.pipeline.config.util.NamedDependency;
 
 public class AttachmentConfig extends AbstractConfig {
-	public final String imageName;
+	public final NamedDependency<ImageConfig> image;
 	public final int lod;
 	public final int clearColor;
-	public final boolean isValid;
 	public final boolean clear;
 	public final boolean isDepth;
 	public final float clearDepth;
 
 	AttachmentConfig(ConfigContext ctx, JsonObject config, boolean isDepth) {
 		super(ctx);
-
 		this.isDepth = isDepth;
 
 		if (config == null) {
-			imageName = "invalid";
+			image = context.images.createDependency("__invalid__");
 			lod = 0;
 			clear = false;
 			clearColor = 0;
-			isValid = false;
 			clearDepth = 1.0f;
 		} else {
-			imageName = config.get(String.class, "image");
+			image = context.images.createDependency(config.get(String.class, "image"));
 			lod = config.getInt("lod", 0);
 
 			if (isDepth) {
@@ -56,18 +54,15 @@ public class AttachmentConfig extends AbstractConfig {
 				clearColor = config.getInt("clearColor", 0);
 				clearDepth = 1.0f;
 			}
-
-			isValid = true;
 		}
 	}
 
 	private AttachmentConfig(ConfigContext ctx, String name) {
 		super(ctx);
-		imageName = name;
+		image = context.images.createDependency(name);
 		lod = 0;
 		clearColor = 0;
 		clear = false;
-		isValid = true;
 		isDepth = false;
 		clearDepth = 1.0f;
 	}
@@ -97,8 +92,7 @@ public class AttachmentConfig extends AbstractConfig {
 	}
 
 	@Override
-	public boolean isValid() {
-		// TODO Auto-generated method stub
-		return false;
+	public boolean validate() {
+		return image.isValid();
 	}
 }

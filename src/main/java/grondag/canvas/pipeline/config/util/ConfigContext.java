@@ -16,8 +16,6 @@
 
 package grondag.canvas.pipeline.config.util;
 
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-
 import grondag.canvas.pipeline.config.FramebufferConfig;
 import grondag.canvas.pipeline.config.ImageConfig;
 import grondag.canvas.pipeline.config.PassConfig;
@@ -25,13 +23,15 @@ import grondag.canvas.pipeline.config.PipelineParam;
 import grondag.canvas.pipeline.config.ProgramConfig;
 
 public class ConfigContext {
-	public final Object2ObjectOpenHashMap<String, FramebufferConfig> frameBuffers = new Object2ObjectOpenHashMap<>();
+	public final NamedDependencyMap<FramebufferConfig> frameBuffers = new NamedDependencyMap<>();
 
-	public final Object2ObjectOpenHashMap<String, ImageConfig> images = new Object2ObjectOpenHashMap<>();
+	// allow named in-game images
+	public final NamedDependencyMap<ImageConfig> images = new NamedDependencyMap<>(s -> s.contains(":"));
 
-	public final Object2ObjectOpenHashMap<String, PassConfig> passes = new Object2ObjectOpenHashMap<>();
+	public final NamedDependencyMap<PassConfig> passes = new NamedDependencyMap<>();
 
-	public final Object2ObjectOpenHashMap<String, PipelineParam> params = new Object2ObjectOpenHashMap<>();
+	public final NamedDependencyMap<PipelineParam> params = new NamedDependencyMap<>();
 
-	public final Object2ObjectOpenHashMap<String, ProgramConfig> programs = new Object2ObjectOpenHashMap<>();
+	// allow built-in programs
+	public final NamedDependencyMap<ProgramConfig> programs = new NamedDependencyMap<>(s -> s.equals(PassConfig.CLEAR_NAME));
 }

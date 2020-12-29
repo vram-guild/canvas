@@ -16,8 +16,6 @@
 
 package grondag.canvas.pipeline.config.util;
 
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-
 import grondag.canvas.CanvasMod;
 
 public abstract class NamedConfig<T extends NamedConfig<T>> extends AbstractConfig {
@@ -29,13 +27,22 @@ public abstract class NamedConfig<T extends NamedConfig<T>> extends AbstractConf
 		super(ctx);
 		this.name = name;
 
-		if (nameMap().putIfAbsent(name, (T) this) != null) {
+		boolean duplicate = false;
+
+		// WIP: handle duplicate and empty names
+
+		if (name != null && !name.isEmpty() && nameMap().putIfAbsent(name, (T) this) != null) {
 			CanvasMod.LOG.warn(String.format("Invalid pipeline config. Encountered duplicate name %s for %s", name, this.getClass().getSimpleName()));
-			isDuplicateName = true;
-		} else {
-			isDuplicateName = false;
+			duplicate = true;
 		}
+
+		isDuplicateName = duplicate;
 	}
 
-	public abstract Object2ObjectOpenHashMap<String, T> nameMap();
+	public abstract NamedDependencyMap<T> nameMap();
+
+	@Override
+	public boolean validate() {
+		return name != null && !name.isEmpty() && !isDuplicateName;
+	}
 }

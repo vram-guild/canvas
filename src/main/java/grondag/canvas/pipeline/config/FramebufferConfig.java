@@ -18,47 +18,31 @@ package grondag.canvas.pipeline.config;
 
 import blue.endless.jankson.JsonArray;
 import blue.endless.jankson.JsonObject;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
-import grondag.canvas.CanvasMod;
 import grondag.canvas.pipeline.config.util.ConfigContext;
 import grondag.canvas.pipeline.config.util.NamedConfig;
+import grondag.canvas.pipeline.config.util.NamedDependencyMap;
 
 public class FramebufferConfig extends NamedConfig<FramebufferConfig> {
 	public final AttachmentConfig[] colorAttachments;
 	public final AttachmentConfig depthAttachment;
-	public final boolean isValid;
 
 	private FramebufferConfig(ConfigContext ctx, JsonObject config) {
 		super(ctx, config.get(String.class, "name"));
-		boolean valid = true;
-
-		if (name == null || name.isEmpty()) {
-			CanvasMod.LOG.warn("Invalid pipeline config - missing framebuffer name.");
-			valid = false;
-		}
 
 		colorAttachments = AttachmentConfig.deserialize(ctx, config);
 
-		for (final AttachmentConfig c : colorAttachments) {
-			valid &= c.isValid;
-		}
-
 		if (config.containsKey("depthAttachment")) {
 			depthAttachment = new AttachmentConfig(ctx, config.getObject("depthAttachment"), true);
-			valid &= depthAttachment.isValid;
 		} else {
 			depthAttachment = null;
 		}
-
-		isValid = valid;
 	}
 
 	private FramebufferConfig(ConfigContext ctx) {
 		super(ctx, "default");
 		colorAttachments = new AttachmentConfig[] {AttachmentConfig.defaultMain(ctx)};
 		depthAttachment = AttachmentConfig.defaultDepth(ctx);
-		isValid = true;
 	}
 
 	public static FramebufferConfig[] deserialize(ConfigContext ctx, JsonObject configJson) {
@@ -82,13 +66,22 @@ public class FramebufferConfig extends NamedConfig<FramebufferConfig> {
 	}
 
 	@Override
-	public boolean isValid() {
-		// TODO Auto-generated method stub
-		return false;
+	public boolean validate() {
+		boolean valid = super.validate();
+
+		for (final AttachmentConfig c : colorAttachments) {
+			valid &= c.validate();
+		}
+
+		if (depthAttachment != null) {
+			valid &= depthAttachment.validate();
+		}
+
+		return valid;
 	}
 
 	@Override
-	public Object2ObjectOpenHashMap<String, FramebufferConfig> nameMap() {
+	public NamedDependencyMap<FramebufferConfig> nameMap() {
 		return context.frameBuffers;
 	}
 }

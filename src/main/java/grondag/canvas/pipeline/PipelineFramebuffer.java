@@ -80,22 +80,22 @@ public class PipelineFramebuffer {
 
 		for (int i = 0; i < config.colorAttachments.length; ++i) {
 			final AttachmentConfig ac = config.colorAttachments[i];
-			final Image img = Pipeline.getImage(ac.imageName);
+			final Image img = Pipeline.getImage(ac.image.name);
 
 			if (img == null) {
 				CanvasMod.LOG.warn(String.format("Frambuffer %s cannot be completetly configured because color attachment %s was not found",
-						config.name, ac.imageName));
+						config.name, ac.image.name));
 			} else {
 				GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT + i, GL21.GL_TEXTURE_2D, img.glId(), ac.lod);
 			}
 		}
 
 		if (config.depthAttachment != null) {
-			final Image img = Pipeline.getImage(config.depthAttachment.imageName);
+			final Image img = Pipeline.getImage(config.depthAttachment.image.name);
 
 			if (img == null) {
 				CanvasMod.LOG.warn(String.format("Frambuffer %s cannot be completetly configured because depth attachment %s was not found",
-						config.name, config.depthAttachment.imageName));
+						config.name, config.depthAttachment.image.name));
 			} else {
 				GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.DEPTH_ATTACHMENT, GL21.GL_TEXTURE_2D, img.glId, 0);
 			}

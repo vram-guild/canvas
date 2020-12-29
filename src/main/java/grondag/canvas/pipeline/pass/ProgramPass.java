@@ -38,10 +38,10 @@ class ProgramPass extends Pass {
 
 	ProgramPass(PassConfig config) {
 		super(config);
-		binds = new int[config.samplerNames.length];
+		binds = new int[config.samplerImages.length];
 
-		for (int i = 0; i < config.samplerNames.length; ++i) {
-			final String imageName = config.samplerNames[i];
+		for (int i = 0; i < config.samplerImages.length; ++i) {
+			final String imageName = config.samplerImages[i].name;
 
 			int imageBind = 0;
 
@@ -67,14 +67,15 @@ class ProgramPass extends Pass {
 			binds[i] = imageBind;
 		}
 
-		shader = Pipeline.getShader(config.programName);
+		// WIP: should be able to remove all this after config validation is complete
+		shader = Pipeline.getShader(config.program.name);
 
 		if (shader == null) {
-			CanvasMod.LOG.warn(String.format("Unable to find shader %s for pass %s.  Pass will be skipped.", config.programName, config.name));
+			CanvasMod.LOG.warn(String.format("Unable to find shader %s for pass %s.  Pass will be skipped.", config.program.name, config.name));
 			isValid = false;
 		} else if (shader.samplerCount() != binds.length) {
 			CanvasMod.LOG.warn(String.format("Shader %s in pass %s expects %d samplers but the pass binds %d.  Pass may not operate correctly.",
-					config.programName, config.name, shader.samplerCount(), binds.length));
+					config.program.name, config.name, shader.samplerCount(), binds.length));
 		}
 	}
 

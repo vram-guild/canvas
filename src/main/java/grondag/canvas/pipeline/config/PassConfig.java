@@ -18,17 +18,18 @@ package grondag.canvas.pipeline.config;
 
 import blue.endless.jankson.JsonArray;
 import blue.endless.jankson.JsonObject;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.pipeline.config.util.ConfigContext;
 import grondag.canvas.pipeline.config.util.JanksonHelper;
 import grondag.canvas.pipeline.config.util.NamedConfig;
+import grondag.canvas.pipeline.config.util.NamedDependency;
+import grondag.canvas.pipeline.config.util.NamedDependencyMap;
 
 public class PassConfig extends NamedConfig<PassConfig> {
-	public final String framebufferName;
-	public final String[] samplerNames;
-	public final String programName;
+	public final NamedDependency<FramebufferConfig> framebuffer;
+	public final NamedDependency<ImageConfig>[] samplerImages;
+	public final NamedDependency<ProgramConfig> program;
 	// for computing size
 	public final int lod;
 
@@ -53,29 +54,23 @@ public class PassConfig extends NamedConfig<PassConfig> {
 	//	// Specifies the interpolation to be applied if the image is stretched. Must be GL_NEAREST or GL_LINEAR.
 	//	public String filter;
 
+	@SuppressWarnings("unchecked")
 	private PassConfig (ConfigContext ctx, JsonObject config) {
 		super(ctx, JanksonHelper.asStringOrDefault(config.get("name"), JanksonHelper.asString(config.get("framebuffer"))));
-		framebufferName = JanksonHelper.asString(config.get("framebuffer"));
-		programName = JanksonHelper.asString(config.get("program"));
+		framebuffer = ctx.frameBuffers.createDependency(JanksonHelper.asString(config.get("framebuffer")));
+		program = ctx.programs.createDependency(JanksonHelper.asString(config.get("program")));
 
 		lod = config.getInt("lod", 0);
 
 		if (!config.containsKey("samplerImages")) {
-			samplerNames = new String[0];
+			samplerImages = new NamedDependency[0];
 		} else {
 			final JsonArray names = config.get(JsonArray.class, "samplerImages");
 			final int limit = names.size();
-			samplerNames = new String[limit];
+			samplerImages = new NamedDependency[limit];
 
 			for (int i = 0; i < limit; ++i) {
-				final String s = JanksonHelper.asString(names.get(i));
-
-				if (s == null) {
-					CanvasMod.LOG.warn(String.format("Sampler image name %s (%d of %d) for pass %s is not a valid string and was skipped.",
-							names.get(i).toString(), i, limit, name));
-				} else {
-					samplerNames[i] = s;
-				}
+				samplerImages[i] = ctx.images.createDependency(JanksonHelper.asString(names.get(i)));
 			}
 		}
 	}
@@ -92,7 +87,7 @@ public class PassConfig extends NamedConfig<PassConfig> {
 		}
 
 		final JsonArray array = JanksonHelper.getJsonArrayOrNull(passJson, "passes",
-				String.format("Error parsing pipeline stage %s, resulting in no passes.  Passes must be an array.", key));
+				String.format("Error parsing pipeline stage %s.  Passes must be an array. No passes created.", key));
 
 		if (array == null) {
 			return new PassConfig[0];
@@ -111,13 +106,31 @@ public class PassConfig extends NamedConfig<PassConfig> {
 	public static String CLEAR_NAME = "frex_clear";
 
 	@Override
-	public boolean isValid() {
-		// TODO Auto-generated method stub
-		return false;
+	public boolean validate() {
+		boolean valid = super.validate();
+
+		if (!framebuffer.isValid()) {
+			CanvasMod.LOG.warn(String.format("Pass %s invalid because framebuffer %s not found or invalid.", name, framebuffer.name));
+			valid = false;
+		}
+
+		if (!program.isValid()) {
+			CanvasMod.LOG.warn(String.format("Pass %s invalid because program %s not found or invalid.", name, program.name));
+			valid = false;
+		}
+
+		for (final NamedDependency<ImageConfig> img : samplerImages) {
+			if (!img.isValid()) {
+				CanvasMod.LOG.warn(String.format("Pass %s invalid because samplerImage %s not found or invalid.", name, img.name));
+				valid = false;
+			}
+		}
+
+		return valid;
 	}
 
 	@Override
-	public Object2ObjectOpenHashMap<String, PassConfig> nameMap() {
+	public NamedDependencyMap<PassConfig> nameMap() {
 		return context.passes;
 	}
 }

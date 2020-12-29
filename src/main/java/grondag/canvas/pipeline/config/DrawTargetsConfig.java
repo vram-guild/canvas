@@ -22,69 +22,34 @@ import org.jetbrains.annotations.Nullable;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.pipeline.config.util.AbstractConfig;
 import grondag.canvas.pipeline.config.util.ConfigContext;
+import grondag.canvas.pipeline.config.util.NamedDependency;
 
 public class DrawTargetsConfig extends AbstractConfig {
-	public final String solidTerrain;
-	public final String translucentTerrain;
-	public final String translucentEntity;
-	public final String weather;
-	public final String clouds;
-	public final String translucentParticles;
-	public final boolean isValid;
+	public final NamedDependency<FramebufferConfig> solidTerrain;
+	public final NamedDependency<FramebufferConfig> translucentTerrain;
+	public final NamedDependency<FramebufferConfig> translucentEntity;
+	public final NamedDependency<FramebufferConfig> weather;
+	public final NamedDependency<FramebufferConfig> clouds;
+	public final NamedDependency<FramebufferConfig> translucentParticles;
 
 	private DrawTargetsConfig(ConfigContext ctx) {
 		super(ctx);
-		solidTerrain = "default";
-		translucentTerrain = "default";
-		translucentEntity = "default";
-		weather = "default";
-		clouds = "default";
-		translucentParticles = "default";
-		isValid = true;
+		solidTerrain = ctx.frameBuffers.createDependency("default");
+		translucentTerrain = ctx.frameBuffers.createDependency("default");
+		translucentEntity = ctx.frameBuffers.createDependency("default");
+		weather = ctx.frameBuffers.createDependency("default");
+		clouds = ctx.frameBuffers.createDependency("default");
+		translucentParticles = ctx.frameBuffers.createDependency("default");
 	}
 
 	private DrawTargetsConfig (ConfigContext ctx, JsonObject config) {
 		super(ctx);
-		solidTerrain = config.get(String.class, "solidTerrain");
-		translucentTerrain = config.get(String.class, "translucentTerrain");
-		translucentEntity = config.get(String.class, "translucentEntity");
-		weather = config.get(String.class, "weather");
-		clouds = config.get(String.class, "clouds");
-		translucentParticles = config.get(String.class, "translucentParticles");
-
-		boolean valid = true;
-
-		if (solidTerrain == null || solidTerrain.isEmpty()) {
-			CanvasMod.LOG.warn("Invalid pipeline config - drawTargets missing solidTerrain.");
-			valid = false;
-		}
-
-		if (translucentTerrain == null || translucentTerrain.isEmpty()) {
-			CanvasMod.LOG.warn("Invalid pipeline config - drawTargets missing translucentTerrain.");
-			valid = false;
-		}
-
-		if (translucentEntity == null || translucentEntity.isEmpty()) {
-			CanvasMod.LOG.warn("Invalid pipeline config - drawTargets missing translucentEntity.");
-			valid = false;
-		}
-
-		if (weather == null || weather.isEmpty()) {
-			CanvasMod.LOG.warn("Invalid pipeline config - drawTargets missing weather.");
-			valid = false;
-		}
-
-		if (clouds == null || clouds.isEmpty()) {
-			CanvasMod.LOG.warn("Invalid pipeline config - drawTargets missing clouds.");
-			valid = false;
-		}
-
-		if (translucentParticles == null || translucentParticles.isEmpty()) {
-			CanvasMod.LOG.warn("Invalid pipeline config - drawTargets missing translucentParticles.");
-			valid = false;
-		}
-
-		isValid = valid;
+		solidTerrain = ctx.frameBuffers.createDependency(config.get(String.class, "solidTerrain"));
+		translucentTerrain = ctx.frameBuffers.createDependency(config.get(String.class, "translucentTerrain"));
+		translucentEntity = ctx.frameBuffers.createDependency(config.get(String.class, "translucentEntity"));
+		weather = ctx.frameBuffers.createDependency(config.get(String.class, "weather"));
+		clouds = ctx.frameBuffers.createDependency(config.get(String.class, "clouds"));
+		translucentParticles = ctx.frameBuffers.createDependency(config.get(String.class, "translucentParticles"));
 	}
 
 	public static @Nullable DrawTargetsConfig deserialize(ConfigContext ctx, JsonObject config) {
@@ -101,8 +66,39 @@ public class DrawTargetsConfig extends AbstractConfig {
 	}
 
 	@Override
-	public boolean isValid() {
-		// TODO Auto-generated method stub
-		return false;
+	public boolean validate() {
+		boolean valid = true;
+
+		if (!solidTerrain.isValid()) {
+			CanvasMod.LOG.warn("Invalid pipeline config - drawTargets solidTerrain missing or invalid.");
+			valid = false;
+		}
+
+		if (!translucentTerrain.isValid()) {
+			CanvasMod.LOG.warn("Invalid pipeline config - drawTargets translucentTerrain missing or invalid.");
+			valid = false;
+		}
+
+		if (!translucentEntity.isValid()) {
+			CanvasMod.LOG.warn("Invalid pipeline config - drawTargets translucentEntity missing or invalid.");
+			valid = false;
+		}
+
+		if (!weather.isValid()) {
+			CanvasMod.LOG.warn("Invalid pipeline config - drawTargets weather missing or invalid.");
+			valid = false;
+		}
+
+		if (!clouds.isValid()) {
+			CanvasMod.LOG.warn("Invalid pipeline config - drawTargets clouds missing or invalid.");
+			valid = false;
+		}
+
+		if (!translucentParticles.isValid()) {
+			CanvasMod.LOG.warn("Invalid pipeline config - drawTargets translucentParticles missing or invalid.");
+			valid = false;
+		}
+
+		return valid;
 	}
 }

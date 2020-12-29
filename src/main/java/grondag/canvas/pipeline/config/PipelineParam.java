@@ -16,10 +16,9 @@
 
 package grondag.canvas.pipeline.config;
 
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-
 import grondag.canvas.pipeline.config.util.ConfigContext;
 import grondag.canvas.pipeline.config.util.NamedConfig;
+import grondag.canvas.pipeline.config.util.NamedDependencyMap;
 
 public class PipelineParam extends NamedConfig<PipelineParam> {
 	protected PipelineParam(ConfigContext ctx, String name) {
@@ -51,13 +50,12 @@ public class PipelineParam extends NamedConfig<PipelineParam> {
 	}
 
 	@Override
-	public boolean isValid() {
-		// TODO Auto-generated method stub
-		return false;
+	public boolean validate() {
+		return super.validate();
 	}
 
 	@Override
-	public Object2ObjectOpenHashMap<String, PipelineParam> nameMap() {
+	public NamedDependencyMap<PipelineParam> nameMap() {
 		return context.params;
 	}
 }

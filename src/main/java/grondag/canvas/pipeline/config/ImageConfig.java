@@ -18,12 +18,12 @@ package grondag.canvas.pipeline.config;
 
 import blue.endless.jankson.JsonArray;
 import blue.endless.jankson.JsonObject;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.lwjgl.opengl.GL21;
 
 import grondag.canvas.pipeline.GlSymbolLookup;
 import grondag.canvas.pipeline.config.util.ConfigContext;
 import grondag.canvas.pipeline.config.util.NamedConfig;
+import grondag.canvas.pipeline.config.util.NamedDependencyMap;
 
 public class ImageConfig extends NamedConfig<ImageConfig> {
 	public final int internalFormat;
@@ -108,13 +108,12 @@ public class ImageConfig extends NamedConfig<ImageConfig> {
 	}
 
 	@Override
-	public boolean isValid() {
-		// TODO Auto-generated method stub
-		return false;
+	public boolean validate() {
+		return super.validate();
 	}
 
 	@Override
-	public Object2ObjectOpenHashMap<String, ImageConfig> nameMap() {
+	public NamedDependencyMap<ImageConfig> nameMap() {
 		return context.images;
 	}
 }

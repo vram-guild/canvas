@@ -28,6 +28,7 @@ import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
 import grondag.canvas.pipeline.config.util.ConfigContext;
 import grondag.canvas.pipeline.config.util.JanksonHelper;
+import grondag.canvas.pipeline.config.util.NamedDependency;
 
 // WIP:  defaultFramebuffer target
 // WIP: managed draw targets
@@ -45,9 +46,7 @@ public class PipelineConfig {
 	@Nullable public final FabulousConfig fabulosity;
 	@Nullable public final DrawTargetsConfig drawTargets;
 
-	public final boolean isValid;
-
-	public final String defaultFramebuffer;
+	public final NamedDependency<FramebufferConfig> defaultFramebuffer;
 
 	private PipelineConfig() {
 		params = new PipelineParam[0];
@@ -59,42 +58,43 @@ public class PipelineConfig {
 		framebuffers = new FramebufferConfig[] { FramebufferConfig.makeDefault(context) };
 		fabulosity = null;
 		drawTargets = DrawTargetsConfig.makeDefault(context);
-		defaultFramebuffer = "default";
-		isValid = true;
+		defaultFramebuffer = context.frameBuffers.createDependency("default");
 	}
 
 	private PipelineConfig (JsonObject configJson) {
-		boolean valid = true;
 		params = PipelineParam.array(
 			PipelineParam.of(context, "bloom_intensity", 0.0f, 0.5f, 0.1f),
 			PipelineParam.of(context, "bloom_scale", 0.0f, 2.0f, 0.25f)
 		);
 
-		defaultFramebuffer = JanksonHelper.asString(configJson.get("defaultFramebuffer"));
-
-		if (defaultFramebuffer == null || defaultFramebuffer.isEmpty()) {
-			CanvasMod.LOG.warn("Invalid pipeline config - missing defaultFramebuffer.");
-			valid = false;
-		}
-
+		defaultFramebuffer = context.frameBuffers.createDependency(JanksonHelper.asString(configJson.get("defaultFramebuffer")));
 		fabulosity = FabulousConfig.deserialize(context, configJson);
 		fabulous = PassConfig.deserialize(context, configJson, "fabulous");
-		valid &= (fabulosity == null || fabulosity.isValid);
-
 		drawTargets = DrawTargetsConfig.deserialize(context, configJson);
-		valid &= (drawTargets == null || drawTargets.isValid);
-
 		images = ImageConfig.deserialize(context, configJson);
 		shaders = ProgramConfig.deserialize(context, configJson);
 		framebuffers = FramebufferConfig.deserialize(context, configJson);
 		onWorldStart = PassConfig.deserialize(context, configJson, "onWorldRenderStart");
 		afterRenderHand = PassConfig.deserialize(context, configJson, "afterRenderHand");
+	}
 
-		for (final FramebufferConfig fb : framebuffers) {
-			valid &= fb.isValid;
+	public boolean validate() {
+		boolean valid = true;
+
+		valid &= (drawTargets == null || drawTargets.validate());
+
+		valid &= (fabulosity == null || fabulosity.validate());
+
+		if (!defaultFramebuffer.isValid()) {
+			CanvasMod.LOG.warn("Invalid pipeline config - missing or invalid defaultFramebuffer.");
+			valid = false;
 		}
 
-		isValid = valid;
+		for (final FramebufferConfig fb : framebuffers) {
+			valid &= fb.validate();
+		}
+
+		return valid;
 	}
 
 	public static @Nullable PipelineConfig load(Identifier id) {
@@ -113,7 +113,7 @@ public class PipelineConfig {
 			}
 		}
 
-		if (result != null && result.isValid) {
+		if (result != null && result.validate()) {
 			return result;
 		} else {
 			// fallback to minimal renderable pipeline if not valid

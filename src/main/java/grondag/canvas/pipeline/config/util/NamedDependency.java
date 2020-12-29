@@ -16,12 +16,26 @@
 
 package grondag.canvas.pipeline.config.util;
 
-public abstract class AbstractConfig {
-	protected final ConfigContext context;
+import org.jetbrains.annotations.Nullable;
 
-	protected AbstractConfig(ConfigContext context) {
-		this.context = context;
+public class NamedDependency<T extends NamedConfig<T>> {
+	private final NamedDependencyMap<T> map;
+	public final String name;
+
+	protected NamedDependency(NamedDependencyMap<T> map, String name) {
+		this.map = map;
+		this.name = name;
 	}
 
-	public abstract boolean validate();
+	public boolean isValid() {
+		return map.isValidReference(name);
+	}
+
+	public boolean isBuiltIn() {
+		return map.isBuiltInReference(name);
+	}
+
+	public @Nullable T value() {
+		return map.get(name);
+	}
 }

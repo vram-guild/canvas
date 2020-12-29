@@ -30,10 +30,10 @@ public abstract class Pass {
 
 	Pass(PassConfig config) {
 		this.config = config;
-		fbo = Pipeline.getFramebuffer(config.framebufferName);
+		fbo = Pipeline.getFramebuffer(config.framebuffer.name);
 
 		if (fbo == null) {
-			CanvasMod.LOG.warn(String.format("Unable to find framebuffer %s for pass %s.  Pass will be skipped.", config.framebufferName, config.name));
+			CanvasMod.LOG.warn(String.format("Unable to find framebuffer %s for pass %s.  Pass will be skipped.", config.framebuffer.name, config.name));
 			isValid = false;
 		}
 	}
@@ -43,7 +43,7 @@ public abstract class Pass {
 	public abstract void close();
 
 	public static Pass create(PassConfig config) {
-		if (config.programName.equals(PassConfig.CLEAR_NAME)) {
+		if (config.program.name.equals(PassConfig.CLEAR_NAME)) {
 			return new ClearPass(config);
 		} else {
 			return new ProgramPass(config);

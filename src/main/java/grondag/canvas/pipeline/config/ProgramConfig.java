@@ -2,7 +2,6 @@ package grondag.canvas.pipeline.config;
 
 import blue.endless.jankson.JsonArray;
 import blue.endless.jankson.JsonObject;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
 import net.minecraft.util.Identifier;
 
@@ -10,6 +9,7 @@ import grondag.canvas.CanvasMod;
 import grondag.canvas.pipeline.config.util.ConfigContext;
 import grondag.canvas.pipeline.config.util.JanksonHelper;
 import grondag.canvas.pipeline.config.util.NamedConfig;
+import grondag.canvas.pipeline.config.util.NamedDependencyMap;
 
 /*
  *  Copyright 2019, 2020 grondag
@@ -31,6 +31,7 @@ public class ProgramConfig extends NamedConfig<ProgramConfig> {
 	public final Identifier vertexSource;
 	public final Identifier fragmentSource;
 	public final String[] samplerNames;
+	public final boolean isBuiltIn;
 
 	private ProgramConfig(ConfigContext ctx, JsonObject config) {
 		super(ctx, config.get(String.class, "name"));
@@ -55,6 +56,16 @@ public class ProgramConfig extends NamedConfig<ProgramConfig> {
 				}
 			}
 		}
+
+		isBuiltIn = false;
+	}
+
+	public ProgramConfig(ConfigContext ctx, String name) {
+		super(ctx, name);
+		vertexSource = null;
+		fragmentSource = null;
+		samplerNames = null;
+		isBuiltIn = true;
 	}
 
 	public static ProgramConfig[] deserialize(ConfigContext ctx, JsonObject configJson) {
@@ -73,13 +84,17 @@ public class ProgramConfig extends NamedConfig<ProgramConfig> {
 		return result;
 	}
 
+	public static ProgramConfig builtIn(ConfigContext ctx, String name) {
+		return new ProgramConfig(ctx, name);
+	}
+
 	@Override
-	public Object2ObjectOpenHashMap<String, ProgramConfig> nameMap() {
+	public NamedDependencyMap<ProgramConfig> nameMap() {
 		return context.programs;
 	}
 
 	@Override
-	public boolean isValid() {
-		return !isDuplicateName;
+	public boolean validate() {
+		return super.validate();
 	}
 }
