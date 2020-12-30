@@ -1,4 +1,5 @@
 #include canvas:shaders/internal/world.glsl
+#include canvas:shaders/internal/program.glsl
 
 /******************************************************
   frex:shaders/api/view.glsl
@@ -86,4 +87,11 @@ int frx_modelOriginType() {
  */
 mat3 frx_normalModelMatrix() {
 	return _cvu_normal_model_matrix;
+}
+
+/*
+ * True when rendering to GUI.
+ */
+bool frx_isGui() {
+	return _cv_isGui() == 1.0;
 }

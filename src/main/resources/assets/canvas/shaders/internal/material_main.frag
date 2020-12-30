@@ -26,6 +26,7 @@ void main() {
 	}
 #endif
 
+#ifdef VANILLA_LIGHTING
 	frx_FragmentData fragData = frx_FragmentData (
 		texture2D(frxs_spriteAltas, frx_texcoord, _cv_getFlag(_CV_FLAG_UNMIPPED) * -4.0),
 		_cvv_color,
@@ -36,6 +37,16 @@ void main() {
 		_cvv_lightcoord,
 		_cvv_ao
 	);
+#else
+	frx_FragmentData fragData = frx_FragmentData (
+		texture2D(frxs_spriteAltas, frx_texcoord, _cv_getFlag(_CV_FLAG_UNMIPPED) * -4.0),
+		_cvv_color,
+		frx_matEmissive() ? 1.0 : 0.0,
+		!frx_matDisableDiffuse(),
+		!frx_matDisableAo(),
+		_cvv_normal
+	);
+#endif
 
 	_cv_startFragment(fragData);
 

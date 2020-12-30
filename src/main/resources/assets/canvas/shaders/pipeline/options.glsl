@@ -31,3 +31,9 @@ varying float _cvv_diffuse;
 
 #define TARGET_BASECOLOR 0
 #define TARGET_EMISSIVE -1
+
+// These won't go here if they are re-enabled
+//#ifndef VANILLA_LIGHTING
+//uniform sampler2D frxs_dither;
+//uniform sampler2D frxs_hdLightmap;
+//#endif

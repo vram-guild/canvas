@@ -1,3 +1,5 @@
+#include frex:shaders/lib/bitwise.glsl
+
 /******************************************************
   canvas:shaders/internal/world.glsl
 ******************************************************/
@@ -37,3 +39,7 @@ uniform vec3 _cvu_model_origin;
 uniform int _cvu_model_origin_type;
 uniform mat3 _cvu_normal_model_matrix;
 uniform int _cvu_fog_mode;
+
+bool _cv_testCondition(int conditionIndex) {
+	return frx_bitValue(_cvu_condition_flags[conditionIndex >> 5], conditionIndex & 31) == 1.0;
+}

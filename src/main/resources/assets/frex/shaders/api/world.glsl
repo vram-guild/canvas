@@ -1,6 +1,6 @@
+#include frex:shaders/api/view.glsl
 #include canvas:shaders/internal/world.glsl
 #include canvas:shaders/internal/flags.glsl
-#include frex:shaders/api/view.glsl
 
 /******************************************************
   frex:shaders/api/world.glsl
@@ -134,5 +134,5 @@ bool frx_isSkyDarkened() {
 }
 
 bool frx_testCondition(int conditionIndex) {
-	return frx_bitValue(_cvu_condition_flags[conditionIndex >> 5], conditionIndex & 31) == 1.0;
+	return _cv_testCondition(conditionIndex);
 }

@@ -1,3 +1,5 @@
+#include frex:shaders/api/context.glsl
+
 /******************************************************
   frex:shaders/api/fragment.glsl
 ******************************************************/
@@ -96,6 +98,7 @@ struct frx_FragmentData {
 	 */
 	vec3 vertexNormal;
 
+#ifdef VANILLA_LIGHTING
 	/*
 	 * Block and sky light intensity for this fragment.
 	 * Block is X and sky is Y.
@@ -105,8 +108,7 @@ struct frx_FragmentData {
 	 * may be an interpolated vertex value, a value from
 	 * a texture lookup, or it may not be populated or used.
 	 *
-	 * Recommendation is to avoid using or modifying this value
-	 * unless VANILLA_LIGHTING = TRUE.
+	 * Will not be available unless VANILLA_LIGHTING is defined.
 	 *
 	 * The emissive flag is generally a better alternative.
 	 */
@@ -118,8 +120,8 @@ struct frx_FragmentData {
 	 * Depending on the context or lighting model in effect,
 	 * this may not be populated or used.
 	 *
-	 * Recommendation is to avoid using or modifying this value
-	 * unless VANILLA_LIGHTING = TRUE.
+	 * Avoid using or modifying this value unless VANILLA_LIGHTING is defined.
 	 */
 	float aoShade;
+#endif
 };

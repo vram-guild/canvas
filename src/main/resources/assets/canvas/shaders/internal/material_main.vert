@@ -1,18 +1,19 @@
 #include canvas:shaders/internal/header.glsl
 #include frex:shaders/api/context.glsl
-#include canvas:shaders/internal/varying.glsl
-#include canvas:shaders/internal/vertex.glsl
-#include canvas:shaders/internal/flags.glsl
 #include frex:shaders/api/vertex.glsl
 #include frex:shaders/api/sampler.glsl
-#include canvas:shaders/internal/program.glsl
 #include canvas:shaders/pipeline/standard.vert
+#include canvas:shaders/internal/varying.glsl
+#include canvas:shaders/internal/flags.glsl
+#include canvas:shaders/internal/vertex.glsl
+#include canvas:shaders/internal/program.glsl
 
 #include canvas:apitarget
 
 /******************************************************
   canvas:shaders/internal/material_main.vert
 ******************************************************/
+uniform sampler2D _cvu_spriteInfo;
 
 void _cv_startVertex(inout frx_VertexData data, in int cv_programId) {
 #include canvas:startvertex
@@ -51,7 +52,7 @@ void main() {
 	if (_cvu_atlas[_CV_SPRITE_INFO_TEXTURE_SIZE] != 0.0) {
 		float spriteIndex = in_material.x;
 		// for sprite atlas textures, convert from normalized (0-1) to interpolated coordinates
-		vec4 spriteBounds = texture2DLod(frxs_spriteInfo, vec2(0, spriteIndex / _cvu_atlas[_CV_SPRITE_INFO_TEXTURE_SIZE]), 0);
+		vec4 spriteBounds = texture2DLod(_cvu_spriteInfo, vec2(0, spriteIndex / _cvu_atlas[_CV_SPRITE_INFO_TEXTURE_SIZE]), 0);
 
 		float atlasHeight = _cvu_atlas[_CV_ATLAS_HEIGHT];
 		float atlasWidth = _cvu_atlas[_CV_ATLAS_WIDTH];
