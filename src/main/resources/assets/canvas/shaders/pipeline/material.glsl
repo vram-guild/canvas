@@ -19,3 +19,8 @@
 #if DIFFUSE_SHADING_MODE != DIFFUSE_MODE_NONE
 varying float _cvv_diffuse;
 #endif
+
+#define _CV_FOG_CONFIG_VANILLA    0
+#define _CV_FOG_CONFIG_SUBTLE    1
+
+#define _CV_FOG_CONFIG _CV_FOG_CONFIG_VANILLA

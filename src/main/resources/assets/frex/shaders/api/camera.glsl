@@ -3,5 +3,5 @@
 /******************************************************
   frex:shaders/api/camera.glsl
 
-  Replaced by frex:shaders/api/view.glsl.
+  DEPRECATED: use frex:shaders/api/view.glsl.
 ******************************************************/

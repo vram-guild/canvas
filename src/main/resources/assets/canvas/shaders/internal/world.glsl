@@ -36,3 +36,4 @@ uniform uint[2] _cvu_condition_flags;
 uniform vec3 _cvu_model_origin;
 uniform int _cvu_model_origin_type;
 uniform mat3 _cvu_normal_model_matrix;
+uniform int _cvu_fog_mode;

@@ -1,23 +1,10 @@
 #include frex:shaders/api/context.glsl
-#include canvas:shaders/internal/world.glsl
+#include frex:shaders/api/fog.glsl
+#include canvas:shaders/pipeline/material.glsl
 
 /******************************************************
   canvas:shaders/pipeline/fog.glsl
 ******************************************************/
-
-uniform int _cvu_fog_mode;
-
-#define _CV_FOG_MODE = 0;
-
-#define  _CV_FOG_LINEAR  0
-#define  _CV_FOG_EXP     1
-#define  _CV_FOG_EXP2    2
-#define  _CV_FOG_DISABLE 3
-
-#define _CV_FOG_CONFIG_VANILLA    0
-#define _CV_FOG_CONFIG_SUBTLE    1
-
-#define _CV_FOG_CONFIG _CV_FOG_CONFIG_VANILLA
 
 /**
  * Linear fog.  Is an inverse factor - 0 means full fog.
@@ -32,7 +19,7 @@ float _cv_linearFogFactor() {
  */
 float _cv_expFogFactor() {
 	float f = gl_FogFragCoord * gl_Fog.density;
-	float fogFactor = _cvu_fog_mode == _CV_FOG_EXP ? exp(f) : exp(f * f);
+	float fogFactor = frx_fogMode() == FOG_EXP ? exp(f) : exp(f * f);
 	return clamp(1.0 / fogFactor, 0.0, 1.0);
 }
 
@@ -40,7 +27,7 @@ float _cv_expFogFactor() {
  * Returns either linear or exponential fog depending on current uniform value.
  */
 float _cv_fogFactor() {
-	return _cvu_fog_mode == _CV_FOG_LINEAR ? _cv_linearFogFactor() : _cv_expFogFactor();
+	return frx_fogMode() == FOG_LINEAR ? _cv_linearFogFactor() : _cv_expFogFactor();
 }
 
 vec4 _cv_fogInner(vec4 diffuseColor) {
@@ -54,5 +41,5 @@ vec4 _cv_fogInner(vec4 diffuseColor) {
 }
 
 vec4 _cv_fog(vec4 diffuseColor) {
-	return _cvu_fog_mode == _CV_FOG_DISABLE ? diffuseColor : _cv_fogInner(diffuseColor);
+	return frx_fogMode() == FOG_DISABLE ? diffuseColor : _cv_fogInner(diffuseColor);
 }
