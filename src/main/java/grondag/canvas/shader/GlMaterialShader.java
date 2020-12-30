@@ -22,6 +22,8 @@ import org.lwjgl.opengl.GL21;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.Identifier;
 
+import grondag.canvas.pipeline.Pipeline;
+
 // PERF: emit switch statments on non-Mac
 public class GlMaterialShader extends GlShader {
 	GlMaterialShader(Identifier shaderSource, int shaderType, ProgramType programType) {
@@ -97,7 +99,8 @@ public class GlMaterialShader extends GlShader {
 			starts = startsBuilder.toString();
 		}
 
-		baseSource = StringUtils.replace(baseSource, ShaderData.API_TARGET, impl);
+		final String pipelineSource = loadShaderSource(resourceManager, Pipeline.config().materialFragmentShader);
+		baseSource = StringUtils.replace(baseSource, ShaderData.API_TARGET, impl + pipelineSource);
 		baseSource = StringUtils.replace(baseSource, ShaderData.FRAGMENT_START, starts);
 		return baseSource;
 	}
@@ -169,7 +172,8 @@ public class GlMaterialShader extends GlShader {
 			ends = endsBuilder.toString();
 		}
 
-		baseSource = StringUtils.replace(baseSource, ShaderData.API_TARGET, impl);
+		final String pipelineSource = loadShaderSource(resourceManager, Pipeline.config().materialVertexShader);
+		baseSource = StringUtils.replace(baseSource, ShaderData.API_TARGET, impl + pipelineSource);
 		baseSource = StringUtils.replace(baseSource, ShaderData.VERTEX_START, starts);
 		baseSource = StringUtils.replace(baseSource, ShaderData.VEREX_END, ends);
 		return baseSource;

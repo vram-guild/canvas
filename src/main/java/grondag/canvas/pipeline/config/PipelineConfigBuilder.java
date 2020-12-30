@@ -52,6 +52,9 @@ public class PipelineConfigBuilder {
 
 	public NamedDependency<FramebufferConfig> defaultFramebuffer;
 
+	public String materialVertexShader;
+	public String materialFragmentShader;
+
 	public void load(JsonObject configJson) {
 		if (params.isEmpty()) {
 			params.add(PipelineParam.of(context, "bloom_intensity", 0.0f, 0.5f, 0.1f));
@@ -65,6 +68,14 @@ public class PipelineConfigBuilder {
 
 		if (configJson.containsKey("fabulousTargets")) {
 			fabulosity = LoadHelper.loadObject(context, configJson, "fabulousTargets", FabulousConfig::new);
+		}
+
+		if (configJson.containsKey("materialVertexShader")) {
+			materialVertexShader = JanksonHelper.asString(configJson.get("materialVertexShader"));
+		}
+
+		if (configJson.containsKey("materialFragmentShader")) {
+			materialFragmentShader = JanksonHelper.asString(configJson.get("materialFragmentShader"));
 		}
 
 		if (configJson.containsKey("drawTargets")) {
@@ -85,6 +96,16 @@ public class PipelineConfigBuilder {
 
 		if (drawTargets == null || !drawTargets.validate()) {
 			CanvasMod.LOG.warn("Invalid pipeline config - missing or invalid drawTargets config.");
+			valid = false;
+		}
+
+		if (materialVertexShader == null || materialVertexShader.isEmpty()) {
+			CanvasMod.LOG.warn("Invalid pipeline config - missing materialVertexShader.");
+			valid = false;
+		}
+
+		if (materialFragmentShader == null || materialFragmentShader.isEmpty()) {
+			CanvasMod.LOG.warn("Invalid pipeline config - missing materialFragmentShader.");
 			valid = false;
 		}
 

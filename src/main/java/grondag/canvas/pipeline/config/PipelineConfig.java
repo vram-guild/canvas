@@ -40,6 +40,9 @@ public class PipelineConfig {
 
 	public final NamedDependency<FramebufferConfig> defaultFramebuffer;
 
+	public final Identifier materialVertexShader;
+	public final Identifier materialFragmentShader;
+
 	private PipelineConfig() {
 		context = new ConfigContext();
 		params = new PipelineParam[0];
@@ -52,6 +55,8 @@ public class PipelineConfig {
 		fabulosity = null;
 		drawTargets = DrawTargetsConfig.makeDefault(context);
 		defaultFramebuffer = context.frameBuffers.dependOn("default");
+		materialVertexShader = new Identifier("canvas:shaders/pipeline/standard.vert");
+		materialFragmentShader = new Identifier("canvas:shaders/pipeline/standard.frag");
 	}
 
 	PipelineConfig (PipelineConfigBuilder builder) {
@@ -68,6 +73,8 @@ public class PipelineConfig {
 		framebuffers = builder.framebuffers.toArray(new FramebufferConfig[builder.framebuffers.size()]);
 		onWorldStart = builder.onWorldStart.toArray(new PassConfig[builder.onWorldStart.size()]);
 		afterRenderHand = builder.afterRenderHand.toArray(new PassConfig[builder.afterRenderHand.size()]);
+		materialVertexShader = new Identifier(builder.materialVertexShader);
+		materialFragmentShader = new Identifier(builder.materialFragmentShader);
 	}
 
 	public static PipelineConfig minimalConfig() {

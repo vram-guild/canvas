@@ -20,6 +20,8 @@
 
 	nameKey: "pipeline.canvas_standard.name",
 	descriptionKey: "pipeline.canvas_standard.desc",
+	materialVertexShader: "canvas:shaders/pipeline/standard.vert",
+	materialFragmentShader: "canvas:shaders/pipeline/standard.frag",
 
 	// Framebuffer that will be visible to the game and to mods as the primary framebuffer.
 	// Should generally keep it the same as vanilla has it and avoid using it except as a

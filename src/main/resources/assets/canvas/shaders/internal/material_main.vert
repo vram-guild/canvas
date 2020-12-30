@@ -2,7 +2,6 @@
 #include frex:shaders/api/context.glsl
 #include frex:shaders/api/vertex.glsl
 #include frex:shaders/api/sampler.glsl
-#include canvas:shaders/pipeline/standard.vert
 #include canvas:shaders/internal/varying.glsl
 #include canvas:shaders/internal/flags.glsl
 #include canvas:shaders/internal/vertex.glsl

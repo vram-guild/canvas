@@ -5,7 +5,6 @@
 #include frex:shaders/api/fragment.glsl
 #include frex:shaders/api/sampler.glsl
 #include canvas:shaders/internal/program.glsl
-#include canvas:shaders/pipeline/standard.frag
 
 #include canvas:apitarget
 
