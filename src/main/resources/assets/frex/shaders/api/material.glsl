@@ -44,3 +44,19 @@ bool frx_matDisableAo() {
 bool frx_matDisableDiffuse() {
 	return _cv_getFlag(_CV_FLAG_DISABLE_DIFFUSE) == 1.0;
 }
+
+/**
+ * True when should render the red "hurt" overlay.
+ * Mostly for use in pipeline shaders - material shaders aren't expected to handle.
+ */
+bool frx_matHurt() {
+	return _cv_getFlag(_CV_FLAG_HURT_OVERLAY) == 1.0;
+}
+
+/**
+ * True when should render the white "flash" overlay.
+ * Mostly for use in pipeline shaders - material shaders aren't expected to handle.
+ */
+bool frx_matFlash() {
+	return _cv_getFlag(_CV_FLAG_FLASH_OVERLAY) == 1.0;
+}

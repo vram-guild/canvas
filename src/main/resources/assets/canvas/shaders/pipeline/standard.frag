@@ -5,6 +5,7 @@
 #include frex:shaders/lib/color.glsl
 #include frex:shaders/api/world.glsl
 #include frex:shaders/api/player.glsl
+#include frex:shaders/api/material.glsl
 
 /******************************************************
   canvas:shaders/pipeline/standard.frag
@@ -86,11 +87,9 @@ void frx_startPipelineFragment(inout frx_FragmentData fragData) {
 	}
 #endif
 
-	// TODO: need to expose flash/hurt flags as API
-	// PERF: varyings better here?
-	if (_cv_getFlag(_CV_FLAG_FLASH_OVERLAY) == 1.0) {
+	if (frx_matFlash()) {
 		a = a * 0.25 + 0.75;
-	} else if (_cv_getFlag(_CV_FLAG_HURT_OVERLAY) == 1.0) {
+	} else if (frx_matHurt()) {
 		a = vec4(0.25 + a.r * 0.75, a.g * 0.75, a.b * 0.75, a.a);
 	}
 
