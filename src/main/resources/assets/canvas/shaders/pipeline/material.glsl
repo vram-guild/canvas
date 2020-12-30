@@ -14,6 +14,8 @@
 
 #define DIFFUSE_SHADING_MODE DIFFUSE_MODE_NORMAL
 
+#define HANDHELD_LIGHT_RADIUS 0
+
 #if DIFFUSE_SHADING_MODE != DIFFUSE_MODE_NONE
 varying float _cvv_diffuse;
 #endif

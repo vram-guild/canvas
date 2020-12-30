@@ -2,7 +2,7 @@
 #include canvas:shaders/internal/world.glsl
 
 /******************************************************
-  canvas:shaders/internal/fog.glsl
+  canvas:shaders/pipeline/fog.glsl
 ******************************************************/
 
 uniform int _cvu_fog_mode;

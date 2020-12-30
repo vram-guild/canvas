@@ -1,9 +1,8 @@
 #include frex:shaders/api/context.glsl
 #include frex:shaders/api/world.glsl
-#include canvas:shaders/internal/program.glsl
 
 /******************************************************
-  canvas:shaders/internal/diffuse.glsl
+  canvas:shaders/pipeline/diffuse.glsl
 ******************************************************/
 
 /**
@@ -62,5 +61,5 @@ float _cv_diffuseWorld(vec3 normal) {
 }
 
 float _cv_diffuse (vec3 normal) {
-	return _cv_isGui() == 1.0 ? _cv_diffuseGui(normal) : _cv_diffuseBaked(normal);
+	return frx_isGui() ? _cv_diffuseGui(normal) : _cv_diffuseBaked(normal);
 }
