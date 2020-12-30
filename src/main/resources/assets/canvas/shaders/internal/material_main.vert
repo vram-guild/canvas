@@ -58,7 +58,10 @@ void main() {
 	frx_startPipelineVertex(data);
 
 	// map texture coordinates
-	if (_cvu_atlas[_CV_SPRITE_INFO_TEXTURE_SIZE] != 0.0) {
+	if (_cvu_atlas[_CV_SPRITE_INFO_TEXTURE_SIZE] == 0.0) {
+		_cvv_spriteBounds = vec4(0.0, 0.0, 1.0, 1.0);
+
+	} else {
 		float spriteIndex = in_material.x;
 		// for sprite atlas textures, convert from normalized (0-1) to interpolated coordinates
 		vec4 spriteBounds = texture2DLod(_cvu_spriteInfo, vec2(0, spriteIndex / _cvu_atlas[_CV_SPRITE_INFO_TEXTURE_SIZE]), 0);
@@ -73,6 +76,8 @@ void main() {
 		spriteBounds /= vec4(atlasWidth, atlasHeight, atlasWidth, atlasHeight);
 
 		data.spriteUV = spriteBounds.xy + data.spriteUV * spriteBounds.zw;
+
+		_cvv_spriteBounds = spriteBounds;
 	}
 
 	data.spriteUV = _cv_textureCoord(data.spriteUV, 0);
