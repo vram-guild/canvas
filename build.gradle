@@ -42,6 +42,11 @@ if (grgit == null) {
 	} else {
 		project.version = project.getProperty(version_tag) + '.' + (grgit.log().size() + 1) + '-snapshot'
 	}
+	
+	if (grgit.branch.current().name != 'one') {
+		artifact_name = artifact_name + '-' + grgit.branch.current().name
+		project.archivesBaseName = artifact_name
+	}
 } else {
 	project.version = '99.0.0-local'
 }

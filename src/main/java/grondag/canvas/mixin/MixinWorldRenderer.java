@@ -157,6 +157,7 @@ public class MixinWorldRenderer implements WorldRendererExt {
 	}
 
 	/**
+	 * @author grondag
 	 * @reason prevent mishap
 	 */
 	@Overwrite
@@ -165,6 +166,7 @@ public class MixinWorldRenderer implements WorldRendererExt {
 	}
 
 	/**
+	 * @author grondag
 	 * @reason prevent mishap
 	 */
 	@Overwrite
