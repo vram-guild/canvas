@@ -36,13 +36,13 @@ public class AttachmentConfig extends AbstractConfig {
 		this.isDepth = isDepth;
 
 		if (config == null) {
-			image = context.images.createDependency("__invalid__");
+			image = context.images.dependOn("__invalid__");
 			lod = 0;
 			clear = false;
 			clearColor = 0;
 			clearDepth = 1.0f;
 		} else {
-			image = context.images.createDependency(config.get(String.class, "image"));
+			image = context.images.dependOn(config, "image");
 			lod = config.getInt("lod", 0);
 
 			if (isDepth) {
@@ -59,7 +59,7 @@ public class AttachmentConfig extends AbstractConfig {
 
 	private AttachmentConfig(ConfigContext ctx, String name) {
 		super(ctx);
-		image = context.images.createDependency(name);
+		image = context.images.dependOn(name);
 		lod = 0;
 		clearColor = 0;
 		clear = false;

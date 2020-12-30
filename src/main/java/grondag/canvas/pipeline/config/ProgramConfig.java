@@ -2,7 +2,6 @@ package grondag.canvas.pipeline.config;
 
 import blue.endless.jankson.JsonArray;
 import blue.endless.jankson.JsonObject;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import net.minecraft.util.Identifier;
 
@@ -34,7 +33,7 @@ public class ProgramConfig extends NamedConfig<ProgramConfig> {
 	public final String[] samplerNames;
 	public final boolean isBuiltIn;
 
-	private ProgramConfig(ConfigContext ctx, JsonObject config) {
+	ProgramConfig(ConfigContext ctx, JsonObject config) {
 		super(ctx, config.get(String.class, "name"));
 		vertexSource = new Identifier(config.get(String.class, "vertexSource"));
 		fragmentSource = new Identifier(config.get(String.class, "fragmentSource"));
@@ -67,19 +66,6 @@ public class ProgramConfig extends NamedConfig<ProgramConfig> {
 		fragmentSource = null;
 		samplerNames = null;
 		isBuiltIn = true;
-	}
-
-	public static void deserialize(ConfigContext ctx, JsonObject configJson, ObjectArrayList<ProgramConfig> consumer) {
-		if (configJson == null || !configJson.containsKey("programs")) {
-			return;
-		}
-
-		final JsonArray array = configJson.get(JsonArray.class, "programs");
-		final int limit = array.size();
-
-		for (int i = 0; i < limit; ++i) {
-			consumer.add(new ProgramConfig(ctx, (JsonObject) array.get(i)));
-		}
 	}
 
 	public static ProgramConfig builtIn(ConfigContext ctx, String name) {

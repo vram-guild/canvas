@@ -18,9 +18,7 @@ package grondag.canvas.pipeline.config;
 
 import blue.endless.jankson.JsonArray;
 import blue.endless.jankson.JsonObject;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
-import grondag.canvas.CanvasMod;
 import grondag.canvas.pipeline.config.util.ConfigContext;
 import grondag.canvas.pipeline.config.util.JanksonHelper;
 import grondag.canvas.pipeline.config.util.NamedConfig;
@@ -56,10 +54,10 @@ public class PassConfig extends NamedConfig<PassConfig> {
 	//	public String filter;
 
 	@SuppressWarnings("unchecked")
-	private PassConfig (ConfigContext ctx, JsonObject config) {
+	PassConfig (ConfigContext ctx, JsonObject config) {
 		super(ctx, JanksonHelper.asStringOrDefault(config.get("name"), JanksonHelper.asString(config.get("framebuffer"))));
-		framebuffer = ctx.frameBuffers.createDependency(JanksonHelper.asString(config.get("framebuffer")));
-		program = ctx.programs.createDependency(JanksonHelper.asString(config.get("program")));
+		framebuffer = ctx.frameBuffers.dependOn(config, "framebuffer");
+		program = ctx.programs.dependOn(config, "program");
 
 		lod = config.getInt("lod", 0);
 
@@ -71,57 +69,19 @@ public class PassConfig extends NamedConfig<PassConfig> {
 			samplerImages = new NamedDependency[limit];
 
 			for (int i = 0; i < limit; ++i) {
-				samplerImages[i] = ctx.images.createDependency(JanksonHelper.asString(names.get(i)));
+				samplerImages[i] = ctx.images.dependOn(names.get(i));
 			}
 		}
 	}
-
-	public static void deserialize(ConfigContext ctx, JsonObject configJson, String key, ObjectArrayList<PassConfig> passes) {
-		if (configJson == null || !configJson.containsKey(key)) {
-			return;
-		}
-
-		final JsonObject passJson = configJson.getObject(key);
-
-		if (passJson == null || !passJson.containsKey("passes")) {
-			return;
-		}
-
-		final JsonArray array = JanksonHelper.getJsonArrayOrNull(passJson, "passes",
-				String.format("Error parsing pipeline stage %s.  Passes must be an array. No passes created.", key));
-
-		if (array == null) {
-			return;
-		}
-
-		final int limit = array.size();
-
-		for (int i = 0; i < limit; ++i) {
-			passes.add(new PassConfig(ctx, (JsonObject) array.get(i)));
-		}
-	}
-
-	public static String CLEAR_NAME = "frex_clear";
 
 	@Override
 	public boolean validate() {
 		boolean valid = super.validate();
-
-		if (!framebuffer.isValid()) {
-			CanvasMod.LOG.warn(String.format("Pass %s invalid because framebuffer %s not found or invalid.", name, framebuffer.name));
-			valid = false;
-		}
-
-		if (!program.isValid()) {
-			CanvasMod.LOG.warn(String.format("Pass %s invalid because program %s not found or invalid.", name, program.name));
-			valid = false;
-		}
+		valid &= framebuffer.validate("Pass %s invalid because framebuffer %s not found or invalid.", name, framebuffer.name);
+		valid &= program.validate("Pass %s invalid because program %s not found or invalid.", name, program.name);
 
 		for (final NamedDependency<ImageConfig> img : samplerImages) {
-			if (!img.isValid()) {
-				CanvasMod.LOG.warn(String.format("Pass %s invalid because samplerImage %s not found or invalid.", name, img.name));
-				valid = false;
-			}
+			valid &= program.validate("Pass %s invalid because samplerImage %s not found or invalid.", name, img.name);
 		}
 
 		return valid;
@@ -131,4 +91,6 @@ public class PassConfig extends NamedConfig<PassConfig> {
 	public NamedDependencyMap<PassConfig> nameMap() {
 		return context.passes;
 	}
+
+	public static String CLEAR_NAME = "frex_clear";
 }

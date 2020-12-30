@@ -51,7 +51,7 @@ public class PipelineConfig {
 		framebuffers = new FramebufferConfig[] { FramebufferConfig.makeDefault(context) };
 		fabulosity = null;
 		drawTargets = DrawTargetsConfig.makeDefault(context);
-		defaultFramebuffer = context.frameBuffers.createDependency("default");
+		defaultFramebuffer = context.frameBuffers.dependOn("default");
 	}
 
 	PipelineConfig (PipelineConfigBuilder builder) {

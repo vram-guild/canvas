@@ -18,6 +18,8 @@ package grondag.canvas.pipeline.config.util;
 
 import java.util.function.Predicate;
 
+import blue.endless.jankson.JsonElement;
+import blue.endless.jankson.JsonObject;
 import com.google.common.base.Predicates;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
@@ -32,8 +34,16 @@ public class NamedDependencyMap<T extends NamedConfig<T>> extends Object2ObjectO
 		this(Predicates.alwaysFalse());
 	}
 
-	public NamedDependency<T> createDependency(String name) {
+	public NamedDependency<T> dependOn(String name) {
 		return new NamedDependency<>(this, name);
+	}
+
+	public NamedDependency<T> dependOn(JsonElement json) {
+		return dependOn(JanksonHelper.asString(json));
+	}
+
+	public NamedDependency<T> dependOn(JsonObject json, String key) {
+		return dependOn(json.get(key));
 	}
 
 	public boolean isValidReference(String name) {

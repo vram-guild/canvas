@@ -18,6 +18,8 @@ package grondag.canvas.pipeline.config.util;
 
 import org.jetbrains.annotations.Nullable;
 
+import grondag.canvas.CanvasMod;
+
 public class NamedDependency<T extends NamedConfig<T>> {
 	private final NamedDependencyMap<T> map;
 	public final String name;
@@ -37,5 +39,14 @@ public class NamedDependency<T extends NamedConfig<T>> {
 
 	public @Nullable T value() {
 		return map.get(name);
+	}
+
+	public boolean validate(String msg, Object... args) {
+		if (!isValid()) {
+			CanvasMod.LOG.warn(String.format(msg, args));
+			return false;
+		} else {
+			return true;
+		}
 	}
 }

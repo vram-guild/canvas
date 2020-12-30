@@ -18,7 +18,6 @@ package grondag.canvas.pipeline.config;
 
 import blue.endless.jankson.JsonArray;
 import blue.endless.jankson.JsonObject;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.lwjgl.opengl.GL21;
 
 import grondag.canvas.pipeline.GlSymbolLookup;
@@ -60,7 +59,7 @@ public class ImageConfig extends NamedConfig<ImageConfig> {
 		texParamPairs[7] = GL21.GL_CLAMP;
 	}
 
-	private ImageConfig (ConfigContext ctx, JsonObject config) {
+	ImageConfig (ConfigContext ctx, JsonObject config) {
 		super(ctx, config.get(String.class, "name"));
 		internalFormat = GlSymbolLookup.lookup(config, "internalFormat", "RGBA8");
 		lod = config.getInt("lod", 0);
@@ -81,19 +80,6 @@ public class ImageConfig extends NamedConfig<ImageConfig> {
 				texParamPairs[j++] = GlSymbolLookup.lookup(p, "name", "NONE");
 				texParamPairs[j++] = GlSymbolLookup.lookup(p, "val", "NONE");
 			}
-		}
-	}
-
-	public static void deserialize(ConfigContext ctx, JsonObject configJson, ObjectArrayList<ImageConfig> consumer) {
-		if (configJson == null || !configJson.containsKey("images")) {
-			return;
-		}
-
-		final JsonArray images = configJson.get(JsonArray.class, "images");
-		final int limit = images.size();
-
-		for (int i = 0; i < limit; ++i) {
-			consumer.add(new ImageConfig(ctx, (JsonObject) images.get(i)));
 		}
 	}
 

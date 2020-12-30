@@ -28,10 +28,9 @@ import net.minecraft.util.Identifier;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
 import grondag.canvas.pipeline.config.util.ConfigContext;
-import grondag.canvas.pipeline.config.util.JanksonHelper;
+import grondag.canvas.pipeline.config.util.LoadHelper;
 import grondag.canvas.pipeline.config.util.NamedDependency;
 
-// WIP:  defaultFramebuffer target
 // WIP: managed draw targets
 public class PipelineConfigBuilder {
 	public final ConfigContext context = new ConfigContext();
@@ -53,30 +52,30 @@ public class PipelineConfigBuilder {
 		params.add(PipelineParam.of(context, "bloom_intensity", 0.0f, 0.5f, 0.1f));
 		params.add(PipelineParam.of(context, "bloom_scale", 0.0f, 2.0f, 0.25f));
 
-		defaultFramebuffer = context.frameBuffers.createDependency(JanksonHelper.asString(configJson.get("defaultFramebuffer")));
-		fabulosity = FabulousConfig.deserialize(context, configJson);
-		drawTargets = DrawTargetsConfig.deserialize(context, configJson);
+		defaultFramebuffer = context.frameBuffers.dependOn(configJson, "defaultFramebuffer");
+		fabulosity = LoadHelper.loadObject(context, configJson, "fabulousTargets", FabulousConfig::new);
+		drawTargets = LoadHelper.loadObject(context, configJson, "drawTargets", DrawTargetsConfig::new);
 
-		PassConfig.deserialize(context, configJson, "fabulous", fabulous);
-		PassConfig.deserialize(context, configJson, "onWorldRenderStart", onWorldStart);
-		PassConfig.deserialize(context, configJson, "afterRenderHand", afterRenderHand);
+		LoadHelper.loadSubList(context, configJson, "fabulous", "passes", fabulous, PassConfig::new);
+		LoadHelper.loadSubList(context, configJson, "onWorldRenderStart", "passes", onWorldStart, PassConfig::new);
+		LoadHelper.loadSubList(context, configJson, "afterRenderHand", "passes", afterRenderHand, PassConfig::new);
 
-		ImageConfig.deserialize(context, configJson, images);
-		ProgramConfig.deserialize(context, configJson, shaders);
-		FramebufferConfig.deserialize(context, configJson, framebuffers);
+		LoadHelper.loadList(context, configJson, "images", images, ImageConfig::new);
+		LoadHelper.loadList(context, configJson, "programs", shaders, ProgramConfig::new);
+		LoadHelper.loadList(context, configJson, "framebuffers", framebuffers, FramebufferConfig::new);
 	}
 
 	public boolean validate() {
 		boolean valid = true;
 
-		valid &= (drawTargets == null || drawTargets.validate());
+		if (drawTargets == null || !drawTargets.validate()) {
+			CanvasMod.LOG.warn("Invalid pipeline config - missing or invalid drawTargets config.");
+			valid = false;
+		}
 
 		valid &= (fabulosity == null || fabulosity.validate());
 
-		if (defaultFramebuffer == null || !defaultFramebuffer.isValid()) {
-			CanvasMod.LOG.warn("Invalid pipeline config - missing or invalid defaultFramebuffer.");
-			valid = false;
-		}
+		valid &= defaultFramebuffer != null && defaultFramebuffer.validate("Invalid pipeline config - missing or invalid defaultFramebuffer.");
 
 		for (final FramebufferConfig fb : framebuffers) {
 			valid &= fb.validate();
