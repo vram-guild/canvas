@@ -18,7 +18,7 @@ package grondag.canvas.pipeline.pass;
 
 import grondag.canvas.pipeline.config.PassConfig;
 
-// WIP: complete or remove
+// FEAT: complete or remove
 public class BlitPass extends Pass {
 	BlitPass(PassConfig config) {
 		super(config);

@@ -16,8 +16,11 @@
 
 package grondag.canvas.pipeline.config;
 
+import java.io.IOException;
+
 import blue.endless.jankson.JsonArray;
 import blue.endless.jankson.JsonObject;
+import blue.endless.jankson.api.SyntaxError;
 import it.unimi.dsi.fastutil.objects.ObjectArrayFIFOQueue;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
@@ -147,13 +150,16 @@ public class PipelineConfigBuilder {
 		included.add(id);
 
 		while (!queue.isEmpty()) {
-			try (Resource res = rm.getResource(queue.dequeue())) {
+			final Identifier target = queue.dequeue();
+
+			try (Resource res = rm.getResource(target)) {
 				final JsonObject configJson = Configurator.JANKSON.load(res.getInputStream());
 				result.load(configJson);
 				getIncludes(configJson, included, queue);
-			} catch (final Exception e) {
-				// WIP: better logging
-				e.printStackTrace();
+			} catch (final IOException e) {
+				CanvasMod.LOG.warn(String.format("Unable to load pipeline config resource %s due to IOExeption: %s", target.toString(), e.getLocalizedMessage()));
+			} catch (final SyntaxError e) {
+				CanvasMod.LOG.warn(String.format("Unable to load pipeline config resource %s due to Syntax Error: %s", target.toString(), e.getLocalizedMessage()));
 			}
 		}
 

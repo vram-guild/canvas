@@ -18,6 +18,7 @@ package grondag.canvas.pipeline.config;
 
 import blue.endless.jankson.JsonObject;
 
+import grondag.canvas.CanvasMod;
 import grondag.canvas.pipeline.config.util.ConfigContext;
 import grondag.canvas.pipeline.config.util.NamedConfig;
 import grondag.canvas.pipeline.config.util.NamedDependencyMap;
@@ -54,10 +55,24 @@ public class FramebufferConfig extends NamedConfig<FramebufferConfig> {
 
 		for (final AttachmentConfig c : colorAttachments) {
 			valid &= c.validate();
+
+			if (c.isDepth) {
+				CanvasMod.LOG.warn(String.format("Invalid pipeline config - depth attachment %s used as color attachment on framebuffer %s.",
+						c.image.name, name));
+
+				valid = false;
+			}
 		}
 
 		if (depthAttachment != null) {
 			valid &= depthAttachment.validate();
+
+			if (!depthAttachment.isDepth) {
+				CanvasMod.LOG.warn(String.format("Invalid pipeline config - color attachment %s used as depth attachment on framebuffer %s.",
+						depthAttachment.image.name, name));
+
+				valid = false;
+			}
 		}
 
 		return valid;

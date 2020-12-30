@@ -26,12 +26,13 @@ import grondag.canvas.CanvasMod;
 import grondag.canvas.pipeline.config.AttachmentConfig;
 import grondag.canvas.pipeline.config.FramebufferConfig;
 
-// WIP: handle clear masks
+// FEAT: handle clear masks
 public class PipelineFramebuffer {
 	final FramebufferConfig config;
 	final float[][] clearColor;
 	final int[] attachmentPoints;
-	final int clearFlags;
+	final int colorClearFlags;
+	final int clearMask;
 
 	private int fboGlId = -1;
 
@@ -63,7 +64,10 @@ public class PipelineFramebuffer {
 			attachmentPoints[i] = attachmentPoint++;
 		}
 
-		this.clearFlags = clearFlags;
+		colorClearFlags = clearFlags;
+
+		clearMask = (colorClearFlags != 0) ? 1 : 0;
+
 		open(width, height);
 	}
 
@@ -105,21 +109,37 @@ public class PipelineFramebuffer {
 	public void clear() {
 		GlStateManager.bindFramebuffer(FramebufferInfo.FRAME_BUFFER, fboGlId);
 
-		final int count = clearColor.length;
+		if (colorClearFlags == 1) {
+			// Try for combined depth/color clear if have single color
+			int mask = GL21.GL_COLOR_BUFFER_BIT;
 
-		if (count == 1 || clearFlags == 1) {
-			GlStateManager.clearColor(clearColor[0][R], clearColor[0][G], clearColor[0][B], clearColor[0][A]);
-			GlStateManager.clear(GL21.GL_COLOR_BUFFER_BIT, MinecraftClient.IS_SYSTEM_MAC);
-		} else {
-			for (int i = 0; i < count; ++i) {
-				if ((clearFlags & (1 << i)) != 0) {
-					GL21.glDrawBuffer(FramebufferInfo.COLOR_ATTACHMENT + i);
-					GlStateManager.clearColor(clearColor[i][R], clearColor[i][G], clearColor[i][B], clearColor[i][A]);
-					GlStateManager.clear(GL21.GL_COLOR_BUFFER_BIT, MinecraftClient.IS_SYSTEM_MAC);
-				}
+			if (config.depthAttachment.clear) {
+				mask |= GL21.GL_DEPTH_BUFFER_BIT;
+				GlStateManager.clearDepth(config.depthAttachment.clearDepth);
 			}
 
-			GL21.glDrawBuffers(attachmentPoints);
+			GlStateManager.clearColor(clearColor[0][R], clearColor[0][G], clearColor[0][B], clearColor[0][A]);
+			GlStateManager.clear(mask, MinecraftClient.IS_SYSTEM_MAC);
+		} else {
+			// Clears happen separately in other cases
+			if (config.depthAttachment.clear) {
+				GlStateManager.clearDepth(config.depthAttachment.clearDepth);
+				GlStateManager.clear(GL21.GL_DEPTH_BUFFER_BIT, MinecraftClient.IS_SYSTEM_MAC);
+			}
+
+			if (colorClearFlags != 0) {
+				final int count = clearColor.length;
+
+				for (int i = 0; i < count; ++i) {
+					if ((colorClearFlags & (1 << i)) != 0) {
+						GL21.glDrawBuffer(FramebufferInfo.COLOR_ATTACHMENT + i);
+						GlStateManager.clearColor(clearColor[i][R], clearColor[i][G], clearColor[i][B], clearColor[i][A]);
+						GlStateManager.clear(GL21.GL_COLOR_BUFFER_BIT, MinecraftClient.IS_SYSTEM_MAC);
+					}
+				}
+
+				GL21.glDrawBuffers(attachmentPoints);
+			}
 		}
 	}
 
