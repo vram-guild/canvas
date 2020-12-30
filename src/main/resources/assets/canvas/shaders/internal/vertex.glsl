@@ -12,8 +12,10 @@
 attribute vec4 in_color;
 attribute vec2 in_uv;
 attribute vec2 in_material;
+	#ifdef VANILLA_LIGHTING
 attribute vec4 in_lightmap;
 attribute vec4 in_normal_flags;
+	#endif
 #endif
 
 uniform float[4] _cvu_atlas;

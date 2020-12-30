@@ -12,8 +12,7 @@
 ******************************************************/
 
 #if AO_SHADING_MODE != AO_MODE_NONE
-vec4 aoFactor(vec2 lightCoord) {
-	float ao = _cvv_ao;
+vec4 aoFactor(vec2 lightCoord, float ao) {
 
 #if AO_SHADING_MODE == AO_MODE_SUBTLE_BLOCK_LIGHT || AO_SHADING_MODE == AO_MODE_SUBTLE_ALWAYS
 	// accelerate the transition from 0.4 (should be the minimum) to 1.0
@@ -43,7 +42,7 @@ vec4 light(frx_FragmentData fragData) {
 	if (fragData.diffuse) {
 		vec4 block = texture2D(frxs_lightmap, vec2(fragData.light.x, 0.03125));
 		vec4 sky = texture2D(frxs_lightmap, vec2(0.03125, fragData.light.y));
-		result = max(block, sky * _cvv_diffuse);
+		result = max(block, sky * _cpv_diffuse);
 	} else {
 		result = texture2D(frxs_lightmap, fragData.light);
 	}
@@ -75,13 +74,13 @@ void frx_startPipelineFragment(inout frx_FragmentData fragData) {
 
 #if AO_SHADING_MODE != AO_MODE_NONE
 	if (fragData.ao) {
-		a *= aoFactor(fragData.light);
+		a *= aoFactor(fragData.light, fragData.aoShade);
 	}
 #endif
 
 #if DIFFUSE_SHADING_MODE == DIFFUSE_MODE_NORMAL
 	if (fragData.diffuse) {
-		float df = _cvv_diffuse + (1.0 - _cvv_diffuse) * fragData.emissivity;
+		float df = _cpv_diffuse + (1.0 - _cpv_diffuse) * fragData.emissivity;
 
 		a *= vec4(df, df, df, 1.0);
 	}
@@ -94,7 +93,7 @@ void frx_startPipelineFragment(inout frx_FragmentData fragData) {
 	}
 
 	// TODO: need a separate fog pass?
-	gl_FragData[TARGET_BASECOLOR] = _cv_fog(a);
+	gl_FragData[TARGET_BASECOLOR] = _cp_fog(a);
 	gl_FragDepth = gl_FragCoord.z;
 
 #if TARGET_EMISSIVE > 0

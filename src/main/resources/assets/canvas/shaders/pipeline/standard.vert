@@ -15,6 +15,6 @@ void frx_endPipelineVertex(inout frx_VertexData data) {
 	gl_Position = data.vertex;
 
 	#if DIFFUSE_SHADING_MODE != DIFFUSE_MODE_NONE
-		_cvv_diffuse = _cv_diffuse(data.normal);
+		_cpv_diffuse = _cp_diffuse(data.normal);
 	#endif
 }

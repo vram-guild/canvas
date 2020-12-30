@@ -24,6 +24,7 @@ void _cv_endVertex(inout frx_VertexData data, in int cv_programId) {
 }
 
 void main() {
+#ifdef VANILLA_LIGHTING
 	frx_VertexData data = frx_VertexData(
 		gl_Vertex,
 		in_uv,
@@ -32,6 +33,14 @@ void main() {
 		in_lightmap.rg * 0.00390625 + 0.03125,
 		in_lightmap.b / 255.0
 	);
+#else
+	frx_VertexData data = frx_VertexData(
+		gl_Vertex,
+		in_uv,
+		in_color,
+		(in_normal_flags.xyz - 127.0) / 127.0
+	);
+#endif
 
 	// Adding +0.5 prevents striping or other strangeness in flag-dependent rendering
 	// due to FP error on some cards/drivers.  Also made varying attribute invariant (rolls eyes at OpenGL)
@@ -81,6 +90,9 @@ void main() {
 	frx_texcoord = data.spriteUV;
 	_cvv_color = data.color;
 	_cvv_normal = data.normal;
+
+#ifdef VANILLA_LIGHTING
 	_cvv_lightcoord = data.light;
 	_cvv_ao = data.aoShade;
+#endif
 }
