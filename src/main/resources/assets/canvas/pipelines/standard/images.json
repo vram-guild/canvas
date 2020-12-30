@@ -1,0 +1,290 @@
+{
+  // pixelFormat and pixelDataType should not matter because the textures
+  // are created without loading any pixel data.  You can specify them to deal
+  // with any driver strangeness or situations where the image will somehow
+  // also be loaded from memory.
+  images: [
+    // color attachment for solid draws
+    {
+      name: "solid_main",
+      lod: 0,
+      internalFormat: "RGBA8",
+      pixelFormat: "RGBA",
+      pixelDataType: "UNSIGNED_BYTE",
+      target: "TEXTURE_2D",
+      texParams: [
+        {name: "TEXTURE_MIN_FILTER", val: "LINEAR"},
+        {name: "TEXTURE_MAG_FILTER", val: "LINEAR"},
+        {name: "TEXTURE_WRAP_S", val: "CLAMP"},
+        {name: "TEXTURE_WRAP_T", val: "CLAMP"}
+      ]
+    },
+
+    // depth attachment for solid draws
+    {
+      name: "solid_depth",
+      lod: 0,
+      internalFormat: "DEPTH_COMPONENT",
+      pixelFormat: "DEPTH_COMPONENT",
+      pixelDataType: "FLOAT",
+      target: "TEXTURE_2D",
+      texParams: [
+        {name: "TEXTURE_MIN_FILTER", val: "NEAREST"},
+        {name: "TEXTURE_MAG_FILTER", val: "NEAREST"},
+        {name: "TEXTURE_WRAP_S", val: "CLAMP"},
+        {name: "TEXTURE_WRAP_T", val: "CLAMP"},
+        {name: "TEXTURE_COMPARE_MODE", val: "NONE"}
+      ]
+    },
+
+    // color attachment for entity translucency
+    {
+      name: "entity_main",
+      lod: 0,
+      internalFormat: "RGBA8",
+      pixelFormat: "RGBA",
+      pixelDataType: "UNSIGNED_BYTE",
+      target: "TEXTURE_2D",
+      texParams: [
+        {name: "TEXTURE_MIN_FILTER", val: "LINEAR"},
+        {name: "TEXTURE_MAG_FILTER", val: "LINEAR"},
+        {name: "TEXTURE_WRAP_S", val: "CLAMP"},
+        {name: "TEXTURE_WRAP_T", val: "CLAMP"}
+      ]
+    },
+
+    // depth attachment for entity translucency
+    {
+      name: "entity_depth",
+      lod: 0,
+      internalFormat: "DEPTH_COMPONENT",
+      pixelFormat: "DEPTH_COMPONENT",
+      pixelDataType: "FLOAT",
+      target: "TEXTURE_2D",
+      texParams: [
+        {name: "TEXTURE_MIN_FILTER", val: "NEAREST"},
+        {name: "TEXTURE_MAG_FILTER", val: "NEAREST"},
+        {name: "TEXTURE_WRAP_S", val: "CLAMP"},
+        {name: "TEXTURE_WRAP_T", val: "CLAMP"},
+        {name: "TEXTURE_COMPARE_MODE", val: "NONE"}
+      ]
+    },
+
+    // color attachment for particle translucency
+    {
+      name: "particles_main",
+      lod: 0,
+      internalFormat: "RGBA8",
+      pixelFormat: "RGBA",
+      pixelDataType: "UNSIGNED_BYTE",
+      target: "TEXTURE_2D",
+      texParams: [
+        {name: "TEXTURE_MIN_FILTER", val: "LINEAR"},
+        {name: "TEXTURE_MAG_FILTER", val: "LINEAR"},
+        {name: "TEXTURE_WRAP_S", val: "CLAMP"},
+        {name: "TEXTURE_WRAP_T", val: "CLAMP"}
+      ]
+    },
+
+    // depth attachment for particle translucency
+    {
+      name: "particles_depth",
+      lod: 0,
+      internalFormat: "DEPTH_COMPONENT",
+      pixelFormat: "DEPTH_COMPONENT",
+      pixelDataType: "FLOAT",
+      target: "TEXTURE_2D",
+      texParams: [
+        {name: "TEXTURE_MIN_FILTER", val: "NEAREST"},
+        {name: "TEXTURE_MAG_FILTER", val: "NEAREST"},
+        {name: "TEXTURE_WRAP_S", val: "CLAMP"},
+        {name: "TEXTURE_WRAP_T", val: "CLAMP"},
+        {name: "TEXTURE_COMPARE_MODE", val: "NONE"}
+      ]
+    },
+
+    // color attachment for weather translucency
+    {
+      name: "weather_main",
+      lod: 0,
+      internalFormat: "RGBA8",
+      pixelFormat: "RGBA",
+      pixelDataType: "UNSIGNED_BYTE",
+      target: "TEXTURE_2D",
+      texParams: [
+        {name: "TEXTURE_MIN_FILTER", val: "LINEAR"},
+        {name: "TEXTURE_MAG_FILTER", val: "LINEAR"},
+        {name: "TEXTURE_WRAP_S", val: "CLAMP"},
+        {name: "TEXTURE_WRAP_T", val: "CLAMP"}
+      ]
+    },
+
+    // depth attachment for weather translucency
+    {
+      name: "weather_depth",
+      lod: 0,
+      internalFormat: "DEPTH_COMPONENT",
+      pixelFormat: "DEPTH_COMPONENT",
+      pixelDataType: "FLOAT",
+      target: "TEXTURE_2D",
+      texParams: [
+        {name: "TEXTURE_MIN_FILTER", val: "NEAREST"},
+        {name: "TEXTURE_MAG_FILTER", val: "NEAREST"},
+        {name: "TEXTURE_WRAP_S", val: "CLAMP"},
+        {name: "TEXTURE_WRAP_T", val: "CLAMP"},
+        {name: "TEXTURE_COMPARE_MODE", val: "NONE"}
+      ]
+    },
+
+    // color attachment for cloud translucency
+    {
+      name: "clouds_main",
+      lod: 0,
+      internalFormat: "RGBA8",
+      pixelFormat: "RGBA",
+      pixelDataType: "UNSIGNED_BYTE",
+      target: "TEXTURE_2D",
+      texParams: [
+        {name: "TEXTURE_MIN_FILTER", val: "LINEAR"},
+        {name: "TEXTURE_MAG_FILTER", val: "LINEAR"},
+        {name: "TEXTURE_WRAP_S", val: "CLAMP"},
+        {name: "TEXTURE_WRAP_T", val: "CLAMP"}
+      ]
+    },
+
+    // depth attachment for cloud translucency
+    {
+      name: "clouds_depth",
+      lod: 0,
+      internalFormat: "DEPTH_COMPONENT",
+      pixelFormat: "DEPTH_COMPONENT",
+      pixelDataType: "FLOAT",
+      target: "TEXTURE_2D",
+      texParams: [
+        {name: "TEXTURE_MIN_FILTER", val: "NEAREST"},
+        {name: "TEXTURE_MAG_FILTER", val: "NEAREST"},
+        {name: "TEXTURE_WRAP_S", val: "CLAMP"},
+        {name: "TEXTURE_WRAP_T", val: "CLAMP"},
+        {name: "TEXTURE_COMPARE_MODE", val: "NONE"}
+      ]
+    },
+
+    // color attachment for terain translucency
+    {
+      name: "translucent_main",
+      lod: 0,
+      internalFormat: "RGBA8",
+      pixelFormat: "RGBA",
+      pixelDataType: "UNSIGNED_BYTE",
+      target: "TEXTURE_2D",
+      texParams: [
+        {name: "TEXTURE_MIN_FILTER", val: "LINEAR"},
+        {name: "TEXTURE_MAG_FILTER", val: "LINEAR"},
+        {name: "TEXTURE_WRAP_S", val: "CLAMP"},
+        {name: "TEXTURE_WRAP_T", val: "CLAMP"}
+      ]
+    },
+
+    // depth attachment for terain translucency
+    {
+      name: "translucent_depth",
+      lod: 0,
+      internalFormat: "DEPTH_COMPONENT",
+      pixelFormat: "DEPTH_COMPONENT",
+      pixelDataType: "FLOAT",
+      target: "TEXTURE_2D",
+      texParams: [
+        {name: "TEXTURE_MIN_FILTER", val: "NEAREST"},
+        {name: "TEXTURE_MAG_FILTER", val: "NEAREST"},
+        {name: "TEXTURE_WRAP_S", val: "CLAMP"},
+        {name: "TEXTURE_WRAP_T", val: "CLAMP"},
+        {name: "TEXTURE_COMPARE_MODE", val: "NONE"}
+      ]
+    },
+
+    // attached as secondary in managed draws to capture emissive layer
+    {
+      name: "emissive",
+      lod: 0,
+      internalFormat: "RGBA8",
+      target: "TEXTURE_2D",
+      texParams: [
+        {name: "TEXTURE_MIN_FILTER", val: "LINEAR"},
+        {name: "TEXTURE_MAG_FILTER", val: "LINEAR"},
+        {name: "TEXTURE_WRAP_S", val: "CLAMP"},
+        {name: "TEXTURE_WRAP_T", val: "CLAMP"}
+      ]
+    },
+
+    // result of applying the emissive map to base color - source for the downsample/upsample
+    {
+      name: "emissive_color",
+      lod: 0,
+      internalFormat: "RGBA8",
+      target: "TEXTURE_2D",
+      texParams: [
+        {name: "TEXTURE_MIN_FILTER", val: "LINEAR"},
+        {name: "TEXTURE_MAG_FILTER", val: "LINEAR"},
+        {name: "TEXTURE_WRAP_S", val: "CLAMP"},
+        {name: "TEXTURE_WRAP_T", val: "CLAMP"}
+      ]
+    },
+
+    // needed to combine bloom result with main - attachment can't read/write self in same pass
+    {
+      name: "main_copy",
+      lod: 0,
+      internalFormat: "RGBA8",
+      target: "TEXTURE_2D",
+      texParams: [
+        // nearest because don't want filtering when copy back from main
+        {name: "TEXTURE_MIN_FILTER", val: "NEAREST"},
+        {name: "TEXTURE_MAG_FILTER", val: "NEAREST"},
+        {name: "TEXTURE_WRAP_S", val: "CLAMP"},
+        {name: "TEXTURE_WRAP_T", val: "CLAMP"}
+      ]
+    },
+
+    // combined transparent layers with main - main attachments can't read/write self in same pass
+    {
+      name: "fab_composite",
+      lod: 0,
+      internalFormat: "RGBA8",
+      target: "TEXTURE_2D",
+      texParams: [
+        // nearest because don't want filtering when copy back to main
+        {name: "TEXTURE_MIN_FILTER", val: "NEAREST"},
+        {name: "TEXTURE_MAG_FILTER", val: "NEAREST"},
+        {name: "TEXTURE_WRAP_S", val: "CLAMP"},
+        {name: "TEXTURE_WRAP_T", val: "CLAMP"}
+      ]
+    },
+
+    // these next two hold the cascade of bloom images that are blurred
+    {
+      name: "bloom_downsample",
+      lod: 6,
+      internalFormat: "RGBA8",
+      target: "TEXTURE_2D",
+      texParams: [
+        {name: "TEXTURE_MIN_FILTER", val: "LINEAR_MIPMAP_NEAREST"},
+        {name: "TEXTURE_MAG_FILTER", val: "LINEAR"},
+        {name: "TEXTURE_WRAP_S", val: "CLAMP"},
+        {name: "TEXTURE_WRAP_T", val: "CLAMP"}
+      ]
+    },
+
+    {
+      name: "bloom_upsample",
+      lod: 6,
+      internalFormat: "RGBA8",
+      target: "TEXTURE_2D",
+      texParams: [
+        {name: "TEXTURE_MIN_FILTER", val: "LINEAR_MIPMAP_NEAREST"},
+        {name: "TEXTURE_MAG_FILTER", val: "LINEAR"},
+        {name: "TEXTURE_WRAP_S", val: "CLAMP"},
+        {name: "TEXTURE_WRAP_T", val: "CLAMP"}
+      ]
+    }
+  ]
+}

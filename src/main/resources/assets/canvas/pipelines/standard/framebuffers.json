@@ -1,0 +1,141 @@
+{
+  framebuffers: [
+		// These are the framebuffers visible to the game and to mods.
+		// They exist mainly so mods can't mess up the managed fb state.
+		// Attachements are the same as those for managed draws.
+		{
+			name: "default",
+			depthAttachment: {image: "solid_depth"},
+			colorAttachments: [{image: "solid_main"}]
+		}, {
+			name: "fab_entity",
+			depthAttachment: {image: "entity_depth"},
+			colorAttachments: [{image: "entity_main"}]
+		}, {
+			name: "fab_particles",
+			depthAttachment: {image: "particles_depth"},
+			colorAttachments: [{image: "particles_main"}]
+		}, {
+			name: "fab_weather",
+			depthAttachment: {image: "weather_depth"},
+			colorAttachments: [{image: "weather_main"}]
+		}, {
+			name: "fab_clouds",
+			depthAttachment: {image: "clouds_depth"},
+			colorAttachments: [{image: "clouds_main"}]
+		}, {
+			name: "fab_translucent",
+			depthAttachment: {image: "translucent_depth"},
+			colorAttachments: [{image: "translucent_main"}]
+		},
+
+		{
+			name: "solid",
+			depthAttachment: {image: "solid_depth", clearDepth: 1.0},
+			colorAttachments: [
+				{image: "solid_main", clearColor: 0x00000000},
+				{image: "emissive", clearColor: 0x00000000}
+			]
+		}, {
+			name: "entity",
+			// depth not cleared because always copied from solid
+			depthAttachment: {image: "entity_depth"},
+			colorAttachments: [
+				{image: "entity_main", clearColor: 0x00000000},
+				// emissive not cleared here because shared - only cleared once on solid depth
+				{image: "emissive"}
+			]
+		}, {
+			name: "particles",
+			depthAttachment: {image: "particles_depth"},
+			colorAttachments: [
+				{image: "particles_main", clearColor: 0x00000000},
+				{image: "emissive"}
+			]
+		}, {
+			name: "weather",
+			depthAttachment: {image: "weather_depth"},
+			colorAttachments: [
+				{image: "weather_main", clearColor: 0x00000000},
+				{image: "emissive"}
+			]
+		}, {
+			name: "clouds",
+			depthAttachment: {image: "clouds_depth"},
+			colorAttachments: [
+				{image: "clouds_main", clearColor: 0x00000000},
+				{image: "emissive"}
+			]
+		}, {
+			name: "translucent",
+			depthAttachment: {image: "translucent_depth"},
+			colorAttachments: [
+				{image: "translucent_main", clearColor: 0x00000000},
+				{image: "emissive"}
+			]
+		},
+
+
+
+		{
+			name: "fab_composite",
+			colorAttachments: [{image: "fab_composite", clearColor: 0x00000000}]
+		}, {
+			// TODO: should be able to remove this now
+			name: "emissive",
+			colorAttachments: [{image: "emissive", clearColor: 0x00000000}]
+		}, {
+			name: "main_copy",
+			colorAttachments: [{image: "main_copy"}]
+		}, {
+			name: "emissive_color",
+			colorAttachments: [{image: "emissive_color"}]
+		}, {
+			name: "bloom_downsample_0",
+			colorAttachments: [{image: "bloom_downsample"}]
+		}, {
+			name: "bloom_downsample_1",
+			colorAttachments: [{image: "bloom_downsample", lod: 1}]
+		}, {
+			name: "bloom_downsample_2",
+			colorAttachments: [{image: "bloom_downsample", lod: 2}]
+		}, {
+			name: "bloom_downsample_3",
+			colorAttachments: [{image: "bloom_downsample", lod: 3}]
+		}, {
+			name: "bloom_downsample_4",
+			colorAttachments: [{image: "bloom_downsample", lod: 4}]
+		}, {
+			name: "bloom_downsample_5",
+			colorAttachments: [{image: "bloom_downsample", lod: 5}]
+		}, {
+			name: "bloom_downsample_6",
+			colorAttachments: [{image: "bloom_downsample", lod: 6}]
+		}, {
+			name: "bloom_upsample_6",
+			colorAttachments: [{image: "bloom_upsample", lod: 6}]
+		}, {
+			name: "bloom_upsample_5",
+			colorAttachments: [{image: "bloom_upsample", lod: 5}]
+		}, {
+			name: "bloom_upsample_4",
+			colorAttachments: [{image: "bloom_upsample", lod: 4}]
+		}, {
+			name: "bloom_upsample_3",
+			colorAttachments: [{image: "bloom_upsample", lod: 3}]
+		}, {
+			name: "bloom_upsample_2",
+			colorAttachments: [{image: "bloom_upsample", lod: 2}]
+		}, {
+			name: "bloom_upsample_1",
+			colorAttachments: [{image: "bloom_upsample", lod: 1}]
+		}, {
+			name: "bloom_upsample_0",
+			colorAttachments: [{image: "bloom_upsample"}]
+		}, {
+			// TODO: just use main fb instead?
+			name: "bloom",
+			colorAttachments: [{image: "solid_main"}]
+		}
+	]
+}

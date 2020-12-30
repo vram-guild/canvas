@@ -16,8 +16,11 @@
 
 package grondag.canvas.pipeline.config;
 
+import blue.endless.jankson.JsonArray;
 import blue.endless.jankson.JsonObject;
+import it.unimi.dsi.fastutil.objects.ObjectArrayFIFOQueue;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.client.MinecraftClient;
@@ -28,6 +31,7 @@ import net.minecraft.util.Identifier;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
 import grondag.canvas.pipeline.config.util.ConfigContext;
+import grondag.canvas.pipeline.config.util.JanksonHelper;
 import grondag.canvas.pipeline.config.util.LoadHelper;
 import grondag.canvas.pipeline.config.util.NamedDependency;
 
@@ -49,15 +53,26 @@ public class PipelineConfigBuilder {
 	public NamedDependency<FramebufferConfig> defaultFramebuffer;
 
 	public void load(JsonObject configJson) {
-		params.add(PipelineParam.of(context, "bloom_intensity", 0.0f, 0.5f, 0.1f));
-		params.add(PipelineParam.of(context, "bloom_scale", 0.0f, 2.0f, 0.25f));
+		if (params.isEmpty()) {
+			params.add(PipelineParam.of(context, "bloom_intensity", 0.0f, 0.5f, 0.1f));
+			params.add(PipelineParam.of(context, "bloom_scale", 0.0f, 2.0f, 0.25f));
+		}
 
-		defaultFramebuffer = context.frameBuffers.dependOn(configJson, "defaultFramebuffer");
-		fabulosity = LoadHelper.loadObject(context, configJson, "fabulousTargets", FabulousConfig::new);
-		drawTargets = LoadHelper.loadObject(context, configJson, "drawTargets", DrawTargetsConfig::new);
+		if (configJson.containsKey("defaultFramebuffer")) {
+			// WIP: validate these are null when found - signals duplicate if not
+			defaultFramebuffer = context.frameBuffers.dependOn(configJson, "defaultFramebuffer");
+		}
+
+		if (configJson.containsKey("fabulousTargets")) {
+			fabulosity = LoadHelper.loadObject(context, configJson, "fabulousTargets", FabulousConfig::new);
+		}
+
+		if (configJson.containsKey("drawTargets")) {
+			drawTargets = LoadHelper.loadObject(context, configJson, "drawTargets", DrawTargetsConfig::new);
+		}
 
 		LoadHelper.loadSubList(context, configJson, "fabulous", "passes", fabulous, PassConfig::new);
-		LoadHelper.loadSubList(context, configJson, "onWorldRenderStart", "passes", onWorldStart, PassConfig::new);
+		LoadHelper.loadSubList(context, configJson, "beforeWorldRender", "passes", onWorldStart, PassConfig::new);
 		LoadHelper.loadSubList(context, configJson, "afterRenderHand", "passes", afterRenderHand, PassConfig::new);
 
 		LoadHelper.loadList(context, configJson, "images", images, ImageConfig::new);
@@ -98,20 +113,27 @@ public class PipelineConfigBuilder {
 
 	private static @Nullable PipelineConfigBuilder load(Identifier id) {
 		final ResourceManager rm = MinecraftClient.getInstance().getResourceManager();
-		JsonObject configJson = null;
+
+		if (!PipelineLoader.areResourcesAvailable() || rm == null) {
+			return null;
+		}
 
 		final PipelineConfigBuilder result = new PipelineConfigBuilder();
+		final ObjectOpenHashSet<Identifier> included = new ObjectOpenHashSet<>();
+		final ObjectArrayFIFOQueue<Identifier> queue = new ObjectArrayFIFOQueue<>();
 
-		if (PipelineLoader.areResourcesAvailable() && rm != null) {
-			try (Resource res = rm.getResource(id)) {
-				configJson = Configurator.JANKSON.load(res.getInputStream());
+		queue.enqueue(id);
+		included.add(id);
+
+		while (!queue.isEmpty()) {
+			try (Resource res = rm.getResource(queue.dequeue())) {
+				final JsonObject configJson = Configurator.JANKSON.load(res.getInputStream());
 				result.load(configJson);
+				getIncludes(configJson, included, queue);
 			} catch (final Exception e) {
 				// WIP: better logging
 				e.printStackTrace();
 			}
-		} else {
-			return null;
 		}
 
 		if (result.validate()) {
@@ -119,6 +141,27 @@ public class PipelineConfigBuilder {
 		} else {
 			// fallback to minimal renderable pipeline if not valid
 			return null;
+		}
+	}
+
+	private static void getIncludes(JsonObject configJson, ObjectOpenHashSet<Identifier> included, ObjectArrayFIFOQueue<Identifier> queue) {
+		if (configJson == null || !configJson.containsKey("include")) {
+			return;
+		}
+
+		final JsonArray array = JanksonHelper.getJsonArrayOrNull(configJson, "include", "Pipeline config error: 'include' must be an array.");
+		final int limit = array.size();
+
+		for (int i = 0; i < limit; ++i) {
+			final String idString = JanksonHelper.asString(array.get(i));
+
+			if (idString != null && !idString.isEmpty()) {
+				final Identifier id = new Identifier(idString);
+
+				if (included.add(id)) {
+					queue.enqueue(id);
+				}
+			}
 		}
 	}
 

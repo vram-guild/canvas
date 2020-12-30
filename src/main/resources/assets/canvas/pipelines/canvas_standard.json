@@ -1,0 +1,254 @@
+{
+	// FREX ensures that pipeline configuration files support JSON5 extensions
+	// This means you can do some useful things you can't normally do:
+	//   Comments! (like this one)
+	//   unquoted keys
+	//   hexadecimal values
+	//   leading and trailing decimal points
+	//   positive sign
+
+	// ORDER OF EVENTS
+	// Canvas will call stages and draw to targets in the following sequence
+	// stage: beforeWorldRender
+	//
+
+	// When a descriptive attribute ends with ...Key that means the config loader_version
+	//  will attempt to use the value as a localization key.  For that to work,
+	// you'll need to include the key and it's translation in accompanying lang file(s).
+	// If you don't want to deal with localization, use literal strings -
+	// those will fail localization lookup and be used directly.
+
+	nameKey: "pipeline.canvas_standard.name",
+	descriptionKey: "pipeline.canvas_standard.desc",
+
+	// Framebuffer that will be visible to the game and to mods as the primary framebuffer.
+	// Should generally keep it the same as vanilla has it and avoid using it except as a
+	// sink for unmanaged draws and for final output.
+	// Canvas will make no managed draws to this framebuffer unless requested.
+	defaultFramebuffer: "default",
+
+	drawTargets: {
+		solidTerrain: "solid",
+		translucentTerrain: "translucent",
+		translucentEntity: "entity",
+		weather: "weather",
+		clouds: "clouds",
+		// TODO: segregate solid particles
+		translucentParticles: "particles"
+	},
+
+	// When present, will force Minecraft to operate as if "fabulous" mode was selected.
+	// Normally this means translucent geometry will be drawn to different framebuffers
+	// and mc and mods expect five additional framebuffers will be available:
+	// 		mc_entity				- item entities
+	// 		mc_particles
+	// 		mc_weather
+	//    mc_clouds
+	//    mc_translucent  - terrain
+	//
+	// The main purpose of this setting is compatibility with mods that draw directly.
+	// These extra framebuffers which are visible to mods and some of them
+	// will target a specific buffer when fabulous mode is active.  If you want mods
+	// to draw direct translucency to separate buffers, configure this.  If you want them to
+	// target the default framebuffer set this false.
+  //
+  // The actual target for managed draws will be controlled by the stage configuration.
+	// These mappings will *only* affect unmanaged draws that directly target one of these buffers.
+	//
+	// The structure of these should match the default framebuffer and be compatible
+	// with direct draws.
+
+	// Canvas does *not* automatically do the necessary passes for fabulous mode
+	// to compsite the transparency layers. That must be configured in the pipeline
+	// - this offers maximum flexiblity for shader devs.
+	//
+	// The values here must be valid framebuffer names from the framebuffers block.
+	fabulousTargets: {
+		entity: "fab_entity",
+		particles: "fab_particles",
+		weather: "fab_weather",
+		clouds: "fab_clouds",
+		translucent: "fab_translucent"
+	},
+
+	include: [
+		"canvas:pipelines/standard/images.json",
+		"canvas:pipelines/standard/framebuffers.json",
+		"canvas:pipelines/standard/programs.json"
+	],
+
+	// Names in passes are informational and meant to support profiling, to be added later.
+	// If name is ommited, the name of the framebuffer will identify the pass in profiling.
+
+	// Happens before anything else, including Fabric event calls of the same name.
+	// Will be called every frame so long as a world is loaded for rendering.
+	// Few if any mods will draw after this - the view frustum isn't even set up yet.
+	// This is a good time to do unconditional clearing operations and other upkeep.
+	beforeWorldRender: {
+		// TODO: move the contingent passes to separate draw pre-passes when available - not needed if draws don't happen
+		passes: [
+			{
+				name: "clear_main",
+				framebuffer: "solid",
+				program: "frex_clear"
+			}, {
+				name: "clear_entity",
+				framebuffer: "entity",
+				program: "frex_clear"
+			}, {
+				name: "clear_particles",
+				framebuffer: "particles",
+				program: "frex_clear"
+			}, {
+				name: "clear_weather",
+				framebuffer: "weather",
+				program: "frex_clear"
+			}, {
+				name: "clear_clouds",
+				framebuffer: "clouds",
+				program: "frex_clear"
+			}, {
+				name: "clear_translucent",
+				framebuffer: "translucent",
+				program: "frex_clear"
+			}
+		]
+	},
+
+	// TODO: put where belongs
+	fabulous: {
+		passes: [
+			{
+				// faulous mode composite
+				name: "fabulous",
+				program: "fabulous",
+				framebuffer: "fab_composite",
+				samplerImages: [
+					"solid_main", "solid_depth",
+					"translucent_main", "translucent_depth",
+					"entity_main", "entity_depth",
+					"particles_main", "particles_depth",
+					"weather_main", "weather_depth",
+					"clouds_main", "clouds_depth"]
+			},
+			{
+				// TODO: reroute passes to reduce copying steps
+				// copy composite to main framebuffer
+				name: "fab_write",
+				program: "copy",
+				framebuffer: "default",
+				samplerImages: ["fab_composite"]
+			}
+		]
+	},
+
+	afterRenderHand: {
+		passes: [
+			{
+				// copy MC fbo color attachment - need it at end for combine step
+				name: "main_copy",
+				program: "copy",
+				framebuffer: "main_copy",
+				samplerImages: ["solid_main"]
+			}, {
+				// select emissive portions for blur
+				name: "emissive_color",
+				program: "emissive_color",
+				framebuffer: "emissive_color",
+				samplerImages: ["solid_main", "emissive"]
+			}, {
+				// build bloom mipmaps, blurring as part of downscale
+				name: "bloom_downsample_0",
+				program: "downsample",
+				framebuffer: "bloom_downsample_0",
+				samplerImages: ["emissive_color"],
+			}, {
+				name: "bloom_downsample_1",
+				program: "downsample",
+				framebuffer: "bloom_downsample_1",
+				samplerImages: ["bloom_downsample"],
+				lod: 1
+			}, {
+				name: "bloom_downsample_2",
+				program: "downsample",
+				framebuffer: "bloom_downsample_2",
+				samplerImages: ["bloom_downsample"],
+				lod: 2
+			}, {
+				name: "bloom_downsample_3",
+				program: "downsample",
+				framebuffer: "bloom_downsample_3",
+				samplerImages: ["bloom_downsample"],
+				lod: 3
+			}, {
+				name: "bloom_downsample_4",
+				program: "downsample",
+				framebuffer: "bloom_downsample_4",
+				samplerImages: ["bloom_downsample"],
+				lod: 4
+			}, {
+				name: "bloom_downsample_5",
+				program: "downsample",
+				framebuffer: "bloom_downsample_5",
+				samplerImages: ["bloom_downsample"],
+				lod: 5
+			}, {
+				name: "bloom_downsample_6",
+				program: "downsample",
+				framebuffer: "bloom_downsample_6",
+				samplerImages: ["bloom_downsample"],
+				lod: 6
+			}, {
+				// upscale bloom mipmaps, bluring again as we go
+				name: "bloom_upsample_6",
+				program: "upsample_first",
+				framebuffer: "bloom_upsample_6",
+				samplerImages: ["bloom_downsample"],
+				lod: 6
+			}, {
+				name: "bloom_upsample_5",
+				program: "upsample",
+				framebuffer: "bloom_upsample_5",
+				samplerImages: ["bloom_downsample", "bloom_upsample"],
+				lod: 5
+			}, {
+				name: "bloom_upsample_4",
+				program: "upsample",
+				framebuffer: "bloom_upsample_4",
+				samplerImages: ["bloom_downsample", "bloom_upsample"],
+				lod: 4
+			}, {
+				name: "bloom_upsample_3",
+				program: "upsample",
+				framebuffer: "bloom_upsample_3",
+				samplerImages: ["bloom_downsample", "bloom_upsample"],
+				lod: 3
+			}, {
+				name: "bloom_upsample_2",
+				program: "upsample",
+				framebuffer: "bloom_upsample_2",
+				samplerImages: ["bloom_downsample", "bloom_upsample"],
+				lod: 2
+			}, {
+				name: "bloom_upsample_1",
+				program: "upsample",
+				framebuffer: "bloom_upsample_1",
+				samplerImages: ["bloom_downsample", "bloom_upsample"],
+				lod: 1
+			}, {
+				name: "bloom_upsample_0",
+				program: "upsample",
+				framebuffer: "bloom_upsample_0",
+				samplerImages: ["bloom_downsample", "bloom_upsample"],
+				lod: 0
+			}, {
+				// Switch back to MC main color to draw combined color + bloom
+				// Framebuffer attachment shouldn't draw to self so use copy created earlier
+				name: "bloom",
+				program: "bloom",
+				framebuffer: "bloom",
+				samplerImages: ["main_copy", "bloom_upsample"]
+			}
+		]
+	}
+}
