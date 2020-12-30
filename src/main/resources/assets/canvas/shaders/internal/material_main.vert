@@ -6,7 +6,7 @@
 #include frex:shaders/api/vertex.glsl
 #include frex:shaders/api/sampler.glsl
 #include canvas:shaders/internal/program.glsl
-#include canvas:shaders/pipeline/standard_vertex.glsl
+#include canvas:shaders/pipeline/standard.vert
 
 #include canvas:apitarget
 
@@ -28,7 +28,8 @@ void main() {
 		in_uv,
 		in_color,
 		(in_normal_flags.xyz - 127.0) / 127.0,
-		in_lightmap.rg * 0.00390625 + 0.03125
+		in_lightmap.rg * 0.00390625 + 0.03125,
+		in_lightmap.b / 255.0
 	);
 
 	// Adding +0.5 prevents striping or other strangeness in flag-dependent rendering
@@ -74,5 +75,11 @@ void main() {
 	_cv_endVertex(data, cv_programId);
 
 	// pipeline shader handles additional writes/out variables
-	frx_endtPipelineVertex(data);
+	frx_endPipelineVertex(data);
+
+	frx_texcoord = data.spriteUV;
+	_cvv_color = data.color;
+	_cvv_normal = data.normal;
+	_cvv_lightcoord = data.light;
+	_cvv_ao = data.aoShade;
 }

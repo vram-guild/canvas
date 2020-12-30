@@ -30,6 +30,11 @@ varying vec4 frx_var1;
 varying vec4 frx_var2;
 varying vec4 frx_var3;
 
+/**
+ * Texture coordinate to intended to support special sampling use cases
+ * during fragment shading.  WILL BE SET BY RENDERER.  Do not touch.
+ */
+varying vec2 frx_texcoord;
 
 /*
  * Usage in API for material shaders:
@@ -61,14 +66,14 @@ varying vec4 frx_var3;
  * to mapped and also apply matrix transforms to vertex and normal.
  *
  * The pipeline is responsible for ALL WRITES.  The renderer will
- * not update fog, clip, color, nor any other frameebuffer attachments.
+ * not update fog, clip, color, nor any other output variable.
  * Outputs that need pre-transform values should happen in frx_startPipelineVertex
  * and outpus that need post-transform values should happen in frx_endPipelineVertex.
  *
  * The renderer WILL set out variables for the interpolated values
  * presented in frx_startFragment but these are not directly exposed
- * outside of that method. Any other out variables the pipeline needs must
- * be set in one of these two methods.
+ * outside of that method, except for frx_texcoord. Any other out variables
+ * the pipeline needs must be set in one of these two methods.
  */
 struct frx_VertexData {
 	/*
@@ -134,4 +139,15 @@ struct frx_VertexData {
 	 * The emissive flag is generally a better alternative.
 	 */
 	vec2 light;
+
+	/*
+	 * AO shading value from CPU lighting. 0 to 1.
+	 *
+	 * Depending on the context or lighting model in effect,
+	 * this may not be populated or used.
+	 *
+	 * Recommendation is to avoid using or modifying this value
+	 * unless VANILLA_LIGHTING = TRUE.
+	 */
+	float aoShade;
 };
