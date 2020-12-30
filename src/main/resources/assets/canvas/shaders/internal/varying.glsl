@@ -1,6 +1,3 @@
-#include frex:shaders/api/context.glsl
-#include canvas:shaders/internal/context.glsl
-
 /******************************************************
   canvas:shaders/internal/varying.glsl
 ******************************************************/

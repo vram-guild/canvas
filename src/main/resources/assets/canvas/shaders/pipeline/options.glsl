@@ -1,5 +1,5 @@
 /******************************************************
-  canvas:shaders/pipeline/material.glsl
+  canvas:shaders/pipeline/options.glsl
 ******************************************************/
 #define AO_MODE_NORMAL 0
 #define AO_MODE_SUBTLE_ALWAYS 1
@@ -24,3 +24,10 @@ varying float _cvv_diffuse;
 #define _CV_FOG_CONFIG_SUBTLE    1
 
 #define _CV_FOG_CONFIG _CV_FOG_CONFIG_VANILLA
+
+// define if lighting should be noised to prevent mach banding
+// will only be enabled if smooth light is also enabled
+//#define ENABLE_LIGHT_NOISE
+
+#define TARGET_BASECOLOR 0
+#define TARGET_EMISSIVE -1
