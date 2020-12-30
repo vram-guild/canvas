@@ -241,6 +241,9 @@ public class PipelineManager {
 		}
 	}
 
+	// WIP - index vertex data
+	//   FEAT: as part of above, send biome temp and outdoor flag to make available in shader
+
 	// WIP - notes
 	// stages that come after beforeWorldRender
 	// need managed target map

@@ -60,3 +60,21 @@ bool frx_matHurt() {
 bool frx_matFlash() {
 	return _cv_getFlag(_CV_FLAG_FLASH_OVERLAY) == 1.0;
 }
+
+/**
+ * RESERVED FOR FUTURE FEATURE - not yet implemented.
+ *
+ * Coarse indication of where the surface is located.
+ * Zero means the surface is not exposed to the sky and
+ * cannot get wet or otherwise be affected from directly above.
+ *
+ * Values 1.0, 2.0 and 3.0 indicate icy, temperate or hot biome
+ * temperatures, respectively.
+ *
+ * Values > 0 also mean the surface exposed to the sky.
+ * Does not mean it is facing up - check normals for that -
+ * but does it mean it could get wet/icy/etc.
+ */
+float frx_matExposure() {
+	return 0.0;
+}
