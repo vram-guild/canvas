@@ -1,7 +1,6 @@
 /******************************************************
   canvas:shaders/pipeline/pipeline.glsl
 ******************************************************/
-
 #define BLOOM_INTENSITY 0.1
 #define BLOOM_DOWNSAMPLE_DIST 1.0
 #define BLOOM_UPSAMPLE_DIST 0.1

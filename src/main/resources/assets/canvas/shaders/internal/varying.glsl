@@ -5,11 +5,6 @@
   canvas:shaders/internal/varying.glsl
 ******************************************************/
 
-// TODO: move to pipeline
-#if DIFFUSE_SHADING_MODE != DIFFUSE_MODE_NONE
-varying float _cvv_diffuse;
-#endif
-
 varying vec4 _cvv_color;
 varying vec2 _cvv_lightcoord;
 varying vec3 _cvv_normal;

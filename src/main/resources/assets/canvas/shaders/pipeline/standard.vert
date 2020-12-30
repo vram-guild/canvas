@@ -1,3 +1,4 @@
+#include canvas:shaders/pipeline/material.glsl
 #include canvas:shaders/pipeline/diffuse.glsl
 
 /******************************************************

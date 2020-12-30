@@ -1,3 +1,4 @@
+#include canvas:shaders/pipeline/material.glsl
 #include canvas:shaders/pipeline/fog.glsl
 #include canvas:shaders/pipeline/diffuse.glsl
 #include frex:shaders/lib/math.glsl
