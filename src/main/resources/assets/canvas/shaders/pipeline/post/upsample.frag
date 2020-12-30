@@ -1,9 +1,9 @@
-#include canvas:shaders/internal/process/header.glsl
+#include canvas:shaders/pipeline/post/header.glsl
 #include frex:shaders/lib/sample.glsl
 #include canvas:shaders/pipeline/pipeline.glsl
 
 /******************************************************
-  canvas:shaders/internal/process/downsample.frag
+  canvas:shaders/pipeline/post/downsample.frag
 ******************************************************/
 uniform sampler2D cvu_input;
 uniform sampler2D cvu_prior;

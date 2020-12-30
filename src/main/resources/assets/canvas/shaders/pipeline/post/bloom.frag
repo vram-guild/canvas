@@ -1,11 +1,11 @@
-#include canvas:shaders/internal/process/header.glsl
+#include canvas:shaders/pipeline/post/header.glsl
 #include canvas:shaders/pipeline/pipeline.glsl
 #include frex:shaders/lib/color.glsl
 #include frex:shaders/lib/sample.glsl
 #include frex:shaders/lib/math.glsl
 
 /******************************************************
-  canvas:shaders/internal/process/bloom.frag
+  canvas:shaders/pipeline/post/bloom.frag
 ******************************************************/
 uniform sampler2D _cvu_base;
 uniform sampler2D _cvu_bloom;

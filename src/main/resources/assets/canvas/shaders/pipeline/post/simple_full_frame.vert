@@ -1,8 +1,8 @@
-#include canvas:shaders/internal/process/header.glsl
+#include canvas:shaders/pipeline/post/header.glsl
 #include canvas:shaders/pipeline/pipeline.glsl
 
 /******************************************************
-  canvas:shaders/internal/process/simple_full_frame.vert
+  canvas:shaders/pipeline/post/simple_full_frame.vert
 ******************************************************/
 
 attribute vec2 in_uv;

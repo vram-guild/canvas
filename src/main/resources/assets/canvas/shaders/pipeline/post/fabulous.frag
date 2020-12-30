@@ -1,8 +1,8 @@
-#include canvas:shaders/internal/process/header.glsl
+#include canvas:shaders/pipeline/post/header.glsl
 #include canvas:shaders/pipeline/pipeline.glsl
 
 /******************************************************
-  canvas:shaders/internal/process/fabulous.frag
+  canvas:shaders/pipeline/post/fabulous.frag
 ******************************************************/
 
 // a slightly cleaned up version of Mojang's transparency.fsh

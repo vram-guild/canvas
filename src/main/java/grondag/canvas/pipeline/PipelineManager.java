@@ -205,7 +205,7 @@ public class PipelineManager {
 		w = width;
 		h = height;
 
-		debugShader = new ProcessShader(new Identifier("canvas:shaders/internal/process/simple_full_frame.vert"), new Identifier("canvas:shaders/internal/process/copy_lod.frag"), "_cvu_input");
+		debugShader = new ProcessShader(new Identifier("canvas:shaders/pipeline/post/simple_full_frame.vert"), new Identifier("canvas:shaders/pipeline/post/copy_lod.frag"), "_cvu_input");
 
 		assert CanvasGlHelper.checkError();
 
