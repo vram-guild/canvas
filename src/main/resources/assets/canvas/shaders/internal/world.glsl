@@ -23,20 +23,20 @@
 #define _CV_CAMERA_VIEW 16 // 3 elements wide
 #define _CV_ENTITY_VIEW 19 // 3 elements wide
 
-#define _CV_FLAG0_NIGHT_VISTION_ACTIVE  0
-#define _CV_FLAG0_HAS_SKYLIGHT          1
-#define _CV_FLAG0_IS_OVERWORLD          2
-#define _CV_FLAG0_IS_NETHER            	3
-#define _CV_FLAG0_IS_END                4
-#define _CV_FLAG0_IS_RAINING            5
-#define _CV_FLAG0_IS_THUNDERING        	6
-#define _CV_FLAG0_IS_SKY_DARKENED      	7
+#define _CV_FLAG_HAS_SKYLIGHT 0
+#define _CV_FLAG_IS_OVERWORLD 1
+#define _CV_FLAG_IS_NETHER 2
+#define _CV_FLAG_IS_END 3
+#define _CV_FLAG_IS_RAINING 4
+#define _CV_FLAG_IS_THUNDERING 5
+#define _CV_FLAG_IS_SKY_DARKENED 6
 
-#define _CV_WORLD_FLAGS_START           0
-#define _CV_CONDITION_FLAGS_START	    1
+#define _CV_WORLD_FLAGS_INDEX 0
+#define _CV_PLAYER_FLAGS_INDEX 1
+#define _CV_CONDITION_FLAGS_START 2
 
 uniform float[22] _cvu_world;
-uniform uint[3] _cvu_flags;
+uniform uint[4] _cvu_flags;
 uniform vec3 _cvu_model_origin;
 uniform int _cvu_model_origin_type;
 uniform mat3 _cvu_normal_model_matrix;

@@ -23,8 +23,9 @@ import org.lwjgl.BufferUtils;
 import grondag.canvas.apiimpl.MaterialConditionImpl;
 
 public class FlagData {
-	public static final int WORLD_DATA_START = 0;
-	public static final int CONDITION_DATA_START = 1;
+	public static final int WORLD_DATA_INDEX = 0;
+	public static final int PLAYER_DATA_INDEX = 1;
+	public static final int CONDITION_DATA_START = 2;
 	public static final int LENGTH = CONDITION_DATA_START + MaterialConditionImpl.CONDITION_FLAG_ARRAY_LENGTH;
 
 	public static final IntBuffer DATA = BufferUtils.createIntBuffer(LENGTH);

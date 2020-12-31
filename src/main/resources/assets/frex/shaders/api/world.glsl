@@ -80,35 +80,35 @@ float frx_moonSize() {
  * True when the currently rendering world has a sky with a light source.
  */
 bool frx_worldHasSkylight() {
-	return frx_bitValue(_cvu_flags[_CV_WORLD_FLAGS_START], _CV_FLAG0_HAS_SKYLIGHT) == 1.0;
+	return frx_bitValue(_cvu_flags[_CV_WORLD_FLAGS_INDEX], _CV_FLAG_HAS_SKYLIGHT) == 1.0;
 }
 
 /*
  * True when the currently rendering world is the Overworld.
  */
 bool frx_isWorldTheOverworld() {
-	return frx_bitValue(_cvu_flags[_CV_WORLD_FLAGS_START], _CV_FLAG0_IS_OVERWORLD) == 1.0;
+	return frx_bitValue(_cvu_flags[_CV_WORLD_FLAGS_INDEX], _CV_FLAG_IS_OVERWORLD) == 1.0;
 }
 
 /*
  * True when the currently rendering world is the Nether.
  */
 bool frx_isWorldTheNether() {
-	return frx_bitValue(_cvu_flags[_CV_WORLD_FLAGS_START], _CV_FLAG0_IS_NETHER) == 1.0;
+	return frx_bitValue(_cvu_flags[_CV_WORLD_FLAGS_INDEX], _CV_FLAG_IS_NETHER) == 1.0;
 }
 
 /*
  * True when the currently rendering world is the End.
  */
 bool frx_isWorldTheEnd() {
-	return frx_bitValue(_cvu_flags[_CV_WORLD_FLAGS_START], _CV_FLAG0_IS_END) == 1.0;
+	return frx_bitValue(_cvu_flags[_CV_WORLD_FLAGS_INDEX], _CV_FLAG_IS_END) == 1.0;
 }
 
 /*
  * True when world.isRaining() is true for the currently rendering world.
  */
 bool frx_isRaining() {
-	return frx_bitValue(_cvu_flags[_CV_WORLD_FLAGS_START], _CV_FLAG0_IS_RAINING) == 1.0;
+	return frx_bitValue(_cvu_flags[_CV_WORLD_FLAGS_INDEX], _CV_FLAG_IS_RAINING) == 1.0;
 }
 
 /*
@@ -122,7 +122,7 @@ float frx_rainGradient() {
  * True when world.isThundering() is true for the currently rendering world.
  */
 bool frx_isThundering() {
-	return frx_bitValue(_cvu_flags[_CV_WORLD_FLAGS_START], _CV_FLAG0_IS_THUNDERING) == 1.0;
+	return frx_bitValue(_cvu_flags[_CV_WORLD_FLAGS_INDEX], _CV_FLAG_IS_THUNDERING) == 1.0;
 }
 
 /*
@@ -130,7 +130,7 @@ bool frx_isThundering() {
  * True in Nether - indicates diffuse lighting bottom face is same as top, not as bright.
  */
 bool frx_isSkyDarkened() {
-	return frx_bitValue(_cvu_flags[_CV_WORLD_FLAGS_START], _CV_FLAG0_IS_SKY_DARKENED) == 1.0;
+	return frx_bitValue(_cvu_flags[_CV_WORLD_FLAGS_INDEX], _CV_FLAG_IS_SKY_DARKENED) == 1.0;
 }
 
 bool frx_testCondition(int conditionIndex) {
