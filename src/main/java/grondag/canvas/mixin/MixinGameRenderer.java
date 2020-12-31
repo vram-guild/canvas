@@ -106,4 +106,9 @@ public abstract class MixinGameRenderer implements GameRendererExt {
 	public int canvas_ticks() {
 		return ticks;
 	}
+
+	//	@Redirect(method = "renderWorld", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/systems/RenderSystem;clear(IZ)V"))
+	//	private void preventClearOnDebug(int mask, boolean getError) {
+	//		//RenderSystem.clear(mask, getError);
+	//	}
 }

@@ -428,10 +428,6 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		Pipeline.defaultFbo.bind();
 
 		profiler.swap("clear");
-		// WIP: renderBackground
-		// WIP: need to get the various inputs and color inputs into uniforms
-		// replace these with passes - note that render is badly named - it sets the clear color without clearing
-		// WIP: complete the various fog computations and ensure their inputs and outputs are available before any drawing stages
 
 		BackgroundRenderer.render(camera, tickDelta, mc.world, mc.options.viewDistance, gameRenderer.getSkyDarkness(tickDelta));
 		RenderSystem.clear(16640, MinecraftClient.IS_SYSTEM_MAC);
@@ -475,12 +471,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		updateRegions(frameStartNanos + clampedBudget);
 
-		// WIP: sky shadow - after uploads
-
-		// WIP: label no longer correct - use stage names for profiling
-		Configurator.lagFinder.swap("WorldRenderer-BloomSetup");
-
-		LightmapHdTexture.instance().onRenderTick();
+		//LightmapHdTexture.instance().onRenderTick();
 
 		profiler.swap("terrain");
 		Configurator.lagFinder.swap("WorldRenderer-TerrainRenderSolid");
@@ -502,7 +493,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		Configurator.lagFinder.swap("WorldRenderer-EntityRender");
 
 		profiler.swap("entities");
-		// WIP: renderEntityPre
+
 		WorldRenderEvents.BEFORE_ENTITIES.invoker().beforeEntities(eventContext);
 		profiler.push("prepare");
 		int entityCount = 0;
@@ -510,7 +501,6 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		profiler.swap("entities");
 
-		// WIP remove or move to pipeline config
 		if (advancedTranslucency) {
 			final Framebuffer entityFramebuffer = mcwr.getEntityFramebuffer();
 			//entityFramebuffer.clear(MinecraftClient.IS_SYSTEM_MAC);
@@ -641,7 +631,6 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		assert matrixStack.isEmpty() : "Matrix stack not empty in world render when expected";
 
 		immediate.drawCollectors(MaterialTarget.MAIN);
-		// WIP: renderEntityPost
 
 		WorldRenderEvents.AFTER_ENTITIES.invoker().afterEntities(eventContext);
 
@@ -797,8 +786,8 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		RenderSystem.pushMatrix();
 		RenderSystem.multMatrix(matrixStack.peek().getModel());
 
-		// WIP: need a new event here for weather/cloud targets that has matrix applies to render state
-		// WIP: move the Mallib world last to the new event when fabulous is on
+		// TODO: need a new event here for weather/cloud targets that has matrix applies to render state
+		// TODO: move the Mallib world last to the new event when fabulous is on
 
 		if (Configurator.debugOcclusionBoxes) {
 			renderCullBoxes(matrixStack, immediate, cameraX, cameraY, cameraZ, tickDelta);

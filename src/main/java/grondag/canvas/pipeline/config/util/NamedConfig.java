@@ -29,8 +29,6 @@ public abstract class NamedConfig<T extends NamedConfig<T>> extends AbstractConf
 
 		boolean duplicate = false;
 
-		// WIP: handle duplicate and empty names
-
 		if (name != null && !name.isEmpty() && nameMap().putIfAbsent(name, (T) this) != null) {
 			CanvasMod.LOG.warn(String.format("Invalid pipeline config. Encountered duplicate name %s for %s", name, this.getClass().getSimpleName()));
 			duplicate = true;

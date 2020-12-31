@@ -19,6 +19,7 @@ package grondag.canvas.pipeline.config;
 import blue.endless.jankson.JsonArray;
 import blue.endless.jankson.JsonObject;
 
+import grondag.canvas.CanvasMod;
 import grondag.canvas.pipeline.config.util.ConfigContext;
 import grondag.canvas.pipeline.config.util.JanksonHelper;
 import grondag.canvas.pipeline.config.util.NamedConfig;
@@ -82,6 +83,11 @@ public class PassConfig extends NamedConfig<PassConfig> {
 
 		for (final NamedDependency<ImageConfig> img : samplerImages) {
 			valid &= program.validate("Pass %s invalid because samplerImage %s not found or invalid.", name, img.name);
+		}
+
+		if (program.value().samplerNames.length != samplerImages.length) {
+			CanvasMod.LOG.warn(String.format("Pass %s invalid because program %s expects %d samplers but the pass binds %d.",
+					name, program.name, program.value().samplerNames.length, samplerImages.length));
 		}
 
 		return valid;

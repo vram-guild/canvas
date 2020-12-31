@@ -67,13 +67,6 @@ public class WorldDataManager {
 	private static final long baseRenderTime = System.currentTimeMillis();
 	private static int flags;
 
-	// WIP: add a bunch more uniforms
-	// true darkness variables
-	// all the inputs to the lightmap
-	// sun view matrix
-	// player underwater
-	// vanilla effect flags
-
 	static {
 		if (Configurator.enableLifeCycleDebug) {
 			CanvasMod.LOG.info("Lifecycle Event: WorldDataManager static init");

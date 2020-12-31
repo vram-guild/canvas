@@ -25,7 +25,6 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.texture.AbstractTexture;
 import net.minecraft.util.Identifier;
 
-import grondag.canvas.CanvasMod;
 import grondag.canvas.pipeline.Image;
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.pipeline.PipelineManager;
@@ -59,23 +58,7 @@ class ProgramPass extends Pass {
 				}
 			}
 
-			if (imageBind == 0) {
-				CanvasMod.LOG.warn(String.format("Unable to find image binding %s for pass %s.  Pass will be skipped.", imageName, config.name));
-				isValid = false;
-			}
-
 			binds[i] = imageBind;
-		}
-
-		// WIP: should be able to remove all this after config validation is complete
-		shader = Pipeline.getShader(config.program.name);
-
-		if (shader == null) {
-			CanvasMod.LOG.warn(String.format("Unable to find shader %s for pass %s.  Pass will be skipped.", config.program.name, config.name));
-			isValid = false;
-		} else if (shader.samplerCount() != binds.length) {
-			CanvasMod.LOG.warn(String.format("Shader %s in pass %s expects %d samplers but the pass binds %d.  Pass may not operate correctly.",
-					config.program.name, config.name, shader.samplerCount(), binds.length));
 		}
 	}
 

@@ -23,7 +23,6 @@ import net.minecraft.util.Identifier;
 import grondag.canvas.pipeline.config.util.ConfigContext;
 import grondag.canvas.pipeline.config.util.NamedDependency;
 
-// WIP: managed draw targets
 public class PipelineConfig {
 	public final ConfigContext context;
 	public final ImageConfig[] images;

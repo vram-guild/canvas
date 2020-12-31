@@ -38,7 +38,6 @@ import grondag.canvas.pipeline.config.util.JanksonHelper;
 import grondag.canvas.pipeline.config.util.LoadHelper;
 import grondag.canvas.pipeline.config.util.NamedDependency;
 
-// WIP: managed draw targets
 public class PipelineConfigBuilder {
 	public final ConfigContext context = new ConfigContext();
 	public final ObjectArrayList<ImageConfig> images = new ObjectArrayList<>();
@@ -65,23 +64,27 @@ public class PipelineConfigBuilder {
 		}
 
 		if (configJson.containsKey("defaultFramebuffer")) {
-			// WIP: validate these are null when found - signals duplicate if not
+			CanvasMod.LOG.warn("Invalid pipeline config - duplicate 'defaultFramebuffer' ignored.");
 			defaultFramebuffer = context.frameBuffers.dependOn(configJson, "defaultFramebuffer");
 		}
 
 		if (configJson.containsKey("fabulousTargets")) {
+			CanvasMod.LOG.warn("Invalid pipeline config - duplicate 'fabulousTargets' ignored.");
 			fabulosity = LoadHelper.loadObject(context, configJson, "fabulousTargets", FabulousConfig::new);
 		}
 
 		if (configJson.containsKey("materialVertexShader")) {
+			CanvasMod.LOG.warn("Invalid pipeline config - duplicate 'materialVertexShader' ignored.");
 			materialVertexShader = JanksonHelper.asString(configJson.get("materialVertexShader"));
 		}
 
 		if (configJson.containsKey("materialFragmentShader")) {
+			CanvasMod.LOG.warn("Invalid pipeline config - duplicate 'materialFragmentShader' ignored.");
 			materialFragmentShader = JanksonHelper.asString(configJson.get("materialFragmentShader"));
 		}
 
 		if (configJson.containsKey("drawTargets")) {
+			CanvasMod.LOG.warn("Invalid pipeline config - duplicate 'drawTargets' ignored.");
 			drawTargets = LoadHelper.loadObject(context, configJson, "drawTargets", DrawTargetsConfig::new);
 		}
 

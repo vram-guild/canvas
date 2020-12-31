@@ -240,39 +240,4 @@ public class PipelineManager {
 			drawBuffer = null;
 		}
 	}
-
-	// WIP - index vertex data
-	//   FEAT: as part of above, send biome temp and outdoor flag to make available in shader
-
-	// WIP - notes
-	// stages that come after beforeWorldRender
-	// need managed target map
-
-	// for each stage...
-	// pre
-	// post
-	// unmanaged target remap
-
-	// renderBackground()
-	// renderSky() - only called if view distance > 4, can turn off geometry if custom render - will need more data
-	// renderSkyShadows() - if enabled
-	// renderSolidTerrain()
-	// renderSolidEntities()
-	// renderEntityOutline
-	// renderBlockBreaking
-	// renderBlockOutline
-	// renderDebug
-	// renderSolidExtras()
-	// renderGlint
-	// renderWaterMask
-	// renderLines
-	// translucentEntity
-	// translucentTerrain
-	// particles
-	//   configure targets
-	// clouds
-	// weather
-	// last
-	// hand
-	// gui materials
 }

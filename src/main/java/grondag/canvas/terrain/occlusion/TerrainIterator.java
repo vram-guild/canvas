@@ -72,8 +72,6 @@ public class TerrainIterator implements Consumer<TerrainRenderContext> {
 		final BlockPos cameraBlockPos = camera.getBlockPos();
 		cameraChunkOrigin = BlockPos.asLong(cameraBlockPos.getX() & 0xFFFFFFF0, cameraBlockPos.getY() & 0xFFFFFFF0, cameraBlockPos.getZ() & 0xFFFFFFF0);
 		terrainOccluder.frustum.copy(frustum);
-		// WIP: use fog distance (when fog is enabled) to further limit visibility
-		// Will make a big difference in the nether.  In OW, fog is only 16 blocks less than chunk render distance.
 		this.renderDistance = renderDistance;
 		this.chunkCullingEnabled = chunkCullingEnabled;
 

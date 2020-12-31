@@ -35,7 +35,7 @@ public class PrimaryFrameBuffer extends Framebuffer {
 		endRead();
 		endWrite();
 
-		// WIP: need to signal pipeline to close anything?
+		//NB: pipeline manager handles close
 	}
 
 	@Override
