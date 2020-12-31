@@ -8,12 +8,12 @@
     "error.canvas.program_link_failure": "Canvas no puede crear un shader vinculado debido a un error inesperado.",
     "error.canvas.fail_create_lightmap": "Canvas no puede crear mapa(s) de luz HD - sin espacio. \nAlgunos bloques no se renderizarán con la iluminación adecuada. \nReduce la distancia de visualización o desactivar los mapas de luz HD. F3+A puede limpiar este problema temporalmente.",
     "key.canvas.category": "Canvas",
-    "key.canvas.cycle_view": "Vista de ciclo debug",
-    "key.canvas.decrement_a": "Decremento del debug A",
-    "key.canvas.increment_a": "Incremento del debug A",
-    "key.canvas.decrement_b": "Decremento del debug B",
-    "key.canvas.increment_b": "Incremento del debug B",
-    "config.canvas.button": "Canvas",
+    
+    
+    
+    
+    
+    
     "config.canvas.title": "Configuración de Canvas Renderer",
     "config.canvas.reset": "Reiniciar",
     "config.canvas.category.features": "Características",
@@ -113,5 +113,28 @@
     "config.canvas.value.log_missing_uniforms": "Registrar uniformes perdidos",
     "config.canvas.help.log_missing_uniforms": "Registra uniformes no encontrados en shaders. A veces muy util para;depurar shaders. Puede spammear el registro.",
     "config.canvas.value.log_materials": "Registrar materiales",
-    "config.canvas.help.log_materials": "Registrar el render de estados de materiales y;mapeo de capas de renderizado vanilla.;Muy util para el depurado de materiales y;creadores de ResourcePacks.;Puede spammear el registro."
+    "config.canvas.help.log_materials": "Registrar el render de estados de materiales y;mapeo de capas de renderizado vanilla.;Muy util para el depurado de materiales y;creadores de ResourcePacks.;Puede spammear el registro.",
+"config.canvas.value.trace_occlusion_outcomes": "Trazar resultados de oclusión",
+  "config.canvas.help.trace_occlusion_outcomes": "registra varias pruebas relacionadas con la oclusión y cambios de estados.;Altamente verboso y puede SPAMMEAR el registro.",
+  "config.canvas.value.static_frustum_padding": "Relleno estático del frustum",
+  "config.canvas.help.static_frustum_padding": "Rellena los bordes de pantalla para evitar como a veces la visibilad del terreno;está corrupto. En grados. En cero desabilita.",
+  "config.canvas.value.dynamic_frustum_padding": "Relleno dinámico del frustum",
+  "config.canvas.help.dynamic_frustum_padding": "Relleno extra en bordes de pantalla para reducir chunks perdidos cuando;la vista gira y el Parallel Terrain Setup esta activo.;En grados. Zero disables.",
+  "config.canvas.value.cull_particles": "Particle Culling",
+  "config.canvas.help.cull_particles": "Hace desaparecer las particulas que no están en la vista.;Siempre debe ser más rapido.",
+  "config.canvas.value.log_render_lag_spikes": "Registro de picos de lag de renderizado",
+  "config.canvas.help.log_render_lag_spikes": "Registra información en picos de lag de renderizado - cuando suceden y donde.;Puede spammear el registro.",
+  "config.canvas.value.render_lag_spike_fps": "Renderizar picos de lag de FPS",
+  "config.canvas.help.render_lag_spike_fps": "Objetivos de fotogramas por segundo cuando el Registro de picos de lag de render está habilitado.;Si el tiempo estimado excede un frame entero, es registrado un pico.",
+  "key.canvas.debug_toggle": "Cambiar vista de depurado",
+  "key.canvas.debug_prev": "Depurar imagen previo",
+  "key.canvas.debug_next": "Depurar imagen siguiente",
+  "pipeline.canvas_standard.name": "Canvas Standard",
+  "pipeline.canvas_standard.desc": "Algunas mejoras estéticas, con rendimiento balanceado",
+  "pipeline.canvas_basic.name": "Canvas Basic",
+  "pipeline.canvas_basic.desc": "Renderizado estilo vanilla, mejor rendimiento.",
+  "pipeline.no_desc": "No se ha provisto descripción.",
+  "key.canvas.recompile": "Recompilar Shaders",
+  "config.canvas.value.pipeline": "Pipeline",
+  "config.canvas.help.pipeline": "Configuración de renderizado. Determina la apariencia, ;rendimiento y opciones disponibles."
   }
