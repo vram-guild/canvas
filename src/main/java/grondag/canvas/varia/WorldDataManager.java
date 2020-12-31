@@ -16,6 +16,10 @@
 
 package grondag.canvas.varia;
 
+import java.nio.FloatBuffer;
+
+import org.lwjgl.BufferUtils;
+
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.render.Camera;
@@ -63,7 +67,7 @@ public class WorldDataManager {
 	private static final int FLAG0_IS_THUNDERING = 64;
 	private static final int FLAG0_IS_SKY_DARKENED = 128;
 
-	private static final float[] DATA = new float[LENGTH];
+	private static final FloatBuffer DATA = BufferUtils.createFloatBuffer(LENGTH);
 	private static final long baseRenderTime = System.currentTimeMillis();
 	private static int flags;
 
@@ -73,7 +77,7 @@ public class WorldDataManager {
 		}
 	}
 
-	public static float[] data() {
+	public static FloatBuffer data() {
 		return DATA;
 	}
 
@@ -92,14 +96,14 @@ public class WorldDataManager {
 			return;
 		}
 
-		DATA[RENDER_SECONDS] = (System.currentTimeMillis() - baseRenderTime) / 1000f;
+		DATA.put(RENDER_SECONDS, (System.currentTimeMillis() - baseRenderTime) / 1000f);
 
 		final ClientWorld world = client.world;
 
 		if (world != null) {
 			final long days = world.getTimeOfDay() / 24000L;
-			DATA[WORLD_DAYS] = (int) (days % 2147483647L);
-			DATA[WORLD_TIME] = (float) ((world.getTimeOfDay() - days * 24000L) / 24000.0);
+			DATA.put(WORLD_DAYS, (int) (days % 2147483647L));
+			DATA.put(WORLD_TIME, (float) ((world.getTimeOfDay() - days * 24000L) / 24000.0));
 			final ClientPlayerEntity player = client.player;
 
 			int flags = world.getDimension().hasSkyLight() ? FLAG0_HAS_SKYLIGHT : 0;
@@ -132,7 +136,7 @@ public class WorldDataManager {
 
 			WorldDataManager.flags = flags;
 
-			DATA[RAIN_STRENGTH] = world.getRainGradient(tickDelta);
+			DATA.put(RAIN_STRENGTH, world.getRainGradient(tickDelta));
 
 			ItemLight light = ItemLight.NONE;
 
@@ -148,22 +152,22 @@ public class WorldDataManager {
 				}
 			}
 
-			DATA[HELD_LIGHT_RED] = light.red();
-			DATA[HELD_LIGHT_GREEN] = light.green();
-			DATA[HELD_LIGHT_BLUE] = light.blue();
-			DATA[HELD_LIGHT_INTENSITY] = light.intensity();
+			DATA.put(HELD_LIGHT_RED, light.red());
+			DATA.put(HELD_LIGHT_GREEN, light.green());
+			DATA.put(HELD_LIGHT_BLUE, light.blue());
+			DATA.put(HELD_LIGHT_INTENSITY, light.intensity());
 
-			DATA[AMBIENT_INTENSITY] = world.method_23783(1.0F);
-			DATA[MOON_SIZE] = world.getMoonSize();
+			DATA.put(AMBIENT_INTENSITY, world.method_23783(1.0F));
+			DATA.put(MOON_SIZE, world.getMoonSize());
 
 			final float fluidModifier = client.player.getUnderwaterVisibility();
 
 			if (nightVision) {
-				DATA[WORLD_EFFECT_MODIFIER] = GameRenderer.getNightVisionStrength(client.player, tickDelta);
+				DATA.put(WORLD_EFFECT_MODIFIER, GameRenderer.getNightVisionStrength(client.player, tickDelta));
 			} else if (fluidModifier > 0.0F && client.player.hasStatusEffect(StatusEffects.CONDUIT_POWER)) {
-				DATA[WORLD_EFFECT_MODIFIER] = fluidModifier;
+				DATA.put(WORLD_EFFECT_MODIFIER, fluidModifier);
 			} else {
-				DATA[WORLD_EFFECT_MODIFIER] = 0.0F;
+				DATA.put(WORLD_EFFECT_MODIFIER, 0.0F);
 			}
 		}
 
@@ -172,18 +176,18 @@ public class WorldDataManager {
 	}
 
 	public static void updateEmissiveColor(int color) {
-		DATA[EMISSIVE_COLOR_RED] = ((color >> 24) & 0xFF) / 255f;
-		DATA[EMISSIVE_COLOR_GREEN] = ((color >> 16) & 0xFF) / 255f;
-		DATA[EMISSIVE_COLOR_BLUE] = (color & 0xFF) / 255f;
+		DATA.put(EMISSIVE_COLOR_RED, ((color >> 24) & 0xFF) / 255f);
+		DATA.put(EMISSIVE_COLOR_GREEN, ((color >> 16) & 0xFF) / 255f);
+		DATA.put(EMISSIVE_COLOR_BLUE, (color & 0xFF) / 255f);
 	}
 
 	private static void putViewVector(int index, float yaw, float pitch) {
 		final float y = (float) Math.toRadians(yaw);
 		final float p = (float) Math.toRadians(pitch);
 
-		DATA[index] = -MathHelper.sin(y) * MathHelper.cos(p);
-		DATA[index + 1] = -MathHelper.sin(p);
-		DATA[index + 2] = MathHelper.cos(y) * MathHelper.cos(p);
+		DATA.put(index, -MathHelper.sin(y) * MathHelper.cos(p));
+		DATA.put(index + 1, -MathHelper.sin(p));
+		DATA.put(index + 2, MathHelper.cos(y) * MathHelper.cos(p));
 	}
 
 	public static int flags() {

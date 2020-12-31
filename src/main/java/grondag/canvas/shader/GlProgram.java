@@ -21,6 +21,7 @@ import java.nio.IntBuffer;
 import java.util.function.Consumer;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import org.jetbrains.annotations.Nullable;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.EXTGPUShader4;
 import org.lwjgl.opengl.GL11;
@@ -546,8 +547,16 @@ public class GlProgram {
 	}
 
 	public class UniformArrayfImpl extends UniformFloat<UniformArrayf> implements UniformArrayf {
+		@Nullable protected FloatBuffer externalFloatBuffer;
+
 		protected UniformArrayfImpl(String name, Consumer<UniformArrayf> initializer, UniformRefreshFrequency frequency, int size) {
 			super(name, initializer, frequency, size);
+		}
+
+		@Override
+		public void setExternal(FloatBuffer externalFloatBuffer) {
+			this.externalFloatBuffer = externalFloatBuffer;
+			setDirty();
 		}
 
 		@Override
@@ -568,7 +577,12 @@ public class GlProgram {
 
 		@Override
 		protected void uploadInner() {
-			GL21.glUniform1fv(unifID, uniformFloatBuffer);
+			if (externalFloatBuffer == null) {
+				GL21.glUniform1fv(unifID, uniformFloatBuffer);
+			} else {
+				GL21.glUniform1fv(unifID, externalFloatBuffer);
+				externalFloatBuffer = null;
+			}
 		}
 
 		@Override
