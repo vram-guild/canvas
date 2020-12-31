@@ -16,6 +16,16 @@
 
 package grondag.canvas.varia;
 
-public class UniformManager {
-	// TODO
+import java.nio.IntBuffer;
+
+import org.lwjgl.BufferUtils;
+
+import grondag.canvas.apiimpl.MaterialConditionImpl;
+
+public class FlagData {
+	public static final int WORLD_DATA_START = 0;
+	public static final int CONDITION_DATA_START = 1;
+	public static final int LENGTH = CONDITION_DATA_START + MaterialConditionImpl.CONDITION_FLAG_ARRAY_LENGTH;
+
+	public static final IntBuffer DATA = BufferUtils.createIntBuffer(LENGTH);
 }

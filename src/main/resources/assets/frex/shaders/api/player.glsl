@@ -31,5 +31,5 @@ vec4 frx_heldLight() {
  * True when player has the night vision effect.
  */
 bool frx_playerHasNightVision() {
-	return frx_bitValue(_cvu_world_flags, _CV_FLAG0_NIGHT_VISTION_ACTIVE) == 1;
+	return frx_bitValue(_cvu_flags[_CV_WORLD_FLAGS_START], _CV_FLAG0_NIGHT_VISTION_ACTIVE) == 1;
 }

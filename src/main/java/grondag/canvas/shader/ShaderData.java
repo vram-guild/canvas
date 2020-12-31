@@ -22,8 +22,8 @@ import org.lwjgl.opengl.GL21;
 
 import net.minecraft.util.Identifier;
 
-import grondag.canvas.apiimpl.MaterialConditionImpl;
 import grondag.canvas.texture.TextureData;
+import grondag.canvas.varia.FlagData;
 import grondag.canvas.varia.WorldDataManager;
 import grondag.frex.api.material.UniformRefreshFrequency;
 
@@ -40,11 +40,10 @@ public class ShaderData {
 	public static final String VEREX_END = "#include canvas:endvertex";
 
 	public static final Consumer<GlProgram> STANDARD_UNIFORM_SETUP = program -> {
-		program.uniformArrayf("_cvu_world", UniformRefreshFrequency.PER_TICK, u -> u.setExternal(WorldDataManager.data()), WorldDataManager.LENGTH);
+		program.uniformArrayf("_cvu_world", UniformRefreshFrequency.PER_TICK, u -> u.setExternal(WorldDataManager.DATA), WorldDataManager.LENGTH);
 
-		program.uniform1ui("_cvu_world_flags", UniformRefreshFrequency.PER_TICK, u -> u.set(WorldDataManager.flags()));
-
-		program.uniformArrayui("_cvu_condition_flags", UniformRefreshFrequency.PER_TICK, u -> u.set(MaterialConditionImpl.CONDITION_FLAGS), MaterialConditionImpl.CONDITION_FLAG_ARRAY_LENGTH);
+		program.uniformArrayui("_cvu_flags", UniformRefreshFrequency.PER_TICK, u -> u.setExternal(FlagData.DATA), FlagData.LENGTH);
+		//		program.uniformArrayui("_cvu_condition_flags", UniformRefreshFrequency.PER_TICK, u -> u.set(MaterialConditionImpl.CONDITION_FLAGS), MaterialConditionImpl.CONDITION_FLAG_ARRAY_LENGTH);
 
 		program.uniformSampler2d("frxs_spriteAltas", UniformRefreshFrequency.ON_LOAD, u -> u.set(TextureData.MC_SPRITE_ATLAS - GL21.GL_TEXTURE0));
 

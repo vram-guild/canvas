@@ -37,6 +37,9 @@ class ProgramPass extends Pass {
 
 	ProgramPass(PassConfig config) {
 		super(config);
+
+		shader = Pipeline.getShader(config.program.name);
+
 		binds = new int[config.samplerImages.length];
 
 		for (int i = 0; i < config.samplerImages.length; ++i) {

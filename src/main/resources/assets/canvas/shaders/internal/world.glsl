@@ -32,14 +32,16 @@
 #define _CV_FLAG0_IS_THUNDERING        	6
 #define _CV_FLAG0_IS_SKY_DARKENED      	7
 
+#define _CV_WORLD_FLAGS_START           0
+#define _CV_CONDITION_FLAGS_START	    1
+
 uniform float[22] _cvu_world;
-uniform uint _cvu_world_flags;
-uniform uint[2] _cvu_condition_flags;
+uniform uint[3] _cvu_flags;
 uniform vec3 _cvu_model_origin;
 uniform int _cvu_model_origin_type;
 uniform mat3 _cvu_normal_model_matrix;
 uniform int _cvu_fog_mode;
 
 bool _cv_testCondition(int conditionIndex) {
-	return frx_bitValue(_cvu_condition_flags[conditionIndex >> 5], conditionIndex & 31) == 1.0;
+	return frx_bitValue(_cvu_flags[_CV_CONDITION_FLAGS_START + (conditionIndex >> 5)], conditionIndex & 31) == 1.0;
 }

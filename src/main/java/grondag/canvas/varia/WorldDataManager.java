@@ -67,7 +67,7 @@ public class WorldDataManager {
 	private static final int FLAG0_IS_THUNDERING = 64;
 	private static final int FLAG0_IS_SKY_DARKENED = 128;
 
-	private static final FloatBuffer DATA = BufferUtils.createFloatBuffer(LENGTH);
+	public static final FloatBuffer DATA = BufferUtils.createFloatBuffer(LENGTH);
 	private static final long baseRenderTime = System.currentTimeMillis();
 	private static int flags;
 
@@ -75,10 +75,6 @@ public class WorldDataManager {
 		if (Configurator.enableLifeCycleDebug) {
 			CanvasMod.LOG.info("Lifecycle Event: WorldDataManager static init");
 		}
-	}
-
-	public static FloatBuffer data() {
-		return DATA;
 	}
 
 	/**
@@ -173,6 +169,8 @@ public class WorldDataManager {
 
 		putViewVector(CAMERA_VIEW, camera.getYaw(), camera.getPitch());
 		putViewVector(ENTITY_VIEW, cameraEntity.yaw, cameraEntity.pitch);
+
+		FlagData.DATA.put(FlagData.WORLD_DATA_START, flags);
 	}
 
 	public static void updateEmissiveColor(int color) {
@@ -188,9 +186,5 @@ public class WorldDataManager {
 		DATA.put(index, -MathHelper.sin(y) * MathHelper.cos(p));
 		DATA.put(index + 1, -MathHelper.sin(p));
 		DATA.put(index + 2, MathHelper.cos(y) * MathHelper.cos(p));
-	}
-
-	public static int flags() {
-		return flags;
 	}
 }

@@ -64,28 +64,43 @@ public class PipelineConfigBuilder {
 		}
 
 		if (configJson.containsKey("defaultFramebuffer")) {
-			CanvasMod.LOG.warn("Invalid pipeline config - duplicate 'defaultFramebuffer' ignored.");
-			defaultFramebuffer = context.frameBuffers.dependOn(configJson, "defaultFramebuffer");
+			if (defaultFramebuffer == null) {
+				defaultFramebuffer = context.frameBuffers.dependOn(configJson, "defaultFramebuffer");
+			} else {
+				CanvasMod.LOG.warn("Invalid pipeline config - duplicate 'defaultFramebuffer' ignored.");
+			}
 		}
 
 		if (configJson.containsKey("fabulousTargets")) {
-			CanvasMod.LOG.warn("Invalid pipeline config - duplicate 'fabulousTargets' ignored.");
-			fabulosity = LoadHelper.loadObject(context, configJson, "fabulousTargets", FabulousConfig::new);
+			if (fabulosity == null) {
+				fabulosity = LoadHelper.loadObject(context, configJson, "fabulousTargets", FabulousConfig::new);
+			} else {
+				CanvasMod.LOG.warn("Invalid pipeline config - duplicate 'fabulousTargets' ignored.");
+			}
 		}
 
 		if (configJson.containsKey("materialVertexShader")) {
-			CanvasMod.LOG.warn("Invalid pipeline config - duplicate 'materialVertexShader' ignored.");
-			materialVertexShader = JanksonHelper.asString(configJson.get("materialVertexShader"));
+			if (materialVertexShader == null) {
+				materialVertexShader = JanksonHelper.asString(configJson.get("materialVertexShader"));
+			} else {
+				CanvasMod.LOG.warn("Invalid pipeline config - duplicate 'materialVertexShader' ignored.");
+			}
 		}
 
 		if (configJson.containsKey("materialFragmentShader")) {
-			CanvasMod.LOG.warn("Invalid pipeline config - duplicate 'materialFragmentShader' ignored.");
-			materialFragmentShader = JanksonHelper.asString(configJson.get("materialFragmentShader"));
+			if (materialFragmentShader == null) {
+				materialFragmentShader = JanksonHelper.asString(configJson.get("materialFragmentShader"));
+			} else {
+				CanvasMod.LOG.warn("Invalid pipeline config - duplicate 'materialFragmentShader' ignored.");
+			}
 		}
 
 		if (configJson.containsKey("drawTargets")) {
-			CanvasMod.LOG.warn("Invalid pipeline config - duplicate 'drawTargets' ignored.");
-			drawTargets = LoadHelper.loadObject(context, configJson, "drawTargets", DrawTargetsConfig::new);
+			if (drawTargets == null) {
+				drawTargets = LoadHelper.loadObject(context, configJson, "drawTargets", DrawTargetsConfig::new);
+			} else {
+				CanvasMod.LOG.warn("Invalid pipeline config - duplicate 'drawTargets' ignored.");
+			}
 		}
 
 		LoadHelper.loadSubList(context, configJson, "fabulous", "passes", fabulous, PassConfig::new);

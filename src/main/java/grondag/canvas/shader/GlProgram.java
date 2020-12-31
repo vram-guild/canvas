@@ -944,6 +944,8 @@ public class GlProgram {
 	}
 
 	public class UniformArrayuiImpl extends UniformInt<UniformArrayui> implements UniformArrayui {
+		private @Nullable IntBuffer externalBuffer;
+
 		protected UniformArrayuiImpl(String name, Consumer<UniformArrayui> initializer, UniformRefreshFrequency frequency, int size) {
 			super(name, initializer, frequency, size);
 		}
@@ -966,16 +968,25 @@ public class GlProgram {
 
 		@Override
 		protected void uploadInner() {
+			final IntBuffer source = externalBuffer == null ? uniformIntBuffer : externalBuffer;
+			externalBuffer = null;
+
 			if (MinecraftClient.IS_SYSTEM_MAC) {
-				EXTGPUShader4.glUniform1uivEXT(unifID, uniformIntBuffer);
+				EXTGPUShader4.glUniform1uivEXT(unifID, source);
 			} else {
-				GL30.glUniform1uiv(unifID, uniformIntBuffer);
+				GL30.glUniform1uiv(unifID, source);
 			}
 		}
 
 		@Override
 		public String searchString() {
 			return "uint\\s*\\[\\s*[0-9]+\\s*]";
+		}
+
+		@Override
+		public void setExternal(IntBuffer buff) {
+			externalBuffer = buff;
+			setDirty();
 		}
 	}
 
