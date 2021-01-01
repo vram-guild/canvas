@@ -92,6 +92,13 @@ void frx_startPipelineFragment(inout frx_FragmentData fragData) {
 		a = vec4(0.25 + a.r * 0.75, a.g * 0.75, a.b * 0.75, a.a);
 	}
 
+	// WIP: remove - various api tests
+	//a = min(vec4(1.0, 1.0, 1.0, 1.0), a + vec4(frx_smoothedEyeBrightness().y));
+	//a = min(vec4(1.0, 1.0, 1.0, 1.0), a + vec4(0.0, 0.0, frx_eyePos().y / 255.0, 0.0));
+	//if (frx_playerFlag(FRX_PLAYER_EYE_IN_LAVA)) {
+	//	a = min(vec4(1.0, 1.0, 1.0, 1.0), a + vec4(0.0, 0.0, 1.0, 0.0));
+	//}
+
 	// TODO: need a separate fog pass?
 	gl_FragData[TARGET_BASECOLOR] = _cp_fog(a);
 	gl_FragDepth = gl_FragCoord.z;

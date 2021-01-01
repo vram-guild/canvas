@@ -40,7 +40,7 @@ public class ShaderData {
 	public static final String VEREX_END = "#include canvas:endvertex";
 
 	public static final Consumer<GlProgram> STANDARD_UNIFORM_SETUP = program -> {
-		program.uniformArrayf("_cvu_world", UniformRefreshFrequency.PER_TICK, u -> u.setExternal(WorldDataManager.DATA), WorldDataManager.LENGTH);
+		program.uniformArray4f("_cvu_world", UniformRefreshFrequency.PER_TICK, u -> u.setExternal(WorldDataManager.DATA), WorldDataManager.VECTOR_COUNT);
 
 		program.uniformArrayui("_cvu_flags", UniformRefreshFrequency.PER_TICK, u -> u.setExternal(FlagData.DATA), FlagData.LENGTH);
 		//		program.uniformArrayui("_cvu_condition_flags", UniformRefreshFrequency.PER_TICK, u -> u.set(MaterialConditionImpl.CONDITION_FLAGS), MaterialConditionImpl.CONDITION_FLAG_ARRAY_LENGTH);

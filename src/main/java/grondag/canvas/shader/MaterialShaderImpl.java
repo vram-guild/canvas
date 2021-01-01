@@ -51,7 +51,7 @@ public final class MaterialShaderImpl {
 		return result;
 	}
 
-	// UGLY: all of this activation stuff is trash code
+	// WIP: all of this activation stuff is trash code
 	// these should probably happen before program activation - change detection should upload as needed
 	private void updateCommonUniforms(RenderState renderState) {
 		program.programInfo.set(vertexShaderIndex, fragmentShaderIndex, renderState.gui ? 1 : 0);

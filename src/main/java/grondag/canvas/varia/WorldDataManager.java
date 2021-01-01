@@ -27,37 +27,73 @@ import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.effect.StatusEffects;
+import net.minecraft.fluid.FluidState;
+import net.minecraft.tag.FluidTags;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.LightType;
 import net.minecraft.world.World;
+import net.minecraft.world.chunk.light.LightingProvider;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
+import grondag.canvas.pipeline.Pipeline;
+import grondag.canvas.pipeline.PipelineManager;
 import grondag.fermion.bits.BitPacker32;
 import grondag.frex.api.light.ItemLight;
 
 public class WorldDataManager {
-	public static final int LENGTH = 22;
+	public static final int VECTOR_COUNT = 16;
+	private static final int LENGTH = VECTOR_COUNT * 4;
 
-	private static final int WORLD_EFFECT_MODIFIER = 0;
-	private static final int RENDER_SECONDS = 1;
-	private static final int AMBIENT_INTENSITY = 2;
-	private static final int MOON_SIZE = 3;
-	private static final int WORLD_TIME = 4;
-	private static final int WORLD_DAYS = 5;
-	@SuppressWarnings("unused") // was previously used for flags
-	private static final int RESERVED_A = 6;
-	@SuppressWarnings("unused") // was previously used for fog
-	private static final int RESERVED_B = 7;
-	private static final int EMISSIVE_COLOR_RED = 8;
-	private static final int EMISSIVE_COLOR_GREEN = 9;
-	private static final int EMISSIVE_COLOR_BLUE = 10;
-	private static final int HELD_LIGHT_RED = 11;
-	private static final int HELD_LIGHT_GREEN = 12;
-	private static final int HELD_LIGHT_BLUE = 13;
-	private static final int HELD_LIGHT_INTENSITY = 14;
-	private static final int RAIN_STRENGTH = 15;
-	private static final int CAMERA_VIEW = 16; // 3 elements wide
-	private static final int ENTITY_VIEW = 19; // 3 elements wide
+	private static final int VEC_WORLD_TIME = 4 * 0;
+	private static final int RENDER_SECONDS = VEC_WORLD_TIME;
+	private static final int WORLD_TIME = VEC_WORLD_TIME + 1;
+	private static final int WORLD_DAYS = VEC_WORLD_TIME + 2;
+	private static final int MOON_SIZE = VEC_WORLD_TIME + 3;
+
+	private static final int VEC_AMBIENT_LIGHT = 4 * 1;
+	private static final int EMISSIVE_COLOR_RED = VEC_AMBIENT_LIGHT;
+	private static final int EMISSIVE_COLOR_GREEN = VEC_AMBIENT_LIGHT + 1;
+	private static final int EMISSIVE_COLOR_BLUE = VEC_AMBIENT_LIGHT + 2;
+	private static final int AMBIENT_INTENSITY = VEC_AMBIENT_LIGHT + 3;
+
+	private static final int VEC_MISC_WORLD = 4 * 2;
+	private static final int WORLD_EFFECT_MODIFIER = VEC_MISC_WORLD;
+	private static final int RAIN_STRENGTH = VEC_MISC_WORLD + 1;
+
+	private static final int VEC_HELD_LIGHT = 4 * 3;
+	private static final int HELD_LIGHT_RED = VEC_HELD_LIGHT;
+	private static final int HELD_LIGHT_GREEN = VEC_HELD_LIGHT + 1;
+	private static final int HELD_LIGHT_BLUE = VEC_HELD_LIGHT + 2;
+	private static final int HELD_LIGHT_INTENSITY = VEC_HELD_LIGHT + 3;
+
+	// camera position in world space
+	private static final int VEC_CAMERA_POS = 4 * 4;
+	private static final int PLAYER_MOOD = VEC_CAMERA_POS + 3;
+
+	private static final int VEC_LAST_CAMERA_POS = 4 * 5;
+
+	// camera view vector in world space
+	private static final int VEC_CAMERA_VIEW = 4 * 6;
+
+	// entity view vector in world space
+	private static final int VEC_ENTITY_VIEW = 4 * 7;
+
+	private static final int VEC_VIEW_PARAMS = 4 * 8;
+	private static final int VIEW_WIDTH = VEC_VIEW_PARAMS;
+	private static final int VIEW_HEIGHT = VEC_VIEW_PARAMS + 1;
+	private static final int VIEW_ASPECT = VEC_VIEW_PARAMS + 2;
+	private static final int VIEW_BRIGHTNESS = VEC_VIEW_PARAMS + 3;
+
+	private static final int EYE_BRIGHTNESS = 4 * 9;
+	private static final int EYE_LIGHT_BLOCK = EYE_BRIGHTNESS;
+	private static final int EYE_LIGHT_SKY = EYE_BRIGHTNESS + 1;
+	private static final int SMOOTHED_EYE_LIGHT_BLOCK = EYE_BRIGHTNESS + 2;
+	private static final int SMOOTHED_EYE_LIGHT_SKY = EYE_BRIGHTNESS + 3;
+
+	private static final int EYE_POSITION = 4 * 10;
 
 	private static final BitPacker32<Void> WORLD_FLAGS = new BitPacker32<>(null, null);
 	private static final BitPacker32<Void>.BooleanElement FLAG_HAS_SKYLIGHT = WORLD_FLAGS.createBooleanElement();
@@ -67,6 +103,20 @@ public class WorldDataManager {
 	private static final BitPacker32<Void>.BooleanElement FLAG_IS_RAINING = WORLD_FLAGS.createBooleanElement();
 	private static final BitPacker32<Void>.BooleanElement FLAG_IS_THUNDERING = WORLD_FLAGS.createBooleanElement();
 	private static final BitPacker32<Void>.BooleanElement FLAG_IS_SKY_DARKENED = WORLD_FLAGS.createBooleanElement();
+	private static final BitPacker32<Void>.BooleanElement FLAG_EYE_IN_FLUID = WORLD_FLAGS.createBooleanElement();
+	private static final BitPacker32<Void>.BooleanElement FLAG_EYE_IN_WATER = WORLD_FLAGS.createBooleanElement();
+	private static final BitPacker32<Void>.BooleanElement FLAG_EYE_IN_LAVA = WORLD_FLAGS.createBooleanElement();
+	private static final BitPacker32<Void>.BooleanElement FLAG_SNEAKING = WORLD_FLAGS.createBooleanElement();
+	private static final BitPacker32<Void>.BooleanElement FLAG_SWIMMING = WORLD_FLAGS.createBooleanElement();
+	private static final BitPacker32<Void>.BooleanElement FLAG_SNEAKING_POSE = WORLD_FLAGS.createBooleanElement();
+	private static final BitPacker32<Void>.BooleanElement FLAG_SWIMMING_POSE = WORLD_FLAGS.createBooleanElement();
+	private static final BitPacker32<Void>.BooleanElement FLAG_CREATIVE = WORLD_FLAGS.createBooleanElement();
+	private static final BitPacker32<Void>.BooleanElement FLAG_SPECTATOR = WORLD_FLAGS.createBooleanElement();
+	private static final BitPacker32<Void>.BooleanElement FLAG_RIDING = WORLD_FLAGS.createBooleanElement();
+	private static final BitPacker32<Void>.BooleanElement FLAG_ON_FIRE = WORLD_FLAGS.createBooleanElement();
+	private static final BitPacker32<Void>.BooleanElement FLAG_SLEEPING = WORLD_FLAGS.createBooleanElement();
+	private static final BitPacker32<Void>.BooleanElement FLAG_SPRINTING = WORLD_FLAGS.createBooleanElement();
+	private static final BitPacker32<Void>.BooleanElement FLAG_WET = WORLD_FLAGS.createBooleanElement();
 
 	private static final BitPacker32<Void> PLAYER_FLAGS = new BitPacker32<>(null, null);
 	private static final BitPacker32<Void>.BooleanElement FLAG_SPEED = PLAYER_FLAGS.createBooleanElement();
@@ -106,10 +156,74 @@ public class WorldDataManager {
 	private static final long baseRenderTime = System.currentTimeMillis();
 	private static int worldFlags;
 	private static int playerFlags;
+	static double smoothedEyeLightBlock = 0;
+	static double smoothedEyeLightSky = 0;
 
 	static {
 		if (Configurator.enableLifeCycleDebug) {
 			CanvasMod.LOG.info("Lifecycle Event: WorldDataManager static init");
+		}
+	}
+
+	static void computeEyeNumbers(ClientWorld world, ClientPlayerEntity player) {
+		float sky = 15, block = 15;
+
+		DATA.put(EYE_POSITION, (float) player.getX());
+		DATA.put(EYE_POSITION + 1, (float) player.getY());
+		DATA.put(EYE_POSITION + 2, (float) player.getZ());
+
+		final int eyeX = MathHelper.floor(player.getX());
+		final int eyeZ = MathHelper.floor(player.getZ());
+
+		if (eyeX >= -30000000 && eyeZ >= -30000000 && eyeX < 30000000 && eyeZ < 30000000) {
+			if (world.isChunkLoaded(eyeX >> 4, eyeZ >> 4)) {
+				final BlockPos eyePos = new BlockPos(eyeX, MathHelper.floor(player.getEyeY()), eyeZ);
+				final LightingProvider lighter = world.getLightingProvider();
+				computeEyeFlags(world, player, eyePos);
+
+				if (lighter != null) {
+					block = lighter.get(LightType.BLOCK).getLightLevel(eyePos);
+					sky = Math.max(0, lighter.get(LightType.SKY).getLightLevel(eyePos) - world.getAmbientDarkness());
+				}
+			}
+		}
+
+		// normalize
+		sky /= 15f;
+		block /= 15f;
+
+		// Simple exponential smoothing
+		final double a = 1.0 - Math.pow(Math.E, -1.0 / Pipeline.config().brightnessSmoothingFrames);
+
+		if (Pipeline.config().smoothBrightnessBidirectionaly) {
+			smoothedEyeLightBlock = smoothedEyeLightBlock * (1f - a) + a * block;
+			smoothedEyeLightSky = smoothedEyeLightSky * (1f - a) + a * sky;
+		} else {
+			smoothedEyeLightBlock = block > smoothedEyeLightBlock ? block : smoothedEyeLightBlock * (1f - a) + a * block;
+			smoothedEyeLightSky = sky > smoothedEyeLightSky ? sky : smoothedEyeLightSky * (1f - a) + a * sky;
+		}
+
+		DATA.put(EYE_LIGHT_BLOCK, block);
+		DATA.put(EYE_LIGHT_SKY, sky);
+		DATA.put(SMOOTHED_EYE_LIGHT_BLOCK, (float) smoothedEyeLightBlock);
+		DATA.put(SMOOTHED_EYE_LIGHT_SKY, (float) smoothedEyeLightSky);
+	}
+
+	static void computeEyeFlags(ClientWorld world, ClientPlayerEntity player, BlockPos eyePos) {
+		final FluidState fluidState = world.getFluidState(eyePos);
+
+		if (!fluidState.isEmpty()) {
+			final double fluidHeight = eyePos.getY() + fluidState.getHeight(world, eyePos);
+
+			if (fluidHeight >= player.getEyeY()) {
+				worldFlags = FLAG_EYE_IN_FLUID.setValue(true, worldFlags);
+
+				if (fluidState.getFluid().isIn(FluidTags.WATER)) {
+					worldFlags = FLAG_EYE_IN_WATER.setValue(true, worldFlags);
+				} else if (fluidState.getFluid().isIn(FluidTags.LAVA)) {
+					worldFlags = FLAG_EYE_IN_LAVA.setValue(true, worldFlags);
+				}
+			}
 		}
 	}
 
@@ -123,6 +237,8 @@ public class WorldDataManager {
 		final float tickDelta = client.getTickDelta();
 		assert cameraEntity != null;
 		assert cameraEntity.getEntityWorld() != null;
+		worldFlags = 0;
+		playerFlags = 0;
 
 		if (cameraEntity == null || cameraEntity.getEntityWorld() == null) {
 			return;
@@ -137,11 +253,22 @@ public class WorldDataManager {
 			DATA.put(WORLD_DAYS, (int) (days % 2147483647L));
 			DATA.put(WORLD_TIME, (float) ((world.getTimeOfDay() - days * 24000L) / 24000.0));
 			final ClientPlayerEntity player = client.player;
-
-			worldFlags = 0;
-			playerFlags = 0;
+			DATA.put(PLAYER_MOOD, player.getMoodPercentage());
+			computeEyeNumbers(world, player);
 
 			worldFlags = FLAG_HAS_SKYLIGHT.setValue(world.getDimension().hasSkyLight(), worldFlags);
+
+			worldFlags = FLAG_SNEAKING.setValue(player.isInSneakingPose(), worldFlags);
+			worldFlags = FLAG_SNEAKING_POSE.setValue(player.isSneaking(), worldFlags);
+			worldFlags = FLAG_SWIMMING.setValue(player.isSwimming(), worldFlags);
+			worldFlags = FLAG_SWIMMING_POSE.setValue(player.isInSwimmingPose(), worldFlags);
+			worldFlags = FLAG_CREATIVE.setValue(player.isCreative(), worldFlags);
+			worldFlags = FLAG_SPECTATOR.setValue(player.isSpectator(), worldFlags);
+			worldFlags = FLAG_RIDING.setValue(player.isRiding(), worldFlags);
+			worldFlags = FLAG_ON_FIRE.setValue(player.isOnFire(), worldFlags);
+			worldFlags = FLAG_SLEEPING.setValue(player.isSleeping(), worldFlags);
+			worldFlags = FLAG_SPRINTING.setValue(player.isSprinting(), worldFlags);
+			worldFlags = FLAG_WET.setValue(player.isWet(), worldFlags);
 
 			final boolean nightVision = player != null && client.player.hasStatusEffect(StatusEffects.NIGHT_VISION);
 
@@ -225,8 +352,21 @@ public class WorldDataManager {
 			}
 		}
 
-		putViewVector(CAMERA_VIEW, camera.getYaw(), camera.getPitch());
-		putViewVector(ENTITY_VIEW, cameraEntity.yaw, cameraEntity.pitch);
+		DATA.put(VEC_LAST_CAMERA_POS, DATA.get(VEC_CAMERA_POS));
+		DATA.put(VEC_LAST_CAMERA_POS + 1, DATA.get(VEC_CAMERA_POS + 1));
+		DATA.put(VEC_LAST_CAMERA_POS + 2, DATA.get(VEC_CAMERA_POS + 2));
+		final Vec3d cameraPos = camera.getPos();
+		DATA.put(VEC_CAMERA_POS, (float) cameraPos.x);
+		DATA.put(VEC_CAMERA_POS + 1, (float) cameraPos.y);
+		DATA.put(VEC_CAMERA_POS + 2, (float) cameraPos.z);
+
+		putViewVector(VEC_CAMERA_VIEW, camera.getYaw(), camera.getPitch());
+		putViewVector(VEC_ENTITY_VIEW, cameraEntity.yaw, cameraEntity.pitch);
+
+		DATA.put(VIEW_WIDTH, PipelineManager.width());
+		DATA.put(VIEW_HEIGHT, PipelineManager.height());
+		DATA.put(VIEW_ASPECT, (float) PipelineManager.width() / (float) PipelineManager.height());
+		DATA.put(VIEW_BRIGHTNESS, (float) client.options.gamma);
 
 		FlagData.DATA.put(FlagData.WORLD_DATA_INDEX, worldFlags);
 		FlagData.DATA.put(FlagData.PLAYER_DATA_INDEX, playerFlags);

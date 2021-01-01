@@ -24,6 +24,10 @@ import grondag.canvas.pipeline.config.util.ConfigContext;
 import grondag.canvas.pipeline.config.util.NamedDependency;
 
 public class PipelineConfig {
+	// WIP: add to config options
+	public boolean smoothBrightnessBidirectionaly = false;
+	public int brightnessSmoothingFrames = 20;
+
 	public final ConfigContext context;
 	public final ImageConfig[] images;
 	public final PipelineParam[] params;

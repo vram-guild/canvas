@@ -11,7 +11,7 @@
  * Experimental, likely to change.
  */
 float frx_effectModifier() {
-	return _cvu_world[_CV_WORLD_EFFECT_MODIFIER];
+	return _cvu_world[_CV_MISC_WORLD].x;
 }
 
 /*
@@ -24,9 +24,8 @@ float frx_effectModifier() {
  *  If the player is not holding a light source, all values are zero.
  */
 vec4 frx_heldLight() {
-	return vec4(_cvu_world[_CV_HELD_LIGHT_RED], _cvu_world[_CV_HELD_LIGHT_GREEN], _cvu_world[_CV_HELD_LIGHT_BLUE], _cvu_world[_CV_HELD_LIGHT_INTENSITY]);
+	return _cvu_world[_CV_HELD_LIGHT_RGBI];
 }
-
 
 // Tokens accepted in frx_playerHasEffect
 // Includes all vanilla player effects in 1.16.4
@@ -71,11 +70,65 @@ bool frx_playerHasEffect(int effect) {
 	return frx_bitValue(_cvu_flags[_CV_PLAYER_FLAGS_INDEX], effect) == 1;
 }
 
+// Tokens accepted in frx_playerFlag
+#define FRX_PLAYER_EYE_IN_FLUID 7
+#define FRX_PLAYER_EYE_IN_WATER 8
+#define FRX_PLAYER_EYE_IN_LAVA 9
+#define FRX_PLAYER_SNEAKING 10
+#define FRX_PLAYER_SWIMMING 11
+#define FRX_PLAYER_SNEAKING_POSE 12
+#define FRX_PLAYER_SWIMMING_POSE 13
+#define FRX_PLAYER_CREATIVE 14
+#define FRX_PLAYER_SPECTATOR 15
+#define FRX_PLAYER_RIDING 16
+#define FRX_PLAYER_ON_FIRE 17
+#define FRX_PLAYER_SLEEPING 18
+#define FRX_PLAYER_SPRINTING 19
+#define FRX_PLAYER_WET 20
+
 /*
- * True when player has the night vision effect.
- *
+ * Accepts one of the tokens defined above.  Note that different implementations
+ * could define different numeric token values - always use the preprocessor token.
+ */
+bool frx_playerFlag(int flag) {
+	return frx_bitValue(_cvu_flags[_CV_WORLD_FLAGS_INDEX], flag) == 1;
+}
+
+/*
  * DEPRECATED - use frx_playerHasEffect()
  */
 bool frx_playerHasNightVision() {
 	return frx_bitValue(_cvu_flags[_CV_PLAYER_FLAGS_INDEX], FRX_EFFECT_NIGHT_VISION) == 1;
+}
+
+/**
+ * Value of timer that triggers "spooky" sounds when player is underground. Range 0-1.
+ */
+float frx_playerMood() {
+	return _cvu_world[_CV_CAMERA_POS].w;
+}
+
+/**
+ * Eye position in world coordinates.
+ */
+vec3 frx_eyePos() {
+	return _cvu_world[_CV_EYE_POSITION].xyz;
+}
+
+/**
+ * Normalized, linear light level at player/viewer eye position.
+ * Zero is no light and 1 is max. No correction for gamma, dimension, etc.
+ * Component x is block and y is sky.
+ */
+vec2 frx_eyeBrightness() {
+	return _cvu_world[_CV_EYE_BRIGHTNESS].xy;
+}
+
+/**
+ * Same as frx_eyeBrightness but with exponential smoothing.
+ * Optionally, can smooth only decreases, leaving increases instant.
+ * Speed & bidirectionality are controlled in pipeline config.
+ */
+vec2 frx_smoothedEyeBrightness() {
+	return _cvu_world[_CV_EYE_BRIGHTNESS].zw;
 }

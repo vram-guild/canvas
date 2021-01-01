@@ -8,22 +8,37 @@
 ******************************************************/
 
 /*
- *  The view vector of the current camera, expressed in a normalised vector
+ *  The view vector of the current camera in world space, normalised.
  */
 vec3 frx_cameraView() {
-	return vec3(_cvu_world[_CV_CAMERA_VIEW], _cvu_world[_CV_CAMERA_VIEW + 1], _cvu_world[_CV_CAMERA_VIEW + 2]);
+	return _cvu_world[_CV_CAMERA_VIEW].xyz;
 }
 
 /*
- *  The view vector of the current entity focused by the camera, expressed in a normalised vector
+ *  The view vector of the current entity focused by the camera, in world space, normalised.
  */
 vec3 frx_entityView() {
-	return vec3(_cvu_world[_CV_ENTITY_VIEW], _cvu_world[_CV_ENTITY_VIEW + 1], _cvu_world[_CV_ENTITY_VIEW + 2]);
+	return _cvu_world[_CV_ENTITY_VIEW].xyz;
+}
+
+/**
+ * Current position of the camera in world space.
+ */
+vec3 frx_cameraPos() {
+	return _cvu_world[_CV_CAMERA_POS].xyz;
+}
+
+/**
+ * Prior-frame position of the camera in world space.
+ */
+vec3 frx_lastCameraPos() {
+	return _cvu_world[_CV_LAST_CAMERA_POS].xyz;
 }
 
 /*
- * World coordinates for model space origin in the current invocation.
- * Add this to vertex position to get world position.
+ * World-space coordinates for model space origin in the current invocation.
+ * Outside of terrain rendering, this will always be the same as frx_cameraPos().
+ * Add this to model-space vertex coordinates to get world coordinates.
  */
 vec3 frx_modelOriginWorldPos() {
 	return _cvu_model_origin;
@@ -94,4 +109,33 @@ mat3 frx_normalModelMatrix() {
  */
 bool frx_isGui() {
 	return _cv_isGui() == 1.0;
+}
+
+/*
+ * Framebuffer width, in pixels.
+ */
+float frx_viewWidth() {
+	return _cvu_world[_CV_VIEW_PARAMS].x;
+}
+
+/*
+ * Framebuffer height, in pixels.
+ */
+float frx_viewHeight() {
+	return _cvu_world[_CV_VIEW_PARAMS].y;
+}
+
+/*
+ * Framebuffer width / height.
+ */
+float frx_viewAspectRatio() {
+	return _cvu_world[_CV_VIEW_PARAMS].z;
+}
+
+/*
+ * User-configured brightness from game options.
+ * Values 0.0 to 1.0, with 1.0 being max brightness.
+ */
+float frx_viewBrightness() {
+	return _cvu_world[_CV_VIEW_PARAMS].w;
 }

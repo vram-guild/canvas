@@ -53,6 +53,7 @@ import grondag.frex.api.material.Uniform.Uniform3ui;
 import grondag.frex.api.material.Uniform.Uniform4f;
 import grondag.frex.api.material.Uniform.Uniform4i;
 import grondag.frex.api.material.Uniform.Uniform4ui;
+import grondag.frex.api.material.Uniform.UniformArray4f;
 import grondag.frex.api.material.Uniform.UniformArrayf;
 import grondag.frex.api.material.Uniform.UniformArrayi;
 import grondag.frex.api.material.Uniform.UniformArrayui;
@@ -122,6 +123,10 @@ public class GlProgram {
 
 	public UniformArrayf uniformArrayf(String name, UniformRefreshFrequency frequency, Consumer<UniformArrayf> initializer, int size) {
 		return new UniformArrayfImpl(name, initializer, frequency, size);
+	}
+
+	public UniformArray4f uniformArray4f(String name, UniformRefreshFrequency frequency, Consumer<UniformArray4f> initializer, int size) {
+		return new UniformArray4fImpl(name, initializer, frequency, size);
 	}
 
 	public Uniform1i uniformSampler2d(String name, UniformRefreshFrequency frequency, Consumer<Uniform1i> initializer) {
@@ -588,6 +593,51 @@ public class GlProgram {
 		@Override
 		public String searchString() {
 			return "float\\s*\\[\\s*[0-9]+\\s*]";
+		}
+	}
+
+	public class UniformArray4fImpl extends UniformFloat<UniformArray4f> implements UniformArray4f {
+		@Nullable protected FloatBuffer externalFloatBuffer;
+
+		protected UniformArray4fImpl(String name, Consumer<UniformArray4f> initializer, UniformRefreshFrequency frequency, int size) {
+			super(name, initializer, frequency, size * 4);
+		}
+
+		@Override
+		public void setExternal(FloatBuffer externalFloatBuffer) {
+			this.externalFloatBuffer = externalFloatBuffer;
+			setDirty();
+		}
+
+		@Override
+		public final void set(float[] data) {
+			if (unifID == -1) {
+				return;
+			}
+
+			final int limit = data.length;
+
+			for (int i = 0; i < limit; i++) {
+				if (uniformFloatBuffer.get(i) != data[i]) {
+					uniformFloatBuffer.put(i, data[i]);
+					setDirty();
+				}
+			}
+		}
+
+		@Override
+		protected void uploadInner() {
+			if (externalFloatBuffer == null) {
+				GL21.glUniform4fv(unifID, uniformFloatBuffer);
+			} else {
+				GL21.glUniform4fv(unifID, externalFloatBuffer);
+				externalFloatBuffer = null;
+			}
+		}
+
+		@Override
+		public String searchString() {
+			return "vec4\\s*\\[\\s*[0-9]+\\s*]";
 		}
 	}
 
