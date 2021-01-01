@@ -156,3 +156,10 @@ float frx_viewBrightness() {
 int frx_renderTarget() {
 	return _cvu_context[_CV_TARGET_INDEX];
 }
+
+/**
+ * Currently configured terrain view distance, in blocks.
+ */
+float frx_viewDistance() {
+	return _cvu_world[_CV_CLEAR_COLOR].w;
+}

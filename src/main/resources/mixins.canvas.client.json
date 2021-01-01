@@ -6,6 +6,7 @@
 	"AccessMultiPhaseParameters",
 	"AccessTexture",
 	"MixinBiomeAccess",
+	"MixinBackgroundRenderer",
 	"MixinBlockModelRenderer",
 	"MixinBlockRenderManager",
 	"MixinBufferBuilderStorage",

@@ -106,6 +106,7 @@ void frx_startPipelineFragment(inout frx_FragmentData fragData) {
 	//if (frx_renderTarget() == TARGET_ENTITY) {
 	//	a = vec4(0.0, 1.0, 0.0, a.a);
 	//}
+	//a = vec4(frx_vanillaClearColor(), a.a);
 
 	// TODO: need a separate fog pass?
 	gl_FragData[TARGET_BASECOLOR] = _cp_fog(a);

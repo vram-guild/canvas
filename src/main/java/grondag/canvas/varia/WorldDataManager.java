@@ -59,7 +59,9 @@ public class WorldDataManager {
 	private static final int EMISSIVE_COLOR_BLUE = VEC_AMBIENT_LIGHT + 2;
 	private static final int AMBIENT_INTENSITY = VEC_AMBIENT_LIGHT + 3;
 
-	private static final int VEC_RESERVED = 4 * 2;
+	// carries view distance in spare slot
+	private static final int VEC_VANILLA_CLEAR_COLOR = 4 * 2;
+	private static final int VIEW_DISTANCE = VEC_VANILLA_CLEAR_COLOR + 3;
 
 	private static final int VEC_HELD_LIGHT = 4 * 3;
 	private static final int HELD_LIGHT_RED = VEC_HELD_LIGHT;
@@ -74,7 +76,7 @@ public class WorldDataManager {
 
 	// carries effect strength in spare slot
 	private static final int VEC_LAST_CAMERA_POS = 4 * 5;
-	private static final int WORLD_EFFECT_MODIFIER = VEC_LAST_CAMERA_POS + 3;
+	private static final int NIGHT_VISION_STRENGTH = VEC_LAST_CAMERA_POS + 3;
 
 	// camera view vector in world space
 	// carries rain strength in spare slot
@@ -98,7 +100,9 @@ public class WorldDataManager {
 	private static final int SMOOTHED_EYE_LIGHT_BLOCK = EYE_BRIGHTNESS + 2;
 	private static final int SMOOTHED_EYE_LIGHT_SKY = EYE_BRIGHTNESS + 3;
 
+	// thunder gradient in spare slot
 	private static final int EYE_POSITION = 4 * 10;
+	private static final int THUNDER_STRENGTH = EYE_POSITION + 3;
 
 	private static final BitPacker32<Void> WORLD_FLAGS = new BitPacker32<>(null, null);
 	private static final BitPacker32<Void>.BooleanElement FLAG_HAS_SKYLIGHT = WORLD_FLAGS.createBooleanElement();
@@ -171,6 +175,12 @@ public class WorldDataManager {
 		}
 	}
 
+	public static void captureClearColor(float r, float g, float b) {
+		DATA.put(VEC_VANILLA_CLEAR_COLOR, r);
+		DATA.put(VEC_VANILLA_CLEAR_COLOR + 1, g);
+		DATA.put(VEC_VANILLA_CLEAR_COLOR + 2, b);
+	}
+
 	static void computeEyeNumbers(ClientWorld world, ClientPlayerEntity player) {
 		float sky = 15, block = 15;
 
@@ -236,6 +246,7 @@ public class WorldDataManager {
 	static void updateRain(ClientWorld world, float tickDelta) {
 		final float rain = world.getRainGradient(tickDelta);
 		DATA.put(RAIN_STRENGTH, rain);
+		DATA.put(THUNDER_STRENGTH, world.getThunderGradient(tickDelta));
 
 		// Simple exponential smoothing
 		final double a = 1.0 - Math.pow(Math.E, -1.0 / Pipeline.config().rainSmoothingFrames);
@@ -261,6 +272,7 @@ public class WorldDataManager {
 		}
 
 		DATA.put(RENDER_SECONDS, (System.currentTimeMillis() - baseRenderTime) / 1000f);
+		DATA.put(VIEW_DISTANCE, client.options.viewDistance * 16);
 
 		final ClientWorld world = client.world;
 
@@ -360,11 +372,9 @@ public class WorldDataManager {
 			final float fluidModifier = client.player.getUnderwaterVisibility();
 
 			if (nightVision) {
-				DATA.put(WORLD_EFFECT_MODIFIER, GameRenderer.getNightVisionStrength(client.player, tickDelta));
+				DATA.put(NIGHT_VISION_STRENGTH, GameRenderer.getNightVisionStrength(client.player, tickDelta));
 			} else if (fluidModifier > 0.0F && client.player.hasStatusEffect(StatusEffects.CONDUIT_POWER)) {
-				DATA.put(WORLD_EFFECT_MODIFIER, fluidModifier);
-			} else {
-				DATA.put(WORLD_EFFECT_MODIFIER, 0.0F);
+				DATA.put(NIGHT_VISION_STRENGTH, fluidModifier);
 			}
 		}
 

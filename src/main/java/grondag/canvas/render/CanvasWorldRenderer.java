@@ -430,8 +430,14 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		profiler.swap("clear");
 
+		// This does not actually render anything - what it does do is set the current clear color
+		// Color is captured via a mixin for use in shaders
 		BackgroundRenderer.render(camera, tickDelta, mc.world, mc.options.viewDistance, gameRenderer.getSkyDarkness(tickDelta));
-		RenderSystem.clear(16640, MinecraftClient.IS_SYSTEM_MAC);
+
+		if (Pipeline.config().runVanillaClear) {
+			RenderSystem.clear(16640, MinecraftClient.IS_SYSTEM_MAC);
+		}
+
 		final float viewDistance = gameRenderer.getViewDistance();
 		final boolean thickFog = mc.world.getSkyProperties().useThickFog(MathHelper.floor(cameraX), MathHelper.floor(cameraY)) || mc.inGameHud.getBossBarHud().shouldThickenFog();
 

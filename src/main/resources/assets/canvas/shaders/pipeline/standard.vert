@@ -6,6 +6,12 @@
 ******************************************************/
 
 void frx_startPipelineVertex(inout frx_VertexData data) {
+
+	// WIP: remove - various api tests
+	//if (data.vertex.z < frx_viewDistance() * -0.25) {
+	//	data.color = vec4(0.0, 0.0, 0.0, 1.0);
+	//}
+
 	vec4 viewCoord = gl_ModelViewMatrix * data.vertex;
 	gl_ClipVertex = viewCoord;
 	gl_FogFragCoord = length(viewCoord.xyz);

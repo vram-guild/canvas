@@ -80,10 +80,17 @@ vec4 frx_emissiveColor() {
 }
 
 /*
- * MC rain gradient. Values 0 to 1.
+ * MC rain strength. Values 0 to 1.
  */
 float frx_rainGradient() {
 	return _cvu_world[_CV_CAMERA_VIEW].w;
+}
+
+/*
+ * MC thunder strength. Values 0 to 1.
+ */
+float frx_thunderGradient() {
+	return _cvu_world[_CV_EYE_POSITION].w;
 }
 
 /**
@@ -107,6 +114,20 @@ bool frx_isThundering() {
  */
 bool frx_isSkyDarkened() {
 	return frx_bitValue(_cvu_flags[_CV_WORLD_FLAGS_INDEX], _CV_FLAG_IS_SKY_DARKENED) == 1.0;
+}
+
+/**
+ * The background clear color as computed by vanilla logic. Incorporates
+ * many different factors.  For use by pipelines that may want to modify
+ * and do their own clearing operations. Pipelines can disable the vanilla
+ * clear pass in pipeline config.
+ *
+ *
+ * Material shader authors note: this may not be the actual clear color used
+ * by the in-effect pipeline. (It might not clear with a single color at all!)
+ */
+vec3 frx_vanillaClearColor() {
+	return _cvu_world[_CV_CLEAR_COLOR].rgb;
 }
 
 bool frx_testCondition(int conditionIndex) {

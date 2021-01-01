@@ -13,9 +13,8 @@
 // emissive rgb + ambient intensity
 #define _CV_AMBIENT_LIGHT 1
 
-// effect intensity
-// rain gradient
-#define _CV_RESERVED 2
+// w is view distance
+#define _CV_CLEAR_COLOR 2
 
 // rgb + intensity
 #define _CV_HELD_LIGHT_RGBI 3
@@ -38,8 +37,11 @@
 // normalized screen brightness - game setting
 #define _CV_VIEW_PARAMS 8
 
+// xy = raw block/sky
+// zw = smoothed block/sky
 #define _CV_EYE_BRIGHTNESS 9
 
+// w is thunder strength
 #define _CV_EYE_POSITION 10
 
 #define _CV_FLAG_HAS_SKYLIGHT 0
