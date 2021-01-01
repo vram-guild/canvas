@@ -594,6 +594,11 @@ public class GlProgram {
 		public String searchString() {
 			return "float\\s*\\[\\s*[0-9]+\\s*]";
 		}
+
+		@Override
+		public void setExternal(FloatBuffer buff) {
+			// TODO Auto-generated method stub
+		}
 	}
 
 	public class UniformArray4fImpl extends UniformFloat<UniformArray4f> implements UniformArray4f {

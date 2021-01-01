@@ -25,10 +25,10 @@ import org.spongepowered.asm.mixin.transformer.meta.MixinMerged;
 
 import net.minecraft.client.render.WorldRenderer;
 
+import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.loader.api.FabricLoader;
 
 import grondag.canvas.CanvasMod;
-import grondag.frex.api.event.WorldRenderContext;
 
 interface RenderInjection {
 	CallbackInfo CALLBACK_INFO = new CallbackInfo("render", false);
