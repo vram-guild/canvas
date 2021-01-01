@@ -31,7 +31,7 @@ float frx_renderSeconds() {
  * Received from server - may not be smoothly incremented.
  */
 float frx_worldDay() {
-	return _cvu_world[_CV_WORLD_TIME].y;
+	return _cvu_world[_CV_WORLD_TIME].z;
 }
 
 /*
@@ -42,7 +42,7 @@ float frx_worldDay() {
  * Received from server - may not be smoothly incremented.
  */
 float frx_worldTime() {
-	return _cvu_world[_CV_WORLD_TIME].z;
+	return _cvu_world[_CV_WORLD_TIME].y;
 }
 
 
