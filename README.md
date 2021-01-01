@@ -1,6 +1,9 @@
 # Canvas
 Canvas is a shader-based Renderer for the [Fabric](https://fabricmc.net) modding toolchain.  It supports all features of the proposed [Fabric Rendering API](https://github.com/FabricMC/fabric/pull/65) plus extensions defined in [FREX](https://github.com/grondag/frex).
 
+Discord: https://discord.gg/7NaqR2e
+Curse: https://www.curseforge.com/minecraft/mc-mods/canvas-renderer
+
 ## License
 Except as noted in individual source files, all code in this mod, include shaders, is [licensed under the Apache 2.0 License](http://www.apache.org/licenses/LICENSE-2.0). This means no warranty is provided.
 
