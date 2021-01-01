@@ -27,6 +27,7 @@ public class PipelineConfig {
 	// WIP: add to config options
 	public boolean smoothBrightnessBidirectionaly = false;
 	public int brightnessSmoothingFrames = 20;
+	public int rainSmoothingFrames = 500;
 
 	public final ConfigContext context;
 	public final ImageConfig[] images;

@@ -9,5 +9,5 @@
 const vec2 BLOOM_DOWNSAMPLE_DIST_VEC = vec2 (BLOOM_DOWNSAMPLE_DIST, BLOOM_DOWNSAMPLE_DIST);
 const vec2 BLOOM_UPSAMPLE_DIST_VEC = vec2 (BLOOM_UPSAMPLE_DIST, BLOOM_UPSAMPLE_DIST);
 
-uniform ivec2 _cvu_size;
-uniform int _cvu_lod;
+uniform ivec2 frxu_size;
+uniform int frxu_lod;

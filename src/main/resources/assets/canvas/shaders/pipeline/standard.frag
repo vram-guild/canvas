@@ -11,6 +11,9 @@
   canvas:shaders/pipeline/standard.frag
 ******************************************************/
 
+#define TARGET_BASECOLOR 0
+#define TARGET_EMISSIVE  1
+
 #if AO_SHADING_MODE != AO_MODE_NONE
 vec4 aoFactor(vec2 lightCoord, float ao) {
 
@@ -98,12 +101,11 @@ void frx_startPipelineFragment(inout frx_FragmentData fragData) {
 	//if (frx_playerFlag(FRX_PLAYER_EYE_IN_LAVA)) {
 	//	a = min(vec4(1.0, 1.0, 1.0, 1.0), a + vec4(0.0, 0.0, 1.0, 0.0));
 	//}
+	//a = min(vec4(1.0, 1.0, 1.0, 1.0), a + vec4(frx_rainGradient()));
+	//a = min(vec4(1.0, 1.0, 1.0, 1.0), a + vec4(frx_smoothedRainGradient()));
 
 	// TODO: need a separate fog pass?
 	gl_FragData[TARGET_BASECOLOR] = _cp_fog(a);
 	gl_FragDepth = gl_FragCoord.z;
-
-#if TARGET_EMISSIVE > 0
 	gl_FragData[TARGET_EMISSIVE] = vec4(fragData.emissivity * a.a, 0.0, 0.0, 1.0);
-#endif
 }

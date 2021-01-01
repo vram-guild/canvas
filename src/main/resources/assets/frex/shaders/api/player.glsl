@@ -11,7 +11,7 @@
  * Experimental, likely to change.
  */
 float frx_effectModifier() {
-	return _cvu_world[_CV_MISC_WORLD].x;
+	return _cvu_world[_CV_LAST_CAMERA_POS].w;
 }
 
 /*

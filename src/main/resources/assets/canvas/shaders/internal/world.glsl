@@ -15,7 +15,7 @@
 
 // effect intensity
 // rain gradient
-#define _CV_MISC_WORLD 2
+#define _CV_RESERVED 2
 
 // rgb + intensity
 #define _CV_HELD_LIGHT_RGBI 3
@@ -23,8 +23,13 @@
 // w is player mood
 #define _CV_CAMERA_POS 4
 
+// w is effect strength
 #define _CV_LAST_CAMERA_POS 5
+
+// w is rain strength
 #define _CV_CAMERA_VIEW 6
+
+// w is smoothed rain strength
 #define _CV_ENTITY_VIEW 7
 
 // framebuffer width (pixels)

@@ -25,9 +25,6 @@
 // will only be enabled if smooth light is also enabled
 //#define ENABLE_LIGHT_NOISE
 
-#define TARGET_BASECOLOR 0
-#define TARGET_EMISSIVE -1
-
 // These won't go here if they are re-enabled
 //#ifndef VANILLA_LIGHTING
 //uniform sampler2D frxs_dither;

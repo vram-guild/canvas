@@ -59,9 +59,7 @@ public class WorldDataManager {
 	private static final int EMISSIVE_COLOR_BLUE = VEC_AMBIENT_LIGHT + 2;
 	private static final int AMBIENT_INTENSITY = VEC_AMBIENT_LIGHT + 3;
 
-	private static final int VEC_MISC_WORLD = 4 * 2;
-	private static final int WORLD_EFFECT_MODIFIER = VEC_MISC_WORLD;
-	private static final int RAIN_STRENGTH = VEC_MISC_WORLD + 1;
+	private static final int VEC_RESERVED = 4 * 2;
 
 	private static final int VEC_HELD_LIGHT = 4 * 3;
 	private static final int HELD_LIGHT_RED = VEC_HELD_LIGHT;
@@ -70,16 +68,23 @@ public class WorldDataManager {
 	private static final int HELD_LIGHT_INTENSITY = VEC_HELD_LIGHT + 3;
 
 	// camera position in world space
+	// carries player mood in spare slot
 	private static final int VEC_CAMERA_POS = 4 * 4;
 	private static final int PLAYER_MOOD = VEC_CAMERA_POS + 3;
 
+	// carries effect strength in spare slot
 	private static final int VEC_LAST_CAMERA_POS = 4 * 5;
+	private static final int WORLD_EFFECT_MODIFIER = VEC_LAST_CAMERA_POS + 3;
 
 	// camera view vector in world space
+	// carries rain strength in spare slot
 	private static final int VEC_CAMERA_VIEW = 4 * 6;
+	private static final int RAIN_STRENGTH = VEC_CAMERA_VIEW + 3;
 
 	// entity view vector in world space
+	// smoothed rain strength in spare slot
 	private static final int VEC_ENTITY_VIEW = 4 * 7;
+	private static final int SMOOTHED_RAIN_STRENGTH = VEC_ENTITY_VIEW + 3;
 
 	private static final int VEC_VIEW_PARAMS = 4 * 8;
 	private static final int VIEW_WIDTH = VEC_VIEW_PARAMS;
@@ -158,6 +163,7 @@ public class WorldDataManager {
 	private static int playerFlags;
 	static double smoothedEyeLightBlock = 0;
 	static double smoothedEyeLightSky = 0;
+	static double smoothedRainStrength = 0;
 
 	static {
 		if (Configurator.enableLifeCycleDebug) {
@@ -225,6 +231,16 @@ public class WorldDataManager {
 				}
 			}
 		}
+	}
+
+	static void updateRain(ClientWorld world, float tickDelta) {
+		final float rain = world.getRainGradient(tickDelta);
+		DATA.put(RAIN_STRENGTH, rain);
+
+		// Simple exponential smoothing
+		final double a = 1.0 - Math.pow(Math.E, -1.0 / Pipeline.config().rainSmoothingFrames);
+		smoothedRainStrength = smoothedRainStrength * (1f - a) + a * rain;
+		DATA.put(SMOOTHED_RAIN_STRENGTH, (float) smoothedRainStrength);
 	}
 
 	/**
@@ -317,7 +333,7 @@ public class WorldDataManager {
 			worldFlags = FLAG_IS_SKY_DARKENED.setValue(world.getSkyProperties().isDarkened(), worldFlags);
 			worldFlags = FLAG_IS_THUNDERING.setValue(world.isThundering(), worldFlags);
 
-			DATA.put(RAIN_STRENGTH, world.getRainGradient(tickDelta));
+			updateRain(world, tickDelta);
 
 			ItemLight light = ItemLight.NONE;
 

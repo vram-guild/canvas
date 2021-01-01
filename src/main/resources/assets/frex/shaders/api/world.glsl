@@ -83,7 +83,15 @@ vec4 frx_emissiveColor() {
  * MC rain gradient. Values 0 to 1.
  */
 float frx_rainGradient() {
-	return _cvu_world[_CV_MISC_WORLD].y;
+	return _cvu_world[_CV_CAMERA_VIEW].w;
+}
+
+/**
+ * Same as frx_rainGradient but with exponential smoothing.
+ * Speed is controlled in pipeline config.
+ */
+float frx_smoothedRainGradient() {
+	return _cvu_world[_CV_ENTITY_VIEW].w;
 }
 
 /*
