@@ -26,7 +26,7 @@ public class GlMaterialProgram extends GlProgram {
 	public final Uniform3fImpl modelOrigin;
 	// converts world normals to normals of incoming vertex data
 	public final UniformMatrix3fImpl normalModelMatrix;
-	public final UniformArrayfImpl atlasInfo;
+	public final UniformArrayiImpl contextInfo;
 	public final Uniform3iImpl programInfo;
 	public final Uniform1iImpl modelOriginType;
 	public final Uniform1iImpl fogMode;
@@ -35,7 +35,7 @@ public class GlMaterialProgram extends GlProgram {
 		super(vertexShader, fragmentShader, format, programType);
 		modelOrigin = (Uniform3fImpl) uniform3f("_cvu_model_origin", UniformRefreshFrequency.ON_LOAD, u -> u.set(0, 0, 0));
 		normalModelMatrix = uniformMatrix3f("_cvu_normal_model_matrix", UniformRefreshFrequency.ON_LOAD, u -> { });
-		atlasInfo = (UniformArrayfImpl) uniformArrayf("_cvu_atlas", UniformRefreshFrequency.ON_LOAD, u -> { }, 4);
+		contextInfo = (UniformArrayiImpl) uniformArrayi("_cvu_context", UniformRefreshFrequency.ON_LOAD, u -> { }, 4);
 		programInfo = (Uniform3iImpl) uniform3i("_cvu_program", UniformRefreshFrequency.ON_LOAD, u -> { });
 		modelOriginType = (Uniform1iImpl) uniform1i("_cvu_model_origin_type", UniformRefreshFrequency.ON_LOAD, u -> u.set(MaterialMatrixState.getModelOrigin().ordinal()));
 		fogMode = (Uniform1iImpl) uniform1i("_cvu_fog_mode", UniformRefreshFrequency.ON_LOAD, u -> u.set(0));
@@ -46,13 +46,14 @@ public class GlMaterialProgram extends GlProgram {
 		modelOrigin.upload();
 	}
 
-	private final float[] materialData = new float[4];
+	private final int[] materialData = new int[4];
 
 	private static final int _CV_SPRITE_INFO_TEXTURE_SIZE = 0;
 	private static final int _CV_ATLAS_WIDTH = 1;
 	private static final int _CV_ATLAS_HEIGHT = 2;
+	private static final int _CV_MATERIAL_TARGET = 3;
 
-	public void setAtlasInfo(SpriteInfoTexture atlasInfo) {
+	public void setContextInfo(SpriteInfoTexture atlasInfo, int targetIndex) {
 		if (atlasInfo == null) {
 			materialData[_CV_SPRITE_INFO_TEXTURE_SIZE] = 0;
 		} else {
@@ -61,7 +62,9 @@ public class GlMaterialProgram extends GlProgram {
 			materialData[_CV_ATLAS_HEIGHT] = atlasInfo.atlasHeight();
 		}
 
-		this.atlasInfo.set(materialData);
-		this.atlasInfo.upload();
+		materialData[_CV_MATERIAL_TARGET] = targetIndex;
+
+		contextInfo.set(materialData);
+		contextInfo.upload();
 	}
 }

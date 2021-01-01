@@ -96,7 +96,7 @@ public final class RenderState extends AbstractRenderState {
 		LINE_STATE.setEnabled(lines);
 
 		shader.activate(this);
-		shader.setAtlasInfo(texture.atlasInfo());
+		shader.setContextInfo(texture.atlasInfo(), target.index);
 	}
 
 	public void enableWithOrigin(int x, int y, int z) {

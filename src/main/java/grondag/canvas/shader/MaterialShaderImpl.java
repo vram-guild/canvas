@@ -76,8 +76,8 @@ public final class MaterialShaderImpl {
 		updateCommonUniforms(renderState);
 	}
 
-	public void setAtlasInfo(SpriteInfoTexture atlasInfo) {
-		getOrCreate().setAtlasInfo(atlasInfo);
+	public void setContextInfo(SpriteInfoTexture atlasInfo, int targetIndex) {
+		getOrCreate().setContextInfo(atlasInfo, targetIndex);
 	}
 
 	public void reload() {

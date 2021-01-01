@@ -139,3 +139,20 @@ float frx_viewAspectRatio() {
 float frx_viewBrightness() {
 	return _cvu_world[_CV_VIEW_PARAMS].w;
 }
+
+#define TARGET_SOLID 0
+#define TARGET_OUTLINE 1 		// currently not available in managed draws
+#define TARGET_TRANSLUCENT 2
+#define TARGET_PARTICLES 3
+#define TARGET_WEATHER 4		// currently not available in managed draws
+#define TARGET_CLOUDS 5			// currently not available in managed draws
+#define TARGET_ENTITY 6
+
+/**
+ * Indicates which managed render target is being drawn to.
+ * Useful if framebuffer configuration differs across targets.
+ * One of the TARGET_...  constants above.
+ */
+int frx_renderTarget() {
+	return _cvu_context[_CV_TARGET_INDEX];
+}

@@ -103,6 +103,9 @@ void frx_startPipelineFragment(inout frx_FragmentData fragData) {
 	//}
 	//a = min(vec4(1.0, 1.0, 1.0, 1.0), a + vec4(frx_rainGradient()));
 	//a = min(vec4(1.0, 1.0, 1.0, 1.0), a + vec4(frx_smoothedRainGradient()));
+	//if (frx_renderTarget() == TARGET_ENTITY) {
+	//	a = vec4(0.0, 1.0, 0.0, a.a);
+	//}
 
 	// TODO: need a separate fog pass?
 	gl_FragData[TARGET_BASECOLOR] = _cp_fog(a);
