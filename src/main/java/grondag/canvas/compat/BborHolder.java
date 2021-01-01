@@ -26,10 +26,10 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.util.math.MatrixStack;
 
+import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.loader.api.FabricLoader;
 
 import grondag.canvas.CanvasMod;
-import grondag.frex.api.event.WorldRenderContext;
 
 class BborHolder {
 	static RenderHandler bborHandler = (m, t, p) -> { };

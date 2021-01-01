@@ -24,8 +24,7 @@ import net.minecraft.client.render.VertexConsumerProvider.Immediate;
 import net.minecraft.util.math.Vec3d;
 
 import net.fabricmc.fabric.api.client.rendering.v1.InvalidateRenderStateCallback;
-
-import grondag.frex.api.event.WorldRenderEvents;
+import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 
 public class Compat {
 	private Compat() { }

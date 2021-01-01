@@ -79,6 +79,9 @@ import net.minecraft.util.profiler.Profiler;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.world.World;
 
+import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
+import net.fabricmc.fabric.impl.client.rendering.WorldRenderContextImpl;
+
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
 import grondag.canvas.Configurator.FogMode;
@@ -115,8 +118,6 @@ import grondag.canvas.varia.CanvasGlHelper;
 import grondag.canvas.varia.WorldDataManager;
 import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
 import grondag.frex.api.event.WorldRenderEvent;
-import grondag.frex.api.event.WorldRenderEvents;
-import grondag.frex.impl.event.WorldRenderContextImpl;
 
 public class CanvasWorldRenderer extends WorldRenderer {
 	public static final int MAX_REGION_COUNT = (32 * 2 + 1) * (32 * 2 + 1) * 16;
