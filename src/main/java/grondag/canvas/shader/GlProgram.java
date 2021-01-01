@@ -575,6 +575,11 @@ public class GlProgram {
 		public String searchString() {
 			return "float\\s*\\[\\s*[0-9]+\\s*]";
 		}
+
+		@Override
+		public void setExternal(FloatBuffer buff) {
+			// TODO Auto-generated method stub
+		}
 	}
 
 	protected abstract class UniformInt<T extends Uniform> extends UniformImpl<T> {
@@ -962,6 +967,11 @@ public class GlProgram {
 		@Override
 		public String searchString() {
 			return "uint\\s*\\[\\s*[0-9]+\\s*]";
+		}
+
+		@Override
+		public void setExternal(IntBuffer data) {
+			// TODO Auto-generated method stub
 		}
 	}
 
