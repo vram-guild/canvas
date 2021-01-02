@@ -16,34 +16,93 @@
 
 package grondag.canvas.shader;
 
+import java.nio.FloatBuffer;
+
+import org.lwjgl.BufferUtils;
+
 import grondag.canvas.buffer.format.CanvasVertexFormat;
-import grondag.canvas.material.property.MaterialMatrixState;
+import grondag.canvas.material.property.MatrixState;
 import grondag.canvas.texture.SpriteInfoTexture;
+import grondag.canvas.varia.CanvasGlHelper;
+import grondag.canvas.varia.WorldDataManager;
 import grondag.frex.api.material.UniformRefreshFrequency;
 
 public class GlMaterialProgram extends GlProgram {
 	// UGLY: special casing, public
-	public final Uniform3fImpl modelOrigin;
-	// converts world normals to normals of incoming vertex data
+	public final UniformArray4fImpl modelOrigin;
+	// converts world normals to view space
+	// WIP: rename
 	public final UniformMatrix3fImpl normalModelMatrix;
 	public final UniformArrayiImpl contextInfo;
 	public final Uniform3iImpl programInfo;
 	public final Uniform1iImpl modelOriginType;
 	public final Uniform1iImpl fogMode;
 
+	private static final FloatBuffer MODEL_ORIGIN = BufferUtils.createFloatBuffer(8);
+
 	GlMaterialProgram(Shader vertexShader, Shader fragmentShader, CanvasVertexFormat format, ProgramType programType) {
 		super(vertexShader, fragmentShader, format, programType);
-		modelOrigin = (Uniform3fImpl) uniform3f("_cvu_model_origin", UniformRefreshFrequency.ON_LOAD, u -> u.set(0, 0, 0));
+		modelOrigin = (UniformArray4fImpl) uniformArray4f("_cvu_model_origin", UniformRefreshFrequency.ON_LOAD, u -> u.set(new float[8]), 2);
 		normalModelMatrix = uniformMatrix3f("_cvu_normal_model_matrix", UniformRefreshFrequency.ON_LOAD, u -> { });
 		contextInfo = (UniformArrayiImpl) uniformArrayi("_cvu_context", UniformRefreshFrequency.ON_LOAD, u -> { }, 4);
 		programInfo = (Uniform3iImpl) uniform3i("_cvu_program", UniformRefreshFrequency.ON_LOAD, u -> { });
-		modelOriginType = (Uniform1iImpl) uniform1i("_cvu_model_origin_type", UniformRefreshFrequency.ON_LOAD, u -> u.set(MaterialMatrixState.getModelOrigin().ordinal()));
+		modelOriginType = (Uniform1iImpl) uniform1i("_cvu_model_origin_type", UniformRefreshFrequency.ON_LOAD, u -> u.set(MatrixState.getModelOrigin().ordinal()));
 		fogMode = (Uniform1iImpl) uniform1i("_cvu_fog_mode", UniformRefreshFrequency.ON_LOAD, u -> u.set(0));
 	}
 
 	public void setModelOrigin(int x, int y, int z) {
-		modelOrigin.set(x, y, z);
+		switch (MatrixState.getModelOrigin()) {
+			case CAMERA:
+				setCameraOrigin();
+				break;
+			case REGION:
+				setRegionOrigin(x, y, z);
+				break;
+			case SCREEN:
+			default:
+				setScreenOrigin();
+				break;
+		}
+
+		modelOrigin.setExternal(MODEL_ORIGIN);
 		modelOrigin.upload();
+		assert CanvasGlHelper.checkError();
+	}
+
+	private void setRegionOrigin(int x, int y, int z) {
+		// region origin is model origin
+		MODEL_ORIGIN.put(0, x);
+		MODEL_ORIGIN.put(1, y);
+		MODEL_ORIGIN.put(2, z);
+
+		// to get to view/camera space, add world and subtract camera
+		MODEL_ORIGIN.put(4, (float) (x - WorldDataManager.cameraXd));
+		MODEL_ORIGIN.put(5, (float) (y - WorldDataManager.cameraYd));
+		MODEL_ORIGIN.put(6, (float) (z - WorldDataManager.cameraZd));
+	}
+
+	private void setCameraOrigin() {
+		// camera is the model origin, so to get world just add camera pos
+		MODEL_ORIGIN.put(0, WorldDataManager.cameraX);
+		MODEL_ORIGIN.put(1, WorldDataManager.cameraY);
+		MODEL_ORIGIN.put(2, WorldDataManager.cameraZ);
+
+		// relative to camera, so model to view space is zero
+		MODEL_ORIGIN.put(4, 0);
+		MODEL_ORIGIN.put(5, 0);
+		MODEL_ORIGIN.put(6, 0);
+	}
+
+	private void setScreenOrigin() {
+		// everything already in screen space
+		MODEL_ORIGIN.put(0, 0);
+		MODEL_ORIGIN.put(1, 0);
+		MODEL_ORIGIN.put(2, 0);
+
+		// everything already in screen space
+		MODEL_ORIGIN.put(4, 0);
+		MODEL_ORIGIN.put(5, 0);
+		MODEL_ORIGIN.put(6, 0);
 	}
 
 	private final int[] materialData = new int[4];

@@ -17,9 +17,10 @@
 package grondag.canvas.shader;
 
 import grondag.canvas.material.property.MaterialFog;
-import grondag.canvas.material.property.MaterialMatrixState;
+import grondag.canvas.material.property.MatrixState;
 import grondag.canvas.material.state.RenderState;
 import grondag.canvas.texture.SpriteInfoTexture;
+import grondag.canvas.varia.CanvasGlHelper;
 
 public final class MaterialShaderImpl {
 	public final int index;
@@ -56,15 +57,19 @@ public final class MaterialShaderImpl {
 	private void updateCommonUniforms(RenderState renderState) {
 		program.programInfo.set(vertexShaderIndex, fragmentShaderIndex, renderState.gui ? 1 : 0);
 		program.programInfo.upload();
+		assert CanvasGlHelper.checkError();
 
-		program.modelOriginType.set(MaterialMatrixState.getModelOrigin().ordinal());
+		program.modelOriginType.set(MatrixState.getModelOrigin().ordinal());
 		program.modelOriginType.upload();
+		assert CanvasGlHelper.checkError();
 
-		program.normalModelMatrix.set(MaterialMatrixState.getNormalModelMatrix());
+		program.normalModelMatrix.set(MatrixState.viewNormalMatrix);
 		program.normalModelMatrix.upload();
+		assert CanvasGlHelper.checkError();
 
 		program.fogMode.set(MaterialFog.shaderParam());
 		program.fogMode.upload();
+		assert CanvasGlHelper.checkError();
 	}
 
 	public void setModelOrigin(int x, int y, int z) {

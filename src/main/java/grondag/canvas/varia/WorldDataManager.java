@@ -169,6 +169,11 @@ public class WorldDataManager {
 	static double smoothedEyeLightSky = 0;
 	static double smoothedRainStrength = 0;
 
+	public static float cameraX, cameraY, cameraZ = 0f;
+
+	// keep extra precision for terrain
+	public static double cameraXd, cameraYd, cameraZd = 0;
+
 	static {
 		if (Configurator.enableLifeCycleDebug) {
 			CanvasMod.LOG.info("Lifecycle Event: WorldDataManager static init");
@@ -378,13 +383,22 @@ public class WorldDataManager {
 			}
 		}
 
-		DATA.put(VEC_LAST_CAMERA_POS, DATA.get(VEC_CAMERA_POS));
-		DATA.put(VEC_LAST_CAMERA_POS + 1, DATA.get(VEC_CAMERA_POS + 1));
-		DATA.put(VEC_LAST_CAMERA_POS + 2, DATA.get(VEC_CAMERA_POS + 2));
+		DATA.put(VEC_LAST_CAMERA_POS, cameraX);
+		DATA.put(VEC_LAST_CAMERA_POS + 1, cameraY);
+		DATA.put(VEC_LAST_CAMERA_POS + 2, cameraZ);
 		final Vec3d cameraPos = camera.getPos();
-		DATA.put(VEC_CAMERA_POS, (float) cameraPos.x);
-		DATA.put(VEC_CAMERA_POS + 1, (float) cameraPos.y);
-		DATA.put(VEC_CAMERA_POS + 2, (float) cameraPos.z);
+		cameraXd = cameraPos.x;
+		cameraX = (float) cameraXd;
+
+		cameraYd = cameraPos.y;
+		cameraY = (float) cameraYd;
+
+		cameraZd = cameraPos.z;
+		cameraZ = (float) cameraZd;
+
+		DATA.put(VEC_CAMERA_POS, cameraX);
+		DATA.put(VEC_CAMERA_POS + 1, cameraY);
+		DATA.put(VEC_CAMERA_POS + 2, cameraZ);
 
 		putViewVector(VEC_CAMERA_VIEW, camera.getYaw(), camera.getPitch());
 		putViewVector(VEC_ENTITY_VIEW, cameraEntity.yaw, cameraEntity.pitch);
@@ -396,6 +410,9 @@ public class WorldDataManager {
 
 		FlagData.DATA.put(FlagData.WORLD_DATA_INDEX, worldFlags);
 		FlagData.DATA.put(FlagData.PLAYER_DATA_INDEX, playerFlags);
+
+		// WIP: remove
+		//System.out.println(String.format("%f, %f, %f", cameraX, cameraY, cameraZ));
 	}
 
 	public static void updateEmissiveColor(int color) {

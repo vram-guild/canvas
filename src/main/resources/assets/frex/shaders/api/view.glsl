@@ -7,6 +7,36 @@
   Utilities for querying camera and transformations.
 ******************************************************/
 
+// Coordinate system terminology used here includes:
+//
+// Model Space
+// Block-aligned coordinates without camera rotation, relative
+// to an origin that may vary. Translate to camera or world space
+// with frx_modelToWorld() or frx_modelToCamera().
+//
+// Camera Space
+// Block-aligned coordinates without camera rotation, relative
+// to the camera position. This is the coordinate system for
+// inbound coordinates other than terrain and overlays.
+// Translate to world space by adding frx_cameraPos().
+// Translate to view space with frx_ViewMatrix().
+//
+// World Space
+// Block-algined coordinates in absolute MC world space.
+// These coordinates will suffer the limits of floating point
+// precision when the player is far from the world origin and
+// thus they are impractical for some use cases.
+// Translate to camera space by subtracting frx_cameraPos().
+//
+// View Space
+// Like camera space, but view is rotates so that the Z axis extends
+// in the direction of the camera view.
+// Translate to screen space with frx_ProjectionMatrix().
+//
+// Screen Space
+// 2D projection of the scene with depth.
+
+
 /*
  *  The view vector of the current camera in world space, normalised.
  */
@@ -35,52 +65,72 @@ vec3 frx_lastCameraPos() {
 	return _cvu_world[_CV_LAST_CAMERA_POS].xyz;
 }
 
+/**
+ * Translation from inbound model coordinates to world space. Conventionally
+ * this is handled with a matrix, but because inbound coordinates outside of
+ * overlay and GUI rendering are always world-algined, this can avoid a
+ * matrix multiplication.
+ *
+ *
+ * When frx_modelOriginType() == MODEL_ORIGIN_CAMERA, inbound coordinates are
+ * relative to the camera position and this will equal frx_cameraPos().
+ *
+ * In overlay rendering, when frx_modelOriginType() == MODEL_ORIGIN_SCREEN, this
+ * will always be zero.  The fourth component is always zero and included for
+ * ease of use.
+ */
+vec4 frx_modelToWorld() {
+	return _cvu_model_origin[_CV_MODEL_TO_WORLD];
+}
+
 /*
+ * DEPRECATED use frx_modelToWorld()
+
  * World-space coordinates for model space origin in the current invocation.
  * Outside of terrain rendering, this will always be the same as frx_cameraPos().
  * Add this to model-space vertex coordinates to get world coordinates.
  */
 vec3 frx_modelOriginWorldPos() {
-	return _cvu_model_origin;
+	return frx_modelToWorld().xyz;
+}
+
+/**
+ * Translation from in-bound model coordinates to view space. Conventionally
+ * this is handled with a matrix, but because inbound coordinates outside of
+ * overlay and GUI rendering are always world-algined, this can avoid a
+ * matrix multiplication.
+ *
+ * When frx_modelOriginType() == MODEL_ORIGIN_CAMERA, inbound coordinates are
+ * already relative to the camera position and this will always be zero.
+ *
+ * In overlay rendering, when frx_modelOriginType() == MODEL_ORIGIN_SCREEN, this
+ * will always be zero.  The fourth component is always zero and included for
+ * ease of use.
+ */
+vec4 frx_modelToCamera() {
+	return _cvu_model_origin[_CV_MODEL_TO_CAMERA];
 }
 
 /*
- * Vertex coordinates are relative to the camera and include model transformations
- * as well as camera rotation and translation via MatrixStack.
- * The GL view matrix will be the identity matrix. (the default state in world render)
- * Used for most per-frame renders (entities, block entities, etc.)
+ * Vertex coordinates in frx_startVertex are relative to the camera position.
+ * Coordinates and normals are unrotated.
+ * frx_modelOriginWorldPos() returns camera position.
  */
-#define MODEL_ORIGIN_ENTITY 0
+#define MODEL_ORIGIN_CAMERA 0
 
 /*
- * Vertex coordinates are relative to the camera and include model translation, scaling
- * and billboard rotation plus camera translation via matrix stack but not camera rotation.
- * The GL view matrix will include camera rotation.
- * Used for particle rendering.
+ * Vertex coordinates in frx_startVertex are relative to the origin of a
+ * "cluster" of world render regions.
+ * Coordinates and normals are unrotated.
+ * frx_modelOriginWorldPos() returns the cluster origin.
  */
-#define MODEL_ORIGIN_PARTICLE 1
+#define MODEL_ORIGIN_REGION 1
 
 /*
- * Vertex coordinate are raw model coordinates.
- * Will need a view matrix update per draw.
- * Currently not used.
+ * Vertex coordinates are relative to the screen.  No transforms should be applied.
+ * Intended for Hand//GUI rendering.
  */
-#define MODEL_ORIGIN_MODEL 2
-
-/*
- * Vertex coordinates are relative to a world region and
- * include all model transformations.
- * GL view matrix must be updated for both camera rotation and offset.
- * Used in terrain rendering. Canvas regions may be 16x16 or 256x256.
- */
-#define MODEL_ORIGIN_REGION 3
-
-/*
- * Vertex coordinates are relative to the screen.
- * Intended for GUI rendering.
- * Currently not used.
- */
-#define MODEL_ORIGIN_SCREEN 4
+#define MODEL_ORIGIN_SCREEN 2
 
 /**
  * Describes how vertex coordinates relate to world and camera geometry.

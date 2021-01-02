@@ -41,36 +41,27 @@ varying vec2 frx_texcoord;
 /*
  * Usage in API for material shaders:
  * 	  void frx_startVertex(inout frx_VertexData data)
- * 	  void frx_endVertex(inout frx_VertexData data)
  *
- * Passed to frx_startFragment at start of fragment shader processing
- * before any transformations are performed and passed
- * to frx_endVertex after all transformations are complete.
- *
- * Note that any changes made during cv_endVertex WILL affect
- * renderer output but changes here are generally tricky
- * and discouraged. The cv_endVertex call is meant for
- * retrieving post-transform values to set up varying variable.
- *
- * The exception to the above is vertex. See notes below.
+ * Passed to frx_startVertex at start of vertex shader processing
+ * before any transformations are performed. Any changes made here
+ * will affect render about. The primary use case is animation.
  *
  *
  * Usage in API for pipeline shaders:
- * 	  void frx_startPipelineVertex(inout frx_VertexData data)
- * 	  void frx_endPipelineVertex(inout frx_VertexData data)
- *
- * The comments that apply to material shaders also apply here.
- * Both calls will come immediate after the material shader runs.
+ * 	  void frx_writeVertex(in frx_VertexData data)
  *
  * The renderer will marshal all data into the structure. (Vertex
- * formats are managed entirely by the renderer.) Before the 2nd call,
- * the renderer will transform UV coordinates for atlas textures from normalized
- * to mapped and also apply matrix transforms to vertex and normal.
+ * formats are managed entirely by the renderer.) The renderer
+ * also invokes the correct material shader.
  *
- * The pipeline is responsible for ALL WRITES.  The renderer will
- * not update fog, clip, color, nor any other output variable.
- * Outputs that need pre-transform values should happen in frx_startPipelineVertex
- * and outpus that need post-transform values should happen in frx_endPipelineVertex.
+ * There renderer will call frx_writeVertex immediately after
+ * frx_startVertex completes, and make no modifications to the data.
+ *
+ * The pipeline is responsible for ALL WRITES. This includes
+ * transforming UV coordinates for atlas textures from normalized
+ * to mapped. The renderer does nothing else.
+ *
+ * The renderer will not update fog, clip, color, nor any other output variable.
  *
  * The renderer WILL set out variables for the interpolated values
  * presented in frx_startFragment but these are not directly exposed
@@ -83,22 +74,14 @@ struct frx_VertexData {
 	 * is the primary means for achieving animation effects.
 	 * Remember that normals must be transformed separately!
 	 *
-	 * Will be world space during cv_startVertex and in
-	 * screen space during cv_endVertex.
+	 * Will be camera-relative world space (unrotated for view)
+	 * during cv_startVertex and screen space during cv_endVertex.
 	 */
 	vec4 vertex;
 
 	/*
 	 * The primary texture coordinate for the vertex.
-	 * These are raw coordinates during cv_startVertex
-	 * and will modified by the active texture matrix in
-	 * cv_endVertex if one is in effect (usually not.)
-	 *
-	 * IMPORTANT: currently these are atlas coordinates.
-	 * This will soon be changed to 0-1 coordinates within
-	 * the texture itself. This will generally be more useful
-	 * for in-shader effects that rely on position relative
-	 * to texture bounds.
+	 * These are always normalized 0-1 coordinates in cv_startVertex.
 	 */
 	vec2 spriteUV;
 
@@ -113,7 +96,8 @@ struct frx_VertexData {
 	 * in the solid render pass, even though the data is not used. This
 	 * means mod authors can use that value for other purposes in the shader.
 	 *
-	 * Vertex color is not transformed by the renderer.
+	 * Vertex color is not transformed by the renderer. Pipeline
+	 * implementations should honor this contract.
 	 */
 	vec4 color;
 
@@ -123,8 +107,7 @@ struct frx_VertexData {
 	 * Transforming normal in addition to vertex is important
 	 * for correct lighting.
 	 *
-	 * Will be in world space during cv_startVertex and in
-	 * screen space during cv_endVertex.
+	 * Will be in world space during cv_startVertex.
 	 */
 	vec3 normal;
 

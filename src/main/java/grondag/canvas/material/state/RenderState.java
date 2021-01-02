@@ -57,7 +57,14 @@ public final class RenderState extends AbstractRenderState {
 	}
 
 	public void enable() {
+		enable(0, 0, 0);
+	}
+
+	// PERF: probably better not to pass this in but retrieve from global state
+	// the origin tupe is already global state
+	public void enable(int x, int y, int z) {
 		if (active == this) {
+			shader.setModelOrigin(x, y, z);
 			return;
 		}
 
@@ -97,10 +104,6 @@ public final class RenderState extends AbstractRenderState {
 
 		shader.activate(this);
 		shader.setContextInfo(texture.atlasInfo(), target.index);
-	}
-
-	public void enableWithOrigin(int x, int y, int z) {
-		enable();
 		shader.setModelOrigin(x, y, z);
 	}
 

@@ -32,13 +32,11 @@ import org.lwjgl.system.MemoryUtil;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.resource.language.I18n;
 import net.minecraft.util.math.Matrix3f;
-import net.minecraft.util.math.Matrix4f;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
 import grondag.canvas.buffer.format.CanvasVertexFormat;
 import grondag.canvas.mixinterface.Matrix3fExt;
-import grondag.canvas.mixinterface.Matrix4fExt;
 import grondag.canvas.varia.CanvasGlHelper;
 import grondag.frex.api.material.Uniform;
 import grondag.frex.api.material.Uniform.Uniform1f;
@@ -58,7 +56,6 @@ import grondag.frex.api.material.Uniform.UniformArrayf;
 import grondag.frex.api.material.Uniform.UniformArrayi;
 import grondag.frex.api.material.Uniform.UniformArrayui;
 import grondag.frex.api.material.Uniform.UniformMatrix3f;
-import grondag.frex.api.material.Uniform.UniformMatrix4f;
 import grondag.frex.api.material.UniformRefreshFrequency;
 
 public class GlProgram {
@@ -88,6 +85,7 @@ public class GlProgram {
 		this.fragmentShader = fragmentShader;
 		this.programType = programType;
 		vertexFormat = format;
+		ShaderData.COMMON_UNIFORM_SETUP.accept(this);
 	}
 
 	public static void deactivate() {
@@ -207,12 +205,8 @@ public class GlProgram {
 		}
 	}
 
-	public UniformMatrix4fImpl uniformMatrix4f(String name, UniformRefreshFrequency frequency, Consumer<UniformMatrix4f> initializer) {
-		return new UniformMatrix4fImpl(name, initializer, frequency);
-	}
-
-	public UniformMatrix4fImpl uniformMatrix4f(String name, UniformRefreshFrequency frequency, FloatBuffer floatBuffer, Consumer<UniformMatrix4f> initializer) {
-		return new UniformMatrix4fImpl(name, initializer, frequency);
+	public UniformMatrix4fArrayImpl uniformMatrix4fArray(String name, UniformRefreshFrequency frequency, Consumer<UniformMatrix4fArrayImpl> initializer) {
+		return new UniformMatrix4fArrayImpl(name, frequency, initializer);
 	}
 
 	public UniformMatrix3fImpl uniformMatrix3f(String name, UniformRefreshFrequency frequency, Consumer<UniformMatrix3f> initializer) {
@@ -380,19 +374,19 @@ public class GlProgram {
 
 		@SuppressWarnings("unchecked")
 		public final void upload() {
-			if (this.flags == 0) {
+			if (flags == 0) {
 				return;
 			}
 
-			if ((this.flags & FLAG_NEEDS_INITIALIZATION) == FLAG_NEEDS_INITIALIZATION) {
-				this.initializer.accept((T) this);
+			if ((flags & FLAG_NEEDS_INITIALIZATION) == FLAG_NEEDS_INITIALIZATION) {
+				initializer.accept((T) this);
 			}
 
-			if ((this.flags & FLAG_NEEDS_UPLOAD) == FLAG_NEEDS_UPLOAD) {
-				this.uploadInner();
+			if ((flags & FLAG_NEEDS_UPLOAD) == FLAG_NEEDS_UPLOAD && unifID != -1) {
+				uploadInner();
 			}
 
-			this.flags = 0;
+			flags = 0;
 		}
 
 		protected abstract void uploadInner();
@@ -605,6 +599,10 @@ public class GlProgram {
 
 		@Override
 		public void setExternal(FloatBuffer externalFloatBuffer) {
+			if (unifID == -1) {
+				return;
+			}
+
 			this.externalFloatBuffer = externalFloatBuffer;
 			setDirty();
 		}
@@ -1035,54 +1033,44 @@ public class GlProgram {
 
 		@Override
 		public void setExternal(IntBuffer buff) {
+			if (unifID == -1) {
+				return;
+			}
+
 			externalBuffer = buff;
 			setDirty();
 		}
 	}
 
-	public class UniformMatrix4fImpl extends UniformImpl<UniformMatrix4f> implements UniformMatrix4f {
-		protected final FloatBuffer uniformFloatBuffer;
-		protected final long bufferAddress;
-		protected final Matrix4f lastValue = new Matrix4f();
-
-		protected UniformMatrix4fImpl(String name, Consumer<UniformMatrix4f> initializer, UniformRefreshFrequency frequency) {
-			this(name, initializer, frequency, BufferUtils.createFloatBuffer(16));
-		}
+	public class UniformMatrix4fArrayImpl extends UniformImpl<UniformMatrix4fArrayImpl> implements Uniform {
+		protected FloatBuffer uniformFloatBuffer;
 
 		/**
-		 * Use when have a shared direct buffer.
+		 * Requires a shared direct buffer.
 		 */
-		protected UniformMatrix4fImpl(String name, Consumer<UniformMatrix4f> initializer, UniformRefreshFrequency frequency, FloatBuffer uniformFloatBuffer) {
+		protected UniformMatrix4fArrayImpl(String name, UniformRefreshFrequency frequency, Consumer<UniformMatrix4fArrayImpl> initializer) {
 			super(name, initializer, frequency);
-			this.uniformFloatBuffer = uniformFloatBuffer;
-			bufferAddress = MemoryUtil.memAddress(this.uniformFloatBuffer);
 		}
 
-		@Override
-		public final void set(Matrix4f matrix) {
+		public final void set(FloatBuffer uniformFloatBuffer) {
 			if (unifID == -1) {
 				return;
 			}
 
-			if (matrix == null || matrix.equals(lastValue)) {
-				return;
-			}
-
-			((Matrix4fExt) (Object) lastValue).set((Matrix4fExt) (Object) matrix);
-
-			matrix.writeToBuffer(uniformFloatBuffer);
-
+			this.uniformFloatBuffer = uniformFloatBuffer;
 			setDirty();
 		}
 
 		@Override
 		protected void uploadInner() {
-			GL21.glUniformMatrix4fv(unifID, false, uniformFloatBuffer);
+			if (uniformFloatBuffer != null) {
+				GL21.glUniformMatrix4fv(unifID, false, uniformFloatBuffer);
+			}
 		}
 
 		@Override
 		public String searchString() {
-			return "mat4";
+			return "mat4\\s*\\[\\s*[0-9]+\\s*]";
 		}
 	}
 

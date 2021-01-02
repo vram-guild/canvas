@@ -83,13 +83,16 @@ void main() {
 
 	// apply transforms
 	//data.normal *= gl_NormalMatrix;
-	data.vertex = gl_ModelViewProjectionMatrix * data.vertex;
 
-	// post-transform material shaders
-	_cv_endVertex(data, cv_programId);
+	if (frx_modelOriginType() == MODEL_ORIGIN_SCREEN) {
+		data.vertex = gl_ModelViewProjectionMatrix * data.vertex;
+	} else {
+		data.vertex += frx_modelToCamera();
+		data.vertex = _cvu_matrix[_CV_MAT_PROJ] * _cvu_matrix[_CV_MATRIX_VIEW] * data.vertex;
+	}
 
 	// pipeline shader handles additional writes/out variables
-	frx_endPipelineVertex(data);
+	frx_writePipelineVertex(data);
 
 	frx_texcoord = data.spriteUV;
 	_cvv_color = data.color;

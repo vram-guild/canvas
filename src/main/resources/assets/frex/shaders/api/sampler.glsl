@@ -17,13 +17,18 @@ uniform sampler2D frxs_spriteAltas;
  * during fragment shading and also during frx_endVertex().  It has no
  * effect when the bound texture is not an atlas texture.
  *
- * Note that normalized texture coordinates aren't normally saved to
- * a variable because they aren't usually needed. If that is needed,
- * material shaders should use one of the frx_var0-4 variables defined
- * in vertex.glsl to avoid redundant declarations from different materials.
+ * This is also needed by pipeline shaders to output mapped coordinates.
  */
 vec2 frx_mapNormalizedUV(vec2 coord) {
 	return _cvv_spriteBounds.xy + coord * _cvv_spriteBounds.zw;
+}
+
+/**
+ * Takes texture atlas coordinates and remaps them to normalized.
+ * Has no effect when the bound texture is not an atlas texture.
+ */
+vec2 frx_normalizeMappedUV(vec2 coord) {
+	return _cvv_spriteBounds.z == 0.0 ? coord : (coord - _cvv_spriteBounds.xy) / _cvv_spriteBounds.zw;
 }
 
 #ifdef VANILLA_LIGHTING

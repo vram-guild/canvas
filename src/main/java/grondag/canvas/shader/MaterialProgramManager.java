@@ -48,7 +48,7 @@ public enum MaterialProgramManager {
 			final Shader vs = new GlMaterialShader(ShaderData.MATERIAL_MAIN_VERTEX, GL21.GL_VERTEX_SHADER, programType);
 			final Shader fs = new GlMaterialShader(ShaderData.MATERIAL_MAIN_FRAGMENT, GL21.GL_FRAGMENT_SHADER, programType);
 			result = new GlMaterialProgram(vs, fs, CanvasVertexFormats.POSITION_COLOR_TEXTURE_MATERIAL_LIGHT_NORMAL, programType);
-			ShaderData.STANDARD_UNIFORM_SETUP.accept(result);
+			ShaderData.MATERIAL_UNIFORM_SETUP.accept(result);
 			materialPrograms.put(key, result);
 		}
 

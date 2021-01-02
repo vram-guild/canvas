@@ -125,7 +125,7 @@ public class TerrainLayerRenderer {
 						final RenderMaterialImpl mat = d.materialState();
 
 						if (mat.programType == ProgramType.MATERIAL_VERTEX_LOGIC || !mat.condition.affectBlocks || mat.condition.compute()) {
-							d.materialState().renderState.enableWithOrigin(ox, oy, oz);
+							d.materialState().renderState.enable(ox, oy, oz);
 							d.draw();
 						}
 					}

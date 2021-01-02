@@ -22,6 +22,7 @@ import org.lwjgl.opengl.GL21;
 
 import net.minecraft.util.Identifier;
 
+import grondag.canvas.material.property.MatrixState;
 import grondag.canvas.texture.TextureData;
 import grondag.canvas.varia.FlagData;
 import grondag.canvas.varia.WorldDataManager;
@@ -39,12 +40,7 @@ public class ShaderData {
 	public static final String VERTEX_START = "#include canvas:startvertex";
 	public static final String VEREX_END = "#include canvas:endvertex";
 
-	public static final Consumer<GlProgram> STANDARD_UNIFORM_SETUP = program -> {
-		program.uniformArray4f("_cvu_world", UniformRefreshFrequency.PER_TICK, u -> u.setExternal(WorldDataManager.DATA), WorldDataManager.VECTOR_COUNT);
-
-		program.uniformArrayui("_cvu_flags", UniformRefreshFrequency.PER_TICK, u -> u.setExternal(FlagData.DATA), FlagData.LENGTH);
-		//		program.uniformArrayui("_cvu_condition_flags", UniformRefreshFrequency.PER_TICK, u -> u.set(MaterialConditionImpl.CONDITION_FLAGS), MaterialConditionImpl.CONDITION_FLAG_ARRAY_LENGTH);
-
+	public static final Consumer<GlProgram> MATERIAL_UNIFORM_SETUP = program -> {
 		program.uniformSampler2d("frxs_spriteAltas", UniformRefreshFrequency.ON_LOAD, u -> u.set(TextureData.MC_SPRITE_ATLAS - GL21.GL_TEXTURE0));
 
 		program.uniformSampler2d("frxs_lightmap", UniformRefreshFrequency.ON_LOAD, u -> u.set(TextureData.MC_LIGHTMAP - GL21.GL_TEXTURE0));
@@ -56,5 +52,13 @@ public class ShaderData {
 		program.uniformSampler2d("_cvu_spriteInfo", UniformRefreshFrequency.ON_LOAD, u -> u.set(TextureData.SPRITE_INFO - GL21.GL_TEXTURE0));
 
 		program.uniformSampler2d("_cvu_materialInfo", UniformRefreshFrequency.ON_LOAD, u -> u.set(TextureData.MATERIAL_INFO - GL21.GL_TEXTURE0));
+	};
+
+	public static final Consumer<GlProgram> COMMON_UNIFORM_SETUP = program -> {
+		program.uniformArray4f("_cvu_world", UniformRefreshFrequency.PER_FRAME, u -> u.setExternal(WorldDataManager.DATA), WorldDataManager.VECTOR_COUNT);
+
+		program.uniformArrayui("_cvu_flags", UniformRefreshFrequency.PER_FRAME, u -> u.setExternal(FlagData.DATA), FlagData.LENGTH);
+
+		program.uniformMatrix4fArray("_cvu_matrix", UniformRefreshFrequency.PER_FRAME, u -> u.set(MatrixState.DATA));
 	};
 }

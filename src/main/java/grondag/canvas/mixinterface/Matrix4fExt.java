@@ -16,6 +16,8 @@
 
 package grondag.canvas.mixinterface;
 
+import java.nio.FloatBuffer;
+
 import net.minecraft.client.util.math.Vector3f;
 import net.minecraft.util.math.Matrix4f;
 
@@ -198,4 +200,6 @@ public interface Matrix4fExt {
 		a31(b31);
 		a32(b32);
 	}
+
+	void writeToBuffer(int baseIndex, FloatBuffer floatBuffer);
 }

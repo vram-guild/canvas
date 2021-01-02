@@ -16,6 +16,8 @@
 
 package grondag.canvas.mixin;
 
+import java.nio.FloatBuffer;
+
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
@@ -216,5 +218,28 @@ public class MixinMatrix4f implements Matrix4fExt {
 	@Override
 	public void a33(float val) {
 		a33 = val;
+	}
+
+	@Override
+	public void writeToBuffer(int baseIndex, FloatBuffer floatBuffer) {
+		floatBuffer.put(baseIndex + 0, a00);
+		floatBuffer.put(baseIndex + 1, a10);
+		floatBuffer.put(baseIndex + 2, a20);
+		floatBuffer.put(baseIndex + 3, a30);
+
+		floatBuffer.put(baseIndex + 4, a01);
+		floatBuffer.put(baseIndex + 5, a11);
+		floatBuffer.put(baseIndex + 6, a21);
+		floatBuffer.put(baseIndex + 7, a31);
+
+		floatBuffer.put(baseIndex + 8, a02);
+		floatBuffer.put(baseIndex + 9, a12);
+		floatBuffer.put(baseIndex + 10, a22);
+		floatBuffer.put(baseIndex + 11, a32);
+
+		floatBuffer.put(baseIndex + 12, a03);
+		floatBuffer.put(baseIndex + 13, a13);
+		floatBuffer.put(baseIndex + 14, a23);
+		floatBuffer.put(baseIndex + 15, a33);
 	}
 }

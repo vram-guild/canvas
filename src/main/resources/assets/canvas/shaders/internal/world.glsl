@@ -56,12 +56,31 @@
 #define _CV_PLAYER_FLAGS_INDEX 1
 #define _CV_CONDITION_FLAGS_START 2
 
+// update each frame
 uniform vec4[16] _cvu_world;
 uniform uint[4] _cvu_flags;
-uniform vec3 _cvu_model_origin;
+
+#define _CV_MODEL_TO_WORLD 0
+#define _CV_MODEL_TO_CAMERA 1
+
+// updated each invocation as needed
+uniform vec4[2] _cvu_model_origin;
 uniform int _cvu_model_origin_type;
 uniform mat3 _cvu_normal_model_matrix;
 uniform int _cvu_fog_mode;
+
+#define _CV_MATRIX_VIEW 0
+#define _CV_MATRIX_VIEW_INVERSE 1
+#define _CV_MATRIX_VIEW_LAST 2
+#define _CV_MAT_PROJ 3
+#define _CV_MAT_PROJ_INVERSE 4
+#define _CV_MAT_PROJ_LAST 5
+#define _CV_MATRIX_SHADOW_VIEW 6
+#define _CV_MATRIX_SHADOW_VIEW_INVERSE 7
+#define _CV_MAT_SHADOW_PROJ 8
+#define _CV_MAT_SHADOW_PROJ_INVERSE 9
+
+uniform mat4[10] _cvu_matrix;
 
 bool _cv_testCondition(int conditionIndex) {
 	return frx_bitValue(_cvu_flags[_CV_CONDITION_FLAGS_START + (conditionIndex >> 5)], conditionIndex & 31) == 1.0;
