@@ -34,6 +34,7 @@ import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.light.LightmapHd;
 import grondag.canvas.light.LightmapHdTexture;
 import grondag.canvas.material.property.MaterialTextureState;
+import grondag.canvas.mixinterface.WorldRendererExt;
 import grondag.canvas.pipeline.config.PipelineLoader;
 import grondag.canvas.pipeline.pass.Pass;
 import grondag.canvas.shader.GlProgram;
@@ -191,7 +192,6 @@ public class PipelineManager {
 		endFullFrameRender();
 	}
 
-	@SuppressWarnings("resource")
 	public static void init(int width, int height) {
 		assert RenderSystem.isOnRenderThread();
 
@@ -199,23 +199,27 @@ public class PipelineManager {
 
 		Pipeline.close();
 		tearDown();
-
 		assert CanvasGlHelper.checkError();
 
 		w = width;
 		h = height;
 
-		debugShader = new ProcessShader(new Identifier("canvas:shaders/pipeline/post/simple_full_frame.vert"), new Identifier("canvas:shaders/pipeline/post/copy_lod.frag"), "_cvu_input");
-
+		Pipeline.activate(w, h);
 		assert CanvasGlHelper.checkError();
 
-		Pipeline.activate(w, h);
+		final MinecraftClient mc = MinecraftClient.getInstance();
 
-		MinecraftClient.getInstance().options.graphicsMode = Pipeline.isFabulous() ? GraphicsMode.FABULOUS : GraphicsMode.FANCY;
+		if (mc.worldRenderer != null) {
+			((WorldRendererExt) mc.worldRenderer).canvas_setupFabulousBuffers();
+			assert CanvasGlHelper.checkError();
+		}
 
+		mc.options.graphicsMode = Pipeline.isFabulous() ? GraphicsMode.FABULOUS : GraphicsMode.FANCY;
+
+		debugShader = new ProcessShader(new Identifier("canvas:shaders/pipeline/post/simple_full_frame.vert"), new Identifier("canvas:shaders/pipeline/post/copy_lod.frag"), "_cvu_input");
 		Pipeline.defaultFbo.bind();
-
 		GlStateManager.bindTexture(0);
+		assert CanvasGlHelper.checkError();
 
 		final VertexCollectorImpl collector = new VertexCollectorImpl();
 		collector.add(0f, 0f, 0.2f, 0, 1f);
