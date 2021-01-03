@@ -71,7 +71,6 @@ public enum GlShaderManager {
 	}
 
 	public void reload() {
-		GlShader.forceReloadErrors();
 		fragmentShaders.values().forEach(s -> s.forceReload());
 		vertexShaders.values().forEach(s -> s.forceReload());
 	}

@@ -28,6 +28,11 @@ float p_diffuseBaked(vec3 normal) {
 	return 0.4 + min(0.6, l1 + l2);
 }
 
+// for testing
+float p_diffuseSky(vec3 normal) {
+	return 0.4 + max(0.0, dot(frx_skyLightVector(), normal));
+}
+
 /**
  * Offers results similar to vanilla in GUI, assumes a fixed transform.
  * Vanilla GUI light setup looks like this:
@@ -55,4 +60,5 @@ float p_diffuseGui(vec3 normal) {
 
 float p_diffuse (vec3 normal) {
 	return frx_isGui() ? p_diffuseGui(normal) : p_diffuseBaked(normal);
+	//return frx_isGui() ? p_diffuseGui(normal) : p_diffuseSky(normal);
 }

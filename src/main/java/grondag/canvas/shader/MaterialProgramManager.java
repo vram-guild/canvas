@@ -49,4 +49,8 @@ public enum MaterialProgramManager {
 
 		return result;
 	}
+
+	public void reload() {
+		materialPrograms.values().forEach(s -> s.forceReload());
+	}
 }

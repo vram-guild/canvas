@@ -54,6 +54,32 @@ float frx_moonSize() {
 }
 
 /*
+ * Rotation of the sky dome as part of the day/night cycle.
+ * Will not advance if doDaylightCycle game rule is turned off.
+ *
+ * In vanilla dimensions, zero represents the condition at
+ * tick = 0 (just after sunrise) and rotation is around the Z axis.
+ *
+ * Will be zero at noon, (world time = 6000) but vanilla adjusts the progression
+ * so that the sun is slightly over the horizon at world time = 0 and
+ * also takes its time setting as well.
+ */
+float frx_skyAngleRadians() {
+	return _cvu_world[_CV_SKYLIGHT_VECTOR].w;
+}
+
+/*
+ * Normalized vector of the primary sky light (the sun or moon) used for
+ * shadow mapping and useful for direct sky lighting. Points towards the skylight.
+ * Will not advance if doDaylightCycle game rule is turned off.
+ *
+ * See notes on frx_skyAngleRadians() regarding asymmetry.
+ */
+vec3 frx_skyLightVector() {
+	return _cvu_world[_CV_SKYLIGHT_VECTOR].xyz;
+}
+
+/*
  * Ambient light intensity of the currently rendering world.
  * Zero represents the morning / start of the day cycle in Minecraft.
  *

@@ -63,7 +63,6 @@ public class GlProgramManager implements ClientTickEvents.EndTick {
 	}
 
 	public void reload() {
-		GlShader.forceReloadErrors();
 		programs.forEach(s -> s.forceReload());
 		programs.clear();
 	}

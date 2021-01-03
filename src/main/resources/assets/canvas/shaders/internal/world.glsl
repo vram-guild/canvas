@@ -44,6 +44,11 @@
 // w is thunder strength
 #define _CV_EYE_POSITION 10
 
+// w is sky rotation in radians
+#define _CV_SKYLIGHT_VECTOR 11
+
+#define _CV_SKYLIGHT_POSITION 12
+
 #define _CV_FLAG_HAS_SKYLIGHT 0
 #define _CV_FLAG_IS_OVERWORLD 1
 #define _CV_FLAG_IS_NETHER 2

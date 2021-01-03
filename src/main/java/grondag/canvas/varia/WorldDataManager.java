@@ -104,6 +104,11 @@ public class WorldDataManager {
 	private static final int EYE_POSITION = 4 * 10;
 	private static final int THUNDER_STRENGTH = EYE_POSITION + 3;
 
+	private static final int SKYLIGHT_VECTOR = 4 * 11;
+	private static final int SKY_ANGLE_RADIANS = SKYLIGHT_VECTOR + 3;
+
+	private static final int SLYLIGHT_POSITION = 4 * 12;
+
 	private static final BitPacker32<Void> WORLD_FLAGS = new BitPacker32<>(null, null);
 	private static final BitPacker32<Void>.BooleanElement FLAG_HAS_SKYLIGHT = WORLD_FLAGS.createBooleanElement();
 	private static final BitPacker32<Void>.BooleanElement FLAG_IS_OVERWORLD = WORLD_FLAGS.createBooleanElement();
@@ -284,12 +289,27 @@ public class WorldDataManager {
 		if (world != null) {
 			final long days = world.getTimeOfDay() / 24000L;
 			DATA.put(WORLD_DAYS, (int) (days % 2147483647L));
-			DATA.put(WORLD_TIME, (float) ((world.getTimeOfDay() - days * 24000L) / 24000.0));
+			final long tickTime = world.getTimeOfDay() - days * 24000L;
+			final boolean skyLight = world.getDimension().hasSkyLight();
+			DATA.put(WORLD_TIME, (float) (tickTime / 24000.0));
 			final ClientPlayerEntity player = client.player;
 			DATA.put(PLAYER_MOOD, player.getMoodPercentage());
 			computeEyeNumbers(world, player);
 
-			worldFlags = FLAG_HAS_SKYLIGHT.setValue(world.getDimension().hasSkyLight(), worldFlags);
+			// WIP: make configurable by dimension, add smoothing
+			final boolean moonLight = tickTime > 13200 && tickTime < 23300;
+
+			if (skyLight) {
+				final float skyAngle = world.getSkyAngleRadians(tickDelta);
+				final float moonFactor = moonLight ? -1f : 1f;
+
+				DATA.put(SKYLIGHT_VECTOR + 0, moonFactor * (float) Math.sin(-skyAngle));
+				DATA.put(SKYLIGHT_VECTOR + 1, moonFactor * (float) Math.cos(skyAngle));
+				DATA.put(SKYLIGHT_VECTOR + 2, 0);
+				DATA.put(SKY_ANGLE_RADIANS, skyAngle);
+			}
+
+			worldFlags = FLAG_HAS_SKYLIGHT.setValue(skyLight, worldFlags);
 
 			worldFlags = FLAG_SNEAKING.setValue(player.isInSneakingPose(), worldFlags);
 			worldFlags = FLAG_SNEAKING_POSE.setValue(player.isSneaking(), worldFlags);
