@@ -52,10 +52,6 @@ void main() {
 	// material shaders go first
 	_cv_startVertex(data, cv_programId);
 
-	// pipeline shader goes after
-	// will typically do writes or set out variables here that use pre-transform values
-	frx_startPipelineVertex(data);
-
 	// map texture coordinates
 	if (_cvu_context[_CV_SPRITE_INFO_TEXTURE_SIZE] == 0.0) {
 		_cvv_spriteBounds = vec4(0.0, 0.0, 1.0, 1.0);
@@ -80,20 +76,6 @@ void main() {
 	}
 
 	data.spriteUV = _cv_textureCoord(data.spriteUV, 0);
-
-	// apply transforms
-	//data.normal *= gl_NormalMatrix;
-
-	if (frx_modelOriginType() == MODEL_ORIGIN_SCREEN) {
-		data.vertex = gl_ModelViewProjectionMatrix * data.vertex;
-	} else {
-		data.vertex += frx_modelToCamera();
-		data.vertex = _cvu_matrix[_CV_MAT_PROJ] * _cvu_matrix[_CV_MATRIX_VIEW] * data.vertex;
-	}
-
-	// pipeline shader handles additional writes/out variables
-	frx_writePipelineVertex(data);
-
 	frx_texcoord = data.spriteUV;
 	_cvv_color = data.color;
 	_cvv_normal = data.normal;
@@ -102,4 +84,7 @@ void main() {
 	_cvv_lightcoord = data.light;
 	_cvv_ao = data.aoShade;
 #endif
+
+	// pipeline shader handles additional writes/out variables
+	frx_writePipelineVertex(data);
 }

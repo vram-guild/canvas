@@ -57,19 +57,15 @@ public final class MaterialShaderImpl {
 	private void updateCommonUniforms(RenderState renderState) {
 		program.programInfo.set(vertexShaderIndex, fragmentShaderIndex, renderState.gui ? 1 : 0);
 		program.programInfo.upload();
-		assert CanvasGlHelper.checkError();
 
 		program.modelOriginType.set(MatrixState.getModelOrigin().ordinal());
 		program.modelOriginType.upload();
-		assert CanvasGlHelper.checkError();
 
 		program.normalModelMatrix.set(MatrixState.viewNormalMatrix);
 		program.normalModelMatrix.upload();
-		assert CanvasGlHelper.checkError();
 
 		program.fogMode.set(MaterialFog.shaderParam());
 		program.fogMode.upload();
-		assert CanvasGlHelper.checkError();
 	}
 
 	public void setModelOrigin(int x, int y, int z) {
@@ -77,7 +73,9 @@ public final class MaterialShaderImpl {
 	}
 
 	public void activate(RenderState renderState) {
+		assert CanvasGlHelper.checkError();
 		getOrCreate().activate();
+		assert CanvasGlHelper.checkError();
 		updateCommonUniforms(renderState);
 	}
 

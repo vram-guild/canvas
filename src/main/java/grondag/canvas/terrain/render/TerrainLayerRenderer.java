@@ -17,12 +17,10 @@
 package grondag.canvas.terrain.render;
 
 import com.google.common.util.concurrent.Runnables;
-import com.mojang.blaze3d.systems.RenderSystem;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.math.BlockPos;
 
 import grondag.canvas.Configurator;
@@ -44,7 +42,7 @@ public class TerrainLayerRenderer {
 		sortTask = isTranslucent ? translucentSortTask : Runnables.doNothing();
 	}
 
-	public void render(final BuiltRenderRegion[] visibleRegions, final int visibleRegionCount, MatrixStack matrixStack, double x, double y, double z) {
+	public void render(final BuiltRenderRegion[] visibleRegions, final int visibleRegionCount, double x, double y, double z) {
 		final MinecraftClient mc = MinecraftClient.getInstance();
 
 		sortTask.run();
@@ -87,33 +85,16 @@ public class TerrainLayerRenderer {
 						final long newRelativeOrigin = TerrainModelSpace.getPackedOrigin(modelOrigin);
 
 						if (newRelativeOrigin != lastRelativeOrigin) {
-							if (lastRelativeOrigin != -1) {
-								RenderSystem.popMatrix();
-								matrixStack.pop();
-							}
-
 							lastRelativeOrigin = newRelativeOrigin;
 
 							ox = TerrainModelSpace.renderCubeOrigin(modelOrigin.getX());
 							oy = TerrainModelSpace.renderCubeOrigin(modelOrigin.getY());
 							oz = TerrainModelSpace.renderCubeOrigin(modelOrigin.getZ());
-
-							matrixStack.push();
-							matrixStack.translate(ox - x, oy - y, oz - z);
-							RenderSystem.pushMatrix();
-							RenderSystem.loadIdentity();
-							RenderSystem.multMatrix(matrixStack.peek().getModel());
 						}
 					} else {
 						ox = modelOrigin.getX();
 						oy = modelOrigin.getY();
 						oz = modelOrigin.getZ();
-
-						matrixStack.push();
-						matrixStack.translate(ox - x, oy - y, oz - z);
-						RenderSystem.pushMatrix();
-						RenderSystem.loadIdentity();
-						RenderSystem.multMatrix(matrixStack.peek().getModel());
 					}
 
 					drawable.vboBuffer.bind();
@@ -129,18 +110,8 @@ public class TerrainLayerRenderer {
 							d.draw();
 						}
 					}
-
-					if (!Configurator.batchedChunkRender) {
-						RenderSystem.popMatrix();
-						matrixStack.pop();
-					}
 				}
 			}
-		}
-
-		if (lastRelativeOrigin != -1) {
-			RenderSystem.popMatrix();
-			matrixStack.pop();
 		}
 
 		mc.getProfiler().pop();

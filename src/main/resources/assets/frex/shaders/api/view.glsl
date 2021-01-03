@@ -19,7 +19,7 @@
 // to the camera position. This is the coordinate system for
 // inbound coordinates other than terrain and overlays.
 // Translate to world space by adding frx_cameraPos().
-// Translate to view space with frx_ViewMatrix().
+// Translate to view space with frx_viewMatrix().
 //
 // World Space
 // Block-algined coordinates in absolute MC world space.
@@ -31,7 +31,7 @@
 // View Space
 // Like camera space, but view is rotates so that the Z axis extends
 // in the direction of the camera view.
-// Translate to screen space with frx_ProjectionMatrix().
+// Translate to screen space with frx_projectionMatrix().
 //
 // Screen Space
 // 2D projection of the scene with depth.
@@ -152,6 +152,14 @@ int frx_modelOriginType() {
  */
 mat3 frx_normalModelMatrix() {
 	return _cvu_normal_model_matrix;
+}
+
+mat4 frx_viewMatrix() {
+	return _cvu_matrix[_CV_MATRIX_VIEW];
+}
+
+mat4 frx_projectionMatrix() {
+	return _cvu_matrix[_CV_MAT_PROJ];
 }
 
 /*

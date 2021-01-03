@@ -380,10 +380,12 @@ public class GlProgram {
 
 			if ((flags & FLAG_NEEDS_INITIALIZATION) == FLAG_NEEDS_INITIALIZATION) {
 				initializer.accept((T) this);
+				assert CanvasGlHelper.checkError();
 			}
 
 			if ((flags & FLAG_NEEDS_UPLOAD) == FLAG_NEEDS_UPLOAD && unifID != -1) {
 				uploadInner();
+				assert CanvasGlHelper.checkError();
 			}
 
 			flags = 0;
