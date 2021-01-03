@@ -1,8 +1,9 @@
-#include canvas:shaders/pipeline/post/header.glsl
+#include frex:shaders/api/header.glsl
 #include canvas:shaders/pipeline/pipeline.glsl
 #include frex:shaders/lib/color.glsl
 #include frex:shaders/lib/sample.glsl
 #include frex:shaders/lib/math.glsl
+#include frex:shaders/api/world.glsl
 
 /******************************************************
   canvas:shaders/pipeline/post/bloom.frag

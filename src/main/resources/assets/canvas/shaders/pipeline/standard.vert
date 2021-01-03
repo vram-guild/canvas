@@ -34,6 +34,7 @@ void frx_writePipelineVertex(in frx_VertexData data) {
 	}
 
 	frx_texcoord = frx_mapNormalizedUV(data.spriteUV);
+
 	pv_color = data.color;
 	pv_normal = data.normal;
 

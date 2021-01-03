@@ -34,11 +34,6 @@ public enum MaterialProgramManager {
 
 	private final Int2ObjectOpenHashMap<GlMaterialProgram> materialPrograms = new Int2ObjectOpenHashMap<>();
 
-	public void reload() {
-		GlShader.forceReloadErrors();
-		materialPrograms.values().forEach(s -> s.forceReload());
-	}
-
 	GlMaterialProgram getOrCreateMaterialProgram(ProgramType programType) {
 		assert programType == ProgramType.MATERIAL_UNIFORM_LOGIC || programType == ProgramType.MATERIAL_VERTEX_LOGIC;
 		final int key = programType.ordinal();

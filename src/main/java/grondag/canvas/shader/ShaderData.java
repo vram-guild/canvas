@@ -60,5 +60,7 @@ public class ShaderData {
 		program.uniformArrayui("_cvu_flags", UniformRefreshFrequency.PER_FRAME, u -> u.setExternal(FlagData.DATA), FlagData.LENGTH);
 
 		program.uniformMatrix4fArray("_cvu_matrix", UniformRefreshFrequency.PER_FRAME, u -> u.set(MatrixState.DATA));
+
+		program.uniformMatrix3f("_cvu_normal_model_matrix", UniformRefreshFrequency.PER_FRAME, u -> u.set(MatrixState.viewNormalMatrix));
 	};
 }

@@ -28,20 +28,14 @@ import net.minecraft.util.Identifier;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
+import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.buffer.VboBuffer;
 import grondag.canvas.buffer.encoding.VertexCollectorImpl;
 import grondag.canvas.buffer.format.CanvasVertexFormats;
-import grondag.canvas.light.LightmapHd;
-import grondag.canvas.light.LightmapHdTexture;
-import grondag.canvas.material.property.MaterialTextureState;
 import grondag.canvas.mixinterface.WorldRendererExt;
-import grondag.canvas.pipeline.config.PipelineLoader;
 import grondag.canvas.pipeline.pass.Pass;
 import grondag.canvas.shader.GlProgram;
-import grondag.canvas.shader.GlShaderManager;
-import grondag.canvas.shader.MaterialProgramManager;
 import grondag.canvas.shader.ProcessShader;
-import grondag.canvas.terrain.util.TerrainModelSpace;
 import grondag.canvas.varia.CanvasGlHelper;
 
 //PERF: handle VAO properly here before re-enabling VAO
@@ -103,14 +97,7 @@ public class PipelineManager {
 
 		if (doIt) {
 			CanvasMod.LOG.info(I18n.translate("info.canvas.reloading"));
-			GlShaderManager.INSTANCE.reload();
-			LightmapHdTexture.reload();
-			LightmapHd.reload();
-			MaterialProgramManager.INSTANCE.reload();
-			TerrainModelSpace.reload();
-			PipelineLoader.INSTANCE.apply(MinecraftClient.getInstance().getResourceManager());
-			Pipeline.reload();
-			MaterialTextureState.reload();
+			Canvas.INSTANCE.recompile();
 		}
 	}
 

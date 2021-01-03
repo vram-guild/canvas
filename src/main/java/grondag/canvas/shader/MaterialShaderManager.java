@@ -19,37 +19,22 @@ package grondag.canvas.shader;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.util.Identifier;
-
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
 import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
 import grondag.fermion.varia.IndexedInterner;
 
-public enum MaterialShaderManager implements ClientTickEvents.EndTick {
+public enum MaterialShaderManager {
 	INSTANCE;
 
 	private final SimpleUnorderedArrayList<MaterialShaderImpl> shaders = new SimpleUnorderedArrayList<>();
-
-	/**
-	 * Count of client ticks observed by renderer since last restart.
-	 */
-	private int tickIndex = 0;
-
-	/**
-	 * Count of frames observed by renderer since last restart.
-	 */
-	private int frameIndex = 0;
 
 	MaterialShaderManager() {
 		if (Configurator.enableLifeCycleDebug) {
 			CanvasMod.LOG.info("Lifecycle Event: MaterialShaderManager init");
 		}
-
-		ClientTickEvents.END_CLIENT_TICK.register(this);
 	}
 
 	public synchronized MaterialShaderImpl find(int vertexShaderIndex, int fragmentShaderIndex, ProgramType programType) {
@@ -73,7 +58,7 @@ public enum MaterialShaderManager implements ClientTickEvents.EndTick {
 
 		// ensure shaders are recompiled when new sub-shader source referenced
 		if (newVert || newFrag) {
-			MaterialProgramManager.INSTANCE.reload();
+			GlProgramManager.INSTANCE.reload();
 		}
 
 		return result;
@@ -81,40 +66,6 @@ public enum MaterialShaderManager implements ClientTickEvents.EndTick {
 
 	public MaterialShaderImpl get(int index) {
 		return shaders.get(index);
-	}
-
-	/**
-	 * The number of shaders currently registered.
-	 */
-	public int shaderCount() {
-		return shaders.size();
-	}
-
-	public int tickIndex() {
-		return tickIndex;
-	}
-
-	public int frameIndex() {
-		return frameIndex;
-	}
-
-	@Override
-	public void onEndTick(MinecraftClient client) {
-		tickIndex++;
-		final int limit = shaders.size();
-
-		for (int i = 0; i < limit; i++) {
-			shaders.get(i).onGameTick();
-		}
-	}
-
-	public void onRenderTick() {
-		frameIndex++;
-		final int limit = shaders.size();
-
-		for (int i = 0; i < limit; i++) {
-			shaders.get(i).onRenderTick();
-		}
 	}
 
 	/** Tracks which vertex sub-shaders are in use by materials. */

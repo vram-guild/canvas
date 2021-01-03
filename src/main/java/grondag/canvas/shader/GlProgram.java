@@ -270,6 +270,8 @@ public class GlProgram {
 			for (int i = 0; i < limit; i++) {
 				activeUniforms.get(i).load(progID);
 			}
+
+			GlProgramManager.INSTANCE.add(this);
 		}
 	}
 
@@ -277,6 +279,7 @@ public class GlProgram {
 		if (progID > 0) {
 			GL21.glDeleteProgram(progID);
 			progID = -1;
+			GlProgramManager.INSTANCE.remove(this);
 		}
 	}
 

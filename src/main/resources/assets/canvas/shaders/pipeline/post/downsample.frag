@@ -1,4 +1,4 @@
-#include canvas:shaders/pipeline/post/header.glsl
+#include frex:shaders/api/header.glsl
 #include canvas:shaders/pipeline/pipeline.glsl
 #include frex:shaders/lib/sample.glsl
 

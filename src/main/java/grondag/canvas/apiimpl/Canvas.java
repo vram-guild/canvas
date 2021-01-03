@@ -42,8 +42,8 @@ import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.perf.ChunkRebuildCounters;
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.pipeline.config.PipelineLoader;
+import grondag.canvas.shader.GlProgramManager;
 import grondag.canvas.shader.GlShaderManager;
-import grondag.canvas.shader.MaterialProgramManager;
 import grondag.canvas.terrain.region.ProtoRenderRegion;
 import grondag.canvas.terrain.util.ChunkColorCache;
 import grondag.canvas.terrain.util.TerrainModelSpace;
@@ -100,10 +100,14 @@ public class Canvas implements Renderer {
 		ChunkRebuildCounters.reset();
 		ChunkColorCache.invalidate();
 		AoVertexClampFunction.reload();
+		recompile();
+	}
+
+	public void recompile() {
 		GlShaderManager.INSTANCE.reload();
+		GlProgramManager.INSTANCE.reload();
 		LightmapHdTexture.reload();
 		LightmapHd.reload();
-		MaterialProgramManager.INSTANCE.reload();
 		TerrainModelSpace.reload();
 		PipelineLoader.INSTANCE.apply(MinecraftClient.getInstance().getResourceManager());
 		Pipeline.reload();

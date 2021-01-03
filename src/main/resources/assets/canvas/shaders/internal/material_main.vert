@@ -1,4 +1,4 @@
-#include canvas:shaders/internal/header.glsl
+#include frex:shaders/api/header.glsl
 #include frex:shaders/api/context.glsl
 #include frex:shaders/api/vertex.glsl
 #include frex:shaders/api/sampler.glsl

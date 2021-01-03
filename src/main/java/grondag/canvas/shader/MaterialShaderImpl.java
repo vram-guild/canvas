@@ -61,9 +61,6 @@ public final class MaterialShaderImpl {
 		program.modelOriginType.set(MatrixState.getModelOrigin().ordinal());
 		program.modelOriginType.upload();
 
-		program.normalModelMatrix.set(MatrixState.viewNormalMatrix);
-		program.normalModelMatrix.upload();
-
 		program.fogMode.set(MaterialFog.shaderParam());
 		program.fogMode.upload();
 	}
@@ -92,18 +89,6 @@ public final class MaterialShaderImpl {
 
 	public int getIndex() {
 		return index;
-	}
-
-	public void onRenderTick() {
-		if (program != null) {
-			program.onRenderTick();
-		}
-	}
-
-	public void onGameTick() {
-		if (program != null) {
-			program.onGameTick();
-		}
 	}
 
 	@Override

@@ -104,7 +104,7 @@ import grondag.canvas.mixinterface.WorldRendererExt;
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.pipeline.PipelineManager;
 import grondag.canvas.shader.GlProgram;
-import grondag.canvas.shader.MaterialShaderManager;
+import grondag.canvas.shader.GlProgramManager;
 import grondag.canvas.terrain.occlusion.PotentiallyVisibleRegionSorter;
 import grondag.canvas.terrain.occlusion.TerrainIterator;
 import grondag.canvas.terrain.occlusion.TerrainOccluder;
@@ -270,7 +270,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		mc.getProfiler().push("camera");
 		WorldDataManager.update(camera);
 		MaterialConditionImpl.update();
-		MaterialShaderManager.INSTANCE.onRenderTick();
+		GlProgramManager.INSTANCE.onRenderTick();
 		final BlockPos cameraBlockPos = camera.getBlockPos();
 		final BuiltRenderRegion cameraRegion = cameraBlockPos.getY() < 0 || cameraBlockPos.getY() > 255 ? null : regionStorage.getOrCreateRegion(cameraBlockPos);
 
