@@ -6,14 +6,14 @@
 ******************************************************/
 
 #if DIFFUSE_SHADING_MODE != DIFFUSE_MODE_NONE
-varying float _cpv_diffuse;
+varying float pv_diffuse;
 #endif
 
 /**
  * Formula mimics vanilla lighting for plane-aligned quads and is vaguely
  * consistent with Phong lighting ambient + diffuse for others.
  */
-float _cp_diffuseBaked(vec3 normal) {
+float p_diffuseBaked(vec3 normal) {
 	mat3 normalModelMatrix = frx_normalModelMatrix();
 	// TODO: encode as constants here and below
 	vec3 lv1 = normalize(vec3(0.1, 1.0, -0.3));
@@ -45,7 +45,7 @@ float _cp_diffuseBaked(vec3 normal) {
  * glShadeModel(GL_FLAT);
  * glLightModel(GL_LIGHT_MODEL_AMBIENT, 0.4F, 0.4F, 0.4F, 1.0F);
  */
-float _cp_diffuseGui(vec3 normal) {
+float p_diffuseGui(vec3 normal) {
 	normal = normalize(gl_NormalMatrix * normal);
 	float light = 0.4
 	+ 0.6 * clamp(dot(normal.xyz, vec3(-0.96104145, -0.078606814, -0.2593495)), 0.0, 1.0)
@@ -53,6 +53,6 @@ float _cp_diffuseGui(vec3 normal) {
 	return min(light, 1.0);
 }
 
-float _cp_diffuse (vec3 normal) {
-	return frx_isGui() ? _cp_diffuseGui(normal) : _cp_diffuseBaked(normal);
+float p_diffuse (vec3 normal) {
+	return frx_isGui() ? p_diffuseGui(normal) : p_diffuseBaked(normal);
 }

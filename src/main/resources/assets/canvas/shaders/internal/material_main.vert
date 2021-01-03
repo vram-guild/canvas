@@ -77,13 +77,6 @@ void main() {
 
 	data.spriteUV = _cv_textureCoord(data.spriteUV, 0);
 	frx_texcoord = data.spriteUV;
-	_cvv_color = data.color;
-	_cvv_normal = data.normal;
-
-#ifdef VANILLA_LIGHTING
-	_cvv_lightcoord = data.light;
-	_cvv_ao = data.aoShade;
-#endif
 
 	// pipeline shader handles additional writes/out variables
 	frx_writePipelineVertex(data);

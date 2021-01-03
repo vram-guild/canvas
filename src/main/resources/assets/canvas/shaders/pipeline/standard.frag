@@ -1,6 +1,7 @@
 #include canvas:shaders/pipeline/options.glsl
 #include canvas:shaders/pipeline/fog.glsl
 #include canvas:shaders/pipeline/diffuse.glsl
+#include canvas:shaders/pipeline/varying.glsl
 #include frex:shaders/lib/math.glsl
 #include frex:shaders/lib/color.glsl
 #include frex:shaders/api/world.glsl
@@ -45,7 +46,7 @@ vec4 light(frx_FragmentData fragData) {
 	if (fragData.diffuse) {
 		vec4 block = texture2D(frxs_lightmap, vec2(fragData.light.x, 0.03125));
 		vec4 sky = texture2D(frxs_lightmap, vec2(0.03125, fragData.light.y));
-		result = max(block, sky * _cpv_diffuse);
+		result = max(block, sky * pv_diffuse);
 	} else {
 		result = texture2D(frxs_lightmap, fragData.light);
 	}
@@ -71,7 +72,31 @@ vec4 light(frx_FragmentData fragData) {
 	return result;
 }
 
-void frx_startPipelineFragment(inout frx_FragmentData fragData) {
+frx_FragmentData frx_createPipelineFragment() {
+#ifdef VANILLA_LIGHTING
+	return frx_FragmentData (
+		texture2D(frxs_spriteAltas, frx_texcoord, _cv_getFlag(_CV_FLAG_UNMIPPED) * -4.0),
+		pv_color,
+		frx_matEmissive() ? 1.0 : 0.0,
+		!frx_matDisableDiffuse(),
+		!frx_matDisableAo(),
+		pv_normal,
+		pv_lightcoord,
+		pv_ao
+	);
+#else
+	return frx_FragmentData (
+		texture2D(frxs_spriteAltas, frx_texcoord, _cv_getFlag(_CV_FLAG_UNMIPPED) * -4.0),
+		pv_color,
+		frx_matEmissive() ? 1.0 : 0.0,
+		!frx_matDisableDiffuse(),
+		!frx_matDisableAo(),
+		pv_normal
+	);
+#endif
+}
+
+void frx_writePipelineFragment(inout frx_FragmentData fragData) {
 	vec4 a = fragData.spriteColor * fragData.vertexColor;
 	a *= mix(light(fragData), frx_emissiveColor(), fragData.emissivity);
 
@@ -83,7 +108,7 @@ void frx_startPipelineFragment(inout frx_FragmentData fragData) {
 
 #if DIFFUSE_SHADING_MODE == DIFFUSE_MODE_NORMAL
 	if (fragData.diffuse) {
-		float df = _cpv_diffuse + (1.0 - _cpv_diffuse) * fragData.emissivity;
+		float df = pv_diffuse + (1.0 - pv_diffuse) * fragData.emissivity;
 
 		a *= vec4(df, df, df, 1.0);
 	}
