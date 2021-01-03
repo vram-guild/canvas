@@ -29,14 +29,19 @@ varying vec2 frx_texcoord;
  *
  *
  * Usage in API for pipeline shaders:
- * 	  void frx_startPipelineFragment(inout frx_FragmentData fragData)
+ * 	  frx_FragmentData frx_createPipelineFragment()
+ * 	  void frx_writePipelineFragment(in frx_FragmentData fragData)
  *
- * Before the pipeline shader runs, the renderer will populate the fragData
- * structure, including texture sampling according to material filter settings.
+ * The renderer will test for discard caused by material condition. If
+ * discard does not happen, it will call frx_createPipelineFragment() and the
+ * pipeline shader must create and populate the data structure with data written
+ * during frx_writePipelineVertex().
  *
- * The renderer will then call the material shader and test for conditional
+ * The renderer will then call the material shader and test again for conditional
  * rendering and cutout - discarding fragments if appropriate.
- * Then it will call frx_startPipelineFragment().
+ *
+ * Lastly, the renderer calls frx_writePipelineFragment() which must update
+ * and targets needed for render output or additional passes.
  *
  * The pipeline shader is responsible for ALL WRITES.
  * The renderer will not update depth or any color attachment.

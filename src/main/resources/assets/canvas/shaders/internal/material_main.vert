@@ -69,14 +69,8 @@ void main() {
 		spriteBounds += vec4(0.5, 0.5, 0.5, 0.5);
 		spriteBounds -= fract(spriteBounds);
 		spriteBounds /= vec4(atlasWidth, atlasHeight, atlasWidth, atlasHeight);
-
-		data.spriteUV = spriteBounds.xy + data.spriteUV * spriteBounds.zw;
-
 		_cvv_spriteBounds = spriteBounds;
 	}
-
-	data.spriteUV = _cv_textureCoord(data.spriteUV, 0);
-	frx_texcoord = data.spriteUV;
 
 	// pipeline shader handles additional writes/out variables
 	frx_writePipelineVertex(data);

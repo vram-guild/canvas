@@ -33,7 +33,7 @@ varying vec4 frx_var2;
 varying vec4 frx_var3;
 
 /**
- * Texture coordinate to intended to support special sampling use cases
+ * Texture coordinate intended to support special sampling use cases
  * during fragment shading.  WILL BE SET BY RENDERER.  Do not touch.
  */
 varying vec2 frx_texcoord;
@@ -54,19 +54,18 @@ varying vec2 frx_texcoord;
  * formats are managed entirely by the renderer.) The renderer
  * also invokes the correct material shader.
  *
- * There renderer will call frx_writeVertex immediately after
- * frx_startVertex completes, and make no modifications to the data.
+ * The renderer also manages variable state needed for atlas texture
+ * transforms, material properties, and other elements of the FREX API.
+ * The renderer does nothing else and calls frx_writeVertex when complete.
  *
- * The pipeline is responsible for ALL WRITES. This includes
+ * The pipeline is responsible for ALL OTHER WRITES. This includes
  * transforming UV coordinates for atlas textures from normalized
- * to mapped. The renderer does nothing else.
+ * to mapped and populating frx_texcoord. The pipeline must also declare
+ * and populate out variables to populate the interpolated values
+ * presented in frx_startFragment.
  *
- * The renderer will not update fog, clip, color, nor any other output variable.
- *
- * The renderer WILL set out variables for the interpolated values
- * presented in frx_startFragment but these are not directly exposed
- * outside of that method, except for frx_texcoord. Any other out variables
- * the pipeline needs must be set in one of these two methods.
+ * Lastly, the pipeline must write to fog, clip, vertex or any other built-in
+ * variable as required by open GL.
  */
 struct frx_VertexData {
 	/*

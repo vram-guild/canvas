@@ -33,6 +33,7 @@ void frx_writePipelineVertex(in frx_VertexData data) {
 		gl_Position = frx_projectionMatrix() * viewCoord;
 	}
 
+	frx_texcoord = frx_mapNormalizedUV(data.spriteUV);
 	pv_color = data.color;
 	pv_normal = data.normal;
 

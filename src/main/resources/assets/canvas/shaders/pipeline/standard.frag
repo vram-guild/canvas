@@ -96,7 +96,7 @@ frx_FragmentData frx_createPipelineFragment() {
 #endif
 }
 
-void frx_writePipelineFragment(inout frx_FragmentData fragData) {
+void frx_writePipelineFragment(in frx_FragmentData fragData) {
 	vec4 a = fragData.spriteColor * fragData.vertexColor;
 	a *= mix(light(fragData), frx_emissiveColor(), fragData.emissivity);
 
