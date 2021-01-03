@@ -33,10 +33,28 @@ varying vec4 frx_var2;
 varying vec4 frx_var3;
 
 /**
- * Texture coordinate intended to support special sampling use cases
- * during fragment shading.  WILL BE SET BY RENDERER.  Do not touch.
+ * Interpolated texture coordinate in mapped (non-normalized) coordinates.
+ * Set by renderer after material shader runs. Do not modify.
  */
 varying vec2 frx_texcoord;
+
+/**
+ * Interpolated vertex color output.
+ * Set by renderer after material shader runs. Do not modify.
+ */
+varying vec4 frx_color;
+
+/**
+ * Interpolated vertex normal in world/camera space.
+ * Set by renderer after material shader runs. Do not modify.
+ */
+varying vec3 frx_normal;
+
+/**
+ * Interpolated vertex position in camera space.
+ * Set by renderer after material shader runs. Do not modify.
+ */
+varying vec4 frx_vertex;
 
 /*
  * Usage in API for material shaders:
@@ -56,6 +74,9 @@ varying vec2 frx_texcoord;
  *
  * The renderer also manages variable state needed for atlas texture
  * transforms, material properties, and other elements of the FREX API.
+ *
+ * After the material shader runs, it will set values for frx_texcoord,
+ * frx_vertex, frx_normal and frx_color.
  * The renderer does nothing else and calls frx_writeVertex when complete.
  *
  * The pipeline is responsible for ALL OTHER WRITES. This includes
@@ -69,18 +90,15 @@ varying vec2 frx_texcoord;
  */
 struct frx_VertexData {
 	/*
-	 * Vertex position. Transformation during cv_startVertex
+	 * Vertex position in camera space. Transformation in frx_startVertex
 	 * is the primary means for achieving animation effects.
 	 * Remember that normals must be transformed separately!
-	 *
-	 * Will be camera-relative world space (unrotated for view)
-	 * during cv_startVertex and screen space during cv_endVertex.
 	 */
 	vec4 vertex;
 
 	/*
 	 * The primary texture coordinate for the vertex.
-	 * These are always normalized 0-1 coordinates in cv_startVertex.
+	 * These are always normalized 0-1 coordinates in frx_startVertex.
 	 */
 	vec2 spriteUV;
 
@@ -101,12 +119,10 @@ struct frx_VertexData {
 	vec4 color;
 
 	/*
-	 * Vertex normal. Transformation during cv_startVertex
+	 * Vertex normal in camera/world space. Transformation in frx_startVertex
 	 * is the primary means for achieving animation effects.
 	 * Transforming normal in addition to vertex is important
 	 * for correct lighting.
-	 *
-	 * Will be in world space during cv_startVertex.
 	 */
 	vec3 normal;
 

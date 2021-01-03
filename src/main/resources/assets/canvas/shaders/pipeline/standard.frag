@@ -76,22 +76,22 @@ frx_FragmentData frx_createPipelineFragment() {
 #ifdef VANILLA_LIGHTING
 	return frx_FragmentData (
 		texture2D(frxs_spriteAltas, frx_texcoord, frx_matUnmippedFactor() * -4.0),
-		pv_color,
+		frx_color,
 		frx_matEmissive() ? 1.0 : 0.0,
 		!frx_matDisableDiffuse(),
 		!frx_matDisableAo(),
-		pv_normal,
+		frx_normal,
 		pv_lightcoord,
 		pv_ao
 	);
 #else
 	return frx_FragmentData (
 		texture2D(frxs_spriteAltas, frx_texcoord, frx_matUnmippedFactor() * -4.0),
-		pv_color,
+		frx_color,
 		frx_matEmissive() ? 1.0 : 0.0,
 		!frx_matDisableDiffuse(),
 		!frx_matDisableAo(),
-		pv_normal
+		frx_normal
 	);
 #endif
 }

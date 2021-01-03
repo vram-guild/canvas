@@ -13,12 +13,28 @@ varying vec4 frx_var2;
 varying vec4 frx_var3;
 
 /**
- * Texture coordinate from vertex.glsl.  Normally not needed because
- * the renderer handles primary texture sampling in order to populate
- * the data structure before the material shader runs.  Exposed to
- * support exotic sampling use cases.
+ * Interpolated texture coordinate in mapped (non-normalized) coordinates.
+ * Set by renderer after material shader runs. Do not modify.
  */
 varying vec2 frx_texcoord;
+
+/**
+ * Interpolated vertex color output.
+ * Set by renderer after material shader runs. Do not modify.
+ */
+varying vec4 frx_color;
+
+/**
+ * Interpolated vertex normal in world/camera space.
+ * Set by renderer after material shader runs. Do not modify.
+ */
+varying vec3 frx_normal;
+
+/**
+ * Interpolated vertex position in camera space.
+ * Set by renderer after material shader runs. Do not modify.
+ */
+varying vec4 frx_vertex;
 
 /*
  * Usage in API for material shaders:

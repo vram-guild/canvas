@@ -72,6 +72,11 @@ void main() {
 		_cvv_spriteBounds = spriteBounds;
 	}
 
+	frx_texcoord = frx_mapNormalizedUV(data.spriteUV);
+	frx_color = data.color;
+	frx_normal = data.normal;
+	frx_vertex = data.vertex;
+
 	// pipeline shader handles additional writes/out variables
 	frx_writePipelineVertex(data);
 }
