@@ -9,7 +9,7 @@
 /**
  * Linear fog.  Is an inverse factor - 0 means full fog.
  */
-float _cp_linearFogFactor() {
+float p_linearFogFactor() {
 	float fogFactor = (gl_Fog.end - gl_FogFragCoord) * gl_Fog.scale;
 	return clamp(fogFactor, 0.0, 1.0);
 }
@@ -17,7 +17,7 @@ float _cp_linearFogFactor() {
 /**
  * Exponential fog.  Is really an inverse factor - 0 means full fog.
  */
-float _cp_expFogFactor() {
+float p_expFogFactor() {
 	float f = gl_FogFragCoord * gl_Fog.density;
 	float fogFactor = frx_fogMode() == FOG_EXP ? exp(f) : exp(f * f);
 	return clamp(1.0 / fogFactor, 0.0, 1.0);
@@ -26,20 +26,20 @@ float _cp_expFogFactor() {
 /**
  * Returns either linear or exponential fog depending on current uniform value.
  */
-float _cp_fogFactor() {
-	return frx_fogMode() == FOG_LINEAR ? _cp_linearFogFactor() : _cp_expFogFactor();
+float p_fogFactor() {
+	return frx_fogMode() == FOG_LINEAR ? p_linearFogFactor() : p_expFogFactor();
 }
 
-vec4 _cp_fogInner(vec4 diffuseColor) {
+vec4 p_fogInner(vec4 diffuseColor) {
 #if _CV_FOG_CONFIG == _CV_FOG_CONFIG_SUBTLE
-	float f = 1.0 - _cp_fogFactor();
+	float f = 1.0 - p_fogFactor();
 	f *= f;
 	return mix(vec4(gl_Fog.color.rgb, diffuseColor.a), diffuseColor, 1.0 - f);
 #else
-	return mix(vec4(gl_Fog.color.rgb, diffuseColor.a), diffuseColor, _cp_fogFactor());
+	return mix(vec4(gl_Fog.color.rgb, diffuseColor.a), diffuseColor, p_fogFactor());
 #endif
 }
 
-vec4 _cp_fog(vec4 diffuseColor) {
-	return frx_fogMode() == FOG_DISABLE ? diffuseColor : _cp_fogInner(diffuseColor);
+vec4 p_fog(vec4 diffuseColor) {
+	return frx_fogMode() == FOG_DISABLE ? diffuseColor : p_fogInner(diffuseColor);
 }

@@ -75,7 +75,7 @@ vec4 light(frx_FragmentData fragData) {
 frx_FragmentData frx_createPipelineFragment() {
 #ifdef VANILLA_LIGHTING
 	return frx_FragmentData (
-		texture2D(frxs_spriteAltas, frx_texcoord, _cv_getFlag(_CV_FLAG_UNMIPPED) * -4.0),
+		texture2D(frxs_spriteAltas, frx_texcoord, frx_matUnmippedFactor() * -4.0),
 		pv_color,
 		frx_matEmissive() ? 1.0 : 0.0,
 		!frx_matDisableDiffuse(),
@@ -86,7 +86,7 @@ frx_FragmentData frx_createPipelineFragment() {
 	);
 #else
 	return frx_FragmentData (
-		texture2D(frxs_spriteAltas, frx_texcoord, _cv_getFlag(_CV_FLAG_UNMIPPED) * -4.0),
+		texture2D(frxs_spriteAltas, frx_texcoord, frx_matUnmippedFactor() * -4.0),
 		pv_color,
 		frx_matEmissive() ? 1.0 : 0.0,
 		!frx_matDisableDiffuse(),
@@ -134,7 +134,7 @@ void frx_writePipelineFragment(inout frx_FragmentData fragData) {
 	//a = vec4(frx_vanillaClearColor(), a.a);
 
 	// TODO: need a separate fog pass?
-	gl_FragData[TARGET_BASECOLOR] = _cp_fog(a);
+	gl_FragData[TARGET_BASECOLOR] = p_fog(a);
 	gl_FragDepth = gl_FragCoord.z;
 	gl_FragData[TARGET_EMISSIVE] = vec4(fragData.emissivity * a.a, 0.0, 0.0, 1.0);
 }

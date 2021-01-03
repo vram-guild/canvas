@@ -14,6 +14,11 @@ bool frx_matEmissive() {
 	return _cv_getFlag(_CV_FLAG_EMISSIVE) == 1.0;
 }
 
+/** Multiplicative version frx_matEmissive(), true return 1, false returns 0 */
+float frx_matEmissiveFactor() {
+	return _cv_getFlag(_CV_FLAG_EMISSIVE);
+}
+
 /*
  * True when material is cutout. When enabled,
  * fragments will be discarded if alpha < 0.5.
@@ -22,12 +27,22 @@ bool frx_matCutout() {
 	return _cv_getFlag(_CV_FLAG_CUTOUT) == 1.0;
 }
 
+/** Multiplicative version frx_matCutout(), true return 1, false returns 0 */
+float frx_matCutoutFactor() {
+	return _cv_getFlag(_CV_FLAG_CUTOUT);
+}
+
 /*
  * True when material is has Level of Detail (mip mapping) disabled.
  * Currently the RenderMaterail finder only allows this for cutout materials.
  */
 bool frx_matUnmipped() {
 	return _cv_getFlag(_CV_FLAG_UNMIPPED) == 1.0;
+}
+
+/** Multiplicative version frx_matUnmipped(), true return 1, false returns 0 */
+float frx_matUnmippedFactor() {
+	return _cv_getFlag(_CV_FLAG_UNMIPPED);
 }
 
 /*
